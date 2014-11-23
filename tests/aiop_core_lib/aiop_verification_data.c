@@ -80,6 +80,7 @@ extern __TASK uint32_t seed_32bit;
 
 void init_verif()
 {
+#ifndef CDC_ROC
 	struct parse_result *pr;
 
 	pr = (struct parse_result *)HWC_PARSE_RES_ADDRESS;
@@ -117,7 +118,7 @@ void init_verif()
 	default_task_params.parser_starting_hxs = 0;
 	default_task_params.parser_profile_id = verif_prpid;
 	parse_result_generate_default(0);
-
+#endif
 	status_gro = 0;
 	status_gso = 0;
 	status_ipf1 = 0;

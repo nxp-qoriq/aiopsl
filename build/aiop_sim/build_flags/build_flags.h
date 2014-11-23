@@ -59,5 +59,6 @@
 #define SIMULATOR
 #define DEBUG_NO_MC
 
+#define CDC_ROC
 
 #endif /* __BUILD_FLAGS_H */

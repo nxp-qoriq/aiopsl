@@ -38,7 +38,7 @@
 __TASK struct aiop_default_task_params default_task_params;
 
 /* TODO - cleanup once the error handling below is moved to verification code.*/
-#ifdef AIOP_VERIF
+#if (defined AIOP_VERIF || defined CDC_ROC)
 #include "aiop_verification_data.h"
 #include "aiop_verification.h"
 #include <string.h>
@@ -63,7 +63,7 @@ void exception_handler(char *filename,
 		       char *message) __attribute__ ((noreturn))
 {
 	uint32_t status;
-#ifdef AIOP_VERIF
+#if (defined AIOP_VERIF || defined CDC_ROC)
 
 	struct fatal_error_command fatal_cmd_str;
 	struct fatal_error_command *fatal_cmd;

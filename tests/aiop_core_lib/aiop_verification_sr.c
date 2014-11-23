@@ -116,11 +116,13 @@ void aiop_verification_parse()
 			str_size = aiop_verification_hm(asa_seg_addr);
 			break;
 		}
+#ifndef CDC_ROC		
 		case VPOOL_MODULE:
 		{
 			str_size = verification_virtual_pools(asa_seg_addr);
 			break;
 		}
+#endif
 		case OSM_MODULE:
 		{
 			str_size = aiop_verification_osm(asa_seg_addr);

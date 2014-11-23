@@ -34,12 +34,15 @@
 #include "fsl_l2.h"
 
 #include "aiop_verification.h"
+#include "fsl_slab.h"
+
+int app_early_init(void);
 
 int app_init(void);
 void app_free(void);
 
 
-__HOT_CODE static void app_process_packet_flow0 (dpni_drv_app_arg_t arg)
+static void app_process_packet_flow0 (dpni_drv_app_arg_t arg)
 {
 	int      err = 0;
 	int local_test_error = 0;
@@ -112,6 +115,12 @@ __HOT_CODE static void app_process_packet_flow0 (dpni_drv_app_arg_t arg)
 		fsl_os_print("Finished SUCCESSFULLY\n");
 	else
 		fsl_os_print("Finished with ERRORS\n");
+}
+
+
+int app_early_init(void){
+	slab_register_context_buffer_requirements(100, 100, 2688, 64, MEM_PART_DP_DDR, 0, 0);
+	return 0;
 }
 
 int app_init(void)

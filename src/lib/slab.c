@@ -1088,12 +1088,19 @@ __COLD_CODE int slab_module_early_init(void){
 	for(i = 0; i < SLAB_NUM_MEM_PARTITIONS; i++)
 		if(g_slab_early_init_data->mem_pid_buffer_request[i])
 			g_slab_early_init_data->mem_pid_buffer_request[i] = NULL;
-	
+#ifndef CDC_ROC	
 	err |= slab_register_context_buffer_requirements(750,750,4088,0,MEM_PART_DP_DDR,0, 0);
 	err |= slab_register_context_buffer_requirements(750,750,2040,0,MEM_PART_DP_DDR,0, 0);
 	err |= slab_register_context_buffer_requirements(750,750,1016,64,MEM_PART_DP_DDR,0, 0);
 	err |= slab_register_context_buffer_requirements(750,750,504,64,MEM_PART_DP_DDR,0, 0);
 	err |= slab_register_context_buffer_requirements(750,750,248,64,MEM_PART_DP_DDR,0, 0);
+#else
+	err |= slab_register_context_buffer_requirements(20,20,4088,0,MEM_PART_DP_DDR,0, 0);
+	err |= slab_register_context_buffer_requirements(20,20,2040,0,MEM_PART_DP_DDR,0, 0);
+	err |= slab_register_context_buffer_requirements(20,20,1016,64,MEM_PART_DP_DDR,0, 0);
+	err |= slab_register_context_buffer_requirements(20,20,504,64,MEM_PART_DP_DDR,0, 0);
+	err |= slab_register_context_buffer_requirements(20,20,248,64,MEM_PART_DP_DDR,0, 0);
+#endif
 	err |= slab_register_context_buffer_requirements(20,20,4088,64,MEM_PART_PEB,0, 0);
 	err |= slab_register_context_buffer_requirements(20,20,2040,64,MEM_PART_PEB,0, 0);
 	err |= slab_register_context_buffer_requirements(20,20,1016,64,MEM_PART_PEB,0, 0);

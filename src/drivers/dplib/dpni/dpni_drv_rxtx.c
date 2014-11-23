@@ -85,11 +85,12 @@ void receive_cb(void)
 			ADC_WQID_PRI_OFFSET)) & ADC_WQID_MASK) >> 4);
 	
 	parse_status = parse_result_generate_basic();
+#ifndef CDC_ROC	
 	if (parse_status) {
 		fdma_discard_default_frame(FDMA_DIS_NO_FLAGS);
 		fdma_terminate_task();
 	}
-
+#endif
 	dpni_drv->rx_cbs(dpni_drv->arg);
 	fdma_terminate_task();
 }

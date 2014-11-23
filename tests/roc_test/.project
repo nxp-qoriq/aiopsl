@@ -24,7 +24,7 @@ aiop_sl		</project>
 				</dictionary>
 				<dictionary>
 					<key>org.eclipse.cdt.make.core.buildArguments</key>
-					<value>-j16</value>
+					<value>-j8</value>
 				</dictionary>
 				<dictionary>
 					<key>org.eclipse.cdt.make.core.buildCommand</key>
@@ -257,21 +257,6 @@ aiop_sl		</project>
 			<locationURI>PARENT-1-PROJECT_LOC/aiop_core_lib/aiop_verification_tman.h</locationURI>
 		</link>
 		<link>
-			<name>Verification/slab_stub.c</name>
-			<type>1</type>
-			<locationURI>PARENT-1-PROJECT_LOC/aiop_core_lib/slab_stub.c</locationURI>
-		</link>
-		<link>
-			<name>Verification/slab_stub.h</name>
-			<type>1</type>
-			<locationURI>PARENT-1-PROJECT_LOC/aiop_core_lib/slab_stub.h</locationURI>
-		</link>
-		<link>
-			<name>Verification/start.c</name>
-			<type>1</type>
-			<locationURI>PARENT-2-PROJECT_LOC/build/aiop_sim/cw_files/start.c</locationURI>
-		</link>
-		<link>
 			<name>src/app_process_packet.c</name>
 			<type>1</type>
 			<locationURI>PROJECT_LOC/src/app_process_packet.c</locationURI>
@@ -280,6 +265,16 @@ aiop_sl		</project>
 			<name>src/apps.c</name>
 			<type>1</type>
 			<locationURI>PROJECT_LOC/src/apps.c</locationURI>
+		</link>
+		<link>
+			<name>src/apps.h</name>
+			<type>1</type>
+			<locationURI>PROJECT_LOC/src/apps.h</locationURI>
+		</link>
+		<link>
+			<name>src/config.c</name>
+			<type>1</type>
+			<locationURI>PARENT-2-PROJECT_LOC/src/arch/ppc/platform/ls2085a_aiop/config.c</locationURI>
 		</link>
 	</linkedResources>
 	<variableList>
