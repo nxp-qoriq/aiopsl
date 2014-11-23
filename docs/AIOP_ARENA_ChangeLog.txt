@@ -1,7 +1,22 @@
 
 - cmdif_srv.c   Fix for ENGR339037 GPP-AIOP communication breaking. 
                 AIOP workspace will have AIOP ICID and AIOP AMQ before user callback is called.
-- slab.c,h:     Added implementation used by app_early_init, added slab_early_init.
+
+dpni_drv.c/fsl_dpni_drv.h: Added implementation for int dpni_drv_get_spid_ddr(uint16_t ni_id, uint16_t *spid_ddr);
+                           and int dpni_drv_get_spid(uint16_t ni_id, uint16_t *spid_ddr);
+
+dpni_drv.c:                Added implementation to create storage profile with DDR bpid.
+
+apps.h:         added 3 defines (3 more parameters were added to the aiop_app_init_info struct):
+                /* Number of frame buffers in pool */
+                #define DPNI_NUMBER_BUFFERS_IN_POOL      50
+                /* Size of buffers in pool */
+                #define DPNI_BUFFER_SIZE_IN_POOL         2048
+                /* alignment of buffers in pool */
+                #define DPNI_BUFFER_ALIGNMENT            64
+
+fsl_icontext.h: Added new API for AIOP isolation context - icontext_aiop_get(). 
+slab.c,h:       Added implementation used by app_early_init, added slab_early_init.
                 Application/ Module should register for buffers used by slab using: slab_register_context_buffer_requirements(
                 uint32_t committed_buffs, uint32_t max_buffs, uint16_t buff_size, uint16_t alignment, enum memory_partition_id  mem_pid,
                 uint32_t flags, uint32_t    num_ddr_pools)

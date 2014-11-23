@@ -282,33 +282,30 @@ int dpni_drv_set_unicast_promisc(uint16_t ni_id, int en);
 *//***************************************************************************/
 int dpni_drv_get_unicast_promisc(uint16_t ni_id, int *en);
 
+/**************************************************************************//**
+@Function	dpni_drv_get_spid
 
+@Description	Function to receive PEB storage profile ID for specified NI.
 
+@Param[in]	ni_id   The Network Interface ID
+@Param[out]	spid - storage profile to use PEB buffer pool(for now using 1 byte).
 
+@Return	'0' on Success;
+*//***************************************************************************/
+int dpni_drv_get_spid(uint16_t ni_id, uint16_t *spid);
 
+/**************************************************************************//**
+@Function	dpni_drv_get_spid_ddr
 
+@Description	Function to receive DDR storage profile ID for specified NI.
 
+@Param[in]	ni_id   The Network Interface ID
+@Param[out]	spid_ddr - storage profile to use DDR buffer pool
+		(for now using 1 byte).
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+@Return	'0' on Success;
+*//***************************************************************************/
+int dpni_drv_get_spid_ddr(uint16_t ni_id, uint16_t *spid_ddr);
 
 
 /** @} */ /* end of dpni_g DPNI group */

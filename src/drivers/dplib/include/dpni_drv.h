@@ -35,6 +35,7 @@
 #include "types.h"
 #include "fsl_dpni.h"
 #include "fsl_ldpaa.h"
+#include "fsl_platform.h"
 
 /**************************************************************************//**
 @Group		grp_dplib_aiop	DPLIB
@@ -54,6 +55,15 @@
 /* TODO - move to soc files */
 #define SOC_MAX_NUM_OF_DPNI		128
 
+#define DPNI_DRV_FAST_MEMORY    MEM_PART_PEB
+#define DPNI_DRV_DDR_MEMORY     MEM_PART_DP_DDR
+#define DPNI_DRV_NUM_USED_BPIDS   BPIDS_USED_FOR_POOLS_IN_DPNI
+#define DPNI_DRV_PEB_BPID_IDX         0
+#define DPNI_DRV_DDR_BPID_IDX         1
+#define SP_MASK_BMT_AND_RSV       0xC000FFFF
+#define SP_MASK_BPID              0x3FFF
+
+
 /**************************************************************************//**
 @Group	DPNI_DRV_STATUS
 @{
@@ -67,6 +77,28 @@ typedef uint64_t	dpni_drv_app_arg_t;
 /* TODO: need to define stats */
 struct dpni_stats {
 	int num_pkts;
+};
+
+
+/**************************************************************************//**
+@Description   Information for every bpid
+*//***************************************************************************/
+struct aiop_psram_entry {
+    uint32_t    aiop_specific;
+    /**< IP-Specific Storage Profile Information (e.g., ICIDs, cache controls, etc. */
+    uint32_t    reserved0;
+
+    uint32_t    frame_format_low;
+    /**< Frame Format and Data Placement Controls */
+    uint32_t    frame_format_high;
+    /**< Frame Format and Data Placement Controls */
+
+    uint32_t    bp1;
+    /**< Buffer Pool 1 Attributes and Controls */
+    uint32_t    bp2;
+    /**< Buffer Pool 2 Attributes and Controls */
+    uint32_t    reserved1;
+    uint32_t    reserved2;
 };
 
 /**************************************************************************//**
@@ -179,17 +211,6 @@ int dpni_drv_register_discard_rx_cb(
 		rx_cb_t			*cb,
 		dpni_drv_app_arg_t	arg);
 
-/**************************************************************************//**
-@Function	dpni_drv_get_spid
-
-@Description	Function to receive storage profile ID for specified NI.
-
-@Param[in]	ni_id   The Network Interface ID
-@Param[out]	spid - storage profile (for now using 1 byte).
-
-@Return	'0' on Success;
-*//***************************************************************************/
-int dpni_drv_get_spid(uint16_t ni_id, uint16_t *spid);
 
 /**************************************************************************//**
 @Function	dpni_get_num_of_ni
@@ -201,5 +222,5 @@ int dpni_drv_get_spid(uint16_t ni_id, uint16_t *spid);
 @Return	Number of NI_IDs in the system
 *//***************************************************************************/
 int dpni_get_num_of_ni(void);
-
+/** @} */ /* end of DPNI_DRV_STATUS group */
 #endif /* __DPNI_DRV_H */

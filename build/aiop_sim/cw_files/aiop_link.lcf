@@ -47,11 +47,6 @@ SECTIONS
          *(.dtext)
          *(.dtext_vle)
          }
-        .text (TEXT) ALIGN(0x1000) : {}
-        .text_vle (VLECODE) ALIGN(0x1000): {
-             *(.text)
-             *(.text_vle)
-         }
         .ctors : {}
         .dtors : {}
         extab : {}
@@ -59,7 +54,11 @@ SECTIONS
     } > pseudo_rom
 
     GROUP : {
-
+        .text (TEXT) ALIGN(0x1000) : {}
+        .text_vle (VLECODE) ALIGN(0x1000): {
+             *(.text)
+             *(.text_vle)
+         }
     } > i_ram
 
     GROUP : {
