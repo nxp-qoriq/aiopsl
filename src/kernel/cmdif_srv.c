@@ -73,27 +73,25 @@ do {\
 \
 } while(0)
 	
+#define ADC_STRUCT ((struct additional_dequeue_context *)HWC_ADC_ADDRESS)
+
 #define SET_AIOP_ICID	\
 	do { \
 		/* Set AIOP ICID and AMQ bits */			\
-		struct additional_dequeue_context *adc =		\
-				(struct additional_dequeue_context *)	\
-				HWC_ADC_ADDRESS; 			\
 		uint16_t pl_icid = icontext_aiop.icid;\
-		struct icontext ic = icontext_aiop; /* Copy SHRAM to WS */\
 		uint8_t flags = 0;					\
-		if (ic.bdi_flags & FDMA_ENF_BDI_BIT) {			\
+		if (icontext_aiop.bdi_flags & FDMA_ENF_BDI_BIT) {	\
 			flags |= ADC_BDI_MASK;				\
 		}							\
-		if (ic.dma_flags & FDMA_DMA_eVA_BIT) {			\
+		if (icontext_aiop.dma_flags & FDMA_DMA_eVA_BIT) {	\
 			flags |= ADC_VA_MASK;				\
 		}							\
-		if (ic.dma_flags & FDMA_DMA_PL_BIT) {			\
+		if (icontext_aiop.dma_flags & FDMA_DMA_PL_BIT) {	\
 			pl_icid |= ADC_PL_MASK;				\
 		}							\
-		adc->fdsrc_va_fca_bdi = (adc->fdsrc_va_fca_bdi & 	\
+		ADC_STRUCT->fdsrc_va_fca_bdi = (ADC_STRUCT->fdsrc_va_fca_bdi & \
 			~(ADC_BDI_MASK | ADC_VA_MASK)) | flags;		\
-		STH_SWAP(pl_icid, 0, &(adc->pl_icid));			\
+		STH_SWAP(pl_icid, 0, &(ADC_STRUCT->pl_icid));		\
 	} while (0)
 	
 
