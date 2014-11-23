@@ -503,14 +503,12 @@ int notify_open();
 		    cmdif_aiop_srv.dpci_tbl->attr[ind].id, ind);
 
 	/* Do it only if queues are not there, it should not happen */
-#if 1
 	if ((cmdif_aiop_srv.dpci_tbl->tx_queue_attr[0][ind].fqid == DPCI_FQID_NOT_VALID) ||
 		(cmdif_aiop_srv.dpci_tbl->rx_queue_attr[0][ind].fqid == DPCI_FQID_NOT_VALID)) {
 		err = mc_dpci_check(ind);
 		if (err)
 			return err;
 	}
-#endif
 
 	lock_spinlock(&cl->lock);
 
@@ -635,6 +633,7 @@ void cmdif_srv_isr(void) /*__attribute__ ((noreturn))*/
 	SAVE_GPP_ICID;
 
 	if (cmd_id == CMD_ID_NOTIFY_OPEN) {
+#ifndef STACK_CHECK /* No user callback */
 		/* Support for AIOP -> GPP */
 		if (is_valid_auth_id(auth_id)) {
 			pr_debug("Got notify open for AIOP client \n");
@@ -647,7 +646,9 @@ void cmdif_srv_isr(void) /*__attribute__ ((noreturn))*/
 			fdma_store_default_frame_data(); /* Close FDMA */
 			PR_ERR_TERMINATE("Invalid authentication id\n");
 		}
+#endif /* STACK_CHECK */
 	} else if (cmd_id == CMD_ID_NOTIFY_CLOSE) {
+#ifndef STACK_CHECK /* No user callback */
 		if (is_valid_auth_id(auth_id)) {
 			pr_debug("Got notify close for AIOP client \n");
 			err = notify_close();
@@ -659,7 +660,7 @@ void cmdif_srv_isr(void) /*__attribute__ ((noreturn))*/
 			fdma_store_default_frame_data(); /* Close FDMA */
 			PR_ERR_TERMINATE("Invalid authentication id\n");
 		}
-
+#endif /* STACK_CHECK */
 	} else if (cmd_id == CMD_ID_OPEN) {
 		char     m_name[M_NAME_CHARS + 1];
 		int      m_id      = 0;
