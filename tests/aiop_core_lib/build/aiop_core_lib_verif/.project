@@ -208,11 +208,6 @@
 			<locationURI>PARENT-2-PROJECT_LOC/aiop_verification_parser.h</locationURI>
 		</link>
 		<link>
-			<name>sources/Verification/aiop_verification_sr.c</name>
-			<type>1</type>
-			<locationURI>PARENT-2-PROJECT_LOC/aiop_verification_sr.c</locationURI>
-		</link>
-		<link>
 			<name>sources/Verification/aiop_verification_ste.c</name>
 			<type>1</type>
 			<locationURI>PARENT-2-PROJECT_LOC/aiop_verification_ste.c</locationURI>

@@ -122,12 +122,7 @@
 @Group	FSL_VERIF_FATAL_FLAGS_DEFINES Verification Fatal CMD Defines
 @{
 *//***************************************************************************/
-	/* This flag should be set for ASA test environments */
-#define FSL_VERIF_FATAL_FLAG_ASA_TEST				0x00000000
-
-	/* This flag should be set for buffer context test environments */
-#define FSL_VERIF_FATAL_FLAG_BUFF_CTX_TEST			0x00000001
-
+/* Flags are currently not used */
 /** @} */ /* end of FSL_VERIF_FATAL_FLAGS_DEFINES */
 
 /**************************************************************************//**

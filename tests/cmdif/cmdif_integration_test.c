@@ -35,6 +35,7 @@
 #include "cmdif.h"
 #include "cmdif_client_aiop.h"
 #include "fsl_fdma.h"
+#include "fdma.h"
 #include "fsl_ldpaa_aiop.h"
 #include "fsl_icontext.h"
 #include "fsl_tman.h"
@@ -129,6 +130,26 @@ static void verif_tman_cb(uint64_t opaque1, uint16_t opaque2)
 	fsl_os_print("PASSED verif_tman_cb \n");
 }
 
+static void aiop_ws_check()
+{
+	struct icontext ic;
+	uint16_t pl_icid = PL_ICID_GET;
+	
+	icontext_aiop_get(&ic);
+	ASSERT_COND(ICID_GET(pl_icid) == ic.icid);
+	
+	if (ic.bdi_flags) {
+		ASSERT_COND(BDI_GET);
+	}	
+	if (ic.dma_flags & FDMA_DMA_PL_BIT) {
+		ASSERT_COND(PL_GET(pl_icid));
+	}
+	if (ic.dma_flags & FDMA_DMA_eVA_BIT) {
+		ASSERT_COND(VA_GET);
+	}
+	fsl_os_print("ICID in WS is %d\n", ic.icid);
+}
+
 static int ctrl_cb0(void *dev, uint16_t cmd, uint32_t size,
                               void *data)
 {
@@ -147,6 +168,8 @@ static int ctrl_cb0(void *dev, uint16_t cmd, uint32_t size,
 	             size,
 	             (uint32_t)data);
 
+	aiop_ws_check();
+	
 	switch (cmd) {
 	case TMAN_TEST:
 		err |= tman_create_tmi(tman_addr /* uint64_t tmi_mem_base_addr */,

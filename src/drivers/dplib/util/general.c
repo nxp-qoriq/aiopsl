@@ -42,8 +42,6 @@ __TASK struct aiop_default_task_params default_task_params;
 #include "aiop_verification_data.h"
 #include "aiop_verification.h"
 #include <string.h>
-extern __VERIF_TLS uint32_t fatal_fqid;
-extern __VERIF_TLS uint32_t sr_fm_flags;
 extern __VERIF_TLS uint64_t initial_ext_address;
 #endif /*AIOP_VERIF*/
 
@@ -67,15 +65,11 @@ void exception_handler(char *filename,
 
 	struct fatal_error_command fatal_cmd_str;
 	struct fatal_error_command *fatal_cmd;
-	if(sr_fm_flags == FSL_VERIF_FATAL_FLAG_ASA_TEST){
-		fatal_cmd =  (struct fatal_error_command *)
-				PRC_GET_ASA_ADDRESS();
-	} else { /* == FSL_VERIF_FATAL_FLAG_BUFF_CTX_TEST */
-		/* Read command from external buffer in DDR */
-		fatal_cmd = &fatal_cmd_str;
-		cdma_read((void *)fatal_cmd, initial_ext_address, 
-				sizeof(struct fatal_error_command));
-	}
+
+	/* Read command from external buffer in DDR */
+	fatal_cmd = &fatal_cmd_str;
+	cdma_read((void *)fatal_cmd, initial_ext_address,
+			sizeof(struct fatal_error_command));
 
 	filename = strrchr(filename, '/') ?
 			strrchr(filename, '/') + 1 : filename;
@@ -84,22 +78,13 @@ void exception_handler(char *filename,
 	strcpy(fatal_cmd->function_name, function_name);
 	strcpy(fatal_cmd->err_msg, message);
 
-	if (sr_fm_flags == FSL_VERIF_FATAL_FLAG_ASA_TEST){
-		fdma_replace_default_asa_segment_data(
-			0,
-			sizeof(struct fatal_error_command),
-			(void *)PRC_GET_ASA_ADDRESS(),
-			sizeof(struct fatal_error_command),
-			0,
-			0,
-			FDMA_REPLACE_NO_FLAGS);
-	} else { /* FSL_VERIF_FATAL_FLAG_BUFF_CTX_TEST */
-		/* write command results back to DDR */
-		cdma_write(initial_ext_address, (void *)fatal_cmd, 
-				sizeof(struct fatal_error_command));
-	}
+	/* write command results back to DDR */
+	cdma_write(initial_ext_address,
+		   (void *)fatal_cmd,
+		   sizeof(struct fatal_error_command));
 
-	fdma_store_and_enqueue_default_frame_fqid(fatal_fqid,
+
+	fdma_store_and_enqueue_default_frame_fqid(fatal_cmd->fqid,
 						  FDMA_EN_TC_TERM_BITS);
 #endif /*AIOP_VERIF*/
 	status = -1 + (uint32_t)message + (uint32_t)filename + line +
