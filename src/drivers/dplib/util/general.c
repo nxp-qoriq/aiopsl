@@ -34,6 +34,10 @@
 #include "fsl_fdma.h"
 #include "fsl_cdma.h"
 
+#ifndef STACK_CHECK
+#include "fsl_dbg.h" 
+#endif
+
 /** Global task params */
 __TASK struct aiop_default_task_params default_task_params;
 
@@ -89,6 +93,11 @@ void exception_handler(char *filename,
 #endif /*AIOP_VERIF*/
 	status = -1 + (uint32_t)message + (uint32_t)filename + line +
 			(uint32_t)function_name;
+
+#ifndef STACK_CHECK
+	pr_err("Fatal error encountered!\n");
+#endif
+
 	fdma_terminate_task();
 	exit(-1); /* TODO This code is never reached and should be removed once
 	fdma_terminate_task() is declared as noreturn*/
