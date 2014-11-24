@@ -39,6 +39,7 @@
 #include "aiop_common.h"
 #include "kernel/fsl_spinlock.h"
 #include "dplib/fsl_parser.h"
+#include "fsl_osm.h"
 
 int app_early_init(void);
 int app_init(void);
@@ -63,9 +64,6 @@ extern int pton_test(void);
 extern int ntop_test(void);
 extern int dpni_drv_test(void);
 
-extern struct slab *slab_peb;
-extern struct slab *slab_dp_ddr;
-extern struct slab *slab_sys_ddr;
 extern int num_of_cores;
 extern int num_of_tasks;
 extern uint32_t rnd_seed[MAX_NUM_OF_CORES][MAX_NUM_OF_TASKS];
@@ -100,7 +98,7 @@ static void app_process_packet_flow0 (dpni_drv_app_arg_t arg)
 	unlock_spinlock(&packet_lock);
 	core_id = (int)core_get_id();
 
-	
+	fsl_os_print("Arena test for packet number %d, on core %d\n", local_packet_number, core_id);
 	err = dpni_drv_get_spid_ddr(APP_NI_GET(arg), &spid_ddr);
 	if (err) {
 		fsl_os_print("ERROR = %d: get spid_ddr failed in runtime phase()\n", err);
@@ -164,7 +162,7 @@ static void app_process_packet_flow0 (dpni_drv_app_arg_t arg)
 		fsl_os_print("seed %x\n",seed_32bit);
 		fsl_os_print("Random test passed for packet number %d, on core %d\n", local_packet_number, core_id);
 	}
-
+	osm_scope_transition_to_exclusive_with_increment_scope_id();
 	err = dpni_drv_test();
 	if (err) {
 		fsl_os_print("ERROR = %d: dpni_drv_test failed in runtime phase()\n", err);
@@ -172,6 +170,7 @@ static void app_process_packet_flow0 (dpni_drv_app_arg_t arg)
 	} else {
 		fsl_os_print("dpni_drv_test passed in runtime phase()\n");
 	}
+	osm_scope_transition_to_concurrent_with_increment_scope_id();
 
 
 
@@ -257,14 +256,6 @@ static void app_process_packet_flow0 (dpni_drv_app_arg_t arg)
 
 			}
 			
-			err = slab_free(&slab_dp_ddr);
-			err |= slab_free(&slab_peb);
-			err |= slab_free(&slab_sys_ddr);
-			
-			if(err)
-			{
-				fsl_os_print("Error while freeing slab's used for test\n");
-			}
 
 			fsl_os_print("\nARENA Test Finished SUCCESSFULLY\n");
 /*			for(i = 0; i < SLAB_MAX_BMAN_POOLS_NUM; i++){
@@ -283,7 +274,8 @@ static void app_process_packet_flow0 (dpni_drv_app_arg_t arg)
 	}
 }
 int app_early_init(void){
-	slab_register_context_buffer_requirements(50,100,2000,64,MEM_PART_SYSTEM_DDR,0, 0);
+	slab_register_context_buffer_requirements(200,250,200,64,MEM_PART_SYSTEM_DDR,0, 200);
+	slab_register_context_buffer_requirements(200,250,200,64,MEM_PART_PEB,0, 0);
 	return 0;
 }
 
@@ -292,6 +284,7 @@ int app_init(void)
 	int        err  = 0;
 	uint32_t   ni   = 0;
 	dma_addr_t buff = 0;
+	int ep;
 
 
 	fsl_os_print("Running AIOP arena app_init()\n");
@@ -314,6 +307,16 @@ int app_init(void)
 
 		if (err)
 			return err;
+		
+		ep = dpni_drv_get_ordering_mode((uint16_t)ni);
+		fsl_os_print("initial order scope execution phase for tasks %d\n",ep);
+		dpni_drv_set_exclusive((uint16_t)ni);
+		ep = dpni_drv_get_ordering_mode((uint16_t)ni);
+		fsl_os_print("initial order scope execution phase for tasks %d\n",ep);
+		dpni_drv_set_concurrent((uint16_t)ni);
+		ep = dpni_drv_get_ordering_mode((uint16_t)ni);
+		fsl_os_print("Final: initial order scope execution phase for tasks %d\n",ep);
+		
 	}
 
 	err = slab_init();
