@@ -71,26 +71,29 @@ do {\
 \
 } while(0)
 
-#define ADC_STRUCT ((struct additional_dequeue_context *)HWC_ADC_ADDRESS)
-
-
 #define SET_AIOP_ICID	\
 	do { \
 		/* Set AIOP ICID and AMQ bits */			\
-		uint16_t pl_icid = icontext_aiop.icid;\
+		uint16_t pl_icid = icontext_aiop.icid;			\
 		uint8_t flags = 0;					\
-		if (icontext_aiop.bdi_flags & FDMA_ENF_BDI_BIT) {	\
+		struct additional_dequeue_context *adc = 		\
+		((struct additional_dequeue_context *)HWC_ADC_ADDRESS);	\
+		/* SHRAM optimization */				\
+		uint64_t dma_bdi_flags = 				\
+				(*(uint64_t *)(&icontext_aiop.dma_flags));\
+		if (((uint32_t)dma_bdi_flags) & FDMA_ENF_BDI_BIT) {	\
 			flags |= ADC_BDI_MASK;				\
 		}							\
-		if (icontext_aiop.dma_flags & FDMA_DMA_eVA_BIT) {	\
+		dma_bdi_flags >>= 32;					\
+		if (((uint32_t)dma_bdi_flags) & FDMA_DMA_eVA_BIT) {	\
 			flags |= ADC_VA_MASK;				\
 		}							\
-		if (icontext_aiop.dma_flags & FDMA_DMA_PL_BIT) {	\
+		if (((uint32_t)dma_bdi_flags) & FDMA_DMA_PL_BIT) {	\
 			pl_icid |= ADC_PL_MASK;				\
 		}							\
-		ADC_STRUCT->fdsrc_va_fca_bdi = (ADC_STRUCT->fdsrc_va_fca_bdi & \
+		adc->fdsrc_va_fca_bdi = (adc->fdsrc_va_fca_bdi &	\
 			~(ADC_BDI_MASK | ADC_VA_MASK)) | flags;		\
-		STH_SWAP(pl_icid, 0, &(ADC_STRUCT->pl_icid));		\
+		STH_SWAP(pl_icid, 0, &(adc->pl_icid));			\
 	} while (0)
 
 #define OPEN_CB(M_ID, INST, DEV) \
