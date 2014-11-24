@@ -130,13 +130,13 @@ int dpni_drv_disable (uint16_t ni_id)
 
 
 int dpni_drv_probe(struct mc_dprc *dprc,
-		   uint16_t mc_niid,
-		   uint16_t aiop_niid,
+                   uint16_t mc_niid,
+                   uint16_t aiop_niid,
                    struct dpni_pools_cfg *pools_params)
 {
-	uintptr_t wrks_addr;
 	int i;
 	uint32_t j;
+	uint32_t ep_osc;
 	int err = 0;
 	uint16_t dpni = 0;
 	uint8_t mac_addr[NET_HDR_FLD_ETH_ADDR_SIZE];
@@ -146,26 +146,26 @@ int dpni_drv_probe(struct mc_dprc *dprc,
 	struct dpni_attr attributes;
 	struct aiop_psram_entry *sp_addr;
 	struct aiop_psram_entry ddr_storage_profile;
-
-	/* TODO: replace wrks_addr with global struct */
-	wrks_addr = (sys_get_memory_mapped_module_base(FSL_OS_MOD_CMGW, 0, E_MAPPED_MEM_TYPE_GEN_REGS) +
-		     SOC_PERIPH_OFF_AIOP_WRKS);
-
+	struct aiop_ws_regs *wrks_addr = (struct aiop_ws_regs *)
+					(sys_get_memory_mapped_module_base(FSL_OS_MOD_CMGW,
+					                                   0,
+					                                   E_MAPPED_MEM_TYPE_GEN_REGS)
+					                                   + SOC_PERIPH_OFF_AIOP_WRKS);
 	/* TODO: replace 1024 w/ #define from Yulia */
 	/* Search for NIID (mc_niid) in EPID table and prepare the NI for usage. */
 	for (i = AIOP_EPID_DPNI_START; i < 1024; i++) {
 		/* Prepare to read from entry i in EPID table - EPAS reg */
-		iowrite32_ccsr((uint32_t)i, UINT_TO_PTR(wrks_addr + 0x0f8)); // TODO: change to LE, replace address with #define
+		iowrite32_ccsr((uint32_t)i, &wrks_addr->epas);
 
 		/* Read Entry Point Param (EP_PM) which contains the MC NI ID */
-		j = ioread32_ccsr(UINT_TO_PTR(wrks_addr + 0x104)); // TODO: change to LE, replace address with #define
+		j = ioread32_ccsr(&wrks_addr->ep_pm);
 
 		pr_debug("EPID[%d].EP_PM = %d\n", i, j);
 
 		if (j == mc_niid) {
 
 			/* Replace MC NI ID with AIOP NI ID */
-			iowrite32_ccsr(aiop_niid, UINT_TO_PTR(wrks_addr + 0x104)); // TODO: change to LE, replace address with #define
+			iowrite32_ccsr(aiop_niid, &wrks_addr->ep_pm);
 
 #if 0
 			/* TODO: the mc_niid field will be necessary if we decide to close the DPNI at the end of Probe. */
@@ -225,7 +225,9 @@ int dpni_drv_probe(struct mc_dprc *dprc,
 				return -ENODEV;
 			}
 			nis[aiop_niid].dpni_drv_params_var.spid = (uint8_t)spid; /*TODO: change to uint16_t in nis table for the next release*/
-
+			
+			/* Store epid index in AIOP NI's array*/
+			nis[aiop_niid].dpni_drv_params_var.epid_idx = (uint16_t)i;
 
 #if 0
 			/* TODO: need to decide if we should close DPNI at this stage.
@@ -237,9 +239,12 @@ int dpni_drv_probe(struct mc_dprc *dprc,
 			/* TODO: need to initialize additional NI table fields according to DPNI attributes */
 
 			/* Replace discard callback with receive callback */
-			iowrite32_ccsr(PTR_TO_UINT(receive_cb), UINT_TO_PTR(wrks_addr + 0x100)); // TODO: change to LE, replace address with #define
+			iowrite32_ccsr(PTR_TO_UINT(receive_cb),&wrks_addr->ep_pc);
 			
-			
+			ep_osc = ioread32_ccsr(&wrks_addr->ep_osc);
+			ep_osc &= ORDER_MODE_CLEAR_BIT;
+			/*Set concurrent mode for NI in epid table*/
+			iowrite32_ccsr(ep_osc, &wrks_addr->ep_osc);
 			
 			if( pools_params[DPNI_DRV_DDR_BPID_IDX].num_dpbp == 1) /*bpid exist to use for ddr pool*/
 			{
@@ -436,6 +441,8 @@ int dpni_drv_init(void)
 		dpni_drv->mc_niid      = 0;
 #endif
 		dpni_drv->dpni_drv_params_var.spid         = 0;
+		dpni_drv->dpni_drv_params_var.spid_ddr     = 0;
+		dpni_drv->dpni_drv_params_var.epid_idx     = 0;
 		dpni_drv->dpni_drv_params_var.prpid        = prpid; /*parser profile id from parser_profile_init()*/
 		dpni_drv->dpni_drv_params_var.starting_hxs = 0; //ETH HXS
 		dpni_drv->dpni_drv_tx_params_var.qdid         = 0;
@@ -508,4 +515,50 @@ int dpni_drv_get_unicast_promisc(uint16_t ni_id, int *en){
 	                                en);
 }
 
+int dpni_drv_get_ordering_mode(uint16_t ni_id){
+	uint32_t ep_osc;
+	struct dpni_drv *dpni_drv;
+	struct aiop_ws_regs *wrks_addr = (struct aiop_ws_regs *)
+		(sys_get_memory_mapped_module_base(FSL_OS_MOD_CMGW,
+						   0,
+						   E_MAPPED_MEM_TYPE_GEN_REGS)
+						   + SOC_PERIPH_OFF_AIOP_WRKS);
+	/* calculate pointer to the NI structure */
+	dpni_drv = nis + ni_id;
+	/* write epid index to epas register */
+	iowrite32_ccsr((uint32_t)(dpni_drv->dpni_drv_params_var.epid_idx), &wrks_addr->epas);
+	/* read ep_osc - to get the order scope (concurrent / exclusive) */
+	ep_osc = ioread32_ccsr(&wrks_addr->ep_osc);
+	
+	return (int)(ep_osc & ORDER_MODE_BIT_MASK) >> 24;
+}
+
+static int dpni_drv_set_ordering_mode(uint16_t ni_id, int ep_mode){
+	uint32_t ep_osc;
+	struct dpni_drv *dpni_drv;
+	struct aiop_ws_regs *wrks_addr = (struct aiop_ws_regs *)
+				(sys_get_memory_mapped_module_base(FSL_OS_MOD_CMGW,
+				                                   0,
+				                                   E_MAPPED_MEM_TYPE_GEN_REGS)
+				                                   + SOC_PERIPH_OFF_AIOP_WRKS);
+	/* calculate pointer to the NI structure */
+	dpni_drv = nis + ni_id;
+	/* write epid index to epas register */
+	iowrite32_ccsr((uint32_t)(dpni_drv->dpni_drv_params_var.epid_idx), &wrks_addr->epas);
+	/* read ep_osc - to get the order scope (concurrent / exclusive) */
+	ep_osc = ioread32_ccsr(&wrks_addr->ep_osc);
+	ep_osc &= ORDER_MODE_CLEAR_BIT;
+	ep_osc |= (ep_mode & 0x01) << 24;
+	/*Set concurrent mode for NI in epid table*/
+	iowrite32_ccsr(ep_osc, &wrks_addr->ep_osc);
+	return 0;
+}
+
+int dpni_drv_set_concurrent(uint16_t ni_id){
+	return dpni_drv_set_ordering_mode(ni_id, DPNI_DRV_CONCURRENT_MODE);
+}
+
+int dpni_drv_set_exclusive(uint16_t ni_id){
+	return dpni_drv_set_ordering_mode(ni_id, DPNI_DRV_EXCLUSIVE_MODE);	
+}
 

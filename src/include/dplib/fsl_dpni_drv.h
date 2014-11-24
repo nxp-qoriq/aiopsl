@@ -307,6 +307,28 @@ int dpni_drv_get_spid(uint16_t ni_id, uint16_t *spid);
 *//***************************************************************************/
 int dpni_drv_get_spid_ddr(uint16_t ni_id, uint16_t *spid_ddr);
 
+/**************************************************************************//**
+@Function	dpni_drv_set_concurrent
+
+@Description	Function to set the ordering mode to concurrent for the given NI.
+
+@Param[in]	ni_id   The Network Interface ID
+
+@Return	'0' on Success;
+*//***************************************************************************/
+int dpni_drv_set_concurrent(uint16_t ni_id);
+
+/**************************************************************************//**
+@Function	dpni_drv_set_exclusive
+
+@Description	Function to set the ordering mode to exclusive for the given NI.
+
+@Param[in]	ni_id   The Network Interface ID
+
+@Return	'0' on Success;
+*//***************************************************************************/
+int dpni_drv_set_exclusive(uint16_t ni_id);
+
 
 /** @} */ /* end of dpni_g DPNI group */
 #endif /* __FSL_DPNI_DRV_H */
