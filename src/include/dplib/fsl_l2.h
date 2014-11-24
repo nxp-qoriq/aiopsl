@@ -276,15 +276,15 @@ int l2_pop_vlan(void);
  segment address.
  Implicit output parameters in Task Defaults: parser_starting_hxs
 
- @Param[in]	mpls_hdr - indicates the mpls header value.
- @Param[in] etype - needed in case there is no MPLS header in frame, indicates
-		  the EtherType of MPLS (0x8847 or 0x8848). otherwise can be NULL.
+ @Param[in]	mpls_hdr - indicates the MPLS header value.
+ @Param[in] etype - indicates the EtherType of MPLS (0x8847 or 0x8848). needed 
+ 	 	 	 in case there is no MPLS header in frame, otherwise can be NULL.
 
  @Return	None.
  
  @Cautions  In case there is no MPLS header in the frame, the user should set
  the S bit to 1. In addition the user should insert label according to the IP
- version (IPv4 - 0,IPv6 - 2). incorrect user inputs will cause parse error.
+ version (IPv4 - 0, IPv6 - 2). incorrect user inputs can cause parsing error.
  
  @Cautions	The parse results must be updated before calling this operation.
  If an ethernet header is present, it is assumed to be located at
@@ -316,9 +316,7 @@ void l2_pop_mpls(void);
  (Unlimited stacked MPLS).
 
  This function assumes Ethernet , MPLS  and IP headers are presents.
-
  The parse results are updated automatically at the end of this operation.
-
  The gross running sum of the frame becomes invalid after calling this function.
 
  Implicit input parameters in task defaults: frame handle, segment handle, 
@@ -337,9 +335,7 @@ void l2_mpls_header_remove(void);
  @Description	Push and set a VxLAN headers.\n
 
  This function assumes the presence of an Ethernet header.
-
  The parse results are updated automatically at the end of this operation.
-
  The gross running sum of the frame becomes invalid after calling this function.
 
  Implicit input parameters in Task Defaults: frame handle, segment handle, 
@@ -362,11 +358,9 @@ void l2_push_and_set_vxlan(uint8_t *vxlan_hdr, uint16_t size);
  @Function	l2_pop_vxlan
 
  @Description	Pop the VxLAN headers.
- The parse results are updated automatically at the end of
- this operation.
 
  This function assumes Ethernet, IP, UDP and VxLAN headers are presents.
-
+ The parse results are updated automatically at the end of this operation.
  The gross running sum of the frame becomes invalid after calling this function.
 
  Implicit input parameters in Task Defaults: frame handle, segment handle, 
@@ -385,7 +379,6 @@ void l2_pop_vxlan(void);
  @Description	Set the VxLAN id.
 
  This function assumes VxLAN header is present.
-
  The gross running sum of the frame becomes invalid after calling this function.
 
  Implicit input parameters in Task Defaults: frame handle, segment handle,
@@ -406,7 +399,6 @@ void l2_set_vxlan_vid(uint32_t vxlan_vid);
  @Description	Set the VxLAN flags.
 
  This function assumes VxLAN header is present.
-
  The gross running sum of the frame becomes invalid after calling this function.
 
  Implicit input parameters in Task Defaults: frame handle, segment handle,
