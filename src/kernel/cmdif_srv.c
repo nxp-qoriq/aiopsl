@@ -491,7 +491,7 @@ int notify_open();
 	ASSERT_COND_LIGHT((cl != NULL) && (cmdif_aiop_srv.dpci_tbl != NULL));
 
 	if (PRC_GET_SEGMENT_LENGTH() < sizeof(struct cmdif_session_data)) {
-		sl_pr_err("Segment length is too small\n");
+		pr_err("Segment length is too small\n");
 		return -EINVAL;
 	}
 
@@ -501,7 +501,7 @@ int notify_open();
 		return -ENAVAIL;
 	}
 
-	sl_pr_debug("Found dpci %d peer id at index %d \n", \
+	pr_debug("Found dpci %d peer id at index %d \n", \
 		    cmdif_aiop_srv.dpci_tbl->attr[ind].id, ind);
 
 	/* Do it only if queues are not there, it should not happen */
@@ -634,6 +634,15 @@ void dump_memory();
 #endif /* STACK_CHECK */
 }
 
+static void open_cmd_print()
+{
+#ifdef DEBUG
+	char  m_name[M_NAME_CHARS + 1];
+	cmd_m_name_get(&m_name[0]);
+	pr_debug("Module name is %s\n");
+#endif
+}
+
 int session_open();
 /* static */ int session_open()
 {
@@ -653,10 +662,6 @@ int session_open();
 		/* Did not find module with such name */
 		sl_pr_err("No such module %s\n", m_name);
 		return -ENODEV; 
-/*
-		sync_cmd_done(sync_done_addr, -ENODEV, auth_id,
-			      TRUE, gpp_icid, gpp_dma);
-*/
 	}
 
 	inst_id  = cmd_inst_id_get();
@@ -668,32 +673,15 @@ int session_open();
 		if (new_inst >= 0) {
 			sl_pr_debug("New auth_id = %d module name = %s\n", new_inst, m_name);
 			sync_done_set((uint16_t)new_inst);
-			cmdif_aiop_srv.srv->inst_dev[new_inst] = dev;
-			
+			cmdif_aiop_srv.srv->inst_dev[new_inst] = dev;			
 			return new_inst;
-/*
-			sync_cmd_done(sync_done_addr, 0,
-					(uint16_t)new_inst,
-					TRUE, gpp_icid, gpp_dma);
-*/
 		} else {
 			/* couldn't find free place for new device */
 			sl_pr_err("No free entry for new device\n");
-			return -ENOMEM; 
-/*
-			sync_cmd_done(sync_done_addr, -ENODEV, auth_id,
-				      FALSE, gpp_icid, gpp_dma);
-			PR_ERR_TERMINATE("No free entry for new device\n");				      
-*/
-			
+			return -ENOMEM; 			
 		}
 	} else {
 		return err; /* User error */
-/*
-		sync_cmd_done(sync_done_addr, err, auth_id,
-			      FALSE, gpp_icid, gpp_dma);
-		PR_ERR_TERMINATE("Open callback failed\n");			      
-*/
 	}
 }
 
@@ -753,13 +741,16 @@ void cmdif_srv_isr(void) /*__attribute__ ((noreturn))*/
 				      TRUE, gpp_icid, gpp_dma);
 		}
 
+		open_cmd_print();
+		
 		err = session_open();
 		if (err < 0) {
-			pr_err("Open session FAILED\n");
+			pr_err("Open session FAILED err = %d\n", err);
 			sync_cmd_done(sync_done_get(), err, auth_id,
 				      TRUE, gpp_icid, gpp_dma);
 		} else {
-			pr_err("Open session PASSED\n");
+			pr_err("Open session PASSED auth_id = 0x%x\n", 
+			       (uint16_t)err);
 			sync_cmd_done(sync_done_get(), 0, (uint16_t)err,
 				      TRUE, gpp_icid, gpp_dma);
 		}
