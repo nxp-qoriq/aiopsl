@@ -1,0 +1,36 @@
+
+***********************   Tips for optimizing code for performance (from Compilers team):  **********************
+- Use intrinsics for AIOP specific instructions rather than inline assembly. 
+  Inline assembly is an optimization barrier. 
+  Furthermore, the instrinsics allow register re-use via register allocation.
+- (Coming in 10.0.14) Use __declspec(entry_point) decoration on entry  point functions. 
+  This will inhibit save/restore of non-volatile registers used in entry point functions, saving some cycles.
+- (Coming in 10.0.14) ‘#pragma switch_cases_array on’ will transform switch cases into an “array” of code 
+  which will obviate the need for the compiler to make a Shared SRAM access for the switch case address. 
+  It could be used on particularly performance sensitive switch statements where Shared SRAM access is a penalty. 
+- The –gen_ld_std option allows the compiler to natively generated AIOP e_ldw and e_stdw instructions.
+- There are various #pragma control parameters to “fine tune” inlining based on function complexity.
+- Some current features we have but are not being exploited yet:
+	Whole program optimizer ( -ipa program). Gives a view of all functions in an application, 
+	  allows cross-module inlining and some whole program optimizations.
+
+
+**********************    Tips for reducing program stack size:   ************************************************
+- Regular variables will be placed in registers, if there are too many of them it will take some from stack.
+- Structs will be always placed on stack, sometimes it makes sense to use regular types instead. 
+- AIOP compiler does not support structs locality but it does.
+	If () {
+     		struct ira_struct st;
+	}
+
+	Is the same as:
+
+	struct ira_struct st;
+	If () {
+	}
+- Set variables as late as you can so that compiler can reuse those registers.
+- If you have 2 structs that are never used together, use pointers to uint8_t arr[SIZE] as memory for the struct that is currently used.
+	………………
+	struct ira_struct *st1 = &arr[0]; 
+	………………
+	struct ira_struct *st2 = &arr[0]; 
