@@ -825,7 +825,6 @@ __COLD_CODE int platform_enable_console(fsl_handle_t h_platform)
         RETURN_ERROR(MAJOR, EAGAIN, ("DUART"));
 
     /* Fill DUART configuration parameters */
-    /*TODO: the base address is hard coded to uart 2_0, should be modified*/
     duart_uart_param.base_address       = uart_port_offset[ g_init_data.sl_info.uart_port_id];
     duart_uart_param.system_clock_mhz   = (platform_get_system_bus_clk(pltfrm) / 1000000);
     duart_uart_param.baud_rate          = 115200;
