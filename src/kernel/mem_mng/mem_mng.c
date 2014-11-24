@@ -41,6 +41,7 @@
 #endif /* AIOP */
 
 #include "mem_mng.h"
+#include "fsl_dbg.h"
 
 
 #ifdef UNDER_CONSTRUCTION
@@ -129,7 +130,8 @@ __COLD_CODE fsl_handle_t mem_mng_init(t_mem_mng_param *p_mem_mng_param)
     INIT_LIST(&(p_mem_mng->mem_partitions_list));
     /* Initialize the early allocations list */
     INIT_LIST(&(p_mem_mng->early_mem_debug_list));
-
+    /* Initialize the physical allocation list for gem_mem() */
+    INIT_LIST(&(p_mem_mng->phys_allocation_mem_partitions_list));
     return p_mem_mng;
 }
 
@@ -338,6 +340,113 @@ __COLD_CODE int mem_mng_register_partition(fsl_handle_t  h_mem_mng,
 }
 
 
+int mem_mng_register_phys_addr_alloc_partition(fsl_handle_t  h_mem_mng,
+                                  int       partition_id,
+                                  uint64_t base_paddress,
+                                  uint64_t  size,
+                                  uint32_t  attributes,
+                                  char      name[])
+{
+	t_mem_mng            *p_mem_mng = (t_mem_mng *)h_mem_mng;
+	t_mem_mng_phys_addr_alloc_partition   *p_partition = NULL, *p_new_partition;
+	list_t              *p_partition_iterator;
+#ifndef AIOP
+    uint32_t            int_flags;
+#endif /* AIOP */
+#ifdef AIOP
+    lock_spinlock(p_mem_mng->lock);
+#else
+    int_flags = spin_lock_irqsave(p_mem_mng->lock);
+#endif
+    LIST_FOR_EACH(p_partition_iterator, &(p_mem_mng->phys_allocation_mem_partitions_list))
+    {
+        p_partition = MEM_MNG_PHYS_ADDR_ALLOC_PARTITION_OBJECT(p_partition_iterator);
+        if (p_partition->id == partition_id)
+        {
+#ifdef AIOP
+            unlock_spinlock(p_mem_mng->lock);
+#else
+            spin_unlock_irqrestore(p_mem_mng->lock, int_flags);
+#endif
+            RETURN_ERROR(MAJOR, EEXIST, ("partition ID %d", partition_id));
+        }
+        else if (p_partition->id > partition_id)
+        {
+            break;
+        }
+    }
+#ifdef AIOP
+    unlock_spinlock(p_mem_mng->lock);
+#else
+    spin_unlock_irqrestore(p_mem_mng->lock, int_flags);
+#endif
+    p_new_partition = (t_mem_mng_phys_addr_alloc_partition *)p_mem_mng->f_malloc
+                      (sizeof(t_mem_mng_phys_addr_alloc_partition));
+   if (!p_new_partition)
+   {
+	   RETURN_ERROR(MAJOR, ENOMEM, ("memory manager partition"));
+   }
+   memset(p_new_partition, 0, sizeof(t_mem_mng_phys_addr_alloc_partition));
+
+#ifdef AIOP
+    p_new_partition->lock = (uint8_t *)fsl_os_malloc(sizeof(uint8_t));
+#else
+    p_new_partition->lock = spin_lock_create();
+#endif
+    if (!p_new_partition->lock)
+    {
+        p_mem_mng->f_free(p_new_partition);
+        RETURN_ERROR(MAJOR, EAGAIN, ("spinlock object for partition: %s", name));
+    }
+
+#ifdef AIOP
+    *(p_new_partition->lock) = 0;
+#endif /* AIOP */
+
+    /* Initialize the memory manager handle for the new partition */
+   if (0 != slob_init(&(p_new_partition->h_mem_manager), base_paddress, size))
+   {
+       p_mem_mng->f_free(p_new_partition);
+       RETURN_ERROR(MAJOR, EAGAIN, ("slob object for partition: %s", name));
+   }
+   /* Copy partition name */
+   strncpy(p_new_partition->info.name, name, MEM_MNG_MAX_PARTITION_NAME_LEN-1);
+
+   /* Store other parameters */
+   p_new_partition->id = partition_id;
+   p_new_partition->info.base_paddress = base_paddress;
+   p_new_partition->info.size = size;
+   p_new_partition->info.attributes = attributes;
+   p_new_partition->curr_paddress = base_paddress;
+
+#ifdef AIOP
+    lock_spinlock(p_mem_mng->lock);
+#else
+    int_flags = spin_lock_irqsave(p_mem_mng->lock);
+#endif
+    /* Add the new partition to the sorted position in the partitions list */
+    if (list_is_empty(&(p_mem_mng->phys_allocation_mem_partitions_list)))
+    {
+        list_add(&(p_new_partition->node), &(p_mem_mng->phys_allocation_mem_partitions_list));
+    }
+    else
+    {
+	ASSERT_COND(p_partition);
+        if (p_partition->id < partition_id)
+            list_add(&(p_new_partition->node), &(p_partition->node));
+        else
+            list_add(&(p_new_partition->node), p_partition->node.prev);
+    }
+#ifdef AIOP
+    unlock_spinlock(p_mem_mng->lock);
+#else /* not AIOP */
+    spin_unlock_irqrestore(p_mem_mng->lock, int_flags);
+#endif /* AIOP */
+
+   return 0;
+}
+
+
 /*****************************************************************************/
 __COLD_CODE int mem_mng_unregister_partition(fsl_handle_t h_mem_mng, int partition_id)
 {
@@ -408,7 +517,7 @@ int mem_mng_get_partition_info(fsl_handle_t               h_mem_mng,
 #ifdef AIOP
             unlock_spinlock(p_mem_mng->lock);
 #else
-    	    spin_unlock_irqrestore(p_mem_mng->lock, int_flags);
+            spin_unlock_irqrestore(p_mem_mng->lock, int_flags);
 #endif
             return 0;
         }
@@ -421,7 +530,46 @@ int mem_mng_get_partition_info(fsl_handle_t               h_mem_mng,
 
     RETURN_ERROR(MAJOR, EAGAIN, ("partition ID %d", partition_id));
 }
+/*****************************************************************************/
+int mem_mng_get_phys_addr_alloc_info(fsl_handle_t               h_mem_mng,
+                                  int                   partition_id,
+                                  t_mem_mng_phys_addr_alloc_info *p_partition_info)
+{
+    t_mem_mng            *p_mem_mng = (t_mem_mng *)h_mem_mng;
+    t_mem_mng_phys_addr_alloc_partition   *p_partition;
+    list_t              *p_partition_iterator;
+#ifndef AIOP
+    uint32_t            int_flags;
+#endif /* AIOP */
 
+#ifdef AIOP
+    lock_spinlock(p_mem_mng->lock);
+#else
+    int_flags = spin_lock_irqsave(p_mem_mng->lock);
+#endif
+    LIST_FOR_EACH(p_partition_iterator, &(p_mem_mng->phys_allocation_mem_partitions_list))
+    {
+        p_partition = MEM_MNG_PHYS_ADDR_ALLOC_PARTITION_OBJECT(p_partition_iterator);
+
+        if (p_partition->id == partition_id)
+        {
+            *p_partition_info = p_partition->info;
+#ifdef AIOP
+            unlock_spinlock(p_mem_mng->lock);
+#else
+            spin_unlock_irqrestore(p_mem_mng->lock, int_flags);
+#endif
+            return 0;
+        }
+    }
+#ifdef AIOP
+    unlock_spinlock(p_mem_mng->lock);
+#else
+    spin_unlock_irqrestore(p_mem_mng->lock, int_flags);
+#endif
+
+    RETURN_ERROR(MAJOR, EAGAIN, ("partition ID %d", partition_id));
+}
 
 /*****************************************************************************/
 int mem_mng_get_partition_id_by_addr(fsl_handle_t   h_mem_mng,
@@ -665,14 +813,89 @@ int mem_mng_get_phys_mem(fsl_handle_t h_mem_mng, int  partition_id,
                         uint64_t size, uint64_t alignment,
                         uint64_t *paddr)
 {
-	return 0;
+    t_mem_mng            *p_mem_mng = (t_mem_mng *)h_mem_mng;
+    t_mem_mng_phys_addr_alloc_partition   *p_partition;
+    list_t              *p_partition_iterator, *p_temp;
+#ifndef AIOP
+	uint32_t            int_flags;
+#endif /* AIOP */
+
+    if (size == 0)
+    {
+        REPORT_ERROR(MAJOR, -EINVAL, ("allocation size must be positive"));
+    }
+#ifdef AIOP
+    lock_spinlock(p_mem_mng->lock);
+#else
+    int_flags = spin_lock_irqsave(p_mem_mng->lock);
+#endif
+    /* Not early allocation - allocate from registered partitions */
+    LIST_FOR_EACH_SAFE(p_partition_iterator, p_temp, &(p_mem_mng->phys_allocation_mem_partitions_list))
+    {
+        p_partition = MEM_MNG_PHYS_ADDR_ALLOC_PARTITION_OBJECT(p_partition_iterator);
+        if (p_partition->id == partition_id)
+        {
+#ifdef AIOP
+            unlock_spinlock(p_mem_mng->lock);
+#else
+            spin_unlock_irqrestore(p_mem_mng->lock, int_flags);
+#endif
+            if((*paddr = slob_get(p_partition->h_mem_manager,size,alignment,"")) == ILLEGAL_BASE)
+            {
+                RETURN_ERROR(MAJOR, -ENOMEM, ("Required size 0x%x%08x exceeds "
+                                     "available memory for partition ID %d",
+                                      (uint32_t)(size >> 32),(uint32_t)size,partition_id));  
+            }
+            return 0; // Success
+        }
+    }
+#ifdef AIOP
+    unlock_spinlock(p_mem_mng->lock);
+#else
+    spin_unlock_irqrestore(p_mem_mng->lock, int_flags);
+#endif
+    pr_err("Partition ID %d is not found\n", partition_id);
+    return -EINVAL;
 }
 /*****************************************************************************/
 void mem_mng_put_phys_mem(fsl_handle_t h_mem_mng, uint64_t paddress)
 {
+    t_mem_mng            *p_mem_mng = (t_mem_mng *)h_mem_mng;
+    t_mem_mng_phys_addr_alloc_partition   *p_partition;
+    list_t              *p_partition_iterator, *p_temp;
+    #ifndef AIOP
+    uint32_t            int_flags;
+    #endif /* AIOP */
 
+
+    #ifdef AIOP
+        lock_spinlock(p_mem_mng->lock);
+    #else
+        int_flags = spin_lock_irqsave(p_mem_mng->lock);
+    #endif
+    /* Not early allocation - allocate from registered partitions */
+    LIST_FOR_EACH_SAFE(p_partition_iterator, p_temp, &(p_mem_mng->phys_allocation_mem_partitions_list))
+    {
+        p_partition = MEM_MNG_PHYS_ADDR_ALLOC_PARTITION_OBJECT(p_partition_iterator);
+	if (paddress >= p_partition->info.base_paddress &&
+	    paddress < (p_partition->info.base_paddress + p_partition->info.size))
+	{
+	    #ifdef AIOP
+	        unlock_spinlock(p_mem_mng->lock);
+	    #else
+	        spin_unlock_irqrestore(p_mem_mng->lock, int_flags);
+	    #endif
+            slob_put(p_partition->h_mem_manager,paddress);
+            return;
+	}
+    }
+#ifdef AIOP
+    unlock_spinlock(p_mem_mng->lock);
+#else
+    spin_unlock_irqrestore(p_mem_mng->lock, int_flags);
+#endif
+    return;
 }
-
 /*****************************************************************************/
 void mem_mng_free_mem(fsl_handle_t h_mem_mng, void *p_memory)
 {

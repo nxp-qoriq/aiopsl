@@ -29,6 +29,7 @@
 
 #include "common/types.h"
 #include "fsl_errors.h"
+#include "inc/mem_mng_util.h"
 
 
 /**************************************************************************//**
@@ -57,11 +58,19 @@
 *//***************************************************************************/
 
 /**< No memory attribute */
-#define MEMORY_ATTR_NONE          0x00000000
+#define MEMORY_ATTR_NONE           0x00000000
 /**< Memory is cacheable */
-#define MEMORY_ATTR_CACHEABLE           0x00000001 
+#define MEMORY_ATTR_CACHEABLE       0x00000001
+
+/**< Memory is non-cacheable */
+#define MEMORY_ATTR_NON_CACHEABLE   0x00000002
 /**< It is possible to make dynamic memory allocation */
-#define MEMORY_ATTR_MALLOCABLE          0x00000002
+#define MEMORY_ATTR_MALLOCABLE      0x00000004
+
+/**< Memory partition for physical address allocation  through fsl_os_get_mem() */
+#define MEMORY_ATTR_PHYS_ALLOCATION	0x00000008
+
+
 /* @} */
 
 
@@ -143,7 +152,36 @@ void sys_mem_free(void *p_memory);
 int sys_get_available_mem_partition(void);
 
 /**************************************************************************//**
- @Function      SYS_RegisterMemPartition
+ @Function      sys_register_phys_addr_alloc_partition
+
+ @Description   Register a new memory partition to the system's memory manager.
+
+                Note that if \c f_UserMalloc and \c f_UserFree are not NULL,
+                the system will not manage the partition, but only record
+                allocations and de-allocations for debug purposes (providing
+                that \c enableDebug is set to '1').
+
+ @Param[in]     partitionId     - Memory partition ID
+ @Param[in]     baseAddress     - Base address of memory partition
+ @Param[in]     size            - Size (in bytes) of memory partition
+ @Param[in]     attributes      - Memory attributes mask (a combination of MEMORY_ATTR_x flags)
+ @Param[in]     name            - Memory partition name (up to 32 bytes).
+ @Param[in]     f_UserMalloc    - User's memory allocation routine, for bypassing the
+                                  default memory manager; Set to NULL for default operation.
+ @Param[in]     f_UserFree      - User's memory freeing routine, for bypassing the
+                                  default memory manager; Set to NULL for default operation.
+ @Param[in]     enableDebug     - '1' to enable memory leaks debug; '0' to disable.
+
+ @Return        Pointer to allocated memory; NULL on failure.
+*//***************************************************************************/
+int sys_register_phys_addr_alloc_partition(int        partition_id,
+		                                   uint64_t  base_paddress,
+                                           uint64_t   size,
+                                            uint32_t   attributes,
+                                            char       name[]);
+
+/**************************************************************************//**
+ @Function      sys_register_mem_partition
 
  @Description   Register a new memory partition to the system's memory manager.
 
@@ -189,6 +227,36 @@ int sys_register_mem_partition(int        partition_id,
  @Return        0 on success; Error code otherwise.
 *//***************************************************************************/
 int sys_unregister_mem_partition(int partition_id);
+
+
+/**************************************************************************//**
+ @Function      sys_get_phys_addr_alloc_partition_info
+
+ @Description   Retrieves memory partition details of a given memory partition.
+
+ @Param[in]     partitionId - Memory partition ID
+
+ @Param[out]    partition_info - Info about given partition.
+
+ @Return        0 on success; Error code otherwise.
+*//***************************************************************************/
+int sys_get_phys_addr_alloc_partition_info(int partition_id,
+                                           t_mem_mng_phys_addr_alloc_info* partition_info);
+
+/**************************************************************************//**
+ @Function      sys_get_mem_partition_info
+
+ @Description   Retrieves memory partition details of a given memory partition.
+
+ @Param[in]     partitionId - Memory partition ID
+
+ @Param[out]    partition_info - Info about given partition.
+
+ @Return        0 on success; Error code otherwise.
+*//***************************************************************************/
+
+int sys_get_mem_partition_info(int partition_id,
+                               t_mem_mng_partition_info* partition_info);
 
 /**************************************************************************//**
  @Function      SYS_GetMemPartitionBase

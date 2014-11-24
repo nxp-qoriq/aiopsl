@@ -292,6 +292,33 @@ int sys_get_available_mem_partition(void)
     return partition_id;
 }
 
+/*****************************************************************************/
+__COLD_CODE int sys_register_phys_addr_alloc_partition(int  partition_id,
+        uint64_t  base_paddress,
+        uint64_t   size,
+         uint32_t   attributes,
+         char       name[])
+{
+	int err_code;
+	ASSERT_COND(sys.mem_mng);
+	 if (partition_id == SYS_DEFAULT_HEAP_PARTITION)
+	 {
+	        RETURN_ERROR(MAJOR, EDOM,
+	                     ("partition ID %d is reserved for default heap",
+	                      SYS_DEFAULT_HEAP_PARTITION));
+	 }
+	 err_code = mem_mng_register_phys_addr_alloc_partition(sys.mem_mng,
+	                                         partition_id,
+	                                         base_paddress,
+	                                         size,
+	                                         attributes,
+	                                         name);
+	  if (err_code != 0)
+	  {
+	      RETURN_ERROR(MAJOR, err_code, NO_MSG);
+	  }
+	  return 0;
+}
 
 /*****************************************************************************/
 __COLD_CODE int sys_register_mem_partition(int        partition_id,
@@ -390,7 +417,52 @@ __COLD_CODE int sys_unregister_mem_partition(int partition_id)
     return 0;
 }
 
+/*****************************************************************************/
+int sys_get_mem_partition_info(int partition_id,t_mem_mng_partition_info* partition_info)
+{
+    int                 err_code;
 
+    ASSERT_COND(sys.mem_mng);
+
+    if (partition_id == SYS_DEFAULT_HEAP_PARTITION)
+    {
+        partition_id = sys.heap_partition_id;
+    }
+
+    err_code = mem_mng_get_partition_info(sys.mem_mng, partition_id, partition_info);
+
+    if (err_code != 0)
+    {
+        REPORT_ERROR(MAJOR, err_code, NO_MSG);
+        return (uint32_t)ILLEGAL_BASE;
+    }
+
+    return 0;
+}
+
+/*****************************************************************************/
+int sys_get_phys_addr_alloc_partition_info(int partition_id,
+                                           t_mem_mng_phys_addr_alloc_info* partition_info)
+{
+    int                 err_code;
+
+    ASSERT_COND(sys.mem_mng);
+
+    if (partition_id == SYS_DEFAULT_HEAP_PARTITION)
+    {
+        partition_id = sys.heap_partition_id;
+    }
+
+    err_code = mem_mng_get_phys_addr_alloc_info(sys.mem_mng, partition_id, partition_info);
+
+    if (err_code != 0)
+    {
+        REPORT_ERROR(MAJOR, err_code, NO_MSG);
+        return (uint32_t)ILLEGAL_BASE;
+    }
+
+    return 0;
+}
 /*****************************************************************************/
 uint64_t sys_get_mem_partition_base(int partition_id)
 {

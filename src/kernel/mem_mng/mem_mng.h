@@ -76,10 +76,30 @@ typedef struct t_mem_mng_partition
 #endif
 } t_mem_mng_partition;
 
+
+/**************************************************************************//**
+ @Description   Memory management partition control structure
+ *//***************************************************************************/
+typedef struct t_mem_mng_phys_addr_alloc_partition
+{
+    int                              id;             /**< Partition ID */
+    fsl_handle_t                     h_mem_manager;   /**< Memory manager handle */
+    list_t                           node;
+    t_mem_mng_phys_addr_alloc_info   info;           /**< Partition information */
+#ifdef AIOP
+    uint8_t *                        lock;
+#else
+    fsl_handle_t                     lock;
+#endif
+    uint64_t 	                     curr_paddress;
+} t_mem_mng_phys_addr_alloc_partition;
+
+
 #define MEM_MNG_PARTITION_OBJECT(p_list)  \
     LIST_OBJECT(p_list, t_mem_mng_partition, node)
 
-
+#define MEM_MNG_PHYS_ADDR_ALLOC_PARTITION_OBJECT(p_list)  \
+    LIST_OBJECT(p_list, t_mem_mng_phys_addr_alloc_partition, node)
 /**************************************************************************//**
  @Description   Memory management module internal parameters
  *//***************************************************************************/
@@ -91,7 +111,8 @@ typedef struct t_mem_mng
                 /**< Memory deallocation routine (for internal structures) */
     list_t      mem_partitions_list;
                 /**< List of partition control structures */
-
+    list_t      phys_allocation_mem_partitions_list;
+                /**< List of partition for fsl_os_get_mem function() control structures */
     /* Variables related to early memory partition */
     void *      (*f_early_malloc)(uint32_t size, uint32_t alignment);
                 /**< Early allocation routine (before partitions are registered) */
