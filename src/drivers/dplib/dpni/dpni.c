@@ -41,14 +41,14 @@ static int build_extract_cfg_extention(struct dpkg_profile_cfg *cfg,
 	int offset = 0;
 	int param = 1;
 	struct {
-		enum net_prot prot;
-		enum dpkg_extract_from_hdr_type type;
 		uint32_t field;
 		uint8_t size;
 		uint8_t offset;
 		uint8_t hdr_index;
 		uint8_t constant;
 		uint8_t num_of_repeats;
+		enum net_prot prot;
+		enum dpkg_extract_from_hdr_type type;
 	} u_cfg[DPKG_MAX_NUM_OF_EXTRACTS] = { 0 };
 
 	if(!cfg || !ext_params)

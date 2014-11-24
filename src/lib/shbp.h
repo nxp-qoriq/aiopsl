@@ -41,7 +41,16 @@
  * @brief	Structure representing buffer descriptor
  */
 struct shbp_bd {
-	uint64_t addr;
+	uint64_t addr; /*!< Buffer address after meta data */
+};
+
+/**
+ * @brief	Structure representing buffer meta data
+ */
+struct shbp_bd_meta {
+	uint8_t alloc_master;	/*!< Master of the allocation */
+	uint8_t creator_id;	/*!< Creator pool id */
+	uint8_t alloc_id;	/*!< Allocation owner pool id */
 };
 
 /**
@@ -50,17 +59,19 @@ struct shbp_bd {
 struct shbp {
 	struct {
 		uint64_t base;	/*!< Base address of the pool */
-		uint32_t size;	/*!< Size of the pool */
 		uint32_t enq;	/*!< Number of enqueued buffers */
 		uint32_t deq;	/*!< Number of dequeued buffers */
 	}alloc;
+	/*!< Allocations queue */
 	struct {
 		uint64_t base;	/*!< Base address of the pool */
-		uint32_t size;	/*!< Size of the pool */
 		uint32_t enq;	/*!< Number of enqueued buffers */
 		uint32_t deq;	/*!< Number of dequeued buffers */
 	}free;
-	uint8_t master;
+	/*!< Free queue */
+	uint8_t alloc_master;	/*!< Master of the allocation */
+	uint8_t align;		/*!< Buffer alignment is 2^align */
+	uint8_t size;		/*!< Max number of BDs in the pool is 2^size */
 };
 
 #define SHBP_IS_FULL(P)		(((P)->enq - (P)->deq) == (P)->size)

@@ -76,4 +76,10 @@
 /* Tasks per core in AIOP */
 #define AIOP_TASKS_PER_CORE              4
 
+/* Number of frame buffers in pool */
+#define DPNI_NUMBER_BUFFERS_IN_POOL      50
+/* Size of buffers in pool */
+#define DPNI_BUFFER_SIZE_IN_POOL         2048
+/* alignment of buffers in pool */
+#define DPNI_BUFFER_ALIGNMENT            64
 

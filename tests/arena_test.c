@@ -92,6 +92,7 @@ static void app_process_packet_flow0 (dpni_drv_app_arg_t arg)
 	uint64_t local_time;
 	uint8_t local_packet_number;
 	int local_test_error = 0;
+	uint16_t spid_ddr;
 
 	lock_spinlock(&packet_lock);
 	local_packet_number = packet_number;
@@ -99,6 +100,16 @@ static void app_process_packet_flow0 (dpni_drv_app_arg_t arg)
 	unlock_spinlock(&packet_lock);
 	core_id = (int)core_get_id();
 
+	
+	err = dpni_drv_get_spid_ddr(APP_NI_GET(arg), &spid_ddr);
+	if (err) {
+		fsl_os_print("ERROR = %d: get spid_ddr failed in runtime phase()\n", err);
+		local_test_error |= err;
+	} else {
+		fsl_os_print("spid_ddr is %d\n",spid_ddr);
+	}
+
+	
 	err = pton_test();
 	if (err) {
 		fsl_os_print("ERROR = %d: pton_test failed in runtime phase()\n", err);

@@ -54,22 +54,24 @@ struct aiop_init_info g_init_data =
   {0}	        /* reserved           */
  },
  /* aiop_app_init_info */
- {															
- 	AIOP_SL_AND_APP_SIZE,									
- 	PEB_SIZE,												
- 	SYS_DDR1_SIZE,											
- 	CTLU_SYS_DDR_NUM_ENTRIES,								
- 	CTLU_DP_DDR_NUM_ENTRIES,								
- 	CTLU_PEB_NUM_ENTRIES,									
- 	MFLU_SYS_DDR_NUM_ENTRIES,								
- 	MFLU_DP_DDR_NUM_ENTRIES,								
- 	MFLU_PEB_NUM_ENTRIES,									
- 	SRU_SIZE,												
- 	TMAN_FREQUENCY,											
- 	AIOP_TASKS_PER_CORE,									
- 	{0}	/* reserved */										
+ {
+ 	AIOP_SL_AND_APP_SIZE,
+ 	PEB_SIZE,
+ 	SYS_DDR1_SIZE,
+ 	CTLU_SYS_DDR_NUM_ENTRIES,
+ 	CTLU_DP_DDR_NUM_ENTRIES,
+ 	CTLU_PEB_NUM_ENTRIES,
+ 	MFLU_SYS_DDR_NUM_ENTRIES,
+ 	MFLU_DP_DDR_NUM_ENTRIES,
+ 	MFLU_PEB_NUM_ENTRIES,
+ 	SRU_SIZE,
+ 	TMAN_FREQUENCY,
+ 	AIOP_TASKS_PER_CORE,
+ 	DPNI_NUMBER_BUFFERS_IN_POOL,
+ 	DPNI_BUFFER_SIZE_IN_POOL,
+ 	DPNI_BUFFER_ALIGNMENT,
+ 	{0}/* reserved */
  }
  
 };
- 
  

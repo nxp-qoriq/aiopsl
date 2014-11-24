@@ -24,71 +24,45 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/**
+/**************************************************************************//**
+@File          fsl_bman.h
 
- @File          fsl_soc_aiop_spec.h
+@Description   This file contains the AIOP BMAN Operations API
 
- @Description   LS2085A external definitions and structures.
+@Cautions      None.
 *//***************************************************************************/
-#ifndef __FSL_SOC_AIOP_SPEC_H
-#define __FSL_SOC_AIOP_SPEC_H
+
+#ifndef __FSL_BMAN_H
+#define __FSL_BMAN_H
 
 #include "common/types.h"
+#include "fsl_errors.h"
+#include "fsl_platform.h"
 
 
 /**************************************************************************//**
- @Group         ls2085a_g LS2085A Application Programming Interface
+@Function      bman_fill_bpid
 
- @Description   LS2085A Chip functions,definitions and enums.
-
- @{
-*//***************************************************************************/
-
-#define CORE_E200
-#define CORE_E200_Z490
-
-#define INTG_MAX_NUM_OF_CORES   16
-#define INTG_THREADS_PER_CORE   1
+@Description   fill the HW pool with buffers.
 
 
-/**************************************************************************//**
- @Description   Module types.
-*//***************************************************************************/
-enum fsl_os_module {
-	FSL_OS_MOD_SOC = 0,
+@Param[in]     num_buffs         Number of buffers to fill in HW pool.
+@Param[in]     buff_size         Size of buffers in pool.
+@Param[in]     alignment         Requested alignment for data field (in bytes).
+@Param[in]     mem_partition_id  Memory partition ID for buffer type.
+				 AIOP: HW pool supports only PEB and DDR.
+@Param[in]     bpid              Id of pool to fill with buffers.
 
-	/* FSL_OS_MOD_CMDIF_SRV, */ /**< AIOP server handle */
-	FSL_OS_MOD_CMDIF_CL,  /**< AIOP client handle */
-	FSL_OS_MOD_SLAB,
-	FSL_OS_MOD_UART,
-	FSL_OS_MOD_CMGW,
-	FSL_OS_MOD_DPRC,
-	FSL_OS_MOD_DPNI,
-	FSL_OS_MOD_DPIO,
-	FSL_OS_MOD_DPSP,
-	FSL_OS_MOD_DPSW,
 
-	FSL_OS_MOD_AIOP_TILE,
+@Return        0       - on success,
+               -EINVAL - slab module handle is null
+               -ENOMEM - not enough memory for mem_partition_id
+ *//***************************************************************************/
+int bman_fill_bpid(uint32_t num_buffs,
+                     uint16_t buff_size,
+                     uint16_t alignment,
+                     enum memory_partition_id  mem_partition_id,
+                     uint16_t bpid);
 
-	FSL_OS_MOD_MC_PORTAL,
-	FSL_OS_MOD_AIOP_RC,    /**< AIOP root container from DPL */
-	FSL_OS_MOD_DPCI_TBL,   /**< AIOP DPCI table from DPL */
 
-	FSL_OS_MOD_LAYOUT, /* TODO - review *//**< layout */
-
-	FSL_OS_MOD_DUMMY_LAST
-};
-
-/** @} */ /* end of ls2085a_g group */
-
-/* AIOP Peripherals Offset in AIOP memory map */
-#define AIOP_PERIPHERALS_OFF            0X2000000
-
-/* AIOP Profile SRAM offset */
-#define AIOP_STORAGE_PROFILE_OFF        0x30000
-/* Offsets relative to CCSR base */
-#define SOC_PERIPH_OFF_AIOP_WRKS        0x1d000
-#define SOC_PERIPH_OFF_AIOP_TILE        0x00080000
-#define SOC_PERIPH_OFF_AIOP_CMGW        0x0
-
-#endif /* __FSL_SOC_AIOP_SPEC_H */
+#endif /* __FSL_BMAN_H */

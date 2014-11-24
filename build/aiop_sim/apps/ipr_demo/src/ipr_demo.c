@@ -40,7 +40,9 @@
 #include "dplib/fsl_l4.h"
 #include "ls2085_aiop/fsl_platform.h"
 #include "fsl_tman.h"
+#include "fsl_slab.h"
 
+int app_early_init(void);
 int app_init(void);
 void app_free(void);
 void ipr_timout_cb(ipr_timeout_arg_t arg,
@@ -199,6 +201,10 @@ static void epid_setup()
 }
 #endif /* AIOP_STANDALONE */
 
+int app_early_init(void){
+	slab_register_context_buffer_requirements(100, 100, 2688, 64, MEM_PART_DP_DDR, 0, 0);
+	return 0;
+}
 
 
 int app_init(void)
@@ -234,7 +240,7 @@ int app_init(void)
 	err = ipr_create_instance(&ipr_demo_params, ipr_instance_ptr);
 	if (err)
 	{
-		fsl_os_print("ERROR: ipr_create_instance() failed\n");
+		fsl_os_print("ERROR: ipr_create_instance() failed %d\n",err);
 		return err;
 	}
 

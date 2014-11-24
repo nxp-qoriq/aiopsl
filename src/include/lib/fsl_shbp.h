@@ -59,13 +59,12 @@ uint64_t shbp_acquire(shbp_t bp);
 /**
  * @brief	Return buffer into shared pool
  *
- * @param[in]	bp  - Buffer pool handle
  * @param[in]	buf - Buffer address
  *
  * @returns	0 on Success; or error code otherwise
  *
  */
-int shbp_release(shbp_t bp, uint64_t buf);
+int shbp_release(uint64_t buf);
 
 /**
  * @brief	Create shared pool from a given buffer

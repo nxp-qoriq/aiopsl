@@ -48,6 +48,9 @@
  @{
 *//***************************************************************************/
 
+/*TODO: Need to be removed when dynamic support for number of pools used for dpni's will be added*/
+#define BPIDS_USED_FOR_POOLS_IN_DPNI         2
+
 #define PLATFORM_IO_MODE_ANY            (~0)    /**< Unspecified I/O mode */
 
 #define MAX_CHIP_NAME_LEN               10   /**< Maximum chip name length (including null character) */
