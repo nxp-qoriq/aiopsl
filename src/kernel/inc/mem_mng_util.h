@@ -138,6 +138,18 @@ typedef struct t_mem_mng_partition_info
 } t_mem_mng_partition_info;
 
 
+/**************************************************************************//**
+ @Description   Memory partition information for physical address allocation
+ *//***************************************************************************/
+typedef struct t_mem_mng_phys_addr_alloc_info
+{
+    char        name[MEM_MNG_MAX_PARTITION_NAME_LEN];
+    uint64_t    base_paddress;
+    uint64_t    size;
+    uint32_t    attributes;
+} t_mem_mng_phys_addr_alloc_info;
+
+
 int mem_mng_get_partition_id_by_addr(fsl_handle_t   h_mem_mng,
                                      uint64_t   addr,
                                      int        *p_partition_id);
@@ -158,8 +170,16 @@ int mem_mng_register_partition(fsl_handle_t  h_mem_mng,
 int mem_mng_unregister_partition(fsl_handle_t h_mem_mng, int partition_id);
 
 
+int mem_mng_register_phys_addr_alloc_partition(fsl_handle_t  h_mem_mng,
+                                  int       partition_id,
+                                  uint64_t base_paddress,
+                                  uint64_t  size,
+                                  uint32_t  attributes,
+                                  char      name[]);
+
+
 /**************************************************************************//**
- @Function      MEM_MNG_GetPartitionInfo
+ @Function      mem_mng_get_partition_info
 
  @Description   Get information and usage statistics of a selected partition.
 *//***************************************************************************/
@@ -167,6 +187,14 @@ int mem_mng_get_partition_info(fsl_handle_t               h_mem_mng,
                                  int                    partition_id,
                                  t_mem_mng_partition_info  *p_partition_info);
 
+/**************************************************************************//**
+ @Function      mem_mng_get_phys_addr_alloc_info
+
+ @Description   Get information and usage statistics of a selected partition.
+*//***************************************************************************/
+int mem_mng_get_phys_addr_alloc_info(fsl_handle_t               h_mem_mng,
+                                 int                    partition_id,
+                                 t_mem_mng_phys_addr_alloc_info  *p_partition_info);
 
 typedef void (t_mem_mng_leak_report_func)(void      *p_memory,
                                       uint32_t  size,
