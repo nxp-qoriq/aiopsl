@@ -64,16 +64,15 @@
 
 #define SAVE_GPP_ICID	\
 do {\
-	uint16_t pl_icid = PL_ICID_GET; 		\
-	gpp_ic.dma_flags = 0; 				\
-	ADD_AMQ_FLAGS(gpp_ic.dma_flags, pl_icid); 	\
-	gpp_ic.icid = ICID_GET(pl_icid); 		\
-	if (BDI_GET != 0) 				\
-		gpp_ic.bdi_flags = FDMA_ENF_BDI_BIT;	\
+	gpp_icid = PL_ICID_GET; 		\
+	gpp_dma = 0; 				\
+	ADD_AMQ_FLAGS(gpp_dma, gpp_icid); 	\
+	gpp_icid = ICID_GET(gpp_icid); 		\
 \
 } while(0)
 
 #define ADC_STRUCT ((struct additional_dequeue_context *)HWC_ADC_ADDRESS)
+
 
 #define SET_AIOP_ICID	\
 	do { \
@@ -93,7 +92,6 @@ do {\
 			~(ADC_BDI_MASK | ADC_VA_MASK)) | flags;		\
 		STH_SWAP(pl_icid, 0, &(ADC_STRUCT->pl_icid));		\
 	} while (0)
-
 
 #define OPEN_CB(M_ID, INST, DEV) \
 	do {\
@@ -371,12 +369,14 @@ void sync_cmd_done(uint64_t sync_done,
 			  int err,
 			  uint16_t auth_id,
 			  char terminate,
-			  struct icontext *ic);
+			  uint16_t icid,
+			  uint32_t dma_flags);
 /* static */ void sync_cmd_done(uint64_t sync_done,
 			  int err,
 			  uint16_t auth_id,
 			  char terminate,
-			  struct icontext *ic)
+			  uint16_t icid,
+			  uint32_t dma_flags)
 {
 	uint32_t resp = SYNC_CMD_RESP_MAKE(err, auth_id);
 	uint64_t _sync_done = NULL;
@@ -398,10 +398,10 @@ void sync_cmd_done(uint64_t sync_done,
 	} else {
 		/*
 		 * Use previously saved AMQ bits and ICID */
-		sl_pr_debug("icid = 0x%x\n", ic->icid);
-		sl_pr_debug("fdma_dma_data flags = 0x%x\n", ic->dma_flags);
-		fdma_dma_data(4, ic->icid, &resp, _sync_done,
-			      ic->dma_flags | FDMA_DMA_DA_WS_TO_SYS_BIT);
+		sl_pr_debug("icid = 0x%x\n", icid);
+		sl_pr_debug("fdma_dma_data flags = 0x%x\n", dma_flags);
+		fdma_dma_data(4, icid, &resp, _sync_done,
+		              dma_flags | FDMA_DMA_DA_WS_TO_SYS_BIT);
 	}
 
 	sl_pr_debug("sync_done high = 0x%x low = 0x%x \n",
@@ -478,6 +478,8 @@ static inline int mc_dpci_check(int ind)
 int notify_open();
 /* static */ int notify_open()
 {
+#ifndef STACK_CHECK /* No user callback */
+
 	struct cmdif_session_data *data = \
 		(struct cmdif_session_data *)PRC_GET_SEGMENT_ADDRESS();
 	struct cmdif_cl *cl = sys_get_unique_handle(FSL_OS_MOD_CMDIF_CL);
@@ -554,6 +556,7 @@ int notify_open();
 	pr_debug("enq_flags = 0x%x\n", cmdif_aiop_srv.dpci_tbl->bdi_flags[ind]);
 	pr_debug("dma_flags = 0x%x\n", cmdif_aiop_srv.dpci_tbl->dma_flags[ind]);
 
+#endif /* STACK_CHECK */
 	return 0;
 }
 
@@ -561,6 +564,8 @@ int notify_open();
 int notify_close();
 /* static */ int notify_close()
 {
+#ifndef STACK_CHECK /* No user callabck here */	
+	
 	struct cmdif_session_data *data = \
 		(struct cmdif_session_data *)PRC_GET_SEGMENT_ADDRESS();
 	struct cmdif_cl *cl = sys_get_unique_handle(FSL_OS_MOD_CMDIF_CL);
@@ -580,20 +585,34 @@ int notify_close();
 	}
 
 	unlock_spinlock(&cl->lock);
+#endif /* STACK_CHECK */
 	return -ENAVAIL;
 }
 
-static inline void dump_memory()
+void dump_param_get(uint32_t *len, uint8_t **p, uint64_t *addr);
+void dump_param_get(uint32_t *len, uint8_t **p, uint64_t *addr)
 {
-	uint32_t len = MIN(LDPAA_FD_GET_LENGTH(HWC_FD_ADDRESS),\
+	*len = MIN(LDPAA_FD_GET_LENGTH(HWC_FD_ADDRESS),\
 	                   PRC_GET_SEGMENT_LENGTH());
-	uint8_t  *p = (uint8_t  *)PRC_GET_SEGMENT_ADDRESS();
+	*p = (uint8_t  *)PRC_GET_SEGMENT_ADDRESS();
+	*addr = LDPAA_FD_GET_ADDR(HWC_FD_ADDRESS);
+}
 
+void dump_memory();
+/* static inline */ void dump_memory()
+{
+#ifndef STACK_CHECK /* dump memory happens before user callabck */
+	uint32_t len;
+	uint8_t  *p;
+	uint64_t addr;
+	
+	dump_param_get(&len, &p, &addr);
+	
 	pr_debug("----- Dump of SEGMENT_ADDRESS 0x%x size %d -----\n",
 	         p, len);
 	pr_debug("Virtual addr high = 0x%x low = 0x%x \n",
-	         (uint32_t)((LDPAA_FD_GET_ADDR(HWC_FD_ADDRESS) & 0xFF00000000) >> 32),
-	         (uint32_t)(LDPAA_FD_GET_ADDR(HWC_FD_ADDRESS) & 0xFFFFFFFF));
+	         (uint32_t)(( addr & 0xFF00000000) >> 32),
+	         (uint32_t)(addr & 0xFFFFFFFF));
 
 	while (len > 15)
 	{
@@ -612,17 +631,79 @@ static inline void dump_memory()
 		len -= 4;
 		p += 4;
 	}
+#endif /* STACK_CHECK */
+}
+
+int session_open();
+/* static */ int session_open()
+{
+	char     m_name[M_NAME_CHARS + 1];
+	int      m_id;
+	uint8_t  inst_id;
+	void     *dev;
+	int      err;
+	
+	cmd_m_name_get(&m_name[0]);
+	sl_pr_debug("m_name = %s\n", m_name);
+
+	m_id = module_id_find(m_name);
+	sl_pr_debug("m_id = %d\n", m_id);
+
+	if (m_id < 0) {
+		/* Did not find module with such name */
+		sl_pr_err("No such module %s\n", m_name);
+		return -ENODEV; 
+/*
+		sync_cmd_done(sync_done_addr, -ENODEV, auth_id,
+			      TRUE, gpp_icid, gpp_dma);
+*/
+	}
+
+	inst_id  = cmd_inst_id_get();
+	sl_pr_debug("inst_id = %d\n", inst_id);
+
+	OPEN_CB(m_id, inst_id, dev);
+	if (!err) {
+		int  new_inst = inst_alloc((uint8_t)m_id);
+		if (new_inst >= 0) {
+			sl_pr_debug("New auth_id = %d module name = %s\n", new_inst, m_name);
+			sync_done_set((uint16_t)new_inst);
+			cmdif_aiop_srv.srv->inst_dev[new_inst] = dev;
+			
+			return new_inst;
+/*
+			sync_cmd_done(sync_done_addr, 0,
+					(uint16_t)new_inst,
+					TRUE, gpp_icid, gpp_dma);
+*/
+		} else {
+			/* couldn't find free place for new device */
+			sl_pr_err("No free entry for new device\n");
+			return -ENOMEM; 
+/*
+			sync_cmd_done(sync_done_addr, -ENODEV, auth_id,
+				      FALSE, gpp_icid, gpp_dma);
+			PR_ERR_TERMINATE("No free entry for new device\n");				      
+*/
+			
+		}
+	} else {
+		return err; /* User error */
+/*
+		sync_cmd_done(sync_done_addr, err, auth_id,
+			      FALSE, gpp_icid, gpp_dma);
+		PR_ERR_TERMINATE("Open callback failed\n");			      
+*/
+	}
 }
 
 void cmdif_srv_isr(void) /*__attribute__ ((noreturn))*/
 {
-	struct icontext gpp_ic;
-	int err = 0;
-	uint16_t cmd_id = cmd_id_get();
-	uint16_t auth_id = cmd_auth_id_get();
-
-	pr_debug("cmd_id = 0x%x\n", cmd_id);
-	pr_debug("auth_id = 0x%x\n", auth_id);
+	uint16_t gpp_icid;
+	uint32_t gpp_dma;
+	int err;
+	uint16_t cmd_id;
+	uint16_t auth_id;
 
 	ASSERT_COND_LIGHT(cmdif_aiop_srv.srv != NULL);
 
@@ -631,9 +712,14 @@ void cmdif_srv_isr(void) /*__attribute__ ((noreturn))*/
 #endif
 
 	SAVE_GPP_ICID;
+	
+	cmd_id = cmd_id_get();
+	auth_id = cmd_auth_id_get();
 
+	pr_debug("cmd_id = 0x%x\n", cmd_id);
+	pr_debug("auth_id = 0x%x\n", auth_id);
+	
 	if (cmd_id == CMD_ID_NOTIFY_OPEN) {
-#ifndef STACK_CHECK /* No user callback */
 		/* Support for AIOP -> GPP */
 		if (is_valid_auth_id(auth_id)) {
 			pr_debug("Got notify open for AIOP client \n");
@@ -641,82 +727,50 @@ void cmdif_srv_isr(void) /*__attribute__ ((noreturn))*/
 			if (err) {
 				pr_err("notify_open failed\n");
 			}
-			sync_cmd_done(NULL, err, auth_id, TRUE, &gpp_ic);
+			sync_cmd_done(NULL, err, auth_id, TRUE, gpp_icid, gpp_dma);
 		} else {
 			fdma_store_default_frame_data(); /* Close FDMA */
 			PR_ERR_TERMINATE("Invalid authentication id\n");
 		}
-#endif /* STACK_CHECK */
 	} else if (cmd_id == CMD_ID_NOTIFY_CLOSE) {
-#ifndef STACK_CHECK /* No user callback */
 		if (is_valid_auth_id(auth_id)) {
 			pr_debug("Got notify close for AIOP client \n");
 			err = notify_close();
 			if (err) {
 				pr_err("notify_close failed\n");
 			}
-			sync_cmd_done(NULL, err, auth_id, TRUE, &gpp_ic);
+			sync_cmd_done(NULL, err, auth_id, TRUE, gpp_icid, gpp_dma);
 		} else {
 			fdma_store_default_frame_data(); /* Close FDMA */
 			PR_ERR_TERMINATE("Invalid authentication id\n");
 		}
-#endif /* STACK_CHECK */
 	} else if (cmd_id == CMD_ID_OPEN) {
-		char     m_name[M_NAME_CHARS + 1];
-		int      m_id      = 0;
-		uint8_t  inst_id   = 0;
-		void     *dev;
 
 		/* OPEN will arrive with hash value 0xffff */
 		if (auth_id != OPEN_AUTH_ID) {
-			sl_pr_err("No permission to open device 0x%x\n", auth_id);
+			pr_err("No permission to open device 0x%x\n", auth_id);
 			sync_cmd_done(sync_done_get(), -EPERM, auth_id,
-				      TRUE, &gpp_ic);
+				      TRUE, gpp_icid, gpp_dma);
 		}
 
-		cmd_m_name_get(&m_name[0]);
-		sl_pr_debug("m_name = %s\n", m_name);
-
-		m_id = module_id_find(m_name);
-		sl_pr_debug("m_id = %d\n", m_id);
-
-		if (m_id < 0) {
-			/* Did not find module with such name */
-			pr_err("No such module %s\n", m_name);
-			sync_cmd_done(sync_done_get(), -ENODEV, auth_id,
-				      TRUE, &gpp_ic);
-		}
-
-		inst_id  = cmd_inst_id_get();
-		sl_pr_debug("inst_id = %d\n", inst_id);
-
-		OPEN_CB(m_id, inst_id, dev);
-		if (!err) {
-			int  new_inst = inst_alloc((uint8_t)m_id);
-			if (new_inst >= 0) {
-				pr_debug("New auth_id = %d module name = %s\n", new_inst, m_name);
-				sync_done_set((uint16_t)new_inst);
-				cmdif_aiop_srv.srv->inst_dev[new_inst] = dev;
-				sync_cmd_done(sync_done_get(), 0,
-						(uint16_t)new_inst,
-						TRUE, &gpp_ic);
-			} else {
-				/* couldn't find free place for new device */
-				sync_cmd_done(sync_done_get(), -ENODEV, auth_id,
-					      FALSE, &gpp_ic);
-				PR_ERR_TERMINATE("No free entry for new device\n");
-			}
-		} else {
+		err = session_open();
+		if (err < 0) {
+			pr_err("Open session FAILED\n");
 			sync_cmd_done(sync_done_get(), err, auth_id,
-				      FALSE, &gpp_ic);
-			PR_ERR_TERMINATE("Open callback failed\n");
+				      TRUE, gpp_icid, gpp_dma);
+		} else {
+			pr_err("Open session PASSED\n");
+			sync_cmd_done(sync_done_get(), 0, (uint16_t)err,
+				      TRUE, gpp_icid, gpp_dma);
 		}
+		
 	} else if (cmd_id == CMD_ID_CLOSE) {
 
 		if (is_valid_auth_id(auth_id)) {
 			/* Don't reorder this sequence !!*/
 			CLOSE_CB(auth_id);
-			sync_cmd_done(NULL, err, auth_id, FALSE, &gpp_ic);
+			sync_cmd_done(NULL, err, auth_id, FALSE, 
+			              gpp_icid, gpp_dma);
 			if (!err) {
 				/* Free instance entry only if we had no error
 				 * otherwise it will be impossible to retry to
@@ -742,7 +796,7 @@ void cmdif_srv_isr(void) /*__attribute__ ((noreturn))*/
 			if (SYNC_CMD(cmd_id)) {
 				pr_debug("PASSED Synchronous Command\n");
 				sync_cmd_done(NULL, err, auth_id,
-					      TRUE, &gpp_ic);
+					      TRUE, gpp_icid, gpp_dma);
 			}
 		} else {
 			/* don't bother to send response
