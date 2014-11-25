@@ -25,7 +25,7 @@
  */
 
 /*!
- * @file    fsl_shbp.h
+ * @file    shbp.h
  * @brief   Shared Buffer Pool API
  *
  * Internal header file shared by AIOP and GPP.
@@ -35,7 +35,7 @@
 #ifndef __SHBP_H
 #define __SHBP_H
 
-#include <fsl_shbp.h>
+#include <cmdif.h>
 
 /**
  * @brief	Structure representing buffer descriptor
@@ -55,6 +55,7 @@ struct shbp_bd_meta {
 
 /**
  * @brief	Structure representing shared buffer pool
+ * 		Must reside in non cacheable memory.
  */
 struct shbp {
 	struct {

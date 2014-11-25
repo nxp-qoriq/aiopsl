@@ -25,74 +25,24 @@
  */
 
 /*!
- * @file    fsl_shbp.h
- * @brief   Shared Buffer Pool API
+ * @file    shbp_aiop.h
+ * @brief   Shared Buffer Pool internal API
  *
- * This is uniform API for GPP and AIOP.
+ * Internal header file for AIOP.
  *
  */
 
-#ifndef __FSL_SHBP_H
-#define __FSL_SHBP_H
+#ifndef __SHBP_AIOP_H
+#define __SHBP_AIOP_H
 
 #include <shbp.h>
 
-/*!
- * @Group	shbp_g  Shared Buffer Pool API
- *
- * @brief	API to be used for shared buffer pool.
- *
- * @{
- */
-
 /**
- * @brief	Get buffer from shared pool
- *
- * @param[in]	bp - Buffer pool handle
- *
- * @returns	Address on Success; or NULL code otherwise
- *
+ * @brief	Structure representing local data for shared pool
  */
-void *shbp_acquire(struct shbp *bp);
+struct shbp_aiop {
+	struct   icontext ic;
+	uint64_t bp;	/*!< Shared buffer pool structure */ 
+};
 
-/**
- * @brief	Return or add buffer into the shared pool
- *
- * @param[in]	bp  - Buffer pool handle
- * @param[in]	buf - Pointer to buffer
- * 
- * @returns	0 on Success; or error code otherwise
- *
- */
-int shbp_release(struct shbp *bp, void *buf);
-
-/**
- * @brief	Create shared pool from a given buffer
- * 
- * The shared pool is created as empty, use shbp_release() to fill it  
- *
- * @param[in]	mem_ptr  - Pointer to memory to be used for shared management
- * @param[in]	size     - Size of mem_ptr
- * @param[in]	buf_size - Size of each buffer in pool
- * @param[in]	flags    - Flags to be used for pool creation
- * 
- * @returns	Pointer to shared pool handle on Success; or NULL otherwise
- *
- */
-struct shbp *shbp_create(void *mem_ptr, uint32_t size, 
-                         uint32_t buf_size, uint32_t flags);
-
-/**
- * @brief	Move free buffers into allocation queue
- *
- * @param[in]	bp  - Buffer pool handle
- *
- * @returns	POSIX error code on failure or the number of the buffers added 
- * 		to the allocation queue
- *
- */
-int shbp_refill(struct shbp *bp);
-
-/** @} */ /* end of shbp_g group */
-
-#endif
+#endif /* _SHBP_H */
