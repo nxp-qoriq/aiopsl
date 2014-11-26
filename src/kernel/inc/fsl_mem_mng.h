@@ -106,7 +106,7 @@ void * sys_phys_to_virt(dma_addr_t addr);
 
 
 /**************************************************************************//**
- @Function      SYS_MemAlloc
+ @Function      sys_mem_alloc
 
  @Description   Allocate a memory block from a specific partition and with
                 specific attributes.
@@ -120,7 +120,7 @@ void * sys_phys_to_virt(dma_addr_t addr);
 
  @Return        Pointer to allocated memory; NULL on failure.
 *//***************************************************************************/
-void * sys_mem_alloc(int         partition_id,
+void * sys_mem_xalloc(int         partition_id,
                     uint32_t    size,
                     uint32_t    alignment,
                     char        *info,
@@ -128,16 +128,47 @@ void * sys_mem_alloc(int         partition_id,
                     int         line);
 
 /**************************************************************************//**
- @Function      SYS_MemFree
+ @Function      sys_mem_alloc
+
+ @Description   Allocate a memory block from default partition and with
+                specific attributes.
+
+ @Param[in]     size        - Requested memory size
+ @Param[in]     alignment   - Requested memory alignment
+ @Param[in]     info        - Allocation information string (for debug)
+ @Param[in]     filename    - Caller file name (for debug)
+ @Param[in]     line        - Caller line number (for debug)
+
+ @Return        Pointer to allocated memory; NULL on failure.
+*//***************************************************************************/
+void * sys_mem_alloc(uint32_t    size,
+                    uint32_t    alignment,
+                    char        *info,
+                    char        *filename,
+                    int         line);
+/**************************************************************************//**
+ @Function      sys_mem_Free
 
  @Description   Free a memory block that was previously allocated using the
-                SYS_MemAlloc() routine.
+                sys_mem_alloc() routine.
 
  @Param[in]     p_Memory - Pointer to the memory block
 
  @Return        None.
 *//***************************************************************************/
 void sys_mem_free(void *p_memory);
+
+/**************************************************************************//**
+ @Function      sys_mem_xfree
+
+ @Description   Free a memory block that was previously allocated using the
+                sys_mem_alloc() routine.
+
+ @Param[in]     p_Memory - Pointer to the memory block
+
+ @Return        None.
+*//***************************************************************************/
+void sys_mem_xfree(void *p_memory);
 
 /**************************************************************************//**
  @Function      SYS_GetAvailableMemPartition
