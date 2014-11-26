@@ -90,6 +90,7 @@ UNUSED(argc);UNUSED(argv);
     	cmgw_report_boot_failure();
         return err;
     }
+    sys_barrier();
     
     is_master_core = sys_is_master_core();
     

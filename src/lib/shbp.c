@@ -24,21 +24,19 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <shbp.h>
+#include <fsl_shbp.h>
 
-uint64_t shbp_acquire(shbp_t bp)
+void *shbp_acquire(struct shbp *bp)
 {
-	struct shbp shbp;
 	
-	shbp.alloc.deq = 0;
 	ASSERT_COND(bp);
 	
-	return shbp.alloc.deq;
+	return NULL;
 }
 
-int shbp_release(uint64_t buf)
+int shbp_release(struct shbp *bp, void *buf)
 {
 	ASSERT_COND(buf);
-	/* TODO read metadata */
-	
+	ASSERT_COND(bp);
+	/* TODO read metadata */	
 }

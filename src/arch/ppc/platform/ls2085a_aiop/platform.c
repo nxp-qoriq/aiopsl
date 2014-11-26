@@ -472,8 +472,6 @@ __COLD_CODE static int pltfrm_init_mem_partitions_cb(fsl_handle_t h_platform)
 
     ASSERT_COND(pltfrm);
 
-//    if (pltfrm->param.user_init_hooks.f_init_memory_partitions)
-//        return pltfrm->param.user_init_hooks.f_init_memory_partitions(pltfrm);
     build_mem_partitions_table(pltfrm);
 
     for (i = 0; i < pltfrm->num_of_mem_parts; i++) {
@@ -505,7 +503,18 @@ __COLD_CODE static int pltfrm_init_mem_partitions_cb(fsl_handle_t h_platform)
 
             pltfrm->registered_partitions[index++] = p_mem_info->mem_partition_id;
         }
-    }
+        if(p_mem_info->mem_attribute & MEMORY_ATTR_PHYS_ALLOCATION){
+            err = sys_register_phys_addr_alloc_partition(
+            p_mem_info->mem_partition_id,
+            p_mem_info->phys_base_addr,
+            p_mem_info->size,
+            p_mem_info->mem_attribute,
+            p_mem_info->name
+        );
+        if (err != 0)
+            RETURN_ERROR(MAJOR, err, NO_MSG);
+        }// end of MEMORY_ATTR_PHYS_ALLOCATION
+    }// for
 
     return 0;
 }

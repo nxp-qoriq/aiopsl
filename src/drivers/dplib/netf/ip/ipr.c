@@ -1216,7 +1216,7 @@ uint32_t ipv6_header_update_and_l4_validation(struct ipr_rfdc *rfdc_ptr)
 	uint16_t		checksum;
 	uint16_t		gross_running_sum;
 	uint16_t		size;
-	uint16_t		ipv6_payload_length;
+	uint16_t		payload_length;
 	struct ipv6hdr		*ipv6hdr_ptr;
 	struct ipv6fraghdr	*ipv6fraghdr_ptr;
 	struct	parse_result 	*pr =
@@ -1241,9 +1241,10 @@ uint32_t ipv6_header_update_and_l4_validation(struct ipr_rfdc *rfdc_ptr)
 				ipv6fraghdr_offset-ipv6hdr_offset+8,
 				&checksum);
 
-	ipv6_payload_length = rfdc_ptr->current_total_length +
-				ipv6_frag_extension_size;
-	ipv6hdr_ptr->payload_length = ipv6_payload_length;
+	/* payload length doesn't include nor any frag extension header neither the fixed IPv6 header */
+	payload_length = rfdc_ptr->current_total_length;
+	
+	ipv6hdr_ptr->payload_length = payload_length + ipv6_frag_extension_size;
 	/* Set CE code in ECN field if required, even if it was already CE */
 	if (rfdc_ptr->status & RFDC_STATUS_CE)
 		ipv6hdr_ptr->vsn_traffic_flow |= IPV6_ECN;
@@ -1264,7 +1265,8 @@ uint32_t ipv6_header_update_and_l4_validation(struct ipr_rfdc *rfdc_ptr)
 					  FDMA_REPLACE_SA_REPRESENT_BIT);
 
 	/* Updated FD[length] */
-	LDPAA_FD_SET_LENGTH(HWC_FD_ADDRESS, ipv6_payload_length +
+	/* pay attention that if seg_offset != 0 , parser may be unable to calculate checksum */
+	LDPAA_FD_SET_LENGTH(HWC_FD_ADDRESS, payload_length +
 					    ipv6fraghdr_offset +
 					    prc->seg_offset);
 

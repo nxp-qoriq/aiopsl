@@ -337,22 +337,6 @@ void l2_push_and_set_mpls(uint32_t mpls_hdr, uint16_t etype)
 	etype_ptr = (uint16_t *)(prc->seg_address + etype_offset);
 	mpls_ptr = (uint32_t *)((uint8_t *)etype_ptr + ETYPE_SIZE);
 
-#if 0
-	if (PARSER_IS_ONE_MPLS_DEFAULT()){
-		insert_offset = PARSER_GET_FIRST_MPLS_OFFSET_DEFAULT();
-
-	}else{
-		/* first MPLS header in frame */
-		insert_offset = etype_offset + 2;
-		*etype_ptr = etype;
-		fdma_modify_default_segment_data(etype_offset, 2);
-	}
-	
-	fdma_insert_default_segment_data(insert_offset,
-					&mpls_hdr,
-					4,
-					FDMA_REPLACE_SA_REPRESENT_BIT);
-#else
 	/* Update frame */
 	if (!PARSER_IS_ONE_MPLS_DEFAULT()){
 		*etype_ptr = etype;
@@ -378,7 +362,6 @@ void l2_push_and_set_mpls(uint32_t mpls_hdr, uint16_t etype)
 					   seg_size_rs,
 					   FDMA_REPLACE_SA_REPRESENT_BIT);
 	
-#endif
 	/* Re-run parser */
 	parse_result_generate_default(0);
 	/* Mark running sum as invalid */
@@ -397,43 +380,6 @@ void l2_pop_mpls()
 	struct   presentation_context *prc =
 				(struct presentation_context *) HWC_PRC_ADDRESS;
 
-#if 0
-	/* Remove MPLS headers */
-	if (prc->seg_length - 4 >= 128) {
-		fdma_delete_default_segment_data(
-						 (uint16_t)PARSER_GET_FIRST_MPLS_OFFSET_DEFAULT(),
-						 4,
-						 FDMA_REPLACE_SA_REPRESENT_BIT);
-	} else {
-		fdma_replace_default_segment_data(
-						  (uint16_t)PARSER_GET_FIRST_MPLS_OFFSET_DEFAULT(),
-						  4,
-						  NULL,
-						  0,
-						  (void *)prc->seg_address,
-						  128,
-						  FDMA_REPLACE_SA_REPRESENT_BIT);
-	}
-
-	/* Update EtherType in case there isn't another MPLS */
-	if (!PARSER_IS_MORE_THAN_ONE_MPLS_DEFAULT())
-	{
-		etype_offset = PARSER_GET_LAST_ETYPE_OFFSET_DEFAULT();			
-		etype_ptr = (uint16_t *)(prc->seg_address + etype_offset);
-
-		if (PARSER_IS_OUTER_IPV4_DEFAULT()){
-			*etype_ptr = ETYPE_IPV4;
-		} 
-		/* PARSER_IS_OUTER_IPV6_DEFAULT() */
-		else {
-			*etype_ptr = ETYPE_IPV6;
-		} 
-		
-		fdma_modify_default_segment_data(etype_offset, 2);
-	}
-	
-#else
-	
 	etype_offset = PARSER_GET_LAST_ETYPE_OFFSET_DEFAULT();			
 	segment_address = prc->seg_address;
 	
@@ -467,9 +413,7 @@ void l2_pop_mpls()
 					   (void *)segment_address,
 					   new_segment_size,
 					   FDMA_REPLACE_SA_REPRESENT_BIT);
-	 
-#endif
-	
+	 	
 	/* Re-run parser */
 	parse_result_generate_default(0);
 	/* Mark running sum as invalid */
@@ -495,38 +439,7 @@ void l2_mpls_header_remove()
 	first_offset = PARSER_GET_FIRST_MPLS_OFFSET_DEFAULT();
 	last_offset = PARSER_GET_LAST_MPLS_OFFSET_DEFAULT() + MPLS_SIZE;
 	size_to_be_removed = (uint16_t)(last_offset - first_offset);
-	
-#if 0	
-	/* Remove all MPLS headers */
-	if ((prc->seg_length - size_to_be_removed) >= 128) {
-		fdma_delete_default_segment_data((uint16_t)first_offset,
-						 size_to_be_removed,
-						 FDMA_REPLACE_SA_REPRESENT_BIT);
-	} else {
-		fdma_replace_default_segment_data(
-						   (uint16_t)first_offset,
-						   size_to_be_removed,
-						   NULL,
-						   0,
-						   (void *)prc->seg_address,
-						   128,
-						   FDMA_REPLACE_SA_REPRESENT_BIT);
 
-	}
-	
-	
-	/* Update EtherType */
-	etype_ptr = (uint16_t *)(prc->seg_address + etype_offset);
-	if (PARSER_IS_OUTER_IPV4_DEFAULT()){
-		*etype_ptr = ETYPE_IPV4;
-	} 
-	/* PARSER_IS_OUTER_IPV6_DEFAULT() */
-	else {
-		*etype_ptr = ETYPE_IPV6;
-	}
-
-	fdma_modify_default_segment_data(etype_offset, 2);
-#else
 	segment_address = prc->seg_address;
 	if (PRC_GET_SEGMENT_LENGTH() >= MIN_SEGMENT_SIZE + size_to_be_removed) {
 		segment_address += size_to_be_removed;
@@ -555,8 +468,6 @@ void l2_mpls_header_remove()
 					   new_segment_size,
 					   FDMA_REPLACE_SA_REPRESENT_BIT);
 	 
-#endif
-
 	/* Re-run parser */
 	parse_result_generate_default(0);
 	/* Mark running sum as invalid */
