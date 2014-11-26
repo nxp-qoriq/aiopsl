@@ -25,20 +25,20 @@
  */
 
 /*!
- * @file    fsl_shbp.h
+ * @file    fsl_shbp_aiop.h
  * @brief   Shared Buffer Pool API
  *
- * This is uniform API for GPP and AIOP.
+ * This is shared pool API for AIOP.
  *
  */
 
-#ifndef __FSL_SHBP_H
-#define __FSL_SHBP_H
+#ifndef __FSL_SHBP_AIOP_H
+#define __FSL_SHBP_AIOP_H
 
-#include <shbp.h>
+#include <shbp_aiop.h>
 
 /*!
- * @Group	shbp_g  Shared Buffer Pool API
+ * @Group	shbp_aiop_g  Shared Buffer Pool API for AIOP
  *
  * @brief	API to be used for shared buffer pool.
  *
@@ -48,51 +48,38 @@
 /**
  * @brief	Get buffer from shared pool
  *
- * @param[in]	bp - Buffer pool handle
+ * @param[in]	bp - AIOP buffer pool handle
  *
  * @returns	Address on Success; or NULL code otherwise
  *
  */
-void *shbp_acquire(struct shbp *bp);
+uint64_t shbp_acquire(struct shbp_aiop *bp);
 
 /**
- * @brief	Return or add buffer into the shared pool
+ * @brief	Return buffer into shared pool
  *
- * @param[in]	bp  - Buffer pool handle
- * @param[in]	buf - Pointer to buffer
- * 
+ * @param[in]	bp  - AIOP buffer pool handle
+ * @param[in]	buf - Buffer address
+ *
  * @returns	0 on Success; or error code otherwise
  *
  */
-int shbp_release(struct shbp *bp, void *buf);
+int shbp_release(struct shbp_aiop *bp, uint64_t buf);
 
 /**
- * @brief	Create shared pool from a given buffer
+ * @brief	Enable shared buffer pool for AIOP usage 
  * 
- * The shared pool is created as empty, use shbp_release() to fill it  
+ * Must be called before shared pool usage on AIOP 
  *
- * @param[in]	mem_ptr  - Pointer to memory to be used for shared management
- * @param[in]	size     - Size of mem_ptr
- * @param[in]	buf_size - Size of each buffer in pool
- * @param[in]	flags    - Flags to be used for pool creation
- * 
- * @returns	Pointer to shared pool handle on Success; or NULL otherwise
+ * @param[in]	swc_id    - Software context id (DPCI) of this shared pool
+ * @param[in]	shbp_addr - Shared pool management address as recieved from GPP
+ * @param[out]	bp        - AIOP buffer pool handle
+ * @returns	0 on Success; or error code otherwise
  *
  */
-struct shbp *shbp_create(void *mem_ptr, uint32_t size, 
-                         uint32_t buf_size, uint32_t flags);
+int shbp_enable(uint16_t swc_id, uint64_t shbp_addr, struct shbp_aiop *bp);
 
-/**
- * @brief	Move free buffers into allocation queue
- *
- * @param[in]	bp  - Buffer pool handle
- *
- * @returns	POSIX error code on failure or the number of the buffers added 
- * 		to the allocation queue
- *
- */
-int shbp_refill(struct shbp *bp);
 
-/** @} */ /* end of shbp_g group */
+/** @} */ /* end of shbp_aiop_g group */
 
 #endif
