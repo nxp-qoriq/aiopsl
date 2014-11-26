@@ -752,7 +752,7 @@ void cmdif_srv_isr(void) /*__attribute__ ((noreturn))*/
 			sync_cmd_done(sync_done_get(), err, auth_id,
 				      TRUE, gpp_icid, gpp_dma);
 		} else {
-			pr_err("Open session PASSED auth_id = 0x%x\n", 
+			pr_debug("Open session PASSED auth_id = 0x%x\n", 
 			       (uint16_t)err);
 			sync_cmd_done(sync_done_get(), 0, (uint16_t)err,
 				      TRUE, gpp_icid, gpp_dma);
