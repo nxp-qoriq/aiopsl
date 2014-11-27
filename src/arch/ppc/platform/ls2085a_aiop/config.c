@@ -71,7 +71,7 @@ struct aiop_init_info g_init_data =
  	DPNI_NUMBER_BUFFERS_IN_POOL,
  	DPNI_BUFFER_SIZE_IN_POOL,
  	DPNI_BUFFER_ALIGNMENT,
- 	SPID_COUNT,
+ 	8, /*SPID_COUNT*/
  	{0}/* reserved */
  }
  
