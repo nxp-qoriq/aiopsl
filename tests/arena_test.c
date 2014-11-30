@@ -91,7 +91,7 @@ static void app_process_packet_flow0 (dpni_drv_app_arg_t arg)
 	uint8_t local_packet_number;
 	int local_test_error = 0;
 	uint16_t spid_ddr;
-
+	osm_scope_transition_to_exclusive_with_increment_scope_id();
 	lock_spinlock(&packet_lock);
 	local_packet_number = packet_number;
 	packet_number++;
@@ -162,7 +162,7 @@ static void app_process_packet_flow0 (dpni_drv_app_arg_t arg)
 		fsl_os_print("seed %x\n",seed_32bit);
 		fsl_os_print("Random test passed for packet number %d, on core %d\n", local_packet_number, core_id);
 	}
-	osm_scope_transition_to_exclusive_with_increment_scope_id();
+	//osm_scope_transition_to_exclusive_with_increment_scope_id();
 	err = dpni_drv_test();
 	if (err) {
 		fsl_os_print("ERROR = %d: dpni_drv_test failed in runtime phase()\n", err);
