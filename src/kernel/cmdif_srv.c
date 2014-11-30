@@ -517,13 +517,15 @@ int notify_open();
 	/* Do it only if queues are not there, it should not happen */
 	if ((cmdif_aiop_srv.dpci_tbl->tx_queue_attr[0][ind].fqid == DPCI_FQID_NOT_VALID) ||
 		(cmdif_aiop_srv.dpci_tbl->rx_queue_attr[0][ind].fqid == DPCI_FQID_NOT_VALID)) {
-		pr_err("DPCI queues are not known for AIOP, will try again\n");
+		pr_err("DPCI queues are not known to AIOP, will try again\n");
 		err = mc_dpci_check(ind);
 		if (err) {
 			unlock_spinlock(&cl->lock);
 			return err;
 		}
-		pr_debug("DPCI queues are set for AIOP\n");
+		if (cmdif_aiop_srv.dpci_tbl->rx_queue_attr[0][ind].fqid != DPCI_FQID_NOT_VALID) {
+			pr_debug("DPCI queues are now set\n");	
+		}		
 	}
 
 #ifdef DEBUG
