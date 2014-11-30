@@ -107,7 +107,7 @@ static void app_process_packet_flow0 (dpni_drv_app_arg_t arg)
 		fsl_os_print("spid_ddr is %d\n",spid_ddr);
 	}
 
-	
+
 	err = pton_test();
 	if (err) {
 		fsl_os_print("ERROR = %d: pton_test failed in runtime phase()\n", err);
@@ -170,7 +170,7 @@ static void app_process_packet_flow0 (dpni_drv_app_arg_t arg)
 	} else {
 		fsl_os_print("dpni_drv_test passed in runtime phase()\n");
 	}
-	osm_scope_transition_to_concurrent_with_increment_scope_id();
+
 
 
 
@@ -203,7 +203,7 @@ static void app_process_packet_flow0 (dpni_drv_app_arg_t arg)
 		unlock_spinlock(&time_lock);
 	}
 
-
+	osm_scope_transition_to_concurrent_with_increment_scope_id();
 
 	local_test_error |= dpni_drv_send(APP_NI_GET(arg));
 
@@ -255,16 +255,16 @@ static void app_process_packet_flow0 (dpni_drv_app_arg_t arg)
 				fsl_os_print("\nWARNING: Not all the tasks were active during the test!\n");
 
 			}
-			
+
 
 			fsl_os_print("\nARENA Test Finished SUCCESSFULLY\n");
 /*			for(i = 0; i < SLAB_MAX_BMAN_POOLS_NUM; i++){
-				
+
 				fsl_os_print("Slab bman pools status:\n");
 				fsl_os_print("bman pool id: %d, remaining: %d\n",g_slab_bman_pools[i].bman_pool_id, g_slab_bman_pools[i].remaining);
-				
+
 			}
-			
+
 			slab_module_free();
 */
 		}
@@ -307,7 +307,7 @@ int app_init(void)
 
 		if (err)
 			return err;
-		
+
 		ep = dpni_drv_get_ordering_mode((uint16_t)ni);
 		fsl_os_print("initial order scope execution phase for tasks %d\n",ep);
 		dpni_drv_set_exclusive((uint16_t)ni);
@@ -316,7 +316,7 @@ int app_init(void)
 		dpni_drv_set_concurrent((uint16_t)ni);
 		ep = dpni_drv_get_ordering_mode((uint16_t)ni);
 		fsl_os_print("Final: initial order scope execution phase for tasks %d\n",ep);
-		
+
 	}
 
 	err = slab_init();
