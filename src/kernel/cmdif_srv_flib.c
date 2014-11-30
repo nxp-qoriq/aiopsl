@@ -75,7 +75,7 @@ __COLD_CODE void *cmdif_srv_allocate(void *(*fast_malloc)(int size),
 	srv->inst_dev  = fast_malloc(sizeof(void *) * M_NUM_OF_INSTANCES);
 	srv->m_id      = fast_malloc(M_NUM_OF_INSTANCES);
 	srv->ctrl_cb   = fast_malloc(sizeof(ctrl_cb_t *) * M_NUM_OF_MODULES);
-	srv->sync_done = fast_malloc(sizeof(void *) * M_NUM_OF_INSTANCES);
+	srv->sync_done = fast_malloc(sizeof(uint64_t) * M_NUM_OF_INSTANCES);
 	/* DDR */
 	srv->m_name    = slow_malloc(sizeof(char[M_NAME_CHARS + 1]) * \
 				M_NUM_OF_MODULES);

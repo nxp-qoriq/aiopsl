@@ -36,7 +36,7 @@ struct aiop_init_info g_init_data =
  {
   0,		/* aiop_rev_major     AIOP  */
   4,		/* aiop_rev_minor     AIOP  */
-  7,		/* revision           AIOP */
+  8,		/* revision           AIOP */
   0x6000000000,	/* dp_ddr_phys_addr      */
   0x40000000,	/* dp_ddr_virt_addr      */
   0x4c00000000,	/* peb_phys_addr      */
@@ -51,6 +51,7 @@ struct aiop_init_info g_init_data =
   1,	        /* mc_portal_id       MC */
   0,	        /* mc_dpci_id         MC */
   1000,	        /* clock_period       MC */
+  0,            /* base_spid MC */ 
   {0}	        /* reserved           */
  },
  /* aiop_app_init_info */
@@ -70,6 +71,7 @@ struct aiop_init_info g_init_data =
  	DPNI_NUMBER_BUFFERS_IN_POOL,
  	DPNI_BUFFER_SIZE_IN_POOL,
  	DPNI_BUFFER_ALIGNMENT,
+ 	8, /*SPID_COUNT*/
  	{0}/* reserved */
  }
  

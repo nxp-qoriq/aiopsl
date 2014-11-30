@@ -75,7 +75,7 @@ struct shbp {
 	uint8_t size;		/*!< Max number of BDs in the pool is 2^size */
 };
 
-#define SHBP_IS_FULL(P)		(((P)->enq - (P)->deq) == (P)->size)
-#define SHBP_IS_EMPTY(P)	(((P)->enq - (P)->deq) == 0)
+#define SHBP_ALLOC_IS_FULL(BP)	(((BP)->alloc.enq - (BP)->alloc.deq) == (BP)->size)
+#define SHBP_ALLOC_IS_EMPTY(BP)	(((BP)->alloc.enq - (BP)->alloc.deq) == 0)
 
 #endif /* _SHBP_H */

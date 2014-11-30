@@ -1,5 +1,7 @@
 
-- cmdif_srv.c   Fix for ENGR339037 GPP-AIOP communication breaking. 
+- cmdif_srv_flib.c:  Fix for ENGR00341199 wrong malloc size in CMDIF server allocation.
+
+- cmdif_srv.c:  Fix for ENGR339037 GPP-AIOP communication breaking. 
                 AIOP workspace will have AIOP ICID and AIOP AMQ before user callback is called.
 
 dpni_drv.c/fsl_dpni_drv.h: Added implementation for int dpni_drv_get_spid_ddr(uint16_t ni_id, uint16_t *spid_ddr);

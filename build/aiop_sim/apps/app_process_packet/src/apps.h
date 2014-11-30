@@ -82,4 +82,7 @@
 #define DPNI_BUFFER_SIZE_IN_POOL         2048
 /* alignment of buffers in pool */
 #define DPNI_BUFFER_ALIGNMENT            64
+/* number of SPID's */
+#define SPID_COUNT            			8
+
 
