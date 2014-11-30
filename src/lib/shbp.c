@@ -26,17 +26,62 @@
 
 #include <fsl_shbp.h>
 
-void *shbp_acquire(struct shbp *bp)
+#ifndef MODULU_POWER_OF_TWO
+#define MODULU_POWER_OF_TWO(NUM, MOD) \
+	((uint32_t)(NUM) & ((uint32_t)(MOD) - 1))
+#endif
+
+struct shbp *shbp_create(void *mem_ptr, uint32_t size, 
+                         uint32_t buf_size, uint32_t flags)
 {
-	
-	ASSERT_COND(bp);
+#ifdef DEBUG
+	if ((mem_ptr == NULL) || (size == 0) || (buf_size == 0))
+		return NULL;
+#endif
 	
 	return NULL;
 }
 
+void *shbp_acquire(struct shbp *bp)
+{
+	uint32_t deq;
+	void *buf;
+	
+	if (SHBP_ALLOC_IS_EMPTY(bp))
+		return NULL;
+	
+	deq = MODULU_POWER_OF_TWO(bp->alloc.deq, (1 << bp->size));
+	buf = (void *)((uint64_t *)bp->alloc.base)[deq];
+	bp->alloc.deq++;
+	
+	return buf;
+}
+
 int shbp_release(struct shbp *bp, void *buf)
 {
-	ASSERT_COND(buf);
-	ASSERT_COND(bp);
-	/* TODO read metadata */	
+	uint32_t enq;
+	
+#ifdef DEBUG
+	if (buf == NULL)
+		return -EINVAL;
+#endif
+	
+	if (SHBP_ALLOC_IS_FULL(bp))
+		return -ENOSPC;
+	
+	enq = MODULU_POWER_OF_TWO(bp->alloc.enq, (1 << bp->size));
+	((uint64_t *)bp->alloc.base)[enq] = (uint64_t)buf;
+	bp->alloc.enq++;
+	
+	return 0;
+}
+
+
+int shbp_refill(struct shbp *bp)
+{
+#ifdef DEBUG
+	if (bp == NULL)
+		return -EINVAL;
+#endif
+	return 0;
 }

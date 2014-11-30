@@ -40,11 +40,13 @@
 #include "fsl_dpni_drv.h"
 #include "fsl_mem_mng.h"
 #include "fsl_bman.h"
+#include "platform.h"
 
 extern t_system sys;
 
 /* Address of end of memory_data section */
 extern const uint8_t AIOP_INIT_DATA[];
+extern struct platform_app_params g_app_params;
 extern struct aiop_init_info g_init_data;
 /*********************************************************************/
 extern int time_init();                   extern void time_free();
@@ -318,8 +320,8 @@ __COLD_CODE int run_apps(void)
 	int dpbp_id[DPNI_DRV_NUM_USED_BPIDS];
 	struct dpbp_attr attr;
 	struct dpni_pools_cfg pools_params[DPNI_DRV_NUM_USED_BPIDS];
-	uint16_t buffer_size = (uint16_t)g_init_data.app_info.dpni_buff_size;
-	uint16_t num_buffs = (uint16_t)g_init_data.app_info.dpni_num_buffs;
+	uint16_t buffer_size = (uint16_t)g_app_params.dpni_buff_size;
+	uint16_t num_buffs = (uint16_t)g_app_params.dpni_num_buffs;
 	uint16_t alignment;
 	uint8_t mem_pid[] = {DPNI_DRV_FAST_MEMORY, DPNI_DRV_DDR_MEMORY};
 	struct mc_dprc *dprc = sys_get_unique_handle(FSL_OS_MOD_AIOP_RC);
@@ -332,13 +334,13 @@ __COLD_CODE int run_apps(void)
 	/* TODO - need to scan the bus in order to retrieve the AIOP "Device list" */
 	/* TODO - iterate through the device-list:
 	 * call 'dpni_drv_probe(ni_id, mc_portal_id, dpio, dp-sp)' */
-	
-	
-	if(IS_POWER_VALID_ALLIGN(g_init_data.app_info.dpni_drv_alignment,buffer_size))
-		alignment = (uint16_t)g_init_data.app_info.dpni_drv_alignment;
+
+
+	if(IS_POWER_VALID_ALLIGN(g_app_params.dpni_drv_alignment,buffer_size))
+		alignment = (uint16_t)g_app_params.dpni_drv_alignment;
 	else
 		pr_err("Given alignment is not valid (not power of 2 or <= buffer size)\n");
-	
+
 	if (dprc == NULL)
 	{
 		pr_err("Don't find AIOP root container \n");
@@ -361,13 +363,13 @@ __COLD_CODE int run_apps(void)
 			pr_info("Found DPBP ID: %d, will be used for frame buffers\n",dev_desc.id);
 			dpbp_id[num_bpids]= dev_desc.id;
 			num_bpids ++;
-			
+
 			if(num_bpids == DPNI_DRV_NUM_USED_BPIDS)
 				break;
 		}
-	}	
-			
-	
+	}
+
+
 
 	if(num_bpids < DPNI_DRV_NUM_USED_BPIDS){
 		pr_err("Not enough DPBPs found in the container.\n");
@@ -391,10 +393,10 @@ __COLD_CODE int run_apps(void)
 			return err;
 		}
 
-		if ((err = bman_fill_bpid(num_buffs, 
-		                          buffer_size, 
-		                          alignment, 
-		                          (enum memory_partition_id) mem_pid[i], 
+		if ((err = bman_fill_bpid(num_buffs,
+		                          buffer_size,
+		                          alignment,
+		                          (enum memory_partition_id) mem_pid[i],
 		                          attr.bpid)) != 0) {
 			pr_err("Failed to fill DPBP-%d (BPID=%d) with buffer size %d.\n",
 			       dpbp_id[i], attr.bpid, buffer_size);

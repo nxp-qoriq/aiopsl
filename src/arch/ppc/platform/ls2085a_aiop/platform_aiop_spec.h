@@ -66,6 +66,16 @@ struct platform_param {
     struct platform_memory_info     mem_info[PLATFORM_MAX_MEM_INFO_ENTRIES];
 };
 
+
+/**************************************************************************//**
+ @Description   Platform application parameters structure
+*//***************************************************************************/
+struct platform_app_params {
+	uint16_t dpni_num_buffs; /*number of buffers for dpni pool*/
+	uint16_t dpni_buff_size; /*size of buffers for dpni pool*/
+	uint16_t dpni_drv_alignment; /*dpni pool buffers alignment*/
+};
+
 /** @} */ /* end of ls2085a_g group */
 
 
