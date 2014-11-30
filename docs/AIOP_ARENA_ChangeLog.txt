@@ -1,3 +1,7 @@
+dpni_drv.c:          Adding support for concurrent / exclusive mode for specified NI.
+                     int dpni_drv_set_concurrent(uint16_t ni_id), 
+					 int dpni_drv_set_exclusive(uint16_t ni_id)
+                     EPID table configured to use concurrent mode in initialization by default.
 
 - cmdif_srv_flib.c:  Fix for ENGR00341199 wrong malloc size in CMDIF server allocation.
 
