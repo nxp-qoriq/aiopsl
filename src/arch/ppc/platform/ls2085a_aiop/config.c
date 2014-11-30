@@ -60,7 +60,7 @@ struct aiop_init_info g_init_data =
   1,	        /* mc_portal_id       MC */
   0,	        /* mc_dpci_id         MC */
   1000,	        /* clock_period       MC */
-  0,            /* base_spid MC */ 
+  0,            /* base_spid MC */
   {0}	        /* reserved           */
  },
  /* aiop_app_init_info */
@@ -77,9 +77,6 @@ struct aiop_init_info g_init_data =
  	SRU_SIZE,
  	TMAN_FREQUENCY,
  	AIOP_TASKS_PER_CORE,
- 	DPNI_NUMBER_BUFFERS_IN_POOL,
- 	DPNI_BUFFER_SIZE_IN_POOL,
- 	DPNI_BUFFER_ALIGNMENT,
  	8, /*SPID_COUNT*/
  	{0}/* reserved */
  }
