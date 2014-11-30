@@ -47,7 +47,7 @@ extern t_system sys;
 /* Address of end of memory_data section */
 extern const uint8_t AIOP_INIT_DATA[];
 extern struct platform_app_params g_app_params;
-extern struct aiop_init_data g_init_data;
+extern struct aiop_init_info g_init_data;
 /*********************************************************************/
 extern int time_init();                   extern void time_free();
 extern int mc_obj_init();                 extern void mc_obj_free();
