@@ -423,7 +423,7 @@ static inline void sync_done_set(uint16_t auth_id)
 }
 
 /** Find dpci index and get dpci table */
-static inline int find_dpci(uint8_t dpci_id)
+static inline int find_dpci(uint32_t dpci_id)
 {
 	int i = 0;
 	struct mc_dpci_obj *dt = cmdif_aiop_srv.dpci_tbl;
@@ -461,11 +461,11 @@ static inline int mc_dpci_check(int ind)
 
 	err = dpci_get_link_state(&dprc->io, cmdif_aiop_srv.dpci_tbl->token[ind], &link_up);
 	if (err) {
-		sl_pr_err("Failed to get dpci_get_link_state\n");
+		pr_err("Failed to get dpci_get_link_state\n");
 	}
 
 	if ((cmdif_aiop_srv.dpci_tbl->peer_attr[ind].peer_id == (-1)) || !link_up) {
-		sl_pr_err("DPCI is not attached or there is no link \n");
+		pr_err("DPCI is not attached or there is no link \n");
 		return -EACCES; /*Invalid device state*/
 	}
 
@@ -498,7 +498,7 @@ int notify_open();
 		return -EINVAL;
 	}
 
-	ind = find_dpci((uint8_t)data->dev_id);
+	ind = find_dpci(data->dev_id); /* dev_id is swapped by GPP */
 	if (ind < 0) {
 		pr_err("Not found DPCI peer %d\n", data->dev_id);
 		return -ENAVAIL;
@@ -507,15 +507,24 @@ int notify_open();
 	pr_debug("Found dpci %d peer id at index %d \n", \
 		    cmdif_aiop_srv.dpci_tbl->attr[ind].id, ind);
 
+	/* Locking here for updating dpci table in runtime in case if queues 
+	 * are not available yet. This case should not happen. 
+	 * After cmdif_open() on AIOP those DPCI queues are not updated anymore 
+	 * no lock in runtime. 
+	 * TODO consider to add lock per DPCI entry */
+	lock_spinlock(&cl->lock);
+
 	/* Do it only if queues are not there, it should not happen */
 	if ((cmdif_aiop_srv.dpci_tbl->tx_queue_attr[0][ind].fqid == DPCI_FQID_NOT_VALID) ||
 		(cmdif_aiop_srv.dpci_tbl->rx_queue_attr[0][ind].fqid == DPCI_FQID_NOT_VALID)) {
+		pr_err("DPCI queues are not known for AIOP, will try again\n");
 		err = mc_dpci_check(ind);
-		if (err)
+		if (err) {
+			unlock_spinlock(&cl->lock);
 			return err;
+		}
+		pr_debug("DPCI queues are set for AIOP\n");
 	}
-
-	lock_spinlock(&cl->lock);
 
 #ifdef DEBUG
 	/* Don't allow to open the same session twice */
