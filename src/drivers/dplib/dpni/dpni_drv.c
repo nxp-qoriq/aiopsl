@@ -42,6 +42,7 @@
 #include "aiop_common.h"
 #include "system.h"
 #include "fsl_mc_init.h"
+#include "slab.h"
 
 #define __ERR_MODULE__  MODULE_DPNI
 #define ETH_BROADCAST_ADDR		((uint8_t []){0xff,0xff,0xff,0xff,0xff,0xff})
@@ -561,4 +562,40 @@ int dpni_drv_set_concurrent(uint16_t ni_id){
 int dpni_drv_set_exclusive(uint16_t ni_id){
 	return dpni_drv_set_ordering_mode(ni_id, DPNI_DRV_EXCLUSIVE_MODE);	
 }
+
+int dpni_drv_set_dist(uint16_t ni_id, struct dpkg_profile_cfg *dist_key_cfg){
+	struct dpni_drv *dpni_drv;
+	struct mc_dprc *dprc = sys_get_unique_handle(FSL_OS_MOD_AIOP_RC);
+	struct dpni_rx_tc_dist_cfg cfg = {0};
+	int err;
+	uint16_t bpid;
+	uint64_t params_iova;
+	/* calculate pointer to the NI structure */
+	dpni_drv = nis + ni_id;
+	err = slab_find_and_reserve_bpid(1, 256, 8, MEM_PART_DP_DDR, NULL, &bpid);
+	if (err)
+		return err;
+	
+	err = cdma_acquire_context_memory
+				(bpid, &params_iova);
+	if (err)
+			return err;
+
+	cfg.dist_size = 0;
+	cfg.dist_mode = DPNI_DIST_MODE_HASH;
+	cfg.dist_key_cfg = dist_key_cfg;
+	fsl_os_print("Cfg type %d, num %d\n", cfg.dist_key_cfg->extracts[0].type, cfg.dist_key_cfg->num_extracts);
+	
+	err = dpni_set_rx_tc_dist(&dprc->io,
+	                          dpni_drv->dpni_drv_params_var.dpni,
+	                          0,
+	                          &cfg,
+	                          params_iova);
+	
+	
+	return err;
+}
+
+
+
 

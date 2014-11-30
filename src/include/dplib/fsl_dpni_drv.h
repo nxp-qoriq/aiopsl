@@ -329,6 +329,6 @@ int dpni_drv_set_concurrent(uint16_t ni_id);
 *//***************************************************************************/
 int dpni_drv_set_exclusive(uint16_t ni_id);
 
-
+int dpni_drv_set_dist(uint16_t ni_id, struct dpkg_profile_cfg *dist_key_cfg);
 /** @} */ /* end of dpni_g DPNI group */
 #endif /* __FSL_DPNI_DRV_H */

@@ -53,6 +53,8 @@ void app_free(void);
 
 #define MAX_NUM_OF_CORES	16
 #define MAX_NUM_OF_TASKS	16
+#define NH_FLD_IP_VER                         (1)
+#define NH_FLD_IP_SRC                         (NH_FLD_IP_VER << 5)
 
 extern int slab_init(void);
 extern int malloc_test();
@@ -285,6 +287,13 @@ int app_init(void)
 	uint32_t   ni   = 0;
 	dma_addr_t buff = 0;
 	int ep;
+	struct dpkg_profile_cfg dist_key_cfg = {0};
+
+	dist_key_cfg.num_extracts = 1;
+	dist_key_cfg.extracts[0].type = DPKG_EXTRACT_FROM_HDR;
+	dist_key_cfg.extracts[0].extract.from_hdr.prot = NET_PROT_IPv4;
+	dist_key_cfg.extracts[0].extract.from_hdr.field = NH_FLD_IP_SRC;
+	dist_key_cfg.extracts[0].extract.from_hdr.type = DPKG_FULL_FIELD;
 
 
 	fsl_os_print("Running AIOP arena app_init()\n");
@@ -301,6 +310,12 @@ int app_init(void)
 			fsl_os_print("MAC 02:00:C0:A8:0B:FE added for ni %d\n",ni);
 
 		}
+		err = dpni_drv_set_dist((uint16_t)ni,&dist_key_cfg);
+		if (err){
+			fsl_os_print("dpni_drv_set_dist failed %d\n", err);
+					return err;
+		}
+		
 		err = dpni_drv_register_rx_cb((uint16_t)ni/*ni_id*/,
 		                              app_process_packet_flow0, /* callback */
 		                              ni /*arg, nic number*/);
