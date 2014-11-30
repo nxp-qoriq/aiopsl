@@ -438,7 +438,7 @@ void *fsl_os_xmalloc_debug(size_t size,
 /*****************************************************************************/
 void * fsl_os_malloc_debug(size_t size, char *fname, int line)
 {
-    return sys_mem_alloc(SYS_DEFAULT_HEAP_PARTITION, size, 0, "", fname, line);
+    return sys_mem_alloc(size, 0, "", fname, line);
 }
 
 /*****************************************************************************/
@@ -448,7 +448,7 @@ void *fsl_os_xmalloc_debug(size_t     size,
                            char         *fname,
                            int          line)
 {
-    return sys_mem_alloc(partition_id, size, alignment, "", fname, line);
+	return sys_mem_xalloc(partition_id, size, alignment, "", fname, line);
 }
 
 /*****************************************************************************/
@@ -460,7 +460,7 @@ void * fsl_os_malloc(size_t size)
 #else
 void * fsl_os_malloc(size_t size)
 {
-    return sys_mem_alloc(SYS_DEFAULT_HEAP_PARTITION, size, 0, "", "", 0);
+    return sys_mem_alloc(size, 0, "", "", 0);
 }
 #endif
 
@@ -473,7 +473,7 @@ void *fsl_os_xmalloc(size_t size, int partition_id, uint32_t alignment)
 #else
 void *fsl_os_xmalloc(size_t size, int partition_id, uint32_t alignment)
 {
-    return sys_mem_alloc(partition_id, size, alignment, "", "", 0);
+    return sys_mem_xalloc(partition_id, size, alignment, "", "", 0);
 }
 #endif
 
@@ -487,7 +487,7 @@ void fsl_os_free(void *p_memory)
 /*****************************************************************************/
 void fsl_os_xfree(void *p_memory)
 {
-    sys_mem_free(p_memory);
+    sys_mem_xfree(p_memory);
 }
 /*****************************************************************************/
 int fsl_os_get_mem(uint64_t size, int mem_partition_id, uint64_t alignment,

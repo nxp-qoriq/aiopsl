@@ -121,7 +121,7 @@ int fsl_os_get_mem(uint64_t size, int mem_partition_id, uint64_t alignment,
 @Param[in]    paddr  An address to be freed.
 
 *//***************************************************************************/
-void  fsl_os_put_mem(uint64_t paddr);
+//void  fsl_os_put_mem(uint64_t paddr);
 
 /** @} */ /* end of sytem_mem_management_id  group */
 

@@ -580,7 +580,7 @@ int slob_init(fsl_handle_t *slob, uint64_t base, uint64_t size)
 
     if (0 == size)
     {
-        RETURN_ERROR(MAJOR, EDOM, ("size (should be positive)"));
+        REPORT_ERROR(MAJOR, EDOM, ("Slob size (should be positive)"));
     }
 
     /* Initializes a new MM object */
@@ -600,6 +600,7 @@ int slob_init(fsl_handle_t *slob, uint64_t base, uint64_t size)
 #endif
     if (!p_MM->lock)
     {
+        fsl_os_free(p_MM);
         RETURN_ERROR(MAJOR, ENOMEM, ("slob spinlock!"));
     }
 

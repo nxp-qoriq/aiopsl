@@ -238,9 +238,31 @@ static t_sys_virt_mem_map * sys_find_phys_addr_mapping(uint64_t phys_addr)
     return NULL;
 }
 
+/*****************************************************************************/
+void * sys_mem_alloc(uint32_t    size,
+                    uint32_t    alignment,
+                    char        *info,
+                    char        *filename,
+                    int         line)
+{
+    void *p_memory;
+    ASSERT_COND(sys.mem_mng);
+    ASSERT_COND(size > 0);
+    
+    p_memory = mem_mng_alloc_mem(sys.mem_mng,
+                                sys.heap_partition_id,
+                                size,
+                                alignment,
+                                info,
+                                filename,
+                                line);
+
+    return p_memory;
+}
+
 
 /*****************************************************************************/
-void * sys_mem_alloc(int         partition_id,
+void * sys_mem_xalloc(int         partition_id,
                     uint32_t    size,
                     uint32_t    alignment,
                     char        *info,
@@ -248,16 +270,24 @@ void * sys_mem_alloc(int         partition_id,
                     int         line)
 {
     void *p_memory;
+    uint64_t paddr = 0;
 
     ASSERT_COND(sys.mem_mng);
     ASSERT_COND(size > 0);
 
-    if (partition_id == SYS_DEFAULT_HEAP_PARTITION)
+#ifndef OLD_MALLOC_API
+    /* Keep backward compatibility for fsl_os_xmalloc().
+     * Implement them using new function fsl_os_get_mem().
+     */
+    if(partition_id == MEM_PART_DP_DDR || partition_id == MEM_PART_SYSTEM_DDR
+       || partition_id == MEM_PART_PEB)
     {
-        /* Use registered heap partition
-           (set to MEM_MNG_EARLY_PARTITION_ID when no partitions are registered) */
-        partition_id = sys.heap_partition_id;
+        if(fsl_os_get_mem(size,partition_id,alignment,&paddr) != 0)
+            return NULL;
+        p_memory = UINT_TO_PTR(fsl_os_phys_to_virt(paddr));
+        return p_memory;
     }
+#endif
 
     p_memory = mem_mng_alloc_mem(sys.mem_mng,
                                 partition_id,
@@ -275,6 +305,32 @@ void * sys_mem_alloc(int         partition_id,
 void sys_mem_free(void *p_memory)
 {
     ASSERT_COND(sys.mem_mng);
+    mem_mng_free_mem(sys.mem_mng, p_memory);
+}
+/*****************************************************************************/
+void sys_mem_xfree(void *p_memory)
+{
+    ASSERT_COND(sys.mem_mng);
+#ifndef   OLD_MALLOC_API
+    /* Keep backward compatibility for fsl_os_xfree().
+     * Implement them using new function fsl_os_put_mem().
+     */
+    t_mem_mng_phys_addr_alloc_info dpddr_partition_info,peb_partition_info,
+                                   sys_ddr_partition_info;
+    uint64_t paddr = fsl_os_virt_to_phys(p_memory);
+    mem_mng_get_phys_addr_alloc_info(sys.mem_mng,MEM_PART_DP_DDR,&dpddr_partition_info);
+    mem_mng_get_phys_addr_alloc_info(sys.mem_mng,MEM_PART_SYSTEM_DDR,&sys_ddr_partition_info);
+    mem_mng_get_phys_addr_alloc_info(sys.mem_mng,MEM_PART_PEB,&peb_partition_info);
+    if((paddr >= dpddr_partition_info.base_paddress &&
+       paddr < dpddr_partition_info.base_paddress + dpddr_partition_info.size) ||
+       (paddr >= sys_ddr_partition_info.base_paddress &&
+       paddr < sys_ddr_partition_info.base_paddress + sys_ddr_partition_info.size) ||
+       (paddr >= peb_partition_info.base_paddress &&
+        paddr < peb_partition_info.base_paddress + peb_partition_info.size)){
+        mem_mng_put_phys_mem(sys.mem_mng,paddr);
+        return;
+    }
+#endif
 
     mem_mng_free_mem(sys.mem_mng, p_memory);
 }

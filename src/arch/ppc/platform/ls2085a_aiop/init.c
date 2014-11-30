@@ -71,7 +71,7 @@ extern void build_apps_array(struct sys_module_desc *apps);
 	{MEM_PART_DEFAULT_HEAP_PARTITION,    0xFFFFFFFF,  0xFFFFFFFF,  0xFFFFFFFF,\
 		MEMORY_ATTR_NONE,"DEFAULT HEAP"},\
 	{MEM_PART_DP_DDR,                    0xFFFFFFFF,  0xFFFFFFFF,  0xFFFFFFFF,\
-		MEMORY_ATTR_MALLOCABLE,"DP_DDR"},\
+		MEMORY_ATTR_PHYS_ALLOCATION,"DP_DDR"},\
 	{MEM_PART_MC_PORTALS,                0xFFFFFFFF,  0xFFFFFFFF, (64  * MEGABYTE),\
 		MEMORY_ATTR_NONE,"MC Portals"},\
 	{MEM_PART_CCSR,                      0xFFFFFFFF,  0xFFFFFFFF, (16 * MEGABYTE),\
@@ -79,9 +79,9 @@ extern void build_apps_array(struct sys_module_desc *apps);
 	{MEM_PART_SH_RAM,                    0x01010400,   0x01010400,(191 * KILOBYTE),\
 		MEMORY_ATTR_MALLOCABLE,"Shared-SRAM"},\
 	{MEM_PART_PEB,                        0xFFFFFFFF,  0xFFFFFFFF,0xFFFFFFFF,\
-		MEMORY_ATTR_MALLOCABLE,"PEB"},\
+		MEMORY_ATTR_PHYS_ALLOCATION,"PEB"},\
 	{MEM_PART_SYSTEM_DDR,                 0xFFFFFFFF,  0xFFFFFFFF,0xFFFFFFFF,\
-		MEMORY_ATTR_MALLOCABLE,"SYSTEM_DDR"},\
+		MEMORY_ATTR_PHYS_ALLOCATION,"SYSTEM_DDR"},\
 }
 
 #define GLOBAL_MODULES                                                       \
