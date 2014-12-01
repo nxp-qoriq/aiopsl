@@ -41,11 +41,19 @@ __COLD_CODE int bman_fill_bpid(uint32_t num_buffs,
 	int        i = 0;
 	dma_addr_t addr  = 0;
 	struct icontext ic;
+	void* vaddr = 0;
 
-	addr = fsl_os_virt_to_phys(fsl_os_xmalloc((uint32_t)buff_size * num_buffs,
+	if(MEM_PART_SH_RAM == mem_partition_id){
+		/* use a special function for allocation from shared ram */
+		vaddr = fsl_malloc((uint32_t)buff_size * num_buffs,
+			                   alignment);
+	}
+	else{
+		vaddr = fsl_os_xmalloc((uint32_t)buff_size * num_buffs,
 	                                          mem_partition_id,
-	                                          alignment));
-
+	                                          alignment);
+	}
+	addr = fsl_os_virt_to_phys(vaddr);
 	/* AIOP ICID and AMQ bits are needed for filling BPID */
 	icontext_aiop_get(&ic);
 

@@ -50,9 +50,11 @@ __COLD_CODE static int aiop_container_init()
 	void *p_vaddr;
 	int err = 0;
 	int container_id;
-	struct mc_dprc *dprc = fsl_os_xmalloc(sizeof(struct mc_dprc),
+	/*struct mc_dprc *dprc = fsl_os_xmalloc(sizeof(struct mc_dprc),
 					MEM_PART_SH_RAM,
-					1);
+					1);*/
+	struct mc_dprc *dprc = fsl_malloc(sizeof(struct mc_dprc),
+						1);
 	if (dprc == NULL) {
 		pr_err("No memory for AIOP Root Container \n");
 		return -ENOMEM;
@@ -101,7 +103,8 @@ __COLD_CODE static int dpci_tbl_create(struct mc_dpci_obj **_dpci_tbl, int dpci_
 	int 	 i;
 
 	size = sizeof(struct mc_dpci_obj);
-	dpci_tbl = fsl_os_xmalloc(size, MEM_PART_SH_RAM, 1);
+	/*dpci_tbl = fsl_os_xmalloc(size, MEM_PART_SH_RAM, 1);*/
+	dpci_tbl = fsl_malloc(size, 1);
 	*_dpci_tbl = dpci_tbl;
 	if (dpci_tbl == NULL) {
 		pr_err("No memory for %d DPCIs\n", dpci_count);
@@ -110,7 +113,8 @@ __COLD_CODE static int dpci_tbl_create(struct mc_dpci_obj **_dpci_tbl, int dpci_
 	memset(dpci_tbl, 0, size);
 
 	size = sizeof(struct dpci_attr) * dpci_count;
-	dpci_tbl->attr = fsl_os_xmalloc(size, MEM_PART_SH_RAM, 1);
+	/*dpci_tbl->attr = fsl_os_xmalloc(size, MEM_PART_SH_RAM, 1);*/
+	dpci_tbl->attr = fsl_malloc(size,1);
 	if (dpci_tbl->attr == NULL) {
 		pr_err("No memory for %d DPCIs\n", dpci_count);
 		return -ENOMEM;
@@ -118,7 +122,8 @@ __COLD_CODE static int dpci_tbl_create(struct mc_dpci_obj **_dpci_tbl, int dpci_
 	memset(dpci_tbl->attr, 0, size);
 
 	size = sizeof(struct dpci_peer_attr) * dpci_count;
-	dpci_tbl->peer_attr = fsl_os_xmalloc(size, MEM_PART_SH_RAM, 1);
+	/*dpci_tbl->peer_attr = fsl_os_xmalloc(size, MEM_PART_SH_RAM, 1);*/
+	dpci_tbl->peer_attr = fsl_malloc(size,1);
 	if (dpci_tbl->peer_attr == NULL) {
 		pr_err("No memory for %d DPCIs\n", dpci_count);
 		return -ENOMEM;
@@ -128,7 +133,8 @@ __COLD_CODE static int dpci_tbl_create(struct mc_dpci_obj **_dpci_tbl, int dpci_
 	for (i = 0; i < DPCI_PRIO_NUM ; i++)
 	{
 		size = sizeof(struct dpci_rx_queue_attr) * dpci_count;
-		dpci_tbl->rx_queue_attr[i] = fsl_os_xmalloc(size, MEM_PART_SH_RAM, 1);
+		/*dpci_tbl->rx_queue_attr[i] = fsl_os_xmalloc(size, MEM_PART_SH_RAM, 1);*/
+		dpci_tbl->rx_queue_attr[i] = fsl_malloc(size, 1);
 		if (dpci_tbl->rx_queue_attr[i] == NULL) {
 			pr_err("No memory for %d DPCIs\n", dpci_count);
 			return -ENOMEM;
@@ -136,7 +142,8 @@ __COLD_CODE static int dpci_tbl_create(struct mc_dpci_obj **_dpci_tbl, int dpci_
 		memset(dpci_tbl->rx_queue_attr[i], 0, size);
 
 		size = sizeof(struct dpci_tx_queue_attr) * dpci_count;
-		dpci_tbl->tx_queue_attr[i] = fsl_os_xmalloc(size, MEM_PART_SH_RAM, 1);
+		/*dpci_tbl->tx_queue_attr[i] = fsl_os_xmalloc(size, MEM_PART_SH_RAM, 1);*/
+		dpci_tbl->tx_queue_attr[i] = fsl_malloc(size,1);
 		if (dpci_tbl->tx_queue_attr[i] == NULL) {
 			pr_err("No memory for %d DPCIs\n", dpci_count);
 			return -ENOMEM;
@@ -145,7 +152,8 @@ __COLD_CODE static int dpci_tbl_create(struct mc_dpci_obj **_dpci_tbl, int dpci_
 	}
 
 	size = sizeof(uint16_t) * dpci_count;
-	dpci_tbl->token = fsl_os_xmalloc(size, MEM_PART_SH_RAM, 1);
+	/*dpci_tbl->token = fsl_os_xmalloc(size, MEM_PART_SH_RAM, 1);*/
+	dpci_tbl->token = fsl_malloc(size,1);
 	if (dpci_tbl->token == NULL) {
 		pr_err("No memory for %d DPCIs\n", dpci_count);
 		return -ENOMEM;
@@ -153,7 +161,8 @@ __COLD_CODE static int dpci_tbl_create(struct mc_dpci_obj **_dpci_tbl, int dpci_
 	memset(dpci_tbl->token, 0, size);
 
 	size = sizeof(uint16_t) * dpci_count;
-	dpci_tbl->icid = fsl_os_xmalloc(size, MEM_PART_SH_RAM, 1);
+	/*dpci_tbl->icid = fsl_os_xmalloc(size, MEM_PART_SH_RAM, 1);*/
+	dpci_tbl->icid = fsl_malloc(size, 1);
 	if (dpci_tbl->icid == NULL) {
 		pr_err("No memory for %d DPCIs\n", dpci_count);
 		return -ENOMEM;
@@ -161,7 +170,8 @@ __COLD_CODE static int dpci_tbl_create(struct mc_dpci_obj **_dpci_tbl, int dpci_
 	memset(dpci_tbl->icid, 0, size);
 
 	size = sizeof(uint32_t) * dpci_count;
-	dpci_tbl->dma_flags = fsl_os_xmalloc(size, MEM_PART_SH_RAM, 1);
+	/*dpci_tbl->dma_flags = fsl_os_xmalloc(size, MEM_PART_SH_RAM, 1);*/
+	dpci_tbl->dma_flags = fsl_malloc(size,1);
 	if (dpci_tbl->dma_flags == NULL) {
 		pr_err("No memory for %d DPCIs\n", dpci_count);
 		return -ENOMEM;
@@ -169,7 +179,8 @@ __COLD_CODE static int dpci_tbl_create(struct mc_dpci_obj **_dpci_tbl, int dpci_
 	memset(dpci_tbl->dma_flags, 0, size);
 
 	size = sizeof(uint32_t) * dpci_count;
-	dpci_tbl->bdi_flags = fsl_os_xmalloc(size, MEM_PART_SH_RAM, 1);
+	/*dpci_tbl->bdi_flags = fsl_os_xmalloc(size, MEM_PART_SH_RAM, 1);*/
+	dpci_tbl->bdi_flags = fsl_malloc(size, 1);
 	if (dpci_tbl->bdi_flags == NULL) {
 		pr_err("No memory for %d DPCIs\n", dpci_count);
 		return -ENOMEM;

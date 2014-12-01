@@ -107,7 +107,12 @@ static int allocate_check_mem(int  memory_partition,
 	{
 		for(i = 0 ; i < num_iter; i++)
 		{
+			if(MEM_PART_SH_RAM == memory_partition){
+			    allocated_pointers[i] = fsl_malloc(size,4);
+			}
+			else{
 			allocated_pointers[i] = fsl_os_xmalloc(size,memory_partition,4);
+			}
 			if(NULL == allocated_pointers[i])
 				return ENOMEM;
 			iowrite32(value,allocated_pointers[i]);
