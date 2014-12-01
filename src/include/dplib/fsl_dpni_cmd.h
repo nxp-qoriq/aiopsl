@@ -308,6 +308,7 @@ do { \
 	MC_RSP_OP(cmd, 1, 0,  1,  int,	    layout->pass_timestamp); \
 	MC_RSP_OP(cmd, 1, 1,  1,  int,	    layout->pass_parser_result); \
 	MC_RSP_OP(cmd, 1, 2,  1,  int,	    layout->pass_frame_status); \
+	MC_RSP_OP(cmd, 1, 16, 16, uint16_t, layout->data_head_room); \
 } while (0)
 
 /*                cmd, param, offset, width, type, arg_name */
@@ -319,6 +320,7 @@ do { \
 	MC_CMD_OP(cmd, 1, 0,  1,  int,	    layout->pass_timestamp); \
 	MC_CMD_OP(cmd, 1, 1,  1,  int,	    layout->pass_parser_result); \
 	MC_CMD_OP(cmd, 1, 2,  1,  int,	    layout->pass_frame_status); \
+	MC_CMD_OP(cmd, 1, 16, 16, uint16_t, layout->data_head_room); \
 } while (0)
 
 /*                cmd, param, offset, width, type, arg_name */
@@ -329,6 +331,7 @@ do { \
 	MC_RSP_OP(cmd, 1, 0,  1,  int,      layout->pass_timestamp); \
 	MC_RSP_OP(cmd, 1, 1,  1,  int,	    layout->pass_parser_result); \
 	MC_RSP_OP(cmd, 1, 2,  1,  int,	    layout->pass_frame_status); \
+	MC_RSP_OP(cmd, 1, 16, 16, uint16_t, layout->data_head_room); \
 } while (0)
 
 /*                cmd, param, offset, width, type, arg_name */
@@ -340,6 +343,7 @@ do { \
 	MC_CMD_OP(cmd, 1, 0,  1,  int,	    layout->pass_timestamp); \
 	MC_CMD_OP(cmd, 1, 1,  1,  int,	    layout->pass_parser_result); \
 	MC_CMD_OP(cmd, 1, 2,  1,  int,	    layout->pass_frame_status); \
+	MC_CMD_OP(cmd, 1, 16, 16, uint16_t, layout->data_head_room); \
 } while (0)
 
 /*                cmd, param, offset, width, type, arg_name */
@@ -350,6 +354,7 @@ do { \
 	MC_RSP_OP(cmd, 1, 0,  1,  int,      layout->pass_timestamp); \
 	MC_RSP_OP(cmd, 1, 1,  1,  int,	    layout->pass_parser_result); \
 	MC_RSP_OP(cmd, 1, 2,  1,  int,	    layout->pass_frame_status); \
+	MC_RSP_OP(cmd, 1, 16, 16, uint16_t, layout->data_head_room); \
 } while (0)
 
 /*                cmd, param, offset, width, type, arg_name */
@@ -361,6 +366,7 @@ do { \
 	MC_CMD_OP(cmd, 1, 0,  1,  int,	    layout->pass_timestamp); \
 	MC_CMD_OP(cmd, 1, 1,  1,  int,	    layout->pass_parser_result); \
 	MC_CMD_OP(cmd, 1, 2,  1,  int,	    layout->pass_frame_status); \
+	MC_CMD_OP(cmd, 1, 16, 16, uint16_t, layout->data_head_room); \
 } while (0)
 
 /*                cmd, param, offset, width, type, arg_name */
