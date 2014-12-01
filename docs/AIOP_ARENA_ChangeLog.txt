@@ -2,6 +2,8 @@ fsl_malloc.h - added fsl_os_get_mem()- for allocating a 64 bit physical address 
                fsl_os_put_mem() - for releasing memory allocated by fsl_os_get_mem()
                fsl_malloc() - for allocating a 32 bit virtual address  from AIOP shared ram .
                fsl_free() - for releasing from shared memory, allocated by fsl_malloc().
+               fsl_os_xmalloc(), fsl_os_xfree(), fsl_os_malloc(), fsl_os_free(),fsl_os_phys_to_virt(), fsl_os_virt_to_phys() are deprecated 
+               and will be removed in  next release.
 
 dpni_drv.c:          Adding support for concurrent / exclusive mode for specified NI.
                      int dpni_drv_set_concurrent(uint16_t ni_id), 
