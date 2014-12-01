@@ -572,16 +572,18 @@ int dpni_set_errors_behavior(struct fsl_mc_io		*mc_io,
 
 /* DPNI buffer layout modification options */
 
-/*!< Select to modify the time-stamp setting */
+/* Select to modify the time-stamp setting */
 #define DPNI_BUF_LAYOUT_OPT_TIMESTAMP		0x00000001
-/*!< Select to modify the parser-result setting; not applicable for Tx */
+/* Select to modify the parser-result setting; not applicable for Tx */
 #define DPNI_BUF_LAYOUT_OPT_PARSER_RESULT	0x00000002
-/*!< Select to modify the frame-status setting */
+/* Select to modify the frame-status setting */
 #define DPNI_BUF_LAYOUT_OPT_FRAME_STATUS	0x00000004
-/*!< Select to modify the private-data-size setting */
+/* Select to modify the private-data-size setting */
 #define DPNI_BUF_LAYOUT_OPT_PRIVATE_DATA_SIZE	0x00000008
-/*!< Select to modify the data-alignment setting */
+/* Select to modify the data-alignment setting */
 #define DPNI_BUF_LAYOUT_OPT_DATA_ALIGN		0x00000010
+/* Select to modify the data-head-room setting */
+#define DPNI_BUF_LAYOUT_OPT_DATA_HEAD_ROOM	0x00000020
 
 /**
  * struct dpni_buffer_layout - Structure representing DPNI buffer layout
@@ -592,6 +594,7 @@ int dpni_set_errors_behavior(struct fsl_mc_io		*mc_io,
  * @pass_frame_status: Pass frame status 
  * @private_data_size: Size kept for private data (in bytes) 
  * @data_align: Data alignment
+ * @data_head_room: Data head room
  */
 struct dpni_buffer_layout {
 	uint32_t options;
@@ -600,6 +603,7 @@ struct dpni_buffer_layout {
 	int pass_frame_status;
 	uint16_t private_data_size;
 	uint16_t data_align;
+	uint16_t data_head_room;
 };
 
 /**
@@ -1049,7 +1053,7 @@ struct dpni_tx_tc_cfg {
  * dpni_set_tx_tc() - Set Tx traffic class configuration
  * @mc_io:	Pointer to MC portal's I/O object
  * @token:	Token of DPNI object
- * @tc_id:	Traffic class selection (1-8)
+ * @tc_id:	Traffic class selection (0-7)
  * @cfg:	Traffic class configuration
  *
  * Return:	'0' on Success; Error code otherwise.
@@ -1068,9 +1072,9 @@ int dpni_set_tx_tc(struct fsl_mc_io		*mc_io,
  *	 the 'DPNI_OPT_DIST_FS' option was set at DPNI creation
  */
 enum dpni_dist_mode {
-	DPNI_DIST_MODE_NONE = 1,
-	DPNI_DIST_MODE_HASH = 2,
-	DPNI_DIST_MODE_FS = 3
+	DPNI_DIST_MODE_NONE = 0,
+	DPNI_DIST_MODE_HASH = 1,
+	DPNI_DIST_MODE_FS = 2
 };
 
 /**
@@ -1319,7 +1323,7 @@ int dpni_get_tx_flow(struct fsl_mc_io		*mc_io,
  * dpni_set_rx_flow() - Set Rx flow configuration
  * @mc_io:	Pointer to MC portal's I/O object
  * @token:	Token of DPNI object
- * @tc_id:	Traffic class selection (1-8);
+ * @tc_id:	Traffic class selection (0-7);
  *			use 'DPNI_ALL_TCS' to set all TCs and all flows
  * @flow_id	Rx flow id within the traffic class; use
  *			'DPNI_ALL_TC_FLOWS' to set all flows within
@@ -1339,7 +1343,7 @@ int dpni_set_rx_flow(struct fsl_mc_io			*mc_io,
  * dpni_get_rx_flow() -	Get Rx flow attributes
  * @mc_io:	Pointer to MC portal's I/O object
  * @token:	Token of DPNI object
- * @tc_id:	Traffic class selection (1-8)
+ * @tc_id:	Traffic class selection (0-7)
  * @flow_id:	Rx flow id within the traffic class
  * @attr:	Returned Rx flow attributes
  *
@@ -1504,7 +1508,7 @@ int dpni_clear_qos_table(struct fsl_mc_io *mc_io, uint16_t token);
  * 			(to select a flow ID)
  * @mc_io:	Pointer to MC portal's I/O object
  * @token:	Token of DPNI object
- * @tc_id:	Traffic class selection (1-8)
+ * @tc_id:	Traffic class selection (0-7)
  * @cfg:	Flow steering rule to add
  * @flow_id:	Flow id selection (must be smaller than the
  *			distribution size of the traffic class)
@@ -1522,7 +1526,7 @@ int dpni_add_fs_entry(struct fsl_mc_io			*mc_io,
  * 			traffic class
  * @mc_io:	Pointer to MC portal's I/O object
  * @token:	Token of DPNI object
- * @tc_id:	Traffic class selection (1-8)
+ * @tc_id:	Traffic class selection (0-7)
  * @cfg:	Flow steering rule to remove
  *
  * Return:	'0' on Success; Error code otherwise.
@@ -1537,7 +1541,7 @@ int dpni_remove_fs_entry(struct fsl_mc_io		*mc_io,
  * 			traffic class
  * @mc_io:	Pointer to MC portal's I/O object
  * @token:	Token of DPNI object
- * @tc_id:	Traffic class selection (1-8)
+ * @tc_id:	Traffic class selection (0-7)
  *
  * Return:	'0' on Success; Error code otherwise.
  */

@@ -422,7 +422,8 @@ int dpni_drv_init(void)
 
 	num_of_nis = 0;
 	/* Allocate initernal AIOP NI table */
-	nis =fsl_os_xmalloc(sizeof(struct dpni_drv)*SOC_MAX_NUM_OF_DPNI, MEM_PART_SH_RAM, 64);
+	/*nis =fsl_os_xmalloc(sizeof(struct dpni_drv)*SOC_MAX_NUM_OF_DPNI, MEM_PART_SH_RAM, 64);*/
+	nis =fsl_malloc(sizeof(struct dpni_drv)*SOC_MAX_NUM_OF_DPNI,64);
 	if (!nis) {
 	    return -ENOMEM;
 	}

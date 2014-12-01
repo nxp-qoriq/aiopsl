@@ -276,12 +276,14 @@ __COLD_CODE int cmdif_unregister_module(const char *m_name)
 
 static void *fast_malloc(int size)
 {
-	return fsl_os_xmalloc((size_t)size, MEM_PART_SH_RAM, 8);
+	/*return fsl_os_xmalloc((size_t)size, MEM_PART_SH_RAM, 8);*/
+	return fsl_malloc((size_t)size,8);
 }
 
 static void *slow_malloc(int size)
 {
-	return fsl_os_xmalloc((size_t)size, MEM_PART_SH_RAM, 8);
+	/*return fsl_os_xmalloc((size_t)size, MEM_PART_SH_RAM, 8);*/
+	return fsl_malloc((size_t)size,8);
 }
 
 static void srv_free(void *ptr)

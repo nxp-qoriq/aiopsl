@@ -51,9 +51,8 @@ static int build_extract_cfg_extention(struct dpkg_profile_cfg *cfg,
 		enum dpkg_extract_from_hdr_type type;
 	} u_cfg[DPKG_MAX_NUM_OF_EXTRACTS] = { 0 };
 
-	if(!cfg || !ext_params)
-		return -EINVAL;
-	
+	ASSERT_COND(cfg);
+	ASSERT_COND(ext_params);
 	for (i = 0; i < DPKG_MAX_NUM_OF_EXTRACTS; i++) {
 		switch (cfg->extracts[i].type) {
 		case DPKG_EXTRACT_FROM_HDR:
@@ -112,7 +111,6 @@ static int build_extract_cfg_extention(struct dpkg_profile_cfg *cfg,
 		ext_params[param] = cpu_to_le64(ext_params[param]);
 		param++;
 	}
-
 	return 0;
 }
 
@@ -1075,16 +1073,21 @@ int dpni_set_rx_tc_dist(struct fsl_mc_io *mc_io,
 	uint64_t *ext_params = (uint64_t *)params_iova;
 	int err;
 
+	if (cfg->dist_key_cfg) {
 	if (!ext_params)
 		return -ENOMEM;
+		err = build_extract_cfg_extention(cfg->dist_key_cfg,
+		                                  ext_params);
+		if (err)
+			return err;
+	} else {
+		params_iova = 0; /* NULL */
+	}
 
 	/* prepare command */
 	cmd.header = mc_encode_cmd_header(DPNI_CMDID_SET_RX_TC_DIST,
 					  MC_CMD_PRI_LOW,
 					  token);
-	err = build_extract_cfg_extention(cfg->dist_key_cfg, ext_params);
-	if (err)
-		return err;
 	DPNI_CMD_SET_RX_TC_DIST(cmd, tc_id, cfg, params_iova);
 
 	/* send command to mc*/
@@ -1263,17 +1266,20 @@ int dpni_set_qos_table(struct fsl_mc_io *mc_io,
 	uint64_t *ext_params = (uint64_t *)params_iova;
 	int err;
 
+	if (cfg->qos_key_cfg) {
 	if (!ext_params)
 		return -ENOMEM;
+		err = build_extract_cfg_extention(cfg->qos_key_cfg, ext_params);
+		if (err)
+			return err;
+	} else {
+		params_iova = 0; /* NULL */
+	}
 
 	/* prepare command */
 	cmd.header = mc_encode_cmd_header(DPNI_CMDID_SET_QOS_TBL,
 					  MC_CMD_PRI_LOW, token);
-	err = build_extract_cfg_extention(cfg->qos_key_cfg, ext_params);
-	if (err)
-		return err;
 	DPNI_CMD_SET_QOS_TABLE(cmd, cfg, params_iova);
-
 	/* send command to mc*/
 	return mc_send_command(mc_io, &cmd);
 }

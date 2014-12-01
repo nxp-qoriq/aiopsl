@@ -136,9 +136,12 @@ __COLD_CODE int cmdif_client_init()
 		return -ENODEV;
 	}
 
-	cl = fsl_os_xmalloc(sizeof(struct cmdif_cl),
+	/*cl = fsl_os_xmalloc(sizeof(struct cmdif_cl),
 	                    MEM_PART_SH_RAM,
 	                    8);
+	                    */
+	cl = fsl_malloc(sizeof(struct cmdif_cl),
+		                    8);
 	if (cl == NULL) {
 		pr_err("No memory for client handle\n");
 		return -ENOMEM;
@@ -147,12 +150,16 @@ __COLD_CODE int cmdif_client_init()
 	memset(cl, 0, sizeof(struct cmdif_cl));
 
 	for (i = 0; i < CMDIF_MN_SESSIONS; i++) {
-		cl->gpp[i].regs = fsl_os_xmalloc(sizeof(struct cmdif_reg),
+		/*cl->gpp[i].regs = fsl_os_xmalloc(sizeof(struct cmdif_reg),
 		                                 MEM_PART_SH_RAM,
+		                                 8);*/
+		cl->gpp[i].regs = fsl_malloc(sizeof(struct cmdif_reg),
 		                                 8);
-		cl->gpp[i].dev = fsl_os_xmalloc(sizeof(struct cmdif_dev),
+		/*cl->gpp[i].dev = fsl_os_xmalloc(sizeof(struct cmdif_dev),
 		                                 MEM_PART_SH_RAM,
-		                                 8);
+		                                 8);*/
+		cl->gpp[i].dev = fsl_malloc(sizeof(struct cmdif_dev),
+				                                 8);
 		if ((cl->gpp[i].regs == NULL) || (cl->gpp[i].dev == NULL)) {
 			pr_err("No memory for client handle\n");
 			return -ENOMEM;

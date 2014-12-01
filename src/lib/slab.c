@@ -1069,10 +1069,13 @@ __COLD_CODE static int slab_alocate_memory(int num_bpids, struct slab_module_inf
 __COLD_CODE int slab_module_early_init(void){
 	int i = 0, err = 0;
 	pr_info("Initialize memory for App early requests from slab\n");
-	g_slab_early_init_data = (struct memory_types_table *)
+	/*g_slab_early_init_data = (struct memory_types_table *)
 					fsl_os_xmalloc((sizeof(struct memory_types_table) ),
 						SLAB_FAST_MEMORY,
-						1);
+						1);*/
+	g_slab_early_init_data = (struct memory_types_table *)
+						fsl_malloc((sizeof(struct memory_types_table) ),
+						  1);
 	g_slab_early_init_data->num_ddr_pools = 0;
 	for(i = 0; i < SLAB_NUM_MEM_PARTITIONS; i++)
 		if(g_slab_early_init_data->mem_pid_buffer_request[i])
@@ -1294,10 +1297,13 @@ __COLD_CODE static int slab_proccess_registered_requests(int *num_bpids, struct 
 		
 	}
 
-	*bpids_arr = (struct slab_bpid_info *)
+	/**bpids_arr = (struct slab_bpid_info *)
 		fsl_os_xmalloc((sizeof(struct slab_bpid_info) * (*num_bpids)),
 		               SLAB_FAST_MEMORY,
-		               1);
+		               1);*/
+	*bpids_arr = (struct slab_bpid_info *)
+			fsl_malloc((sizeof(struct slab_bpid_info) * (*num_bpids)),
+			               1);
 	if(*bpids_arr == NULL)
 		return -ENOMEM;
 
@@ -1358,11 +1364,15 @@ __COLD_CODE int slab_module_init(void)
 	/*Register buffers for DDR management pools*/
 	num_clusters_for_ddr_mamangement_pools = (g_slab_early_init_data->num_ddr_pools >> 6) + 1; /*divide by 64*/
 	g_slab_virtual_pools.num_clusters = num_clusters_for_ddr_mamangement_pools;
-	g_slab_virtual_pools.slab_context_address = (uint64_t *)
+	/*g_slab_virtual_pools.slab_context_address = (uint64_t *)
 					fsl_os_xmalloc((sizeof(uint64_t) *
-						(num_clusters_for_ddr_mamangement_pools + 1)), /*cluster #0 is for shram*/
+						(num_clusters_for_ddr_mamangement_pools + 1)),
 						SLAB_FAST_MEMORY,
-						1);
+						1);*/
+     g_slab_virtual_pools.slab_context_address = (uint64_t *)
+                    fsl_malloc((sizeof(uint64_t) *
+                    (num_clusters_for_ddr_mamangement_pools + 1)), /*cluster #0 is for shram*/
+                    1);
 	/*This call must be before slab_proccess_registered_requests*/
 	err = slab_register_context_buffer_requirements(num_clusters_for_ddr_mamangement_pools, 
 	                                                num_clusters_for_ddr_mamangement_pools,
@@ -1386,9 +1396,11 @@ __COLD_CODE int slab_module_init(void)
 	
 	
 	/*Allocate memory for slab handle*/
-	slab_m = fsl_os_xmalloc(sizeof(struct slab_module_info),
+	/*slab_m = fsl_os_xmalloc(sizeof(struct slab_module_info),
 	                        SLAB_FAST_MEMORY,
-	                        1);
+	                        1);*/
+	/* allocate from shared ram */
+	slab_m = fsl_malloc(sizeof(struct slab_module_info),1);
 	if (slab_m == NULL)
 		return -ENOMEM;
 
@@ -1398,12 +1410,14 @@ __COLD_CODE int slab_module_init(void)
 		fsl_os_xmalloc(sizeof(struct slab_hw_pool_info) * num_bpids,
 		               SLAB_DDR_MEMORY,
 		               1);
-
-	virtual_pool_struct  = (struct slab_v_pool *)
-		fsl_os_xmalloc((sizeof(struct slab_v_pool) *
-			SLAB_MAX_NUM_VP_SHRAM),
+	/*virtual_pool_struct  = (struct slab_v_pool *)
+				fsl_os_xmalloc((sizeof(struct slab_v_pool) *
+					SLAB_MAX_NUM_VP),
 			SLAB_FAST_MEMORY,
-			1);
+					1);*/
+	virtual_pool_struct  = (struct slab_v_pool *)
+                  fsl_malloc((sizeof(struct slab_v_pool) *
+                             SLAB_MAX_NUM_VP_SHRAM),1);
 
 
 	err = dpbp_discovery(bpids_arr_init, &num_bpids);
@@ -1418,7 +1432,6 @@ __COLD_CODE int slab_module_init(void)
 	                                        * sizeof(uint64_t),
 	                                        SLAB_DDR_MEMORY,
 	                                        1);
-
 	if ((slab_m->hw_pools == NULL) ||
 		(virtual_pool_struct == NULL) ||
 		(slab_ddr_pointer_stack == NULL)) {
@@ -1563,17 +1576,22 @@ __COLD_CODE int slab_register_context_buffer_requirements(uint32_t    committed_
 	if(g_slab_early_init_data->mem_pid_buffer_request[mem_pid] == NULL)
 	{
 		
-		g_slab_early_init_data->mem_pid_buffer_request[mem_pid] = (struct early_init_request_table *)
+		/*g_slab_early_init_data->mem_pid_buffer_request[mem_pid] = (struct early_init_request_table *)
 								fsl_os_xmalloc((sizeof(struct early_init_request_table) ),
 									SLAB_FAST_MEMORY,
-									1);
-		
+									1);*/
+		g_slab_early_init_data->mem_pid_buffer_request[mem_pid] = (struct early_init_request_table *)
+										fsl_malloc((sizeof(struct early_init_request_table) ),
+											1);
 		if(g_slab_early_init_data->mem_pid_buffer_request[mem_pid] == NULL)
 			return -ENOMEM;
-		g_slab_early_init_data->mem_pid_buffer_request[mem_pid]->table_info = (struct request_table_info *)
+		/*g_slab_early_init_data->mem_pid_buffer_request[mem_pid]->table_info = (struct request_table_info *)
 							fsl_os_xmalloc((sizeof(local_info) ),
 								SLAB_FAST_MEMORY,
-								1);
+								1);*/
+		g_slab_early_init_data->mem_pid_buffer_request[mem_pid]->table_info = (struct request_table_info *)
+									fsl_malloc((sizeof(local_info) ),
+									1);
 		if(g_slab_early_init_data->mem_pid_buffer_request[mem_pid]->table_info == NULL)
 			return -ENOMEM;
 		else{
