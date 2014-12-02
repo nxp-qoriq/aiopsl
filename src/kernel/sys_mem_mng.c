@@ -306,8 +306,11 @@ void * sys_mem_xalloc(int         partition_id,
         if(fsl_os_get_mem(size,partition_id,alignment,&paddr) != 0)
             return NULL;
         p_memory = UINT_TO_PTR(fsl_os_phys_to_virt(paddr));
-        return p_memory;
     }
+    else if(partition_id == MEM_PART_SH_RAM){
+        p_memory = sys_shram_alloc(size,alignment,info,filename,line);
+    }
+    return p_memory;
 #endif
 
     p_memory = mem_mng_alloc_mem(sys.mem_mng,
@@ -350,13 +353,9 @@ void sys_mem_xfree(void *p_memory)
         paddr < peb_partition_info.base_paddress + peb_partition_info.size)){
         mem_mng_put_phys_mem(sys.mem_mng,paddr);
         return;
-    }
-    else{
-        mem_mng_free_mem(sys.mem_mng, p_memory);
-        return;
-    }
+    }// if, case of MEM_PART_DP_DDR,MEM_PART_SYSTEM_DDR,MEM_PART_PEB
 #endif
-
+    /* The case of MEM_PART_SH_RAM */
     mem_mng_free_mem(sys.mem_mng, p_memory);
 }
 
