@@ -655,7 +655,7 @@ static void open_cmd_print()
 #ifdef DEBUG
 	char  m_name[M_NAME_CHARS + 1];
 	cmd_m_name_get(&m_name[0]);
-	pr_debug("Module name is %s\n");
+	pr_debug("Module name is %s\n", m_name);
 #endif
 }
 
@@ -722,6 +722,8 @@ void cmdif_srv_isr(void) /*__attribute__ ((noreturn))*/
 
 	pr_debug("cmd_id = 0x%x\n", cmd_id);
 	pr_debug("auth_id = 0x%x\n", auth_id);
+	pr_debug("gpp_icid = 0x%x\n", gpp_icid);
+	pr_debug("gpp_dma flags = 0x%x\n", gpp_dma);
 	
 	if (cmd_id == CMD_ID_NOTIFY_OPEN) {
 		/* Support for AIOP -> GPP */
