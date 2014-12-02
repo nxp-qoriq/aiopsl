@@ -93,6 +93,20 @@ struct shbp *shbp_create(void *mem_ptr, uint32_t size,
  */
 int shbp_refill(struct shbp *bp);
 
+
+/**
+ * @brief	Returns the list of pointers to be freed 
+ *
+ * @param[in]	arr_size - Number of entries to be filled inside ptr_arr
+ * @param[out]	ptr_arr  - Array of pointers to be freed for pool destruction 
+ * 
+ * @returns	POSIX error code until there are buffers inside shared pool 
+ * 		that need to be freed, 0 if all the pointers have been copied 
+ * 		into ptr_arr
+ *
+ */
+int shbp_free_ptr(uint32_t arr_size, void **ptr_arr);
+
 /** @} */ /* end of shbp_g group */
 
 #endif
