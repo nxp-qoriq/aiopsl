@@ -35,7 +35,7 @@ struct shbp *shbp_create(void *mem_ptr, uint32_t size,
                          uint32_t buf_size, uint32_t flags)
 {
 #ifdef DEBUG
-	if ((mem_ptr == NULL) || (size == 0) || (buf_size == 0))
+	if ((mem_ptr == NULL) || (size == 0) || (buf_size == 0) || (flags != 0))
 		return NULL;
 #endif
 	
