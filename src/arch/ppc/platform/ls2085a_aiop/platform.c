@@ -361,7 +361,6 @@ __COLD_CODE static int pltfrm_init_core_cb(fsl_handle_t h_platform)
 {
     t_platform  *pltfrm = (t_platform *)h_platform;
     int     err = 0;
-    uint32_t CTSCSR_value = 0;
     uint32_t WSCR_tasks_bit = 0;
     struct aiop_tile_regs *aiop_regs = (struct aiop_tile_regs *)
 	                               sys_get_handle(FSL_OS_MOD_AIOP_TILE, 1);
@@ -386,12 +385,7 @@ __COLD_CODE static int pltfrm_init_core_cb(fsl_handle_t h_platform)
     /* special AIOP registers */
 
     /* Workspace Control Register*/
-    WSCR_tasks_bit = ioread32_ccsr(&aiop_regs->cmgw_regs.wscr) & 0x000000ff;
-
-    CTSCSR_value = (booke_get_CTSCSR0() & ~CTSCSR_TASKS_MASK) | \
-    		                          (WSCR_tasks_bit << 24);
-
-    booke_set_CTSCSR0(CTSCSR_value);
+    WSCR_tasks_bit = ioread32_ccsr(&aiop_regs->cmgw_regs.wscr) & 0x0000000f;
 
     /*------------------------------------------------------*/
     /* Initialize L1 Cache                                  */
