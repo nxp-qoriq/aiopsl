@@ -170,6 +170,39 @@ void sys_mem_free(void *p_memory);
 *//***************************************************************************/
 void sys_mem_xfree(void *p_memory);
 
+
+/**************************************************************************//**
+ @Function      sys_shram_alloc
+
+ @Description   Allocate a memory block from shared ram and with
+                specific attributes.
+
+ @Param[in]     size        - Requested memory size
+ @Param[in]     alignment   - Requested memory alignment
+ @Param[in]     info        - Allocation information string (for debug)
+ @Param[in]     filename    - Caller file name (for debug)
+ @Param[in]     line        - Caller line number (for debug)
+
+ @Return        Pointer to allocated memory; NULL on failure.
+*//***************************************************************************/
+void * sys_shram_alloc(uint32_t    size,
+                    uint32_t    alignment,
+                    char        *info,
+                    char        *filename,
+                    int         line);
+
+/**************************************************************************//**
+ @Function      sys_shram_free
+
+ @Description   Free a memory block that was previously allocated using the
+                sys_shram_alloc() routine.
+
+ @Param[in]     mem - Pointer to the memory block
+
+ @Return        None.
+*//***************************************************************************/
+void sys_shram_free(void *mem);
+
 /**************************************************************************//**
  @Function      SYS_GetAvailableMemPartition
 

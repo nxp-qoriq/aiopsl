@@ -450,6 +450,20 @@ void *fsl_os_xmalloc_debug(size_t     size,
 {
 	return sys_mem_xalloc(partition_id, size, alignment, "", fname, line);
 }
+/*****************************************************************************/
+void * fsl_malloc(size_t size,uint32_t alignment)
+{
+#ifdef DEBUG_FSL_OS_MALLOC
+	return  sys_shram_alloc(size,alignment,"",__FILE__, __LINE__);
+#else
+	return sys_shram_alloc(size,alignment,"","", 0);
+#endif
+}
+/*****************************************************************************/
+void fsl_free(void *mem)
+{
+	sys_shram_free(mem);
+}
 
 /*****************************************************************************/
 #ifdef DEBUG_FSL_OS_MALLOC

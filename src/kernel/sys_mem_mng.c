@@ -237,7 +237,28 @@ static t_sys_virt_mem_map * sys_find_phys_addr_mapping(uint64_t phys_addr)
 
     return NULL;
 }
-
+/*****************************************************************************/
+void * sys_shram_alloc(uint32_t    size,
+                    uint32_t    alignment,
+                    char        *info,
+                    char        *filename,
+                    int         line)
+{
+	 ASSERT_COND(sys.mem_mng);
+	 ASSERT_COND(size > 0);
+	 return mem_mng_alloc_mem(sys.mem_mng,
+			           MEM_PART_SH_RAM,
+	                   size,
+	                   alignment,
+	                   info,
+	                   filename,
+	                   line);
+}
+/*****************************************************************************/
+void sys_shram_free(void *mem)
+{
+	mem_mng_free_mem(sys.mem_mng, mem);
+}
 /*****************************************************************************/
 void * sys_mem_alloc(uint32_t    size,
                     uint32_t    alignment,
@@ -328,6 +349,10 @@ void sys_mem_xfree(void *p_memory)
        (paddr >= peb_partition_info.base_paddress &&
         paddr < peb_partition_info.base_paddress + peb_partition_info.size)){
         mem_mng_put_phys_mem(sys.mem_mng,paddr);
+        return;
+    }
+    else{
+        mem_mng_free_mem(sys.mem_mng, p_memory);
         return;
     }
 #endif

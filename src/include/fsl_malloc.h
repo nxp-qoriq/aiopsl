@@ -43,7 +43,17 @@
 
  @{
 *//***************************************************************************/
+/**************************************************************************//**
+ @Function      fsl_malloc
 
+ @Description   Allocates contiguous block of memory from shared ram.
+
+ @Param[in]     size    Number of bytes to allocate.
+ @Param[in]     alignment           Required memory alignment (in bytes).
+
+ @Return        A 32 bit  address of the newly allocated block on success, NULL on failure.
+*//***************************************************************************/
+void * fsl_malloc(size_t size, uint32_t alignment);
 /**************************************************************************//**
  @Function      fsl_os_malloc
 
@@ -86,6 +96,16 @@ void *fsl_os_xmalloc(size_t size, int mem_partition_id, uint32_t alignment);
 void fsl_os_xfree(void *mem);
 
 /**************************************************************************//**
+ @Function      fsl_free
+
+ @Description   frees the memory block pointed to by "mem" in shared ram
+                Only for memory allocated by fsl_malloc().
+
+ @Param[in]     mem     A pointer to the memory block.
+*//***************************************************************************/
+void fsl_free(void *mem);
+
+/**************************************************************************//**
  @Function      fsl_os_free
 
  @Description   frees the memory block pointed to by "mem".
@@ -103,7 +123,7 @@ void fsl_os_free(void *mem);
 @Param[in]     mem_partition_id    Memory partition ID;
                Valid values: MEM_PART_DP_DDR,MEM_PART_PEB,MEM_PART_SYSTEM_DDR
 @Param[in]     alignment           Required memory alignment (in bytes).
-@Param[out]    paddr               A valid allocated physical address if success,
+@Param[out]    paddr               A valid allocated physical address(64 bit) if success,
                                    NULL if failure.
 @Return        0                   on success,
                -ENOMEM (not enough memory to allocate)or
@@ -121,7 +141,7 @@ int fsl_os_get_mem(uint64_t size, int mem_partition_id, uint64_t alignment,
 @Param[in]    paddr  An address to be freed.
 
 *//***************************************************************************/
-//void  fsl_os_put_mem(uint64_t paddr);
+void  fsl_os_put_mem(uint64_t paddr);
 
 /** @} */ /* end of sytem_mem_management_id  group */
 

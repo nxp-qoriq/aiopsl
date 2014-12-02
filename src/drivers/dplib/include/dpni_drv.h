@@ -53,7 +53,7 @@
 *//***************************************************************************/
 
 /* TODO - move to soc files */
-#define SOC_MAX_NUM_OF_DPNI		128
+#define SOC_MAX_NUM_OF_DPNI		64
 
 #define DPNI_DRV_FAST_MEMORY    MEM_PART_PEB
 #define DPNI_DRV_DDR_MEMORY     MEM_PART_DP_DDR
@@ -62,8 +62,10 @@
 #define DPNI_DRV_DDR_BPID_IDX         1
 #define SP_MASK_BMT_AND_RSV       0xC000FFFF
 #define SP_MASK_BPID              0x3FFF
-
-
+#define ORDER_MODE_CLEAR_BIT      0xFEFFFFFF /*clear the bit for exclusive / concurrent mode*/
+#define ORDER_MODE_BIT_MASK       0x01000000
+#define DPNI_DRV_CONCURRENT_MODE      0
+#define DPNI_DRV_EXCLUSIVE_MODE       1
 /**************************************************************************//**
 @Group	DPNI_DRV_STATUS
 @{
@@ -222,5 +224,17 @@ int dpni_drv_register_discard_rx_cb(
 @Return	Number of NI_IDs in the system
 *//***************************************************************************/
 int dpni_get_num_of_ni(void);
+
+/**************************************************************************//**
+@Function	dpni_drv_get_ordering_mode
+
+@Description	Returns the configuration in epid table for ordering mode.
+@Param[in]	ni_id - Network Interface ID
+
+@Return	Ordering mode for given NI
+		0 - Concurrent 
+		1 - Exclusive
+*//***************************************************************************/
+int dpni_drv_get_ordering_mode(uint16_t ni_id);
 /** @} */ /* end of DPNI_DRV_STATUS group */
 #endif /* __DPNI_DRV_H */

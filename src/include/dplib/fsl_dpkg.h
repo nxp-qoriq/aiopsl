@@ -56,9 +56,9 @@
  * @DPKG_FULL_FIELD: Extract a full field
  */
 enum dpkg_extract_from_hdr_type {
-	DPKG_FROM_HDR = 1,
-	DPKG_FROM_FIELD = 2,
-	DPKG_FULL_FIELD = 3
+	DPKG_FROM_HDR = 0,
+	DPKG_FROM_FIELD = 1,
+	DPKG_FULL_FIELD = 2
 };
 
 /**

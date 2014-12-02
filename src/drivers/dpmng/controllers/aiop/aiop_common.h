@@ -63,13 +63,9 @@ struct aiop_app_init_info {
 	uint32_t tman_freq;
 	uint32_t tasks_per_core;
 
-	uint32_t dpni_num_buffs; /*number of buffers for dpni pool*/
-	uint32_t dpni_buff_size; /*size of buffers for dpni pool*/
-	uint32_t dpni_drv_alignment; /*dpni pool buffers alignment*/
-
 	uint32_t spid_count;
-	
-	uint32_t reserved[45]; /* reserved for future use */
+
+	uint32_t reserved[48]; /* reserved for future use */
 };
 
 /* Internal data exchanged between AIOP and MC
@@ -86,7 +82,7 @@ struct aiop_sl_init_info
 	uint64_t peb_paddr;
 	uint64_t peb_vaddr; /* virtual base address, initialized by MC FW before AIOP elf is loaded */
 
-	uint64_t sys_ddr1_paddr;    
+	uint64_t sys_ddr1_paddr;
 	uint64_t sys_ddr1_vaddr;/*  virtual base address, initialized by MC FW before AIOP elf is loaded */
 
 	uint64_t ccsr_paddr;

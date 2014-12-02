@@ -39,8 +39,10 @@
 #include "fsl_dprc.h"
 #include "fsl_mc_init.h"
 
-int dpni_drv_probe(struct mc_dprc *dprc, uint16_t	mc_niid, uint16_t aiop_niid,
-		struct dpni_pools_cfg *pools_params);
+int dpni_drv_probe(struct mc_dprc *dprc,
+                   uint16_t mc_niid,
+                   uint16_t aiop_niid,
+                   struct dpni_pools_cfg *pools_params);
 
 #define DPNI_DRV_FLG_PARSE		0x80
 #define DPNI_DRV_FLG_PARSER_DIS		0x40
@@ -61,6 +63,8 @@ struct dpni_drv_params {
 	uint8_t             spid_ddr;
 	/** connection for the command interface */
 	uint16_t            dpni;
+	/** epid table index */
+	uint16_t            epid_idx;
 };
 #pragma pack(pop)
 
