@@ -84,3 +84,5 @@ extern const uint32_t g_aiop_lcf_ddr_size;
 #define SPID_COUNT            			8
 
  
+/*  Maximal number of applications to be filled by build_apps_array() */
+#define APP_MAX_NUM                      10
