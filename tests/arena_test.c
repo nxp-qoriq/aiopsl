@@ -318,7 +318,7 @@ int app_init(void)
 
 		}*/
 		dpni_drv_set_exclusive((uint16_t)ni);
-		err = dpni_drv_set_order_scope((uint16_t)ni,&dist_key_cfg);
+		//err = dpni_drv_set_order_scope((uint16_t)ni,&dist_key_cfg);
 		if (err){
 			fsl_os_print("dpni_drv_set_dist failed %d\n", err);
 					return err;
