@@ -1,3 +1,5 @@
+- app.h/c:       Fixed ENGR00341738, added APP_MAX_NUM to app.h. Updated build_apps_array() in app.c.      
+
 dpni_drv.c/fsl_dpni_drv.h: Adding support for dpni_drv_set_order_scope - 
                            Function to set order scope source for the specified NI.
 Memory managment: added fsl_os_get_mem()- for allocating a 64 bit physical address from external memories,
