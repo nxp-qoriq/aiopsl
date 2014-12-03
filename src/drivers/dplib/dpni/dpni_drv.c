@@ -49,7 +49,7 @@
 int dpni_drv_init(void);
 void dpni_drv_free(void);
 
-extern struct aiop_init_data g_init_data;
+extern struct aiop_init_info g_init_data;
 /*Window for storage profile ID's to use with DDR target memory*/
 uint32_t spid_ddr_id;
 uint32_t spid_ddr_id_last;
