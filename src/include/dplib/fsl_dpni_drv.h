@@ -310,7 +310,7 @@ int dpni_drv_get_spid_ddr(uint16_t ni_id, uint16_t *spid_ddr);
 /**************************************************************************//**
 @Function	dpni_drv_set_concurrent
 
-@Description	Function to set the ordering mode to concurrent for the given NI.
+@Description	Function to set the initial ordering mode to concurrent for the given NI.
 
 @Param[in]	ni_id   The Network Interface ID
 
@@ -323,7 +323,7 @@ int dpni_drv_set_concurrent(uint16_t ni_id);
 /**************************************************************************//**
 @Function	dpni_drv_set_exclusive
 
-@Description	Function to set the ordering mode to exclusive for the given NI.
+@Description	Function to set the initial ordering mode to exclusive for the given NI.
 
 @Param[in]	ni_id   The Network Interface ID
 
@@ -335,21 +335,20 @@ int dpni_drv_set_concurrent(uint16_t ni_id);
 int dpni_drv_set_exclusive(uint16_t ni_id);
 
 /**************************************************************************//**
-@Function	dpni_drv_set_order_scope_dist
+@Function	dpni_drv_set_order_scope
 
-@Description	Function to set order scope distribution for specified NI.
+@Description	Function to set order scope source for the specified NI.
 
 @Param[in]	ni_id   The Network Interface ID
-@Param[int]	dist_key_cfg   A structure for defining a full Key Generation
+@Param[int]	key_cfg   A structure for defining a full Key Generation
  		profile (rule)
-@Cautions       This method should be called in boot mode only.
-		A memory should be allocated for system DDR in apps.h
-		EPID table initialized for concurrent mode, switch to exclusive.
+@Cautions	This method should be called in boot mode only.
+
 
 @Return	OK on success; error code, otherwise.
 		For error posix refer to
 		\ref error_g
 *//***************************************************************************/
-int dpni_drv_set_order_scope(uint16_t ni_id, struct dpkg_profile_cfg *dist_key_cfg);
+int dpni_drv_set_order_scope(uint16_t ni_id, struct dpkg_profile_cfg *key_cfg);
 /** @} */ /* end of dpni_g DPNI group */
 #endif /* __FSL_DPNI_DRV_H */

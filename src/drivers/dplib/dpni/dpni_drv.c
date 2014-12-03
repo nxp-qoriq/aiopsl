@@ -564,7 +564,7 @@ int dpni_drv_set_exclusive(uint16_t ni_id){
 	return dpni_drv_set_ordering_mode(ni_id, DPNI_DRV_EXCLUSIVE_MODE);
 }
 
-int dpni_drv_set_order_scope(uint16_t ni_id, struct dpkg_profile_cfg *dist_key_cfg){
+int dpni_drv_set_order_scope(uint16_t ni_id, struct dpkg_profile_cfg *key_cfg){
 	struct dpni_drv *dpni_drv;
 	struct mc_dprc *dprc = sys_get_unique_handle(FSL_OS_MOD_AIOP_RC);
 	struct dpni_rx_tc_dist_cfg cfg = {0};
@@ -583,7 +583,7 @@ int dpni_drv_set_order_scope(uint16_t ni_id, struct dpkg_profile_cfg *dist_key_c
 	memset((void *)params_iova, 0, PARAMS_IOVA_BUFF_SIZE);
 	cfg.dist_size = 0;
 	cfg.dist_mode = DPNI_DIST_MODE_HASH;
-	cfg.dist_key_cfg = dist_key_cfg;
+	cfg.dist_key_cfg = key_cfg;
 
 	err = dpni_set_rx_tc_dist(&dprc->io,
 	                          dpni_drv->dpni_drv_params_var.dpni,
