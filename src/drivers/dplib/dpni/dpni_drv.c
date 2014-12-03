@@ -455,7 +455,7 @@ int dpni_drv_init(void)
 		dpni_drv->rx_cbs = discard_rx_app_cb;
 	}
 	/*Window for storage profile ID's to use with DDR target memory*/
-	spid_ddr_id = g_init_data.sl_data.base_spid;
+	spid_ddr_id = g_init_data.sl_info.base_spid;
 	spid_ddr_id_last = spid_ddr_id + SOC_MAX_NUM_OF_DPNI;
 	return error;
 }
