@@ -314,6 +314,8 @@ int dpni_drv_get_spid_ddr(uint16_t ni_id, uint16_t *spid_ddr);
 
 @Param[in]	ni_id   The Network Interface ID
 
+@Cautions       This method should be called in boot mode only.
+
 @Return	'0' on Success;
 *//***************************************************************************/
 int dpni_drv_set_concurrent(uint16_t ni_id);
@@ -325,10 +327,29 @@ int dpni_drv_set_concurrent(uint16_t ni_id);
 
 @Param[in]	ni_id   The Network Interface ID
 
+@Cautions       This method should be called in boot mode only.
+
 @Return	'0' on Success;
+
 *//***************************************************************************/
 int dpni_drv_set_exclusive(uint16_t ni_id);
 
-int dpni_drv_set_dist(uint16_t ni_id, struct dpkg_profile_cfg *dist_key_cfg);
+/**************************************************************************//**
+@Function	dpni_drv_set_order_scope_dist
+
+@Description	Function to set order scope distribution for specified NI.
+
+@Param[in]	ni_id   The Network Interface ID
+@Param[int]	dist_key_cfg   A structure for defining a full Key Generation
+ 		profile (rule)
+@Cautions       This method should be called in boot mode only.
+		A memory should be allocated for system DDR in apps.h
+		EPID table initialized for concurrent mode, switch to exclusive.
+
+@Return	OK on success; error code, otherwise.
+		For error posix refer to
+		\ref error_g
+*//***************************************************************************/
+int dpni_drv_set_order_scope(uint16_t ni_id, struct dpkg_profile_cfg *dist_key_cfg);
 /** @} */ /* end of dpni_g DPNI group */
 #endif /* __FSL_DPNI_DRV_H */

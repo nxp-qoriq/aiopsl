@@ -66,6 +66,9 @@
 #define ORDER_MODE_BIT_MASK       0x01000000
 #define DPNI_DRV_CONCURRENT_MODE      0
 #define DPNI_DRV_EXCLUSIVE_MODE       1
+#define PARAMS_IOVA_BUFF_SIZE         256
+#define PARAMS_IOVA_ALIGNMENT         8
+
 /**************************************************************************//**
 @Group	DPNI_DRV_STATUS
 @{
@@ -232,7 +235,7 @@ int dpni_get_num_of_ni(void);
 @Param[in]	ni_id - Network Interface ID
 
 @Return	Ordering mode for given NI
-		0 - Concurrent 
+		0 - Concurrent
 		1 - Exclusive
 *//***************************************************************************/
 int dpni_drv_get_ordering_mode(uint16_t ni_id);
