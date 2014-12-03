@@ -440,7 +440,7 @@ __COLD_CODE int run_apps(void)
 
 	/* At this stage, all the NIC of AIOP are up and running */
 
-	memset(apps, 0, app_arr_size * sizeof(struct sys_module_desc));
+	memset(apps, 0, (app_arr_size * sizeof(struct sys_module_desc)));
 	build_apps_array(apps);
 
 	for (i=0; i<app_arr_size; i++) {
