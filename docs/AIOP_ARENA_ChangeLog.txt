@@ -31,6 +31,8 @@ dpni_drv.c/fsl_dpni_drv.h: Added implementation for int dpni_drv_get_spid_ddr(ui
 
 dpni_drv.c:                Added implementation to create storage profile with DDR bpid.
 
+- dpl.dts/dtb:   adding option DPNI_OPT_DIST_HASH to all dpnis to support dpni_drv_set_order_scope
+
 apps.h:         added 3 defines (3 more parameters were added to the aiop_app_init_info struct):
                 /* Number of frame buffers in pool */
                 #define DPNI_NUMBER_BUFFERS_IN_POOL      50
