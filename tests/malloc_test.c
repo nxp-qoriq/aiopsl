@@ -49,6 +49,8 @@ static  int check_returned_get_mem_address(uint64_t paddr,
                                            uint64_t size,
                                            uint64_t alignment,
                                    t_mem_mng_phys_addr_alloc_info* part_info);
+static int shared_ram_allocate_check_mem(uint32_t num_iter, uint32_t size,
+		                      void **allocated_pointers);
 
 extern struct aiop_init_info g_init_data;
 /* Number of malloc allocations for each partition */
@@ -81,9 +83,38 @@ int malloc_test()
                 fsl_os_print("malloc_test from  System DDR succeeded\n");
 	    err |= local_error;
 	}
+	/* Check fsl_malloc() function */
+	if(!(local_error = shared_ram_allocate_check_mem(num_iter,size,allocated_pointers)))
+			fsl_os_print("malloc_test from  SHARED RAM succeeded\n");
+	err |= local_error ;
 	local_error = get_mem_test();
 	err |= local_error;
 	return err;
+}
+
+static int shared_ram_allocate_check_mem(uint32_t num_iter, uint32_t size,
+		                      void **allocated_pointers)
+{
+	int i = 0;
+	uint32_t value = 0xdeadbeef,expected_value = 0xdeadbeef;
+	for(i = 0 ; i < num_iter; i++)
+	{		
+		allocated_pointers[i] = fsl_malloc(size,4);
+		if(NULL == allocated_pointers[i])
+			return ENOMEM;
+		iowrite32(value,allocated_pointers[i]);
+		value = ioread32(allocated_pointers[i]);
+		if(value != expected_value) {
+			fsl_os_print("fsl_malloc from  shared ram has failed, address %x\n",
+					    PTR_TO_UINT(allocated_pointers[i]));
+		    return ENOMEM;
+		}
+	}
+	for(i = 0 ; i < num_iter; i++)
+	{
+		fsl_free(allocated_pointers[i]);
+	}
+	return 0;
 }
 
 static int allocate_check_mem(int  memory_partition,
@@ -119,12 +150,7 @@ static int allocate_check_mem(int  memory_partition,
 	{
 		for(i = 0 ; i < num_iter; i++)
 		{
-			if(MEM_PART_SH_RAM == memory_partition){
-			    allocated_pointers[i] = fsl_malloc(size,4);
-			}
-			else{
 			allocated_pointers[i] = fsl_os_xmalloc(size,memory_partition,4);
-			}
 			if(NULL == allocated_pointers[i])
 				return ENOMEM;
 			iowrite32(value,allocated_pointers[i]);
@@ -198,6 +224,8 @@ static int check_get_mem_size_alignment()
 	if((rc = sys_get_phys_addr_alloc_partition_info(MEM_PART_PEB,
 													&peb_info)) != 0)
 		return rc;
+	
+	/* test get_mem() for MEM_PART_DP_DDR */
 	if((local_error = fsl_os_get_mem(size,MEM_PART_DP_DDR,alignment,&paddr)) != 0){
 		fsl_os_print("get_mem(): fsl_os_get_mem from MEM_PART_DP_DDR failed\n") ; 
 	}
@@ -205,13 +233,17 @@ static int check_get_mem_size_alignment()
 	rc |= check_returned_get_mem_address(paddr,size,alignment,&dp_ddr_info);
 	fsl_os_put_mem(paddr);
 
-	if((local_error = fsl_os_get_mem(size,MEM_PART_SYSTEM_DDR,alignment,&paddr)) != 0){
-		fsl_os_print("get_mem(): fsl_os_get_mem from MEM_PART_SYSTEM_DDR failed\n") ;
-	}
-	rc |= local_error;
-	rc |= check_returned_get_mem_address(paddr,size,alignment,&sys_ddr_info);
-	fsl_os_put_mem(paddr);
+    /* test get_mem() for MEM_PART_SYSTEM_DDR */
+    if(g_init_data.app_info.sys_ddr1_size){
+	    if((local_error = fsl_os_get_mem(size,MEM_PART_SYSTEM_DDR,alignment,&paddr)) != 0){
+		    fsl_os_print("get_mem(): fsl_os_get_mem from MEM_PART_SYSTEM_DDR failed\n") ;
+	    }
+	    rc |= local_error;
+	    rc |= check_returned_get_mem_address(paddr,size,alignment,&sys_ddr_info);
+	    fsl_os_put_mem(paddr);
+    }
 
+	/* test get_mem() for MEM_PART_PEB */
 	if((local_error=fsl_os_get_mem(size,MEM_PART_PEB,alignment,&paddr)) != 0){
 		fsl_os_print("get_mem(): fsl_os_get_mem from MEM_PART_PEB failed\n") ;
 	}

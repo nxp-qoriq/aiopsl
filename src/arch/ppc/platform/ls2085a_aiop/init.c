@@ -257,6 +257,12 @@ static inline void config_runtime_stack_overflow_detection()
 
 void core_ready_for_tasks(void)
 {
+	/* 
+	 * CTSCSR_ntasks mast be a 'register' in order to prevent stack access 
+	 * after stack overflow detection is enabled 
+	 */
+	register uint32_t CTSCSR_ntasks; 
+	
 	/*  finished boot sequence; now wait for event .... */
 	pr_info("AIOP core %d completed boot sequence\n", core_get_id());
 
@@ -272,6 +278,8 @@ void core_ready_for_tasks(void)
 
 	cmgw_update_core_boot_completion();
 
+	CTSCSR_ntasks = (cmgw_get_ntasks() << 24) & CTSCSR_TASKS_MASK;
+	
 #if (STACK_OVERFLOW_DETECTION == 1)
 	/*
 	 *  NOTE:
@@ -282,7 +290,7 @@ void core_ready_for_tasks(void)
 #endif
 
 	/* CTSEN = 1, finished boot, Core Task Scheduler Enable */
-	booke_set_CTSCSR0(booke_get_CTSCSR0() | CTSCSR_ENABLE);
+	booke_set_CTSCSR0(booke_get_CTSCSR0() | CTSCSR_ENABLE | CTSCSR_ntasks);
 	__e_hwacceli(YIELD_ACCEL_ID); /* Yield */
 }
 
