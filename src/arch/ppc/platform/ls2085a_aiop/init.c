@@ -280,6 +280,8 @@ void core_ready_for_tasks(void)
 
 	CTSCSR_ntasks = (cmgw_get_ntasks() << 24) & CTSCSR_TASKS_MASK;
 	
+	//TODO write following code in assembly to ensure stack is not accessed
+	
 #if (STACK_OVERFLOW_DETECTION == 1)
 	/*
 	 *  NOTE:
