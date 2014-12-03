@@ -94,11 +94,6 @@ int dpni_drv_test(void){
 	}
 
 	eth_ptr = (char *)PARSER_GET_ETH_POINTER_DEFAULT();
-	if (dpni_ctr == 12){
-		if(*eth_ptr != 0x01)
-			local_test_error |= 0x01;
-	}
-
 	for(i = 0; i < NET_HDR_FLD_ETH_ADDR_SIZE; i++) /*check if destination mac is broadcast*/
 		if(*eth_ptr++ != 0xff)
 			break;
