@@ -146,10 +146,10 @@
 						/** @defgroup FDMA_ISOLATION_ATTRIBUTES_Flags
 							@ingroup FDMA_Commands_Flags
 						*/	
-						/** @defgroup FDMA_STATUS FDMA Status
-							@ingroup FDMA_Commands_Flags
-						*/							
 					/**@} */			
+					/** @defgroup FDMA_STATUS FDMA Status
+						@ingroup FSL_AIOP_FDMA
+					*/							
 					/** @defgroup FDMA_Structures FDMA Structures
 						@ingroup FSL_AIOP_FDMA
 					*/
@@ -456,7 +456,7 @@
 			*/		
 
 				/** @defgroup HM_IP_Modes HM IP Modes
-					@ingroup FSL_HM
+					@ingroup AIOP_IP_HM
 					@{
 				*/
 					/** @defgroup HMIPv4ModeBits IPv4 header modification mode bits
@@ -489,7 +489,7 @@
 					
 				/** @} */
 					/** @defgroup FSL_HM_IP_Functions HM IP related functions
-						@ingroup FSL_HM
+						@ingroup AIOP_IP_HM
 					*/					
 			/** @} */		
 		/** @} */	
@@ -713,25 +713,25 @@
 		*/		
 	/** @} */
 	
-	/** @defgroup cmdif_g  Command Interface API
+	/** @defgroup cmdif_g  Command Interface
 	@ingroup kernel_g
 	@{ */
-		/** @defgroup cmdif_client_g  Command Interface - Client API
+		/** @defgroup cmdif_client_g  Command Interface - Client
 		 	@ingroup cmdif_g
 			@{	
 		*/	
 			/** @defgroup CMDIF_SEND_ATTRIBUTES
 			*/
 		/** @} */
-	/** @defgroup cmdif_server_g  Command Interface - Server API
+	/** @defgroup cmdif_server_g  Command Interface - Server
 		 		@ingroup cmdif_g
 		*/	
-	/** @defgroup cmdif_flib_g  Command Interface - FLIB API
+	/** @defgroup cmdif_flib_g  Command Interface - FLIB
 		 		@ingroup cmdif_g
 		*/		
 	/** @} */	
 	
-	/** @defgroup ic_g Isolation Context API
+	/** @defgroup ic_g Isolation Context
 	@ingroup kernel_g
 	@{ @} */
 	
