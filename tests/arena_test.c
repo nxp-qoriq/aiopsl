@@ -307,7 +307,7 @@ int app_init(void)
 
 	for (ni = 0; ni < dpni_get_num_of_ni(); ni++)
 	{
-		/*err = dpni_drv_add_mac_addr((uint16_t)ni, ((uint8_t []){0x02, 0x00 ,0xc0 ,0x0a8 ,0x0b ,0xfe }));
+		err = dpni_drv_add_mac_addr((uint16_t)ni, ((uint8_t []){0x02, 0x00 ,0xc0 ,0x0a8 ,0x0b ,0xfe }));
 
 		if (err){
 			fsl_os_print("dpni_drv_add_mac_addr failed %d\n", err);
@@ -316,11 +316,11 @@ int app_init(void)
 			fsl_os_print("dpni_drv_add_mac_addr succeeded in boot\n");
 			fsl_os_print("MAC 02:00:C0:A8:0B:FE added for ni %d\n",ni);
 
-		}*/
+		}
 		dpni_drv_set_exclusive((uint16_t)ni);
-		//err = dpni_drv_set_order_scope((uint16_t)ni,&dist_key_cfg);
+		err = dpni_drv_set_order_scope((uint16_t)ni,&dist_key_cfg);
 		if (err){
-			fsl_os_print("dpni_drv_set_dist failed %d\n", err);
+			fsl_os_print("dpni_drv_set_order_scope failed %d\n", err);
 					return err;
 		}
 
