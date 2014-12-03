@@ -49,10 +49,10 @@
 int dpni_drv_init(void);
 void dpni_drv_free(void);
 
-int spid_start = 64;
-int last_spid = 128;
-
-
+extern struct aiop_init_data g_init_data;
+/*Window for storage profile ID's to use with DDR target memory*/
+uint32_t spid_ddr_id;
+uint32_t spid_ddr_id_last;
 
 /* TODO - get rid */
 struct dpni_drv nis_first __attribute__((aligned(8)));
@@ -250,7 +250,7 @@ int dpni_drv_probe(struct mc_dprc *dprc,
 			if( pools_params[DPNI_DRV_DDR_BPID_IDX].num_dpbp == 1) /*bpid exist to use for ddr pool*/
 			{
 			/*Create ddr spid here*/
-				if(spid_start < last_spid)
+				if(spid_ddr_id < spid_ddr_id_last)
 				{
 					sp_addr = (struct aiop_psram_entry *)
 						(AIOP_PERIPHERALS_OFF + AIOP_STORAGE_PROFILE_OFF);
@@ -264,11 +264,11 @@ int dpni_drv_probe(struct mc_dprc *dprc,
 
 					sp_addr = (struct aiop_psram_entry *)
 						(AIOP_PERIPHERALS_OFF + AIOP_STORAGE_PROFILE_OFF);
-					sp_addr += spid_start;
+					sp_addr += spid_ddr_id;
 					*sp_addr = ddr_storage_profile;
 
-					nis[aiop_niid].dpni_drv_params_var.spid_ddr = (uint8_t) spid_start;
-					spid_start ++;
+					nis[aiop_niid].dpni_drv_params_var.spid_ddr = (uint8_t) spid_ddr_id;
+					spid_ddr_id ++;
 				}
 				else{
 					pr_err("No free spid available \n");
@@ -454,6 +454,9 @@ int dpni_drv_init(void)
 		/* put a default RX callback - dropping the frame */
 		dpni_drv->rx_cbs = discard_rx_app_cb;
 	}
+	/*Window for storage profile ID's to use with DDR target memory*/
+	spid_ddr_id = g_init_data.sl_data.base_spid;
+	spid_ddr_id_last = spid_ddr_id + SOC_MAX_NUM_OF_DPNI;
 	return error;
 }
 

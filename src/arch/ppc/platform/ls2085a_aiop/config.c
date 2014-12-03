@@ -3,7 +3,7 @@
 #include "fsl_gen.h"
 #include "apps.h"
 #include "platform.h"
-
+#include "fsl_dpni_drv.h"
 
 
 /*********************************************************************/
@@ -75,7 +75,7 @@ struct aiop_init_info g_init_data =
  	SRU_SIZE,
  	TMAN_FREQUENCY,
  	AIOP_TASKS_PER_CORE,
- 	8, /*SPID_COUNT*/
+ 	SOC_MAX_NUM_OF_DPNI, /*SPID_COUNT*/
  	{0}/* reserved */
  }
 
