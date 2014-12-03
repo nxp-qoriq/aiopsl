@@ -24,22 +24,20 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/* This value should match AIOP_DDR_END - AIOP_DDR_START from aiop_link.lcf 
- * This is the size that AIOP image occupies in DP_DDR. 
- * The user SHOULDN'T edit edit this. */
-#define AIOP_DP_DDR_SIZE 0xb10000
+/* This value is defined in config.c and holds the size of application in ddr memory*/
+extern const uint32_t g_aiop_lcf_ddr_size;
 
 /* This is an application required DP_DDR memory, user SHOULD edit this.
  * In this example the total dp_ddr memory is 128 MB , 
- * 0xb10000 out of it is occupied by aiop image dp_ddr and the rest is dedicated 
+ * g_aiop_lcf_ddr_size out of it is occupied by aiop image dp_ddr and the rest is dedicated 
  * for application */
-#define APPLICATION_DP_DDR_SIZE ((128 * MEGABYTE) - AIOP_DP_DDR_SIZE)
+#define APPLICATION_DP_DDR_SIZE ((128 * MEGABYTE) - g_aiop_lcf_ddr_size)
  
 /* dp_ddr_size.
- * It is the  sum of AIOP image DDR size and 
+ * It is the  sum of AIOP image size in DDR and 
  * application required DP_DDR memory.
  * The value should be aligned to a power of 2 */
-#define  AIOP_SL_AND_APP_SIZE     (uint64_t)(AIOP_DP_DDR_SIZE + APPLICATION_DP_DDR_SIZE)	
+#define  AIOP_SL_AND_APP_DDR_SIZE     (uint64_t)(g_aiop_lcf_ddr_size + APPLICATION_DP_DDR_SIZE)	
  
 /* peb_size.
  * Should be a power of 2.
@@ -82,4 +80,4 @@
 #define DPNI_BUFFER_SIZE_IN_POOL         2048
 /* alignment of buffers in pool */
 #define DPNI_BUFFER_ALIGNMENT            64
-
+ 

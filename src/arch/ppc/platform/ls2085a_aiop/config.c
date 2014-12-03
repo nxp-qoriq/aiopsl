@@ -23,14 +23,10 @@ __declspec(section ".aiop_init_data")   struct aiop_init_info  g_init_data;
  * The user SHOULDN'T edit edit this. */
 #define AIOP_DP_DDR_SIZE 0xb10000
 
-/* This is an application required DP_DDR memory, user SHOULD edit this.
- * In this example the total dp_ddr memory is 128 MB ,
- * 0xb10000 out of it is occupied by aiop image dp_ddr and the rest is dedicated
- * for application */
-#define APPLICATION_DP_DDR_SIZE ((128 * MEGABYTE) - AIOP_DP_DDR_SIZE)
+const uint32_t g_aiop_lcf_ddr_size = AIOP_DP_DDR_SIZE;
 
-/* TODO set good default values
- * TODO Update and review structure */
+
+
 struct platform_app_params g_app_params =
 {
 	DPNI_NUMBER_BUFFERS_IN_POOL,
@@ -38,7 +34,8 @@ struct platform_app_params g_app_params =
 	DPNI_BUFFER_ALIGNMENT
 };
 
-
+/* TODO set good default values
+ * TODO Update and review structure */
 struct aiop_init_info g_init_data =
 {
  /* aiop_sl_init_info */
@@ -65,7 +62,7 @@ struct aiop_init_info g_init_data =
  },
  /* aiop_app_init_info */
  {
- 	AIOP_SL_AND_APP_SIZE,
+    AIOP_SL_AND_APP_DDR_SIZE,
  	PEB_SIZE,
  	SYS_DDR1_SIZE,
  	CTLU_SYS_DDR_NUM_ENTRIES,
