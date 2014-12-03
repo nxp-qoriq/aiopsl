@@ -107,7 +107,14 @@ static void app_process_packet_flow0 (dpni_drv_app_arg_t arg)
 		fsl_os_print("ERROR = %d: get spid_ddr failed in runtime phase()\n", err);
 		local_test_error |= err;
 	} else {
-		fsl_os_print("spid_ddr is %d\n",spid_ddr);
+		fsl_os_print("spid_ddr is %d for packet %d\n",spid_ddr, local_packet_number);
+	}
+	err = dpni_drv_get_spid(APP_NI_GET(arg), &spid_ddr);
+	if (err) {
+		fsl_os_print("ERROR = %d: get spid failed in runtime phase()\n", err);
+		local_test_error |= err;
+	} else {
+		fsl_os_print("spid is %d for packet %d\n",spid_ddr, local_packet_number);
 	}
 
 
