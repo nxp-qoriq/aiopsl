@@ -100,8 +100,6 @@ extern void build_apps_array(struct sys_module_desc *apps);
 	{NULL, NULL, NULL} /* never remove! */                                   \
 	}
 
-#define MAX_NUM_OF_APPS		10
-
 void fill_platform_parameters(struct platform_param *platform_param);
 int global_init(void);
 void global_free(void);
@@ -209,16 +207,20 @@ int global_early_init(void)
 
 int apps_early_init(void)
 {
-	struct sys_module_desc apps[MAX_NUM_OF_APPS];
 	int i;
+	uint16_t app_arr_size = g_app_params.app_arr_size;
+	struct sys_module_desc *apps = \
+		fsl_malloc(app_arr_size * sizeof(struct sys_module_desc), 1);
 
-	memset(apps, 0, sizeof(apps));
+	memset(apps, 0, app_arr_size * sizeof(struct sys_module_desc));
 	build_apps_array(apps);
 
-	for (i=0; i<MAX_NUM_OF_APPS; i++) {
+	for (i=0; i<app_arr_size; i++) {
 		if (apps[i].early_init)
 			apps[i].early_init();
 	}
+
+	fsl_free(apps);
 
 	return 0;
 }
@@ -319,7 +321,6 @@ static void print_dev_desc(struct dprc_obj_desc* dev_desc)
 
 __COLD_CODE int run_apps(void)
 {
-	struct sys_module_desc apps[MAX_NUM_OF_APPS];
 	int i;
 	int err = 0;
 	int dev_count;
@@ -335,7 +336,10 @@ __COLD_CODE int run_apps(void)
 	uint16_t alignment;
 	uint8_t mem_pid[] = {DPNI_DRV_FAST_MEMORY, DPNI_DRV_DDR_MEMORY};
 	struct mc_dprc *dprc = sys_get_unique_handle(FSL_OS_MOD_AIOP_RC);
-
+	uint16_t app_arr_size = g_app_params.app_arr_size;
+	struct sys_module_desc *apps = \
+		fsl_malloc(app_arr_size * sizeof(struct sys_module_desc), 1);
+	
 	/* TODO - add initialization of global default DP-IO (i.e. call 'dpio_open', 'dpio_init');
 	 * This should be mapped to ALL cores of AIOP and to ALL the tasks */
 	/* TODO - add initialization of global default DP-SP (i.e. call 'dpsp_open', 'dpsp_init');
@@ -436,14 +440,16 @@ __COLD_CODE int run_apps(void)
 
 	/* At this stage, all the NIC of AIOP are up and running */
 
-	memset(apps, 0, sizeof(apps));
+	memset(apps, 0, app_arr_size * sizeof(struct sys_module_desc));
 	build_apps_array(apps);
 
-	for (i=0; i<MAX_NUM_OF_APPS; i++) {
+	for (i=0; i<app_arr_size; i++) {
 		if (apps[i].init)
 			apps[i].init();
 	}
 
+	fsl_free(apps);
+	
 	return 0;
 }
 

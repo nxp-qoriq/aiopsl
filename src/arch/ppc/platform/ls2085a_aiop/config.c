@@ -31,7 +31,8 @@ struct platform_app_params g_app_params =
 {
 	DPNI_NUMBER_BUFFERS_IN_POOL,
 	DPNI_BUFFER_SIZE_IN_POOL,
-	DPNI_BUFFER_ALIGNMENT
+	DPNI_BUFFER_ALIGNMENT,
+	APP_MAX_NUM
 };
 
 /* TODO set good default values
