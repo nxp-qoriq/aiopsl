@@ -53,6 +53,8 @@ void app_free(void);
 
 #define MAX_NUM_OF_CORES	16
 #define MAX_NUM_OF_TASKS	16
+#define NH_FLD_IP_VER                         (1)
+#define NH_FLD_IP_SRC                         (NH_FLD_IP_VER << 5)
 
 extern int slab_init(void);
 extern int malloc_test();
@@ -85,17 +87,18 @@ static void app_process_packet_flow0 (dpni_drv_app_arg_t arg)
 	int      err = 0, i, j;
 	int core_id;
 
-	uint64_t time_ms_since_epoch = 0;
+	uint64_t time_ms_since_epoch = 0, flc = 0;
 	uint32_t time_ms = 0;
 	uint64_t local_time;
 	uint8_t local_packet_number;
 	int local_test_error = 0;
 	uint16_t spid_ddr;
-	//osm_scope_transition_to_exclusive_with_increment_scope_id();
+//	osm_scope_transition_to_exclusive_with_increment_scope_id();
 	lock_spinlock(&packet_lock);
 	local_packet_number = packet_number;
 	packet_number++;
 	unlock_spinlock(&packet_lock);
+//	osm_scope_transition_to_concurrent_with_increment_scope_id();
 	core_id = (int)core_get_id();
 
 	fsl_os_print("Arena test for packet number %d, on core %d\n", local_packet_number, core_id);
@@ -162,7 +165,10 @@ static void app_process_packet_flow0 (dpni_drv_app_arg_t arg)
 		fsl_os_print("seed %x\n",seed_32bit);
 		fsl_os_print("Random test passed for packet number %d, on core %d\n", local_packet_number, core_id);
 	}
-	osm_scope_transition_to_exclusive_with_increment_scope_id();
+
+
+
+//	osm_scope_transition_to_exclusive_with_increment_scope_id();
 	err = dpni_drv_test();
 	if (err) {
 		fsl_os_print("ERROR = %d: dpni_drv_test failed in runtime phase()\n", err);
@@ -171,10 +177,8 @@ static void app_process_packet_flow0 (dpni_drv_app_arg_t arg)
 		fsl_os_print("dpni_drv_test passed in runtime phase()\n");
 	}
 
-
-
-
-
+	flc = LDPAA_FD_GET_FLC(HWC_FD_ADDRESS);
+	fsl_os_print("FLC: 0x%llx\n",flc);
 
 	err = fsl_get_time_ms(&time_ms);
 	err |= fsl_get_time_since_epoch_ms(&time_ms_since_epoch);
@@ -203,7 +207,12 @@ static void app_process_packet_flow0 (dpni_drv_app_arg_t arg)
 		unlock_spinlock(&time_lock);
 	}
 
-	osm_scope_transition_to_concurrent_with_increment_scope_id();
+//	osm_scope_transition_to_concurrent_with_increment_scope_id();
+
+
+
+
+
 
 	local_test_error |= dpni_drv_send(APP_NI_GET(arg));
 
@@ -285,13 +294,20 @@ int app_init(void)
 	uint32_t   ni   = 0;
 	dma_addr_t buff = 0;
 	int ep;
+	struct dpkg_profile_cfg dist_key_cfg = {0};
+
+	dist_key_cfg.num_extracts = 1;
+	dist_key_cfg.extracts[0].type = DPKG_EXTRACT_FROM_HDR;
+	dist_key_cfg.extracts[0].extract.from_hdr.prot = NET_PROT_IP;
+	dist_key_cfg.extracts[0].extract.from_hdr.field = NH_FLD_IP_SRC;
+	dist_key_cfg.extracts[0].extract.from_hdr.type = DPKG_FULL_FIELD;
 
 
 	fsl_os_print("Running AIOP arena app_init()\n");
 
 	for (ni = 0; ni < dpni_get_num_of_ni(); ni++)
 	{
-		err = dpni_drv_add_mac_addr((uint16_t)ni, ((uint8_t []){0x02, 0x00 ,0xc0 ,0x0a8 ,0x0b ,0xfe }));
+		/*err = dpni_drv_add_mac_addr((uint16_t)ni, ((uint8_t []){0x02, 0x00 ,0xc0 ,0x0a8 ,0x0b ,0xfe }));
 
 		if (err){
 			fsl_os_print("dpni_drv_add_mac_addr failed %d\n", err);
@@ -300,7 +316,14 @@ int app_init(void)
 			fsl_os_print("dpni_drv_add_mac_addr succeeded in boot\n");
 			fsl_os_print("MAC 02:00:C0:A8:0B:FE added for ni %d\n",ni);
 
+		}*/
+		dpni_drv_set_exclusive((uint16_t)ni);
+		//err = dpni_drv_set_order_scope((uint16_t)ni,&dist_key_cfg);
+		if (err){
+			fsl_os_print("dpni_drv_set_dist failed %d\n", err);
+					return err;
 		}
+
 		err = dpni_drv_register_rx_cb((uint16_t)ni/*ni_id*/,
 		                              app_process_packet_flow0, /* callback */
 		                              ni /*arg, nic number*/);
@@ -310,12 +333,12 @@ int app_init(void)
 
 		ep = dpni_drv_get_ordering_mode((uint16_t)ni);
 		fsl_os_print("initial order scope execution phase for tasks %d\n",ep);
-		dpni_drv_set_exclusive((uint16_t)ni);
+		/*dpni_drv_set_exclusive((uint16_t)ni);
 		ep = dpni_drv_get_ordering_mode((uint16_t)ni);
 		fsl_os_print("initial order scope execution phase for tasks %d\n",ep);
 		dpni_drv_set_concurrent((uint16_t)ni);
 		ep = dpni_drv_get_ordering_mode((uint16_t)ni);
-		fsl_os_print("Final: initial order scope execution phase for tasks %d\n",ep);
+		fsl_os_print("Final: initial order scope execution phase for tasks %d\n",ep);*/
 
 	}
 

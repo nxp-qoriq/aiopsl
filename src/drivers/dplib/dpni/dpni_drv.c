@@ -42,6 +42,7 @@
 #include "aiop_common.h"
 #include "system.h"
 #include "fsl_mc_init.h"
+#include "slab.h"
 
 #define __ERR_MODULE__  MODULE_DPNI
 #define ETH_BROADCAST_ADDR		((uint8_t []){0xff,0xff,0xff,0xff,0xff,0xff})
@@ -225,7 +226,7 @@ int dpni_drv_probe(struct mc_dprc *dprc,
 				return -ENODEV;
 			}
 			nis[aiop_niid].dpni_drv_params_var.spid = (uint8_t)spid; /*TODO: change to uint16_t in nis table for the next release*/
-			
+
 			/* Store epid index in AIOP NI's array*/
 			nis[aiop_niid].dpni_drv_params_var.epid_idx = (uint16_t)i;
 
@@ -240,12 +241,12 @@ int dpni_drv_probe(struct mc_dprc *dprc,
 
 			/* Replace discard callback with receive callback */
 			iowrite32_ccsr(PTR_TO_UINT(receive_cb),&wrks_addr->ep_pc);
-			
+
 			ep_osc = ioread32_ccsr(&wrks_addr->ep_osc);
 			ep_osc &= ORDER_MODE_CLEAR_BIT;
 			/*Set concurrent mode for NI in epid table*/
 			iowrite32_ccsr(ep_osc, &wrks_addr->ep_osc);
-			
+
 			if( pools_params[DPNI_DRV_DDR_BPID_IDX].num_dpbp == 1) /*bpid exist to use for ddr pool*/
 			{
 			/*Create ddr spid here*/
@@ -254,11 +255,11 @@ int dpni_drv_probe(struct mc_dprc *dprc,
 					sp_addr = (struct aiop_psram_entry *)
 						(AIOP_PERIPHERALS_OFF + AIOP_STORAGE_PROFILE_OFF);
 					sp_addr += spid;
-					ddr_storage_profile = *sp_addr;	
+					ddr_storage_profile = *sp_addr;
 
 					sp_temp = LOAD_LE32_TO_CPU(&ddr_storage_profile.bp1);
 					sp_temp &= SP_MASK_BMT_AND_RSV;
-					sp_temp |= ((pools_params[1].pools[0].dpbp_id & SP_MASK_BPID) << 16);		
+					sp_temp |= ((pools_params[1].pools[0].dpbp_id & SP_MASK_BPID) << 16);
 					STORE_CPU_TO_LE32(sp_temp,&ddr_storage_profile.bp1);
 
 					sp_addr = (struct aiop_psram_entry *)
@@ -272,10 +273,10 @@ int dpni_drv_probe(struct mc_dprc *dprc,
 				else{
 					pr_err("No free spid available \n");
 				}
-			
+
 			}
 			else
-				nis[aiop_niid].dpni_drv_params_var.spid_ddr = 0;	
+				nis[aiop_niid].dpni_drv_params_var.spid_ddr = 0;
 			num_of_nis ++;
 			return 0;
 		}
@@ -530,7 +531,7 @@ int dpni_drv_get_ordering_mode(uint16_t ni_id){
 	iowrite32_ccsr((uint32_t)(dpni_drv->dpni_drv_params_var.epid_idx), &wrks_addr->epas);
 	/* read ep_osc - to get the order scope (concurrent / exclusive) */
 	ep_osc = ioread32_ccsr(&wrks_addr->ep_osc);
-	
+
 	return (int)(ep_osc & ORDER_MODE_BIT_MASK) >> 24;
 }
 
@@ -560,6 +561,39 @@ int dpni_drv_set_concurrent(uint16_t ni_id){
 }
 
 int dpni_drv_set_exclusive(uint16_t ni_id){
-	return dpni_drv_set_ordering_mode(ni_id, DPNI_DRV_EXCLUSIVE_MODE);	
+	return dpni_drv_set_ordering_mode(ni_id, DPNI_DRV_EXCLUSIVE_MODE);
 }
+
+int dpni_drv_set_order_scope(uint16_t ni_id, struct dpkg_profile_cfg *key_cfg){
+	struct dpni_drv *dpni_drv;
+	struct mc_dprc *dprc = sys_get_unique_handle(FSL_OS_MOD_AIOP_RC);
+	struct dpni_rx_tc_dist_cfg cfg = {0};
+	int err;
+	uint64_t params_iova;
+	/* calculate pointer to the NI structure */
+	dpni_drv = nis + ni_id;
+
+
+	params_iova = (uint64_t)fsl_os_xmalloc(PARAMS_IOVA_BUFF_SIZE,
+	                           MEM_PART_DP_DDR,
+	                           PARAMS_IOVA_ALIGNMENT);
+	if (params_iova == NULL)
+		return -ENOMEM;
+
+	memset((void *)params_iova, 0, PARAMS_IOVA_BUFF_SIZE);
+	cfg.dist_size = 0;
+	cfg.dist_mode = DPNI_DIST_MODE_HASH;
+	cfg.dist_key_cfg = key_cfg;
+
+	err = dpni_set_rx_tc_dist(&dprc->io,
+	                          dpni_drv->dpni_drv_params_var.dpni,
+	                          0,
+	                          &cfg,
+	                          params_iova);
+	fsl_os_xfree((void *)params_iova);
+	return err;
+}
+
+
+
 
