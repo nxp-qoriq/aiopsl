@@ -1,3 +1,5 @@
+dpni_drv.c/fsl_dpni_drv.h: Adding support for dpni_drv_set_order_scope - 
+                           Function to set order scope source for the specified NI.
 Memory managment: added fsl_os_get_mem()- for allocating a 64 bit physical address from external memories,
                         fsl_os_put_mem() - for releasing memory allocated by fsl_os_get_mem()
                         fsl_malloc() - for allocating a 32 bit virtual address  from AIOP shared ram .
