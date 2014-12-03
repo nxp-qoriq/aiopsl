@@ -81,3 +81,6 @@ extern const uint32_t g_aiop_lcf_ddr_size;
 /* alignment of buffers in pool */
 #define DPNI_BUFFER_ALIGNMENT            64
  
+/*  Maximal number of applications to be filled by build_apps_array() */
+#define APP_MAX_NUM                      10
+
