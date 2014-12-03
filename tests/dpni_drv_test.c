@@ -26,6 +26,7 @@
 #include "fsl_dpni_drv.h"
 #include "kernel/fsl_spinlock.h"
 #include "dplib/fsl_parser.h"
+#include "fsl_net.h"
 
 int dpni_drv_test(void);
 
@@ -37,19 +38,23 @@ int dpni_drv_test(void){
 	int err = 0;
 	int ni = 0;
 	int local_test_error = 0;
+	uint16_t ipv4hdr_offset = 0;
 	char *eth_ptr;
+	char *ip_ptr;
 	int promisc;
 	int i;
+	struct ipv4hdr *ipv4header;
 
 	/*DPNI test*/
 
-	if(dpni_ctr == 38) /*disable mac after 38 injected packets, one of first 3 packets is broadcast*/
+	if(dpni_ctr == 38) /*disable mac after 39 injected packets, one of first 3 packets is broadcast*/
 	{
 		lock_spinlock(&dpni_lock);
 		if(dpni_ctr == 38)
 		{
 			for(ni = 0; ni < dpni_get_num_of_ni(); ni ++)
 			{
+				/*Just to test functionality, because of promiscuous mode enabled - the packets will continue to receive*/
 				err = dpni_drv_remove_mac_addr((uint16_t)ni,((uint8_t []){0x02,0x00,0xC0,0xA8,0x0B,0xFE}));
 				if(err != 0) {
 					fsl_os_print("dpni_drv_remove_mac_addr error 02:00:C0:A8:0B:FE for ni %d\n",ni);
@@ -68,6 +73,25 @@ int dpni_drv_test(void){
 	}
 
 
+
+	if (PARSER_IS_OUTER_IPV4_DEFAULT())
+	{
+
+		ipv4hdr_offset = (uint16_t)PARSER_GET_OUTER_IP_OFFSET_DEFAULT();
+		ip_ptr = (char *) PRC_GET_SEGMENT_ADDRESS() + ipv4hdr_offset ;
+
+		ipv4header = (struct ipv4hdr *)ip_ptr;
+
+		ip_ptr = (char *)&(ipv4header->dst_addr);
+		fsl_os_print("DST IP: ");
+		for( int i = 0; i < NET_HDR_FLD_IPv4_ADDR_SIZE; i++)
+		{
+			fsl_os_print("%d.",*ip_ptr);
+			ip_ptr ++;
+		}
+		fsl_os_print("\n");
+
+	}
 
 	eth_ptr = (char *)PARSER_GET_ETH_POINTER_DEFAULT();
 	if (dpni_ctr == 12){
