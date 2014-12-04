@@ -187,12 +187,15 @@ static void app_process_packet_flow0 (dpni_drv_app_arg_t arg)
 	flc = LDPAA_FD_GET_FLC(HWC_FD_ADDRESS);
 	fsl_os_print("FLC: 0x%llx\n",flc);
 
+//	osm_scope_transition_to_exclusive_with_increment_scope_id();
+	lock_spinlock(&time_lock);
 	err = fsl_get_time_ms(&time_ms);
 	err |= fsl_get_time_since_epoch_ms(&time_ms_since_epoch);
 
 	if(err){
 		fsl_os_print("ERROR = %d: fsl_os_gettimeofday failed  in runtime phase \n", err);
 		local_test_error |= err;
+		unlock_spinlock(&time_lock);
 	}else {
 
 		fsl_os_print("time ms is: %d milliseconds \n",time_ms);
@@ -200,7 +203,7 @@ static void app_process_packet_flow0 (dpni_drv_app_arg_t arg)
 
 
 		local_time = time_ms_since_epoch;
-		lock_spinlock(&time_lock);
+
 		if(local_time >= global_time)
 		{
 			fsl_os_print("time test passed for packet number %d, on core %d\n", local_packet_number, core_id);
