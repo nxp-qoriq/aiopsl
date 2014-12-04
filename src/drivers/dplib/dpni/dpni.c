@@ -51,8 +51,13 @@ static int build_extract_cfg_extention(struct dpkg_profile_cfg *cfg,
 		enum dpkg_extract_from_hdr_type type;
 	} u_cfg[DPKG_MAX_NUM_OF_EXTRACTS] = { 0 };
 
-	ASSERT_COND(cfg);
-	ASSERT_COND(ext_params);
+	if (!ext_params){
+		if (!cfg)
+			return 0;
+		else
+			return -EINVAL;
+	}
+	
 	for (i = 0; i < DPKG_MAX_NUM_OF_EXTRACTS; i++) {
 		switch (cfg->extracts[i].type) {
 		case DPKG_EXTRACT_FROM_HDR:
