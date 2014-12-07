@@ -73,9 +73,15 @@ struct shbp {
 	uint8_t alloc_master;	/*!< Master of the allocation */
 	uint8_t align;		/*!< Buffer alignment is 2^align */
 	uint8_t size;		/*!< Max number of BDs in the pool is 2^size */
+	uint8_t reserved[29];
 };
 
 #define SHBP_ALLOC_IS_FULL(BP)	(((BP)->alloc.enq - (BP)->alloc.deq) == (BP)->size)
 #define SHBP_ALLOC_IS_EMPTY(BP)	(((BP)->alloc.enq - (BP)->alloc.deq) == 0)
+#define SHBP_FREE_IS_EMPTY(BP)	(((BP)->free.enq - (BP)->free.deq) == 0)
+#define SHBP_ALLOC_BD(BP, IND)  (((uint64_t *)(BP)->alloc.base)[IND])
+#define SHBP_FREE_BD(BP, IND) 	(((uint64_t *)(BP)->free.base)[IND])
+#define SHBP_SIZE(BP)		(0x1 << (BP)->size)
+#define SHBP_SIZE_BYTES(BP)	(SHBP_SIZE(BP) << 3)
 
 #endif /* _SHBP_H */
