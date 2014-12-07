@@ -290,7 +290,6 @@ enum e_ste_err_ec {
 
 /** @} end of group StatsErrMacroes */
 
-/** @} end of group StatsErrors */
 
 #include "ste_inline.h"
 
