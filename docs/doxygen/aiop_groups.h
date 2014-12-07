@@ -355,7 +355,7 @@
 					/** @defgroup TMANMacroes TMAN MACROS
 						@ingroup TMAN
 					*/						
-					/** @defgroup TMANDataStructures TMAN Data Structurs
+					/** @defgroup TMANDataStructures TMAN Data Structures
 						@ingroup TMAN
 					*/	
 					/** @defgroup TMAN_Flags TMAN Flags

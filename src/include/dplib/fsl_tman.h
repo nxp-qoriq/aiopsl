@@ -75,9 +75,9 @@ typedef void /*__noreturn*/ (*tman_cb_t) (
 
 
 /**************************************************************************//**
-@Group		TMANMacroes TMAN MACROES
+@Group		TMANMacroes TMAN MACROS
 
-@Description	AIOP TMAN Macroes
+@Description	AIOP TMAN Macros
 @{
 *//***************************************************************************/
 
