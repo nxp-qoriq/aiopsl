@@ -340,7 +340,8 @@ int dpni_drv_set_exclusive(uint16_t ni_id);
 @Description	Function to set order scope source for the specified NI.
 
 @Param[in]	ni_id   The Network Interface ID
-@Param[int]	key_cfg   A structure for defining a full Key Generation
+
+@Param[in]	key_cfg   A structure for defining a full Key Generation
  		profile (rule)
 @Cautions	This method should be called in boot mode only.
 
