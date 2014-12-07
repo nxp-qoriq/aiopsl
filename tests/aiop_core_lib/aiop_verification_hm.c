@@ -403,6 +403,46 @@ uint16_t aiop_verification_hm(uint32_t asa_seg_addr)
 			break;
 		}
 
+		/* HM set TCP SRC Port Command Verification */
+		case HM_SET_TCP_SRC_CMD_STR:
+		{
+			struct hm_set_tcp_command *str =
+			(struct hm_set_tcp_command *) asa_seg_addr;
+			l4_set_tcp_src(str->port);
+			str_size = sizeof(struct hm_set_tcp_command);
+			break;
+		}
+
+		/* HM set TCP DST Port Command Verification */
+		case HM_SET_TCP_DST_CMD_STR:
+		{
+			struct hm_set_tcp_command *str =
+			(struct hm_set_tcp_command *) asa_seg_addr;
+			l4_set_tcp_dst(str->port);
+			str_size = sizeof(struct hm_set_tcp_command);
+			break;
+		}
+
+		/* HM set UDP SRC Port Command Verification */
+		case HM_SET_UDP_SRC_CMD_STR:
+		{
+			struct hm_set_udp_command *str =
+			(struct hm_set_udp_command *) asa_seg_addr;
+			l4_set_udp_src(str->port);
+			str_size = sizeof(struct hm_set_udp_command);
+			break;
+		}
+
+		/* HM set UDP DST Port Command Verification */
+		case HM_SET_UDP_DST_CMD_STR:
+		{
+			struct hm_set_udp_command *str =
+			(struct hm_set_udp_command *) asa_seg_addr;
+			l4_set_udp_dst(str->port);
+			str_size = sizeof(struct hm_set_udp_command);
+			break;
+		}
+
 		/* HM push VLAN Command Verification */
 		case HM_PUSH_VLAN_CMD_STR:
 		{
