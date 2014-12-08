@@ -852,22 +852,35 @@ void ipsec_generate_sa_params(
 		/* 	transport mode, UDP encap, pad check, counters enable, 
 					outer IP version, etc. 4B */
 	
-	/* Add inbound/outbound indication to the flags field */
-	/* Inbound indication is 0, so no action */
 	if (params->direction == IPSEC_DIRECTION_OUTBOUND) {
+		/* Outbound (encryption) */
+		
+		/* Add inbound/outbound indication to the flags field */
+		/* Inbound indication is 0, so no action */
 		sap.sap1.flags |= IPSEC_FLG_DIR_OUTBOUND;
-	}
 	
-	/* Add IPv6/IPv4 indication to the flags field */
-	if ((params->decparams.options) & IPSEC_PDB_OPTIONS_MASK & 
-			IPSEC_OPTS_ESP_IPVSN) {
-		sap.sap1.flags |= IPSEC_FLG_IPV6;
-	}
-	
-	if (params->flags & IPSEC_FLG_TUNNEL_MODE) {
-		if ((*(params->encparams.outer_hdr) & IPSEC_IP_VERSION_MASK) == 
-				IPSEC_IP_VERSION_IPV6) {
-			sap.sap1.flags |= IPSEC_FLG_OUTER_HEADER_IPV6;
+		if (params->flags & IPSEC_FLG_TUNNEL_MODE) {
+			if ((*(params->encparams.outer_hdr) & IPSEC_IP_VERSION_MASK) == 
+					IPSEC_IP_VERSION_IPV6) {
+				sap.sap1.flags |= IPSEC_FLG_OUTER_HEADER_IPV6;
+			}
+		} else {
+			/* Add IPv6/IPv4 indication to the flags field in transport mode */
+			if ((params->encparams.options) & IPSEC_PDB_OPTIONS_MASK & 
+					IPSEC_OPTS_ESP_IPVSN) {
+				sap.sap1.flags |= IPSEC_FLG_IPV6;
+			}
+		}
+		
+	} else {
+		/* Inbound (decryption) */
+
+		if (!(params->flags & IPSEC_FLG_TUNNEL_MODE)) {
+			/* Add IPv6/IPv4 indication to the flags field in transport mode */
+			if ((params->decparams.options) & IPSEC_PDB_OPTIONS_MASK & 
+					IPSEC_OPTS_ESP_IPVSN) {
+				sap.sap1.flags |= IPSEC_FLG_IPV6;
+			}
 		}
 	}
 	
@@ -876,16 +889,9 @@ void ipsec_generate_sa_params(
 	/* UDP Encap for transport mode */
 	sap.sap1.udp_src_port = 0; /* UDP source for transport mode. TMP */
 	sap.sap1.udp_dst_port = 0; /* UDP destination for transport mode. TMP */
-
-	/* Extended sequence number enable */
-	sap.sap1.esn = (uint8_t)(((params->encparams.options) & 
-					IPSEC_PDB_OPTIONS_MASK & IPSEC_ESN_MASK));
-
-	sap.sap1.anti_replay_size = /* none/32/64/128 */ 
-			(uint8_t)(((params->encparams.options) & 
-					IPSEC_PDB_OPTIONS_MASK & IPSEC_ARS_MASK));
 		
-	/* new/reuse mode (TBD) */
+	/* TODO: new/reuse mode (TBD if this indication is required
+	 * or use directly from the storage profile) */
 	sap.sap1.sec_buffer_mode = IPSEC_SEC_NEW_BUFFER_MODE; 
 
 	sap.sap1.output_spid = (uint8_t)(params->spid);
@@ -2001,6 +2007,7 @@ int ipsec_get_seq_num(
 		);
 		
 		/* Return swapped values (little to big endian conversion) */
+		/* Always read from PDB, regardless of ESN enabled/disabled */
 		*extended_sequence_number = LW_SWAP(0,&(pdb.encap_pdb.seq_num_ext_hi));
 		*sequence_number = LW_SWAP(0,&(pdb.encap_pdb.seq_num));
 		
@@ -2020,6 +2027,7 @@ int ipsec_get_seq_num(
 		);
 	
 		/* Return swapped values (little to big endian conversion) */
+		/* Always read from PDB, regardless of ESN enabled/disabled */
 		*extended_sequence_number = LW_SWAP(0,&(pdb.decap_pdb.seq_num_ext_hi));
 		*sequence_number = LW_SWAP(0,&(pdb.decap_pdb.seq_num));
 
