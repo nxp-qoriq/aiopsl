@@ -84,6 +84,12 @@ extern _time_get_t *time_get_func_ptr;
 /* Storage profiles array */
 __PROFILE_SRAM struct storage_profile storage_profile;
 
+/* Global Parameters for TKT226361 (MFLU) WA - TODO remove for non Rev1 */
+#include "table.h"
+#ifndef AIOP_VERIF
+extern struct aiop_init_info g_init_data;
+#endif
+
 void sys_prpid_pool_create(void)
 {
 	int32_t status;
@@ -194,10 +200,28 @@ int aiop_sl_init(void)
 #endif
 
 
+/********************************************************/
+/* WA TKT226361 STRAT (MFLU) - TODO remove for non Rev1 */
+/********************************************************/
+#ifdef AIOP_VERIF
+	table_workaround_tkt226361(4,4,4);
+#else
+
+	table_workaround_tkt226361(g_init_data.app_info.mflu_peb_num_entries,
+				   g_init_data.app_info.
+					mflu_dp_ddr_num_entries,
+				   g_init_data.app_info.
+					mflu_sys_ddr_num_entries);
+#endif
+/********************************************************/
+/* WA TKT226361 END (MFLU) - TODO remove for non Rev1 */
+/********************************************************/
+
 	sys_prpid_pool_create();
 
 #ifdef AIOP_VERIF
 	sys_keyid_pool_create();
+
 #else
 	sys_keyid_pool_create();
 
