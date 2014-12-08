@@ -1991,6 +1991,7 @@ int ipsec_get_seq_num(
 	int return_val;
 	ipsec_handle_t desc_addr;
 	uint32_t params_flags;
+	uint8_t pdb_options;
 
 	union {
 		struct ipsec_encap_pdb encap_pdb;
@@ -2042,8 +2043,14 @@ int ipsec_get_seq_num(
 		/* Always read from PDB, regardless of ESN enabled/disabled */
 		*extended_sequence_number = LW_SWAP(0,&(pdb.decap_pdb.seq_num_ext_hi));
 		*sequence_number = LW_SWAP(0,&(pdb.decap_pdb.seq_num));
+		
+		/* PDB Word 0 is read from the little endian memory, 
+		 * so the Options byte is at the least significant address */
+		pdb_options = *((uint8_t *)(&pdb.decap_pdb));
 
-		switch (pdb.decap_pdb.options & IPSEC_DECAP_PDB_ARS_MASK) {
+		/* TODO: should the anti_replay_bitmap be swapped??? */
+		
+		switch (pdb_options & IPSEC_DECAP_PDB_ARS_MASK) {
 			case IPSEC_DEC_OPTS_ARSNONE:
 				anti_replay_bitmap[0] = 0x0;
 				anti_replay_bitmap[1] = 0x0;
