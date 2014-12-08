@@ -29,7 +29,7 @@ Setup
 Execution flow
 ===========================================
 1. Import the MC and AIOP projects into CodeWarrior:
-   mc/build/mc_t4ls_sim/mc_app/.project
+   mc/build/mc_sim/mc_app/.project
    aiopsl/build/aiop_sim/apps/app_process_packet/.project
 2. Build both projects in CW.
 3. Copy the resulting ELF file from the build project folder(aiop_app.elf)

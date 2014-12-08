@@ -90,14 +90,34 @@
 /* E200-AIOP special regs */
 
 /* Number of tasks as they defined by CTSCSR register. */
+#ifndef CTSCSR_ENABLE
 #define CTSCSR_ENABLE 0x80000000
+#endif
+
+#ifndef CTSCSR_1_TASKS
 #define CTSCSR_1_TASKS 0
+#endif
+
+#ifndef CTSCSR_2_TASKS
 #define CTSCSR_2_TASKS (1 << 24)
+#endif
+
+#ifndef CTSCSR_4_TASKS
 #define CTSCSR_4_TASKS (2 << 24)
+#endif
+
+#ifndef CTSCSR_8_TASKS
 #define CTSCSR_8_TASKS (3 << 24)
+#endif
+
+#ifndef CTSCSR_16_TASKS
 #define CTSCSR_16_TASKS (4 << 24)
+#endif
+
+#ifndef CTSCSR_TASKS_MASK
 #define CTSCSR_TASKS_MASK (CTSCSR_2_TASKS | CTSCSR_4_TASKS | CTSCSR_8_TASKS \
               | CTSCSR_16_TASKS)
+#endif
 
 #define __getctscsr0(_res)                      \
        asm ("mfdcr %[result], 464\n"                   \

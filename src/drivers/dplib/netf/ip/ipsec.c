@@ -335,10 +335,22 @@ int ipsec_generate_encap_sd(
 		case IPSEC_CIPHER_AES_CTR:
 			cipher_type = CIPHER_TYPE_CTR;
 			break;
+		/* To construct the CCM B0, SEC uses the B0 flags byte of the PDB
+		 * according to the size of ICV transmitted.
+		 * For an 8-byte ICV, select a value of 5Bh.
+		 * For a 12-byte ICV, select a value of 6Bh.
+		 * For a 16-byte ICV, select a value of 7Bh. */
 		case IPSEC_CIPHER_AES_CCM8:
+			cipher_type = CIPHER_TYPE_CCM;
+			pdb.ccm.b0_flags = 0x5B;
+			break;
 		case IPSEC_CIPHER_AES_CCM12:
+			cipher_type = CIPHER_TYPE_CCM;
+			pdb.ccm.b0_flags = 0x6B;
+			break;
 		case IPSEC_CIPHER_AES_CCM16:
 			cipher_type = CIPHER_TYPE_CCM;
+			pdb.ccm.b0_flags = 0x7B;
 			break;
 		case IPSEC_CIPHER_AES_GCM8:
 		case IPSEC_CIPHER_AES_GCM12:
@@ -374,7 +386,7 @@ int ipsec_generate_encap_sd(
 			/*	uint16_t ctr_initial; */
 			/*	uint32_t iv[2]; */
 			pdb.ccm.salt = params->encparams.ccm.salt;
-			pdb.ccm.b0_flags = 0;
+			/* Note: pdb.ccm.b0_flags is set according to the ICV length */
 			pdb.ccm.ctr_flags = 0;
 			pdb.ccm.ctr_initial = 0;
 			pdb.ccm.iv[0] = params->encparams.ccm.iv[0];
@@ -852,22 +864,35 @@ void ipsec_generate_sa_params(
 		/* 	transport mode, UDP encap, pad check, counters enable, 
 					outer IP version, etc. 4B */
 	
-	/* Add inbound/outbound indication to the flags field */
-	/* Inbound indication is 0, so no action */
 	if (params->direction == IPSEC_DIRECTION_OUTBOUND) {
+		/* Outbound (encryption) */
+		
+		/* Add inbound/outbound indication to the flags field */
+		/* Inbound indication is 0, so no action */
 		sap.sap1.flags |= IPSEC_FLG_DIR_OUTBOUND;
-	}
 	
-	/* Add IPv6/IPv4 indication to the flags field */
-	if ((params->decparams.options) & IPSEC_PDB_OPTIONS_MASK & 
-			IPSEC_OPTS_ESP_IPVSN) {
-		sap.sap1.flags |= IPSEC_FLG_IPV6;
-	}
-	
-	if (params->flags & IPSEC_FLG_TUNNEL_MODE) {
-		if ((*(params->encparams.outer_hdr) & IPSEC_IP_VERSION_MASK) == 
-				IPSEC_IP_VERSION_IPV6) {
-			sap.sap1.flags |= IPSEC_FLG_OUTER_HEADER_IPV6;
+		if (params->flags & IPSEC_FLG_TUNNEL_MODE) {
+			if ((*(params->encparams.outer_hdr) & IPSEC_IP_VERSION_MASK) == 
+					IPSEC_IP_VERSION_IPV6) {
+				sap.sap1.flags |= IPSEC_FLG_OUTER_HEADER_IPV6;
+			}
+		} else {
+			/* Add IPv6/IPv4 indication to the flags field in transport mode */
+			if ((params->encparams.options) & IPSEC_PDB_OPTIONS_MASK & 
+					IPSEC_OPTS_ESP_IPVSN) {
+				sap.sap1.flags |= IPSEC_FLG_IPV6;
+			}
+		}
+		
+	} else {
+		/* Inbound (decryption) */
+
+		if (!(params->flags & IPSEC_FLG_TUNNEL_MODE)) {
+			/* Add IPv6/IPv4 indication to the flags field in transport mode */
+			if ((params->decparams.options) & IPSEC_PDB_OPTIONS_MASK & 
+					IPSEC_OPTS_ESP_IPVSN) {
+				sap.sap1.flags |= IPSEC_FLG_IPV6;
+			}
 		}
 	}
 	
@@ -876,16 +901,9 @@ void ipsec_generate_sa_params(
 	/* UDP Encap for transport mode */
 	sap.sap1.udp_src_port = 0; /* UDP source for transport mode. TMP */
 	sap.sap1.udp_dst_port = 0; /* UDP destination for transport mode. TMP */
-
-	/* Extended sequence number enable */
-	sap.sap1.esn = (uint8_t)(((params->encparams.options) & 
-					IPSEC_PDB_OPTIONS_MASK & IPSEC_ESN_MASK));
-
-	sap.sap1.anti_replay_size = /* none/32/64/128 */ 
-			(uint8_t)(((params->encparams.options) & 
-					IPSEC_PDB_OPTIONS_MASK & IPSEC_ARS_MASK));
 		
-	/* new/reuse mode (TBD) */
+	/* TODO: new/reuse mode (TBD if this indication is required
+	 * or use directly from the storage profile) */
 	sap.sap1.sec_buffer_mode = IPSEC_SEC_NEW_BUFFER_MODE; 
 
 	sap.sap1.output_spid = (uint8_t)(params->spid);
@@ -1973,6 +1991,7 @@ int ipsec_get_seq_num(
 	int return_val;
 	ipsec_handle_t desc_addr;
 	uint32_t params_flags;
+	uint8_t pdb_options;
 
 	union {
 		struct ipsec_encap_pdb encap_pdb;
@@ -2001,6 +2020,7 @@ int ipsec_get_seq_num(
 		);
 		
 		/* Return swapped values (little to big endian conversion) */
+		/* Always read from PDB, regardless of ESN enabled/disabled */
 		*extended_sequence_number = LW_SWAP(0,&(pdb.encap_pdb.seq_num_ext_hi));
 		*sequence_number = LW_SWAP(0,&(pdb.encap_pdb.seq_num));
 		
@@ -2020,10 +2040,17 @@ int ipsec_get_seq_num(
 		);
 	
 		/* Return swapped values (little to big endian conversion) */
+		/* Always read from PDB, regardless of ESN enabled/disabled */
 		*extended_sequence_number = LW_SWAP(0,&(pdb.decap_pdb.seq_num_ext_hi));
 		*sequence_number = LW_SWAP(0,&(pdb.decap_pdb.seq_num));
+		
+		/* PDB Word 0 is read from the little endian memory, 
+		 * so the Options byte is at the least significant address */
+		pdb_options = *((uint8_t *)(&pdb.decap_pdb));
 
-		switch (pdb.decap_pdb.options & IPSEC_DECAP_PDB_ARS_MASK) {
+		/* TODO: should the anti_replay_bitmap be swapped??? */
+		
+		switch (pdb_options & IPSEC_DECAP_PDB_ARS_MASK) {
 			case IPSEC_DEC_OPTS_ARSNONE:
 				anti_replay_bitmap[0] = 0x0;
 				anti_replay_bitmap[1] = 0x0;

@@ -59,7 +59,8 @@ struct  ipr_global_parameters ipr_global_parameters1;
 
 int ipr_init(void)
 {
-	struct kcr_builder kb;
+	struct kcr_builder kb
+			__attribute__((aligned(16)));
 	int    status;
 	uint8_t  ipr_key_id;
 

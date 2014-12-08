@@ -464,9 +464,7 @@ struct ipsec_sa_params_part1 {
 	uint16_t udp_dst_port; /* UDP destination for transport mode. 2B */
 	
 	uint8_t valid; /* descriptor valid. 1B */
-	uint8_t esn; /* Extended sequence number enabled. 1B */
 	
-	uint8_t anti_replay_size; /* none/32/64/128	1B */
 	uint8_t sec_buffer_mode; /* new/reuse. 1B */
 
 	uint8_t output_spid; /* SEC output buffer SPID */
