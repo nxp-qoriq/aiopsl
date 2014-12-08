@@ -55,7 +55,7 @@
  @{
 *//***************************************************************************/
 /**************************************************************************//**
- @Group		AIOP_NAT_HM NAT Header Modifications
+ @Group		AIOP_NAT_HM NAT Header Modification
 
  @Description	AIOP NAT related header modifications API
 

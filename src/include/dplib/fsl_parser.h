@@ -40,7 +40,7 @@
 extern __TASK struct aiop_default_task_params default_task_params;
 
 /**************************************************************************//**
- @Group		ACCEL ACCEL (Accelerator APIs)
+ @Group		ACCEL Accelerators APIs
 
  @Description	AIOP Accelerator APIs
 
@@ -63,7 +63,7 @@ extern __TASK struct aiop_default_task_params default_task_params;
 *//***************************************************************************/
 
 /**************************************************************************//**
-@Group	FSL_PARSER_FRAME_ATTRIBUTES_EXTENSION_MASKS Frame Attributes Ext. Masks
+@Group	FSL_PARSER_FRAME_ATTRIBUTES_EXTENSION_MASKS Frame Attributes Extension Masks
 
 @Description	Frame Attributes Extension Masks
 		Used with \ref parse_result frame_attribute_flags_extension
@@ -1083,7 +1083,7 @@ extern __TASK struct aiop_default_task_params default_task_params;
 /** @} */ /* end of FSL_PARSER_SETTERS */
 
 /**************************************************************************//**
-@Group	FSL_PARSER_GEN_PARSE_RESULT_FLAGS Flags for parse_result_generate func.
+@Group	FSL_PARSER_GEN_PARSE_RESULT_FLAGS Flags for parse_result_generate function
 @{
 *//***************************************************************************/
 /** No flags */

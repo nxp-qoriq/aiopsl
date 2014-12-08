@@ -43,7 +43,7 @@
 
 
 /**************************************************************************//**
- @Group		ACCEL ACCEL (Accelerator APIs)
+ @Group		ACCEL Accelerators APIs
 
  @Description	AIOP Accelerator APIs
 
@@ -248,7 +248,7 @@ enum fdma_pta_size_type {
 *//***************************************************************************/
 
 /**************************************************************************//**
-@Group		FDMA_Present_Frame_Flags
+@Group		FDMA_Present_Frame_Flags  FDMA Present Frame Flags
 
 @Description	FDMA Frame Presentation flags
 
@@ -282,7 +282,7 @@ enum fdma_pta_size_type {
 /** @} end of group FDMA_Present_Frame_Flags */
 
 /**************************************************************************//**
-@Group		FDMA_PRES_Flags
+@Group		FDMA_PRES_Flags  FDMA PRES Flags
 
 @Description	FDMA Present segment flags
 
@@ -299,7 +299,7 @@ enum fdma_pta_size_type {
 /** @} end of group FDMA_PRES_Flags */
 
 /**************************************************************************//**
-@Group		FDMA_EXT_Flags
+@Group		FDMA_EXT_Flags  FDMA EXT Flags
 
 @Description	FDMA Extend segment flags
 
@@ -315,7 +315,7 @@ enum fdma_pta_size_type {
 /** @} end of group FDMA_EXT_Flags */
 
 /**************************************************************************//**
-@Group		FDMA_ENWF_Flags
+@Group		FDMA_ENWF_Flags  FDMA ENWF Flags
 
 @Description	FDMA Enqueue working frame flags
 
@@ -337,7 +337,7 @@ enum fdma_pta_size_type {
 /** @} end of group FDMA_ENWF_Flags */
 
 /**************************************************************************//**
-@Group		FDMA_ENF_Flags
+@Group		FDMA_ENF_Flags  FDMA ENF Flags
 
 @Description	FDMA Enqueue frame flags
 
@@ -366,7 +366,7 @@ enum fdma_pta_size_type {
 
 
 /**************************************************************************//**
-@Group		FDMA_Discard_WF_Flags
+@Group		FDMA_Discard_WF_Flags  FDMA Discard WF Flags
 
 @Description	FDMA Discard working frame flags
 
@@ -392,7 +392,7 @@ enum fdma_pta_size_type {
 
 
 /**************************************************************************//**
-@Group		FDMA_Replicate_Flags
+@Group		FDMA_Replicate_Flags  FDMA Replicate Flags
 
 @Description	FDMA Replicate Working Frame flags
 
@@ -425,7 +425,7 @@ enum fdma_pta_size_type {
 
 
 /**************************************************************************//**
-@Group		FDMA_Concatenate_Flags
+@Group		FDMA_Concatenate_Flags  FDMA Concatenate Flags
 
 @Description	FDMA Concatenate Frames flags
 
@@ -447,7 +447,7 @@ enum fdma_pta_size_type {
 /** @} end of group FDMA_Concatenate_Flags */
 
 /**************************************************************************//**
-@Group		FDMA_Split_Flags
+@Group		FDMA_Split_Flags  FDMA Split Flags
 
 @Description	FDMA Split Frame flags
 
@@ -474,7 +474,7 @@ enum fdma_pta_size_type {
 /** @} end of group FDMA_Split_Flags */
 
 /**************************************************************************//**
-@Group		FDMA_Replace_Flags
+@Group		FDMA_Replace_Flags  FDMA Replace Flags
 
 @Description	FDMA Replace working frame segment flags
 
@@ -490,7 +490,7 @@ enum fdma_pta_size_type {
 /** @} end of group FDMA_Replace_Flags */
 
 /**************************************************************************//**
-@Group		FDMA_Copy_Flags
+@Group		FDMA_Copy_Flags  FDMA Copy Flags
 
 @Description	FDMA Copy data flags
 
@@ -513,7 +513,7 @@ enum fdma_pta_size_type {
 /** @} end of group FDMA_Copy_Flags */
 
 /**************************************************************************//**
-@Group		FDMA_ACQUIRE_BUFFER_Flags
+@Group		FDMA_ACQUIRE_BUFFER_Flags  FDMA ACQUIRE BUFFER Flags
 
 @Description	FDMA Acquire buffer flags
 
@@ -532,7 +532,7 @@ enum fdma_pta_size_type {
 /** @} end of group FDMA_ACQUIRE_BUFFER_Flags */
 
 /**************************************************************************//**
-@Group		FDMA_RELEASE_BUFFER_Flags
+@Group		FDMA_RELEASE_BUFFER_Flags  FDMA RELEASE BUFFER Flags
 
 @Description	FDMA Release buffer flags
 
@@ -551,7 +551,7 @@ enum fdma_pta_size_type {
 /** @} end of group FDMA_RELEASE_BUFFER_Flags */
 
 /**************************************************************************//**
-@Group		FDMA_ISOLATION_ATTRIBUTES_Flags
+@Group		FDMA_ISOLATION_ATTRIBUTES_Flags  FDMA ISOLATION ATTRIBUTES Flags
 
 @Description	Isolation context flags
 
@@ -864,7 +864,7 @@ struct fdma_delete_segment_data_params {
 /** @} end of group FDMA_Structures */
 
 /**************************************************************************//**
- @Group		FDMA_STATUS Status FDMA Statuses
+ @Group		FDMA_STATUS FDMA Status
 
  @Description	FDMA Statuses.
 
