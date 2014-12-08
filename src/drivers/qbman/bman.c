@@ -42,23 +42,29 @@ __COLD_CODE int bman_fill_bpid(uint32_t num_buffs,
 	dma_addr_t addr  = 0;
 	struct icontext ic;
 	void* vaddr = 0;
+	int err;
 
 	if(MEM_PART_SH_RAM == mem_partition_id){
 		/* use a special function for allocation from shared ram */
 		vaddr = fsl_malloc((uint32_t)buff_size * num_buffs,
 			                   alignment);
+		addr = fsl_os_virt_to_phys(vaddr);
 	}
 	else{
-		vaddr = fsl_os_xmalloc((uint32_t)buff_size * num_buffs,
+
+		err = fsl_os_get_mem((uint32_t)buff_size * num_buffs,
 	                                          mem_partition_id,
-	                                          alignment);
+	                                          alignment,
+	                                          &addr);
+		if(err)
+			return err;
+
 	}
-	addr = fsl_os_virt_to_phys(vaddr);
-	/* AIOP ICID and AMQ bits are needed for filling BPID */
-	icontext_aiop_get(&ic);
 
 	if(addr == NULL)
 		return -ENOMEM;
+	/* AIOP ICID and AMQ bits are needed for filling BPID */
+	icontext_aiop_get(&ic);
 
 	for (i = 0; i < num_buffs; i++) {
 		fdma_release_buffer(ic.icid, ic.bdi_flags, bpid, addr);

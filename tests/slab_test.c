@@ -55,7 +55,7 @@ int slab_init(void)
 {
 	int err = 0, i;
 	/* Test for slab initialization, ignore it unless it fails */
-	
+
 	for(i = 0; i < SLAB_MAX_BMAN_POOLS_NUM; i++)
 	{
 		fsl_os_print("Slab bman pools status:\n");
@@ -140,15 +140,15 @@ int app_test_slab_init(void)
 
 	err = slab_acquire(my_slab, &buff[2]);
 	if (err) return err;
-	
+
 	err = slab_acquire(my_slab, &buff[3]);
 	if (err) return err;
-	
+
 	err = slab_acquire(my_slab, &buff[4]);
 	if (!err) return err;
 	else
 		fsl_os_print("PASSED - Acquire more buffers than MAX failed\n");
-		
+
 	if (slab_refcount_decr(buff[0]) == SLAB_CDMA_REFCOUNT_DECREMENT_TO_ZERO){
 		err = slab_release(my_slab, buff[0]);
 		if (err) return err;
@@ -175,7 +175,7 @@ int app_test_slab_init(void)
 	else
 		return -ENODEV;
 
-	
+
 	err = slab_debug_info_get(my_slab, &slab_info);
 	if (err) {
 		return err;
@@ -184,7 +184,7 @@ int app_test_slab_init(void)
 			(slab_info.committed_buffs == 0))
 			return -ENODEV;
 	}
-	
+
 	err = slab_free(&my_slab);
 	if (err) return err;
 
@@ -308,7 +308,7 @@ int app_test_slab(struct slab *slab, int num_times, enum memory_partition_id mem
 int slab_test(void)
 {
 	int err = 0;
-	
+
 	struct slab *slab_peb = 0;
 	struct slab *slab_dp_ddr = 0;
 	struct slab *slab_sys_ddr = 0;
@@ -350,7 +350,7 @@ int slab_test(void)
 		if ((slab_info.committed_buffs != slab_info.max_buffs) ||
 			(slab_info.committed_buffs == 0))
 			return -ENODEV;
-	
+
 	err |= app_test_slab(slab_peb, 4, MEM_PART_PEB);
 	if (err) {
 		fsl_os_print("ERROR = %d: app_test_slab(slab_peb, 4)\n", err);
@@ -360,12 +360,12 @@ int slab_test(void)
 	if (err) {
 		fsl_os_print("ERROR = %d: app_test_slab(slab_dp_ddr, 4)\n", err);
 	}
-	
+
 	err |= app_test_slab(slab_sys_ddr, 4, MEM_PART_SYSTEM_DDR);
 	if (err) {
 		fsl_os_print("ERROR = %d: app_test_slab(slab_sys_ddr, 4)\n", err);
 	}
-	
+
 	err = slab_free(&slab_dp_ddr);
 	err |= slab_free(&slab_peb);
 	err |= slab_free(&slab_sys_ddr);
