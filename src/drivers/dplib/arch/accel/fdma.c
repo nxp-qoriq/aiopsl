@@ -1291,6 +1291,15 @@ void fdma_modify_default_segment_data(
 	if (res1 != FDMA_SUCCESS)
 		fdma_exception_handler(FDMA_MODIFY_DEFAULT_SEGMENT_DATA, 
 				__LINE__, (int32_t)res1);
+	
+#ifndef REV2
+	fdma_close_default_segment();
+	fdma_present_default_frame_segment(
+		(PRC_GET_SR_BIT())? FDMA_PRES_SR_BIT : 0, 
+		(void *)PRC_GET_SEGMENT_ADDRESS(), 
+		PRC_GET_SEGMENT_OFFSET(), 
+		PRC_GET_SEGMENT_LENGTH());
+#endif
 }
 
 #ifdef REV2
@@ -1352,6 +1361,18 @@ int fdma_replace_default_segment_data(
 	/* load command results */
 	res1 = *((int8_t *)(FDMA_STATUS_ADDR));
 
+#ifndef REV2
+	if (flags & FDMA_REPLACE_SA_REPRESENT_BIT) {
+		fdma_close_default_segment();
+		fdma_present_default_frame_segment(
+			(PRC_GET_SR_BIT())? FDMA_PRES_SR_BIT : 0, 
+			ws_dst_rs, 
+			PRC_GET_SEGMENT_OFFSET(), 
+			size_rs);
+		res1 = *((int8_t *)(FDMA_STATUS_ADDR));
+	}
+#endif
+	
 	/* Update Task Defaults */
 	if ((int32_t)res1 >= FDMA_SUCCESS) {
 		if (flags & FDMA_REPLACE_SA_REPRESENT_BIT) {
@@ -1388,7 +1409,8 @@ int fdma_insert_default_segment_data(
 	struct presentation_context *prc =
 			(struct presentation_context *) HWC_PRC_ADDRESS;
 	/* command parameters and results */
-	uint32_t arg1, arg2, arg3, arg4, seg_size_rs;
+	uint32_t arg1, arg2, arg3, arg4;
+	uint16_t seg_size_rs;
 	void	 *ws_address_rs;
 	int8_t res1;
 
@@ -1414,6 +1436,18 @@ int fdma_insert_default_segment_data(
 	/* load command results */
 	res1 = *((int8_t *)(FDMA_STATUS_ADDR));
 
+#ifndef REV2
+	if (flags & FDMA_REPLACE_SA_REPRESENT_BIT) {
+		fdma_close_default_segment();
+		fdma_present_default_frame_segment(
+			(PRC_GET_SR_BIT())? FDMA_PRES_SR_BIT : 0, 
+			ws_address_rs, 
+			PRC_GET_SEGMENT_OFFSET(), 
+			seg_size_rs);
+		res1 = *((int8_t *)(FDMA_STATUS_ADDR));
+	}
+#endif
+	
 	/* Update Task Defaults */
 	if ((int32_t)res1 >= FDMA_SUCCESS) {
 		if (flags & FDMA_REPLACE_SA_REPRESENT_BIT) {
@@ -1528,6 +1562,18 @@ int fdma_delete_default_segment_data(
 	__e_hwacceli_(FODMA_ACCEL_ID);
 	/* load command results */
 	res1 = *((int8_t *)(FDMA_STATUS_ADDR));
+	
+#ifndef REV2
+	if (flags & FDMA_REPLACE_SA_REPRESENT_BIT) {
+		fdma_close_default_segment();
+		fdma_present_default_frame_segment(
+			(PRC_GET_SR_BIT())? FDMA_PRES_SR_BIT : 0, 
+			ws_address_rs, 
+			PRC_GET_SEGMENT_OFFSET(), 
+			size_rs);
+		res1 = *((int8_t *)(FDMA_STATUS_ADDR));
+	}
+#endif
 
 	/* Update Task Defaults */
 	if ((int32_t)res1 >= FDMA_SUCCESS) {
