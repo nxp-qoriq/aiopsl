@@ -11,6 +11,5 @@ arena/src/include/dplib/fsl_dprc.h:aiop/src/include/dplib/fsl_dprc.h:B42518
 arena/src/include/dplib/fsl_dprc_cmd.h:aiop/src/include/dplib/fsl_dprc_cmd.h:B42518
 arena/src/drivers/dplib/dpbp/dpbp.c:aiop/src/drivers/dplib/dpbp/dpbp.c:B42518
 arena/src/drivers/dplib/dpci/dpci.c:aiop/src/drivers/dplib/dpci/dpci.c:B42518
-arena/src/drivers/dplib/dpio/dpio.c:aiop/src/drivers/dplib/dpio/dpio.c:B42518
 arena/src/drivers/dplib/dpni/dpni.c:aiop/src/drivers/dplib/dpni/dpni.c:B42518
 arena/src/drivers/dplib/dprc/dprc.c:aiop/src/drivers/dplib/dprc/dprc.c:B42518

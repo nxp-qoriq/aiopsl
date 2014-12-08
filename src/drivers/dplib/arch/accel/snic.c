@@ -599,7 +599,8 @@ int snic_create_table_key_id(uint8_t fec_no, uint8_t fec_array[8],
 				uint8_t *key_id,
 				uint16_t *table_id)
 {
-	struct kcr_builder kb;
+	struct kcr_builder kb
+			__attribute__((aligned(16)));
 	int	err, i;
 	uint8_t  keyid;
 	struct table_create_params tbl_params;
