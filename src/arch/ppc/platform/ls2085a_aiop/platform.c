@@ -97,7 +97,7 @@ extern __TASK uint32_t seed_32bit;
 
 static int build_mem_partitions_table(t_platform  *pltfrm);
 
-
+#ifdef ARENA_LEGACY_CODE
 /*****************************************************************************/
 __COLD_CODE static void print_platform_info(t_platform *pltfrm)
 {
@@ -202,6 +202,7 @@ __COLD_CODE static void print_platform_info(t_platform *pltfrm)
     count += sprintf((char *)&buf[count], "\n");
     fsl_os_print(buf);
 }
+#endif //ARENA_LEGACY_CODE
 
 /*****************************************************************************/
 __COLD_CODE static int find_mem_partition_index(t_platform_memory_info  *mem_info,
