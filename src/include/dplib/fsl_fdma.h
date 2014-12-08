@@ -1876,6 +1876,14 @@ int fdma_concatenate_frames(
 
 @Cautions	This function may result in a fatal error.
 @Cautions	In this Service Routine the task yields.
+@Cautions	Due to ticket TKT240996 the following FDMA functions should be 
+		called before and after the split command:
+		1. Store/Close source frame
+		2. Present/Open source frame
+		3. Split frame command with PSA flag: 
+		FDMA_SPLIT_PSA_NO_PRESENT_BIT
+		4. Store/Close new split frame
+		2. Present/Open new split frame
 *//***************************************************************************/
 int fdma_split_frame(
 		struct fdma_split_frame_params *params);
@@ -2189,6 +2197,8 @@ int fdma_insert_default_segment_data(
 @Cautions	This command may be invoked only on the Data segment.
 @Cautions	This function may result in a fatal error.
 @Cautions	In this Service Routine the task yields.
+@Caution	Due to Ticket TKT237377 this function must be called with SA 
+		flag \ref FDMA_REPLACE_SA_CLOSE_BIT.
 *//***************************************************************************/
 int fdma_insert_segment_data(
 		struct fdma_insert_segment_data_params *params);
@@ -2294,6 +2304,8 @@ int fdma_delete_default_segment_data(
 @Cautions	This command may be invoked only on Data segment.
 @Cautions	This function may result in a fatal error.
 @Cautions	In this Service Routine the task yields.
+@Caution	Due to Ticket TKT237377 this function must be called with SA 
+		flag \ref FDMA_REPLACE_SA_CLOSE_BIT.
 *//***************************************************************************/
 int fdma_delete_segment_data(
 		struct fdma_delete_segment_data_params *params);
@@ -2384,6 +2396,8 @@ void fdma_close_segment(uint8_t frame_handle, uint8_t seg_handle);
 
 @Cautions	This function may result in a fatal error.
 @Cautions	In this Service Routine the task yields.
+@Caution	Due to Ticket TKT237377 this function must be called with SA 
+		flag \ref FDMA_REPLACE_SA_CLOSE_BIT.
 *//***************************************************************************/
 int fdma_replace_default_asa_segment_data(
 		uint16_t to_offset,
