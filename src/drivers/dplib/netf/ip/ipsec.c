@@ -335,10 +335,22 @@ int ipsec_generate_encap_sd(
 		case IPSEC_CIPHER_AES_CTR:
 			cipher_type = CIPHER_TYPE_CTR;
 			break;
+		/* To construct the CCM B0, SEC uses the B0 flags byte of the PDB
+		 * according to the size of ICV transmitted.
+		 * For an 8-byte ICV, select a value of 5Bh.
+		 * For a 12-byte ICV, select a value of 6Bh.
+		 * For a 16-byte ICV, select a value of 7Bh. */
 		case IPSEC_CIPHER_AES_CCM8:
+			cipher_type = CIPHER_TYPE_CCM;
+			pdb.ccm.b0_flags = 0x5B;
+			break;
 		case IPSEC_CIPHER_AES_CCM12:
+			cipher_type = CIPHER_TYPE_CCM;
+			pdb.ccm.b0_flags = 0x6B;
+			break;
 		case IPSEC_CIPHER_AES_CCM16:
 			cipher_type = CIPHER_TYPE_CCM;
+			pdb.ccm.b0_flags = 0x7B;
 			break;
 		case IPSEC_CIPHER_AES_GCM8:
 		case IPSEC_CIPHER_AES_GCM12:
@@ -374,7 +386,7 @@ int ipsec_generate_encap_sd(
 			/*	uint16_t ctr_initial; */
 			/*	uint32_t iv[2]; */
 			pdb.ccm.salt = params->encparams.ccm.salt;
-			pdb.ccm.b0_flags = 0;
+			/* Note: pdb.ccm.b0_flags is set according to the ICV length */
 			pdb.ccm.ctr_flags = 0;
 			pdb.ccm.ctr_initial = 0;
 			pdb.ccm.iv[0] = params->encparams.ccm.iv[0];
