@@ -351,5 +351,33 @@ int dpni_drv_set_exclusive(uint16_t ni_id);
 		\ref error_g
 *//***************************************************************************/
 int dpni_drv_set_order_scope(uint16_t ni_id, struct dpkg_profile_cfg *key_cfg);
+
+/**************************************************************************//**
+@Function	dpni_drv_get_connected_aiop_ni_id
+
+@Description	Function to receive the connected NI ID.
+
+@Param[in]	dpni_id   The Network Interface ID
+
+@Param[out]	aiop_niid   Connected Network Interface ID to the given NI ID
+
+@Return	link state on success: 1 - link is up, 0 - link is down;
+	error code, otherwise. For error posix refer to \ref error_g
+*//***************************************************************************/
+int dpni_drv_get_connected_aiop_ni_id(const uint16_t dpni_id, uint16_t *aiop_niid);
+
+/**************************************************************************//**
+@Function	dpni_drv_get_connected_dpni_id
+
+@Description	Function to receive the connected DPNI ID.
+
+@Param[in]	aiop_niid   The AIOP Network Interface ID
+
+@Param[out]	dpni_id   Connected DPNI ID to the given NI ID
+
+@Return	link state on success: 1 - link is up, 0 - link is down;
+	error code, otherwise. For error posix refer to \ref error_g
+*//***************************************************************************/
+int dpni_drv_get_connected_dpni_id(const uint16_t aiop_niid, uint16_t *dpni_id);
 /** @} */ /* end of dpni_g DPNI group */
 #endif /* __FSL_DPNI_DRV_H */

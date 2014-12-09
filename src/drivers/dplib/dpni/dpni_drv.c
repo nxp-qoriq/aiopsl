@@ -168,12 +168,9 @@ int dpni_drv_probe(struct mc_dprc *dprc,
 			/* Replace MC NI ID with AIOP NI ID */
 			iowrite32_ccsr(aiop_niid, &wrks_addr->ep_pm);
 
-#if 0
 			/* TODO: the mc_niid field will be necessary if we decide to close the DPNI at the end of Probe. */
 			/* Register MC NI ID in AIOP NI table */
-			nis[aiop_niid].mc_niid = mc_niid;
-#endif
-
+			nis[aiop_niid].dpni_id = mc_niid;
 
 			if ((err = dpni_open(&dprc->io, mc_niid, &dpni)) != 0) {
 				pr_err("Failed to open DP-NI%d\n.", mc_niid);
@@ -435,12 +432,8 @@ int dpni_drv_init(void)
 	/* Initialize internal AIOP NI table */
 	for (i = 0; i < SOC_MAX_NUM_OF_DPNI; i++) {
 		struct dpni_drv * dpni_drv = nis + i;
-
 		dpni_drv->dpni_drv_tx_params_var.aiop_niid    = (uint16_t)i;
-#if 0
-		/* TODO: the mc_niid field will be necessary if we decide to close the DPNI at the end of Probe. */
-		dpni_drv->mc_niid      = 0;
-#endif
+		dpni_drv->dpni_id      = 0;
 		dpni_drv->dpni_drv_params_var.spid         = 0;
 		dpni_drv->dpni_drv_params_var.spid_ddr     = 0;
 		dpni_drv->dpni_drv_params_var.epid_idx     = 0;
@@ -595,6 +588,53 @@ int dpni_drv_set_order_scope(uint16_t ni_id, struct dpkg_profile_cfg *key_cfg){
 	return err;
 }
 
+int dpni_drv_get_connected_aiop_ni_id(const uint16_t dpni_id, uint16_t *aiop_niid){
+	struct mc_dprc *dprc = sys_get_unique_handle(FSL_OS_MOD_AIOP_RC);
+	struct dprc_endpoint endpoint1 = {0};
+	struct dprc_endpoint endpoint2 = {0};
+	int state = 0;
+	int err;
+	uint16_t i;
 
+	endpoint1.id = dpni_id;
+	endpoint1.interface_id = 0;
+	strcpy(&endpoint1.type[0], "dpni");
 
+	err = dprc_get_connection(&dprc->io, dprc->token, &endpoint1, &endpoint2,
+	                    &state);
+	if(err)
+		return err;
+
+	for(i = 0; i <  dpni_get_num_of_ni(); i++){
+		if(endpoint2.id == nis[i].dpni_id){
+			*aiop_niid = i;
+			break;
+		}
+	}
+	if(i == dpni_get_num_of_ni())
+		return -ENAVAIL;
+
+	return state;
+}
+
+int dpni_drv_get_connected_dpni_id(const uint16_t aiop_niid, uint16_t *dpni_id){
+	struct mc_dprc *dprc = sys_get_unique_handle(FSL_OS_MOD_AIOP_RC);
+	struct dprc_endpoint endpoint1 = {0};
+	struct dprc_endpoint endpoint2 = {0};
+	int state = 0;
+	int err;
+
+	endpoint1.id = nis[aiop_niid].dpni_id;
+	fsl_os_print("mc ni ID %d\n",endpoint1.id);
+	endpoint1.interface_id = 0;
+	strcpy(&endpoint1.type[0], "dpni");
+
+	err = dprc_get_connection(&dprc->io, dprc->token, &endpoint1, &endpoint2,
+	                    &state);
+	if(err)
+		return err;
+
+	*dpni_id = (uint16_t)endpoint2.id;
+	return state;
+}
 

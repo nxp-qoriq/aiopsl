@@ -85,14 +85,9 @@ struct dpni_drv_tx_params {
 struct dpni_drv {
 	struct dpni_drv_params dpni_drv_params_var;
 	struct dpni_drv_tx_params dpni_drv_tx_params_var;
-
-#if 0
-	/** TODO: the mc_niid field will be necessary if we decide to close the
-	 *  DPNI at the end of Probe. network interface ID assigned by MC -
-	 *  known outside AIOP */
-	uint16_t            mc_niid;
-#endif
-
+	/** network interface ID assigned by MC -
+	*  known outside AIOP */
+	uint16_t            dpni_id;
 	/** MAC address of this NI */
 	uint8_t 	    mac_addr[NET_HDR_FLD_ETH_ADDR_SIZE];
 	/* lock for multi-core support */
