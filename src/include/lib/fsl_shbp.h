@@ -105,6 +105,7 @@ int shbp_refill(struct shbp *bp);
 /**
  * @brief	Returns the list of pointers to be freed 
  *
+ * @param[in]	bp       - Buffer pool handle
  * @param[in]	arr_size - Number of entries to be filled inside ptr_arr
  * @param[out]	ptr_arr  - Array of pointers to be freed for pool destruction 
  * 
@@ -113,7 +114,7 @@ int shbp_refill(struct shbp *bp);
  * 		into ptr_arr
  *
  */
-int shbp_free_ptr(uint32_t arr_size, void **ptr_arr);
+int shbp_free_ptr(struct shbp *bp, uint32_t arr_size, void **ptr_arr);
 
 /** @} */ /* end of shbp_g group */
 

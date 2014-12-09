@@ -130,6 +130,8 @@ int shbp_refill(struct shbp *bp)
 {
 	uint32_t deq;
 	void *buf;
+	int count = 0;
+	int err = 0;
 #ifdef DEBUG
 	if (bp == NULL)
 		return -EINVAL;
@@ -138,7 +140,19 @@ int shbp_refill(struct shbp *bp)
 		deq = bp->free.deq % SHBP_SIZE(bp);
 		buf = (void *)SHBP_FREE_BD(bp ,deq);
 		bp->free.deq++;
-		shbp_release(bp, buf);
+		err = shbp_release(bp, buf);
+		if (err)
+			return err; /*!< Should not happen */
+		count++;
 	}
-	return 0;
+	return count;
+}
+
+int shbp_free_ptr(struct shbp *bp, uint32_t arr_size, void **ptr_arr)
+{
+	/* take all from free */
+	
+	/* take all from alloc */
+	
+	/* Add */
 }
