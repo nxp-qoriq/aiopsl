@@ -48,6 +48,24 @@ static uint8_t get_num_of_first_bit(uint32_t num)
 	return 0xff;
 }
 
+static void *acquire(struct shbp *bp, struct shbp_q *q)
+{
+	uint32_t deq = q->deq % SHBP_SIZE(bp); /* mod 2^x */
+	void    *buf = (void *)(((uint64_t *)q->base)[deq]);
+	
+	q->deq++;
+	
+	return buf;
+}
+
+static void release(struct shbp *bp, struct shbp_q *q, void *buf)
+{
+	uint32_t enq = bp->alloc.enq % SHBP_SIZE(bp); /* mod 2^x */
+	((uint64_t *)q->base)[enq] = (uint64_t)buf;
+	
+	q->enq++;
+
+}
 struct shbp *shbp_create(void *mem_ptr, uint32_t size, uint32_t flags)
 {
 	struct shbp *bp;
@@ -72,6 +90,8 @@ struct shbp *shbp_create(void *mem_ptr, uint32_t size, uint32_t flags)
 	/* Minimum 8 BDs = 64 bytes */
 	if (ring_size < 8)
 		return NULL;
+	
+	bp->mem_ptr = (uint64_t)mem_ptr;
 	bp->size = get_num_of_first_bit(ring_size);
 	
 	bp->alloc_master = (uint8_t)(flags & SHBP_GPP_MASTER);
@@ -86,7 +106,6 @@ struct shbp *shbp_create(void *mem_ptr, uint32_t size, uint32_t flags)
 
 void *shbp_acquire(struct shbp *bp)
 {
-	uint32_t deq;
 	void *buf;
 	
 #ifdef DEBUG
@@ -99,16 +118,13 @@ void *shbp_acquire(struct shbp *bp)
 	if (SHBP_ALLOC_IS_EMPTY(bp))
 		return NULL;
 	
-	deq = bp->alloc.deq % SHBP_SIZE(bp); /* mod 2^x */
-	buf = (void *)SHBP_ALLOC_BD(bp ,deq);
-	bp->alloc.deq++;
+	buf = acquire(bp, &bp->alloc);
 	
 	return buf;
 }
 
 int shbp_release(struct shbp *bp, void *buf)
 {
-	uint32_t enq;
 	
 #ifdef DEBUG
 	if ((buf == NULL) || (bp == NULL))
@@ -118,9 +134,7 @@ int shbp_release(struct shbp *bp, void *buf)
 	if (SHBP_ALLOC_IS_FULL(bp))
 		return -ENOSPC;
 	
-	enq = bp->alloc.enq % SHBP_SIZE(bp); /* mod 2^x */
-	SHBP_ALLOC_BD(bp ,enq) = (uint64_t)buf;
-	bp->alloc.enq++;
+	release(bp, &bp->alloc, buf);
 	
 	return 0;
 }
@@ -128,21 +142,17 @@ int shbp_release(struct shbp *bp, void *buf)
 
 int shbp_refill(struct shbp *bp)
 {
-	uint32_t deq;
 	void *buf;
 	int count = 0;
-	int err = 0;
+	
 #ifdef DEBUG
 	if (bp == NULL)
 		return -EINVAL;
 #endif
-	while(!SHBP_FREE_IS_EMPTY(bp)) {
-		deq = bp->free.deq % SHBP_SIZE(bp);
-		buf = (void *)SHBP_FREE_BD(bp ,deq);
-		bp->free.deq++;
-		err = shbp_release(bp, buf);
-		if (err)
-			return err; /*!< Should not happen */
+	
+	while(!SHBP_FREE_IS_EMPTY(bp) && !SHBP_ALLOC_IS_FULL(bp)) {
+		buf = acquire(bp, &bp->free);
+		release(bp, &bp->alloc, buf);
 		count++;
 	}
 	return count;
@@ -150,9 +160,28 @@ int shbp_refill(struct shbp *bp)
 
 int shbp_free_ptr(struct shbp *bp, uint32_t arr_size, void **ptr_arr)
 {
+	int i = 0;
+	
 	/* take all from free */
+	while ((i < arr_size) && !SHBP_FREE_IS_EMPTY(bp)) {
+		void *buf = acquire(bp, &bp->free);
+		ptr_arr[i] = buf;
+		i++;
+	}
+	if (!SHBP_FREE_IS_EMPTY(bp))
+		return -ENOSPC;
 	
 	/* take all from alloc */
+	while ((i < arr_size) && !SHBP_ALLOC_IS_EMPTY(bp)) {
+		void *buf = acquire(bp, &bp->alloc);
+		ptr_arr[i] = buf;
+		i++;
+	}
+	if (!SHBP_ALLOC_IS_EMPTY(bp) || (i == arr_size))
+		return -ENOSPC;
+
+	/* Add mem_ptr */
+	ptr_arr[i] = (void *)bp->mem_ptr;
 	
-	/* Add */
+	return 0;
 }
