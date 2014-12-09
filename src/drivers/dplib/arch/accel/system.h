@@ -57,6 +57,8 @@
 @{
 *//***************************************************************************/
 
+#define SP_NUM_OF_STORAGE_PROFILES	2
+
 /* Storage Profile 0 */
 
 /** SP0 mode bits 1st byte - PTAR mask */
