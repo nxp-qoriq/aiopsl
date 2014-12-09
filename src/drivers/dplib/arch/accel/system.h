@@ -57,7 +57,7 @@
 @{
 *//***************************************************************************/
 
-#define SP_NUM_OF_SORAGE_PROFILES	2
+#define SP_NUM_OF_STORAGE_PROFILES	2
 
 /* Storage Profile 0 */
 
