@@ -548,6 +548,7 @@ uint16_t aiop_verification_fdma(uint32_t asa_seg_addr)
 			(struct fdma_modify_command *) asa_seg_addr;
 
 		fdma_modify_default_segment_data(str->offset, str->size);
+		str->prc = *((struct presentation_context *)HWC_PRC_ADDRESS);
 		str->status = SUCCESS;
 		str_size = (uint16_t)
 				sizeof(struct fdma_modify_command);
@@ -579,6 +580,7 @@ uint16_t aiop_verification_fdma(uint32_t asa_seg_addr)
 				str->to_offset, str->to_size,
 				(void *)str->from_ws_src, str->from_size,
 				(void *)str->ws_dst_rs, str->size_rs, flags);
+		str->prc = *((struct presentation_context *)HWC_PRC_ADDRESS);
 		if (str->SA == 1)
 			str->seg_length_rs = prc->seg_length;
 		else if (str->SA == 2)
@@ -597,6 +599,7 @@ uint16_t aiop_verification_fdma(uint32_t asa_seg_addr)
 		str->status = (int8_t)fdma_insert_default_segment_data(
 				str->to_offset, (void *)str->from_ws_src,
 				str->insert_size, flags);
+		str->prc = *((struct presentation_context *)HWC_PRC_ADDRESS);
 		if (str->SA == 1)
 			str->seg_length_rs = prc->seg_length;
 		else if (str->SA == 2)
@@ -639,6 +642,7 @@ uint16_t aiop_verification_fdma(uint32_t asa_seg_addr)
 			 ((str->SA == 2) ? FDMA_REPLACE_SA_CLOSE_BIT : 0));
 		str->status = (int8_t)fdma_delete_default_segment_data(
 				str->to_offset, str->delete_target_size, flags);
+		str->prc = *((struct presentation_context *)HWC_PRC_ADDRESS);
 		if (str->SA == 1)
 			str->seg_length_rs = prc->seg_length;
 		else if (str->SA == 2)
