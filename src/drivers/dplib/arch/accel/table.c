@@ -874,6 +874,8 @@ void table_exception_handler(char *file_path,
 	case TABLE_CALC_NUM_ENTRIES_PER_RULE_FUNC_ID:
 		func_name = "table_calc_num_entries_per_rule";
 		break;
+	case TABLE_WORKAROUND_TKT226361_FUNC_ID:
+		func_name = "table_workaround_tkt226361";
 	default:
 		/* create own exception */
 		exception_handler(__FILE__,
@@ -914,6 +916,9 @@ void table_exception_handler(char *file_path,
 		break;
 	case(TABLE_SW_STATUS_UNKNOWN_TBL_TYPE):
 		status = "Unknown table type.\n";
+		break;
+	case(TABLE_SW_STATUS_TKT226361_ERR):
+		status = "PDM TKT226361 Workaround failed.\n";
 		break;
 	default:
 		status = "Unknown or Invalid status.\n";
@@ -979,3 +984,89 @@ int table_calc_num_entries_per_rule(uint16_t type, uint8_t key_size){
 	return num_entries_per_rule;
 }
 
+
+void table_workaround_tkt226361(uint32_t mflu_peb_num_entries,
+				uint32_t mflu_dp_ddr_num_entries,
+				uint32_t mflu_sys_ddr_num_entries){
+
+	uint16_t                   table_id;
+	uint16_t                   table_loc;
+	struct table_create_params tbl_crt_prm;
+	struct table_rule          rule;
+	uint32_t                   i;
+	uint32_t                   num_of_entries;
+
+	/* Iterate for each memory region */
+	for(i = 0; i < 3; i++){
+		switch (i) {
+		case 0:
+			table_loc = TABLE_ATTRIBUTE_LOCATION_PEB;
+			num_of_entries = mflu_peb_num_entries;
+			break;
+		case 1:
+			table_loc = TABLE_ATTRIBUTE_LOCATION_EXT1;
+			num_of_entries = mflu_dp_ddr_num_entries;
+			break;
+		case 2:
+			table_loc = TABLE_ATTRIBUTE_LOCATION_EXT2;
+			num_of_entries = mflu_sys_ddr_num_entries;
+			break;
+		default:
+			break;
+		}
+
+		/* At least 3 entries are needed for 2 rules creation, the
+		 * number of entries is always a power of 2 */ 
+		if (num_of_entries >= 4){
+
+			/* Create table */
+			tbl_crt_prm.attributes = TABLE_ATTRIBUTE_TYPE_MFLU |
+						 table_loc |
+						 TABLE_ATTRIBUTE_MR_NO_MISS;
+			tbl_crt_prm.committed_rules = TABLE_TKT226361_RULES_NUM;
+			tbl_crt_prm.max_rules = TABLE_TKT226361_RULES_NUM;
+			tbl_crt_prm.key_size = TABLE_TKT226361_KEY_SIZE;
+			
+			if(table_create(TABLE_ACCEL_ID_MFLU,&tbl_crt_prm,
+					&table_id)) {
+				table_exception_handler_wrp(
+					TABLE_WORKAROUND_TKT226361_FUNC_ID,
+					__LINE__,
+					TABLE_SW_STATUS_TKT226361_ERR);
+			}
+
+			/* Create 2 rules */
+			rule.key_desc.mflu.key[TABLE_TKT226361_KEY_SIZE - 1] =
+					0;
+			rule.key_desc.mflu.mask[TABLE_TKT226361_KEY_SIZE - 1] =
+					0xFF;
+			rule.options = TABLE_RULE_TIMESTAMP_NONE;
+			rule.result.type = TABLE_RESULT_TYPE_OPAQUES;
+			if (table_rule_create(TABLE_ACCEL_ID_MFLU,
+					table_id,
+					&rule,
+					TABLE_TKT226361_KEY_SIZE +
+					TABLE_KEY_MFLU_PRIORITY_FIELD_SIZE)){
+				table_exception_handler_wrp(
+					TABLE_WORKAROUND_TKT226361_FUNC_ID,
+					__LINE__,
+					TABLE_SW_STATUS_TKT226361_ERR);
+			}
+			rule.key_desc.mflu.key[TABLE_TKT226361_KEY_SIZE - 1] =
+					0xFF;
+			if (table_rule_create(TABLE_ACCEL_ID_MFLU,
+					table_id,
+					&rule,
+					TABLE_TKT226361_KEY_SIZE +
+					TABLE_KEY_MFLU_PRIORITY_FIELD_SIZE)){
+				table_exception_handler_wrp(
+					TABLE_WORKAROUND_TKT226361_FUNC_ID,
+					__LINE__,
+					TABLE_SW_STATUS_TKT226361_ERR);
+			}
+
+			/* Delete the table */
+			table_delete(TABLE_ACCEL_ID_MFLU, table_id);
+		}
+	}
+}

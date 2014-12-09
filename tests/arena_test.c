@@ -93,12 +93,10 @@ static void app_process_packet_flow0 (dpni_drv_app_arg_t arg)
 	uint8_t local_packet_number;
 	int local_test_error = 0;
 	uint16_t spid_ddr;
-//	osm_scope_transition_to_exclusive_with_increment_scope_id();
 	lock_spinlock(&packet_lock);
 	local_packet_number = packet_number;
 	packet_number++;
 	unlock_spinlock(&packet_lock);
-//	osm_scope_transition_to_concurrent_with_increment_scope_id();
 	core_id = (int)core_get_id();
 
 	fsl_os_print("Arena test for packet number %d, on core %d\n", local_packet_number, core_id);
@@ -175,7 +173,7 @@ static void app_process_packet_flow0 (dpni_drv_app_arg_t arg)
 
 
 
-//	osm_scope_transition_to_exclusive_with_increment_scope_id();
+
 	err = dpni_drv_test();
 	if (err) {
 		fsl_os_print("ERROR = %d: dpni_drv_test failed in runtime phase()\n", err);
@@ -187,7 +185,6 @@ static void app_process_packet_flow0 (dpni_drv_app_arg_t arg)
 	flc = LDPAA_FD_GET_FLC(HWC_FD_ADDRESS);
 	fsl_os_print("FLC: 0x%llx\n",flc);
 
-//	osm_scope_transition_to_exclusive_with_increment_scope_id();
 	lock_spinlock(&time_lock);
 	err = fsl_get_time_ms(&time_ms);
 	err |= fsl_get_time_since_epoch_ms(&time_ms_since_epoch);
@@ -217,7 +214,6 @@ static void app_process_packet_flow0 (dpni_drv_app_arg_t arg)
 		unlock_spinlock(&time_lock);
 	}
 
-//	osm_scope_transition_to_concurrent_with_increment_scope_id();
 
 
 
@@ -277,15 +273,13 @@ static void app_process_packet_flow0 (dpni_drv_app_arg_t arg)
 
 
 			fsl_os_print("\nARENA Test Finished SUCCESSFULLY\n");
-/*			for(i = 0; i < SLAB_MAX_BMAN_POOLS_NUM; i++){
+			for(i = 0; i < SLAB_MAX_BMAN_POOLS_NUM; i++){
 
 				fsl_os_print("Slab bman pools status:\n");
 				fsl_os_print("bman pool id: %d, remaining: %d\n",g_slab_bman_pools[i].bman_pool_id, g_slab_bman_pools[i].remaining);
 
 			}
 
-			slab_module_free();
-*/
 		}
 		else {
 			fsl_os_print("ARENA Test Finished with ERRORS\n");
@@ -343,12 +337,6 @@ int app_init(void)
 
 		ep = dpni_drv_get_ordering_mode((uint16_t)ni);
 		fsl_os_print("initial order scope execution phase for tasks %d\n",ep);
-		/*dpni_drv_set_exclusive((uint16_t)ni);
-		ep = dpni_drv_get_ordering_mode((uint16_t)ni);
-		fsl_os_print("initial order scope execution phase for tasks %d\n",ep);
-		dpni_drv_set_concurrent((uint16_t)ni);
-		ep = dpni_drv_get_ordering_mode((uint16_t)ni);
-		fsl_os_print("Final: initial order scope execution phase for tasks %d\n",ep);*/
 
 	}
 
