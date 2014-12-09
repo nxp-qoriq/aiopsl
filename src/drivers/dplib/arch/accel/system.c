@@ -82,7 +82,7 @@ extern struct  ipr_global_parameters ipr_global_parameters1;
 extern struct aiop_cmgw_regs *time_cmgw_regs;
 extern _time_get_t *time_get_func_ptr;
 /* Storage profiles array */
-__PROFILE_SRAM struct storage_profile storage_profile[2];
+__PROFILE_SRAM struct storage_profile storage_profile[SP_NUM_OF_STORAGE_PROFILES];
 
 /* Global Parameters for TKT226361 (MFLU) WA - TODO remove for non Rev1 */
 #include "table.h"

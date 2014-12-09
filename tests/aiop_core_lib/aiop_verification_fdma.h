@@ -1166,6 +1166,9 @@ struct fdma_modify_command {
 	uint16_t offset;
 		/** Replaced size. */
 	uint16_t size;
+		/* Returned presentation context structure.
+		 * Represent the modified segment parameters. */
+	struct presentation_context prc;
 		/** Command returned status. */
 	int8_t	status;
 		/** 64-bit alignment. */
@@ -1219,6 +1222,9 @@ struct fdma_replace_command {
 		/** Pointer to the workspace start location of the replacement
 		* segment data. */
 	uint32_t from_ws_src;
+		/* Returned presentation context structure.
+		 * Represent the modified segment parameters. */
+	struct presentation_context prc;
 		/** Pointer to the workspace start location of represented
 		* segment (relevant if (flags == \ref
 		* FDMA_REPLACE_SA_REPRESENT_BIT)). */
@@ -1258,6 +1264,9 @@ struct fdma_insert_segment_data_command {
 		/** Pointer to the workspace start location of the replacement
 		* segment data. */
 	uint32_t from_ws_src;
+		/* Returned presentation context structure.
+		 * Represent the modified segment parameters. */
+	struct presentation_context prc;
 		/** Offset from the previously presented segment representing
 		* the start point of the replacement. */
 	uint16_t to_offset;
@@ -1332,6 +1341,9 @@ struct fdma_delete_segment_data_command {
 	uint16_t to_offset;
 		/** Deleted segment data size. */
 	uint16_t delete_target_size;
+		/* Returned presentation context structure.
+		 * Represent the modified segment parameters. */
+	struct presentation_context prc;
 		/** Command returned segment length.
 		 * Relevant if SA field is set. */
 	uint16_t seg_length_rs;
