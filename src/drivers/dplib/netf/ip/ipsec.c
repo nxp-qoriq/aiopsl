@@ -328,7 +328,6 @@ int ipsec_generate_encap_sd(
 		case IPSEC_CIPHER_DES_IV64:
 		case IPSEC_CIPHER_DES:
 		case IPSEC_CIPHER_3DES:
-		case IPSEC_CIPHER_AES_XTS: // TODO: check if this is correct
 		case IPSEC_CIPHER_NULL: /* No usage of IV for null encryption */
 			cipher_type = CIPHER_TYPE_CBC;
 			break;
@@ -568,7 +567,6 @@ int ipsec_generate_decap_sd(
 		case IPSEC_CIPHER_DES_IV64:
 		case IPSEC_CIPHER_DES:
 		case IPSEC_CIPHER_3DES:
-		case IPSEC_CIPHER_AES_XTS: // TODO: check if this is correct
 		case IPSEC_CIPHER_NULL: /* No usage of IV for null encryption */
 			cipher_type = CIPHER_TYPE_CBC;
 			break;
