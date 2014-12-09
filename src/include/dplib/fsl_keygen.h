@@ -730,6 +730,8 @@ void keygen_kcr_query(enum keygen_hw_accel_id acc_id,
 
 @Cautions	In this function the task yields.
  	 	This function may result in a fatal error.
+ 	 	In Rev1: Due to HW bug (TKT231187) the maximum key size allowed
+ 	 	is 80 bytes.
 *//***************************************************************************/
 int keygen_gen_key(enum keygen_hw_accel_id acc_id,
 		     uint8_t keyid,
