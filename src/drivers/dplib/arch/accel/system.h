@@ -155,7 +155,6 @@
 
 /** @} */ /* end of SYSTEM_MACROS */
 
-
 /* Temporary storage profiles definition */
 #define NUM_OF_SP 2
 

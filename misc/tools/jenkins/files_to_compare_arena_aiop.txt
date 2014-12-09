@@ -2,8 +2,6 @@ arena/src/include/dplib/fsl_dpbp.h:aiop/src/include/dplib/fsl_dpbp.h:B42518
 arena/src/include/dplib/fsl_dpbp_cmd.h:aiop/src/include/dplib/fsl_dpbp_cmd.h:B42518
 arena/src/include/dplib/fsl_dpci.h:aiop/src/include/dplib/fsl_dpci.h:B42518
 arena/src/include/dplib/fsl_dpci_cmd.h:aiop/src/include/dplib/fsl_dpci_cmd.h:B42518
-arena/src/include/dplib/fsl_dpio.h:aiop/src/include/dplib/fsl_dpio.h:B42518
-arena/src/include/dplib/fsl_dpio_cmd.h:aiop/src/include/dplib/fsl_dpio_cmd.h:B42518
 arena/src/include/dplib/fsl_dpkg.h:aiop/src/include/dplib/fsl_dpkg.h:B42518
 arena/src/include/dplib/fsl_dpni.h:aiop/src/include/dplib/fsl_dpni.h:B42518
 arena/src/include/dplib/fsl_dpni_cmd.h:aiop/src/include/dplib/fsl_dpni_cmd.h:B42518

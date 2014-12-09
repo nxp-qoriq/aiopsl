@@ -51,7 +51,7 @@
 *//***************************************************************************/
 
 /**************************************************************************//**
-@Group	IPF_MACROS IPF Macros
+@Group	IPF_MACROS IP Fragmentation Macros
 @{
 *//***************************************************************************/
 /**************************************************************************//**
@@ -86,7 +86,7 @@ typedef uint8_t ipf_ctx_t[IPF_CONTEXT_SIZE]
 /** @} */ /* end of IPF_FLAGS */
 
 /**************************************************************************//**
-@Group	IPF_GENERATE_FRAG_STATUS  IPF Return Statuses
+@Group	IPF_GENERATE_FRAG_STATUS  IPF Return Status
 
 @Description ipf_generate_frag() return values
 

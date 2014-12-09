@@ -364,7 +364,26 @@ A general bit that is set in some errors conditions */
  */
 #define TABLE_SW_STATUS_UNKNOWN_TBL_TYPE	0xFF000005
 
+
+/**
+ * Work around for TKT226361 error.
+ */
+#define TABLE_SW_STATUS_TKT226361_ERR		0xFF000006
+
 /** @} */ /* end of TABLE_STATUS */
+
+/**************************************************************************//**
+@Group	TABLE_TKT226361 Defines for TABLE_TKT226361 WA
+@{
+*//***************************************************************************/
+/* TODO remove section for non Rev1 */
+
+/** Number of rules to be created in each table */
+#define TABLE_TKT226361_RULES_NUM	2
+/** Sufficient key size for each table */
+#define TABLE_TKT226361_KEY_SIZE	1
+
+/** @} */ /* end of TABLE_TKT226361 */
 
 /** @} */ /* end of TABLE_MACROS */
 
@@ -402,7 +421,8 @@ enum table_function_identifier {
 	TABLE_HW_ACCEL_RELEASE_LOCK_FUNC_ID,
 	TABLE_EXCEPTION_HANDLER_WRP_FUNC_ID,
 	TABLE_EXCEPTION_HANDLER_FUNC_ID,
-	TABLE_CALC_NUM_ENTRIES_PER_RULE_FUNC_ID
+	TABLE_CALC_NUM_ENTRIES_PER_RULE_FUNC_ID,
+	TABLE_WORKAROUND_TKT226361_FUNC_ID
 };
 
 /** @} */ /* end of table_function_identifier */
@@ -936,6 +956,10 @@ void table_exception_handler(char *file_path,
 *//***************************************************************************/
 int table_calc_num_entries_per_rule(uint16_t type, uint8_t key_size);
 
+/*TODO*/
+void table_workaround_tkt226361(uint32_t mflu_peb_num_entries,
+				uint32_t mflu_dp_ddr_num_entries,
+				uint32_t mflu_sys_ddr_num_entries);
 /** @} */ /* end of TABLE_Functions */
 
 /** @} */ /* end of TABLE */
