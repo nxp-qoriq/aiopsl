@@ -37,6 +37,7 @@
 #include "fsl_io_ccsr.h"
 #include "fsl_mem_mng.h"
 #include "inc/fsl_sys.h"
+#include "fsl_mem_mng.h"
 
 #define __ERR_MODULE__  MODULE_SOC_PLATFORM
 extern struct aiop_init_info g_init_data;
@@ -571,7 +572,7 @@ __COLD_CODE int platform_init(struct platform_param    *pltfrm_param,
     SANITY_CHECK_RETURN_ERROR(pltfrm_ops, ENODEV);
 
     /* Allocate the platform's control structure */
-    pltfrm = fsl_os_malloc(sizeof(t_platform));
+    pltfrm= sys_aligned_malloc(sizeof(t_platform),0);
     if (!pltfrm)
         RETURN_ERROR(MAJOR, EAGAIN, ("platform object"));
     memset(pltfrm, 0, sizeof(t_platform));
@@ -640,8 +641,7 @@ __COLD_CODE int platform_init(struct platform_param    *pltfrm_param,
 __COLD_CODE int platform_free(fsl_handle_t h_platform)
 {
     if (h_platform)
-        fsl_os_free(h_platform);
-
+	    sys_aligned_free(h_platform);
     return 0;
 }
 

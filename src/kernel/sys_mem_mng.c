@@ -60,8 +60,7 @@ static t_sys_virt_mem_map * sys_find_phys_addr_mapping(uint64_t phys_addr);
 
 static void *   sys_default_malloc(uint32_t size);
 static void     sys_default_free(void *p_memory);
-static void *   sys_aligned_malloc(uint32_t size, uint32_t alignment);
-static void     sys_aligned_free(void *p_memory);
+
 
 static void     sys_print_mem_leak(void        *p_memory,
                                 uint32_t    size,
@@ -759,7 +758,7 @@ static void sys_default_free(void *p_memory)
 }
 
 /*****************************************************************************/
-static void * sys_aligned_malloc(uint32_t size, uint32_t alignment)
+void * sys_aligned_malloc(uint32_t size, uint32_t alignment)
 {
     uintptr_t    alloc_addr, aligned_addr;
     if (alignment < sizeof(uintptr_t))
@@ -783,7 +782,7 @@ static void * sys_aligned_malloc(uint32_t size, uint32_t alignment)
 }
 
 /*****************************************************************************/
-static void sys_aligned_free(void *p_memory)
+void sys_aligned_free(void *p_memory)
 {
     /* Find allocated address from aligned address */
     uintptr_t alloc_addr = *(uintptr_t *)(((uintptr_t)p_memory) - sizeof(uintptr_t));

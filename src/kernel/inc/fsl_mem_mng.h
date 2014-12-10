@@ -72,8 +72,7 @@
 
 
 /* @} */
-
-/* Put all function (execution code) into  dtext_vle section , aka __COLD_CODE */
+/* Put all function (execution code) into  dtext_vle section,aka __COLD_CODE */
 #pragma push
 #pragma section code_type ".dtext_vle" data_mode=far_abs code_mode=pc_rel
 
@@ -388,6 +387,15 @@ int sys_get_phys_mem(uint64_t size, int mem_partition_id,  uint64_t alignment,
 *//***************************************************************************/
 void  sys_put_phys_mem(uint64_t paddr);
 
+/**************************************************************************//**
+ @Function     sys_aligned_malloc
+ *//***************************************************************************/
+void*  sys_aligned_malloc(uint32_t size, uint32_t alignment);
+
+/**************************************************************************//**
+ @Function     sys_aligned_free
+ *//***************************************************************************/
+void  sys_aligned_free(void *p_memory);
 
 /** @} */ /* end of sys_mem_grp */
 /** @} */ /* end of sys_grp */
