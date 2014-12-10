@@ -328,7 +328,6 @@ int ipsec_generate_encap_sd(
 		case IPSEC_CIPHER_DES_IV64:
 		case IPSEC_CIPHER_DES:
 		case IPSEC_CIPHER_3DES:
-		case IPSEC_CIPHER_AES_XTS: // TODO: check if this is correct
 		case IPSEC_CIPHER_NULL: /* No usage of IV for null encryption */
 			cipher_type = CIPHER_TYPE_CBC;
 			break;
@@ -568,7 +567,6 @@ int ipsec_generate_decap_sd(
 		case IPSEC_CIPHER_DES_IV64:
 		case IPSEC_CIPHER_DES:
 		case IPSEC_CIPHER_3DES:
-		case IPSEC_CIPHER_AES_XTS: // TODO: check if this is correct
 		case IPSEC_CIPHER_NULL: /* No usage of IV for null encryption */
 			cipher_type = CIPHER_TYPE_CBC;
 			break;
@@ -780,10 +778,10 @@ void ipsec_generate_flc(
 	
 	struct ipsec_flow_context flow_context;
 
-	extern struct storage_profile storage_profile;
+	extern struct storage_profile storage_profile[SP_NUM_OF_STORAGE_PROFILES];
 	int i;
 	
-	struct storage_profile *sp_addr = &storage_profile;
+	struct storage_profile *sp_addr = &storage_profile[0];
 	uint8_t *sp_byte;
 	
 	sp_addr += spid;

@@ -1,40 +1,20 @@
 - app.h/c:       Fixed ENGR00341738, added APP_MAX_NUM to app.h. Updated build_apps_array() in app.c.      
 
-
-
-
-
-
 - cmdif_srv_flib.c:  Fix for ENGR00341199 wrong malloc size in CMDIF server allocation.
 
 - cmdif_srv.c:  Fix for ENGR339037 GPP-AIOP communication breaking. 
                 AIOP workspace will have AIOP ICID and AIOP AMQ before user callback is called.
-
-dpni_drv.c/fsl_dpni_drv.h: Added implementation for int dpni_drv_get_spid_ddr(uint16_t ni_id, uint16_t *spid_ddr);
-                           and int dpni_drv_get_spid(uint16_t ni_id, uint16_t *spid_ddr);
-
-dpni_drv.c:                Added implementation to create storage profile with DDR bpid.
-
-- dpl.dts/dtb:   adding option DPNI_OPT_DIST_HASH to all dpnis to support dpni_drv_set_order_scope
-
-apps.h:         added 3 defines (3 more parameters were added to the aiop_app_init_info struct):
-                /* Number of frame buffers in pool */
-                #define DPNI_NUMBER_BUFFERS_IN_POOL      50
-                /* Size of buffers in pool */
-                #define DPNI_BUFFER_SIZE_IN_POOL         2048
-                /* alignment of buffers in pool */
-                #define DPNI_BUFFER_ALIGNMENT            64
 
 fsl_icontext.h: Added new API for AIOP isolation context - icontext_aiop_get(). 
 slab.c,h:       Added implementation used by app_early_init, added slab_early_init.
                 Application/ Module should register for buffers used by slab using: slab_register_context_buffer_requirements(
                 uint32_t committed_buffs, uint32_t max_buffs, uint16_t buff_size, uint16_t alignment, enum memory_partition_id  mem_pid,
                 uint32_t flags, uint32_t    num_ddr_pools)
-				for manahement pools with lower performance (managed in ddr the application should use the input - num_ddr_pools.
+				for management pools with lower performance (managed in DDR) the application should use the input - num_ddr_pools.
 				
 
 
-- dpl.dts/dtb               API changes due to changes i MC Firmware: renamed link -> connection, obj and peer to endpoint1 and endpoint2, delete type from dpni device.
+- dpl.dts/dtb               API changes due to changes in MC Firmware: renamed link -> connection, obj and peer to endpoint1 and endpoint2, delete type from dpni device.
 - fsl_cmdif_client.h        API change: removed locks from struct cmdif_desc.
 - cmdif_integration_test.c  Changed AIOP client test for CMDIF_ASYNC_CMD which is activated by ASYNC_CMD.
                             See aiopsl\tests\cmdif\README.txt.
@@ -56,7 +36,20 @@ slab.c,h:       Added implementation used by app_early_init, added slab_early_in
 - cmdif_client.c         Set BPID IVP inside cmdif_send(). BPID is not relevant for CMDIF.
 
 ** AIOP SL Release v0.5.2.0 **
+- dpl.dts/dtb:   adding option DPNI_OPT_DIST_HASH to all dpnis to support dpni_drv_set_order_scope
 
+- apps.h:       added 3 defines (3 more parameters were added to the aiop_app_init_info struct):
+                /* Number of frame buffers in pool */
+                #define DPNI_NUMBER_BUFFERS_IN_POOL      50
+                /* Size of buffers in pool */
+                #define DPNI_BUFFER_SIZE_IN_POOL         2048
+                /* alignment of buffers in pool */
+                #define DPNI_BUFFER_ALIGNMENT            64
+
+- dpni_drv.c/fsl_dpni_drv.h: Added implementation for int dpni_drv_get_spid_ddr(uint16_t ni_id, uint16_t *spid_ddr);
+                           and int dpni_drv_get_spid(uint16_t ni_id, uint16_t *spid_ddr);
+
+- dpni_drv.c:                Added implementation to create storage profile with DDR bpid.
 - config.c		 Change  AIOP Service Layer version to 1.0.0.
 dpni_drv.c/fsl_dpni_drv.h: Adding support for dpni_drv_set_order_scope - 
                            Function to set order scope source for the specified NI.						   

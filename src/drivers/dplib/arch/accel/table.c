@@ -230,8 +230,8 @@ void table_get_params(enum table_hw_accel_id acc_id,
 
 
 void table_get_miss_result(enum table_hw_accel_id acc_id,
-			      uint16_t table_id,
-			      struct table_result *miss_result)
+			   uint16_t table_id,
+			   struct table_result *miss_result)
 {
 	int32_t status;
 	uint32_t invalid_timestamp;
@@ -763,8 +763,8 @@ int table_lookup_by_keyid(enum table_hw_accel_id acc_id,
 /*				Internal API				     */
 /*****************************************************************************/
 int table_query_debug(enum table_hw_accel_id acc_id,
-			  uint16_t table_id,
-			  struct table_params_query_output_message *output)
+		      uint16_t table_id,
+		      struct table_params_query_output_message *output)
 {
 	/* Prepare ACC context for TLU accelerator call */
 	__stqw(TABLE_QUERY_MTYPE, (uint32_t)output, table_id, 0,
@@ -990,19 +990,16 @@ void table_workaround_tkt226361(uint32_t mflu_peb_num_entries,
 				uint32_t mflu_sys_ddr_num_entries){
 
 	uint16_t                   table_id;
-	uint16_t                   table_loc;
+	uint16_t                   table_loc = TABLE_ATTRIBUTE_LOCATION_PEB;
 	struct table_create_params tbl_crt_prm;
 	struct table_rule          rule;
 	uint32_t                   i;
-	uint32_t                   num_of_entries;
+	uint32_t                   num_of_entries = mflu_peb_num_entries;
 
 	/* Iterate for each memory region */
 	for(i = 0; i < 3; i++){
 		switch (i) {
-		case 0:
-			table_loc = TABLE_ATTRIBUTE_LOCATION_PEB;
-			num_of_entries = mflu_peb_num_entries;
-			break;
+		/* case 0 is already assigned at function init */
 		case 1:
 			table_loc = TABLE_ATTRIBUTE_LOCATION_EXT1;
 			num_of_entries = mflu_dp_ddr_num_entries;
