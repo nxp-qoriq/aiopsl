@@ -73,6 +73,9 @@
 
 /* @} */
 
+/* Put all function (execution code) into  dtext_vle section , aka __COLD_CODE */
+#pragma push
+#pragma section code_type ".dtext_vle" data_mode=far_abs code_mode=pc_rel
 
 int sys_register_virt_mem_mapping(uint64_t virt_addr, uint64_t phys_addr, uint64_t size);
 
@@ -385,8 +388,9 @@ int sys_get_phys_mem(uint64_t size, int mem_partition_id,  uint64_t alignment,
 *//***************************************************************************/
 void  sys_put_phys_mem(uint64_t paddr);
 
+
 /** @} */ /* end of sys_mem_grp */
 /** @} */ /* end of sys_grp */
-
+#pragma pop
 
 #endif /* __FSL_SYS_MEM_MNG_H */
