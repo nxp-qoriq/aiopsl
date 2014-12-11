@@ -199,7 +199,7 @@ void aiop_verification_fm()
 			struct write_data_to_workspace_command *str =
 				(struct write_data_to_workspace_command *)
 					data_addr;
-			uint8_t i;
+			uint16_t i;
 			uint8_t *address = (uint8_t *)(str->ws_dst_rs);
 			for (i = 0; i < str->size; i++)
 				*address++ = str->data[i%32];
