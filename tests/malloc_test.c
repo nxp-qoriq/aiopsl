@@ -61,7 +61,10 @@ int malloc_test()
 	uint32_t num_iter = NUM_TEST_ITER, size = 0x100;
 	void* allocated_pointers[NUM_TEST_ITER];
 	int err = 0, local_error = 0;
-	 // allocate from the heap
+	/* fsl_os_malloc()/fsl_os_free() is not relevant any more, 
+	 migrated to fsl_os_get_mem()/fsl_os_free()
+	 */
+	/*
 	if(!(local_error = allocate_check_mem(0,num_iter,size,allocated_pointers)))
 	    fsl_os_print("malloc_test from the heap succeeded\n");
 	err |= local_error ;
@@ -76,13 +79,13 @@ int malloc_test()
 	    fsl_os_print("malloc_test from PEB succeeded\n");
 	err |= local_error ;
 	if(g_init_data.app_info.sys_ddr1_size)
-	{/* user has requested to allocate from system_ddr,
-	  it should be available*/ 
+	{ 
 	    if(!(local_error = allocate_check_mem(MEM_PART_SYSTEM_DDR,num_iter,size,
                                   allocated_pointers)))
                 fsl_os_print("malloc_test from  System DDR succeeded\n");
 	    err |= local_error;
 	}
+	*/
 	/* Check fsl_malloc() function */
 	if(!(local_error = shared_ram_allocate_check_mem(num_iter,size,allocated_pointers)))
 			fsl_os_print("malloc_test from  SHARED RAM succeeded\n");
@@ -117,6 +120,10 @@ static int shared_ram_allocate_check_mem(uint32_t num_iter, uint32_t size,
 	return 0;
 }
 
+/* fsl_os_malloc()/fsl_os_free() is not relevant any more, 
+ migrated to fsl_os_get_mem()/fsl_os_free()
+ */
+#if 0
 static int allocate_check_mem(int  memory_partition,
 		                      uint32_t num_iter, uint32_t size,
 		                      void **allocated_pointers)
@@ -168,6 +175,8 @@ static int allocate_check_mem(int  memory_partition,
 	}
 	return 0;
 }
+
+#endif
 
 static int get_mem_test()
 {
