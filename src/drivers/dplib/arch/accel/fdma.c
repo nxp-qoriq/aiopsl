@@ -1362,17 +1362,19 @@ int fdma_replace_default_segment_data(
 	res1 = *((int8_t *)(FDMA_STATUS_ADDR));
 
 #ifndef REV2 /* WA for TKT237377 */
-	if (!(flags & FDMA_REPLACE_SA_REPRESENT_BIT)) {
-		ws_dst_rs = (void *)PRC_GET_SEGMENT_ADDRESS();
-		size_rs = PRC_GET_SEGMENT_LENGTH();
+	if (!(flags & FDMA_REPLACE_SA_CLOSE_BIT)) {
+		if (!(flags & FDMA_REPLACE_SA_REPRESENT_BIT)) {
+			ws_dst_rs = (void *)PRC_GET_SEGMENT_ADDRESS();
+			size_rs = PRC_GET_SEGMENT_LENGTH();
+		}
+		fdma_close_default_segment();
+		fdma_present_default_frame_segment(
+			(PRC_GET_SR_BIT())? FDMA_PRES_SR_BIT : 0, 
+			ws_dst_rs, 
+			PRC_GET_SEGMENT_OFFSET(), 
+			size_rs);
+		res1 = *((int8_t *)(FDMA_STATUS_ADDR)); 
 	}
-	fdma_close_default_segment();
-	fdma_present_default_frame_segment(
-		(PRC_GET_SR_BIT())? FDMA_PRES_SR_BIT : 0, 
-		ws_dst_rs, 
-		PRC_GET_SEGMENT_OFFSET(), 
-		size_rs);
-	res1 = *((int8_t *)(FDMA_STATUS_ADDR));
 #endif
 	
 	/* Update Task Defaults */
@@ -1439,17 +1441,19 @@ int fdma_insert_default_segment_data(
 	res1 = *((int8_t *)(FDMA_STATUS_ADDR));
 
 #ifndef REV2 /* WA for TKT237377 */
-	if (!(flags & FDMA_REPLACE_SA_REPRESENT_BIT)) {
-		ws_address_rs = (void *)PRC_GET_SEGMENT_ADDRESS();
-		seg_size_rs = PRC_GET_SEGMENT_LENGTH();
+	if (!(flags & FDMA_REPLACE_SA_CLOSE_BIT)) {
+		if (!(flags & FDMA_REPLACE_SA_REPRESENT_BIT)) {
+			ws_address_rs = (void *)PRC_GET_SEGMENT_ADDRESS();
+			seg_size_rs = PRC_GET_SEGMENT_LENGTH();
+		}
+		fdma_close_default_segment();
+		fdma_present_default_frame_segment(
+			(PRC_GET_SR_BIT())? FDMA_PRES_SR_BIT : 0, 
+			ws_address_rs, 
+			PRC_GET_SEGMENT_OFFSET(), 
+			seg_size_rs);
+		res1 = *((int8_t *)(FDMA_STATUS_ADDR));
 	}
-	fdma_close_default_segment();
-	fdma_present_default_frame_segment(
-		(PRC_GET_SR_BIT())? FDMA_PRES_SR_BIT : 0, 
-		ws_address_rs, 
-		PRC_GET_SEGMENT_OFFSET(), 
-		seg_size_rs);
-	res1 = *((int8_t *)(FDMA_STATUS_ADDR));
 #endif
 	
 	/* Update Task Defaults */
@@ -1568,17 +1572,19 @@ int fdma_delete_default_segment_data(
 	res1 = *((int8_t *)(FDMA_STATUS_ADDR));
 	
 #ifndef REV2 /* WA for TKT237377 */
-	if (!(flags & FDMA_REPLACE_SA_REPRESENT_BIT)) {
-		ws_address_rs = (void *)PRC_GET_SEGMENT_ADDRESS();
-		size_rs = PRC_GET_SEGMENT_LENGTH();
+	if (!(flags & FDMA_REPLACE_SA_CLOSE_BIT)) {
+		if (!(flags & FDMA_REPLACE_SA_REPRESENT_BIT)) {
+			ws_address_rs = (void *)PRC_GET_SEGMENT_ADDRESS();
+			size_rs = PRC_GET_SEGMENT_LENGTH();
+		}
+		fdma_close_default_segment();
+		fdma_present_default_frame_segment(
+			(PRC_GET_SR_BIT())? FDMA_PRES_SR_BIT : 0, 
+			ws_address_rs, 
+			PRC_GET_SEGMENT_OFFSET(), 
+			size_rs);
+		res1 = *((int8_t *)(FDMA_STATUS_ADDR));
 	}
-	fdma_close_default_segment();
-	fdma_present_default_frame_segment(
-		(PRC_GET_SR_BIT())? FDMA_PRES_SR_BIT : 0, 
-		ws_address_rs, 
-		PRC_GET_SEGMENT_OFFSET(), 
-		size_rs);
-	res1 = *((int8_t *)(FDMA_STATUS_ADDR));
 #endif
 
 	/* Update Task Defaults */
