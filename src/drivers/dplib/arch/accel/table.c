@@ -230,8 +230,8 @@ void table_get_params(enum table_hw_accel_id acc_id,
 
 
 void table_get_miss_result(enum table_hw_accel_id acc_id,
-			      uint16_t table_id,
-			      struct table_result *miss_result)
+			   uint16_t table_id,
+			   struct table_result *miss_result)
 {
 	int32_t status;
 	uint32_t invalid_timestamp;
@@ -763,8 +763,8 @@ int table_lookup_by_keyid(enum table_hw_accel_id acc_id,
 /*				Internal API				     */
 /*****************************************************************************/
 int table_query_debug(enum table_hw_accel_id acc_id,
-			  uint16_t table_id,
-			  struct table_params_query_output_message *output)
+		      uint16_t table_id,
+		      struct table_params_query_output_message *output)
 {
 	/* Prepare ACC context for TLU accelerator call */
 	__stqw(TABLE_QUERY_MTYPE, (uint32_t)output, table_id, 0,

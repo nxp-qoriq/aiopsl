@@ -17,6 +17,11 @@
 static uint8_t g_slob_spinlock[PLATFORM_MAX_MEM_INFO_ENTRIES] = {0}; 
 static uint32_t g_spinlock_index = 0;
 
+/* Put all function (execution code) into  dtext_vle section , aka __COLD_CODE */
+#pragma push
+#pragma section code_type ".dtext_vle" data_mode=far_abs code_mode=pc_rel
+
+
 /**********************************************************************
  *                     MM internal routines set                       *
  **********************************************************************/
@@ -1284,3 +1289,5 @@ void slob_dump(fsl_handle_t slob)
         pr_debug("\n");
     }
 }
+
+#pragma pop

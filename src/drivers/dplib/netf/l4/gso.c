@@ -43,9 +43,6 @@
 #include "common/fsl_stdlib.h"
 ////////#include "gro.h"
 
-/* TODO - remove / move to errors.h*/
-#define EBADFD	77
-
 extern __TASK struct aiop_default_task_params default_task_params;
 
 int tcp_gso_generate_seg(
@@ -138,7 +135,7 @@ int tcp_gso_generate_seg(
 
 	sr_status = fdma_present_frame_without_segments(&(gso_ctx->rem_fd),
 			FDMA_INIT_NO_FLAGS, 0, &(gso_ctx->rem_frame_handle));
-	if (sr_status == (-EBADFD))
+	if (sr_status == (-EIO))
 		return sr_status; /* Received packet FD contain errors
 		(FD.err != 0).*/
 
