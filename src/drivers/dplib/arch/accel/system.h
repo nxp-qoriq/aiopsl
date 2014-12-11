@@ -56,39 +56,81 @@
 @Group SYS_STORAGE_PROFILE_DEFINES Storage Profile Defines
 @{
 *//***************************************************************************/
-/** SP mode bits 1st byte - PTAR mask */
-#define mode_bits1_PTAR_MASK  0x80
-/** SP mode bits 1st byte - SGHR mask */
-#define mode_bits1_SGHR_MASK  0x10
-/** SP mode bits 1st byte - ASAR mask */
-#define mode_bits1_ASAR_MASK  0x0f
 
-/** SP mode bits 2nd byte - BS mask */
-#define mode_bits2_BS_MASK  0x80
-/** SP mode bits 2nd byte - FF mask */
-#define mode_bits2_FF_MASK  0x30
-/** SP mode bits 2nd byte - VA mask */
-#define mode_bits2_VA_MASK  0x04
-/** SP mode bits 2nd byte - DLC mask */
-#define mode_bits2_DLC_MASK 0x01
+#define SP_NUM_OF_STORAGE_PROFILES	2
 
-/** SP mode bits 1st byte - PTAR value */
-#define mode_bits1_PTAR  0x80
-/** SP mode bits 1st byte - Reserved value */
-#define mode_bits1_Rsrvd 0x00
+/* Storage Profile 0 */
+
+/** SP0 mode bits 1st byte - PTAR mask */
+#define sp0_mode_bits1_PTAR_MASK  0x80
+/** SP0 mode bits 1st byte - SGHR mask */
+#define sp0_mode_bits1_SGHR_MASK  0x10
+/** SP0 mode bits 1st byte - ASAR mask */
+#define sp0_mode_bits1_ASAR_MASK  0x0f
+
+/** SP0 mode bits 2nd byte - BS mask */
+#define sp0_mode_bits2_BS_MASK  0x80
+/** SP0 mode bits 2nd byte - FF mask */
+#define sp0_mode_bits2_FF_MASK  0x30
+/** SP0 mode bits 2nd byte - VA mask */
+#define sp0_mode_bits2_VA_MASK  0x04
+/** SP0 mode bits 2nd byte - DLC mask */
+#define sp0_mode_bits2_DLC_MASK 0x01
+
+/** SP0 mode bits 1st byte - PTAR value */
+#define sp0_mode_bits1_PTAR  0x80
+/** SP0 mode bits 1st byte - Reserved value */
+#define sp0_mode_bits1_Rsrvd 0x00
+/** SP0 mode bits 1st byte - SGHR value */
+#define sp0_mode_bits1_SGHR  0x00
+/** SP0 mode bits 1st byte - ASAR value */
+#define sp0_mode_bits1_ASAR  0x0f
+
+/** SP0 mode bits 2nd byte - BS value */
+#define sp0_mode_bits2_BS  0x00
+/** SP0 mode bits 2nd byte - FF value */
+#define sp0_mode_bits2_FF  0x00
+/** SP0 mode bits 2nd byte - VA value */
+#define sp0_mode_bits2_VA  0x00
+/** SP0 mode bits 2nd byte - DLC value */
+#define sp0_mode_bits2_DLC 0x00
+
+/* Storage Profile 1 */
+
+/** SP1 mode bits 1st byte - PTAR mask */
+#define sp1_mode_bits1_PTAR_MASK  0x80
+/** SP1 mode bits 1st byte - SGHR mask */
+#define sp1_mode_bits1_SGHR_MASK  0x10
+/** SP1 mode bits 1st byte - ASAR mask */
+#define sp1_mode_bits1_ASAR_MASK  0x0f
+
+/** SP1 mode bits 2nd byte - BS mask */
+#define sp1_mode_bits2_BS_MASK  0x80
+/** SP1 mode bits 2nd byte - FF mask */
+#define sp1_mode_bits2_FF_MASK  0x30
+/** SP1 mode bits 2nd byte - VA mask */
+#define sp1_mode_bits2_VA_MASK  0x04
+/** SP1 mode bits 2nd byte - DLC mask */
+#define sp1_mode_bits2_DLC_MASK 0x01
+
+/** SP1 mode bits 1st byte - PTAR value */
+#define sp1_mode_bits1_PTAR  0x00
+/** SP1 mode bits 1st byte - Reserved value */
+#define sp1_mode_bits1_Rsrvd 0x00
 /** SP mode bits 1st byte - SGHR value */
-#define mode_bits1_SGHR  0x00
-/** SP mode bits 1st byte - ASAR value */
-#define mode_bits1_ASAR  0x0f
+#define sp1_mode_bits1_SGHR  0x00
+/** SP1 mode bits 1st byte - ASAR value */
+#define sp1_mode_bits1_ASAR  0x0f
 
-/** SP mode bits 2nd byte - BS value */
-#define mode_bits2_BS  0x00
-/** SP mode bits 2nd byte - FF value */
-#define mode_bits2_FF  0x00
-/** SP mode bits 2nd byte - VA value */
-#define mode_bits2_VA  0x00
-/** SP mode bits 2nd byte - DLC value */
-#define mode_bits2_DLC 0x00
+/** SP1 mode bits 2nd byte - BS value */
+#define sp1_mode_bits2_BS  0x80
+/** SP1 mode bits 2nd byte - FF value */
+#define sp1_mode_bits2_FF  0x00
+/** SP1 mode bits 2nd byte - VA value */
+#define sp1_mode_bits2_VA  0x00
+/** SP1 mode bits 2nd byte - DLC value */
+#define sp1_mode_bits2_DLC 0x00
+
 
 /** @} */ /* end of SYS_STORAGE_PROFILE_DEFINES */
 
@@ -114,7 +156,6 @@
 /** @} */ /* end of SYSTEM_STATUSES_DEFINES */
 
 /** @} */ /* end of SYSTEM_MACROS */
-
 
 /* Temporary storage profiles definition */
 #define NUM_OF_SP 2

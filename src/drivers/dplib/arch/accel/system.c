@@ -82,7 +82,13 @@ extern struct  ipr_global_parameters ipr_global_parameters1;
 extern struct aiop_cmgw_regs *time_cmgw_regs;
 extern _time_get_t *time_get_func_ptr;
 /* Storage profiles array */
-__PROFILE_SRAM struct storage_profile storage_profile;
+__PROFILE_SRAM struct storage_profile storage_profile[SP_NUM_OF_STORAGE_PROFILES];
+
+/* Global Parameters for TKT226361 (MFLU) WA - TODO remove for non Rev1 */
+#include "table.h"
+#ifndef AIOP_VERIF
+extern struct aiop_init_info g_init_data;
+#endif
 
 void sys_prpid_pool_create(void)
 {
@@ -138,31 +144,57 @@ int aiop_sl_init(void)
 	/* initialize profile sram */
 
 #ifdef AIOP_VERIF
-	/* Default Storage Profile */
-	storage_profile.ip_secific_sp_info = 0;
-	storage_profile.dl = 0;
-	storage_profile.reserved = 0;
+	/* Storage Profile 0 - Default Storage Profile */
+	storage_profile[0].ip_secific_sp_info = 0;
+	storage_profile[0].dl = 0;
+	storage_profile[0].reserved = 0;
 	/* 0x0080 --> 0x8000 (little endian) */
-	storage_profile.dhr = 0x8000;
-	/*storage_profile.dhr = 0x0080; */
-	storage_profile.mode_bits1 = (mode_bits1_PTAR | mode_bits1_SGHR |
-			mode_bits1_ASAR);
-	storage_profile.mode_bits2 = (mode_bits2_BS | mode_bits2_FF |
-			mode_bits2_VA | mode_bits2_DLC);
+	storage_profile[0].dhr = 0x8000;
+	/*storage_profile[0].dhr = 0x0080; */
+	storage_profile[0].mode_bits1 = (sp0_mode_bits1_PTAR | sp0_mode_bits1_SGHR |
+			sp0_mode_bits1_ASAR);
+	storage_profile[0].mode_bits2 = (sp0_mode_bits2_BS | sp0_mode_bits2_FF |
+			sp0_mode_bits2_VA | sp0_mode_bits2_DLC);
 	/* buffer size is 2048 bytes, so PBS should be 32 (0x20).
 	 * 0x0801 --> 0x0108 (little endian) */
-	storage_profile.pbs1 = 0x0108;
+	storage_profile[0].pbs1 = 0x0108;
 	/* BPID=0 */
-	storage_profile.bpid1 = 0x0000;
+	storage_profile[0].bpid1 = 0x0000;
 	/* buffer size is 2048 bytes, so PBS should be 32 (0x20).
 	* 0x0801 --> 0x0108 (little endian) */
-	storage_profile.pbs2 = 0x0108;
+	storage_profile[0].pbs2 = 0x0108;
 	/* BPID=0 */
-	storage_profile.bpid2 = 0x0000;
-	storage_profile.pbs3 = 0x0000;
-	storage_profile.bpid3 = 0x0000;
-	storage_profile.pbs4 = 0x0000;
-	storage_profile.bpid4 = 0x0000;
+	storage_profile[0].bpid2 = 0x0000;
+	storage_profile[0].pbs3 = 0x0000;
+	storage_profile[0].bpid3 = 0x0000;
+	storage_profile[0].pbs4 = 0x0000;
+	storage_profile[0].bpid4 = 0x0000;
+	
+	/* Storage Profile 1 */
+	storage_profile[1].ip_secific_sp_info = 0;
+	storage_profile[1].dl = 0;
+	storage_profile[1].reserved = 0;
+	/* 0x0080 --> 0x8000 (little endian) */
+	storage_profile[1].dhr = 0x8000;
+	/*storage_profile[1].dhr = 0x0080; */
+	storage_profile[1].mode_bits1 = (sp1_mode_bits1_PTAR | sp1_mode_bits1_SGHR |
+			sp1_mode_bits1_ASAR);
+	storage_profile[1].mode_bits2 = (sp1_mode_bits2_BS | sp1_mode_bits2_FF |
+			sp1_mode_bits2_VA | sp1_mode_bits2_DLC);
+	/* buffer size is 2048 bytes, so PBS should be 32 (0x20).
+	* 0x0801 --> 0x0108 (little endian) */
+	storage_profile[1].pbs1 = 0x0108;
+	/* BPID=0 */
+	storage_profile[1].bpid1 = 0x0000;
+	/* buffer size is 2048 bytes, so PBS should be 32 (0x20).
+	* 0x0801 --> 0x0108 (little endian) */
+	storage_profile[1].pbs2 = 0x0108;
+	/* BPID=0 */
+	storage_profile[1].bpid2 = 0x0000;
+	storage_profile[1].pbs3 = 0x0000;
+	storage_profile[1].bpid3 = 0x0000;
+	storage_profile[1].pbs4 = 0x0000;
+	storage_profile[1].bpid4 = 0x0000;
 
 	time_cmgw_regs = (struct aiop_cmgw_regs*) &(aiop_regs->cmgw_regs);
 	time_get_func_ptr = _get_time_fast;
@@ -194,10 +226,28 @@ int aiop_sl_init(void)
 #endif
 
 
+/********************************************************/
+/* WA TKT226361 STRAT (MFLU) - TODO remove for non Rev1 */
+/********************************************************/
+#ifdef AIOP_VERIF
+	table_workaround_tkt226361(4,4,4);
+#else
+
+	table_workaround_tkt226361(g_init_data.app_info.mflu_peb_num_entries,
+				   g_init_data.app_info.
+					mflu_dp_ddr_num_entries,
+				   g_init_data.app_info.
+					mflu_sys_ddr_num_entries);
+#endif
+/********************************************************/
+/* WA TKT226361 END (MFLU) - TODO remove for non Rev1 */
+/********************************************************/
+
 	sys_prpid_pool_create();
 
 #ifdef AIOP_VERIF
 	sys_keyid_pool_create();
+
 #else
 	sys_keyid_pool_create();
 

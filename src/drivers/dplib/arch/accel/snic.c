@@ -555,8 +555,8 @@ int aiop_snic_init(void)
 		return status;
 	}
 	memset(snic_params, 0, sizeof(snic_params));
-	snic_tmi_mem_base_addr = fsl_os_virt_to_phys
-	(fsl_os_xmalloc(SNIC_MAX_NO_OF_TIMERS*64, MEM_PART_DP_DDR, 64));
+	fsl_os_get_mem( SNIC_MAX_NO_OF_TIMERS*64, MEM_PART_DP_DDR, 64, 
+			&snic_tmi_mem_base_addr);
 	/* todo tmi delete in snic_free */
 	tman_create_tmi(snic_tmi_mem_base_addr , SNIC_MAX_NO_OF_TIMERS, 
 			&snic_tmi_id);
@@ -576,7 +576,7 @@ void snic_tman_confirm_cb(tman_arg_8B_t arg1, tman_arg_2B_t arg2)
 	UNUSED(arg2);
 	tman_timer_completion_confirmation(
 			TMAN_GET_TIMER_HANDLE(HWC_FD_ADDRESS));
-	fsl_os_xfree((void *)snic_tmi_mem_base_addr);
+	fsl_os_put_mem(snic_tmi_mem_base_addr);
 	fdma_terminate_task();
 }
 void snic_ipr_timout_cb(ipr_timeout_arg_t arg,
@@ -599,7 +599,8 @@ int snic_create_table_key_id(uint8_t fec_no, uint8_t fec_array[8],
 				uint8_t *key_id,
 				uint16_t *table_id)
 {
-	struct kcr_builder kb;
+	struct kcr_builder kb
+			__attribute__((aligned(16)));
 	int	err, i;
 	uint8_t  keyid;
 	struct table_create_params tbl_params;

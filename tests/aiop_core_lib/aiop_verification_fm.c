@@ -199,7 +199,7 @@ void aiop_verification_fm()
 			struct write_data_to_workspace_command *str =
 				(struct write_data_to_workspace_command *)
 					data_addr;
-			uint8_t i;
+			uint16_t i;
 			uint8_t *address = (uint8_t *)(str->ws_dst_rs);
 			for (i = 0; i < str->size; i++)
 				*address++ = str->data[i%32];
@@ -345,9 +345,8 @@ void aiop_verif_init_parser()
 	verif_parse_profile.parse_profile.arp_hxs_config = 0x0;
 	verif_parse_profile.parse_profile.ip_hxs_config = 0x0;
 	verif_parse_profile.parse_profile.ipv4_hxs_config = 0x0;
-	/* Routing header is ignored and the destination address from
-	 * main header is used instead */
-	verif_parse_profile.parse_profile.ipv6_hxs_config = 0x0;
+	/* Final destination address is used */
+	verif_parse_profile.parse_profile.ipv6_hxs_config = PARSER_PRP_IPV6_HXS_CONFIG_RHE;
 	verif_parse_profile.parse_profile.gre_hxs_config = 0x0;
 	verif_parse_profile.parse_profile.minenc_hxs_config = 0x0;
 	verif_parse_profile.parse_profile.other_l3_shell_hxs_config = 0x0;

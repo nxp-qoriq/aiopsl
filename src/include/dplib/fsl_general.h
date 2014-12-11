@@ -57,7 +57,7 @@
 *//***************************************************************************/
 
 /**************************************************************************//**
- @Group		AIOP_Return_Status
+ @Group		AIOP_Return_Status  AIOP Return Status
 
  @Description	AIOP function return status definitions
 
@@ -86,7 +86,7 @@
 
 
 /**************************************************************************//**
- @Group		AIOP_HWC_Definitions
+ @Group		AIOP_HWC_Definitions AIOP HWC Definitions
 
  @Description	Hardware Context (HWC) Definitions
 
@@ -94,7 +94,7 @@
 *//***************************************************************************/
 
 /**************************************************************************//**
- @Group		AIOP_HWC_General_Definitions
+ @Group		AIOP_HWC_General_Definitions  AIOP HWC General Definitions
 
  @Description	Hardware Context (HWC) General Definitions
 
@@ -135,7 +135,7 @@
 /** @} */ /* end of AIOP_HWC_General_Definitions */
 
 /**************************************************************************//**
- @Group		AIOP_ADC_Definitions
+ @Group		AIOP_ADC_Definitions  AIOP ADC Definitions
 
  @Description	Additional Dequeue Context (ADC) Definitions
 
@@ -221,7 +221,7 @@ struct additional_dequeue_context {
 
 
 /**************************************************************************//**
- @Group		AIOP_ADC_Getters
+ @Group		AIOP_ADC_Getters  AIOP ADC Getters
 
  @Description	Additional Dequeue Context (ADC) Getters
 
@@ -239,7 +239,7 @@ struct additional_dequeue_context {
 
 
 /**************************************************************************//**
- @Group		AIOP_PRC_Definitions
+ @Group		AIOP_PRC_Definitions  AIOP PRC Definitions
 
  @Description	Presentation Context (PRC) Definitions
 
@@ -356,7 +356,7 @@ struct presentation_context {
 #define PRC_PTA_ADDRESS_OFFSET	0x6
 
 /**************************************************************************//**
- @Group		AIOP_PRC_Getters
+ @Group		AIOP_PRC_Getters  AIOP PRC Getters
 
  @Description	Presentation Context (PRC) Getters
 
@@ -491,7 +491,7 @@ struct hardware_context {
 /** @} */ /* end of AIOP_HWC_Definitions */
 
 /**************************************************************************//**
- @Group		AIOP_DEFAULT_TASK_Params
+ @Group		AIOP_DEFAULT_TASK_Params  AIOP Default Task Params
 
  @Description	AIOP Default Task Parameters
 

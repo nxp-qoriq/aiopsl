@@ -595,16 +595,6 @@
 			<locationURI>PARENT-3-PROJECT_LOC/src/include/dplib/fsl_dpbp_cmd.h</locationURI>
 		</link>
 		<link>
-			<name>aiop_sl/include/dplib/fsl_dpio.h</name>
-			<type>1</type>
-			<locationURI>PARENT-3-PROJECT_LOC/src/include/dplib/fsl_dpio.h</locationURI>
-		</link>
-		<link>
-			<name>aiop_sl/include/dplib/fsl_dpio_cmd.h</name>
-			<type>1</type>
-			<locationURI>PARENT-3-PROJECT_LOC/src/include/dplib/fsl_dpio_cmd.h</locationURI>
-		</link>
-		<link>
 			<name>aiop_sl/include/dplib/fsl_dpkg.h</name>
 			<type>1</type>
 			<locationURI>PARENT-3-PROJECT_LOC/src/include/dplib/fsl_dpkg.h</locationURI>
@@ -898,11 +888,6 @@
 			<name>aiop_sl/drivers/dplib/dpci/dpci.c</name>
 			<type>1</type>
 			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/dplib/dpci/dpci.c</locationURI>
-		</link>
-		<link>
-			<name>aiop_sl/drivers/dplib/dpio/dpio.c</name>
-			<type>1</type>
-			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/dplib/dpio/dpio.c</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/drivers/dplib/dpni/dpni.c</name>

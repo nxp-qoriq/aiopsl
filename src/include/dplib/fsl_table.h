@@ -38,14 +38,14 @@
 
 
 /**************************************************************************//**
- @Group		ACCEL ACCEL (Accelerator APIs)
+ @Group		ACCEL Accelerators APIs
 
  @Description	AIOP Accelerator APIs
 
  @{
 *//***************************************************************************/
 /**************************************************************************//**
-@Group	FSL_TABLE Table
+@Group	FSL_TABLE TABLE
 
 @Description	Freescale AIOP Table API
 
@@ -53,7 +53,7 @@
 *//***************************************************************************/
 
 /**************************************************************************//**
-@Group	FSL_TABLE_MACROS Table Macros
+@Group	FSL_TABLE_MACROS TABLE Macros
 
 @Description	Freescale AIOP Table Macros
 
@@ -62,7 +62,7 @@
 
 
 /**************************************************************************//**
-@Group	FSL_TABLE_ATTRIBUTES Table Attributes
+@Group	FSL_TABLE_ATTRIBUTES TABLE Attributes
 
 @Description	Table Attributes
 
@@ -75,7 +75,7 @@ The table attributes are composed of the following sub fields:
 *//***************************************************************************/
 
 /**************************************************************************//**
-@Group	FSL_TABLE_ATTRIBUTE_TYPE Table Type Attribute
+@Group	FSL_TABLE_ATTRIBUTE_TYPE TABLE Type Attribute
 
 @Description	Table Type
 
@@ -110,7 +110,7 @@ available table types. \n User should select one of the following defines
 
 
 /**************************************************************************//**
-@Group	FSL_TABLE_ATTRIBUTE_LOCATION Table Location Attribute
+@Group	FSL_TABLE_ATTRIBUTE_LOCATION TABLE Location Attribute
 
 @Description	Table Location
 
@@ -145,7 +145,7 @@ available table locations. \n User should select one of the following defines
 
 
 /**************************************************************************//**
-@Group	FSL_TABLE_ATTRIBUTE_MR Table Miss Result Attribute
+@Group	FSL_TABLE_ATTRIBUTE_MR TABLE Miss Result Attribute
 
 @Description	Table Miss Result Options
 
@@ -172,7 +172,7 @@ mask and offset defines):
 
 
 /**************************************************************************//**
-@Group		FSL_TABLE_RESULT_TYPES Table Results Types
+@Group		FSL_TABLE_RESULT_TYPES TABLE Results Types
 
 @Description	Table Results Types
 
@@ -195,12 +195,12 @@ User should select one of the following defines:
 
 
 /**************************************************************************//**
-@Group	FSL_TABLE_RULE_OPTIONS Table Rule Options
+@Group	FSL_TABLE_RULE_OPTIONS TABLE Rule Options
 @{
 *//***************************************************************************/
 
 /**************************************************************************//**
-@Group	FSL_TABLE_RULE_OPTIONS_TIMESTAMP Table Rule Timestamp Options
+@Group	FSL_TABLE_RULE_OPTIONS_TIMESTAMP TABLE Rule Timestamp Options
 
 @Description	Table Rule Timestamp Options
 
@@ -225,7 +225,7 @@ User should select one of the following:
 
 
 /**************************************************************************//**
-@Group	FSL_TABLE_KEY_DEFINES Table Rule Key
+@Group	FSL_TABLE_KEY_DEFINES TABLE Rule Key
 @{
 *//***************************************************************************/
 	/** Exact Match maximum key size in bytes */
@@ -256,7 +256,7 @@ User should select one of the following:
 
 
 /**************************************************************************//**
-@Group	FSL_TABLE_LOOKUP_FLAG_DEFINES Table Lookup Flags
+@Group	FSL_TABLE_LOOKUP_FLAG_DEFINES TABLE Lookup Flags
 @{
 *//***************************************************************************/
 	/** Segment Address and Size Non Default - If set, the Segment given in
@@ -302,7 +302,7 @@ User should select one of the following:
 /** @} */ /* end of FSL_TABLE_MACROS */
 
 /**************************************************************************//**
-@Group		FSL_TABLE_Enumerations Table Enumerations
+@Group		FSL_TABLE_Enumerations TABLE Enumerations
 
 @Description	Table Enumerations
 
@@ -328,7 +328,7 @@ enum table_hw_accel_id {
 /** @} */ /* end of FSL_TABLE_Enumerations */
 
 /**************************************************************************//**
-@Group		FSL_TABLE_STRUCTS Table Structures
+@Group		FSL_TABLE_STRUCTS TABLE Structures
 
 @Description	Freescale AIOP Table Structures
 
@@ -559,8 +559,8 @@ struct table_rule {
 	User should not access this field. */
 	uint64_t reserved0;
 
-	/** Table Rule Options - Please refer to \link FSL_TABLE_RULE_OPTIONS
-	table rule options \endlink for more details.*/
+	/** Table Rule Options - Please refer to \ref FSL_TABLE_RULE_OPTIONS
+	for more details.*/
 	uint8_t  options;
 
 	/** Reserved for compliance with HW format.
@@ -713,8 +713,8 @@ struct table_create_params {
 	only for CTLU tables, This field should not be filled otherwise.*/
 	struct table_result miss_result;
 
-	/** Table Attributes - Please refer to \link FSL_TABLE_ATTRIBUTES Table
-	Attributes macros \endlink for more details. */
+	/** Table Attributes - Please refer to \ref FSL_TABLE_ATTRIBUTES Table
+	for more details. */
 	uint16_t attributes;
 
 	/** Table Key Size in bytes (fixed per table).
@@ -746,8 +746,8 @@ struct table_get_params_output {
 	rule to a table that already contains committed_rules might fail. */
 	uint32_t max_rules;
 
-	/** Table Attributes - Please refer to \link FSL_TABLE_ATTRIBUTES Table
-	Attributes macros \endlink for more details. */
+	/** Table Attributes - Please refer to \ref FSL_TABLE_ATTRIBUTES
+	for more details. */
 	uint16_t attributes;
 };
 
@@ -792,7 +792,7 @@ struct table_lookup_non_default_params {
 
 
 /**************************************************************************//**
-@Group		FSL_TABLE_Functions Table Functions
+@Group		FSL_TABLE_Functions TABLE Functions
 
 @Description	Freescale AIOP Table Functions
 
@@ -1103,7 +1103,7 @@ int table_rule_query(enum table_hw_accel_id acc_id,
 
 
 /**************************************************************************//**
-@Function	table_delete_rule
+@Function	table_rule_delete
 
 @Description	Deletes a specified rule in the table.
 

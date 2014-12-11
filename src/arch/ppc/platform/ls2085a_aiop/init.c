@@ -140,7 +140,8 @@ __COLD_CODE void fill_platform_parameters(struct platform_param *platform_param)
 	ASSERT_COND(err == 0);
 
 }
-int tile_init(void)
+
+__COLD_CODE int tile_init(void)
 {
 	struct aiop_tile_regs * aiop_regs = (struct aiop_tile_regs *)
 				      sys_get_handle(FSL_OS_MOD_AIOP_TILE, 1);
@@ -159,12 +160,12 @@ int tile_init(void)
 	return 0;
 }
 
-int cluster_init(void)
+__COLD_CODE int cluster_init(void)
 {
 	return 0;
 }
 
-int global_init(void)
+__COLD_CODE int global_init(void)
 {
 	struct sys_module_desc modules[] = GLOBAL_MODULES;
 	int                    i;
@@ -183,7 +184,7 @@ int global_init(void)
 	return 0;
 }
 
-void global_free(void)
+__COLD_CODE void global_free(void)
 {
 	struct sys_module_desc modules[] = GLOBAL_MODULES;
 	int i;
@@ -193,7 +194,7 @@ void global_free(void)
 			modules[i].free();
 }
 
-int global_early_init(void)
+__COLD_CODE int global_early_init(void)
 {
 	struct sys_module_desc modules[] = GLOBAL_MODULES;
 	int i;
@@ -205,7 +206,7 @@ int global_early_init(void)
 	return 0;
 }
 
-int apps_early_init(void)
+__COLD_CODE int apps_early_init(void)
 {
 	int i;
 	uint16_t app_arr_size = g_app_params.app_arr_size;
@@ -225,13 +226,13 @@ int apps_early_init(void)
 	return 0;
 }
 
-int global_post_init(void)
+__COLD_CODE int global_post_init(void)
 {
 	return 0;
 }
 
 #if (STACK_OVERFLOW_DETECTION == 1)
-static inline void config_runtime_stack_overflow_detection()
+__COLD_CODE static inline void config_runtime_stack_overflow_detection()
 {
 	switch(cmgw_get_ntasks())
 	{
@@ -257,7 +258,7 @@ static inline void config_runtime_stack_overflow_detection()
 }
 #endif /* STACK_OVERFLOW_DETECTION */
 
-void core_ready_for_tasks(void)
+__COLD_CODE void core_ready_for_tasks(void)
 {
 	/* 
 	 * CTSCSR_ntasks mast be a 'register' in order to prevent stack access 
@@ -299,7 +300,7 @@ void core_ready_for_tasks(void)
 }
 
 
-static void print_dev_desc(struct dprc_obj_desc* dev_desc)
+__COLD_CODE static void print_dev_desc(struct dprc_obj_desc* dev_desc)
 {
 	pr_debug(" device %d\n", dev_desc->id);
 	pr_debug("***********\n");

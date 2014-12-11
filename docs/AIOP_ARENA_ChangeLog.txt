@@ -1,7 +1,62 @@
 - app.h/c:       Fixed ENGR00341738, added APP_MAX_NUM to app.h. Updated build_apps_array() in app.c.      
 
+- cmdif_srv_flib.c:  Fix for ENGR00341199 wrong malloc size in CMDIF server allocation.
+
+- cmdif_srv.c:  Fix for ENGR339037 GPP-AIOP communication breaking. 
+                AIOP workspace will have AIOP ICID and AIOP AMQ before user callback is called.
+
+fsl_icontext.h: Added new API for AIOP isolation context - icontext_aiop_get(). 
+slab.c,h:       Added implementation used by app_early_init, added slab_early_init.
+                Application/ Module should register for buffers used by slab using: slab_register_context_buffer_requirements(
+                uint32_t committed_buffs, uint32_t max_buffs, uint16_t buff_size, uint16_t alignment, enum memory_partition_id  mem_pid,
+                uint32_t flags, uint32_t    num_ddr_pools)
+				for management pools with lower performance (managed in DDR) the application should use the input - num_ddr_pools.
+				
+
+
+- dpl.dts/dtb               API changes due to changes in MC Firmware: renamed link -> connection, obj and peer to endpoint1 and endpoint2, delete type from dpni device.
+- fsl_cmdif_client.h        API change: removed locks from struct cmdif_desc.
+- cmdif_integration_test.c  Changed AIOP client test for CMDIF_ASYNC_CMD which is activated by ASYNC_CMD.
+                            See aiopsl\tests\cmdif\README.txt.
+- fsl_cmdif_flib_c.h        API change: moved async callback from cmdif_open_cmd() to cmdif_cmd().
+- fsl_cmdif_client.h        API change: moved async callback from cmdif_open() to cmdif_send().
+- fsl_slab.h:               prototype of the slab release callback function modified from int to void.
+- slab.c, fsl_slab.h:       slab_create: API change - prefix_size, postfix_size were removed.
+- slab.c/h, fsl_slab.h:     Update pool managment implementation to support management in SHRAM and DDR.
+                            API change for slab_create: use mem_pid from enum.
+           
+
+- ls2085a_gpp/cmdif.h    Added NADK_DEBUG for DEBUG indication
+- cmdif_client_flib.c    Placed user error checks under #ifdef DEBUG
+- cmdif_srv_flib.c       Placed user error checks under #ifdef DEBUG
+- cmdif_client.c         Added support for cmdif_close()
+- cmdif_srv_flib.c       Added support for cmdif_session_close()
+- slob.c                 Fix some memory leaks and other issues.
+- platform.c             Add support for memory allocation from MEM_PART_SYSTEM_DDR.
+- cmdif_client.c         Set BPID IVP inside cmdif_send(). BPID is not relevant for CMDIF.
+
+** AIOP SL Release v0.5.2.0 **
+- dpl.dts/dtb:   adding option DPNI_OPT_DIST_HASH to all dpnis to support dpni_drv_set_order_scope
+
+- apps.h:       added 3 defines (3 more parameters were added to the aiop_app_init_info struct):
+                /* Number of frame buffers in pool */
+                #define DPNI_NUMBER_BUFFERS_IN_POOL      50
+                /* Size of buffers in pool */
+                #define DPNI_BUFFER_SIZE_IN_POOL         2048
+                /* alignment of buffers in pool */
+                #define DPNI_BUFFER_ALIGNMENT            64
+
+- dpni_drv.c/fsl_dpni_drv.h: Added implementation for int dpni_drv_get_spid_ddr(uint16_t ni_id, uint16_t *spid_ddr);
+                           and int dpni_drv_get_spid(uint16_t ni_id, uint16_t *spid_ddr);
+
+- dpni_drv.c:                Added implementation to create storage profile with DDR bpid.
+- config.c		 Change  AIOP Service Layer version to 1.0.0.
 dpni_drv.c/fsl_dpni_drv.h: Adding support for dpni_drv_set_order_scope - 
-                           Function to set order scope source for the specified NI.
+                           Function to set order scope source for the specified NI.						   
+dpni_drv.c:          Adding support for concurrent / exclusive mode for specified NI.
+                     int dpni_drv_set_concurrent(uint16_t ni_id), 
+					 int dpni_drv_set_exclusive(uint16_t ni_id)
+                     EPID table configured to use concurrent mode in initialization by default.					 
 Memory managment: added fsl_os_get_mem()- for allocating a 64 bit physical address from external memories,
                         fsl_os_put_mem() - for releasing memory allocated by fsl_os_get_mem()
                         fsl_malloc() - for allocating a 32 bit virtual address  from AIOP shared ram .
@@ -17,65 +72,12 @@ Memory managment: added fsl_os_get_mem()- for allocating a 64 bit physical addre
                         fsl_os_xfree() that was allocated from MEM_PART_SH_RAM -> fsl_free()
                         fsl_os_malloc() -> fsl_os_get_mem(MEM_PART_DP_DDR)
                         fsl_os_free() -> fsl_os_put_mem()
+						
+- mem_mng.c slob.c     Fix CR:ENGR00337904 spinlock should have addresses in shared ram	
 
-dpni_drv.c:          Adding support for concurrent / exclusive mode for specified NI.
-                     int dpni_drv_set_concurrent(uint16_t ni_id), 
-					 int dpni_drv_set_exclusive(uint16_t ni_id)
-                     EPID table configured to use concurrent mode in initialization by default.
-
-- cmdif_srv_flib.c:  Fix for ENGR00341199 wrong malloc size in CMDIF server allocation.
-
-- cmdif_srv.c:  Fix for ENGR339037 GPP-AIOP communication breaking. 
-                AIOP workspace will have AIOP ICID and AIOP AMQ before user callback is called.
-
-dpni_drv.c/fsl_dpni_drv.h: Added implementation for int dpni_drv_get_spid_ddr(uint16_t ni_id, uint16_t *spid_ddr);
-                           and int dpni_drv_get_spid(uint16_t ni_id, uint16_t *spid_ddr);
-
-dpni_drv.c:                Added implementation to create storage profile with DDR bpid.
-
-- dpl.dts/dtb:   adding option DPNI_OPT_DIST_HASH to all dpnis to support dpni_drv_set_order_scope
-
-apps.h:         added 3 defines (3 more parameters were added to the aiop_app_init_info struct):
-                /* Number of frame buffers in pool */
-                #define DPNI_NUMBER_BUFFERS_IN_POOL      50
-                /* Size of buffers in pool */
-                #define DPNI_BUFFER_SIZE_IN_POOL         2048
-                /* alignment of buffers in pool */
-                #define DPNI_BUFFER_ALIGNMENT            64
-
-fsl_icontext.h: Added new API for AIOP isolation context - icontext_aiop_get(). 
-slab.c,h:       Added implementation used by app_early_init, added slab_early_init.
-                Application/ Module should register for buffers used by slab using: slab_register_context_buffer_requirements(
-                uint32_t committed_buffs, uint32_t max_buffs, uint16_t buff_size, uint16_t alignment, enum memory_partition_id  mem_pid,
-                uint32_t flags, uint32_t    num_ddr_pools)
-				for manahement pools with lower performance (managed in ddr the application should use the input - num_ddr_pools.
-				
 - fsl_soc_spec_ls2085a.h:  Revert UART offset ( - 0x4000 ). The following flags must be added to simulator initialization cfg file:
                            duart1.use_ls2_reg_definition=false
-                           duart2.use_ls2_reg_definition=false
-
-- dpl.dts/dtb               API changes due to changes i MC Firmware: renamed link -> connection, obj and peer to endpoint1 and endpoint2, delete type from dpni device.
-- fsl_cmdif_client.h        API change: removed locks from struct cmdif_desc.
-- cmdif_integration_test.c  Changed AIOP client test for CMDIF_ASYNC_CMD which is activated by ASYNC_CMD.
-                            See aiopsl\tests\cmdif\README.txt.
-- fsl_cmdif_flib_c.h        API change: moved async callback from cmdif_open_cmd() to cmdif_cmd().
-- fsl_cmdif_client.h        API change: moved async callback from cmdif_open() to cmdif_send().
-- fsl_slab.h:               prototype of the slab release callback function modified from int to void.
-- slab.c, fsl_slab.h:       slab_create: API change - prefix_size, postfix_size were removed.
-- slab.c/h, fsl_slab.h:     Update pool managment implementation to support management in SHRAM and DDR.
-                            API change for slab_create: use mem_pid from enum.
-           
-
-- mem_mng.c,slob.c         Change spinlock pointer  location from DP_DDR->SHARED RAM.( A fix for emulator)
-
-- ls2085a_gpp/cmdif.h    Added NADK_DEBUG for DEBUG indication
-- cmdif_client_flib.c    Placed user error checks under #ifdef DEBUG
-- cmdif_srv_flib.c       Placed user error checks under #ifdef DEBUG
-- cmdif_client.c         Added support for cmdif_close()
-- cmdif_srv_flib.c       Added support for cmdif_session_close()
-- slob.c                 Fix some memory leaks and other issues.
-- platform.c             Add support for memory allocation from MEM_PART_SYSTEM_DDR.
-- cmdif_client.c         Set BPID IVP inside cmdif_send(). BPID is not relevant for CMDIF.
+                           duart2.use_ls2_reg_definition=false					
 
 ** AIOP SL v0.4.8 **
 fsl_icontext.h: Added new API for AIOP isolation context - icontext_aiop_get().

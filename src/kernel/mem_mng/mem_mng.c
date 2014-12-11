@@ -42,6 +42,7 @@
 
 #include "mem_mng.h"
 #include "fsl_dbg.h"
+#include "fsl_mem_mng.h"
 
 
 #ifdef UNDER_CONSTRUCTION
@@ -70,6 +71,11 @@
 /* Array of spinlocks should reside in shared ram memory.
  * They are initialized to 0 (unlocked) */
 static uint8_t g_mem_part_spinlock[PLATFORM_MAX_MEM_INFO_ENTRIES] = {0};  
+static uint8_t g_phys_mem_part_spinlock[PLATFORM_MAX_MEM_INFO_ENTRIES] = {0};
+
+/* Put all function (execution code) into  dtext_vle section , aka __COLD_CODE */
+#pragma push
+#pragma section code_type ".dtext_vle" data_mode=far_abs code_mode=pc_rel
 
 static void mem_mng_add_early_entry(t_mem_mng    *p_mem_mng,
                                 void        *p_memory,
@@ -99,9 +105,12 @@ static int mem_mng_get_partition_id_by_addr_local(t_mem_mng             *p_mem_m
 
 static void mem_mng_free_partition(t_mem_mng *p_mem_mng, list_t *p_partition_iterator);
 
+static void mem_phys_mng_free_partition(t_mem_mng *p_mem_mng, list_t *p_partition_iterator);
+
+
 
 /*****************************************************************************/
-__COLD_CODE fsl_handle_t mem_mng_init(t_mem_mng_param *p_mem_mng_param)
+ fsl_handle_t mem_mng_init(t_mem_mng_param *p_mem_mng_param)
 {
     t_mem_mng    *p_mem_mng;
 
@@ -137,7 +146,7 @@ __COLD_CODE fsl_handle_t mem_mng_init(t_mem_mng_param *p_mem_mng_param)
 
 
 /*****************************************************************************/
-__COLD_CODE void mem_mng_free(fsl_handle_t h_mem_mng)
+void mem_mng_free(fsl_handle_t h_mem_mng)
 {
     t_mem_mng            *p_mem_mng = (t_mem_mng *)h_mem_mng;
     list_t              *p_partition_iterator, *p_tmp_iterator;
@@ -203,7 +212,7 @@ int mem_mng_get_available_partition_id(fsl_handle_t h_mem_mng)
 
 
 /*****************************************************************************/
-__COLD_CODE int mem_mng_register_partition(fsl_handle_t  h_mem_mng,
+int mem_mng_register_partition(fsl_handle_t  h_mem_mng,
                                   int       partition_id,
                                   uintptr_t base_address,
                                   uint64_t  size,
@@ -389,7 +398,12 @@ int mem_mng_register_phys_addr_alloc_partition(fsl_handle_t  h_mem_mng,
    memset(p_new_partition, 0, sizeof(t_mem_mng_phys_addr_alloc_partition));
 
 #ifdef AIOP
+    /*
+     * Fix for bug ENGR00337904. Memory address that is used for spinlock 
+     * should reside in shared ram 
     p_new_partition->lock = (uint8_t *)fsl_os_malloc(sizeof(uint8_t));
+    */
+    p_new_partition->lock = &g_phys_mem_part_spinlock[partition_id];
 #else
     p_new_partition->lock = spin_lock_create();
 #endif
@@ -448,7 +462,7 @@ int mem_mng_register_phys_addr_alloc_partition(fsl_handle_t  h_mem_mng,
 
 
 /*****************************************************************************/
-__COLD_CODE int mem_mng_unregister_partition(fsl_handle_t h_mem_mng, int partition_id)
+int mem_mng_unregister_partition(fsl_handle_t h_mem_mng, int partition_id)
 {
     t_mem_mng            *p_mem_mng = (t_mem_mng *)h_mem_mng;
     t_mem_mng_partition   *p_partition;
@@ -592,7 +606,7 @@ int mem_mng_get_partition_id_by_addr(fsl_handle_t   h_mem_mng,
 
 
 /*****************************************************************************/
-__COLD_CODE uint32_t mem_mng_check_leaks(fsl_handle_t                h_mem_mng,
+uint32_t mem_mng_check_leaks(fsl_handle_t                h_mem_mng,
                             int                     partition_id,
                             t_mem_mng_leak_report_func  *f_report_leak)
 {
@@ -990,7 +1004,7 @@ static int mem_mng_get_partition_id_by_addr_local(t_mem_mng          *p_mem_mng,
 
 
 /*****************************************************************************/
-__COLD_CODE static void mem_mng_free_partition(t_mem_mng *p_mem_mng, list_t *p_partition_iterator)
+static void mem_mng_free_partition(t_mem_mng *p_mem_mng, list_t *p_partition_iterator)
 {
     t_mem_mng_partition   *p_partition;
     t_mem_mng_debug_entry  *p_mem_mng_debug_entry;
@@ -1031,7 +1045,10 @@ __COLD_CODE static void mem_mng_free_partition(t_mem_mng *p_mem_mng, list_t *p_p
     list_del(p_partition_iterator);
     if (p_partition->lock) {
 #ifdef AIOP
-	    fsl_os_free((void *) p_partition->lock);
+/* For AIOP lock is no longer dynamically allocated, g_mem_part_spinlock is used
+ * instead
+ */
+	    /* fsl_os_free((void *) p_partition->lock); */
 #else
         spin_lock_free(p_partition->lock);
 #endif
@@ -1039,6 +1056,36 @@ __COLD_CODE static void mem_mng_free_partition(t_mem_mng *p_mem_mng, list_t *p_p
     p_mem_mng->f_free(p_partition);
 }
 
+/*****************************************************************************/
+static void mem_phys_mng_free_partition(t_mem_mng *p_mem_mng, list_t *p_partition_iterator)
+{
+    t_mem_mng_phys_addr_alloc_partition   *p_partition;
+#ifndef AIOP
+    uint32_t            int_flags;
+#endif /* AIOP */
+
+    p_partition = MEM_MNG_PHYS_ADDR_ALLOC_PARTITION_OBJECT(p_partition_iterator);
+
+   
+   
+    /* Release the memory manager object */
+    slob_free(p_partition->h_mem_manager);
+  
+
+    /* Remove from partitions list and free the allocated memory */
+    list_del(p_partition_iterator);
+    if (p_partition->lock) {
+#ifdef AIOP
+/* For AIOP lock is no longer dynamically allocated, g_mem_part_spinlock is used
+ * instead
+ */
+	    /* fsl_os_free((void *) p_partition->lock); */
+#else
+        spin_lock_free(p_partition->lock);
+#endif
+    }
+    p_mem_mng->f_free(p_partition);
+}
 
 /*****************************************************************************/
 static void mem_mng_add_early_entry(t_mem_mng    *p_mem_mng,
@@ -1219,4 +1266,4 @@ static int mem_mng_remove_entry(t_mem_mng          *p_mem_mng,
     return 0;
 }
 
-
+#pragma pop
