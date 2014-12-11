@@ -82,7 +82,8 @@ extern t_system sys;
 #ifndef AIOP
     uint32_t        int_flags;
 #endif /* AIOP */
-    p_virt_mem_map = (t_sys_virt_mem_map *)fsl_os_malloc(sizeof(t_sys_virt_mem_map));
+    /*p_virt_mem_map = (t_sys_virt_mem_map *)fsl_os_malloc(sizeof(t_sys_virt_mem_map));*/
+    p_virt_mem_map = (t_sys_virt_mem_map *)sys_aligned_malloc(sizeof(t_sys_virt_mem_map),0);
     if (!p_virt_mem_map)
         RETURN_ERROR(MAJOR, ENOMEM, ("virtual memory mapping entry"));
 
@@ -124,7 +125,9 @@ extern t_system sys;
     int_flags = spin_lock_irqsave(&(sys.virt_mem_lock));
 #endif /* AIOP */
     list_del(&(p_virt_mem_map->node));
-    fsl_os_free(p_virt_mem_map);
+    /*fsl_os_free(p_virt_mem_map);*/
+    sys_aligned_free(p_virt_mem_map);
+    p_virt_mem_map = NULL;
 #ifdef AIOP
     unlock_spinlock(&(sys.virt_mem_lock));
 #else /* not AIOP */
