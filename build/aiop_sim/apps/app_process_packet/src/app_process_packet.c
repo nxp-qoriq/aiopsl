@@ -32,6 +32,7 @@
 #include "fsl_general.h"
 #include "fsl_cdma.h"
 #include "fsl_l2.h"
+#include "fsl_osm.h"
 
 int app_early_init(void);
 int app_init(void);
@@ -99,7 +100,7 @@ static void app_process_packet_flow0 (dpni_drv_app_arg_t arg)
 		}
 		fsl_os_print("\n");
 	}
-
+	osm_scope_transition_to_exclusive_with_increment_scope_id();
 	err = dpni_drv_send(ni_id);
 	if (err){
 		fsl_os_print("ERROR = %d: dpni_drv_send(ni_id)\n",err);
