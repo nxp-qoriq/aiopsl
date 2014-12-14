@@ -289,7 +289,7 @@ static void *slow_malloc(int size)
 static void srv_free(void *ptr)
 {
 	if (ptr != NULL)
-		fsl_os_xfree(ptr);
+		fsl_free(ptr);
 }
 
 __COLD_CODE int cmdif_srv_init(void)

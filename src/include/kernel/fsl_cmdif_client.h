@@ -42,7 +42,7 @@
  *//***************************************************************************/
 
 /**************************************************************************//**
-@Group		CMDIF_SEND_ATTRIBUTES
+@Group		CMDIF_SEND_ATTRIBUTES Send Attributes
 
 @Description	The attributes to be used with cmdif_send()
 

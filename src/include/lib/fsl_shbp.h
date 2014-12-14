@@ -45,6 +45,13 @@
  * @{
  */
 
+#define SHBP_GPP_MASTER		0x1
+/*!< GPP is the allocation master */
+
+#define SHBP_MEM_PTR_SIZE(NUM_BUFF) (sizeof(struct shbp) + (16 * (NUM_BUFFS)))
+/*!< Calculator for mem_ptr size for shbp_create(); NUM_BUFF must be 2^x 
+ * and higher than 8 */
+
 /**
  * @brief	Get buffer from shared pool
  *
@@ -71,16 +78,17 @@ int shbp_release(struct shbp *bp, void *buf);
  * 
  * The shared pool is created as empty, use shbp_release() to fill it  
  *
- * @param[in]	mem_ptr  - Pointer to memory to be used for shared management
+ * @param[in]	mem_ptr  - Pointer to memory to be used for shared management;
+ * 		it should be aligned to cache line
  * @param[in]	size     - Size of mem_ptr
- * @param[in]	buf_size - Size of each buffer in pool
- * @param[in]	flags    - Flags to be used for pool creation
+ * @param[in]	flags    - Flags to be used for pool creation, 0 means AIOP is 
+ * 		the allocation master. See #SHBP_GPP_MASTER.
  * 
  * @returns	Pointer to shared pool handle on Success; or NULL otherwise
+ * 		Minimum size is 8.
  *
  */
-struct shbp *shbp_create(void *mem_ptr, uint32_t size, 
-                         uint32_t buf_size, uint32_t flags);
+struct shbp *shbp_create(void *mem_ptr, uint32_t size, uint32_t flags);
 
 /**
  * @brief	Move free buffers into allocation queue
@@ -97,6 +105,7 @@ int shbp_refill(struct shbp *bp);
 /**
  * @brief	Returns the list of pointers to be freed 
  *
+ * @param[in]	bp       - Buffer pool handle
  * @param[in]	arr_size - Number of entries to be filled inside ptr_arr
  * @param[out]	ptr_arr  - Array of pointers to be freed for pool destruction 
  * 
@@ -105,7 +114,7 @@ int shbp_refill(struct shbp *bp);
  * 		into ptr_arr
  *
  */
-int shbp_free_ptr(uint32_t arr_size, void **ptr_arr);
+int shbp_free_ptr(struct shbp *bp, uint32_t arr_size, void **ptr_arr);
 
 /** @} */ /* end of shbp_g group */
 
