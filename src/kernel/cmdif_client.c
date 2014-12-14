@@ -187,11 +187,11 @@ __COLD_CODE void cmdif_client_free()
 	if (cl != NULL) {
 		for (i = 0; i < CMDIF_MN_SESSIONS; i++) {
 			if (cl->gpp[i].regs != NULL)
-				fsl_os_xfree(cl->gpp[i].regs);
+				fsl_free(cl->gpp[i].regs);
 			if (cl->gpp[i].dev != NULL)
-				fsl_os_xfree(cl->gpp[i].dev);
+				fsl_free(cl->gpp[i].dev);
 		}
-		fsl_os_xfree(cl);
+		fsl_free(cl);
 	}
 
 }
