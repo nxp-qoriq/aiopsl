@@ -312,11 +312,8 @@ int app_init(void)
 		}
 	}
 
-	tman_addr = (uint64_t)fsl_os_xmalloc(1024, MEM_PART_DP_DDR, 64);
-	ASSERT_COND(tman_addr);
-	tman_addr = fsl_os_virt_to_phys((void *)tman_addr);
-	ASSERT_COND(tman_addr);
-
+	err = fsl_os_get_mem(1024, MEM_PART_DP_DDR, 64, &tman_addr);
+	ASSERT_COND(!err && tman_addr);
 	return 0;
 }
 
