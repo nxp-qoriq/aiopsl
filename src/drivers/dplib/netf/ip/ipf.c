@@ -419,7 +419,7 @@ int ipf_split_ipv4_fragment(struct ipf_context *ipf_ctx)
 			return status;
 		} else {
 			status = fdma_store_default_frame_data();
-			status = fdma_present_default_frame_default_segment();
+			status = fdma_present_default_frame();
 #else
 		/* Must close the frame so the frame length will be updated */
 		split_frame_params.flags = FDMA_CFA_COPY_BIT |
@@ -464,7 +464,7 @@ int ipf_split_ipv4_fragment(struct ipf_context *ipf_ctx)
 						FDMA_SPLIT_PSA_NO_PRESENT_BIT;
 			split_status = fdma_split_frame(&split_frame_params); /* TODO FDMA ERROR */
 			status = fdma_store_default_frame_data();
-			status = fdma_present_default_frame_default_segment();
+			status = fdma_present_default_frame();
 #else
 			split_frame_params.flags = FDMA_CFA_COPY_BIT |
 					FDMA_SPLIT_PSA_PRESENT_BIT;
@@ -575,7 +575,7 @@ int ipf_split_ipv6_fragment(struct ipf_context *ipf_ctx,
 			return status;
 		} else {
 			status = fdma_store_default_frame_data();
-			status = fdma_present_default_frame_default_segment();
+			status = fdma_present_default_frame();
 #else
 		/* Must close the frame so the frame length will be updated */
 		split_frame_params.flags = FDMA_CFA_COPY_BIT |
@@ -622,7 +622,7 @@ int ipf_split_ipv6_fragment(struct ipf_context *ipf_ctx,
 						FDMA_SPLIT_PSA_NO_PRESENT_BIT;
 			split_status = fdma_split_frame(&split_frame_params); /* TODO FDMA ERROR */
 			status = fdma_store_default_frame_data();
-			status = fdma_present_default_frame_default_segment();
+			status = fdma_present_default_frame();
 #else
 			split_frame_params.flags = FDMA_CFA_COPY_BIT |
 					FDMA_SPLIT_PSA_PRESENT_BIT;
