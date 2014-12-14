@@ -41,7 +41,7 @@
 #include "types.h"
 
 /**************************************************************************//**
- @Group		ACCEL ACCEL (Accelerator APIs)
+ @Group		ACCEL Accelerators APIs
 
  @Description	AIOP Accelerator APIs
 
@@ -208,7 +208,7 @@
 	* result in order to match to the \ref e_ste_err_dcmd value. */
 #define STE_ERR_CAP_EC_MASK	0x000003C0
 
-	/*! \enum e_ste_err_dcmd defines the statistics Descriptor Command Code
+	/** \enum e_ste_err_dcmd defines the statistics Descriptor Command Code
 	*  of the captured error.*/
 enum e_ste_err_dcmd {
 	STE_ERR_CAP_CMDTYPE_SET = 0x40,
@@ -221,7 +221,7 @@ enum e_ste_err_dcmd {
 	STE_ERR_CAP_CMDTYPE_DEC_SUB = 0x3C0
 };
 
-	/*! \enum e_ste_err_ec defines the type of error (Error Code)
+	/** \enum e_ste_err_ec defines the type of error (Error Code)
 	*  of the captured error.*/
 enum e_ste_err_ec {
 	/** AXI Command Decode Error, Bad Address/AWSIZ/AWLEN.

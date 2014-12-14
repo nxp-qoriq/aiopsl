@@ -43,9 +43,6 @@
 #include "common/fsl_stdlib.h"
 ////////#include "gro.h"
 
-/* TODO - remove / move to errors.h*/
-#define EBADFD	77
-
 extern __TASK struct aiop_default_task_params default_task_params;
 
 int tcp_gso_generate_seg(
@@ -138,7 +135,7 @@ int tcp_gso_generate_seg(
 
 	sr_status = fdma_present_frame_without_segments(&(gso_ctx->rem_fd),
 			FDMA_INIT_NO_FLAGS, 0, &(gso_ctx->rem_frame_handle));
-	if (sr_status == (-EBADFD))
+	if (sr_status == (-EIO))
 		return sr_status; /* Received packet FD contain errors
 		(FD.err != 0).*/
 
@@ -148,7 +145,7 @@ int tcp_gso_generate_seg(
 
 int32_t tcp_gso_split_segment(struct tcp_gso_context *gso_ctx)
 {
-	int32_t	status, sr_status;
+	int32_t	status, sr_status, split_sr_status;
 	uint16_t updated_ipv4_outer_total_length, l3checksum, ip_header_length;
 	uint8_t spid, outer_ip_offset, outer_tcp_offset;
 	struct tcphdr *tcp_ptr;
@@ -172,8 +169,22 @@ int32_t tcp_gso_split_segment(struct tcp_gso_context *gso_ctx)
 	split_frame_params.spid = *((uint8_t *) HWC_SPID_ADDRESS);
 
 	/* Split remaining frame, put split frame in default FD location*/
-	sr_status = fdma_split_frame(&split_frame_params); /* TODO FDMA ERROR */
-	if (sr_status == (-EINVAL)) {
+#ifndef REV2
+	sr_status = fdma_store_frame_data(split_frame_params.source_frame_handle,
+			split_frame_params.spid, &isolation_attributes);
+	sr_status = fdma_present_frame_without_segments(&(gso_ctx->rem_fd),
+			FDMA_INIT_NO_FLAGS, 0, &(gso_ctx->rem_frame_handle));
+	split_frame_params.flags = FDMA_CFA_COPY_BIT |
+					FDMA_SPLIT_PSA_NO_PRESENT_BIT;
+	split_sr_status = fdma_split_frame(&split_frame_params); /* TODO FDMA ERROR */
+	if (split_sr_status != (-EINVAL)) {
+		sr_status = fdma_store_default_frame_data();
+		sr_status = fdma_present_default_frame();
+	}
+#else
+	split_sr_status = fdma_split_frame(&split_frame_params); /* TODO FDMA ERROR */
+#endif
+	if (split_sr_status == (-EINVAL)) {
 		/* last segment */
 		spid = *((uint8_t *)HWC_SPID_ADDRESS);
 		/* store remaining FD */

@@ -364,7 +364,26 @@ A general bit that is set in some errors conditions */
  */
 #define TABLE_SW_STATUS_UNKNOWN_TBL_TYPE	0xFF000005
 
+
+/**
+ * Work around for TKT226361 error.
+ */
+#define TABLE_SW_STATUS_TKT226361_ERR		0xFF000006
+
 /** @} */ /* end of TABLE_STATUS */
+
+/**************************************************************************//**
+@Group	TABLE_TKT226361 Defines for TABLE_TKT226361 WA
+@{
+*//***************************************************************************/
+/* TODO remove section for non Rev1 */
+
+/** Number of rules to be created in each table */
+#define TABLE_TKT226361_RULES_NUM	2
+/** Sufficient key size for each table */
+#define TABLE_TKT226361_KEY_SIZE	1
+
+/** @} */ /* end of TABLE_TKT226361 */
 
 /** @} */ /* end of TABLE_MACROS */
 
@@ -402,7 +421,8 @@ enum table_function_identifier {
 	TABLE_HW_ACCEL_RELEASE_LOCK_FUNC_ID,
 	TABLE_EXCEPTION_HANDLER_WRP_FUNC_ID,
 	TABLE_EXCEPTION_HANDLER_FUNC_ID,
-	TABLE_CALC_NUM_ENTRIES_PER_RULE_FUNC_ID
+	TABLE_CALC_NUM_ENTRIES_PER_RULE_FUNC_ID,
+	TABLE_WORKAROUND_TKT226361_FUNC_ID
 };
 
 /** @} */ /* end of table_function_identifier */
@@ -826,11 +846,11 @@ struct table_acc_context {
 @Description	Return all table parameters as kept in the given table
 		accelerator HW.
 
-@Param[in]	acc_id - Table Accelerator ID.
+@Param[in]	acc_id Table Accelerator ID.
 
-@Param[in]	table_id - Table ID.
+@Param[in]	table_id Table ID.
 
-@Param[in]	output - All table parameter Table Hardware HW keeps.
+@Param[in]	output All table parameter Table Hardware HW keeps.
 
 @Return		Please refer to \ref FSL_TABLE_STATUS
 
@@ -848,7 +868,7 @@ int table_query_debug(enum table_hw_accel_id acc_id,
 @Description	Tries to acquire the binary lock of the given table hardware
 		accelerator.
 
-@Param[in]	acc_id - Table Accelerator ID.
+@Param[in]	acc_id Table Accelerator ID.
 
 @Return		If the lock is already in use \ref CTLU_STATUS_MISS or
 		\ref MFLU_STATUS_MISS are set.
@@ -864,7 +884,7 @@ int table_hw_accel_acquire_lock(enum table_hw_accel_id acc_id);
 @Description	Releases the binary lock of the given table hardware
 		accelerator.
 
-@Param[in]	acc_id - Table Accelerator ID.
+@Param[in]	acc_id Table Accelerator ID.
 
 @Return		None.
 
@@ -886,9 +906,9 @@ void table_hw_accel_release_lock(enum table_hw_accel_id acc_id);
 		per file but the exception handling function of table API is
 		located in one place and should not be changed over time.
 
-@Param[in]	func_id - The function in which the error occurred.
-@Param[in]	line - The line in which the error occurred.
-@Param[in]	status - Status to be handled in this function.
+@Param[in]	func_id The function in which the error occurred.
+@Param[in]	line The line in which the error occurred.
+@Param[in]	status Status to be handled in this function.
 
 @Return		None.
 
@@ -904,10 +924,10 @@ void table_exception_handler_wrp(enum table_function_identifier func_id,
 @Description	Handler for the error status returned from the Table API
 		functions.
 
-@Param[in]	file_path - The path of the file in which the error occurred.
-@Param[in]	func_id - The function in which the error occurred.
-@Param[in]	line - The line in which the error occurred.
-@Param[in]	status_id - Status ID to be handled in this function.
+@Param[in]	file_path The path of the file in which the error occurred.
+@Param[in]	func_id The function in which the error occurred.
+@Param[in]	line The line in which the error occurred.
+@Param[in]	status_id Status ID to be handled in this function.
 
 @Return		None.
 
@@ -925,8 +945,8 @@ void table_exception_handler(char *file_path,
 		table entries needed per rule for a specific key size and
 		table type.
 
-@Param[in]	type - Table.
-@Param[in]	key_size - Key size.
+@Param[in]	type Table.
+@Param[in]	key_size Key size.
 
 @Return		The maximum number of entries needed per rule for a specific
 		key size and table type.
@@ -935,6 +955,27 @@ void table_exception_handler(char *file_path,
 		table type.
 *//***************************************************************************/
 int table_calc_num_entries_per_rule(uint16_t type, uint8_t key_size);
+
+/**************************************************************************//**
+@Function	table_workaround_tkt226361
+
+@Description	Work around for tkt226361. Create a table in each memory region
+		with 2 rules and then deletes the table.
+
+@Param[in]	mflu_peb_num_entries number of entries that was defined for
+		PEB memory region.
+@Param[in]	mflu_dp_ddr_num_entries number of entries that was defined
+		for DPDDR memory region.
+@Param[in]	mflu_sys_ddr_num_entries number of entries that was defined
+		for System DDR memory region.
+
+@Cautions	This function calls the exception handler if the work around
+		failed.
+		This function performs a task switch.
+*//***************************************************************************/
+void table_workaround_tkt226361(uint32_t mflu_peb_num_entries,
+				uint32_t mflu_dp_ddr_num_entries,
+				uint32_t mflu_sys_ddr_num_entries);
 
 /** @} */ /* end of TABLE_Functions */
 

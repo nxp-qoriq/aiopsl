@@ -57,7 +57,7 @@
  @{
 *//***************************************************************************/
 /**************************************************************************//**
- @Group		AIOP_L4_HM L4 Header Modifications
+ @Group		AIOP_L4_HM L4 Header Modification
 
  @Description	AIOP L4 related header modifications API
 
@@ -125,8 +125,7 @@
 
 
 /**************************************************************************//**
-@Group		HML4UDPTCPCksumCalcModeBits L4 UDP TCP Checksum Calculation \
-		 mode bits
+@Group		HML4UDPTCPCksumCalcModeBits L4 UDP TCP Checksum Calculation mode bits
 
 @{
 *//***************************************************************************/

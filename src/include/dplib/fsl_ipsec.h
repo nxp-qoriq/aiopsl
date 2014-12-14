@@ -208,7 +208,6 @@ typedef void (ipsec_lifetime_callback_t) (
 #define IPSEC_CIPHER_NULL				0x0B00
 #define IPSEC_CIPHER_AES_CBC			0x0c00
 #define IPSEC_CIPHER_AES_CTR			0x0d00
-#define IPSEC_CIPHER_AES_XTS			0x1600
 #define IPSEC_CIPHER_AES_CCM8			0x0e00
 #define IPSEC_CIPHER_AES_CCM12			0x0f00
 #define IPSEC_CIPHER_AES_CCM16			0x1000

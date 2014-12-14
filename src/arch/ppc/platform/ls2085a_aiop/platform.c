@@ -37,6 +37,7 @@
 #include "fsl_io_ccsr.h"
 #include "fsl_mem_mng.h"
 #include "inc/fsl_sys.h"
+#include "fsl_mem_mng.h"
 
 #define __ERR_MODULE__  MODULE_SOC_PLATFORM
 extern struct aiop_init_info g_init_data;
@@ -96,112 +97,6 @@ const char *module_strings[] = {
 extern __TASK uint32_t seed_32bit;
 
 static int build_mem_partitions_table(t_platform  *pltfrm);
-
-
-/*****************************************************************************/
-__COLD_CODE static void print_platform_info(t_platform *pltfrm)
-{
-    char        buf[256];
-    int         count = 0;
-    uint32_t    sys_clock;
-    int         is_master_core = sys_is_master_core();
-
-    ASSERT_COND(pltfrm);
-
-    if (is_master_core)
-    {
-        /*------------------------------------------*/
-        /* Device enable/disable and status display */
-        /* Power Save mode                          */
-        /*------------------------------------------*/
-        count += sprintf((char *)&buf[count], "\nfreescale ");
-
-/*
-        switch (ls2100a_get_rev_info(pltfrm->ccsr_base + SOC_PERIPH_OFFSET_GUTIL))
-        {
-            case E_LS2100A_REV_1_0:
-                count += sprintf((char *)&buf[count], "LS2100A revision 1.0");
-                break;
-            default:
-                count += sprintf((char *)&buf[count], "unknown chip revision! ");
-                break;
-        }
-*/
-        count += sprintf((char *)&buf[count], "LST4-Sim");
-
-        count += sprintf((char *)&buf[count], "\n\nclocks: [IN:%d.%d] ",
-                         (pltfrm->param.clock_in_freq_hz / 1000000),
-                         ((pltfrm->param.clock_in_freq_hz % 1000000) / 100000));
-
-        sys_clock = platform_get_system_bus_clk(pltfrm);
-        count += sprintf((char *)&buf[count], "[SYS BUS:%d.%d] ",
-                         (sys_clock / 1000000), ((sys_clock % 1000000) / 100000));
-
-/*
-        clock = platform_get_local_bus_clk(pltfrm);
-        divider = sys_clock/clock;
-        count += sprintf((char *)&buf[count], "[LBC:%d.%d] ",
-                         (sys_clock /divider/1000000), ((sys_clock /divider % 1000000) / 100000));
-
-        clock = platform_get_ddr_clk(pltfrm);
-        count += sprintf((char *)&buf[count], "[DDR:%d.%d] ",
-                         (clock / 1000000), ((clock % 1000000) / 100000));
-
-        count += sprintf((char *)&buf[count], "\ncores info:");
-*/
-
-        fsl_os_print(buf);
-        count = 0;
-        memset(buf, 0, sizeof(buf));
-    }
-    sys_barrier();
-
-/*
-    clock = platform_get_core_clk_local(pltfrm,core_get_id());
-    count += sprintf((char *)&buf[count], "\n[CORE %d:%d.%d] ",
-                     core_get_id(),(clock / 1000000), ((clock % 1000000) / 100000));
-
-    fsl_os_print(buf);
-    count = 0;
-    memset(buf, 0, sizeof(buf));
-    sys_barrier();
-*/
-
-    if (!is_master_core)
-        return;
-
-    /*------------------------------------------*/
-    /*      CACHE/MMU Status display            */
-    /*------------------------------------------*/
-    count = 0;
-    memset(buf, 0, sizeof(buf));
-
-    count += sprintf((char *)&buf[count], "\n\nPlatform status: ");
-    count += sprintf((char *)&buf[count], "\nATU ICACHE TB\n");
-#ifdef SIMULATOR
-    /* TODO - ATU is temporary off!!! */
-    count += sprintf((char *)&buf[count], "OFF ");
-#else
-    /* MMU is always ON */
-    count += sprintf((char *)&buf[count], "ON  ");
-#endif /* SIMULATOR */
-
-    if (pltfrm->param.l1_cache_mode & E_CACHE_MODE_INST_ONLY)
-        count += sprintf((char *)&buf[count], "ON     ");
-    else
-        count += sprintf((char *)&buf[count], "OFF    ");
-
-#ifdef SIMULATOR
-    /* TODO - time-base is temporary off!!! */
-    count += sprintf((char *)&buf[count], "OFF ");
-#else
-    /* Time-Base is always ON */
-    count += sprintf((char *)&buf[count], "ON   ");
-#endif /* SIMULATOR */
-
-    count += sprintf((char *)&buf[count], "\n");
-    fsl_os_print(buf);
-}
 
 /*****************************************************************************/
 __COLD_CODE static int find_mem_partition_index(t_platform_memory_info  *mem_info,
@@ -677,7 +572,7 @@ __COLD_CODE int platform_init(struct platform_param    *pltfrm_param,
     SANITY_CHECK_RETURN_ERROR(pltfrm_ops, ENODEV);
 
     /* Allocate the platform's control structure */
-    pltfrm = fsl_os_malloc(sizeof(t_platform));
+    pltfrm= sys_aligned_malloc(sizeof(t_platform),0);
     if (!pltfrm)
         RETURN_ERROR(MAJOR, EAGAIN, ("platform object"));
     memset(pltfrm, 0, sizeof(t_platform));
@@ -746,8 +641,7 @@ __COLD_CODE int platform_init(struct platform_param    *pltfrm_param,
 __COLD_CODE int platform_free(fsl_handle_t h_platform)
 {
     if (h_platform)
-        fsl_os_free(h_platform);
-
+	    sys_aligned_free(h_platform);
     return 0;
 }
 

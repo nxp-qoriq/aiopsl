@@ -54,7 +54,7 @@
  @{
  *//***************************************************************************/
 /**************************************************************************//**
- @Group		AIOP_L2_HM L2 Header Modifications
+ @Group		AIOP_L2_HM L2 Header Modification
 
  @Description	AIOP L2 related header modifications API
 

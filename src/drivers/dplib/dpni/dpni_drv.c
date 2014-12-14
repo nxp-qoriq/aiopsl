@@ -422,7 +422,6 @@ int dpni_drv_init(void)
 
 	num_of_nis = 0;
 	/* Allocate initernal AIOP NI table */
-	/*nis =fsl_os_xmalloc(sizeof(struct dpni_drv)*SOC_MAX_NUM_OF_DPNI, MEM_PART_SH_RAM, 64);*/
 	nis =fsl_malloc(sizeof(struct dpni_drv)*SOC_MAX_NUM_OF_DPNI,64);
 	if (!nis) {
 	    return -ENOMEM;
@@ -463,7 +462,7 @@ int dpni_drv_init(void)
 void dpni_drv_free(void)
 {
 	if (nis)
-		fsl_os_xfree(nis);
+		fsl_free(nis);
 	nis = NULL;
 }
 
@@ -577,8 +576,7 @@ int dpni_drv_set_order_scope(uint16_t ni_id, struct dpkg_profile_cfg *key_cfg){
 	dpni_drv = nis + ni_id;
 
 
-	params_iova = (uint64_t)fsl_os_xmalloc(PARAMS_IOVA_BUFF_SIZE,
-	                           MEM_PART_DP_DDR,
+	params_iova = (uint64_t)fsl_malloc(PARAMS_IOVA_BUFF_SIZE,
 	                           PARAMS_IOVA_ALIGNMENT);
 	if (params_iova == NULL)
 		return -ENOMEM;
@@ -593,7 +591,7 @@ int dpni_drv_set_order_scope(uint16_t ni_id, struct dpkg_profile_cfg *key_cfg){
 	                          0,
 	                          &cfg,
 	                          params_iova);
-	fsl_os_xfree((void *)params_iova);
+	fsl_free((void *)params_iova);
 	return err;
 }
 

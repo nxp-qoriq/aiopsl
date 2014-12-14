@@ -38,7 +38,7 @@
 #include "dplib/fsl_ipr.h"
 #include "dplib/fsl_ipsec.h"
 #include "dplib/fsl_keygen.h"
-#include "dplib/fsl_snic_cmd.h"
+#include "fsl_snic_cmd.h"
 #include "fsl_tman.h"
 
 /**************************************************************************//**

@@ -38,7 +38,7 @@
 
 
 /**************************************************************************//**
- @Group		ACCEL ACCEL (Accelerator APIs)
+ @Group		ACCEL Accelerators APIs
 
  @Description	AIOP Accelerator APIs
 
@@ -75,9 +75,9 @@ typedef void /*__noreturn*/ (*tman_cb_t) (
 
 
 /**************************************************************************//**
-@Group		TMANMacroes TMAN MACROES
+@Group		TMANMacroes TMAN MACROS
 
-@Description	AIOP TMAN Macroes
+@Description	AIOP TMAN Macros
 @{
 *//***************************************************************************/
 
@@ -218,7 +218,7 @@ struct tman_tmi_params {
 
 /** @} end of group TMANTimerCreateModeBits */
 
-/*! \enum e_tman_query_timer Defines the TMAN query timer state.*/
+/** \enum e_tman_query_timer Defines the TMAN query timer state.*/
 enum e_tman_query_timer {
 	/** The timer is non active (in free timer list) */
 	TMAN_TIMER_NON_ACTIVE = 0,
