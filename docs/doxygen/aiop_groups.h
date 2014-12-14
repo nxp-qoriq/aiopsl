@@ -720,7 +720,7 @@
 		 	@ingroup cmdif_g
 			@{	
 		*/	
-			/** @defgroup CMDIF_SEND_ATTRIBUTES  CMDIF SEND ATTRIBUTES
+			/** @defgroup CMDIF_SEND_ATTRIBUTES Send Attributes
 			*/
 		/** @} */
 	/** @defgroup cmdif_server_g  Command Interface - Server
