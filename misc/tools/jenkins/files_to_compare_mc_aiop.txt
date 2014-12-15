@@ -12,3 +12,4 @@ mc/tests/cmdif_gpp/srv/cmdif_srv.h:aiop/src/kernel/cmdif_srv.h:B17975
 mc/src/lib/slob.c:aiop/src/lib/slob.c:B09752
 mc/src/lib/fsl_slob.h:aiop/src/lib/fsl_slob.h:B09752
 mc/src/lib/slob.h:aiop/src/lib/slob.h:B09752
+mc/src/kernel/inc/fsl_sl_dbg.h:aiop/src/kernel/inc/fsl_sl_dbg.h:B17975
