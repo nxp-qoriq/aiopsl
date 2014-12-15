@@ -218,7 +218,7 @@ struct tman_tmi_params {
 
 /** @} end of group TMANTimerCreateModeBits */
 
-/*! \enum e_tman_query_timer Defines the TMAN query timer state.*/
+/** \enum e_tman_query_timer Defines the TMAN query timer state.*/
 enum e_tman_query_timer {
 	/** The timer is non active (in free timer list) */
 	TMAN_TIMER_NON_ACTIVE = 0,

@@ -30,6 +30,7 @@
 #include "fsl_io.h"
 #include "fsl_malloc.h"
 #include "fdma.h"
+#include "fsl_dbg.h"
 
 /*****************************************************************************/
 __COLD_CODE int bman_fill_bpid(uint32_t num_buffs,
@@ -44,22 +45,22 @@ __COLD_CODE int bman_fill_bpid(uint32_t num_buffs,
 	void* vaddr = 0;
 	int err;
 
-	if(MEM_PART_SH_RAM == mem_partition_id){
-		/* use a special function for allocation from shared ram */
-		vaddr = fsl_malloc((uint32_t)buff_size * num_buffs,
-			                   alignment);
-		addr = fsl_os_virt_to_phys(vaddr);
-	}
-	else{
-
+	switch(mem_partition_id){
+	case MEM_PART_DP_DDR:
+	case MEM_PART_SYSTEM_DDR:
+	case MEM_PART_PEB:
 		err = fsl_os_get_mem((uint32_t)buff_size * num_buffs,
-	                                          mem_partition_id,
-	                                          alignment,
-	                                          &addr);
+		                     mem_partition_id,
+		                     alignment,
+		                     &addr);
 		if(err)
 			return err;
-
+	break;
+	default:
+		pr_err("Memory partition %d is not supported.\n", mem_partition_id);
+		return -EINVAL;
 	}
+
 
 	if(addr == NULL)
 		return -ENOMEM;

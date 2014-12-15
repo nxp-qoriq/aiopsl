@@ -455,7 +455,7 @@ int dpni_drv_init(void)
 void dpni_drv_free(void)
 {
 	if (nis)
-		fsl_os_xfree(nis);
+		fsl_free(nis);
 	nis = NULL;
 }
 

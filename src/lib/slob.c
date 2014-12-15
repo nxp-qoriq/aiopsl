@@ -9,8 +9,21 @@
 #include "fsl_platform.h"
 #include "platform.h"
 #include "platform_aiop_spec.h"
+#include "fsl_mem_mng.h"
 #endif
 #include "slob.h"
+
+#ifdef AIOP
+	#define fsl_os_free sys_aligned_free
+#else
+	#define fsl_os_free fsl_os_free
+#endif
+
+#ifdef AIOP
+	#define fsl_os_malloc(size) sys_aligned_malloc((size),0)
+#else
+	#define fsl_os_malloc(size) fsl_os_malloc((size))
+#endif
 
 /* Array of spinlocks should reside in shared ram memory.
  * They are initialized to 0 (unlocked)  */
@@ -86,7 +99,7 @@ static t_busy_block * create_busy_block(uint64_t base, uint64_t size, char *name
 static t_mem_block * create_new_block(uint64_t base, uint64_t size)
 {
     t_mem_block *p_mem_block;
-
+    
     p_mem_block = (t_mem_block *)fsl_os_malloc(sizeof(t_mem_block));
     if ( !p_mem_block )
     {
@@ -119,7 +132,7 @@ static t_mem_block * create_new_block(uint64_t base, uint64_t size)
 static t_free_block * create_free_block(uint64_t base, uint64_t size)
 {
     t_free_block *p_free_block;
-
+    
     p_free_block = (t_free_block *)fsl_os_malloc(sizeof(t_free_block));
     if ( !p_free_block )
     {

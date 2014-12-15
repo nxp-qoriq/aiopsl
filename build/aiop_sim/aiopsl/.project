@@ -470,11 +470,6 @@
 			<locationURI>virtual:/virtual</locationURI>
 		</link>
 		<link>
-			<name>aiop_sl/drivers/dplib/dpio</name>
-			<type>2</type>
-			<locationURI>virtual:/virtual</locationURI>
-		</link>
-		<link>
 			<name>aiop_sl/drivers/dplib/dpni</name>
 			<type>2</type>
 			<locationURI>virtual:/virtual</locationURI>
@@ -496,6 +491,11 @@
 		</link>
 		<link>
 			<name>aiop_sl/drivers/dplib/netf</name>
+			<type>2</type>
+			<locationURI>virtual:/virtual</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/drivers/dplib/snic</name>
 			<type>2</type>
 			<locationURI>virtual:/virtual</locationURI>
 		</link>
@@ -708,11 +708,6 @@
 			<name>aiop_sl/include/dplib/fsl_parser.h</name>
 			<type>1</type>
 			<locationURI>PARENT-3-PROJECT_LOC/src/include/dplib/fsl_parser.h</locationURI>
-		</link>
-		<link>
-			<name>aiop_sl/include/dplib/fsl_snic_cmd.h</name>
-			<type>1</type>
-			<locationURI>PARENT-3-PROJECT_LOC/src/include/dplib/fsl_snic_cmd.h</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/include/dplib/fsl_ste.h</name>
@@ -985,6 +980,21 @@
 			<locationURI>virtual:/virtual</locationURI>
 		</link>
 		<link>
+			<name>aiop_sl/drivers/dplib/snic/fsl_snic_cmd.h</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/dplib/snic/fsl_snic_cmd.h</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/drivers/dplib/snic/snic.c</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/dplib/snic/snic.c</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/drivers/dplib/snic/snic.h</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/dplib/snic/snic.h</locationURI>
+		</link>
+		<link>
 			<name>aiop_sl/drivers/dplib/util/checksum.c</name>
 			<type>1</type>
 			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/dplib/util/checksum.c</locationURI>
@@ -1123,16 +1133,6 @@
 			<name>aiop_sl/drivers/dplib/arch/accel/parser_inline.h</name>
 			<type>1</type>
 			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/dplib/arch/accel/parser_inline.h</locationURI>
-		</link>
-		<link>
-			<name>aiop_sl/drivers/dplib/arch/accel/snic.c</name>
-			<type>1</type>
-			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/dplib/arch/accel/snic.c</locationURI>
-		</link>
-		<link>
-			<name>aiop_sl/drivers/dplib/arch/accel/snic.h</name>
-			<type>1</type>
-			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/dplib/arch/accel/snic.h</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/drivers/dplib/arch/accel/ste.c</name>
