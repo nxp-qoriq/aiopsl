@@ -36,6 +36,7 @@
 #define __SHBP_AIOP_H
 
 #include <shbp.h>
+#include <fsl_icontext.h>
 
 /**
  * @brief	Structure representing local data for shared pool

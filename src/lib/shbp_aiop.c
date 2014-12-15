@@ -27,6 +27,7 @@
 #include <fsl_shbp_aiop.h>
 #include <fsl_icontext.h>
 #include <fsl_cdma.h>
+#include <fsl_spinlock.h>
 
 uint64_t shbp_acquire(struct shbp_aiop *bp)
 {
@@ -36,29 +37,39 @@ uint64_t shbp_acquire(struct shbp_aiop *bp)
 	cdma_mutex_lock_take(bp->shbp, CDMA_MUTEX_WRITE_LOCK);
 	
 	/* TODO maybe read less */
-	icontext_dma_read(bp->ic, sizeof(struct shbp), bp->shbp, &shbp);
+	icontext_dma_read(&bp->ic, sizeof(struct shbp), bp->shbp, &shbp);
 	
 	/* TODO acquire */
 	
 	
 	offset =  (uint32_t)(&shbp.alloc.deq) - (uint32_t)(&shbp);  
-	icontext_dma_write(bp->ic, sizeof(uint32_t), &shbp.alloc.deq, 
+	icontext_dma_write(&bp->ic, sizeof(uint32_t), &shbp.alloc.deq, 
 	                   bp->shbp + offset);
 	
-	cdma_mutex_lock_release(bp->shbp);	
+	cdma_mutex_lock_release(bp->shbp);
+	
+	return NULL;
 }
 
 int shbp_release(struct shbp_aiop *bp, uint64_t buf)
 {
+	UNUSED(buf);
+
 	cdma_mutex_lock_take(bp->shbp, CDMA_MUTEX_WRITE_LOCK);
 
-	cdma_mutex_lock_release(bp->shbp);	
+	cdma_mutex_lock_release(bp->shbp);
+	
+	return 0;
 }
 
 int shbp_enable(uint16_t swc_id, uint64_t shbp_iova, struct shbp_aiop *bp)
-{
+{	
+	UNUSED(swc_id);
+	UNUSED(shbp_iova);
 	
 	lock_spinlock(&bp->lock);
 
 	unlock_spinlock(&bp->lock);
+	
+	return 0;
 }
