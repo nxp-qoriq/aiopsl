@@ -74,7 +74,9 @@ Layout is built from 3 different sections: containers, objects, connections.
 				obj@5{
 					obj_name = "dpci@5";
 				};
-
+				obj@6{
+					obj_name = "dpaiop@1";
+				};
 			};
 		};
 		dprc@2 {
@@ -133,6 +135,11 @@ Layout is built from 3 different sections: containers, objects, connections.
 		};
 	};
 	objects {
+		dpaiop@1 {
+			compatible = "fsl,dpaiop";
+			tile_id = <0>;
+			aiop_container_id = <2>;
+		};
 		dpio@1 {
 			compatible = "fsl,dpio";
 			channel_mode = "DPIO_LOCAL_CHANNEL";
