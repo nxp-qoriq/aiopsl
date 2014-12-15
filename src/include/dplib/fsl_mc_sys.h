@@ -31,59 +31,20 @@
 #ifndef _FSL_DPLIB_SYS_H
 #define _FSL_DPLIB_SYS_H
 
-#ifdef __linux__
-#ifdef __uboot__
 
-#define dmb()           (__asm__ __volatile__ ("" : : : "memory"))
-#define __iormb()       dmb()
-#define __iowmb()       dmb()
-#define __arch_getq(a)                  (*(volatile unsigned long *)(a))
-#define __arch_putq(v, a)                (*(volatile unsigned long *)(a) = (v))
-#define readq(c)        ({ u64 __v = __arch_getq(c); __iormb(); __v; })
-#define writeq(v, c)     ({ u64 __v = v; __iowmb(); __arch_putq(__v, c); __v; })
-#include <common.h>
-#include <errno.h>
-#include <asm/io.h>
-
-#else
-
-#include <linux/errno.h>
-#include <asm/io.h>
-#include <linux/slab.h>
-
-#endif /* __uboot__ */
-
-#ifndef ENOTSUP
-#define ENOTSUP		95
-#endif
-
-#define ioread64(_p)	    readq(_p)
-#define iowrite64(_v, _p)   writeq(_v, _p)
-
-static inline uint64_t iova_alloc(size_t size)
-{
-	return (uintptr_t)kmalloc(size, GFP_ATOMIC);
-}
-
-#else /* __linux__ */
 
 #include "common/types.h"
 #include "fsl_errors.h"
 #include "fsl_io.h"
-#include "fsl_malloc.h"
+
 #define __iomem
 
 /* Workaround for HW bug - MC portals region cannot be declared non-cacheable */
 #define iowrite32 iowrite32_wt
 
-static inline void * iova_alloc(size_t size)
-{
-	return fsl_os_malloc(size);
-}
 
 #define cpu_to_le64 CPU_TO_LE64
 
-#endif /* __linux__ */
 
 
 struct fsl_mc_io {

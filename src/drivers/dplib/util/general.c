@@ -35,7 +35,7 @@
 #include "fsl_cdma.h"
 
 #ifndef STACK_CHECK
-#include "fsl_dbg.h" 
+#include "fsl_dbg.h"
 #endif
 
 /** Global task params */
@@ -58,14 +58,14 @@ void handle_fatal_error(char *message)
        status = -1 + (uint32_t)message;
        fdma_terminate_task();
 }
-
+#ifdef AIOP_VERIF
 void exception_handler(char *filename,
 		       char *function_name,
 		       uint32_t line,
 		       char *message) __attribute__ ((noreturn))
 {
 	uint32_t status;
-#ifdef AIOP_VERIF
+
 
 	struct fatal_error_command fatal_cmd_str;
 	struct fatal_error_command *fatal_cmd;
@@ -90,7 +90,7 @@ void exception_handler(char *filename,
 
 	fdma_store_and_enqueue_default_frame_fqid(fatal_cmd->fqid,
 						  FDMA_EN_TC_TERM_BITS);
-#endif /*AIOP_VERIF*/
+
 	status = -1 + (uint32_t)message + (uint32_t)filename + line +
 			(uint32_t)function_name;
 
@@ -102,3 +102,4 @@ void exception_handler(char *filename,
 	exit(-1); /* TODO This code is never reached and should be removed once
 	fdma_terminate_task() is declared as noreturn*/
 }
+#endif /*AIOP_VERIF*/

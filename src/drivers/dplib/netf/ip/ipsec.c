@@ -2128,7 +2128,7 @@ int ipsec_get_seq_num(
 	Destination is placed after Routing header.
 	
 *//****************************************************************************/
-uint8_t ipsec_get_ipv6_nh_offset(struct ipv6hdr *ipv6_hdr, uint8_t *length)
+uint8_t ipsec_get_ipv6_nh_offset (struct ipv6hdr *ipv6_hdr, uint8_t *length)
 {
 	uint32_t current_hdr_ptr;
 	uint16_t current_hdr_size;
@@ -2145,35 +2145,42 @@ uint8_t ipsec_get_ipv6_nh_offset(struct ipv6hdr *ipv6_hdr, uint8_t *length)
 	current_hdr_ptr = (uint32_t)ipv6_hdr;
 	current_hdr_size = IPV6_HDR_LENGTH;
 	next_hdr = ipv6_hdr->next_header;
-	
+
 	/* IP Header Length for SEC encapsulation, including IP header and
 	 * extensions before ESP */
 	*length = IPV6_HDR_LENGTH;
-	
+
 	/* Skip to next extension header until extension isn't ipv6 header
 	 * or until extension is the fragment position (depend on flag) */
 	while ((next_hdr == IPV6_EXT_HOP_BY_HOP) ||
 		(next_hdr == IPV6_EXT_ROUTING) || (next_hdr == dst_ext) ||
 		(next_hdr == IPV6_EXT_FRAGMENT)) {
+		
+		/* Increment hh_offset if this is the first extension */
+		if (!nh_offset) {
+			nh_offset += (IPV6_HDR_LENGTH>>3);
+		}
 
 		current_ver = next_hdr;
 		current_hdr_ptr += current_hdr_size;
 		next_hdr = *((uint8_t *)(current_hdr_ptr));
 		current_hdr_size = *((uint8_t *)(current_hdr_ptr + 1));
-
+		
 		/* Calculate current extension size  */
 		switch (current_ver) {
 
 		case IPV6_EXT_DESTINATION:
 		{
-			/* If the next header is not Routing, this should be
+			/* If the next header is not an extension, this should be
 			 * the starting point for ESP encapsulation  */
-			if (next_hdr != IPV6_EXT_ROUTING) {
+			if ((next_hdr != IPV6_EXT_ROUTING) || 
+					(next_hdr != IPV6_EXT_FRAGMENT) || 
+					(next_hdr != IPV6_EXT_HOP_BY_HOP)) {
 				/* Don't add to NH_OFFSET/length and Exit from the while loop */
 				dst_ext = 0;
 			} else {
-				/* Next header is Routing */
-				nh_offset += current_hdr_size; /* in 8 bytes multiples */
+				/* Next header is an Extension */
+				nh_offset += (current_hdr_size + 1); /* in 8 bytes multiples */
 				current_hdr_size = ((current_hdr_size + 1) << 3);
 				*length += current_hdr_size;
 			}
@@ -2191,18 +2198,18 @@ uint8_t ipsec_get_ipv6_nh_offset(struct ipv6hdr *ipv6_hdr, uint8_t *length)
 				header_after_dest = 
 					*((uint8_t *)(current_hdr_ptr + 
 							IPV6_FRAGMENT_HEADER_LENGTH));
-				/* Increment NH_OFFSET only if this is not the last ext. header
-				 * before Destination */
-				if (header_after_dest == IPV6_EXT_ROUTING) {
+				/* Increment NH_OFFSET only if the following DEST header
+				 * is not the last extension */
+				if ((header_after_dest == IPV6_EXT_ROUTING) ||
+						(header_after_dest == IPV6_EXT_HOP_BY_HOP)){
 					nh_offset += IPV6_FRAGMENT_HEADER_LENGTH>>3; 
-				}
+				}	
 			}
 
 			current_hdr_size = IPV6_FRAGMENT_HEADER_LENGTH;
 			*length += current_hdr_size;
 			break;
 		}
-
 		/* Routing, Hop By Hop */
 		default:
 		{
@@ -2211,15 +2218,17 @@ uint8_t ipsec_get_ipv6_nh_offset(struct ipv6hdr *ipv6_hdr, uint8_t *length)
 				(next_hdr == IPV6_EXT_HOP_BY_HOP) ||	
 				(next_hdr == IPV6_EXT_FRAGMENT)) {
 				/* in 8 bytes multiples */
-				nh_offset += current_hdr_size; 
+				nh_offset += (current_hdr_size + 1); 
 			} else if (next_hdr == IPV6_EXT_DESTINATION) {
 				header_after_dest = 
 					*((uint8_t *)(current_hdr_ptr + 
 							((current_hdr_size + 1)<<3)));
 				/* Increment NH_OFFSET only if this is not the last ext. header
 				 * before Destination */
-				if (header_after_dest == IPV6_EXT_ROUTING) {
-					nh_offset += IPV6_FRAGMENT_HEADER_LENGTH>>3; 
+				if ((header_after_dest == IPV6_EXT_ROUTING) ||
+					(header_after_dest == IPV6_EXT_HOP_BY_HOP) ||	
+					(header_after_dest == IPV6_EXT_FRAGMENT)) {
+						nh_offset += (current_hdr_size + 1); 
 				}
 			}
 			
@@ -2233,12 +2242,11 @@ uint8_t ipsec_get_ipv6_nh_offset(struct ipv6hdr *ipv6_hdr, uint8_t *length)
 	/* Return NH_OFFSET as expected by the SEC */
 	if (nh_offset) {
 		/* NH_OFFSET in 8 bytes multiples for IP header + Extensions */
-		return (nh_offset + (IPV6_HDR_LENGTH>>3));
+		return nh_offset;
 	} else {
 		return 0x1; /* NH_OFFSET in case of no Extensions */
 	}
 } /* End of ipsec_get_ipv6_nh_offset */
-
 
 /**************************************************************************/
 

@@ -59,6 +59,8 @@
 #include "fsl_cmdif_server.h"
 
 #include "ls2085_aiop/fsl_platform.h"
+#include "fsl_malloc.h"
+
 
 #define SNIC_CMD_READ(_param, _offset, _width, _type, _arg) \
 	_arg = (_type)u64_dec(cmd_data->params[_param], _offset, _width);
