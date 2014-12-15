@@ -33,6 +33,9 @@
 #include "inc/console.h"
 #include "fsl_mem_mng.h"
 #include "sys.h"
+#include "general.h"
+#include "fsl_fdma.h"
+#include <string.h>
 
 __TASK uint32_t seed_32bit;
 
@@ -525,6 +528,25 @@ dma_addr_t fsl_os_virt_to_phys(void *addr)
 {
     return sys_virt_to_phys(addr);
 }
+
+void exception_handler(char *filename,
+		       char *function_name,
+		       uint32_t line,
+		       char *message) __attribute__ ((noreturn))
+{
+#ifndef STACK_CHECK
+	filename = strrchr(filename, '/') ?
+			strrchr(filename, '/') + 1 : filename;
+	pr_err("Fatal error encountered in file: %s, line: %d\n", filename, line);
+	pr_err("function: %s\n", function_name);
+	pr_err("exception error: %s\n", message);
+	DEBUG_HALT
+#endif
+	fdma_terminate_task();
+	exit(-1); /* TODO This code is never reached and should be removed once
+	fdma_terminate_task() is declared as noreturn*/
+}
+
 
 
 #ifdef ARENA_LEGACY_CODE
