@@ -24,26 +24,41 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/*!
- * @file    shbp_aiop.h
- * @brief   Shared Buffer Pool internal API
- *
- * Internal header file for AIOP.
- *
- */
+#include <fsl_shbp_aiop.h>
+#include <fsl_icontext.h>
+#include <fsl_cdma.h>
 
-#ifndef __SHBP_AIOP_H
-#define __SHBP_AIOP_H
+uint64_t shbp_acquire(struct shbp_aiop *bp)
+{
+	struct shbp shbp;
+	uint32_t offset;
+	
+	cdma_mutex_lock_take(bp->shbp, CDMA_MUTEX_WRITE_LOCK);
+	
+	/* TODO maybe read less */
+	icontext_dma_read(bp->ic, sizeof(struct shbp), bp->shbp, &shbp);
+	
+	/* TODO acquire */
+	
+	
+	offset =  (uint32_t)(&shbp.alloc.deq) - (uint32_t)(&shbp);  
+	icontext_dma_write(bp->ic, sizeof(uint32_t), &shbp.alloc.deq, 
+	                   bp->shbp + offset);
+	
+	cdma_mutex_lock_release(bp->shbp);	
+}
 
-#include <shbp.h>
+int shbp_release(struct shbp_aiop *bp, uint64_t buf)
+{
+	cdma_mutex_lock_take(bp->shbp, CDMA_MUTEX_WRITE_LOCK);
 
-/**
- * @brief	Structure representing local data for shared pool
- */
-struct shbp_aiop {
-	struct   icontext ic;
-	uint64_t shbp;	/*!< Shared buffer pool structure */ 
-	uint8_t  lock;
-};
+	cdma_mutex_lock_release(bp->shbp);	
+}
 
-#endif /* _SHBP_H */
+int shbp_enable(uint16_t swc_id, uint64_t shbp_iova, struct shbp_aiop *bp)
+{
+	
+	lock_spinlock(&bp->lock);
+
+	unlock_spinlock(&bp->lock);
+}

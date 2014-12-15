@@ -26,9 +26,8 @@
 
 /*!
  * @file    fsl_shbp.h
- * @brief   Shared Buffer Pool API
+ * @brief   Shared Buffer Pool API for the side that creates the pool (not AIOP)
  *
- * This is uniform API for GPP and AIOP.
  *
  */
 
