@@ -92,7 +92,7 @@ __COLD_CODE static void aiop_container_free()
 	sys_remove_handle(FSL_OS_MOD_AIOP_RC, 0);
 
 	if (dprc != NULL)
-		fsl_os_xfree(dprc);
+		fsl_free(dprc);
 }
 
 __COLD_CODE static int dpci_tbl_create(struct mc_dpci_obj **_dpci_tbl, int dpci_count)
@@ -437,7 +437,7 @@ __COLD_CODE static void dpci_discovery_free()
 	sys_remove_handle(FSL_OS_MOD_DPCI_TBL, 0);
 
 	if (dpci_tbl != NULL)
-		fsl_os_xfree(dpci_tbl);
+		fsl_free(dpci_tbl);
 }
 
 __COLD_CODE int mc_obj_init()

@@ -122,12 +122,14 @@ void * sys_phys_to_virt(dma_addr_t addr);
 
  @Return        Pointer to allocated memory; NULL on failure.
 *//***************************************************************************/
+/*
 void * sys_mem_xalloc(int         partition_id,
                     uint32_t    size,
                     uint32_t    alignment,
                     char        *info,
                     char        *filename,
                     int         line);
+                    */
 
 /**************************************************************************//**
  @Function      sys_mem_alloc
@@ -143,6 +145,7 @@ void * sys_mem_xalloc(int         partition_id,
 
  @Return        Pointer to allocated memory; NULL on failure.
 *//***************************************************************************/
+#if 0
 void * sys_mem_alloc(uint32_t    size,
                     uint32_t    alignment,
                     char        *info,
@@ -170,8 +173,9 @@ void sys_mem_free(void *p_memory);
 
  @Return        None.
 *//***************************************************************************/
-void sys_mem_xfree(void *p_memory);
 
+void sys_mem_xfree(void *p_memory);
+#endif
 
 /**************************************************************************//**
  @Function      sys_shram_alloc

@@ -49,7 +49,7 @@
 #include "dplib/fsl_fdma.h"
 #include "dplib/fsl_mc_sys.h"
 #include "arch/fsl_mc_cmd.h"
-#include "dplib/fsl_snic_cmd.h"
+#include "fsl_snic_cmd.h"
 
 #include "general.h"
 #include "osm.h"
@@ -59,6 +59,8 @@
 #include "fsl_cmdif_server.h"
 
 #include "ls2085_aiop/fsl_platform.h"
+#include "fsl_malloc.h"
+
 
 #define SNIC_CMD_READ(_param, _offset, _width, _type, _arg) \
 	_arg = (_type)u64_dec(cmd_data->params[_param], _offset, _width);

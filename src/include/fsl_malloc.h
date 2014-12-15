@@ -54,46 +54,6 @@
  @Return        A 32 bit  address of the newly allocated block on success, NULL on failure.
 *//***************************************************************************/
 void * fsl_malloc(size_t size, uint32_t alignment);
-/**************************************************************************//**
- @Function      fsl_os_malloc
-
- @Description   Allocates contiguous block of memory from default heap.
-                aiop_link.lcf linker file contains information where default 
-                heap is mapped to. Currently the heap is located within DP_DDR
-                memory partition.
-
- @Param[in]     size    Number of bytes to allocate.
-
- @Return        The address of the newly allocated block on success, NULL on failure.
-*//***************************************************************************/
-void * fsl_os_malloc(size_t size);
-
-/**************************************************************************//**
- @Function     fsl_os_xmalloc
-
- @Description   Allocates contiguous block of memory in a specified
-                alignment and from the specified  memory partition.
-
- @Param[in]     size                Number of bytes to allocate.
- @Param[in]     mem_partition_id    Memory partition ID; The value zero must
-                                    be mapped to the default heap partition.
-                Valid values: MEM_PART_DP_DDR,MEM_PART_SH_RAM,MEM_PART_PEB,
-                              MEM_PART_SYSTEM_DDR
- @Param[in]     alignment           Required memory alignment (in bytes).
-
- @Return        The address of the newly allocated block on success, NULL on failure.
-*//***************************************************************************/
-void *fsl_os_xmalloc(size_t size, int mem_partition_id, uint32_t alignment);
-
-/**************************************************************************//**
- @Function      fsl_os_xfree
-
- @Description   Frees the memory block pointed to by "mem".
-                Only for memory allocated by fsl_os_xmalloc().
-
- @Param[in]     mem     A pointer to the memory block.
-*//***************************************************************************/
-void fsl_os_xfree(void *mem);
 
 /**************************************************************************//**
  @Function      fsl_free
@@ -104,16 +64,6 @@ void fsl_os_xfree(void *mem);
  @Param[in]     mem     A pointer to the memory block.
 *//***************************************************************************/
 void fsl_free(void *mem);
-
-/**************************************************************************//**
- @Function      fsl_os_free
-
- @Description   frees the memory block pointed to by "mem".
-                Only for memory allocated by fsl_os_malloc().
-
- @Param[in]     mem     A pointer to the memory block.
-*//***************************************************************************/
-void fsl_os_free(void *mem);
 
 /**************************************************************************//**
 @Function      fsl_os_get_mem
