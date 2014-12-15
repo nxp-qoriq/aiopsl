@@ -394,6 +394,7 @@ int ipf_split_ipv4_fragment(struct ipf_context *ipf_ctx)
 	split_frame_params.present_size = PRC_GET_SEGMENT_LENGTH();
 	split_frame_params.source_frame_handle =
 					ipf_ctx->rem_frame_handle;
+	split_frame_params.spid = *((uint8_t *)HWC_SPID_ADDRESS);
 
 	if (ipf_ctx->flags & IPF_RESTORE_ORIGINAL_FRAGMENTS) {
 		split_frame_params.split_size_sf = 0;
@@ -549,7 +550,7 @@ int ipf_split_ipv6_fragment(struct ipf_context *ipf_ctx,
 	split_frame_params.present_size = PRC_GET_SEGMENT_LENGTH();
 	split_frame_params.source_frame_handle =
 					ipf_ctx->rem_frame_handle;
-/*		split_frame_params.spid = *((uint8_t *)HWC_SPID_ADDRESS);*/
+	split_frame_params.spid = *((uint8_t *)HWC_SPID_ADDRESS);
 
 	/* In case of fragments restoration need to store the frame in order
 	 * to get updated FD[length] */
