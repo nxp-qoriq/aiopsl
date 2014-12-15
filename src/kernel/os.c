@@ -533,7 +533,7 @@ dma_addr_t fsl_os_virt_to_phys(void *addr)
 {
     return sys_virt_to_phys(addr);
 }
-#ifndef AIOP_VERIF
+#ifndef AIOP_VERIF /*TODO: Remove #ifndef AIOP_VERIF when the code will be separated */
 void exception_handler(char *filename,
 		       char *function_name,
 		       uint32_t line,
