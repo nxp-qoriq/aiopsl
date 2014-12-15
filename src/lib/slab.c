@@ -273,7 +273,7 @@ int slab_find_and_reserve_bpid(uint32_t num_buffs,
                                uint16_t *bpid_array_index,
                                uint16_t *bpid)
 {
-	int        error = 0, i, found = FALSE;
+	int i, found = FALSE;
 	uint16_t bman_array_index;
 
 	struct slab_module_info *slab_m = \
@@ -386,7 +386,7 @@ int slab_create(uint32_t    committed_buffs,
 	struct slab_v_pool *slab_virtual_pool;
 	struct slab_module_info *slab_m;
 	struct slab_v_pool slab_virtual_pool_ddr;
-	uint64_t context_address;
+	uint64_t context_address = 0;
 
 #ifdef DEBUG
 	/* Sanity checks */
@@ -483,7 +483,7 @@ int slab_create(uint32_t    committed_buffs,
 	g_slab_pool_pointer_ddr += sizeof(pool_id);
 
 	slab_m = sys_get_unique_handle(FSL_OS_MOD_SLAB);
-	fdma_dma_data(sizeof(pool_id),
+	fdma_dma_data((uint16_t)sizeof(pool_id),
 	              slab_m->icid,
 	              &pool_id,
 	              slab_pool_pointer_ddr,
@@ -499,7 +499,7 @@ int slab_create(uint32_t    committed_buffs,
 	{
 		/*new_buffer_allocation*/
 		if(slab_find_and_reserve_bpid(SLAB_BUFFER_TO_MANAGE_IN_DDR,
-		                              sizeof(slab_virtual_pool_ddr) * SLAB_MAX_NUM_VP_DDR,
+		                              (uint16_t)sizeof(slab_virtual_pool_ddr) * SLAB_MAX_NUM_VP_DDR,
 		                              SLAB_DEFAULT_ALIGN,
 		                              MEM_PART_DP_DDR,
 		                              NULL,
@@ -605,7 +605,7 @@ int slab_free(struct slab **slab)
 		cdma_read_with_mutex(pool_data_address,
 		                     CDMA_PREDMA_MUTEX_WRITE_LOCK,
 		                     &slab_virtual_pool_ddr,
-		                     sizeof(slab_virtual_pool_ddr));
+		                     (uint16_t)sizeof(slab_virtual_pool_ddr));
 
 
 
@@ -624,7 +624,7 @@ int slab_free(struct slab **slab)
 		cdma_write_with_mutex(pool_data_address,
 		                      CDMA_POSTDMA_MUTEX_RM_BIT,
 		                      &slab_virtual_pool_ddr,
-		                      sizeof(slab_virtual_pool_ddr));
+		                      (uint16_t)sizeof(slab_virtual_pool_ddr));
 
 		cdma_mutex_lock_take(g_slab_last_pool_pointer_ddr,
 		                     CDMA_MUTEX_WRITE_LOCK);
@@ -632,7 +632,7 @@ int slab_free(struct slab **slab)
 		g_slab_pool_pointer_ddr -= sizeof(pool_id);
 		pool_id = SLAB_CLUSTER_ID_SET(cluster) | pool_id;
 		pool_id = SLAB_HW_POOL_CREATE(pool_id);
-		fdma_dma_data(sizeof(pool_id),
+		fdma_dma_data((uint16_t)sizeof(pool_id),
 		              slab_m->icid,
 		              &pool_id,
 		              g_slab_pool_pointer_ddr,
@@ -688,7 +688,7 @@ int slab_acquire(struct slab *slab, uint64_t *buff)
 		cdma_read_with_mutex(pool_data_address,
 		                     CDMA_PREDMA_MUTEX_WRITE_LOCK,
 		                     &slab_virtual_pool_ddr,
-		                     sizeof(slab_virtual_pool_ddr));
+		                     (uint16_t)sizeof(slab_virtual_pool_ddr));
 		slab_virtual_pool = &slab_virtual_pool_ddr;
 	}
 
@@ -728,7 +728,7 @@ int slab_acquire(struct slab *slab, uint64_t *buff)
 			cdma_write_with_mutex(pool_data_address,
 			                      CDMA_POSTDMA_MUTEX_RM_BIT,
 			                      &slab_virtual_pool_ddr,
-			                      sizeof(slab_virtual_pool_ddr));
+			                      (uint16_t)sizeof(slab_virtual_pool_ddr));
 
 		/* allocate a buffer with the CDMA */
 		return_val = cdma_acquire_context_memory(
@@ -751,12 +751,12 @@ int slab_acquire(struct slab *slab, uint64_t *buff)
 				cdma_read_with_mutex(pool_data_address,
 				                     CDMA_PREDMA_MUTEX_WRITE_LOCK,
 				                     &slab_virtual_pool_ddr,
-				                     sizeof(slab_virtual_pool_ddr));
+				                     (uint16_t)sizeof(slab_virtual_pool_ddr));
 				slab_virtual_pool_ddr.allocated_bufs --;
 				cdma_write_with_mutex(pool_data_address,
 				                      CDMA_POSTDMA_MUTEX_RM_BIT,
 				                      &slab_virtual_pool_ddr,
-				                      sizeof(slab_virtual_pool_ddr));
+				                      (uint16_t)sizeof(slab_virtual_pool_ddr));
 			}
 			return (return_val);
 		}
@@ -856,8 +856,8 @@ int slab_release(struct slab *slab, uint64_t buff)
 				slab_pool_id);
 		cdma_read_with_mutex(pool_data_address,
 		                     CDMA_PREDMA_MUTEX_WRITE_LOCK,
-		                     &slab_virtual_pool_ddr,
-		                     sizeof(slab_virtual_pool_ddr));
+		                     &(slab_virtual_pool_ddr),
+		                     (uint16_t)sizeof(slab_virtual_pool_ddr));
 		slab_virtual_pool = &slab_virtual_pool_ddr;
 	}
 
@@ -884,8 +884,7 @@ int slab_release(struct slab *slab, uint64_t buff)
 	else
 	{
 
-		if(slab_virtual_pool_ddr.allocated_bufs >
-	slab_virtual_pool_ddr.committed_bufs)
+		if(slab_virtual_pool_ddr.allocated_bufs > slab_virtual_pool_ddr.committed_bufs)
 			/* One buffer returns to the common pool */
 			atomic_incr32(&g_slab_bman_pools
 			              [slab_virtual_pool_ddr.bman_array_index].remaining, 1);
@@ -894,7 +893,7 @@ int slab_release(struct slab *slab, uint64_t buff)
 		cdma_write_with_mutex(pool_data_address,
 		                      CDMA_POSTDMA_MUTEX_RM_BIT,
 		                      &slab_virtual_pool_ddr,
-		                      sizeof(slab_virtual_pool_ddr));
+		                      (uint16_t)sizeof(slab_virtual_pool_ddr));
 
 	}
 	return 0;
@@ -1002,9 +1001,7 @@ __COLD_CODE static int dpbp_discovery(struct slab_bpid_info *bpids_arr,
 		return -ENODEV;
 	}
 
-	if(bpids_arr != NULL)/*to run dpbp_add function*/
-		bpids_arr -= num_bpids;
-	else
+	if(bpids_arr == NULL)
 		*n_bpids = num_bpids;
 
 	return 0;
@@ -1075,6 +1072,10 @@ __COLD_CODE int slab_module_early_init(void){
 	pr_info("Initialize memory for App early requests from slab\n");
 	g_slab_early_init_data = (struct memory_types_table *)
 				fsl_malloc((sizeof(struct memory_types_table) ), 1);
+	if(g_slab_early_init_data == NULL){
+		pr_err("No memory to allocate table for slab early init requests\n ");
+		return -ENOMEM;
+	}
 	g_slab_early_init_data->num_ddr_pools = 0;
 	for(i = 0; i < SLAB_NUM_MEM_PARTITIONS; i++)
 		if(g_slab_early_init_data->mem_pid_buffer_request[i])
@@ -1173,7 +1174,7 @@ __COLD_CODE static int slab_proccess_registered_requests(int *num_bpids, struct 
 	int maximum_remainder = 0, minimum_remainder = 0; /*store minimum\maximum remainder after subtraction*/
 	int available_bpids = *num_bpids; /*local number of available bpids for AIOP*/
 	int total_bpids = *num_bpids; /*local number of available bpids for AIOP*/
-	uint16_t bpid_id = 0;
+
 	for(i = 0; i < SLAB_NUM_MEM_PARTITIONS; i++)
 	{
 		if(g_slab_early_init_data->mem_pid_buffer_request[i])
@@ -1367,7 +1368,7 @@ __COLD_CODE int slab_module_init(void)
 	err = slab_register_context_buffer_requirements(
 		num_clusters_for_ddr_mamangement_pools,
 		num_clusters_for_ddr_mamangement_pools,
-		(SLAB_MAX_NUM_VP_DDR * sizeof(struct slab_v_pool)),
+		(uint16_t)(SLAB_MAX_NUM_VP_DDR * sizeof(struct slab_v_pool)),
 		SLAB_DEFAULT_ALIGN,
 		SLAB_DDR_MEMORY,
 		0,
