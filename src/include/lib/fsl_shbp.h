@@ -68,7 +68,7 @@ void *shbp_acquire(struct shbp *bp);
  * @param[in]	bp  - Buffer pool handle
  * @param[in]	buf - Pointer to buffer
  * 
- * @returns	0 on Success; or error code otherwise
+ * @returns	0 on Success; or POSIX error code otherwise
  *
  */
 int shbp_release(struct shbp *bp, void *buf);
@@ -83,12 +83,13 @@ int shbp_release(struct shbp *bp, void *buf);
  * @param[in]	size     - Size of mem_ptr
  * @param[in]	flags    - Flags to be used for pool creation, 0 means AIOP is 
  * 		the allocation master. See #SHBP_GPP_MASTER.
+ * @param[out]  bp       - Pointer to shared pool handle
  * 
- * @returns	Pointer to shared pool handle on Success; or NULL otherwise
- * 		Minimum size is 8.
+ * @returns	0 on Success; or POSIX error code otherwise
+ * 	
  *
  */
-struct shbp *shbp_create(void *mem_ptr, uint32_t size, uint32_t flags);
+int shbp_create(void *mem_ptr, uint32_t size, uint32_t flags, struct shbp **bp);
 
 /**
  * @brief	Move free buffers into allocation queue
@@ -103,18 +104,20 @@ int shbp_refill(struct shbp *bp);
 
 
 /**
- * @brief	Returns the list of pointers to be freed 
- *
+ * @brief	Returns the pointers from pool that need to be freed upon pool
+ * 		destruction 
+ * 
+ * Pointer to struct shbp will not be returned by shbp_destroy() but it 
+ * must be freed by user 
+ * 
  * @param[in]	bp       - Buffer pool handle
- * @param[in]	arr_size - Number of entries to be filled inside ptr_arr
- * @param[out]	ptr_arr  - Array of pointers to be freed for pool destruction 
+ * @param[out]	pt       - Pointer to be freed for pool destruction 
  * 
  * @returns	POSIX error code until there are buffers inside shared pool 
- * 		that need to be freed, 0 if all the pointers have been copied 
- * 		into ptr_arr
+ * 		that need to be freed, 0 if there are no buffers to be freed
  *
  */
-int shbp_free_ptr(struct shbp *bp, uint32_t arr_size, void **ptr_arr);
+int shbp_destroy(struct shbp *bp, void **ptr_arr);
 
 /** @} */ /* end of shbp_g group */
 

@@ -32,12 +32,6 @@
         (!(((uint32_t)(ADDRESS)) & (((uint32_t)(ALIGNMENT)) - 1)))
 #endif /*!< check only 4 last bytes */
 
-#ifndef ALIGN_UP64
-#define ALIGN_UP64(ADDRESS, ALIGNMENT)           \
-        ((((uint64_t)(ADDRESS)) + ((uint64_t)(ALIGNMENT)) - 1) & (~(((uint64_t)(ALIGNMENT)) - 1)))
-        /**< Align a given address - equivalent to ceil(ADDRESS,ALIGNMENT) */
-#endif /* ALIGN_UP */
-
 static uint8_t get_num_of_first_bit(uint32_t num)
 {
 	int i;
@@ -64,22 +58,22 @@ static void release(struct shbp *bp, struct shbp_q *q, void *buf)
 	((uint64_t *)q->base)[enq] = (uint64_t)buf;
 	
 	q->enq++;
-
 }
-struct shbp *shbp_create(void *mem_ptr, uint32_t size, uint32_t flags)
+
+int shbp_create(void *mem_ptr, uint32_t size, uint32_t flags, struct shbp **_bp)
 {
 	struct shbp *bp;
 	uint32_t ring_size;
+	
 #ifdef DEBUG
 	if ((mem_ptr == NULL) || (size == 0) || (flags != 0))
-		return NULL;
+		return -EINVAL;
+#endif	
 	/* Better to have mem_ptr aligned to cache line */
 	if (!IS_ALIGNED(mem_ptr, 64))
-		return NULL;
-#endif
+		return -EINVAL;
 	
-	bp = (struct shbp *)ALIGN_UP64(mem_ptr, 64);
-	size -= (uint32_t)((uint8_t *)bp - (uint8_t *)mem_ptr);
+	bp = (struct shbp *)mem_ptr;
 	memset(bp, 0, size);
 
 	/* 8 bytes for each BD, 2 rings = 2 ^ 4 
@@ -91,8 +85,7 @@ struct shbp *shbp_create(void *mem_ptr, uint32_t size, uint32_t flags)
 	if (ring_size < 8)
 		return NULL;
 	
-	bp->mem_ptr = (uint64_t)mem_ptr;
-	bp->size = get_num_of_first_bit(ring_size);
+	bp->max_num = get_num_of_first_bit(ring_size);
 	
 	bp->alloc_master = (uint8_t)(flags & SHBP_GPP_MASTER);
 		
@@ -101,7 +94,9 @@ struct shbp *shbp_create(void *mem_ptr, uint32_t size, uint32_t flags)
 	bp->free.base  = (uint64_t)(((uint8_t *)bp->alloc.base) + 
 		SHBP_SIZE_BYTES(bp));
 	
-	return bp;
+	*_bp = bp;
+	
+	return 0;
 }
 
 void *shbp_acquire(struct shbp *bp)
@@ -139,7 +134,6 @@ int shbp_release(struct shbp *bp, void *buf)
 	return 0;
 }
 
-
 int shbp_refill(struct shbp *bp)
 {
 	void *buf;
@@ -158,30 +152,25 @@ int shbp_refill(struct shbp *bp)
 	return count;
 }
 
-int shbp_free_ptr(struct shbp *bp, uint32_t arr_size, void **ptr_arr)
+int shbp_destroy(struct shbp *bp, void **ptr)
 {
-	int i = 0;
+#ifdef DEBUG
+	if ((bp == NULL) || (ptr == NULL))
+		return -EINVAL;
+#endif
 	
 	/* take all from free */
-	while ((i < arr_size) && !SHBP_FREE_IS_EMPTY(bp)) {
-		void *buf = acquire(bp, &bp->free);
-		ptr_arr[i] = buf;
-		i++;
-	}
-	if (!SHBP_FREE_IS_EMPTY(bp))
-		return -ENOSPC;
+	if (!SHBP_FREE_IS_EMPTY(bp)) {
+		*ptr = acquire(bp, &bp->free);
+		return -EACCES;
+	}	
 	
 	/* take all from alloc */
-	while ((i < arr_size) && !SHBP_ALLOC_IS_EMPTY(bp)) {
-		void *buf = acquire(bp, &bp->alloc);
-		ptr_arr[i] = buf;
-		i++;
+	if (!SHBP_ALLOC_IS_EMPTY(bp)) {
+		*ptr = acquire(bp, &bp->alloc);
+		return -EACCES;
 	}
-	if (!SHBP_ALLOC_IS_EMPTY(bp) || (i == arr_size))
-		return -ENOSPC;
-
-	/* Add mem_ptr */
-	ptr_arr[i] = (void *)bp->mem_ptr;
 	
+	*ptr = NULL;
 	return 0;
 }

@@ -43,6 +43,7 @@
 struct shbp_aiop {
 	struct   icontext ic;
 	uint64_t bp;	/*!< Shared buffer pool structure */ 
+	uint8_t  lock;
 };
 
 #endif /* _SHBP_H */
