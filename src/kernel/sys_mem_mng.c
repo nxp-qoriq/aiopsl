@@ -137,7 +137,6 @@ extern t_system sys;
     return 0;
 }
 
-
 /*****************************************************************************/
 dma_addr_t sys_virt_to_phys(void *virt_addr)
 {
@@ -171,7 +170,6 @@ dma_addr_t sys_virt_to_phys(void *virt_addr)
     return (dma_addr_t)virt_addr64;
 }
 
-
 /*****************************************************************************/
 void * sys_phys_to_virt(dma_addr_t phys_addr)
 {
@@ -202,7 +200,6 @@ void * sys_phys_to_virt(dma_addr_t phys_addr)
     /* Mapping not found */
     return UINT_TO_PTR(phys_addr);
 }
-
 
 /*****************************************************************************/
 static t_sys_virt_mem_map * sys_find_virt_addr_mapping(uint64_t virt_addr)
@@ -265,6 +262,7 @@ void sys_shram_free(void *mem)
 	mem_mng_free_mem(sys.mem_mng, mem);
 }
 /*****************************************************************************/
+#if 0
 void * sys_mem_alloc(uint32_t    size,
                     uint32_t    alignment,
                     char        *info,
@@ -336,7 +334,9 @@ void sys_mem_free(void *p_memory)
     ASSERT_COND(sys.mem_mng);
     mem_mng_free_mem(sys.mem_mng, p_memory);
 }
+
 /*****************************************************************************/
+
 void sys_mem_xfree(void *p_memory)
 {
     ASSERT_COND(sys.mem_mng);
@@ -364,6 +364,7 @@ void sys_mem_xfree(void *p_memory)
     mem_mng_free_mem(sys.mem_mng, p_memory);
 }
 
+#endif
 
 /*****************************************************************************/
 int sys_get_available_mem_partition(void)

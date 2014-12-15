@@ -417,6 +417,7 @@ atomic_loop:
 	}
 }
 
+#if 0
 #ifdef DEBUG_FSL_OS_MALLOC
 void * fsl_os_malloc_debug(size_t size, char *fname, int line);
 
@@ -427,13 +428,13 @@ void *fsl_os_xmalloc_debug(size_t size,
                            int      line);
 #endif
 
-#if 0
+
 #define fsl_os_malloc(sz) \
     fsl_os_malloc_debug((sz), __FILE__, __LINE__)
 
 #define fsl_os_xmalloc(sz, memt, al) \
    fsl_os_xmalloc_debug((sz), (memt), (al), __FILE__, __LINE__)
-#endif
+
 
 /*****************************************************************************/
 void * fsl_os_malloc_debug(size_t size, char *fname, int line)
@@ -442,6 +443,7 @@ void * fsl_os_malloc_debug(size_t size, char *fname, int line)
 }
 
 /*****************************************************************************/
+
 void *fsl_os_xmalloc_debug(size_t     size,
                            int          partition_id,
                            uint32_t     alignment,
@@ -450,6 +452,7 @@ void *fsl_os_xmalloc_debug(size_t     size,
 {
 	return sys_mem_xalloc(partition_id, size, alignment, "", fname, line);
 }
+#endif
 /*****************************************************************************/
 void * fsl_malloc(size_t size,uint32_t alignment)
 {
@@ -466,6 +469,7 @@ void fsl_free(void *mem)
 }
 
 /*****************************************************************************/
+#if 0
 #ifdef DEBUG_FSL_OS_MALLOC
 void * fsl_os_malloc(size_t size)
 {
@@ -479,6 +483,7 @@ void * fsl_os_malloc(size_t size)
 #endif
 
 /*****************************************************************************/
+
 #ifdef DEBUG_FSL_OS_MALLOC
 void *fsl_os_xmalloc(size_t size, int partition_id, uint32_t alignment)
 {
@@ -503,6 +508,7 @@ void fsl_os_xfree(void *p_memory)
 {
     sys_mem_xfree(p_memory);
 }
+#endif
 /*****************************************************************************/
 int fsl_os_get_mem(uint64_t size, int mem_partition_id, uint64_t alignment,
                    uint64_t* paddr)
@@ -519,14 +525,11 @@ void * fsl_os_phys_to_virt(dma_addr_t addr)
 {
     return sys_phys_to_virt(addr);
 }
-
 /*****************************************************************************/
 dma_addr_t fsl_os_virt_to_phys(void *addr)
 {
     return sys_virt_to_phys(addr);
 }
-
-
 #ifdef ARENA_LEGACY_CODE
 /*****************************************************************************/
 /*                        Timers Service Routines                            */
