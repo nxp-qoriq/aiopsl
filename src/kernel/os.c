@@ -533,7 +533,7 @@ dma_addr_t fsl_os_virt_to_phys(void *addr)
 {
     return sys_virt_to_phys(addr);
 }
-
+#ifndef AIOP_VERIF
 void exception_handler(char *filename,
 		       char *function_name,
 		       uint32_t line,
@@ -551,7 +551,7 @@ void exception_handler(char *filename,
 	exit(-1); /* TODO This code is never reached and should be removed once
 	fdma_terminate_task() is declared as noreturn*/
 }
-
+#endif
 
 
 #ifdef ARENA_LEGACY_CODE
