@@ -55,6 +55,19 @@ struct shbp_bd_meta {
 };
 #endif // 0
 
+#define SHBP_RESERVED_BYTES	30
+#define SHBP_SIZE(BP)		(0x1 << (BP)->max_num)	/*!< Number of BDs */
+#define SHBP_ALLOC_IS_FULL(BP)	(((BP)->alloc.enq - (BP)->alloc.deq) == SHBP_SIZE(BP))
+#define SHBP_ALLOC_IS_EMPTY(BP)	(((BP)->alloc.enq - (BP)->alloc.deq) == 0)
+#define SHBP_FREE_IS_FULL(BP)	(((BP)->free.enq - (BP)->free.deq) == SHBP_SIZE(BP))
+#define SHBP_FREE_IS_EMPTY(BP)	(((BP)->free.enq - (BP)->free.deq) == 0)
+#define SHBP_SIZE_BYTES(BP)	(SHBP_SIZE(BP) << 3)	/*!< Number of bytes */
+#define SHBP_BD_IND(SHBP, NUM)	((NUM) % SHBP_SIZE((SHBP)))
+#define SHBP_BD_OFF(SHBP, NUM)	(SHBP_BD_IND(SHBP, NUM) << 3)
+/*!< Offset of the BD in BYTES - mod 2^x */
+#define SHBP_MEM_OFF(SHBP, PTR) (uint32_t)((uint8_t *)(PTR) - (uint8_t *)(SHBP))
+/*!< Member offset in bytes */
+
 /**
  * @brief	Structure representing one ring
  */
@@ -74,16 +87,10 @@ struct shbp {
 	struct shbp_q free;
 	/*!< Free queue */
 	uint8_t alloc_master;	
-	/*!< Master of the allocation */
+	/*!< Master of the allocation, must be 1 byte */
 	uint8_t max_num;	
-	/*!< Max number of BDs in the pool is 2^max_buf */
-	uint8_t reserved[30];
+	/*!< Max number of BDs in the pool is 2^max_buf, must be 1 byte */
+	uint8_t reserved[SHBP_RESERVED_BYTES];
 };
-
-#define SHBP_ALLOC_IS_FULL(BP)	(((BP)->alloc.enq - (BP)->alloc.deq) == (BP)->max_num)
-#define SHBP_ALLOC_IS_EMPTY(BP)	(((BP)->alloc.enq - (BP)->alloc.deq) == 0)
-#define SHBP_FREE_IS_EMPTY(BP)	(((BP)->free.enq - (BP)->free.deq) == 0)
-#define SHBP_SIZE(BP)		(0x1 << (BP)->max_num)	/*!< Number of BDs */
-#define SHBP_SIZE_BYTES(BP)	(SHBP_SIZE(BP) << 3)	/*!< Number of bytes */
 
 #endif /* _SHBP_H */

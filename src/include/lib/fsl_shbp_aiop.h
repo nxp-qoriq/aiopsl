@@ -73,7 +73,7 @@ int shbp_release(struct shbp_aiop *bp, uint64_t buf);
  *
  * @param[in]	swc_id    - Software context id (DPCI) of this shared pool
  * @param[in]	shbp_iova - I/O virtual address of shared pool as received 
- * 		from GPP (pointer to struct shbp) 
+ * 		from GPP (pointer to struct shbp), should be in Big Endian
  * @param[out]	bp        - AIOP buffer pool handle, must reside in SHRAM
  * @returns	0 on Success; or error code otherwise
  *

@@ -44,7 +44,7 @@ static uint8_t get_num_of_first_bit(uint32_t num)
 
 static void *acquire(struct shbp *bp, struct shbp_q *q)
 {
-	uint32_t deq = q->deq % SHBP_SIZE(bp); /* mod 2^x */
+	uint32_t deq = SHBP_BD_IND(bp, q->deq); /* mod 2^x */
 	void    *buf = (void *)(((uint64_t *)q->base)[deq]);
 	
 	q->deq++;
@@ -54,7 +54,7 @@ static void *acquire(struct shbp *bp, struct shbp_q *q)
 
 static void release(struct shbp *bp, struct shbp_q *q, void *buf)
 {
-	uint32_t enq = bp->alloc.enq % SHBP_SIZE(bp); /* mod 2^x */
+	uint32_t enq = SHBP_BD_IND(bp, q->enq); /* mod 2^x */
 	((uint64_t *)q->base)[enq] = (uint64_t)buf;
 	
 	q->enq++;
