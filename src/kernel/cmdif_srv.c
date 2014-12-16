@@ -425,7 +425,7 @@ static inline void sync_done_set(uint16_t auth_id)
 }
 
 /** Find dpci index and get dpci table */
-static inline int find_dpci(uint32_t dpci_id)
+__COLD_CODE static inline int find_dpci(uint32_t dpci_id)
 {
 	int i = 0;
 	struct mc_dpci_obj *dt = cmdif_aiop_srv.dpci_tbl;
@@ -437,7 +437,7 @@ static inline int find_dpci(uint32_t dpci_id)
 	return -1;
 }
 
-static inline void amq_bits_update(int ind)
+__COLD_CODE static inline void amq_bits_update(int ind)
 {
 	uint16_t pl_icid = PL_ICID_GET;
 
@@ -454,7 +454,7 @@ static inline void amq_bits_update(int ind)
 
 /* Support for AIOP -> GPP */
 /* int mc_dpci_check(int ind);*/
-static inline int mc_dpci_check(int ind)
+__COLD_CODE static inline int mc_dpci_check(int ind)
 {
 	uint8_t i;
 	struct mc_dprc *dprc = NULL;
@@ -483,7 +483,7 @@ static inline int mc_dpci_check(int ind)
 	return err;
 }
 
-int notify_open();
+__COLD_CODE int notify_open();
 /* static */ int notify_open()
 {
 #ifndef STACK_CHECK /* No user callback */
@@ -581,7 +581,7 @@ int notify_open();
 }
 
 /* Support for AIOP -> GPP */
-int notify_close();
+__COLD_CODE int notify_close();
 /* static */ int notify_close()
 {
 #ifndef STACK_CHECK /* No user callabck here */	
@@ -654,7 +654,7 @@ void dump_memory();
 #endif /* STACK_CHECK */
 }
 
-static void open_cmd_print()
+__COLD_CODE static void open_cmd_print()
 {
 #ifdef DEBUG
 	char  m_name[M_NAME_CHARS + 1];
@@ -663,7 +663,7 @@ static void open_cmd_print()
 #endif
 }
 
-static void dpci_icontext_update()
+__COLD_CODE static void dpci_icontext_update()
 {
 	uint32_t fqid = RESP_QID_GET;
 	uint8_t  ind = (uint8_t)(fqid >> 1);	
@@ -671,7 +671,7 @@ static void dpci_icontext_update()
 	amq_bits_update(ind);
 }
 
-int session_open();
+__COLD_CODE int session_open();
 /* static */ int session_open()
 {
 	char     m_name[M_NAME_CHARS + 1];
