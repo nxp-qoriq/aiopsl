@@ -464,13 +464,6 @@ static int cmdif_epid_setup(struct aiop_ws_regs *wrks_addr,
 	iowrite32_ccsr(epid, &wrks_addr->epas); /* EPID = 2 */
 	iowrite32_ccsr(PTR_TO_UINT(isr_cb), &wrks_addr->ep_pc);
 
-#ifdef AIOP_STANDALONE
-	/* Default settings */
-	iowrite32_ccsr(0x00600040, &wrks_addr->ep_fdpa);
-	iowrite32_ccsr(0x010001c0, &wrks_addr->ep_spa);
-	iowrite32_ccsr(0x00000000, &wrks_addr->ep_spo);
-#endif
-
 	/* no PTA presentation is required (even if there is a PTA)*/
 	iowrite32_ccsr(0x0000ffc0, &wrks_addr->ep_ptapa);
 	/* set epid ASA presentation size to 0 */
