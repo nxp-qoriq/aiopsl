@@ -132,7 +132,7 @@ int app_init(void)
 	}
 
 
-	fsl_os_print("To start test inject packets: \"app_process_packet.pcap\"\n");
+	fsl_os_print("To start test inject packets: \"eth_ipv4_udp.pcap\"\n");
 
 	return 0;
 }
