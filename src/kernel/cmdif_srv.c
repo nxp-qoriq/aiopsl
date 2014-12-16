@@ -441,12 +441,15 @@ static inline void amq_bits_update(int ind)
 {
 	uint16_t pl_icid = PL_ICID_GET;
 
-	cmdif_aiop_srv.dpci_tbl->icid[ind]       = ICID_GET(pl_icid);
-	cmdif_aiop_srv.dpci_tbl->bdi_flags[ind]  = FDMA_EN_TC_RET_BITS; /* don't change */
-	cmdif_aiop_srv.dpci_tbl->dma_flags[ind]  = FDMA_DMA_DA_SYS_TO_WS_BIT;
-	ADD_AMQ_FLAGS(cmdif_aiop_srv.dpci_tbl->dma_flags[ind], pl_icid);
-	if (BDI_GET != 0)
-		cmdif_aiop_srv.dpci_tbl->bdi_flags[ind] |= FDMA_ENF_BDI_BIT;
+	if (cmdif_aiop_srv.dpci_tbl->icid[ind] == ICONTEXT_INVALID) {
+		cmdif_aiop_srv.dpci_tbl->bdi_flags[ind]  = FDMA_EN_TC_RET_BITS; /* don't change */
+		cmdif_aiop_srv.dpci_tbl->dma_flags[ind]  = FDMA_DMA_DA_SYS_TO_WS_BIT;
+		ADD_AMQ_FLAGS(cmdif_aiop_srv.dpci_tbl->dma_flags[ind], pl_icid);
+		if (BDI_GET != 0)
+			cmdif_aiop_srv.dpci_tbl->bdi_flags[ind] |= FDMA_ENF_BDI_BIT;
+		/* Must be last line */
+		cmdif_aiop_srv.dpci_tbl->icid[ind]       = ICID_GET(pl_icid);
+	}
 }
 
 /* Support for AIOP -> GPP */
@@ -509,6 +512,8 @@ int notify_open();
 	pr_debug("Found dpci %d peer id at index %d \n", \
 		    cmdif_aiop_srv.dpci_tbl->attr[ind].id, ind);
 
+	amq_bits_update(ind);
+
 	/* Locking here for updating dpci table in runtime in case if queues 
 	 * are not available yet. This case should not happen. 
 	 * After cmdif_open() on AIOP those DPCI queues are not updated anymore 
@@ -549,7 +554,6 @@ int notify_open();
 		return -ENOSPC;
 	}
 
-	amq_bits_update(ind);
 	cl->gpp[link_up].ins_id           = data->inst_id;
 	cl->gpp[link_up].dev->auth_id     = data->auth_id;
 	cl->gpp[link_up].dev->p_sync_done = sync_done_get();
@@ -659,6 +663,14 @@ static void open_cmd_print()
 #endif
 }
 
+static void dpci_icontext_update()
+{
+	uint32_t fqid = RESP_QID_GET;
+	uint8_t  ind = (uint8_t)(fqid >> 1);	
+
+	amq_bits_update(ind);
+}
+
 int session_open();
 /* static */ int session_open()
 {
@@ -682,7 +694,9 @@ int session_open();
 
 	inst_id  = cmd_inst_id_get();
 	sl_pr_debug("inst_id = %d\n", inst_id);
-
+	
+	dpci_icontext_update(); /* Must be before open callback */
+	
 	OPEN_CB(m_id, inst_id, dev);
 	if (!err) {
 		int  new_inst = inst_alloc((uint8_t)m_id);
