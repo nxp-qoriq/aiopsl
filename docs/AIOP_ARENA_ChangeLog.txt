@@ -1,4 +1,5 @@
 - fsl_icontext.h: Updated icontext_get() to support ENGR00341218: API to get the GPP ICID.
+- os.c:          ENGR00341990 - resolved, added implementation for exception_handler    
 - cmdif_srv.c:    Added support fo ENGR00341218: Cmdif to support working with AIOP ICID and new API to get the GPP ICID that issued the cmd 
 
 - app.h/c:       Fixed ENGR00341738, added APP_MAX_NUM to app.h. Updated build_apps_array() in app.c.      
