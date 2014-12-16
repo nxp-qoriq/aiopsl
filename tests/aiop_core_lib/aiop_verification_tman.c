@@ -39,6 +39,10 @@
 
 extern __VERIF_GLOBAL uint8_t tmi_id;
 
+#ifndef REV2
+extern uint32_t tman_tmi_max_num_of_timers[256];
+#endif
+
 uint16_t aiop_verification_tman(uint32_t asa_seg_addr)
 {
 	uint16_t str_size = STR_SIZE_ERR;
@@ -80,6 +84,10 @@ uint16_t aiop_verification_tman(uint32_t asa_seg_addr)
 				str->tmi_id,
 				str->conf_opaque_data1,
 				str->conf_opaque_data2);
+#ifndef REV2
+		str->max_num_of_timers = 
+				tman_tmi_max_num_of_timers[str->tmi_id];
+#endif
 		str_size = sizeof(struct tman_tmi_delete_command);
 		break;
 	}

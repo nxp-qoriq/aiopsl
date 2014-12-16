@@ -101,12 +101,16 @@ int tman_create_tmi(uint64_t tmi_mem_base_addr,
 		/* YIELD. May not be optimized due to CTS behavior*/
 		sys_yield();
 	}
+#ifndef REV2
 	/* Reading TMEV register value is due to Errata ERR008234 */
 	if ((*tmi_state_ptr == TMAN_TMI_BUS_ERR) ||
 		(*((uint32_t *) TMAN_TMEV_ADDRESS) & TMAN_TMEV_BUS_ERR_MASK))
 		tman_exception_handler(__FILE__, TMAN_TMI_CREATE_FUNC_ID,
 				__LINE__,
 				(int)(TMAN_TMR_TMI_STATE_ERR+TMAN_TMI_BUS_ERR));
+	/* The next code line is due to Errata ERR008205 */
+	tman_tmi_max_num_of_timers[*tmi_id] = max_num_of_timers;
+#endif
 	return (int)(TMAN_TMI_CREATE_SUCCESS);
 }
 
