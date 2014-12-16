@@ -31,12 +31,17 @@
 *//***************************************************************************/
 
 #include "dplib/fsl_tman.h"
+#include "tman.h" /* only to check tman_query_tmi_sw function */
 #include "dplib/fsl_frame_operations.h"
 
 #include "aiop_verification.h"
 #include "aiop_verification_tman.h"
 
 extern __VERIF_GLOBAL uint8_t tmi_id;
+
+#ifndef REV2
+extern uint32_t tman_tmi_max_num_of_timers[256];
+#endif
 
 uint16_t aiop_verification_tman(uint32_t asa_seg_addr)
 {
@@ -79,10 +84,15 @@ uint16_t aiop_verification_tman(uint32_t asa_seg_addr)
 				str->tmi_id,
 				str->conf_opaque_data1,
 				str->conf_opaque_data2);
+#ifndef REV2
+		str->max_num_of_timers = 
+				tman_tmi_max_num_of_timers[str->tmi_id];
+#endif
 		str_size = sizeof(struct tman_tmi_delete_command);
 		break;
 	}
 	/* TMAN TMI query Command Verification */
+#ifdef REV2
 	case TMAN_TMI_QUERY_CMD_STR:
 	{
 		struct tman_tmi_query_command *str =
@@ -93,6 +103,17 @@ uint16_t aiop_verification_tman(uint32_t asa_seg_addr)
 		str_size = sizeof(struct tman_tmi_query_command);
 		break;
 	}
+#endif
+#ifndef REV2
+	case TMAN_TMI_QUERY_SW_CMD_STR:
+	{
+		struct tman_tmi_query_sw_command *str =
+			(struct tman_tmi_query_sw_command *) asa_seg_addr;
+		str->status = tman_query_tmi_sw(str->tmi_id);
+		str_size = sizeof(struct tman_tmi_query_sw_command);
+		break;
+	}
+#endif
 	/* TMAN timer create Command Verification */
 	case TMAN_TIMER_CREATE_CMD_STR:
 	{

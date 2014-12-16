@@ -36,13 +36,15 @@
 #define __SHBP_AIOP_H
 
 #include <shbp.h>
+#include <fsl_icontext.h>
 
 /**
  * @brief	Structure representing local data for shared pool
  */
 struct shbp_aiop {
 	struct   icontext ic;
-	uint64_t bp;	/*!< Shared buffer pool structure */ 
+	uint64_t shbp;	/*!< Shared buffer pool structure */ 
+	uint8_t  lock;
 };
 
 #endif /* _SHBP_H */

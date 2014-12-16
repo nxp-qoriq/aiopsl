@@ -444,20 +444,16 @@ __COLD_CODE int mc_obj_init()
 {
 	int err = 0;
 
-#ifndef AIOP_STANDALONE
 	err |= aiop_container_init();
 	err |= dpci_discovery(); /* must be after aiop_container_init */
-#endif
 	return err;
 
 }
 
 __COLD_CODE void mc_obj_free()
 {
-#ifndef AIOP_STANDALONE
 	aiop_container_free();
 	dpci_discovery_free();
 	/* TODO DPCI close ???
 	 * TODO DPRC close */
-#endif
 }
