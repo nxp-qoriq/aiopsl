@@ -545,7 +545,6 @@ void exception_handler(char *filename,
 	pr_err("Fatal error encountered in file: %s, line: %d\n", filename, line);
 	pr_err("function: %s\n", function_name);
 	pr_err("exception error: %s\n", message);
-	DEBUG_HALT
 #endif
 	fdma_terminate_task();
 	exit(-1); /* TODO This code is never reached and should be removed once
