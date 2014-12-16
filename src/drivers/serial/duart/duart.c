@@ -404,16 +404,16 @@ static void duart_free_local(fsl_handle_t duart)
 		return;
 
 	if (p_uart->p_rx_buffer) {
-		sys_aligned_free(p_uart->p_rx_buffer);
+		fsl_free(p_uart->p_rx_buffer);
 		p_uart->p_rx_buffer = NULL;
 	}
 
-	if (p_uart->p_tx_buffer) {
-		sys_aligned_free(p_uart->p_tx_buffer);
+	if (p_uart->p_tx_buffer) {	
+		fsl_free(p_uart->p_tx_buffer);
 		p_uart->p_tx_buffer = NULL;
 	}
 
-	sys_aligned_free(duart);
+	fsl_free(duart);
 }
 
 
@@ -431,7 +431,7 @@ fsl_handle_t duart_config(t_duart_uart_param *p_duart_param)
 	SANITY_CHECK_RETURN_VALUE(p_duart_param, ENODEV, NULL);
 
 	/* Allocate memory for the DUART UART data structure */	
-	p_uart = (t_duart_uart *)sys_aligned_malloc(sizeof(t_duart_uart),0);
+	p_uart = (t_duart_uart *)fsl_malloc(sizeof(t_duart_uart),0);
 	if (!p_uart) {
 		REPORT_ERROR(MAJOR, ENOMEM, ("DUART driver structure"));
 		return NULL;
@@ -439,11 +439,11 @@ fsl_handle_t duart_config(t_duart_uart_param *p_duart_param)
 	memset(p_uart, 0, sizeof(t_duart_uart));
 
 	/* Allocate memory for the parameter structures */
-	p_driver_param = (t_duart_driver_param *)sys_aligned_malloc(
-			sizeof(t_duart_driver_param),0);
+	p_driver_param = (t_duart_driver_param *)fsl_malloc(
+		        sizeof(t_duart_driver_param),0);
 	if (!p_driver_param) {
 		REPORT_ERROR(MAJOR, ENOMEM, ("DUART driver parameters"));
-		sys_aligned_free(p_uart);
+		fsl_free(p_uart);
 		return NULL;
 	}
 	memset(p_driver_param, 0, sizeof(t_duart_driver_param));
@@ -703,14 +703,14 @@ int duart_init(fsl_handle_t duart)
 	p_uart->enable_fifo      = p_driver_param->enable_fifo;
 
 	/* Allocate the Rx buffer */
-	p_uart->p_rx_buffer = sys_aligned_malloc(p_uart->rx_buffer_size,0);
+	p_uart->p_rx_buffer = fsl_malloc(p_uart->rx_buffer_size,0);
 	if (!p_uart->p_rx_buffer) {
 		duart_free_local(p_uart);
 		RETURN_ERROR(MAJOR, ENOMEM, ("rx buffer"));
 	}
 
 	/* Allocate the Tx buffer */
-	p_uart->p_tx_buffer = sys_aligned_malloc(p_uart->tx_buffer_size,0);
+	p_uart->p_tx_buffer = fsl_malloc(p_uart->tx_buffer_size,0);
 	if (p_uart->p_tx_buffer == 0) {
 		duart_free_local(p_uart);
 		RETURN_ERROR(MAJOR, ENOMEM, ("rx buffer"));
@@ -814,7 +814,7 @@ int duart_init(fsl_handle_t duart)
 
 	iowrite8(tmp_reg, &p_mem_map->UIER);
 
-	sys_aligned_free(p_uart->p_driver_param);
+	fsl_free(p_uart->p_driver_param);
 	p_uart->p_driver_param = NULL;
 
 	p_uart->initialized = 1 ;
