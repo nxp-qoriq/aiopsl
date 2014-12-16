@@ -131,9 +131,8 @@ enum tman_timer_delete_status {
 	TMAN_DEL_TMR_TMP_ERR = 0x81800030,
 	/** A non active timer was provided as an input */
 	TMAN_DEL_TMR_NOT_ACTIVE_ERR = 0x81800050,
-	/** The one shot timer has expired but it is pending a completion
-	 * confirmation (done by calling the tman_timer_completion_confirmation
-	 * function) */
+	/** The timer has expired but it is pending a completion confirmation
+	 * (done by calling the tman_timer_completion_confirmation function) */
 	TMAN_DEL_CCP_WAIT_ERR = 0x81800051,
 	/** The periodic timer has expired but it is pending a completion
 	 * confirmation (done by calling the tman_timer_completion_confirmation
@@ -143,14 +142,17 @@ enum tman_timer_delete_status {
 	 * in the process of deleting the timer. The timer will elapse in the
 	 * future. */
 	TMAN_DEL_TMR_DEL_ISSUED_ERR = 0x81800056,
-	/** A delete command was already issued. The timer has already elapsed
-	 * for the last time and it is pending a completion confirmation
-	 * (done by calling the tman_timer_completion_confirmation function) */
+	/** A delete command for this periodic timer was already issued. 
+	 * The timer has already elapsed and it is pending a completion
+	 * confirmation (done by calling the tman_timer_completion_confirmation
+	 * function). This timer will elapse one more time before being
+	 * deleted */
 	TMAN_DEL_TMR_DEL_ISSUED_CONF_ERR = 0x81800057,
 };
 
 /** @} end of enum tman_timer_delete_status */
 
+#ifdef REV2
 /**************************************************************************//**
  @enum tman_timer_mod_status
 
@@ -222,7 +224,7 @@ enum tman_timer_recharge_status {
 };
 
 /** @} end of enum tman_timer_recharge_status */
-
+#endif
 
 /** @} end of group TMANReturnStatus */
 
@@ -371,5 +373,27 @@ void tman_exception_handler(char *filename,
 		enum tman_function_identifier func_id,
 		uint32_t line,
 		int32_t status);
+
+#ifndef REV2
+	/* The next code is due to Errata ERR008205 */
+/**************************************************************************//**
+@Function	tman_query_tmi_sw
+
+@Description	Function that returns the TMI status
+
+@Param[in]	tmi_id  - TMAN Instance ID. (TMI ID)
+
+@Return		0 on success, or negative value on error.
+@Retval		SUCCESS - The TMI that was provided is an active one.
+@Retval		ENAVAIL - The TMI that was provided is a non active one.
+@Retval		EACCES - The provided TMI is currently being deletes or created.
+@Retval		ENOMEM - The TMI is not initialized due to memory bus error.
+
+@Cautions	This function is not visible to the user.
+
+*//***************************************************************************/
+int tman_query_tmi_sw(uint8_t tmi_id);
+/* End of Errata ERR008205 related code */
+#endif
 
 #endif /* __AIOP_TMAN_H */
