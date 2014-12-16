@@ -483,6 +483,8 @@ int slab_create(uint32_t    committed_buffs,
 	g_slab_pool_pointer_ddr += sizeof(pool_id);
 
 	slab_m = sys_get_unique_handle(FSL_OS_MOD_SLAB);
+	if(slab_m == NULL)
+		return -ENAVAIL;
 	fdma_dma_data((uint16_t)sizeof(pool_id),
 	              slab_m->icid,
 	              &pool_id,
@@ -571,6 +573,8 @@ int slab_free(struct slab **slab)
 	uint64_t pool_data_address;
 	struct slab_module_info *slab_m = sys_get_unique_handle(FSL_OS_MOD_SLAB);
 
+	if (slab_m == NULL)
+		return -ENAVAIL;
 #ifdef DEBUG
 	if (!SLAB_IS_HW_POOL(*slab))
 		return -EINVAL;
@@ -1593,6 +1597,7 @@ __COLD_CODE int slab_register_context_buffer_requirements(
 	}
 	if(max_buffs < committed_buffs){
 		pr_err("Max buffers must be bigger or equal to committed\n");
+		return -EINVAL;
 	}
 	/* max_bufs must not be 0*/
 	if (!max_buffs){
