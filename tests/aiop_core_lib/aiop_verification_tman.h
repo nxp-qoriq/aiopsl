@@ -130,10 +130,10 @@ struct tman_tmi_delete_command {
 	uint32_t	opcode;
 		/**< Command structure identifier. */
 	uint32_t	mode_bits;
+	tman_arg_8B_t	conf_opaque_data1;
 #ifndef REV2
 	uint32_t	max_num_of_timers;
 #endif
-	tman_arg_8B_t	conf_opaque_data1;
 	tman_cb_t	tman_confirm_cb;
 	tman_arg_2B_t	conf_opaque_data2;
 	uint8_t		tmi_id;
