@@ -2197,7 +2197,7 @@ int fdma_insert_default_segment_data(
 @Cautions	This command may be invoked only on the Data segment.
 @Cautions	This function may result in a fatal error.
 @Cautions	In this Service Routine the task yields.
-@Caution	Due to Ticket TKT237377 this function must be called with SA 
+@Cautions	Due to Ticket TKT237377 this function must be called with SA 
 		flag \ref FDMA_REPLACE_SA_CLOSE_BIT.
 *//***************************************************************************/
 int fdma_insert_segment_data(
@@ -2304,7 +2304,7 @@ int fdma_delete_default_segment_data(
 @Cautions	This command may be invoked only on Data segment.
 @Cautions	This function may result in a fatal error.
 @Cautions	In this Service Routine the task yields.
-@Caution	Due to Ticket TKT237377 this function must be called with SA 
+@Cautions	Due to Ticket TKT237377 this function must be called with SA 
 		flag \ref FDMA_REPLACE_SA_CLOSE_BIT.
 *//***************************************************************************/
 int fdma_delete_segment_data(
@@ -2396,7 +2396,7 @@ void fdma_close_segment(uint8_t frame_handle, uint8_t seg_handle);
 
 @Cautions	This function may result in a fatal error.
 @Cautions	In this Service Routine the task yields.
-@Caution	Due to Ticket TKT237377 this function must be called with SA 
+@Cautions	Due to Ticket TKT237377 this function must be called with SA 
 		flag \ref FDMA_REPLACE_SA_CLOSE_BIT.
 *//***************************************************************************/
 int fdma_replace_default_asa_segment_data(
