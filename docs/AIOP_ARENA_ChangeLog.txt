@@ -1,3 +1,4 @@
+- os.c:          ENGR00341990 - resolved, added implementation for exception_handler    
 - app.h/c:       Fixed ENGR00341738, added APP_MAX_NUM to app.h. Updated build_apps_array() in app.c.      
 
 - cmdif_srv_flib.c:  Fix for ENGR00341199 wrong malloc size in CMDIF server allocation.
