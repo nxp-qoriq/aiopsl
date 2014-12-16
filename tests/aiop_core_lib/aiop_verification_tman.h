@@ -53,51 +53,57 @@
  @{
 *//***************************************************************************/
 
-/*! \enum e_tman_cmd_type Defines the TMAN CMDTYPE field.*/
-enum e_tman_cmd_type {
-	TMAN_CMDTYPE_TMI_CREATE = 0,
-	TMAN_CMDTYPE_TMI_DELETE,
-	TMAN_CMDTYPE_TMI_QUERY,
-	TMAN_CMDTYPE_TIMER_CREATE,
-	TMAN_CMDTYPE_TIMER_DELETE,
-	TMAN_CMDTYPE_TIMER_INC_DURATION,
-	TMAN_CMDTYPE_TIMER_RECHARGE,
-	TMAN_CMDTYPE_TIMER_QUERY,
-	TMAN_CMDTYPE_COMPLETION_CONF,
-	TMAN_CMDTYPE_GET_TS
+/*! \enum e_tman_verif_cmd_type Defines the TMAN CMDTYPE field.*/
+enum e_tman_verif_cmd_type {
+	TMAN_CMDTYPE_TMI_CREATE_VERIF = 0,
+	TMAN_CMDTYPE_TMI_DELETE_VERIF,
+	TMAN_CMDTYPE_TMI_QUERY_VERIF,
+	TMAN_CMDTYPE_TIMER_CREATE_VERIF,
+	TMAN_CMDTYPE_TIMER_DELETE_VERIF,
+	TMAN_CMDTYPE_TIMER_INC_DURATION_VERIF,
+	TMAN_CMDTYPE_TIMER_RECHARGE_VERIF,
+	TMAN_CMDTYPE_TIMER_QUERY_VERIF,
+	TMAN_CMDTYPE_COMPLETION_CONF_VERIF,
+	TMAN_CMDTYPE_GET_TS_VERIF,
+	TMAN_CMDTYPE_TMI_QUERY_SW_VERIF
 };
 /* TMAN Commands Structure identifiers */
 #define TMAN_TMI_CREATE_CMD_STR	((TMAN_MODULE << 16) | \
-		(uint32_t)TMAN_CMDTYPE_TMI_CREATE)
+		(uint32_t)TMAN_CMDTYPE_TMI_CREATE_VERIF)
 
 #define TMAN_TMI_DELETE_CMD_STR	((TMAN_MODULE << 16) | \
-		(uint32_t)TMAN_CMDTYPE_TMI_DELETE)
+		(uint32_t)TMAN_CMDTYPE_TMI_DELETE_VERIF)
 
-#define TMAN_TMI_QUERY_CMD_STR	((TMAN_MODULE << 16) | \
-		(uint32_t)TMAN_CMDTYPE_TMI_QUERY)
+#ifndef REV2
+#define TMAN_TMI_QUERY_SW_CMD_STR	((TMAN_MODULE << 16) | \
+		(uint32_t)TMAN_CMDTYPE_TMI_QUERY_SW_VERIF)
+#endif
 
 #define TMAN_TIMER_CREATE_CMD_STR	((TMAN_MODULE << 16) | \
-		(uint32_t)TMAN_CMDTYPE_TIMER_CREATE)
+		(uint32_t)TMAN_CMDTYPE_TIMER_CREATE_VERIF)
 
 #define TMAN_TIMER_DELETE_CMD_STR	((TMAN_MODULE << 16) | \
-		(uint32_t)TMAN_CMDTYPE_TIMER_DELETE)
+		(uint32_t)TMAN_CMDTYPE_TIMER_DELETE_VERIF)
 
 #ifdef REV2
+#define TMAN_TMI_QUERY_CMD_STR	((TMAN_MODULE << 16) | \
+		(uint32_t)TMAN_CMDTYPE_TMI_QUERY_VERIF)
+
 #define TMAN_TIMER_INC_DURATION_CMD_STR	((TMAN_MODULE << 16) | \
-		(uint32_t)TMAN_CMDTYPE_TIMER_INC_DURATION)
+		(uint32_t)TMAN_CMDTYPE_TIMER_INC_DURATION_VERIF)
 
 #define TMAN_TIMER_RECHARGE_CMD_STR	((TMAN_MODULE << 16) | \
-		(uint32_t)TMAN_CMDTYPE_TIMER_RECHARGE)
+		(uint32_t)TMAN_CMDTYPE_TIMER_RECHARGE_VERIF)
 #endif
 
 #define TMAN_TIMER_QUERY_CMD_STR	((TMAN_MODULE << 16) | \
-		(uint32_t)TMAN_CMDTYPE_TIMER_QUERY)
+		(uint32_t)TMAN_CMDTYPE_TIMER_QUERY_VERIF)
 
 #define TMAN_TIMER_COMPLETION_CONF_CMD_STR	((TMAN_MODULE << 16) | \
-		(uint32_t)TMAN_CMDTYPE_COMPLETION_CONF)
+		(uint32_t)TMAN_CMDTYPE_COMPLETION_CONF_VERIF)
 
 #define TMAN_GET_TS_CMD_STR	((TMAN_MODULE << 16) | \
-		(uint32_t)TMAN_CMDTYPE_GET_TS)
+		(uint32_t)TMAN_CMDTYPE_GET_TS_VERIF)
 
 /**************************************************************************//**
 @Description	TMAN TMI Create Command structure.
@@ -131,6 +137,7 @@ struct tman_tmi_delete_command {
 	uint8_t		cb_with_confirmation;
 };
 
+#ifdef REV2
 /**************************************************************************//**
 @Description	TMAN TMI query Command structure.
 
@@ -145,6 +152,22 @@ struct tman_tmi_query_command {
 	uint8_t		tmi_id;
 	uint8_t		pad2[3];
 };
+#endif
+
+#ifndef REV2
+/**************************************************************************//**
+@Description	TMAN TMI query Command structure.
+
+		Includes information needed for TMAN Command verification.
+*//***************************************************************************/
+struct tman_tmi_query_sw_command {
+	uint32_t	opcode;
+		/**< Command structure identifier. */
+	int32_t		status;
+	uint8_t		tmi_id;
+	uint8_t		pad2[3];
+};
+#endif
 
 /**************************************************************************//**
 @Description	TMAN timer create Command structure.
