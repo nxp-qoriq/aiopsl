@@ -110,13 +110,13 @@ int shbp_refill(struct shbp *bp);
  * must be freed by user 
  * 
  * @param[in]	bp       - Buffer pool handle
- * @param[out]	pt       - Pointer to be freed for pool destruction 
+ * @param[out]	ptr      - Pointer to be freed for pool destruction 
  * 
  * @returns	POSIX error code until there are buffers inside shared pool 
  * 		that need to be freed, 0 if there are no buffers to be freed
  *
  */
-int shbp_destroy(struct shbp *bp, void **ptr_arr);
+int shbp_destroy(struct shbp *bp, void **ptr);
 
 /** @} */ /* end of shbp_g group */
 
