@@ -52,13 +52,11 @@ int icontext_get(uint16_t dpci_id, struct icontext *ic)
 {
 	int i = 0;
 	struct mc_dpci_obj *dt = sys_get_unique_handle(FSL_OS_MOD_DPCI_TBL);
-	struct cmdif_cl *cl = sys_get_unique_handle(FSL_OS_MOD_CMDIF_CL);
 
 #ifdef DEBUG
-	if ((ic == NULL) || (dt == NULL) || (cl == NULL))
+	if ((ic == NULL) || (dt == NULL))
 		return -EINVAL;
 #endif
-	lock_spinlock(&cl->lock); /* TODO make it lock per dpci table not client ! */
 	/* search by GPP peer id - most likely case
 	 * or by AIOP dpci id  - to support both cases
 	 * All DPCIs in the world have different IDs */
@@ -69,13 +67,12 @@ int icontext_get(uint16_t dpci_id, struct icontext *ic)
 			ic->icid = dt->icid[i];
 			ic->dma_flags = dt->dma_flags[i];
 			ic->bdi_flags = dt->bdi_flags[i];
-			unlock_spinlock(&cl->lock);
 			return 0;
 		}
 	}
 
-	unlock_spinlock(&cl->lock);
-	return -ENAVAIL;
+	/* copy pointer from icid table */
+	return -ENOENT;
 }
 
 int icontext_dma_read(struct icontext *ic, uint16_t size, 

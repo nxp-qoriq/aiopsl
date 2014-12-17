@@ -167,7 +167,7 @@ __COLD_CODE static int dpci_tbl_create(struct mc_dpci_obj **_dpci_tbl, int dpci_
 		pr_err("No memory for %d DPCIs\n", dpci_count);
 		return -ENOMEM;
 	}
-	memset(dpci_tbl->icid, 0, size);
+	memset(dpci_tbl->icid, 0xff, size);
 
 	size = sizeof(uint32_t) * dpci_count;
 	/*dpci_tbl->dma_flags = fsl_os_xmalloc(size, MEM_PART_SH_RAM, 1);*/

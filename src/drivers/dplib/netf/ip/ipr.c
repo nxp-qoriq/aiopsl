@@ -934,27 +934,40 @@ uint32_t ipr_insert_to_link_list(struct ipr_rfdc *rfdc_ptr,
 			rfdc_ptr->num_of_frags++;
 			rfdc_ptr->current_total_length += current_frag_size;
 
-			if (frame_is_ipv4)
-				check_remove_padding();
-			/* Close current frame before storing FD */
-			fdma_store_default_frame_data();
-
-			/* Write FD in external buffer */
-			ext_addr = rfdc_ext_addr + START_OF_FDS_LIST +
-						rfdc_ptr->next_index*FD_SIZE;
-			cdma_write(ext_addr,
-				   (void *)HWC_FD_ADDRESS,
-				   FD_SIZE);
-
 			if (last_fragment) {
 				if((rfdc_ptr->current_total_length +
 				   rfdc_ptr->first_frag_hdr_length) <=
-				   instance_params.max_reass_frm_size)
+				   instance_params.max_reass_frm_size) {
+					if (frame_is_ipv4)
+						check_remove_padding();
+					/* Close current frame before storing FD */
+					fdma_store_default_frame_data();
+
+					/* Write FD in external buffer */
+					ext_addr = rfdc_ext_addr + START_OF_FDS_LIST +
+								rfdc_ptr->next_index*FD_SIZE;
+					cdma_write(ext_addr,
+						   (void *)HWC_FD_ADDRESS,
+						   FD_SIZE);
+
 					return_status = LAST_FRAG_IN_ORDER;
+				}
 				else
 					return_status = MALFORMED_FRAG;
 			} else {
 				/* Non closing fragment */
+				if (frame_is_ipv4)
+					check_remove_padding();
+				/* Close current frame before storing FD */
+				fdma_store_default_frame_data();
+
+				/* Write FD in external buffer */
+				ext_addr = rfdc_ext_addr + START_OF_FDS_LIST +
+							rfdc_ptr->next_index*FD_SIZE;
+				cdma_write(ext_addr,
+					   (void *)HWC_FD_ADDRESS,
+					   FD_SIZE);
+
 				rfdc_ptr->next_index++;
 				return_status =  FRAG_OK_REASS_NOT_COMPL;
 				}
@@ -1867,33 +1880,53 @@ uint32_t out_of_order(struct ipr_rfdc *rfdc_ptr, uint64_t rfdc_ext_addr,
 				rfdc_ptr->current_total_length +=
 							     current_frag_size;
 				rfdc_ptr->num_of_frags++;
-
-				if (PARSER_IS_OUTER_IPV4_DEFAULT())
-					check_remove_padding();
-				/* Close current frame before storing FD */
-				fdma_store_default_frame_data();
-
-				/* Write FD in external buffer */
-				current_element_ext_addr = rfdc_ext_addr +
-							   START_OF_FDS_LIST +
-							  current_index*FD_SIZE;
-				cdma_write(current_element_ext_addr,
-					       (void *)HWC_FD_ADDRESS,
-					       FD_SIZE);
-
+				
 				if (rfdc_ptr->current_total_length ==
 					rfdc_ptr->expected_total_length) {
+					/* Reassembly is completed */
 					/* Check max reassembly size */
 					if((rfdc_ptr->current_total_length +
 					    rfdc_ptr->first_frag_hdr_length) <=
-					   instance_params.max_reass_frm_size)
+					   instance_params.max_reass_frm_size) {
+						
+						if (PARSER_IS_OUTER_IPV4_DEFAULT())
+							check_remove_padding();
+
+						/* Close current frame before storing FD */
+						fdma_store_default_frame_data();
+
+						/* Write FD in external buffer */
+						current_element_ext_addr = rfdc_ext_addr +
+									   START_OF_FDS_LIST +
+									  current_index*FD_SIZE;
+						cdma_write(current_element_ext_addr,
+							       (void *)HWC_FD_ADDRESS,
+							       FD_SIZE);
+
 						return LAST_FRAG_OUT_OF_ORDER;
-					else
+					}
+					else 
 						return MALFORMED_FRAG;
 				} else {
+					/* reassembly is not completed */
+					if (PARSER_IS_OUTER_IPV4_DEFAULT())
+						check_remove_padding();
+
+					/* Close current frame before storing FD */
+					fdma_store_default_frame_data();
+
+					/* Write FD in external buffer */
+					current_element_ext_addr = rfdc_ext_addr +
+								   START_OF_FDS_LIST +
+								  current_index*FD_SIZE;
+					cdma_write(current_element_ext_addr,
+						       (void *)HWC_FD_ADDRESS,
+						       FD_SIZE);
+
 				       rfdc_ptr->next_index = current_index + 1;
 				       return FRAG_OK_REASS_NOT_COMPL;
 				}
+
 			}
 			temp_frag_index = temp_element_ptr->prev_index;
 			if ((temp_frag_index>>3) != octet_index) {
@@ -2006,29 +2039,45 @@ uint32_t out_of_order(struct ipr_rfdc *rfdc_ptr, uint64_t rfdc_ext_addr,
 		}
 	}
 
-	if (PARSER_IS_OUTER_IPV4_DEFAULT())
-		check_remove_padding();
-	/* Close current frame before storing FD */
-	fdma_store_default_frame_data();
-
-	/* Write FD in external buffer */
-	current_element_ext_addr = rfdc_ext_addr + START_OF_FDS_LIST +
-					   current_index*FD_SIZE;
-	cdma_write(current_element_ext_addr,
-			   (void *)HWC_FD_ADDRESS,
-			   FD_SIZE);
-
 	rfdc_ptr->current_total_length += current_frag_size;
 	rfdc_ptr->num_of_frags++;
 
 	if (rfdc_ptr->current_total_length == rfdc_ptr->expected_total_length) {
+		/* Reassembly is completed */
+		/* Check max reassembly size */
 		if((rfdc_ptr->current_total_length +
 		    rfdc_ptr->first_frag_hdr_length) <=
-		    instance_params.max_reass_frm_size)
+		    instance_params.max_reass_frm_size) {
+			if (PARSER_IS_OUTER_IPV4_DEFAULT())
+				check_remove_padding();
+			/* Close current frame before storing FD */
+			fdma_store_default_frame_data();
+
+			/* Write FD in external buffer */
+			current_element_ext_addr = rfdc_ext_addr + START_OF_FDS_LIST +
+							   current_index*FD_SIZE;
+			cdma_write(current_element_ext_addr,
+					   (void *)HWC_FD_ADDRESS,
+					   FD_SIZE);
+
 			return LAST_FRAG_OUT_OF_ORDER;
+		}
 		else
 			return MALFORMED_FRAG;
 	} else {
+		/* reassembly is not completed */
+		if (PARSER_IS_OUTER_IPV4_DEFAULT())
+			check_remove_padding();
+		/* Close current frame before storing FD */
+		fdma_store_default_frame_data();
+
+		/* Write FD in external buffer */
+		current_element_ext_addr = rfdc_ext_addr + START_OF_FDS_LIST +
+						   current_index*FD_SIZE;
+		cdma_write(current_element_ext_addr,
+				   (void *)HWC_FD_ADDRESS,
+				   FD_SIZE);
+
 		rfdc_ptr->next_index++;
 		return FRAG_OK_REASS_NOT_COMPL;
 	}
