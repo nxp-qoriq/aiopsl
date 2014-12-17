@@ -425,7 +425,7 @@ static inline void sync_done_set(uint16_t auth_id)
 }
 
 /** Find dpci index and get dpci table */
-static inline int find_dpci(uint32_t dpci_id)
+__COLD_CODE static inline int find_dpci(uint32_t dpci_id)
 {
 	int i = 0;
 	struct mc_dpci_obj *dt = cmdif_aiop_srv.dpci_tbl;
@@ -437,21 +437,24 @@ static inline int find_dpci(uint32_t dpci_id)
 	return -1;
 }
 
-static inline void amq_bits_update(int ind)
+__COLD_CODE static inline void amq_bits_update(int ind)
 {
 	uint16_t pl_icid = PL_ICID_GET;
 
-	cmdif_aiop_srv.dpci_tbl->icid[ind]       = ICID_GET(pl_icid);
-	cmdif_aiop_srv.dpci_tbl->bdi_flags[ind]  = FDMA_EN_TC_RET_BITS; /* don't change */
-	cmdif_aiop_srv.dpci_tbl->dma_flags[ind]  = FDMA_DMA_DA_SYS_TO_WS_BIT;
-	ADD_AMQ_FLAGS(cmdif_aiop_srv.dpci_tbl->dma_flags[ind], pl_icid);
-	if (BDI_GET != 0)
-		cmdif_aiop_srv.dpci_tbl->bdi_flags[ind] |= FDMA_ENF_BDI_BIT;
+	if (cmdif_aiop_srv.dpci_tbl->icid[ind] == ICONTEXT_INVALID) {
+		cmdif_aiop_srv.dpci_tbl->bdi_flags[ind]  = FDMA_EN_TC_RET_BITS; /* don't change */
+		cmdif_aiop_srv.dpci_tbl->dma_flags[ind]  = FDMA_DMA_DA_SYS_TO_WS_BIT;
+		ADD_AMQ_FLAGS(cmdif_aiop_srv.dpci_tbl->dma_flags[ind], pl_icid);
+		if (BDI_GET != 0)
+			cmdif_aiop_srv.dpci_tbl->bdi_flags[ind] |= FDMA_ENF_BDI_BIT;
+		/* Must be last line */
+		cmdif_aiop_srv.dpci_tbl->icid[ind]       = ICID_GET(pl_icid);
+	}
 }
 
 /* Support for AIOP -> GPP */
 /* int mc_dpci_check(int ind);*/
-static inline int mc_dpci_check(int ind)
+__COLD_CODE static inline int mc_dpci_check(int ind)
 {
 	uint8_t i;
 	struct mc_dprc *dprc = NULL;
@@ -480,7 +483,7 @@ static inline int mc_dpci_check(int ind)
 	return err;
 }
 
-int notify_open();
+__COLD_CODE int notify_open();
 /* static */ int notify_open()
 {
 #ifndef STACK_CHECK /* No user callback */
@@ -508,6 +511,8 @@ int notify_open();
 
 	pr_debug("Found dpci %d peer id at index %d \n", \
 		    cmdif_aiop_srv.dpci_tbl->attr[ind].id, ind);
+
+	amq_bits_update(ind);
 
 	/* Locking here for updating dpci table in runtime in case if queues 
 	 * are not available yet. This case should not happen. 
@@ -549,7 +554,6 @@ int notify_open();
 		return -ENOSPC;
 	}
 
-	amq_bits_update(ind);
 	cl->gpp[link_up].ins_id           = data->inst_id;
 	cl->gpp[link_up].dev->auth_id     = data->auth_id;
 	cl->gpp[link_up].dev->p_sync_done = sync_done_get();
@@ -577,7 +581,7 @@ int notify_open();
 }
 
 /* Support for AIOP -> GPP */
-int notify_close();
+__COLD_CODE int notify_close();
 /* static */ int notify_close()
 {
 #ifndef STACK_CHECK /* No user callabck here */	
@@ -650,7 +654,7 @@ void dump_memory();
 #endif /* STACK_CHECK */
 }
 
-static void open_cmd_print()
+__COLD_CODE static void open_cmd_print()
 {
 #ifdef DEBUG
 	char  m_name[M_NAME_CHARS + 1];
@@ -659,7 +663,15 @@ static void open_cmd_print()
 #endif
 }
 
-int session_open();
+__COLD_CODE static void dpci_icontext_update()
+{
+	uint32_t fqid = RESP_QID_GET;
+	uint8_t  ind = (uint8_t)(fqid >> 1);	
+
+	amq_bits_update(ind);
+}
+
+__COLD_CODE int session_open();
 /* static */ int session_open()
 {
 	char     m_name[M_NAME_CHARS + 1];
@@ -682,7 +694,9 @@ int session_open();
 
 	inst_id  = cmd_inst_id_get();
 	sl_pr_debug("inst_id = %d\n", inst_id);
-
+	
+	dpci_icontext_update(); /* Must be before open callback */
+	
 	OPEN_CB(m_id, inst_id, dev);
 	if (!err) {
 		int  new_inst = inst_alloc((uint8_t)m_id);

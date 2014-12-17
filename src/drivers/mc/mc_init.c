@@ -167,7 +167,7 @@ __COLD_CODE static int dpci_tbl_create(struct mc_dpci_obj **_dpci_tbl, int dpci_
 		pr_err("No memory for %d DPCIs\n", dpci_count);
 		return -ENOMEM;
 	}
-	memset(dpci_tbl->icid, 0, size);
+	memset(dpci_tbl->icid, 0xff, size);
 
 	size = sizeof(uint32_t) * dpci_count;
 	/*dpci_tbl->dma_flags = fsl_os_xmalloc(size, MEM_PART_SH_RAM, 1);*/
@@ -444,20 +444,16 @@ __COLD_CODE int mc_obj_init()
 {
 	int err = 0;
 
-#ifndef AIOP_STANDALONE
 	err |= aiop_container_init();
 	err |= dpci_discovery(); /* must be after aiop_container_init */
-#endif
 	return err;
 
 }
 
 __COLD_CODE void mc_obj_free()
 {
-#ifndef AIOP_STANDALONE
 	aiop_container_free();
 	dpci_discovery_free();
 	/* TODO DPCI close ???
 	 * TODO DPRC close */
-#endif
 }
