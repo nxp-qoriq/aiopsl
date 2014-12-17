@@ -32,6 +32,8 @@
 
 #define AIOP_ATU_NUM_OF_WINDOWS         8
 
+#define AIOP_MAX_COMMAND_LINE_ARGS      512
+
 /**************************************************************************//**
  @Description   EPID table
 *//***************************************************************************/
@@ -44,7 +46,7 @@ enum aiop_epid_table {
 };
 
 /* Internal data exchanged between AIOP and MC
- * TODO check it */
+ * FIELDS MUST BE ALIGNED AS PACKED */
 struct aiop_app_init_info {
 
 	uint64_t dp_ddr_size; /* initialized by AIOP APP at compile time, default provided */
@@ -65,16 +67,18 @@ struct aiop_app_init_info {
 
 	uint32_t spid_count;
 
-	uint32_t reserved[48]; /* reserved for future use */
+	uint32_t reserved[48]; /* reserved for future use. Keep 256B */
 };
 
 /* Internal data exchanged between AIOP and MC
- * TODO check it */
+ * FIELDS MUST BE ALIGNED AS PACKED */
 struct aiop_sl_init_info
 {
 	uint32_t aiop_rev_major;  /* initialized by AIOP SL at compile time */
 	uint32_t aiop_rev_minor; /* initialized by AIOP SL at compile time */
 	uint32_t aiop_revision;  /* initialized by AIOP SL at compile time */
+
+	uint32_t base_spid;
 
 	uint64_t dp_ddr_paddr;
 	uint64_t dp_ddr_vaddr;/*virtual base address, initialized by MC FW before AIOP elf is loaded */
@@ -96,9 +100,11 @@ struct aiop_sl_init_info
 	uint32_t mc_dpci_id;                    /* initialized by MC FW during init, before AIOP elf is loaded */
 	uint32_t clock_period; /* In nanosec */
 
-	uint32_t base_spid;
+	uint64_t options;
+	uint32_t args_size;	/* AIOP command line string length */
+	uint8_t args[AIOP_MAX_COMMAND_LINE_ARGS];	/* AIOP command line string */
 
-	uint32_t reserved[36];           /* reserved for future use */
+	uint32_t reserved[33];           /* reserved for future use. Keep 768B (3/4 K) */
 };
 
 
