@@ -168,7 +168,7 @@
 #define DUMP_VAR(st, phrase) \
     do { \
         void            *addr = (void *)&((st)->phrase); \
-        dma_addr_t   phys_addr = fsl_os_virt_to_phys(addr); \
+        dma_addr_t   phys_addr = sys_virt_to_phys(addr); \
         _CREATE_DUMP_SUBSTR(phrase); \
         dump_var_size = sizeof((st)->phrase); \
         switch (dump_var_size) \

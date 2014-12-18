@@ -374,12 +374,7 @@ __COLD_CODE static int pltfrm_init_mem_partitions_cb(fsl_handle_t h_platform)
         p_mem_info = &pltfrm->param.mem_info[i];
         virt_base_addr = p_mem_info->virt_base_addr;
         size = p_mem_info->size;
-        err = sys_register_virt_mem_mapping(p_mem_info->virt_base_addr,
-                                            p_mem_info->phys_base_addr,
-                                            p_mem_info->size);
-        if (err != 0)
-            RETURN_ERROR(MAJOR, err, NO_MSG);
-
+       
         if (p_mem_info->mem_attribute & MEMORY_ATTR_MALLOCABLE) {
             err = sys_register_mem_partition(p_mem_info->mem_partition_id,
                                              virt_base_addr,
@@ -426,17 +421,6 @@ __COLD_CODE static int build_mem_partitions_table(t_platform  *pltfrm)
 	        p_mem_info = &pltfrm->param.mem_info[i];
 	        ASSERT_COND(p_mem_info);
 	        switch (p_mem_info->mem_partition_id) {
-	        case MEM_PART_DEFAULT_HEAP_PARTITION:
-	            p_mem_info->virt_base_addr = (uint32_t)(AIOP_DDR_START);
-	            p_mem_info->phys_base_addr = g_init_data.sl_info.dp_ddr_paddr;
-	            p_mem_info->size = aiop_lcf_ddr_size;
-	            pr_debug("Default Heap:virt_add= 0x%x,phys_add=0x%x%08x,size=0x%x\n",
-	                     p_mem_info->virt_base_addr,
-	        	     (uint32_t)(p_mem_info->phys_base_addr>>32),
-	        	     (uint32_t)(p_mem_info->phys_base_addr),
-	                     (uint32_t)(p_mem_info->size));
-
-	        	break;
 	        case MEM_PART_DP_DDR:
 	            p_mem_info->virt_base_addr = (uint32_t)g_init_data.sl_info.dp_ddr_vaddr +
 	        	        aiop_lcf_ddr_size;
@@ -512,7 +496,7 @@ __COLD_CODE static int pltfrm_free_mem_partitions_cb(fsl_handle_t h_platform)
     index = (int)pltfrm->num_of_mem_parts;
 
     while ((--index) >= 0) {
-        sys_unregister_virt_mem_mapping(pltfrm->param.mem_info[index].virt_base_addr);
+        /*sys_unregister_virt_mem_mapping(pltfrm->param.mem_info[index].virt_base_addr);*/
 
         if (pltfrm->registered_partitions[index])
             sys_unregister_mem_partition(pltfrm->registered_partitions[index]);

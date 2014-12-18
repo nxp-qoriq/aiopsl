@@ -61,7 +61,6 @@ extern int malloc_test();
 extern int slab_test(void);
 extern int random_init(void);
 extern int random_test(void);
-extern int memory_test();
 extern int pton_test(void);
 extern int ntop_test(void);
 extern int dpni_drv_test(void);
@@ -148,16 +147,7 @@ static void app_process_packet_flow0 (dpni_drv_app_arg_t arg)
 	} else {
 		fsl_os_print("Malloc test passed for packet number %d, on core %d\n", local_packet_number, core_id);
 	}
-
-	err = memory_test();
-
-	if (err) {
-		fsl_os_print("ERROR = %d: memory_test failed in runtime phase \n", err);
-		local_test_error |= err;
-	} else {
-		fsl_os_print("Memory  test passed for packet number %d, on core %d\n", local_packet_number, core_id);
-	}
-
+	
 	/*Random Test*/
 
 	err = random_test();
@@ -347,15 +337,7 @@ int app_init(void)
 	}
 	else
 		fsl_os_print("slab_init  succeeded  in init phase()\n", err);
-	err = memory_test();
-
-	if (err) {
-		fsl_os_print("ERROR = %d: memory_test failed in init phase()\n", err);
-		test_error |= err;
-	}
-	else
-		fsl_os_print("memory_test succeeded  in init phase()\n", err);
-
+	
 	err = malloc_test();
 	if (err) {
 		fsl_os_print("ERROR = %d: malloc_test failed in init phase()\n", err);
