@@ -182,7 +182,7 @@ static int ctrl_cb0(void *dev, uint16_t cmd, uint32_t size,
 			ASSERT_COND(p_data);
 			icontext_get(dpci_id, &ic);
 			icontext_dma_write(&ic, sizeof(uint64_t), &p_data, p_data);
-			err = shbp_release(&lbp, p_data);
+			err = shbp_release(&lbp, p_data);			
 		}
 		break;
 	case TMAN_TEST:
