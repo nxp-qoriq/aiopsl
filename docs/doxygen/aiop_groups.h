@@ -134,9 +134,6 @@
 						/** @defgroup FDMA_Copy_Flags  FDMA Copy Flags
 							@ingroup FDMA_Commands_Flags
 						*/
-						/** @defgroup FDMA_DMA_Flags
-							@ingroup FDMA_Commands_Flags
-						*/						
 						/** @defgroup FDMA_ACQUIRE_BUFFER_Flags  FDMA ACQUIRE BUFFER Flags
 							@ingroup FDMA_Commands_Flags
 						*/
@@ -289,9 +286,6 @@
 							/** @defgroup FSL_TABLE_ATTRIBUTE_MR TABLE Miss Result Attribute
 								@ingroup FSL_TABLE_ATTRIBUTES
 							*/
-							/** @defgroup FSL_TABLE_ATTRIBUTE_AGT TABLE Aging Threshold Attribute
-								@ingroup FSL_TABLE_ATTRIBUTES
-							*/							
 						/** @} */
 						/** @defgroup FSL_TABLE_RESULT_TYPES TABLE Results Types
 							@ingroup FSL_TABLE_MACROS
