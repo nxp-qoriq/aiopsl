@@ -81,7 +81,7 @@ Layout is built from 3 different sections: containers, objects, connections.
 					obj_name = "dpmac@1";
 				};
 				obj@8{
-					obj_name = "dpmac@1";
+					obj_name = "dpmac@3";
 				};
 			};
 		};
