@@ -72,6 +72,11 @@ void app_free(void);
 #define TEST_DPCI_ID    (void *)4 /* For GPP use 4 */
 #endif
 
+struct shbp_test {
+	uint64_t shbp;
+	uint8_t dpci_id;
+};
+
 struct cmdif_desc cidesc;
 uint64_t tman_addr;
 struct shbp_aiop lbp;
@@ -164,7 +169,8 @@ static int ctrl_cb0(void *dev, uint16_t cmd, uint32_t size,
 	uint16_t bpid = 3;
 	uint8_t tmi_id = 0;
 	uint32_t timer_handle = 0;
-
+	struct shbp_test *shbp_test;
+	
 	UNUSED(dev);
 	fsl_os_print("ctrl_cb0 cmd = 0x%x, size = %d, data  0x%x\n",
 	             cmd,
@@ -175,12 +181,14 @@ static int ctrl_cb0(void *dev, uint16_t cmd, uint32_t size,
 	
 	switch (cmd) {
 	case SHBP_TEST:
-		dpci_id = 0;
-		err = shbp_enable(dpci_id, p_data, &lbp);
+		shbp_test = data;
+		dpci_id = shbp_test->dpci_id;
+		err = shbp_enable(dpci_id, shbp_test->shbp, &lbp);
 		for (i = 0; i < 10; i++) {
 			p_data = shbp_acquire(&lbp);
 			ASSERT_COND(p_data);
 			icontext_get(dpci_id, &ic);
+			ASSERT_COND(ic.icid != ICONTEXT_INVALID);
 			icontext_dma_write(&ic, sizeof(uint64_t), &p_data, p_data);
 			err = shbp_release(&lbp, p_data);			
 		}

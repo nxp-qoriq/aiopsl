@@ -37,20 +37,20 @@
 	do {\
 		pr_debug("shbp.alloc_master = 0x%x\n", shbp.alloc_master); \
 		pr_debug("shbp.max_num = 0x%x size = %d\n", shbp.max_num, SHBP_SIZE(&shbp)); \
-		pr_debug("shbp.alloc.base high = 0x%x\n", ((shbp.alloc.base & 0xFFFFFFFF00000000) >> 32)); \
-		pr_debug("shbp.alloc.base low = 0x%x\n", (shbp.alloc.base & 0xFFFFFFFF)); \
+		pr_debug("shbp.alloc.base high = 0x%x\n", (uint32_t)((shbp.alloc.base & 0xFFFFFFFF00000000) >> 32)); \
+		pr_debug("shbp.alloc.base low = 0x%x\n", (uint32_t)(shbp.alloc.base & 0xFFFFFFFF)); \
 		pr_debug("shbp.alloc.deq = 0x%x\n", shbp.alloc.deq); \
 		pr_debug("shbp.alloc.enq = 0x%x\n", shbp.alloc.enq); \
-		pr_debug("shbp.free.base high = 0x%x\n", ((shbp.free.base & 0xFFFFFFFF00000000) >> 32)); \
-		pr_debug("shbp.free.base low = 0x%x\n", (shbp.free.base & 0xFFFFFFFF)); \
+		pr_debug("shbp.free.base high = 0x%x\n", (uint32_t)((shbp.free.base & 0xFFFFFFFF00000000) >> 32)); \
+		pr_debug("shbp.free.base low = 0x%x\n", (uint32_t)(shbp.free.base & 0xFFFFFFFF)); \
 		pr_debug("shbp.free.deq = 0x%x\n", shbp.free.deq); \
 		pr_debug("shbp.free.enq = 0x%x\n\n", shbp.free.enq); \
 	} while(0)
 
 #define DUMP_AIOP_BP() \
 	do {\
-		pr_debug("bp->shbp high = 0x%x\n", ((bp->shbp & 0xFFFFFFFF00000000) >> 32)); \
-		pr_debug("bp->shbp low = 0x%x\n", (bp->shbp & 0xFFFFFFFF)); \
+		pr_debug("bp->shbp high = 0x%x\n", (uint32_t)((bp->shbp & 0xFFFFFFFF00000000) >> 32)); \
+		pr_debug("bp->shbp low = 0x%x\n", (uint32_t)(bp->shbp & 0xFFFFFFFF)); \
 		pr_debug("bp->ic.dma_flags = 0x%x\n", bp->ic.dma_flags); \
 		pr_debug("bp->ic.bdi_flags = 0x%x\n", bp->ic.bdi_flags); \
 		pr_debug("bp->ic.icid = 0x%x\n", bp->ic.icid); \
