@@ -51,4 +51,14 @@
 #define __COLD_CODE
 #endif /* COLD_CODE*/
 
+#ifndef CPU_TO_LE64
+#define CPU_TO_LE64(val)
+#endif
+#ifndef CPU_TO_LE32
+#define CPU_TO_LE32(val)
+#endif
+
+#define SHBP_BUF_TO_PTR(BUF)
+#define SHBP_PTR_TO_BUF(BUF)
+
 #endif /* __CMDIF_H */

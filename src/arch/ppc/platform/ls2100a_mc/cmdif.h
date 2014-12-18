@@ -32,7 +32,7 @@
 #include <fsl_string.h>
 #include <fsl_stdlib.h>
 #include <fsl_endian.h>
-
+#include <fsl_io.h>
 
 #ifndef CORE_IS_BIG_ENDIAN
 #error "MC core must be big endian\n!"
@@ -46,5 +46,8 @@
 #ifndef __COLD_CODE
 #define __COLD_CODE
 #endif /* COLD_CODE*/
+
+#define SHBP_BUF_TO_PTR(BUF)  (fsl_os_phys_to_virt(BUF))
+#define SHBP_PTR_TO_BUF(BUF)  (fsl_os_virt_to_phys(BUF))
 
 #endif /* __CMDIF_H */
