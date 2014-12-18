@@ -1958,6 +1958,10 @@ void fdma_trim_default_segment_presentation(
 			- offset - 11 (relative to the presented segment)
 			- size - 14
 
+@Cautions	As part of a workaround to ticket TKT237377 this command closes
+		and reopens the segment. (meaning that all segment modifications
+		done in workspace but not included in the range of this command
+		are lost).
 @Cautions	This command may be invoked only on the default Data segment.
 @Cautions	This function may result in a fatal error.
 @Cautions	In this Service Routine the task yields.
@@ -2069,6 +2073,10 @@ void fdma_modify_segment_data(
 			- from_ws_address - <workspace address of the 16 bytes>
 			- from_size - 16
 
+@Cautions	As part of a workaround to ticket TKT237377 this command closes
+		and reopens the segment. (meaning that all segment modifications
+		done in workspace but not included in the range of this command
+		are lost).
 @Cautions	This command may be invoked only on the default Data segment.
 @Cautions	This function may result in a fatal error.
 @Cautions	In this Service Routine the task yields.
@@ -2139,6 +2147,10 @@ int fdma_replace_default_segment_data(
 		The number of frame bytes to represent remains the old
 		segment length.
 
+@Cautions	As part of a workaround to ticket TKT237377 this command closes
+		and reopens the segment. (meaning that all segment modifications
+		done in workspace but not included in the range of this command
+		are lost).
 @Cautions	In case \ref FDMA_REPLACE_SA_REPRESENT_BIT flag is set, The
 		Service Routine checks whether there is enough headroom in the
 		Workspace before the default segment address to present the
@@ -2259,6 +2271,10 @@ int fdma_insert_segment_data(
 		The number of frame bytes to represent is the old segment
 		length reduced by delete_target_size bytes.
 
+@Cautions	As part of a workaround to ticket TKT237377 this command closes
+		and reopens the segment. (meaning that all segment modifications
+		done in workspace but not included in the range of this command
+		are lost).
 @Cautions	This command may be invoked only on the default Data segment.
 @Cautions	This function may result in a fatal error.
 @Cautions	In this Service Routine the task yields.

@@ -44,6 +44,7 @@ struct aiop_init_info g_init_data =
   1,		/* aiop_rev_major     AIOP  */
   0,		/* aiop_rev_minor     AIOP  */
   0,		/* revision           AIOP */
+  0,            /* base_spid MC */
   0x6000000000,	/* dp_ddr_phys_addr      */
   0x40000000,	/* dp_ddr_virt_addr      */
   0x4c00000000,	/* peb_phys_addr      */
@@ -58,7 +59,9 @@ struct aiop_init_info g_init_data =
   1,	        /* mc_portal_id       MC */
   0,	        /* mc_dpci_id         MC */
   1000,	        /* clock_period       MC */
-  0,            /* base_spid MC */
+  0,		/* options       MC */
+  0,		/* args_size       MC */
+  {0},		/* args       MC */
   {0}	        /* reserved           */
  },
  /* aiop_app_init_info */

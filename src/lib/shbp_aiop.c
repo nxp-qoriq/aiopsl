@@ -58,7 +58,7 @@
 
 uint64_t shbp_acquire(struct shbp_aiop *bp)
 {
-	struct shbp shbp; /* TODO don't want to take 64 bytes from stuck !! */
+	struct shbp shbp;
 	uint32_t offset;
 	uint64_t buf;
 	
@@ -68,8 +68,7 @@ uint64_t shbp_acquire(struct shbp_aiop *bp)
 	
 	/* Read SHBP structure:
 	 *  */
-	icontext_dma_read(&bp->ic, sizeof(struct shbp) - SHBP_RESERVED_BYTES, 
-	                  bp->shbp, &shbp);
+	icontext_dma_read(&bp->ic, sizeof(struct shbp), bp->shbp, &shbp);
 	if (shbp.alloc_master) {
 		/* Pool does not belong to AIOP */
 		cdma_mutex_lock_release(bp->shbp);
@@ -123,18 +122,17 @@ int shbp_release(struct shbp_aiop *bp, uint64_t buf)
 	
 	/* Read SHBP structure:
 	 *  */
-	icontext_dma_read(&bp->ic, sizeof(struct shbp) - SHBP_RESERVED_BYTES, 
-	                  bp->shbp, &shbp);
+	icontext_dma_read(&bp->ic, sizeof(struct shbp), bp->shbp, &shbp);
+
+	shbp.free.base = CPU_TO_LE64(shbp.free.base); 
+	shbp.free.deq  = CPU_TO_LE32(shbp.free.deq);
+	shbp.free.enq  = CPU_TO_LE32(shbp.free.enq);
 
 	if (SHBP_FREE_IS_FULL(&shbp)) {
 		cdma_mutex_lock_release(bp->shbp);
 		return -ENOSPC;
 	}
 	
-	shbp.free.base = CPU_TO_LE64(shbp.free.base); 
-	shbp.free.deq  = CPU_TO_LE32(shbp.free.deq);
-	shbp.free.enq  = CPU_TO_LE32(shbp.free.enq);
-
 	/*
 	 * Write the buffer:
 	 */
