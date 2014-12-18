@@ -89,7 +89,6 @@
 dma_addr_t sys_virt_to_phys(void *addr);
 
 #define SYS_DEFAULT_HEAP_PARTITION  0   /**< Partition ID for default heap */
-#define MEM_PART_DEFAULT_HEAP_PARTITION  1  /**< Partition ID for default heap */
 
 
 /**************************************************************************//**

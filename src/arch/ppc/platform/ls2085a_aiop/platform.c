@@ -421,17 +421,6 @@ __COLD_CODE static int build_mem_partitions_table(t_platform  *pltfrm)
 	        p_mem_info = &pltfrm->param.mem_info[i];
 	        ASSERT_COND(p_mem_info);
 	        switch (p_mem_info->mem_partition_id) {
-	        case MEM_PART_DEFAULT_HEAP_PARTITION:
-	            p_mem_info->virt_base_addr = (uint32_t)(AIOP_DDR_START);
-	            p_mem_info->phys_base_addr = g_init_data.sl_info.dp_ddr_paddr;
-	            p_mem_info->size = aiop_lcf_ddr_size;
-	            pr_debug("Default Heap:virt_add= 0x%x,phys_add=0x%x%08x,size=0x%x\n",
-	                     p_mem_info->virt_base_addr,
-	        	     (uint32_t)(p_mem_info->phys_base_addr>>32),
-	        	     (uint32_t)(p_mem_info->phys_base_addr),
-	                     (uint32_t)(p_mem_info->size));
-
-	        	break;
 	        case MEM_PART_DP_DDR:
 	            p_mem_info->virt_base_addr = (uint32_t)g_init_data.sl_info.dp_ddr_vaddr +
 	        	        aiop_lcf_ddr_size;

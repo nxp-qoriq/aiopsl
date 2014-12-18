@@ -70,8 +70,6 @@ extern void build_apps_array(struct sys_module_desc *apps);
 // TODO remove hard-coded values from  MEM_PART_MC_PORTALS and MEM_PART_CCSR
 #define MEMORY_PARTITIONS\
 {   /* Memory partition ID               Phys. Addr.  Virt. Addr.  Size , Attributes */\
-	{MEM_PART_DEFAULT_HEAP_PARTITION,    0xFFFFFFFF,  0xFFFFFFFF,  0xFFFFFFFF,\
-		MEMORY_ATTR_NONE,"DEFAULT HEAP"},\
 	{MEM_PART_DP_DDR,                    0xFFFFFFFF,  0xFFFFFFFF,  0xFFFFFFFF,\
 		MEMORY_ATTR_PHYS_ALLOCATION,"DP_DDR"},\
 	{MEM_PART_MC_PORTALS,                0xFFFFFFFF,  0xFFFFFFFF, (64  * MEGABYTE),\
@@ -122,8 +120,6 @@ __COLD_CODE void fill_platform_parameters(struct platform_param *platform_param)
 {
 
 	int err = 0;
-	/*uint32_t mem_info_size = PLATFORM_MAX_MEM_INFO_ENTRIES *
-		sizeof(struct platform_memory_info);*/
 
 	memset(platform_param, 0, sizeof(platform_param));
 
