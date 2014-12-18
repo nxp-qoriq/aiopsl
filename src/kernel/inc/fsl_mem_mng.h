@@ -76,9 +76,6 @@
 #pragma push
 #pragma section code_type ".dtext_vle" data_mode=far_abs code_mode=pc_rel
 
-int sys_register_virt_mem_mapping(uint64_t virt_addr, uint64_t phys_addr, uint64_t size);
-
-int sys_unregister_virt_mem_mapping(uint64_t virt_addr);
 
 
 /**************************************************************************//**
@@ -90,18 +87,6 @@ int sys_unregister_virt_mem_mapping(uint64_t virt_addr);
 
 *//***************************************************************************/
 dma_addr_t sys_virt_to_phys(void *addr);
-
-/**************************************************************************//**
- @Function      SYS_PhysToVirt
-
- @Description   Translate physical address to virtual one.
-
- @Param[in]     addr    - Physical address
-
-*//***************************************************************************/
-void * sys_phys_to_virt(dma_addr_t addr);
-
-
 
 #define SYS_DEFAULT_HEAP_PARTITION  0   /**< Partition ID for default heap */
 #define MEM_PART_DEFAULT_HEAP_PARTITION  1  /**< Partition ID for default heap */

@@ -374,12 +374,7 @@ __COLD_CODE static int pltfrm_init_mem_partitions_cb(fsl_handle_t h_platform)
         p_mem_info = &pltfrm->param.mem_info[i];
         virt_base_addr = p_mem_info->virt_base_addr;
         size = p_mem_info->size;
-        err = sys_register_virt_mem_mapping(p_mem_info->virt_base_addr,
-                                            p_mem_info->phys_base_addr,
-                                            p_mem_info->size);
-        if (err != 0)
-            RETURN_ERROR(MAJOR, err, NO_MSG);
-
+       
         if (p_mem_info->mem_attribute & MEMORY_ATTR_MALLOCABLE) {
             err = sys_register_mem_partition(p_mem_info->mem_partition_id,
                                              virt_base_addr,
@@ -512,7 +507,7 @@ __COLD_CODE static int pltfrm_free_mem_partitions_cb(fsl_handle_t h_platform)
     index = (int)pltfrm->num_of_mem_parts;
 
     while ((--index) >= 0) {
-        sys_unregister_virt_mem_mapping(pltfrm->param.mem_info[index].virt_base_addr);
+        /*sys_unregister_virt_mem_mapping(pltfrm->param.mem_info[index].virt_base_addr);*/
 
         if (pltfrm->registered_partitions[index])
             sys_unregister_mem_partition(pltfrm->registered_partitions[index]);

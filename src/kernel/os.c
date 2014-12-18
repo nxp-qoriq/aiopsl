@@ -524,15 +524,11 @@ void fsl_os_put_mem(uint64_t paddr)
     sys_put_phys_mem(paddr);
 }
 /*****************************************************************************/
-void * fsl_os_phys_to_virt(dma_addr_t addr)
-{
-    return sys_phys_to_virt(addr);
-}
-/*****************************************************************************/
 dma_addr_t fsl_os_virt_to_phys(void *addr)
 {
     return sys_virt_to_phys(addr);
 }
+/*****************************************************************************/
 #ifndef AIOP_VERIF /*TODO: Remove #ifndef AIOP_VERIF when the code will be separated */
 void exception_handler(char *filename,
 		       char *function_name,
