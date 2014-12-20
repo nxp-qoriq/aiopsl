@@ -112,10 +112,10 @@ uint64_t shbp_acquire(struct shbp_aiop *bp)
 
 int shbp_release(struct shbp_aiop *bp, uint64_t buf)
 {
-	struct shbp shbp; /* TODO don't want to take 64 bytes from stuck !! */
+	struct shbp shbp;
 	uint32_t offset;
-
-	UNUSED(buf);
+	
+	buf = CPU_TO_LE64(buf);
 
 	DUMP_AIOP_BP();
 
