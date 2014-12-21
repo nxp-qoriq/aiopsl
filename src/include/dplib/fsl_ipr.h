@@ -431,6 +431,12 @@ int ipr_delete_instance(ipr_instance_handle_t ipr_instance_ptr,
 
 		The function returns with the same ordering scope mode
 		it enters (exclusive or concurrent).
+		
+		In case of completed reassembly, the reassembled frame is returned
+		as default frame and segment is presented.
+		In case of malformed fragment, the presented fragment is returned.
+		In case of reassembly not completed, no open frame is returned, no
+		segment is presented.
 
 		Implicitly updated values in task defaults: segment length,
 							    segment address,
@@ -449,9 +455,6 @@ int ipr_delete_instance(ipr_instance_handle_t ipr_instance_ptr,
 		incremented.\n
 		If this function is called while the task is currently
 		in exclusive mode, the scope_id is preserved.
-		In case the function returns with status:
-		IPR_REASSEMBLY_NOT_COMPLETED,
-		it is forbidden to modify the frame.
 		This function requires 2 CDMA mutexes
 		(out of 4 available per task).
 		In this function, the task yields.

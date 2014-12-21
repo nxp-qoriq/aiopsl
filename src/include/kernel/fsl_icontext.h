@@ -36,6 +36,8 @@
 @{
  *//***************************************************************************/
 
+#define ICONTEXT_INVALID ((uint16_t)-1) /**< Isolation context is not valid */
+
 /**************************************************************************//**
 @Description	Isolation context structure.
 
@@ -48,7 +50,8 @@ struct icontext {
 	uint32_t bdi_flags;
 	/**< Flags that will be used for BMAN pool */
 	uint16_t icid;
-	/**< Isolation context id that will be used for DMA and BMAN pool */
+	/**< Isolation context id that will be used for DMA and BMAN pool 
+	 *   If icid = #ICONTEXT_INVALID the values are not valid */
 };
 
 /**************************************************************************//**
@@ -75,7 +78,7 @@ void icontext_aiop_get(struct icontext *ic);
 @Return		0	 - on success,
 		-ENAVAIL - DPCI id was not found.
 
-@Cautions	This API must be called after cmdif_session_open() was triggered
+@Cautions	This API must be called after cmdif_open() was triggered
 		by GPP otherwise it will result in empty icontext structure.
 *//***************************************************************************/
 int icontext_get(uint16_t dpci_id, struct icontext *ic);

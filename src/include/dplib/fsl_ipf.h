@@ -177,7 +177,7 @@ int ipf_generate_frag(ipf_ctx_t ipf_context_addr);
 /**************************************************************************//**
 @Function	ipf_discard_frame_remainder
 
-@Description	This function discards the remanider of the frame being
+@Description	This function discards the remainder of the frame being
 		fragmented in case the user decides to stop the fragmentation
 		process before its completion (before
 		\ref IPF_GEN_FRAG_STATUS_DONE status is returned).

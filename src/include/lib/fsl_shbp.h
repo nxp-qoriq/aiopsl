@@ -47,7 +47,7 @@
 #define SHBP_GPP_MASTER		0x1
 /*!< GPP is the allocation master */
 
-#define SHBP_MEM_PTR_SIZE(NUM_BUFF) (sizeof(struct shbp) + (16 * (NUM_BUFFS)))
+#define SHBP_MEM_PTR_SIZE(NUM_BUFF) (sizeof(struct shbp) + (16 * (NUM_BUFF)))
 /*!< Calculator for mem_ptr size for shbp_create(); NUM_BUFF must be 2^x 
  * and higher than 8 */
 
@@ -110,13 +110,13 @@ int shbp_refill(struct shbp *bp);
  * must be freed by user 
  * 
  * @param[in]	bp       - Buffer pool handle
- * @param[out]	pt       - Pointer to be freed for pool destruction 
+ * @param[out]	ptr      - Pointer to be freed for pool destruction 
  * 
  * @returns	POSIX error code until there are buffers inside shared pool 
  * 		that need to be freed, 0 if there are no buffers to be freed
  *
  */
-int shbp_destroy(struct shbp *bp, void **ptr_arr);
+int shbp_destroy(struct shbp *bp, void **ptr);
 
 /** @} */ /* end of shbp_g group */
 

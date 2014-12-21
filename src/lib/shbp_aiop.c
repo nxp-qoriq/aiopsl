@@ -37,20 +37,20 @@
 	do {\
 		pr_debug("shbp.alloc_master = 0x%x\n", shbp.alloc_master); \
 		pr_debug("shbp.max_num = 0x%x size = %d\n", shbp.max_num, SHBP_SIZE(&shbp)); \
-		pr_debug("shbp.alloc.base high = 0x%x\n", ((shbp.alloc.base & 0xFFFFFFFF00000000) >> 32)); \
-		pr_debug("shbp.alloc.base low = 0x%x\n", (shbp.alloc.base & 0xFFFFFFFF)); \
+		pr_debug("shbp.alloc.base high = 0x%x\n", (uint32_t)((shbp.alloc.base & 0xFFFFFFFF00000000) >> 32)); \
+		pr_debug("shbp.alloc.base low = 0x%x\n", (uint32_t)(shbp.alloc.base & 0xFFFFFFFF)); \
 		pr_debug("shbp.alloc.deq = 0x%x\n", shbp.alloc.deq); \
 		pr_debug("shbp.alloc.enq = 0x%x\n", shbp.alloc.enq); \
-		pr_debug("shbp.free.base high = 0x%x\n", ((shbp.free.base & 0xFFFFFFFF00000000) >> 32)); \
-		pr_debug("shbp.free.base low = 0x%x\n", (shbp.free.base & 0xFFFFFFFF)); \
+		pr_debug("shbp.free.base high = 0x%x\n", (uint32_t)((shbp.free.base & 0xFFFFFFFF00000000) >> 32)); \
+		pr_debug("shbp.free.base low = 0x%x\n", (uint32_t)(shbp.free.base & 0xFFFFFFFF)); \
 		pr_debug("shbp.free.deq = 0x%x\n", shbp.free.deq); \
 		pr_debug("shbp.free.enq = 0x%x\n\n", shbp.free.enq); \
 	} while(0)
 
 #define DUMP_AIOP_BP() \
 	do {\
-		pr_debug("bp->shbp high = 0x%x\n", ((bp->shbp & 0xFFFFFFFF00000000) >> 32)); \
-		pr_debug("bp->shbp low = 0x%x\n", (bp->shbp & 0xFFFFFFFF)); \
+		pr_debug("bp->shbp high = 0x%x\n", (uint32_t)((bp->shbp & 0xFFFFFFFF00000000) >> 32)); \
+		pr_debug("bp->shbp low = 0x%x\n", (uint32_t)(bp->shbp & 0xFFFFFFFF)); \
 		pr_debug("bp->ic.dma_flags = 0x%x\n", bp->ic.dma_flags); \
 		pr_debug("bp->ic.bdi_flags = 0x%x\n", bp->ic.bdi_flags); \
 		pr_debug("bp->ic.icid = 0x%x\n", bp->ic.icid); \
@@ -58,7 +58,7 @@
 
 uint64_t shbp_acquire(struct shbp_aiop *bp)
 {
-	struct shbp shbp; /* TODO don't want to take 64 bytes from stuck !! */
+	struct shbp shbp;
 	uint32_t offset;
 	uint64_t buf;
 	
@@ -68,22 +68,21 @@ uint64_t shbp_acquire(struct shbp_aiop *bp)
 	
 	/* Read SHBP structure:
 	 *  */
-	icontext_dma_read(&bp->ic, sizeof(struct shbp) - SHBP_RESERVED_BYTES, 
-	                  bp->shbp, &shbp);
+	icontext_dma_read(&bp->ic, sizeof(struct shbp), bp->shbp, &shbp);
 	if (shbp.alloc_master) {
 		/* Pool does not belong to AIOP */
 		cdma_mutex_lock_release(bp->shbp);
 		return NULL;
 	}
-	
-	DUMP_SHBP();
-	
+		
 	shbp.alloc.base = CPU_TO_LE64(shbp.alloc.base); 
 	shbp.alloc.deq  = CPU_TO_LE32(shbp.alloc.deq);
 	shbp.alloc.enq  = CPU_TO_LE32(shbp.alloc.enq);
 	
-	if (SHBP_ALLOC_IS_EMPTY(&shbp))
+	if (SHBP_ALLOC_IS_EMPTY(&shbp)) {
+		cdma_mutex_lock_release(bp->shbp);
 		return NULL;
+	}
 	
 	/* Read the buffer:
 	 * offset in byte = index of BD * 8 which is index << 3 */
@@ -105,47 +104,50 @@ uint64_t shbp_acquire(struct shbp_aiop *bp)
 	
 	DUMP_SHBP();
 	
+	pr_debug("buf high = 0x%x\n", (uint32_t)((buf & 0xFFFFFFFF00000000) >> 32)); \
+	pr_debug("buf low = 0x%x\n", (uint32_t)(buf & 0xFFFFFFFF)); \
+
 	return buf;
 }
 
 int shbp_release(struct shbp_aiop *bp, uint64_t buf)
 {
-	struct shbp shbp; /* TODO don't want to take 64 bytes from stuck !! */
+	struct shbp shbp;
 	uint32_t offset;
-
-	UNUSED(buf);
+	
+	buf = CPU_TO_LE64(buf);
 
 	DUMP_AIOP_BP();
 
 	cdma_mutex_lock_take(bp->shbp, CDMA_MUTEX_WRITE_LOCK);
 	
-#if 0
-	uint32_t enq = bp->alloc.enq % SHBP_SIZE(bp); /* mod 2^x */
-	((uint64_t *)q->base)[enq] = (uint64_t)buf;
-	
-	q->enq++;
-#endif
 	/* Read SHBP structure:
 	 *  */
-	icontext_dma_read(&bp->ic, sizeof(struct shbp) - SHBP_RESERVED_BYTES, 
-	                  bp->shbp, &shbp);
+	icontext_dma_read(&bp->ic, sizeof(struct shbp), bp->shbp, &shbp);
+
+	shbp.free.base = CPU_TO_LE64(shbp.free.base); 
+	shbp.free.deq  = CPU_TO_LE32(shbp.free.deq);
+	shbp.free.enq  = CPU_TO_LE32(shbp.free.enq);
 
 	if (SHBP_FREE_IS_FULL(&shbp)) {
 		cdma_mutex_lock_release(bp->shbp);
 		return -ENOSPC;
 	}
 	
-	shbp.free.base = CPU_TO_LE64(shbp.free.base); 
-	shbp.free.deq  = CPU_TO_LE32(shbp.free.deq);
-	shbp.free.enq  = CPU_TO_LE32(shbp.free.enq);
-
+	/*
+	 * Write the buffer:
+	 */
 	offset = SHBP_BD_OFF(&shbp, shbp.free.enq);
-	
+	icontext_dma_write(&bp->ic, sizeof(uint64_t), &buf, 
+	                   shbp.free.base + offset);
 	/*
 	 * Increase enqueue: 
 	 */
 	offset = SHBP_MEM_OFF(&shbp, &(shbp.free.enq));
-	
+	shbp.free.enq++;
+	shbp.free.enq  = CPU_TO_LE32(shbp.free.enq);
+	icontext_dma_write(&bp->ic, sizeof(uint32_t), &shbp.free.enq, 
+	                   bp->shbp + offset);
 
 	cdma_mutex_lock_release(bp->shbp);
 	

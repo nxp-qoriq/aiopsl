@@ -386,7 +386,7 @@ static int parser_profile_init(uint8_t *prpid)
     parse_profile1.parse_profile.ipv4_hxs_config = 0x0;
     /* Routing header is ignored and the destination address from
      * main header is used instead */
-    parse_profile1.parse_profile.ipv6_hxs_config = 0x0;
+    parse_profile1.parse_profile.ipv6_hxs_config = PARSER_PRP_IPV6_HXS_CONFIG_RHE;
     parse_profile1.parse_profile.gre_hxs_config = 0x0;
     parse_profile1.parse_profile.minenc_hxs_config = 0x0;
     parse_profile1.parse_profile.other_l3_shell_hxs_config= 0x0;

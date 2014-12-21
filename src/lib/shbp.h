@@ -55,7 +55,8 @@ struct shbp_bd_meta {
 };
 #endif // 0
 
-#define SHBP_RESERVED_BYTES	30
+#define SHBP_TOTAL_BYTES	(sizeof(struct shbp) > 64 ? sizeof(struct shbp) : 64)
+/*!< Total bytes including the reserved bytes */
 #define SHBP_SIZE(BP)		(0x1 << (BP)->max_num)	/*!< Number of BDs */
 #define SHBP_ALLOC_IS_FULL(BP)	(((BP)->alloc.enq - (BP)->alloc.deq) == SHBP_SIZE(BP))
 #define SHBP_ALLOC_IS_EMPTY(BP)	(((BP)->alloc.enq - (BP)->alloc.deq) == 0)
@@ -90,7 +91,7 @@ struct shbp {
 	/*!< Master of the allocation, must be 1 byte */
 	uint8_t max_num;	
 	/*!< Max number of BDs in the pool is 2^max_buf, must be 1 byte */
-	uint8_t reserved[SHBP_RESERVED_BYTES];
+	/* See also SHBP_TOTAL_BYTES */
 };
 
 #endif /* _SHBP_H */

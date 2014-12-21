@@ -42,10 +42,10 @@ static int cdma_test(uint64_t paddr);
 extern struct aiop_init_info g_init_data;
 
 
-
+#if 0
 int memory_test()
 {
-#if 0
+
 	int local_error = 0,error = 0;
 	local_error = cdma_peb_test();
 	if(!local_error)
@@ -68,7 +68,7 @@ int memory_test()
 	}
 	error |= local_error;
 	return error;
-#endif
+
 	return 0;
 }
 
@@ -138,3 +138,4 @@ static int cdma_test(uint64_t paddr)
 	iowrite32(old_value_off_4, UINT_TO_PTR(addr_offs_4));
 	return 0;
 }
+#endif

@@ -43,13 +43,6 @@
 extern struct aiop_init_info g_init_data;
 extern const uint8_t AIOP_DDR_START[],AIOP_DDR_END[];
 
-typedef struct t_sys_to_part_offset_map {
-    enum fsl_os_module  module;
-    uint32_t            id;
-    e_mapped_mem_type   mapped_mem_type;
-    uint32_t            offset;
-} t_sys_to_part_offset_map;
-
 typedef struct t_platform {
     /* Copy of platform parameters */
     struct platform_param   param;
@@ -69,6 +62,20 @@ typedef struct t_platform {
     uintptr_t               ccsr_base;
     uintptr_t               mc_portals_base;
 } t_platform;
+
+/* Global platform variable that holds platform definitions. Will reside in sram */
+static struct t_platform  s_pltfrm = {0};
+
+typedef struct t_sys_to_part_offset_map {
+    enum fsl_os_module  module;
+    uint32_t            id;
+    e_mapped_mem_type   mapped_mem_type;
+    uint32_t            offset;
+} t_sys_to_part_offset_map;
+
+
+
+
 
 
 /* Module names for debug messages */
@@ -367,12 +374,7 @@ __COLD_CODE static int pltfrm_init_mem_partitions_cb(fsl_handle_t h_platform)
         p_mem_info = &pltfrm->param.mem_info[i];
         virt_base_addr = p_mem_info->virt_base_addr;
         size = p_mem_info->size;
-        err = sys_register_virt_mem_mapping(p_mem_info->virt_base_addr,
-                                            p_mem_info->phys_base_addr,
-                                            p_mem_info->size);
-        if (err != 0)
-            RETURN_ERROR(MAJOR, err, NO_MSG);
-
+       
         if (p_mem_info->mem_attribute & MEMORY_ATTR_MALLOCABLE) {
             err = sys_register_mem_partition(p_mem_info->mem_partition_id,
                                              virt_base_addr,
@@ -419,17 +421,6 @@ __COLD_CODE static int build_mem_partitions_table(t_platform  *pltfrm)
 	        p_mem_info = &pltfrm->param.mem_info[i];
 	        ASSERT_COND(p_mem_info);
 	        switch (p_mem_info->mem_partition_id) {
-	        case MEM_PART_DEFAULT_HEAP_PARTITION:
-	            p_mem_info->virt_base_addr = (uint32_t)(AIOP_DDR_START);
-	            p_mem_info->phys_base_addr = g_init_data.sl_info.dp_ddr_paddr;
-	            p_mem_info->size = aiop_lcf_ddr_size;
-	            pr_debug("Default Heap:virt_add= 0x%x,phys_add=0x%x%08x,size=0x%x\n",
-	                     p_mem_info->virt_base_addr,
-	        	     (uint32_t)(p_mem_info->phys_base_addr>>32),
-	        	     (uint32_t)(p_mem_info->phys_base_addr),
-	                     (uint32_t)(p_mem_info->size));
-
-	        	break;
 	        case MEM_PART_DP_DDR:
 	            p_mem_info->virt_base_addr = (uint32_t)g_init_data.sl_info.dp_ddr_vaddr +
 	        	        aiop_lcf_ddr_size;
@@ -505,7 +496,7 @@ __COLD_CODE static int pltfrm_free_mem_partitions_cb(fsl_handle_t h_platform)
     index = (int)pltfrm->num_of_mem_parts;
 
     while ((--index) >= 0) {
-        sys_unregister_virt_mem_mapping(pltfrm->param.mem_info[index].virt_base_addr);
+        /*sys_unregister_virt_mem_mapping(pltfrm->param.mem_info[index].virt_base_addr);*/
 
         if (pltfrm->registered_partitions[index])
             sys_unregister_mem_partition(pltfrm->registered_partitions[index]);
@@ -565,20 +556,16 @@ __COLD_CODE int platform_early_init(struct platform_param *pltfrm_params)
 __COLD_CODE int platform_init(struct platform_param    *pltfrm_param,
                   t_platform_ops           *pltfrm_ops)
 {
-    t_platform      *pltfrm;
     int             i;
 
     SANITY_CHECK_RETURN_ERROR(pltfrm_param, ENODEV);
     SANITY_CHECK_RETURN_ERROR(pltfrm_ops, ENODEV);
 
-    /* Allocate the platform's control structure */
-    pltfrm= sys_aligned_malloc(sizeof(t_platform),0);
-    if (!pltfrm)
-        RETURN_ERROR(MAJOR, EAGAIN, ("platform object"));
-    memset(pltfrm, 0, sizeof(t_platform));
+    
+    memset(&s_pltfrm, 0, sizeof(t_platform));
 
     /* Store configuration parameters */
-    memcpy(&(pltfrm->param), pltfrm_param, sizeof(struct platform_param));
+    memcpy(&(s_pltfrm.param), pltfrm_param, sizeof(struct platform_param));
 
     /* Count number of valid memory partitions and check that
        user's partition definition is within actual physical
@@ -586,22 +573,16 @@ __COLD_CODE int platform_init(struct platform_param    *pltfrm_param,
     for (i=0; i<PLATFORM_MAX_MEM_INFO_ENTRIES; i++) {
         t_platform_memory_info      *mem_info;
 
-        mem_info = pltfrm->param.mem_info + i;
+        mem_info = s_pltfrm.param.mem_info + i;
         if (!mem_info->size)
             break;
     }
-    pltfrm->num_of_mem_parts = i;
+    s_pltfrm.num_of_mem_parts = i;
 
-#if 0 /*TODO Do we need this function???*/
-    /* Identify the program memory */
-    err = identify_program_memory(pltfrm->param.mem_info,
-                                  &(pltfrm->prog_runs_from));
-    ASSERT_COND(err == 0);
-#endif
     /* Store AIOP-peripherals base (for convenience) */
-    pltfrm->aiop_base = AIOP_PERIPHERALS_OFF;
+    s_pltfrm.aiop_base = AIOP_PERIPHERALS_OFF;
     /* Initialize platform operations structure */
-    pltfrm_ops->h_platform              = pltfrm;
+    pltfrm_ops->h_platform              = &s_pltfrm;
     pltfrm_ops->f_init_core             = pltfrm_init_core_cb;
     pltfrm_ops->f_free_core             = pltfrm_free_core_cb;
     pltfrm_ops->f_init_intr_ctrl        = NULL;
@@ -640,8 +621,7 @@ __COLD_CODE int platform_init(struct platform_param    *pltfrm_param,
 /*****************************************************************************/
 __COLD_CODE int platform_free(fsl_handle_t h_platform)
 {
-    if (h_platform)
-	    sys_aligned_free(h_platform);
+	UNUSED(h_platform);
     return 0;
 }
 

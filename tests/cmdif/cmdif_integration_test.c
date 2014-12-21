@@ -41,6 +41,7 @@
 #include "fsl_tman.h"
 #include "fsl_malloc.h"
 #include "fsl_platform.h"
+#include "fsl_shbp_aiop.h"
 
 #ifndef CMDIF_TEST_WITH_MC_SRV
 #warning "If you test with MC define CMDIF_TEST_WITH_MC_SRV inside cmdif.h\n"
@@ -60,6 +61,7 @@ void app_free(void);
 #define IC_TEST		0x106
 #define CLOSE_CMD	0x107
 #define TMAN_TEST	0x108
+#define SHBP_TEST	0x109
 
 #define AIOP_ASYNC_CB_DONE	5  /* Must be in sync with MC ELF */
 #define AIOP_SYNC_BUFF_SIZE	80 /* Must be in sync with MC ELF */
@@ -70,8 +72,14 @@ void app_free(void);
 #define TEST_DPCI_ID    (void *)4 /* For GPP use 4 */
 #endif
 
+struct shbp_test {
+	uint64_t shbp;
+	uint8_t dpci_id;
+};
+
 struct cmdif_desc cidesc;
 uint64_t tman_addr;
+struct shbp_aiop lbp;
 
 static int aiop_async_cb(void *async_ctx, int err, uint16_t cmd_id,
              uint32_t size, void *data)
@@ -161,7 +169,8 @@ static int ctrl_cb0(void *dev, uint16_t cmd, uint32_t size,
 	uint16_t bpid = 3;
 	uint8_t tmi_id = 0;
 	uint32_t timer_handle = 0;
-
+	struct shbp_test *shbp_test;
+	
 	UNUSED(dev);
 	fsl_os_print("ctrl_cb0 cmd = 0x%x, size = %d, data  0x%x\n",
 	             cmd,
@@ -171,6 +180,19 @@ static int ctrl_cb0(void *dev, uint16_t cmd, uint32_t size,
 	aiop_ws_check();
 	
 	switch (cmd) {
+	case SHBP_TEST:
+		shbp_test = data;
+		dpci_id = shbp_test->dpci_id;
+		err = shbp_enable(dpci_id, shbp_test->shbp, &lbp);
+		for (i = 0; i < 10; i++) {
+			p_data = shbp_acquire(&lbp);
+			ASSERT_COND(p_data);
+			icontext_get(dpci_id, &ic);
+			ASSERT_COND(ic.icid != ICONTEXT_INVALID);
+			icontext_dma_write(&ic, sizeof(uint64_t), &p_data, p_data);
+			err = shbp_release(&lbp, p_data);			
+		}
+		break;
 	case TMAN_TEST:
 		err |= tman_create_tmi(tman_addr /* uint64_t tmi_mem_base_addr */,
 		                       10 /* max_num_of_timers */,
