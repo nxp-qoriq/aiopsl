@@ -141,16 +141,16 @@ Layout is built from 3 different sections: containers, objects, connections.
 		};
 	};
 	objects {
+		dpaiop@1 {
+			compatible = "fsl,dpaiop";
+			aiop_id = <0>;
+			aiop_container_id = <2>;
+		};	
 		dpmac@1 {
 			compatible = "fsl,dpmac";
 		};
 		dpmac@3 {
 			compatible = "fsl,dpmac";
-		};
-		dpaiop@1 {
-			compatible = "fsl,dpaiop";
-			aiop_id = <0>;
-			aiop_container_id = <2>;
 		};
 		dpio@1 {
 			compatible = "fsl,dpio";
