@@ -70,6 +70,7 @@ void fsl_free(void *mem);
 
 @Description   Allocates contiguous block of memory with the specified
                 alignment and from the specified  memory partition.
+@Param[in]     size                Number of bytes to allocate.
 @Param[in]     mem_partition_id    Memory partition ID;
                Valid values: MEM_PART_DP_DDR,MEM_PART_PEB,MEM_PART_SYSTEM_DDR
 @Param[in]     alignment           Required memory alignment (in bytes).
