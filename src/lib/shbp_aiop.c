@@ -151,6 +151,8 @@ int shbp_release(struct shbp_aiop *bp, uint64_t buf)
 
 	cdma_mutex_lock_release(bp->shbp);
 	
+	DUMP_SHBP();
+
 	return 0;
 }
 
