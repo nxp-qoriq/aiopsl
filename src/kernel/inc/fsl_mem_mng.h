@@ -73,8 +73,7 @@
 
 /* @} */
 /* Put all function (execution code) into  dtext_vle section,aka __COLD_CODE */
-#pragma push
-#pragma section code_type ".dtext_vle" data_mode=far_abs code_mode=pc_rel
+__START_COLD_CODE
 
 
 
@@ -318,6 +317,6 @@ void  sys_aligned_free(void *p_memory);
 
 /** @} */ /* end of sys_mem_grp */
 /** @} */ /* end of sys_grp */
-#pragma pop
+__END_COLD_CODE
 
 #endif /* __FSL_SYS_MEM_MNG_H */

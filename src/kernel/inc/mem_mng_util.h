@@ -36,8 +36,7 @@
 #include "fsl_errors.h"
 
 /* Put all function (execution code) into  dtext_vle section,aka __COLD_CODE */
-#pragma push
-#pragma section code_type ".dtext_vle" data_mode=far_abs code_mode=pc_rel
+__START_COLD_CODE
 /**************************************************************************//**
  @Group         mem_mng_grp     Memory Allocation Management module
 
@@ -240,7 +239,7 @@ uint32_t mem_mng_check_leaks(fsl_handle_t                h_mem_mng,
 
 /** @} */ /* end of mem_mng_grp */
 
-#pragma pop
+__END_COLD_CODE
 
 #endif /* __MEM_MNG_UTIL_H */
 

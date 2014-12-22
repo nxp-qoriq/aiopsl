@@ -63,5 +63,16 @@ typedef uint64_t            dma_addr_t;
 #pragma section RX ".dtext_vle"
 #define __COLD_CODE __declspec(section ".dtext_vle")
 
+#define STRINGTYPE(a) #a
+#define DEFINESECTION(x) section code_type x data_mode=far_abs code_mode=pc_rel
+#define PUSH _Pragma("push")
+#define STARTSECTION(s) _Pragma(STRINGTYPE(DEFINESECTION(s)))
+#define START_CODE_IN_SECTION(s) PUSH STARTSECTION(s)
+#define __START_COLD_CODE START_CODE_IN_SECTION(".dtext_vle")
+
+#define POP _Pragma("pop")
+#define __END_COLD_CODE POP
+
+
 
 #endif /* __TYPES_MW_H */

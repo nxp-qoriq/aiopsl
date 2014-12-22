@@ -78,8 +78,8 @@ static uint8_t g_phys_mem_part_spinlock[PLATFORM_MAX_MEM_INFO_ENTRIES] = {0};
 extern struct aiop_init_info g_init_data;
 
 /* Put all function (execution code) into  dtext_vle section , aka __COLD_CODE */
-#pragma push
-#pragma section code_type ".dtext_vle" data_mode=far_abs code_mode=pc_rel
+__START_COLD_CODE
+
 
 static void mem_mng_add_early_entry(t_mem_mng    *p_mem_mng,
                                 void        *p_memory,
@@ -1339,4 +1339,4 @@ static int mem_mng_remove_entry(t_mem_mng          *p_mem_mng,
     return 0;
 }
 
-#pragma pop
+__END_COLD_CODE

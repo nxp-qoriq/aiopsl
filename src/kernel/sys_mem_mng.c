@@ -70,8 +70,7 @@ static void     sys_print_mem_leak(void        *p_memory,
 
 
 /* Put all function (execution code) into  dtext_vle section,aka __COLD_CODE */
-#pragma push
-#pragma section code_type ".dtext_vle" data_mode=far_abs code_mode=pc_rel
+__START_COLD_CODE
 
 /*****************************************************************************/
  /* Implement a trivial version of conversion, return the same value as received. */
@@ -562,5 +561,5 @@ void  sys_put_phys_mem(uint64_t paddr)
 	mem_mng_put_phys_mem(sys.mem_mng,paddr);
 }
 
-#pragma pop
+__END_COLD_CODE
 
