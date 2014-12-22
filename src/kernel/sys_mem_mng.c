@@ -68,8 +68,6 @@ static void     sys_print_mem_leak(void        *p_memory,
                                 char        *filename,
                                 int         line);
 
-/* Global System Object */
-extern t_system sys;
 
 /* Put all function (execution code) into  dtext_vle section,aka __COLD_CODE */
 #pragma push
@@ -385,16 +383,13 @@ void sys_print_mem_partition_debug_info(int partition_id, int report_leaks)
 {
     t_mem_mng_param mem_mng_param;
 #ifdef AIOP
-    sys.virt_mem_lock = 0;
     sys.mem_mng_lock = 0;
     sys.mem_part_mng_lock = 0;
 #else /* not AIOP */
-    spin_lock_init(&(sys.virt_mem_lock));
     spin_lock_init(&(sys.mem_mng_lock));
     spin_lock_init(&(sys.mem_part_mng_lock)); 
 #endif /* AIOP */
     
-    INIT_LIST(&(sys.virt_mem_list));
 
     /* Initialize memory allocation manager module */
     mem_mng_param.f_malloc = sys_default_malloc;

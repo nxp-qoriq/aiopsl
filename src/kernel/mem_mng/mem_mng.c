@@ -38,6 +38,9 @@
 #include "fsl_malloc.h"
 #include "platform.h"
 #include "platform_aiop_spec.h"
+#include "aiop_common.h"
+#include "fsl_platform.h"
+#include "sys.h"
 #endif /* AIOP */
 
 #include "mem_mng.h"
@@ -72,6 +75,7 @@
  * They are initialized to 0 (unlocked) */
 static uint8_t g_mem_part_spinlock[PLATFORM_MAX_MEM_INFO_ENTRIES] = {0};  
 static uint8_t g_phys_mem_part_spinlock[PLATFORM_MAX_MEM_INFO_ENTRIES] = {0};
+extern struct aiop_init_info g_init_data;
 
 /* Put all function (execution code) into  dtext_vle section , aka __COLD_CODE */
 #pragma push
@@ -109,6 +113,75 @@ static void mem_phys_mng_free_partition(t_mem_mng *p_mem_mng, list_t *p_partitio
 
 
 
+
+/*****************************************************************************/
+/* TODO In lcf file , add the following lines:
+ *  boot_heap:		    org = 0x40210000,   len = 0x4000 Internal heap during boot
+ *  ...
+ *  _boot_heap_addr   = ADDR(boot_heap);
+_boot_heap_end    = ADDR(boot_heap)+SIZEOF(boot_heap);
+ */
+/*
+extern const uint8_t _boot_heap_addr[],_boot_heap_end[];
+*/
+
+int boot_mem_mng_init(struct initial_mem_mng* boot_mem_mng,
+                      int mem_partition_id)
+{
+	uint32_t offset = 0;
+	switch(mem_partition_id){
+	case MEM_PART_DP_DDR:
+		/*offset = (uint32_t)_boot_heap_addr - (uint32_t)g_init_data.sl_info.dp_ddr_vaddr;*/
+		boot_mem_mng->base_paddress = g_init_data.sl_info.dp_ddr_paddr
+			                     + offset;
+		boot_mem_mng->base_vaddress = (uint32_t)g_init_data.sl_info.dp_ddr_vaddr
+			                    + offset;
+		/*boot_mem_mng->size = (uint32_t)_boot_heap_end - (uint32_t)_boot_heap_addr;*/
+		boot_mem_mng->curr_ptr = boot_mem_mng->base_paddress;
+
+		break;
+	}
+#ifdef AIOP
+	boot_mem_mng->lock = 0;
+#endif
+	return 0;
+}
+
+/*****************************************************************************/
+int boot_mem_mng_free(struct initial_mem_mng* boot_mem_mng)
+{
+	boot_mem_mng->curr_ptr = boot_mem_mng->base_paddress;
+	return 0;
+}
+/*****************************************************************************/
+int boot_get_mem(struct initial_mem_mng* boot_mem_mng,
+                 uint64_t size,uint64_t* paddr)
+{
+#ifdef AIOP
+	lock_spinlock(boot_mem_mng->lock);
+#endif
+	if(boot_mem_mng->curr_ptr + size >=
+		boot_mem_mng->base_paddress + boot_mem_mng->size)
+		return -ENOMEM;
+	*paddr = boot_mem_mng->curr_ptr;
+	boot_mem_mng->curr_ptr += size;
+#ifdef AIOP
+	unlock_spinlock(boot_mem_mng->lock);
+#endif
+	return  0;
+}
+/*****************************************************************************/
+int boot_get_mem_virt(struct initial_mem_mng* boot_mem_mng,
+                 uint64_t size,uint32_t* vaddr)
+{
+	if(boot_mem_mng->curr_ptr + size >=
+		boot_mem_mng->base_paddress + boot_mem_mng->size)
+		return -ENOMEM;
+	*vaddr = (uint32_t)(boot_mem_mng->curr_ptr-boot_mem_mng->base_paddress) +
+		boot_mem_mng->base_vaddress ;
+	boot_mem_mng->curr_ptr += size;
+	return  0;
+}
 /*****************************************************************************/
  fsl_handle_t mem_mng_init(t_mem_mng_param *p_mem_mng_param)
 {
