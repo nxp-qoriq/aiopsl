@@ -1193,7 +1193,7 @@ int table_lookup_by_key(enum table_hw_accel_id acc_id,
 @Description	Performs a lookup with a predefined key and the default frame.
 		\n \n In this lookup process a lookup key will be built
 		according to the Key Composition Rule associated with the Key
-		ID supplied as a paremeter to this functions. Default frame
+		ID supplied as a parameter to this functions. Default frame
 		header (segment), Parse Result address, and FD address
 		parameters are used in the key creation process.
 

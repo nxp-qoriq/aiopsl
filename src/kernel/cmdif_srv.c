@@ -189,7 +189,7 @@ static inline int inst_alloc(uint8_t m_id)
 		count = 0;
 		while ((cmdif_aiop_srv.srv->m_id[r] != FREE_INSTANCE) &&
 			(count < M_NUM_OF_INSTANCES)) {
-			r = MODULU_POWER_OF_TWO(r++, M_NUM_OF_INSTANCES);
+			r = MODULU_POWER_OF_TWO(++r, M_NUM_OF_INSTANCES);
 			count++;
 		}
 	}
@@ -671,8 +671,8 @@ __COLD_CODE static void dpci_icontext_update()
 	amq_bits_update(ind);
 }
 
-__COLD_CODE int session_open();
-/* static */ int session_open()
+__COLD_CODE int session_open(uint16_t *new_auth);
+/* static */ int session_open(uint16_t *new_auth)
 {
 	char     m_name[M_NAME_CHARS + 1];
 	int      m_id;
@@ -703,8 +703,10 @@ __COLD_CODE int session_open();
 		if (new_inst >= 0) {
 			sl_pr_debug("New auth_id = %d module name = %s\n", new_inst, m_name);
 			sync_done_set((uint16_t)new_inst);
-			cmdif_aiop_srv.srv->inst_dev[new_inst] = dev;			
-			return new_inst;
+			cmdif_aiop_srv.srv->inst_dev[new_inst] = dev;
+			/* Should change only on success */
+			*new_auth = (uint16_t)new_inst;
+			return 0;
 		} else {
 			/* couldn't find free place for new device */
 			sl_pr_err("No free entry for new device\n");
@@ -775,15 +777,15 @@ void cmdif_srv_isr(void) /*__attribute__ ((noreturn))*/
 
 		open_cmd_print();
 		
-		err = session_open();
-		if (err < 0) {
+		err = session_open(&auth_id);
+		if (err) {
 			pr_err("Open session FAILED err = %d\n", err);
 			sync_cmd_done(sync_done_get(), err, auth_id,
 				      TRUE, gpp_icid, gpp_dma);
 		} else {
 			pr_debug("Open session PASSED auth_id = 0x%x\n", 
 			       (uint16_t)err);
-			sync_cmd_done(sync_done_get(), 0, (uint16_t)err,
+			sync_cmd_done(sync_done_get(), 0, auth_id,
 				      TRUE, gpp_icid, gpp_dma);
 		}
 		

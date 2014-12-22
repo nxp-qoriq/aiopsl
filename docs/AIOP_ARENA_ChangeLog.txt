@@ -1,3 +1,8 @@
+- cmdif_srv_flib.c:   Fixed ENGR00343203, to allow M_NUM_OF_INSTANCES of instances.
+- cmdif_srv.c:        Fixed ENGR00343203, to allow M_NUM_OF_INSTANCES of instances.
+- dpl.dts/dtb:        Added dpaiop object, it must be the first object.
+- fsl_cmdif_client.h: Added comment that GPP data must be in Write-Back Cacheable and Outer Shareable memory.
+
 - fsl_os.h:      Remove fsl_os_phys_to_vist()/fsl_os_virt_to_phys() functions.
 - dpni_drv.c:    ENGR00341594 - resolved. ipv6_hxs_config set to: 0x2000
 - fsl_icontext.h: Updated icontext_get() to support ENGR00341218: API to get the GPP ICID.

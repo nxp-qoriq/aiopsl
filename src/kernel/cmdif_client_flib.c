@@ -52,7 +52,7 @@ int cmdif_open_cmd(struct cmdif_desc *cidesc,
 			uint32_t size,
 			struct cmdif_fd *fd)
 {
-	uint64_t p_addr = NULL;
+	uint64_t p_addr = 0;
 	int      i = 0;
 	union  cmdif_data *v_addr = NULL;
 	struct cmdif_dev  *dev = NULL;
@@ -63,12 +63,12 @@ int cmdif_open_cmd(struct cmdif_desc *cidesc,
 	if ((m_name == NULL)
 		|| (cidesc == NULL)
 		|| (v_data == NULL)
-		|| (p_data == NULL))
+		|| (p_data == 0))
 		return -EINVAL;
-	
+#endif
+
 	if (!IS_VLD_OPEN_SIZE(size))
 		return -ENOMEM;
-#endif
 
 	memset(v_data, 0, size);
 
@@ -163,7 +163,7 @@ int cmdif_close_cmd(struct cmdif_desc *cidesc, struct cmdif_fd *fd)
 	
 	dev = (struct cmdif_dev *)cidesc->dev;
 
-	fd->u_addr.d_addr       = NULL;
+	fd->u_addr.d_addr       = 0;
 	fd->d_size              = 0;
 	fd->u_flc.flc           = 0;
 	fd->u_flc.close.cmid    = CPU_TO_SRV16(CMD_ID_CLOSE);
@@ -219,7 +219,7 @@ int cmdif_cmd(struct cmdif_desc *cidesc,
 		return -EINVAL;
 	if ((cmd_id & CMDIF_ASYNC_CMD) && (size < sizeof(struct cmdif_async)))
 		return -EINVAL;
-	if ((data == NULL) && (size > 0))
+	if ((data == 0) && (size > 0))
 		return -EINVAL;
 #endif
 	
@@ -238,8 +238,6 @@ int cmdif_cmd(struct cmdif_desc *cidesc,
 
 int cmdif_async_cb(struct cmdif_fd *fd)
 {
-	struct     cmdif_dev *dev = NULL;
-	uint64_t   fd_dev         = 0;
 	cmdif_cb_t *async_cb      = NULL;
 	void       *async_ctx     = NULL;
 	uint16_t   cmd_id         = 0;
@@ -257,7 +255,7 @@ int cmdif_async_cb(struct cmdif_fd *fd)
 	cmd_id = CPU_TO_SRV16(fd->u_flc.cmd.cmid);
 	
 #ifdef DEBUG
-	if (!(cmd_id & CMDIF_ASYNC_CMD) || (fd->u_addr.d_addr == NULL))
+	if (!(cmd_id & CMDIF_ASYNC_CMD) || (fd->u_addr.d_addr == 0))
 		return -EINVAL;	
 #endif
 	
