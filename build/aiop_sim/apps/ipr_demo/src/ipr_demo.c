@@ -41,6 +41,7 @@
 #include "ls2085_aiop/fsl_platform.h"
 #include "fsl_tman.h"
 #include "fsl_slab.h"
+#include "fsl_malloc.h"
 
 int app_early_init(void);
 int app_init(void);
