@@ -432,6 +432,9 @@ int ipr_delete_instance(ipr_instance_handle_t ipr_instance_ptr,
 		The function returns with the same ordering scope mode
 		it enters (exclusive or concurrent).
 		
+		This functions assumes that at least 60 bytes are presented in the
+		presentation area.
+		
 		In case of completed reassembly, the reassembled frame is returned
 		as default frame and segment is presented.
 		In case of malformed fragment, the presented fragment is returned.
