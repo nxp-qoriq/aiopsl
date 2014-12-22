@@ -1,5 +1,8 @@
 mc/src/include/fsl_endian.h:aiop/src/include/fsl_endian.h:B49560
 mc/src/include/fsl_io.h:aiop/src/include/fsl_io.h:B49560
+mc/src/drivers/serial/include/fsl_duart.h:aiop/src/drivers/serial/include/fsl_duart.h:B49560
+mc/src/drivers/serial/duart/duart.h:aiop/src/drivers/serial/duart/duart.h:B49560
+mc/src/drivers/serial/duart/duart.c:aiop/src/drivers/serial/duart/duart.c:B49560
 mc/src/drivers/dpmng/controllers/aiop/aiop_common.h:aiop/src/drivers/dpmng/controllers/aiop/aiop_common.h:B17975
 mc/src/include/kernel/fsl_cmdif_client.h:aiop/src/include/kernel/fsl_cmdif_client.h:B17975
 mc/src/include/kernel/fsl_cmdif_fd.h:aiop/src/include/kernel/fsl_cmdif_fd.h:B17975
