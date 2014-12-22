@@ -65,10 +65,10 @@ int cmdif_open_cmd(struct cmdif_desc *cidesc,
 		|| (v_data == NULL)
 		|| (p_data == NULL))
 		return -EINVAL;
-	
+#endif
+
 	if (!IS_VLD_OPEN_SIZE(size))
 		return -ENOMEM;
-#endif
 
 	memset(v_data, 0, size);
 
@@ -238,8 +238,6 @@ int cmdif_cmd(struct cmdif_desc *cidesc,
 
 int cmdif_async_cb(struct cmdif_fd *fd)
 {
-	struct     cmdif_dev *dev = NULL;
-	uint64_t   fd_dev         = 0;
 	cmdif_cb_t *async_cb      = NULL;
 	void       *async_ctx     = NULL;
 	uint16_t   cmd_id         = 0;
