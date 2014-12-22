@@ -33,8 +33,7 @@
 #include "inc/console.h"
 #include "sys.h"
 
-/* Global System Object */
-extern t_system sys;
+
 
 #ifdef SIMULATOR
 static int system_call(int num, int arg0, int arg1, int arg2, int arg3)

@@ -36,8 +36,7 @@
 #include "fsl_errors.h"
 
 /* Put all function (execution code) into  dtext_vle section,aka __COLD_CODE */
-#pragma push
-#pragma section code_type ".dtext_vle" data_mode=far_abs code_mode=pc_rel
+__START_COLD_CODE
 /**************************************************************************//**
  @Group         mem_mng_grp     Memory Allocation Management module
 
@@ -80,9 +79,27 @@ typedef struct t_mem_mng_param
                      need the spinlock object to be allocated outside of the manager */
 } t_mem_mng_param;
 
+struct initial_mem_mng;
+
+/*****************************************************************************/
+int boot_get_mem(struct initial_mem_mng* boot_mem_mng,
+                 uint64_t size,uint64_t* paddr);
+/*****************************************************************************/
+int boot_get_mem_virt(struct initial_mem_mng* boot_mem_mng,
+                      uint64_t size,uint32_t* vaddr);
+/**************************************************************************//**
+ @Function      boot_mem_mng_init
+
+ @Description   Initialize the memory allocation management module.
+
+ @Param[in]     boot_mem_mng - MEM_MNG initialization parameters.
+
+ @Return        Handle to initialized MEM_MNG object, or NULL on error.
+*//***************************************************************************/
+int boot_mem_mng_init(struct initial_mem_mng* boot_mem_mng,int mem_partition_id);
 
 /**************************************************************************//**
- @Function      MEM_MNG_Init
+ @Function      mem_mng_init
 
  @Description   Initialize the memory allocation management module.
 
@@ -93,7 +110,7 @@ typedef struct t_mem_mng_param
 fsl_handle_t mem_mng_init(t_mem_mng_param *p_mem_mng_param);
 
 /**************************************************************************//**
- @Function      MEM_MNG_Free
+ @Function      mem_mng_free
 
  @Description   Free the memory allocation management module.
 
@@ -103,7 +120,18 @@ fsl_handle_t mem_mng_init(t_mem_mng_param *p_mem_mng_param);
 *//***************************************************************************/
 void mem_mng_free(fsl_handle_t h_mem_mng);
 
+/**************************************************************************//**
+ @Function      boot_mem_mng_free
 
+ @Description   Free the memory allocation management module.
+
+ @Param[in]     boot_mem_mng - initial_mem_mng
+
+ @Return        None.
+*//***************************************************************************/
+int boot_mem_mng_free(struct initial_mem_mng* boot_mem_mng);
+
+/**************************************************************************//**/
 int mem_mng_get_phys_mem(fsl_handle_t    h_mem_mng,
                         int         partition_id,
                         uint64_t    size,
@@ -211,7 +239,7 @@ uint32_t mem_mng_check_leaks(fsl_handle_t                h_mem_mng,
 
 /** @} */ /* end of mem_mng_grp */
 
-#pragma pop
+__END_COLD_CODE
 
 #endif /* __MEM_MNG_UTIL_H */
 

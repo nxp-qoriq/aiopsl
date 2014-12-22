@@ -73,8 +73,7 @@
 
 /* @} */
 /* Put all function (execution code) into  dtext_vle section,aka __COLD_CODE */
-#pragma push
-#pragma section code_type ".dtext_vle" data_mode=far_abs code_mode=pc_rel
+__START_COLD_CODE
 
 
 
@@ -91,75 +90,6 @@ dma_addr_t sys_virt_to_phys(void *addr);
 #define SYS_DEFAULT_HEAP_PARTITION  0   /**< Partition ID for default heap */
 
 
-/**************************************************************************//**
- @Function      sys_mem_alloc
-
- @Description   Allocate a memory block from a specific partition and with
-                specific attributes.
-
- @Param[in]     partitionId - Requested memory partition ID
- @Param[in]     size        - Requested memory size
- @Param[in]     alignment   - Requested memory alignment
- @Param[in]     info        - Allocation information string (for debug)
- @Param[in]     filename    - Caller file name (for debug)
- @Param[in]     line        - Caller line number (for debug)
-
- @Return        Pointer to allocated memory; NULL on failure.
-*//***************************************************************************/
-/*
-void * sys_mem_xalloc(int         partition_id,
-                    uint32_t    size,
-                    uint32_t    alignment,
-                    char        *info,
-                    char        *filename,
-                    int         line);
-                    */
-
-/**************************************************************************//**
- @Function      sys_mem_alloc
-
- @Description   Allocate a memory block from default partition and with
-                specific attributes.
-
- @Param[in]     size        - Requested memory size
- @Param[in]     alignment   - Requested memory alignment
- @Param[in]     info        - Allocation information string (for debug)
- @Param[in]     filename    - Caller file name (for debug)
- @Param[in]     line        - Caller line number (for debug)
-
- @Return        Pointer to allocated memory; NULL on failure.
-*//***************************************************************************/
-#if 0
-void * sys_mem_alloc(uint32_t    size,
-                    uint32_t    alignment,
-                    char        *info,
-                    char        *filename,
-                    int         line);
-/**************************************************************************//**
- @Function      sys_mem_Free
-
- @Description   Free a memory block that was previously allocated using the
-                sys_mem_alloc() routine.
-
- @Param[in]     p_Memory - Pointer to the memory block
-
- @Return        None.
-*//***************************************************************************/
-void sys_mem_free(void *p_memory);
-
-/**************************************************************************//**
- @Function      sys_mem_xfree
-
- @Description   Free a memory block that was previously allocated using the
-                sys_mem_alloc() routine.
-
- @Param[in]     p_Memory - Pointer to the memory block
-
- @Return        None.
-*//***************************************************************************/
-
-void sys_mem_xfree(void *p_memory);
-#endif
 
 /**************************************************************************//**
  @Function      sys_shram_alloc
@@ -387,6 +317,6 @@ void  sys_aligned_free(void *p_memory);
 
 /** @} */ /* end of sys_mem_grp */
 /** @} */ /* end of sys_grp */
-#pragma pop
+__END_COLD_CODE
 
 #endif /* __FSL_SYS_MEM_MNG_H */
