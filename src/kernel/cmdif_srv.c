@@ -189,7 +189,7 @@ static inline int inst_alloc(uint8_t m_id)
 		count = 0;
 		while ((cmdif_aiop_srv.srv->m_id[r] != FREE_INSTANCE) &&
 			(count < M_NUM_OF_INSTANCES)) {
-			r = MODULU_POWER_OF_TWO(r++, M_NUM_OF_INSTANCES);
+			r = MODULU_POWER_OF_TWO(++r, M_NUM_OF_INSTANCES);
 			count++;
 		}
 	}

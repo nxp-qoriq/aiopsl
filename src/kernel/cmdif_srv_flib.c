@@ -93,7 +93,7 @@ __COLD_CODE void *cmdif_srv_allocate(void *(*fast_malloc)(int size),
 		FREE_MODULE,
 		sizeof(srv->m_name[0]) * M_NUM_OF_MODULES);
 	memset((uint8_t *)srv->inst_dev,
-		NULL,
+		0,
 		sizeof(srv->inst_dev[0]) * M_NUM_OF_INSTANCES);
 	memset(srv->m_id,
 		FREE_INSTANCE,
@@ -260,7 +260,7 @@ static int inst_alloc(struct cmdif_srv *srv, uint8_t m_id)
 		count = 0;
 		while ((srv->m_id[r] != FREE_INSTANCE) &&
 			(count < M_NUM_OF_INSTANCES)) {
-			r = r++ % M_NUM_OF_INSTANCES;
+			r = ++r % M_NUM_OF_INSTANCES;
 			count++;
 		}
 	}
