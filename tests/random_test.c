@@ -29,7 +29,7 @@
 #include "platform.h"
 #include "fsl_smp.h"
 #include "kernel/fsl_spinlock.h"
-#include "sys.h"
+#include "aiop_common.h"
 
 #if defined (AIOP) && defined (LS2085A)
 #include "ls2085a_aiop/platform_aiop_spec.h"
@@ -45,7 +45,7 @@ uint8_t rnd_lock;
 int num_of_cores;
 int num_of_tasks;
 
-extern t_system sys;
+
 extern __TASK uint32_t	seed_32bit;
 
 
