@@ -56,6 +56,25 @@
 		pr_debug("bp->ic.icid = 0x%x\n", bp->ic.icid); \
 	}while(0)
 
+
+int shbp_read(struct shbp_aiop *bp, uint16_t size, uint64_t src, void *dest)
+{
+#ifdef DEBUG
+	if (bp == NULL)
+		return -EINVAL;
+#endif	
+	return icontext_dma_read(&bp->ic, size, src, dest);
+}
+
+int shbp_write(struct shbp_aiop *bp, uint16_t size, void *src, uint64_t dest)
+{
+#ifdef DEBUG
+	if (bp == NULL)
+		return -EINVAL;
+#endif
+	return icontext_dma_write(&bp->ic, size, src, dest);
+}
+
 uint64_t shbp_acquire(struct shbp_aiop *bp)
 {
 	struct shbp shbp;
