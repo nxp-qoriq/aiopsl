@@ -47,7 +47,7 @@
 #define SHBP_GPP_MASTER		0x1
 /*!< GPP is the allocation master */
 
-#define SHBP_MEM_PTR_SIZE(NUM_BUFF) (sizeof(struct shbp) + (16 * (NUM_BUFF)))
+#define SHBP_MEM_PTR_SIZE(NUM_BUFF) (SHBP_TOTAL_BYTES + (16 * (NUM_BUFF)))
 /*!< Calculator for mem_ptr size for shbp_create(); NUM_BUFF must be 2^x 
  * and higher than 8 */
 
