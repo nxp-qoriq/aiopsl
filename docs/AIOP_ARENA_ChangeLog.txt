@@ -1,3 +1,5 @@
+- types_mw.h, aiop_link.lcf: Add __HOT_CODE attribute to force the code to be stored in IRAM
+
 - cmdif_srv_flib.c:   Fixed ENGR00343203, to allow M_NUM_OF_INSTANCES of instances.
 - cmdif_srv.c:        Fixed ENGR00343203, to allow M_NUM_OF_INSTANCES of instances.
 - dpl.dts/dtb:        Added dpaiop object, it must be the first object.
