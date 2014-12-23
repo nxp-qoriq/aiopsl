@@ -358,7 +358,8 @@ int nat_ipv6(uint8_t flags, uint32_t *ip_src_addr,
 #else
 	/* Modify the IPv6 header and TCP/UDP header */
 	fdma_modify_default_segment_data(modify_offset,
-				IPV6_ADDR_SIZE+(l4_offset-modify_offset)+TCP_NO_OPTION_SIZE);	
+			(uint16_t)(IPV6_ADDR_SIZE+
+				(l4_offset-modify_offset)+TCP_NO_OPTION_SIZE));	
 #endif // REV2
 	return SUCCESS;
 

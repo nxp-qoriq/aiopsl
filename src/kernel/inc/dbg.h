@@ -37,6 +37,9 @@
 #include "fsl_io.h"
 #include "common/fsl_stdio.h"
 
+#ifdef __KLOCWORK__
+#undef DEBUG_ERRORS
+#endif
 
 /**************************************************************************//**
  @Group         gen_g  General Drivers Utilities

@@ -35,7 +35,6 @@
 
 #include "common/types.h"
 
-
 /**************************************************************************//**
  @Group         duart_g DUART Application Programming Interface
 
@@ -210,6 +209,7 @@ struct uart_desc {
 *//***************************************************************************/
 fsl_handle_t duart_config(t_duart_uart_param *p_duart_uart_param);
 
+__START_COLD_CODE
 /**************************************************************************//**
  @Function      duart_init
 
@@ -591,7 +591,7 @@ int duart_set_baud_rate (fsl_handle_t duart, uint32_t baud_rate);
 *//***************************************************************************/
 int duart_dump_regs(fsl_handle_t duart);
 #endif /* (DEBUG_ERRORS > 0) */
-
+__END_COLD_CODE
 /** @} */ /* end of Control group */
 /** @} */ /* end of duart_g Programming Interface group */
 

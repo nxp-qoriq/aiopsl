@@ -45,6 +45,9 @@
 /************************************************************************/
 /* Exception Routines                                                   */
 /************************************************************************/
+#ifndef __KLOCWORK__
+__START_COLD_CODE
+#endif
 static void check_if_finished_transmission(t_duart_uart     *p_uart)
 {
 	uint8_t tmp_reg;
@@ -234,26 +237,34 @@ static int check_driver_init_parameters(t_duart_driver_param *p_driver_param)
 {
 
 	if ((p_driver_param->baud_rate < BAUD_RATE_MIN_VAL) ||
-			(p_driver_param->baud_rate > BAUD_RATE_MAX_VAL))
-			RETURN_ERROR(MAJOR, ERANGE, ("rate should be [%d-%d]",
-				BAUD_RATE_MIN_VAL, BAUD_RATE_MAX_VAL));
+			(p_driver_param->baud_rate > BAUD_RATE_MAX_VAL)){
+			pr_err ("rate should be [%d-%d]",
+				BAUD_RATE_MIN_VAL, BAUD_RATE_MAX_VAL);
+			return -EINVAL;
+	}
 
 	if ((p_driver_param->parity != E_DUART_PARITY_ODD)   &&
 			(p_driver_param->parity != E_DUART_PARITY_EVEN)  &&
 			(p_driver_param->parity != E_DUART_PARITY_SPACE) &&
 			(p_driver_param->parity != E_DUART_PARITY_MARK)  &&
-			(p_driver_param->parity != E_DUART_PARITY_NONE))
-			RETURN_ERROR(MAJOR, E_INVALID_SELECTION, ("parity"));
+			(p_driver_param->parity != E_DUART_PARITY_NONE)){
+			pr_err("parity\n");
+			return -EINVAL;
+	}
 
 	if ((p_driver_param->stop_bits != E_DUART_STOP_BITS_1) &&
-			(p_driver_param->stop_bits != E_DUART_STOP_BITS_2))
-			RETURN_ERROR(MAJOR, E_INVALID_SELECTION, ("stop bits"));
+			(p_driver_param->stop_bits != E_DUART_STOP_BITS_2)){
+			pr_err("stop bits\n");
+			return -EINVAL;
+	}
 
 	if ((p_driver_param->data_bits != E_DUART_DATA_BITS_5) &&
 			(p_driver_param->data_bits != E_DUART_DATA_BITS_6) &&
 			(p_driver_param->data_bits != E_DUART_DATA_BITS_7) &&
-			(p_driver_param->data_bits != E_DUART_DATA_BITS_8))
-			RETURN_ERROR(MAJOR, E_INVALID_SELECTION, ("data bits"));
+			(p_driver_param->data_bits != E_DUART_DATA_BITS_8)){
+			pr_err("data bits\n");
+			return -EINVAL;
+	}
 	return 0;
 
 }
@@ -272,12 +283,15 @@ static int check_init_parameters(t_duart_uart *p_uart, fsl_handle_t params)
 		return err;
 
 	if ((p_uart->flow_control != E_DUART_HW_FLOW_CONTROL) &&
-		(p_uart->flow_control != E_DUART_NO_FLOW_CONTROL))
-		RETURN_ERROR(MAJOR, E_INVALID_SELECTION, ("flow control"));
+		(p_uart->flow_control != E_DUART_NO_FLOW_CONTROL)){
+		pr_err("flow_control\n");
+		return -EINVAL;
+	}
 
-	if (p_uart->system_clock_mhz == 0)
-		RETURN_ERROR(MAJOR, EDOM,
-				("system bus frequency should be positive"));
+	if (p_uart->system_clock_mhz == 0){
+		pr_err("system bus frequency should be positive\n");
+		return -EINVAL;
+	}
 
 	return 0;
 }
@@ -472,8 +486,6 @@ fsl_handle_t duart_config(t_duart_uart_param *p_duart_param)
 	t_duart_driver_param  *p_driver_param;
 	int                 i;
 
-	SANITY_CHECK_RETURN_VALUE(p_duart_param, ENODEV, NULL);
-
 	/* Allocate memory for the DUART UART data structure */
 #ifdef AIOP
 	p_uart = (t_duart_uart *)fsl_malloc(sizeof(t_duart_uart),0);
@@ -481,7 +493,7 @@ fsl_handle_t duart_config(t_duart_uart_param *p_duart_param)
 	p_uart = (t_duart_uart *)fsl_os_malloc(sizeof(t_duart_uart));
 #endif
 	if (!p_uart) {
-		REPORT_ERROR(MAJOR, ENOMEM, ("DUART driver structure"));
+		pr_err("DUART driver structure");
 		return NULL;
 	}
 	memset(p_uart, 0, sizeof(t_duart_uart));
@@ -495,7 +507,7 @@ fsl_handle_t duart_config(t_duart_uart_param *p_duart_param)
 			sizeof(t_duart_driver_param));
 #endif
 	if (!p_driver_param) {
-		REPORT_ERROR(MAJOR, ENOMEM, ("DUART driver parameters"));
+		pr_err("DUART driver parameters");
 #ifdef AIOP
 	fsl_free(p_uart);
 #else
@@ -552,10 +564,6 @@ fsl_handle_t duart_config(t_duart_uart_param *p_duart_param)
 int duart_config_rx_buffer_size(fsl_handle_t duart, uint32_t new_val)
 {
 	t_duart_uart *p_uart = (t_duart_uart *)duart;
-
-	SANITY_CHECK_RETURN_ERROR(duart, EDOM);
-	SANITY_CHECK_RETURN_ERROR(p_uart->p_driver_param, E_INVALID_STATE);
-
 	p_uart->p_driver_param->rx_buffer_size = new_val;
 
 	return 0;
@@ -565,10 +573,6 @@ int duart_config_rx_buffer_size(fsl_handle_t duart, uint32_t new_val)
 int duart_config_en_modem_stat_intr(fsl_handle_t duart, int new_val)
 {
 	t_duart_uart *p_uart = (t_duart_uart *)duart;
-
-	SANITY_CHECK_RETURN_ERROR(duart, EDOM);
-	SANITY_CHECK_RETURN_ERROR(p_uart->p_driver_param, E_INVALID_STATE);
-
 	p_uart->p_driver_param->en_modem_stat_intr = new_val;
 
 	return 0;
@@ -578,10 +582,6 @@ int duart_config_en_modem_stat_intr(fsl_handle_t duart, int new_val)
 int duart_config_en_rec_line_stat_intr(fsl_handle_t duart, int new_val)
 {
 	t_duart_uart *p_uart = (t_duart_uart *)duart;
-
-	SANITY_CHECK_RETURN_ERROR(duart, EDOM);
-	SANITY_CHECK_RETURN_ERROR(p_uart->p_driver_param, E_INVALID_STATE);
-
 	p_uart->p_driver_param->en_rec_line_stat_intr = new_val;
 
 	return 0;
@@ -591,10 +591,6 @@ int duart_config_en_rec_line_stat_intr(fsl_handle_t duart, int new_val)
 int duart_config_en_trans_hold_reg_empty_intr(fsl_handle_t duart, int new_val)
 {
 	t_duart_uart *p_uart = (t_duart_uart *)duart;
-
-	SANITY_CHECK_RETURN_ERROR(duart, EDOM);
-	SANITY_CHECK_RETURN_ERROR(p_uart->p_driver_param, E_INVALID_STATE);
-
 	p_uart->p_driver_param->en_trans_hold_reg_empty_intr = new_val;
 
 	return 0;
@@ -604,10 +600,6 @@ int duart_config_en_trans_hold_reg_empty_intr(fsl_handle_t duart, int new_val)
 int duart_config_en_rec_data_avail_intr(fsl_handle_t duart, int new_val)
 {
 	t_duart_uart *p_uart = (t_duart_uart *)duart;
-
-	SANITY_CHECK_RETURN_ERROR(duart, EDOM);
-	SANITY_CHECK_RETURN_ERROR(p_uart->p_driver_param, E_INVALID_STATE);
-
 	p_uart->p_driver_param->en_rec_data_avail_intr = new_val;
 
 	return 0;
@@ -619,10 +611,6 @@ int duart_config_rec_trigger_level(
 	e_duart_uart_fifo_size new_val)
 {
 	t_duart_uart *p_uart = (t_duart_uart *)duart;
-
-	SANITY_CHECK_RETURN_ERROR(duart, EDOM);
-	SANITY_CHECK_RETURN_ERROR(p_uart->p_driver_param, E_INVALID_STATE);
-
 	p_uart->p_driver_param->rec_trigger_level = new_val;
 
 	return 0;
@@ -632,10 +620,6 @@ int duart_config_rec_trigger_level(
 int duart_config_rx_timeout(fsl_handle_t duart, int32_t new_val)
 {
 	t_duart_uart *p_uart = (t_duart_uart *)duart;
-
-	SANITY_CHECK_RETURN_ERROR(duart, EDOM);
-	SANITY_CHECK_RETURN_ERROR(p_uart->p_driver_param, E_INVALID_STATE);
-
 	p_uart->p_driver_param->rx_timeout = new_val;
 
 	return 0;
@@ -645,10 +629,6 @@ int duart_config_rx_timeout(fsl_handle_t duart, int32_t new_val)
 int duart_config_dma_mode_select(fsl_handle_t duart, int new_val)
 {
 	t_duart_uart *p_uart = (t_duart_uart *)duart;
-
-	SANITY_CHECK_RETURN_ERROR(duart, EDOM);
-	SANITY_CHECK_RETURN_ERROR(p_uart->p_driver_param, E_INVALID_STATE);
-
 	p_uart->p_driver_param->dma_mode_select = new_val;
 
 	return 0;
@@ -658,10 +638,6 @@ int duart_config_dma_mode_select(fsl_handle_t duart, int new_val)
 int duart_config_enable_fifo(fsl_handle_t duart, int new_val)
 {
 	t_duart_uart *p_uart = (t_duart_uart *)duart;
-
-	SANITY_CHECK_RETURN_ERROR(duart, EDOM);
-	SANITY_CHECK_RETURN_ERROR(p_uart->p_driver_param, E_INVALID_STATE);
-
 	p_uart->p_driver_param->enable_fifo = new_val;
 
 	return 0;
@@ -671,10 +647,6 @@ int duart_config_enable_fifo(fsl_handle_t duart, int new_val)
 int duart_config_loop_back_mode(fsl_handle_t duart, int new_val)
 {
 	t_duart_uart *p_uart = (t_duart_uart *)duart;
-
-	SANITY_CHECK_RETURN_ERROR(duart, EDOM);
-	SANITY_CHECK_RETURN_ERROR(p_uart->p_driver_param, E_INVALID_STATE);
-
 	p_uart->p_driver_param->loop_back_mode = new_val;
 
 	return 0;
@@ -689,9 +661,6 @@ int duart_config_control_char(
 {
 	t_duart_uart *p_uart = (t_duart_uart *)duart;
 	uint8_t     i;
-
-	SANITY_CHECK_RETURN_ERROR(duart, EDOM);
-	SANITY_CHECK_RETURN_ERROR(p_uart->p_driver_param, E_INVALID_STATE);
 
 	if (numcc_entries > 8)
 		return EDOM;
@@ -712,8 +681,6 @@ int duart_config_poll_mode(fsl_handle_t duart, int new_val)
 {
 	t_duart_uart *p_uart = (t_duart_uart *)duart;
 
-	SANITY_CHECK_RETURN_ERROR(duart, EDOM);
-
 	p_uart->poll_mode = new_val;
 
 	return 0;
@@ -723,8 +690,6 @@ int duart_config_poll_mode(fsl_handle_t duart, int new_val)
 int duart_config_poll_lf2crlf(fsl_handle_t duart, int new_val)
 {
 	t_duart_uart *p_uart = (t_duart_uart *)duart;
-
-	SANITY_CHECK_RETURN_ERROR(duart, EDOM);
 
 	p_uart->lf2crlf = new_val;
 
@@ -744,10 +709,9 @@ int duart_init(fsl_handle_t duart)
 	uint32_t            baud_rate_factor;
 	uint8_t             tmp_reg;
 
-	SANITY_CHECK_RETURN_ERROR(p_uart, ENODEV);
-
 	if (check_init_parameters(p_uart, p_uart->p_driver_param))
-		RETURN_ERROR(MAJOR, E_INVALID_STATE, NO_MSG);
+		return -EINVAL;
+
 
 	p_driver_param = p_uart->p_driver_param;
 
@@ -767,7 +731,8 @@ int duart_init(fsl_handle_t duart)
 #endif
 	if (!p_uart->p_rx_buffer) {
 		duart_free_local(p_uart);
-		RETURN_ERROR(MAJOR, ENOMEM, ("rx buffer"));
+		pr_err("rx buffer");
+		return -ENOMEM;
 	}
 
 	/* Allocate the Tx buffer */
@@ -778,7 +743,8 @@ int duart_init(fsl_handle_t duart)
 #endif
 	if (p_uart->p_tx_buffer == 0) {
 		duart_free_local(p_uart);
-		RETURN_ERROR(MAJOR, ENOMEM, ("rx buffer"));
+		pr_err("tx buffer");
+		return -ENOMEM;
 	}
 	memset(p_uart->p_rx_buffer, 0, p_uart->rx_buffer_size);
 
@@ -911,9 +877,8 @@ int duart_tx(fsl_handle_t duart, uint8_t *data, uint32_t size)
 	uint32_t        tries = 0;
 	uint8_t         tmp_reg;
 
-	SANITY_CHECK_RETURN_ERROR(duart, EDOM);
-	SANITY_CHECK_RETURN_ERROR(data , ENODEV);
-
+	if(data == NULL)
+		return -ENODEV;
 	if (size == 0)
 		return 0;
 
@@ -924,7 +889,7 @@ int duart_tx(fsl_handle_t duart, uint8_t *data, uint32_t size)
 	tries = 0;
 	while (p_uart->tx_buffer_count > 0) {
 		if (tries++ >= 100000000)
-			RETURN_ERROR(MINOR, EBUSY, NO_MSG);
+			return -EBUSY;
 	}
 
 	/* If size > buffer size use poll mode.
@@ -953,13 +918,6 @@ int duart_tx(fsl_handle_t duart, uint8_t *data, uint32_t size)
 	return 0;
 }
 
-static int duat_rx_sanity_check(fsl_handle_t duart, uint8_t *buffer)
-{
-	SANITY_CHECK_RETURN_VALUE(duart , EDOM, -1);
-	SANITY_CHECK_RETURN_VALUE(buffer, ENODEV, -1);
-	return 0;
-}
-
 /************************************************************************/
 uint32_t duart_rx(fsl_handle_t duart, uint8_t *buffer, uint32_t size)
 {
@@ -970,7 +928,7 @@ uint32_t duart_rx(fsl_handle_t duart, uint8_t *buffer, uint32_t size)
 	int           i, j;
 	uint32_t      int_flags;
 
-	if(duat_rx_sanity_check(duart,buffer))
+	if(buffer == NULL)
 		return 0;
 	if (!size)
 		return 0;
@@ -1040,8 +998,6 @@ uint32_t duart_get_num_of_rx_char_in_buffer(fsl_handle_t duart)
 	t_duart_uart   *p_uart = duart;
 	uint8_t       status;
 
-	SANITY_CHECK_RETURN_VALUE(duart , EDOM, 0);
-
 	if (p_uart->poll_mode) {
 		status = ioread8(&p_uart->p_mem_map->ulsr);
 		if ((status & ULSR_DR) == 0)
@@ -1056,9 +1012,6 @@ uint32_t duart_get_num_of_rx_char_in_buffer(fsl_handle_t duart)
 int duart_set_low_space_alert(fsl_handle_t duart, uint32_t new_val)
 {
 	t_duart_uart *p_uart = (t_duart_uart *)duart;
-
-	SANITY_CHECK_RETURN_ERROR(duart, EDOM);
-
 	p_uart->low_space_alert = new_val;
 
 	return 0;
@@ -1070,8 +1023,6 @@ int duart_set_break_signal(fsl_handle_t duart, int break_signal)
 {
 	t_duart_uart     *p_uart = (t_duart_uart *)duart;
 	uint8_t         ulcr_val;
-
-	SANITY_CHECK_RETURN_ERROR(duart, EDOM);
 
 	ulcr_val = ioread8(&p_uart->p_mem_map->ulcr);
 	if (break_signal)
@@ -1093,12 +1044,11 @@ int duart_set_baud_rate(fsl_handle_t duart, uint32_t baud_rate)
 	uint32_t        baud_rate_factor;
 	uint8_t         ulcr_val;
 
-	SANITY_CHECK_RETURN_ERROR(duart, EDOM);
 
-
-	if ((baud_rate < 600) || (baud_rate > 512000))
-		RETURN_ERROR(MAJOR, ERANGE,
-		("baud rate should be [600-512000]"));
+	if ((baud_rate < 600) || (baud_rate > 512000)){
+		pr_err("baud rate should be [600-512000]");
+		return -EINVAL;
+	}
 
 	p_mem_map = p_uart->p_mem_map;
 
@@ -1127,7 +1077,6 @@ int duart_dump_regs(fsl_handle_t duart)
 
 	DECLARE_DUMP;
 
-	SANITY_CHECK_RETURN_ERROR(duart, EDOM);
 
 	DUMP_TITLE(p_uart->p_mem_map, ("DUART registers"));
 	fsl_os_print("\r\n");
@@ -1145,3 +1094,5 @@ int duart_dump_regs(fsl_handle_t duart)
 	return 0;
 }
 #endif /* (DEBUG_ERRORS > 0) */
+
+__END_COLD_CODE
