@@ -1883,7 +1883,7 @@ int fdma_concatenate_frames(
 		3. Split frame command with PSA flag: 
 		FDMA_SPLIT_PSA_NO_PRESENT_BIT
 		4. Store/Close new split frame
-		2. Present/Open new split frame
+		5. Present/Open new split frame
 *//***************************************************************************/
 int fdma_split_frame(
 		struct fdma_split_frame_params *params);
