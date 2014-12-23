@@ -1,3 +1,6 @@
+- fsl_cli.h:  Added file with Macro to receive the command line arguments passed from MC
+              when launching AIOP. The macro: GET_AIOP_CLI_STRING(_args, _args_size) is expecting to receive
+              uint8_t * for _args and uint32_t for _args_size
 - types_mw.h, aiop_link.lcf: Add __HOT_CODE attribute to force the code to be stored in IRAM
                              in case you are using local lcf, you should add:
                              .itext (TEXT) ALIGN(0x1000) : {}
