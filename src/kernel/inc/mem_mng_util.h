@@ -79,7 +79,23 @@ typedef struct t_mem_mng_param
                      need the spinlock object to be allocated outside of the manager */
 } t_mem_mng_param;
 
-struct initial_mem_mng;
+/**************************************************************************//**
+ @Description   Initial Memory management, used for allocations during boot. 
+ *//***************************************************************************/
+struct initial_mem_mng
+{
+    uint64_t base_paddress;
+    uint32_t base_vaddress;
+    uint64_t size;
+    uint64_t curr_ptr;
+#ifdef AIOP
+    uint8_t *   lock;
+#else /* not AIOP */
+    fsl_handle_t    lock;
+#endif
+
+};
+
 
 /*****************************************************************************/
 int boot_get_mem(struct initial_mem_mng* boot_mem_mng,

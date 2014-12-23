@@ -37,7 +37,7 @@
 #include "platform.h"
 #include "ls2085_aiop/fsl_platform.h"
 #include "inc/fsl_sys.h"
-#include "mem_mng.h"
+#include "mem_mng_util.h"
 
 #define PRE_CONSOLE_BUF_SIZE    (4 * 1024)
 

@@ -130,24 +130,5 @@ typedef struct t_mem_mng
 } t_mem_mng;
 
 
-/**************************************************************************//**
- @Description   Initial Memory management, used for allocations during boot. 
- *//***************************************************************************/
-struct initial_mem_mng
-{
-    uint64_t base_paddress;
-    uint32_t base_vaddress;
-    uint64_t size;
-    uint64_t curr_ptr;
-#ifdef AIOP
-    uint8_t *   lock;
-#else /* not AIOP */
-    fsl_handle_t    lock;
-#endif
-
-} initial_mem_mng;
-
-
-
 #endif /* __MEM_MNG_H */
 

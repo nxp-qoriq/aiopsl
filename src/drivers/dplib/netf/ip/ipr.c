@@ -1716,7 +1716,6 @@ uint16_t check_remove_padding()
 	uint16_t		checksum;
 	uint16_t		start_padding;
 	struct ipv4hdr	*ipv4hdr_ptr;
-	void			*tail_frame_ptr;
 
 	ipv4hdr_offset = (uint16_t)PARSER_GET_OUTER_IP_OFFSET_DEFAULT();
 	ipv4hdr_ptr = (struct ipv4hdr *)
