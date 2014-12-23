@@ -73,6 +73,9 @@ typedef uint64_t            dma_addr_t;
 #define POP _Pragma("pop")
 #define __END_COLD_CODE POP
 
+/** i-RAM code location */
+#pragma section RX ".itext_vle"
+#define __HOT_CODE __declspec(section ".itext_vle")
 
 
 #endif /* __TYPES_MW_H */
