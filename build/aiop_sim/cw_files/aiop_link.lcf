@@ -59,6 +59,11 @@ SECTIONS
              *(.text)
              *(.text_vle)
          }
+        .itext (TEXT) ALIGN(0x1000) : {}
+        .itext_vle (VLECODE) ALIGN(0x1000): {
+             *(.itext)
+             *(.itext_vle)
+         }
     } > i_ram
 
     GROUP : {
@@ -72,7 +77,7 @@ SECTIONS
          *(.stext)
          *(.stext_vle)
          }
-         
+
        .__uninitialized_intc_handlertable ALIGN(0x10) : {}
        .data   : {}
        .sdata  : {}

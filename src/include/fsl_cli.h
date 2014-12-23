@@ -24,58 +24,38 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
- /**************************************************************************//**
- @File          types_mw.h
+/**************************************************************************//**
+@File		fsl_cli.h
 
- @Description   TODO
+@Description	This file contains macro to receive command line aruments.
+
 *//***************************************************************************/
-#ifndef __TYPES_MW_H
-#define __TYPES_MW_H
 
 
-#include <stdint.h>
-#include <stddef.h>
+#ifndef __FSL_CLI_H_
+#define __FSL_CLI_H_
 
-//#define __inline__      inline
-#define _prepacked
-#define _packed
+#include "aiop_common.h"
 
-/* temporary, due to include issues */
-typedef uint32_t uintptr_t;
-typedef int32_t intptr_t;
+extern struct aiop_init_info g_init_data;
+/**************************************************************************//**
+@Group		fsl_cli_g FSL Command Line Interface
 
-typedef uint64_t            dma_addr_t;
+ @Description   Macro to receive the command line arguments passed from MC
+ 	 	 when launching AIOP.
 
-
-#ifndef NULL
-#define NULL ((0L))
-#endif /* NULL */
-
-
-/** Task global variables area */
-#define __TASK __declspec(section ".tdata")
-
-/** Shared-SRAM code location */
-#pragma section RX ".stext_vle"
-#define __WARM_CODE __declspec(section ".stext_vle")
-
-/** DDR code location */
-#pragma section RX ".dtext_vle"
-#define __COLD_CODE __declspec(section ".dtext_vle")
-
-#define STRINGTYPE(a) #a
-#define DEFINESECTION(x) section code_type x data_mode=far_abs code_mode=pc_rel
-#define PUSH _Pragma("push")
-#define STARTSECTION(s) _Pragma(STRINGTYPE(DEFINESECTION(s)))
-#define START_CODE_IN_SECTION(s) PUSH STARTSECTION(s)
-#define __START_COLD_CODE START_CODE_IN_SECTION(".dtext_vle")
-
-#define POP _Pragma("pop")
-#define __END_COLD_CODE POP
-
-/** i-RAM code location */
-#pragma section RX ".itext_vle"
-#define __HOT_CODE __declspec(section ".itext_vle")
+ @{
+*//***************************************************************************/
+/** Get AIOP command line string and it's size
+ * _args - uint8_t * to the command line arguments string.
+ * _args_size - uint32_t for string size. */
+#define GET_AIOP_CLI_STRING(_args, _args_size)			\
+	({_args = (uint8_t *) g_init_data.sl_info.args;		\
+	_args_size = (uint32_t) g_init_data.sl_info.args_size;})
 
 
-#endif /* __TYPES_MW_H */
+
+/** @} *//* end of fsl_cli_g FSL Command Line Interface group */
+
+
+#endif /* __FSL_CLI_H */

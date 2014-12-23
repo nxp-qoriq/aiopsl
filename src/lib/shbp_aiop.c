@@ -79,6 +79,8 @@ uint64_t shbp_acquire(struct shbp_aiop *bp)
 	shbp.alloc.deq  = CPU_TO_LE32(shbp.alloc.deq);
 	shbp.alloc.enq  = CPU_TO_LE32(shbp.alloc.enq);
 	
+	DUMP_SHBP();
+
 	if (SHBP_ALLOC_IS_EMPTY(&shbp)) {
 		cdma_mutex_lock_release(bp->shbp);
 		return NULL;
@@ -101,9 +103,7 @@ uint64_t shbp_acquire(struct shbp_aiop *bp)
 	                   bp->shbp + offset);
 	
 	cdma_mutex_lock_release(bp->shbp);
-	
-	DUMP_SHBP();
-	
+		
 	pr_debug("buf high = 0x%x\n", (uint32_t)((buf & 0xFFFFFFFF00000000) >> 32)); \
 	pr_debug("buf low = 0x%x\n", (uint32_t)(buf & 0xFFFFFFFF)); \
 
@@ -128,6 +128,8 @@ int shbp_release(struct shbp_aiop *bp, uint64_t buf)
 	shbp.free.base = CPU_TO_LE64(shbp.free.base); 
 	shbp.free.deq  = CPU_TO_LE32(shbp.free.deq);
 	shbp.free.enq  = CPU_TO_LE32(shbp.free.enq);
+
+	DUMP_SHBP();
 
 	if (SHBP_FREE_IS_FULL(&shbp)) {
 		cdma_mutex_lock_release(bp->shbp);

@@ -130,6 +130,5 @@ typedef struct t_mem_mng
 } t_mem_mng;
 
 
-
 #endif /* __MEM_MNG_H */
 

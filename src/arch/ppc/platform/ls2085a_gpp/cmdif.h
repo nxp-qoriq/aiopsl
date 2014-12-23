@@ -28,24 +28,30 @@
 #define __CMDIF_H
 
 #include <errno.h>
-#include <types.h>
+#include <nadk_types.h>
 #include <string.h>
 #include <stdlib.h>
 #include <nadk_types.h>
 #include <nadk_byteorder.h>
+#include <fsl_cmdif_fd.h>
 
-#define CPU_TO_SRV16(val) rte_bswap16(val)
-#define CPU_TO_SRV32(val) rte_bswap32(val)
-#define CPU_TO_BE64(val)  rte_bswap64(val)
-#define CPU_TO_BE16(val)  rte_bswap16(val)
+#define CPU_TO_SRV16(val) nadk_bswap16(val)
+#define CPU_TO_SRV32(val) nadk_bswap32(val)
+#define CPU_TO_BE64(val)  nadk_bswap64(val)
+#define CPU_TO_BE16(val)  nadk_bswap16(val)
 
-#define CMDIF_EPID         0     /*!< EPID to be used for setting by client */
+#define CMDIF_EPID         0     
+/*!< EPID to be used for setting by client */
 
 #ifdef NADK_DEBUG
 #ifndef DEBUG
 #define DEBUG
 #endif
 #endif /* NADK_DEBUG */
+
+#ifndef __HOT_CODE
+#define __HOT_CODE
+#endif
 
 #ifndef __COLD_CODE
 #define __COLD_CODE
@@ -60,5 +66,8 @@
 
 #define SHBP_BUF_TO_PTR(BUF)
 #define SHBP_PTR_TO_BUF(BUF)
+
+int send_fd(struct cmdif_fd *cfd, int pr, void *nadk_dev);
+int receive_fd(struct cmdif_fd *cfd, int pr, void *nadk_dev);
 
 #endif /* __CMDIF_H */

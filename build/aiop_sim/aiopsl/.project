@@ -180,6 +180,11 @@
 			<locationURI>virtual:/virtual</locationURI>
 		</link>
 		<link>
+			<name>aiop_sl/include/fsl_cli.h</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/include/fsl_cli.h</locationURI>
+		</link>
+		<link>
 			<name>aiop_sl/include/fsl_dbg.h</name>
 			<type>1</type>
 			<locationURI>PARENT-3-PROJECT_LOC/src/include/fsl_dbg.h</locationURI>

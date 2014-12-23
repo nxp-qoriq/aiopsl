@@ -827,6 +827,7 @@ uint32_t ipr_insert_to_link_list(struct ipr_rfdc *rfdc_ptr,
 	uint16_t		ip_header_size;
 	uint16_t		ipv6fraghdr_offset;
 	uint16_t		current_running_sum;
+	uint16_t		padding_checksum;
 	uint32_t		last_fragment;
 	uint32_t		return_status;
 	uint64_t		ext_addr;
@@ -862,6 +863,7 @@ uint32_t ipr_insert_to_link_list(struct ipr_rfdc *rfdc_ptr,
 				return MALFORMED_FRAG;
 			rfdc_ptr->status |= RFDC_STATUS_CE;
 		}
+		padding_checksum = check_remove_padding();
 	} else {
 		ipv6hdr_ptr = (struct ipv6hdr *) iphdr_ptr;
 		ipv6fraghdr_offset =
@@ -891,6 +893,7 @@ uint32_t ipr_insert_to_link_list(struct ipr_rfdc *rfdc_ptr,
 				return MALFORMED_FRAG;
 			rfdc_ptr->status |= RFDC_STATUS_CE;
 		}
+		padding_checksum = 0;
 	}
 
 	if (frag_offset_shifted != 0) {
@@ -925,6 +928,11 @@ uint32_t ipr_insert_to_link_list(struct ipr_rfdc *rfdc_ptr,
 				  	          rfdc_ptr->current_running_sum,
 				  	          pr->gross_running_sum);
 	}
+	/* remove checksum of padding */
+	if (padding_checksum != 0)
+		current_running_sum = cksum_ones_complement_sum16(
+					   current_running_sum,
+					   (uint16_t)~padding_checksum);
 
 	if (!(rfdc_ptr->status & OUT_OF_ORDER)) {
 		/* In order handling */
@@ -1010,8 +1018,6 @@ uint32_t ipr_insert_to_link_list(struct ipr_rfdc *rfdc_ptr,
 				   (void *)&current_element,
 				   LINK_LIST_ELEMENT_SIZE);
 
-		if (frame_is_ipv4)
-			check_remove_padding();
 		/* Close current frame before storing FD */
 		fdma_store_default_frame_data();
 
@@ -1703,43 +1709,36 @@ void move_to_correct_ordering_scope2(uint32_t osm_status)
 	}
 }
 
-void check_remove_padding()
+uint16_t check_remove_padding()
 {
 	uint8_t			delta;
 	uint16_t		ipv4hdr_offset;
-	struct ipv4hdr		*ipv4hdr_ptr;
-	void			*tail_frame_ptr;
-	struct fdma_delete_segment_data_params params;
-	struct fdma_present_segment_params *present_params_ptr;
+	uint16_t		checksum;
+	uint16_t		start_padding;
+	struct ipv4hdr	*ipv4hdr_ptr;
 
 	ipv4hdr_offset = (uint16_t)PARSER_GET_OUTER_IP_OFFSET_DEFAULT();
 	ipv4hdr_ptr = (struct ipv4hdr *)
 		  (ipv4hdr_offset + PRC_GET_SEGMENT_ADDRESS());
 
-	delta = (uint8_t) (LDPAA_FD_GET_LENGTH(HWC_FD_ADDRESS) -
-			(ipv4hdr_ptr->total_length+ipv4hdr_offset));
+	start_padding = ipv4hdr_ptr->total_length+ipv4hdr_offset;
+	delta = (uint8_t) (LDPAA_FD_GET_LENGTH(HWC_FD_ADDRESS) - start_padding);
 
 	if (delta != 0) {
 
-		present_params_ptr = (struct fdma_present_segment_params *)
-					(&params);
-		present_params_ptr->flags 	 = FDMA_PRES_SR_BIT;
-		present_params_ptr->frame_handle =
-					       (uint8_t) PRC_GET_FRAME_HANDLE();
-		present_params_ptr->offset 	 = delta;
-		present_params_ptr->ws_dst 	 = &tail_frame_ptr;
-		present_params_ptr->present_size = delta;
-		fdma_present_frame_segment(present_params_ptr);
+		/* calculate checksum on padding */
+		fdma_calculate_default_frame_checksum(start_padding,
+						      delta,
+						      &checksum);
 
-		params.seg_handle	  = present_params_ptr->seg_handle;
-		params.delete_target_size = delta;
-		params.flags 		  = FDMA_REPLACE_SA_CLOSE_BIT,
-		params.frame_handle	  = (uint8_t) PRC_GET_FRAME_HANDLE(),
-		params.to_offset	  = 0;
+		fdma_delete_default_segment_data(
+				start_padding,
+				delta,
+				FDMA_REPLACE_NO_FLAGS);
 
-		fdma_delete_segment_data(&params);
-	}
-	return;
+		return checksum;
+	} else
+		return 0;
 }
 
 

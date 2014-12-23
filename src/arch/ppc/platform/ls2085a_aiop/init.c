@@ -42,7 +42,6 @@
 #include "fsl_bman.h"
 #include "platform.h"
 
-extern t_system sys;
 
 /* Address of end of memory_data section */
 extern const uint8_t AIOP_INIT_DATA[];

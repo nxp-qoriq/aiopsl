@@ -37,6 +37,7 @@
 #include "platform.h"
 #include "ls2085_aiop/fsl_platform.h"
 #include "inc/fsl_sys.h"
+#include "mem_mng_util.h"
 
 #define PRE_CONSOLE_BUF_SIZE    (4 * 1024)
 
@@ -48,11 +49,10 @@
 
 typedef struct t_system {
 	/* Memory management variables */
+	struct initial_mem_mng	    boot_mem_mng;
 	fsl_handle_t                mem_mng;
 	int                         heap_partition_id;
 	uintptr_t                   heap_addr;
-	list_t                      virt_mem_list;
-	uint8_t                     virt_mem_lock;
 	uint8_t                     mem_part_mng_lock;
 	uint8_t                     mem_mng_lock;
 
@@ -82,6 +82,7 @@ typedef struct t_system {
 	t_platform_ops              platform_ops;
 } t_system;
 
+extern t_system sys;
 
 void fill_platform_parameters(struct platform_param *platform_param);
 

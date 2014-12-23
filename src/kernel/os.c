@@ -50,7 +50,6 @@ __TASK uint32_t seed_32bit;
 
 static const char* digits="0123456789abcdef";
 
-extern t_system sys;
 static int vsnprintf_lite(char *buf, size_t size, const char *fmt, va_list args);
 static char *number(char *str, uint64_t num, uint8_t base, uint8_t type, size_t *max_size);
 static void fsl_os_print_boot(const char *format, va_list args);
@@ -523,11 +522,7 @@ void fsl_os_put_mem(uint64_t paddr)
 {
     sys_put_phys_mem(paddr);
 }
-/*****************************************************************************/
-dma_addr_t fsl_os_virt_to_phys(void *addr)
-{
-    return sys_virt_to_phys(addr);
-}
+
 /*****************************************************************************/
 #ifndef AIOP_VERIF /*TODO: Remove #ifndef AIOP_VERIF when the code will be separated */
 void exception_handler(char *filename,

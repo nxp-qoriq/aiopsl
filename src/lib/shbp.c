@@ -57,7 +57,7 @@ static uint8_t get_num_of_first_bit(uint32_t num)
 static void *acquire(struct shbp *bp, struct shbp_q *lq, struct shbp_q *q)
 {
 	uint32_t deq = SHBP_BD_IND(bp, lq->deq); /* mod 2^x */
-	uint64_t buf = (((uint64_t *)lq->base)[deq]);
+	uint64_t buf = (((uint64_t *)SHBP_BUF_TO_PTR(lq->base))[deq]);
 	
 	lq->deq++;
 	q->deq = CPU_TO_LE32(lq->deq); /* Must be last */
@@ -99,7 +99,7 @@ int shbp_create(void *mem_ptr, uint32_t size, uint32_t flags, struct shbp **_bp)
 	ring_size = ring_size >> 4;
 	/* Minimum 8 BDs = 64 bytes */
 	if (ring_size < 8)
-		return NULL;
+		return -EINVAL;
 	
 	bp->max_num = get_num_of_first_bit(ring_size);
 	
@@ -116,7 +116,7 @@ int shbp_create(void *mem_ptr, uint32_t size, uint32_t flags, struct shbp **_bp)
 	bp->free.base  = CPU_TO_LE64(bp->free.base);
 	
 #ifdef DEBUG
-	if (bp->alloc.base == NULL || bp->free.base == NULL)
+	if (bp->alloc.base == 0 || bp->free.base == 0)
 		return -EINVAL;
 #endif
 	
@@ -181,6 +181,10 @@ int shbp_refill(struct shbp *bp)
 
 	while(!SHBP_FREE_IS_EMPTY(&lbp) && !SHBP_ALLOC_IS_FULL(&lbp)) {
 		buf = acquire(&lbp, &lbp.free, &bp->free);
+#ifdef DEBUG
+		if (buf == 0)
+			return -EACCES;
+#endif
 		release(&lbp, &lbp.alloc, buf, &bp->alloc);
 		count++;
 	}
