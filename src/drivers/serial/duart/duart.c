@@ -248,11 +248,13 @@ static int check_driver_init_parameters(t_duart_driver_param *p_driver_param)
 			(p_driver_param->parity != E_DUART_PARITY_SPACE) &&
 			(p_driver_param->parity != E_DUART_PARITY_MARK)  &&
 			(p_driver_param->parity != E_DUART_PARITY_NONE)){
+			pr_err("parity\n");
 			return -EINVAL;
 	}
 
 	if ((p_driver_param->stop_bits != E_DUART_STOP_BITS_1) &&
 			(p_driver_param->stop_bits != E_DUART_STOP_BITS_2)){
+			pr_err("stop bits\n");
 			return -EINVAL;
 	}
 
@@ -260,6 +262,7 @@ static int check_driver_init_parameters(t_duart_driver_param *p_driver_param)
 			(p_driver_param->data_bits != E_DUART_DATA_BITS_6) &&
 			(p_driver_param->data_bits != E_DUART_DATA_BITS_7) &&
 			(p_driver_param->data_bits != E_DUART_DATA_BITS_8)){
+			pr_err("data bits\n");
 			return -EINVAL;
 	}
 	return 0;
@@ -281,11 +284,12 @@ static int check_init_parameters(t_duart_uart *p_uart, fsl_handle_t params)
 
 	if ((p_uart->flow_control != E_DUART_HW_FLOW_CONTROL) &&
 		(p_uart->flow_control != E_DUART_NO_FLOW_CONTROL)){
+		pr_err("flow_control\n");
 		return -EINVAL;
 	}
 
 	if (p_uart->system_clock_mhz == 0){
-		pr_err("system bus frequency should be positive");
+		pr_err("system bus frequency should be positive\n");
 		return -EINVAL;
 	}
 
