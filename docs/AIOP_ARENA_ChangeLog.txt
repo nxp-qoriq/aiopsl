@@ -1,4 +1,12 @@
 - types_mw.h, aiop_link.lcf: Add __HOT_CODE attribute to force the code to be stored in IRAM
+                             in case you are using local lcf, you should add:
+                             .itext (TEXT) ALIGN(0x1000) : {}
+                             .itext_vle (VLECODE) ALIGN(0x1000): {
+                             *(.itext)
+                             *(.itext_vle)
+                             }
+							 to i_ram GROUP in your lcf file.
+							 (The lcf in AIOP git is updated accordingly)
 
 - cmdif_srv_flib.c:   Fixed ENGR00343203, to allow M_NUM_OF_INSTANCES of instances.
 - cmdif_srv.c:        Fixed ENGR00343203, to allow M_NUM_OF_INSTANCES of instances.
