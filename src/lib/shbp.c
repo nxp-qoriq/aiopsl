@@ -82,7 +82,7 @@ int shbp_create(void *mem_ptr, uint32_t size, uint32_t flags, struct shbp **_bp)
 	uint32_t ring_size;
 	
 #ifdef DEBUG
-	if ((mem_ptr == NULL) || (size == 0) || (flags != 0))
+	if ((mem_ptr == NULL) || (size == 0))
 		return -EINVAL;
 #endif	
 	/* Better to have mem_ptr aligned to cache line */
@@ -95,7 +95,7 @@ int shbp_create(void *mem_ptr, uint32_t size, uint32_t flags, struct shbp **_bp)
 	/* 8 bytes for each BD, 2 rings = 2 ^ 4 
 	 * bp->size is size = 8 * bp->size because 8 BDs = cache line 
 	 * size = 2^bp->size */
-	ring_size = (size - sizeof(struct shbp));
+	ring_size = (size - SHBP_TOTAL_BYTES);
 	ring_size = ring_size >> 4;
 	/* Minimum 8 BDs = 64 bytes */
 	if (ring_size < 8)
@@ -116,7 +116,7 @@ int shbp_create(void *mem_ptr, uint32_t size, uint32_t flags, struct shbp **_bp)
 	bp->free.base  = CPU_TO_LE64(bp->free.base);
 	
 #ifdef DEBUG
-	if (bp->alloc.base == 0 || bp->free.base == 0)
+	if ((bp->alloc.base == 0) || (bp->free.base == 0))
 		return -EINVAL;
 #endif
 	
