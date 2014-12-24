@@ -167,6 +167,7 @@ static int ctrl_cb0(void *dev, uint16_t cmd, uint32_t size,
 	int i   = 0;
 	uint64_t p_data = LDPAA_FD_GET_ADDR(HWC_FD_ADDRESS);
 	struct icontext ic;
+	struct icontext ic_cmd;
 	uint16_t dpci_id = 0;
 	uint16_t bpid = 3;
 	uint8_t tmi_id = 0;
@@ -298,7 +299,7 @@ static int ctrl_cb0(void *dev, uint16_t cmd, uint32_t size,
 		ASSERT_COND(ic.icid == ((struct icontext *)data)->icid);
 		ASSERT_COND(ic.dma_flags == ((struct icontext *)data)->dma_flags);
 		ASSERT_COND(ic.bdi_flags == ((struct icontext *)data)->bdi_flags);
-
+		
 		/* Note: MC and AIOP have the same AMQ and BDI settings */
 		p_data = NULL;
 		err = icontext_acquire(&ic, bpid, &p_data);
@@ -310,6 +311,13 @@ static int ctrl_cb0(void *dev, uint16_t cmd, uint32_t size,
 			 (uint32_t)((p_data & 0xFF00000000) >> 32),
 			 (uint32_t)(p_data & 0xFFFFFFFF));
 
+		/* Must be after icontext_get(&ic) */
+		icontext_cmd_get(&ic_cmd);
+		ASSERT_COND(ic_cmd.icid != ICONTEXT_INVALID);
+		ASSERT_COND(ic_cmd.icid == ic.icid);
+		ASSERT_COND(ic_cmd.bdi_flags == ic.bdi_flags);
+		ASSERT_COND(ic_cmd.dma_flags == ic.dma_flags);
+
 		icontext_aiop_get(&ic);
 		ASSERT_COND(ic.dma_flags);
 		ASSERT_COND(ic.bdi_flags);
@@ -317,6 +325,8 @@ static int ctrl_cb0(void *dev, uint16_t cmd, uint32_t size,
 		             ic.bdi_flags);
 		fsl_os_print("AIOP ICID = 0x%x dma flags = 0x%x\n", ic.icid, \
 		             ic.dma_flags);
+		
+
 		break;
 	default:
 		if ((size > 0) && (data != NULL)) {
