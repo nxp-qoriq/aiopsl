@@ -62,6 +62,7 @@ void app_free(void);
 #define CLOSE_CMD	0x107
 #define TMAN_TEST	0x108
 #define SHBP_TEST	0x109
+#define SHBP_TEST_GPP	0x110
 
 #define AIOP_ASYNC_CB_DONE	5  /* Must be in sync with MC ELF */
 #define AIOP_SYNC_BUFF_SIZE	80 /* Must be in sync with MC ELF */
@@ -80,6 +81,7 @@ struct shbp_test {
 struct cmdif_desc cidesc;
 uint64_t tman_addr;
 struct shbp_aiop lbp;
+struct shbp_aiop gpp_lbp;
 
 static int aiop_async_cb(void *async_ctx, int err, uint16_t cmd_id,
              uint32_t size, void *data)
@@ -181,6 +183,23 @@ static int ctrl_cb0(void *dev, uint16_t cmd, uint32_t size,
 	aiop_ws_check();
 	
 	switch (cmd) {
+	case SHBP_TEST_GPP:
+		fsl_os_print("Testing GPP SHBP...\n");
+		shbp_test = data;
+		dpci_id = shbp_test->dpci_id;
+		err = shbp_enable(dpci_id, shbp_test->shbp, &gpp_lbp);
+		ASSERT_COND(gpp_lbp.ic.icid != ICONTEXT_INVALID);
+		
+		temp64 = shbp_acquire(&gpp_lbp);
+		ASSERT_COND(temp64 == 0);
+		shbp_test->shbp = 0; /* For test on GPP */
+		
+		err = shbp_release(&gpp_lbp, p_data);
+		ASSERT_COND(!err);
+		
+		fdma_modify_default_segment_data(0, (uint16_t)size);
+		fsl_os_print("Released buffer into GPP SHBP\n");
+		break;
 	case SHBP_TEST:
 		shbp_test = data;
 		dpci_id = shbp_test->dpci_id;
