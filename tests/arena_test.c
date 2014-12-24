@@ -85,7 +85,7 @@ static void app_process_packet_flow0 (dpni_drv_app_arg_t arg)
 {
 	int      err = 0, i, j;
 	int core_id;
-
+	struct dpni_buffer_layout layout = {0};
 	uint64_t time_ms_since_epoch = 0, flc = 0;
 	uint32_t time_ms = 0;
 	uint64_t local_time;
@@ -147,7 +147,7 @@ static void app_process_packet_flow0 (dpni_drv_app_arg_t arg)
 	} else {
 		fsl_os_print("Malloc test passed for packet number %d, on core %d\n", local_packet_number, core_id);
 	}
-	
+
 	/*Random Test*/
 
 	err = random_test();
@@ -286,14 +286,16 @@ int app_init(void)
 {
 	int        err  = 0;
 	uint32_t   ni   = 0;
+	uint16_t   ni2  = 0;
 	dma_addr_t buff = 0;
-	int ep;
+	int ep, state = -1;
 	struct dpkg_profile_cfg dist_key_cfg = {0};
+	struct dpni_buffer_layout layout = {0};
 
 	dist_key_cfg.num_extracts = 1;
 	dist_key_cfg.extracts[0].type = DPKG_EXTRACT_FROM_HDR;
 	dist_key_cfg.extracts[0].extract.from_hdr.prot = NET_PROT_IP;
-	dist_key_cfg.extracts[0].extract.from_hdr.field = NH_FLD_IP_SRC;
+	dist_key_cfg.extracts[0].extract.from_hdr.field = NET_HDR_FLD_IP_SRC;
 	dist_key_cfg.extracts[0].extract.from_hdr.type = DPKG_FULL_FIELD;
 
 
@@ -367,6 +369,33 @@ int app_init(void)
 		test_error |= err;
 	} else {
 		fsl_os_print("ntop_test passed in init phase()\n");
+	}
+
+	for(ni = 0; ni < dpni_get_num_of_ni(); ni++){
+		err = dpni_drv_get_connected_dpni_id((uint16_t)ni, &ni2, &state);
+				fsl_os_print("Given NI: %d, Connected NI: %d, Status: %d\n",ni,ni2,state);
+		if(err)
+			fsl_os_print("dpni_drv_get_connected_dpni_id: error %d\n",err);
+
+		layout.options =  DPNI_BUF_LAYOUT_OPT_DATA_HEAD_ROOM |
+			DPNI_BUF_LAYOUT_OPT_DATA_TAIL_ROOM;
+		layout.data_head_room = 0x20;
+		layout.data_tail_room = 0x30;
+		err = dpni_drv_set_rx_buffer_layout((uint16_t)ni,&layout );
+		if(err)
+			fsl_os_print("dpni_drv_get_rx_buffer_layout: error %d\n",err);
+
+
+		layout.options = DPNI_BUF_LAYOUT_OPT_DATA_HEAD_ROOM |
+			DPNI_BUF_LAYOUT_OPT_DATA_TAIL_ROOM;;
+		err = dpni_drv_get_rx_buffer_layout((uint16_t)ni,&layout );
+		if(err)
+			fsl_os_print("dpni_drv_get_rx_buffer_layout: error %d\n",err);
+		fsl_os_print("Buffer Layout:\n");
+		fsl_os_print("Options: 0x%x\n",layout.options);
+		fsl_os_print("data_head_room: 0x%x\n\n\n", layout.data_head_room);
+		fsl_os_print("data_tail_room: 0x%x\n\n\n", layout.data_tail_room);
+
 	}
 
 	fsl_os_print("To start test inject packets: \"arena_test_40.pcap\"\n");
