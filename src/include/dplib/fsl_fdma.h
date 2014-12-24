@@ -986,6 +986,67 @@ int fdma_present_frame(
 		struct fdma_present_frame_params *params);
 
 /**************************************************************************//**
+@Function	fdma_present_default_frame_without_segments
+
+@Description	Initial presentation of a default frame into the task workspace
+		without any segments (Data, ASA, PTA).
+
+		Implicit input parameters in Task Defaults: AMQ attributes (PL,
+		VA, BDI, ICID), FD address.
+
+		Implicitly updated values in Task Defaults: frame handle, NDS
+		bit, ASA size (0), PTA address(\ref PRC_PTA_NOT_LOADED_ADDRESS).
+
+@Return		0 on Success, or negative value on error.
+
+@Retval		0 - Success.
+@Retval		EIO - Received frame with non-zero FD[err] field. In such a case 
+		the returned frame handle is valid, but no presentations 
+		occurred.
+
+@Cautions	This function may result in a fatal error.
+@Cautions	In this Service Routine the task yields.
+*//***************************************************************************/
+int fdma_present_default_frame_without_segments(void);
+
+/**************************************************************************//**
+@Function	fdma_present_frame_without_segments
+
+@Description	Initial presentation of a frame into the task workspace without
+		any segments (Data, ASA, PTA).
+
+		Implicit input parameters in Task Defaults: AMQ attributes (PL,
+		VA, BDI, ICID).
+
+		Implicitly updated values in Task Defaults in case the FD points
+		to the default FD location: frame handle, NDS bit, ASA size (0),
+		PTA address (\ref PRC_PTA_NOT_LOADED_ADDRESS).
+
+@Param[in]	fd - A pointer to the workspace location of the Frame Descriptor
+		to present.
+@Param[in]	flags - \link FDMA_Present_Frame_Flags Present segment flags.
+		\endlink
+@Param[in]	icid - Bits<1-15> : Isolation Context ID. Frame AMQ attribute.
+		Used only in case \ref FDMA_INIT_AS_BIT is set.
+@Param[out]	frame_handle - A handle to the opened working frame.
+
+@Return		0 on Success, or negative value on error.
+
+@Retval		0 - Success.
+@Retval		EIO - Received frame with non-zero FD[err] field. In such a case 
+		the returned frame handle is valid, but no presentations 
+		occurred.
+
+@Cautions	This function may result in a fatal error.
+@Cautions	In this Service Routine the task yields.
+*//***************************************************************************/
+int fdma_present_frame_without_segments(
+		struct ldpaa_fd *fd,
+		uint32_t flags,
+		uint16_t icid,
+		uint8_t *frame_handle);
+
+/**************************************************************************//**
 @Function	fdma_present_default_frame_segment
 
 @Description	Open a segment of the default working frame and copy the
