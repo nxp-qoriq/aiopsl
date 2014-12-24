@@ -63,6 +63,10 @@ typedef uint64_t            dma_addr_t;
 #pragma section RX ".dtext_vle"
 #define __COLD_CODE __declspec(section ".dtext_vle")
 
+/* A macro for putting all executable code of a file into a section ".dtext_vle"
+ * which is defined in DP_DDR. Should be defined both in .*c and *.h files.
+ * __START_COLD_CODE  should be coupled with __END_COLD_CODE
+ */
 #define STRINGTYPE(a) #a
 #define DEFINESECTION(x) section code_type x data_mode=far_abs code_mode=pc_rel
 #define PUSH _Pragma("push")
