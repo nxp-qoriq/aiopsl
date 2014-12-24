@@ -361,10 +361,12 @@ int dpni_drv_set_order_scope(uint16_t ni_id, struct dpkg_profile_cfg *key_cfg);
 
 @Param[out]	aiop_niid   Connected Network Interface ID to the given NI ID
 
-@Return	link state on success: 1 - link is up, 0 - link is down;
+@Param[out]	state   link state on success: 1 - link is up, 0 - link is down;
+
+@Return 0 on success;
 	error code, otherwise. For error posix refer to \ref error_g
 *//***************************************************************************/
-int dpni_drv_get_connected_aiop_ni_id(const uint16_t dpni_id, uint16_t *aiop_niid);
+int dpni_drv_get_connected_aiop_ni_id(const uint16_t dpni_id, uint16_t *aiop_niid, int *state);
 
 /**************************************************************************//**
 @Function	dpni_drv_get_connected_dpni_id
@@ -375,9 +377,41 @@ int dpni_drv_get_connected_aiop_ni_id(const uint16_t dpni_id, uint16_t *aiop_nii
 
 @Param[out]	dpni_id   Connected DPNI ID to the given NI ID
 
-@Return	link state on success: 1 - link is up, 0 - link is down;
+@Param[out]	state   link state on success: 1 - link is up, 0 - link is down;
+
+@Return 0 on success;
 	error code, otherwise. For error posix refer to \ref error_g
 *//***************************************************************************/
-int dpni_drv_get_connected_dpni_id(const uint16_t aiop_niid, uint16_t *dpni_id);
+int dpni_drv_get_connected_dpni_id(const uint16_t aiop_niid, uint16_t *dpni_id, int *state);
+
+/**************************************************************************//**
+@Function	dpni_drv_set_rx_buffer_layout
+
+@Description	Function to change SP’s attributes (specify how many headroom)
+
+@Param[in]	ni_id   The AIOP Network Interface ID
+
+@Param[in]	layout  Structure representing DPNI buffer layout
+
+@warning	Allowed only when DPNI is disabled
+
+@Return	0 on success;
+	error code, otherwise. For error posix refer to \ref error_g
+*//***************************************************************************/
+int dpni_drv_set_rx_buffer_layout(uint16_t ni_id, const struct dpni_buffer_layout *layout);
+
+/**************************************************************************//**
+@Function	dpni_drv_get_rx_buffer_layout
+
+@Description	Function to receive SP’s attributes for RX buffer.
+
+@Param[in]	ni_id   The AIOP Network Interface ID
+
+@Param[out]	layout  Structure representing DPNI buffer layout
+
+@Return	0 on success;
+	error code, otherwise. For error posix refer to \ref error_g
+*//***************************************************************************/
+int dpni_drv_get_rx_buffer_layout(uint16_t ni_id, struct dpni_buffer_layout *layout);
 /** @} */ /* end of dpni_g DPNI group */
 #endif /* __FSL_DPNI_DRV_H */

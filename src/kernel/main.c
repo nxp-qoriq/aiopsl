@@ -40,7 +40,7 @@ extern int global_post_init(void);
 extern int apps_early_init(void);
 extern int run_apps(void);
 extern void core_ready_for_tasks(void);
-
+extern int dpni_drv_enable_all(void);
 #if (STACK_OVERFLOW_DETECTION == 1)
 __COLD_CODE static inline void configure_stack_overflow_detection(void)
 {
@@ -83,7 +83,7 @@ UNUSED(argc);UNUSED(argv);
 #if (STACK_OVERFLOW_DETECTION == 1)
     configure_stack_overflow_detection();
 #endif
-    
+
     /* Initialize system */
     err = sys_init();
     if (err) {
@@ -91,15 +91,15 @@ UNUSED(argc);UNUSED(argv);
         return err;
     }
     sys_barrier();
-    
+
     is_master_core = sys_is_master_core();
-    
-    if(is_master_core) {       
+
+    if(is_master_core) {
         if(cmgw_get_ntasks() > 2 /*4-tasks*/) {
         	pr_warn("More then 4 AIOP tasks/core.\n");
         }
     }
-    
+
     /* Only execute if core is a cluster master */
     if(sys_is_cluster_master())
     {
@@ -123,13 +123,13 @@ UNUSED(argc);UNUSED(argv);
     	    cmgw_report_boot_failure();
     	    return err;
     	}
-    	
+
     	err = apps_early_init();
     	if(err) {
     	    cmgw_report_boot_failure();
     	    return err;
     	}
-    	
+
     	err = global_init();
     	if(err) {
     		cmgw_report_boot_failure();
@@ -153,7 +153,11 @@ UNUSED(argc);UNUSED(argv);
     	    return err;
     	}
     }
-    
+    err = dpni_drv_enable_all();
+    if (err) {
+	    pr_err("Error %d, Failed to enable DPNI's\n", err);
+        	 return err;
+    }
     core_ready_for_tasks();
 
     if (is_master_core)
