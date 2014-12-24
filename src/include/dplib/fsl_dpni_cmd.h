@@ -190,11 +190,11 @@ do { \
 	MC_RSP_OP(cmd, 0, 0,  1,  int,	    en)
 
 /*                cmd, param, offset, width, type, arg_name */
-#define DPNI_CMD_SET_IRQ(cmd, irq_index, irq_paddr, irq_val, user_irq_id) \
+#define DPNI_CMD_SET_IRQ(cmd, irq_index, irq_addr, irq_val, user_irq_id) \
 do { \
 	MC_CMD_OP(cmd, 0, 0,  32, uint32_t, irq_val); \
 	MC_CMD_OP(cmd, 0, 32, 8,  uint8_t,  irq_index); \
-	MC_CMD_OP(cmd, 1, 0,  64, uint64_t, irq_paddr); \
+	MC_CMD_OP(cmd, 1, 0,  64, uint64_t, irq_addr); \
 	MC_CMD_OP(cmd, 2, 0,  32, int,	     user_irq_id); \
 } while (0)
 
@@ -203,10 +203,10 @@ do { \
 	MC_CMD_OP(cmd, 0, 32, 8,  uint8_t,  irq_index)
 
 /*                cmd, param, offset, width, type, arg_name */
-#define DPNI_RSP_GET_IRQ(cmd, type, irq_paddr, irq_val, user_irq_id) \
+#define DPNI_RSP_GET_IRQ(cmd, type, irq_addr, irq_val, user_irq_id) \
 do { \
 	MC_RSP_OP(cmd, 0, 0,  32, uint32_t, irq_val); \
-	MC_RSP_OP(cmd, 1, 0,  64, uint64_t, irq_paddr); \
+	MC_RSP_OP(cmd, 1, 0,  64, uint64_t, irq_addr); \
 	MC_RSP_OP(cmd, 2, 0,  32, int,      user_irq_id); \
 	MC_RSP_OP(cmd, 2, 32, 32, int,	    type); \
 } while (0)
@@ -309,6 +309,7 @@ do { \
 	MC_RSP_OP(cmd, 1, 1,  1,  int,	    layout->pass_parser_result); \
 	MC_RSP_OP(cmd, 1, 2,  1,  int,	    layout->pass_frame_status); \
 	MC_RSP_OP(cmd, 1, 16, 16, uint16_t, layout->data_head_room); \
+	MC_RSP_OP(cmd, 1, 32, 16, uint16_t, layout->data_tail_room); \
 } while (0)
 
 /*                cmd, param, offset, width, type, arg_name */
@@ -321,6 +322,7 @@ do { \
 	MC_CMD_OP(cmd, 1, 1,  1,  int,	    layout->pass_parser_result); \
 	MC_CMD_OP(cmd, 1, 2,  1,  int,	    layout->pass_frame_status); \
 	MC_CMD_OP(cmd, 1, 16, 16, uint16_t, layout->data_head_room); \
+	MC_CMD_OP(cmd, 1, 32, 16, uint16_t, layout->data_tail_room); \
 } while (0)
 
 /*                cmd, param, offset, width, type, arg_name */
@@ -332,6 +334,7 @@ do { \
 	MC_RSP_OP(cmd, 1, 1,  1,  int,	    layout->pass_parser_result); \
 	MC_RSP_OP(cmd, 1, 2,  1,  int,	    layout->pass_frame_status); \
 	MC_RSP_OP(cmd, 1, 16, 16, uint16_t, layout->data_head_room); \
+	MC_RSP_OP(cmd, 1, 32, 16, uint16_t, layout->data_tail_room); \
 } while (0)
 
 /*                cmd, param, offset, width, type, arg_name */
@@ -344,6 +347,7 @@ do { \
 	MC_CMD_OP(cmd, 1, 1,  1,  int,	    layout->pass_parser_result); \
 	MC_CMD_OP(cmd, 1, 2,  1,  int,	    layout->pass_frame_status); \
 	MC_CMD_OP(cmd, 1, 16, 16, uint16_t, layout->data_head_room); \
+	MC_CMD_OP(cmd, 1, 32, 16, uint16_t, layout->data_tail_room); \
 } while (0)
 
 /*                cmd, param, offset, width, type, arg_name */
@@ -355,6 +359,7 @@ do { \
 	MC_RSP_OP(cmd, 1, 1,  1,  int,	    layout->pass_parser_result); \
 	MC_RSP_OP(cmd, 1, 2,  1,  int,	    layout->pass_frame_status); \
 	MC_RSP_OP(cmd, 1, 16, 16, uint16_t, layout->data_head_room); \
+	MC_RSP_OP(cmd, 1, 32, 16, uint16_t, layout->data_tail_room); \
 } while (0)
 
 /*                cmd, param, offset, width, type, arg_name */
@@ -367,6 +372,7 @@ do { \
 	MC_CMD_OP(cmd, 1, 1,  1,  int,	    layout->pass_parser_result); \
 	MC_CMD_OP(cmd, 1, 2,  1,  int,	    layout->pass_frame_status); \
 	MC_CMD_OP(cmd, 1, 16, 16, uint16_t, layout->data_head_room); \
+	MC_CMD_OP(cmd, 1, 32, 16, uint16_t, layout->data_tail_room); \
 } while (0)
 
 /*                cmd, param, offset, width, type, arg_name */
