@@ -42,9 +42,8 @@
  * @brief	Structure representing local data for shared pool
  */
 struct shbp_aiop {
-	struct   icontext ic;
-	uint64_t shbp;	/*!< Shared buffer pool structure */ 
-	uint8_t  lock;
+	uint64_t shbp;	/*!< Shared buffer pool structure */
+	struct   icontext ic; 
 };
 
 #endif /* _SHBP_H */

@@ -182,17 +182,17 @@ int shbp_enable(uint16_t swc_id, uint64_t shbp_iova, struct shbp_aiop *bp)
 	if ((shbp_iova == NULL) || (bp == NULL))
 		return -EINVAL;
 		
-	lock_spinlock(&bp->lock);
+	cdma_mutex_lock_take(shbp_iova, CDMA_MUTEX_WRITE_LOCK);
 	
 	bp->shbp = shbp_iova;
 	err = icontext_get(swc_id, &bp->ic);
 	if (err) {
-		unlock_spinlock(&bp->lock);
+		cdma_mutex_lock_release(shbp_iova);
 		pr_err("No such isolation context 0x%x\n", swc_id);
 		return -EINVAL;
 	}
 	
-	unlock_spinlock(&bp->lock);
+	cdma_mutex_lock_release(shbp_iova);
 	
 	DUMP_AIOP_BP();
 	
