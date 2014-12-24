@@ -1,3 +1,9 @@
+LDPAA AIOP SERVICE LAYER LDPAA-AIOP-SL-v0.5.3.0 Change Log
+=============================================================
+* FDMA - add workaround for PDM ticket TKT237377 - As part of the workaround his command closes and reopens the segment. (meaning that all segment 
+	modifications done in workspace but not included in the range of this command are lost).
+
+
 LDPAA AIOP SERVICE LAYER ALPHA V0.4.6 Change Log
 ===================================================
 * Allow send/receive to/from two NI's - SPID assertion failure (ENGR00338045).
