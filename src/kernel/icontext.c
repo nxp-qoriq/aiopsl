@@ -80,7 +80,7 @@ int icontext_dma_read(struct icontext *ic, uint16_t size,
 {
 
 #ifdef DEBUG
-	if ((dest == NULL) || (src == NULL))
+	if ((dest == NULL) || (src == NULL) || (ic == NULL))
 		return -EINVAL;
 #endif
 	
@@ -97,7 +97,7 @@ int icontext_dma_write(struct icontext *ic, uint16_t size,
 {
 	
 #ifdef DEBUG
-	if ((dest == NULL) || (src == NULL))
+	if ((dest == NULL) || (src == NULL) || (ic == NULL))
 		return -EINVAL;
 #endif
 

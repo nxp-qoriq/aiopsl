@@ -170,6 +170,7 @@ static int ctrl_cb0(void *dev, uint16_t cmd, uint32_t size,
 	uint8_t tmi_id = 0;
 	uint32_t timer_handle = 0;
 	struct shbp_test *shbp_test;
+	uint64_t temp64;
 	
 	UNUSED(dev);
 	fsl_os_print("ctrl_cb0 cmd = 0x%x, size = %d, data  0x%x\n",
@@ -184,12 +185,13 @@ static int ctrl_cb0(void *dev, uint16_t cmd, uint32_t size,
 		shbp_test = data;
 		dpci_id = shbp_test->dpci_id;
 		err = shbp_enable(dpci_id, shbp_test->shbp, &lbp);
+		ASSERT_COND(lbp.ic.icid != ICONTEXT_INVALID);
 		p_data = shbp_acquire(&lbp);
 		while (p_data != 0) {
 			i++;
-			icontext_get(dpci_id, &ic);
-			ASSERT_COND(ic.icid != ICONTEXT_INVALID);
-			icontext_dma_write(&ic, sizeof(uint64_t), &p_data, p_data);
+			shbp_write(&lbp, sizeof(uint64_t), &p_data, p_data);
+			shbp_read(&lbp, sizeof(uint64_t), p_data, &temp64);
+			ASSERT_COND(temp64 == p_data);
 			err = shbp_release(&lbp, p_data);
 			ASSERT_COND(!err);
 			p_data = shbp_acquire(&lbp);

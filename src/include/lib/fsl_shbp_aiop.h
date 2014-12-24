@@ -80,6 +80,32 @@ int shbp_release(struct shbp_aiop *bp, uint64_t buf);
  */
 int shbp_enable(uint16_t swc_id, uint64_t shbp_iova, struct shbp_aiop *bp);
 
+/**
+ * @brief	DMA read into workspace location
+ *
+ * @param[in]	bp  - AIOP buffer pool handle
+ * @param[in]	src - System memory source for DMA data.
+ * @param[in]	size - The number of bytes to be copied into dest buffer.
+ * @param[out]	dest - Pointer to workspace location to where data should
+ *		be copied.
+ * @returns	0 on Success; or error code otherwise
+ *
+ */
+int shbp_read(struct shbp_aiop *bp, uint16_t size, uint64_t src, void *dest);
+
+/**
+ * @brief	DMA write from workspace location.
+ *
+ * @param[in]	bp  - AIOP buffer pool handle
+ * @param[in]	src - Pointer to workspace location from where data should
+ 		be copied.
+ * @param[in]	size - The number of bytes to be copied into dest buffer.
+ * @param[out]	dest - System memory target address for DMA data.
+ *
+ * @returns	0 on Success; or error code otherwise
+ *
+ */
+int shbp_write(struct shbp_aiop *bp, uint16_t size, void *src, uint64_t dest);
 
 /** @} */ /* end of shbp_aiop_g group */
 

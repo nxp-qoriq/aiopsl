@@ -58,14 +58,14 @@
 #endif /* COLD_CODE*/
 
 #ifndef CPU_TO_LE64
-#define CPU_TO_LE64(val)
+#define CPU_TO_LE64(val) (val)
 #endif
 #ifndef CPU_TO_LE32
-#define CPU_TO_LE32(val)
+#define CPU_TO_LE32(val) (val)
 #endif
 
-#define SHBP_BUF_TO_PTR(BUF)
-#define SHBP_PTR_TO_BUF(BUF)
+#define SHBP_BUF_TO_PTR(BUF) (BUF)
+#define SHBP_PTR_TO_BUF(BUF) (BUF)
 
 int send_fd(struct cmdif_fd *cfd, int pr, void *nadk_dev);
 int receive_fd(struct cmdif_fd *cfd, int pr, void *nadk_dev);

@@ -193,7 +193,9 @@ uint16_t aiop_verification_fdma(uint32_t asa_seg_addr)
 			(struct fdma_read_pta_command *) asa_seg_addr;
 		str->status = (int8_t)fdma_read_default_frame_pta(
 				(void *)str->ws_dst);
-		if (LDPAA_FD_GET_PTA(HWC_FD_ADDRESS))
+		if (LDPAA_FD_GET_PTA(HWC_FD_ADDRESS) && 
+		    LDPAA_FD_GET_PTV1(HWC_FD_ADDRESS) &&
+		    LDPAA_FD_GET_PTV2(HWC_FD_ADDRESS))
 			str->seg_length = PTA_SIZE_PTV1_2;
 		else if (LDPAA_FD_GET_PTV1(HWC_FD_ADDRESS))
 			str->seg_length = PTA_SIZE_PTV1;
@@ -742,7 +744,9 @@ uint16_t aiop_verification_fdma(uint32_t asa_seg_addr)
 				(enum fdma_pta_size_type)str->size);
 		if (str->SA == 2)
 			str->seg_length = 0;
-		else if (LDPAA_FD_GET_PTA(HWC_FD_ADDRESS))
+		else if (LDPAA_FD_GET_PTA(HWC_FD_ADDRESS) && 
+			 LDPAA_FD_GET_PTV1(HWC_FD_ADDRESS) &&
+			 LDPAA_FD_GET_PTV2(HWC_FD_ADDRESS))
 			str->seg_length = PTA_SIZE_PTV1_2;
 		else if (LDPAA_FD_GET_PTV1(HWC_FD_ADDRESS))
 			str->seg_length = PTA_SIZE_PTV1;
