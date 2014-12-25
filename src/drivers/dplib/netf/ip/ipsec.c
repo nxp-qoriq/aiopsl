@@ -1100,6 +1100,7 @@ int ipsec_frame_encrypt(
 	uint8_t eth_length = 0; /* Ethernet header length and indicator */ 
 	uint64_t orig_flc;
 	uint32_t orig_frc;
+	uint16_t orig_seg_addr;
 	uint8_t *eth_pointer_default;
 	uint32_t byte_count;
 	uint16_t checksum;
@@ -1117,8 +1118,7 @@ int ipsec_frame_encrypt(
 	
 	*enc_status = 0; /* Initialize */
 	
-	/* 	Outbound frame encryption and encapsulation (ipsec_frame_encrypt) 
-	 * – Simplified Flow */
+	/* 	Outbound frame encryption and encapsulation */
 	
 	desc_addr = IPSEC_DESC_ADDR(ipsec_handle);
 
@@ -1221,7 +1221,11 @@ int ipsec_frame_encrypt(
 	/*---------------------*/
 	/* ipsec_frame_encrypt */
 	/*---------------------*/
-	
+
+	/* Save the original original segment address 
+	 * before the (optional) L2 header removal */
+	orig_seg_addr = PRC_GET_SEGMENT_ADDRESS();
+
 	/* 	4.	Identify if L2 header exist in the frame: */
 	/* Check if Ethernet/802.3 MAC header exist and remove it */
 	if (PARSER_IS_ETH_MAC_DEFAULT()) { /* Check if Ethernet header exist */
@@ -1253,11 +1257,10 @@ int ipsec_frame_encrypt(
 		for (i = 0 ; i < eth_length; i++) {
 			eth_header[i] = *(eth_pointer_default + i);
 		}
-			
+		
 		/* Remove L2 Header */	
 		/* Note: The gross running sum of the frame becomes invalid 
-		 * after calling this function.
-		 */
+		 * after calling this function. */
 		l2_header_remove();
 	}
 
@@ -1329,11 +1332,16 @@ int ipsec_frame_encrypt(
 
 	/* Update the SPID of the new frame (SEC output) in the HW Context*/
 	*((uint8_t *)HWC_SPID_ADDRESS) = sap1.output_spid;
-	
+
+	/* If the L2 header was removed, the segment address have changed, 
+	 * so set the original segment address before opening the new frame 
+	 * (for performance optimization it is done in any case) */
+	PRC_SET_SEGMENT_ADDRESS(orig_seg_addr); 
+			
 	/* Update the default segment length for the new frame  in 
 	 * the presentation context */
 	PRC_SET_SEGMENT_LENGTH(DEFAULT_SEGMENT_SIZE);
-	
+		
 	/* 	11.	FDMA present default frame command (open frame) */
 	return_val = fdma_present_default_frame();
 	// TODO: check for FDMA error
@@ -1497,10 +1505,9 @@ int ipsec_frame_decrypt(
 	uint8_t eth_header[40]; /* Ethernet header place holder, 40 bytes */ 
 	uint8_t eth_length = 0; /* Ethernet header length and indicator */ 
 	uint64_t orig_flc; /* Original FLC */
-	//uint64_t return_flc; /* SEC returned FLC */
 	uint32_t orig_frc;
+	uint16_t orig_seg_addr;
 	uint16_t outer_material_length;
-	//uint16_t running_sum;
 	uint8_t *eth_pointer_default;
 	uint32_t byte_count;
 	uint16_t checksum;
@@ -1583,7 +1590,11 @@ int ipsec_frame_decrypt(
 			/*---------------------*/
 			/* ipsec_frame_decrypt */
 			/*---------------------*/
-
+	
+	/* Save the original segment address, before the (optional) 
+	 * L2 header removal */
+	orig_seg_addr = PRC_GET_SEGMENT_ADDRESS();
+	
 	/* 	4.	Identify if L2 header exist in the frame, 
 	 * and if yes get the L2 header length. */
 	if (PARSER_IS_ETH_MAC_DEFAULT()) { /* Check if Ethernet header exist */
@@ -1667,11 +1678,11 @@ int ipsec_frame_decrypt(
 			for (i = 0 ; i < eth_length; i++) {
 				eth_header[i] = *(eth_pointer_default + i);
 			}
-	
+
 			/* Remove L2 Header */	
 			/* Note: The gross running sum of the frame becomes invalid 
 			 * after calling this function. */ 
-			 l2_header_remove();
+			l2_header_remove();
 			
 			// TODO: 
 			/* For decryption in transport mode it is required to update 
@@ -1735,6 +1746,11 @@ int ipsec_frame_decrypt(
 
 	/* Update the SPID of the new frame (SEC output) in the HW Context*/
 	*((uint8_t *)HWC_SPID_ADDRESS) = sap1.output_spid;
+	
+	/* If the L2 header was removed, the segment address have changed, 
+	 * so set the original segment address before opening the new frame. 
+	 * (for performance optimization it is done in any case) */
+	PRC_SET_SEGMENT_ADDRESS(orig_seg_addr); 
 	
 	/* Update the default segment length for the new frame  in 
 	 * the presentation context */
