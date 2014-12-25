@@ -311,7 +311,7 @@ int app_init(void)
 		else{
 			fsl_os_print("dpni_drv_add_mac_addr succeeded in boot\n");
 			fsl_os_print("MAC 02:00:C0:A8:0B:FE added for ni %d\n",ni);
-
+			test_error |= 0x01;
 		}
 		dpni_drv_set_exclusive((uint16_t)ni);
 		err = dpni_drv_set_order_scope((uint16_t)ni,&dist_key_cfg);
@@ -373,28 +373,39 @@ int app_init(void)
 
 	for(ni = 0; ni < dpni_get_num_of_ni(); ni++){
 		err = dpni_drv_get_connected_dpni_id((uint16_t)ni, &ni2, &state);
-				fsl_os_print("Given NI: %d, Connected NI: %d, Status: %d\n",ni,ni2,state);
-		if(err)
-			fsl_os_print("dpni_drv_get_connected_dpni_id: error %d\n",err);
-
+		fsl_os_print("Given NI: %d, Connected NI: %d, Status: %d\n",ni,ni2,state);
+		if(err){
+			fsl_os_print("Error: dpni_drv_get_connected_dpni_id: error %d\n",err);
+			test_error |= 0x01;
+		}
 		layout.options =  DPNI_BUF_LAYOUT_OPT_DATA_HEAD_ROOM |
 			DPNI_BUF_LAYOUT_OPT_DATA_TAIL_ROOM;
 		layout.data_head_room = 0x20;
 		layout.data_tail_room = 0x30;
 		err = dpni_drv_set_rx_buffer_layout((uint16_t)ni,&layout );
-		if(err)
-			fsl_os_print("dpni_drv_get_rx_buffer_layout: error %d\n",err);
-
+		if(err){
+			fsl_os_print("Error: dpni_drv_get_rx_buffer_layout: error %d\n",err);
+			test_error |= 0x01;
+		}
 
 		layout.options = DPNI_BUF_LAYOUT_OPT_DATA_HEAD_ROOM |
-			DPNI_BUF_LAYOUT_OPT_DATA_TAIL_ROOM;;
+			DPNI_BUF_LAYOUT_OPT_DATA_TAIL_ROOM;
+		layout.data_head_room = 0;
+		layout.data_tail_room = 0;
+
 		err = dpni_drv_get_rx_buffer_layout((uint16_t)ni,&layout );
-		if(err)
-			fsl_os_print("dpni_drv_get_rx_buffer_layout: error %d\n",err);
+		if(err){
+			fsl_os_print("Error: dpni_drv_get_rx_buffer_layout: error %d\n",err);
+			test_error |= 0x01;
+		}
 		fsl_os_print("Buffer Layout:\n");
 		fsl_os_print("Options: 0x%x\n",layout.options);
 		fsl_os_print("data_head_room: 0x%x\n\n\n", layout.data_head_room);
 		fsl_os_print("data_tail_room: 0x%x\n\n\n", layout.data_tail_room);
+		if(layout.data_head_room != 0x20 || layout.data_tail_room != 0x30){
+			fsl_os_print("Error: dpni_drv_get/set_rx_buffer_layout finished with incorrect values\n");
+			test_error |= 0x01;
+		}
 
 	}
 
