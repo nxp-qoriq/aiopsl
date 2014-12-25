@@ -302,11 +302,6 @@ int mem_mng_register_partition(fsl_handle_t  h_mem_mng,
     uint32_t            int_flags;
 #endif /* AIOP */
 
-    if ((f_user_malloc || f_user_free) && !(f_user_malloc && f_user_free))
-    {
-        RETURN_ERROR(MAJOR, EDOM,
-                     ("f_user_malloc and f_user_free must be both NULL or not NULL"));
-    }
 
 #ifdef AIOP
     lock_spinlock(p_mem_mng->lock);
@@ -375,7 +370,7 @@ int mem_mng_register_partition(fsl_handle_t  h_mem_mng,
         if (0 != slob_init(&(p_new_partition->h_mem_manager), base_address, size))
         {
             p_mem_mng->f_free(p_new_partition);
-            RETURN_ERROR(MAJOR, EAGAIN, ("MM object for partition: %s", name));
+            RETURN_ERROR(MAJOR, EAGAIN, ("slob  object for partition: %s", name));
         }
     }
 
