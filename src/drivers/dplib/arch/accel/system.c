@@ -41,6 +41,8 @@
 #include "fsl_sys.h"
 #include "time.h"
 #include "aiop_common.h"
+/* #include "fsl_sl_dbg.h" */
+#include "fsl_slab.h"
 
 #ifdef AIOP_VERIF
 #include "slab_stub.h"
@@ -126,6 +128,32 @@ void sys_keyid_pool_create(void)
 	id_pool_init(SYS_NUM_OF_KEYIDS, buffer_pool_id,
 					&ext_keyid_pool_address);
 }
+
+#ifndef AIOP_VERIF
+__COLD_CODE int aiop_sl_early_init(void){
+	int err = 0;
+	/* (SYS_NUM_OF_PRPIDS+3) rounded up modulu 64 - 8 */
+	err |= slab_register_context_buffer_requirements(1, 1, 120,
+			2, MEM_PART_DP_DDR, 0, 0);
+	/* (SYS_NUM_OF_KEYIDS+3) rounded up modulu 64 - 8 */
+	err |= slab_register_context_buffer_requirements(1, 1, 312,
+			2, MEM_PART_DP_DDR, 0, 0);
+	/* The following buffers requests registrations are temporary till new 
+	 * abstraction API will be valid for IPR and IPSEC. */
+	/* IPR IPsec 2688 rounded up modulu 64 - 8 */
+	err |= slab_register_context_buffer_requirements(750, 750, 2744, 64,
+			MEM_PART_DP_DDR, 0, 0);
+	/* IPsec 512 rounded up modulu 64 - 8 */
+	err |= slab_register_context_buffer_requirements(750, 750, 568, 64,
+			MEM_PART_DP_DDR, 0, 0);
+
+	if(err){
+		pr_err("Failed to register context buffers\n");
+		return err;
+	}
+	return 0;
+}
+#endif
 
 int aiop_sl_init(void)
 {

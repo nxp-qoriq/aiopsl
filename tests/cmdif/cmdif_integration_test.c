@@ -62,6 +62,7 @@ void app_free(void);
 #define CLOSE_CMD	0x107
 #define TMAN_TEST	0x108
 #define SHBP_TEST	0x109
+#define SHBP_TEST_GPP	0x110
 
 #define AIOP_ASYNC_CB_DONE	5  /* Must be in sync with MC ELF */
 #define AIOP_SYNC_BUFF_SIZE	80 /* Must be in sync with MC ELF */
@@ -80,6 +81,25 @@ struct shbp_test {
 struct cmdif_desc cidesc;
 uint64_t tman_addr;
 struct shbp_aiop lbp;
+struct shbp_aiop gpp_lbp;
+
+/* This is WA supplied for 0.5.2 */
+#include "fsl_mc_init.h"
+#define FQD_CTX_GET \
+	(((struct additional_dequeue_context *)HWC_ADC_ADDRESS)->fqd_ctx)
+static void app_icontext_cmd_get(struct icontext *ic)
+{
+	uint32_t fqd_ctx;
+	struct mc_dpci_obj *dt = sys_get_unique_handle(FSL_OS_MOD_DPCI_TBL);
+	uint8_t  ind;
+	
+	fqd_ctx = (uint32_t)(LLLDW_SWAP((uint32_t)&FQD_CTX_GET, 0) & 0xFFFFFFFF);
+	ind = (uint8_t)((fqd_ctx) >> 1);
+	
+	ic->icid = dt->icid[ind];
+	ic->dma_flags = dt->dma_flags[ind];
+	ic->bdi_flags = dt->bdi_flags[ind];
+}
 
 static int aiop_async_cb(void *async_ctx, int err, uint16_t cmd_id,
              uint32_t size, void *data)
@@ -165,6 +185,7 @@ static int ctrl_cb0(void *dev, uint16_t cmd, uint32_t size,
 	int i   = 0;
 	uint64_t p_data = LDPAA_FD_GET_ADDR(HWC_FD_ADDRESS);
 	struct icontext ic;
+	struct icontext ic_cmd;
 	uint16_t dpci_id = 0;
 	uint16_t bpid = 3;
 	uint8_t tmi_id = 0;
@@ -181,6 +202,23 @@ static int ctrl_cb0(void *dev, uint16_t cmd, uint32_t size,
 	aiop_ws_check();
 	
 	switch (cmd) {
+	case SHBP_TEST_GPP:
+		fsl_os_print("Testing GPP SHBP...\n");
+		shbp_test = data;
+		dpci_id = shbp_test->dpci_id;
+		err = shbp_enable(dpci_id, shbp_test->shbp, &gpp_lbp);
+		ASSERT_COND(gpp_lbp.ic.icid != ICONTEXT_INVALID);
+		
+		temp64 = shbp_acquire(&gpp_lbp);
+		ASSERT_COND(temp64 == 0);
+		shbp_test->shbp = 0; /* For test on GPP */
+		
+		err = shbp_release(&gpp_lbp, p_data);
+		ASSERT_COND(!err);
+		
+		fdma_modify_default_segment_data(0, (uint16_t)size);
+		fsl_os_print("Released buffer into GPP SHBP\n");
+		break;
 	case SHBP_TEST:
 		shbp_test = data;
 		dpci_id = shbp_test->dpci_id;
@@ -279,17 +317,34 @@ static int ctrl_cb0(void *dev, uint16_t cmd, uint32_t size,
 		ASSERT_COND(ic.icid == ((struct icontext *)data)->icid);
 		ASSERT_COND(ic.dma_flags == ((struct icontext *)data)->dma_flags);
 		ASSERT_COND(ic.bdi_flags == ((struct icontext *)data)->bdi_flags);
-
+		
 		/* Note: MC and AIOP have the same AMQ and BDI settings */
 		p_data = NULL;
 		err = icontext_acquire(&ic, bpid, &p_data);
-		ASSERT_COND(err == 0);
-		ASSERT_COND(p_data != 0);
-		err = icontext_release(&ic, bpid, p_data);
-		ASSERT_COND(err == 0);
-		fsl_os_print("Addr high = 0x%x low = 0x%x \n",
-			 (uint32_t)((p_data & 0xFF00000000) >> 32),
-			 (uint32_t)(p_data & 0xFFFFFFFF));
+		if (!err) {
+			ASSERT_COND(p_data != 0);
+			err = icontext_release(&ic, bpid, p_data);
+			ASSERT_COND(err == 0);
+			fsl_os_print("Addr high = 0x%x low = 0x%x \n",
+			             (uint32_t)((p_data & 0xFF00000000) >> 32),
+			             (uint32_t)(p_data & 0xFFFFFFFF));
+		} else {
+			fsl_os_print("FAILED icontext_acquire BPID"
+						" 0x%x is empty\n", bpid);
+		}
+		/* Must be after icontext_get(&ic) */
+		icontext_cmd_get(&ic_cmd);
+		ASSERT_COND(ic_cmd.icid != ICONTEXT_INVALID);
+		ASSERT_COND(ic_cmd.icid == ic.icid);
+		ASSERT_COND(ic_cmd.bdi_flags == ic.bdi_flags);
+		ASSERT_COND(ic_cmd.dma_flags == ic.dma_flags);
+		fsl_os_print("PASSED icontext_cmd_get\n");
+		
+		app_icontext_cmd_get(&ic);
+		ASSERT_COND(ic_cmd.icid == ic.icid);
+		ASSERT_COND(ic_cmd.bdi_flags == ic.bdi_flags);
+		ASSERT_COND(ic_cmd.dma_flags == ic.dma_flags);
+		fsl_os_print("PASSED app_icontext_cmd_get\n");
 
 		icontext_aiop_get(&ic);
 		ASSERT_COND(ic.dma_flags);
@@ -298,6 +353,8 @@ static int ctrl_cb0(void *dev, uint16_t cmd, uint32_t size,
 		             ic.bdi_flags);
 		fsl_os_print("AIOP ICID = 0x%x dma flags = 0x%x\n", ic.icid, \
 		             ic.dma_flags);
+		
+
 		break;
 	default:
 		if ((size > 0) && (data != NULL)) {

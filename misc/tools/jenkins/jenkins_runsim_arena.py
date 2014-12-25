@@ -29,15 +29,13 @@ def inject_packets(pcap):
 		print 'injecting 40 packets'
 		g_capture = 39
 		Popen(["./fm_tio_inject","-hub","localhost:42975","-ser","w0_m1","-file","arena_test_40.pcap"])
-	elif 'eth_ipv4_udp.pcap' in pcap:
+	elif 'app_process_packet.pcap' in pcap:
 		g_capture = 4
 		#g_order_packets_flag used to test the order of received packet from aiop w0_m1
 		g_order_packets_flag = True
 		print 'injecting 4 packets (one broadcast packet to second NI)'
-		Popen(["./fm_tio_inject","-hub","localhost:42975","-ser","w0_m1","-file","eth_64_ipv4.pcap"])
-		Popen(["./fm_tio_inject","-hub","localhost:42975","-ser","w0_m1","-file","eth_ipv4_udp.pcap"])
 		Popen(["./fm_tio_inject","-hub","localhost:42975","-ser","w0_m3","-file","broadcast.pcap"])
-		Popen(["./fm_tio_inject","-hub","localhost:42975","-ser","w0_m1","-file","eth_1518_ipv4.pcap"])
+		Popen(["./fm_tio_inject","-hub","localhost:42975","-ser","w0_m1","-file","app_process_packet.pcap"])
 	elif 'reassembled_frame.pcap' in pcap:
 		g_capture = 4
 		print 'injecting 1 packet'
@@ -49,6 +47,10 @@ def inject_packets(pcap):
 		Popen(["./fm_tio_inject","-hub","localhost:42975","-ser","w0_m1","-file","frag2.pcap"])
 		Popen(["./fm_tio_inject","-hub","localhost:42975","-ser","w0_m1","-file","frag3.pcap"])
 		Popen(["./fm_tio_inject","-hub","localhost:42975","-ser","w0_m1","-file","frag4.pcap"])
+	elif 'eth_ipv4_udp.pcap' in pcap:
+		g_capture = 1
+		print 'injecting 1 packet'
+		Popen(["./fm_tio_inject","-hub","localhost:42975","-ser","w0_m1","-file","eth_ipv4_udp.pcap"])
 	else:
 		print 'name of recognized pcap not found'
 
