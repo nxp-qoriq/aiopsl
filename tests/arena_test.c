@@ -40,6 +40,7 @@
 #include "kernel/fsl_spinlock.h"
 #include "dplib/fsl_parser.h"
 #include "fsl_osm.h"
+#include "fsl_dbg.h"
 
 int app_early_init(void);
 int app_init(void);
@@ -85,7 +86,7 @@ static void app_process_packet_flow0 (dpni_drv_app_arg_t arg)
 {
 	int      err = 0, i, j;
 	int core_id;
-
+	struct dpni_buffer_layout layout = {0};
 	uint64_t time_ms_since_epoch = 0, flc = 0;
 	uint32_t time_ms = 0;
 	uint64_t local_time;
@@ -147,7 +148,7 @@ static void app_process_packet_flow0 (dpni_drv_app_arg_t arg)
 	} else {
 		fsl_os_print("Malloc test passed for packet number %d, on core %d\n", local_packet_number, core_id);
 	}
-	
+
 	/*Random Test*/
 
 	err = random_test();
@@ -277,8 +278,13 @@ static void app_process_packet_flow0 (dpni_drv_app_arg_t arg)
 	}
 }
 int app_early_init(void){
-	slab_register_context_buffer_requirements(200,250,200,64,MEM_PART_SYSTEM_DDR,0, 200);
-	slab_register_context_buffer_requirements(200,250,200,64,MEM_PART_PEB,0, 0);
+	int err = 0;
+	err |= slab_register_context_buffer_requirements(200,250,200,64,MEM_PART_SYSTEM_DDR,0, 0);
+	err |= slab_register_context_buffer_requirements(200,250,200,64,MEM_PART_PEB,0, 0);
+	err |= slab_register_context_buffer_requirements(200,250,504,64,MEM_PART_DP_DDR,0, 120);
+	if(err)
+		pr_err("slab_register_context_buffer_requirements failed: %d\n",err);
+
 	return 0;
 }
 
@@ -286,14 +292,16 @@ int app_init(void)
 {
 	int        err  = 0;
 	uint32_t   ni   = 0;
+	uint16_t   ni2  = 0;
 	dma_addr_t buff = 0;
-	int ep;
+	int ep, state = -1;
 	struct dpkg_profile_cfg dist_key_cfg = {0};
+	struct dpni_buffer_layout layout = {0};
 
 	dist_key_cfg.num_extracts = 1;
 	dist_key_cfg.extracts[0].type = DPKG_EXTRACT_FROM_HDR;
 	dist_key_cfg.extracts[0].extract.from_hdr.prot = NET_PROT_IP;
-	dist_key_cfg.extracts[0].extract.from_hdr.field = NH_FLD_IP_SRC;
+	dist_key_cfg.extracts[0].extract.from_hdr.field = NET_HDR_FLD_IP_SRC;
 	dist_key_cfg.extracts[0].extract.from_hdr.type = DPKG_FULL_FIELD;
 
 
@@ -309,7 +317,7 @@ int app_init(void)
 		else{
 			fsl_os_print("dpni_drv_add_mac_addr succeeded in boot\n");
 			fsl_os_print("MAC 02:00:C0:A8:0B:FE added for ni %d\n",ni);
-
+			test_error |= 0x01;
 		}
 		dpni_drv_set_exclusive((uint16_t)ni);
 		err = dpni_drv_set_order_scope((uint16_t)ni,&dist_key_cfg);
@@ -337,7 +345,7 @@ int app_init(void)
 	}
 	else
 		fsl_os_print("slab_init  succeeded  in init phase()\n", err);
-	
+
 	err = malloc_test();
 	if (err) {
 		fsl_os_print("ERROR = %d: malloc_test failed in init phase()\n", err);
@@ -369,7 +377,45 @@ int app_init(void)
 		fsl_os_print("ntop_test passed in init phase()\n");
 	}
 
-	fsl_os_print("To start test inject packets: \"arena_test_40.pcap\"\n");
+	for(ni = 0; ni < dpni_get_num_of_ni(); ni++){
+		err = dpni_drv_get_connected_dpni_id((uint16_t)ni, &ni2, &state);
+		fsl_os_print("Given NI: %d, Connected NI: %d, Status: %d\n",ni,ni2,state);
+		if(err){
+			fsl_os_print("Error: dpni_drv_get_connected_dpni_id: error %d\n",err);
+			test_error |= 0x01;
+		}
+		layout.options =  DPNI_BUF_LAYOUT_OPT_DATA_HEAD_ROOM |
+			DPNI_BUF_LAYOUT_OPT_DATA_TAIL_ROOM;
+		layout.data_head_room = 0x20;
+		layout.data_tail_room = 0x30;
+		err = dpni_drv_set_rx_buffer_layout((uint16_t)ni,&layout );
+		if(err){
+			fsl_os_print("Error: dpni_drv_get_rx_buffer_layout: error %d\n",err);
+			test_error |= 0x01;
+		}
+
+		layout.options = DPNI_BUF_LAYOUT_OPT_DATA_HEAD_ROOM |
+			DPNI_BUF_LAYOUT_OPT_DATA_TAIL_ROOM;
+		layout.data_head_room = 0;
+		layout.data_tail_room = 0;
+
+		err = dpni_drv_get_rx_buffer_layout((uint16_t)ni,&layout );
+		if(err){
+			fsl_os_print("Error: dpni_drv_get_rx_buffer_layout: error %d\n",err);
+			test_error |= 0x01;
+		}
+		fsl_os_print("Buffer Layout:\n");
+		fsl_os_print("Options: 0x%x\n",layout.options);
+		fsl_os_print("data_head_room: 0x%x\n\n\n", layout.data_head_room);
+		fsl_os_print("data_tail_room: 0x%x\n\n\n", layout.data_tail_room);
+		if(layout.data_head_room != 0x20 || layout.data_tail_room != 0x30){
+			fsl_os_print("Error: dpni_drv_get/set_rx_buffer_layout finished with incorrect values\n");
+			test_error |= 0x01;
+		}
+
+	}
+
+	fsl_os_print("To start test inject packets: \"arena_test_40.pcap\" after AIOP boot complete.\n");
 	return 0;
 }
 

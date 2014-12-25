@@ -48,12 +48,15 @@
 #define ETH_BROADCAST_ADDR		((uint8_t []){0xff,0xff,0xff,0xff,0xff,0xff})
 int dpni_drv_init(void);
 void dpni_drv_free(void);
+int dpni_drv_enable_all(void);
 
 extern struct aiop_init_info g_init_data;
 /*Window for storage profile ID's to use with DDR target memory*/
 uint32_t spid_ddr_id;
 uint32_t spid_ddr_id_last;
 
+/*buffer used for dpni_drv_set_order_scope*/
+uint8_t order_scope_buffer[PARAMS_IOVA_BUFF_SIZE];
 /* TODO - get rid */
 struct dpni_drv nis_first __attribute__((aligned(8)));
 struct dpni_drv *nis = &nis_first;
@@ -130,7 +133,7 @@ int dpni_drv_disable (uint16_t ni_id)
 }
 
 
-int dpni_drv_probe(struct mc_dprc *dprc,
+__COLD_CODE int dpni_drv_probe(struct mc_dprc *dprc,
                    uint16_t mc_niid,
                    uint16_t aiop_niid,
                    struct dpni_pools_cfg *pools_params)
@@ -168,12 +171,9 @@ int dpni_drv_probe(struct mc_dprc *dprc,
 			/* Replace MC NI ID with AIOP NI ID */
 			iowrite32_ccsr(aiop_niid, &wrks_addr->ep_pm);
 
-#if 0
 			/* TODO: the mc_niid field will be necessary if we decide to close the DPNI at the end of Probe. */
 			/* Register MC NI ID in AIOP NI table */
-			nis[aiop_niid].mc_niid = mc_niid;
-#endif
-
+			nis[aiop_niid].dpni_id = mc_niid;
 
 			if ((err = dpni_open(&dprc->io, mc_niid, &dpni)) != 0) {
 				pr_err("Failed to open DP-NI%d\n.", mc_niid);
@@ -203,13 +203,13 @@ int dpni_drv_probe(struct mc_dprc *dprc,
 				return err;
 			}
 
-			/* Enable DPNI before updating the entry point function (EP_PC)
-			 * in order to allow DPNI's attributes to be initialized.
-			 * Frames arriving before the entry point function is updated will be dropped. */
-			if ((err = dpni_enable(&dprc->io, dpni)) != 0) {
-				pr_err("Failed to enable DP-NI%d\n", mc_niid);
-				return -ENODEV;
-			}
+//			/* Enable DPNI before updating the entry point function (EP_PC)
+//			 * in order to allow DPNI's attributes to be initialized.
+//			 * Frames arriving before the entry point function is updated will be dropped. */
+//			if ((err = dpni_enable(&dprc->io, dpni)) != 0) {
+//				pr_err("Failed to enable DP-NI%d\n", mc_niid);
+//				return -ENODEV;
+//			}
 
 			/* Now a Storage Profile exists and is associated with the NI */
 
@@ -368,7 +368,7 @@ int dpni_drv_get_max_frame_length(uint16_t ni_id,
 
 
 
-static int parser_profile_init(uint8_t *prpid)
+__COLD_CODE static int parser_profile_init(uint8_t *prpid)
 {
     struct parse_profile_input parse_profile1 __attribute__((aligned(16)));
     int i;
@@ -413,7 +413,7 @@ static int parser_profile_init(uint8_t *prpid)
 }
 
 
-int dpni_drv_init(void)
+__COLD_CODE int dpni_drv_init(void)
 {
 	int		    i;
 	int         error = 0;
@@ -435,12 +435,8 @@ int dpni_drv_init(void)
 	/* Initialize internal AIOP NI table */
 	for (i = 0; i < SOC_MAX_NUM_OF_DPNI; i++) {
 		struct dpni_drv * dpni_drv = nis + i;
-
 		dpni_drv->dpni_drv_tx_params_var.aiop_niid    = (uint16_t)i;
-#if 0
-		/* TODO: the mc_niid field will be necessary if we decide to close the DPNI at the end of Probe. */
-		dpni_drv->mc_niid      = 0;
-#endif
+		dpni_drv->dpni_id      = 0;
 		dpni_drv->dpni_drv_params_var.spid         = 0;
 		dpni_drv->dpni_drv_params_var.spid_ddr     = 0;
 		dpni_drv->dpni_drv_params_var.epid_idx     = 0;
@@ -459,7 +455,7 @@ int dpni_drv_init(void)
 	return error;
 }
 
-void dpni_drv_free(void)
+__COLD_CODE void dpni_drv_free(void)
 {
 	if (nis)
 		fsl_free(nis);
@@ -566,7 +562,7 @@ int dpni_drv_set_exclusive(uint16_t ni_id){
 	return dpni_drv_set_ordering_mode(ni_id, DPNI_DRV_EXCLUSIVE_MODE);
 }
 
-int dpni_drv_set_order_scope(uint16_t ni_id, struct dpkg_profile_cfg *key_cfg){
+__COLD_CODE int dpni_drv_set_order_scope(uint16_t ni_id, struct dpkg_profile_cfg *key_cfg){
 	struct dpni_drv *dpni_drv;
 	struct mc_dprc *dprc = sys_get_unique_handle(FSL_OS_MOD_AIOP_RC);
 	struct dpni_rx_tc_dist_cfg cfg = {0};
@@ -575,11 +571,7 @@ int dpni_drv_set_order_scope(uint16_t ni_id, struct dpkg_profile_cfg *key_cfg){
 	/* calculate pointer to the NI structure */
 	dpni_drv = nis + ni_id;
 
-
-	params_iova = (uint64_t)fsl_malloc(PARAMS_IOVA_BUFF_SIZE,
-	                           PARAMS_IOVA_ALIGNMENT);
-	if (params_iova == NULL)
-		return -ENOMEM;
+	params_iova = (uint64_t)&order_scope_buffer;
 
 	memset((void *)params_iova, 0, PARAMS_IOVA_BUFF_SIZE);
 	cfg.dist_size = 0;
@@ -591,10 +583,100 @@ int dpni_drv_set_order_scope(uint16_t ni_id, struct dpkg_profile_cfg *key_cfg){
 	                          0,
 	                          &cfg,
 	                          params_iova);
-	fsl_free((void *)params_iova);
 	return err;
 }
 
+int dpni_drv_get_connected_aiop_ni_id(const uint16_t dpni_id, uint16_t *aiop_niid, int *state){
+	struct mc_dprc *dprc = sys_get_unique_handle(FSL_OS_MOD_AIOP_RC);
+	struct dprc_endpoint endpoint1 = {0};
+	struct dprc_endpoint endpoint2 = {0};
 
+	int err;
+	uint16_t i;
 
+	endpoint1.id = dpni_id;
+	endpoint1.interface_id = 0;
+	strcpy(&endpoint1.type[0], "dpni");
 
+	err = dprc_get_connection(&dprc->io, dprc->token, &endpoint1, &endpoint2,
+	                    state);
+	if(err)
+		return err;
+
+	for(i = 0; i <  dpni_get_num_of_ni(); i++){
+		if(endpoint2.id == nis[i].dpni_id){
+			*aiop_niid = i;
+			break;
+		}
+	}
+	if(i == dpni_get_num_of_ni())
+		return -ENAVAIL;
+
+	return 0;
+}
+
+int dpni_drv_get_connected_dpni_id(const uint16_t aiop_niid, uint16_t *dpni_id, int *state){
+	struct mc_dprc *dprc = sys_get_unique_handle(FSL_OS_MOD_AIOP_RC);
+	struct dprc_endpoint endpoint1 = {0};
+	struct dprc_endpoint endpoint2 = {0};
+	int err;
+
+	endpoint1.id = nis[aiop_niid].dpni_id;
+	endpoint1.interface_id = 0;
+	strcpy(&endpoint1.type[0], "dpni");
+
+	err = dprc_get_connection(&dprc->io, dprc->token, &endpoint1, &endpoint2,
+	                    state);
+	if(err)
+		return err;
+
+	*dpni_id = (uint16_t)endpoint2.id;
+	return 0;
+}
+
+int dpni_drv_set_rx_buffer_layout(uint16_t ni_id, const struct dpni_buffer_layout *layout){
+	struct dpni_drv *dpni_drv;
+	struct mc_dprc *dprc = sys_get_unique_handle(FSL_OS_MOD_AIOP_RC);
+
+	/* calculate pointer to the NI structure */
+	dpni_drv = nis + ni_id;
+	return dpni_set_rx_buffer_layout(&dprc->io,
+	                                 dpni_drv->dpni_drv_params_var.dpni,
+	                                 layout);
+}
+
+int dpni_drv_get_rx_buffer_layout(uint16_t ni_id, struct dpni_buffer_layout *layout){
+	struct dpni_drv *dpni_drv;
+	struct mc_dprc *dprc = sys_get_unique_handle(FSL_OS_MOD_AIOP_RC);
+
+	/* calculate pointer to the NI structure */
+	dpni_drv = nis + ni_id;
+	return dpni_get_rx_buffer_layout(&dprc->io,
+	                                 dpni_drv->dpni_drv_params_var.dpni,
+	                                 layout);
+}
+
+int dpni_drv_enable_all(void){
+	int i, err = 0;
+	struct dpni_drv *dpni_drv;
+	struct mc_dprc *dprc = sys_get_unique_handle(FSL_OS_MOD_AIOP_RC);
+	struct aiop_ws_regs *wrks_addr = (struct aiop_ws_regs *)
+					(sys_get_memory_mapped_module_base(FSL_OS_MOD_CMGW,
+									   0,
+									   E_MAPPED_MEM_TYPE_GEN_REGS)
+									   + SOC_PERIPH_OFF_AIOP_WRKS);
+	dpni_drv = nis;
+
+	for (i = 0; i < dpni_get_num_of_ni(); i++ )
+	{
+		/* Enable DPNI before updating the entry point function (EP_PC)
+		 * in order to allow DPNI's attributes to be initialized.
+		 * Frames arriving before the entry point function is updated will be dropped. */
+		if ((err = dpni_enable(&dprc->io, dpni_drv->dpni_drv_params_var.dpni)) != 0) {
+			pr_err("Failed to enable DP-NI%d\n", dpni_drv->dpni_id);
+			return -ENODEV;
+		}
+		dpni_drv ++;
+	}
+	return 0;
+}
