@@ -1,3 +1,6 @@
+
+- tests/cmdif/README.txt  Updated README with description of the new tests inside cmdif_integ_dbg.elf.
+
 - slab.c:             removed backward compatibility support for filling buffers. Application / Module should do it
                       by himself using call to: slab_register_context_buffer_requirements
 - dpni_drv.c:         Added API to set & query AIOP storage profile attributes:
