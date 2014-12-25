@@ -98,7 +98,7 @@
 #define SLAB_DEFAULT_ALIGN      8
 #define SLAB_MAX_NUM_VP_SHRAM   1000
 #define SLAB_MAX_NUM_VP_DDR     64
-#define SLAB_BUFFER_TO_MANAGE_IN_DDR  1 
+#define SLAB_BUFFER_TO_MANAGE_IN_DDR  1
 #define IS_POWER_VALID_ALLIGN(_val, _max_size) \
     (((((uint32_t)_val) <= (_max_size)) && ((((uint32_t)_val) & (~((uint32_t)_val) + 1)) == ((uint32_t)_val))))
 
@@ -240,7 +240,7 @@ struct early_init_request_table{
 	struct request_table_info *table_info;
 	/**< Tables to store early initialization request for buffers. */
 };
-struct memory_types_table{	
+struct memory_types_table{
 	struct early_init_request_table *mem_pid_buffer_request[SLAB_NUM_MEM_PARTITIONS];
 	/**< Tables to store early initialization request depends on memory
 	 * partition. */
@@ -284,7 +284,7 @@ void slab_module_free(void);
 @Param[in]     alignment         Requested alignment for data field (in bytes).
 @Param[in]     mem_partition_id  Memory partition ID for buffer type.
 				 AIOP: HW pool supports only PEB and DDR.
-@Param[out]    bpid_array_index  Index for bman pool array which reserved the 
+@Param[out]    bpid_array_index  Index for bman pool array which reserved the
 				 buffers.
 @Param[out]    bpid              Id of pool that supply the requested buffers.
 

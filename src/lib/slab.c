@@ -69,7 +69,7 @@ int slab_module_early_init(void);
 /***************************************************************************
  * slab_read_pool used by: slab_debug_info_get
  ***************************************************************************/
-static int slab_read_pool(uint32_t slab_pool_id,
+__COLD_CODE static int slab_read_pool(uint32_t slab_pool_id,
                           uint16_t *bman_pool_id,
                           int32_t *max_bufs,
                           int32_t *committed_bufs,
@@ -161,7 +161,7 @@ __COLD_CODE static void slab_pool_init(
 
 /*****************************************************************************/
 
-static int slab_add_bman_buffs_to_pool(
+__COLD_CODE static int slab_add_bman_buffs_to_pool(
 	uint16_t bman_pool_id,
 	int32_t additional_bufs)
 {
@@ -194,7 +194,7 @@ static int slab_add_bman_buffs_to_pool(
 
 /*****************************************************************************/
 
-static int slab_decr_bman_buffs_from_pool(
+__COLD_CODE static int slab_decr_bman_buffs_from_pool(
 	uint16_t bman_pool_id,
 	int32_t less_bufs)
 {
@@ -240,7 +240,7 @@ static int slab_decr_bman_buffs_from_pool(
 
 
 
-static void free_buffs_from_bman_pool(uint16_t bpid, int32_t num_buffs,
+__COLD_CODE static void free_buffs_from_bman_pool(uint16_t bpid, int32_t num_buffs,
                                       uint16_t icid, uint32_t flags)
 {
 	int      i;
@@ -254,7 +254,7 @@ static void free_buffs_from_bman_pool(uint16_t bpid, int32_t num_buffs,
 
 
 /*****************************************************************************/
-int slab_find_and_unreserve_bpid(int32_t num_buffs,
+__COLD_CODE int slab_find_and_unreserve_bpid(int32_t num_buffs,
                                  uint16_t bpid)
 {
 	int error = 0;
@@ -266,7 +266,7 @@ int slab_find_and_unreserve_bpid(int32_t num_buffs,
 }
 
 /*****************************************************************************/
-int slab_find_and_reserve_bpid(uint32_t num_buffs,
+__COLD_CODE int slab_find_and_reserve_bpid(uint32_t num_buffs,
                                uint16_t buff_size,
                                uint16_t alignment,
                                enum memory_partition_id  mem_pid,
@@ -348,7 +348,7 @@ __COLD_CODE static void free_slab_module_memory(struct slab_module_info *slab_m)
 }
 /*****************************************************************************/
 #ifdef DEBUG
-static inline int sanity_check_slab_create(uint16_t    buff_size,
+__COLD_CODE static inline int sanity_check_slab_create(uint16_t    buff_size,
                                            uint16_t    alignment,
                                            enum memory_partition_id  mem_pid,
                                            uint32_t    flags)
@@ -367,7 +367,7 @@ static inline int sanity_check_slab_create(uint16_t    buff_size,
 }
 #endif
 /*****************************************************************************/
-int slab_create(uint32_t    committed_buffs,
+__COLD_CODE int slab_create(uint32_t    committed_buffs,
                 uint32_t    max_buffs,
                 uint16_t    buff_size,
                 uint16_t    alignment,
@@ -483,6 +483,8 @@ int slab_create(uint32_t    committed_buffs,
 	g_slab_pool_pointer_ddr += sizeof(pool_id);
 
 	slab_m = sys_get_unique_handle(FSL_OS_MOD_SLAB);
+	if(slab_m == NULL)
+		return -ENAVAIL;
 	fdma_dma_data((uint16_t)sizeof(pool_id),
 	              slab_m->icid,
 	              &pool_id,
@@ -561,7 +563,7 @@ int slab_create(uint32_t    committed_buffs,
 }
 
 /*****************************************************************************/
-int slab_free(struct slab **slab)
+__COLD_CODE int slab_free(struct slab **slab)
 {
 	uint32_t pool_id =  SLAB_VP_POOL_GET(*slab);
 	uint16_t cluster = SLAB_CLUSTER_ID_GET(pool_id);
@@ -571,6 +573,8 @@ int slab_free(struct slab **slab)
 	uint64_t pool_data_address;
 	struct slab_module_info *slab_m = sys_get_unique_handle(FSL_OS_MOD_SLAB);
 
+	if (slab_m == NULL)
+		return -ENAVAIL;
 #ifdef DEBUG
 	if (!SLAB_IS_HW_POOL(*slab))
 		return -EINVAL;
@@ -630,8 +634,7 @@ int slab_free(struct slab **slab)
 		                     CDMA_MUTEX_WRITE_LOCK);
 
 		g_slab_pool_pointer_ddr -= sizeof(pool_id);
-		pool_id = SLAB_CLUSTER_ID_SET(cluster) | pool_id;
-		pool_id = SLAB_HW_POOL_CREATE(pool_id);
+		pool_id = (SLAB_CLUSTER_ID_SET(cluster) | pool_id ) << 1;
 		fdma_dma_data((uint16_t)sizeof(pool_id),
 		              slab_m->icid,
 		              &pool_id,
@@ -786,7 +789,7 @@ int slab_acquire(struct slab *slab, uint64_t *buff)
 /* Must be used only in DEBUG
  * Accessing DDR in runtime also fsl_os_phys_to_virt() is not optimized */
 #ifdef DEBUG
-static int slab_check_bpid(struct slab *slab, uint64_t buff)
+__COLD_CODE static int slab_check_bpid(struct slab *slab, uint64_t buff)
 {
 	uint16_t bpid;
 	uint16_t cluster;
@@ -1068,7 +1071,7 @@ __COLD_CODE static int slab_alocate_memory(int num_bpids, struct slab_module_inf
 }
 
 __COLD_CODE int slab_module_early_init(void){
-	int i = 0, err = 0;
+	int i = 0;
 	pr_info("Initialize memory for App early requests from slab\n");
 	g_slab_early_init_data = (struct memory_types_table *)
 				fsl_malloc((sizeof(struct memory_types_table) ), 1);
@@ -1081,22 +1084,6 @@ __COLD_CODE int slab_module_early_init(void){
 		if(g_slab_early_init_data->mem_pid_buffer_request[i])
 			g_slab_early_init_data->mem_pid_buffer_request[i] = NULL;
 
-	err |= slab_register_context_buffer_requirements(750,750,4088,64,MEM_PART_DP_DDR,0, 0);
-	err |= slab_register_context_buffer_requirements(750,750,2040,64,MEM_PART_DP_DDR,0, 0);
-	err |= slab_register_context_buffer_requirements(750,750,1016,64,MEM_PART_DP_DDR,0, 0);
-	err |= slab_register_context_buffer_requirements(750,750,504,64,MEM_PART_DP_DDR,0, 0);
-	err |= slab_register_context_buffer_requirements(750,750,248,64,MEM_PART_DP_DDR,0, 0);
-	err |= slab_register_context_buffer_requirements(20,20,4088,64,MEM_PART_PEB,0, 0);
-	err |= slab_register_context_buffer_requirements(20,20,2040,64,MEM_PART_PEB,0, 0);
-	err |= slab_register_context_buffer_requirements(20,20,1016,64,MEM_PART_PEB,0, 0);
-	err |= slab_register_context_buffer_requirements(20,20,504,64,MEM_PART_PEB,0, 0);
-	err |= slab_register_context_buffer_requirements(20,20,248,64,MEM_PART_PEB,0, 0);
-
-
-	if(err){
-		pr_err("Failed to register context buffers\n");
-		return err;
-	}
 	return 0;
 }
 
@@ -1494,7 +1481,7 @@ __COLD_CODE void slab_module_free(void)
 }
 
 /*****************************************************************************/
-int slab_debug_info_get(struct slab *slab, struct slab_debug_info *slab_info)
+__COLD_CODE int slab_debug_info_get(struct slab *slab, struct slab_debug_info *slab_info)
 {
 	int32_t max = 0, committed = 0, allocated = 0, temp;
 	uint8_t flags =0;
@@ -1593,6 +1580,7 @@ __COLD_CODE int slab_register_context_buffer_requirements(
 	}
 	if(max_buffs < committed_buffs){
 		pr_err("Max buffers must be bigger or equal to committed\n");
+		return -EINVAL;
 	}
 	/* max_bufs must not be 0*/
 	if (!max_buffs){

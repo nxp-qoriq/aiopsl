@@ -196,7 +196,7 @@ __COLD_CODE int global_early_init(void)
 	struct sys_module_desc modules[] = GLOBAL_MODULES;
 	int i;
 
-	for (i = (ARRAY_SIZE(modules) - 1); i >= 0; i--)
+	for (i=0; i<ARRAY_SIZE(modules) ; i++)
 		if (modules[i].early_init)
 			modules[i].early_init();
 
@@ -257,18 +257,19 @@ __COLD_CODE static inline void config_runtime_stack_overflow_detection()
 
 __COLD_CODE void core_ready_for_tasks(void)
 {
-	/* 
-	 * CTSCSR_ntasks mast be a 'register' in order to prevent stack access 
-	 * after stack overflow detection is enabled 
+	/*
+	 * CTSCSR_ntasks mast be a 'register' in order to prevent stack access
+	 * after stack overflow detection is enabled
 	 */
-	register uint32_t CTSCSR_ntasks; 
-	
+	register uint32_t CTSCSR_ntasks;
+
 	/*  finished boot sequence; now wait for event .... */
 	pr_info("AIOP core %d completed boot sequence\n", core_get_id());
 
 	sys_barrier();
 
 	if(sys_is_master_core()) {
+		/* At this stage, all the NIC of AIOP are up and running */
 		pr_info("AIOP boot finished; ready for tasks...\n");
 	}
 
@@ -279,9 +280,9 @@ __COLD_CODE void core_ready_for_tasks(void)
 	cmgw_update_core_boot_completion();
 
 	CTSCSR_ntasks = (cmgw_get_ntasks() << 24) & CTSCSR_TASKS_MASK;
-	
+
 	//TODO write following code in assembly to ensure stack is not accessed
-	
+
 #if (STACK_OVERFLOW_DETECTION == 1)
 	/*
 	 *  NOTE:
@@ -337,7 +338,7 @@ __COLD_CODE int run_apps(void)
 	uint16_t app_arr_size = g_app_params.app_arr_size;
 	struct sys_module_desc *apps = \
 		fsl_malloc(app_arr_size * sizeof(struct sys_module_desc), 1);
-	
+
 	/* TODO - add initialization of global default DP-IO (i.e. call 'dpio_open', 'dpio_init');
 	 * This should be mapped to ALL cores of AIOP and to ALL the tasks */
 	/* TODO - add initialization of global default DP-SP (i.e. call 'dpsp_open', 'dpsp_init');
@@ -436,7 +437,7 @@ __COLD_CODE int run_apps(void)
 	}
 
 
-	/* At this stage, all the NIC of AIOP are up and running */
+
 
 	memset(apps, 0, (app_arr_size * sizeof(struct sys_module_desc)));
 	build_apps_array(apps);
@@ -447,7 +448,7 @@ __COLD_CODE int run_apps(void)
 	}
 
 	fsl_free(apps);
-	
+
 	return 0;
 }
 
