@@ -43,6 +43,7 @@
 #include "platform.h"
 
 
+
 /* Address of end of memory_data section */
 extern const uint8_t AIOP_INIT_DATA[];
 extern struct platform_app_params g_app_params;
@@ -55,6 +56,7 @@ extern int cmdif_srv_init(void);          extern void cmdif_srv_free(void);
 extern int dpni_drv_init(void);           extern void dpni_drv_free(void);
 extern int slab_module_early_init(void);  extern int slab_module_init(void);
 extern void slab_module_free(void);
+extern int aiop_sl_early_init(void);
 extern int aiop_sl_init(void);            extern void aiop_sl_free(void);
 extern int icontext_init();
 
@@ -92,7 +94,7 @@ extern void build_apps_array(struct sys_module_desc *apps);
 	{slab_module_early_init, slab_module_init,  slab_module_free},           \
 	{NULL, cmdif_client_init, cmdif_client_free}, /* must be before srv */   \
 	{NULL, cmdif_srv_init,    cmdif_srv_free},                               \
-	{NULL, aiop_sl_init,      aiop_sl_free},                                 \
+	{aiop_sl_early_init, aiop_sl_init,      aiop_sl_free},                                 \
 	{NULL, dpni_drv_init,     dpni_drv_free}, /*must be after aiop_sl_init*/ \
 	{NULL, NULL, NULL} /* never remove! */                                   \
 	}

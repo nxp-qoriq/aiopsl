@@ -29,22 +29,30 @@
 #include <fsl_cdma.h>
 #include <fsl_spinlock.h>
 #include <fsl_dbg.h>
+
 /*
  * SHBP is assumed to be implemented in little endian that's why AIOP does 
  * swaps
  */
-#define DUMP_SHBP() \
+
+#define DUMP_SHBP_FREE() \
+	do {\
+		pr_debug("shbp.alloc_master = 0x%x\n", shbp.alloc_master); \
+		pr_debug("shbp.max_num = 0x%x size = %d\n", shbp.max_num, SHBP_SIZE(&shbp)); \
+		pr_debug("shbp.free.base high = 0x%x\n", (uint32_t)((shbp.free.base & 0xFFFFFFFF00000000) >> 32)); \
+		pr_debug("shbp.free.base low = 0x%x\n", (uint32_t)(shbp.free.base & 0xFFFFFFFF)); \
+		pr_debug("shbp.free.deq = 0x%x\n", shbp.free.deq); \
+		pr_debug("shbp.free.enq = 0x%x\n\n", shbp.free.enq); \
+	} while(0)
+
+#define DUMP_SHBP_ALLOC() \
 	do {\
 		pr_debug("shbp.alloc_master = 0x%x\n", shbp.alloc_master); \
 		pr_debug("shbp.max_num = 0x%x size = %d\n", shbp.max_num, SHBP_SIZE(&shbp)); \
 		pr_debug("shbp.alloc.base high = 0x%x\n", (uint32_t)((shbp.alloc.base & 0xFFFFFFFF00000000) >> 32)); \
 		pr_debug("shbp.alloc.base low = 0x%x\n", (uint32_t)(shbp.alloc.base & 0xFFFFFFFF)); \
 		pr_debug("shbp.alloc.deq = 0x%x\n", shbp.alloc.deq); \
-		pr_debug("shbp.alloc.enq = 0x%x\n", shbp.alloc.enq); \
-		pr_debug("shbp.free.base high = 0x%x\n", (uint32_t)((shbp.free.base & 0xFFFFFFFF00000000) >> 32)); \
-		pr_debug("shbp.free.base low = 0x%x\n", (uint32_t)(shbp.free.base & 0xFFFFFFFF)); \
-		pr_debug("shbp.free.deq = 0x%x\n", shbp.free.deq); \
-		pr_debug("shbp.free.enq = 0x%x\n\n", shbp.free.enq); \
+		pr_debug("shbp.alloc.enq = 0x%x\n\n", shbp.alloc.enq); \
 	} while(0)
 
 #define DUMP_AIOP_BP() \
@@ -53,7 +61,7 @@
 		pr_debug("bp->shbp low = 0x%x\n", (uint32_t)(bp->shbp & 0xFFFFFFFF)); \
 		pr_debug("bp->ic.dma_flags = 0x%x\n", bp->ic.dma_flags); \
 		pr_debug("bp->ic.bdi_flags = 0x%x\n", bp->ic.bdi_flags); \
-		pr_debug("bp->ic.icid = 0x%x\n", bp->ic.icid); \
+		pr_debug("bp->ic.icid = 0x%x\n\n", bp->ic.icid); \
 	}while(0)
 
 
@@ -62,6 +70,7 @@ int shbp_read(struct shbp_aiop *bp, uint16_t size, uint64_t src, void *dest)
 #ifdef DEBUG
 	if (bp == NULL)
 		return -EINVAL;
+	DUMP_AIOP_BP();
 #endif	
 	return icontext_dma_read(&bp->ic, size, src, dest);
 }
@@ -71,6 +80,7 @@ int shbp_write(struct shbp_aiop *bp, uint16_t size, void *src, uint64_t dest)
 #ifdef DEBUG
 	if (bp == NULL)
 		return -EINVAL;
+	DUMP_AIOP_BP();
 #endif
 	return icontext_dma_write(&bp->ic, size, src, dest);
 }
@@ -80,6 +90,11 @@ uint64_t shbp_acquire(struct shbp_aiop *bp)
 	struct shbp shbp;
 	uint32_t offset;
 	uint64_t buf;
+	
+#ifdef DEBUG
+	if ((bp == NULL) || (bp->shbp == 0))
+		return 0;
+#endif
 	
 	DUMP_AIOP_BP();
 	
@@ -98,7 +113,7 @@ uint64_t shbp_acquire(struct shbp_aiop *bp)
 	shbp.alloc.deq  = CPU_TO_LE32(shbp.alloc.deq);
 	shbp.alloc.enq  = CPU_TO_LE32(shbp.alloc.enq);
 	
-	DUMP_SHBP();
+	DUMP_SHBP_ALLOC();
 
 	if (SHBP_ALLOC_IS_EMPTY(&shbp)) {
 		cdma_mutex_lock_release(bp->shbp);
@@ -133,6 +148,11 @@ int shbp_release(struct shbp_aiop *bp, uint64_t buf)
 {
 	struct shbp shbp;
 	uint32_t offset;
+		
+#ifdef DEBUG
+	if ((bp == NULL) || (bp->shbp == 0))
+		return -EINVAL;
+#endif
 	
 	buf = CPU_TO_LE64(buf);
 
@@ -143,12 +163,12 @@ int shbp_release(struct shbp_aiop *bp, uint64_t buf)
 	/* Read SHBP structure:
 	 *  */
 	icontext_dma_read(&bp->ic, sizeof(struct shbp), bp->shbp, &shbp);
-
+	
 	shbp.free.base = CPU_TO_LE64(shbp.free.base); 
 	shbp.free.deq  = CPU_TO_LE32(shbp.free.deq);
 	shbp.free.enq  = CPU_TO_LE32(shbp.free.enq);
-
-	DUMP_SHBP();
+	
+	DUMP_SHBP_FREE();
 
 	if (SHBP_FREE_IS_FULL(&shbp)) {
 		cdma_mutex_lock_release(bp->shbp);
@@ -182,17 +202,17 @@ int shbp_enable(uint16_t swc_id, uint64_t shbp_iova, struct shbp_aiop *bp)
 	if ((shbp_iova == NULL) || (bp == NULL))
 		return -EINVAL;
 		
-	lock_spinlock(&bp->lock);
+	cdma_mutex_lock_take(shbp_iova, CDMA_MUTEX_WRITE_LOCK);
 	
 	bp->shbp = shbp_iova;
 	err = icontext_get(swc_id, &bp->ic);
 	if (err) {
-		unlock_spinlock(&bp->lock);
+		cdma_mutex_lock_release(shbp_iova);
 		pr_err("No such isolation context 0x%x\n", swc_id);
 		return -EINVAL;
 	}
 	
-	unlock_spinlock(&bp->lock);
+	cdma_mutex_lock_release(shbp_iova);
 	
 	DUMP_AIOP_BP();
 	

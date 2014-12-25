@@ -260,6 +260,21 @@ void sys_prpid_pool_create(void);
 void sys_keyid_pool_create(void);
 
 /*************************************************************************//**
+@Function	aiop_sl_early_init
+
+@Description	AIOP Service Layer Early Initialization function.
+
+		Buffers requests registrations.
+
+@Return		0 on Success, or negative value on error.
+
+@Cautions	Should be called during system initialization.
+		In this function the task yields.
+		This function may result in a fatal error.
+*//***************************************************************************/
+int aiop_sl_early_init(void);
+
+/*************************************************************************//**
 @Function	aiop_sl_init
 
 @Description	AIOP Service Layer Initialization function.

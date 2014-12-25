@@ -37,6 +37,11 @@
 
 #include <cmdif.h>
 
+#ifndef MODULU_POWER_OF_TWO
+#define MODULU_POWER_OF_TWO(NUM, MOD) \
+	((uint32_t)(NUM) & ((uint32_t)(MOD) - 1))
+#endif
+
 #if 0
 /**
  * @brief	Structure representing buffer descriptor
@@ -55,17 +60,33 @@ struct shbp_bd_meta {
 };
 #endif // 0
 
-#define SHBP_TOTAL_BYTES	(sizeof(struct shbp) > 64 ? sizeof(struct shbp) : 64)
+#define SHBP_TOTAL_BYTES \
+	(sizeof(struct shbp) > 64 ? sizeof(struct shbp) : 64)
 /*!< Total bytes including the reserved bytes */
-#define SHBP_SIZE(BP)		(0x1 << (BP)->max_num)	/*!< Number of BDs */
-#define SHBP_ALLOC_IS_FULL(BP)	(((BP)->alloc.enq - (BP)->alloc.deq) == SHBP_SIZE(BP))
-#define SHBP_ALLOC_IS_EMPTY(BP)	(((BP)->alloc.enq - (BP)->alloc.deq) == 0)
-#define SHBP_FREE_IS_FULL(BP)	(((BP)->free.enq - (BP)->free.deq) == SHBP_SIZE(BP))
+
+#define SHBP_SIZE(BP)		(0x1 << (BP)->max_num)	
+/*!< Number of BDs, must be power of 2 */
+
+#define SHBP_ALLOC_IS_FULL(BP)	\
+	(((BP)->alloc.enq - (BP)->alloc.deq) == SHBP_SIZE(BP))
+
+#define SHBP_ALLOC_IS_EMPTY(BP)	\
+	(((BP)->alloc.enq - (BP)->alloc.deq) == 0)
+
+#define SHBP_FREE_IS_FULL(BP) \
+	(((BP)->free.enq - (BP)->free.deq) == SHBP_SIZE(BP))
+
 #define SHBP_FREE_IS_EMPTY(BP)	(((BP)->free.enq - (BP)->free.deq) == 0)
-#define SHBP_SIZE_BYTES(BP)	(SHBP_SIZE(BP) << 3)	/*!< Number of bytes */
-#define SHBP_BD_IND(SHBP, NUM)	((NUM) % SHBP_SIZE((SHBP)))
+
+#define SHBP_SIZE_BYTES(BP)	(SHBP_SIZE(BP) << 3)	
+/*!< Number of bytes */
+
+#define SHBP_BD_IND(SHBP, NUM)	(MODULU_POWER_OF_TWO(NUM, SHBP_SIZE((SHBP)))) 
+/*!< Always modulu power of 2 */
+
 #define SHBP_BD_OFF(SHBP, NUM)	(SHBP_BD_IND(SHBP, NUM) << 3)
 /*!< Offset of the BD in BYTES - mod 2^x */
+
 #define SHBP_MEM_OFF(SHBP, PTR) (uint32_t)((uint8_t *)(PTR) - (uint8_t *)(SHBP))
 /*!< Member offset in bytes */
 

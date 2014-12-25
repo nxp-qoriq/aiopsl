@@ -1,3 +1,4 @@
+- fsl_icontext.h:     Added new API for AIOP isolation context - icontext_cmd_get(). 
 - fsl_shbp_aiop.h:    New API for AIOP-GPP shared buffer buffer pools. 
 - cmdif_srv_flib.c:   Fixed ENGR00343203, to allow M_NUM_OF_INSTANCES of instances.
 - cmdif_srv.c:        Fixed ENGR00343203, to allow M_NUM_OF_INSTANCES of instances. 

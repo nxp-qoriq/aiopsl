@@ -37,7 +37,7 @@
 #include "fsl_icontext.h"
 #include "fsl_mc_init.h"
 #include "fsl_spinlock.h"
-#include "cmdif_client_aiop.h" /* TODO remove it once you have lock per dpci table !!! */
+#include "cmdif_srv_aiop.h"
 #include "fsl_io_ccsr.h"
 
 struct icontext icontext_aiop = {0};
@@ -46,6 +46,16 @@ void icontext_aiop_get(struct icontext *ic)
 {
 	ASSERT_COND(ic != NULL);
 	*ic = icontext_aiop;
+}
+
+void icontext_cmd_get(struct icontext *ic)
+{
+	uint8_t  ind = (uint8_t)((CMDIF_FQD_GET) >> 1);
+	struct mc_dpci_obj *dt = sys_get_unique_handle(FSL_OS_MOD_DPCI_TBL);
+
+	ic->icid = dt->icid[ind];
+	ic->dma_flags = dt->dma_flags[ind];
+	ic->bdi_flags = dt->bdi_flags[ind];
 }
 
 int icontext_get(uint16_t dpci_id, struct icontext *ic)
