@@ -1,0 +1,198 @@
+From d84eed891db5f4ed9fdfa848b2350bd4807c1f79 Mon Sep 17 00:00:00 2001
+From: Ira Kalman <Ira.Kalman@freescale.com>
+Date: Tue, 23 Dec 2014 21:34:13 +0200
+Subject: [PATCH 3/8] SHBP test almost passed
+
+---
+ apps/cmdif_demo/cmdif_client_demo.c |   84 ++++++++++++++++++++++++++++++++---
+ include/cmdif/fsl_shbp.h            |    2 +-
+ usr/libcmdif/shbp.c                 |    6 +--
+ 3 files changed, 83 insertions(+), 9 deletions(-)
+
+diff --git a/apps/cmdif_demo/cmdif_client_demo.c b/apps/cmdif_demo/cmdif_client_demo.c
+index 737f5d1..f960b63 100644
+--- a/apps/cmdif_demo/cmdif_client_demo.c
++++ b/apps/cmdif_demo/cmdif_client_demo.c
+@@ -36,7 +36,7 @@
+ /* Data size required by applicaiton */
+ #define DATA_MEM_SIZE 0x200000 /* 2 MB, assumed for now */
+ /* Data size required by applicaiton for shbp */
+-#define AIOP_SHBP_SIZE  SHBP_MEM_PTR_SIZE(10) 
++#define AIOP_SHBP_SIZE  SHBP_MEM_PTR_SIZE(16) 
+ 
+ #define TEST_NUM_PKTS 10
+ #define MAX_OPEN_CMDS 10
+@@ -352,6 +352,7 @@ int create_global_mempools(void)
+ 	mpcfg.block_size = AIOP_SHBP_SIZE;
+ 	mpcfg.num_global_blocks = MAX_SHBPS;
+ 	mpcfg.num_max_blocks = MAX_SHBPS;
++	mpcfg.alignment = 64;
+ 
+ 	/* Create the memory pool of the dma'ble memory */
+ 	aiop_shbp_mem_pool = nadk_mpool_create(&mpcfg, NULL, NULL);
+@@ -446,7 +447,6 @@ static int close_for_cmdif(int ind)
+ 		NADK_NOTE(APP1,"bp->free.enq = 0x%x\n", bp->free.enq); \
+ 	} while(0)
+ 
+-
+ static int shbp_test()
+ {
+ 	int err = 0;
+@@ -454,11 +454,14 @@ static int shbp_test()
+ 	struct shbp *bp = NULL;
+ 	void *data;
+ 	uint8_t *mem_ptr;
++	uint8_t *gpp_mem_ptr;
++	struct shbp *gpp_bp = NULL;
+ 
+ 	NADK_NOTE(APP1, "Testing SHBP");
+ 	NADK_NOTE(APP1, "Testing SHBP");
+ 	NADK_NOTE(APP1, "Testing SHBP");
+ 	
++	/**** AIOP SHBP ****/
+ 	mem_ptr = nadk_mpool_getblock(aiop_shbp_mem_pool, NULL);
+ 	if (!mem_ptr) {
+ 		NADK_ERR(APP1, "Unable to get the memory");
+@@ -467,8 +470,7 @@ static int shbp_test()
+ 	
+ 	err = shbp_create(mem_ptr, AIOP_SHBP_SIZE, 0, &bp);
+ 	if (err || (bp == NULL)) {
+-		NADK_ERR(APP1, "FAILED shbp_create %d", err);
+-		/* TODO return data to pool */
++		NADK_ERR(APP1, "FAILED shbp_create bp %d", err);
+ 		goto shbp_err0;
+ 	}
+ 	DUMP_SHBP();
+@@ -477,12 +479,84 @@ static int shbp_test()
+ 		data = nadk_mpool_getblock(aiop_data_mem_pool, NULL);
+ 		if (!data) {
+ 			NADK_ERR(APP1, "FAILED nadk_mpool_getblock for shbp");
+-			/* TODO return data to pool */
+ 			goto shbp_err1;
+ 		}
+ 		err = shbp_release(bp, data);
+ 	}
+ 	DUMP_SHBP();
++	
++	NADK_NOTE(APP1, "Testing AIOP SHBP shbp_acquire");
++	data = shbp_acquire(bp);
++	if (data != NULL) {
++		NADK_ERR(APP1, "FAILED shbp_acquire check for AIOP SHBP");
++	}
++	DUMP_SHBP();
++
++	NADK_NOTE(APP1, "Testing AIOP SHBP shbp_refill");
++	err = shbp_refill(bp);
++	if (err != 0) {
++		NADK_ERR(APP1, "FAILED shbp_refill check for AIOP SHBP");
++	}
++	DUMP_SHBP();
++
++	/***** GPP SHBP *****/
++	gpp_mem_ptr = nadk_mpool_getblock(aiop_shbp_mem_pool, NULL);
++	if (!gpp_mem_ptr) {
++		NADK_ERR(APP1, "Unable to get the memory");
++		goto shbp_err2;
++	}
++	
++	err = shbp_create(gpp_mem_ptr, AIOP_SHBP_SIZE, SHBP_GPP_MASTER, &gpp_bp);
++	if (err || (gpp_bp == NULL)) {
++		NADK_ERR(APP1, "FAILED shbp_create gpp_bp %d", err);
++		goto shbp_err2;
++	}
++	DUMP_SHBP();
++	
++	for (i = 0; i < NUM_SHBP_BUFS; i++) {
++		data = nadk_mpool_getblock(aiop_data_mem_pool, NULL);
++		if (!data) {
++			NADK_ERR(APP1, "FAILED nadk_mpool_getblock for shbp");
++			goto shbp_err3;
++		}
++		err = shbp_release(gpp_bp, data);
++	}
++	DUMP_SHBP();
++	
++	NADK_NOTE(APP1, "Testing GPP SHBP shbp_acquire");
++	data = shbp_acquire(gpp_bp);
++	if (data == NULL) {
++		NADK_ERR(APP1, "FAILED shbp_acquire check for GPP SHBP");
++	}
++	DUMP_SHBP();
++	
++	NADK_NOTE(APP1, "Testing GPP SHBP shbp_release");
++	err = shbp_release(gpp_bp, data);
++	if (err) {
++		NADK_ERR(APP1, "FAILED shbp_release check for GPP SHBP");
++	}
++	DUMP_SHBP();
++
++	/* TODO Send it to AIOP */
++	
++shbp_err3:	
++	i = 0;
++	if (gpp_bp != NULL) {
++		err = shbp_destroy(gpp_bp, &data);
++		while(err && data) {
++			err = nadk_mpool_relblock(aiop_data_mem_pool, data);
++			if (err != NADK_SUCCESS)
++				NADK_ERR(APP1, "Error in releasing memory");
++			i++;
++			err = shbp_destroy(gpp_bp, &data);
++		}	
++	}
++	NADK_NOTE(APP1, "Destroyed %d buffers \n", i);
++
++shbp_err2:
++	err = nadk_mpool_relblock(aiop_shbp_mem_pool, gpp_mem_ptr);
++	if (err != NADK_SUCCESS)
++		NADK_ERR(APP1, "Error in releasing memory");
+ 
+ shbp_err1:
+ 	i = 0;
+diff --git a/include/cmdif/fsl_shbp.h b/include/cmdif/fsl_shbp.h
+index 155c5ab..56132ee 100644
+--- a/include/cmdif/fsl_shbp.h
++++ b/include/cmdif/fsl_shbp.h
+@@ -47,7 +47,7 @@
+ #define SHBP_GPP_MASTER		0x1
+ /*!< GPP is the allocation master */
+ 
+-#define SHBP_MEM_PTR_SIZE(NUM_BUFF) (sizeof(struct shbp) + (16 * (NUM_BUFF)))
++#define SHBP_MEM_PTR_SIZE(NUM_BUFF) (SHBP_TOTAL_BYTES + (16 * (NUM_BUFF)))
+ /*!< Calculator for mem_ptr size for shbp_create(); NUM_BUFF must be 2^x 
+  * and higher than 8 */
+ 
+diff --git a/usr/libcmdif/shbp.c b/usr/libcmdif/shbp.c
+index 8518391..6bb7bdc 100644
+--- a/usr/libcmdif/shbp.c
++++ b/usr/libcmdif/shbp.c
+@@ -82,7 +82,7 @@ int shbp_create(void *mem_ptr, uint32_t size, uint32_t flags, struct shbp **_bp)
+ 	uint32_t ring_size;
+ 	
+ #ifdef DEBUG
+-	if ((mem_ptr == NULL) || (size == 0) || (flags != 0))
++	if ((mem_ptr == NULL) || (size == 0))
+ 		return -EINVAL;
+ #endif	
+ 	/* Better to have mem_ptr aligned to cache line */
+@@ -95,7 +95,7 @@ int shbp_create(void *mem_ptr, uint32_t size, uint32_t flags, struct shbp **_bp)
+ 	/* 8 bytes for each BD, 2 rings = 2 ^ 4 
+ 	 * bp->size is size = 8 * bp->size because 8 BDs = cache line 
+ 	 * size = 2^bp->size */
+-	ring_size = (size - sizeof(struct shbp));
++	ring_size = (size - SHBP_TOTAL_BYTES);
+ 	ring_size = ring_size >> 4;
+ 	/* Minimum 8 BDs = 64 bytes */
+ 	if (ring_size < 8)
+@@ -116,7 +116,7 @@ int shbp_create(void *mem_ptr, uint32_t size, uint32_t flags, struct shbp **_bp)
+ 	bp->free.base  = CPU_TO_LE64(bp->free.base);
+ 	
+ #ifdef DEBUG
+-	if (bp->alloc.base == 0 || bp->free.base == 0)
++	if ((bp->alloc.base == 0) || (bp->free.base == 0))
+ 		return -EINVAL;
+ #endif
+ 	
+-- 
+1.7.9.5
+

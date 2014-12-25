@@ -1,0 +1,168 @@
+From f0930a008180f39423f48544215bdb1dd75bc4c9 Mon Sep 17 00:00:00 2001
+From: Ira Kalman <Ira.Kalman@freescale.com>
+Date: Tue, 23 Dec 2014 22:13:23 +0200
+Subject: [PATCH 4/8] SHBP test
+
+---
+ apps/cmdif_demo/cmdif_client_demo.c |   62 ++++++++++++++++++++---------------
+ 1 file changed, 36 insertions(+), 26 deletions(-)
+
+diff --git a/apps/cmdif_demo/cmdif_client_demo.c b/apps/cmdif_demo/cmdif_client_demo.c
+index f960b63..7a41936 100644
+--- a/apps/cmdif_demo/cmdif_client_demo.c
++++ b/apps/cmdif_demo/cmdif_client_demo.c
+@@ -35,13 +35,14 @@
+ #define AIOP_DATA_SIZE 20
+ /* Data size required by applicaiton */
+ #define DATA_MEM_SIZE 0x200000 /* 2 MB, assumed for now */
+-/* Data size required by applicaiton for shbp */
+-#define AIOP_SHBP_SIZE  SHBP_MEM_PTR_SIZE(16) 
+ 
+ #define TEST_NUM_PKTS 10
+ #define MAX_OPEN_CMDS 10
+ #define MAX_SHBPS     5
+-#define NUM_SHBP_BUFS 10
++#define NUM_SHBP_BUFS 16
++
++/* Data size required by applicaiton for shbp */
++#define AIOP_SHBP_SIZE  SHBP_MEM_PTR_SIZE(NUM_SHBP_BUFS) 
+ 
+ /* Maximum number of tries for receiving the async reponse */
+ #define CMDIF_DEMO_NUM_TRIES	1000
+@@ -316,8 +317,8 @@ int create_global_mempools(void)
+ 	/* Fill all the params for the pool to be passed in cfg */
+ 	mpcfg.name = "aiop_data_mem_pool";
+ 	mpcfg.block_size = AIOP_DATA_SIZE;
+-	mpcfg.num_global_blocks = TEST_NUM_PKTS + NUM_SHBP_BUFS;
+-	mpcfg.num_max_blocks = TEST_NUM_PKTS + NUM_SHBP_BUFS;
++	mpcfg.num_global_blocks = TEST_NUM_PKTS + (NUM_SHBP_BUFS * 2);
++	mpcfg.num_max_blocks = mpcfg.num_global_blocks;
+ 
+ 	/* Create the memory pool of the dma'ble memory */
+ 	aiop_data_mem_pool = nadk_mpool_create(&mpcfg, NULL, NULL);
+@@ -425,26 +426,26 @@ static int close_for_cmdif(int ind)
+ 	return ret;
+ }
+ 
+-#define DUMP_SHBP() \
++#define DUMP_SHBP(BP) \
+ 	do {\
+-		NADK_NOTE(APP1,"shbp.alloc_master = 0x%x", \
+-		          bp->alloc_master); \
++		NADK_NOTE(APP1,"bp->alloc_master = 0x%x", \
++		          (BP)->alloc_master); \
+ 		NADK_NOTE(APP1,"bp->max_num = 0x%x size = %d", \
+-		          bp->max_num, SHBP_SIZE(bp)); \
++		          (BP)->max_num, SHBP_SIZE(bp)); \
+ 		NADK_NOTE(APP1,"bp->alloc.base high = 0x%x", \
+-		          (uint32_t)((bp->alloc.base & 0xFFFFFFFF00000000) >> 32)); \
++		          (uint32_t)(((BP)->alloc.base & 0xFFFFFFFF00000000) >> 32)); \
+ 		NADK_NOTE(APP1,"bp->alloc.base low = 0x%x", \
+-		          (uint32_t)(bp->alloc.base & 0xFFFFFFFF)); \
++		          (uint32_t)((BP)->alloc.base & 0xFFFFFFFF)); \
+ 		NADK_NOTE(APP1,"bp->alloc.deq = 0x%x", \
+-		          bp->alloc.deq); \
++		          (BP)->alloc.deq); \
+ 		NADK_NOTE(APP1,"bp->alloc.enq = 0x%x", \
+-		          bp->alloc.enq); \
++		          (BP)->alloc.enq); \
+ 		NADK_NOTE(APP1,"bp->free.base high = 0x%x", \
+-		          (uint32_t)((bp->free.base & 0xFFFFFFFF00000000) >> 32)); \
++		          (uint32_t)(((BP)->free.base & 0xFFFFFFFF00000000) >> 32)); \
+ 		NADK_NOTE(APP1,"bp->free.base low = 0x%x", \
+-		          (uint32_t)(bp->free.base & 0xFFFFFFFF)); \
+-		NADK_NOTE(APP1,"bp->free.deq = 0x%x", bp->free.deq); \
+-		NADK_NOTE(APP1,"bp->free.enq = 0x%x\n", bp->free.enq); \
++		          (uint32_t)((BP)->free.base & 0xFFFFFFFF)); \
++		NADK_NOTE(APP1,"bp->free.deq = 0x%x", (BP)->free.deq); \
++		NADK_NOTE(APP1,"bp->free.enq = 0x%x\n", (BP)->free.enq); \
+ 	} while(0)
+ 
+ static int shbp_test()
+@@ -473,7 +474,7 @@ static int shbp_test()
+ 		NADK_ERR(APP1, "FAILED shbp_create bp %d", err);
+ 		goto shbp_err0;
+ 	}
+-	DUMP_SHBP();
++	DUMP_SHBP(bp);
+ 	
+ 	for (i = 0; i < NUM_SHBP_BUFS; i++) {
+ 		data = nadk_mpool_getblock(aiop_data_mem_pool, NULL);
+@@ -483,26 +484,26 @@ static int shbp_test()
+ 		}
+ 		err = shbp_release(bp, data);
+ 	}
+-	DUMP_SHBP();
++	DUMP_SHBP(bp);
+ 	
+ 	NADK_NOTE(APP1, "Testing AIOP SHBP shbp_acquire");
+ 	data = shbp_acquire(bp);
+ 	if (data != NULL) {
+ 		NADK_ERR(APP1, "FAILED shbp_acquire check for AIOP SHBP");
+ 	}
+-	DUMP_SHBP();
++	DUMP_SHBP(bp);
+ 
+ 	NADK_NOTE(APP1, "Testing AIOP SHBP shbp_refill");
+ 	err = shbp_refill(bp);
+ 	if (err != 0) {
+ 		NADK_ERR(APP1, "FAILED shbp_refill check for AIOP SHBP");
+ 	}
+-	DUMP_SHBP();
++	DUMP_SHBP(bp);
+ 
+ 	/***** GPP SHBP *****/
+ 	gpp_mem_ptr = nadk_mpool_getblock(aiop_shbp_mem_pool, NULL);
+ 	if (!gpp_mem_ptr) {
+-		NADK_ERR(APP1, "Unable to get the memory");
++		NADK_ERR(APP1, "FAILED Unable to get the memory");
+ 		goto shbp_err2;
+ 	}
+ 	
+@@ -511,7 +512,7 @@ static int shbp_test()
+ 		NADK_ERR(APP1, "FAILED shbp_create gpp_bp %d", err);
+ 		goto shbp_err2;
+ 	}
+-	DUMP_SHBP();
++	DUMP_SHBP(gpp_bp);
+ 	
+ 	for (i = 0; i < NUM_SHBP_BUFS; i++) {
+ 		data = nadk_mpool_getblock(aiop_data_mem_pool, NULL);
+@@ -520,22 +521,31 @@ static int shbp_test()
+ 			goto shbp_err3;
+ 		}
+ 		err = shbp_release(gpp_bp, data);
++		if (err) {
++			NADK_ERR(APP1, "FAILED shbp_release for GPP %d ", i);
++			goto shbp_err3;			
++		}
+ 	}
+-	DUMP_SHBP();
++	DUMP_SHBP(gpp_bp);
+ 	
+ 	NADK_NOTE(APP1, "Testing GPP SHBP shbp_acquire");
+ 	data = shbp_acquire(gpp_bp);
+ 	if (data == NULL) {
+ 		NADK_ERR(APP1, "FAILED shbp_acquire check for GPP SHBP");
+ 	}
+-	DUMP_SHBP();
++	for (i = 0; i < AIOP_DATA_SIZE; i++) {
++		((uint8_t *)data)[i] = i;
++		if (((uint8_t *)data)[i] != i)
++			NADK_ERR(APP1, "FAILED read/write data to shbp");
++	}
++	DUMP_SHBP(gpp_bp);
+ 	
+ 	NADK_NOTE(APP1, "Testing GPP SHBP shbp_release");
+ 	err = shbp_release(gpp_bp, data);
+ 	if (err) {
+ 		NADK_ERR(APP1, "FAILED shbp_release check for GPP SHBP");
+ 	}
+-	DUMP_SHBP();
++	DUMP_SHBP(gpp_bp);
+ 
+ 	/* TODO Send it to AIOP */
+ 	
+-- 
+1.7.9.5
+

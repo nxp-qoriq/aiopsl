@@ -1,0 +1,64 @@
+From 118ba664fb1c7da0145d396c86f3c84c5ae5963a Mon Sep 17 00:00:00 2001
+From: Ira Kalman <Ira.Kalman@freescale.com>
+Date: Wed, 24 Dec 2014 16:36:03 +0200
+Subject: [PATCH 6/8] SHBP test passed
+
+---
+ apps/cmdif_demo/cmdif_client_demo.c |   26 +++++++++++++++++++++-----
+ 1 file changed, 21 insertions(+), 5 deletions(-)
+
+diff --git a/apps/cmdif_demo/cmdif_client_demo.c b/apps/cmdif_demo/cmdif_client_demo.c
+index bd8696a..256fcf8 100644
+--- a/apps/cmdif_demo/cmdif_client_demo.c
++++ b/apps/cmdif_demo/cmdif_client_demo.c
+@@ -559,9 +559,9 @@ static int shbp_test()
+ 	DUMP_SHBP(gpp_bp);
+ 
+ 	/*** Send it to AIOP ****/
+-	data = nadk_mpool_getblock(aiop_data_mem_pool, NULL);
++	data = shbp_acquire(gpp_bp);
+ 	if (!data) {
+-		NADK_ERR(APP1, "FAILED nadk_mpool_getblock for SHBP_TEST");
++		NADK_ERR(APP1, "FAILED shbp_acquire from GPP SHBP");
+ 		goto shbp_err3;
+ 	}
+ 	((struct shbp_test *)data)->dpci_id = 
+@@ -572,7 +572,21 @@ static int shbp_test()
+ 	if (err)
+ 		NADK_ERR(APP1, "FAILED SHBP_TEST %p", data);
+ 
+-	
++	NADK_NOTE(APP1, "Testing AIOP SHBP shbp_refill");
++	err = shbp_refill(bp);
++	if (err != NUM_SHBP_BUFS) {
++		NADK_ERR(APP1, "FAILED shbp_refill check for AIOP SHBP");
++	}
++	DUMP_SHBP(bp);
++
++	err = shbp_release(gpp_bp, data);
++	if (err) {
++		NADK_ERR(APP1, "FAILED shbp_release gpp_bp %p", data);
++	}
++	DUMP_SHBP(gpp_bp);
++
++	NADK_NOTE(APP1, "PASSED Finished SHBP test");
++
+ shbp_err3:	
+ 	i = 0;
+ 	if (gpp_bp != NULL) {
+@@ -666,8 +680,10 @@ static void *app_io_thread(void *__worker)
+ 
+ 	NADK_NOTE(APP1, "PASSED open commands");
+ 	
+-	ret = shbp_test();
+-
++	for (i = 0; i < 10; i++) {
++		ret = shbp_test();
++		NADK_NOTE(APP1, "PASSED SHBP test %d", i);
++	}	
+ 
+ 	/* Get a memory block */
+ 	/* NOTE: Here we are using the same memory and same block of the
+-- 
+1.7.9.5
+

@@ -1,0 +1,84 @@
+From 410f6719e80541121fb095966c8eeb5856f238c2 Mon Sep 17 00:00:00 2001
+From: Ira Kalman <Ira.Kalman@freescale.com>
+Date: Tue, 23 Dec 2014 23:12:03 +0200
+Subject: [PATCH 5/8] SHBP test sends to AIOP
+
+---
+ apps/cmdif_demo/cmdif_client_demo.c |   33 +++++++++++++++++++++++++++++----
+ 1 file changed, 29 insertions(+), 4 deletions(-)
+
+diff --git a/apps/cmdif_demo/cmdif_client_demo.c b/apps/cmdif_demo/cmdif_client_demo.c
+index 7a41936..bd8696a 100644
+--- a/apps/cmdif_demo/cmdif_client_demo.c
++++ b/apps/cmdif_demo/cmdif_client_demo.c
+@@ -52,6 +52,17 @@
+ /* Macro to move to the next cmd-line arg and returns the value of argc */
+ #define ARGINC() ({ argv++; --argc; })
+ 
++/* Command ID for testing shared pool */
++#define SHBP_TEST	0x109
++
++/*
++ * Structure for testing shared pool
++ */
++struct shbp_test {
++	uint64_t shbp;
++	uint8_t dpci_id;
++};
++
+ /*
+  * Structure to contains command line parameters.
+  */
+@@ -317,7 +328,7 @@ int create_global_mempools(void)
+ 	/* Fill all the params for the pool to be passed in cfg */
+ 	mpcfg.name = "aiop_data_mem_pool";
+ 	mpcfg.block_size = AIOP_DATA_SIZE;
+-	mpcfg.num_global_blocks = TEST_NUM_PKTS + (NUM_SHBP_BUFS * 2);
++	mpcfg.num_global_blocks = TEST_NUM_PKTS + (NUM_SHBP_BUFS * 2) + 1;
+ 	mpcfg.num_max_blocks = mpcfg.num_global_blocks;
+ 
+ 	/* Create the memory pool of the dma'ble memory */
+@@ -547,7 +558,20 @@ static int shbp_test()
+ 	}
+ 	DUMP_SHBP(gpp_bp);
+ 
+-	/* TODO Send it to AIOP */
++	/*** Send it to AIOP ****/
++	data = nadk_mpool_getblock(aiop_data_mem_pool, NULL);
++	if (!data) {
++		NADK_ERR(APP1, "FAILED nadk_mpool_getblock for SHBP_TEST");
++		goto shbp_err3;
++	}
++	((struct shbp_test *)data)->dpci_id = 
++		(uint8_t)(get_aiop_dev_id(aiop_dev));
++	((struct shbp_test *)data)->shbp = nadk_bswap64((uint64_t)bp);
++	err = cmdif_send(&cidesc[0], SHBP_TEST, sizeof(struct shbp_test),
++	                 CMDIF_PRI_LOW, (uint64_t)(data));
++	if (err)
++		NADK_ERR(APP1, "FAILED SHBP_TEST %p", data);
++
+ 	
+ shbp_err3:	
+ 	i = 0;
+@@ -628,8 +652,6 @@ static void *app_io_thread(void *__worker)
+ 		}
+ 	}
+ 
+-	ret = shbp_test();
+-
+ 	ret = open_for_cmdif(0);
+ 	if (ret) {
+ 		NADK_ERR(APP1, "Open for cmdif failed");
+@@ -643,6 +665,9 @@ static void *app_io_thread(void *__worker)
+ 	}
+ 
+ 	NADK_NOTE(APP1, "PASSED open commands");
++	
++	ret = shbp_test();
++
+ 
+ 	/* Get a memory block */
+ 	/* NOTE: Here we are using the same memory and same block of the
+-- 
+1.7.9.5
+
