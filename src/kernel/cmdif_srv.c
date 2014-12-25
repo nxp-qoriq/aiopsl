@@ -47,12 +47,6 @@
 #include "fsl_sl_cmd.h"
 #include "fsl_icontext.h"
 
-/** This is where rx qid should reside */
-#define FQD_CTX_GET \
-	(((struct additional_dequeue_context *)HWC_ADC_ADDRESS)->fqd_ctx)
-/** Get RX QID from dequeue context */
-#define RESP_QID_GET \
-	(uint32_t)(LLLDW_SWAP((uint32_t)&FQD_CTX_GET, 0) & 0xFFFFFFFF)
 /** Blocking commands don't need response FD */
 #define SEND_RESP(CMD)	\
 	((!((CMD) & CMDIF_NORESP_CMD)) && ((CMD) != CMD_ID_NOTIFY_CLOSE) && \
@@ -332,14 +326,13 @@ __COLD_CODE void cmdif_srv_free(void)
 	cmdif_srv_deallocate(cmdif_aiop_srv.srv, srv_free);
 	srv_free(cmdif_aiop_srv.dpci_tbl);
 }
-
-
+  
 void cmdif_fd_send(int cb_err);
 /*static*/ void cmdif_fd_send(int cb_err)
 {
 	int err;
 	uint64_t flc = LDPAA_FD_GET_FLC(HWC_FD_ADDRESS);
-	uint32_t fqid = RESP_QID_GET;
+	uint32_t fqid = CMDIF_FQD_GET;
 	uint8_t  ind = 0;
 	uint8_t  pr  = 0;
 
@@ -665,7 +658,7 @@ __COLD_CODE static void open_cmd_print()
 
 __COLD_CODE static void dpci_icontext_update()
 {
-	uint32_t fqid = RESP_QID_GET;
+	uint32_t fqid = CMDIF_FQD_GET;
 	uint8_t  ind = (uint8_t)(fqid >> 1);	
 
 	amq_bits_update(ind);

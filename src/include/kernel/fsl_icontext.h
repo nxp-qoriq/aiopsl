@@ -55,6 +55,17 @@ struct icontext {
 };
 
 /**************************************************************************//**
+@Function	icontext_cmd_get
+
+@Description	Copy isolation context parameters for current command.
+
+@Param[out]	ic	- Isolation context structure to be used
+			with icontext dependent API.
+
+*//***************************************************************************/
+void icontext_cmd_get(struct icontext *ic);
+
+/**************************************************************************//**
 @Function	icontext_aiop_get
 
 @Description	Copy isolation context parameters for AIOP.
@@ -62,7 +73,6 @@ struct icontext {
 @Param[out]	ic	- Isolation context structure to be used
 			with icontext dependent API.
 
-@Cautions	This API can be called after slab_module_init().
 *//***************************************************************************/
 void icontext_aiop_get(struct icontext *ic);
 
