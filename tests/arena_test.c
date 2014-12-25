@@ -313,11 +313,11 @@ int app_init(void)
 
 		if (err){
 			fsl_os_print("dpni_drv_add_mac_addr failed %d\n", err);
+			test_error |= 0x01;
 		}
 		else{
 			fsl_os_print("dpni_drv_add_mac_addr succeeded in boot\n");
 			fsl_os_print("MAC 02:00:C0:A8:0B:FE added for ni %d\n",ni);
-			test_error |= 0x01;
 		}
 		dpni_drv_set_exclusive((uint16_t)ni);
 		err = dpni_drv_set_order_scope((uint16_t)ni,&dist_key_cfg);
