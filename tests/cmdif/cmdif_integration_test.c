@@ -83,6 +83,24 @@ uint64_t tman_addr;
 struct shbp_aiop lbp;
 struct shbp_aiop gpp_lbp;
 
+/* This is WA supplied for 0.5.2 */
+#include "fsl_mc_init.h"
+#define FQD_CTX_GET \
+	(((struct additional_dequeue_context *)HWC_ADC_ADDRESS)->fqd_ctx)
+static void app_icontext_cmd_get(struct icontext *ic)
+{
+	uint32_t fqd_ctx;
+	struct mc_dpci_obj *dt = sys_get_unique_handle(FSL_OS_MOD_DPCI_TBL);
+	uint8_t  ind;
+	
+	fqd_ctx = (uint32_t)(LLLDW_SWAP((uint32_t)&FQD_CTX_GET, 0) & 0xFFFFFFFF);
+	ind = (uint8_t)((fqd_ctx) >> 1);
+	
+	ic->icid = dt->icid[ind];
+	ic->dma_flags = dt->dma_flags[ind];
+	ic->bdi_flags = dt->bdi_flags[ind];
+}
+
 static int aiop_async_cb(void *async_ctx, int err, uint16_t cmd_id,
              uint32_t size, void *data)
 {
@@ -317,6 +335,13 @@ static int ctrl_cb0(void *dev, uint16_t cmd, uint32_t size,
 		ASSERT_COND(ic_cmd.icid == ic.icid);
 		ASSERT_COND(ic_cmd.bdi_flags == ic.bdi_flags);
 		ASSERT_COND(ic_cmd.dma_flags == ic.dma_flags);
+		fsl_os_print("PASSED icontext_cmd_get\n");
+		
+		app_icontext_cmd_get(&ic);
+		ASSERT_COND(ic_cmd.icid == ic.icid);
+		ASSERT_COND(ic_cmd.bdi_flags == ic.bdi_flags);
+		ASSERT_COND(ic_cmd.dma_flags == ic.dma_flags);
+		fsl_os_print("PASSED app_icontext_cmd_get\n");
 
 		icontext_aiop_get(&ic);
 		ASSERT_COND(ic.dma_flags);
