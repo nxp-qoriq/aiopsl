@@ -399,9 +399,12 @@ int ipsec_app_init(uint16_t ni_id)
 	ni_spid = 0;
 	
 #else	
-	extern struct storage_profile storage_profile; /* TMP for printing the SP */
-	struct storage_profile *sp_addr = &storage_profile; /* TMP for printing the SP */
-
+	//extern struct storage_profile storage_profile; /* TMP for printing the SP */
+	//struct storage_profile *sp_addr = &storage_profile; /* TMP for printing the SP */
+	
+	extern struct storage_profile storage_profile[SP_NUM_OF_STORAGE_PROFILES];
+	struct storage_profile *sp_addr = &storage_profile[0];
+	
 		dpni_drv_get_spid(
 			ni_id, /* uint16_t ni_id */ 
 			&ni_spid /* uint16_t *spid */
