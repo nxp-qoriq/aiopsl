@@ -1,3 +1,5 @@
+- slab.c:             removed backward compatibility support for filling buffers. Application / Module should do it
+                      by himself using call to: slab_register_context_buffer_requirements
 - dpni_drv.c:         Added API to set & query AIOP storage profile attributes:
                       int dpni_drv_set_rx_buffer_layout(uint16_t ni_id, const struct dpni_buffer_layout *layout);
                       int dpni_drv_get_rx_buffer_layout(uint16_t ni_id, struct dpni_buffer_layout *layout);
