@@ -1071,7 +1071,7 @@ __COLD_CODE static int slab_alocate_memory(int num_bpids, struct slab_module_inf
 }
 
 __COLD_CODE int slab_module_early_init(void){
-	int i = 0, err = 0;
+	int i = 0;
 	pr_info("Initialize memory for App early requests from slab\n");
 	g_slab_early_init_data = (struct memory_types_table *)
 				fsl_malloc((sizeof(struct memory_types_table) ), 1);
@@ -1084,22 +1084,6 @@ __COLD_CODE int slab_module_early_init(void){
 		if(g_slab_early_init_data->mem_pid_buffer_request[i])
 			g_slab_early_init_data->mem_pid_buffer_request[i] = NULL;
 
-	err |= slab_register_context_buffer_requirements(750,750,4088,64,MEM_PART_DP_DDR,0, 0);
-	err |= slab_register_context_buffer_requirements(750,750,2040,64,MEM_PART_DP_DDR,0, 0);
-	err |= slab_register_context_buffer_requirements(750,750,1016,64,MEM_PART_DP_DDR,0, 0);
-	err |= slab_register_context_buffer_requirements(750,750,504,64,MEM_PART_DP_DDR,0, 0);
-	err |= slab_register_context_buffer_requirements(750,750,248,64,MEM_PART_DP_DDR,0, 0);
-	err |= slab_register_context_buffer_requirements(20,20,4088,64,MEM_PART_PEB,0, 0);
-	err |= slab_register_context_buffer_requirements(20,20,2040,64,MEM_PART_PEB,0, 0);
-	err |= slab_register_context_buffer_requirements(20,20,1016,64,MEM_PART_PEB,0, 0);
-	err |= slab_register_context_buffer_requirements(20,20,504,64,MEM_PART_PEB,0, 0);
-	err |= slab_register_context_buffer_requirements(20,20,248,64,MEM_PART_PEB,0, 0);
-
-
-	if(err){
-		pr_err("Failed to register context buffers\n");
-		return err;
-	}
 	return 0;
 }
 
