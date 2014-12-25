@@ -339,7 +339,7 @@ int app_init(void)
 	}
 	else
 		fsl_os_print("slab_init  succeeded  in init phase()\n", err);
-	
+
 	err = malloc_test();
 	if (err) {
 		fsl_os_print("ERROR = %d: malloc_test failed in init phase()\n", err);
@@ -398,7 +398,7 @@ int app_init(void)
 
 	}
 
-	fsl_os_print("To start test inject packets: \"arena_test_40.pcap\"\n");
+	fsl_os_print("To start test inject packets: \"arena_test_40.pcap\" after AIOP boot complete.\n");
 	return 0;
 }
 
