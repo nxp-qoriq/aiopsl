@@ -196,7 +196,7 @@ __COLD_CODE int global_early_init(void)
 	struct sys_module_desc modules[] = GLOBAL_MODULES;
 	int i;
 
-	for (i = (ARRAY_SIZE(modules) - 1); i >= 0; i--)
+	for (i=0; i<ARRAY_SIZE(modules) ; i++)
 		if (modules[i].early_init)
 			modules[i].early_init();
 
