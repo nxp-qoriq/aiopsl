@@ -281,7 +281,7 @@ int app_early_init(void){
 	int err = 0;
 	err |= slab_register_context_buffer_requirements(200,250,200,64,MEM_PART_SYSTEM_DDR,0, 0);
 	err |= slab_register_context_buffer_requirements(200,250,200,64,MEM_PART_PEB,0, 0);
-	err |= slab_register_context_buffer_requirements(750,750,504,64,MEM_PART_DP_DDR,0, 120);
+	err |= slab_register_context_buffer_requirements(200,250,504,64,MEM_PART_DP_DDR,0, 120);
 	if(err)
 		pr_err("slab_register_context_buffer_requirements failed: %d\n",err);
 
