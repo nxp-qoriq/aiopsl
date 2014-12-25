@@ -321,14 +321,17 @@ static int ctrl_cb0(void *dev, uint16_t cmd, uint32_t size,
 		/* Note: MC and AIOP have the same AMQ and BDI settings */
 		p_data = NULL;
 		err = icontext_acquire(&ic, bpid, &p_data);
-		ASSERT_COND(err == 0);
-		ASSERT_COND(p_data != 0);
-		err = icontext_release(&ic, bpid, p_data);
-		ASSERT_COND(err == 0);
-		fsl_os_print("Addr high = 0x%x low = 0x%x \n",
-			 (uint32_t)((p_data & 0xFF00000000) >> 32),
-			 (uint32_t)(p_data & 0xFFFFFFFF));
-
+		if (!err) {
+			ASSERT_COND(p_data != 0);
+			err = icontext_release(&ic, bpid, p_data);
+			ASSERT_COND(err == 0);
+			fsl_os_print("Addr high = 0x%x low = 0x%x \n",
+			             (uint32_t)((p_data & 0xFF00000000) >> 32),
+			             (uint32_t)(p_data & 0xFFFFFFFF));
+		} else {
+			fsl_os_print("FAILED icontext_acquire BPID"
+						" 0x%x is empty\n", bpid);
+		}
 		/* Must be after icontext_get(&ic) */
 		icontext_cmd_get(&ic_cmd);
 		ASSERT_COND(ic_cmd.icid != ICONTEXT_INVALID);
