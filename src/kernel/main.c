@@ -153,11 +153,15 @@ UNUSED(argc);UNUSED(argv);
     	    return err;
     	}
     }
-    err = dpni_drv_enable_all();
+
+/* TODO: should be removed if we will continue to use disable and when enable
+ when calling dpni_drv_set_rx_buffer_layout*/
+/*    err = dpni_drv_enable_all();
     if (err) {
 	    pr_err("Error %d, Failed to enable DPNI's\n", err);
         	 return err;
     }
+*/
     core_ready_for_tasks();
 
     if (is_master_core)
