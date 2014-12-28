@@ -203,13 +203,13 @@ __COLD_CODE int dpni_drv_probe(struct mc_dprc *dprc,
 				return err;
 			}
 
-//			/* Enable DPNI before updating the entry point function (EP_PC)
-//			 * in order to allow DPNI's attributes to be initialized.
-//			 * Frames arriving before the entry point function is updated will be dropped. */
-//			if ((err = dpni_enable(&dprc->io, dpni)) != 0) {
-//				pr_err("Failed to enable DP-NI%d\n", mc_niid);
-//				return -ENODEV;
-//			}
+			/* Enable DPNI before updating the entry point function (EP_PC)
+			 * in order to allow DPNI's attributes to be initialized.
+			 * Frames arriving before the entry point function is updated will be dropped. */
+			if ((err = dpni_enable(&dprc->io, dpni)) != 0) {
+				pr_err("Failed to enable DP-NI%d\n", mc_niid);
+				return -ENODEV;
+			}
 
 			/* Now a Storage Profile exists and is associated with the NI */
 
@@ -637,12 +637,25 @@ int dpni_drv_get_connected_dpni_id(const uint16_t aiop_niid, uint16_t *dpni_id, 
 int dpni_drv_set_rx_buffer_layout(uint16_t ni_id, const struct dpni_buffer_layout *layout){
 	struct dpni_drv *dpni_drv;
 	struct mc_dprc *dprc = sys_get_unique_handle(FSL_OS_MOD_AIOP_RC);
+	int err = 0;
 
 	/* calculate pointer to the NI structure */
 	dpni_drv = nis + ni_id;
-	return dpni_set_rx_buffer_layout(&dprc->io,
+
+	err = dpni_disable(&dprc->io, dpni_drv->dpni_drv_params_var.dpni);
+	if(err)
+		return err;
+
+	err = dpni_set_rx_buffer_layout(&dprc->io,
 	                                 dpni_drv->dpni_drv_params_var.dpni,
 	                                 layout);
+	if(err)
+		return err;
+	err = dpni_enable(&dprc->io, dpni_drv->dpni_drv_params_var.dpni);
+	if(err)
+		return err;
+
+	return 0;
 }
 
 int dpni_drv_get_rx_buffer_layout(uint16_t ni_id, struct dpni_buffer_layout *layout){
@@ -656,6 +669,7 @@ int dpni_drv_get_rx_buffer_layout(uint16_t ni_id, struct dpni_buffer_layout *lay
 	                                 layout);
 }
 
+/*TODO: should be removed if we will continue to use disable and when enable  when calling dpni_drv_set_rx_buffer_layout*/
 int dpni_drv_enable_all(void){
 	int i, err = 0;
 	struct dpni_drv *dpni_drv;
