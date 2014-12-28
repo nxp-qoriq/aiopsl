@@ -122,9 +122,13 @@ do {\
 /** Delete FDMA handle and store user modified data */
 #define CMDIF_STORE_DATA \
 	do {\
-		fdma_store_frame_data(frame_handle, spid, &amq);\
-		pr_debug("Store icid = 0x%x\n", amq.icid);	\
-		pr_debug("Store flags = 0x%x\n", amq.flags);	\
+		uint32_t amq;					\
+		fdma_store_frame_data(frame_handle, spid,	\
+		                      (struct fdma_amq *)&amq);	\
+		pr_debug("Store icid = 0x%x\n",			\
+		         ((struct fdma_amq *)&amq)->icid);	\
+		pr_debug("Store flags = 0x%x\n",		\
+		         ((struct fdma_amq *)&amq)->flags);	\
 	} while(0)
 
 #define CMDIF_MN_SESSIONS	(64 << 1) 

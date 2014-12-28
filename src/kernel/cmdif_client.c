@@ -327,7 +327,6 @@ void cmdif_cl_isr(void)
 {
 	struct cmdif_fd fd;
 	struct cmdif_async async_data;
-	struct fdma_amq amq;
 	uint8_t  frame_handle;
 	uint8_t  spid;
 	

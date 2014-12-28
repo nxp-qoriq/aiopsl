@@ -682,7 +682,6 @@ void cmdif_srv_isr(void) /*__attribute__ ((noreturn))*/
 	uint8_t  frame_handle;
 	uint8_t  spid;
 	int err;
-	struct fdma_amq amq;
 	
 	ASSERT_COND_LIGHT(cmdif_aiop_srv.srv != NULL);
 
