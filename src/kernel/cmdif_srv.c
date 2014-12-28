@@ -348,8 +348,6 @@ void sync_cmd_done(uint64_t sync_done,
 	sl_pr_debug("auth_id = 0x%x\n", auth_id);
 	sl_pr_debug("sync_resp = 0x%x\n", resp);
 
-	/* Delete FDMA handle and store user modified data */
-	fdma_store_default_frame_data();
 	if ((sync_done != NULL) || (auth_id == OPEN_AUTH_ID))
 		_sync_done = sync_done;
 	else
@@ -679,25 +677,31 @@ void cmdif_srv_isr(void) /*__attribute__ ((noreturn))*/
 {
 	uint16_t gpp_icid;
 	uint32_t gpp_dma;
-	int err;
 	uint16_t cmd_id;
 	uint16_t auth_id;
-
+	uint8_t  frame_handle;
+	uint8_t  spid;
+	int err;
+	struct fdma_amq amq;
+	
 	ASSERT_COND_LIGHT(cmdif_aiop_srv.srv != NULL);
 
 #ifdef DEBUG
 	dump_memory();
 #endif
-
-	SAVE_GPP_ICID;
 	
+	SAVE_GPP_ICID;
+	SAVE_FDMA_HANDLE;
+
 	cmd_id = cmd_id_get();
 	auth_id = cmd_auth_id_get();
-
+	
 	pr_debug("cmd_id = 0x%x\n", cmd_id);
 	pr_debug("auth_id = 0x%x\n", auth_id);
 	pr_debug("gpp_icid = 0x%x\n", gpp_icid);
 	pr_debug("gpp_dma flags = 0x%x\n", gpp_dma);
+	pr_debug("frame_handle = 0x%x\n", frame_handle);
+	pr_debug("spid = 0x%x\n", spid);
 	
 	if (cmd_id == CMD_ID_NOTIFY_OPEN) {
 		/* Support for AIOP -> GPP */
@@ -707,9 +711,10 @@ void cmdif_srv_isr(void) /*__attribute__ ((noreturn))*/
 			if (err) {
 				pr_err("notify_open failed\n");
 			}
+			CMDIF_STORE_DATA;
 			sync_cmd_done(NULL, err, auth_id, TRUE, gpp_icid, gpp_dma);
 		} else {
-			fdma_store_default_frame_data(); /* Close FDMA */
+			CMDIF_STORE_DATA; /* Close FDMA */
 			PR_ERR_TERMINATE("Invalid authentication id\n");
 		}
 	} else if (cmd_id == CMD_ID_NOTIFY_CLOSE) {
@@ -719,9 +724,10 @@ void cmdif_srv_isr(void) /*__attribute__ ((noreturn))*/
 			if (err) {
 				pr_err("notify_close failed\n");
 			}
+			CMDIF_STORE_DATA;
 			sync_cmd_done(NULL, err, auth_id, TRUE, gpp_icid, gpp_dma);
 		} else {
-			fdma_store_default_frame_data(); /* Close FDMA */
+			CMDIF_STORE_DATA; /* Close FDMA */
 			PR_ERR_TERMINATE("Invalid authentication id\n");
 		}
 	} else if (cmd_id == CMD_ID_OPEN) {
@@ -729,6 +735,7 @@ void cmdif_srv_isr(void) /*__attribute__ ((noreturn))*/
 		/* OPEN will arrive with hash value 0xffff */
 		if (auth_id != OPEN_AUTH_ID) {
 			pr_err("No permission to open device 0x%x\n", auth_id);
+			CMDIF_STORE_DATA;
 			sync_cmd_done(sync_done_get(), -EPERM, auth_id,
 				      TRUE, gpp_icid, gpp_dma);
 		}
@@ -738,11 +745,13 @@ void cmdif_srv_isr(void) /*__attribute__ ((noreturn))*/
 		err = session_open(&auth_id);
 		if (err) {
 			pr_err("Open session FAILED err = %d\n", err);
+			CMDIF_STORE_DATA;
 			sync_cmd_done(sync_done_get(), err, auth_id,
 				      TRUE, gpp_icid, gpp_dma);
 		} else {
 			pr_debug("Open session PASSED auth_id = 0x%x\n", 
 			       (uint16_t)err);
+			CMDIF_STORE_DATA;
 			sync_cmd_done(sync_done_get(), 0, auth_id,
 				      TRUE, gpp_icid, gpp_dma);
 		}
@@ -752,6 +761,7 @@ void cmdif_srv_isr(void) /*__attribute__ ((noreturn))*/
 		if (is_valid_auth_id(auth_id)) {
 			/* Don't reorder this sequence !!*/
 			CLOSE_CB(auth_id);
+			CMDIF_STORE_DATA;
 			sync_cmd_done(NULL, err, auth_id, FALSE, 
 			              gpp_icid, gpp_dma);
 			if (!err) {
@@ -768,7 +778,7 @@ void cmdif_srv_isr(void) /*__attribute__ ((noreturn))*/
 			 * don't set done bit for invalid auth_id
 			 * it might be intentional attack
 			 * */
-			fdma_store_default_frame_data(); /* Close FDMA */
+			CMDIF_STORE_DATA; /* Close FDMA */
 			PR_ERR_TERMINATE("Invalid authentication id\n");
 		}
 	} else {
@@ -778,6 +788,7 @@ void cmdif_srv_isr(void) /*__attribute__ ((noreturn))*/
 				      cmd_data_get());
 			if (SYNC_CMD(cmd_id)) {
 				pr_debug("PASSED Synchronous Command\n");
+				CMDIF_STORE_DATA;
 				sync_cmd_done(NULL, err, auth_id,
 					      TRUE, gpp_icid, gpp_dma);
 			}
@@ -786,7 +797,7 @@ void cmdif_srv_isr(void) /*__attribute__ ((noreturn))*/
 			 * auth_id is not valid
 			 * it might be intentional attack
 			 * */
-			fdma_store_default_frame_data(); /* Close FDMA */
+			CMDIF_STORE_DATA; /* Close FDMA */
 			PR_ERR_TERMINATE("Invalid authentication id\n");
 		}
 	}
@@ -797,7 +808,7 @@ void cmdif_srv_isr(void) /*__attribute__ ((noreturn))*/
 	} else {
 		/* CMDIF_NORESP_CMD store user modified data but don't send */
 		pr_debug("PASSED No Response Command\n");
-		fdma_store_default_frame_data();
+		CMDIF_STORE_DATA;
 	}
 
 	fdma_terminate_task();

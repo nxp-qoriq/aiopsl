@@ -88,6 +88,12 @@ do {\
 \
 } while(0)
 
+#define SAVE_FDMA_HANDLE \
+	do {\
+		frame_handle = PRC_GET_FRAME_HANDLE(); \
+		spid = *((uint8_t *) HWC_SPID_ADDRESS);\
+	}while(0)
+
 #define SET_AIOP_ICID	\
 	do { \
 		/* Set AIOP ICID and AMQ bits */			\
@@ -112,6 +118,14 @@ do {\
 			~(ADC_BDI_MASK | ADC_VA_MASK)) | flags;		\
 		STH_SWAP(pl_icid, 0, &(adc->pl_icid));			\
 	} while (0)
+
+/** Delete FDMA handle and store user modified data */
+#define CMDIF_STORE_DATA \
+	do {\
+		fdma_store_frame_data(frame_handle, spid, &amq);\
+		pr_debug("Store icid = 0x%x\n", amq.icid);	\
+		pr_debug("Store flags = 0x%x\n", amq.flags);	\
+	} while(0)
 
 #define CMDIF_MN_SESSIONS	(64 << 1) 
 /**< Maximal number of sessions: 64 SW contexts and avg of 2 modules per each */

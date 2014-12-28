@@ -327,6 +327,9 @@ void cmdif_cl_isr(void)
 {
 	struct cmdif_fd fd;
 	struct cmdif_async async_data;
+	struct fdma_amq amq;
+	uint8_t  frame_handle;
+	uint8_t  spid;
 	
 	fd.d_size        = LDPAA_FD_GET_LENGTH(HWC_FD_ADDRESS);
 	fd.u_addr.d_addr = LDPAA_FD_GET_ADDR(HWC_FD_ADDRESS);
@@ -346,7 +349,8 @@ void cmdif_cl_isr(void)
 
 	ASSERT_COND_LIGHT(async_data.async_cb);
 	/* In WS there must be AIOP ICID */
-	SET_AIOP_ICID;	
+	SET_AIOP_ICID;
+	SAVE_FDMA_HANDLE;
 	if (((cmdif_cb_t *)async_data.async_cb)((void *)async_data.async_ctx,
 		fd.u_flc.cmd.err,
 		CPU_TO_SRV16(fd.u_flc.cmd.cmid),
@@ -360,7 +364,7 @@ void cmdif_cl_isr(void)
 	pr_debug("PASSED got async response for cmd 0x%x\n", \
 	         CPU_TO_SRV16(fd.u_flc.cmd.cmid));
 
-	fdma_store_default_frame_data();
+	CMDIF_STORE_DATA;
 	fdma_terminate_task();
 }
 
