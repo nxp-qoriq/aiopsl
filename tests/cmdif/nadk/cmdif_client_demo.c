@@ -472,6 +472,7 @@ static int shbp_test()
 	uint8_t *gpp_mem_ptr;
 	struct shbp *gpp_bp = NULL;
 	int ret = -1;
+	uint64_t temp64;
 	
 	NADK_NOTE(APP1, "Testing SHBP");
 	NADK_NOTE(APP1, "Testing SHBP");
@@ -560,38 +561,47 @@ static int shbp_test()
 	/*** Send it to AIOP ****/
 	
 	/*** AIOP SHBP ***/
-	NADK_NOTE(APP1, "Sending AIOP SHBP...");
-
 	data = shbp_acquire(gpp_bp);
 	if (!data) {
 		NADK_ERR(APP1, "FAILED shbp_acquire from GPP SHBP");
 		goto shbp_err3;
 	}
 
-	((struct shbp_test *)data)->dpci_id = 
-		(uint8_t)(get_aiop_dev_id(aiop_dev));
-	((struct shbp_test *)data)->shbp = nadk_bswap64((uint64_t)bp);
-	err = cmdif_send(&cidesc[0], SHBP_TEST, sizeof(struct shbp_test),
-	                 CMDIF_PRI_LOW, (uint64_t)(data));
-	if (err) {
-		NADK_ERR(APP1, "FAILED SHBP_TEST %p err = %d", data, err);
-	} else {
-		NADK_NOTE(APP1, "SHBP after cmdif_send()");
-		if ((bp->alloc.deq != NUM_SHBP_BUFS) || 
-			(bp->free.enq != NUM_SHBP_BUFS)) {
-			NADK_ERR(APP1, "FAILED SHBP_TEST alloc.deq = %d", 
-			         bp->alloc.deq);
-			DUMP_SHBP(bp);
-			goto shbp_err3;
+	temp64 = 0;
+	do {
+		NADK_NOTE(APP1, "Sending AIOP SHBP...");
+		((struct shbp_test *)data)->dpci_id = 
+			(uint8_t)(get_aiop_dev_id(aiop_dev));
+		((struct shbp_test *)data)->shbp = nadk_bswap64((uint64_t)bp);
+		err = cmdif_send(&cidesc[0], 
+		                 SHBP_TEST, 
+		                 sizeof(struct shbp_test),
+		                 CMDIF_PRI_LOW, 
+		                 (uint64_t)(data));
+		if (err) {
+			NADK_ERR(APP1, "FAILED SHBP_TEST %p err = %d", 
+			         data, err);
+		} else {
+			NADK_NOTE(APP1, "SHBP after cmdif_send()");
+			if (((bp->alloc.deq % NUM_SHBP_BUFS) != 0) || 
+				((bp->free.enq % NUM_SHBP_BUFS) != 0)) {
+				NADK_ERR(APP1, 
+				         "FAILED SHBP_TEST alloc.deq = %d", 
+				         bp->alloc.deq);
+				DUMP_SHBP(bp);
+				goto shbp_err3;
+			}
 		}
-	}
 
-	NADK_NOTE(APP1, "Testing AIOP SHBP shbp_refill");
-	err = shbp_refill(bp);
-	if (err != NUM_SHBP_BUFS) {
-		NADK_ERR(APP1, "FAILED shbp_refill check for AIOP SHBP");
-	}
-
+		NADK_NOTE(APP1, "Testing AIOP SHBP shbp_refill");
+		err = shbp_refill(bp);
+		if (err != NUM_SHBP_BUFS) {
+			NADK_ERR(APP1, 
+			         "FAILED shbp_refill check for AIOP SHBP");
+		}
+		temp64++;
+	} while (temp64 < 0x100000000); /* Massive testing */
+	
 	err = shbp_release(gpp_bp, data);
 	if (err) {
 		NADK_ERR(APP1, "FAILED shbp_release gpp_bp %p", data);
@@ -730,7 +740,7 @@ static void *app_io_thread(void *__worker)
 	NADK_NOTE(APP1, "PASSED open commands");
 	
 	ret = 0;
-	for (i = 0; i < 10; i++) {
+	for (i = 0; i < 5; i++) {
 		ret |= shbp_test();
 	}
 	if (ret == 0)

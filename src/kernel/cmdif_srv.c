@@ -55,41 +55,6 @@
 #define SYNC_CMD(CMD)	\
 	((!((CMD) & CMDIF_NORESP_CMD)) && !((CMD) & CMDIF_ASYNC_CMD))
 
-
-#define SAVE_GPP_ICID	\
-do {\
-	gpp_icid = PL_ICID_GET; 		\
-	gpp_dma = 0; 				\
-	ADD_AMQ_FLAGS(gpp_dma, gpp_icid); 	\
-	gpp_icid = ICID_GET(gpp_icid); 		\
-\
-} while(0)
-
-#define SET_AIOP_ICID	\
-	do { \
-		/* Set AIOP ICID and AMQ bits */			\
-		uint16_t pl_icid = icontext_aiop.icid;			\
-		uint8_t flags = 0;					\
-		struct additional_dequeue_context *adc = 		\
-		((struct additional_dequeue_context *)HWC_ADC_ADDRESS);	\
-		/* SHRAM optimization */				\
-		uint64_t dma_bdi_flags = 				\
-				(*(uint64_t *)(&icontext_aiop.dma_flags));\
-		if (((uint32_t)dma_bdi_flags) & FDMA_ENF_BDI_BIT) {	\
-			flags |= ADC_BDI_MASK;				\
-		}							\
-		dma_bdi_flags >>= 32;					\
-		if (((uint32_t)dma_bdi_flags) & FDMA_DMA_eVA_BIT) {	\
-			flags |= ADC_VA_MASK;				\
-		}							\
-		if (((uint32_t)dma_bdi_flags) & FDMA_DMA_PL_BIT) {	\
-			pl_icid |= ADC_PL_MASK;				\
-		}							\
-		adc->fdsrc_va_fca_bdi = (adc->fdsrc_va_fca_bdi &	\
-			~(ADC_BDI_MASK | ADC_VA_MASK)) | flags;		\
-		STH_SWAP(pl_icid, 0, &(adc->pl_icid));			\
-	} while (0)
-
 #define OPEN_CB(M_ID, INST, DEV) \
 	do {\
 		SET_AIOP_ICID;					\

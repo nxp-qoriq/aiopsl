@@ -101,11 +101,34 @@ static void app_icontext_cmd_get(struct icontext *ic)
 	ic->bdi_flags = dt->bdi_flags[ind];
 }
 
+static void aiop_ws_check()
+{
+	struct icontext ic;
+	uint16_t pl_icid = PL_ICID_GET;
+	
+	icontext_aiop_get(&ic);
+	ASSERT_COND(ICID_GET(pl_icid) == ic.icid);
+	
+	if (ic.bdi_flags) {
+		ASSERT_COND(BDI_GET);
+	}	
+	if (ic.dma_flags & FDMA_DMA_PL_BIT) {
+		ASSERT_COND(PL_GET(pl_icid));
+	}
+	if (ic.dma_flags & FDMA_DMA_eVA_BIT) {
+		ASSERT_COND(VA_GET);
+	}
+	fsl_os_print("ICID in WS is %d\n", ic.icid);
+}
+
 static int aiop_async_cb(void *async_ctx, int err, uint16_t cmd_id,
              uint32_t size, void *data)
 {
 	UNUSED(cmd_id);
 	UNUSED(async_ctx);
+	
+	aiop_ws_check();
+	
 	fsl_os_print("PASSED AIOP ASYNC CB cmd_id = 0x%x\n" ,cmd_id);
 	fsl_os_print("ASYNC CB data 0x%x size = 0x%x\n", (uint32_t)data , size);
 	if (err != 0) {
@@ -156,26 +179,6 @@ static void verif_tman_cb(uint64_t opaque1, uint16_t opaque2)
 	ASSERT_COND(opaque1 == 0x12345);
 	ASSERT_COND(opaque2 == 0x1616);
 	fsl_os_print("PASSED verif_tman_cb \n");
-}
-
-static void aiop_ws_check()
-{
-	struct icontext ic;
-	uint16_t pl_icid = PL_ICID_GET;
-	
-	icontext_aiop_get(&ic);
-	ASSERT_COND(ICID_GET(pl_icid) == ic.icid);
-	
-	if (ic.bdi_flags) {
-		ASSERT_COND(BDI_GET);
-	}	
-	if (ic.dma_flags & FDMA_DMA_PL_BIT) {
-		ASSERT_COND(PL_GET(pl_icid));
-	}
-	if (ic.dma_flags & FDMA_DMA_eVA_BIT) {
-		ASSERT_COND(VA_GET);
-	}
-	fsl_os_print("ICID in WS is %d\n", ic.icid);
 }
 
 static int ctrl_cb0(void *dev, uint16_t cmd, uint32_t size,
