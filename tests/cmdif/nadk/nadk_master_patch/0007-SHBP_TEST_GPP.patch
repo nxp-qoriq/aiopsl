@@ -1,0 +1,208 @@
+From 91592f7154eda9d3303b4356755730847efa85ad Mon Sep 17 00:00:00 2001
+From: Ira Kalman <Ira.Kalman@freescale.com>
+Date: Wed, 24 Dec 2014 18:29:40 +0200
+Subject: [PATCH 7/8] SHBP_TEST_GPP
+
+---
+ apps/cmdif_demo/cmdif_client_demo.c |   89 ++++++++++++++++++++++++++++-------
+ 1 file changed, 71 insertions(+), 18 deletions(-)
+
+diff --git a/apps/cmdif_demo/cmdif_client_demo.c b/apps/cmdif_demo/cmdif_client_demo.c
+index 256fcf8..7500895 100644
+--- a/apps/cmdif_demo/cmdif_client_demo.c
++++ b/apps/cmdif_demo/cmdif_client_demo.c
+@@ -52,9 +52,12 @@
+ /* Macro to move to the next cmd-line arg and returns the value of argc */
+ #define ARGINC() ({ argv++; --argc; })
+ 
+-/* Command ID for testing shared pool */
++/* Command ID for testing shared pool where AIOP is allocation master */
+ #define SHBP_TEST	0x109
+ 
++/* Command ID for testing shared pool where GPP is allocation master */
++#define SHBP_TEST_GPP	0x110
++
+ /*
+  * Structure for testing shared pool
+  */
+@@ -468,7 +471,8 @@ static int shbp_test()
+ 	uint8_t *mem_ptr;
+ 	uint8_t *gpp_mem_ptr;
+ 	struct shbp *gpp_bp = NULL;
+-
++	int ret = -1;
++	
+ 	NADK_NOTE(APP1, "Testing SHBP");
+ 	NADK_NOTE(APP1, "Testing SHBP");
+ 	NADK_NOTE(APP1, "Testing SHBP");
+@@ -485,7 +489,6 @@ static int shbp_test()
+ 		NADK_ERR(APP1, "FAILED shbp_create bp %d", err);
+ 		goto shbp_err0;
+ 	}
+-	DUMP_SHBP(bp);
+ 	
+ 	for (i = 0; i < NUM_SHBP_BUFS; i++) {
+ 		data = nadk_mpool_getblock(aiop_data_mem_pool, NULL);
+@@ -502,7 +505,6 @@ static int shbp_test()
+ 	if (data != NULL) {
+ 		NADK_ERR(APP1, "FAILED shbp_acquire check for AIOP SHBP");
+ 	}
+-	DUMP_SHBP(bp);
+ 
+ 	NADK_NOTE(APP1, "Testing AIOP SHBP shbp_refill");
+ 	err = shbp_refill(bp);
+@@ -523,7 +525,6 @@ static int shbp_test()
+ 		NADK_ERR(APP1, "FAILED shbp_create gpp_bp %d", err);
+ 		goto shbp_err2;
+ 	}
+-	DUMP_SHBP(gpp_bp);
+ 	
+ 	for (i = 0; i < NUM_SHBP_BUFS; i++) {
+ 		data = nadk_mpool_getblock(aiop_data_mem_pool, NULL);
+@@ -549,9 +550,7 @@ static int shbp_test()
+ 		if (((uint8_t *)data)[i] != i)
+ 			NADK_ERR(APP1, "FAILED read/write data to shbp");
+ 	}
+-	DUMP_SHBP(gpp_bp);
+ 	
+-	NADK_NOTE(APP1, "Testing GPP SHBP shbp_release");
+ 	err = shbp_release(gpp_bp, data);
+ 	if (err) {
+ 		NADK_ERR(APP1, "FAILED shbp_release check for GPP SHBP");
+@@ -559,33 +558,81 @@ static int shbp_test()
+ 	DUMP_SHBP(gpp_bp);
+ 
+ 	/*** Send it to AIOP ****/
++	
++	/*** AIOP SHBP ***/
++	NADK_NOTE(APP1, "Sending AIOP SHBP...");
++
+ 	data = shbp_acquire(gpp_bp);
+ 	if (!data) {
+ 		NADK_ERR(APP1, "FAILED shbp_acquire from GPP SHBP");
+ 		goto shbp_err3;
+ 	}
++
+ 	((struct shbp_test *)data)->dpci_id = 
+ 		(uint8_t)(get_aiop_dev_id(aiop_dev));
+ 	((struct shbp_test *)data)->shbp = nadk_bswap64((uint64_t)bp);
+ 	err = cmdif_send(&cidesc[0], SHBP_TEST, sizeof(struct shbp_test),
+ 	                 CMDIF_PRI_LOW, (uint64_t)(data));
+-	if (err)
+-		NADK_ERR(APP1, "FAILED SHBP_TEST %p", data);
++	if (err) {
++		NADK_ERR(APP1, "FAILED SHBP_TEST %p err = %d", data, err);
++	} else {
++		NADK_NOTE(APP1, "SHBP after cmdif_send()");
++		if ((bp->alloc.deq != NUM_SHBP_BUFS) || 
++			(bp->free.enq != NUM_SHBP_BUFS)) {
++			NADK_ERR(APP1, "FAILED SHBP_TEST alloc.deq = %d", 
++			         bp->alloc.deq);
++			DUMP_SHBP(bp);
++			goto shbp_err3;
++		}
++	}
+ 
+ 	NADK_NOTE(APP1, "Testing AIOP SHBP shbp_refill");
+ 	err = shbp_refill(bp);
+ 	if (err != NUM_SHBP_BUFS) {
+ 		NADK_ERR(APP1, "FAILED shbp_refill check for AIOP SHBP");
+ 	}
+-	DUMP_SHBP(bp);
+ 
+ 	err = shbp_release(gpp_bp, data);
+ 	if (err) {
+ 		NADK_ERR(APP1, "FAILED shbp_release gpp_bp %p", data);
++		goto shbp_err3;
++	}
++
++
++	/*** GPP SHBP ***/
++	NADK_NOTE(APP1, "Sending GPP SHBP...");
++
++	data = shbp_acquire(gpp_bp);
++	if (!data) {
++		NADK_ERR(APP1, "FAILED shbp_acquire from GPP SHBP");
++		goto shbp_err3;
++	}
++	
++	((struct shbp_test *)data)->dpci_id = 
++		(uint8_t)(get_aiop_dev_id(aiop_dev));
++	((struct shbp_test *)data)->shbp = nadk_bswap64((uint64_t)gpp_bp);
++	err = cmdif_send(&cidesc[0], SHBP_TEST_GPP, sizeof(struct shbp_test),
++	                 CMDIF_PRI_LOW, (uint64_t)(data));
++	/* AIOP will set it to 0 */
++	if (err || (((struct shbp_test *)data)->shbp != 0)) {
++		NADK_ERR(APP1, "FAILED SHBP_TEST_GPP %p err = %d", data, err);
++		err = shbp_release(gpp_bp, data);
++		goto shbp_err3;
++	}
++	
++	/* AIOP must release 1 buffer into this pool */
++	NADK_NOTE(APP1, "Testing GPP SHBP shbp_refill");
++	err = shbp_refill(gpp_bp);
++	if (err != 1) {
++		NADK_ERR(APP1, "FAILED shbp_refill check for AIOP SHBP");
++		err = shbp_release(gpp_bp, data);
++		goto shbp_err3;
+ 	}
+-	DUMP_SHBP(gpp_bp);
+ 
+ 	NADK_NOTE(APP1, "PASSED Finished SHBP test");
++	DUMP_SHBP(bp);
++	DUMP_SHBP(gpp_bp);
++	ret = 0;
+ 
+ shbp_err3:	
+ 	i = 0;
+@@ -599,7 +646,8 @@ shbp_err3:
+ 			err = shbp_destroy(gpp_bp, &data);
+ 		}	
+ 	}
+-	NADK_NOTE(APP1, "Destroyed %d buffers \n", i);
++	DUMP_SHBP(gpp_bp);
++	NADK_NOTE(APP1, "Destroyed %d buffers", i);
+ 
+ shbp_err2:
+ 	err = nadk_mpool_relblock(aiop_shbp_mem_pool, gpp_mem_ptr);
+@@ -618,14 +666,15 @@ shbp_err1:
+ 			err = shbp_destroy(bp, &data);
+ 		}
+ 	}
+-	NADK_NOTE(APP1, "Destroyed %d buffers \n", i);
++	DUMP_SHBP(bp);
++	NADK_NOTE(APP1, "Destroyed %d buffers", i);
+ 
+ shbp_err0:
+ 	err = nadk_mpool_relblock(aiop_shbp_mem_pool, mem_ptr);
+ 	if (err != NADK_SUCCESS)
+ 		NADK_ERR(APP1, "Error in releasing memory");
+ 
+-	return 0;	
++	return ret;	
+ }
+ 
+ /* This is the worker IO thread function. */
+@@ -680,11 +729,15 @@ static void *app_io_thread(void *__worker)
+ 
+ 	NADK_NOTE(APP1, "PASSED open commands");
+ 	
++	ret = 0;
+ 	for (i = 0; i < 10; i++) {
+-		ret = shbp_test();
+-		NADK_NOTE(APP1, "PASSED SHBP test %d", i);
+-	}	
+-
++		ret |= shbp_test();
++	}
++	if (ret == 0)
++		NADK_NOTE(APP1, "PASSED SHBP tests %d", i);
++	else
++		NADK_NOTE(APP1, "FAILED SHBP tests %d", i);
++	
+ 	/* Get a memory block */
+ 	/* NOTE: Here we are using the same memory and same block of the
+ 	* mempool, but separate memory can also be used i.e. getblock can be
+-- 
+1.7.9.5
+

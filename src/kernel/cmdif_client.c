@@ -55,6 +55,8 @@ void cmdif_cl_isr();
 
 __TASK static struct ldpaa_fd _fd __attribute__((aligned(sizeof(struct ldpaa_fd))));
 
+extern struct icontext icontext_aiop;
+
 static inline int send_fd(int pr, void *_sdev)
 {
 	struct cmdif_reg *sdev = (struct cmdif_reg *)_sdev;
@@ -343,6 +345,8 @@ void cmdif_cl_isr(void)
 
 
 	ASSERT_COND_LIGHT(async_data.async_cb);
+	/* In WS there must be AIOP ICID */
+	SET_AIOP_ICID;	
 	if (((cmdif_cb_t *)async_data.async_cb)((void *)async_data.async_ctx,
 		fd.u_flc.cmd.err,
 		CPU_TO_SRV16(fd.u_flc.cmd.cmid),
