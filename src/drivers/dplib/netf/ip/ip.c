@@ -74,6 +74,10 @@ int ip_header_decapsulation(uint8_t flags)
 		old_field = *((uint32_t *)inner_ipv4_ptr);
 
 		if (PARSER_IS_OUTER_IPV4_DEFAULT()) {
+#ifndef REV2
+			mpls_tmp_label = MPLS_LABEL_IPV4;
+			etype_tmp = ETYPE_IPV4;
+#endif
 			/* Inner & Outer IPv4 */
 			outer_ipv4_ptr = (struct ipv4hdr *)
 			(outer_ip_offset + PRC_GET_SEGMENT_ADDRESS());
@@ -177,15 +181,9 @@ int ip_header_decapsulation(uint8_t flags)
 				}
 			}
 #else
-			/* Update Etype or MPLS label if needed */
-			if (PARSER_IS_ONE_MPLS_DEFAULT()) {
-				mpls_tmp_label = MPLS_LABEL_IPV4;
-			} else {
-				if (PARSER_IS_ETH_MAC_DEFAULT()) {
-					etype_tmp = ETYPE_IPV4;
-				}
-			}
-			
+			/* Update Etype and MPLS label if needed */
+			mpls_tmp_label = MPLS_LABEL_IPV4;
+			etype_tmp = ETYPE_IPV4;
 #endif //REV2
 		}
 	} else {
@@ -238,20 +236,19 @@ int ip_header_decapsulation(uint8_t flags)
 				}
 			}
 #else
-			/* Update Etype or MPLS label if needed */
-			if (PARSER_IS_ONE_MPLS_DEFAULT()) {
-				mpls_tmp_label = MPLS_LABEL_IPV6;
-			} else {
-				if (PARSER_IS_ETH_MAC_DEFAULT()) {
-					etype_tmp = ETYPE_IPV6;
-				}
-			}
-			
+			/* Update Etype and MPLS label if needed */
+			mpls_tmp_label = MPLS_LABEL_IPV6;
+			etype_tmp = ETYPE_IPV6;
 #endif // REV2
 		} else {
 			/* Inner & outer IPv6
 			 * Reset parser running sum in case of outer
 			 * IPv6 as it does not contain checksum*/
+			/* Update Etype and MPLS label if needed */
+#ifndef REV2
+			mpls_tmp_label = MPLS_LABEL_IPV6;
+			etype_tmp = ETYPE_IPV6;
+#endif // REV2
 			PARSER_CLEAR_RUNNING_SUM();
 			outer_ipv6_ptr = (struct ipv6hdr *)
 			(outer_ip_offset + PRC_GET_SEGMENT_ADDRESS());
