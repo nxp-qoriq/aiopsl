@@ -11,6 +11,14 @@ LDPAA AIOP SERVICE LAYER LDPAA-AIOP-SL-v0.5.3.0 Change Log
 	
 * TABLE - Added workaround for PDM ticket TKT226361 ("Table delete never completes").
 
+* IPsec 
+    - Fixed ENGR00343015 (segment address preservation)
+    - Fixed ipsec_get_ipv6_nh_offset, ENGR343032 
+    - Removed IPSEC_CIPHER_AES_XTS, it is not a valid alg for IPsec
+    - Fixed IPsec CCM B0 Flags for decap, ENGR341153
+    - Fixed IPsec ipsec_get_seq_num, ENGR342270
+    - Fixed IPsec CCM B0 Flags for encap, ENGR341153
+    - Fixed IPsec ipsec_generate_sa_params(), ENGR342116
 
 LDPAA AIOP SERVICE LAYER ALPHA V0.4.6 Change Log
 ===================================================
