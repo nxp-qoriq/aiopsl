@@ -118,11 +118,14 @@ do {\
 			~(ADC_BDI_MASK | ADC_VA_MASK)) | flags;		\
 		STH_SWAP(pl_icid, 0, &(adc->pl_icid));			\
 	} while (0)
-
+		
+#define ENGR00344240_FIXED
+		
 /** Delete FDMA handle and store user modified data */
+#ifdef ENGR00344240_FIXED		
 #define CMDIF_STORE_DATA \
 	do {\
-		uint32_t amq;					\
+		struct fdma_amq amq;				\
 		fdma_store_frame_data(frame_handle, spid,	\
 		                      (struct fdma_amq *)&amq);	\
 		pr_debug("Store icid = 0x%x\n",			\
@@ -130,6 +133,12 @@ do {\
 		pr_debug("Store flags = 0x%x\n",		\
 		         ((struct fdma_amq *)&amq)->flags);	\
 	} while(0)
+#else
+#define CMDIF_STORE_DATA \
+	do {\
+		fdma_store_default_frame_data(); \
+	} while(0)
+#endif
 
 #define CMDIF_MN_SESSIONS	(64 << 1) 
 /**< Maximal number of sessions: 64 SW contexts and avg of 2 modules per each */
