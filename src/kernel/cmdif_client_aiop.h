@@ -119,10 +119,9 @@ do {\
 		STH_SWAP(pl_icid, 0, &(adc->pl_icid));			\
 	} while (0)
 		
-#define ENGR00344240_FIXED
 		
 /** Delete FDMA handle and store user modified data */
-#ifdef ENGR00344240_FIXED		
+#if 0		
 #define CMDIF_STORE_DATA \
 	do {\
 		struct fdma_amq amq;				\

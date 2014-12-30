@@ -679,8 +679,6 @@ void cmdif_srv_isr(void) /*__attribute__ ((noreturn))*/
 	uint32_t gpp_dma;
 	uint16_t cmd_id;
 	uint16_t auth_id;
-	uint8_t  frame_handle;
-	uint8_t  spid;
 	int err;
 	
 	ASSERT_COND_LIGHT(cmdif_aiop_srv.srv != NULL);
@@ -690,8 +688,7 @@ void cmdif_srv_isr(void) /*__attribute__ ((noreturn))*/
 #endif
 	
 	SAVE_GPP_ICID;
-	SAVE_FDMA_HANDLE;
-
+	
 	cmd_id = cmd_id_get();
 	auth_id = cmd_auth_id_get();
 	
@@ -699,8 +696,6 @@ void cmdif_srv_isr(void) /*__attribute__ ((noreturn))*/
 	pr_debug("auth_id = 0x%x\n", auth_id);
 	pr_debug("gpp_icid = 0x%x\n", gpp_icid);
 	pr_debug("gpp_dma flags = 0x%x\n", gpp_dma);
-	pr_debug("frame_handle = 0x%x\n", frame_handle);
-	pr_debug("spid = 0x%x\n", spid);
 	
 	if (cmd_id == CMD_ID_NOTIFY_OPEN) {
 		/* Support for AIOP -> GPP */
