@@ -1781,7 +1781,7 @@ int ipsec_frame_decrypt(
 			return_val = -1;
 			break;
 		default:
-			*dec_status |= IPSEC_GEN_ENCR_ERR;	
+			*dec_status |= IPSEC_GEN_DECR_ERR;	
 			return_val = -1;
 	}
 
