@@ -96,6 +96,8 @@ struct initial_mem_mng
 
 };
 
+extern const  uint32_t g_boot_mem_mng_size;
+#define MEM_PART_SYSTEM_DDR1_BOOT_MEM_MNG MEM_PART_LAST+1
 
 /*****************************************************************************/
 int boot_get_mem(struct initial_mem_mng* boot_mem_mng,
@@ -113,6 +115,18 @@ int boot_get_mem_virt(struct initial_mem_mng* boot_mem_mng,
  @Return        Handle to initialized MEM_MNG object, or NULL on error.
 *//***************************************************************************/
 int boot_mem_mng_init(struct initial_mem_mng* boot_mem_mng,int mem_partition_id);
+
+/**************************************************************************//**
+ @Function      boot_mem_mng_free
+
+ @Description   Free the memory allocation management module.
+
+ @Param[in]     boot_mem_mng - initial_mem_mng
+
+ @Return        None.
+*//***************************************************************************/
+int boot_mem_mng_free(struct initial_mem_mng* boot_mem_mng);
+
 
 /**************************************************************************//**
  @Function      mem_mng_init
@@ -136,16 +150,6 @@ fsl_handle_t mem_mng_init(t_mem_mng_param *p_mem_mng_param);
 *//***************************************************************************/
 void mem_mng_free(fsl_handle_t h_mem_mng);
 
-/**************************************************************************//**
- @Function      boot_mem_mng_free
-
- @Description   Free the memory allocation management module.
-
- @Param[in]     boot_mem_mng - initial_mem_mng
-
- @Return        None.
-*//***************************************************************************/
-int boot_mem_mng_free(struct initial_mem_mng* boot_mem_mng);
 
 /**************************************************************************//**/
 int mem_mng_get_phys_mem(fsl_handle_t    h_mem_mng,

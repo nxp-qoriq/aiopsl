@@ -423,11 +423,11 @@ __COLD_CODE static int build_mem_partitions_table(t_platform  *pltfrm)
 	        switch (p_mem_info->mem_partition_id) {
 	        case MEM_PART_DP_DDR:
 	            p_mem_info->virt_base_addr = (uint32_t)g_init_data.sl_info.dp_ddr_vaddr +
-	        	        aiop_lcf_ddr_size;
+                                aiop_lcf_ddr_size + g_boot_mem_mng_size ;
 	            p_mem_info->phys_base_addr = g_init_data.sl_info.dp_ddr_paddr +
-	        			aiop_lcf_ddr_size;
+                                aiop_lcf_ddr_size + g_boot_mem_mng_size;
 	            p_mem_info->size = g_init_data.app_info.dp_ddr_size -
-	        			aiop_lcf_ddr_size;
+                                aiop_lcf_ddr_size - g_boot_mem_mng_size;
 	            pr_debug("MEM_PART_DP_DDR:virt_add=0x%x,phys_add=0x%x%08x,size=0x%x\n",
 	        	      p_mem_info->virt_base_addr,
 	                      (uint32_t)(p_mem_info->phys_base_addr >> 32),

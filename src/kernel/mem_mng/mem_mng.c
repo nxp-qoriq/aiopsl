@@ -34,18 +34,14 @@
 #include "common/fsl_string.h"
 #include "kernel/fsl_spinlock.h"
 #include "fsl_slob.h"
-#ifdef AIOP
-#include "fsl_malloc.h"
 #include "platform.h"
+#ifdef AIOP
 #include "platform_aiop_spec.h"
 #include "aiop_common.h"
-#include "fsl_platform.h"
-#include "sys.h"
 #endif /* AIOP */
-
 #include "mem_mng.h"
 #include "fsl_dbg.h"
-#include "fsl_mem_mng.h"
+#include "fsl_platform.h"
 
 
 #ifdef UNDER_CONSTRUCTION
@@ -112,31 +108,22 @@ static void mem_mng_free_partition(t_mem_mng *p_mem_mng, list_t *p_partition_ite
 static void mem_phys_mng_free_partition(t_mem_mng *p_mem_mng, list_t *p_partition_iterator);
 
 
+extern const uint8_t AIOP_DDR_START[],AIOP_DDR_END[];
+const uint32_t  g_boot_mem_mng_size = 16*KILOBYTE;
 
-
-/*****************************************************************************/
-/* TODO In lcf file , add the following lines:
- *  boot_heap:		    org = 0x40210000,   len = 0x4000 Internal heap during boot
- *  ...
- *  _boot_heap_addr   = ADDR(boot_heap);
-_boot_heap_end    = ADDR(boot_heap)+SIZEOF(boot_heap);
- */
-/*
-extern const uint8_t _boot_heap_addr[],_boot_heap_end[];
-*/
 
 int boot_mem_mng_init(struct initial_mem_mng* boot_mem_mng,
                       int mem_partition_id)
 {
-	uint32_t offset = 0;
+	uint32_t aiop_lcf_ddr_size =  (uint32_t)(AIOP_DDR_END) -
+		(uint32_t)(AIOP_DDR_START);
 	switch(mem_partition_id){
 	case MEM_PART_DP_DDR:
-		/*offset = (uint32_t)_boot_heap_addr - (uint32_t)g_init_data.sl_info.dp_ddr_vaddr;*/
 		boot_mem_mng->base_paddress = g_init_data.sl_info.dp_ddr_paddr
-			                     + offset;
+			                     + aiop_lcf_ddr_size;
 		boot_mem_mng->base_vaddress = (uint32_t)g_init_data.sl_info.dp_ddr_vaddr
-			                    + offset;
-		/*boot_mem_mng->size = (uint32_t)_boot_heap_end - (uint32_t)_boot_heap_addr;*/
+			                    + aiop_lcf_ddr_size;
+		boot_mem_mng->size = g_boot_mem_mng_size;
 		boot_mem_mng->curr_ptr = boot_mem_mng->base_paddress;
 
 		break;
