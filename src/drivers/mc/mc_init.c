@@ -32,8 +32,8 @@
 #include "general.h"
 #include "sys.h"
 #include "fsl_dbg.h"
-#include "dplib/fsl_dprc.h"
-#include "dplib/fsl_dpci.h"
+#include "fsl_dprc.h"
+#include "fsl_dpci.h"
 #include "fsl_mc_init.h"
 #include "ls2085_aiop/fsl_platform.h"
 

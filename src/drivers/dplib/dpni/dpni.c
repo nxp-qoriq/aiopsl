@@ -1070,17 +1070,17 @@ int dpni_set_tx_tc(struct fsl_mc_io *mc_io,
 
 int dpni_set_rx_tc_dist(struct fsl_mc_io *mc_io,
 			uint16_t token,
-		   uint8_t tc_id,
-		   const struct dpni_rx_tc_dist_cfg *cfg,
-		   uint64_t params_iova)
+			uint8_t tc_id,
+			const struct dpni_rx_tc_dist_cfg *cfg,
+			uint64_t params_iova)
 {
 	struct mc_command cmd = { 0 };
 	uint64_t *ext_params = (uint64_t *)params_iova;
 	int err;
 
 	if (cfg->dist_key_cfg) {
-	if (!ext_params)
-		return -ENOMEM;
+		if (!ext_params)
+			return -ENOMEM;
 		err = build_extract_cfg_extention(cfg->dist_key_cfg,
 		                                  ext_params);
 		if (err)
@@ -1272,8 +1272,8 @@ int dpni_set_qos_table(struct fsl_mc_io *mc_io,
 	int err;
 
 	if (cfg->qos_key_cfg) {
-	if (!ext_params)
-		return -ENOMEM;
+		if (!ext_params)
+			return -ENOMEM;
 		err = build_extract_cfg_extention(cfg->qos_key_cfg, ext_params);
 		if (err)
 			return err;

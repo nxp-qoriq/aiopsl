@@ -26,12 +26,12 @@
 
 #include "common/fsl_string.h"
 #include "fsl_io_ccsr.h"
-#include "dplib/fsl_dprc.h"
-#include "dplib/fsl_dpni.h"
+#include "fsl_dprc.h"
+#include "fsl_dpni.h"
 #include "fsl_malloc.h"
 #include "kernel/fsl_spinlock.h"
 #include "../drivers/dplib/arch/accel/fdma.h"  /* TODO: need to place fdma_release_buffer() in separate .h file */
-#include "dplib/fsl_dpbp.h"
+#include "fsl_dpbp.h"
 #include "sys.h"
 #include "fsl_io_ccsr.h"
 #include "slab.h"

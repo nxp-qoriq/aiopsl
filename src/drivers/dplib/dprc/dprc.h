@@ -36,7 +36,7 @@
 #define _DPRC_H
 
 #include "common\fsl_cmdif.h"
-#include "dplib\fsl_dprc.h"
+#include "fsl_dprc.h"
 
 
 
