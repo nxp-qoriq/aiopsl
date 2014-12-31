@@ -37,7 +37,7 @@
 
 #include "fsl_endian.h"
 #include "common/fsl_cmdif.h"
-#include "dplib/fsl_dpni.h"
+#include "fsl_dpni.h"
 
 struct cmdif_cmd_data {
 	uint64_t param1;

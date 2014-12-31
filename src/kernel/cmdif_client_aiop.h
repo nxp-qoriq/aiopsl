@@ -35,7 +35,7 @@
 
 #include "cmdif_client.h"
 #include "cmdif_srv.h"
-#include "dplib/fsl_dpci.h"
+#include "fsl_dpci.h"
 #include "fsl_gen.h"
 #include "fsl_string.h"
 #include "fsl_sl_dbg.h"
