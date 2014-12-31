@@ -28,10 +28,10 @@
 extern const uint32_t g_aiop_lcf_ddr_size;
 
 /* This is an application required DP_DDR memory, user SHOULD edit this.
- * In this example the total dp_ddr memory is 128 MB , 
+ * In this example the total dp_ddr memory is 128 MB (0x8000000) ,
  * g_aiop_lcf_ddr_size out of it is occupied by aiop image dp_ddr and the rest is dedicated 
  * for application */
-#define APPLICATION_DP_DDR_SIZE ((128 * MEGABYTE) - g_aiop_lcf_ddr_size)
+#define APPLICATION_DP_DDR_SIZE (0x8000000 - g_aiop_lcf_ddr_size)
  
 /* dp_ddr_size.
  * It is the  sum of AIOP image size in DDR and 
