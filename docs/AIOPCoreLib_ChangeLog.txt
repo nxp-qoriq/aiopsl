@@ -1,6 +1,8 @@
 LDPAA AIOP SERVICE LAYER LDPAA-AIOP-SL-v0.5.3.0 Change Log
 =============================================================
 
+* TMAN - Support TMAN spec version 1.0. 
+
 * GSO - Added a workaround for PDM ticket TKT240996 - As it's mentioned in FDMA split command.
 
 * IPF - Added a workaround for PDM ticket TKT240996 - As it's mentioned in FDMA split command.
