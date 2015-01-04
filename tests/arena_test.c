@@ -298,7 +298,7 @@ int app_init(void)
 	int ep, state = -1;
 	struct dpkg_profile_cfg dist_key_cfg = {0};
 	struct aiop_psram_entry *sp_addr;
-//	struct dpni_buffer_layout layout = {0};
+	struct dpni_buffer_layout layout = {0};
 
 	dist_key_cfg.num_extracts = 1;
 	dist_key_cfg.extracts[0].type = DPKG_EXTRACT_FROM_HDR;
@@ -397,7 +397,7 @@ int app_init(void)
 			fsl_os_print("Error: dpni_drv_get_rx_buffer_layout: error %d\n",err);
 			test_error |= 0x01;
 		}
-
+#endif
 		layout.options = DPNI_BUF_LAYOUT_OPT_DATA_HEAD_ROOM |
 			DPNI_BUF_LAYOUT_OPT_DATA_TAIL_ROOM;
 		layout.data_head_room = 0;
@@ -410,8 +410,9 @@ int app_init(void)
 		}
 		fsl_os_print("Buffer Layout:\n");
 		fsl_os_print("Options: 0x%x\n",layout.options);
-		fsl_os_print("data_head_room: 0x%x\n\n\n", layout.data_head_room);
-		fsl_os_print("data_tail_room: 0x%x\n\n\n", layout.data_tail_room);
+		fsl_os_print("data_head_room: 0x%x\n", layout.data_head_room);
+		fsl_os_print("data_tail_room: 0x%x\n", layout.data_tail_room);
+#if 0
 		if(layout.data_head_room != 0x20 || layout.data_tail_room != 0x30){
 			fsl_os_print("Error: dpni_drv_get/set_rx_buffer_layout finished with incorrect values\n");
 			test_error |= 0x01;

@@ -5,13 +5,11 @@
 
 - slab.c:             removed backward compatibility support for filling buffers. Application / Module should do it
                       by himself using call to: slab_register_context_buffer_requirements
-- dpni_drv.c:         Added API to set & query AIOP storage profile attributes:
-                      int dpni_drv_set_rx_buffer_layout(uint16_t ni_id, const struct dpni_buffer_layout *layout);
+- dpni_drv.c:         Added API to query AIOP storage profile attributes:
                       int dpni_drv_get_rx_buffer_layout(uint16_t ni_id, struct dpni_buffer_layout *layout);
                       Added API to get NI ID for connected DPNI.
                       int dpni_drv_get_connected_dpni_id(const uint16_t aiop_niid, uint16_t *dpni_id, int *state);
                       int dpni_drv_get_connected_aiop_ni_id(const uint16_t dpni_id, uint16_t *aiop_niid, int *state);
-                      DPNI enable is after app_init.
 - fsl_icontext.h:     Added new API for AIOP isolation context - icontext_cmd_get(). 
 - fsl_shbp_aiop.h:    New API for AIOP-GPP shared buffer buffer pools. 
 - cmdif_srv_flib.c:   Fixed ENGR00343203, to allow M_NUM_OF_INSTANCES of instances.
@@ -19,7 +17,7 @@
 - dpl.dts/dtb:        Added dpaiop object, it must be the first object.
 - fsl_cmdif_client.h: Added comment that GPP data must be in Write-Back Cacheable and Outer Shareable memory.
 
-- fsl_os.h:      Remove fsl_os_phys_to_vist()/fsl_os_virt_to_phys() functions.
+- fsl_os.h:      Remove fsl_os_phys_to_virt()/fsl_os_virt_to_phys() functions.
 - dpni_drv.c:    ENGR00341594 - resolved. ipv6_hxs_config set to: 0x2000
 - fsl_icontext.h: Updated icontext_get() to support ENGR00341218: API to get the GPP ICID.
 - os.c:          ENGR00341990 - resolved, added implementation for exception_handler    
