@@ -42,6 +42,11 @@ SECTIONS
             *(.rdata)
             *(.rodata)
         }
+        .text (TEXT) ALIGN(0x1000) : {}
+        .text_vle (VLECODE) ALIGN(0x1000): {
+             *(.text)
+             *(.text_vle)
+         }
         .dtext (TEXT) ALIGN(0x1000): {}
         .dtext_vle (VLECODE) ALIGN(0x1000): {
          *(.dtext)
@@ -54,11 +59,6 @@ SECTIONS
     } > pseudo_rom
 
     GROUP : {
-        .text (TEXT) ALIGN(0x1000) : {}
-        .text_vle (VLECODE) ALIGN(0x1000): {
-             *(.text)
-             *(.text_vle)
-         }
         .itext (TEXT) ALIGN(0x1000) : {}
         .itext_vle (VLECODE) ALIGN(0x1000): {
              *(.itext)
