@@ -239,5 +239,21 @@ int dpni_get_num_of_ni(void);
 		1 - Exclusive
 *//***************************************************************************/
 int dpni_drv_get_ordering_mode(uint16_t ni_id);
+
+/**************************************************************************//**
+@Function	dpni_drv_set_rx_buffer_layout
+
+@Description	Function to change SP’s attributes (specify how many headroom)
+
+@Param[in]	ni_id   The AIOP Network Interface ID
+
+@Param[in]	layout  Structure representing DPNI buffer layout
+
+@warning	Allowed only when DPNI is disabled
+
+@Return	0 on success;
+	error code, otherwise. For error posix refer to \ref error_g
+*//***************************************************************************/
+int dpni_drv_set_rx_buffer_layout(uint16_t ni_id, const struct dpni_buffer_layout *layout);
 /** @} */ /* end of DPNI_DRV_STATUS group */
 #endif /* __DPNI_DRV_H */

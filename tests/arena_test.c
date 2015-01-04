@@ -86,7 +86,6 @@ static void app_process_packet_flow0 (dpni_drv_app_arg_t arg)
 {
 	int      err = 0, i, j;
 	int core_id;
-	struct dpni_buffer_layout layout = {0};
 	uint64_t time_ms_since_epoch = 0, flc = 0;
 	uint32_t time_ms = 0;
 	uint64_t local_time;
@@ -106,6 +105,7 @@ static void app_process_packet_flow0 (dpni_drv_app_arg_t arg)
 		local_test_error |= err;
 	} else {
 		fsl_os_print("spid_ddr is %d for packet %d\n",spid_ddr, local_packet_number);
+
 	}
 	err = dpni_drv_get_spid(APP_NI_GET(arg), &spid_ddr);
 	if (err) {
@@ -291,12 +291,14 @@ int app_early_init(void){
 int app_init(void)
 {
 	int        err  = 0;
+	uint16_t spid = 0;
 	uint32_t   ni   = 0;
 	uint16_t   ni2  = 0;
 	dma_addr_t buff = 0;
 	int ep, state = -1;
 	struct dpkg_profile_cfg dist_key_cfg = {0};
-	struct dpni_buffer_layout layout = {0};
+	struct aiop_psram_entry *sp_addr;
+//	struct dpni_buffer_layout layout = {0};
 
 	dist_key_cfg.num_extracts = 1;
 	dist_key_cfg.extracts[0].type = DPKG_EXTRACT_FROM_HDR;
@@ -377,13 +379,15 @@ int app_init(void)
 		fsl_os_print("ntop_test passed in init phase()\n");
 	}
 
-	for(ni = 0; ni < dpni_get_num_of_ni(); ni++){
+	for(ni = 0; ni < dpni_get_num_of_ni(); ni++)
+	{
 		err = dpni_drv_get_connected_dpni_id((uint16_t)ni, &ni2, &state);
 		fsl_os_print("Given NI: %d, Connected NI: %d, Status: %d\n",ni,ni2,state);
 		if(err){
 			fsl_os_print("Error: dpni_drv_get_connected_dpni_id: error %d\n",err);
 			test_error |= 0x01;
 		}
+#if 0/*Remove if 0 when support for setting SP configuration*/
 		layout.options =  DPNI_BUF_LAYOUT_OPT_DATA_HEAD_ROOM |
 			DPNI_BUF_LAYOUT_OPT_DATA_TAIL_ROOM;
 		layout.data_head_room = 0x20;
@@ -412,6 +416,41 @@ int app_init(void)
 			fsl_os_print("Error: dpni_drv_get/set_rx_buffer_layout finished with incorrect values\n");
 			test_error |= 0x01;
 		}
+#endif
+
+
+		sp_addr = (struct aiop_psram_entry *)
+						(AIOP_PERIPHERALS_OFF + AIOP_STORAGE_PROFILE_OFF);
+		err = dpni_drv_get_spid((uint16_t)ni, &spid);
+		if (err) {
+			fsl_os_print("ERROR = %d: dpni_drv_get_spid failed\n", err);
+			test_error |= err;
+		} else {
+			fsl_os_print("NI %d - spid is %d\n", ni, spid);
+		}
+
+		sp_addr += spid;
+		if(sp_addr->bp1 == 0){
+			fsl_os_print("Error: spid bp1 is 0\n");
+			test_error |= 0x01;
+		}
+
+		sp_addr = (struct aiop_psram_entry *)
+			(AIOP_PERIPHERALS_OFF + AIOP_STORAGE_PROFILE_OFF);
+		err = dpni_drv_get_spid_ddr((uint16_t)ni, &spid);
+		if (err) {
+			fsl_os_print("ERROR = %d: dpni_drv_get_spid_ddr failed\n", err);
+			test_error |= err;
+		} else {
+			fsl_os_print("NI %d - spid DDR is %d\n", ni, spid);
+		}
+
+		sp_addr += spid;
+		if(sp_addr->bp1 == 0){
+			fsl_os_print("Error: spid ddr bp1 is 0\n");
+			test_error |= 0x01;
+		}
+
 
 	}
 

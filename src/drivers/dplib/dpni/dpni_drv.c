@@ -637,38 +637,13 @@ int dpni_drv_get_connected_dpni_id(const uint16_t aiop_niid, uint16_t *dpni_id, 
 int dpni_drv_set_rx_buffer_layout(uint16_t ni_id, const struct dpni_buffer_layout *layout){
 	struct dpni_drv *dpni_drv;
 	struct mc_dprc *dprc = sys_get_unique_handle(FSL_OS_MOD_AIOP_RC);
-	int err = 0;
-	struct aiop_psram_entry *sp_addr;
-	struct aiop_psram_entry storage_profile;
 
 	/* calculate pointer to the NI structure */
 	dpni_drv = nis + ni_id;
 
-	err = dpni_disable(&dprc->io, dpni_drv->dpni_drv_params_var.dpni);
-	if(err)
-		return err;
-
-	err = dpni_set_rx_buffer_layout(&dprc->io,
+	return dpni_set_rx_buffer_layout(&dprc->io,
 	                                 dpni_drv->dpni_drv_params_var.dpni,
 	                                 layout);
-	if(err)
-		return err;
-	err = dpni_enable(&dprc->io, dpni_drv->dpni_drv_params_var.dpni);
-	if(err)
-		return err;
-
-	/*update the spid with ddr target*/
-	sp_addr = (struct aiop_psram_entry *)
-		(AIOP_PERIPHERALS_OFF + AIOP_STORAGE_PROFILE_OFF);
-	sp_addr += dpni_drv->dpni_drv_params_var.spid;
-	storage_profile = *sp_addr;
-	sp_addr = (struct aiop_psram_entry *)
-		(AIOP_PERIPHERALS_OFF + AIOP_STORAGE_PROFILE_OFF);
-	sp_addr += dpni_drv->dpni_drv_params_var.spid_ddr;
-	sp_addr->frame_format_high = storage_profile.frame_format_high;
-	sp_addr->frame_format_low = storage_profile.frame_format_low;
-
-	return 0;
 }
 
 int dpni_drv_get_rx_buffer_layout(uint16_t ni_id, struct dpni_buffer_layout *layout){
