@@ -33,7 +33,7 @@
 #ifndef __FSL_STRING_H
 #define __FSL_STRING_H
 
-
+#include "common/types.h"
 #if defined(SYS_OS_LINUX) && defined(__KERNEL__)
 #include <linux/kernel.h>
 #include <linux/string.h>
@@ -47,7 +47,7 @@ extern char * strtok ( char * str, const char * delimiters );
 
 #endif /* defined(SYS_OS_LINUX) && defined(__KERNEL__) */
 
-#include "common/types.h"
+
 
 
 /**************************************************************************//**

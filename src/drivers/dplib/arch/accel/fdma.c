@@ -2029,6 +2029,8 @@ void fdma_exception_handler(enum fdma_function_identifier func_id,
 	char *func_name;
 	char *err_msg;
 	
+	status = status & 0xFF;
+	
 	/* Translate function ID to function name string */
 	switch(func_id) {
 	case FDMA_PRESENT_DEFAULT_FRAME:

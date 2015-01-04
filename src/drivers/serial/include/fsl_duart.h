@@ -189,6 +189,7 @@ typedef struct t_duart_uart_param {
                 stores the address used for specific uart
  *//***************************************************************************/
 struct uart_desc {
+    int disable;
     int uart_id;	/**< Defines the uart number [0 - 3] */
     phys_addr_t paddr;	/**< Physical address of uart memory map */
     void *vaddr;	/**< Virtual address of uart memory map */

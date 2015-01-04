@@ -600,7 +600,7 @@ static int shbp_test()
 			         "FAILED shbp_refill check for AIOP SHBP");
 		}
 		temp64++;
-	} while (temp64 < 0x100000000); /* Massive testing */
+	} while (temp64 < 0x10); /* Massive testing */
 	
 	err = shbp_release(gpp_bp, data);
 	if (err) {

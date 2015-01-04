@@ -62,12 +62,11 @@ struct aiop_app_init_info {
 	uint32_t mflu_peb_num_entries; /* initialized by AIOP APP at compile time, default provided */
 
 	uint32_t sru_size;
-	uint32_t tman_freq;
 	uint32_t tasks_per_core;
 
 	uint32_t spid_count;
 
-	uint32_t reserved[48]; /* reserved for future use. Keep 256B */
+	uint32_t reserved[49]; /* reserved for future use. Keep 256B */
 };
 
 /* Internal data exchanged between AIOP and MC

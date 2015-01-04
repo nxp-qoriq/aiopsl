@@ -76,7 +76,6 @@ struct aiop_init_info g_init_data =
  	MFLU_DP_DDR_NUM_ENTRIES,
  	MFLU_PEB_NUM_ENTRIES,
  	SRU_SIZE,
- 	TMAN_FREQUENCY,
  	AIOP_TASKS_PER_CORE,
  	SOC_MAX_NUM_OF_DPNI, /*SPID_COUNT*/
  	{0}/* reserved */

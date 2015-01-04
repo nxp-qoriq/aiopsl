@@ -290,12 +290,8 @@ void aiop_verification_fm()
 		}
 		case EXCEPTION_MODULE:
 		{
-			struct fatal_error_command *str =
-			   (struct fatal_error_command *)
-						((uint32_t)data_addr);
 			str_size = (uint16_t)
-			  sizeof(
-			     struct fatal_error_command);
+			  sizeof(struct fatal_error_command);
 			break;
 		}
 		case TERMINATE_FLOW_MODULE:

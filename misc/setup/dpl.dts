@@ -47,7 +47,6 @@ Layout is built from 3 different sections: containers, objects, connections.
 		dprc@1 {
 			compatible = "fsl,dprc";
 			parent = "none";
-			icid = <0>;
 			options = "DPRC_CFG_OPT_SPAWN_ALLOWED" , "DPRC_CFG_OPT_ALLOC_ALLOWED";
 			portal_id = <0>;
 			resources {
@@ -88,7 +87,6 @@ Layout is built from 3 different sections: containers, objects, connections.
 		dprc@2 {
 			compatible = "fsl,dprc";
 			parent = "dprc@1";
-			icid = <9>;
 			options = "DPRC_CFG_OPT_TOPOLOGY_CHANGES_ALLOWED" , "DPRC_CFG_OPT_IOMMU_BYPASS" , "DPRC_CFG_OPT_SPAWN_ALLOWED" , "DPRC_CFG_OPT_ALLOC_ALLOWED" , "DPRC_CFG_OPT_AIOP" , "DPRC_CFG_OPT_OBJ_CREATE_ALLOWED";
 			portal_id = <3>;
 			objects {

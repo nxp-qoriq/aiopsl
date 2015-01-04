@@ -65,7 +65,7 @@
 	}while(0)
 
 
-int shbp_read(struct shbp_aiop *bp, uint16_t size, uint64_t src, void *dest)
+__HOT_CODE int shbp_read(struct shbp_aiop *bp, uint16_t size, uint64_t src, void *dest)
 {
 #ifdef DEBUG
 	if (bp == NULL)
@@ -75,7 +75,7 @@ int shbp_read(struct shbp_aiop *bp, uint16_t size, uint64_t src, void *dest)
 	return icontext_dma_read(&bp->ic, size, src, dest);
 }
 
-int shbp_write(struct shbp_aiop *bp, uint16_t size, void *src, uint64_t dest)
+__HOT_CODE int shbp_write(struct shbp_aiop *bp, uint16_t size, void *src, uint64_t dest)
 {
 #ifdef DEBUG
 	if (bp == NULL)
@@ -85,7 +85,7 @@ int shbp_write(struct shbp_aiop *bp, uint16_t size, void *src, uint64_t dest)
 	return icontext_dma_write(&bp->ic, size, src, dest);
 }
 
-uint64_t shbp_acquire(struct shbp_aiop *bp)
+__HOT_CODE uint64_t shbp_acquire(struct shbp_aiop *bp)
 {
 	struct shbp shbp;
 	uint32_t offset;
@@ -144,7 +144,7 @@ uint64_t shbp_acquire(struct shbp_aiop *bp)
 	return buf;
 }
 
-int shbp_release(struct shbp_aiop *bp, uint64_t buf)
+__HOT_CODE int shbp_release(struct shbp_aiop *bp, uint64_t buf)
 {
 	struct shbp shbp;
 	uint32_t offset;
@@ -195,7 +195,7 @@ int shbp_release(struct shbp_aiop *bp, uint64_t buf)
 	return 0;
 }
 
-int shbp_enable(uint16_t swc_id, uint64_t shbp_iova, struct shbp_aiop *bp)
+__COLD_CODE int shbp_enable(uint16_t swc_id, uint64_t shbp_iova, struct shbp_aiop *bp)
 {	
 	int err;
 	
