@@ -43,6 +43,10 @@
 
 #define CMDIF_EPID         0     /*!< EPID to be used for setting by client */
 
+#ifndef __HOT_CODE
+#define __HOT_CODE
+#endif
+
 #ifndef __COLD_CODE
 #define __COLD_CODE
 #endif /* COLD_CODE*/

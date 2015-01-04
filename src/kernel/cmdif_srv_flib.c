@@ -128,20 +128,20 @@ __COLD_CODE void cmdif_srv_deallocate(void *_srv, void (*free)(void *ptr))
 	}
 }
 
-static int empty_open_cb(uint8_t instance_id, void **dev)
+__COLD_CODE static int empty_open_cb(uint8_t instance_id, void **dev)
 {
 	UNUSED(instance_id);
 	UNUSED(dev);
 	return -ENODEV; /* Must be error for cmdif_srv_unregister() */
 }
 
-static int empty_close_cb(void *dev)
+__COLD_CODE static int empty_close_cb(void *dev)
 {
 	UNUSED(dev);
 	return -ENODEV; /* Must be error for cmdif_srv_unregister() */
 }
 
-static int empty_ctrl_cb(void *dev, uint16_t cmd, uint32_t size, void *data)
+__COLD_CODE static int empty_ctrl_cb(void *dev, uint16_t cmd, uint32_t size, void *data)
 {
 	UNUSED(cmd);
 	UNUSED(dev);
@@ -186,7 +186,7 @@ __COLD_CODE static int module_id_alloc( struct cmdif_srv *srv, const char *m_nam
 	return id;
 }
 
-static int module_id_find(struct cmdif_srv *srv, const char *m_name)
+__HOT_CODE static int module_id_find(struct cmdif_srv *srv, const char *m_name)
 {
 	int i = 0;
 
@@ -237,7 +237,7 @@ __COLD_CODE int cmdif_srv_unregister(void *srv, const char *m_name)
 	}
 }
 
-static int inst_alloc(struct cmdif_srv *srv, uint8_t m_id)
+__HOT_CODE static int inst_alloc(struct cmdif_srv *srv, uint8_t m_id)
 {
 	int r = 0;
 	int count = 0;
@@ -275,13 +275,13 @@ static int inst_alloc(struct cmdif_srv *srv, uint8_t m_id)
 	}
 }
 
-static void inst_dealloc(int inst, struct cmdif_srv *srv)
+__HOT_CODE static void inst_dealloc(int inst, struct cmdif_srv *srv)
 {
 	srv->m_id[inst] = FREE_INSTANCE;
 	srv->inst_count--;
 }
 
-int cmdif_srv_open(void *_srv,
+__COLD_CODE int cmdif_srv_open(void *_srv,
 		const char *m_name,
 		uint8_t inst_id,
 		uint32_t dpci_id,
@@ -335,7 +335,7 @@ int cmdif_srv_open(void *_srv,
 	return 0;
 }
 
-int cmdif_srv_close(void *srv,
+__COLD_CODE int cmdif_srv_close(void *srv,
 		uint16_t auth_id,
 		uint32_t dpci_id,
 		uint32_t size,
@@ -363,7 +363,7 @@ int cmdif_srv_close(void *srv,
 	return 0;
 }
 
-int cmdif_srv_cmd(void *_srv,
+__HOT_CODE int cmdif_srv_cmd(void *_srv,
 		struct cmdif_fd *cfd,
 		void   *v_addr,
 		struct cmdif_fd *cfd_out,
