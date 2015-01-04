@@ -385,22 +385,6 @@ int dpni_drv_get_connected_aiop_ni_id(const uint16_t dpni_id, uint16_t *aiop_nii
 int dpni_drv_get_connected_dpni_id(const uint16_t aiop_niid, uint16_t *dpni_id, int *state);
 
 /**************************************************************************//**
-@Function	dpni_drv_set_rx_buffer_layout
-
-@Description	Function to change SP’s attributes (specify how many headroom)
-
-@Param[in]	ni_id   The AIOP Network Interface ID
-
-@Param[in]	layout  Structure representing DPNI buffer layout
-
-@warning	Allowed only when DPNI is disabled
-
-@Return	0 on success;
-	error code, otherwise. For error posix refer to \ref error_g
-*//***************************************************************************/
-int dpni_drv_set_rx_buffer_layout(uint16_t ni_id, const struct dpni_buffer_layout *layout);
-
-/**************************************************************************//**
 @Function	dpni_drv_get_rx_buffer_layout
 
 @Description	Function to receive SP’s attributes for RX buffer.
