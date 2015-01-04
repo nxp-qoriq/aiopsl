@@ -39,12 +39,12 @@
 	(!((CMD) & (CMDIF_NORESP_CMD | CMDIF_ASYNC_CMD)) || (CMD & SPECIAL_CMD))
 
 
-int cmdif_is_sync_cmd(uint16_t cmd_id)
+__HOT_CODE int cmdif_is_sync_cmd(uint16_t cmd_id)
 {
 	return SYNC_CMD(cmd_id);
 }
 
-int cmdif_open_cmd(struct cmdif_desc *cidesc,
+__COLD_CODE int cmdif_open_cmd(struct cmdif_desc *cidesc,
 			const char *m_name,
 			uint8_t instance_id,
 			uint8_t *v_data,
@@ -103,7 +103,7 @@ int cmdif_open_cmd(struct cmdif_desc *cidesc,
 	return 0;
 }
 
-int cmdif_sync_ready(struct cmdif_desc *cidesc)
+__HOT_CODE int cmdif_sync_ready(struct cmdif_desc *cidesc)
 {
 	struct cmdif_dev *dev = NULL;
 
@@ -118,7 +118,7 @@ int cmdif_sync_ready(struct cmdif_desc *cidesc)
 	return ((union  cmdif_data *)(dev->sync_done))->resp.done;
 }
 
-int cmdif_sync_cmd_done(struct cmdif_desc *cidesc)
+__HOT_CODE int cmdif_sync_cmd_done(struct cmdif_desc *cidesc)
 {
 	struct cmdif_dev *dev = NULL;
 	int    err = 0;
@@ -136,7 +136,7 @@ int cmdif_sync_cmd_done(struct cmdif_desc *cidesc)
 	return err;
 }
 
-int cmdif_open_done(struct cmdif_desc *cidesc)
+__COLD_CODE int cmdif_open_done(struct cmdif_desc *cidesc)
 {
 	struct cmdif_dev *dev = NULL;
 
@@ -152,7 +152,7 @@ int cmdif_open_done(struct cmdif_desc *cidesc)
 	return cmdif_sync_cmd_done(cidesc);
 }
 
-int cmdif_close_cmd(struct cmdif_desc *cidesc, struct cmdif_fd *fd)
+__COLD_CODE int cmdif_close_cmd(struct cmdif_desc *cidesc, struct cmdif_fd *fd)
 {
 	struct cmdif_dev *dev = NULL;
 
@@ -177,7 +177,7 @@ int cmdif_close_cmd(struct cmdif_desc *cidesc, struct cmdif_fd *fd)
 }
 
 
-int cmdif_close_done(struct cmdif_desc *cidesc)
+__COLD_CODE int cmdif_close_done(struct cmdif_desc *cidesc)
 {
 	return cmdif_sync_cmd_done(cidesc);
 }
@@ -204,7 +204,7 @@ static inline void async_cb_set(struct cmdif_fd *fd,
 	async_data->async_ctx = (uint64_t)async_ctx;
 }
 
-int cmdif_cmd(struct cmdif_desc *cidesc,
+__HOT_CODE int cmdif_cmd(struct cmdif_desc *cidesc,
 		uint16_t cmd_id,
 		uint32_t size,
 		uint64_t data,
@@ -236,7 +236,7 @@ int cmdif_cmd(struct cmdif_desc *cidesc,
 	return 0;
 }
 
-int cmdif_async_cb(struct cmdif_fd *fd)
+__HOT_CODE int cmdif_async_cb(struct cmdif_fd *fd)
 {
 	cmdif_cb_t *async_cb      = NULL;
 	void       *async_ctx     = NULL;

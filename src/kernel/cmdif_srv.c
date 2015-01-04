@@ -233,19 +233,19 @@ __COLD_CODE int cmdif_unregister_module(const char *m_name)
 	return cmdif_srv_unregister(cmdif_aiop_srv.srv, m_name);
 }
 
-static void *fast_malloc(int size)
+__COLD_CODE static void *fast_malloc(int size)
 {
 	/*return fsl_os_xmalloc((size_t)size, MEM_PART_SH_RAM, 8);*/
 	return fsl_malloc((size_t)size,8);
 }
 
-static void *slow_malloc(int size)
+__COLD_CODE static void *slow_malloc(int size)
 {
 	/*return fsl_os_xmalloc((size_t)size, MEM_PART_SH_RAM, 8);*/
 	return fsl_malloc((size_t)size,8);
 }
 
-static void srv_free(void *ptr)
+__COLD_CODE static void srv_free(void *ptr)
 {
 	if (ptr != NULL)
 		fsl_free(ptr);
@@ -292,8 +292,8 @@ __COLD_CODE void cmdif_srv_free(void)
 	srv_free(cmdif_aiop_srv.dpci_tbl);
 }
   
-void cmdif_fd_send(int cb_err);
-/*static*/ void cmdif_fd_send(int cb_err)
+__HOT_CODE void cmdif_fd_send(int cb_err);
+__HOT_CODE void cmdif_fd_send(int cb_err)
 {
 	int err;
 	uint64_t flc = LDPAA_FD_GET_FLC(HWC_FD_ADDRESS);
@@ -328,13 +328,13 @@ void cmdif_fd_send(int cb_err);
 	}
 }
 
-void sync_cmd_done(uint64_t sync_done,
+__HOT_CODE void sync_cmd_done(uint64_t sync_done,
 			  int err,
 			  uint16_t auth_id,
 			  char terminate,
 			  uint16_t icid,
 			  uint32_t dma_flags);
-/* static */ void sync_cmd_done(uint64_t sync_done,
+__HOT_CODE void sync_cmd_done(uint64_t sync_done,
 			  int err,
 			  uint16_t auth_id,
 			  char terminate,
@@ -381,7 +381,7 @@ static inline void sync_done_set(uint16_t auth_id)
 }
 
 /** Find dpci index and get dpci table */
-__COLD_CODE static inline int find_dpci(uint32_t dpci_id)
+static inline int find_dpci(uint32_t dpci_id)
 {
 	int i = 0;
 	struct mc_dpci_obj *dt = cmdif_aiop_srv.dpci_tbl;
@@ -393,7 +393,7 @@ __COLD_CODE static inline int find_dpci(uint32_t dpci_id)
 	return -1;
 }
 
-__COLD_CODE static inline void amq_bits_update(int ind)
+static inline void amq_bits_update(int ind)
 {
 	uint16_t pl_icid = PL_ICID_GET;
 
@@ -410,7 +410,7 @@ __COLD_CODE static inline void amq_bits_update(int ind)
 
 /* Support for AIOP -> GPP */
 /* int mc_dpci_check(int ind);*/
-__COLD_CODE static inline int mc_dpci_check(int ind)
+static inline int mc_dpci_check(int ind)
 {
 	uint8_t i;
 	struct mc_dprc *dprc = NULL;
@@ -440,7 +440,7 @@ __COLD_CODE static inline int mc_dpci_check(int ind)
 }
 
 __COLD_CODE int notify_open();
-/* static */ int notify_open()
+__COLD_CODE int notify_open()
 {
 #ifndef STACK_CHECK /* No user callback */
 
@@ -538,7 +538,7 @@ __COLD_CODE int notify_open();
 
 /* Support for AIOP -> GPP */
 __COLD_CODE int notify_close();
-/* static */ int notify_close()
+__COLD_CODE int notify_close()
 {
 #ifndef STACK_CHECK /* No user callabck here */	
 	
@@ -565,8 +565,8 @@ __COLD_CODE int notify_close();
 	return -ENAVAIL;
 }
 
-void dump_param_get(uint32_t *len, uint8_t **p, uint64_t *addr);
-void dump_param_get(uint32_t *len, uint8_t **p, uint64_t *addr)
+__COLD_CODE void dump_param_get(uint32_t *len, uint8_t **p, uint64_t *addr);
+__COLD_CODE void dump_param_get(uint32_t *len, uint8_t **p, uint64_t *addr)
 {
 	*len = MIN(LDPAA_FD_GET_LENGTH(HWC_FD_ADDRESS),\
 	                   PRC_GET_SEGMENT_LENGTH());
@@ -574,8 +574,8 @@ void dump_param_get(uint32_t *len, uint8_t **p, uint64_t *addr)
 	*addr = LDPAA_FD_GET_ADDR(HWC_FD_ADDRESS);
 }
 
-void dump_memory();
-/* static inline */ void dump_memory()
+__COLD_CODE void dump_memory();
+__COLD_CODE void dump_memory()
 {
 #ifndef STACK_CHECK /* dump memory happens before user callabck */
 	uint32_t len;
@@ -628,7 +628,7 @@ __COLD_CODE static void dpci_icontext_update()
 }
 
 __COLD_CODE int session_open(uint16_t *new_auth);
-/* static */ int session_open(uint16_t *new_auth)
+__COLD_CODE int session_open(uint16_t *new_auth)
 {
 	char     m_name[M_NAME_CHARS + 1];
 	int      m_id;
@@ -673,7 +673,7 @@ __COLD_CODE int session_open(uint16_t *new_auth);
 	}
 }
 
-void cmdif_srv_isr(void) /*__attribute__ ((noreturn))*/
+__HOT_CODE void cmdif_srv_isr(void) /*__attribute__ ((noreturn))*/
 {
 	uint16_t gpp_icid;
 	uint32_t gpp_dma;
