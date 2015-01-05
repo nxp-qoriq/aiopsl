@@ -1147,20 +1147,10 @@ __COLD_CODE static int slab_divide_memory_for_bpids(int available_bpids,
 	return 0;
 }
 
-
-__COLD_CODE static int slab_proccess_registered_requests(int *num_bpids, struct   slab_bpid_info **bpids_arr)
-{
-	int i, j, temp, err = 0;
+__COLD_CODE static void slab_find_num_requested_bpids_per_partition(int *total_requested_bpids, int *requested_bpids_per_partition){
 	struct request_table_info   local_info[] = SLAB_BUFF_SIZES_ARR; /*sample table with all the buffer sizes to each memory*/
 	int buffer_types_array_size = ARRAY_SIZE(local_info); /*give the number of different sizes for buffer available to each memory.*/
-	int requested_bpids_per_partition[SLAB_NUM_MEM_PARTITIONS] = {0}; /*store number of requests for bpids to each partition */
-	int total_requested_bpids = 0, minimum_needed_bpids = 0;/*minimum needed bpids to supply at least one for each memory*/
-	int available_bpids_per_partition[SLAB_NUM_MEM_PARTITIONS] = {0}; /*store calculated number of available bpids per partition*/
-	int remainder_bpids_calc_per_partition[SLAB_NUM_MEM_PARTITIONS] = {0}; /*remainder left after suppling bpids*/
-	int minimum_requested_index = 0, maximum_requested_index = 0; /*minimum\maximum remainder's index*/
-	int maximum_remainder = 0, minimum_remainder = 0; /*store minimum\maximum remainder after subtraction*/
-	int available_bpids = *num_bpids; /*local number of available bpids for AIOP*/
-	int total_bpids = *num_bpids; /*local number of available bpids for AIOP*/
+	int i, j;
 
 	for(i = 0; i < SLAB_NUM_MEM_PARTITIONS; i++)
 	{
@@ -1168,47 +1158,110 @@ __COLD_CODE static int slab_proccess_registered_requests(int *num_bpids, struct 
 		{
 
 			for(j = 0; j < buffer_types_array_size ; j++) /*search which memory partitions needed for buffers and calculate
-			the number of requests per partition and the total requests*/
+					the number of requests per partition and the total requests*/
 			{
 				/* in case someone requested only extra buffers from that type*/
 				if(g_slab_early_init_data->mem_pid_buffer_request[i]->table_info[j].max > 0)
 				{
 					requested_bpids_per_partition[i] ++;
-					total_requested_bpids ++;
+					*total_requested_bpids = *total_requested_bpids + 1;
 				}
 			}
 		}
 	}
 
+}
+
+__COLD_CODE static void slab_bpids_per_mem_debug_info(
+	int num_bpids, int minimum_needed_bpids, int total_bpids,
+	int *requested_bpids_per_partition, int *available_bpids_per_partition)
+{
+	int available_bpids, i;
+	pr_info("Total amount of available bpids: %d\n",num_bpids);
+	pr_info("Minimum amount of needed bpids: %d\n",minimum_needed_bpids);
+	if(num_bpids < total_bpids)
+	{
+		pr_debug("Not all bpids were used, available: %d, used %d \n",total_bpids, num_bpids);
+
+	}
+	available_bpids = num_bpids;
+	for(i = 0; i < SLAB_NUM_MEM_PARTITIONS; i ++){
+
+		if(requested_bpids_per_partition[i] > 0)
+		{
+			pr_info("Partition %d:\n", i);
+			pr_info("Requested %d\n", requested_bpids_per_partition[i]);
+			available_bpids -= available_bpids_per_partition[i];
+			ASSERT_COND((available_bpids >= 0));
+			pr_info("Available %d\n", available_bpids_per_partition[i]);
+
+		}
+
+	}
+}
+
+
+__COLD_CODE static int slab_calc_amount_of_bpids_for_mempid(
+	int total_requested_bpids, int *requested_bpids_per_partition,
+	int *available_bpids_per_partition, int num_bpids,
+	int *remainder_bpids_calc_per_partition, int *minimum_needed_bpids,
+	int *available_bpids)
+{
+	int i, temp;
 	/*calculate the right amount of bpids to each mempid*/
 	for(i = 0; i < SLAB_NUM_MEM_PARTITIONS; i++)
 	{
 		if(requested_bpids_per_partition[i] > 0){
 			/* Use subtraction instead of using division and floating point to calculate proportion of bpids to each memory partition */
-			temp = (requested_bpids_per_partition[i]) * (*num_bpids);
+			temp = (requested_bpids_per_partition[i]) * (num_bpids);
 			while( temp >= total_requested_bpids &&
 				available_bpids_per_partition[i] < requested_bpids_per_partition[i])
 			{
 				temp -= total_requested_bpids;
 				available_bpids_per_partition[i] ++;
-				available_bpids --;
+				(*available_bpids) --;
 
 			}
 			remainder_bpids_calc_per_partition[i] = temp;
 
 			if( available_bpids_per_partition[i] == 0 ) /*Need to take bpid from other partitions*/
 			{
-				available_bpids --;
+				(*available_bpids) --;
 				available_bpids_per_partition[i] ++;
 			}
-			minimum_needed_bpids ++;
+			(*minimum_needed_bpids) ++;
 
 		}
 	}
-	if(minimum_needed_bpids > *num_bpids){
-		pr_err("Requested bpids for %d partitions, available number of bpids: %d\n",minimum_needed_bpids,*num_bpids);
+	if(*minimum_needed_bpids > num_bpids){
+		pr_err("Requested bpids for %d partitions, available number of bpids: %d\n",*minimum_needed_bpids, num_bpids);
 		return -EINVAL;
 	}
+
+	return 0;
+}
+
+__COLD_CODE static int slab_find_proportion_for_requests(int *num_bpids, int *available_bpids_per_partition)
+{
+	int requested_bpids_per_partition[SLAB_NUM_MEM_PARTITIONS] = {0}; /*store number of requests for bpids to each partition */
+	int total_requested_bpids = 0, minimum_needed_bpids = 0;/*minimum needed bpids to supply at least one for each memory*/
+	int remainder_bpids_calc_per_partition[SLAB_NUM_MEM_PARTITIONS] = {0}; /*remainder left after suppling bpids*/
+	int minimum_requested_index = 0, maximum_requested_index = 0; /*minimum\maximum remainder's index*/
+	int maximum_remainder = 0, minimum_remainder = 0; /*store minimum\maximum remainder after subtraction*/
+	int available_bpids = *num_bpids; /*local number of available bpids for AIOP*/
+	int total_bpids = *num_bpids; /*local number of available bpids for AIOP*/
+	int i, err;
+
+	slab_find_num_requested_bpids_per_partition(
+		&total_requested_bpids, requested_bpids_per_partition);
+
+	err = slab_calc_amount_of_bpids_for_mempid(
+		total_requested_bpids, requested_bpids_per_partition,
+		available_bpids_per_partition, *num_bpids,
+		remainder_bpids_calc_per_partition, &minimum_needed_bpids,
+		&available_bpids);
+	if(err)
+		return err;
 
 	if(available_bpids > 0) /*check if there are spears of bpids and can be used by some of partitions*/
 	{
@@ -1262,28 +1315,26 @@ __COLD_CODE static int slab_proccess_registered_requests(int *num_bpids, struct 
 		}
 	}
 
-	pr_info("Total amount of available bpids: %d\n",*num_bpids);
-	pr_info("Minimum amount of needed bpids: %d\n",minimum_needed_bpids);
-	if(*num_bpids < total_bpids)
-	{
-		pr_debug("Not all bpids were used, available: %d, used %d \n",total_bpids,*num_bpids);
 
-	}
-	available_bpids = *num_bpids;
-	for(i = 0; i < SLAB_NUM_MEM_PARTITIONS; i ++){
+	slab_bpids_per_mem_debug_info(
+		*num_bpids, minimum_needed_bpids,
+		total_bpids, requested_bpids_per_partition,
+		available_bpids_per_partition);
 
-		if(requested_bpids_per_partition[i] > 0)
-		{
-			pr_info("Partition %d:\n", i);
-			pr_info("Requested %d\n", requested_bpids_per_partition[i]);
-			available_bpids -= available_bpids_per_partition[i];
-			ASSERT_COND((available_bpids >= 0));
-			pr_info("Available %d\n", available_bpids_per_partition[i]);
+	return 0;
+}
 
-		}
 
-	}
+__COLD_CODE static int slab_proccess_registered_requests(int *num_bpids, struct   slab_bpid_info **bpids_arr)
+{
+	int i, err = 0;
+	int available_bpids_per_partition[SLAB_NUM_MEM_PARTITIONS] = {0}; /*store calculated number of available bpids per partition*/
 
+
+
+
+	err = slab_find_proportion_for_requests(num_bpids, available_bpids_per_partition);
+	if(err) return err;
 
 	*bpids_arr = (struct slab_bpid_info *)fsl_malloc(
 		(sizeof(struct slab_bpid_info) * (*num_bpids)), 1);
