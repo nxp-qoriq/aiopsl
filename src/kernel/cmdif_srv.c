@@ -414,33 +414,46 @@ static inline void amq_bits_update(int ind)
 
 /* Support for AIOP -> GPP */
 /* int mc_dpci_check(int ind);*/
-static inline int mc_dpci_check(int ind)
+static /*inline*/ int mc_dpci_check(int ind)
 {
 	uint8_t i;
 	struct mc_dprc *dprc = NULL;
 	int link_up = 1;
-	int err = 0;
+	int err;
+
+	/* Do it only if queues are not there, it should not happen */
+	if ((cmdif_aiop_srv.dpci_tbl->tx_queue_attr[0][ind].fqid == DPCI_FQID_NOT_VALID) ||
+		(cmdif_aiop_srv.dpci_tbl->rx_queue_attr[0][ind].fqid == DPCI_FQID_NOT_VALID)) {
+		pr_err("DPCI queues are not known to AIOP, will try again\n");
+
+		dprc = sys_get_unique_handle(FSL_OS_MOD_AIOP_RC);
+		ASSERT_COND_LIGHT(dprc != NULL);
+
+		err = dpci_get_link_state(&dprc->io, cmdif_aiop_srv.dpci_tbl->token[ind], &link_up);
+		if (err) {
+			pr_err("Failed to get dpci_get_link_state\n");
+		}
+
+		if ((cmdif_aiop_srv.dpci_tbl->peer_attr[ind].peer_id == (-1)) || !link_up) {
+			pr_err("DPCI is not attached or there is no link \n");
+			return -EACCES; /*Invalid device state*/
+		}
+
+		for (i = 0; i < DPCI_PRIO_NUM; i++) {
+			err |= dpci_get_tx_queue(&dprc->io, cmdif_aiop_srv.dpci_tbl->token[ind], i,
+			                         &cmdif_aiop_srv.dpci_tbl->tx_queue_attr[i][ind]);
+			err |= dpci_get_rx_queue(&dprc->io, cmdif_aiop_srv.dpci_tbl->token[ind], i,
+			                         &cmdif_aiop_srv.dpci_tbl->rx_queue_attr[i][ind]);
+		}
+		if (cmdif_aiop_srv.dpci_tbl->rx_queue_attr[0][ind].fqid != DPCI_FQID_NOT_VALID) {
+			pr_debug("DPCI queues are now set\n");
+			return 0;
+		} else {
+			return -EFAULT;
+		}
+	}
 	
-	dprc = sys_get_unique_handle(FSL_OS_MOD_AIOP_RC);
-	ASSERT_COND_LIGHT(dprc != NULL);
-
-	err = dpci_get_link_state(&dprc->io, cmdif_aiop_srv.dpci_tbl->token[ind], &link_up);
-	if (err) {
-		pr_err("Failed to get dpci_get_link_state\n");
-	}
-
-	if ((cmdif_aiop_srv.dpci_tbl->peer_attr[ind].peer_id == (-1)) || !link_up) {
-		pr_err("DPCI is not attached or there is no link \n");
-		return -EACCES; /*Invalid device state*/
-	}
-
-	for (i = 0; i < DPCI_PRIO_NUM; i++) {
-		err |= dpci_get_tx_queue(&dprc->io, cmdif_aiop_srv.dpci_tbl->token[ind], i,
-		                         &cmdif_aiop_srv.dpci_tbl->tx_queue_attr[i][ind]);
-		err |= dpci_get_rx_queue(&dprc->io, cmdif_aiop_srv.dpci_tbl->token[ind], i,
-		                         &cmdif_aiop_srv.dpci_tbl->rx_queue_attr[i][ind]);
-	}
-	return err;
+	return 0;
 }
 
 __COLD_CODE int notify_open();
@@ -481,19 +494,14 @@ __COLD_CODE int notify_open()
 	 * TODO consider to add lock per DPCI entry */
 	lock_spinlock(&cl->lock);
 
-	/* Do it only if queues are not there, it should not happen */
-	if ((cmdif_aiop_srv.dpci_tbl->tx_queue_attr[0][ind].fqid == DPCI_FQID_NOT_VALID) ||
-		(cmdif_aiop_srv.dpci_tbl->rx_queue_attr[0][ind].fqid == DPCI_FQID_NOT_VALID)) {
-		pr_err("DPCI queues are not known to AIOP, will try again\n");
-		err = mc_dpci_check(ind);
-		if (err) {
-			unlock_spinlock(&cl->lock);
-			return err;
-		}
-		if (cmdif_aiop_srv.dpci_tbl->rx_queue_attr[0][ind].fqid != DPCI_FQID_NOT_VALID) {
-			pr_debug("DPCI queues are now set\n");	
-		}		
+
+	err = mc_dpci_check(ind);
+	if (err) {
+		unlock_spinlock(&cl->lock);
+		return err;
 	}
+	
+	
 
 #ifdef DEBUG
 	/* Don't allow to open the same session twice */
@@ -530,6 +538,7 @@ __COLD_CODE int notify_open()
 	cl->gpp[link_up].regs->enq_flags  = cmdif_aiop_srv.dpci_tbl->bdi_flags[ind];
 
 	cl->count++;
+
 	unlock_spinlock(&cl->lock);
 
 	pr_debug("icid = 0x%x\n", cmdif_aiop_srv.dpci_tbl->icid[ind]);
@@ -537,6 +546,7 @@ __COLD_CODE int notify_open()
 	pr_debug("dma_flags = 0x%x\n", cmdif_aiop_srv.dpci_tbl->dma_flags[ind]);
 
 #endif /* STACK_CHECK */
+	
 	return 0;
 }
 
