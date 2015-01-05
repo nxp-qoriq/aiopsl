@@ -52,7 +52,9 @@ void icontext_cmd_get(struct icontext *ic)
 {
 	uint8_t  ind = (uint8_t)((CMDIF_FQD_GET) >> 1);
 	struct mc_dpci_obj *dt = sys_get_unique_handle(FSL_OS_MOD_DPCI_TBL);
-
+	
+	ASSERT_COND(dt);
+	
 	ic->icid = dt->icid[ind];
 	ic->dma_flags = dt->dma_flags[ind];
 	ic->bdi_flags = dt->bdi_flags[ind];

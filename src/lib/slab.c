@@ -1512,21 +1512,16 @@ __COLD_CODE int slab_debug_info_get(struct slab *slab, struct slab_debug_info *s
 	return -EINVAL;
 }
 
-/*****************************************************************************/
-__COLD_CODE int slab_register_context_buffer_requirements(
-	uint32_t    committed_buffs,
-	uint32_t    max_buffs,
-	uint16_t    buff_size,
-	uint16_t    alignment,
-	enum memory_partition_id  mem_pid,
-	uint32_t    flags,
-	uint32_t    num_ddr_pools)
+__COLD_CODE static int slab_check_registration_parameters(uint32_t committed_buffs,
+                                                   uint32_t max_buffs,
+                                                   uint16_t buff_size,
+                                                   uint16_t    alignment,
+                                                   enum memory_partition_id  mem_pid,
+                                                   int array_size,
+                                                   struct request_table_info *local_info,
+                                                   int *index)
 {
 	int i;
-	struct request_table_info local_info[] = SLAB_BUFF_SIZES_ARR;
-	int array_size =  ARRAY_SIZE(local_info);
-	UNUSED(flags);
-
 
 	switch(mem_pid)
 	{
@@ -1538,6 +1533,61 @@ __COLD_CODE int slab_register_context_buffer_requirements(
 		pr_err("Partition type %d not supported\n", mem_pid);
 		return -EINVAL;
 	}
+
+
+	for(i = 0; i< array_size; i++){
+		if(buff_size > local_info[i].buff_size)
+			continue;
+		else
+			break;
+	}
+	if(i == array_size){
+		pr_err("Requested buffer size is to big\n");
+		return -EINVAL;
+	}
+	*index = i;
+	if(max_buffs < committed_buffs){
+		pr_err("Max buffers must be bigger or equal to committed\n");
+		return -EINVAL;
+	}
+	/* max_bufs must not be 0*/
+	if (!max_buffs){
+		pr_err("Max buffers can't be zero\n");
+		return -EINVAL;
+	}
+
+	if(!IS_POWER_VALID_ALLIGN(alignment, SLAB_SIZE_SET(local_info[i].buff_size)))
+	{
+		pr_err("Invalid alignment %d\n", alignment);
+		return -EINVAL;
+	}
+
+	return 0;
+}
+
+/*****************************************************************************/
+__COLD_CODE int slab_register_context_buffer_requirements(
+	uint32_t    committed_buffs,
+	uint32_t    max_buffs,
+	uint16_t    buff_size,
+	uint16_t    alignment,
+	enum memory_partition_id  mem_pid,
+	uint32_t    flags,
+	uint32_t    num_ddr_pools)
+{
+	int i, err, index = 0;
+	struct request_table_info local_info[] = SLAB_BUFF_SIZES_ARR;
+	int array_size =  ARRAY_SIZE(local_info);
+	UNUSED(flags);
+
+	err = slab_check_registration_parameters(committed_buffs, max_buffs,
+	                                         buff_size, alignment,
+	                                         mem_pid, array_size,
+	                                         local_info, &index);
+
+	if(err)
+		return err;
+
 
 	if(g_slab_early_init_data->mem_pid_buffer_request[mem_pid] == NULL)
 	{
@@ -1566,45 +1616,18 @@ __COLD_CODE int slab_register_context_buffer_requirements(
 	if(num_ddr_pools > 0)
 		g_slab_early_init_data->num_ddr_pools += num_ddr_pools;
 
+	g_slab_early_init_data->mem_pid_buffer_request[mem_pid]->table_info[index].committed_bufs += committed_buffs;
 
-
-	for(i = 0; i< array_size; i++){
-		if(buff_size > local_info[i].buff_size)
-			continue;
-		else
-			break;
-	}
-	if(i == array_size){
-		pr_err("Requested buffer size is to big\n");
-		return -EINVAL;
-	}
-	if(max_buffs < committed_buffs){
-		pr_err("Max buffers must be bigger or equal to committed\n");
-		return -EINVAL;
-	}
-	/* max_bufs must not be 0*/
-	if (!max_buffs){
-		pr_err("Max buffers can't be zero\n");
-		return -EINVAL;
-	}
-
-	if(!IS_POWER_VALID_ALLIGN(alignment, SLAB_SIZE_SET(local_info[i].buff_size)))
-	{
-		pr_err("Invalid alignment %d\n", alignment);
-		return -EINVAL;
-	}
-	g_slab_early_init_data->mem_pid_buffer_request[mem_pid]->table_info[i].committed_bufs += committed_buffs;
-
-	if (max_buffs - committed_buffs > g_slab_early_init_data->mem_pid_buffer_request[mem_pid]->table_info[i].extra)
-		g_slab_early_init_data->mem_pid_buffer_request[mem_pid]->table_info[i].extra = (max_buffs - committed_buffs);
+	if (max_buffs - committed_buffs > g_slab_early_init_data->mem_pid_buffer_request[mem_pid]->table_info[index].extra)
+		g_slab_early_init_data->mem_pid_buffer_request[mem_pid]->table_info[index].extra = (max_buffs - committed_buffs);
 	/* allocation will be using max buffers number */
-	g_slab_early_init_data->mem_pid_buffer_request[mem_pid]->table_info[i].max =
-		g_slab_early_init_data->mem_pid_buffer_request[mem_pid]->table_info[i].committed_bufs +
-		g_slab_early_init_data->mem_pid_buffer_request[mem_pid]->table_info[i].extra;
+	g_slab_early_init_data->mem_pid_buffer_request[mem_pid]->table_info[index].max =
+		g_slab_early_init_data->mem_pid_buffer_request[mem_pid]->table_info[index].committed_bufs +
+		g_slab_early_init_data->mem_pid_buffer_request[mem_pid]->table_info[index].extra;
 
 
-	if(alignment > g_slab_early_init_data->mem_pid_buffer_request[mem_pid]->table_info[i].alignment)
-		g_slab_early_init_data->mem_pid_buffer_request[mem_pid]->table_info[i].alignment = (uint16_t) alignment;
+	if(alignment > g_slab_early_init_data->mem_pid_buffer_request[mem_pid]->table_info[index].alignment)
+		g_slab_early_init_data->mem_pid_buffer_request[mem_pid]->table_info[index].alignment = (uint16_t) alignment;
 
 	return 0;
 }

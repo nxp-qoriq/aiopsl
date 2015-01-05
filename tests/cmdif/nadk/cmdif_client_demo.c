@@ -475,8 +475,6 @@ static int shbp_test()
 	uint64_t temp64;
 	
 	NADK_NOTE(APP1, "Testing SHBP");
-	NADK_NOTE(APP1, "Testing SHBP");
-	NADK_NOTE(APP1, "Testing SHBP");
 	
 	/**** AIOP SHBP ****/
 	mem_ptr = nadk_mpool_getblock(aiop_shbp_mem_pool, NULL);
@@ -600,7 +598,7 @@ static int shbp_test()
 			         "FAILED shbp_refill check for AIOP SHBP");
 		}
 		temp64++;
-	} while (temp64 < 0x10); /* Massive testing */
+	} while (temp64 < 0x2); /* For massive testing change here */
 	
 	err = shbp_release(gpp_bp, data);
 	if (err) {

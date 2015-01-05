@@ -134,8 +134,14 @@ static int aiop_async_cb(void *async_ctx, int err, uint16_t cmd_id,
 	if (err != 0) {
 		fsl_os_print("ERROR inside aiop_async_cb\n");
 	}
-	((uint8_t *)data)[0] = AIOP_ASYNC_CB_DONE;
-	fdma_modify_default_segment_data(0, (uint16_t)size);
+	if (size > 0) {
+		fsl_os_print("Setting first byte of data with val = 0x%x", 
+		             AIOP_ASYNC_CB_DONE);
+		((uint8_t *)data)[0] = AIOP_ASYNC_CB_DONE;
+		fdma_modify_default_segment_data(0, (uint16_t)size);
+	} else {
+		fsl_os_print("No data inside aiop_async_cb\n");
+	}
 	return err;
 }
 
@@ -286,13 +292,25 @@ static int ctrl_cb0(void *dev, uint16_t cmd, uint32_t size,
 		err = cmdif_send(&cidesc, 0xa | CMDIF_NORESP_CMD, size,
 		                 CMDIF_PRI_LOW, p_data, aiop_async_cb, cidesc.regs);
 		break;
-	case ASYNC_CMD:
+	case ASYNC_CMD:		
 		p_data += size;
+		pr_debug("AIOP is sending asynchronous command with the"
+			"following parameters\n");
+		pr_debug("Addr high = 0x%x low = 0x%x size = 0x%x\n",
+			 (uint32_t)((p_data & 0xFF00000000) >> 32),
+			 (uint32_t)(p_data & 0xFFFFFFFF), 
+			 AIOP_SYNC_BUFF_SIZE);
 		err = cmdif_send(&cidesc, 0xa | CMDIF_ASYNC_CMD, AIOP_SYNC_BUFF_SIZE,
 		                 CMDIF_PRI_LOW, p_data, aiop_async_cb, cidesc.regs);
 		break;
-	case ASYNC_N_CMD:
+	case ASYNC_N_CMD:		
 		p_data += size;
+		pr_debug("AIOP is sending asynchronous command with the"
+			"following parameters\n");
+		pr_debug("Addr high = 0x%x low = 0x%x size = 0x%x\n",
+			 (uint32_t)((p_data & 0xFF00000000) >> 32),
+			 (uint32_t)(p_data & 0xFFFFFFFF), 
+			 AIOP_SYNC_BUFF_SIZE);		
 		err |= cmdif_send(&cidesc, 0x1 | CMDIF_ASYNC_CMD, AIOP_SYNC_BUFF_SIZE,
 		                  CMDIF_PRI_LOW, p_data, aiop_async_cb, cidesc.regs);
 		err |= cmdif_send(&cidesc, 0x2 | CMDIF_ASYNC_CMD, AIOP_SYNC_BUFF_SIZE,
