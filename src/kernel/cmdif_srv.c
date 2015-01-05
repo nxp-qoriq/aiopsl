@@ -316,6 +316,10 @@ __HOT_CODE void cmdif_fd_send(int cb_err)
 					cmdif_aiop_srv.dpci_tbl->token[ind], pr,
 					&cmdif_aiop_srv.dpci_tbl->tx_queue_attr[pr][ind]);
 		fqid = cmdif_aiop_srv.dpci_tbl->tx_queue_attr[pr][ind].fqid;
+		if (err) {
+			sl_pr_err("Failed dpci_get_tx_queue err = %d" 
+				"fqid = 0x%x", err, fqid);
+		}
 	}
 
 	sl_pr_debug("Response FQID = 0x%x pr = 0x%x dpci_ind = 0x%x\n", fqid, pr, ind);
@@ -565,13 +569,13 @@ __COLD_CODE int notify_close()
 	return -ENAVAIL;
 }
 
-__COLD_CODE void dump_param_get(uint32_t *len, uint8_t **p, uint64_t *addr);
-__COLD_CODE void dump_param_get(uint32_t *len, uint8_t **p, uint64_t *addr)
+__COLD_CODE void dump_param_get(uint32_t *len, uint8_t **p, uint64_t *iova);
+__COLD_CODE void dump_param_get(uint32_t *len, uint8_t **p, uint64_t *iova)
 {
 	*len = MIN(LDPAA_FD_GET_LENGTH(HWC_FD_ADDRESS),\
 	                   PRC_GET_SEGMENT_LENGTH());
 	*p = (uint8_t  *)PRC_GET_SEGMENT_ADDRESS();
-	*addr = LDPAA_FD_GET_ADDR(HWC_FD_ADDRESS);
+	*iova = LDPAA_FD_GET_ADDR(HWC_FD_ADDRESS);
 }
 
 __COLD_CODE void dump_memory();
