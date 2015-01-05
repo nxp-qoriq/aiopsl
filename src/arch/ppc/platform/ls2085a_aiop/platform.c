@@ -40,6 +40,7 @@
 #include "fsl_mem_mng.h"
 
 #define __ERR_MODULE__  MODULE_SOC_PLATFORM
+extern __TASK uint32_t seed_32bit;
 extern struct aiop_init_info g_init_data;
 extern const uint8_t AIOP_DDR_START[],AIOP_DDR_END[];
 
@@ -101,7 +102,6 @@ const char *module_strings[] = {
     ,"SRIO"                     /* MODULE_SRIO */
     ,"RMan"                     /* MODULE_RMAN */
 };
-extern __TASK uint32_t seed_32bit;
 
 static int build_mem_partitions_table(t_platform  *pltfrm);
 
