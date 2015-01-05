@@ -341,7 +341,6 @@ __COLD_CODE int cmdif_srv_close(void *srv,
 		uint32_t size,
 		void *v_data)
 {
-	int    err = 0;
 	struct cmdif_session_data *data = v_data;
 
 #ifdef DEBUG
