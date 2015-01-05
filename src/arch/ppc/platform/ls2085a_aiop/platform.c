@@ -244,15 +244,14 @@ __COLD_CODE static int init_random_seed(uint32_t num_of_tasks)
 
 	seed = (core_and_task_id << 16) | core_and_task_id;
 	seed_mem_ptr = &(seed_32bit);
-
-	*seed_mem_ptr = seed;
+	iowrite32be(seed, seed_mem_ptr);
 	/*seed for task 0 is already allocated*/
 	for (i = 0; i < num_of_tasks - 1; i ++)
 	{
 		seed_mem_ptr += task_stack_size; /*size of each task area*/
 		core_and_task_id ++; /*increment the task id accordingly to its tls section*/
 		seed = (core_and_task_id << 16) | core_and_task_id;
-		*seed_mem_ptr = seed;
+		iowrite32be(seed, seed_mem_ptr);
 	}
 
 	return 0;
