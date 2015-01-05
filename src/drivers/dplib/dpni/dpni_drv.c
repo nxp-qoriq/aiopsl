@@ -590,9 +590,11 @@ int dpni_drv_get_connected_aiop_ni_id(const uint16_t dpni_id, uint16_t *aiop_nii
 	struct mc_dprc *dprc = sys_get_unique_handle(FSL_OS_MOD_AIOP_RC);
 	struct dprc_endpoint endpoint1 = {0};
 	struct dprc_endpoint endpoint2 = {0};
-
 	int err;
 	uint16_t i;
+
+	if(dprc == NULL)
+		return -EINVAL;
 
 	endpoint1.id = dpni_id;
 	endpoint1.interface_id = 0;
@@ -620,6 +622,9 @@ int dpni_drv_get_connected_dpni_id(const uint16_t aiop_niid, uint16_t *dpni_id, 
 	struct dprc_endpoint endpoint1 = {0};
 	struct dprc_endpoint endpoint2 = {0};
 	int err;
+
+	if(dprc == NULL)
+		return -EINVAL;
 
 	endpoint1.id = nis[aiop_niid].dpni_id;
 	endpoint1.interface_id = 0;
