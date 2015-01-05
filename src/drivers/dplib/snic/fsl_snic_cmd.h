@@ -157,30 +157,31 @@ do { \
 	_OP(0, 0,	16,	uint16_t,	snic_id); \
 	_OP(0, 16,	16,	uint16_t,	sa_id); \
 	_OP(0, 32,	32,	int32_t,	ipsec_cfg->direction); \
-	_OP(1, 0,	8,	uint8_t,	ipsec_cfg->encparams.ip_nh); \
-	_OP(1, 16,	16,	uint16_t,	ipsec_cfg->encparams.options); \
-	_OP(1, 32,	32,	uint32_t,	ipsec_cfg->encparams.seq_num_ext_hi); \
-	_OP(2, 0,	32,	uint32_t,	ipsec_cfg->encparams.seq_num); \
-	_OP(2, 32,	32,	uint32_t,	ipsec_cfg->encparams.spi); \
-	_OP(3, 0,	32,	uint32_t,	ipsec_cfg->encparams.cbc.iv[0]); \
-	_OP(3, 32,	32,	uint32_t,	ipsec_cfg->encparams.cbc.iv[1]); \
-	_OP(4, 0,	32,	uint32_t,	ipsec_cfg->encparams.cbc.iv[2]); \
-	_OP(4, 32,	32,	uint32_t,	ipsec_cfg->encparams.cbc.iv[3]); \
-	_OP(5, 0,	32,	uint32_t,	ipsec_cfg->encparams.ctr.ctr_nonce); \
-	_OP(5, 32,	32,	uint32_t,	ipsec_cfg->encparams.ctr.iv[0]); \
-	_OP(6, 0,	32,	uint32_t,	ipsec_cfg->encparams.ctr.iv[1]); \
-	_OP(6, 32,	32,	uint32_t,	ipsec_cfg->encparams.ccm.salt); \
-	_OP(7, 0,	32,	uint32_t,	ipsec_cfg->encparams.ccm.iv[0]); \
-	_OP(7, 32,	32,	uint32_t,	ipsec_cfg->encparams.ccm.iv[1]); \
-	_OP(8, 0,	32,	uint32_t,	ipsec_cfg->encparams.gcm.salt); \
-	_OP(8, 32,	32,	uint32_t,	ipsec_cfg->encparams.gcm.iv[0]); \
-	_OP(9, 0,	32,	uint32_t,	ipsec_cfg->encparams.gcm.iv[1]); \
-	_OP(9, 32,	16,	uint16_t,	ipsec_cfg->decparams.options); \
-	_OP(10, 0,	32,	uint32_t,	ipsec_cfg->decparams.seq_num_ext_hi); \
-	_OP(10, 32,	32,	uint32_t,	ipsec_cfg->decparams.seq_num); \
-	_OP(11, 0,	32,	uint32_t,	ipsec_cfg->decparams.ctr.ctr_nonce); \
-	_OP(11, 32,	32,	uint32_t,	ipsec_cfg->decparams.ccm.salt); \
-	_OP(12, 0,	32,	uint32_t,	ipsec_cfg->decparams.gcm.salt); \
+	_OP(1, 0,	8,	uint8_t,	encparams_cfg->ip_nh); \
+	_OP(1, 8,	8,	uint8_t,	cipher_type); \
+	_OP(1, 16,	16,	uint16_t,	encparams_cfg->options); \
+	_OP(1, 32,	32,	uint32_t,	encparams_cfg->seq_num_ext_hi); \
+	_OP(2, 0,	32,	uint32_t,	encparams_cfg->seq_num); \
+	_OP(2, 32,	32,	uint32_t,	encparams_cfg->spi); \
+	_OP(3, 0,	32,	uint32_t,	encap_cbc_cfg->iv[0]); \
+	_OP(3, 32,	32,	uint32_t,	encap_cbc_cfg->iv[1]); \
+	_OP(4, 0,	32,	uint32_t,	encap_cbc_cfg->iv[2]); \
+	_OP(4, 32,	32,	uint32_t,	encap_cbc_cfg->iv[3]); \
+	_OP(5, 0,	32,	uint32_t,	encap_ctr_cfg->ctr_nonce); \
+	_OP(5, 32,	32,	uint32_t,	encap_ctr_cfg->iv[0]); \
+	_OP(6, 0,	32,	uint32_t,	encap_ctr_cfg->iv[1]); \
+	_OP(6, 32,	32,	uint32_t,	encap_ccm_cfg->salt); \
+	_OP(7, 0,	32,	uint32_t,	encap_ccm_cfg->iv[0]); \
+	_OP(7, 32,	32,	uint32_t,	encap_ccm_cfg->iv[1]); \
+	_OP(8, 0,	32,	uint32_t,	encap_gcm_cfg->salt); \
+	_OP(8, 32,	32,	uint32_t,	encap_gcm_cfg->iv[0]); \
+	_OP(9, 0,	32,	uint32_t,	encap_gcm_cfg->iv[1]); \
+	_OP(9, 32,	16,	uint16_t,	decparams_cfg->options); \
+	_OP(10, 0,	32,	uint32_t,	decparams_cfg->seq_num_ext_hi); \
+	_OP(10, 32,	32,	uint32_t,	decparams_cfg->seq_num); \
+	_OP(11, 0,	32,	uint32_t,	decap_ctr_cfg->ctr_nonce); \
+	_OP(11, 32,	32,	uint32_t,	decap_ccm_cfg->salt); \
+	_OP(12, 0,	32,	uint32_t,	decap_gcm_cfg->salt); \
 	_OP(12, 32,	32,	uint32_t,	ipsec_cfg->cipherdata.algtype); \
 	_OP(13, 0,	32,	uint32_t,	ipsec_cfg->cipherdata.keylen); \
 	_OP(13, 32,	32,	uint32_t,	ipsec_cfg->cipherdata.key_enc_flags); \
