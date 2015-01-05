@@ -165,7 +165,7 @@ __COLD_CODE int cluster_init(void)
 __COLD_CODE int global_init(void)
 {
 	struct sys_module_desc modules[] = GLOBAL_MODULES;
-	int                    i;
+	int i, err;
 
 	/* Verifying that MC saw the data at the beginning of special section
 	 * and at fixed address
@@ -174,9 +174,14 @@ __COLD_CODE int global_init(void)
 	ASSERT_COND((((uint8_t *)(&g_init_data.sl_info)) == AIOP_INIT_DATA) &&
 	            (AIOP_INIT_DATA == AIOP_INIT_DATA_FIXED_ADDR));
 
-	for (i=0; i<ARRAY_SIZE(modules) ; i++)
-		if (modules[i].init)
-			modules[i].init();
+	for (i=0; i<ARRAY_SIZE(modules) ; i++) 
+	{
+		if (modules[i].init) 
+		{
+			err = modules[i].init();
+			if(err) return err;
+		}
+	}
 
 	return 0;
 }
@@ -186,26 +191,31 @@ __COLD_CODE void global_free(void)
 	struct sys_module_desc modules[] = GLOBAL_MODULES;
 	int i;
 
-	for (i = (ARRAY_SIZE(modules) - 1); i >= 0; i--)
-		if (modules[i].free)
+	for (i = (ARRAY_SIZE(modules) - 1); i >= 0; i--) 
+		if (modules[i].free) 
 			modules[i].free();
 }
 
 __COLD_CODE int global_early_init(void)
 {
 	struct sys_module_desc modules[] = GLOBAL_MODULES;
-	int i;
+	int i, err;
 
-	for (i=0; i<ARRAY_SIZE(modules) ; i++)
-		if (modules[i].early_init)
-			modules[i].early_init();
-
+	for (i=0; i<ARRAY_SIZE(modules) ; i++) 
+	{
+		if (modules[i].early_init) 
+		{
+			err = modules[i].early_init();
+			if(err) return err;
+		}
+	}
+	
 	return 0;
 }
 
 __COLD_CODE int apps_early_init(void)
 {
-	int i;
+	int i, err;
 	uint16_t app_arr_size = g_app_params.app_arr_size;
 	struct sys_module_desc *apps = \
 		fsl_malloc(app_arr_size * sizeof(struct sys_module_desc), 1);
@@ -213,9 +223,16 @@ __COLD_CODE int apps_early_init(void)
 	memset(apps, 0, app_arr_size * sizeof(struct sys_module_desc));
 	build_apps_array(apps);
 
-	for (i=0; i<app_arr_size; i++) {
-		if (apps[i].early_init)
-			apps[i].early_init();
+	for (i=0; i<app_arr_size; i++) 
+	{
+		if (apps[i].early_init) 
+		{
+			err = apps[i].early_init();
+			if(err) {
+				fsl_free(apps);
+				return err;
+			}
+		}
 	}
 
 	fsl_free(apps);
