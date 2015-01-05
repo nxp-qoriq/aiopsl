@@ -129,11 +129,19 @@ def  compare_files(file1, file2):
 		return True 
 
 
+def add_email_recipients(Email, Email_recipients):
+	if 'Email = ' == Email_recipients:
+		return Email_recipients + Email
+	else:
+		if Email not in Email_recipients:
+			return Email_recipients + ',' + Email
+		else:
+			return Email_recipients
+
 
 if __name__ == "__main__":
 	global g_inputfile
 	files_equal = True
-	first_enter = True
 
 	main(sys.argv[1:])
 	print 'Input file is "' + g_inputfile + '"'
@@ -153,19 +161,13 @@ if __name__ == "__main__":
 			if len(l) == 3:
 				if check_if_file_exists(l[0]) == False:
 					print l[0] + ' file is missing'
+					Email_recipients = add_email_recipients(l[2], Email_recipients)
 				elif check_if_file_exists(l[1]) == False:
 					print l[1] + ' file is missing'
+					Email_recipients = add_email_recipients(l[2], Email_recipients)
 				else:
 					if compare_files(l[0], l[1]) == False:
-						files_equal = False
-						if first_enter:
-							Email_recipients = Email_recipients + l[2]
-							first_enter = False	
-						else:
-							if l[2] not in Email_recipients:
-								Email_recipients = Email_recipients + ',' + l[2]
-
-
+						Email_recipients = add_email_recipients(l[2], Email_recipients)
 
 			else:
 				files_equal = False
