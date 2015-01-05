@@ -200,12 +200,10 @@ static void pltfrm_disable_local_irq_cb(fsl_handle_t h_platform)
 /*****************************************************************************/
 __COLD_CODE static int init_random_seed(uint32_t num_of_tasks)
 {
-	uint32_t *seed_mem_ptr = NULL;
+	volatile uint32_t *seed_mem_ptr = NULL;
 	uint32_t core_and_task_id = 0;
 	uint32_t seed = 0;
 	uint32_t task_stack_size = 0;
-	uint32_t sum_stack = 0;
-
 	int i;
 	/*------------------------------------------------------*/
 	/* Initialize seeds for random function                 */
@@ -218,22 +216,22 @@ __COLD_CODE static int init_random_seed(uint32_t num_of_tasks)
 	 */
 	switch(num_of_tasks) {
 	case (0):
-			    num_of_tasks = 1;
+				    num_of_tasks = 1;
 	break;
 	case (1):
-			    num_of_tasks = 2;
+				    num_of_tasks = 2;
 	task_stack_size = 0x1000;
 	break;
 	case (2):
-			    num_of_tasks = 4;
+				    num_of_tasks = 4;
 	task_stack_size = 0x800;
 	break;
 	case (3):
-			    num_of_tasks = 8;
+				    num_of_tasks = 8;
 	task_stack_size = 0x400;
 	break;
 	case (4):
-			    num_of_tasks = 16;
+				    num_of_tasks = 16;
 	task_stack_size = 0x200;
 	break;
 	default:
@@ -244,19 +242,20 @@ __COLD_CODE static int init_random_seed(uint32_t num_of_tasks)
 	core_and_task_id =  ((core_get_id() + 1) << 8);
 	core_and_task_id |= 1; /*add task 0 id*/
 
-	seed_32bit = (core_and_task_id << 16) | core_and_task_id;
+	seed = (core_and_task_id << 16) | core_and_task_id;
+	seed_mem_ptr = &(seed_32bit);
+
+	*seed_mem_ptr = seed;
 	/*seed for task 0 is already allocated*/
 	for (i = 0; i < num_of_tasks - 1; i ++)
 	{
-		sum_stack += task_stack_size; /*size of each task area*/
-		seed_mem_ptr = &(seed_32bit) + sum_stack;
+		seed_mem_ptr += task_stack_size; /*size of each task area*/
 		core_and_task_id ++; /*increment the task id accordingly to its tls section*/
 		seed = (core_and_task_id << 16) | core_and_task_id;
-		iowrite32be(seed, seed_mem_ptr);
+		*seed_mem_ptr = seed;
 	}
 
 	return 0;
-
 }
 /*****************************************************************************/
 __COLD_CODE static int pltfrm_init_core_cb(fsl_handle_t h_platform)
@@ -374,7 +373,7 @@ __COLD_CODE static int pltfrm_init_mem_partitions_cb(fsl_handle_t h_platform)
         p_mem_info = &pltfrm->param.mem_info[i];
         virt_base_addr = p_mem_info->virt_base_addr;
         size = p_mem_info->size;
-       
+
         if (p_mem_info->mem_attribute & MEMORY_ATTR_MALLOCABLE) {
             err = sys_register_mem_partition(p_mem_info->mem_partition_id,
                                              virt_base_addr,
@@ -561,7 +560,7 @@ __COLD_CODE int platform_init(struct platform_param    *pltfrm_param,
     SANITY_CHECK_RETURN_ERROR(pltfrm_param, ENODEV);
     SANITY_CHECK_RETURN_ERROR(pltfrm_ops, ENODEV);
 
-    
+
     memset(&s_pltfrm, 0, sizeof(t_platform));
 
     /* Store configuration parameters */
