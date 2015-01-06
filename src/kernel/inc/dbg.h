@@ -39,7 +39,6 @@
 
 #ifdef __KLOCWORK__
 #undef DEBUG_ERRORS
-#define LOG_OFF
 #endif
 
 /**************************************************************************//**

@@ -44,7 +44,7 @@
 
  @{
 *//***************************************************************************/
-#ifdef LOG_OFF
+#ifdef __KLOCWORK__
 #define pr_crit(...)
 #define pr_err(...)
 #define pr_warn(...)
