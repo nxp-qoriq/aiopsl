@@ -322,11 +322,17 @@ __COLD_CODE static void print_dev_desc(struct dprc_obj_desc* dev_desc)
 	pr_debug("vendor - %x\n", dev_desc->vendor);
 
 	if (strcmp(dev_desc->type, "dpni") == 0)
+	{
 		pr_debug("type - DP_DEV_DPNI\n");
+	}
 	else if (strcmp(dev_desc->type, "dprc") == 0)
+	{
 		pr_debug("type - DP_DEV_DPRC\n");
+	}
 	else if (strcmp(dev_desc->type, "dpio") == 0)
+	{
 		pr_debug("type - DP_DEV_DPIO\n");
+	}
 	pr_debug("id - %d\n", dev_desc->id);
 	pr_debug("region_count - %d\n", dev_desc->region_count);
 	pr_debug("ver_major - %d\n", dev_desc->ver_major);
