@@ -220,6 +220,10 @@ __COLD_CODE int apps_early_init(void)
 	struct sys_module_desc *apps = \
 		fsl_malloc(app_arr_size * sizeof(struct sys_module_desc), 1);
 
+	if(apps == NULL) {
+		return -ENOMEM;
+	}
+	
 	memset(apps, 0, app_arr_size * sizeof(struct sys_module_desc));
 	build_apps_array(apps);
 
@@ -355,7 +359,11 @@ __COLD_CODE int run_apps(void)
 	uint16_t app_arr_size = g_app_params.app_arr_size;
 	struct sys_module_desc *apps = \
 		fsl_malloc(app_arr_size * sizeof(struct sys_module_desc), 1);
-
+	
+	if(apps == NULL) {
+		return -ENOMEM;
+	}
+	
 	/* TODO - add initialization of global default DP-IO (i.e. call 'dpio_open', 'dpio_init');
 	 * This should be mapped to ALL cores of AIOP and to ALL the tasks */
 	/* TODO - add initialization of global default DP-SP (i.e. call 'dpsp_open', 'dpsp_init');
