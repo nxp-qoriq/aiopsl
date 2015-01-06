@@ -589,6 +589,7 @@ __COLD_CODE int slab_free(struct slab **slab)
 
 		lock_spinlock((uint8_t *)&slab_virtual_pool->spinlock);
 		if (slab_virtual_pool->allocated_bufs != 0) {
+			unlock_spinlock((uint8_t *)&slab_virtual_pool->spinlock);
 			unlock_spinlock((uint8_t *)&g_slab_virtual_pools.global_spinlock);
 			sl_pr_err("Allocated number of buffers is not 0.\n");
 			return -EACCES;
