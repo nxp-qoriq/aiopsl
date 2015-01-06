@@ -759,7 +759,24 @@ int dpni_set_counter(struct fsl_mc_io *mc_io,
 	return mc_send_command(mc_io, &cmd);
 }
 
-int dpni_get_link_state(struct fsl_mc_io *mc_io, uint16_t token, int *up)
+int dpni_set_link_cfg(struct fsl_mc_io *mc_io,
+		     uint16_t token,
+		     struct dpni_link_cfg *cfg)
+{
+	struct mc_command cmd = { 0 };
+
+	/* prepare command */
+	cmd.header = mc_encode_cmd_header(DPNI_CMDID_SET_LINK_CFG,
+					  MC_CMD_PRI_LOW, token);
+	DPNI_CMD_SET_LINK_CFG(cmd, cfg);
+
+	/* send command to mc*/
+	return mc_send_command(mc_io, &cmd);
+}
+
+int dpni_get_link_state(struct fsl_mc_io *mc_io, 
+                        uint16_t token, 
+                        struct dpni_link_state *state)
 {
 	struct mc_command cmd = { 0 };
 	int err;
@@ -774,7 +791,7 @@ int dpni_get_link_state(struct fsl_mc_io *mc_io, uint16_t token, int *up)
 		return err;
 
 	/* retrieve response parameters */
-	DPNI_RSP_GET_LINK_STATE(cmd, *up);
+	DPNI_RSP_GET_LINK_STATE(cmd, state);
 
 	return 0;
 }

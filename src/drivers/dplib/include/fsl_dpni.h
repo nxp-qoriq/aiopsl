@@ -833,14 +833,50 @@ int dpni_set_counter(struct fsl_mc_io	*mc_io,
 		     uint64_t		value);
 
 /**
- * dpni_get_link_state() - Return the link state (either up or down)
+ * struct - Structure representing DPNI link configuration
+ * @rate: Rate
+ * @options: Mask of available options; use 'DPNI_LINK_OPT_<X>' values
+ */
+struct dpni_link_cfg {
+	uint64_t rate;
+	uint64_t options;
+};
+
+/**
+ * dpni_set_link_cfg() - set the link configuration.
  * @mc_io:	Pointer to MC portal's I/O object
  * @token:	Token of DPNI object
- * @up:		Returned link state; returns '1' if link is up, '0' otherwise
+ * @cfg: 	Link configuration
  *
  * Return:	'0' on Success; Error code otherwise.
  */
-int dpni_get_link_state(struct fsl_mc_io *mc_io, uint16_t token, int *up);
+int dpni_set_link_cfg(struct fsl_mc_io *mc_io, 
+                      uint16_t token, 
+                      struct dpni_link_cfg *cfg);
+
+/**
+ * struct dpni_link_state - Structure representing DPNI link state
+ * @rate: Rate
+ * @options: Mask of available options; use 'DPNI_LINK_OPT_<X>' values
+ * @up: Link state; '0' for down, '1' for up
+ */
+struct dpni_link_state {
+	uint64_t rate;
+	uint64_t options;
+	int up;
+};
+
+/**
+ * dpni_get_link_state() - Return the link state (either up or down)
+ * @mc_io:	Pointer to MC portal's I/O object
+ * @token:	Token of DPNI object
+ * @state:	Returned link state; 
+ *
+ * Return:	'0' on Success; Error code otherwise.
+ */
+int dpni_get_link_state(struct fsl_mc_io *mc_io, 
+                        uint16_t token, 
+                        struct dpni_link_state *state);
 
 /**
  * dpni_set_max_frame_length() - Set the maximum received frame length.
