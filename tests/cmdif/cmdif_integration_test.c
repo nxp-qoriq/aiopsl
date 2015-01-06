@@ -294,7 +294,7 @@ static int ctrl_cb0(void *dev, uint16_t cmd, uint32_t size,
 		break;
 	case ASYNC_CMD:		
 		p_data += size;
-		pr_debug("AIOP is sending asynchronous command with the"
+		pr_debug("AIOP is sending asynchronous command with the "
 			"following parameters\n");
 		pr_debug("Addr high = 0x%x low = 0x%x size = 0x%x\n",
 			 (uint32_t)((p_data & 0xFF00000000) >> 32),
@@ -305,7 +305,7 @@ static int ctrl_cb0(void *dev, uint16_t cmd, uint32_t size,
 		break;
 	case ASYNC_N_CMD:		
 		p_data += size;
-		pr_debug("AIOP is sending asynchronous command with the"
+		pr_debug("AIOP is sending asynchronous command with the "
 			"following parameters\n");
 		pr_debug("Addr high = 0x%x low = 0x%x size = 0x%x\n",
 			 (uint32_t)((p_data & 0xFF00000000) >> 32),
