@@ -693,6 +693,9 @@
 		*/	
 		/** @defgroup slab_g SLAB
 			@ingroup mem_mng_g_id
+		*/
+		/** @defgroup shbp_aiop_g Shared Buffer Pool
+			@ingroup mem_mng_g_id
 		*/		
 	/** @} */
 	/** @defgroup Synchronization_g_id Synchronization
