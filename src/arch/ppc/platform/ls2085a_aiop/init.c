@@ -174,9 +174,9 @@ __COLD_CODE int global_init(void)
 	ASSERT_COND((((uint8_t *)(&g_init_data.sl_info)) == AIOP_INIT_DATA) &&
 	            (AIOP_INIT_DATA == AIOP_INIT_DATA_FIXED_ADDR));
 
-	for (i=0; i<ARRAY_SIZE(modules) ; i++) 
+	for (i=0; i<ARRAY_SIZE(modules) ; i++)
 	{
-		if (modules[i].init) 
+		if (modules[i].init)
 		{
 			err = modules[i].init();
 			if(err) return err;
@@ -191,8 +191,8 @@ __COLD_CODE void global_free(void)
 	struct sys_module_desc modules[] = GLOBAL_MODULES;
 	int i;
 
-	for (i = (ARRAY_SIZE(modules) - 1); i >= 0; i--) 
-		if (modules[i].free) 
+	for (i = (ARRAY_SIZE(modules) - 1); i >= 0; i--)
+		if (modules[i].free)
 			modules[i].free();
 }
 
@@ -201,15 +201,15 @@ __COLD_CODE int global_early_init(void)
 	struct sys_module_desc modules[] = GLOBAL_MODULES;
 	int i, err;
 
-	for (i=0; i<ARRAY_SIZE(modules) ; i++) 
+	for (i=0; i<ARRAY_SIZE(modules) ; i++)
 	{
-		if (modules[i].early_init) 
+		if (modules[i].early_init)
 		{
 			err = modules[i].early_init();
 			if(err) return err;
 		}
 	}
-	
+
 	return 0;
 }
 
@@ -223,9 +223,9 @@ __COLD_CODE int apps_early_init(void)
 	memset(apps, 0, app_arr_size * sizeof(struct sys_module_desc));
 	build_apps_array(apps);
 
-	for (i=0; i<app_arr_size; i++) 
+	for (i=0; i<app_arr_size; i++)
 	{
-		if (apps[i].early_init) 
+		if (apps[i].early_init)
 		{
 			err = apps[i].early_init();
 			if(err) {
@@ -369,8 +369,9 @@ __COLD_CODE int run_apps(void)
 	if(IS_POWER_VALID_ALLIGN(g_app_params.dpni_drv_alignment,buffer_size))
 		alignment = (uint16_t)g_app_params.dpni_drv_alignment;
 	else
+	{
 		pr_err("Given alignment is not valid (not power of 2 or <= buffer size)\n");
-
+	}
 	if (dprc == NULL)
 	{
 		pr_err("Don't find AIOP root container \n");
