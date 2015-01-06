@@ -64,11 +64,4 @@ Possible modifications:
 5. The demo runs in MC integrated mode. MC loads AIOP and kicks the AIOP cores.
    Please note that the standalone mode is being phased out and is no longer verified.
 
-===========================================
-ARENA sets the following default values for every NI:
-===========================================
-MTU = maximal value
-Same parser profile id for all NIs
-
-
 
