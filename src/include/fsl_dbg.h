@@ -44,7 +44,13 @@
 
  @{
 *//***************************************************************************/
-
+#ifdef __KLOCWORK__
+#define pr_crit(...)
+#define pr_err(...)
+#define pr_warn(...)
+#define pr_debug(...)
+#define pr_info(...)
+#else
 
 /**************************************************************************//**
  @Function      pr_debug(...)
@@ -100,7 +106,7 @@
  @Param[in]     ... string with arguments to print.
 *//***************************************************************************/
 #define pr_crit(...)	DBG(REPORT_LEVEL_CRITICAL, __VA_ARGS__)
-
+#endif
 /**************************************************************************//**
  @Function      dbg_get_core_id
 

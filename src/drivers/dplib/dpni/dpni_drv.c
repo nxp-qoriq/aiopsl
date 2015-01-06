@@ -590,9 +590,11 @@ int dpni_drv_get_connected_aiop_ni_id(const uint16_t dpni_id, uint16_t *aiop_nii
 	struct mc_dprc *dprc = sys_get_unique_handle(FSL_OS_MOD_AIOP_RC);
 	struct dprc_endpoint endpoint1 = {0};
 	struct dprc_endpoint endpoint2 = {0};
-
 	int err;
 	uint16_t i;
+
+	if(dprc == NULL)
+		return -EINVAL;
 
 	endpoint1.id = dpni_id;
 	endpoint1.interface_id = 0;
@@ -620,6 +622,9 @@ int dpni_drv_get_connected_dpni_id(const uint16_t aiop_niid, uint16_t *dpni_id, 
 	struct dprc_endpoint endpoint1 = {0};
 	struct dprc_endpoint endpoint2 = {0};
 	int err;
+
+	if(dprc == NULL)
+		return -EINVAL;
 
 	endpoint1.id = nis[aiop_niid].dpni_id;
 	endpoint1.interface_id = 0;
@@ -657,28 +662,3 @@ int dpni_drv_get_rx_buffer_layout(uint16_t ni_id, struct dpni_buffer_layout *lay
 	                                 layout);
 }
 
-/*TODO: should be removed if we will continue to use disable and when enable  when calling dpni_drv_set_rx_buffer_layout*/
-int dpni_drv_enable_all(void){
-	int i, err = 0;
-	struct dpni_drv *dpni_drv;
-	struct mc_dprc *dprc = sys_get_unique_handle(FSL_OS_MOD_AIOP_RC);
-	struct aiop_ws_regs *wrks_addr = (struct aiop_ws_regs *)
-					(sys_get_memory_mapped_module_base(FSL_OS_MOD_CMGW,
-									   0,
-									   E_MAPPED_MEM_TYPE_GEN_REGS)
-									   + SOC_PERIPH_OFF_AIOP_WRKS);
-	dpni_drv = nis;
-
-	for (i = 0; i < dpni_get_num_of_ni(); i++ )
-	{
-		/* Enable DPNI before updating the entry point function (EP_PC)
-		 * in order to allow DPNI's attributes to be initialized.
-		 * Frames arriving before the entry point function is updated will be dropped. */
-		if ((err = dpni_enable(&dprc->io, dpni_drv->dpni_drv_params_var.dpni)) != 0) {
-			pr_err("Failed to enable DP-NI%d\n", dpni_drv->dpni_id);
-			return -ENODEV;
-		}
-		dpni_drv ++;
-	}
-	return 0;
-}

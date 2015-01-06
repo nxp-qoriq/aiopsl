@@ -42,7 +42,6 @@ __COLD_CODE int bman_fill_bpid(uint32_t num_buffs,
 	int        i = 0;
 	dma_addr_t addr  = 0;
 	struct icontext ic;
-	void* vaddr = 0;
 	int err;
 
 	switch(mem_partition_id){

@@ -38,7 +38,7 @@
 #include "common/fsl_stdio.h"
 
 #ifdef __KLOCWORK__
-#define DEBUG_ERRORS 0
+#undef DEBUG_ERRORS
 #endif
 
 /**************************************************************************//**

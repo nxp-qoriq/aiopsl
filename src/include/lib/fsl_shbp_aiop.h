@@ -38,7 +38,7 @@
 #include <shbp_aiop.h>
 
 /*!
- * @Group	shbp_aiop_g  Shared Buffer Pool API for AIOP
+ * @Group	shbp_aiop_g  Shared Buffer Pool
  *
  * @brief	API to be used for shared buffer pool.
  *

@@ -115,12 +115,12 @@ static int session_get(const char *m_name,
 	if (i >= 0) {
 		struct cmdif_dev *dev = (struct cmdif_dev *)cl->gpp[i].dev;
 		cidesc->regs = (void *)cl->gpp[i].regs;
-		cidesc->dev  = (void *)cl->gpp[i].dev;
+		cidesc->dev  = (void *)dev;
 		unlock_spinlock(&cl->lock);
 		/* Must be here to prevent deadlocks because 
 		 * the same lock is used */
 		return icontext_get((uint16_t)dpci_id, \
-		             (struct icontext *)(&(cl->gpp[i].dev->reserved[0])));
+		             (struct icontext *)(&(dev->reserved[0])));
 	}
 
 	unlock_spinlock(&cl->lock);
@@ -269,7 +269,7 @@ int cmdif_send(struct cmdif_desc *cidesc,
 		async_data.async_ctx = (uint64_t)async_ctx;
 		ASSERT_COND_LIGHT(sizeof(struct icontext) <= CMDIF_DEV_RESERVED_BYTES);
 		icontext_dma_write((struct icontext *)(&(dev->reserved[0])), 
-		                   sizeof(struct cmdif_async), 
+		                   (uint16_t)sizeof(struct cmdif_async), 
 		                   &async_data, 
 		                   CMDIF_ASYNC_ADDR_GET(fd.u_addr.d_addr, fd.d_size));
 #ifdef DEBUG
@@ -338,8 +338,10 @@ void cmdif_cl_isr(void)
 		         CPU_TO_SRV16(fd.u_flc.cmd.cmid));
 	
 	ASSERT_COND_LIGHT((fd.d_size > 0) && (fd.u_addr.d_addr != NULL));
+	async_data.async_cb  = 0;
+	async_data.async_ctx = 0;
 	icontext_dma_read((struct icontext *)(&(CMDIF_DEV_GET(&fd)->reserved[0])), 
-	                   sizeof(struct cmdif_async),
+	                   (uint16_t)sizeof(struct cmdif_async),
 	                   CMDIF_ASYNC_ADDR_GET(fd.u_addr.d_addr, fd.d_size),
 	                   &async_data);
 
