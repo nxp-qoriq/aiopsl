@@ -130,6 +130,8 @@ int boot_mem_mng_init(struct initial_mem_mng* boot_mem_mng,
 	}
 #ifdef AIOP
 	boot_mem_mng->lock = 0;
+#else
+	spin_lock_init(boot_mem_mng->lock);
 #endif
 	return 0;
 }
@@ -144,8 +146,13 @@ int boot_mem_mng_free(struct initial_mem_mng* boot_mem_mng)
 int boot_get_mem(struct initial_mem_mng* boot_mem_mng,
                  uint64_t size,uint64_t* paddr)
 {
+#ifndef AIOP
+    uint32_t            int_flags;
+#endif /* AIOP */
 #ifdef AIOP
-	lock_spinlock(boot_mem_mng->lock);
+	lock_spinlock(&boot_mem_mng->lock);
+#else
+	int_flags = spin_lock_irqsave(boot_mem_mng->lock);
 #endif
 	if(boot_mem_mng->curr_ptr + size >=
 		boot_mem_mng->base_paddress + boot_mem_mng->size)
@@ -153,7 +160,9 @@ int boot_get_mem(struct initial_mem_mng* boot_mem_mng,
 	*paddr = boot_mem_mng->curr_ptr;
 	boot_mem_mng->curr_ptr += size;
 #ifdef AIOP
-	unlock_spinlock(boot_mem_mng->lock);
+	unlock_spinlock(&boot_mem_mng->lock);
+#else
+	spin_unlock_irqrestore(boot_mem_mng->lock, int_flags);
 #endif
 	return  0;
 }
@@ -161,18 +170,34 @@ int boot_get_mem(struct initial_mem_mng* boot_mem_mng,
 int boot_get_mem_virt(struct initial_mem_mng* boot_mem_mng,
                  uint64_t size,uint32_t* vaddr)
 {
+#ifndef AIOP
+    uint32_t            int_flags;
+#endif /* AIOP */
+#ifdef AIOP
+	lock_spinlock(&boot_mem_mng->lock);
+#else
+        int_flags = spin_lock_irqsave(boot_mem_mng->lock);
+#endif
 	if(boot_mem_mng->curr_ptr + size >=
 		boot_mem_mng->base_paddress + boot_mem_mng->size)
 		return -ENOMEM;
 	*vaddr = (uint32_t)(boot_mem_mng->curr_ptr-boot_mem_mng->base_paddress) +
 		boot_mem_mng->base_vaddress ;
 	boot_mem_mng->curr_ptr += size;
+#ifdef AIOP
+	unlock_spinlock(&boot_mem_mng->lock);
+#else
+	spin_unlock_irqrestore(boot_mem_mng->lock, int_flags);
+#endif
 	return  0;
 }
 /*****************************************************************************/
- fsl_handle_t mem_mng_init(t_mem_mng_param *p_mem_mng_param)
+ fsl_handle_t mem_mng_init(t_mem_mng_param *p_mem_mng_param,
+                           fsl_handle_t h_boot_mem_mng)
 {
     t_mem_mng    *p_mem_mng;
+    uint32_t      mem_mng_addr = 0;
+    int rc = 0;
 
     if (!(p_mem_mng_param->f_malloc       && p_mem_mng_param->f_free &&
           p_mem_mng_param->f_early_malloc  && p_mem_mng_param->f_early_free))
@@ -181,12 +206,17 @@ int boot_get_mem_virt(struct initial_mem_mng* boot_mem_mng,
         return NULL;
     }
 
-    p_mem_mng = p_mem_mng_param->f_malloc(sizeof(t_mem_mng));
-    if (!p_mem_mng)
+    ASSERT_COND_LIGHT(h_boot_mem_mng);
+    struct initial_mem_mng* boot_mem_mng = (struct initial_mem_mng*)h_boot_mem_mng;
+
+    /*p_mem_mng = p_mem_mng_param->f_malloc(sizeof(t_mem_mng));*/
+    rc = boot_get_mem_virt(boot_mem_mng,sizeof(t_mem_mng),&mem_mng_addr);
+    if (rc)
     {
         REPORT_ERROR(MAJOR, ENOMEM, ("memory manager structure"));
         return NULL;
     }
+    p_mem_mng = UINT_TO_PTR(mem_mng_addr);
     memset(p_mem_mng, 0, sizeof(t_mem_mng));
 
     p_mem_mng->f_malloc      = p_mem_mng_param->f_malloc;
@@ -206,14 +236,14 @@ int boot_get_mem_virt(struct initial_mem_mng* boot_mem_mng,
 
 
 /*****************************************************************************/
-void mem_mng_free(fsl_handle_t h_mem_mng)
+void mem_mng_free(fsl_handle_t h_mem_mng,fsl_handle_t h_boot_mem_mng)
 {
     t_mem_mng            *p_mem_mng = (t_mem_mng *)h_mem_mng;
     list_t              *p_partition_iterator, *p_tmp_iterator;
 #ifndef AIOP
     uint32_t            int_flags;
 #endif /* AIOP */
-    
+    UNUSED(h_boot_mem_mng);
     if (p_mem_mng->lock)
     {
 #ifdef AIOP
@@ -327,9 +357,11 @@ int mem_mng_register_partition(fsl_handle_t  h_mem_mng,
     }
     memset(p_new_partition, 0, sizeof(t_mem_mng_partition));
 #ifdef AIOP
-    //p_new_partition->lock = (uint8_t *)fsl_os_malloc(sizeof(uint8_t));
-    /* Fix for bug ENGR00337904. Memory address that is used for spinlock 
-     * should reside in shared ram */
+    /*
+    p_new_partition->lock = (uint8_t *)fsl_os_malloc(sizeof(uint8_t));
+    Fix for bug ENGR00337904. Memory address that is used for spinlock
+     should reside in shared ram
+    */
     p_new_partition->lock = &g_mem_part_spinlock[partition_id];
 #else
     p_new_partition->lock = spin_lock_create();

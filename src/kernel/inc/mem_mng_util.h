@@ -89,7 +89,7 @@ struct initial_mem_mng
     uint64_t size;
     uint64_t curr_ptr;
 #ifdef AIOP
-    uint8_t *   lock;
+    uint8_t    lock;
 #else /* not AIOP */
     fsl_handle_t    lock;
 #endif
@@ -133,22 +133,27 @@ int boot_mem_mng_free(struct initial_mem_mng* boot_mem_mng);
 
  @Description   Initialize the memory allocation management module.
 
- @Param[in]     p_MemMngParam - MEM_MNG initialization parameters.
+ @Param[in]     p_mem_mng_param - MEM_MNG initialization parameters.
+
+ @Param[in]     h_boot_mem_mng - Handle to boot memory manage.
 
  @Return        Handle to initialized MEM_MNG object, or NULL on error.
 *//***************************************************************************/
-fsl_handle_t mem_mng_init(t_mem_mng_param *p_mem_mng_param);
+fsl_handle_t mem_mng_init(t_mem_mng_param *p_mem_mng_param,
+                          fsl_handle_t h_boot_mem_mng);
 
 /**************************************************************************//**
  @Function      mem_mng_free
 
  @Description   Free the memory allocation management module.
 
- @Param[in]     h_MemMng - Handle to MEM_MNG object.
+ @Param[in]     h_mem_mng - Handle to MEM_MNG object.
+
+@Param[in]     h_boot_mem_mng - Handle to boot memory manage.
 
  @Return        None.
 *//***************************************************************************/
-void mem_mng_free(fsl_handle_t h_mem_mng);
+void mem_mng_free(fsl_handle_t h_mem_mng, fsl_handle_t h_boot_mem_mng);
 
 
 /**************************************************************************//**/
