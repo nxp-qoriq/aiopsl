@@ -1,4 +1,4 @@
-/* Copyright 2013-2014 Freescale Semiconductor Inc.
+/* Copyright 2014-2015 Freescale Semiconductor Inc.
 *
 * Redistribution and use in source and binary forms, with or without
 * modification, are permitted provided that the following conditions are met:
@@ -35,7 +35,7 @@
 #define DPNI_CMD_EXTRACT_EXT_PARAMS		25
 
 /* DPNI Version */
-#define DPNI_VER_MAJOR				2
+#define DPNI_VER_MAJOR				3
 #define DPNI_VER_MINOR				0
 
 /* Command IDs */
@@ -82,6 +82,7 @@
 #define DPNI_CMDID_GET_MAX_FRAME_LENGTH		0x217
 #define DPNI_CMDID_SET_MTU			0x218
 #define DPNI_CMDID_GET_MTU			0x219
+#define DPNI_CMDID_SET_LINK_CFG		0x21A
 
 #define DPNI_CMDID_SET_MCAST_PROMISC		0x220
 #define DPNI_CMDID_GET_MCAST_PROMISC		0x221
@@ -419,8 +420,19 @@ do { \
 } while (0)
 
 /*                cmd, param, offset, width, type, arg_name */
-#define DPNI_RSP_GET_LINK_STATE(cmd, up) \
-	MC_RSP_OP(cmd, 0, 0,  1,  int,	    up)
+#define DPNI_CMD_SET_LINK_CFG(cmd, cfg) \
+do { \
+	MC_CMD_OP(cmd, 1, 0,  64, uint64_t, cfg->rate);\
+	MC_CMD_OP(cmd, 2, 0,  64, uint64_t, cfg->options);\
+} while (0)
+
+/*                cmd, param, offset, width, type, arg_name */
+#define DPNI_RSP_GET_LINK_STATE(cmd, state) \
+do { \
+	MC_CMD_OP(cmd, 0, 32, 32, int,      state->up);\
+	MC_CMD_OP(cmd, 1, 0,  64, uint64_t, state->rate);\
+	MC_CMD_OP(cmd, 2, 0,  64, uint64_t, state->options);\
+} while (0)
 
 /*                cmd, param, offset, width, type, arg_name */
 #define DPNI_CMD_SET_MAX_FRAME_LENGTH(cmd, max_frame_length) \
@@ -718,6 +730,5 @@ do { \
 /*                cmd, param, offset, width, type, arg_name */
 #define DPNI_CMD_SET_IPF(cmd, en) \
 	MC_CMD_OP(cmd, 0, 0,  1,  int,	    en)
-
 
 #endif /* _FSL_DPNI_CMD_H */
