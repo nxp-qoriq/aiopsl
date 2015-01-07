@@ -37,8 +37,9 @@ slab.c,h:       Added implementation used by app_early_init, added slab_early_in
                 Application/ Module should register for buffers used by slab using: slab_register_context_buffer_requirements(
                 uint32_t committed_buffs, uint32_t max_buffs, uint16_t buff_size, uint16_t alignment, enum memory_partition_id  mem_pid,
                 uint32_t flags, uint32_t    num_ddr_pools)
-				for management pools with lower performance (managed in DDR) the application should use the input - num_ddr_pools.
-				
+                for management pools with lower performance (managed in DDR) the application should use the input - num_ddr_pools.
+fsl_slab.h:     Added bit to flags in slab_create: For lower performance in management and using more than 1000 pools, the slab_create should be called with the flag:
+                SLAB_DDR_MANAGEMENT_FLAG (defined in fsl_slab.h).
 
 
 - dpl.dts/dtb               API changes due to changes in MC Firmware: renamed link -> connection, obj and peer to endpoint1 and endpoint2, delete type from dpni device.
