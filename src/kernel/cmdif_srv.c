@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Freescale Semiconductor, Inc.
+ * Copyright 2014-2015 Freescale Semiconductor, Inc.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -687,7 +687,7 @@ __COLD_CODE int session_open(uint16_t *new_auth)
 	}
 }
 
-__HOT_CODE void cmdif_srv_isr(void) /*__attribute__ ((noreturn))*/
+__HOT_CODE void cmdif_srv_isr(void) __attribute__ ((noreturn))
 {
 	uint16_t gpp_icid;
 	uint32_t gpp_dma;

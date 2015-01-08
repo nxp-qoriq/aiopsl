@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Freescale Semiconductor, Inc.
+ * Copyright 2014-2015 Freescale Semiconductor, Inc.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -38,7 +38,7 @@
 #include <shbp_aiop.h>
 
 /*!
- * @Group	shbp_aiop_g  Shared Buffer Pool API for AIOP
+ * @Group	shbp_aiop_g  Shared Buffer Pool
  *
  * @brief	API to be used for shared buffer pool.
  *

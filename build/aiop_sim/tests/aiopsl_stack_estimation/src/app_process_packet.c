@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Freescale Semiconductor, Inc.
+ * Copyright 2014-2015 Freescale Semiconductor, Inc.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -60,7 +60,15 @@ void stack_estimation(void)
 	uint64_t buff = 0;
 	struct cmdif_desc cidesc = {0};
 	struct icontext ic = {0};
-	
+	struct dpni_buffer_layout layout = {0};
+	struct dpkg_profile_cfg key_cfg = {0};
+	struct ldpaa_fd fd = {0};
+	uint16_t ni = 0, dpni_id, spid, mfl = 0;
+	uint8_t mac_addr[NET_HDR_FLD_ETH_ADDR_SIZE] = {0};
+	int state = 0;
+	rx_cb_t *cb = 0;
+	dpni_drv_app_arg_t arg = 0;
+
 	slab_create(5, 5, 256, 8, MEM_PART_DP_DDR, SLAB_DDR_MANAGEMENT_FLAG, NULL, my_slab);
 	slab_acquire(*my_slab, &buff);
 	slab_release(*my_slab, buff);
@@ -69,22 +77,47 @@ void stack_estimation(void)
 	fsl_os_rand();
 	fsl_get_time_since_epoch_ms(&time_since_epoch);
 	fsl_get_time_ms(&time);
-	
+
 	/* CMDIF runtime functions */
 	cmdif_srv_isr();
 	cmdif_cl_isr();
 	cmdif_send(&cidesc, 0, 0, CMDIF_PRI_HIGH, NULL, NULL, NULL);
 	cmdif_open(&cidesc, NULL, 0, NULL, 0);
 	cmdif_close(&cidesc);
-	
+
 	/* Isolation Context runtime API */
 	icontext_get(5, &ic);
 	icontext_acquire(&ic, 7, &buff);
 	icontext_release(&ic, 7, buff);
 	icontext_dma_read(&ic, 4, buff, &time);
 	icontext_dma_write(&ic, 4, &time, buff);
-	
+
 	/* DPNI runtime functions */
+	dpni_drv_register_rx_cb(ni, cb, arg);
+	dpni_drv_unregister_rx_cb(ni);
+	dpni_get_receive_niid();
+	dpni_set_send_niid(ni);
+	dpni_get_send_niid();
+	dpni_drv_get_primary_mac_addr(ni, mac_addr);
+	dpni_drv_add_mac_addr(ni, mac_addr);
+	dpni_drv_remove_mac_addr(ni, mac_addr);
+	dpni_drv_set_max_frame_length(ni, mfl);
+	dpni_drv_get_max_frame_length(ni, &mfl);
+	dpni_drv_send(ni);
+	dpni_drv_explicit_send(ni, &fd);
+	dpni_drv_set_multicast_promisc(ni, state);
+	dpni_drv_get_multicast_promisc(ni, &state);
+	dpni_drv_set_unicast_promisc(ni, state);
+	dpni_drv_get_unicast_promisc(ni, &state);
+	dpni_drv_get_spid(ni, &spid);
+	dpni_drv_get_spid_ddr(ni, &spid);
+	dpni_drv_set_order_scope(ni, &key_cfg);
+	dpni_drv_get_connected_dpni_id(ni, &dpni_id, &state);
+	dpni_drv_get_connected_aiop_ni_id(ni, &dpni_id, &state);
+	dpni_drv_get_rx_buffer_layout(ni, &layout);
+
+
+
 	receive_cb();
 }
 

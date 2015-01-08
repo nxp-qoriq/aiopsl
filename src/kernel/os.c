@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Freescale Semiconductor, Inc.
+ * Copyright 2014-2015 Freescale Semiconductor, Inc.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -54,7 +54,7 @@ static int vsnprintf_lite(char *buf, size_t size, const char *fmt, va_list args)
 static char *number(char *str, uint64_t num, uint8_t base, uint8_t type, size_t *max_size);
 static void fsl_os_print_boot(const char *format, va_list args);
 /*****************************************************************************/
-void fsl_os_exit(int status)
+__declspec(noreturn) void fsl_os_exit(int status)
 {
     exit(status);
 }

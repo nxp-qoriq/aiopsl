@@ -1,4 +1,4 @@
-/* Copyright 2013-2014 Freescale Semiconductor Inc.
+/* Copyright 2014-2015 Freescale Semiconductor Inc.
 *
 * Redistribution and use in source and binary forms, with or without
 * modification, are permitted provided that the following conditions are met:
@@ -100,7 +100,7 @@ struct dpkg_extract {
 	 * union extract - Selects extraction method
 	 * @from_hdr - Used when 'type = DPKG_EXTRACT_FROM_HDR'
 	 * @from_data - Used when 'type = DPKG_EXTRACT_FROM_DATA'
-	 * @constant - Used when 'type = DPKG_EXTRACT_CONSTANT' 
+	 * @constant - Used when 'type = DPKG_EXTRACT_CONSTANT'
 	 */
 	union {
 		/**
@@ -111,6 +111,7 @@ struct dpkg_extract {
 		 *		DPKG_FROM_FIELD: use field, size and offset below;
 		 * 		DPKG_FULL_FIELD: use field below
 		 * @field: One of the supported fields (NH_FLD_)
+		 *
 		 * @size: Size in bytes
 		 * @offset: Byte offset
 		 * @hdr_index: Clear for cases not listed below;
@@ -123,6 +124,7 @@ struct dpkg_extract {
 		 * 	NET_PROT_IPv4(0, HDR_INDEX_LAST);
 		 * 	NET_PROT_IPv6(0, HDR_INDEX_LAST);
 		 */
+
 		struct {
 			enum net_prot prot;
 			enum dpkg_extract_from_hdr_type type;
@@ -157,7 +159,7 @@ struct dpkg_extract {
 };
 
 /**
- * struct dpkg_profile_cfg - A structure for defining a full Key Generation 
+ * struct dpkg_profile_cfg - A structure for defining a full Key Generation
  * 				profile (rule)
  * @num_extracts: Defines the number of valid entries in the array below
  * @extracts: Array of required extractions

@@ -1,3 +1,10 @@
+
+** AIOP SL Release v0.5.3.0 **
+types_mw.h               Added macros for putting all executable code (functions) of a file into a certain section.
+                         The macros should be defined as a pair  __START_xxx_CODE, __END_xxx_CODE both in *.c file and *.h file.
+						 __START_HOT_CODE - start placing code in i-RAM, enclosed by __END_HOT_CODE.
+                         __START_WARM_CODE - start placing code in Shared-SRAM,enclosed by __END_WARM_CODE.
+						 __START_COLD_CODE - start placing code in DP_DDR,enclosed by __END_COLD_CODE.
 - dpl.dts/dtb             Removed static icid assignment per container.
 - cmdif_client.c          Fixed ENGR00344241, WS is now updated with AIOP icontext prior calling to async_cb. 
                           Same fix as we have for cmdif_srv.c.
@@ -21,22 +28,15 @@
 - dpni_drv.c:    ENGR00341594 - resolved. ipv6_hxs_config set to: 0x2000
 - fsl_icontext.h: Updated icontext_get() to support ENGR00341218: API to get the GPP ICID.
 - os.c:          ENGR00341990 - resolved, added implementation for exception_handler    
-- cmdif_srv.c:    Added support for ENGR00341218: Cmdif to support working with AIOP ICID and new API to get the GPP ICID that issued the cmd 
 
-- app.h/c:       Fixed ENGR00341738, added APP_MAX_NUM to app.h. Updated build_apps_array() in app.c.      
-
-- cmdif_srv_flib.c:  Fix for ENGR00341199 wrong malloc size in CMDIF server allocation.
-
-- cmdif_srv.c:  Fix for ENGR339037 GPP-AIOP communication breaking. 
-                AIOP workspace will have AIOP ICID and AIOP AMQ before user callback is called.
-
-fsl_icontext.h: Added new API for AIOP isolation context - icontext_aiop_get(). 
-slab.c,h:       Added implementation used by app_early_init, added slab_early_init.
+- fsl_icontext.h: Added new API for AIOP isolation context - icontext_aiop_get(). 
+- slab.c,h:     Added implementation used by app_early_init, added slab_early_init.
                 Application/ Module should register for buffers used by slab using: slab_register_context_buffer_requirements(
                 uint32_t committed_buffs, uint32_t max_buffs, uint16_t buff_size, uint16_t alignment, enum memory_partition_id  mem_pid,
                 uint32_t flags, uint32_t    num_ddr_pools)
-				for management pools with lower performance (managed in DDR) the application should use the input - num_ddr_pools.
-				
+                for management pools with lower performance (managed in DDR) the application should use the input - num_ddr_pools.
+fsl_slab.h:     Added bit to flags in slab_create: For lower performance in management and using more than 1000 pools, the slab_create should be called with the flag:
+                SLAB_DDR_MANAGEMENT_FLAG (defined in fsl_slab.h).
 
 
 - dpl.dts/dtb               API changes due to changes in MC Firmware: renamed link -> connection, obj and peer to endpoint1 and endpoint2, delete type from dpni device.
@@ -48,8 +48,7 @@ slab.c,h:       Added implementation used by app_early_init, added slab_early_in
 - fsl_slab.h:               prototype of the slab release callback function modified from int to void.
 - slab.c, fsl_slab.h:       slab_create: API change - prefix_size, postfix_size were removed.
 - slab.c/h, fsl_slab.h:     Update pool managment implementation to support management in SHRAM and DDR.
-                            API change for slab_create: use mem_pid from enum.
-           
+                            API change for slab_create: use mem_pid from enum.           
 
 - ls2085a_gpp/cmdif.h    Added NADK_DEBUG for DEBUG indication
 - cmdif_client_flib.c    Placed user error checks under #ifdef DEBUG
@@ -61,6 +60,15 @@ slab.c,h:       Added implementation used by app_early_init, added slab_early_in
 - cmdif_client.c         Set BPID IVP inside cmdif_send(). BPID is not relevant for CMDIF.
 
 ** AIOP SL Release v0.5.2.0 **
+- cmdif_srv.c:    Added support for ENGR00341218: Cmdif to support working with AIOP ICID and new API to get the GPP ICID that issued the cmd 
+
+- cmdif_srv.c:  Fix for ENGR339037 GPP-AIOP communication breaking. 
+                AIOP workspace will have AIOP ICID and AIOP AMQ before user callback is called.
+
+- cmdif_srv_flib.c:  Fix for ENGR00341199 wrong malloc size in CMDIF server allocation.
+
+- app.h/c:       Fixed ENGR00341738, added APP_MAX_NUM to app.h. Updated build_apps_array() in app.c.
+      
 - dpl.dts/dtb:   adding option DPNI_OPT_DIST_HASH to all dpnis to support dpni_drv_set_order_scope
 
 - apps.h:       added 3 defines (3 more parameters were added to the aiop_app_init_info struct):

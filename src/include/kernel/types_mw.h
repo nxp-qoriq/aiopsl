@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Freescale Semiconductor, Inc.
+ * Copyright 2014-2015 Freescale Semiconductor, Inc.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -56,7 +56,6 @@ typedef uint64_t            dma_addr_t;
 #define PUSH _Pragma("push")
 #define STARTSECTION(s) _Pragma(STRINGTYPE(DEFINESECTION(s)))
 #define START_CODE_IN_SECTION(s) PUSH STARTSECTION(s)
-
 #define POP _Pragma("pop")
 
 /** Task global variables area */

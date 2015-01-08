@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Freescale Semiconductor, Inc.
+ * Copyright 2014-2015 Freescale Semiconductor, Inc.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -692,6 +692,9 @@
 			@ingroup mem_mng_g_id
 		*/	
 		/** @defgroup slab_g SLAB
+			@ingroup mem_mng_g_id
+		*/
+		/** @defgroup shbp_aiop_g Shared Buffer Pool
 			@ingroup mem_mng_g_id
 		*/		
 	/** @} */

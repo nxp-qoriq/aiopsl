@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Freescale Semiconductor, Inc.
+ * Copyright 2014-2015 Freescale Semiconductor, Inc.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -78,7 +78,9 @@ int shbp_release(struct shbp *bp, void *buf);
  * The shared pool is created as empty, use shbp_release() to fill it  
  *
  * @param[in]	mem_ptr  - Pointer to memory to be used for shared management;
- * 		it should be aligned to cache line
+ * 		it should be aligned to cache line.
+ * 		It must be from Write-Back Cacheable and Outer Shareable memory 		
+ * 		
  * @param[in]	size     - Size of mem_ptr
  * @param[in]	flags    - Flags to be used for pool creation, 0 means AIOP is 
  * 		the allocation master. See #SHBP_GPP_MASTER.
