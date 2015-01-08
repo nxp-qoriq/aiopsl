@@ -120,7 +120,7 @@ static int aiop_async_cb(void *async_ctx, int err, uint16_t cmd_id,
 		fsl_os_print("ERROR inside aiop_async_cb\n");
 	}
 	if ((size > 0) && (data != NULL)) {
-		fsl_os_print("Setting first byte of data with val = 0x%x", 
+		fsl_os_print("Setting first byte of data with val = 0x%x\n", 
 		             AIOP_ASYNC_CB_DONE);
 		fsl_os_print("Default segment handle = 0x%x\n", 
 		             PRC_GET_SEGMENT_HANDLE());
