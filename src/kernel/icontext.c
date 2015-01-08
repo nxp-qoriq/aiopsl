@@ -58,6 +58,9 @@ void icontext_cmd_get(struct icontext *ic)
 	ic->icid = dt->icid[ind];
 	ic->dma_flags = dt->dma_flags[ind];
 	ic->bdi_flags = dt->bdi_flags[ind];
+#ifndef BDI_BUG_FIXED
+	ic->bdi_flags &= ~FDMA_ENF_BDI_BIT;
+#endif
 }
 
 int icontext_get(uint16_t dpci_id, struct icontext *ic)
@@ -79,6 +82,9 @@ int icontext_get(uint16_t dpci_id, struct icontext *ic)
 			ic->icid = dt->icid[i];
 			ic->dma_flags = dt->dma_flags[i];
 			ic->bdi_flags = dt->bdi_flags[i];
+#ifndef BDI_BUG_FIXED
+			ic->bdi_flags &= ~FDMA_ENF_BDI_BIT;
+#endif
 			return 0;
 		}
 	}
