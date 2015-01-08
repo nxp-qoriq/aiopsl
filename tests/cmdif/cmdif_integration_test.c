@@ -116,11 +116,11 @@ static int aiop_async_cb(void *async_ctx, int err, uint16_t cmd_id,
 	if (err != 0) {
 		fsl_os_print("ERROR inside aiop_async_cb\n");
 	}
-	if (size > 0) {
+	if ((size > 0) && (data != NULL)) {
 		fsl_os_print("Setting first byte of data with val = 0x%x", 
 		             AIOP_ASYNC_CB_DONE);
 		((uint8_t *)data)[0] = AIOP_ASYNC_CB_DONE;
-		fdma_modify_default_segment_data(0, (uint16_t)size);
+		fdma_modify_default_segment_data(0, (uint16_t)1);
 	} else {
 		fsl_os_print("No data inside aiop_async_cb\n");
 	}
