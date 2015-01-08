@@ -113,13 +113,20 @@ static int aiop_async_cb(void *async_ctx, int err, uint16_t cmd_id,
 	
 	fsl_os_print("PASSED AIOP ASYNC CB cmd_id = 0x%x\n" ,cmd_id);
 	fsl_os_print("ASYNC CB data 0x%x size = 0x%x\n", (uint32_t)data , size);
+	fsl_os_print("Default segment handle = 0x%x\n", 
+	             PRC_GET_SEGMENT_HANDLE());
+	
 	if (err != 0) {
 		fsl_os_print("ERROR inside aiop_async_cb\n");
 	}
 	if ((size > 0) && (data != NULL)) {
-		fsl_os_print("Setting first byte of data with val = 0x%x", 
+		fsl_os_print("Setting first byte of data with val = 0x%x\n", 
 		             AIOP_ASYNC_CB_DONE);
+		fsl_os_print("Default segment handle = 0x%x\n", 
+		             PRC_GET_SEGMENT_HANDLE());
 		((uint8_t *)data)[0] = AIOP_ASYNC_CB_DONE;
+		fsl_os_print("Default segment handle = 0x%x\n", 
+		             PRC_GET_SEGMENT_HANDLE());
 		fdma_modify_default_segment_data(0, (uint16_t)1);
 	} else {
 		fsl_os_print("No data inside aiop_async_cb\n");
