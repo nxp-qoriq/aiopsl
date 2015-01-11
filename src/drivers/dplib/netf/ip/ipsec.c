@@ -371,7 +371,8 @@ int ipsec_generate_encap_sd(
 	switch (cipher_type) {
 		case CIPHER_TYPE_CBC:
 			/* uint8_t iv[16] */
-			memcpy(pdb.cbc.iv, params->encparams.cbc.iv, sizeof(params->encparams.cbc.iv));
+			memcpy(pdb.cbc.iv, params->encparams.cbc.iv, 
+					sizeof(params->encparams.cbc.iv));
 			break;
 		case CIPHER_TYPE_CTR:
 			/*	uint8_t ctr_nonce[4]; */
@@ -380,8 +381,7 @@ int ipsec_generate_encap_sd(
 			memcpy(pdb.ctr.ctr_nonce, params->encparams.ctr.ctr_nonce,
 			       sizeof(params->encparams.ctr.ctr_nonce));
 			pdb.ctr.ctr_initial = 1;
-			pdb.ctr.iv[0] = params->encparams.ctr.iv[0];
-			pdb.ctr.iv[1] = params->encparams.ctr.iv[1];
+			pdb.ctr.iv = params->encparams.ctr.iv;
 			break;
 		case CIPHER_TYPE_CCM:
 			/*	uint8_t salt[4]; lower 24 bits */
@@ -389,9 +389,7 @@ int ipsec_generate_encap_sd(
 			/*	uint32_t iv[2]; */
 			memcpy(pdb.ccm.salt, params->encparams.ccm.salt,
 			       sizeof(params->encparams.ccm.salt));
-			//pdb.ccm.ccm_opt = 0;
-			pdb.ccm.iv[0] = params->encparams.ccm.iv[0];
-			pdb.ccm.iv[1] = params->encparams.ccm.iv[1];
+			pdb.ccm.iv = params->encparams.ccm.iv;
 			break;
 		case CIPHER_TYPE_GCM:
 			/*	uint8_t salt[4]; lower 24 bits */
@@ -400,8 +398,7 @@ int ipsec_generate_encap_sd(
 			memcpy(pdb.gcm.salt, params->encparams.gcm.salt,
 			       sizeof(params->encparams.gcm.salt));
 			pdb.gcm.rsvd = 0;
-			pdb.gcm.iv[0] = params->encparams.gcm.iv[0];
-			pdb.gcm.iv[1] = params->encparams.gcm.iv[1];
+			pdb.gcm.iv = params->encparams.gcm.iv;
 			break;
 		default:
 			memset(pdb.cbc.iv, 0, sizeof(pdb.cbc.iv));

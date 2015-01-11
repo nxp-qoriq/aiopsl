@@ -1,4 +1,8 @@
-/* Copyright 2008-2013 Freescale Semiconductor, Inc. */
+/*
+ * Copyright 2008-2013 Freescale Semiconductor, Inc.
+ *
+ * SPDX-License-Identifier: BSD-3-Clause or GPL-2.0+
+ */
 
 #ifndef __DESC_IPSEC_H__
 #define __DESC_IPSEC_H__
@@ -115,6 +119,11 @@
 /* IPSec ESP Decap PDB options */
 
 /**
+ * PDBOPTS_ESP_ARS_MASK - antireplay window mask
+ */
+#define PDBOPTS_ESP_ARS_MASK	0xc0
+
+/**
  * PDBOPTS_ESP_ARSNONE - No antireplay window
  */
 #define PDBOPTS_ESP_ARSNONE	0x00
@@ -174,8 +183,10 @@
  */
 #define PDBOPTS_ESP_ETU		0x01
 
-#define PDBHMO_ESP_DECAP_SHIFT	12
-#define PDBHMO_ESP_ENCAP_SHIFT	4
+#define PDBHMO_ESP_DECAP_SHIFT		28
+#define PDBHMO_ESP_ENCAP_SHIFT		28
+#define PDBHDRLEN_ESP_ENCAP_SHIFT	16
+#define PDBHDRLEN_MASK			(0x0fff << PDBHDRLEN_ESP_ENCAP_SHIFT)
 
 /**
  * PDBHMO_ESP_DECAP_DTTL - IPsec ESP decrement TTL (IPv4) / Hop limit (IPv6)
@@ -231,76 +242,71 @@
 
 /**
  * struct ipsec_encap_cbc - PDB part for IPsec CBC encapsulation
- * @iv: initialization vector
+ * @iv: 16-byte array initialization vector
  */
 struct ipsec_encap_cbc {
-	uint32_t iv[4];
+	uint8_t iv[16];
 };
 
 
 /**
  * struct ipsec_encap_ctr - PDB part for IPsec CTR encapsulation
- * @ctr_nonce: 4-byte nonce
+ * @ctr_nonce: 4-byte array nonce
  * @ctr_initial: initial count constant
  * @iv: initialization vector
  */
 struct ipsec_encap_ctr {
-	uint32_t ctr_nonce;
+	uint8_t ctr_nonce[4];
 	uint32_t ctr_initial;
-	uint32_t iv[2];
+	uint64_t iv;
 };
 
 /**
  * struct ipsec_encap_ccm - PDB part for IPsec CCM encapsulation
- * @salt: 3-byte salt (lower 24 bits)
- * @b0_flags: CCM B0; managed by SEC
- * @ctr_flags: counter flags; constant equal to 0x3
- * @ctr_initial: initial count constant
+ * @salt: 3-byte array salt (lower 24 bits)
+ * @ccm_opt: CCM algorithm options - MSB-LSB description:
+ *  b0_flags (8b) - CCM B0; use 0x5B for 8-byte ICV, 0x6B for 12-byte ICV,
+ *    0x7B for 16-byte ICV (cf. RFC4309, RFC3610)
+ *  ctr_flags (8b) - counter flags; constant equal to 0x3
+ *  ctr_initial (16b) - initial count constant
  * @iv: initialization vector
  */
 struct ipsec_encap_ccm {
-	uint32_t salt;
-	uint8_t b0_flags;
-	uint8_t ctr_flags;
-	uint16_t ctr_initial;
-	uint32_t iv[2];
+	uint8_t salt[4];
+	uint32_t ccm_opt;
+	uint64_t iv;
 };
 
 /**
  * struct ipsec_encap_gcm - PDB part for IPsec GCM encapsulation
- * @salt: 3-byte salt (lower 24 bits)
- * @rsvd1: reserved, do not use
+ * @salt: 3-byte array salt (lower 24 bits)
+ * @rsvd: reserved, do not use
  * @iv: initialization vector
  */
 struct ipsec_encap_gcm {
-	uint32_t salt;
-	uint32_t rsvd1;
-	uint32_t iv[2];
+	uint8_t salt[4];
+	uint32_t rsvd;
+	uint64_t iv;
 };
 
 /**
  * struct ipsec_encap_pdb - PDB for IPsec encapsulation
- * @hmo: header manipulation options
- * @options: option flags; depend on selected algorithm
+ * @options: MSB-LSB description (both for legacy and new modes)
+ *  hmo (header manipulation options) - 4b
+ *  reserved - 4b
+ *  next header (legacy) / reserved (new) - 8b
+ *  next header offset (legacy) / AOIPHO (actual outer IP header offset) - 8b
+ *  option flags (depend on selected algorithm) - 8b
  * @seq_num_ext_hi: (optional) IPsec Extended Sequence Number (ESN)
  * @seq_num: IPsec sequence number
  * @spi: IPsec SPI (Security Parameters Index)
- * @rsvd2: reserved, do not use
  * @ip_hdr_len: optional IP Header length (in bytes)
+ *  reserved - 16b
+ *  Opt. IP Hdr Len - 16b
  * @ip_hdr: optional IP Header content (only for IPsec legacy mode)
  */
 struct ipsec_encap_pdb {
-	uint8_t hmo;
-	union {
-		uint8_t ip_nh;	/* next header for legacy mode */
-		uint8_t rsvd;	/* reserved for new mode */
-	};
-	union {
-		uint8_t ip_nh_offset;	/* next header offset for legacy mode */
-		uint8_t aoipho;		/* actual outer IP header offset for
-					 * new mode */
-	};
-	uint8_t options;
+	uint32_t options;
 	uint32_t seq_num_ext_hi;
 	uint32_t seq_num;
 	union {
@@ -310,10 +316,59 @@ struct ipsec_encap_pdb {
 		struct ipsec_encap_gcm gcm;
 	};
 	uint32_t spi;
-	uint16_t rsvd2;
-	uint16_t ip_hdr_len;
-	uint32_t ip_hdr[0];
+	uint32_t ip_hdr_len;
+	uint8_t ip_hdr[0];
 };
+
+static inline unsigned __rta_copy_ipsec_encap_pdb(struct program *program,
+						  struct ipsec_encap_pdb *pdb,
+						  uint32_t algtype)
+{
+	unsigned start_pc = program->current_pc;
+
+	__rta_out32(program, pdb->options);
+	__rta_out32(program, pdb->seq_num_ext_hi);
+	__rta_out32(program, pdb->seq_num);
+
+	switch (algtype & OP_PCL_IPSEC_CIPHER_MASK) {
+	case OP_PCL_IPSEC_DES_IV64:
+	case OP_PCL_IPSEC_DES:
+	case OP_PCL_IPSEC_3DES:
+	case OP_PCL_IPSEC_AES_CBC:
+	case OP_PCL_IPSEC_NULL:
+		rta_copy_data(program, pdb->cbc.iv, sizeof(pdb->cbc.iv));
+		break;
+
+	case OP_PCL_IPSEC_AES_CTR:
+		rta_copy_data(program, pdb->ctr.ctr_nonce,
+			      sizeof(pdb->ctr.ctr_nonce));
+		__rta_out32(program, pdb->ctr.ctr_initial);
+		__rta_out64(program, true, pdb->ctr.iv);
+		break;
+
+	case OP_PCL_IPSEC_AES_CCM8:
+	case OP_PCL_IPSEC_AES_CCM12:
+	case OP_PCL_IPSEC_AES_CCM16:
+		rta_copy_data(program, pdb->ccm.salt, sizeof(pdb->ccm.salt));
+		__rta_out32(program, pdb->ccm.ccm_opt);
+		__rta_out64(program, true, pdb->ccm.iv);
+		break;
+
+	case OP_PCL_IPSEC_AES_GCM8:
+	case OP_PCL_IPSEC_AES_GCM12:
+	case OP_PCL_IPSEC_AES_GCM16:
+	case OP_PCL_IPSEC_AES_NULL_WITH_GMAC:
+		rta_copy_data(program, pdb->gcm.salt, sizeof(pdb->gcm.salt));
+		__rta_out32(program, pdb->gcm.rsvd);
+		__rta_out64(program, true, pdb->gcm.iv);
+		break;
+	}
+
+	__rta_out32(program, pdb->spi);
+	__rta_out32(program, pdb->ip_hdr_len);
+
+	return start_pc;
+}
 
 /**
  * struct ipsec_decap_cbc - PDB part for IPsec CBC decapsulation
@@ -325,54 +380,52 @@ struct ipsec_decap_cbc {
 
 /**
  * struct ipsec_decap_ctr - PDB part for IPsec CTR decapsulation
- * @salt: 4-byte salt
+ * @ctr_nonce: 4-byte array nonce
  * @ctr_initial: initial count constant
  */
 struct ipsec_decap_ctr {
-	uint32_t salt;
+	uint8_t ctr_nonce[4];
 	uint32_t ctr_initial;
 };
 
 /**
  * struct ipsec_decap_ccm - PDB part for IPsec CCM decapsulation
  * @salt: 3-byte salt (lower 24 bits)
- * @iv_flags: TBD
- * @ctr_flags: counter flags
- * @ctr_initial: initial count constant
+ * @ccm_opt: CCM algorithm options - MSB-LSB description:
+ *  b0_flags (8b) - CCM B0; use 0x5B for 8-byte ICV, 0x6B for 12-byte ICV,
+ *    0x7B for 16-byte ICV (cf. RFC4309, RFC3610)
+ *  ctr_flags (8b) - counter flags; constant equal to 0x3
+ *  ctr_initial (16b) - initial count constant
  */
 struct ipsec_decap_ccm {
-	uint32_t salt;
-	uint8_t iv_flags;
-	uint8_t ctr_flags;
-	uint16_t ctr_initial;
+	uint8_t salt[4];
+	uint32_t ccm_opt;
 };
 
 /**
  * struct ipsec_decap_gcm - PDB part for IPsec GCN decapsulation
  * @salt: 4-byte salt
- * @resvd: reserved, do not used
+ * @rsvd: reserved, do not use
  */
 struct ipsec_decap_gcm {
-	uint32_t salt;
-	uint32_t resvd;
+	uint8_t salt[4];
+	uint32_t rsvd;
 };
 
 /**
  * struct ipsec_decap_pdb - PDB for IPsec decapsulation
- * @ip_hdr_len: HMO (upper nibble) + IP header length (lower 3 nibbles)
- * @options: option flags; depend on selected algorithm
+ * @options: MSB-LSB description (both for legacy and new modes)
+ *  hmo (header manipulation options) - 4b
+ *  IP header length - 12b
+ *  next header offset (legacy) / AOIPHO (actual outer IP header offset) - 8b
+ *  option flags (depend on selected algorithm) - 8b
  * @seq_num_ext_hi: (optional) IPsec Extended Sequence Number (ESN)
  * @seq_num: IPsec sequence number
- * @anti_replay: Anti-replay window bits array
+ * @anti_replay: Anti-replay window; size depends on ARS (option flags);
+ *  format must be Big Endian, irrespective of platform
  */
 struct ipsec_decap_pdb {
-	uint16_t ip_hdr_len;
-	union {
-		uint8_t ip_nh_offset;	/* next header offset for legacy mode */
-		uint8_t aoipho;		/* actual outer IP header offset for
-					 * new mode */
-	};
-	uint8_t options;
+	uint32_t options;
 	union {
 		struct ipsec_decap_cbc cbc;
 		struct ipsec_decap_ctr ctr;
@@ -383,6 +436,72 @@ struct ipsec_decap_pdb {
 	uint32_t seq_num;
 	uint32_t anti_replay[4];
 };
+
+static inline unsigned __rta_copy_ipsec_decap_pdb(struct program *program,
+						  struct ipsec_decap_pdb *pdb,
+						  uint32_t algtype)
+{
+	unsigned start_pc = program->current_pc;
+	unsigned i, ars;
+
+	__rta_out32(program, pdb->options);
+
+	switch (algtype & OP_PCL_IPSEC_CIPHER_MASK) {
+	case OP_PCL_IPSEC_DES_IV64:
+	case OP_PCL_IPSEC_DES:
+	case OP_PCL_IPSEC_3DES:
+	case OP_PCL_IPSEC_AES_CBC:
+	case OP_PCL_IPSEC_NULL:
+		__rta_out32(program, pdb->cbc.rsvd[0]);
+		__rta_out32(program, pdb->cbc.rsvd[1]);
+		break;
+
+	case OP_PCL_IPSEC_AES_CTR:
+		rta_copy_data(program, pdb->ctr.ctr_nonce,
+			      sizeof(pdb->ctr.ctr_nonce));
+		__rta_out32(program, pdb->ctr.ctr_initial);
+		break;
+
+	case OP_PCL_IPSEC_AES_CCM8:
+	case OP_PCL_IPSEC_AES_CCM12:
+	case OP_PCL_IPSEC_AES_CCM16:
+		rta_copy_data(program, pdb->ccm.salt, sizeof(pdb->ccm.salt));
+		__rta_out32(program, pdb->ccm.ccm_opt);
+		break;
+
+	case OP_PCL_IPSEC_AES_GCM8:
+	case OP_PCL_IPSEC_AES_GCM12:
+	case OP_PCL_IPSEC_AES_GCM16:
+	case OP_PCL_IPSEC_AES_NULL_WITH_GMAC:
+		rta_copy_data(program, pdb->gcm.salt, sizeof(pdb->gcm.salt));
+		__rta_out32(program, pdb->gcm.rsvd);
+		break;
+	}
+
+	__rta_out32(program, pdb->seq_num_ext_hi);
+	__rta_out32(program, pdb->seq_num);
+
+	switch (pdb->options & PDBOPTS_ESP_ARS_MASK) {
+	case PDBOPTS_ESP_ARS128:
+		ars = 4;
+		break;
+	case PDBOPTS_ESP_ARS64:
+		ars = 2;
+		break;
+	case PDBOPTS_ESP_ARS32:
+		ars = 1;
+		break;
+	case PDBOPTS_ESP_ARSNONE:
+	default:
+		ars = 0;
+		break;
+	}
+
+	for (i = 0; i < ars; i++)
+		__rta_out_be32(program, pdb->anti_replay[i]);
+
+	return start_pc;
+}
 
 /**
  * enum ipsec_icv_size - Type selectors for icv size in IPsec protocol
@@ -465,8 +584,8 @@ static inline int cnstr_shdsc_ipsec_encap(uint32_t *descbuf, bool ps, bool swap,
 	if (ps)
 		PROGRAM_SET_36BIT_ADDR(p);
 	phdr = SHR_HDR(p, SHR_SERIAL, hdr, 0);
-	COPY_DATA(p, (uint8_t *)pdb,
-		  sizeof(struct ipsec_encap_pdb) + pdb->ip_hdr_len);
+	__rta_copy_ipsec_encap_pdb(p, pdb, cipherdata->algtype);
+	COPY_DATA(p, pdb->ip_hdr, pdb->ip_hdr_len);
 	SET_LABEL(p, hdr);
 	pkeyjmp = JUMP(p, keyjmp, LOCAL_JUMP, ALL_TRUE, BOTH|SHRD);
 	KEY(p, MDHA_SPLIT_KEY, authdata->key_enc_flags, authdata->key,
@@ -519,7 +638,7 @@ static inline int cnstr_shdsc_ipsec_decap(uint32_t *descbuf, bool ps, bool swap,
 	if (ps)
 		PROGRAM_SET_36BIT_ADDR(p);
 	phdr = SHR_HDR(p, SHR_SERIAL, hdr, 0);
-	COPY_DATA(p, (uint8_t *)pdb, sizeof(struct ipsec_decap_pdb));
+	__rta_copy_ipsec_decap_pdb(p, pdb, cipherdata->algtype);
 	SET_LABEL(p, hdr);
 	pkeyjmp = JUMP(p, keyjmp, LOCAL_JUMP, ALL_TRUE, BOTH|SHRD);
 	KEY(p, MDHA_SPLIT_KEY, authdata->key_enc_flags, authdata->key,
@@ -587,8 +706,8 @@ static inline int cnstr_shdsc_ipsec_encap_des_aes_xcbc(uint32_t *descbuf,
 
 	PROGRAM_CNTXT_INIT(p, descbuf, 0);
 	phdr = SHR_HDR(p, SHR_SERIAL, hdr, 0);
-	COPY_DATA(p, (uint8_t *)pdb,
-		  sizeof(struct ipsec_encap_pdb) + pdb->ip_hdr_len);
+	__rta_copy_ipsec_encap_pdb(p, pdb, cipherdata->algtype);
+	COPY_DATA(p, pdb->ip_hdr, pdb->ip_hdr_len);
 	SET_LABEL(p, hdr);
 	pkeyjump = JUMP(p, keyjump, LOCAL_JUMP, ALL_TRUE, SHRD | SELF);
 	/*
@@ -706,6 +825,8 @@ static inline int cnstr_shdsc_ipsec_decap_des_aes_xcbc(uint32_t *descbuf,
 {
 	struct program prg;
 	struct program *p = &prg;
+	uint32_t ip_hdr_len = (pdb->options & PDBHDRLEN_MASK) >>
+				PDBHDRLEN_ESP_ENCAP_SHIFT;
 
 	LABEL(hdr);
 	LABEL(jump_cmd);
@@ -726,7 +847,7 @@ static inline int cnstr_shdsc_ipsec_decap_des_aes_xcbc(uint32_t *descbuf,
 
 	PROGRAM_CNTXT_INIT(p, descbuf, 0);
 	phdr = SHR_HDR(p, SHR_SERIAL, hdr, 0);
-	COPY_DATA(p, (uint8_t *)pdb, sizeof(struct ipsec_decap_pdb));
+	__rta_copy_ipsec_decap_pdb(p, pdb, cipherdata->algtype);
 	SET_LABEL(p, hdr);
 	pkeyjump = JUMP(p, keyjump, LOCAL_JUMP, ALL_TRUE, SHRD | SELF);
 	/*
@@ -748,14 +869,14 @@ static inline int cnstr_shdsc_ipsec_decap_des_aes_xcbc(uint32_t *descbuf,
 	KEY(p, KEY1, authdata->key_enc_flags, authdata->key, authdata->keylen,
 	    INLINE_KEY(authdata));
 	MATHB(p, SEQINSZ, SUB,
-	      (uint64_t)(pdb->ip_hdr_len + IPSEC_ICV_MD5_TRUNC_SIZE),
-	      MATH0, 4, IMMED2);
+	      (uint64_t)(ip_hdr_len + IPSEC_ICV_MD5_TRUNC_SIZE), MATH0, 4,
+	      IMMED2);
 	MATHB(p, MATH0, SUB, ZERO, VSEQINSZ, 4, 0);
 	ALG_OPERATION(p, OP_ALG_ALGSEL_MD5, OP_ALG_AAI_HMAC_PRECOMP,
 		      OP_ALG_AS_INITFINAL, ICV_CHECK_DISABLE, DIR_ENC);
 	ALG_OPERATION(p, OP_ALG_ALGSEL_AES, OP_ALG_AAI_XCBC_MAC,
 		      OP_ALG_AS_INITFINAL, ICV_CHECK_ENABLE, DIR_DEC);
-	SEQFIFOLOAD(p, SKIP, pdb->ip_hdr_len, 0);
+	SEQFIFOLOAD(p, SKIP, ip_hdr_len, 0);
 	SEQFIFOLOAD(p, MSG1, 0, VLF | FLUSH1);
 	SEQFIFOLOAD(p, ICV1, IPSEC_ICV_MD5_TRUNC_SIZE, FLUSH1 | LAST1);
 	/* Swap SEQOUTPTR to SEQINPTR. */
@@ -782,10 +903,10 @@ static inline int cnstr_shdsc_ipsec_decap_des_aes_xcbc(uint32_t *descbuf,
 	WORD(p, 0xA00000f3);
 	SEQINPTR(p, 0, 65535, RTO);
 	MATHB(p, MATH0, SUB, ZERO, VSEQINSZ, 4, 0);
-	MATHB(p, MATH0, ADD, pdb->ip_hdr_len, VSEQOUTSZ, 4, IMMED2);
+	MATHB(p, MATH0, ADD, ip_hdr_len, VSEQOUTSZ, 4, IMMED2);
 	move_jump = MOVE(p, DESCBUF, 0, OFIFO, 0, 8, WAITCOMP | IMMED);
 	move_jump_back = MOVE(p, OFIFO, 0, DESCBUF, 0, 8, IMMED);
-	SEQFIFOLOAD(p, SKIP, pdb->ip_hdr_len, 0);
+	SEQFIFOLOAD(p, SKIP, ip_hdr_len, 0);
 	SEQFIFOLOAD(p, MSG2, 0, VLF | LAST2);
 	SEQFIFOSTORE(p, SKIP, 0, 0, VLF);
 	SEQSTORE(p, CONTEXT2, 0, IPSEC_ICV_MD5_TRUNC_SIZE, 0);
@@ -797,8 +918,8 @@ static inline int cnstr_shdsc_ipsec_decap_des_aes_xcbc(uint32_t *descbuf,
 	     4, 0);
 	SEQINPTR(p, 0, 65535, RTO);
 	MATHB(p, MATH0, ADD,
-	      (uint64_t)(pdb->ip_hdr_len + IPSEC_ICV_MD5_TRUNC_SIZE),
-	      SEQINSZ, 4, IMMED2);
+	      (uint64_t)(ip_hdr_len + IPSEC_ICV_MD5_TRUNC_SIZE), SEQINSZ, 4,
+	      IMMED2);
 	KEY(p, KEY1, cipherdata->key_enc_flags, cipherdata->key,
 	    cipherdata->keylen, INLINE_KEY(cipherdata));
 	PROTOCOL(p, OP_TYPE_DECAP_PROTOCOL, OP_PCLID_IPSEC,
@@ -907,7 +1028,7 @@ static inline int cnstr_shdsc_ipsec_new_encap(uint32_t *descbuf, bool ps,
 		PROGRAM_SET_36BIT_ADDR(p);
 	phdr = SHR_HDR(p, SHR_SERIAL, hdr, 0);
 
-	COPY_DATA(p, (uint8_t *)pdb, sizeof(struct ipsec_encap_pdb));
+	__rta_copy_ipsec_encap_pdb(p, pdb, cipherdata->algtype);
 
 	switch (pdb->options & PDBOPTS_ESP_OIHI_MASK) {
 	case PDBOPTS_ESP_OIHI_PDB_INL:
@@ -1004,7 +1125,7 @@ static inline int cnstr_shdsc_ipsec_new_decap(uint32_t *descbuf, bool ps,
 	if (ps)
 		PROGRAM_SET_36BIT_ADDR(p);
 	phdr = SHR_HDR(p, SHR_SERIAL, hdr, 0);
-	COPY_DATA(p, (uint8_t *)pdb, sizeof(struct ipsec_decap_pdb));
+	__rta_copy_ipsec_decap_pdb(p, pdb, cipherdata->algtype);
 	SET_LABEL(p, hdr);
 	pkeyjmp = JUMP(p, keyjmp, LOCAL_JUMP, ALL_TRUE, SHRD);
 	if (authdata->keylen)
