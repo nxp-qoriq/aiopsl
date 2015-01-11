@@ -5,3 +5,10 @@
  - bringup_tests.h will contain function declerations for all bringup related tests.
  - sys_is_master_core() API will work in tests (both initialization and test, MC and AIOP).
  
+ for example see mem access test:
+ MC: 
+  - mem_access_test.c
+ 
+ AIOP: 
+  - aiop_mem_access_init.c (MC git)
+  - mem_access_test.c (AIOP git)
