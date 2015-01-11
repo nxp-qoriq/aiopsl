@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2015 Freescale Semiconductor, Inc.
+ * Copyright 2014 Freescale Semiconductor, Inc.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -37,7 +37,6 @@
 #include "common/types.h"
 #include "dplib/fsl_ipr.h"
 #include "dplib/fsl_ipsec.h"
-#include "ipsec.h"
 #include "dplib/fsl_keygen.h"
 #include "fsl_snic_cmd.h"
 #include "fsl_tman.h"

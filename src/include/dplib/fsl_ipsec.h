@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2015 Freescale Semiconductor, Inc.
+ * Copyright 2014 Freescale Semiconductor, Inc.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -296,14 +296,14 @@ typedef void (ipsec_lifetime_callback_t) (
  * @Description   IV field for IPsec CBC encapsulation
 *//***************************************************************************/
 struct ipsec_encap_cbc_params {
-	uint32_t iv[4];
+	uint8_t iv[16];
 };
 
 /**************************************************************************//**
  * @Description   Nonce and IV fields for IPsec CTR encapsulation
 *//***************************************************************************/
 struct ipsec_encap_ctr_params {
-	uint32_t ctr_nonce;
+	uint8_t ctr_nonce[4];
 	uint32_t iv[2];
 };
 
@@ -311,7 +311,7 @@ struct ipsec_encap_ctr_params {
  * @Description   Salt and IV fields for IPsec CCM encapsulation
 *//***************************************************************************/
 struct ipsec_encap_ccm_params {
-	uint32_t salt; /**< lower 24 bits are used */
+	uint8_t salt[4]; /**< lower 24 bits are used */
 	uint32_t iv[2];
 };
 
@@ -319,7 +319,7 @@ struct ipsec_encap_ccm_params {
  * @Description   Salt and IV fields for IPsec GCM encapsulation
 *//***************************************************************************/
 struct ipsec_encap_gcm_params {
-	uint32_t salt; /**< lower 24 bits are used */
+	uint8_t salt[4]; /**< lower 24 bits are used */
 	uint32_t iv[2];
 };
 
@@ -347,21 +347,21 @@ struct ipsec_encap_params {
  * @Description   Salt and counter fields for IPsec CTR decapsulation
 *//***************************************************************************/
 struct ipsec_decap_ctr_params {
-	uint32_t ctr_nonce;
+	uint8_t ctr_nonce[4];
 };
 
 /**************************************************************************//**
  * @Description   Salt, counter and flag fields for IPsec CCM decapsulation
 *//***************************************************************************/
 struct ipsec_decap_ccm_params {
-	uint32_t salt;
+	uint8_t salt[4];
 };
 
 /**************************************************************************//**
  * @Description   Salt field for IPsec GCM decapsulation
 *//***************************************************************************/
 struct ipsec_decap_gcm_params {
-	uint32_t salt;
+	uint8_t salt[4];
 };
 
 /**************************************************************************//**

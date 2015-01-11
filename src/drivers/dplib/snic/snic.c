@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2015 Freescale Semiconductor, Inc.
+ * Copyright 2014 Freescale Semiconductor, Inc.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -278,7 +278,6 @@ int snic_ipsec_encrypt(struct snic_params *snic)
 	struct table_lookup_result lookup_result;
 	ipsec_handle_t ipsec_handle;
 	uint32_t enc_status;
-	struct table_lookup_non_default_params ndf_params = {0};
 
 	/* Get ASA pointer */
 	presentation_context =
@@ -287,16 +286,11 @@ int snic_ipsec_encrypt(struct snic_params *snic)
 			asapa_asaps & PRC_ASAPA_MASK);
 	sa_id = *((uint16_t *)(PTR_MOVE(asa_seg_addr, 0x54)));
 	
-
-	ndf_params.metadata = (uint64_t)sa_id;
-	sr_status = table_lookup_by_keyid(
-			TABLE_ACCEL_ID_CTLU,
-			snic->ipsec_table_id,
-			snic->ipsec_key_id,
-			TABLE_LOOKUP_FLAG_MTDT_NON_DEFAULT,
-			&ndf_params,
-			&lookup_result);
-
+	sr_status = table_lookup_by_keyid_default_frame(
+		TABLE_ACCEL_ID_CTLU,
+		snic->ipsec_table_id,
+		snic->ipsec_key_id,
+		&lookup_result);
 	if (sr_status == TABLE_STATUS_SUCCESS) 
 	{
 		/* Hit */
@@ -334,27 +328,7 @@ __COLD_CODE static int snic_ctrl_cb(void *dev, uint16_t cmd, uint32_t size, void
 	struct ipr_params ipr_params = {0};
 	struct ipr_params *cfg = &ipr_params;
 	struct ipsec_descriptor_params ipsec_params = {0};
-	struct ipsec_encap_params encparams = {0};
-	struct ipsec_decap_params decparams = {0};
-	struct ipsec_encap_cbc_params encap_cbc = {0};
-	struct ipsec_encap_ctr_params encap_ctr = {0};
-	struct ipsec_encap_ccm_params encap_ccm = {0};
-	struct ipsec_encap_gcm_params encap_gcm = {0};
-	struct ipsec_decap_ctr_params decap_ctr = {0};
-	struct ipsec_decap_ccm_params decap_ccm = {0};
-	struct ipsec_decap_gcm_params decap_gcm = {0};
-	/* should get value from: enum ipsec_cipher_type */
-	uint8_t cipher_type;
 	struct ipsec_descriptor_params *ipsec_cfg = &ipsec_params;
-	struct ipsec_encap_params *encparams_cfg = &encparams;
-	struct ipsec_decap_params *decparams_cfg = &decparams;
-	struct ipsec_encap_cbc_params *encap_cbc_cfg = &encap_cbc;
-	struct ipsec_encap_ctr_params *encap_ctr_cfg = &encap_ctr;
-	struct ipsec_encap_ccm_params *encap_ccm_cfg = &encap_ccm;
-	struct ipsec_encap_gcm_params *encap_gcm_cfg = &encap_gcm;
-	struct ipsec_decap_ctr_params *decap_ctr_cfg = &decap_ctr;
-	struct ipsec_decap_ccm_params *decap_ccm_cfg = &decap_ccm;
-	struct ipsec_decap_gcm_params *decap_gcm_cfg = &decap_gcm;
 	uint32_t snic_ep_pc;
 	int err = 0;
 	uint32_t committed_sa_num, max_sa_num;
@@ -364,9 +338,9 @@ __COLD_CODE static int snic_ctrl_cb(void *dev, uint16_t cmd, uint32_t size, void
 	uint8_t fec_no, key_size;
 	uint8_t fec_array[8];
 	uint32_t table_location;
-	uint16_t sa_id;
+	uint16_t sa_id = 0;
 	/* example: SPI, IP dest. and protocol */
-	uint8_t ipsec_dec_key[48];
+	uint8_t ipsec_dec_key[48] = {0};
 	ipsec_handle_t ipsec_handle = 0;
 	struct table_rule rule;
 	struct table_lookup_result lookup_result;
@@ -448,8 +422,6 @@ __COLD_CODE static int snic_ctrl_cb(void *dev, uint16_t cmd, uint32_t size, void
 				table_location, dec_committed_sa_num, dec_max_sa_num,
 				&snic_params[snic_id].dec_ipsec_key_id,
 				&snic_params[snic_id].dec_ipsec_table_id);
-		if (err)
-			return err;
 		/* create keyid and tableid for SA ID management*/
 		err = snic_create_table_key_id(0, NULL, key_size,
 				table_location, committed_sa_num, max_sa_num,
@@ -478,29 +450,7 @@ __COLD_CODE static int snic_ctrl_cb(void *dev, uint16_t cmd, uint32_t size, void
 		return 0;
 		
 	case SNIC_IPSEC_ADD_SA:
-		SNIC_IPSEC_ADD_SA_CMD(SNIC_CMD_READ);
-		if (ipsec_cfg->direction == IPSEC_DIRECTION_OUTBOUND)
-		{
-			ipsec_cfg->encparams = encparams;
-			if (cipher_type == CIPHER_TYPE_CBC)
-				ipsec_cfg->encparams.cbc = encap_cbc;
-			else if (cipher_type == CIPHER_TYPE_CTR)
-				ipsec_cfg->encparams.ctr = encap_ctr;
-			else if (cipher_type == CIPHER_TYPE_CCM)
-				ipsec_cfg->encparams.ccm = encap_ccm;
-			else
-				ipsec_cfg->encparams.gcm = encap_gcm;
-		}
-		else
-		{
-			ipsec_cfg->decparams = decparams;
-			if (cipher_type == CIPHER_TYPE_CCM)
-				ipsec_cfg->decparams.ccm = decap_ccm;
-			else if (cipher_type == CIPHER_TYPE_CTR)
-				ipsec_cfg->decparams.ctr = decap_ctr;
-			else
-				ipsec_cfg->decparams.gcm = decap_gcm;
-		}
+		//SNIC_IPSEC_ADD_SA_CMD(SNIC_CMD_READ);
 		/* transport mode. IPSEC_FLG_LIFETIME_SEC_CNTR_EN not supported yet */
 		ipsec_params.flags = IPSEC_FLG_LIFETIME_KB_CNTR_EN | IPSEC_FLG_LIFETIME_PKT_CNTR_EN;
 		ipsec_params.soft_kilobytes_limit = 0xffffffffffffffff; 
@@ -654,6 +604,7 @@ int snic_create_table_key_id(uint8_t fec_no, uint8_t fec_array[8],
 	struct kcr_builder kb
 			__attribute__((aligned(16)));
 	int	err, i;
+	uint8_t  keyid;
 	struct table_create_params tbl_params;
 	uint16_t table_location_attr;
 
@@ -671,7 +622,8 @@ int snic_create_table_key_id(uint8_t fec_no, uint8_t fec_array[8],
 
 	err = keygen_kcr_create(KEYGEN_ACCEL_ID_CTLU,
 			  kb.kcr,
-			  key_id);
+			  &keyid);
+	*key_id = keyid;
 	if (err < 0)
 	{
 		return err;
@@ -686,7 +638,7 @@ int snic_create_table_key_id(uint8_t fec_no, uint8_t fec_array[8],
 		table_location_attr = TABLE_ATTRIBUTE_LOCATION_PEB;
 	else if (table_location == IPR_MODE_TABLE_LOCATION_EXT1)
 		table_location_attr = TABLE_ATTRIBUTE_LOCATION_EXT1;
-	else
+	else if (table_location == IPR_MODE_TABLE_LOCATION_EXT2)
 		table_location_attr = TABLE_ATTRIBUTE_LOCATION_EXT2;
 	tbl_params.attributes = TABLE_ATTRIBUTE_TYPE_EM | \
 			table_location_attr | \
