@@ -29,7 +29,6 @@
 #include "fsl_dpni.h"
 #include "fsl_fdma.h"
 #include "fsl_parser.h"
-#include "osm.h"
 
 #include "fsl_dpni_drv.h"
 
@@ -41,61 +40,6 @@ extern __TASK struct aiop_default_task_params default_task_params;
 
 /* TODO - get rid */
 extern struct dpni_drv *nis;
-
-#pragma push
-#pragma force_active on
-
-void receive_cb(void)
-{	
-	struct dpni_drv *dpni_drv;
-#ifndef AIOP_VERIF
-#ifndef DISABLE_ASSERTIONS
-	struct dpni_drv_params dpni_drv_params_local
-				__attribute__((aligned(8)));
-#endif
-#endif
-	struct parse_result *pr;
-	int32_t parse_status;
-
-	dpni_drv = nis + PRC_GET_PARAMETER(); /* calculate pointer
-						* to the send NI structure   */
-	pr = (struct parse_result *)HWC_PARSE_RES_ADDRESS;
-
-	/* Need to save running-sum in parse-results LE-> BE */
-	pr->gross_running_sum = LH_SWAP(HWC_FD_ADDRESS + FD_FLC_RUNNING_SUM, 0);
-
-	osm_task_init();
-
-	/* Load from SHRAM to local stack */
-#ifndef AIOP_VERIF
-#ifndef DISABLE_ASSERTIONS
-	dpni_drv_params_local = dpni_drv->dpni_drv_params_var;
-
-	ASSERT_COND_LIGHT(dpni_drv_params_local.starting_hxs == 0);
-	ASSERT_COND_LIGHT(dpni_drv_params_local.prpid == 0);
-	ASSERT_COND_LIGHT(dpni_drv_params_local.flags & DPNI_DRV_FLG_PARSE);
-	ASSERT_COND_LIGHT(dpni_drv_params_local.flags & DPNI_DRV_FLG_PARSER_DIS);
-#endif
-#endif
-
-	*((uint8_t *)HWC_SPID_ADDRESS) = dpni_drv->dpni_drv_params_var.spid;
-	default_task_params.parser_profile_id = 0;
-	default_task_params.parser_starting_hxs = 0;
-	default_task_params.qd_priority = ((*((uint8_t *)(HWC_ADC_ADDRESS + \
-			ADC_WQID_PRI_OFFSET)) & ADC_WQID_MASK) >> 4);
-	
-	parse_status = parse_result_generate_basic();
-	if (parse_status) {
-		fdma_discard_default_frame(FDMA_DIS_NO_FLAGS);
-		fdma_terminate_task();
-	}
-
-	dpni_drv->rx_cbs(dpni_drv->arg);
-	fdma_terminate_task();
-}
-
-
-#pragma pop
 
 int dpni_drv_explicit_send(uint16_t ni_id, struct ldpaa_fd *fd)
 {
