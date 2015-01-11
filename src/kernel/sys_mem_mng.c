@@ -102,18 +102,6 @@ void sys_shram_free(void *mem)
 	mem_mng_free_mem(sys.mem_mng, mem);
 }
 /*****************************************************************************/
-int sys_get_available_mem_partition(void)
-{
-    int partition_id;
-
-    ASSERT_COND(sys.mem_mng);
-
-    partition_id = mem_mng_get_available_partition_id(sys.mem_mng);
-
-    return partition_id;
-}
-
-/*****************************************************************************/
  int sys_register_phys_addr_alloc_partition(int  partition_id,
         uint64_t  base_paddress,
         uint64_t   size,
