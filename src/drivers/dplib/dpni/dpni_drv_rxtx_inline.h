@@ -37,7 +37,7 @@
 #include "types.h"
 #include "fsl_fdma.h"
 #include "fsl_parser.h"
-#include "osm.h"
+#include "osm_inline.h"
 
 extern __TASK struct aiop_default_task_params default_task_params;
 extern struct dpni_drv *nis;
