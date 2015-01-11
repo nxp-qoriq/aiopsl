@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Freescale Semiconductor, Inc.
+ * Copyright 2014-2015 Freescale Semiconductor, Inc.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -24,25 +24,50 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "common/fsl_string.h"
-#include "inc/fsl_sys.h"
-#include "apps.h"
+/**************************************************************************//**
+@File		osm_inline.h
 
-extern int app_init(void); extern void app_free(void);
+@Description	This file contains the AIOP OSM Operations Inline API 
+		implementation.
+*//***************************************************************************/
+
+#ifndef __OSM_INLINE_H
+#define __OSM_INLINE_H
+
+#include "osm.h"
+#include "fsl_osm.h"
+#include "general.h"
 
 
-#define APPS                            	\
-{                                       	\
-	{NULL, app_init, app_free},	\
-	{NULL, NULL, NULL} /* never remove! */    	\
-}
-
-void build_apps_array(struct sys_module_desc *apps);
-
-void build_apps_array(struct sys_module_desc *apps)
+inline void osm_scope_exit(void)
 {
-	struct sys_module_desc apps_tmp[] = APPS;
-	
-	ASSERT_COND(ARRAY_SIZE(apps_tmp) <= APP_MAX_NUM);
-	memcpy(apps, apps_tmp, sizeof(apps_tmp));
+	/* call OSM */
+	__e_osmcmd(OSM_SCOPE_EXIT_OP, 0);
+		if (default_task_params.current_scope_level != 0)
+			default_task_params.current_scope_level--;
 }
+
+inline void osm_task_init(void)
+{
+	uint8_t osm_val = ((struct presentation_context *)HWC_PRC_ADDRESS)
+			->osrc_oep_osel_osrm;
+
+	/**<	0 = No order scope specified.\n
+		1 = Scope was specified for level 1 of hierarchy */
+	/*default_task_params.current_scope_level =
+			((osm_val & PRC_OSRC_MASK) ? 1 : 0);*/
+	default_task_params.current_scope_level = osm_val >>
+			PRC_OSRC_BIT_OFFSET;
+
+	/**(uint32_t *)default_task_params.scope_mode_level_arr = 0 ;*/
+	/**<	0 = Concurrent mode.\n
+		1 = Exclusive mode. */
+	/*default_task_params.scope_mode_level_arr[0] =
+			((osm_val & PRC_OEP_MASK) ? 1 : 0);*/
+	default_task_params.scope_mode_level_arr[0] = (osm_val & PRC_OEP_MASK)
+			>> PRC_OEP_BIT_OFFSET;
+}
+
+
+
+#endif /*__OSM_INLINE_H*/
