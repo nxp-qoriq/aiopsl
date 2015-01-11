@@ -4,7 +4,6 @@
 #include "ls2085_aiop/fsl_platform.h"
 #include "common/types.h"
 #include "console.h"
-#include "fsl_malloc.h"
 #include "console_print_test.h"
 #include "fsl_string.h"
 

@@ -303,6 +303,5 @@ typedef struct t_platform {
 	dma_addr_t              mc_mem_phys_base;
 } t_platform;
 
-/** @} */ /* end of group */
-#endif /* __DUART_H */
+#endif /* __CONSOLE_PRINT_TEST_H */
 

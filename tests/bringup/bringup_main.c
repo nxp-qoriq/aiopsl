@@ -106,6 +106,16 @@ UNUSED(argc); UNUSED(argv);
 	err =  console_print_test();
 	if(err) return err;
 #endif
+
+#if (TEST_DPBP == ON)
+	/* memory access test */
+	if(sys.is_tile_master[core_id]){
+	err = dpbp_init();
+	if(err) return err;
+	err = dpbp_test();
+	if(err) return err;
+	}
+#endif /* TEST_MEM_ACCESS */
 //
 //#if (STACK_OVERFLOW_DETECTION == 1)
 //    configure_stack_overflow_detection();
