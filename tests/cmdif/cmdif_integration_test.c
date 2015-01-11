@@ -115,7 +115,9 @@ static int aiop_async_cb(void *async_ctx, int err, uint16_t cmd_id,
 	fsl_os_print("ASYNC CB data 0x%x size = 0x%x\n", (uint32_t)data , size);
 	fsl_os_print("Default segment handle = 0x%x\n", 
 	             PRC_GET_SEGMENT_HANDLE());
-	
+	ASSERT_COND(PRC_GET_SEGMENT_HANDLE() == 0);
+	ASSERT_COND(PRC_GET_FRAME_HANDLE() == 0);
+
 	if (err != 0) {
 		fsl_os_print("ERROR inside aiop_async_cb\n");
 	}
@@ -200,6 +202,9 @@ static int ctrl_cb0(void *dev, uint16_t cmd, uint32_t size,
 	             cmd,
 	             size,
 	             (uint32_t)data);
+
+	ASSERT_COND(PRC_GET_SEGMENT_HANDLE() == 0);
+	ASSERT_COND(PRC_GET_FRAME_HANDLE() == 0);
 
 	aiop_ws_check();
 	
@@ -378,6 +383,10 @@ static int ctrl_cb0(void *dev, uint16_t cmd, uint32_t size,
 		fdma_modify_default_segment_data(0, (uint16_t)size);
 		break;
 	}
+	
+	ASSERT_COND(PRC_GET_SEGMENT_HANDLE() == 0);
+	ASSERT_COND(PRC_GET_FRAME_HANDLE() == 0);
+
 	return err;
 }
 
