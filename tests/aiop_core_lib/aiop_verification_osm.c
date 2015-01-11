@@ -33,7 +33,7 @@
 
 #include "dplib/fsl_osm.h"
 
-#include "osm.h"
+#include "osm_inline.h"
 
 #include "aiop_verification.h"
 #include "aiop_verification_osm.h"

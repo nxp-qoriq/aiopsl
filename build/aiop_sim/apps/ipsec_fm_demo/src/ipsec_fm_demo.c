@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2015 Freescale Semiconductor, Inc.
+ * Copyright 2014 Freescale Semiconductor, Inc.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -342,11 +342,11 @@ int ipsec_app_init(uint16_t ni_id)
 	/*                    Control Parameters                  */
 	/**********************************************************/
 	/* Set the required algorithms here */
-	//algs = NULL_ENCRYPTION;
-	algs = AES128_SHA256;
+	algs = NULL_ENCRYPTION;
+	//algs = AES128_SHA256;
 
 	/* Set the outer IP header type here */
-	outer_header_ip_version = 6; /* 4 or 6 */
+	outer_header_ip_version = 4; /* 4 or 6 */
 	/**********************************************************/
 
 	ipsec_instance_handle_t ws_instance_handle = 0;
@@ -430,16 +430,7 @@ int ipsec_app_init(uint16_t ni_id)
 	else
 		fsl_os_print("slab_acquire() completed successfully\n");	
 
-	/* Copy the Keys to external memory with CDMA */
-	cdma_write(
-			cipher_key_addr, /* ext_address */
-			&cipher_key, /* ws_src */
-			16); /* uint16_t size */
-		
-	cdma_write(
-			auth_key_addr, /* ext_address */
-			&auth_key, /* ws_src */
-			16); /* uint16_t size */
+
 	
 	switch (algs) {
 		case NULL_ENCRYPTION:
@@ -466,6 +457,17 @@ int ipsec_app_init(uint16_t ni_id)
 			auth_alg = IPSEC_AUTH_HMAC_MD5_96;
 			auth_keylen = 16; 
 	}
+	
+	/* Copy the Keys to external memory with CDMA */
+	cdma_write(
+			cipher_key_addr, /* ext_address */
+			&cipher_key, /* ws_src */
+			16); /* uint16_t size */
+		
+	cdma_write(
+			auth_key_addr, /* ext_address */
+			&auth_key, /* ws_src */
+			(uint16_t)auth_keylen); /* uint16_t size */
 	
 	/* Outer IP header */
 	if (outer_header_ip_version == 4) {
@@ -505,11 +507,11 @@ int ipsec_app_init(uint16_t ni_id)
 	params.encparams.seq_num = 0x0;
 	params.encparams.spi = 0x0;
 	params.encparams.outer_hdr = (uint32_t *)&outer_ip_header;
-	params.encparams.cbc.iv[0] = 0;
-	params.encparams.cbc.iv[1] = 0;
-	params.encparams.cbc.iv[2] = 0;
-	params.encparams.cbc.iv[3] = 0;
 
+	for (i=0; i<sizeof(params.encparams.cbc.iv); i++) {
+		params.encparams.cbc.iv[i] = 0;
+	}
+	
 	params.cipherdata.algtype = cipher_alg;
 	params.cipherdata.key = cipher_key_addr;
 	params.cipherdata.keylen = cipher_keylen; 

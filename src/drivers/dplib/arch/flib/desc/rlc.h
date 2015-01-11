@@ -1,4 +1,8 @@
-/* Copyright 2014-2015 Freescale Semiconductor, Inc. */
+/*
+ * Copyright 2014 Freescale Semiconductor, Inc.
+ *
+ * SPDX-License-Identifier: BSD-3-Clause or GPL-2.0+
+ */
 
 #ifndef __DESC_RLC_H__
 #define __DESC_RLC_H__

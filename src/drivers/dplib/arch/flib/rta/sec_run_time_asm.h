@@ -1,4 +1,8 @@
-/* Copyright 2008-2013 Freescale Semiconductor, Inc. */
+/*
+ * Copyright 2008-2013 Freescale Semiconductor, Inc.
+ *
+ * SPDX-License-Identifier: BSD-3-Clause or GPL-2.0+
+ */
 
 #ifndef __RTA_SEC_RUN_TIME_ASM_H__
 #define __RTA_SEC_RUN_TIME_ASM_H__
@@ -379,14 +383,6 @@ static inline void rta_program_cntxt_init(struct program *program,
 	program->bswap = false;
 }
 
-static inline void __rta__desc_bswap(uint32_t *buff, unsigned buff_len)
-{
-	unsigned i;
-
-	for (i = 0; i < buff_len; i++)
-		buff[i] = swab32(buff[i]);
-}
-
 static inline int rta_program_finalize(struct program *program)
 {
 	/* Descriptor is usually not allowed to go beyond 64 words size */
@@ -400,17 +396,14 @@ static inline int rta_program_finalize(struct program *program)
 	}
 
 	/* Update descriptor length in shared and job descriptor headers */
-	if (program->shrhdr != NULL) {
-		*program->shrhdr |= program->current_pc;
-		if (program->bswap)
-			__rta__desc_bswap(program->shrhdr, program->current_pc);
-	} else if (program->jobhdr != NULL) {
-		*program->jobhdr |= program->current_pc;
-		if (program->bswap)
-			__rta__desc_bswap(program->jobhdr, program->current_pc);
-	} else {
-		return -EINVAL;
-	}
+	if (program->shrhdr != NULL)
+		*program->shrhdr |= program->bswap ?
+					swab32(program->current_pc) :
+					program->current_pc;
+	else if (program->jobhdr != NULL)
+		*program->jobhdr |= program->bswap ?
+					swab32(program->current_pc) :
+					program->current_pc;
 
 	return (int)program->current_pc;
 }
@@ -429,7 +422,20 @@ static inline unsigned rta_program_set_bswap(struct program *program)
 
 static inline void __rta_out32(struct program *program, uint32_t val)
 {
-	program->buffer[program->current_pc] = val;
+	program->buffer[program->current_pc] = program->bswap ?
+						swab32(val) : val;
+	program->current_pc++;
+}
+
+static inline void __rta_out_be32(struct program *program, uint32_t val)
+{
+	program->buffer[program->current_pc] = cpu_to_be32(val);
+	program->current_pc++;
+}
+
+static inline void __rta_out_le32(struct program *program, uint32_t val)
+{
+	program->buffer[program->current_pc] = cpu_to_le32(val);
 	program->current_pc++;
 }
 
@@ -522,10 +528,10 @@ static inline unsigned rta_set_label(struct program *program)
 }
 
 static inline int rta_patch_move(struct program *program, int line,
-				 unsigned new_ref, bool check_swap)
+				 unsigned new_ref)
 {
 	uint32_t opcode;
-	bool bswap = check_swap && program->bswap;
+	bool bswap = program->bswap;
 
 	if (line < 0)
 		return -EINVAL;
@@ -540,10 +546,10 @@ static inline int rta_patch_move(struct program *program, int line,
 }
 
 static inline int rta_patch_jmp(struct program *program, int line,
-				unsigned new_ref, bool check_swap)
+				unsigned new_ref)
 {
 	uint32_t opcode;
-	bool bswap = check_swap && program->bswap;
+	bool bswap = program->bswap;
 
 	if (line < 0)
 		return -EINVAL;
@@ -558,10 +564,10 @@ static inline int rta_patch_jmp(struct program *program, int line,
 }
 
 static inline int rta_patch_header(struct program *program, int line,
-				   unsigned new_ref, bool check_swap)
+				   unsigned new_ref)
 {
 	uint32_t opcode;
-	bool bswap = check_swap && program->bswap;
+	bool bswap = program->bswap;
 
 	if (line < 0)
 		return -EINVAL;
@@ -597,10 +603,10 @@ static inline int rta_patch_load(struct program *program, int line,
 }
 
 static inline int rta_patch_store(struct program *program, int line,
-				  unsigned new_ref, bool check_swap)
+				  unsigned new_ref)
 {
 	uint32_t opcode;
-	bool bswap = check_swap && program->bswap;
+	bool bswap = program->bswap;
 
 	if (line < 0)
 		return -EINVAL;
@@ -628,11 +634,10 @@ static inline int rta_patch_store(struct program *program, int line,
 }
 
 static inline int rta_patch_raw(struct program *program, int line,
-				unsigned mask, unsigned new_val,
-				bool check_swap)
+				unsigned mask, unsigned new_val)
 {
 	uint32_t opcode;
-	bool bswap = check_swap && program->bswap;
+	bool bswap = program->bswap;
 
 	if (line < 0)
 		return -EINVAL;
