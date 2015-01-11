@@ -30,6 +30,7 @@
 #include "fsl_dbg.h"
 #include "cmgw.h"
 
+#include "sys.h"
 #include "bringup_tests.h"
 
 //extern int sys_init(void);
