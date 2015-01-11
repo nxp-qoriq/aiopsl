@@ -20,24 +20,22 @@ int aiop_mc_cmd_init()
 	int container_id = 0;
 
 	if (sys_is_master_core()) {
-		pr_debug("MC portal ID[%d] addr = 0x%x\n", 
-		         mc_portal_id, 
-		         (uint32_t)p_vaddr);
+		pr_debug("MC portal ID[%d] addr = 0x%x\n", mc_portal_id, (uint32_t)p_vaddr);
 
 		/* Open root container in order to create and query for devices */
-		dprc->io.regs = p_vaddr;
-		if ((err = dprc_get_container_id(&dprc->io, &container_id)) != 0) {
+		dprc.io.regs = p_vaddr;
+		if ((err = dprc_get_container_id(&dprc.io, &container_id)) != 0) {
 			pr_err("Failed to get AIOP root container ID.\n");
 			return err;
 		}
-		if ((err = dprc_open(&dprc->io, container_id, &dprc->token)) != 0) {
+		if ((err = dprc_open(&dprc.io, container_id, &dprc.token)) != 0) {
 			pr_err("Failed to open AIOP root container DP-RC%d.\n",
 			       container_id);
 			return err;
 		}
 	}
 	
-	do {} while(!dprc.token);
+	do {} while((!((volatile uint16_t)dprc.token)));
 	
 	return 0;
 }
@@ -45,9 +43,19 @@ int aiop_mc_cmd_init()
 int aiop_mc_cmd_test()
 {
 	int err = 0;
+	int dev_count  = 0;
+
+	err = dprc_get_obj_count(&dprc.io, dprc.token, &dev_count);
+	if (err || (dev_count <= 0))
+		return -EINVAL;
+
+	if (sys_is_master_core()) {
+		err = dprc_close(&dprc.io, dprc.token);
+		dprc.token = 0;
+	}
 	
-	err = dprc_close(&dprc.io, dprc.token);
-		
+	do {} while((!((volatile uint16_t)dprc.token)));
+
 	return err;
 }
 
