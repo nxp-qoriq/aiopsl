@@ -74,7 +74,13 @@ int main(int argc, char *argv[])
 {
     int err = 0;
 //    int is_master_core;
-UNUSED(argc);UNUSED(argv);
+    
+	/* so sys_is_master_core() will work */
+	extern t_system sys; /* Global System Object */
+	uint32_t        core_id = core_get_id();
+	sys.is_master_core[core_id]       = (int)(0x1 & (1ULL << core_id));
+	
+UNUSED(argc); UNUSED(argv);
 
     /* Initiate small data area pointers at task initialization */
     asm {
