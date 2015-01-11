@@ -678,6 +678,11 @@
 			<locationURI>PARENT-4-PROJECT_LOC/src/drivers/dplib/arch/accel/table.h</locationURI>
 		</link>
 		<link>
+			<name>sources/drivers/dplib/arch/accel/table_inline.h</name>
+			<type>1</type>
+			<locationURI>PARENT-4-PROJECT_LOC/src/drivers/dplib/arch/accel/table_inline.h</locationURI>
+		</link>
+		<link>
 			<name>sources/drivers/dplib/arch/accel/tman.c</name>
 			<type>1</type>
 			<locationURI>PARENT-4-PROJECT_LOC/src/drivers/dplib/arch/accel/tman.c</locationURI>

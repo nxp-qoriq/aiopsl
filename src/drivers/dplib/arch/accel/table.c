@@ -33,7 +33,7 @@
 
 #include "dplib/fsl_cdma.h"
 #include "dplib/fsl_table.h"
-#include "table.h"
+#include "table_inline.h"
 
 int table_create(enum table_hw_accel_id acc_id,
 		 struct table_create_params *tbl_params,
@@ -620,86 +620,6 @@ int table_rule_delete(enum table_hw_accel_id acc_id,
 				TABLE_RULE_DELETE_FUNC_ID,
 				__LINE__,
 				status);
-		break;
-	} /* Switch */
-
-	return status;
-}
-
-
-int table_lookup_by_key(enum table_hw_accel_id acc_id,
-			uint16_t table_id,
-			union table_lookup_key_desc key_desc,
-			uint8_t key_size,
-			struct table_lookup_result *lookup_result)
-{
-	int32_t status;
-	/* optimization 1 clock */
-	uint32_t arg2 = (uint32_t)lookup_result;
-	arg2 = __e_rlwimi(arg2, *((uint32_t *)(&key_desc)), 16, 0, 15);
-
-	/* Prepare HW context for TLU accelerator call */
-	__stqw(TABLE_LOOKUP_KEY_TMSTMP_RPTR_MTYPE, arg2,
-	       table_id | (((uint32_t)key_size) << 16), 0, HWC_ACC_IN_ADDRESS,
-	       0);
-
-	/* Call Table accelerator */
-	__e_hwaccel(acc_id);
-
-	/* Status Handling*/
-	status = *((int32_t *)HWC_ACC_OUT_ADDRESS);
-	switch (status) {
-	case (TABLE_HW_STATUS_SUCCESS):
-		break;
-	case (TABLE_HW_STATUS_MISS):
-		break;
-	default:
-		table_exception_handler_wrp(
-				TABLE_LOOKUP_BY_KEY_FUNC_ID,
-				__LINE__,
-				status);
-		break;
-	} /* Switch */
-	return status;
-}
-
-
-int table_lookup_by_keyid_default_frame(enum table_hw_accel_id acc_id,
-					uint16_t table_id,
-					uint8_t keyid,
-					struct table_lookup_result
-					       *lookup_result)
-{
-	int32_t status;
-
-	/* Prepare HW context for TLU accelerator call */
-	__stqw(TABLE_LOOKUP_KEYID_EPRS_TMSTMP_RPTR_MTYPE,
-	       (uint32_t)lookup_result, table_id | (((uint32_t)keyid) << 16),
-	       0, HWC_ACC_IN_ADDRESS, 0);
-
-	/* Call Table accelerator */
-	__e_hwaccel(acc_id);
-
-	/* Status Handling*/
-	status = *((int32_t *)HWC_ACC_OUT_ADDRESS);
-	switch (status) {
-	case (TABLE_HW_STATUS_SUCCESS):
-		break;
-	case (TABLE_HW_STATUS_MISS):
-		break;
-	case (TABLE_HW_STATUS_EOFH):
-		status = -EIO;
-		break;
-	/*TODO EOFH with LOOKUP hit/miss */
-	case (TABLE_HW_STATUS_EOFH | TABLE_HW_STATUS_MISS):
-		status = -EIO;
-		break;
-	default:
-		/* Call fatal error handler */
-		table_exception_handler_wrp(
-			TABLE_LOOKUP_BY_KEYID_DEFAULT_FRAME_FUNC_ID,
-			__LINE__,
-			status);
 		break;
 	} /* Switch */
 
