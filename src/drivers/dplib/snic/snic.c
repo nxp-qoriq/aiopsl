@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2015 Freescale Semiconductor, Inc.
+ * Copyright 2014 Freescale Semiconductor, Inc.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -52,7 +52,7 @@
 #include "fsl_snic_cmd.h"
 
 #include "general.h"
-#include "osm.h"
+#include "osm_inline.h"
 
 #include "dplib/fsl_ipf.h"
 #include "dplib/fsl_table.h"
@@ -344,7 +344,7 @@ __COLD_CODE static int snic_ctrl_cb(void *dev, uint16_t cmd, uint32_t size, void
 	struct ipsec_decap_ccm_params decap_ccm = {0};
 	struct ipsec_decap_gcm_params decap_gcm = {0};
 	/* should get value from: enum ipsec_cipher_type */
-	uint8_t cipher_type;
+	uint8_t cipher_type = 0; // TODO: TMP
 	struct ipsec_descriptor_params *ipsec_cfg = &ipsec_params;
 	struct ipsec_encap_params *encparams_cfg = &encparams;
 	struct ipsec_decap_params *decparams_cfg = &decparams;
@@ -364,9 +364,9 @@ __COLD_CODE static int snic_ctrl_cb(void *dev, uint16_t cmd, uint32_t size, void
 	uint8_t fec_no, key_size;
 	uint8_t fec_array[8];
 	uint32_t table_location;
-	uint16_t sa_id;
+	uint16_t sa_id = 0; // TODO: TMP
 	/* example: SPI, IP dest. and protocol */
-	uint8_t ipsec_dec_key[48];
+	uint8_t ipsec_dec_key[48] = {0}; // TODO: TMP
 	ipsec_handle_t ipsec_handle = 0;
 	struct table_rule rule;
 	struct table_lookup_result lookup_result;
@@ -478,7 +478,7 @@ __COLD_CODE static int snic_ctrl_cb(void *dev, uint16_t cmd, uint32_t size, void
 		return 0;
 		
 	case SNIC_IPSEC_ADD_SA:
-		SNIC_IPSEC_ADD_SA_CMD(SNIC_CMD_READ);
+		//SNIC_IPSEC_ADD_SA_CMD(SNIC_CMD_READ); // TODO: TMP
 		if (ipsec_cfg->direction == IPSEC_DIRECTION_OUTBOUND)
 		{
 			ipsec_cfg->encparams = encparams;

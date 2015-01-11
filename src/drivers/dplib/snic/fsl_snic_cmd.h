@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2015 Freescale Semiconductor, Inc.
+ * Copyright 2014 Freescale Semiconductor, Inc.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -163,25 +163,55 @@ do { \
 	_OP(1, 32,	32,	uint32_t,	encparams_cfg->seq_num_ext_hi); \
 	_OP(2, 0,	32,	uint32_t,	encparams_cfg->seq_num); \
 	_OP(2, 32,	32,	uint32_t,	encparams_cfg->spi); \
-	_OP(3, 0,	32,	uint32_t,	encap_cbc_cfg->iv[0]); \
-	_OP(3, 32,	32,	uint32_t,	encap_cbc_cfg->iv[1]); \
-	_OP(4, 0,	32,	uint32_t,	encap_cbc_cfg->iv[2]); \
-	_OP(4, 32,	32,	uint32_t,	encap_cbc_cfg->iv[3]); \
-	_OP(5, 0,	32,	uint32_t,	encap_ctr_cfg->ctr_nonce); \
+	_OP(3, 0,	8,	uint8_t,	encap_cbc_cfg->iv[0]); \
+	_OP(3, 8,	8,	uint8_t,	encap_cbc_cfg->iv[1]); \
+	_OP(3, 16,	8,	uint8_t,	encap_cbc_cfg->iv[2]); \
+	_OP(3, 24,	8,	uint8_t,	encap_cbc_cfg->iv[3]); \
+	_OP(3, 32,	8,	uint8_t,	encap_cbc_cfg->iv[4]); \
+	_OP(3, 40,	8,	uint8_t,	encap_cbc_cfg->iv[5]); \
+	_OP(3, 48,	8,	uint8_t,	encap_cbc_cfg->iv[6]); \
+	_OP(3, 56,	8,	uint8_t,	encap_cbc_cfg->iv[7]); \
+	_OP(4, 0,	8,	uint8_t,	encap_cbc_cfg->iv[8]); \
+	_OP(4, 8,	8,	uint8_t,	encap_cbc_cfg->iv[9]); \
+	_OP(4, 16,	8,	uint8_t,	encap_cbc_cfg->iv[10]); \
+	_OP(4, 24,	8,	uint8_t,	encap_cbc_cfg->iv[11]); \
+	_OP(4, 32,	8,	uint8_t,	encap_cbc_cfg->iv[12]); \
+	_OP(4, 40,	8,	uint8_t,	encap_cbc_cfg->iv[13]); \
+	_OP(4, 48,	8,	uint8_t,	encap_cbc_cfg->iv[14]); \
+	_OP(4, 56,	8,	uint8_t,	encap_cbc_cfg->iv[15]); \
+	_OP(5, 0,	8,	uint8_t,	encap_ctr_cfg->ctr_nonce[0]); \
+	_OP(5, 8,	8,	uint8_t,	encap_ctr_cfg->ctr_nonce[1]); \
+	_OP(5, 16,	8,	uint8_t,	encap_ctr_cfg->ctr_nonce[2]); \
+	_OP(5, 24,	8,	uint8_t,	encap_ctr_cfg->ctr_nonce[3]); \
 	_OP(5, 32,	32,	uint32_t,	encap_ctr_cfg->iv[0]); \
 	_OP(6, 0,	32,	uint32_t,	encap_ctr_cfg->iv[1]); \
-	_OP(6, 32,	32,	uint32_t,	encap_ccm_cfg->salt); \
+	_OP(6, 32,	8,	uint8_t,	encap_ccm_cfg->salt[0]); \
+	_OP(6, 40,	8,	uint8_t,	encap_ccm_cfg->salt[1]); \
+	_OP(6, 48,	8,	uint8_t,	encap_ccm_cfg->salt[2]); \
+	_OP(6, 56,	8,	uint8_t,	encap_ccm_cfg->salt[3]); \
 	_OP(7, 0,	32,	uint32_t,	encap_ccm_cfg->iv[0]); \
 	_OP(7, 32,	32,	uint32_t,	encap_ccm_cfg->iv[1]); \
-	_OP(8, 0,	32,	uint32_t,	encap_gcm_cfg->salt); \
+	_OP(8, 0,	8,	uint8_t,	encap_gcm_cfg->salt[0]); \
+	_OP(8, 8,	8,	uint8_t,	encap_gcm_cfg->salt[1]); \
+	_OP(8, 16,	8,	uint8_t,	encap_gcm_cfg->salt[2]); \
+	_OP(8, 24,	8,	uint8_t,	encap_gcm_cfg->salt[3]); \
 	_OP(8, 32,	32,	uint32_t,	encap_gcm_cfg->iv[0]); \
 	_OP(9, 0,	32,	uint32_t,	encap_gcm_cfg->iv[1]); \
 	_OP(9, 32,	16,	uint16_t,	decparams_cfg->options); \
 	_OP(10, 0,	32,	uint32_t,	decparams_cfg->seq_num_ext_hi); \
 	_OP(10, 32,	32,	uint32_t,	decparams_cfg->seq_num); \
-	_OP(11, 0,	32,	uint32_t,	decap_ctr_cfg->ctr_nonce); \
-	_OP(11, 32,	32,	uint32_t,	decap_ccm_cfg->salt); \
-	_OP(12, 0,	32,	uint32_t,	decap_gcm_cfg->salt); \
+	_OP(11, 0,	8,	uint8_t,	decap_ctr_cfg->ctr_nonce[0]); \
+	_OP(11, 8,	8,	uint8_t,	decap_ctr_cfg->ctr_nonce[1]); \
+	_OP(11, 16,	8,	uint8_t,	decap_ctr_cfg->ctr_nonce[2]); \
+	_OP(11, 24,	8,	uint8_t,	decap_ctr_cfg->ctr_nonce[3]); \
+	_OP(11, 32,	8,	uint8_t,	decap_ccm_cfg->salt[0]); \
+	_OP(11, 40,	8,	uint8_t,	decap_ccm_cfg->salt[1]); \
+	_OP(11, 48,	8,	uint8_t,	decap_ccm_cfg->salt[2]); \
+	_OP(11, 56,	8,	uint8_t,	decap_ccm_cfg->salt[3]); \
+	_OP(12, 0,	8,	uint8_t,	decap_gcm_cfg->salt[0]); \
+	_OP(12, 8,	8,	uint8_t,	decap_gcm_cfg->salt[1]); \
+	_OP(12, 16,	8,	uint8_t,	decap_gcm_cfg->salt[2]); \
+	_OP(12, 24,	8,	uint8_t,	decap_gcm_cfg->salt[3]); \
 	_OP(12, 32,	32,	uint32_t,	ipsec_cfg->cipherdata.algtype); \
 	_OP(13, 0,	32,	uint32_t,	ipsec_cfg->cipherdata.keylen); \
 	_OP(13, 32,	32,	uint32_t,	ipsec_cfg->cipherdata.key_enc_flags); \
