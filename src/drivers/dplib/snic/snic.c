@@ -52,7 +52,7 @@
 #include "fsl_snic_cmd.h"
 
 #include "general.h"
-#include "osm.h"
+#include "osm_inline.h"
 
 #include "dplib/fsl_ipf.h"
 #include "dplib/fsl_table.h"

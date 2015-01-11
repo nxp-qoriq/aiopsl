@@ -40,7 +40,7 @@
 #include "dplib/fsl_ldpaa.h"
 #include "dplib/fsl_parser.h"
 #include "system.h"
-#include "osm.h"
+#include "osm_inline.h"
 #include "kernel/fsl_spinlock.h"
 
 __VERIF_GLOBAL uint64_t verif_ipr_instance_handle[16];

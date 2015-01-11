@@ -623,6 +623,11 @@
 			<locationURI>PARENT-4-PROJECT_LOC/src/drivers/dplib/arch/accel/osm.h</locationURI>
 		</link>
 		<link>
+			<name>sources/drivers/dplib/arch/accel/osm_inline.h</name>
+			<type>1</type>
+			<locationURI>PARENT-4-PROJECT_LOC/src/drivers/dplib/arch/accel/osm_inline.h</locationURI>
+		</link>
+		<link>
 			<name>sources/drivers/dplib/arch/accel/parser.c</name>
 			<type>1</type>
 			<locationURI>PARENT-4-PROJECT_LOC/src/drivers/dplib/arch/accel/parser.c</locationURI>

@@ -43,7 +43,7 @@
 #include "header_modification.h"
 
 /*#include "cdma.h"*/
-#include "osm.h"
+#include "osm_inline.h"
 #include "system.h"
 #include "fsl_platform.h"
 #include "fdma.h"
