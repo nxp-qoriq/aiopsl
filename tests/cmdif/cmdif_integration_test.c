@@ -113,8 +113,8 @@ static int aiop_async_cb(void *async_ctx, int err, uint16_t cmd_id,
 	
 	fsl_os_print("PASSED AIOP ASYNC CB cmd_id = 0x%x\n" ,cmd_id);
 	fsl_os_print("ASYNC CB data 0x%x size = 0x%x\n", (uint32_t)data , size);
-	fsl_os_print("Default segment handle = 0x%x\n", 
-	             PRC_GET_SEGMENT_HANDLE());
+	fsl_os_print("Default segment handle = 0x%x size = 0x%x\n", 
+	             PRC_GET_SEGMENT_HANDLE(), PRC_GET_SEGMENT_LENGTH());
 	ASSERT_COND(PRC_GET_SEGMENT_HANDLE() == 0);
 	ASSERT_COND(PRC_GET_FRAME_HANDLE() == 0);
 
@@ -122,7 +122,6 @@ static int aiop_async_cb(void *async_ctx, int err, uint16_t cmd_id,
 		fsl_os_print("ERROR inside aiop_async_cb\n");
 	}
 	if ((size > 0) && (data != NULL)) {
-#ifdef CMDIF_TEST_WITH_MC_SRV		
 		fsl_os_print("Setting first byte of data with val = 0x%x\n", 
 		             AIOP_ASYNC_CB_DONE);
 		fsl_os_print("Default segment handle = 0x%x\n", 
@@ -130,8 +129,7 @@ static int aiop_async_cb(void *async_ctx, int err, uint16_t cmd_id,
 		((uint8_t *)data)[0] = AIOP_ASYNC_CB_DONE;
 		fsl_os_print("Default segment handle = 0x%x\n", 
 		             PRC_GET_SEGMENT_HANDLE());
-		fdma_modify_default_segment_data(0, (uint16_t)size);
-#endif
+		fdma_modify_default_segment_data(0, (uint16_t)PRC_GET_SEGMENT_LENGTH());
 	} else {
 		fsl_os_print("No data inside aiop_async_cb\n");
 	}
@@ -223,7 +221,7 @@ static int ctrl_cb0(void *dev, uint16_t cmd, uint32_t size,
 		err = shbp_release(&gpp_lbp, p_data);
 		ASSERT_COND(!err);
 		
-		fdma_modify_default_segment_data(0, (uint16_t)size);
+		fdma_modify_default_segment_data(0, (uint16_t)PRC_GET_SEGMENT_LENGTH());
 		fsl_os_print("Released buffer into GPP SHBP\n");
 		break;
 	case SHBP_TEST:
@@ -380,7 +378,7 @@ static int ctrl_cb0(void *dev, uint16_t cmd, uint32_t size,
 				((uint8_t *)data)[i] = 0xDA;
 			}
 		}
-		fdma_modify_default_segment_data(0, (uint16_t)size);
+		fdma_modify_default_segment_data(0, (uint16_t)PRC_GET_SEGMENT_LENGTH());
 		break;
 	}
 	
