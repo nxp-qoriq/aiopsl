@@ -35,7 +35,7 @@
 #include "tman.h"
 #include "dplib/fsl_tman.h"
 #include "dplib/fsl_fdma.h"
-#include "osm.h"
+#include "osm_inline.h"
 #include "dplib/fsl_ldpaa.h"
 #include "inline_asm.h"
 #include "fsl_io_ccsr.h"

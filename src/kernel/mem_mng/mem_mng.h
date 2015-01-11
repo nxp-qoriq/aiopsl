@@ -66,6 +66,7 @@ typedef struct t_mem_mng_partition
     void                    (*f_user_free)(void *p_addr);
                                             /**< Memory deallocation routine */
     int                     enable_debug;    /**< '1' to track malloc/free operations */
+    int                     was_initialized;
     list_t                  mem_debug_list;   /**< List of allocation entries (for debug) */
     list_t                  node;
     t_mem_mng_partition_info   info;           /**< Partition information */
@@ -109,7 +110,7 @@ typedef struct t_mem_mng
                 /**< Memory allocation routine (for internal structures) */
     void        (*f_free)(void *p_addr);
                 /**< Memory deallocation routine (for internal structures) */
-    list_t      mem_partitions_list;
+    t_mem_mng_partition mem_partitions_list[PLATFORM_MAX_MEM_INFO_ENTRIES];
                 /**< List of partition control structures */
     list_t      phys_allocation_mem_partitions_list;
                 /**< List of partition for fsl_os_get_mem function() control structures */

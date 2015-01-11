@@ -791,6 +791,8 @@ struct table_lookup_non_default_params {
 /** @} */ /* end of FSL_TABLE_STRUCTS */
 
 
+#include "table_inline.h"
+
 /**************************************************************************//**
 @Group		FSL_TABLE_Functions TABLE Functions
 
@@ -1180,7 +1182,7 @@ int table_rule_delete(enum table_hw_accel_id acc_id,
 @Cautions	This lookup cannot be used for chaining of lookups.
 @Cautions	This function may result in a fatal error.
 *//***************************************************************************/
-int table_lookup_by_key(enum table_hw_accel_id acc_id,
+inline int table_lookup_by_key(enum table_hw_accel_id acc_id,
 			uint16_t table_id,
 			union table_lookup_key_desc key_desc,
 			uint8_t key_size,
@@ -1236,7 +1238,7 @@ int table_lookup_by_key(enum table_hw_accel_id acc_id,
 @Cautions	In this function the task yields.
 @Cautions	This function may result in a fatal error.
 *//***************************************************************************/
-int table_lookup_by_keyid_default_frame(enum table_hw_accel_id acc_id,
+inline int table_lookup_by_keyid_default_frame(enum table_hw_accel_id acc_id,
 					uint16_t table_id,
 					uint8_t keyid,
 					struct table_lookup_result

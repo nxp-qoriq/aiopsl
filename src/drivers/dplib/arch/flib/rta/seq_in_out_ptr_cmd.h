@@ -1,4 +1,8 @@
-/* Copyright 2008-2013 Freescale Semiconductor, Inc. */
+/*
+ * Copyright 2008-2013 Freescale Semiconductor, Inc.
+ *
+ * SPDX-License-Identifier: BSD-3-Clause or GPL-2.0+
+ */
 
 #ifndef __RTA_SEQ_IN_OUT_PTR_CMD_H__
 #define __RTA_SEQ_IN_OUT_PTR_CMD_H__

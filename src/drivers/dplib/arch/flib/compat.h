@@ -1,4 +1,8 @@
-/* Copyright 2013 Freescale Semiconductor, Inc. */
+/*
+ * Copyright 2013 Freescale Semiconductor, Inc.
+ *
+ * SPDX-License-Identifier: BSD-3-Clause or GPL-2.0+
+ */
 
 #ifndef __RTA_COMPAT_H__
 #define __RTA_COMPAT_H__
@@ -111,10 +115,23 @@ typedef unsigned char			_Bool;
 #define swab16(x) bswap_16(x)
 #define swab32(x) bswap_32(x)
 #define swab64(x) bswap_64(x)
+#if !defined(cpu_to_be32) && !defined(cpu_to_le32)
+#ifdef __BIG_ENDIAN
+#define cpu_to_be32(x)	(x)
+#define cpu_to_le32(x)	swab32(x)
+#elif defined(__LITTLE_ENDIAN)
+#define cpu_to_be32(x)	swab32(x)
+#define cpu_to_le32(x)	(x)
+#else
+#error Endianness not set in environment!
+#endif /* __BIG_ENDIAN */
+#endif /* !defined(cpu_to_be32) && !defined(cpu_to_le32) */
 #elif defined(__EWL__) && (defined(AIOP) || defined(MC))
 #define swab16(x) swap_uint16(x)
 #define swab32(x) swap_uint32(x)
 #define swab64(x) swap_uint64(x)
+#define cpu_to_be32(x)	CPU_TO_BE32(x)
+#define cpu_to_le32(x)	CPU_TO_LE32(x)
 #endif
 
 #endif /* __RTA_COMPAT_H__ */
