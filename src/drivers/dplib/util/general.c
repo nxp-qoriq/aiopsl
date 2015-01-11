@@ -50,14 +50,7 @@ extern __VERIF_TLS uint64_t initial_ext_address;
 #endif /*AIOP_VERIF*/
 
 /* TODO - once the ARENA implementation is ready move this (verification)
- * implementation (the chosen implementation between the following 2) to
- * aiop_verification_data.c. keep the declaration in place*/
-void handle_fatal_error(char *message)
-{
-       uint32_t status;
-       status = -1 + (uint32_t)message;
-       fdma_terminate_task();
-}
+ * implementation to aiop_verification_data.c. Keep the declaration in place. */
 #ifdef AIOP_VERIF
 void exception_handler(char *filename,
 		       char *function_name,
@@ -86,10 +79,6 @@ void exception_handler(char *filename,
 	cdma_write(initial_ext_address,
 		   (void *)fatal_cmd,
 		   sizeof(struct fatal_error_command));
-
-
-	fdma_store_and_enqueue_default_frame_fqid(fatal_cmd->fqid,
-						  FDMA_EN_TC_TERM_BITS);
 
 	status = -1 + (uint32_t)message + (uint32_t)filename + line +
 			(uint32_t)function_name;
