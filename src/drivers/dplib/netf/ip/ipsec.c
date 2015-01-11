@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2015 Freescale Semiconductor, Inc.
+ * Copyright 2014 Freescale Semiconductor, Inc.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -335,21 +335,28 @@ int ipsec_generate_encap_sd(
 			cipher_type = CIPHER_TYPE_CTR;
 			break;
 		/* To construct the CCM B0, SEC uses the B0 flags byte of the PDB
-		 * according to the size of ICV transmitted.
+		 * according to the size of ICV transmitted. (RFC4309, RFC3610)
 		 * For an 8-byte ICV, select a value of 5Bh.
 		 * For a 12-byte ICV, select a value of 6Bh.
 		 * For a 16-byte ICV, select a value of 7Bh. */
+		 /* @ccm_opt: CCM algorithm options - MSB-LSB description:
+		  *  b0_flags (8b) - CCM B0;
+		  *  ctr_flags (8b) - counter flags; constant equal to 0x3
+		  *  ctr_initial (16b) - initial count constant */
 		case IPSEC_CIPHER_AES_CCM8:
 			cipher_type = CIPHER_TYPE_CCM;
-			pdb.ccm.b0_flags = 0x5B;
+			//pdb.ccm.b0_flags = 0x5B;
+			pdb.ccm.ccm_opt = 0x5B000000;
 			break;
 		case IPSEC_CIPHER_AES_CCM12:
 			cipher_type = CIPHER_TYPE_CCM;
-			pdb.ccm.b0_flags = 0x6B;
+			//pdb.ccm.b0_flags = 0x6B;
+			pdb.ccm.ccm_opt = 0x6B000000;
 			break;
 		case IPSEC_CIPHER_AES_CCM16:
 			cipher_type = CIPHER_TYPE_CCM;
-			pdb.ccm.b0_flags = 0x7B;
+			//pdb.ccm.b0_flags = 0x7B;
+			pdb.ccm.ccm_opt = 0x7B000000;
 			break;
 		case IPSEC_CIPHER_AES_GCM8:
 		case IPSEC_CIPHER_AES_GCM12:
@@ -363,48 +370,38 @@ int ipsec_generate_encap_sd(
 	
 	switch (cipher_type) {
 		case CIPHER_TYPE_CBC:
-			/* uint32_t iv[4] */
-			pdb.cbc.iv[0] = params->encparams.cbc.iv[0];
-			pdb.cbc.iv[1] = params->encparams.cbc.iv[1];
-			pdb.cbc.iv[2] = params->encparams.cbc.iv[2];
-			pdb.cbc.iv[3] = params->encparams.cbc.iv[3];
+			/* uint8_t iv[16] */
+			memcpy(pdb.cbc.iv, params->encparams.cbc.iv, 
+					sizeof(params->encparams.cbc.iv));
 			break;
 		case CIPHER_TYPE_CTR:
-			/*	uint32_t ctr_nonce; */
+			/*	uint8_t ctr_nonce[4]; */
 			/*	uint32_t ctr_initial; */
 			/*	uint32_t iv[2]; */
-			pdb.ctr.ctr_nonce = params->encparams.ctr.ctr_nonce;
+			memcpy(pdb.ctr.ctr_nonce, params->encparams.ctr.ctr_nonce,
+			       sizeof(params->encparams.ctr.ctr_nonce));
 			pdb.ctr.ctr_initial = 1;
-			pdb.ctr.iv[0] = params->encparams.ctr.iv[0];
-			pdb.ctr.iv[1] = params->encparams.ctr.iv[1];
+			pdb.ctr.iv = params->encparams.ctr.iv;
 			break;
 		case CIPHER_TYPE_CCM:
-			/*	uint32_t salt; lower 24 bits */
-			/*	uint8_t b0_flags; */
-			/*	uint8_t ctr_flags; */
-			/*	uint16_t ctr_initial; */
+			/*	uint8_t salt[4]; lower 24 bits */
+			/*	uint32_t ccm_opt; */
 			/*	uint32_t iv[2]; */
-			pdb.ccm.salt = params->encparams.ccm.salt;
-			/* Note: pdb.ccm.b0_flags is set according to the ICV length */
-			pdb.ccm.ctr_flags = 0;
-			pdb.ccm.ctr_initial = 0;
-			pdb.ccm.iv[0] = params->encparams.ccm.iv[0];
-			pdb.ccm.iv[1] = params->encparams.ccm.iv[1];
+			memcpy(pdb.ccm.salt, params->encparams.ccm.salt,
+			       sizeof(params->encparams.ccm.salt));
+			pdb.ccm.iv = params->encparams.ccm.iv;
 			break;
 		case CIPHER_TYPE_GCM:
-			/*	uint32_t salt; lower 24 bits */
+			/*	uint8_t salt[4]; lower 24 bits */
 			/*	uint32_t rsvd1; */
 			/*	uint32_t iv[2]; */
-			pdb.gcm.salt = params->encparams.gcm.salt;
-			pdb.gcm.rsvd1 = 0;
-			pdb.gcm.iv[0] = params->encparams.gcm.iv[0];
-			pdb.gcm.iv[1] = params->encparams.gcm.iv[1];
+			memcpy(pdb.gcm.salt, params->encparams.gcm.salt,
+			       sizeof(params->encparams.gcm.salt));
+			pdb.gcm.rsvd = 0;
+			pdb.gcm.iv = params->encparams.gcm.iv;
 			break;
 		default:
-			pdb.cbc.iv[0] = 0;
-			pdb.cbc.iv[1] = 0;
-			pdb.cbc.iv[2] = 0;
-			pdb.cbc.iv[3] = 0;
+			memset(pdb.cbc.iv, 0, sizeof(pdb.cbc.iv));
 	}
 	
 	/* Tunnel Mode Parameters */
@@ -423,44 +420,24 @@ int ipsec_generate_encap_sd(
 	/* Transport Mode Parameters */
 		pdb_options |= (IPSEC_ENC_OPTS_UPDATE_CSUM | IPSEC_ENC_OPTS_INC_IPHDR);
 	}
-	
-	pdb.hmo = 
-		(uint8_t)(((params->encparams.options) & IPSEC_ENC_PDB_HMO_MASK)>>8);
+
+	/*
+	 * Transport mode Next Header and Next Header Offset are initialized to
+	 * zero, since they come from DPOVRD.
+	 */
 	pdb.options = 
 		(uint8_t)((((params->encparams.options) & IPSEC_PDB_OPTIONS_MASK)) |
 		pdb_options
 		);
-
-	/* Transport mode Next Header value share the same stack location with
-	 * Tunnel mode reserved bits at the RTA API.
-	 * Since NH comes from DPOVERD it can be init to 0 in both cases
-	 * 
-	 	union {
-			uint8_t ip_nh;	- next header for legacy mode 
-			uint8_t rsvd;	- reserved for new mode
-		};
-	 */  
-	pdb.rsvd = 0;
-				
-	/* Transport mode Next Header value share the same stack location with
-	 * Tunnel mode reserved bits at the RTA API.
-	 * Since NH comes from DPOVERD it can be init to 0 in both cases
-	 * 
-	 	 union {
-			uint8_t ip_nh_offset;	- next header offset for legacy mode
-			uint8_t aoipho; - actual outer IP header offset for new mode 
-		};
-	*/
-	pdb.aoipho = 0;
+	pdb.options |= (
+			(((params->encparams.options) & IPSEC_ENC_PDB_HMO_MASK))
+			<<IPSEC_ENC_PDB_HMO_SHIFT);
 
 	pdb.seq_num_ext_hi = params->encparams.seq_num_ext_hi;
 	pdb.seq_num = params->encparams.seq_num;
 	
 	pdb.spi = params->encparams.spi;
-		
-	pdb.rsvd2 = 0;
-
-	pdb.ip_hdr_len = params->encparams.ip_hdr_len;
+	pdb.ip_hdr_len = (uint32_t) params->encparams.ip_hdr_len;
 
 	rta_auth_alginfo.algtype = params->authdata.algtype;
 	rta_auth_alginfo.keylen = params->authdata.keylen;
@@ -579,18 +556,24 @@ int ipsec_generate_decap_sd(
 		 * For an 8-byte ICV, select a value of 5Bh.
 		 * For a 12-byte ICV, select a value of 6Bh.
 		 * For a 16-byte ICV, select a value of 7Bh. */
-		/* (note that it is incorrectly called "iv_flags" in the RTA PDB ) */	
+			 /* @ccm_opt: CCM algorithm options - MSB-LSB description:
+			  *  b0_flags (8b) - CCM B0;
+			  *  ctr_flags (8b) - counter flags; constant equal to 0x3
+			  *  ctr_initial (16b) - initial count constant */
 		case IPSEC_CIPHER_AES_CCM8:
 			cipher_type = CIPHER_TYPE_CCM;
-			pdb.ccm.iv_flags = 0x5B;
+			//pdb.ccm.iv_flags = 0x5B;
+			pdb.ccm.ccm_opt = 0x5B000000;
 			break;
 		case IPSEC_CIPHER_AES_CCM12:
 			cipher_type = CIPHER_TYPE_CCM;
-			pdb.ccm.iv_flags = 0x6B;
+			//pdb.ccm.iv_flags = 0x6B;
+			pdb.ccm.ccm_opt = 0x6B000000;
 			break;
 		case IPSEC_CIPHER_AES_CCM16:
 			cipher_type = CIPHER_TYPE_CCM;
-			pdb.ccm.iv_flags = 0x7B;
+			//pdb.ccm.iv_flags = 0x7B;
+			pdb.ccm.ccm_opt = 0x7B000000;
 			break;		
 		case IPSEC_CIPHER_AES_GCM8:
 		case IPSEC_CIPHER_AES_GCM12:
@@ -612,27 +595,26 @@ int ipsec_generate_decap_sd(
 			pdb.cbc.rsvd[1] = 0;
             break;
 		case CIPHER_TYPE_CTR:
-			/* uint32_t salt; */
+			/* uint8_t ctr_nonce[4]; */
 			/* uint32_t ctr_initial; */
-			//pdb.ctr.salt = params->decparams.ctr.salt;
-			pdb.ctr.salt = params->decparams.ctr.ctr_nonce; // TODO: need to fix RTA to "nonce" instead of "salt" 
+			memcpy(pdb.ctr.ctr_nonce,
+			       params->decparams.ctr.ctr_nonce,
+			       sizeof(params->decparams.ctr.ctr_nonce)); 
 			pdb.ctr.ctr_initial = 1;
 			break;
 		case CIPHER_TYPE_CCM:
-			/* uint32_t salt; */
-			/* uint8_t iv_flags; */
-			/* uint8_t ctr_flags; */
-			/* uint16_t ctr_initial; */
-			pdb.ccm.salt = params->decparams.ccm.salt;
-			/* pdb.ccm.iv_flags is set above */
-			pdb.ccm.ctr_flags = 0;
-			pdb.ccm.ctr_initial = 0;
+			/* uint8_t salt[4]; */
+			/* uint32_t ccm_opt; */
+			memcpy(pdb.ccm.salt, params->decparams.ccm.salt,
+			       sizeof(params->decparams.ccm.salt));
+			//pdb.ccm.ccm_opt = 0;
 			break;
 		case CIPHER_TYPE_GCM:
-			/* uint32_t salt; */
-			/* uint32_t resvd; */
-			pdb.gcm.salt = params->decparams.gcm.salt;
-			pdb.gcm.resvd = 0;
+			/* uint8_t salt[4]; */
+			/* uint32_t rsvd; */
+			memcpy(pdb.gcm.salt, params->decparams.gcm.salt,
+			       sizeof(params->decparams.gcm.salt));
+			pdb.gcm.rsvd = 0;
 			break;
 		default:
 			pdb.cbc.rsvd[0] = 0;
@@ -647,11 +629,13 @@ int ipsec_generate_decap_sd(
 	 * 		HMO (upper nibble)
 	 * 		IP header length (lower 3 nibbles) is not relevant for tunnel
 	 * 		and will be set by DPOVRD for transport */
-	pdb.ip_hdr_len = 
-			((params->decparams.options) & IPSEC_DEC_PDB_HMO_MASK);
-
+	/*
+	 * Transport mode Next Header / Tunnel mode AOIPHO will be set by DPOVRD.
+	 */
 	pdb.options = 
 		(uint8_t)(((params->decparams.options) & IPSEC_PDB_OPTIONS_MASK));
+	pdb.options |= (((params->decparams.options) & IPSEC_DEC_PDB_HMO_MASK)
+			<<IPSEC_DEC_PDB_HMO_SHIFT);
 	
 	if (params->flags & IPSEC_FLG_TUNNEL_MODE) {
 		pdb.options |= IPSEC_DEC_OPTS_ETU;
@@ -677,17 +661,6 @@ int ipsec_generate_decap_sd(
 		byte from the output frame length reported to the frame consumer.
 		If outFMT==0, this bit is reserved and must be zero.
 	*/
-	
-	/* Transport mode Next Header value share the same stack location with
-	 * Tunnel mode reserved bits at the RTA API.
-	 * Since NH comes from DPOVERD it can be init to 0 in both cases
-	 * 
-	 	 union {
-			uint8_t ip_nh_offset;	- next header offset for legacy mode
-			uint8_t aoipho; - actual outer IP header offset for new mode 
-		};
-	*/
-	pdb.aoipho = 0; /* Will be set by DPOVRD */
 
 	pdb.seq_num_ext_hi = params->decparams.seq_num_ext_hi;
 	pdb.seq_num = params->decparams.seq_num;
@@ -914,8 +887,7 @@ void ipsec_generate_sa_params(
 	sap.sap1.udp_src_port = 0; /* UDP source for transport mode. TMP */
 	sap.sap1.udp_dst_port = 0; /* UDP destination for transport mode. TMP */
 		
-	/* TODO: new/reuse mode (TBD if this indication is required
-	 * or use directly from the storage profile) */
+	/* new/reuse mode (TBD) */
 	sap.sap1.sec_buffer_mode = IPSEC_SEC_NEW_BUFFER_MODE; 
 
 	sap.sap1.output_spid = (uint8_t)(params->spid);

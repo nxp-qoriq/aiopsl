@@ -75,12 +75,12 @@ int main(int argc, char *argv[])
 {
     int err = 0;
 //    int is_master_core;
-    
+
 	/* so sys_is_master_core() will work */
 	extern t_system sys; /* Global System Object */
 	uint32_t        core_id = core_get_id();
 	sys.is_tile_master[core_id]       = (int)(0x1 & (1ULL << core_id));
-	
+
 UNUSED(argc); UNUSED(argv);
 
     /* Initiate small data area pointers at task initialization */
@@ -88,13 +88,24 @@ UNUSED(argc); UNUSED(argv);
         mtdcr dcr469,r2 // INITR2
         mtdcr dcr470,r13// INITR13
     }
-	
+
 #if (TEST_MEM_ACCESS == ON)
 	/* memory access test */
 	err = mem_standalone_init();
 	err = mem_test();
 #endif /* TEST_MEM_ACCESS */
 
+
+#if (TEST_CONSOLE_PRINT == ON)
+	if(sys.is_tile_master[core_id]){
+	err = console_print_init();
+	if(err) return err;
+	}
+	sys_barrier();
+
+	err =  console_print_test();
+	if(err) return err;
+#endif
 //
 //#if (STACK_OVERFLOW_DETECTION == 1)
 //    configure_stack_overflow_detection();
