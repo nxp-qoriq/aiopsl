@@ -29,7 +29,7 @@
 #include "fsl_dpni.h"
 #include "fsl_fdma.h"
 #include "fsl_parser.h"
-#include "osm.h"
+#include "osm_inline.h"
 
 #include "fsl_dpni_drv.h"
 

@@ -142,7 +142,7 @@
 @Cautions	This function may result in a fatal error.
 
 *//***************************************************************************/
-void cdma_read(
+inline void cdma_read(
 		void *ws_dst,
 		uint64_t ext_address,
 		uint16_t size);
@@ -204,7 +204,7 @@ void cdma_write(
 @Cautions	This function may result in a fatal error.
 
 *//***************************************************************************/
-void cdma_mutex_lock_take(
+inline void cdma_mutex_lock_take(
 		uint64_t mutex_id,
 		uint32_t flags);
 
@@ -227,7 +227,7 @@ void cdma_mutex_lock_take(
 @Cautions	This function may result in a fatal error.
 
 *//***************************************************************************/
-void cdma_mutex_lock_release(
+inline void cdma_mutex_lock_release(
 		uint64_t mutex_id);
 
 
@@ -271,7 +271,7 @@ void cdma_mutex_lock_release(
 @Cautions	This function may result in a fatal error.
 
 *//***************************************************************************/
-void cdma_read_with_mutex(
+inline void cdma_read_with_mutex(
 		uint64_t ext_address,
 		uint32_t flags,
 		void *ws_dst,
