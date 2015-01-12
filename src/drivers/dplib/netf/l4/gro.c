@@ -39,7 +39,7 @@
 #include "fsl_tman.h"
 #include "gro.h"
 #include "general.h"
-#include "fdma.h"
+#include "fdma_inline.h"
 #include "checksum.h"
 /*#include "cdma.h"*/
 

@@ -38,7 +38,7 @@
 #include "fsl_cmdif_flib_c.h"
 #include "fsl_dprc.h"
 #include "fsl_fdma.h"
-#include "fdma.h"
+#include "fdma_inline.h"
 #include "fsl_cdma.h"
 #include "fsl_endian.h"
 #include "fsl_general.h"

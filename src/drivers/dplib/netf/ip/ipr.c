@@ -42,7 +42,7 @@
 #include "fsl_ste.h"
 #include "fsl_net.h"
 #include "fsl_spinlock.h"
-#include "fdma.h"
+#include "fdma_inline.h"
 #include "checksum.h"
 #include "ipr.h"
 #include "fsl_cdma.h"

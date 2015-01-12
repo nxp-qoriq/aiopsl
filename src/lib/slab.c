@@ -33,7 +33,7 @@
 #include "fsl_dpbp.h"
 #include "fsl_sl_dbg.h"
 #include "slab.h"
-#include "fdma.h"
+#include "fdma_inline.h"
 #include "fsl_io.h"
 #include "fsl_cdma.h"
 #include "fsl_io_ccsr.h"

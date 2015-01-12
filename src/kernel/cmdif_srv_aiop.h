@@ -31,7 +31,7 @@
 #include "fsl_cmdif_client.h"
 #include "fsl_mc_init.h"
 #include "cmdif_srv.h"
-#include "fdma.h"
+#include "fdma_inline.h"
 
 #pragma warning_errors on
 ASSERT_STRUCT_SIZE(CMDIF_SESSION_OPEN_SIZEOF, CMDIF_SESSION_OPEN_SIZE);

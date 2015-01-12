@@ -29,7 +29,7 @@
 #include "fsl_icontext.h"
 #include "fsl_io.h"
 #include "fsl_malloc.h"
-#include "fdma.h"
+#include "fdma_inline.h"
 #include "fsl_dbg.h"
 
 /*****************************************************************************/

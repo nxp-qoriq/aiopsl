@@ -36,7 +36,6 @@
 
 
 #include "general.h"
-#include "fsl_fdma.h"
 
 /** \addtogroup FSL_AIOP_FDMA
  *  @{

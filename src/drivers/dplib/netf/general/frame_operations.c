@@ -39,7 +39,7 @@
 #include "dplib/fsl_dpni_drv.h"
 #include "net/fsl_net.h"
 #include "header_modification.h"
-#include "fdma.h"
+#include "fdma_inline.h"
 
 int create_frame(
 		struct ldpaa_fd *fd,
