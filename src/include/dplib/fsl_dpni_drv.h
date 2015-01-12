@@ -88,7 +88,7 @@ int dpni_drv_unregister_rx_cb(uint16_t		ni_id);
 @Return	NI_IDs on which the default packet arrived.
 *//***************************************************************************/
 /* TODO : replace by macros/inline funcs */
-int dpni_get_receive_niid(void);
+uint16_t dpni_get_receive_niid(void);
 
 /**************************************************************************//**
 @Function	dpni_set_send_niid

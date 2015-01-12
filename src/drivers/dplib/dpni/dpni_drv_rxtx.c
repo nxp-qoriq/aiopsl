@@ -96,9 +96,9 @@ int dpni_drv_explicit_send(uint16_t ni_id, struct ldpaa_fd *fd)
 }
 
 /* TODO : replace by macros/inline funcs */
-int dpni_get_receive_niid(void)
+uint16_t dpni_get_receive_niid(void)
 {
-	return (int)PRC_GET_PARAMETER();
+	return (uint16_t)PRC_GET_PARAMETER();
 }
 
 
