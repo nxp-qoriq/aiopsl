@@ -58,7 +58,7 @@ ipsec_handle_t ipsec_sa_desc_outbound;
 ipsec_handle_t ipsec_sa_desc_inbound; 
 uint32_t frame_number = 0; 
 
-static void app_process_packet_flow0 (dpni_drv_app_arg_t arg)
+__declspec(entry_point) static void app_process_packet_flow0 (void)
 {
 	int      err = 0;
 	uint32_t enc_status = 0;
@@ -70,6 +70,8 @@ static void app_process_packet_flow0 (dpni_drv_app_arg_t arg)
 	int local_test_error = 0;
 	uint32_t original_frame_len;
 
+	sl_prolog();
+	
 	eth_pointer_byte = (uint8_t *)PARSER_GET_ETH_POINTER_DEFAULT();
 	uint32_t frame_len = LDPAA_FD_GET_LENGTH(HWC_FD_ADDRESS);
 	original_frame_len = frame_len;
@@ -210,7 +212,7 @@ static void app_process_packet_flow0 (dpni_drv_app_arg_t arg)
 	fsl_os_print("IPsec Demo: Core %d Sending Frame number %d\n", 
 			core_get_id(), frame_number);
 
-	dpni_drv_send(APP_NI_GET(arg));
+	dpni_drv_send(dpni_get_receive_niid());
 	
 	fsl_os_print("IPsec Demo: Done Sending Frame\n\n");
 
@@ -282,8 +284,7 @@ int app_init(void)
 	for (ni = 0; ni < dpni_get_num_of_ni(); ni++)
 	{
 		err = dpni_drv_register_rx_cb((uint16_t)ni /*ni_id*/,
-		         app_process_packet_flow0, /* callback */
-		         ni /*arg, nic number*/);
+				app_process_packet_flow0 /* callback */);
 		if (err) return err;
 	}
 
