@@ -29,6 +29,8 @@
 
 @Description	This file contains the AIOP statistics API.
 
+@note		This file is intended for internal use only (it may not be 
+		included elsewhere).
 *//***************************************************************************/
 
 #ifndef __AIOP_LIB_STATISTICS_H
