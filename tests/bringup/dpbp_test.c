@@ -10,6 +10,7 @@
 #include "fsl_icontext.h"
 #include "fsl_bman.h"
 #include "fdma.h"
+#include "fsl_fdma.h"
 #include "fsl_cdma.h"
 #include "fsl_dpbp.h"
 
