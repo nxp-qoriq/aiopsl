@@ -123,7 +123,7 @@ UNUSED(argc); UNUSED(argv);
 	if (err) return err;
 #endif
 
-#if (TEST_DPBP == OFF)
+#if (TEST_DPBP == OFF) /*DPBP must be off for DPNI test*/
 	/* memory access test */
 	if(sys.is_tile_master[core_id]){
 	err = dpbp_init();
@@ -132,7 +132,7 @@ UNUSED(argc); UNUSED(argv);
 	if(err) return err;
 	}
 #endif /* TEST_DPBP */
-#if (TEST_DPNI == ON)
+#if (TEST_DPNI == ON) /*DPNI must be of for DPBP test*/
 	/* memory access test */
 	if(sys.is_tile_master[core_id]){
 	err = dpni_init();
