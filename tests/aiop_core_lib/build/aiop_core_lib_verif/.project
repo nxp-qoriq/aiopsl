@@ -603,6 +603,11 @@
 			<locationURI>PARENT-4-PROJECT_LOC/src/drivers/dplib/arch/accel/fdma.h</locationURI>
 		</link>
 		<link>
+			<name>sources/drivers/dplib/arch/accel/fdma_inline.h</name>
+			<type>1</type>
+			<locationURI>PARENT-4-PROJECT_LOC/src/drivers/dplib/arch/accel/fdma_inline.h</locationURI>
+		</link>
+		<link>
 			<name>sources/drivers/dplib/arch/accel/keygen.c</name>
 			<type>1</type>
 			<locationURI>PARENT-4-PROJECT_LOC/src/drivers/dplib/arch/accel/keygen.c</locationURI>

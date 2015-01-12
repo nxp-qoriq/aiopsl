@@ -32,7 +32,6 @@
 #include "fsl_ldpaa_aiop.h"
 #include "fsl_io.h"
 #include "fsl_fdma.h"
-#include "fdma.h"
 #include "sys.h"
 #include "fsl_malloc.h"
 #include "fsl_dbg.h"
