@@ -46,7 +46,6 @@
 #include "osm_inline.h"
 #include "system.h"
 #include "fsl_platform.h"
-#include "fdma_inline.h"
 
 #ifdef AIOP_VERIF
 #include "slab_stub.h"

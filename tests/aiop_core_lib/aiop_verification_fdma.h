@@ -37,7 +37,7 @@
 
 #include "fsl_ldpaa.h"
 #include "general.h"
-#include "fdma_inline.h"
+#include "fsl_fdma.h"
 
 /* FDMA Command IDs (Extended commands relative to the commands defined at
  * fdma.h) */

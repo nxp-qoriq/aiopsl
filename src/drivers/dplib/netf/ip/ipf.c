@@ -38,7 +38,6 @@
 #include "fsl_ldpaa.h"
 #include "checksum.h"
 #include "ipf.h"
-#include "fdma_inline.h"
 #include "ip.h"
 #include "fsl_stdlib.h"
 

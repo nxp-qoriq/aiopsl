@@ -38,7 +38,7 @@
 #include "dplib/fsl_ipr.h"
 #include "dplib/fsl_osm.h"
 #include "dplib/fsl_tman.h"
-#include "fdma_inline.h"
+#include "fsl_fdma.h"
 
 
 /**************************************************************************//**
