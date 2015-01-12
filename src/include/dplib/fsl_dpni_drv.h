@@ -56,15 +56,13 @@
 
 @Param[in]	ni_id  - The Network Interface ID
 @Param[in]	cb - Callback function for Network Interface specified flow_id
-@Param[in]	arg - Argument that will be passed to callback function
 
 @Return	OK on success; error code, otherwise.
 		For error posix refer to
 		\ref error_g
 *//***************************************************************************/
 int dpni_drv_register_rx_cb(uint16_t        ni_id,
-			rx_cb_t		    *cb,
-			dpni_drv_app_arg_t arg);
+			rx_cb_t		    *cb);
 
 /**************************************************************************//**
 @Function	dpni_drv_unregister_rx_cb
