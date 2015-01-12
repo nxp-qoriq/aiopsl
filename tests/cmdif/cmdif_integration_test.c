@@ -174,7 +174,6 @@ static int ctrl_cb(void *dev, uint16_t cmd, uint32_t size,
 static void verif_tman_cb(uint64_t opaque1, uint16_t opaque2)
 {
 	fsl_os_print("Inside verif_tman_cb \n");
-	aiop_ws_check();
 	ASSERT_COND(opaque1 == 0x12345);
 	ASSERT_COND(opaque2 == 0x1616);
 	fsl_os_print("PASSED verif_tman_cb \n");
