@@ -107,6 +107,22 @@ UNUSED(argc); UNUSED(argv);
 	if(err) return err;
 #endif
 
+#if (TEST_SINGLE_CLUSTER == ON)
+	err |= single_cluster_test();
+	if (err) return err;
+#endif
+
+#if (TEST_MULTI_CLUSTER == ON)
+	err |= multi_cluster_test();
+	if (err) return err;
+#endif
+
+#if (TEST_AIOP_MC_CMD == ON)
+	err |= aiop_mc_cmd_init();
+	err |= aiop_mc_cmd_test();
+	if (err) return err;
+#endif
+
 #if (TEST_DPBP == ON)
 	/* memory access test */
 	if(sys.is_tile_master[core_id]){

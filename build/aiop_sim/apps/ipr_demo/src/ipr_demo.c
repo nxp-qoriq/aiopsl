@@ -76,7 +76,6 @@ __declspec(entry_point) static void app_process_packet_flow0 (void)
 	int reassemble_status, hm_status;
 
 	sl_prolog();
-	parse_result_generate_basic();
 
 	if (PARSER_IS_OUTER_IPV4_DEFAULT())
 	{
@@ -182,7 +181,7 @@ __declspec(entry_point) static void app_process_packet_flow0 (void)
 		else
 			fsl_os_print("Finished with ERRORS\n");
 	}
-
+	/*MUST call fdma_terminate task in the end of cb function*/
 	fdma_terminate_task();
 }
 

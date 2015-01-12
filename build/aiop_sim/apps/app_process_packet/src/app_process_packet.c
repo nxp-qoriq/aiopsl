@@ -38,7 +38,7 @@ int app_early_init(void);
 int app_init(void);
 void app_free(void);
 
-static void app_process_packet_flow0 (void)
+__declspec(entry_point) static void app_process_packet_flow0 (void)
 {
 	int      err = 0;
 	int local_test_error = 0;
@@ -51,6 +51,7 @@ static void app_process_packet_flow0 (void)
 	uint8_t local_hw_addr[NET_HDR_FLD_ETH_ADDR_SIZE];
 	struct ipv4hdr *ipv4header;
 
+	sl_prolog();
 
 	if (PARSER_IS_OUTER_IPV4_DEFAULT())
 	{
@@ -110,6 +111,8 @@ static void app_process_packet_flow0 (void)
 		fsl_os_print("Finished SUCCESSFULLY\n");
 	else
 		fsl_os_print("Finished with ERRORS\n");
+	/*MUST call fdma_terminate task in the end of cb function*/
+	fdma_terminate_task();
 }
 
 int app_init(void)
