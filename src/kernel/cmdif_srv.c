@@ -290,7 +290,7 @@ __COLD_CODE void cmdif_srv_free(void)
 	cmdif_srv_deallocate(cmdif_aiop_srv.srv, srv_free);
 	srv_free(cmdif_aiop_srv.dpci_tbl);
 }
-  
+
 __HOT_CODE void cmdif_fd_send(int cb_err);
 __HOT_CODE void cmdif_fd_send(int cb_err)
 {
@@ -316,7 +316,7 @@ __HOT_CODE void cmdif_fd_send(int cb_err)
 					&cmdif_aiop_srv.dpci_tbl->tx_queue_attr[pr][ind]);
 		fqid = cmdif_aiop_srv.dpci_tbl->tx_queue_attr[pr][ind].fqid;
 		if (err) {
-			sl_pr_err("Failed dpci_get_tx_queue err = %d" 
+			sl_pr_err("Failed dpci_get_tx_queue err = %d"
 				"fqid = 0x%x", err, fqid);
 		}
 	}
@@ -451,7 +451,7 @@ static /*inline*/ int mc_dpci_check(int ind)
 			return -EFAULT;
 		}
 	}
-	
+
 	return 0;
 }
 
@@ -486,10 +486,10 @@ __COLD_CODE int notify_open()
 
 	amq_bits_update(ind);
 
-	/* Locking here for updating dpci table in runtime in case if queues 
-	 * are not available yet. This case should not happen. 
-	 * After cmdif_open() on AIOP those DPCI queues are not updated anymore 
-	 * no lock in runtime. 
+	/* Locking here for updating dpci table in runtime in case if queues
+	 * are not available yet. This case should not happen.
+	 * After cmdif_open() on AIOP those DPCI queues are not updated anymore
+	 * no lock in runtime.
 	 * TODO consider to add lock per DPCI entry */
 	lock_spinlock(&cl->lock);
 
@@ -499,8 +499,8 @@ __COLD_CODE int notify_open()
 		unlock_spinlock(&cl->lock);
 		return err;
 	}
-	
-	
+
+
 
 #ifdef DEBUG
 	/* Don't allow to open the same session twice */
@@ -545,7 +545,7 @@ __COLD_CODE int notify_open()
 	pr_debug("dma_flags = 0x%x\n", cmdif_aiop_srv.dpci_tbl->dma_flags[ind]);
 
 #endif /* STACK_CHECK */
-	
+
 	return 0;
 }
 
@@ -553,8 +553,8 @@ __COLD_CODE int notify_open()
 __COLD_CODE int notify_close();
 __COLD_CODE int notify_close()
 {
-#ifndef STACK_CHECK /* No user callabck here */	
-	
+#ifndef STACK_CHECK /* No user callabck here */
+
 	struct cmdif_session_data *data = \
 		(struct cmdif_session_data *)PRC_GET_SEGMENT_ADDRESS();
 	struct cmdif_cl *cl = sys_get_unique_handle(FSL_OS_MOD_CMDIF_CL);
@@ -594,9 +594,9 @@ __COLD_CODE void dump_memory()
 	uint32_t len;
 	uint8_t  *p;
 	uint64_t addr;
-	
+
 	dump_param_get(&len, &p, &addr);
-	
+
 	pr_debug("----- Dump of SEGMENT_ADDRESS 0x%x size %d -----\n",
 	         p, len);
 	pr_debug("Virtual addr high = 0x%x low = 0x%x \n",
@@ -605,18 +605,18 @@ __COLD_CODE void dump_memory()
 
 	while (len > 15)
 	{
-		fsl_os_print("0x%x: %x %x %x %x\r\n",
-		             p,
-		             *(uint32_t *)p,
-		             *(uint32_t *)(p + 4),
-		             *(uint32_t *)(p + 8),
-		             *(uint32_t *)(p + 12));
+		pr_debug("0x%x: %x %x %x %x\r\n",
+		         p,
+		         *(uint32_t *)p,
+		         *(uint32_t *)(p + 4),
+		         *(uint32_t *)(p + 8),
+		         *(uint32_t *)(p + 12));
 		len -= 16;
 		p += 16;
 	}
 	while (len > 3)
 	{
-		fsl_os_print("0x%x: %x\r\n", p, *(uint32_t *)p);
+		pr_debug("0x%x: %x\r\n", p, *(uint32_t *)p);
 		len -= 4;
 		p += 4;
 	}
@@ -635,7 +635,7 @@ __COLD_CODE static void open_cmd_print()
 __COLD_CODE static void dpci_icontext_update()
 {
 	uint32_t fqid = CMDIF_FQD_GET;
-	uint8_t  ind = (uint8_t)(fqid >> 1);	
+	uint8_t  ind = (uint8_t)(fqid >> 1);
 
 	amq_bits_update(ind);
 }
@@ -648,7 +648,7 @@ __COLD_CODE int session_open(uint16_t *new_auth)
 	uint8_t  inst_id;
 	void     *dev;
 	int      err;
-	
+
 	cmd_m_name_get(&m_name[0]);
 	sl_pr_debug("m_name = %s\n", m_name);
 
@@ -658,14 +658,14 @@ __COLD_CODE int session_open(uint16_t *new_auth)
 	if (m_id < 0) {
 		/* Did not find module with such name */
 		sl_pr_err("No such module %s\n", m_name);
-		return -ENODEV; 
+		return -ENODEV;
 	}
 
 	inst_id  = cmd_inst_id_get();
 	sl_pr_debug("inst_id = %d\n", inst_id);
-	
+
 	dpci_icontext_update(); /* Must be before open callback */
-	
+
 	OPEN_CB(m_id, inst_id, dev);
 	if (!err) {
 		int  new_inst = inst_alloc((uint8_t)m_id);
@@ -679,7 +679,7 @@ __COLD_CODE int session_open(uint16_t *new_auth)
 		} else {
 			/* couldn't find free place for new device */
 			sl_pr_err("No free entry for new device\n");
-			return -ENOMEM; 			
+			return -ENOMEM;
 		}
 	} else {
 		return err; /* User error */
@@ -687,29 +687,29 @@ __COLD_CODE int session_open(uint16_t *new_auth)
 }
 
 __HOT_CODE void cmdif_srv_isr(void) __attribute__ ((noreturn))
-{
+			{
 	uint16_t gpp_icid;
 	uint32_t gpp_dma;
 	uint16_t cmd_id;
 	uint16_t auth_id;
 	int err;
-	
+
 	ASSERT_COND_LIGHT(cmdif_aiop_srv.srv != NULL);
 
 #ifdef DEBUG
 	dump_memory();
 #endif
-	
+
 	SAVE_GPP_ICID;
-	
+
 	cmd_id = cmd_id_get();
 	auth_id = cmd_auth_id_get();
-	
+
 	pr_debug("cmd_id = 0x%x\n", cmd_id);
 	pr_debug("auth_id = 0x%x\n", auth_id);
 	pr_debug("gpp_icid = 0x%x\n", gpp_icid);
 	pr_debug("gpp_dma flags = 0x%x\n", gpp_dma);
-	
+
 	if (cmd_id == CMD_ID_NOTIFY_OPEN) {
 		/* Support for AIOP -> GPP */
 		if (is_valid_auth_id(auth_id)) {
@@ -744,32 +744,32 @@ __HOT_CODE void cmdif_srv_isr(void) __attribute__ ((noreturn))
 			pr_err("No permission to open device 0x%x\n", auth_id);
 			CMDIF_STORE_DATA;
 			sync_cmd_done(sync_done_get(), -EPERM, auth_id,
-				      TRUE, gpp_icid, gpp_dma);
+			              TRUE, gpp_icid, gpp_dma);
 		}
 
 		open_cmd_print();
-		
+
 		err = session_open(&auth_id);
 		if (err) {
 			pr_err("Open session FAILED err = %d\n", err);
 			CMDIF_STORE_DATA;
 			sync_cmd_done(sync_done_get(), err, auth_id,
-				      TRUE, gpp_icid, gpp_dma);
+			              TRUE, gpp_icid, gpp_dma);
 		} else {
-			pr_debug("Open session PASSED auth_id = 0x%x\n", 
-			       (uint16_t)err);
+			pr_debug("Open session PASSED auth_id = 0x%x\n",
+			         (uint16_t)err);
 			CMDIF_STORE_DATA;
 			sync_cmd_done(sync_done_get(), 0, auth_id,
-				      TRUE, gpp_icid, gpp_dma);
+			              TRUE, gpp_icid, gpp_dma);
 		}
-		
+
 	} else if (cmd_id == CMD_ID_CLOSE) {
 
 		if (is_valid_auth_id(auth_id)) {
 			/* Don't reorder this sequence !!*/
 			CLOSE_CB(auth_id);
 			CMDIF_STORE_DATA;
-			sync_cmd_done(NULL, err, auth_id, FALSE, 
+			sync_cmd_done(NULL, err, auth_id, FALSE,
 			              gpp_icid, gpp_dma);
 			if (!err) {
 				/* Free instance entry only if we had no error
@@ -792,12 +792,12 @@ __HOT_CODE void cmdif_srv_isr(void) __attribute__ ((noreturn))
 		if (is_valid_auth_id(auth_id)) {
 			/* User can ignore data and use presentation context */
 			CTRL_CB(auth_id, cmd_id, cmd_size_get(), \
-				      cmd_data_get());
+			        cmd_data_get());
 			if (SYNC_CMD(cmd_id)) {
 				pr_debug("PASSED Synchronous Command\n");
 				CMDIF_STORE_DATA;
 				sync_cmd_done(NULL, err, auth_id,
-					      TRUE, gpp_icid, gpp_dma);
+				              TRUE, gpp_icid, gpp_dma);
 			}
 		} else {
 			/* don't bother to send response
