@@ -42,6 +42,7 @@
 #include "fsl_malloc.h"
 #include "fsl_platform.h"
 #include "fsl_shbp_aiop.h"
+#include "fsl_spinlock.h"
 
 #ifndef CMDIF_TEST_WITH_MC_SRV
 #warning "If you test with MC define CMDIF_TEST_WITH_MC_SRV inside cmdif.h\n"
@@ -82,6 +83,7 @@ struct cmdif_desc cidesc;
 uint64_t tman_addr;
 struct shbp_aiop lbp;
 struct shbp_aiop gpp_lbp;
+int32_t async_count = 0;
 
 static void aiop_ws_check()
 {
@@ -111,7 +113,6 @@ static int aiop_async_cb(void *async_ctx, int err, uint16_t cmd_id,
 
 	aiop_ws_check();
 
-	pr_debug("PASSED AIOP ASYNC CB cmd_id = 0x%x\n" ,cmd_id);
 	pr_debug("ASYNC CB data 0x%x size = 0x%x\n", (uint32_t)data , size);
 	pr_debug("Default segment handle = 0x%x size = 0x%x\n",
 	             PRC_GET_SEGMENT_HANDLE(), PRC_GET_SEGMENT_LENGTH());
@@ -135,6 +136,10 @@ static int aiop_async_cb(void *async_ctx, int err, uint16_t cmd_id,
 	} else {
 		pr_debug("No data inside aiop_async_cb\n");
 	}
+	atomic_incr32(&async_count, 1);
+	pr_debug("PASSED AIOP ASYNC CB[%d] cmd_id = 0x%x\n",
+	         async_count, cmd_id);
+
 	return err;
 }
 
