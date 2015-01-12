@@ -28,6 +28,9 @@
 @File		osm.h
 
 @Description	This file contains the AIOP SW OSM internal API
+
+@note		This file is intended for internal use only (it may not be 
+		included elsewhere).
 *//***************************************************************************/
 
 

@@ -25,10 +25,12 @@
  */
 
 /**************************************************************************//**
-@File          parser.h
+@File		parser.h
 
-@Description   This file contains the AIOP SW Parser API
+@Description	This file contains the AIOP SW Parser API
 
+@note		This file is intended for internal use only (it may not be 
+		included elsewhere).
 *//***************************************************************************/
 
 #ifndef __PARSER_H

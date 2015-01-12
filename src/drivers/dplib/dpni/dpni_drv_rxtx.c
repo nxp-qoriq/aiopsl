@@ -80,7 +80,7 @@ int dpni_drv_explicit_send(uint16_t ni_id, struct ldpaa_fd *fd)
 	 *  TLS */
 	/* TODO maybe in future HW the fdma_enqueue_fd_qd command will support
 	 * taking ICID and relevant bits from default values */
-	/* It is more accurate taking the ICID from the SPID but in AIOP 
+	/* It is more accurate taking the ICID from the SPID but in AIOP
 	 * it should be the same value as the default */
 	va_bdi = *((uint8_t *)(HWC_ADC_ADDRESS + ADC_FDSRC_VA_FCA_BDI_OFFSET));
 	if (va_bdi & ADC_BDI_MASK)

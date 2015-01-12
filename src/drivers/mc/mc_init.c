@@ -341,7 +341,7 @@ __COLD_CODE static int dpci_for_mc_add(struct mc_dpci_obj *dpci_tbl, struct mc_d
 
 	err |= dpci_get_link_state(&dprc->io, dpci, &link_up);
 	if (!link_up) {
-		pr_err("MC DPCI[%d]<->AIOP DPCI[%d] link is down ! \n",
+		pr_info("MC DPCI[%d]<->AIOP DPCI[%d] link is down ! \n",
 		endpoint1.id,
 		endpoint2.id);
 		/* Don't return error maybe it will be linked in the future */

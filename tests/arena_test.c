@@ -82,10 +82,11 @@ uint64_t global_time;
 int test_error;
 uint8_t test_error_lock;
 
-static void app_process_packet_flow0 (dpni_drv_app_arg_t arg)
+static void app_process_packet_flow0 (void)
 {
 	int      err = 0, i, j;
 	int core_id;
+	uint16_t ni_id;
 	uint64_t time_ms_since_epoch = 0, flc = 0;
 	uint32_t time_ms = 0;
 	uint64_t local_time;
@@ -96,10 +97,11 @@ static void app_process_packet_flow0 (dpni_drv_app_arg_t arg)
 	local_packet_number = packet_number;
 	packet_number++;
 	unlock_spinlock(&packet_lock);
-	core_id = (int)core_get_id();
 
+	core_id = (int)core_get_id();
+	ni_id = (uint16_t)dpni_get_receive_niid();
 	fsl_os_print("Arena test for packet number %d, on core %d\n", local_packet_number, core_id);
-	err = dpni_drv_get_spid_ddr(APP_NI_GET(arg), &spid_ddr);
+	err = dpni_drv_get_spid_ddr(ni_id, &spid_ddr);
 	if (err) {
 		fsl_os_print("ERROR = %d: get spid_ddr failed in runtime phase()\n", err);
 		local_test_error |= err;
@@ -107,7 +109,7 @@ static void app_process_packet_flow0 (dpni_drv_app_arg_t arg)
 		fsl_os_print("spid_ddr is %d for packet %d\n",spid_ddr, local_packet_number);
 
 	}
-	err = dpni_drv_get_spid(APP_NI_GET(arg), &spid_ddr);
+	err = dpni_drv_get_spid(ni_id, &spid_ddr);
 	if (err) {
 		fsl_os_print("ERROR = %d: get spid failed in runtime phase()\n", err);
 		local_test_error |= err;
@@ -211,7 +213,7 @@ static void app_process_packet_flow0 (dpni_drv_app_arg_t arg)
 
 
 
-	local_test_error |= dpni_drv_send(APP_NI_GET(arg));
+	local_test_error |= dpni_drv_send(ni_id);
 
 	lock_spinlock(&test_error_lock);
 	test_error |= local_test_error; /*mark if error occured during one of the tests*/
@@ -329,8 +331,7 @@ int app_init(void)
 		}
 
 		err = dpni_drv_register_rx_cb((uint16_t)ni/*ni_id*/,
-		                              app_process_packet_flow0, /* callback */
-		                              ni /*arg, nic number*/);
+		                              app_process_packet_flow0);
 
 		if (err)
 			return err;
