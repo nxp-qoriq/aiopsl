@@ -28,6 +28,9 @@
 @File		cdma.h
 
 @Description	This file contains the AIOP SW CDMA internal API
+
+@note		This file is intended for internal use only (it may not be 
+		included elsewhere).
 *//***************************************************************************/
 
 
