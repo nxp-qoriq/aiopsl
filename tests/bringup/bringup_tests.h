@@ -9,6 +9,8 @@
 #define TEST_CONSOLE_PRINT	ON
 #define TEST_DPBP		ON
 #define TEST_AIOP_MC_CMD	OFF
+#define TEST_SINGLE_CLUSTER	OFF
+#define TEST_MULTI_CLUSTER	OFF
 
 #if (TEST_MEM_ACCESS == ON)
 /* memory access test */
@@ -20,6 +22,14 @@ int mem_test();
 int console_print_init();
 int console_print_test();
 #endif /* TEST_CONSOLE_PRINT */
+
+#if (TEST_SINGLE_CLUSTER == ON)
+int single_cluster_test();
+#endif
+
+#if (TEST_MULTI_CLUSTER == ON)
+int multi_cluster_test();
+#endif
 
 #if (TEST_AIOP_MC_CMD == ON)
 int aiop_mc_cmd_init();
