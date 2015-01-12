@@ -38,7 +38,7 @@ int app_early_init(void);
 int app_init(void);
 void app_free(void);
 
-static void app_process_packet_flow0 (dpni_drv_app_arg_t arg)
+static void app_process_packet_flow0 (void)
 {
 	int      err = 0;
 	int local_test_error = 0;
@@ -51,7 +51,6 @@ static void app_process_packet_flow0 (dpni_drv_app_arg_t arg)
 	uint8_t local_hw_addr[NET_HDR_FLD_ETH_ADDR_SIZE];
 	struct ipv4hdr *ipv4header;
 
-	UNUSED(arg);
 
 	if (PARSER_IS_OUTER_IPV4_DEFAULT())
 	{
@@ -124,8 +123,7 @@ int app_init(void)
 	{
 
 		err = dpni_drv_register_rx_cb((uint16_t)ni/*ni_id*/,
-				app_process_packet_flow0, /* callback */
-				ni /*arg, nic number*/);
+				app_process_packet_flow0);
 
 		if (err)
 			return err;

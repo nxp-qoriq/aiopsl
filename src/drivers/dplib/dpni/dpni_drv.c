@@ -62,7 +62,7 @@ struct dpni_drv nis_first __attribute__((aligned(8)));
 struct dpni_drv *nis = &nis_first;
 int num_of_nis;
 
-void discard_rx_cb()
+void discard_rx_cb(void)
 {
 
 	pr_debug("Packet discarded by discard_rx_cb.\n");
@@ -71,9 +71,8 @@ void discard_rx_cb()
 	fdma_terminate_task();
 }
 
-static void discard_rx_app_cb(dpni_drv_app_arg_t arg)
+static void discard_rx_app_cb(void)
 {
-	UNUSED(arg);
 	pr_debug("Packet discarded by discard_rx_app_cb.\n");
 	/*Discard frame and terminate task*/
 	fdma_discard_default_frame(FDMA_DIS_NO_FLAGS);
@@ -81,16 +80,17 @@ static void discard_rx_app_cb(dpni_drv_app_arg_t arg)
 }
 
 int dpni_drv_register_rx_cb (uint16_t		ni_id,
-                             rx_cb_t      	*cb,
-                             dpni_drv_app_arg_t arg)
+                             rx_cb_t      	*cb)
 {
 	struct dpni_drv *dpni_drv;
-
+	struct aiop_ws_regs *wrks_addr = (struct aiop_ws_regs *)
+		(sys_get_memory_mapped_module_base(FSL_OS_MOD_CMGW,
+		0, E_MAPPED_MEM_TYPE_GEN_REGS) + SOC_PERIPH_OFF_AIOP_WRKS);
 	/* calculate pointer to the send NI structure */
 	dpni_drv = nis + ni_id;
 	lock_spinlock(&dpni_drv->dpni_lock); /*Lock dpni table entry*/
-	dpni_drv->arg = arg;
-	dpni_drv->rx_cbs = cb;
+	iowrite32_ccsr((uint32_t)(dpni_drv->dpni_drv_params_var.epid_idx), &wrks_addr->epas);
+	iowrite32_ccsr(PTR_TO_UINT(cb), &wrks_addr->ep_pc);
 	unlock_spinlock(&dpni_drv->dpni_lock); /*Unlock dpni table entry*/
 	return 0;
 }
@@ -98,11 +98,14 @@ int dpni_drv_register_rx_cb (uint16_t		ni_id,
 int dpni_drv_unregister_rx_cb (uint16_t		ni_id)
 {
 	struct dpni_drv *dpni_drv;
-
+	struct aiop_ws_regs *wrks_addr = (struct aiop_ws_regs *)
+			(sys_get_memory_mapped_module_base(FSL_OS_MOD_CMGW,
+			0, E_MAPPED_MEM_TYPE_GEN_REGS) + SOC_PERIPH_OFF_AIOP_WRKS);
 	/* calculate pointer to the send NI structure */
 	dpni_drv = nis + ni_id;
 	lock_spinlock(&dpni_drv->dpni_lock); /*Lock dpni table entry*/
-	dpni_drv->rx_cbs = &discard_rx_app_cb;
+	iowrite32_ccsr((uint32_t)(dpni_drv->dpni_drv_params_var.epid_idx), &wrks_addr->epas);
+	iowrite32_ccsr(PTR_TO_UINT(discard_rx_cb), &wrks_addr->ep_pc);
 	unlock_spinlock(&dpni_drv->dpni_lock); /*Unlock dpni table entry*/
 	return 0;
 }
@@ -239,8 +242,6 @@ __COLD_CODE int dpni_drv_probe(struct mc_dprc *dprc,
 
 			/* TODO: need to initialize additional NI table fields according to DPNI attributes */
 
-			/* Replace discard callback with receive callback */
-			iowrite32_ccsr(PTR_TO_UINT(receive_cb),&wrks_addr->ep_pc);
 
 			ep_osc = ioread32_ccsr(&wrks_addr->ep_osc);
 			ep_osc &= ORDER_MODE_CLEAR_BIT;
@@ -447,7 +448,7 @@ __COLD_CODE int dpni_drv_init(void)
 		dpni_drv->dpni_drv_tx_params_var.mtu          = 0xffff;
 
 		/* put a default RX callback - dropping the frame */
-		dpni_drv->rx_cbs = discard_rx_app_cb;
+		dpni_drv->rx_cbs = discard_rx_cb;
 	}
 	/*Window for storage profile ID's to use with DDR target memory*/
 	spid_ddr_id = g_init_data.sl_info.base_spid;

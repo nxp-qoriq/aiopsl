@@ -46,7 +46,7 @@ extern struct dpni_drv *nis;
 #pragma force_active on
 
 void receive_cb(void)
-{	
+{
 	struct dpni_drv *dpni_drv;
 #ifndef AIOP_VERIF
 #ifndef DISABLE_ASSERTIONS
@@ -83,14 +83,14 @@ void receive_cb(void)
 	default_task_params.parser_starting_hxs = 0;
 	default_task_params.qd_priority = ((*((uint8_t *)(HWC_ADC_ADDRESS + \
 			ADC_WQID_PRI_OFFSET)) & ADC_WQID_MASK) >> 4);
-	
+
 	parse_status = parse_result_generate_basic();
 	if (parse_status) {
 		fdma_discard_default_frame(FDMA_DIS_NO_FLAGS);
 		fdma_terminate_task();
 	}
 
-	dpni_drv->rx_cbs(dpni_drv->arg);
+//	dpni_drv->rx_cbs(dpni_drv->arg);
 	fdma_terminate_task();
 }
 
@@ -136,7 +136,7 @@ int dpni_drv_explicit_send(uint16_t ni_id, struct ldpaa_fd *fd)
 	 *  TLS */
 	/* TODO maybe in future HW the fdma_enqueue_fd_qd command will support
 	 * taking ICID and relevant bits from default values */
-	/* It is more accurate taking the ICID from the SPID but in AIOP 
+	/* It is more accurate taking the ICID from the SPID but in AIOP
 	 * it should be the same value as the default */
 	va_bdi = *((uint8_t *)(HWC_ADC_ADDRESS + ADC_FDSRC_VA_FCA_BDI_OFFSET));
 	if (va_bdi & ADC_BDI_MASK)
