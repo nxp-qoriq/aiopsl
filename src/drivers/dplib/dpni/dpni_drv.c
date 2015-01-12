@@ -446,9 +446,6 @@ __COLD_CODE int dpni_drv_init(void)
 		dpni_drv->dpni_drv_tx_params_var.qdid         = 0;
 		dpni_drv->dpni_drv_params_var.flags        = DPNI_DRV_FLG_PARSE | DPNI_DRV_FLG_PARSER_DIS;
 		dpni_drv->dpni_drv_tx_params_var.mtu          = 0xffff;
-
-		/* put a default RX callback - dropping the frame */
-		dpni_drv->rx_cbs = discard_rx_cb;
 	}
 	/*Window for storage profile ID's to use with DDR target memory*/
 	spid_ddr_id = g_init_data.sl_info.base_spid;

@@ -60,7 +60,7 @@ void ipr_timout_cb(ipr_timeout_arg_t arg,
 /* Global IPR var in Shared RAM */
 ipr_instance_handle_t ipr_instance_val;
 
-static void app_process_packet_flow0 (dpni_drv_app_arg_t arg)
+__declspec(entry_point) static void app_process_packet_flow0 (void)
 {
 	const uint16_t ipv4hdr_length = sizeof(struct ipv4hdr);
 	uint16_t ipv4hdr_offset = 0;
@@ -75,7 +75,7 @@ static void app_process_packet_flow0 (dpni_drv_app_arg_t arg)
 	uint16_t udp_dst_port = 0xd720; //new udp dest port
 	int reassemble_status, hm_status;
 
-	parse_result_generate_basic();
+	sl_prolog();
 
 	if (PARSER_IS_OUTER_IPV4_DEFAULT())
 	{
@@ -174,7 +174,7 @@ static void app_process_packet_flow0 (dpni_drv_app_arg_t arg)
 			fsl_os_print("ERROR = %x: reassembled frame length error!\n", fd_length);
 			local_test_error |= 1;
 		}
-		dpni_drv_send(APP_NI_GET(arg));
+		dpni_drv_send(dpni_get_receive_niid());
 
 		if(!local_test_error) /*No error found during injection of packets*/
 			fsl_os_print("Finished SUCCESSFULLY\n");
@@ -253,8 +253,7 @@ int app_init(void)
 #endif /* AIOP_STANDALONE */
 
 	err = dpni_drv_register_rx_cb(1,
-				      app_process_packet_flow0,
-				      1);
+				      app_process_packet_flow0);
 
 	if (err)
 		return err;
