@@ -2492,6 +2492,16 @@ void fdma_calculate_default_frame_checksum(
 		uint16_t size,
 		uint16_t *checksum);
 
+/* Getter for AMQ (ICID, PL, VA, BDI) default attributes */
+/* Todo - enable inline when inline works correctly+move definition to .h file*/
+/*inline*/ void get_default_amq_attributes(
+	struct fdma_amq *amq);
+
+/**Setter for AMQ (ICID, PL, VA, BDI) default attributes */
+/* Todo - enable inline when inline works correctly+move definition to .h file*/
+/*inline*/ void set_default_amq_attributes(
+	struct fdma_amq *amq);
+
 #include "fdma_inline.h"
 
 /**************************************************************************//**
