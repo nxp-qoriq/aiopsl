@@ -72,7 +72,7 @@ __declspec(entry_point) static void app_process_packet_flow0 (void)
 /*	ipf_ctx_t ipf_context_addr __attribute__((aligned(sizeof(struct ldpaa_fd))));*/
 
 	sl_prolog();
-	
+
 	mtu = 1500;
 
 	if (PARSER_IS_OUTER_IPV4_DEFAULT())
@@ -186,7 +186,8 @@ __declspec(entry_point) static void app_process_packet_flow0 (void)
 		fsl_os_print("Finished SUCCESSFULLY\n");
 	else
 		fsl_os_print("Finished with ERRORS\n");
-
+	/*MUST call fdma_terminate task in the end of cb function*/
+	fdma_terminate_task();
 }
 
 

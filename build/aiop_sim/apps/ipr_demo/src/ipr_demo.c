@@ -181,7 +181,7 @@ __declspec(entry_point) static void app_process_packet_flow0 (void)
 		else
 			fsl_os_print("Finished with ERRORS\n");
 	}
-
+	/*MUST call fdma_terminate task in the end of cb function*/
 	fdma_terminate_task();
 }
 
