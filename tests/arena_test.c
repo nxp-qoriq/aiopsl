@@ -82,7 +82,7 @@ uint64_t global_time;
 int test_error;
 uint8_t test_error_lock;
 
-static void app_process_packet_flow0 (void)
+__declspec(entry_point) static void app_process_packet_flow0 (void)
 {
 	int      err = 0, i, j;
 	int core_id;
@@ -93,6 +93,9 @@ static void app_process_packet_flow0 (void)
 	uint8_t local_packet_number;
 	int local_test_error = 0;
 	uint16_t spid_ddr;
+
+	sl_prolog();
+
 	lock_spinlock(&packet_lock);
 	local_packet_number = packet_number;
 	packet_number++;
