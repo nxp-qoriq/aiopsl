@@ -31,7 +31,7 @@
 #include "cmgw.h"
 
 #include "sys.h"
-#include "bringup_tests.h"
+#include "../../../tests/bringup/bringup_tests.h"
 
 //extern int sys_init(void);
 //extern void sys_free(void);
