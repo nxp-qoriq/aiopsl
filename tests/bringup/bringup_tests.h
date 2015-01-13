@@ -6,13 +6,15 @@
 #define OFF 0
 
 #define TEST_MEM_ACCESS 	OFF
-#define TEST_CONSOLE_PRINT	ON
+#define TEST_CONSOLE_PRINT	OFF
+#define TEST_EXCEPTIONS		OFF
+#define TEST_STACK_OVF		OFF
 #define TEST_DPBP		OFF
 #define TEST_AIOP_MC_CMD	OFF
 #define TEST_SINGLE_CLUSTER	OFF
 #define TEST_MULTI_CLUSTER	OFF
 #define TEST_DPNI		OFF
-#define TEST_BUFFER_POOLS	ON
+#define TEST_BUFFER_POOLS	OFF
 
 #if (TEST_MEM_ACCESS == ON)
 /* memory access test */
@@ -24,6 +26,13 @@ int mem_test();
 int console_print_init();
 int console_print_test();
 #endif /* TEST_CONSOLE_PRINT */
+
+/* Those 2 tests can't be tested together */
+#if (TEST_EXCEPTIONS == ON)
+int exceptions_test();
+#elif (TEST_STACK_OVF == ON)
+int stack_ovf_test();
+#endif
 
 #if (TEST_SINGLE_CLUSTER == ON)
 int single_cluster_test();

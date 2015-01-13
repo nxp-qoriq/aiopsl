@@ -107,6 +107,15 @@ UNUSED(argc); UNUSED(argv);
 	if(err) return err;
 #endif
 
+/* Those 2 tests can't be tested together */
+#if (TEST_EXCEPTIONS == ON)
+	err = exceptions_test();
+	if(err) return err;
+#elif (TEST_STACK_OVF == ON)
+	err = stack_ovf_test();
+	if(err) return err;
+#endif
+
 #if (TEST_SINGLE_CLUSTER == ON)
 	err |= single_cluster_test();
 	if (err) return err;
