@@ -448,6 +448,6 @@ int console_print_init()
 /*****************************************************************************/
 int console_print_test()
 {
-	pr_info("AIOP core %d: Test passed\n", core_get_id());
+	pr_info("AIOP core %d: Console Print Test passed\n", core_get_id());
 	return 0;
 }

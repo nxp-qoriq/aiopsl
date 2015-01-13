@@ -132,7 +132,8 @@ UNUSED(argc); UNUSED(argv);
 	if(err) return err;
 	}
 #endif /* TEST_DPBP */
-#if (TEST_DPNI == OFF) /*DPNI must be of for DPBP test*/
+
+#if (TEST_DPNI == ON) /*DPNI must be off for DPBP test*/
 	/* memory access test */
 	if(sys.is_tile_master[core_id]){
 	err = dpni_init();
@@ -141,6 +142,16 @@ UNUSED(argc); UNUSED(argv);
 	if(err) return err;
 	}
 #endif /* TEST_DPNI */
+
+#if (TEST_BUFFER_POOLS == ON)
+	/* memory access test */
+	if(sys.is_tile_master[core_id]){
+	err = buffer_pool_init();
+	if(err) return err;
+	err = buffer_pool_test();
+	if(err) return err;
+	}
+#endif /* TEST_BUFFER_POOLS */
 
 //
 //#if (STACK_OVERFLOW_DETECTION == 1)

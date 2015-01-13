@@ -16,9 +16,10 @@
 
 int dpbp_init();
 int dpbp_test();
-extern icontext_init();
+
 struct mc_dprc g_mc_dprc;
 extern struct icontext icontext_aiop;
+
 int dpbp_init()
 {
 
