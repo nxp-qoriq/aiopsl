@@ -65,6 +65,7 @@ extern int random_test(void);
 extern int pton_test(void);
 extern int ntop_test(void);
 extern int dpni_drv_test(void);
+extern int single_cluster_test();
 
 extern int num_of_cores;
 extern int num_of_tasks;
@@ -315,6 +316,12 @@ int app_init(void)
 
 
 	fsl_os_print("Running AIOP arena app_init()\n");
+
+	err = single_cluster_test();
+	if (err) {
+		fsl_os_print("ERROR = %d: single_cluster_test failed in init phase()\n", err);
+		test_error |= err;
+	}
 
 	for (ni = 0; ni < dpni_get_num_of_ni(); ni++)
 	{
