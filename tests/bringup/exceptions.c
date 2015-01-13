@@ -11,11 +11,6 @@
 #include "aiop_common.h"
 #include "fsl_core_booke_regs.h"
 
-/*
- * Test only 1 of them at a time and comment the second one
- */
-#define EXCEPTION_TEST
-#define STACK_OVERFLOW_TEST
 
 #if 0
 static struct aiop_cmgw_regs *cmgw_regs;
@@ -311,7 +306,6 @@ int exceptions_test()
 
 	_booke_init_interrupt_vector();
 
-#ifdef EXCEPTION_TEST
 	/* Write to IRAM */
 	iram_ptr[0] = 0xff;
 	iram_ptr[1] = 0xff;
@@ -320,7 +314,6 @@ int exceptions_test()
 
 	/* Trigger exception */
 	err = func_in_iram();
-#endif
 
 	return -EINVAL;
 }
