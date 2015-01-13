@@ -123,7 +123,7 @@ UNUSED(argc); UNUSED(argv);
 	if (err) return err;
 #endif
 
-#if (TEST_DPBP == ON)
+#if (TEST_DPBP == ON) /*DPBP must be off for DPNI test*/
 	/* memory access test */
 	if(sys.is_tile_master[core_id]){
 	err = dpbp_init();
@@ -131,7 +131,17 @@ UNUSED(argc); UNUSED(argv);
 	err = dpbp_test();
 	if(err) return err;
 	}
-#endif /* TEST_MEM_ACCESS */
+#endif /* TEST_DPBP */
+#if (TEST_DPNI == OFF) /*DPNI must be of for DPBP test*/
+	/* memory access test */
+	if(sys.is_tile_master[core_id]){
+	err = dpni_init();
+	if(err) return err;
+	err = dpni_test();
+	if(err) return err;
+	}
+#endif /* TEST_DPNI */
+
 //
 //#if (STACK_OVERFLOW_DETECTION == 1)
 //    configure_stack_overflow_detection();

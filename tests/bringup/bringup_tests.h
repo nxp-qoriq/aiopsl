@@ -11,6 +11,7 @@
 #define TEST_AIOP_MC_CMD	OFF
 #define TEST_SINGLE_CLUSTER	OFF
 #define TEST_MULTI_CLUSTER	OFF
+#define TEST_DPNI		ON
 
 #if (TEST_MEM_ACCESS == ON)
 /* memory access test */
@@ -39,6 +40,11 @@ int aiop_mc_cmd_test();
 #if (TEST_DPBP == ON)
 int dpbp_init();
 int dpbp_test();
+#endif /* TEST_DPBP */
+
+#if (TEST_DPNI == ON)
+int dpni_init();
+int dpni_test();
 #endif /* TEST_DPBP */
 
 #endif /* __BRINGUP_TESTS_H */

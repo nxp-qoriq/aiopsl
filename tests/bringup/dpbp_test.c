@@ -10,6 +10,7 @@
 #include "fsl_icontext.h"
 #include "fsl_bman.h"
 #include "fdma.h"
+#include "fsl_fdma.h"
 #include "fsl_cdma.h"
 #include "fsl_dpbp.h"
 
@@ -94,13 +95,15 @@ int dpbp_init()
 int dpbp_test()
 {
 	uint16_t dpbp;
-	int i;
+	int j, i;
 	int err = 0;
 	int dev_count;
 	int num_bpids = 0, dpbp_id;
 	struct dprc_obj_desc dev_desc;
 	struct mc_dprc *dprc = &g_mc_dprc;
 	struct dpbp_attr attr;
+	struct icontext ic;
+	dma_addr_t addr  = 0x6001000000;/*DP-DDR phys address*/
 
 	if (dprc == NULL)
 	{
@@ -125,38 +128,33 @@ int dpbp_test()
 			dpbp_id = dev_desc.id;
 			num_bpids ++;
 
+
+			if ((err = dpbp_open(&dprc->io, dpbp_id, &dpbp)) != 0) {
+				pr_err("Failed to open DPBP-%d.\n", dpbp_id);
+				return err;
+			}
+
+			if ((err = dpbp_enable(&dprc->io, dpbp)) != 0) {
+				pr_err("Failed to enable DPBP-%d.\n", dpbp_id);
+				return err;
+			}
+
+			if ((err = dpbp_get_attributes(&dprc->io, dpbp, &attr)) != 0) {
+				pr_err("Failed to get attributes from DPBP-%d.\n", dpbp_id);
+				return err;
+			}
+
+
+			icontext_aiop_get(&ic);
+
+			for (j = 0; j < 10; j++) {
+				fdma_release_buffer(ic.icid, ic.bdi_flags, (uint16_t)dpbp_id, addr);
+				addr += 2048;
+			}
+
+			pr_info("AIOP: Test passed\n", core_get_id());
 		}
 	}
 
-	if ((err = dpbp_open(&dprc->io, dpbp_id, &dpbp)) != 0) {
-		pr_err("Failed to open DPBP-%d.\n", dpbp_id);
-		return err;
-	}
-
-	if ((err = dpbp_enable(&dprc->io, dpbp)) != 0) {
-		pr_err("Failed to enable DPBP-%d.\n", dpbp_id);
-		return err;
-	}
-
-	if ((err = dpbp_get_attributes(&dprc->io, dpbp, &attr)) != 0) {
-		pr_err("Failed to get attributes from DPBP-%d.\n", dpbp_id);
-		return err;
-	}
-
-#if MALLOC_SUPPORTED
-
-	if ((err = bman_fill_bpid(5,
-	                          256,
-	                          8,
-	                          MEM_PART_PEB,
-	                          attr.bpid)) != 0) {
-		pr_err("Failed to fill DPBP-%d (BPID=%d) with buffer size %d.\n",
-		       dpbp_id, attr.bpid, 256);
-		return err;
-	}
-#else
-	fsl_os_print("Support for malloc needed to fill pools\n");
-#endif
-	pr_info("AIOP core %d: Test passed\n", core_get_id());
 	return 0;
 }
