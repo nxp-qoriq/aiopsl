@@ -19,7 +19,7 @@
 
 int dpni_init();
 int dpni_test();
-extern icontext_init();
+
 struct mc_dprc g_mc_dprc_dpni;
 extern struct icontext icontext_aiop;
 int test_num_of_nis;
@@ -154,7 +154,6 @@ int dpni_test()
 		return err;
 	}
 
-#if TEST_DPBP
 
 	for (i = 0; i < dev_count; i++) {
 		dprc_get_obj(&dprc->io, dprc->token, i, &dev_desc);
@@ -195,10 +194,6 @@ int dpni_test()
 	pools_params.num_dpbp = 1; /* for AIOP, can be up to 2 */
 	pools_params.pools[0].dpbp_id = (uint16_t)dpbp_id; /*!< DPBPs object id */
 	pools_params.pools[0].buffer_size = 2048;
-
-
-
-#endif
 
 
 	for (i = 0; i < dev_count; i++) {
