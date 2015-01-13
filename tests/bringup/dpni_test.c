@@ -138,7 +138,7 @@ int dpni_test()
 	struct mc_dprc *dprc = &g_mc_dprc_dpni;
 	struct dpbp_attr attr;
 	struct icontext ic;
-	dma_addr_t addr  = 0x4c00002000;
+	dma_addr_t addr  = 0x4c00002000; /*PEB physical address*/
 
 	if (dprc == NULL)
 	{
