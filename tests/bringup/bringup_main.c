@@ -91,12 +91,17 @@ static void _fill_system_parameters()
 	uint32_t abrr_val = ioread32_ccsr(UINT_TO_PTR(reg_base + 0x90));
 	uint32_t core_id =  (get_cpu_id() >> 4);
 
-	/* All cores write here the same value - 4 bytes is atomic write
-	 * No need in locks */
-	sys.active_cores_mask  = abrr_val;
-	sys.num_of_active_cores = _count_cores(sys.active_cores_mask);
-
 	sys.is_tile_master[core_id] = (int)(0x1 & (1ULL << core_id));
+
+	if(sys.is_tile_master[core_id]) {
+		sys.active_cores_mask  = abrr_val;
+		sys.num_of_active_cores = _count_cores(sys.active_cores_mask);
+		sys_init_multi_processing();
+		/* signal all other cores that global initiation is done */
+		sys.boot_sync_flag = SYS_BOOT_SYNC_FLAG_DONE;
+	} else {
+		while(!sys.boot_sync_flag) {}
+	}
 
 /*
 	pr_debug("sys_is_master_core() %d \n", sys_is_master_core());
@@ -109,6 +114,7 @@ static void _fill_system_parameters()
 int main(int argc, char *argv[])
 {
     int err = 0;
+    uint32_t core_id =  (get_cpu_id() >> 4);
 
     UNUSED(argc); UNUSED(argv);
 
@@ -118,7 +124,9 @@ int main(int argc, char *argv[])
 	 * sys_is_master_core()
 	 * sys_is_core_active()
 	 * sys_get_num_of_cores()
-	 * will work */
+	 * _sys_barrier() - without prints
+	 * will work
+	 * Use get_cpu_id() and not core_id_get() as it uses prints */
     _fill_system_parameters();
 
     /* Initiate small data area pointers at task initialization */
