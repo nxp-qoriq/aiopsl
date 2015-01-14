@@ -234,7 +234,7 @@ __declspec(entry_point) static void app_process_packet_flow0 (void)
 				local_test_error |= err;
 			}
 			else {
-				fsl_os_print("dpni_drv_get_counter: CTR: %d = %d\n",i,ctr_value);
+				fsl_os_print("dpni_drv_get_counter: CTR: %d = %ll\n",i,ctr_value);
 			}
 		}
 
