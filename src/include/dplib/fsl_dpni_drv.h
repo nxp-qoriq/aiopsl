@@ -206,15 +206,15 @@ int dpni_drv_get_max_frame_length(uint16_t ni_id,
 @Description	Network Interface SL prolog function. It is recommended to call
 		this function at the beginning of the upper layer entry-point
 		function, in this way it assures that HW presentation context
-		is preserved (as needed for OSM functionality and ni_id 
+		is preserved (as needed for OSM functionality and ni_id
 		resolution).
-		It is also recommended that user AIOP entry-point function is 
-		declared with __declspec(entry_point) to assure it is not 
-		dead-stripped by the compiler. 
+		It is also recommended that user AIOP entry-point function is
+		declared with __declspec(entry_point) to assure it is not
+		dead-stripped by the compiler.
 
-@Retval		0 - Success. 
-		It is recommended that for any error value user should discard 
-		the frame and terminate the task. 
+@Retval		0 - Success.
+		It is recommended that for any error value user should discard
+		the frame and terminate the task.
 @Retval		EIO - Parsing Error
 @Retval		ENOSPC - Parser Block Limit Exceeds.
 *//***************************************************************************/
@@ -229,7 +229,7 @@ inline int sl_prolog(void);
 	Implicit: Queuing Destination Priority (qd_priority) in the TLS.
 
 @Retval		0 - Success.
-		It is recommended that for any error value user should discard 
+		It is recommended that for any error value user should discard
 		the frame and terminate the task.
 @Retval		EBUSY - Enqueue failed due to congestion in QMAN.
 @Retval		ENOMEM - Failed due to buffer pool depletion.
@@ -247,9 +247,9 @@ inline int dpni_drv_send(uint16_t ni_id);
 @Param[in]	fd - pointer to explicit FD. The assumption is that user
 		used fdma function to create an explicit FD as
 		fdma_create_frame
-		
+
 @Retval		0 - Success.
-		It is recommended that for any error value user should discard 
+		It is recommended that for any error value user should discard
 		the frame and terminate the task.
 @Retval		EBUSY - Enqueue failed due to congestion in QMAN.
 *//***************************************************************************/
@@ -418,5 +418,21 @@ int dpni_drv_get_connected_dpni_id(const uint16_t aiop_niid, uint16_t *dpni_id, 
 	error code, otherwise. For error posix refer to \ref error_g
 *//***************************************************************************/
 int dpni_drv_get_rx_buffer_layout(uint16_t ni_id, struct dpni_buffer_layout *layout);
+
+/**************************************************************************//**
+@Function	dpni_drv_get_counter
+
+@Description	Function to receive DPNI counter.
+
+@Param[in]	ni_id   The AIOP Network Interface ID
+
+@Param[in]	counter Type of DPNI counter.
+
+@Param[out]	value   Counter value for the requested type.
+
+@Return	0 on success;
+	error code, otherwise. For error posix refer to \ref error_g
+*//***************************************************************************/
+int dpni_drv_get_counter(uint16_t ni_id, enum dpni_counter counter, uint64_t *value);
 /** @} */ /* end of dpni_g DPNI group */
 #endif /* __FSL_DPNI_DRV_H */

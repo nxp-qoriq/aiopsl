@@ -94,6 +94,7 @@ __declspec(entry_point) static void app_process_packet_flow0 (void)
 	uint8_t local_packet_number;
 	int local_test_error = 0;
 	uint16_t spid_ddr;
+	uint64_t ctr_value = 0;
 
 	sl_prolog();
 
@@ -223,7 +224,20 @@ __declspec(entry_point) static void app_process_packet_flow0 (void)
 	test_error |= local_test_error; /*mark if error occured during one of the tests*/
 	unlock_spinlock(&test_error_lock);
 
-	if(local_packet_number == 38 ){ /*40 packets (0 - 39) with one broadcast after the broadcast is dissabled */
+	if(local_packet_number == 38 )
+	{ /*40 packets (0 - 39) with one broadcast after the broadcast is dissabled */
+		for(i = 0; i < 11; i++)
+		{
+			err = dpni_drv_get_counter((uint16_t)ni_id,(enum dpni_counter)i ,&ctr_value);
+			if(err != 0) {
+				fsl_os_print("dpni_drv_get_counter failed: CTR %d, error %d\n", i, err);
+				local_test_error |= err;
+			}
+			else {
+				fsl_os_print("dpni_drv_get_counter: CTR: %d = %d\n",i,ctr_value);
+			}
+		}
+
 		if (test_error == 0)
 		{
 			int not_active_task = 0;
