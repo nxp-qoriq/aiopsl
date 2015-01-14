@@ -1,3 +1,6 @@
+dpni_drv.c, fsl_dpni_drv.h:   Added API for "int dpni_drv_get_counter(uint16_t ni_id, enum dpni_counter counter, uint64_t *value)"
+                              Function to receive dpni counters.
+
 app_process_packet.c, 
 arena_test.c, ipf_demo.c,
  ipf_demo.c, ipsec_fm_demo.c: in app_process_packet_flow0() added call to sl_prolog() (must be at the beginning of each application cb function),
