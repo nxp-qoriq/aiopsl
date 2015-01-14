@@ -29,9 +29,11 @@
 #include "fsl_smp.h"
 #include "fsl_dbg.h"
 #include "cmgw.h"
-
+#include "fsl_io_ccsr.h"
 #include "sys.h"
 #include "../../../tests/bringup/bringup_tests.h"
+
+extern t_system sys; /* Global System Object */
 
 //extern int sys_init(void);
 //extern void sys_free(void);
@@ -70,18 +72,54 @@
 //}
 //#endif
 
+static uint32_t _count_cores(uint64_t cores_mask)
+{
+    uint32_t count;
+    for(count = 0; cores_mask > 0; cores_mask >>= 1) {
+	if(cores_mask & 1 == 1)
+	    count ++;
+    }
+
+    return count;
+}
+
+static void _fill_system_parameters()
+{
+	uintptr_t reg_base = (uintptr_t)(SOC_PERIPH_OFF_AIOP_TILE \
+		+ SOC_PERIPH_OFF_AIOP_CMGW \
+		+ 0x02000000);/* PLTFRM_MEM_RGN_AIOP */
+	uint32_t abrr_val = ioread32_ccsr(UINT_TO_PTR(reg_base + 0x90));
+	uint32_t core_id =  (get_cpu_id() >> 4);
+
+	/* All cores write here the same value - 4 bytes is atomic write
+	 * No need in locks */
+	sys.active_cores_mask  = abrr_val;
+	sys.num_of_active_cores = _count_cores(sys.active_cores_mask);
+
+	sys.is_tile_master[core_id] = (int)(0x1 & (1ULL << core_id));
+
+/*
+	pr_debug("sys_is_master_core() %d \n", sys_is_master_core());
+	pr_debug("sys_is_core_active() %d \n", sys_is_core_active(core_id));
+	pr_debug("sys_get_num_of_cores() %d \n", sys_get_num_of_cores());
+*/
+}
+
 /*****************************************************************************/
 int main(int argc, char *argv[])
 {
     int err = 0;
+
+    UNUSED(argc); UNUSED(argv);
+
 //    int is_master_core;
 
-	/* so sys_is_master_core() will work */
-	extern t_system sys; /* Global System Object */
-	uint32_t        core_id = core_get_id();
-	sys.is_tile_master[core_id]       = (int)(0x1 & (1ULL << core_id));
-
-UNUSED(argc); UNUSED(argv);
+	/* so
+	 * sys_is_master_core()
+	 * sys_is_core_active()
+	 * sys_get_num_of_cores()
+	 * will work */
+    _fill_system_parameters();
 
     /* Initiate small data area pointers at task initialization */
     asm {
@@ -109,27 +147,22 @@ UNUSED(argc); UNUSED(argv);
 
 /* Those 2 tests can't be tested together */
 #if (TEST_EXCEPTIONS == ON)
-	err = exceptions_test();
-	if(err) return err;
+	err |= exceptions_test();
 #elif (TEST_STACK_OVF == ON)
-	err = stack_ovf_test();
-	if(err) return err;
+	err |= stack_ovf_test();
 #endif
 
 #if (TEST_SINGLE_CLUSTER == ON)
 	err |= single_cluster_test();
-	if (err) return err;
 #endif
 
 #if (TEST_MULTI_CLUSTER == ON)
 	err |= multi_cluster_test();
-	if (err) return err;
 #endif
 
 #if (TEST_AIOP_MC_CMD == ON)
 	err |= aiop_mc_cmd_init();
 	err |= aiop_mc_cmd_test();
-	if (err) return err;
 #endif
 
 #if (TEST_DPBP == ON) /*DPBP must be off for DPNI test*/
@@ -250,5 +283,10 @@ UNUSED(argc); UNUSED(argv);
 //
 //    //TODO should never get here !!
 //    cmgw_report_boot_failure();
+	if (err)
+		do {} while(1); /* TEST failed */
+	else
+		do {} while(1); /* TEST passed */
+
     return err;
 }

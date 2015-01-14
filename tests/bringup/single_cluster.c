@@ -11,6 +11,8 @@
 #include "fsl_dbg.h"
 #endif
 
+//#undef ARENA_TEST /* uncomment only if you run bringup_main with arena test */
+
 #ifdef ARENA_TEST
 #define NUM_TESTED_CORES	1 /* In ARENA test only master core runs it */
 #else
@@ -21,9 +23,9 @@
 
 uint32_t core_arr[NUM_TESTED_CORES] = {0};
 int8_t  counter = 0;
+int     err[NUM_TESTED_CORES] = {0};
 
 int single_cluster_test();
-
 int single_cluster_test()
 {
 	uint32_t core_id =  (get_cpu_id() >> 4);
@@ -37,37 +39,43 @@ int single_cluster_test()
 	pr_debug("sys_get_num_of_cores() %d \n", sys_get_num_of_cores());
 #endif
 
-	/* Check smp.c API */
-	if (sys_get_num_of_cores() < NUM_TESTED_CORES)
-		return -EINVAL;
+	if (core_id < NUM_TESTED_CORES) {
+		/* Check smp.c API */
+		if (sys_get_num_of_cores() < NUM_TESTED_CORES)
+			err[core_id] |= -EINVAL;
 
-	/* Check fsl_spinlock.h API */
-	atomic_incr8(&counter, 1);
+		/* Check fsl_spinlock.h API */
+		atomic_incr8(&counter, 1);
 
-	/* Check that all n=<4 cores get here use CORE_ID */
-	core_arr[core_id] = core_id;
-	do {
-		done = 1;
-		for (i = 0; i < NUM_TESTED_CORES; i++) {
-			if (core_arr[i] != i) {
-				done = 0;
-				break;
+		/* Check smp.c API */
+		if (!sys_is_core_active(core_id))
+			err[core_id] |= -EINVAL;
+
+		/* Check that all n=<4 cores get here use CORE_ID */
+		core_arr[core_id] = core_id;
+		do {
+			done = 1;
+			for (i = 0; i < NUM_TESTED_CORES; i++) {
+				if (core_arr[i] != i) {
+					done = 0;
+					break;
+				}
 			}
+			t++;
+		} while((!done) && (t < WAITING_TIMEOUT));
+
+		if (!done)
+			err[core_id] |= -ETIMEDOUT;
+
+		/* Check fsl_spinlock.h API */
+		if (counter < NUM_TESTED_CORES)
+			err[core_id] |= -EINVAL;
+
+		t = 0;
+		for (i = 0; i < NUM_TESTED_CORES; i++) {
+			t |= err[i];
 		}
-		t++;
-	} while((!done) && (t < WAITING_TIMEOUT));
-
-	if (!done) return -ETIMEDOUT;
-
-	/* Check smp.c API */
-	for (i = 0; i < NUM_TESTED_CORES; i++) {
-		if (!sys_is_core_active((uint32_t)i))
-			return -EINVAL;
 	}
 
-	/* Check fsl_spinlock.h API */
-	if (counter < NUM_TESTED_CORES)
-		return -EINVAL;
-
-	return 0;
+	return t;
 }
