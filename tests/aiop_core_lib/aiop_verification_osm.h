@@ -38,7 +38,7 @@
 //#include "dplib/fsl_ldpaa.h"
 #include "dplib/fsl_osm.h"
 #include "general.h"
-#include "osm.h"
+#include "osm_inline.h"
 
 /**************************************************************************//**
  @addtogroup		AIOP_Service_Routines_Verification

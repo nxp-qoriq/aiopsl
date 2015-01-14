@@ -18,7 +18,7 @@
 				</dictionary>
 				<dictionary>
 					<key>org.eclipse.cdt.make.core.buildArguments</key>
-					<value>-j8</value>
+					<value></value>
 				</dictionary>
 				<dictionary>
 					<key>org.eclipse.cdt.make.core.buildCommand</key>
@@ -26,7 +26,7 @@
 				</dictionary>
 				<dictionary>
 					<key>org.eclipse.cdt.make.core.buildLocation</key>
-					<value>${ProjDirPath}/Release</value>
+					<value>${ProjDirPath}/Debug</value>
 				</dictionary>
 				<dictionary>
 					<key>org.eclipse.cdt.make.core.contents</key>
@@ -603,6 +603,11 @@
 			<locationURI>PARENT-4-PROJECT_LOC/src/drivers/dplib/arch/accel/fdma.h</locationURI>
 		</link>
 		<link>
+			<name>sources/drivers/dplib/arch/accel/fdma_inline.h</name>
+			<type>1</type>
+			<locationURI>PARENT-4-PROJECT_LOC/src/drivers/dplib/arch/accel/fdma_inline.h</locationURI>
+		</link>
+		<link>
 			<name>sources/drivers/dplib/arch/accel/keygen.c</name>
 			<type>1</type>
 			<locationURI>PARENT-4-PROJECT_LOC/src/drivers/dplib/arch/accel/keygen.c</locationURI>
@@ -621,6 +626,11 @@
 			<name>sources/drivers/dplib/arch/accel/osm.h</name>
 			<type>1</type>
 			<locationURI>PARENT-4-PROJECT_LOC/src/drivers/dplib/arch/accel/osm.h</locationURI>
+		</link>
+		<link>
+			<name>sources/drivers/dplib/arch/accel/osm_inline.h</name>
+			<type>1</type>
+			<locationURI>PARENT-4-PROJECT_LOC/src/drivers/dplib/arch/accel/osm_inline.h</locationURI>
 		</link>
 		<link>
 			<name>sources/drivers/dplib/arch/accel/parser.c</name>
@@ -671,6 +681,11 @@
 			<name>sources/drivers/dplib/arch/accel/table.h</name>
 			<type>1</type>
 			<locationURI>PARENT-4-PROJECT_LOC/src/drivers/dplib/arch/accel/table.h</locationURI>
+		</link>
+		<link>
+			<name>sources/drivers/dplib/arch/accel/table_inline.h</name>
+			<type>1</type>
+			<locationURI>PARENT-4-PROJECT_LOC/src/drivers/dplib/arch/accel/table_inline.h</locationURI>
 		</link>
 		<link>
 			<name>sources/drivers/dplib/arch/accel/tman.c</name>

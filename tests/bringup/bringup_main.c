@@ -30,7 +30,8 @@
 #include "fsl_dbg.h"
 #include "cmgw.h"
 
-#include "bringup_tests.h"
+#include "sys.h"
+#include "../../../tests/bringup/bringup_tests.h"
 
 //extern int sys_init(void);
 //extern void sys_free(void);
@@ -74,12 +75,12 @@ int main(int argc, char *argv[])
 {
     int err = 0;
 //    int is_master_core;
-    
+
 	/* so sys_is_master_core() will work */
 	extern t_system sys; /* Global System Object */
 	uint32_t        core_id = core_get_id();
-	sys.is_master_core[core_id]       = (int)(0x1 & (1ULL << core_id));
-	
+	sys.is_tile_master[core_id]       = (int)(0x1 & (1ULL << core_id));
+
 UNUSED(argc); UNUSED(argv);
 
     /* Initiate small data area pointers at task initialization */
@@ -87,12 +88,79 @@ UNUSED(argc); UNUSED(argv);
         mtdcr dcr469,r2 // INITR2
         mtdcr dcr470,r13// INITR13
     }
-	
+
 #if (TEST_MEM_ACCESS == ON)
 	/* memory access test */
 	err = mem_standalone_init();
 	err = mem_test();
 #endif /* TEST_MEM_ACCESS */
+
+
+#if (TEST_CONSOLE_PRINT == ON)
+	if(sys.is_tile_master[core_id]){
+	err = console_print_init();
+	if(err) return err;
+	}
+	sys_barrier();
+
+	err =  console_print_test();
+	if(err) return err;
+#endif
+
+/* Those 2 tests can't be tested together */
+#if (TEST_EXCEPTIONS == ON)
+	err = exceptions_test();
+	if(err) return err;
+#elif (TEST_STACK_OVF == ON)
+	err = stack_ovf_test();
+	if(err) return err;
+#endif
+
+#if (TEST_SINGLE_CLUSTER == ON)
+	err |= single_cluster_test();
+	if (err) return err;
+#endif
+
+#if (TEST_MULTI_CLUSTER == ON)
+	err |= multi_cluster_test();
+	if (err) return err;
+#endif
+
+#if (TEST_AIOP_MC_CMD == ON)
+	err |= aiop_mc_cmd_init();
+	err |= aiop_mc_cmd_test();
+	if (err) return err;
+#endif
+
+#if (TEST_DPBP == ON) /*DPBP must be off for DPNI test*/
+	/* memory access test */
+	if(sys.is_tile_master[core_id]){
+	err = dpbp_init();
+	if(err) return err;
+	err = dpbp_test();
+	if(err) return err;
+	}
+#endif /* TEST_DPBP */
+
+#if (TEST_DPNI == ON) /*DPNI must be off for DPBP test*/
+	/* memory access test */
+	if(sys.is_tile_master[core_id]){
+	err = dpni_init();
+	if(err) return err;
+	err = dpni_test();
+	if(err) return err;
+	}
+#endif /* TEST_DPNI */
+
+#if (TEST_BUFFER_POOLS == ON)
+	/* memory access test */
+	if(sys.is_tile_master[core_id]){
+	err = buffer_pool_init();
+	if(err) return err;
+	err = buffer_pool_test();
+	if(err) return err;
+	}
+#endif /* TEST_BUFFER_POOLS */
 
 //
 //#if (STACK_OVERFLOW_DETECTION == 1)

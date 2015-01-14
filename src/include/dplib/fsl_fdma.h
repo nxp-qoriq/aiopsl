@@ -885,6 +885,7 @@ struct fdma_delete_segment_data_params {
 
 /** @} end of group FDMA_STATUS */
 
+
 /**************************************************************************//**
  @Group		FDMA_Functions FDMA Functions
 
@@ -2080,78 +2081,6 @@ void fdma_modify_segment_data(
 #endif /*REV2*/
 
 /**************************************************************************//**
-@Function	fdma_replace_default_segment_data
-
-@Description	Replace modified data in the default Data segment in the default
-		Working Frame (in the FDMA).
-
-		This Service Routine can replace any data size in the segment
-		with any new data size. the new data will be taken from
-		from_ws_src pointer parameter.
-
-		In case \ref FDMA_REPLACE_SA_REPRESENT_BIT flag is set this
-		Service Routine synchronizes the segment data between the
-		Task Workspace and the FDMA.
-
-		Implicit input parameters in Task Defaults: frame handle,
-		segment handle.
-
-		Implicitly updated values in task defaults: segment length,
-		segment address.
-
-@Param[in]	to_offset - The offset from the previously presented segment
-		representing the start point of the replacement.
-		Must be within the presented segment size.
-@Param[in]	to_size - The Working Frame replaced size.
-@Param[in]	from_ws_src - a pointer to the workspace location from which
-		the replacement segment data starts.
-@Param[in]	from_size - The replacing segment size.
-@Param[in]	ws_dst_rs - A pointer to the location in workspace for the
-		represented frame segment (relevant if
-		\ref FDMA_REPLACE_SA_REPRESENT_BIT flag is set).
-@Param[in]	size_rs - Number of frame bytes to represent in the segment.
-		Must be greater than 0.
-		Relevant if \ref FDMA_REPLACE_SA_REPRESENT_BIT flag is set).
-@Param[in]	flags - \link FDMA_Replace_Flags replace working frame
-		segment flags. \endlink
-
-@Return		0 or positive value on success. Negative value on error.
-
-@Retval		0 - Success.
-@Retval		::FDMA_STATUS_UNABLE_PRES_DATA_SEG - Unable to fulfill 
-		specified data segment presentation size (relevant if
-		 \ref FDMA_REPLACE_SA_REPRESENT_BIT flag is set).
-		This return value is caused since the requested presentation 
-		exceeded frame data end.
-
-@remark		Example: Modify 14 bytes + insert 2 bytes. The default Data
-		segment represents a 100 bytes at offset 0 in the frame (0-99)
-		and the user want to replace bytes 11-24 (14 bytes) with new 16
-		bytes (14 updated + additional 2).
-		Parameters:
-			- to_offset - 11 (relative to the presented segment)
-			- to_size - 14
-			- from_ws_address - <workspace address of the 16 bytes>
-			- from_size - 16
-
-@Cautions	As part of a workaround to ticket TKT237377 this command closes
-		and reopens the segment. (meaning that all segment modifications
-		done in workspace but not included in the range of this command
-		are lost).
-@Cautions	This command may be invoked only on the default Data segment.
-@Cautions	This function may result in a fatal error.
-@Cautions	In this Service Routine the task yields.
-*//***************************************************************************/
-int fdma_replace_default_segment_data(
-		uint16_t to_offset,
-		uint16_t to_size,
-		void	 *from_ws_src,
-		uint16_t from_size,
-		void	 *ws_dst_rs,
-		uint16_t size_rs,
-		uint32_t flags);
-
-/**************************************************************************//**
 @Function	fdma_insert_default_segment_data
 
 @Description	Insert new data to the default Working Frame (in the FDMA)
@@ -2563,6 +2492,90 @@ void fdma_calculate_default_frame_checksum(
 		uint16_t size,
 		uint16_t *checksum);
 
+/* Getter for AMQ (ICID, PL, VA, BDI) default attributes */
+/* Todo - enable inline when inline works correctly+move definition to .h file*/
+/*inline*/ void get_default_amq_attributes(
+	struct fdma_amq *amq);
+
+/**Setter for AMQ (ICID, PL, VA, BDI) default attributes */
+/* Todo - enable inline when inline works correctly+move definition to .h file*/
+/*inline*/ void set_default_amq_attributes(
+	struct fdma_amq *amq);
+
+#include "fdma_inline.h"
+
+/**************************************************************************//**
+@Function	fdma_replace_default_segment_data
+
+@Description	Replace modified data in the default Data segment in the default
+		Working Frame (in the FDMA).
+
+		This Service Routine can replace any data size in the segment
+		with any new data size. the new data will be taken from
+		from_ws_src pointer parameter.
+
+		In case \ref FDMA_REPLACE_SA_REPRESENT_BIT flag is set this
+		Service Routine synchronizes the segment data between the
+		Task Workspace and the FDMA.
+
+		Implicit input parameters in Task Defaults: frame handle,
+		segment handle.
+
+		Implicitly updated values in task defaults: segment length,
+		segment address.
+
+@Param[in]	to_offset - The offset from the previously presented segment
+		representing the start point of the replacement.
+		Must be within the presented segment size.
+@Param[in]	to_size - The Working Frame replaced size.
+@Param[in]	from_ws_src - a pointer to the workspace location from which
+		the replacement segment data starts.
+@Param[in]	from_size - The replacing segment size.
+@Param[in]	ws_dst_rs - A pointer to the location in workspace for the
+		represented frame segment (relevant if
+		\ref FDMA_REPLACE_SA_REPRESENT_BIT flag is set).
+@Param[in]	size_rs - Number of frame bytes to represent in the segment.
+		Must be greater than 0.
+		Relevant if \ref FDMA_REPLACE_SA_REPRESENT_BIT flag is set).
+@Param[in]	flags - \link FDMA_Replace_Flags replace working frame
+		segment flags. \endlink
+
+@Return		0 or positive value on success. Negative value on error.
+
+@Retval		0 - Success.
+@Retval		::FDMA_STATUS_UNABLE_PRES_DATA_SEG - Unable to fulfill 
+		specified data segment presentation size (relevant if
+		 \ref FDMA_REPLACE_SA_REPRESENT_BIT flag is set).
+		This return value is caused since the requested presentation 
+		exceeded frame data end.
+
+@remark		Example: Modify 14 bytes + insert 2 bytes. The default Data
+		segment represents a 100 bytes at offset 0 in the frame (0-99)
+		and the user want to replace bytes 11-24 (14 bytes) with new 16
+		bytes (14 updated + additional 2).
+		Parameters:
+			- to_offset - 11 (relative to the presented segment)
+			- to_size - 14
+			- from_ws_address - <workspace address of the 16 bytes>
+			- from_size - 16
+
+@Cautions	As part of a workaround to ticket TKT237377 this command closes
+		and reopens the segment. (meaning that all segment modifications
+		done in workspace but not included in the range of this command
+		are lost).
+@Cautions	This command may be invoked only on the default Data segment.
+@Cautions	This function may result in a fatal error.
+@Cautions	In this Service Routine the task yields.
+*//***************************************************************************/
+inline int fdma_replace_default_segment_data(
+		uint16_t to_offset,
+		uint16_t to_size,
+		void	 *from_ws_src,
+		uint16_t from_size,
+		void	 *ws_dst_rs,
+		uint16_t size_rs,
+		uint32_t flags);
+
 /**************************************************************************//**
 @Function	fdma_copy_data
 
@@ -2586,7 +2599,7 @@ void fdma_calculate_default_frame_checksum(
 @Cautions	This function may result in a fatal error.
 @Cautions	In this Service Routine the task yields.
 *//***************************************************************************/
-void fdma_copy_data(
+inline void fdma_copy_data(
 		uint16_t copy_size,
 		uint32_t flags,
 		void *src,

@@ -147,6 +147,7 @@ struct scope_status_params {
 
 /** @} end of group OSM_Commands_Flags */
 
+#include "osm_inline.h"
 
 /**************************************************************************//**
 @Group		OSM_Functions	OSM Functions
@@ -429,7 +430,7 @@ void osm_scope_enter(
 
 @Cautions	None.
 *//***************************************************************************/
-void osm_scope_exit(void);
+inline void osm_scope_exit(void);
 
 
 /*************************************************************************//**

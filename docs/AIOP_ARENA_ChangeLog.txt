@@ -1,3 +1,7 @@
+app_process_packet.c, 
+arena_test.c, ipf_demo.c,
+ ipf_demo.c, ipsec_fm_demo.c: in app_process_packet_flow0() added call to sl_prolog() (must be at the beginning of each application cb function),
+                              and added call to fdma_terminate_task(); to the end of each cb function (must end the cb function).
 
 ** AIOP SL Release v0.5.3.0 **
 types_mw.h               Added macros for putting all executable code (functions) of a file into a certain section.

@@ -112,11 +112,10 @@ struct aiop_psram_entry {
 		User provides this function. Driver invokes it when it gets a
 		frame received on this interface.
 
-@Param[in]	arg     argument for application callback.
 
 @Return	OK on success; error code, otherwise.
 *//***************************************************************************/
-typedef void /*__noreturn*/ (rx_cb_t) (dpni_drv_app_arg_t arg);
+typedef void /*__noreturn*/ (rx_cb_t) (void);
 
 /**************************************************************************//**
 @Function	discard_rx_cb
@@ -125,7 +124,7 @@ typedef void /*__noreturn*/ (rx_cb_t) (dpni_drv_app_arg_t arg);
 
 @Return	None.
 *//***************************************************************************/
-void discard_rx_cb();
+void discard_rx_cb(void);
 
 /**************************************************************************//**
 @Function	dpni_drv_enable

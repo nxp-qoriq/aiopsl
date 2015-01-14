@@ -56,15 +56,13 @@
 
 @Param[in]	ni_id  - The Network Interface ID
 @Param[in]	cb - Callback function for Network Interface specified flow_id
-@Param[in]	arg - Argument that will be passed to callback function
 
 @Return	OK on success; error code, otherwise.
 		For error posix refer to
 		\ref error_g
 *//***************************************************************************/
 int dpni_drv_register_rx_cb(uint16_t        ni_id,
-			rx_cb_t		    *cb,
-			dpni_drv_app_arg_t arg);
+			rx_cb_t		    *cb);
 
 /**************************************************************************//**
 @Function	dpni_drv_unregister_rx_cb
@@ -90,7 +88,7 @@ int dpni_drv_unregister_rx_cb(uint16_t		ni_id);
 @Return	NI_IDs on which the default packet arrived.
 *//***************************************************************************/
 /* TODO : replace by macros/inline funcs */
-int dpni_get_receive_niid(void);
+uint16_t dpni_get_receive_niid(void);
 
 /**************************************************************************//**
 @Function	dpni_set_send_niid
@@ -203,6 +201,26 @@ int dpni_drv_get_max_frame_length(uint16_t ni_id,
                           uint16_t *mfl);
 
 /**************************************************************************//**
+@Function	sl_prolog
+
+@Description	Network Interface SL prolog function. It is recommended to call
+		this function at the beginning of the upper layer entry-point
+		function, in this way it assures that HW presentation context
+		is preserved (as needed for OSM functionality and ni_id 
+		resolution).
+		It is also recommended that user AIOP entry-point function is 
+		declared with __declspec(entry_point) to assure it is not 
+		dead-stripped by the compiler. 
+
+@Retval		0 - Success. 
+		It is recommended that for any error value user should discard 
+		the frame and terminate the task. 
+@Retval		EIO - Parsing Error
+@Retval		ENOSPC - Parser Block Limit Exceeds.
+*//***************************************************************************/
+inline int sl_prolog(void);
+
+/**************************************************************************//**
 @Function	dpni_drv_send
 
 @Description	Network Interface send (AIOP enqueue) function.
@@ -210,9 +228,11 @@ int dpni_drv_get_max_frame_length(uint16_t ni_id,
 @Param[in]	ni_id - The Network Interface ID
 	Implicit: Queuing Destination Priority (qd_priority) in the TLS.
 
-@Return	OK on success; error code, otherwise.
-		For error posix refer to
-		\ref error_g
+@Retval		0 - Success.
+		It is recommended that for any error value user should discard 
+		the frame and terminate the task.
+@Retval		EBUSY - Enqueue failed due to congestion in QMAN.
+@Retval		ENOMEM - Failed due to buffer pool depletion.
 *//***************************************************************************/
 inline int dpni_drv_send(uint16_t ni_id);
 
@@ -227,10 +247,11 @@ inline int dpni_drv_send(uint16_t ni_id);
 @Param[in]	fd - pointer to explicit FD. The assumption is that user
 		used fdma function to create an explicit FD as
 		fdma_create_frame
-
-@Return	OK on success; error code, otherwise.
-		For error posix refer to
-		\ref error_g
+		
+@Retval		0 - Success.
+		It is recommended that for any error value user should discard 
+		the frame and terminate the task.
+@Retval		EBUSY - Enqueue failed due to congestion in QMAN.
 *//***************************************************************************/
 int dpni_drv_explicit_send(uint16_t ni_id, struct ldpaa_fd *fd);
 
