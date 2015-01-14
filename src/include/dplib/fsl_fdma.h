@@ -2492,14 +2492,32 @@ void fdma_calculate_default_frame_checksum(
 		uint16_t size,
 		uint16_t *checksum);
 
-/* Getter for AMQ (ICID, PL, VA, BDI) default attributes */
-/* Todo - enable inline when inline works correctly+move definition to .h file*/
-/*inline*/ void get_default_amq_attributes(
+/**************************************************************************//**
+@Function	get_default_amq_attributes
+
+@Description	Getter for AMQ (ICID, PL, VA, BDI) default attributes. The 
+		default AMQ attributes are located in the Additional Dequeue 
+		Context.
+
+@Param[in]	amq - Returned Additional Dequeue Context AMQ attributes.
+
+@Return		None.
+*//***************************************************************************/
+void get_default_amq_attributes(
 	struct fdma_amq *amq);
 
-/**Setter for AMQ (ICID, PL, VA, BDI) default attributes */
-/* Todo - enable inline when inline works correctly+move definition to .h file*/
-/*inline*/ void set_default_amq_attributes(
+/**************************************************************************//**
+@Function	set_default_amq_attributes
+
+@Description	setter for AMQ (ICID, PL, VA, BDI) default attributes. The 
+		default AMQ attributes are located in the Additional Dequeue 
+		Context.
+
+@Param[in]	amq - AMQ attributes to set in the Additional Dequeue Context.
+
+@Return		None.
+*//***************************************************************************/
+void set_default_amq_attributes(
 	struct fdma_amq *amq);
 
 #include "fdma_inline.h"
