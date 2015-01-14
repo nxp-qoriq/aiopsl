@@ -12,7 +12,7 @@
 #endif
 #include "sys.h"
 
-#undef ARENA_TEST /* uncomment only if you run bringup_main with arena test */
+//#undef ARENA_TEST /* uncomment only if you run bringup_main with arena test */
 
 #define WAITING_TIMEOUT		0x10000000
 #define CORE_ID_GET		(get_cpu_id() >> 4)
