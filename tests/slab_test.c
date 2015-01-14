@@ -187,10 +187,11 @@ int app_test_slab_init(void)
 
 	err = slab_free(&my_slab);
 	if (err) return err;
-
+#ifdef DEBUG
 	/* Must fail because my_slab was freed  */
 	err = slab_acquire(my_slab, &buff[0]);
 	if (!err) return -EEXIST;
+#endif
 
 
 	/* Reuse slab handle test  */
@@ -297,11 +298,13 @@ int app_test_slab(struct slab *slab, int num_times, enum memory_partition_id mem
 	err = slab_free(&my_slab);
 	if (err) return err;
 
+	/*Should failed in DEBUG mode because slab already freed */
+#ifdef DEBUG
 	err = slab_acquire(my_slab, &buff[3]);
 	if(err == 0) return -EINVAL;
 	err = slab_acquire(my_slab, &buff[2]);
 	if(err == 0) return -EINVAL;
-
+#endif
 	return 0;
 }
 
