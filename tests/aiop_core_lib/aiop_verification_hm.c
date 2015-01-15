@@ -383,26 +383,6 @@ uint16_t aiop_verification_hm(uint32_t asa_seg_addr)
 			break;
 		}
 
-		/* HM set TCP/UDP SRC Port Command Verification */
-		case HM_SET_TP_SRC_CMD_STR:
-		{
-			struct hm_set_tp_command *str =
-			(struct hm_set_tp_command *) asa_seg_addr;
-			str->status = l4_set_tp_src(str->port);
-			str_size = sizeof(struct hm_set_tp_command);
-			break;
-		}
-
-		/* HM set TCP/UDP SRC Port Command Verification */
-		case HM_SET_TP_DST_CMD_STR:
-		{
-			struct hm_set_tp_command *str =
-			(struct hm_set_tp_command *) asa_seg_addr;
-			str->status = l4_set_tp_dst(str->port);
-			str_size = sizeof(struct hm_set_tp_command);
-			break;
-		}
-
 		/* HM set TCP SRC Port Command Verification */
 		case HM_SET_TCP_SRC_CMD_STR:
 		{
