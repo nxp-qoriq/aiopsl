@@ -157,6 +157,11 @@ aiop_sl		</project>
 			<locationURI>PARENT-4-PROJECT_LOC/tests/slab_test.c</locationURI>
 		</link>
 		<link>
+			<name>src/bringup/aiop_to_mc_cmd.c</name>
+			<type>1</type>
+			<locationURI>PARENT-4-PROJECT_LOC/tests/bringup/aiop_to_mc_cmd.c</locationURI>
+		</link>
+		<link>
 			<name>src/bringup/exceptions.c</name>
 			<type>1</type>
 			<locationURI>PARENT-4-PROJECT_LOC/tests/bringup/exceptions.c</locationURI>
