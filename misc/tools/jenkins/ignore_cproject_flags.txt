@@ -7,5 +7,4 @@
 <"com.freescale.ppc.toolchain.compiler.base.preprocessor.macroUndefined"/>
 <"com.freescale.ppc.toolchain.linker.base.output.listStackUsage" value="true" valueType="boolean"/>
 <"com.freescale.ppc.toolchain.linker.base.output.rootFunction" value="stack_estimation" valueType="string"/>
-<"com.freescale.ppc.toolchain.compiler.base.preprocessor.macroDefined" valueType="definedSymbols">
-<"com.freescale.ppc.toolchain.compiler.base.preprocessor.macroDefined"/>
+
