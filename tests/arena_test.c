@@ -67,6 +67,7 @@ extern int ntop_test(void);
 extern int dpni_drv_test(void);
 extern int single_cluster_test();
 extern int multi_cluster_test();
+extern int aiop_mc_cmd_test();
 
 extern int num_of_cores;
 extern int num_of_tasks;
@@ -123,6 +124,14 @@ __declspec(entry_point) static void app_process_packet_flow0 (void)
 		fsl_os_print("spid is %d for packet %d\n",spid_ddr, local_packet_number);
 	}
 
+
+	err = aiop_mc_cmd_test();
+	if (err) {
+		fsl_os_print("ERROR = %d: aiop_mc_cmd_test failed in runtime phase()\n", err);
+		local_test_error |= err;
+	} else {
+		fsl_os_print("aiop_mc_cmd_test passed in runtime phase()\n");
+	}
 
 	err = pton_test();
 	if (err) {
@@ -339,8 +348,9 @@ int app_init(void)
 		test_error |= err;
 	}
 
+	err = aiop_mc_cmd_test();
 	if (err) {
-		fsl_os_print("ERROR = %d: single_cluster_test failed in init phase()\n", err);
+		fsl_os_print("ERROR = %d: aiop_mc_cmd_test failed in init phase()\n", err);
 		test_error |= err;
 	}
 

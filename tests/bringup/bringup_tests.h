@@ -43,7 +43,6 @@ int multi_cluster_test();
 #endif
 
 #if (TEST_AIOP_MC_CMD == ON)
-int aiop_mc_cmd_init();
 int aiop_mc_cmd_test();
 #endif /* TEST_AIOP_MC_CMD */
 
