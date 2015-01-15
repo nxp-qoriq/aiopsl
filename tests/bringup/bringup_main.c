@@ -203,6 +203,16 @@ int main(int argc, char *argv[])
 	}
 #endif /* TEST_BUFFER_POOLS */
 
+#if (TEST_GPP_DDR == ON)
+	if(sys.is_tile_master[core_id]){
+		err |= gpp_sys_ddr_init();
+		/* change the address if needed
+		 * ICID is set inside to 1 or 2 */
+		err |= gpp_sys_ddr_test(0x2000000400, 16);
+		err |= gpp_sys_ddr_test(0x2000000300, 32);
+	}
+#endif
+
 //
 //#if (STACK_OVERFLOW_DETECTION == 1)
 //    configure_stack_overflow_detection();
