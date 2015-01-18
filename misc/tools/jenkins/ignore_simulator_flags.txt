@@ -1,0 +1,13 @@
+#flags used to run ls simulator
+wrp.free_sim_on_exit=false
+wrp.boot_release_aiop=true
+wrp.boot_go_mask_aiop=0xffff
+wrp.sa_client=true
+wrp.sa_server_port=43969
+sim.trace_filename=lsdpaa2sim_tarmacTraceFile.log
+sim.tio=true
+sim.tio_server_name=localhost
+sim.tio_server_port=42975
+duart1.start_default_term=true
+duart2.start_default_term=true
+wriop0.log_level=2
