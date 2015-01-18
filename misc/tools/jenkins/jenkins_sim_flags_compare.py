@@ -60,8 +60,6 @@ def  compare_sim_flags(sim_flags, lin_flags):
 	
 	table.sort(key=operator.itemgetter(0))
 
-	#table = sorted(table,key=itemgetter(0))
-
 	print tabulate(table, headers=["Flag","Sim","Lin"],tablefmt="grid")
 	
 	return flags_equal
@@ -77,7 +75,7 @@ if __name__ == "__main__":
 
 
 	main(sys.argv[1:])
-	print 'Input files are "' + g_inputfile1 + ',"' + " " + g_inputfile2 + "."
+	print 'Input files are "' + g_inputfile1 + '", "' + g_inputfile2 + '".'
 
 	if check_if_file_exists(g_inputfile1) == False or check_if_file_exists(g_inputfile1) == False:
 		exit(1)
@@ -87,7 +85,7 @@ if __name__ == "__main__":
 
 	#Read the flags from ignored ligs to avoid during comparison.
 	input_read = open(ignore_sim_flags_file, "r")
-	print 'Reading simulator flags to ignore during comparison from: ' + ignore_sim_flags_file
+	print '\nReading simulator flags to ignore during comparison from: ' + ignore_sim_flags_file
 	for line in input_read:	
 		if not line.startswith('#') and line.strip():
 			temp = line.split()[0]
@@ -97,7 +95,7 @@ if __name__ == "__main__":
 
 	#read the flags from simulator file (*.cfg).
 	input_read = open(g_inputfile1, "r" )
-	print 'Reading simulator flags from: ' + g_inputfile1
+	print '\nReading simulator flags from: ' + g_inputfile1
 	for line in input_read:	
 		if not line.startswith('#') and line.strip():
 			temp = line.split()[0]
@@ -109,7 +107,7 @@ if __name__ == "__main__":
 	
 	#read the flags from linux environment
 	input_read = open(g_inputfile2, "r" )
-	print 'Reading Linux flags from: ' + g_inputfile2	
+	print '\nReading Linux flags from: ' + g_inputfile2	
 	LS2_SIM_SUPPORT_S_FLAGS = False
 
 	for line in input_read:
