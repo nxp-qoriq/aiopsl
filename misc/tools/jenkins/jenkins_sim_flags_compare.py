@@ -78,10 +78,12 @@ if __name__ == "__main__":
 	print 'Input files are "' + g_inputfile1 + '", "' + g_inputfile2 + '".'
 
 	if check_if_file_exists(g_inputfile1) == False or check_if_file_exists(g_inputfile1) == False:
-		exit(1)
+		print "input file not found"
+		sys.exit(1)
 
 	if check_if_file_exists(ignore_sim_flags_file) == False:
-		exit(1)
+		print "ignore flags file not found"
+		sys.exit(1)
 
 	#Read the flags from ignored ligs to avoid during comparison.
 	input_read = open(ignore_sim_flags_file, "r")
