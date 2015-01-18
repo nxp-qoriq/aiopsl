@@ -2156,8 +2156,8 @@ uint8_t ipsec_get_ipv6_nh_offset (struct ipv6hdr *ipv6_hdr, uint8_t *length)
 		{
 			/* If the next header is not an extension, this should be
 			 * the starting point for ESP encapsulation  */
-			if ((next_hdr != IPV6_EXT_ROUTING) || 
-					(next_hdr != IPV6_EXT_FRAGMENT) || 
+			if ((next_hdr != IPV6_EXT_ROUTING) && 
+					(next_hdr != IPV6_EXT_FRAGMENT) && 
 					(next_hdr != IPV6_EXT_HOP_BY_HOP)) {
 				/* Don't add to NH_OFFSET/length and Exit from the while loop */
 				dst_ext = 0;
