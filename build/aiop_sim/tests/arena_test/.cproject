@@ -126,9 +126,7 @@
 								<option id="com.freescale.ppc.toolchain.compiler.base.warnings.undefmacro.412593991" name="Undefined Macro in #if" superClass="com.freescale.ppc.toolchain.compiler.base.warnings.undefmacro" value="false" valueType="boolean"/>
 								<option id="com.freescale.ppc.toolchain.compiler.base.general.ansi.key.1648697156" name="ANSI Keywords Only" superClass="com.freescale.ppc.toolchain.compiler.base.general.ansi.key" value="false" valueType="boolean"/>
 								<option id="com.freescale.ppc.toolchain.compiler.base.general.enumint.367529416" name="Enum Always Int" superClass="com.freescale.ppc.toolchain.compiler.base.general.enumint" value="true" valueType="boolean"/>
-								<option id="com.freescale.ppc.toolchain.compiler.base.preprocessor.macroDefined.1397865272" name="Defined Macros (-D)" superClass="com.freescale.ppc.toolchain.compiler.base.preprocessor.macroDefined" valueType="definedSymbols">
-									<listOptionValue builtIn="false" value="ARENA_TEST"/>
-								</option>
+								<option id="com.freescale.ppc.toolchain.compiler.base.preprocessor.macroDefined.1397865272" name="Defined Macros (-D)" superClass="com.freescale.ppc.toolchain.compiler.base.preprocessor.macroDefined" valueType="definedSymbols"/>
 								<option id="com.freescale.ppc.toolchain.compiler.base.warnings.sysfilecaps.1610808780" name="Check System Includes" superClass="com.freescale.ppc.toolchain.compiler.base.warnings.sysfilecaps" value="true" valueType="boolean"/>
 								<option id="com.freescale.ppc.toolchain.compiler.base.warnings.padding.865256440" name="Pad Bytes Added" superClass="com.freescale.ppc.toolchain.compiler.base.warnings.padding" value="false" valueType="boolean"/>
 								<option id="com.freescale.ppc.toolchain.compiler.base.warnings.notinlined.1689515352" name="Non-Inlined Functions" superClass="com.freescale.ppc.toolchain.compiler.base.warnings.notinlined" value="false" valueType="boolean"/>
