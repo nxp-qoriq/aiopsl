@@ -120,6 +120,7 @@
 								<option id="com.freescale.ppc.toolchain.compiler.base.general.enableC99.204780793" name="Enable C99 Extensions" superClass="com.freescale.ppc.toolchain.compiler.base.general.enableC99" value="true" valueType="boolean"/>
 								<option id="com.freescale.ppc.toolchain.compiler.base.input.include.210104601" name="User Path (-i)" superClass="com.freescale.ppc.toolchain.compiler.base.input.include" valueType="includePath">
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../src/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../src/lib&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../src/drivers/dplib/netf/ip&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../tests/aiop_core_lib&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../src/include/kernel&quot;"/>

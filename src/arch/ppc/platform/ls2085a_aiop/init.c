@@ -438,6 +438,8 @@ __COLD_CODE int run_apps(void)
 			return err;
 		}
 
+#ifndef CDC_ROC
+
 		if ((err = bman_fill_bpid(num_buffs,
 		                          buffer_size,
 		                          alignment,
@@ -447,6 +449,7 @@ __COLD_CODE int run_apps(void)
 			       dpbp_id[i], attr.bpid, buffer_size);
 			return err;
 		}
+#endif
 
 		/* Prepare parameters to attach to DPNI object */
 		pools_params[i].num_dpbp = 1; /* for AIOP, can be up to 2 */
