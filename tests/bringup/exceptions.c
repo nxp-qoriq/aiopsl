@@ -289,10 +289,8 @@ int stack_ovf_test()
 {
 	_booke_init_interrupt_vector();
 
-//#ifndef ARENA_TEST
 	/* Stack overflow */
 	_configure_stack_overflow_detection();
-//#endif
 
 	recursion_func(1);
 	return -EINVAL;
