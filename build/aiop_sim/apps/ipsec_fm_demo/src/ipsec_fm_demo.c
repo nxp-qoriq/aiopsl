@@ -324,7 +324,10 @@ int ipsec_app_init(uint16_t ni_id)
 	uint64_t cipher_key_addr;
 	uint64_t auth_key_addr; 
 	uint8_t cipher_key[16] = {11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26};
-	uint8_t auth_key[128];
+	//uint8_t auth_key[128];
+	uint8_t auth_key[128] = "1234567812345678";
+	uint8_t auth_key_id = 0;
+	
 	uint32_t cipher_alg;
 	uint32_t cipher_keylen; 
 	uint32_t auth_alg;
@@ -347,14 +350,18 @@ int ipsec_app_init(uint16_t ni_id)
 
 	/* Set the outer IP header type here */
 	outer_header_ip_version = 4; /* 4 or 6 */
+	
+	auth_key_id = 1; /* Overwrite the initial key array value */ 
 	/**********************************************************/
 
 	ipsec_instance_handle_t ws_instance_handle = 0;
 	ipsec_handle_t ws_desc_handle_outbound = 0;
 	ipsec_handle_t ws_desc_handle_inbound = 0; 
 	
-	for (i=0; i<128; i++) {
-		auth_key[i] = (uint8_t)i;
+	if (auth_key_id == 1) {
+		for (i=0; i<128; i++) {
+			auth_key[i] = (uint8_t)i;
+		}
 	}
 	
 	frame_number = 0;
