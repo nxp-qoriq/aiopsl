@@ -150,6 +150,11 @@
 			<locationURI>virtual:/virtual</locationURI>
 		</link>
 		<link>
+			<name>aiop_sl/drivers/qbman</name>
+			<type>2</type>
+			<locationURI>virtual:/virtual</locationURI>
+		</link>
+		<link>
 			<name>aiop_sl/drivers/serial</name>
 			<type>2</type>
 			<locationURI>virtual:/virtual</locationURI>
@@ -173,6 +178,11 @@
 			<name>aiop_sl/include/drivers</name>
 			<type>2</type>
 			<locationURI>virtual:/virtual</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/include/fsl_cli.h</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/include/fsl_cli.h</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/include/fsl_dbg.h</name>
@@ -375,14 +385,19 @@
 			<locationURI>PARENT-3-PROJECT_LOC/src/lib/memcpy.c</locationURI>
 		</link>
 		<link>
-			<name>aiop_sl/lib/shbp.c</name>
-			<type>1</type>
-			<locationURI>PARENT-3-PROJECT_LOC/src/lib/shbp.c</locationURI>
-		</link>
-		<link>
 			<name>aiop_sl/lib/shbp.h</name>
 			<type>1</type>
 			<locationURI>PARENT-3-PROJECT_LOC/src/lib/shbp.h</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/lib/shbp_aiop.c</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/lib/shbp_aiop.c</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/lib/shbp_aiop.h</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/lib/shbp_aiop.h</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/lib/slab.c</name>
@@ -465,11 +480,6 @@
 			<locationURI>virtual:/virtual</locationURI>
 		</link>
 		<link>
-			<name>aiop_sl/drivers/dplib/dpio</name>
-			<type>2</type>
-			<locationURI>virtual:/virtual</locationURI>
-		</link>
-		<link>
 			<name>aiop_sl/drivers/dplib/dpni</name>
 			<type>2</type>
 			<locationURI>virtual:/virtual</locationURI>
@@ -495,6 +505,11 @@
 			<locationURI>virtual:/virtual</locationURI>
 		</link>
 		<link>
+			<name>aiop_sl/drivers/dplib/snic</name>
+			<type>2</type>
+			<locationURI>virtual:/virtual</locationURI>
+		</link>
+		<link>
 			<name>aiop_sl/drivers/dplib/util</name>
 			<type>2</type>
 			<locationURI>virtual:/virtual</locationURI>
@@ -513,6 +528,16 @@
 			<name>aiop_sl/drivers/mc/mc_init.c</name>
 			<type>1</type>
 			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/mc/mc_init.c</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/drivers/qbman/bman.c</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/qbman/bman.c</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/drivers/qbman/include</name>
+			<type>2</type>
+			<locationURI>virtual:/virtual</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/drivers/serial/duart</name>
@@ -570,54 +595,9 @@
 			<locationURI>PARENT-3-PROJECT_LOC/src/include/dplib/fsl_cdma.h</locationURI>
 		</link>
 		<link>
-			<name>aiop_sl/include/dplib/fsl_dpbp.h</name>
-			<type>1</type>
-			<locationURI>PARENT-3-PROJECT_LOC/src/include/dplib/fsl_dpbp.h</locationURI>
-		</link>
-		<link>
-			<name>aiop_sl/include/dplib/fsl_dpbp_cmd.h</name>
-			<type>1</type>
-			<locationURI>PARENT-3-PROJECT_LOC/src/include/dplib/fsl_dpbp_cmd.h</locationURI>
-		</link>
-		<link>
-			<name>aiop_sl/include/dplib/fsl_dpio.h</name>
-			<type>1</type>
-			<locationURI>PARENT-3-PROJECT_LOC/src/include/dplib/fsl_dpio.h</locationURI>
-		</link>
-		<link>
-			<name>aiop_sl/include/dplib/fsl_dpio_cmd.h</name>
-			<type>1</type>
-			<locationURI>PARENT-3-PROJECT_LOC/src/include/dplib/fsl_dpio_cmd.h</locationURI>
-		</link>
-		<link>
-			<name>aiop_sl/include/dplib/fsl_dpkg.h</name>
-			<type>1</type>
-			<locationURI>PARENT-3-PROJECT_LOC/src/include/dplib/fsl_dpkg.h</locationURI>
-		</link>
-		<link>
-			<name>aiop_sl/include/dplib/fsl_dpni.h</name>
-			<type>1</type>
-			<locationURI>PARENT-3-PROJECT_LOC/src/include/dplib/fsl_dpni.h</locationURI>
-		</link>
-		<link>
-			<name>aiop_sl/include/dplib/fsl_dpni_cmd.h</name>
-			<type>1</type>
-			<locationURI>PARENT-3-PROJECT_LOC/src/include/dplib/fsl_dpni_cmd.h</locationURI>
-		</link>
-		<link>
 			<name>aiop_sl/include/dplib/fsl_dpni_drv.h</name>
 			<type>1</type>
 			<locationURI>PARENT-3-PROJECT_LOC/src/include/dplib/fsl_dpni_drv.h</locationURI>
-		</link>
-		<link>
-			<name>aiop_sl/include/dplib/fsl_dprc.h</name>
-			<type>1</type>
-			<locationURI>PARENT-3-PROJECT_LOC/src/include/dplib/fsl_dprc.h</locationURI>
-		</link>
-		<link>
-			<name>aiop_sl/include/dplib/fsl_dprc_cmd.h</name>
-			<type>1</type>
-			<locationURI>PARENT-3-PROJECT_LOC/src/include/dplib/fsl_dprc_cmd.h</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/include/dplib/fsl_fdma.h</name>
@@ -705,11 +685,6 @@
 			<locationURI>PARENT-3-PROJECT_LOC/src/include/dplib/fsl_parser.h</locationURI>
 		</link>
 		<link>
-			<name>aiop_sl/include/dplib/fsl_snic_cmd.h</name>
-			<type>1</type>
-			<locationURI>PARENT-3-PROJECT_LOC/src/include/dplib/fsl_snic_cmd.h</locationURI>
-		</link>
-		<link>
 			<name>aiop_sl/include/dplib/fsl_ste.h</name>
 			<type>1</type>
 			<locationURI>PARENT-3-PROJECT_LOC/src/include/dplib/fsl_ste.h</locationURI>
@@ -765,9 +740,9 @@
 			<locationURI>PARENT-3-PROJECT_LOC/src/include/kernel/types_mw.h</locationURI>
 		</link>
 		<link>
-			<name>aiop_sl/include/lib/fsl_shbp.h</name>
+			<name>aiop_sl/include/lib/fsl_shbp_aiop.h</name>
 			<type>1</type>
-			<locationURI>PARENT-3-PROJECT_LOC/src/include/lib/fsl_shbp.h</locationURI>
+			<locationURI>PARENT-3-PROJECT_LOC/src/include/lib/fsl_shbp_aiop.h</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/include/lib/fsl_slab.h</name>
@@ -885,11 +860,6 @@
 			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/dplib/dpci/dpci.c</locationURI>
 		</link>
 		<link>
-			<name>aiop_sl/drivers/dplib/dpio/dpio.c</name>
-			<type>1</type>
-			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/dplib/dpio/dpio.c</locationURI>
-		</link>
-		<link>
 			<name>aiop_sl/drivers/dplib/dpni/dpni.c</name>
 			<type>1</type>
 			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/dplib//dpni/dpni.c</locationURI>
@@ -940,6 +910,41 @@
 			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/dplib/include/dpni_drv.h</locationURI>
 		</link>
 		<link>
+			<name>aiop_sl/drivers/dplib/include/fsl_dpbp.h</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/dplib/include/fsl_dpbp.h</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/drivers/dplib/include/fsl_dpbp_cmd.h</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/dplib/include/fsl_dpbp_cmd.h</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/drivers/dplib/include/fsl_dpkg.h</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/dplib/include/fsl_dpkg.h</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/drivers/dplib/include/fsl_dpni.h</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/dplib/include/fsl_dpni.h</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/drivers/dplib/include/fsl_dpni_cmd.h</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/dplib/include/fsl_dpni_cmd.h</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/drivers/dplib/include/fsl_dprc.h</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/dplib/include/fsl_dprc.h</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/drivers/dplib/include/fsl_dprc_cmd.h</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/dplib/include/fsl_dprc_cmd.h</locationURI>
+		</link>
+		<link>
 			<name>aiop_sl/drivers/dplib/include/general.h</name>
 			<type>1</type>
 			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/dplib/include/general.h</locationURI>
@@ -985,6 +990,21 @@
 			<locationURI>virtual:/virtual</locationURI>
 		</link>
 		<link>
+			<name>aiop_sl/drivers/dplib/snic/fsl_snic_cmd.h</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/dplib/snic/fsl_snic_cmd.h</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/drivers/dplib/snic/snic.c</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/dplib/snic/snic.c</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/drivers/dplib/snic/snic.h</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/dplib/snic/snic.h</locationURI>
+		</link>
+		<link>
 			<name>aiop_sl/drivers/dplib/util/checksum.c</name>
 			<type>1</type>
 			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/dplib/util/checksum.c</locationURI>
@@ -1008,6 +1028,11 @@
 			<name>aiop_sl/drivers/mc/include/fsl_mc_init.h</name>
 			<type>1</type>
 			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/mc/include/fsl_mc_init.h</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/drivers/qbman/include/fsl_bman.h</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/qbman/include/fsl_bman.h</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/drivers/serial/duart/duart.c</name>
@@ -1118,16 +1143,6 @@
 			<name>aiop_sl/drivers/dplib/arch/accel/parser_inline.h</name>
 			<type>1</type>
 			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/dplib/arch/accel/parser_inline.h</locationURI>
-		</link>
-		<link>
-			<name>aiop_sl/drivers/dplib/arch/accel/snic.c</name>
-			<type>1</type>
-			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/dplib/arch/accel/snic.c</locationURI>
-		</link>
-		<link>
-			<name>aiop_sl/drivers/dplib/arch/accel/snic.h</name>
-			<type>1</type>
-			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/dplib/arch/accel/snic.h</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/drivers/dplib/arch/accel/ste.c</name>

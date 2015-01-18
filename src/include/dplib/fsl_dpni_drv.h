@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Freescale Semiconductor, Inc.
+ * Copyright 2014-2015 Freescale Semiconductor, Inc.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -282,34 +282,120 @@ int dpni_drv_set_unicast_promisc(uint16_t ni_id, int en);
 *//***************************************************************************/
 int dpni_drv_get_unicast_promisc(uint16_t ni_id, int *en);
 
+/**************************************************************************//**
+@Function	dpni_drv_get_spid
+
+@Description	Function to receive PEB storage profile ID for specified NI.
+
+@Param[in]	ni_id   The Network Interface ID
+@Param[out]	spid - storage profile to use PEB buffer pool(for now using 1 byte).
+
+@Return	'0' on Success;
+*//***************************************************************************/
+int dpni_drv_get_spid(uint16_t ni_id, uint16_t *spid);
+
+/**************************************************************************//**
+@Function	dpni_drv_get_spid_ddr
+
+@Description	Function to receive DDR storage profile ID for specified NI.
+
+@Param[in]	ni_id   The Network Interface ID
+@Param[out]	spid_ddr - storage profile to use DDR buffer pool
+		(for now using 1 byte).
+
+@Return	'0' on Success;
+*//***************************************************************************/
+int dpni_drv_get_spid_ddr(uint16_t ni_id, uint16_t *spid_ddr);
+
+/**************************************************************************//**
+@Function	dpni_drv_set_concurrent
+
+@Description	Function to set the initial ordering mode to concurrent for the given NI.
+
+@Param[in]	ni_id   The Network Interface ID
+
+@Cautions       This method should be called in boot mode only.
+
+@Return	'0' on Success;
+*//***************************************************************************/
+int dpni_drv_set_concurrent(uint16_t ni_id);
+
+/**************************************************************************//**
+@Function	dpni_drv_set_exclusive
+
+@Description	Function to set the initial ordering mode to exclusive for the given NI.
+
+@Param[in]	ni_id   The Network Interface ID
+
+@Cautions       This method should be called in boot mode only.
+
+@Return	'0' on Success;
+
+*//***************************************************************************/
+int dpni_drv_set_exclusive(uint16_t ni_id);
+
+/**************************************************************************//**
+@Function	dpni_drv_set_order_scope
+
+@Description	Function to set order scope source for the specified NI.
+
+@Param[in]	ni_id   The Network Interface ID
+
+@Param[in]	key_cfg   A structure for defining a full Key Generation
+ 		profile (rule)
+@Cautions	This method should be called in boot mode only.
 
 
+@Return	OK on success; error code, otherwise.
+		For error posix refer to
+		\ref error_g
+*//***************************************************************************/
+int dpni_drv_set_order_scope(uint16_t ni_id, struct dpkg_profile_cfg *key_cfg);
 
+/**************************************************************************//**
+@Function	dpni_drv_get_connected_aiop_ni_id
 
+@Description	Function to receive the connected NI ID.
 
+@Param[in]	dpni_id   The Network Interface ID
 
+@Param[out]	aiop_niid   Connected Network Interface ID to the given NI ID
 
+@Param[out]	state   link state on success: 1 - link is up, 0 - link is down;
 
+@Return 0 on success;
+	error code, otherwise. For error posix refer to \ref error_g
+*//***************************************************************************/
+int dpni_drv_get_connected_aiop_ni_id(const uint16_t dpni_id, uint16_t *aiop_niid, int *state);
 
+/**************************************************************************//**
+@Function	dpni_drv_get_connected_dpni_id
 
+@Description	Function to receive the connected DPNI ID.
 
+@Param[in]	aiop_niid   The AIOP Network Interface ID
 
+@Param[out]	dpni_id   Connected DPNI ID to the given NI ID
 
+@Param[out]	state   link state on success: 1 - link is up, 0 - link is down;
 
+@Return 0 on success;
+	error code, otherwise. For error posix refer to \ref error_g
+*//***************************************************************************/
+int dpni_drv_get_connected_dpni_id(const uint16_t aiop_niid, uint16_t *dpni_id, int *state);
 
+/**************************************************************************//**
+@Function	dpni_drv_get_rx_buffer_layout
 
+@Description	Function to receive SP’s attributes for RX buffer.
 
+@Param[in]	ni_id   The AIOP Network Interface ID
 
+@Param[out]	layout  Structure representing DPNI buffer layout
 
-
-
-
-
-
-
-
-
-
-
+@Return	0 on success;
+	error code, otherwise. For error posix refer to \ref error_g
+*//***************************************************************************/
+int dpni_drv_get_rx_buffer_layout(uint16_t ni_id, struct dpni_buffer_layout *layout);
 /** @} */ /* end of dpni_g DPNI group */
 #endif /* __FSL_DPNI_DRV_H */

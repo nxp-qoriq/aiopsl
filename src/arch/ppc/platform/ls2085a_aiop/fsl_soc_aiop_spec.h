@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Freescale Semiconductor, Inc.
+ * Copyright 2014-2015 Freescale Semiconductor, Inc.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -84,6 +84,8 @@ enum fsl_os_module {
 /* AIOP Peripherals Offset in AIOP memory map */
 #define AIOP_PERIPHERALS_OFF            0X2000000
 
+/* AIOP Profile SRAM offset */
+#define AIOP_STORAGE_PROFILE_OFF        0x30000
 /* Offsets relative to CCSR base */
 #define SOC_PERIPH_OFF_AIOP_WRKS        0x1d000
 #define SOC_PERIPH_OFF_AIOP_TILE        0x00080000

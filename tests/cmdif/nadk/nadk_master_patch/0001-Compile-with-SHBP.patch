@@ -1,0 +1,535 @@
+From ae643f4032fefd688c89b61b9db39166db7d085b Mon Sep 17 00:00:00 2001
+From: Ira Kalman <B17975@arena.(none)>
+Date: Mon, 22 Dec 2014 18:54:32 +0200
+Subject: [PATCH 1/8] Compile with SHBP
+
+---
+ apps/cmdif_demo/Makefile            |    4 +
+ apps/cmdif_demo/cmdif_client_demo.c |    1 +
+ include/cmdif/fsl_shbp.h            |  123 ++++++++++++++++++++
+ standalone-ldpaa                    |    6 +-
+ usr/libcmdif/Makefile               |    2 +-
+ usr/libcmdif/shbp.c                 |  219 +++++++++++++++++++++++++++++++++++
+ usr/libcmdif/shbp.h                 |   97 ++++++++++++++++
+ 7 files changed, 448 insertions(+), 4 deletions(-)
+ create mode 100644 include/cmdif/fsl_shbp.h
+ create mode 100644 usr/libcmdif/shbp.c
+ create mode 100644 usr/libcmdif/shbp.h
+
+diff --git a/apps/cmdif_demo/Makefile b/apps/cmdif_demo/Makefile
+index 98a2abb..b2e3c64 100644
+--- a/apps/cmdif_demo/Makefile
++++ b/apps/cmdif_demo/Makefile
+@@ -11,6 +11,10 @@ INCDIR += -I$(IWD)/include/ncs
+ INCDIR += -I$(IWD)/include/eth
+ INCDIR += -I$(IWD)/include/aiop/
+ INCDIR += -I$(IWD)/include/cmdif/
++INCDIR += -I$(IWD)/usr/libcmdif/
++INCDIR += -I$(IWD)/include/rts/
++INCDIR += -I$(IWD)/include/arch/arm/
++
+ CFLAGS += $(INCDIR)
+ 
+ LFLAGS += -L$(IWD)/lib -lnadk
+diff --git a/apps/cmdif_demo/cmdif_client_demo.c b/apps/cmdif_demo/cmdif_client_demo.c
+index d9fb053..f485cc8 100644
+--- a/apps/cmdif_demo/cmdif_client_demo.c
++++ b/apps/cmdif_demo/cmdif_client_demo.c
+@@ -29,6 +29,7 @@
+ #include <nadk_cutil.h>
+ #include <nadk_mpool.h>
+ #include <fsl_cmdif_client.h>
++#include <fsl_shbp.h>
+ 
+ /* The data size to transmit */
+ #define AIOP_DATA_SIZE 10
+diff --git a/include/cmdif/fsl_shbp.h b/include/cmdif/fsl_shbp.h
+new file mode 100644
+index 0000000..155c5ab
+--- /dev/null
++++ b/include/cmdif/fsl_shbp.h
+@@ -0,0 +1,123 @@
++/*
++ * Copyright 2014 Freescale Semiconductor, Inc.
++ *
++ * Redistribution and use in source and binary forms, with or without
++ * modification, are permitted provided that the following conditions are met:
++ *   * Redistributions of source code must retain the above copyright
++ *     notice, this list of conditions and the following disclaimer.
++ *   * Redistributions in binary form must reproduce the above copyright
++ *     notice, this list of conditions and the following disclaimer in the
++ *     documentation and/or other materials provided with the distribution.
++ *   * Neither the name of Freescale Semiconductor nor the
++ *     names of its contributors may be used to endorse or promote products
++ *     derived from this software without specific prior written permission.
++ *
++ * THIS SOFTWARE IS PROVIDED BY Freescale Semiconductor ``AS IS'' AND ANY
++ * EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
++ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
++ * DISCLAIMED. IN NO EVENT SHALL Freescale Semiconductor BE LIABLE FOR ANY
++ * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
++ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
++ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
++ * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
++ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
++ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
++ */
++
++/*!
++ * @file    fsl_shbp.h
++ * @brief   Shared Buffer Pool API for the side that creates the pool (not AIOP)
++ *
++ *
++ */
++
++#ifndef __FSL_SHBP_H
++#define __FSL_SHBP_H
++
++#include <shbp.h>
++
++/*!
++ * @Group	shbp_g  Shared Buffer Pool API
++ *
++ * @brief	API to be used for shared buffer pool.
++ *
++ * @{
++ */
++
++#define SHBP_GPP_MASTER		0x1
++/*!< GPP is the allocation master */
++
++#define SHBP_MEM_PTR_SIZE(NUM_BUFF) (sizeof(struct shbp) + (16 * (NUM_BUFF)))
++/*!< Calculator for mem_ptr size for shbp_create(); NUM_BUFF must be 2^x 
++ * and higher than 8 */
++
++/**
++ * @brief	Get buffer from shared pool
++ *
++ * @param[in]	bp - Buffer pool handle
++ *
++ * @returns	Address on Success; or NULL code otherwise
++ *
++ */
++void *shbp_acquire(struct shbp *bp);
++
++/**
++ * @brief	Return or add buffer into the shared pool
++ *
++ * @param[in]	bp  - Buffer pool handle
++ * @param[in]	buf - Pointer to buffer
++ * 
++ * @returns	0 on Success; or POSIX error code otherwise
++ *
++ */
++int shbp_release(struct shbp *bp, void *buf);
++
++/**
++ * @brief	Create shared pool from a given buffer
++ * 
++ * The shared pool is created as empty, use shbp_release() to fill it  
++ *
++ * @param[in]	mem_ptr  - Pointer to memory to be used for shared management;
++ * 		it should be aligned to cache line
++ * @param[in]	size     - Size of mem_ptr
++ * @param[in]	flags    - Flags to be used for pool creation, 0 means AIOP is 
++ * 		the allocation master. See #SHBP_GPP_MASTER.
++ * @param[out]  bp       - Pointer to shared pool handle
++ * 
++ * @returns	0 on Success; or POSIX error code otherwise
++ * 	
++ *
++ */
++int shbp_create(void *mem_ptr, uint32_t size, uint32_t flags, struct shbp **bp);
++
++/**
++ * @brief	Move free buffers into allocation queue
++ *
++ * @param[in]	bp  - Buffer pool handle
++ *
++ * @returns	POSIX error code on failure or the number of the buffers added 
++ * 		to the allocation queue
++ *
++ */
++int shbp_refill(struct shbp *bp);
++
++
++/**
++ * @brief	Returns the pointers from pool that need to be freed upon pool
++ * 		destruction 
++ * 
++ * Pointer to struct shbp will not be returned by shbp_destroy() but it 
++ * must be freed by user 
++ * 
++ * @param[in]	bp       - Buffer pool handle
++ * @param[out]	ptr      - Pointer to be freed for pool destruction 
++ * 
++ * @returns	POSIX error code until there are buffers inside shared pool 
++ * 		that need to be freed, 0 if there are no buffers to be freed
++ *
++ */
++int shbp_destroy(struct shbp *bp, void **ptr);
++
++/** @} */ /* end of shbp_g group */
++
++#endif
+diff --git a/standalone-ldpaa b/standalone-ldpaa
+index cacfa57..9552a9c 100644
+--- a/standalone-ldpaa
++++ b/standalone-ldpaa
+@@ -4,9 +4,9 @@
+ 
+ #!/bin/bash
+ 
+-export NADK_include_dir =/usr/local/nadk/
+-export NADK_lib_dir =/usr/local/nadk/lib/
+-export NADK_bin_dir =/usr/local/nadk/bin/
++export NADK_include_dir=/usr/local/nadk/
++export NADK_lib_dir=/usr/local/nadk/lib/
++export NADK_bin_dir=/usr/local/nadk/bin/
+ 
+ export TARGET=ldpaa
+ export NADK_PATH=${PWD}
+diff --git a/usr/libcmdif/Makefile b/usr/libcmdif/Makefile
+index c305eb5..d60dde6 100644
+--- a/usr/libcmdif/Makefile
++++ b/usr/libcmdif/Makefile
+@@ -21,7 +21,7 @@ INCDIR += $(QBMAN_INCDIR)
+ 
+ CFLAGS += $(INCDIR)
+ 
+-OBJS = cmdif_client_flib.o cmdif_client_gpp.o cmdif_srv_flib.o cmdif_srv_gpp.o
++OBJS = cmdif_client_flib.o cmdif_client_gpp.o cmdif_srv_flib.o cmdif_srv_gpp.o shbp.o
+ 
+ all: $(OBJS)
+ 
+diff --git a/usr/libcmdif/shbp.c b/usr/libcmdif/shbp.c
+new file mode 100644
+index 0000000..8518391
+--- /dev/null
++++ b/usr/libcmdif/shbp.c
+@@ -0,0 +1,219 @@
++/*
++ * Copyright 2014 Freescale Semiconductor, Inc.
++ *
++ * Redistribution and use in source and binary forms, with or without
++ * modification, are permitted provided that the following conditions are met:
++ *   * Redistributions of source code must retain the above copyright
++ *     notice, this list of conditions and the following disclaimer.
++ *   * Redistributions in binary form must reproduce the above copyright
++ *     notice, this list of conditions and the following disclaimer in the
++ *     documentation and/or other materials provided with the distribution.
++ *   * Neither the name of Freescale Semiconductor nor the
++ *     names of its contributors may be used to endorse or promote products
++ *     derived from this software without specific prior written permission.
++ *
++ * THIS SOFTWARE IS PROVIDED BY Freescale Semiconductor ``AS IS'' AND ANY
++ * EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
++ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
++ * DISCLAIMED. IN NO EVENT SHALL Freescale Semiconductor BE LIABLE FOR ANY
++ * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
++ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
++ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
++ * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
++ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
++ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
++ */
++
++#include <fsl_shbp.h>
++
++
++#ifndef IS_ALIGNED
++#define IS_ALIGNED(ADDRESS, ALIGNMENT)              \
++        (!(((uint32_t)(ADDRESS)) & (((uint32_t)(ALIGNMENT)) - 1)))
++#endif /*!< check only 4 last bytes */
++
++#define COPY_AND_SWAP(LOCAL, SHBP) \
++	do {\
++		(LOCAL) = *(SHBP);\
++		(LOCAL).alloc.base = CPU_TO_LE64((LOCAL).alloc.base);\
++		(LOCAL).alloc.enq = CPU_TO_LE32((LOCAL).alloc.enq);\
++		(LOCAL).alloc.deq = CPU_TO_LE32((LOCAL).alloc.deq);\
++		(LOCAL).free.base = CPU_TO_LE64((LOCAL).free.base);\
++		(LOCAL).free.enq = CPU_TO_LE32((LOCAL).free.enq);\
++		(LOCAL).free.deq = CPU_TO_LE32((LOCAL).free.deq);\
++	} while(0)
++/*!< It is more efficient to copy to cached stack and then process */
++
++static uint8_t get_num_of_first_bit(uint32_t num)
++{
++	int i;
++	for (i = 0; i < 32; i++) {
++		if (num & (0x80000000 >> i))
++			return (uint8_t)(31 - i);
++	}
++	return 0xff;
++}
++
++static void *acquire(struct shbp *bp, struct shbp_q *lq, struct shbp_q *q)
++{
++	uint32_t deq = SHBP_BD_IND(bp, lq->deq); /* mod 2^x */
++	uint64_t buf = (((uint64_t *)SHBP_BUF_TO_PTR(lq->base))[deq]);
++	
++	lq->deq++;
++	q->deq = CPU_TO_LE32(lq->deq); /* Must be last */
++
++	return SHBP_BUF_TO_PTR(CPU_TO_LE64(buf));
++}
++
++static void release(struct shbp *bp, struct shbp_q *lq, 
++                    void *buf, struct shbp_q *q)
++{
++	uint32_t enq = SHBP_BD_IND(bp, lq->enq); /* mod 2^x */
++	((uint64_t *)SHBP_BUF_TO_PTR(lq->base))[enq] = \
++		CPU_TO_LE64(SHBP_PTR_TO_BUF(buf));
++	
++	lq->enq++;
++	q->enq = CPU_TO_LE32(lq->enq); /* Must be last */
++}
++
++int shbp_create(void *mem_ptr, uint32_t size, uint32_t flags, struct shbp **_bp)
++{
++	struct shbp *bp;
++	uint32_t ring_size;
++	
++#ifdef DEBUG
++	if ((mem_ptr == NULL) || (size == 0) || (flags != 0))
++		return -EINVAL;
++#endif	
++	/* Better to have mem_ptr aligned to cache line */
++	if (!IS_ALIGNED(mem_ptr, 64))
++		return -EINVAL;
++	
++	bp = (struct shbp *)mem_ptr;
++	memset(bp, 0, size);
++
++	/* 8 bytes for each BD, 2 rings = 2 ^ 4 
++	 * bp->size is size = 8 * bp->size because 8 BDs = cache line 
++	 * size = 2^bp->size */
++	ring_size = (size - sizeof(struct shbp));
++	ring_size = ring_size >> 4;
++	/* Minimum 8 BDs = 64 bytes */
++	if (ring_size < 8)
++		return -EINVAL;
++	
++	bp->max_num = get_num_of_first_bit(ring_size);
++	
++	bp->alloc_master = (uint8_t)(flags & SHBP_GPP_MASTER);
++		
++	bp->alloc.base = (uint64_t)(((uint8_t *)bp) + SHBP_TOTAL_BYTES);
++	/* Each BD is 8 bytes */
++	bp->free.base  = (uint64_t)(((uint8_t *)bp->alloc.base) + 
++		SHBP_SIZE_BYTES(bp));
++		
++	bp->alloc.base = SHBP_PTR_TO_BUF((uint8_t *)bp->alloc.base);
++	bp->free.base  = SHBP_PTR_TO_BUF((uint8_t *)bp->free.base);
++	bp->alloc.base = CPU_TO_LE64(bp->alloc.base);
++	bp->free.base  = CPU_TO_LE64(bp->free.base);
++	
++#ifdef DEBUG
++	if (bp->alloc.base == 0 || bp->free.base == 0)
++		return -EINVAL;
++#endif
++	
++	*_bp = bp;
++	
++	return 0;
++}
++		
++void *shbp_acquire(struct shbp *bp)
++{
++	void *buf;
++	struct shbp lbp;
++	
++#ifdef DEBUG
++	if (bp == NULL)
++		return NULL;
++#endif
++	
++	COPY_AND_SWAP(lbp, bp);
++	
++	if (!(lbp.alloc_master & SHBP_GPP_MASTER))
++		return NULL;
++	
++	if (SHBP_ALLOC_IS_EMPTY(&lbp))
++		return NULL;
++	
++	buf = acquire(&lbp, &lbp.alloc, &bp->alloc);
++	
++	return buf;
++}
++
++int shbp_release(struct shbp *bp, void *buf)
++{
++	struct shbp lbp;
++
++#ifdef DEBUG
++	if ((buf == NULL) || (bp == NULL))
++		return -EINVAL;
++#endif
++	
++	COPY_AND_SWAP(lbp, bp);
++
++	if (SHBP_ALLOC_IS_FULL(&lbp))
++		return -ENOSPC;
++	
++	release(&lbp, &lbp.alloc, buf, &bp->alloc);	
++	
++	return 0;
++}
++
++int shbp_refill(struct shbp *bp)
++{
++	void *buf;
++	int count = 0;
++	struct shbp lbp;
++
++#ifdef DEBUG
++	if (bp == NULL)
++		return -EINVAL;
++#endif
++	COPY_AND_SWAP(lbp, bp);
++
++	while(!SHBP_FREE_IS_EMPTY(&lbp) && !SHBP_ALLOC_IS_FULL(&lbp)) {
++		buf = acquire(&lbp, &lbp.free, &bp->free);
++#ifdef DEBUG
++		if (buf == 0)
++			return -EACCES;
++#endif
++		release(&lbp, &lbp.alloc, buf, &bp->alloc);
++		count++;
++	}
++	return count;
++}
++
++int shbp_destroy(struct shbp *bp, void **ptr)
++{
++	struct shbp lbp;
++
++#ifdef DEBUG
++	if ((bp == NULL) || (ptr == NULL))
++		return -EINVAL;
++#endif
++	
++	COPY_AND_SWAP(lbp, bp);
++
++	/* take all from free */
++	if (!SHBP_FREE_IS_EMPTY(&lbp)) {
++		*ptr = acquire(&lbp, &lbp.free, &bp->free);
++		return -EACCES;
++	}	
++	
++	/* take all from alloc */
++	if (!SHBP_ALLOC_IS_EMPTY(&lbp)) {
++		*ptr = acquire(&lbp, &lbp.alloc, &bp->alloc);
++		return -EACCES;
++	}
++	
++	*ptr = NULL;
++	return 0;
++}
+diff --git a/usr/libcmdif/shbp.h b/usr/libcmdif/shbp.h
+new file mode 100644
+index 0000000..50e38f5
+--- /dev/null
++++ b/usr/libcmdif/shbp.h
+@@ -0,0 +1,97 @@
++/*
++ * Copyright 2014 Freescale Semiconductor, Inc.
++ *
++ * Redistribution and use in source and binary forms, with or without
++ * modification, are permitted provided that the following conditions are met:
++ *   * Redistributions of source code must retain the above copyright
++ *     notice, this list of conditions and the following disclaimer.
++ *   * Redistributions in binary form must reproduce the above copyright
++ *     notice, this list of conditions and the following disclaimer in the
++ *     documentation and/or other materials provided with the distribution.
++ *   * Neither the name of Freescale Semiconductor nor the
++ *     names of its contributors may be used to endorse or promote products
++ *     derived from this software without specific prior written permission.
++ *
++ * THIS SOFTWARE IS PROVIDED BY Freescale Semiconductor ``AS IS'' AND ANY
++ * EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
++ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
++ * DISCLAIMED. IN NO EVENT SHALL Freescale Semiconductor BE LIABLE FOR ANY
++ * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
++ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
++ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
++ * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
++ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
++ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
++ */
++
++/*!
++ * @file    shbp.h
++ * @brief   Shared Buffer Pool API
++ *
++ * Internal header file shared by AIOP and GPP.
++ *
++ */
++
++#ifndef __SHBP_H
++#define __SHBP_H
++
++#include <cmdif.h>
++
++#if 0
++/**
++ * @brief	Structure representing buffer descriptor
++ */
++struct shbp_bd {
++	uint64_t addr; /*!< Buffer address after meta data */
++};
++
++/**
++ * @brief	Structure representing buffer meta data
++ */
++struct shbp_bd_meta {
++	uint8_t alloc_master;	/*!< Master of the allocation */
++	uint8_t creator_id;	/*!< Creator pool id */
++	uint8_t alloc_id;	/*!< Allocation owner pool id */
++};
++#endif // 0
++
++#define SHBP_TOTAL_BYTES	(sizeof(struct shbp) > 64 ? sizeof(struct shbp) : 64)
++/*!< Total bytes including the reserved bytes */
++#define SHBP_SIZE(BP)		(0x1 << (BP)->max_num)	/*!< Number of BDs */
++#define SHBP_ALLOC_IS_FULL(BP)	(((BP)->alloc.enq - (BP)->alloc.deq) == SHBP_SIZE(BP))
++#define SHBP_ALLOC_IS_EMPTY(BP)	(((BP)->alloc.enq - (BP)->alloc.deq) == 0)
++#define SHBP_FREE_IS_FULL(BP)	(((BP)->free.enq - (BP)->free.deq) == SHBP_SIZE(BP))
++#define SHBP_FREE_IS_EMPTY(BP)	(((BP)->free.enq - (BP)->free.deq) == 0)
++#define SHBP_SIZE_BYTES(BP)	(SHBP_SIZE(BP) << 3)	/*!< Number of bytes */
++#define SHBP_BD_IND(SHBP, NUM)	((NUM) % SHBP_SIZE((SHBP)))
++#define SHBP_BD_OFF(SHBP, NUM)	(SHBP_BD_IND(SHBP, NUM) << 3)
++/*!< Offset of the BD in BYTES - mod 2^x */
++#define SHBP_MEM_OFF(SHBP, PTR) (uint32_t)((uint8_t *)(PTR) - (uint8_t *)(SHBP))
++/*!< Member offset in bytes */
++
++/**
++ * @brief	Structure representing one ring
++ */
++struct shbp_q  {
++	uint64_t base;	/*!< Base address of the pool */
++	uint32_t enq;	/*!< Number of released buffers */
++	uint32_t deq;	/*!< Number of acquired buffers */
++};
++
++/**
++ * @brief	Structure representing shared buffer pool
++ * 		Must reside in non cacheable memory.
++ */
++struct shbp {
++	struct shbp_q alloc;
++	/*!< Allocations queue */
++	struct shbp_q free;
++	/*!< Free queue */
++	uint8_t alloc_master;	
++	/*!< Master of the allocation, must be 1 byte */
++	uint8_t max_num;	
++	/*!< Max number of BDs in the pool is 2^max_buf, must be 1 byte */
++	/* See also SHBP_TOTAL_BYTES */
++};
++
++#endif /* _SHBP_H */
+-- 
+1.7.9.5
+

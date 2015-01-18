@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Freescale Semiconductor, Inc.
+ * Copyright 2014-2015 Freescale Semiconductor, Inc.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -41,6 +41,7 @@
 #include "ls2085_aiop/fsl_platform.h"
 #include "fsl_tman.h"
 #include "fsl_slab.h"
+#include "fsl_malloc.h"
 
 int app_early_init(void);
 int app_init(void);
@@ -73,7 +74,7 @@ static void app_process_packet_flow0 (dpni_drv_app_arg_t arg)
 	uint32_t ip_dst_addr = 0x73bcdc90; // new ipv4 dst_addr
 	uint16_t udp_dst_port = 0xd720; //new udp dest port
 	int reassemble_status, hm_status;
-	
+
 	parse_result_generate_basic();
 
 	if (PARSER_IS_OUTER_IPV4_DEFAULT())
@@ -174,7 +175,7 @@ static void app_process_packet_flow0 (dpni_drv_app_arg_t arg)
 			local_test_error |= 1;
 		}
 		dpni_drv_send(APP_NI_GET(arg));
-		
+
 		if(!local_test_error) /*No error found during injection of packets*/
 			fsl_os_print("Finished SUCCESSFULLY\n");
 		else
@@ -212,7 +213,7 @@ int app_init(void)
 	int        err  = 0;
 	uint32_t   ni   = 0;
 	dma_addr_t buff = 0;
-	uint64_t tmi_mem_base_addr; 
+	uint64_t tmi_mem_base_addr;
 
 	struct ipr_params ipr_demo_params;
 	ipr_instance_handle_t ipr_instance = 0;
@@ -232,8 +233,8 @@ int app_init(void)
 	ipr_demo_params.cb_timeout_ipv4_arg = 0;
 	ipr_demo_params.cb_timeout_ipv6_arg = 0;
 	ipr_demo_params.flags = IPR_MODE_TABLE_LOCATION_PEB;
-	tmi_mem_base_addr = fsl_os_virt_to_phys(fsl_os_xmalloc( 0x20*64, MEM_PART_DP_DDR, 64));
-	
+	fsl_os_get_mem( 0x20*64, MEM_PART_DP_DDR, 64, &tmi_mem_base_addr);
+
 	tman_create_tmi(tmi_mem_base_addr , 0x20, &ipr_demo_params.tmi_id);
 
 	fsl_os_print("ipr_demo: Creating IPR instance\n");
@@ -254,11 +255,11 @@ int app_init(void)
 	err = dpni_drv_register_rx_cb(1,
 				      app_process_packet_flow0,
 				      1);
-	
+
 	if (err)
 		return err;
 	/* inject frag1.pcap till frag4.pcap */
-	fsl_os_print("To start test inject packets: \"frag.pcap\"\n");
+	fsl_os_print("To start test inject packets: \"frag.pcap\" after AIOP boot complete.\n");
 
 	return 0;
 }

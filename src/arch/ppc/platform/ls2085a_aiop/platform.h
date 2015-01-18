@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Freescale Semiconductor, Inc.
+ * Copyright 2014-2015 Freescale Semiconductor, Inc.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -47,6 +47,9 @@
 
  @{
 *//***************************************************************************/
+
+/*TODO: Need to be removed when dynamic support for number of pools used for dpni's will be added*/
+#define BPIDS_USED_FOR_POOLS_IN_DPNI         2
 
 #define PLATFORM_IO_MODE_ANY            (~0)    /**< Unspecified I/O mode */
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Freescale Semiconductor, Inc.
+ * Copyright 2014-2015 Freescale Semiconductor, Inc.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -26,14 +26,15 @@
 
 #include "common/fsl_string.h"
 #include "inc/fsl_sys.h"
+#include "apps.h"
 
 extern int app_init(void); extern void app_free(void);
 
 
 #define APPS                            	\
 {                                       	\
-	{NULL, app_init, app_free},	\
-	{NULL, NULL, NULL} /* never remove! */    	\
+	{NULL, app_init, app_free},		\
+	{NULL, NULL, NULL} /* never remove! */	\
 }
 
 void build_apps_array(struct sys_module_desc *apps);
@@ -41,5 +42,7 @@ void build_apps_array(struct sys_module_desc *apps);
 void build_apps_array(struct sys_module_desc *apps)
 {
 	struct sys_module_desc apps_tmp[] = APPS;
+	
+	ASSERT_COND(ARRAY_SIZE(apps_tmp) <= APP_MAX_NUM);
 	memcpy(apps, apps_tmp, sizeof(apps_tmp));
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Freescale Semiconductor, Inc.
+ * Copyright 2014-2015 Freescale Semiconductor, Inc.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -302,7 +302,7 @@ uint32_t check_for_frag_error(struct ipr_instance instance_params,
 
 void ipr_time_out(uint64_t rfdc_ext_addr, uint16_t dummy);
 
-void check_remove_padding();
+uint16_t check_remove_padding();
 
 uint32_t out_of_order(struct ipr_rfdc *rfdc_ptr, uint64_t rfdc_ext_addr,
 		      uint32_t last_fragment,uint16_t current_frag_size,

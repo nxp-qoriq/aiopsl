@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Freescale Semiconductor, Inc.
+ * Copyright 2014-2015 Freescale Semiconductor, Inc.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -49,7 +49,7 @@
 /**************************************************************************//**
 @Function      fsl_os_print
 
-@Description   Print formated string with arguments received with it.
+@Description   Print formatted string with arguments received with it.
                The print function is limited to 1024 bytes of the formatted string length
                during the boot and 80 bytes during run time mode.
                This function has two modes of operation.  It automatically toggles
@@ -70,7 +70,7 @@
                - %%ll     - Prints unsigned 64 bit value.
                - %%lx     - Prints a 32 bit value in hexadecimal form
                - %%llx    - Prints a 64 bit value in hexadecimal form
-            
+
 @note No support for special settings like %02x, etc at runtime.
 
 @Param[in]     str - string to print.

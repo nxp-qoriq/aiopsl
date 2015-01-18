@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Freescale Semiconductor, Inc.
+ * Copyright 2014-2015 Freescale Semiconductor, Inc.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -37,7 +37,7 @@
 #include "fsl_icontext.h"
 #include "fsl_mc_init.h"
 #include "fsl_spinlock.h"
-#include "cmdif_client_aiop.h" /* TODO remove it once you have lock per dpci table !!! */
+#include "cmdif_srv_aiop.h"
 #include "fsl_io_ccsr.h"
 
 struct icontext icontext_aiop = {0};
@@ -48,17 +48,30 @@ void icontext_aiop_get(struct icontext *ic)
 	*ic = icontext_aiop;
 }
 
+void icontext_cmd_get(struct icontext *ic)
+{
+	uint8_t  ind = (uint8_t)((CMDIF_FQD_GET) >> 1);
+	struct mc_dpci_obj *dt = sys_get_unique_handle(FSL_OS_MOD_DPCI_TBL);
+	
+	ASSERT_COND(dt);
+	
+	ic->icid = dt->icid[ind];
+	ic->dma_flags = dt->dma_flags[ind];
+	ic->bdi_flags = dt->bdi_flags[ind];
+#ifndef BDI_BUG_FIXED
+	ic->bdi_flags &= ~FDMA_ENF_BDI_BIT;
+#endif
+}
+
 int icontext_get(uint16_t dpci_id, struct icontext *ic)
 {
 	int i = 0;
 	struct mc_dpci_obj *dt = sys_get_unique_handle(FSL_OS_MOD_DPCI_TBL);
-	struct cmdif_cl *cl = sys_get_unique_handle(FSL_OS_MOD_CMDIF_CL);
 
 #ifdef DEBUG
-	if ((ic == NULL) || (dt == NULL) || (cl == NULL))
+	if ((ic == NULL) || (dt == NULL))
 		return -EINVAL;
 #endif
-	lock_spinlock(&cl->lock); /* TODO make it lock per dpci table not client ! */
 	/* search by GPP peer id - most likely case
 	 * or by AIOP dpci id  - to support both cases
 	 * All DPCIs in the world have different IDs */
@@ -69,13 +82,15 @@ int icontext_get(uint16_t dpci_id, struct icontext *ic)
 			ic->icid = dt->icid[i];
 			ic->dma_flags = dt->dma_flags[i];
 			ic->bdi_flags = dt->bdi_flags[i];
-			unlock_spinlock(&cl->lock);
+#ifndef BDI_BUG_FIXED
+			ic->bdi_flags &= ~FDMA_ENF_BDI_BIT;
+#endif
 			return 0;
 		}
 	}
 
-	unlock_spinlock(&cl->lock);
-	return -ENAVAIL;
+	/* copy pointer from icid table */
+	return -ENOENT;
 }
 
 int icontext_dma_read(struct icontext *ic, uint16_t size, 
@@ -83,7 +98,7 @@ int icontext_dma_read(struct icontext *ic, uint16_t size,
 {
 
 #ifdef DEBUG
-	if ((dest == NULL) || (src == NULL))
+	if ((dest == NULL) || (src == NULL) || (ic == NULL))
 		return -EINVAL;
 #endif
 	
@@ -100,7 +115,7 @@ int icontext_dma_write(struct icontext *ic, uint16_t size,
 {
 	
 #ifdef DEBUG
-	if ((dest == NULL) || (src == NULL))
+	if ((dest == NULL) || (src == NULL) || (ic == NULL))
 		return -EINVAL;
 #endif
 

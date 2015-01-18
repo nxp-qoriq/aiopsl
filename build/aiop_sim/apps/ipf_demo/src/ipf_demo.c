@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Freescale Semiconductor, Inc.
+ * Copyright 2014-2015 Freescale Semiconductor, Inc.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -179,7 +179,7 @@ static void app_process_packet_flow0 (dpni_drv_app_arg_t arg)
 		fsl_os_print("last fragment offset error!\n");
 		local_test_error |= 1;
 	}
-	
+
 	if(!local_test_error) /*No error found during injection of packets*/
 		fsl_os_print("Finished SUCCESSFULLY\n");
 	else
@@ -271,7 +271,7 @@ int app_init(void)
 	if (err)
 		fsl_os_print("FAILED cmdif_register_module\n!");
 */
-	fsl_os_print("To start test inject packets: \"reassembled_frame.pcap\"\n");
+	fsl_os_print("To start test inject packets: \"reassembled_frame.pcap\" after AIOP boot complete.\n");
 	return 0;
 }
 

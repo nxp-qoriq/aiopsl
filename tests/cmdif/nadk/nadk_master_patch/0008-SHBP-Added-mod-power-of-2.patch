@@ -1,0 +1,69 @@
+From d014232564eabd3b56ac3603f025fc369cadcb6f Mon Sep 17 00:00:00 2001
+From: Ira Kalman <Ira.Kalman@freescale.com>
+Date: Thu, 25 Dec 2014 15:54:22 +0200
+Subject: [PATCH 8/8] SHBP Added mod power of 2
+
+---
+ usr/libcmdif/shbp.h |   35 ++++++++++++++++++++++++++++-------
+ 1 file changed, 28 insertions(+), 7 deletions(-)
+
+diff --git a/usr/libcmdif/shbp.h b/usr/libcmdif/shbp.h
+index 50e38f5..c8fc960 100644
+--- a/usr/libcmdif/shbp.h
++++ b/usr/libcmdif/shbp.h
+@@ -37,6 +37,11 @@
+ 
+ #include <cmdif.h>
+ 
++#ifndef MODULU_POWER_OF_TWO
++#define MODULU_POWER_OF_TWO(NUM, MOD) \
++	((uint32_t)(NUM) & ((uint32_t)(MOD) - 1))
++#endif
++
+ #if 0
+ /**
+  * @brief	Structure representing buffer descriptor
+@@ -55,17 +60,33 @@ struct shbp_bd_meta {
+ };
+ #endif // 0
+ 
+-#define SHBP_TOTAL_BYTES	(sizeof(struct shbp) > 64 ? sizeof(struct shbp) : 64)
++#define SHBP_TOTAL_BYTES \
++	(sizeof(struct shbp) > 64 ? sizeof(struct shbp) : 64)
+ /*!< Total bytes including the reserved bytes */
+-#define SHBP_SIZE(BP)		(0x1 << (BP)->max_num)	/*!< Number of BDs */
+-#define SHBP_ALLOC_IS_FULL(BP)	(((BP)->alloc.enq - (BP)->alloc.deq) == SHBP_SIZE(BP))
+-#define SHBP_ALLOC_IS_EMPTY(BP)	(((BP)->alloc.enq - (BP)->alloc.deq) == 0)
+-#define SHBP_FREE_IS_FULL(BP)	(((BP)->free.enq - (BP)->free.deq) == SHBP_SIZE(BP))
++
++#define SHBP_SIZE(BP)		(0x1 << (BP)->max_num)	
++/*!< Number of BDs, must be power of 2 */
++
++#define SHBP_ALLOC_IS_FULL(BP)	\
++	(((BP)->alloc.enq - (BP)->alloc.deq) == SHBP_SIZE(BP))
++
++#define SHBP_ALLOC_IS_EMPTY(BP)	\
++	(((BP)->alloc.enq - (BP)->alloc.deq) == 0)
++
++#define SHBP_FREE_IS_FULL(BP) \
++	(((BP)->free.enq - (BP)->free.deq) == SHBP_SIZE(BP))
++
+ #define SHBP_FREE_IS_EMPTY(BP)	(((BP)->free.enq - (BP)->free.deq) == 0)
+-#define SHBP_SIZE_BYTES(BP)	(SHBP_SIZE(BP) << 3)	/*!< Number of bytes */
+-#define SHBP_BD_IND(SHBP, NUM)	((NUM) % SHBP_SIZE((SHBP)))
++
++#define SHBP_SIZE_BYTES(BP)	(SHBP_SIZE(BP) << 3)	
++/*!< Number of bytes */
++
++#define SHBP_BD_IND(SHBP, NUM)	(MODULU_POWER_OF_TWO(NUM, SHBP_SIZE((SHBP)))) 
++/*!< Always modulu power of 2 */
++
+ #define SHBP_BD_OFF(SHBP, NUM)	(SHBP_BD_IND(SHBP, NUM) << 3)
+ /*!< Offset of the BD in BYTES - mod 2^x */
++
+ #define SHBP_MEM_OFF(SHBP, PTR) (uint32_t)((uint8_t *)(PTR) - (uint8_t *)(SHBP))
+ /*!< Member offset in bytes */
+ 
+-- 
+1.7.9.5
+

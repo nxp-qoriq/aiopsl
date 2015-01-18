@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Freescale Semiconductor, Inc.
+ * Copyright 2014-2015 Freescale Semiconductor, Inc.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -27,7 +27,7 @@
 #ifndef __FSL_MC_INIT_H
 #define __FSL_MC_INIT_H
 
-#include "dplib/fsl_dpci.h"
+#include "fsl_dpci.h"
 #include "dplib/fsl_mc_sys.h"
 
 struct mc_dprc {

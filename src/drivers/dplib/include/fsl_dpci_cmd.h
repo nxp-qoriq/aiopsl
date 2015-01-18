@@ -1,4 +1,4 @@
-/* Copyright 2013-2014 Freescale Semiconductor Inc.
+/* Copyright 2014-2015 Freescale Semiconductor Inc.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -76,11 +76,11 @@
 	MC_RSP_OP(cmd, 0, 0,  1,  int,	    en)
 
 /*                cmd, param, offset, width, type, arg_name */
-#define DPCI_CMD_SET_IRQ(cmd, irq_index, irq_paddr, irq_val, user_irq_id) \
+#define DPCI_CMD_SET_IRQ(cmd, irq_index, irq_addr, irq_val, user_irq_id) \
 do { \
 	MC_CMD_OP(cmd, 0, 0,  8,  uint8_t,  irq_index);\
 	MC_CMD_OP(cmd, 0, 32, 32, uint32_t, irq_val);\
-	MC_CMD_OP(cmd, 1, 0,  64, uint64_t, irq_paddr);\
+	MC_CMD_OP(cmd, 1, 0,  64, uint64_t, irq_addr);\
 	MC_CMD_OP(cmd, 2, 0,  32, int,	    user_irq_id); \
 } while (0)
 
@@ -89,10 +89,10 @@ do { \
 	MC_CMD_OP(cmd, 0, 32, 8,  uint8_t,  irq_index)
 
 /*                cmd, param, offset, width, type, arg_name */
-#define DPCI_RSP_GET_IRQ(cmd, type, irq_paddr, irq_val, user_irq_id) \
+#define DPCI_RSP_GET_IRQ(cmd, type, irq_addr, irq_val, user_irq_id) \
 do { \
 	MC_RSP_OP(cmd, 0, 0,  32, uint32_t, irq_val); \
-	MC_RSP_OP(cmd, 1, 0,  64, uint64_t, irq_paddr);\
+	MC_RSP_OP(cmd, 1, 0,  64, uint64_t, irq_addr);\
 	MC_RSP_OP(cmd, 2, 0,  32, int,	    user_irq_id); \
 	MC_RSP_OP(cmd, 2, 32, 32, int,	    type); \
 } while (0)

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Freescale Semiconductor, Inc.
+ * Copyright 2014-2015 Freescale Semiconductor, Inc.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -393,27 +393,6 @@ static inline void iowrite64be_wt(uint64_t val, volatile uint64_t *addr)
 	core_memory_barrier();
 }
 
-/**************************************************************************//**
- @Function      fsl_os_phys_to_virt
-
- @Description   Translates a physical address to the matching virtual address.
-
- @Param[in]     addr - The physical address to translate.
-
- @Return        Virtual address.
- *//***************************************************************************/
-void *fsl_os_phys_to_virt(dma_addr_t addr);
-
-/**************************************************************************//**
- @Function      fsl_os_virt_to_phys
-
- @Description   Translates a virtual address to the matching physical address.
-
- @Param[in]     addr - The virtual address to translate.
-
- @Return        Physical address.
- *//***************************************************************************/
-dma_addr_t fsl_os_virt_to_phys(void *addr);
 
 /** @} */ /* end of accessor_g Accessor API group */
 

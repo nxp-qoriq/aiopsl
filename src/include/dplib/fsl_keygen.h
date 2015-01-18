@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Freescale Semiconductor, Inc.
+ * Copyright 2014-2015 Freescale Semiconductor, Inc.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -40,7 +40,7 @@
 
 /* TODO remark on allocations of out params */
 /**************************************************************************//**
- @Group		ACCEL ACCEL (Accelerator APIs)
+ @Group		ACCEL Accelerators APIs
 
  @Description	AIOP Accelerator APIs
 
@@ -730,6 +730,8 @@ void keygen_kcr_query(enum keygen_hw_accel_id acc_id,
 
 @Cautions	In this function the task yields.
  	 	This function may result in a fatal error.
+ 	 	In Rev1: Due to HW bug (TKT231187) the maximum key size allowed
+ 	 	is 80 bytes.
 *//***************************************************************************/
 int keygen_gen_key(enum keygen_hw_accel_id acc_id,
 		     uint8_t keyid,

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Freescale Semiconductor, Inc.
+ * Copyright 2014-2015 Freescale Semiconductor, Inc.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -75,7 +75,7 @@ __COLD_CODE void *cmdif_srv_allocate(void *(*fast_malloc)(int size),
 	srv->inst_dev  = fast_malloc(sizeof(void *) * M_NUM_OF_INSTANCES);
 	srv->m_id      = fast_malloc(M_NUM_OF_INSTANCES);
 	srv->ctrl_cb   = fast_malloc(sizeof(ctrl_cb_t *) * M_NUM_OF_MODULES);
-	srv->sync_done = fast_malloc(sizeof(void *) * M_NUM_OF_INSTANCES);
+	srv->sync_done = fast_malloc(sizeof(uint64_t) * M_NUM_OF_INSTANCES);
 	/* DDR */
 	srv->m_name    = slow_malloc(sizeof(char[M_NAME_CHARS + 1]) * \
 				M_NUM_OF_MODULES);
@@ -93,7 +93,7 @@ __COLD_CODE void *cmdif_srv_allocate(void *(*fast_malloc)(int size),
 		FREE_MODULE,
 		sizeof(srv->m_name[0]) * M_NUM_OF_MODULES);
 	memset((uint8_t *)srv->inst_dev,
-		NULL,
+		0,
 		sizeof(srv->inst_dev[0]) * M_NUM_OF_INSTANCES);
 	memset(srv->m_id,
 		FREE_INSTANCE,
@@ -128,20 +128,20 @@ __COLD_CODE void cmdif_srv_deallocate(void *_srv, void (*free)(void *ptr))
 	}
 }
 
-static int empty_open_cb(uint8_t instance_id, void **dev)
+__COLD_CODE static int empty_open_cb(uint8_t instance_id, void **dev)
 {
 	UNUSED(instance_id);
 	UNUSED(dev);
 	return -ENODEV; /* Must be error for cmdif_srv_unregister() */
 }
 
-static int empty_close_cb(void *dev)
+__COLD_CODE static int empty_close_cb(void *dev)
 {
 	UNUSED(dev);
 	return -ENODEV; /* Must be error for cmdif_srv_unregister() */
 }
 
-static int empty_ctrl_cb(void *dev, uint16_t cmd, uint32_t size, void *data)
+__COLD_CODE static int empty_ctrl_cb(void *dev, uint16_t cmd, uint32_t size, void *data)
 {
 	UNUSED(cmd);
 	UNUSED(dev);
@@ -186,7 +186,7 @@ __COLD_CODE static int module_id_alloc( struct cmdif_srv *srv, const char *m_nam
 	return id;
 }
 
-static int module_id_find(struct cmdif_srv *srv, const char *m_name)
+__HOT_CODE static int module_id_find(struct cmdif_srv *srv, const char *m_name)
 {
 	int i = 0;
 
@@ -237,7 +237,7 @@ __COLD_CODE int cmdif_srv_unregister(void *srv, const char *m_name)
 	}
 }
 
-static int inst_alloc(struct cmdif_srv *srv, uint8_t m_id)
+__HOT_CODE static int inst_alloc(struct cmdif_srv *srv, uint8_t m_id)
 {
 	int r = 0;
 	int count = 0;
@@ -260,7 +260,7 @@ static int inst_alloc(struct cmdif_srv *srv, uint8_t m_id)
 		count = 0;
 		while ((srv->m_id[r] != FREE_INSTANCE) &&
 			(count < M_NUM_OF_INSTANCES)) {
-			r = r++ % M_NUM_OF_INSTANCES;
+			r = ++r % M_NUM_OF_INSTANCES;
 			count++;
 		}
 	}
@@ -275,13 +275,13 @@ static int inst_alloc(struct cmdif_srv *srv, uint8_t m_id)
 	}
 }
 
-static void inst_dealloc(int inst, struct cmdif_srv *srv)
+__HOT_CODE static void inst_dealloc(int inst, struct cmdif_srv *srv)
 {
 	srv->m_id[inst] = FREE_INSTANCE;
 	srv->inst_count--;
 }
 
-int cmdif_srv_open(void *_srv,
+__COLD_CODE int cmdif_srv_open(void *_srv,
 		const char *m_name,
 		uint8_t inst_id,
 		uint32_t dpci_id,
@@ -335,13 +335,12 @@ int cmdif_srv_open(void *_srv,
 	return 0;
 }
 
-int cmdif_srv_close(void *srv,
+__COLD_CODE int cmdif_srv_close(void *srv,
 		uint16_t auth_id,
 		uint32_t dpci_id,
 		uint32_t size,
 		void *v_data)
 {
-	int    err = 0;
 	struct cmdif_session_data *data = v_data;
 
 #ifdef DEBUG
@@ -363,7 +362,7 @@ int cmdif_srv_close(void *srv,
 	return 0;
 }
 
-int cmdif_srv_cmd(void *_srv,
+__HOT_CODE int cmdif_srv_cmd(void *_srv,
 		struct cmdif_fd *cfd,
 		void   *v_addr,
 		struct cmdif_fd *cfd_out,

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Freescale Semiconductor, Inc.
+ * Copyright 2014-2015 Freescale Semiconductor, Inc.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -39,6 +39,8 @@
 #include "aiop_common.h"
 #include "kernel/fsl_spinlock.h"
 #include "dplib/fsl_parser.h"
+#include "fsl_osm.h"
+#include "fsl_dbg.h"
 
 int app_early_init(void);
 int app_init(void);
@@ -52,20 +54,18 @@ void app_free(void);
 
 #define MAX_NUM_OF_CORES	16
 #define MAX_NUM_OF_TASKS	16
+#define NH_FLD_IP_VER                         (1)
+#define NH_FLD_IP_SRC                         (NH_FLD_IP_VER << 5)
 
 extern int slab_init(void);
 extern int malloc_test();
 extern int slab_test(void);
 extern int random_init(void);
 extern int random_test(void);
-extern int memory_test();
 extern int pton_test(void);
 extern int ntop_test(void);
 extern int dpni_drv_test(void);
 
-extern struct slab *slab_peb;
-extern struct slab *slab_dp_ddr;
-extern struct slab *slab_sys_ddr;
 extern int num_of_cores;
 extern int num_of_tasks;
 extern uint32_t rnd_seed[MAX_NUM_OF_CORES][MAX_NUM_OF_TASKS];
@@ -86,18 +86,35 @@ static void app_process_packet_flow0 (dpni_drv_app_arg_t arg)
 {
 	int      err = 0, i, j;
 	int core_id;
-
-	uint64_t time_ms_since_epoch = 0;
+	uint64_t time_ms_since_epoch = 0, flc = 0;
 	uint32_t time_ms = 0;
 	uint64_t local_time;
 	uint8_t local_packet_number;
 	int local_test_error = 0;
-
+	uint16_t spid_ddr;
 	lock_spinlock(&packet_lock);
 	local_packet_number = packet_number;
 	packet_number++;
 	unlock_spinlock(&packet_lock);
 	core_id = (int)core_get_id();
+
+	fsl_os_print("Arena test for packet number %d, on core %d\n", local_packet_number, core_id);
+	err = dpni_drv_get_spid_ddr(APP_NI_GET(arg), &spid_ddr);
+	if (err) {
+		fsl_os_print("ERROR = %d: get spid_ddr failed in runtime phase()\n", err);
+		local_test_error |= err;
+	} else {
+		fsl_os_print("spid_ddr is %d for packet %d\n",spid_ddr, local_packet_number);
+
+	}
+	err = dpni_drv_get_spid(APP_NI_GET(arg), &spid_ddr);
+	if (err) {
+		fsl_os_print("ERROR = %d: get spid failed in runtime phase()\n", err);
+		local_test_error |= err;
+	} else {
+		fsl_os_print("spid is %d for packet %d\n",spid_ddr, local_packet_number);
+	}
+
 
 	err = pton_test();
 	if (err) {
@@ -132,15 +149,6 @@ static void app_process_packet_flow0 (dpni_drv_app_arg_t arg)
 		fsl_os_print("Malloc test passed for packet number %d, on core %d\n", local_packet_number, core_id);
 	}
 
-	err = memory_test();
-
-	if (err) {
-		fsl_os_print("ERROR = %d: memory_test failed in runtime phase \n", err);
-		local_test_error |= err;
-	} else {
-		fsl_os_print("Memory  test passed for packet number %d, on core %d\n", local_packet_number, core_id);
-	}
-
 	/*Random Test*/
 
 	err = random_test();
@@ -154,6 +162,9 @@ static void app_process_packet_flow0 (dpni_drv_app_arg_t arg)
 		fsl_os_print("Random test passed for packet number %d, on core %d\n", local_packet_number, core_id);
 	}
 
+
+
+
 	err = dpni_drv_test();
 	if (err) {
 		fsl_os_print("ERROR = %d: dpni_drv_test failed in runtime phase()\n", err);
@@ -162,16 +173,17 @@ static void app_process_packet_flow0 (dpni_drv_app_arg_t arg)
 		fsl_os_print("dpni_drv_test passed in runtime phase()\n");
 	}
 
+	flc = LDPAA_FD_GET_FLC(HWC_FD_ADDRESS);
+	fsl_os_print("FLC: 0x%llx\n",flc);
 
-
-
-
+	lock_spinlock(&time_lock);
 	err = fsl_get_time_ms(&time_ms);
 	err |= fsl_get_time_since_epoch_ms(&time_ms_since_epoch);
 
 	if(err){
 		fsl_os_print("ERROR = %d: fsl_os_gettimeofday failed  in runtime phase \n", err);
 		local_test_error |= err;
+		unlock_spinlock(&time_lock);
 	}else {
 
 		fsl_os_print("time ms is: %d milliseconds \n",time_ms);
@@ -179,7 +191,7 @@ static void app_process_packet_flow0 (dpni_drv_app_arg_t arg)
 
 
 		local_time = time_ms_since_epoch;
-		lock_spinlock(&time_lock);
+
 		if(local_time >= global_time)
 		{
 			fsl_os_print("time test passed for packet number %d, on core %d\n", local_packet_number, core_id);
@@ -192,6 +204,10 @@ static void app_process_packet_flow0 (dpni_drv_app_arg_t arg)
 		}
 		unlock_spinlock(&time_lock);
 	}
+
+
+
+
 
 
 
@@ -245,26 +261,16 @@ static void app_process_packet_flow0 (dpni_drv_app_arg_t arg)
 				fsl_os_print("\nWARNING: Not all the tasks were active during the test!\n");
 
 			}
-			
-			err = slab_free(&slab_dp_ddr);
-			err |= slab_free(&slab_peb);
-			err |= slab_free(&slab_sys_ddr);
-			
-			if(err)
-			{
-				fsl_os_print("Error while freeing slab's used for test\n");
-			}
+
 
 			fsl_os_print("\nARENA Test Finished SUCCESSFULLY\n");
-/*			for(i = 0; i < SLAB_MAX_BMAN_POOLS_NUM; i++){
-				
+			for(i = 0; i < SLAB_MAX_BMAN_POOLS_NUM; i++){
+
 				fsl_os_print("Slab bman pools status:\n");
 				fsl_os_print("bman pool id: %d, remaining: %d\n",g_slab_bman_pools[i].bman_pool_id, g_slab_bman_pools[i].remaining);
-				
+
 			}
-			
-			slab_module_free();
-*/
+
 		}
 		else {
 			fsl_os_print("ARENA Test Finished with ERRORS\n");
@@ -272,15 +278,33 @@ static void app_process_packet_flow0 (dpni_drv_app_arg_t arg)
 	}
 }
 int app_early_init(void){
-	slab_register_context_buffer_requirements(50,100,2000,64,MEM_PART_SYSTEM_DDR,0, 0);
+	int err = 0;
+	err |= slab_register_context_buffer_requirements(200,250,200,64,MEM_PART_SYSTEM_DDR,0, 0);
+	err |= slab_register_context_buffer_requirements(200,250,200,64,MEM_PART_PEB,0, 0);
+	err |= slab_register_context_buffer_requirements(200,250,504,64,MEM_PART_DP_DDR,0, 120);
+	if(err)
+		pr_err("slab_register_context_buffer_requirements failed: %d\n",err);
+
 	return 0;
 }
 
 int app_init(void)
 {
 	int        err  = 0;
+	uint16_t spid = 0;
 	uint32_t   ni   = 0;
+	uint16_t   ni2  = 0;
 	dma_addr_t buff = 0;
+	int ep, state = -1;
+	struct dpkg_profile_cfg dist_key_cfg = {0};
+	struct aiop_psram_entry *sp_addr;
+	struct dpni_buffer_layout layout = {0};
+
+	dist_key_cfg.num_extracts = 1;
+	dist_key_cfg.extracts[0].type = DPKG_EXTRACT_FROM_HDR;
+	dist_key_cfg.extracts[0].extract.from_hdr.prot = NET_PROT_IP;
+	dist_key_cfg.extracts[0].extract.from_hdr.field = NET_HDR_FLD_IP_SRC;
+	dist_key_cfg.extracts[0].extract.from_hdr.type = DPKG_FULL_FIELD;
 
 
 	fsl_os_print("Running AIOP arena app_init()\n");
@@ -291,18 +315,29 @@ int app_init(void)
 
 		if (err){
 			fsl_os_print("dpni_drv_add_mac_addr failed %d\n", err);
+			test_error |= 0x01;
 		}
 		else{
 			fsl_os_print("dpni_drv_add_mac_addr succeeded in boot\n");
 			fsl_os_print("MAC 02:00:C0:A8:0B:FE added for ni %d\n",ni);
-
 		}
+		dpni_drv_set_exclusive((uint16_t)ni);
+		err = dpni_drv_set_order_scope((uint16_t)ni,&dist_key_cfg);
+		if (err){
+			fsl_os_print("dpni_drv_set_order_scope failed %d\n", err);
+					return err;
+		}
+
 		err = dpni_drv_register_rx_cb((uint16_t)ni/*ni_id*/,
 		                              app_process_packet_flow0, /* callback */
 		                              ni /*arg, nic number*/);
 
 		if (err)
 			return err;
+
+		ep = dpni_drv_get_ordering_mode((uint16_t)ni);
+		fsl_os_print("initial order scope execution phase for tasks %d\n",ep);
+
 	}
 
 	err = slab_init();
@@ -312,14 +347,6 @@ int app_init(void)
 	}
 	else
 		fsl_os_print("slab_init  succeeded  in init phase()\n", err);
-	err = memory_test();
-
-	if (err) {
-		fsl_os_print("ERROR = %d: memory_test failed in init phase()\n", err);
-		test_error |= err;
-	}
-	else
-		fsl_os_print("memory_test succeeded  in init phase()\n", err);
 
 	err = malloc_test();
 	if (err) {
@@ -352,7 +379,83 @@ int app_init(void)
 		fsl_os_print("ntop_test passed in init phase()\n");
 	}
 
-	fsl_os_print("To start test inject packets: \"arena_test_40.pcap\"\n");
+	for(ni = 0; ni < dpni_get_num_of_ni(); ni++)
+	{
+		err = dpni_drv_get_connected_dpni_id((uint16_t)ni, &ni2, &state);
+		fsl_os_print("Given NI: %d, Connected NI: %d, Status: %d\n",ni,ni2,state);
+		if(err){
+			fsl_os_print("Error: dpni_drv_get_connected_dpni_id: error %d\n",err);
+			test_error |= 0x01;
+		}
+#if 0/*Remove if 0 when support for setting SP configuration*/
+		layout.options =  DPNI_BUF_LAYOUT_OPT_DATA_HEAD_ROOM |
+			DPNI_BUF_LAYOUT_OPT_DATA_TAIL_ROOM;
+		layout.data_head_room = 0x20;
+		layout.data_tail_room = 0x30;
+		err = dpni_drv_set_rx_buffer_layout((uint16_t)ni,&layout );
+		if(err){
+			fsl_os_print("Error: dpni_drv_get_rx_buffer_layout: error %d\n",err);
+			test_error |= 0x01;
+		}
+#endif
+		layout.options = DPNI_BUF_LAYOUT_OPT_DATA_HEAD_ROOM |
+			DPNI_BUF_LAYOUT_OPT_DATA_TAIL_ROOM;
+		layout.data_head_room = 0;
+		layout.data_tail_room = 0;
+
+		err = dpni_drv_get_rx_buffer_layout((uint16_t)ni,&layout );
+		if(err){
+			fsl_os_print("Error: dpni_drv_get_rx_buffer_layout: error %d\n",err);
+			test_error |= 0x01;
+		}
+		fsl_os_print("Buffer Layout:\n");
+		fsl_os_print("Options: 0x%x\n",layout.options);
+		fsl_os_print("data_head_room: 0x%x\n", layout.data_head_room);
+		fsl_os_print("data_tail_room: 0x%x\n", layout.data_tail_room);
+#if 0
+		if(layout.data_head_room != 0x20 || layout.data_tail_room != 0x30){
+			fsl_os_print("Error: dpni_drv_get/set_rx_buffer_layout finished with incorrect values\n");
+			test_error |= 0x01;
+		}
+#endif
+
+
+		sp_addr = (struct aiop_psram_entry *)
+						(AIOP_PERIPHERALS_OFF + AIOP_STORAGE_PROFILE_OFF);
+		err = dpni_drv_get_spid((uint16_t)ni, &spid);
+		if (err) {
+			fsl_os_print("ERROR = %d: dpni_drv_get_spid failed\n", err);
+			test_error |= err;
+		} else {
+			fsl_os_print("NI %d - spid is %d\n", ni, spid);
+		}
+
+		sp_addr += spid;
+		if(sp_addr->bp1 == 0){
+			fsl_os_print("Error: spid bp1 is 0\n");
+			test_error |= 0x01;
+		}
+
+		sp_addr = (struct aiop_psram_entry *)
+			(AIOP_PERIPHERALS_OFF + AIOP_STORAGE_PROFILE_OFF);
+		err = dpni_drv_get_spid_ddr((uint16_t)ni, &spid);
+		if (err) {
+			fsl_os_print("ERROR = %d: dpni_drv_get_spid_ddr failed\n", err);
+			test_error |= err;
+		} else {
+			fsl_os_print("NI %d - spid DDR is %d\n", ni, spid);
+		}
+
+		sp_addr += spid;
+		if(sp_addr->bp1 == 0){
+			fsl_os_print("Error: spid ddr bp1 is 0\n");
+			test_error |= 0x01;
+		}
+
+
+	}
+
+	fsl_os_print("To start test inject packets: \"arena_test_40.pcap\" after AIOP boot complete.\n");
 	return 0;
 }
 

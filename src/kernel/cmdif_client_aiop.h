@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Freescale Semiconductor, Inc.
+ * Copyright 2014-2015 Freescale Semiconductor, Inc.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -35,7 +35,7 @@
 
 #include "cmdif_client.h"
 #include "cmdif_srv.h"
-#include "dplib/fsl_dpci.h"
+#include "fsl_dpci.h"
 #include "fsl_gen.h"
 #include "fsl_string.h"
 #include "fsl_sl_dbg.h"
@@ -78,6 +78,66 @@ ASSERT_STRUCT_SIZE(CMDIF_OPEN_SIZEOF, CMDIF_OPEN_SIZE);
 		if (bmt_get)			\
 			FL |= FDMA_DMA_BMT_BIT;	\
 	}while(0)
+
+#define SAVE_GPP_ICID	\
+do {\
+	gpp_icid = PL_ICID_GET; 		\
+	gpp_dma = 0; 				\
+	ADD_AMQ_FLAGS(gpp_dma, gpp_icid); 	\
+	gpp_icid = ICID_GET(gpp_icid); 		\
+\
+} while(0)
+
+#define SAVE_FDMA_HANDLE \
+	do {\
+		frame_handle = PRC_GET_FRAME_HANDLE(); \
+		spid = *((uint8_t *) HWC_SPID_ADDRESS);\
+	}while(0)
+
+#define SET_AIOP_ICID	\
+	do { \
+		/* Set AIOP ICID and AMQ bits */			\
+		uint16_t pl_icid = icontext_aiop.icid;			\
+		uint8_t flags = 0;					\
+		struct additional_dequeue_context *adc = 		\
+		((struct additional_dequeue_context *)HWC_ADC_ADDRESS);	\
+		/* SHRAM optimization */				\
+		uint64_t dma_bdi_flags = 				\
+				(*(uint64_t *)(&icontext_aiop.dma_flags));\
+		if (((uint32_t)dma_bdi_flags) & FDMA_ENF_BDI_BIT) {	\
+			flags |= ADC_BDI_MASK;				\
+		}							\
+		dma_bdi_flags >>= 32;					\
+		if (((uint32_t)dma_bdi_flags) & FDMA_DMA_eVA_BIT) {	\
+			flags |= ADC_VA_MASK;				\
+		}							\
+		if (((uint32_t)dma_bdi_flags) & FDMA_DMA_PL_BIT) {	\
+			pl_icid |= ADC_PL_MASK;				\
+		}							\
+		adc->fdsrc_va_fca_bdi = (adc->fdsrc_va_fca_bdi &	\
+			~(ADC_BDI_MASK | ADC_VA_MASK)) | flags;		\
+		STH_SWAP(pl_icid, 0, &(adc->pl_icid));			\
+	} while (0)
+		
+		
+/** Delete FDMA handle and store user modified data */
+#if 0		
+#define CMDIF_STORE_DATA \
+	do {\
+		struct fdma_amq amq;				\
+		fdma_store_frame_data(frame_handle, spid,	\
+		                      (struct fdma_amq *)&amq);	\
+		pr_debug("Store icid = 0x%x\n",			\
+		         ((struct fdma_amq *)&amq)->icid);	\
+		pr_debug("Store flags = 0x%x\n",		\
+		         ((struct fdma_amq *)&amq)->flags);	\
+	} while(0)
+#else
+#define CMDIF_STORE_DATA \
+	do {\
+		fdma_store_default_frame_data(); \
+	} while(0)
+#endif
 
 #define CMDIF_MN_SESSIONS	(64 << 1) 
 /**< Maximal number of sessions: 64 SW contexts and avg of 2 modules per each */

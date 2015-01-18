@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Freescale Semiconductor, Inc.
+ * Copyright 2014-2015 Freescale Semiconductor, Inc.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -37,7 +37,7 @@
 
 #include "fsl_endian.h"
 #include "common/fsl_cmdif.h"
-#include "dplib/fsl_dpni.h"
+#include "fsl_dpni.h"
 
 struct cmdif_cmd_data {
 	uint64_t param1;

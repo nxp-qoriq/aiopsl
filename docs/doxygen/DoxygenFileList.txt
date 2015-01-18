@@ -40,3 +40,4 @@ aiopsl/src/include/fsl_malloc.h
 aiopsl/src/include/arch/ls2085_aiop/fsl_platform.h
 aiopsl/src/include/fsl_dbg.h
 aiopsl/src/include/kernel/fsl_icontext.h
+aiopsl/src/include/lib/fsl_shbp_aiop.h

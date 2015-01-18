@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Freescale Semiconductor, Inc.
+ * Copyright 2014-2015 Freescale Semiconductor, Inc.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -35,7 +35,8 @@
 #include "common/types.h"
 #include "fsl_errors.h"
 
-
+/* Put all function (execution code) into  dtext_vle section,aka __COLD_CODE */
+__START_COLD_CODE
 /**************************************************************************//**
  @Group         mem_mng_grp     Memory Allocation Management module
 
@@ -78,9 +79,43 @@ typedef struct t_mem_mng_param
                      need the spinlock object to be allocated outside of the manager */
 } t_mem_mng_param;
 
+/**************************************************************************//**
+ @Description   Initial Memory management, used for allocations during boot. 
+ *//***************************************************************************/
+struct initial_mem_mng
+{
+    uint64_t base_paddress;
+    uint32_t base_vaddress;
+    uint64_t size;
+    uint64_t curr_ptr;
+#ifdef AIOP
+    uint8_t *   lock;
+#else /* not AIOP */
+    fsl_handle_t    lock;
+#endif
+
+};
+
+
+/*****************************************************************************/
+int boot_get_mem(struct initial_mem_mng* boot_mem_mng,
+                 uint64_t size,uint64_t* paddr);
+/*****************************************************************************/
+int boot_get_mem_virt(struct initial_mem_mng* boot_mem_mng,
+                      uint64_t size,uint32_t* vaddr);
+/**************************************************************************//**
+ @Function      boot_mem_mng_init
+
+ @Description   Initialize the memory allocation management module.
+
+ @Param[in]     boot_mem_mng - MEM_MNG initialization parameters.
+
+ @Return        Handle to initialized MEM_MNG object, or NULL on error.
+*//***************************************************************************/
+int boot_mem_mng_init(struct initial_mem_mng* boot_mem_mng,int mem_partition_id);
 
 /**************************************************************************//**
- @Function      MEM_MNG_Init
+ @Function      mem_mng_init
 
  @Description   Initialize the memory allocation management module.
 
@@ -91,7 +126,7 @@ typedef struct t_mem_mng_param
 fsl_handle_t mem_mng_init(t_mem_mng_param *p_mem_mng_param);
 
 /**************************************************************************//**
- @Function      MEM_MNG_Free
+ @Function      mem_mng_free
 
  @Description   Free the memory allocation management module.
 
@@ -101,7 +136,18 @@ fsl_handle_t mem_mng_init(t_mem_mng_param *p_mem_mng_param);
 *//***************************************************************************/
 void mem_mng_free(fsl_handle_t h_mem_mng);
 
+/**************************************************************************//**
+ @Function      boot_mem_mng_free
 
+ @Description   Free the memory allocation management module.
+
+ @Param[in]     boot_mem_mng - initial_mem_mng
+
+ @Return        None.
+*//***************************************************************************/
+int boot_mem_mng_free(struct initial_mem_mng* boot_mem_mng);
+
+/**************************************************************************//**/
 int mem_mng_get_phys_mem(fsl_handle_t    h_mem_mng,
                         int         partition_id,
                         uint64_t    size,
@@ -138,6 +184,18 @@ typedef struct t_mem_mng_partition_info
 } t_mem_mng_partition_info;
 
 
+/**************************************************************************//**
+ @Description   Memory partition information for physical address allocation
+ *//***************************************************************************/
+typedef struct t_mem_mng_phys_addr_alloc_info
+{
+    char        name[MEM_MNG_MAX_PARTITION_NAME_LEN];
+    uint64_t    base_paddress;
+    uint64_t    size;
+    uint32_t    attributes;
+} t_mem_mng_phys_addr_alloc_info;
+
+
 int mem_mng_get_partition_id_by_addr(fsl_handle_t   h_mem_mng,
                                      uint64_t   addr,
                                      int        *p_partition_id);
@@ -158,8 +216,16 @@ int mem_mng_register_partition(fsl_handle_t  h_mem_mng,
 int mem_mng_unregister_partition(fsl_handle_t h_mem_mng, int partition_id);
 
 
+int mem_mng_register_phys_addr_alloc_partition(fsl_handle_t  h_mem_mng,
+                                  int       partition_id,
+                                  uint64_t base_paddress,
+                                  uint64_t  size,
+                                  uint32_t  attributes,
+                                  char      name[]);
+
+
 /**************************************************************************//**
- @Function      MEM_MNG_GetPartitionInfo
+ @Function      mem_mng_get_partition_info
 
  @Description   Get information and usage statistics of a selected partition.
 *//***************************************************************************/
@@ -167,6 +233,14 @@ int mem_mng_get_partition_info(fsl_handle_t               h_mem_mng,
                                  int                    partition_id,
                                  t_mem_mng_partition_info  *p_partition_info);
 
+/**************************************************************************//**
+ @Function      mem_mng_get_phys_addr_alloc_info
+
+ @Description   Get information and usage statistics of a selected partition.
+*//***************************************************************************/
+int mem_mng_get_phys_addr_alloc_info(fsl_handle_t               h_mem_mng,
+                                 int                    partition_id,
+                                 t_mem_mng_phys_addr_alloc_info  *p_partition_info);
 
 typedef void (t_mem_mng_leak_report_func)(void      *p_memory,
                                       uint32_t  size,
@@ -181,6 +255,8 @@ uint32_t mem_mng_check_leaks(fsl_handle_t                h_mem_mng,
 
 /** @} */ /* end of mem_mng_grp */
 
+__END_COLD_CODE
 
 #endif /* __MEM_MNG_UTIL_H */
+
 

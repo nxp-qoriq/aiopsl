@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Freescale Semiconductor, Inc.
+ * Copyright 2014-2015 Freescale Semiconductor, Inc.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -53,8 +53,6 @@ __VERIF_GLOBAL uint8_t tmi_id;
 __VERIF_TLS uint8_t  slab_parser_error;
 __VERIF_TLS uint8_t  slab_keygen_error;
 __VERIF_TLS uint8_t  slab_general_error;
-__VERIF_TLS uint32_t fatal_fqid;
-__VERIF_TLS uint32_t sr_fm_flags;
 __VERIF_TLS uint64_t initial_ext_address; /* Initial External Data Address */
 
 __VERIF_TLS ipf_ctx_t ipf_context_addr1

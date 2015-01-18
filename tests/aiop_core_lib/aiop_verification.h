@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Freescale Semiconductor, Inc.
+ * Copyright 2014-2015 Freescale Semiconductor, Inc.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -90,14 +90,34 @@
 /* E200-AIOP special regs */
 
 /* Number of tasks as they defined by CTSCSR register. */
+#ifndef CTSCSR_ENABLE
 #define CTSCSR_ENABLE 0x80000000
+#endif
+
+#ifndef CTSCSR_1_TASKS
 #define CTSCSR_1_TASKS 0
+#endif
+
+#ifndef CTSCSR_2_TASKS
 #define CTSCSR_2_TASKS (1 << 24)
+#endif
+
+#ifndef CTSCSR_4_TASKS
 #define CTSCSR_4_TASKS (2 << 24)
+#endif
+
+#ifndef CTSCSR_8_TASKS
 #define CTSCSR_8_TASKS (3 << 24)
+#endif
+
+#ifndef CTSCSR_16_TASKS
 #define CTSCSR_16_TASKS (4 << 24)
+#endif
+
+#ifndef CTSCSR_TASKS_MASK
 #define CTSCSR_TASKS_MASK (CTSCSR_2_TASKS | CTSCSR_4_TASKS | CTSCSR_8_TASKS \
               | CTSCSR_16_TASKS)
+#endif
 
 #define __getctscsr0(_res)                      \
        asm ("mfdcr %[result], 464\n"                   \
@@ -122,12 +142,7 @@
 @Group	FSL_VERIF_FATAL_FLAGS_DEFINES Verification Fatal CMD Defines
 @{
 *//***************************************************************************/
-	/* This flag should be set for ASA test environments */
-#define FSL_VERIF_FATAL_FLAG_ASA_TEST				0x00000000
-
-	/* This flag should be set for buffer context test environments */
-#define FSL_VERIF_FATAL_FLAG_BUFF_CTX_TEST			0x00000001
-
+/* Flags are currently not used */
 /** @} */ /* end of FSL_VERIF_FATAL_FLAGS_DEFINES */
 
 /**************************************************************************//**

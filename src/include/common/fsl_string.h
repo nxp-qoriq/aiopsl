@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Freescale Semiconductor, Inc.
+ * Copyright 2014-2015 Freescale Semiconductor, Inc.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -33,7 +33,7 @@
 #ifndef __FSL_STRING_H
 #define __FSL_STRING_H
 
-
+#include "common/types.h"
 #if defined(SYS_OS_LINUX) && defined(__KERNEL__)
 #include <linux/kernel.h>
 #include <linux/string.h>
@@ -47,7 +47,7 @@ extern char * strtok ( char * str, const char * delimiters );
 
 #endif /* defined(SYS_OS_LINUX) && defined(__KERNEL__) */
 
-#include "common/types.h"
+
 
 
 /**************************************************************************//**

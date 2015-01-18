@@ -29,7 +29,7 @@ Setup
 Execution flow
 ===========================================
 1. Import the MC and AIOP projects into CodeWarrior:
-   mc/build/mc_t4ls_sim/mc_app/.project
+   mc/build/mc_sim/mc_app/.project
    aiopsl/build/aiop_sim/apps/app_process_packet/.project
 2. Build both projects in CW.
 3. Copy the resulting ELF file from the build project folder(aiop_app.elf)
@@ -63,12 +63,5 @@ Possible modifications:
 4. The user may use different simulator port
 5. The demo runs in MC integrated mode. MC loads AIOP and kicks the AIOP cores.
    Please note that the standalone mode is being phased out and is no longer verified.
-
-===========================================
-ARENA sets the following default values for every NI:
-===========================================
-MTU = maximal value
-Same parser profile id for all NIs
-
 
 

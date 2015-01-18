@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Freescale Semiconductor, Inc.
+ * Copyright 2014-2015 Freescale Semiconductor, Inc.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -45,6 +45,7 @@ void app_free(void);
 int ipsec_app_init(uint16_t ni_id);
 void ipsec_print_frame(void);
 void ipsec_print_stats (ipsec_handle_t desc_handle);
+void ipsec_print_sp (uint16_t ni_spid);
 
 #define APP_NI_GET(ARG)   ((uint16_t)((ARG) & 0x0000FFFF))
 /**< Get NI from callback argument, it's demo specific macro */
@@ -55,7 +56,7 @@ void ipsec_print_stats (ipsec_handle_t desc_handle);
 ipsec_instance_handle_t ipsec_instance_handle;
 ipsec_handle_t ipsec_sa_desc_outbound;
 ipsec_handle_t ipsec_sa_desc_inbound; 
-uint32_t frame_number; 
+uint32_t frame_number = 0; 
 
 static void app_process_packet_flow0 (dpni_drv_app_arg_t arg)
 {
@@ -73,6 +74,14 @@ static void app_process_packet_flow0 (dpni_drv_app_arg_t arg)
 	uint32_t frame_len = LDPAA_FD_GET_LENGTH(HWC_FD_ADDRESS);
 	original_frame_len = frame_len;
 	uint16_t seg_len = PRC_GET_SEGMENT_LENGTH();
+	
+	/* IPsec Initialization, happens with the first frame received */
+	if (frame_number == 0) {
+		err = ipsec_app_init(0); /* Call with NI ID = 0 */
+		if (err) {
+			fsl_os_print("ERROR: IPsec initialization failed\n");
+		}
+	}
 	
 	ipsec_handle_t ws_desc_handle_outbound = ipsec_sa_desc_outbound;
 	ipsec_handle_t ws_desc_handle_inbound = ipsec_sa_desc_inbound; 
@@ -183,7 +192,7 @@ static void app_process_packet_flow0 (dpni_drv_app_arg_t arg)
 		}
 	}
 	
-	if(!local_test_error) /*No error found during injection of packets*/
+	if(!local_test_error) /* No error found during injection of packets*/
 	{
 		fsl_os_print("Finished SUCCESSFULLY\n");
 		fsl_os_print("\nFrame after decryption the same as origin\n\n");
@@ -237,20 +246,7 @@ static int close_cb(void *dev)
 	fsl_os_print("close_cb\n");
 	return 0;
 }
-/*
-static int ctrl_cb(void *dev, uint16_t cmd, uint32_t size, uint64_t data)
-{
-	UNUSED(dev);
-	UNUSED(size);
-	UNUSED(data);
-	fsl_os_print("ctrl_cb cmd = 0x%x, size = %d, data high= 0x%x data low= 0x%x\n",
-	             cmd,
-	             size,
-	             (uint32_t)((data & 0xFF00000000) >> 32),
-	             (uint32_t)(data & 0xFFFFFFFF));
-	return 0;
-}
-*/
+
 static int ctrl_cb(void *dev, uint16_t cmd, uint32_t size, void *data)
 {
 	UNUSED(dev);
@@ -299,13 +295,14 @@ int app_init(void)
 	}
 
 	/* IPsec Initialization */
-	err = ipsec_app_init(0); /* Call with NI ID = 0 */
-	if (err) {
-		fsl_os_print("ERROR: IPsec initialization failed\n");
-		return err;
-	}
+	//err = ipsec_app_init(0); /* Call with NI ID = 0 */
+	//if (err) {
+	//	fsl_os_print("ERROR: IPsec initialization failed\n");
+	//	return err;
+	//}
 	
 	fsl_os_print("To start test inject packets: \"eth_ipv4_udp.pcap\"\n");
+	fsl_os_print("(IPsec initialization will occur when the first frame is received)\n");
 	return 0;
 }
 
@@ -336,119 +333,23 @@ int ipsec_app_init(uint16_t ni_id)
 	uint32_t outer_header_ip_version;
 	uint16_t ni_spid;
 	
-	/* Debug ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ */
-	//FILE* config_file;
-
-
-//#define IPSEC_SET_SP
-#ifdef IPSEC_SET_SP
-
-	// Temporary initialize the Storage Profile #0 */
-	
-	extern struct storage_profile storage_profile; //TMP
-	
-	struct storage_profile storage_profiles[2]; //TMP
-	
-	struct storage_profile *sp_addr = &storage_profile;
-
-	/* Set Storage Profile */
-	storage_profiles[SP_DEFAULT].ip_secific_sp_info = 0;
-	storage_profiles[SP_DEFAULT].dl = 0;
-	storage_profiles[SP_DEFAULT].reserved = 0;
-	/* 0x0080 --> 0x8000 (little endian) */
-	storage_profiles[SP_DEFAULT].dhr = 0x8000;
-	/*storage_profiles[SP_DEFAULT].dhr = 0x0080; */
-	storage_profiles[SP_DEFAULT].mode_bits1 = (mode_bits1_PTAR | mode_bits1_SGHR |
-			mode_bits1_ASAR);
-	storage_profiles[SP_DEFAULT].mode_bits2 = (mode_bits2_BS | mode_bits2_FF |
-			mode_bits2_VA | mode_bits2_DLC);
-	/* buffer size is 2048 bytes, so PBS should be 32 (0x20).
-	 * 0x0801 --> 0x0108 (little endian) */
-	storage_profiles[SP_DEFAULT].pbs1 = 0x0108;
-	/* BPID=0 */
-	//storage_profiles[SP_DEFAULT].bpid1 = 0x0000;
-	storage_profiles[SP_DEFAULT].bpid1 = 0x0a00; // Yariv - BPID = 10
-	
-	/* buffer size is 2048 bytes, so PBS should be 32 (0x20).
-	* 0x0801 --> 0x0108 (little endian) */
-	storage_profiles[SP_DEFAULT].pbs2 = 0x0108;
-	/* BPID=0 */
-//	storage_profiles[SP_DEFAULT].bpid2 = 0x0000;
-	storage_profiles[SP_DEFAULT].bpid2 = 0x0a00; // Yariv - BPID = 10
-
-	storage_profiles[SP_DEFAULT].pbs3 = 0x0000;
-	storage_profiles[SP_DEFAULT].bpid3 = 0x0000;
-	storage_profiles[SP_DEFAULT].pbs4 = 0x0000;
-	storage_profiles[SP_DEFAULT].bpid4 = 0x0000;
-
-	fsl_os_print("\n*** Debug: NEW storage_profiles[0].bpid1 = 0x%x\n", storage_profiles[0].bpid1);
-	fsl_os_print("*** Debug: NEW storage_profiles[0].dhr = 0x%x\n", storage_profiles[0].dhr);
-	fsl_os_print("*** Debug: NEW storage_profiles[0].pbs1 = 0x%x\n\n", storage_profiles[0].pbs1);
-	
-	storage_profile = storage_profiles[0];
-
-	fsl_os_print("*** Debug: storage_profile (0): 0x%x\n", *(((uint32_t *)((uint32_t *)sp_addr + 0))));
-	fsl_os_print("*** Debug: storage_profile (1): 0x%x\n", *((uint32_t *)sp_addr + 1));
-	fsl_os_print("*** Debug: storage_profile (2): 0x%x\n", *((uint32_t *)sp_addr + 2));
-	fsl_os_print("*** Debug: storage_profile (3): 0x%x\n", *((uint32_t *)sp_addr + 3));
-	fsl_os_print("*** Debug: storage_profile (4): 0x%x\n", *((uint32_t *)sp_addr + 4));
-	fsl_os_print("*** Debug: storage_profile (5): 0x%x\n", *((uint32_t *)sp_addr + 5));
-	fsl_os_print("*** Debug: storage_profile (6): 0x%x\n", *((uint32_t *)sp_addr + 6));
-	fsl_os_print("*** Debug: storage_profile (7): 0x%x\n", *((uint32_t *)sp_addr + 7));
-
-	ni_spid = 0;
-	
-#else	
-	extern struct storage_profile storage_profile; /* TMP for printing the SP */
-	struct storage_profile *sp_addr = &storage_profile; /* TMP for printing the SP */
-
-		dpni_drv_get_spid(
-			ni_id, /* uint16_t ni_id */ 
-			&ni_spid /* uint16_t *spid */
-			);
-		fsl_os_print("*** Debug: SPID = %d\n", ni_spid);
-
-		sp_addr += ni_spid; /* TMP for printing the SP */
-
-#define ENGR326586_WA
-#ifdef ENGR326586_WA
-		/* BPID0 is invalid and BPID1 is valid, copy BPID1 to BPID0 in the SP 
-		 * and then clear BPID1*/
-		if ((*((uint32_t *)sp_addr + 4) == 0) && (*((uint32_t *)sp_addr + 5) != 0)) { 
-			fsl_os_print("*** Debug: Overwriting storage profile BPID0 \n");
-			*((uint32_t *)sp_addr + 4) = *((uint32_t *)sp_addr + 5);
-		
-			fsl_os_print("*** Debug: Clearing storage profile BPID1 \n");
-			*((uint32_t *)sp_addr + 5) = 0;
-		}
-		
-#endif /* ENGR326586_WA */	
-		
-		//fsl_os_print("*** Debug: storage_profile (0): 0x%x\n", *(((uint32_t *)((uint32_t *)sp_addr + 0))));
-		fsl_os_print("*** Debug: storage_profile (0): 0x%x\n", *((uint32_t *)sp_addr + 0));
-		fsl_os_print("*** Debug: storage_profile (1): 0x%x\n", *((uint32_t *)sp_addr + 1));
-		fsl_os_print("*** Debug: storage_profile (2): 0x%x\n", *((uint32_t *)sp_addr + 2));
-		fsl_os_print("*** Debug: storage_profile (3): 0x%x\n", *((uint32_t *)sp_addr + 3));
-		fsl_os_print("*** Debug: storage_profile (4): 0x%x\n", *((uint32_t *)sp_addr + 4));
-		fsl_os_print("*** Debug: storage_profile (5): 0x%x\n", *((uint32_t *)sp_addr + 5));
-		fsl_os_print("*** Debug: storage_profile (6): 0x%x\n", *((uint32_t *)sp_addr + 6));
-		fsl_os_print("*** Debug: storage_profile (7): 0x%x\n", *((uint32_t *)sp_addr + 7));	
-		
-#endif /* IPSEC_SET_SP */
-	
-	/* End Debug ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ */
-	
 	enum key_types {
 		NULL_ENCRYPTION = 0,
 		 AES128_SHA256
 	};
 	
+	/**********************************************************/
+	/*                    Control Parameters                  */
+	/**********************************************************/
 	/* Set the required algorithms here */
 	//algs = NULL_ENCRYPTION;
 	algs = AES128_SHA256;
 
-	ipsec_instance_handle_t ws_instance_handle = 0;
+	/* Set the outer IP header type here */
+	outer_header_ip_version = 6; /* 4 or 6 */
+	/**********************************************************/
 
+	ipsec_instance_handle_t ws_instance_handle = 0;
 	ipsec_handle_t ws_desc_handle_outbound = 0;
 	ipsec_handle_t ws_desc_handle_inbound = 0; 
 	
@@ -459,6 +360,19 @@ int ipsec_app_init(uint16_t ni_id)
 	frame_number = 0;
 	
 	fsl_os_print("\n++++\n  IPsec Demo: Doing IPsec Initialization\n+++\n");
+	
+	dpni_drv_get_spid(
+		ni_id, /* uint16_t ni_id */ 
+		&ni_spid /* uint16_t *spid */
+		);
+	
+	fsl_os_print("IPsec Demo: SPID = %d\n", ni_spid);
+
+#define IPSEC_DEBUG_PRINT_SP
+#ifdef IPSEC_DEBUG_PRINT_SP
+	ipsec_print_sp (ni_spid);
+#endif
+	
 	err = ipsec_create_instance(
 			10, /* committed sa num */
 			20, /* max sa num */
@@ -553,9 +467,6 @@ int ipsec_app_init(uint16_t ni_id)
 			auth_keylen = 16; 
 	}
 	
-	/* Encryption Descriptor Parameters */
-	outer_header_ip_version = 6; /* 4 or 6 */
-	
 	/* Outer IP header */
 	if (outer_header_ip_version == 4) {
 		outer_ip_header[0] = 0x45db0014;
@@ -584,7 +495,6 @@ int ipsec_app_init(uint16_t ni_id)
 	
 	/* Outbound (encryption) parameters */
 	params.direction = IPSEC_DIRECTION_OUTBOUND; /**< Descriptor direction */
-	//params.flags = IPSEC_FLG_TUNNEL_MODE; /**< Miscellaneous control flags */
 	params.flags = IPSEC_FLG_TUNNEL_MODE |
 			IPSEC_FLG_LIFETIME_KB_CNTR_EN | IPSEC_FLG_LIFETIME_PKT_CNTR_EN; 
 			/**< Miscellaneous control flags */
@@ -683,7 +593,6 @@ int ipsec_app_init(uint16_t ni_id)
 			&params,
 			ws_instance_handle,
 			&ws_desc_handle_inbound);
-
 	
 	handle_high = (uint32_t)((ws_desc_handle_inbound & 0xffffffff00000000)>>32);
 	handle_low = (uint32_t)(ws_desc_handle_inbound & 0x00000000ffffffff);
@@ -744,7 +653,6 @@ void ipsec_print_frame(void) {
 		fsl_os_print("\n");
 } /* End of ipsec_print_frame */
 
-
 void ipsec_print_stats (ipsec_handle_t desc_handle) {
 	int err = 0;
 	uint64_t kilobytes;
@@ -789,3 +697,20 @@ void ipsec_print_stats (ipsec_handle_t desc_handle) {
 		anti_replay_bitmap[2], anti_replay_bitmap[3]);
 } /* End of ipsec_print_stats */
 
+void ipsec_print_sp (uint16_t ni_spid) {
+	extern struct storage_profile storage_profile[SP_NUM_OF_STORAGE_PROFILES];
+	struct storage_profile *sp_addr = &storage_profile[0];
+
+	/* Debug - Print the storage profile */
+	sp_addr += ni_spid; /* TMP for printing the SP */
+
+	fsl_os_print("*** Debug: storage_profile (0): 0x%x\n", *((uint32_t *)sp_addr + 0));
+	fsl_os_print("*** Debug: storage_profile (1): 0x%x\n", *((uint32_t *)sp_addr + 1));
+	fsl_os_print("*** Debug: storage_profile (2): 0x%x\n", *((uint32_t *)sp_addr + 2));
+	fsl_os_print("*** Debug: storage_profile (3): 0x%x\n", *((uint32_t *)sp_addr + 3));
+	fsl_os_print("*** Debug: storage_profile (4): 0x%x\n", *((uint32_t *)sp_addr + 4));
+	fsl_os_print("*** Debug: storage_profile (5): 0x%x\n", *((uint32_t *)sp_addr + 5));
+	fsl_os_print("*** Debug: storage_profile (6): 0x%x\n", *((uint32_t *)sp_addr + 6));
+	fsl_os_print("*** Debug: storage_profile (7): 0x%x\n", *((uint32_t *)sp_addr + 7));	
+} /* End of ipsec_print_sp */
+	

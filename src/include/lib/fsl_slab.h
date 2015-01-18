@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Freescale Semiconductor, Inc.
+ * Copyright 2014-2015 Freescale Semiconductor, Inc.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -212,7 +212,7 @@ int slab_debug_info_get(struct slab *slab, struct slab_debug_info *slab_info);
 @Param[in]	buff_size           Size of buffers in pool.
 @Param[in]	alignment           Requested alignment for data in bytes.
 		AIOP: HW pool supports up to 8 bytes alignment.
-@Param[in]	mem_partition_id    Memory partition ID for allocation.
+@Param[in]	mem_pid             Memory partition ID for allocation.
 		AIOP: HW pool supports only PEB and DPAA DDR.
 @Param[in]	flags               Set it to 0 for default.
 @Param[in]	num_ddr_pools       Number of pools needed in the future 
@@ -222,7 +222,7 @@ int slab_debug_info_get(struct slab *slab, struct slab_debug_info *slab_info);
 		Alignment <= Buffer size + Meta data.
 @Return		0        - on success,
 		-ENAVAIL - resource not available or not found,
-		-ENOMEM  - not enough memory for mem_partition_id
+		-ENOMEM  - not enough memory for requested memory partition
  *//***************************************************************************/
 int slab_register_context_buffer_requirements(uint32_t    committed_buffs,
                                               uint32_t    max_buffs,

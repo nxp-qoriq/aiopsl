@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Freescale Semiconductor, Inc.
+ * Copyright 2014-2015 Freescale Semiconductor, Inc.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -38,7 +38,7 @@
 
 
 /**************************************************************************//**
- @Group		ACCEL ACCEL (Accelerator APIs)
+ @Group		ACCEL Accelerators APIs
 
  @Description	AIOP Accelerator APIs
 
@@ -75,9 +75,9 @@ typedef void /*__noreturn*/ (*tman_cb_t) (
 
 
 /**************************************************************************//**
-@Group		TMANMacroes TMAN MACROES
+@Group		TMANMacroes TMAN MACROS
 
-@Description	AIOP TMAN Macroes
+@Description	AIOP TMAN Macros
 @{
 *//***************************************************************************/
 
@@ -138,7 +138,7 @@ struct tman_tmi_params {
 *//***************************************************************************/
 
 #ifdef REV2
-	/** If set, TMI active timers will be deleted without creating new
+/** If set, TMI active timers will be deleted without creating new
 	     expiration tasks. */
 #define TMAN_INS_DELETE_MODE_WO_EXPIRATION 0x1011
 #endif
@@ -187,18 +187,20 @@ struct tman_tmi_params {
 
 	/** 1 uSec timer ticks*/
 #define TMAN_CREATE_TIMER_MODE_USEC_GRANULARITY		0x00000000
-	/** 10 uSec timer ticks*/
-#define TMAN_CREATE_TIMER_MODE_10_USEC_GRANULARITY	0x00010000
 	/** 100 uSec timer ticks*/
 #define TMAN_CREATE_TIMER_MODE_100_USEC_GRANULARITY	0x00020000
-	/** 1 mSec timer ticks*/
-#define TMAN_CREATE_TIMER_MODE_MSEC_GRANULARITY		0x00030000
 	/** 10 mSec timer ticks*/
 #define TMAN_CREATE_TIMER_MODE_10_MSEC_GRANULARITY	0x00040000
+	/** 1 Sec timer ticks*/
+#ifdef REV2
+#define TMAN_CREATE_TIMER_MODE_SEC_GRANULARITY		0x00060000
+	/** 10 uSec timer ticks*/
+#define TMAN_CREATE_TIMER_MODE_10_USEC_GRANULARITY	0x00010000
+	/** 1 mSec timer ticks*/
+#define TMAN_CREATE_TIMER_MODE_MSEC_GRANULARITY		0x00030000
 	/** 100 mSec timer ticks*/
 #define TMAN_CREATE_TIMER_MODE_100_MSEC_GRANULARITY	0x00050000
-	/** 1 Sec timer ticks*/
-#define TMAN_CREATE_TIMER_MODE_SEC_GRANULARITY		0x00060000
+#endif
 
 	/** TMAN Priority. If set, the timer would be treated with higher
 	     accuracy and delivered quicker to the expiration queue at the
@@ -218,20 +220,22 @@ struct tman_tmi_params {
 
 /** @} end of group TMANTimerCreateModeBits */
 
-/*! \enum e_tman_query_timer Defines the TMAN query timer state.*/
+/** \enum e_tman_query_timer Defines the TMAN query timer state.*/
 enum e_tman_query_timer {
 	/** The timer is non active (in free timer list) */
 	TMAN_TIMER_NON_ACTIVE = 0,
-	/** The timer is in non active and waiting for callback confirmation */
+	/** The timer is in non active and also waiting for callback
+	 * confirmation */
 	TMAN_TIMER_NON_ACTIVE_WAIT_CONF,
 	/** The timer is active */
 	TMAN_TIMER_RUNNING = 4,
-	/** The timer is active. The timer has elapsed and waiting for callback
-	 *  confirmation */
+	/** The periodic timer is active. The timer has elapsed and is also 
+	 * waiting for callback confirmation */
 	TMAN_TIMER_RUNNING_WAIT_CONF,
 	/** The timer is being deleted */
 	TMAN_TIMER_BEING_DELETED,
-	/** The timer is being deleted and waiting for callback confirmation */
+	/** The periodic timer is being deleted and also waiting for callback
+	 * confirmation */
 	TMAN_TIMER_BEING_DELETED_WAIT_CONF
 };
 
@@ -311,6 +315,7 @@ void tman_delete_tmi(tman_cb_t tman_confirm_cb, uint32_t flags,
 			uint8_t tmi_id, tman_arg_8B_t conf_opaque_data1,
 			tman_arg_2B_t conf_opaque_data2);
 
+#ifdef REV2
 /**************************************************************************//**
 @Function	tman_query_tmi
 
@@ -333,6 +338,7 @@ void tman_delete_tmi(tman_cb_t tman_confirm_cb, uint32_t flags,
 *//***************************************************************************/
 int tman_query_tmi(uint8_t tmi_id,
 			struct tman_tmi_params *output_ptr);
+#endif
 
 /**************************************************************************//**
 @Function	tman_create_timer

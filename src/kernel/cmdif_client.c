@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Freescale Semiconductor, Inc.
+ * Copyright 2014-2015 Freescale Semiconductor, Inc.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -36,7 +36,7 @@
 #include "cmdif.h"
 #include "fsl_cmdif_fd.h"
 #include "fsl_cmdif_flib_c.h"
-#include "dplib/fsl_dprc.h"
+#include "fsl_dprc.h"
 #include "fsl_fdma.h"
 #include "fdma.h"
 #include "fsl_cdma.h"
@@ -54,6 +54,8 @@ int cmdif_client_init();
 void cmdif_cl_isr();
 
 __TASK static struct ldpaa_fd _fd __attribute__((aligned(sizeof(struct ldpaa_fd))));
+
+extern struct icontext icontext_aiop;
 
 static inline int send_fd(int pr, void *_sdev)
 {
@@ -113,12 +115,12 @@ static int session_get(const char *m_name,
 	if (i >= 0) {
 		struct cmdif_dev *dev = (struct cmdif_dev *)cl->gpp[i].dev;
 		cidesc->regs = (void *)cl->gpp[i].regs;
-		cidesc->dev  = (void *)cl->gpp[i].dev;
+		cidesc->dev  = (void *)dev;
 		unlock_spinlock(&cl->lock);
 		/* Must be here to prevent deadlocks because 
 		 * the same lock is used */
 		return icontext_get((uint16_t)dpci_id, \
-		             (struct icontext *)(&(cl->gpp[i].dev->reserved[0])));
+		             (struct icontext *)(&(dev->reserved[0])));
 	}
 
 	unlock_spinlock(&cl->lock);
@@ -136,9 +138,12 @@ __COLD_CODE int cmdif_client_init()
 		return -ENODEV;
 	}
 
-	cl = fsl_os_xmalloc(sizeof(struct cmdif_cl),
+	/*cl = fsl_os_xmalloc(sizeof(struct cmdif_cl),
 	                    MEM_PART_SH_RAM,
 	                    8);
+	                    */
+	cl = fsl_malloc(sizeof(struct cmdif_cl),
+		                    8);
 	if (cl == NULL) {
 		pr_err("No memory for client handle\n");
 		return -ENOMEM;
@@ -147,12 +152,16 @@ __COLD_CODE int cmdif_client_init()
 	memset(cl, 0, sizeof(struct cmdif_cl));
 
 	for (i = 0; i < CMDIF_MN_SESSIONS; i++) {
-		cl->gpp[i].regs = fsl_os_xmalloc(sizeof(struct cmdif_reg),
+		/*cl->gpp[i].regs = fsl_os_xmalloc(sizeof(struct cmdif_reg),
 		                                 MEM_PART_SH_RAM,
+		                                 8);*/
+		cl->gpp[i].regs = fsl_malloc(sizeof(struct cmdif_reg),
 		                                 8);
-		cl->gpp[i].dev = fsl_os_xmalloc(sizeof(struct cmdif_dev),
+		/*cl->gpp[i].dev = fsl_os_xmalloc(sizeof(struct cmdif_dev),
 		                                 MEM_PART_SH_RAM,
-		                                 8);
+		                                 8);*/
+		cl->gpp[i].dev = fsl_malloc(sizeof(struct cmdif_dev),
+				                                 8);
 		if ((cl->gpp[i].regs == NULL) || (cl->gpp[i].dev == NULL)) {
 			pr_err("No memory for client handle\n");
 			return -ENOMEM;
@@ -180,11 +189,11 @@ __COLD_CODE void cmdif_client_free()
 	if (cl != NULL) {
 		for (i = 0; i < CMDIF_MN_SESSIONS; i++) {
 			if (cl->gpp[i].regs != NULL)
-				fsl_os_xfree(cl->gpp[i].regs);
+				fsl_free(cl->gpp[i].regs);
 			if (cl->gpp[i].dev != NULL)
-				fsl_os_xfree(cl->gpp[i].dev);
+				fsl_free(cl->gpp[i].dev);
 		}
-		fsl_os_xfree(cl);
+		fsl_free(cl);
 	}
 
 }
@@ -260,7 +269,7 @@ int cmdif_send(struct cmdif_desc *cidesc,
 		async_data.async_ctx = (uint64_t)async_ctx;
 		ASSERT_COND_LIGHT(sizeof(struct icontext) <= CMDIF_DEV_RESERVED_BYTES);
 		icontext_dma_write((struct icontext *)(&(dev->reserved[0])), 
-		                   sizeof(struct cmdif_async), 
+		                   (uint16_t)sizeof(struct cmdif_async), 
 		                   &async_data, 
 		                   CMDIF_ASYNC_ADDR_GET(fd.u_addr.d_addr, fd.d_size));
 #ifdef DEBUG
@@ -329,13 +338,17 @@ void cmdif_cl_isr(void)
 		         CPU_TO_SRV16(fd.u_flc.cmd.cmid));
 	
 	ASSERT_COND_LIGHT((fd.d_size > 0) && (fd.u_addr.d_addr != NULL));
+	async_data.async_cb  = 0;
+	async_data.async_ctx = 0;
 	icontext_dma_read((struct icontext *)(&(CMDIF_DEV_GET(&fd)->reserved[0])), 
-	                   sizeof(struct cmdif_async),
+	                   (uint16_t)sizeof(struct cmdif_async),
 	                   CMDIF_ASYNC_ADDR_GET(fd.u_addr.d_addr, fd.d_size),
 	                   &async_data);
 
 
 	ASSERT_COND_LIGHT(async_data.async_cb);
+	/* In WS there must be AIOP ICID */
+	SET_AIOP_ICID;
 	if (((cmdif_cb_t *)async_data.async_cb)((void *)async_data.async_ctx,
 		fd.u_flc.cmd.err,
 		CPU_TO_SRV16(fd.u_flc.cmd.cmid),
@@ -349,7 +362,7 @@ void cmdif_cl_isr(void)
 	pr_debug("PASSED got async response for cmd 0x%x\n", \
 	         CPU_TO_SRV16(fd.u_flc.cmd.cmid));
 
-	fdma_store_default_frame_data();
+	CMDIF_STORE_DATA;
 	fdma_terminate_task();
 }
 

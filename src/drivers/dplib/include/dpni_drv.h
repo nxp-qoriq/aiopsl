@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Freescale Semiconductor, Inc.
+ * Copyright 2014-2015 Freescale Semiconductor, Inc.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -35,6 +35,7 @@
 #include "types.h"
 #include "fsl_dpni.h"
 #include "fsl_ldpaa.h"
+#include "fsl_platform.h"
 
 /**************************************************************************//**
 @Group		grp_dplib_aiop	DPLIB
@@ -52,7 +53,21 @@
 *//***************************************************************************/
 
 /* TODO - move to soc files */
-#define SOC_MAX_NUM_OF_DPNI		128
+#define SOC_MAX_NUM_OF_DPNI		64
+
+#define DPNI_DRV_FAST_MEMORY    MEM_PART_PEB
+#define DPNI_DRV_DDR_MEMORY     MEM_PART_DP_DDR
+#define DPNI_DRV_NUM_USED_BPIDS   BPIDS_USED_FOR_POOLS_IN_DPNI
+#define DPNI_DRV_PEB_BPID_IDX         0
+#define DPNI_DRV_DDR_BPID_IDX         1
+#define SP_MASK_BMT_AND_RSV       0xC000FFFF
+#define SP_MASK_BPID              0x3FFF
+#define ORDER_MODE_CLEAR_BIT      0xFEFFFFFF /*clear the bit for exclusive / concurrent mode*/
+#define ORDER_MODE_BIT_MASK       0x01000000
+#define DPNI_DRV_CONCURRENT_MODE      0
+#define DPNI_DRV_EXCLUSIVE_MODE       1
+#define PARAMS_IOVA_BUFF_SIZE         256
+#define PARAMS_IOVA_ALIGNMENT         8
 
 /**************************************************************************//**
 @Group	DPNI_DRV_STATUS
@@ -67,6 +82,28 @@ typedef uint64_t	dpni_drv_app_arg_t;
 /* TODO: need to define stats */
 struct dpni_stats {
 	int num_pkts;
+};
+
+
+/**************************************************************************//**
+@Description   Information for every bpid
+*//***************************************************************************/
+struct aiop_psram_entry {
+    uint32_t    aiop_specific;
+    /**< IP-Specific Storage Profile Information (e.g., ICIDs, cache controls, etc. */
+    uint32_t    reserved0;
+
+    uint32_t    frame_format_low;
+    /**< Frame Format and Data Placement Controls */
+    uint32_t    frame_format_high;
+    /**< Frame Format and Data Placement Controls */
+
+    uint32_t    bp1;
+    /**< Buffer Pool 1 Attributes and Controls */
+    uint32_t    bp2;
+    /**< Buffer Pool 2 Attributes and Controls */
+    uint32_t    reserved1;
+    uint32_t    reserved2;
 };
 
 /**************************************************************************//**
@@ -179,17 +216,6 @@ int dpni_drv_register_discard_rx_cb(
 		rx_cb_t			*cb,
 		dpni_drv_app_arg_t	arg);
 
-/**************************************************************************//**
-@Function	dpni_drv_get_spid
-
-@Description	Function to receive storage profile ID for specified NI.
-
-@Param[in]	ni_id   The Network Interface ID
-@Param[out]	spid - storage profile (for now using 1 byte).
-
-@Return	'0' on Success;
-*//***************************************************************************/
-int dpni_drv_get_spid(uint16_t ni_id, uint16_t *spid);
 
 /**************************************************************************//**
 @Function	dpni_get_num_of_ni
@@ -202,4 +228,32 @@ int dpni_drv_get_spid(uint16_t ni_id, uint16_t *spid);
 *//***************************************************************************/
 int dpni_get_num_of_ni(void);
 
+/**************************************************************************//**
+@Function	dpni_drv_get_ordering_mode
+
+@Description	Returns the configuration in epid table for ordering mode.
+@Param[in]	ni_id - Network Interface ID
+
+@Return	Ordering mode for given NI
+		0 - Concurrent
+		1 - Exclusive
+*//***************************************************************************/
+int dpni_drv_get_ordering_mode(uint16_t ni_id);
+
+/**************************************************************************//**
+@Function	dpni_drv_set_rx_buffer_layout
+
+@Description	Function to change SP’s attributes (specify how many headroom)
+
+@Param[in]	ni_id   The AIOP Network Interface ID
+
+@Param[in]	layout  Structure representing DPNI buffer layout
+
+@warning	Allowed only when DPNI is disabled
+
+@Return	0 on success;
+	error code, otherwise. For error posix refer to \ref error_g
+*//***************************************************************************/
+int dpni_drv_set_rx_buffer_layout(uint16_t ni_id, const struct dpni_buffer_layout *layout);
+/** @} */ /* end of DPNI_DRV_STATUS group */
 #endif /* __DPNI_DRV_H */

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Freescale Semiconductor, Inc.
+ * Copyright 2014-2015 Freescale Semiconductor, Inc.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -42,7 +42,7 @@
  *//***************************************************************************/
 
 /**************************************************************************//**
-@Group		CMDIF_SEND_ATTRIBUTES
+@Group		CMDIF_SEND_ATTRIBUTES Send Attributes
 
 @Description	The attributes to be used with cmdif_send()
 
@@ -122,7 +122,9 @@ typedef int (cmdif_cb_t)(void *async_ctx,
 @Param[in]	data		Buffer to be used by command interface.
 		This address should be accessible by Server and Client.
 		This buffer can be freed only after cmdif_close().
-		On AIOP, set data as NULL.
+		On AIOP, set data as NULL. 
+		On GPP it must be from Write-Back Cacheable and 
+		Outer Shareable memory. 
 @Param[in]	size		Size of the data buffer. If the size is not
 		enough cmdif_open() will return -ENOMEM. On AIOP, set it to 0.
 		By default, set it to #CMDIF_OPEN_SIZE bytes.
@@ -176,6 +178,8 @@ int cmdif_close(struct cmdif_desc *cidesc);
 		It should be virtual address that belongs to current SW context.
 		In case of asynchronous command last 16 bytes must be reserved 
 		for cmdif usage.
+		On GPP it must be from Write-Back Cacheable and 
+		Outer Shareable memory. 		
 @Param[in]	async_cb	Callback to be called on response of
 		asynchronous command.
 @Param[in]	async_ctx	Context to be received with asynchronous

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Freescale Semiconductor, Inc.
+ * Copyright 2014-2015 Freescale Semiconductor, Inc.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -193,7 +193,9 @@ uint16_t aiop_verification_fdma(uint32_t asa_seg_addr)
 			(struct fdma_read_pta_command *) asa_seg_addr;
 		str->status = (int8_t)fdma_read_default_frame_pta(
 				(void *)str->ws_dst);
-		if (LDPAA_FD_GET_PTA(HWC_FD_ADDRESS))
+		if (LDPAA_FD_GET_PTA(HWC_FD_ADDRESS) && 
+		    LDPAA_FD_GET_PTV1(HWC_FD_ADDRESS) &&
+		    LDPAA_FD_GET_PTV2(HWC_FD_ADDRESS))
 			str->seg_length = PTA_SIZE_PTV1_2;
 		else if (LDPAA_FD_GET_PTV1(HWC_FD_ADDRESS))
 			str->seg_length = PTA_SIZE_PTV1;
@@ -548,6 +550,9 @@ uint16_t aiop_verification_fdma(uint32_t asa_seg_addr)
 			(struct fdma_modify_command *) asa_seg_addr;
 
 		fdma_modify_default_segment_data(str->offset, str->size);
+		str->prc = *((struct presentation_context *)HWC_PRC_ADDRESS);
+		str->prc.osrc_oep_osel_osrm = 0;
+		str->prc.param = 0;
 		str->status = SUCCESS;
 		str_size = (uint16_t)
 				sizeof(struct fdma_modify_command);
@@ -579,6 +584,9 @@ uint16_t aiop_verification_fdma(uint32_t asa_seg_addr)
 				str->to_offset, str->to_size,
 				(void *)str->from_ws_src, str->from_size,
 				(void *)str->ws_dst_rs, str->size_rs, flags);
+		str->prc = *((struct presentation_context *)HWC_PRC_ADDRESS);
+		str->prc.osrc_oep_osel_osrm = 0;
+		str->prc.param = 0;
 		if (str->SA == 1)
 			str->seg_length_rs = prc->seg_length;
 		else if (str->SA == 2)
@@ -597,6 +605,9 @@ uint16_t aiop_verification_fdma(uint32_t asa_seg_addr)
 		str->status = (int8_t)fdma_insert_default_segment_data(
 				str->to_offset, (void *)str->from_ws_src,
 				str->insert_size, flags);
+		str->prc = *((struct presentation_context *)HWC_PRC_ADDRESS);
+		str->prc.osrc_oep_osel_osrm = 0;
+		str->prc.param = 0;
 		if (str->SA == 1)
 			str->seg_length_rs = prc->seg_length;
 		else if (str->SA == 2)
@@ -639,6 +650,9 @@ uint16_t aiop_verification_fdma(uint32_t asa_seg_addr)
 			 ((str->SA == 2) ? FDMA_REPLACE_SA_CLOSE_BIT : 0));
 		str->status = (int8_t)fdma_delete_default_segment_data(
 				str->to_offset, str->delete_target_size, flags);
+		str->prc = *((struct presentation_context *)HWC_PRC_ADDRESS);
+		str->prc.osrc_oep_osel_osrm = 0;
+		str->prc.param = 0;
 		if (str->SA == 1)
 			str->seg_length_rs = prc->seg_length;
 		else if (str->SA == 2)
@@ -730,7 +744,9 @@ uint16_t aiop_verification_fdma(uint32_t asa_seg_addr)
 				(enum fdma_pta_size_type)str->size);
 		if (str->SA == 2)
 			str->seg_length = 0;
-		else if (LDPAA_FD_GET_PTA(HWC_FD_ADDRESS))
+		else if (LDPAA_FD_GET_PTA(HWC_FD_ADDRESS) && 
+			 LDPAA_FD_GET_PTV1(HWC_FD_ADDRESS) &&
+			 LDPAA_FD_GET_PTV2(HWC_FD_ADDRESS))
 			str->seg_length = PTA_SIZE_PTV1_2;
 		else if (LDPAA_FD_GET_PTV1(HWC_FD_ADDRESS))
 			str->seg_length = PTA_SIZE_PTV1;

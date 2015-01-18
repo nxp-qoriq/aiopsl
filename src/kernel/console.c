@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Freescale Semiconductor, Inc.
+ * Copyright 2014-2015 Freescale Semiconductor, Inc.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -33,8 +33,7 @@
 #include "inc/console.h"
 #include "sys.h"
 
-/* Global System Object */
-extern t_system sys;
+
 
 #ifdef SIMULATOR
 static int system_call(int num, int arg0, int arg1, int arg2, int arg3)

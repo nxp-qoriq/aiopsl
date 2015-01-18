@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Freescale Semiconductor, Inc.
+ * Copyright 2014-2015 Freescale Semiconductor, Inc.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -328,17 +328,28 @@ int ipsec_generate_encap_sd(
 		case IPSEC_CIPHER_DES_IV64:
 		case IPSEC_CIPHER_DES:
 		case IPSEC_CIPHER_3DES:
-		case IPSEC_CIPHER_AES_XTS: // TODO: check if this is correct
 		case IPSEC_CIPHER_NULL: /* No usage of IV for null encryption */
 			cipher_type = CIPHER_TYPE_CBC;
 			break;
 		case IPSEC_CIPHER_AES_CTR:
 			cipher_type = CIPHER_TYPE_CTR;
 			break;
+		/* To construct the CCM B0, SEC uses the B0 flags byte of the PDB
+		 * according to the size of ICV transmitted.
+		 * For an 8-byte ICV, select a value of 5Bh.
+		 * For a 12-byte ICV, select a value of 6Bh.
+		 * For a 16-byte ICV, select a value of 7Bh. */
 		case IPSEC_CIPHER_AES_CCM8:
+			cipher_type = CIPHER_TYPE_CCM;
+			pdb.ccm.b0_flags = 0x5B;
+			break;
 		case IPSEC_CIPHER_AES_CCM12:
+			cipher_type = CIPHER_TYPE_CCM;
+			pdb.ccm.b0_flags = 0x6B;
+			break;
 		case IPSEC_CIPHER_AES_CCM16:
 			cipher_type = CIPHER_TYPE_CCM;
+			pdb.ccm.b0_flags = 0x7B;
 			break;
 		case IPSEC_CIPHER_AES_GCM8:
 		case IPSEC_CIPHER_AES_GCM12:
@@ -374,7 +385,7 @@ int ipsec_generate_encap_sd(
 			/*	uint16_t ctr_initial; */
 			/*	uint32_t iv[2]; */
 			pdb.ccm.salt = params->encparams.ccm.salt;
-			pdb.ccm.b0_flags = 0;
+			/* Note: pdb.ccm.b0_flags is set according to the ICV length */
 			pdb.ccm.ctr_flags = 0;
 			pdb.ccm.ctr_initial = 0;
 			pdb.ccm.iv[0] = params->encparams.ccm.iv[0];
@@ -556,18 +567,31 @@ int ipsec_generate_decap_sd(
 		case IPSEC_CIPHER_DES_IV64:
 		case IPSEC_CIPHER_DES:
 		case IPSEC_CIPHER_3DES:
-		case IPSEC_CIPHER_AES_XTS: // TODO: check if this is correct
 		case IPSEC_CIPHER_NULL: /* No usage of IV for null encryption */
 			cipher_type = CIPHER_TYPE_CBC;
 			break;
 		case IPSEC_CIPHER_AES_CTR:
 			cipher_type = CIPHER_TYPE_CTR;
 			break;
+		
+		/* To construct the CCM B0, SEC uses the B0 flags byte of the PDB
+		 * according to the size of ICV transmitted.
+		 * For an 8-byte ICV, select a value of 5Bh.
+		 * For a 12-byte ICV, select a value of 6Bh.
+		 * For a 16-byte ICV, select a value of 7Bh. */
+		/* (note that it is incorrectly called "iv_flags" in the RTA PDB ) */	
 		case IPSEC_CIPHER_AES_CCM8:
+			cipher_type = CIPHER_TYPE_CCM;
+			pdb.ccm.iv_flags = 0x5B;
+			break;
 		case IPSEC_CIPHER_AES_CCM12:
+			cipher_type = CIPHER_TYPE_CCM;
+			pdb.ccm.iv_flags = 0x6B;
+			break;
 		case IPSEC_CIPHER_AES_CCM16:
 			cipher_type = CIPHER_TYPE_CCM;
-			break;
+			pdb.ccm.iv_flags = 0x7B;
+			break;		
 		case IPSEC_CIPHER_AES_GCM8:
 		case IPSEC_CIPHER_AES_GCM12:
 		case IPSEC_CIPHER_AES_GCM16:
@@ -600,7 +624,7 @@ int ipsec_generate_decap_sd(
 			/* uint8_t ctr_flags; */
 			/* uint16_t ctr_initial; */
 			pdb.ccm.salt = params->decparams.ccm.salt;
-			pdb.ccm.iv_flags = 0;
+			/* pdb.ccm.iv_flags is set above */
 			pdb.ccm.ctr_flags = 0;
 			pdb.ccm.ctr_initial = 0;
 			break;
@@ -754,10 +778,10 @@ void ipsec_generate_flc(
 	
 	struct ipsec_flow_context flow_context;
 
-	extern struct storage_profile storage_profile;
+	extern struct storage_profile storage_profile[SP_NUM_OF_STORAGE_PROFILES];
 	int i;
 	
-	struct storage_profile *sp_addr = &storage_profile;
+	struct storage_profile *sp_addr = &storage_profile[0];
 	uint8_t *sp_byte;
 	
 	sp_addr += spid;
@@ -852,22 +876,35 @@ void ipsec_generate_sa_params(
 		/* 	transport mode, UDP encap, pad check, counters enable, 
 					outer IP version, etc. 4B */
 	
-	/* Add inbound/outbound indication to the flags field */
-	/* Inbound indication is 0, so no action */
 	if (params->direction == IPSEC_DIRECTION_OUTBOUND) {
+		/* Outbound (encryption) */
+		
+		/* Add inbound/outbound indication to the flags field */
+		/* Inbound indication is 0, so no action */
 		sap.sap1.flags |= IPSEC_FLG_DIR_OUTBOUND;
-	}
 	
-	/* Add IPv6/IPv4 indication to the flags field */
-	if ((params->decparams.options) & IPSEC_PDB_OPTIONS_MASK & 
-			IPSEC_OPTS_ESP_IPVSN) {
-		sap.sap1.flags |= IPSEC_FLG_IPV6;
-	}
-	
-	if (params->flags & IPSEC_FLG_TUNNEL_MODE) {
-		if ((*(params->encparams.outer_hdr) & IPSEC_IP_VERSION_MASK) == 
-				IPSEC_IP_VERSION_IPV6) {
-			sap.sap1.flags |= IPSEC_FLG_OUTER_HEADER_IPV6;
+		if (params->flags & IPSEC_FLG_TUNNEL_MODE) {
+			if ((*(params->encparams.outer_hdr) & IPSEC_IP_VERSION_MASK) == 
+					IPSEC_IP_VERSION_IPV6) {
+				sap.sap1.flags |= IPSEC_FLG_OUTER_HEADER_IPV6;
+			}
+		} else {
+			/* Add IPv6/IPv4 indication to the flags field in transport mode */
+			if ((params->encparams.options) & IPSEC_PDB_OPTIONS_MASK & 
+					IPSEC_OPTS_ESP_IPVSN) {
+				sap.sap1.flags |= IPSEC_FLG_IPV6;
+			}
+		}
+		
+	} else {
+		/* Inbound (decryption) */
+
+		if (!(params->flags & IPSEC_FLG_TUNNEL_MODE)) {
+			/* Add IPv6/IPv4 indication to the flags field in transport mode */
+			if ((params->decparams.options) & IPSEC_PDB_OPTIONS_MASK & 
+					IPSEC_OPTS_ESP_IPVSN) {
+				sap.sap1.flags |= IPSEC_FLG_IPV6;
+			}
 		}
 	}
 	
@@ -876,16 +913,9 @@ void ipsec_generate_sa_params(
 	/* UDP Encap for transport mode */
 	sap.sap1.udp_src_port = 0; /* UDP source for transport mode. TMP */
 	sap.sap1.udp_dst_port = 0; /* UDP destination for transport mode. TMP */
-
-	/* Extended sequence number enable */
-	sap.sap1.esn = (uint8_t)(((params->encparams.options) & 
-					IPSEC_PDB_OPTIONS_MASK & IPSEC_ESN_MASK));
-
-	sap.sap1.anti_replay_size = /* none/32/64/128 */ 
-			(uint8_t)(((params->encparams.options) & 
-					IPSEC_PDB_OPTIONS_MASK & IPSEC_ARS_MASK));
 		
-	/* new/reuse mode (TBD) */
+	/* TODO: new/reuse mode (TBD if this indication is required
+	 * or use directly from the storage profile) */
 	sap.sap1.sec_buffer_mode = IPSEC_SEC_NEW_BUFFER_MODE; 
 
 	sap.sap1.output_spid = (uint8_t)(params->spid);
@@ -1070,6 +1100,7 @@ int ipsec_frame_encrypt(
 	uint8_t eth_length = 0; /* Ethernet header length and indicator */ 
 	uint64_t orig_flc;
 	uint32_t orig_frc;
+	uint16_t orig_seg_addr;
 	uint8_t *eth_pointer_default;
 	uint32_t byte_count;
 	uint16_t checksum;
@@ -1087,8 +1118,7 @@ int ipsec_frame_encrypt(
 	
 	*enc_status = 0; /* Initialize */
 	
-	/* 	Outbound frame encryption and encapsulation (ipsec_frame_encrypt) 
-	 * – Simplified Flow */
+	/* 	Outbound frame encryption and encapsulation */
 	
 	desc_addr = IPSEC_DESC_ADDR(ipsec_handle);
 
@@ -1191,7 +1221,11 @@ int ipsec_frame_encrypt(
 	/*---------------------*/
 	/* ipsec_frame_encrypt */
 	/*---------------------*/
-	
+
+	/* Save the original original segment address 
+	 * before the (optional) L2 header removal */
+	orig_seg_addr = PRC_GET_SEGMENT_ADDRESS();
+
 	/* 	4.	Identify if L2 header exist in the frame: */
 	/* Check if Ethernet/802.3 MAC header exist and remove it */
 	if (PARSER_IS_ETH_MAC_DEFAULT()) { /* Check if Ethernet header exist */
@@ -1223,11 +1257,10 @@ int ipsec_frame_encrypt(
 		for (i = 0 ; i < eth_length; i++) {
 			eth_header[i] = *(eth_pointer_default + i);
 		}
-			
+		
 		/* Remove L2 Header */	
 		/* Note: The gross running sum of the frame becomes invalid 
-		 * after calling this function.
-		 */
+		 * after calling this function. */
 		l2_header_remove();
 	}
 
@@ -1299,11 +1332,16 @@ int ipsec_frame_encrypt(
 
 	/* Update the SPID of the new frame (SEC output) in the HW Context*/
 	*((uint8_t *)HWC_SPID_ADDRESS) = sap1.output_spid;
-	
+
+	/* If the L2 header was removed, the segment address have changed, 
+	 * so set the original segment address before opening the new frame 
+	 * (for performance optimization it is done in any case) */
+	PRC_SET_SEGMENT_ADDRESS(orig_seg_addr); 
+			
 	/* Update the default segment length for the new frame  in 
 	 * the presentation context */
 	PRC_SET_SEGMENT_LENGTH(DEFAULT_SEGMENT_SIZE);
-	
+		
 	/* 	11.	FDMA present default frame command (open frame) */
 	return_val = fdma_present_default_frame();
 	// TODO: check for FDMA error
@@ -1467,10 +1505,9 @@ int ipsec_frame_decrypt(
 	uint8_t eth_header[40]; /* Ethernet header place holder, 40 bytes */ 
 	uint8_t eth_length = 0; /* Ethernet header length and indicator */ 
 	uint64_t orig_flc; /* Original FLC */
-	//uint64_t return_flc; /* SEC returned FLC */
 	uint32_t orig_frc;
+	uint16_t orig_seg_addr;
 	uint16_t outer_material_length;
-	//uint16_t running_sum;
 	uint8_t *eth_pointer_default;
 	uint32_t byte_count;
 	uint16_t checksum;
@@ -1553,7 +1590,11 @@ int ipsec_frame_decrypt(
 			/*---------------------*/
 			/* ipsec_frame_decrypt */
 			/*---------------------*/
-
+	
+	/* Save the original segment address, before the (optional) 
+	 * L2 header removal */
+	orig_seg_addr = PRC_GET_SEGMENT_ADDRESS();
+	
 	/* 	4.	Identify if L2 header exist in the frame, 
 	 * and if yes get the L2 header length. */
 	if (PARSER_IS_ETH_MAC_DEFAULT()) { /* Check if Ethernet header exist */
@@ -1637,11 +1678,11 @@ int ipsec_frame_decrypt(
 			for (i = 0 ; i < eth_length; i++) {
 				eth_header[i] = *(eth_pointer_default + i);
 			}
-	
+
 			/* Remove L2 Header */	
 			/* Note: The gross running sum of the frame becomes invalid 
 			 * after calling this function. */ 
-			 l2_header_remove();
+			l2_header_remove();
 			
 			// TODO: 
 			/* For decryption in transport mode it is required to update 
@@ -1706,6 +1747,11 @@ int ipsec_frame_decrypt(
 	/* Update the SPID of the new frame (SEC output) in the HW Context*/
 	*((uint8_t *)HWC_SPID_ADDRESS) = sap1.output_spid;
 	
+	/* If the L2 header was removed, the segment address have changed, 
+	 * so set the original segment address before opening the new frame. 
+	 * (for performance optimization it is done in any case) */
+	PRC_SET_SEGMENT_ADDRESS(orig_seg_addr); 
+	
 	/* Update the default segment length for the new frame  in 
 	 * the presentation context */
 	PRC_SET_SEGMENT_LENGTH(DEFAULT_SEGMENT_SIZE);
@@ -1735,7 +1781,7 @@ int ipsec_frame_decrypt(
 			return_val = -1;
 			break;
 		default:
-			*dec_status |= IPSEC_GEN_ENCR_ERR;	
+			*dec_status |= IPSEC_GEN_DECR_ERR;	
 			return_val = -1;
 	}
 
@@ -1973,6 +2019,7 @@ int ipsec_get_seq_num(
 	int return_val;
 	ipsec_handle_t desc_addr;
 	uint32_t params_flags;
+	uint8_t pdb_options;
 
 	union {
 		struct ipsec_encap_pdb encap_pdb;
@@ -2001,6 +2048,7 @@ int ipsec_get_seq_num(
 		);
 		
 		/* Return swapped values (little to big endian conversion) */
+		/* Always read from PDB, regardless of ESN enabled/disabled */
 		*extended_sequence_number = LW_SWAP(0,&(pdb.encap_pdb.seq_num_ext_hi));
 		*sequence_number = LW_SWAP(0,&(pdb.encap_pdb.seq_num));
 		
@@ -2020,10 +2068,17 @@ int ipsec_get_seq_num(
 		);
 	
 		/* Return swapped values (little to big endian conversion) */
+		/* Always read from PDB, regardless of ESN enabled/disabled */
 		*extended_sequence_number = LW_SWAP(0,&(pdb.decap_pdb.seq_num_ext_hi));
 		*sequence_number = LW_SWAP(0,&(pdb.decap_pdb.seq_num));
+		
+		/* PDB Word 0 is read from the little endian memory, 
+		 * so the Options byte is at the least significant address */
+		pdb_options = *((uint8_t *)(&pdb.decap_pdb));
 
-		switch (pdb.decap_pdb.options & IPSEC_DECAP_PDB_ARS_MASK) {
+		/* TODO: should the anti_replay_bitmap be swapped??? */
+		
+		switch (pdb_options & IPSEC_DECAP_PDB_ARS_MASK) {
 			case IPSEC_DEC_OPTS_ARSNONE:
 				anti_replay_bitmap[0] = 0x0;
 				anti_replay_bitmap[1] = 0x0;
@@ -2089,7 +2144,7 @@ int ipsec_get_seq_num(
 	Destination is placed after Routing header.
 	
 *//****************************************************************************/
-uint8_t ipsec_get_ipv6_nh_offset(struct ipv6hdr *ipv6_hdr, uint8_t *length)
+uint8_t ipsec_get_ipv6_nh_offset (struct ipv6hdr *ipv6_hdr, uint8_t *length)
 {
 	uint32_t current_hdr_ptr;
 	uint16_t current_hdr_size;
@@ -2106,35 +2161,42 @@ uint8_t ipsec_get_ipv6_nh_offset(struct ipv6hdr *ipv6_hdr, uint8_t *length)
 	current_hdr_ptr = (uint32_t)ipv6_hdr;
 	current_hdr_size = IPV6_HDR_LENGTH;
 	next_hdr = ipv6_hdr->next_header;
-	
+
 	/* IP Header Length for SEC encapsulation, including IP header and
 	 * extensions before ESP */
 	*length = IPV6_HDR_LENGTH;
-	
+
 	/* Skip to next extension header until extension isn't ipv6 header
 	 * or until extension is the fragment position (depend on flag) */
 	while ((next_hdr == IPV6_EXT_HOP_BY_HOP) ||
 		(next_hdr == IPV6_EXT_ROUTING) || (next_hdr == dst_ext) ||
 		(next_hdr == IPV6_EXT_FRAGMENT)) {
+		
+		/* Increment hh_offset if this is the first extension */
+		if (!nh_offset) {
+			nh_offset += (IPV6_HDR_LENGTH>>3);
+		}
 
 		current_ver = next_hdr;
 		current_hdr_ptr += current_hdr_size;
 		next_hdr = *((uint8_t *)(current_hdr_ptr));
 		current_hdr_size = *((uint8_t *)(current_hdr_ptr + 1));
-
+		
 		/* Calculate current extension size  */
 		switch (current_ver) {
 
 		case IPV6_EXT_DESTINATION:
 		{
-			/* If the next header is not Routing, this should be
+			/* If the next header is not an extension, this should be
 			 * the starting point for ESP encapsulation  */
-			if (next_hdr != IPV6_EXT_ROUTING) {
+			if ((next_hdr != IPV6_EXT_ROUTING) || 
+					(next_hdr != IPV6_EXT_FRAGMENT) || 
+					(next_hdr != IPV6_EXT_HOP_BY_HOP)) {
 				/* Don't add to NH_OFFSET/length and Exit from the while loop */
 				dst_ext = 0;
 			} else {
-				/* Next header is Routing */
-				nh_offset += current_hdr_size; /* in 8 bytes multiples */
+				/* Next header is an Extension */
+				nh_offset += (current_hdr_size + 1); /* in 8 bytes multiples */
 				current_hdr_size = ((current_hdr_size + 1) << 3);
 				*length += current_hdr_size;
 			}
@@ -2152,18 +2214,18 @@ uint8_t ipsec_get_ipv6_nh_offset(struct ipv6hdr *ipv6_hdr, uint8_t *length)
 				header_after_dest = 
 					*((uint8_t *)(current_hdr_ptr + 
 							IPV6_FRAGMENT_HEADER_LENGTH));
-				/* Increment NH_OFFSET only if this is not the last ext. header
-				 * before Destination */
-				if (header_after_dest == IPV6_EXT_ROUTING) {
+				/* Increment NH_OFFSET only if the following DEST header
+				 * is not the last extension */
+				if ((header_after_dest == IPV6_EXT_ROUTING) ||
+						(header_after_dest == IPV6_EXT_HOP_BY_HOP)){
 					nh_offset += IPV6_FRAGMENT_HEADER_LENGTH>>3; 
-				}
+				}	
 			}
 
 			current_hdr_size = IPV6_FRAGMENT_HEADER_LENGTH;
 			*length += current_hdr_size;
 			break;
 		}
-
 		/* Routing, Hop By Hop */
 		default:
 		{
@@ -2172,15 +2234,17 @@ uint8_t ipsec_get_ipv6_nh_offset(struct ipv6hdr *ipv6_hdr, uint8_t *length)
 				(next_hdr == IPV6_EXT_HOP_BY_HOP) ||	
 				(next_hdr == IPV6_EXT_FRAGMENT)) {
 				/* in 8 bytes multiples */
-				nh_offset += current_hdr_size; 
+				nh_offset += (current_hdr_size + 1); 
 			} else if (next_hdr == IPV6_EXT_DESTINATION) {
 				header_after_dest = 
 					*((uint8_t *)(current_hdr_ptr + 
 							((current_hdr_size + 1)<<3)));
 				/* Increment NH_OFFSET only if this is not the last ext. header
 				 * before Destination */
-				if (header_after_dest == IPV6_EXT_ROUTING) {
-					nh_offset += IPV6_FRAGMENT_HEADER_LENGTH>>3; 
+				if ((header_after_dest == IPV6_EXT_ROUTING) ||
+					(header_after_dest == IPV6_EXT_HOP_BY_HOP) ||	
+					(header_after_dest == IPV6_EXT_FRAGMENT)) {
+						nh_offset += (current_hdr_size + 1); 
 				}
 			}
 			
@@ -2194,12 +2258,11 @@ uint8_t ipsec_get_ipv6_nh_offset(struct ipv6hdr *ipv6_hdr, uint8_t *length)
 	/* Return NH_OFFSET as expected by the SEC */
 	if (nh_offset) {
 		/* NH_OFFSET in 8 bytes multiples for IP header + Extensions */
-		return (nh_offset + (IPV6_HDR_LENGTH>>3));
+		return nh_offset;
 	} else {
 		return 0x1; /* NH_OFFSET in case of no Extensions */
 	}
 } /* End of ipsec_get_ipv6_nh_offset */
-
 
 /**************************************************************************/
 

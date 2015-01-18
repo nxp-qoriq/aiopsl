@@ -47,7 +47,6 @@ Layout is built from 3 different sections: containers, objects, connections.
 		dprc@1 {
 			compatible = "fsl,dprc";
 			parent = "none";
-			icid = <0>;
 			options = "DPRC_CFG_OPT_SPAWN_ALLOWED" , "DPRC_CFG_OPT_ALLOC_ALLOWED";
 			portal_id = <0>;
 			resources {
@@ -74,13 +73,20 @@ Layout is built from 3 different sections: containers, objects, connections.
 				obj@5{
 					obj_name = "dpci@5";
 				};
-
+				obj@6{
+					obj_name = "dpaiop@0";
+				};
+				obj@7{
+					obj_name = "dpmac@1";
+				};
+				obj@8{
+					obj_name = "dpmac@3";
+				};
 			};
 		};
 		dprc@2 {
 			compatible = "fsl,dprc";
 			parent = "dprc@1";
-			icid = <9>;
 			options = "DPRC_CFG_OPT_TOPOLOGY_CHANGES_ALLOWED" , "DPRC_CFG_OPT_IOMMU_BYPASS" , "DPRC_CFG_OPT_SPAWN_ALLOWED" , "DPRC_CFG_OPT_ALLOC_ALLOWED" , "DPRC_CFG_OPT_AIOP" , "DPRC_CFG_OPT_OBJ_CREATE_ALLOWED";
 			portal_id = <3>;
 			objects {
@@ -133,6 +139,16 @@ Layout is built from 3 different sections: containers, objects, connections.
 		};
 	};
 	objects {
+		dpaiop@0 {
+			compatible = "fsl,dpaiop";
+			aiop_container_id = <2>;
+		};	
+		dpmac@1 {
+			compatible = "fsl,dpmac";
+		};
+		dpmac@3 {
+			compatible = "fsl,dpmac";
+		};
 		dpio@1 {
 			compatible = "fsl,dpio";
 			channel_mode = "DPIO_LOCAL_CHANNEL";
@@ -176,7 +192,7 @@ Layout is built from 3 different sections: containers, objects, connections.
 			mac_addr = < 0x0 0x0 0x1 0x0 0x0 0x1 >; /*eth_ipv4_udp*/
 			/*mac_addr = < 0x2 0x0 0xc0 0x0a8 0xb 0xfe >;*/	/*ipfwd_b_2_64B_4Gb_t4*/
 			max_senders = <0>;
-			options = "DPNI_OPT_MULTICAST_FILTER" , "DPNI_OPT_UNICAST_FILTER";
+			options = "DPNI_OPT_MULTICAST_FILTER" , "DPNI_OPT_UNICAST_FILTER" , "DPNI_OPT_DIST_HASH";
 			max_tcs = <0>;
 			max_dist_per_tc = < 0 0 0 0 0 0 0 0 >;
 			max_unicast_filters = <0>;
@@ -191,7 +207,7 @@ Layout is built from 3 different sections: containers, objects, connections.
 			mac_addr = < 0x0 0x0 0x2 0x0 0x0 0x2 >; /*eth_ipv4_udp*/
 			/*mac_addr = < 0x2 0x0 0xc0 0x0a8 0xb 0xfe >;*/ /*ipfwd_b_2_64B_4Gb_t4*/
 			max_senders = <0>;
-			options = "DPNI_OPT_MULTICAST_FILTER" , "DPNI_OPT_UNICAST_FILTER";
+			options = "DPNI_OPT_MULTICAST_FILTER" , "DPNI_OPT_UNICAST_FILTER" , "DPNI_OPT_DIST_HASH";
 			max_tcs = <0>;
 			max_dist_per_tc = < 0 0 0 0 0 0 0 0 >;
 			max_unicast_filters = <0>;

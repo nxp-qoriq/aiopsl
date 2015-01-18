@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Freescale Semiconductor, Inc.
+ * Copyright 2014-2015 Freescale Semiconductor, Inc.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -36,7 +36,7 @@
 #define _DPRC_H
 
 #include "common\fsl_cmdif.h"
-#include "dplib\fsl_dprc.h"
+#include "fsl_dprc.h"
 
 
 

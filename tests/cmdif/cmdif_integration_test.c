@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Freescale Semiconductor, Inc.
+ * Copyright 2014-2015 Freescale Semiconductor, Inc.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -41,6 +41,7 @@
 #include "fsl_tman.h"
 #include "fsl_malloc.h"
 #include "fsl_platform.h"
+#include "fsl_shbp_aiop.h"
 
 #ifndef CMDIF_TEST_WITH_MC_SRV
 #warning "If you test with MC define CMDIF_TEST_WITH_MC_SRV inside cmdif.h\n"
@@ -60,6 +61,8 @@ void app_free(void);
 #define IC_TEST		0x106
 #define CLOSE_CMD	0x107
 #define TMAN_TEST	0x108
+#define SHBP_TEST	0x109
+#define SHBP_TEST_GPP	0x110
 
 #define AIOP_ASYNC_CB_DONE	5  /* Must be in sync with MC ELF */
 #define AIOP_SYNC_BUFF_SIZE	80 /* Must be in sync with MC ELF */
@@ -70,21 +73,64 @@ void app_free(void);
 #define TEST_DPCI_ID    (void *)4 /* For GPP use 4 */
 #endif
 
+struct shbp_test {
+	uint64_t shbp;
+	uint8_t dpci_id;
+};
+
 struct cmdif_desc cidesc;
 uint64_t tman_addr;
+struct shbp_aiop lbp;
+struct shbp_aiop gpp_lbp;
+
+static void aiop_ws_check()
+{
+	struct icontext ic;
+	uint16_t pl_icid = PL_ICID_GET;
+	
+	icontext_aiop_get(&ic);
+	ASSERT_COND(ICID_GET(pl_icid) == ic.icid);
+	
+	if (ic.bdi_flags) {
+		ASSERT_COND(BDI_GET);
+	}	
+	if (ic.dma_flags & FDMA_DMA_PL_BIT) {
+		ASSERT_COND(PL_GET(pl_icid));
+	}
+	if (ic.dma_flags & FDMA_DMA_eVA_BIT) {
+		ASSERT_COND(VA_GET);
+	}
+	fsl_os_print("ICID in WS is %d\n", ic.icid);
+}
 
 static int aiop_async_cb(void *async_ctx, int err, uint16_t cmd_id,
              uint32_t size, void *data)
 {
 	UNUSED(cmd_id);
 	UNUSED(async_ctx);
+	
+	aiop_ws_check();
+	
 	fsl_os_print("PASSED AIOP ASYNC CB cmd_id = 0x%x\n" ,cmd_id);
 	fsl_os_print("ASYNC CB data 0x%x size = 0x%x\n", (uint32_t)data , size);
+	fsl_os_print("Default segment handle = 0x%x\n", 
+	             PRC_GET_SEGMENT_HANDLE());
+	
 	if (err != 0) {
 		fsl_os_print("ERROR inside aiop_async_cb\n");
 	}
-	((uint8_t *)data)[0] = AIOP_ASYNC_CB_DONE;
-	fdma_modify_default_segment_data(0, (uint16_t)size);
+	if ((size > 0) && (data != NULL)) {
+		fsl_os_print("Setting first byte of data with val = 0x%x\n", 
+		             AIOP_ASYNC_CB_DONE);
+		fsl_os_print("Default segment handle = 0x%x\n", 
+		             PRC_GET_SEGMENT_HANDLE());
+		((uint8_t *)data)[0] = AIOP_ASYNC_CB_DONE;
+		fsl_os_print("Default segment handle = 0x%x\n", 
+		             PRC_GET_SEGMENT_HANDLE());
+		fdma_modify_default_segment_data(0, (uint16_t)1);
+	} else {
+		fsl_os_print("No data inside aiop_async_cb\n");
+	}
 	return err;
 }
 
@@ -125,29 +171,11 @@ static int ctrl_cb(void *dev, uint16_t cmd, uint32_t size,
 
 static void verif_tman_cb(uint64_t opaque1, uint16_t opaque2)
 {
+	fsl_os_print("Inside verif_tman_cb \n");
+	aiop_ws_check();
 	ASSERT_COND(opaque1 == 0x12345);
 	ASSERT_COND(opaque2 == 0x1616);
 	fsl_os_print("PASSED verif_tman_cb \n");
-}
-
-static void aiop_ws_check()
-{
-	struct icontext ic;
-	uint16_t pl_icid = PL_ICID_GET;
-	
-	icontext_aiop_get(&ic);
-	ASSERT_COND(ICID_GET(pl_icid) == ic.icid);
-	
-	if (ic.bdi_flags) {
-		ASSERT_COND(BDI_GET);
-	}	
-	if (ic.dma_flags & FDMA_DMA_PL_BIT) {
-		ASSERT_COND(PL_GET(pl_icid));
-	}
-	if (ic.dma_flags & FDMA_DMA_eVA_BIT) {
-		ASSERT_COND(VA_GET);
-	}
-	fsl_os_print("ICID in WS is %d\n", ic.icid);
 }
 
 static int ctrl_cb0(void *dev, uint16_t cmd, uint32_t size,
@@ -157,11 +185,14 @@ static int ctrl_cb0(void *dev, uint16_t cmd, uint32_t size,
 	int i   = 0;
 	uint64_t p_data = LDPAA_FD_GET_ADDR(HWC_FD_ADDRESS);
 	struct icontext ic;
+	struct icontext ic_cmd;
 	uint16_t dpci_id = 0;
 	uint16_t bpid = 3;
 	uint8_t tmi_id = 0;
 	uint32_t timer_handle = 0;
-
+	struct shbp_test *shbp_test;
+	uint64_t temp64;
+	
 	UNUSED(dev);
 	fsl_os_print("ctrl_cb0 cmd = 0x%x, size = %d, data  0x%x\n",
 	             cmd,
@@ -171,6 +202,40 @@ static int ctrl_cb0(void *dev, uint16_t cmd, uint32_t size,
 	aiop_ws_check();
 	
 	switch (cmd) {
+	case SHBP_TEST_GPP:
+		fsl_os_print("Testing GPP SHBP...\n");
+		shbp_test = data;
+		dpci_id = shbp_test->dpci_id;
+		err = shbp_enable(dpci_id, shbp_test->shbp, &gpp_lbp);
+		ASSERT_COND(gpp_lbp.ic.icid != ICONTEXT_INVALID);
+		
+		temp64 = shbp_acquire(&gpp_lbp);
+		ASSERT_COND(temp64 == 0);
+		shbp_test->shbp = 0; /* For test on GPP */
+		
+		err = shbp_release(&gpp_lbp, p_data);
+		ASSERT_COND(!err);
+		
+		fdma_modify_default_segment_data(0, (uint16_t)size);
+		fsl_os_print("Released buffer into GPP SHBP\n");
+		break;
+	case SHBP_TEST:
+		shbp_test = data;
+		dpci_id = shbp_test->dpci_id;
+		err = shbp_enable(dpci_id, shbp_test->shbp, &lbp);
+		ASSERT_COND(lbp.ic.icid != ICONTEXT_INVALID);
+		p_data = shbp_acquire(&lbp);
+		while (p_data != 0) {
+			i++;
+			shbp_write(&lbp, sizeof(uint64_t), &p_data, p_data);
+			shbp_read(&lbp, sizeof(uint64_t), p_data, &temp64);
+			ASSERT_COND(temp64 == p_data);
+			err = shbp_release(&lbp, p_data);
+			ASSERT_COND(!err);
+			p_data = shbp_acquire(&lbp);
+		}
+		fsl_os_print("Acquired and released %d buffers from SHBP\n", i);
+		break;
 	case TMAN_TEST:
 		err |= tman_create_tmi(tman_addr /* uint64_t tmi_mem_base_addr */,
 		                       10 /* max_num_of_timers */,
@@ -182,6 +247,7 @@ static int ctrl_cb0(void *dev, uint16_t cmd, uint32_t size,
 		                         0x1616 /* opaque_data2 */,
 		                         verif_tman_cb /* tman_timer_cb */,
 		                         &timer_handle /* *timer_handle */);
+		fsl_os_print("TMAN timer created err = %d\n", err);
 		break;
 	case OPEN_CMD:
 		cidesc.regs = TEST_DPCI_ID; /* DPCI 0 is used by MC */
@@ -215,13 +281,25 @@ static int ctrl_cb0(void *dev, uint16_t cmd, uint32_t size,
 		err = cmdif_send(&cidesc, 0xa | CMDIF_NORESP_CMD, size,
 		                 CMDIF_PRI_LOW, p_data, aiop_async_cb, cidesc.regs);
 		break;
-	case ASYNC_CMD:
+	case ASYNC_CMD:		
 		p_data += size;
+		pr_debug("AIOP is sending asynchronous command with the "
+			"following parameters\n");
+		pr_debug("Addr high = 0x%x low = 0x%x size = 0x%x\n",
+			 (uint32_t)((p_data & 0xFF00000000) >> 32),
+			 (uint32_t)(p_data & 0xFFFFFFFF), 
+			 AIOP_SYNC_BUFF_SIZE);
 		err = cmdif_send(&cidesc, 0xa | CMDIF_ASYNC_CMD, AIOP_SYNC_BUFF_SIZE,
 		                 CMDIF_PRI_LOW, p_data, aiop_async_cb, cidesc.regs);
 		break;
-	case ASYNC_N_CMD:
+	case ASYNC_N_CMD:		
 		p_data += size;
+		pr_debug("AIOP is sending asynchronous command with the "
+			"following parameters\n");
+		pr_debug("Addr high = 0x%x low = 0x%x size = 0x%x\n",
+			 (uint32_t)((p_data & 0xFF00000000) >> 32),
+			 (uint32_t)(p_data & 0xFFFFFFFF), 
+			 AIOP_SYNC_BUFF_SIZE);		
 		err |= cmdif_send(&cidesc, 0x1 | CMDIF_ASYNC_CMD, AIOP_SYNC_BUFF_SIZE,
 		                  CMDIF_PRI_LOW, p_data, aiop_async_cb, cidesc.regs);
 		err |= cmdif_send(&cidesc, 0x2 | CMDIF_ASYNC_CMD, AIOP_SYNC_BUFF_SIZE,
@@ -241,6 +319,9 @@ static int ctrl_cb0(void *dev, uint16_t cmd, uint32_t size,
 		bpid =  (uint16_t)(((uint8_t *)data)[1]);
 
 		err = icontext_get(dpci_id, &ic);
+#ifdef CMDIF_TEST_WITH_MC_SRV
+		ic.bdi_flags |= FDMA_ENF_BDI_BIT;
+#endif
 		ASSERT_COND(err == 0);
 		fsl_os_print("Isolation context test dpci %d bpid %d:\n", dpci_id, bpid);
 		fsl_os_print("ICID %d:\n dma flags 0x%x \n bdi flags 0x%x \n",
@@ -252,18 +333,32 @@ static int ctrl_cb0(void *dev, uint16_t cmd, uint32_t size,
 		ASSERT_COND(ic.icid == ((struct icontext *)data)->icid);
 		ASSERT_COND(ic.dma_flags == ((struct icontext *)data)->dma_flags);
 		ASSERT_COND(ic.bdi_flags == ((struct icontext *)data)->bdi_flags);
-
+		
 		/* Note: MC and AIOP have the same AMQ and BDI settings */
 		p_data = NULL;
 		err = icontext_acquire(&ic, bpid, &p_data);
-		ASSERT_COND(err == 0);
-		ASSERT_COND(p_data != 0);
-		err = icontext_release(&ic, bpid, p_data);
-		ASSERT_COND(err == 0);
-		fsl_os_print("Addr high = 0x%x low = 0x%x \n",
-			 (uint32_t)((p_data & 0xFF00000000) >> 32),
-			 (uint32_t)(p_data & 0xFFFFFFFF));
-
+		if (!err) {
+			ASSERT_COND(p_data != 0);
+			err = icontext_release(&ic, bpid, p_data);
+			ASSERT_COND(err == 0);
+			fsl_os_print("Addr high = 0x%x low = 0x%x \n",
+			             (uint32_t)((p_data & 0xFF00000000) >> 32),
+			             (uint32_t)(p_data & 0xFFFFFFFF));
+		} else {
+			fsl_os_print("FAILED icontext_acquire BPID"
+						" 0x%x is empty\n", bpid);
+		}
+		/* Must be after icontext_get(&ic) */
+		icontext_cmd_get(&ic_cmd);
+#ifdef CMDIF_TEST_WITH_MC_SRV
+		ic_cmd.bdi_flags |= FDMA_ENF_BDI_BIT;
+#endif		
+		ASSERT_COND(ic_cmd.icid != ICONTEXT_INVALID);
+		ASSERT_COND(ic_cmd.icid == ic.icid);
+		ASSERT_COND(ic_cmd.bdi_flags == ic.bdi_flags);
+		ASSERT_COND(ic_cmd.dma_flags == ic.dma_flags);
+		fsl_os_print("PASSED icontext_cmd_get\n");
+		
 		icontext_aiop_get(&ic);
 		ASSERT_COND(ic.dma_flags);
 		ASSERT_COND(ic.bdi_flags);
@@ -312,11 +407,8 @@ int app_init(void)
 		}
 	}
 
-	tman_addr = (uint64_t)fsl_os_xmalloc(1024, MEM_PART_DP_DDR, 64);
-	ASSERT_COND(tman_addr);
-	tman_addr = fsl_os_virt_to_phys((void *)tman_addr);
-	ASSERT_COND(tman_addr);
-
+	err = fsl_os_get_mem(1024, MEM_PART_DP_DDR, 64, &tman_addr);
+	ASSERT_COND(!err && tman_addr);
 	return 0;
 }
 

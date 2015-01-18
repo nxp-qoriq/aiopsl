@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Freescale Semiconductor, Inc.
+ * Copyright 2014-2015 Freescale Semiconductor, Inc.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -135,11 +135,6 @@ int ERROR_DYNAMIC_LEVEL = ERROR_GLOBAL_LEVEL;
 #define PRINT_FORMAT        "[CPU %d, %s:%d %s]"
 #define PRINT_FMT_PARAMS    core_get_id(), __FILE__, __LINE__, __FUNCTION__
 
-/* 
- * se_dnh - Debug Notify Halt 
- * Acts as 'se_illegal' if EDBCR0[DNH_EN] is set
- */
-#define DEBUG_HALT asm{se_dnh}
 
 #if (!defined(DEBUG_ERRORS) || (DEBUG_ERRORS == 0))
 /* No debug/error/event messages at all */
@@ -147,8 +142,14 @@ int ERROR_DYNAMIC_LEVEL = ERROR_GLOBAL_LEVEL;
 #define RETURN_ERROR(_level, _err, _vmsg) \
         return (_err)
 #define ERROR_CODE(_err)    (_err)
-
+#define DEBUG_HALT
 #else /* DEBUG_ERRORS > 0 */
+#define DEBUG_HALT asm{se_dnh}
+/*
+ * se_dnh - Debug Notify Halt
+ * Acts as 'se_illegal' if EDBCR0[DNH_EN] is set
+ */
+
 extern const char *dbg_level_strings[];
 extern const char *module_strings[];
 

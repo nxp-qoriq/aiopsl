@@ -1,9 +1,11 @@
 #! /usr/bin/python
 
 import os
+from shutil import move
+from os import remove, close
 import fnmatch
 import re
-
+import sys
 
 
 def check_if_file_exists(filename):
@@ -30,9 +32,7 @@ def check_stack(aiopsl_stack_estimation):
 #	for line in func_list:
 #		print line
 
-
-
-if __name__ == "__main__":
+def stack():
 	global error_stack_too_big
 	error_stack_too_big = False
 	print "Start script to check stack estimation in AIOP"
@@ -74,4 +74,49 @@ if __name__ == "__main__":
 		print "Finished SUCCESSFULLY"
 		exit(0)
 
+#define() is used to add defines before the compilation of stack estimation and the aiopsl
+def defines():
+	orig_file = "build/aiop_sim/build_flags/build_flags.h"
+	new_file = "build/aiop_sim/build_flags/build_flags_new.h"
+	if check_if_file_exists(orig_file) == False:
+		exit(1)
 
+	ins = open(orig_file, "r")
+	temp_file = open(new_file, "w")
+
+	for line in ins:
+		if '#endif /* __BUILD_FLAGS_H */' not in line:
+			temp_file.write(line)
+		else:
+			temp_file.write("#define STACK_CHECK\n")
+			print "Added: #define STACK_CHECK"
+			temp_file.write("#define DISABLE_ALL_ASSERTS\n")
+			print "Added: #define DISABLE_ALL_ASSERTS"
+			temp_file.write(line)
+			ins.close()
+			temp_file.close()
+			remove(orig_file)
+			move(new_file,orig_file)
+			print "file was updated with new defines SUCCESSFULLY"
+			exit(0)
+
+
+if __name__ == "__main__":
+
+	if len(sys.argv) < 1:
+		print "Incorrect number of arguments"
+		exit(1)
+
+	arg1 = str(sys.argv[1:])
+
+	if arg1 == "['stack_check']":
+		stack() #jump to stack checking part
+	elif arg1 == "['add_defines']":
+		defines() #jump to add defines
+	elif arg1 == "['-h']":
+		print "python jenkins_aiop_stack_estimation.py [stack_check|add_defines]"
+		exit(2)
+	else:
+		print "Wrong parameter " + arg1
+		print "python jenkins_aiop_stack_estimation.py [-h|stack_check|add_defines]"
+		exit(1)

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Freescale Semiconductor, Inc.
+ * Copyright 2014-2015 Freescale Semiconductor, Inc.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -51,6 +51,12 @@ typedef uint64_t            dma_addr_t;
 #define NULL ((0L))
 #endif /* NULL */
 
+#define STRINGTYPE(a) #a
+#define DEFINESECTION(x) section code_type x data_mode=far_abs code_mode=pc_rel
+#define PUSH _Pragma("push")
+#define STARTSECTION(s) _Pragma(STRINGTYPE(DEFINESECTION(s)))
+#define START_CODE_IN_SECTION(s) PUSH STARTSECTION(s)
+#define POP _Pragma("pop")
 
 /** Task global variables area */
 #define __TASK __declspec(section ".tdata")
@@ -58,10 +64,20 @@ typedef uint64_t            dma_addr_t;
 /** Shared-SRAM code location */
 #pragma section RX ".stext_vle"
 #define __WARM_CODE __declspec(section ".stext_vle")
+#define __START_WARM_CODE START_CODE_IN_SECTION(".stext_vle")
+#define __END_WARM_CODE POP
 
 /** DDR code location */
 #pragma section RX ".dtext_vle"
 #define __COLD_CODE __declspec(section ".dtext_vle")
+#define __START_COLD_CODE START_CODE_IN_SECTION(".dtext_vle")
+#define __END_COLD_CODE POP
+
+/** i-RAM code location */
+#pragma section RX ".itext_vle"
+#define __HOT_CODE __declspec(section ".itext_vle")
+#define __START_HOT_CODE START_CODE_IN_SECTION(".itext_vle")
+#define __END_HOT_CODE POP
 
 
 #endif /* __TYPES_MW_H */

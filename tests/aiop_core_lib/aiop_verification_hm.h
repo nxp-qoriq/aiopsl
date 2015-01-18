@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Freescale Semiconductor, Inc.
+ * Copyright 2014-2015 Freescale Semiconductor, Inc.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -109,7 +109,11 @@ enum e_hm_verif_cmd_type {
 	HM_CMDTYPE_PUSH_AND_SET_VXLAN,
 	HM_CMDTYPE_POP_VXLAN,
 	HM_CMDTYPE_SET_VXLAN_VID,
-	HM_CMDTYPE_SET_VXLAN_FLAGS
+	HM_CMDTYPE_SET_VXLAN_FLAGS,
+	HM_CMDTYPE_SET_TCP_SRC,
+	HM_CMDTYPE_SET_TCP_DST,
+	HM_CMDTYPE_SET_UDP_SRC,
+	HM_CMDTYPE_SET_UDP_DST
 };
 
 /* HM Commands Structure identifiers */
@@ -197,6 +201,18 @@ enum e_hm_verif_cmd_type {
 
 #define HM_SET_TP_DST_CMD_STR	((HM_MODULE << 16) | \
 		(uint32_t)HM_CMDTYPE_SET_TP_DST)
+
+#define HM_SET_TCP_SRC_CMD_STR	((HM_MODULE << 16) | \
+		(uint32_t)HM_CMDTYPE_SET_TCP_SRC)
+
+#define HM_SET_TCP_DST_CMD_STR	((HM_MODULE << 16) | \
+		(uint32_t)HM_CMDTYPE_SET_TCP_DST)
+
+#define HM_SET_UDP_SRC_CMD_STR	((HM_MODULE << 16) | \
+		(uint32_t)HM_CMDTYPE_SET_UDP_SRC)
+
+#define HM_SET_UDP_DST_CMD_STR	((HM_MODULE << 16) | \
+		(uint32_t)HM_CMDTYPE_SET_UDP_DST)
 
 #define HM_PUSH_VLAN_CMD_STR	((HM_MODULE << 16) | \
 		(uint32_t)HM_CMDTYPE_PUSH_VLAN)
@@ -546,6 +562,30 @@ struct hm_set_tp_command {
 	uint32_t	opcode;
 		/**< Command structure identifier. */
 	int32_t		status;
+	uint16_t	port;
+	uint8_t		pad[2];
+};
+
+/**************************************************************************//**
+@Description	HM set TCP port Command structure.
+
+		Includes information needed for HM Command verification.
+*//***************************************************************************/
+struct hm_set_tcp_command {
+	uint32_t	opcode;
+		/**< Command structure identifier. */
+	uint16_t	port;
+	uint8_t		pad[2];
+};
+
+/**************************************************************************//**
+@Description	HM set UDP port Command structure.
+
+		Includes information needed for HM Command verification.
+*//***************************************************************************/
+struct hm_set_udp_command {
+	uint32_t	opcode;
+		/**< Command structure identifier. */
 	uint16_t	port;
 	uint8_t		pad[2];
 };

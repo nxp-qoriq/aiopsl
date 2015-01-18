@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Freescale Semiconductor, Inc.
+ * Copyright 2014-2015 Freescale Semiconductor, Inc.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -37,17 +37,12 @@
 #include "fsl_io_ccsr.h"
 #include "fsl_mem_mng.h"
 #include "inc/fsl_sys.h"
+#include "fsl_mem_mng.h"
 
 #define __ERR_MODULE__  MODULE_SOC_PLATFORM
+extern __TASK uint32_t seed_32bit;
 extern struct aiop_init_info g_init_data;
 extern const uint8_t AIOP_DDR_START[],AIOP_DDR_END[];
-
-typedef struct t_sys_to_part_offset_map {
-    enum fsl_os_module  module;
-    uint32_t            id;
-    e_mapped_mem_type   mapped_mem_type;
-    uint32_t            offset;
-} t_sys_to_part_offset_map;
 
 typedef struct t_platform {
     /* Copy of platform parameters */
@@ -68,6 +63,20 @@ typedef struct t_platform {
     uintptr_t               ccsr_base;
     uintptr_t               mc_portals_base;
 } t_platform;
+
+/* Global platform variable that holds platform definitions. Will reside in sram */
+static struct t_platform  s_pltfrm = {0};
+
+typedef struct t_sys_to_part_offset_map {
+    enum fsl_os_module  module;
+    uint32_t            id;
+    e_mapped_mem_type   mapped_mem_type;
+    uint32_t            offset;
+} t_sys_to_part_offset_map;
+
+
+
+
 
 
 /* Module names for debug messages */
@@ -93,115 +102,8 @@ const char *module_strings[] = {
     ,"SRIO"                     /* MODULE_SRIO */
     ,"RMan"                     /* MODULE_RMAN */
 };
-extern __TASK uint32_t seed_32bit;
 
 static int build_mem_partitions_table(t_platform  *pltfrm);
-
-
-/*****************************************************************************/
-__COLD_CODE static void print_platform_info(t_platform *pltfrm)
-{
-    char        buf[256];
-    int         count = 0;
-    uint32_t    sys_clock;
-    int         is_master_core = sys_is_master_core();
-
-    ASSERT_COND(pltfrm);
-
-    if (is_master_core)
-    {
-        /*------------------------------------------*/
-        /* Device enable/disable and status display */
-        /* Power Save mode                          */
-        /*------------------------------------------*/
-        count += sprintf((char *)&buf[count], "\nfreescale ");
-
-/*
-        switch (ls2100a_get_rev_info(pltfrm->ccsr_base + SOC_PERIPH_OFFSET_GUTIL))
-        {
-            case E_LS2100A_REV_1_0:
-                count += sprintf((char *)&buf[count], "LS2100A revision 1.0");
-                break;
-            default:
-                count += sprintf((char *)&buf[count], "unknown chip revision! ");
-                break;
-        }
-*/
-        count += sprintf((char *)&buf[count], "LST4-Sim");
-
-        count += sprintf((char *)&buf[count], "\n\nclocks: [IN:%d.%d] ",
-                         (pltfrm->param.clock_in_freq_hz / 1000000),
-                         ((pltfrm->param.clock_in_freq_hz % 1000000) / 100000));
-
-        sys_clock = platform_get_system_bus_clk(pltfrm);
-        count += sprintf((char *)&buf[count], "[SYS BUS:%d.%d] ",
-                         (sys_clock / 1000000), ((sys_clock % 1000000) / 100000));
-
-/*
-        clock = platform_get_local_bus_clk(pltfrm);
-        divider = sys_clock/clock;
-        count += sprintf((char *)&buf[count], "[LBC:%d.%d] ",
-                         (sys_clock /divider/1000000), ((sys_clock /divider % 1000000) / 100000));
-
-        clock = platform_get_ddr_clk(pltfrm);
-        count += sprintf((char *)&buf[count], "[DDR:%d.%d] ",
-                         (clock / 1000000), ((clock % 1000000) / 100000));
-
-        count += sprintf((char *)&buf[count], "\ncores info:");
-*/
-
-        fsl_os_print(buf);
-        count = 0;
-        memset(buf, 0, sizeof(buf));
-    }
-    sys_barrier();
-
-/*
-    clock = platform_get_core_clk_local(pltfrm,core_get_id());
-    count += sprintf((char *)&buf[count], "\n[CORE %d:%d.%d] ",
-                     core_get_id(),(clock / 1000000), ((clock % 1000000) / 100000));
-
-    fsl_os_print(buf);
-    count = 0;
-    memset(buf, 0, sizeof(buf));
-    sys_barrier();
-*/
-
-    if (!is_master_core)
-        return;
-
-    /*------------------------------------------*/
-    /*      CACHE/MMU Status display            */
-    /*------------------------------------------*/
-    count = 0;
-    memset(buf, 0, sizeof(buf));
-
-    count += sprintf((char *)&buf[count], "\n\nPlatform status: ");
-    count += sprintf((char *)&buf[count], "\nATU ICACHE TB\n");
-#ifdef SIMULATOR
-    /* TODO - ATU is temporary off!!! */
-    count += sprintf((char *)&buf[count], "OFF ");
-#else
-    /* MMU is always ON */
-    count += sprintf((char *)&buf[count], "ON  ");
-#endif /* SIMULATOR */
-
-    if (pltfrm->param.l1_cache_mode & E_CACHE_MODE_INST_ONLY)
-        count += sprintf((char *)&buf[count], "ON     ");
-    else
-        count += sprintf((char *)&buf[count], "OFF    ");
-
-#ifdef SIMULATOR
-    /* TODO - time-base is temporary off!!! */
-    count += sprintf((char *)&buf[count], "OFF ");
-#else
-    /* Time-Base is always ON */
-    count += sprintf((char *)&buf[count], "ON   ");
-#endif /* SIMULATOR */
-
-    count += sprintf((char *)&buf[count], "\n");
-    fsl_os_print(buf);
-}
 
 /*****************************************************************************/
 __COLD_CODE static int find_mem_partition_index(t_platform_memory_info  *mem_info,
@@ -298,12 +200,10 @@ static void pltfrm_disable_local_irq_cb(fsl_handle_t h_platform)
 /*****************************************************************************/
 __COLD_CODE static int init_random_seed(uint32_t num_of_tasks)
 {
-	uint32_t *seed_mem_ptr = NULL;
+	volatile uint32_t *seed_mem_ptr = NULL;
 	uint32_t core_and_task_id = 0;
 	uint32_t seed = 0;
 	uint32_t task_stack_size = 0;
-	uint32_t sum_stack = 0;
-
 	int i;
 	/*------------------------------------------------------*/
 	/* Initialize seeds for random function                 */
@@ -316,22 +216,22 @@ __COLD_CODE static int init_random_seed(uint32_t num_of_tasks)
 	 */
 	switch(num_of_tasks) {
 	case (0):
-			    num_of_tasks = 1;
+				    num_of_tasks = 1;
 	break;
 	case (1):
-			    num_of_tasks = 2;
+				    num_of_tasks = 2;
 	task_stack_size = 0x1000;
 	break;
 	case (2):
-			    num_of_tasks = 4;
+				    num_of_tasks = 4;
 	task_stack_size = 0x800;
 	break;
 	case (3):
-			    num_of_tasks = 8;
+				    num_of_tasks = 8;
 	task_stack_size = 0x400;
 	break;
 	case (4):
-			    num_of_tasks = 16;
+				    num_of_tasks = 16;
 	task_stack_size = 0x200;
 	break;
 	default:
@@ -342,26 +242,25 @@ __COLD_CODE static int init_random_seed(uint32_t num_of_tasks)
 	core_and_task_id =  ((core_get_id() + 1) << 8);
 	core_and_task_id |= 1; /*add task 0 id*/
 
-	seed_32bit = (core_and_task_id << 16) | core_and_task_id;
+	seed = (core_and_task_id << 16) | core_and_task_id;
+	seed_mem_ptr = &(seed_32bit);
+	iowrite32be(seed, seed_mem_ptr);
 	/*seed for task 0 is already allocated*/
 	for (i = 0; i < num_of_tasks - 1; i ++)
 	{
-		sum_stack += task_stack_size; /*size of each task area*/
-		seed_mem_ptr = &(seed_32bit) + sum_stack;
+		seed_mem_ptr += task_stack_size; /*size of each task area*/
 		core_and_task_id ++; /*increment the task id accordingly to its tls section*/
 		seed = (core_and_task_id << 16) | core_and_task_id;
 		iowrite32be(seed, seed_mem_ptr);
 	}
 
 	return 0;
-
 }
 /*****************************************************************************/
 __COLD_CODE static int pltfrm_init_core_cb(fsl_handle_t h_platform)
 {
     t_platform  *pltfrm = (t_platform *)h_platform;
     int     err = 0;
-    uint32_t CTSCSR_value = 0;
     uint32_t WSCR_tasks_bit = 0;
     struct aiop_tile_regs *aiop_regs = (struct aiop_tile_regs *)
 	                               sys_get_handle(FSL_OS_MOD_AIOP_TILE, 1);
@@ -386,12 +285,7 @@ __COLD_CODE static int pltfrm_init_core_cb(fsl_handle_t h_platform)
     /* special AIOP registers */
 
     /* Workspace Control Register*/
-    WSCR_tasks_bit = ioread32_ccsr(&aiop_regs->cmgw_regs.wscr) & 0x000000ff;
-
-    CTSCSR_value = (booke_get_CTSCSR0() & ~CTSCSR_TASKS_MASK) | \
-    		                          (WSCR_tasks_bit << 24);
-
-    booke_set_CTSCSR0(CTSCSR_value);
+    WSCR_tasks_bit = ioread32_ccsr(&aiop_regs->cmgw_regs.wscr) & 0x0000000f;
 
     /*------------------------------------------------------*/
     /* Initialize L1 Cache                                  */
@@ -472,19 +366,12 @@ __COLD_CODE static int pltfrm_init_mem_partitions_cb(fsl_handle_t h_platform)
 
     ASSERT_COND(pltfrm);
 
-//    if (pltfrm->param.user_init_hooks.f_init_memory_partitions)
-//        return pltfrm->param.user_init_hooks.f_init_memory_partitions(pltfrm);
     build_mem_partitions_table(pltfrm);
 
     for (i = 0; i < pltfrm->num_of_mem_parts; i++) {
         p_mem_info = &pltfrm->param.mem_info[i];
         virt_base_addr = p_mem_info->virt_base_addr;
         size = p_mem_info->size;
-        err = sys_register_virt_mem_mapping(p_mem_info->virt_base_addr,
-                                            p_mem_info->phys_base_addr,
-                                            p_mem_info->size);
-        if (err != 0)
-            RETURN_ERROR(MAJOR, err, NO_MSG);
 
         if (p_mem_info->mem_attribute & MEMORY_ATTR_MALLOCABLE) {
             err = sys_register_mem_partition(p_mem_info->mem_partition_id,
@@ -505,7 +392,18 @@ __COLD_CODE static int pltfrm_init_mem_partitions_cb(fsl_handle_t h_platform)
 
             pltfrm->registered_partitions[index++] = p_mem_info->mem_partition_id;
         }
-    }
+        if(p_mem_info->mem_attribute & MEMORY_ATTR_PHYS_ALLOCATION){
+            err = sys_register_phys_addr_alloc_partition(
+            p_mem_info->mem_partition_id,
+            p_mem_info->phys_base_addr,
+            p_mem_info->size,
+            p_mem_info->mem_attribute,
+            p_mem_info->name
+        );
+        if (err != 0)
+            RETURN_ERROR(MAJOR, err, NO_MSG);
+        }// end of MEMORY_ATTR_PHYS_ALLOCATION
+    }// for
 
     return 0;
 }
@@ -521,17 +419,6 @@ __COLD_CODE static int build_mem_partitions_table(t_platform  *pltfrm)
 	        p_mem_info = &pltfrm->param.mem_info[i];
 	        ASSERT_COND(p_mem_info);
 	        switch (p_mem_info->mem_partition_id) {
-	        case MEM_PART_DEFAULT_HEAP_PARTITION:
-	            p_mem_info->virt_base_addr = (uint32_t)(AIOP_DDR_START);
-	            p_mem_info->phys_base_addr = g_init_data.sl_info.dp_ddr_paddr;
-	            p_mem_info->size = aiop_lcf_ddr_size;
-	            pr_debug("Default Heap:virt_add= 0x%x,phys_add=0x%x%08x,size=0x%x\n",
-	                     p_mem_info->virt_base_addr,
-	        	     (uint32_t)(p_mem_info->phys_base_addr>>32),
-	        	     (uint32_t)(p_mem_info->phys_base_addr),
-	                     (uint32_t)(p_mem_info->size));
-
-	        	break;
 	        case MEM_PART_DP_DDR:
 	            p_mem_info->virt_base_addr = (uint32_t)g_init_data.sl_info.dp_ddr_vaddr +
 	        	        aiop_lcf_ddr_size;
@@ -607,7 +494,7 @@ __COLD_CODE static int pltfrm_free_mem_partitions_cb(fsl_handle_t h_platform)
     index = (int)pltfrm->num_of_mem_parts;
 
     while ((--index) >= 0) {
-        sys_unregister_virt_mem_mapping(pltfrm->param.mem_info[index].virt_base_addr);
+        /*sys_unregister_virt_mem_mapping(pltfrm->param.mem_info[index].virt_base_addr);*/
 
         if (pltfrm->registered_partitions[index])
             sys_unregister_mem_partition(pltfrm->registered_partitions[index]);
@@ -667,20 +554,16 @@ __COLD_CODE int platform_early_init(struct platform_param *pltfrm_params)
 __COLD_CODE int platform_init(struct platform_param    *pltfrm_param,
                   t_platform_ops           *pltfrm_ops)
 {
-    t_platform      *pltfrm;
     int             i;
 
     SANITY_CHECK_RETURN_ERROR(pltfrm_param, ENODEV);
     SANITY_CHECK_RETURN_ERROR(pltfrm_ops, ENODEV);
 
-    /* Allocate the platform's control structure */
-    pltfrm = fsl_os_malloc(sizeof(t_platform));
-    if (!pltfrm)
-        RETURN_ERROR(MAJOR, EAGAIN, ("platform object"));
-    memset(pltfrm, 0, sizeof(t_platform));
+
+    memset(&s_pltfrm, 0, sizeof(t_platform));
 
     /* Store configuration parameters */
-    memcpy(&(pltfrm->param), pltfrm_param, sizeof(struct platform_param));
+    memcpy(&(s_pltfrm.param), pltfrm_param, sizeof(struct platform_param));
 
     /* Count number of valid memory partitions and check that
        user's partition definition is within actual physical
@@ -688,22 +571,16 @@ __COLD_CODE int platform_init(struct platform_param    *pltfrm_param,
     for (i=0; i<PLATFORM_MAX_MEM_INFO_ENTRIES; i++) {
         t_platform_memory_info      *mem_info;
 
-        mem_info = pltfrm->param.mem_info + i;
+        mem_info = s_pltfrm.param.mem_info + i;
         if (!mem_info->size)
             break;
     }
-    pltfrm->num_of_mem_parts = i;
+    s_pltfrm.num_of_mem_parts = i;
 
-#if 0 /*TODO Do we need this function???*/
-    /* Identify the program memory */
-    err = identify_program_memory(pltfrm->param.mem_info,
-                                  &(pltfrm->prog_runs_from));
-    ASSERT_COND(err == 0);
-#endif
     /* Store AIOP-peripherals base (for convenience) */
-    pltfrm->aiop_base = AIOP_PERIPHERALS_OFF;
+    s_pltfrm.aiop_base = AIOP_PERIPHERALS_OFF;
     /* Initialize platform operations structure */
-    pltfrm_ops->h_platform              = pltfrm;
+    pltfrm_ops->h_platform              = &s_pltfrm;
     pltfrm_ops->f_init_core             = pltfrm_init_core_cb;
     pltfrm_ops->f_free_core             = pltfrm_free_core_cb;
     pltfrm_ops->f_init_intr_ctrl        = NULL;
@@ -742,9 +619,7 @@ __COLD_CODE int platform_init(struct platform_param    *pltfrm_param,
 /*****************************************************************************/
 __COLD_CODE int platform_free(fsl_handle_t h_platform)
 {
-    if (h_platform)
-        fsl_os_free(h_platform);
-
+	UNUSED(h_platform);
     return 0;
 }
 
@@ -765,7 +640,7 @@ __COLD_CODE uintptr_t platform_get_memory_mapped_module_base(fsl_handle_t       
         { FSL_OS_MOD_UART,            1,  E_MAPPED_MEM_TYPE_GEN_REGS,     SOC_PERIPH_OFF_DUART1       },
         { FSL_OS_MOD_UART,            2,  E_MAPPED_MEM_TYPE_GEN_REGS,     SOC_PERIPH_OFF_DUART2       },
         { FSL_OS_MOD_UART,            3,  E_MAPPED_MEM_TYPE_GEN_REGS,     SOC_PERIPH_OFF_DUART3       },
-        { FSL_OS_MOD_CMGW,            0,  E_MAPPED_MEM_TYPE_GEN_REGS,     SOC_PERIPH_OFF_AIOP_TILE+SOC_PERIPH_OFF_AIOP_CMGW},
+        { FSL_OS_MOD_CMGW,            0,  E_MAPPED_MEM_TYPE_GEN_REGS,     SOC_PERIPH_OFF_AIOP_TILE+SOC_PERIPH_OFF_AIOP_CMGW}
     };
 
     SANITY_CHECK_RETURN_VALUE(pltfrm, ENODEV, 0);
@@ -825,7 +700,6 @@ __COLD_CODE int platform_enable_console(fsl_handle_t h_platform)
         RETURN_ERROR(MAJOR, EAGAIN, ("DUART"));
 
     /* Fill DUART configuration parameters */
-    /*TODO: the base address is hard coded to uart 2_0, should be modified*/
     duart_uart_param.base_address       = uart_port_offset[ g_init_data.sl_info.uart_port_id];
     duart_uart_param.system_clock_mhz   = (platform_get_system_bus_clk(pltfrm) / 1000000);
     duart_uart_param.baud_rate          = 115200;

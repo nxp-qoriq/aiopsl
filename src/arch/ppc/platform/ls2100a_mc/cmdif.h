@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Freescale Semiconductor, Inc.
+ * Copyright 2014-2015 Freescale Semiconductor, Inc.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -32,7 +32,7 @@
 #include <fsl_string.h>
 #include <fsl_stdlib.h>
 #include <fsl_endian.h>
-
+#include <fsl_io.h>
 
 #ifndef CORE_IS_BIG_ENDIAN
 #error "MC core must be big endian\n!"
@@ -43,8 +43,15 @@
 
 #define CMDIF_EPID         0     /*!< EPID to be used for setting by client */
 
+#ifndef __HOT_CODE
+#define __HOT_CODE
+#endif
+
 #ifndef __COLD_CODE
 #define __COLD_CODE
 #endif /* COLD_CODE*/
+
+#define SHBP_BUF_TO_PTR(BUF)  (fsl_os_phys_to_virt(BUF))
+#define SHBP_PTR_TO_BUF(BUF)  (fsl_os_virt_to_phys(BUF))
 
 #endif /* __CMDIF_H */

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Freescale Semiconductor, Inc.
+ * Copyright 2014-2015 Freescale Semiconductor, Inc.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -32,6 +32,8 @@
 
 #define AIOP_ATU_NUM_OF_WINDOWS         8
 
+#define AIOP_MAX_COMMAND_LINE_ARGS      512
+
 /**************************************************************************//**
  @Description   EPID table
 *//***************************************************************************/
@@ -44,7 +46,7 @@ enum aiop_epid_table {
 };
 
 /* Internal data exchanged between AIOP and MC
- * TODO check it */
+ * FIELDS MUST BE ALIGNED AS PACKED */
 struct aiop_app_init_info {
 
 	uint64_t dp_ddr_size; /* initialized by AIOP APP at compile time, default provided */
@@ -60,19 +62,22 @@ struct aiop_app_init_info {
 	uint32_t mflu_peb_num_entries; /* initialized by AIOP APP at compile time, default provided */
 
 	uint32_t sru_size;
-	uint32_t tman_freq;
 	uint32_t tasks_per_core;
 
-	uint32_t reserved[49]; /* reserved for future use */
+	uint32_t spid_count;
+
+	uint32_t reserved[49]; /* reserved for future use. Keep 256B */
 };
 
 /* Internal data exchanged between AIOP and MC
- * TODO check it */
+ * FIELDS MUST BE ALIGNED AS PACKED */
 struct aiop_sl_init_info
 {
 	uint32_t aiop_rev_major;  /* initialized by AIOP SL at compile time */
 	uint32_t aiop_rev_minor; /* initialized by AIOP SL at compile time */
 	uint32_t aiop_revision;  /* initialized by AIOP SL at compile time */
+
+	uint32_t base_spid;
 
 	uint64_t dp_ddr_paddr;
 	uint64_t dp_ddr_vaddr;/*virtual base address, initialized by MC FW before AIOP elf is loaded */
@@ -80,7 +85,7 @@ struct aiop_sl_init_info
 	uint64_t peb_paddr;
 	uint64_t peb_vaddr; /* virtual base address, initialized by MC FW before AIOP elf is loaded */
 
-	uint64_t sys_ddr1_paddr;    
+	uint64_t sys_ddr1_paddr;
 	uint64_t sys_ddr1_vaddr;/*  virtual base address, initialized by MC FW before AIOP elf is loaded */
 
 	uint64_t ccsr_paddr;
@@ -94,8 +99,13 @@ struct aiop_sl_init_info
 	uint32_t mc_dpci_id;                    /* initialized by MC FW during init, before AIOP elf is loaded */
 	uint32_t clock_period; /* In nanosec */
 
-	uint8_t reserved[37];           /* reserved for future use */
+	uint64_t options;
+	uint32_t args_size;	/* AIOP command line string length */
+	uint8_t args[AIOP_MAX_COMMAND_LINE_ARGS];	/* AIOP command line string */
+
+	uint32_t reserved[33];           /* reserved for future use. Keep 768B (3/4 K) */
 };
+
 
 struct aiop_init_info
 {

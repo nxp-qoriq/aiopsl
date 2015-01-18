@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Freescale Semiconductor, Inc.
+ * Copyright 2014-2015 Freescale Semiconductor, Inc.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -51,7 +51,7 @@
 *//***************************************************************************/
 
 /**************************************************************************//**
-@Group	IPF_MACROS IPF Macros
+@Group	IPF_MACROS IP Fragmentation Macros
 @{
 *//***************************************************************************/
 /**************************************************************************//**
@@ -86,7 +86,7 @@ typedef uint8_t ipf_ctx_t[IPF_CONTEXT_SIZE]
 /** @} */ /* end of IPF_FLAGS */
 
 /**************************************************************************//**
-@Group	IPF_GENERATE_FRAG_STATUS  IPF Return Statuses
+@Group	IPF_GENERATE_FRAG_STATUS  IPF Return Status
 
 @Description ipf_generate_frag() return values
 
@@ -177,7 +177,7 @@ int ipf_generate_frag(ipf_ctx_t ipf_context_addr);
 /**************************************************************************//**
 @Function	ipf_discard_frame_remainder
 
-@Description	This function discards the remanider of the frame being
+@Description	This function discards the remainder of the frame being
 		fragmented in case the user decides to stop the fragmentation
 		process before its completion (before
 		\ref IPF_GEN_FRAG_STATUS_DONE status is returned).

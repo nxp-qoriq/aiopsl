@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Freescale Semiconductor, Inc.
+ * Copyright 2014-2015 Freescale Semiconductor, Inc.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -38,7 +38,7 @@
 	@ingroup AIOP_GENERAL
 	@{
 */
-		/** @defgroup ldpaa_g
+		/** @defgroup ldpaa_g  LDPAA API
 			@ingroup AIOP_General_Definitions
 			@{
 	    */
@@ -49,34 +49,34 @@
 				@ingroup ldpaa_g
 			*/
 		/** @} */
-		/** @defgroup AIOP_Return_Status  
+		/** @defgroup AIOP_Return_Status  AIOP Return Status
 			@ingroup AIOP_General_Definitions
 		*/
-		/** @defgroup AIOP_HWC_Definitions
+		/** @defgroup AIOP_HWC_Definitions AIOP HWC Definitions
 			@ingroup AIOP_General_Definitions
 			@{
 		*/	
-			/** @defgroup AIOP_HWC_General_Definitions  
+			/** @defgroup AIOP_HWC_General_Definitions  AIOP HWC General Definitions
 				@ingroup AIOP_HWC_Definitions
 			*/		
-			/** @defgroup AIOP_ADC_Definitions  
+			/** @defgroup AIOP_ADC_Definitions  AIOP ADC Definitions
 				@ingroup AIOP_HWC_Definitions
 				@{
 			*/
-			/** @defgroup AIOP_ADC_Getters  
+			/** @defgroup AIOP_ADC_Getters  AIOP ADC Getters
 				@ingroup AIOP_ADC_Definitions
 			*/		
 			/** @} */
-			/** @defgroup AIOP_PRC_Definitions  
+			/** @defgroup AIOP_PRC_Definitions  AIOP PRC Definitions
 				@ingroup AIOP_HWC_Definitions
 				@{
 			*/
-			/** @defgroup AIOP_PRC_Getters  
+			/** @defgroup AIOP_PRC_Getters  AIOP PRC Getters
 				@ingroup AIOP_PRC_Definitions
 			*/		
 			/** @} */
 		/** @} */
-		/** @defgroup AIOP_DEFAULT_TASK_Params
+		/** @defgroup AIOP_DEFAULT_TASK_Params  AIOP Default Task Params
 			@ingroup AIOP_General_Definitions   
 		*/
 
@@ -84,11 +84,11 @@
 /** @} */	
 /*End group AIOP General */	
 /*Begin group ACCEL */		
-	/** @defgroup ACCEL
+	/** @defgroup ACCEL Accelerators APIs
 	 	@ingroup AIOPSL	
 		@{ */
 /*Begin group FDMA */
-			/** @defgroup FSL_AIOP_FDMA
+			/** @defgroup FSL_AIOP_FDMA FDMA
 				@ingroup ACCEL
 				@{	*/
 					/** @defgroup FDMA_General_Definitions FDMA General Definitions
@@ -101,55 +101,52 @@
 						@ingroup FSL_AIOP_FDMA
 						@{
 					*/
-						/** @defgroup FDMA_Present_Frame_Flags
+						/** @defgroup FDMA_Present_Frame_Flags  FDMA Present Frame Flags
 							@ingroup FDMA_Commands_Flags
 						*/	
-						/** @defgroup FDMA_PRES_Flags
+						/** @defgroup FDMA_PRES_Flags  FDMA PRES Flags
 							@ingroup FDMA_Commands_Flags
 						*/
-						/** @defgroup FDMA_EXT_Flags
+						/** @defgroup FDMA_EXT_Flags  FDMA EXT Flags
 							@ingroup FDMA_Commands_Flags
 						*/	
-						/** @defgroup FDMA_ENWF_Flags
+						/** @defgroup FDMA_ENWF_Flags  FDMA ENWF Flags
 							@ingroup FDMA_Commands_Flags
 						*/				
-						/** @defgroup FDMA_ENF_Flags
+						/** @defgroup FDMA_ENF_Flags  FDMA ENF Flags
 							@ingroup FDMA_Commands_Flags
 						*/	
-						/** @defgroup FDMA_Discard_WF_Flags
+						/** @defgroup FDMA_Discard_WF_Flags  FDMA Discard WF Flags
 							@ingroup FDMA_Commands_Flags
 						*/
-						/** @defgroup FDMA_Replicate_Flags
+						/** @defgroup FDMA_Replicate_Flags  FDMA Replicate Flags
 							@ingroup FDMA_Commands_Flags
 						*/	
-						/** @defgroup FDMA_Concatenate_Flags
+						/** @defgroup FDMA_Concatenate_Flags  FDMA Concatenate Flags
 							@ingroup FDMA_Commands_Flags
 						*/					
-						/** @defgroup FDMA_Split_Flags
+						/** @defgroup FDMA_Split_Flags  FDMA Split Flags
 							@ingroup FDMA_Commands_Flags
 						*/	
-						/** @defgroup FDMA_Replace_Flags
+						/** @defgroup FDMA_Replace_Flags  FDMA Replace Flags
 							@ingroup FDMA_Commands_Flags
 						*/
-						/** @defgroup FDMA_Copy_Flags
+						/** @defgroup FDMA_Copy_Flags  FDMA Copy Flags
 							@ingroup FDMA_Commands_Flags
 						*/
-						/** @defgroup FDMA_DMA_Flags
+						/** @defgroup FDMA_ACQUIRE_BUFFER_Flags  FDMA ACQUIRE BUFFER Flags
+							@ingroup FDMA_Commands_Flags
+						*/
+						/** @defgroup FDMA_RELEASE_BUFFER_Flags  FDMA RELEASE BUFFER Flags
 							@ingroup FDMA_Commands_Flags
 						*/						
-						/** @defgroup FDMA_ACQUIRE_BUFFER_Flags
-							@ingroup FDMA_Commands_Flags
-						*/
-						/** @defgroup FDMA_RELEASE_BUFFER_Flags
-							@ingroup FDMA_Commands_Flags
-						*/						
-						/** @defgroup FDMA_ISOLATION_ATTRIBUTES_Flags
+						/** @defgroup FDMA_ISOLATION_ATTRIBUTES_Flags  FDMA ISOLATION ATTRIBUTES Flags
 							@ingroup FDMA_Commands_Flags
 						*/	
-						/** @defgroup FDMA_STATUS FDMA Status
-							@ingroup FDMA_Commands_Flags
-						*/							
 					/**@} */			
+					/** @defgroup FDMA_STATUS FDMA Status
+						@ingroup FSL_AIOP_FDMA
+					*/							
 					/** @defgroup FDMA_Structures FDMA Structures
 						@ingroup FSL_AIOP_FDMA
 					*/
@@ -159,17 +156,17 @@
 			/**@} */
 /*End group FDMA */
 /*Begin group CDMA */			
-			/** @defgroup FSL_CDMA
+			/** @defgroup FSL_CDMA CDMA
 				@ingroup ACCEL			
 			@{	*/
 				/** @defgroup CDMA_Commands_Flags CDMA Commands Flags
 					@ingroup FSL_CDMA
 					@{
 				*/
-					/** @defgroup CDMA_DMA_MUTEX_ModeBits
+					/** @defgroup CDMA_DMA_MUTEX_ModeBits  CDMA DMA MUTEX ModeBits
 						@ingroup CDMA_Commands_Flags
 					*/	
-					/** @defgroup CDMA_MUTEX_ModeBits
+					/** @defgroup CDMA_MUTEX_ModeBits  CDMA MUTEX ModeBits
 						@ingroup CDMA_Commands_Flags
 					*/
 				/**@} */			
@@ -180,7 +177,7 @@
 /*End group CDMA */
 /*Begin group FSL_PARSER */				
 			
-	/** @defgroup FSL_PARSER 
+	/** @defgroup FSL_PARSER  PARSER
 	 	@ingroup ACCEL
 			@{ */
 			/** @defgroup FSL_PARSER_MACROS PARSER Macros
@@ -289,9 +286,6 @@
 							/** @defgroup FSL_TABLE_ATTRIBUTE_MR TABLE Miss Result Attribute
 								@ingroup FSL_TABLE_ATTRIBUTES
 							*/
-							/** @defgroup FSL_TABLE_ATTRIBUTE_AGT TABLE Aging Threshold Attribute
-								@ingroup FSL_TABLE_ATTRIBUTES
-							*/							
 						/** @} */
 						/** @defgroup FSL_TABLE_RESULT_TYPES TABLE Results Types
 							@ingroup FSL_TABLE_MACROS
@@ -349,13 +343,13 @@
 /*End group FSL_AIOP_OSM  */
 /*Begin group TMAN */	
 
-			/** @defgroup TMAN
+			/** @defgroup TMAN TMAN
 				@ingroup ACCEL
 				@{	*/
 					/** @defgroup TMANMacroes TMAN MACROS
 						@ingroup TMAN
 					*/						
-					/** @defgroup TMANDataStructures TMAN Data Structurs
+					/** @defgroup TMANDataStructures TMAN Data Structures
 						@ingroup TMAN
 					*/	
 					/** @defgroup TMAN_Flags TMAN Flags
@@ -423,7 +417,7 @@
 	
 	
 	/** 
-		@defgroup NETF
+		@defgroup NETF NETF (Network Libraries)
 		@details NETF provides various frame handling functions including IP reassembly, IP fragmentation and various header modification functions.
 		@ingroup AIOPSL
 		@{
@@ -456,7 +450,7 @@
 			*/		
 
 				/** @defgroup HM_IP_Modes HM IP Modes
-					@ingroup FSL_HM
+					@ingroup AIOP_IP_HM
 					@{
 				*/
 					/** @defgroup HMIPv4ModeBits IPv4 header modification mode bits
@@ -489,7 +483,7 @@
 					
 				/** @} */
 					/** @defgroup FSL_HM_IP_Functions HM IP related functions
-						@ingroup FSL_HM
+						@ingroup AIOP_IP_HM
 					*/					
 			/** @} */		
 		/** @} */	
@@ -608,7 +602,7 @@
 					@ingroup IPF_MACROS
 				*/		
 			/** @} */	
-			/** @defgroup IPF_Functions
+			/** @defgroup IPF_Functions IPF Functions
 				@ingroup FSL_IPF
 			*/
 		/** @} */	
@@ -699,6 +693,9 @@
 		*/	
 		/** @defgroup slab_g SLAB
 			@ingroup mem_mng_g_id
+		*/
+		/** @defgroup shbp_aiop_g Shared Buffer Pool
+			@ingroup mem_mng_g_id
 		*/		
 	/** @} */
 	/** @defgroup Synchronization_g_id Synchronization
@@ -713,25 +710,25 @@
 		*/		
 	/** @} */
 	
-	/** @defgroup cmdif_g  Command Interface API
+	/** @defgroup cmdif_g  Command Interface
 	@ingroup kernel_g
 	@{ */
-		/** @defgroup cmdif_client_g  Command Interface - Client API
+		/** @defgroup cmdif_client_g  Command Interface - Client
 		 	@ingroup cmdif_g
 			@{	
 		*/	
-			/** @defgroup CMDIF_SEND_ATTRIBUTES
+			/** @defgroup CMDIF_SEND_ATTRIBUTES Send Attributes
 			*/
 		/** @} */
-	/** @defgroup cmdif_server_g  Command Interface - Server API
+	/** @defgroup cmdif_server_g  Command Interface - Server
 		 		@ingroup cmdif_g
 		*/	
-	/** @defgroup cmdif_flib_g  Command Interface - FLIB API
+	/** @defgroup cmdif_flib_g  Command Interface - FLIB
 		 		@ingroup cmdif_g
 		*/		
 	/** @} */	
 	
-	/** @defgroup ic_g Isolation Context API
+	/** @defgroup ic_g Isolation Context
 	@ingroup kernel_g
 	@{ @} */
 	

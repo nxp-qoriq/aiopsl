@@ -1,0 +1,260 @@
+From e617ff04657477cb922207351b2a4d33797c2556 Mon Sep 17 00:00:00 2001
+From: Ira Kalman <Ira.Kalman@freescale.com>
+Date: Tue, 23 Dec 2014 18:24:39 +0200
+Subject: [PATCH 2/8] Compiling test
+
+---
+ apps/cmdif_demo/cmdif_client_demo.c |  117 ++++++++++++++++++++++++++++++++++-
+ usr/libcmdif/cmdif.h                |   55 +++++++++++++---
+ 2 files changed, 162 insertions(+), 10 deletions(-)
+
+diff --git a/apps/cmdif_demo/cmdif_client_demo.c b/apps/cmdif_demo/cmdif_client_demo.c
+index f485cc8..737f5d1 100644
+--- a/apps/cmdif_demo/cmdif_client_demo.c
++++ b/apps/cmdif_demo/cmdif_client_demo.c
+@@ -32,12 +32,16 @@
+ #include <fsl_shbp.h>
+ 
+ /* The data size to transmit */
+-#define AIOP_DATA_SIZE 10
++#define AIOP_DATA_SIZE 20
+ /* Data size required by applicaiton */
+ #define DATA_MEM_SIZE 0x200000 /* 2 MB, assumed for now */
++/* Data size required by applicaiton for shbp */
++#define AIOP_SHBP_SIZE  SHBP_MEM_PTR_SIZE(10) 
+ 
+ #define TEST_NUM_PKTS 10
+ #define MAX_OPEN_CMDS 10
++#define MAX_SHBPS     5
++#define NUM_SHBP_BUFS 10
+ 
+ /* Maximum number of tries for receiving the async reponse */
+ #define CMDIF_DEMO_NUM_TRIES	1000
+@@ -79,6 +83,7 @@ int async_count2;
+ 
+ void *aiop_open_cmd_mem_pool;
+ void *aiop_data_mem_pool;
++void *aiop_shbp_mem_pool;
+ 
+ /* The IO worker function, required by main() for thread-creation */
+ static void *app_io_thread(void *__worker);
+@@ -311,8 +316,8 @@ int create_global_mempools(void)
+ 	/* Fill all the params for the pool to be passed in cfg */
+ 	mpcfg.name = "aiop_data_mem_pool";
+ 	mpcfg.block_size = AIOP_DATA_SIZE;
+-	mpcfg.num_global_blocks = TEST_NUM_PKTS;
+-	mpcfg.num_max_blocks = TEST_NUM_PKTS;
++	mpcfg.num_global_blocks = TEST_NUM_PKTS + NUM_SHBP_BUFS;
++	mpcfg.num_max_blocks = TEST_NUM_PKTS + NUM_SHBP_BUFS;
+ 
+ 	/* Create the memory pool of the dma'ble memory */
+ 	aiop_data_mem_pool = nadk_mpool_create(&mpcfg, NULL, NULL);
+@@ -341,6 +346,29 @@ int create_global_mempools(void)
+ 		return NADK_FAILURE;
+ 	}
+ 
++	memset(&mpcfg, 0, sizeof(struct nadk_mpool_cfg));
++	/* Fill all the params for the pool to be passed in cfg */
++	mpcfg.name = "aiop_shbp_mem_pool";
++	mpcfg.block_size = AIOP_SHBP_SIZE;
++	mpcfg.num_global_blocks = MAX_SHBPS;
++	mpcfg.num_max_blocks = MAX_SHBPS;
++
++	/* Create the memory pool of the dma'ble memory */
++	aiop_shbp_mem_pool = nadk_mpool_create(&mpcfg, NULL, NULL);
++	if (!aiop_shbp_mem_pool) {
++		NADK_ERR(APP1, "Unable to allocate the aiop open cmd "
++			"memory pool");
++		ret = nadk_mpool_delete(aiop_open_cmd_mem_pool);
++		if (ret != NADK_SUCCESS)
++			NADK_ERR(APP1, "Unable to delete the aiop open "
++				"memory pool");
++		ret = nadk_mpool_delete(aiop_data_mem_pool);
++		if (ret != NADK_SUCCESS)
++			NADK_ERR(APP1, "Unable to delete the aiop data "
++				"memory pool");
++		return NADK_FAILURE;
++	}
++	
+ 	return NADK_SUCCESS;
+ }
+ 
+@@ -396,6 +424,87 @@ static int close_for_cmdif(int ind)
+ 	return ret;
+ }
+ 
++#define DUMP_SHBP() \
++	do {\
++		NADK_NOTE(APP1,"shbp.alloc_master = 0x%x", \
++		          bp->alloc_master); \
++		NADK_NOTE(APP1,"bp->max_num = 0x%x size = %d", \
++		          bp->max_num, SHBP_SIZE(bp)); \
++		NADK_NOTE(APP1,"bp->alloc.base high = 0x%x", \
++		          (uint32_t)((bp->alloc.base & 0xFFFFFFFF00000000) >> 32)); \
++		NADK_NOTE(APP1,"bp->alloc.base low = 0x%x", \
++		          (uint32_t)(bp->alloc.base & 0xFFFFFFFF)); \
++		NADK_NOTE(APP1,"bp->alloc.deq = 0x%x", \
++		          bp->alloc.deq); \
++		NADK_NOTE(APP1,"bp->alloc.enq = 0x%x", \
++		          bp->alloc.enq); \
++		NADK_NOTE(APP1,"bp->free.base high = 0x%x", \
++		          (uint32_t)((bp->free.base & 0xFFFFFFFF00000000) >> 32)); \
++		NADK_NOTE(APP1,"bp->free.base low = 0x%x", \
++		          (uint32_t)(bp->free.base & 0xFFFFFFFF)); \
++		NADK_NOTE(APP1,"bp->free.deq = 0x%x", bp->free.deq); \
++		NADK_NOTE(APP1,"bp->free.enq = 0x%x\n", bp->free.enq); \
++	} while(0)
++
++
++static int shbp_test()
++{
++	int err = 0;
++	int i;
++	struct shbp *bp = NULL;
++	void *data;
++	uint8_t *mem_ptr;
++
++	NADK_NOTE(APP1, "Testing SHBP");
++	NADK_NOTE(APP1, "Testing SHBP");
++	NADK_NOTE(APP1, "Testing SHBP");
++	
++	mem_ptr = nadk_mpool_getblock(aiop_shbp_mem_pool, NULL);
++	if (!mem_ptr) {
++		NADK_ERR(APP1, "Unable to get the memory");
++		return NADK_FAILURE;
++	}
++	
++	err = shbp_create(mem_ptr, AIOP_SHBP_SIZE, 0, &bp);
++	if (err || (bp == NULL)) {
++		NADK_ERR(APP1, "FAILED shbp_create %d", err);
++		/* TODO return data to pool */
++		goto shbp_err0;
++	}
++	DUMP_SHBP();
++	
++	for (i = 0; i < NUM_SHBP_BUFS; i++) {
++		data = nadk_mpool_getblock(aiop_data_mem_pool, NULL);
++		if (!data) {
++			NADK_ERR(APP1, "FAILED nadk_mpool_getblock for shbp");
++			/* TODO return data to pool */
++			goto shbp_err1;
++		}
++		err = shbp_release(bp, data);
++	}
++	DUMP_SHBP();
++
++shbp_err1:
++	i = 0;
++	if (bp != NULL) {
++		err = shbp_destroy(bp, &data);
++		while(err && data) {
++			err = nadk_mpool_relblock(aiop_data_mem_pool, data);
++			if (err != NADK_SUCCESS)
++				NADK_ERR(APP1, "Error in releasing memory");
++			i++;
++			err = shbp_destroy(bp, &data);
++		}
++	}
++	NADK_NOTE(APP1, "Destroyed %d buffers \n", i);
++
++shbp_err0:
++	err = nadk_mpool_relblock(aiop_shbp_mem_pool, mem_ptr);
++	if (err != NADK_SUCCESS)
++		NADK_ERR(APP1, "Error in releasing memory");
++
++	return 0;	
++}
+ 
+ /* This is the worker IO thread function. */
+ static void *app_io_thread(void *__worker)
+@@ -435,6 +544,8 @@ static void *app_io_thread(void *__worker)
+ 		}
+ 	}
+ 
++	ret = shbp_test();
++
+ 	ret = open_for_cmdif(0);
+ 	if (ret) {
+ 		NADK_ERR(APP1, "Open for cmdif failed");
+diff --git a/usr/libcmdif/cmdif.h b/usr/libcmdif/cmdif.h
+index ba7bc11..5f44ee2 100644
+--- a/usr/libcmdif/cmdif.h
++++ b/usr/libcmdif/cmdif.h
+@@ -1,5 +1,27 @@
+ /*
+- * Copyright (c) 2014 Freescale Semiconductor, Inc. All rights reserved.
++ * Copyright 2014 Freescale Semiconductor, Inc.
++ *
++ * Redistribution and use in source and binary forms, with or without
++ * modification, are permitted provided that the following conditions are met:
++ *   * Redistributions of source code must retain the above copyright
++ *     notice, this list of conditions and the following disclaimer.
++ *   * Redistributions in binary form must reproduce the above copyright
++ *     notice, this list of conditions and the following disclaimer in the
++ *     documentation and/or other materials provided with the distribution.
++ *   * Neither the name of Freescale Semiconductor nor the
++ *     names of its contributors may be used to endorse or promote products
++ *     derived from this software without specific prior written permission.
++ *
++ * THIS SOFTWARE IS PROVIDED BY Freescale Semiconductor ``AS IS'' AND ANY
++ * EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
++ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
++ * DISCLAIMED. IN NO EVENT SHALL Freescale Semiconductor BE LIABLE FOR ANY
++ * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
++ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
++ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
++ * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
++ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
++ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+  */
+ 
+ #ifndef __CMDIF_H
+@@ -13,20 +35,39 @@
+ #include <nadk_byteorder.h>
+ #include <fsl_cmdif_fd.h>
+ 
+-#ifndef __HOT_CODE
+-#define __HOT_CODE
+-#endif
+-
+ #define CPU_TO_SRV16(val) nadk_bswap16(val)
+ #define CPU_TO_SRV32(val) nadk_bswap32(val)
+ #define CPU_TO_BE64(val)  nadk_bswap64(val)
+ #define CPU_TO_BE16(val)  nadk_bswap16(val)
+ 
++#define CMDIF_EPID         0     
+ /*!< EPID to be used for setting by client */
+-#define CMDIF_EPID         0
++
++#ifdef NADK_DEBUG
++#ifndef DEBUG
++#define DEBUG
++#endif
++#endif /* NADK_DEBUG */
++
++#ifndef __HOT_CODE
++#define __HOT_CODE
++#endif
++
++#ifndef __COLD_CODE
++#define __COLD_CODE
++#endif /* COLD_CODE*/
++
++#ifndef CPU_TO_LE64
++#define CPU_TO_LE64(val) (val)
++#endif
++#ifndef CPU_TO_LE32
++#define CPU_TO_LE32(val) (val)
++#endif
++
++#define SHBP_BUF_TO_PTR(BUF) (BUF)
++#define SHBP_PTR_TO_BUF(BUF) (BUF)
+ 
+ int send_fd(struct cmdif_fd *cfd, int pr, void *nadk_dev);
+ int receive_fd(struct cmdif_fd *cfd, int pr, void *nadk_dev);
+ 
+-
+ #endif /* __CMDIF_H */
+-- 
+1.7.9.5
+

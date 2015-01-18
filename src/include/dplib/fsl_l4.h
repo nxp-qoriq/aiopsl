@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Freescale Semiconductor, Inc.
+ * Copyright 2014-2015 Freescale Semiconductor, Inc.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -57,7 +57,7 @@
  @{
 *//***************************************************************************/
 /**************************************************************************//**
- @Group		AIOP_L4_HM L4 Header Modifications
+ @Group		AIOP_L4_HM L4 Header Modification
 
  @Description	AIOP L4 related header modifications API
 
@@ -125,8 +125,7 @@
 
 
 /**************************************************************************//**
-@Group		HML4UDPTCPCksumCalcModeBits L4 UDP TCP Checksum Calculation \
-		 mode bits
+@Group		HML4UDPTCPCksumCalcModeBits L4 UDP TCP Checksum Calculation mode bits
 
 @{
 *//***************************************************************************/
@@ -253,6 +252,83 @@ int l4_set_tp_src(uint16_t src_port);
 *//***************************************************************************/
 int l4_set_tp_dst(uint16_t dst_port);
 
+/*************************************************************************//**
+@Function	l4_set_tcp_src
+
+@Description	Replace TCP source port. The TCP checksum is updated
+		automatically.
+		This function assumes the presence of TCP header.
+
+		Implicit input parameters in Task Defaults: frame handle,
+		segment handle, segment address.
+
+@Param[in]	src_port - The new TCP source port.
+
+@Return		None.
+
+@Cautions	The parse results must be updated before calling this operation.\n
+		This function assumes the original TCP header checksum is valid.
+*//***************************************************************************/
+void l4_set_tcp_src(uint16_t src_port);
+
+/*************************************************************************//**
+@Function	l4_set_tcp_dst
+
+@Description	Replace TCP destination port. The TCP checksum is updated
+		automatically.
+		This function assumes the presence of TCP header.
+
+		Implicit input parameters in Task Defaults: frame handle,
+		segment handle, segment address.
+
+@Param[in]	dst_port - The new TCP destination port.
+
+@Return		None.
+
+@Cautions	The parse results must be updated before calling this operation.\n
+		This function assumes the original TCP header checksum is valid.
+*//***************************************************************************/
+void l4_set_tcp_dst(uint16_t dst_port);
+
+/*************************************************************************//**
+@Function	l4_set_udp_src
+
+@Description	Replace UDP source port. The UDP checksum is updated
+		automatically.
+		This function assumes the presence of UDP header.
+
+		Implicit input parameters in Task Defaults: frame handle,
+		segment handle, segment address.
+
+@Param[in]	src_port - The new UDP source port.
+
+@Return		None.
+
+@Cautions	The parse results must be updated before calling this operation.\n
+		This function assumes the original UDP header checksum is valid.
+		In case that UDP checksum == 0, the checksum will not update.
+*//***************************************************************************/
+void l4_set_udp_src(uint16_t src_port);
+
+/*************************************************************************//**
+@Function	l4_set_udp_dst
+
+@Description	Replace UDP destination port. The UDP checksum is updated
+		automatically.
+		This function assumes the presence of UDP header.
+
+		Implicit input parameters in Task Defaults: frame handle,
+		segment handle, segment address.
+
+@Param[in]	dst_port - The new UDP destination port.
+
+@Return		None.
+
+@Cautions	The parse results must be updated before calling this operation.\n
+		This function assumes the original UDP header checksum is valid.
+		In case that UDP checksum == 0, the checksum will not update.
+*//***************************************************************************/
+void l4_set_udp_dst(uint16_t dst_port);
 
 /**************************************************************************//**
 @Function	l4_udp_tcp_cksum_calc

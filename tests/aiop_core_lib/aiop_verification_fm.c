@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Freescale Semiconductor, Inc.
+ * Copyright 2014-2015 Freescale Semiconductor, Inc.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -38,8 +38,6 @@
 #include "aiop_verification.h"
 #include "system.h"
 
-extern __VERIF_TLS uint32_t fatal_fqid;
-extern __VERIF_TLS uint32_t sr_fm_flags;
 
 /*
 __TASK tcp_gso_ctx_t tcp_gso_context_addr;
@@ -63,7 +61,8 @@ void aiop_verification_fm()
 	uint16_t str_size = 0;	/* Command struct Size */
 	uint32_t opcode;
 
-	/* Read last 8 bytes from frame PTA/ last 8 bytes of payload */
+	/* Read last 8 bytes from frame PTA/ last 8 bytes of payload
+	 * This is the external buffer address */
 	if (LDPAA_FD_GET_PTA(HWC_FD_ADDRESS)) {
 			/* PTA was already loaded */
 		if (PRC_GET_PTA_ADDRESS() != PRC_PTA_NOT_LOADED_ADDRESS) {
@@ -81,7 +80,7 @@ void aiop_verification_fm()
 			slab_keygen_error = *((uint8_t *)data_addr + 9);
 			PRC_SET_PTA_ADDRESS(PRC_PTA_NOT_LOADED_ADDRESS);
 		}
-	} else{
+	} else {
 		present_params.flags = FDMA_PRES_SR_BIT;
 		present_params.frame_handle = PRC_GET_FRAME_HANDLE();
 		present_params.offset = 10;
@@ -95,21 +94,15 @@ void aiop_verification_fm()
 	}
 	initial_ext_address = ext_address;
 	slab_general_error = 0;
-	
+
+	init_verif();
+
 	/* spid=0. This is a temporary spid setter and has to be removed when
 				* the ni function will be run.
 				* (According to Ilan request) */
 	*((uint8_t *)HWC_SPID_ADDRESS) = 0;
 
-	/* FATAL PARMATER INIT IS DONE BEFORE VERIFICATION INIT SO THAT
-	 * VERIFICATION INIT CAN USE THE FATAL PATH */
 	cdma_read((void *)data_addr, ext_address, (uint16_t)DATA_SIZE);
-	fatal_fqid = ((struct fatal_error_command *)
-			((uint32_t)data_addr))->fqid;
-	/* This should be removed since ASA verification is obsolete */
-	sr_fm_flags = ((struct fatal_error_command *)
-			((uint32_t)data_addr))->flags;
-	init_verif();
 
 	/* The Terminate command will finish the verification */
 	do {
@@ -208,7 +201,7 @@ void aiop_verification_fm()
 			struct write_data_to_workspace_command *str =
 				(struct write_data_to_workspace_command *)
 					data_addr;
-			uint8_t i;
+			uint16_t i;
 			uint8_t *address = (uint8_t *)(str->ws_dst_rs);
 			for (i = 0; i < str->size; i++)
 				*address++ = str->data[i%32];
@@ -299,14 +292,8 @@ void aiop_verification_fm()
 		}
 		case EXCEPTION_MODULE:
 		{
-			struct fatal_error_command *str =
-			   (struct fatal_error_command *)
-						((uint32_t)data_addr);
-			fatal_fqid = str->fqid;
-			sr_fm_flags = str->flags;
 			str_size = (uint16_t)
-			  sizeof(
-			     struct fatal_error_command);
+			  sizeof(struct fatal_error_command);
 			break;
 		}
 		case TERMINATE_FLOW_MODULE:
@@ -356,9 +343,8 @@ void aiop_verif_init_parser()
 	verif_parse_profile.parse_profile.arp_hxs_config = 0x0;
 	verif_parse_profile.parse_profile.ip_hxs_config = 0x0;
 	verif_parse_profile.parse_profile.ipv4_hxs_config = 0x0;
-	/* Routing header is ignored and the destination address from
-	 * main header is used instead */
-	verif_parse_profile.parse_profile.ipv6_hxs_config = 0x0;
+	/* Final destination address is used */
+	verif_parse_profile.parse_profile.ipv6_hxs_config = PARSER_PRP_IPV6_HXS_CONFIG_RHE;
 	verif_parse_profile.parse_profile.gre_hxs_config = 0x0;
 	verif_parse_profile.parse_profile.minenc_hxs_config = 0x0;
 	verif_parse_profile.parse_profile.other_l3_shell_hxs_config = 0x0;

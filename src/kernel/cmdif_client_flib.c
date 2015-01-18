@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Freescale Semiconductor, Inc.
+ * Copyright 2014-2015 Freescale Semiconductor, Inc.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -39,12 +39,12 @@
 	(!((CMD) & (CMDIF_NORESP_CMD | CMDIF_ASYNC_CMD)) || (CMD & SPECIAL_CMD))
 
 
-int cmdif_is_sync_cmd(uint16_t cmd_id)
+__HOT_CODE int cmdif_is_sync_cmd(uint16_t cmd_id)
 {
 	return SYNC_CMD(cmd_id);
 }
 
-int cmdif_open_cmd(struct cmdif_desc *cidesc,
+__COLD_CODE int cmdif_open_cmd(struct cmdif_desc *cidesc,
 			const char *m_name,
 			uint8_t instance_id,
 			uint8_t *v_data,
@@ -52,7 +52,7 @@ int cmdif_open_cmd(struct cmdif_desc *cidesc,
 			uint32_t size,
 			struct cmdif_fd *fd)
 {
-	uint64_t p_addr = NULL;
+	uint64_t p_addr = 0;
 	int      i = 0;
 	union  cmdif_data *v_addr = NULL;
 	struct cmdif_dev  *dev = NULL;
@@ -63,12 +63,12 @@ int cmdif_open_cmd(struct cmdif_desc *cidesc,
 	if ((m_name == NULL)
 		|| (cidesc == NULL)
 		|| (v_data == NULL)
-		|| (p_data == NULL))
+		|| (p_data == 0))
 		return -EINVAL;
-	
+#endif
+
 	if (!IS_VLD_OPEN_SIZE(size))
 		return -ENOMEM;
-#endif
 
 	memset(v_data, 0, size);
 
@@ -103,7 +103,7 @@ int cmdif_open_cmd(struct cmdif_desc *cidesc,
 	return 0;
 }
 
-int cmdif_sync_ready(struct cmdif_desc *cidesc)
+__HOT_CODE int cmdif_sync_ready(struct cmdif_desc *cidesc)
 {
 	struct cmdif_dev *dev = NULL;
 
@@ -118,7 +118,7 @@ int cmdif_sync_ready(struct cmdif_desc *cidesc)
 	return ((union  cmdif_data *)(dev->sync_done))->resp.done;
 }
 
-int cmdif_sync_cmd_done(struct cmdif_desc *cidesc)
+__HOT_CODE int cmdif_sync_cmd_done(struct cmdif_desc *cidesc)
 {
 	struct cmdif_dev *dev = NULL;
 	int    err = 0;
@@ -136,7 +136,7 @@ int cmdif_sync_cmd_done(struct cmdif_desc *cidesc)
 	return err;
 }
 
-int cmdif_open_done(struct cmdif_desc *cidesc)
+__COLD_CODE int cmdif_open_done(struct cmdif_desc *cidesc)
 {
 	struct cmdif_dev *dev = NULL;
 
@@ -152,7 +152,7 @@ int cmdif_open_done(struct cmdif_desc *cidesc)
 	return cmdif_sync_cmd_done(cidesc);
 }
 
-int cmdif_close_cmd(struct cmdif_desc *cidesc, struct cmdif_fd *fd)
+__COLD_CODE int cmdif_close_cmd(struct cmdif_desc *cidesc, struct cmdif_fd *fd)
 {
 	struct cmdif_dev *dev = NULL;
 
@@ -163,7 +163,7 @@ int cmdif_close_cmd(struct cmdif_desc *cidesc, struct cmdif_fd *fd)
 	
 	dev = (struct cmdif_dev *)cidesc->dev;
 
-	fd->u_addr.d_addr       = NULL;
+	fd->u_addr.d_addr       = 0;
 	fd->d_size              = 0;
 	fd->u_flc.flc           = 0;
 	fd->u_flc.close.cmid    = CPU_TO_SRV16(CMD_ID_CLOSE);
@@ -177,7 +177,7 @@ int cmdif_close_cmd(struct cmdif_desc *cidesc, struct cmdif_fd *fd)
 }
 
 
-int cmdif_close_done(struct cmdif_desc *cidesc)
+__COLD_CODE int cmdif_close_done(struct cmdif_desc *cidesc)
 {
 	return cmdif_sync_cmd_done(cidesc);
 }
@@ -204,7 +204,7 @@ static inline void async_cb_set(struct cmdif_fd *fd,
 	async_data->async_ctx = (uint64_t)async_ctx;
 }
 
-int cmdif_cmd(struct cmdif_desc *cidesc,
+__HOT_CODE int cmdif_cmd(struct cmdif_desc *cidesc,
 		uint16_t cmd_id,
 		uint32_t size,
 		uint64_t data,
@@ -219,7 +219,7 @@ int cmdif_cmd(struct cmdif_desc *cidesc,
 		return -EINVAL;
 	if ((cmd_id & CMDIF_ASYNC_CMD) && (size < sizeof(struct cmdif_async)))
 		return -EINVAL;
-	if ((data == NULL) && (size > 0))
+	if ((data == 0) && (size > 0))
 		return -EINVAL;
 #endif
 	
@@ -236,10 +236,8 @@ int cmdif_cmd(struct cmdif_desc *cidesc,
 	return 0;
 }
 
-int cmdif_async_cb(struct cmdif_fd *fd)
+__HOT_CODE int cmdif_async_cb(struct cmdif_fd *fd)
 {
-	struct     cmdif_dev *dev = NULL;
-	uint64_t   fd_dev         = 0;
 	cmdif_cb_t *async_cb      = NULL;
 	void       *async_ctx     = NULL;
 	uint16_t   cmd_id         = 0;
@@ -257,7 +255,7 @@ int cmdif_async_cb(struct cmdif_fd *fd)
 	cmd_id = CPU_TO_SRV16(fd->u_flc.cmd.cmid);
 	
 #ifdef DEBUG
-	if (!(cmd_id & CMDIF_ASYNC_CMD) || (fd->u_addr.d_addr == NULL))
+	if (!(cmd_id & CMDIF_ASYNC_CMD) || (fd->u_addr.d_addr == 0))
 		return -EINVAL;	
 #endif
 	

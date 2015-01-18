@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Freescale Semiconductor, Inc.
+ * Copyright 2014-2015 Freescale Semiconductor, Inc.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -37,6 +37,9 @@
 #include "fsl_io.h"
 #include "common/fsl_stdio.h"
 
+#ifdef __KLOCWORK__
+#undef DEBUG_ERRORS
+#endif
 
 /**************************************************************************//**
  @Group         gen_g  General Drivers Utilities
@@ -168,7 +171,7 @@
 #define DUMP_VAR(st, phrase) \
     do { \
         void            *addr = (void *)&((st)->phrase); \
-        dma_addr_t   phys_addr = fsl_os_virt_to_phys(addr); \
+        dma_addr_t   phys_addr = sys_virt_to_phys(addr); \
         _CREATE_DUMP_SUBSTR(phrase); \
         dump_var_size = sizeof((st)->phrase); \
         switch (dump_var_size) \

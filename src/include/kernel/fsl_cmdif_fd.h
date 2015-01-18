@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Freescale Semiconductor, Inc.
+ * Copyright 2014-2015 Freescale Semiconductor, Inc.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -36,7 +36,7 @@
 #include <types.h>
 
 /*!
- * @Group	cmdif_flib_g  Command Interface - FLIB API
+ * @Group	cmdif_flib_g  Command Interface - FLIB
  *
  * @brief	API to be used for FD based command interface implementation
  *

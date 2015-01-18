@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Freescale Semiconductor, Inc.
+ * Copyright 2014-2015 Freescale Semiconductor, Inc.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -26,12 +26,12 @@
 
 #include "common/fsl_string.h"
 #include "fsl_io_ccsr.h"
-#include "dplib/fsl_dprc.h"
-#include "dplib/fsl_dpni.h"
+#include "fsl_dprc.h"
+#include "fsl_dpni.h"
 #include "fsl_malloc.h"
 #include "kernel/fsl_spinlock.h"
 #include "../drivers/dplib/arch/accel/fdma.h"  /* TODO: need to place fdma_release_buffer() in separate .h file */
-#include "dplib/fsl_dpbp.h"
+#include "fsl_dpbp.h"
 #include "sys.h"
 #include "fsl_io_ccsr.h"
 #include "slab.h"
@@ -39,11 +39,14 @@
 #include "fsl_mc_init.h"
 #include "fsl_dpni_drv.h"
 #include "fsl_mem_mng.h"
+#include "fsl_bman.h"
+#include "platform.h"
 
-extern t_system sys;
+
 
 /* Address of end of memory_data section */
 extern const uint8_t AIOP_INIT_DATA[];
+extern struct platform_app_params g_app_params;
 extern struct aiop_init_info g_init_data;
 /*********************************************************************/
 extern int time_init();                   extern void time_free();
@@ -53,6 +56,7 @@ extern int cmdif_srv_init(void);          extern void cmdif_srv_free(void);
 extern int dpni_drv_init(void);           extern void dpni_drv_free(void);
 extern int slab_module_early_init(void);  extern int slab_module_init(void);
 extern void slab_module_free(void);
+extern int aiop_sl_early_init(void);
 extern int aiop_sl_init(void);            extern void aiop_sl_free(void);
 extern int icontext_init();
 
@@ -67,10 +71,8 @@ extern void build_apps_array(struct sys_module_desc *apps);
 // TODO remove hard-coded values from  MEM_PART_MC_PORTALS and MEM_PART_CCSR
 #define MEMORY_PARTITIONS\
 {   /* Memory partition ID               Phys. Addr.  Virt. Addr.  Size , Attributes */\
-	{MEM_PART_DEFAULT_HEAP_PARTITION,    0xFFFFFFFF,  0xFFFFFFFF,  0xFFFFFFFF,\
-		MEMORY_ATTR_NONE,"DEFAULT HEAP"},\
 	{MEM_PART_DP_DDR,                    0xFFFFFFFF,  0xFFFFFFFF,  0xFFFFFFFF,\
-		MEMORY_ATTR_MALLOCABLE,"DP_DDR"},\
+		MEMORY_ATTR_PHYS_ALLOCATION,"DP_DDR"},\
 	{MEM_PART_MC_PORTALS,                0xFFFFFFFF,  0xFFFFFFFF, (64  * MEGABYTE),\
 		MEMORY_ATTR_NONE,"MC Portals"},\
 	{MEM_PART_CCSR,                      0xFFFFFFFF,  0xFFFFFFFF, (16 * MEGABYTE),\
@@ -78,9 +80,9 @@ extern void build_apps_array(struct sys_module_desc *apps);
 	{MEM_PART_SH_RAM,                    0x01010400,   0x01010400,(191 * KILOBYTE),\
 		MEMORY_ATTR_MALLOCABLE,"Shared-SRAM"},\
 	{MEM_PART_PEB,                        0xFFFFFFFF,  0xFFFFFFFF,0xFFFFFFFF,\
-		MEMORY_ATTR_MALLOCABLE,"PEB"},\
+		MEMORY_ATTR_PHYS_ALLOCATION,"PEB"},\
 	{MEM_PART_SYSTEM_DDR,                 0xFFFFFFFF,  0xFFFFFFFF,0xFFFFFFFF,\
-		MEMORY_ATTR_MALLOCABLE,"SYSTEM_DDR"},\
+		MEMORY_ATTR_PHYS_ALLOCATION,"SYSTEM_DDR"},\
 }
 
 #define GLOBAL_MODULES                                                       \
@@ -92,12 +94,10 @@ extern void build_apps_array(struct sys_module_desc *apps);
 	{slab_module_early_init, slab_module_init,  slab_module_free},           \
 	{NULL, cmdif_client_init, cmdif_client_free}, /* must be before srv */   \
 	{NULL, cmdif_srv_init,    cmdif_srv_free},                               \
-	{NULL, aiop_sl_init,      aiop_sl_free},                                 \
+	{aiop_sl_early_init, aiop_sl_init,      aiop_sl_free},                                 \
 	{NULL, dpni_drv_init,     dpni_drv_free}, /*must be after aiop_sl_init*/ \
 	{NULL, NULL, NULL} /* never remove! */                                   \
 	}
-
-#define MAX_NUM_OF_APPS		10
 
 void fill_platform_parameters(struct platform_param *platform_param);
 int global_init(void);
@@ -121,8 +121,6 @@ __COLD_CODE void fill_platform_parameters(struct platform_param *platform_param)
 {
 
 	int err = 0;
-	/*uint32_t mem_info_size = PLATFORM_MAX_MEM_INFO_ENTRIES *
-		sizeof(struct platform_memory_info);*/
 
 	memset(platform_param, 0, sizeof(platform_param));
 
@@ -139,7 +137,8 @@ __COLD_CODE void fill_platform_parameters(struct platform_param *platform_param)
 	ASSERT_COND(err == 0);
 
 }
-int tile_init(void)
+
+__COLD_CODE int tile_init(void)
 {
 	struct aiop_tile_regs * aiop_regs = (struct aiop_tile_regs *)
 				      sys_get_handle(FSL_OS_MOD_AIOP_TILE, 1);
@@ -158,15 +157,15 @@ int tile_init(void)
 	return 0;
 }
 
-int cluster_init(void)
+__COLD_CODE int cluster_init(void)
 {
 	return 0;
 }
 
-int global_init(void)
+__COLD_CODE int global_init(void)
 {
 	struct sys_module_desc modules[] = GLOBAL_MODULES;
-	int                    i;
+	int i, err;
 
 	/* Verifying that MC saw the data at the beginning of special section
 	 * and at fixed address
@@ -176,13 +175,18 @@ int global_init(void)
 	            (AIOP_INIT_DATA == AIOP_INIT_DATA_FIXED_ADDR));
 
 	for (i=0; i<ARRAY_SIZE(modules) ; i++)
+	{
 		if (modules[i].init)
-			modules[i].init();
+		{
+			err = modules[i].init();
+			if(err) return err;
+		}
+	}
 
 	return 0;
 }
 
-void global_free(void)
+__COLD_CODE void global_free(void)
 {
 	struct sys_module_desc modules[] = GLOBAL_MODULES;
 	int i;
@@ -192,41 +196,61 @@ void global_free(void)
 			modules[i].free();
 }
 
-int global_early_init(void)
+__COLD_CODE int global_early_init(void)
 {
 	struct sys_module_desc modules[] = GLOBAL_MODULES;
-	int i;
+	int i, err;
 
-	for (i = (ARRAY_SIZE(modules) - 1); i >= 0; i--)
+	for (i=0; i<ARRAY_SIZE(modules) ; i++)
+	{
 		if (modules[i].early_init)
-			modules[i].early_init();
-
-	return 0;
-}
-
-int apps_early_init(void)
-{
-	struct sys_module_desc apps[MAX_NUM_OF_APPS];
-	int i;
-
-	memset(apps, 0, sizeof(apps));
-	build_apps_array(apps);
-
-	for (i=0; i<MAX_NUM_OF_APPS; i++) {
-		if (apps[i].early_init)
-			apps[i].early_init();
+		{
+			err = modules[i].early_init();
+			if(err) return err;
+		}
 	}
 
 	return 0;
 }
 
-int global_post_init(void)
+__COLD_CODE int apps_early_init(void)
+{
+	int i, err;
+	uint16_t app_arr_size = g_app_params.app_arr_size;
+	struct sys_module_desc *apps = \
+		fsl_malloc(app_arr_size * sizeof(struct sys_module_desc), 1);
+
+	if(apps == NULL) {
+		return -ENOMEM;
+	}
+	
+	memset(apps, 0, app_arr_size * sizeof(struct sys_module_desc));
+	build_apps_array(apps);
+
+	for (i=0; i<app_arr_size; i++)
+	{
+		if (apps[i].early_init)
+		{
+			err = apps[i].early_init();
+			if(err) {
+				fsl_free(apps);
+				return err;
+			}
+		}
+	}
+
+	fsl_free(apps);
+
+	return 0;
+}
+
+__COLD_CODE int global_post_init(void)
 {
 	return 0;
 }
 
 #if (STACK_OVERFLOW_DETECTION == 1)
-static inline void config_runtime_stack_overflow_detection()
+__COLD_CODE static inline void config_runtime_stack_overflow_detection()
 {
 	switch(cmgw_get_ntasks())
 	{
@@ -252,14 +276,21 @@ static inline void config_runtime_stack_overflow_detection()
 }
 #endif /* STACK_OVERFLOW_DETECTION */
 
-void core_ready_for_tasks(void)
+__COLD_CODE void core_ready_for_tasks(void)
 {
+	/*
+	 * CTSCSR_ntasks mast be a 'register' in order to prevent stack access
+	 * after stack overflow detection is enabled
+	 */
+	register uint32_t CTSCSR_ntasks;
+
 	/*  finished boot sequence; now wait for event .... */
 	pr_info("AIOP core %d completed boot sequence\n", core_get_id());
 
 	sys_barrier();
 
 	if(sys_is_master_core()) {
+		/* At this stage, all the NIC of AIOP are up and running */
 		pr_info("AIOP boot finished; ready for tasks...\n");
 	}
 
@@ -268,6 +299,10 @@ void core_ready_for_tasks(void)
 	sys.runtime_flag = 1;
 
 	cmgw_update_core_boot_completion();
+
+	CTSCSR_ntasks = (cmgw_get_ntasks() << 24) & CTSCSR_TASKS_MASK;
+
+	//TODO write following code in assembly to ensure stack is not accessed
 
 #if (STACK_OVERFLOW_DETECTION == 1)
 	/*
@@ -279,23 +314,29 @@ void core_ready_for_tasks(void)
 #endif
 
 	/* CTSEN = 1, finished boot, Core Task Scheduler Enable */
-	booke_set_CTSCSR0(booke_get_CTSCSR0() | CTSCSR_ENABLE);
+	booke_set_CTSCSR0(booke_get_CTSCSR0() | CTSCSR_ENABLE | CTSCSR_ntasks);
 	__e_hwacceli(YIELD_ACCEL_ID); /* Yield */
 }
 
 
-static void print_dev_desc(struct dprc_obj_desc* dev_desc)
+__COLD_CODE static void print_dev_desc(struct dprc_obj_desc* dev_desc)
 {
 	pr_debug(" device %d\n", dev_desc->id);
 	pr_debug("***********\n");
 	pr_debug("vendor - %x\n", dev_desc->vendor);
 
 	if (strcmp(dev_desc->type, "dpni") == 0)
+	{
 		pr_debug("type - DP_DEV_DPNI\n");
+	}
 	else if (strcmp(dev_desc->type, "dprc") == 0)
+	{
 		pr_debug("type - DP_DEV_DPRC\n");
+	}
 	else if (strcmp(dev_desc->type, "dpio") == 0)
+	{
 		pr_debug("type - DP_DEV_DPIO\n");
+	}
 	pr_debug("id - %d\n", dev_desc->id);
 	pr_debug("region_count - %d\n", dev_desc->region_count);
 	pr_debug("ver_major - %d\n", dev_desc->ver_major);
@@ -304,58 +345,31 @@ static void print_dev_desc(struct dprc_obj_desc* dev_desc)
 
 }
 
-
-/* TODO: Need to replace this temporary workaround with the actual function.
-/*****************************************************************************/
-static int fill_bpid(uint16_t num_buffs,
-                     uint16_t buff_size,
-                     uint16_t alignment,
-                     uint8_t  mem_partition_id,
-                     uint16_t bpid)
+__COLD_CODE int run_apps(void)
 {
-	int        i = 0;
-	dma_addr_t addr  = 0;
-	struct slab_module_info *slab_m = sys_get_unique_handle(FSL_OS_MOD_SLAB);
-	uint16_t icid = 0;
-	uint32_t flags = FDMA_RELEASE_NO_FLAGS;
-
-	/* Use the same flags as for slab */
-	if (slab_m) {
-		icid  = slab_m->icid;
-		flags = slab_m->fdma_flags;
-	}
-    addr = fsl_os_virt_to_phys(fsl_os_xmalloc((uint32_t)buff_size * num_buffs,
-                                              mem_partition_id,
-                                              alignment));
-
-    if(addr == NULL)
-	    return -ENOMEM;
-
-    for (i = 0; i < num_buffs; i++) {
-
-        /* Here, we pass virtual BPID, therefore BDI = 0 */
-        fdma_release_buffer(icid, flags, bpid, addr);
-        addr += buff_size;
-    }
-    return 0;
-}
-
-int run_apps(void)
-{
-	struct sys_module_desc apps[MAX_NUM_OF_APPS];
 	int i;
 	int err = 0;
 	int dev_count;
+	int num_bpids = 0;
 	/* TODO: replace with memset */
 	uint16_t dpbp = 0;
 	struct dprc_obj_desc dev_desc;
-	int dpbp_id = -1;
+	int dpbp_id[DPNI_DRV_NUM_USED_BPIDS];
 	struct dpbp_attr attr;
-	struct dpni_pools_cfg pools_params;
-	uint16_t buffer_size = 2048;
+	struct dpni_pools_cfg pools_params[DPNI_DRV_NUM_USED_BPIDS];
+	uint16_t buffer_size = (uint16_t)g_app_params.dpni_buff_size;
+	uint16_t num_buffs = (uint16_t)g_app_params.dpni_num_buffs;
+	uint16_t alignment;
+	uint8_t mem_pid[] = {DPNI_DRV_FAST_MEMORY, DPNI_DRV_DDR_MEMORY};
 	struct mc_dprc *dprc = sys_get_unique_handle(FSL_OS_MOD_AIOP_RC);
-
-
+	uint16_t app_arr_size = g_app_params.app_arr_size;
+	struct sys_module_desc *apps = \
+		fsl_malloc(app_arr_size * sizeof(struct sys_module_desc), 1);
+	
+	if(apps == NULL) {
+		return -ENOMEM;
+	}
+	
 	/* TODO - add initialization of global default DP-IO (i.e. call 'dpio_open', 'dpio_init');
 	 * This should be mapped to ALL cores of AIOP and to ALL the tasks */
 	/* TODO - add initialization of global default DP-SP (i.e. call 'dpsp_open', 'dpsp_init');
@@ -365,6 +379,13 @@ int run_apps(void)
 	/* TODO - iterate through the device-list:
 	 * call 'dpni_drv_probe(ni_id, mc_portal_id, dpio, dp-sp)' */
 
+
+	if(IS_POWER_VALID_ALLIGN(g_app_params.dpni_drv_alignment,buffer_size))
+		alignment = (uint16_t)g_app_params.dpni_drv_alignment;
+	else
+	{
+		pr_err("Given alignment is not valid (not power of 2 or <= buffer size)\n");
+	}
 	if (dprc == NULL)
 	{
 		pr_err("Don't find AIOP root container \n");
@@ -384,55 +405,63 @@ int run_apps(void)
 		dprc_get_obj(&dprc->io, dprc->token, i, &dev_desc);
 		if (strcmp(dev_desc.type, "dpbp") == 0) {
 			/* TODO: print conditionally based on log level */
-			pr_info("Found First DPBP ID: %d, will be used for frame buffers\n",dev_desc.id);
-			dpbp_id	= dev_desc.id;
-			break;
+			pr_info("Found DPBP ID: %d, will be used for frame buffers\n",dev_desc.id);
+			dpbp_id[num_bpids]= dev_desc.id;
+			num_bpids ++;
+
+			if(num_bpids == DPNI_DRV_NUM_USED_BPIDS)
+				break;
 		}
 	}
 
-	if(dpbp_id < 0){
-		pr_err("DPBP not found in the container.\n");
+
+
+	if(num_bpids < DPNI_DRV_NUM_USED_BPIDS){
+		pr_err("Not enough DPBPs found in the container.\n");
 		return -ENAVAIL;
 	}
 
-	if ((err = dpbp_open(&dprc->io, dpbp_id, &dpbp)) != 0) {
-		pr_err("Failed to open DPBP-%d.\n", dpbp_id);
-		return err;
+	for(i = 0; i < DPNI_DRV_NUM_USED_BPIDS; i++)
+	{
+		if ((err = dpbp_open(&dprc->io, dpbp_id[i], &dpbp)) != 0) {
+			pr_err("Failed to open DPBP-%d.\n", dpbp_id[i]);
+			return err;
+		}
+
+		if ((err = dpbp_enable(&dprc->io, dpbp)) != 0) {
+			pr_err("Failed to enable DPBP-%d.\n", dpbp_id[i]);
+			return err;
+		}
+
+		if ((err = dpbp_get_attributes(&dprc->io, dpbp, &attr)) != 0) {
+			pr_err("Failed to get attributes from DPBP-%d.\n", dpbp_id[i]);
+			return err;
+		}
+
+		if ((err = bman_fill_bpid(num_buffs,
+		                          buffer_size,
+		                          alignment,
+		                          (enum memory_partition_id) mem_pid[i],
+		                          attr.bpid)) != 0) {
+			pr_err("Failed to fill DPBP-%d (BPID=%d) with buffer size %d.\n",
+			       dpbp_id[i], attr.bpid, buffer_size);
+			return err;
+		}
+
+		/* Prepare parameters to attach to DPNI object */
+		pools_params[i].num_dpbp = 1; /* for AIOP, can be up to 2 */
+		pools_params[i].pools[0].dpbp_id = (uint16_t)dpbp_id[i]; /*!< DPBPs object id */
+		pools_params[i].pools[0].buffer_size = buffer_size;
+
+		/* Enable all DPNI devices */
 	}
-
-	if ((err = dpbp_enable(&dprc->io, dpbp)) != 0) {
-		pr_err("Failed to enable DPBP-%d.\n", dpbp_id);
-		return err;
-	}
-
-	if ((err = dpbp_get_attributes(&dprc->io, dpbp, &attr)) != 0) {
-		pr_err("Failed to get attributes from DPBP-%d.\n", dpbp_id);
-		return err;
-	}
-
-	/* TODO: number and size of buffers should not be hard-coded */
-#ifndef CDC_ROC
-	if ((err = fill_bpid(50, buffer_size, 64, MEM_PART_PEB, attr.bpid)) != 0) {
-		pr_err("Failed to fill DPBP-%d (BPID=%d) with buffer size %d.\n",
-		       dpbp_id, attr.bpid, buffer_size);
-		return err;
-	}
-#endif
-
-	/* Prepare parameters to attach to DPNI object */
-	pools_params.num_dpbp = 1; /* for AIOP, can be up to 2 */
-	pools_params.pools[0].dpbp_id = (uint16_t)dpbp_id; /*!< DPBPs object id */
-	pools_params.pools[0].buffer_size = buffer_size;
-
-
-	/* Enable all DPNI devices */
 	for (i = 0; i < dev_count; i++) {
 		dprc_get_obj(&dprc->io, dprc->token, i, &dev_desc);
 		if (strcmp(dev_desc.type, "dpni") == 0) {
 			/* TODO: print conditionally based on log level */
 			print_dev_desc(&dev_desc);
 
-			if ((err = dpni_drv_probe(dprc, (uint16_t)dev_desc.id, (uint16_t)i, &pools_params)) != 0) {
+			if ((err = dpni_drv_probe(dprc, (uint16_t)dev_desc.id, (uint16_t)i, pools_params)) != 0) {
 				pr_err("Failed to probe DPNI-%d.\n", i);
 				return err;
 			}
@@ -440,15 +469,17 @@ int run_apps(void)
 	}
 
 
-	/* At this stage, all the NIC of AIOP are up and running */
 
-	memset(apps, 0, sizeof(apps));
+
+	memset(apps, 0, (app_arr_size * sizeof(struct sys_module_desc)));
 	build_apps_array(apps);
 
-	for (i=0; i<MAX_NUM_OF_APPS; i++) {
+	for (i=0; i<app_arr_size; i++) {
 		if (apps[i].init)
 			apps[i].init();
 	}
+
+	fsl_free(apps);
 
 	return 0;
 }
@@ -462,13 +493,6 @@ static int cmdif_epid_setup(struct aiop_ws_regs *wrks_addr,
 
 	iowrite32_ccsr(epid, &wrks_addr->epas); /* EPID = 2 */
 	iowrite32_ccsr(PTR_TO_UINT(isr_cb), &wrks_addr->ep_pc);
-
-#ifdef AIOP_STANDALONE
-	/* Default settings */
-	iowrite32_ccsr(0x00600040, &wrks_addr->ep_fdpa);
-	iowrite32_ccsr(0x010001c0, &wrks_addr->ep_spa);
-	iowrite32_ccsr(0x00000000, &wrks_addr->ep_spo);
-#endif
 
 	/* no PTA presentation is required (even if there is a PTA)*/
 	iowrite32_ccsr(0x0000ffc0, &wrks_addr->ep_ptapa);

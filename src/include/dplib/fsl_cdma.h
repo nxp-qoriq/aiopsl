@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Freescale Semiconductor, Inc.
+ * Copyright 2014-2015 Freescale Semiconductor, Inc.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -40,9 +40,9 @@
 
 
 /**************************************************************************//**
- @Group		ACCEL ACCEL (Accelerator APIs)
+ @Group		ACCEL Accelerators APIs
 
- @Description	AIOP Accelerator APIs
+ @Description	AIOP Accelerators APIs
 
  @{
 *//***************************************************************************/
@@ -63,7 +63,7 @@
 *//***************************************************************************/
 
 /**************************************************************************//**
-@Group			CDMA_DMA_MUTEX_ModeBits
+@Group			CDMA_DMA_MUTEX_ModeBits CDMA DMA MUTEX ModeBits
 
 @Description	DMA Mutex flags
 
@@ -93,7 +93,7 @@
 
 
 /**************************************************************************//**
-@Group			CDMA_MUTEX_ModeBits
+@Group			CDMA_MUTEX_ModeBits  CDMA MUTEX ModeBits
 
 @Description	Mutex Lock flags
 

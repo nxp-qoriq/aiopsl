@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Freescale Semiconductor, Inc.
+ * Copyright 2014-2015 Freescale Semiconductor, Inc.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -60,8 +60,7 @@ static t_sys_virt_mem_map * sys_find_phys_addr_mapping(uint64_t phys_addr);
 
 static void *   sys_default_malloc(uint32_t size);
 static void     sys_default_free(void *p_memory);
-static void *   sys_aligned_malloc(uint32_t size, uint32_t alignment);
-static void     sys_aligned_free(void *p_memory);
+
 
 static void     sys_print_mem_leak(void        *p_memory,
                                 uint32_t    size,
@@ -69,217 +68,39 @@ static void     sys_print_mem_leak(void        *p_memory,
                                 char        *filename,
                                 int         line);
 
-/* Global System Object */
-extern t_system sys;
 
-
-/*****************************************************************************/
-__COLD_CODE int sys_register_virt_mem_mapping(uint64_t virt_addr, uint64_t phys_addr, uint64_t size)
-{
-    t_sys_virt_mem_map *p_virt_mem_map;
-#ifndef AIOP
-    uint32_t        int_flags;
-#endif /* AIOP */
-    p_virt_mem_map = (t_sys_virt_mem_map *)fsl_os_malloc(sizeof(t_sys_virt_mem_map));
-    if (!p_virt_mem_map)
-        RETURN_ERROR(MAJOR, ENOMEM, ("virtual memory mapping entry"));
-
-    p_virt_mem_map->virt_addr = virt_addr;
-    p_virt_mem_map->phys_addr = phys_addr;
-    p_virt_mem_map->size     = size;
-
-    INIT_LIST(&p_virt_mem_map->node);
-
-#ifdef AIOP
-    lock_spinlock(&(sys.virt_mem_lock));
-#else /* not AIOP */
-    int_flags = spin_lock_irqsave(&(sys.virt_mem_lock));
-#endif /* AIOP */
-    list_add_to_tail(&p_virt_mem_map->node, &(sys.virt_mem_list));
-#ifdef AIOP
-    unlock_spinlock(&(sys.virt_mem_lock));
-#else /* not AIOP */
-    spin_unlock_irqrestore(&(sys.virt_mem_lock), int_flags);
-#endif /* AIOP */
-    
-    return 0;
-}
-
+/* Put all function (execution code) into  dtext_vle section,aka __COLD_CODE */
+__START_COLD_CODE
 
 /*****************************************************************************/
-__COLD_CODE int sys_unregister_virt_mem_mapping(uint64_t virt_addr)
-{
-#ifndef AIOP
-    uint32_t        int_flags;
-#endif /* AIOP */
-    t_sys_virt_mem_map *p_virt_mem_map = sys_find_virt_addr_mapping(virt_addr);
-
-    if (!p_virt_mem_map)
-        RETURN_ERROR(MAJOR, EAGAIN, ("virtual address"));
-#ifdef AIOP
-    lock_spinlock(&(sys.virt_mem_lock));
-#else /* not AIOP */
-    int_flags = spin_lock_irqsave(&(sys.virt_mem_lock));
-#endif /* AIOP */
-    list_del(&(p_virt_mem_map->node));
-    fsl_os_free(p_virt_mem_map);
-#ifdef AIOP
-    unlock_spinlock(&(sys.virt_mem_lock));
-#else /* not AIOP */
-    spin_unlock_irqrestore(&(sys.virt_mem_lock), int_flags);
-#endif /* AIOP */
-    
-    return 0;
-}
-
-
-/*****************************************************************************/
+ /* Implement a trivial version of conversion, return the same value as received. */
 dma_addr_t sys_virt_to_phys(void *virt_addr)
 {
-    t_sys_virt_mem_map *p_virt_mem_map;
-    uint64_t        virt_addr64 = PTR_TO_UINT(virt_addr);
-
-    p_virt_mem_map = sys_find_virt_addr_mapping(virt_addr64);
-    if (p_virt_mem_map)
-    {
-        /* This is optimization - put the latest in the list-head - like a cache */
-        if (sys.virt_mem_list.next != &p_virt_mem_map->node)
-        {
-#ifdef AIOP
-            lock_spinlock(&(sys.virt_mem_lock));
-#else /* not AIOP */
-            uint32_t int_flags = spin_lock_irqsave(&(sys.virt_mem_lock));
-#endif /* AIOP */
-            list_del_and_init(&p_virt_mem_map->node);
-            list_add(&p_virt_mem_map->node, &(sys.virt_mem_list));
-#ifdef AIOP
-            unlock_spinlock(&(sys.virt_mem_lock));
-#else /* not AIOP */
-            spin_unlock_irqrestore(&(sys.virt_mem_lock), int_flags);
-#endif /* AIOP */
-        }
-        return (dma_addr_t)
-            (virt_addr64 - p_virt_mem_map->virt_addr + p_virt_mem_map->phys_addr);
-    }
-
-    /* Mapping not found */
-    return (dma_addr_t)virt_addr64;
+    return (dma_addr_t)virt_addr;
 }
 
-
 /*****************************************************************************/
-void * sys_phys_to_virt(dma_addr_t phys_addr)
-{
-    t_sys_virt_mem_map *p_virt_mem_map;
-
-    p_virt_mem_map = sys_find_phys_addr_mapping((uint64_t)phys_addr);
-    if (p_virt_mem_map)
-    {
-        /* This is optimization - put the latest in the list-head - like a cache */
-        if (sys.virt_mem_list.next != &p_virt_mem_map->node)
-        {
-#ifdef AIOP
-            lock_spinlock(&(sys.virt_mem_lock));
-#else /* not AIOP */
-            uint32_t int_flags = spin_lock_irqsave(&(sys.virt_mem_lock));
-#endif /* AIOP */
-            list_del_and_init(&p_virt_mem_map->node);
-            list_add(&p_virt_mem_map->node, &(sys.virt_mem_list));
-#ifdef AIOP
-            unlock_spinlock(&(sys.virt_mem_lock));
-#else /* not AIOP */
-            spin_unlock_irqrestore(&(sys.virt_mem_lock), int_flags);
-#endif /* AIOP */
-        }
-        return UINT_TO_PTR(phys_addr - p_virt_mem_map->phys_addr + p_virt_mem_map->virt_addr);
-    }
-
-    /* Mapping not found */
-    return UINT_TO_PTR(phys_addr);
-}
-
-
-/*****************************************************************************/
-static t_sys_virt_mem_map * sys_find_virt_addr_mapping(uint64_t virt_addr)
-{
-    t_sys_virt_mem_map *p_virt_mem_map;
-    list_t          *p_pos;
-
-    LIST_FOR_EACH(p_pos, &(sys.virt_mem_list))
-    {
-        p_virt_mem_map = VIRT_MEM_MAP(p_pos);
-
-        if ((virt_addr >= p_virt_mem_map->virt_addr) &&
-            (virt_addr <  p_virt_mem_map->virt_addr + p_virt_mem_map->size))
-        {
-            return p_virt_mem_map;
-        }
-    }
-
-    return NULL;
-}
-
-
-/*****************************************************************************/
-static t_sys_virt_mem_map * sys_find_phys_addr_mapping(uint64_t phys_addr)
-{
-    t_sys_virt_mem_map *p_virt_mem_map = NULL;
-    list_t          *p_pos;
-
-    LIST_FOR_EACH(p_pos, &(sys.virt_mem_list))
-    {
-        p_virt_mem_map = VIRT_MEM_MAP(p_pos);
-
-        if ((phys_addr >= p_virt_mem_map->phys_addr) &&
-            (phys_addr <  p_virt_mem_map->phys_addr + p_virt_mem_map->size))
-            return p_virt_mem_map;
-    }
-
-    return NULL;
-}
-
-
-/*****************************************************************************/
-void * sys_mem_alloc(int         partition_id,
-                    uint32_t    size,
+void * sys_shram_alloc(uint32_t    size,
                     uint32_t    alignment,
                     char        *info,
                     char        *filename,
                     int         line)
 {
-    void *p_memory;
-
-    ASSERT_COND(sys.mem_mng);
-    ASSERT_COND(size > 0);
-
-    if (partition_id == SYS_DEFAULT_HEAP_PARTITION)
-    {
-        /* Use registered heap partition
-           (set to MEM_MNG_EARLY_PARTITION_ID when no partitions are registered) */
-        partition_id = sys.heap_partition_id;
-    }
-
-    p_memory = mem_mng_alloc_mem(sys.mem_mng,
-                                partition_id,
-                                size,
-                                alignment,
-                                info,
-                                filename,
-                                line);
-
-    return p_memory;
+	 ASSERT_COND(sys.mem_mng);
+	 ASSERT_COND(size > 0);
+	 return mem_mng_alloc_mem(sys.mem_mng,
+			           MEM_PART_SH_RAM,
+	                   size,
+	                   alignment,
+	                   info,
+	                   filename,
+	                   line);
 }
-
-
 /*****************************************************************************/
-void sys_mem_free(void *p_memory)
+void sys_shram_free(void *mem)
 {
-    ASSERT_COND(sys.mem_mng);
-
-    mem_mng_free_mem(sys.mem_mng, p_memory);
+	mem_mng_free_mem(sys.mem_mng, mem);
 }
-
-
 /*****************************************************************************/
 int sys_get_available_mem_partition(void)
 {
@@ -292,9 +113,36 @@ int sys_get_available_mem_partition(void)
     return partition_id;
 }
 
+/*****************************************************************************/
+ int sys_register_phys_addr_alloc_partition(int  partition_id,
+        uint64_t  base_paddress,
+        uint64_t   size,
+         uint32_t   attributes,
+         char       name[])
+{
+	int err_code;
+	ASSERT_COND(sys.mem_mng);
+	 if (partition_id == SYS_DEFAULT_HEAP_PARTITION)
+	 {
+	        RETURN_ERROR(MAJOR, EDOM,
+	                     ("partition ID %d is reserved for default heap",
+	                      SYS_DEFAULT_HEAP_PARTITION));
+	 }
+	 err_code = mem_mng_register_phys_addr_alloc_partition(sys.mem_mng,
+	                                         partition_id,
+	                                         base_paddress,
+	                                         size,
+	                                         attributes,
+	                                         name);
+	  if (err_code != 0)
+	  {
+	      RETURN_ERROR(MAJOR, err_code, NO_MSG);
+	  }
+	  return 0;
+}
 
 /*****************************************************************************/
-__COLD_CODE int sys_register_mem_partition(int        partition_id,
+ int sys_register_mem_partition(int        partition_id,
                                  uintptr_t  base_address,
                                  uint64_t   size,
                                  uint32_t   attributes,
@@ -353,7 +201,7 @@ __COLD_CODE int sys_register_mem_partition(int        partition_id,
 
 
 /*****************************************************************************/
-__COLD_CODE int sys_unregister_mem_partition(int partition_id)
+ int sys_unregister_mem_partition(int partition_id)
 {
     t_mem_mng_partition_info   partition_info;
     uint32_t                leaks_count;
@@ -390,7 +238,52 @@ __COLD_CODE int sys_unregister_mem_partition(int partition_id)
     return 0;
 }
 
+/*****************************************************************************/
+int sys_get_mem_partition_info(int partition_id,t_mem_mng_partition_info* partition_info)
+{
+    int                 err_code;
 
+    ASSERT_COND(sys.mem_mng);
+
+    if (partition_id == SYS_DEFAULT_HEAP_PARTITION)
+    {
+        partition_id = sys.heap_partition_id;
+    }
+
+    err_code = mem_mng_get_partition_info(sys.mem_mng, partition_id, partition_info);
+
+    if (err_code != 0)
+    {
+        REPORT_ERROR(MAJOR, err_code, NO_MSG);
+        return (uint32_t)ILLEGAL_BASE;
+    }
+
+    return 0;
+}
+
+/*****************************************************************************/
+int sys_get_phys_addr_alloc_partition_info(int partition_id,
+                                           t_mem_mng_phys_addr_alloc_info* partition_info)
+{
+    int                 err_code;
+
+    ASSERT_COND(sys.mem_mng);
+
+    if (partition_id == SYS_DEFAULT_HEAP_PARTITION)
+    {
+        partition_id = sys.heap_partition_id;
+    }
+
+    err_code = mem_mng_get_phys_addr_alloc_info(sys.mem_mng, partition_id, partition_info);
+
+    if (err_code != 0)
+    {
+        REPORT_ERROR(MAJOR, err_code, NO_MSG);
+        return (uint32_t)ILLEGAL_BASE;
+    }
+
+    return 0;
+}
 /*****************************************************************************/
 uint64_t sys_get_mem_partition_base(int partition_id)
 {
@@ -485,20 +378,17 @@ void sys_print_mem_partition_debug_info(int partition_id, int report_leaks)
 
 
 /*****************************************************************************/
-__COLD_CODE int sys_init_memory_management(void)
+ int sys_init_memory_management(void)
 {
     t_mem_mng_param mem_mng_param;
 #ifdef AIOP
-    sys.virt_mem_lock = 0;
     sys.mem_mng_lock = 0;
     sys.mem_part_mng_lock = 0;
 #else /* not AIOP */
-    spin_lock_init(&(sys.virt_mem_lock));
     spin_lock_init(&(sys.mem_mng_lock));
     spin_lock_init(&(sys.mem_part_mng_lock)); 
 #endif /* AIOP */
     
-    INIT_LIST(&(sys.virt_mem_list));
 
     /* Initialize memory allocation manager module */
     mem_mng_param.f_malloc = sys_default_malloc;
@@ -524,7 +414,7 @@ __COLD_CODE int sys_init_memory_management(void)
 
 
 /*****************************************************************************/
-__COLD_CODE int sys_free_memory_management(void)
+ int sys_free_memory_management(void)
 {
     uint32_t leaks_count;
 
@@ -604,7 +494,7 @@ static void sys_default_free(void *p_memory)
 }
 
 /*****************************************************************************/
-static void * sys_aligned_malloc(uint32_t size, uint32_t alignment)
+void * sys_aligned_malloc(uint32_t size, uint32_t alignment)
 {
     uintptr_t    alloc_addr, aligned_addr;
     if (alignment < sizeof(uintptr_t))
@@ -628,7 +518,7 @@ static void * sys_aligned_malloc(uint32_t size, uint32_t alignment)
 }
 
 /*****************************************************************************/
-static void sys_aligned_free(void *p_memory)
+void sys_aligned_free(void *p_memory)
 {
     /* Find allocated address from aligned address */
     uintptr_t alloc_addr = *(uintptr_t *)(((uintptr_t)p_memory) - sizeof(uintptr_t));
@@ -671,4 +561,5 @@ void  sys_put_phys_mem(uint64_t paddr)
 	mem_mng_put_phys_mem(sys.mem_mng,paddr);
 }
 
+__END_COLD_CODE
 

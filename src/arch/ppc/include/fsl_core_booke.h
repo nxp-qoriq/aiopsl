@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Freescale Semiconductor, Inc.
+ * Copyright 2014-2015 Freescale Semiconductor, Inc.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -613,13 +613,13 @@ void booke_set_spr_HDBCR7(uint32_t newvalue);
 #ifdef CORE_E200
 /* E200-AIOP special regs */
 // Number of tasks as they defined by CTSCSR register.
-#define CTSCSR_ENABLE 0x80000000
-#define CTSCSR_1_TASKS 0  
-#define CTSCSR_2_TASKS (1 << 24)
-#define CTSCSR_4_TASKS (2 << 24)
-#define CTSCSR_8_TASKS (3 << 24)
-#define CTSCSR_16_TASKS (4 << 24)
-#define CTSCSR_TASKS_MASK (CTSCSR_2_TASKS | CTSCSR_4_TASKS | CTSCSR_8_TASKS | CTSCSR_16_TASKS)
+#define CTSCSR_ENABLE 		(0x80000000)
+#define CTSCSR_1_TASKS 		(0x00000000)  
+#define CTSCSR_2_TASKS 		(0x01000000)
+#define CTSCSR_4_TASKS 		(0x02000000)
+#define CTSCSR_8_TASKS 		(0x03000000)
+#define CTSCSR_16_TASKS 	(0x04000000)
+#define CTSCSR_TASKS_MASK 	(0x0f000000)
 
 uint32_t booke_get_CTSCSR0(void);            /* [464]  CTS gen control and status reg 0. */
 void booke_set_CTSCSR0(uint32_t newvalue);   /* [464]  CTS gen control and status reg 0. */

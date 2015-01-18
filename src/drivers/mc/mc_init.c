@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Freescale Semiconductor, Inc.
+ * Copyright 2014-2015 Freescale Semiconductor, Inc.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -32,8 +32,8 @@
 #include "general.h"
 #include "sys.h"
 #include "fsl_dbg.h"
-#include "dplib/fsl_dprc.h"
-#include "dplib/fsl_dpci.h"
+#include "fsl_dprc.h"
+#include "fsl_dpci.h"
 #include "fsl_mc_init.h"
 #include "ls2085_aiop/fsl_platform.h"
 
@@ -50,9 +50,11 @@ __COLD_CODE static int aiop_container_init()
 	void *p_vaddr;
 	int err = 0;
 	int container_id;
-	struct mc_dprc *dprc = fsl_os_xmalloc(sizeof(struct mc_dprc),
+	/*struct mc_dprc *dprc = fsl_os_xmalloc(sizeof(struct mc_dprc),
 					MEM_PART_SH_RAM,
-					1);
+					1);*/
+	struct mc_dprc *dprc = fsl_malloc(sizeof(struct mc_dprc),
+						1);
 	if (dprc == NULL) {
 		pr_err("No memory for AIOP Root Container \n");
 		return -ENOMEM;
@@ -90,7 +92,7 @@ __COLD_CODE static void aiop_container_free()
 	sys_remove_handle(FSL_OS_MOD_AIOP_RC, 0);
 
 	if (dprc != NULL)
-		fsl_os_xfree(dprc);
+		fsl_free(dprc);
 }
 
 __COLD_CODE static int dpci_tbl_create(struct mc_dpci_obj **_dpci_tbl, int dpci_count)
@@ -101,7 +103,8 @@ __COLD_CODE static int dpci_tbl_create(struct mc_dpci_obj **_dpci_tbl, int dpci_
 	int 	 i;
 
 	size = sizeof(struct mc_dpci_obj);
-	dpci_tbl = fsl_os_xmalloc(size, MEM_PART_SH_RAM, 1);
+	/*dpci_tbl = fsl_os_xmalloc(size, MEM_PART_SH_RAM, 1);*/
+	dpci_tbl = fsl_malloc(size, 1);
 	*_dpci_tbl = dpci_tbl;
 	if (dpci_tbl == NULL) {
 		pr_err("No memory for %d DPCIs\n", dpci_count);
@@ -110,7 +113,8 @@ __COLD_CODE static int dpci_tbl_create(struct mc_dpci_obj **_dpci_tbl, int dpci_
 	memset(dpci_tbl, 0, size);
 
 	size = sizeof(struct dpci_attr) * dpci_count;
-	dpci_tbl->attr = fsl_os_xmalloc(size, MEM_PART_SH_RAM, 1);
+	/*dpci_tbl->attr = fsl_os_xmalloc(size, MEM_PART_SH_RAM, 1);*/
+	dpci_tbl->attr = fsl_malloc(size,1);
 	if (dpci_tbl->attr == NULL) {
 		pr_err("No memory for %d DPCIs\n", dpci_count);
 		return -ENOMEM;
@@ -118,7 +122,8 @@ __COLD_CODE static int dpci_tbl_create(struct mc_dpci_obj **_dpci_tbl, int dpci_
 	memset(dpci_tbl->attr, 0, size);
 
 	size = sizeof(struct dpci_peer_attr) * dpci_count;
-	dpci_tbl->peer_attr = fsl_os_xmalloc(size, MEM_PART_SH_RAM, 1);
+	/*dpci_tbl->peer_attr = fsl_os_xmalloc(size, MEM_PART_SH_RAM, 1);*/
+	dpci_tbl->peer_attr = fsl_malloc(size,1);
 	if (dpci_tbl->peer_attr == NULL) {
 		pr_err("No memory for %d DPCIs\n", dpci_count);
 		return -ENOMEM;
@@ -128,7 +133,8 @@ __COLD_CODE static int dpci_tbl_create(struct mc_dpci_obj **_dpci_tbl, int dpci_
 	for (i = 0; i < DPCI_PRIO_NUM ; i++)
 	{
 		size = sizeof(struct dpci_rx_queue_attr) * dpci_count;
-		dpci_tbl->rx_queue_attr[i] = fsl_os_xmalloc(size, MEM_PART_SH_RAM, 1);
+		/*dpci_tbl->rx_queue_attr[i] = fsl_os_xmalloc(size, MEM_PART_SH_RAM, 1);*/
+		dpci_tbl->rx_queue_attr[i] = fsl_malloc(size, 1);
 		if (dpci_tbl->rx_queue_attr[i] == NULL) {
 			pr_err("No memory for %d DPCIs\n", dpci_count);
 			return -ENOMEM;
@@ -136,7 +142,8 @@ __COLD_CODE static int dpci_tbl_create(struct mc_dpci_obj **_dpci_tbl, int dpci_
 		memset(dpci_tbl->rx_queue_attr[i], 0, size);
 
 		size = sizeof(struct dpci_tx_queue_attr) * dpci_count;
-		dpci_tbl->tx_queue_attr[i] = fsl_os_xmalloc(size, MEM_PART_SH_RAM, 1);
+		/*dpci_tbl->tx_queue_attr[i] = fsl_os_xmalloc(size, MEM_PART_SH_RAM, 1);*/
+		dpci_tbl->tx_queue_attr[i] = fsl_malloc(size,1);
 		if (dpci_tbl->tx_queue_attr[i] == NULL) {
 			pr_err("No memory for %d DPCIs\n", dpci_count);
 			return -ENOMEM;
@@ -145,7 +152,8 @@ __COLD_CODE static int dpci_tbl_create(struct mc_dpci_obj **_dpci_tbl, int dpci_
 	}
 
 	size = sizeof(uint16_t) * dpci_count;
-	dpci_tbl->token = fsl_os_xmalloc(size, MEM_PART_SH_RAM, 1);
+	/*dpci_tbl->token = fsl_os_xmalloc(size, MEM_PART_SH_RAM, 1);*/
+	dpci_tbl->token = fsl_malloc(size,1);
 	if (dpci_tbl->token == NULL) {
 		pr_err("No memory for %d DPCIs\n", dpci_count);
 		return -ENOMEM;
@@ -153,15 +161,17 @@ __COLD_CODE static int dpci_tbl_create(struct mc_dpci_obj **_dpci_tbl, int dpci_
 	memset(dpci_tbl->token, 0, size);
 
 	size = sizeof(uint16_t) * dpci_count;
-	dpci_tbl->icid = fsl_os_xmalloc(size, MEM_PART_SH_RAM, 1);
+	/*dpci_tbl->icid = fsl_os_xmalloc(size, MEM_PART_SH_RAM, 1);*/
+	dpci_tbl->icid = fsl_malloc(size, 1);
 	if (dpci_tbl->icid == NULL) {
 		pr_err("No memory for %d DPCIs\n", dpci_count);
 		return -ENOMEM;
 	}
-	memset(dpci_tbl->icid, 0, size);
+	memset(dpci_tbl->icid, 0xff, size);
 
 	size = sizeof(uint32_t) * dpci_count;
-	dpci_tbl->dma_flags = fsl_os_xmalloc(size, MEM_PART_SH_RAM, 1);
+	/*dpci_tbl->dma_flags = fsl_os_xmalloc(size, MEM_PART_SH_RAM, 1);*/
+	dpci_tbl->dma_flags = fsl_malloc(size,1);
 	if (dpci_tbl->dma_flags == NULL) {
 		pr_err("No memory for %d DPCIs\n", dpci_count);
 		return -ENOMEM;
@@ -169,7 +179,8 @@ __COLD_CODE static int dpci_tbl_create(struct mc_dpci_obj **_dpci_tbl, int dpci_
 	memset(dpci_tbl->dma_flags, 0, size);
 
 	size = sizeof(uint32_t) * dpci_count;
-	dpci_tbl->bdi_flags = fsl_os_xmalloc(size, MEM_PART_SH_RAM, 1);
+	/*dpci_tbl->bdi_flags = fsl_os_xmalloc(size, MEM_PART_SH_RAM, 1);*/
+	dpci_tbl->bdi_flags = fsl_malloc(size, 1);
 	if (dpci_tbl->bdi_flags == NULL) {
 		pr_err("No memory for %d DPCIs\n", dpci_count);
 		return -ENOMEM;
@@ -219,6 +230,7 @@ __COLD_CODE static int dpci_tbl_add(struct dprc_obj_desc *dev_desc, int ind,
 	 * 1 is low priority
 	 * Making sure that low priority is at index 0*/
 	queue_cfg.options |= DPCI_QUEUE_OPT_USER_CTX;
+	queue_cfg.options |= DPCI_QUEUE_OPT_DEST;
 	queue_cfg.dest_cfg.dest_type = DPCI_DEST_NONE;
 	for (p = 0; p <= DPCI_LOW_PR; p++) {
 		queue_cfg.dest_cfg.priority = DPCI_LOW_PR - p;
@@ -276,6 +288,7 @@ __COLD_CODE static int dpci_for_mc_add(struct mc_dpci_obj *dpci_tbl, struct mc_d
 	 * 1 is low priority
 	 * Making sure that low priority is at index 0*/
 	queue_cfg.options |= DPCI_QUEUE_OPT_USER_CTX;
+	queue_cfg.options |= DPCI_QUEUE_OPT_DEST;
 	queue_cfg.dest_cfg.dest_type = DPCI_DEST_NONE;
 	for (p = 0; p <= DPCI_LOW_PR; p++) {
 		queue_cfg.dest_cfg.priority = DPCI_LOW_PR - p;
@@ -424,27 +437,23 @@ __COLD_CODE static void dpci_discovery_free()
 	sys_remove_handle(FSL_OS_MOD_DPCI_TBL, 0);
 
 	if (dpci_tbl != NULL)
-		fsl_os_xfree(dpci_tbl);
+		fsl_free(dpci_tbl);
 }
 
 __COLD_CODE int mc_obj_init()
 {
 	int err = 0;
 
-#ifndef AIOP_STANDALONE
 	err |= aiop_container_init();
 	err |= dpci_discovery(); /* must be after aiop_container_init */
-#endif
 	return err;
 
 }
 
 __COLD_CODE void mc_obj_free()
 {
-#ifndef AIOP_STANDALONE
 	aiop_container_free();
 	dpci_discovery_free();
 	/* TODO DPCI close ???
 	 * TODO DPRC close */
-#endif
 }

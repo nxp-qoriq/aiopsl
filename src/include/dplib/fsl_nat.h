@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Freescale Semiconductor, Inc.
+ * Copyright 2014-2015 Freescale Semiconductor, Inc.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -55,7 +55,7 @@
  @{
 *//***************************************************************************/
 /**************************************************************************//**
- @Group		AIOP_NAT_HM NAT Header Modifications
+ @Group		AIOP_NAT_HM NAT Header Modification
 
  @Description	AIOP NAT related header modifications API
 

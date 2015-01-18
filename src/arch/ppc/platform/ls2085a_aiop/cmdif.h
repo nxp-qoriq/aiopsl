@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Freescale Semiconductor, Inc.
+ * Copyright 2014-2015 Freescale Semiconductor, Inc.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -49,7 +49,5 @@
 #endif
 
 #define CMDIF_EPID         2    /*!< EPID to be used for setting by client */
-
-typedef uint64_t shbp_t;
 
 #endif /* __CMDIF_H */

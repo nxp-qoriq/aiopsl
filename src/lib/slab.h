@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Freescale Semiconductor, Inc.
+ * Copyright 2014-2015 Freescale Semiconductor, Inc.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -77,9 +77,9 @@
 /**< Returns slab's virtual pool id*/
 
 #define SLAB_HW_META_OFFSET     8 /**< metadata offset in bytes */
-#define SLAB_SIZE_GET(SIZE)     (uint32_t)((SIZE) - SLAB_HW_META_OFFSET)
+#define SLAB_SIZE_GET(SIZE)     (uint16_t)((SIZE) - SLAB_HW_META_OFFSET)
 /**< Real buffer size used by user */
-#define SLAB_SIZE_SET(SIZE)     (uint32_t)((SIZE) + SLAB_HW_META_OFFSET)
+#define SLAB_SIZE_SET(SIZE)     (uint16_t)((SIZE) + SLAB_HW_META_OFFSET)
 /**< Buffer size that needs to be set for CDMA, including metadata */
 
 #define SLAB_HW_POOL_CREATE(VP) \
@@ -94,10 +94,11 @@
 #define SLAB_FAST_MEMORY        MEM_PART_SH_RAM
 #define SLAB_DDR_MEMORY         MEM_PART_DP_DDR
 #define SLAB_NUM_MEM_PARTITIONS MEM_PART_INVALID
+#define SLAB_NUM_BPIDS_USED_FOR_DPNI BPIDS_USED_FOR_POOLS_IN_DPNI
 #define SLAB_DEFAULT_ALIGN      8
 #define SLAB_MAX_NUM_VP_SHRAM   1000
 #define SLAB_MAX_NUM_VP_DDR     64
-#define SLAB_BUFFER_TO_MANAGE_IN_DDR  1 
+#define SLAB_BUFFER_TO_MANAGE_IN_DDR  1
 #define IS_POWER_VALID_ALLIGN(_val, _max_size) \
     (((((uint32_t)_val) <= (_max_size)) && ((((uint32_t)_val) & (~((uint32_t)_val) + 1)) == ((uint32_t)_val))))
 
@@ -112,7 +113,7 @@
 struct slab_bpid_info {
 	uint16_t bpid;
 	/**< Bpid - slabs bman id */
-	uint32_t size;
+	uint16_t size;
 	/**< Size of memory the bman pool is taking  */
 	e_memory_partition_id mem_pid;
 	/**< Memory Partition Identifier */
@@ -128,7 +129,7 @@ struct slab_bpid_info {
 struct slab_hw_pool_info {
 	uint32_t flags;
 	/**< Control flags */
-	uint32_t buff_size;
+	uint16_t buff_size;
 	/**< Maximal buffer size including 8 bytes of CDMA metadata */
 	uint16_t pool_id;
 	/**< BMAN pool ID */
@@ -239,7 +240,7 @@ struct early_init_request_table{
 	struct request_table_info *table_info;
 	/**< Tables to store early initialization request for buffers. */
 };
-struct memory_types_table{	
+struct memory_types_table{
 	struct early_init_request_table *mem_pid_buffer_request[SLAB_NUM_MEM_PARTITIONS];
 	/**< Tables to store early initialization request depends on memory
 	 * partition. */
@@ -281,10 +282,9 @@ void slab_module_free(void);
 @Param[in]     num_buffs         Number of buffers in new pool.
 @Param[in]     buff_size         Size of buffers in pool.
 @Param[in]     alignment         Requested alignment for data field (in bytes).
-				 AIOP: HW pool supports up to 8 bytes alignment.
 @Param[in]     mem_partition_id  Memory partition ID for buffer type.
-				 AIOP: HW pool supports only PEB and DPAA DDR.
-@Param[out]    bpid_array_index  Index for bman pool array which reserved the 
+				 AIOP: HW pool supports only PEB and DDR.
+@Param[out]    bpid_array_index  Index for bman pool array which reserved the
 				 buffers.
 @Param[out]    bpid              Id of pool that supply the requested buffers.
 

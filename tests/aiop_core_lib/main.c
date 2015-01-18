@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Freescale Semiconductor, Inc.
+ * Copyright 2014-2015 Freescale Semiconductor, Inc.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -42,7 +42,7 @@ extern __VERIF_GLOBAL uint8_t verif_spin_lock;
 int verif_main()
 {
 	/* initialize stack pointer */
-	aiop_verification_sr(); /* Obsolete entry point */
+
 	aiop_verification_fm();
 	return 0;
 }

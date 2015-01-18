@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Freescale Semiconductor, Inc.
+ * Copyright 2014-2015 Freescale Semiconductor, Inc.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -39,8 +39,10 @@
 #include "fsl_dprc.h"
 #include "fsl_mc_init.h"
 
-int dpni_drv_probe(struct mc_dprc *dprc, uint16_t	mc_niid, uint16_t aiop_niid,
-		struct dpni_pools_cfg *pools_params);
+int dpni_drv_probe(struct mc_dprc *dprc,
+                   uint16_t mc_niid,
+                   uint16_t aiop_niid,
+                   struct dpni_pools_cfg *pools_params);
 
 #define DPNI_DRV_FLG_PARSE		0x80
 #define DPNI_DRV_FLG_PARSER_DIS		0x40
@@ -57,9 +59,12 @@ struct dpni_drv_params {
 	uint8_t             flags;
 	/** Storage profile ID */
 	uint8_t             spid;
-	uint8_t             res[1];
+	/** Storage profile ID to use DDR pool*/
+	uint8_t             spid_ddr;
 	/** connection for the command interface */
 	uint16_t            dpni;
+	/** epid table index */
+	uint16_t            epid_idx;
 };
 #pragma pack(pop)
 
@@ -80,14 +85,9 @@ struct dpni_drv_tx_params {
 struct dpni_drv {
 	struct dpni_drv_params dpni_drv_params_var;
 	struct dpni_drv_tx_params dpni_drv_tx_params_var;
-
-#if 0
-	/** TODO: the mc_niid field will be necessary if we decide to close the
-	 *  DPNI at the end of Probe. network interface ID assigned by MC -
-	 *  known outside AIOP */
-	uint16_t            mc_niid;
-#endif
-
+	/** network interface ID assigned by MC -
+	*  known outside AIOP */
+	uint16_t            dpni_id;
 	/** MAC address of this NI */
 	uint8_t 	    mac_addr[NET_HDR_FLD_ETH_ADDR_SIZE];
 	/* lock for multi-core support */

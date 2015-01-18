@@ -1,4 +1,4 @@
-/* Copyright 2013-2014 Freescale Semiconductor Inc.
+/* Copyright 2014-2015 Freescale Semiconductor Inc.
 *
 * Redistribution and use in source and binary forms, with or without
 * modification, are permitted provided that the following conditions are met:
@@ -51,8 +51,12 @@ static int build_extract_cfg_extention(struct dpkg_profile_cfg *cfg,
 		enum dpkg_extract_from_hdr_type type;
 	} u_cfg[DPKG_MAX_NUM_OF_EXTRACTS] = { 0 };
 
-	if(!cfg || !ext_params)
-		return -EINVAL;
+	if (!ext_params){
+		if (!cfg)
+			return 0;
+		else
+			return -EINVAL;
+	}
 	
 	for (i = 0; i < DPKG_MAX_NUM_OF_EXTRACTS; i++) {
 		switch (cfg->extracts[i].type) {
@@ -112,7 +116,6 @@ static int build_extract_cfg_extention(struct dpkg_profile_cfg *cfg,
 		ext_params[param] = cpu_to_le64(ext_params[param]);
 		param++;
 	}
-
 	return 0;
 }
 
@@ -263,7 +266,7 @@ int dpni_reset(struct fsl_mc_io *mc_io, uint16_t token)
 int dpni_set_irq(struct fsl_mc_io *mc_io,
 		 uint16_t token,
 		 uint8_t irq_index,
-		 uint64_t irq_paddr,
+		 uint64_t irq_addr,
 		 uint32_t irq_val,
 		 int user_irq_id)
 {
@@ -273,7 +276,7 @@ int dpni_set_irq(struct fsl_mc_io *mc_io,
 	cmd.header = mc_encode_cmd_header(DPNI_CMDID_SET_IRQ,
 					  MC_CMD_PRI_LOW,
 					  token);
-	DPNI_CMD_SET_IRQ(cmd, irq_index, irq_paddr, irq_val, user_irq_id);
+	DPNI_CMD_SET_IRQ(cmd, irq_index, irq_addr, irq_val, user_irq_id);
 
 	/* send command to mc*/
 	return mc_send_command(mc_io, &cmd);
@@ -284,7 +287,7 @@ int dpni_get_irq(struct fsl_mc_io *mc_io,
 		 uint16_t token,
 		 uint8_t irq_index,
 		 int *type,
-		 uint64_t *irq_paddr,
+		 uint64_t *irq_addr,
 		 uint32_t *irq_val,
 		 int *user_irq_id)
 {
@@ -303,7 +306,7 @@ int dpni_get_irq(struct fsl_mc_io *mc_io,
 		return err;
 
 	/* retrieve response parameters */
-	DPNI_RSP_GET_IRQ(cmd, *type, *irq_paddr, *irq_val, *user_irq_id);
+	DPNI_RSP_GET_IRQ(cmd, *type, *irq_addr, *irq_val, *user_irq_id);
 
 	return 0;
 }
@@ -756,7 +759,24 @@ int dpni_set_counter(struct fsl_mc_io *mc_io,
 	return mc_send_command(mc_io, &cmd);
 }
 
-int dpni_get_link_state(struct fsl_mc_io *mc_io, uint16_t token, int *up)
+int dpni_set_link_cfg(struct fsl_mc_io *mc_io,
+		     uint16_t token,
+		     struct dpni_link_cfg *cfg)
+{
+	struct mc_command cmd = { 0 };
+
+	/* prepare command */
+	cmd.header = mc_encode_cmd_header(DPNI_CMDID_SET_LINK_CFG,
+					  MC_CMD_PRI_LOW, token);
+	DPNI_CMD_SET_LINK_CFG(cmd, cfg);
+
+	/* send command to mc*/
+	return mc_send_command(mc_io, &cmd);
+}
+
+int dpni_get_link_state(struct fsl_mc_io *mc_io, 
+                        uint16_t token, 
+                        struct dpni_link_state *state)
 {
 	struct mc_command cmd = { 0 };
 	int err;
@@ -771,7 +791,7 @@ int dpni_get_link_state(struct fsl_mc_io *mc_io, uint16_t token, int *up)
 		return err;
 
 	/* retrieve response parameters */
-	DPNI_RSP_GET_LINK_STATE(cmd, *up);
+	DPNI_RSP_GET_LINK_STATE(cmd, state);
 
 	return 0;
 }
@@ -1067,24 +1087,29 @@ int dpni_set_tx_tc(struct fsl_mc_io *mc_io,
 
 int dpni_set_rx_tc_dist(struct fsl_mc_io *mc_io,
 			uint16_t token,
-		   uint8_t tc_id,
-		   const struct dpni_rx_tc_dist_cfg *cfg,
-		   uint64_t params_iova)
+			uint8_t tc_id,
+			const struct dpni_rx_tc_dist_cfg *cfg,
+			uint64_t params_iova)
 {
 	struct mc_command cmd = { 0 };
 	uint64_t *ext_params = (uint64_t *)params_iova;
 	int err;
 
-	if (!ext_params)
-		return -ENOMEM;
+	if (cfg->dist_key_cfg) {
+		if (!ext_params)
+			return -ENOMEM;
+		err = build_extract_cfg_extention(cfg->dist_key_cfg,
+		                                  ext_params);
+		if (err)
+			return err;
+	} else {
+		params_iova = 0; /* NULL */
+	}
 
 	/* prepare command */
 	cmd.header = mc_encode_cmd_header(DPNI_CMDID_SET_RX_TC_DIST,
 					  MC_CMD_PRI_LOW,
 					  token);
-	err = build_extract_cfg_extention(cfg->dist_key_cfg, ext_params);
-	if (err)
-		return err;
 	DPNI_CMD_SET_RX_TC_DIST(cmd, tc_id, cfg, params_iova);
 
 	/* send command to mc*/
@@ -1263,17 +1288,20 @@ int dpni_set_qos_table(struct fsl_mc_io *mc_io,
 	uint64_t *ext_params = (uint64_t *)params_iova;
 	int err;
 
-	if (!ext_params)
-		return -ENOMEM;
+	if (cfg->qos_key_cfg) {
+		if (!ext_params)
+			return -ENOMEM;
+		err = build_extract_cfg_extention(cfg->qos_key_cfg, ext_params);
+		if (err)
+			return err;
+	} else {
+		params_iova = 0; /* NULL */
+	}
 
 	/* prepare command */
 	cmd.header = mc_encode_cmd_header(DPNI_CMDID_SET_QOS_TBL,
 					  MC_CMD_PRI_LOW, token);
-	err = build_extract_cfg_extention(cfg->qos_key_cfg, ext_params);
-	if (err)
-		return err;
 	DPNI_CMD_SET_QOS_TABLE(cmd, cfg, params_iova);
-
 	/* send command to mc*/
 	return mc_send_command(mc_io, &cmd);
 }

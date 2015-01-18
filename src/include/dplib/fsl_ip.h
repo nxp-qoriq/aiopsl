@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Freescale Semiconductor, Inc.
+ * Copyright 2014-2015 Freescale Semiconductor, Inc.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -58,7 +58,7 @@
  @{
 *//***************************************************************************/
 /**************************************************************************//**
- @Group		AIOP_IP_HM IP Header Modifications
+ @Group		AIOP_IP_HM IP Header Modification
 
  @Description	AIOP IP related header modifications API
 
@@ -101,7 +101,7 @@
 /** @} */ /* end of group HMIPv4ModeBits */
 
 /**************************************************************************//**
-@Group		HMIPv4MangleBits IPv4 header modification mode bits
+@Group		HMIPv4MangleBits IPv4 header Mangle bits
 
 @{
 *//***************************************************************************/
@@ -114,7 +114,7 @@
 /** @} */ /* end of group HMIPv4MangleBits */
 
 /**************************************************************************//**
-@Group		HMIPv6MangleBits IPv6 header modification mode bits
+@Group		HMIPv6MangleBits IPv6 header Mangle bits
 
 @{
 *//***************************************************************************/

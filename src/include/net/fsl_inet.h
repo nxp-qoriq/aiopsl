@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Freescale Semiconductor, Inc.
+ * Copyright 2014-2015 Freescale Semiconductor, Inc.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -46,10 +46,12 @@
 @{
 *//***************************************************************************/
 
-#define AF_INET             0               /**< Internet IPv4 Protocol  */
-#define AF_INET6            (AF_INET + 1)   /**< Internet IPv6 Protocol  */
-#define AF_MAX              (AF_INET + 2)   /**< Maximal number of supported
-																								 adress families */
+#define AF_INET             0               
+/**< Internet IPv4 Protocol  */
+#define AF_INET6            (AF_INET + 1)   
+/**< Internet IPv6 Protocol  */
+#define AF_MAX              (AF_INET + 2)   
+/**< Maximal number of supported address families */
 
 /**************************************************************************//**
 @Function       inet_pton

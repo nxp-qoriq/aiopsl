@@ -1,4 +1,4 @@
-/* Copyright 2013-2014 Freescale Semiconductor Inc.
+/* Copyright 2014-2015 Freescale Semiconductor Inc.
 *
 * Redistribution and use in source and binary forms, with or without
 * modification, are permitted provided that the following conditions are met:
@@ -29,163 +29,149 @@
 * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 * POSSIBILITY OF SUCH DAMAGE.
 */
-#ifndef __FSL_DPIO_H
-#define __FSL_DPIO_H
+#ifndef __FSL_DPBP_H
+#define __FSL_DPBP_H
 
-/**
- * Data Path I/O Portal API
- * Contains initialization APIs and runtime control APIs for DPIO
+/*
+ * Data Path Buffer Pool API
+ * Contains initialization APIs and runtime control APIs for DPBP
  */
 
 struct fsl_mc_io;
 
 /**
- * dpio_open() - Open a control session for the specified object
+ * dpbp_open() - Open a control session for the specified object.
  * @mc_io:	Pointer to MC portal's I/O object
- * @dpio_id:	DPIO unique ID
- * @token:	Returned token; use in subsequent API calls
- * 
+ * @dpbp_id:	DPBP unique ID
+ * @token:	Returned token; use in subsequent API calls 
+ *
  * This function can be used to open a control session for an
  * already created object; an object may have been declared in
- * the DPL or by calling the dpio_create() function.
+ * the DPL or by calling the dpbp_create function.
  * This function returns a unique authentication token,
  * associated with the specific object ID and the specific MC
  * portal; this token must be used in all subsequent commands for
- * this specific object.
+ * this specific object
  *
  * Return:	'0' on Success; Error code otherwise.
  */
-int dpio_open(struct fsl_mc_io *mc_io, int dpio_id, uint16_t *token);
+int dpbp_open(struct fsl_mc_io *mc_io, int dpbp_id, uint16_t *token);
 
 /**
- * dpio_close() - Close the control session of the object
+ * dpbp_close() - Close the control session of the object
  * @mc_io:	Pointer to MC portal's I/O object
- * @token:	Token of DPIO object
+ * @token:	Token of DPBP object
+ * 
+ * After this function is called, no further operations are
+ * allowed on the object without opening a new control session.
  *
  * Return:	'0' on Success; Error code otherwise.
  */
-int dpio_close(struct fsl_mc_io *mc_io, uint16_t token);
+int dpbp_close(struct fsl_mc_io *mc_io, uint16_t token);
 
 /**
- * enum dpio_channel_mode - DPIO notification channel mode
- * @DPIO_NO_CHANNEL: No support for notification channel
- * @DPIO_LOCAL_CHANNEL: Notifications on data availability can be received by a
- * 	dedicated channel in the DPIO; user should point the queue's
- * 	destination in the relevant interface to this DPIO
+ * struct dpbp_cfg() - Structure representing DPBP configuration
+ * @options:	place holder
  */
-enum dpio_channel_mode {
-	DPIO_NO_CHANNEL = 0,
-	DPIO_LOCAL_CHANNEL = 1,
+struct dpbp_cfg {
+	uint32_t options;
 };
 
 /**
- * struct dpio_cfg - Structure representing DPIO configuration
- * @channel_mode: Notification channel mode
- * @num_priorities: Number of priorities for the notification channel (1-8);
- * 			relevant only if 'channel_mode = DPIO_LOCAL_CHANNEL'
- */
-struct dpio_cfg {
-	enum dpio_channel_mode channel_mode;
-	uint8_t num_priorities;
-};
-
-/**
- * dpio_create() - Create the DPIO object.
+ * dpbp_create() - Create the DPBP object.
  * @mc_io:	Pointer to MC portal's I/O object
  * @cfg:	Configuration structure
  * @token:	Returned token; use in subsequent API calls
- * 
- * Create the DPIO object, allocate required resources and
+ *
+ * Create the DPBP object, allocate required resources and
  * perform required initialization.
  *
  * The object can be created either by declaring it in the
  * DPL file, or by calling this function.
- *
  * This function returns a unique authentication token,
  * associated with the specific object ID and the specific MC
  * portal; this token must be used in all subsequent calls to
  * this specific object. For objects that are created using the
- * DPL file, call dpio_open() function to get an authentication
+ * DPL file, call dpbp_open function to get an authentication
  * token first.
- *
+ * 
  * Return:	'0' on Success; Error code otherwise.
  */
-int dpio_create(struct fsl_mc_io	*mc_io,
-		const struct dpio_cfg	*cfg,
+int dpbp_create(struct fsl_mc_io	*mc_io,
+		const struct dpbp_cfg	*cfg,
 		uint16_t		*token);
 
 /**
- * dpio_destroy() - Destroy the DPIO object and release all its resources.
+ * dpbp_destroy() - Destroy the DPBP object and release all its resources.
  * @mc_io:	Pointer to MC portal's I/O object
- * @token:	Token of DPIO object
+ * @token:	Token of DPBP object
  *
- * Return:	'0' on Success; Error code otherwise
+ * Return:	'0' on Success; error code otherwise.
  */
-int dpio_destroy(struct fsl_mc_io *mc_io, uint16_t token);
+int dpbp_destroy(struct fsl_mc_io *mc_io, uint16_t token);
 
 /**
- * dpio_enable() - Enable the DPIO, allow I/O portal operations.
+ * dpbp_enable() - Enable the DPBP.
  * @mc_io:	Pointer to MC portal's I/O object
- * @token:	Token of DPIO object
- *
- * Return:	'0' on Success; Error code otherwise
- */
-int dpio_enable(struct fsl_mc_io *mc_io, uint16_t token);
-
-/**
- * dpio_disable() - Disable the DPIO, stop any I/O portal operation.
- * @mc_io:	Pointer to MC portal's I/O object
- * @token:	Token of DPIO object
- *
- * Return:	'0' on Success; Error code otherwise
- */
-int dpio_disable(struct fsl_mc_io *mc_io, uint16_t token);
-
-/**
- * dpio_is_enabled() - Check if the DPIO is enabled.
- * @mc_io:	Pointer to MC portal's I/O object
- * @token:	Token of DPIO object
- * @en: 	Returns '1' if object is enabled; '0' otherwise
+ * @token:	Token of DPBP object
  *
  * Return:	'0' on Success; Error code otherwise.
  */
-int dpio_is_enabled(struct fsl_mc_io *mc_io, uint16_t token, int *en);
+int dpbp_enable(struct fsl_mc_io *mc_io, uint16_t token);
 
 /**
- * dpio_reset() - Reset the DPIO, returns the object to initial state.
+ * dpbp_disable() - Disable the DPBP.
  * @mc_io:	Pointer to MC portal's I/O object
- * @token:	Token of DPIO object
+ * @token:	Token of DPBP object
  *
  * Return:	'0' on Success; Error code otherwise.
  */
-int dpio_reset(struct fsl_mc_io *mc_io, uint16_t token);
+int dpbp_disable(struct fsl_mc_io *mc_io, uint16_t token);
 
 /**
- * dpio_set_irq() - Set IRQ information for the DPIO to trigger an interrupt.
+ * dpbp_is_enabled() - Check if the DPBP is enabled.
  * @mc_io:	Pointer to MC portal's I/O object
- * @token:	Token of DPIO object
+ * @token:	Token of DPBP object
+ * @en:		Returns '1' if object is enabled; '0' otherwise
+ *
+ * Return:	'0' on Success; Error code otherwise.
+ */
+int dpbp_is_enabled(struct fsl_mc_io *mc_io, uint16_t token, int *en);
+
+/**
+ * dpbp_reset() - Reset the DPBP, returns the object to initial state.
+ * @mc_io:	Pointer to MC portal's I/O object
+ * @token:	Token of DPBP object
+ *
+ * Return:	'0' on Success; Error code otherwise.
+ */
+int dpbp_reset(struct fsl_mc_io *mc_io, uint16_t token);
+
+/**
+ * dpbp_set_irq() - Set IRQ information for the DPBP to trigger an interrupt.
+ * @mc_io:	Pointer to MC portal's I/O object
+ * @token:	Token of DPBP object
  * @irq_index:	Identifies the interrupt index to configure
  * @irq_addr:	Address that must be written to
- *		signal a message-based interrupt
+ *				signal a message-based interrupt
  * @irq_val:	Value to write into irq_addr address
  * @user_irq_id: A user defined number associated with this IRQ
  *
  * Return:	'0' on Success; Error code otherwise.
  */
-int dpio_set_irq(struct fsl_mc_io	*mc_io,
+int dpbp_set_irq(struct fsl_mc_io	*mc_io,
 		 uint16_t		token,
-		uint8_t			irq_index,
-		uint64_t		irq_addr,
-		uint32_t		irq_val,
-		int			user_irq_id);
+		 uint8_t		irq_index,
+		 uint64_t		irq_addr,
+		 uint32_t		irq_val,
+		 int			user_irq_id);
 
 /**
- * dpio_get_irq() - Get IRQ information from the DPIO.
- *
+ * dpbp_get_irq() - Get IRQ information from the DPBP.
  * @mc_io:	Pointer to MC portal's I/O object
- * @token:	Token of DPIO object
+ * @token:	Token of DPBP object
  * @irq_index:	The interrupt index to configure
- * @type:	Returned interrupt type: 0 represents message interrupt
+ * @type:	Interrupt type: 0 represents message interrupt
  *				type (both irq_addr and irq_val are valid)
  * @irq_addr:	Returned address that must be written to
  *				signal the message-based interrupt
@@ -194,7 +180,7 @@ int dpio_set_irq(struct fsl_mc_io	*mc_io,
  *
  * Return:	'0' on Success; Error code otherwise.
  */
-int dpio_get_irq(struct fsl_mc_io	*mc_io,
+int dpbp_get_irq(struct fsl_mc_io	*mc_io,
 		 uint16_t		token,
 		 uint8_t		irq_index,
 		 int			*type,
@@ -203,44 +189,44 @@ int dpio_get_irq(struct fsl_mc_io	*mc_io,
 		 int			*user_irq_id);
 
 /**
- * dpio_get_irq() - Set overall interrupt state.
+ * dpbp_set_irq_enable() - Set overall interrupt state.
  * @mc_io:	Pointer to MC portal's I/O object
- * @token:	Token of DPIO object
+ * @token:	Token of DPBP object
  * @irq_index:	The interrupt index to configure
- * @en:		Interrupt state - enable = 1, disable = 0
- * 
+ * @en:	Interrupt state - enable = 1, disable = 0
+ *
  * Allows GPP software to control when interrupts are generated.
  * Each interrupt can have up to 32 causes.  The enable/disable control's the
  * overall interrupt state. if the interrupt is disabled no causes will cause
  * an interrupt.
- *
+ * 
  * Return:	'0' on Success; Error code otherwise.
  */
-int dpio_set_irq_enable(struct fsl_mc_io	*mc_io,
+int dpbp_set_irq_enable(struct fsl_mc_io	*mc_io,
 			uint16_t		token,
 			uint8_t			irq_index,
 			uint8_t			en);
 
 /**
- * dpio_get_irq_enable() - Get overall interrupt state
+ * dpbp_get_irq_enable() - Get overall interrupt state
  * @mc_io:	Pointer to MC portal's I/O object
- * @token:	Token of DPIO object
+ * @token:	Token of DPBP object
  * @irq_index:	The interrupt index to configure
  * @en:		Returned interrupt state - enable = 1, disable = 0
  *
  * Return:	'0' on Success; Error code otherwise.
  */
-int dpio_get_irq_enable(struct fsl_mc_io	*mc_io,
+int dpbp_get_irq_enable(struct fsl_mc_io	*mc_io,
 			uint16_t		token,
 			uint8_t			irq_index,
 			uint8_t			*en);
 
 /**
- * dpio_set_irq_mask() - Set interrupt mask.
+ * dpbp_set_irq_mask() - Set interrupt mask.
  * @mc_io:	Pointer to MC portal's I/O object
- * @token:	Token of DPIO object
+ * @token:	Token of DPBP object
  * @irq_index:	The interrupt index to configure
- * @mask:	event mask to trigger interrupt;
+ * @mask:	Event mask to trigger interrupt;
  *			each bit:
  *				0 = ignore event
  *				1 = consider event for asserting IRQ
@@ -250,32 +236,33 @@ int dpio_get_irq_enable(struct fsl_mc_io	*mc_io,
  * 
  * Return:	'0' on Success; Error code otherwise.
  */
-int dpio_set_irq_mask(struct fsl_mc_io	*mc_io,
+int dpbp_set_irq_mask(struct fsl_mc_io	*mc_io,
 		      uint16_t		token,
 		      uint8_t		irq_index,
 		      uint32_t		mask);
 
 /**
- * dpio_get_irq_mask() - Get interrupt mask.
+ * dpbp_get_irq_mask() - Get interrupt mask.
  * @mc_io:	Pointer to MC portal's I/O object
- * @token:	Token of DPIO object
+ * @token:	Token of DPBP object
  * @irq_index:	The interrupt index to configure
  * @mask:	Returned event mask to trigger interrupt
- * 
+ *
  * Every interrupt can have up to 32 causes and the interrupt model supports
  * masking/unmasking each cause independently
- *
+ * 
  * Return:	'0' on Success; Error code otherwise.
  */
-int dpio_get_irq_mask(struct fsl_mc_io	*mc_io,
+int dpbp_get_irq_mask(struct fsl_mc_io	*mc_io,
 		      uint16_t		token,
 		      uint8_t		irq_index,
 		      uint32_t		*mask);
 
 /**
- * dpio_get_irq_status() - Get the current status of any pending interrupts.
+ * dpbp_get_irq_status() - Get the current status of any pending interrupts.
+ *
  * @mc_io:	Pointer to MC portal's I/O object
- * @token:	Token of DPIO object
+ * @token:	Token of DPBP object
  * @irq_index:	The interrupt index to configure
  * @status:	Returned interrupts status - one bit per cause:
  *			0 = no interrupt pending
@@ -283,67 +270,62 @@ int dpio_get_irq_mask(struct fsl_mc_io	*mc_io,
  *
  * Return:	'0' on Success; Error code otherwise.
  */
-int dpio_get_irq_status(struct fsl_mc_io	*mc_io,
+int dpbp_get_irq_status(struct fsl_mc_io	*mc_io,
 			uint16_t		token,
 			uint8_t			irq_index,
 			uint32_t		*status);
 
 /**
- * dpio_clear_irq_status() - Clear a pending interrupt's status
+ * dpbp_clear_irq_status() - Clear a pending interrupt's status
+ *
  * @mc_io:	Pointer to MC portal's I/O object
- * @token:	Token of DPIO object
+ * @token:	Token of DPBP object
  * @irq_index:	The interrupt index to configure
- * @status:	bits to clear (W1C) - one bit per cause:
- *			0 = don't change
- *			1 = clear status bit
+ * @status:	Bits to clear (W1C) - one bit per cause:
+ *					0 = don't change
+ *					1 = clear status bit
  *
  * Return:	'0' on Success; Error code otherwise.
  */
-int dpio_clear_irq_status(struct fsl_mc_io	*mc_io,
+int dpbp_clear_irq_status(struct fsl_mc_io	*mc_io,
 			  uint16_t		token,
 			  uint8_t		irq_index,
 			  uint32_t		status);
 
 /**
- * struct dpio_attr - Structure representing DPIO attributes
- * @id: DPIO object ID
- * @version: DPIO version
- * @qbman_portal_ce_paddr: Physical address of the software portal 
- * 				cache-enabled area
- * @qbman_portal_ci_paddr: Physical address of the software portal 
- * 				cache-inhibited area
- * @qbman_portal_id: Software portal ID
- * @channel_mode: Notification channel mode
- * @num_priorities: Number of priorities for the notification channel (1-8);
- * 			relevant only if 'channel_mode = DPIO_LOCAL_CHANNEL'			
+ * struct dpbp_attr - Structure representing DPBP attributes
+ * @id:		DPBP object ID
+ * @version:	DPBP version
+ * @bpid:	Hardware buffer pool ID; should be used as an argument in
+ * 		acquire/release operations on buffers
  */
-struct dpio_attr {
+struct dpbp_attr {
 	int id;
 	/**
-	 * struct version - DPIO version
-	 * @major: DPIO major version
-	 * @minor: DPIO minor version
+	 * struct version - Structure representing DPBP version
+	 * @major:	DPBP major version
+	 * @minor:	DPBP minor version
 	 */
 	struct {
 		uint16_t major;
 		uint16_t minor;
 	} version;
-	uint64_t qbman_portal_ce_paddr;
-	uint64_t qbman_portal_ci_paddr;
-	uint16_t qbman_portal_id;
-	enum dpio_channel_mode channel_mode;
-	uint8_t num_priorities;
+	uint16_t bpid;
 };
 
 /**
- * dpio_get_attributes() - Retrieve DPIO attributes
+ * dpbp_get_attributes - Retrieve DPBP attributes.
+ *
  * @mc_io:	Pointer to MC portal's I/O object
- * @token:	Token of DPIO object
+ * @token:	Token of DPBP object
  * @attr:	Returned object's attributes
  *
- * Return:	'0' on Success; Error code otherwise
+ * Return:	'0' on Success; Error code otherwise.
  */
-int dpio_get_attributes(struct fsl_mc_io	*mc_io,
+int dpbp_get_attributes(struct fsl_mc_io	*mc_io,
 			uint16_t		token,
-			struct dpio_attr	*attr);
-#endif /* __FSL_DPIO_H */
+			struct dpbp_attr	*attr);
+
+/** @} */
+
+#endif /* __FSL_DPBP_H */

@@ -1,4 +1,4 @@
-/* Copyright 2013-2014 Freescale Semiconductor Inc.
+/* Copyright 2014-2015 Freescale Semiconductor Inc.
 *
 * Redistribution and use in source and binary forms, with or without
 * modification, are permitted provided that the following conditions are met:
@@ -70,7 +70,7 @@ struct fsl_mc_io;
  * associated with the specific object ID and the specific MC
  * portal; this token must be used in all subsequent commands for
  * this specific object.
- * 
+ *
  * Return:	'0' on Success; Error code otherwise.
  */
 int dpni_open(struct fsl_mc_io *mc_io, int dpni_id, uint16_t *token);
@@ -132,10 +132,10 @@ int dpni_close(struct fsl_mc_io *mc_io, uint16_t token);
 
 /**
  * struct dpni_ipr_cfg - Structure representing IP reassembly configuration
- * @max_reass_frm_size: Maximum size of the reassembled frame 
+ * @max_reass_frm_size: Maximum size of the reassembled frame
  * @min_frag_size_ipv4: Minimum fragment size of IPv4 fragments
- * @min_frag_size_ipv6: Minimum fragment size of IPv6 fragments 
- * @max_open_frames_ipv4: Maximum concurrent IPv4 packets in reassembly process 
+ * @min_frag_size_ipv6: Minimum fragment size of IPv6 fragments
+ * @max_open_frames_ipv4: Maximum concurrent IPv4 packets in reassembly process
  * @max_open_frames_ipv6: Maximum concurrent IPv6 packets in reassembly process
  */
 struct dpni_ipr_cfg {
@@ -170,18 +170,18 @@ struct dpni_cfg {
 	 * 			i.e. 0->1, 1->2, ... ,255->256;
 	 *			Non-power-of-2 values are rounded up to the next
 	 * 			power-of-2 value as hardware demands it
-	 * @max_unicast_filters: Maximum number of unicast filters; 
+	 * @max_unicast_filters: Maximum number of unicast filters;
 	 * 			'0' is treated	as '16'
-	 * @max_multicast_filters: Maximum number of multicast filters; 
+	 * @max_multicast_filters: Maximum number of multicast filters;
 	 * 			'0' is treated as '64'
 	 * @max_qos_entries: if 'max_tcs > 1', declares the maximum entries in
 	 * 			the QoS	table; '0' is treated as '64'
-	 * @max_qos_key_size: Maximum key size for the QoS look-up; 
-	 * 			'0' is treated as '24' which is enough for IPv4 
+	 * @max_qos_key_size: Maximum key size for the QoS look-up;
+	 * 			'0' is treated as '24' which is enough for IPv4
 	 * 			5-tuple
-	 * @max_dist_key_size: Maximum key size for the distribution; 
+	 * @max_dist_key_size: Maximum key size for the distribution;
 	 * 		'0' is treated as '24' which is enough for IPv4 5-tuple
-	 * @ipr_cfg: IP reassembly configuration 
+	 * @ipr_cfg: IP reassembly configuration
 	 */
 	struct {
 		uint64_t options;
@@ -217,7 +217,7 @@ struct dpni_cfg {
  * this specific object. For objects that are created using the
  * DPL file, call dpni_open() function to get an authentication
  * token first.
- *		
+ *
  * Return:	'0' on Success; Error code otherwise.
  */
 int dpni_create(struct fsl_mc_io	*mc_io,
@@ -253,7 +253,7 @@ struct dpni_pools_cfg {
 };
 
 /**
- * dpni_set_pools() - Set buffer pools configuration 
+ * dpni_set_pools() - Set buffer pools configuration
  * @mc_io:	Pointer to MC portal's I/O object
  * @token:	Token of DPNI object
  * @cfg:	Buffer pools configuration
@@ -365,7 +365,7 @@ int dpni_get_irq(struct fsl_mc_io	*mc_io,
  * Each interrupt can have up to 32 causes.  The enable/disable control's the
  * overall interrupt state. if the interrupt is disabled no causes will cause
  * an interrupt.
- * 
+ *
  * Return:	'0' on Success; Error code otherwise.
  */
 int dpni_set_irq_enable(struct fsl_mc_io	*mc_io,
@@ -399,7 +399,7 @@ int dpni_get_irq_enable(struct fsl_mc_io	*mc_io,
  *
  * Every interrupt can have up to 32 causes and the interrupt model supports
  * masking/unmasking each cause independently
- * 
+ *
  * Return:	'0' on Success; Error code otherwise.
  */
 int dpni_set_irq_mask(struct fsl_mc_io	*mc_io,
@@ -416,7 +416,7 @@ int dpni_set_irq_mask(struct fsl_mc_io	*mc_io,
  *
  * Every interrupt can have up to 32 causes and the interrupt model supports
  * masking/unmasking each cause independently
- * 
+ *
  * Return:	'0' on Success; Error code otherwise.
  */
 int dpni_get_irq_mask(struct fsl_mc_io	*mc_io,
@@ -465,20 +465,20 @@ int dpni_clear_irq_status(struct fsl_mc_io	*mc_io,
  * 		object's creation
  * @max_senders: Maximum number of different senders; used as the number
  * 		of dedicated Tx flows;
- * @max_tcs: Maximum number of traffic classes (for both Tx and Rx) 
+ * @max_tcs: Maximum number of traffic classes (for both Tx and Rx)
  * @max_dist_per_tc: Maximum distribution size per Rx traffic class;
  * 			Set to the required value minus 1
  * @max_unicast_filters: Maximum number of unicast filters
  * @max_multicast_filters: Maximum number of multicast filters
- * @max_vlan_filters: Maximum number of VLAN filters 
- * @max_qos_entries: if 'max_tcs > 1', declares the maximum entries in QoS table 
+ * @max_vlan_filters: Maximum number of VLAN filters
+ * @max_qos_entries: if 'max_tcs > 1', declares the maximum entries in QoS table
  * @max_qos_key_size: Maximum key size for the QoS look-up
  * @max_dist_key_size: Maximum key size for the distribution look-up
  * @ipr_cfg: IP reassembly configuration
  */
 struct dpni_attr {
 	int id;
-	/** 
+	/**
 	 * struct version - DPNI version
 	 * @major: DPNI major version
 	 * @minor: DPNI minor version
@@ -530,7 +530,7 @@ int dpni_get_attributes(struct fsl_mc_io	*mc_io,
 
 
 /**
- *  enum dpni_error_action - Defines DPNI behavior for errors 
+ *  enum dpni_error_action - Defines DPNI behavior for errors
  *  @DPNI_ERROR_ACTION_DISCARD: Discard the frame
  *  @DPNI_ERROR_ACTION_CONTINUE: Continue with the normal flow
  *  @DPNI_ERROR_ACTION_SEND_TO_ERROR_QUEUE: Send the frame to the error queue
@@ -546,7 +546,7 @@ enum dpni_error_action {
  * struct dpni_error_cfg - Structure representing DPNI errors treatment
  * @errors: Errors mask; use 'DPNI_ERROR__<X>
  * @error_action: The desired action for the errors mask
- * @set_frame_annotation: Set to '1' to mark the errors in frame annotation 
+ * @set_frame_annotation: Set to '1' to mark the errors in frame annotation
  * 		status (FAS); relevant only for the non-discard action
  */
 struct dpni_error_cfg {
@@ -563,7 +563,7 @@ struct dpni_error_cfg {
  *
  * this function may be called numerous times with different
  * error masks
- * 
+ *
  * Return:	'0' on Success; Error code otherwise.
  */
 int dpni_set_errors_behavior(struct fsl_mc_io		*mc_io,
@@ -572,16 +572,20 @@ int dpni_set_errors_behavior(struct fsl_mc_io		*mc_io,
 
 /* DPNI buffer layout modification options */
 
-/*!< Select to modify the time-stamp setting */
+/* Select to modify the time-stamp setting */
 #define DPNI_BUF_LAYOUT_OPT_TIMESTAMP		0x00000001
-/*!< Select to modify the parser-result setting; not applicable for Tx */
+/* Select to modify the parser-result setting; not applicable for Tx */
 #define DPNI_BUF_LAYOUT_OPT_PARSER_RESULT	0x00000002
-/*!< Select to modify the frame-status setting */
+/* Select to modify the frame-status setting */
 #define DPNI_BUF_LAYOUT_OPT_FRAME_STATUS	0x00000004
-/*!< Select to modify the private-data-size setting */
+/* Select to modify the private-data-size setting */
 #define DPNI_BUF_LAYOUT_OPT_PRIVATE_DATA_SIZE	0x00000008
-/*!< Select to modify the data-alignment setting */
+/* Select to modify the data-alignment setting */
 #define DPNI_BUF_LAYOUT_OPT_DATA_ALIGN		0x00000010
+/* Select to modify the data-head-room setting */
+#define DPNI_BUF_LAYOUT_OPT_DATA_HEAD_ROOM	0x00000020
+/*!< Select to modify the data-tail-room setting */
+#define DPNI_BUF_LAYOUT_OPT_DATA_TAIL_ROOM	0x00000040
 
 /**
  * struct dpni_buffer_layout - Structure representing DPNI buffer layout
@@ -589,9 +593,11 @@ int dpni_set_errors_behavior(struct fsl_mc_io		*mc_io,
  * 		layout; Use any combination of 'DPNI_BUF_LAYOUT_OPT_<X>' flags
  * @pass_timestamp: Pass timestamp value
  * @pass_parser_result: Pass parser results
- * @pass_frame_status: Pass frame status 
- * @private_data_size: Size kept for private data (in bytes) 
+ * @pass_frame_status: Pass frame status
+ * @private_data_size: Size kept for private data (in bytes)
  * @data_align: Data alignment
+ * @data_head_room: Data head room
+ * @data_tail_room: Data tail room
  */
 struct dpni_buffer_layout {
 	uint32_t options;
@@ -600,6 +606,8 @@ struct dpni_buffer_layout {
 	int pass_frame_status;
 	uint16_t private_data_size;
 	uint16_t data_align;
+	uint16_t data_head_room;
+	uint16_t data_tail_room;
 };
 
 /**
@@ -655,7 +663,7 @@ int dpni_set_tx_buffer_layout(struct fsl_mc_io			*mc_io,
 			      const struct dpni_buffer_layout	*layout);
 
 /**
- * dpni_get_tx_conf_buffer_layout() - Retrieve Tx confirmation buffer layout 
+ * dpni_get_tx_conf_buffer_layout() - Retrieve Tx confirmation buffer layout
  * 				attributes.
  * @mc_io:	Pointer to MC portal's I/O object
  * @token:	Token of DPNI object
@@ -668,7 +676,7 @@ int dpni_get_tx_conf_buffer_layout(struct fsl_mc_io		*mc_io,
 				   struct dpni_buffer_layout	*layout);
 
 /**
- * dpni_set_tx_conf_buffer_layout() - Set Tx confirmation buffer layout 
+ * dpni_set_tx_conf_buffer_layout() - Set Tx confirmation buffer layout
  * 					configuration.
  * @mc_io:	Pointer to MC portal's I/O object
  * @token:	Token of DPNI object
@@ -769,17 +777,17 @@ int dpni_get_tx_data_offset(struct fsl_mc_io	*mc_io,
 /**
  * enum dpni_counter - DPNI counter types
  * @DPNI_CNT_ING_FRAME: Counts ingress frames
- * @DPNI_CNT_ING_BYTE: Counts ingress bytes 
- * @DPNI_CNT_ING_FRAME_DROP: Counts ingress frames dropped due to explicit 
- * 		'drop' setting 
- * @DPNI_CNT_ING_FRAME_DISCARD: Counts ingress frames discarded due to errors 
- * @DPNI_CNT_ING_MCAST_FRAME: Counts ingress multicast frames 
- * @DPNI_CNT_ING_MCAST_BYTE: Counts ingress multicast bytes 
- * @DPNI_CNT_ING_BCAST_FRAME: Counts ingress broadcast frames 
- * @DPNI_CNT_ING_BCAST_BYTES: Counts ingress broadcast bytes 
- * @DPNI_CNT_EGR_FRAME: Counts egress frames 
- * @DPNI_CNT_EGR_BYTE: Counts egress bytes 
- * @DPNI_CNT_EGR_FRAME_DISCARD: Counts egress frames discarded due to errors 
+ * @DPNI_CNT_ING_BYTE: Counts ingress bytes
+ * @DPNI_CNT_ING_FRAME_DROP: Counts ingress frames dropped due to explicit
+ * 		'drop' setting
+ * @DPNI_CNT_ING_FRAME_DISCARD: Counts ingress frames discarded due to errors
+ * @DPNI_CNT_ING_MCAST_FRAME: Counts ingress multicast frames
+ * @DPNI_CNT_ING_MCAST_BYTE: Counts ingress multicast bytes
+ * @DPNI_CNT_ING_BCAST_FRAME: Counts ingress broadcast frames
+ * @DPNI_CNT_ING_BCAST_BYTES: Counts ingress broadcast bytes
+ * @DPNI_CNT_EGR_FRAME: Counts egress frames
+ * @DPNI_CNT_EGR_BYTE: Counts egress bytes
+ * @DPNI_CNT_EGR_FRAME_DISCARD: Counts egress frames discarded due to errors
  */
 enum dpni_counter {
 	DPNI_CNT_ING_FRAME = 0x0,
@@ -825,14 +833,50 @@ int dpni_set_counter(struct fsl_mc_io	*mc_io,
 		     uint64_t		value);
 
 /**
- * dpni_get_link_state() - Return the link state (either up or down)
+ * struct - Structure representing DPNI link configuration
+ * @rate: Rate
+ * @options: Mask of available options; use 'DPNI_LINK_OPT_<X>' values
+ */
+struct dpni_link_cfg {
+	uint64_t rate;
+	uint64_t options;
+};
+
+/**
+ * dpni_set_link_cfg() - set the link configuration.
  * @mc_io:	Pointer to MC portal's I/O object
  * @token:	Token of DPNI object
- * @up:		Returned link state; returns '1' if link is up, '0' otherwise
+ * @cfg: 	Link configuration
  *
  * Return:	'0' on Success; Error code otherwise.
  */
-int dpni_get_link_state(struct fsl_mc_io *mc_io, uint16_t token, int *up);
+int dpni_set_link_cfg(struct fsl_mc_io *mc_io, 
+                      uint16_t token, 
+                      struct dpni_link_cfg *cfg);
+
+/**
+ * struct dpni_link_state - Structure representing DPNI link state
+ * @rate: Rate
+ * @options: Mask of available options; use 'DPNI_LINK_OPT_<X>' values
+ * @up: Link state; '0' for down, '1' for up
+ */
+struct dpni_link_state {
+	uint64_t rate;
+	uint64_t options;
+	int up;
+};
+
+/**
+ * dpni_get_link_state() - Return the link state (either up or down)
+ * @mc_io:	Pointer to MC portal's I/O object
+ * @token:	Token of DPNI object
+ * @state:	Returned link state; 
+ *
+ * Return:	'0' on Success; Error code otherwise.
+ */
+int dpni_get_link_state(struct fsl_mc_io *mc_io, 
+                        uint16_t token, 
+                        struct dpni_link_state *state);
 
 /**
  * dpni_set_max_frame_length() - Set the maximum received frame length.
@@ -1049,7 +1093,7 @@ struct dpni_tx_tc_cfg {
  * dpni_set_tx_tc() - Set Tx traffic class configuration
  * @mc_io:	Pointer to MC portal's I/O object
  * @token:	Token of DPNI object
- * @tc_id:	Traffic class selection (1-8)
+ * @tc_id:	Traffic class selection (0-7)
  * @cfg:	Traffic class configuration
  *
  * Return:	'0' on Success; Error code otherwise.
@@ -1061,23 +1105,23 @@ int dpni_set_tx_tc(struct fsl_mc_io		*mc_io,
 
 /**
  * enum dpni_dist_mode - DPNI distribution mode
- * @DPNI_DIST_MODE_NONE: No distribution 
+ * @DPNI_DIST_MODE_NONE: No distribution
  * @DPNI_DIST_MODE_HASH: Use hash distribution; only relevant if
  * 		the 'DPNI_OPT_DIST_HASH' option was set at DPNI creation
  * @DPNI_DIST_MODE_FS:  Use explicit flow steering; only relevant if
  *	 the 'DPNI_OPT_DIST_FS' option was set at DPNI creation
  */
 enum dpni_dist_mode {
-	DPNI_DIST_MODE_NONE = 1,
-	DPNI_DIST_MODE_HASH = 2,
-	DPNI_DIST_MODE_FS = 3
+	DPNI_DIST_MODE_NONE = 0,
+	DPNI_DIST_MODE_HASH = 1,
+	DPNI_DIST_MODE_FS = 2
 };
 
 /**
  * enum dpni_fs_miss_action -   DPNI Flow Steering miss action
  * @DPNI_FS_MISS_DROP: In case of no-match, drop the frame
- * @DPNI_FS_MISS_EXPLICIT_FLOWID: In case of no-match, use explicit flow-id 
- * @DPNI_FS_MISS_HASH: In case of no-match, distribute using hash 
+ * @DPNI_FS_MISS_EXPLICIT_FLOWID: In case of no-match, use explicit flow-id
+ * @DPNI_FS_MISS_HASH: In case of no-match, distribute using hash
  */
 enum dpni_fs_miss_action {
 	DPNI_FS_MISS_DROP = 0,
@@ -1099,10 +1143,10 @@ struct dpni_fs_tbl_cfg {
  * struct dpni_rx_tc_dist_cfg - Rx traffic class distribution configuration
  * @dist_size: Set the distribution size; Must be set to the required value
  * 		minus 1, for example: 0->1, 1->2, ... ,255->256;
- * 		Non-power-of-2 values are rounded up to the next power-of-2 
+ * 		Non-power-of-2 values are rounded up to the next power-of-2
  * 		value as HW demands it
  * @dist_mode: Distribution mode
- * @dist_key_cfg: Select the extractions to be used for the distribution key 
+ * @dist_key_cfg: Select the extractions to be used for the distribution key
  * @fs_cfg: Flow Steering table configuration; only relevant if
  * 		'dist_mode = DPNI_DIST_MODE_FS'
  */
@@ -1134,15 +1178,15 @@ int dpni_set_rx_tc_dist(struct fsl_mc_io			*mc_io,
 
 /**
  * enum dpni_dest - DPNI destination types
- * DPNI_DEST_NONE: Unassigned destination; The queue is set in parked mode and 
- * 		does not generate FQDAN notifications; user is expected to 
- * 		dequeue from the queue based on polling or other user-defined 
+ * DPNI_DEST_NONE: Unassigned destination; The queue is set in parked mode and
+ * 		does not generate FQDAN notifications; user is expected to
+ * 		dequeue from the queue based on polling or other user-defined
  * 		method
  * @DPNI_DEST_DPIO: The queue is set in schedule mode and generates FQDAN
  * 		notifications to the specified DPIO; user is expected to dequeue
  *		from the queue only after notification is received
- * @DPNI_DEST_DPCON: The queue is set in schedule mode and does not generate 
- * 		FQDAN notifications, but is connected to the specified DPCON 
+ * @DPNI_DEST_DPCON: The queue is set in schedule mode and does not generate
+ * 		FQDAN notifications, but is connected to the specified DPCON
  * 		object; user is expected to dequeue from the DPCON channel
  */
 enum dpni_dest {
@@ -1179,7 +1223,7 @@ struct dpni_dest_cfg {
  * @options: Flags representing the suggested modifications to the queue;
  * 		Use any combination of 'DPNI_QUEUE_OPT_<X>' flags
  * @user_ctx: User context value provided in the frame descriptor of each
- * 		dequeued frame; valid only if 'DPNI_QUEUE_OPT_USER_CTX' 
+ * 		dequeued frame; valid only if 'DPNI_QUEUE_OPT_USER_CTX'
  * 		is contained in 'options'
  * @dest_cfg: Queue destination parameters;
  * 		valid only if 'DPNI_QUEUE_OPT_DEST' is contained in 'options'
@@ -1195,7 +1239,7 @@ struct dpni_queue_cfg {
  * @user_ctx: User context value provided in the frame descriptor of each
  * 	dequeued frame
  * @dest_cfg: Queue destination configuration
- * @fqid: Virtual fqid value to be used for dequeue operations 
+ * @fqid: Virtual fqid value to be used for dequeue operations
  */
 struct dpni_queue_attr {
 	uint64_t user_ctx;
@@ -1234,13 +1278,13 @@ struct dpni_tx_flow_cfg {
 	uint32_t options;
 	/**
 	 * struct cnf_err_cfg - Tx confirmation and error configuration
-	 * @use_default_queue: Set to '1' to use the common (default) Tx 
-	 * 		confirmation and error queue; Set to '0' to use the 
+	 * @use_default_queue: Set to '1' to use the common (default) Tx
+	 * 		confirmation and error queue; Set to '0' to use the
 	 * 		private Tx confirmation and error queue; valid only if
-	 * 		'DPNI_TX_FLOW_OPT_TX_CONF_ERROR' is contained in 
+	 * 		'DPNI_TX_FLOW_OPT_TX_CONF_ERROR' is contained in
 	 * 		'options'
-	 * @errors_only: Set to '1' to report back only error frames; 
-	 * 		Set to '0' to confirm transmission/error for all 
+	 * @errors_only: Set to '1' to report back only error frames;
+	 * 		Set to '0' to confirm transmission/error for all
 	 * 		transmitted frames;
 	 * 		valid only if 'DPNI_TX_FLOW_OPT_ONLY_TX_ERROR' is
 	 * 		contained in 'options' and 'use_default_queue = 0';
@@ -1277,14 +1321,14 @@ int dpni_set_tx_flow(struct fsl_mc_io			*mc_io,
 /**
  * struct dpni_tx_flow_attr - Structure representing Tx flow attributes
  * @conf_err_attr: Tx confirmation and error attributes
- * @l3_chksum_gen: '1' if L3 checksum generation is enabled; '0' if disabled 
- * @l4_chksum_gen: '1' if L4 checksum generation is enabled; '0' if disabled 
+ * @l3_chksum_gen: '1' if L3 checksum generation is enabled; '0' if disabled
+ * @l4_chksum_gen: '1' if L4 checksum generation is enabled; '0' if disabled
  */
 struct dpni_tx_flow_attr {
 	/**
 	 * struct conf_err_attr - Tx confirmation and error attributes
-	 * @use_default_queue: '1' if using common (default) Tx confirmation and 
-	 * 			error queue; 
+	 * @use_default_queue: '1' if using common (default) Tx confirmation and
+	 * 			error queue;
 	 * 			'0' if using private Tx confirmation and error
 	 * 			queue
 	 * @errors_only: '1' if only error frames are reported back; '0' if all
@@ -1319,7 +1363,7 @@ int dpni_get_tx_flow(struct fsl_mc_io		*mc_io,
  * dpni_set_rx_flow() - Set Rx flow configuration
  * @mc_io:	Pointer to MC portal's I/O object
  * @token:	Token of DPNI object
- * @tc_id:	Traffic class selection (1-8);
+ * @tc_id:	Traffic class selection (0-7);
  *			use 'DPNI_ALL_TCS' to set all TCs and all flows
  * @flow_id	Rx flow id within the traffic class; use
  *			'DPNI_ALL_TC_FLOWS' to set all flows within
@@ -1339,7 +1383,7 @@ int dpni_set_rx_flow(struct fsl_mc_io			*mc_io,
  * dpni_get_rx_flow() -	Get Rx flow attributes
  * @mc_io:	Pointer to MC portal's I/O object
  * @token:	Token of DPNI object
- * @tc_id:	Traffic class selection (1-8)
+ * @tc_id:	Traffic class selection (0-7)
  * @flow_id:	Rx flow id within the traffic class
  * @attr:	Returned Rx flow attributes
  *
@@ -1376,7 +1420,7 @@ int dpni_get_rx_err_queue(struct fsl_mc_io		*mc_io,
 			  struct dpni_queue_attr	*attr);
 
 /**
- * dpni_set_tx_conf_err_queue() - Set Tx confirmation and error queue 
+ * dpni_set_tx_conf_err_queue() - Set Tx confirmation and error queue
  * 			configuration
  * @mc_io:	Pointer to MC portal's I/O object
  * @token:	Token of DPNI object
@@ -1390,7 +1434,7 @@ int dpni_get_rx_err_queue(struct fsl_mc_io		*mc_io,
  * If private Tx confirmation and error queues are used with this
  * DPNI, then this queue serves all Tx flows that are configured
  * with 'use_default_queue' option (see dpni_tx_flow_cfg).
- * 
+ *
  * Return:	'0' on Success; Error code otherwise.
  */
 int dpni_set_tx_conf_err_queue(struct fsl_mc_io			*mc_io,
@@ -1411,7 +1455,7 @@ int dpni_set_tx_conf_err_queue(struct fsl_mc_io			*mc_io,
  * If private Tx confirmation and error queues are used with this
  * DPNI, then this queue serves all Tx flows that are configured
  * with 'use_default_queue' option (see dpni_tx_flow_cfg).
- * 
+ *
  * Return:	'0' on Success; Error code otherwise.
  */
 int dpni_get_tx_conf_err_queue(struct fsl_mc_io		*mc_io,
@@ -1420,7 +1464,7 @@ int dpni_get_tx_conf_err_queue(struct fsl_mc_io		*mc_io,
 
 /**
  * struct dpni_qos_tbl_cfg - Structure representing QOS table configuration
- * @qos_key_cfg: Selects key extractions to be used as the QoS criteria 
+ * @qos_key_cfg: Selects key extractions to be used as the QoS criteria
  * @discard_on_miss: Set to '1' to discard frames in case of no match (miss);
  * 		'0' to use the 'default_tc' in such cases
  * @default_tc: Used in case of no-match and 'discard_on_miss'= 0
@@ -1452,8 +1496,8 @@ int dpni_set_qos_table(struct fsl_mc_io			*mc_io,
 /**
  * struct dpni_rule_cfg - Rule configuration for table lookup
  * @key_iova: I/O virtual address of the key (must be in DMA-able memory)
- * @mask_iova: I/O virtual address of the mask (must be in DMA-able memory) 
- * @key_size: key and mask size (in bytes) 
+ * @mask_iova: I/O virtual address of the mask (must be in DMA-able memory)
+ * @key_size: key and mask size (in bytes)
  */
 struct dpni_rule_cfg {
 	uint64_t key_iova;
@@ -1494,7 +1538,7 @@ int dpni_remove_qos_entry(struct fsl_mc_io		*mc_io,
  *
  * Following this function call, all frames are directed to
  * the default traffic class (0)
- * 
+ *
  * Return:	'0' on Success; Error code otherwise.
  */
 int dpni_clear_qos_table(struct fsl_mc_io *mc_io, uint16_t token);
@@ -1504,7 +1548,7 @@ int dpni_clear_qos_table(struct fsl_mc_io *mc_io, uint16_t token);
  * 			(to select a flow ID)
  * @mc_io:	Pointer to MC portal's I/O object
  * @token:	Token of DPNI object
- * @tc_id:	Traffic class selection (1-8)
+ * @tc_id:	Traffic class selection (0-7)
  * @cfg:	Flow steering rule to add
  * @flow_id:	Flow id selection (must be smaller than the
  *			distribution size of the traffic class)
@@ -1518,11 +1562,11 @@ int dpni_add_fs_entry(struct fsl_mc_io			*mc_io,
 		      uint16_t				flow_id);
 
 /**
- * dpni_remove_fs_entry() - Remove Flow Steering entry from a specific 
+ * dpni_remove_fs_entry() - Remove Flow Steering entry from a specific
  * 			traffic class
  * @mc_io:	Pointer to MC portal's I/O object
  * @token:	Token of DPNI object
- * @tc_id:	Traffic class selection (1-8)
+ * @tc_id:	Traffic class selection (0-7)
  * @cfg:	Flow steering rule to remove
  *
  * Return:	'0' on Success; Error code otherwise.
@@ -1533,11 +1577,11 @@ int dpni_remove_fs_entry(struct fsl_mc_io		*mc_io,
 			 const struct dpni_rule_cfg	*cfg);
 
 /**
- * dpni_clear_fs_entries() - Clear all Flow Steering entries of a specific 
+ * dpni_clear_fs_entries() - Clear all Flow Steering entries of a specific
  * 			traffic class
  * @mc_io:	Pointer to MC portal's I/O object
  * @token:	Token of DPNI object
- * @tc_id:	Traffic class selection (1-8)
+ * @tc_id:	Traffic class selection (0-7)
  *
  * Return:	'0' on Success; Error code otherwise.
  */
@@ -1553,7 +1597,7 @@ int dpni_clear_fs_entries(struct fsl_mc_io	*mc_io,
  *
  * Requires that the 'DPNI_OPT_VLAN_MANIPULATION' option is set
  * at DPNI creation.
- * 
+ *
  * Return:	'0' on Success; Error code otherwise.
  */
 int dpni_set_vlan_insertion(struct fsl_mc_io *mc_io, uint16_t token, int en);
@@ -1566,7 +1610,7 @@ int dpni_set_vlan_insertion(struct fsl_mc_io *mc_io, uint16_t token, int en);
  *
  * Requires that the 'DPNI_OPT_VLAN_MANIPULATION' option is set
  * at DPNI creation.
- *		
+ *
  * Return:	'0' on Success; Error code otherwise.
  */
 int dpni_set_vlan_removal(struct fsl_mc_io *mc_io, uint16_t token, int en);
@@ -1578,7 +1622,7 @@ int dpni_set_vlan_removal(struct fsl_mc_io *mc_io, uint16_t token, int en);
  * @en:		Set to '1' to enable; '0' to disable
  *
  * Requires that the 'DPNI_OPT_IPR' option is set at DPNI creation.
- *		
+ *
  * Return:	'0' on Success; Error code otherwise.
  */
 int dpni_set_ipr(struct fsl_mc_io *mc_io, uint16_t token, int en);
@@ -1592,7 +1636,7 @@ int dpni_set_ipr(struct fsl_mc_io *mc_io, uint16_t token, int en);
  * Requires that the 'DPNI_OPT_IPF' option is set at DPNI
  * creation. Fragmentation is performed according to MTU value
  * set by dpni_set_mtu() function
- *		
+ *
  * Return:	'0' on Success; Error code otherwise.
  */
 int dpni_set_ipf(struct fsl_mc_io *mc_io, uint16_t token, int en);

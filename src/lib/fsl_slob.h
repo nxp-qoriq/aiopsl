@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Freescale Semiconductor, Inc.
+ * Copyright 2014-2015 Freescale Semiconductor, Inc.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -40,7 +40,8 @@
                                      MM_MAX_ALIGNMENT power of 2 */
 #define MM_MAX_NAME_LEN     32  /**< TODO */
 
-
+/* Put all function (execution code) into  dtext_vle section, aka __COLD_CODE */
+__START_COLD_CODE
 /**************************************************************************//**
  @Group         fsl_lib_g   Utility Library Application Programming Interface
 
@@ -279,5 +280,5 @@ uint64_t slob_get_free_mem_size(fsl_handle_t slob);
 /** @} */ /* end of slob_g group */
 /** @} */ /* end of fsl_lib_g group */
 
-
+__START_COLD_CODE
 #endif /* __FSL_SLOB_H */

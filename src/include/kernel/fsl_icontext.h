@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Freescale Semiconductor, Inc.
+ * Copyright 2014-2015 Freescale Semiconductor, Inc.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -36,6 +36,8 @@
 @{
  *//***************************************************************************/
 
+#define ICONTEXT_INVALID ((uint16_t)-1) /**< Isolation context is not valid */
+
 /**************************************************************************//**
 @Description	Isolation context structure.
 
@@ -48,8 +50,20 @@ struct icontext {
 	uint32_t bdi_flags;
 	/**< Flags that will be used for BMAN pool */
 	uint16_t icid;
-	/**< Isolation context id that will be used for DMA and BMAN pool */
+	/**< Isolation context id that will be used for DMA and BMAN pool 
+	 *   If icid = #ICONTEXT_INVALID the values are not valid */
 };
+
+/**************************************************************************//**
+@Function	icontext_cmd_get
+
+@Description	Copy isolation context parameters for current command.
+
+@Param[out]	ic	- Isolation context structure to be used
+			with icontext dependent API.
+
+*//***************************************************************************/
+void icontext_cmd_get(struct icontext *ic);
 
 /**************************************************************************//**
 @Function	icontext_aiop_get
@@ -59,7 +73,6 @@ struct icontext {
 @Param[out]	ic	- Isolation context structure to be used
 			with icontext dependent API.
 
-@Cautions	This API can be called after slab_module_init().
 *//***************************************************************************/
 void icontext_aiop_get(struct icontext *ic);
 
@@ -75,7 +88,7 @@ void icontext_aiop_get(struct icontext *ic);
 @Return		0	 - on success,
 		-ENAVAIL - DPCI id was not found.
 
-@Cautions	This API must be called after cmdif_session_open() was triggered
+@Cautions	This API must be called after cmdif_open() was triggered
 		by GPP otherwise it will result in empty icontext structure.
 *//***************************************************************************/
 int icontext_get(uint16_t dpci_id, struct icontext *ic);

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Freescale Semiconductor, Inc.
+ * Copyright 2014-2015 Freescale Semiconductor, Inc.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -749,7 +749,7 @@ enum fdma_sw_errors {
 		/** The segment handle does not represent a Data segment. */
 	/*FDMA_NO_DATA_SEGMENT_HANDLE = 0x80000070,*/
 		/** Invalid PTA address (\ref PRC_PTA_NOT_LOADED_ADDRESS). */
-	FDMA_INVALID_PTA_ADDRESS = 0x80000071
+	FDMA_INVALID_PTA_ADDRESS = 0x71
 };
 
 /* @} end of enum fdma_sw_errors */
@@ -812,66 +812,6 @@ enum fdma_function_identifier {
 
 /** @}*/ /* end of group FDMA_Enumerations */
 
-/**************************************************************************//**
-@Function	fdma_present_default_frame_without_segments
-
-@Description	Initial presentation of a default frame into the task workspace
-		without any segments (Data, ASA, PTA).
-
-		Implicit input parameters in Task Defaults: AMQ attributes (PL,
-		VA, BDI, ICID), FD address.
-
-		Implicitly updated values in Task Defaults: frame handle, NDS
-		bit, ASA size (0), PTA address(\ref PRC_PTA_NOT_LOADED_ADDRESS).
-
-@Return		0 on Success, or negative value on error.
-
-@Retval		0 - Success.
-@Retval		EIO - Received frame with non-zero FD[err] field. In such a case 
-		the returned frame handle is valid, but no presentations 
-		occurred.
-
-@Cautions	This function may result in a fatal error.
-@Cautions	In this Service Routine the task yields.
-*//***************************************************************************/
-int fdma_present_default_frame_without_segments(void);
-
-/**************************************************************************//**
-@Function	fdma_present_frame_without_segments
-
-@Description	Initial presentation of a frame into the task workspace without
-		any segments (Data, ASA, PTA).
-
-		Implicit input parameters in Task Defaults: AMQ attributes (PL,
-		VA, BDI, ICID).
-
-		Implicitly updated values in Task Defaults in case the FD points
-		to the default FD location: frame handle, NDS bit, ASA size (0),
-		PTA address (\ref PRC_PTA_NOT_LOADED_ADDRESS).
-
-@Param[in]	fd - A pointer to the workspace location of the Frame Descriptor
-		to present.
-@Param[in]	flags - \link FDMA_Present_Frame_Flags Present segment flags.
-		\endlink
-@Param[in]	icid - Bits<1-15> : Isolation Context ID. Frame AMQ attribute.
-		Used only in case \ref FDMA_INIT_AS_BIT is set.
-@Param[out]	frame_handle - A handle to the opened working frame.
-
-@Return		0 on Success, or negative value on error.
-
-@Retval		0 - Success.
-@Retval		EIO - Received frame with non-zero FD[err] field. In such a case 
-		the returned frame handle is valid, but no presentations 
-		occurred.
-
-@Cautions	This function may result in a fatal error.
-@Cautions	In this Service Routine the task yields.
-*//***************************************************************************/
-int fdma_present_frame_without_segments(
-		struct ldpaa_fd *fd,
-		uint32_t flags,
-		uint16_t icid,
-		uint8_t *frame_handle);
 
 /**************************************************************************//**
 @Function	fdma_present_default_frame_default_segment
@@ -888,7 +828,7 @@ int fdma_present_frame_without_segments(
 @Return		0 on Success, or negative value on error.
 
 @Retval		0 - Success.
-@Retval		\ref FDMA_STATUS_UNABLE_PRES_DATA_SEG - Unable to fulfill 
+@Retval		::FDMA_STATUS_UNABLE_PRES_DATA_SEG - Unable to fulfill 
 		specified data segment presentation size (not relevant if the 
 		present_size in the function parameters is 0).
 		This error is caused since the requested presentation exceeded
