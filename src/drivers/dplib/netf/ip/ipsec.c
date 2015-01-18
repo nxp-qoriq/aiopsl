@@ -343,20 +343,18 @@ int ipsec_generate_encap_sd(
 		  *  b0_flags (8b) - CCM B0;
 		  *  ctr_flags (8b) - counter flags; constant equal to 0x3
 		  *  ctr_initial (16b) - initial count constant */
+		/* For CCM the counter flags field should be 0x03 */
 		case IPSEC_CIPHER_AES_CCM8:
 			cipher_type = CIPHER_TYPE_CCM;
-			//pdb.ccm.b0_flags = 0x5B;
-			pdb.ccm.ccm_opt = 0x5B000000;
+			pdb.ccm.ccm_opt = 0x5B030000; /* b0_flags=0x5B, ctr_flags=0x03 */
 			break;
 		case IPSEC_CIPHER_AES_CCM12:
 			cipher_type = CIPHER_TYPE_CCM;
-			//pdb.ccm.b0_flags = 0x6B;
-			pdb.ccm.ccm_opt = 0x6B000000;
+			pdb.ccm.ccm_opt = 0x6B030000; /* b0_flags=0x6B, ctr_flags=0x03 */
 			break;
 		case IPSEC_CIPHER_AES_CCM16:
 			cipher_type = CIPHER_TYPE_CCM;
-			//pdb.ccm.b0_flags = 0x7B;
-			pdb.ccm.ccm_opt = 0x7B000000;
+			pdb.ccm.ccm_opt = 0x7B030000; /* b0_flags=0x7B, ctr_flags=0x03 */
 			break;
 		case IPSEC_CIPHER_AES_GCM8:
 		case IPSEC_CIPHER_AES_GCM12:
@@ -560,20 +558,19 @@ int ipsec_generate_decap_sd(
 			  *  b0_flags (8b) - CCM B0;
 			  *  ctr_flags (8b) - counter flags; constant equal to 0x3
 			  *  ctr_initial (16b) - initial count constant */
+		/* For CCM the counter flags field should be 0x03 
+		 * For CTR the Initial count should be 0x0001 */		
 		case IPSEC_CIPHER_AES_CCM8:
 			cipher_type = CIPHER_TYPE_CCM;
-			//pdb.ccm.iv_flags = 0x5B;
-			pdb.ccm.ccm_opt = 0x5B000000;
+			pdb.ccm.ccm_opt = 0x5B030000; /* b0_flags=0x5B, ctr_flags=0x03 */
 			break;
 		case IPSEC_CIPHER_AES_CCM12:
 			cipher_type = CIPHER_TYPE_CCM;
-			//pdb.ccm.iv_flags = 0x6B;
-			pdb.ccm.ccm_opt = 0x6B000000;
+			pdb.ccm.ccm_opt = 0x6B030000; /* b0_flags=0x6B, ctr_flags=0x03 */
 			break;
 		case IPSEC_CIPHER_AES_CCM16:
 			cipher_type = CIPHER_TYPE_CCM;
-			//pdb.ccm.iv_flags = 0x7B;
-			pdb.ccm.ccm_opt = 0x7B000000;
+			pdb.ccm.ccm_opt = 0x7B030000; /* b0_flags=0x5B, ctr_flags=0x03 */
 			break;		
 		case IPSEC_CIPHER_AES_GCM8:
 		case IPSEC_CIPHER_AES_GCM12:
@@ -607,7 +604,6 @@ int ipsec_generate_decap_sd(
 			/* uint32_t ccm_opt; */
 			memcpy(pdb.ccm.salt, params->decparams.ccm.salt,
 			       sizeof(params->decparams.ccm.salt));
-			//pdb.ccm.ccm_opt = 0;
 			break;
 		case CIPHER_TYPE_GCM:
 			/* uint8_t salt[4]; */
