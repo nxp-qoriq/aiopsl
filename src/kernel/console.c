@@ -162,21 +162,21 @@ void sys_print(char *str)
 #else
 				spin_unlock_irqrestore(&(sys.console_lock), int_flags);
 #endif
-				DEBUG_HALT;
+				return;
 		}
-
-
-
-		if (count >= (PRE_CONSOLE_BUF_SIZE - sys.pre_console_buf_pos)) {
-			/* Reached buffer end - overwrite from buffer start */
-			sys.pre_console_buf_pos = 0;
-			sys.pre_console_buf_pos += sprintf(
-			        sys.p_pre_console_buf, "[TRUNCATED]...\n");
+		else
+		{
+			if (count >= (PRE_CONSOLE_BUF_SIZE - sys.pre_console_buf_pos)) {
+				/* Reached buffer end - overwrite from buffer start */
+				sys.pre_console_buf_pos = 0;
+				sys.pre_console_buf_pos += sprintf(
+						sys.p_pre_console_buf, "[TRUNCATED]...\n");
+			}
+	
+			memcpy(&(sys.p_pre_console_buf[sys.pre_console_buf_pos]),
+				   str/*sys.print_buf*/, count);
+			sys.pre_console_buf_pos += count;
 		}
-
-		memcpy(&(sys.p_pre_console_buf[sys.pre_console_buf_pos]),
-		       str/*sys.print_buf*/, count);
-		sys.pre_console_buf_pos += count;
 
 	}
 

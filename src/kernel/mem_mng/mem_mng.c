@@ -34,18 +34,14 @@
 #include "common/fsl_string.h"
 #include "kernel/fsl_spinlock.h"
 #include "fsl_slob.h"
-#ifdef AIOP
-#include "fsl_malloc.h"
 #include "platform.h"
+#ifdef AIOP
 #include "platform_aiop_spec.h"
 #include "aiop_common.h"
-#include "fsl_platform.h"
-#include "sys.h"
 #endif /* AIOP */
-
 #include "mem_mng.h"
 #include "fsl_dbg.h"
-#include "fsl_mem_mng.h"
+#include "fsl_platform.h"
 
 
 #ifdef UNDER_CONSTRUCTION
@@ -107,42 +103,39 @@ static int mem_mng_get_partition_id_by_addr_local(t_mem_mng             *p_mem_m
                                        int                  *p_partition_id,
                                        t_mem_mng_partition    **p_partition);
 
-static void mem_mng_free_partition(t_mem_mng *p_mem_mng, list_t *p_partition_iterator);
+
+static void mem_mng_free_partition(t_mem_mng *p_mem_mng,
+                                   t_mem_mng_partition* p_partition);
 
 static void mem_phys_mng_free_partition(t_mem_mng *p_mem_mng, list_t *p_partition_iterator);
 
 
 
 
-/*****************************************************************************/
-/* TODO In lcf file , add the following lines:
- *  boot_heap:		    org = 0x40210000,   len = 0x4000 Internal heap during boot
- *  ...
- *  _boot_heap_addr   = ADDR(boot_heap);
-_boot_heap_end    = ADDR(boot_heap)+SIZEOF(boot_heap);
- */
-/*
-extern const uint8_t _boot_heap_addr[],_boot_heap_end[];
-*/
+extern const uint8_t AIOP_DDR_START[],AIOP_DDR_END[];
+const uint32_t  g_boot_mem_mng_size = 16*KILOBYTE;
+
 
 int boot_mem_mng_init(struct initial_mem_mng* boot_mem_mng,
                       int mem_partition_id)
 {
-	uint32_t offset = 0;
+	uint32_t aiop_lcf_ddr_size =  (uint32_t)(AIOP_DDR_END) -
+		(uint32_t)(AIOP_DDR_START);
 	switch(mem_partition_id){
 	case MEM_PART_DP_DDR:
-		/*offset = (uint32_t)_boot_heap_addr - (uint32_t)g_init_data.sl_info.dp_ddr_vaddr;*/
 		boot_mem_mng->base_paddress = g_init_data.sl_info.dp_ddr_paddr
-			                     + offset;
+			                     + aiop_lcf_ddr_size;
 		boot_mem_mng->base_vaddress = (uint32_t)g_init_data.sl_info.dp_ddr_vaddr
-			                    + offset;
-		/*boot_mem_mng->size = (uint32_t)_boot_heap_end - (uint32_t)_boot_heap_addr;*/
+			                    + aiop_lcf_ddr_size;
+		boot_mem_mng->size = g_boot_mem_mng_size;
 		boot_mem_mng->curr_ptr = boot_mem_mng->base_paddress;
 
 		break;
 	}
 #ifdef AIOP
 	boot_mem_mng->lock = 0;
+#else
+	spin_lock_init(boot_mem_mng->lock);
 #endif
 	return 0;
 }
@@ -157,8 +150,13 @@ int boot_mem_mng_free(struct initial_mem_mng* boot_mem_mng)
 int boot_get_mem(struct initial_mem_mng* boot_mem_mng,
                  uint64_t size,uint64_t* paddr)
 {
+#ifndef AIOP
+    uint32_t            int_flags;
+#endif /* AIOP */
 #ifdef AIOP
-	lock_spinlock(boot_mem_mng->lock);
+	lock_spinlock(&boot_mem_mng->lock);
+#else
+	int_flags = spin_lock_irqsave(boot_mem_mng->lock);
 #endif
 	if(boot_mem_mng->curr_ptr + size >=
 		boot_mem_mng->base_paddress + boot_mem_mng->size)
@@ -166,7 +164,9 @@ int boot_get_mem(struct initial_mem_mng* boot_mem_mng,
 	*paddr = boot_mem_mng->curr_ptr;
 	boot_mem_mng->curr_ptr += size;
 #ifdef AIOP
-	unlock_spinlock(boot_mem_mng->lock);
+	unlock_spinlock(&boot_mem_mng->lock);
+#else
+	spin_unlock_irqrestore(boot_mem_mng->lock, int_flags);
 #endif
 	return  0;
 }
@@ -174,18 +174,34 @@ int boot_get_mem(struct initial_mem_mng* boot_mem_mng,
 int boot_get_mem_virt(struct initial_mem_mng* boot_mem_mng,
                  uint64_t size,uint32_t* vaddr)
 {
+#ifndef AIOP
+    uint32_t            int_flags;
+#endif /* AIOP */
+#ifdef AIOP
+	lock_spinlock(&boot_mem_mng->lock);
+#else
+        int_flags = spin_lock_irqsave(boot_mem_mng->lock);
+#endif
 	if(boot_mem_mng->curr_ptr + size >=
 		boot_mem_mng->base_paddress + boot_mem_mng->size)
 		return -ENOMEM;
 	*vaddr = (uint32_t)(boot_mem_mng->curr_ptr-boot_mem_mng->base_paddress) +
 		boot_mem_mng->base_vaddress ;
 	boot_mem_mng->curr_ptr += size;
+#ifdef AIOP
+	unlock_spinlock(&boot_mem_mng->lock);
+#else
+	spin_unlock_irqrestore(boot_mem_mng->lock, int_flags);
+#endif
 	return  0;
 }
 /*****************************************************************************/
- fsl_handle_t mem_mng_init(t_mem_mng_param *p_mem_mng_param)
+ fsl_handle_t mem_mng_init(t_mem_mng_param *p_mem_mng_param,
+                           fsl_handle_t h_boot_mem_mng)
 {
     t_mem_mng    *p_mem_mng;
+    uint32_t      mem_mng_addr = 0;
+    int rc = 0, i, array_size = 0;
 
     if (!(p_mem_mng_param->f_malloc       && p_mem_mng_param->f_free &&
           p_mem_mng_param->f_early_malloc  && p_mem_mng_param->f_early_free))
@@ -194,12 +210,16 @@ int boot_get_mem_virt(struct initial_mem_mng* boot_mem_mng,
         return NULL;
     }
 
-    p_mem_mng = p_mem_mng_param->f_malloc(sizeof(t_mem_mng));
-    if (!p_mem_mng)
+    ASSERT_COND_LIGHT(h_boot_mem_mng);
+    struct initial_mem_mng* boot_mem_mng = (struct initial_mem_mng*)h_boot_mem_mng;
+
+    rc = boot_get_mem_virt(boot_mem_mng,sizeof(t_mem_mng),&mem_mng_addr);
+    if (rc)
     {
         REPORT_ERROR(MAJOR, ENOMEM, ("memory manager structure"));
         return NULL;
     }
+    p_mem_mng = UINT_TO_PTR(mem_mng_addr);
     memset(p_mem_mng, 0, sizeof(t_mem_mng));
 
     p_mem_mng->f_malloc      = p_mem_mng_param->f_malloc;
@@ -209,7 +229,10 @@ int boot_get_mem_virt(struct initial_mem_mng* boot_mem_mng,
     p_mem_mng->lock    = p_mem_mng_param->lock;
 
     /* Initialize internal partitions list */
-    INIT_LIST(&(p_mem_mng->mem_partitions_list));
+    array_size = ARRAY_SIZE(p_mem_mng->mem_partitions_list);
+    for(i = 0 ; i < array_size;i++ ){
+	    p_mem_mng->mem_partitions_list[i].was_initialized = 0;
+    }
     /* Initialize the early allocations list */
     INIT_LIST(&(p_mem_mng->early_mem_debug_list));
     /* Initialize the physical allocation list for gem_mem() */
@@ -219,14 +242,14 @@ int boot_get_mem_virt(struct initial_mem_mng* boot_mem_mng,
 
 
 /*****************************************************************************/
-void mem_mng_free(fsl_handle_t h_mem_mng)
+void mem_mng_free(fsl_handle_t h_mem_mng,fsl_handle_t h_boot_mem_mng)
 {
     t_mem_mng            *p_mem_mng = (t_mem_mng *)h_mem_mng;
-    list_t              *p_partition_iterator, *p_tmp_iterator;
 #ifndef AIOP
     uint32_t            int_flags;
 #endif /* AIOP */
-    
+    uint32_t i = 0, array_size = 0;
+    UNUSED(h_boot_mem_mng);
     if (p_mem_mng->lock)
     {
 #ifdef AIOP
@@ -234,11 +257,11 @@ void mem_mng_free(fsl_handle_t h_mem_mng)
 #else /* not AIOP */
         int_flags = spin_lock_irqsave(p_mem_mng->lock);
 #endif /* AIOP */
-        LIST_FOR_EACH_SAFE(p_partition_iterator,
-                           p_tmp_iterator,
-                           &(p_mem_mng->mem_partitions_list))
+        array_size = ARRAY_SIZE(p_mem_mng->mem_partitions_list);
+        for ( i = 0; i < array_size ;i++)
         {
-            mem_mng_free_partition(p_mem_mng, p_partition_iterator);
+            if(p_mem_mng->mem_partitions_list[i].was_initialized)
+                mem_mng_free_partition(p_mem_mng, &p_mem_mng->mem_partitions_list[i]);
         }
 #ifdef AIOP
         unlock_spinlock(p_mem_mng->lock);
@@ -247,42 +270,10 @@ void mem_mng_free(fsl_handle_t h_mem_mng)
 #endif /* AIOP */
     }
 
+/* mem manager is no longer allocated by malloc, so no need to release it
     p_mem_mng->f_free(p_mem_mng);
+*/
 }
-
-
-/*****************************************************************************/
-int mem_mng_get_available_partition_id(fsl_handle_t h_mem_mng)
-{
-    t_mem_mng            *p_mem_mng = (t_mem_mng *)h_mem_mng;
-    t_mem_mng_partition   *p_partition;
-    list_t              *p_partition_iterator;
-    int                 available_id = 1;
-#ifndef AIOP
-    uint32_t            int_flags;
-#endif /* AIOP */
-
-#ifdef AIOP
-    lock_spinlock(p_mem_mng->lock);
-#else
-    int_flags = spin_lock_irqsave(p_mem_mng->lock);
-#endif
-    /* Return the next ID higher than any registered partition ID */
-    LIST_FOR_EACH(p_partition_iterator, &(p_mem_mng->mem_partitions_list))
-    {
-        p_partition = MEM_MNG_PARTITION_OBJECT(p_partition_iterator);
-
-        available_id = p_partition->id + 1;
-    }
-#ifdef AIOP
-    unlock_spinlock(p_mem_mng->lock);
-#else
-    spin_unlock_irqrestore(p_mem_mng->lock, int_flags);
-#endif
-
-    return available_id;
-}
-
 
 /*****************************************************************************/
 int mem_mng_register_partition(fsl_handle_t  h_mem_mng,
@@ -297,7 +288,6 @@ int mem_mng_register_partition(fsl_handle_t  h_mem_mng,
 {
     t_mem_mng            *p_mem_mng = (t_mem_mng *)h_mem_mng;
     t_mem_mng_partition   *p_partition = NULL, *p_new_partition;
-    list_t              *p_partition_iterator;
 #ifndef AIOP
     uint32_t            int_flags;
 #endif /* AIOP */
@@ -309,11 +299,7 @@ int mem_mng_register_partition(fsl_handle_t  h_mem_mng,
     int_flags = spin_lock_irqsave(p_mem_mng->lock);
 #endif
     
-    LIST_FOR_EACH(p_partition_iterator, &(p_mem_mng->mem_partitions_list))
-    {
-        p_partition = MEM_MNG_PARTITION_OBJECT(p_partition_iterator);
-
-        if (p_partition->id == partition_id)
+    if(p_mem_mng->mem_partitions_list[partition_id].was_initialized)
         {
 #ifdef AIOP
             unlock_spinlock(p_mem_mng->lock);
@@ -322,34 +308,31 @@ int mem_mng_register_partition(fsl_handle_t  h_mem_mng,
 #endif
             RETURN_ERROR(MAJOR, EEXIST, ("partition ID %d", partition_id));
         }
-        else if (p_partition->id > partition_id)
-        {
-            break;
-        }
-    }
 #ifdef AIOP
     unlock_spinlock(p_mem_mng->lock);
 #else
     spin_unlock_irqrestore(p_mem_mng->lock, int_flags);
 #endif
 
-    p_new_partition = (t_mem_mng_partition *)p_mem_mng->f_malloc(sizeof(t_mem_mng_partition));
+    p_new_partition = &p_mem_mng->mem_partitions_list[partition_id];
     if (!p_new_partition)
     {
         RETURN_ERROR(MAJOR, ENOMEM, ("memory manager partition"));
     }
     memset(p_new_partition, 0, sizeof(t_mem_mng_partition));
 #ifdef AIOP
-    //p_new_partition->lock = (uint8_t *)fsl_os_malloc(sizeof(uint8_t));
-    /* Fix for bug ENGR00337904. Memory address that is used for spinlock 
-     * should reside in shared ram */
+    /*
+    p_new_partition->lock = (uint8_t *)fsl_os_malloc(sizeof(uint8_t));
+    Fix for bug ENGR00337904. Memory address that is used for spinlock
+     should reside in shared ram
+    */
     p_new_partition->lock = &g_mem_part_spinlock[partition_id];
 #else
     p_new_partition->lock = spin_lock_create();
 #endif
     if (!p_new_partition->lock)
     {
-        p_mem_mng->f_free(p_new_partition);
+	    p_new_partition->was_initialized = 0;
         RETURN_ERROR(MAJOR, EAGAIN, ("spinlock object for partition: %s", name));
     }
     
@@ -369,7 +352,8 @@ int mem_mng_register_partition(fsl_handle_t  h_mem_mng,
         /* Initialize the memory manager handle for the new partition */
         if (0 != slob_init(&(p_new_partition->h_mem_manager), base_address, size))
         {
-            p_mem_mng->f_free(p_new_partition);
+            /*p_mem_mng->f_free(p_new_partition);*/
+            p_new_partition->was_initialized = 0;
             RETURN_ERROR(MAJOR, EAGAIN, ("slob  object for partition: %s", name));
         }
     }
@@ -388,7 +372,9 @@ int mem_mng_register_partition(fsl_handle_t  h_mem_mng,
     p_new_partition->f_user_malloc = f_user_malloc;
     p_new_partition->f_user_free = f_user_free;
     p_new_partition->enable_debug = enable_debug;
+    p_new_partition->was_initialized = 1;
 
+#if 0
 #ifdef AIOP
     lock_spinlock(p_mem_mng->lock);
 #else
@@ -412,7 +398,7 @@ int mem_mng_register_partition(fsl_handle_t  h_mem_mng,
 #else /* not AIOP */
     spin_unlock_irqrestore(p_mem_mng->lock, int_flags);
 #endif /* AIOP */
-
+#endif
     return 0;
 }
 
@@ -534,7 +520,7 @@ int mem_mng_unregister_partition(fsl_handle_t h_mem_mng, int partition_id)
 {
     t_mem_mng            *p_mem_mng = (t_mem_mng *)h_mem_mng;
     t_mem_mng_partition   *p_partition;
-    list_t              *p_partition_iterator, *p_tmp_iterator;
+    uint32_t i = 0, array_size = 0;
 #ifndef AIOP
     uint32_t            int_flags;
 #endif /* AIOP */
@@ -545,20 +531,20 @@ int mem_mng_unregister_partition(fsl_handle_t h_mem_mng, int partition_id)
     int_flags = spin_lock_irqsave(p_mem_mng->lock);
 #endif /* AIOP */
     /* Find the requested partition and release it */
-    LIST_FOR_EACH_SAFE(p_partition_iterator,
-                       p_tmp_iterator,
-                       &(p_mem_mng->mem_partitions_list))
-    {
-        p_partition = MEM_MNG_PARTITION_OBJECT(p_partition_iterator);
+    array_size = ARRAY_SIZE(p_mem_mng->mem_partitions_list);
 
-        if (p_partition->id == partition_id)
+    for (i = 0; i < array_size; i++)
+    {
+	    p_partition = &p_mem_mng->mem_partitions_list[i];
+
+        if (p_partition->was_initialized && p_partition->id == partition_id)
         {
 #ifdef AIOP
             unlock_spinlock(p_mem_mng->lock);
 #else /* not AIOP */
             spin_unlock_irqrestore(p_mem_mng->lock, int_flags);
 #endif /* AIOP */
-            mem_mng_free_partition(p_mem_mng, p_partition_iterator);
+            mem_mng_free_partition(p_mem_mng, p_partition);
             return 0;
         }
     }
@@ -579,7 +565,7 @@ int mem_mng_get_partition_info(fsl_handle_t               h_mem_mng,
 {
     t_mem_mng            *p_mem_mng = (t_mem_mng *)h_mem_mng;
     t_mem_mng_partition   *p_partition;
-    list_t              *p_partition_iterator;
+    uint32_t i = 0, array_size = 0;
 #ifndef AIOP
     uint32_t            int_flags;
 #endif /* AIOP */
@@ -589,11 +575,12 @@ int mem_mng_get_partition_info(fsl_handle_t               h_mem_mng,
 #else
     int_flags = spin_lock_irqsave(p_mem_mng->lock);
 #endif
-    LIST_FOR_EACH(p_partition_iterator, &(p_mem_mng->mem_partitions_list))
+    array_size = ARRAY_SIZE(p_mem_mng->mem_partitions_list);
+    for(i = 0; i < array_size; i++)
     {
-        p_partition = MEM_MNG_PARTITION_OBJECT(p_partition_iterator);
+	    p_partition = &p_mem_mng->mem_partitions_list[i];
 
-        if (p_partition->id == partition_id)
+        if (p_partition->was_initialized  && p_partition->id == partition_id)
         {
             *p_partition_info = p_partition->info;
 #ifdef AIOP
@@ -681,9 +668,9 @@ uint32_t mem_mng_check_leaks(fsl_handle_t                h_mem_mng,
     t_mem_mng            *p_mem_mng = (t_mem_mng *)h_mem_mng;
     t_mem_mng_partition   *p_partition;
     t_mem_mng_debug_entry  *p_mem_mng_debug_entry;
-    list_t              *p_partition_iterator;
     list_t              *p_debug_iterator;
     uint32_t            count = 0;
+    uint32_t  i = 0, array_size = 0;
 #ifndef AIOP
     uint32_t            int_flags;
 #endif /* AIOP */
@@ -727,9 +714,10 @@ uint32_t mem_mng_check_leaks(fsl_handle_t                h_mem_mng,
     else
     {
         /* Search in registered partitions */
-        LIST_FOR_EACH(p_partition_iterator, &(p_mem_mng->mem_partitions_list))
+	array_size = ARRAY_SIZE(p_mem_mng->mem_partitions_list);
+	for(i = 0; i < array_size ; i++)
         {
-            p_partition = MEM_MNG_PARTITION_OBJECT(p_partition_iterator);
+	        p_partition  = &p_mem_mng->mem_partitions_list[i];
 
             if (p_partition->id == partition_id)
             {
@@ -789,7 +777,7 @@ void * mem_mng_alloc_mem(fsl_handle_t    h_mem_mng,
 {
     t_mem_mng            *p_mem_mng = (t_mem_mng *)h_mem_mng;
     t_mem_mng_partition   *p_partition;
-    list_t              *p_partition_iterator, *p_temp;
+    uint32_t i = 0, array_size = 0;
     void                *p_memory;
 #ifndef AIOP
     uint32_t            int_flags;
@@ -827,9 +815,10 @@ void * mem_mng_alloc_mem(fsl_handle_t    h_mem_mng,
     int_flags = spin_lock_irqsave(p_mem_mng->lock);
 #endif
     /* Not early allocation - allocate from registered partitions */
-    LIST_FOR_EACH_SAFE(p_partition_iterator, p_temp, &(p_mem_mng->mem_partitions_list))
+    array_size = ARRAY_SIZE(p_mem_mng->mem_partitions_list);
+    for(i = 0; i < array_size; i++)
     {
-        p_partition = MEM_MNG_PARTITION_OBJECT(p_partition_iterator);
+        p_partition = &p_mem_mng->mem_partitions_list[i];
 
         if (p_partition->id == partition_id)
         {
@@ -1036,7 +1025,7 @@ static int mem_mng_get_partition_id_by_addr_local(t_mem_mng          *p_mem_mng,
                                        t_mem_mng_partition **p_partition)
 {
     t_mem_mng_partition   *p_tmp_partition;
-    list_t              *p_partition_iterator;
+    uint32_t i = 0, array_size = 0;
 #ifdef AIOP
     lock_spinlock(p_mem_mng->lock);
 #else
@@ -1044,11 +1033,12 @@ static int mem_mng_get_partition_id_by_addr_local(t_mem_mng          *p_mem_mng,
     int_flags = spin_lock_irqsave(p_mem_mng->lock);
 #endif /* AIOP */
 
-    LIST_FOR_EACH(p_partition_iterator, &(p_mem_mng->mem_partitions_list))
+    array_size = ARRAY_SIZE(p_mem_mng->mem_partitions_list);
+    for (i = 0; i < array_size; i++)
     {
-        p_tmp_partition = MEM_MNG_PARTITION_OBJECT(p_partition_iterator);
-
-        if ((addr >= p_tmp_partition->info.base_address) &&
+	p_tmp_partition =  &p_mem_mng->mem_partitions_list[i];
+        if (p_tmp_partition->was_initialized &&
+            (addr >= p_tmp_partition->info.base_address) &&
             (addr < (p_tmp_partition->info.base_address + p_tmp_partition->info.size)))
         {
             *p_partition_id = p_tmp_partition->id;
@@ -1072,16 +1062,14 @@ static int mem_mng_get_partition_id_by_addr_local(t_mem_mng          *p_mem_mng,
 
 
 /*****************************************************************************/
-static void mem_mng_free_partition(t_mem_mng *p_mem_mng, list_t *p_partition_iterator)
+static void mem_mng_free_partition(t_mem_mng *p_mem_mng, t_mem_mng_partition *p_partition)
 {
-    t_mem_mng_partition   *p_partition;
     t_mem_mng_debug_entry  *p_mem_mng_debug_entry;
     list_t              *p_debug_iterator, *p_tmp_iterator;
 #ifndef AIOP
     uint32_t            int_flags;
 #endif /* AIOP */
 
-    p_partition = MEM_MNG_PARTITION_OBJECT(p_partition_iterator);
 
 #ifdef AIOP
     lock_spinlock(p_partition->lock);
@@ -1110,7 +1098,6 @@ static void mem_mng_free_partition(t_mem_mng *p_mem_mng, list_t *p_partition_ite
     }
 
     /* Remove from partitions list and free the allocated memory */
-    list_del(p_partition_iterator);
     if (p_partition->lock) {
 #ifdef AIOP
 /* For AIOP lock is no longer dynamically allocated, g_mem_part_spinlock is used
@@ -1121,7 +1108,6 @@ static void mem_mng_free_partition(t_mem_mng *p_mem_mng, list_t *p_partition_ite
         spin_lock_free(p_partition->lock);
 #endif
     }
-    p_mem_mng->f_free(p_partition);
 }
 
 /*****************************************************************************/

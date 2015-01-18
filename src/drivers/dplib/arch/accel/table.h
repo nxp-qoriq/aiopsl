@@ -29,6 +29,8 @@
 
 @Description	This file contains the AIOP SW Table API
 
+@note		This file is intended for internal use only (it may not be 
+		included elsewhere).
 *//***************************************************************************/
 
 #ifndef __TABLE_H

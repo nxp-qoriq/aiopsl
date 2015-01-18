@@ -54,7 +54,7 @@ typedef enum memory_partition_id {
     MEM_PART_PEB,                      /**< Packet-Express-Buffer memory partition */
     MEM_PART_MC_PORTALS,               /**< MC portals for cmdif memory partition */
     MEM_PART_CCSR,                     /**< SoC CCSR memory partition */
-    MEM_PART_INVALID                   /**< Invalid memory partition */
+    MEM_PART_LAST                      /**< Invalid memory partition */
 } e_memory_partition_id;
 
 /** @} */ /* end of sytem_mem_management_id  group */

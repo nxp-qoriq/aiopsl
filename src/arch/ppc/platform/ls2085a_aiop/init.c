@@ -70,7 +70,9 @@ extern void build_apps_array(struct sys_module_desc *apps);
 
 // TODO remove hard-coded values from  MEM_PART_MC_PORTALS and MEM_PART_CCSR
 #define MEMORY_PARTITIONS\
-{   /* Memory partition ID               Phys. Addr.  Virt. Addr.  Size , Attributes */\
+{   /* Memory partition ID                  Phys. Addr.  Virt. Addr.  Size , Attributes */\
+	{MEM_PART_SYSTEM_DDR1_BOOT_MEM_MNG,  0xFFFFFFFF,  0xFFFFFFFF, g_boot_mem_mng_size,\
+	        MEMORY_ATTR_NONE, "BOOT MEMORY MANAGER"},\
 	{MEM_PART_DP_DDR,                    0xFFFFFFFF,  0xFFFFFFFF,  0xFFFFFFFF,\
 		MEMORY_ATTR_PHYS_ALLOCATION,"DP_DDR"},\
 	{MEM_PART_MC_PORTALS,                0xFFFFFFFF,  0xFFFFFFFF, (64  * MEGABYTE),\

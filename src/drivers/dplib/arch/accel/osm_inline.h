@@ -25,9 +25,9 @@
  */
 
 /**************************************************************************//**
-@File		osm)inline.h
+@File		osm_inline.h
 
-@Description	This file contains the AIOP OSM Operations inline API 
+@Description	This file contains the AIOP OSM Operations Inline API 
 		implementation.
 *//***************************************************************************/
 
