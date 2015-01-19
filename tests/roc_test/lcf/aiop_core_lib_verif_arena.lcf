@@ -9,9 +9,8 @@ MEMORY
     /* presentation:           org = 0x00000140,   len = 0x000002C0 --> Reserved for Frame presentation area  */
     /* shared_ram_heap:        org = 0x01010400,   len = 0x0002fc00 --> Reserved for Shared-RAM heap */
     /* dp_ddr:                 org = 0x40000000,   len = 0x00B10000 --> Reserved for DP-DDR  heap */
-    tls:                    org = 0x000000C0,   len = 0x00000140 /* TLS - Task Local Storage */
-    presentation:           org = 0x00000200,   len = 0x00000280 /* Frame presentation area  */
-    stack :                 org = 0x00000480,   len = 0x00007b80 /* Start location for Stack */
+    tls:                    org = 0x000000C0,   len = 0x00000100 /* TLS - Task Local Storage */
+    stack :                 org = 0x00000400,   len = 0x00007C00 /* Start location for Stack, Big stack for init task */
     i_ram:                  org = 0x00fe0000,   len = 0x00020000 /* I-RAM  */
     shared_ram:             org = 0x01000000,   len = 0x00010000 /* Shared-RAM */
     memory_data:            org = 0x01010000,   len = 0x400      /* Structure for memory ralated data exchage, reused afer boot  */
@@ -19,10 +18,8 @@ MEMORY
     exception_handlers:     org = 0x40000000,   len = 0x00010000
     pseudo_rom:             org = 0x40010000,   len = 0x00100000
     init:                   org = 0x40110000,   len = 0x00100000
-    internal_ram:     	    org = 0x40210000,   len = 0x00100000
-    heap  :                 org = 0x40310000,   len = 0x00800000
+    heap  :                 org = 0x40210000,   len = 0x00800000
 }
-
 
 SECTIONS
 {
@@ -41,20 +38,20 @@ SECTIONS
     } > exception_handlers
 
     GROUP : {
-        .dtext (TEXT) ALIGN(0x1000): {}
-        .dtext_vle (VLECODE) ALIGN(0x1000): {
-         *(.dtext)
-         *(.dtext_vle)
-         }
+        .rodata (CONST) : {
+            *(.rdata)
+            *(.rodata)
+        }
         .text (TEXT) ALIGN(0x1000) : {}
         .text_vle (VLECODE) ALIGN(0x1000): {
              *(.text)
              *(.text_vle)
          }
-        .rodata (CONST) : {
-            *(.rdata)
-            *(.rodata)
-        }
+        .dtext (TEXT) ALIGN(0x1000): {}
+        .dtext_vle (VLECODE) ALIGN(0x1000): {
+         *(.dtext)
+         *(.dtext_vle)
+         }
         .ctors : {}
         .dtors : {}
         extab : {}
@@ -62,6 +59,29 @@ SECTIONS
     } > pseudo_rom
 
     GROUP : {
+        .itext (TEXT) ALIGN(0x1000) : {}
+        .itext_vle (VLECODE) ALIGN(0x1000): {
+             *(.itext)
+             *(.itext_vle)
+         }
+    } > i_ram
+
+    GROUP : {
+        .tdata (DATA) : {}
+        .tbss (BSS) NO_INIT_BSS : {}
+        .verif_tdata   : {}
+        .verif_tbss   : {}
+   } > tls
+
+    GROUP : {
+        .verif_data   : {}
+        .verif_bss   : {}
+        .stext (TEXT) ALIGN(0x1000): {}
+        .stext_vle (VLECODE) ALIGN(0x1000): {
+         *(.stext)
+         *(.stext_vle)
+         }
+
        .__uninitialized_intc_handlertable ALIGN(0x10) : {}
        .data   : {}
        .sdata  : {}
@@ -69,33 +89,6 @@ SECTIONS
        .sdata2 : {}
        .sbss2  : {}
        .bss    : {}
-    } > internal_ram
-
-    GROUP : {
-        .itext (TEXT) ALIGN(0x1000): {}
-        .itext_vle (VLECODE) ALIGN(0x1000): {
-         *(.itext)
-         *(.itext_vle)
-         }
-    } > i_ram
-
-    GROUP : {
-        .tdata (DATA) : {}
-        .tbss (BSS) NO_INIT_BSS : {}
-       .verif_tdata   : {}
-       .verif_tbss   : {}
-   } > tls
-
-    GROUP : {
-       .verif_data   : {}
-       .verif_bss   : {}
-        .stext (TEXT) ALIGN(0x1000): {}
-        .stext_vle (VLECODE) ALIGN(0x1000): {
-         *(.stext)
-         *(.stext_vle)
-         }
-        .shdata (DATA) : {}
-        .shbss (BSS) NO_INIT_BSS : {}
    } > shared_ram
 
    GROUP : {
