@@ -201,6 +201,38 @@ int dpni_drv_get_max_frame_length(uint16_t ni_id,
                           uint16_t *mfl);
 
 /**************************************************************************//**
+@Function	dpni_drv_set_mtu
+
+@Description	Set the MTU for the network interface.
+
+@Param[in]	ni_id - The Network Interface ID
+
+@Param[in]	mtu - MTU length (in bytes).
+
+@Return	0 on success; error code, otherwise.
+		For error posix refer to
+		\ref error_g
+*//***************************************************************************/
+int dpni_drv_set_mtu(uint16_t ni_id,
+                          const uint16_t mtu);
+
+/**************************************************************************//**
+@Function	dpni_drv_get_mtu
+
+@Description	Get the MTU for the network interface.
+
+@Param[in]	ni_id - The Network Interface ID
+
+@Param[out]	*mtu - pointer to store MTU length (in bytes).
+
+@Return	0 on success; error code, otherwise.
+		For error posix refer to
+		\ref error_g
+*//***************************************************************************/
+int dpni_drv_get_mtu(uint16_t ni_id,
+                          uint16_t *mtu);
+
+/**************************************************************************//**
 @Function	sl_prolog
 
 @Description	Network Interface SL prolog function. It is recommended to call
