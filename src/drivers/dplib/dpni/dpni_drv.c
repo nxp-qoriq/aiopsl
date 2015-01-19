@@ -367,30 +367,6 @@ int dpni_drv_get_max_frame_length(uint16_t ni_id,
 	return dpni_get_max_frame_length(&dprc->io, dpni_drv->dpni_drv_params_var.dpni, mfl);
 }
 
-int dpni_drv_set_mtu(uint16_t ni_id,
-                          const uint16_t mtu)
-{
-	struct dpni_drv *dpni_drv;
-	struct mc_dprc *dprc = sys_get_unique_handle(FSL_OS_MOD_AIOP_RC);
-
-	/* calculate pointer to the NI structure */
-	dpni_drv = nis + ni_id;
-	return dpni_set_mtu(&dprc->io, dpni_drv->dpni_drv_params_var.dpni, mtu);
-}
-
-int dpni_drv_get_mtu(uint16_t ni_id,
-                          uint16_t *mtu)
-{
-	struct dpni_drv *dpni_drv;
-	struct mc_dprc *dprc = sys_get_unique_handle(FSL_OS_MOD_AIOP_RC);
-
-	/* calculate pointer to the NI structure */
-	dpni_drv = nis + ni_id;
-	return dpni_get_mtu(&dprc->io, dpni_drv->dpni_drv_params_var.dpni, mtu);
-}
-
-
-
 __COLD_CODE static int parser_profile_init(uint8_t *prpid)
 {
     struct parse_profile_input parse_profile1 __attribute__((aligned(16)));
@@ -467,7 +443,6 @@ __COLD_CODE int dpni_drv_init(void)
 		dpni_drv->dpni_drv_params_var.starting_hxs = 0; //ETH HXS
 		dpni_drv->dpni_drv_tx_params_var.qdid         = 0;
 		dpni_drv->dpni_drv_params_var.flags        = DPNI_DRV_FLG_PARSE | DPNI_DRV_FLG_PARSER_DIS;
-		dpni_drv->dpni_drv_tx_params_var.mtu          = 0xffff;
 	}
 	/*Window for storage profile ID's to use with DDR target memory*/
 	spid_ddr_id = g_init_data.sl_info.base_spid;
