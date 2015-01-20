@@ -41,54 +41,6 @@
 /** Global task params */
 __TASK struct aiop_default_task_params default_task_params;
 
-/* TODO - cleanup once the error handling below is moved to verification code.*/
-#ifdef AIOP_VERIF
-#include "aiop_verification_data.h"
-#include "aiop_verification.h"
-#include <string.h>
-extern __VERIF_TLS uint64_t initial_ext_address;
-#endif /*AIOP_VERIF*/
-
-/* TODO - once the ARENA implementation is ready move this (verification)
- * implementation to aiop_verification_data.c. Keep the declaration in place. */
-#ifdef AIOP_VERIF
-void exception_handler(char *filename,
-		       char *function_name,
-		       uint32_t line,
-		       char *message) __attribute__ ((noreturn))
-{
-	uint32_t status;
 
 
-	struct fatal_error_command fatal_cmd_str;
-	struct fatal_error_command *fatal_cmd;
 
-	/* Read command from external buffer in DDR */
-	fatal_cmd = &fatal_cmd_str;
-	cdma_read((void *)fatal_cmd, initial_ext_address,
-			sizeof(struct fatal_error_command));
-
-	filename = strrchr(filename, '/') ?
-			strrchr(filename, '/') + 1 : filename;
-
-	strcpy(fatal_cmd->file_name, filename);
-	strcpy(fatal_cmd->function_name, function_name);
-	strcpy(fatal_cmd->err_msg, message);
-
-	/* write command results back to DDR */
-	cdma_write(initial_ext_address,
-		   (void *)fatal_cmd,
-		   sizeof(struct fatal_error_command));
-
-	status = -1 + (uint32_t)message + (uint32_t)filename + line +
-			(uint32_t)function_name;
-
-#ifndef STACK_CHECK
-	pr_err("Fatal error encountered!\n");
-#endif
-
-	fdma_terminate_task();
-	exit(-1); /* TODO This code is never reached and should be removed once
-	fdma_terminate_task() is declared as noreturn*/
-}
-#endif /*AIOP_VERIF*/
