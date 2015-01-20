@@ -58,14 +58,13 @@ void handle_fatal_error(char *message)
        status = -1 + (uint32_t)message;
        fdma_terminate_task();
 }
-#if (defined AIOP_VERIF || defined CDC_ROC)
 void exception_handler(char *filename,
 		       char *function_name,
 		       uint32_t line,
 		       char *message) __attribute__ ((noreturn))
 {
 	uint32_t status;
-
+#if (defined AIOP_VERIF || defined CDC_ROC)
 
 	struct fatal_error_command fatal_cmd_str;
 	struct fatal_error_command *fatal_cmd;
@@ -97,9 +96,9 @@ void exception_handler(char *filename,
 #ifndef STACK_CHECK
 	pr_err("Fatal error encountered!\n");
 #endif
+#endif /*AIOP_VERIF*/
 
 	fdma_terminate_task();
 	exit(-1); /* TODO This code is never reached and should be removed once
 	fdma_terminate_task() is declared as noreturn*/
 }
-#endif /*AIOP_VERIF*/
