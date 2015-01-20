@@ -11,3 +11,4 @@ sim.tio_server_port=42975
 duart1.start_default_term=true
 duart2.start_default_term=true
 wriop0.log_level=2
+armfm.enable_arm=false
