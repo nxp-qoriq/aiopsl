@@ -322,7 +322,7 @@ enum cdma_function_identifier {
 /** @} end of group CDMA_AccessCM_DMA */
 /** @} end of group CDMA_Internal_Commands_Flags */
 
-#include "cdma_inline.h"
+/*#include "cdma_inline.h"*/
 
 /**************************************************************************//**
 @Group		CDMA_Internal_Functions	CDMA Internal Functions
