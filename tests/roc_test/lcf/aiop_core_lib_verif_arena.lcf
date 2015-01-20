@@ -10,7 +10,7 @@ MEMORY
     /* shared_ram_heap:        org = 0x01010400,   len = 0x0002fc00 --> Reserved for Shared-RAM heap */
     /* dp_ddr:                 org = 0x40000000,   len = 0x00B10000 --> Reserved for DP-DDR  heap */
     tls:                    org = 0x000000C0,   len = 0x00000100 /* TLS - Task Local Storage */
-    stack :                 org = 0x00000400,   len = 0x00007C00 /* Start location for Stack, Big stack for init task */
+    stack :                 org = 0x00000480,   len = 0x00007B80 /* Start location for Stack, Big stack for init task */
     i_ram:                  org = 0x00fe0000,   len = 0x00020000 /* I-RAM  */
     shared_ram:             org = 0x01000000,   len = 0x00010000 /* Shared-RAM */
     memory_data:            org = 0x01010000,   len = 0x400      /* Structure for memory ralated data exchage, reused afer boot  */
