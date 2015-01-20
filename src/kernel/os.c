@@ -525,6 +525,7 @@ void fsl_os_put_mem(uint64_t paddr)
 
 /*****************************************************************************/
 #ifndef AIOP_VERIF /*TODO: Remove #ifndef AIOP_VERIF when the code will be separated */
+#ifndef CDC_ROC
 void exception_handler(char *filename,
 		       char *function_name,
 		       uint32_t line,
@@ -541,6 +542,7 @@ void exception_handler(char *filename,
 	exit(-1); /* TODO This code is never reached and should be removed once
 	fdma_terminate_task() is declared as noreturn*/
 }
+#endif
 #endif
 
 
