@@ -1,4 +1,4 @@
-Author: Ira.Kalman@freescale.com, Eyal.Harary@freescale.com
+Author: Ira.Kalman@freescale.com, Eyal.Harari@freescale.com
 
 This REAME explains the steps to be done in order to run your tests with GPP.
 Things that may change from time to time:
