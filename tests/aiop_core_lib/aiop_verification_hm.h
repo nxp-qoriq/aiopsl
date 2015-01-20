@@ -94,8 +94,6 @@ enum e_hm_verif_cmd_type {
 	HM_CMDTYPE_SET_DL_DST,
 	HM_CMDTYPE_SET_NW_SRC,
 	HM_CMDTYPE_SET_NW_DST,
-	HM_CMDTYPE_SET_TP_SRC,
-	HM_CMDTYPE_SET_TP_DST,
 	HM_CMDTYPE_PUSH_VLAN,
 	HM_CMDTYPE_PUSH_AND_SET_VLAN,
 	HM_CMDTYPE_POP_VLAN,
@@ -195,12 +193,6 @@ enum e_hm_verif_cmd_type {
 
 #define HM_SET_NW_DST_CMD_STR	((HM_MODULE << 16) | \
 		(uint32_t)HM_CMDTYPE_SET_NW_DST)
-
-#define HM_SET_TP_SRC_CMD_STR	((HM_MODULE << 16) | \
-		(uint32_t)HM_CMDTYPE_SET_TP_SRC)
-
-#define HM_SET_TP_DST_CMD_STR	((HM_MODULE << 16) | \
-		(uint32_t)HM_CMDTYPE_SET_TP_DST)
 
 #define HM_SET_TCP_SRC_CMD_STR	((HM_MODULE << 16) | \
 		(uint32_t)HM_CMDTYPE_SET_TCP_SRC)
@@ -551,19 +543,6 @@ struct hm_set_nw_command {
 		/**< Command structure identifier. */
 	int32_t		status;
 	uint32_t	ipv4_addr;
-};
-
-/**************************************************************************//**
-@Description	HM set UDP/TCP SRC/DST ports Command structure.
-
-		Includes information needed for HM Command verification.
-*//***************************************************************************/
-struct hm_set_tp_command {
-	uint32_t	opcode;
-		/**< Command structure identifier. */
-	int32_t		status;
-	uint16_t	port;
-	uint8_t		pad[2];
 };
 
 /**************************************************************************//**

@@ -45,10 +45,11 @@ extern void cmdif_srv_isr(void);
 extern void cmdif_cl_isr(void);
 extern void receive_cb(void);
 
-static void app_process_packet_flow0 (dpni_drv_app_arg_t arg)
+__declspec(entry_point) static void app_process_packet_flow0 (void)
 {
-	UNUSED(arg);
+	/*Function used for stack estimation to sl routines*/
 	stack_estimation();
+
 }
 
 void stack_estimation(void)
@@ -68,6 +69,9 @@ void stack_estimation(void)
 	int state = 0;
 	rx_cb_t *cb = 0;
 	dpni_drv_app_arg_t arg = 0;
+
+	/*sl_prolog must be called first when packet arrives*/
+	sl_prolog();
 
 	slab_create(5, 5, 256, 8, MEM_PART_DP_DDR, SLAB_DDR_MANAGEMENT_FLAG, NULL, my_slab);
 	slab_acquire(*my_slab, &buff);
@@ -93,7 +97,7 @@ void stack_estimation(void)
 	icontext_dma_write(&ic, 4, &time, buff);
 
 	/* DPNI runtime functions */
-	dpni_drv_register_rx_cb(ni, cb, arg);
+	dpni_drv_register_rx_cb(ni, cb);
 	dpni_drv_unregister_rx_cb(ni);
 	dpni_get_receive_niid();
 	dpni_set_send_niid(ni);
@@ -116,9 +120,11 @@ void stack_estimation(void)
 	dpni_drv_get_connected_aiop_ni_id(ni, &dpni_id, &state);
 	dpni_drv_get_rx_buffer_layout(ni, &layout);
 
+	/*After packet processing is done, fdma_terminate_task must be called.*/
+	fdma_terminate_task();
 
 
-	receive_cb();
+
 }
 
 int app_init(void)
@@ -128,8 +134,7 @@ int app_init(void)
 	fsl_os_print("Running app_init()\n");
 
 	err = dpni_drv_register_rx_cb(1,
-				      app_process_packet_flow0,
-				      1);
+				      app_process_packet_flow0);
 	if (err)
 		return err;
 

@@ -7,12 +7,12 @@
 #include "fsl_core_booke.h"
 #include "kernel/fsl_spinlock.h"
 #include "fsl_smp.h"
-#ifdef ARENA_TEST
+#ifndef BRINGUP_TEST
 #include "fsl_dbg.h"
 #endif
 #include "sys.h"
 
-//#undef ARENA_TEST /* uncomment only if you run bringup_main with arena test */
+/* For bringup tests compile with BRINGUP_TEST */
 
 #define WAITING_TIMEOUT		0x10000000
 #define CORE_ID_GET		(get_cpu_id() >> 4)
@@ -47,7 +47,7 @@ static void _sys_barrier(void)
 static void cleanup()
 {
 
-#ifndef ARENA_TEST
+#ifdef BRINGUP_TEST
 	_sys_barrier();
 #endif
 
@@ -55,7 +55,7 @@ static void cleanup()
 		counter = 0;
 	}
 
-#ifndef ARENA_TEST
+#ifdef BRINGUP_TEST
 	_sys_barrier();
 #endif
 
@@ -126,7 +126,7 @@ static int multi_core_test(uint8_t num_cores)
 int single_cluster_test();
 int single_cluster_test()
 {
-#ifdef ARENA_TEST
+#ifndef BRINGUP_TEST
 	return multi_core_test(1);
 #else
 	return multi_core_test(4);
@@ -139,7 +139,7 @@ int multi_cluster_test()
 	/* Blocking & testing barrier & locks */
 	cleanup();
 
-#ifdef ARENA_TEST
+#ifndef BRINGUP_TEST
 	return multi_core_test(1);
 #else
 	return multi_core_test(16);
