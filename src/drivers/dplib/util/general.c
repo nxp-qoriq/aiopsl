@@ -58,7 +58,7 @@ void handle_fatal_error(char *message)
        status = -1 + (uint32_t)message;
        fdma_terminate_task();
 }
-#ifdef AIOP_VERIF
+#if (defined AIOP_VERIF || defined CDC_ROC)
 void exception_handler(char *filename,
 		       char *function_name,
 		       uint32_t line,
