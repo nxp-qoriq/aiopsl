@@ -1,3 +1,5 @@
+** AIOP SL Release v0.5.3.1 **
+
 fsl_cli:                Added MACRO: GET_AIOP_CLI_STRING(_args, _args_size) to receive AIOP command line string and it's size.
 
 dpni_drv.c, fsl_dpni_drv.h:   Added API for "int dpni_drv_get_counter(uint16_t ni_id, enum dpni_counter counter, uint64_t *value)"
