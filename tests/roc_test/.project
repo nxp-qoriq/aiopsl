@@ -24,7 +24,7 @@ aiop_sl		</project>
 				</dictionary>
 				<dictionary>
 					<key>org.eclipse.cdt.make.core.buildArguments</key>
-					<value>-j8</value>
+					<value></value>
 				</dictionary>
 				<dictionary>
 					<key>org.eclipse.cdt.make.core.buildCommand</key>
@@ -220,11 +220,6 @@ aiop_sl		</project>
 			<name>Verification/aiop_verification_parser.h</name>
 			<type>1</type>
 			<locationURI>PARENT-1-PROJECT_LOC/aiop_core_lib/aiop_verification_parser.h</locationURI>
-		</link>
-		<link>
-			<name>Verification/aiop_verification_sr.c</name>
-			<type>1</type>
-			<locationURI>PARENT-1-PROJECT_LOC/aiop_core_lib/aiop_verification_sr.c</locationURI>
 		</link>
 		<link>
 			<name>Verification/aiop_verification_ste.c</name>
