@@ -52,7 +52,7 @@ __TASK ipf_ctx_t ipf_context_addr
 	__attribute__((aligned(sizeof(struct ldpaa_fd))));
 
 
-static void app_process_packet_flow0 (dpni_drv_app_arg_t arg)
+__declspec(entry_point) static void app_process_packet_flow0 (void)
 {
 	int      err = 0;
 	const uint16_t ipv4hdr_length = sizeof(struct ipv4hdr);
@@ -70,6 +70,8 @@ static void app_process_packet_flow0 (dpni_drv_app_arg_t arg)
 	uint16_t offset;
 
 /*	ipf_ctx_t ipf_context_addr __attribute__((aligned(sizeof(struct ldpaa_fd))));*/
+
+	sl_prolog();
 
 	mtu = 1500;
 
@@ -143,7 +145,7 @@ static void app_process_packet_flow0 (dpni_drv_app_arg_t arg)
 				local_test_error |= 1;
 			}
 		}
-		dpni_drv_send(APP_NI_GET(arg));
+		dpni_drv_send(dpni_get_receive_niid());
 	} while (ipf_status != IPF_GEN_FRAG_STATUS_DONE);
 
 	fsl_os_print
@@ -184,7 +186,8 @@ static void app_process_packet_flow0 (dpni_drv_app_arg_t arg)
 		fsl_os_print("Finished SUCCESSFULLY\n");
 	else
 		fsl_os_print("Finished with ERRORS\n");
-
+	/*MUST call fdma_terminate task in the end of cb function*/
+	fdma_terminate_task();
 }
 
 
@@ -256,8 +259,7 @@ int app_init(void)
 	for (ni = 0; ni < dpni_get_num_of_ni(); ni++)
 	{
 		err = dpni_drv_register_rx_cb((uint16_t)ni /*ni_id*/,
-		                              app_process_packet_flow0, /* callback */
-		                              ni /*arg, nic number*/);
+		                              app_process_packet_flow0 /* callback */);
 		if (err) return err;
 
 		err = dpni_drv_set_max_frame_length((uint16_t)ni/*ni_id*/,

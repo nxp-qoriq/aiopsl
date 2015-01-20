@@ -33,7 +33,7 @@
 #include "fsl_dpbp.h"
 #include "fsl_sl_dbg.h"
 #include "slab.h"
-#include "fdma.h"
+#include "fsl_fdma.h"
 #include "fsl_io.h"
 #include "fsl_cdma.h"
 #include "fsl_io_ccsr.h"
@@ -1401,7 +1401,7 @@ __COLD_CODE int slab_module_init(void)
 
 	g_slab_virtual_pools.slab_context_address = (uint64_t *)
 			fsl_malloc((sizeof(uint64_t) *
-				(num_clusters_for_ddr_mamangement_pools + 1)), /*cluster #0 is for shram*/
+				(num_clusters_for_ddr_mamangement_pools + 1)), /*cluster #0 is for SHRAM*/
 				1);
 	/*This call must be before slab_proccess_registered_requests*/
 	err = slab_register_context_buffer_requirements(
@@ -1447,7 +1447,7 @@ __COLD_CODE int slab_module_init(void)
 
 	err = fsl_os_get_mem(SLAB_MAX_NUM_VP_DDR *
 	                     num_clusters_for_ddr_mamangement_pools
-	                     * sizeof(uint64_t),
+	                     * sizeof(uint32_t),
 	                     SLAB_DDR_MEMORY,
 	                     1,
 	                     &ddr_pool_addr);
@@ -1463,7 +1463,7 @@ __COLD_CODE int slab_module_init(void)
 	g_slab_pool_pointer_ddr = ddr_pool_addr;
 
 	g_slab_last_pool_pointer_ddr = ddr_pool_addr + (SLAB_MAX_NUM_VP_DDR *
-		num_clusters_for_ddr_mamangement_pools * 8);
+		num_clusters_for_ddr_mamangement_pools * sizeof(uint32_t));
 
 
 	slab_pool_init(virtual_pool_struct,
@@ -1489,20 +1489,20 @@ __COLD_CODE int slab_module_init(void)
 	}
 
 
-	for(i = 1; i <= num_clusters_for_ddr_mamangement_pools; i++){ /* i = o used for SHRAM management*/
+	for(i = 1; i <= num_clusters_for_ddr_mamangement_pools; i++){ /* i = 0 - used for SHRAM management*/
 		ddr_value_ptr[0] =(uint32_t)( i << 16);
 
 		for(j = 1; j < SLAB_MAX_NUM_VP_DDR ; j++){
-			ddr_value_ptr[j] = ddr_value_ptr[j - 1] + 2;/*add 1 to second bit, (first used for  sw/hw pool)*/
+			ddr_value_ptr[j] = ddr_value_ptr[j - 1] + 2;/*add 1 to second bit, (first used for SW/HW pool)*/
 		}
-		fdma_dma_data(4 * SLAB_MAX_NUM_VP_DDR,
+		fdma_dma_data(sizeof(uint32_t) * SLAB_MAX_NUM_VP_DDR,
 		              slab_m->icid,
 		              &ddr_value_ptr,
 		              ddr_pool_addr,
 		              (slab_m->fdma_dma_flags |
 		        	      FDMA_DMA_DA_WS_TO_SYS_BIT));
 
-		ddr_pool_addr += 4 * SLAB_MAX_NUM_VP_DDR ;
+		ddr_pool_addr += sizeof(uint32_t) * SLAB_MAX_NUM_VP_DDR ;
 
 	}
 

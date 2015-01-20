@@ -4,7 +4,6 @@
 #include "ls2085_aiop/fsl_platform.h"
 #include "common/types.h"
 #include "console.h"
-#include "fsl_malloc.h"
 #include "console_print_test.h"
 #include "fsl_string.h"
 
@@ -449,6 +448,6 @@ int console_print_init()
 /*****************************************************************************/
 int console_print_test()
 {
-	pr_info("AIOP core %d: Test passed\n", core_get_id());
+	pr_info("AIOP core %d: Console Print Test passed\n", core_get_id());
 	return 0;
 }

@@ -555,11 +555,6 @@
 			<locationURI>PARENT-3-PROJECT_LOC/src/include/arch/fsl_ldpaa_aiop.h</locationURI>
 		</link>
 		<link>
-			<name>aiop_sl/include/arch/fsl_mc_cmd.h</name>
-			<type>1</type>
-			<locationURI>PARENT-3-PROJECT_LOC/src/include/arch/fsl_mc_cmd.h</locationURI>
-		</link>
-		<link>
 			<name>aiop_sl/include/arch/ls2085_aiop</name>
 			<type>2</type>
 			<locationURI>virtual:/virtual</locationURI>
@@ -1060,6 +1055,11 @@
 			<locationURI>PARENT-3-PROJECT_LOC/src/arch/ppc/platform/ls2085a_aiop/cmdif.h</locationURI>
 		</link>
 		<link>
+			<name>aiop_sl/arch/ppc/platform/ls2085a_aiop/fsl_mc_cmd.h</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/arch/ppc/platform/ls2085a_aiop/fsl_mc_cmd.h</locationURI>
+		</link>
+		<link>
 			<name>aiop_sl/arch/ppc/platform/ls2085a_aiop/fsl_soc_aiop_spec.h</name>
 			<type>1</type>
 			<locationURI>PARENT-3-PROJECT_LOC/src/arch/ppc/platform/ls2085a_aiop/fsl_soc_aiop_spec.h</locationURI>
@@ -1100,6 +1100,11 @@
 			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/dplib/arch/accel/cdma.h</locationURI>
 		</link>
 		<link>
+			<name>aiop_sl/drivers/dplib/arch/accel/cdma_inline.h</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/dplib/arch/accel/cdma_inline.h</locationURI>
+		</link>
+		<link>
 			<name>aiop_sl/drivers/dplib/arch/accel/fdma.c</name>
 			<type>1</type>
 			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/dplib/arch/accel/fdma.c</locationURI>
@@ -1108,6 +1113,11 @@
 			<name>aiop_sl/drivers/dplib/arch/accel/fdma.h</name>
 			<type>1</type>
 			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/dplib/arch/accel/fdma.h</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/drivers/dplib/arch/accel/fdma_inline.h</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/dplib/arch/accel/fdma_inline.h</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/drivers/dplib/arch/accel/keygen.c</name>
@@ -1128,6 +1138,11 @@
 			<name>aiop_sl/drivers/dplib/arch/accel/osm.h</name>
 			<type>1</type>
 			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/dplib/arch/accel/osm.h</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/drivers/dplib/arch/accel/osm_inline.h</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/dplib/arch/accel/osm_inline.h</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/drivers/dplib/arch/accel/parser.c</name>
@@ -1178,6 +1193,11 @@
 			<name>aiop_sl/drivers/dplib/arch/accel/table.h</name>
 			<type>1</type>
 			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/dplib/arch/accel/table.h</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/drivers/dplib/arch/accel/table_inline.h</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/dplib/arch/accel/table_inline.h</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/drivers/dplib/arch/accel/tman.c</name>
