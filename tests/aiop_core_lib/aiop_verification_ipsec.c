@@ -36,9 +36,7 @@
 #include "aiop_verification.h"
 #include "aiop_verification_ipsec.h"
 #include "ipsec.h"
-#ifndef CDC_ROC
 #include "rta.h"
-#endif
 #ifndef IPSEC_OVERRIDE_RTA
 //#include "protoshared.h"
 //#include "desc/ipsec.h"
