@@ -42,6 +42,7 @@
 #include "fsl_malloc.h"
 #include "fsl_platform.h"
 #include "fsl_shbp_aiop.h"
+#include "fsl_spinlock.h"
 
 #ifndef CMDIF_TEST_WITH_MC_SRV
 #warning "If you test with MC define CMDIF_TEST_WITH_MC_SRV inside cmdif.h\n"
@@ -50,6 +51,8 @@
 
 int app_init(void);
 void app_free(void);
+extern int gpp_sys_ddr_init();
+extern int gpp_ddr_check(struct icontext *ic, uint64_t iova, uint16_t size);
 
 
 #define OPEN_CMD	0x100
@@ -82,25 +85,26 @@ struct cmdif_desc cidesc;
 uint64_t tman_addr;
 struct shbp_aiop lbp;
 struct shbp_aiop gpp_lbp;
+int32_t async_count = 0;
 
 static void aiop_ws_check()
 {
 	struct icontext ic;
 	uint16_t pl_icid = PL_ICID_GET;
-	
+
 	icontext_aiop_get(&ic);
 	ASSERT_COND(ICID_GET(pl_icid) == ic.icid);
-	
+
 	if (ic.bdi_flags) {
 		ASSERT_COND(BDI_GET);
-	}	
+	}
 	if (ic.dma_flags & FDMA_DMA_PL_BIT) {
 		ASSERT_COND(PL_GET(pl_icid));
 	}
 	if (ic.dma_flags & FDMA_DMA_eVA_BIT) {
 		ASSERT_COND(VA_GET);
 	}
-	fsl_os_print("ICID in WS is %d\n", ic.icid);
+	pr_debug("ICID in WS is 0x%x\n", ic.icid);
 }
 
 static int aiop_async_cb(void *async_ctx, int err, uint16_t cmd_id,
@@ -108,43 +112,50 @@ static int aiop_async_cb(void *async_ctx, int err, uint16_t cmd_id,
 {
 	UNUSED(cmd_id);
 	UNUSED(async_ctx);
-	
+
 	aiop_ws_check();
-	
-	fsl_os_print("PASSED AIOP ASYNC CB cmd_id = 0x%x\n" ,cmd_id);
-	fsl_os_print("ASYNC CB data 0x%x size = 0x%x\n", (uint32_t)data , size);
-	fsl_os_print("Default segment handle = 0x%x\n", 
-	             PRC_GET_SEGMENT_HANDLE());
-	
+
+	pr_debug("ASYNC CB data 0x%x size = 0x%x\n", (uint32_t)data , size);
+	pr_debug("Default segment handle = 0x%x size = 0x%x\n",
+	             PRC_GET_SEGMENT_HANDLE(), PRC_GET_SEGMENT_LENGTH());
+	ASSERT_COND(PRC_GET_SEGMENT_HANDLE() == 0);
+	ASSERT_COND(PRC_GET_FRAME_HANDLE() == 0);
+
 	if (err != 0) {
-		fsl_os_print("ERROR inside aiop_async_cb\n");
+		pr_err("ERROR inside aiop_async_cb\n");
 	}
 	if ((size > 0) && (data != NULL)) {
-		fsl_os_print("Setting first byte of data with val = 0x%x\n", 
+#ifdef CMDIF_TEST_WITH_MC_SRV
+		pr_debug("Setting first byte of data with val = 0x%x\n",
 		             AIOP_ASYNC_CB_DONE);
-		fsl_os_print("Default segment handle = 0x%x\n", 
+		pr_debug("Default segment handle = 0x%x\n",
 		             PRC_GET_SEGMENT_HANDLE());
 		((uint8_t *)data)[0] = AIOP_ASYNC_CB_DONE;
-		fsl_os_print("Default segment handle = 0x%x\n", 
+		pr_debug("Default segment handle = 0x%x\n",
 		             PRC_GET_SEGMENT_HANDLE());
-		fdma_modify_default_segment_data(0, (uint16_t)1);
+		fdma_modify_default_segment_data(0, (uint16_t)PRC_GET_SEGMENT_LENGTH());
+#endif
 	} else {
-		fsl_os_print("No data inside aiop_async_cb\n");
+		pr_debug("No data inside aiop_async_cb\n");
 	}
+	atomic_incr32(&async_count, 1);
+	pr_debug("PASSED AIOP ASYNC CB[%d] cmd_id = 0x%x\n",
+	         async_count, cmd_id);
+
 	return err;
 }
 
 static int open_cb(uint8_t instance_id, void **dev)
 {
 	UNUSED(dev);
-	fsl_os_print("open_cb inst_id = 0x%x\n", instance_id);
+	pr_debug("open_cb inst_id = 0x%x\n", instance_id);
 	return 0;
 }
 
 static int close_cb(void *dev)
 {
 	UNUSED(dev);
-	fsl_os_print("close_cb\n");
+	pr_debug("close_cb\n");
 	return 0;
 }
 
@@ -154,7 +165,7 @@ static int ctrl_cb(void *dev, uint16_t cmd, uint32_t size,
 	int err = 0;
 
 	UNUSED(dev);
-	fsl_os_print("ctrl_cb cmd = 0x%x, size = %d, data 0x%x\n",
+	pr_debug("ctrl_cb cmd = 0x%x, size = %d, data 0x%x\n",
 	             cmd,
 	             size,
 	             (uint32_t)data);
@@ -171,11 +182,10 @@ static int ctrl_cb(void *dev, uint16_t cmd, uint32_t size,
 
 static void verif_tman_cb(uint64_t opaque1, uint16_t opaque2)
 {
-	fsl_os_print("Inside verif_tman_cb \n");
-	aiop_ws_check();
+	pr_debug("Inside verif_tman_cb \n");
 	ASSERT_COND(opaque1 == 0x12345);
 	ASSERT_COND(opaque2 == 0x1616);
-	fsl_os_print("PASSED verif_tman_cb \n");
+	pr_debug("PASSED verif_tman_cb \n");
 }
 
 static int ctrl_cb0(void *dev, uint16_t cmd, uint32_t size,
@@ -192,32 +202,35 @@ static int ctrl_cb0(void *dev, uint16_t cmd, uint32_t size,
 	uint32_t timer_handle = 0;
 	struct shbp_test *shbp_test;
 	uint64_t temp64;
-	
+
 	UNUSED(dev);
-	fsl_os_print("ctrl_cb0 cmd = 0x%x, size = %d, data  0x%x\n",
-	             cmd,
-	             size,
-	             (uint32_t)data);
+	pr_debug("ctrl_cb0 cmd = 0x%x, size = %d, data  0x%x\n",
+	         cmd,
+	         size,
+	         (uint32_t)data);
+
+	ASSERT_COND(PRC_GET_SEGMENT_HANDLE() == 0);
+	ASSERT_COND(PRC_GET_FRAME_HANDLE() == 0);
 
 	aiop_ws_check();
-	
+
 	switch (cmd) {
 	case SHBP_TEST_GPP:
-		fsl_os_print("Testing GPP SHBP...\n");
+		pr_debug("Testing GPP SHBP...\n");
 		shbp_test = data;
 		dpci_id = shbp_test->dpci_id;
 		err = shbp_enable(dpci_id, shbp_test->shbp, &gpp_lbp);
 		ASSERT_COND(gpp_lbp.ic.icid != ICONTEXT_INVALID);
-		
+
 		temp64 = shbp_acquire(&gpp_lbp);
 		ASSERT_COND(temp64 == 0);
 		shbp_test->shbp = 0; /* For test on GPP */
-		
+
 		err = shbp_release(&gpp_lbp, p_data);
 		ASSERT_COND(!err);
-		
-		fdma_modify_default_segment_data(0, (uint16_t)size);
-		fsl_os_print("Released buffer into GPP SHBP\n");
+
+		fdma_modify_default_segment_data(0, (uint16_t)PRC_GET_SEGMENT_LENGTH());
+		pr_debug("Released buffer into GPP SHBP\n");
 		break;
 	case SHBP_TEST:
 		shbp_test = data;
@@ -234,7 +247,7 @@ static int ctrl_cb0(void *dev, uint16_t cmd, uint32_t size,
 			ASSERT_COND(!err);
 			p_data = shbp_acquire(&lbp);
 		}
-		fsl_os_print("Acquired and released %d buffers from SHBP\n", i);
+		pr_debug("Acquired and released %d buffers from SHBP\n", i);
 		break;
 	case TMAN_TEST:
 		err |= tman_create_tmi(tman_addr /* uint64_t tmi_mem_base_addr */,
@@ -247,7 +260,7 @@ static int ctrl_cb0(void *dev, uint16_t cmd, uint32_t size,
 		                         0x1616 /* opaque_data2 */,
 		                         verif_tman_cb /* tman_timer_cb */,
 		                         &timer_handle /* *timer_handle */);
-		fsl_os_print("TMAN timer created err = %d\n", err);
+		pr_debug("TMAN timer created err = %d\n", err);
 		break;
 	case OPEN_CMD:
 		cidesc.regs = TEST_DPCI_ID; /* DPCI 0 is used by MC */
@@ -255,8 +268,8 @@ static int ctrl_cb0(void *dev, uint16_t cmd, uint32_t size,
 		if (size > 0) {
 			cidesc.regs = (void *)(((uint8_t *)data)[0]);
 		}
-		fsl_os_print("Testing AIOP client against GPP DPCI%d\n",
-		             (uint32_t)cidesc.regs);
+		pr_debug("Testing AIOP client against GPP DPCI%d\n",
+		         (uint32_t)cidesc.regs);
 		err = cmdif_open(&cidesc, "IRA", 0, NULL, 0);
 		break;
 	case CLOSE_CMD:
@@ -267,13 +280,13 @@ static int ctrl_cb0(void *dev, uint16_t cmd, uint32_t size,
 		if (size > 0) {
 			cidesc.regs = (void *)(((uint8_t *)data)[0]);
 		}
-		fsl_os_print("Testing AIOP client against GPP DPCI%d\n",
-		             (uint32_t)cidesc.regs);
+		pr_debug("Testing AIOP client against GPP DPCI%d\n",
+		         (uint32_t)cidesc.regs);
 		err |= cmdif_open(&cidesc, "IRA0", 0, NULL, 0);
 		err |= cmdif_open(&cidesc, "IRA3", 0, NULL, 0);
 		err |= cmdif_open(&cidesc, "IRA2", 0, NULL, 0);
 		if (err) {
-			fsl_os_print("failed to cmdif_open()\n");
+			pr_debug("failed to cmdif_open()\n");
 			return err;
 		}
 		break;
@@ -281,25 +294,25 @@ static int ctrl_cb0(void *dev, uint16_t cmd, uint32_t size,
 		err = cmdif_send(&cidesc, 0xa | CMDIF_NORESP_CMD, size,
 		                 CMDIF_PRI_LOW, p_data, aiop_async_cb, cidesc.regs);
 		break;
-	case ASYNC_CMD:		
+	case ASYNC_CMD:
 		p_data += size;
 		pr_debug("AIOP is sending asynchronous command with the "
 			"following parameters\n");
 		pr_debug("Addr high = 0x%x low = 0x%x size = 0x%x\n",
-			 (uint32_t)((p_data & 0xFF00000000) >> 32),
-			 (uint32_t)(p_data & 0xFFFFFFFF), 
-			 AIOP_SYNC_BUFF_SIZE);
+		         (uint32_t)((p_data & 0xFF00000000) >> 32),
+		         (uint32_t)(p_data & 0xFFFFFFFF),
+		         AIOP_SYNC_BUFF_SIZE);
 		err = cmdif_send(&cidesc, 0xa | CMDIF_ASYNC_CMD, AIOP_SYNC_BUFF_SIZE,
 		                 CMDIF_PRI_LOW, p_data, aiop_async_cb, cidesc.regs);
 		break;
-	case ASYNC_N_CMD:		
+	case ASYNC_N_CMD:
 		p_data += size;
 		pr_debug("AIOP is sending asynchronous command with the "
 			"following parameters\n");
 		pr_debug("Addr high = 0x%x low = 0x%x size = 0x%x\n",
-			 (uint32_t)((p_data & 0xFF00000000) >> 32),
-			 (uint32_t)(p_data & 0xFFFFFFFF), 
-			 AIOP_SYNC_BUFF_SIZE);		
+		         (uint32_t)((p_data & 0xFF00000000) >> 32),
+		         (uint32_t)(p_data & 0xFFFFFFFF),
+		         AIOP_SYNC_BUFF_SIZE);
 		err |= cmdif_send(&cidesc, 0x1 | CMDIF_ASYNC_CMD, AIOP_SYNC_BUFF_SIZE,
 		                  CMDIF_PRI_LOW, p_data, aiop_async_cb, cidesc.regs);
 		err |= cmdif_send(&cidesc, 0x2 | CMDIF_ASYNC_CMD, AIOP_SYNC_BUFF_SIZE,
@@ -323,17 +336,17 @@ static int ctrl_cb0(void *dev, uint16_t cmd, uint32_t size,
 		ic.bdi_flags |= FDMA_ENF_BDI_BIT;
 #endif
 		ASSERT_COND(err == 0);
-		fsl_os_print("Isolation context test dpci %d bpid %d:\n", dpci_id, bpid);
-		fsl_os_print("ICID %d:\n dma flags 0x%x \n bdi flags 0x%x \n",
-		             ic.icid,
-		             ic.dma_flags,
-		             ic.bdi_flags);
+		pr_debug("Isolation context test dpci %d bpid %d:\n", dpci_id, bpid);
+		pr_debug("ICID %d:\n dma flags 0x%x \n bdi flags 0x%x \n",
+		         ic.icid,
+		         ic.dma_flags,
+		         ic.bdi_flags);
 		icontext_dma_write(&ic, sizeof(struct icontext), &ic, p_data);
 		icontext_dma_read(&ic, sizeof(struct icontext), p_data, data);
 		ASSERT_COND(ic.icid == ((struct icontext *)data)->icid);
 		ASSERT_COND(ic.dma_flags == ((struct icontext *)data)->dma_flags);
 		ASSERT_COND(ic.bdi_flags == ((struct icontext *)data)->bdi_flags);
-		
+
 		/* Note: MC and AIOP have the same AMQ and BDI settings */
 		p_data = NULL;
 		err = icontext_acquire(&ic, bpid, &p_data);
@@ -341,41 +354,52 @@ static int ctrl_cb0(void *dev, uint16_t cmd, uint32_t size,
 			ASSERT_COND(p_data != 0);
 			err = icontext_release(&ic, bpid, p_data);
 			ASSERT_COND(err == 0);
-			fsl_os_print("Addr high = 0x%x low = 0x%x \n",
-			             (uint32_t)((p_data & 0xFF00000000) >> 32),
-			             (uint32_t)(p_data & 0xFFFFFFFF));
+			pr_debug("Addr high = 0x%x low = 0x%x \n",
+			         (uint32_t)((p_data & 0xFF00000000) >> 32),
+			         (uint32_t)(p_data & 0xFFFFFFFF));
 		} else {
-			fsl_os_print("FAILED icontext_acquire BPID"
-						" 0x%x is empty\n", bpid);
+			pr_debug("FAILED icontext_acquire BPID"
+				" 0x%x is empty\n", bpid);
 		}
 		/* Must be after icontext_get(&ic) */
 		icontext_cmd_get(&ic_cmd);
 #ifdef CMDIF_TEST_WITH_MC_SRV
 		ic_cmd.bdi_flags |= FDMA_ENF_BDI_BIT;
-#endif		
+#endif
 		ASSERT_COND(ic_cmd.icid != ICONTEXT_INVALID);
 		ASSERT_COND(ic_cmd.icid == ic.icid);
 		ASSERT_COND(ic_cmd.bdi_flags == ic.bdi_flags);
 		ASSERT_COND(ic_cmd.dma_flags == ic.dma_flags);
-		fsl_os_print("PASSED icontext_cmd_get\n");
-		
+		pr_debug("PASSED icontext_cmd_get\n");
+
 		icontext_aiop_get(&ic);
 		ASSERT_COND(ic.dma_flags);
 		ASSERT_COND(ic.bdi_flags);
-		fsl_os_print("AIOP ICID = 0x%x bdi flags = 0x%x\n", ic.icid, \
-		             ic.bdi_flags);
-		fsl_os_print("AIOP ICID = 0x%x dma flags = 0x%x\n", ic.icid, \
-		             ic.dma_flags);
+		pr_debug("AIOP ICID = 0x%x bdi flags = 0x%x\n", ic.icid, \
+		         ic.bdi_flags);
+		pr_debug("AIOP ICID = 0x%x dma flags = 0x%x\n", ic.icid, \
+		         ic.dma_flags);
 		break;
 	default:
 		if ((size > 0) && (data != NULL)) {
+
+			/* check bringup test */
+			icontext_cmd_get(&ic_cmd);
+			err = gpp_ddr_check(&ic_cmd, p_data, (uint16_t)MIN(size, 16));
+			pr_debug("gpp_ddr_check err = %d\n", err);
+
+			/* modify from presentation */
 			for (i = 0; i < MIN(size, 64); i++) {
 				((uint8_t *)data)[i] = 0xDA;
 			}
 		}
-		fdma_modify_default_segment_data(0, (uint16_t)size);
+		fdma_modify_default_segment_data(0, (uint16_t)PRC_GET_SEGMENT_LENGTH());
 		break;
 	}
+
+	ASSERT_COND(PRC_GET_SEGMENT_HANDLE() == 0); /* WS check */
+	ASSERT_COND(PRC_GET_FRAME_HANDLE() == 0); /* WS check */
+
 	return err;
 }
 
@@ -389,7 +413,7 @@ int app_init(void)
 	int        i = 0;
 	struct cmdif_module_ops ops;
 
-	fsl_os_print("Running app_init()\n");
+	pr_debug("Running app_init()\n");
 
 	for (i = 0; i < 20; i++) {
 		ops.close_cb = close_cb;
@@ -401,7 +425,7 @@ int app_init(void)
 		snprintf(module, sizeof(module), "TEST%d", i);
 		err = cmdif_register_module(module, &ops);
 		if (err) {
-			fsl_os_print("FAILED cmdif_register_module %s\n!",
+			pr_err("FAILED cmdif_register_module %s\n!",
 			             module);
 			return err;
 		}
@@ -409,7 +433,9 @@ int app_init(void)
 
 	err = fsl_os_get_mem(1024, MEM_PART_DP_DDR, 64, &tman_addr);
 	ASSERT_COND(!err && tman_addr);
-	return 0;
+
+	err = gpp_sys_ddr_init();
+	return err;
 }
 
 void app_free(void)

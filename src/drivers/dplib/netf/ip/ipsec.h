@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2015 Freescale Semiconductor, Inc.
+ * Copyright 2014 Freescale Semiconductor, Inc.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -123,6 +123,8 @@ enum rta_param_type {
 #define IPSEC_ENC_PDB_HMO_MASK 0xF000
 #define IPSEC_DEC_PDB_HMO_MASK 0xF000
 #define IPSEC_PDB_OPTIONS_MASK 0x00FF
+#define IPSEC_ENC_PDB_HMO_SHIFT 16
+#define IPSEC_DEC_PDB_HMO_SHIFT 16
 
 #define IPSEC_DECAP_PDB_ARS_MASK 0xC0 /* PDB options[ARS], bits 7:6 */
 

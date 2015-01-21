@@ -36,7 +36,6 @@
 
 
 #include "general.h"
-#include "fsl_fdma.h"
 
 /** \addtogroup FSL_AIOP_FDMA
  *  @{
@@ -442,17 +441,6 @@
 	(uint32_t)((((uint32_t)_icid) << 16) | _flags | FDMA_RELEASE_BUFFER_CMD)
 
 /** @} end of group FDMA_Commands_Args */
-
-	/** Getter for AMQ (ICID, PL, VA, BDI) default attributes */
-/* Todo - enable inline when inline works correctly+move definition to .h file*/
-/*inline*/ void get_default_amq_attributes(
-		struct fdma_amq *amq);
-
-	/** Setter for AMQ (ICID, PL, VA, BDI) default attributes */
-/* Todo - enable inline when inline works correctly+move definition to .h file*/
-/*inline*/ void set_default_amq_attributes(
-		struct fdma_amq *amq);
-
 
 /** @}*/ /* end of group FDMA_Internal_Definitions */
 

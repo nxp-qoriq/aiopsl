@@ -40,8 +40,11 @@
 #include "dplib/fsl_ldpaa.h"
 #include "dplib/fsl_parser.h"
 #include "system.h"
-#include "osm.h"
+#include "general.h"
+#include "osm_inline.h"
 #include "kernel/fsl_spinlock.h"
+#include <string.h>
+#include "fsl_dbg.h"
 
 __VERIF_GLOBAL uint64_t verif_ipr_instance_handle[16];
 __VERIF_GLOBAL uint8_t verif_prpid_valid;
@@ -128,6 +131,48 @@ void init_verif()
 	status_keygen = 0;
 	status_parser = 0;
 	status_cdma = 0;
+}
+
+/* TODO - once our verif project is  using aiopsl library the ARENA 
+ * implementation should be in general.c. Keep the declaration in general.h. */
+void exception_handler(char *filename,
+		       char *function_name,
+		       uint32_t line,
+		       char *message) __attribute__ ((noreturn))
+{
+	uint32_t status;
+
+
+	struct fatal_error_command fatal_cmd_str;
+	struct fatal_error_command *fatal_cmd;
+
+	/* Read command from external buffer in DDR */
+	fatal_cmd = &fatal_cmd_str;
+	cdma_read((void *)fatal_cmd, initial_ext_address,
+			sizeof(struct fatal_error_command));
+
+	filename = strrchr(filename, '/') ?
+			strrchr(filename, '/') + 1 : filename;
+
+	strcpy(fatal_cmd->file_name, filename);
+	strcpy(fatal_cmd->function_name, function_name);
+	strcpy(fatal_cmd->err_msg, message);
+
+	/* write command results back to DDR */
+	cdma_write(initial_ext_address,
+		   (void *)fatal_cmd,
+		   sizeof(struct fatal_error_command));
+
+	status = -1 + (uint32_t)message + (uint32_t)filename + line +
+			(uint32_t)function_name;
+
+#ifndef STACK_CHECK
+	pr_err("Fatal error encountered!\n");
+#endif
+
+	fdma_terminate_task();
+	exit(-1); /* TODO This code is never reached and should be removed once
+	fdma_terminate_task() is declared as noreturn*/
 }
 
 //__VERIF_PROFILE_SRAM struct  profile_sram profile_sram1;

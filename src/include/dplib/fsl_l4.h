@@ -213,46 +213,6 @@ int l4_tcp_header_modification(uint8_t flags, uint16_t tcp_src_port,
 		int16_t tcp_ack_num_delta, uint16_t tcp_mss);
 
 /*************************************************************************//**
-@Function	l4_set_tp_src
-
-@Description	Replace TCP/UDP source port. The UDP/TCP checksum is updated
-		automatically.
-
-		Implicit input parameters in Task Defaults: frame handle,
-		segment handle, segment address.
-
-@Param[in]	src_port - The new TCP/UDP source port.
-
-@Return		Success or Failure (There was no TCP/UDP header in the frame).
-
-@Cautions	The parse results must be updated before calling this
-		operation.\n
-		This function assumes the original TCP header checksum is valid.
-*//***************************************************************************/
-int l4_set_tp_src(uint16_t src_port);
-
-
-/*************************************************************************//**
-@Function	l4_set_tp_dst
-
-@Description	Replace TCP/UDP destination port. The UDP/TCP checksum is
-		updated automatically.
-
-		Implicit input parameters in Task Defaults: frame handle,
-		segment handle, segment address.
-
-@Param[in]	dst_port - The new TCP/UDP destination port.
-
-@Return		Success or Failure (There was no TCP/UDP header in the frame).
-
-@Cautions	The parse results must be updated before calling this
-		operation.\n
-		This function assumes the original TCP header checksum is valid.
-
-*//***************************************************************************/
-int l4_set_tp_dst(uint16_t dst_port);
-
-/*************************************************************************//**
 @Function	l4_set_tcp_src
 
 @Description	Replace TCP source port. The TCP checksum is updated

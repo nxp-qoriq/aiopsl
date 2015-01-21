@@ -30,8 +30,7 @@
 @Description	This file contains the AIOP OSM Operations API implementation.
 *//***************************************************************************/
 
-#include "dplib/fsl_osm.h"
-#include "osm.h"
+#include "fsl_osm.h"
 #include "general.h"
 
 extern __TASK struct aiop_default_task_params default_task_params;
@@ -535,14 +534,6 @@ void osm_scope_enter(
 		return;
 		break;
 	}
-}
-
-void osm_scope_exit(void)
-{
-	/* call OSM */
-	__e_osmcmd(OSM_SCOPE_EXIT_OP, 0);
-		if (default_task_params.current_scope_level != 0)
-			default_task_params.current_scope_level--;
 }
 
 void osm_get_scope(struct scope_status_params *scope_status)

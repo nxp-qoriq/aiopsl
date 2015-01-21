@@ -102,18 +102,6 @@ void sys_shram_free(void *mem)
 	mem_mng_free_mem(sys.mem_mng, mem);
 }
 /*****************************************************************************/
-int sys_get_available_mem_partition(void)
-{
-    int partition_id;
-
-    ASSERT_COND(sys.mem_mng);
-
-    partition_id = mem_mng_get_available_partition_id(sys.mem_mng);
-
-    return partition_id;
-}
-
-/*****************************************************************************/
  int sys_register_phys_addr_alloc_partition(int  partition_id,
         uint64_t  base_paddress,
         uint64_t   size,
@@ -397,7 +385,9 @@ void sys_print_mem_partition_debug_info(int partition_id, int report_leaks)
     mem_mng_param.f_early_free = sys_aligned_free;
     mem_mng_param.lock = &(sys.mem_part_mng_lock);
 
-    sys.mem_mng = mem_mng_init(&mem_mng_param);
+    /* initialize boot memory manager to use MEM_PART_DP_DDR*/
+    boot_mem_mng_init(&sys.boot_mem_mng,MEM_PART_DP_DDR);
+    sys.mem_mng = mem_mng_init(&mem_mng_param,&sys.boot_mem_mng);
     if (!sys.mem_mng)
     {
         RETURN_ERROR(MAJOR, EAGAIN, ("memory management object"));
@@ -431,7 +421,7 @@ void sys_print_mem_partition_debug_info(int partition_id, int report_leaks)
             pr_info("------------------------------------------------------------\r\n");
         }
 
-        mem_mng_free(sys.mem_mng);
+        mem_mng_free(sys.mem_mng,&sys.boot_mem_mng);
         sys.mem_mng = NULL;
     }
 

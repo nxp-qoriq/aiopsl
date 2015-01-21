@@ -1,10 +1,24 @@
+** AIOP SL Release v0.5.3.1 **
+
+fsl_cli:                Added MACRO: GET_AIOP_CLI_STRING(_args, _args_size) to receive AIOP command line string and it's size.
+
+dpni_drv.c, fsl_dpni_drv.h:   Added API for "int dpni_drv_get_counter(uint16_t ni_id, enum dpni_counter counter, uint64_t *value)"
+                              Function to receive dpni counters.
+
+dpni_drv.c:                   Change for dpni_drv_register/unregister_rx_cb to set the cb function for packet processing in epid table.
+                              Argument won't be passed to receive cb function (remove args)
+                              New API: int dpni_drv_register_rx_cb(uint16_t ni_id, rx_cb_t *cb);
+app_process_packet.c, 
+arena_test.c, ipf_demo.c,
+ipf_demo.c, ipsec_fm_demo.c:  in app_process_packet_flow0() added call to sl_prolog() (must be at the beginning of each application cb function),
+                              and added call to fdma_terminate_task(); to the end of each cb function (must end the cb function).
 
 ** AIOP SL Release v0.5.3.0 **
 types_mw.h               Added macros for putting all executable code (functions) of a file into a certain section.
                          The macros should be defined as a pair  __START_xxx_CODE, __END_xxx_CODE both in *.c file and *.h file.
-						 __START_HOT_CODE - start placing code in i-RAM, enclosed by __END_HOT_CODE.
+                         __START_HOT_CODE - start placing code in i-RAM, enclosed by __END_HOT_CODE.
                          __START_WARM_CODE - start placing code in Shared-SRAM,enclosed by __END_WARM_CODE.
-						 __START_COLD_CODE - start placing code in DP_DDR,enclosed by __END_COLD_CODE.
+                         __START_COLD_CODE - start placing code in DP_DDR,enclosed by __END_COLD_CODE.
 - dpl.dts/dtb             Removed static icid assignment per container.
 - cmdif_client.c          Fixed ENGR00344241, WS is now updated with AIOP icontext prior calling to async_cb. 
                           Same fix as we have for cmdif_srv.c.
