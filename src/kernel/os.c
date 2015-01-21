@@ -51,7 +51,7 @@ __TASK uint32_t seed_32bit;
 static const char* digits="0123456789abcdef";
 
 static int vsnprintf_lite(char *buf, size_t size, const char *fmt, va_list args);
-static char *number(char *str, uint64_t num, uint8_t base, uint8_t type, size_t *max_size);
+static char *number(char *str, uint64_t num, uint8_t base, uint8_t type, size_t *max_size, uint8_t fix_size);
 static void fsl_os_print_boot(const char *format, va_list args);
 /*****************************************************************************/
 __declspec(noreturn) void fsl_os_exit(int status)
@@ -91,6 +91,7 @@ static int vsnprintf_lite(char *buf, size_t size, const char *fmt, va_list args)
 	char *str;
 	const char *s;
 	uint8_t flags = 0;
+	uint8_t fix_size;
 	size--;
 	for(str = buf; *fmt && size; ++fmt) {
 		if(*fmt != '%') {
@@ -101,6 +102,16 @@ static int vsnprintf_lite(char *buf, size_t size, const char *fmt, va_list args)
 
 		++fmt;
 		base = 10;
+		if(*fmt == '0'){
+			++fmt;
+			fix_size =(uint8_t) *(fmt) - 0x30;
+			++fmt;
+		}
+		else
+		{
+			fix_size = 0;
+		}
+
 		switch(*fmt) {
 		case 'c':
 			if(size)
@@ -121,7 +132,9 @@ static int vsnprintf_lite(char *buf, size_t size, const char *fmt, va_list args)
 			continue;
 
 		case 'x':
+		case 'X':
 			base = 16;
+
 		case 'd':
 		case 'l':
 			if(*fmt == 'l'){
@@ -137,7 +150,7 @@ static int vsnprintf_lite(char *buf, size_t size, const char *fmt, va_list args)
 
 
 
-				if(*(fmt+1) == 'x'){
+				if(*(fmt+1) == 'x' || *(fmt+1) == 'X') {
 					base = 16;
 					++fmt;
 				}
@@ -169,7 +182,7 @@ static int vsnprintf_lite(char *buf, size_t size, const char *fmt, va_list args)
 
 		/*start convert number to string*/
 
-		str = number(str, num, base,flags, &size);
+		str = number(str, num, base,flags, &size, fix_size);
 		flags = 0;
 	}
 
@@ -178,7 +191,7 @@ static int vsnprintf_lite(char *buf, size_t size, const char *fmt, va_list args)
 }
 
 
-static char *number(char *str, uint64_t num, uint8_t base, uint8_t type, size_t *max_size)
+static char *number(char *str, uint64_t num, uint8_t base, uint8_t type, size_t *max_size, uint8_t fix_size)
 {
 	uint64_t tmp_num;
 	char *ptr_start, *ptr_end, tmp_char;
@@ -197,34 +210,41 @@ static char *number(char *str, uint64_t num, uint8_t base, uint8_t type, size_t 
 		}
 	}
 
+
 	i = 0;
-	if(msize){
-		if(num == 0)
-			*str++ = '0';
-		else {
-			while(tmp_num != 0) {	/*count number of digits*/
-				tmp_num /= base;
-				i++;
-			}
+	if(msize)
+	{
+		do {	/*count number of digits*/
+			tmp_num /= base;
+			i++;
+		} while(tmp_num != 0);
 
-			ptr_start = str; /*remember start pointer*/
-			while(num != 0){
+		if(fix_size > 0)
+		{
+			while(i < fix_size && msize){
+				*str++ = '0';
+				fix_size --;
+				msize --;
 
-				if(i <= msize)
-					*str++ = digits[(num) % (unsigned) base];
-				else
-					i--;
+			}
+		}
+		ptr_start = str; /*remember start pointer*/
+		do {
 
-				num /= base;
-			}
-			msize -= i;	/* reduce wrote digits from total buf size*/
-			ptr_end = str;  /*remember end pointer*/
-			ptr_end --;
-			while(ptr_start < ptr_end){
-				tmp_char = *ptr_start;
-				*ptr_start++ = *ptr_end;
-				*ptr_end-- = tmp_char;
-			}
+			if(i <= msize)
+				*str++ = digits[(num) % (unsigned) base];
+			else
+				i--;
+
+			num /= base;
+		}while(num != 0);
+		msize -= i;	/* reduce wrote digits from total buf size*/
+		ptr_end = str;  /*remember end pointer*/
+		ptr_end --;
+		while(ptr_start < ptr_end){
+			tmp_char = *ptr_start;
+			*ptr_start++ = *ptr_end;
+			*ptr_end-- = tmp_char;
 		}
 	}
 
