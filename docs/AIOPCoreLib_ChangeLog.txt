@@ -9,6 +9,17 @@ the task by calling to fdma_terminate_task().
 
 * The HM functions l4_set_tp_dst() and l4_set_tp_src() were removed.
 
+* The following functions were inlined:
+	- osm_scope_exit
+	- cdma_read_with_mutex
+	- cdma_read
+	- cdma_mutex_lock_take
+	- cdma_mutex_lock_release
+	- table_lookup_by_keyid_default_frame 
+	- table_lookup_by_key
+	- fdma_replace_default_segment_data
+	- fdma_copy_data
+
 * IPsec:
 Fixed CAAM descriptor endianness, including the following API changes (“-“ = old API, “+” = new API):
 
