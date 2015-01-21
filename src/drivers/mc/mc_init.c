@@ -418,12 +418,10 @@ __COLD_CODE static int dpci_discovery()
 		}
 	}
 
-	if (dpci_count > 0) {
-		err = dpci_tbl_create(&dpci_tbl, dpci_count + MC_DPCI_NUM);
-		if (err != 0) {
-			pr_err("Failed dpci_tbl_create() \n");
-			return err;
-		}
+	err = dpci_tbl_create(&dpci_tbl, dpci_count + MC_DPCI_NUM);
+	if (err != 0) {
+		pr_err("Failed dpci_tbl_create() \n");
+		return err;
 	}
 
 	err = dpci_tbl_fill(dpci_tbl, dprc, dpci_count, dev_count);
