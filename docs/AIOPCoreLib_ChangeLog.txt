@@ -1,3 +1,53 @@
+LDPAA AIOP SERVICE LAYER LDPAA-AIOP-SL-v0.5.3.1 Change Log
+=============================================================
+* The Application SW function registration is no more to the receive_cb() function. 
+Instead It is done to the EPID entry. This means HW EPID entry will first call the application software and then 
+application will call the inline function sl_prolog() in the beginning of the application. 
+The sl_prolog() functionality is the same as the former receive_cb().The application function should use declaration 
+spec called entry_point in-order the compiler would not strip off this code. The application must end with terminating 
+the task by calling to fdma_terminate_task().
+
+* The HM functions l4_set_tp_dst() and l4_set_tp_src() were removed.
+
+* IPsec:
+Fixed CAAM descriptor endianness, including the following API changes (“-“ = old API, “+” = new API):
+
+struct ipsec_encap_cbc_params
+-              uint32_t iv[4];
++             uint8_t iv[16];
+
+struct ipsec_encap_ctr_params
+-              uint32_t ctr_nonce;
+-              uint32_t iv[2];
++             uint8_t ctr_nonce[4];
++             uint64_t iv;
+
+struct ipsec_encap_ccm_params
+-              uint32_t salt; /**< lower 24 bits are used */
+-              uint32_t iv[2];
++             uint8_t salt[4]; /**< lower 24 bits are used */
++             uint64_t iv;
+
+struct ipsec_encap_gcm_params
+-              uint32_t salt; /**< lower 24 bits are used */
+-              uint32_t iv[2];
++             uint8_t salt[4]; /**< lower 24 bits are used */
++             uint64_t iv;
+
+struct ipsec_decap_ctr_params
+-              uint32_t ctr_nonce;
++             uint8_t ctr_nonce[4];
+
+struct ipsec_decap_ccm_params
+-              uint32_t salt;
++             uint8_t salt[4];
+
+struct ipsec_decap_gcm_params {
+-              uint32_t salt;
++             uint8_t salt[4];
+
+
+
 LDPAA AIOP SERVICE LAYER LDPAA-AIOP-SL-v0.5.3.0 Change Log
 =============================================================
 
