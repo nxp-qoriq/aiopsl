@@ -660,3 +660,14 @@ int dpni_drv_get_rx_buffer_layout(uint16_t ni_id, struct dpni_buffer_layout *lay
 	                                 layout);
 }
 
+int dpni_drv_get_counter(uint16_t ni_id, enum dpni_counter counter, uint64_t *value){
+	struct dpni_drv *dpni_drv;
+	struct mc_dprc *dprc = sys_get_unique_handle(FSL_OS_MOD_AIOP_RC);
+
+	/* calculate pointer to the NI structure */
+	dpni_drv = nis + ni_id;
+	return dpni_get_counter(&dprc->io,
+	                        dpni_drv->dpni_drv_params_var.dpni,
+	                        counter,
+	                        value);
+}

@@ -66,6 +66,8 @@ extern int pton_test(void);
 extern int ntop_test(void);
 extern int dpni_drv_test(void);
 extern int single_cluster_test();
+extern int multi_cluster_test();
+extern int aiop_mc_cmd_test();
 
 extern int num_of_cores;
 extern int num_of_tasks;
@@ -94,6 +96,7 @@ __declspec(entry_point) static void app_process_packet_flow0 (void)
 	uint8_t local_packet_number;
 	int local_test_error = 0;
 	uint16_t spid_ddr;
+	uint64_t ctr_value = 0;
 
 	sl_prolog();
 
@@ -121,6 +124,14 @@ __declspec(entry_point) static void app_process_packet_flow0 (void)
 		fsl_os_print("spid is %d for packet %d\n",spid_ddr, local_packet_number);
 	}
 
+
+	err = aiop_mc_cmd_test();
+	if (err) {
+		fsl_os_print("ERROR = %d: aiop_mc_cmd_test failed in runtime phase()\n", err);
+		local_test_error |= err;
+	} else {
+		fsl_os_print("aiop_mc_cmd_test passed in runtime phase()\n");
+	}
 
 	err = pton_test();
 	if (err) {
@@ -223,7 +234,20 @@ __declspec(entry_point) static void app_process_packet_flow0 (void)
 	test_error |= local_test_error; /*mark if error occured during one of the tests*/
 	unlock_spinlock(&test_error_lock);
 
-	if(local_packet_number == 38 ){ /*40 packets (0 - 39) with one broadcast after the broadcast is dissabled */
+	if(local_packet_number == 38 )
+	{ /*40 packets (0 - 39) with one broadcast after the broadcast is dissabled */
+		for(i = 0; i < 11; i++)
+		{
+			err = dpni_drv_get_counter((uint16_t)ni_id,(enum dpni_counter)i ,&ctr_value);
+			if(err != 0) {
+				fsl_os_print("dpni_drv_get_counter failed: CTR %d, error %d\n", i, err);
+				local_test_error |= err;
+			}
+			else {
+				fsl_os_print("dpni_drv_get_counter: CTR: %d = %ll\n",i,ctr_value);
+			}
+		}
+
 		if (test_error == 0)
 		{
 			int not_active_task = 0;
@@ -318,8 +342,15 @@ int app_init(void)
 	fsl_os_print("Running AIOP arena app_init()\n");
 
 	err = single_cluster_test();
+	err |= multi_cluster_test();
 	if (err) {
-		fsl_os_print("ERROR = %d: single_cluster_test failed in init phase()\n", err);
+		fsl_os_print("ERROR = %d: cluster_test failed in init phase()\n", err);
+		test_error |= err;
+	}
+
+	err = aiop_mc_cmd_test();
+	if (err) {
+		fsl_os_print("ERROR = %d: aiop_mc_cmd_test failed in init phase()\n", err);
 		test_error |= err;
 	}
 

@@ -29,9 +29,11 @@
 #include "fsl_smp.h"
 #include "fsl_dbg.h"
 #include "cmgw.h"
-
+#include "fsl_io_ccsr.h"
 #include "sys.h"
 #include "../../../tests/bringup/bringup_tests.h"
+
+extern t_system sys; /* Global System Object */
 
 //extern int sys_init(void);
 //extern void sys_free(void);
@@ -70,18 +72,62 @@
 //}
 //#endif
 
+static uint32_t _count_cores(uint64_t cores_mask)
+{
+    uint32_t count;
+    for(count = 0; cores_mask > 0; cores_mask >>= 1) {
+	if(cores_mask & 1 == 1)
+	    count ++;
+    }
+
+    return count;
+}
+
+static void _fill_system_parameters()
+{
+	uintptr_t reg_base = (uintptr_t)(SOC_PERIPH_OFF_AIOP_TILE \
+		+ SOC_PERIPH_OFF_AIOP_CMGW \
+		+ 0x02000000);/* PLTFRM_MEM_RGN_AIOP */
+	uint32_t abrr_val = ioread32_ccsr(UINT_TO_PTR(reg_base + 0x90));
+	uint32_t core_id =  (get_cpu_id() >> 4);
+
+	sys.is_tile_master[core_id] = (int)(0x1 & (1ULL << core_id));
+
+	if(sys.is_tile_master[core_id]) {
+		sys.active_cores_mask  = abrr_val;
+		sys.num_of_active_cores = _count_cores(sys.active_cores_mask);
+		sys_init_multi_processing();
+		/* signal all other cores that global initiation is done */
+		sys.boot_sync_flag = SYS_BOOT_SYNC_FLAG_DONE;
+	} else {
+		while(!sys.boot_sync_flag) {}
+	}
+
+/*
+	pr_debug("sys_is_master_core() %d \n", sys_is_master_core());
+	pr_debug("sys_is_core_active() %d \n", sys_is_core_active(core_id));
+	pr_debug("sys_get_num_of_cores() %d \n", sys_get_num_of_cores());
+*/
+}
+
 /*****************************************************************************/
 int main(int argc, char *argv[])
 {
     int err = 0;
+    uint32_t core_id =  (get_cpu_id() >> 4);
+
+    UNUSED(argc); UNUSED(argv);
+
 //    int is_master_core;
 
-	/* so sys_is_master_core() will work */
-	extern t_system sys; /* Global System Object */
-	uint32_t        core_id = core_get_id();
-	sys.is_tile_master[core_id]       = (int)(0x1 & (1ULL << core_id));
-
-UNUSED(argc); UNUSED(argv);
+	/* so
+	 * sys_is_master_core()
+	 * sys_is_core_active()
+	 * sys_get_num_of_cores()
+	 * _sys_barrier() - without prints
+	 * will work
+	 * Use get_cpu_id() and not core_id_get() as it uses prints */
+    _fill_system_parameters();
 
     /* Initiate small data area pointers at task initialization */
     asm {
@@ -109,27 +155,22 @@ UNUSED(argc); UNUSED(argv);
 
 /* Those 2 tests can't be tested together */
 #if (TEST_EXCEPTIONS == ON)
-	err = exceptions_test();
-	if(err) return err;
+	err |= exceptions_test();
 #elif (TEST_STACK_OVF == ON)
-	err = stack_ovf_test();
-	if(err) return err;
+	err |= stack_ovf_test();
 #endif
 
 #if (TEST_SINGLE_CLUSTER == ON)
 	err |= single_cluster_test();
-	if (err) return err;
 #endif
 
 #if (TEST_MULTI_CLUSTER == ON)
 	err |= multi_cluster_test();
-	if (err) return err;
 #endif
 
 #if (TEST_AIOP_MC_CMD == ON)
 	err |= aiop_mc_cmd_init();
 	err |= aiop_mc_cmd_test();
-	if (err) return err;
 #endif
 
 #if (TEST_DPBP == ON) /*DPBP must be off for DPNI test*/
@@ -161,6 +202,16 @@ UNUSED(argc); UNUSED(argv);
 	if(err) return err;
 	}
 #endif /* TEST_BUFFER_POOLS */
+
+#if (TEST_GPP_DDR == ON)
+	if(sys.is_tile_master[core_id]){
+		err |= gpp_sys_ddr_init();
+		/* change the address if needed
+		 * ICID is set inside to 1 or 2 */
+		err |= gpp_sys_ddr_test(0x2000000400, 16);
+		err |= gpp_sys_ddr_test(0x2000000300, 32);
+	}
+#endif
 
 //
 //#if (STACK_OVERFLOW_DETECTION == 1)
@@ -250,5 +301,10 @@ UNUSED(argc); UNUSED(argv);
 //
 //    //TODO should never get here !!
 //    cmgw_report_boot_failure();
+	if (err)
+		do {} while(1); /* TEST failed */
+	else
+		do {} while(1); /* TEST passed */
+
     return err;
 }

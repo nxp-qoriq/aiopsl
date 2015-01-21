@@ -39,6 +39,7 @@
 #include "fsl_gen.h"
 #include "fsl_string.h"
 #include "fsl_sl_dbg.h"
+#include "fsl_ldpaa_aiop.h"
 
 #pragma warning_errors on
 ASSERT_STRUCT_SIZE(CMDIF_OPEN_SIZEOF, CMDIF_OPEN_SIZE);
@@ -118,10 +119,10 @@ do {\
 			~(ADC_BDI_MASK | ADC_VA_MASK)) | flags;		\
 		STH_SWAP(pl_icid, 0, &(adc->pl_icid));			\
 	} while (0)
-		
-		
+
+
 /** Delete FDMA handle and store user modified data */
-#if 0		
+#if 0
 #define CMDIF_STORE_DATA \
 	do {\
 		struct fdma_amq amq;				\
@@ -135,11 +136,12 @@ do {\
 #else
 #define CMDIF_STORE_DATA \
 	do {\
-		fdma_store_default_frame_data(); \
+		if (LDPAA_FD_GET_LENGTH(HWC_FD_ADDRESS) > 0) \
+			fdma_store_default_frame_data(); \
 	} while(0)
 #endif
 
-#define CMDIF_MN_SESSIONS	(64 << 1) 
+#define CMDIF_MN_SESSIONS	(64 << 1)
 /**< Maximal number of sessions: 64 SW contexts and avg of 2 modules per each */
 #define CMDIF_NUM_PR		2
 #define CMDIF_FREE_SESSION	'\0'
@@ -177,15 +179,15 @@ struct cmdif_cl {
 static inline int cmdif_cl_free_session_get(struct cmdif_cl *cl)
 {
 	int i;
-	
+
 	if (cl->count >= CMDIF_MN_SESSIONS)
 		return -ENOSPC;
-	
+
 	for (i = 0; i < CMDIF_MN_SESSIONS; i++) {
-		if (cl->gpp[i].m_name[0] == CMDIF_FREE_SESSION) 
-			return i;		
+		if (cl->gpp[i].m_name[0] == CMDIF_FREE_SESSION)
+			return i;
 	}
-	
+
 	return -ENOSPC;
 }
 
@@ -194,8 +196,8 @@ static inline int cmdif_cl_session_get(struct cmdif_cl *cl,
                                        uint8_t ins_id,
                                        uint32_t dpci_id)
 {
-	int i; 
-	
+	int i;
+
 	/* TODO stop searching if passed all open sessions cl->count */
 	for (i = 0; i < CMDIF_MN_SESSIONS; i++) {
 		if ((cl->gpp[i].ins_id == ins_id) &&
@@ -203,10 +205,10 @@ static inline int cmdif_cl_session_get(struct cmdif_cl *cl,
 			(cl->gpp[i].m_name[0] != CMDIF_FREE_SESSION) &&
 			(strncmp((const char *)&(cl->gpp[i].m_name[0]),
 			         m_name,
-			         M_NAME_CHARS) == 0))	
+			         M_NAME_CHARS) == 0))
 			return i;
 	}
-	return -ENAVAIL;	
+	return -ENAVAIL;
 }
 
 static inline int cmdif_cl_auth_id_find(struct cmdif_cl *cl,
@@ -214,14 +216,14 @@ static inline int cmdif_cl_auth_id_find(struct cmdif_cl *cl,
                                        uint32_t dpci_id)
 {
 	int i;
-	
+
 	for (i = 0; i < CMDIF_MN_SESSIONS; i++) {
 		if ((cl->gpp[i].regs->peer_attr->peer_id == dpci_id) &&
 			(cl->gpp[i].m_name[0] != CMDIF_FREE_SESSION) &&
-			(cl->gpp[i].dev->auth_id == auth_id))	
+			(cl->gpp[i].dev->auth_id == auth_id))
 			return i;
 	}
-	return -ENAVAIL;	
+	return -ENAVAIL;
 }
 
 #endif /* __CMDIF_CLIENT_H */

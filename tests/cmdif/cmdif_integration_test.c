@@ -51,6 +51,8 @@
 
 int app_init(void);
 void app_free(void);
+extern int gpp_sys_ddr_init();
+extern int gpp_ddr_check(struct icontext *ic, uint64_t iova, uint16_t size);
 
 
 #define OPEN_CMD	0x100
@@ -380,6 +382,13 @@ static int ctrl_cb0(void *dev, uint16_t cmd, uint32_t size,
 		break;
 	default:
 		if ((size > 0) && (data != NULL)) {
+
+			/* check bringup test */
+			icontext_cmd_get(&ic_cmd);
+			err = gpp_ddr_check(&ic_cmd, p_data, (uint16_t)MIN(size, 16));
+			pr_debug("gpp_ddr_check err = %d\n", err);
+
+			/* modify from presentation */
 			for (i = 0; i < MIN(size, 64); i++) {
 				((uint8_t *)data)[i] = 0xDA;
 			}
@@ -388,8 +397,8 @@ static int ctrl_cb0(void *dev, uint16_t cmd, uint32_t size,
 		break;
 	}
 
-	ASSERT_COND(PRC_GET_SEGMENT_HANDLE() == 0);
-	ASSERT_COND(PRC_GET_FRAME_HANDLE() == 0);
+	ASSERT_COND(PRC_GET_SEGMENT_HANDLE() == 0); /* WS check */
+	ASSERT_COND(PRC_GET_FRAME_HANDLE() == 0); /* WS check */
 
 	return err;
 }
@@ -424,7 +433,9 @@ int app_init(void)
 
 	err = fsl_os_get_mem(1024, MEM_PART_DP_DDR, 64, &tman_addr);
 	ASSERT_COND(!err && tman_addr);
-	return 0;
+
+	err = gpp_sys_ddr_init();
+	return err;
 }
 
 void app_free(void)

@@ -22,7 +22,7 @@
 				</dictionary>
 				<dictionary>
 					<key>org.eclipse.cdt.make.core.buildArguments</key>
-					<value>-j8</value>
+					<value></value>
 				</dictionary>
 				<dictionary>
 					<key>org.eclipse.cdt.make.core.buildCommand</key>
@@ -290,6 +290,11 @@
 			<locationURI>PARENT-3-PROJECT_LOC/src/kernel/error.c</locationURI>
 		</link>
 		<link>
+			<name>aiop_sl/kernel/exception_handler.c</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/kernel/exception_handler.c</locationURI>
+		</link>
+		<link>
 			<name>aiop_sl/kernel/fsl_io_ccsr.h</name>
 			<type>1</type>
 			<locationURI>PARENT-3-PROJECT_LOC/src/kernel/fsl_io_ccsr.h</locationURI>
@@ -553,11 +558,6 @@
 			<name>aiop_sl/include/arch/fsl_ldpaa_aiop.h</name>
 			<type>1</type>
 			<locationURI>PARENT-3-PROJECT_LOC/src/include/arch/fsl_ldpaa_aiop.h</locationURI>
-		</link>
-		<link>
-			<name>aiop_sl/include/arch/fsl_mc_cmd.h</name>
-			<type>1</type>
-			<locationURI>PARENT-3-PROJECT_LOC/src/include/arch/fsl_mc_cmd.h</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/include/arch/ls2085_aiop</name>
@@ -1058,6 +1058,11 @@
 			<name>aiop_sl/arch/ppc/platform/ls2085a_aiop/cmdif.h</name>
 			<type>1</type>
 			<locationURI>PARENT-3-PROJECT_LOC/src/arch/ppc/platform/ls2085a_aiop/cmdif.h</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/arch/ppc/platform/ls2085a_aiop/fsl_mc_cmd.h</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/arch/ppc/platform/ls2085a_aiop/fsl_mc_cmd.h</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/arch/ppc/platform/ls2085a_aiop/fsl_soc_aiop_spec.h</name>

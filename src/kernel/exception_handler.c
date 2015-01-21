@@ -24,23 +24,27 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/**************************************************************************//**
-@File		general.c
-
-@Description	This file contains the AIOP SW task default params.
-
-*//***************************************************************************/
 #include "general.h"
 #include "fsl_fdma.h"
-#include "fsl_cdma.h"
-
-#ifndef STACK_CHECK
 #include "fsl_dbg.h"
+#include <string.h>
+
+
+
+void exception_handler(char *filename,
+		       char *function_name,
+		       uint32_t line,
+		       char *message) __attribute__ ((noreturn))
+{
+#ifndef STACK_CHECK
+	filename = strrchr(filename, '/') ?
+			strrchr(filename, '/') + 1 : filename;
+	pr_err("Fatal error encountered in file: %s, line: %d\n", filename, line);
+	pr_err("function: %s\n", function_name);
+	pr_err("exception error: %s\n", message);
 #endif
-
-/** Global task params */
-__TASK struct aiop_default_task_params default_task_params;
-
-
-
+	fdma_terminate_task();
+	exit(-1); /* TODO This code is never reached and should be removed once
+	fdma_terminate_task() is declared as noreturn*/
+}
 

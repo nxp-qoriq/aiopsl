@@ -15,6 +15,7 @@
 #define TEST_MULTI_CLUSTER	OFF
 #define TEST_DPNI		OFF
 #define TEST_BUFFER_POOLS	OFF
+#define TEST_GPP_DDR		OFF
 
 #if (TEST_MEM_ACCESS == ON)
 /* memory access test */
@@ -43,7 +44,6 @@ int multi_cluster_test();
 #endif
 
 #if (TEST_AIOP_MC_CMD == ON)
-int aiop_mc_cmd_init();
 int aiop_mc_cmd_test();
 #endif /* TEST_AIOP_MC_CMD */
 
@@ -69,5 +69,9 @@ int dpni_init();
 int dpni_test();
 #endif /* TEST_DPNI */
 
+#if (TEST_GPP_DDR == ON)
+int gpp_sys_ddr_init();
+int gpp_sys_ddr_test(uint64_t iova, uint16_t size);
+#endif
 
 #endif /* __BRINGUP_TESTS_H */
