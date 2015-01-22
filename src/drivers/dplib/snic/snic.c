@@ -126,7 +126,7 @@ void snic_process_packet(void)
 		if (snic->snic_enable_flags & SNIC_VLAN_REMOVE_EN)
 			l2_pop_vlan();
 		/* Check if ipsec transport mode is required */
-		if (snic->snic_enable_flags & SNIC_SEC_DECRYPT)
+		if (snic->snic_enable_flags & SNIC_IPSEC_DECRYPT)
 			snic_ipsec_decrypt(snic);
 	}
 	/* Egress*/
@@ -135,7 +135,7 @@ void snic_process_packet(void)
 				(HWC_ADC_ADDRESS +
 				ADC_WQID_PRI_OFFSET)) & ADC_WQID_MASK) >> 4);
 		/* Check if ipsec transport mode is required */
-		if (snic->snic_enable_flags & SNIC_SEC_ENCRYPT)
+		if (snic->snic_enable_flags & SNIC_IPSEC_ENCRYPT)
 			snic_ipsec_encrypt(snic);
 		/* For Egress may need to do add Vlan and then IPF */
 		if (snic->snic_enable_flags & SNIC_VLAN_ADD_EN)
@@ -346,15 +346,15 @@ __COLD_CODE static int snic_ctrl_cb(void *dev, uint16_t cmd, uint32_t size, void
 	/* should get value from: enum ipsec_cipher_type */
 	uint8_t cipher_type;
 	struct ipsec_descriptor_params *ipsec_cfg = &ipsec_params;
-	struct ipsec_encap_params *encparams_cfg = &encparams;
-	struct ipsec_decap_params *decparams_cfg = &decparams;
-	struct ipsec_encap_cbc_params *encap_cbc_cfg = &encap_cbc;
-	struct ipsec_encap_ctr_params *encap_ctr_cfg = &encap_ctr;
-	struct ipsec_encap_ccm_params *encap_ccm_cfg = &encap_ccm;
-	struct ipsec_encap_gcm_params *encap_gcm_cfg = &encap_gcm;
-	struct ipsec_decap_ctr_params *decap_ctr_cfg = &decap_ctr;
-	struct ipsec_decap_ccm_params *decap_ccm_cfg = &decap_ccm;
-	struct ipsec_decap_gcm_params *decap_gcm_cfg = &decap_gcm;
+	struct ipsec_encap_params *ipsec_encparams_cfg = &encparams;
+	struct ipsec_decap_params *ipsec_decparams_cfg = &decparams;
+	struct ipsec_encap_cbc_params *ipsec_encap_cbc_cfg = &encap_cbc;
+	struct ipsec_encap_ctr_params *ipsec_encap_ctr_cfg = &encap_ctr;
+	struct ipsec_encap_ccm_params *ipsec_encap_ccm_cfg = &encap_ccm;
+	struct ipsec_encap_gcm_params *ipsec_encap_gcm_cfg = &encap_gcm;
+	struct ipsec_decap_ctr_params *ipsec_decap_ctr_cfg = &decap_ctr;
+	struct ipsec_decap_ccm_params *ipsec_decap_ccm_cfg = &decap_ccm;
+	struct ipsec_decap_gcm_params *ipsec_decap_gcm_cfg = &decap_gcm;
 	uint32_t snic_ep_pc;
 	int err = 0;
 	uint32_t committed_sa_num, max_sa_num;
@@ -607,9 +607,9 @@ int aiop_snic_init(void)
 		return status;
 	}
 	memset(snic_params, 0, sizeof(snic_params));
-	fsl_os_get_mem( SNIC_MAX_NO_OF_TIMERS*64, MEM_PART_DP_DDR, 64, 
+	fsl_os_get_mem(SNIC_MAX_NO_OF_TIMERS*64, MEM_PART_DP_DDR, 64, 
 			&snic_tmi_mem_base_addr);
-	/* todo tmi delete in snic_free */
+	/* tmi delete is in snic_free */
 	tman_create_tmi(snic_tmi_mem_base_addr , SNIC_MAX_NO_OF_TIMERS, 
 			&snic_tmi_id);
 	return 0;
