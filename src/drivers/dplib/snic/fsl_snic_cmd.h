@@ -48,8 +48,8 @@ struct snic_cmd_data {
 #define SNIC_VLAN_REMOVE_EN		0x0002
 #define SNIC_VLAN_ADD_EN		0x0004
 #define SNIC_IPF_EN			0x0008
-#define SNIC_SEC_DECRYPT		0x0010
-#define SNIC_SEC_ENCRYPT		0x0020
+#define SNIC_IPSEC_DECRYPT		0x0010
+#define SNIC_IPSEC_ENCRYPT		0x0020
 
 /* snic_cmds */
 #define SNIC_SET_MTU               0
@@ -157,58 +157,58 @@ do { \
 	_OP(0, 0,	16,	uint16_t,	snic_id); \
 	_OP(0, 16,	16,	uint16_t,	sa_id); \
 	_OP(0, 32,	32,	int32_t,	ipsec_cfg->direction); \
-	_OP(1, 0,	8,	uint8_t,	encparams_cfg->ip_nh); \
+	_OP(1, 0,	8,	uint8_t,	ipsec_encparams_cfg->ip_nh); \
 	_OP(1, 8,	8,	uint8_t,	cipher_type); \
-	_OP(1, 16,	16,	uint16_t,	encparams_cfg->options); \
-	_OP(1, 32,	32,	uint32_t,	encparams_cfg->seq_num_ext_hi); \
-	_OP(2, 0,	32,	uint32_t,	encparams_cfg->seq_num); \
-	_OP(2, 32,	32,	uint32_t,	encparams_cfg->spi); \
-	_OP(3, 0,	8,	uint8_t,	encap_cbc_cfg->iv[0]); \
-	_OP(3, 8,	8,	uint8_t,	encap_cbc_cfg->iv[1]); \
-	_OP(3, 16,	8,	uint8_t,	encap_cbc_cfg->iv[2]); \
-	_OP(3, 24,	8,	uint8_t,	encap_cbc_cfg->iv[3]); \
-	_OP(3, 32,	8,	uint8_t,	encap_cbc_cfg->iv[4]); \
-	_OP(3, 40,	8,	uint8_t,	encap_cbc_cfg->iv[5]); \
-	_OP(3, 48,	8,	uint8_t,	encap_cbc_cfg->iv[6]); \
-	_OP(3, 56,	8,	uint8_t,	encap_cbc_cfg->iv[7]); \
-	_OP(4, 0,	8,	uint8_t,	encap_cbc_cfg->iv[8]); \
-	_OP(4, 8,	8,	uint8_t,	encap_cbc_cfg->iv[9]); \
-	_OP(4, 16,	8,	uint8_t,	encap_cbc_cfg->iv[10]); \
-	_OP(4, 24,	8,	uint8_t,	encap_cbc_cfg->iv[11]); \
-	_OP(4, 32,	8,	uint8_t,	encap_cbc_cfg->iv[12]); \
-	_OP(4, 40,	8,	uint8_t,	encap_cbc_cfg->iv[13]); \
-	_OP(4, 48,	8,	uint8_t,	encap_cbc_cfg->iv[14]); \
-	_OP(4, 56,	8,	uint8_t,	encap_cbc_cfg->iv[15]); \
-	_OP(5, 0,	64,	uint64_t,	encap_ctr_cfg->iv); \
-	_OP(6, 0,	8,	uint8_t,	encap_ctr_cfg->ctr_nonce[0]); \
-	_OP(6, 8,	8,	uint8_t,	encap_ctr_cfg->ctr_nonce[1]); \
-	_OP(6, 16,	8,	uint8_t,	encap_ctr_cfg->ctr_nonce[2]); \
-	_OP(6, 24,	8,	uint8_t,	encap_ctr_cfg->ctr_nonce[3]); \
-	_OP(6, 32,	8,	uint8_t,	encap_ccm_cfg->salt[0]); \
-	_OP(6, 40,	8,	uint8_t,	encap_ccm_cfg->salt[1]); \
-	_OP(6, 48,	8,	uint8_t,	encap_ccm_cfg->salt[2]); \
-	_OP(6, 56,	8,	uint8_t,	encap_ccm_cfg->salt[3]); \
-	_OP(7, 0,	64,	uint64_t,	encap_ccm_cfg->iv); \
-	_OP(8, 0,	64,	uint64_t,	encap_gcm_cfg->iv); \
-	_OP(9, 0,	8,	uint8_t,	encap_gcm_cfg->salt[0]); \
-	_OP(9, 8,	8,	uint8_t,	encap_gcm_cfg->salt[1]); \
-	_OP(9, 16,	8,	uint8_t,	encap_gcm_cfg->salt[2]); \
-	_OP(9, 24,	8,	uint8_t,	encap_gcm_cfg->salt[3]); \
-	_OP(9, 32,	16,	uint16_t,	decparams_cfg->options); \
-	_OP(10, 0,	32,	uint32_t,	decparams_cfg->seq_num_ext_hi); \
-	_OP(10, 32,	32,	uint32_t,	decparams_cfg->seq_num); \
-	_OP(11, 0,	8,	uint8_t,	decap_ctr_cfg->ctr_nonce[0]); \
-	_OP(11, 8,	8,	uint8_t,	decap_ctr_cfg->ctr_nonce[1]); \
-	_OP(11, 16,	8,	uint8_t,	decap_ctr_cfg->ctr_nonce[2]); \
-	_OP(11, 24,	8,	uint8_t,	decap_ctr_cfg->ctr_nonce[3]); \
-	_OP(11, 32,	8,	uint8_t,	decap_ccm_cfg->salt[0]); \
-	_OP(11, 40,	8,	uint8_t,	decap_ccm_cfg->salt[1]); \
-	_OP(11, 48,	8,	uint8_t,	decap_ccm_cfg->salt[2]); \
-	_OP(11, 56,	8,	uint8_t,	decap_ccm_cfg->salt[3]); \
-	_OP(12, 0,	8,	uint8_t,	decap_gcm_cfg->salt[0]); \
-	_OP(12, 8,	8,	uint8_t,	decap_gcm_cfg->salt[1]); \
-	_OP(12, 16,	8,	uint8_t,	decap_gcm_cfg->salt[2]); \
-	_OP(12, 24,	8,	uint8_t,	decap_gcm_cfg->salt[3]); \
+	_OP(1, 16,	16,	uint16_t,	ipsec_encparams_cfg->options); \
+	_OP(1, 32,	32,	uint32_t,	ipsec_encparams_cfg->seq_num_ext_hi); \
+	_OP(2, 0,	32,	uint32_t,	ipsec_encparams_cfg->seq_num); \
+	_OP(2, 32,	32,	uint32_t,	ipsec_encparams_cfg->spi); \
+	_OP(3, 0,	8,	uint8_t,	ipsec_encap_cbc_cfg->iv[0]); \
+	_OP(3, 8,	8,	uint8_t,	ipsec_encap_cbc_cfg->iv[1]); \
+	_OP(3, 16,	8,	uint8_t,	ipsec_encap_cbc_cfg->iv[2]); \
+	_OP(3, 24,	8,	uint8_t,	ipsec_encap_cbc_cfg->iv[3]); \
+	_OP(3, 32,	8,	uint8_t,	ipsec_encap_cbc_cfg->iv[4]); \
+	_OP(3, 40,	8,	uint8_t,	ipsec_encap_cbc_cfg->iv[5]); \
+	_OP(3, 48,	8,	uint8_t,	ipsec_encap_cbc_cfg->iv[6]); \
+	_OP(3, 56,	8,	uint8_t,	ipsec_encap_cbc_cfg->iv[7]); \
+	_OP(4, 0,	8,	uint8_t,	ipsec_encap_cbc_cfg->iv[8]); \
+	_OP(4, 8,	8,	uint8_t,	ipsec_encap_cbc_cfg->iv[9]); \
+	_OP(4, 16,	8,	uint8_t,	ipsec_encap_cbc_cfg->iv[10]); \
+	_OP(4, 24,	8,	uint8_t,	ipsec_encap_cbc_cfg->iv[11]); \
+	_OP(4, 32,	8,	uint8_t,	ipsec_encap_cbc_cfg->iv[12]); \
+	_OP(4, 40,	8,	uint8_t,	ipsec_encap_cbc_cfg->iv[13]); \
+	_OP(4, 48,	8,	uint8_t,	ipsec_encap_cbc_cfg->iv[14]); \
+	_OP(4, 56,	8,	uint8_t,	ipsec_encap_cbc_cfg->iv[15]); \
+	_OP(5, 0,	64,	uint64_t,	ipsec_encap_ctr_cfg->iv); \
+	_OP(6, 0,	8,	uint8_t,	ipsec_encap_ctr_cfg->ctr_nonce[0]); \
+	_OP(6, 8,	8,	uint8_t,	ipsec_encap_ctr_cfg->ctr_nonce[1]); \
+	_OP(6, 16,	8,	uint8_t,	ipsec_encap_ctr_cfg->ctr_nonce[2]); \
+	_OP(6, 24,	8,	uint8_t,	ipsec_encap_ctr_cfg->ctr_nonce[3]); \
+	_OP(6, 32,	8,	uint8_t,	ipsec_encap_ccm_cfg->salt[0]); \
+	_OP(6, 40,	8,	uint8_t,	ipsec_encap_ccm_cfg->salt[1]); \
+	_OP(6, 48,	8,	uint8_t,	ipsec_encap_ccm_cfg->salt[2]); \
+	_OP(6, 56,	8,	uint8_t,	ipsec_encap_ccm_cfg->salt[3]); \
+	_OP(7, 0,	64,	uint64_t,	ipsec_encap_ccm_cfg->iv); \
+	_OP(8, 0,	64,	uint64_t,	ipsec_encap_gcm_cfg->iv); \
+	_OP(9, 0,	8,	uint8_t,	ipsec_encap_gcm_cfg->salt[0]); \
+	_OP(9, 8,	8,	uint8_t,	ipsec_encap_gcm_cfg->salt[1]); \
+	_OP(9, 16,	8,	uint8_t,	ipsec_encap_gcm_cfg->salt[2]); \
+	_OP(9, 24,	8,	uint8_t,	ipsec_encap_gcm_cfg->salt[3]); \
+	_OP(9, 32,	16,	uint16_t,	ipsec_decparams_cfg->options); \
+	_OP(10, 0,	32,	uint32_t,	ipsec_decparams_cfg->seq_num_ext_hi); \
+	_OP(10, 32,	32,	uint32_t,	ipsec_decparams_cfg->seq_num); \
+	_OP(11, 0,	8,	uint8_t,	ipsec_decap_ctr_cfg->ctr_nonce[0]); \
+	_OP(11, 8,	8,	uint8_t,	ipsec_decap_ctr_cfg->ctr_nonce[1]); \
+	_OP(11, 16,	8,	uint8_t,	ipsec_decap_ctr_cfg->ctr_nonce[2]); \
+	_OP(11, 24,	8,	uint8_t,	ipsec_decap_ctr_cfg->ctr_nonce[3]); \
+	_OP(11, 32,	8,	uint8_t,	ipsec_decap_ccm_cfg->salt[0]); \
+	_OP(11, 40,	8,	uint8_t,	ipsec_decap_ccm_cfg->salt[1]); \
+	_OP(11, 48,	8,	uint8_t,	ipsec_decap_ccm_cfg->salt[2]); \
+	_OP(11, 56,	8,	uint8_t,	ipsec_decap_ccm_cfg->salt[3]); \
+	_OP(12, 0,	8,	uint8_t,	ipsec_decap_gcm_cfg->salt[0]); \
+	_OP(12, 8,	8,	uint8_t,	ipsec_decap_gcm_cfg->salt[1]); \
+	_OP(12, 16,	8,	uint8_t,	ipsec_decap_gcm_cfg->salt[2]); \
+	_OP(12, 24,	8,	uint8_t,	ipsec_decap_gcm_cfg->salt[3]); \
 	_OP(12, 32,	32,	uint32_t,	ipsec_cfg->cipherdata.algtype); \
 	_OP(13, 0,	32,	uint32_t,	ipsec_cfg->cipherdata.keylen); \
 	_OP(13, 32,	32,	uint32_t,	ipsec_cfg->cipherdata.key_enc_flags); \
