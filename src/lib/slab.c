@@ -348,7 +348,7 @@ __COLD_CODE static void free_slab_module_memory(struct slab_module_info *slab_m)
 }
 /*****************************************************************************/
 #ifdef DEBUG
-__COLD_CODE static inline int sanity_check_slab_create(uint16_t    buff_size,
+static inline int sanity_check_slab_create(uint16_t    buff_size,
                                            uint16_t    alignment,
                                            enum memory_partition_id  mem_pid,
                                            uint32_t    flags)
