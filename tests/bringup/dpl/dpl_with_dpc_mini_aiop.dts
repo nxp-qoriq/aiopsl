@@ -1,0 +1,109 @@
+/dts-v1/;
+/***************************************************************************
+Example Layout:
+Layout is built from 3 different sections: containers, objects, connections.
+
+1. containers - all containers are represented as : dprc@<id>.
+	1.1 Container node contains:
+		1.1.1 icid pool - defined as follows:
+			name = icid_pool.
+			compatible = "fsl,icid-pool";
+			num = <int>; 		num of icid's in pool.
+			base_icid = <int>;	first icid in pool.
+		1.1.1 Properties required for its initialization: 
+			compatible = "fsl,dprc";
+			parent = "dprc@<id>"; or "none" if this is a root-level container
+			options =  "string";	one or more of the following options: 
+							"DPRC_CFG_OPT_SPAWN_ALLOWED", 
+							"DPRC_CFG_OPT_ALLOC_ALLOWED", 
+							"DPRC_CFG_OPT_OBJECT_CREATE_ALLOWED", 
+							"DPRC_CFG_OPT_TOPOLOGY_CHANGES_ALLOWED", 
+							"DPRC_CFG_OPT_IOMMU_BYPASS",
+							"DPRC_CFG_OPT_AIOP"
+			portal_id = <int>;
+		1.1.2 resources - all resources are defined as follows:
+			type = "string";	one of resource type defines;
+			num = <int>;		Number of resources;
+			options = <int>; 	Request options
+			id_base_align = <int>;  In case of explicit assignment, this field represents the required base ID for resource allocation;
+						In case of non-explicit assignment, this field indicates the required alignment for the resource ID(s) - use 0 or 1 if there is no alignment requirement.
+		1.1.3 objects - all objects' children are built as follows:
+			obj_name = "<obj>@<id>";
+			portal_id = <int>;
+2. objects - 	all objects' children are named: <obj>@<id> and contains all parameters required for initialization.
+3. connections - all 'connections' children are representing two objects connected to each other. 
+		each "connection" defined as follows:
+			name = "connection@<int>"
+			endpoint1 = "object@<id>/if@<id>" or "object@<id>";
+			endpoint2 = "object@<id>/if@<id>" or "object@<id>";		
+****************************************************************************/
+/ {
+	containers {
+		dprc@1 {
+			compatible = "fsl,dprc";
+			parent = "none";
+			options = "DPRC_CFG_OPT_SPAWN_ALLOWED" , "DPRC_CFG_OPT_ALLOC_ALLOWED";
+			portal_id = <0>;
+			resources {
+				res@1 {
+					type = "mcp";
+					num = <1>;
+					options = "DPRC_RES_REQ_OPT_EXPLICIT";
+					id_base_align = <15>;
+				};
+				res@2 {
+					type = "mcp";
+					num = <1>;
+					options = "DPRC_RES_REQ_OPT_EXPLICIT";
+					id_base_align = <16>;
+				};
+			};
+			objects {
+				obj@3{
+					obj_name = "dpio@1";
+				};
+				obj@6{
+					obj_name = "dpaiop@0";
+				};
+			};
+		};
+		dprc@2 {
+			compatible = "fsl,dprc";
+			parent = "dprc@1";
+			options = "DPRC_CFG_OPT_TOPOLOGY_CHANGES_ALLOWED" , "DPRC_CFG_OPT_IOMMU_BYPASS" , "DPRC_CFG_OPT_SPAWN_ALLOWED" , "DPRC_CFG_OPT_ALLOC_ALLOWED" , "DPRC_CFG_OPT_AIOP" , "DPRC_CFG_OPT_OBJ_CREATE_ALLOWED";
+			portal_id = <3>;			
+			objects {
+				obj@1{
+					obj_name = "dpbp@0";
+				};
+				obj@2{
+					obj_name = "dpbp@1";
+				};
+				obj@3{
+					obj_name = "dpbp@2";
+				};								
+			};
+		};		
+	};
+	
+	objects {
+		dpaiop@0 {
+			compatible = "fsl,dpaiop";
+			aiop_container_id = <2>;
+		};	
+		dpbp@0 {
+			compatible = "fsl,dpbp";
+		};
+		dpbp@1 {
+			compatible = "fsl,dpbp";
+		};		
+		dpbp@2 {
+			compatible = "fsl,dpbp";
+		};				
+		dpio@1 {
+			compatible = "fsl,dpio";
+			channel_mode = "DPIO_LOCAL_CHANNEL";
+			num_priorities = <8>;
+		};
+	};
+};
