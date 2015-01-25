@@ -93,6 +93,7 @@ typedef struct t_mem_mng_phys_addr_alloc_partition
     fsl_handle_t                     lock;
 #endif
     uint64_t 	                     curr_paddress;
+    int                              was_initialized;
 } t_mem_mng_phys_addr_alloc_partition;
 
 
@@ -110,9 +111,10 @@ typedef struct t_mem_mng
                 /**< Memory allocation routine (for internal structures) */
     void        (*f_free)(void *p_addr);
                 /**< Memory deallocation routine (for internal structures) */
-    t_mem_mng_partition mem_partitions_list[PLATFORM_MAX_MEM_INFO_ENTRIES];
+    t_mem_mng_partition mem_partitions_array[PLATFORM_MAX_MEM_INFO_ENTRIES];
                 /**< List of partition control structures */
-    list_t      phys_allocation_mem_partitions_list;
+    t_mem_mng_phys_addr_alloc_partition
+           phys_allocation_mem_partitions_array[PLATFORM_MAX_MEM_INFO_ENTRIES];
                 /**< List of partition for fsl_os_get_mem function() control structures */
     /* Variables related to early memory partition */
     void *      (*f_early_malloc)(uint32_t size, uint32_t alignment);
