@@ -175,12 +175,6 @@ void aiop_verification_fm()
 			str_size = aiop_verification_hm((uint32_t)data_addr);
 			break;
 		}
-		case VPOOL_MODULE:
-		{
-			str_size = verification_virtual_pools(
-					(uint32_t)data_addr);
-			break;
-		}
 		case IPSEC_MODULE:
 		{
 			str_size = aiop_verification_ipsec(

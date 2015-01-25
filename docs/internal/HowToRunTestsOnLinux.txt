@@ -1,4 +1,4 @@
-Author: Ira.Kalman@freescale.com, Eyal.Harary@freescale.com
+Author: Ira.Kalman@freescale.com, Eyal.Harari@freescale.com
 
 This REAME explains the steps to be done in order to run your tests with GPP.
 Things that may change from time to time:
@@ -174,7 +174,8 @@ NOTE: MC and Uboot should match
 - > mkdir fs
 - > cd fs
 - Use WinScp to copy /home/rm08501/rootfs64_LS2Sim.ext2.gz to fs folder you just created.
-  This is just the initial file system.
+  This is just the initial file system. 
+  More updated option is ls2-sim-support/images/rootfs64_LS2Sim.ext2.gz.
 - Copy to ./fs/ the files that need to be added into the file system  
 - > zcat rootfs64_LS2Sim.ext2.gz > filesystem
 - > mkdir filesysdir
@@ -204,5 +205,16 @@ NOTE: MC and Uboot should match
  - > source standalone-ldpaa
  - > make
  - You'll find NADK binaries inside nadk/bin
- - Use method (10) or (8) for integarting it inside the file system
+ - Use method (10) or (8) for integarting it inside the file system, use ls2-sim-support/images/rootfs64_LS2Sim.ext2.gz.
+ - > gunzip  rootfs64_LS2Sim.ext2.gz
+ - > mkdir ls_rootfs
+ - > sudo mount -o loop rootfs64_LS2Sim.ext2 ls_rootfs
+ - > sudo cp -r ./scripts/bind_dprc.sh ls_rootfs/home/root/
+ - > sudo cp -r ./bin/* ls_rootfs/home/root/
+ - > sleep 2
+ - > sudo umount ls_rootfs
+ - > gzip -9 rootfs64_LS2Sim.ext2
+ - > rm -rf ls_rootfs
+ - > cp ./rootfs64_LS2Sim.ext2.gz ../ls2-linux/
+ - Do (9) Build & Replace Kernel
 

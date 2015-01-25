@@ -290,6 +290,11 @@
 			<locationURI>PARENT-3-PROJECT_LOC/src/kernel/error.c</locationURI>
 		</link>
 		<link>
+			<name>aiop_sl/kernel/exception_handler.c</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/kernel/exception_handler.c</locationURI>
+		</link>
+		<link>
 			<name>aiop_sl/kernel/fsl_io_ccsr.h</name>
 			<type>1</type>
 			<locationURI>PARENT-3-PROJECT_LOC/src/kernel/fsl_io_ccsr.h</locationURI>

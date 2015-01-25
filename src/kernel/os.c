@@ -33,9 +33,6 @@
 #include "inc/console.h"
 #include "fsl_mem_mng.h"
 #include "sys.h"
-#include "general.h"
-#include "fsl_fdma.h"
-#include <string.h>
 
 __TASK uint32_t seed_32bit;
 
@@ -542,26 +539,6 @@ void fsl_os_put_mem(uint64_t paddr)
 {
     sys_put_phys_mem(paddr);
 }
-
-/*****************************************************************************/
-#ifndef AIOP_VERIF /*TODO: Remove #ifndef AIOP_VERIF when the code will be separated */
-void exception_handler(char *filename,
-		       char *function_name,
-		       uint32_t line,
-		       char *message) __attribute__ ((noreturn))
-{
-#ifndef STACK_CHECK
-	filename = strrchr(filename, '/') ?
-			strrchr(filename, '/') + 1 : filename;
-	pr_err("Fatal error encountered in file: %s, line: %d\n", filename, line);
-	pr_err("function: %s\n", function_name);
-	pr_err("exception error: %s\n", message);
-#endif
-	fdma_terminate_task();
-	exit(-1); /* TODO This code is never reached and should be removed once
-	fdma_terminate_task() is declared as noreturn*/
-}
-#endif
 
 
 #ifdef ARENA_LEGACY_CODE
