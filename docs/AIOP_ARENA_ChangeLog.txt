@@ -1,3 +1,7 @@
+dpni_drv.c:           Set hard coded values for head room and tail room for:
+                      Head room: 96 bytes
+                      Tail room: 54 bytes
+
 ** AIOP SL Release v0.5.3.1 **
 
 fsl_cli:                Added MACRO: GET_AIOP_CLI_STRING(_args, _args_size) to receive AIOP command line string and it's size.
