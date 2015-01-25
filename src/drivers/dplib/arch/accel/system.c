@@ -62,8 +62,10 @@ extern void tman_timer_callback(void);
 
 extern void tman_timer_callback(void);
 extern int ipr_init(void);
+#ifndef CDC_ROC
 extern int aiop_snic_init(void);
 extern void aiop_snic_free(void);
+#endif
 
 #define WRKS_REGS_GET \
 	(sys_get_memory_mapped_module_base(FSL_OS_MOD_CMGW,                 \
@@ -280,10 +282,12 @@ int aiop_sl_init(void)
 	sys_keyid_pool_create();
 
 	status = ipr_init();
+#ifndef CDC_ROC
 	if (status)
 		return status; /* TODO */
 
 	status = aiop_snic_init();
+#endif
 	return status;
 #endif
 	return 0;
@@ -304,8 +308,9 @@ void aiop_sl_free(void)
 			ipr_global_parameters1.ipr_key_id_ipv4);
 	keygen_kcr_delete(KEYGEN_ACCEL_ID_CTLU,
 			ipr_global_parameters1.ipr_key_id_ipv6);
-
+#ifndef CDC_ROC
 	aiop_snic_free();
+#endif
 #endif
 
 	/* TODO status ? */
