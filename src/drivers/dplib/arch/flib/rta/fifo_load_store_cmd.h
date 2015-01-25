@@ -188,7 +188,8 @@ static const uint32_t fifo_store_table[][2] = {
 	{ KEY2,      FIFOST_CLASS_CLASS2KEY | FIFOST_TYPE_KEY_KEK },
 	{ OFIFO,     FIFOST_TYPE_OUTFIFO_KEK},
 	{ SKIP,      FIFOST_TYPE_SKIP },
-/*22*/	{ METADATA,  FIFOST_TYPE_METADATA}
+/*22*/	{ METADATA,  FIFOST_TYPE_METADATA},
+	{ MSG_CKSUM,  FIFOST_TYPE_MESSAGE_DATA2 }
 };
 
 /*
@@ -196,7 +197,7 @@ static const uint32_t fifo_store_table[][2] = {
  * Values represent the number of entries from fifo_store_table[] that are
  * supported.
  */
-static const unsigned fifo_store_table_sz[] = {21, 21, 21, 21, 22, 22, 22, 22};
+static const unsigned fifo_store_table_sz[] = {21, 21, 21, 21, 22, 22, 22, 23};
 
 static inline int rta_fifo_store(struct program *program, uint32_t src,
 				 uint32_t encrypt_flags, uint64_t dst,

@@ -499,6 +499,30 @@ static inline unsigned rta_get_sec_era(void)
 	rta_proto_operation(program, optype, protid, protoinfo)
 
 /**
+ * DKP_PROTOCOL - Configures DKP (Derived Key Protocol) PROTOCOL command
+ * @program: pointer to struct program
+ * @protid: protocol identifier value - one of the following:
+ *          OP_PCLID_DKP_{MD5 | SHA1 | SHA224 | SHA256 | SHA384 | SHA512}
+ * @key_src: How the initial ("negotiated") key is provided to the DKP protocol.
+ *           Valid values - one of OP_PCL_DKP_SRC_{IMM, SEQ, PTR, SGF}. Not all
+ *           (key_src,key_dst) combinations are allowed.
+ * @key_dst: How the derived ("split") key is returned by the DKP protocol.
+ *           Valid values - one of OP_PCL_DKP_DST_{IMM, SEQ, PTR, SGF}. Not all
+ *           (key_src,key_dst) combinations are allowed.
+ * @keylen: length of the initial key, in bytes (uint16_t)
+ * @key: address where algorithm key resides; virtual address if key_type is
+ *       RTA_DATA_IMM, physical (bus) address if key_type is RTA_DATA_PTR or
+ *       RTA_DATA_IMM_DMA.
+ * @key_type: enum rta_data_type
+ * Return: On success, descriptor buffer offset where this command is inserted.
+ *         On error, a negative error code; first error program counter will
+ *         point to offset in descriptor buffer where the instruction should
+ *         have been written.
+ */
+#define DKP_PROTOCOL(program, protid, key_src, key_dst, keylen, key, key_type) \
+	rta_dkp_proto(program, protid, key_src, key_dst, keylen, key, key_type)
+
+/**
  * PKHA_OPERATION - Configures PKHA OPERATION command
  * @program: pointer to struct program
  * @op_pkha: PKHA operation; indicates the modular arithmetic function to

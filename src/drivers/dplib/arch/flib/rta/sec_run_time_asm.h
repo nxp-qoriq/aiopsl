@@ -124,6 +124,24 @@ enum rta_share_type {
 	SHR_DEFER
 };
 
+/**
+ * enum rta_data_type - Indicates how is the data provided and how to include it
+ *                      in the descriptor.
+ * @RTA_DATA_PTR: Data is in memory and accessed by reference; data address is a
+ *               physical (bus) address.
+ * @RTA_DATA_IMM: Data is inlined in descriptor and accessed as immediate data;
+ *               data address is a virtual address.
+ * @RTA_DATA_IMM_DMA: (AIOP only) Data is inlined in descriptor and accessed as
+ *                   immediate data; data address is a physical (bus) address
+ *                   in external memory and CDMA is programmed to transfer the
+ *                   data into descriptor buffer being built in Workspace Area.
+ */
+enum rta_data_type {
+	RTA_DATA_PTR = 1,
+	RTA_DATA_IMM,
+	RTA_DATA_IMM_DMA
+};
+
 /* Registers definitions */
 enum rta_regs {
 	/* CCB Registers */
@@ -203,6 +221,7 @@ enum rta_regs {
 	MSG1,
 	MSG2,
 	MSG,
+	MSG_CKSUM,
 	MSGOUTSNOOP,
 	MSGINSNOOP,
 	ICV1,
@@ -466,6 +485,22 @@ static inline unsigned rta_dword(struct program *program, uint64_t val)
 	return start_pc;
 }
 
+static inline uint32_t inline_flags(enum rta_data_type data_type)
+{
+	switch (data_type) {
+	case RTA_DATA_PTR:
+		return 0;
+	case RTA_DATA_IMM:
+		return IMMED | COPY;
+	case RTA_DATA_IMM_DMA:
+		return IMMED | DCOPY;
+	default:
+		/* warn and default to RTA_DATA_PTR */
+		pr_warn("RTA: defaulting to RTA_DATA_PTR parameter type\n");
+		return 0;
+	}
+}
+
 static inline unsigned rta_copy_data(struct program *program, uint8_t *data,
 				     unsigned length)
 {
@@ -520,6 +555,36 @@ static inline unsigned rta_desc_len(uint32_t *buffer)
 static inline unsigned rta_desc_bytes(uint32_t *buffer)
 {
 	return (unsigned)(rta_desc_len(buffer) * CAAM_CMD_SZ);
+}
+
+/**
+ * split_key_len - Compute MDHA split key length for a given algorithm
+ * @hash: Hashing algorithm selection, one of OP_ALG_ALGSEL_* or
+ *        OP_PCLID_DKP_* - MD5, SHA1, SHA224, SHA256, SHA384, SHA512.
+ *
+ * Return: MDHA split key length
+ */
+static inline uint32_t split_key_len(uint32_t hash)
+{
+	/* Sizes for MDHA pads (*not* keys): MD5, SHA1, 224, 256, 384, 512 */
+	static const uint8_t mdpadlen[] = { 16, 20, 32, 32, 64, 64 };
+	uint32_t idx;
+
+	idx = (hash & OP_ALG_ALGSEL_SUBMASK) >> OP_ALG_ALGSEL_SHIFT;
+
+	return (uint32_t)(mdpadlen[idx] * 2);
+}
+
+/**
+ * split_key_pad_len - Compute MDHA split key pad length for a given algorithm
+ * @hash: Hashing algorithm selection, one of OP_ALG_ALGSEL_* - MD5, SHA1,
+ *        SHA224, SHA384, SHA512.
+ *
+ * Return: MDHA split key pad length
+ */
+static inline uint32_t split_key_pad_len(uint32_t hash)
+{
+	return ALIGN(split_key_len(hash), 16);
 }
 
 static inline unsigned rta_set_label(struct program *program)

@@ -321,6 +321,9 @@ int ipsec_generate_encap_sd(
 
 	/* Build PDB fields for the RTA */
 	
+	data_len[1] = 1; /* Flag for split key calculation. 
+					 * A "1" indicates that a split key is required */ 
+	
 	/* Check which method is it according to the key */
 	switch (params->cipherdata.algtype) {
 		case IPSEC_CIPHER_AES_CBC:
@@ -387,6 +390,7 @@ int ipsec_generate_encap_sd(
 			memcpy(pdb.ccm.salt, params->encparams.ccm.salt,
 			       sizeof(params->encparams.ccm.salt));
 			pdb.ccm.iv = params->encparams.ccm.iv;
+			data_len[1] = 0;  /* No room required for authentication key */
 			break;
 		case CIPHER_TYPE_GCM:
 			/*	uint8_t salt[4]; lower 24 bits */
@@ -396,6 +400,7 @@ int ipsec_generate_encap_sd(
 			       sizeof(params->encparams.gcm.salt));
 			pdb.gcm.rsvd = 0;
 			pdb.gcm.iv = params->encparams.gcm.iv;
+			data_len[1] = 0;  /* No room required for authentication key */
 			break;
 		default:
 			memset(pdb.cbc.iv, 0, sizeof(pdb.cbc.iv));
@@ -449,13 +454,58 @@ int ipsec_generate_encap_sd(
 	
 	/* Lengths of items to be inlined in descriptor; order is important.
 	 * Note: For now we assume that inl_mask[0] = 1, i.e. that the
-	 * Outer IP Header can be inlined. Demo should be modified to
-	        * accommodate for the reference case.
+	 * Outer IP Header can be inlined. 
 	 * Job descriptor maximum length is hard-coded to 7 * CAAM_CMD_SZ +
 	 * 3 * CAAM_PTR_SZ, and pointer size considered extended.
 	*/
 	data_len[0] = pdb.ip_hdr_len; /* Outer IP header length */
-	data_len[1] = params->authdata.keylen;
+	
+	/* Check if a split authentication key is required 
+	 * cbc(aes) OR cbc(des) OR cbc(3des) OR ctr(aes) 
+	 * + hmac(xxx) -> need split key
+	 * + null authentication OR aes-xcbc-mac OR aes-cmac -> don't need split key
+	 * all other modes -> don't need split key 
+	 *	  e.g. gcm(aes), ccm(aes), gmac(aes) - don't need split key
+	*/
+	if (data_len[1]) {
+		//if (params->authdata.algtype == IPSEC_AUTH_HMAC_NULL) {
+		//	data_len[1] = 0;  /* No room required for authentication key */
+		//} else if ((params->authdata.algtype == IPSEC_AUTH_AES_XCBC_MAC_96) ||
+		//			(params->authdata.algtype == IPSEC_AUTH_AES_CMAC_96)) {
+		//	data_len[1] = params->authdata.keylen; /* No split required */
+		//} else {
+		//	/* Compute MDHA split key length 
+		//	 * for a given authentication algorithm */
+		//	data_len[1] = (uint8_t)split_key_len(params->authdata.algtype);
+	
+		/* Sizes for MDHA pads (*not* keys): MD5, SHA1, 224, 256, 384, 512 */
+		/*                                   16,  20,   32,  32,  64,  64  */
+		switch (params->authdata.algtype) {
+			case IPSEC_AUTH_HMAC_NULL:
+				data_len[1] = 0;
+				break;
+			case IPSEC_AUTH_AES_XCBC_MAC_96:
+			case IPSEC_AUTH_AES_CMAC_96:
+				data_len[1] = params->authdata.keylen; /* No split */
+				break;
+			case IPSEC_AUTH_HMAC_MD5_96:
+			case IPSEC_AUTH_HMAC_MD5_128:
+				data_len[1] = 2*16;
+				break;
+			case IPSEC_AUTH_HMAC_SHA1_96:
+			case IPSEC_AUTH_HMAC_SHA1_160:	
+				data_len[1] = 2*20;
+				break;
+			case IPSEC_AUTH_HMAC_SHA2_256_128:
+				data_len[1] = 2*32;
+				break;
+			default:
+				/* IPSEC_AUTH_HMAC_SHA2_384_192 */
+				/* IPSEC_AUTH_HMAC_SHA2_512_256 */
+				data_len[1] = 2*64;
+		}	
+	} 
+
 	data_len[2] = params->cipherdata.keylen;
 	
 	err = rta_inline_query(IPSEC_NEW_ENC_BASE_DESC_LEN, 
@@ -470,6 +520,10 @@ int ipsec_generate_encap_sd(
 	else
 		rta_auth_alginfo.key_type = (enum rta_data_type)RTA_PARAM_PTR;
 
+	// TODO: test, remove
+	//rta_auth_alginfo.key_type = (enum rta_data_type)RTA_PARAM_PTR;
+
+	
 	if (inl_mask & (1 << 2))
 		rta_cipher_alginfo.key_type = (enum rta_data_type)RTA_PARAM_IMM_DMA;
 	else
@@ -534,6 +588,9 @@ int ipsec_generate_decap_sd(
 	struct alginfo rta_cipher_alginfo;
 
 	/* Build PDB fields for the RTA */
+	
+	data_len[0] = 1; /* Flag for split key calculation. 
+					 * A "1" indicates that a split key is required */ 
 	
 	/* Check which method is it according to the key */
 	switch (params->cipherdata.algtype) {
@@ -603,6 +660,7 @@ int ipsec_generate_decap_sd(
 			/* uint32_t ccm_opt; */
 			memcpy(pdb.ccm.salt, params->decparams.ccm.salt,
 			       sizeof(params->decparams.ccm.salt));
+			data_len[0] = 0; /* No room required for authentication key */
 			break;
 		case CIPHER_TYPE_GCM:
 			/* uint8_t salt[4]; */
@@ -610,6 +668,7 @@ int ipsec_generate_decap_sd(
 			memcpy(pdb.gcm.salt, params->decparams.gcm.salt,
 			       sizeof(params->decparams.gcm.salt));
 			pdb.gcm.rsvd = 0;
+			data_len[0] = 0; /* No room required for authentication key */
 			break;
 		default:
 			pdb.cbc.rsvd[0] = 0;
@@ -681,7 +740,53 @@ int ipsec_generate_decap_sd(
 	 * Job descriptor maximum length is hard-coded to 7 * CAAM_CMD_SZ +
 	 * 3 * CAAM_PTR_SZ, and pointer size considered extended.
 	*/
-	data_len[0] = params->authdata.keylen;
+
+	/* Check if a split authentication key is required 
+	 * cbc(aes) OR cbc(des) OR cbc(3des) OR ctr(aes) 
+	 * + hmac(xxx) -> need split key
+	 * + null authentication OR aes-xcbc-mac OR aes-cmac -> don't need split key
+	 * all other modes -> don't need split key 
+	 *	  e.g. gcm(aes), ccm(aes), gmac(aes) - don't need split key
+	*/
+	if (data_len[0]) {
+		//if (params->authdata.algtype == IPSEC_AUTH_HMAC_NULL) {
+		//	data_len[0] = 0; /* No room required for authentication key */
+		//} else if ((params->authdata.algtype == IPSEC_AUTH_AES_XCBC_MAC_96) ||
+		//			(params->authdata.algtype == IPSEC_AUTH_AES_CMAC_96)) {
+		//	data_len[0] = params->authdata.keylen; /* No split required */
+		//} else {
+		//	/* Compute MDHA split key length 
+		//	 * for a given authentication algorithm */
+		//	data_len[0] = (uint8_t)split_key_len(params->authdata.algtype);
+		//}
+		/* Sizes for MDHA pads (*not* keys): MD5, SHA1, 224, 256, 384, 512 */
+		/*                                   16,  20,   32,  32,  64,  64  */
+		switch (params->authdata.algtype) {
+			case IPSEC_AUTH_HMAC_NULL:
+				data_len[0] = 0;
+				break;
+			case IPSEC_AUTH_AES_XCBC_MAC_96:
+			case IPSEC_AUTH_AES_CMAC_96:
+				data_len[0] = params->authdata.keylen; /* No split */
+				break;
+			case IPSEC_AUTH_HMAC_MD5_96:
+			case IPSEC_AUTH_HMAC_MD5_128:
+				data_len[0] = 2*16;
+				break;
+			case IPSEC_AUTH_HMAC_SHA1_96:
+			case IPSEC_AUTH_HMAC_SHA1_160:	
+				data_len[0] = 2*20;
+				break;
+			case IPSEC_AUTH_HMAC_SHA2_256_128:
+				data_len[0] = 2*32;
+				break;
+			default:
+				/* IPSEC_AUTH_HMAC_SHA2_384_192 */
+				/* IPSEC_AUTH_HMAC_SHA2_512_256 */
+				data_len[0] = 2*64;
+		}	
+	} 
+
 	data_len[1] = params->cipherdata.keylen;
 	
 	err = rta_inline_query(IPSEC_NEW_DEC_BASE_DESC_LEN, 
@@ -695,6 +800,9 @@ int ipsec_generate_decap_sd(
 
 	else
 		rta_auth_alginfo.key_type = (enum rta_data_type)RTA_PARAM_PTR;
+	
+	// TODO: test, remove
+	//rta_auth_alginfo.key_type = (enum rta_data_type)RTA_PARAM_PTR;
 	
 	if (inl_mask & (1 << 1))
 		rta_cipher_alginfo.key_type = (enum rta_data_type)RTA_PARAM_IMM_DMA;
@@ -822,6 +930,33 @@ void ipsec_generate_flc(
 			IPSEC_FLOW_CONTEXT_SIZE); /* uint16_t size */
 	
 } /* End of ipsec_generate_flc */
+
+/**************************************************************************//**
+@Function		ipsec_create_key_copy 
+
+@Description	Creates a copy of the key, used for CAAM DKP 
+*//***************************************************************************/
+void ipsec_create_key_copy(
+		uint64_t src_key_addr, /*  Source Key Address */
+		uint64_t dst_key_addr, /*  Destination Key Address */
+		uint16_t keylen)   /* Length of the provided key, in bytes */
+{
+	
+	uint8_t key[IPSEC_KEY_SEGMENT_SIZE];
+
+	/* Read the key from the application buffer */
+	cdma_read(
+			key, /* void *ws_dst */
+			src_key_addr, /* uint64_t ext_address */
+			keylen); /* uint16_t size */
+
+	/* Store the key to the copy location */
+	cdma_write(
+			dst_key_addr, /* ext_address */
+			key, /* ws_src */
+			keylen); /* uint16_t size */
+	
+} /* End of ipsec_create_key_copy */
 
 
 /**************************************************************************//**
@@ -965,6 +1100,15 @@ int ipsec_add_sa_descriptor(
 	}
 		
 	desc_addr = IPSEC_DESC_ADDR(*ipsec_handle);
+	
+	/* Create a copy of the authentication key in the local buffer */
+	ipsec_create_key_copy(
+			params->authdata.key, /* Source Key Address */
+			IPSEC_KEY_SEGMENT_ADDR(desc_addr), /* Destination Key Address */
+			(uint16_t)params->authdata.keylen);   /* Length of the provided key, in bytes */
+	
+	/* Now switch the original key address with the copy address */
+	params->authdata.key = IPSEC_KEY_SEGMENT_ADDR(desc_addr);
 	
 	/* Build a shared descriptor with the RTA library */
 	/* Then store it in the memory with CDMA */
