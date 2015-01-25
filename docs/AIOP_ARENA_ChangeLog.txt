@@ -1,3 +1,4 @@
+mc_init.c             AIOP boot will not fail if there are no DPCIs in DPL.
 dpni_drv.c:           Set hard coded values for head room and tail room for:
                       Head room: 96 bytes
                       Tail room: 54 bytes
@@ -12,7 +13,7 @@ dpni_drv.c, fsl_dpni_drv.h:   Added API for "int dpni_drv_get_counter(uint16_t n
 dpni_drv.c:                   Change for dpni_drv_register/unregister_rx_cb to set the cb function for packet processing in epid table.
                               Argument won't be passed to receive cb function (remove args)
                               New API: int dpni_drv_register_rx_cb(uint16_t ni_id, rx_cb_t *cb);
-app_process_packet.c, 
+app_process_packet.c,
 arena_test.c, ipf_demo.c,
 ipf_demo.c, ipsec_fm_demo.c:  in app_process_packet_flow0() added call to sl_prolog() (must be at the beginning of each application cb function),
                               and added call to fdma_terminate_task(); to the end of each cb function (must end the cb function).
@@ -24,7 +25,7 @@ types_mw.h               Added macros for putting all executable code (functions
                          __START_WARM_CODE - start placing code in Shared-SRAM,enclosed by __END_WARM_CODE.
                          __START_COLD_CODE - start placing code in DP_DDR,enclosed by __END_COLD_CODE.
 - dpl.dts/dtb             Removed static icid assignment per container.
-- cmdif_client.c          Fixed ENGR00344241, WS is now updated with AIOP icontext prior calling to async_cb. 
+- cmdif_client.c          Fixed ENGR00344241, WS is now updated with AIOP icontext prior calling to async_cb.
                           Same fix as we have for cmdif_srv.c.
 - tests/cmdif/README.txt  Updated README with description of the new tests inside cmdif_integ_dbg.elf.
 
@@ -35,19 +36,19 @@ types_mw.h               Added macros for putting all executable code (functions
                       Added API to get NI ID for connected DPNI.
                       int dpni_drv_get_connected_dpni_id(const uint16_t aiop_niid, uint16_t *dpni_id, int *state);
                       int dpni_drv_get_connected_aiop_ni_id(const uint16_t dpni_id, uint16_t *aiop_niid, int *state);
-- fsl_icontext.h:     Added new API for AIOP isolation context - icontext_cmd_get(). 
-- fsl_shbp_aiop.h:    New API for AIOP-GPP shared buffer buffer pools. 
+- fsl_icontext.h:     Added new API for AIOP isolation context - icontext_cmd_get().
+- fsl_shbp_aiop.h:    New API for AIOP-GPP shared buffer buffer pools.
 - cmdif_srv_flib.c:   Fixed ENGR00343203, to allow M_NUM_OF_INSTANCES of instances.
-- cmdif_srv.c:        Fixed ENGR00343203, to allow M_NUM_OF_INSTANCES of instances. 
+- cmdif_srv.c:        Fixed ENGR00343203, to allow M_NUM_OF_INSTANCES of instances.
 - dpl.dts/dtb:        Added dpaiop object, it must be the first object.
 - fsl_cmdif_client.h: Added comment that GPP data must be in Write-Back Cacheable and Outer Shareable memory.
 
 - fsl_os.h:      Remove fsl_os_phys_to_virt()/fsl_os_virt_to_phys() functions.
 - dpni_drv.c:    ENGR00341594 - resolved. ipv6_hxs_config set to: 0x2000
 - fsl_icontext.h: Updated icontext_get() to support ENGR00341218: API to get the GPP ICID.
-- os.c:          ENGR00341990 - resolved, added implementation for exception_handler    
+- os.c:          ENGR00341990 - resolved, added implementation for exception_handler
 
-- fsl_icontext.h: Added new API for AIOP isolation context - icontext_aiop_get(). 
+- fsl_icontext.h: Added new API for AIOP isolation context - icontext_aiop_get().
 - slab.c,h:     Added implementation used by app_early_init, added slab_early_init.
                 Application/ Module should register for buffers used by slab using: slab_register_context_buffer_requirements(
                 uint32_t committed_buffs, uint32_t max_buffs, uint16_t buff_size, uint16_t alignment, enum memory_partition_id  mem_pid,
@@ -66,7 +67,7 @@ fsl_slab.h:     Added bit to flags in slab_create: For lower performance in mana
 - fsl_slab.h:               prototype of the slab release callback function modified from int to void.
 - slab.c, fsl_slab.h:       slab_create: API change - prefix_size, postfix_size were removed.
 - slab.c/h, fsl_slab.h:     Update pool managment implementation to support management in SHRAM and DDR.
-                            API change for slab_create: use mem_pid from enum.           
+                            API change for slab_create: use mem_pid from enum.
 
 - ls2085a_gpp/cmdif.h    Added NADK_DEBUG for DEBUG indication
 - cmdif_client_flib.c    Placed user error checks under #ifdef DEBUG
@@ -78,15 +79,15 @@ fsl_slab.h:     Added bit to flags in slab_create: For lower performance in mana
 - cmdif_client.c         Set BPID IVP inside cmdif_send(). BPID is not relevant for CMDIF.
 
 ** AIOP SL Release v0.5.2.0 **
-- cmdif_srv.c:    Added support for ENGR00341218: Cmdif to support working with AIOP ICID and new API to get the GPP ICID that issued the cmd 
+- cmdif_srv.c:    Added support for ENGR00341218: Cmdif to support working with AIOP ICID and new API to get the GPP ICID that issued the cmd
 
-- cmdif_srv.c:  Fix for ENGR339037 GPP-AIOP communication breaking. 
+- cmdif_srv.c:  Fix for ENGR339037 GPP-AIOP communication breaking.
                 AIOP workspace will have AIOP ICID and AIOP AMQ before user callback is called.
 
 - cmdif_srv_flib.c:  Fix for ENGR00341199 wrong malloc size in CMDIF server allocation.
 
 - app.h/c:       Fixed ENGR00341738, added APP_MAX_NUM to app.h. Updated build_apps_array() in app.c.
-      
+
 - dpl.dts/dtb:   adding option DPNI_OPT_DIST_HASH to all dpnis to support dpni_drv_set_order_scope
 
 - apps.h:       added 3 defines (3 more parameters were added to the aiop_app_init_info struct):
@@ -102,42 +103,42 @@ fsl_slab.h:     Added bit to flags in slab_create: For lower performance in mana
 
 - dpni_drv.c:                Added implementation to create storage profile with DDR bpid.
 - config.c		 Change  AIOP Service Layer version to 1.0.0.
-dpni_drv.c/fsl_dpni_drv.h: Adding support for dpni_drv_set_order_scope - 
-                           Function to set order scope source for the specified NI.						   
+dpni_drv.c/fsl_dpni_drv.h: Adding support for dpni_drv_set_order_scope -
+                           Function to set order scope source for the specified NI.
 dpni_drv.c:          Adding support for concurrent / exclusive mode for specified NI.
-                     int dpni_drv_set_concurrent(uint16_t ni_id), 
+                     int dpni_drv_set_concurrent(uint16_t ni_id),
 					 int dpni_drv_set_exclusive(uint16_t ni_id)
-                     EPID table configured to use concurrent mode in initialization by default.					 
+                     EPID table configured to use concurrent mode in initialization by default.
 Memory managment: added fsl_os_get_mem()- for allocating a 64 bit physical address from external memories,
                         fsl_os_put_mem() - for releasing memory allocated by fsl_os_get_mem()
                         fsl_malloc() - for allocating a 32 bit virtual address  from AIOP shared ram .
 						fsl_free() - for releasing  meory allocated by fsl_malloc()
                         fsl_free() - for releasing from shared memory, allocated by fsl_malloc().
-                        fsl_os_xmalloc(), fsl_os_xfree(), fsl_os_malloc(), fsl_os_free(),fsl_os_phys_to_virt(), fsl_os_virt_to_phys() are deprecated 
+                        fsl_os_xmalloc(), fsl_os_xfree(), fsl_os_malloc(), fsl_os_free(),fsl_os_phys_to_virt(), fsl_os_virt_to_phys() are deprecated
                         and will be removed in  next release.
                         The following  replacement should be done in order to get rid of depricated functions.
-                        Note that fsl_os_(x)malloc() and its corresponding fsl_os_(x)free() should be replaced simultaneously.  
+                        Note that fsl_os_(x)malloc() and its corresponding fsl_os_(x)free() should be replaced simultaneously.
 						fsl_os_xmalloc() with MEM_PART_DP_DDR,MEM_PART_SYSTEM_DDR,MEM_PART_PEB -> fsl_os_get_mem() with the same mem. partition.
                         fsl_os_xfree() with MEM_PART_DP_DDR,MEM_PART_SYSTEM_DDR,MEM_PART_PEB -> fsl_os_put_mem();
                         fsl_os_xmalloc() with MEM_PART_SH_RAM -> fsl_malloc()
                         fsl_os_xfree() that was allocated from MEM_PART_SH_RAM -> fsl_free()
                         fsl_os_malloc() -> fsl_os_get_mem(MEM_PART_DP_DDR)
                         fsl_os_free() -> fsl_os_put_mem()
-						
-- mem_mng.c slob.c     Fix CR:ENGR00337904 spinlock should have addresses in shared ram	
+
+- mem_mng.c slob.c     Fix CR:ENGR00337904 spinlock should have addresses in shared ram
 
 - fsl_soc_spec_ls2085a.h:  Revert UART offset ( - 0x4000 ). The following flags must be added to simulator initialization cfg file:
                            duart1.use_ls2_reg_definition=false
-                           duart2.use_ls2_reg_definition=false					
+                           duart2.use_ls2_reg_definition=false
 
 ** AIOP SL v0.4.8 **
 fsl_icontext.h: Added new API for AIOP isolation context - icontext_aiop_get().
 
 ** AIOP SL v0.4.7 **
-De-coupled user-configured parameters from the aiopsl library.  
+De-coupled user-configured parameters from the aiopsl library.
 Changes include:
 - Added apps.h file which should be edited by application developers to suit application requirements.
-- Application developers must add the following search path to the application compilation: 
+- Application developers must add the following search path to the application compilation:
         "${ProjDirPath}/../../../../src/drivers/dpmng/controllers/aiop"
 - Application developers must add the file src\arch\ppc\platform\ls2085a_aiop\config.c to the application build process.
 
@@ -145,26 +146,26 @@ Changes include:
 - Remove Simulator flag: set_iram_instruction_fetch_view.
 
 ** AIOP SL v0.4.5 **
-- cmdif_integ_dbg.elf      Placed compiled AIOP<->GPP CMDIF test at aiopsl\build\aiop_sim\tests\cmdif_test\integ_out\. 
+- cmdif_integ_dbg.elf      Placed compiled AIOP<->GPP CMDIF test at aiopsl\build\aiop_sim\tests\cmdif_test\integ_out\.
 - tests/cmdif/README.txt   Added information about CMDIF testing with GPP.
 - fsl_soc_spec_ls2085a.h:  Update UART offset ( + 0x4000 ). The following flags must be removed from simulator initialization cfg file:
                            duart1.use_ls2_reg_definition=false
                            duart2.use_ls2_reg_definition=false
 ** AIOP SL v0.4.4 **
-- config.c                   The default value of PEB size in aiop_app_init_info has been descreased to 512 KB. 
+- config.c                   The default value of PEB size in aiop_app_init_info has been descreased to 512 KB.
                              Application should not require more than this number.
 - ls2085a_sim_init_params.cfg  Removed  qman.bg_update=false, bman.bg_update=false (ENGR00331346 sim bug is fixed on sim_m122)
 - dpl.dts:                     Changed AIOP portal id, icid, and dpci id.
 - dpl.dts:                     Added DPRC_CFG_OPT_IOMMU_BYPASS to root container due to changes in MC firmware
 - ls2085a_sim_init_params.cfg  Removed  aiop.isolation_enable=false, added qman.bg_update=false, bman.bg_update=false (ENGR00331346 sim bug)
 
-- dpni_drv.c, fsl_dpni_drv.h: API change for mfl functions from: dpni_drv_get/set_mfl(uint16_t ni_id, const uint16_t *mfl /uint16_t mfl) 
+- dpni_drv.c, fsl_dpni_drv.h: API change for mfl functions from: dpni_drv_get/set_mfl(uint16_t ni_id, const uint16_t *mfl /uint16_t mfl)
                               to: dpni_drv_get/set_max_frame_length(uint16_t ni_id, const uint16_t *mfl /uint16_t mfl)
 - dpni_drv.c, fsl_dpni_drv.h: added suport for promisc to multicast and unicast. The functions are: int dpni_drv_set_multicast_promisc(uint16_t ni_id, int en),
                               int dpni_drv_get_multicast_promisc(uint16_t ni_id, int *en), int dpni_drv_set_unicast_promisc(uint16_t ni_id, int en),
                               int dpni_drv_get_unicast_promisc(uint16_t ni_id, int *en)
 							  Arena test updated acordingly.
-							  
+
 - dpni.c:       API change in dpni functions from: (struct dpni *dpni) to:  (struct fsl_mc_io *mc_io, uint16_t token)
 
 - dpl.dts/dtb:    Added DPRC_CFG_OPT_TOPOLOGY_CHANGES_ALLOWED to AIOP container.
@@ -176,7 +177,7 @@ Changes include:
                   The slab will only notify about the error.
 - aiop_link.lcf  Added variables AIOP_DDR_START and AIOP_DDR_END that mark start and end of AIOP image that is put into DP_DDR.
                  These  variables must appear in linker for proper AIOP memory partition creation.
-- platform.c     AIOP memory paritions are built dynamically based on aiop_app_init_info structure that is filled on MC side.			 
+- platform.c     AIOP memory paritions are built dynamically based on aiop_app_init_info structure that is filled on MC side.
 
 - .cproject (all)   Added paths to "${ProjDirPath}/../../../../src/drivers/dplib" and "${ProjDirPath}/../../../../src/mc/include"
 - time.c:           Added time_init/free in global modules to support time period received from MC. If time period is 1000 then pointer function set up to use fast implementation,
@@ -186,7 +187,7 @@ Changes include:
 - platform.c, init.c, fsl_soc_spec_ls2085a.h: UART port/offset configured by MC.
 
 - fsl_slab.      New API for slab increment/decrement reference count: int slab_refcount_decr(uint64_t buff), void slab_refcount_incr(uint64_t buff).
- 
+
 - slab.c:        New implementation for slab release, refcount_incr, refcount_decr using approach 1 (The user is responsible to call slab release if reference count is 0 (return 0x3)).
 
 - mc_init.c          Use g_init_data.sl_data.mc_portal_id instead of hard coded 1.
