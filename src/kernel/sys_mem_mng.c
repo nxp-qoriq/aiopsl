@@ -45,18 +45,7 @@ extern int sigsetmask(int);
 #endif /* VERILOG */
 
 
-typedef struct t_sys_virt_mem_map
-{
-    uint64_t    virt_addr;
-    uint64_t    phys_addr;
-    uint64_t    size;
-    list_t      node;
-} t_sys_virt_mem_map;
 
-#define VIRT_MEM_MAP(ptr)   LIST_OBJECT(ptr, t_sys_virt_mem_map, node)
-
-static t_sys_virt_mem_map * sys_find_virt_addr_mapping(uint64_t virt_addr);
-static t_sys_virt_mem_map * sys_find_phys_addr_mapping(uint64_t phys_addr);
 
 static void *   sys_default_malloc(uint32_t size);
 static void     sys_default_free(void *p_memory);
@@ -99,6 +88,7 @@ void * sys_shram_alloc(uint32_t    size,
 /*****************************************************************************/
 void sys_shram_free(void *mem)
 {
+    ASSERT_COND(sys.mem_mng);
 	mem_mng_free_mem(sys.mem_mng, mem);
 }
 /*****************************************************************************/
@@ -369,6 +359,11 @@ void sys_print_mem_partition_debug_info(int partition_id, int report_leaks)
  int sys_init_memory_management(void)
 {
     t_mem_mng_param mem_mng_param;
+     /* Temporary allocation for identifying the default heap region */
+    sys.heap_addr = (uintptr_t)sys_default_malloc(8);
+    sys_default_free((void *)sys.heap_addr);
+    sys.heap_partition_id = MEM_MNG_EARLY_PARTITION_ID;
+
 #ifdef AIOP
     sys.mem_mng_lock = 0;
     sys.mem_part_mng_lock = 0;
@@ -391,13 +386,7 @@ void sys_print_mem_partition_debug_info(int partition_id, int report_leaks)
     if (!sys.mem_mng)
     {
         RETURN_ERROR(MAJOR, EAGAIN, ("memory management object"));
-    }
-
-    /* Temporary allocation for identifying the default heap region */
-    sys.heap_addr = (uintptr_t)sys_default_malloc(8);
-    sys_default_free((void *)sys.heap_addr);
-
-    sys.heap_partition_id = MEM_MNG_EARLY_PARTITION_ID;
+    }  
 
     return 0;
 }
