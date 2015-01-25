@@ -86,10 +86,6 @@ void exception_handler(char *filename,
 		   (void *)fatal_cmd,
 		   sizeof(struct fatal_error_command));
 
-
-	fdma_store_and_enqueue_default_frame_fqid(fatal_cmd->fqid,
-						  FDMA_EN_TC_TERM_BITS);
-
 	status = -1 + (uint32_t)message + (uint32_t)filename + line +
 			(uint32_t)function_name;
 

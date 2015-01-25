@@ -414,10 +414,6 @@ struct fatal_error_command {
 		 * */
 	uint32_t opcode;
 		/**
-		 * FQID to save in TLS. (for the fatal enqueue)
-		 * */
-	uint32_t fqid;
-		/**
 		 * Flags - Specify options to this function, please refer to
 		 * \ref FSL_VERIF_FATAL_FLAGS_DEFINES.
 		 */
@@ -440,7 +436,7 @@ struct fatal_error_command {
 		/**
 		 * 128-byte alignment.
 		 * */
-	uint8_t pad[36];
+	uint8_t pad[40];
 };
 
 /**************************************************************************//**
