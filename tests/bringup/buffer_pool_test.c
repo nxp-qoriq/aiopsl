@@ -21,6 +21,7 @@ extern int dpbp_init();
 
 extern struct mc_dprc g_mc_dprc;
 extern struct icontext icontext_aiop;
+extern int dpbp_init();
 
 int buffer_pool_init()
 {

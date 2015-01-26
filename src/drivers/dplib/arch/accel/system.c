@@ -261,11 +261,11 @@ int aiop_sl_init(void)
 	table_workaround_tkt226361(4,4,4);
 #else
 
-	table_workaround_tkt226361(g_init_data.app_info.mflu_peb_num_entries,
+	/*table_workaround_tkt226361(g_init_data.app_info.mflu_peb_num_entries,
 				   g_init_data.app_info.
 					mflu_dp_ddr_num_entries,
 				   g_init_data.app_info.
-					mflu_sys_ddr_num_entries);
+					mflu_sys_ddr_num_entries);*/
 #endif
 /********************************************************/
 /* WA TKT226361 END (MFLU) - TODO remove for non Rev1 */
