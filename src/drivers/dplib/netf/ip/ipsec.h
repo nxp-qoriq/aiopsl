@@ -120,6 +120,8 @@ enum rta_param_type {
 #define IPSEC_STORAGE_PROFILE_SIZE_SHIFT 5 /* 32 bytes */
 #define IPSEC_INTERNAL_PARMS_SIZE 128 /* 128 bytes */
 #define IPSEC_FLOW_CONTEXT_SIZE 64 /* 64 bytes */
+#define IPSEC_KEY_SEGMENT_SIZE 128 /* Key Copy segment, 128 bytes */
+
 #define IPSEC_ENC_PDB_HMO_MASK 0xF000
 #define IPSEC_DEC_PDB_HMO_MASK 0xF000
 #define IPSEC_PDB_OPTIONS_MASK 0x00FF
@@ -200,12 +202,37 @@ enum rta_param_type {
 #define IPSEC_SEC_NEW_BUFFER_MODE 0
 #define IPSEC_SEC_REUSE_BUFFER_MODE 1
 
-#define IPSEC_SA_DESC_BUF_SIZE 512 /* SA descriptor buffer size */
+/*                 SA Descriptor Structure
+ * ------------------------------------------------------
+ * | ipsec_sa_params                  | 128 bytes       | + 0
+ * ------------------------------------------------------
+ * | sec_flow_context                 | 64 bytes        | + 128
+ * -----------------------------------------------------
+ * | sec_shared_descriptor            | Up to 256 bytes | + 192
+ * ------------------------------------------------------
+ * | Replacement Job Descriptor (TBD) | Up to 64 (TBD)  | + 448
+ * ------------------------------------------------------
+ * | Key Copy                         | 128 bytes       | + 512 
+ * ------------------------------------------------------
+ *  
+ * ipsec_sa_params - Parameters used by the IPsec functional module	128 bytes
+ * sec_flow_context	- SEC Flow Context. 64 bytes
+ * 			Should be 64-byte aligned for optimal performance.	
+ * sec_shared_descriptor - Shared descriptor. Up to 256 bytes
+ * Replacement Job Descriptor (RJD) for Peer Gateway Adaptation 
+ * (Outer IP change)	TBD 
+ * Key Copy area, for CAAM DKP
+ * 
+ * Buffer size = 128 + 64 + 256 + 64 + 128 + 63 (alignment) = 703
+ * Requested buffer size = 12*64 = 768 bytes
+*/
+
+#define IPSEC_SA_DESC_BUF_SIZE 768 /* SA descriptor buffer size */
 #define IPSEC_SA_DESC_BUF_ALIGN 64 /* SA descriptor alignment */
-#define IPSEC_KEY_BUF_SIZE 512 /* Key buffer size */
 #define IPSEC_MAX_NUM_OF_TASKS 256 /* Total maximum number of tasks in AIOP */
 #define IPSEC_MEM_PARTITION_ID MEM_PART_DP_DDR
 					/* Memory partition ID */
+#define IPSEC_KEY_SEGMENT_OFFSET 512 /* Offset from params start */
 
 /* Obsolete, ASA preservation not supported */
 /* #define IPSEC_MAX_ASA_SIZE 960 */ /* Maximum ASA size (960 bytes) */
@@ -228,6 +255,9 @@ enum rta_param_type {
 /* Shared Descriptor Address */
 #define IPSEC_SD_ADDR(ADDRESS) \
 	((ADDRESS) + IPSEC_INTERNAL_PARMS_SIZE + IPSEC_FLOW_CONTEXT_SIZE)
+
+/* Key Copy Segment */
+#define IPSEC_KEY_SEGMENT_ADDR(ADDRESS) ((ADDRESS) + IPSEC_KEY_SEGMENT_OFFSET)
 
 /*
 * Big-endian systems are systems in which the most significant byte of the word 
@@ -639,6 +669,16 @@ void ipsec_generate_flc(
 		uint16_t spid, /* Storage Profile ID of the SEC output frame */
 		int sd_size /* Shared descriptor Length */
 );
+
+/**************************************************************************//**
+@Function		ipsec_create_key_copy 
+
+@Description	Creates a copy of the key, used for CAAM DKP 
+*//***************************************************************************/
+void ipsec_create_key_copy(
+		uint64_t src_key_addr, /*  Source Key Address */
+		uint64_t dst_key_addr, /*  Destination Key Address */
+		uint16_t keylen);   /* Length of the provided key, in bytes */
 
 /**************************************************************************//**
 @Function		ipsec_generate_sd 
