@@ -9,7 +9,7 @@
 #include "aiop_common.h"
 #include "fsl_io_ccsr.h"
 #include "fsl_icontext.h"
-#include "fsl_bman.h"
+#include "../../../drivers/qbman/include/fsl_bman.h"
 #include "fdma.h"
 #include "fsl_fdma.h"
 #include "fsl_cdma.h"

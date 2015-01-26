@@ -10,6 +10,9 @@
 #include "cmgw.h"
 #include "aiop_common.h"
 #include "fsl_core_booke_regs.h"
+#include "sys.h"
+
+extern t_system sys; /* Global System Object */
 
 
 #if 0
@@ -83,7 +86,11 @@ static void check_exceptions()
 	esr = booke_get_spr_ESR();
 	mcsr = booke_get_spr_MCSR();
 
-	if (!esr && !mcsr) while(1) {}; /* FAILED : EXCEPTION_TEST */
+	if (!esr && !mcsr) {
+		if (sys.console)
+			fsl_os_print("FAILED : EXCEPTION_TEST\n");
+		while(1) {}; /* FAILED : EXCEPTION_TEST */
+	}
 }
 
 #pragma push
@@ -138,6 +145,8 @@ void _booke_generic_exception_isr(uint32_t intr_entry)
 		break;
 	}
 	check_exceptions();
+	if (sys.console)
+		fsl_os_print("PASSED : EXCEPTION_TEST\n");
 	while(1) {} /* PASSED : EXCEPTION_TEST */
 }
 
