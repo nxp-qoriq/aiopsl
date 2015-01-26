@@ -586,36 +586,6 @@ int ipsec_app_init(uint16_t ni_id)
 
 	ipsec_sa_desc_outbound = ws_desc_handle_outbound;
 	
-	//^^^^^^^^^^^^^^^^ Debug ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-	fsl_os_print("\n ^^^ DEBUG: Authentication Key Copy  ^^^^\n");
-	
-	#define IPSEC_ALIGN_64_DEBUG(ADDRESS, ALIGNMENT)           \
-        ((((uint64_t)(ADDRESS)) + ((uint64_t)(ALIGNMENT)) - 1) & \
-        								(~(((uint64_t)(ALIGNMENT)) - 1)))
-	ws_desc_handle_inbound = IPSEC_ALIGN_64_DEBUG(ws_desc_handle_outbound, 64) + 512;
-
-	handle_high = (uint32_t)((ws_desc_handle_inbound & 0xffffffff00000000)>>32);
-	handle_low = (uint32_t)(ws_desc_handle_inbound & 0x00000000ffffffff);
-
-	fsl_os_print("Key Copy address = 0x%x_%x\n", handle_high, handle_low);
-	
-	cdma_read(
-			auth_key, /* void *ws_dst */
-			//ipsec_handle, /* uint64_t ext_address */
-			ws_desc_handle_inbound, /* uint64_t ext_address */
-			(uint16_t)auth_keylen /* uint16_t size */
-			);
-
-	for (i=0; i<128; i++) {
-		fsl_os_print("%d ", auth_key[i]);
-		if ((i%16) == 15) fsl_os_print("\n");
-	}
-	
-	fsl_os_print("\n ^^^ DEBUG: End of Authentication Key Copy  ^^^^\n");
-	
-	//^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-	
-
 	/* Inbound (decryption) parameters */
 	params.direction = IPSEC_DIRECTION_INBOUND; /**< Descriptor direction */
 	params.flags = IPSEC_FLG_TUNNEL_MODE |
