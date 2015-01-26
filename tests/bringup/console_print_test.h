@@ -8,7 +8,7 @@
 
 #include "common/types.h"
 #include "fsl_errors.h"
-#include "fsl_duart.h"
+#include "../../../drivers/serial/include/fsl_duart.h"
 
 
 

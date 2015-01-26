@@ -70,9 +70,7 @@ struct dpni_drv_params {
 
 #pragma pack(push, 1)
 struct dpni_drv_tx_params {
-	/** MTU value needed for the \ref dpni_drv_send() function */
-	uint32_t            mtu;
-	/** Queueing destination for the enqueue. */
+	/** Queuing destination for the enqueue. */
 	uint16_t            qdid;
 	/** network interface ID which is equal to this entry's index in the NI
 	 *  table - internal to AIOP */

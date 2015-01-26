@@ -151,6 +151,7 @@ __COLD_CODE int dpni_drv_probe(struct mc_dprc *dprc,
 	uint16_t spid;
 	uint32_t sp_temp;
 	struct dpni_attr attributes;
+	struct dpni_buffer_layout layout = {0};
 	struct aiop_psram_entry *sp_addr;
 	struct aiop_psram_entry ddr_storage_profile;
 	struct aiop_ws_regs *wrks_addr = (struct aiop_ws_regs *)
@@ -204,6 +205,17 @@ __COLD_CODE int dpni_drv_probe(struct mc_dprc *dprc,
 			if ((err = dpni_set_pools(&dprc->io, dpni, &pools_params[DPNI_DRV_PEB_BPID_IDX])) != 0) {
 				pr_err("Failed to set the pools to DP-NI%d.\n", mc_niid);
 				return err;
+			}
+
+			/* TODO: This should be changed for dynamic solution. The hardcoded value is
+			 * temp solution.*/
+			layout.options =  DPNI_BUF_LAYOUT_OPT_DATA_HEAD_ROOM |
+						DPNI_BUF_LAYOUT_OPT_DATA_TAIL_ROOM;
+			layout.data_head_room = 96;
+			layout.data_tail_room = 52;
+			if ((err = dpni_set_rx_buffer_layout(&dprc->io, dpni, &layout)) != 0) {
+				pr_err("Failed to set rx buffer layout for DP-NI%d\n", mc_niid);
+				return -ENODEV;
 			}
 
 			/* Enable DPNI before updating the entry point function (EP_PC)
@@ -367,8 +379,6 @@ int dpni_drv_get_max_frame_length(uint16_t ni_id,
 	return dpni_get_max_frame_length(&dprc->io, dpni_drv->dpni_drv_params_var.dpni, mfl);
 }
 
-
-
 __COLD_CODE static int parser_profile_init(uint8_t *prpid)
 {
     struct parse_profile_input parse_profile1 __attribute__((aligned(16)));
@@ -445,7 +455,6 @@ __COLD_CODE int dpni_drv_init(void)
 		dpni_drv->dpni_drv_params_var.starting_hxs = 0; //ETH HXS
 		dpni_drv->dpni_drv_tx_params_var.qdid         = 0;
 		dpni_drv->dpni_drv_params_var.flags        = DPNI_DRV_FLG_PARSE | DPNI_DRV_FLG_PARSER_DIS;
-		dpni_drv->dpni_drv_tx_params_var.mtu          = 0xffff;
 	}
 	/*Window for storage profile ID's to use with DDR target memory*/
 	spid_ddr_id = g_init_data.sl_info.base_spid;
