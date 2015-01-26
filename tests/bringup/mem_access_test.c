@@ -27,8 +27,8 @@ typedef struct {
 
 mem_access_test_t mem_tests[] = {
 		/* Addr      	memInit 	param	flags */
-		{0x00000004, 	NULL, 		0, 		TEST_FLG_READ | TEST_FLG_WRITE},
-		{0x00000005, 	memInit,	0, 		TEST_FLG_READ | TEST_FLG_WRITE},
+		{0x01000010, 	memInit,	0, 		TEST_FLG_READ | TEST_FLG_WRITE}, /* shared ram */
+		{0x40210010, 	memInit,	0, 		TEST_FLG_READ | TEST_FLG_WRITE}, /* dp-ddr (heap) */
 		{NULL, 			NULL, 		0, 		0} /* Stub (end of list) */
 };
 
