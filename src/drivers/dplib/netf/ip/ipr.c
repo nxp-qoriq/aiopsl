@@ -826,7 +826,6 @@ uint32_t ipr_insert_to_link_list(struct ipr_rfdc *rfdc_ptr,
 	uint16_t		ip_header_size;
 	uint16_t		ipv6fraghdr_offset;
 	uint16_t		current_running_sum;
-	uint16_t		padding_checksum;
 	uint32_t		last_fragment;
 	uint32_t		return_status;
 	uint64_t		ext_addr;
@@ -862,7 +861,7 @@ uint32_t ipr_insert_to_link_list(struct ipr_rfdc *rfdc_ptr,
 				return MALFORMED_FRAG;
 			rfdc_ptr->status |= RFDC_STATUS_CE;
 		}
-		padding_checksum = check_remove_padding();
+		check_remove_padding();
 	} else {
 		ipv6hdr_ptr = (struct ipv6hdr *) iphdr_ptr;
 		ipv6fraghdr_offset =
@@ -892,7 +891,6 @@ uint32_t ipr_insert_to_link_list(struct ipr_rfdc *rfdc_ptr,
 				return MALFORMED_FRAG;
 			rfdc_ptr->status |= RFDC_STATUS_CE;
 		}
-		padding_checksum = 0;
 	}
 
 	if (frag_offset_shifted != 0) {
@@ -927,11 +925,6 @@ uint32_t ipr_insert_to_link_list(struct ipr_rfdc *rfdc_ptr,
 				  	          rfdc_ptr->current_running_sum,
 				  	          pr->gross_running_sum);
 	}
-	/* remove checksum of padding */
-	if (padding_checksum != 0)
-		current_running_sum = cksum_ones_complement_sum16(
-					   current_running_sum,
-					   (uint16_t)~padding_checksum);
 
 	if (!(rfdc_ptr->status & OUT_OF_ORDER)) {
 		/* In order handling */
@@ -945,8 +938,6 @@ uint32_t ipr_insert_to_link_list(struct ipr_rfdc *rfdc_ptr,
 				if((rfdc_ptr->current_total_length +
 				   rfdc_ptr->first_frag_hdr_length) <=
 				   instance_params.max_reass_frm_size) {
-					if (frame_is_ipv4)
-						check_remove_padding();
 					/* Close current frame before storing FD */
 					fdma_store_default_frame_data();
 
@@ -963,8 +954,6 @@ uint32_t ipr_insert_to_link_list(struct ipr_rfdc *rfdc_ptr,
 					return_status = MALFORMED_FRAG;
 			} else {
 				/* Non closing fragment */
-				if (frame_is_ipv4)
-					check_remove_padding();
 				/* Close current frame before storing FD */
 				fdma_store_default_frame_data();
 
@@ -1708,13 +1697,15 @@ void move_to_correct_ordering_scope2(uint32_t osm_status)
 	}
 }
 
-uint16_t check_remove_padding()
+void check_remove_padding()
 {
 	uint8_t			delta;
 	uint16_t		ipv4hdr_offset;
-	uint16_t		checksum;
 	uint16_t		start_padding;
-	struct ipv4hdr	*ipv4hdr_ptr;
+	struct ipv4hdr		*ipv4hdr_ptr;
+	struct	parse_result	*pr =
+				  (struct parse_result *)HWC_PARSE_RES_ADDRESS;
+
 
 	ipv4hdr_offset = (uint16_t)PARSER_GET_OUTER_IP_OFFSET_DEFAULT();
 	ipv4hdr_ptr = (struct ipv4hdr *)
@@ -1724,20 +1715,14 @@ uint16_t check_remove_padding()
 	delta = (uint8_t) (LDPAA_FD_GET_LENGTH(HWC_FD_ADDRESS) - start_padding);
 
 	if (delta != 0) {
-
-		/* calculate checksum on padding */
-		fdma_calculate_default_frame_checksum(start_padding,
-						      delta,
-						      &checksum);
-
-		fdma_delete_default_segment_data(
-				start_padding,
-				delta,
-				FDMA_REPLACE_NO_FLAGS);
-
-		return checksum;
-	} else
-		return 0;
+		fdma_delete_default_segment_data(start_padding,
+		                                 delta,
+		                                 FDMA_REPLACE_NO_FLAGS);
+		/* For recalculating running sum */
+		/* Updated FD[length] */
+		LDPAA_FD_SET_LENGTH(HWC_FD_ADDRESS, start_padding);
+		pr->gross_running_sum = 0;
+	}
 }
 
 
@@ -1887,9 +1872,6 @@ uint32_t out_of_order(struct ipr_rfdc *rfdc_ptr, uint64_t rfdc_ext_addr,
 					    rfdc_ptr->first_frag_hdr_length) <=
 					   instance_params.max_reass_frm_size) {
 						
-						if (PARSER_IS_OUTER_IPV4_DEFAULT())
-							check_remove_padding();
-
 						/* Close current frame before storing FD */
 						fdma_store_default_frame_data();
 
@@ -1907,8 +1889,6 @@ uint32_t out_of_order(struct ipr_rfdc *rfdc_ptr, uint64_t rfdc_ext_addr,
 						return MALFORMED_FRAG;
 				} else {
 					/* reassembly is not completed */
-					if (PARSER_IS_OUTER_IPV4_DEFAULT())
-						check_remove_padding();
 
 					/* Close current frame before storing FD */
 					fdma_store_default_frame_data();
@@ -2046,8 +2026,6 @@ uint32_t out_of_order(struct ipr_rfdc *rfdc_ptr, uint64_t rfdc_ext_addr,
 		if((rfdc_ptr->current_total_length +
 		    rfdc_ptr->first_frag_hdr_length) <=
 		    instance_params.max_reass_frm_size) {
-			if (PARSER_IS_OUTER_IPV4_DEFAULT())
-				check_remove_padding();
 			/* Close current frame before storing FD */
 			fdma_store_default_frame_data();
 
@@ -2064,8 +2042,6 @@ uint32_t out_of_order(struct ipr_rfdc *rfdc_ptr, uint64_t rfdc_ext_addr,
 			return MALFORMED_FRAG;
 	} else {
 		/* reassembly is not completed */
-		if (PARSER_IS_OUTER_IPV4_DEFAULT())
-			check_remove_padding();
 		/* Close current frame before storing FD */
 		fdma_store_default_frame_data();
 
