@@ -278,14 +278,14 @@ int test_dpni_drv_probe(struct mc_dprc *dprc,
 				return err;
 			}
 
-#if TEST_DPBP
+
 			/* TODO: set nis[aiop_niid].starting_hxs according to the DPNI attributes.
 			 * Not yet implemented on MC. Currently always set to zero, which means ETH. */
 			if ((err = dpni_set_pools(&dprc->io, dpni, &pools_params)) != 0) {
 				pr_err("Failed to set the pools to DP-NI%d.\n", mc_niid);
 				return err;
 			}
-#endif
+
 			/* Enable DPNI before updating the entry point function (EP_PC)
 			 * in order to allow DPNI's attributes to be initialized.
 			 * Frames arriving before the entry point function is updated will be dropped. */
