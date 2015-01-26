@@ -1,5 +1,5 @@
 
-#include "dpbp_test.h"
+#include "../../../tests/bringup/dpbp_test.h"
 #include "fsl_dprc.h"
 #include "fsl_dbg.h"
 #include "fsl_sys.h"
@@ -8,7 +8,7 @@
 #include "aiop_common.h"
 #include "fsl_io_ccsr.h"
 #include "fsl_icontext.h"
-#include "fsl_bman.h"
+#include "../../../drivers/qbman/include/fsl_bman.h"
 #include "fdma.h"
 #include "fsl_fdma.h"
 #include "fsl_cdma.h"

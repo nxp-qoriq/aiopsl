@@ -1,5 +1,5 @@
 
-#include "buffer_pool_test.h"
+#include "../../../tests/bringup/buffer_pool_test.h"
 #include "fsl_dprc.h"
 #include "fsl_dbg.h"
 #include "fsl_sys.h"
@@ -8,18 +8,20 @@
 #include "aiop_common.h"
 #include "fsl_io_ccsr.h"
 #include "fsl_icontext.h"
-#include "fsl_bman.h"
+#include "../../../drivers/qbman/include/fsl_bman.h"
 #include "fdma.h"
 #include "fsl_fdma.h"
 #include "fsl_cdma.h"
 #include "fsl_dpbp.h"
-#include "bringup_tests.h"
+#include "../../../tests/bringup/bringup_tests.h"
 
 int buffer_pool_init();
 int buffer_pool_test();
+extern int dpbp_init();
 
 extern struct mc_dprc g_mc_dprc;
 extern struct icontext icontext_aiop;
+extern int dpbp_init();
 
 int buffer_pool_init()
 {
