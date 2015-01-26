@@ -248,9 +248,11 @@ int ipr_delete_instance(ipr_instance_handle_t ipr_instance_ptr,
 
 	if (ipr_instance.timeout_value_ipv4 > ipr_instance.timeout_value_ipv6)
 		timeout_value = ipr_instance.timeout_value_ipv4;
-	else
+	else {
 		timeout_value = ipr_instance.timeout_value_ipv6;
-
+		/* Save biggest timeout value for potential later create timer */
+		ipr_instance.timeout_value_ipv4 = timeout_value;
+	}
 	ipr_instance_extension_ptr = ((uint64_t)ipr_instance_ptr) +
 				     sizeof(struct ipr_instance);
 
@@ -282,6 +284,25 @@ void ipr_delete_instance_after_time_out(ipr_instance_handle_t ipr_instance_ptr)
 		  ipr_instance_ptr,
 		  IPR_INSTANCE_SIZE + sizeof(struct ipr_instance_extension));
 
+	if ((ipr_instance_and_extension.
+		ipr_instance_extension.num_of_open_reass_frames_ipv4 != 0)
+		||
+	   (ipr_instance_and_extension.
+		ipr_instance_extension.num_of_open_reass_frames_ipv6 != 0))
+	{
+		/* Not all the timeouts expired, give more time */
+		tman_create_timer(
+		     ipr_instance_and_extension.ipr_instance.tmi_id,
+		     IPR_TIMEOUT_FLAGS,
+		     ipr_instance_and_extension.ipr_instance.timeout_value_ipv4,
+		     (tman_arg_8B_t) ipr_instance_ptr,
+		     (tman_arg_2B_t) NULL,
+		     (tman_cb_t) ipr_delete_instance_after_time_out,
+		     &ipr_instance_and_extension.ipr_instance.flags);
+		fdma_terminate_task();
+	}
+	else
+		
 	/* todo SR error case */
 	cdma_release_context_memory(ipr_instance_ptr);
 	/* error case */
