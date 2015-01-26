@@ -112,8 +112,10 @@ int ipr_create_instance(struct ipr_params *ipr_params_ptr,
 	int table_ipv4_valid = 0;
 	int status;
 
+	/* Reservation is done for 2 extra buffers: 1 one instance_params and
+	 * the other in case of reaching the maximum of open reassembly */
 	aggregate_open_frames = ipr_params_ptr->max_open_frames_ipv4 +
-				ipr_params_ptr->max_open_frames_ipv6 + 1;
+				ipr_params_ptr->max_open_frames_ipv6 + 2;
 	/* call ARENA function for allocating buffers needed to IPR
 	 * processing (create_slab ) */
 	status = slab_find_and_reserve_bpid(aggregate_open_frames,
