@@ -88,8 +88,11 @@ static void check_exceptions()
 
 	if (!esr && !mcsr) {
 		if (sys.console)
-			fsl_os_print("FAILED : EXCEPTION_TEST\n");
+			fsl_os_print("FAILED : EXCEPTION_TEST no esr or mcsr \n");
 		while(1) {}; /* FAILED : EXCEPTION_TEST */
+	} else {
+		if (sys.console)
+			fsl_os_print("esr = 0x%x  mcsr = 0x%x\n", esr, mcsr);
 	}
 }
 
@@ -301,6 +304,10 @@ int stack_ovf_test()
 	/* Stack overflow */
 	_configure_stack_overflow_detection();
 
+	if (sys.console) {
+		fsl_os_print("Start stack_ovf_test\n");
+	}
+
 	recursion_func(1);
 	return -EINVAL;
 }
@@ -313,14 +320,21 @@ int exceptions_test()
 
 	_booke_init_interrupt_vector();
 
+	if (sys.console) {
+		fsl_os_print("Start exceptions_test\n");
+	}
+
 	/* Write to IRAM */
 	iram_ptr[0] = 0xff;
 	iram_ptr[1] = 0xff;
-	if ((iram_ptr[1] != 0xff) || (iram_ptr[1] != 0xff))
-		return -EINVAL;
+
 
 	/* Trigger exception */
 	err = func_in_iram();
+
+	asm{se_illegal};
+	asm{se_illegal};
+	asm{se_illegal};
 
 	return -EINVAL;
 }
