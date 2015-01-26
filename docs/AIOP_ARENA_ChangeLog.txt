@@ -1,3 +1,5 @@
+** AIOP SL Release v0.5.3.2 **
+
 mc_init.c             AIOP boot will not fail if there are no DPCIs in DPL.
 dpni_drv.c:           Set hard coded values for head room and tail room for:
                       Head room: 96 bytes
