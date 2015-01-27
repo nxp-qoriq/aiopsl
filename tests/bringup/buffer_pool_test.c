@@ -93,10 +93,10 @@ int buffer_pool_test()
 			err = test_buffer(attr.bpid);
 			if(err) return err;
 
-			pr_info("AIOP: Test passed\n", core_get_id());
+
 		}
 	}
-
+	pr_info("AIOP: Test passed\n", core_get_id());
 	return 0;
 }
 
@@ -109,6 +109,10 @@ int test_buffer(uint16_t dpbp_id)
 	if(err) {
 		pr_err("cdma_acquire_context_memory Failed: %d\n",err);
 		return err;
+	}
+	else
+	{
+		fsl_os_print("Acquired memory from bpid: %d\n",dpbp_id);
 	}
 	cdma_refcount_increment(buff);
 	cdma_refcount_decrement(buff);
