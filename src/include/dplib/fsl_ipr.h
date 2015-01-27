@@ -375,6 +375,25 @@ struct extended_stats_cntrs {
 *//***************************************************************************/
 
 /**************************************************************************//**
+@Function	ipr_early_init
+
+@Description	Reserve the context buffers for all the IPR instances.\n
+
+@Param[in]	nbr_of_instances - Number of IPR instances that will be created.
+@Param[in]	nbr_of_context_buffers - Number of context buffers to be
+		allocated for all the instances.
+
+
+@Return		0        - on success,
+		-ENAVAIL - resource not available or not found,
+		-ENOMEM  - not enough memory for requested memory partition
+
+@Cautions	In this function, the task yields.
+*//***************************************************************************/
+int ipr_early_init(uint32_t nbr_of_instances, uint32_t nbr_of_context_buffers);
+
+
+/**************************************************************************//**
 @Function	ipr_create_instance
 
 @Description	Creates an IPR instance.\n

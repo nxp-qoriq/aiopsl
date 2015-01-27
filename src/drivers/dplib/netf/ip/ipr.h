@@ -314,6 +314,8 @@ void ipr_delete_instance_after_time_out(ipr_instance_handle_t ipr_instance_ptr);
 void ipr_stats_update(struct ipr_instance instance_params,
 		      uint32_t counter_offset, uint32_t frame_is_ipv4);
 
+int ipr_early_init(uint32_t nbr_of_instances, uint32_t nbr_of_context_buffers);
+
 
 /**************************************************************************//**
 @Description	IPR Global parameters

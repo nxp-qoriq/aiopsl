@@ -51,10 +51,34 @@
 #ifdef AIOP_VERIF
 #include "slab_stub.h"
 #else
+#include "fsl_dbg.h"
 #include "slab.h"
 #endif
 
 struct  ipr_global_parameters ipr_global_parameters1;
+
+#ifndef AIOP_VERIF
+int ipr_early_init(uint32_t nbr_of_instances, uint32_t nbr_of_context_buffers)
+{
+	uint32_t nbr_of_ipr_contexts;
+	int err;
+	
+	nbr_of_ipr_contexts = nbr_of_context_buffers + 2*nbr_of_instances;
+	/* IPR IPsec 2688 rounded up modulo 64 - 8 */
+	err = slab_register_context_buffer_requirements(nbr_of_ipr_contexts,
+							nbr_of_ipr_contexts,
+							2744,
+							64,
+							MEM_PART_DP_DDR,
+							0,
+							0);
+	if(err){
+		pr_err("Failed to register IPR context buffers\n");
+		return err;
+	}
+	return 0;
+}
+#endif
 
 int ipr_init(void)
 {
