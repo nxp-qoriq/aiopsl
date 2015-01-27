@@ -30,12 +30,15 @@ struct dpni_drv nis_table[64];
 int dpni_init()
 {
 
-	void *p_vaddr;
+
 	int err = 0;
 	int container_id;
 	struct mc_dprc *dprc = &g_mc_dprc_dpni;
 	extern struct aiop_init_info g_init_data;
-
+	uint32_t mc_portal_id = g_init_data.sl_info.mc_portal_id;
+	uint64_t mc_portals_vaddr = g_init_data.sl_info.mc_portals_vaddr + \
+			SOC_PERIPH_OFF_PORTALS_MC(mc_portal_id);
+	void *p_vaddr = UINT_TO_PTR(mc_portals_vaddr);
 	uint32_t cdma_cfg;
 	struct aiop_tile_regs *ccsr = (struct aiop_tile_regs *) 0x2080000;
 
@@ -79,7 +82,6 @@ int dpni_init()
 
 	/* TODO : in this call, can 3rd argument be zero? */
 	/* Get virtual address of MC portal */
-	p_vaddr = (void *) 0xc030000;
 
 	pr_debug("MC portal ID[%d] addr = 0x%x\n", g_init_data.sl_info.mc_portal_id, (uint32_t)p_vaddr);
 
@@ -188,7 +190,7 @@ int dpni_test()
 	icontext_aiop_get(&ic);
 
 	for (i = 0; i < 10; i++) {
-		fdma_release_buffer(ic.icid, ic.bdi_flags, (uint16_t)dpbp_id, addr);
+		fdma_release_buffer(ic.icid, ic.bdi_flags, (uint16_t)attr.bpid, addr);
 		addr += 2048;
 	}
 	pools_params.num_dpbp = 1; /* for AIOP, can be up to 2 */
@@ -278,14 +280,14 @@ int test_dpni_drv_probe(struct mc_dprc *dprc,
 				return err;
 			}
 
-#if TEST_DPBP
+
 			/* TODO: set nis[aiop_niid].starting_hxs according to the DPNI attributes.
 			 * Not yet implemented on MC. Currently always set to zero, which means ETH. */
 			if ((err = dpni_set_pools(&dprc->io, dpni, &pools_params)) != 0) {
 				pr_err("Failed to set the pools to DP-NI%d.\n", mc_niid);
 				return err;
 			}
-#endif
+
 			/* Enable DPNI before updating the entry point function (EP_PC)
 			 * in order to allow DPNI's attributes to be initialized.
 			 * Frames arriving before the entry point function is updated will be dropped. */

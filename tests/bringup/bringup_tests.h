@@ -6,21 +6,28 @@
 #define OFF 0
 
 #define TEST_MEM_ACCESS 	OFF
-#define TEST_CONSOLE_PRINT	ON
+#define TEST_CONSOLE_PRINT	OFF
 #define TEST_EXCEPTIONS		OFF
 #define TEST_STACK_OVF		OFF
-#define TEST_DPBP		OFF
-#define TEST_AIOP_MC_CMD	ON
+#define TEST_DPBP			OFF
+#define TEST_AIOP_MC_CMD	OFF
 #define TEST_SINGLE_CLUSTER	OFF
 #define TEST_MULTI_CLUSTER	OFF
-#define TEST_DPNI		OFF
+#define TEST_DPNI			OFF
 #define TEST_BUFFER_POOLS	OFF
-#define TEST_GPP_DDR		ON
+#define TEST_GPP_DDR		OFF
+#define TEST_SPINLOCKS		ON
 
-#if (TEST_MEM_ACCESS == ON)
+#if (TEST_SPINLOCKS == ON)
 /* memory access test */
 int mem_standalone_init();
 int mem_test();
+#endif /* TEST_MEM_ACCESS */
+
+#if (TEST_MEM_ACCESS == ON)
+/* memory access test */
+int spinlock_standalone_init();
+int spinlock_test();
 #endif /* TEST_MEM_ACCESS */
 
 #if (TEST_CONSOLE_PRINT == ON)
