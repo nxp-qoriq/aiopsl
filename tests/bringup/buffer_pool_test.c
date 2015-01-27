@@ -20,6 +20,7 @@ int buffer_pool_test();
 
 extern struct mc_dprc g_mc_dprc;
 extern struct icontext icontext_aiop;
+extern int dpbp_init();
 
 int buffer_pool_init()
 {
@@ -84,11 +85,11 @@ int buffer_pool_test()
 
 			icontext_aiop_get(&ic);
 			for (j = 0; j < 10; j++) {
-				fdma_release_buffer(ic.icid, ic.bdi_flags, (uint16_t)dpbp_id, addr);
+				fdma_release_buffer(ic.icid, ic.bdi_flags, attr.bpid, addr);
 				addr += buff_size;
 			}
 
-			err = test_buffer(dpbp_id);
+			err = test_buffer(attr.bpid);
 			if(err) return err;
 
 			pr_info("AIOP: Test passed\n", core_get_id());
@@ -98,11 +99,11 @@ int buffer_pool_test()
 	return 0;
 }
 
-int test_buffer(int dpbp_id)
+int test_buffer(uint16_t dpbp_id)
 {
 	uint64_t buff = 0;
 	int err;
-	err = cdma_acquire_context_memory((uint16_t) dpbp_id,
+	err = cdma_acquire_context_memory( dpbp_id,
 		&buff);
 	if(err) {
 		pr_err("cdma_acquire_context_memory Failed: %d\n",err);
