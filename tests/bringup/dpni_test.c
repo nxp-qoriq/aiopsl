@@ -188,7 +188,7 @@ int dpni_test()
 	icontext_aiop_get(&ic);
 
 	for (i = 0; i < 10; i++) {
-		fdma_release_buffer(ic.icid, ic.bdi_flags, (uint16_t)dpbp_id, addr);
+		fdma_release_buffer(ic.icid, ic.bdi_flags, (uint16_t)attr.bpid, addr);
 		addr += 2048;
 	}
 	pools_params.num_dpbp = 1; /* for AIOP, can be up to 2 */
