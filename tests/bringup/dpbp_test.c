@@ -22,12 +22,14 @@ extern struct icontext icontext_aiop;
 
 int dpbp_init()
 {
-
-	void *p_vaddr;
 	int err = 0;
 	int container_id;
 	struct mc_dprc *dprc = &g_mc_dprc;
 	extern struct aiop_init_info g_init_data;
+	uint32_t mc_portal_id = g_init_data.sl_info.mc_portal_id;
+	uint64_t mc_portals_vaddr = g_init_data.sl_info.mc_portals_vaddr + \
+		SOC_PERIPH_OFF_PORTALS_MC(mc_portal_id);
+	void *p_vaddr = UINT_TO_PTR(mc_portals_vaddr);
 
 	uint32_t cdma_cfg;
 	struct aiop_tile_regs *ccsr = (struct aiop_tile_regs *) 0x2080000;
@@ -72,7 +74,6 @@ int dpbp_init()
 
 	/* TODO : in this call, can 3rd argument be zero? */
 	/* Get virtual address of MC portal */
-	p_vaddr = (void *) 0xc030000;
 
 	pr_debug("MC portal ID[%d] addr = 0x%x\n", g_init_data.sl_info.mc_portal_id, (uint32_t)p_vaddr);
 
@@ -153,9 +154,9 @@ int dpbp_test()
 				addr += 2048;
 			}
 
-			pr_info("AIOP: Test passed\n", core_get_id());
+
 		}
 	}
-
+	pr_info("AIOP: Test passed\n", core_get_id());
 	return 0;
 }
