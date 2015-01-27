@@ -128,6 +128,7 @@ int main(int argc, char *argv[])
 	 * _sys_barrier() - without prints
 	 * will work
 	 * Use get_cpu_id() and not core_id_get() as it uses prints */
+    booke_generic_irq_init();
     _fill_system_parameters();
 
     /* Initiate small data area pointers at task initialization */
