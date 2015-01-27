@@ -17,6 +17,7 @@ struct spinlock_test_unit {
 struct spinlock_test_unit stest[SPIN_TEST_ITERATIONS];
 uint32_t s_index;
 uint32_t core_count;
+uint8_t test_lock;
 
 /*****************************************************************************/
 int spinlock_standalone_init()
@@ -34,8 +35,11 @@ int spinlock_standalone_init()
 		
 		s_index = 0;
 		core_count = 0;
+		test_lock = 0;
 		memset(&stest[0], 0, SPIN_TEST_ITERATIONS*sizeof(struct spinlock_test_unit));
 	}
+	
+	sys_barrier(); //TODO initiate
 	
 	return 0;
 }
@@ -46,14 +50,12 @@ int spinlock_test ()
 	uint32_t i = 0;
 	int spin_val = 0;
 	
-	uint8_t test_lock = 0;
-	
 	//TODO return error value (not only assert)
 	
 	/* start the test */
 	while(s_index < SPIN_TEST_ITERATIONS) 
 	{
-		unlock_spinlock(&test_lock);
+		lock_spinlock(&test_lock);
 		core_count ++;
 		ASSERT_COND(core_count == 1);
 		
