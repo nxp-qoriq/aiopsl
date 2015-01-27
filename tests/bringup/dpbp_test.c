@@ -149,7 +149,7 @@ int dpbp_test()
 			icontext_aiop_get(&ic);
 
 			for (j = 0; j < 10; j++) {
-				fdma_release_buffer(ic.icid, ic.bdi_flags, (uint16_t)dpbp_id, addr);
+				fdma_release_buffer(ic.icid, ic.bdi_flags, attr.bpid, addr);
 				addr += 2048;
 			}
 
