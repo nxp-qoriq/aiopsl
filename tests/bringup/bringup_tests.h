@@ -20,8 +20,8 @@
 
 #if (TEST_SPINLOCKS == ON)
 /* memory access test */
-int mem_standalone_init();
-int mem_test();
+int spinlock_standalone_init();
+int spinlock_test();
 #endif /* TEST_MEM_ACCESS */
 
 #if (TEST_MEM_ACCESS == ON)
