@@ -151,6 +151,11 @@ int main(int argc, char *argv[])
 	err |=  console_print_test();
 #endif
 
+#if (TEST_MEM_ACCESS == ON)
+	err |= spinlock_standalone_init();
+	err |= spinlock_test();
+#endif
+	
 /* Those 2 tests can't be tested together */
 #if (TEST_EXCEPTIONS == ON)
 	err |= exceptions_test();
