@@ -1,9 +1,8 @@
 #include "fsl_errors.h"
 #include "fsl_io.h"
 #include "platform.h"
-#include "ls2085_mc/fsl_platform.h"
+#include "fsl_platform.h"
 #include "fsl_smp.h"
-#include "drivers/fsl_mc.h"
 #include "common/types.h"
 #include "common/fsl_string.h"
 #include "fsl_soc.h"
@@ -26,9 +25,9 @@ typedef struct {
 }mem_access_test_t;
 
 mem_access_test_t mem_tests[] = {
-		/* Addr      	memInit 	param	flags */
-		{0x01000010, 	memInit,	0, 		TEST_FLG_READ | TEST_FLG_WRITE}, /* shared ram */
-		{0x40210010, 	memInit,	0, 		TEST_FLG_READ | TEST_FLG_WRITE}, /* dp-ddr (heap) */
+		/* Addr      					memInit 	param	flags */
+		{(volatile void *)0x01000010, 	memInit,	0, 		TEST_FLG_READ | TEST_FLG_WRITE}, /* shared ram */
+		{(volatile void *)0x40210010, 	memInit,	0, 		TEST_FLG_READ | TEST_FLG_WRITE}, /* dp-ddr (heap) */
 		{NULL, 			NULL, 		0, 		0} /* Stub (end of list) */
 };
 
@@ -50,8 +49,8 @@ int mem_standalone_init()
 static int test_access(const mem_access_test_t *test) 
 {	
 	volatile void *addr = test->vaddr;
-	int read = test->flags & TEST_FLG_READ;
-	int write = test->flags & TEST_FLG_WRITE;
+	int read = (int)(test->flags & TEST_FLG_READ);
+	int write = (int)(test->flags & TEST_FLG_WRITE);
 	volatile uint32_t read_val = MEM_TEST_STUB_VAL;
 	
 	if(test->memInit)
@@ -61,7 +60,7 @@ static int test_access(const mem_access_test_t *test)
 		iowrite32(MEM_TEST_VAL, addr);
 	
 	if(read) {
-		l1dcache_block_invalidate(addr);
+//		l1dcache_block_invalidate(addr);
 		read_val = ioread32(addr);
 		
 		if(read_val == MEM_TEST_STUB_VAL)
