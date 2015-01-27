@@ -146,7 +146,9 @@ struct ipr_params {
 	ipr_timeout_arg_t cb_timeout_ipv6_arg;
 		/** \link FSL_IPRInsFlags IP reassembly flags \endlink */
 	uint32_t  flags;
-	/** tmi id to be used for timers creations */
+	/** tmi id to be used for timers creations.
+	 * This instance may use up to
+	 * (max_open_frames_ipv4+max_open_frames_ipv6+1) timers. */
 	uint8_t	  tmi_id;
 };
 
@@ -384,9 +386,9 @@ struct extended_stats_cntrs {
 		allocated for all the instances.
 
 
-@Return		0        - on success,
-		-ENAVAIL - resource not available or not found,
-		-ENOMEM  - not enough memory for requested memory partition
+@Return		0        - on success \n
+		-ENAVAIL - resource not available or not found \n
+		-ENOMEM  - not enough memory for requested memory partition \n
 
 @Cautions	In this function, the task yields.
 *//***************************************************************************/
@@ -450,16 +452,19 @@ int ipr_delete_instance(ipr_instance_handle_t ipr_instance_ptr,
 
 		The function returns with the same ordering scope mode
 		it enters (exclusive or concurrent).
-		
-		This functions assumes that at least 60 bytes are presented in the
-		presentation area.
-		
-		In case of completed reassembly, the reassembled frame is returned
-		as default frame and segment is presented.
-		In case of malformed fragment, the presented fragment is returned.
-		In case of reassembly not completed, no open frame is returned, no
-		segment is presented.
+				
+		In case of completed reassembly, the reassembled frame is
+		returned as default frame and segment is presented.
+		In case of malformed fragment, the presented fragment is
+		returned.
+		In case of reassembly not completed, no open frame is returned,
+		no segment is presented.
 
+		This functions assumes that at least 60 bytes are presented in
+		the presentation area. 
+
+		This function assumes there is an IP outer header.
+		
 		Implicitly updated values in task defaults: segment length,
 							    segment address,
 							    segment offset
@@ -477,7 +482,7 @@ int ipr_delete_instance(ipr_instance_handle_t ipr_instance_ptr,
 		incremented.\n
 		If this function is called while the task is currently
 		in exclusive mode, the scope_id is preserved.
-		This function requires 2 CDMA mutexes
+		This function requires 1 CDMA mutex
 		(out of 4 available per task).
 		In this function, the task yields.
 
