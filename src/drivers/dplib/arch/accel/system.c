@@ -139,10 +139,7 @@ __COLD_CODE int aiop_sl_early_init(void){
 	err |= slab_register_context_buffer_requirements(1, 1, 312,
 			2, MEM_PART_DP_DDR, 0, 0);
 	/* The following buffers requests registrations are temporary till new 
-	 * abstraction API will be valid for IPR and IPSEC. */
-	/* IPR IPsec 2688 rounded up modulu 64 - 8 */
-	err |= slab_register_context_buffer_requirements(750, 750, 2744, 64,
-			MEM_PART_DP_DDR, 0, 0);
+	 * abstraction API will be valid for IPSEC. */
 	/* IPsec 512 rounded up modulu 64 - 8 */
 	err |= slab_register_context_buffer_requirements(750, 750, 568, 64,
 			MEM_PART_DP_DDR, 0, 0);
