@@ -121,6 +121,12 @@ int main(int argc, char *argv[])
 
 //    int is_master_core;
 
+    /* Initiate small data area pointers at task initialization */
+    asm {
+        mtdcr dcr469,r2 // INITR2
+        mtdcr dcr470,r13// INITR13
+    }
+    
 	/* so
 	 * sys_is_master_core()
 	 * sys_is_core_active()
@@ -130,12 +136,6 @@ int main(int argc, char *argv[])
 	 * Use get_cpu_id() and not core_id_get() as it uses prints */
     booke_generic_irq_init();
     _fill_system_parameters();
-
-    /* Initiate small data area pointers at task initialization */
-    asm {
-        mtdcr dcr469,r2 // INITR2
-        mtdcr dcr470,r13// INITR13
-    }
 
 #if (TEST_MEM_ACCESS == ON)
 	/* memory access test */
