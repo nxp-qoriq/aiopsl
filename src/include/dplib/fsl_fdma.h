@@ -941,7 +941,7 @@ struct fdma_delete_segment_data_params {
 @Cautions	This function may result in a fatal error.
 @Cautions	In this Service Routine the task yields.
 *//***************************************************************************/
-int fdma_present_default_frame(void);
+inline int fdma_present_default_frame(void);
 
 /**************************************************************************//**
 @Function	fdma_present_frame
@@ -1267,7 +1267,7 @@ int fdma_extend_default_segment_presentation(
 @Cautions	This function may result in a fatal error.
 @Cautions	In this Service Routine the task yields.
 *//***************************************************************************/
-int fdma_store_default_frame_data(void);
+inline int fdma_store_default_frame_data(void);
 
 /**************************************************************************//**
 @Function	fdma_store_frame_data
@@ -2157,7 +2157,7 @@ void fdma_modify_segment_data(
 @Cautions	This function may result in a fatal error.
 @Cautions	In this Service Routine the task yields.
 *//***************************************************************************/
-int fdma_insert_default_segment_data(
+inline int fdma_insert_default_segment_data(
 		uint16_t to_offset,
 		void	 *from_ws_src,
 		uint16_t insert_size,

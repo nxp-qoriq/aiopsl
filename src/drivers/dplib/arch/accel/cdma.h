@@ -582,7 +582,7 @@ int cdma_write_release_lock_and_decrement(
 @Cautions	This function may result in a fatal error.
 
 *//***************************************************************************/
-int cdma_access_context_memory(
+inline int cdma_access_context_memory(
 		uint64_t context_address,
 		uint32_t flags,
 		uint16_t offset,

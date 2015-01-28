@@ -404,7 +404,7 @@ __COLD_CODE static int pltfrm_init_mem_partitions_cb(fsl_handle_t h_platform)
             RETURN_ERROR(MAJOR, err, NO_MSG);
         }// end of MEMORY_ATTR_PHYS_ALLOCATION
     }// for
-
+    sys_mem_partitions_init_complete();
     return 0;
 }
 
