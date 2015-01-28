@@ -46,6 +46,10 @@
 #include "fsl_ipr.h"
 #include "ipr.h"
 #include "fsl_l2.h"
+#include "fsl_table.h"
+#include "fsl_keygen.h"
+
+extern struct  ipr_global_parameters ipr_global_parameters1;
 
 int app_early_init(void);
 int app_init(void);
@@ -245,7 +249,43 @@ int app_init(void)
 		}
 		else
 			fsl_os_print("Simple BU Test: fdma frame after HM is correct\n");
-		/* CTLU ???*/
+		/* CTLU */
+		{
+			struct table_rule rule;
+			uint8_t	 keysize;
+			int sr_status;
+			struct table_lookup_result lookup_result;
+			
+			rule.options = 0;
+			rule.result.type = TABLE_RESULT_TYPE_REFERENCE;
+			rule.result.op0_rptr_clp.reference_pointer = 0x12345678;
+			
+			keygen_gen_key(
+				KEYGEN_ACCEL_ID_CTLU,
+				ipr_global_parameters1.ipr_key_id_ipv4,
+				0,
+				&rule.key_desc,
+				&keysize);
+			sr_status = table_rule_create(
+					TABLE_ACCEL_ID_CTLU,
+					ipr_instance_read.table_id_ipv4,
+					&rule,
+					keysize);
+			
+			if (sr_status)
+				fsl_os_print("Simple BU ERROR: rule create failed!\n");
+
+			sr_status = table_lookup_by_keyid_default_frame(
+				TABLE_ACCEL_ID_CTLU,
+				ipr_instance_read.table_id_ipv4,
+				ipr_global_parameters1.ipr_key_id_ipv4,
+				&lookup_result);
+			
+			if (lookup_result.opaque0_or_reference != 0x12345678)
+				fsl_os_print("Simple BU ERROR: table LU failed!\n");
+			else
+				fsl_os_print("Simple BU table LU success!!!\n");
+		}
 		
 		fdma_discard_default_frame(FDMA_DIS_NO_FLAGS);
 	}
