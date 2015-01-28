@@ -333,48 +333,6 @@ void cdma_ws_memory_init(
 				(int32_t)res1);
 }
 
-int cdma_access_context_memory(
-		uint64_t context_address,
-		uint32_t flags,
-		uint16_t offset,
-		void *ws_address,
-		uint16_t dma_param,
-		uint32_t *refcount_value) {
-
-	/* command parameters and results */
-	uint32_t arg1, arg2, arg3, arg4;
-	uint8_t res1;
-
-	/* prepare command parameters */
-	arg1 = CDMA_ACCESS_CONTEXT_MEM_CMD_ARG1(offset, flags);
-	arg2 = CDMA_ACCESS_CONTEXT_MEM_CMD_ARG2(dma_param,
-			(uint32_t)ws_address);
-	arg3 = (uint32_t)(context_address>>32);
-	arg4 = (uint32_t)(context_address);
-
-	/* store command parameters */
-	__stqw(arg1, arg2, arg3, arg4, HWC_ACC_IN_ADDRESS, 0);
-
-	/* call CDMA */
-	__e_hwacceli_(CDMA_ACCEL_ID);
-
-	/* load command results */
-	res1 = *((uint8_t *)(HWC_ACC_OUT_ADDRESS+CDMA_STATUS_OFFSET));
-	*refcount_value = *((uint32_t *)(HWC_ACC_OUT_ADDRESS+
-				CDMA_REF_CNT_OFFSET));
-
-
-	if (((int32_t)res1) == CDMA_SUCCESS)
-		return 0;
-	if (((int32_t)res1) == (CDMA_REFCOUNT_DECREMENT_TO_ZERO))
-		return (int32_t)(res1);
-	if (((int32_t)res1) == (CDMA_MUTEX_LOCK_FAILED))
-		return -EBUSY;
-	cdma_exception_handler(CDMA_ACCESS_CONTEXT_MEMORY,__LINE__,
-			(int32_t)res1);
-	return -1;
-}
-
 void cdma_refcount_get(
 		uint64_t context_address,
 		uint32_t *refcount_value) {
