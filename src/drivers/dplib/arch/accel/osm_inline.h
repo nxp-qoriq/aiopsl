@@ -68,6 +68,26 @@ inline void osm_task_init(void)
 			>> PRC_OEP_BIT_OFFSET;
 }
 
+inline void osm_scope_transition_to_exclusive_with_increment_scope_id(void)
+{
+	/* call OSM */
+	if (__e_osmcmd_(OSM_SCOPE_TRANSITION_TO_EXCL_OP,
+			OSM_SCOPE_ID_STAGE_INCREMENT_MASK)) {
+		/*OSM_TRANSITION_FROM_NO_SCOPE_ERR*/
+		osm_exception_handler(
+		OSM_SCOPE_TRANSITION_TO_EXCLUSIVE_WITH_INCREMENT_SCOPE_ID,
+		__LINE__);
+	} else {
+		/** 1 = Exclusive mode. */
+		REGISTER_OSM_EXCLUSIVE;
+	}
+}
 
+inline void osm_get_scope(struct scope_status_params *scope_status)
+{
+	scope_status->scope_level = default_task_params.current_scope_level;
+	scope_status->scope_mode = default_task_params.scope_mode_level_arr
+			[default_task_params.current_scope_level-1];
+}
 
 #endif /*__OSM_INLINE_H*/
