@@ -335,7 +335,9 @@ static int platform_en_console(fsl_handle_t h_platform)
 	t_duart_uart_param  duart_uart_param;
 	fsl_handle_t        uart;
 	int           err = 0;
+
 	extern struct aiop_init_info g_init_data;
+	uint32_t ccsr_vaddr = (uint32_t)g_init_data.sl_info.ccsr_vaddr;
 	uint32_t uart_port_offset[] = {
 	                               SOC_PERIPH_OFF_DUART0,
 	                               SOC_PERIPH_OFF_DUART1,
@@ -353,7 +355,9 @@ static int platform_en_console(fsl_handle_t h_platform)
 		RETURN_ERROR(MAJOR, EAGAIN, ("DUART"));
 
 	/* Fill DUART configuration parameters */
-	duart_uart_param.base_address       = uart_port_offset[ g_init_data.sl_info.uart_port_id];
+	duart_uart_param.irq                = -1;
+	/*Use offset for ccsr */
+	duart_uart_param.base_address       = ccsr_vaddr + uart_port_offset[ g_init_data.sl_info.uart_port_id];
 	duart_uart_param.system_clock_mhz   = (platform_get_system_bus_clk(pltfrm) / 1000000);
 	duart_uart_param.baud_rate          = 115200;
 	duart_uart_param.parity             = E_DUART_PARITY_NONE;
