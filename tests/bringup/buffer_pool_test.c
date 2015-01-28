@@ -1,5 +1,5 @@
 
-#include "buffer_pool_test.h"
+#include "../../../tests/bringup/buffer_pool_test.h"
 #include "fsl_dprc.h"
 #include "fsl_dbg.h"
 #include "fsl_sys.h"
@@ -8,18 +8,20 @@
 #include "aiop_common.h"
 #include "fsl_io_ccsr.h"
 #include "fsl_icontext.h"
-#include "fsl_bman.h"
+#include "../../../drivers/qbman/include/fsl_bman.h"
 #include "fdma.h"
 #include "fsl_fdma.h"
 #include "fsl_cdma.h"
 #include "fsl_dpbp.h"
-#include "bringup_tests.h"
+#include "../../../tests/bringup/bringup_tests.h"
 
 int buffer_pool_init();
 int buffer_pool_test();
+extern int dpbp_init();
 
 extern struct mc_dprc g_mc_dprc;
 extern struct icontext icontext_aiop;
+extern int dpbp_init();
 
 int buffer_pool_init()
 {
@@ -84,29 +86,33 @@ int buffer_pool_test()
 
 			icontext_aiop_get(&ic);
 			for (j = 0; j < 10; j++) {
-				fdma_release_buffer(ic.icid, ic.bdi_flags, (uint16_t)dpbp_id, addr);
+				fdma_release_buffer(ic.icid, ic.bdi_flags, attr.bpid, addr);
 				addr += buff_size;
 			}
 
-			err = test_buffer(dpbp_id);
+			err = test_buffer(attr.bpid);
 			if(err) return err;
 
-			pr_info("AIOP: Test passed\n", core_get_id());
+
 		}
 	}
-
+	pr_info("AIOP: Test passed\n", core_get_id());
 	return 0;
 }
 
-int test_buffer(int dpbp_id)
+int test_buffer(uint16_t dpbp_id)
 {
 	uint64_t buff = 0;
 	int err;
-	err = cdma_acquire_context_memory((uint16_t) dpbp_id,
+	err = cdma_acquire_context_memory( dpbp_id,
 		&buff);
 	if(err) {
 		pr_err("cdma_acquire_context_memory Failed: %d\n",err);
 		return err;
+	}
+	else
+	{
+		fsl_os_print("Acquired memory from bpid: %d\n",dpbp_id);
 	}
 	cdma_refcount_increment(buff);
 	cdma_refcount_decrement(buff);

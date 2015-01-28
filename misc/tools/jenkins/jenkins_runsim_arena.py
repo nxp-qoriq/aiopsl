@@ -106,7 +106,7 @@ if __name__ == "__main__":
 						last_packet_size = packet_size
 				elif 'Finished SUCCESSFULLY' in line or finished_successfully:
 					finished_successfully = True
-					if g_capture == 0:
+					if g_capture <= 0:
 						exit_script(runsim,0)
 				elif 'Finished with ERRORS' in line:
 					exit_script(runsim,1)

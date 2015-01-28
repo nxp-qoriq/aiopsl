@@ -1,3 +1,19 @@
+LDPAA AIOP SERVICE LAYER LDPAA-AIOP-SL-v0.5.3.2 Change Log
+=============================================================
+
+IPsec:
+   * Updated IPsec for split key (DKP) support
+   * Updated RTA (flib) files to fsl-lssdk-v0.6
+   * RTA changes from drop 0.5:
+     - ENGR00341892  GCM16 create descriptor is Big Endian format and length field error
+     - ENGR00344693  IPSec:Task termination/Error while creating the descriptor for authentication algorithm "none"
+     - ENGR00330682 RTA : Enable SEC Checksum with IPsec descriptors commands
+     - ENGR00345748 RTA: add support for DKP (Derived Key Protocol)
+   * Updated ipsec_fm_demo to support additioal algorithms.
+
+IPR:
+  * Fix checksum calculation in case of non zero odd padding (CQ 342190)    
+
 LDPAA AIOP SERVICE LAYER LDPAA-AIOP-SL-v0.5.3.1 Change Log
 =============================================================
 * The Application SW function registration is no more to the receive_cb() function. 

@@ -43,7 +43,7 @@ struct aiop_init_info g_init_data =
  {
   2,		/* aiop_rev_major     AIOP  */
   0,		/* aiop_rev_minor     AIOP  */
-  0,		/* revision           AIOP */
+  1,		/* revision           AIOP */
   0,            /* base_spid MC */
   0x6000000000,	/* dp_ddr_phys_addr      */
   0x40000000,	/* dp_ddr_virt_addr      */

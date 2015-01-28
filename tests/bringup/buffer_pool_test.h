@@ -8,7 +8,7 @@
 
 #include "common/types.h"
 /*function to test increment/ decrement/ acquire / release buffer*/
-int test_buffer(int dpbp_id);
+int test_buffer(uint16_t dpbp_id);
 
 #endif /* __BUFFER_POOL_TEST_H */
 

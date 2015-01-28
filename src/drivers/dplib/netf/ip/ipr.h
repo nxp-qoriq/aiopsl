@@ -302,7 +302,7 @@ uint32_t check_for_frag_error(struct ipr_instance instance_params,
 
 void ipr_time_out(uint64_t rfdc_ext_addr, uint16_t dummy);
 
-uint16_t check_remove_padding();
+void check_remove_padding();
 
 uint32_t out_of_order(struct ipr_rfdc *rfdc_ptr, uint64_t rfdc_ext_addr,
 		      uint32_t last_fragment,uint16_t current_frag_size,

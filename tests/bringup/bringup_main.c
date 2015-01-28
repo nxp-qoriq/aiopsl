@@ -115,11 +115,18 @@ int main(int argc, char *argv[])
 {
     int err = 0;
     uint32_t core_id =  (get_cpu_id() >> 4);
+    volatile uint32_t wait = 1; /* Don't change */
 
     UNUSED(argc); UNUSED(argv);
 
 //    int is_master_core;
 
+    /* Initiate small data area pointers at task initialization */
+    asm {
+        mtdcr dcr469,r2 // INITR2
+        mtdcr dcr470,r13// INITR13
+    }
+    
 	/* so
 	 * sys_is_master_core()
 	 * sys_is_core_active()
@@ -127,30 +134,28 @@ int main(int argc, char *argv[])
 	 * _sys_barrier() - without prints
 	 * will work
 	 * Use get_cpu_id() and not core_id_get() as it uses prints */
+    booke_generic_irq_init();
     _fill_system_parameters();
-
-    /* Initiate small data area pointers at task initialization */
-    asm {
-        mtdcr dcr469,r2 // INITR2
-        mtdcr dcr470,r13// INITR13
-    }
 
 #if (TEST_MEM_ACCESS == ON)
 	/* memory access test */
-	err = mem_standalone_init();
-	err = mem_test();
+	err |= mem_standalone_init();
+	err |= mem_test();
 #endif /* TEST_MEM_ACCESS */
 
 
 #if (TEST_CONSOLE_PRINT == ON)
 	if(sys.is_tile_master[core_id]){
-	err = console_print_init();
-	if(err) return err;
+		err |= console_print_init();
 	}
 	sys_barrier();
+	err |=  console_print_test();
+#endif
 
-	err =  console_print_test();
-	if(err) return err;
+#if (TEST_SPINLOCK == ON)
+	err |= spinlock_standalone_init();
+	sys_barrier();
+	err |= spinlock_test();
 #endif
 
 /* Those 2 tests can't be tested together */
@@ -169,37 +174,30 @@ int main(int argc, char *argv[])
 #endif
 
 #if (TEST_AIOP_MC_CMD == ON)
-	err |= aiop_mc_cmd_init();
 	err |= aiop_mc_cmd_test();
 #endif
 
 #if (TEST_DPBP == ON) /*DPBP must be off for DPNI test*/
 	/* memory access test */
 	if(sys.is_tile_master[core_id]){
-	err = dpbp_init();
-	if(err) return err;
-	err = dpbp_test();
-	if(err) return err;
+	err |= dpbp_init();
+	err |= dpbp_test();
 	}
 #endif /* TEST_DPBP */
 
 #if (TEST_DPNI == ON) /*DPNI must be off for DPBP test*/
 	/* memory access test */
 	if(sys.is_tile_master[core_id]){
-	err = dpni_init();
-	if(err) return err;
-	err = dpni_test();
-	if(err) return err;
+	err |= dpni_init();
+	err |= dpni_test();
 	}
 #endif /* TEST_DPNI */
 
 #if (TEST_BUFFER_POOLS == ON)
 	/* memory access test */
 	if(sys.is_tile_master[core_id]){
-	err = buffer_pool_init();
-	if(err) return err;
-	err = buffer_pool_test();
-	if(err) return err;
+	err |= buffer_pool_init();
+	err |= buffer_pool_test();
 	}
 #endif /* TEST_BUFFER_POOLS */
 
@@ -301,10 +299,17 @@ int main(int argc, char *argv[])
 //
 //    //TODO should never get here !!
 //    cmgw_report_boot_failure();
-	if (err)
-		do {} while(1); /* TEST failed */
-	else
-		do {} while(1); /* TEST passed */
+	if (err) {
+#if (TEST_CONSOLE_PRINT == ON)
+		fsl_os_print("Core %d TEST FAILED\n", core_id);
+#endif
+		do {} while(wait); /* TEST failed */
+	} else {
+#if (TEST_CONSOLE_PRINT == ON)
+		fsl_os_print("Core %d TEST PASSED\n", core_id);
+#endif
+		do {} while(wait); /* TEST passed */
+	}
 
     return err;
 }

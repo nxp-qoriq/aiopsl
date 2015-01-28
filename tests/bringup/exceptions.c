@@ -10,6 +10,9 @@
 #include "cmgw.h"
 #include "aiop_common.h"
 #include "fsl_core_booke_regs.h"
+#include "sys.h"
+
+extern t_system sys; /* Global System Object */
 
 
 #if 0
@@ -83,7 +86,14 @@ static void check_exceptions()
 	esr = booke_get_spr_ESR();
 	mcsr = booke_get_spr_MCSR();
 
-	if (!esr && !mcsr) while(1) {}; /* FAILED : EXCEPTION_TEST */
+	if (!esr && !mcsr) {
+		if (sys.console)
+			fsl_os_print("FAILED : EXCEPTION_TEST no esr or mcsr \n");
+		while(1) {}; /* FAILED : EXCEPTION_TEST */
+	} else {
+		if (sys.console)
+			fsl_os_print("esr = 0x%x  mcsr = 0x%x\n", esr, mcsr);
+	}
 }
 
 #pragma push
@@ -138,6 +148,8 @@ void _booke_generic_exception_isr(uint32_t intr_entry)
 		break;
 	}
 	check_exceptions();
+	if (sys.console)
+		fsl_os_print("PASSED : EXCEPTION_TEST\n");
 	while(1) {} /* PASSED : EXCEPTION_TEST */
 }
 
@@ -292,6 +304,10 @@ int stack_ovf_test()
 	/* Stack overflow */
 	_configure_stack_overflow_detection();
 
+	if (sys.console) {
+		fsl_os_print("Start stack_ovf_test\n");
+	}
+
 	recursion_func(1);
 	return -EINVAL;
 }
@@ -304,14 +320,21 @@ int exceptions_test()
 
 	_booke_init_interrupt_vector();
 
+	if (sys.console) {
+		fsl_os_print("Start exceptions_test\n");
+	}
+
 	/* Write to IRAM */
 	iram_ptr[0] = 0xff;
 	iram_ptr[1] = 0xff;
-	if ((iram_ptr[1] != 0xff) || (iram_ptr[1] != 0xff))
-		return -EINVAL;
+
 
 	/* Trigger exception */
 	err = func_in_iram();
+
+	asm{se_illegal};
+	asm{se_illegal};
+	asm{se_illegal};
 
 	return -EINVAL;
 }

@@ -325,9 +325,10 @@ int ipsec_app_init(uint16_t ni_id)
 
 	uint64_t cipher_key_addr;
 	uint64_t auth_key_addr;
-	uint8_t cipher_key[16] = {11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26};
+	//uint8_t cipher_key[16] = {11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26};
+	uint8_t cipher_key[16] = "1122334455667788";
 	//uint8_t auth_key[128];
-	uint8_t auth_key[128] = "1234567812345678";
+	uint8_t auth_key[128] = "12345678123456781234";
 	uint8_t auth_key_id = 0;
 	
 	uint32_t cipher_alg;
@@ -340,20 +341,24 @@ int ipsec_app_init(uint16_t ni_id)
 
 	enum key_types {
 		NULL_ENCRYPTION = 0,
-		 AES128_SHA256
+		AES128_SHA1,
+		AES128_SHA256,
+		AES128_NULL
 	};
 
 	/**********************************************************/
 	/*                    Control Parameters                  */
 	/**********************************************************/
 	/* Set the required algorithms here */
-	algs = NULL_ENCRYPTION;
+	//algs = NULL_ENCRYPTION;
 	//algs = AES128_SHA256;
+	algs = AES128_SHA1;
 
 	/* Set the outer IP header type here */
 	outer_header_ip_version = 4; /* 4 or 6 */
 	
-	auth_key_id = 1; /* Overwrite the initial key array value */ 
+	auth_key_id = 0; /* Keep the initial key array value */ 
+	//auth_key_id = 1; /* Overwrite the initial key array value */ 
 	/**********************************************************/
 
 	ipsec_instance_handle_t ws_instance_handle = 0;
@@ -450,6 +455,14 @@ int ipsec_app_init(uint16_t ni_id)
 			auth_alg = IPSEC_AUTH_HMAC_MD5_96;
 			auth_keylen = 16;
 			break;
+		case AES128_SHA1:
+			fsl_os_print("Cipher Algorithm: IPSEC_CIPHER_AES_CBC\n");
+			fsl_os_print("Authentication Algorithm: IPSEC_AUTH_HMAC_SHA1_96\n");
+			cipher_alg = IPSEC_CIPHER_AES_CBC;
+			cipher_keylen = 16;
+			auth_alg = IPSEC_AUTH_HMAC_SHA1_96;
+			auth_keylen = 20;
+			break;
 		case AES128_SHA256:
 			fsl_os_print("Cipher Algorithm: IPSEC_CIPHER_AES_CBC\n");
 			fsl_os_print("Authentication Algorithm: IPSEC_AUTH_HMAC_SHA2_256_128\n");
@@ -457,6 +470,14 @@ int ipsec_app_init(uint16_t ni_id)
 			cipher_keylen = 16;
 			auth_alg = IPSEC_AUTH_HMAC_SHA2_256_128;
 			auth_keylen = 64;
+			break;
+		case AES128_NULL:
+			fsl_os_print("Cipher Algorithm: IPSEC_CIPHER_AES_CBC\n");
+			fsl_os_print("Authentication Algorithm: IPSEC_AUTH_HMAC_NULL\n");
+			cipher_alg = IPSEC_CIPHER_AES_CBC;
+			cipher_keylen = 16;
+			auth_alg = IPSEC_AUTH_HMAC_NULL;
+			auth_keylen = 0;
 			break;
 		default:
 			fsl_os_print("Cipher Algorithm (default): IPSEC_CIPHER_NULL\n");
@@ -564,6 +585,36 @@ int ipsec_app_init(uint16_t ni_id)
 	}
 
 	ipsec_sa_desc_outbound = ws_desc_handle_outbound;
+	
+	//^^^^^^^^^^^^^^^^ Debug ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+	fsl_os_print("\n ^^^ DEBUG: Authentication Key Copy  ^^^^\n");
+	
+	#define IPSEC_ALIGN_64_DEBUG(ADDRESS, ALIGNMENT)           \
+        ((((uint64_t)(ADDRESS)) + ((uint64_t)(ALIGNMENT)) - 1) & \
+        								(~(((uint64_t)(ALIGNMENT)) - 1)))
+	ws_desc_handle_inbound = IPSEC_ALIGN_64_DEBUG(ws_desc_handle_outbound, 64) + 512;
+
+	handle_high = (uint32_t)((ws_desc_handle_inbound & 0xffffffff00000000)>>32);
+	handle_low = (uint32_t)(ws_desc_handle_inbound & 0x00000000ffffffff);
+
+	fsl_os_print("Key Copy address = 0x%x_%x\n", handle_high, handle_low);
+	
+	cdma_read(
+			auth_key, /* void *ws_dst */
+			//ipsec_handle, /* uint64_t ext_address */
+			ws_desc_handle_inbound, /* uint64_t ext_address */
+			(uint16_t)auth_keylen /* uint16_t size */
+			);
+
+	for (i=0; i<128; i++) {
+		fsl_os_print("%d ", auth_key[i]);
+		if ((i%16) == 15) fsl_os_print("\n");
+	}
+	
+	fsl_os_print("\n ^^^ DEBUG: End of Authentication Key Copy  ^^^^\n");
+	
+	//^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+	
 
 	/* Inbound (decryption) parameters */
 	params.direction = IPSEC_DIRECTION_INBOUND; /**< Descriptor direction */

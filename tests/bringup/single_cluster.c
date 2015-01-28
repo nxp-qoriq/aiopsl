@@ -17,9 +17,9 @@
 #define WAITING_TIMEOUT		0x10000000
 #define CORE_ID_GET		(get_cpu_id() >> 4)
 
-uint32_t core_arr[INTG_MAX_NUM_OF_CORES] = {0};
-int8_t  counter = 0;
-int     err[INTG_MAX_NUM_OF_CORES] = {0};
+volatile uint32_t core_arr[INTG_MAX_NUM_OF_CORES] = {0};
+int8_t   counter = 0;
+volatile int      err[INTG_MAX_NUM_OF_CORES] = {0};
 extern t_system sys; /* Global System Object */
 
 static void _sys_barrier(void)
@@ -80,9 +80,13 @@ static int multi_core_test(uint8_t num_cores)
 {
 	uint32_t core_id =  CORE_ID_GET;
 	int      i;
-	int      t = 0;
+	volatile int t = 0;
 
 	if (core_id < num_cores) {
+
+		if (sys.console) {
+			fsl_os_print("multi_core_test core_id 0x%x\n", core_id);
+		}
 
 		core_arr[core_id] = 0xff;
 		err[core_id] = 0x0;
@@ -100,7 +104,11 @@ static int multi_core_test(uint8_t num_cores)
 
 		do {
 			t++;
-		} while((counter < num_cores) && (t < WAITING_TIMEOUT));
+			if (sys.console) {
+				fsl_os_print(" core_id 0x%x counter = %d\n",
+				             core_id, counter);
+			}
+		} while((((volatile int8_t)counter) < num_cores) && (t < WAITING_TIMEOUT));
 
 		if (counter < num_cores)
 			err[core_id] |= 16;
