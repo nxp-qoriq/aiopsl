@@ -32,6 +32,7 @@
 #include "fsl_io_ccsr.h"
 #include "sys.h"
 #include "../../../tests/bringup/bringup_tests.h"
+#include "../../../tests/bringup/leds.h"
 
 extern t_system sys; /* Global System Object */
 
