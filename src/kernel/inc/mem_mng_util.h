@@ -261,6 +261,7 @@ uint32_t mem_mng_check_leaks(fsl_handle_t                h_mem_mng,
                             int                     partition_id,
                             t_mem_mng_leak_report_func  *f_report_leak);
 
+int mem_mng_mem_partitions_init_completed(fsl_handle_t h_mem_mng);
 
 /** @} */ /* end of mem_mng_grp */
 

@@ -57,6 +57,10 @@ static void     sys_print_mem_leak(void        *p_memory,
                                 char        *filename,
                                 int         line);
 
+void sys_mem_partitions_init_complete()
+{
+    mem_mng_mem_partitions_init_completed(sys.mem_mng);
+}
 
 /* Put all function (execution code) into  dtext_vle section,aka __COLD_CODE */
 __START_COLD_CODE

@@ -315,6 +315,7 @@ void*  sys_aligned_malloc(uint32_t size, uint32_t alignment);
  *//***************************************************************************/
 void  sys_aligned_free(void *p_memory);
 
+void  sys_mem_partitions_init_complete();
 /** @} */ /* end of sys_mem_grp */
 /** @} */ /* end of sys_grp */
 __END_COLD_CODE

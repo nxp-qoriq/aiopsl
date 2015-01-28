@@ -229,6 +229,7 @@ int boot_get_mem_virt(struct initial_mem_mng* boot_mem_mng,
     p_mem_mng->f_early_free   = p_mem_mng_param->f_early_free;
     p_mem_mng->lock    = p_mem_mng_param->lock;
 
+    p_mem_mng->mem_partitions_initialized = 0;
     /* Initialize internal partitions array */
     array_size = ARRAY_SIZE(p_mem_mng->mem_partitions_array);
     // Check that memory partition array size greater than MEM_PART_LAST
@@ -248,6 +249,7 @@ int boot_get_mem_virt(struct initial_mem_mng* boot_mem_mng,
         p_mem_mng->phys_allocation_mem_partitions_array[i].was_initialized = 0;
     }
 
+    p_mem_mng->mem_partitions_initialized = 0;
 
     return p_mem_mng;
 }
@@ -1342,5 +1344,10 @@ static int mem_mng_remove_entry(t_mem_mng          *p_mem_mng,
 
     return 0;
 }
-
+int mem_mng_mem_partitions_init_completed(fsl_handle_t h_mem_mng)
+{
+	t_mem_mng  *p_mem_mng = (t_mem_mng *)h_mem_mng;
+	p_mem_mng->mem_partitions_initialized = 1;
+	return 0;
+}
 __END_COLD_CODE

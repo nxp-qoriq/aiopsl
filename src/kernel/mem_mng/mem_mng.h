@@ -123,6 +123,7 @@ typedef struct t_mem_mng
                 /**< Early deallocation routine (before partitions are registered) */
     list_t      early_mem_debug_list;
                 /**< List of early memory allocation entries (for debug) */
+    uint32_t    mem_partitions_initialized;
 
 #ifdef AIOP
     uint8_t *   lock;
