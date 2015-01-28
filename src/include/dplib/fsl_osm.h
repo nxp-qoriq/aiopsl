@@ -177,7 +177,7 @@ struct scope_status_params {
 		no order scope_id was specified for this task (null scope_id) before
 		calling this function.
 *//***************************************************************************/
-void osm_scope_transition_to_exclusive_with_increment_scope_id(void);
+inline void osm_scope_transition_to_exclusive_with_increment_scope_id(void);
 
 
 /*************************************************************************//**
@@ -450,7 +450,7 @@ inline void osm_scope_exit(void);
 
 @Cautions	None.
 *//***************************************************************************/
-void osm_get_scope(struct scope_status_params *scope_status);
+inline void osm_get_scope(struct scope_status_params *scope_status);
 
 /** @} end of group OSM_Functions */
 /** @} */ /* end of FSL_AIOP_OSM */
