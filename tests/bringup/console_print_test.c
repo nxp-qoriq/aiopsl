@@ -1,8 +1,8 @@
 
+#include "common/types.h"
 #include "sys.h"
 #include "platform.h"
 #include "ls2085_aiop/fsl_platform.h"
-#include "common/types.h"
 #include "console.h"
 #include "../../../tests/bringup/console_print_test.h"
 #include "fsl_string.h"
@@ -432,7 +432,7 @@ int console_print_init()
 
 	pltfrm.param.clock_in_freq_hz = 100000000;
 	pltfrm.param.console_type = PLTFRM_CONSOLE_DUART;
-	pltfrm.param.console_id = 2;
+	pltfrm.param.console_id = UART_ID;
 
 	pltfrm_ops = &(sys.platform_ops);
 
