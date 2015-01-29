@@ -2444,6 +2444,12 @@ uint8_t ipsec_get_ipv6_nh_offset (struct ipv6hdr *ipv6_hdr, uint8_t *length)
 	 * extensions before ESP */
 	*length = IPV6_HDR_LENGTH;
 
+	/* From RFC 2460: 4.1  Extension Header Order
+	 * IPv6 nodes must accept and attempt to process extension headers in
+	 *  any order and occurring any number of times in the same packet,
+	 *  except for the Hop-by-Hop Options header which is restricted to
+	 *  appear immediately after an IPv6 header only. */
+	
 	/* Skip to next extension header until extension isn't ipv6 header
 	 * or until extension is the fragment position (depend on flag) */
 	while ((next_hdr == IPV6_EXT_HOP_BY_HOP) ||
@@ -2468,8 +2474,7 @@ uint8_t ipsec_get_ipv6_nh_offset (struct ipv6hdr *ipv6_hdr, uint8_t *length)
 			/* If the next header is not an extension, this should be
 			 * the starting point for ESP encapsulation  */
 			if ((next_hdr != IPV6_EXT_ROUTING) && 
-					(next_hdr != IPV6_EXT_FRAGMENT) && 
-					(next_hdr != IPV6_EXT_HOP_BY_HOP)) {
+					(next_hdr != IPV6_EXT_FRAGMENT)) {
 				/* Don't add to NH_OFFSET/length and Exit from the while loop */
 				dst_ext = 0;
 			} else {
@@ -2483,8 +2488,7 @@ uint8_t ipsec_get_ipv6_nh_offset (struct ipv6hdr *ipv6_hdr, uint8_t *length)
 		case IPV6_EXT_FRAGMENT:
 		{
 			/* Increment NH_OFFSET only if next header is extension */
-			if ((next_hdr == IPV6_EXT_ROUTING) ||
-				(next_hdr == IPV6_EXT_HOP_BY_HOP)) {
+			if (next_hdr == IPV6_EXT_ROUTING) {
 				/* in 8 bytes multiples */
 				nh_offset += IPV6_FRAGMENT_HEADER_LENGTH>>3; 
 			} else if (next_hdr == IPV6_EXT_DESTINATION) {
@@ -2494,8 +2498,7 @@ uint8_t ipsec_get_ipv6_nh_offset (struct ipv6hdr *ipv6_hdr, uint8_t *length)
 							IPV6_FRAGMENT_HEADER_LENGTH));
 				/* Increment NH_OFFSET only if the following DEST header
 				 * is not the last extension */
-				if ((header_after_dest == IPV6_EXT_ROUTING) ||
-						(header_after_dest == IPV6_EXT_HOP_BY_HOP)){
+				if (header_after_dest == IPV6_EXT_ROUTING) {
 					nh_offset += IPV6_FRAGMENT_HEADER_LENGTH>>3; 
 				}	
 			}
@@ -2509,7 +2512,6 @@ uint8_t ipsec_get_ipv6_nh_offset (struct ipv6hdr *ipv6_hdr, uint8_t *length)
 		{
 			/* Increment NH_OFFSET only if next header is extension */
 			if ((next_hdr == IPV6_EXT_ROUTING) ||
-				(next_hdr == IPV6_EXT_HOP_BY_HOP) ||	
 				(next_hdr == IPV6_EXT_FRAGMENT)) {
 				/* in 8 bytes multiples */
 				nh_offset += (current_hdr_size + 1); 
@@ -2520,7 +2522,6 @@ uint8_t ipsec_get_ipv6_nh_offset (struct ipv6hdr *ipv6_hdr, uint8_t *length)
 				/* Increment NH_OFFSET only if this is not the last ext. header
 				 * before Destination */
 				if ((header_after_dest == IPV6_EXT_ROUTING) ||
-					(header_after_dest == IPV6_EXT_HOP_BY_HOP) ||	
 					(header_after_dest == IPV6_EXT_FRAGMENT)) {
 						nh_offset += (current_hdr_size + 1); 
 				}
