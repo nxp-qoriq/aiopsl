@@ -1234,7 +1234,8 @@ int ipsec_frame_encrypt(
 				(struct presentation_context *) HWC_PRC_ADDRESS;
 
 	/* Increment the reference counter */
-	cdma_refcount_increment(ipsec_handle);
+	/* Performance Improvement */
+	//cdma_refcount_increment(ipsec_handle);
 	
 	*enc_status = 0; /* Initialize */
 	
