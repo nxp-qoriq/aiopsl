@@ -63,6 +63,7 @@ extern void tman_timer_callback(void);
 extern void tman_timer_callback(void);
 extern int ipr_init(void);
 extern int aiop_snic_init(void);
+extern int aiop_snic_early_init(void);
 extern void aiop_snic_free(void);
 
 #define WRKS_REGS_GET \
@@ -143,6 +144,7 @@ __COLD_CODE int aiop_sl_early_init(void){
 	/* IPsec 512 rounded up modulu 64 - 8 */
 	err |= slab_register_context_buffer_requirements(750, 750, 568, 64,
 			MEM_PART_DP_DDR, 0, 0);
+	err |= aiop_snic_early_init();
 
 	if(err){
 		pr_err("Failed to register context buffers\n");

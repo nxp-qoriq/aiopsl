@@ -203,8 +203,10 @@ static void epid_setup()
 #endif /* AIOP_STANDALONE */
 
 int app_early_init(void){
-	slab_register_context_buffer_requirements(100, 100, 2688, 64, MEM_PART_DP_DDR, 0, 0);
-	return 0;
+	int err;
+	
+	err = ipr_early_init(1, 100);
+	return err;
 }
 
 

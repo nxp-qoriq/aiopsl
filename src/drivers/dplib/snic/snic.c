@@ -592,6 +592,15 @@ __COLD_CODE static int snic_ctrl_cb(void *dev, uint16_t cmd, uint32_t size, void
 	return 0;
 }
 
+int aiop_snic_early_init(void)
+{
+	int err;
+
+	/* reserve IPR buffers */
+	err = ipr_early_init(MAX_SNIC_NO, MAX_OPEN_IPR_FRAMES);
+	return err;
+}
+
 int aiop_snic_init(void)
 {
 	int status;
