@@ -520,7 +520,6 @@ void fsl_os_put_mem(uint64_t paddr)
     sys_put_phys_mem(paddr);
 }
 
-#endif
 
 #ifdef ARENA_LEGACY_CODE
 /*****************************************************************************/

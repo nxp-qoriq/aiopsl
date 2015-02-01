@@ -42,7 +42,7 @@ int app_init(void);
 void app_free(void);
 
 
-static void app_process_packet_flow0 (dpni_drv_app_arg_t arg)
+__declspec(entry_point) static void app_process_packet_flow0 (dpni_drv_app_arg_t arg)
 {
 	int      err = 0;
 	int local_test_error = 0;
@@ -55,6 +55,8 @@ static void app_process_packet_flow0 (dpni_drv_app_arg_t arg)
 	uint8_t local_hw_addr[NET_HDR_FLD_ETH_ADDR_SIZE];
 	struct ipv4hdr *ipv4header;
 
+	sl_prolog();
+	
 	UNUSED(arg);
 
 	if (PARSER_IS_OUTER_IPV4_DEFAULT())
@@ -115,6 +117,8 @@ static void app_process_packet_flow0 (dpni_drv_app_arg_t arg)
 		fsl_os_print("Finished SUCCESSFULLY\n");
 	else
 		fsl_os_print("Finished with ERRORS\n");
+	
+	fdma_terminate_task();
 }
 
 
@@ -140,10 +144,7 @@ int app_init(void)
              uint32_t flow_id = 0;
 
              err = dpni_drv_register_rx_cb((uint16_t)ni/*ni_id*/,
-
-            		 	 	 	 	 	   aiop_verification_fm, /* callback for flow_id*/
-
-                                           ni  /*arg, nic number*/);
+            		 	 aiop_verification_fm/* callback for flow_id*/);
 
              if (err) return err;
 
