@@ -28,6 +28,9 @@
 @File		osm.h
 
 @Description	This file contains the AIOP SW OSM internal API
+
+@note		This file is intended for internal use only (it may not be 
+		included elsewhere).
 *//***************************************************************************/
 
 
@@ -110,27 +113,6 @@ extern __TASK struct aiop_default_task_params default_task_params;
 	 * scope_id=INCR, request_exclusivity=true */
 #define OSM_SCOPE_ENTER_EXCL_SCOPE_INC_REL_PARENT_OP	0x17
 
-
-inline void osm_task_init(void)
-{
-	uint8_t osm_val = ((struct presentation_context *)HWC_PRC_ADDRESS)
-			->osrc_oep_osel_osrm;
-
-	/**<	0 = No order scope specified.\n
-		1 = Scope was specified for level 1 of hierarchy */
-	/*default_task_params.current_scope_level =
-			((osm_val & PRC_OSRC_MASK) ? 1 : 0);*/
-	default_task_params.current_scope_level = osm_val >>
-			PRC_OSRC_BIT_OFFSET;
-
-	/**(uint32_t *)default_task_params.scope_mode_level_arr = 0 ;*/
-	/**<	0 = Concurrent mode.\n
-		1 = Exclusive mode. */
-	/*default_task_params.scope_mode_level_arr[0] =
-			((osm_val & PRC_OEP_MASK) ? 1 : 0);*/
-	default_task_params.scope_mode_level_arr[0] = (osm_val & PRC_OEP_MASK)
-			>> PRC_OEP_BIT_OFFSET;
-}
 
 /**************************************************************************//**
  @enum osm_functions

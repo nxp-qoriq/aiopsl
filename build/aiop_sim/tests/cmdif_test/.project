@@ -117,6 +117,11 @@ aiop_sl		</project>
 			<locationURI>PROJECT_LOC/src/apps.h</locationURI>
 		</link>
 		<link>
+			<name>src/bringup</name>
+			<type>2</type>
+			<locationURI>virtual:/virtual</locationURI>
+		</link>
+		<link>
 			<name>src/cmdif_client_stub.c</name>
 			<type>1</type>
 			<locationURI>PROJECT_LOC/src/cmdif_client_stub.c</locationURI>
@@ -135,6 +140,11 @@ aiop_sl		</project>
 			<name>src/config.c</name>
 			<type>1</type>
 			<locationURI>PARENT-4-PROJECT_LOC/src/arch/ppc/platform/ls2085a_aiop/config.c</locationURI>
+		</link>
+		<link>
+			<name>src/bringup/gpp_sys_ddr.c</name>
+			<type>1</type>
+			<locationURI>PARENT-4-PROJECT_LOC/tests/bringup/gpp_sys_ddr.c</locationURI>
 		</link>
 	</linkedResources>
 </projectDescription>

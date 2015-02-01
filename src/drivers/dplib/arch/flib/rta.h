@@ -1,4 +1,8 @@
-/* Copyright 2008-2013 Freescale Semiconductor, Inc. */
+/*
+ * Copyright 2008-2013 Freescale Semiconductor, Inc.
+ *
+ * SPDX-License-Identifier: BSD-3-Clause or GPL-2.0+
+ */
 
 #ifndef __RTA_RTA_H__
 #define __RTA_RTA_H__
@@ -495,6 +499,30 @@ static inline unsigned rta_get_sec_era(void)
 	rta_proto_operation(program, optype, protid, protoinfo)
 
 /**
+ * DKP_PROTOCOL - Configures DKP (Derived Key Protocol) PROTOCOL command
+ * @program: pointer to struct program
+ * @protid: protocol identifier value - one of the following:
+ *          OP_PCLID_DKP_{MD5 | SHA1 | SHA224 | SHA256 | SHA384 | SHA512}
+ * @key_src: How the initial ("negotiated") key is provided to the DKP protocol.
+ *           Valid values - one of OP_PCL_DKP_SRC_{IMM, SEQ, PTR, SGF}. Not all
+ *           (key_src,key_dst) combinations are allowed.
+ * @key_dst: How the derived ("split") key is returned by the DKP protocol.
+ *           Valid values - one of OP_PCL_DKP_DST_{IMM, SEQ, PTR, SGF}. Not all
+ *           (key_src,key_dst) combinations are allowed.
+ * @keylen: length of the initial key, in bytes (uint16_t)
+ * @key: address where algorithm key resides; virtual address if key_type is
+ *       RTA_DATA_IMM, physical (bus) address if key_type is RTA_DATA_PTR or
+ *       RTA_DATA_IMM_DMA.
+ * @key_type: enum rta_data_type
+ * Return: On success, descriptor buffer offset where this command is inserted.
+ *         On error, a negative error code; first error program counter will
+ *         point to offset in descriptor buffer where the instruction should
+ *         have been written.
+ */
+#define DKP_PROTOCOL(program, protid, key_src, key_dst, keylen, key, key_type) \
+	rta_dkp_proto(program, protid, key_src, key_dst, keylen, key, key_type)
+
+/**
  * PKHA_OPERATION - Configures PKHA OPERATION command
  * @program: pointer to struct program
  * @op_pkha: PKHA operation; indicates the modular arithmetic function to
@@ -804,25 +832,7 @@ static inline unsigned rta_get_sec_era(void)
  *
  * Return: 0 in case of success, a negative error code if it fails
  */
-#define PATCH_JUMP(program, line, new_ref) \
-	rta_patch_jmp(program, line, new_ref, false)
-
-/**
- * PATCH_JUMP_NON_LOCAL - Auxiliary command to resolve referential code between
- *                        two program buffers.
- * @src_program: buffer to be updated (struct program *)
- * @line: position in source descriptor buffer where the update will be done;
- *        this value is previously retained in program flow using a reference
- *        near the sequence to be modified.
- * @new_ref: updated value that will be inserted in descriptor buffer at the
- *           specified line; this value is previously obtained using SET_LABEL
- *           macro near the line that will be used as reference (unsigned). For
- *           JUMP command, the value represents the offset field (in words).
- *
- * Return: 0 in case of success, a negative error code if it fails
- */
-#define PATCH_JUMP_NON_LOCAL(src_program, line, new_ref) \
-	rta_patch_jmp(src_program, line, new_ref, true)
+#define PATCH_JUMP(program, line, new_ref) rta_patch_jmp(program, line, new_ref)
 
 /**
  * PATCH_MOVE - Auxiliary command to resolve self referential code
@@ -838,25 +848,7 @@ static inline unsigned rta_get_sec_era(void)
  * Return: 0 in case of success, a negative error code if it fails
  */
 #define PATCH_MOVE(program, line, new_ref) \
-	rta_patch_move(program, line, new_ref, false)
-
-/**
- * PATCH_MOVE_NON_LOCAL - Auxiliary command to resolve referential code between
- *                        two program buffers.
- * @src_program: buffer to be updated (struct program *)
- * @line: position in source descriptor buffer where the update will be done;
- *        this value is previously retained in program flow using a reference
- *        near the sequence to be modified.
- * @new_ref: updated value that will be inserted in source descriptor buffer at
- *           the specified line; this value is previously obtained using
- *           SET_LABEL macro near the line that will be used as reference
- *           (unsigned). For MOVE command, the value represents the offset
- *           field (in words).
- *
- * Return: 0 in case of success, a negative error code if it fails
- */
-#define PATCH_MOVE_NON_LOCAL(src_program, line, new_ref) \
-	rta_patch_move(src_program, line, new_ref, true)
+	rta_patch_move(program, line, new_ref)
 
 /**
  * PATCH_LOAD - Auxiliary command to resolve self referential code
@@ -888,25 +880,7 @@ static inline unsigned rta_get_sec_era(void)
  * Return: 0 in case of success, a negative error code if it fails
  */
 #define PATCH_STORE(program, line, new_ref) \
-	rta_patch_store(program, line, new_ref, false)
-
-/**
- * PATCH_STORE_NON_LOCAL - Auxiliary command to resolve referential code between
- *                         two program buffers.
- * @src_program: buffer to be updated (struct program *)
- * @line: position in source descriptor buffer where the update will be done;
- *        this value is previously retained in program flow using a reference
- *        near the sequence to be modified.
- * @new_ref: updated value that will be inserted in source descriptor buffer at
- *           the specified line; this value is previously obtained using
- *           SET_LABEL macro near the line that will be used as reference
- *           (unsigned). For STORE command, the value represents the offset
- *           field (in words).
- *
- * Return: 0 in case of success, a negative error code if it fails
- */
-#define PATCH_STORE_NON_LOCAL(src_program, line, new_ref) \
-	rta_patch_store(src_program, line, new_ref, true)
+	rta_patch_store(program, line, new_ref)
 
 /**
  * PATCH_HDR - Auxiliary command to resolve self referential code
@@ -922,25 +896,7 @@ static inline unsigned rta_get_sec_era(void)
  * Return: 0 in case of success, a negative error code if it fails
  */
 #define PATCH_HDR(program, line, new_ref) \
-	rta_patch_header(program, line, new_ref, false)
-
-/**
- * PATCH_HDR_NON_LOCAL - Auxiliary command to resolve referential code between
- *                       two program buffers.
- * @src_program: buffer to be updated (struct program *)
- * @line: position in source descriptor buffer where the update will be done;
- *        this value is previously retained in program flow using a reference
- *        near the sequence to be modified.
- * @new_ref: updated value that will be inserted in source descriptor buffer at
- *           the specified line; this value is previously obtained using
- *           SET_LABEL macro near the line that will be used as reference
- *           (unsigned). For HEADER command, the value represents the start
- *           index field.
- *
- * Return: 0 in case of success, a negative error code if it fails
- */
-#define PATCH_HDR_NON_LOCAL(src_program, line, new_ref) \
-	rta_patch_header(src_program, line, new_ref, true)
+	rta_patch_header(program, line, new_ref)
 
 /**
  * PATCH_RAW - Auxiliary command to resolve self referential code
@@ -957,24 +913,6 @@ static inline unsigned rta_get_sec_era(void)
  * Return: 0 in case of success, a negative error code if it fails
  */
 #define PATCH_RAW(program, line, mask, new_val) \
-	rta_patch_raw(program, line, mask, new_val, false)
-
-/**
- * PATCH_RAW_NON_LOCAL - Auxiliary command to resolve referential code between
- *                       two program buffers.
- * @src_program: buffer to be updated (struct program *)
- * @line: position in source descriptor buffer where the update will be done;
- *        this value is previously retained in program flow using a reference
- *        near the sequence to be modified.
- * @mask: mask to be used for applying the new value (unsigned). The mask
- *        selects which bits from the provided @new_val are taken into
- *        consideration when overwriting the existing value.
- * @new_val: updated value that will be masked using the provided mask value
- *           and inserted in descriptor buffer at the specified line.
- *
- * Return: 0 in case of success, a negative error code if it fails
- */
-#define PATCH_RAW_NON_LOCAL(src_program, line, mask, new_val) \
-	rta_patch_raw(src_program, line, mask, new_val, true)
+	rta_patch_raw(program, line, mask, new_val)
 
 #endif /* __RTA_RTA_H__ */

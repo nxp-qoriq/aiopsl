@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2015 Freescale Semiconductor, Inc.
+ * Copyright 2014 Freescale Semiconductor, Inc.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -55,10 +55,10 @@ void ipsec_print_sp (uint16_t ni_spid);
 /* Global IPsec vars in Shared RAM */
 ipsec_instance_handle_t ipsec_instance_handle;
 ipsec_handle_t ipsec_sa_desc_outbound;
-ipsec_handle_t ipsec_sa_desc_inbound; 
-uint32_t frame_number = 0; 
+ipsec_handle_t ipsec_sa_desc_inbound;
+uint32_t frame_number = 0;
 
-static void app_process_packet_flow0 (dpni_drv_app_arg_t arg)
+__declspec(entry_point) static void app_process_packet_flow0 (void)
 {
 	int      err = 0;
 	uint32_t enc_status = 0;
@@ -70,11 +70,13 @@ static void app_process_packet_flow0 (dpni_drv_app_arg_t arg)
 	int local_test_error = 0;
 	uint32_t original_frame_len;
 
+	sl_prolog();
+
 	eth_pointer_byte = (uint8_t *)PARSER_GET_ETH_POINTER_DEFAULT();
 	uint32_t frame_len = LDPAA_FD_GET_LENGTH(HWC_FD_ADDRESS);
 	original_frame_len = frame_len;
 	uint16_t seg_len = PRC_GET_SEGMENT_LENGTH();
-	
+
 	/* IPsec Initialization, happens with the first frame received */
 	if (frame_number == 0) {
 		err = ipsec_app_init(0); /* Call with NI ID = 0 */
@@ -82,40 +84,40 @@ static void app_process_packet_flow0 (dpni_drv_app_arg_t arg)
 			fsl_os_print("ERROR: IPsec initialization failed\n");
 		}
 	}
-	
+
 	ipsec_handle_t ws_desc_handle_outbound = ipsec_sa_desc_outbound;
-	ipsec_handle_t ws_desc_handle_inbound = ipsec_sa_desc_inbound; 
-	
+	ipsec_handle_t ws_desc_handle_inbound = ipsec_sa_desc_inbound;
+
 	frame_number ++;
-	
-	fsl_os_print("IPsec Demo: Core %d Received Frame number %d\n", 
+
+	fsl_os_print("IPsec Demo: Core %d Received Frame number %d\n",
 			core_get_id(), frame_number);
 
-	handle_high = 
+	handle_high =
 			(uint32_t)((ws_desc_handle_outbound & 0xffffffff00000000)>>32);
-	handle_low = 
+	handle_low =
 			(uint32_t)(ws_desc_handle_outbound & 0x00000000ffffffff);
 	fsl_os_print("Encryption handle = 0x%x_%x\n", handle_high, handle_low);
-	
-	handle_high = 
+
+	handle_high =
 			(uint32_t)((ws_desc_handle_inbound & 0xffffffff00000000)>>32);
-	handle_low = 
+	handle_low =
 			(uint32_t)(ws_desc_handle_inbound & 0x00000000ffffffff);
 	fsl_os_print("Decryption handle = 0x%x_%x\n", handle_high, handle_low);
-	
+
 	/* preserve original frame */
 	for(i = 0; ((i<frame_len) && (i<seg_len));i ++)
 	{
 		frame_before_encr[i] =  *eth_pointer_byte;
 		eth_pointer_byte++;
 	}
-	
+
 	fsl_os_print("IPSEC: frame header before encryption\n");
 	/* Print header */
 	ipsec_print_frame();
-	
+
 	fsl_os_print("\n");
-	
+
 	fsl_os_print("IPSEC: Starting Encryption\n");
 	err = ipsec_frame_encrypt(
 			ws_desc_handle_outbound,
@@ -129,10 +131,10 @@ static void app_process_packet_flow0 (dpni_drv_app_arg_t arg)
 	}
 	else
 		fsl_os_print("ipsec_frame_encrypt() completed successfully\n");
-	
+
 	if (enc_status)
 	{
-		fsl_os_print("ERROR: SEC Encryption Failed (enc_status = 0x%x)\n", 
+		fsl_os_print("ERROR: SEC Encryption Failed (enc_status = 0x%x)\n",
 				enc_status);
 		local_test_error |= enc_status;
 	}
@@ -141,7 +143,7 @@ static void app_process_packet_flow0 (dpni_drv_app_arg_t arg)
 	/* Print header */
 	ipsec_print_frame();
 	fsl_os_print("\n");
-	
+
 	fsl_os_print("IPSEC: Starting Decryption\n");
 	err = ipsec_frame_decrypt(
 			ws_desc_handle_inbound,
@@ -155,10 +157,10 @@ static void app_process_packet_flow0 (dpni_drv_app_arg_t arg)
 	}
 	else
 		fsl_os_print("ipsec_frame_decrypt() completed successfully\n");
-	
+
 	if (dec_status)
 	{
-		fsl_os_print("ERROR: SEC Decryption Failed (dec_status = 0x%x)\n", 
+		fsl_os_print("ERROR: SEC Decryption Failed (dec_status = 0x%x)\n",
 				dec_status);
 		local_test_error |=dec_status;
 	}
@@ -167,14 +169,14 @@ static void app_process_packet_flow0 (dpni_drv_app_arg_t arg)
 	/* Print header */
 	ipsec_print_frame();
 	fsl_os_print("\n");
-	
+
 	/* Compare decrypted frame to original frame */
 	err = 0;
 	eth_pointer_byte = (uint8_t *)PARSER_GET_ETH_POINTER_DEFAULT();
 	frame_len = LDPAA_FD_GET_LENGTH(HWC_FD_ADDRESS);
-	
+
 	if (frame_len != original_frame_len) {
-		fsl_os_print("ERROR: incorrect frame length (FD[length] = %d)\n", 
+		fsl_os_print("ERROR: incorrect frame length (FD[length] = %d)\n",
 				frame_len);
 		err = 1;
 		local_test_error |= err;
@@ -191,7 +193,7 @@ static void app_process_packet_flow0 (dpni_drv_app_arg_t arg)
 			eth_pointer_byte++;
 		}
 	}
-	
+
 	if(!local_test_error) /* No error found during injection of packets*/
 	{
 		fsl_os_print("Finished SUCCESSFULLY\n");
@@ -199,21 +201,22 @@ static void app_process_packet_flow0 (dpni_drv_app_arg_t arg)
 	}
 	else
 		fsl_os_print("Finished with ERRORS\n");
-		
+
 	/* Read statistics */
 	fsl_os_print("IPsec Demo: Encryption Statistics:\n");
 	ipsec_print_stats(ws_desc_handle_outbound);
-	
+
 	fsl_os_print("IPsec Demo: Decryption Statistics:\n");
 	ipsec_print_stats(ws_desc_handle_inbound);
-	
-	fsl_os_print("IPsec Demo: Core %d Sending Frame number %d\n", 
+
+	fsl_os_print("IPsec Demo: Core %d Sending Frame number %d\n",
 			core_get_id(), frame_number);
 
-	dpni_drv_send(APP_NI_GET(arg));
-	
-	fsl_os_print("IPsec Demo: Done Sending Frame\n\n");
+	dpni_drv_send(dpni_get_receive_niid());
 
+	fsl_os_print("IPsec Demo: Done Sending Frame\n\n");
+	/*MUST call fdma_terminate task in the end of cb function*/
+	fdma_terminate_task();
 }
 
 #ifdef AIOP_STANDALONE
@@ -278,12 +281,11 @@ int app_init(void)
 	epid_setup();
 #endif /* AIOP_STANDALONE */
 
-	
+
 	for (ni = 0; ni < dpni_get_num_of_ni(); ni++)
 	{
 		err = dpni_drv_register_rx_cb((uint16_t)ni /*ni_id*/,
-		         app_process_packet_flow0, /* callback */
-		         ni /*arg, nic number*/);
+				app_process_packet_flow0 /* callback */);
 		if (err) return err;
 	}
 
@@ -300,7 +302,7 @@ int app_init(void)
 	//	fsl_os_print("ERROR: IPsec initialization failed\n");
 	//	return err;
 	//}
-	
+
 	fsl_os_print("To start test inject packets: \"eth_ipv4_udp.pcap\"\n");
 	fsl_os_print("(IPsec initialization will occur when the first frame is received)\n");
 	return 0;
@@ -322,57 +324,69 @@ int ipsec_app_init(uint16_t ni_id)
 	int i;
 
 	uint64_t cipher_key_addr;
-	uint64_t auth_key_addr; 
-	uint8_t cipher_key[16] = {11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26};
-	uint8_t auth_key[128];
+	uint64_t auth_key_addr;
+	//uint8_t cipher_key[16] = {11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26};
+	uint8_t cipher_key[16] = "1122334455667788";
+	//uint8_t auth_key[128];
+	uint8_t auth_key[128] = "12345678123456781234";
+	uint8_t auth_key_id = 0;
+	
 	uint32_t cipher_alg;
-	uint32_t cipher_keylen; 
+	uint32_t cipher_keylen;
 	uint32_t auth_alg;
-	uint32_t auth_keylen; 
+	uint32_t auth_keylen;
 	uint32_t algs;
 	uint32_t outer_header_ip_version;
 	uint16_t ni_spid;
-	
+
 	enum key_types {
 		NULL_ENCRYPTION = 0,
-		 AES128_SHA256
+		AES128_SHA1,
+		AES128_SHA256,
+		AES128_NULL
 	};
-	
+
 	/**********************************************************/
 	/*                    Control Parameters                  */
 	/**********************************************************/
 	/* Set the required algorithms here */
 	//algs = NULL_ENCRYPTION;
-	algs = AES128_SHA256;
+	//algs = AES128_SHA256;
+	algs = AES128_SHA1;
 
 	/* Set the outer IP header type here */
-	outer_header_ip_version = 6; /* 4 or 6 */
+	outer_header_ip_version = 4; /* 4 or 6 */
+	
+	auth_key_id = 0; /* Keep the initial key array value */ 
+	//auth_key_id = 1; /* Overwrite the initial key array value */ 
 	/**********************************************************/
 
 	ipsec_instance_handle_t ws_instance_handle = 0;
 	ipsec_handle_t ws_desc_handle_outbound = 0;
-	ipsec_handle_t ws_desc_handle_inbound = 0; 
-	
-	for (i=0; i<128; i++) {
-		auth_key[i] = (uint8_t)i;
+	ipsec_handle_t ws_desc_handle_inbound = 0;
+
+	if (auth_key_id == 1) {
+		for (i=0; i<128; i++) {
+			auth_key[i] = (uint8_t)i;
+		}
 	}
-	
+
 	frame_number = 0;
-	
+
 	fsl_os_print("\n++++\n  IPsec Demo: Doing IPsec Initialization\n+++\n");
-	
+
 	dpni_drv_get_spid(
-		ni_id, /* uint16_t ni_id */ 
+		ni_id, /* uint16_t ni_id */
 		&ni_spid /* uint16_t *spid */
 		);
-	
+
 	fsl_os_print("IPsec Demo: SPID = %d\n", ni_spid);
 
 #define IPSEC_DEBUG_PRINT_SP
 #ifdef IPSEC_DEBUG_PRINT_SP
 	ipsec_print_sp (ni_spid);
 #endif
-	
+
 	err = ipsec_create_instance(
 			10, /* committed sa num */
 			20, /* max sa num */
@@ -381,14 +395,14 @@ int ipsec_app_init(uint16_t ni_id)
 			&ws_instance_handle);
 	if (err) {
 		fsl_os_print("ERROR: ipsec_create_instance() failed\n");
-		fsl_os_print("ipsec_create_instance return status = %d (0x%x)\n", 
+		fsl_os_print("ipsec_create_instance return status = %d (0x%x)\n",
 				err, err);
 	} else {
 		fsl_os_print("ipsec_create_instance() completed successfully\n");
 	}
-	
+
 	ipsec_instance_handle = ws_instance_handle;
-	
+
 	/* Allocate buffers for the Keys */
 	err = slab_create(
 			10, /* uint32_t    num_buffs */
@@ -402,10 +416,10 @@ int ipsec_app_init(uint16_t ni_id)
 			);
 
 	if (err)
-		fsl_os_print("ERROR: slab_create() failed\n");	
+		fsl_os_print("ERROR: slab_create() failed\n");
 	else
-		fsl_os_print("slab_create() completed successfully\n");	
-	
+		fsl_os_print("slab_create() completed successfully\n");
+
 	/* Acquire the Cipher key buffer */
 	err = 0;
 	err = slab_acquire(
@@ -414,10 +428,10 @@ int ipsec_app_init(uint16_t ni_id)
 			);
 
 	if (err)
-		fsl_os_print("ERROR: slab_acquire() failed\n");	
+		fsl_os_print("ERROR: slab_acquire() failed\n");
 	else
-		fsl_os_print("slab_acquire() completed successfully\n");	
-	
+		fsl_os_print("slab_acquire() completed successfully\n");
+
 	/* Acquire the Authentication key buffer */
 	err = 0;
 	err = slab_acquire(
@@ -426,47 +440,65 @@ int ipsec_app_init(uint16_t ni_id)
 			);
 
 	if (err)
-		fsl_os_print("ERROR: slab_acquire() failed\n");	
+		fsl_os_print("ERROR: slab_acquire() failed\n");
 	else
-		fsl_os_print("slab_acquire() completed successfully\n");	
+		fsl_os_print("slab_acquire() completed successfully\n");
+
+
+
+	switch (algs) {
+		case NULL_ENCRYPTION:
+			fsl_os_print("Cipher Algorithm: IPSEC_CIPHER_NULL\n");
+			fsl_os_print("Authentication Algorithm: IPSEC_AUTH_HMAC_MD5_96\n");
+			cipher_alg = IPSEC_CIPHER_NULL;
+			cipher_keylen = 0x0;
+			auth_alg = IPSEC_AUTH_HMAC_MD5_96;
+			auth_keylen = 16;
+			break;
+		case AES128_SHA1:
+			fsl_os_print("Cipher Algorithm: IPSEC_CIPHER_AES_CBC\n");
+			fsl_os_print("Authentication Algorithm: IPSEC_AUTH_HMAC_SHA1_96\n");
+			cipher_alg = IPSEC_CIPHER_AES_CBC;
+			cipher_keylen = 16;
+			auth_alg = IPSEC_AUTH_HMAC_SHA1_96;
+			auth_keylen = 20;
+			break;
+		case AES128_SHA256:
+			fsl_os_print("Cipher Algorithm: IPSEC_CIPHER_AES_CBC\n");
+			fsl_os_print("Authentication Algorithm: IPSEC_AUTH_HMAC_SHA2_256_128\n");
+			cipher_alg = IPSEC_CIPHER_AES_CBC;
+			cipher_keylen = 16;
+			auth_alg = IPSEC_AUTH_HMAC_SHA2_256_128;
+			auth_keylen = 64;
+			break;
+		case AES128_NULL:
+			fsl_os_print("Cipher Algorithm: IPSEC_CIPHER_AES_CBC\n");
+			fsl_os_print("Authentication Algorithm: IPSEC_AUTH_HMAC_NULL\n");
+			cipher_alg = IPSEC_CIPHER_AES_CBC;
+			cipher_keylen = 16;
+			auth_alg = IPSEC_AUTH_HMAC_NULL;
+			auth_keylen = 0;
+			break;
+		default:
+			fsl_os_print("Cipher Algorithm (default): IPSEC_CIPHER_NULL\n");
+			fsl_os_print("Authentication Algorithm (default): IPSEC_AUTH_HMAC_MD5_96\n");
+			cipher_alg = IPSEC_CIPHER_NULL;
+			cipher_keylen = 0x0;
+			auth_alg = IPSEC_AUTH_HMAC_MD5_96;
+			auth_keylen = 16;
+	}
 
 	/* Copy the Keys to external memory with CDMA */
 	cdma_write(
 			cipher_key_addr, /* ext_address */
 			&cipher_key, /* ws_src */
 			16); /* uint16_t size */
-		
+
 	cdma_write(
 			auth_key_addr, /* ext_address */
 			&auth_key, /* ws_src */
-			16); /* uint16_t size */
-	
-	switch (algs) {
-		case NULL_ENCRYPTION:
-			fsl_os_print("Cipher Algorithm: IPSEC_CIPHER_NULL\n");	
-			fsl_os_print("Authentication Algorithm: IPSEC_AUTH_HMAC_MD5_96\n");	
-			cipher_alg = IPSEC_CIPHER_NULL;
-			cipher_keylen = 0x0; 
-			auth_alg = IPSEC_AUTH_HMAC_MD5_96;
-			auth_keylen = 16; 
-			break;
-		case AES128_SHA256:
-			fsl_os_print("Cipher Algorithm: IPSEC_CIPHER_AES_CBC\n");	
-			fsl_os_print("Authentication Algorithm: IPSEC_AUTH_HMAC_SHA2_256_128\n");	
-			cipher_alg = IPSEC_CIPHER_AES_CBC;
-			cipher_keylen = 16;
-			auth_alg = IPSEC_AUTH_HMAC_SHA2_256_128;
-			auth_keylen = 64;
-			break;
-		default:
-			fsl_os_print("Cipher Algorithm (default): IPSEC_CIPHER_NULL\n");	
-			fsl_os_print("Authentication Algorithm (default): IPSEC_AUTH_HMAC_MD5_96\n");	
-			cipher_alg = IPSEC_CIPHER_NULL;
-			cipher_keylen = 0x0; 
-			auth_alg = IPSEC_AUTH_HMAC_MD5_96;
-			auth_keylen = 16; 
-	}
-	
+			(uint16_t)auth_keylen); /* uint16_t size */
+
 	/* Outer IP header */
 	if (outer_header_ip_version == 4) {
 		outer_ip_header[0] = 0x45db0014;
@@ -489,38 +521,38 @@ int ipsec_app_init(uint16_t ni_id)
 		outer_ip_header[7] = 0x00000000;
 		outer_ip_header[8] = 0x00000001;
 		outer_ip_header[9] = 0xff8295b5;
-		
+
 		params.encparams.ip_hdr_len = 0x28; /* outer header length is 40 bytes */
 	}
-	
+
 	/* Outbound (encryption) parameters */
 	params.direction = IPSEC_DIRECTION_OUTBOUND; /**< Descriptor direction */
 	params.flags = IPSEC_FLG_TUNNEL_MODE |
-			IPSEC_FLG_LIFETIME_KB_CNTR_EN | IPSEC_FLG_LIFETIME_PKT_CNTR_EN; 
+			IPSEC_FLG_LIFETIME_KB_CNTR_EN | IPSEC_FLG_LIFETIME_PKT_CNTR_EN;
 			/**< Miscellaneous control flags */
-	
+
 	params.encparams.ip_nh = 0x0;
 	params.encparams.options = 0x0;
 	params.encparams.seq_num_ext_hi = 0x0;
 	params.encparams.seq_num = 0x0;
 	params.encparams.spi = 0x0;
 	params.encparams.outer_hdr = (uint32_t *)&outer_ip_header;
-	params.encparams.cbc.iv[0] = 0;
-	params.encparams.cbc.iv[1] = 0;
-	params.encparams.cbc.iv[2] = 0;
-	params.encparams.cbc.iv[3] = 0;
+
+	for (i=0; i<sizeof(params.encparams.cbc.iv); i++) {
+		params.encparams.cbc.iv[i] = 0;
+	}
 
 	params.cipherdata.algtype = cipher_alg;
 	params.cipherdata.key = cipher_key_addr;
-	params.cipherdata.keylen = cipher_keylen; 
+	params.cipherdata.keylen = cipher_keylen;
 	params.cipherdata.key_enc_flags = 0x0;
-	
+
 	params.authdata.algtype = auth_alg;
 	params.authdata.key = auth_key_addr;
-	params.authdata.keylen = auth_keylen; 
+	params.authdata.keylen = auth_keylen;
 	params.authdata.key_enc_flags = 0x0;
-	
-	params.soft_kilobytes_limit = 0xffffffffffffffff; 
+
+	params.soft_kilobytes_limit = 0xffffffffffffffff;
 	params.hard_kilobytes_limit = 0xffffffffffffffff;
 	params.soft_packet_limit = 0xffffffffffffffff;
 	params.hard_packet_limit = 0xffffffffffffffff;
@@ -529,23 +561,23 @@ int ipsec_app_init(uint16_t ni_id)
 
 	params.lifetime_callback = NULL;
 	params.callback_arg = NULL;
-	
+
 	params.spid = ni_spid;
-	
+
 	/* Create Outbound (encryption) Descriptor */
 	err = ipsec_add_sa_descriptor(
 			&params,
 			ws_instance_handle,
 			&ws_desc_handle_outbound);
 
-	handle_high = 
+	handle_high =
 			(uint32_t)((ws_desc_handle_outbound & 0xffffffff00000000)>>32);
-	handle_low = 
+	handle_low =
 			(uint32_t)(ws_desc_handle_outbound & 0x00000000ffffffff);
-	
+
 	if (err) {
 		fsl_os_print("ERROR: ipsec_add_sa_descriptor(encryption) failed\n");
-		fsl_os_print("ipsec_add_sa_descriptor return status = %d (0x%x)\n", 
+		fsl_os_print("ipsec_add_sa_descriptor return status = %d (0x%x)\n",
 				err, err);
 	} else {
 		fsl_os_print("ipsec_add_sa_descriptor(encryption) succeeded\n");
@@ -554,29 +586,59 @@ int ipsec_app_init(uint16_t ni_id)
 
 	ipsec_sa_desc_outbound = ws_desc_handle_outbound;
 	
+	//^^^^^^^^^^^^^^^^ Debug ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+	fsl_os_print("\n ^^^ DEBUG: Authentication Key Copy  ^^^^\n");
+	
+	#define IPSEC_ALIGN_64_DEBUG(ADDRESS, ALIGNMENT)           \
+        ((((uint64_t)(ADDRESS)) + ((uint64_t)(ALIGNMENT)) - 1) & \
+        								(~(((uint64_t)(ALIGNMENT)) - 1)))
+	ws_desc_handle_inbound = IPSEC_ALIGN_64_DEBUG(ws_desc_handle_outbound, 64) + 512;
+
+	handle_high = (uint32_t)((ws_desc_handle_inbound & 0xffffffff00000000)>>32);
+	handle_low = (uint32_t)(ws_desc_handle_inbound & 0x00000000ffffffff);
+
+	fsl_os_print("Key Copy address = 0x%x_%x\n", handle_high, handle_low);
+	
+	cdma_read(
+			auth_key, /* void *ws_dst */
+			//ipsec_handle, /* uint64_t ext_address */
+			ws_desc_handle_inbound, /* uint64_t ext_address */
+			(uint16_t)auth_keylen /* uint16_t size */
+			);
+
+	for (i=0; i<128; i++) {
+		fsl_os_print("%d ", auth_key[i]);
+		if ((i%16) == 15) fsl_os_print("\n");
+	}
+	
+	fsl_os_print("\n ^^^ DEBUG: End of Authentication Key Copy  ^^^^\n");
+	
+	//^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+	
+
 	/* Inbound (decryption) parameters */
 	params.direction = IPSEC_DIRECTION_INBOUND; /**< Descriptor direction */
 	params.flags = IPSEC_FLG_TUNNEL_MODE |
-			IPSEC_FLG_LIFETIME_KB_CNTR_EN | IPSEC_FLG_LIFETIME_PKT_CNTR_EN; 
+			IPSEC_FLG_LIFETIME_KB_CNTR_EN | IPSEC_FLG_LIFETIME_PKT_CNTR_EN;
 			/**< Miscellaneous control flags */
-	
+
 	params.decparams.options = 0x0;
 	//params.decparams.options = IPSEC_DEC_OPTS_ARS32; /* Anti Replay 32 bit enabled */
-	
+
 	params.decparams.seq_num_ext_hi = 0x0;
 	params.decparams.seq_num = 0x0;
 
 	params.cipherdata.algtype = cipher_alg;
 	params.cipherdata.key = cipher_key_addr;
-	params.cipherdata.keylen = cipher_keylen; 
+	params.cipherdata.keylen = cipher_keylen;
 	params.cipherdata.key_enc_flags = 0x0;
-	
+
 	params.authdata.algtype = auth_alg;
 	params.authdata.key = auth_key_addr;
-	params.authdata.keylen = auth_keylen; 
+	params.authdata.keylen = auth_keylen;
 	params.authdata.key_enc_flags = 0x0;
-	
-	params.soft_kilobytes_limit = 0xffffffffffffffff; 
+
+	params.soft_kilobytes_limit = 0xffffffffffffffff;
 	params.hard_kilobytes_limit = 0xffffffffffffffff;
 	params.soft_packet_limit = 0xffffffffffffffff;
 	params.hard_packet_limit = 0xffffffffffffffff;
@@ -585,18 +647,18 @@ int ipsec_app_init(uint16_t ni_id)
 
 	params.lifetime_callback = NULL;
 	params.callback_arg = NULL;
-	
+
 	params.spid = ni_spid;
-	
+
 	/* Create Inbound (decryption) Descriptor */
 	err = ipsec_add_sa_descriptor(
 			&params,
 			ws_instance_handle,
 			&ws_desc_handle_inbound);
-	
+
 	handle_high = (uint32_t)((ws_desc_handle_inbound & 0xffffffff00000000)>>32);
 	handle_low = (uint32_t)(ws_desc_handle_inbound & 0x00000000ffffffff);
-	
+
 	if (err) {
 		fsl_os_print("ERROR: ipsec_add_sa_descriptor(decryption) failed\n");
 		fsl_os_print("ipsec_add_sa_descriptor return status = %d (0x%x)\n",
@@ -605,12 +667,12 @@ int ipsec_app_init(uint16_t ni_id)
 		fsl_os_print("ipsec_add_sa_descriptor(decryption) succeeded\n");
 		fsl_os_print("Decryption handle = 0x%x_%x\n", handle_high, handle_low);
 	}
-	
+
 	ipsec_sa_desc_inbound = ws_desc_handle_inbound;
-	
+
 	if (!err)
 		fsl_os_print("IPsec Demo: IPsec Initialization completed\n");
-	
+
 	return err;
 } /* End of ipsec_app_init */
 
@@ -620,12 +682,12 @@ void ipsec_print_frame(void) {
 	int i;
 	uint16_t seg_len = PRC_GET_SEGMENT_LENGTH();
 	uint32_t frame_len = LDPAA_FD_GET_LENGTH(HWC_FD_ADDRESS);
-	
-	fsl_os_print("Printing Frame. FD[len] = %d, Seg Len = %d\n", 
+
+	fsl_os_print("Printing Frame. FD[len] = %d, Seg Len = %d\n",
 			frame_len, seg_len);
 
 	eth_pointer_byte = (uint8_t *)PARSER_GET_ETH_POINTER_DEFAULT();
-	
+
 	for(i = 0; ((i<frame_len) && (i<seg_len));i ++)
 	{
 		if ((i%16) == 0) {
@@ -634,21 +696,21 @@ void ipsec_print_frame(void) {
 				fsl_os_print("0");
 			fsl_os_print("%x  ",(i));
 		}
-		
+
 		if ((*eth_pointer_byte) < 16)
 			fsl_os_print("0");
-		
+
 		fsl_os_print("%x ", *eth_pointer_byte);
-		
+
 		if ((i%8) == 7)
 			fsl_os_print(" ");
-		
+
 		if ((i%16) == 15)
 			fsl_os_print("\n");
-		
+
 		eth_pointer_byte++;
 	}
-	
+
 	if ((i%16) != 0)
 		fsl_os_print("\n");
 } /* End of ipsec_print_frame */
@@ -670,16 +732,16 @@ void ipsec_print_stats (ipsec_handle_t desc_handle) {
 		&packets,
 		&sec);
 	fsl_os_print("IPsec Demo: ipsec_get_lifetime_stats():\n");
-	
-	val_high = 
+
+	val_high =
 		(uint32_t)((kilobytes & 0xffffffff00000000)>>32);
-	val_low = 
+	val_low =
 		(uint32_t)(kilobytes & 0x00000000ffffffff);
 	fsl_os_print("kilobytes = 0x%x_0x%x,", val_high, val_low);
 
-	val_high = 
+	val_high =
 		(uint32_t)((packets & 0xffffffff00000000)>>32);
-	val_low = 
+	val_low =
 		(uint32_t)(packets & 0x00000000ffffffff);
 	fsl_os_print("packets = 0x%x_0x%x, seconds = %d\n",
 		val_high, val_low, sec);
@@ -693,7 +755,7 @@ void ipsec_print_stats (ipsec_handle_t desc_handle) {
 	fsl_os_print("sequence_number = 0x%x, esn = 0x%x\n",
 			sequence_number, extended_sequence_number);
 	fsl_os_print("bitmap[0:3] = 0x%x, 0x%x, 0x%x, 0x%x\n",
-		anti_replay_bitmap[0], anti_replay_bitmap[1], 
+		anti_replay_bitmap[0], anti_replay_bitmap[1],
 		anti_replay_bitmap[2], anti_replay_bitmap[3]);
 } /* End of ipsec_print_stats */
 
@@ -711,6 +773,6 @@ void ipsec_print_sp (uint16_t ni_spid) {
 	fsl_os_print("*** Debug: storage_profile (4): 0x%x\n", *((uint32_t *)sp_addr + 4));
 	fsl_os_print("*** Debug: storage_profile (5): 0x%x\n", *((uint32_t *)sp_addr + 5));
 	fsl_os_print("*** Debug: storage_profile (6): 0x%x\n", *((uint32_t *)sp_addr + 6));
-	fsl_os_print("*** Debug: storage_profile (7): 0x%x\n", *((uint32_t *)sp_addr + 7));	
+	fsl_os_print("*** Debug: storage_profile (7): 0x%x\n", *((uint32_t *)sp_addr + 7));
 } /* End of ipsec_print_sp */
-	
+

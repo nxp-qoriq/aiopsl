@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2015 Freescale Semiconductor, Inc.
+ * Copyright 2014 Freescale Semiconductor, Inc.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -43,10 +43,9 @@
 #include "header_modification.h"
 
 /*#include "cdma.h"*/
-#include "osm.h"
+#include "osm_inline.h"
 #include "system.h"
 #include "fsl_platform.h"
-#include "fdma.h"
 
 #ifdef AIOP_VERIF
 #include "slab_stub.h"
@@ -322,6 +321,9 @@ int ipsec_generate_encap_sd(
 
 	/* Build PDB fields for the RTA */
 	
+	data_len[1] = 1; /* Flag for split key calculation. 
+					 * A "1" indicates that a split key is required */ 
+	
 	/* Check which method is it according to the key */
 	switch (params->cipherdata.algtype) {
 		case IPSEC_CIPHER_AES_CBC:
@@ -335,21 +337,26 @@ int ipsec_generate_encap_sd(
 			cipher_type = CIPHER_TYPE_CTR;
 			break;
 		/* To construct the CCM B0, SEC uses the B0 flags byte of the PDB
-		 * according to the size of ICV transmitted.
+		 * according to the size of ICV transmitted. (RFC4309, RFC3610)
 		 * For an 8-byte ICV, select a value of 5Bh.
 		 * For a 12-byte ICV, select a value of 6Bh.
 		 * For a 16-byte ICV, select a value of 7Bh. */
+		 /* @ccm_opt: CCM algorithm options - MSB-LSB description:
+		  *  b0_flags (8b) - CCM B0;
+		  *  ctr_flags (8b) - counter flags; constant equal to 0x3
+		  *  ctr_initial (16b) - initial count constant */
+		/* For CCM the counter flags field should be 0x03 */
 		case IPSEC_CIPHER_AES_CCM8:
 			cipher_type = CIPHER_TYPE_CCM;
-			pdb.ccm.b0_flags = 0x5B;
+			pdb.ccm.ccm_opt = 0x5B030000; /* b0_flags=0x5B, ctr_flags=0x03 */
 			break;
 		case IPSEC_CIPHER_AES_CCM12:
 			cipher_type = CIPHER_TYPE_CCM;
-			pdb.ccm.b0_flags = 0x6B;
+			pdb.ccm.ccm_opt = 0x6B030000; /* b0_flags=0x6B, ctr_flags=0x03 */
 			break;
 		case IPSEC_CIPHER_AES_CCM16:
 			cipher_type = CIPHER_TYPE_CCM;
-			pdb.ccm.b0_flags = 0x7B;
+			pdb.ccm.ccm_opt = 0x7B030000; /* b0_flags=0x7B, ctr_flags=0x03 */
 			break;
 		case IPSEC_CIPHER_AES_GCM8:
 		case IPSEC_CIPHER_AES_GCM12:
@@ -363,48 +370,40 @@ int ipsec_generate_encap_sd(
 	
 	switch (cipher_type) {
 		case CIPHER_TYPE_CBC:
-			/* uint32_t iv[4] */
-			pdb.cbc.iv[0] = params->encparams.cbc.iv[0];
-			pdb.cbc.iv[1] = params->encparams.cbc.iv[1];
-			pdb.cbc.iv[2] = params->encparams.cbc.iv[2];
-			pdb.cbc.iv[3] = params->encparams.cbc.iv[3];
+			/* uint8_t iv[16] */
+			memcpy(pdb.cbc.iv, params->encparams.cbc.iv, 
+					sizeof(params->encparams.cbc.iv));
 			break;
 		case CIPHER_TYPE_CTR:
-			/*	uint32_t ctr_nonce; */
+			/*	uint8_t ctr_nonce[4]; */
 			/*	uint32_t ctr_initial; */
 			/*	uint32_t iv[2]; */
-			pdb.ctr.ctr_nonce = params->encparams.ctr.ctr_nonce;
+			memcpy(pdb.ctr.ctr_nonce, params->encparams.ctr.ctr_nonce,
+			       sizeof(params->encparams.ctr.ctr_nonce));
 			pdb.ctr.ctr_initial = 1;
-			pdb.ctr.iv[0] = params->encparams.ctr.iv[0];
-			pdb.ctr.iv[1] = params->encparams.ctr.iv[1];
+			pdb.ctr.iv = params->encparams.ctr.iv;
 			break;
 		case CIPHER_TYPE_CCM:
-			/*	uint32_t salt; lower 24 bits */
-			/*	uint8_t b0_flags; */
-			/*	uint8_t ctr_flags; */
-			/*	uint16_t ctr_initial; */
+			/*	uint8_t salt[4]; lower 24 bits */
+			/*	uint32_t ccm_opt; */
 			/*	uint32_t iv[2]; */
-			pdb.ccm.salt = params->encparams.ccm.salt;
-			/* Note: pdb.ccm.b0_flags is set according to the ICV length */
-			pdb.ccm.ctr_flags = 0;
-			pdb.ccm.ctr_initial = 0;
-			pdb.ccm.iv[0] = params->encparams.ccm.iv[0];
-			pdb.ccm.iv[1] = params->encparams.ccm.iv[1];
+			memcpy(pdb.ccm.salt, params->encparams.ccm.salt,
+			       sizeof(params->encparams.ccm.salt));
+			pdb.ccm.iv = params->encparams.ccm.iv;
+			data_len[1] = 0;  /* No room required for authentication key */
 			break;
 		case CIPHER_TYPE_GCM:
-			/*	uint32_t salt; lower 24 bits */
+			/*	uint8_t salt[4]; lower 24 bits */
 			/*	uint32_t rsvd1; */
 			/*	uint32_t iv[2]; */
-			pdb.gcm.salt = params->encparams.gcm.salt;
-			pdb.gcm.rsvd1 = 0;
-			pdb.gcm.iv[0] = params->encparams.gcm.iv[0];
-			pdb.gcm.iv[1] = params->encparams.gcm.iv[1];
+			memcpy(pdb.gcm.salt, params->encparams.gcm.salt,
+			       sizeof(params->encparams.gcm.salt));
+			pdb.gcm.rsvd = 0;
+			pdb.gcm.iv = params->encparams.gcm.iv;
+			data_len[1] = 0;  /* No room required for authentication key */
 			break;
 		default:
-			pdb.cbc.iv[0] = 0;
-			pdb.cbc.iv[1] = 0;
-			pdb.cbc.iv[2] = 0;
-			pdb.cbc.iv[3] = 0;
+			memset(pdb.cbc.iv, 0, sizeof(pdb.cbc.iv));
 	}
 	
 	/* Tunnel Mode Parameters */
@@ -423,44 +422,24 @@ int ipsec_generate_encap_sd(
 	/* Transport Mode Parameters */
 		pdb_options |= (IPSEC_ENC_OPTS_UPDATE_CSUM | IPSEC_ENC_OPTS_INC_IPHDR);
 	}
-	
-	pdb.hmo = 
-		(uint8_t)(((params->encparams.options) & IPSEC_ENC_PDB_HMO_MASK)>>8);
+
+	/*
+	 * Transport mode Next Header and Next Header Offset are initialized to
+	 * zero, since they come from DPOVRD.
+	 */
 	pdb.options = 
 		(uint8_t)((((params->encparams.options) & IPSEC_PDB_OPTIONS_MASK)) |
 		pdb_options
 		);
-
-	/* Transport mode Next Header value share the same stack location with
-	 * Tunnel mode reserved bits at the RTA API.
-	 * Since NH comes from DPOVERD it can be init to 0 in both cases
-	 * 
-	 	union {
-			uint8_t ip_nh;	- next header for legacy mode 
-			uint8_t rsvd;	- reserved for new mode
-		};
-	 */  
-	pdb.rsvd = 0;
-				
-	/* Transport mode Next Header value share the same stack location with
-	 * Tunnel mode reserved bits at the RTA API.
-	 * Since NH comes from DPOVERD it can be init to 0 in both cases
-	 * 
-	 	 union {
-			uint8_t ip_nh_offset;	- next header offset for legacy mode
-			uint8_t aoipho; - actual outer IP header offset for new mode 
-		};
-	*/
-	pdb.aoipho = 0;
+	pdb.options |= (
+			(((params->encparams.options) & IPSEC_ENC_PDB_HMO_MASK))
+			<<IPSEC_ENC_PDB_HMO_SHIFT);
 
 	pdb.seq_num_ext_hi = params->encparams.seq_num_ext_hi;
 	pdb.seq_num = params->encparams.seq_num;
 	
 	pdb.spi = params->encparams.spi;
-		
-	pdb.rsvd2 = 0;
-
-	pdb.ip_hdr_len = params->encparams.ip_hdr_len;
+	pdb.ip_hdr_len = (uint32_t) params->encparams.ip_hdr_len;
 
 	rta_auth_alginfo.algtype = params->authdata.algtype;
 	rta_auth_alginfo.keylen = params->authdata.keylen;
@@ -475,13 +454,58 @@ int ipsec_generate_encap_sd(
 	
 	/* Lengths of items to be inlined in descriptor; order is important.
 	 * Note: For now we assume that inl_mask[0] = 1, i.e. that the
-	 * Outer IP Header can be inlined. Demo should be modified to
-	        * accommodate for the reference case.
+	 * Outer IP Header can be inlined. 
 	 * Job descriptor maximum length is hard-coded to 7 * CAAM_CMD_SZ +
 	 * 3 * CAAM_PTR_SZ, and pointer size considered extended.
 	*/
 	data_len[0] = pdb.ip_hdr_len; /* Outer IP header length */
-	data_len[1] = params->authdata.keylen;
+	
+	/* Check if a split authentication key is required 
+	 * cbc(aes) OR cbc(des) OR cbc(3des) OR ctr(aes) 
+	 * + hmac(xxx) -> need split key
+	 * + null authentication OR aes-xcbc-mac OR aes-cmac -> don't need split key
+	 * all other modes -> don't need split key 
+	 *	  e.g. gcm(aes), ccm(aes), gmac(aes) - don't need split key
+	*/
+	if (data_len[1]) {
+		//if (params->authdata.algtype == IPSEC_AUTH_HMAC_NULL) {
+		//	data_len[1] = 0;  /* No room required for authentication key */
+		//} else if ((params->authdata.algtype == IPSEC_AUTH_AES_XCBC_MAC_96) ||
+		//			(params->authdata.algtype == IPSEC_AUTH_AES_CMAC_96)) {
+		//	data_len[1] = params->authdata.keylen; /* No split required */
+		//} else {
+		//	/* Compute MDHA split key length 
+		//	 * for a given authentication algorithm */
+		//	data_len[1] = (uint8_t)split_key_len(params->authdata.algtype);
+	
+		/* Sizes for MDHA pads (*not* keys): MD5, SHA1, 224, 256, 384, 512 */
+		/*                                   16,  20,   32,  32,  64,  64  */
+		switch (params->authdata.algtype) {
+			case IPSEC_AUTH_HMAC_NULL:
+				data_len[1] = 0;
+				break;
+			case IPSEC_AUTH_AES_XCBC_MAC_96:
+			case IPSEC_AUTH_AES_CMAC_96:
+				data_len[1] = params->authdata.keylen; /* No split */
+				break;
+			case IPSEC_AUTH_HMAC_MD5_96:
+			case IPSEC_AUTH_HMAC_MD5_128:
+				data_len[1] = 2*16;
+				break;
+			case IPSEC_AUTH_HMAC_SHA1_96:
+			case IPSEC_AUTH_HMAC_SHA1_160:	
+				data_len[1] = 2*20;
+				break;
+			case IPSEC_AUTH_HMAC_SHA2_256_128:
+				data_len[1] = 2*32;
+				break;
+			default:
+				/* IPSEC_AUTH_HMAC_SHA2_384_192 */
+				/* IPSEC_AUTH_HMAC_SHA2_512_256 */
+				data_len[1] = 2*64;
+		}	
+	} 
+
 	data_len[2] = params->cipherdata.keylen;
 	
 	err = rta_inline_query(IPSEC_NEW_ENC_BASE_DESC_LEN, 
@@ -496,6 +520,10 @@ int ipsec_generate_encap_sd(
 	else
 		rta_auth_alginfo.key_type = (enum rta_data_type)RTA_PARAM_PTR;
 
+	// TODO: test, remove
+	//rta_auth_alginfo.key_type = (enum rta_data_type)RTA_PARAM_PTR;
+
+	
 	if (inl_mask & (1 << 2))
 		rta_cipher_alginfo.key_type = (enum rta_data_type)RTA_PARAM_IMM_DMA;
 	else
@@ -561,6 +589,9 @@ int ipsec_generate_decap_sd(
 
 	/* Build PDB fields for the RTA */
 	
+	data_len[0] = 1; /* Flag for split key calculation. 
+					 * A "1" indicates that a split key is required */ 
+	
 	/* Check which method is it according to the key */
 	switch (params->cipherdata.algtype) {
 		case IPSEC_CIPHER_AES_CBC:
@@ -579,18 +610,23 @@ int ipsec_generate_decap_sd(
 		 * For an 8-byte ICV, select a value of 5Bh.
 		 * For a 12-byte ICV, select a value of 6Bh.
 		 * For a 16-byte ICV, select a value of 7Bh. */
-		/* (note that it is incorrectly called "iv_flags" in the RTA PDB ) */	
+			 /* @ccm_opt: CCM algorithm options - MSB-LSB description:
+			  *  b0_flags (8b) - CCM B0;
+			  *  ctr_flags (8b) - counter flags; constant equal to 0x3
+			  *  ctr_initial (16b) - initial count constant */
+		/* For CCM the counter flags field should be 0x03 
+		 * For CTR the Initial count should be 0x0001 */		
 		case IPSEC_CIPHER_AES_CCM8:
 			cipher_type = CIPHER_TYPE_CCM;
-			pdb.ccm.iv_flags = 0x5B;
+			pdb.ccm.ccm_opt = 0x5B030000; /* b0_flags=0x5B, ctr_flags=0x03 */
 			break;
 		case IPSEC_CIPHER_AES_CCM12:
 			cipher_type = CIPHER_TYPE_CCM;
-			pdb.ccm.iv_flags = 0x6B;
+			pdb.ccm.ccm_opt = 0x6B030000; /* b0_flags=0x6B, ctr_flags=0x03 */
 			break;
 		case IPSEC_CIPHER_AES_CCM16:
 			cipher_type = CIPHER_TYPE_CCM;
-			pdb.ccm.iv_flags = 0x7B;
+			pdb.ccm.ccm_opt = 0x7B030000; /* b0_flags=0x5B, ctr_flags=0x03 */
 			break;		
 		case IPSEC_CIPHER_AES_GCM8:
 		case IPSEC_CIPHER_AES_GCM12:
@@ -612,27 +648,27 @@ int ipsec_generate_decap_sd(
 			pdb.cbc.rsvd[1] = 0;
             break;
 		case CIPHER_TYPE_CTR:
-			/* uint32_t salt; */
+			/* uint8_t ctr_nonce[4]; */
 			/* uint32_t ctr_initial; */
-			//pdb.ctr.salt = params->decparams.ctr.salt;
-			pdb.ctr.salt = params->decparams.ctr.ctr_nonce; // TODO: need to fix RTA to "nonce" instead of "salt" 
+			memcpy(pdb.ctr.ctr_nonce,
+			       params->decparams.ctr.ctr_nonce,
+			       sizeof(params->decparams.ctr.ctr_nonce)); 
 			pdb.ctr.ctr_initial = 1;
 			break;
 		case CIPHER_TYPE_CCM:
-			/* uint32_t salt; */
-			/* uint8_t iv_flags; */
-			/* uint8_t ctr_flags; */
-			/* uint16_t ctr_initial; */
-			pdb.ccm.salt = params->decparams.ccm.salt;
-			/* pdb.ccm.iv_flags is set above */
-			pdb.ccm.ctr_flags = 0;
-			pdb.ccm.ctr_initial = 0;
+			/* uint8_t salt[4]; */
+			/* uint32_t ccm_opt; */
+			memcpy(pdb.ccm.salt, params->decparams.ccm.salt,
+			       sizeof(params->decparams.ccm.salt));
+			data_len[0] = 0; /* No room required for authentication key */
 			break;
 		case CIPHER_TYPE_GCM:
-			/* uint32_t salt; */
-			/* uint32_t resvd; */
-			pdb.gcm.salt = params->decparams.gcm.salt;
-			pdb.gcm.resvd = 0;
+			/* uint8_t salt[4]; */
+			/* uint32_t rsvd; */
+			memcpy(pdb.gcm.salt, params->decparams.gcm.salt,
+			       sizeof(params->decparams.gcm.salt));
+			pdb.gcm.rsvd = 0;
+			data_len[0] = 0; /* No room required for authentication key */
 			break;
 		default:
 			pdb.cbc.rsvd[0] = 0;
@@ -647,11 +683,13 @@ int ipsec_generate_decap_sd(
 	 * 		HMO (upper nibble)
 	 * 		IP header length (lower 3 nibbles) is not relevant for tunnel
 	 * 		and will be set by DPOVRD for transport */
-	pdb.ip_hdr_len = 
-			((params->decparams.options) & IPSEC_DEC_PDB_HMO_MASK);
-
+	/*
+	 * Transport mode Next Header / Tunnel mode AOIPHO will be set by DPOVRD.
+	 */
 	pdb.options = 
 		(uint8_t)(((params->decparams.options) & IPSEC_PDB_OPTIONS_MASK));
+	pdb.options |= (((params->decparams.options) & IPSEC_DEC_PDB_HMO_MASK)
+			<<IPSEC_DEC_PDB_HMO_SHIFT);
 	
 	if (params->flags & IPSEC_FLG_TUNNEL_MODE) {
 		pdb.options |= IPSEC_DEC_OPTS_ETU;
@@ -677,17 +715,6 @@ int ipsec_generate_decap_sd(
 		byte from the output frame length reported to the frame consumer.
 		If outFMT==0, this bit is reserved and must be zero.
 	*/
-	
-	/* Transport mode Next Header value share the same stack location with
-	 * Tunnel mode reserved bits at the RTA API.
-	 * Since NH comes from DPOVERD it can be init to 0 in both cases
-	 * 
-	 	 union {
-			uint8_t ip_nh_offset;	- next header offset for legacy mode
-			uint8_t aoipho; - actual outer IP header offset for new mode 
-		};
-	*/
-	pdb.aoipho = 0; /* Will be set by DPOVRD */
 
 	pdb.seq_num_ext_hi = params->decparams.seq_num_ext_hi;
 	pdb.seq_num = params->decparams.seq_num;
@@ -713,7 +740,53 @@ int ipsec_generate_decap_sd(
 	 * Job descriptor maximum length is hard-coded to 7 * CAAM_CMD_SZ +
 	 * 3 * CAAM_PTR_SZ, and pointer size considered extended.
 	*/
-	data_len[0] = params->authdata.keylen;
+
+	/* Check if a split authentication key is required 
+	 * cbc(aes) OR cbc(des) OR cbc(3des) OR ctr(aes) 
+	 * + hmac(xxx) -> need split key
+	 * + null authentication OR aes-xcbc-mac OR aes-cmac -> don't need split key
+	 * all other modes -> don't need split key 
+	 *	  e.g. gcm(aes), ccm(aes), gmac(aes) - don't need split key
+	*/
+	if (data_len[0]) {
+		//if (params->authdata.algtype == IPSEC_AUTH_HMAC_NULL) {
+		//	data_len[0] = 0; /* No room required for authentication key */
+		//} else if ((params->authdata.algtype == IPSEC_AUTH_AES_XCBC_MAC_96) ||
+		//			(params->authdata.algtype == IPSEC_AUTH_AES_CMAC_96)) {
+		//	data_len[0] = params->authdata.keylen; /* No split required */
+		//} else {
+		//	/* Compute MDHA split key length 
+		//	 * for a given authentication algorithm */
+		//	data_len[0] = (uint8_t)split_key_len(params->authdata.algtype);
+		//}
+		/* Sizes for MDHA pads (*not* keys): MD5, SHA1, 224, 256, 384, 512 */
+		/*                                   16,  20,   32,  32,  64,  64  */
+		switch (params->authdata.algtype) {
+			case IPSEC_AUTH_HMAC_NULL:
+				data_len[0] = 0;
+				break;
+			case IPSEC_AUTH_AES_XCBC_MAC_96:
+			case IPSEC_AUTH_AES_CMAC_96:
+				data_len[0] = params->authdata.keylen; /* No split */
+				break;
+			case IPSEC_AUTH_HMAC_MD5_96:
+			case IPSEC_AUTH_HMAC_MD5_128:
+				data_len[0] = 2*16;
+				break;
+			case IPSEC_AUTH_HMAC_SHA1_96:
+			case IPSEC_AUTH_HMAC_SHA1_160:	
+				data_len[0] = 2*20;
+				break;
+			case IPSEC_AUTH_HMAC_SHA2_256_128:
+				data_len[0] = 2*32;
+				break;
+			default:
+				/* IPSEC_AUTH_HMAC_SHA2_384_192 */
+				/* IPSEC_AUTH_HMAC_SHA2_512_256 */
+				data_len[0] = 2*64;
+		}	
+	} 
+
 	data_len[1] = params->cipherdata.keylen;
 	
 	err = rta_inline_query(IPSEC_NEW_DEC_BASE_DESC_LEN, 
@@ -727,6 +800,9 @@ int ipsec_generate_decap_sd(
 
 	else
 		rta_auth_alginfo.key_type = (enum rta_data_type)RTA_PARAM_PTR;
+	
+	// TODO: test, remove
+	//rta_auth_alginfo.key_type = (enum rta_data_type)RTA_PARAM_PTR;
 	
 	if (inl_mask & (1 << 1))
 		rta_cipher_alginfo.key_type = (enum rta_data_type)RTA_PARAM_IMM_DMA;
@@ -855,6 +931,33 @@ void ipsec_generate_flc(
 	
 } /* End of ipsec_generate_flc */
 
+/**************************************************************************//**
+@Function		ipsec_create_key_copy 
+
+@Description	Creates a copy of the key, used for CAAM DKP 
+*//***************************************************************************/
+void ipsec_create_key_copy(
+		uint64_t src_key_addr, /*  Source Key Address */
+		uint64_t dst_key_addr, /*  Destination Key Address */
+		uint16_t keylen)   /* Length of the provided key, in bytes */
+{
+	
+	uint8_t key[IPSEC_KEY_SEGMENT_SIZE];
+
+	/* Read the key from the application buffer */
+	cdma_read(
+			key, /* void *ws_dst */
+			src_key_addr, /* uint64_t ext_address */
+			keylen); /* uint16_t size */
+
+	/* Store the key to the copy location */
+	cdma_write(
+			dst_key_addr, /* ext_address */
+			key, /* ws_src */
+			keylen); /* uint16_t size */
+	
+} /* End of ipsec_create_key_copy */
+
 
 /**************************************************************************//**
 @Function		ipsec_generate_sa_params 
@@ -914,8 +1017,7 @@ void ipsec_generate_sa_params(
 	sap.sap1.udp_src_port = 0; /* UDP source for transport mode. TMP */
 	sap.sap1.udp_dst_port = 0; /* UDP destination for transport mode. TMP */
 		
-	/* TODO: new/reuse mode (TBD if this indication is required
-	 * or use directly from the storage profile) */
+	/* new/reuse mode (TBD) */
 	sap.sap1.sec_buffer_mode = IPSEC_SEC_NEW_BUFFER_MODE; 
 
 	sap.sap1.output_spid = (uint8_t)(params->spid);
@@ -998,6 +1100,15 @@ int ipsec_add_sa_descriptor(
 	}
 		
 	desc_addr = IPSEC_DESC_ADDR(*ipsec_handle);
+	
+	/* Create a copy of the authentication key in the local buffer */
+	ipsec_create_key_copy(
+			params->authdata.key, /* Source Key Address */
+			IPSEC_KEY_SEGMENT_ADDR(desc_addr), /* Destination Key Address */
+			(uint16_t)params->authdata.keylen);   /* Length of the provided key, in bytes */
+	
+	/* Now switch the original key address with the copy address */
+	params->authdata.key = IPSEC_KEY_SEGMENT_ADDR(desc_addr);
 	
 	/* Build a shared descriptor with the RTA library */
 	/* Then store it in the memory with CDMA */
@@ -2189,8 +2300,8 @@ uint8_t ipsec_get_ipv6_nh_offset (struct ipv6hdr *ipv6_hdr, uint8_t *length)
 		{
 			/* If the next header is not an extension, this should be
 			 * the starting point for ESP encapsulation  */
-			if ((next_hdr != IPV6_EXT_ROUTING) || 
-					(next_hdr != IPV6_EXT_FRAGMENT) || 
+			if ((next_hdr != IPV6_EXT_ROUTING) && 
+					(next_hdr != IPV6_EXT_FRAGMENT) && 
 					(next_hdr != IPV6_EXT_HOP_BY_HOP)) {
 				/* Don't add to NH_OFFSET/length and Exit from the while loop */
 				dst_ext = 0;

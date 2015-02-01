@@ -341,10 +341,14 @@ __COLD_CODE static int dpci_for_mc_add(struct mc_dpci_obj *dpci_tbl, struct mc_d
 
 	err |= dpci_get_link_state(&dprc->io, dpci, &link_up);
 	if (!link_up) {
-		pr_err("MC DPCI[%d]<->AIOP DPCI[%d] link is down ! \n",
+		pr_debug("MC DPCI[%d]<->AIOP DPCI[%d] link is down \n",
 		endpoint1.id,
 		endpoint2.id);
 		/* Don't return error maybe it will be linked in the future */
+	} else {
+		pr_debug("MC DPCI[%d]<->AIOP DPCI[%d] link is up \n",
+		endpoint1.id,
+		endpoint2.id);
 	}
 
 	dpci_tbl->token[ind] = dpci;
@@ -418,12 +422,10 @@ __COLD_CODE static int dpci_discovery()
 		}
 	}
 
-	if (dpci_count > 0) {
-		err = dpci_tbl_create(&dpci_tbl, dpci_count + MC_DPCI_NUM);
-		if (err != 0) {
-			pr_err("Failed dpci_tbl_create() \n");
-			return err;
-		}
+	err = dpci_tbl_create(&dpci_tbl, dpci_count + MC_DPCI_NUM);
+	if (err != 0) {
+		pr_err("Failed dpci_tbl_create() \n");
+		return err;
 	}
 
 	err = dpci_tbl_fill(dpci_tbl, dprc, dpci_count, dev_count);

@@ -41,7 +41,8 @@
 #include "dplib/fsl_parser.h"
 #include "general.h"
 #include "system.h"
-#include "osm.h"
+#include "general.h"
+#include "osm_inline.h"
 #include "kernel/fsl_spinlock.h"
 #include <string.h>
 #include "fsl_dbg.h"
@@ -142,13 +143,15 @@ void init_verif()
 	status_cdma = 0;
 }
 
+/* TODO - once our verif project is  using aiopsl library the ARENA 
+ * implementation should be in general.c. Keep the declaration in general.h. */
 void exception_handler(char *filename,
 		       char *function_name,
 		       uint32_t line,
 		       char *message) __attribute__ ((noreturn))
 {
 	uint32_t status;
-#if (defined AIOP_VERIF || defined CDC_ROC)
+
 
 	struct fatal_error_command fatal_cmd_str;
 	struct fatal_error_command *fatal_cmd;
@@ -176,7 +179,6 @@ void exception_handler(char *filename,
 #ifndef STACK_CHECK
 	pr_err("Fatal error encountered!\n");
 #endif
-#endif /*AIOP_VERIF*/
 
 	fdma_terminate_task();
 	exit(-1); /* TODO This code is never reached and should be removed once

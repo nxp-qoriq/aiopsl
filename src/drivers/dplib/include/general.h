@@ -236,8 +236,6 @@ extern const uint16_t TLS_SECTION_END_ADDR[];
 void update_random_64bit(void);
 
 /* TEMP function (TODO Remove!) */
-void handle_fatal_error(char *message);
-/* TEMP function (TODO Remove!) */
 void exception_handler(char *filename,
 		       char *function_name,
 		       uint32_t line,

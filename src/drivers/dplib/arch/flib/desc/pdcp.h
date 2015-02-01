@@ -1,4 +1,8 @@
-/* Copyright 2008-2013 Freescale Semiconductor, Inc. */
+/*
+ * Copyright 2008-2013 Freescale Semiconductor, Inc.
+ *
+ * SPDX-License-Identifier: BSD-3-Clause or GPL-2.0+
+ */
 
 #ifndef __DESC_PDCP_H__
 #define __DESC_PDCP_H__
@@ -981,7 +985,7 @@ static inline int pdcp_insert_cplane_snow_aes_op(struct program *p,
 		KEY(p, KEY1, cipherdata->key_enc_flags, cipherdata->key,
 		    cipherdata->keylen, INLINE_KEY(cipherdata));
 
-		if (rta_sec_era >= RTA_SEC_ERA_5)
+		if (rta_sec_era >= RTA_SEC_ERA_4)
 			MOVE(p, CONTEXT1, 0, CONTEXT2, 0, 8, IMMED);
 		else
 			MOVE(p, CONTEXT1, 0, MATH3, 0, 8, IMMED);
@@ -1042,7 +1046,7 @@ static inline int pdcp_insert_cplane_snow_aes_op(struct program *p,
 
 		SEQFIFOLOAD(p, MSG1, 0, VLF | LAST1 | FLUSH1);
 
-		if (rta_sec_era >= RTA_SEC_ERA_5) {
+		if (rta_sec_era >= RTA_SEC_ERA_4) {
 			LOAD(p, NFIFOENTRY_STYPE_ALTSOURCE |
 			     NFIFOENTRY_DEST_CLASS1 |
 			     NFIFOENTRY_DTYPE_ICV |

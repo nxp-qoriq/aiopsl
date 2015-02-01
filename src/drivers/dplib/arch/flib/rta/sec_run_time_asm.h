@@ -1,4 +1,8 @@
-/* Copyright 2008-2013 Freescale Semiconductor, Inc. */
+/*
+ * Copyright 2008-2013 Freescale Semiconductor, Inc.
+ *
+ * SPDX-License-Identifier: BSD-3-Clause or GPL-2.0+
+ */
 
 #ifndef __RTA_SEC_RUN_TIME_ASM_H__
 #define __RTA_SEC_RUN_TIME_ASM_H__
@@ -120,6 +124,24 @@ enum rta_share_type {
 	SHR_DEFER
 };
 
+/**
+ * enum rta_data_type - Indicates how is the data provided and how to include it
+ *                      in the descriptor.
+ * @RTA_DATA_PTR: Data is in memory and accessed by reference; data address is a
+ *               physical (bus) address.
+ * @RTA_DATA_IMM: Data is inlined in descriptor and accessed as immediate data;
+ *               data address is a virtual address.
+ * @RTA_DATA_IMM_DMA: (AIOP only) Data is inlined in descriptor and accessed as
+ *                   immediate data; data address is a physical (bus) address
+ *                   in external memory and CDMA is programmed to transfer the
+ *                   data into descriptor buffer being built in Workspace Area.
+ */
+enum rta_data_type {
+	RTA_DATA_PTR = 1,
+	RTA_DATA_IMM,
+	RTA_DATA_IMM_DMA
+};
+
 /* Registers definitions */
 enum rta_regs {
 	/* CCB Registers */
@@ -199,6 +221,7 @@ enum rta_regs {
 	MSG1,
 	MSG2,
 	MSG,
+	MSG_CKSUM,
 	MSGOUTSNOOP,
 	MSGINSNOOP,
 	ICV1,
@@ -379,14 +402,6 @@ static inline void rta_program_cntxt_init(struct program *program,
 	program->bswap = false;
 }
 
-static inline void __rta__desc_bswap(uint32_t *buff, unsigned buff_len)
-{
-	unsigned i;
-
-	for (i = 0; i < buff_len; i++)
-		buff[i] = swab32(buff[i]);
-}
-
 static inline int rta_program_finalize(struct program *program)
 {
 	/* Descriptor is usually not allowed to go beyond 64 words size */
@@ -400,17 +415,14 @@ static inline int rta_program_finalize(struct program *program)
 	}
 
 	/* Update descriptor length in shared and job descriptor headers */
-	if (program->shrhdr != NULL) {
-		*program->shrhdr |= program->current_pc;
-		if (program->bswap)
-			__rta__desc_bswap(program->shrhdr, program->current_pc);
-	} else if (program->jobhdr != NULL) {
-		*program->jobhdr |= program->current_pc;
-		if (program->bswap)
-			__rta__desc_bswap(program->jobhdr, program->current_pc);
-	} else {
-		return -EINVAL;
-	}
+	if (program->shrhdr != NULL)
+		*program->shrhdr |= program->bswap ?
+					swab32(program->current_pc) :
+					program->current_pc;
+	else if (program->jobhdr != NULL)
+		*program->jobhdr |= program->bswap ?
+					swab32(program->current_pc) :
+					program->current_pc;
 
 	return (int)program->current_pc;
 }
@@ -429,7 +441,20 @@ static inline unsigned rta_program_set_bswap(struct program *program)
 
 static inline void __rta_out32(struct program *program, uint32_t val)
 {
-	program->buffer[program->current_pc] = val;
+	program->buffer[program->current_pc] = program->bswap ?
+						swab32(val) : val;
+	program->current_pc++;
+}
+
+static inline void __rta_out_be32(struct program *program, uint32_t val)
+{
+	program->buffer[program->current_pc] = cpu_to_be32(val);
+	program->current_pc++;
+}
+
+static inline void __rta_out_le32(struct program *program, uint32_t val)
+{
+	program->buffer[program->current_pc] = cpu_to_le32(val);
 	program->current_pc++;
 }
 
@@ -458,6 +483,22 @@ static inline unsigned rta_dword(struct program *program, uint64_t val)
 	__rta_out64(program, true, val);
 
 	return start_pc;
+}
+
+static inline uint32_t inline_flags(enum rta_data_type data_type)
+{
+	switch (data_type) {
+	case RTA_DATA_PTR:
+		return 0;
+	case RTA_DATA_IMM:
+		return IMMED | COPY;
+	case RTA_DATA_IMM_DMA:
+		return IMMED | DCOPY;
+	default:
+		/* warn and default to RTA_DATA_PTR */
+		pr_warn("RTA: defaulting to RTA_DATA_PTR parameter type\n");
+		return 0;
+	}
 }
 
 static inline unsigned rta_copy_data(struct program *program, uint8_t *data,
@@ -516,16 +557,46 @@ static inline unsigned rta_desc_bytes(uint32_t *buffer)
 	return (unsigned)(rta_desc_len(buffer) * CAAM_CMD_SZ);
 }
 
+/**
+ * split_key_len - Compute MDHA split key length for a given algorithm
+ * @hash: Hashing algorithm selection, one of OP_ALG_ALGSEL_* or
+ *        OP_PCLID_DKP_* - MD5, SHA1, SHA224, SHA256, SHA384, SHA512.
+ *
+ * Return: MDHA split key length
+ */
+static inline uint32_t split_key_len(uint32_t hash)
+{
+	/* Sizes for MDHA pads (*not* keys): MD5, SHA1, 224, 256, 384, 512 */
+	static const uint8_t mdpadlen[] = { 16, 20, 32, 32, 64, 64 };
+	uint32_t idx;
+
+	idx = (hash & OP_ALG_ALGSEL_SUBMASK) >> OP_ALG_ALGSEL_SHIFT;
+
+	return (uint32_t)(mdpadlen[idx] * 2);
+}
+
+/**
+ * split_key_pad_len - Compute MDHA split key pad length for a given algorithm
+ * @hash: Hashing algorithm selection, one of OP_ALG_ALGSEL_* - MD5, SHA1,
+ *        SHA224, SHA384, SHA512.
+ *
+ * Return: MDHA split key pad length
+ */
+static inline uint32_t split_key_pad_len(uint32_t hash)
+{
+	return ALIGN(split_key_len(hash), 16);
+}
+
 static inline unsigned rta_set_label(struct program *program)
 {
 	return program->current_pc + program->start_pc;
 }
 
 static inline int rta_patch_move(struct program *program, int line,
-				 unsigned new_ref, bool check_swap)
+				 unsigned new_ref)
 {
 	uint32_t opcode;
-	bool bswap = check_swap && program->bswap;
+	bool bswap = program->bswap;
 
 	if (line < 0)
 		return -EINVAL;
@@ -540,10 +611,10 @@ static inline int rta_patch_move(struct program *program, int line,
 }
 
 static inline int rta_patch_jmp(struct program *program, int line,
-				unsigned new_ref, bool check_swap)
+				unsigned new_ref)
 {
 	uint32_t opcode;
-	bool bswap = check_swap && program->bswap;
+	bool bswap = program->bswap;
 
 	if (line < 0)
 		return -EINVAL;
@@ -558,10 +629,10 @@ static inline int rta_patch_jmp(struct program *program, int line,
 }
 
 static inline int rta_patch_header(struct program *program, int line,
-				   unsigned new_ref, bool check_swap)
+				   unsigned new_ref)
 {
 	uint32_t opcode;
-	bool bswap = check_swap && program->bswap;
+	bool bswap = program->bswap;
 
 	if (line < 0)
 		return -EINVAL;
@@ -597,10 +668,10 @@ static inline int rta_patch_load(struct program *program, int line,
 }
 
 static inline int rta_patch_store(struct program *program, int line,
-				  unsigned new_ref, bool check_swap)
+				  unsigned new_ref)
 {
 	uint32_t opcode;
-	bool bswap = check_swap && program->bswap;
+	bool bswap = program->bswap;
 
 	if (line < 0)
 		return -EINVAL;
@@ -628,11 +699,10 @@ static inline int rta_patch_store(struct program *program, int line,
 }
 
 static inline int rta_patch_raw(struct program *program, int line,
-				unsigned mask, unsigned new_val,
-				bool check_swap)
+				unsigned mask, unsigned new_val)
 {
 	uint32_t opcode;
-	bool bswap = check_swap && program->bswap;
+	bool bswap = program->bswap;
 
 	if (line < 0)
 		return -EINVAL;

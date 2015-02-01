@@ -89,7 +89,7 @@ extern _time_get_t *time_get_func_ptr;
 __PROFILE_SRAM struct storage_profile storage_profile[SP_NUM_OF_STORAGE_PROFILES];
 
 /* Global Parameters for TKT226361 (MFLU) WA - TODO remove for non Rev1 */
-#include "table.h"
+#include "table_inline.h"
 #ifndef AIOP_VERIF
 extern struct aiop_init_info g_init_data;
 #endif
@@ -263,11 +263,11 @@ int aiop_sl_init(void)
 	table_workaround_tkt226361(4,4,4);
 #else
 
-	table_workaround_tkt226361(g_init_data.app_info.mflu_peb_num_entries,
+	/*table_workaround_tkt226361(g_init_data.app_info.mflu_peb_num_entries,
 				   g_init_data.app_info.
 					mflu_dp_ddr_num_entries,
 				   g_init_data.app_info.
-					mflu_sys_ddr_num_entries);
+					mflu_sys_ddr_num_entries);*/
 #endif
 /********************************************************/
 /* WA TKT226361 END (MFLU) - TODO remove for non Rev1 */

@@ -1,4 +1,8 @@
-/* Copyright 2008-2013 Freescale Semiconductor, Inc. */
+/*
+ * Copyright 2008-2013 Freescale Semiconductor, Inc.
+ *
+ * SPDX-License-Identifier: BSD-3-Clause or GPL-2.0+
+ */
 
 #ifndef __RTA_PROTOCOL_CMD_H__
 #define __RTA_PROTOCOL_CMD_H__
@@ -208,18 +212,23 @@ static inline int __rta_ipsec_proto(uint16_t protoinfo)
 	uint16_t proto_cls2 = protoinfo & OP_PCL_IPSEC_AUTH_MASK;
 
 	switch (proto_cls1) {
-	case OP_PCL_IPSEC_NULL:
 	case OP_PCL_IPSEC_AES_NULL_WITH_GMAC:
 		if (rta_sec_era < RTA_SEC_ERA_2)
 			return -EINVAL;
-		break;
+		/* no break */
 	case OP_PCL_IPSEC_AES_CCM8:
 	case OP_PCL_IPSEC_AES_CCM12:
 	case OP_PCL_IPSEC_AES_CCM16:
 	case OP_PCL_IPSEC_AES_GCM8:
 	case OP_PCL_IPSEC_AES_GCM12:
+	case OP_PCL_IPSEC_AES_GCM16:
+		/* CCM, GCM, GMAC require PROTINFO[7:0] = 0 */
 		if (proto_cls2 == OP_PCL_IPSEC_HMAC_NULL)
 			return 0;
+		return -EINVAL;
+	case OP_PCL_IPSEC_NULL:
+		if (rta_sec_era < RTA_SEC_ERA_2)
+			return -EINVAL;
 		/* no break */
 	case OP_PCL_IPSEC_DES_IV64:
 	case OP_PCL_IPSEC_DES:
@@ -232,6 +241,7 @@ static inline int __rta_ipsec_proto(uint16_t protoinfo)
 	}
 
 	switch (proto_cls2) {
+	case OP_PCL_IPSEC_HMAC_NULL:
 	case OP_PCL_IPSEC_HMAC_MD5_96:
 	case OP_PCL_IPSEC_HMAC_SHA1_96:
 	case OP_PCL_IPSEC_AES_XCBC_MAC_96:
@@ -425,6 +435,29 @@ static inline int __rta_rsa_dec_proto(uint16_t protoinfo)
 	return 0;
 }
 
+/*
+ * DKP Protocol - Restrictions on key (SRC,DST) combinations
+ * For e.g. key_in_out[0][0] = 1 means (SRC=IMM,DST=IMM) combination is allowed
+ */
+static const uint8_t key_in_out[4][4] = {1, 0, 0, 0,
+					 1, 1, 1, 1,
+					 1, 0, 1, 0,
+					 1, 0, 0, 1};
+
+static inline int __rta_dkp_proto(uint16_t protoinfo)
+{
+	int key_src = (protoinfo & OP_PCL_DKP_SRC_MASK) >> OP_PCL_DKP_SRC_SHIFT;
+	int key_dst = (protoinfo & OP_PCL_DKP_DST_MASK) >> OP_PCL_DKP_DST_SHIFT;
+
+	if (!key_in_out[key_src][key_dst]) {
+		pr_err("PROTO_DESC: Invalid DKP key (SRC,DST)\n");
+		return -EINVAL;
+	}
+
+	return 0;
+}
+
+
 static inline int __rta_3g_dcrc_proto(uint16_t protoinfo)
 {
 	if (rta_sec_era == RTA_SEC_ERA_7)
@@ -531,9 +564,15 @@ static const struct proto_map proto_table[] = {
 	{OP_TYPE_DECAP_PROTOCOL, OP_PCLID_3G_RLC_SDU,    __rta_3g_rlc_proto},
 	{OP_TYPE_DECAP_PROTOCOL, OP_PCLID_LTE_PDCP_USER, __rta_lte_pdcp_proto},
 /*29*/	{OP_TYPE_DECAP_PROTOCOL, OP_PCLID_LTE_PDCP_CTRL, __rta_lte_pdcp_proto},
+	{OP_TYPE_UNI_PROTOCOL,   OP_PCLID_DKP_MD5,       __rta_dkp_proto},
+	{OP_TYPE_UNI_PROTOCOL,   OP_PCLID_DKP_SHA1,      __rta_dkp_proto},
+	{OP_TYPE_UNI_PROTOCOL,   OP_PCLID_DKP_SHA224,    __rta_dkp_proto},
+	{OP_TYPE_UNI_PROTOCOL,   OP_PCLID_DKP_SHA256,    __rta_dkp_proto},
+	{OP_TYPE_UNI_PROTOCOL,   OP_PCLID_DKP_SHA384,    __rta_dkp_proto},
+/*35*/	{OP_TYPE_UNI_PROTOCOL,   OP_PCLID_DKP_SHA512,    __rta_dkp_proto},
 	{OP_TYPE_DECAP_PROTOCOL, OP_PCLID_PUBLICKEYPAIR, __rta_dlc_proto},
-/*31*/	{OP_TYPE_DECAP_PROTOCOL, OP_PCLID_DSASIGN,	 __rta_dlc_proto},
-/*32*/	{OP_TYPE_DECAP_PROTOCOL, OP_PCLID_LTE_PDCP_CTRL_MIXED,
+/*37*/	{OP_TYPE_DECAP_PROTOCOL, OP_PCLID_DSASIGN,	 __rta_dlc_proto},
+/*38*/	{OP_TYPE_DECAP_PROTOCOL, OP_PCLID_LTE_PDCP_CTRL_MIXED,
 	 __rta_lte_pdcp_mixed_proto},
 	{OP_TYPE_DECAP_PROTOCOL, OP_PCLID_IPSEC_NEW,     __rta_ipsec_proto},
 };
@@ -542,7 +581,7 @@ static const struct proto_map proto_table[] = {
  * Allowed OPERATION protocols for each SEC Era.
  * Values represent the number of entries from proto_table[] that are supported.
  */
-static const unsigned proto_table_sz[] = {21, 29, 29, 29, 29, 29, 31, 33};
+static const unsigned proto_table_sz[] = {21, 29, 29, 29, 29, 35, 37, 39};
 
 static inline int rta_proto_operation(struct program *program, uint32_t optype,
 				      uint32_t protid, uint16_t protoinfo)
@@ -590,6 +629,52 @@ static inline int rta_proto_operation(struct program *program, uint32_t optype,
 	program->first_error_pc = start_pc;
 	program->current_instruction++;
 	return ret;
+}
+
+static inline int rta_dkp_proto(struct program *program, uint32_t protid,
+				uint16_t key_src, uint16_t key_dst,
+				uint16_t keylen, uint64_t key,
+				enum rta_data_type key_type)
+{
+	unsigned start_pc = program->current_pc;
+	unsigned in_words = 0, out_words = 0;
+	int ret;
+
+	key_src &= OP_PCL_DKP_SRC_MASK;
+	key_dst &= OP_PCL_DKP_DST_MASK;
+	keylen &= OP_PCL_DKP_KEY_MASK;
+
+	ret = rta_proto_operation(program, OP_TYPE_UNI_PROTOCOL, protid,
+				  key_src | key_dst | keylen);
+	if (ret < 0)
+		return ret;
+
+	if ((key_src == OP_PCL_DKP_SRC_PTR) ||
+	    (key_src == OP_PCL_DKP_SRC_SGF)) {
+		__rta_out64(program, program->ps, key);
+		in_words = program->ps ? 2 : 1;
+	} else if (key_src == OP_PCL_DKP_SRC_IMM) {
+		__rta_inline_data(program, key, inline_flags(key_type), keylen);
+		in_words = (unsigned)((keylen + 3) / 4);
+	}
+
+	if ((key_dst == OP_PCL_DKP_DST_PTR) ||
+	    (key_dst == OP_PCL_DKP_DST_SGF)) {
+		out_words = in_words;
+	} else  if (key_dst == OP_PCL_DKP_DST_IMM) {
+		out_words = split_key_len(protid) / 4;
+	}
+
+	if (out_words < in_words) {
+		pr_err("PROTO_DESC: DKP doesn't currently support a smaller descriptor\n");
+		program->first_error_pc = start_pc;
+		return -EINVAL;
+	}
+
+	/* If needed, reserve space in resulting descriptor for derived key */
+	program->current_pc += (out_words - in_words);
+
+	return (int)start_pc;
 }
 
 #endif /* __RTA_PROTOCOL_CMD_H__ */

@@ -70,12 +70,14 @@ extern void build_apps_array(struct sys_module_desc *apps);
 
 // TODO remove hard-coded values from  MEM_PART_MC_PORTALS and MEM_PART_CCSR
 #define MEMORY_PARTITIONS\
-{   /* Memory partition ID               Phys. Addr.  Virt. Addr.  Size , Attributes */\
+{   /* Memory partition ID                  Phys. Addr.  Virt. Addr.  Size , Attributes */\
+	{MEM_PART_SYSTEM_DDR1_BOOT_MEM_MNG,  0xFFFFFFFF,  0xFFFFFFFF, g_boot_mem_mng_size,\
+	        MEMORY_ATTR_NONE, "BOOT MEMORY MANAGER"},\
 	{MEM_PART_DP_DDR,                    0xFFFFFFFF,  0xFFFFFFFF,  0xFFFFFFFF,\
 		MEMORY_ATTR_PHYS_ALLOCATION,"DP_DDR"},\
 	{MEM_PART_MC_PORTALS,                0xFFFFFFFF,  0xFFFFFFFF, (64  * MEGABYTE),\
 		MEMORY_ATTR_NONE,"MC Portals"},\
-	{MEM_PART_CCSR,                      0xFFFFFFFF,  0xFFFFFFFF, (16 * MEGABYTE),\
+	{MEM_PART_CCSR,                      0xFFFFFFFF,  0xFFFFFFFF, (64 * MEGABYTE),\
 		MEMORY_ATTR_NONE,"SoC CCSR"  },\
 	{MEM_PART_SH_RAM,                    0x01010400,   0x01010400,(191 * KILOBYTE),\
 		MEMORY_ATTR_MALLOCABLE,"Shared-SRAM"},\
@@ -223,7 +225,7 @@ __COLD_CODE int apps_early_init(void)
 	if(apps == NULL) {
 		return -ENOMEM;
 	}
-	
+
 	memset(apps, 0, app_arr_size * sizeof(struct sys_module_desc));
 	build_apps_array(apps);
 
@@ -365,11 +367,11 @@ __COLD_CODE int run_apps(void)
 	uint16_t app_arr_size = g_app_params.app_arr_size;
 	struct sys_module_desc *apps = \
 		fsl_malloc(app_arr_size * sizeof(struct sys_module_desc), 1);
-	
+
 	if(apps == NULL) {
 		return -ENOMEM;
 	}
-	
+
 	/* TODO - add initialization of global default DP-IO (i.e. call 'dpio_open', 'dpio_init');
 	 * This should be mapped to ALL cores of AIOP and to ALL the tasks */
 	/* TODO - add initialization of global default DP-SP (i.e. call 'dpsp_open', 'dpsp_init');

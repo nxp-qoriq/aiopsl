@@ -1,0 +1,220 @@
+Author: Ira.Kalman@freescale.com, Eyal.Harari@freescale.com
+
+This REAME explains the steps to be done in order to run your tests with GPP.
+Things that may change from time to time:
+* Linux git tag
+* Uboot git tag
+* ls2-sim-support git tag
+* ARM toolchain
+* Simulator version
+
+-------------------------------------------------
+1. Instal Linux PC with Ubuntu and connect to it.
+-------------------------------------------------
+ - All the commands below should be executed on linux station
+ 
+-------------------------------------------------
+2. Quick Start using existing kernel and uboot:
+-------------------------------------------------
+** Install LS Simulator **
+ - Download it from http://freeshare.freescale.net:2222/public/simulation-cmty-svc/Lists/Community-Announcements/AllItems.aspx
+ - Unzip it. No need to change anything else.
+ 
+** Install ls2-sim-support **
+ - > git clone git://git.am.freescale.net/gitolite/ldpaa/ls2-sim-support.git -b phase-4.0
+ - > cd ls2-sim-support
+ - > export LS2_SIM_BASE_DIR=/home/B17975/integ/LS_SIM_m0128/dtsim_release/linux64
+
+** Run the whole system boot ** 
+ - > ./run-sim.sh -a -m
+
+NOTE: For simulator flags and images pointer: See ./ls2-sim-support/run-sim_flags.sh 
+
+-------------------------------------------------
+3. Replacing AIOP elf
+-------------------------------------------------
+ - > cd ./ls2-sim-support
+ - > mv ./images/aiop_app.elf ./images/aiop_app_origin.elf
+ - Copy your aiop_app.elf into ls2-sim-support/images/. Use WinSCP tool if you copy it from your Windows PC.
+ 
+** Run the whole system boot **  
+ - > ./run-sim.sh -a -m
+
+-------------------------------------------------
+4. Replacing Uboot
+-------------------------------------------------
+NOTE: MC and Uboot should match
+- > git clone git://git.am.freescale.net/gitolite/sdk/u-boot-devel.git -b armv8_devel
+- > cd u-boot-devel
+- > export ARCH=''
+- Search for toolchain on the internet and download it: http://releases.linaro.org/14.02/components/toolchain/binaries
+  or take it from inside CW for ARM - CW_NetApps_v2014.12. 
+- > export PATH=$PATH:/home/B17975/integ/gcc-linaro-aarch64-linux-gnu-4.8-2014.02_linux/bin
+- > export CROSS_COMPILE='aarch64-linux-gnu-'
+- > make ls2085a_simu_config
+- > make
+- > mv ../ls2-sim-support/images/u-boot.bin  ../ls2-sim-support/images/u-boot_orig.bin
+- > cp u-boot.bin ../ls2-sim-support/images
+
+** Run the whole system boot **  
+ - > cd ../ls2-sim-support
+ - > ./run-sim.sh -a -m
+
+-------------------------------------------------
+5. Replacing MC elf
+-------------------------------------------------
+NOTE: MC and Uboot should match
+ - Create mc_app.bin, can be done on Windows PC: 
+  - > objcopy -O binary mc_app.elf mc_app.bin 
+ - Copy mc/build/rel/mc.its and mc_app.bin into u-boot-devel/tools. Use WinSCP tool if you copy it from your Windows PC.
+ - > cd ./u-boot-devel/tools
+ - > ./mkimage -f mc.its mc.itb
+ - > cp mc.itb ../../ls2-sim-support/images/
+ 
+** Run the whole system boot **  
+ - > cd ../../ls2-sim-support
+ - > ./run-sim.sh -a -m
+
+-------------------------------------------------
+6. Replacing DPL file
+-------------------------------------------------
+ - Copy your dpl.dtb into ls2-sim-support/images/. Use WinSCP tool if you copy it from your Windows PC.
+ - Open ./ls2-sim-support/run-sim_flags.sh and replace 
+   export LS2_SIM_DPL="${LS2_SIM_SUPPORT}/images/dpl-eth-nadk.dtb"
+   with
+   export LS2_SIM_DPL="${LS2_SIM_SUPPORT}/images/dpl.dtb"
+
+** Run the whole system boot **  
+ - > cd ./ls2-sim-support
+ - > ./run-sim.sh -a -m
+ 
+-------------------------------------------------  
+7. Quick Start Run NADK GPP test
+-------------------------------------------------
+ - Replace ./ls2-sim-support/images/aiop_app.elf with cmdif_integ_dbg.elf, rename it to aiop_app.elf.
+ - > cd ./ls2-sim-support
+ - > ./run-sim.sh -a -m
+ - Wait until the Linux is up. Follow TIO console duart1_1.
+ - Type iside TIO console duart1_1
+   - > username: root  
+       without password in order to login.
+   - > cd /usr/nadk/nadk-static/bin
+   - > ./bind_dprc
+   - > ./cmdif_client_demo -g dprc.2 -l 6 -lcl
+ - Follow TIO consolse prints on MC/AIOP/GPP   duart2_1, duart2_0, duart1_1
+ 
+-------------------------------------------------
+8. Replacing GPP files in Runtime
+-------------------------------------------------
+ - > cd ./ls2-sim-support/scripts
+ - Setup NIC on your Ubuntu host, call it eth4
+   - > ./tuntap_if_configure.sh create eth4 02:00:c0:a8:47:04 192.168.10.2
+ - Setup bridge between my host and simulator host in order to copy files, w0_m2 stands for WRIOP0 MAC2
+   - > ./start_tio_bridge.sh -m w0_m2 -n eth4
+   DPL should have dpmac@2:
+		dpni@2 {
+			compatible = "fsl,dpni";
+			type = "DPNI_TYPE_NIC";
+			mac_addr = <0x02 0x00 0xc0 0xa8 0x47 0x02>;
+			max_senders = <1>;
+			options = "DPNI_OPT_MULTICAST_FILTER", "DPNI_OPT_UNICAST_FILTER";
+			max_tcs = <1>;
+			max_dist_per_tc = <1 0 0>;
+			max_unicast_filters = <0>;
+			max_multicast_filters = <0>;
+			max_vlan_filters = <0>;
+			max_qos_entries = <0>;
+			max_qos_key_size = <0>;
+			max_dist_key_size = <0>;
+		};
+		connection@2{
+			endpoint1 = "dpni@2";
+			endpoint2 = "dpmac@2";
+		};
+ - Look at the TIO console duart1_1 and search for the eth number for dpni that is connected to dpmac@2.
+   In this case dpni@2 gets eth2.
+   fsl_ldpaa_eth dpni.4: ldpaa ethernet: Probed interface eth0
+   fsl_ldpaa_eth dpni.3: ldpaa ethernet: Probed interface eth1
+   fsl_ldpaa_eth dpni.2: ldpaa ethernet: Probed interface eth2
+   fsl_ldpaa_eth dpni.1: ldpaa ethernet: Probed interface eth3
+ 
+ - Type inside TIO console duart1_1 - assign eth2 to IP 192.168.10.3:
+   - > ifconfig eth2 192.168.10.3
+   - > ifconfig
+   
+ - Copy files from your linux host to GPP linux:
+   - > scp ./nadk/bin/cmdif_server_demo  root@192.168.10.3:/
+   
+ - Type inside TIO console duart1_1 - see the copied files
+   - > ls / 
+
+-------------------------------------------------
+9. Build & Replace Kernel
+-------------------------------------------------
+ - > git clone git://git.am.freescale.net/gitolite/ls2-linux.git -b linux-v3.16
+ - > cd ls2-linux
+ - > export PATH=$PATH:/home/B17975/integ/gcc-linaro-aarch64-linux-gnu-4.8-2014.02_linux/bin
+ - > export ARCH='arm64'
+ - > export CROSS_COMPILE=/home/B17975/integ/gcc-linaro-aarch64-linux-gnu-4.8-2014.02_linux/bin/aarch64-linux-gnu-
+ - > make ls2085a_defconfig
+ - > make
+ - > cp ../fs/rootfs64_LS2Sim.ext2.gz ./
+ 
+ ** Make Kernel image **
+ - > ../u-boot-devel/tools/mkimage -f kernel.its kernel.itb
+ - > cp ./kernel.itb  .../ls2-sim-support/images
+ 
+** Run the whole system boot **  
+ - > cd ../ls2-sim-support
+ - > ./run-sim.sh -a -m
+
+-------------------------------------------------
+10. Replace file system inside Kernel
+-------------------------------------------------
+- > mkdir fs
+- > cd fs
+- Use WinScp to copy /home/rm08501/rootfs64_LS2Sim.ext2.gz to fs folder you just created.
+  This is just the initial file system. 
+  More updated option is ls2-sim-support/images/rootfs64_LS2Sim.ext2.gz.
+- Copy to ./fs/ the files that need to be added into the file system  
+- > zcat rootfs64_LS2Sim.ext2.gz > filesystem
+- > mkdir filesysdir
+- > sudo mount -o loop filesystem filesysdir
+- > sudo cp my_aiop_test filesysdir/home/root/
+- > sudo chmod 777 filesysdir/home/root/my_aiop_test
+- > sudo umount filesystem
+- > rmdir filesysdir
+- > gzip -9 filesystem --stdout > ../ls2-linux/rootfs64_LS2Sim.ext2.gz
+- Also see arena/tests/FTF/create_fs.sh as example.
+
+ ** Make Kernel image **
+ - > cd ../ls2-linux
+ - > ../u-boot-devel/tools/mkimage -f kernel.its kernel.itb
+ - > cp ./kernel.itb  .../ls2-sim-support/images
+
+** Run the whole system boot **  
+ - > cd ../ls2-sim-support
+ - > ./run-sim.sh -a -m
+
+-------------------------------------------------
+11. Building NADK - User Space
+-------------------------------------------------
+ - > git clone git://git.am.freescale.net/gitolite/ldpaa/nadk.git -b master
+ - > export CROSS_COMPILE=/home/B17975/integ/gcc-linaro-aarch64-linux-gnu-4.8-2014.02_linux/bin/aarch64-linux-gnu-
+ - > export KERNEL_PATH=/home/B17975/GPP/ls2-linux
+ - > source standalone-ldpaa
+ - > make
+ - You'll find NADK binaries inside nadk/bin
+ - Use method (10) or (8) for integarting it inside the file system, use ls2-sim-support/images/rootfs64_LS2Sim.ext2.gz.
+ - > gunzip  rootfs64_LS2Sim.ext2.gz
+ - > mkdir ls_rootfs
+ - > sudo mount -o loop rootfs64_LS2Sim.ext2 ls_rootfs
+ - > sudo cp -r ./scripts/bind_dprc.sh ls_rootfs/home/root/
+ - > sudo cp -r ./bin/* ls_rootfs/home/root/
+ - > sleep 2
+ - > sudo umount ls_rootfs
+ - > gzip -9 rootfs64_LS2Sim.ext2
+ - > rm -rf ls_rootfs
+ - > cp ./rootfs64_LS2Sim.ext2.gz ../ls2-linux/
+ - Do (9) Build & Replace Kernel
+

@@ -421,11 +421,11 @@ __COLD_CODE static int build_mem_partitions_table(t_platform  *pltfrm)
 	        switch (p_mem_info->mem_partition_id) {
 	        case MEM_PART_DP_DDR:
 	            p_mem_info->virt_base_addr = (uint32_t)g_init_data.sl_info.dp_ddr_vaddr +
-	        	        aiop_lcf_ddr_size;
+                                aiop_lcf_ddr_size + g_boot_mem_mng_size ;
 	            p_mem_info->phys_base_addr = g_init_data.sl_info.dp_ddr_paddr +
-	        			aiop_lcf_ddr_size;
+                                aiop_lcf_ddr_size + g_boot_mem_mng_size;
 	            p_mem_info->size = g_init_data.app_info.dp_ddr_size -
-	        			aiop_lcf_ddr_size;
+                                aiop_lcf_ddr_size - g_boot_mem_mng_size;
 	            pr_debug("MEM_PART_DP_DDR:virt_add=0x%x,phys_add=0x%x%08x,size=0x%x\n",
 	        	      p_mem_info->virt_base_addr,
 	                      (uint32_t)(p_mem_info->phys_base_addr >> 32),
@@ -700,7 +700,8 @@ __COLD_CODE int platform_enable_console(fsl_handle_t h_platform)
         RETURN_ERROR(MAJOR, EAGAIN, ("DUART"));
 
     /* Fill DUART configuration parameters */
-    duart_uart_param.base_address       = uart_port_offset[ g_init_data.sl_info.uart_port_id];
+    duart_uart_param.irq                = NO_IRQ;
+    duart_uart_param.base_address       = pltfrm->ccsr_base + uart_port_offset[ g_init_data.sl_info.uart_port_id];
     duart_uart_param.system_clock_mhz   = (platform_get_system_bus_clk(pltfrm) / 1000000);
     duart_uart_param.baud_rate          = 115200;
     duart_uart_param.parity             = E_DUART_PARITY_NONE;
