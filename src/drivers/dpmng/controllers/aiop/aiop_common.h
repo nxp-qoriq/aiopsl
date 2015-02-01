@@ -97,13 +97,17 @@ struct aiop_sl_init_info
 	uint32_t uart_port_id;      /* initialized by MC FW during init, before AIOP elf is loaded */
 	uint32_t mc_portal_id;                  /* initialized by MC FW during init, before AIOP elf is loaded */
 	uint32_t mc_dpci_id;                    /* initialized by MC FW during init, before AIOP elf is loaded */
-	uint32_t clock_period; /* In nanosec */
+	uint32_t clock_period; 		/* 1588 period In nanosec */
+	
+	phys_addr_t	log_buf_paddr; 	/* physical address of log buffer */
+	uint32_t log_buf_size;
+	uint32_t sys_clk; /* in Khtz */ 
 
 	uint64_t options;
 	uint32_t args_size;	/* AIOP command line string length */
 	uint8_t args[AIOP_MAX_COMMAND_LINE_ARGS];	/* AIOP command line string */
 
-	uint32_t reserved[33];           /* reserved for future use. Keep 768B (3/4 K) */
+	uint32_t reserved[29];           /* reserved for future use. Keep 768B (3/4 K) */
 };
 
 
