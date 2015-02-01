@@ -59,6 +59,9 @@ struct aiop_init_info g_init_data =
   1,	        /* mc_portal_id       MC */
   0,	        /* mc_dpci_id         MC */
   1000,	        /* clock_period       MC */
+  0,		/* physical address of log buffer */
+  0,		/* size of log buffer */
+  0,		/* system clock in KHz */
   0,		/* options       MC */
   0,		/* args_size       MC */
   {0},		/* args       MC */

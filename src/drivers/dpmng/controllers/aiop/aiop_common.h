@@ -98,10 +98,10 @@ struct aiop_sl_init_info
 	uint32_t mc_portal_id;                  /* initialized by MC FW during init, before AIOP elf is loaded */
 	uint32_t mc_dpci_id;                    /* initialized by MC FW during init, before AIOP elf is loaded */
 	uint32_t clock_period; 		/* 1588 period In nanosec */
-	
-	phys_addr_t	log_buf_paddr; 	/* physical address of log buffer */
+
+	uint64_t log_buf_paddr; 	/* physical address of log buffer */
 	uint32_t log_buf_size;
-	uint32_t sys_clk; /* in Khtz */ 
+	uint32_t sys_clk; /* in Khtz */
 
 	uint64_t options;
 	uint32_t args_size;	/* AIOP command line string length */

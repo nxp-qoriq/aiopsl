@@ -337,9 +337,9 @@ __COLD_CODE static int pltfrm_init_console_cb(fsl_handle_t h_platform)
 		/* Master partition - register DUART console */
 		err = platform_enable_console(pltfrm);
 		if (err != 0){
+			sys_register_console((fsl_handle_t) -1, console_print_cb_uart_disabled, NULL);
 			/*Uart failed. the print will go only to buffer*/
 			pr_warn("UART print failed, all debug data will be printed to buffer.\n");
-			sys_register_console(pltfrm->uart, console_print_cb_uart_disabled, NULL);
 			return 0;
 		}
 
@@ -681,7 +681,7 @@ uint32_t platform_get_system_bus_clk(fsl_handle_t h_platform)
 
 	SANITY_CHECK_RETURN_VALUE(pltfrm, ENODEV, 0);
 
-	return (pltfrm->param.clock_in_freq_hz);
+	return (pltfrm->param.clock_in_freq_khz);
 }
 
 
@@ -700,11 +700,21 @@ __COLD_CODE int platform_enable_console(fsl_handle_t h_platform)
 	                               SOC_PERIPH_OFF_DUART4
 	};
 	SANITY_CHECK_RETURN_ERROR(pltfrm, ENODEV);
-
+#ifdef UART_OVERRIDE
+	/*
+	 * 0 - Print only to buffer
+	 * 1 - duart1_0
+	 * 2 - duart1_1
+	 * 3 - duart2_0
+	 * 4 - duart2_1
+	 * */
+	pltfrm->param.console_id = MANUAL_UART_ID;
+#endif
 	if(pltfrm->param.console_type == PLTFRM_CONSOLE_NONE)
 		return 0;
 	if(pltfrm->param.console_id == 0)/*if console id is 0, print to buffer*/
 		return -ENAVAIL;
+
 
 	SANITY_CHECK_RETURN_ERROR((pltfrm->param.console_type == PLTFRM_CONSOLE_DUART), ENOTSUP);
 
@@ -714,7 +724,7 @@ __COLD_CODE int platform_enable_console(fsl_handle_t h_platform)
 	/* Fill DUART configuration parameters */
 	duart_uart_param.irq                = NO_IRQ;
 	duart_uart_param.base_address       = pltfrm->ccsr_base + uart_port_offset[ pltfrm->param.console_id];
-	duart_uart_param.system_clock_mhz   = (platform_get_system_bus_clk(pltfrm) / 1000000);
+	duart_uart_param.system_clock_mhz   = (platform_get_system_bus_clk(pltfrm) / 1000);
 	duart_uart_param.baud_rate          = 115200;
 	duart_uart_param.parity             = E_DUART_PARITY_NONE;
 	duart_uart_param.data_bits          = E_DUART_DATA_BITS_8;

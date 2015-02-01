@@ -298,7 +298,7 @@ uint32_t platform_get_core_clk(fsl_handle_t h_platform);
 
  @Param[in]     h_platform - Platform object handle.
 
- @Return        The system bus frequency (Hz).
+ @Return        The system bus frequency (KHz).
 *//***************************************************************************/
 uint32_t platform_get_system_bus_clk(fsl_handle_t h_platform);
 
