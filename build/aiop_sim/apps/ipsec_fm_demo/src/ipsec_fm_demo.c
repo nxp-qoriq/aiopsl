@@ -338,6 +338,7 @@ int ipsec_app_init(uint16_t ni_id)
 	uint32_t algs;
 	uint32_t outer_header_ip_version;
 	uint16_t ni_spid;
+	uint32_t tunnel_transport_mode;
 
 	enum key_types {
 		NULL_ENCRYPTION = 0,
@@ -350,15 +351,19 @@ int ipsec_app_init(uint16_t ni_id)
 	/*                    Control Parameters                  */
 	/**********************************************************/
 	/* Set the required algorithms here */
-	//algs = NULL_ENCRYPTION;
+	algs = NULL_ENCRYPTION;
 	//algs = AES128_SHA256;
-	algs = AES128_SHA1;
+	//algs = AES128_SHA1;
 
 	/* Set the outer IP header type here */
 	outer_header_ip_version = 4; /* 4 or 6 */
 	
 	auth_key_id = 0; /* Keep the initial key array value */ 
 	//auth_key_id = 1; /* Overwrite the initial key array value */ 
+	
+	//tunnel_transport_mode = IPSEC_FLG_TUNNEL_MODE; /* Tunnel Mode */
+	tunnel_transport_mode = 0; /* Transport Mode */
+	
 	/**********************************************************/
 
 	ipsec_instance_handle_t ws_instance_handle = 0;
@@ -527,10 +532,12 @@ int ipsec_app_init(uint16_t ni_id)
 
 	/* Outbound (encryption) parameters */
 	params.direction = IPSEC_DIRECTION_OUTBOUND; /**< Descriptor direction */
-	params.flags = IPSEC_FLG_TUNNEL_MODE |
+	//params.flags = IPSEC_FLG_TUNNEL_MODE |
+	params.flags = tunnel_transport_mode |
 			IPSEC_FLG_LIFETIME_KB_CNTR_EN | IPSEC_FLG_LIFETIME_PKT_CNTR_EN;
 			/**< Miscellaneous control flags */
-
+	
+	
 	params.encparams.ip_nh = 0x0;
 	params.encparams.options = 0x0;
 	params.encparams.seq_num_ext_hi = 0x0;
@@ -586,39 +593,10 @@ int ipsec_app_init(uint16_t ni_id)
 
 	ipsec_sa_desc_outbound = ws_desc_handle_outbound;
 	
-	//^^^^^^^^^^^^^^^^ Debug ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-	fsl_os_print("\n ^^^ DEBUG: Authentication Key Copy  ^^^^\n");
-	
-	#define IPSEC_ALIGN_64_DEBUG(ADDRESS, ALIGNMENT)           \
-        ((((uint64_t)(ADDRESS)) + ((uint64_t)(ALIGNMENT)) - 1) & \
-        								(~(((uint64_t)(ALIGNMENT)) - 1)))
-	ws_desc_handle_inbound = IPSEC_ALIGN_64_DEBUG(ws_desc_handle_outbound, 64) + 512;
-
-	handle_high = (uint32_t)((ws_desc_handle_inbound & 0xffffffff00000000)>>32);
-	handle_low = (uint32_t)(ws_desc_handle_inbound & 0x00000000ffffffff);
-
-	fsl_os_print("Key Copy address = 0x%x_%x\n", handle_high, handle_low);
-	
-	cdma_read(
-			auth_key, /* void *ws_dst */
-			//ipsec_handle, /* uint64_t ext_address */
-			ws_desc_handle_inbound, /* uint64_t ext_address */
-			(uint16_t)auth_keylen /* uint16_t size */
-			);
-
-	for (i=0; i<128; i++) {
-		fsl_os_print("%d ", auth_key[i]);
-		if ((i%16) == 15) fsl_os_print("\n");
-	}
-	
-	fsl_os_print("\n ^^^ DEBUG: End of Authentication Key Copy  ^^^^\n");
-	
-	//^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-	
-
 	/* Inbound (decryption) parameters */
 	params.direction = IPSEC_DIRECTION_INBOUND; /**< Descriptor direction */
-	params.flags = IPSEC_FLG_TUNNEL_MODE |
+	//params.flags = IPSEC_FLG_TUNNEL_MODE |
+	params.flags = tunnel_transport_mode |
 			IPSEC_FLG_LIFETIME_KB_CNTR_EN | IPSEC_FLG_LIFETIME_PKT_CNTR_EN;
 			/**< Miscellaneous control flags */
 
