@@ -1,3 +1,11 @@
+LDPAA AIOP SERVICE LAYER LDPAA-AIOP-SL-v0.5.3.3 Change Log
+=============================================================
+
+IPsec:
+   * Updated RTA (flib) to fsl-lssdk-v0.6.1, split key (DKP) support for legacy thread.
+     (IPsec FM support for split key in Transport mode)
+
+
 LDPAA AIOP SERVICE LAYER LDPAA-AIOP-SL-v0.5.3.2 Change Log
 =============================================================
 
