@@ -351,9 +351,9 @@ int ipsec_app_init(uint16_t ni_id)
 	/*                    Control Parameters                  */
 	/**********************************************************/
 	/* Set the required algorithms here */
-	//algs = NULL_ENCRYPTION;
+	algs = NULL_ENCRYPTION;
 	//algs = AES128_SHA256;
-	algs = AES128_SHA1;
+	//algs = AES128_SHA1;
 
 	/* Set the outer IP header type here */
 	outer_header_ip_version = 4; /* 4 or 6 */
@@ -361,8 +361,8 @@ int ipsec_app_init(uint16_t ni_id)
 	auth_key_id = 0; /* Keep the initial key array value */ 
 	//auth_key_id = 1; /* Overwrite the initial key array value */ 
 	
-	tunnel_transport_mode = IPSEC_FLG_TUNNEL_MODE; /* Tunnel Mode */
-	//tunnel_transport_mode = 0; /* Transport Mode */
+	//tunnel_transport_mode = IPSEC_FLG_TUNNEL_MODE; /* Tunnel Mode */
+	tunnel_transport_mode = 0; /* Transport Mode */
 	
 	/**********************************************************/
 
