@@ -339,10 +339,11 @@ static int platform_en_console(fsl_handle_t h_platform)
 	extern struct aiop_init_info g_init_data;
 	uint32_t ccsr_vaddr = (uint32_t)g_init_data.sl_info.ccsr_vaddr;
 	uint32_t uart_port_offset[] = {
-	                               SOC_PERIPH_OFF_DUART0,
+	                               0,
 	                               SOC_PERIPH_OFF_DUART1,
 	                               SOC_PERIPH_OFF_DUART2,
-	                               SOC_PERIPH_OFF_DUART3
+	                               SOC_PERIPH_OFF_DUART3,
+	                               SOC_PERIPH_OFF_DUART4
 	};
 	SANITY_CHECK_RETURN_ERROR(pltfrm, ENODEV);
 
@@ -351,14 +352,14 @@ static int platform_en_console(fsl_handle_t h_platform)
 
 	SANITY_CHECK_RETURN_ERROR((pltfrm->param.console_type == PLTFRM_CONSOLE_DUART), ENOTSUP);
 
-	if( g_init_data.sl_info.uart_port_id > 3 )
+	if( g_init_data.sl_info.uart_port_id > 4 )
 		RETURN_ERROR(MAJOR, EAGAIN, ("DUART"));
 
 	/* Fill DUART configuration parameters */
 	duart_uart_param.irq                = -1;
 	/*Use offset for ccsr */
 	duart_uart_param.base_address       = ccsr_vaddr + uart_port_offset[ g_init_data.sl_info.uart_port_id];
-	duart_uart_param.system_clock_mhz   = (platform_get_system_bus_clk(pltfrm) / 1000000);
+	duart_uart_param.system_clock_mhz   = (platform_get_system_bus_clk(pltfrm) / 1000);
 	duart_uart_param.baud_rate          = 115200;
 	duart_uart_param.parity             = E_DUART_PARITY_NONE;
 	duart_uart_param.data_bits          = E_DUART_DATA_BITS_8;
@@ -425,12 +426,14 @@ int console_print_init()
 	//t_sys_param sys_param = {0};
 	t_platform_ops           *pltfrm_ops;
 	int err;
+	extern struct aiop_init_info g_init_data;
 	//t_platform *pltfrm;
 	sys.p_pre_console_buf = &pre_console_buf[0];
 //	pltfrm = fsl_os_malloc(sizeof(t_platform));
 //	if(!pltfrm) return -ENOMEM;
-
-	pltfrm.param.clock_in_freq_hz = 100000000;
+	pltfrm.param.clock_in_freq_khz = g_init_data.sl_info.sys_clk; //TODO check value
+	if(pltfrm.param.clock_in_freq_khz == 0)
+		pltfrm.param.clock_in_freq_khz = 400000;
 	pltfrm.param.console_type = PLTFRM_CONSOLE_DUART;
 	pltfrm.param.console_id = UART_ID;
 
