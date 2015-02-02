@@ -1634,9 +1634,10 @@ int ipsec_frame_encrypt(
 	pr->gross_running_sum = 0;
 	
 	/* 	Run parser and check for errors. */
-	//return_val = parse_result_generate_default(PARSER_NO_FLAGS);
+	return_val = parse_result_generate_default(PARSER_NO_FLAGS);
 	/* Performance Improvement */
-	return_val = parse_result_generate_basic();
+	//return_val = parse_result_generate_basic();
+	// TODO: parse_result_generate_basic() assumes HXS=0, not always true
 
 	// TODO: check results (TBD)
 	
