@@ -87,8 +87,8 @@
 <listEntry value="Cortex-A57#6"/>
 <listEntry value="Cortex-A57#7"/>
 <listEntry value="Cortex-A57#8"/>
-<listEntry value="e200z4201n3#0"/>
-<listEntry value="e200z4201n3#1"/>
+<listEntry value="MC#0"/>
+<listEntry value="MC#1"/>
 <listEntry value="AIOP#2"/>
 </listAttribute>
 <listAttribute key="com.freescale.cdt.debug.cw.Debug"/>
