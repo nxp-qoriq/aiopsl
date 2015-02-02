@@ -50,6 +50,7 @@
 #include "fsl_keygen.h"
 
 extern struct  ipr_global_parameters ipr_global_parameters1;
+extern struct storage_profile storage_profile[SP_NUM_OF_STORAGE_PROFILES];
 
 int app_early_init(void);
 int app_init(void);
@@ -220,11 +221,28 @@ int app_init(void)
 		uint32_t vlan = 0x8100aabb;
 		int parse_status;
 		uint8_t *frame_presented;
-		
+		struct fdma_amq amq;
+		uint16_t icid, flags = 0;
+		uint8_t tmp;
+		/* setting SPID = 0 */
+		*((uint8_t *)HWC_SPID_ADDRESS) = 0;
+		icid = (uint16_t)(storage_profile[0].ip_secific_sp_info >> 48);
+		icid = ((icid << 8) & 0xff00) | ((icid >> 8) & 0xff);
+		tmp = (uint8_t)(storage_profile[0].ip_secific_sp_info >> 40);
+		if (tmp & 0x08)
+			flags |= FDMA_ICID_CONTEXT_BDI;
+		if (tmp & 0x04)
+			flags |= FDMA_ICID_CONTEXT_PL;
+		if (storage_profile[0].mode_bits2 & sp1_mode_bits2_VA_MASK)
+			flags |= FDMA_ICID_CONTEXT_VA;
+		amq.icid = icid;
+		amq.flags = flags;
+		set_default_amq_attributes(&amq);
+
 		err = create_frame(fd, frame_data, FRAME_SIZE, &frame_handle);
 		if (err)
 			fsl_os_print("ERROR: create frame failed!\n");
-		
+
 		fdma_close_default_segment();
 		fdma_present_default_frame_segment(FDMA_PRES_NO_FLAGS, (void *)0x180, 0, 256);
 		l2_push_and_set_vlan(vlan);
