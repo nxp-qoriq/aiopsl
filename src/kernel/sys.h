@@ -99,7 +99,7 @@ inline void	sys_yield(void)
 {
 	extern t_system sys;
 
-	if(!sys.runtime_flag) {
+	if(sys.runtime_flag) {
 		__e_hwacceli(YIELD_ACCEL_ID); /* Yield */
 	}
 }
