@@ -32,8 +32,7 @@
 #ifndef __FSL_DPCI_H
 #define __FSL_DPCI_H
 
-/*
- * Data Path Communication Interface API
+/* Data Path Communication Interface API
  * Contains initialization APIs and runtime control APIs for DPCI
  */
 
@@ -407,9 +406,9 @@ enum dpci_dest {
  * struct dpci_dest_cfg - Structure representing DPCI destination configuration
  * @dest_type: 	Destination type
  * @dest_id:	Either DPIO ID or DPCON ID, depending on the destination type
- * @priority:	Priority selection within the DPIO or DPCON channel; valid values
- *	 	are 0-1 or 0-7, depending on the number of priorities in that
- * 		channel; not relevant for 'DPCI_DEST_NONE' option
+ * @priority:	Priority selection within the DPIO or DPCON channel; valid
+ *		values are 0-1 or 0-7, depending on the number of priorities
+ *		in that	channel; not relevant for 'DPCI_DEST_NONE' option
  */
 struct dpci_dest_cfg {
 	enum dpci_dest dest_type;
@@ -431,7 +430,8 @@ struct dpci_dest_cfg {
  * 		Use any combination of 'DPCI_QUEUE_OPT_<X>' flags
  * @user_ctx:	User context value provided in the frame descriptor of each
  * 		dequeued frame;
- * 		valid only if 'DPCI_QUEUE_OPT_USER_CTX' is contained in 'options'
+ *		valid only if 'DPCI_QUEUE_OPT_USER_CTX' is contained in
+ *		'options'
  * @dest_cfg:	Queue destination parameters;
  * 		valid only if 'DPCI_QUEUE_OPT_DEST' is contained in 'options'
  */

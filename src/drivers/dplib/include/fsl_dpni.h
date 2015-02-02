@@ -34,11 +34,9 @@
 
 #include <fsl_dpkg.h>
 
-/*
+/**
  * Data Path Network Interface API
- *
  * Contains initialization APIs and runtime control APIs for DPNI
- *
  */
 
 struct fsl_mc_io;
@@ -89,12 +87,14 @@ int dpni_close(struct fsl_mc_io *mc_io, uint16_t token);
 
 /* DPNI configuration options */
 
-/* Allow different distribution key profiles for different traffic classes;
+/**
+ * Allow different distribution key profiles for different traffic classes;
  * if not set, a single key profile is assumed
  */
 #define DPNI_OPT_ALLOW_DIST_KEY_PER_TC		0x00000001
 
-/* Disable all non-error transmit confirmation; error frames are reported
+/**
+ * Disable all non-error transmit confirmation; error frames are reported
  * back to a common Tx error queue
  */
 #define DPNI_OPT_TX_CONF_DISABLED		0x00000002
@@ -102,12 +102,14 @@ int dpni_close(struct fsl_mc_io *mc_io, uint16_t token);
 /* Disable per-sender private Tx confirmation/error queue */
 #define DPNI_OPT_PRIVATE_TX_CONF_ERROR_DISABLED	0x00000004
 
-/* Support distribution based on hashed key;
+/**
+ * Support distribution based on hashed key;
  * allows statistical distribution over receive queues in a traffic class
  */
 #define DPNI_OPT_DIST_HASH			0x00000010
 
-/* Support distribution based on flow steering;
+/**
+ * Support distribution based on flow steering;
  * allows explicit control of distribution over receive queues in a traffic
  * class
  */
@@ -304,9 +306,7 @@ int dpni_is_enabled(struct fsl_mc_io *mc_io, uint16_t token, int *en);
  */
 int dpni_reset(struct fsl_mc_io *mc_io, uint16_t token);
 
-/*
- * DPNI IRQ Index and Events
- */
+/* DPNI IRQ Index and Events */
 
 /* IRQ index */
 #define DPNI_IRQ_INDEX				0
@@ -831,6 +831,11 @@ int dpni_set_counter(struct fsl_mc_io	*mc_io,
 		     uint16_t		token,
 		     enum dpni_counter	counter,
 		     uint64_t		value);
+
+/* Enable auto-negotiation */
+#define DPNI_LINK_OPT_AUTONEG		0x0000000000000001ULL
+/* Enable half-duplex mode */
+#define DPNI_LINK_OPT_HALF_DUPLEX	0x0000000000000002ULL
 
 /**
  * struct - Structure representing DPNI link configuration

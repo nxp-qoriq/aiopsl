@@ -429,9 +429,9 @@ do { \
 /*                cmd, param, offset, width, type, arg_name */
 #define DPNI_RSP_GET_LINK_STATE(cmd, state) \
 do { \
-	MC_CMD_OP(cmd, 0, 32, 32, int,      state->up);\
-	MC_CMD_OP(cmd, 1, 0,  64, uint64_t, state->rate);\
-	MC_CMD_OP(cmd, 2, 0,  64, uint64_t, state->options);\
+	MC_RSP_OP(cmd, 0, 32, 1,  int,      state->up);\
+	MC_RSP_OP(cmd, 1, 0,  64, uint64_t, state->rate);\
+	MC_RSP_OP(cmd, 2, 0,  64, uint64_t, state->options);\
 } while (0)
 
 /*                cmd, param, offset, width, type, arg_name */

@@ -34,15 +34,11 @@
 
 #include <fsl_net.h>
 
-/*
- * Data Path Key Generator API
- *
+/* Data Path Key Generator API
  * Contains initialization APIs and runtime APIs for the Key Generator
  */
 
-/*
- * Key Generator properties
- */
+/* Key Generator properties */
 
 /* Number of masks per key extraction */
 #define DPKG_NUM_OF_MASKS		4
@@ -90,8 +86,8 @@ struct dpkg_mask {
  *		DPKG_EXTRACT_FROM_DATA: selects 'from_data';
  * 		DPKG_EXTRACT_CONSTANT: selects 'constant'
  * @extract: Selects extraction method
- * @num_of_byte_masks: Defines the number of valid entries in the array below; This is
- * 			also number of bytes to be used as masks
+ * @num_of_byte_masks: Defines the number of valid entries in the array below;
+ *		This is	also the number of bytes to be used as masks
  * @masks: Masks parameters
  */
 struct dpkg_extract {
@@ -168,4 +164,5 @@ struct dpkg_profile_cfg {
 	uint8_t num_extracts;
 	struct dpkg_extract extracts[DPKG_MAX_NUM_OF_EXTRACTS];
 };
+
 #endif /* __FSL_DPKG_H_ */

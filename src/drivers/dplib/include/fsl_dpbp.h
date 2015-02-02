@@ -32,8 +32,7 @@
 #ifndef __FSL_DPBP_H
 #define __FSL_DPBP_H
 
-/*
- * Data Path Buffer Pool API
+/* Data Path Buffer Pool API
  * Contains initialization APIs and runtime control APIs for DPBP
  */
 
