@@ -208,6 +208,7 @@ void sys_print(char *str)
 	/* Print to the registered console, if exists */
 	if (sys.console)
 		sys.f_console_print(sys.console, (uint8_t *)str, count);
+#ifndef STACK_CHECK /*Printing to pre console buffer should not be checked - happens only in boot*/
 	else {
 		if (!sys.p_pre_console_buf) {
 				/* Cannot print error message - print called before entering to sys_init */
@@ -233,7 +234,7 @@ void sys_print(char *str)
 		}
 
 	}
-
+#endif /*STACK_CHECK*/
 #ifdef AIOP
 				unlock_spinlock(&(sys.console_lock));
 #else
