@@ -43,7 +43,7 @@ struct icontext icontext_aiop = {0};
 
 void icontext_aiop_get(struct icontext *ic)
 {
-	ASSERT_COND(ic != NULL);
+	ASSERT_COND_LIGHT(ic != NULL);
 	*ic = icontext_aiop;
 }
 
