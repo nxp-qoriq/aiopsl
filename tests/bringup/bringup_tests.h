@@ -6,7 +6,7 @@
 #define OFF 0
 
 #define TEST_MEM_ACCESS 	OFF
-#define TEST_CONSOLE_PRINT	OFF
+#define TEST_CONSOLE_PRINT	ON
 #define TEST_EXCEPTIONS		OFF
 #define TEST_STACK_OVF		OFF
 #define TEST_DPBP			OFF
@@ -16,7 +16,7 @@
 #define TEST_DPNI			OFF
 #define TEST_BUFFER_POOLS	OFF
 #define TEST_GPP_DDR		OFF
-#define TEST_SPINLOCKS		ON
+#define TEST_SPINLOCK		OFF
 
 #if (TEST_SPINLOCKS == ON)
 /* memory access test */

@@ -33,7 +33,12 @@
 #include "inc/console.h"
 #include "sys.h"
 
-
+#ifdef AIOP
+#include "fsl_icontext.h"
+uint64_t g_log_buf_phys_address;
+uint32_t g_log_buf_size;
+uint32_t g_log_buf_count = 0;
+#endif
 
 #ifdef SIMULATOR
 static int system_call(int num, int arg0, int arg1, int arg2, int arg3)
@@ -98,6 +103,9 @@ __COLD_CODE int sys_register_console(fsl_handle_t h_console_dev,
                                                    uint8_t *p_data,
                                                    uint32_t size))
 {
+#ifdef AIOP
+	uint8_t print_to_buffer_state;
+#endif
 	if (sys.console)
 		RETURN_ERROR(MINOR, EEXIST, ("system console"));
 
@@ -118,7 +126,14 @@ __COLD_CODE int sys_register_console(fsl_handle_t h_console_dev,
 
 	/* Flush pre-console printouts as necessary */
 	if (h_console_dev) {
+#ifdef AIOP
+		print_to_buffer_state = sys.print_to_buffer;
+		sys.print_to_buffer = FALSE;
+#endif
 		sys_print(sys.p_pre_console_buf);
+#ifdef AIOP
+		sys.print_to_buffer = print_to_buffer_state;
+#endif
 		sys.p_pre_console_buf = NULL;
 		sys.pre_console_buf_pos = 0;
 	}
@@ -137,6 +152,39 @@ int sys_unregister_console(void)
 	return 0;
 }
 
+static void sys_print_to_buffer(char *str, uint16_t str_length)
+{
+	uint16_t temp_count;
+	uint32_t local_counter = g_log_buf_count;
+	struct icontext ic;
+	icontext_aiop_get(&ic);
+
+	if(str_length > g_log_buf_size) /*in case the length is to big */
+		return;
+
+	/*Fast phase*/
+	if(local_counter + str_length <= g_log_buf_size)
+	{
+		/* Enough buffer*/
+		g_log_buf_count += str_length;
+		/*unlock spinlock*/
+		unlock_spinlock(&(sys.console_lock));
+		icontext_dma_write(&ic, str_length, str, g_log_buf_phys_address + local_counter);
+	}
+	else
+	{
+		temp_count = str_length - (uint16_t)(g_log_buf_size - local_counter);
+		str_length -= temp_count;
+		g_log_buf_count = str_length; /*The counter will point to the end of the string from the beginning of buffer*/
+		unlock_spinlock(&(sys.console_lock));
+		icontext_dma_write(&ic, temp_count, str, g_log_buf_phys_address + local_counter);
+		str += temp_count;
+		icontext_dma_write(&ic, str_length, str, g_log_buf_phys_address );
+	}
+	/*lock spinlock*/
+	lock_spinlock(&(sys.console_lock));
+}
+
 /*****************************************************************************/
 void sys_print(char *str)
 {
@@ -150,10 +198,17 @@ void sys_print(char *str)
 #endif
 	count = (uint32_t)strlen(str);
 
-	/* Print to the registered console, if exists */
 
+#ifdef AIOP
+	if(sys.print_to_buffer)
+		/*print to buffer using fdma (the pointer to buffer inside spinlock for safety)*/
+		sys_print_to_buffer(str, (uint16_t)count);
+#endif
+
+	/* Print to the registered console, if exists */
 	if (sys.console)
 		sys.f_console_print(sys.console, (uint8_t *)str, count);
+#ifndef STACK_CHECK /*Printing to pre console buffer should not be checked - happens only in boot*/
 	else {
 		if (!sys.p_pre_console_buf) {
 				/* Cannot print error message - print called before entering to sys_init */
@@ -172,14 +227,14 @@ void sys_print(char *str)
 				sys.pre_console_buf_pos += sprintf(
 						sys.p_pre_console_buf, "[TRUNCATED]...\n");
 			}
-	
+
 			memcpy(&(sys.p_pre_console_buf[sys.pre_console_buf_pos]),
 				   str/*sys.print_buf*/, count);
 			sys.pre_console_buf_pos += count;
 		}
 
 	}
-
+#endif /*STACK_CHECK*/
 #ifdef AIOP
 				unlock_spinlock(&(sys.console_lock));
 #else

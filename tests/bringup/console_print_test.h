@@ -10,6 +10,13 @@
 #include "fsl_errors.h"
 #include "../../../drivers/serial/include/fsl_duart.h"
 
+/**
+ *	0 = duart1_0
+ * 	1 = duart1_1
+ *	2 = duart2_0
+ * 	3 = duart2_1
+*/
+#define UART_ID      2
 
 
 #define URBR         urbr_uthr_udlb  /**< receiver buffer register */

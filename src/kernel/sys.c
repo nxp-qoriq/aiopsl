@@ -41,6 +41,10 @@
 /* Global System Object */
 t_system sys = {0};
 
+extern struct aiop_init_info g_init_data;
+extern uint64_t g_log_buf_phys_address;
+extern uint32_t g_log_buf_size;
+
 extern void     __sys_start(register int argc, register char **argv,
 				register char **envp);
 
@@ -135,13 +139,13 @@ __COLD_CODE static int sys_init_platform(void)
 				sys.platform_ops.h_platform);
 			if (err != 0) return err;
 		}
-		
+
 		if (sys.platform_ops.f_init_mem_partitions) {
 			err = sys.platform_ops.f_init_mem_partitions(
 				sys.platform_ops.h_platform);
 			if (err != 0) return err;
 		}
-		
+
 		if (sys.platform_ops.f_init_console) {
 			err = sys.platform_ops.f_init_console(
 				sys.platform_ops.h_platform);
@@ -180,11 +184,11 @@ static int sys_free_platform(void)
 		if (sys.platform_ops.f_free_console)
 			err = sys.platform_ops.f_free_console(
 				sys.platform_ops.h_platform);
-		
+
 		if (sys.platform_ops.f_free_mem_partitions)
 			err = sys.platform_ops.f_free_mem_partitions(
 				sys.platform_ops.h_platform);
-		
+
 		if (sys.platform_ops.f_free_ipc)
 			err = sys.platform_ops.f_free_ipc(
 				sys.platform_ops.h_platform);
@@ -285,7 +289,7 @@ __COLD_CODE static int global_sys_init(void)
 	                                      E_MAPPED_MEM_TYPE_GEN_REGS);
 
 	cmgw_init((void *)aiop_base_addr);
-	
+
 	err = sys_add_handle( (fsl_handle_t)aiop_base_addr,
 	                                      FSL_OS_MOD_AIOP_TILE, 1, 0);
 	if (err != 0) return err;
@@ -302,6 +306,12 @@ __COLD_CODE int sys_init(void)
 
 	memset( &pre_console_buf[0], 0, PRE_CONSOLE_BUF_SIZE);
 	sys.p_pre_console_buf = &pre_console_buf[0];
+
+	if(g_init_data.sl_info.log_buf_size){
+		sys.print_to_buffer = TRUE;
+		g_log_buf_phys_address = g_init_data.sl_info.log_buf_paddr;
+		g_log_buf_size = g_init_data.sl_info.log_buf_size;
+	}
 
 	sys.is_tile_master[core_id] = (int)(SYS_TILE_MASTERS_MASK \
 						& (1ULL << core_id)) ? 1 : 0;

@@ -69,8 +69,10 @@ void fsl_os_print(char *format, ...)
 		va_end(args);
 		sys_print(tmp_buf);
 	}
+#ifndef STACK_CHECK
 	else
 		fsl_os_print_boot(format, args);
+#endif
 }
 
 __COLD_CODE static void fsl_os_print_boot(const char *format, va_list args){

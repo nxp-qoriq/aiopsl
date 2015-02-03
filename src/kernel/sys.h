@@ -64,6 +64,7 @@ typedef struct t_system {
 		uint8_t *p_data, uint32_t size);
 	char                        *p_pre_console_buf;
 	uint32_t                    pre_console_buf_pos;
+	uint8_t                     print_to_buffer;
 	uint8_t                     console_lock;
 
 	/* Multi-Processing variables */
@@ -97,8 +98,8 @@ void    sys_register_debugger_console(void);
 inline void	sys_yield(void)
 {
 	extern t_system sys;
-	
-	if(!sys.runtime_flag) {
+
+	if(sys.runtime_flag) {
 		__e_hwacceli(YIELD_ACCEL_ID); /* Yield */
 	}
 }

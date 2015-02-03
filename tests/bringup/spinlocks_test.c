@@ -46,11 +46,10 @@ int spinlock_standalone_init()
 /*****************************************************************************/
 int spinlock_test ()
 {
-	uint32_t i = 0;
+	uint32_t i = 0, j = 0;
 	int spin_val = 0;
 	int err;
-	
-	//TODO return error value (not only assert)
+	volatile err_stop = 1;
 	
 	/* start the test */
 	while(s_index < SPIN_TEST_ITERATIONS) 
@@ -72,34 +71,35 @@ int spinlock_test ()
 //		spin_lock_free(test_lock); //TODO NOOOooo... !!!!!!!!!!!!!!
 //	}
 	
-	sys_barrier(); //TODO initiate
+	sys_barrier();
 	
 	if(sys_is_master_core()) {
-		int num_taken[2] = {0,0};
+		int num_taken[16] = {0};
 		
 		for(i=0; i<SPIN_TEST_ITERATIONS; i++) {
 			num_taken[stest[i].core_id - 1] ++;
 			
-			ASSERT_COND(stest[i].test_id == i);
-			ASSERT_COND((stest[i].core_id == 1) || (stest[i].core_id == 2));
-			ASSERT_COND((stest[i].core_flag[0] == 1) || (stest[i].core_flag[1] == 1));
-			if(stest[i].core_id == 1)
-			{
-				ASSERT_COND(stest[i].core_flag[0] == 1);
-				ASSERT_COND(stest[i].core_flag[1] == 0);
-			} else { //core_id == 2
-				ASSERT_COND(stest[i].core_flag[0] == 0);
-				ASSERT_COND(stest[i].core_flag[1] == 1);
+			if(stest[i].test_id != i) 
+				return -EEXIST;
+			if(stest[i].core_id > 16) 
+				return -EEXIST;
+			if(stest[i].core_flag[stest[i].core_id - 1] != 1) 
+				return -EEXIST;
+			for(j=0; j<16; j++) {
+				if(j != (stest[i].core_id - 1)) {
+					if(stest[i].core_flag[j] == 1)
+						return -EEXIST;
+				}
 			}
 		}
 		
-		fsl_os_print("%d spinlocks taken by core #%d\n", num_taken[0], 0);
-		fsl_os_print("%d spinlocks taken by core #%d\n", num_taken[1], 1);
-		
-		fsl_os_print("Spinlocks validation... (PASSED)\n");
+//		fsl_os_print("%d spinlocks taken by core #%d\n", num_taken[0], 0);
+//		fsl_os_print("%d spinlocks taken by core #%d\n", num_taken[1], 1);
+//
+//		fsl_os_print("Spinlocks validation... (PASSED)\n");
 	}
 	
-	sys_barrier(); //TODO initiate
+	sys_barrier();
 	
 	return 0;
 }

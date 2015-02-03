@@ -863,46 +863,49 @@ void ipsec_generate_flc(
 	sp_addr += spid;
 	sp_byte = (uint8_t *)sp_addr;
 	
+	/* Performance Update */
+	cdma_ws_memory_init(&flow_context,sizeof(struct ipsec_flow_context),0);
+
 	/* Word 0 */
-	flow_context.word0_sdid = 0; //TODO: how to get this value? 
-	flow_context.word0_res = 0; 
+	//flow_context.word0_sdid = 0; //TODO: how to get this value? 
+	//flow_context.word0_res = 0; 
 
 	/* Word 1 */
 	/* 5-0 SDL = Shared Descriptor length, 7-6 reserved */
 	/* SDL is encoded in terms of 32-bit descriptor command words */ 
 	flow_context.word1_sdl = (uint8_t)(sd_size & 0x000000FF);
 	
-	flow_context.word1_bits_15_8 = 0; /* 11-8 CRID, 14-12 reserved, 15 CRJD */
-	flow_context.word1_bits23_16 = 0; /* 16	EWS,17 DAC,18-20?, 23-21 reserved */
-	flow_context.word1_bits31_24 = 0; /* 24 RSC (not used for AIOP), 
-		25 RBMT (not used for AIOP), 31-26 reserved */
+	//flow_context.word1_bits_15_8 = 0; /* 11-8 CRID, 14-12 reserved, 15 CRJD */
+	//flow_context.word1_bits23_16 = 0; /* 16	EWS,17 DAC,18-20?, 23-21 reserved */
+	//flow_context.word1_bits31_24 = 0; /* 24 RSC (not used for AIOP), 
+	//	25 RBMT (not used for AIOP), 31-26 reserved */
 	// TODO: check regarding EWS in buffer reuse mode
 	
 	/* word 2  RFLC[31-0] */
-	flow_context.word2_rflc_31_0 = 0; /* Not used for AIOP */
+	//flow_context.word2_rflc_31_0 = 0; /* Not used for AIOP */
 
 	/* word 3  RFLC[63-32] */
-	flow_context.word3_rflc_63_32 = 0; /* Not used for AIOP */
+	//flow_context.word3_rflc_63_32 = 0; /* Not used for AIOP */
 
 	/* word 4 */ /* Not used, should be NULL */
-	flow_context.word4_iicid = 0; /* 15-0  IICID */
-	flow_context.word4_oicid = 0; /* 31-16 OICID */
+	//flow_context.word4_iicid = 0; /* 15-0  IICID */
+	//flow_context.word4_oicid = 0; /* 31-16 OICID */
 	
 	/* word 5 */ 	
-	flow_context.word5_7_0 = 0; /* 23-0 OFQID, not used for AIOP */
-	flow_context.word5_15_8 = 0;
-	flow_context.word5_23_16 = 0;
+	//flow_context.word5_7_0 = 0; /* 23-0 OFQID, not used for AIOP */
+	//flow_context.word5_15_8 = 0;
+	//flow_context.word5_23_16 = 0;
 	/* 31-30 ICR = 2. AIOP is a trusted user - no need for any restrictions. */
-	flow_context.word5_31_24 = 0x40;
+	//flow_context.word5_31_24 = 0x40;
 						/* 24 OSC : not used for AIOP */
 						/* 25 OBMT : not used for AIOP */
 						/* 29-26 reserved */
 						/* 31-30 ICR */
 	/* word 6 */
-	flow_context.word6_oflc_31_0 = 0; /* Not used for AIOP */
+	//flow_context.word6_oflc_31_0 = 0; /* Not used for AIOP */
 	
 	/* word 7 */
-	flow_context.word7_oflc_63_32 = 0; /* Not used for AIOP */
+	//flow_context.word7_oflc_63_32 = 0; /* Not used for AIOP */
 	
 	/* Storage profile format:
 	* 0x00 IP-Specific Storage Profile Information 
@@ -914,6 +917,8 @@ void ipsec_generate_flc(
 	*/
 	/* Copy the standard Storage Profile to Flow Context words 8-15 */
 	/* No need to for the first 8 bytes, so start from 8 */
+	// TODO: optionally use for copy 	
+	//fdma_copy_data(24, 0 ,sp_byte,flow_context.storage_profile + 8);
 	for (i = 8; i < 32; i++) {
 		*((uint8_t *)((uint8_t *)flow_context.storage_profile + i - 8)) = 
 				*(sp_byte + i); 
@@ -1216,16 +1221,21 @@ int ipsec_frame_encrypt(
 	uint32_t byte_count;
 	uint16_t checksum;
 	uint8_t dont_encrypt = 0;
-	int i;
+	//int i;
 	ipsec_handle_t desc_addr;
+	uint16_t offset;
 
 	struct ipsec_sa_params_part1 sap1; /* Parameters to read from ext buffer */
 	struct scope_status_params scope_status;
 	struct dpovrd_general dpovrd;
 	struct parse_result *pr = (struct parse_result *)HWC_PARSE_RES_ADDRESS;
+	
+	struct   presentation_context *prc =
+				(struct presentation_context *) HWC_PRC_ADDRESS;
 
 	/* Increment the reference counter */
-	cdma_refcount_increment(ipsec_handle);
+	/* Performance Improvement */
+	//cdma_refcount_increment(ipsec_handle);
 	
 	*enc_status = 0; /* Initialize */
 	
@@ -1234,13 +1244,28 @@ int ipsec_frame_encrypt(
 	desc_addr = IPSEC_DESC_ADDR(ipsec_handle);
 
 	/* 	2.	Read relevant descriptor fields with CDMA. */
-	cdma_read(
-			&sap1, /* void *ws_dst */
-			//ipsec_handle, /* uint64_t ext_address */
-			desc_addr, /* uint64_t ext_address */
-			sizeof(sap1) /* uint16_t size */
+	//cdma_read(
+	//		&sap1, /* void *ws_dst */
+	//		//ipsec_handle, /* uint64_t ext_address */
+	//		desc_addr, /* uint64_t ext_address */
+	//		sizeof(sap1) /* uint16_t size */
+	//		);
+	/* Performance Improvement */
+	/* CDMA read and reference counter increment with a single command */
+	//#define REF_COUNT_ADDR_DUMMY  HWC_ACC_OUT_ADDRESS+CDMA_REF_CNT_OFFSET
+	// TODO: optionally use cdma_access_context_memory_no_refcount_get()
+	// when this function is available
+	offset = (uint16_t)(desc_addr-ipsec_handle);
+	cdma_access_context_memory(
+			ipsec_handle,
+			CDMA_ACCESS_CONTEXT_MEM_INC_REFCOUNT,
+			offset,
+			&sap1,
+			CDMA_ACCESS_CONTEXT_MEM_DMA_READ | sizeof(sap1),
+			(uint32_t *)(HWC_ACC_OUT_ADDRESS+CDMA_REF_CNT_OFFSET)
+				/* REF_COUNT_ADDR_DUMMY */
 			);
-
+	
 	/*---------------------*/
 	/* ipsec_frame_encrypt */
 	/*---------------------*/
@@ -1252,43 +1277,79 @@ int ipsec_frame_encrypt(
 	 * This is done to avoid doing mutex lock for kilobyte/packet status */
 	
 	/* Seconds Lifetime */
-	if (sap1.flags & IPSEC_FLG_LIFETIME_SEC_CNTR_EN) {
-		if (sap1.status & IPSEC_STATUS_SOFT_SEC_EXPIRED) {
-			*enc_status |= IPSEC_STATUS_SOFT_SEC_EXPIRED;
-		}
-		if (sap1.status & IPSEC_STATUS_HARD_SEC_EXPIRED) {
-			*enc_status |= IPSEC_STATUS_HARD_SEC_EXPIRED;
-			dont_encrypt = 1;
+	//if (sap1.flags & IPSEC_FLG_LIFETIME_SEC_CNTR_EN) {
+	//	if (sap1.status & IPSEC_STATUS_SOFT_SEC_EXPIRED) {
+	//		*enc_status |= IPSEC_STATUS_SOFT_SEC_EXPIRED;
+	//	}
+	//	if (sap1.status & IPSEC_STATUS_HARD_SEC_EXPIRED) {
+	//		*enc_status |= IPSEC_STATUS_HARD_SEC_EXPIRED;
+	//		dont_encrypt = 1;
+	//	}
+	//}
+	/* Performance Improvement */
+	if (sap1.status & IPSEC_STATUS_SOFT_SEC_EXPIRED) {
+		if (sap1.flags & IPSEC_FLG_LIFETIME_SEC_CNTR_EN) {
+			if (sap1.status & IPSEC_STATUS_SOFT_SEC_EXPIRED) {
+				*enc_status |= IPSEC_STATUS_SOFT_SEC_EXPIRED;
+			}
+			if (sap1.status & IPSEC_STATUS_HARD_SEC_EXPIRED) {
+				*enc_status |= IPSEC_STATUS_HARD_SEC_EXPIRED;
+				return_val = IPSEC_ERROR; // TODO: TMP
+				goto encrypt_end;
+			}
 		}
 	}
 	
 	/* KB lifetime counters */
+	//if (sap1.flags & IPSEC_FLG_LIFETIME_KB_CNTR_EN) {
+	//	if (sap1.byte_counter >= sap1.soft_byte_limit) {
+	//		*enc_status |= IPSEC_STATUS_SOFT_KB_EXPIRED;
+	//	}
+	//	if (sap1.byte_counter >= sap1.hard_byte_limit) {
+	//		*enc_status |= IPSEC_STATUS_HARD_KB_EXPIRED;
+	//		dont_encrypt = 1;
+	//	}
+	//}
+	/* Performance Improvement */
 	if (sap1.flags & IPSEC_FLG_LIFETIME_KB_CNTR_EN) {
 		if (sap1.byte_counter >= sap1.soft_byte_limit) {
 			*enc_status |= IPSEC_STATUS_SOFT_KB_EXPIRED;
-		}
-		if (sap1.byte_counter >= sap1.hard_byte_limit) {
-			*enc_status |= IPSEC_STATUS_HARD_KB_EXPIRED;
-			dont_encrypt = 1;
+			if (sap1.byte_counter >= sap1.hard_byte_limit) {
+				*enc_status |= IPSEC_STATUS_HARD_KB_EXPIRED;
+				return_val = IPSEC_ERROR; // TODO: TMP
+				goto encrypt_end;
+			}
 		}
 	}
 	
 	/* Packets lifetime counters*/
+	//if (sap1.flags & IPSEC_FLG_LIFETIME_PKT_CNTR_EN) {
+	//	if (sap1.packet_counter >= sap1.soft_packet_limit) {
+	//		*enc_status |= IPSEC_STATUS_SOFT_PACKET_EXPIRED;
+	//	}
+	//	if (sap1.packet_counter >= sap1.hard_packet_limit) {
+	//		*enc_status |= IPSEC_STATUS_HARD_PACKET_EXPIRED;
+	//		dont_encrypt = 1;
+	//}
+	/* Performance Improvement */
 	if (sap1.flags & IPSEC_FLG_LIFETIME_PKT_CNTR_EN) {
-
 		if (sap1.packet_counter >= sap1.soft_packet_limit) {
 			*enc_status |= IPSEC_STATUS_SOFT_PACKET_EXPIRED;
-		}
-		if (sap1.packet_counter >= sap1.hard_packet_limit) {
-			*enc_status |= IPSEC_STATUS_HARD_PACKET_EXPIRED;
-			dont_encrypt = 1;
+			if (sap1.packet_counter >= sap1.hard_packet_limit) {
+				*enc_status |= IPSEC_STATUS_HARD_PACKET_EXPIRED;
+					return_val = IPSEC_ERROR; // TODO: TMP
+					goto encrypt_end;
+			}
 		}
 	}
+	// TODO: check if packet counter can be 32 bit
 	
-	if (dont_encrypt) {
-		return_val = IPSEC_ERROR; // TODO: TMP
-		goto encrypt_end;
-	}
+	
+	/* Performance Improvement */
+	//if (dont_encrypt) {
+	//	return_val = IPSEC_ERROR; // TODO: TMP
+	//	goto encrypt_end;
+	//}
 	
 		/*---------------------*/
 		/* ipsec_frame_encrypt */
@@ -1365,14 +1426,27 @@ int ipsec_frame_encrypt(
 
 		eth_pointer_default = (uint8_t *)PARSER_GET_ETH_POINTER_DEFAULT();
 	
-		for (i = 0 ; i < eth_length; i++) {
-			eth_header[i] = *(eth_pointer_default + i);
-		}
+		//for (i = 0 ; i < eth_length; i++) {
+		//	eth_header[i] = *(eth_pointer_default + i);
+		//}
+		/* Performance Improvement */
+		fdma_copy_data(eth_length, 0 ,eth_pointer_default,eth_header);
+
 		
 		/* Remove L2 Header */	
 		/* Note: The gross running sum of the frame becomes invalid 
 		 * after calling this function. */
-		l2_header_remove();
+		//l2_header_remove();
+		/* Performance Improvement */
+		fdma_replace_default_segment_data(
+				(uint16_t)PARSER_GET_ETH_OFFSET_DEFAULT(),
+				eth_length,
+				NULL,
+				0,
+				(void *)prc->seg_address,
+				128,
+				(uint32_t)(FDMA_REPLACE_SA_CLOSE_BIT));
+
 	}
 
 			/*---------------------*/
@@ -1421,6 +1495,10 @@ int ipsec_frame_encrypt(
 		/* Set OS_EX so AAP will do relinquish */
 		*((uint32_t *)(HWC_ACC_IN_ADDRESS)) = 
 				(IPSEC_AAP_USE_FLC_SP | IPSEC_AAP_OS_EX);
+		/* Performance Improvement */
+		/* Register as concurrent to avoid an "if" later */
+		REGISTER_OSM_CONCURRENT;
+
 	} else {
 		/* Call AAP without relinquish */
 		*((uint32_t *)(HWC_ACC_IN_ADDRESS)) = IPSEC_AAP_USE_FLC_SP;
@@ -1436,10 +1514,11 @@ int ipsec_frame_encrypt(
 			/*---------------------*/
 	
 	/* Check if started in concurrent mode */
-	if (scope_status.scope_mode == IPSEC_OSM_CONCURRENT) {
-		/* The AAP already did OSM relinquished, so just register that */
-		REGISTER_OSM_CONCURRENT;
-	}
+	/* Performance Improvement */
+	//if (scope_status.scope_mode == IPSEC_OSM_CONCURRENT) {
+	//	/* The AAP already did OSM relinquished, so just register that */
+	//	REGISTER_OSM_CONCURRENT;
+	//}
 
 	/* Update the SPID of the new frame (SEC output) in the HW Context*/
 	*((uint8_t *)HWC_SPID_ADDRESS) = sap1.output_spid;
@@ -1454,36 +1533,42 @@ int ipsec_frame_encrypt(
 	PRC_SET_SEGMENT_LENGTH(DEFAULT_SEGMENT_SIZE);
 		
 	/* 	11.	FDMA present default frame command (open frame) */
+	/* Performance Improvement */
+	/* because earlier the segment was not presented,
+	 * added PRC_RESET_NDS_BIT(); */
+	PRC_RESET_NDS_BIT();
 	return_val = fdma_present_default_frame();
 	// TODO: check for FDMA error
 	
 	/* 	12.	Read the SEC return status from the FD[FRC]. Use swap macro. */
 	//*enc_status = LDPAA_FD_GET_FRC(HWC_FD_ADDRESS);
 	// TODO: which errors can happen in encryption?
-	switch (LDPAA_FD_GET_FRC(HWC_FD_ADDRESS)) {
-		case SEC_NO_ERROR:
-			break;
-		case SEC_SEQ_NUM_OVERFLOW: /** Sequence Number overflow */
-			*enc_status |= IPSEC_SEQ_NUM_OVERFLOW;
-			return_val = -1;
-			break;
-		case SEC_AR_LATE_PACKET:	/** Anti Replay Check: Late packet */
-			*enc_status |= IPSEC_AR_LATE_PACKET;
-			return_val = -1;
-			break;
-		case SEC_AR_REPLAY_PACKET:	/** Anti Replay Check: Replay packet */
-			*enc_status |= IPSEC_AR_REPLAY_PACKET;
-			return_val = -1;
-			break;
-		case SEC_ICV_COMPARE_FAIL:	/** ICV comparison failed */
-			*enc_status |= IPSEC_ICV_COMPARE_FAIL;	
-			return_val = -1;
-			break;
-		default:
-			*enc_status |= IPSEC_GEN_ENCR_ERR;	
-			return_val = -1;
+	/* Performance Improvement */
+	if ((LDPAA_FD_GET_FRC(HWC_FD_ADDRESS)) != 0) {
+		switch (LDPAA_FD_GET_FRC(HWC_FD_ADDRESS)) {
+			//case SEC_NO_ERROR:
+			//	break;
+			case SEC_SEQ_NUM_OVERFLOW: /** Sequence Number overflow */
+				*enc_status |= IPSEC_SEQ_NUM_OVERFLOW;
+				return_val = -1;
+				break;
+			case SEC_AR_LATE_PACKET:	/** Anti Replay Check: Late packet */
+				*enc_status |= IPSEC_AR_LATE_PACKET;
+				return_val = -1;
+				break;
+			case SEC_AR_REPLAY_PACKET:	/** Anti Replay Check: Replay packet */
+				*enc_status |= IPSEC_AR_REPLAY_PACKET;
+				return_val = -1;
+				break;
+			case SEC_ICV_COMPARE_FAIL:	/** ICV comparison failed */
+				*enc_status |= IPSEC_ICV_COMPARE_FAIL;	
+				return_val = -1;
+				break;
+			default:
+				*enc_status |= IPSEC_GEN_ENCR_ERR;	
+				return_val = -1;
+		}
 	}
-	
 	/* 	13.	If encryption/encapsulation failed go to END (see below) */
 	// TODO: check results
 		
@@ -1550,6 +1635,10 @@ int ipsec_frame_encrypt(
 	
 	/* 	Run parser and check for errors. */
 	return_val = parse_result_generate_default(PARSER_NO_FLAGS);
+	/* Performance Improvement */
+	//return_val = parse_result_generate_basic();
+	// TODO: parse_result_generate_basic() assumes HXS=0, not always true
+
 	// TODO: check results (TBD)
 	
 	/* 	17.	Restore the original FD[FLC], FD[FRC] (from stack). 
@@ -1563,10 +1652,10 @@ int ipsec_frame_encrypt(
 		/* 	18.4.	Update the kilobytes and/or packets lifetime counters 
 		 * (STE increment + accumulate). */
 	
-	if (sap1.flags & 
-			(IPSEC_FLG_LIFETIME_KB_CNTR_EN | IPSEC_FLG_LIFETIME_PKT_CNTR_EN)) {
+	/* Performance Improvement and change to always count */
+	//if (sap1.flags & 
+	//		(IPSEC_FLG_LIFETIME_KB_CNTR_EN | IPSEC_FLG_LIFETIME_PKT_CNTR_EN)) {
 		ste_inc_and_acc_counters(
-			//IPSEC_PACKET_COUNTER_ADDR,/* uint64_t counter_addr */
 			IPSEC_PACKET_COUNTER_ADDR(desc_addr), /* uint64_t counter_addr */
 			byte_count,	/* uint32_t acc_value */
 			/* uint32_t flags */
@@ -1574,19 +1663,19 @@ int ipsec_frame_encrypt(
 			STE_MODE_COMPOUND_64_BIT_ACC_SIZE |
 			STE_MODE_COMPOUND_CNTR_SATURATE |
 			STE_MODE_COMPOUND_ACC_SATURATE));
-	} else if (sap1.flags & IPSEC_FLG_LIFETIME_KB_CNTR_EN) {
-		ste_inc_counter(
-				//IPSEC_KB_COUNTER_ADDR,
-				IPSEC_KB_COUNTER_ADDR(desc_addr),
-				byte_count,
-				(STE_MODE_SATURATE | STE_MODE_64_BIT_CNTR_SIZE));
-	} else if (sap1.flags & IPSEC_FLG_LIFETIME_PKT_CNTR_EN) {
-		ste_inc_counter(
-				//IPSEC_PACKET_COUNTER_ADDR,
-				IPSEC_PACKET_COUNTER_ADDR(desc_addr),
-				1,
-				(STE_MODE_SATURATE | STE_MODE_64_BIT_CNTR_SIZE));
-	}
+	//} else if (sap1.flags & IPSEC_FLG_LIFETIME_KB_CNTR_EN) {
+	//	ste_inc_counter(
+	//			//IPSEC_KB_COUNTER_ADDR,
+	//			IPSEC_KB_COUNTER_ADDR(desc_addr),
+	//			byte_count,
+	//			(STE_MODE_SATURATE | STE_MODE_64_BIT_CNTR_SIZE));
+	//} else if (sap1.flags & IPSEC_FLG_LIFETIME_PKT_CNTR_EN) {
+	//	ste_inc_counter(
+	//			//IPSEC_PACKET_COUNTER_ADDR,
+	//			IPSEC_PACKET_COUNTER_ADDR(desc_addr),
+	//			1,
+	//			(STE_MODE_SATURATE | STE_MODE_64_BIT_CNTR_SIZE));
+	//}
 	
 	return_val = IPSEC_SUCCESS;	
 
@@ -1623,8 +1712,9 @@ int ipsec_frame_decrypt(
 	uint32_t byte_count;
 	uint16_t checksum;
 	uint8_t dont_decrypt = 0;
-	int i;
+	//int i;
 	ipsec_handle_t desc_addr;
+	uint16_t offset;
 
 	struct ipsec_sa_params_part1 sap1; /* Parameters to read from ext buffer */
 	struct scope_status_params scope_status;
@@ -1632,8 +1722,12 @@ int ipsec_frame_decrypt(
 	struct dpovrd_general dpovrd;
 	struct parse_result *pr = (struct parse_result *)HWC_PARSE_RES_ADDRESS;
 	
+	struct   presentation_context *prc =
+					(struct presentation_context *) HWC_PRC_ADDRESS;
+
 	/* Increment the reference counter */
-	cdma_refcount_increment(ipsec_handle);
+	/* Performance Improvement */
+	//cdma_refcount_increment(ipsec_handle);
 	
 	*dec_status = 0; /* Initialize */
 	
@@ -1642,13 +1736,28 @@ int ipsec_frame_decrypt(
 	desc_addr = IPSEC_DESC_ADDR(ipsec_handle);
 
 	/* 	2.	Read relevant descriptor fields with CDMA. */
-	cdma_read(
-			&sap1, /* void *ws_dst */
-			//ipsec_handle, /* uint64_t ext_address */
-			desc_addr, /* uint64_t ext_address */
-			sizeof(sap1) /* uint16_t size */
+	//cdma_read(
+	//		&sap1, /* void *ws_dst */
+	//		//ipsec_handle, /* uint64_t ext_address */
+	//		desc_addr, /* uint64_t ext_address */
+	//		sizeof(sap1) /* uint16_t size */
+	//		);
+	/* Performance Improvement */
+	/* CDMA read and reference counter increment with a single command */
+	//#define REF_COUNT_ADDR_DUMMY  HWC_ACC_OUT_ADDRESS+CDMA_REF_CNT_OFFSET
+	// TODO: optionally use cdma_access_context_memory_no_refcount_get()
+	// when this function is available
+	offset = (uint16_t)(desc_addr-ipsec_handle);
+	cdma_access_context_memory(
+			ipsec_handle,
+			CDMA_ACCESS_CONTEXT_MEM_INC_REFCOUNT,
+			offset,
+			&sap1,
+			CDMA_ACCESS_CONTEXT_MEM_DMA_READ | sizeof(sap1),
+			(uint32_t *)(HWC_ACC_OUT_ADDRESS+CDMA_REF_CNT_OFFSET)
+				/* REF_COUNT_ADDR_DUMMY */
 			);
-
+	
 	/*---------------------*/
 	/* ipsec_frame_decrypt */
 	/*---------------------*/
@@ -1660,43 +1769,78 @@ int ipsec_frame_decrypt(
 	 * and the kilobyte/packet status is checked from the params[counters].
 	 * This is done to avoid doing mutex lock for kilobyte/packet status */
 	/* Seconds Lifetime */
-	if (sap1.flags & IPSEC_FLG_LIFETIME_SEC_CNTR_EN) {
-		if (sap1.status & IPSEC_STATUS_SOFT_SEC_EXPIRED) {
-			*dec_status |= IPSEC_STATUS_SOFT_SEC_EXPIRED;
-		}
-		if (sap1.status & IPSEC_STATUS_HARD_SEC_EXPIRED) {
-			*dec_status |= IPSEC_STATUS_HARD_SEC_EXPIRED;
-			dont_decrypt = 1;
+	//if (sap1.flags & IPSEC_FLG_LIFETIME_SEC_CNTR_EN) {
+	//	if (sap1.status & IPSEC_STATUS_SOFT_SEC_EXPIRED) {
+	//		*dec_status |= IPSEC_STATUS_SOFT_SEC_EXPIRED;
+	//	}
+	//	if (sap1.status & IPSEC_STATUS_HARD_SEC_EXPIRED) {
+	//		*dec_status |= IPSEC_STATUS_HARD_SEC_EXPIRED;
+	//		dont_decrypt = 1;
+	//	}
+	//}
+	/* Performance Improvement */
+	if (sap1.status & IPSEC_STATUS_SOFT_SEC_EXPIRED) {
+		if (sap1.flags & IPSEC_FLG_LIFETIME_SEC_CNTR_EN) {
+			if (sap1.status & IPSEC_STATUS_SOFT_SEC_EXPIRED) {
+				*dec_status |= IPSEC_STATUS_SOFT_SEC_EXPIRED;
+				if (sap1.status & IPSEC_STATUS_HARD_SEC_EXPIRED) {
+					*dec_status |= IPSEC_STATUS_HARD_SEC_EXPIRED;
+					return_val = IPSEC_ERROR; // TODO: TMP
+					goto decrypt_end;
+				}
+			}
 		}
 	}
 	
 	/* KB lifetime counters */
+	//if (sap1.flags & IPSEC_FLG_LIFETIME_KB_CNTR_EN) {
+	//	if (sap1.byte_counter >= sap1.soft_byte_limit) {
+	//		*dec_status |= IPSEC_STATUS_SOFT_KB_EXPIRED;
+	//	}
+	//	if (sap1.byte_counter >= sap1.hard_byte_limit) {
+	//		*dec_status |= IPSEC_STATUS_HARD_KB_EXPIRED;
+	//		dont_decrypt = 1;
+	//	}
+	//}
+	/* Performance Improvement */
 	if (sap1.flags & IPSEC_FLG_LIFETIME_KB_CNTR_EN) {
 		if (sap1.byte_counter >= sap1.soft_byte_limit) {
 			*dec_status |= IPSEC_STATUS_SOFT_KB_EXPIRED;
-		}
-		if (sap1.byte_counter >= sap1.hard_byte_limit) {
-			*dec_status |= IPSEC_STATUS_HARD_KB_EXPIRED;
-			dont_decrypt = 1;
+			if (sap1.byte_counter >= sap1.hard_byte_limit) {
+				*dec_status |= IPSEC_STATUS_HARD_KB_EXPIRED;
+				return_val = IPSEC_ERROR; // TODO: TMP
+				goto decrypt_end;
+			}
 		}
 	}
-	
-	/* Packets lifetime counters*/
-	if (sap1.flags & IPSEC_FLG_LIFETIME_PKT_CNTR_EN) {
 
+	/* Packets lifetime counters*/
+	//if (sap1.flags & IPSEC_FLG_LIFETIME_PKT_CNTR_EN) {
+	//	if (sap1.packet_counter >= sap1.soft_packet_limit) {
+	//		*dec_status |= IPSEC_STATUS_SOFT_PACKET_EXPIRED;
+	//	}
+	//	if (sap1.packet_counter >= sap1.hard_packet_limit) {
+	//		*dec_status |= IPSEC_STATUS_HARD_PACKET_EXPIRED;
+	//		dont_decrypt = 1;
+	//	}
+	//}
+	/* Performance Improvement */
+	if (sap1.flags & IPSEC_FLG_LIFETIME_PKT_CNTR_EN) {
 		if (sap1.packet_counter >= sap1.soft_packet_limit) {
 			*dec_status |= IPSEC_STATUS_SOFT_PACKET_EXPIRED;
-		}
-		if (sap1.packet_counter >= sap1.hard_packet_limit) {
-			*dec_status |= IPSEC_STATUS_HARD_PACKET_EXPIRED;
-			dont_decrypt = 1;
-		}
+			if (sap1.packet_counter >= sap1.hard_packet_limit) {
+				*dec_status |= IPSEC_STATUS_HARD_PACKET_EXPIRED;
+				return_val = IPSEC_ERROR; // TODO: TMP
+				goto decrypt_end;
+			}
+		}	 
 	}
 	
-	if (dont_decrypt) {
-		return_val = IPSEC_ERROR; // TODO: TMP
-		goto decrypt_end;
-	}
+	/* Performance Improvement */
+	//if (dont_decrypt) {
+	//	return_val = IPSEC_ERROR; // TODO: TMP
+	//	goto decrypt_end;
+	//}
 	
 			/*---------------------*/
 			/* ipsec_frame_decrypt */
@@ -1786,14 +1930,30 @@ int ipsec_frame_decrypt(
 		/* up to 6 VLANs x 4 bytes + 14 regular bytes */
 			eth_pointer_default = (uint8_t *)PARSER_GET_ETH_POINTER_DEFAULT();
 		
-			for (i = 0 ; i < eth_length; i++) {
-				eth_header[i] = *(eth_pointer_default + i);
-			}
+			//for (i = 0 ; i < eth_length; i++) {
+			//	eth_header[i] = *(eth_pointer_default + i);
+			//}
+			/* Performance Improvement */
+			fdma_copy_data(eth_length, 0 ,eth_pointer_default,eth_header);
 
 			/* Remove L2 Header */	
 			/* Note: The gross running sum of the frame becomes invalid 
 			 * after calling this function. */ 
-			l2_header_remove();
+			//l2_header_remove();
+			/* Performance Improvement */
+			// replaced l2_header_remove() with 
+			// fdma_replace_default_segment_data()					
+			fdma_replace_default_segment_data(
+					(uint16_t)PARSER_GET_ETH_OFFSET_DEFAULT(),
+					eth_length,
+					NULL,
+					0,
+					(void *)prc->seg_address,
+					128,
+					(uint32_t)(FDMA_REPLACE_SA_CLOSE_BIT));
+			
+			/* This is done here because L2 is removed only in Transport */
+			PRC_RESET_NDS_BIT(); 
 			
 			// TODO: 
 			/* For decryption in transport mode it is required to update 
@@ -1839,6 +1999,10 @@ int ipsec_frame_decrypt(
 		/* Set OS_EX so AAP will do relinquish */
 		*((uint32_t *)(HWC_ACC_IN_ADDRESS)) = 
 				(IPSEC_AAP_USE_FLC_SP | IPSEC_AAP_OS_EX);
+		/* Performance Improvement */
+		/* Register concurrent here to save the "if" later */
+		REGISTER_OSM_CONCURRENT;
+
 	} else {
 		/* Call AAP without relinquish */
 		*((uint32_t *)(HWC_ACC_IN_ADDRESS)) = IPSEC_AAP_USE_FLC_SP;
@@ -1850,10 +2014,11 @@ int ipsec_frame_decrypt(
 	/* 	11.	SEC Doing Decryption */
 
 	/* Check if started in concurrent mode */
-	if (scope_status.scope_mode == IPSEC_OSM_CONCURRENT) {
-		/* The AAP already did OSM relinquished, so just register that */
-		REGISTER_OSM_CONCURRENT;
-	}
+	/* Performance Improvement */
+	//if (scope_status.scope_mode == IPSEC_OSM_CONCURRENT) {
+	//	/* The AAP already did OSM relinquished, so just register that */
+	//	REGISTER_OSM_CONCURRENT;
+	//}
 
 	/* Update the SPID of the new frame (SEC output) in the HW Context*/
 	*((uint8_t *)HWC_SPID_ADDRESS) = sap1.output_spid;
@@ -1872,30 +2037,33 @@ int ipsec_frame_decrypt(
 
 	/* 	13.	Read the SEC return status from the FD[FRC]. Use swap macro. */
 	// TODO: which errors can happen in decryption?
-	switch (LDPAA_FD_GET_FRC(HWC_FD_ADDRESS)) {
-		case SEC_NO_ERROR:
-			break;
-		case SEC_SEQ_NUM_OVERFLOW: /** Sequence Number overflow */
-			*dec_status |= IPSEC_SEQ_NUM_OVERFLOW;
-			return_val = -1;
-			break;
-		case SEC_AR_LATE_PACKET:	/** Anti Replay Check: Late packet */
-			*dec_status |= IPSEC_AR_LATE_PACKET;
-			return_val = -1;
-			break;
-		case SEC_AR_REPLAY_PACKET:	/** Anti Replay Check: Replay packet */
-			*dec_status |= IPSEC_AR_REPLAY_PACKET;
-			return_val = -1;
-			break;
-		case SEC_ICV_COMPARE_FAIL:	/** ICV comparison failed */
-			*dec_status |= IPSEC_ICV_COMPARE_FAIL;	
-			return_val = -1;
-			break;
-		default:
-			*dec_status |= IPSEC_GEN_DECR_ERR;	
-			return_val = -1;
+	/* Performance Improvement */
+	if ((LDPAA_FD_GET_FRC(HWC_FD_ADDRESS)) != 0) {
+		switch (LDPAA_FD_GET_FRC(HWC_FD_ADDRESS)) {
+			//case SEC_NO_ERROR:
+				//break;
+			case SEC_SEQ_NUM_OVERFLOW: /** Sequence Number overflow */
+				*dec_status |= IPSEC_SEQ_NUM_OVERFLOW;
+				return_val = -1;
+				break;
+			case SEC_AR_LATE_PACKET:	/** Anti Replay Check: Late packet */
+				*dec_status |= IPSEC_AR_LATE_PACKET;
+				return_val = -1;
+				break;
+			case SEC_AR_REPLAY_PACKET:	/** Anti Replay Check: Replay packet */
+				*dec_status |= IPSEC_AR_REPLAY_PACKET;
+				return_val = -1;
+				break;
+			case SEC_ICV_COMPARE_FAIL:	/** ICV comparison failed */
+				*dec_status |= IPSEC_ICV_COMPARE_FAIL;	
+				return_val = -1;
+				break;
+			default:
+				*dec_status |= IPSEC_GEN_DECR_ERR;	
+				return_val = -1;
+		}
 	}
-
+	
 	/* 	14.	If encryption/encapsulation failed go to END (see below) */
 	// TODO: check results
 		
@@ -1967,8 +2135,9 @@ int ipsec_frame_decrypt(
 	 * If yes set flag in the descriptor statistics (CDMA write). */
 	/* 	20.4.	Update the kilobytes and/or packets lifetime counters 
 	 * (STE increment + accumulate). */
-	if (sap1.flags & 
-			(IPSEC_FLG_LIFETIME_KB_CNTR_EN | IPSEC_FLG_LIFETIME_PKT_CNTR_EN)) {
+	/* Performance Improvement and change to always count */
+	//if (sap1.flags & 
+	//		(IPSEC_FLG_LIFETIME_KB_CNTR_EN | IPSEC_FLG_LIFETIME_PKT_CNTR_EN)) {
 		ste_inc_and_acc_counters(
 			//IPSEC_PACKET_COUNTER_ADDR,/* uint64_t counter_addr */
 			IPSEC_PACKET_COUNTER_ADDR(desc_addr), /* uint64_t counter_addr */
@@ -1978,19 +2147,19 @@ int ipsec_frame_decrypt(
 			STE_MODE_COMPOUND_64_BIT_ACC_SIZE |
 			STE_MODE_COMPOUND_CNTR_SATURATE |
 			STE_MODE_COMPOUND_ACC_SATURATE));
-	} else if (sap1.flags & IPSEC_FLG_LIFETIME_KB_CNTR_EN) {
-		ste_inc_counter(
-				//IPSEC_KB_COUNTER_ADDR,
-				IPSEC_KB_COUNTER_ADDR(desc_addr),
-				byte_count,
-				(STE_MODE_SATURATE | STE_MODE_64_BIT_CNTR_SIZE));
-	} else if (sap1.flags & IPSEC_FLG_LIFETIME_PKT_CNTR_EN) {
-		ste_inc_counter(
-				//IPSEC_PACKET_COUNTER_ADDR,
-				IPSEC_PACKET_COUNTER_ADDR(desc_addr),
-				1,
-				(STE_MODE_SATURATE | STE_MODE_64_BIT_CNTR_SIZE));
-	}
+	//} else if (sap1.flags & IPSEC_FLG_LIFETIME_KB_CNTR_EN) {
+	//	ste_inc_counter(
+	//			//IPSEC_KB_COUNTER_ADDR,
+	//			IPSEC_KB_COUNTER_ADDR(desc_addr),
+	//			byte_count,
+	//			(STE_MODE_SATURATE | STE_MODE_64_BIT_CNTR_SIZE));
+	//} else if (sap1.flags & IPSEC_FLG_LIFETIME_PKT_CNTR_EN) {
+	//	ste_inc_counter(
+	//			//IPSEC_PACKET_COUNTER_ADDR,
+	//			IPSEC_PACKET_COUNTER_ADDR(desc_addr),
+	//			1,
+	//			(STE_MODE_SATURATE | STE_MODE_64_BIT_CNTR_SIZE));
+	//}
 	
 	return_val = IPSEC_SUCCESS;	
 
@@ -2277,6 +2446,12 @@ uint8_t ipsec_get_ipv6_nh_offset (struct ipv6hdr *ipv6_hdr, uint8_t *length)
 	 * extensions before ESP */
 	*length = IPV6_HDR_LENGTH;
 
+	/* From RFC 2460: 4.1  Extension Header Order
+	 * IPv6 nodes must accept and attempt to process extension headers in
+	 *  any order and occurring any number of times in the same packet,
+	 *  except for the Hop-by-Hop Options header which is restricted to
+	 *  appear immediately after an IPv6 header only. */
+	
 	/* Skip to next extension header until extension isn't ipv6 header
 	 * or until extension is the fragment position (depend on flag) */
 	while ((next_hdr == IPV6_EXT_HOP_BY_HOP) ||
@@ -2301,8 +2476,7 @@ uint8_t ipsec_get_ipv6_nh_offset (struct ipv6hdr *ipv6_hdr, uint8_t *length)
 			/* If the next header is not an extension, this should be
 			 * the starting point for ESP encapsulation  */
 			if ((next_hdr != IPV6_EXT_ROUTING) && 
-					(next_hdr != IPV6_EXT_FRAGMENT) && 
-					(next_hdr != IPV6_EXT_HOP_BY_HOP)) {
+					(next_hdr != IPV6_EXT_FRAGMENT)) {
 				/* Don't add to NH_OFFSET/length and Exit from the while loop */
 				dst_ext = 0;
 			} else {
@@ -2316,8 +2490,7 @@ uint8_t ipsec_get_ipv6_nh_offset (struct ipv6hdr *ipv6_hdr, uint8_t *length)
 		case IPV6_EXT_FRAGMENT:
 		{
 			/* Increment NH_OFFSET only if next header is extension */
-			if ((next_hdr == IPV6_EXT_ROUTING) ||
-				(next_hdr == IPV6_EXT_HOP_BY_HOP)) {
+			if (next_hdr == IPV6_EXT_ROUTING) {
 				/* in 8 bytes multiples */
 				nh_offset += IPV6_FRAGMENT_HEADER_LENGTH>>3; 
 			} else if (next_hdr == IPV6_EXT_DESTINATION) {
@@ -2327,8 +2500,7 @@ uint8_t ipsec_get_ipv6_nh_offset (struct ipv6hdr *ipv6_hdr, uint8_t *length)
 							IPV6_FRAGMENT_HEADER_LENGTH));
 				/* Increment NH_OFFSET only if the following DEST header
 				 * is not the last extension */
-				if ((header_after_dest == IPV6_EXT_ROUTING) ||
-						(header_after_dest == IPV6_EXT_HOP_BY_HOP)){
+				if (header_after_dest == IPV6_EXT_ROUTING) {
 					nh_offset += IPV6_FRAGMENT_HEADER_LENGTH>>3; 
 				}	
 			}
@@ -2342,7 +2514,6 @@ uint8_t ipsec_get_ipv6_nh_offset (struct ipv6hdr *ipv6_hdr, uint8_t *length)
 		{
 			/* Increment NH_OFFSET only if next header is extension */
 			if ((next_hdr == IPV6_EXT_ROUTING) ||
-				(next_hdr == IPV6_EXT_HOP_BY_HOP) ||	
 				(next_hdr == IPV6_EXT_FRAGMENT)) {
 				/* in 8 bytes multiples */
 				nh_offset += (current_hdr_size + 1); 
@@ -2353,7 +2524,6 @@ uint8_t ipsec_get_ipv6_nh_offset (struct ipv6hdr *ipv6_hdr, uint8_t *length)
 				/* Increment NH_OFFSET only if this is not the last ext. header
 				 * before Destination */
 				if ((header_after_dest == IPV6_EXT_ROUTING) ||
-					(header_after_dest == IPV6_EXT_HOP_BY_HOP) ||	
 					(header_after_dest == IPV6_EXT_FRAGMENT)) {
 						nh_offset += (current_hdr_size + 1); 
 				}

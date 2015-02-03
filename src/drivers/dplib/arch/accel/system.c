@@ -63,6 +63,7 @@ extern void tman_timer_callback(void);
 extern void tman_timer_callback(void);
 extern int ipr_init(void);
 extern int aiop_snic_init(void);
+extern int aiop_snic_early_init(void);
 extern void aiop_snic_free(void);
 
 #define WRKS_REGS_GET \
@@ -143,6 +144,7 @@ __COLD_CODE int aiop_sl_early_init(void){
 	/* IPsec 512 rounded up modulu 64 - 8 */
 	err |= slab_register_context_buffer_requirements(750, 750, 568, 64,
 			MEM_PART_DP_DDR, 0, 0);
+	err |= aiop_snic_early_init();
 
 	if(err){
 		pr_err("Failed to register context buffers\n");
@@ -195,13 +197,19 @@ int aiop_sl_init(void)
 	storage_profile[0].pbs4 = 0x0000;
 	storage_profile[0].bpid4 = 0x0000;
 	
-	/* Storage Profile 1 */
+	/* Storage Profile 1 - Reuse buffer mode */
 	storage_profile[1].ip_secific_sp_info = 0;
 	storage_profile[1].dl = 0;
 	storage_profile[1].reserved = 0;
-	/* 0x0080 --> 0x8000 (little endian) */
-	storage_profile[1].dhr = 0x8000;
-	/*storage_profile[1].dhr = 0x0080; */
+	
+	/* In reuse buffer mode (BS=1) the DHR field is treated
+	 * as a signed value of a data headroom correction and defines by
+	 * how many bytes an existing offset should be adjusted to make room 
+	 * for additional output data or any need to move the output ‘forward’ */
+	/* In this case, DHR is set to 0, 
+	 * to preserve the offset of the input frame */
+	storage_profile[1].dhr = 0;
+
 	storage_profile[1].mode_bits1 = (sp1_mode_bits1_PTAR | sp1_mode_bits1_SGHR |
 			sp1_mode_bits1_ASAR);
 	storage_profile[1].mode_bits2 = (sp1_mode_bits2_BS | sp1_mode_bits2_FF |

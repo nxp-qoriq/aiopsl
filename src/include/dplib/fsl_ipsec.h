@@ -132,6 +132,11 @@ typedef void (ipsec_lifetime_callback_t) (
  * If not set, the the outer header UDP checksum is zero. */
 #define IPSEC_ENC_OPTS_NUC_EN		0x00000020
 
+/** Lifetime Counters 
+ * These flags control if the lifetime counters status is checked.
+ * Counting is always enabled regardless of the 
+ * IPSEC_FLG_LIFETIME_KB_CNTR_EN, IPSEC_FLG_LIFETIME_PKT_CNTR_EN
+ * and IPSEC_FLG_LIFETIME_SEC_CNTR_EN flags */
 /** Lifetime KiloByte Counter Enable */
 #define IPSEC_FLG_LIFETIME_KB_CNTR_EN	0x00000100
 /** Lifetime Packet counter Enable */
@@ -408,11 +413,12 @@ struct ipsec_descriptor_params {
 	struct alg_info authdata; /**< authentication algorithm information */
 			
 	/** Lifetime Limits */
-	/** Set to NULL to disable specific limits check */
+	/** Caution: hard limit value must be equal or greater than 
+	 * soft limit value */
 	uint64_t soft_kilobytes_limit;	/**< Soft Kilobytes limit, in bytes. */
 	uint64_t hard_kilobytes_limit; 	/**< Hard Kilobytes limit, in bytes. */
 	uint64_t soft_packet_limit; 	/**< Soft Packet count limit. */
-	uint64_t hard_packet_limit;	/**< Hard Packet count limit. */
+	uint64_t hard_packet_limit;		/**< Hard Packet count limit. */
 	uint32_t soft_seconds_limit;	/**< Soft Seconds limit. */
 	uint32_t hard_seconds_limit; 	/**< Hard Second limit. */
 
@@ -522,13 +528,10 @@ int ipsec_del_sa_descriptor(ipsec_handle_t ipsec_handle);
 @Description	This function returns the SA lifetime counters:
 		kilobyte, packets and seconds.
 		
-		The relevant counters enable flag should be set in order to get
-		a valid kilobyte and packet count.
-		(IPSEC_FLG_LIFETIME_KB_CNTR_EN, IPSEC_FLG_LIFETIME_PKT_CNTR_EN)
+		Note: the counters are always enabled regardless of the 
+			IPSEC_FLG_LIFETIME_KB_CNTR_EN, IPSEC_FLG_LIFETIME_PKT_CNTR_EN
+			and IPSEC_FLG_LIFETIME_SEC_CNTR_EN flags
 		
-		A lifetime count is always valid regardless of 
-		the counter enable flag (IPSEC_FLG_LIFETIME_SEC_CNTR_EN)
-
 @Param[in]	ipsec_handle - IPsec handle.
 @Param[out]	kilobytes - number of bytes processed by this SA.
 @Param[out]	packets - number of packets processed by this SA.

@@ -1,52 +1,51 @@
-/* Copyright 2014-2015 Freescale Semiconductor Inc.
-*
-* Redistribution and use in source and binary forms, with or without
-* modification, are permitted provided that the following conditions are met:
-* * Redistributions of source code must retain the above copyright
-* notice, this list of conditions and the following disclaimer.
-* * Redistributions in binary form must reproduce the above copyright
-* notice, this list of conditions and the following disclaimer in the
-* documentation and/or other materials provided with the distribution.
-* * Neither the name of the above-listed copyright holders nor the
-* names of any contributors may be used to endorse or promote products
-* derived from this software without specific prior written permission.
-*
-*
-* ALTERNATIVELY, this software may be distributed under the terms of the
-* GNU General Public License ("GPL") as published by the Free Software
-* Foundation, either version 2 of that License or (at your option) any
-* later version.
-*
-* THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-* AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-* IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-* ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDERS OR CONTRIBUTORS BE
-* LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
-* CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
-* SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
-* INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
-* CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
-* ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-* POSSIBILITY OF SUCH DAMAGE.
-*/
+/* Copyright 2013-2015 Freescale Semiconductor Inc.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ * * Redistributions of source code must retain the above copyright
+ * notice, this list of conditions and the following disclaimer.
+ * * Redistributions in binary form must reproduce the above copyright
+ * notice, this list of conditions and the following disclaimer in the
+ * documentation and/or other materials provided with the distribution.
+ * * Neither the name of the above-listed copyright holders nor the
+ * names of any contributors may be used to endorse or promote products
+ * derived from this software without specific prior written permission.
+ *
+ *
+ * ALTERNATIVELY, this software may be distributed under the terms of the
+ * GNU General Public License ("GPL") as published by the Free Software
+ * Foundation, either version 2 of that License or (at your option) any
+ * later version.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDERS OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
 #ifndef _FSL_DPRC_H
 #define _FSL_DPRC_H
 
-/*
- * Data Path Resource Container API
- *
- * Contains DPRC API for managing and querying LDPAA resources
+/* Data Path Resource Container API
+ * Contains DPRC API for managing and querying DPAA resources
  */
 
 struct fsl_mc_io;
 
-/*
+/**
  * Set this value as the icid value in dprc_cfg structure when creating a
  * container, in case the ICID is not selected by the user and should be
  * allocated by the DPRC from the pool of ICIDs.
  */
 #define DPRC_GET_ICID_FROM_POOL			(uint16_t)(~(0))
-/*
+
+/**
  * Set this value as the portal_id value in dprc_cfg structure when creating a
  * container, in case the portal ID is not specifically selected by the
  * user and should be allocated by the DPRC from the pool of portal ids.
@@ -86,7 +85,7 @@ int dprc_open(struct fsl_mc_io *mc_io, int container_id, uint16_t *token);
  */
 int dprc_close(struct fsl_mc_io *mc_io, uint16_t token);
 
-/*
+/**
  * Container general options
  *
  * These options may be selected at container creation by the container creator
@@ -122,7 +121,7 @@ int dprc_close(struct fsl_mc_io *mc_io, uint16_t token);
  */
 #define DPRC_CFG_OPT_IOMMU_BYPASS		0x00000010
 
-/*!<AIOP -Indicates that container belongs to aiop.  */
+/* AIOP - Indicates that container belongs to AIOP.  */
 #define DPRC_CFG_OPT_AIOP			0x00000020
 
 /**
@@ -223,11 +222,13 @@ int dprc_reset_container(struct fsl_mc_io *mc_io,
 /* IRQ event - Indicates that resources unassigned from the container */
 #define DPRC_IRQ_EVENT_RES_REMOVED		0x00000008
 /* IRQ event - Indicates that one of the descendant containers that opened by
- * this container is destroyed */
+ * this container is destroyed
+ */
 #define DPRC_IRQ_EVENT_CONTAINER_DESTROYED	0x00000010
 
 /* IRQ event - Indicates that on one of the container's opened object is
- * destroyed */
+ * destroyed
+ */
 #define DPRC_IRQ_EVENT_OBJ_DESTROYED		0x00000020
 
 /* Irq event - Indicates that object is created at the container */
@@ -451,7 +452,8 @@ int dprc_set_res_quota(struct fsl_mc_io	*mc_io,
  * @type:	resource/object type
  * @quota:	Returnes the maximum number of resources of the selected type 
  * 		that the child container is allowed to allocate from the parent;
- *		when quota is set to -1, the policy is the same as container's general policy.
+ *		when quota is set to -1, the policy is the same as container's
+ *		general policy.
  *
  * Return:	'0' on Success; Error code otherwise.
  */
@@ -790,7 +792,8 @@ int dprc_disconnect(struct fsl_mc_io		*mc_io,
 		    const struct dprc_endpoint	*endpoint);
 
 /**
-* dprc_get_connection() - Get connected endpoint and link status if connection exists
+* dprc_get_connection() - Get connected endpoint and link status if connection
+*			exists.
 * @mc_io		Pointer to MC portal's I/O object
 * @token		Token of DPRC object
 * @endpoint1	Endpoint 1 configuration parameters
