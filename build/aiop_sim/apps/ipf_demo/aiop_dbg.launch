@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <launchConfiguration type="com.freescale.cdt.launch.cw.download">
 <stringAttribute key="com.freescale.cdt.debug.cw.CW_SHADOWED_PREF.CCS_Remote_Connection.CCSExeName" value=""/>
-<stringAttribute key="com.freescale.cdt.debug.cw.CW_SHADOWED_PREF.CCS_Remote_Connection.CCSIPAddress" value="lnxbdc25"/>
-<stringAttribute key="com.freescale.cdt.debug.cw.CW_SHADOWED_PREF.CCS_Remote_Connection.CCSPortNumber" value="41482"/>
+<stringAttribute key="com.freescale.cdt.debug.cw.CW_SHADOWED_PREF.CCS_Remote_Connection.CCSIPAddress" value="lnxbsc132:5720"/>
+<stringAttribute key="com.freescale.cdt.debug.cw.CW_SHADOWED_PREF.CCS_Remote_Connection.CCSPortNumber" value="42324"/>
 <stringAttribute key="com.freescale.cdt.debug.cw.CW_SHADOWED_PREF.CCS_Remote_Connection.CCSTimeOut" value="60"/>
 <stringAttribute key="com.freescale.cdt.debug.cw.CW_SHADOWED_PREF.CCS_Remote_Connection.JTAGConfigFile" value=""/>
 <intAttribute key="com.freescale.cdt.debug.cw.CW_SHADOWED_PREF.CCS_Remote_Connection.chainSpeedTCK" value="12500"/>
@@ -35,14 +35,14 @@
 <booleanAttribute key="com.freescale.cdt.debug.cw.CW_SHADOWED_PREF.Embedded Download.SVuninitialized" value="false"/>
 <intAttribute key="com.freescale.cdt.debug.cw.CW_SHADOWED_PREF.Embedded Initialization.coreIndex" value="11"/>
 <booleanAttribute key="com.freescale.cdt.debug.cw.CW_SHADOWED_PREF.Embedded Initialization.homogeneousMulticore" value="true"/>
-<stringAttribute key="com.freescale.cdt.debug.cw.CW_SHADOWED_PREF.Embedded Initialization.initPath" value="${ProjDirPath}/../../cw_files/LS2085A-AFM_AIOP_RAM.tcl"/>
+<stringAttribute key="com.freescale.cdt.debug.cw.CW_SHADOWED_PREF.Embedded Initialization.initPath" value="${AIOPToolsBaseDir}/AIOP_Support/Initialization_Files/LS2/LS2085A/LS2085A-QDS/LS2085A-QDS_AIOP_RAM.tcl"/>
 <stringAttribute key="com.freescale.cdt.debug.cw.CW_SHADOWED_PREF.Embedded Initialization.memConfigPath" value="${ProjDirPath}/../../cw_files/LS2085A-AFM_AIOP.mem"/>
 <stringAttribute key="com.freescale.cdt.debug.cw.CW_SHADOWED_PREF.Embedded Initialization.simulator" value="CCSSIM2 ISS"/>
 <booleanAttribute key="com.freescale.cdt.debug.cw.CW_SHADOWED_PREF.Embedded Initialization.smp" value="false"/>
 <booleanAttribute key="com.freescale.cdt.debug.cw.CW_SHADOWED_PREF.Embedded Initialization.smpTarget" value="true"/>
 <stringAttribute key="com.freescale.cdt.debug.cw.CW_SHADOWED_PREF.Embedded Initialization.systemType" value="com.freescale.cw.system.LS.LS2085AFM"/>
 <booleanAttribute key="com.freescale.cdt.debug.cw.CW_SHADOWED_PREF.Embedded Initialization.useInitFile" value="true"/>
-<booleanAttribute key="com.freescale.cdt.debug.cw.CW_SHADOWED_PREF.Embedded Initialization.useMemoryConfigFile" value="true"/>
+<booleanAttribute key="com.freescale.cdt.debug.cw.CW_SHADOWED_PREF.Embedded Initialization.useMemoryConfigFile" value="false"/>
 <stringAttribute key="com.freescale.cdt.debug.cw.CW_SHADOWED_PREF.Linux Kernel Boot Parameters Panel.commandLine" value=""/>
 <intAttribute key="com.freescale.cdt.debug.cw.CW_SHADOWED_PREF.Linux Kernel Boot Parameters Panel.commandLineBaseAddr" value="-1879047936"/>
 <intAttribute key="com.freescale.cdt.debug.cw.CW_SHADOWED_PREF.Linux Kernel Boot Parameters Panel.commandLineBaseAddrExt" value="0"/>
@@ -87,8 +87,8 @@
 <listEntry value="Cortex-A57#6"/>
 <listEntry value="Cortex-A57#7"/>
 <listEntry value="Cortex-A57#8"/>
-<listEntry value="e200z4201n3#0"/>
-<listEntry value="e200z4201n3#1"/>
+<listEntry value="MC#0"/>
+<listEntry value="MC#1"/>
 <listEntry value="AIOP#2"/>
 </listAttribute>
 <listAttribute key="com.freescale.cdt.debug.cw.Debug"/>
@@ -149,7 +149,7 @@
 <booleanAttribute key="com.freescale.cdt.debug.cw.executeResetSequence" value="true"/>
 <stringAttribute key="com.freescale.cdt.debug.cw.gateway" value="127.0.0.1"/>
 <listAttribute key="com.freescale.cdt.debug.cw.initPathList">
-<listEntry value="${ProjDirPath}/../../cw_files/LS2085A-AFM_AIOP_RAM.tcl"/>
+<listEntry value="${AIOPToolsBaseDir}/AIOP_Support/Initialization_Files/LS2/LS2085A/LS2085A-QDS/LS2085A-QDS_AIOP_RAM.tcl"/>
 </listAttribute>
 <stringAttribute key="com.freescale.cdt.debug.cw.macAddress" value="**-**-**-**-**-**"/>
 <listAttribute key="com.freescale.cdt.debug.cw.memConfigPathList">
@@ -184,7 +184,7 @@
 </listAttribute>
 <booleanAttribute key="com.freescale.cdt.debug.cw.useMacAddress" value="false"/>
 <listAttribute key="com.freescale.cdt.debug.cw.useMemConfigPathList">
-<listEntry value="true"/>
+<listEntry value="false"/>
 </listAttribute>
 <booleanAttribute key="com.freescale.cdt.debug.cw.useNetworkTransferIO" value="false"/>
 <booleanAttribute key="com.freescale.cdt.debug.cw.useSerialTransferIO" value="false"/>

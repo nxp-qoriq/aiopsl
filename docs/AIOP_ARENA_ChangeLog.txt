@@ -1,3 +1,18 @@
+
+Defines for manual setting to AIOP's UART
+
+Add to build_flags.h:
+1)	Define: UART_OVERRIDE
+2)	MACRO: MANUAL_UART_ID                 X
+
+X:
+       * 0 - Print only to buffer
+       * 1 - duart1_0
+       * 2 - duart1_1
+       * 3 - duart2_0
+       * 4 - duart2_1
+
+
 ** AIOP SL Release v0.5.3.2 **
 
 mc_init.c             AIOP boot will not fail if there are no DPCIs in DPL.

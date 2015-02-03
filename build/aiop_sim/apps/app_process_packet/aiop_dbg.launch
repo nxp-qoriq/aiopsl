@@ -35,7 +35,7 @@
 <booleanAttribute key="com.freescale.cdt.debug.cw.CW_SHADOWED_PREF.Embedded Download.SVuninitialized" value="false"/>
 <intAttribute key="com.freescale.cdt.debug.cw.CW_SHADOWED_PREF.Embedded Initialization.coreIndex" value="11"/>
 <booleanAttribute key="com.freescale.cdt.debug.cw.CW_SHADOWED_PREF.Embedded Initialization.homogeneousMulticore" value="true"/>
-<stringAttribute key="com.freescale.cdt.debug.cw.CW_SHADOWED_PREF.Embedded Initialization.initPath" value="${ProjDirPath}/../../cw_files/LS2085A-AFM_AIOP_RAM.tcl"/>
+<stringAttribute key="com.freescale.cdt.debug.cw.CW_SHADOWED_PREF.Embedded Initialization.initPath" value="${AIOPToolsBaseDir}/AIOP_Support/Initialization_Files/LS2/LS2085A/LS2085A-QDS/LS2085A-QDS_AIOP_RAM.tcl"/>
 <stringAttribute key="com.freescale.cdt.debug.cw.CW_SHADOWED_PREF.Embedded Initialization.memConfigPath" value="${ProjDirPath}/../../cw_files/LS2085A-AFM_AIOP.mem"/>
 <stringAttribute key="com.freescale.cdt.debug.cw.CW_SHADOWED_PREF.Embedded Initialization.simulator" value="CCSSIM2 ISS"/>
 <booleanAttribute key="com.freescale.cdt.debug.cw.CW_SHADOWED_PREF.Embedded Initialization.smp" value="false"/>
@@ -87,8 +87,8 @@
 <listEntry value="Cortex-A57#6"/>
 <listEntry value="Cortex-A57#7"/>
 <listEntry value="Cortex-A57#8"/>
-<listEntry value="e200z4201n3#0"/>
-<listEntry value="e200z4201n3#1"/>
+<listEntry value="MC#0"/>
+<listEntry value="MC#1"/>
 <listEntry value="AIOP#2"/>
 </listAttribute>
 <listAttribute key="com.freescale.cdt.debug.cw.Debug"/>
@@ -149,7 +149,7 @@
 <booleanAttribute key="com.freescale.cdt.debug.cw.executeResetSequence" value="true"/>
 <stringAttribute key="com.freescale.cdt.debug.cw.gateway" value="127.0.0.1"/>
 <listAttribute key="com.freescale.cdt.debug.cw.initPathList">
-<listEntry value="${ProjDirPath}/../../cw_files/LS2085A-AFM_AIOP_RAM.tcl"/>
+<listEntry value="${AIOPToolsBaseDir}/AIOP_Support/Initialization_Files/LS2/LS2085A/LS2085A-QDS/LS2085A-QDS_AIOP_RAM.tcl"/>
 </listAttribute>
 <stringAttribute key="com.freescale.cdt.debug.cw.macAddress" value="**-**-**-**-**-**"/>
 <listAttribute key="com.freescale.cdt.debug.cw.memConfigPathList">
