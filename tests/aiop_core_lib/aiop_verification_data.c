@@ -62,6 +62,7 @@ __VERIF_GLOBAL uint8_t verif_spin_lock;
 __VERIF_GLOBAL uint8_t verif_prpid;
 __VERIF_GLOBAL uint8_t tmi_id;
 
+__VERIF_TLS uint8_t  exception_counter;
 __VERIF_TLS uint8_t  slab_parser_error;
 __VERIF_TLS uint8_t  slab_keygen_error;
 __VERIF_TLS uint8_t  slab_general_error;
@@ -92,6 +93,8 @@ void init_verif()
 {
 #ifndef CDC_ROC
 	struct parse_result *pr;
+	
+	exception_counter = 0;
 
 	pr = (struct parse_result *)HWC_PARSE_RES_ADDRESS;
 
@@ -156,6 +159,14 @@ void exception_handler(char *filename,
 	struct fatal_error_command fatal_cmd_str;
 	struct fatal_error_command *fatal_cmd;
 
+	exception_counter++;
+
+	if (exception_counter > 1){
+	        fdma_terminate_task();
+	        exit(-1);/* TODO This code is never reached and should be
+	        removed once fdma_terminate_task() is declared as noreturn */
+	}
+	
 	/* Read command from external buffer in DDR */
 	fatal_cmd = &fatal_cmd_str;
 	cdma_read((void *)fatal_cmd, initial_ext_address,
