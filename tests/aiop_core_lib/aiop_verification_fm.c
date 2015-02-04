@@ -53,7 +53,7 @@ extern __VERIF_TLS uint8_t slab_keygen_error;
 extern __VERIF_TLS uint8_t slab_general_error;
 
 
-void aiop_verification_fm()
+__declspec(entry_point) void aiop_verification_fm()
 {
 	uint8_t data_addr[DATA_SIZE];	/* Data Address in workspace*/
 	struct fdma_present_segment_params present_params;
