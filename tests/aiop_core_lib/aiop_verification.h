@@ -459,8 +459,7 @@ struct update_ext_cmd_var_command {
 };
 
 void aiop_verification_parse();
-void aiop_verification_sr();
-void aiop_verification_fm();
+__declspec(entry_point) void aiop_verification_fm();
 void aiop_verification_fm_temp();
 void aiop_verif_init_parser();
 uint32_t if_statement_result(
