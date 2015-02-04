@@ -289,7 +289,7 @@
 							<option id="com.freescale.ppc.toolchain.sharedoption.smallData2.2048350894" name="Small Data2" superClass="com.freescale.ppc.toolchain.sharedoption.smallData2" value="0" valueType="string"/>
 							<option id="com.freescale.ppc.toolchain.sharedoption.tuneReloc.1947391195" name="Tune Relocations" superClass="com.freescale.ppc.toolchain.sharedoption.tuneReloc" value="true" valueType="boolean"/>
 							<targetPlatform archList="all" binaryParser="org.eclipse.cdt.core.ELF" id="com.freescale.ppc.toolchain.platform.67305195" name="AIOP Target Platform" superClass="com.freescale.ppc.toolchain.platform"/>
-							<builder buildPath="${ProjDirPath}/Release" errorParsers="org.eclipse.cdt.core.GmakeErrorParser;com.freescale.core.ide.cdt.errorParsers.MwErrorParser;com.freescale.core.ide.cdt.errorParsers.MPWErrorParser" id="com.freescale.ppc.toolchain.builder.1760043823" keepEnvironmentInBuildfile="false" name="Make Builder" parallelBuildWorkspaceOn="true" parallelizationNumber="-1" superClass="com.freescale.ppc.toolchain.builder"/>
+							<builder buildPath="${ProjDirPath}/Release" errorParsers="org.eclipse.cdt.core.GmakeErrorParser;com.freescale.core.ide.cdt.errorParsers.MwErrorParser;com.freescale.core.ide.cdt.errorParsers.MPWErrorParser" id="com.freescale.ppc.toolchain.builder.1760043823" keepEnvironmentInBuildfile="false" name="Make Builder" parallelBuildWorkspaceOn="true" parallelizationNumber="1" superClass="com.freescale.ppc.toolchain.builder"/>
 							<tool command="&quot;${AIOPToolsDir}/ldaiop&quot;" commandLinePattern="${COMMAND} ${FLAGS} ${OUTPUT_FLAG} ${OUTPUT_PREFIX}${OUTPUT} ${INPUTS}" errorParsers="" id="com.freescale.ppc.toolchain.linker.1117605116" name="Linker" superClass="com.freescale.ppc.toolchain.linker">
 								<option id="com.freescale.ppc.toolchain.linker.base.input.entrypoint.1045477833" name="Entry Point:" superClass="com.freescale.ppc.toolchain.linker.base.input.entrypoint" value="__sys_start" valueType="string"/>
 								<option id="com.freescale.ppc.toolchain.linker.base.input.codeAddress.530658077" name="Code Address" superClass="com.freescale.ppc.toolchain.linker.base.input.codeAddress" value="0x2000" valueType="string"/>
@@ -300,8 +300,8 @@
 								<option id="com.freescale.ppc.toolchain.linker.base.general.otherflags.545191721" name="Other Flags" superClass="com.freescale.ppc.toolchain.linker.base.general.otherflags" value="-char unsigned" valueType="string"/>
 								<option id="com.freescale.ppc.toolchain.linker.base.output.stackAddress.1893843790" name="Stack Address" superClass="com.freescale.ppc.toolchain.linker.base.output.stackAddress" value="" valueType="string"/>
 								<option id="com.freescale.ppc.toolchain.linker.base.input.lfile.1915295826" name="Library Files" superClass="com.freescale.ppc.toolchain.linker.base.input.lfile" valueType="libs">
-									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/lib/libc_z490_VLE_Soft.a&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/lib/librt_z490_VLE_Soft.a&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${AIOPToolsBaseDir}/AIOP_Support/ewl/lib/librt_z4201_VLE_Soft.a&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${AIOPToolsBaseDir}/AIOP_Support/ewl/lib/libc_z4201_VLE_Soft.a&quot;"/>
 								</option>
 								<option id="com.freescale.ppc.toolchain.linker.base.input.lcf_file.1829352205" name="Link Command File (.lcf)" superClass="com.freescale.ppc.toolchain.linker.base.input.lcf_file" value="&quot;${ProjDirPath}/lcf/aiop_core_lib_verif.lcf" valueType="string"/>
 								<option id="com.freescale.ppc.toolchain.linker.base.input.linkorder.1884523215" name="Link Order" superClass="com.freescale.ppc.toolchain.linker.base.input.linkorder" valueType="stringList">
@@ -344,20 +344,19 @@
 									<listOptionValue builtIn="false" value="sources/drivers/dplib/netf/nat/nat.c"/>
 									<listOptionValue builtIn="false" value="sources/drivers/dplib/util/checksum.c"/>
 									<listOptionValue builtIn="false" value="sources/drivers/dplib/util/general.c"/>
-									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/lib/libc_z490_VLE_Soft.a&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/lib/librt_z490_VLE_Soft.a&quot;"/>
 									<listOptionValue builtIn="false" value="sources/Verification/aiop_verification_ipsec.c"/>
 									<listOptionValue builtIn="false" value="sources/Verification/aiop_verification_keygen.c"/>
 									<listOptionValue builtIn="false" value="sources/Verification/aiop_verification_osm.c"/>
-									<listOptionValue builtIn="false" value="sources/Verification/aiop_verification_sr.c"/>
 									<listOptionValue builtIn="false" value="sources/Verification/aiop_verification_table.c"/>
 									<listOptionValue builtIn="false" value="sources/Verification/slab_stub.c"/>
 									<listOptionValue builtIn="false" value="sources/drivers/dplib/arch/accel/keygen.c"/>
-									<listOptionValue builtIn="false" value="sources/drivers/dplib/arch/flib/sec_app.c"/>
 									<listOptionValue builtIn="false" value="sources/drivers/dplib/kernel/sys.c"/>
 									<listOptionValue builtIn="false" value="sources/drivers/dplib/kernel/time.c"/>
 									<listOptionValue builtIn="false" value="sources/drivers/dplib/netf/general/frame_operations.c"/>
 									<listOptionValue builtIn="false" value="sources/drivers/dplib/util/id_pool.c"/>
+									<listOptionValue builtIn="false" value="sources/Verification/start.c"/>
+									<listOptionValue builtIn="false" value="&quot;${AIOPToolsBaseDir}/AIOP_Support/ewl/lib/librt_z4201_VLE_Soft.a&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${AIOPToolsBaseDir}/AIOP_Support/ewl/lib/libc_z4201_VLE_Soft.a&quot;"/>
 								</option>
 								<option id="com.freescale.ppc.toolchain.linker.base.generateLinkMap.closure.625580975" name="List Closure" superClass="com.freescale.ppc.toolchain.linker.base.generateLinkMap.closure" value="false" valueType="boolean"/>
 								<option id="com.freescale.ppc.toolchain.linker.base.generateLinkMap.listUnusedObjects.308351134" name="List Unused Objects" superClass="com.freescale.ppc.toolchain.linker.base.generateLinkMap.listUnusedObjects" value="false" valueType="boolean"/>
@@ -554,8 +553,8 @@
 								<option id="com.freescale.ppc.toolchain.linker.base.general.otherflags.1983591239" name="Other Flags" superClass="com.freescale.ppc.toolchain.linker.base.general.otherflags" value="-char unsigned" valueType="string"/>
 								<option id="com.freescale.ppc.toolchain.linker.base.output.stackAddress.1622007744" name="Stack Address" superClass="com.freescale.ppc.toolchain.linker.base.output.stackAddress" value="" valueType="string"/>
 								<option id="com.freescale.ppc.toolchain.linker.base.input.lfile.1265288687" name="Library Files" superClass="com.freescale.ppc.toolchain.linker.base.input.lfile" valueType="libs">
-									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/lib/libc_z490_VLE_Soft.a&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/lib/librt_z490_VLE_Soft.a&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${AIOPToolsBaseDir}/AIOP_Support/ewl/lib/librt_z4201_VLE_Soft.a&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${AIOPToolsBaseDir}/AIOP_Support/ewl/lib/libc_z4201_VLE_Soft.a&quot;"/>
 								</option>
 								<option id="com.freescale.ppc.toolchain.linker.base.input.lcf_file.2101950231" name="Link Command File (.lcf)" superClass="com.freescale.ppc.toolchain.linker.base.input.lcf_file" value="&quot;${ProjDirPath}/lcf/aiop_core_lib_verif.lcf" valueType="string"/>
 								<option id="com.freescale.ppc.toolchain.linker.base.input.linkorder.58047783" name="Link Order" superClass="com.freescale.ppc.toolchain.linker.base.input.linkorder" valueType="stringList">
@@ -808,8 +807,8 @@
 								<option id="com.freescale.ppc.toolchain.linker.base.general.otherflags.1543835228" name="Other Flags" superClass="com.freescale.ppc.toolchain.linker.base.general.otherflags" value="-char unsigned" valueType="string"/>
 								<option id="com.freescale.ppc.toolchain.linker.base.output.stackAddress.656998212" name="Stack Address" superClass="com.freescale.ppc.toolchain.linker.base.output.stackAddress" value="" valueType="string"/>
 								<option id="com.freescale.ppc.toolchain.linker.base.input.lfile.1449146047" name="Library Files" superClass="com.freescale.ppc.toolchain.linker.base.input.lfile" valueType="libs">
-									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/lib/libc_z490_VLE_Soft.a&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/lib/librt_z490_VLE_Soft.a&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${AIOPToolsBaseDir}/AIOP_Support/ewl/lib/librt_z4201_VLE_Soft.a&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${AIOPToolsBaseDir}/AIOP_Support/ewl/lib/libc_z4201_VLE_Soft.a&quot;"/>
 								</option>
 								<option id="com.freescale.ppc.toolchain.linker.base.input.lcf_file.469587304" name="Link Command File (.lcf)" superClass="com.freescale.ppc.toolchain.linker.base.input.lcf_file" value="&quot;${ProjDirPath}/lcf/aiop_core_lib_verif.lcf" valueType="string"/>
 								<option id="com.freescale.ppc.toolchain.linker.base.input.linkorder.218172673" name="Link Order" superClass="com.freescale.ppc.toolchain.linker.base.input.linkorder" valueType="stringList">
