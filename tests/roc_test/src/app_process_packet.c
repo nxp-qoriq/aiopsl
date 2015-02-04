@@ -54,8 +54,6 @@ __declspec(entry_point) static void app_process_packet_flow0 (dpni_drv_app_arg_t
 	uint32_t dst_addr = 0;// ipv4 dst_addr - will store original destination address
 	uint8_t local_hw_addr[NET_HDR_FLD_ETH_ADDR_SIZE];
 	struct ipv4hdr *ipv4header;
-
-	sl_prolog();
 	
 	UNUSED(arg);
 

@@ -60,6 +60,8 @@ void aiop_verification_fm()
 	uint64_t ext_address;	/* External Data Address */
 	uint16_t str_size = 0;	/* Command struct Size */
 	uint32_t opcode;
+	
+	sl_prolog();
 
 	/* Read last 8 bytes from frame PTA/ last 8 bytes of payload
 	 * This is the external buffer address */
