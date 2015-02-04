@@ -50,7 +50,7 @@
 #include "fsl_keygen.h"
 
 extern struct  ipr_global_parameters ipr_global_parameters1;
-extern struct storage_profile storage_profile[SP_NUM_OF_STORAGE_PROFILES];
+extern __PROFILE_SRAM struct storage_profile storage_profile[SP_NUM_OF_STORAGE_PROFILES];
 
 int app_early_init(void);
 int app_init(void);
