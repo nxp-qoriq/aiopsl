@@ -59,5 +59,7 @@
 #define SIMULATOR
 #define DEBUG_NO_MC
 
+//#define NO_DP_DDR
+
 
 #endif /* __BUILD_FLAGS_H */

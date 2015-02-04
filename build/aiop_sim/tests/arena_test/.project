@@ -102,6 +102,11 @@ aiop_sl		</project>
 			<locationURI>PARENT-2-PROJECT_LOC/cw_files/aiop_link.lcf</locationURI>
 		</link>
 		<link>
+			<name>lcf/aiop_link_no_dp_ddr.lcf</name>
+			<type>1</type>
+			<locationURI>PARENT-2-PROJECT_LOC/cw_files/aiop_link_no_dp_ddr.lcf</locationURI>
+		</link>
+		<link>
 			<name>src/apps.c</name>
 			<type>1</type>
 			<locationURI>PROJECT_LOC/src/apps.c</locationURI>

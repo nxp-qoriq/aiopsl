@@ -278,13 +278,14 @@ int aiop_sl_init(void)
 
 #else
 	sys_keyid_pool_create();
-
+#ifndef NO_DP_DDR
 	status = ipr_init();
 	if (status)
 		return status; /* TODO */
 
-	status = aiop_snic_init();
+	status = aiop_snic_init();	
 	return status;
+#endif	
 #endif
 	return 0;
 }
@@ -304,8 +305,9 @@ void aiop_sl_free(void)
 			ipr_global_parameters1.ipr_key_id_ipv4);
 	keygen_kcr_delete(KEYGEN_ACCEL_ID_CTLU,
 			ipr_global_parameters1.ipr_key_id_ipv6);
-
+#ifndef NO_DP_DDR
 	aiop_snic_free();
+#endif	
 #endif
 
 	/* TODO status ? */
