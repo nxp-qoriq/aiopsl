@@ -126,6 +126,8 @@ void init_verif()
 
 	/* Need to save running-sum in parse-results LE-> BE */
 	pr->gross_running_sum = LH_SWAP(HWC_FD_ADDRESS + FD_FLC_RUNNING_SUM, 0);
+	/* spid=0 for non roc arena test */
+	*((uint8_t *)HWC_SPID_ADDRESS) = 0;
 
 	osm_task_init();
 	default_task_params.parser_starting_hxs = 0;
