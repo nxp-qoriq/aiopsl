@@ -99,11 +99,6 @@ __declspec(entry_point) void aiop_verification_fm()
 
 	init_verif();
 
-	/* spid=0. This is a temporary spid setter and has to be removed when
-				* the ni function will be run.
-				* (According to Ilan request) */
-	*((uint8_t *)HWC_SPID_ADDRESS) = 0;
-
 	cdma_read((void *)data_addr, ext_address, (uint16_t)DATA_SIZE);
 
 	/* The Terminate command will finish the verification */
