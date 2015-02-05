@@ -52,6 +52,12 @@ void ipsec_print_sp (uint16_t ni_spid);
 #define APP_FLOW_GET(ARG) (((uint16_t)(((ARG) & 0xFFFF0000) >> 16)
 /**< Get flow id from callback argument, it's demo specific macro */
 
+#define IPSEC_DEBUG_PRINT_SP
+#ifdef IPSEC_DEBUG_PRINT_SP
+extern __PROFILE_SRAM struct storage_profile 
+			storage_profile[SP_NUM_OF_STORAGE_PROFILES];
+#endif
+
 /* Global IPsec vars in Shared RAM */
 ipsec_instance_handle_t ipsec_instance_handle;
 ipsec_handle_t ipsec_sa_desc_outbound;
@@ -328,7 +334,8 @@ int ipsec_app_init(uint16_t ni_id)
 	//uint8_t cipher_key[16] = {11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26};
 	uint8_t cipher_key[16] = "1122334455667788";
 	//uint8_t auth_key[128];
-	uint8_t auth_key[128] = "12345678123456781234";
+	//uint8_t auth_key[128] = "12345678123456781234"; // 20 bytes
+	uint8_t auth_key[128] = "12345678123456781234567812345678"; // 32 bytes
 	uint8_t auth_key_id = 0;
 	
 	uint32_t cipher_alg;
@@ -351,8 +358,8 @@ int ipsec_app_init(uint16_t ni_id)
 	/*                    Control Parameters                  */
 	/**********************************************************/
 	/* Set the required algorithms here */
-	algs = NULL_ENCRYPTION;
-	//algs = AES128_SHA256;
+	//algs = NULL_ENCRYPTION;
+	algs = AES128_SHA256;
 	//algs = AES128_SHA1;
 
 	/* Set the outer IP header type here */
@@ -387,7 +394,6 @@ int ipsec_app_init(uint16_t ni_id)
 
 	fsl_os_print("IPsec Demo: SPID = %d\n", ni_spid);
 
-#define IPSEC_DEBUG_PRINT_SP
 #ifdef IPSEC_DEBUG_PRINT_SP
 	ipsec_print_sp (ni_spid);
 #endif
@@ -474,7 +480,8 @@ int ipsec_app_init(uint16_t ni_id)
 			cipher_alg = IPSEC_CIPHER_AES_CBC;
 			cipher_keylen = 16;
 			auth_alg = IPSEC_AUTH_HMAC_SHA2_256_128;
-			auth_keylen = 64;
+			//auth_keylen = 64;
+			auth_keylen = 32;
 			break;
 		case AES128_NULL:
 			fsl_os_print("Cipher Algorithm: IPSEC_CIPHER_AES_CBC\n");
@@ -738,7 +745,7 @@ void ipsec_print_stats (ipsec_handle_t desc_handle) {
 } /* End of ipsec_print_stats */
 
 void ipsec_print_sp (uint16_t ni_spid) {
-	extern struct storage_profile storage_profile[SP_NUM_OF_STORAGE_PROFILES];
+
 	struct storage_profile *sp_addr = &storage_profile[0];
 
 	/* Debug - Print the storage profile */

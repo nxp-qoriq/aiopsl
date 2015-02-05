@@ -65,6 +65,8 @@
 enum rta_sec_era rta_sec_era = RTA_SEC_ERA_8;
 
 /* Global parameters */
+extern __PROFILE_SRAM struct storage_profile 
+			storage_profile[SP_NUM_OF_STORAGE_PROFILES];
 
 /**************************************************************************//**
 *	ipsec_create_instance
@@ -854,7 +856,7 @@ void ipsec_generate_flc(
 	
 	struct ipsec_flow_context flow_context;
 
-	extern struct storage_profile storage_profile[SP_NUM_OF_STORAGE_PROFILES];
+	//extern struct storage_profile storage_profile[SP_NUM_OF_STORAGE_PROFILES];
 	int i;
 	
 	struct storage_profile *sp_addr = &storage_profile[0];
