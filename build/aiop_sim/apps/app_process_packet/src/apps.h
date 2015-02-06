@@ -33,25 +33,46 @@ extern const uint32_t g_aiop_lcf_ddr_size;
  * for application */
 #define APPLICATION_DP_DDR_SIZE (0x8000000 - g_aiop_lcf_ddr_size)
  
-/* dp_ddr_size.
- * It is the  sum of AIOP image size in DDR and 
- * application required DP_DDR memory.
- * The value should be aligned to a power of 2 */
-#define  AIOP_SL_AND_APP_DDR_SIZE     (uint64_t)(g_aiop_lcf_ddr_size + APPLICATION_DP_DDR_SIZE)	
+
  
 /* peb_size.
  * Should be a power of 2.
  * Applications cannot require more that this maximum size */
 #define PEB_SIZE  (512 * KILOBYTE)  
 
-/* sys-ddr1 size = 0. Currently no dynamic allocation from system ddr */
-#define SYS_DDR1_SIZE 0
+
 
 /* ctlu sys-ddr number of entries */
 #define CTLU_SYS_DDR_NUM_ENTRIES         2048
 
+
+#ifdef NO_DP_DDR
+/* dp_ddr_size.
+ * It is the  sum of AIOP image size in DDR and 
+ * application required DP_DDR memory.
+ * The value should be aligned to a power of 2 */
+#define  AIOP_SL_AND_APP_DDR_SIZE        0
+/* sys-ddr1 size = 0. Currently no dynamic allocation from system ddr */
+#define SYS_DDR1_SIZE  (64 * MEGABYTE)
+/* ctlu dp-ddr number of entries */
+#define CTLU_DP_DDR_NUM_ENTRIES          0
+/* mflu dp-ddr number of entries */
+#define MFLU_DP_DDR_NUM_ENTRIES          0
+
+#else
+/* dp_ddr_size.
+ * It is the  sum of AIOP image size in DDR and 
+ * application required DP_DDR memory.
+ * The value should be aligned to a power of 2 */
+#define  AIOP_SL_AND_APP_DDR_SIZE     (uint64_t)(g_aiop_lcf_ddr_size + APPLICATION_DP_DDR_SIZE)	
+/* sys-ddr1 size = 0. Currently no dynamic allocation from system ddr */
+#define SYS_DDR1_SIZE 0
 /* ctlu dp-ddr number of entries */
 #define CTLU_DP_DDR_NUM_ENTRIES          2048
+/* mflu dp-ddr number of entries */
+#define MFLU_DP_DDR_NUM_ENTRIES          2048
+#endif
+
 
 /* ctlu peb number of entries */
 #define CTLU_PEB_NUM_ENTRIES             2048
@@ -59,8 +80,7 @@ extern const uint32_t g_aiop_lcf_ddr_size;
 /* mflu sys-ddr number of entries */
 #define MFLU_SYS_DDR_NUM_ENTRIES         2048
 
-/* mflu dp-ddr number of entries */
-#define MFLU_DP_DDR_NUM_ENTRIES          2048
+
 
 /* mflu peb number of entries */
 #define MFLU_PEB_NUM_ENTRIES             2048
