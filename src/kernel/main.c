@@ -72,6 +72,9 @@ int main(int argc, char *argv[])
 {
     int err = 0;
     int is_master_core;
+    volatile int alex = 1;
+    
+    while(alex){}
 UNUSED(argc);UNUSED(argv);
 
     /* Initiate small data area pointers at task initialization */
@@ -79,9 +82,10 @@ UNUSED(argc);UNUSED(argv);
         mtdcr dcr469,r2 // INITR2
         mtdcr dcr470,r13// INITR13
     }
-
+#ifdef SIMULATOR
 #if (STACK_OVERFLOW_DETECTION == 1)
     configure_stack_overflow_detection();
+#endif
 #endif
 
     /* Initialize system */
