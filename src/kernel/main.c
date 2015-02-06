@@ -72,9 +72,7 @@ int main(int argc, char *argv[])
 {
     int err = 0;
     int is_master_core;
-    volatile int alex = 1;
-    
-    while(alex){}
+
 UNUSED(argc);UNUSED(argv);
 
     /* Initiate small data area pointers at task initialization */
