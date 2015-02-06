@@ -56,10 +56,10 @@
 #define AIOP
 #define SOC_PPC_CORE
 /*#define SYS_SMP_SUPPORT*/
-#define SIMULATOR
+//#define SIMULATOR
 #define DEBUG_NO_MC
-
-//#define NO_DP_DDR
+#define BU_FIX
+#define NO_DP_DDR
 
 
 #endif /* __BUILD_FLAGS_H */
