@@ -27,16 +27,16 @@
 			<storageModule moduleId="cdtBuildSystem" version="4.0.0">
 				<configuration artifactExtension="elf" artifactName="AIOP_API_Verify" buildProperties="" buildReferences="true" buildReferencingConfigurations="false" cleanCommand="&quot;${system:ECLIPSE_HOME}/../gnu/bin/rm&quot; -f" description="Verification Debug Configuration" errorParsers="org.eclipse.cdt.core.MakeErrorParser;com.freescale.core.ide.cdt.errorParsers.GCCErrorParser;org.eclipse.cdt.core.GLDErrorParser;org.eclipse.cdt.core.GASErrorParser;com.freescale.core.ide.cdt.errorParsers.MwfeErrorParser;com.freescale.core.ide.cdt.errorParsers.LnkErrorParser;com.freescale.core.ide.cdt.errorParsers.AsmErrorParser;com.freescale.core.ide.cdt.errorParsers.CobjErrorParser;com.freescale.core.ide.cdt.errorParsers.IcodeErrorParser;com.freescale.core.ide.cdt.errorParsers.LltErrorParser;com.freescale.core.ide.cdt.errorParsers.MwErrorParser;com.freescale.core.ide.cdt.errorParsers.MPWErrorParser;org.eclipse.cdt.core.GmakeErrorParser" id="com.freescale.ppc.debug.toolchain.configuration.729284547.131264042" isPrebuildInvalidatingBuild="false" name="Debug" parent="com.freescale.ppc.debug.toolchain.configuration" postannouncebuildStep="" postbuildStep="" preannouncebuildStep="" prebuildStep="" produceBuildErrorsWithMissingReferences="true">
 					<folderInfo id="com.freescale.ppc.debug.toolchain.configuration.729284547.131264042." name="/" resourcePath="">
-						<toolChain errorParsers="" id="com.freescale.ppc.debug.toolchain.toolchain.915433040" name="PowerPC Debug Toolchain" superClass="com.freescale.ppc.debug.toolchain.toolchain">
+						<toolChain errorParsers="" id="com.freescale.ppc.debug.toolchain.toolchain.915433040" name="AIOP Debug Toolchain" superClass="com.freescale.ppc.debug.toolchain.toolchain">
 							<option id="com.freescale.ppc.debug.toolchain.sharedoption.dwarf.1062687346" name="Generate DWARF Information" superClass="com.freescale.ppc.debug.toolchain.sharedoption.dwarf" value="com.freescale.ppc.toolchain.sharedoption.dwarf.2" valueType="enumerated"/>
 							<option id="com.freescale.ppc.toolchain.sharedoption.processor.1088419864" name="Processor" superClass="com.freescale.ppc.toolchain.sharedoption.processor" value="com.freescale.ppc.toolchain.sharedoption.processor.zen" valueType="enumerated"/>
 							<option id="com.freescale.ppc.toolchain.sharedoption.sym.476971176" name="Store Full Paths To Source Files" superClass="com.freescale.ppc.toolchain.sharedoption.sym" value="true" valueType="boolean"/>
 							<option id="com.freescale.ppc.toolchain.sharedoption.smallData.902389456" name="Small Data" superClass="com.freescale.ppc.toolchain.sharedoption.smallData" value="0" valueType="string"/>
 							<option id="com.freescale.ppc.toolchain.sharedoption.smallData2.227710175" name="Small Data2" superClass="com.freescale.ppc.toolchain.sharedoption.smallData2" value="0" valueType="string"/>
 							<option id="com.freescale.ppc.toolchain.sharedoption.tuneReloc.33240164" name="Tune Relocations" superClass="com.freescale.ppc.toolchain.sharedoption.tuneReloc" value="true" valueType="boolean"/>
-							<targetPlatform archList="all" binaryParser="org.eclipse.cdt.core.ELF" id="com.freescale.ppc.toolchain.platform.1765828286" name="PowerPC Target Platform" superClass="com.freescale.ppc.toolchain.platform"/>
+							<targetPlatform archList="all" binaryParser="org.eclipse.cdt.core.ELF" id="com.freescale.ppc.toolchain.platform.1765828286" name="AIOP Target Platform" superClass="com.freescale.ppc.toolchain.platform"/>
 							<builder buildPath="${ProjDirPath}/Debug" errorParsers="org.eclipse.cdt.core.GmakeErrorParser;com.freescale.core.ide.cdt.errorParsers.MwErrorParser;com.freescale.core.ide.cdt.errorParsers.MPWErrorParser" id="com.freescale.ppc.toolchain.builder.1678541950" keepEnvironmentInBuildfile="false" name="Make Builder" parallelBuildWorkspaceOn="true" parallelizationNumber="1" superClass="com.freescale.ppc.toolchain.builder"/>
-							<tool command="&quot;${PAToolsDir}/mwldeppc&quot;" commandLinePattern="${COMMAND} ${FLAGS} ${OUTPUT_FLAG} ${OUTPUT_PREFIX}${OUTPUT} ${INPUTS}" errorParsers="" id="com.freescale.ppc.toolchain.linker.155349594" name="PowerPC Linker" superClass="com.freescale.ppc.toolchain.linker">
+							<tool command="&quot;${AIOPToolsDir}/ldaiop&quot;" commandLinePattern="${COMMAND} ${FLAGS} ${OUTPUT_FLAG} ${OUTPUT_PREFIX}${OUTPUT} ${INPUTS}" errorParsers="" id="com.freescale.ppc.toolchain.linker.155349594" name="Linker" superClass="com.freescale.ppc.toolchain.linker">
 								<option id="com.freescale.ppc.toolchain.linker.base.input.entrypoint.1936870428" name="Entry Point:" superClass="com.freescale.ppc.toolchain.linker.base.input.entrypoint" value="__sys_start" valueType="string"/>
 								<option id="com.freescale.ppc.toolchain.linker.base.input.codeAddress.316406188" name="Code Address" superClass="com.freescale.ppc.toolchain.linker.base.input.codeAddress" value="0x2000" valueType="string"/>
 								<option id="com.freescale.ppc.toolchain.linker.base.input.dataAddress.237414548" name="Data Address" superClass="com.freescale.ppc.toolchain.linker.base.input.dataAddress" value="0x0" valueType="string"/>
@@ -46,8 +46,8 @@
 								<option id="com.freescale.ppc.toolchain.linker.base.general.otherflags.281472397" name="Other Flags" superClass="com.freescale.ppc.toolchain.linker.base.general.otherflags" value="-char unsigned" valueType="string"/>
 								<option id="com.freescale.ppc.toolchain.linker.base.output.stackAddress.1111974926" name="Stack Address" superClass="com.freescale.ppc.toolchain.linker.base.output.stackAddress" value="" valueType="string"/>
 								<option id="com.freescale.ppc.toolchain.linker.base.input.lfile.1673184985" name="Library Files" superClass="com.freescale.ppc.toolchain.linker.base.input.lfile" valueType="libs">
-									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/lib/libc_E200z446_VLE.a&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/lib/librt_E200z446_VLE.a&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${AIOPToolsBaseDir}/AIOP_Support/ewl/lib/librt_z4201_VLE_Soft.a&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${AIOPToolsBaseDir}/AIOP_Support/ewl/lib/libc_z4201_VLE_Soft.a&quot;"/>
 								</option>
 								<option id="com.freescale.ppc.toolchain.linker.base.input.lcf_file.1746100784" name="Link Command File (.lcf)" superClass="com.freescale.ppc.toolchain.linker.base.input.lcf_file" value="&quot;${ProjDirPath}/lcf/aiop_core_lib_verif.lcf" valueType="string"/>
 								<option id="com.freescale.ppc.toolchain.linker.base.input.linkorder.1949546617" name="Link Order" superClass="com.freescale.ppc.toolchain.linker.base.input.linkorder" valueType="stringList">
@@ -90,8 +90,8 @@
 									<listOptionValue builtIn="false" value="sources/drivers/dplib/netf/nat/nat.c"/>
 									<listOptionValue builtIn="false" value="sources/drivers/dplib/util/checksum.c"/>
 									<listOptionValue builtIn="false" value="sources/drivers/dplib/util/general.c"/>
-									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/lib/libc_E200z446_VLE.a&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/lib/librt_E200z446_VLE.a&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/lib/libc_z490_VLE_Soft.a&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/lib/librt_z490_VLE_Soft.a&quot;"/>
 									<listOptionValue builtIn="false" value="sources/Verification/aiop_verification_ipsec.c"/>
 									<listOptionValue builtIn="false" value="sources/Verification/aiop_verification_keygen.c"/>
 									<listOptionValue builtIn="false" value="sources/Verification/aiop_verification_osm.c"/>
@@ -114,7 +114,7 @@
 									<additionalInput kind="additionalinput" paths="$(LIBS)"/>
 								</inputType>
 							</tool>
-							<tool command="&quot;${PAToolsDir}/mwcceppc&quot;" commandLinePattern="${COMMAND} ${FLAGS} ${OUTPUT_FLAG} ${OUTPUT_PREFIX}${OUTPUT} ${INPUTS}" errorParsers="" id="com.freescale.ppc.toolchain.compiler.1125863899" name="PowerPC Compiler" superClass="com.freescale.ppc.toolchain.compiler">
+							<tool command="&quot;${AIOPToolsDir}/ccaiop&quot;" commandLinePattern="${COMMAND} ${FLAGS} ${OUTPUT_FLAG} ${OUTPUT_PREFIX}${OUTPUT} ${INPUTS}" errorParsers="" id="com.freescale.ppc.toolchain.compiler.1125863899" name="Compiler" superClass="com.freescale.ppc.toolchain.compiler">
 								<option id="com.freescale.ppc.toolchain.compiler.base.input.include.1248255140" name="User Path (-i)" superClass="com.freescale.ppc.toolchain.compiler.base.input.include" valueType="includePath">
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../build/aiop_sim/build_flags&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/include/arch/ls2085_aiop&quot;"/>
@@ -145,14 +145,14 @@
 								<option id="com.freescale.ppc.toolchain.compiler.base.options.speedSpace.1861510124" name="Speed vs. Size" superClass="com.freescale.ppc.toolchain.compiler.base.options.speedSpace" value="com.freescale.ppc.toolchain.compiler.base.optionCategory.optimization.speedspace.speed" valueType="enumerated"/>
 								<option id="com.freescale.ppc.toolchain.compiler.base.options.inlining.bottom.up.1317153014" name="Bottom-up Inlining" superClass="com.freescale.ppc.toolchain.compiler.base.options.inlining.bottom.up" value="false" valueType="boolean"/>
 								<option id="com.freescale.ppc.toolchain.compiler.base.optionCategory.processor.lmwSTMW.1063805979" name="Use LMW &amp; STMW" superClass="com.freescale.ppc.toolchain.compiler.base.optionCategory.processor.lmwSTMW" value="true" valueType="boolean"/>
-								<option id="com.freescale.ppc.toolchain.compiler.base.optionCategory.processor.generateISEL.1466774522" name="Generate ISEL Instructions (e500/Zen)" superClass="com.freescale.ppc.toolchain.compiler.base.optionCategory.processor.generateISEL" value="true" valueType="boolean"/>
-								<option id="com.freescale.ppc.toolchain.compiler.base.optionCategory.processor.translatePPCASMtoVLE.1878967726" name="Translate PPC Asm to VLE Asm (Zen)" superClass="com.freescale.ppc.toolchain.compiler.base.optionCategory.processor.translatePPCASMtoVLE" value="true" valueType="boolean"/>
+								<option id="com.freescale.ppc.toolchain.compiler.base.optionCategory.processor.generateISEL.1466774522" name="Generate ISEL Instructions" superClass="com.freescale.ppc.toolchain.compiler.base.optionCategory.processor.generateISEL" value="true" valueType="boolean"/>
+								<option id="com.freescale.ppc.toolchain.compiler.base.optionCategory.processor.translatePPCASMtoVLE.1878967726" name="Translate ASM to VLE Asm" superClass="com.freescale.ppc.toolchain.compiler.base.optionCategory.processor.translatePPCASMtoVLE" value="true" valueType="boolean"/>
 								<option id="com.freescale.ppc.toolchain.compiler.base.general.otherflags.prototype.480468350" name="Require Prototypes" superClass="com.freescale.ppc.toolchain.compiler.base.general.otherflags.prototype" value="true" valueType="boolean"/>
 								<option id="com.freescale.ppc.toolchain.compiler.base.general.unsignedchar.1096397826" name="Use Unsigned Chars" superClass="com.freescale.ppc.toolchain.compiler.base.general.unsignedchar" value="true" valueType="boolean"/>
 								<option id="com.freescale.ppc.toolchain.compiler.base.input.include.system.610740344" name="System Path (-I- -I)" superClass="com.freescale.ppc.toolchain.compiler.base.input.include.system" valueType="includePath">
-									<listOptionValue builtIn="false" value="&quot;${PAToolsBaseDir}/PA_Support/ewl/EWL_C/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${AIOPToolsBaseDir}/AIOP_Support/ewl/EWL_C/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/include/arch&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${PAToolsBaseDir}/PA_Support/ewl/EWL_Runtime/Runtime_PA/Include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${AIOPToolsBaseDir}/AIOP_Support/ewl/EWL_Runtime/Runtime_AIOP/Include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/include/common&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/include/dplib&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/include/net&quot;"/>
@@ -201,33 +201,33 @@
 								<option id="com.freescale.ppc.toolchain.compiler.base.general.enumint.1030559167" name="Enum Always Int" superClass="com.freescale.ppc.toolchain.compiler.base.general.enumint" value="true" valueType="boolean"/>
 								<inputType id="com.freescale.ppc.toolchain.compiler.base.input.1496352536" name="com.freescale.ppc.toolchain.cf Compiler Input" superClass="com.freescale.ppc.toolchain.compiler.base.input"/>
 							</tool>
-							<tool command="&quot;${PAToolsDir}/mwasmeppc&quot;" commandLinePattern="${COMMAND} ${FLAGS} ${OUTPUT_FLAG} ${OUTPUT_PREFIX}${OUTPUT} ${INPUTS}" errorParsers="" id="com.freescale.ppc.toolchain.assembler.735897043" name="PowerPC Assembler" superClass="com.freescale.ppc.toolchain.assembler">
+							<tool command="&quot;${AIOPToolsDir}/asmaiop&quot;" commandLinePattern="${COMMAND} ${FLAGS} ${OUTPUT_FLAG} ${OUTPUT_PREFIX}${OUTPUT} ${INPUTS}" errorParsers="" id="com.freescale.ppc.toolchain.assembler.735897043" name="Assembler" superClass="com.freescale.ppc.toolchain.assembler">
 								<option id="com.freescale.ppc.toolchain.assembler.base.input.include.1284270255" name="User Path (-i)" superClass="com.freescale.ppc.toolchain.assembler.base.input.include" valueType="includePath">
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/arch/ppc&quot;"/>
 								</option>
 								<option id="com.freescale.ppc.toolchain.assembler.base.general.otherflags.1168792160" name="Other Flags" superClass="com.freescale.ppc.toolchain.assembler.base.general.otherflags" value="-ppc_asm_to_vle" valueType="string"/>
 								<option id="com.freescale.ppc.toolchain.assembler.base.general.gnuCompatible.9232793" name="GNU Compatible Syntax" superClass="com.freescale.ppc.toolchain.assembler.base.general.gnuCompatible" value="true" valueType="boolean"/>
-								<inputType id="com.freescale.ppc.toolchain.assembler.base.input.1337401613" name="PowerPC Assembler Input" superClass="com.freescale.ppc.toolchain.assembler.base.input"/>
+								<inputType id="com.freescale.ppc.toolchain.assembler.base.input.1337401613" name="AIOP Assembler Input" superClass="com.freescale.ppc.toolchain.assembler.base.input"/>
 							</tool>
-							<tool command="&quot;${PAToolsDir}/mwldeppc&quot;" commandLinePattern="${COMMAND} -dis ${FLAGS} ${INPUTS}" errorParsers="" id="com.freescale.ppc.toolchain.disassembler.1203520535" name="PowerPC Disassembler" superClass="com.freescale.ppc.toolchain.disassembler">
+							<tool command="&quot;${AIOPToolsDir}/ldaiop&quot;" commandLinePattern="${COMMAND} -dis ${FLAGS} ${INPUTS}" errorParsers="" id="com.freescale.ppc.toolchain.disassembler.1203520535" name="Disassembler" superClass="com.freescale.ppc.toolchain.disassembler">
 								<option id="com.freescale.ppc.toolchain.disassembler.base.settings.name.1077024793" name="Show Symbol and String Tables" superClass="com.freescale.ppc.toolchain.disassembler.base.settings.name" value="true" valueType="boolean"/>
 								<option id="com.freescale.ppc.toolchain.disassembler.base.settings.header.1867772059" name="Show Headers" superClass="com.freescale.ppc.toolchain.disassembler.base.settings.header" value="false" valueType="boolean"/>
 								<option id="com.freescale.ppc.toolchain.disassembler.base.settings.code.1212881769" name="Show Core Modules" superClass="com.freescale.ppc.toolchain.disassembler.base.settings.code" value="true" valueType="boolean"/>
 								<option id="com.freescale.ppc.toolchain.disassembler.base.settings.extm.1939897321" name="Show Extended Mnemonics" superClass="com.freescale.ppc.toolchain.disassembler.base.settings.extm" value="false" valueType="boolean"/>
 							</tool>
-							<tool command="&quot;${PAToolsDir}/mwcceppc&quot;" commandLinePattern="${COMMAND} ${FLAGS} ${OUTPUT_FLAG} ${INPUTS}" errorParsers="" id="com.freescale.ppc.toolchain.preprocessor.39006154" name="PowerPC Preprocessor" superClass="com.freescale.ppc.toolchain.preprocessor"/>
+							<tool command="&quot;${AIOPToolsDir}/ccaiop&quot;" commandLinePattern="${COMMAND} ${FLAGS} ${OUTPUT_FLAG} ${INPUTS}" errorParsers="" id="com.freescale.ppc.toolchain.preprocessor.39006154" name="Preprocessor" superClass="com.freescale.ppc.toolchain.preprocessor"/>
 						</toolChain>
 					</folderInfo>
 					<fileInfo id="com.freescale.ppc.debug.toolchain.configuration.729284547.131264042.T4240LS_AIOP_readme.txt" name="MPC5643L_readme.txt" rcbsApplicability="disable" resourcePath="T4240LS_AIOP_readme.txt" toolsToInvoke=""/>
 					<folderInfo id="com.freescale.ppc.debug.toolchain.configuration.729284547.131264042.prefix" name="/" resourcePath="prefix">
-						<toolChain errorParsers="" id="com.freescale.ppc.debug.toolchain.toolchain.109600556" name="PowerPC Debug Toolchain" superClass="com.freescale.ppc.debug.toolchain.toolchain" unusedChildren="">
+						<toolChain errorParsers="" id="com.freescale.ppc.debug.toolchain.toolchain.109600556" name="AIOP Debug Toolchain" superClass="com.freescale.ppc.debug.toolchain.toolchain" unusedChildren="">
 							<option id="com.freescale.ppc.debug.toolchain.sharedoption.dwarf.1612949044.368461145.523735995" name="Generate DWARF Information" superClass="com.freescale.ppc.debug.toolchain.sharedoption.dwarf.1612949044"/>
 							<option id="com.freescale.ppc.toolchain.sharedoption.processor.911198810.330755238.1763410885" name="Processor" superClass="com.freescale.ppc.toolchain.sharedoption.processor.911198810"/>
 							<option id="com.freescale.ppc.toolchain.sharedoption.sym.1122761859.1725085538.1892525092" name="Store Full Paths To Source Files" superClass="com.freescale.ppc.toolchain.sharedoption.sym.1122761859"/>
-							<targetPlatform archList="all" binaryParser="org.eclipse.cdt.core.ELF" id="com.freescale.ppc.toolchain.platform.227390676" name="PowerPC Target Platform" superClass="com.freescale.ppc.toolchain.platform"/>
-							<tool id="com.freescale.ppc.toolchain.linker.993435667" name="PowerPC Linker" superClass="com.freescale.ppc.toolchain.linker.155349594"/>
-							<tool errorParsers="" id="com.freescale.ppc.toolchain.compiler.768824" name="PowerPC Compiler" superClass="com.freescale.ppc.toolchain.compiler.1125863899">
+							<targetPlatform archList="all" binaryParser="org.eclipse.cdt.core.ELF" id="com.freescale.ppc.toolchain.platform.227390676" name="AIOP Target Platform" superClass="com.freescale.ppc.toolchain.platform"/>
+							<tool id="com.freescale.ppc.toolchain.linker.993435667" name="Linker" superClass="com.freescale.ppc.toolchain.linker.155349594"/>
+							<tool errorParsers="" id="com.freescale.ppc.toolchain.compiler.768824" name="Compiler" superClass="com.freescale.ppc.toolchain.compiler.1125863899">
 								<option id="com.freescale.ppc.toolchain.compiler.base.input.include.253553156" name="User Path (-i)" superClass="com.freescale.ppc.toolchain.compiler.base.input.include" valueType="includePath">
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/lib&quot;"/>
@@ -243,11 +243,11 @@
 								</option>
 								<inputType id="com.freescale.ppc.toolchain.compiler.base.input.1434107340" name="com.freescale.ppc.toolchain.cf Compiler Input" superClass="com.freescale.ppc.toolchain.compiler.base.input"/>
 							</tool>
-							<tool errorParsers="" id="com.freescale.ppc.toolchain.assembler.406283399" name="PowerPC Assembler" superClass="com.freescale.ppc.toolchain.assembler.735897043">
-								<inputType id="com.freescale.ppc.toolchain.assembler.base.input.1408712886" name="PowerPC Assembler Input" superClass="com.freescale.ppc.toolchain.assembler.base.input"/>
+							<tool errorParsers="" id="com.freescale.ppc.toolchain.assembler.406283399" name="Assembler" superClass="com.freescale.ppc.toolchain.assembler.735897043">
+								<inputType id="com.freescale.ppc.toolchain.assembler.base.input.1408712886" name="AIOP Assembler Input" superClass="com.freescale.ppc.toolchain.assembler.base.input"/>
 							</tool>
-							<tool errorParsers="" id="com.freescale.ppc.toolchain.disassembler.270929550" name="PowerPC Disassembler" superClass="com.freescale.ppc.toolchain.disassembler.1203520535"/>
-							<tool errorParsers="" id="com.freescale.ppc.toolchain.preprocessor.632219898" name="PowerPC Preprocessor" superClass="com.freescale.ppc.toolchain.preprocessor.39006154"/>
+							<tool errorParsers="" id="com.freescale.ppc.toolchain.disassembler.270929550" name="Disassembler" superClass="com.freescale.ppc.toolchain.disassembler.1203520535"/>
+							<tool errorParsers="" id="com.freescale.ppc.toolchain.preprocessor.632219898" name="Preprocessor" superClass="com.freescale.ppc.toolchain.preprocessor.39006154"/>
 						</toolChain>
 					</folderInfo>
 					<sourceEntries>
@@ -281,16 +281,16 @@
 			<storageModule moduleId="cdtBuildSystem" version="4.0.0">
 				<configuration artifactExtension="elf" artifactName="AIOP_API_Verify" buildProperties="" buildReferences="true" buildReferencingConfigurations="false" cleanCommand="&quot;${system:ECLIPSE_HOME}/../gnu/bin/rm&quot; -f" description="Verification Release Configuration" errorParsers="org.eclipse.cdt.core.MakeErrorParser;com.freescale.core.ide.cdt.errorParsers.GCCErrorParser;org.eclipse.cdt.core.GLDErrorParser;org.eclipse.cdt.core.GASErrorParser;com.freescale.core.ide.cdt.errorParsers.MwfeErrorParser;com.freescale.core.ide.cdt.errorParsers.LnkErrorParser;com.freescale.core.ide.cdt.errorParsers.AsmErrorParser;com.freescale.core.ide.cdt.errorParsers.CobjErrorParser;com.freescale.core.ide.cdt.errorParsers.IcodeErrorParser;com.freescale.core.ide.cdt.errorParsers.LltErrorParser;com.freescale.core.ide.cdt.errorParsers.MwErrorParser;com.freescale.core.ide.cdt.errorParsers.MPWErrorParser;org.eclipse.cdt.core.GmakeErrorParser" id="com.freescale.ppc.debug.toolchain.configuration.729284547.2105833011" isPrebuildInvalidatingBuild="false" name="Release" parent="com.freescale.ppc.debug.toolchain.configuration" postannouncebuildStep="" postbuildStep="" preannouncebuildStep="" prebuildStep="" produceBuildErrorsWithMissingReferences="true">
 					<folderInfo id="com.freescale.ppc.debug.toolchain.configuration.729284547.2105833011." name="/" resourcePath="">
-						<toolChain errorParsers="" id="com.freescale.ppc.debug.toolchain.toolchain.1102199563" name="PowerPC Debug Toolchain" superClass="com.freescale.ppc.debug.toolchain.toolchain">
+						<toolChain errorParsers="" id="com.freescale.ppc.debug.toolchain.toolchain.1102199563" name="AIOP Debug Toolchain" superClass="com.freescale.ppc.debug.toolchain.toolchain">
 							<option id="com.freescale.ppc.debug.toolchain.sharedoption.dwarf.409827297" name="Generate DWARF Information" superClass="com.freescale.ppc.debug.toolchain.sharedoption.dwarf" value="com.freescale.ppc.toolchain.sharedoption.dwarf.2" valueType="enumerated"/>
 							<option id="com.freescale.ppc.toolchain.sharedoption.processor.2006050139" name="Processor" superClass="com.freescale.ppc.toolchain.sharedoption.processor" value="com.freescale.ppc.toolchain.sharedoption.processor.zen" valueType="enumerated"/>
 							<option id="com.freescale.ppc.toolchain.sharedoption.sym.200860016" name="Store Full Paths To Source Files" superClass="com.freescale.ppc.toolchain.sharedoption.sym" value="true" valueType="boolean"/>
 							<option id="com.freescale.ppc.toolchain.sharedoption.smallData.1302127652" name="Small Data" superClass="com.freescale.ppc.toolchain.sharedoption.smallData" value="0" valueType="string"/>
 							<option id="com.freescale.ppc.toolchain.sharedoption.smallData2.2048350894" name="Small Data2" superClass="com.freescale.ppc.toolchain.sharedoption.smallData2" value="0" valueType="string"/>
 							<option id="com.freescale.ppc.toolchain.sharedoption.tuneReloc.1947391195" name="Tune Relocations" superClass="com.freescale.ppc.toolchain.sharedoption.tuneReloc" value="true" valueType="boolean"/>
-							<targetPlatform archList="all" binaryParser="org.eclipse.cdt.core.ELF" id="com.freescale.ppc.toolchain.platform.67305195" name="PowerPC Target Platform" superClass="com.freescale.ppc.toolchain.platform"/>
-							<builder buildPath="${ProjDirPath}/Release" errorParsers="org.eclipse.cdt.core.GmakeErrorParser;com.freescale.core.ide.cdt.errorParsers.MwErrorParser;com.freescale.core.ide.cdt.errorParsers.MPWErrorParser" id="com.freescale.ppc.toolchain.builder.1760043823" keepEnvironmentInBuildfile="false" name="Make Builder" parallelBuildWorkspaceOn="true" parallelizationNumber="-1" superClass="com.freescale.ppc.toolchain.builder"/>
-							<tool command="&quot;${PAToolsDir}/mwldeppc&quot;" commandLinePattern="${COMMAND} ${FLAGS} ${OUTPUT_FLAG} ${OUTPUT_PREFIX}${OUTPUT} ${INPUTS}" errorParsers="" id="com.freescale.ppc.toolchain.linker.1117605116" name="PowerPC Linker" superClass="com.freescale.ppc.toolchain.linker">
+							<targetPlatform archList="all" binaryParser="org.eclipse.cdt.core.ELF" id="com.freescale.ppc.toolchain.platform.67305195" name="AIOP Target Platform" superClass="com.freescale.ppc.toolchain.platform"/>
+							<builder buildPath="${ProjDirPath}/Release" errorParsers="org.eclipse.cdt.core.GmakeErrorParser;com.freescale.core.ide.cdt.errorParsers.MwErrorParser;com.freescale.core.ide.cdt.errorParsers.MPWErrorParser" id="com.freescale.ppc.toolchain.builder.1760043823" keepEnvironmentInBuildfile="false" name="Make Builder" parallelBuildWorkspaceOn="true" parallelizationNumber="1" superClass="com.freescale.ppc.toolchain.builder"/>
+							<tool command="&quot;${AIOPToolsDir}/ldaiop&quot;" commandLinePattern="${COMMAND} ${FLAGS} ${OUTPUT_FLAG} ${OUTPUT_PREFIX}${OUTPUT} ${INPUTS}" errorParsers="" id="com.freescale.ppc.toolchain.linker.1117605116" name="Linker" superClass="com.freescale.ppc.toolchain.linker">
 								<option id="com.freescale.ppc.toolchain.linker.base.input.entrypoint.1045477833" name="Entry Point:" superClass="com.freescale.ppc.toolchain.linker.base.input.entrypoint" value="__sys_start" valueType="string"/>
 								<option id="com.freescale.ppc.toolchain.linker.base.input.codeAddress.530658077" name="Code Address" superClass="com.freescale.ppc.toolchain.linker.base.input.codeAddress" value="0x2000" valueType="string"/>
 								<option id="com.freescale.ppc.toolchain.linker.base.input.dataAddress.131535757" name="Data Address" superClass="com.freescale.ppc.toolchain.linker.base.input.dataAddress" value="0x0" valueType="string"/>
@@ -300,8 +300,8 @@
 								<option id="com.freescale.ppc.toolchain.linker.base.general.otherflags.545191721" name="Other Flags" superClass="com.freescale.ppc.toolchain.linker.base.general.otherflags" value="-char unsigned" valueType="string"/>
 								<option id="com.freescale.ppc.toolchain.linker.base.output.stackAddress.1893843790" name="Stack Address" superClass="com.freescale.ppc.toolchain.linker.base.output.stackAddress" value="" valueType="string"/>
 								<option id="com.freescale.ppc.toolchain.linker.base.input.lfile.1915295826" name="Library Files" superClass="com.freescale.ppc.toolchain.linker.base.input.lfile" valueType="libs">
-									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/lib/libc_E200z446_VLE.a&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/lib/librt_E200z446_VLE.a&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${AIOPToolsBaseDir}/AIOP_Support/ewl/lib/librt_z4201_VLE_Soft.a&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${AIOPToolsBaseDir}/AIOP_Support/ewl/lib/libc_z4201_VLE_Soft.a&quot;"/>
 								</option>
 								<option id="com.freescale.ppc.toolchain.linker.base.input.lcf_file.1829352205" name="Link Command File (.lcf)" superClass="com.freescale.ppc.toolchain.linker.base.input.lcf_file" value="&quot;${ProjDirPath}/lcf/aiop_core_lib_verif.lcf" valueType="string"/>
 								<option id="com.freescale.ppc.toolchain.linker.base.input.linkorder.1884523215" name="Link Order" superClass="com.freescale.ppc.toolchain.linker.base.input.linkorder" valueType="stringList">
@@ -344,20 +344,19 @@
 									<listOptionValue builtIn="false" value="sources/drivers/dplib/netf/nat/nat.c"/>
 									<listOptionValue builtIn="false" value="sources/drivers/dplib/util/checksum.c"/>
 									<listOptionValue builtIn="false" value="sources/drivers/dplib/util/general.c"/>
-									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/lib/libc_E200z446_VLE.a&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/lib/librt_E200z446_VLE.a&quot;"/>
 									<listOptionValue builtIn="false" value="sources/Verification/aiop_verification_ipsec.c"/>
 									<listOptionValue builtIn="false" value="sources/Verification/aiop_verification_keygen.c"/>
 									<listOptionValue builtIn="false" value="sources/Verification/aiop_verification_osm.c"/>
-									<listOptionValue builtIn="false" value="sources/Verification/aiop_verification_sr.c"/>
 									<listOptionValue builtIn="false" value="sources/Verification/aiop_verification_table.c"/>
 									<listOptionValue builtIn="false" value="sources/Verification/slab_stub.c"/>
 									<listOptionValue builtIn="false" value="sources/drivers/dplib/arch/accel/keygen.c"/>
-									<listOptionValue builtIn="false" value="sources/drivers/dplib/arch/flib/sec_app.c"/>
 									<listOptionValue builtIn="false" value="sources/drivers/dplib/kernel/sys.c"/>
 									<listOptionValue builtIn="false" value="sources/drivers/dplib/kernel/time.c"/>
 									<listOptionValue builtIn="false" value="sources/drivers/dplib/netf/general/frame_operations.c"/>
 									<listOptionValue builtIn="false" value="sources/drivers/dplib/util/id_pool.c"/>
+									<listOptionValue builtIn="false" value="sources/Verification/start.c"/>
+									<listOptionValue builtIn="false" value="&quot;${AIOPToolsBaseDir}/AIOP_Support/ewl/lib/librt_z4201_VLE_Soft.a&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${AIOPToolsBaseDir}/AIOP_Support/ewl/lib/libc_z4201_VLE_Soft.a&quot;"/>
 								</option>
 								<option id="com.freescale.ppc.toolchain.linker.base.generateLinkMap.closure.625580975" name="List Closure" superClass="com.freescale.ppc.toolchain.linker.base.generateLinkMap.closure" value="false" valueType="boolean"/>
 								<option id="com.freescale.ppc.toolchain.linker.base.generateLinkMap.listUnusedObjects.308351134" name="List Unused Objects" superClass="com.freescale.ppc.toolchain.linker.base.generateLinkMap.listUnusedObjects" value="false" valueType="boolean"/>
@@ -368,7 +367,7 @@
 									<additionalInput kind="additionalinput" paths="$(LIBS)"/>
 								</inputType>
 							</tool>
-							<tool command="&quot;${PAToolsDir}/mwcceppc&quot;" commandLinePattern="${COMMAND} ${FLAGS} ${OUTPUT_FLAG} ${OUTPUT_PREFIX}${OUTPUT} ${INPUTS}" errorParsers="" id="com.freescale.ppc.toolchain.compiler.2064843713" name="PowerPC Compiler" superClass="com.freescale.ppc.toolchain.compiler">
+							<tool command="&quot;${AIOPToolsDir}/ccaiop&quot;" commandLinePattern="${COMMAND} ${FLAGS} ${OUTPUT_FLAG} ${OUTPUT_PREFIX}${OUTPUT} ${INPUTS}" errorParsers="" id="com.freescale.ppc.toolchain.compiler.2064843713" name="Compiler" superClass="com.freescale.ppc.toolchain.compiler">
 								<option id="com.freescale.ppc.toolchain.compiler.base.input.include.1970961586" name="User Path (-i)" superClass="com.freescale.ppc.toolchain.compiler.base.input.include" valueType="includePath">
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../build/aiop_sim/build_flags&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/include/arch/ls2085_aiop&quot;"/>
@@ -399,14 +398,14 @@
 								<option id="com.freescale.ppc.toolchain.compiler.base.options.speedSpace.1945320646" name="Speed vs. Size" superClass="com.freescale.ppc.toolchain.compiler.base.options.speedSpace" value="com.freescale.ppc.toolchain.compiler.base.optionCategory.optimization.speedspace.speed" valueType="enumerated"/>
 								<option id="com.freescale.ppc.toolchain.compiler.base.options.inlining.bottom.up.1030648625" name="Bottom-up Inlining" superClass="com.freescale.ppc.toolchain.compiler.base.options.inlining.bottom.up" value="true" valueType="boolean"/>
 								<option id="com.freescale.ppc.toolchain.compiler.base.optionCategory.processor.lmwSTMW.1050311855" name="Use LMW &amp; STMW" superClass="com.freescale.ppc.toolchain.compiler.base.optionCategory.processor.lmwSTMW" value="true" valueType="boolean"/>
-								<option id="com.freescale.ppc.toolchain.compiler.base.optionCategory.processor.generateISEL.292438222" name="Generate ISEL Instructions (e500/Zen)" superClass="com.freescale.ppc.toolchain.compiler.base.optionCategory.processor.generateISEL" value="true" valueType="boolean"/>
-								<option id="com.freescale.ppc.toolchain.compiler.base.optionCategory.processor.translatePPCASMtoVLE.359546802" name="Translate PPC Asm to VLE Asm (Zen)" superClass="com.freescale.ppc.toolchain.compiler.base.optionCategory.processor.translatePPCASMtoVLE" value="true" valueType="boolean"/>
+								<option id="com.freescale.ppc.toolchain.compiler.base.optionCategory.processor.generateISEL.292438222" name="Generate ISEL Instructions" superClass="com.freescale.ppc.toolchain.compiler.base.optionCategory.processor.generateISEL" value="true" valueType="boolean"/>
+								<option id="com.freescale.ppc.toolchain.compiler.base.optionCategory.processor.translatePPCASMtoVLE.359546802" name="Translate ASM to VLE Asm" superClass="com.freescale.ppc.toolchain.compiler.base.optionCategory.processor.translatePPCASMtoVLE" value="true" valueType="boolean"/>
 								<option id="com.freescale.ppc.toolchain.compiler.base.general.otherflags.prototype.1593193188" name="Require Prototypes" superClass="com.freescale.ppc.toolchain.compiler.base.general.otherflags.prototype" value="true" valueType="boolean"/>
 								<option id="com.freescale.ppc.toolchain.compiler.base.general.unsignedchar.661799389" name="Use Unsigned Chars" superClass="com.freescale.ppc.toolchain.compiler.base.general.unsignedchar" value="true" valueType="boolean"/>
 								<option id="com.freescale.ppc.toolchain.compiler.base.input.include.system.472956134" name="System Path (-I- -I)" superClass="com.freescale.ppc.toolchain.compiler.base.input.include.system" valueType="includePath">
-									<listOptionValue builtIn="false" value="&quot;${PAToolsBaseDir}/PA_Support/ewl/EWL_C/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${AIOPToolsBaseDir}/AIOP_Support/ewl/EWL_C/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/include/arch&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${PAToolsBaseDir}/PA_Support/ewl/EWL_Runtime/Runtime_PA/Include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${AIOPToolsBaseDir}/AIOP_Support/ewl/EWL_Runtime/Runtime_AIOP/Include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/include/common&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/include/dplib&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/include/net&quot;"/>
@@ -455,33 +454,33 @@
 								<option id="com.freescale.ppc.toolchain.compiler.base.general.enumint.805629760" name="Enum Always Int" superClass="com.freescale.ppc.toolchain.compiler.base.general.enumint" value="true" valueType="boolean"/>
 								<inputType id="com.freescale.ppc.toolchain.compiler.base.input.1204309481" name="com.freescale.ppc.toolchain.cf Compiler Input" superClass="com.freescale.ppc.toolchain.compiler.base.input"/>
 							</tool>
-							<tool command="&quot;${PAToolsDir}/mwasmeppc&quot;" commandLinePattern="${COMMAND} ${FLAGS} ${OUTPUT_FLAG} ${OUTPUT_PREFIX}${OUTPUT} ${INPUTS}" errorParsers="" id="com.freescale.ppc.toolchain.assembler.521993955" name="PowerPC Assembler" superClass="com.freescale.ppc.toolchain.assembler">
+							<tool command="&quot;${AIOPToolsDir}/asmaiop&quot;" commandLinePattern="${COMMAND} ${FLAGS} ${OUTPUT_FLAG} ${OUTPUT_PREFIX}${OUTPUT} ${INPUTS}" errorParsers="" id="com.freescale.ppc.toolchain.assembler.521993955" name="Assembler" superClass="com.freescale.ppc.toolchain.assembler">
 								<option id="com.freescale.ppc.toolchain.assembler.base.input.include.1252654825" name="User Path (-i)" superClass="com.freescale.ppc.toolchain.assembler.base.input.include" valueType="includePath">
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/arch/ppc&quot;"/>
 								</option>
 								<option id="com.freescale.ppc.toolchain.assembler.base.general.otherflags.1078484406" name="Other Flags" superClass="com.freescale.ppc.toolchain.assembler.base.general.otherflags" value="-ppc_asm_to_vle" valueType="string"/>
 								<option id="com.freescale.ppc.toolchain.assembler.base.general.gnuCompatible.1434892462" name="GNU Compatible Syntax" superClass="com.freescale.ppc.toolchain.assembler.base.general.gnuCompatible" value="true" valueType="boolean"/>
-								<inputType id="com.freescale.ppc.toolchain.assembler.base.input.2107609134" name="PowerPC Assembler Input" superClass="com.freescale.ppc.toolchain.assembler.base.input"/>
+								<inputType id="com.freescale.ppc.toolchain.assembler.base.input.2107609134" name="AIOP Assembler Input" superClass="com.freescale.ppc.toolchain.assembler.base.input"/>
 							</tool>
-							<tool command="&quot;${PAToolsDir}/mwldeppc&quot;" commandLinePattern="${COMMAND} -dis ${FLAGS} ${INPUTS}" errorParsers="" id="com.freescale.ppc.toolchain.disassembler.2134579606" name="PowerPC Disassembler" superClass="com.freescale.ppc.toolchain.disassembler">
+							<tool command="&quot;${AIOPToolsDir}/ldaiop&quot;" commandLinePattern="${COMMAND} -dis ${FLAGS} ${INPUTS}" errorParsers="" id="com.freescale.ppc.toolchain.disassembler.2134579606" name="Disassembler" superClass="com.freescale.ppc.toolchain.disassembler">
 								<option id="com.freescale.ppc.toolchain.disassembler.base.settings.name.1395727882" name="Show Symbol and String Tables" superClass="com.freescale.ppc.toolchain.disassembler.base.settings.name" value="true" valueType="boolean"/>
 								<option id="com.freescale.ppc.toolchain.disassembler.base.settings.header.1379725698" name="Show Headers" superClass="com.freescale.ppc.toolchain.disassembler.base.settings.header" value="false" valueType="boolean"/>
 								<option id="com.freescale.ppc.toolchain.disassembler.base.settings.code.1569108324" name="Show Core Modules" superClass="com.freescale.ppc.toolchain.disassembler.base.settings.code" value="true" valueType="boolean"/>
 								<option id="com.freescale.ppc.toolchain.disassembler.base.settings.extm.840780418" name="Show Extended Mnemonics" superClass="com.freescale.ppc.toolchain.disassembler.base.settings.extm" value="false" valueType="boolean"/>
 							</tool>
-							<tool command="&quot;${PAToolsDir}/mwcceppc&quot;" commandLinePattern="${COMMAND} ${FLAGS} ${OUTPUT_FLAG} ${INPUTS}" errorParsers="" id="com.freescale.ppc.toolchain.preprocessor.2087806175" name="PowerPC Preprocessor" superClass="com.freescale.ppc.toolchain.preprocessor"/>
+							<tool command="&quot;${AIOPToolsDir}/ccaiop&quot;" commandLinePattern="${COMMAND} ${FLAGS} ${OUTPUT_FLAG} ${INPUTS}" errorParsers="" id="com.freescale.ppc.toolchain.preprocessor.2087806175" name="Preprocessor" superClass="com.freescale.ppc.toolchain.preprocessor"/>
 						</toolChain>
 					</folderInfo>
 					<fileInfo id="com.freescale.ppc.debug.toolchain.configuration.729284547.2105833011.T4240LS_AIOP_readme.txt" name="MPC5643L_readme.txt" rcbsApplicability="disable" resourcePath="T4240LS_AIOP_readme.txt" toolsToInvoke=""/>
 					<folderInfo id="com.freescale.ppc.debug.toolchain.configuration.729284547.2105833011.prefix" name="/" resourcePath="prefix">
-						<toolChain errorParsers="" id="com.freescale.ppc.debug.toolchain.toolchain.1671491724" name="PowerPC Debug Toolchain" superClass="com.freescale.ppc.debug.toolchain.toolchain" unusedChildren="">
+						<toolChain errorParsers="" id="com.freescale.ppc.debug.toolchain.toolchain.1671491724" name="AIOP Debug Toolchain" superClass="com.freescale.ppc.debug.toolchain.toolchain" unusedChildren="">
 							<option id="com.freescale.ppc.debug.toolchain.sharedoption.dwarf.1612949044.368461145.412026428" name="Generate DWARF Information" superClass="com.freescale.ppc.debug.toolchain.sharedoption.dwarf.1612949044"/>
 							<option id="com.freescale.ppc.toolchain.sharedoption.processor.911198810.330755238.133228546" name="Processor" superClass="com.freescale.ppc.toolchain.sharedoption.processor.911198810"/>
 							<option id="com.freescale.ppc.toolchain.sharedoption.sym.1122761859.1725085538.1130162274" name="Store Full Paths To Source Files" superClass="com.freescale.ppc.toolchain.sharedoption.sym.1122761859"/>
-							<targetPlatform archList="all" binaryParser="org.eclipse.cdt.core.ELF" id="com.freescale.ppc.toolchain.platform.2013517665" name="PowerPC Target Platform" superClass="com.freescale.ppc.toolchain.platform"/>
-							<tool id="com.freescale.ppc.toolchain.linker.2111354678" name="PowerPC Linker" superClass="com.freescale.ppc.toolchain.linker.1117605116"/>
-							<tool errorParsers="" id="com.freescale.ppc.toolchain.compiler.1584503175" name="PowerPC Compiler" superClass="com.freescale.ppc.toolchain.compiler.2064843713">
+							<targetPlatform archList="all" binaryParser="org.eclipse.cdt.core.ELF" id="com.freescale.ppc.toolchain.platform.2013517665" name="AIOP Target Platform" superClass="com.freescale.ppc.toolchain.platform"/>
+							<tool id="com.freescale.ppc.toolchain.linker.2111354678" name="Linker" superClass="com.freescale.ppc.toolchain.linker.1117605116"/>
+							<tool errorParsers="" id="com.freescale.ppc.toolchain.compiler.1584503175" name="Compiler" superClass="com.freescale.ppc.toolchain.compiler.2064843713">
 								<option id="com.freescale.ppc.toolchain.compiler.base.input.include.1257916275" name="User Path (-i)" superClass="com.freescale.ppc.toolchain.compiler.base.input.include" valueType="includePath">
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/lib&quot;"/>
@@ -497,11 +496,11 @@
 								</option>
 								<inputType id="com.freescale.ppc.toolchain.compiler.base.input.1348674591" name="com.freescale.ppc.toolchain.cf Compiler Input" superClass="com.freescale.ppc.toolchain.compiler.base.input"/>
 							</tool>
-							<tool errorParsers="" id="com.freescale.ppc.toolchain.assembler.1588278826" name="PowerPC Assembler" superClass="com.freescale.ppc.toolchain.assembler.521993955">
-								<inputType id="com.freescale.ppc.toolchain.assembler.base.input.1715767063" name="PowerPC Assembler Input" superClass="com.freescale.ppc.toolchain.assembler.base.input"/>
+							<tool errorParsers="" id="com.freescale.ppc.toolchain.assembler.1588278826" name="Assembler" superClass="com.freescale.ppc.toolchain.assembler.521993955">
+								<inputType id="com.freescale.ppc.toolchain.assembler.base.input.1715767063" name="AIOP Assembler Input" superClass="com.freescale.ppc.toolchain.assembler.base.input"/>
 							</tool>
-							<tool errorParsers="" id="com.freescale.ppc.toolchain.disassembler.1072027444" name="PowerPC Disassembler" superClass="com.freescale.ppc.toolchain.disassembler.2134579606"/>
-							<tool errorParsers="" id="com.freescale.ppc.toolchain.preprocessor.1140168364" name="PowerPC Preprocessor" superClass="com.freescale.ppc.toolchain.preprocessor.2087806175"/>
+							<tool errorParsers="" id="com.freescale.ppc.toolchain.disassembler.1072027444" name="Disassembler" superClass="com.freescale.ppc.toolchain.disassembler.2134579606"/>
+							<tool errorParsers="" id="com.freescale.ppc.toolchain.preprocessor.1140168364" name="Preprocessor" superClass="com.freescale.ppc.toolchain.preprocessor.2087806175"/>
 						</toolChain>
 					</folderInfo>
 					<sourceEntries>
@@ -535,16 +534,16 @@
 			<storageModule moduleId="cdtBuildSystem" version="4.0.0">
 				<configuration artifactExtension="elf" artifactName="AIOP_API_Verify" buildProperties="" buildReferences="true" buildReferencingConfigurations="false" cleanCommand="&quot;${system:ECLIPSE_HOME}/../gnu/bin/rm&quot; -f" description="Verification Release Configuration with Coverage report" errorParsers="org.eclipse.cdt.core.MakeErrorParser;com.freescale.core.ide.cdt.errorParsers.GCCErrorParser;org.eclipse.cdt.core.GLDErrorParser;org.eclipse.cdt.core.GASErrorParser;com.freescale.core.ide.cdt.errorParsers.MwfeErrorParser;com.freescale.core.ide.cdt.errorParsers.LnkErrorParser;com.freescale.core.ide.cdt.errorParsers.AsmErrorParser;com.freescale.core.ide.cdt.errorParsers.CobjErrorParser;com.freescale.core.ide.cdt.errorParsers.IcodeErrorParser;com.freescale.core.ide.cdt.errorParsers.LltErrorParser;com.freescale.core.ide.cdt.errorParsers.MwErrorParser;com.freescale.core.ide.cdt.errorParsers.MPWErrorParser;org.eclipse.cdt.core.GmakeErrorParser" id="com.freescale.ppc.debug.toolchain.configuration.729284547.2105833011.827926354" isPrebuildInvalidatingBuild="false" name="Release_Coverage" parent="com.freescale.ppc.debug.toolchain.configuration" postannouncebuildStep="" postbuildStep="" preannouncebuildStep="" prebuildStep="" produceBuildErrorsWithMissingReferences="true">
 					<folderInfo id="com.freescale.ppc.debug.toolchain.configuration.729284547.2105833011.827926354." name="/" resourcePath="">
-						<toolChain errorParsers="" id="com.freescale.ppc.debug.toolchain.toolchain.917881983" name="PowerPC Debug Toolchain" superClass="com.freescale.ppc.debug.toolchain.toolchain">
+						<toolChain errorParsers="" id="com.freescale.ppc.debug.toolchain.toolchain.917881983" name="AIOP Debug Toolchain" superClass="com.freescale.ppc.debug.toolchain.toolchain">
 							<option id="com.freescale.ppc.debug.toolchain.sharedoption.dwarf.857706639" name="Generate DWARF Information" superClass="com.freescale.ppc.debug.toolchain.sharedoption.dwarf" value="com.freescale.ppc.toolchain.sharedoption.dwarf.2" valueType="enumerated"/>
 							<option id="com.freescale.ppc.toolchain.sharedoption.processor.262799200" name="Processor" superClass="com.freescale.ppc.toolchain.sharedoption.processor" value="com.freescale.ppc.toolchain.sharedoption.processor.zen" valueType="enumerated"/>
 							<option id="com.freescale.ppc.toolchain.sharedoption.sym.1171311105" name="Store Full Paths To Source Files" superClass="com.freescale.ppc.toolchain.sharedoption.sym" value="true" valueType="boolean"/>
 							<option id="com.freescale.ppc.toolchain.sharedoption.smallData.1301257305" name="Small Data" superClass="com.freescale.ppc.toolchain.sharedoption.smallData" value="0" valueType="string"/>
 							<option id="com.freescale.ppc.toolchain.sharedoption.smallData2.375701636" name="Small Data2" superClass="com.freescale.ppc.toolchain.sharedoption.smallData2" value="0" valueType="string"/>
 							<option id="com.freescale.ppc.toolchain.sharedoption.tuneReloc.1229151435" name="Tune Relocations" superClass="com.freescale.ppc.toolchain.sharedoption.tuneReloc" value="true" valueType="boolean"/>
-							<targetPlatform archList="all" binaryParser="org.eclipse.cdt.core.ELF" id="com.freescale.ppc.toolchain.platform.8766545" name="PowerPC Target Platform" superClass="com.freescale.ppc.toolchain.platform"/>
+							<targetPlatform archList="all" binaryParser="org.eclipse.cdt.core.ELF" id="com.freescale.ppc.toolchain.platform.8766545" name="AIOP Target Platform" superClass="com.freescale.ppc.toolchain.platform"/>
 							<builder buildPath="${ProjDirPath}/Release_Coverage" errorParsers="org.eclipse.cdt.core.GmakeErrorParser;com.freescale.core.ide.cdt.errorParsers.MwErrorParser;com.freescale.core.ide.cdt.errorParsers.MPWErrorParser" id="com.freescale.ppc.toolchain.builder.202969010" keepEnvironmentInBuildfile="false" name="Make Builder" parallelBuildWorkspaceOn="true" parallelizationNumber="-1" superClass="com.freescale.ppc.toolchain.builder"/>
-							<tool command="&quot;${PAToolsDir}/mwldeppc&quot;" commandLinePattern="${COMMAND} ${FLAGS} ${OUTPUT_FLAG} ${OUTPUT_PREFIX}${OUTPUT} ${INPUTS}" errorParsers="" id="com.freescale.ppc.toolchain.linker.1213493307" name="PowerPC Linker" superClass="com.freescale.ppc.toolchain.linker">
+							<tool command="&quot;${AIOPToolsDir}/ldaiop&quot;" commandLinePattern="${COMMAND} ${FLAGS} ${OUTPUT_FLAG} ${OUTPUT_PREFIX}${OUTPUT} ${INPUTS}" errorParsers="" id="com.freescale.ppc.toolchain.linker.1213493307" name="Linker" superClass="com.freescale.ppc.toolchain.linker">
 								<option id="com.freescale.ppc.toolchain.linker.base.input.entrypoint.181201316" name="Entry Point:" superClass="com.freescale.ppc.toolchain.linker.base.input.entrypoint" value="__sys_start" valueType="string"/>
 								<option id="com.freescale.ppc.toolchain.linker.base.input.codeAddress.333759003" name="Code Address" superClass="com.freescale.ppc.toolchain.linker.base.input.codeAddress" value="0x2000" valueType="string"/>
 								<option id="com.freescale.ppc.toolchain.linker.base.input.dataAddress.1195650735" name="Data Address" superClass="com.freescale.ppc.toolchain.linker.base.input.dataAddress" value="0x0" valueType="string"/>
@@ -554,8 +553,8 @@
 								<option id="com.freescale.ppc.toolchain.linker.base.general.otherflags.1983591239" name="Other Flags" superClass="com.freescale.ppc.toolchain.linker.base.general.otherflags" value="-char unsigned" valueType="string"/>
 								<option id="com.freescale.ppc.toolchain.linker.base.output.stackAddress.1622007744" name="Stack Address" superClass="com.freescale.ppc.toolchain.linker.base.output.stackAddress" value="" valueType="string"/>
 								<option id="com.freescale.ppc.toolchain.linker.base.input.lfile.1265288687" name="Library Files" superClass="com.freescale.ppc.toolchain.linker.base.input.lfile" valueType="libs">
-									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/lib/libc_E200z446_VLE.a&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/lib/librt_E200z446_VLE.a&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${AIOPToolsBaseDir}/AIOP_Support/ewl/lib/librt_z4201_VLE_Soft.a&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${AIOPToolsBaseDir}/AIOP_Support/ewl/lib/libc_z4201_VLE_Soft.a&quot;"/>
 								</option>
 								<option id="com.freescale.ppc.toolchain.linker.base.input.lcf_file.2101950231" name="Link Command File (.lcf)" superClass="com.freescale.ppc.toolchain.linker.base.input.lcf_file" value="&quot;${ProjDirPath}/lcf/aiop_core_lib_verif.lcf" valueType="string"/>
 								<option id="com.freescale.ppc.toolchain.linker.base.input.linkorder.58047783" name="Link Order" superClass="com.freescale.ppc.toolchain.linker.base.input.linkorder" valueType="stringList">
@@ -598,8 +597,8 @@
 									<listOptionValue builtIn="false" value="sources/drivers/dplib/netf/nat/nat.c"/>
 									<listOptionValue builtIn="false" value="sources/drivers/dplib/util/checksum.c"/>
 									<listOptionValue builtIn="false" value="sources/drivers/dplib/util/general.c"/>
-									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/lib/libc_E200z446_VLE.a&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/lib/librt_E200z446_VLE.a&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/lib/libc_z490_VLE_Soft.a&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/lib/librt_z490_VLE_Soft.a&quot;"/>
 									<listOptionValue builtIn="false" value="sources/Verification/aiop_verification_ipsec.c"/>
 									<listOptionValue builtIn="false" value="sources/Verification/aiop_verification_keygen.c"/>
 									<listOptionValue builtIn="false" value="sources/Verification/aiop_verification_osm.c"/>
@@ -622,7 +621,7 @@
 									<additionalInput kind="additionalinput" paths="$(LIBS)"/>
 								</inputType>
 							</tool>
-							<tool command="&quot;${PAToolsDir}/mwcceppc&quot;" commandLinePattern="${COMMAND} ${FLAGS} ${OUTPUT_FLAG} ${OUTPUT_PREFIX}${OUTPUT} ${INPUTS}" errorParsers="" id="com.freescale.ppc.toolchain.compiler.2094115028" name="PowerPC Compiler" superClass="com.freescale.ppc.toolchain.compiler">
+							<tool command="&quot;${AIOPToolsDir}/ccaiop&quot;" commandLinePattern="${COMMAND} ${FLAGS} ${OUTPUT_FLAG} ${OUTPUT_PREFIX}${OUTPUT} ${INPUTS}" errorParsers="" id="com.freescale.ppc.toolchain.compiler.2094115028" name="Compiler" superClass="com.freescale.ppc.toolchain.compiler">
 								<option id="com.freescale.ppc.toolchain.compiler.base.input.include.454292939" name="User Path (-i)" superClass="com.freescale.ppc.toolchain.compiler.base.input.include" valueType="includePath">
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../build/aiop_sim/build_flags&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/include/arch/ls2085_aiop&quot;"/>
@@ -653,14 +652,14 @@
 								<option id="com.freescale.ppc.toolchain.compiler.base.options.speedSpace.1737362484" name="Speed vs. Size" superClass="com.freescale.ppc.toolchain.compiler.base.options.speedSpace" value="com.freescale.ppc.toolchain.compiler.base.optionCategory.optimization.speedspace.speed" valueType="enumerated"/>
 								<option id="com.freescale.ppc.toolchain.compiler.base.options.inlining.bottom.up.1564926118" name="Bottom-up Inlining" superClass="com.freescale.ppc.toolchain.compiler.base.options.inlining.bottom.up" value="true" valueType="boolean"/>
 								<option id="com.freescale.ppc.toolchain.compiler.base.optionCategory.processor.lmwSTMW.304336817" name="Use LMW &amp; STMW" superClass="com.freescale.ppc.toolchain.compiler.base.optionCategory.processor.lmwSTMW" value="true" valueType="boolean"/>
-								<option id="com.freescale.ppc.toolchain.compiler.base.optionCategory.processor.generateISEL.1328464332" name="Generate ISEL Instructions (e500/Zen)" superClass="com.freescale.ppc.toolchain.compiler.base.optionCategory.processor.generateISEL" value="true" valueType="boolean"/>
-								<option id="com.freescale.ppc.toolchain.compiler.base.optionCategory.processor.translatePPCASMtoVLE.1589811987" name="Translate PPC Asm to VLE Asm (Zen)" superClass="com.freescale.ppc.toolchain.compiler.base.optionCategory.processor.translatePPCASMtoVLE" value="true" valueType="boolean"/>
+								<option id="com.freescale.ppc.toolchain.compiler.base.optionCategory.processor.generateISEL.1328464332" name="Generate ISEL Instructions" superClass="com.freescale.ppc.toolchain.compiler.base.optionCategory.processor.generateISEL" value="true" valueType="boolean"/>
+								<option id="com.freescale.ppc.toolchain.compiler.base.optionCategory.processor.translatePPCASMtoVLE.1589811987" name="Translate ASM to VLE Asm" superClass="com.freescale.ppc.toolchain.compiler.base.optionCategory.processor.translatePPCASMtoVLE" value="true" valueType="boolean"/>
 								<option id="com.freescale.ppc.toolchain.compiler.base.general.otherflags.prototype.1979316917" name="Require Prototypes" superClass="com.freescale.ppc.toolchain.compiler.base.general.otherflags.prototype" value="true" valueType="boolean"/>
 								<option id="com.freescale.ppc.toolchain.compiler.base.general.unsignedchar.788909552" name="Use Unsigned Chars" superClass="com.freescale.ppc.toolchain.compiler.base.general.unsignedchar" value="true" valueType="boolean"/>
 								<option id="com.freescale.ppc.toolchain.compiler.base.input.include.system.940508874" name="System Path (-I- -I)" superClass="com.freescale.ppc.toolchain.compiler.base.input.include.system" valueType="includePath">
-									<listOptionValue builtIn="false" value="&quot;${PAToolsBaseDir}/PA_Support/ewl/EWL_C/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${AIOPToolsBaseDir}/AIOP_Support/ewl/EWL_C/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/include/arch&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${PAToolsBaseDir}/PA_Support/ewl/EWL_Runtime/Runtime_PA/Include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${AIOPToolsBaseDir}/AIOP_Support/ewl/EWL_Runtime/Runtime_AIOP/Include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/include/common&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/include/dplib&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/include/net&quot;"/>
@@ -709,33 +708,33 @@
 								<option id="com.freescale.ppc.toolchain.compiler.base.general.enumint.1085981568" name="Enum Always Int" superClass="com.freescale.ppc.toolchain.compiler.base.general.enumint" value="true" valueType="boolean"/>
 								<inputType id="com.freescale.ppc.toolchain.compiler.base.input.93129638" name="com.freescale.ppc.toolchain.cf Compiler Input" superClass="com.freescale.ppc.toolchain.compiler.base.input"/>
 							</tool>
-							<tool command="&quot;${PAToolsDir}/mwasmeppc&quot;" commandLinePattern="${COMMAND} ${FLAGS} ${OUTPUT_FLAG} ${OUTPUT_PREFIX}${OUTPUT} ${INPUTS}" errorParsers="" id="com.freescale.ppc.toolchain.assembler.490996159" name="PowerPC Assembler" superClass="com.freescale.ppc.toolchain.assembler">
+							<tool command="&quot;${AIOPToolsDir}/asmaiop&quot;" commandLinePattern="${COMMAND} ${FLAGS} ${OUTPUT_FLAG} ${OUTPUT_PREFIX}${OUTPUT} ${INPUTS}" errorParsers="" id="com.freescale.ppc.toolchain.assembler.490996159" name="Assembler" superClass="com.freescale.ppc.toolchain.assembler">
 								<option id="com.freescale.ppc.toolchain.assembler.base.input.include.423776769" name="User Path (-i)" superClass="com.freescale.ppc.toolchain.assembler.base.input.include" valueType="includePath">
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/arch/ppc&quot;"/>
 								</option>
 								<option id="com.freescale.ppc.toolchain.assembler.base.general.otherflags.1812695874" name="Other Flags" superClass="com.freescale.ppc.toolchain.assembler.base.general.otherflags" value="-ppc_asm_to_vle" valueType="string"/>
 								<option id="com.freescale.ppc.toolchain.assembler.base.general.gnuCompatible.2033543065" name="GNU Compatible Syntax" superClass="com.freescale.ppc.toolchain.assembler.base.general.gnuCompatible" value="true" valueType="boolean"/>
-								<inputType id="com.freescale.ppc.toolchain.assembler.base.input.1870311028" name="PowerPC Assembler Input" superClass="com.freescale.ppc.toolchain.assembler.base.input"/>
+								<inputType id="com.freescale.ppc.toolchain.assembler.base.input.1870311028" name="AIOP Assembler Input" superClass="com.freescale.ppc.toolchain.assembler.base.input"/>
 							</tool>
-							<tool command="&quot;${PAToolsDir}/mwldeppc&quot;" commandLinePattern="${COMMAND} -dis ${FLAGS} ${INPUTS}" errorParsers="" id="com.freescale.ppc.toolchain.disassembler.869444367" name="PowerPC Disassembler" superClass="com.freescale.ppc.toolchain.disassembler">
+							<tool command="&quot;${AIOPToolsDir}/ldaiop&quot;" commandLinePattern="${COMMAND} -dis ${FLAGS} ${INPUTS}" errorParsers="" id="com.freescale.ppc.toolchain.disassembler.869444367" name="Disassembler" superClass="com.freescale.ppc.toolchain.disassembler">
 								<option id="com.freescale.ppc.toolchain.disassembler.base.settings.name.2006701448" name="Show Symbol and String Tables" superClass="com.freescale.ppc.toolchain.disassembler.base.settings.name" value="true" valueType="boolean"/>
 								<option id="com.freescale.ppc.toolchain.disassembler.base.settings.header.1794192536" name="Show Headers" superClass="com.freescale.ppc.toolchain.disassembler.base.settings.header" value="false" valueType="boolean"/>
 								<option id="com.freescale.ppc.toolchain.disassembler.base.settings.code.1344980722" name="Show Core Modules" superClass="com.freescale.ppc.toolchain.disassembler.base.settings.code" value="true" valueType="boolean"/>
 								<option id="com.freescale.ppc.toolchain.disassembler.base.settings.extm.213774686" name="Show Extended Mnemonics" superClass="com.freescale.ppc.toolchain.disassembler.base.settings.extm" value="false" valueType="boolean"/>
 							</tool>
-							<tool command="&quot;${PAToolsDir}/mwcceppc&quot;" commandLinePattern="${COMMAND} ${FLAGS} ${OUTPUT_FLAG} ${INPUTS}" errorParsers="" id="com.freescale.ppc.toolchain.preprocessor.196482067" name="PowerPC Preprocessor" superClass="com.freescale.ppc.toolchain.preprocessor"/>
+							<tool command="&quot;${AIOPToolsDir}/ccaiop&quot;" commandLinePattern="${COMMAND} ${FLAGS} ${OUTPUT_FLAG} ${INPUTS}" errorParsers="" id="com.freescale.ppc.toolchain.preprocessor.196482067" name="Preprocessor" superClass="com.freescale.ppc.toolchain.preprocessor"/>
 						</toolChain>
 					</folderInfo>
 					<fileInfo id="com.freescale.ppc.debug.toolchain.configuration.729284547.2105833011.827926354.T4240LS_AIOP_readme.txt" name="MPC5643L_readme.txt" rcbsApplicability="disable" resourcePath="T4240LS_AIOP_readme.txt" toolsToInvoke=""/>
 					<folderInfo id="com.freescale.ppc.debug.toolchain.configuration.729284547.2105833011.827926354.prefix" name="/" resourcePath="prefix">
-						<toolChain errorParsers="" id="com.freescale.ppc.debug.toolchain.toolchain.1997762505" name="PowerPC Debug Toolchain" superClass="com.freescale.ppc.debug.toolchain.toolchain" unusedChildren="">
+						<toolChain errorParsers="" id="com.freescale.ppc.debug.toolchain.toolchain.1997762505" name="AIOP Debug Toolchain" superClass="com.freescale.ppc.debug.toolchain.toolchain" unusedChildren="">
 							<option id="com.freescale.ppc.debug.toolchain.sharedoption.dwarf.1612949044.368461145.412026428.652584593" name="Generate DWARF Information" superClass="com.freescale.ppc.debug.toolchain.sharedoption.dwarf.1612949044"/>
 							<option id="com.freescale.ppc.toolchain.sharedoption.processor.911198810.330755238.133228546.562592609" name="Processor" superClass="com.freescale.ppc.toolchain.sharedoption.processor.911198810"/>
 							<option id="com.freescale.ppc.toolchain.sharedoption.sym.1122761859.1725085538.1130162274.1854642223" name="Store Full Paths To Source Files" superClass="com.freescale.ppc.toolchain.sharedoption.sym.1122761859"/>
-							<targetPlatform archList="all" binaryParser="org.eclipse.cdt.core.ELF" id="com.freescale.ppc.toolchain.platform.1939812565" name="PowerPC Target Platform" superClass="com.freescale.ppc.toolchain.platform"/>
-							<tool id="com.freescale.ppc.toolchain.linker.798096465" name="PowerPC Linker" superClass="com.freescale.ppc.toolchain.linker.1213493307"/>
-							<tool errorParsers="" id="com.freescale.ppc.toolchain.compiler.590412012" name="PowerPC Compiler" superClass="com.freescale.ppc.toolchain.compiler.2094115028">
+							<targetPlatform archList="all" binaryParser="org.eclipse.cdt.core.ELF" id="com.freescale.ppc.toolchain.platform.1939812565" name="AIOP Target Platform" superClass="com.freescale.ppc.toolchain.platform"/>
+							<tool id="com.freescale.ppc.toolchain.linker.798096465" name="Linker" superClass="com.freescale.ppc.toolchain.linker.1213493307"/>
+							<tool errorParsers="" id="com.freescale.ppc.toolchain.compiler.590412012" name="Compiler" superClass="com.freescale.ppc.toolchain.compiler.2094115028">
 								<option id="com.freescale.ppc.toolchain.compiler.base.input.include.381282544" name="User Path (-i)" superClass="com.freescale.ppc.toolchain.compiler.base.input.include" valueType="includePath">
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/lib&quot;"/>
@@ -751,11 +750,11 @@
 								</option>
 								<inputType id="com.freescale.ppc.toolchain.compiler.base.input.380824877" name="com.freescale.ppc.toolchain.cf Compiler Input" superClass="com.freescale.ppc.toolchain.compiler.base.input"/>
 							</tool>
-							<tool errorParsers="" id="com.freescale.ppc.toolchain.assembler.1243789725" name="PowerPC Assembler" superClass="com.freescale.ppc.toolchain.assembler.490996159">
-								<inputType id="com.freescale.ppc.toolchain.assembler.base.input.1970958276" name="PowerPC Assembler Input" superClass="com.freescale.ppc.toolchain.assembler.base.input"/>
+							<tool errorParsers="" id="com.freescale.ppc.toolchain.assembler.1243789725" name="Assembler" superClass="com.freescale.ppc.toolchain.assembler.490996159">
+								<inputType id="com.freescale.ppc.toolchain.assembler.base.input.1970958276" name="AIOP Assembler Input" superClass="com.freescale.ppc.toolchain.assembler.base.input"/>
 							</tool>
-							<tool errorParsers="" id="com.freescale.ppc.toolchain.disassembler.815144501" name="PowerPC Disassembler" superClass="com.freescale.ppc.toolchain.disassembler.869444367"/>
-							<tool errorParsers="" id="com.freescale.ppc.toolchain.preprocessor.156183532" name="PowerPC Preprocessor" superClass="com.freescale.ppc.toolchain.preprocessor.196482067"/>
+							<tool errorParsers="" id="com.freescale.ppc.toolchain.disassembler.815144501" name="Disassembler" superClass="com.freescale.ppc.toolchain.disassembler.869444367"/>
+							<tool errorParsers="" id="com.freescale.ppc.toolchain.preprocessor.156183532" name="Preprocessor" superClass="com.freescale.ppc.toolchain.preprocessor.196482067"/>
 						</toolChain>
 					</folderInfo>
 					<sourceEntries>
@@ -789,16 +788,16 @@
 			<storageModule moduleId="cdtBuildSystem" version="4.0.0">
 				<configuration artifactExtension="elf" artifactName="AIOP_API_Verify" buildProperties="" buildReferences="true" buildReferencingConfigurations="false" cleanCommand="&quot;${system:ECLIPSE_HOME}/../gnu/bin/rm&quot; -f" description="Verification Debug Configuration with Coverage Report" errorParsers="org.eclipse.cdt.core.MakeErrorParser;com.freescale.core.ide.cdt.errorParsers.GCCErrorParser;org.eclipse.cdt.core.GLDErrorParser;org.eclipse.cdt.core.GASErrorParser;com.freescale.core.ide.cdt.errorParsers.MwfeErrorParser;com.freescale.core.ide.cdt.errorParsers.LnkErrorParser;com.freescale.core.ide.cdt.errorParsers.AsmErrorParser;com.freescale.core.ide.cdt.errorParsers.CobjErrorParser;com.freescale.core.ide.cdt.errorParsers.IcodeErrorParser;com.freescale.core.ide.cdt.errorParsers.LltErrorParser;com.freescale.core.ide.cdt.errorParsers.MwErrorParser;com.freescale.core.ide.cdt.errorParsers.MPWErrorParser;org.eclipse.cdt.core.GmakeErrorParser" id="com.freescale.ppc.debug.toolchain.configuration.729284547.131264042.2104585262" isPrebuildInvalidatingBuild="false" name="Debug_Coverage" parent="com.freescale.ppc.debug.toolchain.configuration" postannouncebuildStep="" postbuildStep="" preannouncebuildStep="" prebuildStep="" produceBuildErrorsWithMissingReferences="true">
 					<folderInfo id="com.freescale.ppc.debug.toolchain.configuration.729284547.131264042.2104585262." name="/" resourcePath="">
-						<toolChain errorParsers="" id="com.freescale.ppc.debug.toolchain.toolchain.553882782" name="PowerPC Debug Toolchain" superClass="com.freescale.ppc.debug.toolchain.toolchain">
+						<toolChain errorParsers="" id="com.freescale.ppc.debug.toolchain.toolchain.553882782" name="AIOP Debug Toolchain" superClass="com.freescale.ppc.debug.toolchain.toolchain">
 							<option id="com.freescale.ppc.debug.toolchain.sharedoption.dwarf.670124552" name="Generate DWARF Information" superClass="com.freescale.ppc.debug.toolchain.sharedoption.dwarf" value="com.freescale.ppc.toolchain.sharedoption.dwarf.2" valueType="enumerated"/>
 							<option id="com.freescale.ppc.toolchain.sharedoption.processor.262073628" name="Processor" superClass="com.freescale.ppc.toolchain.sharedoption.processor" value="com.freescale.ppc.toolchain.sharedoption.processor.zen" valueType="enumerated"/>
 							<option id="com.freescale.ppc.toolchain.sharedoption.sym.18065929" name="Store Full Paths To Source Files" superClass="com.freescale.ppc.toolchain.sharedoption.sym" value="true" valueType="boolean"/>
 							<option id="com.freescale.ppc.toolchain.sharedoption.smallData.1166016945" name="Small Data" superClass="com.freescale.ppc.toolchain.sharedoption.smallData" value="0" valueType="string"/>
 							<option id="com.freescale.ppc.toolchain.sharedoption.smallData2.869560589" name="Small Data2" superClass="com.freescale.ppc.toolchain.sharedoption.smallData2" value="0" valueType="string"/>
 							<option id="com.freescale.ppc.toolchain.sharedoption.tuneReloc.556116752" name="Tune Relocations" superClass="com.freescale.ppc.toolchain.sharedoption.tuneReloc" value="true" valueType="boolean"/>
-							<targetPlatform archList="all" binaryParser="org.eclipse.cdt.core.ELF" id="com.freescale.ppc.toolchain.platform.1585069470" name="PowerPC Target Platform" superClass="com.freescale.ppc.toolchain.platform"/>
+							<targetPlatform archList="all" binaryParser="org.eclipse.cdt.core.ELF" id="com.freescale.ppc.toolchain.platform.1585069470" name="AIOP Target Platform" superClass="com.freescale.ppc.toolchain.platform"/>
 							<builder buildPath="${ProjDirPath}/Debug_Coverage" errorParsers="org.eclipse.cdt.core.GmakeErrorParser;com.freescale.core.ide.cdt.errorParsers.MwErrorParser;com.freescale.core.ide.cdt.errorParsers.MPWErrorParser" id="com.freescale.ppc.toolchain.builder.1985925973" keepEnvironmentInBuildfile="false" name="Make Builder" parallelBuildWorkspaceOn="true" parallelizationNumber="1" superClass="com.freescale.ppc.toolchain.builder"/>
-							<tool command="&quot;${PAToolsDir}/mwldeppc&quot;" commandLinePattern="${COMMAND} ${FLAGS} ${OUTPUT_FLAG} ${OUTPUT_PREFIX}${OUTPUT} ${INPUTS}" errorParsers="" id="com.freescale.ppc.toolchain.linker.717244399" name="PowerPC Linker" superClass="com.freescale.ppc.toolchain.linker">
+							<tool command="&quot;${AIOPToolsDir}/ldaiop&quot;" commandLinePattern="${COMMAND} ${FLAGS} ${OUTPUT_FLAG} ${OUTPUT_PREFIX}${OUTPUT} ${INPUTS}" errorParsers="" id="com.freescale.ppc.toolchain.linker.717244399" name="Linker" superClass="com.freescale.ppc.toolchain.linker">
 								<option id="com.freescale.ppc.toolchain.linker.base.input.entrypoint.331609385" name="Entry Point:" superClass="com.freescale.ppc.toolchain.linker.base.input.entrypoint" value="__sys_start" valueType="string"/>
 								<option id="com.freescale.ppc.toolchain.linker.base.input.codeAddress.1752768040" name="Code Address" superClass="com.freescale.ppc.toolchain.linker.base.input.codeAddress" value="0x2000" valueType="string"/>
 								<option id="com.freescale.ppc.toolchain.linker.base.input.dataAddress.72717387" name="Data Address" superClass="com.freescale.ppc.toolchain.linker.base.input.dataAddress" value="0x0" valueType="string"/>
@@ -808,8 +807,8 @@
 								<option id="com.freescale.ppc.toolchain.linker.base.general.otherflags.1543835228" name="Other Flags" superClass="com.freescale.ppc.toolchain.linker.base.general.otherflags" value="-char unsigned" valueType="string"/>
 								<option id="com.freescale.ppc.toolchain.linker.base.output.stackAddress.656998212" name="Stack Address" superClass="com.freescale.ppc.toolchain.linker.base.output.stackAddress" value="" valueType="string"/>
 								<option id="com.freescale.ppc.toolchain.linker.base.input.lfile.1449146047" name="Library Files" superClass="com.freescale.ppc.toolchain.linker.base.input.lfile" valueType="libs">
-									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/lib/libc_E200z446_VLE.a&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/lib/librt_E200z446_VLE.a&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${AIOPToolsBaseDir}/AIOP_Support/ewl/lib/librt_z4201_VLE_Soft.a&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${AIOPToolsBaseDir}/AIOP_Support/ewl/lib/libc_z4201_VLE_Soft.a&quot;"/>
 								</option>
 								<option id="com.freescale.ppc.toolchain.linker.base.input.lcf_file.469587304" name="Link Command File (.lcf)" superClass="com.freescale.ppc.toolchain.linker.base.input.lcf_file" value="&quot;${ProjDirPath}/lcf/aiop_core_lib_verif.lcf" valueType="string"/>
 								<option id="com.freescale.ppc.toolchain.linker.base.input.linkorder.218172673" name="Link Order" superClass="com.freescale.ppc.toolchain.linker.base.input.linkorder" valueType="stringList">
@@ -852,8 +851,8 @@
 									<listOptionValue builtIn="false" value="sources/drivers/dplib/netf/nat/nat.c"/>
 									<listOptionValue builtIn="false" value="sources/drivers/dplib/util/checksum.c"/>
 									<listOptionValue builtIn="false" value="sources/drivers/dplib/util/general.c"/>
-									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/lib/libc_E200z446_VLE.a&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/lib/librt_E200z446_VLE.a&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/lib/libc_z490_VLE_Soft.a&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/lib/librt_z490_VLE_Soft.a&quot;"/>
 									<listOptionValue builtIn="false" value="sources/Verification/aiop_verification_ipsec.c"/>
 									<listOptionValue builtIn="false" value="sources/Verification/aiop_verification_keygen.c"/>
 									<listOptionValue builtIn="false" value="sources/Verification/aiop_verification_osm.c"/>
@@ -876,7 +875,7 @@
 									<additionalInput kind="additionalinput" paths="$(LIBS)"/>
 								</inputType>
 							</tool>
-							<tool command="&quot;${PAToolsDir}/mwcceppc&quot;" commandLinePattern="${COMMAND} ${FLAGS} ${OUTPUT_FLAG} ${OUTPUT_PREFIX}${OUTPUT} ${INPUTS}" errorParsers="" id="com.freescale.ppc.toolchain.compiler.652450681" name="PowerPC Compiler" superClass="com.freescale.ppc.toolchain.compiler">
+							<tool command="&quot;${AIOPToolsDir}/ccaiop&quot;" commandLinePattern="${COMMAND} ${FLAGS} ${OUTPUT_FLAG} ${OUTPUT_PREFIX}${OUTPUT} ${INPUTS}" errorParsers="" id="com.freescale.ppc.toolchain.compiler.652450681" name="Compiler" superClass="com.freescale.ppc.toolchain.compiler">
 								<option id="com.freescale.ppc.toolchain.compiler.base.input.include.360849783" name="User Path (-i)" superClass="com.freescale.ppc.toolchain.compiler.base.input.include" valueType="includePath">
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../build/aiop_sim/build_flags&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/include/arch/ls2085_aiop&quot;"/>
@@ -907,14 +906,14 @@
 								<option id="com.freescale.ppc.toolchain.compiler.base.options.speedSpace.309284831" name="Speed vs. Size" superClass="com.freescale.ppc.toolchain.compiler.base.options.speedSpace" value="com.freescale.ppc.toolchain.compiler.base.optionCategory.optimization.speedspace.speed" valueType="enumerated"/>
 								<option id="com.freescale.ppc.toolchain.compiler.base.options.inlining.bottom.up.559608947" name="Bottom-up Inlining" superClass="com.freescale.ppc.toolchain.compiler.base.options.inlining.bottom.up" value="false" valueType="boolean"/>
 								<option id="com.freescale.ppc.toolchain.compiler.base.optionCategory.processor.lmwSTMW.1004250292" name="Use LMW &amp; STMW" superClass="com.freescale.ppc.toolchain.compiler.base.optionCategory.processor.lmwSTMW" value="true" valueType="boolean"/>
-								<option id="com.freescale.ppc.toolchain.compiler.base.optionCategory.processor.generateISEL.983788187" name="Generate ISEL Instructions (e500/Zen)" superClass="com.freescale.ppc.toolchain.compiler.base.optionCategory.processor.generateISEL" value="true" valueType="boolean"/>
-								<option id="com.freescale.ppc.toolchain.compiler.base.optionCategory.processor.translatePPCASMtoVLE.176796462" name="Translate PPC Asm to VLE Asm (Zen)" superClass="com.freescale.ppc.toolchain.compiler.base.optionCategory.processor.translatePPCASMtoVLE" value="true" valueType="boolean"/>
+								<option id="com.freescale.ppc.toolchain.compiler.base.optionCategory.processor.generateISEL.983788187" name="Generate ISEL Instructions" superClass="com.freescale.ppc.toolchain.compiler.base.optionCategory.processor.generateISEL" value="true" valueType="boolean"/>
+								<option id="com.freescale.ppc.toolchain.compiler.base.optionCategory.processor.translatePPCASMtoVLE.176796462" name="Translate ASM to VLE Asm" superClass="com.freescale.ppc.toolchain.compiler.base.optionCategory.processor.translatePPCASMtoVLE" value="true" valueType="boolean"/>
 								<option id="com.freescale.ppc.toolchain.compiler.base.general.otherflags.prototype.629549319" name="Require Prototypes" superClass="com.freescale.ppc.toolchain.compiler.base.general.otherflags.prototype" value="true" valueType="boolean"/>
 								<option id="com.freescale.ppc.toolchain.compiler.base.general.unsignedchar.566190517" name="Use Unsigned Chars" superClass="com.freescale.ppc.toolchain.compiler.base.general.unsignedchar" value="true" valueType="boolean"/>
 								<option id="com.freescale.ppc.toolchain.compiler.base.input.include.system.1237952894" name="System Path (-I- -I)" superClass="com.freescale.ppc.toolchain.compiler.base.input.include.system" valueType="includePath">
-									<listOptionValue builtIn="false" value="&quot;${PAToolsBaseDir}/PA_Support/ewl/EWL_C/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${AIOPToolsBaseDir}/AIOP_Support/ewl/EWL_C/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/include/arch&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${PAToolsBaseDir}/PA_Support/ewl/EWL_Runtime/Runtime_PA/Include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${AIOPToolsBaseDir}/AIOP_Support/ewl/EWL_Runtime/Runtime_AIOP/Include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/include/common&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/include/dplib&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/include/net&quot;"/>
@@ -964,33 +963,33 @@
 								<option id="com.freescale.ppc.toolchain.compiler.base.general.enumint.12601114" name="Enum Always Int" superClass="com.freescale.ppc.toolchain.compiler.base.general.enumint" value="true" valueType="boolean"/>
 								<inputType id="com.freescale.ppc.toolchain.compiler.base.input.2114661434" name="com.freescale.ppc.toolchain.cf Compiler Input" superClass="com.freescale.ppc.toolchain.compiler.base.input"/>
 							</tool>
-							<tool command="&quot;${PAToolsDir}/mwasmeppc&quot;" commandLinePattern="${COMMAND} ${FLAGS} ${OUTPUT_FLAG} ${OUTPUT_PREFIX}${OUTPUT} ${INPUTS}" errorParsers="" id="com.freescale.ppc.toolchain.assembler.512408550" name="PowerPC Assembler" superClass="com.freescale.ppc.toolchain.assembler">
+							<tool command="&quot;${AIOPToolsDir}/asmaiop&quot;" commandLinePattern="${COMMAND} ${FLAGS} ${OUTPUT_FLAG} ${OUTPUT_PREFIX}${OUTPUT} ${INPUTS}" errorParsers="" id="com.freescale.ppc.toolchain.assembler.512408550" name="Assembler" superClass="com.freescale.ppc.toolchain.assembler">
 								<option id="com.freescale.ppc.toolchain.assembler.base.input.include.585255303" name="User Path (-i)" superClass="com.freescale.ppc.toolchain.assembler.base.input.include" valueType="includePath">
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/arch/ppc&quot;"/>
 								</option>
 								<option id="com.freescale.ppc.toolchain.assembler.base.general.otherflags.2071955052" name="Other Flags" superClass="com.freescale.ppc.toolchain.assembler.base.general.otherflags" value="-ppc_asm_to_vle" valueType="string"/>
 								<option id="com.freescale.ppc.toolchain.assembler.base.general.gnuCompatible.35950354" name="GNU Compatible Syntax" superClass="com.freescale.ppc.toolchain.assembler.base.general.gnuCompatible" value="true" valueType="boolean"/>
-								<inputType id="com.freescale.ppc.toolchain.assembler.base.input.1703793057" name="PowerPC Assembler Input" superClass="com.freescale.ppc.toolchain.assembler.base.input"/>
+								<inputType id="com.freescale.ppc.toolchain.assembler.base.input.1703793057" name="AIOP Assembler Input" superClass="com.freescale.ppc.toolchain.assembler.base.input"/>
 							</tool>
-							<tool command="&quot;${PAToolsDir}/mwldeppc&quot;" commandLinePattern="${COMMAND} -dis ${FLAGS} ${INPUTS}" errorParsers="" id="com.freescale.ppc.toolchain.disassembler.1991998931" name="PowerPC Disassembler" superClass="com.freescale.ppc.toolchain.disassembler">
+							<tool command="&quot;${AIOPToolsDir}/ldaiop&quot;" commandLinePattern="${COMMAND} -dis ${FLAGS} ${INPUTS}" errorParsers="" id="com.freescale.ppc.toolchain.disassembler.1991998931" name="Disassembler" superClass="com.freescale.ppc.toolchain.disassembler">
 								<option id="com.freescale.ppc.toolchain.disassembler.base.settings.name.1757694719" name="Show Symbol and String Tables" superClass="com.freescale.ppc.toolchain.disassembler.base.settings.name" value="true" valueType="boolean"/>
 								<option id="com.freescale.ppc.toolchain.disassembler.base.settings.header.922626194" name="Show Headers" superClass="com.freescale.ppc.toolchain.disassembler.base.settings.header" value="false" valueType="boolean"/>
 								<option id="com.freescale.ppc.toolchain.disassembler.base.settings.code.580314577" name="Show Core Modules" superClass="com.freescale.ppc.toolchain.disassembler.base.settings.code" value="true" valueType="boolean"/>
 								<option id="com.freescale.ppc.toolchain.disassembler.base.settings.extm.1366447346" name="Show Extended Mnemonics" superClass="com.freescale.ppc.toolchain.disassembler.base.settings.extm" value="false" valueType="boolean"/>
 							</tool>
-							<tool command="&quot;${PAToolsDir}/mwcceppc&quot;" commandLinePattern="${COMMAND} ${FLAGS} ${OUTPUT_FLAG} ${INPUTS}" errorParsers="" id="com.freescale.ppc.toolchain.preprocessor.626911881" name="PowerPC Preprocessor" superClass="com.freescale.ppc.toolchain.preprocessor"/>
+							<tool command="&quot;${AIOPToolsDir}/ccaiop&quot;" commandLinePattern="${COMMAND} ${FLAGS} ${OUTPUT_FLAG} ${INPUTS}" errorParsers="" id="com.freescale.ppc.toolchain.preprocessor.626911881" name="Preprocessor" superClass="com.freescale.ppc.toolchain.preprocessor"/>
 						</toolChain>
 					</folderInfo>
 					<fileInfo id="com.freescale.ppc.debug.toolchain.configuration.729284547.131264042.2104585262.T4240LS_AIOP_readme.txt" name="MPC5643L_readme.txt" rcbsApplicability="disable" resourcePath="T4240LS_AIOP_readme.txt" toolsToInvoke=""/>
 					<folderInfo id="com.freescale.ppc.debug.toolchain.configuration.729284547.131264042.2104585262.prefix" name="/" resourcePath="prefix">
-						<toolChain errorParsers="" id="com.freescale.ppc.debug.toolchain.toolchain.275330576" name="PowerPC Debug Toolchain" superClass="com.freescale.ppc.debug.toolchain.toolchain" unusedChildren="">
+						<toolChain errorParsers="" id="com.freescale.ppc.debug.toolchain.toolchain.275330576" name="AIOP Debug Toolchain" superClass="com.freescale.ppc.debug.toolchain.toolchain" unusedChildren="">
 							<option id="com.freescale.ppc.debug.toolchain.sharedoption.dwarf.1612949044.368461145.523735995.1267479580" name="Generate DWARF Information" superClass="com.freescale.ppc.debug.toolchain.sharedoption.dwarf.1612949044"/>
 							<option id="com.freescale.ppc.toolchain.sharedoption.processor.911198810.330755238.1763410885.425992740" name="Processor" superClass="com.freescale.ppc.toolchain.sharedoption.processor.911198810"/>
 							<option id="com.freescale.ppc.toolchain.sharedoption.sym.1122761859.1725085538.1892525092.1149306262" name="Store Full Paths To Source Files" superClass="com.freescale.ppc.toolchain.sharedoption.sym.1122761859"/>
-							<targetPlatform archList="all" binaryParser="org.eclipse.cdt.core.ELF" id="com.freescale.ppc.toolchain.platform.890160783" name="PowerPC Target Platform" superClass="com.freescale.ppc.toolchain.platform"/>
-							<tool id="com.freescale.ppc.toolchain.linker.393443823" name="PowerPC Linker" superClass="com.freescale.ppc.toolchain.linker.717244399"/>
-							<tool errorParsers="" id="com.freescale.ppc.toolchain.compiler.512255582" name="PowerPC Compiler" superClass="com.freescale.ppc.toolchain.compiler.652450681">
+							<targetPlatform archList="all" binaryParser="org.eclipse.cdt.core.ELF" id="com.freescale.ppc.toolchain.platform.890160783" name="AIOP Target Platform" superClass="com.freescale.ppc.toolchain.platform"/>
+							<tool id="com.freescale.ppc.toolchain.linker.393443823" name="Linker" superClass="com.freescale.ppc.toolchain.linker.717244399"/>
+							<tool errorParsers="" id="com.freescale.ppc.toolchain.compiler.512255582" name="Compiler" superClass="com.freescale.ppc.toolchain.compiler.652450681">
 								<option id="com.freescale.ppc.toolchain.compiler.base.input.include.1507659777" name="User Path (-i)" superClass="com.freescale.ppc.toolchain.compiler.base.input.include" valueType="includePath">
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/lib&quot;"/>
@@ -1006,11 +1005,11 @@
 								</option>
 								<inputType id="com.freescale.ppc.toolchain.compiler.base.input.490298277" name="com.freescale.ppc.toolchain.cf Compiler Input" superClass="com.freescale.ppc.toolchain.compiler.base.input"/>
 							</tool>
-							<tool errorParsers="" id="com.freescale.ppc.toolchain.assembler.1262714874" name="PowerPC Assembler" superClass="com.freescale.ppc.toolchain.assembler.512408550">
-								<inputType id="com.freescale.ppc.toolchain.assembler.base.input.1691395780" name="PowerPC Assembler Input" superClass="com.freescale.ppc.toolchain.assembler.base.input"/>
+							<tool errorParsers="" id="com.freescale.ppc.toolchain.assembler.1262714874" name="Assembler" superClass="com.freescale.ppc.toolchain.assembler.512408550">
+								<inputType id="com.freescale.ppc.toolchain.assembler.base.input.1691395780" name="AIOP Assembler Input" superClass="com.freescale.ppc.toolchain.assembler.base.input"/>
 							</tool>
-							<tool errorParsers="" id="com.freescale.ppc.toolchain.disassembler.222243633" name="PowerPC Disassembler" superClass="com.freescale.ppc.toolchain.disassembler.1991998931"/>
-							<tool errorParsers="" id="com.freescale.ppc.toolchain.preprocessor.802763876" name="PowerPC Preprocessor" superClass="com.freescale.ppc.toolchain.preprocessor.626911881"/>
+							<tool errorParsers="" id="com.freescale.ppc.toolchain.disassembler.222243633" name="Disassembler" superClass="com.freescale.ppc.toolchain.disassembler.1991998931"/>
+							<tool errorParsers="" id="com.freescale.ppc.toolchain.preprocessor.802763876" name="Preprocessor" superClass="com.freescale.ppc.toolchain.preprocessor.626911881"/>
 						</toolChain>
 					</folderInfo>
 					<sourceEntries>
@@ -1022,7 +1021,7 @@
 		</cconfiguration>
 	</storageModule>
 	<storageModule moduleId="cdtBuildSystem" version="4.0.0">
-		<project id="5643L_VLE.com.freescale.ppc.toolchain.projecttype.17125383" name="Freescale PowerPC" projectType="com.freescale.ppc.toolchain.projecttype"/>
+		<project id="5643L_VLE.com.freescale.ppc.toolchain.projecttype.17125383" name="Freescale AIOP" projectType="com.freescale.ppc.toolchain.projecttype"/>
 	</storageModule>
 	<storageModule moduleId="scannerConfiguration">
 		<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId=""/>
