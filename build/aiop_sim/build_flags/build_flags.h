@@ -58,7 +58,7 @@
 /*#define SYS_SMP_SUPPORT*/
 //#define SIMULATOR
 #define DEBUG_NO_MC
-#define BU_FIX
+
 #define NO_DP_DDR
 
 
