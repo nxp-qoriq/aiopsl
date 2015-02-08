@@ -64,6 +64,7 @@
 // Temporary workaround commands
 #define IPSEC_RUN_DESC_DEBUG 				9 | (IPSEC_MODULE << 16)
 #define IPSEC_CREATE_DEBUG_BUFFER_CMD		17 | (IPSEC_MODULE << 16)
+#define IPSEC_EARLY_INIT_CMD				18 | (IPSEC_MODULE << 16)
 
 #define IPSEC_PARSER_HXS_ENET 0x00
 #define IPSEC_PARSER_HXS_IP   0x06
@@ -81,6 +82,33 @@
 
  @{
 *//***************************************************************************/
+
+/**************************************************************************//**
+@Description	IPsec Early Init Command structure.
+*
+* This function enables returning a dummy error value according to the 
+* committed_buffs input
+* if committed_buffs == 0xFFFFFFF0, it returns ENAVAIL.
+* if committed_buffs == 0xFFFFFFF2, it returns ENOMEM.
+* Otherwise it will return 0.
+* 
+*//****************************************************************************/
+struct ipsec_early_init_command {
+	uint32_t opcode;
+	uint32_t total_instance_num;
+	uint32_t total_committed_sa_num;
+	uint32_t total_max_sa_num;
+	uint32_t flags;
+	
+	/** Returned Value: presentation context. */
+	struct presentation_context prc;
+
+	int32_t status; /* Function call return status */
+	
+	/** Workspace address of the last returned status.
+	 * Should be defined in the TLS area. */
+	uint32_t status_addr;
+};
 
 /**************************************************************************//**
 @Description	IPsec Add SA Descriptor Command structure.

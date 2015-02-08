@@ -28,12 +28,13 @@
 #include "inc/fsl_sys.h"
 #include "apps.h"
 
+extern int app_early_init(void);
 extern int app_init(void); extern void app_free(void);
 
 
 #define APPS                            	\
 {                                       	\
-	{NULL, app_init, app_free},	\
+	{app_early_init, app_init, app_free},	\
 	{NULL, NULL, NULL} /* never remove! */    	\
 }
 

@@ -444,6 +444,44 @@ struct ipsec_descriptor_params {
 *//***************************************************************************/
 
 /**************************************************************************//**
+@Function	ipsec_early_init
+
+@Description  This function should be called at the AIOP "early init" stage,
+		for declaring the amount of instances and SAs which are going to be
+		used throughout the application lifetime.
+				
+@Param[in]	total_instance_num - the maximum total number of IPsec instances
+			that may be used.
+			This is the maximum number of instances that can be valid 
+			at a given time.
+
+@Param[in]	total_committed_sa_num - the total sum of all committed SAs
+  	  	  	of all IPsec instances that may be used.
+  	  	  	
+  	  	  	total_committed_sa_num = 
+  	  	  		SUM(instance[1 .. total_instance_num].committed_sa_num)
+  	  	  	
+@Param[in]	total_max_sa_num - the total sum of all maximum SAs number
+  	  	  	of all IPsec instances that may be used. 
+
+  	  	  	total_max_sa_num = 
+  	  	  		SUM(instance[1 .. total_instance_num].max_sa_num)
+  	  	  		
+@Param[in]	flags - control flags. Set to 0.
+
+@Return		Status
+		0 - on success
+		ENAVAIL - resource not available or not found,
+		ENOMEM  - not enough memory for requested memory partition
+
+*//****************************************************************************/
+int ipsec_early_init(
+		uint32_t total_instance_num,
+		uint32_t total_committed_sa_num,
+		uint32_t total_max_sa_num,
+		uint32_t flags);
+
+/**************************************************************************//**
 @Function	ipsec_create_instance
 
 @Description  This function creates an instance for an IPsec application.

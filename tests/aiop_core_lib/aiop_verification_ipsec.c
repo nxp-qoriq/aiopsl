@@ -76,6 +76,24 @@ uint16_t  aiop_verification_ipsec(uint32_t data_addr)
 //		break;
 //	}
 	
+	case IPSEC_EARLY_INIT_CMD:
+	{
+		struct ipsec_early_init_command *str =
+			(struct ipsec_early_init_command *)data_addr;
+		
+		str->status = ipsec_early_init(
+				str->total_instance_num,
+				str->total_committed_sa_num,
+				str->total_max_sa_num,
+				str->flags
+			);
+		
+		*((int32_t *)(str->status_addr)) = str->status;
+		str->prc = *((struct presentation_context *) HWC_PRC_ADDRESS);
+		str_size = (uint16_t)sizeof(struct ipsec_early_init_command);
+		break;
+	}
+
 	case IPSEC_CREATE_INSTANCE_CMD:
 	{
 		struct ipsec_create_instance_command *str =

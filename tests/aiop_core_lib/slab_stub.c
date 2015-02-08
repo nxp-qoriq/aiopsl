@@ -80,3 +80,33 @@ int slab_find_and_reserve_bpid(uint32_t num_buffs,
 
 	return 0;
 }
+
+
+__COLD_CODE int slab_register_context_buffer_requirements(
+	uint32_t    committed_buffs,
+	uint32_t    max_buffs,
+	uint16_t    buff_size,
+	uint16_t    alignment,
+	enum memory_partition_id  mem_pid,
+	uint32_t    flags,
+	uint32_t    num_ddr_pools)
+{
+	
+	uint32_t dummy;
+	/* Dummy settings to avoid warnings */
+	dummy = (uint32_t)committed_buffs;
+	dummy = (uint32_t)max_buffs;
+	dummy = (uint32_t)buff_size;
+	dummy = (uint32_t)alignment;
+	dummy = (uint32_t)mem_pid,
+	dummy = (uint32_t)flags,
+	dummy = (uint32_t)num_ddr_pools;
+	
+	/* Enable returning dummy error according to the committed_buffs input */
+	if (committed_buffs == 0xFFFFFFF0) 
+		return ENAVAIL;
+	if (committed_buffs == 0xFFFFFFF2) 
+		return ENOMEM;
+
+	return 0;
+}

@@ -40,6 +40,7 @@
 #include "lib/fsl_slab.h"
 #include "system.h" // TMP
 
+int app_early_init(void);
 int app_init(void);
 void app_free(void);
 int ipsec_app_init(uint16_t ni_id);
@@ -273,6 +274,19 @@ static struct cmdif_module_ops ops = {
                                .close_cb = close_cb,
                                .ctrl_cb = ctrl_cb
 };
+
+int app_early_init(void){
+	int err;
+	
+	err = ipsec_early_init(
+		1, /* uint32_t total_instance_num */
+		2, /* uint32_t total_committed_sa_num */
+		4, /* uint32_t total_max_sa_num */
+		0  /* uint32_t flags */
+	);
+
+	return err;
+}
 
 int app_init(void)
 {

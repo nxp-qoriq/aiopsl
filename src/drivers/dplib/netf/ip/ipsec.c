@@ -68,6 +68,37 @@ enum rta_sec_era rta_sec_era = RTA_SEC_ERA_8;
 extern __PROFILE_SRAM struct storage_profile 
 			storage_profile[SP_NUM_OF_STORAGE_PROFILES];
 
+
+
+/**************************************************************************//**
+*	ipsec_early_init
+*//****************************************************************************/
+int ipsec_early_init(
+		uint32_t total_instance_num,
+		uint32_t total_committed_sa_num,
+		uint32_t total_max_sa_num,
+		uint32_t flags)
+{
+
+	int return_val;
+	uint32_t dummy = flags; /* dummy assignment, to avoid warning */
+	
+	uint32_t committed_buffs;
+	committed_buffs = total_instance_num + total_committed_sa_num;
+	
+	return_val = slab_register_context_buffer_requirements(
+			committed_buffs,
+			total_max_sa_num, /* uint32_t max_buffs */
+			IPSEC_SA_DESC_BUF_SIZE, /* uint16_t buff_size */
+			IPSEC_SA_DESC_BUF_ALIGN, /* uint16_t alignment */
+	        IPSEC_MEM_PARTITION_ID, /* enum memory_partition_id  mem_pid */
+	        0, /* uint32_t flags */
+	        0 /* uint32_t num_ddr_pools */
+	        );
+	
+	return return_val;
+}
+
 /**************************************************************************//**
 *	ipsec_create_instance
 *//****************************************************************************/
