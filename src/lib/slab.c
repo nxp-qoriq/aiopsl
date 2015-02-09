@@ -946,7 +946,7 @@ __COLD_CODE static int dpbp_discovery(struct slab_bpid_info *bpids_arr,
 	int i = 0;
 	struct mc_dprc *dprc = sys_get_unique_handle(FSL_OS_MOD_AIOP_RC);
 
-
+#ifdef MC_PORTAL_FIX
 	/*Calling MC to get bpid's*/
 	if (dprc == NULL)
 	{
@@ -1007,7 +1007,9 @@ __COLD_CODE static int dpbp_discovery(struct slab_bpid_info *bpids_arr,
 
 	if(bpids_arr == NULL)
 		*n_bpids = num_bpids;
-
+#else
+	*n_bpids = 9;
+#endif
 	return 0;
 }
 
@@ -1439,11 +1441,19 @@ __COLD_CODE int slab_module_init(void)
 					SLAB_MAX_NUM_VP_SHRAM),1);
 
 
+#ifdef MC_PORTAL_FIX
 	err = dpbp_discovery(bpids_arr_init, &num_bpids);
 	if (err) {
 		pr_err("Failed DPBP add\n");
 		return -ENODEV;
 	}
+#else 
+	for(i = 0; i<9 ;i++){
+		bpids_arr_init->bpid = i;
+		bpids_arr_init ++;
+	}
+	bpids_arr_init -= i;
+#endif
 
 	err = fsl_os_get_mem(SLAB_MAX_NUM_VP_DDR *
 	                     num_clusters_for_ddr_mamangement_pools
