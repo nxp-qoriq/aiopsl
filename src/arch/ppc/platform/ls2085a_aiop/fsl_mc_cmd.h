@@ -131,7 +131,11 @@ static inline void mc_write_command(struct mc_command __iomem *portal,
 	word = (uint32_t)u64_dec(cmd->header, 0, 32);
 	iowrite32(word, (uint32_t *)&portal->header);
 	
+#ifndef BU_FIXED
+	/* Write ready bit last */
 	iowrite8(0x1, &((uint8_t *)&portal->header)[0]);
+#endif
+	
 }
 
 /**
