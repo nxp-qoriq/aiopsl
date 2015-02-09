@@ -160,6 +160,7 @@ __COLD_CODE int aiop_sl_early_init(void){
 int aiop_sl_init(void)
 {
 	int32_t status = 0;
+	uint16_t icid;
 
 #ifdef AIOP_VERIF
 	/* TMAN EPID Init params*/
@@ -173,9 +174,12 @@ int aiop_sl_init(void)
 
 	/* initialize profile sram */
 
-#ifdef AIOP_VERIF
+	
+#ifndef AIOP_VERIF /* No DPNI */
 	/* Storage Profile 0 - Default Storage Profile */
-	storage_profile[0].ip_secific_sp_info = 0;
+	icid  = 0x0100;
+	//storage_profile[0].ip_secific_sp_info = 0;
+	storage_profile[0].ip_secific_sp_info = ((uint64_t)icid) << 48;
 	storage_profile[0].dl = 0;
 	storage_profile[0].reserved = 0;
 	/* 0x0080 --> 0x8000 (little endian) */
@@ -201,7 +205,8 @@ int aiop_sl_init(void)
 	storage_profile[0].bpid4 = 0x0000;
 	
 	/* Storage Profile 1 */
-	storage_profile[1].ip_secific_sp_info = 0;
+	//storage_profile[1].ip_secific_sp_info = 0;
+	storage_profile[1].ip_secific_sp_info = ((uint64_t)icid) << 48;
 	storage_profile[1].dl = 0;
 	storage_profile[1].reserved = 0;
 	/* 0x0080 --> 0x8000 (little endian) */
@@ -226,11 +231,14 @@ int aiop_sl_init(void)
 	storage_profile[1].pbs4 = 0x0000;
 	storage_profile[1].bpid4 = 0x0000;
 
+#endif
+	
+#ifdef AIOP_VERIF
 	time_cmgw_regs = (struct aiop_cmgw_regs*) &(aiop_regs->cmgw_regs);
 	time_get_func_ptr = _get_time_fast;
-
-
 #endif
+
+
 
 
 /* TODO - remove the AIOP_VERIF section when verification env will include
