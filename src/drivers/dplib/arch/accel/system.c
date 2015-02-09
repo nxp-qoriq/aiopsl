@@ -280,15 +280,18 @@ int aiop_sl_init(void)
 
 #else
 	sys_keyid_pool_create();
-
+#ifndef NO_DP_DDR
 	status = ipr_init();
 #ifndef CDC_ROC
 	if (status)
 		return status; /* TODO */
 
-	status = aiop_snic_init();
+#ifdef MC_PORTAL_FIX
+	status = aiop_snic_init();	
 #endif
 	return status;
+#endif /*MC_PORTAL_FIX*/
+#endif	
 #endif
 	return 0;
 }
@@ -308,8 +311,10 @@ void aiop_sl_free(void)
 			ipr_global_parameters1.ipr_key_id_ipv4);
 	keygen_kcr_delete(KEYGEN_ACCEL_ID_CTLU,
 			ipr_global_parameters1.ipr_key_id_ipv6);
+#ifndef NO_DP_DDR
 #ifndef CDC_ROC
 	aiop_snic_free();
+#endif	
 #endif
 #endif
 

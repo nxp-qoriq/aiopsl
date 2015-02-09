@@ -131,6 +131,16 @@ int boot_mem_mng_init(struct initial_mem_mng* boot_mem_mng,
 		boot_mem_mng->curr_ptr = boot_mem_mng->base_paddress;
 
 		break;
+#ifdef NO_DP_DDR
+	case MEM_PART_SYSTEM_DDR:
+		boot_mem_mng->base_paddress = g_init_data.sl_info.sys_ddr1_paddr
+					                     + aiop_lcf_ddr_size;
+		boot_mem_mng->base_vaddress = (uint32_t)g_init_data.sl_info.sys_ddr1_vaddr
+					                    + aiop_lcf_ddr_size;
+		boot_mem_mng->size = g_boot_mem_mng_size;
+		boot_mem_mng->curr_ptr = boot_mem_mng->base_paddress;
+		break;
+#endif
 	}
 #ifdef AIOP
 	boot_mem_mng->lock = 0;
@@ -880,13 +890,16 @@ void * mem_mng_alloc_mem(fsl_handle_t    h_mem_mng,
 }
 
 /*****************************************************************************/
-int mem_mng_get_phys_mem(fsl_handle_t h_mem_mng, int  partition_id,
+int mem_mng_get_phys_mem(fsl_handle_t h_mem_mng, int  _partition_id,
                         uint64_t size, uint64_t alignment,
                         uint64_t *paddr)
 {
     t_mem_mng            *p_mem_mng = (t_mem_mng *)h_mem_mng;
     t_mem_mng_phys_addr_alloc_partition   *p_partition;
     list_t              *p_partition_iterator, *p_temp;
+    int                  partition_id = _partition_id;
+
+
 #ifndef AIOP
 	uint32_t            int_flags;
 #endif /* AIOP */
@@ -899,6 +912,11 @@ int mem_mng_get_phys_mem(fsl_handle_t h_mem_mng, int  partition_id,
     lock_spinlock(p_mem_mng->lock);
 #else
     int_flags = spin_lock_irqsave(p_mem_mng->lock);
+#endif
+
+#ifdef NO_DP_DDR
+    if(partition_id == MEM_PART_DP_DDR)
+	    partition_id = MEM_PART_SYSTEM_DDR;
 #endif
     /* Not early allocation - allocate from registered partitions */
     LIST_FOR_EACH_SAFE(p_partition_iterator, p_temp, &(p_mem_mng->phys_allocation_mem_partitions_list))

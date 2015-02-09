@@ -107,6 +107,25 @@ asm __COLD_CODE void __sys_start(register int argc, register char **argv, regist
     /* Store core ID */
     mfpir  r17
 
+#ifndef DISABLE_WSMEM_ECC
+  /* AIOP clear WSRAM for each core to reset ECC */
+  /* The WSRAM is a per core 32K RAM. */
+  se_li r3, 0    /* the core views the WSRAM at 0x0000_0000 */
+  e_li r4, 0x100 /* set counter to 256 (32K = 256 * 128) */
+  /* Loops to cover SRAM, stmw allows 128 bytes (32 GPRS x 4 bytes) writes */
+  se_li r31, 0
+  e_li r30, 0x100 /* set counter to 256 (32K = 256 * 128) */  
+  mtctr r30
+  init_sram_loop:
+      stmw r0, 0(r31)         /* Write 32 GPRs to SRAM */
+      addi r31, r31, 128      /* Inc the ram ptr; 32 GPRs * 4 bytes = 128B */
+      bdnz init_sram_loop     /* Loop until CTR is non-zero */
+#else
+       se_li  r0, 0
+       mtdcr   dcr496,r0 /* reset DMEMCTL0 to disable local DMEM ECC */
+#endif
+
+
     /* Initialize small data area pointers */
     lis    r2, _SDA2_BASE_@ha
     addi   r2, r2, _SDA2_BASE_@l

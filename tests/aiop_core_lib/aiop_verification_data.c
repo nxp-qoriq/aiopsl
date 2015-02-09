@@ -160,7 +160,6 @@ void exception_handler(char *filename,
 
 	struct fatal_error_command fatal_cmd_str;
 	struct fatal_error_command *fatal_cmd;
-
 	exception_counter++;
 
 	if (exception_counter > 1){
