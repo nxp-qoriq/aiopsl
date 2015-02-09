@@ -71,6 +71,11 @@ __COLD_CODE static int aiop_container_init()
 
 	/* Open root container in order to create and query for devices */
 	dprc->io.regs = p_vaddr;
+#ifndef BU_FIXED
+	dprc->io.regs = AIOP_PORAL_FIXED_ADDR;
+	pr_debug("Set MC portal addr to  0x%x\n", (uint32_t)dprc->io.regs);
+#endif
+	
 	if ((err = dprc_get_container_id(&dprc->io, &container_id)) != 0) {
 		pr_err("Failed to get AIOP root container ID.\n");
 		return err;
