@@ -174,7 +174,7 @@ int aiop_sl_init(void)
 
 	/* initialize profile sram */
 
-	
+	/* TEMP FIX: MC-ARENA DO NOT COMMUNICATE */
 #ifndef AIOP_VERIF /* No DPNI */
 	/* Storage Profile 0 - Default Storage Profile */
 	icid  = 0x0100;

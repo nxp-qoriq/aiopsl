@@ -66,6 +66,7 @@ inline int sl_prolog(void)
 	/* Load from SHRAM to local stack */
 #ifndef AIOP_VERIF
 #ifndef DISABLE_ASSERTIONS
+	/* TEMP FIX: MC-ARENA DO NOT COMMUNICATE */
 #if 0	/* No DPNI */
 	dpni_drv_params_local = dpni_drv->dpni_drv_params_var;
 
@@ -77,6 +78,7 @@ inline int sl_prolog(void)
 #endif
 #endif
 
+       /* TEMP FIX: MC-ARENA DO NOT COMMUNICATE */
 #if 0  /* No DPNI */
 	*((uint8_t *)HWC_SPID_ADDRESS) = dpni_drv->dpni_drv_params_var.spid;
 #else

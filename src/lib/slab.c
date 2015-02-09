@@ -1448,7 +1448,9 @@ __COLD_CODE int slab_module_init(void)
 		return -ENODEV;
 	}
 #else 
-	for(i = 0; i<9 ;i++){
+	/* TEMP FIX: MC-ARENA DO NOT COMMUNICATE */
+	/* Fix so ARENA BPIDs will not collide with ROC BPIDs */
+	for(i = 50; i<59 ;i++){
 		bpids_arr_init->bpid = i;
 		bpids_arr_init ++;
 	}
