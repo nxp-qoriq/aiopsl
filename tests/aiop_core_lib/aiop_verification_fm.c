@@ -38,6 +38,8 @@
 #include "aiop_verification.h"
 #include "system.h"
 
+#include "cmgw.h"
+
 
 /*
 __TASK tcp_gso_ctx_t tcp_gso_context_addr;
@@ -52,6 +54,7 @@ extern __VERIF_TLS uint8_t slab_parser_error;
 extern __VERIF_TLS uint8_t slab_keygen_error;
 extern __VERIF_TLS uint8_t slab_general_error;
 
+extern __PROFILE_SRAM struct storage_profile storage_profile[SP_NUM_OF_STORAGE_PROFILES];
 
 __declspec(entry_point) void aiop_verification_fm()
 {
@@ -60,9 +63,29 @@ __declspec(entry_point) void aiop_verification_fm()
 	uint64_t ext_address;	/* External Data Address */
 	uint16_t str_size = 0;	/* Command struct Size */
 	uint32_t opcode;
-	
-	sl_prolog();
+        struct fdma_amq amq;
+        uint16_t icid, flags = 0;
+        uint8_t tmp, spid;
+	uint32_t *pData = (uint32_t *)HWC_FD_ADDRESS;
 
+	sl_prolog();
+	
+	spid = *((uint8_t *)HWC_SPID_ADDRESS);
+
+	//Patch for ICID check (Hagit)
+        icid = (uint16_t)(storage_profile[spid].ip_secific_sp_info >> 48);
+        icid = ((icid << 8) & 0xff00) | ((icid >> 8) & 0xff);
+        tmp = (uint8_t)(storage_profile[spid].ip_secific_sp_info >> 40);
+        if (tmp & 0x08)
+               flags |= FDMA_ICID_CONTEXT_BDI;
+        if (tmp & 0x04)
+               flags |= FDMA_ICID_CONTEXT_PL;
+        if (storage_profile[spid].mode_bits2 & sp1_mode_bits2_VA_MASK)
+               flags |= FDMA_ICID_CONTEXT_VA;
+        amq.icid = icid;
+        amq.flags = flags;
+        set_default_amq_attributes(&amq);
+	
 	/* Read last 8 bytes from frame PTA/ last 8 bytes of payload
 	 * This is the external buffer address */
 	if (LDPAA_FD_GET_PTA(HWC_FD_ADDRESS)) {
@@ -288,6 +311,7 @@ __declspec(entry_point) void aiop_verification_fm()
 		case TERMINATE_FLOW_MODULE:
 		default:
 		{
+			cmgw_report_aiop_completion_status(0x77777777);
 			fdma_terminate_task();
 			return;
 		}
@@ -307,7 +331,7 @@ __declspec(entry_point) void aiop_verification_fm()
 
 
 	} while (1);
-
+	
 	fdma_terminate_task();
 
 	return;
