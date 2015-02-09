@@ -86,7 +86,7 @@ extern void build_apps_array(struct sys_module_desc *apps);
 	{MEM_PART_SYSTEM_DDR,                 0xFFFFFFFF,  0xFFFFFFFF,0xFFFFFFFF,\
 		MEMORY_ATTR_PHYS_ALLOCATION,"SYSTEM_DDR"},\
 }
-#ifndef MC_PORTAL_FIX
+#ifdef MC_PORTAL_FIX
 
 #define GLOBAL_MODULES                                                       \
 	{    /* slab must be before any module with buffer request*/             \
@@ -392,7 +392,7 @@ __COLD_CODE int run_apps(void)
 	if(apps == NULL) {
 		return -ENOMEM;
 	}
-#ifndef MC_PORTAL_FIX
+#ifdef MC_PORTAL_FIX
 	/* TODO - add initialization of global default DP-IO (i.e. call 'dpio_open', 'dpio_init');
 	 * This should be mapped to ALL cores of AIOP and to ALL the tasks */
 	/* TODO - add initialization of global default DP-SP (i.e. call 'dpsp_open', 'dpsp_init');
