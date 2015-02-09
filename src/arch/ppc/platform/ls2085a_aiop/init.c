@@ -79,7 +79,7 @@ extern void build_apps_array(struct sys_module_desc *apps);
 		MEMORY_ATTR_NONE,"MC Portals"},\
 	{MEM_PART_CCSR,                      0xFFFFFFFF,  0xFFFFFFFF, (64 * MEGABYTE),\
 		MEMORY_ATTR_NONE,"SoC CCSR"  },\
-	{MEM_PART_SH_RAM,                    0x01010400,   0x01010400,(191 * KILOBYTE),\
+	{MEM_PART_SH_RAM,                    0x01010800,   0x01010800,(190 * KILOBYTE),\
 		MEMORY_ATTR_MALLOCABLE,"Shared-SRAM"},\
 	{MEM_PART_PEB,                        0xFFFFFFFF,  0xFFFFFFFF,0xFFFFFFFF,\
 		MEMORY_ATTR_PHYS_ALLOCATION,"PEB"},\
