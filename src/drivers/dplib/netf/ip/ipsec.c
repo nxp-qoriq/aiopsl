@@ -339,14 +339,14 @@ int ipsec_generate_encap_sd(
 	
 	uint8_t cipher_type = 0;
 	uint8_t pdb_options = 0;
-	
+	uint8_t split_key = 0;
+
 	/* Temporary Workspace Shared Descriptor */
 	uint32_t ws_shared_desc[IPSEC_MAX_SD_SIZE_WORDS]; 
 
 	uint32_t inl_mask = 0;
 	unsigned data_len[3];
 	int err;
-
 	struct ipsec_encap_pdb pdb;
 
 	struct alginfo rta_auth_alginfo;
@@ -484,7 +484,6 @@ int ipsec_generate_encap_sd(
 	rta_cipher_alginfo.key = params->cipherdata.key;
 	rta_cipher_alginfo.key_enc_flags  = params->cipherdata.key_enc_flags;
 	
-	
 	/* Lengths of items to be inlined in descriptor; order is important.
 	 * Note: For now we assume that inl_mask[0] = 1, i.e. that the
 	 * Outer IP Header can be inlined. 
@@ -501,16 +500,6 @@ int ipsec_generate_encap_sd(
 	 *	  e.g. gcm(aes), ccm(aes), gmac(aes) - don't need split key
 	*/
 	if (data_len[1]) {
-		//if (params->authdata.algtype == IPSEC_AUTH_HMAC_NULL) {
-		//	data_len[1] = 0;  /* No room required for authentication key */
-		//} else if ((params->authdata.algtype == IPSEC_AUTH_AES_XCBC_MAC_96) ||
-		//			(params->authdata.algtype == IPSEC_AUTH_AES_CMAC_96)) {
-		//	data_len[1] = params->authdata.keylen; /* No split required */
-		//} else {
-		//	/* Compute MDHA split key length 
-		//	 * for a given authentication algorithm */
-		//	data_len[1] = (uint8_t)split_key_len(params->authdata.algtype);
-	
 		/* Sizes for MDHA pads (*not* keys): MD5, SHA1, 224, 256, 384, 512 */
 		/*                                   16,  20,   32,  32,  64,  64  */
 		switch (params->authdata.algtype) {
@@ -524,18 +513,22 @@ int ipsec_generate_encap_sd(
 			case IPSEC_AUTH_HMAC_MD5_96:
 			case IPSEC_AUTH_HMAC_MD5_128:
 				data_len[1] = 2*16;
+				split_key = 1;
 				break;
 			case IPSEC_AUTH_HMAC_SHA1_96:
 			case IPSEC_AUTH_HMAC_SHA1_160:	
 				data_len[1] = 2*20;
+				split_key = 1;
 				break;
 			case IPSEC_AUTH_HMAC_SHA2_256_128:
 				data_len[1] = 2*32;
+				split_key = 1;
 				break;
 			default:
 				/* IPSEC_AUTH_HMAC_SHA2_384_192 */
 				/* IPSEC_AUTH_HMAC_SHA2_512_256 */
 				data_len[1] = 2*64;
+				split_key = 1;
 		}	
 	} 
 
@@ -550,12 +543,19 @@ int ipsec_generate_encap_sd(
 	if (inl_mask & (1 << 1))
 		rta_auth_alginfo.key_type = (enum rta_data_type)RTA_PARAM_IMM_DMA;
 
-	else
+	else {
 		rta_auth_alginfo.key_type = (enum rta_data_type)RTA_PARAM_PTR;
-
-	// TODO: test, remove
-	//rta_auth_alginfo.key_type = (enum rta_data_type)RTA_PARAM_PTR;
-
+		
+		/* If a referenced split key is required, and it is not null auth,
+		 * create a copy of the authentication key in the local buffer */
+		if (split_key) {
+			rta_auth_alginfo.key = IPSEC_KEY_ADDR_FROM_FLC(sd_addr);
+			ipsec_create_key_copy(
+				params->authdata.key, /* Source Key Address */
+				rta_auth_alginfo.key, /* Destination Key Address */
+				(uint16_t)rta_auth_alginfo.keylen); /* Key length in bytes */
+		}	
+	}	
 	
 	if (inl_mask & (1 << 2))
 		rta_cipher_alginfo.key_type = (enum rta_data_type)RTA_PARAM_IMM_DMA;
@@ -607,6 +607,7 @@ int ipsec_generate_decap_sd(
 {
 	
 	uint8_t cipher_type = 0;
+	uint8_t split_key = 0;
 	
 	/* Temporary Workspace Shared Descriptor */
 	uint32_t ws_shared_desc[IPSEC_MAX_SD_SIZE_WORDS]; 
@@ -782,16 +783,6 @@ int ipsec_generate_decap_sd(
 	 *	  e.g. gcm(aes), ccm(aes), gmac(aes) - don't need split key
 	*/
 	if (data_len[0]) {
-		//if (params->authdata.algtype == IPSEC_AUTH_HMAC_NULL) {
-		//	data_len[0] = 0; /* No room required for authentication key */
-		//} else if ((params->authdata.algtype == IPSEC_AUTH_AES_XCBC_MAC_96) ||
-		//			(params->authdata.algtype == IPSEC_AUTH_AES_CMAC_96)) {
-		//	data_len[0] = params->authdata.keylen; /* No split required */
-		//} else {
-		//	/* Compute MDHA split key length 
-		//	 * for a given authentication algorithm */
-		//	data_len[0] = (uint8_t)split_key_len(params->authdata.algtype);
-		//}
 		/* Sizes for MDHA pads (*not* keys): MD5, SHA1, 224, 256, 384, 512 */
 		/*                                   16,  20,   32,  32,  64,  64  */
 		switch (params->authdata.algtype) {
@@ -805,18 +796,22 @@ int ipsec_generate_decap_sd(
 			case IPSEC_AUTH_HMAC_MD5_96:
 			case IPSEC_AUTH_HMAC_MD5_128:
 				data_len[0] = 2*16;
+				split_key = 1;
 				break;
 			case IPSEC_AUTH_HMAC_SHA1_96:
 			case IPSEC_AUTH_HMAC_SHA1_160:	
 				data_len[0] = 2*20;
+				split_key = 1;
 				break;
 			case IPSEC_AUTH_HMAC_SHA2_256_128:
 				data_len[0] = 2*32;
+				split_key = 1;
 				break;
 			default:
 				/* IPSEC_AUTH_HMAC_SHA2_384_192 */
 				/* IPSEC_AUTH_HMAC_SHA2_512_256 */
 				data_len[0] = 2*64;
+				split_key = 1;
 		}	
 	} 
 
@@ -831,12 +826,20 @@ int ipsec_generate_decap_sd(
 	if (inl_mask & (1 << 0))
 		rta_auth_alginfo.key_type = (enum rta_data_type)RTA_PARAM_IMM_DMA;
 
-	else
+	else {
 		rta_auth_alginfo.key_type = (enum rta_data_type)RTA_PARAM_PTR;
-	
-	// TODO: test, remove
-	//rta_auth_alginfo.key_type = (enum rta_data_type)RTA_PARAM_PTR;
-	
+		
+		/* If a referenced split key is required, and it is not null auth,
+		 * create a copy of the authentication key in the local buffer */
+		if (split_key) {
+			rta_auth_alginfo.key = IPSEC_KEY_ADDR_FROM_FLC(sd_addr);
+			ipsec_create_key_copy(
+				params->authdata.key, /* Source Key Address */
+				rta_auth_alginfo.key, /* Destination Key Address */
+				(uint16_t)rta_auth_alginfo.keylen); /* Key length in bytes */
+		}
+	}
+		
 	if (inl_mask & (1 << 1))
 		rta_cipher_alginfo.key_type = (enum rta_data_type)RTA_PARAM_IMM_DMA;
 
@@ -1138,15 +1141,6 @@ int ipsec_add_sa_descriptor(
 	}
 		
 	desc_addr = IPSEC_DESC_ADDR(*ipsec_handle);
-	
-	/* Create a copy of the authentication key in the local buffer */
-	ipsec_create_key_copy(
-			params->authdata.key, /* Source Key Address */
-			IPSEC_KEY_SEGMENT_ADDR(desc_addr), /* Destination Key Address */
-			(uint16_t)params->authdata.keylen);   /* Length of the provided key, in bytes */
-	
-	/* Now switch the original key address with the copy address */
-	params->authdata.key = IPSEC_KEY_SEGMENT_ADDR(desc_addr);
 	
 	/* Build a shared descriptor with the RTA library */
 	/* Then store it in the memory with CDMA */

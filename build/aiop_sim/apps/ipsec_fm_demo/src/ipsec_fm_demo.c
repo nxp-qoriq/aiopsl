@@ -278,12 +278,27 @@ static struct cmdif_module_ops ops = {
 int app_early_init(void){
 	int err;
 	
+	/* IPsec resources reservation */
 	err = ipsec_early_init(
 		1, /* uint32_t total_instance_num */
 		2, /* uint32_t total_committed_sa_num */
 		4, /* uint32_t total_max_sa_num */
 		0  /* uint32_t flags */
 	);
+	
+	if (err)
+		return err;
+
+	/* Reserve some general buffers for keys etc. */
+	err = slab_register_context_buffer_requirements(
+			10, /* uint32_t committed_buffs*/
+			10, /* uint32_t max_buffs */
+			512, /* uint16_t buff_size */
+			8, /* uint16_t alignment */
+			MEM_PART_DP_DDR, /* enum memory_partition_id  mem_pid */
+	        0, /* uint32_t flags */
+	        0 /* uint32_t num_ddr_pools */
+	        );
 
 	return err;
 }
@@ -466,10 +481,15 @@ int ipsec_app_init(uint16_t ni_id)
 
 	if (err)
 		fsl_os_print("ERROR: slab_acquire() failed\n");
-	else
+	else {
 		fsl_os_print("slab_acquire() completed successfully\n");
 
-
+		handle_high =
+			(uint32_t)((auth_key_addr & 0xffffffff00000000)>>32);
+		handle_low =
+			(uint32_t)(auth_key_addr & 0x00000000ffffffff);
+		fsl_os_print("Auth key addr = 0x%x_%x\n", handle_high, handle_low);
+	}
 
 	switch (algs) {
 		case NULL_ENCRYPTION:

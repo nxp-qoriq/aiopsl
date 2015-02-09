@@ -233,6 +233,10 @@ enum rta_param_type {
 #define IPSEC_MEM_PARTITION_ID MEM_PART_DP_DDR
 					/* Memory partition ID */
 #define IPSEC_KEY_SEGMENT_OFFSET 512 /* Offset from params start */
+/* Key Offset from FLC start */
+#define IPSEC_KEY_OFFSET_FROM_FLC IPSEC_KEY_SEGMENT_OFFSET -\
+											IPSEC_INTERNAL_PARMS_SIZE
+
 
 /* Obsolete, ASA preservation not supported */
 /* #define IPSEC_MAX_ASA_SIZE 960 */ /* Maximum ASA size (960 bytes) */
@@ -258,6 +262,7 @@ enum rta_param_type {
 
 /* Key Copy Segment */
 #define IPSEC_KEY_SEGMENT_ADDR(ADDRESS) ((ADDRESS) + IPSEC_KEY_SEGMENT_OFFSET)
+#define IPSEC_KEY_ADDR_FROM_FLC(ADDRESS) ((ADDRESS) + IPSEC_KEY_OFFSET_FROM_FLC)
 
 /*
 * Big-endian systems are systems in which the most significant byte of the word 
