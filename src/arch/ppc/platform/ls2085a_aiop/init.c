@@ -445,7 +445,7 @@ __COLD_CODE int run_apps(void)
 			pr_err("Failed to get attributes from DPBP-%d.\n", dpbp_id[i]);
 			return err;
 		}
-
+#ifndef CDC_ROC
 		if ((err = bman_fill_bpid(num_buffs,
 		                          buffer_size,
 		                          alignment,
@@ -455,7 +455,9 @@ __COLD_CODE int run_apps(void)
 			       dpbp_id[i], attr.bpid, buffer_size);
 			return err;
 		}
-
+		fsl_os_print("Fill DPBP-%d (BPID=%d) with buffer size %d.\n", 
+				dpbp_id[i], attr.bpid, buffer_size);
+#endif
 		/* Prepare parameters to attach to DPNI object */
 		pools_params[i].num_dpbp = 1; /* for AIOP, can be up to 2 */
 		pools_params[i].pools[0].dpbp_id = (uint16_t)dpbp_id[i]; /*!< DPBPs object id */
