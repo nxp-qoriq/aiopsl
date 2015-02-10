@@ -86,7 +86,6 @@ extern void build_apps_array(struct sys_module_desc *apps);
 	{MEM_PART_SYSTEM_DDR,                 0xFFFFFFFF,  0xFFFFFFFF,0xFFFFFFFF,\
 		MEMORY_ATTR_PHYS_ALLOCATION,"SYSTEM_DDR"},\
 }
-#ifndef MC_PORTAL_FIX
 
 #define GLOBAL_MODULES                                                       \
 	{    /* slab must be before any module with buffer request*/             \
@@ -101,21 +100,7 @@ extern void build_apps_array(struct sys_module_desc *apps);
 	{NULL, dpni_drv_init,     dpni_drv_free}, /*must be after aiop_sl_init*/ \
 	{NULL, NULL, NULL} /* never remove! */                                   \
 	}
-#else
-#define GLOBAL_MODULES                                                       \
-	{    /* slab must be before any module with buffer request*/             \
-	{icontext_init, NULL, NULL},                                             \
-	{NULL, time_init,         time_free},                                    \
-	{NULL, NULL,   NULL},                                \
-	{NULL, NULL,   NULL},                                  \
-	{slab_module_early_init, slab_module_init,  slab_module_free},           \
-	{NULL, NULL, NULL}, /* must be before srv */   \
-	{NULL, NULL,   NULL},                               \
-	{aiop_sl_early_init, aiop_sl_init,      aiop_sl_free},                                 \
-	{NULL, NULL,  NULL}, /*must be after aiop_sl_init*/ \
-	{NULL, NULL, NULL} /* never remove! */                                   \
-	}
-#endif
+
 void fill_platform_parameters(struct platform_param *platform_param);
 int global_init(void);
 void global_free(void);
@@ -392,7 +377,7 @@ __COLD_CODE int run_apps(void)
 	if(apps == NULL) {
 		return -ENOMEM;
 	}
-#ifndef MC_PORTAL_FIX
+
 	/* TODO - add initialization of global default DP-IO (i.e. call 'dpio_open', 'dpio_init');
 	 * This should be mapped to ALL cores of AIOP and to ALL the tasks */
 	/* TODO - add initialization of global default DP-SP (i.e. call 'dpsp_open', 'dpsp_init');
@@ -493,7 +478,7 @@ __COLD_CODE int run_apps(void)
 
 
 
-#endif
+
 	memset(apps, 0, (app_arr_size * sizeof(struct sys_module_desc)));
 	build_apps_array(apps);
 

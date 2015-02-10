@@ -283,10 +283,8 @@ int aiop_sl_init(void)
 	if (status)
 		return status; /* TODO */
 
-#ifdef MC_PORTAL_FIX
 	status = aiop_snic_init();	
 	return status;
-#endif /*MC_PORTAL_FIX*/
 #endif	
 #endif
 	return 0;
