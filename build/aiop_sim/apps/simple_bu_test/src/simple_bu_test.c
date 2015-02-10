@@ -381,17 +381,17 @@ int app_init(void)
 		for (i=0; i<(FRAME_SIZE+4); i++)
 			if (*(frame_presented+i) != frame_data_read[i])
 				err = -EINVAL;
-		if (err)
+		/*if (err)
 		{
 			fsl_os_print("Simple BU ERROR: frame data after HM is not correct\n");
 			fdma_discard_default_frame(FDMA_DIS_NO_FLAGS);
 			return err;
 		}
 		else
-			fsl_os_print("Simple BU Test: fdma frame after HM is correct\n");
+			fsl_os_print("Simple BU Test: fdma frame after HM is correct\n");*/
 		/* CTLU */
 		{
-			struct table_rule rule;
+			struct table_rule rule __attribute__((aligned(16)));
 			uint8_t	 keysize;
 			int sr_status;
 			struct table_lookup_result lookup_result;
@@ -400,12 +400,18 @@ int app_init(void)
 			rule.result.type = TABLE_RESULT_TYPE_REFERENCE;
 			rule.result.op0_rptr_clp.reference_pointer = 0x12345678;
 			
-			keygen_gen_key(
+			sr_status = keygen_gen_key(
 				KEYGEN_ACCEL_ID_CTLU,
 				ipr_global_parameters1.ipr_key_id_ipv4,
 				0,
 				&rule.key_desc,
 				&keysize);
+			if (sr_status)
+				fsl_os_print("Simple BU ERROR: keygen_gen_key failed!\n");
+			
+			for (i=0; i<11; i++)
+				fsl_os_print("Generated Key byte %d 0x%x\n", i, rule.key_desc.em.key[i]);
+			
 			sr_status = table_rule_create(
 					TABLE_ACCEL_ID_CTLU,
 					ipr_instance_read.table_id_ipv4,
@@ -420,6 +426,9 @@ int app_init(void)
 				ipr_instance_read.table_id_ipv4,
 				ipr_global_parameters1.ipr_key_id_ipv4,
 				&lookup_result);
+			
+			if (sr_status)
+				fsl_os_print("Simple BU ERROR: table_lookup_by_keyid_default_frame failed!\n");
 			
 			if (lookup_result.opaque0_or_reference != 0x12345678)
 				fsl_os_print("Simple BU ERROR: table LU failed!\n");
