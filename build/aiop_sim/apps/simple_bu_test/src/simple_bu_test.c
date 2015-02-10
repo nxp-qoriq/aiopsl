@@ -70,6 +70,51 @@ int app_early_init(void){
 	return 0;
 }
 
+int parser_init(uint8_t *prpid)
+{
+    struct parse_profile_input parse_profile1 __attribute__((aligned(16)));
+    int i;
+
+	/* Init basic parse profile */
+	parse_profile1.parse_profile.eth_hxs_config = 0x0;
+	parse_profile1.parse_profile.llc_snap_hxs_config = 0x0;
+	parse_profile1.parse_profile.vlan_hxs_config.en_erm_soft_seq_start = 0x0;
+	parse_profile1.parse_profile.vlan_hxs_config.configured_tpid_1 = 0x0;
+	parse_profile1.parse_profile.vlan_hxs_config.configured_tpid_2 = 0x0;
+	/* No MTU checking */
+	parse_profile1.parse_profile.pppoe_ppp_hxs_config = 0x0;
+	parse_profile1.parse_profile.mpls_hxs_config.en_erm_soft_seq_start= 0x0;
+	/* Frame Parsing advances to MPLS Default Next Parse (IP HXS) */
+	parse_profile1.parse_profile.mpls_hxs_config.lie_dnp = PARSER_PRP_MPLS_HXS_CONFIG_LIE;
+	parse_profile1.parse_profile.arp_hxs_config = 0x0;
+	parse_profile1.parse_profile.ip_hxs_config = 0x0;
+	parse_profile1.parse_profile.ipv4_hxs_config = 0x0;
+	/* Routing header is ignored and the destination address from
+	 * main header is used instead */
+	parse_profile1.parse_profile.ipv6_hxs_config = PARSER_PRP_IPV6_HXS_CONFIG_RHE;
+	parse_profile1.parse_profile.gre_hxs_config = 0x0;
+	parse_profile1.parse_profile.minenc_hxs_config = 0x0;
+	parse_profile1.parse_profile.other_l3_shell_hxs_config= 0x0;
+	/* In short Packet, padding is removed from Checksum calculation */
+	parse_profile1.parse_profile.tcp_hxs_config = PARSER_PRP_TCP_UDP_HXS_CONFIG_SPPR;
+	/* In short Packet, padding is removed from Checksum calculation */
+	parse_profile1.parse_profile.udp_hxs_config = PARSER_PRP_TCP_UDP_HXS_CONFIG_SPPR;
+	parse_profile1.parse_profile.ipsec_hxs_config = 0x0;
+	parse_profile1.parse_profile.sctp_hxs_config = 0x0;
+	parse_profile1.parse_profile.dccp_hxs_config = 0x0;
+	parse_profile1.parse_profile.other_l4_shell_hxs_config = 0x0;
+	parse_profile1.parse_profile.gtp_hxs_config = 0x0;
+	parse_profile1.parse_profile.esp_hxs_config = 0x0;
+	parse_profile1.parse_profile.l5_shell_hxs_config = 0x0;
+	parse_profile1.parse_profile.final_shell_hxs_config = 0x0;
+	/* Assuming no soft examination parameters */
+	for(i=0; i<16; i++)
+	    parse_profile1.parse_profile.soft_examination_param_array[i] = 0x0;
+
+	return parser_profile_create(&(parse_profile1), prpid);
+}
+
+
 int app_init(void)
 {
 	int        err  = 0;
@@ -79,11 +124,16 @@ int app_init(void)
 	ipr_instance_handle_t *ipr_instance_ptr = &ipr_instance;
 	struct ipr_instance	ipr_instance_read;
 	struct slab *slab_handle = NULL;
+	uint8_t *prpid;
 	uint64_t cipher_key_addr;
 	uint8_t cipher_key[16] = {11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26};
 	uint8_t cipher_key_read[16];
 	int i;
+	
+	parser_init(prpid);
 
+	default_task_params.parser_profile_id = *prpid;
+	default_task_params.parser_starting_hxs = 0;
 	fsl_os_print("Running simple bring-up test\n");
 
 	ipr_demo_params.max_open_frames_ipv4 = 0x10;
@@ -100,7 +150,7 @@ int app_init(void)
 	ipr_demo_params.flags = IPR_MODE_TABLE_LOCATION_PEB;
 	fsl_os_get_mem( 0x20*64, MEM_PART_DP_DDR, 64, &tmi_mem_base_addr);
 
-	tman_create_tmi(tmi_mem_base_addr , 0x20, &ipr_demo_params.tmi_id);
+	//tman_create_tmi(tmi_mem_base_addr , 0x20, &ipr_demo_params.tmi_id);
 
 	fsl_os_print("bring-up test: Creating IPR instance\n");
 	err = ipr_create_instance(&ipr_demo_params, ipr_instance_ptr);
@@ -221,6 +271,7 @@ int app_init(void)
 		uint32_t vlan = 0x8100aabb;
 		int parse_status;
 		uint8_t *frame_presented;
+		uint8_t *seg_addr;
 		struct fdma_amq amq;
 		uint16_t icid, flags = 0;
 		uint8_t tmp;
@@ -239,18 +290,71 @@ int app_init(void)
 		amq.icid = icid;
 		amq.flags = flags;
 		set_default_amq_attributes(&amq);
+		*(uint32_t *)(&storage_profile[0].pbs2) = *(uint32_t *)(&storage_profile[0].pbs1);
 
+		for (i=0; i<8 ; i++)
+			fsl_os_print("storage profile arg %d: 0x%x \n", i, *((uint32_t *)(&(storage_profile[0]))+i));
+		
+		
 		err = create_frame(fd, frame_data, FRAME_SIZE, &frame_handle);
 		if (err)
 			fsl_os_print("ERROR: create frame failed!\n");
 
+		
+		fsl_os_print("parse result before create frame - \n");
+		
+		fsl_os_print("ethernet offset %d %x\n", 
+					PARSER_IS_ETH_MAC_DEFAULT(), PARSER_GET_ETH_OFFSET_DEFAULT());
+		
+		fsl_os_print("vlan offset %d %x\n",
+					PARSER_IS_ONE_VLAN_DEFAULT(), PARSER_GET_FIRST_VLAN_TCI_OFFSET_DEFAULT());
+		
+		fsl_os_print("ipv4 offset %d %x\n", 
+					PARSER_IS_IP_DEFAULT(), PARSER_GET_OUTER_IP_OFFSET_DEFAULT());
+		
+		fsl_os_print("udp offset %d %x\n", 
+					PARSER_IS_UDP_DEFAULT(), PARSER_GET_L4_OFFSET_DEFAULT());
+
+		for (i=0; i<16 ; i++)
+			fsl_os_print("parse results arg %d: 0x%x \n", i, *((uint32_t *)(0x80)+i));
+		
+		
 		fdma_close_default_segment();
 		err = fdma_present_default_frame_segment(FDMA_PRES_NO_FLAGS, (void *)0x180, 0, 256);
 		fsl_os_print("STATUS: fdma present default segment returned status is %d\n", err);
 		l2_push_and_set_vlan(vlan);
+		
+		frame_length = PRC_GET_SEGMENT_LENGTH();
+		seg_addr = (uint8_t *)PRC_GET_SEGMENT_ADDRESS();
+		
+		fsl_os_print("frame length is 0x%x\n", frame_length);
+		for (i=0; i<frame_length ; i++)
+			fsl_os_print("frame read byte %d is %x\n", i, seg_addr[i]);
+
+		parse_result_generate(PARSER_ETH_STARTING_HXS, 0, PARSER_NO_FLAGS);
+		
+		fsl_os_print("parse result after create frame - \n");
+		
+		fsl_os_print("ethernet offset %d %x\n", 
+					PARSER_IS_ETH_MAC_DEFAULT(), PARSER_GET_ETH_OFFSET_DEFAULT());
+		
+		fsl_os_print("vlan offset %d %x\n",
+					PARSER_IS_ONE_VLAN_DEFAULT(), PARSER_GET_FIRST_VLAN_TCI_OFFSET_DEFAULT());
+		
+		fsl_os_print("ipv4 offset %d %x\n", 
+					PARSER_IS_IP_DEFAULT(), PARSER_GET_OUTER_IP_OFFSET_DEFAULT());
+		
+		fsl_os_print("udp offset %d %x\n", 
+					PARSER_IS_UDP_DEFAULT(), PARSER_GET_L4_OFFSET_DEFAULT());
+		
 		err = fdma_store_default_frame_data();
 		if (err)
 			fsl_os_print("ERROR: fdma store default frame returned error is %d\n", err);
+		
+		fsl_os_print(" FD length is : 0x%x \n", LDPAA_FD_GET_LENGTH(HWC_FD_ADDRESS));
+		fsl_os_print(" FD address is LSB : 0x%x \n", LDPAA_FD_GET_ADDR(HWC_FD_ADDRESS));
+		fsl_os_print(" FD address is MSB : 0x%x \n", LDPAA_FD_GET_ADDR(HWC_FD_ADDRESS) >> 32);
+
 		err = fdma_present_default_frame();
 		if (err < 0)
 			fsl_os_print("ERROR: fdma present default frame returned error is %d\n", err);
@@ -266,7 +370,7 @@ int app_init(void)
 		/* check frame presented */
 		frame_presented = (uint8_t *)PRC_GET_SEGMENT_ADDRESS();
 		frame_length = LDPAA_FD_GET_LENGTH(HWC_FD_ADDRESS);
-		fsl_os_print("actual frame length is %d\n", frame_length);
+		fsl_os_print("actual frame length is 0x%x\n", frame_length);
 		for (i=0; i<frame_length ; i++)
 			fsl_os_print("actual frame read byte %d is %x\n", i, frame_presented[i]);
 		

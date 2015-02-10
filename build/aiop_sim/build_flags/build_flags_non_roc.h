@@ -56,7 +56,7 @@
 #define AIOP
 #define SOC_PPC_CORE
 /*#define SYS_SMP_SUPPORT*/
-#define SIMULATOR
+//#define SIMULATOR
 #define DEBUG_NO_MC
 
 
