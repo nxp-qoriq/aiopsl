@@ -121,8 +121,8 @@ static inline void mc_write_command(struct mc_command __iomem *portal,
 	uint32_t word;
 
 	/* copy command parameters into the portal */
-	for (i = 0; i < MC_CMD_NUM_OF_PARAMS; i++)
-		iowrite64(cmd->params[i], &portal->params[i]);
+	for (i = 0; i < (MC_CMD_NUM_OF_PARAMS - 1); i++)
+		iowrite64(cmd->params[i], &portal->params[i + 1]);
 
 	/* submit the command by writing the header */
 	word = (uint32_t)u64_dec(cmd->header, 32, 32);
