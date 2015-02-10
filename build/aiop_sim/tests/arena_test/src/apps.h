@@ -37,7 +37,11 @@ extern const uint32_t g_aiop_lcf_ddr_size;
  * It is the  sum of AIOP image size in DDR and 
  * application required DP_DDR memory.
  * The value should be aligned to a power of 2 */
-#define  AIOP_SL_AND_APP_DDR_SIZE     (uint64_t)(g_aiop_lcf_ddr_size + APPLICATION_DP_DDR_SIZE)	
+#ifndef NO_DP_DDR
+#define  AIOP_SL_AND_APP_DDR_SIZE     (uint64_t)(g_aiop_lcf_ddr_size + APPLICATION_DP_DDR_SIZE)
+#else
+#define  AIOP_SL_AND_APP_DDR_SIZE     0
+#endif
  
 /* peb_size.
  * Should be a power of 2.
@@ -45,13 +49,21 @@ extern const uint32_t g_aiop_lcf_ddr_size;
 #define PEB_SIZE  (512 * KILOBYTE)  
 
 /* sys-ddr1 size = 0. Currently no dynamic allocation from system ddr */
+#ifdef NO_DP_DDR
+#define SYS_DDR1_SIZE (64 * MEGABYTE)
+#else
 #define SYS_DDR1_SIZE (4 * MEGABYTE)
+#endif
 
 /* ctlu sys-ddr number of entries */
 #define CTLU_SYS_DDR_NUM_ENTRIES         2048
 
+#ifndef NO_DP_DDR
 /* ctlu dp-ddr number of entries */
 #define CTLU_DP_DDR_NUM_ENTRIES          2048
+#else
+#define CTLU_DP_DDR_NUM_ENTRIES          0
+#endif
 
 /* ctlu peb number of entries */
 #define CTLU_PEB_NUM_ENTRIES             2048
@@ -59,8 +71,14 @@ extern const uint32_t g_aiop_lcf_ddr_size;
 /* mflu sys-ddr number of entries */
 #define MFLU_SYS_DDR_NUM_ENTRIES         2048
 
+
+#ifndef NO_DP_DDR
 /* mflu dp-ddr number of entries */
 #define MFLU_DP_DDR_NUM_ENTRIES          2048
+#else
+#define MFLU_DP_DDR_NUM_ENTRIES          0
+#endif
+
 
 /* mflu peb number of entries */
 #define MFLU_PEB_NUM_ENTRIES             2048

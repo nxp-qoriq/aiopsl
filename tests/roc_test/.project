@@ -3,7 +3,7 @@
 	<name>roc_process_packet</name>
 	<comment></comment>
 	<projects>
-		<project location="PARENT-2-PROJECT_LOC/aiopsl">
+		<project location="PARENT-2-PROJECT_LOC/build/aiop_sim/aiopsl">
 aiop_sl		</project>
 	</projects>
 	<buildSpec>
@@ -275,7 +275,7 @@ aiop_sl		</project>
 	<variableList>
 		<variable>
 			<name>copy_PARENT</name>
-			<value>$%7BPARENT-4-PROJECT_LOC%7D/tests/aiop_core_lib</value>
+			<value>$%7BPARENT-1-PROJECT_LOC%7D/tests/aiop_core_lib</value>
 		</variable>
 		<variable>
 			<name>copy_PARENT1</name>

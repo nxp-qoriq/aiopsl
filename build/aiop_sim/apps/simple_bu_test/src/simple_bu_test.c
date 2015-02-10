@@ -50,7 +50,7 @@
 #include "fsl_keygen.h"
 
 extern struct  ipr_global_parameters ipr_global_parameters1;
-extern struct storage_profile storage_profile[SP_NUM_OF_STORAGE_PROFILES];
+extern __PROFILE_SRAM struct storage_profile storage_profile[SP_NUM_OF_STORAGE_PROFILES];
 
 int app_early_init(void);
 int app_init(void);
@@ -224,6 +224,7 @@ int app_init(void)
 		struct fdma_amq amq;
 		uint16_t icid, flags = 0;
 		uint8_t tmp;
+		uint32_t frame_length;
 		/* setting SPID = 0 */
 		*((uint8_t *)HWC_SPID_ADDRESS) = 0;
 		icid = (uint16_t)(storage_profile[0].ip_secific_sp_info >> 48);
@@ -244,10 +245,18 @@ int app_init(void)
 			fsl_os_print("ERROR: create frame failed!\n");
 
 		fdma_close_default_segment();
-		fdma_present_default_frame_segment(FDMA_PRES_NO_FLAGS, (void *)0x180, 0, 256);
+		err = fdma_present_default_frame_segment(FDMA_PRES_NO_FLAGS, (void *)0x180, 0, 256);
+		fsl_os_print("STATUS: fdma present default segment returned status is %d\n", err);
 		l2_push_and_set_vlan(vlan);
-		fdma_store_default_frame_data();
-		fdma_present_default_frame();
+		err = fdma_store_default_frame_data();
+		if (err)
+			fsl_os_print("ERROR: fdma store default frame returned error is %d\n", err);
+		err = fdma_present_default_frame();
+		if (err < 0)
+			fsl_os_print("ERROR: fdma present default frame returned error is %d\n", err);
+		else
+			if (err)
+				fsl_os_print("STATUS: fdma present default frame returned status is %d\n", err);
 		parse_status = parse_result_generate_default(PARSER_NO_FLAGS);
 		if (parse_status)
 		{
@@ -256,6 +265,11 @@ int app_init(void)
 		}
 		/* check frame presented */
 		frame_presented = (uint8_t *)PRC_GET_SEGMENT_ADDRESS();
+		frame_length = LDPAA_FD_GET_LENGTH(HWC_FD_ADDRESS);
+		fsl_os_print("actual frame length is %d\n", frame_length);
+		for (i=0; i<frame_length ; i++)
+			fsl_os_print("actual frame read byte %d is %x\n", i, frame_presented[i]);
+		
 		for (i=0; i<(FRAME_SIZE+4); i++)
 			if (*(frame_presented+i) != frame_data_read[i])
 				err = -EINVAL;

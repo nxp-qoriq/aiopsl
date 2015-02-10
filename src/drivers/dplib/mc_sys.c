@@ -70,6 +70,7 @@ static int mc_status_to_error(enum mc_cmd_status status)
 
 int mc_send_command(struct fsl_mc_io *mc_io, struct mc_command *cmd)
 {
+#ifdef MC_PORTAL_FIX
 	//struct mc_io *mc_portal = (struct mc_portal *)mc_io;
 	enum mc_cmd_status status;
 
@@ -103,5 +104,8 @@ int mc_send_command(struct fsl_mc_io *mc_io, struct mc_command *cmd)
 	unlock_spinlock(&g_portal_lock);
 
 	return mc_status_to_error(status);
+#else
+	return 0;
+#endif
 }
 

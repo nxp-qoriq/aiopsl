@@ -386,7 +386,11 @@ void sys_print_mem_partition_debug_info(int partition_id, int report_leaks)
     mem_mng_param.lock = &(sys.mem_part_mng_lock);
 
     /* initialize boot memory manager to use MEM_PART_DP_DDR*/
+#ifndef NO_DP_DDR
     boot_mem_mng_init(&sys.boot_mem_mng,MEM_PART_DP_DDR);
+#else
+    boot_mem_mng_init(&sys.boot_mem_mng,MEM_PART_SYSTEM_DDR);
+#endif
     sys.mem_mng = mem_mng_init(&mem_mng_param,&sys.boot_mem_mng);
     if (!sys.mem_mng)
     {
