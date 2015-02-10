@@ -473,10 +473,11 @@ __COLD_CODE int run_apps(void)
 				pr_err("Failed to probe DPNI-%d.\n", i);
 				return err;
 			}
+		
 		}
 	}
 
-
+	fsl_os_print("Boot DONE\n");
 
 
 	memset(apps, 0, (app_arr_size * sizeof(struct sys_module_desc)));

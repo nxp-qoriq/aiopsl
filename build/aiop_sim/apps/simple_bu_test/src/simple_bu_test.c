@@ -70,6 +70,8 @@ int app_early_init(void){
 	return 0;
 }
 
+int parser_init(uint8_t *prpid);
+
 int parser_init(uint8_t *prpid)
 {
     struct parse_profile_input parse_profile1 __attribute__((aligned(16)));
@@ -130,11 +132,13 @@ int app_init(void)
 	uint8_t cipher_key_read[16];
 	int i;
 	
+	fsl_os_print("Running simple bring-up test\n");
+	
+	
 	parser_init(prpid);
 
 	default_task_params.parser_profile_id = *prpid;
 	default_task_params.parser_starting_hxs = 0;
-	fsl_os_print("Running simple bring-up test\n");
 
 	ipr_demo_params.max_open_frames_ipv4 = 0x10;
 	ipr_demo_params.max_open_frames_ipv6 = 0x10;

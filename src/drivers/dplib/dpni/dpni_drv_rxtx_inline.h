@@ -47,8 +47,8 @@ inline int sl_prolog(void)
 	struct dpni_drv *dpni_drv;
 #ifndef AIOP_VERIF
 #ifndef DISABLE_ASSERTIONS
-	//struct dpni_drv_params dpni_drv_params_local
-				//__attribute__((aligned(8)));
+	struct dpni_drv_params dpni_drv_params_local
+				__attribute__((aligned(8)));
 #endif
 #endif
 	struct parse_result *pr;
@@ -66,8 +66,7 @@ inline int sl_prolog(void)
 	/* Load from SHRAM to local stack */
 #ifndef AIOP_VERIF
 #ifndef DISABLE_ASSERTIONS
-	/* TEMP FIX: MC-ARENA DO NOT COMMUNICATE */
-#if 0	/* No DPNI */
+
 	dpni_drv_params_local = dpni_drv->dpni_drv_params_var;
 
 	ASSERT_COND_LIGHT(dpni_drv_params_local.starting_hxs == 0);
@@ -76,14 +75,9 @@ inline int sl_prolog(void)
 	ASSERT_COND_LIGHT(dpni_drv_params_local.flags & DPNI_DRV_FLG_PARSER_DIS);
 #endif
 #endif
-#endif
 
-       /* TEMP FIX: MC-ARENA DO NOT COMMUNICATE */
-#if 0  /* No DPNI */
 	*((uint8_t *)HWC_SPID_ADDRESS) = dpni_drv->dpni_drv_params_var.spid;
-#else
-	*((uint8_t *)HWC_SPID_ADDRESS) = 0;
-#endif
+
 	default_task_params.parser_profile_id = 0;
 	default_task_params.parser_starting_hxs = 0;
 	default_task_params.qd_priority = ((*((uint8_t *)(HWC_ADC_ADDRESS + \
