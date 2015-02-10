@@ -361,9 +361,8 @@ int ipr_reassemble(ipr_instance_handle_t instance_handle)
 	struct ipr_instance instance_params;
 	struct scope_status_params scope_status;
 	struct table_lookup_result lookup_result;
-	/* todo rule should be aligned to 16 bytes */
-	struct table_rule rule;
-	struct	presentation_context *prc =
+	struct table_rule rule __attribute__((aligned(16)));
+	struct presentation_context *prc =
 				(struct presentation_context *) HWC_PRC_ADDRESS;
 
 	iphdr_offset = (uint16_t)PARSER_GET_OUTER_IP_OFFSET_DEFAULT();
