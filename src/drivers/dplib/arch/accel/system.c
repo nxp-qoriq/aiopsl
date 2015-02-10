@@ -283,7 +283,9 @@ int aiop_sl_init(void)
 	if (status)
 		return status; /* TODO */
 
-	status = aiop_snic_init();	
+#ifdef BU_FIX
+	status = aiop_snic_init();
+#endif
 	return status;
 #endif	
 #endif
