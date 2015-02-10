@@ -1101,14 +1101,18 @@ int ipsec_add_sa_descriptor(
 		
 	desc_addr = IPSEC_DESC_ADDR(*ipsec_handle);
 	
-	/* Create a copy of the authentication key in the local buffer */
-	ipsec_create_key_copy(
+	/* If the authentication key length is not 0, 
+	 * create a copy of the authentication key in the local buffer 
+	 * (this is a hot fix to ENGR347826, later versions are optimized)*/
+	if (params->authdata.keylen) {
+		ipsec_create_key_copy(
 			params->authdata.key, /* Source Key Address */
 			IPSEC_KEY_SEGMENT_ADDR(desc_addr), /* Destination Key Address */
 			(uint16_t)params->authdata.keylen);   /* Length of the provided key, in bytes */
 	
-	/* Now switch the original key address with the copy address */
-	params->authdata.key = IPSEC_KEY_SEGMENT_ADDR(desc_addr);
+		/* Now switch the original key address with the copy address */
+		params->authdata.key = IPSEC_KEY_SEGMENT_ADDR(desc_addr);
+	}
 	
 	/* Build a shared descriptor with the RTA library */
 	/* Then store it in the memory with CDMA */

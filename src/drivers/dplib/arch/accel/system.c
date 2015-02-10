@@ -62,10 +62,8 @@ extern void tman_timer_callback(void);
 
 extern void tman_timer_callback(void);
 extern int ipr_init(void);
-#ifndef CDC_ROC
 extern int aiop_snic_init(void);
 extern void aiop_snic_free(void);
-#endif
 
 #define WRKS_REGS_GET \
 	(sys_get_memory_mapped_module_base(FSL_OS_MOD_CMGW,                 \
@@ -160,7 +158,6 @@ __COLD_CODE int aiop_sl_early_init(void){
 int aiop_sl_init(void)
 {
 	int32_t status = 0;
-	uint16_t icid;
 
 #ifdef AIOP_VERIF
 	/* TMAN EPID Init params*/
@@ -174,12 +171,9 @@ int aiop_sl_init(void)
 
 	/* initialize profile sram */
 
-	/* TEMP FIX: MC-ARENA DO NOT COMMUNICATE */
-#ifndef AIOP_VERIF /* No DPNI */
+#ifdef AIOP_VERIF
 	/* Storage Profile 0 - Default Storage Profile */
-	icid  = 0x0100;
-	//storage_profile[0].ip_secific_sp_info = 0;
-	storage_profile[0].ip_secific_sp_info = ((uint64_t)icid) << 48;
+	storage_profile[0].ip_secific_sp_info = 0;
 	storage_profile[0].dl = 0;
 	storage_profile[0].reserved = 0;
 	/* 0x0080 --> 0x8000 (little endian) */
@@ -205,8 +199,7 @@ int aiop_sl_init(void)
 	storage_profile[0].bpid4 = 0x0000;
 	
 	/* Storage Profile 1 */
-	//storage_profile[1].ip_secific_sp_info = 0;
-	storage_profile[1].ip_secific_sp_info = ((uint64_t)icid) << 48;
+	storage_profile[1].ip_secific_sp_info = 0;
 	storage_profile[1].dl = 0;
 	storage_profile[1].reserved = 0;
 	/* 0x0080 --> 0x8000 (little endian) */
@@ -231,14 +224,11 @@ int aiop_sl_init(void)
 	storage_profile[1].pbs4 = 0x0000;
 	storage_profile[1].bpid4 = 0x0000;
 
-#endif
-	
-#ifdef AIOP_VERIF
 	time_cmgw_regs = (struct aiop_cmgw_regs*) &(aiop_regs->cmgw_regs);
 	time_get_func_ptr = _get_time_fast;
+
+
 #endif
-
-
 
 
 /* TODO - remove the AIOP_VERIF section when verification env will include
@@ -271,11 +261,11 @@ int aiop_sl_init(void)
 	table_workaround_tkt226361(4,4,4);
 #else
 
-	table_workaround_tkt226361(g_init_data.app_info.mflu_peb_num_entries,
+	/*table_workaround_tkt226361(g_init_data.app_info.mflu_peb_num_entries,
 				   g_init_data.app_info.
 					mflu_dp_ddr_num_entries,
 				   g_init_data.app_info.
-					mflu_sys_ddr_num_entries);
+					mflu_sys_ddr_num_entries);*/
 #endif
 /********************************************************/
 /* WA TKT226361 END (MFLU) - TODO remove for non Rev1 */
@@ -290,15 +280,13 @@ int aiop_sl_init(void)
 	sys_keyid_pool_create();
 #ifndef NO_DP_DDR
 	status = ipr_init();
-#ifndef CDC_ROC
 	if (status)
 		return status; /* TODO */
 
-#ifdef MC_PORTAL_FIX
-	status = aiop_snic_init();	
+#ifdef BU_FIX
+	status = aiop_snic_init();
 #endif
 	return status;
-#endif /*MC_PORTAL_FIX*/
 #endif	
 #endif
 	return 0;
@@ -320,10 +308,8 @@ void aiop_sl_free(void)
 	keygen_kcr_delete(KEYGEN_ACCEL_ID_CTLU,
 			ipr_global_parameters1.ipr_key_id_ipv6);
 #ifndef NO_DP_DDR
-#ifndef CDC_ROC
 	aiop_snic_free();
 #endif	
-#endif
 #endif
 
 	/* TODO status ? */

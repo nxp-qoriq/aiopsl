@@ -79,14 +79,13 @@ extern void build_apps_array(struct sys_module_desc *apps);
 		MEMORY_ATTR_NONE,"MC Portals"},\
 	{MEM_PART_CCSR,                      0xFFFFFFFF,  0xFFFFFFFF, (64 * MEGABYTE),\
 		MEMORY_ATTR_NONE,"SoC CCSR"  },\
-	{MEM_PART_SH_RAM,                    0x01010400,   0x01010400,(191 * KILOBYTE),\
+	{MEM_PART_SH_RAM,                    0x01010800,   0x01010800,(190 * KILOBYTE),\
 		MEMORY_ATTR_MALLOCABLE,"Shared-SRAM"},\
 	{MEM_PART_PEB,                        0xFFFFFFFF,  0xFFFFFFFF,0xFFFFFFFF,\
 		MEMORY_ATTR_PHYS_ALLOCATION,"PEB"},\
 	{MEM_PART_SYSTEM_DDR,                 0xFFFFFFFF,  0xFFFFFFFF,0xFFFFFFFF,\
 		MEMORY_ATTR_PHYS_ALLOCATION,"SYSTEM_DDR"},\
 }
-#ifdef MC_PORTAL_FIX
 
 #define GLOBAL_MODULES                                                       \
 	{    /* slab must be before any module with buffer request*/             \
@@ -101,21 +100,7 @@ extern void build_apps_array(struct sys_module_desc *apps);
 	{NULL, dpni_drv_init,     dpni_drv_free}, /*must be after aiop_sl_init*/ \
 	{NULL, NULL, NULL} /* never remove! */                                   \
 	}
-#else
-#define GLOBAL_MODULES                                                       \
-	{    /* slab must be before any module with buffer request*/             \
-	{icontext_init, NULL, NULL},                                             \
-	{NULL, time_init,         time_free},                                    \
-	{NULL, NULL,   NULL},                                \
-	{NULL, NULL,   NULL},                                  \
-	{slab_module_early_init, slab_module_init,  slab_module_free},           \
-	{NULL, NULL, NULL}, /* must be before srv */   \
-	{NULL, NULL,   NULL},                               \
-	{aiop_sl_early_init, aiop_sl_init,      aiop_sl_free},                                 \
-	{NULL, NULL,  NULL}, /*must be after aiop_sl_init*/ \
-	{NULL, NULL, NULL} /* never remove! */                                   \
-	}
-#endif
+
 void fill_platform_parameters(struct platform_param *platform_param);
 int global_init(void);
 void global_free(void);
@@ -144,7 +129,7 @@ __COLD_CODE void fill_platform_parameters(struct platform_param *platform_param)
 	platform_param->clock_in_freq_khz = g_init_data.sl_info.sys_clk; //TODO check value
 	platform_param->l1_cache_mode = E_CACHE_MODE_INST_ONLY;
 	platform_param->console_type = PLTFRM_CONSOLE_DUART;
-	platform_param->console_id = (uint8_t)g_init_data.sl_info.uart_port_id;
+	platform_param->console_id = 4;//(uint8_t)g_init_data.sl_info.uart_port_id;
 
 	if(platform_param->clock_in_freq_khz == 0)
 	{
@@ -392,7 +377,7 @@ __COLD_CODE int run_apps(void)
 	if(apps == NULL) {
 		return -ENOMEM;
 	}
-#ifdef MC_PORTAL_FIX
+
 	/* TODO - add initialization of global default DP-IO (i.e. call 'dpio_open', 'dpio_init');
 	 * This should be mapped to ALL cores of AIOP and to ALL the tasks */
 	/* TODO - add initialization of global default DP-SP (i.e. call 'dpsp_open', 'dpsp_init');
@@ -461,8 +446,6 @@ __COLD_CODE int run_apps(void)
 			return err;
 		}
 
-#ifndef CDC_ROC
-
 		if ((err = bman_fill_bpid(num_buffs,
 		                          buffer_size,
 		                          alignment,
@@ -472,7 +455,6 @@ __COLD_CODE int run_apps(void)
 			       dpbp_id[i], attr.bpid, buffer_size);
 			return err;
 		}
-#endif
 
 		/* Prepare parameters to attach to DPNI object */
 		pools_params[i].num_dpbp = 1; /* for AIOP, can be up to 2 */
@@ -496,7 +478,7 @@ __COLD_CODE int run_apps(void)
 
 
 
-#endif
+
 	memset(apps, 0, (app_arr_size * sizeof(struct sys_module_desc)));
 	build_apps_array(apps);
 
