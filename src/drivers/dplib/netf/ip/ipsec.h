@@ -229,6 +229,9 @@ enum rta_param_type {
 
 #define IPSEC_SA_DESC_BUF_SIZE 768 /* SA descriptor buffer size */
 #define IPSEC_SA_DESC_BUF_ALIGN 64 /* SA descriptor alignment */
+#define IPSEC_BUF_META_DATA_SIZE 8
+#define IPSEC_ALIGN_OFFSET IPSEC_SA_DESC_BUF_ALIGN - IPSEC_BUF_META_DATA_SIZE
+	/* The slab buffer handle alignment is at requested alignment + meta-data */
 #define IPSEC_MAX_NUM_OF_TASKS 256 /* Total maximum number of tasks in AIOP */
 #define IPSEC_MEM_PARTITION_ID MEM_PART_DP_DDR
 					/* Memory partition ID */
@@ -250,8 +253,13 @@ enum rta_param_type {
 #define IPSEC_DESC_ALIGN(ADDRESS) \
 	IPSEC_ALIGN_64((ADDRESS), IPSEC_SA_DESC_BUF_ALIGN)
 
-/* Aligned Descriptor Address (parameters area start) */
-#define IPSEC_DESC_ADDR(ADDRESS) IPSEC_DESC_ALIGN(ADDRESS)
+/* The IPsec data structure should be aligned to 64 bytes (for CAAM) */
+#if (IPSEC_SA_DESC_BUF_ALIGN != 64)
+	/* Aligned Descriptor Address (parameters area start) */
+	#define IPSEC_DESC_ADDR(ADDRESS) IPSEC_DESC_ALIGN(ADDRESS)
+#else
+	#define IPSEC_DESC_ADDR(ADDRESS) (ADDRESS + IPSEC_ALIGN_OFFSET)
+#endif
 
 /* Flow Context Address */
 #define IPSEC_FLC_ADDR(ADDRESS) ((ADDRESS) + IPSEC_INTERNAL_PARMS_SIZE)

@@ -128,7 +128,7 @@ int ipsec_create_instance (
 	return_val = slab_find_and_reserve_bpid(
 			(committed_sa_num + 1), /* uint32_t num_buffs */
 			IPSEC_SA_DESC_BUF_SIZE, /* uint16_t buff_size */
-			1, /* uint16_t alignment = 1, i.e. no alignment requirements */ 
+			IPSEC_SA_DESC_BUF_ALIGN, /* uint16_t alignment */ 
 			IPSEC_MEM_PARTITION_ID, /* TODO: TMP. uint8_t  mem_partition_id */
             NULL, /*NULL*/
             &(instance.desc_bpid)); /* uint16_t *bpid */
@@ -1205,10 +1205,7 @@ int ipsec_del_sa_descriptor(
 	/* Read the instance handle from params area */
 	cdma_read(
 			&instance_handle, /* void *ws_dst */
-			//(ipsec_handle + (offsetof(struct ipsec_sa_params_part1,
-			//(desc_addr + (offsetof(struct ipsec_sa_params_part1,
-			//		 instance_handle))), /* uint64_t ext_address */
-			IPSEC_INSTANCE_HANDLE_ADDR(desc_addr),		 
+			IPSEC_INSTANCE_HANDLE_ADDR(desc_addr),
 			sizeof(instance_handle) /* uint16_t size */
 			);
 	
