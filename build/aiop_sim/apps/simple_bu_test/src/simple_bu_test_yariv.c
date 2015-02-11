@@ -69,17 +69,18 @@ extern __PROFILE_SRAM struct storage_profile storage_profile[SP_NUM_OF_STORAGE_P
 int simple_bu_yariv_test(void)
 {
 	int        err  = 0;
-	uint64_t tmi_mem_base_addr;
-	struct ipr_params ipr_demo_params;
 	ipr_instance_handle_t ipr_instance = 0;
 	ipr_instance_handle_t *ipr_instance_ptr = &ipr_instance;
-	struct ipr_instance	ipr_instance_read;
 	struct slab *slab_handle = NULL;
 	uint8_t prpid;
 	uint64_t cipher_key_addr;
 	uint8_t cipher_key[16] = {11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26};
 	uint8_t cipher_key_read[16];
 	int i;
+	uint8_t new_l2_dst[6] = {0x0a,0x0b,0x0c,0x0d,0x0e,0x0f};
+	uint8_t new_l2_src[6] = {0x1a,0x1b,0x1c,0x1d,0x1e,0x1f};
+	uint32_t ref_cnt_val = 0xFF;
+	uint32_t expected_ref_cnt_val;
 	
 	fsl_os_print("Running simple bring-up test\n");
 	
@@ -89,63 +90,6 @@ int simple_bu_yariv_test(void)
 	default_task_params.parser_profile_id = prpid;
 	default_task_params.parser_starting_hxs = 0;
 
-	ipr_demo_params.max_open_frames_ipv4 = 0x10;
-	ipr_demo_params.max_open_frames_ipv6 = 0x10;
-	ipr_demo_params.max_reass_frm_size = 0xf000;
-	ipr_demo_params.min_frag_size_ipv4 = 0x40;
-	ipr_demo_params.min_frag_size_ipv6 = 0x40;
-	ipr_demo_params.timeout_value_ipv4 = 0xffe0;
-	ipr_demo_params.timeout_value_ipv6 = 0xffe0;
-	ipr_demo_params.ipv4_timeout_cb = ipr_timout_cb;
-	ipr_demo_params.ipv6_timeout_cb = ipr_timout_cb;
-	ipr_demo_params.cb_timeout_ipv4_arg = 0x66;
-	ipr_demo_params.cb_timeout_ipv6_arg = 0x66;
-	ipr_demo_params.flags = IPR_MODE_TABLE_LOCATION_PEB;
-	fsl_os_get_mem( 0x20*64, MEM_PART_DP_DDR, 64, &tmi_mem_base_addr);
-
-	//tman_create_tmi(tmi_mem_base_addr , 0x20, &ipr_demo_params.tmi_id);
-
-	fsl_os_print("bring-up test: Creating IPR instance\n");
-	err = ipr_create_instance(&ipr_demo_params, ipr_instance_ptr);
-	if (err)
-	{
-		fsl_os_print("ERROR: ipr_create_instance() failed %d\n",err);
-		return err;
-	}
-	
-	/* cdma read the data and check if it is correct */
-	cdma_read(&ipr_instance_read, ipr_instance, IPR_INSTANCE_SIZE);
-	if (ipr_instance_read.extended_stats_addr != ipr_demo_params.extended_stats_addr)
-		err = -EINVAL;
-
-	if (ipr_instance_read.max_reass_frm_size != ipr_demo_params.max_reass_frm_size)
-		err = -EINVAL;
-	if (ipr_instance_read.min_frag_size_ipv4 != ipr_demo_params.min_frag_size_ipv4)
-			err = -EINVAL;
-	if (ipr_instance_read.min_frag_size_ipv6 != ipr_demo_params.min_frag_size_ipv6)
-			err = -EINVAL;
-	if (ipr_instance_read.timeout_value_ipv4 != ipr_demo_params.timeout_value_ipv4)
-			err = -EINVAL;
-	if (ipr_instance_read.timeout_value_ipv6 != ipr_demo_params.timeout_value_ipv6)
-			err = -EINVAL;
-	if (ipr_instance_read.ipv4_timeout_cb != ipr_demo_params.ipv4_timeout_cb)
-			err = -EINVAL;
-	if (ipr_instance_read.ipv6_timeout_cb != ipr_demo_params.ipv6_timeout_cb)
-			err = -EINVAL;
-	if (ipr_instance_read.cb_timeout_ipv4_arg != ipr_demo_params.cb_timeout_ipv4_arg)
-			err = -EINVAL;
-	if (ipr_instance_read.cb_timeout_ipv6_arg != ipr_demo_params.cb_timeout_ipv6_arg)
-			err = -EINVAL;
-	if (ipr_instance_read.tmi_id != ipr_demo_params.tmi_id)
-			err = -EINVAL;
-
-	if (err)
-	{
-		fsl_os_print("ERROR:ipr instance was not read successfully\n");
-		return err;
-	}
-	else
-		fsl_os_print("Simple BU Test: ipr instance was  read successfully\n");
 	
 	/* Allocate buffers for the Keys */
 	err = slab_create(
@@ -182,11 +126,11 @@ int simple_bu_yariv_test(void)
 			err = -EINVAL;
 	if (err)
 	{
-		fsl_os_print("ERROR: key info was not read successfully\n");
+		fsl_os_print("ERROR: CDMA read mismatch\n");
 		return err;
 	}
 	else
-		fsl_os_print("Simple BU Test: IPsec key was  read successfully\n");
+		fsl_os_print("Simple BU Test: CDMA read successfully\n");
 
 	// run create_frame on default frame
 	{
@@ -222,13 +166,13 @@ int simple_bu_yariv_test(void)
 
 		uint8_t frame_handle;
 		uint32_t vlan = 0x8100aabb;
-		int parse_status;
-		uint8_t *frame_presented;
-		uint8_t *seg_addr;
+		//int parse_status;
+		//uint8_t *frame_presented;
+		//uint8_t *seg_addr;
 		struct fdma_amq amq;
 		uint16_t icid, flags = 0;
 		uint8_t tmp;
-		uint32_t frame_length;
+		//uint32_t frame_length;
 		/* setting SPID = 0 */
 		*((uint8_t *)HWC_SPID_ADDRESS) = 0;
 		icid = (uint16_t)(storage_profile[0].ip_secific_sp_info >> 48);
@@ -272,134 +216,117 @@ int simple_bu_yariv_test(void)
 			fsl_os_print("parse results arg %d: 0x%x \n", i, *((uint32_t *)(0x80)+i));
 		
 		
-		fdma_close_default_segment();
-		err = fdma_present_default_frame_segment(FDMA_PRES_NO_FLAGS, (void *)0x180, 0, 256);
-		fsl_os_print("STATUS: fdma present default segment returned status is %d\n", err);
-		l2_push_and_set_vlan(vlan);
-		
-		frame_length = PRC_GET_SEGMENT_LENGTH();
-		seg_addr = (uint8_t *)PRC_GET_SEGMENT_ADDRESS();
-		
-		fsl_os_print("frame length is 0x%x\n", frame_length);
-		for (i=0; i<frame_length ; i++)
-			fsl_os_print("frame read byte %d is %x\n", i, seg_addr[i]);
+				
+		/* Header Modification L2 DST/SRC set Test */ 
 
-		parse_result_generate(PARSER_ETH_STARTING_HXS, 0, PARSER_NO_FLAGS);
+		fsl_os_print("\nTesting l2_set_dl_dst\n");
 		
-		fsl_os_print("parse result after create frame - \n");
-		
-		fsl_os_print("ethernet offset %d %x\n", 
-					PARSER_IS_ETH_MAC_DEFAULT(), PARSER_GET_ETH_OFFSET_DEFAULT());
-		
-		fsl_os_print("vlan offset %d %x\n",
-					PARSER_IS_ONE_VLAN_DEFAULT(), PARSER_GET_FIRST_VLAN_TCI_OFFSET_DEFAULT());
-		
-		fsl_os_print("ipv4 offset %d %x\n", 
-					PARSER_IS_IP_DEFAULT(), PARSER_GET_OUTER_IP_OFFSET_DEFAULT());
-		
-		fsl_os_print("udp offset %d %x\n", 
-					PARSER_IS_UDP_DEFAULT(), PARSER_GET_L4_OFFSET_DEFAULT());
-		fsl_os_print(" FD length (by SW) is : 0x%x \n", LDPAA_FD_GET_LENGTH(HWC_FD_ADDRESS));
-
-		LDPAA_FD_SET_LENGTH(HWC_FD_ADDRESS, 0);
-		fsl_os_print(" FD length (after SW zeroing it) is : 0x%x \n", LDPAA_FD_GET_LENGTH(HWC_FD_ADDRESS));
-		err = fdma_store_default_frame_data();
-		if (err)
-			fsl_os_print("ERROR: fdma store default frame returned error is %d\n", err);
-		
-		for (i=0; i<8 ; i++)
-			fsl_os_print("FD content arg %d is %x\n", i, *((uint32_t *)(0x60 + i*4)));
-		
-		fsl_os_print(" FD length is : 0x%x \n", LDPAA_FD_GET_LENGTH(HWC_FD_ADDRESS));
-		fsl_os_print(" FD address LSB is : 0x%x \n", LDPAA_FD_GET_ADDR(HWC_FD_ADDRESS));
-		fsl_os_print(" FD address MSB is : 0x%x \n", ((uint64_t)LDPAA_FD_GET_ADDR(HWC_FD_ADDRESS)) >> 32);
-
-		err = fdma_present_default_frame();
-		if (err < 0)
-			fsl_os_print("ERROR: fdma present default frame returned error is %d\n", err);
-		else
-			if (err)
-				fsl_os_print("STATUS: fdma present default frame returned status is %d\n", err);
-		parse_status = parse_result_generate_default(PARSER_NO_FLAGS);
-		if (parse_status)
-		{
-			fsl_os_print("ERROR: parser failed for simple BU test!\n");
-			fdma_discard_default_frame(FDMA_DIS_NO_FLAGS);
+		err = 0;
+		fsl_os_print("Original L2 dest = ");
+		for (i=0; i<6 ; i++) {
+			fsl_os_print("0x%x", *((uint8_t *)PARSER_GET_ETH_POINTER_DEFAULT() + (uint8_t)i));
 		}
-		/* check frame presented */
-		frame_presented = (uint8_t *)PRC_GET_SEGMENT_ADDRESS();
-		frame_length = LDPAA_FD_GET_LENGTH(HWC_FD_ADDRESS);
-		fsl_os_print("actual frame length is 0x%x\n", frame_length);
-		for (i=0; i<frame_length ; i++)
-			fsl_os_print("actual frame read byte %d is %x\n", i, frame_presented[i]);
+		fsl_os_print("\n");
 		
-		for (i=0; i<(FRAME_SIZE+4); i++)
-			if (*(frame_presented+i) != frame_data_read[i])
-				err = -EINVAL;
-		if (err)
-		{
-			fsl_os_print("Simple BU ERROR: frame data after HM is not correct\n");
-			fdma_discard_default_frame(FDMA_DIS_NO_FLAGS);
-			return err;
+		l2_set_dl_dst(new_l2_dst); /* (uint8_t *dst_addr) */
+		
+		fsl_os_print("New L2 dest = ");
+		for (i=0; i<6 ; i++) {
+			fsl_os_print("0x%x", *((uint8_t *)PARSER_GET_ETH_POINTER_DEFAULT() + (uint8_t)i));
+			if (*((uint8_t *)PARSER_GET_ETH_POINTER_DEFAULT() + (uint8_t)i) != new_l2_dst[i]) {
+				err = 1;
+				fsl_os_print("\nERROR: L2 DST mismatch = 0x%x\n");
+			}
 		}
-		else {
-			fsl_os_print("**************************************************\n");
-			fsl_os_print("Simple BU Test: fdma frame after HM is correct !!!\n");
-			fsl_os_print("**************************************************\n");
+		fsl_os_print("\n");
+		
+		fsl_os_print("\nTesting l2_set_dl_src\n");
+		fsl_os_print("Original L2 src = ");
+		for (i=0; i<6 ; i++) {
+			fsl_os_print("0x%x", *((uint8_t *)PARSER_GET_ETH_POINTER_DEFAULT() + (uint8_t)i + 6));
+		}
+		fsl_os_print("\n");
+		
+		l2_set_dl_src(new_l2_src); /* uint8_t *src_addr */
+
+		fsl_os_print("New L2 src = ");
+		for (i=0; i<6 ; i++) {
+			fsl_os_print("0x%x", *((uint8_t *)PARSER_GET_ETH_POINTER_DEFAULT() + (uint8_t)i + 6));
+			if (*((uint8_t *)PARSER_GET_ETH_POINTER_DEFAULT() + (uint8_t)i + 6) != new_l2_src[i]) {
+				err = 1;
+				fsl_os_print("\nERROR: L2 SRC mismatch = 0x%x\n");
+			}
+		}
+		fsl_os_print("\n");
+		
+		if (err) {
+			fsl_os_print("ERROR:  Header Modification L2 DST/SRC set test failed \n");
+		} else {
+			fsl_os_print("Header Modification L2 DST/SRC set test PASSED :-)\n");
 		}
 		
-		test_fdma_copy_data();
-		
-		/* CTLU */
-		{
-			struct table_rule rule __attribute__((aligned(16)));
-			uint8_t	 keysize;
-			int sr_status;
-			struct table_lookup_result lookup_result;
-			
-			rule.options = 0;
-			rule.result.type = TABLE_RESULT_TYPE_REFERENCE;
-			rule.result.op0_rptr_clp.reference_pointer = 0x12345678;
-			
-			sr_status = keygen_gen_key(
-				KEYGEN_ACCEL_ID_CTLU,
-				ipr_global_parameters1.ipr_key_id_ipv4,
-				0,
-				&rule.key_desc,
-				&keysize);
-			if (sr_status)
-				fsl_os_print("Simple BU ERROR: keygen_gen_key failed!\n");
-			
-			for (i=0; i<11; i++)
-				fsl_os_print("Generated Key byte %d 0x%x\n", i, rule.key_desc.em.key[i]);
-			
-			sr_status = table_rule_create(
-					TABLE_ACCEL_ID_CTLU,
-					ipr_instance_read.table_id_ipv4,
-					&rule,
-					keysize);
-			
-			if (sr_status)
-				fsl_os_print("Simple BU ERROR: rule create failed!\n");
+		/* End of Header Modification L2 DST/SRC set Test */ 
 
-			sr_status = table_lookup_by_keyid_default_frame(
-				TABLE_ACCEL_ID_CTLU,
-				ipr_instance_read.table_id_ipv4,
-				ipr_global_parameters1.ipr_key_id_ipv4,
-				&lookup_result);
-			
-			if (sr_status)
-				fsl_os_print("Simple BU ERROR: table_lookup_by_keyid_default_frame failed!\n");
-			
-			if (lookup_result.opaque0_or_reference != 0x12345678)
-				fsl_os_print("Simple BU ERROR: table LU failed!\n");
-			else
-				fsl_os_print("Simple BU table LU success!!!\n");
+		
+		/* CDMA Reference Count Increment/Decrement Test */ 
+		err = 0;
+		fsl_os_print("\nTesting CDMA Reference Count Increment/Decrement\n");
+		
+		/* Using the "cipher_key_addr" buffer which was allocated earlier */
+		
+		cdma_refcount_get(
+				cipher_key_addr, /* uint64_t context_address */
+				&expected_ref_cnt_val); /* uint32_t *refcount_value) */
+				
+		fsl_os_print("Original Ref count value = %d\n", expected_ref_cnt_val);
+
+		/* Increment Twice */
+		cdma_refcount_increment(cipher_key_addr); /* uint64_t context_address) */
+		cdma_refcount_increment(cipher_key_addr); /* uint64_t context_address) */
+		
+		expected_ref_cnt_val = expected_ref_cnt_val + 2;
+		
+		cdma_refcount_get(
+				cipher_key_addr, /* uint64_t context_address */
+				&ref_cnt_val); /* uint32_t *refcount_value) */
+				
+		fsl_os_print("Ref count value after 2 increments = %d\n", ref_cnt_val);
+		if (ref_cnt_val != expected_ref_cnt_val) {
+			err = 1;
+			fsl_os_print("ERROR: expected Ref count value after 2 increments = %d\n",
+					expected_ref_cnt_val);
 		}
+		
+		cdma_refcount_decrement(cipher_key_addr); /* uint64_t context_address) */
+		
+		expected_ref_cnt_val = expected_ref_cnt_val - 1;
+
+		cdma_refcount_get(
+				cipher_key_addr, /* uint64_t context_address */
+				&ref_cnt_val); /* uint32_t *refcount_value) */
+		
+		fsl_os_print("Ref count value after 1 decrement = %d\n", ref_cnt_val);
+		if (ref_cnt_val != expected_ref_cnt_val) {
+			err = 1;
+			fsl_os_print("ERROR: expected Ref count value after 1 decrement = %d\n",
+					expected_ref_cnt_val);
+		}
+		
+		if (err) {
+			fsl_os_print("ERROR: Ref count test failed \n");
+		} else {
+			fsl_os_print("Ref count test PASSED :-)\n");
+
+		}
+		/* End of CDMA Reference Count Increment/Decrement Test */ 
 		
 		fdma_discard_default_frame(FDMA_DIS_NO_FLAGS);
 	}
-	fsl_os_print("Simple bring-up test completed successfully\n");
+	
+	if (!err) {
+		fsl_os_print("Simple bring-up test completed successfully\n");
+	}
+	
 	return 0;
 }
 
