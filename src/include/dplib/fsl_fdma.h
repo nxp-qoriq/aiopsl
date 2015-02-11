@@ -914,7 +914,8 @@ struct fdma_delete_segment_data_params {
 		frame from scratch (without a presented frame). In this case
 		the fd address parameter must point to a null FD (all 0x0) in
 		the workspace, and an empty segment must be allocated (of size
-		0).
+		0). Due to PDM TKT254401 this option can work only on the 
+		default frame.
 
 		Implicitly updated values in Task Defaults:  frame handle,
 		segment handle.
@@ -953,7 +954,8 @@ int fdma_present_default_frame(void);
 		frame from scratch (without a presented frame). In this case
 		the fd address parameter must point to a null FD (all 0x0) in
 		the workspace, and an empty segment must be allocated (of size
-		0).
+		0). Due to PDM TKT254401 this option can work only on the 
+		default frame.
 
 		In case the fd destination parameter points to the default FD
 		address, the service routine will update Task defaults variables
