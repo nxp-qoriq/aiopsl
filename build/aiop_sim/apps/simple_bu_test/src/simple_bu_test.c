@@ -131,6 +131,8 @@ int app_init(void)
 	uint8_t cipher_key[16] = {11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26};
 	uint8_t cipher_key_read[16];
 	int i;
+	uint8_t new_l2_dst[6] = {0x0a,0x0b,0x0c,0x0d,0x0e,0x0f};
+	uint8_t new_l2_src[6] = {0x1a,0x1b,0x1c,0x1d,0x1e,0x1f};
 	
 	fsl_os_print("Running simple bring-up test\n");
 	
@@ -436,8 +438,44 @@ int app_init(void)
 				fsl_os_print("Simple BU table LU success!!!\n");
 		}
 		
+
+		fsl_os_print("\nTesting l2_set_dl_dst\n");
+		
+		fsl_os_print("Original L2 dest = ");
+		for (i=0; i<6 ; i++) {
+			fsl_os_print("0x%x", *((uint8_t *)PARSER_GET_ETH_POINTER_DEFAULT() + (uint8_t)i));
+		}
+		fsl_os_print("\n");
+		
+		l2_set_dl_dst(new_l2_dst); /* (uint8_t *dst_addr) */
+		
+		fsl_os_print("New L2 dest = ");
+		for (i=0; i<6 ; i++) {
+			fsl_os_print("0x%x", *((uint8_t *)PARSER_GET_ETH_POINTER_DEFAULT() + (uint8_t)i));
+		}
+		fsl_os_print("\n");
+		
+		fsl_os_print("\nTesting l2_set_dl_src\n");
+		fsl_os_print("Original L2 src = ");
+		for (i=0; i<6 ; i++) {
+			fsl_os_print("0x%x", *((uint8_t *)PARSER_GET_ETH_POINTER_DEFAULT() + (uint8_t)i + 6));
+		}
+		fsl_os_print("\n");
+		
+		l2_set_dl_src(new_l2_src); /* uint8_t *src_addr */
+
+		fsl_os_print("New L2 src = ");
+		for (i=0; i<6 ; i++) {
+			fsl_os_print("0x%x", *((uint8_t *)PARSER_GET_ETH_POINTER_DEFAULT() + (uint8_t)i + 6));
+		}
+		fsl_os_print("\n");
+		
 		fdma_discard_default_frame(FDMA_DIS_NO_FLAGS);
 	}
+	
+	
+	
+	
 	fsl_os_print("Simple bring-up test completed successfully\n");
 	return 0;
 }
