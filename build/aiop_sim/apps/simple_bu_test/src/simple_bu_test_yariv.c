@@ -249,7 +249,7 @@ int simple_bu_yariv_test(void)
 			fsl_os_print("storage profile arg %d: 0x%x \n", i, *((uint32_t *)(&(storage_profile[0]))+i));
 		
 		
-		err = create_default_frame_wa(fd, frame_data, FRAME_SIZE, &frame_handle);
+		err = create_frame(fd, frame_data, FRAME_SIZE, &frame_handle);
 		if (err)
 			fsl_os_print("ERROR: create frame failed!\n");
 

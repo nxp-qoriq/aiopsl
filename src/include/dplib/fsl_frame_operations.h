@@ -114,6 +114,8 @@
 		this is the default frame).
 		Recommendation is to discard the frame.
 
+@Cautions	Due to PDM TKT254401 this function can work only on the default 
+		frame.
 @Cautions	In this Service Routine the task yields.
 @Cautions	The FD address in workspace must be aligned to 32 bytes.
 @Cautions	The frame FD is overwritten in this function.

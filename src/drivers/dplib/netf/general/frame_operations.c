@@ -40,6 +40,12 @@
 #include "net/fsl_net.h"
 #include "header_modification.h"
 
+extern __PROFILE_SRAM struct storage_profile 
+		storage_profile[SP_NUM_OF_STORAGE_PROFILES];
+
+#define SP_BDI_MASK     0x00080000
+#define SP_BP_PBS_MASK  0x3FFF
+
 int create_frame(
 		struct ldpaa_fd *fd,
 		void *data,
@@ -50,7 +56,24 @@ int create_frame(
 	struct fdma_insert_segment_data_params insert_params;
 	struct parse_result *pr = (struct parse_result *)HWC_PARSE_RES_ADDRESS;
 	int32_t status;
-
+#ifndef REV2
+	uint64_t fd_addr;
+	uint16_t icid, bpid;
+	uint32_t flags;
+	struct storage_profile *sp;
+	uint16_t *ws_address_rs;
+	uint16_t seg_size_rs;
+	
+	sp = &storage_profile[*((uint8_t *)HWC_SPID_ADDRESS)];
+	icid = LH_SWAP(0, (uint16_t *)&(sp->ip_secific_sp_info)) & ADC_ICID_MASK;
+	flags = (LW_SWAP(0, (uint32_t *)&(sp->ip_secific_sp_info)) & SP_BDI_MASK) ? FDMA_ACQUIRE_BDI_BIT : 0;
+	bpid = LH_SWAP(0, &(sp->bpid1)) & SP_BP_PBS_MASK;
+	fdma_acquire_buffer(icid, flags, bpid, &fd_addr);
+	
+	fsl_os_print("Simple BU : fdma_acquire_buffer parameters: icid = %d, "
+			"flags = %x, bpid = %d, fd_addr = %I64d\n",
+			icid, flags, bpid, fd_addr);
+#endif	
 	/* *fd = {0};*/
 	fd->addr = 0;
 	fd->control = 0;
@@ -58,11 +81,19 @@ int create_frame(
 	fd->frc = 0;
 	fd->length = 0;
 	fd->offset = 0;
+#ifndef REV2	
+	LDPAA_FD_SET_ADDR(fd, fd_addr);
+	LDPAA_FD_SET_LENGTH(fd, 1);
+#endif	
 
 	if ((uint32_t)fd == HWC_FD_ADDRESS) {
 		PRC_SET_ASA_SIZE(0);
 		PRC_SET_PTA_ADDRESS(PRC_PTA_NOT_LOADED_ADDRESS);
+#ifdef REV2		
 		PRC_SET_SEGMENT_LENGTH(0);
+#else
+		PRC_SET_SEGMENT_LENGTH(1);
+#endif
 		PRC_SET_SEGMENT_OFFSET(0);
 		PRC_SET_SEGMENT_ADDRESS((uint32_t)TLS_SECTION_END_ADDR +
 						DEFAULT_SEGMENT_HEADROOM_SIZE);
@@ -77,8 +108,22 @@ int create_frame(
 			PRC_SET_SEGMENT_LENGTH(DEFAULT_SEGMENT_SIZE);
 		else
 			PRC_SET_SEGMENT_LENGTH(size);
+#ifdef REV2
 		fdma_insert_default_segment_data(0, data, size,
 				FDMA_REPLACE_SA_REPRESENT_BIT);
+#else		
+		ws_address_rs = (void *) PRC_GET_SEGMENT_ADDRESS();
+		seg_size_rs = PRC_GET_SEGMENT_LENGTH();
+		if ((PRC_GET_SEGMENT_ADDRESS() - (uint32_t)TLS_SECTION_END_ADDR)
+				>= size){
+			ws_address_rs = (void *)
+				((uint32_t)ws_address_rs - size);
+			seg_size_rs = seg_size_rs + size;
+		}
+		fdma_replace_default_segment_data(0, 1, data, size, 
+				ws_address_rs, seg_size_rs, 
+				FDMA_REPLACE_SA_REPRESENT_BIT);
+#endif
 		/* Re-run parser */
 		status = parse_result_generate_default(0);
 		/* Mark running sum as invalid */

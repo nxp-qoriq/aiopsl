@@ -248,7 +248,7 @@ int simple_bu_gal_test(void)
 			fsl_os_print("storage profile arg %d: 0x%x \n", i, *((uint32_t *)(&(storage_profile[0]))+i));
 		
 		
-		err = create_default_frame_wa(fd, frame_data, FRAME_SIZE, &frame_handle);
+		err = create_frame(fd, frame_data, FRAME_SIZE, &frame_handle);
 		if (err)
 			fsl_os_print("ERROR: create frame failed!\n");
 
@@ -468,82 +468,3 @@ void test_fdma_copy_data()
 		fsl_os_print("Simple BU ERROR: fdma_copy_data PASSED\n");
 }
 
-int create_default_frame_wa(
-		struct ldpaa_fd *fd,
-		void *data,
-		uint16_t size,
-		uint8_t *frame_handle)
-{
-	struct parse_result *pr = (struct parse_result *)HWC_PARSE_RES_ADDRESS;
-	int32_t status = 0;
-	uint64_t fd_addr;
-	uint16_t icid, bpid;
-	uint32_t flags;
-	
-	struct storage_profile *sp;
-	uint16_t *ws_address_rs;
-	uint16_t seg_size_rs;
-	
-	sp = &storage_profile[*((uint8_t *)HWC_SPID_ADDRESS)];
-	icid = LH_SWAP(0, (uint16_t *)&(sp->ip_secific_sp_info)) & ADC_ICID_MASK;
-	flags = (LW_SWAP(0, (uint32_t *)&(sp->ip_secific_sp_info)) & AIOP_SP_BDI) ? FDMA_ACQUIRE_BDI_BIT : 0;
-	bpid = LH_SWAP(0, &(sp->bpid1)) & SP_BP_PBS_MASK;
-	fdma_acquire_buffer(icid, flags, bpid, &fd_addr);
-	
-	fsl_os_print("Simple BU : fdma_acquire_buffer parameters: icid = %d, "
-			"flags = %x, bpid = %d, fd_addr = %I64d\n",
-			icid, flags, bpid, fd_addr);
-	
-	/* *fd = {0};*/
-	fd->addr = 0;
-	fd->control = 0;
-	fd->flc = 0;
-	fd->frc = 0;
-	fd->length = 0;
-	fd->offset = 0;
-	
-	LDPAA_FD_SET_ADDR(fd, fd_addr);
-	LDPAA_FD_SET_LENGTH(fd, 1);
-
-	if ((uint32_t)fd == HWC_FD_ADDRESS) {
-		PRC_SET_ASA_SIZE(0);
-		PRC_SET_PTA_ADDRESS(PRC_PTA_NOT_LOADED_ADDRESS);
-		PRC_SET_SEGMENT_LENGTH(1);
-		PRC_SET_SEGMENT_OFFSET(0);
-		PRC_SET_SEGMENT_ADDRESS((uint32_t)TLS_SECTION_END_ADDR +
-						DEFAULT_SEGMENT_HEADROOM_SIZE);
-		PRC_RESET_NDS_BIT();
-		PRC_RESET_SR_BIT();
-		/* present frame with empty segment */
-		fdma_present_default_frame();
-		/* Insert data to the frame */
-		/* Update segment length in the presentation
-		 * context and represent the segment in the presentation area */
-		if (size > DEFAULT_SEGMENT_SIZE)
-			PRC_SET_SEGMENT_LENGTH(DEFAULT_SEGMENT_SIZE);
-		else
-			PRC_SET_SEGMENT_LENGTH(size);
-		/*fdma_insert_default_segment_data(0, data, size,
-				FDMA_REPLACE_SA_REPRESENT_BIT);*/
-		
-		ws_address_rs = (void *) PRC_GET_SEGMENT_ADDRESS();
-		seg_size_rs = PRC_GET_SEGMENT_LENGTH();
-		if ((PRC_GET_SEGMENT_ADDRESS() - (uint32_t)TLS_SECTION_END_ADDR)
-				>= size){
-			ws_address_rs = (void *)
-				((uint32_t)ws_address_rs - size);
-			seg_size_rs = seg_size_rs + size;
-		}
-		fdma_replace_default_segment_data(0, 1, data, size, 
-				ws_address_rs, seg_size_rs, 
-				FDMA_REPLACE_SA_REPRESENT_BIT);
-		/* Re-run parser */
-		status = parse_result_generate_default(0);
-		/* Mark running sum as invalid */
-		pr->gross_running_sum = 0;
-		*frame_handle = PRC_GET_FRAME_HANDLE();
-		return status;
-	}
-	
-	return status;
-}
