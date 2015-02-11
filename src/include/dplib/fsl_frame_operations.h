@@ -172,6 +172,8 @@ int create_frame(
 
 @remark		FD is updated.
 
+@Cautions	Due to PDM TKT254401 this function can work only on the default 
+		frame.
 @Cautions	In this Service Routine the task yields.
 @Cautions	The FD address in workspace must be aligned to 32 bytes.
 @Cautions	The frame FD is overwritten in this function.
@@ -224,6 +226,8 @@ int create_fd(
 		this is the default frame).
 		Recommendation is to discard the frame.
 
+@Cautions	Due to PDM TKT254401 this function can work only on the default 
+		frame.
 @Cautions	In this Service Routine the task yields.
 @Cautions	The FD address in workspace must be aligned to 32 bytes.
 @Cautions	The frame FD is overwritten in this function.
@@ -278,6 +282,8 @@ int create_arp_request_broadcast(
 		this is the default frame).
 		Recommendation is to discard the frame.
 
+@Cautions	Due to PDM TKT254401 this function can work only on the default 
+		frame.
 @Cautions	In this Service Routine the task yields.
 @Cautions	The FD address in workspace must be aligned to 32 bytes.
 @Cautions	The frame FD is overwritten in this function.
