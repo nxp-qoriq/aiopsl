@@ -66,7 +66,7 @@ extern __PROFILE_SRAM struct storage_profile storage_profile[SP_NUM_OF_STORAGE_P
 #define SP_BP_PBS_MASK  0x3FFF
 
 
-int simple_bu_yariv_test(void)
+int simple_bu_ohad_test(void)
 {
 	int        err  = 0;
 	ipr_instance_handle_t ipr_instance = 0;

@@ -72,11 +72,17 @@ int app_early_init(void){
 
 int app_init(void)
 {
-	simple_bu_gal_test();
-	//simple_bu_ilan_test();
-	//simple_bu_yariv_test();
-	
-	fsl_os_print("Simple bring-up test completed successfully\n");
+	int err;
+	fsl_os_print("\n\n***  Starting app_init ***\n\n");
+
+	//err = simple_bu_gal_test();
+	//err = simple_bu_ilan_test();
+	//err = simple_bu_yariv_test();
+	err = simple_bu_ohad_test();
+
+	if (!err) {
+		fsl_os_print("app_init completed successfully\n");
+	}	
 	return 0;
 }
 
