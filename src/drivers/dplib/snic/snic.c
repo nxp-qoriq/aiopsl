@@ -368,7 +368,8 @@ __COLD_CODE static int snic_ctrl_cb(void *dev, uint16_t cmd, uint32_t size, void
 	/* example: SPI, IP dest. and protocol */
 	uint8_t ipsec_dec_key[48];
 	ipsec_handle_t ipsec_handle = 0;
-	struct table_rule rule;
+	struct table_rule rule
+					__attribute__((aligned(16)));
 	struct table_lookup_result lookup_result;
 	struct table_lookup_non_default_params ndf_params = {0};
 	union table_key_desc key_desc;
