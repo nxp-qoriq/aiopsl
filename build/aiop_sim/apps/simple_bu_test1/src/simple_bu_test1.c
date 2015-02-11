@@ -490,18 +490,18 @@ void test_fdma_copy_data()
 	//flags = FDMA_COPY_DM_BIT;
 	
 	/* sram->ws */
-	//fsl_os_print("FDMA Copy SRAM->WS \n");
-	//src_addr = (void *)(&(storage_profile[0]));
-	//dst_addr = (void *)0x180;
-	//copy_size = sizeof(struct storage_profile);
-	//flags = FDMA_COPY_SM_BIT;
+	fsl_os_print("FDMA Copy SRAM->WS \n");
+	src_addr = (void *)(&(storage_profile[0]));
+	dst_addr = (void *)0x180;
+	copy_size = sizeof(struct storage_profile);
+	flags = FDMA_COPY_SM_BIT;
 	
 	/* sram->sram */
-	fsl_os_print("FDMA Copy SRAM->SRAM \n");
-	src_addr = (void *)(&(storage_profile[0]));
-	dst_addr = (void *)((uint32_t)(&(storage_profile[0]) + sizeof(struct storage_profile)*4));
-	copy_size = sizeof(struct storage_profile);
-	flags = FDMA_COPY_SM_BIT | FDMA_COPY_DM_BIT;
+	//fsl_os_print("FDMA Copy SRAM->SRAM \n");
+	//src_addr = (void *)(&(storage_profile[0]));
+	//dst_addr = (void *)((uint32_t)(&(storage_profile[0]) + sizeof(struct storage_profile)*4));
+	//copy_size = sizeof(struct storage_profile);
+	//flags = FDMA_COPY_SM_BIT | FDMA_COPY_DM_BIT;
 	
 	
 	fdma_copy_data(copy_size, flags, src_addr, dst_addr);
@@ -541,6 +541,7 @@ int create_default_frame_wa(
 	uint64_t fd_addr;
 	uint16_t icid, bpid;
 	uint32_t flags;
+	
 	struct storage_profile *sp;
 	uint16_t *ws_address_rs;
 	uint16_t seg_size_rs;
