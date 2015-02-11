@@ -40,11 +40,13 @@
 #include "net/fsl_net.h"
 #include "header_modification.h"
 
+#ifndef REV2  /* WA for TKT254401 */
 extern __PROFILE_SRAM struct storage_profile 
 		storage_profile[SP_NUM_OF_STORAGE_PROFILES];
 
 #define SP_BDI_MASK     0x00080000
 #define SP_BP_PBS_MASK  0x3FFF
+#endif
 
 int create_frame(
 		struct ldpaa_fd *fd,
