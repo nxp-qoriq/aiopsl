@@ -48,11 +48,20 @@
 #include "fsl_l2.h"
 #include "fsl_table.h"
 #include "fsl_keygen.h"
-
+#include "fsl_ste.h"
 #include "simple_bu_test.h"
+
+
+void test_tmi_create();
+void test_fdma_discard_fd();
+void test_fdma_modify_default_segment_data();
+void test_ste();
 
 extern struct  ipr_global_parameters ipr_global_parameters1;
 extern __PROFILE_SRAM struct storage_profile storage_profile[SP_NUM_OF_STORAGE_PROFILES];
+
+uint8_t snic_tmi_id_gal;
+uint64_t snic_tmi_mem_base_addr_gal;
 
 
 #define APP_NI_GET(ARG)   ((uint16_t)((ARG) & 0x0000FFFF))
@@ -62,130 +71,27 @@ extern __PROFILE_SRAM struct storage_profile storage_profile[SP_NUM_OF_STORAGE_P
 
 #define FRAME_SIZE	124
 #define	COPY_SIZE	16
-#define AIOP_SP_BDI     0x00080000
+#define	MODIFY_SIZE	16
+#define	INC_VAL		7
+#define	DEC_VAL		4
+#define SP_BDI_MASK     0x00080000
 #define SP_BP_PBS_MASK  0x3FFF
 
 int simple_bu_gal_test(void)
 {
 	int        err  = 0;
-	uint64_t tmi_mem_base_addr;
-	struct ipr_params ipr_demo_params;
-	ipr_instance_handle_t ipr_instance = 0;
-	ipr_instance_handle_t *ipr_instance_ptr = &ipr_instance;
-	struct ipr_instance	ipr_instance_read;
-	struct slab *slab_handle = NULL;
 	uint8_t prpid;
-	uint64_t cipher_key_addr;
-	uint8_t cipher_key[16] = {11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26};
-	uint8_t cipher_key_read[16];
 	int i;
 	
+	fsl_os_print("****************************\n");
 	fsl_os_print("Running simple bring-up test\n");
-	
+	fsl_os_print("****************************\n");
+	fsl_os_print("****************************\n");
 	
 	parser_init(&prpid);
 
 	default_task_params.parser_profile_id = prpid;
 	default_task_params.parser_starting_hxs = 0;
-
-	ipr_demo_params.max_open_frames_ipv4 = 0x10;
-	ipr_demo_params.max_open_frames_ipv6 = 0x10;
-	ipr_demo_params.max_reass_frm_size = 0xf000;
-	ipr_demo_params.min_frag_size_ipv4 = 0x40;
-	ipr_demo_params.min_frag_size_ipv6 = 0x40;
-	ipr_demo_params.timeout_value_ipv4 = 0xffe0;
-	ipr_demo_params.timeout_value_ipv6 = 0xffe0;
-	ipr_demo_params.ipv4_timeout_cb = ipr_timout_cb;
-	ipr_demo_params.ipv6_timeout_cb = ipr_timout_cb;
-	ipr_demo_params.cb_timeout_ipv4_arg = 0x66;
-	ipr_demo_params.cb_timeout_ipv6_arg = 0x66;
-	ipr_demo_params.flags = IPR_MODE_TABLE_LOCATION_PEB;
-	fsl_os_get_mem( 0x20*64, MEM_PART_DP_DDR, 64, &tmi_mem_base_addr);
-
-	//tman_create_tmi(tmi_mem_base_addr , 0x20, &ipr_demo_params.tmi_id);
-
-	fsl_os_print("bring-up test: Creating IPR instance\n");
-	err = ipr_create_instance(&ipr_demo_params, ipr_instance_ptr);
-	if (err)
-	{
-		fsl_os_print("ERROR: ipr_create_instance() failed %d\n",err);
-		return err;
-	}
-	
-	/* cdma read the data and check if it is correct */
-	cdma_read(&ipr_instance_read, ipr_instance, IPR_INSTANCE_SIZE);
-	if (ipr_instance_read.extended_stats_addr != ipr_demo_params.extended_stats_addr)
-		err = -EINVAL;
-
-	if (ipr_instance_read.max_reass_frm_size != ipr_demo_params.max_reass_frm_size)
-		err = -EINVAL;
-	if (ipr_instance_read.min_frag_size_ipv4 != ipr_demo_params.min_frag_size_ipv4)
-			err = -EINVAL;
-	if (ipr_instance_read.min_frag_size_ipv6 != ipr_demo_params.min_frag_size_ipv6)
-			err = -EINVAL;
-	if (ipr_instance_read.timeout_value_ipv4 != ipr_demo_params.timeout_value_ipv4)
-			err = -EINVAL;
-	if (ipr_instance_read.timeout_value_ipv6 != ipr_demo_params.timeout_value_ipv6)
-			err = -EINVAL;
-	if (ipr_instance_read.ipv4_timeout_cb != ipr_demo_params.ipv4_timeout_cb)
-			err = -EINVAL;
-	if (ipr_instance_read.ipv6_timeout_cb != ipr_demo_params.ipv6_timeout_cb)
-			err = -EINVAL;
-	if (ipr_instance_read.cb_timeout_ipv4_arg != ipr_demo_params.cb_timeout_ipv4_arg)
-			err = -EINVAL;
-	if (ipr_instance_read.cb_timeout_ipv6_arg != ipr_demo_params.cb_timeout_ipv6_arg)
-			err = -EINVAL;
-	if (ipr_instance_read.tmi_id != ipr_demo_params.tmi_id)
-			err = -EINVAL;
-
-	if (err)
-	{
-		fsl_os_print("ERROR:ipr instance was not read successfully\n");
-		return err;
-	}
-	else
-		fsl_os_print("Simple BU Test: ipr instance was  read successfully\n");
-	
-	/* Allocate buffers for the Keys */
-	err = slab_create(
-			10, /* uint32_t    num_buffs */
-			10, /* uint32_t    max_buffs */
-			512, /* uint16_t    buff_size */
-			8, /*uint16_t    alignment */
-			MEM_PART_DP_DDR, /* uint8_t     mem_partition_id */
-			0, /* uint32_t    flags */
-			NULL, /* slab_release_cb_t release_cb */
-			&slab_handle /* struct slab **slab */
-			);
-
-	if (err)
-		fsl_os_print("ERROR: slab_create() failed\n");	
-	else
-		fsl_os_print("slab_create() completed successfully\n");	
-	
-	/* Acquire the Cipher key buffer */
-	err = slab_acquire(
-			slab_handle, /* struct slab *slab */
-			&cipher_key_addr /* uint64_t *buff */
-			);
-
-	/* Copy the Keys to external memory with CDMA */
-	cdma_write(
-			cipher_key_addr, /* ext_address */
-			&cipher_key, /* ws_src */
-			16); /* uint16_t size */
-	cdma_read(&cipher_key_read, cipher_key_addr, 16);
-	
-	for (i=0; i<16 ; i++)
-		if (cipher_key_read[i] != cipher_key[i])
-			err = -EINVAL;
-	if (err)
-	{
-		fsl_os_print("ERROR: key info was not read successfully\n");
-		return err;
-	}
-	else
-		fsl_os_print("Simple BU Test: IPsec key was  read successfully\n");
 
 	// run create_frame on default frame
 	{
@@ -270,18 +176,20 @@ int simple_bu_gal_test(void)
 		for (i=0; i<16 ; i++)
 			fsl_os_print("parse results arg %d: 0x%x \n", i, *((uint32_t *)(0x80)+i));
 		
+		//test_fdma_modify_default_segment_data();
 		
 		fdma_close_default_segment();
 		err = fdma_present_default_frame_segment(FDMA_PRES_NO_FLAGS, (void *)0x180, 0, 256);
-		fsl_os_print("STATUS: fdma present default segment returned status is %d\n", err);
+		if (err)
+			fsl_os_print("STATUS: fdma present default segment returned status is %d\n", err);
 		l2_push_and_set_vlan(vlan);
 		
 		frame_length = PRC_GET_SEGMENT_LENGTH();
 		seg_addr = (uint8_t *)PRC_GET_SEGMENT_ADDRESS();
 		
-		fsl_os_print("frame length is 0x%x\n", frame_length);
+		/*fsl_os_print("frame length is 0x%x\n", frame_length);
 		for (i=0; i<frame_length ; i++)
-			fsl_os_print("frame read byte %d is %x\n", i, seg_addr[i]);
+			fsl_os_print("frame read byte %d is %x\n", i, seg_addr[i]);*/
 
 		parse_result_generate(PARSER_ETH_STARTING_HXS, 0, PARSER_NO_FLAGS);
 		
@@ -303,8 +211,14 @@ int simple_bu_gal_test(void)
 		LDPAA_FD_SET_LENGTH(HWC_FD_ADDRESS, 0);
 		fsl_os_print(" FD length (after SW zeroing it) is : 0x%x \n", LDPAA_FD_GET_LENGTH(HWC_FD_ADDRESS));
 		err = fdma_store_default_frame_data();
-		if (err)
+		if (err){
 			fsl_os_print("ERROR: fdma store default frame returned error is %d\n", err);
+			return err;
+		}
+		
+		//test_fdma_discard_fd();
+		
+		test_tmi_create();
 		
 		for (i=0; i<8 ; i++)
 			fsl_os_print("FD content arg %d is %x\n", i, *((uint32_t *)(0x60 + i*4)));
@@ -328,9 +242,6 @@ int simple_bu_gal_test(void)
 		/* check frame presented */
 		frame_presented = (uint8_t *)PRC_GET_SEGMENT_ADDRESS();
 		frame_length = LDPAA_FD_GET_LENGTH(HWC_FD_ADDRESS);
-		fsl_os_print("actual frame length is 0x%x\n", frame_length);
-		for (i=0; i<frame_length ; i++)
-			fsl_os_print("actual frame read byte %d is %x\n", i, frame_presented[i]);
 		
 		for (i=0; i<(FRAME_SIZE+4); i++)
 			if (*(frame_presented+i) != frame_data_read[i])
@@ -338,6 +249,12 @@ int simple_bu_gal_test(void)
 		if (err)
 		{
 			fsl_os_print("Simple BU ERROR: frame data after HM is not correct\n");
+			fsl_os_print("frame length is 0x%x\n", frame_length);
+			//for (i=0; i<frame_length ; i++)
+			//	fsl_os_print("frame read byte %d is %x\n", i, frame_data_read[i]);
+			fsl_os_print("actual frame length is 0x%x\n", frame_length);
+			//for (i=0; i<frame_length ; i++)
+			//	fsl_os_print("actual frame read byte %d is %x\n", i, frame_presented[i]);
 			fdma_discard_default_frame(FDMA_DIS_NO_FLAGS);
 			return err;
 		}
@@ -349,55 +266,12 @@ int simple_bu_gal_test(void)
 		
 		test_fdma_copy_data();
 		
-		/* CTLU */
-		{
-			struct table_rule rule __attribute__((aligned(16)));
-			uint8_t	 keysize;
-			int sr_status;
-			struct table_lookup_result lookup_result;
-			
-			rule.options = 0;
-			rule.result.type = TABLE_RESULT_TYPE_REFERENCE;
-			rule.result.op0_rptr_clp.reference_pointer = 0x12345678;
-			
-			sr_status = keygen_gen_key(
-				KEYGEN_ACCEL_ID_CTLU,
-				ipr_global_parameters1.ipr_key_id_ipv4,
-				0,
-				&rule.key_desc,
-				&keysize);
-			if (sr_status)
-				fsl_os_print("Simple BU ERROR: keygen_gen_key failed!\n");
-			
-			for (i=0; i<11; i++)
-				fsl_os_print("Generated Key byte %d 0x%x\n", i, rule.key_desc.em.key[i]);
-			
-			sr_status = table_rule_create(
-					TABLE_ACCEL_ID_CTLU,
-					ipr_instance_read.table_id_ipv4,
-					&rule,
-					keysize);
-			
-			if (sr_status)
-				fsl_os_print("Simple BU ERROR: rule create failed!\n");
-
-			sr_status = table_lookup_by_keyid_default_frame(
-				TABLE_ACCEL_ID_CTLU,
-				ipr_instance_read.table_id_ipv4,
-				ipr_global_parameters1.ipr_key_id_ipv4,
-				&lookup_result);
-			
-			if (sr_status)
-				fsl_os_print("Simple BU ERROR: table_lookup_by_keyid_default_frame failed!\n");
-			
-			if (lookup_result.opaque0_or_reference != 0x12345678)
-				fsl_os_print("Simple BU ERROR: table LU failed!\n");
-			else
-				fsl_os_print("Simple BU table LU success!!!\n");
-		}
-		
 		fdma_discard_default_frame(FDMA_DIS_NO_FLAGS);
 	}
+	
+	//test_ste();
+	
+	
 	fsl_os_print("Simple bring-up test completed successfully\n");
 	return 0;
 }
@@ -468,3 +342,125 @@ void test_fdma_copy_data()
 		fsl_os_print("Simple BU ERROR: fdma_copy_data PASSED\n");
 }
 
+void test_tmi_create()
+{
+	uint64_t time;
+	fsl_os_get_mem( 4*64, MEM_PART_DP_DDR, 64, 
+			&snic_tmi_mem_base_addr_gal);
+	tman_get_timestamp(&time);
+	fsl_os_print("Timestamp = 0x%x\n", time);
+	tman_get_timestamp(&time);
+	fsl_os_print("Timestamp = 0x%x\n", time);
+	tman_get_timestamp(&time);
+	fsl_os_print("Timestamp = 0x%x\n", time);
+	/* todo tmi delete in snic_free */
+	tman_create_tmi(snic_tmi_mem_base_addr_gal , 4, 
+			&snic_tmi_id_gal);
+}
+
+void test_fdma_discard_fd()
+{
+	int err  = 0;
+	
+	err = fdma_discard_fd((struct ldpaa_fd *)HWC_FD_ADDRESS, FDMA_DIS_NO_FLAGS);
+	if (err)
+		fsl_os_print("*** ERROR: fdma_discard_fd FAILED! ***\n");
+	else
+		fsl_os_print("\n*** fdma_discard_fd PASSED! ***\n\n");
+}
+
+void test_fdma_modify_default_segment_data()
+{
+	int err  = 0;
+	uint8_t i;
+	uint8_t modify_data[MODIFY_SIZE] = {0x0a, 0x45, 0x77, 0x11, 0x39, 0x97, 0x63, 0x87, 
+					 0x33, 0x22, 0x54, 0x18, 0x84, 0xfa, 0xcb, 0xed};
+	uint8_t *seg_addr = (uint8_t *)PRC_GET_SEGMENT_ADDRESS();
+	
+	for (i=0; i<MODIFY_SIZE; i++) 
+		seg_addr[i] = modify_data[i];
+	
+	fdma_modify_default_segment_data(0, MODIFY_SIZE);
+	fdma_close_default_segment();
+	for (i=0; i<MODIFY_SIZE; i++) {
+		seg_addr[i] = 0;
+		fsl_os_print("0 data byte %d: %d \n", i, seg_addr[i]);
+	}
+	err = fdma_present_default_frame_segment(FDMA_PRES_NO_FLAGS, (void *)seg_addr, 0, 256);
+	if (err)
+		fsl_os_print("STATUS: fdma present default segment returned status is %d\n", err);
+	err = 0;
+	for (i=0; i<MODIFY_SIZE; i++)
+		if (seg_addr[i] != modify_data[i]){
+			err = -EIO;
+			fsl_os_print("byte %d: 0x%x != 0x%x\n", i, seg_addr[i], modify_data[i]);
+		}
+	
+	if (err)
+		fsl_os_print("*** ERROR: fdma_modify_default_segment_data FAILED !!! \n");
+	else{
+		fsl_os_print("*** fdma_modify_default_segment_data PASSED !!! \n\n");
+		for (i=0; i<MODIFY_SIZE; i++) {
+			fsl_os_print("Good data byte %d: %d \n", i, seg_addr[i]);
+		};
+	}
+}
+
+void test_ste()
+{
+	int err  = 0;
+	uint64_t ext_addr;
+	uint16_t icid, bpid;
+	uint32_t flags;
+	struct storage_profile *sp;
+	uint32_t data[COPY_SIZE] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
+	uint32_t read_data[COPY_SIZE] = {1,2,3,4,5,6,7,8,9,10};
+	uint32_t counter = 0;
+	uint8_t i;
+	
+	sp = &storage_profile[*((uint8_t *)HWC_SPID_ADDRESS)];
+	icid = LH_SWAP(0, (uint16_t *)&(sp->ip_secific_sp_info)) & ADC_ICID_MASK;
+	flags = (LW_SWAP(0, (uint32_t *)&(sp->ip_secific_sp_info)) & SP_BDI_MASK) ? FDMA_ACQUIRE_BDI_BIT : 0;
+	bpid = LH_SWAP(0, &(sp->bpid1)) & SP_BP_PBS_MASK;
+	err = fdma_acquire_buffer(icid, flags, bpid, &ext_addr);
+	if (err){
+		fsl_os_print("*** ERROR: fdma_acquire_buffer FAILED !!! \n");
+		return;
+	}
+	
+	fsl_os_print("Simple BU : fdma_acquire_buffer parameters: icid = %d, "
+			"flags = %x, bpid = %d, fd_addr = %I64d\n",
+			icid, flags, bpid, ext_addr);
+	/* zero external address */
+	fdma_dma_data(COPY_SIZE*sizeof(uint16_t), icid, (void *)data, ext_addr, FDMA_DMA_DA_WS_TO_SYS_BIT);
+	/* read external address */
+	fdma_dma_data(COPY_SIZE*sizeof(uint16_t), icid, (void *)read_data, ext_addr, FDMA_DMA_DA_SYS_TO_WS_BIT);
+	for (i=0; i<MODIFY_SIZE; i++)
+		if (data[i] != read_data[i]){
+			err = -EIO;
+			fsl_os_print("byte %d: 0x%x != 0x%x\n", i, data[i], read_data[i]);
+		}
+	if (err)
+		fsl_os_print("*** ERROR: fdma_dma_data FAILED !!! \n");
+	
+	ste_inc_counter(ext_addr, INC_VAL, STE_MODE_SATURATE | STE_MODE_32_BIT_CNTR_SIZE);
+	fdma_dma_data(sizeof(uint32_t), icid, &counter, ext_addr, FDMA_DMA_DA_SYS_TO_WS_BIT);
+	if (counter != INC_VAL){
+		fsl_os_print("*** ERROR: ste_inc_counter FAILED !!! \n");
+		fsl_os_print("*** ERROR: counter =  %d \n", counter);
+	}
+	else{
+		fsl_os_print("*** ste_inc_counter PASSED !!! \n");
+		fsl_os_print("*** counter =  %d \n", counter);
+	}
+	ste_dec_counter(ext_addr, DEC_VAL, STE_MODE_SATURATE | STE_MODE_32_BIT_CNTR_SIZE);
+	fdma_dma_data(sizeof(uint32_t), icid, &counter, ext_addr, FDMA_DMA_DA_SYS_TO_WS_BIT);
+	if (counter != (INC_VAL-DEC_VAL)){
+		fsl_os_print("*** ERROR: ste_dec_counter FAILED !!! \n");
+		fsl_os_print("*** ERROR: counter =  %d \n", counter);
+	}
+	else{
+		fsl_os_print("*** ste_dec_counter PASSED !!! \n");
+		fsl_os_print("*** counter =  %d \n", counter);
+	}
+}

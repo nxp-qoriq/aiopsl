@@ -70,11 +70,10 @@ int create_frame(
 	icid = LH_SWAP(0, (uint16_t *)&(sp->ip_secific_sp_info)) & ADC_ICID_MASK;
 	flags = (LW_SWAP(0, (uint32_t *)&(sp->ip_secific_sp_info)) & SP_BDI_MASK) ? FDMA_ACQUIRE_BDI_BIT : 0;
 	bpid = LH_SWAP(0, &(sp->bpid1)) & SP_BP_PBS_MASK;
-	fdma_acquire_buffer(icid, flags, bpid, &fd_addr);
+	status = fdma_acquire_buffer(icid, flags, bpid, &fd_addr);
+	if (status)
+		return status;
 	
-	fsl_os_print("Simple BU : fdma_acquire_buffer parameters: icid = %d, "
-			"flags = %x, bpid = %d, fd_addr = %I64d\n",
-			icid, flags, bpid, fd_addr);
 #endif	
 	/* *fd = {0};*/
 	fd->addr = 0;
@@ -168,6 +167,7 @@ int create_fd(
 	struct fdma_insert_segment_data_params insert_params;
 	struct fdma_amq amq;
 #ifndef REV2 /* WA for TKT254401 */
+	int32_t status;
 	uint64_t fd_addr;
 	uint16_t icid, bpid;
 	uint32_t flags;
@@ -177,11 +177,10 @@ int create_fd(
 	icid = LH_SWAP(0, (uint16_t *)&(sp->ip_secific_sp_info)) & ADC_ICID_MASK;
 	flags = (LW_SWAP(0, (uint32_t *)&(sp->ip_secific_sp_info)) & SP_BDI_MASK) ? FDMA_ACQUIRE_BDI_BIT : 0;
 	bpid = LH_SWAP(0, &(sp->bpid1)) & SP_BP_PBS_MASK;
-	fdma_acquire_buffer(icid, flags, bpid, &fd_addr);
+	status = fdma_acquire_buffer(icid, flags, bpid, &fd_addr);
+	if (status)
+		return status;
 	
-	fsl_os_print("Simple BU : fdma_acquire_buffer parameters: icid = %d, "
-			"flags = %x, bpid = %d, fd_addr = %I64d\n",
-			icid, flags, bpid, fd_addr);
 #endif	
 
 	/* *fd = {0};*/
