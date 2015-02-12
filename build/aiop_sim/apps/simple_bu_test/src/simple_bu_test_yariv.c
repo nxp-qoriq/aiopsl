@@ -81,7 +81,8 @@ int simple_bu_yariv_test(void)
 	uint8_t new_l2_src[6] = {0x1a,0x1b,0x1c,0x1d,0x1e,0x1f};
 	uint32_t ref_cnt_val = 0xFF;
 	uint32_t expected_ref_cnt_val;
-	
+	uint32_t data_arr_32bit[8];
+
 	fsl_os_print("Running simple bring-up test\n");
 	
 	
@@ -376,7 +377,34 @@ int simple_bu_yariv_test(void)
 
 
 		/* End of CDMA Mutex Test */ 
+		
+		/* CDMA Workspace Init Test */ 
+		fsl_os_print("Testing cdma_ws_memory_init() function\n");
+		cdma_ws_memory_init(
+				data_arr_32bit, /* void *ws_dst */
+				8, /* uint16_t size */
+				0x1b2b3b4b); /* uint32_t data_pattern */
+		
+		fsl_os_print("CDMA read = 0x");
+		for (i=0; i<8 ; i++) {
+				fsl_os_print("%x\n",data_arr_32bit[i]);
+				if (data_arr_32bit[i] != 0x1b2b3b4b) {
+					fsl_os_print("ERROR: data mismatch\n");
+					err = 1;
+				}	
+		}
+		fsl_os_print("\n");
+		
+		if (err)
+		{
+			fsl_os_print("ERROR: cdma_ws_memory_init() failed\n");
+		} else {
+			fsl_os_print("cdma_ws_memory_init() PASSED :-)\n");
+		}
 
+		/* End of CDMA Workspace Init Test */ 
+
+		
 		fdma_discard_default_frame(FDMA_DIS_NO_FLAGS);
 	}
 	
@@ -384,7 +412,7 @@ int simple_bu_yariv_test(void)
 		fsl_os_print("Simple bring-up test completed successfully\n");
 	}
 	
-	return 0;
+	return err;
 }
 
 
