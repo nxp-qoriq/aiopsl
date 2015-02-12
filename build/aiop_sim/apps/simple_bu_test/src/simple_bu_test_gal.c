@@ -247,7 +247,12 @@ int simple_bu_gal_test(void)
 		/* check frame presented */
 		frame_presented = (uint8_t *)PRC_GET_SEGMENT_ADDRESS();
 		frame_length = LDPAA_FD_GET_LENGTH(HWC_FD_ADDRESS);
+		fdma_close_default_segment();
+		err = fdma_present_default_frame_segment(FDMA_PRES_NO_FLAGS, (void *)0x180, 0, 256);
+		fsl_os_print("Frame length is: \n", frame_length);
+		fsl_os_print("Segment length is: \n", PRC_GET_SEGMENT_LENGTH());
 		
+		err = 0;
 		for (i=0; i<(FRAME_SIZE+4); i++)
 			if (*(frame_presented+i) != frame_data_read[i])
 				err = -EINVAL;
@@ -255,11 +260,11 @@ int simple_bu_gal_test(void)
 		{
 			fsl_os_print("Simple BU ERROR: frame data after HM is not correct\n");
 			fsl_os_print("frame length is 0x%x\n", frame_length);
-			//for (i=0; i<frame_length ; i++)
-			//	fsl_os_print("frame read byte %d is %x\n", i, frame_data_read[i]);
+			for (i=0; i<frame_length ; i++)
+				fsl_os_print("frame read byte %d is %x\n", i, frame_data_read[i]);
 			fsl_os_print("actual frame length is 0x%x\n", frame_length);
-			//for (i=0; i<frame_length ; i++)
-			//	fsl_os_print("actual frame read byte %d is %x\n", i, frame_presented[i]);
+			for (i=0; i<frame_length ; i++)
+				fsl_os_print("actual frame read byte %d is %x\n", i, frame_presented[i]);
 			fdma_discard_default_frame(FDMA_DIS_NO_FLAGS);
 			return err;
 		}
