@@ -2606,9 +2606,13 @@ inline int fdma_replace_default_segment_data(
 @Param[in]	flags - Please refer to
 		\link FDMA_Copy_Flags Copy command flags \endlink.
 @Param[in]	src - A pointer to the location in the workspace/AIOP Shared
-		memory of the source data (limited to 20 bits).
+		memory of the source data (limited to 20 bits). 
+		(SRAM address is relative to SRAM start.
+		Workspace address is relative to Workspace start).
 @Param[in]	dst - A pointer to the location in the workspace/AIOP Shared
 		memory to store the copied data (limited to 20 bits).
+		(SRAM address is relative to SRAM start.
+		Workspace address is relative to Workspace start).
 
 @Return		None.
 
