@@ -65,6 +65,10 @@ extern __PROFILE_SRAM struct storage_profile storage_profile[SP_NUM_OF_STORAGE_P
 #define AIOP_SP_BDI     0x00080000
 #define SP_BP_PBS_MASK  0x3FFF
 
+int ipv4_header_modification_test();
+int ipv4_dec_ttl_modification_test();
+int hm_l2_set_dst_src_test();
+
 
 int simple_bu_ohad_test(void)
 {
@@ -77,15 +81,16 @@ int simple_bu_ohad_test(void)
 	uint8_t cipher_key[16] = {11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26};
 	uint8_t cipher_key_read[16];
 	int i;
-	uint8_t new_l2_dst[6] = {0x0a,0x0b,0x0c,0x0d,0x0e,0x0f};
-	uint8_t new_l2_src[6] = {0x1a,0x1b,0x1c,0x1d,0x1e,0x1f};
 	uint32_t ref_cnt_val = 0xFF;
-	uint32_t expected_ref_cnt_val;
+
+	fsl_os_print("********************************\n");
+	fsl_os_print("**Running simple bring-up test**\n");
+	fsl_os_print("********************************\n");
+
 	
-	fsl_os_print("Running simple bring-up test\n");
-	
-	
-	default_task_params.parser_profile_id = 0;
+	parser_init(&prpid);
+
+	default_task_params.parser_profile_id = prpid;
 	default_task_params.parser_starting_hxs = 0;
 
 	
@@ -185,146 +190,48 @@ int simple_bu_ohad_test(void)
 		amq.icid = icid;
 		amq.flags = flags;
 		set_default_amq_attributes(&amq);
-		*(uint32_t *)(&storage_profile[0].pbs2) = *(uint32_t *)(&storage_profile[0].pbs1);
-
-		for (i=0; i<8 ; i++)
-			fsl_os_print("storage profile arg %d: 0x%x \n", i, *((uint32_t *)(&(storage_profile[0]))+i));
+		*(uint32_t *)(&storage_profile[0].pbs2) = *(uint32_t *)(&storage_profile[0].pbs1);		
 		
-		fsl_os_print("SEGMENT properties before create frame\n");
-		fsl_os_print("PRC_GET_SEGMENT_ADDRESS  - 0x%x \n",PRC_GET_SEGMENT_ADDRESS());
-		fsl_os_print("PRC_GET_SEGMENT_LENGTH  - 0x%x \n",PRC_GET_SEGMENT_LENGTH());
 		err = create_frame(fd, frame_data, FRAME_SIZE, &frame_handle);
-		fsl_os_print("SEGMENT properties after create frame\n");
-		fsl_os_print("PRC_GET_SEGMENT_ADDRESS  - 0x%x \n",PRC_GET_SEGMENT_ADDRESS());
-		fsl_os_print("PRC_GET_SEGMENT_LENGTH  - 0x%x \n",PRC_GET_SEGMENT_LENGTH());
 		if (err)
 			fsl_os_print("ERROR: create frame failed!\n");
+		
+		fsl_os_print("*** PARSE RESULT *** \n \
+                     \n ethernet offset %x %x \
+                     \n ipv4 offset %x %x \
+                     \n udp offset %x %x", 
+					  PARSER_IS_ETH_MAC_DEFAULT(), PARSER_GET_ETH_OFFSET_DEFAULT(), 
+					  PARSER_IS_IP_DEFAULT(), PARSER_GET_OUTER_IP_OFFSET_DEFAULT(),
+					  PARSER_IS_UDP_DEFAULT(), PARSER_GET_L4_OFFSET_DEFAULT());
+		
+		
+		/* Header Modification ipv4_header_modification set test*/ 
+		if (ipv4_header_modification_test()) {
+			fsl_os_print("ERROR: IPv4 Header Modification test failed \n");
+		} else {
+			fsl_os_print("IPv4 Header Modification set test PASSED\n");
+		}
 
 		
-		fsl_os_print("parse result before create frame - \n");
 		
-		fsl_os_print("ethernet offset %d %x\n", 
-					PARSER_IS_ETH_MAC_DEFAULT(), PARSER_GET_ETH_OFFSET_DEFAULT());
-		
-		fsl_os_print("vlan offset %d %x\n",
-					PARSER_IS_ONE_VLAN_DEFAULT(), PARSER_GET_FIRST_VLAN_TCI_OFFSET_DEFAULT());
-		
-		fsl_os_print("ipv4 offset %d %x\n", 
-					PARSER_IS_IP_DEFAULT(), PARSER_GET_OUTER_IP_OFFSET_DEFAULT());
-		
-		fsl_os_print("udp offset %d %x\n", 
-					PARSER_IS_UDP_DEFAULT(), PARSER_GET_L4_OFFSET_DEFAULT());
+		/* Header Modification ipv4_dec_ttl_modification set test*/ 
+		if (ipv4_dec_ttl_modification_test()) {
+			fsl_os_print("ERROR: IPv4 Decrement TTL Modification test failed \n");
+		} else {
+			fsl_os_print("IPv4 Decrement TTL Modification set test PASSED\n");
+		}
 
-		for (i=0; i<16 ; i++)
-			fsl_os_print("parse results arg %d: 0x%x \n", i, *((uint32_t *)(0x80)+i));
-		
-		
-				
+
+#if 0
 		/* Header Modification L2 DST/SRC set Test */ 
-
-		fsl_os_print("\nTesting l2_set_dl_dst\n");
-		
-		err = 0;
-		fsl_os_print("Original L2 dest = ");
-		for (i=0; i<6 ; i++) {
-			fsl_os_print("0x%x", *((uint8_t *)PARSER_GET_ETH_POINTER_DEFAULT() + (uint8_t)i));
-		}
-		fsl_os_print("\n");
-		
-		l2_set_dl_dst(new_l2_dst); /* (uint8_t *dst_addr) */
-		fsl_os_print("SEGMENT properties after HM1 \n");
-		fsl_os_print("PRC_GET_SEGMENT_ADDRESS  - 0x%x \n",PRC_GET_SEGMENT_ADDRESS());
-		fsl_os_print("PRC_GET_SEGMENT_LENGTH  - 0x%x \n",PRC_GET_SEGMENT_LENGTH());
-		
-		fsl_os_print("New L2 dest = ");
-		for (i=0; i<6 ; i++) {
-			fsl_os_print("0x%x", *((uint8_t *)PARSER_GET_ETH_POINTER_DEFAULT() + (uint8_t)i));
-			if (*((uint8_t *)PARSER_GET_ETH_POINTER_DEFAULT() + (uint8_t)i) != new_l2_dst[i]) {
-				err = 1;
-				fsl_os_print("\nERROR: L2 DST mismatch = 0x%x\n");
-			}
-		}
-		fsl_os_print("\n");
-		
-		fsl_os_print("\nTesting l2_set_dl_src\n");
-		fsl_os_print("Original L2 src = ");
-		for (i=0; i<6 ; i++) {
-			fsl_os_print("0x%x", *((uint8_t *)PARSER_GET_ETH_POINTER_DEFAULT() + (uint8_t)i + 6));
-		}
-		fsl_os_print("\n");
-		
-		l2_set_dl_src(new_l2_src); /* uint8_t *src_addr */
-
-		fsl_os_print("New L2 src = ");
-		for (i=0; i<6 ; i++) {
-			fsl_os_print("0x%x", *((uint8_t *)PARSER_GET_ETH_POINTER_DEFAULT() + (uint8_t)i + 6));
-			if (*((uint8_t *)PARSER_GET_ETH_POINTER_DEFAULT() + (uint8_t)i + 6) != new_l2_src[i]) {
-				err = 1;
-				fsl_os_print("\nERROR: L2 SRC mismatch = 0x%x\n");
-			}
-		}
-		fsl_os_print("\n");
-		
-		if (err) {
+		if (hm_l2_set_dst_src_test()) {
 			fsl_os_print("ERROR:  Header Modification L2 DST/SRC set test failed \n");
 		} else {
-			fsl_os_print("Header Modification L2 DST/SRC set test PASSED :-)\n");
+			fsl_os_print("Header Modification L2 DST/SRC set test PASSED\n");
 		}
-		
+#endif	
 		/* End of Header Modification L2 DST/SRC set Test */ 
 
-		
-		/* CDMA Reference Count Increment/Decrement Test */ 
-		err = 0;
-		fsl_os_print("\nTesting CDMA Reference Count Increment/Decrement\n");
-		
-		/* Using the "cipher_key_addr" buffer which was allocated earlier */
-		
-		cdma_refcount_get(
-				cipher_key_addr, /* uint64_t context_address */
-				&expected_ref_cnt_val); /* uint32_t *refcount_value) */
-				
-		fsl_os_print("Original Ref count value = %d\n", expected_ref_cnt_val);
-
-		/* Increment Twice */
-		cdma_refcount_increment(cipher_key_addr); /* uint64_t context_address) */
-		cdma_refcount_increment(cipher_key_addr); /* uint64_t context_address) */
-		
-		expected_ref_cnt_val = expected_ref_cnt_val + 2;
-		
-		cdma_refcount_get(
-				cipher_key_addr, /* uint64_t context_address */
-				&ref_cnt_val); /* uint32_t *refcount_value) */
-				
-		fsl_os_print("Ref count value after 2 increments = %d\n", ref_cnt_val);
-		if (ref_cnt_val != expected_ref_cnt_val) {
-			err = 1;
-			fsl_os_print("ERROR: expected Ref count value after 2 increments = %d\n",
-					expected_ref_cnt_val);
-		}
-		
-		cdma_refcount_decrement(cipher_key_addr); /* uint64_t context_address) */
-		
-		expected_ref_cnt_val = expected_ref_cnt_val - 1;
-
-		cdma_refcount_get(
-				cipher_key_addr, /* uint64_t context_address */
-				&ref_cnt_val); /* uint32_t *refcount_value) */
-		
-		fsl_os_print("Ref count value after 1 decrement = %d\n", ref_cnt_val);
-		if (ref_cnt_val != expected_ref_cnt_val) {
-			err = 1;
-			fsl_os_print("ERROR: expected Ref count value after 1 decrement = %d\n",
-					expected_ref_cnt_val);
-		}
-		
-		if (err) {
-			fsl_os_print("ERROR: Ref count test failed \n");
-		} else {
-			fsl_os_print("Ref count test PASSED :-)\n");
-
-		}
-		/* End of CDMA Reference Count Increment/Decrement Test */ 
 		
 		fdma_discard_default_frame(FDMA_DIS_NO_FLAGS);
 	}
@@ -337,4 +244,156 @@ int simple_bu_ohad_test(void)
 }
 
 
+// ipv4_header_modification
+int ipv4_header_modification_test()
+{
+	int i;
+	struct   ipv4hdr *ipv4hdr_ptr;
+	uint16_t ipv4hdr_offset;
+	uint32_t old_ipv4[5];
+	uint32_t new_ipv4[5];
+	
+					//IPV4_MODIFY_MODE_L4_CHECKSUM
+	uint8_t flags =  IPV4_MODIFY_MODE_IPTTL | 
+					IPV4_MODIFY_MODE_IPTOS | 
+					IPV4_MODIFY_MODE_IPID | 
+					IPV4_MODIFY_MODE_IPSRC |
+					IPV4_MODIFY_MODE_IPDST;
+	uint8_t old_ttl;
+	uint8_t tos = 0x11;
+	uint16_t id= 0x3355;
+	uint32_t ip_src_addr=0x12345678;
+	uint32_t ip_dst_addr=0x87654321;
+	
+	fsl_os_print("\nTesting ipv4_header_modification_test\n");
 
+	ipv4hdr_offset = (uint16_t)PARSER_GET_OUTER_IP_OFFSET_DEFAULT();
+	ipv4hdr_ptr = (struct ipv4hdr *)
+			(ipv4hdr_offset + PRC_GET_SEGMENT_ADDRESS());
+
+	old_ttl = ipv4hdr_ptr->ttl;
+	fsl_os_print("IPv4 Header BEFORE HM = \n");
+	for (i=0; i<5 ; i++){
+		fsl_os_print("ipv4 header arg %d: 0x%x \n", i, *((uint32_t *)(ipv4hdr_ptr)+i));
+		old_ipv4[i] = *((uint32_t *)(ipv4hdr_ptr)+i);
+	}
+	fsl_os_print("\n");
+	
+	fsl_os_print("PARSE RESULT BEFORE HM = \n");
+	for (i=0; i<16 ; i++)
+		fsl_os_print("parse results arg %d: 0x%x \n", i, *((uint32_t *)(0x80)+i));
+	fsl_os_print("\n");
+
+	ipv4_header_modification(flags, tos, id, ip_src_addr,ip_dst_addr);
+	
+	fsl_os_print("IPv4 Header AFTER HM = \n");
+	for (i=0; i<5 ; i++){
+		fsl_os_print("ipv4 header arg %d: 0x%x \n", i, *((uint32_t *)(ipv4hdr_ptr)+i));
+		new_ipv4[i] = *((uint32_t *)(ipv4hdr_ptr)+i);
+	}
+	fsl_os_print("\n");
+
+	fsl_os_print("PARSE RESULT AFTER HM = \n");
+	for (i=0; i<16 ; i++)
+		fsl_os_print("parse results arg %d: 0x%x \n", i, *((uint32_t *)(0x80)+i));
+	fsl_os_print("\n");
+
+	if ((old_ttl != ipv4hdr_ptr->ttl + 1)||(tos!=ipv4hdr_ptr->tos)|| (id!=ipv4hdr_ptr->id)||
+			(ip_src_addr!=ipv4hdr_ptr->src_addr)|| (ip_dst_addr!=ipv4hdr_ptr->dst_addr))
+		return 1;
+	
+	return 0;
+}
+
+//ipv4_dec_ttl_modification
+int ipv4_dec_ttl_modification_test()
+{
+	struct   ipv4hdr *ipv4hdr_ptr;
+	uint16_t ipv4hdr_offset;
+	uint32_t old_ttl, new_ttl;
+	int i;
+	
+	ipv4hdr_offset = (uint16_t)PARSER_GET_OUTER_IP_OFFSET_DEFAULT();
+	ipv4hdr_ptr = (struct ipv4hdr *)
+			(ipv4hdr_offset + PRC_GET_SEGMENT_ADDRESS());
+
+	old_ttl = ipv4hdr_ptr->ttl;
+
+	fsl_os_print("\nTesting ipv4_dec_ttl_modification\n");
+	fsl_os_print("Original TTL = %x \n",old_ttl);
+	
+	fsl_os_print("PARSE RESULT before HM = \n");
+	for (i=0; i<16 ; i++)
+		fsl_os_print("parse results arg %d: 0x%x \n", i, *((uint32_t *)(0x80)+i));
+	fsl_os_print("\n");
+	
+	ipv4_dec_ttl_modification();
+	
+	parse_result_generate_default(0);
+
+	new_ttl = ipv4hdr_ptr->ttl;
+	fsl_os_print("New TTL = %x \n",new_ttl);
+	
+	
+	fsl_os_print("PARSE RESULT after HM = \n");
+	for (i=0; i<16 ; i++)
+		fsl_os_print("parse results arg %d: 0x%x \n", i, *((uint32_t *)(0x80)+i));
+	fsl_os_print("\n");
+	
+	if (new_ttl+1 != old_ttl){
+		fsl_os_print("\nERROR: TTL  \n");
+		return 1;
+	}
+	
+	return 0;
+}
+
+
+
+int hm_l2_set_dst_src_test()
+{
+	uint8_t new_l2_dst[6] = {0x0a,0x0b,0x0c,0x0d,0x0e,0x0f};
+	uint8_t new_l2_src[6] = {0x1a,0x1b,0x1c,0x1d,0x1e,0x1f};
+
+	int err, i;
+	fsl_os_print("\nTesting l2_set_dl_dst\n");
+	
+	err = 0;
+	fsl_os_print("Original L2 dest = ");
+	for (i=0; i<6 ; i++) {
+		fsl_os_print("0x%x", *((uint8_t *)PARSER_GET_ETH_POINTER_DEFAULT() + (uint8_t)i));
+	}
+	fsl_os_print("\n");
+	
+	l2_set_dl_dst(new_l2_dst); /* (uint8_t *dst_addr) */
+	
+	fsl_os_print("New L2 dest = ");
+	for (i=0; i<6 ; i++) {
+		fsl_os_print("0x%x", *((uint8_t *)PARSER_GET_ETH_POINTER_DEFAULT() + (uint8_t)i));
+		if (*((uint8_t *)PARSER_GET_ETH_POINTER_DEFAULT() + (uint8_t)i) != new_l2_dst[i]) {
+			err = 1;
+			fsl_os_print("\nERROR: L2 DST mismatch = 0x%x\n");
+		}
+	}
+	fsl_os_print("\n");
+	
+	fsl_os_print("\nTesting l2_set_dl_src\n");
+	fsl_os_print("Original L2 src = ");
+	for (i=0; i<6 ; i++) {
+		fsl_os_print("0x%x", *((uint8_t *)PARSER_GET_ETH_POINTER_DEFAULT() + (uint8_t)i + 6));
+	}
+	fsl_os_print("\n");
+	
+	l2_set_dl_src(new_l2_src); /* uint8_t *src_addr */
+
+	fsl_os_print("New L2 src = ");
+	for (i=0; i<6 ; i++) {
+		fsl_os_print("0x%x", *((uint8_t *)PARSER_GET_ETH_POINTER_DEFAULT() + (uint8_t)i + 6));
+		if (*((uint8_t *)PARSER_GET_ETH_POINTER_DEFAULT() + (uint8_t)i + 6) != new_l2_src[i]) {
+			err = 1;
+			fsl_os_print("\nERROR: L2 SRC mismatch = 0x%x\n");
+		}
+	}
+	fsl_os_print("\n");
+	return err;
+}
