@@ -1,3 +1,7 @@
+dpni_drv.c, fsl_dpni_drv.h:  Added API to receive DPNI ID / NI ID (AIOP internal)
+                             int dpni_drv_get_dpni_id(uint16_t ni_id, uint16_t *dpni_id);
+                             int dpni_drv_get_ni_id(uint16_t dpni_id, uint16_t *ni_id);
+
 ** AIOP SL Release v0.5.3.2 **
 
 mc_init.c             AIOP boot will not fail if there are no DPCIs in DPL.
