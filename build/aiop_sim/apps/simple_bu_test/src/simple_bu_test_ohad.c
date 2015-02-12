@@ -85,9 +85,7 @@ int simple_bu_ohad_test(void)
 	fsl_os_print("Running simple bring-up test\n");
 	
 	
-	parser_init(&prpid);
-
-	default_task_params.parser_profile_id = prpid;
+	default_task_params.parser_profile_id = 0;
 	default_task_params.parser_starting_hxs = 0;
 
 	
@@ -192,8 +190,13 @@ int simple_bu_ohad_test(void)
 		for (i=0; i<8 ; i++)
 			fsl_os_print("storage profile arg %d: 0x%x \n", i, *((uint32_t *)(&(storage_profile[0]))+i));
 		
-		
+		fsl_os_print("SEGMENT properties before create frame\n");
+		fsl_os_print("PRC_GET_SEGMENT_ADDRESS  - 0x%x \n",PRC_GET_SEGMENT_ADDRESS());
+		fsl_os_print("PRC_GET_SEGMENT_LENGTH  - 0x%x \n",PRC_GET_SEGMENT_LENGTH());
 		err = create_frame(fd, frame_data, FRAME_SIZE, &frame_handle);
+		fsl_os_print("SEGMENT properties after create frame\n");
+		fsl_os_print("PRC_GET_SEGMENT_ADDRESS  - 0x%x \n",PRC_GET_SEGMENT_ADDRESS());
+		fsl_os_print("PRC_GET_SEGMENT_LENGTH  - 0x%x \n",PRC_GET_SEGMENT_LENGTH());
 		if (err)
 			fsl_os_print("ERROR: create frame failed!\n");
 
@@ -229,6 +232,9 @@ int simple_bu_ohad_test(void)
 		fsl_os_print("\n");
 		
 		l2_set_dl_dst(new_l2_dst); /* (uint8_t *dst_addr) */
+		fsl_os_print("SEGMENT properties after HM1 \n");
+		fsl_os_print("PRC_GET_SEGMENT_ADDRESS  - 0x%x \n",PRC_GET_SEGMENT_ADDRESS());
+		fsl_os_print("PRC_GET_SEGMENT_LENGTH  - 0x%x \n",PRC_GET_SEGMENT_LENGTH());
 		
 		fsl_os_print("New L2 dest = ");
 		for (i=0; i<6 ; i++) {
