@@ -125,7 +125,21 @@ inline int parse_result_generate_default(uint8_t flags)
 	struct parse_result *pr = (struct parse_result *)HWC_PARSE_RES_ADDRESS;
 	struct parser_input_message_params input_struct
 					__attribute__((aligned(16)));
-
+#ifndef REV2	
+	int32_t err;
+	uint16_t diff = (PRC_GET_SEGMENT_ADDRESS() & 0x000F);
+	if (diff)
+	{
+		diff = 0x10 - diff;
+		fdma_close_default_segment();
+		err = fdma_present_default_frame_segment(
+				(PRC_GET_SR_BIT())? FDMA_PRES_SR_BIT : 0, 
+				(void *)(PRC_GET_SEGMENT_ADDRESS() + diff), 
+				PRC_GET_SEGMENT_OFFSET(), 
+				PRC_GET_SEGMENT_LENGTH() - diff);
+	}
+#endif	
+	
 	arg1 = (uint32_t)default_task_params.parser_profile_id;
 	arg1 = __e_rlwimi(arg1, (uint32_t)flags, 8, 16, 23);
 	arg1 = __e_rlwimi(arg1,
