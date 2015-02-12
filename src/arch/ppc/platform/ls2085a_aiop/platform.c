@@ -710,8 +710,7 @@ __COLD_CODE int platform_enable_console(fsl_handle_t h_platform)
 	 * */
 	pltfrm->param.console_id = MANUAL_UART_ID;
 #endif
-	if(pltfrm->param.console_type == PLTFRM_CONSOLE_NONE || 
-		pltfrm->param.console_id == 0)/*if console id is 0, print to buffer*/
+	if(pltfrm->param.console_type == PLTFRM_CONSOLE_NONE)/*if console id is 0, print to buffer*/
 		return -ENAVAIL;
 
 
