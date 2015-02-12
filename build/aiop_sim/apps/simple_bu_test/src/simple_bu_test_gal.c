@@ -77,6 +77,9 @@ uint64_t snic_tmi_mem_base_addr_gal;
 #define SP_BDI_MASK     0x00080000
 #define SP_BP_PBS_MASK  0x3FFF
 
+#define SRAM_START _ssram_addr
+#define SRAM_DATA_ADDR _ssram_addr
+
 int simple_bu_gal_test(void)
 {
 	int        err  = 0;
@@ -218,8 +221,10 @@ int simple_bu_gal_test(void)
 		
 		//test_fdma_discard_fd();
 		
-		test_tmi_create();
-		
+		//fsl_os_print(" ***************************************** \n");
+		//test_tmi_create();
+		//fsl_os_print(" ***************************************** \n");
+
 		for (i=0; i<8 ; i++)
 			fsl_os_print("FD content arg %d is %x\n", i, *((uint32_t *)(0x60 + i*4)));
 		
@@ -279,67 +284,99 @@ int simple_bu_gal_test(void)
 /*  Test fdma_copy_data  */
 void test_fdma_copy_data()
 {
-	int err, i;
+	int err, i, j;
 	void *src_addr;
 	void *dst_addr;
-	uint16_t copy_size;
+	uint16_t copy_size = COPY_SIZE;
 	uint32_t flags;
-	uint8_t copy_data[COPY_SIZE] = {0x0a, 0x45, 0x77, 0x11, 0x39, 0x97, 0x63, 0x87, 
-				 0x33, 0x22, 0x54, 0x18, 0x84, 0xfa, 0xcb, 0xed};
-	
-	/* ws->ws */
-	//fsl_os_print("FDMA Copy WS->WS \n");
-	//src_addr = (void *)(copy_data);
-	//dst_addr = (void *)0x180;
-	//copy_size = COPY_SIZE;
-	//flags = 0;
-	
-	/* ws->sram */
-	//fsl_os_print("FDMA Copy WS->SRAM \n");
-	//src_addr = (void *)copy_data;
-	//dst_addr = (void *)(&(storage_profile[0]));
-	//copy_size = COPY_SIZE;
-	//flags = FDMA_COPY_DM_BIT;
-	
-	/* sram->ws */
-	fsl_os_print("FDMA Copy SRAM->WS \n");
-	src_addr = (void *)(&(storage_profile[0]));
-	dst_addr = (void *)0x180;
-	copy_size = sizeof(struct storage_profile);
-	flags = FDMA_COPY_SM_BIT;
-	
-	/* sram->sram */
-	//fsl_os_print("FDMA Copy SRAM->SRAM \n");
-	//src_addr = (void *)(&(storage_profile[0]));
-	//dst_addr = (void *)((uint32_t)(&(storage_profile[0]) + sizeof(struct storage_profile)*4));
-	//copy_size = sizeof(struct storage_profile);
-	//flags = FDMA_COPY_SM_BIT | FDMA_COPY_DM_BIT;
+	uint8_t ws_data[COPY_SIZE] =   {0x0a, 0x45, 0x77, 0x11, 0x39, 0x97, 0x63, 0x87, 
+				 	0x33, 0x22, 0x54, 0x18, 0x84, 0xfa, 0xcb, 0xed};
+	uint8_t sram_data[COPY_SIZE] = {0xcc, 0xdf, 0x23, 0x44, 0x68, 0x56, 0x22, 0x49,
+					0x19, 0x42, 0xda, 0xca, 0x99, 0x89, 0x8a, 0xc8};
+	uint8_t *sram = (uint8_t *)SRAM_DATA_ADDR;
 	
 	
-	fdma_copy_data(copy_size, flags, src_addr, dst_addr);
-	fsl_os_print("Simple BU: fdma_copy_data params:\n size = %d, flags = %d, src_address = 0x%x, dst_address = 0x%x \n",
-			sizeof(struct storage_profile), FDMA_COPY_SM_BIT, src_addr, dst_addr);
-	fsl_os_print("copy command HW arg1 = 0x%x\n", *(uint32_t *) 0x20);
-	fsl_os_print("copy command HW arg2 = 0x%x\n", *(uint32_t *) 0x24);
-	fsl_os_print("copy command HW arg3 = 0x%x\n", *(uint32_t *) 0x28);
-	fsl_os_print("copy command HW arg4 = 0x%x\n", *(uint32_t *) 0x2C);
-	err = 0;
-	for (i=0; i<copy_size; i+=4)
-		if (*((uint32_t *)((uint32_t)src_addr+i)) != *((uint32_t *)((uint32_t)dst_addr+i))) {
-			err = -EINVAL;
-			fsl_os_print("arg %d: 0x%x != 0x%x\n", i, *((uint32_t *)((uint32_t)src_addr+i)),
-					*((uint32_t *)((uint32_t)dst_addr+i)));
-		}
-	if (err)
+	for (j=0; j<4; j++)
 	{
-		fsl_os_print("Simple BU ERROR: fdma_copy_data FAILED\n");
-		for (i=0; i<copy_size; i+=4) {
-			fsl_os_print("Copy src arg %d = 0x%x\n", i/4, *((uint32_t *)((uint32_t)src_addr+i)));
-			fsl_os_print("Copy dst arg %d = 0x%x\n", i/4, *((uint32_t *)((uint32_t)dst_addr+i)));
+		for (i=0; i<COPY_SIZE; i++)
+			sram[i] = sram_data[i];
+		
+		switch (j){
+		
+		case (0):	
+			/* ws->ws */
+			fsl_os_print("FDMA Copy WS->WS \n");
+			src_addr = (void *)(ws_data);
+			dst_addr = (void *)0x180;
+			flags = 0;
+			break;
+		case (1):	
+			/* ws->sram */
+			fsl_os_print("FDMA Copy WS->SRAM \n");
+			src_addr = (void *)ws_data;
+			dst_addr = (void *)sram;
+			flags = FDMA_COPY_DM_BIT;
+			break;
+		case (2):	
+			/* sram->ws */
+			fsl_os_print("FDMA Copy SRAM->WS \n");
+			src_addr = (void *)sram;
+			dst_addr = (void *)0x180;
+			flags = FDMA_COPY_SM_BIT;
+			break;
+		case (3):	
+			/* sram->sram */
+			fsl_os_print("FDMA Copy SRAM->SRAM \n");
+			src_addr = (void *)sram;
+			dst_addr = (void *)(sram+COPY_SIZE);
+			flags = FDMA_COPY_SM_BIT | FDMA_COPY_DM_BIT;
+			break;
+		}
+		
+		if (flags == FDMA_COPY_SM_BIT)
+			fdma_copy_data(copy_size, flags, 
+				(void *)((uint32_t)src_addr-(uint32_t)SRAM_START), 
+				dst_addr);
+		else if (flags == FDMA_COPY_DM_BIT)
+			fdma_copy_data(copy_size, flags, src_addr, 
+				(void *)((uint32_t)dst_addr-(uint32_t)SRAM_START));
+		else if (flags == (FDMA_COPY_DM_BIT | FDMA_COPY_SM_BIT))
+			fdma_copy_data(copy_size, flags, 
+				(void *)((uint32_t)src_addr-(uint32_t)SRAM_START), 
+				(void *)((uint32_t)dst_addr-(uint32_t)SRAM_START));
+		else
+			fdma_copy_data(copy_size, flags, src_addr, dst_addr);
+		
+		fsl_os_print("Simple BU: fdma_copy_data params:\n size = %d, flags = %d, "
+				"src_address = 0x%x, dst_address = 0x%x \n",
+				sizeof(struct storage_profile), FDMA_COPY_SM_BIT, src_addr, dst_addr);
+		fsl_os_print("copy command HW arg1 = 0x%x\n", *(uint32_t *) 0x20);
+		fsl_os_print("copy command HW arg2 = 0x%x\n", *(uint32_t *) 0x24);
+		fsl_os_print("copy command HW arg3 = 0x%x\n", *(uint32_t *) 0x28);
+		fsl_os_print("copy command HW arg4 = 0x%x\n", *(uint32_t *) 0x2C);
+		err = 0;
+		for (i=0; i<copy_size; i+=4)
+			if (*((uint32_t *)((uint32_t)src_addr+i)) != *((uint32_t *)((uint32_t)dst_addr+i))) {
+				err = -EINVAL;
+				fsl_os_print("arg %d: 0x%x != 0x%x\n", i, *((uint32_t *)((uint32_t)src_addr+i)),
+						*((uint32_t *)((uint32_t)dst_addr+i)));
+			}
+		if (err)
+		{
+			fsl_os_print("Simple BU ERROR: fdma_copy_data FAILED\n");
+			for (i=0; i<copy_size; i+=4) {
+				fsl_os_print("Copy src arg %d = 0x%x\n", i/4, *((uint32_t *)((uint32_t)src_addr+i)));
+				fsl_os_print("Copy dst arg %d = 0x%x\n", i/4, *((uint32_t *)((uint32_t)dst_addr+i)));
+			}
+		}
+		else{
+			fsl_os_print("Simple BU ERROR: fdma_copy_data PASSED\n");
+			/*for (i=0; i<copy_size; i+=4) {
+				fsl_os_print("Copy src arg %d = 0x%x\n", i/4, *((uint32_t *)((uint32_t)src_addr+i)));
+				fsl_os_print("Copy dst arg %d = 0x%x\n", i/4, *((uint32_t *)((uint32_t)dst_addr+i)));
+			}*/
 		}
 	}
-	else
-		fsl_os_print("Simple BU ERROR: fdma_copy_data PASSED\n");
 }
 
 void test_tmi_create()
@@ -348,11 +385,15 @@ void test_tmi_create()
 	fsl_os_get_mem( 4*64, MEM_PART_DP_DDR, 64, 
 			&snic_tmi_mem_base_addr_gal);
 	tman_get_timestamp(&time);
-	fsl_os_print("Timestamp = 0x%x\n", time);
+	fsl_os_print("Timestamp = 0x%x%x\n", time >> 32, time);
 	tman_get_timestamp(&time);
-	fsl_os_print("Timestamp = 0x%x\n", time);
+	fsl_os_print("Timestamp = 0x%x%x\n", time >> 32, time);
 	tman_get_timestamp(&time);
-	fsl_os_print("Timestamp = 0x%x\n", time);
+	fsl_os_print("Timestamp = 0x%x%x\n", time >> 32, time);
+	tman_get_timestamp(&time);
+	fsl_os_print("Timestamp = 0x%x%x\n", time >> 32, time);
+	tman_get_timestamp(&time);
+	fsl_os_print("Timestamp = 0x%x%x\n", time >> 32, time);
 	/* todo tmi delete in snic_free */
 	tman_create_tmi(snic_tmi_mem_base_addr_gal , 4, 
 			&snic_tmi_id_gal);
