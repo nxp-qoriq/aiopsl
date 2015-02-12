@@ -671,3 +671,36 @@ int dpni_drv_get_counter(uint16_t ni_id, enum dpni_counter counter, uint64_t *va
 	                        counter,
 	                        value);
 }
+
+int dpni_drv_get_dpni_id(uint16_t ni_id, uint16_t *dpni_id){
+	struct dpni_drv *dpni_drv;
+	dpni_drv = nis + ni_id;
+	if(ni_id >= dpni_get_num_of_ni())
+	{
+		pr_info("NI %d not found in AIOP table.\n",(int)ni_id);
+		return -ENAVAIL;
+	}
+		
+	*dpni_id = dpni_drv->dpni_id;
+	return 0;
+}
+
+int dpni_drv_get_ni_id(uint16_t dpni_id, uint16_t *ni_id){
+	struct dpni_drv *dpni_drv;
+	uint16_t i;
+	dpni_drv = nis;
+	
+	for(i = 0; i < dpni_get_num_of_ni(); i++, dpni_drv ++)
+	{
+		if(dpni_drv->dpni_id == dpni_id)
+		{
+			*ni_id = i;
+			break;
+		}
+	}
+	if(i == dpni_get_num_of_ni()){
+		pr_info("DPNI %d not found in AIOP table.\n",(int)dpni_id);
+		return -ENAVAIL;
+	}
+	return 0;
+}
