@@ -77,8 +77,8 @@ int app_init(void)
 
 	//err = simple_bu_gal_test();
 	//err = simple_bu_ilan_test();
-	//err = simple_bu_yariv_test();
-	err = simple_bu_ohad_test();
+	err = simple_bu_yariv_test();
+	//err = simple_bu_ohad_test();
 
 	if (!err) {
 		fsl_os_print("app_init completed successfully\n");
