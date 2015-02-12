@@ -13,7 +13,42 @@ This demo shows an "autonomous" packet flow through the AIOP and illustrates the
 7. Packet transmission from the AIOP (to a PCAP file)
 
 ===========================================
-Setup
+LS2 HW Setup
+===========================================
+1. Install Code Warrior (see Release Note for the compatible CW version).
+2. Import the aiopsl/build/aiop_sim/apps/app_process_packet/.project into CodeWarrior and build aiop_app.elf.    
+2. Use LS2085QDS or LS2085RDB default setup.
+   Connect UART ports to terminals. 
+   AIOP and MC UART ports are configurable by dpc.dts.
+3. Turn ON the board and get to the UBOOT prompt ==> on vBank 0.
+4. Copy the following files into your TFTP folder:
+   - aiopsl/misc/setup/dpl.dtb 
+   - aiopsl/misc/setup/dpc.dtb
+   - aiopsl/build/aiop_sim/apps/app_process_packet/out/aiop_app.elf
+   - mc.itb
+   - PBL.bin
+   - u-boot.bin
+   
+===========================================
+LS2 HW Execution flow
+===========================================
+1. Burn all the images to vBank 4 (you should be on vBank 0 while doing it)
+   setenv ipaddr 192.168.1.4;setenv serverip 192.168.1.1;setenv netmask 255.255.0.0; ping $serverip;
+   setenv filesize; setenv myaddr 0x584000000; tftp 0x80000000 /<path to your folder>/PBL.bin; protect off $myaddr +$filesize; erase $myaddr +$filesize; cp.b 0x80000000 $myaddr $filesize; protect on $myaddr +$filesize
+   setenv filesize; setenv myaddr 0x584100000; tftp 0x80000000 /<path to your folder>/u-boot.bin; protect off $myaddr +$filesize; erase $myaddr +$filesize; cp.b 0x80000000 $myaddr $filesize; protect on $myaddr +$filesize
+   setenv filesize; setenv myaddr 0x584300000; tftp 0x80000000 /<path to your folder>/mc.itb; protect off $myaddr +$filesize; erase $myaddr +$filesize; cp.b 0x80000000 $myaddr $filesize; protect on $myaddr +$filesize
+   setenv filesize; setenv myaddr 0x584700000; tftp 0x80000000 /<path to your folder>/dpl.dtb; protect off $myaddr +$filesize; erase $myaddr +$filesize; cp.b 0x80000000 $myaddr $filesize; protect on $myaddr +$filesize
+   setenv filesize; setenv myaddr 0x584800000; tftp 0x80000000 /<path to your folder>/dpc.dtb; protect off $myaddr +$filesize; erase $myaddr +$filesize; cp.b 0x80000000 $myaddr $filesize; protect on $myaddr +$filesize
+   setenv filesize; setenv myaddr 0x584900000; tftp 0x80000000 /<path to your folder>/aiop_app.elf; protect off $myaddr +$filesize; erase $myaddr +$filesize; cp.b 0x80000000 $myaddr $filesize; protect on $myaddr +$filesize
+2. Switch to vBank 4 and reboot.
+   qixis_reset altbank
+3. Look at the UART-GPP console and see: "fsl-mc: Management Complex booted"
+4. Look at the UART-AIOP console and see: "AIOP boot finished; ready for tasks..."
+5. Inject packets using aiopsl/misc/setup/eth_ipv4_udp.pcap
+6. Look at the UART-GPP console and see that the packets've arrived.
+
+===========================================
+Simultor Setup
 ===========================================
 1. Install Code Warrior (see Release Note for the compatible CW version).
 2. Download the linux version of the simulator (see Release Note for the compatible LS_SIM version).
@@ -26,12 +61,14 @@ Setup
 6. Copy “eth_ipv4_udp.pcap” from the source tree at: aiopsl/misc/setup/ into the simulator folder
 
 ===========================================
-Execution flow
+Simulator Execution flow
 ===========================================
 1. Import the MC and AIOP projects into CodeWarrior:
    mc/build/mc_sim/mc_app/.project
    aiopsl/build/aiop_sim/apps/app_process_packet/.project
-2. Build both projects in CW.
+2. Add "#define SIMULATOR" inside build_flags.h and build both projects in CW:
+   aiopsl/build/aiop_sim/build_flags/build_flags.h
+   mc/build/aiop_sim/build_flags/build_flags.h 
 3. Copy the resulting ELF file from the build project folder(aiop_app.elf)
    to the simulator folder (same location as cfg files).
 4. Run the simulator:

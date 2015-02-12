@@ -113,6 +113,7 @@
 		of 256 bytes before completing all parsing). (Relevant in case
 		this is the default frame).
 		Recommendation is to discard the frame.
+@Retval		ENOMEM - Failed due to buffer pool depletion.
 
 @Cautions	Due to PDM TKT254401 this function can work only on the default 
 		frame.
