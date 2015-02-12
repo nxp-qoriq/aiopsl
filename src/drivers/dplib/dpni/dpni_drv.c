@@ -212,7 +212,7 @@ __COLD_CODE int dpni_drv_probe(struct mc_dprc *dprc,
 			layout.options =  DPNI_BUF_LAYOUT_OPT_DATA_HEAD_ROOM |
 						DPNI_BUF_LAYOUT_OPT_DATA_TAIL_ROOM;
 			layout.data_head_room = 96;
-			layout.data_tail_room = 52;
+			layout.data_tail_room = 0;
 			if ((err = dpni_set_rx_buffer_layout(&dprc->io, dpni, &layout)) != 0) {
 				pr_err("Failed to set rx buffer layout for DP-NI%d\n", mc_niid);
 				return -ENODEV;
