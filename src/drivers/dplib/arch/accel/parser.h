@@ -234,6 +234,10 @@ struct parser_input_message_params {
 		completing all parsing)
 
 @Cautions	In this function the task yields.
+ 	  	As a workaround of TKT254635, in case the segment address is not
+ 	  	aligned to 16 bytes, it will be changed to the closest aligned
+ 	  	address and as a result the segment size will be decreased
+ 	  	correspondingly.
 		This function expects gross running sum field to be valid.
 		l3 & l4 checksum pointers must not be NULL.
 		This function may result in a fatal error.
