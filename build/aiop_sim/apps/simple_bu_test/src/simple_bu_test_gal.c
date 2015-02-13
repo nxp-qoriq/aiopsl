@@ -572,7 +572,7 @@ void test_ste_functions()
 	
 	ste_inc_counter(ext_addr, INC_VAL, STE_MODE_SATURATE | STE_MODE_32_BIT_CNTR_SIZE);
 	fsl_os_print("*** ste_inc_counter is called  \n");
-	//ste_barrier();
+	ste_barrier();
 	fsl_os_print("*** ste_barrier is called  \n");
 	cdma_read(&counter, ext_addr, sizeof(uint32_t));
 	fsl_os_print("*** compare counter after ste_inc_counter  \n");
@@ -588,7 +588,7 @@ void test_ste_functions()
 	}
 	ste_dec_counter(ext_addr, DEC_VAL, STE_MODE_SATURATE | STE_MODE_32_BIT_CNTR_SIZE);
 	fsl_os_print("*** ste_dec_counter is called  \n");
-	//ste_barrier();
+	ste_barrier();
 	fsl_os_print("*** ste_barrier is called  \n");
 	cdma_read(&counter, ext_addr, sizeof(uint32_t));
 	fsl_os_print("*** compare counter after ste_dec_counter  \n");
