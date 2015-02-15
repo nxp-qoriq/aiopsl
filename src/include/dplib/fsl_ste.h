@@ -110,23 +110,23 @@
  *//***************************************************************************/
 
 	/** STE Error Registers base address */
-#define TMAN_BASE_ADDRESS	0x02080000
+#define STE_BASE_ADDRESS	0x02080000
 	/** STECR1 - Statistics Engine Control Register address */
-#define STE_STECR1_ADDRESS	(TMAN_BASE_ADDRESS+0x200)
+#define STE_STECR1_ADDRESS	(STE_BASE_ADDRESS+0x200)
 	/** STESR - Statistics Engine Status Register address */
-#define STE_STESR_ADDRESS	(TMAN_BASE_ADDRESS+0x20C)
+#define STE_STESR_ADDRESS	(STE_BASE_ADDRESS+0x20C)
 	/** STE_ERR_CAPT1R - Statistics Engine first capture register
 	* address */
-#define STE_ERR_CAPT1_ADDRESS	(TMAN_BASE_ADDRESS+0x210)
+#define STE_ERR_CAPT1_ADDRESS	(STE_BASE_ADDRESS+0x210)
 	/** STE_ERR_CAPT2R - Statistics Engine second capture register
 	* address */
-#define STE_ERR_CAPT2_ADDRESS	(TMAN_BASE_ADDRESS+0x214)
+#define STE_ERR_CAPT2_ADDRESS	(STE_BASE_ADDRESS+0x214)
 	/** STE_ERR_CAPT3R - Statistics Engine third capture register
 	* address */
-#define STE_ERR_CAPT3_ADDRESS	(TMAN_BASE_ADDRESS+0x218)
+#define STE_ERR_CAPT3_ADDRESS	(STE_BASE_ADDRESS+0x218)
 	/** STE_ERR_CAPT4R - Statistics Engine fourth capture register
 	* address */
-#define STE_ERR_CAPT4_ADDRESS	(TMAN_BASE_ADDRESS+0x21C)
+#define STE_ERR_CAPT4_ADDRESS	(STE_BASE_ADDRESS+0x21C)
 
 /** @} end of group StatsErrorRegAddr */
 
