@@ -277,6 +277,11 @@ int simple_bu_ilan_test(void)
 		fsl_os_print("STATUS: fdma present default segment returned status is %d\n", err);
 		l2_push_and_set_vlan(vlan);
 		
+		/* due to parser not aligned segment WA need to represent again*/
+		fdma_close_default_segment();
+		err = fdma_present_default_frame_segment(FDMA_PRES_NO_FLAGS, (void *)0x180, 0, 256);
+		fsl_os_print("STATUS: fdma present default segment returned status is %d\n", err);
+		
 		frame_length = PRC_GET_SEGMENT_LENGTH();
 		seg_addr = (uint8_t *)PRC_GET_SEGMENT_ADDRESS();
 		
@@ -284,7 +289,7 @@ int simple_bu_ilan_test(void)
 		for (i=0; i<frame_length ; i++)
 			fsl_os_print("frame read byte %d is %x\n", i, seg_addr[i]);
 
-		parse_result_generate(PARSER_ETH_STARTING_HXS, 0, PARSER_NO_FLAGS);
+		parse_result_generate_default(0);
 		
 		fsl_os_print("parse result after create frame - \n");
 		
@@ -338,24 +343,80 @@ int simple_bu_ilan_test(void)
 				err = -EINVAL;
 		if (err)
 		{
-			fsl_os_print("Simple BU ERROR: frame data after HM is not correct\n");
+			fsl_os_print("Simple BU ERROR: frame data after HM vlan add is not correct\n");
 			fdma_discard_default_frame(FDMA_DIS_NO_FLAGS);
 			return err;
 		}
 		else {
 			fsl_os_print("**************************************************\n");
-			fsl_os_print("Simple BU Test: fdma frame after HM is correct !!!\n");
+			fsl_os_print("Simple BU Test: fdma frame after HM vlan add is correct !!!\n");
 			fsl_os_print("**************************************************\n");
 		}
 		
-		test_fdma_copy_data();
+		/* Add vlan remove feature here! */
+		err = fdma_store_default_frame_data();
+		if (err)
+			fsl_os_print("ERROR: fdma store default frame returned error is %d\n", err);
+		
+		err = fdma_present_default_frame();
+		if (err < 0)
+			fsl_os_print("ERROR: fdma present default frame returned error is %d\n", err);
+		else
+			if (err)
+				fsl_os_print("STATUS: fdma present default frame returned status is %d\n", err);
+		parse_status = parse_result_generate_default(PARSER_NO_FLAGS);
+		if (parse_status)
+		{
+			fsl_os_print("ERROR: parser failed for simple BU test!\n");
+			fdma_discard_default_frame(FDMA_DIS_NO_FLAGS);
+		}
+		l2_pop_vlan();
+		
+		/* due to parser not aligned segment WA need to represent again*/
+		fdma_close_default_segment();
+		err = fdma_present_default_frame_segment(FDMA_PRES_NO_FLAGS, (void *)0x180, 0, 256);
+		fsl_os_print("STATUS: fdma present default segment returned status is %d\n", err);	
+		err = 0;
+		parse_status = parse_result_generate_default(PARSER_NO_FLAGS);
+		if (parse_status)
+		{
+			fsl_os_print("ERROR: parser failed for simple BU test!\n");
+			fdma_discard_default_frame(FDMA_DIS_NO_FLAGS);
+		}
+		
+		
+		/* check frame presented */
+		frame_presented = (uint8_t *)PRC_GET_SEGMENT_ADDRESS();
+		frame_length = LDPAA_FD_GET_LENGTH(HWC_FD_ADDRESS);
+		fsl_os_print("actual frame length after vlan removed is 0x%x\n", frame_length);
+		for (i=0; i<frame_length ; i++)
+			fsl_os_print("actual frame read byte after vlan remove %d is %x\n", i, frame_presented[i]);
+		
+		for (i=0; i<FRAME_SIZE; i++)
+			if (*(frame_presented+i) != frame_data[i])
+			{
+				fsl_os_print("***************** index %d\n", i);
+				err = -EINVAL;
+			}
+		if (err)
+		{
+			fsl_os_print("Simple BU ERROR: frame data after HM vlan remove is not correct\n");
+			fdma_discard_default_frame(FDMA_DIS_NO_FLAGS);
+			return err;
+		}
+		else {
+			fsl_os_print("**************************************************\n");
+			fsl_os_print("Simple BU Test: fdma frame after HM vlan remove is correct !!!\n");
+			fsl_os_print("**************************************************\n");
+		}
 		
 		/* CTLU */
 		{
 			struct table_rule rule __attribute__((aligned(16)));
 			uint8_t	 keysize;
 			int sr_status;
-			struct table_lookup_result lookup_result;
+			struct table_lookup_result lookup_result
+								__attribute__((aligned(16)));
 			
 			rule.options = 0;
 			rule.result.type = TABLE_RESULT_TYPE_REFERENCE;
@@ -370,8 +431,8 @@ int simple_bu_ilan_test(void)
 			if (sr_status)
 				fsl_os_print("Simple BU ERROR: keygen_gen_key failed!\n");
 			
-			for (i=0; i<11; i++)
-				fsl_os_print("Generated Key byte %d 0x%x\n", i, rule.key_desc.em.key[i]);
+			for (i=0; i<keysize; i++)
+				fsl_os_print("Generated Key of size %d byte %d 0x%x\n", keysize, i, rule.key_desc.em.key[i]);
 			
 			sr_status = table_rule_create(
 					TABLE_ACCEL_ID_CTLU,
@@ -395,6 +456,168 @@ int simple_bu_ilan_test(void)
 				fsl_os_print("Simple BU ERROR: table LU failed!\n");
 			else
 				fsl_os_print("Simple BU table LU success!!!\n");
+		}
+		
+		/* look-up by key-id */
+		{
+			//struct kcr_builder kb
+			//		__attribute__((aligned(16)));
+			struct table_rule rule
+							__attribute__((aligned(16)));
+			union table_lookup_key_desc key_desc;
+			struct table_create_params tbl_params;
+			uint16_t table_location_attr;
+			uint32_t timestamp;
+			//uint8_t key_id;
+			uint16_t table_id;
+			
+			uint16_t key1
+										__attribute__((aligned(16)));
+			uint16_t key2
+										__attribute__((aligned(16)));
+			uint16_t key3
+										__attribute__((aligned(16)));
+			struct table_result table_result;
+			
+			key1=0xbeef;
+			key2=0xdead;
+			key3=0x1234;
+			
+			int sr_status;
+			struct table_lookup_result lookup_result
+							__attribute__((aligned(16)));
+
+			/* keygen_kcr_builder_init(&kb);*/
+			//keygen_kcr_builder_add_input_value_fec(6/*offset*/, 
+			//			2/*extract size*/, NULL , &kb );
+			/* err = keygen_kcr_create(KEYGEN_ACCEL_ID_CTLU,
+					  kb.kcr,
+					  &key_id);
+			if (err < 0)
+			{
+				fsl_os_print("key id kcr create failed!");
+				return err;
+			}
+			*/
+			
+			tbl_params.committed_rules = 10;
+			tbl_params.max_rules = 10;
+			tbl_params.key_size = 2;
+
+			table_location_attr = TABLE_ATTRIBUTE_LOCATION_EXT1;
+
+			tbl_params.attributes = TABLE_ATTRIBUTE_TYPE_EM | \
+					table_location_attr | \
+					TABLE_ATTRIBUTE_MR_NO_MISS;
+			err = table_create(TABLE_ACCEL_ID_CTLU, &tbl_params,
+					&table_id);
+			if (err != TABLE_STATUS_SUCCESS)
+			{
+				fsl_os_print("table create failed for key-id!");
+				return err;
+			}
+			/* create rule */
+			rule.options = 0;
+			rule.result.type = TABLE_RESULT_TYPE_REFERENCE;
+			rule.result.op0_rptr_clp.reference_pointer = 0x11223344;
+			rule.key_desc.em.key[0] = 0xde;
+			rule.key_desc.em.key[1] = 0xad;
+			err = table_rule_create(TABLE_ACCEL_ID_CTLU, table_id, &rule, 2);
+			if (err)
+			{
+				fsl_os_print("table rule create by key  failed");
+				return err;
+			}
+			rule.result.op0_rptr_clp.reference_pointer = 0x55667788;
+			rule.key_desc.em.key[0] = 0xbe;
+			rule.key_desc.em.key[1] = 0xef;
+			err = table_rule_create(TABLE_ACCEL_ID_CTLU, table_id, &rule, 2);
+			if (err)
+			{
+				fsl_os_print("table rule create by key  failed");
+				return err;
+			}
+
+			/* table_rule_query */
+				
+			err = table_rule_query(TABLE_ACCEL_ID_CTLU, table_id, &rule.key_desc, 2, &table_result, &timestamp);
+			if (table_result.op0_rptr_clp.reference_pointer != 0x55667788)
+			{
+				fsl_os_print("Simple BU ERROR: table_rule_query failed!\n");
+				return -EIO;
+			}
+			else
+				fsl_os_print("Simple BU: table_rule_query succeeded!\n");
+			/*********************************/
+			
+			
+			/* rule create and rule delete */
+			
+			rule.result.op0_rptr_clp.reference_pointer = 0x55667788;
+			rule.key_desc.em.key[0] = 0x12;
+			rule.key_desc.em.key[1] = 0x34;
+			err = table_rule_create(TABLE_ACCEL_ID_CTLU, table_id, &rule, 2);
+			if (err)
+			{
+				fsl_os_print("table rule create by key  failed");
+				return err;
+			}
+			
+			err = table_rule_delete(TABLE_ACCEL_ID_CTLU, table_id, &rule.key_desc, 2 , &rule.result);
+			if (err)
+			{
+				fsl_os_print("Simple BU ERROR: table_rule_delete failed!\n");
+				return -EIO;
+			}
+			else
+				fsl_os_print("Simple BU: table_rule_delete succeeded!\n");
+			/*********************************/
+			
+	
+			
+			key_desc.em_key = &key1;
+			sr_status = table_lookup_by_key(TABLE_ACCEL_ID_CTLU, table_id, key_desc, 2, &lookup_result);
+			if (sr_status)
+			{
+				fsl_os_print("Simple BU ERROR: table_lookup_by_key failed!\n");
+				return -EIO;
+			}
+							
+			if (lookup_result.opaque0_or_reference != 0x55667788)
+			{
+					fsl_os_print("Simple BU ERROR: table LU by key1 failed!\n");
+					return -EIO;
+			}
+			else
+					fsl_os_print("Simple BU table LU by Key1 success!!!\n");
+			
+			key_desc.em_key = &key2;
+			sr_status = table_lookup_by_key(TABLE_ACCEL_ID_CTLU, table_id, key_desc, 2, &lookup_result);
+			if (sr_status)
+			{
+				fsl_os_print("Simple BU ERROR: table_lookup_by_key failed!\n");
+				return -EIO;
+			}
+							
+			if (lookup_result.opaque0_or_reference != 0x11223344)
+			{
+					fsl_os_print("Simple BU ERROR: table LU by key2 failed!\n");
+					return -EIO;
+			}
+			else
+					fsl_os_print("Simple BU table LU by Key2 success!!!\n");
+			
+			key_desc.em_key = &key3;
+			sr_status = table_lookup_by_key(TABLE_ACCEL_ID_CTLU, table_id, key_desc, 2, &lookup_result);
+			if (!sr_status)
+			{
+				fsl_os_print("Simple BU ERROR: table_lookup_by_key failed since it should be miss!\n");
+				return -EIO;
+			}
+			
+			/* table_delete */
+			table_delete(TABLE_ACCEL_ID_CTLU, table_id);
+		
 		}
 		
 		fdma_discard_default_frame(FDMA_DIS_NO_FLAGS);
