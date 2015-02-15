@@ -1,3 +1,8 @@
+** AIOP SL Release v0.5.3.3 **
+
+dpl.dtb/dts: Moved ICID pool to DPC.
+dpc.dtb/dts: New configuration file, UART ports are set here. 
+
 dpni_drv.c: Set hard coded values for head room and tail room for:
                       Head room: 96 bytes
                       Tail room: 0 bytes
