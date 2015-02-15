@@ -33,8 +33,11 @@
 #include "aiop_verification.h"
 #include "aiop_verification_ipr.h"
 #include "aiop_verification_data.h"
+#include "fsl_frame_operations.h"
 
 extern __VERIF_GLOBAL uint64_t verif_ipr_instance_handle[16];
+extern __PROFILE_SRAM struct storage_profile storage_profile[SP_NUM_OF_STORAGE_PROFILES];
+
 
 uint16_t aiop_verification_ipr(uint32_t asa_seg_addr)
 {
@@ -273,40 +276,57 @@ void ipr_delete_instance_cb_verif(uint64_t arg)
 {
 	struct ipr_fdma_enqueue_wf_command str;
 	struct fdma_queueing_destination_params qdp;
-	//int32_t status;
+	uint8_t dummy_data;
 	uint32_t flags = 0;
+	struct ldpaa_fd fd __attribute__((aligned(sizeof(struct ldpaa_fd))));
+	uint8_t frame_handle;
+        struct fdma_amq amq;
+        uint16_t icid;
+        uint8_t tmp;
+
 
 	if (arg == 0)
 		return;
 	cdma_read((void *)&str, arg,
 			(uint16_t)sizeof(struct ipr_fdma_enqueue_wf_command));
+	
+        /* setting SPID = 0 */
+        *((uint8_t *)HWC_SPID_ADDRESS) = str.spid;
+        icid = (uint16_t)(storage_profile[str.spid].ip_secific_sp_info >> 48);
+        icid = ((icid << 8) & 0xff00) | ((icid >> 8) & 0xff);
+        tmp = (uint8_t)(storage_profile[0].ip_secific_sp_info >> 40);
+        if (tmp & 0x08)
+               flags |= FDMA_ICID_CONTEXT_BDI;
+        if (tmp & 0x04)
+               flags |= FDMA_ICID_CONTEXT_PL;
+        if (storage_profile[0].mode_bits2 & sp1_mode_bits2_VA_MASK)
+               flags |= FDMA_ICID_CONTEXT_VA;
+        amq.icid = icid;
+        amq.flags = (uint16_t) flags;
+        set_default_amq_attributes(&amq);
 
-	/* Change length to be 1 */
-	fdma_store_default_frame_data();
-	LDPAA_FD_SET_LENGTH(HWC_FD_ADDRESS, 1);	
+	create_frame(&fd,&dummy_data, 1, &frame_handle);
 
-	*(uint8_t *) HWC_SPID_ADDRESS = str.spid;
-	flags |= ((str.TC == 1) ? (FDMA_EN_TC_TERM_BITS) : 0x0);
+
+	flags = ((str.TC == 1) ? (FDMA_EN_TC_TERM_BITS) : 0x0);
 	flags |= ((str.PS) ? FDMA_ENWF_PS_BIT : 0x0);
-	flags |= ((str.BDI == 1) ? (FDMA_ENF_BDI_BIT) : 0x0);
-
 
 	if (str.EIS) {
-		str.status = (int8_t)
-				fdma_enqueue_default_fd_fqid(
-					str.icid,
-					flags,
-					str.qd_fqid);
+		fdma_store_and_enqueue_frame_fqid(
+				frame_handle,
+				flags,
+				str.qd_fqid,
+				str.spid);
 
 	} else{
 		qdp.qd = (uint16_t)(str.qd_fqid);
 		qdp.qdbin = str.qdbin;
 		qdp.qd_priority = str.qd_priority;
-		str.status = (int8_t)
-					fdma_enqueue_default_fd_qd(
-						str.icid,
-						flags,
-						&qdp);
+		fdma_store_and_enqueue_frame_qd(
+			frame_handle,
+			flags,
+			&qdp,
+			str.spid);
 
 	}
 	fdma_terminate_task();

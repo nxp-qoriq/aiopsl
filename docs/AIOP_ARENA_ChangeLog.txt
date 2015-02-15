@@ -1,3 +1,8 @@
+** AIOP SL Release v0.5.3.3 **
+
+dpl.dtb/dts: Moved ICID pool to DPC.
+dpc.dtb/dts: New configuration file, UART port and log to buffer settings are set here. 
+
 dpni_drv.c: Set hard coded values for head room and tail room for:
                       Head room: 96 bytes
                       Tail room: 0 bytes
@@ -5,20 +10,6 @@ dpni_drv.c: Set hard coded values for head room and tail room for:
 dpni_drv.c, fsl_dpni_drv.h:  Added API to receive DPNI ID / NI ID (AIOP internal)
                              int dpni_drv_get_dpni_id(uint16_t ni_id, uint16_t *dpni_id);
                              int dpni_drv_get_ni_id(uint16_t dpni_id, uint16_t *ni_id);
-
-Defines for manual setting to AIOP's UART
-
-Add to build_flags.h:
-1)	Define: UART_OVERRIDE
-2)	MACRO: MANUAL_UART_ID                 X
-
-X:
-       * 0 - Print only to buffer
-       * 1 - duart1_0
-       * 2 - duart1_1
-       * 3 - duart2_0
-       * 4 - duart2_1
-
 
 ** AIOP SL Release v0.5.3.2 **
 

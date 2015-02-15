@@ -1,11 +1,23 @@
 LDPAA AIOP SERVICE LAYER LDPAA-AIOP-SL-v0.5.3.3 Change Log
 =============================================================
-
+IPR:
+   * Fix alignment of table_rule struct in case of delete rule.
+   
 IPsec:
    * Updated RTA (flib) to fsl-lssdk-v0.6.1, split key (DKP) support for legacy thread.
      (IPsec FM support for split key in Transport mode)
+   * Fixed (temporary) ENGR347826, IPSec:ESP(3DES+None):Simulator crash observed while creating the SA descriptor
+   * Updated the IPsec FM demo due to the Parser alignment fix
+   
+PARSER:
+	* Added workaround to TKT254635 (CTLU spec - requirement of data alignment for parser  is not mentioned).
 
+IPF:
+	* Updated the IPF FM demo due to the Parser alignment fix
+FDMA:
+	* Add workaround to TKT254401 (FDMA Store of a newly created frame pass without storing the data).
 
+	
 LDPAA AIOP SERVICE LAYER LDPAA-AIOP-SL-v0.5.3.2 Change Log
 =============================================================
 
