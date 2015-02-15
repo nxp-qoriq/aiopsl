@@ -1160,9 +1160,9 @@ int table_rule_delete(enum table_hw_accel_id acc_id,
 @Param[in]	acc_id ID of the Hardware Table Accelerator that contains
 		the table on which the operation will be performed.
 @Param[in]	table_id Table ID.
-@Param[in]	key_desc Lookup Key Descriptor of the rule to be queried. The
-		structure pointed by this pointer must be in the task's
-		workspace and must be aligned to 16B boundary.
+@Param[in]	key_desc Lookup Key Descriptor of the rule to be queried. This 
+		parameter is a union of pointers. The memory address pointed by this
+		pointer must be in the task's workspace and must be aligned to 16B boundary.
 @Param[in]	key_size Key size in bytes. Should be equal to the key size the
 		table was created with except for the following remark:
 		 - the key size should be added priority field size (4 Bytes)
