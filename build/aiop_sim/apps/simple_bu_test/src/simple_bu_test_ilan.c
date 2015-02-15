@@ -469,7 +469,19 @@ int simple_bu_ilan_test(void)
 			struct table_create_params tbl_params;
 			uint16_t table_location_attr;
 			//uint8_t key_id;
-			uint16_t table_id, key1=0xbeef, key2=0xdead, key3=0x1234;
+			uint16_t table_id;
+			
+			uint16_t key1
+							__attribute__((aligned(16)));
+			uint16_t key2
+										__attribute__((aligned(16)));
+			uint16_t key3
+										__attribute__((aligned(16)));
+			
+			key1=0xbeef;
+			key2=0xdead;
+			key3=0x1234;
+			
 			int sr_status;
 			struct table_lookup_result lookup_result
 							__attribute__((aligned(16)));
@@ -527,20 +539,32 @@ int simple_bu_ilan_test(void)
 			key_desc.em_key = &key1;
 			sr_status = table_lookup_by_key(TABLE_ACCEL_ID_CTLU, table_id, key_desc, 2, &lookup_result);
 			if (sr_status)
+			{
 				fsl_os_print("Simple BU ERROR: table_lookup_by_key failed!\n");
+				return -EIO;
+			}
 							
 			if (lookup_result.opaque0_or_reference != 0x55667788)
+			{
 					fsl_os_print("Simple BU ERROR: table LU by key1 failed!\n");
+					return -EIO;
+			}
 			else
 					fsl_os_print("Simple BU table LU by Key1 success!!!\n");
 			
 			key_desc.em_key = &key2;
 			sr_status = table_lookup_by_key(TABLE_ACCEL_ID_CTLU, table_id, key_desc, 2, &lookup_result);
 			if (sr_status)
+			{
 				fsl_os_print("Simple BU ERROR: table_lookup_by_key failed!\n");
+				return -EIO;
+			}
 							
 			if (lookup_result.opaque0_or_reference != 0x11223344)
+			{
 					fsl_os_print("Simple BU ERROR: table LU by key2 failed!\n");
+					return -EIO;
+			}
 			else
 					fsl_os_print("Simple BU table LU by Key2 success!!!\n");
 			
@@ -549,7 +573,7 @@ int simple_bu_ilan_test(void)
 			if (!sr_status)
 			{
 				fsl_os_print("Simple BU ERROR: table_lookup_by_key failed since it should be miss!\n");
-				return err;
+				return -EIO;
 			}
 		
 		}
