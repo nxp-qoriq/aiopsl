@@ -700,16 +700,7 @@ __COLD_CODE int platform_enable_console(fsl_handle_t h_platform)
 	                               SOC_PERIPH_OFF_DUART4
 	};
 	SANITY_CHECK_RETURN_ERROR(pltfrm, ENODEV);
-#ifdef UART_OVERRIDE
-	/*
-	 * 0 - Print only to buffer
-	 * 1 - duart1_0
-	 * 2 - duart1_1
-	 * 3 - duart2_0
-	 * 4 - duart2_1
-	 * */
-	pltfrm->param.console_id = MANUAL_UART_ID;
-#endif
+
 	if(pltfrm->param.console_type == PLTFRM_CONSOLE_NONE)/*if console id is 0, print to buffer*/
 		return -ENAVAIL;
 

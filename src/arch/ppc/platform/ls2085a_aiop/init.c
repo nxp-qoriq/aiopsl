@@ -128,7 +128,13 @@ __COLD_CODE void fill_platform_parameters(struct platform_param *platform_param)
 	platform_param->l1_cache_mode = E_CACHE_MODE_INST_ONLY;
 	platform_param->console_type = PLTFRM_CONSOLE_DUART;
 	platform_param->console_id = (uint8_t)g_init_data.sl_info.uart_port_id;
-	/* DPC UART ports are 1..4 */
+	/*
+	 * 0 - Print only to buffer
+	 * 1 - duart1_0
+	 * 2 - duart1_1
+	 * 3 - duart2_0
+	 * 4 - duart2_1
+	 * */
 	if (platform_param->console_id == 0) {
 		platform_param->console_type = PLTFRM_CONSOLE_NONE;		
 	}
