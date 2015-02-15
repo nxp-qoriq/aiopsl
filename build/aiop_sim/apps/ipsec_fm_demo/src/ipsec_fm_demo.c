@@ -76,6 +76,7 @@ __declspec(entry_point) static void app_process_packet_flow0 (void)
 	uint32_t frame_len = LDPAA_FD_GET_LENGTH(HWC_FD_ADDRESS);
 	original_frame_len = frame_len;
 	uint16_t seg_len = PRC_GET_SEGMENT_LENGTH();
+	uint16_t original_seg_addr = PRC_GET_SEGMENT_ADDRESS();
 
 	/* IPsec Initialization, happens with the first frame received */
 	if (frame_number == 0) {
@@ -165,6 +166,17 @@ __declspec(entry_point) static void app_process_packet_flow0 (void)
 		local_test_error |=dec_status;
 	}
 
+    /* Due to parser not aligned segment WA need to represent again*/
+    fdma_close_default_segment();
+    
+    err = fdma_present_default_frame_segment(
+    		FDMA_PRES_NO_FLAGS, /* uint32_t flags */
+    		(void *)original_seg_addr, /* void *ws_dst */
+    		0, /* uint16_t offset */
+    		seg_len); /* uint16_t present_size */
+    
+   	fsl_os_print("STATUS: fdma_present_default_frame_segment returned %d\n", err);
+ 	
 	fsl_os_print("IPSEC: frame header after decryption\n");
 	/* Print header */
 	ipsec_print_frame();
