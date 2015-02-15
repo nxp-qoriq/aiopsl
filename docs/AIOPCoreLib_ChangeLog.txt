@@ -14,6 +14,8 @@ PARSER:
 
 IPF:
 	* Updated the IPF FM demo due to the Parser alignment fix
+FDMA:
+	* Add workaround to TKT254401 (FDMA Store of a newly created frame pass without storing the data).
 
 	
 LDPAA AIOP SERVICE LAYER LDPAA-AIOP-SL-v0.5.3.2 Change Log
