@@ -39,9 +39,6 @@
 
 #define __iomem
 
-/* Workaround for HW bug - MC portals region cannot be declared non-cacheable */
-#define iowrite32 iowrite32_wt
-
 
 #define cpu_to_le64 CPU_TO_LE64
 
