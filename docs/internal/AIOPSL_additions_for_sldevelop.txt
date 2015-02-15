@@ -1,8 +1,3 @@
 The following changes in branch branch_from_ldpaa-aiop-sl-v0.5.3.1_sldevelop should be added to sldevelop branch:
 
 * TKT254401 WA: create_frame, create_fd (frame_operations.c, fsl_frame_operations.h, fsl_fdma.h)
-
-* Copy parser WA for TKT254635 (Also need to be done in branch_fdma in a different way:
-	either use 2 fdma_copy or change parser API so it will get fdma_presentation structure).
-
-* Copy fix for IPF & IPSec demos due to the parser WA (also need to be done in branch_fdma).
