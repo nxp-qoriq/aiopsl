@@ -58,7 +58,8 @@ Simultor Setup
 4. Update the “LD_LIBRARY_PATH” variable to point to the simulator folder.
    setenv LD_LIBRARY_PATH {$LD_LIBRARY_PATH}:/home/user/LS_SIM_<version>/dtsim_release/linux64
 5. Copy the layout file (dpl.dtb) from aiopsl/misc/setup/ to the simulator folder.
-6. Copy “eth_ipv4_udp.pcap” from the source tree at: aiopsl/misc/setup/ into the simulator folder
+6. Copy the configuration file (dpc.dtb) from aiopsl/misc/setup/ to the simulator folder.
+7. Copy “eth_ipv4_udp.pcap” from the source tree at: aiopsl/misc/setup/ into the simulator folder
 
 ===========================================
 Simulator Execution flow
