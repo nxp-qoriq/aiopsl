@@ -50,6 +50,8 @@
 #include "fsl_keygen.h"
 #include "fsl_ste.h"
 #include "simple_bu_test.h"
+#include "fsl_io_ccsr.h"
+//#include "tman.h"
 
 
 void test_tmi_create();
@@ -83,6 +85,9 @@ uint32_t global_timer_handle1;
 
 #define SRAM_START _ssram_addr
 #define SRAM_DATA_ADDR _ssram_addr
+#define STE_BASE_ADDRESS	0x02080000
+#define CDMA_BASE_ADDRESS	0x0208d000
+
 
 int simple_bu_gal_test(void)
 {
@@ -460,15 +465,41 @@ void test_fdma_modify_default_segment_data()
 void test_ste()
 {
 	uint8_t tmi_id;
-	uint32_t timer_handle1;
+	uint32_t timer_handle1, i;
 	int32_t err;
+	uint32_t val;
 	struct slab *slab_handle = NULL;
 	uint64_t ext_addr;
+	uint32_t data[COPY_SIZE] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
+	uint32_t read_data[COPY_SIZE] = {1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16};
+	
+	
+	iowrite32((ioread32((uint32_t *)0x2080200) | 0x00008000),
+			(uint32_t *)0x2080200);
+	val = 0x0001;
+	val |= 0x00020000;
+	val |= 0x00040000;
+	val |= 0x00010000;
+	iowrite32(val, (uint32_t *)0x2080040);
+	iowrite32((ioread32((uint32_t *)0x2080200) | ~0x00008000),
+			(uint32_t *)0x2080200);	
+
+
+	iowrite32((ioread32((uint32_t *)0x2080024) | 0x00000001),
+			(uint32_t *)0x2080024);
+
+	/* keep register's default, and reset */
+	iowrite32((ioread32((uint32_t *)0x2080200) | 0x00000002),
+			(uint32_t *)0x2080200);
+	iowrite32((ioread32((uint32_t *)0x2080200) & ~0x00000002),
+			(uint32_t *)0x2080200);
+
+	
 	
 	err = slab_create(
-				10, /* uint32_t    num_buffs */
-				10, /* uint32_t    max_buffs */
-				512, /* uint16_t   buff_size */
+				1, /* uint32_t    num_buffs */
+				1, /* uint32_t    max_buffs */
+				64, /* uint16_t   buff_size */
 				8, /*uint16_t      alignment */
 				MEM_PART_DP_DDR, /*mem_partition_id */
 				0, /* 		   flags */
@@ -490,74 +521,10 @@ void test_ste()
 		fsl_os_print("ERROR: slab_create() failed\n");	
 	else
 		fsl_os_print("slab_create() completed successfully\n");
-	err = tman_create_tmi(
-		ext_addr, /* uint64_t tmi_mem_base_addr */
-		5, /* uint32_t max_num_of_timers */
-		&tmi_id); /* uint8_t *tmi_id */
-	if (err)
-		fsl_os_print("ERROR: tman_create_tmi() failed\n");
-	else
-		fsl_os_print("tman_create_tmi() PASSED :-)\n");
 	
-	err = tman_create_timer(
-		tmi_id, /* uint8_t tmi_id */
-		TMAN_CREATE_TIMER_MODE_10_MSEC_GRANULARITY |
-			TMAN_CREATE_TIMER_ONE_SHOT, /* uint32_t flags */
-			/* 10 mSec timer ticks*/
-		100, /*	uint16_t duration; 100*10ms = 1 sec */
-		0x11, /* tman_arg_8B_t opaque_data1 */
-		0x12, /* tman_arg_2B_t opaque_data2 */ 
-		&bu_tman_callback, /* tman_cb_t tman_timer_cb */
-		&timer_handle1); /*	uint32_t *timer_handle */
-	
-	if (err)
-		fsl_os_print("ERROR: tman_create_timer() failed\n");
-	else
-		fsl_os_print("tman_create_timer() PASSED :-)\n");
-	
-	global_timer_handle1 = timer_handle1;	
-}
-
-void test_ste_functions()
-{	
-	int err  = 0;
-	uint64_t ext_addr;
-	uint32_t data[COPY_SIZE] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
-	uint32_t read_data[COPY_SIZE] = {1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16};
-	uint32_t counter = 0;
-	uint8_t i;
-	uint32_t j;
-	struct slab *slab_handle = NULL;
-	
-	fsl_os_print("*** STE TEST STARTS *** \n");
-	
-	err = slab_create(
-				10, /* uint32_t    num_buffs */
-				10, /* uint32_t    max_buffs */
-				512, /* uint16_t   buff_size */
-				8, /*uint16_t      alignment */
-				MEM_PART_DP_DDR, /*mem_partition_id */
-				0, /* 		   flags */
-				NULL, /* 	   slab_release_cb_t release_cb */
-				&slab_handle /* struct slab **slab */
-				);
-
-	if (err)
-		fsl_os_print("ERROR: slab_create() failed\n");	
-	else
-		fsl_os_print("slab_create() completed successfully\n");	
-	
-	/* Acquire the Cipher key buffer */
-	err = slab_acquire(
-			slab_handle, /* struct slab *slab */
-			&ext_addr /* uint64_t *buff */
-			);
-	if (err)
-		fsl_os_print("ERROR: slab_create() failed\n");	
-	else
-		fsl_os_print("slab_acquire() completed successfully\n");	
-	
-	err = 0;
+	fsl_os_print("external_address = 0x%x\n", (uint32_t)ext_addr);
+	ext_addr = ext_addr -8;
+	fsl_os_print("external_address after alignment = 0x%x\n", (uint32_t)ext_addr);
 	/* zero external address */
 	cdma_write(ext_addr, (void *)data, COPY_SIZE*sizeof(uint32_t));
 	/* read external address - make sure its zeroed */
@@ -570,9 +537,48 @@ void test_ste_functions()
 	if (err)
 		fsl_os_print("*** ERROR: cdma_read FAILED !!! \n");
 	
+	
+	err = tman_create_tmi(
+		ext_addr, /* uint64_t tmi_mem_base_addr */
+		5, /* uint32_t max_num_of_timers */
+		&tmi_id); /* uint8_t *tmi_id */
+	if (err)
+		fsl_os_print("ERROR: tman_create_tmi() failed\n");
+	else
+		fsl_os_print("tman_create_tmi() PASSED :-)\n");
+	
+	err = tman_create_timer(
+		tmi_id, /* uint8_t tmi_id */
+		TMAN_CREATE_TIMER_MODE_100_USEC_GRANULARITY |
+			TMAN_CREATE_TIMER_ONE_SHOT, /* uint32_t flags */
+			/* 10 mSec timer ticks*/
+		100, /*	uint16_t duration; 100*10ms = 1 sec */
+		ext_addr, /* tman_arg_8B_t opaque_data1 */
+		0x12, /* tman_arg_2B_t opaque_data2 */ 
+		&bu_tman_callback, /* tman_cb_t tman_timer_cb */
+		&timer_handle1); /*	uint32_t *timer_handle */
+	
+	if (err)
+		fsl_os_print("ERROR: tman_create_timer() failed\n");
+	else
+		fsl_os_print("tman_create_timer() PASSED :-)\n");
+	
+	global_timer_handle1 = timer_handle1;	
+}
+
+void test_ste_functions(uint64_t ext_addr)
+{	
+	int err  = 0;
+	//uint64_t ext_addr;
+	uint32_t counter = 0;
+	//struct slab *slab_handle = NULL;
+	
+	fsl_os_print("*** STE TEST STARTS *** \n");
+	
+	err = 0;
 	ste_inc_counter(ext_addr, INC_VAL, STE_MODE_SATURATE | STE_MODE_32_BIT_CNTR_SIZE);
 	fsl_os_print("*** ste_inc_counter is called  \n");
-	ste_barrier();
+	//ste_barrier();
 	fsl_os_print("*** ste_barrier is called  \n");
 	cdma_read(&counter, ext_addr, sizeof(uint32_t));
 	fsl_os_print("*** compare counter after ste_inc_counter  \n");
@@ -581,6 +587,8 @@ void test_ste_functions()
 		fsl_os_print("*** ERROR: counter =  %d != %d \n", counter, INC_VAL);
 		fsl_os_print("*** ERROR: STE_GET_STATUS_REGISTER %d \n", counter, STE_GET_STATUS_REGISTER());
 		fsl_os_print("*** ERROR: STE_GET_STATUS_REGISTER %d \n", counter, STE_GET_ERR_CAP_ATTRIBUTES());
+		fsl_os_print("*** ERROR: STE_GET_AMQR at address 0x%x = 0x%x \n", STE_BASE_ADDRESS + 0x40, (uint32_t)(ioread32_ccsr((uint32_t *)(STE_BASE_ADDRESS + 0x40))));
+		fsl_os_print("*** ERROR: STE_GET_CDMA_ICID at address 0x%x = 0x%x \n", CDMA_BASE_ADDRESS, (uint32_t)(ioread32_ccsr((uint32_t *)CDMA_BASE_ADDRESS)));
 	}
 	else{
 		fsl_os_print("*** ste_inc_counter PASSED !!! \n");
@@ -588,7 +596,7 @@ void test_ste_functions()
 	}
 	ste_dec_counter(ext_addr, DEC_VAL, STE_MODE_SATURATE | STE_MODE_32_BIT_CNTR_SIZE);
 	fsl_os_print("*** ste_dec_counter is called  \n");
-	ste_barrier();
+	//ste_barrier();
 	fsl_os_print("*** ste_barrier is called  \n");
 	cdma_read(&counter, ext_addr, sizeof(uint32_t));
 	fsl_os_print("*** compare counter after ste_dec_counter  \n");
@@ -597,6 +605,8 @@ void test_ste_functions()
 		fsl_os_print("*** ERROR: counter =  %d != %d  \n", counter, INC_VAL-DEC_VAL);
 		fsl_os_print("*** ERROR: STE_GET_STATUS_REGISTER %d \n", counter, STE_GET_STATUS_REGISTER());
 		fsl_os_print("*** ERROR: STE_GET_STATUS_REGISTER %d \n", counter, STE_GET_ERR_CAP_ATTRIBUTES());
+		fsl_os_print("*** ERROR: STE_GET_AMQR at address 0x%x = 0x%x \n", STE_BASE_ADDRESS + 0x40, (uint32_t)(ioread32_ccsr((uint32_t *)(STE_BASE_ADDRESS + 0x40))));
+				fsl_os_print("*** ERROR: STE_GET_CDMA_ICID at address 0x%x = 0x%x \n", CDMA_BASE_ADDRESS, (uint32_t)(ioread32_ccsr((uint32_t *)CDMA_BASE_ADDRESS)));
 	}
 	else{
 		fsl_os_print("*** ste_dec_counter PASSED !!! \n");
@@ -609,24 +619,13 @@ void bu_tman_callback(uint64_t opaque1, uint16_t opaque2)
 	
 	uint32_t opaque1_32bit = (uint32_t)opaque1;
 	uint32_t opaque2_32bit = (uint32_t)opaque2;
-	int err;
 	
-
 	fsl_os_print("\nbu_tman_callback is reached\n");
-
-	err = tman_delete_timer(
-			global_timer_handle1, /* uint32_t timer_handle */
-			TMAN_TIMER_DELETE_MODE_WAIT_EXP); /*uint32_t flags */
-	if (!err) {
-		fsl_os_print("tman_delete_timer() SUCCESS\n");
-	} else {
-		fsl_os_print("ERROR: tman_delete_timer() returned with %d\n", err);
-	}
 	
 	fsl_os_print("Doing tman_timer_completion_confirmation() in bu_tman_callback\n");
-	tman_timer_completion_confirmation(global_timer_handle1);
 
-	test_ste_functions();
+	test_ste_functions(opaque1);
+	tman_timer_completion_confirmation(global_timer_handle1);
 	
 	fsl_os_print("bu_tman_callback() completed\n");
 }
