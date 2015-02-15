@@ -240,7 +240,7 @@ void 	EtherHeaderClass::set_constraints(){
 	DEF_CRG1( sa[4], 1, CrgRange (0,0xff) );//10
 	DEF_CRG1( sa[5], 1, CrgRange (0,0xff) );//10
 	DEF_CRG1( length, 1, CrgRange (0,0xffff) );//10
-//	CrgOneOf (CrgSetBase, 0,Crg_NON_WEAK_CON, Crg_REGULAR_CON, Crg_NOT_TEMP, Crg_NOT_BY_ARR, Crg_NOT_SORT, type.r, 3, CrgRange (0x0, 0x7ff),CrgRange (0x801,0x8863),CrgRange (0x8865,0xffff)); //exculinf TCP,UDP,SCTP
+	DEF_CRG1( type, 1, CrgRange (0x9999,0x9999) );//10
 //	DEF_CRG1( da_match.r, 1, CrgRange (0,1) );//10
 }
 
@@ -259,8 +259,6 @@ void   IPv4HeaderClass:: set_constraints() {
 	DEF_CRG1( Checksum, 1, CrgRange (0,0xffff) );//10
 	DEF_CRG1( SourceIP, 1, CrgRange (0,0xffffffff) );//10
 	DEF_CRG1( DestIP, 1, CrgRange (0,0xffffffff) );//10
-	//DEF_CRG1( TunnelHeaderEn, 1, CrgRange (0,0) );//10
-	//DEF_CRG1( TunnelHeaderType, 1, CrgRange (e_IPV4,e_IPV6) );//10
 	for(i=0; i<20; i++){
 		DEF_CRG1( Options[i], 1, CrgRange (0,0xffffffff) );//10
 	}
@@ -318,6 +316,7 @@ void   TCPHeaderClass:: set_constraints() {
 }
 //Jephy add
 void   MinEncHeaderClass:: set_constraints() {
+	DEF_CRG1( Protocol, 1, CrgRange (0x37,0x37) );
 	DEF_CRG1( s_reserved, 1, CrgRange (0x80,0x80) );
 	DEF_CRG1( Checksum, 1, CrgRange (0,0) );
 	DEF_CRG1( SourceAddress, 1, CrgRange (0xcccccccc,0xcccccccc) );
@@ -339,18 +338,16 @@ void   GREHeaderClass:: set_constraints() {
 void   MPLSHeaderClass:: set_constraints() {
 	DEF_CRG1( Label, 1, CrgRange (0x9999,0x9999) );
 	DEF_CRG1( Exp, 1, CrgRange (0,0) );
-	//DEF_CRG1( Sbit, 1, CrgRange (0,0) );
+	DEF_CRG1( Sbit, 1, CrgRange (0,0) );
 	DEF_CRG1( TTL, 1, CrgRange (0x4,0x6) );
 
 }
 void   IPSECHeaderClass:: set_constraints() {
-//	DEF_CRG1( NextHeader, 1, CrgRange (0,0) );
-//	DEF_CRG1( PayloadLength, 1, CrgRange (0,0) );
-//	DEF_CRG1( Reserved, 1, CrgRange (0,0) );
 	DEF_CRG1( SecurityParametersIndex, 1, CrgRange (0,0) );
 	DEF_CRG1( SequenceNumber, 1, CrgRange (0,0) );
 }
 void   Tunnel_IPv4HeaderClass:: set_constraints() {
+	int i;
 	DEF_CRG1( Version, 1, CrgRange (0x4,0x4) );
 	DEF_CRG1( IHL, 1, CrgRange (0x5,0x5) );
 	DEF_CRG1( TOS, 1, CrgRange (0,0) );
@@ -364,6 +361,9 @@ void   Tunnel_IPv4HeaderClass:: set_constraints() {
 	DEF_CRG1( IPChecksumOK, 1, CrgRange (1,1) );
 	DEF_CRG1( Checksum, 1, CrgRange (0x7155,0x7155) );
 	DEF_CRG1( DestIP, 1, CrgRange (0x0,0xFFFFFFFF) );
+	for(i=0; i<20; i++){
+		DEF_CRG1( Options[i], 1, CrgRange (0,0xff) );//10
+	}
 
 }
 void   Tunnel_IPv6HeaderClass:: set_constraints() {
@@ -400,8 +400,6 @@ void   IPv6HeaderClass:: set_constraints() {
 	DEF_CRG1( DestinationAddress[1], 1, CrgRange (1,0xffffffff) );//10
 	DEF_CRG1( DestinationAddress[2], 1, CrgRange (1,0xffffffff) );//10
 	DEF_CRG1( DestinationAddress[3], 1, CrgRange (1,0xffffffff) );//10
-//	DEF_CRG1( TunnelHeaderEn, 1, CrgRange (0,0) );//10
-//	DEF_CRG1( TunnelHeaderType, 1, CrgRange (e_IPV4,e_IPV6) );//10
 	DEF_CRG1( NumOfExHdr, 1, CrgRange (0x00,0x00) );//10
 	Crg_Range_Con(__CRG_FILE_NAME, __LINE__, CrgSetBase, 0,Crg_NON_WEAK_CON, Crg_REGULAR_CON, Crg_NOT_TEMP, Crg_NOT_BY_ARR, \
 											  Crg_NOT_SORT, Crg_NO_DET_VARS, &NextExtHdr.get_crg_var(), 3,\
