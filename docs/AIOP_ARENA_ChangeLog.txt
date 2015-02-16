@@ -1,3 +1,7 @@
+log.c/h, fsl_log.h: Implementation for printing log to buffer updated and moved from console.c to log.c.
+                    The logger writes "START\n" in the beginning of the buffer and "END\n" after the last write to the buffer given by MC.
+                    Writing to the buffer is done by: void log_print_to_buffer(char *str, uint16_t str_length). The print to buffer is cyclic.
+
 dpni_drv.c:           Set hard coded values for head room and tail room for:
                       Head room: 96 bytes
                       Tail room: 0 bytes
