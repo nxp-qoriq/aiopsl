@@ -51,9 +51,11 @@
 
 #include "simple_bu_test.h"
 
+void bu_tman_callback(uint64_t opaque1, uint16_t opaque2);
+void bu_tman_callback_oneshot(uint64_t opaque1, uint16_t opaque2);
+
 extern struct  ipr_global_parameters ipr_global_parameters1;
 extern __PROFILE_SRAM struct storage_profile storage_profile[SP_NUM_OF_STORAGE_PROFILES];
-
 
 #define APP_NI_GET(ARG)   ((uint16_t)((ARG) & 0x0000FFFF))
 /**< Get NI from callback argument, it's demo specific macro */
@@ -65,6 +67,19 @@ extern __PROFILE_SRAM struct storage_profile storage_profile[SP_NUM_OF_STORAGE_P
 #define AIOP_SP_BDI     0x00080000
 #define SP_BP_PBS_MASK  0x3FFF
 
+#define BU_TMI_BUF_ALIGN 64 /* TMI address alignment (64 bytes) */
+/**< Align a given address - equivalent to ceil(ADDRESS,ALIGNMENT) */
+#define BU_TMI_ALIGN_64(ADDRESS, ALIGNMENT)           \
+        ((((uint64_t)(ADDRESS)) + ((uint64_t)(ALIGNMENT)) - 1) & \
+        								(~(((uint64_t)(ALIGNMENT)) - 1)))
+#define BU_TMI_ADDR_ALIGN(ADDRESS) \
+	BU_TMI_ALIGN_64((ADDRESS), BU_TMI_BUF_ALIGN)
+/* Aligned Descriptor Address (parameters area start) */
+#define BU_TMI_ADDR(ADDRESS) BU_TMI_ADDR_ALIGN(ADDRESS)
+
+uint32_t global_timer_handle1;
+uint32_t global_timer_handle2;
+uint32_t global_timer_callback_counter = 0;
 
 int simple_bu_yariv_test(void)
 {
@@ -82,15 +97,17 @@ int simple_bu_yariv_test(void)
 	uint32_t ref_cnt_val = 0xFF;
 	uint32_t expected_ref_cnt_val;
 	uint32_t data_arr_32bit[8];
+	uint64_t tmi_buffer_handle, tmi_timer_addr;
+	uint8_t tmi_id;
+	uint32_t timer_handle1;
+	uint32_t timer_handle2;
 
 	fsl_os_print("Running simple bring-up test\n");
-	
 	
 	parser_init(&prpid);
 
 	default_task_params.parser_profile_id = prpid;
 	default_task_params.parser_starting_hxs = 0;
-
 	
 	/* Allocate buffers for the Keys */
 	err = slab_create(
@@ -98,6 +115,7 @@ int simple_bu_yariv_test(void)
 			10, /* uint32_t    max_buffs */
 			512, /* uint16_t    buff_size */
 			8, /*uint16_t    alignment */
+			//64, /*uint16_t    alignment */
 			MEM_PART_DP_DDR, /* uint8_t     mem_partition_id */
 			0, /* uint32_t    flags */
 			NULL, /* slab_release_cb_t release_cb */
@@ -215,8 +233,6 @@ int simple_bu_yariv_test(void)
 
 		for (i=0; i<16 ; i++)
 			fsl_os_print("parse results arg %d: 0x%x \n", i, *((uint32_t *)(0x80)+i));
-		
-		
 				
 		/* Header Modification L2 DST/SRC set Test */ 
 
@@ -374,15 +390,13 @@ int simple_bu_yariv_test(void)
 		} else {
 			fsl_os_print("CDMA mutex test PASSED :-)\n");
 		}
-
-
 		/* End of CDMA Mutex Test */ 
 		
 		/* CDMA Workspace Init Test */ 
 		fsl_os_print("Testing cdma_ws_memory_init() function\n");
 		cdma_ws_memory_init(
 				data_arr_32bit, /* void *ws_dst */
-				8, /* uint16_t size */
+				(8*4), /* uint16_t size */
 				0x1b2b3b4b); /* uint32_t data_pattern */
 		
 		fsl_os_print("CDMA read = 0x");
@@ -401,10 +415,98 @@ int simple_bu_yariv_test(void)
 		} else {
 			fsl_os_print("cdma_ws_memory_init() PASSED :-)\n");
 		}
-
 		/* End of CDMA Workspace Init Test */ 
 
+		/* TMAN Test */ 
+		fsl_os_print("\nTesting TMAN\n");
 		
+		for (i=0; i<8 ; i++) {
+			data_arr_32bit[i] = 0;
+		}	
+		
+		fsl_os_print("Testing tman_get_timestamp()\n");
+
+		tman_get_timestamp(
+				(uint64_t *)(&data_arr_32bit[0])); /* uint64_t *timestamp) */
+		fsl_os_print("First tman_get_timestamp() high = %d\n", data_arr_32bit[0]);
+		fsl_os_print("First tman_get_timestamp() low  = %d\n", data_arr_32bit[1]);
+		tman_get_timestamp(
+				(uint64_t *)(&data_arr_32bit[2])); /* uint64_t *timestamp) */
+		fsl_os_print("Second tman_get_timestamp() high = %d\n", data_arr_32bit[2]);
+		fsl_os_print("Second tman_get_timestamp() low  = %d\n", data_arr_32bit[3]);
+
+		if (*((uint64_t *)(&data_arr_32bit[2])) > *((uint64_t *)(&data_arr_32bit[0]))) {
+			fsl_os_print("tman_get_timestamp() PASSED :-)\n");
+		} else {
+			fsl_os_print("ERROR: tman_get_timestamp() failed\n");
+		}
+
+		// tman_create_tmi - need change to Skyblue instead of CTSI, TKT254640
+		//-       tmi_state_ptr = (unsigned int*)((unsigned int)TMAN_TMSTATE_ADDRESS
+		//+       tmi_state_ptr = (unsigned int*)((unsigned int)0x020a2018
+		
+		/* Allocate a buffer for TMI */
+		err = slab_acquire(
+				slab_handle, /* struct slab *slab */
+				&tmi_buffer_handle /* uint64_t *buff */
+				);
+		
+		tmi_timer_addr = BU_TMI_ADDR(tmi_buffer_handle); /* Align to 64 bytes */
+
+		fsl_os_print("Testing tman_create_tmi()\n");
+	
+		err = tman_create_tmi(
+				tmi_timer_addr, /* uint64_t tmi_mem_base_addr */
+				5, /* uint32_t max_num_of_timers */
+				&tmi_id); /* uint8_t *tmi_id */
+				
+		if (err) {
+			fsl_os_print("ERROR: tman_create_tmi() failed\n");
+		} else {
+			fsl_os_print("tman_create_tmi() PASSED :-)\n");
+		}
+
+		fsl_os_print("Testing tman_create_timer()\n");
+		fsl_os_print("Calling tman_create_timer() for periodic timer\n");
+		err = tman_create_timer(
+				tmi_id, /* uint8_t tmi_id */
+				TMAN_CREATE_TIMER_MODE_10_MSEC_GRANULARITY, /* uint32_t flags */
+					/* 10 mSec timer ticks*/
+				100, /*	uint16_t duration; 100*10ms = 1 sec */
+				0x11, /* tman_arg_8B_t opaque_data1 */
+				0x12, /* tman_arg_2B_t opaque_data2 */ 
+				&bu_tman_callback, /* tman_cb_t tman_timer_cb */
+				&timer_handle1); /*	uint32_t *timer_handle */
+		
+		global_timer_handle1 = timer_handle1;
+		
+		if (err) {
+			fsl_os_print("ERROR: tman_create_timer() failed\n");
+		} else {
+			fsl_os_print("tman_create_timer() PASSED :-)\n");
+		}
+		
+		fsl_os_print("Calling tman_create_timer() for one shot timer\n");
+		err = tman_create_timer(
+				tmi_id, /* uint8_t tmi_id */
+				TMAN_CREATE_TIMER_MODE_10_MSEC_GRANULARITY |
+					TMAN_CREATE_TIMER_ONE_SHOT, /* uint32_t flags */
+					/* 10 mSec timer ticks*/
+				100, /*	uint16_t duration; 100*10ms = 1 sec */
+				0x33, /* tman_arg_8B_t opaque_data1 */
+				0x44, /* tman_arg_2B_t opaque_data2 */ 
+				&bu_tman_callback_oneshot, /* tman_cb_t tman_timer_cb */
+				&timer_handle2); /*	uint32_t *timer_handle */
+		
+		global_timer_handle2 = timer_handle2;
+		
+		if (err) {
+			fsl_os_print("ERROR: tman_create_timer() failed\n");
+		} else {
+			fsl_os_print("tman_create_timer() PASSED :-)\n");
+		}
+		/* End of TMAN Test */ 
+
 		fdma_discard_default_frame(FDMA_DIS_NO_FLAGS);
 	}
 	
@@ -415,5 +517,47 @@ int simple_bu_yariv_test(void)
 	return err;
 }
 
+void bu_tman_callback(uint64_t opaque1, uint16_t opaque2)
+{
+	
+	uint32_t opaque1_32bit = (uint32_t)opaque1;
+	uint32_t opaque2_32bit = (uint32_t)opaque2;
+	int err;
+	
+	global_timer_callback_counter ++;
+	
+	fsl_os_print("\nIn bu_tman_callback (counter = %d)\n", global_timer_callback_counter);
+	fsl_os_print("opaque1 = %x,  opaque2 = %x\n", opaque1_32bit, opaque2_32bit);
 
+	if (global_timer_callback_counter == 4) {
+		fsl_os_print("Doing tman_delete_timer() in bu_tman_callback\n");
+		err = tman_delete_timer(
+				global_timer_handle1, /* uint32_t timer_handle */
+				TMAN_TIMER_DELETE_MODE_WAIT_EXP); /*uint32_t flags */
+		if (!err) {
+			fsl_os_print("tman_delete_timer() SUCCESS\n");
+		} else {
+			fsl_os_print("ERROR: tman_delete_timer() returned with %d\n", err);
+		}
+	}
+	
+	fsl_os_print("Doing tman_timer_completion_confirmation() in bu_tman_callback\n");
+	tman_timer_completion_confirmation(global_timer_handle1);
 
+	fsl_os_print("bu_tman_callback() completed\n");
+}
+
+void bu_tman_callback_oneshot(uint64_t opaque1, uint16_t opaque2)
+{
+	
+	uint32_t opaque1_32bit = (uint32_t)opaque1;
+	uint32_t opaque2_32bit = (uint32_t)opaque2;
+	
+	fsl_os_print("\nIn bu_tman_callback_oneshot \n");
+	fsl_os_print("opaque1 = %x,  opaque2 = %x\n", opaque1_32bit, opaque2_32bit);
+
+	fsl_os_print("Doing tman_timer_completion_confirmation() in bu_tman_callback_oneshot\n");
+	tman_timer_completion_confirmation(global_timer_handle2);
+
+	fsl_os_print("bu_tman_callback_oneshot() completed\n");
+}
