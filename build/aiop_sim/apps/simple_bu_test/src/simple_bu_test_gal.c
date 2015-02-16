@@ -59,7 +59,7 @@ void test_fdma_discard_fd();
 void test_fdma_modify_default_segment_data();
 void test_ste();
 void test_ste_functions();
-void bu_tman_callback(uint64_t opaque1, uint16_t opaque2);
+void bu_tman_callback_g(uint64_t opaque1, uint16_t opaque2);
 
 extern struct  ipr_global_parameters ipr_global_parameters1;
 extern __PROFILE_SRAM struct storage_profile storage_profile[SP_NUM_OF_STORAGE_PROFILES];
@@ -67,7 +67,7 @@ extern __PROFILE_SRAM struct storage_profile storage_profile[SP_NUM_OF_STORAGE_P
 uint8_t snic_tmi_id_gal;
 uint64_t snic_tmi_mem_base_addr_gal;
 
-uint32_t global_timer_handle1;
+uint32_t global_timer_handle1_g;
 
 
 #define APP_NI_GET(ARG)   ((uint16_t)((ARG) & 0x0000FFFF))
@@ -555,7 +555,7 @@ void test_ste()
 		100, /*	uint16_t duration; 100*10ms = 1 sec */
 		ext_addr, /* tman_arg_8B_t opaque_data1 */
 		0x12, /* tman_arg_2B_t opaque_data2 */ 
-		&bu_tman_callback, /* tman_cb_t tman_timer_cb */
+		&bu_tman_callback_g, /* tman_cb_t tman_timer_cb */
 		&timer_handle1); /*	uint32_t *timer_handle */
 	
 	if (err)
@@ -563,7 +563,7 @@ void test_ste()
 	else
 		fsl_os_print("tman_create_timer() PASSED :-)\n");
 	
-	global_timer_handle1 = timer_handle1;	
+	global_timer_handle1_g = timer_handle1;	
 }
 
 void test_ste_functions(uint64_t ext_addr)
@@ -614,19 +614,19 @@ void test_ste_functions(uint64_t ext_addr)
 	}
 }
 
-void bu_tman_callback(uint64_t opaque1, uint16_t opaque2)
+void bu_tman_callback_g(uint64_t opaque1, uint16_t opaque2)
 {
 	
 	uint32_t opaque1_32bit = (uint32_t)opaque1;
 	uint32_t opaque2_32bit = (uint32_t)opaque2;
 	
-	fsl_os_print("\nbu_tman_callback is reached\n");
+	fsl_os_print("\nbu_tman_callback_g is reached\n");
 	
-	fsl_os_print("Doing tman_timer_completion_confirmation() in bu_tman_callback\n");
+	fsl_os_print("Doing tman_timer_completion_confirmation() in bu_tman_callback_g\n");
 
 	test_ste_functions(opaque1);
-	tman_timer_completion_confirmation(global_timer_handle1);
+	tman_timer_completion_confirmation(global_timer_handle1_g);
 	
-	fsl_os_print("bu_tman_callback() completed\n");
+	fsl_os_print("bu_tman_callback_g() completed\n");
 }
 
