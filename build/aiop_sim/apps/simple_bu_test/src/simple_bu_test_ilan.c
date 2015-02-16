@@ -458,18 +458,33 @@ int simple_bu_ilan_test(void)
 				fsl_os_print("Simple BU table LU success!!!\n");
 		}
 		
-		/* look-up by key-id */
+		/* look-up by key */
 		{
 			//struct kcr_builder kb
 			//		__attribute__((aligned(16)));
 			struct table_rule rule
 							__attribute__((aligned(16)));
-			union table_lookup_key_desc key_desc
+			struct table_rule rule_replace
 							__attribute__((aligned(16)));
+			union table_lookup_key_desc key_desc;
 			struct table_create_params tbl_params;
 			uint16_t table_location_attr;
+			uint32_t timestamp;
 			//uint8_t key_id;
-			uint16_t table_id, key1=0xbeef, key2=0xdead, key3=0x1234;
+			uint16_t table_id;
+			
+			uint16_t key1
+										__attribute__((aligned(16)));
+			uint16_t key2
+										__attribute__((aligned(16)));
+			uint16_t key3
+										__attribute__((aligned(16)));
+			struct table_result table_result;
+			
+			key1=0xbeef;
+			key2=0xdead;
+			key3=0x1234;
+			
 			int sr_status;
 			struct table_lookup_result lookup_result
 							__attribute__((aligned(16)));
@@ -509,6 +524,9 @@ int simple_bu_ilan_test(void)
 			rule.result.op0_rptr_clp.reference_pointer = 0x11223344;
 			rule.key_desc.em.key[0] = 0xde;
 			rule.key_desc.em.key[1] = 0xad;
+			rule_replace = rule;
+			rule_replace.result.op0_rptr_clp.reference_pointer = 0xaabbccdd;
+			
 			err = table_rule_create(TABLE_ACCEL_ID_CTLU, table_id, &rule, 2);
 			if (err)
 			{
@@ -524,33 +542,115 @@ int simple_bu_ilan_test(void)
 				fsl_os_print("table rule create by key  failed");
 				return err;
 			}
+
+			/* table_rule_query */
+				
+			err = table_rule_query(TABLE_ACCEL_ID_CTLU, table_id, &rule.key_desc, 2, &table_result, &timestamp);
+			if (table_result.op0_rptr_clp.reference_pointer != 0x55667788)
+			{
+				fsl_os_print("Simple BU ERROR: table_rule_query failed!\n");
+				return -EIO;
+			}
+			else
+				fsl_os_print("Simple BU: table_rule_query succeeded!\n");
+			/*********************************/
+			
+			
+			/* rule create and rule delete */
+			
+			rule.result.op0_rptr_clp.reference_pointer = 0x55667788;
+			rule.key_desc.em.key[0] = 0x12;
+			rule.key_desc.em.key[1] = 0x34;
+			err = table_rule_create(TABLE_ACCEL_ID_CTLU, table_id, &rule, 2);
+			if (err)
+			{
+				fsl_os_print("table rule create by key  failed");
+				return err;
+			}
+			
+			err = table_rule_delete(TABLE_ACCEL_ID_CTLU, table_id, &rule.key_desc, 2 , &rule.result);
+			if (err)
+			{
+				fsl_os_print("Simple BU ERROR: table_rule_delete failed!\n");
+				return -EIO;
+			}
+			else
+				fsl_os_print("Simple BU: table_rule_delete succeeded!\n");
+			/*********************************/
+			
+	
+			
 			key_desc.em_key = &key1;
 			sr_status = table_lookup_by_key(TABLE_ACCEL_ID_CTLU, table_id, key_desc, 2, &lookup_result);
 			if (sr_status)
+			{
 				fsl_os_print("Simple BU ERROR: table_lookup_by_key failed!\n");
+				return -EIO;
+			}
 							
 			if (lookup_result.opaque0_or_reference != 0x55667788)
+			{
 					fsl_os_print("Simple BU ERROR: table LU by key1 failed!\n");
+					return -EIO;
+			}
 			else
 					fsl_os_print("Simple BU table LU by Key1 success!!!\n");
 			
 			key_desc.em_key = &key2;
 			sr_status = table_lookup_by_key(TABLE_ACCEL_ID_CTLU, table_id, key_desc, 2, &lookup_result);
 			if (sr_status)
+			{
 				fsl_os_print("Simple BU ERROR: table_lookup_by_key failed!\n");
+				return -EIO;
+			}
 							
 			if (lookup_result.opaque0_or_reference != 0x11223344)
+			{
 					fsl_os_print("Simple BU ERROR: table LU by key2 failed!\n");
+					return -EIO;
+			}
 			else
 					fsl_os_print("Simple BU table LU by Key2 success!!!\n");
+			
+			/* table_rule_replace for key 0xdead */
+			
+			err = table_rule_replace(TABLE_ACCEL_ID_CTLU, table_id, &rule_replace, 2, NULL);
+			if (err)
+			{
+				fsl_os_print("Simple BU ERROR: table rule replace command failed!\n");
+				return err;
+			}
+			else
+				fsl_os_print("Simple BU: table rule replace command success!\n");
+			
+			key_desc.em_key = &key2;
+			sr_status = table_lookup_by_key(TABLE_ACCEL_ID_CTLU, table_id, key_desc, 2, &lookup_result);
+			if (sr_status)
+			{
+				fsl_os_print("Simple BU ERROR: table_lookup_by_key failed!\n");
+				return -EIO;
+			}
+							
+			if (lookup_result.opaque0_or_reference != 0xaabbccdd)
+			{
+					fsl_os_print("Simple BU ERROR: table LU by key2 failed after replace!\n");
+					return -EIO;
+			}
+			else
+					fsl_os_print("Simple BU table LU by Key2 after replace success!!!\n");
+			
+			/**************************************/
 			
 			key_desc.em_key = &key3;
 			sr_status = table_lookup_by_key(TABLE_ACCEL_ID_CTLU, table_id, key_desc, 2, &lookup_result);
 			if (!sr_status)
 			{
 				fsl_os_print("Simple BU ERROR: table_lookup_by_key failed since it should be miss!\n");
-				return err;
+				return -EIO;
 			}
+			
+			/* table_delete */
+			table_delete(TABLE_ACCEL_ID_CTLU, table_id);
 		
 		}
 		
