@@ -90,11 +90,10 @@ extern __TASK struct aiop_default_task_params default_task_params;
 extern __TASK uint32_t seed_32bit;
 
 void init_verif()
-{
+{	
 #ifndef CDC_ROC
 	struct parse_result *pr;
 	
-	exception_counter = 0;
 
 	pr = (struct parse_result *)HWC_PARSE_RES_ADDRESS;
 
@@ -134,6 +133,9 @@ void init_verif()
 	default_task_params.parser_profile_id = verif_prpid;
 	parse_result_generate_default(0);
 #endif
+	
+	exception_counter = 0;
+	
 	status_gro = 0;
 	status_gso = 0;
 	status_ipf1 = 0;
