@@ -713,7 +713,8 @@ __COLD_CODE int platform_enable_console(fsl_handle_t h_platform)
 	/* Fill DUART configuration parameters */
 	duart_uart_param.irq                = NO_IRQ;
 	duart_uart_param.base_address       = pltfrm->ccsr_base + uart_port_offset[ pltfrm->param.console_id];
-	duart_uart_param.system_clock_mhz   = (platform_get_system_bus_clk(pltfrm) / 1000);
+	/* Each UART is clocked by the platform clock/2 */
+	duart_uart_param.system_clock_mhz   = (platform_get_system_bus_clk(pltfrm) / 1000) / 2;
 	duart_uart_param.baud_rate          = 115200;
 	duart_uart_param.parity             = E_DUART_PARITY_NONE;
 	duart_uart_param.data_bits          = E_DUART_DATA_BITS_8;
