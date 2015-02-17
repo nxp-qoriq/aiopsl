@@ -816,7 +816,7 @@ void CTLUCmdParserInit_CMDClass:: set_constraints()
 	DEF_CRG1(parser_starting_hxs, 1, CrgRange(PARSER_ETH_STARTING_HXS, PARSER_ETH_STARTING_HXS));
 }
 
-void CTLUCmdTblQueryDeg_CMDClass:: set_constraints()
+void CTLUCmdTblQuery_CMDClass:: set_constraints()
 {
 	DEF_CRG1(acc_id, 1, CrgRange(TABLE_ACCEL_ID_MFLU, TABLE_ACCEL_ID_MFLU));
 	DEF_CRG1(cmd, 1, CrgSingleton(e_AIOP_CTLU_TABLE_QUERY_DEBUG_VERIF));
@@ -859,7 +859,7 @@ void CTLUCmdClass::set_constraints(){
     DEF_CRG1(CTLU_Table_Lkup_ByKeyid_CMD, 1, CrgRange(0, 0));
     DEF_CRG1(CTLU_Table_Lkup_ByKey_CMD, 1, CrgRange(0, 0));
 
-    DEF_CRG1(CTLU_Table_QueryDbg_CMD, 1, CrgRange(0, 0));
+    DEF_CRG1(CTLU_Table_Query_CMD, 1, CrgRange(0, 0));
 
     if (0 == if_state_flag)
     {
@@ -918,7 +918,7 @@ CrgNum CTLU_Table_Rule_Delete_CMD;
 CrgNum CTLU_Table_Lkup_ByKeyid_DefaultFrame_CMD;
 CrgNum CTLU_Table_Lkup_ByKey_CMD;
 
-CrgNum CTLU_Table_QueryDbg_CMD;
+CrgNum CTLU_Table_Query_CMD;
 
 //gen
 CrgNum CTLU_Gen_Key_CMD;
@@ -1033,6 +1033,27 @@ void   PPPoEHeaderClass:: set_constraints() {
 	DEF_CRG1( Code, 1, CrgRange (0x0,0x0) );//Y
 	DEF_CRG1( SessionID, 1, CrgRange (0x1,0xfffe) );//10
 	DEF_CRG1( Length, 1, CrgRange (0,0xffff) );//10
+}
+
+void   SCTPHeaderClass:: set_constraints() {
+	DEF_CRG1( PortSrc, 1, CrgRange (0x0,0xffff) );//10
+	DEF_CRG1( PortDst, 1, CrgRange (0x0,0xffff) );//10
+	DEF_CRG1( VerficationTag, 1, CrgRange (0x0,0xffffffff) );//10
+	//DEF_CRG1( Checksum, 1, CrgRange (0x0,0xffffffff) );//10
+}
+
+void   DCCPHeaderClass:: set_constraints() {
+	DEF_CRG1( PortSrc, 1, CrgRange (0x0,0xffff) );//10
+	DEF_CRG1( PortDst, 1, CrgRange (0x0,0xffff) );//10
+	DEF_CRG1( DataOffset, 1, CrgRange (0x0,0xff) );//10
+	DEF_CRG1( CCVal, 1, CrgRange (0x0,0xf) );//10
+	DEF_CRG1( CsCov, 1, CrgRange (0x0,0xf) );//10
+	//DEF_CRG1( Checksum, 1, CrgRange (0x0,0xffff) );//10
+	//DEF_CRG1( Reserved, 1, CrgRange (0x0,0x0) );//10
+	DEF_CRG1( Type, 1, CrgRange (0x0,0xf) );//10
+	DEF_CRG1( XBit, 1, CrgRange (0x1,0x1) );//10
+	DEF_CRG1( SequenceNumber, 1, CrgRange (0x0,0xffff) );//10
+	DEF_CRG1( SequenceNumberCont, 1, CrgRange (0x0,0xffffffff) );//10
 }
 
 void   UDPHeaderClass:: set_constraints() {
