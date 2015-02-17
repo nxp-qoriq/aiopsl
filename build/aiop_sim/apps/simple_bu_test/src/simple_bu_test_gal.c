@@ -54,6 +54,7 @@
 //#include "tman.h"
 
 
+int test_fdma();
 void test_tmi_create();
 void test_fdma_discard_fd();
 void test_fdma_modify_default_segment_data();
@@ -75,6 +76,10 @@ uint32_t global_timer_handle1;
 #define APP_FLOW_GET(ARG) (((uint16_t)(((ARG) & 0xFFFF0000) >> 16)
 /**< Get flow id from callback argument, it's demo specific macro */
 
+#define STE_ALIGN_64(ADDRESS, ALIGNMENT)           \
+        ((((uint64_t)(ADDRESS)) + ((uint64_t)(ALIGNMENT)) - 1) & \
+        (~(((uint64_t)(ALIGNMENT)) - 1)))
+
 #define FRAME_SIZE	124
 #define	COPY_SIZE	16
 #define	MODIFY_SIZE	16
@@ -85,15 +90,13 @@ uint32_t global_timer_handle1;
 
 #define SRAM_START _ssram_addr
 #define SRAM_DATA_ADDR _ssram_addr
-#define STE_BASE_ADDRESS	0x02080000
+//#define STE_BASE_ADDRESS	0x02080000
 #define CDMA_BASE_ADDRESS	0x0208d000
-
 
 int simple_bu_gal_test(void)
 {
 	int        err  = 0;
 	uint8_t prpid;
-	int i;
 	
 	fsl_os_print("****************************\n");
 	fsl_os_print("Running simple bring-up test\n");
@@ -105,187 +108,8 @@ int simple_bu_gal_test(void)
 	default_task_params.parser_profile_id = prpid;
 	default_task_params.parser_starting_hxs = 0;
 
-	// run create_frame on default frame
-	{
-		struct ldpaa_fd *fd = (struct ldpaa_fd *)HWC_FD_ADDRESS;
-		uint8_t frame_data[FRAME_SIZE] = {0x00,0x00,0x01,0x00,0x00,0x01,0x00,\
-				0x10,0x94,0x00,0x00,0x02,0x08,0x00,0x45,0x00,\
-				0x00,0x6e,0x00,0x00,0x00,0x00,0xff,0x11,0x3a,\
-				0x26,0xc0,0x55,0x01,0x02,0xc0,0x00,0x00,0x01,\
-				0x04,0x00,0x04,0x00,0x00,0x5a,0xff,0xff,0x00,\
-				0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,\
-				0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,\
-				0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,\
-				0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,\
-				0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,\
-				0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,\
-				0x00,0x00,0x00,0x00,0x00,0x00,0x00,0xf5,0xd0,\
-				0x64,0x51,0xac,0x9f,0x69,0xd4,0xd3,0xf7,0x39,\
-				0x6e,0x20,0x0e,0x97,0xb7,0xe9,0xe4,0x56,0x3a};
-		uint8_t frame_data_read[FRAME_SIZE+4] = {0x00,0x00,0x01,0x00,0x00,0x01,0x00,\
-				0x10,0x94,0x00,0x00,0x02,0x81,0x00,0xaa,0xbb,0x08,0x00,0x45,0x00,\
-				0x00,0x6e,0x00,0x00,0x00,0x00,0xff,0x11,0x3a,\
-				0x26,0xc0,0x55,0x01,0x02,0xc0,0x00,0x00,0x01,\
-				0x04,0x00,0x04,0x00,0x00,0x5a,0xff,0xff,0x00,\
-				0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,\
-				0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,\
-				0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,\
-				0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,\
-				0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,\
-				0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,\
-				0x00,0x00,0x00,0x00,0x00,0x00,0x00,0xf5,0xd0,\
-				0x64,0x51,0xac,0x9f,0x69,0xd4,0xd3,0xf7,0x39,\
-				0x6e,0x20,0x0e,0x97,0xb7,0xe9,0xe4,0x56,0x3a};
-
-		uint8_t frame_handle;
-		uint32_t vlan = 0x8100aabb;
-		int parse_status;
-		uint8_t *frame_presented;
-		uint8_t *seg_addr;
-		struct fdma_amq amq;
-		uint16_t icid, flags = 0;
-		uint8_t tmp;
-		uint32_t frame_length;
-		/* setting SPID = 0 */
-		*((uint8_t *)HWC_SPID_ADDRESS) = 0;
-		icid = (uint16_t)(storage_profile[0].ip_secific_sp_info >> 48);
-		icid = ((icid << 8) & 0xff00) | ((icid >> 8) & 0xff);
-		tmp = (uint8_t)(storage_profile[0].ip_secific_sp_info >> 40);
-		if (tmp & 0x08)
-			flags |= FDMA_ICID_CONTEXT_BDI;
-		if (tmp & 0x04)
-			flags |= FDMA_ICID_CONTEXT_PL;
-		if (storage_profile[0].mode_bits2 & sp1_mode_bits2_VA_MASK)
-			flags |= FDMA_ICID_CONTEXT_VA;
-		amq.icid = icid;
-		amq.flags = flags;
-		set_default_amq_attributes(&amq);
-		*(uint32_t *)(&storage_profile[0].pbs2) = *(uint32_t *)(&storage_profile[0].pbs1);
-
-		for (i=0; i<8 ; i++)
-			fsl_os_print("storage profile arg %d: 0x%x \n", i, *((uint32_t *)(&(storage_profile[0]))+i));
-		
-		
-		err = create_frame(fd, frame_data, FRAME_SIZE, &frame_handle);
-		if (err)
-			fsl_os_print("ERROR: create frame failed!\n");
-
-		
-		fsl_os_print("parse result before create frame - \n");
-		
-		fsl_os_print("ethernet offset %d %x\n", 
-					PARSER_IS_ETH_MAC_DEFAULT(), PARSER_GET_ETH_OFFSET_DEFAULT());
-		
-		fsl_os_print("vlan offset %d %x\n",
-					PARSER_IS_ONE_VLAN_DEFAULT(), PARSER_GET_FIRST_VLAN_TCI_OFFSET_DEFAULT());
-		
-		fsl_os_print("ipv4 offset %d %x\n", 
-					PARSER_IS_IP_DEFAULT(), PARSER_GET_OUTER_IP_OFFSET_DEFAULT());
-		
-		fsl_os_print("udp offset %d %x\n", 
-					PARSER_IS_UDP_DEFAULT(), PARSER_GET_L4_OFFSET_DEFAULT());
-
-		for (i=0; i<16 ; i++)
-			fsl_os_print("parse results arg %d: 0x%x \n", i, *((uint32_t *)(0x80)+i));
-		
-		//test_fdma_modify_default_segment_data();
-		
-		fdma_close_default_segment();
-		err = fdma_present_default_frame_segment(FDMA_PRES_NO_FLAGS, (void *)0x180, 0, 256);
-		if (err)
-			fsl_os_print("STATUS: fdma present default segment returned status is %d\n", err);
-		l2_push_and_set_vlan(vlan);
-		
-		frame_length = PRC_GET_SEGMENT_LENGTH();
-		seg_addr = (uint8_t *)PRC_GET_SEGMENT_ADDRESS();
-		
-		/*fsl_os_print("frame length is 0x%x\n", frame_length);
-		for (i=0; i<frame_length ; i++)
-			fsl_os_print("frame read byte %d is %x\n", i, seg_addr[i]);*/
-
-		parse_result_generate(PARSER_ETH_STARTING_HXS, 0, PARSER_NO_FLAGS);
-		
-		fsl_os_print("parse result after create frame - \n");
-		
-		fsl_os_print("ethernet offset %d %x\n", 
-					PARSER_IS_ETH_MAC_DEFAULT(), PARSER_GET_ETH_OFFSET_DEFAULT());
-		
-		fsl_os_print("vlan offset %d %x\n",
-					PARSER_IS_ONE_VLAN_DEFAULT(), PARSER_GET_FIRST_VLAN_TCI_OFFSET_DEFAULT());
-		
-		fsl_os_print("ipv4 offset %d %x\n", 
-					PARSER_IS_IP_DEFAULT(), PARSER_GET_OUTER_IP_OFFSET_DEFAULT());
-		
-		fsl_os_print("udp offset %d %x\n", 
-					PARSER_IS_UDP_DEFAULT(), PARSER_GET_L4_OFFSET_DEFAULT());
-		fsl_os_print(" FD length (by SW) is : 0x%x \n", LDPAA_FD_GET_LENGTH(HWC_FD_ADDRESS));
-
-		LDPAA_FD_SET_LENGTH(HWC_FD_ADDRESS, 0);
-		fsl_os_print(" FD length (after SW zeroing it) is : 0x%x \n", LDPAA_FD_GET_LENGTH(HWC_FD_ADDRESS));
-		err = fdma_store_default_frame_data();
-		if (err){
-			fsl_os_print("ERROR: fdma store default frame returned error is %d\n", err);
-			return err;
-		}
-		
-		//test_fdma_discard_fd();
-		
-		//fsl_os_print(" ***************************************** \n");
-		//test_tmi_create();
-		//fsl_os_print(" ***************************************** \n");
-
-		for (i=0; i<8 ; i++)
-			fsl_os_print("FD content arg %d is %x\n", i, *((uint32_t *)(0x60 + i*4)));
-		
-		fsl_os_print(" FD length is : 0x%x \n", LDPAA_FD_GET_LENGTH(HWC_FD_ADDRESS));
-		fsl_os_print(" FD address LSB is : 0x%x \n", LDPAA_FD_GET_ADDR(HWC_FD_ADDRESS));
-		fsl_os_print(" FD address MSB is : 0x%x \n", ((uint64_t)LDPAA_FD_GET_ADDR(HWC_FD_ADDRESS)) >> 32);
-
-		err = fdma_present_default_frame();
-		if (err < 0)
-			fsl_os_print("ERROR: fdma present default frame returned error is %d\n", err);
-		else
-			if (err)
-				fsl_os_print("STATUS: fdma present default frame returned status is %d\n", err);
-		parse_status = parse_result_generate_default(PARSER_NO_FLAGS);
-		if (parse_status)
-		{
-			fsl_os_print("ERROR: parser failed for simple BU test!\n");
-			fdma_discard_default_frame(FDMA_DIS_NO_FLAGS);
-		}
-		/* check frame presented */
-		frame_presented = (uint8_t *)PRC_GET_SEGMENT_ADDRESS();
-		frame_length = LDPAA_FD_GET_LENGTH(HWC_FD_ADDRESS);
-		fdma_close_default_segment();
-		err = fdma_present_default_frame_segment(FDMA_PRES_NO_FLAGS, (void *)0x180, 0, 256);
-		fsl_os_print("Frame length is: \n", frame_length);
-		fsl_os_print("Segment length is: \n", PRC_GET_SEGMENT_LENGTH());
-		
-		err = 0;
-		for (i=0; i<(FRAME_SIZE+4); i++)
-			if (*(frame_presented+i) != frame_data_read[i])
-				err = -EINVAL;
-		if (err)
-		{
-			fsl_os_print("Simple BU ERROR: frame data after HM is not correct\n");
-			fsl_os_print("frame length is 0x%x\n", frame_length);
-			for (i=0; i<frame_length ; i++)
-				fsl_os_print("frame read byte %d is %x\n", i, frame_data_read[i]);
-			fsl_os_print("actual frame length is 0x%x\n", frame_length);
-			for (i=0; i<frame_length ; i++)
-				fsl_os_print("actual frame read byte %d is %x\n", i, frame_presented[i]);
-			fdma_discard_default_frame(FDMA_DIS_NO_FLAGS);
-			return err;
-		}
-		else {
-			fsl_os_print("**************************************************\n");
-			fsl_os_print("Simple BU Test: fdma frame after HM is correct !!!\n");
-			fsl_os_print("**************************************************\n");
-		}
-		
-		
-		fdma_discard_default_frame(FDMA_DIS_NO_FLAGS);
-	}
+	
+	test_fdma();
 	
 	test_fdma_copy_data();
 	
@@ -293,6 +117,194 @@ int simple_bu_gal_test(void)
 	
 	
 	fsl_os_print("Simple bring-up test completed successfully\n");
+	return 0;
+}
+
+
+int test_fdma()
+{
+	int        err  = 0;
+	int i;
+	
+	struct ldpaa_fd *fd = (struct ldpaa_fd *)HWC_FD_ADDRESS;
+	uint8_t frame_data[FRAME_SIZE] = {0x00,0x00,0x01,0x00,0x00,0x01,0x00,\
+			0x10,0x94,0x00,0x00,0x02,0x08,0x00,0x45,0x00,\
+			0x00,0x6e,0x00,0x00,0x00,0x00,0xff,0x11,0x3a,\
+			0x26,0xc0,0x55,0x01,0x02,0xc0,0x00,0x00,0x01,\
+			0x04,0x00,0x04,0x00,0x00,0x5a,0xff,0xff,0x00,\
+			0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,\
+			0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,\
+			0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,\
+			0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,\
+			0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,\
+			0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,\
+			0x00,0x00,0x00,0x00,0x00,0x00,0x00,0xf5,0xd0,\
+			0x64,0x51,0xac,0x9f,0x69,0xd4,0xd3,0xf7,0x39,\
+			0x6e,0x20,0x0e,0x97,0xb7,0xe9,0xe4,0x56,0x3a};
+	uint8_t frame_data_read[FRAME_SIZE+4] = {0x00,0x00,0x01,0x00,0x00,0x01,0x00,\
+			0x10,0x94,0x00,0x00,0x02,0x81,0x00,0xaa,0xbb,0x08,0x00,0x45,0x00,\
+			0x00,0x6e,0x00,0x00,0x00,0x00,0xff,0x11,0x3a,\
+			0x26,0xc0,0x55,0x01,0x02,0xc0,0x00,0x00,0x01,\
+			0x04,0x00,0x04,0x00,0x00,0x5a,0xff,0xff,0x00,\
+			0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,\
+			0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,\
+			0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,\
+			0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,\
+			0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,\
+			0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,\
+			0x00,0x00,0x00,0x00,0x00,0x00,0x00,0xf5,0xd0,\
+			0x64,0x51,0xac,0x9f,0x69,0xd4,0xd3,0xf7,0x39,\
+			0x6e,0x20,0x0e,0x97,0xb7,0xe9,0xe4,0x56,0x3a};
+
+	uint8_t frame_handle;
+	uint32_t vlan = 0x8100aabb;
+	int parse_status;
+	uint8_t *frame_presented;
+	uint8_t *seg_addr;
+	struct fdma_amq amq;
+	uint16_t icid, flags = 0;
+	uint8_t tmp;
+	uint32_t frame_length;
+	/* setting SPID = 0 */
+	*((uint8_t *)HWC_SPID_ADDRESS) = 0;
+	icid = (uint16_t)(storage_profile[0].ip_secific_sp_info >> 48);
+	icid = ((icid << 8) & 0xff00) | ((icid >> 8) & 0xff);
+	tmp = (uint8_t)(storage_profile[0].ip_secific_sp_info >> 40);
+	if (tmp & 0x08)
+		flags |= FDMA_ICID_CONTEXT_BDI;
+	if (tmp & 0x04)
+		flags |= FDMA_ICID_CONTEXT_PL;
+	if (storage_profile[0].mode_bits2 & sp1_mode_bits2_VA_MASK)
+		flags |= FDMA_ICID_CONTEXT_VA;
+	amq.icid = icid;
+	amq.flags = flags;
+	set_default_amq_attributes(&amq);
+	*(uint32_t *)(&storage_profile[0].pbs2) = *(uint32_t *)(&storage_profile[0].pbs1);
+
+	for (i=0; i<8 ; i++)
+		fsl_os_print("storage profile arg %d: 0x%x \n", i, *((uint32_t *)(&(storage_profile[0]))+i));
+	
+	
+	err = create_frame(fd, frame_data, FRAME_SIZE, &frame_handle);
+	if (err)
+		fsl_os_print("ERROR: create frame failed!\n");
+
+	
+	fsl_os_print("parse result before create frame - \n");
+	
+	fsl_os_print("ethernet offset %d %x\n", 
+				PARSER_IS_ETH_MAC_DEFAULT(), PARSER_GET_ETH_OFFSET_DEFAULT());
+	
+	fsl_os_print("vlan offset %d %x\n",
+				PARSER_IS_ONE_VLAN_DEFAULT(), PARSER_GET_FIRST_VLAN_TCI_OFFSET_DEFAULT());
+	
+	fsl_os_print("ipv4 offset %d %x\n", 
+				PARSER_IS_IP_DEFAULT(), PARSER_GET_OUTER_IP_OFFSET_DEFAULT());
+	
+	fsl_os_print("udp offset %d %x\n", 
+				PARSER_IS_UDP_DEFAULT(), PARSER_GET_L4_OFFSET_DEFAULT());
+
+	for (i=0; i<16 ; i++)
+		fsl_os_print("parse results arg %d: 0x%x \n", i, *((uint32_t *)(0x80)+i));
+	
+	//test_fdma_modify_default_segment_data();
+	
+	fdma_close_default_segment();
+	err = fdma_present_default_frame_segment(FDMA_PRES_NO_FLAGS, (void *)0x180, 0, 256);
+	if (err)
+		fsl_os_print("STATUS: fdma present default segment returned status is %d\n", err);
+	l2_push_and_set_vlan(vlan);
+	
+	frame_length = PRC_GET_SEGMENT_LENGTH();
+	seg_addr = (uint8_t *)PRC_GET_SEGMENT_ADDRESS();
+	
+	/*fsl_os_print("frame length is 0x%x\n", frame_length);
+	for (i=0; i<frame_length ; i++)
+		fsl_os_print("frame read byte %d is %x\n", i, seg_addr[i]);*/
+
+	parse_result_generate(PARSER_ETH_STARTING_HXS, 0, PARSER_NO_FLAGS);
+	
+	fsl_os_print("parse result after create frame - \n");
+	
+	fsl_os_print("ethernet offset %d %x\n", 
+				PARSER_IS_ETH_MAC_DEFAULT(), PARSER_GET_ETH_OFFSET_DEFAULT());
+	
+	fsl_os_print("vlan offset %d %x\n",
+				PARSER_IS_ONE_VLAN_DEFAULT(), PARSER_GET_FIRST_VLAN_TCI_OFFSET_DEFAULT());
+	
+	fsl_os_print("ipv4 offset %d %x\n", 
+				PARSER_IS_IP_DEFAULT(), PARSER_GET_OUTER_IP_OFFSET_DEFAULT());
+	
+	fsl_os_print("udp offset %d %x\n", 
+				PARSER_IS_UDP_DEFAULT(), PARSER_GET_L4_OFFSET_DEFAULT());
+	fsl_os_print(" FD length (by SW) is : 0x%x \n", LDPAA_FD_GET_LENGTH(HWC_FD_ADDRESS));
+
+	LDPAA_FD_SET_LENGTH(HWC_FD_ADDRESS, 0);
+	fsl_os_print(" FD length (after SW zeroing it) is : 0x%x \n", LDPAA_FD_GET_LENGTH(HWC_FD_ADDRESS));
+	err = fdma_store_default_frame_data();
+	if (err){
+		fsl_os_print("ERROR: fdma store default frame returned error is %d\n", err);
+		return err;
+	}
+	
+	//test_fdma_discard_fd();
+	
+	//fsl_os_print(" ***************************************** \n");
+	//test_tmi_create();
+	//fsl_os_print(" ***************************************** \n");
+
+	for (i=0; i<8 ; i++)
+		fsl_os_print("FD content arg %d is %x\n", i, *((uint32_t *)(0x60 + i*4)));
+	
+	fsl_os_print(" FD length is : 0x%x \n", LDPAA_FD_GET_LENGTH(HWC_FD_ADDRESS));
+	fsl_os_print(" FD address LSB is : 0x%x \n", LDPAA_FD_GET_ADDR(HWC_FD_ADDRESS));
+	fsl_os_print(" FD address MSB is : 0x%x \n", ((uint64_t)LDPAA_FD_GET_ADDR(HWC_FD_ADDRESS)) >> 32);
+
+	err = fdma_present_default_frame();
+	if (err < 0)
+		fsl_os_print("ERROR: fdma present default frame returned error is %d\n", err);
+	else
+		if (err)
+			fsl_os_print("STATUS: fdma present default frame returned status is %d\n", err);
+	parse_status = parse_result_generate_default(PARSER_NO_FLAGS);
+	if (parse_status)
+	{
+		fsl_os_print("ERROR: parser failed for simple BU test!\n");
+		fdma_discard_default_frame(FDMA_DIS_NO_FLAGS);
+	}
+	/* check frame presented */
+	frame_presented = (uint8_t *)PRC_GET_SEGMENT_ADDRESS();
+	frame_length = LDPAA_FD_GET_LENGTH(HWC_FD_ADDRESS);
+	fdma_close_default_segment();
+	err = fdma_present_default_frame_segment(FDMA_PRES_NO_FLAGS, (void *)0x180, 0, 256);
+	fsl_os_print("Frame length is: \n", frame_length);
+	fsl_os_print("Segment length is: \n", PRC_GET_SEGMENT_LENGTH());
+	
+	err = 0;
+	for (i=0; i<(FRAME_SIZE+4); i++)
+		if (*(frame_presented+i) != frame_data_read[i])
+			err = -EINVAL;
+	if (err)
+	{
+		fsl_os_print("Simple BU ERROR: frame data after HM is not correct\n");
+		fsl_os_print("frame length is 0x%x\n", frame_length);
+		for (i=0; i<frame_length ; i++)
+			fsl_os_print("frame read byte %d is %x\n", i, frame_data_read[i]);
+		fsl_os_print("actual frame length is 0x%x\n", frame_length);
+		for (i=0; i<frame_length ; i++)
+			fsl_os_print("actual frame read byte %d is %x\n", i, frame_presented[i]);
+		fdma_discard_default_frame(FDMA_DIS_NO_FLAGS);
+		return err;
+	}
+	else {
+		fsl_os_print("**************************************************\n");
+		fsl_os_print("Simple BU Test: fdma frame after HM is correct !!!\n");
+		fsl_os_print("**************************************************\n");
+	}
+	
+	
+	fdma_discard_default_frame(FDMA_DIS_NO_FLAGS);
+	
 	return 0;
 }
 
@@ -394,26 +406,6 @@ void test_fdma_copy_data()
 	}
 }
 
-void test_tmi_create()
-{
-	uint64_t time;
-	fsl_os_get_mem( 4*64, MEM_PART_DP_DDR, 64, 
-			&snic_tmi_mem_base_addr_gal);
-	tman_get_timestamp(&time);
-	fsl_os_print("Timestamp = 0x%x%x\n", time >> 32, time);
-	tman_get_timestamp(&time);
-	fsl_os_print("Timestamp = 0x%x%x\n", time >> 32, time);
-	tman_get_timestamp(&time);
-	fsl_os_print("Timestamp = 0x%x%x\n", time >> 32, time);
-	tman_get_timestamp(&time);
-	fsl_os_print("Timestamp = 0x%x%x\n", time >> 32, time);
-	tman_get_timestamp(&time);
-	fsl_os_print("Timestamp = 0x%x%x\n", time >> 32, time);
-	/* todo tmi delete in snic_free */
-	tman_create_tmi(snic_tmi_mem_base_addr_gal , 4, 
-			&snic_tmi_id_gal);
-}
-
 void test_fdma_discard_fd()
 {
 	int err  = 0;
@@ -462,48 +454,55 @@ void test_fdma_modify_default_segment_data()
 	}
 }
 
+void test_tmi_create()
+{
+	uint64_t time;
+	fsl_os_get_mem( 4*64, MEM_PART_DP_DDR, 64, 
+			&snic_tmi_mem_base_addr_gal);
+	tman_get_timestamp(&time);
+	fsl_os_print("Timestamp = 0x%x%x\n", time >> 32, time);
+	tman_get_timestamp(&time);
+	fsl_os_print("Timestamp = 0x%x%x\n", time >> 32, time);
+	tman_get_timestamp(&time);
+	fsl_os_print("Timestamp = 0x%x%x\n", time >> 32, time);
+	tman_get_timestamp(&time);
+	fsl_os_print("Timestamp = 0x%x%x\n", time >> 32, time);
+	tman_get_timestamp(&time);
+	fsl_os_print("Timestamp = 0x%x%x\n", time >> 32, time);
+	/* todo tmi delete in snic_free */
+	tman_create_tmi(snic_tmi_mem_base_addr_gal , 4, 
+			&snic_tmi_id_gal);
+}
+
 void test_ste()
 {
 	uint8_t tmi_id;
 	uint32_t timer_handle1, i;
 	int32_t err;
-	uint32_t val;
+	//uint32_t val;
 	struct slab *slab_handle = NULL;
-	uint64_t ext_addr;
+	uint64_t ext_addr, ext_addr_tman;
 	uint32_t data[COPY_SIZE] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
 	uint32_t read_data[COPY_SIZE] = {1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16};
 	
-	
-	iowrite32((ioread32((uint32_t *)0x2080200) | 0x00008000),
-			(uint32_t *)0x2080200);
-	val = 0x0001;
-	val |= 0x00020000;
-	val |= 0x00040000;
-	val |= 0x00010000;
-	iowrite32(val, (uint32_t *)0x2080040);
-	iowrite32((ioread32((uint32_t *)0x2080200) | ~0x00008000),
-			(uint32_t *)0x2080200);	
-
-
-	iowrite32((ioread32((uint32_t *)0x2080024) | 0x00000001),
-			(uint32_t *)0x2080024);
-
-	/* keep register's default, and reset */
-	iowrite32((ioread32((uint32_t *)0x2080200) | 0x00000002),
-			(uint32_t *)0x2080200);
-	iowrite32((ioread32((uint32_t *)0x2080200) & ~0x00000002),
-			(uint32_t *)0x2080200);
-
-	
-	
+	/*err = slab_create(
+				1,  uint32_t    num_buffs 
+				1,  uint32_t    max_buffs 
+				64,  uint16_t   buff_size 
+				8, uint16_t      alignment 
+				MEM_PART_DP_DDR, mem_partition_id 
+				0,  		   flags 
+				NULL,  	   slab_release_cb_t release_cb 
+				&slab_handle  struct slab **slab 
+				);*/
 	err = slab_create(
-				1, /* uint32_t    num_buffs */
-				1, /* uint32_t    max_buffs */
-				64, /* uint16_t   buff_size */
-				8, /*uint16_t      alignment */
-				MEM_PART_DP_DDR, /*mem_partition_id */
-				0, /* 		   flags */
-				NULL, /* 	   slab_release_cb_t release_cb */
+				10, /* uint32_t    num_buffs */
+				10, /* uint32_t    max_buffs */
+				512, /* uint16_t    buff_size */
+				8, /*uint16_t    alignment */
+				MEM_PART_DP_DDR, /* uint8_t     mem_partition_id */
+				0, /* uint32_t    flags */
+				NULL, /* slab_release_cb_t release_cb */
 				&slab_handle /* struct slab **slab */
 				);
 	
@@ -520,10 +519,21 @@ void test_ste()
 	if (err)
 		fsl_os_print("ERROR: slab_create() failed\n");	
 	else
-		fsl_os_print("slab_create() completed successfully\n");
+		fsl_os_print("slab_acquire() completed successfully\n");
+	
+	err = slab_acquire(
+			slab_handle, /* struct slab *slab */
+			&ext_addr_tman /* uint64_t *buff */
+			);
+	if (err)
+		fsl_os_print("ERROR: slab_create() failed\n");	
+	else
+		fsl_os_print("slab_acquire() completed successfully\n");
+	
+	ext_addr_tman = STE_ALIGN_64(ext_addr_tman, 64);
 	
 	fsl_os_print("external_address = 0x%x\n", (uint32_t)ext_addr);
-	ext_addr = ext_addr -8;
+	//ext_addr = ext_addr - 8;
 	fsl_os_print("external_address after alignment = 0x%x\n", (uint32_t)ext_addr);
 	/* zero external address */
 	cdma_write(ext_addr, (void *)data, COPY_SIZE*sizeof(uint32_t));
@@ -539,7 +549,7 @@ void test_ste()
 	
 	
 	err = tman_create_tmi(
-		ext_addr, /* uint64_t tmi_mem_base_addr */
+		ext_addr_tman, /* uint64_t tmi_mem_base_addr */
 		5, /* uint32_t max_num_of_timers */
 		&tmi_id); /* uint8_t *tmi_id */
 	if (err)
@@ -596,7 +606,7 @@ void test_ste_functions(uint64_t ext_addr)
 	}
 	ste_dec_counter(ext_addr, DEC_VAL, STE_MODE_SATURATE | STE_MODE_32_BIT_CNTR_SIZE);
 	fsl_os_print("*** ste_dec_counter is called  \n");
-	//ste_barrier();
+	ste_barrier();
 	fsl_os_print("*** ste_barrier is called  \n");
 	cdma_read(&counter, ext_addr, sizeof(uint32_t));
 	fsl_os_print("*** compare counter after ste_dec_counter  \n");
