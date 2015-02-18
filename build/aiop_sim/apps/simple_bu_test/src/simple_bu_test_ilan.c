@@ -458,11 +458,13 @@ int simple_bu_ilan_test(void)
 				fsl_os_print("Simple BU table LU success!!!\n");
 		}
 		
-		/* look-up by key-id */
+		/* look-up by key */
 		{
 			//struct kcr_builder kb
 			//		__attribute__((aligned(16)));
 			struct table_rule rule
+							__attribute__((aligned(16)));
+			struct table_rule rule_replace
 							__attribute__((aligned(16)));
 			union table_lookup_key_desc key_desc;
 			struct table_create_params tbl_params;
@@ -478,6 +480,19 @@ int simple_bu_ilan_test(void)
 			uint16_t key3
 										__attribute__((aligned(16)));
 			struct table_result table_result;
+			
+			struct table_result new_miss_result; // Yariv
+			struct table_result old_miss_result;
+			
+			uint32_t op0, op1, op2;
+
+			/*
+			miss_result.type = TABLE_RESULT_TYPE_OPAQUES;
+			miss_result.reserved = 0;
+			miss_result.opaque1 = 0x8765;
+			miss_result.opaque2 = 0x43;
+			miss_result.op0_rptr_clp.opaque0 = 0xfedc;
+			*/
 			
 			key1=0xbeef;
 			key2=0xdead;
@@ -503,12 +518,20 @@ int simple_bu_ilan_test(void)
 			tbl_params.committed_rules = 10;
 			tbl_params.max_rules = 10;
 			tbl_params.key_size = 2;
-
+			
+			// tbl_params.miss_result = miss_result; // Yariv
+			tbl_params.miss_result.type = TABLE_RESULT_TYPE_REFERENCE;
+			tbl_params.miss_result.reserved = 0;
+			tbl_params.miss_result.opaque1 = 0x8765;
+			tbl_params.miss_result.opaque2 = 0x43;
+			tbl_params.miss_result.op0_rptr_clp.opaque0 = 0xfedc;
+			
 			table_location_attr = TABLE_ATTRIBUTE_LOCATION_EXT1;
 
 			tbl_params.attributes = TABLE_ATTRIBUTE_TYPE_EM | \
 					table_location_attr | \
-					TABLE_ATTRIBUTE_MR_NO_MISS;
+					//TABLE_ATTRIBUTE_MR_NO_MISS;
+					TABLE_ATTRIBUTE_MR_MISS; // Yariv
 			err = table_create(TABLE_ACCEL_ID_CTLU, &tbl_params,
 					&table_id);
 			if (err != TABLE_STATUS_SUCCESS)
@@ -522,6 +545,9 @@ int simple_bu_ilan_test(void)
 			rule.result.op0_rptr_clp.reference_pointer = 0x11223344;
 			rule.key_desc.em.key[0] = 0xde;
 			rule.key_desc.em.key[1] = 0xad;
+			rule_replace = rule;
+			rule_replace.result.op0_rptr_clp.reference_pointer = 0xaabbccdd;
+			
 			err = table_rule_create(TABLE_ACCEL_ID_CTLU, table_id, &rule, 2);
 			if (err)
 			{
@@ -607,6 +633,44 @@ int simple_bu_ilan_test(void)
 			else
 					fsl_os_print("Simple BU table LU by Key2 success!!!\n");
 			
+			/* table_rule_replace for key 0xdead */
+			
+			err = table_rule_replace(TABLE_ACCEL_ID_CTLU, table_id, &rule_replace, 2, NULL);
+			if (err)
+			{
+				fsl_os_print("Simple BU ERROR: table rule replace command failed!\n");
+				return err;
+			}
+			else
+				fsl_os_print("Simple BU: table rule replace command success!\n");
+			
+			key_desc.em_key = &key2;
+			sr_status = table_lookup_by_key(TABLE_ACCEL_ID_CTLU, table_id, key_desc, 2, &lookup_result);
+			if (sr_status)
+			{
+				fsl_os_print("Simple BU ERROR: table_lookup_by_key failed!\n");
+				return -EIO;
+			}
+							
+			if (lookup_result.opaque0_or_reference != 0xaabbccdd)
+			{
+					fsl_os_print("Simple BU ERROR: table LU by key2 failed after replace!\n");
+					return -EIO;
+			}
+			else
+					fsl_os_print("Simple BU table LU by Key2 after replace success!!!\n");
+
+			op0 = (uint32_t)lookup_result.opaque0_or_reference;
+			op1 = (uint32_t)lookup_result.opaque1;
+			op2 = (uint32_t)lookup_result.opaque2;
+			fsl_os_print("\n");
+			fsl_os_print("lookup_result.opaque0_or_reference = 0x%x\n", op0);
+			fsl_os_print("lookup_result.opaque1 = 0x%x\n", op1);
+			fsl_os_print("lookup_result.opaque2 = 0x%x\n", op2);
+			fsl_os_print("\n");
+			
+			/**************************************/
+			
 			key_desc.em_key = &key3;
 			sr_status = table_lookup_by_key(TABLE_ACCEL_ID_CTLU, table_id, key_desc, 2, &lookup_result);
 			if (!sr_status)
@@ -615,9 +679,57 @@ int simple_bu_ilan_test(void)
 				return -EIO;
 			}
 			
+			op0 = (uint32_t)lookup_result.opaque0_or_reference;
+			op1 = (uint32_t)lookup_result.opaque1;
+			op2 = (uint32_t)lookup_result.opaque2;
+			fsl_os_print("\n");
+			fsl_os_print("Original Miss Results:\n");
+			fsl_os_print("lookup_result.opaque0_or_reference = 0x%x\n", op0);
+			fsl_os_print("lookup_result.opaque1 = 0x%x\n", op1);
+			fsl_os_print("lookup_result.opaque2 = 0x%x\n", op2);
+			fsl_os_print("\n");
+			
+			/* table_replace_miss_result() */
+			new_miss_result.type = TABLE_RESULT_TYPE_REFERENCE;
+			new_miss_result.reserved = 0;
+			new_miss_result.opaque1 = 0x9966;
+			new_miss_result.opaque2 = 0xee;
+			new_miss_result.op0_rptr_clp.opaque0 = 0xaabb;
+						
+			table_replace_miss_result(
+					TABLE_ACCEL_ID_CTLU, /* enum table_hw_accel_id acc_id */
+					table_id, /* uint16_t table_id */
+					&new_miss_result, /*	struct table_result *new_miss_result */
+					&old_miss_result); /* struct table_result *old_miss_result */
+			
+			key_desc.em_key = &key3;
+			sr_status = table_lookup_by_key(TABLE_ACCEL_ID_CTLU, table_id, key_desc, 2, &lookup_result);
+			if (!sr_status)
+			{
+				fsl_os_print("Simple BU ERROR: table_lookup_by_key failed since it should be miss!\n");
+				return -EIO;
+			}
+					
+			op0 = (uint32_t)lookup_result.opaque0_or_reference;
+			op1 = (uint32_t)lookup_result.opaque1;
+			op2 = (uint32_t)lookup_result.opaque2;
+			fsl_os_print("\n");
+			fsl_os_print("New Miss Results:\n");
+			fsl_os_print("lookup_result.opaque0_or_reference = 0x%x\n", op0);
+			fsl_os_print("lookup_result.opaque1 = 0x%x\n", op1);
+			fsl_os_print("lookup_result.opaque2 = 0x%x\n", op2);
+			fsl_os_print("\n");
+			
+			if ((op0 == 0xaabb) && (op1 == 0x9966) && (op2 == 0xee)) {
+				fsl_os_print("table_replace_miss_result() PASSED\n");
+			} else {
+				fsl_os_print("Simple BU ERROR: table_replace_miss_result() failed\n");
+				return -EIO;
+			}
+				
 			/* table_delete */
 			table_delete(TABLE_ACCEL_ID_CTLU, table_id);
-		
+			
 		}
 		
 		fdma_discard_default_frame(FDMA_DIS_NO_FLAGS);
