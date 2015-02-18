@@ -52,6 +52,7 @@
 #include "simple_bu_test.h"
 #include "fsl_io_ccsr.h"
 //#include "tman.h"
+#include "aiop_common.h"
 
 
 int test_fdma();
@@ -88,30 +89,33 @@ uint32_t global_timer_handle1;
 #define SP_BDI_MASK     0x00080000
 #define SP_BP_PBS_MASK  0x3FFF
 
-#define SRAM_START _ssram_addr
-#define SRAM_DATA_ADDR _ssram_addr
+//#define SRAM_START _ssram_addr
+//#define SRAM_DATA_ADDR _ssram_addr
 //#define STE_BASE_ADDRESS	0x02080000
 #define CDMA_BASE_ADDRESS	0x0208d000
 
 int simple_bu_gal_test(void)
 {
 	int        err  = 0;
-	uint8_t prpid;
+	//uint8_t prpid;
+	//struct aiop_cmgw_regs *cmgw = (struct aiop_cmgw_regs*)(0x02080000);
+	//iowrite32(&(cmgw->amq_ste_cr), 0x00060000);	/* Set PL and BMT, ICID = 0 */
 	
 	fsl_os_print("****************************\n");
 	fsl_os_print("Running simple bring-up test\n");
 	fsl_os_print("****************************\n");
 	fsl_os_print("****************************\n");
 	
-	parser_init(&prpid);
+	//parser_init(&prpid);
 
-	default_task_params.parser_profile_id = prpid;
-	default_task_params.parser_starting_hxs = 0;
+	//default_task_params.parser_profile_id = prpid;
+	//default_task_params.parser_starting_hxs = 0;
 
 	
-	test_fdma();
+	//test_fdma();
 	
-	test_fdma_copy_data();
+	//test_fdma_copy_data();
+	
 	
 	test_ste();
 	
@@ -123,7 +127,7 @@ int simple_bu_gal_test(void)
 
 int test_fdma()
 {
-	int        err  = 0;
+	int err  = 0;
 	int i;
 	
 	struct ldpaa_fd *fd = (struct ldpaa_fd *)HWC_FD_ADDRESS;
@@ -310,7 +314,7 @@ int test_fdma()
 
 /*  Test fdma_copy_data  */
 void test_fdma_copy_data()
-{
+{/*
 	int err, i, j;
 	void *src_addr;
 	void *dst_addr;
@@ -331,28 +335,28 @@ void test_fdma_copy_data()
 		switch (j){
 		
 		case (0):	
-			/* ws->ws */
+			 ws->ws 
 			fsl_os_print("FDMA Copy WS->WS \n");
 			src_addr = (void *)(ws_data);
 			dst_addr = (void *)0x180;
 			flags = 0;
 			break;
 		case (1):	
-			/* ws->sram */
+			 ws->sram 
 			fsl_os_print("FDMA Copy WS->SRAM \n");
 			src_addr = (void *)ws_data;
 			dst_addr = (void *)sram;
 			flags = FDMA_COPY_DM_BIT;
 			break;
 		case (2):	
-			/* sram->ws */
+			 sram->ws 
 			fsl_os_print("FDMA Copy SRAM->WS \n");
 			src_addr = (void *)sram;
 			dst_addr = (void *)0x180;
 			flags = FDMA_COPY_SM_BIT;
 			break;
 		case (3):	
-			/* sram->sram */
+			 sram->sram 
 			fsl_os_print("FDMA Copy SRAM->SRAM \n");
 			src_addr = (void *)sram;
 			dst_addr = (void *)(sram+COPY_SIZE);
@@ -398,13 +402,13 @@ void test_fdma_copy_data()
 		}
 		else{
 			fsl_os_print("Simple BU ERROR: fdma_copy_data PASSED\n");
-			/*for (i=0; i<copy_size; i+=4) {
+			for (i=0; i<copy_size; i+=4) {
 				fsl_os_print("Copy src arg %d = 0x%x\n", i/4, *((uint32_t *)((uint32_t)src_addr+i)));
 				fsl_os_print("Copy dst arg %d = 0x%x\n", i/4, *((uint32_t *)((uint32_t)dst_addr+i)));
-			}*/
+			}
 		}
 	}
-}
+*/}
 
 void test_fdma_discard_fd()
 {
@@ -495,22 +499,29 @@ void test_ste()
 				NULL,  	   slab_release_cb_t release_cb 
 				&slab_handle  struct slab **slab 
 				);*/
-	err = slab_create(
-				10, /* uint32_t    num_buffs */
-				10, /* uint32_t    max_buffs */
-				512, /* uint16_t    buff_size */
-				8, /*uint16_t    alignment */
-				MEM_PART_DP_DDR, /* uint8_t     mem_partition_id */
-				0, /* uint32_t    flags */
-				NULL, /* slab_release_cb_t release_cb */
-				&slab_handle /* struct slab **slab */
-				);
+	//if (0) {
+		err = slab_create(
+					10, /* uint32_t    num_buffs */
+					10, /* uint32_t    max_buffs */
+					512, /* uint16_t    buff_size */
+					8, /*uint16_t    alignment */
+					MEM_PART_DP_DDR/*MEM_PART_SYSTEM_DDR*/, /* uint8_t     mem_partition_id */
+					0, /* uint32_t    flags */
+					NULL, /* slab_release_cb_t release_cb */
+					&slab_handle /* struct slab **slab */
+					);
+	//}
 	
 	if (err)
 		fsl_os_print("ERROR: slab_create() failed\n");	
 	else
 		fsl_os_print("slab_create() completed successfully\n");	
 	
+	fsl_os_print("Before fsl_os_get_mem\n");	
+	fsl_os_get_mem(256, MEM_PART_SYSTEM_DDR, 8, &ext_addr);
+	fsl_os_print("After fsl_os_get_mem\n");	
+	
+	//ext_addr = 0x80120000;
 	/* Acquire the Cipher key buffer */
 	err = slab_acquire(
 			slab_handle, /* struct slab *slab */
@@ -520,11 +531,15 @@ void test_ste()
 		fsl_os_print("ERROR: slab_create() failed\n");	
 	else
 		fsl_os_print("slab_acquire() completed successfully\n");
+
+	//ext_addr = /*mem_alloc*/sys_mem_alloc( sizeof(struct soft_tlu_statistics), MEM_PART_SYSTEM_DDR );
+	ext_addr = STE_ALIGN_64(ext_addr, 64);
 	
 	err = slab_acquire(
 			slab_handle, /* struct slab *slab */
 			&ext_addr_tman /* uint64_t *buff */
 			);
+	
 	if (err)
 		fsl_os_print("ERROR: slab_create() failed\n");	
 	else
@@ -532,9 +547,12 @@ void test_ste()
 	
 	ext_addr_tman = STE_ALIGN_64(ext_addr_tman, 64);
 	
-	fsl_os_print("external_address = 0x%x\n", (uint32_t)ext_addr);
+	//ext_addr = 0x80120000;
+	
+	fsl_os_print("external_address = 0x%x%08x\n", *((uint32_t *)&ext_addr), *(((uint32_t *)&ext_addr)+1));
 	//ext_addr = ext_addr - 8;
-	fsl_os_print("external_address after alignment = 0x%x\n", (uint32_t)ext_addr);
+	//fsl_os_print("external_address after alignment high = 0x%x\n", *((uint32_t *)&ext_addr));
+	//fsl_os_print("external_address after alignment low = 0x%x\n", *(((uint32_t *)&ext_addr)+1));
 	/* zero external address */
 	cdma_write(ext_addr, (void *)data, COPY_SIZE*sizeof(uint32_t));
 	/* read external address - make sure its zeroed */
@@ -559,10 +577,10 @@ void test_ste()
 	
 	err = tman_create_timer(
 		tmi_id, /* uint8_t tmi_id */
-		TMAN_CREATE_TIMER_MODE_100_USEC_GRANULARITY |
+		TMAN_CREATE_TIMER_MODE_USEC_GRANULARITY |
 			TMAN_CREATE_TIMER_ONE_SHOT, /* uint32_t flags */
 			/* 10 mSec timer ticks*/
-		100, /*	uint16_t duration; 100*10ms = 1 sec */
+		11, /*	uint16_t duration; 100*10ms = 1 sec */
 		ext_addr, /* tman_arg_8B_t opaque_data1 */
 		0x12, /* tman_arg_2B_t opaque_data2 */ 
 		&bu_tman_callback, /* tman_cb_t tman_timer_cb */
@@ -583,13 +601,15 @@ void test_ste_functions(uint64_t ext_addr)
 	uint32_t counter = 0;
 	//struct slab *slab_handle = NULL;
 	
-	fsl_os_print("*** STE TEST STARTS *** \n");
+	fsl_os_print("*** STE TEST STARTS *** \n"); 
 	
 	err = 0;
-	ste_inc_counter(ext_addr, INC_VAL, STE_MODE_SATURATE | STE_MODE_32_BIT_CNTR_SIZE);
+	fsl_os_print("ste_inc_counter to address = 0x%x%08x\n", *((uint32_t *)&ext_addr), *(((uint32_t *)&ext_addr)+1));
+	ste_inc_counter(ext_addr, INC_VAL, STE_MODE_32_BIT_CNTR_SIZE);
 	fsl_os_print("*** ste_inc_counter is called  \n");
 	//ste_barrier();
 	fsl_os_print("*** ste_barrier is called  \n");
+	fsl_os_print("cdma_read from address = 0x%x%08x\n", *((uint32_t *)&ext_addr), *(((uint32_t *)&ext_addr)+1));
 	cdma_read(&counter, ext_addr, sizeof(uint32_t));
 	fsl_os_print("*** compare counter after ste_inc_counter  \n");
 	if (counter != INC_VAL){
@@ -604,7 +624,7 @@ void test_ste_functions(uint64_t ext_addr)
 		fsl_os_print("*** ste_inc_counter PASSED !!! \n");
 		fsl_os_print("*** counter =  %d \n", counter);
 	}
-	ste_dec_counter(ext_addr, DEC_VAL, STE_MODE_SATURATE | STE_MODE_32_BIT_CNTR_SIZE);
+	ste_dec_counter(ext_addr, DEC_VAL, STE_MODE_32_BIT_CNTR_SIZE);
 	fsl_os_print("*** ste_dec_counter is called  \n");
 	ste_barrier();
 	fsl_os_print("*** ste_barrier is called  \n");
@@ -626,9 +646,7 @@ void test_ste_functions(uint64_t ext_addr)
 
 void bu_tman_callback(uint64_t opaque1, uint16_t opaque2)
 {
-	
-	uint32_t opaque1_32bit = (uint32_t)opaque1;
-	uint32_t opaque2_32bit = (uint32_t)opaque2;
+	UNUSED(opaque2);
 	
 	fsl_os_print("\nbu_tman_callback is reached\n");
 	
