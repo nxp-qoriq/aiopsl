@@ -36,6 +36,7 @@
  *    Function declarations
  */
 /***************************************************************************/
+extern void booke_generic_irq_init(void);
 void __sys_start(register int argc, register char **argv, register char **envp);
 void _ExitProcess(void);
 __declspec(weak) extern void abort(void);
@@ -132,6 +133,12 @@ asm __COLD_CODE void __sys_start(register int argc, register char **argv, regist
     li     r0, 0xffffffff   /* Load up r0 with 0xffffffff */
     stw    r0, 4(r1)         /* Make an illegal return address of 0xffffffff */
    
+    /* Initialize PPC interrupts vector */
+    lis    r6, booke_generic_irq_init@ha
+    addi   r6, r6, booke_generic_irq_init@l
+    mtlr   r6
+    blrl
+    
     /* master-core clears bss sections while others wait */
 	lis     r19, _master@ha
 	addi    r19, r19, _master@l
@@ -143,7 +150,7 @@ halt:
     lwz     r18, 0(r19)
     cmpwi   r18, 0
     bne     halt
-
+    
     /* Branch to main program */
     lis    r6, main@ha
     addi   r6, r6, main@l

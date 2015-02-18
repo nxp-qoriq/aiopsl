@@ -282,11 +282,6 @@ __COLD_CODE static int pltfrm_init_core_cb(fsl_handle_t h_platform)
 		return -EFAULT;
 	}
 
-	/*------------------------------------------------------*/
-	/* Initialize PPC interrupts vector                     */
-	/*------------------------------------------------------*/
-	booke_generic_irq_init();
-
 #ifndef DEBUG
 	/* Enable the BTB - branches predictor */
 	booke_set_spr_BUCSR(booke_get_spr_BUCSR() | 0x00000201);
