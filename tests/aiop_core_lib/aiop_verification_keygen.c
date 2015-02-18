@@ -290,10 +290,16 @@ uint16_t aiop_verification_keygen(uint32_t asa_seg_addr)
 			struct keygen_gen_key_command *str =
 			(struct keygen_gen_key_command *) asa_seg_addr;
 
+			/* WA for ROC issue - REPLACE_FDMA of 128 bytes */
+			for (int i=0;i<128;i++){
+				*(uint8_t *)(str->key_ptr + i) = 0;
+			}
+			
 			str->status = keygen_gen_key(str->acc_id,
 						   str->key_id, 
 						   str->opaquein,
-						   (union table_key_desc *)str->key_ptr,						   &str->key_size);
+						   (union table_key_desc *)str->key_ptr,						   
+						   &str->key_size);
 			*((int32_t *)(str->keygen_status_addr)) = str->status;
 			str_size =
 				sizeof(struct keygen_gen_key_command);
