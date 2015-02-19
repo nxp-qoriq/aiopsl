@@ -432,7 +432,7 @@ int simple_bu_yariv_test(void)
 		}
 		/* End of CDMA Workspace Init Test */ 
 
-//#define RUN_TMAN_TEST
+#define RUN_TMAN_TEST
 #ifdef RUN_TMAN_TEST
 		/* TMAN Test */ 
 		fsl_os_print("\nTesting TMAN\n");
@@ -525,6 +525,8 @@ int simple_bu_yariv_test(void)
 		}
 		/* End of TMAN Test */ 
 #endif
+
+#ifdef RUN_IPSEC_TEST
 		/* IPsec Test */
 		err = ipsec_app_init(0); /* Call with NI ID = 0 */
 		if (err) {
@@ -536,6 +538,7 @@ int simple_bu_yariv_test(void)
 
 		ipsec_encr_decr();
 		fsl_os_print("ipsec_encr_decr() completed\n");
+#endif
 		
 		fdma_discard_default_frame(FDMA_DIS_NO_FLAGS);
 		
