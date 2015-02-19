@@ -39,11 +39,6 @@ Layout is built from 3 different sections: containers, objects, connections.
 ****************************************************************************/
 / {
 	containers {
-		icid_pool {
-			compatible = "fsl,icid-pool";
-			num = <100>;
-			base_icid = <0>;
-		};
 		dprc@1 {
 			compatible = "fsl,dprc";
 			parent = "none";

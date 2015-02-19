@@ -68,6 +68,8 @@ __declspec(entry_point) void aiop_verification_fm()
         uint8_t tmp, spid;
 	uint32_t *pData = (uint32_t *)HWC_FD_ADDRESS;
 
+	fsl_os_print("*** Start Verification ***\n");
+	fsl_os_print("**************************\n");
 	sl_prolog();
 	
 	spid = *((uint8_t *)HWC_SPID_ADDRESS);
@@ -85,6 +87,16 @@ __declspec(entry_point) void aiop_verification_fm()
         amq.icid = icid;
         amq.flags = flags;
         set_default_amq_attributes(&amq);
+        
+        fsl_os_print("Storage Profile ASAR 0x%x\n", storage_profile[spid].mode_bits1 & 0xF);
+        fsl_os_print("Storage Profile PTAR 0x%x\n", (storage_profile[spid].mode_bits1 & 0x80)>>7);
+        /*set storage profile ASAR to 15 */
+        storage_profile[spid].mode_bits1 |= 0xF;
+        /*set storage profile PTAR to 1 */
+        storage_profile[spid].mode_bits1 |= 0x80;
+        fsl_os_print("Storage Profile ASAR 0x%x\n", storage_profile[spid].mode_bits1 & 0xF);
+        fsl_os_print("Storage Profile PTAR 0x%x\n", (storage_profile[spid].mode_bits1 & 0x80)>>7);
+        
 	
 	/* Read last 8 bytes from frame PTA/ last 8 bytes of payload
 	 * This is the external buffer address */
@@ -129,8 +141,11 @@ __declspec(entry_point) void aiop_verification_fm()
 		/* Read a new buffer from DDR with DATA_SIZE */
 		cdma_read((void *)data_addr, ext_address, (uint16_t)DATA_SIZE);
 
+		fsl_os_print("opcode received: 0x%x\n", opcode);
+		
 		opcode  = *((uint32_t *) data_addr);
 		opcode = (opcode & ACCEL_ID_CMD_MASK) >> 16;
+		
 
 		switch (opcode) {
 
