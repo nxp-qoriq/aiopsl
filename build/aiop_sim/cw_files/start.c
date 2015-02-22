@@ -203,6 +203,17 @@ asm __COLD_CODE void __sys_start(register int argc, register char **argv, regist
     /* Store core ID */
     mfpir  r17
 
+    /* MC clear WS for each core to reset ECC */
+    /* The WS is a per core 32K RAM. */
+    /* Loops to cover WS, stmw allows 128 bytes (32 GPRS x 4 bytes) writes */
+    e_li r31, 0x0 			/* Start address is 0x00000000 */
+    e_li r30, 0x100 		/* set counter to 256 (96K = 256 * 128) */  
+    mtctr r30
+init_ws_loop:
+    stmw r0, 0(r31)         /* Write 32 GPRs to WS */
+    addi r31, r31, 128      /* Inc the ram ptr; 32 GPRs * 4 bytes = 128B */
+    bdnz init_ws_loop       /* Loop until CTR is non-zero */
+    
     /* Initialize small data area pointers */
     lis    r2, _SDA2_BASE_@ha
     addi   r2, r2, _SDA2_BASE_@l
