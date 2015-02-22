@@ -1,5 +1,7 @@
 LDPAA AIOP SERVICE LAYER LDPAA-AIOP-SL-v0.5.3.3 Change Log
 =============================================================
+STE:
+   * Fix constant definition typo in fsl_ste.h 
 IPR:
    * Fix alignment of table_rule struct in case of delete rule.
    

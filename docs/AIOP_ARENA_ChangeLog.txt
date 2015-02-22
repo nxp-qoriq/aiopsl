@@ -1,4 +1,7 @@
 ** AIOP SL Release v0.5.3.3 **
+log.c/h, fsl_log.h: Implementation for printing log to buffer updated and moved from console.c to log.c.
+                    The logger writes "START\n" in the beginning of the buffer and "END\n" after the last write to the buffer given by MC.
+                    Writing to the buffer is done by: void log_print_to_buffer(char *str, uint16_t str_length). The print to buffer is cyclic.
 
 dpl.dtb/dts: Moved ICID pool to DPC.
 dpc.dtb/dts: New configuration file, UART port and log to buffer settings are set here. 
