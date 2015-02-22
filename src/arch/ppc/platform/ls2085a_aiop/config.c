@@ -5,12 +5,15 @@
 #include "platform.h"
 #include "fsl_dpni_drv.h"
 
-
-/*********************************************************************/
 /*
- * This section  is for dynamic aiop load
+ * AIOP SL users should not modify this file.
+ * AIOP SL users should set the values at apps.h
  */
-/* Place MC <-> AIOP structures at fixed address.
+
+#define SRU_SIZE			(1 * MEGABYTE)	 /**< FDMA sru size*/
+
+/* .aiop_init_data section  is for dynamic aiop load.
+ * Place MC <-> AIOP structures at fixed address.
  * Don't create new macro for section because no one else should use it */
 #pragma push
 #pragma force_active on
@@ -18,25 +21,16 @@
 __declspec(section ".aiop_init_data")   struct aiop_init_info  g_init_data;
 #pragma pop
 
-/* This value should match AIOP_DDR_END - AIOP_DDR_START from aiop_link.lcf
- * This is the size that AIOP image occupies in DP_DDR.
- * The user SHOULDN'T edit edit this. */
-#define AIOP_DP_DDR_SIZE 0xb10000
-
-const uint32_t g_aiop_lcf_ddr_size = AIOP_DP_DDR_SIZE;
-
-
 
 struct platform_app_params g_app_params =
 {
-	DPNI_NUMBER_BUFFERS_IN_POOL,
-	DPNI_BUFFER_SIZE_IN_POOL,
-	DPNI_BUFFER_ALIGNMENT,
-	APP_MAX_NUM
+ APP_DPNI_NUM_BUFS_IN_POOL,
+ APP_DPNI_BUF_SIZE_IN_POOL,
+ APP_DPNI_BUF_ALIGN_IN_POOL,
+ APP_INIT_APP_MAX_NUM
 };
 
-/* TODO set good default values
- * TODO Update and review structure */
+/* TODO set good default values */
 struct aiop_init_info g_init_data =
 {
  /* aiop_sl_init_info */
@@ -68,20 +62,20 @@ struct aiop_init_info g_init_data =
   {0}	        /* reserved           */
  },
  /* aiop_app_init_info */
- {
-    AIOP_SL_AND_APP_DDR_SIZE,
- 	PEB_SIZE,
- 	SYS_DDR1_SIZE,
- 	CTLU_SYS_DDR_NUM_ENTRIES,
- 	CTLU_DP_DDR_NUM_ENTRIES,
- 	CTLU_PEB_NUM_ENTRIES,
- 	MFLU_SYS_DDR_NUM_ENTRIES,
- 	MFLU_DP_DDR_NUM_ENTRIES,
- 	MFLU_PEB_NUM_ENTRIES,
- 	SRU_SIZE,
- 	AIOP_TASKS_PER_CORE,
- 	SOC_MAX_NUM_OF_DPNI, /*SPID_COUNT*/
- 	{0}/* reserved */
+ {	
+  APP_MEM_DP_DDR_SIZE,
+  APP_MEM_PEB_SIZE,
+  APP_MEM_SYS_DDR1_SIZE,
+  APP_CTLU_SYS_DDR_NUM_ENTRIES,
+  APP_CTLU_DP_DDR_NUM_ENTRIES,
+  APP_CTLU_PEB_NUM_ENTRIES,
+  APP_MFLU_SYS_DDR_NUM_ENTRIES,
+  APP_MFLU_DP_DDR_NUM_ENTRIES,
+  APP_MFLU_PEB_NUM_ENTRIES,
+  SRU_SIZE,
+  APP_INIT_TASKS_PER_CORE,
+  SOC_MAX_NUM_OF_DPNI, /*SPID_COUNT*/
+  {0}/* reserved */
  }
 
 };
