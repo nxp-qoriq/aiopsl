@@ -301,10 +301,6 @@ __COLD_CODE int sys_init(void)
 	uint32_t core_id = core_get_id();
 	char pre_console_buf[PRE_CONSOLE_BUF_SIZE];
 
-	memset( &pre_console_buf[0], 0, PRE_CONSOLE_BUF_SIZE);
-	sys.p_pre_console_buf = &pre_console_buf[0];
-
-
 	sys.is_tile_master[core_id] = (int)(SYS_TILE_MASTERS_MASK \
 						& (1ULL << core_id)) ? 1 : 0;
 	sys.is_cluster_master[core_id] = (int)(SYS_CLUSTER_MASTER_MASK \
@@ -313,6 +309,9 @@ __COLD_CODE int sys_init(void)
 	is_master_core = sys_is_master_core();
 
 	if(is_master_core) {
+		memset( &pre_console_buf[0], 0, PRE_CONSOLE_BUF_SIZE);
+		sys.p_pre_console_buf = &pre_console_buf[0];
+		
 		if(g_init_data.sl_info.log_buf_size){
 			log_init();
 			sys.print_to_buffer = TRUE;
