@@ -39,7 +39,7 @@ int log_init()
 	
 	ASSERT_COND_LIGHT(g_log_buf_size > 1*MEGABYTE);
 	icontext_aiop_get(&ic);
-	ASSERT_COND_LIGHT(ic.dma_flags);
+
 
 	g_log_buf_count += sizeof(str) - 1;
 	icontext_dma_write(&ic, sizeof(str), str, g_log_buf_phys_address);
@@ -53,17 +53,17 @@ void log_print_to_buffer(char *str, uint16_t str_length)
 
 	/*Save Accelerator Hardware Context*/
 	/** Address for passing parameters to accelerators */
-	uint32_t r1 = *(uint32_t *) HWC_ACC_IN_ADDRESS;
+	uint32_t hwc1 = *((uint32_t *) HWC_ACC_IN_ADDRESS);
 	/** Address for passing parameters to accelerators */
-	uint32_t r2 = *(uint32_t *) HWC_ACC_IN_ADDRESS2;
+	uint32_t hwc2 = *((uint32_t *) HWC_ACC_IN_ADDRESS2);
 	/** Address for passing parameters to accelerators */
-	uint32_t r3 = *(uint32_t *) HWC_ACC_IN_ADDRESS3;
+	uint32_t hwc3 = *((uint32_t *) HWC_ACC_IN_ADDRESS3);
 	/** Address for passing parameters to accelerators */
-	uint32_t r4 = *(uint32_t *) HWC_ACC_IN_ADDRESS4;
+	uint32_t hwc4 = *((uint32_t *) HWC_ACC_IN_ADDRESS4);
 	/** Address for reading results from accelerators (1st register) */
-	uint32_t r5 = *(uint32_t *) HWC_ACC_OUT_ADDRESS;
+	uint32_t hwc5 = *((uint32_t *) HWC_ACC_OUT_ADDRESS);
 	/** Address for reading results from accelerators (2nd register) */
-	uint32_t r6 = *(uint32_t *) HWC_ACC_OUT_ADDRESS2;
+	uint32_t hwc6 = *((uint32_t *) HWC_ACC_OUT_ADDRESS2);
 
 
 	lock_spinlock(&(g_log_buffer_lock));
@@ -121,16 +121,16 @@ void log_print_to_buffer(char *str, uint16_t str_length)
 	
 	/*Restore Accelerator Hardware Context*/
 	/** Address for passing parameters to accelerators */
-	*(uint32_t *) HWC_ACC_IN_ADDRESS = r1;
+	*((uint32_t *) HWC_ACC_IN_ADDRESS) = hwc1;
 	/** Address for passing parameters to accelerators */
-	*(uint32_t *) HWC_ACC_IN_ADDRESS2 = r2;
+	*((uint32_t *) HWC_ACC_IN_ADDRESS2) = hwc2;
 	/** Address for passing parameters to accelerators */
-	*(uint32_t *) HWC_ACC_IN_ADDRESS3 = r3;
+	*((uint32_t *) HWC_ACC_IN_ADDRESS3) = hwc3;
 	/** Address for passing parameters to accelerators */
-	*(uint32_t *) HWC_ACC_IN_ADDRESS4 = r4;
+	*((uint32_t *) HWC_ACC_IN_ADDRESS4) = hwc4;
 	/** Address for reading results from accelerators (1st register) */
-	*(uint32_t *) HWC_ACC_OUT_ADDRESS = r5;
+	*((uint32_t *) HWC_ACC_OUT_ADDRESS) = hwc5;
 	/** Address for reading results from accelerators (2nd register) */
-	*(uint32_t *) HWC_ACC_OUT_ADDRESS2 = r6;
+	*((uint32_t *) HWC_ACC_OUT_ADDRESS2) = hwc6;
 }
 
