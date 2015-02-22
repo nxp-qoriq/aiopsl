@@ -10,7 +10,87 @@
  * AIOP SL users should set the values at apps.h
  */
 
+/** 
+ * Keeping backward compatibility
+ */
+#ifndef SRU_SIZE
 #define SRU_SIZE			(1 * MEGABYTE)	 /**< FDMA sru size*/
+#else
+#warning "SRU_SIZE is depricated delete, it from apps.h" 
+#endif
+
+#ifndef APP_DPNI_NUM_BUFS_IN_POOL
+#define APP_DPNI_NUM_BUFS_IN_POOL DPNI_NUMBER_BUFFERS_IN_POOL
+#warning "DPNI_NUMBER_BUFFERS_IN_POOL is depricated, copy apps.h from app_process_packet" 
+#endif
+
+#ifndef APP_DPNI_BUF_SIZE_IN_POOL
+#define APP_DPNI_BUF_SIZE_IN_POOL DPNI_BUFFER_SIZE_IN_POOL
+#warning "DPNI_BUFFER_SIZE_IN_POOL is depricated, copy apps.h from app_process_packet" 
+#endif
+
+#ifndef APP_DPNI_BUF_ALIGN_IN_POOL
+#define APP_DPNI_BUF_ALIGN_IN_POOL DPNI_BUFFER_ALIGNMENT
+#warning "DPNI_BUFFER_ALIGNMENT is depricated, copy apps.h from app_process_packet" 
+#endif
+
+#ifndef APP_INIT_APP_MAX_NUM
+#define APP_INIT_APP_MAX_NUM APP_MAX_NUM
+#warning "APP_MAX_NUM is depricated, copy apps.h from app_process_packet" 
+#endif
+
+#ifndef APP_INIT_TASKS_PER_CORE
+#define APP_INIT_TASKS_PER_CORE AIOP_TASKS_PER_CORE
+#warning "AIOP_TASKS_PER_CORE is depricated, copy apps.h from app_process_packet" 
+#endif
+
+#ifndef APP_MEM_DP_DDR_SIZE
+const uint32_t g_aiop_lcf_ddr_size = 0xb10000;
+#define APP_MEM_DP_DDR_SIZE AIOP_SL_AND_APP_DDR_SIZE
+#warning "AIOP_SL_AND_APP_DDR_SIZE is depricated, copy apps.h from app_process_packet" 
+#endif
+
+#ifndef APP_MEM_PEB_SIZE
+#define APP_MEM_PEB_SIZE PEB_SIZE
+#warning "PEB_SIZE is depricated, copy apps.h from app_process_packet" 
+#endif
+
+#ifndef APP_MEM_SYS_DDR1_SIZE
+#define APP_MEM_SYS_DDR1_SIZE SYS_DDR1_SIZE
+#warning "PEB_SIZE is depricated, copy apps.h from app_process_packet" 
+#endif
+
+#ifndef APP_CTLU_SYS_DDR_NUM_ENTRIES
+#define APP_CTLU_SYS_DDR_NUM_ENTRIES CTLU_SYS_DDR_NUM_ENTRIES
+#warning "CTLU_SYS_DDR_NUM_ENTRIES is depricated, copy apps.h from app_process_packet" 
+#endif
+
+#ifndef APP_CTLU_DP_DDR_NUM_ENTRIES
+#define APP_CTLU_DP_DDR_NUM_ENTRIES CTLU_DP_DDR_NUM_ENTRIES
+#warning "CTLU_DP_DDR_NUM_ENTRIES is depricated, copy apps.h from app_process_packet" 
+#endif
+
+#ifndef APP_CTLU_PEB_NUM_ENTRIES
+#define APP_CTLU_PEB_NUM_ENTRIES CTLU_PEB_NUM_ENTRIES
+#warning "CTLU_PEB_NUM_ENTRIES is depricated, copy apps.h from app_process_packet" 
+#endif
+
+#ifndef APP_MFLU_SYS_DDR_NUM_ENTRIES
+#define APP_MFLU_SYS_DDR_NUM_ENTRIES MFLU_SYS_DDR_NUM_ENTRIES
+#warning "MFLU_SYS_DDR_NUM_ENTRIES is depricated, copy apps.h from app_process_packet" 
+#endif
+
+#ifndef APP_MFLU_DP_DDR_NUM_ENTRIES
+#define APP_MFLU_DP_DDR_NUM_ENTRIES MFLU_DP_DDR_NUM_ENTRIES
+#warning "MFLU_DP_DDR_NUM_ENTRIES is depricated, copy apps.h from app_process_packet" 
+#endif
+
+#ifndef APP_MFLU_PEB_NUM_ENTRIES
+#define APP_MFLU_PEB_NUM_ENTRIES MFLU_PEB_NUM_ENTRIES
+#warning "MFLU_PEB_NUM_ENTRIES is depricated, copy apps.h from app_process_packet" 
+#endif
+
+
 
 /* .aiop_init_data section  is for dynamic aiop load.
  * Place MC <-> AIOP structures at fixed address.
