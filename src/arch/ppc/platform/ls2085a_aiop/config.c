@@ -90,7 +90,10 @@ const uint32_t g_aiop_lcf_ddr_size = 0xb10000;
 #warning "MFLU_PEB_NUM_ENTRIES is depricated, copy apps.h from app_process_packet" 
 #endif
 
-
+#ifndef APP_DPNI_SPID_COUNT
+#define APP_DPNI_SPID_COUNT 8
+#warning "Add APP_DPNI_SPID_COUNT to apps.h, see apps.h of app_process_packet" 
+#endif
 
 /* .aiop_init_data section  is for dynamic aiop load.
  * Place MC <-> AIOP structures at fixed address.
@@ -154,7 +157,7 @@ struct aiop_init_info g_init_data =
   APP_MFLU_PEB_NUM_ENTRIES,
   SRU_SIZE,
   APP_INIT_TASKS_PER_CORE,
-  SOC_MAX_NUM_OF_DPNI, /*SPID_COUNT*/
+  APP_DPNI_SPID_COUNT, /*SPID_COUNT*/
   {0}/* reserved */
  }
 
