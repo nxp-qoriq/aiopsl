@@ -1,8 +1,33 @@
+apps.h: API changes and reorganization of apps.h. 
+        Many macros have been depricated but we keep it backward compatible for current release.  
+        See aiopsl\build\aiop_sim\apps\app_process_packet\src\apps.h.
+        Removed SRU_SIZE.
+        Removed g_aiop_lcf_ddr_size.
+        Removed APPLICATION_DP_DDR_SIZE.
+        Renamed DPNI_NUMBER_BUFFERS_IN_POOL to APP_DPNI_NUM_BUFS_IN_POOL.  
+        Renamed DPNI_BUFFER_SIZE_IN_POOL    to APP_DPNI_BUF_SIZE_IN_POOL 
+        Renamed DPNI_BUFFER_ALIGNMENT       to APP_DPNI_BUF_ALIGN_IN_POOL 
+        Renamed APP_MAX_NUM                 to APP_INIT_APP_MAX_NUM 
+        Renamed AIOP_TASKS_PER_CORE         to APP_INIT_TASKS_PER_CORE
+        Renamed AIOP_SL_AND_APP_DDR_SIZE    to APP_MEM_DP_DDR_SIZE 
+        Renamed PEB_SIZE                    to APP_MEM_PEB_SIZE 
+        Renamed SYS_DDR1_SIZE               to APP_MEM_SYS_DDR1_SIZE
+        Renamed CTLU_SYS_DDR_NUM_ENTRIES    to APP_CTLU_SYS_DDR_NUM_ENTRIES
+        Renamed CTLU_DP_DDR_NUM_ENTRIES     to APP_CTLU_DP_DDR_NUM_ENTRIES
+        Renamed CTLU_PEB_NUM_ENTRIES        to APP_CTLU_PEB_NUM_ENTRIES
+        Renamed MFLU_SYS_DDR_NUM_ENTRIES    to APP_MFLU_SYS_DDR_NUM_ENTRIES
+        Renamed MFLU_DP_DDR_NUM_ENTRIES     to APP_MFLU_DP_DDR_NUM_ENTRIES
+        Renamed MFLU_PEB_NUM_ENTRIES        to APP_MFLU_PEB_NUM_ENTRIES
+
+** AIOP SL Release v0.5.3.3 **
 log.c/h, fsl_log.h: Implementation for printing log to buffer updated and moved from console.c to log.c.
                     The logger writes "START\n" in the beginning of the buffer and "END\n" after the last write to the buffer given by MC.
                     Writing to the buffer is done by: void log_print_to_buffer(char *str, uint16_t str_length). The print to buffer is cyclic.
 
-dpni_drv.c:           Set hard coded values for head room and tail room for:
+dpl.dtb/dts: Moved ICID pool to DPC.
+dpc.dtb/dts: New configuration file, UART port and log to buffer settings are set here. 
+
+dpni_drv.c: Set hard coded values for head room and tail room for:
                       Head room: 96 bytes
                       Tail room: 0 bytes
 
