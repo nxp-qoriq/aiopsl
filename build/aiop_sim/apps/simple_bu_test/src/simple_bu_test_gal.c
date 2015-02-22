@@ -84,8 +84,9 @@ uint32_t global_timer_handle1_g;
 #define FRAME_SIZE	124
 #define	COPY_SIZE	16
 #define	MODIFY_SIZE	16
-#define	INC_VAL		7
-#define	DEC_VAL		4
+#define	INC_VAL		11
+#define	DEC_VAL		3
+#define	ACC_VAL		17
 #define SP_BDI_MASK     0x00080000
 #define SP_BP_PBS_MASK  0x3FFF
 
@@ -522,6 +523,7 @@ void test_ste()
 	fsl_os_print("After fsl_os_get_mem\n");	
 	
 	//ext_addr = 0x80120000;
+	ext_addr = 0x6000000000;
 	/* Acquire the Cipher key buffer */
 	err = slab_acquire(
 			slab_handle, /* struct slab *slab */
@@ -599,6 +601,7 @@ void test_ste_functions(uint64_t ext_addr)
 	int err  = 0;
 	//uint64_t ext_addr;
 	uint32_t counter = 0;
+	uint32_t acc = 0;
 	//struct slab *slab_handle = NULL;
 	
 	fsl_os_print("*** STE TEST STARTS *** \n"); 
@@ -607,7 +610,7 @@ void test_ste_functions(uint64_t ext_addr)
 	fsl_os_print("ste_inc_counter to address = 0x%x%08x\n", *((uint32_t *)&ext_addr), *(((uint32_t *)&ext_addr)+1));
 	ste_inc_counter(ext_addr, INC_VAL, STE_MODE_32_BIT_CNTR_SIZE);
 	fsl_os_print("*** ste_inc_counter is called  \n");
-	//ste_barrier();
+	ste_barrier();
 	fsl_os_print("*** ste_barrier is called  \n");
 	fsl_os_print("cdma_read from address = 0x%x%08x\n", *((uint32_t *)&ext_addr), *(((uint32_t *)&ext_addr)+1));
 	cdma_read(&counter, ext_addr, sizeof(uint32_t));
@@ -619,28 +622,52 @@ void test_ste_functions(uint64_t ext_addr)
 		fsl_os_print("*** ERROR: STE_GET_STATUS_REGISTER %d \n", counter, STE_GET_ERR_CAP_ATTRIBUTES());
 		fsl_os_print("*** ERROR: STE_GET_AMQR at address 0x%x = 0x%x \n", STE_BASE_ADDRESS + 0x40, (uint32_t)(ioread32_ccsr((uint32_t *)(STE_BASE_ADDRESS + 0x40))));
 		fsl_os_print("*** ERROR: STE_GET_CDMA_ICID at address 0x%x = 0x%x \n", CDMA_BASE_ADDRESS, (uint32_t)(ioread32_ccsr((uint32_t *)CDMA_BASE_ADDRESS)));
+		return;
 	}
 	else{
 		fsl_os_print("*** ste_inc_counter PASSED !!! \n");
 		fsl_os_print("*** counter =  %d \n", counter);
 	}
 	ste_dec_counter(ext_addr, DEC_VAL, STE_MODE_32_BIT_CNTR_SIZE);
-	fsl_os_print("*** ste_dec_counter is called  \n");
+	ste_dec_counter(ext_addr, DEC_VAL, STE_MODE_32_BIT_CNTR_SIZE);
+	fsl_os_print("*** ste_dec_counter is called twice  \n");
 	ste_barrier();
 	fsl_os_print("*** ste_barrier is called  \n");
 	cdma_read(&counter, ext_addr, sizeof(uint32_t));
 	fsl_os_print("*** compare counter after ste_dec_counter  \n");
-	if (counter != (INC_VAL-DEC_VAL)){
+	if (counter != (INC_VAL-DEC_VAL-DEC_VAL)){
 		fsl_os_print("*** ERROR: ste_dec_counter FAILED !!! \n");
 		fsl_os_print("*** ERROR: counter =  %d != %d  \n", counter, INC_VAL-DEC_VAL);
 		fsl_os_print("*** ERROR: STE_GET_STATUS_REGISTER %d \n", counter, STE_GET_STATUS_REGISTER());
 		fsl_os_print("*** ERROR: STE_GET_STATUS_REGISTER %d \n", counter, STE_GET_ERR_CAP_ATTRIBUTES());
 		fsl_os_print("*** ERROR: STE_GET_AMQR at address 0x%x = 0x%x \n", STE_BASE_ADDRESS + 0x40, (uint32_t)(ioread32_ccsr((uint32_t *)(STE_BASE_ADDRESS + 0x40))));
-				fsl_os_print("*** ERROR: STE_GET_CDMA_ICID at address 0x%x = 0x%x \n", CDMA_BASE_ADDRESS, (uint32_t)(ioread32_ccsr((uint32_t *)CDMA_BASE_ADDRESS)));
+		fsl_os_print("*** ERROR: STE_GET_CDMA_ICID at address 0x%x = 0x%x \n", CDMA_BASE_ADDRESS, (uint32_t)(ioread32_ccsr((uint32_t *)CDMA_BASE_ADDRESS)));
+		return;
 	}
 	else{
+		fsl_os_print("*** ERROR: STE_GET_AMQR at address 0x%x = 0x%x \n", STE_BASE_ADDRESS + 0x40, (uint32_t)(ioread32_ccsr((uint32_t *)(STE_BASE_ADDRESS + 0x40))));
+		fsl_os_print("*** ERROR: STE_GET_CDMA_ICID at address 0x%x = 0x%x \n", CDMA_BASE_ADDRESS, (uint32_t)(ioread32_ccsr((uint32_t *)CDMA_BASE_ADDRESS)));
 		fsl_os_print("*** ste_dec_counter PASSED !!! \n");
 		fsl_os_print("*** counter =  %d \n", counter);
+	}
+	
+	ste_inc_and_acc_counters(ext_addr, ACC_VAL, 
+			STE_MODE_COMPOUND_32_BIT_CNTR_SIZE |
+			STE_MODE_COMPOUND_32_BIT_ACC_SIZE);
+	fsl_os_print("*** ste_inc_and_acc_counters is called  \n");
+	ste_barrier();
+	fsl_os_print("*** ste_barrier is called  \n");
+	cdma_read(&counter, ext_addr, sizeof(uint32_t));
+	cdma_read(&acc, ext_addr+4, sizeof(uint32_t));
+	if ((counter != (INC_VAL-DEC_VAL-DEC_VAL+1)) || (acc != ACC_VAL)){
+		fsl_os_print("*** ERROR: ste_inc_and_acc_counters FAILED !!! \n");
+		fsl_os_print("*** ERROR: counter =  %d != %d  \n", counter, INC_VAL-DEC_VAL+1);
+		fsl_os_print("*** ERROR: acc =  %d != %d  \n", acc, ACC_VAL);
+		return;
+	} else {
+		fsl_os_print("*** ste_inc_and_acc_counters PASSED !!! \n");
+		fsl_os_print("*** counter =  %d \n", counter);
+		fsl_os_print("*** acc =  %d \n", acc);
 	}
 }
 
