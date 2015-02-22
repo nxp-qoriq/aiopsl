@@ -137,6 +137,16 @@ aiop_sl		</project>
 			<locationURI>PROJECT_LOC/src/simple_bu_test_ilan.c</locationURI>
 		</link>
 		<link>
+			<name>src/simple_bu_test_ipf_ipr.c</name>
+			<type>1</type>
+			<locationURI>PROJECT_LOC/src/simple_bu_test_ipf_ipr.c</locationURI>
+		</link>
+		<link>
+			<name>src/simple_bu_test_ipsec.c</name>
+			<type>1</type>
+			<locationURI>PROJECT_LOC/src/simple_bu_test_ipsec.c</locationURI>
+		</link>
+		<link>
 			<name>src/simple_bu_test_ohad.c</name>
 			<type>1</type>
 			<locationURI>PROJECT_LOC/src/simple_bu_test_ohad.c</locationURI>

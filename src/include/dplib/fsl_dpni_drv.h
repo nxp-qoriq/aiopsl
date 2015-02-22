@@ -434,5 +434,33 @@ int dpni_drv_get_rx_buffer_layout(uint16_t ni_id, struct dpni_buffer_layout *lay
 	error code, otherwise. For error posix refer to \ref error_g
 *//***************************************************************************/
 int dpni_drv_get_counter(uint16_t ni_id, enum dpni_counter counter, uint64_t *value);
+
+/**************************************************************************//**
+@Function	dpni_drv_get_dpni_id
+
+@Description	Function to receive DPNI ID, known outside to AIOP.
+
+@Param[in]	ni_id   The AIOP Network Interface ID.
+
+@Param[out]	dpni_id DPNI ID known outside to AIOP.
+
+@Return	0 on success;
+	error code, otherwise. For error posix refer to \ref error_g
+*//***************************************************************************/
+int dpni_drv_get_dpni_id(uint16_t ni_id, uint16_t *dpni_id);
+
+/**************************************************************************//**
+@Function	dpni_drv_get_ni_id
+
+@Description	Function to receive AIOP internal NI ID.
+
+@Param[in]	dpni_id DPNI ID known outside to AIOP.
+
+@Param[out]	ni_id The AIOP Network Interface ID.
+
+@Return	0 on success;
+	error code, otherwise. For error posix refer to \ref error_g
+*//***************************************************************************/
+int dpni_drv_get_ni_id(uint16_t dpni_id, uint16_t *ni_id);
 /** @} */ /* end of dpni_g DPNI group */
 #endif /* __FSL_DPNI_DRV_H */
