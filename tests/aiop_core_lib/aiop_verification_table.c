@@ -125,10 +125,13 @@ uint16_t aiop_verification_table(uint32_t asa_seg_addr)
 	{
 		struct table_rule_create_command *str =
 		(struct table_rule_create_command *) asa_seg_addr;
+		struct table_rule rule __attribute__((aligned(16)));
+		
+		rule = *(struct table_rule*)(str->rule_ptr);
 		
 		str->status = table_rule_create(str->acc_id,
 			    str->table_id,
-			    (struct table_rule*)str->rule_ptr,
+			    (struct table_rule*)&rule,
 			    str->key_size);
 
 		str_size =
@@ -270,15 +273,19 @@ uint16_t aiop_verification_table(uint32_t asa_seg_addr)
 	/* Table Lookup by KeyID Command Verification */
 	case TABLE_LOOKUP_BY_KEYID_CMD_STR:
 	{
+		struct table_lookup_non_default_params ndf_params __attribute__((aligned(16)));
+		struct table_lookup_result lookup_result __attribute__((aligned(16)));
 		struct table_lookup_by_keyid_command *str =
 		(struct table_lookup_by_keyid_command *) asa_seg_addr;
+		ndf_params = str->ndf_params;
 
 		str->status = table_lookup_by_keyid(str->acc_id,
 						    str->table_id,
 						    str->key_id,
 						    str->flags,
-						    &(str->ndf_params),
-						    &(str->lookup_result));
+						    &(ndf_params),
+						    &(lookup_result));
+		str->lookup_result = lookup_result;
 
 		str_size =
 			sizeof(struct table_lookup_by_keyid_command);

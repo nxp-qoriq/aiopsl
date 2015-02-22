@@ -191,7 +191,10 @@ void exception_handler(char *filename,
 			(uint32_t)function_name;
 
 #ifndef STACK_CHECK
-	pr_err("Fatal error encountered!\n");
+	pr_err("*** Fatal error encountered ***\n");
+	pr_err("file: %s, line: %d\n", filename, line);
+	pr_err("function: %s\n", function_name);
+	pr_err("exception error: %s\n", message);
 #endif
 
 	fdma_terminate_task();
