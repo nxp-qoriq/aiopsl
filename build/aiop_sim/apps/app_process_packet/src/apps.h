@@ -38,7 +38,7 @@
 *//***************************************************************************/
 
 #define APP_INIT_TASKS_PER_CORE		4	/**< Tasks per core in AIOP */
-#define APP_INIT_APP_MAX_NUM		10	
+#define APP_INIT_APP_MAX_NUM		10
 /**<  Maximal number of applications to be filled by build_apps_array() */
 
 /** @} */ /* end of app_init */
@@ -46,8 +46,8 @@
 /**************************************************************************//**
 @Group		app_mem		Memory Allocation
 
-@Description	Use the following macros to define the memory sizes 
-		as used by application.
+@Description	Use the following macros to define the memory sizes required by 
+		the sum of all AIOP applications and Service Layer.
 		All the sizes refer to the sum of all static (LCF) and 
 		dynamic (malloc) allocations. 
 		All the sizes should be aligned to a power of 2.
