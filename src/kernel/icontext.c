@@ -160,9 +160,9 @@ __COLD_CODE int icontext_init()
 {
 	uint32_t cdma_cfg;
 	struct aiop_tile_regs *ccsr = (struct aiop_tile_regs *)\
-		AIOP_PERIPHERALS_OFF + 
-		SOC_PERIPH_OFF_AIOP_TILE + 
-		SOC_PERIPH_OFF_AIOP_CMGW;
+		(AIOP_PERIPHERALS_OFF + 
+			SOC_PERIPH_OFF_AIOP_TILE + 
+			SOC_PERIPH_OFF_AIOP_CMGW);
 
 	ASSERT_COND_LIGHT(ccsr);
 	
