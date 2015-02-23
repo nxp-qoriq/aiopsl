@@ -316,9 +316,15 @@ uint16_t aiop_verification_keygen(uint32_t asa_seg_addr)
 		case KEYGEN_GEN_HASH_CMD_STR:
 		{
 			struct keygen_gen_hash_command *str =
-			(struct keygen_gen_hash_command *) asa_seg_addr;
-			str->status = keygen_gen_hash((union table_key_desc *)str->key_ptr, str->key_size,
-						    &(str->hash));
+			(struct keygen_gen_hash_command *) asa_seg_addr;			
+			union table_key_desc key __attribute__((aligned(16)));
+			uint32_t hash __attribute__((aligned(16)));
+
+			key = *(union table_key_desc *)(str->key_ptr);
+			
+			str->status = keygen_gen_hash((void *)&key, str->key_size, &hash);
+			
+			str->hash = hash;
 			
 			*((int32_t *)(str->keygen_status_addr)) = str->status;
 			str_size =
