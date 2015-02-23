@@ -502,6 +502,8 @@ struct keygen_gen_key_command{
 	/** CTLU Generate Key identifier */
 	uint32_t opcode;
 
+	uint8_t pad[4];
+	
 	/** OpaqueIn field for key composition */
 	uint64_t opaquein;
 	
@@ -525,7 +527,7 @@ struct keygen_gen_key_command{
 	uint8_t key_size;
 
 	/** 64-bit alignment */
-	uint8_t	pad[2];
+	uint8_t	pad2[6];
 };
 
 /**************************************************************************//**
