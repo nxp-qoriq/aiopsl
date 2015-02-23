@@ -141,9 +141,9 @@ __declspec(entry_point) void aiop_verification_fm()
 		/* Read a new buffer from DDR with DATA_SIZE */
 		cdma_read((void *)data_addr, ext_address, (uint16_t)DATA_SIZE);
 
-		fsl_os_print("opcode received: 0x%x\n", opcode);
 		
 		opcode  = *((uint32_t *) data_addr);
+		fsl_os_print("opcode received: 0x%x\n", opcode);
 		opcode = (opcode & ACCEL_ID_CMD_MASK) >> 16;
 		
 
