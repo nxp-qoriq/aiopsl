@@ -39,7 +39,7 @@ int log_init()
 	
 	ASSERT_COND_LIGHT(g_log_buf_size > 1*MEGABYTE);
 	icontext_aiop_get(&ic);
-
+	ASSERT_COND_LIGHT(ic.dma_flags);
 	g_log_buf_count += sizeof(str) - 1;
 	icontext_dma_write(&ic, sizeof(str), str, g_log_buf_phys_address);
 	return 0;

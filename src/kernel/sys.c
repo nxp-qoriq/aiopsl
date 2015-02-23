@@ -44,6 +44,7 @@ extern struct aiop_init_info g_init_data;
 
 extern void     __sys_start(register int argc, register char **argv,
 				register char **envp);
+extern int icontext_init();
 
 typedef struct t_sys_forced_object {
 	fsl_handle_t        h_module;
@@ -315,6 +316,8 @@ __COLD_CODE int sys_init(void)
 	is_master_core = sys_is_master_core();
 
 	if(is_master_core) {
+		/* MUST BE before log_init() because it uses icontext API */
+		icontext_init();
 		if(g_init_data.sl_info.log_buf_size){
 			log_init();
 			sys.print_to_buffer = TRUE;

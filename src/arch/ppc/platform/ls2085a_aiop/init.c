@@ -58,7 +58,6 @@ extern int slab_module_early_init(void);  extern int slab_module_init(void);
 extern void slab_module_free(void);
 extern int aiop_sl_early_init(void);
 extern int aiop_sl_init(void);            extern void aiop_sl_free(void);
-extern int icontext_init();
 
 extern void discard_rx_cb();
 extern void tman_timer_callback(void);
@@ -89,7 +88,6 @@ extern void build_apps_array(struct sys_module_desc *apps);
 
 #define GLOBAL_MODULES                                                       \
 	{    /* slab must be before any module with buffer request*/             \
-	{icontext_init, NULL, NULL},                                             \
 	{NULL, time_init,         time_free},                                    \
 	{NULL, epid_drv_init,     epid_drv_free},                                \
 	{NULL, mc_obj_init,       mc_obj_free},                                  \
