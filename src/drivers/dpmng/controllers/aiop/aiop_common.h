@@ -98,10 +98,10 @@ struct aiop_sl_init_info
 	uint32_t mc_portal_id;                  /* initialized by MC FW during init, before AIOP elf is loaded */
 	uint32_t mc_dpci_id;                    /* initialized by MC FW during init, before AIOP elf is loaded */
 	uint32_t clock_period; 		/* 1588 period In nanosec */
-
+	
 	uint64_t log_buf_paddr; 	/* physical address of log buffer */
 	uint32_t log_buf_size;
-	uint32_t sys_clk; /* in Khtz */
+	uint32_t platform_clk; 		/* in Khtz */ 
 
 	uint64_t options;
 	uint32_t args_size;	/* AIOP command line string length */
@@ -169,11 +169,15 @@ struct aiop_cmgw_regs {
 
 	/* AIOP Block Registers */
 	uint32_t stecr1; /* Statistics engine control register 1 */
-	uint8_t reserved10[0xFC];
-
+	uint32_t reserved10; 
+	uint32_t ste_smcacr; 		/* 0x208 STE_SMCACR—Stats Engine System Memory Cache Attribute
+					Control Register */
+	uint32_t stesr; 		/* 0x20C STESR—Stats Engine Error Status Register */
+	uint32_t ste_err_captr[4]; 	/* 0x210 STE_ERR_CAPT1-4R—Stats Engine Error Capture Register */
+	uint8_t reserved11[0xE0]; 
 	/* AIOP Discovery Registers */
 	uint32_t tile_disc[4]; /* Tile discovery registers 1-4 */
-	uint8_t reserved11[0xCF0];
+	uint8_t reserved12[0xCF0];
 };
 
 struct aiop_fdma_regs {
@@ -353,13 +357,18 @@ struct aiop_tman_regs {
 	uint32_t tmbah; /* TMan external memory base address high */
 	uint32_t tminit; /* TMan initialization register */
 	uint32_t tmcbcc; /* TMan callback completion confirmation */
-	uint8_t reserved1[0x8];
+	uint32_t tmsmcacr;
+	uint8_t reserved1[0x4];
 	uint32_t tmtstmpl; /* TMan Timestamp Low */
 	uint32_t tmtstmph; /* TMan Timestamp High */
-	uint8_t reserved2[0x1FD8];
+	uint8_t reserved2[0x8];
+	uint32_t tmeal;
+	uint32_t tmeah;
+	uint32_t tmev;
+	uint8_t reserved3[0x1FC4];
 
 	struct aiop_tmi_regs tmi_regs[252];
-	uint8_t reserved3[0x80];
+	uint8_t reserved4[0x80];
 };
 
 struct aiop_tile_regs {

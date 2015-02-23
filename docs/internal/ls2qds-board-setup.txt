@@ -1,0 +1,52 @@
+**************************************************************************************
+*This file contains instructions to set-up ls2qds board and configure the environment*
+**************************************************************************************
+1) Board configurations: (Check that your board configurations are the same)
+	A)	vbank0  having support of PCIe;  should be used for tftp and program images to vbank4
+	B)	vbank4 has SerDes protocol 0x7A and 0x07. No PCIe 
+	C)	Switch settings
+		a.	SW4: 0xAF
+		b.	SW7: 0x2A
+		c.	SW8: 0x00
+	D)	PCIe NIC is connected to Slot 6
+2)	tftp server configurations:
+	A)	Connect the board to your machine with Ethernet cable (from slot 6) using eth to usb/ec adapter.	
+	B) 	Configure the ip address off the adapter in network setting -> change adapter settings:
+		a)	Enter properties of your adapter and disable TCP/IPv6
+		b)	TCP/IPv4:
+			IP: 192.168.1.1
+			subnet mask: 255.255.0.0	
+	C)	Install tftp server on your machine.
+		win: http://tftpd32.jounin.net/tftpd32_download.html
+		server configurations: http://www.tricksguide.com/how-to-setup-a-tftp-server-tftpd32-windows.html
+	D) copy the images: PBL.bin, u-boot.bin, mc.itc, dpl.dtb, dpc.dtb, aiop_app.elf to chosen folder in tftp server configurations.
+		a) 	aiopsl\tests\bringup\u-boot\u-boot.bin
+		b)	aiopsl\tests\bringup\PBL\PBL.bin
+		c)	aiopsl\tests\bringup\dpc\dpc.dtb
+		d)	aiopsl\tests\bringup\dpl\dpl.dtb
+		e)	MC: from mc_app in rel_0.5.3_fix branch, SHA:a51d2921
+			(convert to the elf to itb first) 
+3)	Turn on the board (GPP is on UART1 connector - Baud rate 115200) and configure connection to tftp server:
+	A)	Verify you boot from vBank: 0 (appears in the beginning of the log from GPP)
+	B) After you reach the prompt ( => ) enter the following:
+		a)	setenv ipaddr 192.168.1.4;
+		b)	setenv serverip 192.168.1.1;
+		c)	setenv netmask 255.255.255.0;
+		d) 	ping 192.168.1.1
+		if "Host is alive appears", save the environment using: save env
+4)	Copy the images to flash: (change <path to your folder> with the real path from the folder you set in tftp server configurations) 
+	1)	ping $serverip; setenv filesize; setenv myaddr 0x584000000; tftp 0x80000000 /<path to your folder>/PBL.bin; protect off $myaddr +$filesize; erase $myaddr +$filesize; cp.b 0x80000000 $myaddr $filesize; protect on $myaddr +$filesize
+	2)	ping $serverip; setenv filesize; setenv myaddr 0x584100000; tftp 0x80000000 /<path to your folder>/u-boot.bin; protect off $myaddr +$filesize; erase $myaddr +$filesize; cp.b 0x80000000 $myaddr $filesize; protect on $myaddr +$filesize
+	3)	ping $serverip; setenv filesize; setenv myaddr 0x584300000; tftp 0x80000000 /<path to your folder>/mc.itb; protect off $myaddr +$filesize; erase $myaddr +$filesize; cp.b 0x80000000 $myaddr $filesize; protect on $myaddr +$filesize
+	4)	ping $serverip; setenv filesize; setenv myaddr 0x584700000; tftp 0x80000000 /<path to your folder>/dpl.dtb; protect off $myaddr +$filesize; erase $myaddr +$filesize; cp.b 0x80000000 $myaddr $filesize; protect on $myaddr +$filesize
+	5)	ping $serverip; setenv filesize; setenv myaddr 0x584800000; tftp 0x80000000 /<path to your folder>/dpc.dtb; protect off $myaddr +$filesize; erase $myaddr +$filesize; cp.b 0x80000000 $myaddr $filesize; protect on $myaddr +$filesize
+	6)	ping $serverip; setenv filesize; setenv myaddr 0x584900000; tftp 0x80000000 /<path to your folder>/aiop_app.elf; protect off $myaddr +$filesize; erase $myaddr +$filesize; cp.b 0x80000000 $myaddr $filesize; protect on $myaddr +$filesize
+5)	Set MC time out to 20000:
+	setenv mcboottimeout 20000
+	saveenv
+6)	Switch to vBank4:
+	qixis_reset altbank
+	
+IMPORTANT: Do not copy images from vBank 4. reboot the board first. (When using power ON, OFF the board starts from vBank 0 by default)
+	
+		

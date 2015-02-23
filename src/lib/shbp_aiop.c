@@ -29,6 +29,7 @@
 #include <fsl_cdma.h>
 #include <fsl_spinlock.h>
 #include <fsl_dbg.h>
+#include <fsl_sl_dbg.h>
 
 /*
  * SHBP is assumed to be implemented in little endian that's why AIOP does 
@@ -37,31 +38,31 @@
 
 #define DUMP_SHBP_FREE() \
 	do {\
-		pr_debug("shbp.alloc_master = 0x%x\n", shbp.alloc_master); \
-		pr_debug("shbp.max_num = 0x%x size = %d\n", shbp.max_num, SHBP_SIZE(&shbp)); \
-		pr_debug("shbp.free.base high = 0x%x\n", (uint32_t)((shbp.free.base & 0xFFFFFFFF00000000) >> 32)); \
-		pr_debug("shbp.free.base low = 0x%x\n", (uint32_t)(shbp.free.base & 0xFFFFFFFF)); \
-		pr_debug("shbp.free.deq = 0x%x\n", shbp.free.deq); \
-		pr_debug("shbp.free.enq = 0x%x\n\n", shbp.free.enq); \
+		sl_pr_debug("shbp.alloc_master = 0x%x\n", shbp.alloc_master); \
+		sl_pr_debug("shbp.max_num = 0x%x size = %d\n", shbp.max_num, SHBP_SIZE(&shbp)); \
+		sl_pr_debug("shbp.free.base high = 0x%x\n", (uint32_t)((shbp.free.base & 0xFFFFFFFF00000000) >> 32)); \
+		sl_pr_debug("shbp.free.base low = 0x%x\n", (uint32_t)(shbp.free.base & 0xFFFFFFFF)); \
+		sl_pr_debug("shbp.free.deq = 0x%x\n", shbp.free.deq); \
+		sl_pr_debug("shbp.free.enq = 0x%x\n\n", shbp.free.enq); \
 	} while(0)
 
 #define DUMP_SHBP_ALLOC() \
 	do {\
-		pr_debug("shbp.alloc_master = 0x%x\n", shbp.alloc_master); \
-		pr_debug("shbp.max_num = 0x%x size = %d\n", shbp.max_num, SHBP_SIZE(&shbp)); \
-		pr_debug("shbp.alloc.base high = 0x%x\n", (uint32_t)((shbp.alloc.base & 0xFFFFFFFF00000000) >> 32)); \
-		pr_debug("shbp.alloc.base low = 0x%x\n", (uint32_t)(shbp.alloc.base & 0xFFFFFFFF)); \
-		pr_debug("shbp.alloc.deq = 0x%x\n", shbp.alloc.deq); \
-		pr_debug("shbp.alloc.enq = 0x%x\n\n", shbp.alloc.enq); \
+		sl_pr_debug("shbp.alloc_master = 0x%x\n", shbp.alloc_master); \
+		sl_pr_debug("shbp.max_num = 0x%x size = %d\n", shbp.max_num, SHBP_SIZE(&shbp)); \
+		sl_pr_debug("shbp.alloc.base high = 0x%x\n", (uint32_t)((shbp.alloc.base & 0xFFFFFFFF00000000) >> 32)); \
+		sl_pr_debug("shbp.alloc.base low = 0x%x\n", (uint32_t)(shbp.alloc.base & 0xFFFFFFFF)); \
+		sl_pr_debug("shbp.alloc.deq = 0x%x\n", shbp.alloc.deq); \
+		sl_pr_debug("shbp.alloc.enq = 0x%x\n\n", shbp.alloc.enq); \
 	} while(0)
 
 #define DUMP_AIOP_BP() \
 	do {\
-		pr_debug("bp->shbp high = 0x%x\n", (uint32_t)((bp->shbp & 0xFFFFFFFF00000000) >> 32)); \
-		pr_debug("bp->shbp low = 0x%x\n", (uint32_t)(bp->shbp & 0xFFFFFFFF)); \
-		pr_debug("bp->ic.dma_flags = 0x%x\n", bp->ic.dma_flags); \
-		pr_debug("bp->ic.bdi_flags = 0x%x\n", bp->ic.bdi_flags); \
-		pr_debug("bp->ic.icid = 0x%x\n\n", bp->ic.icid); \
+		sl_pr_debug("bp->shbp high = 0x%x\n", (uint32_t)((bp->shbp & 0xFFFFFFFF00000000) >> 32)); \
+		sl_pr_debug("bp->shbp low = 0x%x\n", (uint32_t)(bp->shbp & 0xFFFFFFFF)); \
+		sl_pr_debug("bp->ic.dma_flags = 0x%x\n", bp->ic.dma_flags); \
+		sl_pr_debug("bp->ic.bdi_flags = 0x%x\n", bp->ic.bdi_flags); \
+		sl_pr_debug("bp->ic.icid = 0x%x\n\n", bp->ic.icid); \
 	}while(0)
 
 
