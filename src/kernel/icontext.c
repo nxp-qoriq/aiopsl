@@ -160,10 +160,11 @@ __COLD_CODE int icontext_init()
 {
 	uint32_t cdma_cfg;
 	struct aiop_tile_regs *ccsr = (struct aiop_tile_regs *)\
-		sys_get_memory_mapped_module_base(FSL_OS_MOD_CMGW, 0,
-		                                  E_MAPPED_MEM_TYPE_GEN_REGS);
+		AIOP_PERIPHERALS_OFF + 
+		SOC_PERIPH_OFF_AIOP_TILE + 
+		SOC_PERIPH_OFF_AIOP_CMGW;
 
-	ASSERT_COND(ccsr);
+	ASSERT_COND_LIGHT(ccsr);
 	
 	cdma_cfg = ioread32_ccsr(&ccsr->cdma_regs.cfg);
 	
@@ -180,16 +181,9 @@ __COLD_CODE int icontext_init()
 		icontext_aiop.dma_flags |= FDMA_DMA_PL_BIT;
 	if (cdma_cfg & CDMA_VA_BIT)
 		icontext_aiop.dma_flags |= FDMA_DMA_eVA_BIT;
-	
-	pr_debug("CDMA CFG register = 0x%x addr = 0x%x\n", cdma_cfg, \
-	         (uint32_t)&ccsr->cdma_regs.cfg);
-	pr_debug("AIOP ICID = 0x%x bdi flags = 0x%x\n", icontext_aiop.icid, \
-	         icontext_aiop.bdi_flags);
-	pr_debug("AIOP ICID = 0x%x dma flags = 0x%x\n", icontext_aiop.icid, \
-	         icontext_aiop.dma_flags);
-	
-	ASSERT_COND(icontext_aiop.bdi_flags); /* BDI bit is set */
-	ASSERT_COND(icontext_aiop.dma_flags); /* PL bit is set */
+		
+	ASSERT_COND_LIGHT(icontext_aiop.bdi_flags); /* BDI bit is set */
+	ASSERT_COND_LIGHT(icontext_aiop.dma_flags); /* PL bit is set */
 	
 	return 0;
 }
