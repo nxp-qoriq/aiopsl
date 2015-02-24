@@ -149,11 +149,12 @@ __COLD_CODE static int sys_init_platform(void)
 				sys.platform_ops.h_platform);
 			if (err != 0) return err;
 		}
-
+#ifdef SIMUALTOR
 		if (!sys.console) {
 			/* If no platform console, register debugger console */
 			sys_register_debugger_console();
 		}
+#endif
 	}
 
 	if (sys.platform_ops.f_init_private) {
