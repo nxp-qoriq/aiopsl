@@ -196,7 +196,7 @@ int test_fdma()
 		fsl_os_print("storage profile arg %d: 0x%x \n", i, *((uint32_t *)(&(storage_profile[0]))+i));
 	
 	
-	err = create_frame(fd, frame_data, FRAME_SIZE, &frame_handle);
+	err = create_frame(fd, frame_data, 0/*FRAME_SIZE*/, &frame_handle);
 	if (err)
 		fsl_os_print("ERROR: create frame failed!\n");
 
@@ -224,7 +224,7 @@ int test_fdma()
 	err = fdma_present_default_frame_segment(FDMA_PRES_NO_FLAGS, (void *)0x180, 0, 256);
 	if (err)
 		fsl_os_print("STATUS: fdma present default segment returned status is %d\n", err);
-	l2_push_and_set_vlan(vlan);
+	//l2_push_and_set_vlan(vlan);
 	
 	frame_length = PRC_GET_SEGMENT_LENGTH();
 	seg_addr = (uint8_t *)PRC_GET_SEGMENT_ADDRESS();
@@ -265,7 +265,7 @@ int test_fdma()
 	//fsl_os_print(" ***************************************** \n");
 
 	for (i=0; i<8 ; i++)
-		fsl_os_print("FD content arg %d is %x\n", i, *((uint32_t *)(0x60 + i*4)));
+		fsl_os_print("*** FD content arg %d is %x\n", i, *((uint32_t *)(0x60 + i*4)));
 	
 	fsl_os_print(" FD length is : 0x%x \n", LDPAA_FD_GET_LENGTH(HWC_FD_ADDRESS));
 	fsl_os_print(" FD address LSB is : 0x%x \n", LDPAA_FD_GET_ADDR(HWC_FD_ADDRESS));
@@ -280,8 +280,8 @@ int test_fdma()
 	parse_status = parse_result_generate_default(PARSER_NO_FLAGS);
 	if (parse_status)
 	{
-		fsl_os_print("ERROR: parser failed for simple BU test!\n");
-		fdma_discard_default_frame(FDMA_DIS_NO_FLAGS);
+		fsl_os_print("ERROR: parser result for simple BU test: FAILED!\n");
+		//fdma_discard_default_frame(FDMA_DIS_NO_FLAGS);
 	}
 	/* check frame presented */
 	frame_presented = (uint8_t *)PRC_GET_SEGMENT_ADDRESS();
@@ -304,8 +304,8 @@ int test_fdma()
 		fsl_os_print("actual frame length is 0x%x\n", frame_length);
 		for (i=0; i<frame_length ; i++)
 			fsl_os_print("actual frame read byte %d is %x\n", i, frame_presented[i]);
-		fdma_discard_default_frame(FDMA_DIS_NO_FLAGS);
-		return err;
+		//fdma_discard_default_frame(FDMA_DIS_NO_FLAGS);
+		//return err;
 	}
 	else {
 		fsl_os_print("**************************************************\n");
@@ -326,11 +326,23 @@ void test_replicate_frame()
 	int err  = 0;
 	int i;
 	struct fdma_present_segment_params params;
+	struct fdma_insert_segment_data_params insert_params;
 	struct fdma_amq amq;
 	
 	struct ldpaa_fd *fd = (struct ldpaa_fd *)HWC_FD_ADDRESS;
 	struct ldpaa_fd replic_fd __attribute__((aligned(sizeof(struct ldpaa_fd))));
 	uint8_t frame_handle2;
+	uint8_t data_arr[COPY_SIZE] = {
+				0x64,0x51,0xac,0x9f,0x69,0xd4,0xd3,0xf7,
+				0x6e,0x20,0x0e,0x97,0xb7,0xe9,0xe4,0x56};
+	
+	/*err = fdma_delete_default_segment_data(0, PRC_GET_SEGMENT_LENGTH(), 0);
+	if ((err!= 0) && (err != 8))
+		fsl_os_print("Simple BU ERROR: fdma_delete_default_segment_data FAILED, err = 0x%x!!\n", err);
+	else
+		fsl_os_print("Simple BU: fdma_delete_default_segment_data PASSED!!\n");*/
+	
+	//fsl_os_print("Simple BU : segment length after delete: 0x%x!!\n", PRC_GET_SEGMENT_LENGTH());
 	
 	err = fdma_replicate_frame_fqid(PRC_GET_FRAME_HANDLE(), *(uint8_t *)HWC_SPID_ADDRESS, 
 			0, &replic_fd, FDMA_CFA_COPY_BIT, &frame_handle2);
@@ -338,12 +350,12 @@ void test_replicate_frame()
 		fsl_os_print("Simple BU ERROR: fdma_replicate_frame_fqid FAILED!!\n");
 	else
 		fsl_os_print("Simple BU: fdma_replicate_frame_fqid PASSED!!\n");
-	
+#if 0	
 	err = fdma_store_frame_data(frame_handle2, *(uint8_t *)HWC_SPID_ADDRESS, &amq);
 	if (err)
 		fsl_os_print("Simple BU ERROR: fdma_store_frame_data FAILED!!\n");
 	else
-		fsl_os_print("Simple BU: fdma_store_frame_data PASSED!!\n");
+		fsl_os_print("Simple BU: fdma_store_frame_data PASSED!! frame size is: 0x%x\n", replic_fd.length);
 	
 	for (i=0; i<8 ; i++)
 		fsl_os_print("Replicated FD content arg %d is %x\n", i, *((uint32_t *)(((uint8_t *)&replic_fd) + i*4)));
@@ -353,6 +365,46 @@ void test_replicate_frame()
 		fsl_os_print("Simple BU ERROR: fdma_present_frame_without_segments FAILED!!\n");
 	else
 		fsl_os_print("Simple BU: fdma_present_frame_without_segments PASSED!!\n");
+#endif	
+	params.flags = 0;
+	params.offset = 0;
+	params.present_size = 256;
+	params.ws_dst = (void *)0x280;
+	params.frame_handle = frame_handle2;
+	err = fdma_present_frame_segment(&params);
+	if (err && (err != 0x8))
+		fsl_os_print("Simple BU ERROR: fdma_present_frame_segment FAILED!!\n");
+	else
+		fsl_os_print("Simple BU: fdma_present_frame_segment PASSED!!\n");
+	
+	insert_params.frame_handle = frame_handle2;
+	insert_params.from_ws_src = data_arr;
+	insert_params.insert_size = COPY_SIZE;
+	insert_params.seg_handle = params.seg_handle;
+	insert_params.to_offset = 0;
+	
+	err = fdma_insert_segment_data(&insert_params);
+	if (err)
+		fsl_os_print("Simple BU ERROR: fdma_insert_segment_data FAILED!!\n");
+	else
+		fsl_os_print("Simple BU: fdma_insert_segment_data PASSED!!\n");
+	
+	err = fdma_store_frame_data(frame_handle2, *(uint8_t *)HWC_SPID_ADDRESS, &amq);
+	if (err)
+		fsl_os_print("Simple BU ERROR: fdma_store_frame_data FAILED!!\n");
+	else
+		fsl_os_print("Simple BU: fdma_store_frame_data PASSED!! frame size is: 0x%x\n", LDPAA_FD_GET_LENGTH(&replic_fd));
+	
+	for (i=0; i<8 ; i++)
+		fsl_os_print("Replicated FD content arg %d is %x\n", i, *((uint32_t *)(((uint8_t *)&replic_fd) + i*4)));
+	
+	err = fdma_present_frame_without_segments(&replic_fd, 0, 0, &frame_handle2);
+	if (err)
+		fsl_os_print("Simple BU ERROR: fdma_present_frame_without_segments FAILED!!\n");
+	else
+		fsl_os_print("Simple BU: fdma_present_frame_without_segments PASSED!!\n");
+	
+	fsl_os_print("Replicated frame size is: 0x%x\n", LDPAA_FD_GET_LENGTH(&replic_fd));
 	
 	params.flags = 0;
 	params.offset = 0;
@@ -365,10 +417,10 @@ void test_replicate_frame()
 	else
 		fsl_os_print("Simple BU: fdma_present_frame_segment PASSED!!\n");
 	
+	
 	err = 0;
-	for (i=0; i<(FRAME_SIZE+4); i++)
-			if (*(uint8_t *)((PRC_GET_SEGMENT_ADDRESS()+i)) != 
-			    *(uint8_t *)(((uint8_t *)params.ws_dst)+i))
+	for (i=0; i<params.seg_length; i++)
+			if (*((uint8_t *)(params.ws_dst)+i) != data_arr[i])
 				err = -EINVAL;
 	if (err)
 		fsl_os_print("Simple BU ERROR: frame check after replicate FAILED!!\n");
