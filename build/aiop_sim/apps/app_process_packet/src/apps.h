@@ -101,6 +101,13 @@
 @Group		app_dpni	DPNI
 
 @Description	Use the following macros to define the DPNI driver.
+		Two AIOP buffer pools are reserved for frame data buffers of all
+		AIOP DPNIs; One for frame data residing in DP-DDR and one for
+		frame data residing in PEB. The buffer amount, size and 
+		alignment defined below applies to both pools and to all AIOP
+		DPNIs. Each DPNI uses two Storage Profile IDs (one for DP-DDR
+		and one for PEB) and therefore APP_DPNI_SPID_COUNT must
+		accommodate at least two SPIDs per AIOP DPNI.
 @{
 *//***************************************************************************/
 
