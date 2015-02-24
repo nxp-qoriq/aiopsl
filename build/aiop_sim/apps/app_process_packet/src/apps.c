@@ -45,7 +45,7 @@ void build_apps_array(struct sys_module_desc *apps)
 {
 	struct sys_module_desc apps_tmp[] = APPS;
 	
-	ASSERT_COND(ARRAY_SIZE(apps_tmp) <= APP_MAX_NUM);
+	ASSERT_COND(ARRAY_SIZE(apps_tmp) <= APP_INIT_APP_MAX_NUM);
 	memcpy(apps, apps_tmp, sizeof(apps_tmp));
 }
 

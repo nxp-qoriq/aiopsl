@@ -1478,7 +1478,7 @@ __COLD_CODE int slab_module_init(void)
 	slab_m->fdma_flags     = ic.bdi_flags;
 	slab_m->fdma_dma_flags = ic.dma_flags;
 
-	pr_debug("SLAB ICID = 0x%x flags = 0x%x\n", slab_m->icid, \
+	pr_debug("SLAB ICID = 0x%x bdi flags = 0x%x\n", slab_m->icid, \
 	         slab_m->fdma_flags);
 	pr_debug("SLAB ICID = 0x%x dma flags = 0x%x\n", slab_m->icid, \
 	         slab_m->fdma_dma_flags);

@@ -700,18 +700,8 @@ __COLD_CODE int platform_enable_console(fsl_handle_t h_platform)
 	                               SOC_PERIPH_OFF_DUART4
 	};
 	SANITY_CHECK_RETURN_ERROR(pltfrm, ENODEV);
-#ifdef UART_OVERRIDE
-	/*
-	 * 0 - Print only to buffer
-	 * 1 - duart1_0
-	 * 2 - duart1_1
-	 * 3 - duart2_0
-	 * 4 - duart2_1
-	 * */
-	pltfrm->param.console_id = MANUAL_UART_ID;
-#endif
-	if(pltfrm->param.console_type == PLTFRM_CONSOLE_NONE || 
-		pltfrm->param.console_id == 0)/*if console id is 0, print to buffer*/
+
+	if(pltfrm->param.console_type == PLTFRM_CONSOLE_NONE)/*if console id is 0, print to buffer*/
 		return -ENAVAIL;
 
 
@@ -723,7 +713,8 @@ __COLD_CODE int platform_enable_console(fsl_handle_t h_platform)
 	/* Fill DUART configuration parameters */
 	duart_uart_param.irq                = NO_IRQ;
 	duart_uart_param.base_address       = pltfrm->ccsr_base + uart_port_offset[ pltfrm->param.console_id];
-	duart_uart_param.system_clock_mhz   = (platform_get_system_bus_clk(pltfrm) / 1000);
+	/* Each UART is clocked by the platform clock/2 */
+	duart_uart_param.system_clock_mhz   = (platform_get_system_bus_clk(pltfrm) / 1000) / 2;
 	duart_uart_param.baud_rate          = 115200;
 	duart_uart_param.parity             = E_DUART_PARITY_NONE;
 	duart_uart_param.data_bits          = E_DUART_DATA_BITS_8;

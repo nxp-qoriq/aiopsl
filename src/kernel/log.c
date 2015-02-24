@@ -22,7 +22,7 @@ uint8_t  g_log_buffer_lock;
 
 extern t_system sys;
 extern struct aiop_init_info g_init_data;
-
+extern struct icontext icontext_aiop;
 /*******************************************************************
  	 	 	 	 	 Static Functions
  *******************************************************************/
@@ -39,6 +39,7 @@ int log_init()
 	
 	ASSERT_COND_LIGHT(g_log_buf_size > 1*MEGABYTE);
 	icontext_aiop_get(&ic);
+	ASSERT_COND_LIGHT(ic.dma_flags);
 
 	g_log_buf_count += sizeof(str) - 1;
 	icontext_dma_write(&ic, sizeof(str), str, g_log_buf_phys_address);
@@ -49,9 +50,22 @@ void log_print_to_buffer(char *str, uint16_t str_length)
 {
 	uint16_t second_write_len;
 	uint32_t local_counter;
-	struct icontext ic;
-	icontext_aiop_get(&ic);
-	
+
+	/*Save Accelerator Hardware Context*/
+	/** Address for passing parameters to accelerators */
+	uint32_t hwc1 = *((uint32_t *) HWC_ACC_IN_ADDRESS);
+	/** Address for passing parameters to accelerators */
+	uint32_t hwc2 = *((uint32_t *) HWC_ACC_IN_ADDRESS2);
+	/** Address for passing parameters to accelerators */
+	uint32_t hwc3 = *((uint32_t *) HWC_ACC_IN_ADDRESS3);
+	/** Address for passing parameters to accelerators */
+	uint32_t hwc4 = *((uint32_t *) HWC_ACC_IN_ADDRESS4);
+	/** Address for reading results from accelerators (1st register) */
+	uint32_t hwc5 = *((uint32_t *) HWC_ACC_OUT_ADDRESS);
+	/** Address for reading results from accelerators (2nd register) */
+	uint32_t hwc6 = *((uint32_t *) HWC_ACC_OUT_ADDRESS2);
+
+
 	lock_spinlock(&(g_log_buffer_lock));
 
 	/*
@@ -91,7 +105,7 @@ void log_print_to_buffer(char *str, uint16_t str_length)
 		g_log_buf_count = local_counter + str_length;
 		/*unlock spinlock*/
 		unlock_spinlock(&(g_log_buffer_lock));
-		icontext_dma_write(&ic, str_length, str, g_log_buf_phys_address + local_counter);
+		icontext_dma_write(&icontext_aiop, str_length, str, g_log_buf_phys_address + local_counter);
 	}
 	else /*cyclic write needed*/
 	{
@@ -100,29 +114,23 @@ void log_print_to_buffer(char *str, uint16_t str_length)
 		str_length -= second_write_len; /*str_length is now first_write length*/
 		g_log_buf_count = second_write_len; /*The counter will point to the end of the string from the beginning of buffer*/
 		unlock_spinlock(&(g_log_buffer_lock));
-		icontext_dma_write(&ic, str_length, str, g_log_buf_phys_address + local_counter);
+		icontext_dma_write(&icontext_aiop, str_length, str, g_log_buf_phys_address + local_counter);
 		str += str_length;
-		icontext_dma_write(&ic, second_write_len, str, g_log_buf_phys_address );		
+		icontext_dma_write(&icontext_aiop, second_write_len, str, g_log_buf_phys_address );		
 	}
-	/*lock spinlock*/
 	
+	/*Restore Accelerator Hardware Context*/
+	/** Address for passing parameters to accelerators */
+	*((uint32_t *) HWC_ACC_IN_ADDRESS) = hwc1;
+	/** Address for passing parameters to accelerators */
+	*((uint32_t *) HWC_ACC_IN_ADDRESS2) = hwc2;
+	/** Address for passing parameters to accelerators */
+	*((uint32_t *) HWC_ACC_IN_ADDRESS3) = hwc3;
+	/** Address for passing parameters to accelerators */
+	*((uint32_t *) HWC_ACC_IN_ADDRESS4) = hwc4;
+	/** Address for reading results from accelerators (1st register) */
+	*((uint32_t *) HWC_ACC_OUT_ADDRESS) = hwc5;
+	/** Address for reading results from accelerators (2nd register) */
+	*((uint32_t *) HWC_ACC_OUT_ADDRESS2) = hwc6;
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 

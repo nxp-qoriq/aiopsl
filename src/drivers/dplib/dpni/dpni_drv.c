@@ -458,7 +458,7 @@ __COLD_CODE int dpni_drv_init(void)
 	}
 	/*Window for storage profile ID's to use with DDR target memory*/
 	spid_ddr_id = g_init_data.sl_info.base_spid;
-	spid_ddr_id_last = spid_ddr_id + SOC_MAX_NUM_OF_DPNI;
+	spid_ddr_id_last = spid_ddr_id + g_init_data.app_info.spid_count -1;
 	return error;
 }
 
