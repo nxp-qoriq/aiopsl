@@ -62,6 +62,8 @@ void test_fdma_modify_default_segment_data();
 void test_ste();
 void test_ste_functions();
 void bu_tman_callback_g(uint64_t opaque1, uint16_t opaque2);
+void test_keygen();
+void test_replicate_frame();
 
 extern struct  ipr_global_parameters ipr_global_parameters1;
 extern __PROFILE_SRAM struct storage_profile storage_profile[SP_NUM_OF_STORAGE_PROFILES];
@@ -90,8 +92,8 @@ uint32_t global_timer_handle1_g;
 #define SP_BDI_MASK     0x00080000
 #define SP_BP_PBS_MASK  0x3FFF
 
-//#define SRAM_START _ssram_addr
-//#define SRAM_DATA_ADDR _ssram_addr
+#define SRAM_START _ssram_addr
+#define SRAM_DATA_ADDR _ssram_addr
 //#define STE_BASE_ADDRESS	0x02080000
 #define CDMA_BASE_ADDRESS	0x0208d000
 
@@ -113,12 +115,14 @@ int simple_bu_gal_test(void)
 	//default_task_params.parser_starting_hxs = 0;
 
 	
-	//test_fdma();
+	test_fdma();
+	
+	//test_keygen();
 	
 	//test_fdma_copy_data();
 	
 	
-	test_ste();
+	//test_ste();
 	
 	
 	fsl_os_print("Simple bring-up test completed successfully\n");
@@ -132,8 +136,10 @@ int test_fdma()
 	int i;
 	
 	struct ldpaa_fd *fd = (struct ldpaa_fd *)HWC_FD_ADDRESS;
-	uint8_t frame_data[FRAME_SIZE] = {0x00,0x00,0x01,0x00,0x00,0x01,0x00,\
-			0x10,0x94,0x00,0x00,0x02,0x08,0x00,0x45,0x00,\
+	
+	uint8_t frame_data[FRAME_SIZE] = {
+			0x00, 0x01,0x02,0x03,0x04,0x05,0x06,0x07,\
+			0x08, 0x09,0x0a,0x0b,0x0c,0x0d,0x0e,0x0f,\
 			0x00,0x6e,0x00,0x00,0x00,0x00,0xff,0x11,0x3a,\
 			0x26,0xc0,0x55,0x01,0x02,0xc0,0x00,0x00,0x01,\
 			0x04,0x00,0x04,0x00,0x00,0x5a,0xff,0xff,0x00,\
@@ -146,8 +152,8 @@ int test_fdma()
 			0x00,0x00,0x00,0x00,0x00,0x00,0x00,0xf5,0xd0,\
 			0x64,0x51,0xac,0x9f,0x69,0xd4,0xd3,0xf7,0x39,\
 			0x6e,0x20,0x0e,0x97,0xb7,0xe9,0xe4,0x56,0x3a};
-	uint8_t frame_data_read[FRAME_SIZE+4] = {0x00,0x00,0x01,0x00,0x00,0x01,0x00,\
-			0x10,0x94,0x00,0x00,0x02,0x81,0x00,0xaa,0xbb,0x08,0x00,0x45,0x00,\
+	uint8_t frame_data_read[FRAME_SIZE+4] = {0x00, 0x01,0x02,0x03,0x04,0x05,0x06,0x07,\
+			0x08, 0x09,0x0a,0x0b, 0x81,0x00,0xaa,0xbb,0x0c,0x0d,0x0e,0x0f,\
 			0x00,0x6e,0x00,0x00,0x00,0x00,0xff,0x11,0x3a,\
 			0x26,0xc0,0x55,0x01,0x02,0xc0,0x00,0x00,0x01,\
 			0x04,0x00,0x04,0x00,0x00,0x5a,0xff,0xff,0x00,\
@@ -308,14 +314,72 @@ int test_fdma()
 	}
 	
 	
+	test_replicate_frame();	
+	
 	fdma_discard_default_frame(FDMA_DIS_NO_FLAGS);
 	
 	return 0;
 }
 
+void test_replicate_frame()
+{
+	int err  = 0;
+	int i;
+	struct fdma_present_segment_params params;
+	struct fdma_amq amq;
+	
+	struct ldpaa_fd *fd = (struct ldpaa_fd *)HWC_FD_ADDRESS;
+	struct ldpaa_fd replic_fd __attribute__((aligned(sizeof(struct ldpaa_fd))));
+	uint8_t frame_handle2;
+	
+	err = fdma_replicate_frame_fqid(PRC_GET_FRAME_HANDLE(), *(uint8_t *)HWC_SPID_ADDRESS, 
+			0, &replic_fd, FDMA_CFA_COPY_BIT, &frame_handle2);
+	if (err)
+		fsl_os_print("Simple BU ERROR: fdma_replicate_frame_fqid FAILED!!\n");
+	else
+		fsl_os_print("Simple BU: fdma_replicate_frame_fqid PASSED!!\n");
+	
+	err = fdma_store_frame_data(frame_handle2, *(uint8_t *)HWC_SPID_ADDRESS, &amq);
+	if (err)
+		fsl_os_print("Simple BU ERROR: fdma_store_frame_data FAILED!!\n");
+	else
+		fsl_os_print("Simple BU: fdma_store_frame_data PASSED!!\n");
+	
+	for (i=0; i<8 ; i++)
+		fsl_os_print("Replicated FD content arg %d is %x\n", i, *((uint32_t *)(((uint8_t *)&replic_fd) + i*4)));
+	
+	err = fdma_present_frame_without_segments(&replic_fd, 0, 0, &frame_handle2);
+	if (err)
+		fsl_os_print("Simple BU ERROR: fdma_present_frame_without_segments FAILED!!\n");
+	else
+		fsl_os_print("Simple BU: fdma_present_frame_without_segments PASSED!!\n");
+	
+	params.flags = 0;
+	params.offset = 0;
+	params.present_size = 256;
+	params.ws_dst = (void *)0x280;
+	params.frame_handle = frame_handle2;
+	err = fdma_present_frame_segment(&params);
+	if (err && (err != 0x8))
+		fsl_os_print("Simple BU ERROR: fdma_present_frame_segment FAILED!!\n");
+	else
+		fsl_os_print("Simple BU: fdma_present_frame_segment PASSED!!\n");
+	
+	err = 0;
+	for (i=0; i<(FRAME_SIZE+4); i++)
+			if (*(uint8_t *)((PRC_GET_SEGMENT_ADDRESS()+i)) != 
+			    *(uint8_t *)(((uint8_t *)params.ws_dst)+i))
+				err = -EINVAL;
+	if (err)
+		fsl_os_print("Simple BU ERROR: frame check after replicate FAILED!!\n");
+	else
+		fsl_os_print("Simple BU: frame check after replicate PASSED!!\n");
+
+	fdma_discard_frame(frame_handle2, FDMA_DIS_NO_FLAGS);
+}
 /*  Test fdma_copy_data  */
 void test_fdma_copy_data()
-{/*
+{
 	int err, i, j;
 	void *src_addr;
 	void *dst_addr;
@@ -336,28 +400,28 @@ void test_fdma_copy_data()
 		switch (j){
 		
 		case (0):	
-			 ws->ws 
+			 /*ws->ws */
 			fsl_os_print("FDMA Copy WS->WS \n");
 			src_addr = (void *)(ws_data);
 			dst_addr = (void *)0x180;
 			flags = 0;
 			break;
 		case (1):	
-			 ws->sram 
+			 /*ws->sram*/ 
 			fsl_os_print("FDMA Copy WS->SRAM \n");
 			src_addr = (void *)ws_data;
 			dst_addr = (void *)sram;
 			flags = FDMA_COPY_DM_BIT;
 			break;
 		case (2):	
-			 sram->ws 
+			 /*sram->ws*/ 
 			fsl_os_print("FDMA Copy SRAM->WS \n");
 			src_addr = (void *)sram;
 			dst_addr = (void *)0x180;
 			flags = FDMA_COPY_SM_BIT;
 			break;
 		case (3):	
-			 sram->sram 
+			 /*sram->sram*/ 
 			fsl_os_print("FDMA Copy SRAM->SRAM \n");
 			src_addr = (void *)sram;
 			dst_addr = (void *)(sram+COPY_SIZE);
@@ -409,7 +473,7 @@ void test_fdma_copy_data()
 			}
 		}
 	}
-*/}
+}
 
 void test_fdma_discard_fd()
 {
@@ -684,4 +748,85 @@ void bu_tman_callback_g(uint64_t opaque1, uint16_t opaque2)
 	
 	fsl_os_print("bu_tman_callback_g() completed\n");
 }
+
+void test_keygen()
+{
+	struct kcr_builder kb __attribute__((aligned(16)));
+	uint8_t keyid;
+	uint8_t key[128] __attribute__((aligned(16)));
+	uint8_t key_size;
+	int err, i;
+	
+	fdma_close_default_segment();
+	err = fdma_present_default_frame_segment(FDMA_PRES_NO_FLAGS, (void *)0x190, 0, 256);
+	if (err)
+		fsl_os_print("Simple BU ERROR: fdma_present_default_frame_segment FAILED!!\n");
+	else
+		fsl_os_print("Simple BU : fdma_present_default_frame_segment Passed!!\n");
+	
+	*((uint32_t *)0x180) = 0xBAADBAAD;
+	*((uint32_t *)0x184) = 0x600D600D;
+	
+	for (i=0; i<128; i++) 
+		key[i] = 0;
+	
+	fsl_os_print("Simple BU Keygen: key array address = 0x%x\n", key);
+	
+	for (i=0; i<128; i+=4) 
+		fsl_os_print("Key byte %d: 0x%x \n", i, *(uint32_t *)(&(key[i])));
+	
+	fsl_os_print("Simple BU Keygen: segment address = 0x%x\n", PRC_GET_SEGMENT_ADDRESS());
+	fsl_os_print("Simple BU Keygen: 0x180 content = 0x%x\n", *((uint32_t *)0x180));
+	
+	keygen_kcr_builder_init(&kb);
+	
+	err = keygen_kcr_builder_add_generic_extract_fec(
+			0,
+			4, 
+			KEYGEN_KCR_GEC_FRAME,
+			NULL, 
+			&kb);
+	if (err)
+		fsl_os_print("Simple BU ERROR: keygen_kcr_builder_add_generic_extract_fec FAILED!!\n");
+	else
+		fsl_os_print("Simple BU : keygen_kcr_builder_add_generic_extract_fec Passed!!\n");
+	
+	err = keygen_kcr_create(KEYGEN_ACCEL_ID_CTLU,
+				(uint8_t *)(kb.kcr),
+				&keyid);
+	
+	if (err)
+		fsl_os_print("Simple BU ERROR: keygen_kcr_create FAILED!!\n");
+	else{
+		fsl_os_print("Simple BU : keygen_kcr_create Passed!!\n");
+		fsl_os_print("Simple BU : keygen_kcr_create - keyid = %d !!\n", keyid);
+	}
+	
+
+	
+	err = keygen_gen_key(KEYGEN_ACCEL_ID_CTLU,
+			keyid,
+			0,			     
+			key,
+			&key_size);
+	if (err)
+		fsl_os_print("Simple BU ERROR: keygen_gen_key FAILED!!\n");
+	else
+		fsl_os_print("Simple BU : keygen_gen_key Passed!!\n");
+	
+	for (i=0; i<PRC_GET_SEGMENT_LENGTH(); i+=4) {
+		fsl_os_print("Segment data byte %d: 0x%x \n", i, 
+				*(uint32_t *)(PRC_GET_SEGMENT_ADDRESS() + i));
+	}
+	
+	for (i=0; i<128; i+=4) 
+		fsl_os_print("Key byte %d: 0x%x \n", i, *(uint32_t *)(&(key[i])));
+	
+	fsl_os_print("Key size : %d \n",key_size);		
+}
+
+
+
+
+
 
