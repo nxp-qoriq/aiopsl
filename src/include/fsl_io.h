@@ -324,9 +324,6 @@ static inline void iowrite32be_wt(uint32_t val, volatile uint32_t *addr)
 	core_memory_barrier();
 }
 
-/*
- * TODO: remove "__attribute__((never_inline))" when CQ ENGR00319764 solved
- */
 /**************************************************************************//**
  @Function      iowrite64
 
@@ -337,7 +334,7 @@ static inline void iowrite32be_wt(uint32_t val, volatile uint32_t *addr)
  @Param[in]     addr - address pointer write to.
 
  *//***************************************************************************/
-static inline void iowrite64(uint64_t val, volatile uint64_t *addr) __attribute__((never_inline))
+static inline void iowrite64(uint64_t val, volatile uint64_t *addr)
 {
 	STORE_CPU_TO_LE64(val, addr);
 	core_memory_barrier();
@@ -354,7 +351,7 @@ static inline void iowrite64(uint64_t val, volatile uint64_t *addr) __attribute_
  @Param[in]     addr - address pointer write to.
 
  *//***************************************************************************/
-static inline void iowrite64_wt(uint64_t val, volatile uint64_t *addr) __attribute__((never_inline))
+static inline void iowrite64_wt(uint64_t val, volatile uint64_t *addr)
 {
 	STORE_CPU_TO_LE64_WT(val, addr);
 	core_memory_barrier();
