@@ -91,7 +91,7 @@ static int vsnprintf_lite(char *buf, size_t size, const char *fmt, va_list args)
 	const char *s;
 	uint8_t flags = 0;
 	uint8_t fix_size;
-	size--;
+	size--;/*save one character for null character*/
 	for(str = buf; *fmt && size; ++fmt) {
 		if(*fmt != '%') {
 			*str++ = *fmt;

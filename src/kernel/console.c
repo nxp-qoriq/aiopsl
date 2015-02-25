@@ -163,6 +163,7 @@ void sys_print(char *str)
 	int_flags = spin_lock_irqsave(&(sys.console_lock));
 #endif
 	/* Print to the registered console, if exists */
+#pragma fn_ptr_candidates(console_print_cb)
 	if (sys.console)
 		sys.f_console_print(sys.console, (uint8_t *)str, count);
 #ifndef STACK_CHECK /*Printing to pre console buffer should not be checked - happens only in boot*/
