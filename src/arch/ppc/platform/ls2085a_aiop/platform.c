@@ -641,44 +641,6 @@ __COLD_CODE int platform_free(fsl_handle_t h_platform)
 }
 
 /*****************************************************************************/
-__COLD_CODE uintptr_t platform_get_memory_mapped_module_base(fsl_handle_t        h_platform,
-                                                             enum fsl_os_module     module,
-                                                             uint32_t               id,
-                                                             e_mapped_mem_type mapped_mem_type)
-{
-	t_platform  *pltfrm = (t_platform *)h_platform;
-	int         i;
-
-	t_sys_to_part_offset_map part_offset_map[] =
-	{
-	 /* module                     id   mappedMemType                  offset
-           ------                     --   -------------                  ------                      */
-	 { FSL_OS_MOD_CMGW,            0,  E_MAPPED_MEM_TYPE_GEN_REGS,     SOC_PERIPH_OFF_AIOP_TILE+SOC_PERIPH_OFF_AIOP_CMGW}
-	};
-
-	SANITY_CHECK_RETURN_VALUE(pltfrm, ENODEV, 0);
-
-	if (module == FSL_OS_MOD_MC_PORTAL)
-		return (uintptr_t)(pltfrm->mc_portals_base + SOC_PERIPH_OFF_PORTALS_MC(id));
-	if (module == FSL_OS_MOD_CMGW) {
-		for (i = 0; i < ARRAY_SIZE(part_offset_map); i++)
-			if ((part_offset_map[i].module        == module)  &&
-				(part_offset_map[i].id            == id)      &&
-				(part_offset_map[i].mapped_mem_type == mapped_mem_type))
-				return (uintptr_t)(pltfrm->aiop_base + part_offset_map[i].offset);
-	} else {
-		for (i = 0; i < ARRAY_SIZE(part_offset_map); i++)
-			if ((part_offset_map[i].module        == module)  &&
-				(part_offset_map[i].id            == id)      &&
-				(part_offset_map[i].mapped_mem_type == mapped_mem_type))
-				return (uintptr_t)(pltfrm->ccsr_base + part_offset_map[i].offset);
-	}
-
-	REPORT_ERROR(MAJOR, E_NOT_FOUND, ("module base"));
-	return 0;
-}
-
-/*****************************************************************************/
 uint32_t platform_get_system_bus_clk(fsl_handle_t h_platform)
 {
 	t_platform  *pltfrm = (t_platform *)h_platform;

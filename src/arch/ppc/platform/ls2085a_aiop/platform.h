@@ -265,22 +265,6 @@ int platform_free(fsl_handle_t h_platform);
 int platform_get_chip_rev_info(fsl_handle_t h_platform, t_chip_rev_info *p_chip_rev_info);
 
 /**************************************************************************//**
- @Function      platform_get_memory_mapped_module_base
-
- @Description   Get the base address of a memory-mapped object.
-
- @Param[in]     h_platform  - Platform object handle.
- @Param[in]     module      - Object type (usually a sub-module type)
- @Param[in]     id          - Object identifier
-
- @Return        Base address of a memory-mapped object.
-*//***************************************************************************/
-uintptr_t platform_get_memory_mapped_module_base(fsl_handle_t        h_platform,
-                                             enum fsl_os_module     module,
-                                             uint32_t        id,
-                                             e_mapped_mem_type mapped_mem_type);
-
-/**************************************************************************//**
  @Function      platform_get_core_clk
 
  @Description   Gets the core clock frequency of the device.
@@ -517,29 +501,6 @@ int platform_clear_serdes_loopback(fsl_handle_t    h_platform,
  @{
 *//***************************************************************************/
 #include "inc/fsl_sys.h"
-/**************************************************************************//**
- @Function      sys_get_memory_mapped_module_base
-
- @Description   Get the base address of a memory-mapped object.
-
- @Param[in]     module          - Object type (usually a sub-module type)
- @Param[in]     id              - Object identifier
- @Param[in]     mapped_mem_type   - Type of memory-mapped object, used to
-                                  distinguish between different base types
-                                  of the same object, e.g. PCI and PCI ATMU
-
- @Return        Base address of a memory-mapped object.
-*//***************************************************************************/
-static __inline__ uintptr_t sys_get_memory_mapped_module_base(enum fsl_os_module     module,
-                                                              uint32_t               id,
-                                                              e_mapped_mem_type mapped_mem_type)
-{
-    return platform_get_memory_mapped_module_base(sys_get_unique_handle(FSL_OS_MOD_SOC),
-                                              module,
-                                              id,
-                                              mapped_mem_type);
-}
-
 /**************************************************************************//**
  @Function      sys_get_interrupt_id
 
