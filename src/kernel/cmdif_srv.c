@@ -628,7 +628,7 @@ __COLD_CODE static void open_cmd_print()
 #ifdef DEBUG
 	char  m_name[M_NAME_CHARS + 1];
 	cmd_m_name_get(&m_name[0]);
-	pr_debug("Module name is %s\n", m_name);
+	no_stack_pr_debug("Module name is %s\n", m_name);
 #endif
 }
 
@@ -686,6 +686,7 @@ __COLD_CODE int session_open(uint16_t *new_auth)
 	}
 }
 
+
 __HOT_CODE void cmdif_srv_isr(void) __attribute__ ((noreturn))
 			{
 	uint16_t gpp_icid;
@@ -704,19 +705,20 @@ __HOT_CODE void cmdif_srv_isr(void) __attribute__ ((noreturn))
 
 	cmd_id = cmd_id_get();
 	auth_id = cmd_auth_id_get();
+	
+	no_stack_pr_debug("cmd_id = 0x%x\n", cmd_id);
+	no_stack_pr_debug("auth_id = 0x%x\n", auth_id);
+	no_stack_pr_debug("gpp_icid = 0x%x\n", gpp_icid);
+	no_stack_pr_debug("gpp_dma flags = 0x%x\n", gpp_dma);
 
-	pr_debug("cmd_id = 0x%x\n", cmd_id);
-	pr_debug("auth_id = 0x%x\n", auth_id);
-	pr_debug("gpp_icid = 0x%x\n", gpp_icid);
-	pr_debug("gpp_dma flags = 0x%x\n", gpp_dma);
-
+	
 	if (cmd_id == CMD_ID_NOTIFY_OPEN) {
 		/* Support for AIOP -> GPP */
 		if (is_valid_auth_id(auth_id)) {
-			pr_debug("Got notify open for AIOP client \n");
+			no_stack_pr_debug("Got notify open for AIOP client \n");
 			err = notify_open();
 			if (err) {
-				pr_err("notify_open failed\n");
+				no_stack_pr_err("notify_open failed\n");
 			}
 			CMDIF_STORE_DATA;
 			sync_cmd_done(NULL, err, auth_id, TRUE, gpp_icid, gpp_dma);
@@ -726,10 +728,10 @@ __HOT_CODE void cmdif_srv_isr(void) __attribute__ ((noreturn))
 		}
 	} else if (cmd_id == CMD_ID_NOTIFY_CLOSE) {
 		if (is_valid_auth_id(auth_id)) {
-			pr_debug("Got notify close for AIOP client \n");
+			no_stack_pr_debug("Got notify close for AIOP client \n");
 			err = notify_close();
 			if (err) {
-				pr_err("notify_close failed\n");
+				no_stack_pr_err("notify_close failed\n");
 			}
 			CMDIF_STORE_DATA;
 			sync_cmd_done(NULL, err, auth_id, TRUE, gpp_icid, gpp_dma);
@@ -741,7 +743,7 @@ __HOT_CODE void cmdif_srv_isr(void) __attribute__ ((noreturn))
 
 		/* OPEN will arrive with hash value 0xffff */
 		if (auth_id != OPEN_AUTH_ID) {
-			pr_err("No permission to open device 0x%x\n", auth_id);
+			no_stack_pr_err("No permission to open device 0x%x\n", auth_id);
 			CMDIF_STORE_DATA;
 			sync_cmd_done(sync_done_get(), -EPERM, auth_id,
 			              TRUE, gpp_icid, gpp_dma);
@@ -751,12 +753,12 @@ __HOT_CODE void cmdif_srv_isr(void) __attribute__ ((noreturn))
 
 		err = session_open(&auth_id);
 		if (err) {
-			pr_err("Open session FAILED err = %d\n", err);
+			no_stack_pr_err("Open session FAILED err = %d\n", err);
 			CMDIF_STORE_DATA;
 			sync_cmd_done(sync_done_get(), err, auth_id,
 			              TRUE, gpp_icid, gpp_dma);
 		} else {
-			pr_debug("Open session PASSED auth_id = 0x%x\n",
+			no_stack_pr_debug("Open session PASSED auth_id = 0x%x\n",
 			         (uint16_t)err);
 			CMDIF_STORE_DATA;
 			sync_cmd_done(sync_done_get(), 0, auth_id,
@@ -777,7 +779,7 @@ __HOT_CODE void cmdif_srv_isr(void) __attribute__ ((noreturn))
 				 * close the device */
 				inst_dealloc(auth_id);
 			}
-			pr_debug("PASSED close command\n");
+			no_stack_pr_debug("PASSED close command\n");
 			fdma_terminate_task();
 		} else {
 			/* don't bother to send response
@@ -794,7 +796,7 @@ __HOT_CODE void cmdif_srv_isr(void) __attribute__ ((noreturn))
 			CTRL_CB(auth_id, cmd_id, cmd_size_get(), \
 			        cmd_data_get());
 			if (SYNC_CMD(cmd_id)) {
-				pr_debug("PASSED Synchronous Command\n");
+				no_stack_pr_debug("PASSED Synchronous Command\n");
 				CMDIF_STORE_DATA;
 				sync_cmd_done(NULL, err, auth_id,
 				              TRUE, gpp_icid, gpp_dma);
@@ -810,11 +812,11 @@ __HOT_CODE void cmdif_srv_isr(void) __attribute__ ((noreturn))
 	}
 
 	if (SEND_RESP(cmd_id)) {
-		pr_debug("PASSED Asynchronous Command\n");
+		no_stack_pr_debug("PASSED Asynchronous Command\n");
 		cmdif_fd_send(err);
 	} else {
 		/* CMDIF_NORESP_CMD store user modified data but don't send */
-		pr_debug("PASSED No Response Command\n");
+		no_stack_pr_debug("PASSED No Response Command\n");
 		CMDIF_STORE_DATA;
 	}
 
