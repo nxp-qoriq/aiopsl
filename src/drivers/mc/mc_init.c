@@ -63,9 +63,8 @@ __COLD_CODE static int aiop_container_init()
 
 	/* TODO : in this call, can 3rd argument be zero? */
 	/* Get virtual address of MC portal */
-	p_vaddr = \
-	UINT_TO_PTR(sys_get_memory_mapped_module_base(FSL_OS_MOD_MC_PORTAL,
-					g_init_data.sl_info.mc_portal_id, E_MAPPED_MEM_TYPE_MC_PORTAL));
+	p_vaddr = UINT_TO_PTR(((uintptr_t)sys_get_handle(FSL_OS_MOD_MC_PORTAL, 0))
+			+ SOC_PERIPH_OFF_PORTALS_MC(g_init_data.sl_info.mc_portal_id));
 
 	pr_debug("MC portal ID[%d] addr = 0x%x\n", g_init_data.sl_info.mc_portal_id, (uint32_t)p_vaddr);
 

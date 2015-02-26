@@ -257,6 +257,7 @@ __COLD_CODE static int global_sys_init(void)
 	struct platform_param platform_param;
 	int err = 0;
 	uintptr_t   aiop_base_addr;
+	struct aiop_tile_regs *tile_regs;
 	ASSERT_COND(sys_is_master_core());
 
 	sys.runtime_flag = 0;
@@ -283,14 +284,16 @@ __COLD_CODE static int global_sys_init(void)
 		FSL_OS_MOD_SOC, 1, 0);
 	if (err != 0) return err;
 
-	aiop_base_addr = sys_get_memory_mapped_module_base(FSL_OS_MOD_CMGW,
-	                                      0,
-	                                      E_MAPPED_MEM_TYPE_GEN_REGS);
-
-	cmgw_init((void *)aiop_base_addr);
-
+	aiop_base_addr = AIOP_PERIPHERALS_OFF + SOC_PERIPH_OFF_AIOP_TILE;
 	err = sys_add_handle( (fsl_handle_t)aiop_base_addr,
 	                                      FSL_OS_MOD_AIOP_TILE, 1, 0);
+	if (err != 0) return err;
+	
+	tile_regs = (struct aiop_tile_regs *)aiop_base_addr;
+	cmgw_init((void *)&tile_regs->cmgw_regs);
+	
+	err = sys_add_handle( (fsl_handle_t)&tile_regs->cmgw_regs,
+	                                      FSL_OS_MOD_CMGW, 1, 0);
 	if (err != 0) return err;
 
 	return 0;
