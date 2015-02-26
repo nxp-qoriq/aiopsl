@@ -329,7 +329,35 @@ int dpni_get_num_of_ni (void)
 /* TODO: replace with macro/inline */
 int dpni_drv_get_primary_mac_addr(uint16_t niid, uint8_t mac_addr[NET_HDR_FLD_ETH_ADDR_SIZE])
 {
-	memcpy(mac_addr, nis[niid].mac_addr, NET_HDR_FLD_ETH_ADDR_SIZE);
+	struct dpni_drv *dpni_drv;
+	/* calculate pointer to the NI structure */
+	dpni_drv = nis + niid;
+	
+	lock_spinlock(&dpni_drv->dpni_lock); /*Lock dpni table entry*/
+	memcpy(mac_addr, dpni_drv->mac_addr, NET_HDR_FLD_ETH_ADDR_SIZE);
+	unlock_spinlock(&dpni_drv->dpni_lock); /*Unlock dpni table entry*/
+
+	return 0;
+}
+
+int dpni_drv_set_primary_mac_addr(uint16_t niid, uint8_t mac_addr[NET_HDR_FLD_ETH_ADDR_SIZE])
+{
+	struct dpni_drv *dpni_drv;
+	struct mc_dprc *dprc = sys_get_unique_handle(FSL_OS_MOD_AIOP_RC);
+	int err;
+	/* calculate pointer to the NI structure */
+	dpni_drv = nis + niid;
+
+	lock_spinlock(&dpni_drv->dpni_lock); /*Lock dpni table entry*/
+	err = dpni_set_primary_mac_addr(&dprc->io,
+	                                dpni_drv->dpni_drv_params_var.dpni,
+	                                mac_addr);
+	if(err){
+		unlock_spinlock(&dpni_drv->dpni_lock); /*Unlock dpni table entry*/
+		return err;
+	}
+	memcpy(dpni_drv->mac_addr, mac_addr, NET_HDR_FLD_ETH_ADDR_SIZE);
+	unlock_spinlock(&dpni_drv->dpni_lock); /*Unlock dpni table entry*/
 	return 0;
 }
 
@@ -446,15 +474,16 @@ __COLD_CODE int dpni_drv_init(void)
 	/* Initialize internal AIOP NI table */
 	for (i = 0; i < SOC_MAX_NUM_OF_DPNI; i++) {
 		struct dpni_drv * dpni_drv = nis + i;
-		dpni_drv->dpni_drv_tx_params_var.aiop_niid    = (uint16_t)i;
-		dpni_drv->dpni_id      = 0;
+		dpni_drv->dpni_drv_tx_params_var.aiop_niid = (uint16_t)i;
+		dpni_drv->dpni_id                          = 0;
 		dpni_drv->dpni_drv_params_var.spid         = 0;
 		dpni_drv->dpni_drv_params_var.spid_ddr     = 0;
 		dpni_drv->dpni_drv_params_var.epid_idx     = 0;
 		dpni_drv->dpni_drv_params_var.prpid        = prpid; /*parser profile id from parser_profile_init()*/
 		dpni_drv->dpni_drv_params_var.starting_hxs = 0; //ETH HXS
-		dpni_drv->dpni_drv_tx_params_var.qdid         = 0;
+		dpni_drv->dpni_drv_tx_params_var.qdid      = 0;
 		dpni_drv->dpni_drv_params_var.flags        = DPNI_DRV_FLG_PARSE | DPNI_DRV_FLG_PARSER_DIS;
+		dpni_drv->dpni_lock                        = 0;
 	}
 	/*Window for storage profile ID's to use with DDR target memory*/
 	spid_ddr_id = g_init_data.sl_info.base_spid;
@@ -682,26 +711,22 @@ int dpni_drv_get_counter(uint16_t ni_id, enum dpni_counter counter, uint64_t *va
 }
 
 int dpni_drv_get_dpni_id(uint16_t ni_id, uint16_t *dpni_id){
-	struct dpni_drv *dpni_drv;
-	dpni_drv = nis + ni_id;
 	if(ni_id >= dpni_get_num_of_ni())
 	{
 		pr_info("NI %d not found in AIOP table.\n",(int)ni_id);
 		return -ENAVAIL;
 	}
 		
-	*dpni_id = dpni_drv->dpni_id;
+	*dpni_id = nis[ni_id].dpni_id;
 	return 0;
 }
 
 int dpni_drv_get_ni_id(uint16_t dpni_id, uint16_t *ni_id){
-	struct dpni_drv *dpni_drv;
 	uint16_t i;
-	dpni_drv = nis;
 	
-	for(i = 0; i < dpni_get_num_of_ni(); i++, dpni_drv ++)
+	for(i = 0; i < dpni_get_num_of_ni(); i++)
 	{
-		if(dpni_drv->dpni_id == dpni_id)
+		if(nis[i].dpni_id == dpni_id)
 		{
 			*ni_id = i;
 			break;

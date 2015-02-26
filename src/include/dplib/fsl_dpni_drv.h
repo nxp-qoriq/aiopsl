@@ -134,6 +134,21 @@ int dpni_get_send_niid(void);
 int dpni_drv_get_primary_mac_addr(uint16_t niid,
 		uint8_t mac_addr[NET_HDR_FLD_ETH_ADDR_SIZE]);
 
+/**************************************************************************//**
+@Function	dpni_drv_set_primary_mac_addr
+
+@Description	Set Primary MAC address of NI.
+
+@Param[in]	niid - The Network Interface ID
+
+@Param[in]	mac_addr - primary MAC address for given NI.
+
+@Return	0 on success; error code, otherwise.
+		For error posix refer to
+		\ref error_g
+*//***************************************************************************/
+int dpni_drv_set_primary_mac_addr(uint16_t niid,
+                uint8_t mac_addr[NET_HDR_FLD_ETH_ADDR_SIZE]);
 
 /**************************************************************************//**
 @Function	dpni_drv_add_mac_address
