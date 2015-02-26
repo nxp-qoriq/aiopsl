@@ -1,3 +1,6 @@
+dpni_drv.c/fsl_dpni_drv.h: Added API for setting primary MAC address:
+        int dpni_drv_set_primary_mac_addr(uint16_t niid, uint8_t mac_addr[NET_HDR_FLD_ETH_ADDR_SIZE])
+
 apps.h: API changes and reorganization of apps.h. 
         Many macros have been depricated but we keep it backward compatible for current release.  
         See aiopsl\build\aiop_sim\apps\app_process_packet\src\apps.h.
