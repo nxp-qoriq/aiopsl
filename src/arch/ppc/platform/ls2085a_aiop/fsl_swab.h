@@ -205,12 +205,10 @@ static uint32_t swap_uint32(uint32_t val)
 
 /** return 8 bytes with endian swap.
  * _val - 64 bit value to be swaped. */
-
 static uint64_t swap_uint64(uint64_t val)
 {
 	return LLLDW_SWAP(0, &val );
 }
-
 
 /*Defines to use intrinsics with store and swap*/
 #ifdef CORE_IS_BIG_ENDIAN
@@ -218,21 +216,40 @@ static uint64_t swap_uint64(uint64_t val)
 #define STORE_CPU_TO_LE16(val, addr)	STH_SWAP(val, 0, addr)
 #define STORE_CPU_TO_LE32(val, addr)	STW_SWAP(val, 0, addr)
 #define STORE_CPU_TO_LE64(val, addr)	LLSTDW_SWAP(val, 0, addr)
-#define STORE_CPU_TO_LE16_WT(val, addr)	({uint16_t sval = swap_uint16(val); STORE_CPU_TO_BE16_WT(sval, addr);})
-#define STORE_CPU_TO_LE32_WT(val, addr)	({uint32_t sval = swap_uint32(val); STORE_CPU_TO_BE32_WT(sval, addr);})
-#define STORE_CPU_TO_LE64_WT(val, addr)	({uint64_t sval = swap_uint64(val); STORE_CPU_TO_BE64_WT(sval, addr);})
+#define STORE_CPU_TO_LE16_WT(val, addr)	STORE_CPU_TO_BE16_WT(swap_uint16(val), addr)
+#define STORE_CPU_TO_LE32_WT(val, addr)	STORE_CPU_TO_BE32_WT(swap_uint32(val), addr)
+#define STORE_CPU_TO_LE64_WT(val, addr)	STORE_CPU_TO_BE64_WT(swap_uint64(val), addr)
 
 #define STORE_CPU_TO_BE16(val, addr)	({ *addr = val; })
 #define STORE_CPU_TO_BE32(val, addr)	({ *addr = val; })
 #define STORE_CPU_TO_BE64(val, addr)	({ *addr = val; })
-#define STORE_CPU_TO_BE16_WT(val, addr)	({register uint16_t rval = val; register volatile uint16_t *raddr = addr; asm{sthwtx rval, 0, raddr} })
-#define STORE_CPU_TO_BE32_WT(val, addr)	({register uint32_t rval = val; register volatile uint32_t *raddr = addr; asm{stwwtx rval, 0, raddr} })
-#define STORE_CPU_TO_BE64_WT(val, addr)	({  register uint64_t rval = val; \
-	                                        register volatile uint32_t *raddr = (uint32_t*)addr; \
-	                                        asm{stwwtx rval@hiword, 0, raddr} \
-	                                        raddr++; \
-	                                        asm{stwwtx rval@loword, 0, raddr} \
-	                                    })
+
+asm static void STORE_16_WT(register uint16_t val, register volatile uint16_t *addr)
+{
+	nofralloc
+	sthwtx val, 0, addr 
+    blr
+}
+
+asm static void STORE_32_WT(register uint32_t val, register volatile uint32_t *addr)
+{
+	nofralloc
+	stwwtx val, 0, addr 
+    blr
+}
+
+asm static void STORE_64_WT(register uint64_t val, register volatile uint64_t *addr)
+{
+	nofralloc
+	stwwtx val@hiword, 0, addr   /* store MSB part of val */
+	addi   addr, addr, 0x4  
+	stwwtx val@loword, 0, addr   /* store LSB part of val to addr + 4*/
+    blr
+}
+
+#define STORE_CPU_TO_BE16_WT(val, addr)	STORE_16_WT(val,addr)
+#define STORE_CPU_TO_BE32_WT(val, addr)	STORE_32_WT(val,addr)
+#define STORE_CPU_TO_BE64_WT(val, addr)	STORE_64_WT(val,addr)
 
 #define LOAD_LE16_TO_CPU(addr)		LH_SWAP(0, addr)
 #define LOAD_LE32_TO_CPU(addr)		LW_SWAP(0, addr)
