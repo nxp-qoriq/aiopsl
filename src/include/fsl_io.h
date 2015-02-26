@@ -341,7 +341,7 @@ static inline void iowrite64(uint64_t val, volatile uint64_t *addr)
 }
 
 /**************************************************************************//**
- @Function      iowrite64
+ @Function      iowrite64_wt
 
  @Description   Function to write the supplied value to address pointer with endianess treatment
  	 	 using little endian.
