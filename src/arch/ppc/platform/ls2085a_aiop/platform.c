@@ -381,6 +381,10 @@ __COLD_CODE static int pltfrm_init_mem_partitions_cb(fsl_handle_t h_platform)
 
 	build_mem_partitions_table(pltfrm);
 
+	err = sys_add_handle( (fsl_handle_t)pltfrm->mc_portals_base, FSL_OS_MOD_MC_PORTAL, 1, 0);
+	if (err != 0) 
+		RETURN_ERROR(MAJOR, err, NO_MSG);
+	
 	for (i = 0; i < pltfrm->num_of_mem_parts; i++) {
 		p_mem_info = &pltfrm->param.mem_info[i];
 		virt_base_addr = p_mem_info->virt_base_addr;
