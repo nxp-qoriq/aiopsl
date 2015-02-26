@@ -151,8 +151,8 @@ __HOT_CODE uint64_t shbp_acquire(struct shbp_aiop *bp)
 
 	cdma_mutex_lock_release(bp->shbp);
 		
-	pr_debug("buf high = 0x%x\n", (uint32_t)((buf & 0xFFFFFFFF00000000) >> 32)); \
-	pr_debug("buf low = 0x%x\n", (uint32_t)(buf & 0xFFFFFFFF)); \
+	sl_pr_debug("buf high = 0x%x\n", (uint32_t)((buf & 0xFFFFFFFF00000000) >> 32)); \
+	sl_pr_debug("buf low = 0x%x\n", (uint32_t)(buf & 0xFFFFFFFF)); \
 
 	return buf;
 }
@@ -230,7 +230,7 @@ __COLD_CODE int shbp_enable(uint16_t swc_id, uint64_t shbp_iova, struct shbp_aio
 	err = icontext_get(swc_id, &bp->ic);
 	if (err) {
 		cdma_mutex_lock_release(shbp_iova);
-		pr_err("No such isolation context 0x%x\n", swc_id);
+		sl_pr_err("No such isolation context 0x%x\n", swc_id);
 		return -EINVAL;
 	}
 	

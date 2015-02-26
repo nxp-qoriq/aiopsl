@@ -37,6 +37,7 @@
 #include "fsl_cmdif_client.h"
 #include "fsl_cmdif_server.h"
 #include "fsl_icontext.h"
+#include "fsl_shbp_aiop.h"
 
 int app_early_init(void);
 int app_init(void);
@@ -70,7 +71,8 @@ void stack_estimation(void)
 	int state = 0;
 	rx_cb_t *cb = 0;
 	dpni_drv_app_arg_t arg = 0;
-
+	struct shbp_aiop shbp;
+	
 	/*sl_prolog must be called first when packet arrives*/
 	sl_prolog();
 
@@ -123,6 +125,13 @@ void stack_estimation(void)
 	dpni_drv_get_connected_aiop_ni_id(ni, &dpni_id, &state);
 	dpni_drv_get_rx_buffer_layout(ni, &layout);
 
+	/* SHBP Shared buffer pool */
+	shbp_enable(0, 0, &shbp);
+	shbp_acquire(&shbp);
+	shbp_release(&shbp, NULL);
+	shbp_read(&shbp, 0, NULL, NULL);
+	shbp_write(&shbp, 0, NULL, NULL);
+	
 	/*After packet processing is done, fdma_terminate_task must be called.*/
 	fdma_terminate_task();
 
