@@ -104,7 +104,7 @@
 #define sl_pr_err(...) 	SL_DBG(REPORT_LEVEL_MAJOR, __VA_ARGS__)
 
 /**************************************************************************//**
- @Function      no_stack_sl_pr_err(...)
+ @Function      no_stack_pr_debug(...)
 
  @Description	Same as pr_debug() but only for service layer developers.
  	 	Stack estimation test with STACK_CHECK defined 
