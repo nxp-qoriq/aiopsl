@@ -206,7 +206,7 @@ asm __COLD_CODE void __sys_start(register int argc, register char **argv, regist
     /* MC clear WS for each core to reset ECC */
     /* The WS is a per core 32K RAM. */
     /* Loops to cover WS, stmw allows 128 bytes (32 GPRS x 4 bytes) writes */
-    mfspr r31, spr694 		/* Extract address of DMEM from DMEMCFG0 */
+    mfspr r31, 694 			/* Extract address of DMEM from DMEMCFG0 (SPR 694) */
     lis r29, 0xffff      	/* Low order bits of DMEM size are driven to 0s */
     ori r29, r29, 0xf000
     and r31, r31, r29
