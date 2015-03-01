@@ -299,11 +299,11 @@ int test_fdma()
 	{
 		fsl_os_print("Simple BU ERROR: frame data after HM is not correct\n");
 		fsl_os_print("frame length is 0x%x\n", frame_length);
-		for (i=0; i<frame_length ; i++)
-			fsl_os_print("frame read byte %d is %x\n", i, frame_data_read[i]);
+		//for (i=0; i<frame_length ; i++)
+		//	fsl_os_print("frame read byte %d is %x\n", i, frame_data_read[i]);
 		fsl_os_print("actual frame length is 0x%x\n", frame_length);
-		for (i=0; i<frame_length ; i++)
-			fsl_os_print("actual frame read byte %d is %x\n", i, frame_presented[i]);
+		//for (i=0; i<frame_length ; i++)
+		//	fsl_os_print("actual frame read byte %d is %x\n", i, frame_presented[i]);
 		//fdma_discard_default_frame(FDMA_DIS_NO_FLAGS);
 		//return err;
 	}
@@ -336,21 +336,13 @@ void test_replicate_frame()
 				0x64,0x51,0xac,0x9f,0x69,0xd4,0xd3,0xf7,
 				0x6e,0x20,0x0e,0x97,0xb7,0xe9,0xe4,0x56};
 	
-	/*err = fdma_delete_default_segment_data(0, PRC_GET_SEGMENT_LENGTH(), 0);
-	if ((err!= 0) && (err != 8))
-		fsl_os_print("Simple BU ERROR: fdma_delete_default_segment_data FAILED, err = 0x%x!!\n", err);
-	else
-		fsl_os_print("Simple BU: fdma_delete_default_segment_data PASSED!!\n");*/
-	
-	//fsl_os_print("Simple BU : segment length after delete: 0x%x!!\n", PRC_GET_SEGMENT_LENGTH());
-	
 	err = fdma_replicate_frame_fqid(PRC_GET_FRAME_HANDLE(), *(uint8_t *)HWC_SPID_ADDRESS, 
 			0, &replic_fd, FDMA_CFA_COPY_BIT, &frame_handle2);
 	if (err)
 		fsl_os_print("Simple BU ERROR: fdma_replicate_frame_fqid FAILED!!\n");
 	else
 		fsl_os_print("Simple BU: fdma_replicate_frame_fqid PASSED!!\n");
-#if 0	
+#if 1	
 	err = fdma_store_frame_data(frame_handle2, *(uint8_t *)HWC_SPID_ADDRESS, &amq);
 	if (err)
 		fsl_os_print("Simple BU ERROR: fdma_store_frame_data FAILED!!\n");
