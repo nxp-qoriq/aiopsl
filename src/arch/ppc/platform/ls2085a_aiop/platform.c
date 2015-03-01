@@ -157,13 +157,7 @@ __COLD_CODE static int disable_l1_cache(t_platform *pltfrm)
 /*****************************************************************************/
 static int console_print_cb(fsl_handle_t h_console_dev, uint8_t *p_data, uint32_t size)
 {
-	int err;
-
-	err = duart_tx(h_console_dev, p_data, size);
-	if (err != 0)
-		return 0;
-
-	return (int)size;
+	return duart_tx(h_console_dev, p_data, size);
 }
 
 /*****************************************************************************/

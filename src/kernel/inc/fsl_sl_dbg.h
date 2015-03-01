@@ -47,8 +47,6 @@
 /**************************************************************************//**
  @Description	Macro to use debug prints from service layer. Same as pr_debug(),
 		pr_info() but only for service layer developers.
-		The print recovers Accelerator Hardware Context and restore
-		after the print.
  	 	The users will not see those prints. In order to enable them 
  	 	recompile the service layer library with SL_DEBUG.
 
@@ -57,17 +55,21 @@
 *//***************************************************************************/
 #ifndef SL_DEBUG
 #define SL_DBG(_level, ...) do {} while(0)
+#define SL_PRINT(...) do {} while(0)
 #else
 #define SL_DBG(_level, ...)                                              \
 	do {                                                             \
-		uint8_t hwc[32];                                         \
-		memcpy((void*)&hwc[0], (void *)HWC_ACC_IN_ADDRESS, 32 ); \
 		fsl_os_print("> %s " PRINT_FORMAT ": ",                  \
 		             dbg_level_strings[_level - 1],              \
 		             PRINT_FMT_PARAMS);                          \
 		fsl_os_print(__VA_ARGS__);                               \
-		memcpy((void *)HWC_ACC_IN_ADDRESS, (void*)&hwc[0], 32 ); \
 	} while (0)
+
+#define SL_PRINT(...)                                                    \
+	do {                                                             \
+		fsl_os_print(__VA_ARGS__);                               \
+	} while (0)
+
 #endif /* !defined(SL_DEBUG) */
 
 
@@ -76,10 +78,6 @@
 #else
 #define NS_DBG(_level, ...) DBG(_level, __VA_ARGS__)
 #endif /* defined(STACK_CHECK) */
-					 
-
-
-
 
 /**************************************************************************//**
  @Function      sl_pr_debug(...)
@@ -102,6 +100,19 @@
  @Param[in]     ... string with arguments to print.
 *//***************************************************************************/
 #define sl_pr_err(...) 	SL_DBG(REPORT_LEVEL_MAJOR, __VA_ARGS__)
+
+/**************************************************************************//**
+ @Function      sl_os_print(...)
+
+ @Description   Same as fsl_os_print() but only for service layer developers
+ 	 	The users will not see those prints. In order to enable them 
+ 	 	recompile the service layer library with SL_DEBUG.
+ 	 	The print recovers Accelerator Hardware Context and restore
+		after the print.
+
+ @Param[in]     ... string with arguments to print.
+*//***************************************************************************/
+#define sl_os_print(...)    SL_PRINT(__VA_ARGS__)
 
 /**************************************************************************//**
  @Function      no_stack_pr_debug(...)
