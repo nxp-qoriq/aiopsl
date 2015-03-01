@@ -235,9 +235,9 @@
 			<locationURI>PARENT-3-PROJECT_LOC/src/kernel/cmdif_client.c</locationURI>
 		</link>
 		<link>
-			<name>aiop_sl/kernel/cmdif_client.h</name>
+			<name>aiop_sl/kernel/cmdif_client_flib.h</name>
 			<type>1</type>
-			<locationURI>PARENT-3-PROJECT_LOC/src/kernel/cmdif_client.h</locationURI>
+			<locationURI>PARENT-3-PROJECT_LOC/src/kernel/cmdif_client_flib.h</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/kernel/cmdif_client_aiop.h</name>
@@ -255,9 +255,9 @@
 			<locationURI>PARENT-3-PROJECT_LOC/src/kernel/cmdif_srv.c</locationURI>
 		</link>
 		<link>
-			<name>aiop_sl/kernel/cmdif_srv.h</name>
+			<name>aiop_sl/kernel/cmdif_srv_flib.h</name>
 			<type>1</type>
-			<locationURI>PARENT-3-PROJECT_LOC/src/kernel/cmdif_srv.h</locationURI>
+			<locationURI>PARENT-3-PROJECT_LOC/src/kernel/cmdif_srv_flib.h</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/kernel/cmdif_srv_aiop.h</name>

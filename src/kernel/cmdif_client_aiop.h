@@ -26,15 +26,15 @@
 
 
 /*!
- *  @file    cmdif_client.h
+ *  @file    cmdif_client_aiop.h
  *  @brief   Cmdif client AIOP<->GPP internal header file
  */
 
 #ifndef __CMDIF_CLIENT_AIOP_H
 #define __CMDIF_CLIENT_AIOP_H
 
-#include "cmdif_client.h"
-#include "cmdif_srv.h"
+#include "cmdif_client_flib.h"
+#include "cmdif_srv_flib.h"
 #include "fsl_dpci.h"
 #include "fsl_gen.h"
 #include "fsl_string.h"

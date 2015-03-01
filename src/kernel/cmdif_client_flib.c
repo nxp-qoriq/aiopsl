@@ -26,7 +26,7 @@
 
 #include <cmdif.h>
 #include <fsl_cmdif_flib_c.h>
-#include <cmdif_client.h>
+#include <cmdif_client_flib.h>
 
 #define IS_VLD_OPEN_SIZE(SIZE) \
 	((SIZE) >= CMDIF_OPEN_SIZEOF)

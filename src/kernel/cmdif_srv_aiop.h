@@ -30,7 +30,7 @@
 #include "fsl_cmdif_server.h"
 #include "fsl_cmdif_client.h"
 #include "fsl_mc_init.h"
-#include "cmdif_srv.h"
+#include "cmdif_srv_flib.h"
 #include "fsl_fdma.h"
 
 #pragma warning_errors on

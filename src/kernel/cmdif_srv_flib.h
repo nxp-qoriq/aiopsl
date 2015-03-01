@@ -24,8 +24,8 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef __CMDIF_SRV_H
-#define __CMDIF_SRV_H
+#ifndef __CMDIF_SRV_FLIB_H
+#define __CMDIF_SRV_FLIB_H
 
 #include <fsl_cmdif_server.h>
 
