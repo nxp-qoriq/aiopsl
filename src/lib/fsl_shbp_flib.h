@@ -54,7 +54,7 @@
  * @returns	The 'mem_ptr' size required by shbp_create()
  *
  */
-uint32_t shbp_mem_ptr_size(uint32_t num_bufs);
+uint32_t shbp_flib_mem_ptr_size(uint32_t num_bufs);
 
 /**
  * @brief	Get buffer from shared pool
@@ -64,7 +64,7 @@ uint32_t shbp_mem_ptr_size(uint32_t num_bufs);
  * @returns	Address on Success; or NULL code otherwise
  *
  */
-void *shbp_acquire(struct shbp *bp);
+void *shbp_flib_acquire(struct shbp *bp);
 
 /**
  * @brief	Return or add buffer into the shared pool
@@ -75,7 +75,7 @@ void *shbp_acquire(struct shbp *bp);
  * @returns	0 on Success; or POSIX error code otherwise
  *
  */
-int shbp_release(struct shbp *bp, void *buf);
+int shbp_flib_release(struct shbp *bp, void *buf);
 
 /**
  * @brief	Create shared pool from a given buffer
@@ -95,7 +95,7 @@ int shbp_release(struct shbp *bp, void *buf);
  * 	
  *
  */
-int shbp_create(void *mem_ptr, uint32_t size, uint32_t flags, struct shbp **bp);
+int shbp_flib_create(void *mem_ptr, uint32_t size, uint32_t flags, struct shbp **bp);
 
 /**
  * @brief	Move free buffers into allocation queue
@@ -106,7 +106,7 @@ int shbp_create(void *mem_ptr, uint32_t size, uint32_t flags, struct shbp **bp);
  * 		to the allocation queue
  *
  */
-int shbp_refill(struct shbp *bp);
+int shbp_flib_refill(struct shbp *bp);
 
 
 /**
@@ -123,7 +123,7 @@ int shbp_refill(struct shbp *bp);
  * 		that need to be freed, 0 if there are no buffers to be freed
  *
  */
-int shbp_destroy(struct shbp *bp, void **ptr);
+int shbp_flib_destroy(struct shbp *bp, void **ptr);
 
 /** @} */ /* end of shbp_g group */
 

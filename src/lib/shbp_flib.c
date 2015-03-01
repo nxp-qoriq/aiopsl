@@ -44,7 +44,7 @@
 	} while(0)
 /*!< It is more efficient to copy to cached stack and then process */
 
-uint32_t shbp_mem_ptr_size(uint32_t num_bufs)
+uint32_t shbp_flib_mem_ptr_size(uint32_t num_bufs)
 {
 	return SHBP_TOTAL_BYTES + (16 * (num_bufs));
 }
@@ -81,7 +81,7 @@ static void release(struct shbp *bp, struct shbp_q *lq,
 	q->enq = CPU_TO_LE32(lq->enq); /* Must be last */
 }
 
-int shbp_create(void *mem_ptr, uint32_t size, uint32_t flags, struct shbp **_bp)
+int shbp_flib_create(void *mem_ptr, uint32_t size, uint32_t flags, struct shbp **_bp)
 {
 	struct shbp *bp;
 	uint32_t ring_size;
@@ -130,7 +130,7 @@ int shbp_create(void *mem_ptr, uint32_t size, uint32_t flags, struct shbp **_bp)
 	return 0;
 }
 		
-void *shbp_acquire(struct shbp *bp)
+void *shbp_flib_acquire(struct shbp *bp)
 {
 	void *buf;
 	struct shbp lbp;
@@ -153,7 +153,7 @@ void *shbp_acquire(struct shbp *bp)
 	return buf;
 }
 
-int shbp_release(struct shbp *bp, void *buf)
+int shbp_flib_release(struct shbp *bp, void *buf)
 {
 	struct shbp lbp;
 
@@ -172,7 +172,7 @@ int shbp_release(struct shbp *bp, void *buf)
 	return 0;
 }
 
-int shbp_refill(struct shbp *bp)
+int shbp_flib_refill(struct shbp *bp)
 {
 	void *buf;
 	int count = 0;
@@ -196,7 +196,7 @@ int shbp_refill(struct shbp *bp)
 	return count;
 }
 
-int shbp_destroy(struct shbp *bp, void **ptr)
+int shbp_flib_destroy(struct shbp *bp, void **ptr)
 {
 	struct shbp lbp;
 
