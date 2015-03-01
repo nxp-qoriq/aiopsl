@@ -24,62 +24,100 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/* This value is defined in config.c and holds the size of application in ddr memory*/
-extern const uint32_t g_aiop_lcf_ddr_size;
+/**************************************************************************//**
+@File          apps.h
 
-/* This is an application required DP_DDR memory, user SHOULD edit this.
- * In this example the total dp_ddr memory is 128 MB (0x8000000),
- * g_aiop_lcf_ddr_size out of it is occupied by aiop image dp_ddr and the rest is dedicated 
- * for application */
-#define APPLICATION_DP_DDR_SIZE (0x8000000 - g_aiop_lcf_ddr_size)
- 
-/* dp_ddr_size.
- * It is the  sum of AIOP image size in DDR and 
- * application required DP_DDR memory.
- * The value should be aligned to a power of 2 */
-#define  AIOP_SL_AND_APP_DDR_SIZE     (uint64_t)(g_aiop_lcf_ddr_size + APPLICATION_DP_DDR_SIZE)	
- 
-/* peb_size.
- * Should be a power of 2.
- * Applications cannot require more that this maximum size */
-#define PEB_SIZE  (512 * KILOBYTE)  
+@Description   This file contains the AIOP SL user defined setup.
+*//***************************************************************************/
 
-/* sys-ddr1 size = 0. Currently no dynamic allocation from system ddr */
-#define SYS_DDR1_SIZE 0
+/**************************************************************************//**
+@Group		app_init	General
 
-/* ctlu sys-ddr number of entries */
-#define CTLU_SYS_DDR_NUM_ENTRIES         2048
+@Description	Use the following macros to define the general AIOP SL setup.
+@{
+*//***************************************************************************/
 
-/* ctlu dp-ddr number of entries */
-#define CTLU_DP_DDR_NUM_ENTRIES          2048
+#define APP_INIT_TASKS_PER_CORE		4	/**< Tasks per core in AIOP */
+#define APP_INIT_APP_MAX_NUM		10
+/**<  Maximal number of applications to be filled by build_apps_array() */
 
-/* ctlu peb number of entries */
-#define CTLU_PEB_NUM_ENTRIES             2048
+/** @} */ /* end of app_init */
 
-/* mflu sys-ddr number of entries */
-#define MFLU_SYS_DDR_NUM_ENTRIES         2048
+/**************************************************************************//**
+@Group		app_mem		Memory Allocation
 
-/* mflu dp-ddr number of entries */
-#define MFLU_DP_DDR_NUM_ENTRIES          2048
+@Description	Use the following macros to define the memory sizes required by 
+		the sum of all AIOP applications and Service Layer.
+		All the sizes refer to the sum of all static (LCF) and 
+		dynamic (malloc) allocations. 
+		All the sizes should be aligned to a power of 2.
+@{
+*//***************************************************************************/
+#define APP_MEM_DP_DDR_SIZE	(128 * MEGABYTE)/**< DP DDR size */ 
+#define APP_MEM_PEB_SIZE	(512 * KILOBYTE)/**< PEB size */
+#define APP_MEM_SYS_DDR1_SIZE 	(0)		/**< System DDR size */
 
-/* mflu peb number of entries */
-#define MFLU_PEB_NUM_ENTRIES             2048
+/** @} */ /* end of app_mem */
 
-/* sru_size */
-#define SRU_SIZE                         0x100000	
+/**************************************************************************//**
+@Group		app_ctlu	CTLU
 
-/* Tman frequency */
-#define TMAN_FREQUENCY                   800
+@Description	Use the following macros to define the CTLU setup.
+@{
+*//***************************************************************************/
 
-/* Tasks per core in AIOP */
-#define AIOP_TASKS_PER_CORE              4
+#define APP_CTLU_SYS_DDR_NUM_ENTRIES	2048 /**< SYS DDR number of entries */
+#define APP_CTLU_DP_DDR_NUM_ENTRIES	2048 /**< DP DDR number of entries */
+#define APP_CTLU_PEB_NUM_ENTRIES	2048 /**< PEB number of entries */
 
-/* Number of frame buffers in pool */
-#define DPNI_NUMBER_BUFFERS_IN_POOL      50
-/* Size of buffers in pool */
-#define DPNI_BUFFER_SIZE_IN_POOL         2048
-/* alignment of buffers in pool */
-#define DPNI_BUFFER_ALIGNMENT            64
- 
-/*  Maximal number of applications to be filled by build_apps_array() */
-#define APP_MAX_NUM                      10
+/** @} */ /* end of app_ctlu */
+
+/**************************************************************************//**
+@Group		app_mflu	MFLU
+
+@Description	Use the following macros to define the MFLU setup.
+@{
+*//***************************************************************************/
+
+#define APP_MFLU_SYS_DDR_NUM_ENTRIES	2048 /**< SYS DDR number of entries */
+#define APP_MFLU_DP_DDR_NUM_ENTRIES	2048 /**< DP DDR number of entries */
+#define APP_MFLU_PEB_NUM_ENTRIES	2048 /**< PEB number of entries */
+
+/** @} */ /* end of app_mflu */
+
+
+/**************************************************************************//**
+@Group		app_tman	TMAN
+
+@Description	Use the following macros to define the TMAN setup.
+@{
+*//***************************************************************************/
+
+#define APP_TMAN_FREQUENCY		800	/**< Tman frequency */
+
+/** @} */ /* end of app_tman */
+
+/**************************************************************************//**
+@Group		app_dpni	DPNI
+
+@Description	Use the following macros to define the DPNI driver.
+		Two AIOP buffer pools are reserved for frame data buffers of all
+		AIOP DPNIs; One for frame data residing in DP-DDR and one for
+		frame data residing in PEB. The buffer amount, size and 
+		alignment defined below applies to both pools and to all AIOP
+		DPNIs. Each DPNI uses two Storage Profile IDs (one for DP-DDR
+		and one for PEB) and therefore APP_DPNI_SPID_COUNT must
+		accommodate at least two SPIDs per AIOP DPNI.
+@{
+*//***************************************************************************/
+
+#define APP_DPNI_NUM_BUFS_IN_POOL	50	/**< Number of buffers */
+#define APP_DPNI_BUF_SIZE_IN_POOL	2048	/**< Size of buffer */
+#define APP_DPNI_BUF_ALIGN_IN_POOL	64	/**< Alignment of buffer */
+#define APP_DPNI_SPID_COUNT		8	/**< Max number of SPIDs */
+
+/** @} */ /* end of app_dpni */
+
+
+
+

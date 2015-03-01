@@ -39,6 +39,7 @@
 #include "fsl_icontext.h"
 #include "fsl_shbp_aiop.h"
 
+int app_early_init(void);
 int app_init(void);
 void app_free(void);
 void stack_estimation(void);
@@ -105,6 +106,7 @@ void stack_estimation(void)
 	dpni_set_send_niid(ni);
 	dpni_get_send_niid();
 	dpni_drv_get_primary_mac_addr(ni, mac_addr);
+	dpni_drv_set_primary_mac_addr(ni, ((uint8_t []){0x02, 0x00 ,0xc0 ,0x0a8 ,0x0b ,0xfe }));
 	dpni_drv_add_mac_addr(ni, mac_addr);
 	dpni_drv_remove_mac_addr(ni, mac_addr);
 	dpni_drv_set_max_frame_length(ni, mfl);
@@ -151,6 +153,12 @@ int app_init(void)
 
 	fsl_os_print("To start test inject packets: \"eth_ipv4_udp.pcap\"\n");
 
+	return 0;
+}
+
+int app_early_init(void)
+{
+	/* Early initialization */
 	return 0;
 }
 
