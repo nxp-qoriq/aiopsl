@@ -103,6 +103,7 @@
 
 /** @} end of group StatsCompoundFlags */
 
+#ifdef REV2 /* Removed Due to HW ticket TKT255485 */ 
 
 /**************************************************************************//**
  @Group		StatsErrorRegAddr Statistics error registers addresses
@@ -292,7 +293,7 @@ enum e_ste_err_ec {
 	*((uint32_t *) STE_STECR1_ADDRESS) = STECR; })
 
 /** @} end of group StatsErrMacroes */
-
+#endif
 
 #include "ste_inline.h"
 
