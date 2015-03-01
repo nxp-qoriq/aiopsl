@@ -25,7 +25,7 @@
  */
 
 /*!
- * @file    shbp.h
+ * @file    shbp_flib.h
  * @brief   Shared Buffer Pool API
  *
  * Internal header file shared by AIOP and GPP.
