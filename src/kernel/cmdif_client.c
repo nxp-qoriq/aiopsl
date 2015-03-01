@@ -34,7 +34,7 @@
 #include "fsl_dbg.h"
 #include "cmdif_client_aiop.h"
 #include "cmdif.h"
-#include "fsl_cmdif_fd.h"
+#include "fsl_cmdif_flib_fd.h"
 #include "fsl_cmdif_flib_c.h"
 #include "fsl_dprc.h"
 #include "fsl_fdma.h"
