@@ -34,7 +34,7 @@
 
 #include <types.h>
 #include <fsl_cmdif_client.h>
-#include <fsl_cmdif_fd.h>
+#include <fsl_cmdif_flib_fd.h>
 
 
 /*!

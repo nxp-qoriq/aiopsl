@@ -34,7 +34,7 @@
 
 #include <types.h>
 #include <fsl_cmdif_server.h>
-#include <fsl_cmdif_fd.h>
+#include <fsl_cmdif_flib_fd.h>
 
 /*!
  * @Group	cmdif_flib_g  Command Interface - FLIB
