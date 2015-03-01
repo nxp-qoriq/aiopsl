@@ -39,9 +39,6 @@
 #include "dplib/fsl_ldpaa.h"
 #include "inline_asm.h"
 #include "fsl_io_ccsr.h"
-#ifdef SL_DEBUG
-	#include "fsl_errors.h"
-#endif
 
 #ifndef REV2
 	/* The next code is due to Errata ERR008205 */
@@ -86,8 +83,10 @@ int tman_create_tmi(uint64_t tmi_mem_base_addr,
 	*tmi_id = (uint8_t)res2;
 	if (res1 == TMAN_TMIID_DEPLETION_ERR)
 		return (int)(-ENOSPC);
-	tmi_state_ptr = (unsigned int*)((unsigned int)TMAN_TMSTATE_ADDRESS
+	
+	tmi_state_ptr = (unsigned int*)((unsigned int)TMAN_CCSR_TMSTATE_ADDRESS
 			+ ((*tmi_id)<<5));
+
 	while ((*tmi_state_ptr != TMAN_TMI_BUS_ERR) &&
 			(*tmi_state_ptr != TMAN_TMI_ACTIVE))
 	{
@@ -203,7 +202,7 @@ void tman_delete_tmi(tman_cb_t tman_confirm_cb, uint32_t flags,
 	/* The next code is due to Errata ERR008205 */
 int tman_query_tmi_sw(uint8_t tmi_id){
 	unsigned int *tmi_state_ptr;
-	tmi_state_ptr = (unsigned int*)((unsigned int)TMAN_TMSTATE_ADDRESS
+	tmi_state_ptr = (unsigned int*)((unsigned int)TMAN_CCSR_TMSTATE_ADDRESS
 			+ (tmi_id<<5));
 	if((*tmi_state_ptr & TMAN_TMI_STATE_MASK) == TMAN_TMI_ACTIVE)
 		return (int)(SUCCESS);
