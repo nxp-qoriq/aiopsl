@@ -34,14 +34,44 @@
 #define __FSL_SL_DBG_H
 
 #include "fsl_dbg.h"
-
+#include "fsl_string.h"
+#include "fsl_general.h"
 /**************************************************************************//**
  @Group		FSL_DEBUG_GROUP Debug Utilities
 
  @Description	FSL AIOP debug macros
 
  @{
+ *//***************************************************************************/
+
+/**************************************************************************//**
+ @Description	Macro to use debug prints from service layer. Same as pr_debug(),
+		pr_info() but only for service layer developers.
+		The print recovers Accelerator Hardware Context and restore
+		after the print.
+ 	 	The users will not see those prints. In order to enable them 
+ 	 	recompile the service layer library with SL_DEBUG.
+
+ @Param[in]     _level - printing level (TRACE / MAJOR)
+ @Param[in]     ... - string with arguments to print.
 *//***************************************************************************/
+#ifndef SL_DEBUG
+#define SL_DBG(_level, ...)
+#else
+#define SL_DBG(_level, ...)                                              \
+	do {                                                             \
+		uint8_t hwc[32];                                         \
+		memcpy((void*)&hwc[0], (void *)HWC_ACC_IN_ADDRESS, 32 ); \
+		fsl_os_print("> %s " PRINT_FORMAT ": ",                  \
+		             dbg_level_strings[_level - 1],              \
+		             PRINT_FMT_PARAMS);                          \
+		fsl_os_print(__VA_ARGS__);                               \
+		memcpy((void *)HWC_ACC_IN_ADDRESS, (void*)&hwc[0], 32 ); \
+	} while (0)
+#endif /* !defined(SL_DEBUG) */
+					 
+
+
 
 
 /**************************************************************************//**

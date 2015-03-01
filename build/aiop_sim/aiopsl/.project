@@ -300,6 +300,11 @@
 			<locationURI>PARENT-3-PROJECT_LOC/src/kernel/fsl_io_ccsr.h</locationURI>
 		</link>
 		<link>
+			<name>aiop_sl/kernel/fsl_log.h</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/kernel/fsl_log.h</locationURI>
+		</link>
+		<link>
 			<name>aiop_sl/kernel/icontext.c</name>
 			<type>1</type>
 			<locationURI>PARENT-3-PROJECT_LOC/src/kernel/icontext.c</locationURI>
@@ -313,6 +318,16 @@
 			<name>aiop_sl/kernel/inc</name>
 			<type>2</type>
 			<locationURI>virtual:/virtual</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/kernel/log.c</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/kernel/log.c</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/kernel/log.h</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/kernel/log.h</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/kernel/main.c</name>
