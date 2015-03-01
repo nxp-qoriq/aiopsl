@@ -44,6 +44,11 @@
 	} while(0)
 /*!< It is more efficient to copy to cached stack and then process */
 
+uint32_t shbp_mem_ptr_size(uint32_t num_bufs)
+{
+	return SHBP_TOTAL_BYTES + (16 * (num_bufs));
+}
+
 static uint8_t get_num_of_first_bit(uint32_t num)
 {
 	int i;

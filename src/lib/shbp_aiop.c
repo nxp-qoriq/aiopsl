@@ -66,6 +66,11 @@
 	}while(0)
 
 
+__HOT_CODE uint64_t shbp_get(struct shbp_aiop *bp)
+{
+	return bp->shbp;
+}
+
 __HOT_CODE int shbp_read(struct shbp_aiop *bp, uint16_t size, uint64_t src, void *dest)
 {
 #ifdef DEBUG

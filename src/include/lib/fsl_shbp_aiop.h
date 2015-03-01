@@ -46,6 +46,16 @@
  */
 
 /**
+ * @brief	Get the shared handle for this shared pool
+ *
+ * @param[in]	bp - AIOP buffer pool handle
+ *
+ * @returns	The address of the shared handle; or NULL code otherwise
+ *
+ */
+uint64_t shbp_get(struct shbp_aiop *bp);
+
+/**
  * @brief	Get buffer from shared pool
  *
  * @param[in]	bp - AIOP buffer pool handle
