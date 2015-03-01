@@ -30,8 +30,8 @@
  *  @brief   Cmdif client AIOP<->GPP internal header file
  */
 
-#ifndef __CMDIF_CLIENT_AIOP_H
-#define __CMDIF_CLIENT_AIOP_H
+#ifndef __CMDIF_CLIENT_H
+#define __CMDIF_CLIENT_H
 
 #include "cmdif_client_flib.h"
 #include "cmdif_srv_flib.h"

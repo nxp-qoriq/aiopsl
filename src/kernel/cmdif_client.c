@@ -32,7 +32,7 @@
 #include "general.h"
 #include "sys.h"
 #include "fsl_dbg.h"
-#include "cmdif_client_aiop.h"
+#include "cmdif_client.h"
 #include "cmdif.h"
 #include "fsl_cmdif_flib_fd.h"
 #include "fsl_cmdif_flib_c.h"
