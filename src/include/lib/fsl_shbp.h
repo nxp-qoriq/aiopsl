@@ -35,6 +35,8 @@
 #ifndef __FSL_SHBP_H
 #define __FSL_SHBP_H
 
+#include <shbp.h>
+
 /*!
  * @Group	shbp_aiop_g  Shared Buffer Pool
  *
@@ -42,8 +44,6 @@
  *
  * @{
  */
-
-struct shbp_aiop;
 
 /**
  * @brief	Get the shared handle for this shared pool
