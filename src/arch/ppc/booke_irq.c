@@ -221,9 +221,9 @@ exception_irq:
     /* disable debug and interrupts in MSR */
     mtmsr    r0
     isync
-    /* update stack overflow detection to 1-task (0x8000) */ 
-    se_bgeni r4,16
-    mtspr    DAC2,r4
+//    /* update stack overflow detection to 1-task (0x8000) */ 
+//    se_bgeni r4,16
+//    mtspr    DAC2,r4
     /* clear stack pointer */
     li       rsp, 0x7ff0
     /* branch to isr */
