@@ -218,20 +218,22 @@ void verif_tman_callback_no_conf(uint64_t opaque1, uint16_t opaque2)
 	uint8_t frame_handle;
 	uint8_t spid = *((uint8_t *)HWC_SPID_ADDRESS);
 
-		create_frame((struct ldpaa_fd *)HWC_FD_ADDRESS,&opaque1,
-				     sizeof(opaque1), &frame_handle);
-		fdma_store_and_enqueue_frame_fqid(frame_handle, FDMA_EN_TC_TERM_BITS,
-			(uint32_t)opaque2, spid);
+	fdma_store_default_frame_data();
+	create_frame((struct ldpaa_fd *)HWC_FD_ADDRESS,&opaque1,
+				 sizeof(opaque1), &frame_handle);
+	fdma_store_and_enqueue_frame_fqid(frame_handle, FDMA_EN_TC_TERM_BITS,
+		(uint32_t)opaque2, spid);
 }
 
 
 void verif_tman_callback(uint64_t opaque1, uint16_t opaque2)
 {
-	struct ldpaa_fd fd __attribute__((aligned(sizeof(struct ldpaa_fd))));
 	uint8_t frame_handle;
 	uint8_t spid = *((uint8_t *)HWC_SPID_ADDRESS);
 
-	create_frame(&fd,&opaque1, sizeof(opaque1), &frame_handle);
+	fdma_store_default_frame_data();
+	create_frame((struct ldpaa_fd *)HWC_FD_ADDRESS,&opaque1,
+			     sizeof(opaque1), &frame_handle);
 	tman_timer_completion_confirmation(
 			TMAN_GET_TIMER_HANDLE(HWC_FD_ADDRESS));
 	fdma_store_and_enqueue_frame_fqid(frame_handle, FDMA_EN_TC_TERM_BITS,
