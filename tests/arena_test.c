@@ -331,6 +331,7 @@ int app_init(void)
 	struct dpkg_profile_cfg dist_key_cfg = {0};
 	struct aiop_psram_entry *sp_addr;
 	struct dpni_buffer_layout layout = {0};
+	struct dpni_link_state link_state = {0};
 
 	dist_key_cfg.num_extracts = 1;
 	dist_key_cfg.extracts[0].type = DPKG_EXTRACT_FROM_HDR;
@@ -382,6 +383,17 @@ int app_init(void)
 		}
 		ep = dpni_drv_get_ordering_mode((uint16_t)ni);
 		fsl_os_print("initial order scope execution phase for tasks %d\n",ep);
+		
+		err = dpni_drv_get_link_state((uint16_t) ni, &link_state);
+		if(err){
+			fsl_os_print("dpni_drv_get_link_state failed %d\n", err);
+			test_error |= 0x01;
+		}
+		else{
+			fsl_os_print("dpni_drv_get_link_state succeeded in boot\n");
+			fsl_os_print("link state: %d for ni %d\n", link_state.up, ni);
+		}
+		
 
 	}
 
