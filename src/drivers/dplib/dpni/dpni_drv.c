@@ -737,3 +737,14 @@ int dpni_drv_get_ni_id(uint16_t dpni_id, uint16_t *ni_id){
 	}
 	return 0;
 }
+
+int dpni_drv_get_link_state(uint16_t ni_id, struct dpni_link_state *state){
+	struct dpni_drv *dpni_drv;
+	struct mc_dprc *dprc = sys_get_unique_handle(FSL_OS_MOD_AIOP_RC);
+
+	/* calculate pointer to the NI structure */
+	dpni_drv = nis + ni_id;
+	return dpni_get_link_state(&dprc->io,
+	                                 dpni_drv->dpni_drv_params_var.dpni,
+	                                 state);
+}
