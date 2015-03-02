@@ -1,3 +1,5 @@
+dpni_drv.c/fsl_dpni_drv.h: Added API to get dpni link state:
+        int dpni_drv_get_link_state(uint16_t ni_id, struct dpni_link_state *state)
 dpni_drv.c/fsl_dpni_drv.h: Added API for setting primary MAC address:
         int dpni_drv_set_primary_mac_addr(uint16_t niid, uint8_t mac_addr[NET_HDR_FLD_ETH_ADDR_SIZE])
 
