@@ -38,6 +38,7 @@
 #include "aiop_verification_tman.h"
 
 extern __VERIF_GLOBAL uint8_t tmi_id;
+__VERIF_GLOBAL uint8_t tman_spid;
 
 #ifndef REV2
 extern uint32_t tman_tmi_max_num_of_timers[256];
@@ -56,6 +57,7 @@ uint16_t aiop_verification_tman(uint32_t asa_seg_addr)
 	/* TMAN TMI Create Command Verification */
 	case TMAN_TMI_CREATE_CMD_STR:
 	{
+		tman_spid = *((uint8_t *)HWC_SPID_ADDRESS);
 		struct tman_tmi_create_command *str =
 			(struct tman_tmi_create_command *) asa_seg_addr;
 		str->status = tman_create_tmi(
@@ -215,25 +217,30 @@ uint16_t aiop_verification_tman(uint32_t asa_seg_addr)
 
 void verif_tman_callback_no_conf(uint64_t opaque1, uint16_t opaque2)
 {
-	struct ldpaa_fd fd __attribute__((aligned(sizeof(struct ldpaa_fd))));
 	uint8_t frame_handle;
-	uint8_t spid = *((uint8_t *)HWC_SPID_ADDRESS);
+	
+	*((uint8_t *)HWC_SPID_ADDRESS) = tman_spid;
 
-	create_frame(&fd,&opaque1, sizeof(opaque1), &frame_handle);
+	
+	fdma_store_default_frame_data();
+	create_frame((struct ldpaa_fd *)HWC_FD_ADDRESS,&opaque1,
+				 sizeof(opaque1), &frame_handle);
 	fdma_store_and_enqueue_frame_fqid(frame_handle, FDMA_EN_TC_TERM_BITS,
-			(uint32_t)opaque2, spid);
+		(uint32_t)opaque2, tman_spid);
 }
 
 
 void verif_tman_callback(uint64_t opaque1, uint16_t opaque2)
 {
-	struct ldpaa_fd fd __attribute__((aligned(sizeof(struct ldpaa_fd))));
 	uint8_t frame_handle;
-	uint8_t spid = *((uint8_t *)HWC_SPID_ADDRESS);
+	
+	*((uint8_t *)HWC_SPID_ADDRESS) = tman_spid;
 
-	create_frame(&fd,&opaque1, sizeof(opaque1), &frame_handle);
+	fdma_store_default_frame_data();
+	create_frame((struct ldpaa_fd *)HWC_FD_ADDRESS,&opaque1,
+			     sizeof(opaque1), &frame_handle);
 	tman_timer_completion_confirmation(
 			TMAN_GET_TIMER_HANDLE(HWC_FD_ADDRESS));
 	fdma_store_and_enqueue_frame_fqid(frame_handle, FDMA_EN_TC_TERM_BITS,
-			(uint32_t)opaque2, spid);
+			(uint32_t)opaque2, tman_spid);
 }
