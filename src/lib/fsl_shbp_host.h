@@ -45,7 +45,8 @@
 
 #include <shbp_host.h>
 
-#define SHBP_GPP_MASTER		0x1	/*!< GPP is the allocation master */
+#define SHBP_HOST_IS_MASTER	0x1	/*!< Host is the allocation master */
+#define SHBP_HOST_SAFE		0x2	/*!< Host API is multithread safe */
 
 /**
  * @brief	Get the shared handle for this shared pool
@@ -96,8 +97,8 @@ int shbp_release(struct shbp_host *bp, void *buf);
  * The shared pool is created as empty, use shbp_release() to fill it
  *
  * @param[in]	flags    - Flags to be used for pool creation, 0 means AIOP is
- * 		the allocation master, #SHBP_GPP_MASTER means GPP is
- * 		the allocation master.
+ * 		the allocation master, #SHBP_HOST_IS_MASTER means GPP is
+ * 		the allocation master, #SHBP_HOST_SAFE makes it thread safe.
  * @param[in]	buf_num  - Number of buffers, maximal pool capacity
  * @param[out]  bp       - Pointer to shared pool handle
  * @returns	0 on Success; or POSIX error code otherwise

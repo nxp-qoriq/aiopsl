@@ -108,7 +108,7 @@ int shbp_flib_create(void *mem_ptr, uint32_t size, uint32_t flags, struct shbp *
 	
 	bp->max_num = get_num_of_first_bit(ring_size);
 	
-	bp->alloc_master = (uint8_t)(flags & SHBP_GPP_MASTER);
+	bp->alloc_master = (uint8_t)(flags & SHBP_HOST_IS_MASTER);
 		
 	bp->alloc.base = (uint64_t)(((uint8_t *)bp) + SHBP_TOTAL_BYTES);
 	/* Each BD is 8 bytes */
@@ -142,7 +142,7 @@ void *shbp_flib_acquire(struct shbp *bp)
 	
 	COPY_AND_SWAP(lbp, bp);
 	
-	if (!(lbp.alloc_master & SHBP_GPP_MASTER))
+	if (!(lbp.alloc_master & SHBP_HOST_IS_MASTER))
 		return NULL;
 	
 	if (SHBP_ALLOC_IS_EMPTY(&lbp))
