@@ -410,11 +410,6 @@
 			<locationURI>PARENT-3-PROJECT_LOC/src/lib/shbp.c</locationURI>
 		</link>
 		<link>
-			<name>aiop_sl/lib/shbp.h</name>
-			<type>1</type>
-			<locationURI>PARENT-3-PROJECT_LOC/src/lib/shbp.h</locationURI>
-		</link>
-		<link>
 			<name>aiop_sl/lib/shbp_flib.h</name>
 			<type>1</type>
 			<locationURI>PARENT-3-PROJECT_LOC/src/lib/shbp_flib.h</locationURI>

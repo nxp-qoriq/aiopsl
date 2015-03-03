@@ -24,13 +24,12 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <shbp.h> /* Must be first */
 #include <fsl_shbp.h>
-#include <fsl_icontext.h>
 #include <fsl_cdma.h>
 #include <fsl_spinlock.h>
 #include <fsl_dbg.h>
 #include <fsl_sl_dbg.h>
+#include <fsl_shbp_flib.h>
 
 /*
  * SHBP is assumed to be implemented in little endian that's why AIOP does 
@@ -57,42 +56,8 @@
 		sl_pr_debug("shbp.alloc.enq = 0x%x\n\n", shbp.alloc.enq); \
 	} while(0)
 
-#define DUMP_AIOP_BP() \
-	do {\
-		sl_pr_debug("bp->shbp high = 0x%x\n", (uint32_t)((bp->shbp & 0xFFFFFFFF00000000) >> 32)); \
-		sl_pr_debug("bp->shbp low = 0x%x\n", (uint32_t)(bp->shbp & 0xFFFFFFFF)); \
-		sl_pr_debug("bp->ic.dma_flags = 0x%x\n", bp->ic.dma_flags); \
-		sl_pr_debug("bp->ic.bdi_flags = 0x%x\n", bp->ic.bdi_flags); \
-		sl_pr_debug("bp->ic.icid = 0x%x\n\n", bp->ic.icid); \
-	}while(0)
 
-
-__HOT_CODE uint64_t shbp_get(struct shbp_aiop *bp)
-{
-	return bp->shbp;
-}
-
-__HOT_CODE int shbp_read(struct shbp_aiop *bp, uint16_t size, uint64_t src, void *dest)
-{
-#ifdef DEBUG
-	if (bp == NULL)
-		return -EINVAL;
-	DUMP_AIOP_BP();
-#endif	
-	return icontext_dma_read(&bp->ic, size, src, dest);
-}
-
-__HOT_CODE int shbp_write(struct shbp_aiop *bp, uint16_t size, void *src, uint64_t dest)
-{
-#ifdef DEBUG
-	if (bp == NULL)
-		return -EINVAL;
-	DUMP_AIOP_BP();
-#endif
-	return icontext_dma_write(&bp->ic, size, src, dest);
-}
-
-__HOT_CODE uint64_t shbp_acquire(struct shbp_aiop *bp)
+__HOT_CODE uint64_t shbp_acquire(uint64_t bp, struct icontext *ic)
 {
 	struct shbp shbp;
 	uint32_t offset;
@@ -100,23 +65,23 @@ __HOT_CODE uint64_t shbp_acquire(struct shbp_aiop *bp)
 	int err;
 	
 #ifdef DEBUG
-	if ((bp == NULL) || (bp->shbp == 0))
-		return NULL;
+	if (bp == 0)
+		return 0;
 #endif
 		
-	cdma_mutex_lock_take(bp->shbp, CDMA_MUTEX_WRITE_LOCK);
+	cdma_mutex_lock_take(bp, CDMA_MUTEX_WRITE_LOCK);
 	
 	/* Read SHBP structure:
 	 *  */
-	err = icontext_dma_read(&bp->ic, (uint16_t)sizeof(struct shbp), 
-	                  bp->shbp, &shbp);
+	err = icontext_dma_read(ic, (uint16_t)sizeof(struct shbp), 
+	                  bp, &shbp);
 	if (err) {
-		cdma_mutex_lock_release(bp->shbp);
+		cdma_mutex_lock_release(bp);
 		return NULL;
 	}
 	if (shbp.alloc_master) {
 		/* Pool does not belong to AIOP */
-		cdma_mutex_lock_release(bp->shbp);
+		cdma_mutex_lock_release(bp);
 		return NULL;
 	}
 
@@ -127,7 +92,7 @@ __HOT_CODE uint64_t shbp_acquire(struct shbp_aiop *bp)
 	DUMP_SHBP_ALLOC();
 
 	if (SHBP_ALLOC_IS_EMPTY(&shbp)) {
-		cdma_mutex_lock_release(bp->shbp);
+		cdma_mutex_lock_release(bp);
 		return NULL;
 	}
 	
@@ -135,10 +100,10 @@ __HOT_CODE uint64_t shbp_acquire(struct shbp_aiop *bp)
 	 * offset in byte = index of BD * 8 which is index << 3 */
 	buf = NULL;
 	offset = SHBP_BD_OFF(&shbp, shbp.alloc.deq);
-	err = icontext_dma_read(&bp->ic, (uint16_t)sizeof(uint64_t), 
+	err = icontext_dma_read(ic, (uint16_t)sizeof(uint64_t), 
 	                  shbp.alloc.base + offset, &buf);
 	if (err) {
-		cdma_mutex_lock_release(bp->shbp);
+		cdma_mutex_lock_release(bp);
 		return NULL;
 	}
 	buf = CPU_TO_LE64(buf);
@@ -148,14 +113,14 @@ __HOT_CODE uint64_t shbp_acquire(struct shbp_aiop *bp)
 	offset = SHBP_MEM_OFF(&shbp, &(shbp.alloc.deq));
 	shbp.alloc.deq++;
 	shbp.alloc.deq  = CPU_TO_LE32(shbp.alloc.deq);
-	err = icontext_dma_write(&bp->ic, (uint16_t)sizeof(uint32_t), &shbp.alloc.deq, 
-	                   bp->shbp + offset);
+	err = icontext_dma_write(ic, (uint16_t)sizeof(uint32_t), &shbp.alloc.deq, 
+	                   bp + offset);
 	if (err) {
-		cdma_mutex_lock_release(bp->shbp);
+		cdma_mutex_lock_release(bp);
 		return NULL;
 	}
 
-	cdma_mutex_lock_release(bp->shbp);
+	cdma_mutex_lock_release(bp);
 		
 	sl_pr_debug("buf high = 0x%x\n", (uint32_t)((buf & 0xFFFFFFFF00000000) >> 32)); \
 	sl_pr_debug("buf low = 0x%x\n", (uint32_t)(buf & 0xFFFFFFFF)); \
@@ -163,27 +128,27 @@ __HOT_CODE uint64_t shbp_acquire(struct shbp_aiop *bp)
 	return buf;
 }
 
-__HOT_CODE int shbp_release(struct shbp_aiop *bp, uint64_t buf)
+__HOT_CODE int shbp_release(uint64_t bp, uint64_t buf, struct icontext *ic)
 {
 	struct shbp shbp;
 	uint32_t offset;
 	int err;
 	
 #ifdef DEBUG
-	if ((bp == NULL) || (bp->shbp == 0))
+	if (bp == 0)
 		return -EINVAL;
 #endif
 	
 	buf = CPU_TO_LE64(buf);
 
-	cdma_mutex_lock_take(bp->shbp, CDMA_MUTEX_WRITE_LOCK);
+	cdma_mutex_lock_take(bp, CDMA_MUTEX_WRITE_LOCK);
 	
 	/* Read SHBP structure:
 	 *  */
-	err = icontext_dma_read(&bp->ic, (uint16_t)sizeof(struct shbp), 
-	                        bp->shbp, &shbp);
+	err = icontext_dma_read(ic, (uint16_t)sizeof(struct shbp), 
+	                        bp, &shbp);
 	if (err) {
-		cdma_mutex_lock_release(bp->shbp);
+		cdma_mutex_lock_release(bp);
 		return err;
 	}
 	
@@ -194,7 +159,7 @@ __HOT_CODE int shbp_release(struct shbp_aiop *bp, uint64_t buf)
 	DUMP_SHBP_FREE();
 
 	if (SHBP_FREE_IS_FULL(&shbp)) {
-		cdma_mutex_lock_release(bp->shbp);
+		cdma_mutex_lock_release(bp);
 		return -ENOSPC;
 	}
 	
@@ -202,10 +167,10 @@ __HOT_CODE int shbp_release(struct shbp_aiop *bp, uint64_t buf)
 	 * Write the buffer:
 	 */
 	offset = SHBP_BD_OFF(&shbp, shbp.free.enq);
-	err = icontext_dma_write(&bp->ic, (uint16_t)sizeof(uint64_t), &buf, 
+	err = icontext_dma_write(ic, (uint16_t)sizeof(uint64_t), &buf, 
 	                   shbp.free.base + offset);
 	if (err) {
-		cdma_mutex_lock_release(bp->shbp);
+		cdma_mutex_lock_release(bp);
 		return err;
 	}
 
@@ -215,34 +180,10 @@ __HOT_CODE int shbp_release(struct shbp_aiop *bp, uint64_t buf)
 	offset = SHBP_MEM_OFF(&shbp, &(shbp.free.enq));
 	shbp.free.enq++;
 	shbp.free.enq  = CPU_TO_LE32(shbp.free.enq);
-	err = icontext_dma_write(&bp->ic, (uint16_t)sizeof(uint32_t), 
-	                         &shbp.free.enq, bp->shbp + offset);
+	err = icontext_dma_write(ic, (uint16_t)sizeof(uint32_t), 
+	                         &shbp.free.enq, bp + offset);
 
-	cdma_mutex_lock_release(bp->shbp);
+	cdma_mutex_lock_release(bp);
 	
 	return err;
-}
-
-__COLD_CODE int shbp_enable(uint16_t swc_id, uint64_t shbp_iova, struct shbp_aiop *bp)
-{	
-	int err;
-	
-	if ((shbp_iova == NULL) || (bp == NULL))
-		return -EINVAL;
-		
-	cdma_mutex_lock_take(shbp_iova, CDMA_MUTEX_WRITE_LOCK);
-	
-	bp->shbp = shbp_iova;
-	err = icontext_get(swc_id, &bp->ic);
-	if (err) {
-		cdma_mutex_lock_release(shbp_iova);
-		sl_pr_err("No such isolation context 0x%x\n", swc_id);
-		return -EINVAL;
-	}
-	
-	cdma_mutex_lock_release(shbp_iova);
-	
-	DUMP_AIOP_BP();
-	
-	return 0;
 }
