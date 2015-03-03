@@ -712,7 +712,6 @@ int dpni_drv_get_counter(uint16_t ni_id, enum dpni_counter counter, uint64_t *va
 int dpni_drv_get_dpni_id(uint16_t ni_id, uint16_t *dpni_id){
 	if(ni_id >= dpni_get_num_of_ni())
 	{
-		pr_info("NI %d not found in AIOP table.\n",(int)ni_id);
 		return -ENAVAIL;
 	}
 		
@@ -732,7 +731,6 @@ int dpni_drv_get_ni_id(uint16_t dpni_id, uint16_t *ni_id){
 		}
 	}
 	if(i == dpni_get_num_of_ni()){
-		pr_info("DPNI %d not found in AIOP table.\n",(int)dpni_id);
 		return -ENAVAIL;
 	}
 	return 0;

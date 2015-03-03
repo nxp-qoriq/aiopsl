@@ -60,6 +60,7 @@ void stack_estimation(void)
 	struct slab **my_slab = 0;
 	uint32_t time;
 	uint64_t time_since_epoch;
+	uint64_t ctr_value;
 	uint64_t buff = 0;
 	struct cmdif_desc cidesc = {0};
 	struct icontext ic = {0};
@@ -125,6 +126,9 @@ void stack_estimation(void)
 	dpni_drv_get_connected_dpni_id(ni, &dpni_id, &state);
 	dpni_drv_get_connected_aiop_ni_id(ni, &dpni_id, &state);
 	dpni_drv_get_rx_buffer_layout(ni, &layout);
+	dpni_drv_get_counter(ni, DPNI_CNT_ING_FRAME ,&ctr_value);
+	dpni_drv_get_dpni_id(ni, &dpni_id);
+	dpni_drv_get_ni_id(dpni_id, &ni);
 	dpni_drv_get_link_state(ni, &link_state);
 	dpni_drv_clear_mac_filters(ni, 1, 1);
 	/* SHBP Shared buffer pool */
