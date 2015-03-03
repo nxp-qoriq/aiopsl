@@ -83,8 +83,8 @@ struct shbp_test {
 
 struct cmdif_desc cidesc;
 uint64_t tman_addr;
-struct shbp_aiop lbp;
-struct shbp_aiop gpp_lbp;
+uint64_t lbp;
+uint64_t gpp_lbp;
 int32_t async_count = 0;
 
 static void aiop_ws_check()
@@ -219,14 +219,14 @@ static int ctrl_cb0(void *dev, uint16_t cmd, uint32_t size,
 		pr_debug("Testing GPP SHBP...\n");
 		shbp_test = data;
 		dpci_id = shbp_test->dpci_id;
-		err = shbp_enable(dpci_id, shbp_test->shbp, &gpp_lbp);
-		ASSERT_COND(gpp_lbp.ic.icid != ICONTEXT_INVALID);
+		err = icontext_get(dpci_id, &ic);
+		ASSERT_COND(!err && (ic.icid != ICONTEXT_INVALID));
 
-		temp64 = shbp_acquire(&gpp_lbp);
+		temp64 = shbp_acquire(gpp_lbp, &ic);
 		ASSERT_COND(temp64 == 0);
 		shbp_test->shbp = 0; /* For test on GPP */
 
-		err = shbp_release(&gpp_lbp, p_data);
+		err = shbp_release(gpp_lbp, p_data, &ic);
 		ASSERT_COND(!err);
 
 		fdma_modify_default_segment_data(0, (uint16_t)PRC_GET_SEGMENT_LENGTH());
@@ -235,17 +235,17 @@ static int ctrl_cb0(void *dev, uint16_t cmd, uint32_t size,
 	case SHBP_TEST:
 		shbp_test = data;
 		dpci_id = shbp_test->dpci_id;
-		err = shbp_enable(dpci_id, shbp_test->shbp, &lbp);
-		ASSERT_COND(lbp.ic.icid != ICONTEXT_INVALID);
-		p_data = shbp_acquire(&lbp);
+		err = icontext_get(dpci_id, &ic);
+		ASSERT_COND(!err && (ic.icid != ICONTEXT_INVALID));
+		p_data = shbp_acquire(lbp, &ic);
 		while (p_data != 0) {
 			i++;
-			shbp_write(&lbp, sizeof(uint64_t), &p_data, p_data);
-			shbp_read(&lbp, sizeof(uint64_t), p_data, &temp64);
+			icontext_dma_write(&ic, sizeof(uint64_t), &p_data, p_data);
+			icontext_dma_read(&ic, sizeof(uint64_t), p_data, &temp64);
 			ASSERT_COND(temp64 == p_data);
-			err = shbp_release(&lbp, p_data);
+			err = shbp_release(lbp, p_data, &ic);
 			ASSERT_COND(!err);
-			p_data = shbp_acquire(&lbp);
+			p_data = shbp_acquire(lbp, &ic);
 		}
 		pr_debug("Acquired and released %d buffers from SHBP\n", i);
 		break;
