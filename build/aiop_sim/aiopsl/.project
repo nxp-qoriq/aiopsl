@@ -235,11 +235,6 @@
 			<locationURI>PARENT-3-PROJECT_LOC/src/kernel/cmdif_client.c</locationURI>
 		</link>
 		<link>
-			<name>aiop_sl/kernel/cmdif_client_flib.h</name>
-			<type>1</type>
-			<locationURI>PARENT-3-PROJECT_LOC/src/kernel/cmdif_client_flib.h</locationURI>
-		</link>
-		<link>
 			<name>aiop_sl/kernel/cmdif_client.h</name>
 			<type>1</type>
 			<locationURI>PARENT-3-PROJECT_LOC/src/kernel/cmdif_client.h</locationURI>
@@ -250,14 +245,14 @@
 			<locationURI>PARENT-3-PROJECT_LOC/src/kernel/cmdif_client_flib.c</locationURI>
 		</link>
 		<link>
+			<name>aiop_sl/kernel/cmdif_client_flib.h</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/kernel/cmdif_client_flib.h</locationURI>
+		</link>
+		<link>
 			<name>aiop_sl/kernel/cmdif_srv.c</name>
 			<type>1</type>
 			<locationURI>PARENT-3-PROJECT_LOC/src/kernel/cmdif_srv.c</locationURI>
-		</link>
-		<link>
-			<name>aiop_sl/kernel/cmdif_srv_flib.h</name>
-			<type>1</type>
-			<locationURI>PARENT-3-PROJECT_LOC/src/kernel/cmdif_srv_flib.h</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/kernel/cmdif_srv.h</name>
@@ -268,6 +263,11 @@
 			<name>aiop_sl/kernel/cmdif_srv_flib.c</name>
 			<type>1</type>
 			<locationURI>PARENT-3-PROJECT_LOC/src/kernel/cmdif_srv_flib.c</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/kernel/cmdif_srv_flib.h</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/kernel/cmdif_srv_flib.h</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/kernel/cmgw.c</name>
@@ -408,11 +408,6 @@
 			<name>aiop_sl/lib/shbp.c</name>
 			<type>1</type>
 			<locationURI>PARENT-3-PROJECT_LOC/src/lib/shbp.c</locationURI>
-		</link>
-		<link>
-			<name>aiop_sl/lib/shbp.h</name>
-			<type>1</type>
-			<locationURI>PARENT-3-PROJECT_LOC/src/lib/shbp.h</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/lib/shbp_flib.h</name>
@@ -740,9 +735,9 @@
 			<locationURI>PARENT-3-PROJECT_LOC/src/include/kernel/types_mw.h</locationURI>
 		</link>
 		<link>
-			<name>aiop_sl/include/lib/fsl_shbp_aiop.h</name>
+			<name>aiop_sl/include/lib/fsl_shbp.h</name>
 			<type>1</type>
-			<locationURI>PARENT-3-PROJECT_LOC/src/include/lib/fsl_shbp_aiop.h</locationURI>
+			<locationURI>PARENT-3-PROJECT_LOC/src/include/lib/fsl_shbp.h</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/include/lib/fsl_slab.h</name>

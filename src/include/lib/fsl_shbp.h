@@ -35,7 +35,8 @@
 #ifndef __FSL_SHBP_H
 #define __FSL_SHBP_H
 
-#include <shbp.h>
+#include <types.h>
+#include <fsl_icontext.h>
 
 /*!
  * @Group	shbp_aiop_g  Shared Buffer Pool
@@ -46,76 +47,29 @@
  */
 
 /**
- * @brief	Get the shared handle for this shared pool
- *
- * @param[in]	bp - AIOP buffer pool handle
- *
- * @returns	The address of the shared handle; or NULL code otherwise
- *
- */
-uint64_t shbp_get(struct shbp_aiop *bp);
-
-/**
  * @brief	Get buffer from shared pool
- *
- * @param[in]	bp - AIOP buffer pool handle
- *
+ * Use icontext_dma_read(), icontext_dma_write() to access the data
+ * 
+ * @param[in]	shbp - Buffer pool handle as received from host
+ * @param[in]	ic   - Pointer to isolation context for shared pool
+ * 
  * @returns	Address on Success; or NULL code otherwise
  *
  */
-uint64_t shbp_acquire(struct shbp_aiop *bp);
+uint64_t shbp_acquire(uint64_t shbp, struct icontext *ic);
 
 /**
  * @brief	Return buffer into shared pool
  *
- * @param[in]	bp  - AIOP buffer pool handle
+ * @param[in]	shbp - Buffer pool handle as received from host
  * @param[in]	buf - Buffer address
- *
- * @returns	0 on Success; or error code otherwise
- *
- */
-int shbp_release(struct shbp_aiop *bp, uint64_t buf);
-
-/**
- * @brief	Enable shared buffer pool for AIOP usage 
+ * @param[in]	ic  - Pointer to isolation context for shared pool
  * 
- * Must be called before shared pool usage on AIOP 
- *
- * @param[in]	swc_id    - Software context id (DPCI) of this shared pool
- * @param[in]	shbp_iova - I/O virtual address of shared pool as received 
- * 		from GPP (pointer to struct shbp), should be in Big Endian
- * @param[out]	bp        - AIOP buffer pool handle, must reside in SHRAM
  * @returns	0 on Success; or error code otherwise
  *
  */
-int shbp_enable(uint16_t swc_id, uint64_t shbp_iova, struct shbp_aiop *bp);
+int shbp_release(uint64_t shbp, uint64_t buf, struct icontext *ic);
 
-/**
- * @brief	DMA read into workspace location
- *
- * @param[in]	bp  - AIOP buffer pool handle
- * @param[in]	src - System memory source for DMA data.
- * @param[in]	size - The number of bytes to be copied into dest buffer.
- * @param[out]	dest - Pointer to workspace location to where data should
- *		be copied.
- * @returns	0 on Success; or error code otherwise
- *
- */
-int shbp_read(struct shbp_aiop *bp, uint16_t size, uint64_t src, void *dest);
-
-/**
- * @brief	DMA write from workspace location.
- *
- * @param[in]	bp  - AIOP buffer pool handle
- * @param[in]	src - Pointer to workspace location from where data should
- 		be copied.
- * @param[in]	size - The number of bytes to be copied into dest buffer.
- * @param[out]	dest - System memory target address for DMA data.
- *
- * @returns	0 on Success; or error code otherwise
- *
- */
-int shbp_write(struct shbp_aiop *bp, uint16_t size, void *src, uint64_t dest);
 
 /** @} */ /* end of shbp_aiop_g group */
 

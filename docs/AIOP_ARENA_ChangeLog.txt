@@ -1,3 +1,20 @@
+
+fsl_shbp.h : Added new API shbp_get() that returns shared handle between GPP and AIOP
+
+Reorganize SHBP API and FLIB:
+  new file : src/lib/fsl_shbp_host.h SHBP Host API for GPP
+  renamed  : src/include/lib/fsl_shbp.h      -> src/lib/fsl_shbp_flib.h
+  renamed  : src/include/lib/fsl_shbp_aiop.h -> src/include/lib/fsl_shbp.h  
+  
+  API to be used by AIOP appliocation is : src/include/lib/fsl_shbp.h
+  API to be used by GPP appliocation is : ssrc/lib/fsl_shbp_host.h
+
+Reorganize CMDIF API and FLIB:
+   renamed:    src/include/kernel/fsl_cmdif_flib_c.h -> src/kernel/inc/fsl_cmdif_flib_c.h
+   renamed:    src/include/kernel/fsl_cmdif_fd.h     -> src/kernel/inc/fsl_cmdif_flib_fd.h
+   renamed:    src/include/kernel/fsl_cmdif_flib_s.h -> src/kernel/inc/fsl_cmdif_flib_s.h
+  
+
 dpni_drv.c/fsl_dpni_drv.h: Added API to get dpni link state:
         int dpni_drv_get_link_state(uint16_t ni_id, struct dpni_link_state *state)
         Added API to clear unicast / multicast filters for given NI:

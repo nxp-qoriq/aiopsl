@@ -431,12 +431,18 @@ __COLD_CODE static int build_mem_partitions_table(t_platform  *pltfrm)
 		ASSERT_COND(p_mem_info);
 		switch (p_mem_info->mem_partition_id) {
 		case MEM_PART_DP_DDR:
+#ifndef NO_DP_DDR
 			p_mem_info->virt_base_addr = (uint32_t)g_init_data.sl_info.dp_ddr_vaddr +
 			aiop_lcf_ddr_size + g_boot_mem_mng_size ;
 			p_mem_info->phys_base_addr = g_init_data.sl_info.dp_ddr_paddr +
 				aiop_lcf_ddr_size + g_boot_mem_mng_size;
 			p_mem_info->size = g_init_data.app_info.dp_ddr_size -
 				aiop_lcf_ddr_size - g_boot_mem_mng_size;
+#else
+			p_mem_info->virt_base_addr = (uint32_t)g_init_data.sl_info.dp_ddr_vaddr;
+			p_mem_info->phys_base_addr = g_init_data.sl_info.dp_ddr_paddr;
+			p_mem_info->size = g_init_data.app_info.dp_ddr_size;
+#endif
 			pr_debug("MEM_PART_DP_DDR:virt_add=0x%x,phys_add=0x%x%08x,size=0x%x\n",
 			         p_mem_info->virt_base_addr,
 			         (uint32_t)(p_mem_info->phys_base_addr >> 32),
@@ -454,9 +460,19 @@ __COLD_CODE static int build_mem_partitions_table(t_platform  *pltfrm)
 			         (uint32_t)(p_mem_info->size));
 			break;
 		case  MEM_PART_SYSTEM_DDR:
+#ifndef NO_DP_DDR
 			p_mem_info->virt_base_addr = (uint32_t)g_init_data.sl_info.sys_ddr1_vaddr;
 			p_mem_info->phys_base_addr = g_init_data.sl_info.sys_ddr1_paddr;
 			p_mem_info->size = g_init_data.app_info.sys_ddr1_size;
+#else
+			p_mem_info->virt_base_addr = (uint32_t)g_init_data.sl_info.sys_ddr1_vaddr
+				                   + aiop_lcf_ddr_size + g_boot_mem_mng_size;
+			p_mem_info->phys_base_addr = g_init_data.sl_info.sys_ddr1_paddr
+		                            + aiop_lcf_ddr_size + g_boot_mem_mng_size;
+			p_mem_info->size = g_init_data.app_info.sys_ddr1_size
+				           - aiop_lcf_ddr_size - g_boot_mem_mng_size;
+#endif
+
 			pr_debug("MEM_PART_SYSTEM_DDR:virt_add=0x%x,phys_add=0x%x%08x,size=0x%x\n",
 			         p_mem_info->virt_base_addr,
 			         (uint32_t)(p_mem_info->phys_base_addr >> 32),
