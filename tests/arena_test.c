@@ -393,8 +393,26 @@ int app_init(void)
 			fsl_os_print("dpni_drv_get_link_state succeeded in boot\n");
 			fsl_os_print("link state: %d for ni %d\n", link_state.up, ni);
 		}
-		
 
+		err = dpni_drv_clear_mac_filters((uint16_t) ni, 1, 1);
+		if(err){
+			fsl_os_print("dpni_drv_clear_mac_filters failed %d\n", err);
+			test_error |= 0x01;
+		}
+		else{
+			fsl_os_print("dpni_drv_clear_mac_filters succeeded in boot\n");
+		}
+		
+		err = dpni_drv_add_mac_addr((uint16_t)ni, ((uint8_t []){0x02, 0x00 ,0xc0 ,0x0a8 ,0x0b ,0xfe }));
+
+		if (err){
+			fsl_os_print("dpni_drv_add_mac_addr failed %d\n", err);
+			test_error |= 0x01;
+		}
+		else{
+			fsl_os_print("dpni_drv_add_mac_addr succeeded in boot\n");
+			fsl_os_print("MAC 02:00:C0:A8:0B:FE added for ni %d\n",ni);
+		}
 	}
 
 	err = slab_init();
