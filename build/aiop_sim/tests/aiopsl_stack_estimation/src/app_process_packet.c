@@ -126,6 +126,7 @@ void stack_estimation(void)
 	dpni_drv_get_connected_aiop_ni_id(ni, &dpni_id, &state);
 	dpni_drv_get_rx_buffer_layout(ni, &layout);
 	dpni_drv_get_link_state(ni, &link_state);
+	dpni_drv_clear_mac_filters(ni, 1, 1);
 	/* SHBP Shared buffer pool */
 	shbp_enable(0, 0, &shbp);
 	shbp_acquire(&shbp);
