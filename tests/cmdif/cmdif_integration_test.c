@@ -219,6 +219,8 @@ static int ctrl_cb0(void *dev, uint16_t cmd, uint32_t size,
 		pr_debug("Testing GPP SHBP...\n");
 		shbp_test = data;
 		dpci_id = shbp_test->dpci_id;
+		gpp_lbp = shbp_test->shbp;
+		ASSERT_COND(gpp_lbp);
 		err = icontext_get(dpci_id, &ic);
 		ASSERT_COND(!err && (ic.icid != ICONTEXT_INVALID));
 
@@ -235,6 +237,8 @@ static int ctrl_cb0(void *dev, uint16_t cmd, uint32_t size,
 	case SHBP_TEST:
 		shbp_test = data;
 		dpci_id = shbp_test->dpci_id;
+		lbp = shbp_test->shbp;
+		ASSERT_COND(lbp);
 		err = icontext_get(dpci_id, &ic);
 		ASSERT_COND(!err && (ic.icid != ICONTEXT_INVALID));
 		p_data = shbp_acquire(lbp, &ic);
