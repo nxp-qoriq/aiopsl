@@ -105,6 +105,7 @@ _heap_addr   = ADDR(heap);
 _heap_end    = ADDR(heap)+SIZEOF(heap);
 _ssram_addr  = ADDR(shared_ram);
 _ssram_end   = ADDR(shared_ram)+SIZEOF(shared_ram);
+_ssram_heap_start = ADDR(memory_data) + SIZEOF(memory_data);
 
 /* Exceptions Handlers Location (used in Exceptions.c for IVPR initialization) */
 

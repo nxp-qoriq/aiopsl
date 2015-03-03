@@ -42,7 +42,7 @@
 #define __ERR_MODULE__  MODULE_SOC_PLATFORM
 extern __TASK uint32_t seed_32bit;
 extern struct aiop_init_info g_init_data;
-extern const uint8_t AIOP_DDR_START[],AIOP_DDR_END[];
+extern const uint8_t AIOP_DDR_START[],AIOP_DDR_END[],_ssram_heap_start[],_ssram_addr[];
 
 typedef struct t_platform {
 	/* Copy of platform parameters */
@@ -426,6 +426,7 @@ __COLD_CODE static int build_mem_partitions_table(t_platform  *pltfrm)
 	int                     i;
 	uint32_t                aiop_lcf_ddr_size;
 	aiop_lcf_ddr_size =  (uint32_t)(AIOP_DDR_END) - (uint32_t)(AIOP_DDR_START);
+
 	for (i = 0; i < pltfrm->num_of_mem_parts; i++) {
 		p_mem_info = &pltfrm->param.mem_info[i];
 		ASSERT_COND(p_mem_info);
@@ -505,6 +506,18 @@ __COLD_CODE static int build_mem_partitions_table(t_platform  *pltfrm)
 			         (uint32_t)(p_mem_info->phys_base_addr),
 			         (uint32_t)(p_mem_info->size));
 			break;
+		case MEM_PART_SH_RAM:
+			uint32_t shared_ram_non_heap_size = (uint32_t)_ssram_heap_start -
+							                     (uint32_t)_ssram_addr;
+			p_mem_info->virt_base_addr = (uint32_t)_ssram_heap_start;
+			p_mem_info->phys_base_addr =  p_mem_info->virt_base_addr;
+			p_mem_info->size = SHARED_RAM_SIZE - shared_ram_non_heap_size;
+			pr_debug("MEM_PART_SH_RAM:virt_add= 0x%x,phys_add=0x%x%08x,size=0x%x\n",
+						         p_mem_info->virt_base_addr,
+						         (uint32_t)(p_mem_info->phys_base_addr >> 32),
+						         (uint32_t)(p_mem_info->phys_base_addr),
+						         (uint32_t)(p_mem_info->size));
+		    break;
 		}
 	}
 	return 0;
