@@ -85,6 +85,7 @@ int create_frame(
 #ifndef REV2  /* WA for TKT254401 */	
 	LDPAA_FD_SET_ADDR(fd, fd_addr);
 	LDPAA_FD_SET_LENGTH(fd, 1);
+	LDPAA_FD_SET_BPID(fd, bpid);
 #endif	
 
 	if ((uint32_t)fd == HWC_FD_ADDRESS) {
@@ -193,6 +194,7 @@ int create_fd(
 #ifndef REV2  /* WA for TKT254401 */	
 	LDPAA_FD_SET_ADDR(fd, fd_addr);
 	LDPAA_FD_SET_LENGTH(fd, 1);
+	LDPAA_FD_SET_BPID(fd, bpid);
 #endif	
 
 	if ((uint32_t)fd == HWC_FD_ADDRESS) {
