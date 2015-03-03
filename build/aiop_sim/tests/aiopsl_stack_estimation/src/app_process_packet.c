@@ -37,7 +37,9 @@
 #include "fsl_cmdif_client.h"
 #include "fsl_cmdif_server.h"
 #include "fsl_icontext.h"
+#include "fsl_shbp.h"
 
+int app_early_init(void);
 int app_init(void);
 void app_free(void);
 void stack_estimation(void);
@@ -58,18 +60,21 @@ void stack_estimation(void)
 	struct slab **my_slab = 0;
 	uint32_t time;
 	uint64_t time_since_epoch;
+	uint64_t ctr_value;
 	uint64_t buff = 0;
 	struct cmdif_desc cidesc = {0};
 	struct icontext ic = {0};
 	struct dpni_buffer_layout layout = {0};
 	struct dpkg_profile_cfg key_cfg = {0};
 	struct ldpaa_fd fd = {0};
+	struct dpni_link_state link_state = {0};
 	uint16_t ni = 0, dpni_id, spid, mfl = 0;
 	uint8_t mac_addr[NET_HDR_FLD_ETH_ADDR_SIZE] = {0};
 	int state = 0;
 	rx_cb_t *cb = 0;
 	dpni_drv_app_arg_t arg = 0;
-
+	uint64_t shbp;
+	
 	/*sl_prolog must be called first when packet arrives*/
 	sl_prolog();
 
@@ -103,6 +108,7 @@ void stack_estimation(void)
 	dpni_set_send_niid(ni);
 	dpni_get_send_niid();
 	dpni_drv_get_primary_mac_addr(ni, mac_addr);
+	dpni_drv_set_primary_mac_addr(ni, ((uint8_t []){0x02, 0x00 ,0xc0 ,0x0a8 ,0x0b ,0xfe }));
 	dpni_drv_add_mac_addr(ni, mac_addr);
 	dpni_drv_remove_mac_addr(ni, mac_addr);
 	dpni_drv_set_max_frame_length(ni, mfl);
@@ -115,11 +121,20 @@ void stack_estimation(void)
 	dpni_drv_get_unicast_promisc(ni, &state);
 	dpni_drv_get_spid(ni, &spid);
 	dpni_drv_get_spid_ddr(ni, &spid);
-	dpni_drv_set_order_scope(ni, &key_cfg);
+	/*This function supported in boot mode only*/
+	/*dpni_drv_set_order_scope(ni, &key_cfg); */
 	dpni_drv_get_connected_dpni_id(ni, &dpni_id, &state);
 	dpni_drv_get_connected_aiop_ni_id(ni, &dpni_id, &state);
 	dpni_drv_get_rx_buffer_layout(ni, &layout);
-
+	dpni_drv_get_counter(ni, DPNI_CNT_ING_FRAME ,&ctr_value);
+	dpni_drv_get_dpni_id(ni, &dpni_id);
+	dpni_drv_get_ni_id(dpni_id, &ni);
+	dpni_drv_get_link_state(ni, &link_state);
+	dpni_drv_clear_mac_filters(ni, 1, 1);
+	/* SHBP Shared buffer pool */
+	shbp_acquire(shbp, &ic);
+	shbp_release(shbp, NULL, &ic);
+	
 	/*After packet processing is done, fdma_terminate_task must be called.*/
 	fdma_terminate_task();
 
@@ -141,6 +156,12 @@ int app_init(void)
 
 	fsl_os_print("To start test inject packets: \"eth_ipv4_udp.pcap\"\n");
 
+	return 0;
+}
+
+int app_early_init(void)
+{
+	/* Early initialization */
 	return 0;
 }
 

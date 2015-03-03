@@ -399,8 +399,8 @@ int ipsec_app_init(uint16_t ni_id)
 	/*                    Control Parameters                  */
 	/**********************************************************/
 	/* Set the required algorithms here */
-	//algs = NULL_ENCRYPTION;
-	algs = AES128_SHA256;
+	algs = NULL_ENCRYPTION;
+	//algs = AES128_SHA256;
 	//algs = AES128_SHA1;
 
 	/* Set the outer IP header type here */

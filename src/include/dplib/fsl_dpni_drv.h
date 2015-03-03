@@ -134,6 +134,21 @@ int dpni_get_send_niid(void);
 int dpni_drv_get_primary_mac_addr(uint16_t niid,
 		uint8_t mac_addr[NET_HDR_FLD_ETH_ADDR_SIZE]);
 
+/**************************************************************************//**
+@Function	dpni_drv_set_primary_mac_addr
+
+@Description	Set Primary MAC address of NI.
+
+@Param[in]	niid - The Network Interface ID
+
+@Param[in]	mac_addr - primary MAC address for given NI.
+
+@Return	0 on success; error code, otherwise.
+		For error posix refer to
+		\ref error_g
+*//***************************************************************************/
+int dpni_drv_set_primary_mac_addr(uint16_t niid,
+                uint8_t mac_addr[NET_HDR_FLD_ETH_ADDR_SIZE]);
 
 /**************************************************************************//**
 @Function	dpni_drv_add_mac_address
@@ -462,5 +477,36 @@ int dpni_drv_get_dpni_id(uint16_t ni_id, uint16_t *dpni_id);
 	error code, otherwise. For error posix refer to \ref error_g
 *//***************************************************************************/
 int dpni_drv_get_ni_id(uint16_t dpni_id, uint16_t *ni_id);
+
+/**************************************************************************//**
+@Function	dpni_drv_get_link_state
+
+@Description	Function to receive DPNI link state for given NI.
+
+@Param[in]	ni_id The AIOP Network Interface ID.
+
+@Param[out]	state Returned link state.
+
+@Return	0 on success;
+	error code, otherwise. For error posix refer to \ref error_g
+*//***************************************************************************/
+int dpni_drv_get_link_state(uint16_t ni_id, struct dpni_link_state *state);
+
+/**************************************************************************//**
+@Function	dpni_drv_clear_mac_filters
+
+@Description	Function to clear DPNI unicast or multicast addresses.
+		The primary MAC address is not cleared by this operation.
+
+@Param[in]	ni_id The AIOP Network Interface ID.
+
+@Param[in]	unicast Set to '1' to clear unicast addresses.
+
+@Param[in]	multicast Set to '1' to clear multicast addresses.
+
+@Return	0 on success;
+	error code, otherwise. For error posix refer to \ref error_g
+*//***************************************************************************/
+int dpni_drv_clear_mac_filters(uint16_t ni_id, uint8_t unicast, uint8_t multicast);
 /** @} */ /* end of dpni_g DPNI group */
 #endif /* __FSL_DPNI_DRV_H */

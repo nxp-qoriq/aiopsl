@@ -58,7 +58,6 @@ extern int slab_module_early_init(void);  extern int slab_module_init(void);
 extern void slab_module_free(void);
 extern int aiop_sl_early_init(void);
 extern int aiop_sl_init(void);            extern void aiop_sl_free(void);
-extern int icontext_init();
 
 extern void discard_rx_cb();
 extern void tman_timer_callback(void);
@@ -89,7 +88,6 @@ extern void build_apps_array(struct sys_module_desc *apps);
 
 #define GLOBAL_MODULES                                                       \
 	{    /* slab must be before any module with buffer request*/             \
-	{icontext_init, NULL, NULL},                                             \
 	{NULL, time_init,         time_free},                                    \
 	{NULL, epid_drv_init,     epid_drv_free},                                \
 	{NULL, mc_obj_init,       mc_obj_free},                                  \
@@ -126,15 +124,28 @@ __COLD_CODE void fill_platform_parameters(struct platform_param *platform_param)
 
 	memset(platform_param, 0, sizeof(platform_param));
 
-	platform_param->clock_in_freq_khz = g_init_data.sl_info.sys_clk; //TODO check value
+	platform_param->clock_in_freq_khz = g_init_data.sl_info.platform_clk;
 	platform_param->l1_cache_mode = E_CACHE_MODE_INST_ONLY;
 	platform_param->console_type = PLTFRM_CONSOLE_DUART;
 	platform_param->console_id = (uint8_t)g_init_data.sl_info.uart_port_id;
+	/*
+	 * 0 - Print only to buffer
+	 * 1 - duart1_0
+	 * 2 - duart1_1
+	 * 3 - duart2_0
+	 * 4 - duart2_1
+	 * */
+	if (platform_param->console_id == 0) {
+		platform_param->console_type = PLTFRM_CONSOLE_NONE;		
+	}
 
+	/* Each UART is clocked by the platform clock/2 
+	 * see platform_enable_console() */
 	if(platform_param->clock_in_freq_khz == 0)
 	{
-		platform_param->clock_in_freq_khz = 400000;
-		pr_warn("rcwsr return 0, clock frequency was set to 400000 KHz\n");
+		platform_param->clock_in_freq_khz = 800000;
+		pr_warn("rcwsr return 0, platform clock frequency was set to %d KHz\n", 
+		        platform_param->clock_in_freq_khz);
 	}
 
 	struct platform_memory_info mem_info[] = MEMORY_PARTITIONS;
@@ -532,13 +543,10 @@ int epid_drv_init(void)
 {
 	int i = 0;
 	int err = 0;
-
-	struct aiop_ws_regs *wrks_addr = (struct aiop_ws_regs *)
-			(sys_get_memory_mapped_module_base(FSL_OS_MOD_CMGW,
-			                                   0,
-			                                   E_MAPPED_MEM_TYPE_GEN_REGS)
-			                                   + SOC_PERIPH_OFF_AIOP_WRKS);
-
+	struct aiop_tile_regs *tile_regs = (struct aiop_tile_regs *)
+			sys_get_handle(FSL_OS_MOD_AIOP_TILE, 1);
+	struct aiop_ws_regs *wrks_addr = &tile_regs->ws_regs;
+	
 	/* CMDIF server epid initialization here*/
 	err |= cmdif_epid_setup(wrks_addr, AIOP_EPID_CMDIF_SERVER, cmdif_srv_isr);
 

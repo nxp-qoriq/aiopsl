@@ -83,9 +83,10 @@ int dpni_drv_register_rx_cb (uint16_t		ni_id,
                              rx_cb_t      	*cb)
 {
 	struct dpni_drv *dpni_drv;
-	struct aiop_ws_regs *wrks_addr = (struct aiop_ws_regs *)
-		(sys_get_memory_mapped_module_base(FSL_OS_MOD_CMGW,
-		0, E_MAPPED_MEM_TYPE_GEN_REGS) + SOC_PERIPH_OFF_AIOP_WRKS);
+	struct aiop_tile_regs *tile_regs = (struct aiop_tile_regs *)
+			sys_get_handle(FSL_OS_MOD_AIOP_TILE, 1);
+	struct aiop_ws_regs *wrks_addr = &tile_regs->ws_regs;
+	
 	/* calculate pointer to the send NI structure */
 	dpni_drv = nis + ni_id;
 	lock_spinlock(&dpni_drv->dpni_lock); /*Lock dpni table entry*/
@@ -98,9 +99,10 @@ int dpni_drv_register_rx_cb (uint16_t		ni_id,
 int dpni_drv_unregister_rx_cb (uint16_t		ni_id)
 {
 	struct dpni_drv *dpni_drv;
-	struct aiop_ws_regs *wrks_addr = (struct aiop_ws_regs *)
-			(sys_get_memory_mapped_module_base(FSL_OS_MOD_CMGW,
-			0, E_MAPPED_MEM_TYPE_GEN_REGS) + SOC_PERIPH_OFF_AIOP_WRKS);
+	struct aiop_tile_regs *tile_regs = (struct aiop_tile_regs *)
+			sys_get_handle(FSL_OS_MOD_AIOP_TILE, 1);
+	struct aiop_ws_regs *wrks_addr = &tile_regs->ws_regs;
+	
 	/* calculate pointer to the send NI structure */
 	dpni_drv = nis + ni_id;
 	lock_spinlock(&dpni_drv->dpni_lock); /*Lock dpni table entry*/
@@ -154,11 +156,10 @@ __COLD_CODE int dpni_drv_probe(struct mc_dprc *dprc,
 	struct dpni_buffer_layout layout = {0};
 	struct aiop_psram_entry *sp_addr;
 	struct aiop_psram_entry ddr_storage_profile;
-	struct aiop_ws_regs *wrks_addr = (struct aiop_ws_regs *)
-					(sys_get_memory_mapped_module_base(FSL_OS_MOD_CMGW,
-					                                   0,
-					                                   E_MAPPED_MEM_TYPE_GEN_REGS)
-					                                   + SOC_PERIPH_OFF_AIOP_WRKS);
+	struct aiop_tile_regs *tile_regs = (struct aiop_tile_regs *)
+			sys_get_handle(FSL_OS_MOD_AIOP_TILE, 1);
+	struct aiop_ws_regs *wrks_addr = &tile_regs->ws_regs;
+
 	/* TODO: replace 1024 w/ #define from Yulia */
 	/* Search for NIID (mc_niid) in EPID table and prepare the NI for usage. */
 	for (i = AIOP_EPID_DPNI_START; i < 1024; i++) {
@@ -329,7 +330,35 @@ int dpni_get_num_of_ni (void)
 /* TODO: replace with macro/inline */
 int dpni_drv_get_primary_mac_addr(uint16_t niid, uint8_t mac_addr[NET_HDR_FLD_ETH_ADDR_SIZE])
 {
-	memcpy(mac_addr, nis[niid].mac_addr, NET_HDR_FLD_ETH_ADDR_SIZE);
+	struct dpni_drv *dpni_drv;
+	/* calculate pointer to the NI structure */
+	dpni_drv = nis + niid;
+	
+	lock_spinlock(&dpni_drv->dpni_lock); /*Lock dpni table entry*/
+	memcpy(mac_addr, dpni_drv->mac_addr, NET_HDR_FLD_ETH_ADDR_SIZE);
+	unlock_spinlock(&dpni_drv->dpni_lock); /*Unlock dpni table entry*/
+
+	return 0;
+}
+
+int dpni_drv_set_primary_mac_addr(uint16_t niid, uint8_t mac_addr[NET_HDR_FLD_ETH_ADDR_SIZE])
+{
+	struct dpni_drv *dpni_drv;
+	struct mc_dprc *dprc = sys_get_unique_handle(FSL_OS_MOD_AIOP_RC);
+	int err;
+	/* calculate pointer to the NI structure */
+	dpni_drv = nis + niid;
+
+	lock_spinlock(&dpni_drv->dpni_lock); /*Lock dpni table entry*/
+	err = dpni_set_primary_mac_addr(&dprc->io,
+	                                dpni_drv->dpni_drv_params_var.dpni,
+	                                mac_addr);
+	if(err){
+		unlock_spinlock(&dpni_drv->dpni_lock); /*Unlock dpni table entry*/
+		return err;
+	}
+	memcpy(dpni_drv->mac_addr, mac_addr, NET_HDR_FLD_ETH_ADDR_SIZE);
+	unlock_spinlock(&dpni_drv->dpni_lock); /*Unlock dpni table entry*/
 	return 0;
 }
 
@@ -446,19 +475,20 @@ __COLD_CODE int dpni_drv_init(void)
 	/* Initialize internal AIOP NI table */
 	for (i = 0; i < SOC_MAX_NUM_OF_DPNI; i++) {
 		struct dpni_drv * dpni_drv = nis + i;
-		dpni_drv->dpni_drv_tx_params_var.aiop_niid    = (uint16_t)i;
-		dpni_drv->dpni_id      = 0;
+		dpni_drv->dpni_drv_tx_params_var.aiop_niid = (uint16_t)i;
+		dpni_drv->dpni_id                          = 0;
 		dpni_drv->dpni_drv_params_var.spid         = 0;
 		dpni_drv->dpni_drv_params_var.spid_ddr     = 0;
 		dpni_drv->dpni_drv_params_var.epid_idx     = 0;
 		dpni_drv->dpni_drv_params_var.prpid        = prpid; /*parser profile id from parser_profile_init()*/
 		dpni_drv->dpni_drv_params_var.starting_hxs = 0; //ETH HXS
-		dpni_drv->dpni_drv_tx_params_var.qdid         = 0;
+		dpni_drv->dpni_drv_tx_params_var.qdid      = 0;
 		dpni_drv->dpni_drv_params_var.flags        = DPNI_DRV_FLG_PARSE | DPNI_DRV_FLG_PARSER_DIS;
+		dpni_drv->dpni_lock                        = 0;
 	}
 	/*Window for storage profile ID's to use with DDR target memory*/
 	spid_ddr_id = g_init_data.sl_info.base_spid;
-	spid_ddr_id_last = spid_ddr_id + SOC_MAX_NUM_OF_DPNI;
+	spid_ddr_id_last = spid_ddr_id + g_init_data.app_info.spid_count -1;
 	return error;
 }
 
@@ -525,11 +555,10 @@ int dpni_drv_get_unicast_promisc(uint16_t ni_id, int *en){
 int dpni_drv_get_ordering_mode(uint16_t ni_id){
 	uint32_t ep_osc;
 	struct dpni_drv *dpni_drv;
-	struct aiop_ws_regs *wrks_addr = (struct aiop_ws_regs *)
-		(sys_get_memory_mapped_module_base(FSL_OS_MOD_CMGW,
-						   0,
-						   E_MAPPED_MEM_TYPE_GEN_REGS)
-						   + SOC_PERIPH_OFF_AIOP_WRKS);
+	struct aiop_tile_regs *tile_regs = (struct aiop_tile_regs *)
+			sys_get_handle(FSL_OS_MOD_AIOP_TILE, 1);
+	struct aiop_ws_regs *wrks_addr = &tile_regs->ws_regs;
+
 	/* calculate pointer to the NI structure */
 	dpni_drv = nis + ni_id;
 	/* write epid index to epas register */
@@ -543,11 +572,10 @@ int dpni_drv_get_ordering_mode(uint16_t ni_id){
 static int dpni_drv_set_ordering_mode(uint16_t ni_id, int ep_mode){
 	uint32_t ep_osc;
 	struct dpni_drv *dpni_drv;
-	struct aiop_ws_regs *wrks_addr = (struct aiop_ws_regs *)
-				(sys_get_memory_mapped_module_base(FSL_OS_MOD_CMGW,
-				                                   0,
-				                                   E_MAPPED_MEM_TYPE_GEN_REGS)
-				                                   + SOC_PERIPH_OFF_AIOP_WRKS);
+	struct aiop_tile_regs *tile_regs = (struct aiop_tile_regs *)
+			sys_get_handle(FSL_OS_MOD_AIOP_TILE, 1);
+	struct aiop_ws_regs *wrks_addr = &tile_regs->ws_regs;
+
 	/* calculate pointer to the NI structure */
 	dpni_drv = nis + ni_id;
 	/* write epid index to epas register */
@@ -682,34 +710,51 @@ int dpni_drv_get_counter(uint16_t ni_id, enum dpni_counter counter, uint64_t *va
 }
 
 int dpni_drv_get_dpni_id(uint16_t ni_id, uint16_t *dpni_id){
-	struct dpni_drv *dpni_drv;
-	dpni_drv = nis + ni_id;
 	if(ni_id >= dpni_get_num_of_ni())
 	{
-		pr_info("NI %d not found in AIOP table.\n",(int)ni_id);
 		return -ENAVAIL;
 	}
 		
-	*dpni_id = dpni_drv->dpni_id;
+	*dpni_id = nis[ni_id].dpni_id;
 	return 0;
 }
 
 int dpni_drv_get_ni_id(uint16_t dpni_id, uint16_t *ni_id){
-	struct dpni_drv *dpni_drv;
 	uint16_t i;
-	dpni_drv = nis;
 	
-	for(i = 0; i < dpni_get_num_of_ni(); i++, dpni_drv ++)
+	for(i = 0; i < dpni_get_num_of_ni(); i++)
 	{
-		if(dpni_drv->dpni_id == dpni_id)
+		if(nis[i].dpni_id == dpni_id)
 		{
 			*ni_id = i;
 			break;
 		}
 	}
 	if(i == dpni_get_num_of_ni()){
-		pr_info("DPNI %d not found in AIOP table.\n",(int)dpni_id);
 		return -ENAVAIL;
 	}
 	return 0;
 }
+
+int dpni_drv_get_link_state(uint16_t ni_id, struct dpni_link_state *state){
+	struct dpni_drv *dpni_drv;
+	struct mc_dprc *dprc = sys_get_unique_handle(FSL_OS_MOD_AIOP_RC);
+
+	/* calculate pointer to the NI structure */
+	dpni_drv = nis + ni_id;
+	return dpni_get_link_state(&dprc->io,
+	                                 dpni_drv->dpni_drv_params_var.dpni,
+	                                 state);
+}
+
+int dpni_drv_clear_mac_filters(uint16_t ni_id, uint8_t unicast, uint8_t multicast){
+	struct dpni_drv *dpni_drv;
+	struct mc_dprc *dprc = sys_get_unique_handle(FSL_OS_MOD_AIOP_RC);
+
+	/* calculate pointer to the NI structure */
+	dpni_drv = nis + ni_id;
+	return dpni_clear_mac_filters(&dprc->io,
+	                                 dpni_drv->dpni_drv_params_var.dpni,
+	                                 (int)unicast, (int) multicast);
+}
+

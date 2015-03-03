@@ -40,13 +40,11 @@
 
 /* Global System Object */
 t_system sys = {0};
-
 extern struct aiop_init_info g_init_data;
-extern uint64_t g_log_buf_phys_address;
-extern uint32_t g_log_buf_size;
 
 extern void     __sys_start(register int argc, register char **argv,
 				register char **envp);
+extern int icontext_init();
 
 typedef struct t_sys_forced_object {
 	fsl_handle_t        h_module;
@@ -151,11 +149,12 @@ __COLD_CODE static int sys_init_platform(void)
 				sys.platform_ops.h_platform);
 			if (err != 0) return err;
 		}
-
+#ifdef SIMUALTOR
 		if (!sys.console) {
 			/* If no platform console, register debugger console */
 			sys_register_debugger_console();
 		}
+#endif
 	}
 
 	if (sys.platform_ops.f_init_private) {
@@ -258,6 +257,7 @@ __COLD_CODE static int global_sys_init(void)
 	struct platform_param platform_param;
 	int err = 0;
 	uintptr_t   aiop_base_addr;
+	struct aiop_tile_regs *tile_regs;
 	ASSERT_COND(sys_is_master_core());
 
 	sys.runtime_flag = 0;
@@ -284,14 +284,16 @@ __COLD_CODE static int global_sys_init(void)
 		FSL_OS_MOD_SOC, 1, 0);
 	if (err != 0) return err;
 
-	aiop_base_addr = sys_get_memory_mapped_module_base(FSL_OS_MOD_CMGW,
-	                                      0,
-	                                      E_MAPPED_MEM_TYPE_GEN_REGS);
-
-	cmgw_init((void *)aiop_base_addr);
-
+	aiop_base_addr = AIOP_PERIPHERALS_OFF + SOC_PERIPH_OFF_AIOP_TILE;
 	err = sys_add_handle( (fsl_handle_t)aiop_base_addr,
 	                                      FSL_OS_MOD_AIOP_TILE, 1, 0);
+	if (err != 0) return err;
+	
+	tile_regs = (struct aiop_tile_regs *)aiop_base_addr;
+	cmgw_init((void *)&tile_regs->cmgw_regs);
+	
+	err = sys_add_handle( (fsl_handle_t)&tile_regs->cmgw_regs,
+	                                      FSL_OS_MOD_CMGW, 1, 0);
 	if (err != 0) return err;
 
 	return 0;
@@ -304,15 +306,6 @@ __COLD_CODE int sys_init(void)
 	uint32_t core_id = core_get_id();
 	char pre_console_buf[PRE_CONSOLE_BUF_SIZE];
 
-	memset( &pre_console_buf[0], 0, PRE_CONSOLE_BUF_SIZE);
-	sys.p_pre_console_buf = &pre_console_buf[0];
-
-	if(g_init_data.sl_info.log_buf_size){
-		sys.print_to_buffer = TRUE;
-		g_log_buf_phys_address = g_init_data.sl_info.log_buf_paddr;
-		g_log_buf_size = g_init_data.sl_info.log_buf_size;
-	}
-
 	sys.is_tile_master[core_id] = (int)(SYS_TILE_MASTERS_MASK \
 						& (1ULL << core_id)) ? 1 : 0;
 	sys.is_cluster_master[core_id] = (int)(SYS_CLUSTER_MASTER_MASK \
@@ -321,6 +314,15 @@ __COLD_CODE int sys_init(void)
 	is_master_core = sys_is_master_core();
 
 	if(is_master_core) {
+		/* MUST BE before log_init() because it uses icontext API */
+		icontext_init();
+		memset( &pre_console_buf[0], 0, PRE_CONSOLE_BUF_SIZE);
+		sys.p_pre_console_buf = &pre_console_buf[0];
+		
+		if(g_init_data.sl_info.log_buf_size){
+			log_init();
+			sys.print_to_buffer = TRUE;
+		}
 		err = global_sys_init();
 		if (err != 0) return err;
 

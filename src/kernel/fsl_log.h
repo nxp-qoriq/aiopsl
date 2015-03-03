@@ -23,27 +23,45 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
 /*!
- * @file    shbp_aiop.h
- * @brief   Shared Buffer Pool internal API
- *
- * Internal header file for AIOP.
+ *  @file    fsl_log.h
+ *  @brief   Log API
  *
  */
+#ifndef __FSL_LOG_H
+#define __FSL_LOG_H
 
-#ifndef __SHBP_AIOP_H
-#define __SHBP_AIOP_H
 
-#include <shbp.h>
-#include <fsl_icontext.h>
 
-/**
- * @brief	Structure representing local data for shared pool
- */
-struct shbp_aiop {
-	uint64_t shbp;	/*!< Shared buffer pool structure */
-	struct   icontext ic; 
-};
+#define LOG_INIT_SIGN				"START\nEND\n"
+#define LOG_END_SIGN_LENGTH                     4
 
-#endif /* _SHBP_H */
+
+/*******************************************************************
+ External Routines
+ *******************************************************************/
+
+/**************************************************************************//**
+ @Function      log_init
+
+ @Description   initialize logger to print to buffer
+
+ @Cautions      Only master CORE may call this function. (must be called once).
+*//***************************************************************************/
+int log_init(void);
+
+/**************************************************************************//**
+ @Function      log_print_to_buffer
+
+ @Description  	function to print the log to buffer..
+
+ @Param[in]     str - pointer to generated string which will be printed. 
+
+ @Param[in]     str_length - length of the string given by the pointer.
+
+ @Cautions      This function use fdma accelerator and cann't be called under
+                spinlock.
+*//***************************************************************************/
+void log_print_to_buffer(char *str, uint16_t str_length);
+
+#endif /* __FSL_LOG_H */

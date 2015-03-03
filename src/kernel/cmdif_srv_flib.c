@@ -27,7 +27,7 @@
 #include <cmdif.h>
 #include <fsl_cmdif_flib_s.h>
 #include <fsl_cmdif_client.h>
-#include <cmdif_srv.h>
+#include <cmdif_srv_flib.h>
 
 #ifndef ENAVAIL
 #define ENAVAIL		119	/*!< Resource not available, or not found */

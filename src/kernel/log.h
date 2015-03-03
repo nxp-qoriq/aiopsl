@@ -23,39 +23,22 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+/******************************************************************************
+ @File          log.h
 
-#ifndef __CMDIF_SRV_AIOP_H
-#define __CMDIF_SRV_AIOP_H
+ @Description   LOG internal structures and definitions.
+ *//***************************************************************************/
 
-#include "fsl_cmdif_server.h"
-#include "fsl_cmdif_client.h"
-#include "fsl_mc_init.h"
-#include "cmdif_srv.h"
-#include "fsl_fdma.h"
+#ifndef __LOG_H
+#define __LOG_H
 
-#pragma warning_errors on
-ASSERT_STRUCT_SIZE(CMDIF_SESSION_OPEN_SIZEOF, CMDIF_SESSION_OPEN_SIZE);
-#pragma warning_errors off
+#include "common/types.h"
+#include "sys.h"
+#include <stdio.h>
+#include "fsl_icontext.h"
+#include "aiop_common.h"
+#include "fsl_log.h"
+#include "fsl_spinlock.h"
 
-/** Short macro for fqd_ctx, to be used in CMDIF_FQD_GET */
-#define CMDIF_FQD_CTX_GET \
-	(((struct additional_dequeue_context *)HWC_ADC_ADDRESS)->fqd_ctx)
 
-/** Get command dequeue context */
-#define CMDIF_FQD_GET \
-	(uint32_t)(LLLDW_SWAP((uint32_t)&CMDIF_FQD_CTX_GET, 0) & 0xFFFFFFFF)
-
-struct cmdif_srv_aiop {
-	struct cmdif_srv *srv;
-	/**< Common Server fields */
-	struct mc_dpci_obj *dpci_tbl;
-	/**< DPCI table according to indexes in dequeue context */
-	uint8_t lock;
-	/**< cmdif spinlock used for module id allocation */
-};
-
-void cmdif_srv_isr(void);
-int cmdif_srv_init(void);
-void cmdif_srv_free(void);
-
-#endif /* __CMDIF_SRV_H */
+#endif /* __LOG_H */

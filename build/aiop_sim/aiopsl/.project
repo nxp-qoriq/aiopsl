@@ -22,7 +22,7 @@
 				</dictionary>
 				<dictionary>
 					<key>org.eclipse.cdt.make.core.buildArguments</key>
-					<value></value>
+					<value>-j8</value>
 				</dictionary>
 				<dictionary>
 					<key>org.eclipse.cdt.make.core.buildCommand</key>
@@ -240,14 +240,14 @@
 			<locationURI>PARENT-3-PROJECT_LOC/src/kernel/cmdif_client.h</locationURI>
 		</link>
 		<link>
-			<name>aiop_sl/kernel/cmdif_client_aiop.h</name>
-			<type>1</type>
-			<locationURI>PARENT-3-PROJECT_LOC/src/kernel/cmdif_client_aiop.h</locationURI>
-		</link>
-		<link>
 			<name>aiop_sl/kernel/cmdif_client_flib.c</name>
 			<type>1</type>
 			<locationURI>PARENT-3-PROJECT_LOC/src/kernel/cmdif_client_flib.c</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/kernel/cmdif_client_flib.h</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/kernel/cmdif_client_flib.h</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/kernel/cmdif_srv.c</name>
@@ -260,14 +260,14 @@
 			<locationURI>PARENT-3-PROJECT_LOC/src/kernel/cmdif_srv.h</locationURI>
 		</link>
 		<link>
-			<name>aiop_sl/kernel/cmdif_srv_aiop.h</name>
-			<type>1</type>
-			<locationURI>PARENT-3-PROJECT_LOC/src/kernel/cmdif_srv_aiop.h</locationURI>
-		</link>
-		<link>
 			<name>aiop_sl/kernel/cmdif_srv_flib.c</name>
 			<type>1</type>
 			<locationURI>PARENT-3-PROJECT_LOC/src/kernel/cmdif_srv_flib.c</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/kernel/cmdif_srv_flib.h</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/kernel/cmdif_srv_flib.h</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/kernel/cmgw.c</name>
@@ -300,6 +300,11 @@
 			<locationURI>PARENT-3-PROJECT_LOC/src/kernel/fsl_io_ccsr.h</locationURI>
 		</link>
 		<link>
+			<name>aiop_sl/kernel/fsl_log.h</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/kernel/fsl_log.h</locationURI>
+		</link>
+		<link>
 			<name>aiop_sl/kernel/icontext.c</name>
 			<type>1</type>
 			<locationURI>PARENT-3-PROJECT_LOC/src/kernel/icontext.c</locationURI>
@@ -313,6 +318,16 @@
 			<name>aiop_sl/kernel/inc</name>
 			<type>2</type>
 			<locationURI>virtual:/virtual</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/kernel/log.c</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/kernel/log.c</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/kernel/log.h</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/kernel/log.h</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/kernel/main.c</name>
@@ -390,19 +405,14 @@
 			<locationURI>PARENT-3-PROJECT_LOC/src/lib/memcpy.c</locationURI>
 		</link>
 		<link>
-			<name>aiop_sl/lib/shbp.h</name>
+			<name>aiop_sl/lib/shbp.c</name>
 			<type>1</type>
-			<locationURI>PARENT-3-PROJECT_LOC/src/lib/shbp.h</locationURI>
+			<locationURI>PARENT-3-PROJECT_LOC/src/lib/shbp.c</locationURI>
 		</link>
 		<link>
-			<name>aiop_sl/lib/shbp_aiop.c</name>
+			<name>aiop_sl/lib/shbp_flib.h</name>
 			<type>1</type>
-			<locationURI>PARENT-3-PROJECT_LOC/src/lib/shbp_aiop.c</locationURI>
-		</link>
-		<link>
-			<name>aiop_sl/lib/shbp_aiop.h</name>
-			<type>1</type>
-			<locationURI>PARENT-3-PROJECT_LOC/src/lib/shbp_aiop.h</locationURI>
+			<locationURI>PARENT-3-PROJECT_LOC/src/lib/shbp_flib.h</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/lib/slab.c</name>
@@ -705,21 +715,6 @@
 			<locationURI>PARENT-3-PROJECT_LOC/src/include/kernel/fsl_cmdif_client.h</locationURI>
 		</link>
 		<link>
-			<name>aiop_sl/include/kernel/fsl_cmdif_fd.h</name>
-			<type>1</type>
-			<locationURI>PARENT-3-PROJECT_LOC/src/include/kernel/fsl_cmdif_fd.h</locationURI>
-		</link>
-		<link>
-			<name>aiop_sl/include/kernel/fsl_cmdif_flib_c.h</name>
-			<type>1</type>
-			<locationURI>PARENT-3-PROJECT_LOC/src/include/kernel/fsl_cmdif_flib_c.h</locationURI>
-		</link>
-		<link>
-			<name>aiop_sl/include/kernel/fsl_cmdif_flib_s.h</name>
-			<type>1</type>
-			<locationURI>PARENT-3-PROJECT_LOC/src/include/kernel/fsl_cmdif_flib_s.h</locationURI>
-		</link>
-		<link>
 			<name>aiop_sl/include/kernel/fsl_cmdif_server.h</name>
 			<type>1</type>
 			<locationURI>PARENT-3-PROJECT_LOC/src/include/kernel/fsl_cmdif_server.h</locationURI>
@@ -740,9 +735,9 @@
 			<locationURI>PARENT-3-PROJECT_LOC/src/include/kernel/types_mw.h</locationURI>
 		</link>
 		<link>
-			<name>aiop_sl/include/lib/fsl_shbp_aiop.h</name>
+			<name>aiop_sl/include/lib/fsl_shbp.h</name>
 			<type>1</type>
-			<locationURI>PARENT-3-PROJECT_LOC/src/include/lib/fsl_shbp_aiop.h</locationURI>
+			<locationURI>PARENT-3-PROJECT_LOC/src/include/lib/fsl_shbp.h</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/include/lib/fsl_slab.h</name>
@@ -773,6 +768,21 @@
 			<name>aiop_sl/kernel/inc/errors.h</name>
 			<type>1</type>
 			<locationURI>PARENT-3-PROJECT_LOC/src/kernel/inc/errors.h</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/kernel/inc/fsl_cmdif_flib_c.h</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/kernel/inc/fsl_cmdif_flib_c.h</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/kernel/inc/fsl_cmdif_flib_fd.h</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/kernel/inc/fsl_cmdif_flib_fd.h</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/kernel/inc/fsl_cmdif_flib_s.h</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/kernel/inc/fsl_cmdif_flib_s.h</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/kernel/inc/fsl_core.h</name>

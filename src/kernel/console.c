@@ -31,14 +31,9 @@
 #include "fsl_malloc.h"
 
 #include "inc/console.h"
+#include "fsl_log.h"
 #include "sys.h"
 
-#ifdef AIOP
-#include "fsl_icontext.h"
-uint64_t g_log_buf_phys_address;
-uint32_t g_log_buf_size;
-uint32_t g_log_buf_count = 0;
-#endif
 
 #ifdef SIMULATOR
 static int system_call(int num, int arg0, int arg1, int arg2, int arg3)
@@ -152,60 +147,23 @@ int sys_unregister_console(void)
 	return 0;
 }
 
-static void sys_print_to_buffer(char *str, uint16_t str_length)
-{
-	uint16_t temp_count;
-	uint32_t local_counter = g_log_buf_count;
-	struct icontext ic;
-	icontext_aiop_get(&ic);
-
-	if(str_length > g_log_buf_size) /*in case the length is to big */
-		return;
-
-	/*Fast phase*/
-	if(local_counter + str_length <= g_log_buf_size)
-	{
-		/* Enough buffer*/
-		g_log_buf_count += str_length;
-		/*unlock spinlock*/
-		unlock_spinlock(&(sys.console_lock));
-		icontext_dma_write(&ic, str_length, str, g_log_buf_phys_address + local_counter);
-	}
-	else
-	{
-		temp_count = str_length - (uint16_t)(g_log_buf_size - local_counter);
-		str_length -= temp_count;
-		g_log_buf_count = str_length; /*The counter will point to the end of the string from the beginning of buffer*/
-		unlock_spinlock(&(sys.console_lock));
-		icontext_dma_write(&ic, temp_count, str, g_log_buf_phys_address + local_counter);
-		str += temp_count;
-		icontext_dma_write(&ic, str_length, str, g_log_buf_phys_address );
-	}
-	/*lock spinlock*/
-	lock_spinlock(&(sys.console_lock));
-}
-
 /*****************************************************************************/
 void sys_print(char *str)
 {
-	uint32_t count;
+	uint32_t count = (uint32_t)strlen(str);
 
 #ifdef AIOP
+	if(sys.print_to_buffer)
+		/*print to buffer using fdma (the pointer to buffer inside spinlock for safety)*/
+		log_print_to_buffer(str, (uint16_t)count);/*Don't call this function if you under spinlock*/
+
 	lock_spinlock(&(sys.console_lock));
 #else
 	uint32_t int_flags;
 	int_flags = spin_lock_irqsave(&(sys.console_lock));
 #endif
-	count = (uint32_t)strlen(str);
-
-
-#ifdef AIOP
-	if(sys.print_to_buffer)
-		/*print to buffer using fdma (the pointer to buffer inside spinlock for safety)*/
-		sys_print_to_buffer(str, (uint16_t)count);
-#endif
-
 	/* Print to the registered console, if exists */
+#pragma fn_ptr_candidates(console_print_cb)
 	if (sys.console)
 		sys.f_console_print(sys.console, (uint8_t *)str, count);
 #ifndef STACK_CHECK /*Printing to pre console buffer should not be checked - happens only in boot*/

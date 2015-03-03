@@ -263,18 +263,6 @@ do { \
 #endif /* (defined(DEBUG_USING_STATIC_LEVEL) && (DEBUG_DYNAMIC_LEVEL < WARNING)) */
 #endif /* (!defined(DEBUG_ERRORS) || (DEBUG_ERRORS == 0)) */
 
-#ifndef SL_DEBUG
-#define SL_DBG(_level, ...)
-#else
-#define SL_DBG(_level, ...) \
-do { \
-        fsl_os_print("> %s " PRINT_FORMAT ": ", \
-                     dbg_level_strings[_level - 1], \
-                     PRINT_FMT_PARAMS); \
-        fsl_os_print(__VA_ARGS__); \
-        /*fsl_os_print("\r\n");*/ \
-} while (0)
-#endif /* !defined(SL_DEBUG) */
 
 
 /** @} */ /* end of dump_g group */

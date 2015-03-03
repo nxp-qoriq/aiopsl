@@ -225,14 +225,20 @@ static int check_get_mem_size_alignment()
 	uint64_t alignment =  size;
 
 	if((rc = sys_get_phys_addr_alloc_partition_info(MEM_PART_DP_DDR,
-													&dp_ddr_info)) != 0)
+													&dp_ddr_info)) != 0){
+        fsl_os_print("sys_get_phys_addr_alloc_partition_info for MEM_PART_DP_DDR failed\n");
 		return rc;
+	}
 	if((rc = sys_get_phys_addr_alloc_partition_info(MEM_PART_SYSTEM_DDR,
-													&sys_ddr_info)) != 0)
+													&sys_ddr_info)) != 0){
+		fsl_os_print("sys_get_phys_addr_alloc_partition_info for MEM_PART_SYSTEM_DDR failed\n");
 		return rc;
+	}
 	if((rc = sys_get_phys_addr_alloc_partition_info(MEM_PART_PEB,
-													&peb_info)) != 0)
+													&peb_info)) != 0){
+		fsl_os_print("sys_get_phys_addr_alloc_partition_info for MEM_PART_PEB failed\n");
 		return rc;
+	}
 	
 	/* test get_mem() for MEM_PART_DP_DDR */
 	if((local_error = fsl_os_get_mem(size,MEM_PART_DP_DDR,alignment,&paddr)) != 0){

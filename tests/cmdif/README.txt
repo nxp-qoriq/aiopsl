@@ -4,34 +4,34 @@ CMDIF files to copy from <ldpaa-aiop-sl-tag>:
 cmdif.h              aiopsl\src\arch\ppc\platform\ls2085a_gpp
 fsl_cmdif_client.h   aiopsl\src\include\kernel
 fsl_cmdif_server.h   aiopsl\src\include\kernel
-fsl_cmdif_fd.h       aiopsl\src\include\kernel
-fsl_cmdif_flib_c.h   aiopsl\src\include\kernel
-fsl_cmdif_flib_s.h   aiopsl\src\include\kernel
-cmdif_client.h       aiopsl\src\kernel
-cmdif_srv.h          aiopsl\src\kernel
+fsl_cmdif_flib_fd.h  aiopsl\src\kernel\inc
+fsl_cmdif_flib_c.h   aiopsl\src\kernel\inc
+fsl_cmdif_flib_s.h   aiopsl\src\kernel\inc
+cmdif_client_flib.h  aiopsl\src\kernel
+cmdif_srv_flib.h     aiopsl\src\kernel
 cmdif_client_flib.c  aiopsl\src\kernel
 cmdif_srv_flib.c     aiopsl\src\kernel
-fsl_shbp.h           aiopsl\src\include\lib
-shbp.h               aiopsl\src\lib
-shbp.c               aiopsl\src\lib
+fsl_shbp_flib.h      aiopsl\src\lib
+fsl_shbp_host.h      aiopsl\src\lib
+shbp_flib.h          aiopsl\src\lib
+shbp_flib.c          aiopsl\src\lib
 
 =================================
 Test Files:
 =================================
 mc\tests\cmdif_gpp\srv\cmdif_srv_test.c           - Example for Server test (based MC).
+mc\tests\cmdif_gpp\shbp\shbp_host.c               - Example for SHBP host implementation (based MC).
 nadk_develop\apps\cmdif_demo\cmdif_server_demo.c  - Example for GPP Server test. To be tested with cmdif_integ_dbg.elf AIOP test.
 nadk_develop\apps\cmdif_demo\cmdif_client_demo.c  - Example for GPP Client test. To be tested with cmdif_integ_dbg.elf AIOP test.
 aiopsl\build\aiop_sim\tests\cmdif_test\integ_out\cmdif_integ_dbg.elf - This is AIOP elf to be used for CMDIF tests.
 aiopsl\tests\cmdif\cmdif_integration_test.c                          - Source code of cmdif_integ_dbg.elf.
-aiopsl\tests\cmdif\nadk\cmdif_client_demo.c	                         - Source code of nadk based test used for testing fsl_shbp.h
+aiopsl\tests\cmdif\nadk\cmdif_client_demo.c	                     - Source code of nadk based test used for testing fsl_shbp_flib.h
 
 What's new:
 ------------
-1. CMDIF API and FLIBS have been updated to support virtual addresses
-2. AIOP client and Server have been updated to support SMMU enabled.
-3. Added isolation context dependent API, see fsl_icontext.h.
-   This is the API to be used on AIOP for accessing GPP buffers -
-   read/write/acquire/release.
+1. Added fsl_shbp_flib.h, fsl_shbp_host.h
+2. Added flib postfix to all flib files, see the new naming above.
+3. Remove aiop postfix at shbp API for AIOP.
 
 =================================
 GPP client side:

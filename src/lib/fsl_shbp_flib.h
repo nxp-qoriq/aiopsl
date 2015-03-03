@@ -25,26 +25,36 @@
  */
 
 /*!
- * @file    fsl_shbp_gpp.h
- * @brief   Shared Buffer Pool wrapper API for fsl_shbp.h
+ * @file    fsl_shbp.h
+ * @brief   Shared Buffer Pool API for the side that creates the pool (not AIOP)
  *
  *
  */
 
-#ifndef __FSL_SHBP_GPP_H
-#define __FSL_SHBP_GPP_H
+#ifndef __FSL_SHBP_FLIB_H
+#define __FSL_SHBP_FLIB_H
 
-#include <fsl_shbp.h>
+#include <shbp_flib.h>
 
 /*!
- * @Group	shbp_gpp_g  Shared Buffer Pool API
+ * @Group	shbp_g  Shared Buffer Pool API
  *
- * @brief	API to be used by GPP application for shared buffer pool.
+ * @brief	API to be used for shared buffer pool.
  *
  * @{
  */
 
-struct shbp_gpp;
+/*!
+ * @details	Calculator for 'mem_ptr' size for shbp_create(). num_bufs must
+ *		be 2^x and higher than 8.
+ *
+ * @param[in]	num_bufs - Number of buffers which will be added into the
+ *		SHBP pool. num_bufs must be 2^x and higher than 8.
+ *
+ * @returns	The 'mem_ptr' size required by shbp_create()
+ *
+ */
+uint32_t shbp_flib_mem_ptr_size(uint32_t num_bufs);
 
 /**
  * @brief	Get buffer from shared pool
@@ -54,59 +64,66 @@ struct shbp_gpp;
  * @returns	Address on Success; or NULL code otherwise
  *
  */
-void *shbp_gpp_acquire(struct shbp_gpp *bp);
+void *shbp_flib_acquire(struct shbp *bp);
 
 /**
  * @brief	Return or add buffer into the shared pool
  *
  * @param[in]	bp  - Buffer pool handle
  * @param[in]	buf - Pointer to buffer
- *
+ * 
  * @returns	0 on Success; or POSIX error code otherwise
  *
  */
-int shbp_gpp_release(struct shbp_gpp *bp, void *buf);
+int shbp_flib_release(struct shbp *bp, void *buf);
 
 /**
- * @brief	Create empty shared pool
+ * @brief	Create shared pool from a given buffer
+ * 
+ * The shared pool is created as empty, use shbp_release() to fill it  
  *
- * The shared pool is created as empty, use shbp_gpp_release() to fill it
- *
- * @param[in]	flags    - Flags to be used for pool creation, 0 means AIOP is
- * 		the allocation master, #SHBP_GPP_MASTER means GPP is
- * 		the allocation master.
- * @param[in]	buf_num  - Number of buffers, maximal pool capacity
+ * @param[in]	mem_ptr  - Pointer to memory to be used for shared management;
+ * 		it should be aligned to cache line.
+ * 		It must be from Write-Back Cacheable and Outer Shareable memory 		
+ * 		
+ * @param[in]	size     - Size of mem_ptr
+ * @param[in]	flags    - Flags to be used for pool creation, 0 means AIOP is 
+ * 		the allocation master. See #SHBP_GPP_MASTER.
  * @param[out]  bp       - Pointer to shared pool handle
+ * 
  * @returns	0 on Success; or POSIX error code otherwise
+ * 	
  *
  */
-int shbp_gpp_create(uint32_t flags, uint32_t buf_num, struct shbp_gpp *bp);
+int shbp_flib_create(void *mem_ptr, uint32_t size, uint32_t flags, struct shbp **bp);
 
 /**
  * @brief	Move free buffers into allocation queue
  *
  * @param[in]	bp  - Buffer pool handle
  *
- * @returns	POSIX error code on failure or the number of the buffers added
+ * @returns	POSIX error code on failure or the number of the buffers added 
  * 		to the allocation queue
  *
  */
-int shbp_gpp_refill(struct shbp_gpp *bp);
+int shbp_flib_refill(struct shbp *bp);
 
 
 /**
  * @brief	Returns the pointers from pool that need to be freed upon pool
- * 		destruction
- *
- * Pointer to struct shbp will not be returned by shbp_destroy() but it
- * must be freed by user
- *
+ * 		destruction 
+ * 
+ * Pointer to struct shbp will not be returned by shbp_destroy() but it 
+ * must be freed by user 
+ * 
  * @param[in]	bp       - Buffer pool handle
- *
- * @returns	0 on Success; or POSIX error code otherwise
+ * @param[out]	ptr      - Pointer to be freed for pool destruction 
+ * 
+ * @returns	POSIX error code until there are buffers inside shared pool 
+ * 		that need to be freed, 0 if there are no buffers to be freed
  *
  */
-int shbp_gpp_destroy(struct shbp_gpp *bp);
+int shbp_flib_destroy(struct shbp *bp, void **ptr);
 
 /** @} */ /* end of shbp_g group */
 

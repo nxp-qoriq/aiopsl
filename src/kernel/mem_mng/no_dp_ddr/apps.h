@@ -53,9 +53,14 @@
 		All the sizes should be aligned to a power of 2.
 @{
 *//***************************************************************************/
-#define APP_MEM_DP_DDR_SIZE	(128 * MEGABYTE)/**< DP DDR size */ 
 #define APP_MEM_PEB_SIZE	(512 * KILOBYTE)/**< PEB size */
+#ifndef NO_DP_DDR
+#define APP_MEM_DP_DDR_SIZE	(128 * MEGABYTE)/**< DP DDR size */ 
 #define APP_MEM_SYS_DDR1_SIZE	(4 * MEGABYTE)/**< System DDR size */
+#else
+#define APP_MEM_DP_DDR_SIZE	0/**< DP DDR size */
+#define APP_MEM_SYS_DDR1_SIZE  (4 * MEGABYTE) /**< System DDR size */
+#endif
 
 /** @} */ /* end of app_mem */
 
@@ -67,7 +72,11 @@
 *//***************************************************************************/
 
 #define APP_CTLU_SYS_DDR_NUM_ENTRIES	2048 /**< SYS DDR number of entries */
+#ifndef NO_DP_DDR
 #define APP_CTLU_DP_DDR_NUM_ENTRIES	2048 /**< DP DDR number of entries */
+#else
+#define APP_CTLU_DP_DDR_NUM_ENTRIES	0 /**< DP DDR number of entries */
+#endif
 #define APP_CTLU_PEB_NUM_ENTRIES	2048 /**< PEB number of entries */
 
 /** @} */ /* end of app_ctlu */
@@ -80,7 +89,11 @@
 *//***************************************************************************/
 
 #define APP_MFLU_SYS_DDR_NUM_ENTRIES	2048 /**< SYS DDR number of entries */
+#ifndef  NO_DP_DDR
 #define APP_MFLU_DP_DDR_NUM_ENTRIES	2048 /**< DP DDR number of entries */
+#else
+#define APP_MFLU_DP_DDR_NUM_ENTRIES	0 /**< DP DDR number of entries */
+#endif
 #define APP_MFLU_PEB_NUM_ENTRIES	2048 /**< PEB number of entries */
 
 /** @} */ /* end of app_mflu */

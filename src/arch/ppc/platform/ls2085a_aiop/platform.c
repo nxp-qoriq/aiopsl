@@ -157,13 +157,7 @@ __COLD_CODE static int disable_l1_cache(t_platform *pltfrm)
 /*****************************************************************************/
 static int console_print_cb(fsl_handle_t h_console_dev, uint8_t *p_data, uint32_t size)
 {
-	int err;
-
-	err = duart_tx(h_console_dev, p_data, size);
-	if (err != 0)
-		return 0;
-
-	return (int)size;
+	return duart_tx(h_console_dev, p_data, size);
 }
 
 /*****************************************************************************/
@@ -286,7 +280,7 @@ __COLD_CODE static int pltfrm_init_core_cb(fsl_handle_t h_platform)
 	/* Initialize PPC interrupts vector                     */
 	/*------------------------------------------------------*/
 	booke_generic_irq_init();
-
+	
 #ifndef DEBUG
 	/* Enable the BTB - branches predictor */
 	booke_set_spr_BUCSR(booke_get_spr_BUCSR() | 0x00000201);
@@ -381,6 +375,10 @@ __COLD_CODE static int pltfrm_init_mem_partitions_cb(fsl_handle_t h_platform)
 
 	build_mem_partitions_table(pltfrm);
 
+	err = sys_add_handle( (fsl_handle_t)pltfrm->mc_portals_base, FSL_OS_MOD_MC_PORTAL, 1, 0);
+	if (err != 0) 
+		RETURN_ERROR(MAJOR, err, NO_MSG);
+	
 	for (i = 0; i < pltfrm->num_of_mem_parts; i++) {
 		p_mem_info = &pltfrm->param.mem_info[i];
 		virt_base_addr = p_mem_info->virt_base_addr;
@@ -433,12 +431,18 @@ __COLD_CODE static int build_mem_partitions_table(t_platform  *pltfrm)
 		ASSERT_COND(p_mem_info);
 		switch (p_mem_info->mem_partition_id) {
 		case MEM_PART_DP_DDR:
+#ifndef NO_DP_DDR
 			p_mem_info->virt_base_addr = (uint32_t)g_init_data.sl_info.dp_ddr_vaddr +
 			aiop_lcf_ddr_size + g_boot_mem_mng_size ;
 			p_mem_info->phys_base_addr = g_init_data.sl_info.dp_ddr_paddr +
 				aiop_lcf_ddr_size + g_boot_mem_mng_size;
 			p_mem_info->size = g_init_data.app_info.dp_ddr_size -
 				aiop_lcf_ddr_size - g_boot_mem_mng_size;
+#else
+			p_mem_info->virt_base_addr = (uint32_t)g_init_data.sl_info.dp_ddr_vaddr;
+			p_mem_info->phys_base_addr = g_init_data.sl_info.dp_ddr_paddr;
+			p_mem_info->size = g_init_data.app_info.dp_ddr_size;
+#endif
 			pr_debug("MEM_PART_DP_DDR:virt_add=0x%x,phys_add=0x%x%08x,size=0x%x\n",
 			         p_mem_info->virt_base_addr,
 			         (uint32_t)(p_mem_info->phys_base_addr >> 32),
@@ -456,9 +460,19 @@ __COLD_CODE static int build_mem_partitions_table(t_platform  *pltfrm)
 			         (uint32_t)(p_mem_info->size));
 			break;
 		case  MEM_PART_SYSTEM_DDR:
+#ifndef NO_DP_DDR
 			p_mem_info->virt_base_addr = (uint32_t)g_init_data.sl_info.sys_ddr1_vaddr;
 			p_mem_info->phys_base_addr = g_init_data.sl_info.sys_ddr1_paddr;
 			p_mem_info->size = g_init_data.app_info.sys_ddr1_size;
+#else
+			p_mem_info->virt_base_addr = (uint32_t)g_init_data.sl_info.sys_ddr1_vaddr
+				                   + aiop_lcf_ddr_size + g_boot_mem_mng_size;
+			p_mem_info->phys_base_addr = g_init_data.sl_info.sys_ddr1_paddr
+		                            + aiop_lcf_ddr_size + g_boot_mem_mng_size;
+			p_mem_info->size = g_init_data.app_info.sys_ddr1_size
+				           - aiop_lcf_ddr_size - g_boot_mem_mng_size;
+#endif
+
 			pr_debug("MEM_PART_SYSTEM_DDR:virt_add=0x%x,phys_add=0x%x%08x,size=0x%x\n",
 			         p_mem_info->virt_base_addr,
 			         (uint32_t)(p_mem_info->phys_base_addr >> 32),
@@ -637,44 +651,6 @@ __COLD_CODE int platform_free(fsl_handle_t h_platform)
 }
 
 /*****************************************************************************/
-__COLD_CODE uintptr_t platform_get_memory_mapped_module_base(fsl_handle_t        h_platform,
-                                                             enum fsl_os_module     module,
-                                                             uint32_t               id,
-                                                             e_mapped_mem_type mapped_mem_type)
-{
-	t_platform  *pltfrm = (t_platform *)h_platform;
-	int         i;
-
-	t_sys_to_part_offset_map part_offset_map[] =
-	{
-	 /* module                     id   mappedMemType                  offset
-           ------                     --   -------------                  ------                      */
-	 { FSL_OS_MOD_CMGW,            0,  E_MAPPED_MEM_TYPE_GEN_REGS,     SOC_PERIPH_OFF_AIOP_TILE+SOC_PERIPH_OFF_AIOP_CMGW}
-	};
-
-	SANITY_CHECK_RETURN_VALUE(pltfrm, ENODEV, 0);
-
-	if (module == FSL_OS_MOD_MC_PORTAL)
-		return (uintptr_t)(pltfrm->mc_portals_base + SOC_PERIPH_OFF_PORTALS_MC(id));
-	if (module == FSL_OS_MOD_CMGW) {
-		for (i = 0; i < ARRAY_SIZE(part_offset_map); i++)
-			if ((part_offset_map[i].module        == module)  &&
-				(part_offset_map[i].id            == id)      &&
-				(part_offset_map[i].mapped_mem_type == mapped_mem_type))
-				return (uintptr_t)(pltfrm->aiop_base + part_offset_map[i].offset);
-	} else {
-		for (i = 0; i < ARRAY_SIZE(part_offset_map); i++)
-			if ((part_offset_map[i].module        == module)  &&
-				(part_offset_map[i].id            == id)      &&
-				(part_offset_map[i].mapped_mem_type == mapped_mem_type))
-				return (uintptr_t)(pltfrm->ccsr_base + part_offset_map[i].offset);
-	}
-
-	REPORT_ERROR(MAJOR, E_NOT_FOUND, ("module base"));
-	return 0;
-}
-
-/*****************************************************************************/
 uint32_t platform_get_system_bus_clk(fsl_handle_t h_platform)
 {
 	t_platform  *pltfrm = (t_platform *)h_platform;
@@ -700,18 +676,8 @@ __COLD_CODE int platform_enable_console(fsl_handle_t h_platform)
 	                               SOC_PERIPH_OFF_DUART4
 	};
 	SANITY_CHECK_RETURN_ERROR(pltfrm, ENODEV);
-#ifdef UART_OVERRIDE
-	/*
-	 * 0 - Print only to buffer
-	 * 1 - duart1_0
-	 * 2 - duart1_1
-	 * 3 - duart2_0
-	 * 4 - duart2_1
-	 * */
-	pltfrm->param.console_id = MANUAL_UART_ID;
-#endif
-	if(pltfrm->param.console_type == PLTFRM_CONSOLE_NONE || 
-		pltfrm->param.console_id == 0)/*if console id is 0, print to buffer*/
+
+	if(pltfrm->param.console_type == PLTFRM_CONSOLE_NONE)/*if console id is 0, print to buffer*/
 		return -ENAVAIL;
 
 
@@ -723,7 +689,8 @@ __COLD_CODE int platform_enable_console(fsl_handle_t h_platform)
 	/* Fill DUART configuration parameters */
 	duart_uart_param.irq                = NO_IRQ;
 	duart_uart_param.base_address       = pltfrm->ccsr_base + uart_port_offset[ pltfrm->param.console_id];
-	duart_uart_param.system_clock_mhz   = (platform_get_system_bus_clk(pltfrm) / 1000);
+	/* Each UART is clocked by the platform clock/2 */
+	duart_uart_param.system_clock_mhz   = (platform_get_system_bus_clk(pltfrm) / 1000) / 2;
 	duart_uart_param.baud_rate          = 115200;
 	duart_uart_param.parity             = E_DUART_PARITY_NONE;
 	duart_uart_param.data_bits          = E_DUART_DATA_BITS_8;

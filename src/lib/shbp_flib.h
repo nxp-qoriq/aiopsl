@@ -25,15 +25,15 @@
  */
 
 /*!
- * @file    shbp.h
+ * @file    shbp_flib.h
  * @brief   Shared Buffer Pool API
  *
  * Internal header file shared by AIOP and GPP.
  *
  */
 
-#ifndef __SHBP_H
-#define __SHBP_H
+#ifndef __SHBP_FLIB_H
+#define __SHBP_FLIB_H
 
 #include <cmdif.h>
 
@@ -90,6 +90,9 @@ struct shbp_bd_meta {
 #define SHBP_MEM_OFF(SHBP, PTR) (uint32_t)((uint8_t *)(PTR) - (uint8_t *)(SHBP))
 /*!< Member offset in bytes */
 
+#define SHBP_HOST_BYTES		16
+/*!< Bytes that are used by host */
+
 /**
  * @brief	Structure representing one ring
  */
@@ -112,7 +115,10 @@ struct shbp {
 	/*!< Master of the allocation, must be 1 byte */
 	uint8_t max_num;	
 	/*!< Max number of BDs in the pool is 2^max_buf, must be 1 byte */
+	uint8_t host_user_space[SHBP_HOST_BYTES];
+	/*!< Space to be used by host implementation */
+	
 	/* See also SHBP_TOTAL_BYTES */
 };
 
-#endif /* _SHBP_H */
+#endif /* _SHBP_FLIB_H */

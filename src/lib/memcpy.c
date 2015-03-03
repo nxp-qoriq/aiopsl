@@ -30,7 +30,19 @@
 #include "common/fsl_string.h"
 #include "fsl_io.h"
 
-#ifdef ARENA_LEGACY_CODE
+
+#if 0
+#define WRITE_UINT8(arg, data)      *(volatile uint8_t *)(&(arg)) = (data)
+#define WRITE_UINT16(arg, data)     *(volatile uint16_t*)(&(arg)) = (data)
+#define WRITE_UINT32(arg, data)     *(volatile uint32_t*)(&(arg)) = (data)
+#define WRITE_UINT64(arg, data)     *(volatile uint64_t*)(&(arg)) = (data)
+
+#define GET_UINT8(arg)              *(volatile uint8_t *)(&(arg))
+#define GET_UINT16(arg)             *(volatile uint16_t*)(&(arg))
+#define GET_UINT32(arg)             *(volatile uint32_t*)(&(arg))
+#define GET_UINT64(arg)             *(volatile uint64_t*)(&(arg))
+#endif
+
 void *memcpy32(void* p_dst, void* p_src, uint32_t size)
 {
     uint32_t left_align;
@@ -105,6 +117,79 @@ void *memcpy32(void* p_dst, void* p_src, uint32_t size)
     return p_dst;
 }
 
+void * memcpy64(void* p_dst,void* p_src, uint32_t size)
+{
+    uint32_t left_align;
+    uint32_t right_align;
+    uint64_t last_word;
+    uint64_t curr_word;
+    uint64_t *p_src64;
+    uint64_t *p_dst64;
+    uint8_t  *p_src8;
+    uint8_t  *p_dst8;
+
+    p_src8 = (uint8_t*)(p_src);
+    p_dst8 = (uint8_t*)(p_dst);
+    /* first copy byte by byte till the source first alignment
+     * this step is necessarily to ensure we do not even try to access
+     * data which is before the source buffer, hence it is not ours.
+     */
+    while((PTR_TO_UINT(p_src8) & 7) && size) /* (pSrc mod 8) > 0 and size > 0 */
+    {
+        *p_dst8++ = *p_src8++;
+        size--;
+    }
+
+    /* align destination (possibly disaligning source)*/
+    while((PTR_TO_UINT(p_dst8) & 7) && size) /* (pDst mod 8) > 0 and size > 0 */
+    {
+        *p_dst8++ = *p_src8++;
+        size--;
+    }
+
+    /* dest is aligned and source is not necessarily aligned */
+    left_align = (uint32_t)((PTR_TO_UINT(p_src8) & 7) << 3); /* leftAlign = (pSrc mod 8)*8 */
+    right_align = 64 - left_align;
+
+
+    if (left_align == 0)
+    {
+        /* source is also aligned */
+        p_src64 = (uint64_t*)(p_src8);
+        p_dst64 = (uint64_t*)(p_dst8);
+        while (size >> 3) /* size >= 8 */
+        {
+            *p_dst64++ = *p_src64++;
+            size -= 8;
+        }
+        p_src8 = (uint8_t*)(p_src64);
+        p_dst8 = (uint8_t*)(p_dst64);
+    }
+    else
+    {
+        /* source is not aligned (destination is aligned)*/
+        p_src64 = (uint64_t*)(p_src8 - (left_align >> 3));
+        p_dst64 = (uint64_t*)(p_dst8);
+        last_word = *p_src64++;
+        while(size >> 4) /* size >= 16 */
+        {
+            curr_word = *p_src64;
+            *p_dst64 = (last_word << left_align) | (curr_word >> right_align);
+            last_word = curr_word;
+            p_src64++;
+            p_dst64++;
+            size -= 8;
+        }
+        p_dst8 = (uint8_t*)(p_dst64);
+        p_src8 = (uint8_t*)(p_src64) - 8 + (left_align >> 3);
+    }
+
+    /* complete the left overs */
+    while (size--)
+        *p_dst8++ = *p_src8++;
+
+    return p_dst;
+}
 #if 0
 void * io2iocpy32(void* p_dst,void* p_src, uint32_t size)
 {
@@ -341,80 +426,7 @@ void * io2memcpy32(void* p_dst,void* p_src, uint32_t size)
 
     return p_dst;
 }
-
-void * memcpy64(void* p_dst,void* p_src, uint32_t size)
-{
-    uint32_t left_align;
-    uint32_t right_align;
-    uint64_t last_word;
-    uint64_t curr_word;
-    uint64_t *p_src64;
-    uint64_t *p_dst64;
-    uint8_t  *p_src8;
-    uint8_t  *p_dst8;
-
-    p_src8 = (uint8_t*)(p_src);
-    p_dst8 = (uint8_t*)(p_dst);
-    /* first copy byte by byte till the source first alignment
-     * this step is necessarily to ensure we do not even try to access
-     * data which is before the source buffer, hence it is not ours.
-     */
-    while((PTR_TO_UINT(p_src8) & 7) && size) /* (pSrc mod 8) > 0 and size > 0 */
-    {
-        *p_dst8++ = *p_src8++;
-        size--;
-    }
-
-    /* align destination (possibly disaligning source)*/
-    while((PTR_TO_UINT(p_dst8) & 7) && size) /* (pDst mod 8) > 0 and size > 0 */
-    {
-        *p_dst8++ = *p_src8++;
-        size--;
-    }
-
-    /* dest is aligned and source is not necessarily aligned */
-    left_align = (uint32_t)((PTR_TO_UINT(p_src8) & 7) << 3); /* leftAlign = (pSrc mod 8)*8 */
-    right_align = 64 - left_align;
-
-
-    if (left_align == 0)
-    {
-        /* source is also aligned */
-        p_src64 = (uint64_t*)(p_src8);
-        p_dst64 = (uint64_t*)(p_dst8);
-        while (size >> 3) /* size >= 8 */
-        {
-            *p_dst64++ = *p_src64++;
-            size -= 8;
-        }
-        p_src8 = (uint8_t*)(p_src64);
-        p_dst8 = (uint8_t*)(p_dst64);
-    }
-    else
-    {
-        /* source is not aligned (destination is aligned)*/
-        p_src64 = (uint64_t*)(p_src8 - (left_align >> 3));
-        p_dst64 = (uint64_t*)(p_dst8);
-        last_word = *p_src64++;
-        while(size >> 4) /* size >= 16 */
-        {
-            curr_word = *p_src64;
-            *p_dst64 = (last_word << left_align) | (curr_word >> right_align);
-            last_word = curr_word;
-            p_src64++;
-            p_dst64++;
-            size -= 8;
-        }
-        p_dst8 = (uint8_t*)(p_dst64);
-        p_src8 = (uint8_t*)(p_src64) - 8 + (left_align >> 3);
-    }
-
-    /* complete the left overs */
-    while (size--)
-        *p_dst8++ = *p_src8++;
-
-    return p_dst;
-}
+#endif
 
 void * memset32(void* p_dst, uint8_t val, uint32_t size)
 {
@@ -452,6 +464,7 @@ void * memset32(void* p_dst, uint8_t val, uint32_t size)
     return p_dst;
 }
 
+#if 0
 void * iomemset32(void* p_dst, uint8_t val, uint32_t size)
 {
     uint32_t val32;
@@ -492,6 +505,7 @@ void * iomemset32(void* p_dst, uint8_t val, uint32_t size)
 
     return p_dst;
 }
+#endif
 
 void * memset64(void* p_dst, uint8_t val, uint32_t size)
 {
@@ -530,8 +544,6 @@ void * memset64(void* p_dst, uint8_t val, uint32_t size)
 
     return p_dst;
 }
-#endif
-#endif
 
 void mem_disp(uint8_t *p, int size)
 {
