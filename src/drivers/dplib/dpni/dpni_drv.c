@@ -712,7 +712,6 @@ int dpni_drv_get_counter(uint16_t ni_id, enum dpni_counter counter, uint64_t *va
 int dpni_drv_get_dpni_id(uint16_t ni_id, uint16_t *dpni_id){
 	if(ni_id >= dpni_get_num_of_ni())
 	{
-		pr_info("NI %d not found in AIOP table.\n",(int)ni_id);
 		return -ENAVAIL;
 	}
 		
@@ -732,8 +731,30 @@ int dpni_drv_get_ni_id(uint16_t dpni_id, uint16_t *ni_id){
 		}
 	}
 	if(i == dpni_get_num_of_ni()){
-		pr_info("DPNI %d not found in AIOP table.\n",(int)dpni_id);
 		return -ENAVAIL;
 	}
 	return 0;
 }
+
+int dpni_drv_get_link_state(uint16_t ni_id, struct dpni_link_state *state){
+	struct dpni_drv *dpni_drv;
+	struct mc_dprc *dprc = sys_get_unique_handle(FSL_OS_MOD_AIOP_RC);
+
+	/* calculate pointer to the NI structure */
+	dpni_drv = nis + ni_id;
+	return dpni_get_link_state(&dprc->io,
+	                                 dpni_drv->dpni_drv_params_var.dpni,
+	                                 state);
+}
+
+int dpni_drv_clear_mac_filters(uint16_t ni_id, uint8_t unicast, uint8_t multicast){
+	struct dpni_drv *dpni_drv;
+	struct mc_dprc *dprc = sys_get_unique_handle(FSL_OS_MOD_AIOP_RC);
+
+	/* calculate pointer to the NI structure */
+	dpni_drv = nis + ni_id;
+	return dpni_clear_mac_filters(&dprc->io,
+	                                 dpni_drv->dpni_drv_params_var.dpni,
+	                                 (int)unicast, (int) multicast);
+}
+

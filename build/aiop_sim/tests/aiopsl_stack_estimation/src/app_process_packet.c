@@ -60,18 +60,20 @@ void stack_estimation(void)
 	struct slab **my_slab = 0;
 	uint32_t time;
 	uint64_t time_since_epoch;
+	uint64_t ctr_value;
 	uint64_t buff = 0;
 	struct cmdif_desc cidesc = {0};
 	struct icontext ic = {0};
 	struct dpni_buffer_layout layout = {0};
 	struct dpkg_profile_cfg key_cfg = {0};
 	struct ldpaa_fd fd = {0};
+	struct dpni_link_state link_state = {0};
 	uint16_t ni = 0, dpni_id, spid, mfl = 0;
 	uint8_t mac_addr[NET_HDR_FLD_ETH_ADDR_SIZE] = {0};
 	int state = 0;
 	rx_cb_t *cb = 0;
 	dpni_drv_app_arg_t arg = 0;
-	struct shbp_aiop shbp;
+	uint64_t shbp;
 	
 	/*sl_prolog must be called first when packet arrives*/
 	sl_prolog();
@@ -124,13 +126,14 @@ void stack_estimation(void)
 	dpni_drv_get_connected_dpni_id(ni, &dpni_id, &state);
 	dpni_drv_get_connected_aiop_ni_id(ni, &dpni_id, &state);
 	dpni_drv_get_rx_buffer_layout(ni, &layout);
-
+	dpni_drv_get_counter(ni, DPNI_CNT_ING_FRAME ,&ctr_value);
+	dpni_drv_get_dpni_id(ni, &dpni_id);
+	dpni_drv_get_ni_id(dpni_id, &ni);
+	dpni_drv_get_link_state(ni, &link_state);
+	dpni_drv_clear_mac_filters(ni, 1, 1);
 	/* SHBP Shared buffer pool */
-	shbp_enable(0, 0, &shbp);
-	shbp_acquire(&shbp);
-	shbp_release(&shbp, NULL);
-	shbp_read(&shbp, 0, NULL, NULL);
-	shbp_write(&shbp, 0, NULL, NULL);
+	shbp_acquire(shbp, &ic);
+	shbp_release(shbp, NULL, &ic);
 	
 	/*After packet processing is done, fdma_terminate_task must be called.*/
 	fdma_terminate_task();
