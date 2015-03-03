@@ -25,12 +25,12 @@
  */
 
 /*!
- *  @file    fsl_cmdif_fd.h
+ *  @file    fsl_cmdif_flib_fd.h
  *  @brief   Cmdif AIOP<->GPP FLIB header file describing frame descriptor
  */
 
-#ifndef __FSL_CMDIF_FD_H
-#define __FSL_CMDIF_FD_H
+#ifndef __FSL_CMDIF_FLIB_FD_H
+#define __FSL_CMDIF_FLIB_FD_H
 
 
 #include <types.h>

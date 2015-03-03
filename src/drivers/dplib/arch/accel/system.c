@@ -66,12 +66,6 @@ extern int aiop_snic_init(void);
 extern int aiop_snic_early_init(void);
 extern void aiop_snic_free(void);
 
-#define WRKS_REGS_GET \
-	(sys_get_memory_mapped_module_base(FSL_OS_MOD_CMGW,                 \
-						0,                          \
-						E_MAPPED_MEM_TYPE_GEN_REGS) \
-						+ SOC_PERIPH_OFF_AIOP_WRKS)
-
 #endif /* AIOP_VERIF */
 
 /* Global parameters*/

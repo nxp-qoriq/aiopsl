@@ -48,6 +48,24 @@ void log_print_to_buffer(char *str, uint16_t str_length)
 	uint32_t local_counter;	
 	uint16_t second_write_len;
 
+	/*Save Accelerator Hardware Context*/
+	/** Address for passing parameters to accelerators */
+	uint32_t hwc1 = *((uint32_t *) HWC_ACC_IN_ADDRESS);
+	/** Address for passing parameters to accelerators */
+	uint32_t hwc2 = *((uint32_t *) HWC_ACC_IN_ADDRESS2);
+	/** Address for passing parameters to accelerators */
+	uint32_t hwc3 = *((uint32_t *) HWC_ACC_IN_ADDRESS3);
+	/** Address for passing parameters to accelerators */
+	uint32_t hwc4 = *((uint32_t *) HWC_ACC_IN_ADDRESS4);
+	/** Address for reading results from accelerators (1st register) */
+	uint32_t hwc5 = *((uint32_t *) HWC_ACC_OUT_ADDRESS);
+	/** Address for reading results from accelerators (2nd register) */
+	uint32_t hwc6 = *((uint32_t *) HWC_ACC_OUT_ADDRESS2);
+	/** Address for reading reserved 1 from hardware accelerator context*/
+	uint32_t hwc7 = *((uint32_t *) HWC_ACC_RESERVED1);
+	/** Address for reading reserved 2 from hardware accelerator context*/
+	uint32_t hwc8 = *((uint32_t *) HWC_ACC_RESERVED2);
+
 	/*
 	 * Adding END\n delimiter.
 	 * The full str buffer size was given with 4 bytes extra for the end delimiter 
@@ -96,5 +114,23 @@ void log_print_to_buffer(char *str, uint16_t str_length)
 		str += str_length;
 		icontext_dma_write(&icontext_aiop, second_write_len, str, g_log_buf_phys_address );		
 	}
+	
+	/*Restore Accelerator Hardware Context*/
+	/** Address for passing parameters to accelerators */
+	*((uint32_t *) HWC_ACC_IN_ADDRESS) = hwc1;
+	/** Address for passing parameters to accelerators */
+	*((uint32_t *) HWC_ACC_IN_ADDRESS2) = hwc2;
+	/** Address for passing parameters to accelerators */
+	*((uint32_t *) HWC_ACC_IN_ADDRESS3) = hwc3;
+	/** Address for passing parameters to accelerators */
+	*((uint32_t *) HWC_ACC_IN_ADDRESS4) = hwc4;
+	/** Address for reading results from accelerators (1st register) */
+	*((uint32_t *) HWC_ACC_OUT_ADDRESS) = hwc5;
+	/** Address for reading results from accelerators (2nd register) */
+	*((uint32_t *) HWC_ACC_OUT_ADDRESS2) = hwc6;
+	/** Address for reading reserved 1 from hardware accelerator context*/
+	*((uint32_t *) HWC_ACC_RESERVED1) = hwc7;
+	/** Address for reading reserved 2 from hardware accelerator context*/
+	*((uint32_t *) HWC_ACC_RESERVED2) = hwc8;
 }
 

@@ -36,7 +36,7 @@
 #include "fsl_icontext.h"
 #include "fsl_mc_init.h"
 #include "fsl_spinlock.h"
-#include "cmdif_srv_aiop.h"
+#include "cmdif_srv.h"
 #include "fsl_io_ccsr.h"
 
 struct icontext icontext_aiop = {0};

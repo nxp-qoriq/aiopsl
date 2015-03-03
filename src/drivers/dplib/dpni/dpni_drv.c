@@ -83,9 +83,10 @@ int dpni_drv_register_rx_cb (uint16_t		ni_id,
                              rx_cb_t      	*cb)
 {
 	struct dpni_drv *dpni_drv;
-	struct aiop_ws_regs *wrks_addr = (struct aiop_ws_regs *)
-		(sys_get_memory_mapped_module_base(FSL_OS_MOD_CMGW,
-		0, E_MAPPED_MEM_TYPE_GEN_REGS) + SOC_PERIPH_OFF_AIOP_WRKS);
+	struct aiop_tile_regs *tile_regs = (struct aiop_tile_regs *)
+			sys_get_handle(FSL_OS_MOD_AIOP_TILE, 1);
+	struct aiop_ws_regs *wrks_addr = &tile_regs->ws_regs;
+	
 	/* calculate pointer to the send NI structure */
 	dpni_drv = nis + ni_id;
 	lock_spinlock(&dpni_drv->dpni_lock); /*Lock dpni table entry*/
@@ -98,9 +99,10 @@ int dpni_drv_register_rx_cb (uint16_t		ni_id,
 int dpni_drv_unregister_rx_cb (uint16_t		ni_id)
 {
 	struct dpni_drv *dpni_drv;
-	struct aiop_ws_regs *wrks_addr = (struct aiop_ws_regs *)
-			(sys_get_memory_mapped_module_base(FSL_OS_MOD_CMGW,
-			0, E_MAPPED_MEM_TYPE_GEN_REGS) + SOC_PERIPH_OFF_AIOP_WRKS);
+	struct aiop_tile_regs *tile_regs = (struct aiop_tile_regs *)
+			sys_get_handle(FSL_OS_MOD_AIOP_TILE, 1);
+	struct aiop_ws_regs *wrks_addr = &tile_regs->ws_regs;
+	
 	/* calculate pointer to the send NI structure */
 	dpni_drv = nis + ni_id;
 	lock_spinlock(&dpni_drv->dpni_lock); /*Lock dpni table entry*/
@@ -154,11 +156,10 @@ __COLD_CODE int dpni_drv_probe(struct mc_dprc *dprc,
 	struct dpni_buffer_layout layout = {0};
 	struct aiop_psram_entry *sp_addr;
 	struct aiop_psram_entry ddr_storage_profile;
-	struct aiop_ws_regs *wrks_addr = (struct aiop_ws_regs *)
-					(sys_get_memory_mapped_module_base(FSL_OS_MOD_CMGW,
-					                                   0,
-					                                   E_MAPPED_MEM_TYPE_GEN_REGS)
-					                                   + SOC_PERIPH_OFF_AIOP_WRKS);
+	struct aiop_tile_regs *tile_regs = (struct aiop_tile_regs *)
+			sys_get_handle(FSL_OS_MOD_AIOP_TILE, 1);
+	struct aiop_ws_regs *wrks_addr = &tile_regs->ws_regs;
+
 	/* TODO: replace 1024 w/ #define from Yulia */
 	/* Search for NIID (mc_niid) in EPID table and prepare the NI for usage. */
 	for (i = AIOP_EPID_DPNI_START; i < 1024; i++) {
@@ -554,11 +555,10 @@ int dpni_drv_get_unicast_promisc(uint16_t ni_id, int *en){
 int dpni_drv_get_ordering_mode(uint16_t ni_id){
 	uint32_t ep_osc;
 	struct dpni_drv *dpni_drv;
-	struct aiop_ws_regs *wrks_addr = (struct aiop_ws_regs *)
-		(sys_get_memory_mapped_module_base(FSL_OS_MOD_CMGW,
-						   0,
-						   E_MAPPED_MEM_TYPE_GEN_REGS)
-						   + SOC_PERIPH_OFF_AIOP_WRKS);
+	struct aiop_tile_regs *tile_regs = (struct aiop_tile_regs *)
+			sys_get_handle(FSL_OS_MOD_AIOP_TILE, 1);
+	struct aiop_ws_regs *wrks_addr = &tile_regs->ws_regs;
+
 	/* calculate pointer to the NI structure */
 	dpni_drv = nis + ni_id;
 	/* write epid index to epas register */
@@ -572,11 +572,10 @@ int dpni_drv_get_ordering_mode(uint16_t ni_id){
 static int dpni_drv_set_ordering_mode(uint16_t ni_id, int ep_mode){
 	uint32_t ep_osc;
 	struct dpni_drv *dpni_drv;
-	struct aiop_ws_regs *wrks_addr = (struct aiop_ws_regs *)
-				(sys_get_memory_mapped_module_base(FSL_OS_MOD_CMGW,
-				                                   0,
-				                                   E_MAPPED_MEM_TYPE_GEN_REGS)
-				                                   + SOC_PERIPH_OFF_AIOP_WRKS);
+	struct aiop_tile_regs *tile_regs = (struct aiop_tile_regs *)
+			sys_get_handle(FSL_OS_MOD_AIOP_TILE, 1);
+	struct aiop_ws_regs *wrks_addr = &tile_regs->ws_regs;
+
 	/* calculate pointer to the NI structure */
 	dpni_drv = nis + ni_id;
 	/* write epid index to epas register */

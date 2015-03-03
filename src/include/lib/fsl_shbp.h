@@ -26,8 +26,9 @@
 
 /*!
  * @file    fsl_shbp.h
- * @brief   Shared Buffer Pool API for the side that creates the pool (not AIOP)
+ * @brief   Shared Buffer Pool API
  *
+ * This is shared pool API for AIOP.
  *
  */
 
@@ -37,89 +38,85 @@
 #include <shbp.h>
 
 /*!
- * @Group	shbp_g  Shared Buffer Pool API
+ * @Group	shbp_aiop_g  Shared Buffer Pool
  *
  * @brief	API to be used for shared buffer pool.
  *
  * @{
  */
 
-#define SHBP_GPP_MASTER		0x1
-/*!< GPP is the allocation master */
-
-#define SHBP_MEM_PTR_SIZE(NUM_BUFF) (SHBP_TOTAL_BYTES + (16 * (NUM_BUFF)))
-/*!< Calculator for mem_ptr size for shbp_create(); NUM_BUFF must be 2^x 
- * and higher than 8 */
+/**
+ * @brief	Get the shared handle for this shared pool
+ *
+ * @param[in]	bp - AIOP buffer pool handle
+ *
+ * @returns	The address of the shared handle; or NULL code otherwise
+ *
+ */
+uint64_t shbp_get(struct shbp_aiop *bp);
 
 /**
  * @brief	Get buffer from shared pool
  *
- * @param[in]	bp - Buffer pool handle
+ * @param[in]	bp - AIOP buffer pool handle
  *
  * @returns	Address on Success; or NULL code otherwise
  *
  */
-void *shbp_acquire(struct shbp *bp);
+uint64_t shbp_acquire(struct shbp_aiop *bp);
 
 /**
- * @brief	Return or add buffer into the shared pool
+ * @brief	Return buffer into shared pool
  *
- * @param[in]	bp  - Buffer pool handle
- * @param[in]	buf - Pointer to buffer
- * 
- * @returns	0 on Success; or POSIX error code otherwise
+ * @param[in]	bp  - AIOP buffer pool handle
+ * @param[in]	buf - Buffer address
+ *
+ * @returns	0 on Success; or error code otherwise
  *
  */
-int shbp_release(struct shbp *bp, void *buf);
+int shbp_release(struct shbp_aiop *bp, uint64_t buf);
 
 /**
- * @brief	Create shared pool from a given buffer
+ * @brief	Enable shared buffer pool for AIOP usage 
  * 
- * The shared pool is created as empty, use shbp_release() to fill it  
+ * Must be called before shared pool usage on AIOP 
  *
- * @param[in]	mem_ptr  - Pointer to memory to be used for shared management;
- * 		it should be aligned to cache line.
- * 		It must be from Write-Back Cacheable and Outer Shareable memory 		
- * 		
- * @param[in]	size     - Size of mem_ptr
- * @param[in]	flags    - Flags to be used for pool creation, 0 means AIOP is 
- * 		the allocation master. See #SHBP_GPP_MASTER.
- * @param[out]  bp       - Pointer to shared pool handle
- * 
- * @returns	0 on Success; or POSIX error code otherwise
- * 	
+ * @param[in]	swc_id    - Software context id (DPCI) of this shared pool
+ * @param[in]	shbp_iova - I/O virtual address of shared pool as received 
+ * 		from GPP (pointer to struct shbp), should be in Big Endian
+ * @param[out]	bp        - AIOP buffer pool handle, must reside in SHRAM
+ * @returns	0 on Success; or error code otherwise
  *
  */
-int shbp_create(void *mem_ptr, uint32_t size, uint32_t flags, struct shbp **bp);
+int shbp_enable(uint16_t swc_id, uint64_t shbp_iova, struct shbp_aiop *bp);
 
 /**
- * @brief	Move free buffers into allocation queue
+ * @brief	DMA read into workspace location
  *
- * @param[in]	bp  - Buffer pool handle
- *
- * @returns	POSIX error code on failure or the number of the buffers added 
- * 		to the allocation queue
+ * @param[in]	bp  - AIOP buffer pool handle
+ * @param[in]	src - System memory source for DMA data.
+ * @param[in]	size - The number of bytes to be copied into dest buffer.
+ * @param[out]	dest - Pointer to workspace location to where data should
+ *		be copied.
+ * @returns	0 on Success; or error code otherwise
  *
  */
-int shbp_refill(struct shbp *bp);
-
+int shbp_read(struct shbp_aiop *bp, uint16_t size, uint64_t src, void *dest);
 
 /**
- * @brief	Returns the pointers from pool that need to be freed upon pool
- * 		destruction 
- * 
- * Pointer to struct shbp will not be returned by shbp_destroy() but it 
- * must be freed by user 
- * 
- * @param[in]	bp       - Buffer pool handle
- * @param[out]	ptr      - Pointer to be freed for pool destruction 
- * 
- * @returns	POSIX error code until there are buffers inside shared pool 
- * 		that need to be freed, 0 if there are no buffers to be freed
+ * @brief	DMA write from workspace location.
+ *
+ * @param[in]	bp  - AIOP buffer pool handle
+ * @param[in]	src - Pointer to workspace location from where data should
+ 		be copied.
+ * @param[in]	size - The number of bytes to be copied into dest buffer.
+ * @param[out]	dest - System memory target address for DMA data.
+ *
+ * @returns	0 on Success; or error code otherwise
  *
  */
-int shbp_destroy(struct shbp *bp, void **ptr);
+int shbp_write(struct shbp_aiop *bp, uint16_t size, void *src, uint64_t dest);
 
-/** @} */ /* end of shbp_g group */
+/** @} */ /* end of shbp_aiop_g group */
 
-#endif
+#endif /* __FSL_SHBP_H */

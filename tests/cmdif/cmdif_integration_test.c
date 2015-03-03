@@ -33,7 +33,7 @@
 #include "fsl_cmdif_server.h"
 #include "fsl_cmdif_client.h"
 #include "cmdif.h"
-#include "cmdif_client_aiop.h"
+#include "cmdif_client.h"
 #include "fsl_fdma.h"
 #include "fdma.h"
 #include "fsl_ldpaa_aiop.h"
@@ -41,7 +41,7 @@
 #include "fsl_tman.h"
 #include "fsl_malloc.h"
 #include "fsl_platform.h"
-#include "fsl_shbp_aiop.h"
+#include "fsl_shbp.h"
 #include "fsl_spinlock.h"
 
 #ifndef CMDIF_TEST_WITH_MC_SRV

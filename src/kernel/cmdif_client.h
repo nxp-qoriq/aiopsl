@@ -26,77 +26,204 @@
 
 
 /*!
- *  @file    cmdif_client.h
+ *  @file    cmdif_client_aiop.h
  *  @brief   Cmdif client AIOP<->GPP internal header file
  */
 
 #ifndef __CMDIF_CLIENT_H
 #define __CMDIF_CLIENT_H
 
-#include <fsl_cmdif_client.h>
+#include "cmdif_client_flib.h"
+#include "cmdif_srv_flib.h"
+#include "fsl_dpci.h"
+#include "fsl_gen.h"
+#include "fsl_string.h"
+#include "fsl_sl_dbg.h"
+#include "fsl_ldpaa_aiop.h"
 
-/* Common settings for Server and Client */
-#define CMD_ID_OPEN        0x8000
-#define CMD_ID_CLOSE       0x4000
-#define OPEN_AUTH_ID       0xFFFF
-#define M_NAME_CHARS       8     /*!< Not including \0 */
-#define CMDIF_OPEN_SIZEOF (sizeof(struct cmdif_dev) + sizeof(union cmdif_data))
+#pragma warning_errors on
+ASSERT_STRUCT_SIZE(CMDIF_OPEN_SIZEOF, CMDIF_OPEN_SIZE);
+#pragma warning_errors off
 
-#define CMDIF_DEV_SET(FD, PTR) \
+/** BDI */
+#define BDI_GET \
+((((struct additional_dequeue_context *)HWC_ADC_ADDRESS)->fdsrc_va_fca_bdi) \
+	& ADC_BDI_MASK)
+/** eVA is OR between FD[VA]  ADC[VA config] */
+#define VA_GET \
+(((((struct additional_dequeue_context *)HWC_ADC_ADDRESS)->fdsrc_va_fca_bdi) \
+	& ADC_VA_MASK) || LDPAA_FD_GET_VA(HWC_FD_ADDRESS))
+
+/** BMT for memory accesses */
+#define BMT_GET \
+	LDPAA_FD_GET_BMT(HWC_FD_ADDRESS)
+
+/** PL_ICID from Additional Dequeue Context */
+#define PL_ICID_GET \
+	LH_SWAP(0, &(((struct additional_dequeue_context *)HWC_ADC_ADDRESS)->pl_icid))
+
+/** Get ICID to send response */
+#define ICID_GET(PL_AND_ICID) ((PL_AND_ICID) & ADC_ICID_MASK)
+
+/** Get PL to send response */
+#define PL_GET(PL_AND_ICID) ((PL_AND_ICID)  & ADC_PL_MASK)
+
+#define ADD_AMQ_FLAGS(FL, PL_AND_ICID)		\
+	do {					\
+		uint8_t va_get = VA_GET;	\
+		uint8_t bmt_get = BMT_GET;	\
+		if (PL_GET(PL_AND_ICID))	\
+			FL |= FDMA_DMA_PL_BIT;	\
+		if (va_get)			\
+			FL |= FDMA_DMA_eVA_BIT;	\
+		if (bmt_get)			\
+			FL |= FDMA_DMA_BMT_BIT;	\
+	}while(0)
+
+#define SAVE_GPP_ICID	\
+do {\
+	gpp_icid = PL_ICID_GET; 		\
+	gpp_dma = 0; 				\
+	ADD_AMQ_FLAGS(gpp_dma, gpp_icid); 	\
+	gpp_icid = ICID_GET(gpp_icid); 		\
+\
+} while(0)
+
+#define SAVE_FDMA_HANDLE \
+	do {\
+		frame_handle = PRC_GET_FRAME_HANDLE(); \
+		spid = *((uint8_t *) HWC_SPID_ADDRESS);\
+	}while(0)
+
+#define SET_AIOP_ICID	\
 	do { \
-		(FD)->u_flc.cmd.dev_h = \
-		(uint8_t)((((uint64_t)(PTR)) & 0xFF00000000) >> 32); \
-		(FD)->u_frc.cmd.dev_l = ((uint32_t)(PTR)); \
-	} while(0)
-
-#define CMDIF_DEV_GET(FD) \
-	((struct cmdif_dev *)((uint64_t)(((uint64_t)((FD)->u_frc.cmd.dev_l)) \
-		| (((uint64_t)((FD)->u_flc.cmd.dev_h)) << 32))))
-
-#define CMDIF_ASYNC_ADDR_GET(DATA, SIZE) \
-		((uint64_t)(DATA) + (SIZE))
-
-#define CMDIF_DEV_RESERVED_BYTES 12
-
-#define CMDIF_CMD_FD_SET(FD, DEV, DATA, SIZE, CMD) \
-	do { \
-		(FD)->u_addr.d_addr     = DATA; \
-		(FD)->d_size            = (SIZE); \
-		(FD)->u_flc.flc         = 0; \
-		(FD)->u_flc.cmd.auth_id = (DEV)->auth_id; \
-		(FD)->u_flc.cmd.cmid    = CPU_TO_SRV16(CMD); \
-		(FD)->u_flc.cmd.epid    = CPU_TO_BE16(CMDIF_EPID); \
-		CMDIF_DEV_SET((FD), (DEV)); \
-		(FD)->u_flc.flc = CPU_TO_BE64((FD)->u_flc.flc); \
+		/* Set AIOP ICID and AMQ bits */			\
+		uint16_t pl_icid = icontext_aiop.icid;			\
+		uint8_t flags = 0;					\
+		struct additional_dequeue_context *adc = 		\
+		((struct additional_dequeue_context *)HWC_ADC_ADDRESS);	\
+		/* SHRAM optimization */				\
+		uint64_t dma_bdi_flags = 				\
+				(*(uint64_t *)(&icontext_aiop.dma_flags));\
+		if (((uint32_t)dma_bdi_flags) & FDMA_ENF_BDI_BIT) {	\
+			flags |= ADC_BDI_MASK;				\
+		}							\
+		dma_bdi_flags >>= 32;					\
+		if (((uint32_t)dma_bdi_flags) & FDMA_DMA_eVA_BIT) {	\
+			flags |= ADC_VA_MASK;				\
+		}							\
+		if (((uint32_t)dma_bdi_flags) & FDMA_DMA_PL_BIT) {	\
+			pl_icid |= ADC_PL_MASK;				\
+		}							\
+		adc->fdsrc_va_fca_bdi = (adc->fdsrc_va_fca_bdi &	\
+			~(ADC_BDI_MASK | ADC_VA_MASK)) | flags;		\
+		STH_SWAP(pl_icid, 0, &(adc->pl_icid));			\
 	} while (0)
 
-struct cmdif_async {
-	uint64_t async_cb; /*!< Pointer to asynchronous callback */
-	uint64_t async_ctx;/*!< Pointer to asynchronous context */
+
+/** Delete FDMA handle and store user modified data */
+#if 0
+#define CMDIF_STORE_DATA \
+	do {\
+		struct fdma_amq amq;				\
+		fdma_store_frame_data(frame_handle, spid,	\
+		                      (struct fdma_amq *)&amq);	\
+		pr_debug("Store icid = 0x%x\n",			\
+		         ((struct fdma_amq *)&amq)->icid);	\
+		pr_debug("Store flags = 0x%x\n",		\
+		         ((struct fdma_amq *)&amq)->flags);	\
+	} while(0)
+#else
+#define CMDIF_STORE_DATA \
+	do {\
+		if (LDPAA_FD_GET_LENGTH(HWC_FD_ADDRESS) > 0) \
+			fdma_store_default_frame_data(); \
+	} while(0)
+#endif
+
+#define CMDIF_MN_SESSIONS	(64 << 1)
+/**< Maximal number of sessions: 64 SW contexts and avg of 2 modules per each */
+#define CMDIF_NUM_PR		2
+#define CMDIF_FREE_SESSION	'\0'
+
+struct cmdif_reg {
+	uint16_t dpci_token;	/**< Open AIOP dpci device */
+	struct dpci_attr *attr; /**< DPCI attributes */
+	struct dpci_peer_attr *peer_attr; /**< DPCI peer attributes */
+	struct dpci_tx_queue_attr *tx_queue_attr[DPCI_PRIO_NUM]; /**< DPCI TX attributes */
+	uint32_t dma_flags;	/**< FDMA dma data flags */
+	uint32_t enq_flags;	/**< FDMA enqueue flags */
+	uint16_t icid;		/**< ICID per DPCI */
 };
 
-struct cmdif_dev {
-	uint64_t   p_sync_done;
-	/*!< Physical address of sync_done */
-	void       *sync_done;
-	/*!< 4 bytes to be used for synchronous commands */
-	uint16_t   auth_id;
-	/*!< Authentication ID to be used for session with server*/
-	uint8_t    reserved[CMDIF_DEV_RESERVED_BYTES];
+/* To be allocated on DDR */
+struct cmdif_cl {
+	struct {
+		char m_name[M_NAME_CHARS + 1];
+		/**< Module application name */
+		struct cmdif_reg *regs;
+		/**< Send device, to be placed as cidesc.reg */
+		struct cmdif_dev *dev;
+		/**< To be placed as cidesc.dev */
+		uint8_t ins_id;
+		/**< Instanse id that was used for open */
+	} gpp[CMDIF_MN_SESSIONS];
+
+	uint8_t count;
+	/**< Count the number of sessions */
+	uint8_t lock;
+	/**< Lock for adding & removing new entries */
 };
 
-/*! FD[ADDR] content of the buffer to be sent with open command
- * when sending to AIOP server*/
-union cmdif_data {
-	struct {
-		uint8_t done;        /*!< Reserved for done on response */
-		char m_name[M_NAME_CHARS]; /*!< Module name that was registered */
-	}send;
-	struct {
-		uint8_t  done;      /*!< Reserved for done on response */
-		int8_t   err;       /*!< Reserved for done on response */
-		uint16_t auth_id;   /*!< New authentication id */
-	}resp;
-};
+
+static inline int cmdif_cl_free_session_get(struct cmdif_cl *cl)
+{
+	int i;
+
+	if (cl->count >= CMDIF_MN_SESSIONS)
+		return -ENOSPC;
+
+	for (i = 0; i < CMDIF_MN_SESSIONS; i++) {
+		if (cl->gpp[i].m_name[0] == CMDIF_FREE_SESSION)
+			return i;
+	}
+
+	return -ENOSPC;
+}
+
+static inline int cmdif_cl_session_get(struct cmdif_cl *cl,
+                                       const char *m_name,
+                                       uint8_t ins_id,
+                                       uint32_t dpci_id)
+{
+	int i;
+
+	/* TODO stop searching if passed all open sessions cl->count */
+	for (i = 0; i < CMDIF_MN_SESSIONS; i++) {
+		if ((cl->gpp[i].ins_id == ins_id) &&
+			(cl->gpp[i].regs->peer_attr->peer_id == dpci_id) &&
+			(cl->gpp[i].m_name[0] != CMDIF_FREE_SESSION) &&
+			(strncmp((const char *)&(cl->gpp[i].m_name[0]),
+			         m_name,
+			         M_NAME_CHARS) == 0))
+			return i;
+	}
+	return -ENAVAIL;
+}
+
+static inline int cmdif_cl_auth_id_find(struct cmdif_cl *cl,
+                                       uint16_t auth_id,
+                                       uint32_t dpci_id)
+{
+	int i;
+
+	for (i = 0; i < CMDIF_MN_SESSIONS; i++) {
+		if ((cl->gpp[i].regs->peer_attr->peer_id == dpci_id) &&
+			(cl->gpp[i].m_name[0] != CMDIF_FREE_SESSION) &&
+			(cl->gpp[i].dev->auth_id == auth_id))
+			return i;
+	}
+	return -ENAVAIL;
+}
 
 #endif /* __CMDIF_CLIENT_H */
