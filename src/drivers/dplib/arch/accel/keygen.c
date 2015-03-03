@@ -611,15 +611,23 @@ int keygen_kcr_builder_add_valid_field_fec(uint8_t mask,
 
 		kb->kcr[curr_byte] = (KEYGEN_KCR_VF_FECID << 1) |
 				     KEYGEN_KCR_MASK_EXT;
+#ifdef ENGR00350113_IS_NOT_FIXED
 		kb->kcr[curr_byte+1] = 0x0;
 		kb->kcr[curr_byte+2] = nmsk_moff0;
 		kb->kcr[curr_byte+3] = mask;
+#else
+		kb->kcr[curr_byte+1] = nmsk_moff0;
+		kb->kcr[curr_byte+2] = mask;
+#endif
+
 	} else {
 		if ((curr_byte + fec_bytes_num) > KEYGEN_KCR_MAX_KCR_SIZE)
 			return -EINVAL;
 
 		kb->kcr[curr_byte] = KEYGEN_KCR_VF_FECID << 1;
+#ifdef ENGR00350113_IS_NOT_FIXED
 		kb->kcr[curr_byte+1] = 0x0;
+#endif
 	}
 	/* Build the FEC */
 	/* Valid field FECID, mask extension indication*/
