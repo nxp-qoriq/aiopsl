@@ -42,10 +42,12 @@
 #ifdef CMDIF_TEST_WITH_MC_SRV
 #define CPU_TO_SRV16(val) CPU_TO_BE16(val)
 #define CPU_TO_SRV32(val) CPU_TO_BE32(val)
+#define CPU_TO_SRV64(val) CPU_TO_BE64(val)
 
 #else
 #define CPU_TO_SRV16(val) CPU_TO_LE16(val)
 #define CPU_TO_SRV32(val) CPU_TO_LE32(val)
+#define CPU_TO_SRV64(val) CPU_TO_LE64(val)
 #endif
 
 #define CMDIF_EPID         2    /*!< EPID to be used for setting by client */
