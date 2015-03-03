@@ -1052,7 +1052,7 @@ int fdma_present_frame_without_segments(
 /**************************************************************************//**
 @Function	fdma_present_default_frame_segment
 
-@Description	Open a segment of the default working frame and copy the
+@Description	Open a default segment of the default working frame and copy the
 		segment data into the specified location in the workspace.
 
 		Implicit input parameters in Task Defaults: frame handle.
@@ -1078,7 +1078,7 @@ int fdma_present_frame_without_segments(
 		This return value is caused since the requested presentation 
 		exceeded frame data end.
 
-@Cautions	This command may be invoked only for Data segments.
+@Cautions	This command may be invoked only for a default Data segments.
 @Cautions	This function may result in a fatal error.
 @Cautions	In this Service Routine the task yields.
 *//***************************************************************************/
@@ -1107,6 +1107,7 @@ int fdma_present_default_frame_segment(
 		exceeded frame data end.
 
 @Cautions	This command may be invoked only for Data segments.
+@Cautions	This command may not be invoked on the default Data segments.
 @Cautions	This function may result in a fatal error.
 @Cautions	In this Service Routine the task yields.
 *//***************************************************************************/
