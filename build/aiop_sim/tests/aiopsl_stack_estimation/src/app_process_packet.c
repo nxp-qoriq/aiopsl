@@ -73,7 +73,7 @@ void stack_estimation(void)
 	int state = 0;
 	rx_cb_t *cb = 0;
 	dpni_drv_app_arg_t arg = 0;
-	struct shbp_aiop shbp;
+	uint64_t shbp;
 	
 	/*sl_prolog must be called first when packet arrives*/
 	sl_prolog();
@@ -132,11 +132,8 @@ void stack_estimation(void)
 	dpni_drv_get_link_state(ni, &link_state);
 	dpni_drv_clear_mac_filters(ni, 1, 1);
 	/* SHBP Shared buffer pool */
-	shbp_enable(0, 0, &shbp);
-	shbp_acquire(&shbp);
-	shbp_release(&shbp, NULL);
-	shbp_read(&shbp, 0, NULL, NULL);
-	shbp_write(&shbp, 0, NULL, NULL);
+	shbp_acquire(shbp, &ic);
+	shbp_release(shbp, NULL, &ic);
 	
 	/*After packet processing is done, fdma_terminate_task must be called.*/
 	fdma_terminate_task();
