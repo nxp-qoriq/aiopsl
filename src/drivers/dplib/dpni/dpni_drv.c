@@ -758,3 +758,47 @@ int dpni_drv_clear_mac_filters(uint16_t ni_id, uint8_t unicast, uint8_t multicas
 	                                 (int)unicast, (int) multicast);
 }
 
+int dpni_drv_clear_vlan_filters(uint16_t ni_id){
+	struct dpni_drv *dpni_drv;
+	struct mc_dprc *dprc = sys_get_unique_handle(FSL_OS_MOD_AIOP_RC);
+
+	/* calculate pointer to the NI structure */
+	dpni_drv = nis + ni_id;
+	return dpni_clear_vlan_filters(&dprc->io,
+	                                 dpni_drv->dpni_drv_params_var.dpni);
+}
+
+int dpni_drv_set_vlan_filters(uint16_t ni_id, int en){
+	struct dpni_drv *dpni_drv;
+	struct mc_dprc *dprc = sys_get_unique_handle(FSL_OS_MOD_AIOP_RC);
+
+	/* calculate pointer to the NI structure */
+	dpni_drv = nis + ni_id;
+	return dpni_set_vlan_filters(&dprc->io,
+	                                 dpni_drv->dpni_drv_params_var.dpni,
+	                                 en);
+}
+
+int dpni_drv_add_vlan_id(uint16_t ni_id, uint16_t vlan_id){
+	struct dpni_drv *dpni_drv;
+	struct mc_dprc *dprc = sys_get_unique_handle(FSL_OS_MOD_AIOP_RC);
+
+	/* calculate pointer to the NI structure */
+	dpni_drv = nis + ni_id;
+	return dpni_add_vlan_id(&dprc->io,
+	                                 dpni_drv->dpni_drv_params_var.dpni,
+	                                 vlan_id);
+}
+
+int dpni_drv_remove_vlan_id(uint16_t ni_id, uint16_t vlan_id){
+	struct dpni_drv *dpni_drv;
+	struct mc_dprc *dprc = sys_get_unique_handle(FSL_OS_MOD_AIOP_RC);
+
+	/* calculate pointer to the NI structure */
+	dpni_drv = nis + ni_id;
+	return dpni_remove_vlan_id(&dprc->io,
+	                                 dpni_drv->dpni_drv_params_var.dpni,
+	                                 vlan_id);
+}
+
+

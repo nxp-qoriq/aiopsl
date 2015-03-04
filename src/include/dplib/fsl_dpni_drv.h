@@ -508,5 +508,60 @@ int dpni_drv_get_link_state(uint16_t ni_id, struct dpni_link_state *state);
 	error code, otherwise. For error posix refer to \ref error_g
 *//***************************************************************************/
 int dpni_drv_clear_mac_filters(uint16_t ni_id, uint8_t unicast, uint8_t multicast);
+
+/**************************************************************************//**
+@Function	dpni_drv_clear_vlan_filters
+
+@Description	Function to clear VLAN filters for given NI.
+
+@Param[in]	ni_id The AIOP Network Interface ID.
+
+@Return	0 on success;
+	error code, otherwise. For error posix refer to \ref error_g
+*//***************************************************************************/
+int dpni_drv_clear_vlan_filters(uint16_t ni_id);
+
+/**************************************************************************//**
+@Function	dpni_drv_set_vlan_filters
+
+@Description	Function to set VLAN filters for given NI.
+
+@Param[in]	ni_id The AIOP Network Interface ID.
+
+@Param[in]	en Set to '1' to enable; '0' to disable.
+
+@Return	0 on success;
+	error code, otherwise. For error posix refer to \ref error_g
+*//***************************************************************************/
+int dpni_drv_set_vlan_filters(uint16_t ni_id, int en);
+
+/**************************************************************************//**
+@Function	dpni_drv_add_vlan_id
+
+@Description	Function to add VLAN filters for given NI.
+
+@Param[in]	ni_id The AIOP Network Interface ID.
+
+@Param[in]	vlan_id VLAN ID to add to given NI.
+
+@Return	0 on success;
+	error code, otherwise. For error posix refer to \ref error_g
+*//***************************************************************************/
+int dpni_drv_add_vlan_id(uint16_t ni_id, uint16_t vlan_id);
+
+/**************************************************************************//**
+@Function	dpni_drv_remove_vlan_id
+
+@Description	Function to remove VLAN filters in given NI.
+
+@Param[in]	ni_id The AIOP Network Interface ID.
+
+@Param[in]	vlan_id VLAN ID to remove in given NI.
+
+@Return	0 on success;
+	error code, otherwise. For error posix refer to \ref error_g
+*//***************************************************************************/
+int dpni_drv_remove_vlan_id(uint16_t ni_id, uint16_t vlan_id);
+
 /** @} */ /* end of dpni_g DPNI group */
 #endif /* __FSL_DPNI_DRV_H */
