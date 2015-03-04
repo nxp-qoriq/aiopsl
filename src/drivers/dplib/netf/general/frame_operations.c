@@ -45,7 +45,7 @@ extern __PROFILE_SRAM struct storage_profile
 		storage_profile[SP_NUM_OF_STORAGE_PROFILES];
 
 #define SP_BDI_MASK     0x00080000
-#define SP_BP_PBS_MASK  0x3FFF
+#define SP_BP_ID_MASK  0x3FFF
 #endif
 
 int create_frame(
@@ -69,7 +69,7 @@ int create_frame(
 	sp = &storage_profile[*((uint8_t *)HWC_SPID_ADDRESS)];
 	icid = LH_SWAP(0, (uint16_t *)&(sp->ip_secific_sp_info)) & ADC_ICID_MASK;
 	flags = (LW_SWAP(0, (uint32_t *)&(sp->ip_secific_sp_info)) & SP_BDI_MASK) ? FDMA_ACQUIRE_BDI_BIT : 0;
-	bpid = LH_SWAP(0, &(sp->bpid1)) & SP_BP_PBS_MASK;
+	bpid = LH_SWAP(0, &(sp->bpid1)) & SP_BP_ID_MASK;
 	status = fdma_acquire_buffer(icid, flags, bpid, &fd_addr);
 	if (status)
 		return status;
@@ -177,7 +177,7 @@ int create_fd(
 	sp = &storage_profile[*((uint8_t *)HWC_SPID_ADDRESS)];
 	icid = LH_SWAP(0, (uint16_t *)&(sp->ip_secific_sp_info)) & ADC_ICID_MASK;
 	flags = (LW_SWAP(0, (uint32_t *)&(sp->ip_secific_sp_info)) & SP_BDI_MASK) ? FDMA_ACQUIRE_BDI_BIT : 0;
-	bpid = LH_SWAP(0, &(sp->bpid1)) & SP_BP_PBS_MASK;
+	bpid = LH_SWAP(0, &(sp->bpid1)) & SP_BP_ID_MASK;
 	status = fdma_acquire_buffer(icid, flags, bpid, &fd_addr);
 	if (status)
 		return status;
