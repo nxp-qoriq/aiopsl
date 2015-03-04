@@ -128,6 +128,7 @@ void stack_estimation(void)
 	dpni_drv_get_connected_aiop_ni_id(ni, &dpni_id, &state);
 	dpni_drv_get_rx_buffer_layout(ni, &layout);
 	dpni_drv_get_counter(ni, DPNI_CNT_ING_FRAME ,&ctr_value);
+	dpni_drv_reset_counter(ni, DPNI_CNT_ING_FRAME);
 	dpni_drv_get_dpni_id(ni, &dpni_id);
 	dpni_drv_get_ni_id(dpni_id, &ni);
 	dpni_drv_get_link_state(ni, &link_state);
