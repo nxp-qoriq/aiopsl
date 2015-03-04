@@ -68,12 +68,13 @@ void stack_estimation(void)
 	struct dpkg_profile_cfg key_cfg = {0};
 	struct ldpaa_fd fd = {0};
 	struct dpni_link_state link_state = {0};
+	struct dpni_attr attr = {0};
 	uint16_t ni = 0, dpni_id, spid, mfl = 0;
 	uint8_t mac_addr[NET_HDR_FLD_ETH_ADDR_SIZE] = {0};
 	int state = 0;
 	rx_cb_t *cb = 0;
 	dpni_drv_app_arg_t arg = 0;
-	uint64_t shbp;
+	uint64_t shbp = 0;
 	
 	/*sl_prolog must be called first when packet arrives*/
 	sl_prolog();
@@ -135,6 +136,7 @@ void stack_estimation(void)
 	dpni_drv_set_vlan_filters(ni, 1);
 	dpni_drv_add_vlan_id(ni, (uint16_t)1515);
 	dpni_drv_remove_vlan_id(ni, (uint16_t)1515);
+	dpni_drv_get_attributes(ni, &attr);
 	/* SHBP Shared buffer pool */
 	shbp_acquire(shbp, &ic);
 	shbp_release(shbp, NULL, &ic);
