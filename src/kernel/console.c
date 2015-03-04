@@ -58,38 +58,6 @@ static int system_call(int num, int arg0, int arg1, int arg2, int arg3)
 #endif /* SIMULATOR */
 
 /*****************************************************************************/
-static int sys_debugger_print(fsl_handle_t unused,
-                              uint8_t *p_data,
-                              uint32_t size)
-{
-	int ret;
-#ifdef AIOP
-	lock_spinlock(&(sys.console_lock));
-#else
-	uint32_t int_flags;
-	/* Disable interrupts to work-around CW bug */
-	int_flags = spin_lock_irqsave(&(sys.console_lock));
-#endif
-
-#ifdef SIMULATOR
-	ret = system_call(4, 1, (int)PTR_TO_UINT(p_data), (int)size, 0);
-#else
-	ret = printf((char *)p_data);
-	fflush(stdout);
-#endif /* SIMULATOR */
-
-#ifdef AIOP
-	unlock_spinlock(&(sys.console_lock));
-#else
-	spin_unlock_irqrestore(&(sys.console_lock), int_flags);
-#endif
-
-	UNUSED(unused);
-	UNUSED(size);
-	return ret;
-}
-
-/*****************************************************************************/
 __COLD_CODE int sys_register_console(fsl_handle_t h_console_dev,
                                int(*f_console_print)(fsl_handle_t h_console_dev,
                                                      uint8_t *p_data,
@@ -222,16 +190,4 @@ char sys_get_char(void)
 	return ('\0');
 }
 #endif
-
-/*****************************************************************************/
-void sys_register_debugger_console(void)
-{
-	int err_code = 0;
-
-	UNUSED(err_code);
-
-	/* Register system console */
-	err_code = sys_register_console(&sys, sys_debugger_print, NULL);
-	ASSERT_COND(err_code == 0);
-}
 

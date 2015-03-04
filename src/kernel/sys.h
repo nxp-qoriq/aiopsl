@@ -94,8 +94,6 @@ int     sys_free_memory_management(void);
 int     sys_init_multi_processing(void);
 void    sys_free_multi_processing(void);
 
-void    sys_register_debugger_console(void);
-
 inline void	sys_yield(void)
 {
 	extern t_system sys;

@@ -90,6 +90,9 @@ struct shbp_bd_meta {
 #define SHBP_MEM_OFF(SHBP, PTR) (uint32_t)((uint8_t *)(PTR) - (uint8_t *)(SHBP))
 /*!< Member offset in bytes */
 
+#define SHBP_HOST_BYTES		16
+/*!< Bytes that are used by host */
+
 /**
  * @brief	Structure representing one ring
  */
@@ -112,6 +115,9 @@ struct shbp {
 	/*!< Master of the allocation, must be 1 byte */
 	uint8_t max_num;	
 	/*!< Max number of BDs in the pool is 2^max_buf, must be 1 byte */
+	uint8_t host_user_space[SHBP_HOST_BYTES];
+	/*!< Space to be used by host implementation */
+	
 	/* See also SHBP_TOTAL_BYTES */
 };
 

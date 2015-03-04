@@ -67,6 +67,8 @@
 #define SOC_PERIPH_OFF_SEC_GEN          0x08000000
 #define SOC_PERIPH_OFF_EIOP_IFPS        0x08800000
 
+#define SHARED_RAM_SIZE 256*KILOBYTE
+
 
 /* Offset of MC portals  relative to MC area base */
 #define PERIPH_OFF_MC_PORTALS_AREA  0x0000000
