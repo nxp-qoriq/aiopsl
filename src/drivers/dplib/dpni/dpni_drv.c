@@ -709,6 +709,18 @@ int dpni_drv_get_counter(uint16_t ni_id, enum dpni_counter counter, uint64_t *va
 	                        value);
 }
 
+int dpni_drv_reset_counter(uint16_t ni_id, enum dpni_counter counter){
+	struct dpni_drv *dpni_drv;
+	struct mc_dprc *dprc = sys_get_unique_handle(FSL_OS_MOD_AIOP_RC);
+
+	/* calculate pointer to the NI structure */
+	dpni_drv = nis + ni_id;
+	return dpni_set_counter(&dprc->io,
+	                        dpni_drv->dpni_drv_params_var.dpni,
+	                        counter,
+	                        0);
+}
+
 int dpni_drv_get_dpni_id(uint16_t ni_id, uint16_t *dpni_id){
 	if(ni_id >= dpni_get_num_of_ni())
 	{

@@ -451,6 +451,20 @@ int dpni_drv_get_rx_buffer_layout(uint16_t ni_id, struct dpni_buffer_layout *lay
 int dpni_drv_get_counter(uint16_t ni_id, enum dpni_counter counter, uint64_t *value);
 
 /**************************************************************************//**
+@Function	dpni_drv_reset_counter
+
+@Description	Function to reset DPNI counter.
+
+@Param[in]	ni_id   The AIOP Network Interface ID
+
+@Param[in]	counter Type of DPNI counter.
+
+@Return	0 on success;
+	error code, otherwise. For error posix refer to \ref error_g
+*//***************************************************************************/
+int dpni_drv_reset_counter(uint16_t ni_id, enum dpni_counter counter);
+
+/**************************************************************************//**
 @Function	dpni_drv_get_dpni_id
 
 @Description	Function to receive DPNI ID, known outside to AIOP.
