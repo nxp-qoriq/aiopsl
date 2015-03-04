@@ -17,8 +17,6 @@ mc/src/lib/fsl_slob.h:aiop/src/lib/fsl_slob.h:B09752
 mc/src/kernel/inc/fsl_sl_dbg.h:aiop/src/kernel/inc/fsl_sl_dbg.h:B17975
 mc/src/include/fsl_errors.h:aiop/src/include/fsl_errors.h:B49560
 mc/src/include/common/fsl_string.h:aiop/src/include/common/fsl_string.h:B49560
-mc/src/kernel/inc/console.h:aiop/src/kernel/inc/console.h:B49560
-mc/src/kernel/console.c:aiop/src/kernel/console.c:B42006
 mc/tests/cmdif_gpp/shbp/shbp.c:aiop/src/lib/shbp.c:B17975                   
 mc/tests/cmdif_gpp/shbp/shbp.h:aiop/src/lib/shbp.h:B17975
 mc/tests/cmdif_gpp/shbp/fsl_shbp.h:aiop/src/include/lib/fsl_shbp.h:B17975       
