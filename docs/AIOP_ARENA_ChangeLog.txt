@@ -5,6 +5,8 @@ dpni_drv.c/fsl_dpni_drv.h: Added API to support vlan set, add, remove and clear 
         int dpni_drv_remove_vlan_id(uint16_t ni_id, uint16_t vlan_id)
         Added API to query dpni attributes:
         dpni_drv_get_attributes(uint16_t ni_id, struct dpni_attr *attr)
+        Added API to reset dpni counter:
+        dpni_drv_reset_counter(uint16_t ni_id, enum dpni_counter counter)
 
 fsl_shbp.h : Added new API shbp_get() that returns shared handle between GPP and AIOP
 
