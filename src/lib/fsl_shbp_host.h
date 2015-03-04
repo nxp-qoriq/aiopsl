@@ -43,20 +43,11 @@
  * @{
  */
 
-#include <shbp_host.h>
+struct shbp;
 
 #define SHBP_HOST_IS_MASTER	0x1	/*!< Host is the allocation master */
 #define SHBP_HOST_SAFE		0x2	/*!< Host API is multithread safe */
 
-/**
- * @brief	Get the shared handle for this shared pool
- *
- * @param[in]	bp - Host buffer pool handle
- *
- * @returns	The address of the shared handle; or NULL code otherwise
- *
- */
-void *shbp_get(struct shbp_host *bp);
 
 /*!
  * @details	Calculator for 'mem_ptr' size for shbp_create(). num_bufs must
@@ -78,7 +69,7 @@ uint32_t shbp_mem_ptr_size(uint32_t num_bufs);
  * @returns	Address on Success; or NULL code otherwise
  *
  */
-void *shbp_acquire(struct shbp_host *bp);
+void *shbp_acquire(struct shbp *bp);
 
 /**
  * @brief	Return or add buffer into the shared pool
@@ -89,7 +80,7 @@ void *shbp_acquire(struct shbp_host *bp);
  * @returns	0 on Success; or POSIX error code otherwise
  *
  */
-int shbp_release(struct shbp_host *bp, void *buf);
+int shbp_release(struct shbp *bp, void *buf);
 
 /**
  * @brief	Create empty shared pool
@@ -104,7 +95,7 @@ int shbp_release(struct shbp_host *bp, void *buf);
  * @returns	0 on Success; or POSIX error code otherwise
  *
  */
-int shbp_create(uint32_t flags, uint32_t buf_num, struct shbp_host *bp);
+int shbp_create(uint32_t flags, uint32_t buf_num, struct shbp **bp);
 
 /**
  * @brief	Move free buffers into allocation queue
@@ -115,7 +106,7 @@ int shbp_create(uint32_t flags, uint32_t buf_num, struct shbp_host *bp);
  * 		to the allocation queue
  *
  */
-int shbp_refill(struct shbp_host *bp);
+int shbp_refill(struct shbp *bp);
 
 
 /**
@@ -130,7 +121,7 @@ int shbp_refill(struct shbp_host *bp);
  * @returns	0 on Success; or POSIX error code otherwise
  *
  */
-int shbp_destroy(struct shbp_host *bp);
+int shbp_destroy(struct shbp *bp);
 
 /** @} */ /* end of shbp_g group */
 

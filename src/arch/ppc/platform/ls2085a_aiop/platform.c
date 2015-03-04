@@ -331,15 +331,17 @@ __COLD_CODE static int pltfrm_init_console_cb(fsl_handle_t h_platform)
 		/* Master partition - register DUART console */
 		err = platform_enable_console(pltfrm);
 		if (err != 0){
-			sys_register_console((fsl_handle_t) -1, console_print_cb_uart_disabled, NULL);
+			err = sys_register_console((fsl_handle_t) -1, console_print_cb_uart_disabled, NULL);
+			
 			/*Uart failed. the print will go only to buffer*/
 			pr_warn("UART print failed, all debug data will be printed to buffer.\n");
-			return 0;
+			
+			return err;
 		}
 
 		err = sys_register_console(pltfrm->uart, console_print_cb, console_get_line_cb);
 		if (err != 0)
-			RETURN_ERROR(MAJOR, err, NO_MSG);
+			return err;
 	}
 
 	return 0;

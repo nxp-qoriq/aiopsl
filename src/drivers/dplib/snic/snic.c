@@ -372,7 +372,7 @@ __COLD_CODE static int snic_ctrl_cb(void *dev, uint16_t cmd, uint32_t size, void
 					__attribute__((aligned(16)));
 	struct table_lookup_result lookup_result;
 	struct table_lookup_non_default_params ndf_params = {0};
-	union table_key_desc key_desc;
+	union table_key_desc key_desc __attribute__((aligned(16)));
 	int32_t direction;
 
 	UNUSED(dev);

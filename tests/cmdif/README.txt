@@ -32,6 +32,7 @@ What's new:
 1. Added fsl_shbp_flib.h, fsl_shbp_host.h
 2. Added flib postfix to all flib files, see the new naming above.
 3. Remove aiop postfix at shbp API for AIOP.
+4. Updated fsl_shbp.h AIOP API.
 
 =================================
 GPP client side:
