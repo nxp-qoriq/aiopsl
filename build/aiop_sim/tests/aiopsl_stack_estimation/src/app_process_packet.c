@@ -131,6 +131,10 @@ void stack_estimation(void)
 	dpni_drv_get_ni_id(dpni_id, &ni);
 	dpni_drv_get_link_state(ni, &link_state);
 	dpni_drv_clear_mac_filters(ni, 1, 1);
+	dpni_drv_clear_vlan_filters(ni);
+	dpni_drv_set_vlan_filters(ni, 1);
+	dpni_drv_add_vlan_id(ni, (uint16_t)1515);
+	dpni_drv_remove_vlan_id(ni, (uint16_t)1515);
 	/* SHBP Shared buffer pool */
 	shbp_enable(0, 0, &shbp);
 	shbp_acquire(&shbp);
