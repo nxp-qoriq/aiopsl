@@ -801,4 +801,13 @@ int dpni_drv_remove_vlan_id(uint16_t ni_id, uint16_t vlan_id){
 	                                 vlan_id);
 }
 
+int dpni_drv_get_attributes(uint16_t ni_id, struct dpni_attr *attr){
+	struct dpni_drv *dpni_drv;
+	struct mc_dprc *dprc = sys_get_unique_handle(FSL_OS_MOD_AIOP_RC);
 
+	/* calculate pointer to the NI structure */
+	dpni_drv = nis + ni_id;
+	return dpni_get_attributes(&dprc->io,
+	                                 dpni_drv->dpni_drv_params_var.dpni,
+	                                 attr);
+}
