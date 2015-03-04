@@ -244,13 +244,15 @@ uint16_t aiop_verification_table(uint32_t asa_seg_addr)
 	{
 		struct table_lookup_by_key_command *str =
 		(struct table_lookup_by_key_command *) asa_seg_addr;
+		struct table_lookup_result lookup_result __attribute__((aligned(16)));
 
 		str->status = table_lookup_by_key(str->acc_id,
 						  str->table_id,
 						  str->key_desc,
 						  str->key_size,
-						  &(str->lookup_result));
-
+						  &lookup_result);	
+		str->lookup_result = lookup_result;
+		
 		str_size =
 			sizeof(struct table_lookup_by_key_command);
 		break;
