@@ -12,7 +12,6 @@ mc/src/kernel/cmdif_client_flib.h:aiop/src/kernel/cmdif_client_flib.h:B17975
 mc/tests/cmdif_gpp/srv/fsl_cmdif_server.h:aiop/src/include/kernel/fsl_cmdif_server.h:B17975
 mc/tests/cmdif_gpp/srv/cmdif_srv_flib.h:aiop/src/kernel/cmdif_srv_flib.h:B17975
 mc/src/arch/ppc/platform/ls2085/cmdif.h:aiop/src/arch/ppc/platform/ls2100a_mc/cmdif.h:B17975
-mc/src/lib/fsl_slob.h:aiop/src/lib/fsl_slob.h:B09752
 mc/src/kernel/inc/fsl_sl_dbg.h:aiop/src/kernel/inc/fsl_sl_dbg.h:B17975
 mc/src/include/fsl_errors.h:aiop/src/include/fsl_errors.h:B49560
 mc/src/include/common/fsl_string.h:aiop/src/include/common/fsl_string.h:B49560
