@@ -143,6 +143,7 @@ struct ipr_instance {
 };
 #pragma pack(pop)
 
+#pragma pack(push,1)
 struct ipr_instance_extension{
 	uint64_t	delete_arg;
 	ipr_del_cb_t 	*confirm_delete_cb;
@@ -158,6 +159,8 @@ struct ipr_instance_extension{
 	uint32_t	max_open_frames_ipv4;
 	uint32_t	max_open_frames_ipv6;
 };
+#pragma pack(pop)
+
 #pragma pack(push,1)
 struct ipr_rfdc{
 	/* 64 bytes */
@@ -176,9 +179,9 @@ struct ipr_rfdc{
 	uint8_t		res1;
 	uint16_t	status;
 	uint16_t	total_in_order_payload;
+	uint64_t	ipv4_key[2]; /* this field should stay aligned to 16 */
 	/* 4 next bytes can move to extension */
 	struct 		fdma_amq isolation_bits;
-	uint64_t	ipv4_key[2];
 	uint16_t	iphdr_offset;
 	uint16_t	ipv6_fraghdr_offset;
 	uint16_t	seg_addr;
