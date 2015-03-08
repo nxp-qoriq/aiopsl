@@ -171,7 +171,7 @@ uint16_t aiop_verification_osm(uint32_t asa_seg_addr)
 	
 	case OSM_GET_SCOPE_STR:
 	{
-		int i = 0;
+		int i;
 		struct osm_get_scope_verif_command *str =
 			(struct osm_get_scope_verif_command *) asa_seg_addr;
 	    register uint32_t task,tmp;
@@ -204,7 +204,7 @@ uint16_t aiop_verification_osm(uint32_t asa_seg_addr)
 		str->osm_err_reg.oecr[6] = OSM_REG_OECR6();
 		str->osm_err_reg.oecr[7] = OSM_REG_OECR7();
 
-		/* Disable unused registers - according to valid bit */
+		/* Disable invalid registers - according to valid bit */
 		for (i = 0; (!(str->osm_reg.ortdr[i]&(0x8000))) && (i < 8); i = i+2){};
 		for (; i < 8; i++)
 		{
