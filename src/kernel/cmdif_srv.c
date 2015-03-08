@@ -45,6 +45,7 @@
 #include "cmdif_rev.h"
 #include "fsl_sl_cmd.h"
 #include "fsl_icontext.h"
+#include "fsl_mc_cmd.h"
 
 /** Blocking commands don't need response FD */
 #define SEND_RESP(CMD)	\
@@ -290,6 +291,114 @@ __COLD_CODE void cmdif_srv_free(void)
 	cmdif_srv_deallocate(cmdif_aiop_srv.srv, srv_free);
 	srv_free(cmdif_aiop_srv.dpci_tbl);
 }
+
+#define CMDIF_DPCI_FQID_OFF	32
+#define CMDIF_ICID_AMQ_OFF	0
+#define CMDIF_Q_OPTIONS (DPCI_QUEUE_OPT_USER_CTX | DPCI_QUEUE_OPT_DEST)
+#define CMDIF_RX_CTX_GET \
+	(LLLDW_SWAP((uint32_t)&CMDIF_FQD_CTX_GET, 0))
+
+
+__COLD_CODE static int dpci_rx_ctx_init(uint32_t dpci_id)
+{
+	struct mc_dprc *dprc = sys_get_unique_handle(FSL_OS_MOD_AIOP_RC);
+	int err = 0;
+	uint16_t token;
+	struct dpci_rx_queue_cfg queue_cfg = {0};
+	struct dpci_rx_queue_attr rx_attr = {0};
+	struct dpci_attr attr = {0};
+	int i;
+
+	/* TODO memset */
+	
+	ASSERT_COND(dprc);
+
+	err = dpci_open(&dprc->io, (int)dpci_id, &token);
+	if (err) 
+		return err;
+
+	err = dpci_get_attributes(&dprc->io, token, &attr);
+	if (err) {
+		dpci_close(&dprc->io, token);
+		return err;
+	}
+
+	for (i = 0; i < attr.num_of_priorities; i++) {
+		queue_cfg.dest_cfg.dest_type = DPCI_DEST_NONE;
+		queue_cfg.options = CMDIF_Q_OPTIONS;
+		queue_cfg.user_ctx = 
+			((((uint64_t)dpci_id) << 48) | 0x0000FFFFFFFFFFFF);
+		err = dpci_set_rx_queue(&dprc->io, token, i,
+		                         &queue_cfg);
+		ASSERT_COND(!err);
+	}
+
+	err = dpci_close(&dprc->io, token);
+
+	return err;
+}
+
+__COLD_CODE static int dpci_rx_ctx_set(uint32_t dpci_id)
+{
+	struct mc_dprc *dprc = sys_get_unique_handle(FSL_OS_MOD_AIOP_RC);
+	int err = 0;
+	uint16_t token;
+	struct dpci_rx_queue_cfg queue_cfg = {0};
+	struct dpci_attr attr = {0};
+	struct dpci_tx_queue_attr tx_attr = {0};
+	struct dpci_rx_queue_attr rx_attr = {0};
+	uint8_t i;
+	uint32_t icid_amq_bdi;
+	uint16_t pl_icid = PL_ICID_GET;
+
+	/* TODO memset */
+
+	ASSERT_COND(dprc);
+	ASSERT_COND(dpci_id < 0xFFFF);
+
+	err = dpci_open(&dprc->io, (int)dpci_id, &token);
+	if (err) 
+		return err;
+
+	err = dpci_get_attributes(&dprc->io, token, &attr);
+	if (err) {
+		dpci_close(&dprc->io, token);
+		return err;
+	}
+
+	for (i = 0; i < attr.num_of_priorities; i++) {
+
+		err = dpci_get_tx_queue(&dprc->io, token, i, &tx_attr);
+		ASSERT_COND(!err);
+		queue_cfg.dest_cfg.dest_type = DPCI_DEST_NONE;
+		queue_cfg.options = CMDIF_Q_OPTIONS;
+		queue_cfg.user_ctx = u64_enc(48, 16, dpci_id); 
+		queue_cfg.user_ctx |= u64_enc(32, 16, tx_attr.fqid);
+		
+		icid_amq_bdi = ((uint32_t)ICID_GET(pl_icid)) << 16;
+		ADD_AMQ_FLAGS(icid_amq_bdi, pl_icid);
+		if (BDI_GET != 0)
+			icid_amq_bdi |= 0x1; // TODO macro
+		queue_cfg.user_ctx |= icid_amq_bdi;
+		err = dpci_set_rx_queue(&dprc->io, token, i,
+		                         &queue_cfg);
+		ASSERT_COND(!err);
+	}
+
+	err = dpci_close(&dprc->io, token);
+
+	return err;
+}
+
+__COLD_CODE static void dpci_rx_ctx_get(uint32_t *dpci_fqid, 
+                                        uint32_t *icid_amq_bdi)
+{
+	uint64_t rx_ctx = CMDIF_RX_CTX_GET;
+	
+	*dpci_fqid = (uint32_t)u64_dec(rx_ctx, CMDIF_DPCI_FQID_OFF, 32);
+	*icid_amq_bdi = (uint32_t)u64_dec(rx_ctx, CMDIF_ICID_AMQ_OFF, 32);	
+}
+
 
 __HOT_CODE void cmdif_fd_send(int cb_err);
 __HOT_CODE void cmdif_fd_send(int cb_err)
