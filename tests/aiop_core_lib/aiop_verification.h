@@ -207,11 +207,11 @@ enum verif_modules_ids {
 	TERMINATE_FLOW_MODULE, 	// 14
 	KEYGEN_MODULE, 	// 15
 	IPSEC_MODULE, 	// 16
-	WRITE_DATA_TO_WS_MODULE,// 16
-	UPDATE_ASA_VARIABLE, 	// 17
-	OSM_MODULE, 	// 18
-	EXCEPTION_MODULE, 	// 19
-	UPDATE_EXT_VARIABLE 	// 20
+	WRITE_DATA_TO_WS_MODULE,// 17
+	UPDATE_ASA_VARIABLE, 	// 18
+	OSM_MODULE, 	// 19
+	EXCEPTION_MODULE, 	// 20
+	UPDATE_EXT_VARIABLE 	// 21
 };
 
 /**************************************************************************//**

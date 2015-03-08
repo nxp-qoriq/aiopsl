@@ -382,13 +382,14 @@
 	 * _fd - the FD address in workspace.
 	 * _val - value to be set. */
 #define LDPAA_FD_SET_BPID(_fd, _val)					\
-	({uint32_t bpid_and_offset;						\
-		bpid_and_offset = (uint32_t)(LW_SWAP(0,				\
-			(uint32_t)(((char *)_fd) + FD_BPID_OFFSET)));	\
-		/*bpid_and_offset &= ~FD_BPID_MASK;*/				\
-		bpid_and_offset = __e_rlwimi(bpid_and_offset, (uint32_t)_val, 0, 18, 31);	\
-		STW_SWAP(bpid_and_offset, 0,					\
-			(uint32_t)(((char *)_fd) + FD_BPID_OFFSET));\
+	({uint32_t bpid_and_offset;					\
+	bpid_and_offset = (uint32_t)(LW_SWAP(0,				\
+		(uint32_t)(((char *)_fd) + FD_BPID_OFFSET)));		\
+	/*bpid_and_offset &= ~FD_BPID_MASK;*/				\
+	bpid_and_offset =						\
+		__e_rlwimi(bpid_and_offset, (uint32_t)_val, 0, 18, 31);	\
+	STW_SWAP(bpid_and_offset, 0,					\
+		(uint32_t)(((char *)_fd) + FD_BPID_OFFSET));\
 	})
 	/** Macro to set FD IVP field.
 	 * _fd - the FD address in workspace.\n
