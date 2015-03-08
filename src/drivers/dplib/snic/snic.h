@@ -104,7 +104,7 @@ struct snic_params {
 	uint8_t spid;
 	uint8_t ipsec_key_size;
 	uint16_t ipsec_table_id;
-	uint8_t ipsec_key_id;
+	uint8_t res;
 	uint8_t dec_ipsec_key_id;
 	uint16_t dec_ipsec_table_id;	
 };

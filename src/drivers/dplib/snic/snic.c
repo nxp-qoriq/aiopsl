@@ -245,7 +245,7 @@ int snic_add_vlan(void)
 int snic_ipsec_decrypt(struct snic_params *snic)
 {
 	int sr_status;
-	struct table_lookup_result lookup_result;
+	struct table_lookup_result lookup_result __attribute__((aligned(16)));
 	ipsec_handle_t ipsec_handle;
 	uint32_t dec_status;
 	
@@ -275,10 +275,10 @@ int snic_ipsec_encrypt(struct snic_params *snic)
 	struct presentation_context *presentation_context;
 	uint32_t asa_seg_addr;	/* ASA Segment Address */
 	int sr_status;
-	struct table_lookup_result lookup_result;
+	struct table_lookup_result lookup_result __attribute__((aligned(16)));
 	ipsec_handle_t ipsec_handle;
 	uint32_t enc_status;
-	struct table_lookup_non_default_params ndf_params = {0};
+	union table_lookup_key_desc key_desc  __attribute__((aligned(16)));
 
 	/* Get ASA pointer */
 	presentation_context =
@@ -287,15 +287,8 @@ int snic_ipsec_encrypt(struct snic_params *snic)
 			asapa_asaps & PRC_ASAPA_MASK);
 	sa_id = *((uint16_t *)(PTR_MOVE(asa_seg_addr, 0x54)));
 	
-
-	ndf_params.metadata = (uint64_t)sa_id;
-	sr_status = table_lookup_by_keyid(
-			TABLE_ACCEL_ID_CTLU,
-			snic->ipsec_table_id,
-			snic->ipsec_key_id,
-			TABLE_LOOKUP_FLAG_MTDT_NON_DEFAULT,
-			&ndf_params,
-			&lookup_result);
+	key_desc.em_key = &sa_id;
+	sr_status = table_lookup_by_key(TABLE_ACCEL_ID_CTLU, snic->ipsec_table_id, key_desc, 2, &lookup_result);
 
 	if (sr_status == TABLE_STATUS_SUCCESS) 
 	{
@@ -370,8 +363,8 @@ __COLD_CODE static int snic_ctrl_cb(void *dev, uint16_t cmd, uint32_t size, void
 	ipsec_handle_t ipsec_handle = 0;
 	struct table_rule rule
 					__attribute__((aligned(16)));
-	struct table_lookup_result lookup_result;
-	struct table_lookup_non_default_params ndf_params = {0};
+	struct table_lookup_result lookup_result __attribute__((aligned(16)));
+	union table_lookup_key_desc table_lookup_key_desc  __attribute__((aligned(16)));
 	union table_key_desc key_desc __attribute__((aligned(16)));
 	int32_t direction;
 
@@ -451,10 +444,10 @@ __COLD_CODE static int snic_ctrl_cb(void *dev, uint16_t cmd, uint32_t size, void
 				&snic_params[snic_id].dec_ipsec_table_id);
 		if (err)
 			return err;
-		/* create keyid and tableid for SA ID management*/
+		/* create tableid for SA ID management*/
 		err = snic_create_table_key_id(0, NULL, key_size,
 				table_location, committed_sa_num, max_sa_num,
-				&snic_params[snic_id].ipsec_key_id,
+				NULL,
 				&snic_params[snic_id].ipsec_table_id);
 		return err;
 		/* This command must be after setting SPID in the SNIC params*/
@@ -463,15 +456,11 @@ __COLD_CODE static int snic_ctrl_cb(void *dev, uint16_t cmd, uint32_t size, void
 		err = ipsec_delete_instance(snic_params[snic_id].ipsec_instance_val);
 		if (err)
 			return err;
-		/* return 2 sets of keyid and table ids */
+		/* return  set of keyid and 2 sets of table ids */
 		table_delete(TABLE_ACCEL_ID_CTLU,
 				snic_params[snic_id].ipsec_table_id);
 		table_delete(TABLE_ACCEL_ID_CTLU,
 				snic_params[snic_id].dec_ipsec_table_id);
-		err = keygen_kcr_delete(KEYGEN_ACCEL_ID_CTLU,
-				snic_params[snic_id].ipsec_key_id);
-		if (err)
-			return err;
 		err = keygen_kcr_delete(KEYGEN_ACCEL_ID_CTLU,
 				snic_params[snic_id].dec_ipsec_key_id);
 		if (err)
@@ -546,14 +535,8 @@ __COLD_CODE static int snic_ctrl_cb(void *dev, uint16_t cmd, uint32_t size, void
 		return 0;
 	case SNIC_IPSEC_DEL_SA:
 		SNIC_IPSEC_DEL_SA_CMD(SNIC_CMD_READ);
-		ndf_params.metadata = (uint64_t)sa_id;
-		err = table_lookup_by_keyid(
-				TABLE_ACCEL_ID_CTLU,
-				snic_params[snic_id].ipsec_table_id,
-				snic_params[snic_id].ipsec_key_id,
-				TABLE_LOOKUP_FLAG_MTDT_NON_DEFAULT,
-				&ndf_params,
-				&lookup_result);
+		table_lookup_key_desc.em_key = &sa_id;
+		err = table_lookup_by_key(TABLE_ACCEL_ID_CTLU, snic_params[snic_id].ipsec_table_id, table_lookup_key_desc, 2, &lookup_result);
 		if (err == TABLE_STATUS_SUCCESS) {
 			/* Hit */
 			ipsec_handle = lookup_result.opaque0_or_reference;
@@ -667,25 +650,23 @@ int snic_create_table_key_id(uint8_t fec_no, uint8_t fec_array[8],
 	struct table_create_params tbl_params;
 	uint16_t table_location_attr;
 
-	keygen_kcr_builder_init(&kb);
-	if (!fec_no)
-		keygen_kcr_builder_add_input_value_fec(6/*offset*/, 
-				2/*extract size*/, NULL , &kb );
-	else
+	if (fec_no)
 	{
+		keygen_kcr_builder_init(&kb);
 		for (i = 0; i < fec_no; i++)
 			keygen_kcr_builder_add_protocol_specific_field(
 				(enum kcr_builder_protocol_fecid)fec_array[i],
 				NULL , &kb);
+		
+		err = keygen_kcr_create(KEYGEN_ACCEL_ID_CTLU,
+				  kb.kcr,
+				  key_id);
+		if (err < 0)
+		{
+			return err;
+		}
 	}
 
-	err = keygen_kcr_create(KEYGEN_ACCEL_ID_CTLU,
-			  kb.kcr,
-			  key_id);
-	if (err < 0)
-	{
-		return err;
-	}
 	/*todo these limits are also for egress and we need for ingress only*/
 	tbl_params.committed_rules = committed_sa_num;
 	tbl_params.max_rules = max_sa_num;

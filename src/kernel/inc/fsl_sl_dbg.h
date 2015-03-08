@@ -35,7 +35,6 @@
 
 #include "fsl_dbg.h"
 #include "fsl_string.h"
-#include "fsl_general.h"
 /**************************************************************************//**
  @Group		FSL_DEBUG_GROUP Debug Utilities
 

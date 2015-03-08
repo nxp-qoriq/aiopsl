@@ -33,6 +33,10 @@
 #include <fsl_stdlib.h>
 #include <fsl_endian.h>
 #include <fsl_io.h>
+#include <fsl_mem_mng.h>
+
+#undef LOG_MODULE
+#define LOG_MODULE LOG_MOD_CMDIF
 
 #ifndef CORE_IS_BIG_ENDIAN
 #error "MC core must be big endian\n!"

@@ -42,7 +42,8 @@
 #define __ERR_MODULE__  MODULE_SOC_PLATFORM
 extern __TASK uint32_t seed_32bit;
 extern struct aiop_init_info g_init_data;
-extern const uint8_t AIOP_DDR_START[],AIOP_DDR_END[],_ssram_heap_start[],_ssram_addr[];
+extern const uint8_t AIOP_DDR_START[],AIOP_DDR_END[],_ssram_heap_start[],\
+                     _memory_data_addr[];
 
 typedef struct t_platform {
 	/* Copy of platform parameters */
@@ -510,7 +511,7 @@ __COLD_CODE static int build_mem_partitions_table(t_platform  *pltfrm)
 			break;
 		case MEM_PART_SH_RAM:
 			uint32_t shared_ram_non_heap_size = (uint32_t)_ssram_heap_start -
-							                     (uint32_t)_ssram_addr;
+							                     (uint32_t)_memory_data_addr;
 			p_mem_info->virt_base_addr = (uint32_t)_ssram_heap_start;
 			p_mem_info->phys_base_addr =  p_mem_info->virt_base_addr;
 			p_mem_info->size = SHARED_RAM_SIZE - shared_ram_non_heap_size;
