@@ -38,6 +38,7 @@
 #include "fsl_icontext.h"
 #include "aiop_common.h"
 #include "fsl_log.h"
+#include "fsl_cdma.h"
 #include "fsl_spinlock.h"
 
 
