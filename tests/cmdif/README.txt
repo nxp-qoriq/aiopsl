@@ -99,6 +99,8 @@ These are the commands that can be sent to AIOP module "TEST0".
         shbp_test.shbp is the pointer to struct shbp that was created on GPP
         shbp.dpci_id is the dpci_id where this shbp belongs to.
         AIOP will acquire, release  and write to all the buffers in the pool.
+        Each buffer inside this shbp should have the shbp address/handle written to the first 8 bytes,
+        shbp should be written by GPP in LE without byte swaps.
         See aiopsl\tests\cmdif\nadk\cmdif_client_demo.c	as example for GPP side testing */
 
 #define SHBP_TEST_GPP	0x110
