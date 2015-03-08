@@ -573,6 +573,8 @@ __COLD_CODE int notify_close()
 		return 0;
 	}
 
+	cl->count--;
+	
 	unlock_spinlock(&cl->lock);
 #endif /* STACK_CHECK */
 	return -ENAVAIL;
