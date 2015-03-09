@@ -158,6 +158,65 @@ inline void cdma_read(
 		cdma_exception_handler(CDMA_READ, __LINE__,(int32_t)res1);
 }
 
+inline void cdma_write(
+		uint64_t ext_address,
+		void *ws_src,
+		uint16_t size) {
+
+	/* command parameters and results */
+	uint32_t arg1, arg2, arg3, arg4;
+	uint8_t res1;
+
+	/* prepare command parameters */
+	arg1 = CDMA_WRITE_CMD_ARG1();
+	arg2 = CDMA_WRITE_CMD_ARG2(size, (uint32_t)ws_src);
+	arg3 = (uint32_t)(ext_address>>32);
+	arg4 = (uint32_t)(ext_address);
+
+	/* store command parameters */
+	__stqw(arg1, arg2, arg3, arg4, HWC_ACC_IN_ADDRESS, 0);
+
+	/* call CDMA */
+	__e_hwacceli_(CDMA_ACCEL_ID);
+
+	/* load command results */
+	res1 = *((uint8_t *)(HWC_ACC_OUT_ADDRESS+CDMA_STATUS_OFFSET));
+
+	if (((int32_t)res1) != CDMA_SUCCESS)
+		cdma_exception_handler(CDMA_WRITE, __LINE__,(int32_t)res1);
+}
+
+inline void cdma_write_with_mutex(
+		uint64_t ext_address,
+		uint32_t flags,
+		void *ws_src,
+		uint16_t size) {
+
+	/* command parameters and results */
+	uint32_t arg1, arg2, arg3, arg4;
+	uint8_t res1;
+
+	/* prepare command parameters */
+	arg1 = CDMA_WRITE_WITH_MUTEX_CMD_ARG1(flags);
+	arg2 = CDMA_WRITE_WITH_MUTEX_CMD_ARG2(size, (uint32_t)ws_src);
+	arg3 = (uint32_t)(ext_address>>32);
+	arg4 = (uint32_t)(ext_address);
+
+	/* store command parameters */
+	__stqw(arg1, arg2, arg3, arg4, HWC_ACC_IN_ADDRESS, 0);
+
+	/* call CDMA */
+	__e_hwacceli_(CDMA_ACCEL_ID);
+
+	/* load command results */
+	res1 = *((uint8_t *)(HWC_ACC_OUT_ADDRESS+CDMA_STATUS_OFFSET));
+
+	if (((int32_t)res1) != CDMA_SUCCESS)
+		cdma_exception_handler(CDMA_WRITE_WITH_MUTEX, __LINE__,
+				(int32_t)res1);
+}
+
+
 inline void cdma_mutex_lock_take(
 		uint64_t mutex_id,
 		uint32_t flags) {
@@ -257,6 +316,34 @@ inline int cdma_access_context_memory(
 	cdma_exception_handler(CDMA_ACCESS_CONTEXT_MEMORY,__LINE__,
 			(int32_t)res1);
 	return -1;
+}
+
+inline void cdma_ws_memory_init(
+		void *ws_dst,
+		uint16_t size,
+		uint32_t data_pattern) {
+
+	/* command parameters and results */
+	uint32_t arg1, arg2, arg3, arg4 = 0;
+	uint8_t res1;
+
+	/* prepare command parameters */
+	arg1 = CDMA_MEMORY_INIT_CMD;
+	arg2 = CDMA_MEMORY_INIT_CMD_ARG2(size, (uint32_t)ws_dst);
+	arg3 = data_pattern;
+
+	/* store command parameters */
+	__stqw(arg1, arg2, arg3, arg4, HWC_ACC_IN_ADDRESS, 0);
+
+	/* call CDMA */
+	__e_hwacceli_(CDMA_ACCEL_ID);
+
+	/* load command results */
+	res1 = *((uint8_t *)(HWC_ACC_OUT_ADDRESS+CDMA_STATUS_OFFSET));
+
+	if (((int32_t)res1) != CDMA_SUCCESS)
+		cdma_exception_handler(CDMA_WS_MEMORY_INIT,__LINE__,
+				(int32_t)res1);
 }
 
 #endif /* __CDMA_INLINE_H */

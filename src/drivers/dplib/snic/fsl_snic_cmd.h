@@ -35,7 +35,8 @@
 #ifndef _FSL_SNIC_CMD_H
 #define _FSL_SNIC_CMD_H
 
-#define SNIC_CMD_NUM_OF_PARAMS	24
+/* up to 256 bytes for segment for command data */
+#define SNIC_CMD_NUM_OF_PARAMS	32
 
 struct snic_cmd_data {
 	uint64_t params[SNIC_CMD_NUM_OF_PARAMS];
@@ -213,54 +214,58 @@ do { \
 	_OP(13, 0,	32,	uint32_t,	ipsec_cfg->cipherdata.keylen); \
 	_OP(13, 32,	32,	uint32_t,	ipsec_cfg->cipherdata.key_enc_flags); \
 	_OP(14, 0,	64,	uint64_t,	ipsec_cfg->cipherdata.key); \
-	_OP(15, 0,	8,	uint8_t,	ipsec_dec_key[0]); \
-	_OP(15, 8,	8,	uint8_t,	ipsec_dec_key[1]); \
-	_OP(15, 16,	8,	uint8_t,	ipsec_dec_key[2]); \
-	_OP(15, 24,	8,	uint8_t,	ipsec_dec_key[3]); \
-	_OP(15, 32,	8,	uint8_t,	ipsec_dec_key[4]); \
-	_OP(15, 40,	8,	uint8_t,	ipsec_dec_key[5]); \
-	_OP(15, 48,	8,	uint8_t,	ipsec_dec_key[6]); \
-	_OP(15, 56,	8,	uint8_t,	ipsec_dec_key[7]); \
-	_OP(16, 0,	8,	uint8_t,	ipsec_dec_key[8]); \
-	_OP(16, 8,	8,	uint8_t,	ipsec_dec_key[9]); \
-	_OP(16, 16,	8,	uint8_t,	ipsec_dec_key[10]); \
-	_OP(16, 24,	8,	uint8_t,	ipsec_dec_key[11]); \
-	_OP(16, 32,	8,	uint8_t,	ipsec_dec_key[12]); \
-	_OP(16, 40,	8,	uint8_t,	ipsec_dec_key[13]); \
-	_OP(16, 48,	8,	uint8_t,	ipsec_dec_key[14]); \
-	_OP(16, 56,	8,	uint8_t,	ipsec_dec_key[15]); \
-	_OP(17, 0,	8,	uint8_t,	ipsec_dec_key[16]); \
-	_OP(17, 8,	8,	uint8_t,	ipsec_dec_key[17]); \
-	_OP(17, 16,	8,	uint8_t,	ipsec_dec_key[18]); \
-	_OP(17, 24,	8,	uint8_t,	ipsec_dec_key[19]); \
-	_OP(17, 32,	8,	uint8_t,	ipsec_dec_key[20]); \
-	_OP(17, 40,	8,	uint8_t,	ipsec_dec_key[21]); \
-	_OP(17, 48,	8,	uint8_t,	ipsec_dec_key[22]); \
-	_OP(17, 56,	8,	uint8_t,	ipsec_dec_key[23]); \
-	_OP(18, 0,	8,	uint8_t,	ipsec_dec_key[24]); \
-	_OP(18, 8,	8,	uint8_t,	ipsec_dec_key[25]); \
-	_OP(18, 16,	8,	uint8_t,	ipsec_dec_key[26]); \
-	_OP(18, 24,	8,	uint8_t,	ipsec_dec_key[27]); \
-	_OP(18, 32,	8,	uint8_t,	ipsec_dec_key[28]); \
-	_OP(18, 40,	8,	uint8_t,	ipsec_dec_key[29]); \
-	_OP(18, 48,	8,	uint8_t,	ipsec_dec_key[30]); \
-	_OP(18, 56,	8,	uint8_t,	ipsec_dec_key[31]); \
-	_OP(19, 0,	8,	uint8_t,	ipsec_dec_key[32]); \
-	_OP(19, 8,	8,	uint8_t,	ipsec_dec_key[33]); \
-	_OP(19, 16,	8,	uint8_t,	ipsec_dec_key[34]); \
-	_OP(19, 24,	8,	uint8_t,	ipsec_dec_key[35]); \
-	_OP(19, 32,	8,	uint8_t,	ipsec_dec_key[36]); \
-	_OP(19, 40,	8,	uint8_t,	ipsec_dec_key[37]); \
-	_OP(19, 48,	8,	uint8_t,	ipsec_dec_key[38]); \
-	_OP(19, 56,	8,	uint8_t,	ipsec_dec_key[39]); \
-	_OP(20, 0,	8,	uint8_t,	ipsec_dec_key[40]); \
-	_OP(20, 8,	8,	uint8_t,	ipsec_dec_key[41]); \
-	_OP(20, 16,	8,	uint8_t,	ipsec_dec_key[42]); \
-	_OP(20, 24,	8,	uint8_t,	ipsec_dec_key[43]); \
-	_OP(20, 32,	8,	uint8_t,	ipsec_dec_key[44]); \
-	_OP(20, 40,	8,	uint8_t,	ipsec_dec_key[45]); \
-	_OP(20, 48,	8,	uint8_t,	ipsec_dec_key[46]); \
-	_OP(20, 56,	8,	uint8_t,	ipsec_dec_key[47]); \
+	_OP(15, 0,	32,	uint32_t,	ipsec_cfg->authdata.algtype); \
+	_OP(15, 32,	32,	uint32_t,	ipsec_cfg->authdata.keylen); \
+	_OP(16, 0,	64,	uint64_t,	ipsec_cfg->authdata.key); \
+	_OP(17, 0,	32,	uint32_t,	ipsec_cfg->authdata.key_enc_flags); \
+	_OP(17, 32,	8,	uint8_t,	ipsec_dec_key[0]); \
+	_OP(17, 40,	8,	uint8_t,	ipsec_dec_key[1]); \
+	_OP(17, 48,	8,	uint8_t,	ipsec_dec_key[2]); \
+	_OP(17, 56,	8,	uint8_t,	ipsec_dec_key[3]); \
+	_OP(18, 0,	8,	uint8_t,	ipsec_dec_key[4]); \
+	_OP(18, 8,	8,	uint8_t,	ipsec_dec_key[5]); \
+	_OP(18, 16,	8,	uint8_t,	ipsec_dec_key[6]); \
+	_OP(18, 24,	8,	uint8_t,	ipsec_dec_key[7]); \
+	_OP(18, 32,	8,	uint8_t,	ipsec_dec_key[8]); \
+	_OP(18, 40,	8,	uint8_t,	ipsec_dec_key[9]); \
+	_OP(18, 48,	8,	uint8_t,	ipsec_dec_key[10]); \
+	_OP(18, 56,	8,	uint8_t,	ipsec_dec_key[11]); \
+	_OP(19, 0,	8,	uint8_t,	ipsec_dec_key[12]); \
+	_OP(19, 8,	8,	uint8_t,	ipsec_dec_key[13]); \
+	_OP(19, 16,	8,	uint8_t,	ipsec_dec_key[14]); \
+	_OP(19, 24,	8,	uint8_t,	ipsec_dec_key[15]); \
+	_OP(19, 32,	8,	uint8_t,	ipsec_dec_key[16]); \
+	_OP(19, 40,	8,	uint8_t,	ipsec_dec_key[17]); \
+	_OP(19, 48,	8,	uint8_t,	ipsec_dec_key[18]); \
+	_OP(19, 56,	8,	uint8_t,	ipsec_dec_key[19]); \
+	_OP(20, 0,	8,	uint8_t,	ipsec_dec_key[20]); \
+	_OP(20, 8,	8,	uint8_t,	ipsec_dec_key[21]); \
+	_OP(20, 16,	8,	uint8_t,	ipsec_dec_key[22]); \
+	_OP(20, 24,	8,	uint8_t,	ipsec_dec_key[23]); \
+	_OP(20, 32,	8,	uint8_t,	ipsec_dec_key[24]); \
+	_OP(20, 40,	8,	uint8_t,	ipsec_dec_key[25]); \
+	_OP(20, 48,	8,	uint8_t,	ipsec_dec_key[26]); \
+	_OP(20, 56,	8,	uint8_t,	ipsec_dec_key[27]); \
+	_OP(21, 0,	8,	uint8_t,	ipsec_dec_key[28]); \
+	_OP(21, 8,	8,	uint8_t,	ipsec_dec_key[29]); \
+	_OP(21, 16,	8,	uint8_t,	ipsec_dec_key[30]); \
+	_OP(21, 24,	8,	uint8_t,	ipsec_dec_key[31]); \
+	_OP(21, 32,	8,	uint8_t,	ipsec_dec_key[32]); \
+	_OP(21, 40,	8,	uint8_t,	ipsec_dec_key[33]); \
+	_OP(21, 48,	8,	uint8_t,	ipsec_dec_key[34]); \
+	_OP(21, 56,	8,	uint8_t,	ipsec_dec_key[35]); \
+	_OP(22, 0,	8,	uint8_t,	ipsec_dec_key[36]); \
+	_OP(22, 8,	8,	uint8_t,	ipsec_dec_key[37]); \
+	_OP(22, 16,	8,	uint8_t,	ipsec_dec_key[38]); \
+	_OP(22, 24,	8,	uint8_t,	ipsec_dec_key[39]); \
+	_OP(22, 32,	8,	uint8_t,	ipsec_dec_key[40]); \
+	_OP(22, 40,	8,	uint8_t,	ipsec_dec_key[41]); \
+	_OP(22, 48,	8,	uint8_t,	ipsec_dec_key[42]); \
+	_OP(22, 56,	8,	uint8_t,	ipsec_dec_key[43]); \
+	_OP(23, 0,	8,	uint8_t,	ipsec_dec_key[44]); \
+	_OP(23, 8,	8,	uint8_t,	ipsec_dec_key[45]); \
+	_OP(23, 16,	8,	uint8_t,	ipsec_dec_key[46]); \
+	_OP(23, 24,	8,	uint8_t,	ipsec_dec_key[47]); \
 } while (0)
 
 /*	param, offset, width,	type,			arg_name */
