@@ -168,7 +168,7 @@ inline void cdma_read(
 @Cautions	This function may result in a fatal error.
 
 *//***************************************************************************/
-void cdma_write(
+inline void cdma_write(
 		uint64_t ext_address,
 		void *ws_src,
 		uint16_t size);
@@ -315,7 +315,7 @@ inline void cdma_read_with_mutex(
 @Cautions	This function may result in a fatal error.
 
 *//***************************************************************************/
-void cdma_write_with_mutex(
+inline void cdma_write_with_mutex(
 		uint64_t ext_address,
 		uint32_t flags,
 		void *ws_src,
@@ -340,7 +340,7 @@ void cdma_write_with_mutex(
 @Cautions	This function may result in a fatal error.
 
 *//***************************************************************************/
-void cdma_ws_memory_init(
+inline void cdma_ws_memory_init(
 		void *ws_dst,
 		uint16_t size,
 		uint32_t data_pattern);
