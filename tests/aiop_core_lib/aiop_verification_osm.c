@@ -205,8 +205,8 @@ uint16_t aiop_verification_osm(uint32_t asa_seg_addr)
 		str->osm_err_reg.oecr[7] = OSM_REG_OECR7();
 
 		/* Disable invalid registers - according to valid bit */
-		for (i = 0; (!(str->osm_reg.ortdr[i]&(OSM_VALID_BIT_MASK))) && 
-												(i < OSM_REG_NUM); i = i+2){};
+		for (i = 0; ((str->osm_reg.ortdr[i]&(OSM_VALID_BIT_MASK)) && 
+												(i < OSM_REG_NUM)); i = i+2){};
 		for (; i < OSM_REG_NUM; i++)
 		{
 			str->osm_reg.ortdr[i] = 0;
