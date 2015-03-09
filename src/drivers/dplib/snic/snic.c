@@ -629,6 +629,8 @@ void snic_ipr_timout_cb(ipr_timeout_arg_t arg,
 {
 	UNUSED(arg);
 	UNUSED(flags);
+	/* Need to discard default frame */
+	fdma_discard_default_frame(FDMA_DIS_NO_FLAGS);
 	fdma_terminate_task();
 }
 
