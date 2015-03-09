@@ -180,10 +180,12 @@ inline void cdma_mutex_lock_take(
 
 	/* load command results */
 	res1 = *((uint8_t *)(HWC_ACC_OUT_ADDRESS+CDMA_STATUS_OFFSET));
-
+/*TODO: remove #ifndef STACK_CHECK when CQ ENGR00347744 resolved*/
+#ifndef STACK_CHECK
 	if (((int32_t)res1) != CDMA_SUCCESS)
 		cdma_exception_handler(CDMA_MUTEX_LOCK_TAKE, __LINE__,
 				(int32_t)res1);
+#endif
 }
 
 inline void cdma_mutex_lock_release(
@@ -207,10 +209,12 @@ inline void cdma_mutex_lock_release(
 
 	/* load command results */
 	res1 = *((uint8_t *)(HWC_ACC_OUT_ADDRESS+CDMA_STATUS_OFFSET));
-
+/*TODO: remove #ifndef STACK_CHECK when CQ ENGR00347744 resolved*/
+#ifndef STACK_CHECK
 	if (((int32_t)res1) != CDMA_SUCCESS)
 		cdma_exception_handler(CDMA_MUTEX_LOCK_RELEASE, __LINE__,
 				(int32_t)res1);
+#endif	
 }
 
 inline int cdma_access_context_memory(
