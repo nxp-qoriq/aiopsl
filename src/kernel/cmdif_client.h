@@ -63,7 +63,7 @@ ASSERT_STRUCT_SIZE(CMDIF_OPEN_SIZEOF, CMDIF_OPEN_SIZE);
 	LH_SWAP(0, &(((struct additional_dequeue_context *)HWC_ADC_ADDRESS)->pl_icid))
 
 /** Get ICID to send response */
-#define ICID_GET(PL_AND_ICID) ((PL_AND_ICID) & ADC_ICID_MASK)
+#define ICID_GET(PL_AND_ICID) ((uint16_t)((PL_AND_ICID) & ADC_ICID_MASK))
 
 /** Get PL to send response */
 #define PL_GET(PL_AND_ICID) ((PL_AND_ICID)  & ADC_PL_MASK)
