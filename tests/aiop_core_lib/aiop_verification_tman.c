@@ -39,6 +39,7 @@
 
 extern __VERIF_GLOBAL uint8_t tmi_id;
 __VERIF_GLOBAL uint8_t tman_spid;
+__VERIF_GLOBAL struct fdma_amq tman_amq;
 
 #ifndef REV2
 extern uint32_t tman_tmi_max_num_of_timers[256];
@@ -58,6 +59,7 @@ uint16_t aiop_verification_tman(uint32_t asa_seg_addr)
 	case TMAN_TMI_CREATE_CMD_STR:
 	{
 		tman_spid = *((uint8_t *)HWC_SPID_ADDRESS);
+		get_default_amq_attributes(&tman_amq);
 		struct tman_tmi_create_command *str =
 			(struct tman_tmi_create_command *) asa_seg_addr;
 		str->status = tman_create_tmi(
@@ -220,6 +222,7 @@ void verif_tman_callback_no_conf(uint64_t opaque1, uint16_t opaque2)
 	uint8_t frame_handle;
 	
 	*((uint8_t *)HWC_SPID_ADDRESS) = tman_spid;
+	set_default_amq_attributes(&tman_amq);
 
 	
 	fdma_store_default_frame_data();
@@ -234,12 +237,15 @@ void verif_tman_callback(uint64_t opaque1, uint16_t opaque2)
 {
 	uint8_t frame_handle;
 	
+	
 	*((uint8_t *)HWC_SPID_ADDRESS) = tman_spid;
+	set_default_amq_attributes(&tman_amq);
 
 	tman_timer_completion_confirmation(
 			TMAN_GET_TIMER_HANDLE(HWC_FD_ADDRESS));
 	/* TODO there is an issue that the create frame overwrites the FD where
 	the TMAN parameters are saved */
+
 	fdma_store_default_frame_data();
 	create_frame((struct ldpaa_fd *)HWC_FD_ADDRESS,&opaque1,
 			     sizeof(opaque1), &frame_handle);
