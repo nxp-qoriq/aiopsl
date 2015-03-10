@@ -21,7 +21,7 @@
 	};
 	aiop {
 		log {
-			mode = "LOG_MODE_OFF";
+			mode = "LOG_MODE_ON";
 		};
 		console {
 			mode = "CONSOLE_MODE_ON";

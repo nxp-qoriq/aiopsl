@@ -1823,9 +1823,11 @@ void fdma_dma_data(
 	__e_hwacceli_(FPDMA_ACCEL_ID);
 	/* load command results */
 	res1 = *((int8_t *)(FDMA_STATUS_ADDR));
-
+/*TODO: remove #ifndef STACK_CHECK when CQ ENGR00347744 resolved*/
+#ifndef STACK_CHECK
 	if (res1 != FDMA_SUCCESS)
 		fdma_exception_handler(FDMA_DMA_DATA, __LINE__, (int32_t)res1);
+#endif
 }
 
 int fdma_acquire_buffer(

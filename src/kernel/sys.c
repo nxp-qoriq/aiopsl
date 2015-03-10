@@ -40,13 +40,11 @@
 
 /* Global System Object */
 t_system sys = {0};
-
 extern struct aiop_init_info g_init_data;
-extern uint64_t g_log_buf_phys_address;
-extern uint32_t g_log_buf_size;
 
 extern void     __sys_start(register int argc, register char **argv,
 				register char **envp);
+extern int icontext_init();
 
 typedef struct t_sys_forced_object {
 	fsl_handle_t        h_module;
@@ -309,11 +307,6 @@ __COLD_CODE int sys_init(void)
 	memset( &pre_console_buf[0], 0, PRE_CONSOLE_BUF_SIZE);
 	sys.p_pre_console_buf = &pre_console_buf[0];
 
-	if(g_init_data.sl_info.log_buf_size){
-		sys.print_to_buffer = TRUE;
-		g_log_buf_phys_address = g_init_data.sl_info.log_buf_paddr;
-		g_log_buf_size = g_init_data.sl_info.log_buf_size;
-	}
 
 	sys.is_tile_master[core_id] = (int)(SYS_TILE_MASTERS_MASK \
 						& (1ULL << core_id)) ? 1 : 0;
@@ -323,6 +316,12 @@ __COLD_CODE int sys_init(void)
 	is_master_core = sys_is_master_core();
 
 	if(is_master_core) {
+		/* MUST BE before log_init() because it uses icontext API */
+		icontext_init();
+		if(g_init_data.sl_info.log_buf_size){
+			log_init();
+			sys.print_to_buffer = TRUE;
+		}
 		err = global_sys_init();
 		if (err != 0) return err;
 
