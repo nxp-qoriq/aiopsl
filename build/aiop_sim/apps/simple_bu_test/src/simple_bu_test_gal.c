@@ -845,9 +845,9 @@ void test_ste_functions(uint64_t ext_addr)
 	if (counter != INC_VAL){
 		fsl_os_print("*** ERROR: ste_inc_counter FAILED !!! \n");
 		fsl_os_print("*** ERROR: counter =  %d != %d \n", counter, INC_VAL);
-		fsl_os_print("*** ERROR: STE_GET_STATUS_REGISTER %d \n", counter, STE_GET_STATUS_REGISTER());
+		/*fsl_os_print("*** ERROR: STE_GET_STATUS_REGISTER %d \n", counter, STE_GET_STATUS_REGISTER());
 		fsl_os_print("*** ERROR: STE_GET_STATUS_REGISTER %d \n", counter, STE_GET_ERR_CAP_ATTRIBUTES());
-		fsl_os_print("*** ERROR: STE_GET_AMQR at address 0x%x = 0x%x \n", STE_BASE_ADDRESS + 0x40, (uint32_t)(ioread32_ccsr((uint32_t *)(STE_BASE_ADDRESS + 0x40))));
+		fsl_os_print("*** ERROR: STE_GET_AMQR at address 0x%x = 0x%x \n", STE_BASE_ADDRESS + 0x40, (uint32_t)(ioread32_ccsr((uint32_t *)(STE_BASE_ADDRESS + 0x40))));*/
 		fsl_os_print("*** ERROR: STE_GET_CDMA_ICID at address 0x%x = 0x%x \n", CDMA_BASE_ADDRESS, (uint32_t)(ioread32_ccsr((uint32_t *)CDMA_BASE_ADDRESS)));
 		return;
 	}
@@ -865,14 +865,14 @@ void test_ste_functions(uint64_t ext_addr)
 	if (counter != (INC_VAL-DEC_VAL-DEC_VAL)){
 		fsl_os_print("*** ERROR: ste_dec_counter FAILED !!! \n");
 		fsl_os_print("*** ERROR: counter =  %d != %d  \n", counter, INC_VAL-DEC_VAL);
-		fsl_os_print("*** ERROR: STE_GET_STATUS_REGISTER %d \n", counter, STE_GET_STATUS_REGISTER());
+		/*fsl_os_print("*** ERROR: STE_GET_STATUS_REGISTER %d \n", counter, STE_GET_STATUS_REGISTER());
 		fsl_os_print("*** ERROR: STE_GET_STATUS_REGISTER %d \n", counter, STE_GET_ERR_CAP_ATTRIBUTES());
-		fsl_os_print("*** ERROR: STE_GET_AMQR at address 0x%x = 0x%x \n", STE_BASE_ADDRESS + 0x40, (uint32_t)(ioread32_ccsr((uint32_t *)(STE_BASE_ADDRESS + 0x40))));
+		fsl_os_print("*** ERROR: STE_GET_AMQR at address 0x%x = 0x%x \n", STE_BASE_ADDRESS + 0x40, (uint32_t)(ioread32_ccsr((uint32_t *)(STE_BASE_ADDRESS + 0x40))));*/
 		fsl_os_print("*** ERROR: STE_GET_CDMA_ICID at address 0x%x = 0x%x \n", CDMA_BASE_ADDRESS, (uint32_t)(ioread32_ccsr((uint32_t *)CDMA_BASE_ADDRESS)));
 		return;
 	}
 	else{
-		fsl_os_print("*** ERROR: STE_GET_AMQR at address 0x%x = 0x%x \n", STE_BASE_ADDRESS + 0x40, (uint32_t)(ioread32_ccsr((uint32_t *)(STE_BASE_ADDRESS + 0x40))));
+/*		fsl_os_print("*** ERROR: STE_GET_AMQR at address 0x%x = 0x%x \n", STE_BASE_ADDRESS + 0x40, (uint32_t)(ioread32_ccsr((uint32_t *)(STE_BASE_ADDRESS + 0x40))));*/
 		fsl_os_print("*** ERROR: STE_GET_CDMA_ICID at address 0x%x = 0x%x \n", CDMA_BASE_ADDRESS, (uint32_t)(ioread32_ccsr((uint32_t *)CDMA_BASE_ADDRESS)));
 		fsl_os_print("*** ste_dec_counter PASSED !!! \n");
 		fsl_os_print("*** counter =  %d \n", counter);
