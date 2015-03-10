@@ -56,6 +56,7 @@
 
 
 int test_fdma();
+void test_create_frame();
 void test_tmi_create();
 void test_fdma_discard_fd();
 void test_fdma_modify_default_segment_data();
@@ -136,6 +137,8 @@ int test_fdma()
 	int i;
 	
 	struct ldpaa_fd *fd = (struct ldpaa_fd *)HWC_FD_ADDRESS;
+	
+	test_create_frame();
 	
 	uint8_t frame_data[FRAME_SIZE] = {
 			0x00, 0x01,0x02,0x03,0x04,0x05,0x06,0x07,\
@@ -295,9 +298,10 @@ int test_fdma()
 	for (i=0; i<(FRAME_SIZE+4); i++)
 		if (*(frame_presented+i) != frame_data_read[i])
 			err = -EINVAL;
+
 	if (err)
 	{
-		fsl_os_print("Simple BU ERROR: frame data after HM is not correct\n");
+		fsl_os_print("Simple BU ERROR: frame data after HM is not correct in byte %d\n", i);
 		fsl_os_print("frame length is 0x%x\n", frame_length);
 		//for (i=0; i<frame_length ; i++)
 		//	fsl_os_print("frame read byte %d is %x\n", i, frame_data_read[i]);
@@ -313,12 +317,117 @@ int test_fdma()
 		fsl_os_print("**************************************************\n");
 	}
 	
-	
 	test_replicate_frame();	
 	
 	fdma_discard_default_frame(FDMA_DIS_NO_FLAGS);
 	
 	return 0;
+}
+
+void test_create_frame()
+{
+	int err  = 0;
+	int i;
+	uint8_t *frame_presented;
+	uint16_t frame_length;
+	
+	struct ldpaa_fd *fd = (struct ldpaa_fd *)HWC_FD_ADDRESS;
+	
+	uint8_t frame_data[104] = {
+			0xe9, 0xdf, 0xa6, 0x31, 0x11, 0xdc, 0x7f, 0xda, 
+			0xd3, 0x23, 0x4e, 0x1b, 0x5c, 0xc2, 0x11, 0x6c,
+			0x41, 0xbc, 0xaf, 0xcb, 0x03, 0xa1, 0xeb, 0x44, 
+			0x14, 0xee, 0xc5, 0x97, 0x52, 0x63, 0xf8, 0x7a,
+			0xe9, 0xdf, 0xa6, 0x31, 0x11, 0xdc, 0x7f, 0xda, 
+			0xd3, 0x23, 0x4e, 0x1b, 0x5c, 0xc2, 0x11, 0x6c,
+			0x41, 0xbc, 0xaf, 0xcb, 0x03, 0xa1, 0xeb, 0x44, 
+			0x14, 0xee, 0xc5, 0x97, 0x52, 0x63, 0xf8, 0x7a,
+			0xe9, 0xdf, 0xa6, 0x31, 0x11, 0xdc, 0x7f, 0xda, 
+			0xd3, 0x23, 0x4e, 0x1b, 0x5c, 0xc2, 0x11, 0x6c,
+			0x41, 0xbc, 0xaf, 0xcb, 0x03, 0xa1, 0xeb, 0x44, 
+			0x14, 0xee, 0xc5, 0x97, 0x52, 0x63, 0xf8, 0x7a,
+			0xe9, 0xdf, 0xa6, 0x31, 0x11, 0xdc, 0x7f, 0xda};
+	uint8_t frame_data_read[104] = {
+			0xe9, 0xdf, 0xa6, 0x31, 0x11, 0xdc, 0x7f, 0xda, 
+			0xd3, 0x23, 0x4e, 0x1b, 0x5c, 0xc2, 0x11, 0x6c,
+			0x41, 0xbc, 0xaf, 0xcb, 0x03, 0xa1, 0xeb, 0x44, 
+			0x14, 0xee, 0xc5, 0x97, 0x52, 0x63, 0xf8, 0x7a,
+			0xe9, 0xdf, 0xa6, 0x31, 0x11, 0xdc, 0x7f, 0xda, 
+			0xd3, 0x23, 0x4e, 0x1b, 0x5c, 0xc2, 0x11, 0x6c,
+			0x41, 0xbc, 0xaf, 0xcb, 0x03, 0xa1, 0xeb, 0x44, 
+			0x14, 0xee, 0xc5, 0x97, 0x52, 0x63, 0xf8, 0x7a,
+			0xe9, 0xdf, 0xa6, 0x31, 0x11, 0xdc, 0x7f, 0xda, 
+			0xd3, 0x23, 0x4e, 0x1b, 0x5c, 0xc2, 0x11, 0x6c,
+			0x41, 0xbc, 0xaf, 0xcb, 0x03, 0xa1, 0xeb, 0x44, 
+			0x14, 0xee, 0xc5, 0x97, 0x52, 0x63, 0xf8, 0x7a,
+			0xe9, 0xdf, 0xa6, 0x31, 0x11, 0xdc, 0x7f, 0xda};
+
+	uint8_t frame_handle;
+	uint32_t vlan = 0x8100aabb;
+	struct fdma_amq amq;
+	uint16_t icid, flags = 0;
+	uint8_t tmp;
+	/* setting SPID = 0 */
+	*((uint8_t *)HWC_SPID_ADDRESS) = 0;
+	icid = (uint16_t)(storage_profile[0].ip_secific_sp_info >> 48);
+	icid = ((icid << 8) & 0xff00) | ((icid >> 8) & 0xff);
+	tmp = (uint8_t)(storage_profile[0].ip_secific_sp_info >> 40);
+	if (tmp & 0x08)
+		flags |= FDMA_ICID_CONTEXT_BDI;
+	if (tmp & 0x04)
+		flags |= FDMA_ICID_CONTEXT_PL;
+	if (storage_profile[0].mode_bits2 & sp1_mode_bits2_VA_MASK)
+		flags |= FDMA_ICID_CONTEXT_VA;
+	amq.icid = icid;
+	amq.flags = flags;
+	set_default_amq_attributes(&amq);
+	*(uint32_t *)(&storage_profile[0].pbs2) = *(uint32_t *)(&storage_profile[0].pbs1);
+
+	for (i=0; i<8 ; i++)
+		fsl_os_print("storage profile arg %d: 0x%x \n", i, *((uint32_t *)(&(storage_profile[0]))+i));
+	
+	
+	err = create_frame(fd, frame_data, 104, &frame_handle);
+	if (err)
+		fsl_os_print("ERROR: create frame failed!\n");
+	
+	fdma_store_and_enqueue_default_frame_fqid(0, 0);
+	
+	fdma_present_default_frame();
+	frame_presented = (uint8_t *)PRC_GET_SEGMENT_ADDRESS();
+	frame_length = (uint16_t)LDPAA_FD_GET_LENGTH(HWC_FD_ADDRESS);
+	fdma_close_default_segment();
+	PRC_RESET_NDS_BIT();
+	err = fdma_present_default_frame_segment(FDMA_PRES_NO_FLAGS, (void *)0x180, 0, 256);
+	fsl_os_print("Frame length is: %d\n", frame_length);
+	fsl_os_print("Segment length is: %d\n", PRC_GET_SEGMENT_LENGTH());
+	
+	err = 0;
+	for (i=0; i<(FRAME_SIZE+4); i++)
+		if (*(frame_presented+i) != frame_data_read[i]){
+			err = -EINVAL;
+			break;
+		}
+	if (err)
+	{
+		fsl_os_print("Simple BU ERROR: frame data after HM is not correct in byte %d, 0x%x !=  0x%x\n", 
+				i, *(frame_presented+i) , frame_data_read[i]);
+		fsl_os_print("frame length is 0x%x\n", frame_length);
+		//for (i=0; i<frame_length ; i++)
+		//	fsl_os_print("frame read byte %d is %x\n", i, frame_data_read[i]);
+		fsl_os_print("actual frame length is 0x%x\n", frame_length);
+		//for (i=0; i<frame_length ; i++)
+		//	fsl_os_print("actual frame read byte %d is %x\n", i, frame_presented[i]);
+		//fdma_discard_default_frame(FDMA_DIS_NO_FLAGS);
+		//return err;
+	}
+	else {
+		fsl_os_print("**************************************************\n");
+		fsl_os_print("Simple BU Test: fdma frame after HM is correct !!!\n");
+		fsl_os_print("**************************************************\n");
+	}
+	
+	fdma_terminate_task();
 }
 
 void test_replicate_frame()
