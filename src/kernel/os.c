@@ -33,6 +33,7 @@
 #include "inc/console.h"
 #include "fsl_mem_mng.h"
 #include "sys.h"
+#include "fsl_log.h"
 
 __TASK uint32_t seed_32bit;
 
@@ -60,10 +61,9 @@ __declspec(noreturn) void fsl_os_exit(int status)
 void fsl_os_print(char *format, ...)
 {
 	va_list args;
-	char    tmp_buf[RUNTIME_BUF_SIZE];
+	char    tmp_buf[RUNTIME_BUF_SIZE + LOG_END_SIGN_LENGTH];
 
 	va_start(args, format);
-
 	if(sys.runtime_flag){
 		vsnprintf_lite(tmp_buf, RUNTIME_BUF_SIZE, format, args);
 		va_end(args);
@@ -76,7 +76,7 @@ void fsl_os_print(char *format, ...)
 }
 
 __COLD_CODE static void fsl_os_print_boot(const char *format, va_list args){
-	char    tmp_buf[BUF_SIZE];
+	char    tmp_buf[BUF_SIZE + LOG_END_SIGN_LENGTH];
 	vsnprintf(tmp_buf, BUF_SIZE, format, args);
 	va_end(args);
 	sys_print(tmp_buf);

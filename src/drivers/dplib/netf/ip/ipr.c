@@ -317,7 +317,7 @@ int ipr_reassemble(ipr_instance_handle_t instance_handle)
 	struct scope_status_params scope_status;
 	/* Following struct should be aligned due to ctlu alignment request */
 	struct table_lookup_result lookup_result __attribute__((aligned(16)));
-	struct		table_rule rule __attribute__((aligned(16)));
+	struct  table_rule rule __attribute__((aligned(16)));
 	struct	presentation_context *prc =
 				(struct presentation_context *) HWC_PRC_ADDRESS;
 
