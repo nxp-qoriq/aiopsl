@@ -8,7 +8,11 @@ dpni_drv.c/fsl_dpni_drv.h: Added API to support vlan set, add, remove and clear 
         Added API to reset dpni counter:
         dpni_drv_reset_counter(uint16_t ni_id, enum dpni_counter counter)
 
-fsl_shbp.h : Added new API shbp_get() that returns shared handle between GPP and AIOP
+tests/cmdif/README.txt: Added description for the non backward compatible change in SHBP_TEST at cmdif_integration_test.c.
+                        Each buffer inside this shbp should have the shbp address/handle written to the first 8 bytes.
+fsl_shbp.h     : AIOP side SHBP API changes. Removed shbp structure wrapper. Added struct icontext *ic to all the APIs.  
+fsl_shbp_host.h: GPP/Host side SHBP API changes. Removed shbp structure wrapper. 
+shbp_flib.h    : Added user space to be used by host implementation for locks.
 
 Reorganize SHBP API and FLIB:
   new file : src/lib/fsl_shbp_host.h SHBP Host API for GPP

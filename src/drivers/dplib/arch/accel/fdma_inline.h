@@ -321,4 +321,222 @@ inline int fdma_insert_default_segment_data(
 	return (int32_t)(res1);
 }
 
+inline int fdma_present_default_frame_segment(
+		uint32_t flags,
+		void	 *ws_dst,
+		uint16_t offset,
+		uint16_t present_size)
+{
+	/* command parameters and results */
+	uint32_t arg1, arg2, arg3;
+	int8_t  res1;
+
+	/* prepare command parameters */
+	arg1 = FDMA_PRESENT_CMD_ARG1(PRC_GET_HANDLES(),
+			(flags | FDMA_ST_DATA_SEGMENT_BIT));
+	arg2 = FDMA_PRESENT_CMD_ARG2((uint32_t)ws_dst, offset);
+	arg3 = FDMA_PRESENT_CMD_ARG3(present_size);
+	/* store command parameters */
+	__stdw(arg1, arg2, HWC_ACC_IN_ADDRESS, 0);
+	*((uint32_t *)(HWC_ACC_IN_ADDRESS3)) = arg3;
+
+	/* call FDMA Accelerator */
+	__e_hwacceli_(FPDMA_ACCEL_ID);
+	/* load command results */
+	res1 = *((int8_t *) (FDMA_STATUS_ADDR));
+	if ((res1 == FDMA_SUCCESS) ||
+		(res1 == FDMA_UNABLE_TO_PRESENT_FULL_SEGMENT_ERR)) {
+		PRC_SET_SEGMENT_ADDRESS((uint16_t)(uint32_t)ws_dst);
+		PRC_SET_SEGMENT_OFFSET(offset);
+		PRC_SET_SEGMENT_LENGTH(*((uint16_t *)(HWC_ACC_OUT_ADDRESS2)));
+		PRC_SET_SEGMENT_HANDLE(*((uint8_t *)(HWC_ACC_OUT_ADDRESS2 +
+						FDMA_SEG_HANDLE_OFFSET)));
+		PRC_RESET_NDS_BIT();
+		if (flags & FDMA_PRES_SR_BIT)
+			PRC_SET_SR_BIT();
+		else
+			PRC_RESET_SR_BIT();
+
+		if (res1 == FDMA_SUCCESS)
+			return SUCCESS;
+		else	/*FDMA_UNABLE_TO_PRESENT_FULL_SEGMENT_ERR*/
+			return FDMA_STATUS_UNABLE_PRES_DATA_SEG;
+	}
+
+	fdma_exception_handler(FDMA_PRESENT_DEFAULT_FRAME_SEGMENT, 
+				__LINE__, (int32_t)res1);
+
+	return (int32_t)(res1);
+}
+
+inline void fdma_modify_default_segment_data(
+		uint16_t offset,
+		uint16_t size)
+{
+	/* command parameters and results */
+	uint32_t arg1, arg2, arg3;
+	int8_t res1;
+
+	/* prepare command parameters */
+	arg1 = FDMA_REPLACE_CMD_ARG1(
+			PRC_GET_HANDLES(), FDMA_REPLACE_NO_FLAGS);
+	arg2 = FDMA_REPLACE_CMD_ARG2(offset, size);
+	arg3 = FDMA_REPLACE_CMD_ARG3(
+			(PRC_GET_SEGMENT_ADDRESS() + offset), size);
+	/* store command parameters */
+	__stqw(arg1, arg2, arg3, 0, HWC_ACC_IN_ADDRESS, 0);
+	/* call FDMA Accelerator */
+	__e_hwacceli_(FODMA_ACCEL_ID);
+	/* load command results */
+	res1 = *((int8_t *)(FDMA_STATUS_ADDR));
+
+	if (res1 != FDMA_SUCCESS)
+		fdma_exception_handler(FDMA_MODIFY_DEFAULT_SEGMENT_DATA, 
+				__LINE__, (int32_t)res1);
+	
+#ifndef REV2 /* WA for TKT237377 */
+	fdma_close_default_segment();
+	fdma_present_default_frame_segment(
+		(PRC_GET_SR_BIT())? FDMA_PRES_SR_BIT : 0, 
+		(void *)PRC_GET_SEGMENT_ADDRESS(), 
+		PRC_GET_SEGMENT_OFFSET(), 
+		PRC_GET_SEGMENT_LENGTH());
+#endif
+}
+
+inline int fdma_discard_fd(struct ldpaa_fd *fd, uint32_t flags)
+{
+	uint8_t frame_handle;
+	int32_t status;
+
+	status = fdma_present_frame_without_segments(fd, FDMA_INIT_NO_FLAGS,
+			0, &frame_handle);
+	if (status != SUCCESS)
+		return status;
+
+	fdma_discard_frame(frame_handle, flags);
+
+	return SUCCESS;
+}
+
+inline void fdma_close_default_segment(void)
+{
+	/* command parameters and results */
+	uint32_t arg1;
+	int8_t res1;
+	uint8_t seg_handle;
+
+	seg_handle = PRC_GET_SEGMENT_HANDLE();
+
+	/* prepare command parameters */
+	arg1 = FDMA_CLOSE_SEG_CMD_ARG1(PRC_GET_FRAME_HANDLE(), seg_handle);
+	/* store command parameters */
+	__stdw(arg1, 0, HWC_ACC_IN_ADDRESS, 0);
+	*((uint32_t *) HWC_ACC_IN_ADDRESS3) = 0;
+	/* call FDMA Accelerator */
+	__e_hwacceli_(FODMA_ACCEL_ID);
+	/* load command results */
+	res1 = *((int8_t *)(FDMA_STATUS_ADDR));
+
+	if (res1 == FDMA_SUCCESS)
+		PRC_SET_NDS_BIT();
+	else
+		fdma_exception_handler(FDMA_CLOSE_DEFAULT_SEGMENT, __LINE__, 
+				(int32_t)res1);
+}
+
+inline int fdma_delete_default_segment_data(
+		uint16_t to_offset,
+		uint16_t delete_target_size,
+		uint32_t flags)
+{
+	/* Presentation Context Pointer */
+	struct presentation_context *prc =
+			(struct presentation_context *) HWC_PRC_ADDRESS;
+	/* command parameters and results */
+	uint32_t arg1, arg2, arg3, arg4;
+	void	 *ws_address_rs;
+	uint16_t size_rs;
+	int8_t res1;
+
+	/* prepare command parameters */
+	arg1 = FDMA_REPLACE_CMD_ARG1(prc->handles, flags);
+	arg2 = FDMA_REPLACE_CMD_ARG2(to_offset, delete_target_size);
+	arg3 = FDMA_REPLACE_CMD_ARG3(0, 0);
+	if (flags & FDMA_REPLACE_SA_REPRESENT_BIT) {
+		ws_address_rs = (void *)
+			(PRC_GET_SEGMENT_ADDRESS() + delete_target_size);
+		size_rs = PRC_GET_SEGMENT_LENGTH() - delete_target_size;
+		arg4 = FDMA_REPLACE_CMD_ARG4(ws_address_rs, size_rs);
+	}
+
+	/* store command parameters */
+	__stqw(arg1, arg2, arg3, arg4, HWC_ACC_IN_ADDRESS, 0);
+	/* call FDMA Accelerator */
+	__e_hwacceli_(FODMA_ACCEL_ID);
+	/* load command results */
+	res1 = *((int8_t *)(FDMA_STATUS_ADDR));
+	
+#ifndef REV2 /* WA for TKT237377 */
+	if (!(flags & FDMA_REPLACE_SA_CLOSE_BIT)) {
+		if (!(flags & FDMA_REPLACE_SA_REPRESENT_BIT)) {
+			ws_address_rs = (void *)PRC_GET_SEGMENT_ADDRESS();
+			size_rs = PRC_GET_SEGMENT_LENGTH();
+		}
+		fdma_close_default_segment();
+		fdma_present_default_frame_segment(
+			(PRC_GET_SR_BIT())? FDMA_PRES_SR_BIT : 0, 
+			ws_address_rs, 
+			PRC_GET_SEGMENT_OFFSET(), 
+			size_rs);
+		res1 = *((int8_t *)(FDMA_STATUS_ADDR));
+	}
+#endif
+
+	/* Update Task Defaults */
+	if ((int32_t)res1 >= FDMA_SUCCESS) {
+		if (flags & FDMA_REPLACE_SA_REPRESENT_BIT) {
+			prc->seg_address = (uint16_t)(uint32_t)ws_address_rs;
+			prc->seg_length = *((uint16_t *)HWC_ACC_OUT_ADDRESS2);
+		}
+		/* FD fields should be updated with a swap load/store */
+		LDPAA_FD_UPDATE_LENGTH(HWC_FD_ADDRESS, 0,
+				delete_target_size);
+
+		if (flags & FDMA_REPLACE_SA_CLOSE_BIT)
+			PRC_SET_NDS_BIT();
+
+		if (res1 == FDMA_SUCCESS)
+			return SUCCESS;
+		else	/*FDMA_UNABLE_TO_PRESENT_FULL_SEGMENT_ERR*/
+			return FDMA_STATUS_UNABLE_PRES_DATA_SEG;
+	}
+
+	fdma_exception_handler(FDMA_DELETE_DEFAULT_SEGMENT_DATA, __LINE__, 
+				(int32_t)res1);
+
+	return (int32_t)(res1);
+}
+
+inline void fdma_discard_default_frame(uint32_t flags)
+{
+	/* command parameters and results */
+	uint32_t arg1;
+	int8_t res1;
+	/* prepare command parameters */
+	/*if (flags & FDMA_DIS_FS_HANDLE_BIT)*/
+		arg1 = FDMA_DISCARD_ARG1_WF(PRC_GET_HANDLES(), flags);
+	/*else
+		arg1 = FDMA_DISCARD_ARG1_FD(HWC_FD_ADDRESS, flags);*/
+	*((uint32_t *)(HWC_ACC_IN_ADDRESS)) = arg1;
+	/* call FDMA Accelerator */
+	__e_hwacceli_(FODMA_ACCEL_ID);
+	/* load command results */
+	res1 = *((int8_t *) (FDMA_STATUS_ADDR));
+
+	if (res1 != FDMA_SUCCESS)
+		fdma_exception_handler(FDMA_DISCARD_DEFAULT_FRAME, __LINE__, 
+					(int32_t)res1);
+}
+
 #endif /* __FSL_FDMA_INLINE_H */
