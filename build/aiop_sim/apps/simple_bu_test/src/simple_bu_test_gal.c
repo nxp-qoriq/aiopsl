@@ -93,8 +93,8 @@ uint32_t global_timer_handle1_g;
 #define SP_BDI_MASK     0x00080000
 #define SP_BP_PBS_MASK  0x3FFF
 
-#define SRAM_START _ssram_addr
-#define SRAM_DATA_ADDR _ssram_addr
+//#define SRAM_START _ssram_addr
+//#define SRAM_DATA_ADDR _ssram_addr
 //#define STE_BASE_ADDRESS	0x02080000
 #define CDMA_BASE_ADDRESS	0x0208d000
 
@@ -138,7 +138,7 @@ int test_fdma()
 	
 	struct ldpaa_fd *fd = (struct ldpaa_fd *)HWC_FD_ADDRESS;
 	
-	test_create_frame();
+	//test_create_frame();
 	
 	uint8_t frame_data[FRAME_SIZE] = {
 			0x00, 0x01,0x02,0x03,0x04,0x05,0x06,0x07,\
@@ -156,7 +156,7 @@ int test_fdma()
 			0x64,0x51,0xac,0x9f,0x69,0xd4,0xd3,0xf7,0x39,\
 			0x6e,0x20,0x0e,0x97,0xb7,0xe9,0xe4,0x56,0x3a};
 	uint8_t frame_data_read[FRAME_SIZE+4] = {0x00, 0x01,0x02,0x03,0x04,0x05,0x06,0x07,\
-			0x08, 0x09,0x0a,0x0b, /*0x81,0x00,0xaa,0xbb,*/0x0c,0x0d,0x0e,0x0f,\
+			0x08, 0x09,0x0a,0x0b, 0x81,0x00,0xaa,0xbb,0x0c,0x0d,0x0e,0x0f,\
 			0x00,0x6e,0x00,0x00,0x00,0x00,0xff,0x11,0x3a,\
 			0x26,0xc0,0x55,0x01,0x02,0xc0,0x00,0x00,0x01,\
 			0x04,0x00,0x04,0x00,0x00,0x5a,0xff,0xff,0x00,\
@@ -301,7 +301,7 @@ int test_fdma()
 
 	if (err)
 	{
-		fsl_os_print("Simple BU ERROR: frame data after HM is not correct in byte %d\n", i);
+		fsl_os_print("Simple BU ERROR: frame data after HM is not correct\n");
 		fsl_os_print("frame length is 0x%x\n", frame_length);
 		//for (i=0; i<frame_length ; i++)
 		//	fsl_os_print("frame read byte %d is %x\n", i, frame_data_read[i]);
@@ -445,6 +445,14 @@ void test_replicate_frame()
 				0x64,0x51,0xac,0x9f,0x69,0xd4,0xd3,0xf7,
 				0x6e,0x20,0x0e,0x97,0xb7,0xe9,0xe4,0x56};
 	
+	/*err = fdma_delete_default_segment_data(0, PRC_GET_SEGMENT_LENGTH(), 0);
+	if ((err!= 0) && (err != 8))
+		fsl_os_print("Simple BU ERROR: fdma_delete_default_segment_data FAILED, err = 0x%x!!\n", err);
+	else
+		fsl_os_print("Simple BU: fdma_delete_default_segment_data PASSED!!\n");*/
+	
+	//fsl_os_print("Simple BU : segment length after delete: 0x%x!!\n", PRC_GET_SEGMENT_LENGTH());
+	
 	err = fdma_replicate_frame_fqid(PRC_GET_FRAME_HANDLE(), *(uint8_t *)HWC_SPID_ADDRESS, 
 			0, &replic_fd, FDMA_CFA_COPY_BIT, &frame_handle2);
 	if (err)
@@ -531,6 +539,7 @@ void test_replicate_frame()
 	fdma_discard_frame(frame_handle2, FDMA_DIS_NO_FLAGS);
 }
 /*  Test fdma_copy_data  */
+#if 0
 void test_fdma_copy_data()
 {
 	int err, i, j;
@@ -675,6 +684,7 @@ void test_fdma_modify_default_segment_data()
 		};
 	}
 }
+#endif
 
 void test_tmi_create()
 {
