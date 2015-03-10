@@ -1080,7 +1080,7 @@ int fdma_present_frame_without_segments(
 @Cautions	This function may result in a fatal error.
 @Cautions	In this Service Routine the task yields.
 *//***************************************************************************/
-int fdma_present_default_frame_segment(
+inline int fdma_present_default_frame_segment(
 		uint32_t flags,
 		void	 *ws_dst,
 		uint16_t offset,
@@ -1665,7 +1665,8 @@ int fdma_enqueue_fd_qd(
 @Cautions	This function may result in a fatal error.
 @Cautions	In this Service Routine the task yields.
 *//***************************************************************************/
-void fdma_discard_default_frame(uint32_t flags);
+inline void fdma_discard_default_frame(uint32_t flags);
+
 /**************************************************************************//**
 @Function	fdma_discard_frame
 
@@ -1711,7 +1712,7 @@ void fdma_discard_frame(uint16_t frame, uint32_t flags);
 @Cautions	This function may result in a fatal error.
 @Cautions	In this Service Routine the task yields.
 *//***************************************************************************/
-int fdma_discard_fd(struct ldpaa_fd *fd, uint32_t flags);
+inline int fdma_discard_fd(struct ldpaa_fd *fd, uint32_t flags);
 
 /**************************************************************************//**
 @Function	fdma_force_discard_frame
@@ -2028,7 +2029,7 @@ void fdma_trim_default_segment_presentation(
 @Cautions	This function may result in a fatal error.
 @Cautions	In this Service Routine the task yields.
 *//***************************************************************************/
-void fdma_modify_default_segment_data(
+inline void fdma_modify_default_segment_data(
 		uint16_t offset,
 		uint16_t size);
 
@@ -2269,7 +2270,7 @@ int fdma_insert_segment_data(
 @Cautions	This function may result in a fatal error.
 @Cautions	In this Service Routine the task yields.
 *//***************************************************************************/
-int fdma_delete_default_segment_data(
+inline int fdma_delete_default_segment_data(
 		uint16_t to_offset,
 		uint16_t delete_target_size,
 		uint32_t flags);
@@ -2333,7 +2334,7 @@ int fdma_delete_segment_data(
 @Cautions	This function may result in a fatal error.
 @Cautions	In this Service Routine the task yields.
 *//***************************************************************************/
-void fdma_close_default_segment(void);
+inline void fdma_close_default_segment(void);
 
 /**************************************************************************//**
 @Function	fdma_close_segment
