@@ -95,6 +95,10 @@ typedef struct t_MM
                                     /* Alignment lists of free blocks (Free lists) */
 
     uint64_t        free_mem_size;    /* Total size of free memory (in bytes) */
+    /* A flag that shows whether there was allocation for free_blocks */
+    uint32_t        free_blocks_initialized;
+    uint64_t        base;
+    uint64_t        size;
 } t_MM;
 
 

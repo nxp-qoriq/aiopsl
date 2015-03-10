@@ -47,8 +47,8 @@ extern int sigsetmask(int);
 
 
 
-static void *   sys_default_malloc(uint32_t size);
-static void     sys_default_free(void *p_memory);
+//static void *   sys_default_malloc(uint32_t size);
+//static void     sys_default_free(void *p_memory);
 
 
 static void     sys_print_mem_leak(void        *p_memory,
@@ -171,12 +171,13 @@ void sys_shram_free(void *mem)
     {
         RETURN_ERROR(MAJOR, err_code, NO_MSG);
     }
-
+    /*
     if (is_heap_partition)
-    {
+    { */
         /* From this point we can trace the heap partition */
+    /*
         sys.heap_partition_id = partition_id;
-    }
+    } */
 
     return 0;
 }
@@ -210,12 +211,13 @@ void sys_shram_free(void *mem)
     {
         RETURN_ERROR(MAJOR, err_code, NO_MSG);
     }
-
+    /*
     if (partition_id == sys.heap_partition_id)
-    {
+    { */
         /* Reset value of default heap partition */
+    /*
         sys.heap_partition_id = MEM_MNG_EARLY_PARTITION_ID;
-    }
+    } */
 
     return 0;
 }
@@ -229,7 +231,7 @@ int sys_get_mem_partition_info(int partition_id,t_mem_mng_partition_info* partit
 
     if (partition_id == SYS_DEFAULT_HEAP_PARTITION)
     {
-        partition_id = sys.heap_partition_id;
+        /*partition_id = sys.heap_partition_id; */
     }
 
     err_code = mem_mng_get_partition_info(sys.mem_mng, partition_id, partition_info);
@@ -253,7 +255,7 @@ int sys_get_phys_addr_alloc_partition_info(int partition_id,
 
     if (partition_id == SYS_DEFAULT_HEAP_PARTITION)
     {
-        partition_id = sys.heap_partition_id;
+        /*partition_id = sys.heap_partition_id; */
     }
 
     err_code = mem_mng_get_phys_addr_alloc_info(sys.mem_mng, partition_id, partition_info);
@@ -274,10 +276,11 @@ uint64_t sys_get_mem_partition_base(int partition_id)
 
     ASSERT_COND(sys.mem_mng);
 
+    /*
     if (partition_id == SYS_DEFAULT_HEAP_PARTITION)
     {
         partition_id = sys.heap_partition_id;
-    }
+    } */
 
     err_code = mem_mng_get_partition_info(sys.mem_mng, partition_id, &partition_info);
 
@@ -300,8 +303,9 @@ uint32_t sys_get_mem_partition_attributes(int partition_id)
     ASSERT_COND(sys.mem_mng);
 
     if (partition_id == SYS_DEFAULT_HEAP_PARTITION)
-    {
+    { /*
         partition_id = sys.heap_partition_id;
+        */
     }
 
     err_code = mem_mng_get_partition_info(sys.mem_mng, partition_id, &partition_info);
@@ -326,14 +330,17 @@ void sys_print_mem_partition_debug_info(int partition_id, int report_leaks)
 
     if (partition_id == SYS_DEFAULT_HEAP_PARTITION)
     {
-        partition_id = sys.heap_partition_id;
+        /*partition_id = sys.heap_partition_id; */
     }
 
     mem_mng_get_partition_info(sys.mem_mng, partition_id, &partition_info);
 
+    /*
     pr_info("\r\n_memory usage - %s%s:\r\n",
              partition_info.name,
              ((partition_id == sys.heap_partition_id) ? " (default heap)" : ""));
+             */
+    pr_info("\r\n_memory usage - %s:\r\n",partition_info.name);
     pr_info("------------------------------------------------------------\r\n");
     pr_info("base address:         0x%08X\r\n", partition_info.base_address);
     pr_info("total size (KB):      %10lu\r\n", (partition_info.size / 1024));
@@ -366,7 +373,7 @@ void sys_print_mem_partition_debug_info(int partition_id, int report_leaks)
      /* Temporary allocation for identifying the default heap region */
     sys.heap_addr = (uintptr_t)sys_default_malloc(8);
     sys_default_free((void *)sys.heap_addr);
-    sys.heap_partition_id = MEM_MNG_EARLY_PARTITION_ID;
+    /*sys.heap_partition_id = MEM_MNG_EARLY_PARTITION_ID; */
 
 #ifdef AIOP
     sys.mem_mng_lock = 0;
@@ -378,10 +385,12 @@ void sys_print_mem_partition_debug_info(int partition_id, int report_leaks)
     
 
     /* Initialize memory allocation manager module */
+    /*
     mem_mng_param.f_malloc = sys_default_malloc;
     mem_mng_param.f_free = sys_default_free;
     mem_mng_param.f_early_malloc = sys_aligned_malloc;
     mem_mng_param.f_early_free = sys_aligned_free;
+    */
     mem_mng_param.lock = &(sys.mem_part_mng_lock);
 
     /* initialize boot memory manager to use MEM_PART_DP_DDR*/
@@ -390,7 +399,7 @@ void sys_print_mem_partition_debug_info(int partition_id, int report_leaks)
 #else
     boot_mem_mng_init(&sys.boot_mem_mng,MEM_PART_SYSTEM_DDR);
 #endif
-    sys.mem_mng = mem_mng_init(&mem_mng_param,&sys.boot_mem_mng);
+    sys.mem_mng = mem_mng_init(&sys.boot_mem_mng,&mem_mng_param);
     if (!sys.mem_mng)
     {
         RETURN_ERROR(MAJOR, EAGAIN, ("memory management object"));
@@ -426,7 +435,7 @@ void sys_print_mem_partition_debug_info(int partition_id, int report_leaks)
 }
 
 /*****************************************************************************/
-static void * sys_default_malloc(uint32_t size)
+void * sys_default_malloc(uint32_t size)
 {
     void        *p;
 #ifdef VERILOG
@@ -454,7 +463,7 @@ static void * sys_default_malloc(uint32_t size)
 
 
 /*****************************************************************************/
-static void sys_default_free(void *p_memory)
+void sys_default_free(void *p_memory)
 {
 #ifdef VERILOG
     int i = sigblock(0x00002000);   /* Block SIGTSTP signal -

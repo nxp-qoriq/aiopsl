@@ -139,8 +139,8 @@ int boot_mem_mng_free(struct initial_mem_mng* boot_mem_mng);
 
  @Return        Handle to initialized MEM_MNG object, or NULL on error.
 *//***************************************************************************/
-fsl_handle_t mem_mng_init(t_mem_mng_param *p_mem_mng_param,
-                          fsl_handle_t h_boot_mem_mng);
+fsl_handle_t mem_mng_init(fsl_handle_t h_boot_mem_mng,
+		                  t_mem_mng_param *p_mem_mng_param);
 
 /**************************************************************************//**
  @Function      mem_mng_free

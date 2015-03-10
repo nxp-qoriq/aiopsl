@@ -124,7 +124,7 @@ typedef struct t_mem_mng
     list_t      early_mem_debug_list;
                 /**< List of early memory allocation entries (for debug) */
     uint32_t    mem_partitions_initialized;
-
+    fsl_handle_t h_boot_mem_mng;
 #ifdef AIOP
     uint8_t *   lock;
 #else /* not AIOP */
