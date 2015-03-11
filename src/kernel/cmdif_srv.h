@@ -32,6 +32,7 @@
 #include "fsl_mc_init.h"
 #include "cmdif_srv_flib.h"
 #include "fsl_fdma.h"
+#include "fsl_mc_cmd.h"
 
 #pragma warning_errors on
 ASSERT_STRUCT_SIZE(CMDIF_SESSION_OPEN_SIZEOF, CMDIF_SESSION_OPEN_SIZE);
@@ -44,6 +45,34 @@ ASSERT_STRUCT_SIZE(CMDIF_SESSION_OPEN_SIZEOF, CMDIF_SESSION_OPEN_SIZE);
 /** Get command dequeue context */
 #define CMDIF_FQD_GET \
 	(uint32_t)(LLLDW_SWAP((uint32_t)&CMDIF_FQD_CTX_GET, 0) & 0xFFFFFFFF)
+
+#define DPCI_LOW_PR	1
+#define CMDIF_BDI_BIT	0x1
+#define CMDIF_Q_OPTIONS (DPCI_QUEUE_OPT_USER_CTX | DPCI_QUEUE_OPT_DEST)
+#define CMDIF_RX_CTX_GET \
+	(LLLDW_SWAP((uint32_t)&CMDIF_FQD_CTX_GET, 0))
+
+#define AMQ_BDI_SET(_offset, _width, _type, _arg) \
+	(amq_bdi |= u32_enc((_offset), (_width), (_arg)))
+
+#define USER_CTX_SET(_offset, _width, _type, _arg) \
+	(queue_cfg.user_ctx |= u64_enc((_offset), (_width), (_arg)))
+
+#define USER_CTX_GET(_offset, _width, _type, _arg) \
+	(*(_arg) = (_type)u64_dec(rx_ctx, (_offset), (_width)))
+
+#define CMDIF_DPCI_FQID(_OP, DPCI, FQID) \
+do { \
+	_OP(32,	32,	uint32_t,	DPCI); \
+	_OP(0,	32,	uint32_t,	FQID); \
+} while (0)
+
+
+#define CMDIF_ICID_AMQ_BDI(_OP, ICID, AMQ_BDI) \
+do { \
+	_OP(16,	16,	uint16_t,	ICID); \
+	_OP(0,	16,	uint16_t,	AMQ_BDI); \
+} while (0)
 
 struct cmdif_srv_aiop {
 	struct cmdif_srv *srv;
