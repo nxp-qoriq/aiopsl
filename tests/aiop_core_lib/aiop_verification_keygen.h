@@ -57,6 +57,7 @@ enum keygen_verif_cmd_type {
 };
 
 /* Keygen Commands Structure identifiers */
+#define KCR_LENGTH 128
 
 /*! Init Key Composition Rule Builder Command Structure identifier*/
 #define KEYGEN_KCR_BUILDER_INIT_CMD_STR   ((KEYGEN_MODULE << 16) | \
