@@ -327,7 +327,6 @@ __declspec(entry_point) void aiop_verification_fm()
 		case TERMINATE_FLOW_MODULE:
 		default:
 		{
-			cmgw_report_aiop_completion_status(0x77777777);
 			fdma_terminate_task();
 			return;
 		}
