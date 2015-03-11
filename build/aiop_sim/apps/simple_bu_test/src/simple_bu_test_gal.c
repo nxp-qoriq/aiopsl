@@ -138,7 +138,7 @@ int test_fdma()
 	
 	struct ldpaa_fd *fd = (struct ldpaa_fd *)HWC_FD_ADDRESS;
 	
-	//test_create_frame();
+	test_create_frame();
 	
 	uint8_t frame_data[FRAME_SIZE] = {
 			0x00, 0x01,0x02,0x03,0x04,0x05,0x06,0x07,\
@@ -317,7 +317,7 @@ int test_fdma()
 		fsl_os_print("**************************************************\n");
 	}
 	
-	test_replicate_frame();	
+	//test_replicate_frame();	
 	
 	fdma_discard_default_frame(FDMA_DIS_NO_FLAGS);
 	
@@ -332,7 +332,7 @@ void test_create_frame()
 	uint16_t frame_length;
 	
 	struct ldpaa_fd *fd = (struct ldpaa_fd *)HWC_FD_ADDRESS;
-	
+	// e_AIOP_WRITE_TO_WORKSPACE
 	uint8_t frame_data[104] = {
 			0xe9, 0xdf, 0xa6, 0x31, 0x11, 0xdc, 0x7f, 0xda, 
 			0xd3, 0x23, 0x4e, 0x1b, 0x5c, 0xc2, 0x11, 0x6c,
@@ -386,24 +386,40 @@ void test_create_frame()
 	for (i=0; i<8 ; i++)
 		fsl_os_print("storage profile arg %d: 0x%x \n", i, *((uint32_t *)(&(storage_profile[0]))+i));
 	
-	
+	// e_AIOP_STORE_DEFAULT_FRAME_DATA
 	err = create_frame(fd, frame_data, 104, &frame_handle);
 	if (err)
-		fsl_os_print("ERROR: create frame failed!\n");
+		fsl_os_print("ERROR: first create frame failed!\n");
+	else
+		fsl_os_print("first create frame passed!\n");
 	
+	err = fdma_store_default_frame_data();
+	if (err)
+		fsl_os_print("ERROR: first store frame failed!\n");
+	else
+		fsl_os_print("first store frame passed!\n");
+	
+	//e_AIOP_CREATE_FRAME	
+	err = create_frame(fd, frame_data, 104, &frame_handle);
+	if (err)
+		fsl_os_print("ERROR: second create frame failed!\n");
+	else
+		fsl_os_print("second create frame passed!\n");
+	
+	//e_AIOP_ENQUEUE_DEFAULT_WORKING_FRAME
 	fdma_store_and_enqueue_default_frame_fqid(0, 0);
 	
-	fdma_present_default_frame();
-	frame_presented = (uint8_t *)PRC_GET_SEGMENT_ADDRESS();
-	frame_length = (uint16_t)LDPAA_FD_GET_LENGTH(HWC_FD_ADDRESS);
 	fdma_close_default_segment();
 	PRC_RESET_NDS_BIT();
 	err = fdma_present_default_frame_segment(FDMA_PRES_NO_FLAGS, (void *)0x180, 0, 256);
+	//fdma_present_default_frame();
+	frame_presented = (uint8_t *)PRC_GET_SEGMENT_ADDRESS();
+	frame_length = (uint16_t)LDPAA_FD_GET_LENGTH(HWC_FD_ADDRESS);
 	fsl_os_print("Frame length is: %d\n", frame_length);
 	fsl_os_print("Segment length is: %d\n", PRC_GET_SEGMENT_LENGTH());
 	
 	err = 0;
-	for (i=0; i<(FRAME_SIZE+4); i++)
+	for (i=0; i<(frame_length); i++)
 		if (*(frame_presented+i) != frame_data_read[i]){
 			err = -EINVAL;
 			break;
