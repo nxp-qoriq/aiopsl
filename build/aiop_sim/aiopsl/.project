@@ -1145,6 +1145,11 @@
 			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/dplib/arch/accel/keygen.h</locationURI>
 		</link>
 		<link>
+			<name>aiop_sl/drivers/dplib/arch/accel/keygen_inline.h</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/dplib/arch/accel/keygen_inline.h</locationURI>
+		</link>
+		<link>
 			<name>aiop_sl/drivers/dplib/arch/accel/osm.c</name>
 			<type>1</type>
 			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/dplib/arch/accel/osm.c</locationURI>
@@ -1223,6 +1228,11 @@
 			<name>aiop_sl/drivers/dplib/arch/accel/tman.h</name>
 			<type>1</type>
 			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/dplib/arch/accel/tman.h</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/drivers/dplib/arch/accel/tman_inline.h</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/dplib/arch/accel/tman_inline.h</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/drivers/dplib/arch/flib/compat.h</name>

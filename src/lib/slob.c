@@ -25,6 +25,8 @@
 	#define fsl_os_malloc(size) fsl_os_malloc((size))
 #endif
 
+
+
 /* Array of spinlocks should reside in shared ram memory.
  * They are initialized to 0 (unlocked)  */
 static uint8_t g_slob_spinlock[PLATFORM_MAX_MEM_INFO_ENTRIES] = {0}; 
@@ -33,6 +35,7 @@ static uint32_t g_spinlock_index = 0;
 /* Put all function (execution code) into  dtext_vle section , aka __COLD_CODE */
 __START_COLD_CODE
 
+static int  init_free_blocks(t_MM *p_MM);
 
 /**********************************************************************
  *                     MM internal routines set                       *
@@ -592,7 +595,6 @@ static uint64_t slob_get_greater_alignment(t_MM *p_MM, uint64_t size, uint64_t a
 int slob_init(fsl_handle_t *slob, uint64_t base, uint64_t size)
 {
     t_MM        *p_MM;
-    uint64_t    new_base, new_size;
     int         i;
 
     if (0 == size)
@@ -644,6 +646,10 @@ int slob_init(fsl_handle_t *slob, uint64_t base, uint64_t size)
         }
         return 0;
     }
+    p_MM->free_blocks_initialized = 0;
+    p_MM->base = base;
+    p_MM->size = size;
+#if 0
     /* Initializes a new free block for each free list*/
     for (i=0; i <= MM_MAX_ALIGNMENT; i++)
     {
@@ -655,7 +661,7 @@ int slob_init(fsl_handle_t *slob, uint64_t base, uint64_t size)
         	RETURN_ERROR(MAJOR, ENOMEM, NO_MSG);
         }
     }
-
+#endif
     *slob = p_MM;
 
     return (0);
@@ -734,6 +740,29 @@ uint64_t slob_get(fsl_handle_t slob, uint64_t size, uint64_t alignment, char* na
     {
         REPORT_ERROR(MAJOR, EDOM, ("allocation size must be positive"));
     }
+
+#ifdef AIOP
+    lock_spinlock(p_MM->lock);
+#else
+    int_flags = spin_lock_irqsave(p_MM->lock);
+#endif
+    if(!p_MM->free_blocks_initialized)
+    {
+        if(init_free_blocks(p_MM) != 0 )
+        {
+#ifdef AIOP
+            unlock_spinlock(p_MM->lock);
+#else
+            spin_unlock_irqrestore(p_MM->lock, int_flags);
+#endif
+            RETURN_ERROR(MAJOR, ENOMEM, NO_MSG);
+        }
+    }
+#ifdef AIOP
+    unlock_spinlock(p_MM->lock);
+#else
+    spin_unlock_irqrestore(p_MM->lock, int_flags);
+#endif
     /* checks that alignment value is greater then zero */
     if (alignment == 0)
     {
@@ -846,6 +875,17 @@ uint64_t slob_get_force(fsl_handle_t slob, uint64_t base, uint64_t size, char* n
 #else
     int_flags = spin_lock_irqsave(p_MM->lock);
 #endif
+    if(!p_MM->free_blocks_initialized)
+    {
+        if(init_free_blocks(p_MM) != 0 ){
+#ifdef AIOP
+            unlock_spinlock(p_MM->lock);
+#else
+            spin_unlock_irqrestore(p_MM->lock, int_flags);
+#endif
+	    RETURN_ERROR(MAJOR, ENOMEM, NO_MSG);
+        }
+    }
     p_free_b = p_MM->free_blocks[0]; /* The biggest free blocks are in the
                                       free list with alignment 1 */
 
@@ -913,7 +953,8 @@ uint64_t slob_get_force_min(fsl_handle_t slob, uint64_t size, uint64_t alignment
     t_MM        *p_MM = (t_MM *)slob;
     t_free_block *p_free_b;
     t_busy_block *p_new_busy_b;
-    uint64_t    hold_base, hold_end, j = alignment, i=0;
+    uint64_t    hold_base, hold_end, j = alignment, i=0, k=0;
+
 #ifndef AIOP
     uint32_t    int_flags;
 #endif
@@ -943,6 +984,20 @@ uint64_t slob_get_force_min(fsl_handle_t slob, uint64_t size, uint64_t alignment
 #else
     int_flags = spin_lock_irqsave(p_MM->lock);
 #endif
+
+    /* Initializes a new free block for each free list*/
+    if(!p_MM->free_blocks_initialized)
+    {
+        if(init_free_blocks(p_MM) != 0 ){
+#ifdef AIOP
+            unlock_spinlock(p_MM->lock);
+#else
+            spin_unlock_irqrestore(p_MM->lock, int_flags);
+#endif
+	    RETURN_ERROR(MAJOR, ENOMEM, NO_MSG);
+        }
+    }
+
     p_free_b = p_MM->free_blocks[i];
 
     /* look for the first block that contains the minimum
@@ -1049,6 +1104,17 @@ uint64_t slob_put(fsl_handle_t slob, uint64_t base)
 #else
     int_flags = spin_lock_irqsave(p_MM->lock);
 #endif
+    if(!p_MM->free_blocks_initialized)
+    {
+        if(init_free_blocks(p_MM) != 0 ){
+#ifdef AIOP
+            unlock_spinlock(p_MM->lock);
+#else
+            spin_unlock_irqrestore(p_MM->lock, int_flags);
+#endif
+	    RETURN_ERROR(MAJOR, ENOMEM, NO_MSG);
+        }
+    }
     p_busy_b = p_MM->busy_blocks;
     while ( p_busy_b && base != p_busy_b->base )
     {
@@ -1102,6 +1168,7 @@ uint64_t slob_put_force(fsl_handle_t slob, uint64_t base, uint64_t size)
 {
     t_MM        *p_MM = (t_MM *)slob;
     uint64_t    end = base + size;
+
 #ifndef AIOP
     uint32_t    int_flags;
 #endif
@@ -1113,7 +1180,17 @@ uint64_t slob_put_force(fsl_handle_t slob, uint64_t base, uint64_t size)
 #else
     int_flags = spin_lock_irqsave(p_MM->lock);
 #endif
-
+    if(!p_MM->free_blocks_initialized)
+    {
+        if(init_free_blocks(p_MM) != 0 ){
+#ifdef AIOP
+            unlock_spinlock(p_MM->lock);
+#else
+            spin_unlock_irqrestore(p_MM->lock, int_flags);
+#endif
+	    RETURN_ERROR(MAJOR, ENOMEM, NO_MSG);
+        }
+    }
     if ( cut_busy( p_MM, base, end ) != 0 )
     {
 #ifdef AIOP
@@ -1167,6 +1244,17 @@ int slob_add(fsl_handle_t slob, uint64_t base, uint64_t size)
     int_flags = spin_lock_irqsave(p_MM->lock);
 #endif
 
+    if(!p_MM->free_blocks_initialized)
+    {
+         if(init_free_blocks(p_MM) != 0 ){
+#ifdef AIOP
+            unlock_spinlock(p_MM->lock);
+#else
+            spin_unlock_irqrestore(p_MM->lock, int_flags);
+#endif
+	     RETURN_ERROR(MAJOR, ENOMEM, NO_MSG);
+         }
+    }
     p_mem_b = p_MM->mem_blocks;
     while ( p_mem_b->p_next )
     {
@@ -1302,4 +1390,23 @@ void slob_dump(fsl_handle_t slob)
     }
 }
 
+static int  init_free_blocks(t_MM *p_MM)
+{
+    int   k = 0;
+    uint64_t    new_base, new_size;
+    /* Initializes a new free block for each free list*/
+    for (k=0; k <= MM_MAX_ALIGNMENT; k++)
+    {
+        new_base = MAKE_ALIGNED( p_MM->base, (0x1 << k) );
+        new_size = p_MM->size - (new_base - p_MM->base);
+
+        if ((p_MM->free_blocks[k] = create_free_block(new_base, new_size)) == NULL) {
+            slob_free(p_MM);
+            return -ENOMEM;
+            //RETURN_ERROR(MAJOR, ENOMEM, NO_MSG);
+        }
+    }
+    p_MM->free_blocks_initialized = 1;
+    return 0;
+}
 __END_COLD_CODE

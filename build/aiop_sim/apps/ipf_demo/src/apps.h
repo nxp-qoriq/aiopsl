@@ -80,7 +80,13 @@ extern const uint32_t g_aiop_lcf_ddr_size;
 #define DPNI_BUFFER_SIZE_IN_POOL         2048
 /* alignment of buffers in pool */
 #define DPNI_BUFFER_ALIGNMENT            64
- 
+ /* Data head room */
+#define APP_DPNI_SP_DEF_DHR     96 
+/* Data tail room */
+#define APP_DPNI_SP_DEF_DTR     0  
+/* Private data size */
+#define APP_DPNI_SP_DEF_PDS     0  
+
 /*  Maximal number of applications to be filled by build_apps_array() */
 #define APP_MAX_NUM                      10
 
