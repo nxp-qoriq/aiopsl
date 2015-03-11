@@ -192,8 +192,8 @@ struct tman_tmi_params {
 	/** 10 mSec timer ticks*/
 #define TMAN_CREATE_TIMER_MODE_10_MSEC_GRANULARITY	0x00040000
 	/** 1 Sec timer ticks*/
-#ifdef REV2
 #define TMAN_CREATE_TIMER_MODE_SEC_GRANULARITY		0x00060000
+#ifdef REV2
 	/** 10 uSec timer ticks*/
 #define TMAN_CREATE_TIMER_MODE_10_USEC_GRANULARITY	0x00010000
 	/** 1 mSec timer ticks*/
