@@ -1225,6 +1225,11 @@
 			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/dplib/arch/accel/tman.h</locationURI>
 		</link>
 		<link>
+			<name>aiop_sl/drivers/dplib/arch/accel/tman_inline.h</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/dplib/arch/accel/tman_inline.h</locationURI>
+		</link>
+		<link>
 			<name>aiop_sl/drivers/dplib/arch/flib/compat.h</name>
 			<type>1</type>
 			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/dplib/arch/flib/compat.h</locationURI>
