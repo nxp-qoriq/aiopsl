@@ -458,3 +458,21 @@ __COLD_CODE void mc_obj_free()
 	/* TODO DPCI close ???
 	 * TODO DPRC close */
 }
+
+
+int mc_dpci_find(uint32_t dpci_id, uint32_t *ic)
+{
+	struct mc_dpci_tbl *dpci_tbl = (struct mc_dpci_tbl *)\
+		sys_get_unique_handle(FSL_OS_MOD_DPCI_TBL);
+	int i;
+	
+	for (i = 0; i < dpci_tbl->count; i++) {
+		if (dpci_tbl->dpci_id[i] == dpci_id) {
+			if (ic != NULL)
+				*ic = dpci_tbl->ic[i];
+			return i;
+		}
+	}
+	
+	return -ENOENT;
+}

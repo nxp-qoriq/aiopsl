@@ -280,5 +280,5 @@ uint64_t slob_get_free_mem_size(fsl_handle_t slob);
 /** @} */ /* end of slob_g group */
 /** @} */ /* end of fsl_lib_g group */
 
-__START_COLD_CODE
+__END_COLD_CODE
 #endif /* __FSL_SLOB_H */
