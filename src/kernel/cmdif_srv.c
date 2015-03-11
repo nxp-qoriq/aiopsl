@@ -292,6 +292,7 @@ __COLD_CODE void cmdif_srv_free(void)
 	srv_free(cmdif_aiop_srv.dpci_tbl);
 }
 
+/*************************************************************************/
 #define CMDIF_BDI_BIT	0x1
 #define CMDIF_Q_OPTIONS (DPCI_QUEUE_OPT_USER_CTX | DPCI_QUEUE_OPT_DEST)
 #define CMDIF_RX_CTX_GET \
@@ -328,16 +329,14 @@ do { \
 	} while (0)
 
 
-static inline int dpci_amq_bdi_update(uint32_t dpci_id)
+static inline int dpci_amq_bdi_set(uint32_t dpci_id)
 {
 	struct mc_dpci_tbl *dpci_tbl = (struct mc_dpci_tbl *)cmdif_aiop_srv.dpci_tbl;
 	int ind = -1;
 	uint32_t amq_bdi = 0;
 	uint16_t amq_bdi_temp = 0;
 	uint16_t pl_icid = PL_ICID_GET;
-	
-	/* TODO find dpci index */
-	
+		
 	ADD_AMQ_FLAGS(amq_bdi_temp, pl_icid);
 	if (BDI_GET != 0)
 		amq_bdi_temp |= CMDIF_BDI_BIT;
@@ -355,7 +354,38 @@ static inline int dpci_amq_bdi_update(uint32_t dpci_id)
 			
 			dpci_tbl->ic[ind] = amq_bdi;
 			dpci_tbl->dpci_id[ind] = dpci_id;
-			dpci_tbl->count++;
+			/* Must be last */
+			atomic_incr32(&dpci_tbl->count, 1);
+			
+			unlock_spinlock(&dpci_tbl->lock);
+		} else {
+			return -ENOMEM;
+		}
+	}
+	
+	return 0;
+}
+
+static inline int dpci_amq_bdi_init(uint32_t dpci_id)
+{
+	struct mc_dpci_tbl *dpci_tbl = (struct mc_dpci_tbl *)cmdif_aiop_srv.dpci_tbl;
+	int ind = -1;
+	uint32_t amq_bdi = 0;
+
+	CMDIF_ICID_AMQ_BDI(AMQ_BDI_SET, 0xFFFF, 0xFFFF);
+
+	ind = mc_dpci_find(dpci_id, NULL);
+	if (ind > 0) {
+		dpci_tbl->ic[ind] = amq_bdi;
+	} else {
+		/* Adding new dpci_id */
+		if (dpci_tbl->count < dpci_tbl->max) {
+			lock_spinlock(&dpci_tbl->lock);
+			
+			dpci_tbl->ic[ind] = amq_bdi;
+			dpci_tbl->dpci_id[ind] = dpci_id;
+			/* Must be last */
+			atomic_incr32(&dpci_tbl->count, 1);
 			
 			unlock_spinlock(&dpci_tbl->lock);
 		} else {
@@ -464,6 +494,7 @@ __COLD_CODE static void dpci_rx_ctx_get(uint32_t *dpci_id, uint32_t *fqid)
 	CMDIF_DPCI_FQID(USER_CTX_GET, dpci_id, fqid);
 }
 
+/*************************************************************************/
 
 __HOT_CODE void cmdif_fd_send(int cb_err);
 __HOT_CODE void cmdif_fd_send(int cb_err)
