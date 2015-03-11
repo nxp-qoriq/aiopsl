@@ -272,7 +272,7 @@ uint16_t aiop_verification_table(uint32_t asa_seg_addr)
 	
 		/* WA for HW segment length issue */
 		uint16_t old_seg_length = PRC_GET_SEGMENT_LENGTH();
-		PRC_SET_SEGMENT_LENGTH(0x100);
+		PRC_SET_SEGMENT_LENGTH(DEFAULT_SEGMENT_SIZE);
 
 		str->status = table_lookup_by_keyid_default_frame(str->acc_id,
 			str->table_id,
@@ -323,7 +323,8 @@ uint16_t aiop_verification_table(uint32_t asa_seg_addr)
 						&output_ptr);
 		
 		/* Disable reserved fields */
-		cdma_ws_memory_init((void *)output_ptr.reserved, 20, 0);
+		cdma_ws_memory_init((void *)output_ptr.reserved,
+							TABLE_QUERY_OUTPUT_MESSAGE_RESERVED_SPACE, 0);
 
 		*(struct table_params_query_output_message *)str->output_ptr = 
 																output_ptr;
