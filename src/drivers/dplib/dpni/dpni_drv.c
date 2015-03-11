@@ -160,6 +160,9 @@ __COLD_CODE int dpni_drv_probe(struct mc_dprc *dprc,
 			sys_get_handle(FSL_OS_MOD_AIOP_TILE, 1);
 	struct aiop_ws_regs *wrks_addr = &tile_regs->ws_regs;
 
+	extern struct platform_app_params g_app_params;
+
+	
 	/* TODO: replace 1024 w/ #define from Yulia */
 	/* Search for NIID (mc_niid) in EPID table and prepare the NI for usage. */
 	for (i = AIOP_EPID_DPNI_START; i < 1024; i++) {
@@ -210,10 +213,13 @@ __COLD_CODE int dpni_drv_probe(struct mc_dprc *dprc,
 
 			/* TODO: This should be changed for dynamic solution. The hardcoded value is
 			 * temp solution.*/
-			layout.options =  DPNI_BUF_LAYOUT_OPT_DATA_HEAD_ROOM |
-						DPNI_BUF_LAYOUT_OPT_DATA_TAIL_ROOM;
-			layout.data_head_room = 96;
-			layout.data_tail_room = 0;
+			if(g_app_params.dpni_sp_def_dhr)
+				layout.options = DPNI_BUF_LAYOUT_OPT_DATA_HEAD_ROOM;
+			if(g_app_params.dpni_sp_def_dtr)
+				layout.options |= DPNI_BUF_LAYOUT_OPT_DATA_TAIL_ROOM;
+			layout.data_head_room = g_app_params.dpni_sp_def_dhr;
+			layout.data_tail_room = g_app_params.dpni_sp_def_dtr;
+			layout.private_data_size = g_app_params.dpni_sp_def_pds;
 			if ((err = dpni_set_rx_buffer_layout(&dprc->io, dpni, &layout)) != 0) {
 				pr_err("Failed to set rx buffer layout for DP-NI%d\n", mc_niid);
 				return -ENODEV;

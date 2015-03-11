@@ -110,7 +110,10 @@ struct platform_app_params g_app_params =
  APP_DPNI_NUM_BUFS_IN_POOL,
  APP_DPNI_BUF_SIZE_IN_POOL,
  APP_DPNI_BUF_ALIGN_IN_POOL,
- APP_INIT_APP_MAX_NUM
+ APP_INIT_APP_MAX_NUM,
+ APP_DPNI_SP_DEF_DHR,
+ APP_DPNI_SP_DEF_DTR,
+ APP_DPNI_SP_DEF_PDS
 };
 
 /* TODO set good default values */
