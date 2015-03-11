@@ -298,6 +298,10 @@ uint16_t aiop_verification_table(uint32_t asa_seg_addr)
 		(struct table_lookup_by_keyid_command *) asa_seg_addr;
 		ndf_params = str->ndf_params;
 
+		/* WA for HW segment length issue */
+		uint16_t old_seg_length = PRC_GET_SEGMENT_LENGTH();
+		PRC_SET_SEGMENT_LENGTH(DEFAULT_SEGMENT_SIZE);
+
 		str->status = table_lookup_by_keyid(str->acc_id,
 						    str->table_id,
 						    str->key_id,
@@ -305,6 +309,9 @@ uint16_t aiop_verification_table(uint32_t asa_seg_addr)
 						    &(ndf_params),
 						    &(lookup_result));
 		str->lookup_result = lookup_result;
+
+		/* WA for HW segment length issue */
+		PRC_SET_SEGMENT_LENGTH(old_seg_length);
 
 		str_size =
 			sizeof(struct table_lookup_by_keyid_command);
