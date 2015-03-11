@@ -145,12 +145,12 @@ void FDMACmdReplaceSegment_CMDClass :: set_constraints()
     DEF_CRG1(from_size, 1, CrgRange(0, 10));
     DEF_CRG1(SA, 1, CrgRange(0, 1));
 
-    for (i = 0; i < 3; i++) {
+    for (i = 0; i < SR_TLU_REPLACE_SEGMENT_RESERVE_LOOP; i++) {
         DEF_CRG1(reserved[i], 1, CrgSingleton(0));
     }
 
 
-    for (i = 0; i < 255; i++) {
+    for (i = 0; i < SR_TLU_REPLACE_SEGMENT_CONTENT_LOOP; i++) {
         DEF_CRG1(replace_content[i], 1, CrgRange(0, 0xFF));
     }
 

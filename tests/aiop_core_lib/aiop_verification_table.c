@@ -277,8 +277,10 @@ uint16_t aiop_verification_table(uint32_t asa_seg_addr)
 	/* Table Lookup by KeyID Command Verification */
 	case TABLE_LOOKUP_BY_KEYID_CMD_STR:
 	{
-		struct table_lookup_non_default_params ndf_params __attribute__((aligned(16)));
-		struct table_lookup_result lookup_result __attribute__((aligned(16)));
+		struct table_lookup_non_default_params ndf_params 
+												__attribute__((aligned(16)));
+		struct table_lookup_result lookup_result 
+												__attribute__((aligned(16)));
 		struct table_lookup_by_keyid_command *str =
 		(struct table_lookup_by_keyid_command *) asa_seg_addr;
 		ndf_params = str->ndf_params;
@@ -300,11 +302,18 @@ uint16_t aiop_verification_table(uint32_t asa_seg_addr)
 	{
 		struct table_query_debug_command *str =
 		(struct table_query_debug_command *) asa_seg_addr;
+		struct table_params_query_output_message output_ptr 
+											__attribute__((aligned(16)));
+
 		str->status = table_query_debug(str->acc_id,
 						str->table_id,
-			(struct table_params_query_output_message *)
-			(str->output_ptr));
+						&output_ptr);
 		
+		/* Disable reserved fields */
+		cdma_ws_memory_init((void *)output_ptr.reserved, 20, 0);
+
+		*(struct table_params_query_output_message *)str->output_ptr = 
+																output_ptr;
 		str_size =
 			sizeof(struct table_query_debug_command);
 		break;

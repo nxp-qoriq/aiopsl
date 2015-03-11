@@ -39,9 +39,6 @@
 #include "dplib/fsl_ldpaa.h"
 #include "inline_asm.h"
 #include "fsl_io_ccsr.h"
-#ifdef SL_DEBUG
-	#include "fsl_errors.h"
-#endif
 
 #ifndef REV2
 	/* The next code is due to Errata ERR008205 */
@@ -55,9 +52,6 @@ int tman_create_tmi(uint64_t tmi_mem_base_addr,
 	/* command parameters and results */
 	uint32_t arg1, arg2, cdma_cfg;
 	unsigned int res1, res2, *tmi_state_ptr;
-#ifdef SL_DEBUG
-	uint32_t cnt = 0;
-#endif
 
 
 	/*Reading the ICID and AMQ from the CDMA to avoid configuring GPP ICID
@@ -84,17 +78,13 @@ int tman_create_tmi(uint64_t tmi_mem_base_addr,
 		__e_hwacceli(TMAN_ACCEL_ID);
 		/* Load command results */
 		__ldw(&res1, &res2, HWC_ACC_OUT_ADDRESS, 0);
-#ifdef SL_DEBUG
-		cnt++;
-		ASSERT_COND(cnt >= TMAN_MAX_RETRIES);
-#endif
 	} while (res1 == TMAN_TMI_CREATE_BUSY);
 	/* Store tmi_id */
 	*tmi_id = (uint8_t)res2;
 	if (res1 == TMAN_TMIID_DEPLETION_ERR)
 		return (int)(-ENOSPC);
 	
-	tmi_state_ptr = (unsigned int*)((unsigned int)0x020a2018//Workaround for TKT254640
+	tmi_state_ptr = (unsigned int*)((unsigned int)TMAN_CCSR_TMSTATE_ADDRESS
 			+ ((*tmi_id)<<5));
 
 	while ((*tmi_state_ptr != TMAN_TMI_BUS_ERR) &&
@@ -124,9 +114,6 @@ void tman_delete_tmi(tman_cb_t tman_confirm_cb, uint32_t flags,
 		__attribute__((aligned(TMAN_EXT_PARAM_ALIGNMENT)));
 	/* command parameters and results */
 	uint32_t res1, epid = EPID_TIMER_EVENT_IDX;
-#ifdef SL_DEBUG
-	uint32_t cnt = 0;
-#endif
 
 	/* The next code is due to Errata ERR008205 */
 	uint32_t i, timer_handle, *tmi_statsntc_ptr, *tmi_statsnccp_ptr;
@@ -173,10 +160,6 @@ void tman_delete_tmi(tman_cb_t tman_confirm_cb, uint32_t flags,
 	{
 		/* YIELD. May not be optimized due to CTS behavior*/
 		sys_yield();
-#ifdef SL_DEBUG
-		cnt++;
-		ASSERT_COND(cnt >= TMAN_MAX_RETRIES);
-#endif
 	}
 	/* End of Errata ERR008205 related code */	
 
@@ -204,10 +187,6 @@ void tman_delete_tmi(tman_cb_t tman_confirm_cb, uint32_t flags,
 		__e_hwacceli(TMAN_ACCEL_ID);
 		/* Load command results */
 		res1 = *((uint32_t *) HWC_ACC_OUT_ADDRESS);
-#ifdef SL_DEBUG
-		cnt++;
-		ASSERT_COND(cnt >= TMAN_MAX_RETRIES);
-#endif
 		/* check each loop instance to verify if in the time of the
 		 * command another task did'nt deleted the same TMI */
 		if (((res1 & TMAN_FAIL_BIT_MASK) != 0) && 
@@ -223,7 +202,7 @@ void tman_delete_tmi(tman_cb_t tman_confirm_cb, uint32_t flags,
 	/* The next code is due to Errata ERR008205 */
 int tman_query_tmi_sw(uint8_t tmi_id){
 	unsigned int *tmi_state_ptr;
-	tmi_state_ptr = (unsigned int*)((unsigned int)0x020a2018//Workaround for TKT254640
+	tmi_state_ptr = (unsigned int*)((unsigned int)TMAN_CCSR_TMSTATE_ADDRESS
 			+ (tmi_id<<5));
 	if((*tmi_state_ptr & TMAN_TMI_STATE_MASK) == TMAN_TMI_ACTIVE)
 		return (int)(SUCCESS);

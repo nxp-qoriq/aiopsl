@@ -180,6 +180,7 @@ struct ste_barrier_command {
 		/**< Command structure identifier. */
 };
 
+#ifdef REV2
 /**************************************************************************//**
 @Description	STE Get error params Commands structure.
 
@@ -204,6 +205,7 @@ struct ste_clear_error_command {
 	uint32_t	opcode;
 		/**< Command structure identifier. */
 };
+#endif
 
 uint16_t aiop_verification_ste(uint32_t asa_seg_addr);
 

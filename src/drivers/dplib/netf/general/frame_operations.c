@@ -44,8 +44,9 @@
 extern __PROFILE_SRAM struct storage_profile 
 		storage_profile[SP_NUM_OF_STORAGE_PROFILES];
 
-#define SP_BDI_MASK     0x00080000
-#define SP_BP_PBS_MASK  0x3FFF
+#define SP_BDI_MASK		0x00080000
+#define SP_BP_ID_MASK		0x3FFF
+#define FRAME_INITIAL_SIZE	1
 #endif
 
 int create_frame(
@@ -69,7 +70,7 @@ int create_frame(
 	sp = &storage_profile[*((uint8_t *)HWC_SPID_ADDRESS)];
 	icid = LH_SWAP(0, (uint16_t *)&(sp->ip_secific_sp_info)) & ADC_ICID_MASK;
 	flags = (LW_SWAP(0, (uint32_t *)&(sp->ip_secific_sp_info)) & SP_BDI_MASK) ? FDMA_ACQUIRE_BDI_BIT : 0;
-	bpid = LH_SWAP(0, &(sp->bpid1)) & SP_BP_PBS_MASK;
+	bpid = LH_SWAP(0, &(sp->bpid1)) & SP_BP_ID_MASK;
 	status = fdma_acquire_buffer(icid, flags, bpid, &fd_addr);
 	if (status)
 		return status;
@@ -84,7 +85,7 @@ int create_frame(
 	fd->offset = 0;
 #ifndef REV2  /* WA for TKT254401 */	
 	LDPAA_FD_SET_ADDR(fd, fd_addr);
-	LDPAA_FD_SET_LENGTH(fd, 1);
+	LDPAA_FD_SET_LENGTH(fd, FRAME_INITIAL_SIZE);
 	LDPAA_FD_SET_BPID(fd, bpid);
 #endif	
 
@@ -94,7 +95,7 @@ int create_frame(
 #ifdef REV2  /* WA for TKT254401 */		
 		PRC_SET_SEGMENT_LENGTH(0);
 #else
-		PRC_SET_SEGMENT_LENGTH(1);
+		PRC_SET_SEGMENT_LENGTH(FRAME_INITIAL_SIZE);
 #endif
 		PRC_SET_SEGMENT_OFFSET(0);
 		PRC_SET_SEGMENT_ADDRESS((uint32_t)TLS_SECTION_END_ADDR +
@@ -122,7 +123,7 @@ int create_frame(
 				((uint32_t)ws_address_rs - size);
 			seg_size_rs = seg_size_rs + size;
 		}
-		fdma_replace_default_segment_data(0, 1, data, size, 
+		fdma_replace_default_segment_data(0, FRAME_INITIAL_SIZE, data, size, 
 				ws_address_rs, seg_size_rs, 
 				FDMA_REPLACE_SA_REPRESENT_BIT);
 #endif
@@ -177,7 +178,7 @@ int create_fd(
 	sp = &storage_profile[*((uint8_t *)HWC_SPID_ADDRESS)];
 	icid = LH_SWAP(0, (uint16_t *)&(sp->ip_secific_sp_info)) & ADC_ICID_MASK;
 	flags = (LW_SWAP(0, (uint32_t *)&(sp->ip_secific_sp_info)) & SP_BDI_MASK) ? FDMA_ACQUIRE_BDI_BIT : 0;
-	bpid = LH_SWAP(0, &(sp->bpid1)) & SP_BP_PBS_MASK;
+	bpid = LH_SWAP(0, &(sp->bpid1)) & SP_BP_ID_MASK;
 	status = fdma_acquire_buffer(icid, flags, bpid, &fd_addr);
 	if (status)
 		return status;
