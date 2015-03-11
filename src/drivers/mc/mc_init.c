@@ -46,10 +46,8 @@ extern struct aiop_init_info g_init_data;
 int mc_obj_init();
 void mc_obj_free();
 
-extern int dpci_amq_bdi_set(uint32_t dpci_id);
 extern int dpci_amq_bdi_init(uint32_t dpci_id);
-extern int dpci_rx_ctx_init(uint32_t dpci_id);
-extern void dpci_rx_ctx_get(uint32_t *dpci_id, uint32_t *fqid);
+extern int dpci_rx_ctx_init(uint32_t dpci_id, uint32_t id);
 
 __COLD_CODE static int aiop_container_init()
 {
@@ -165,8 +163,10 @@ __COLD_CODE static int dpci_tbl_add(struct dprc_obj_desc *dev_desc)
 	pr_debug("ver_minor - %d\n", dev_desc->ver_minor);
 	pr_debug("irq_count - %d\n\n", dev_desc->irq_count);
 
-	err = dpci_rx_ctx_init((uint32_t)dev_desc->id);
-	err |= dpci_amq_bdi_init((uint32_t)dev_desc->id);
+	err = dpci_amq_bdi_init((uint32_t)dev_desc->id);
+	if (err >= 0) {
+		err = dpci_rx_ctx_init((uint32_t)dev_desc->id, (uint32_t)err);
+	}
 
 	return err;
 }
@@ -192,20 +192,22 @@ __COLD_CODE static int dpci_for_mc_add(struct mc_dprc *dprc)
 
 	/* Get attributes just for dpci id fqids are not there yet */
 	err |= dpci_get_attributes(&dprc->io, dpci, &attr);
+	
 	/* Set priorities 0 and 1
 	 * 0 is high priority
 	 * 1 is low priority
 	 * Making sure that low priority is at index 0*/
 	queue_cfg.options = CMDIF_Q_OPTIONS;
 	queue_cfg.dest_cfg.dest_type = DPCI_DEST_NONE;
+	err = dpci_amq_bdi_init((uint32_t)attr.id);
+	if (err >= 0) {
+		/* Set index to DPCI table */
+		queue_cfg.user_ctx = 0;
+		CMDIF_DPCI_FQID(USER_CTX_SET, err, DPCI_FQID_NOT_VALID);
+	}
 	for (p = 0; p < dpci_cfg.num_of_priorities; p++) {
 		queue_cfg.dest_cfg.priority = DPCI_LOW_PR - p;
-		queue_cfg.user_ctx = 0;
-		CMDIF_DPCI_FQID(USER_CTX_SET, attr.id, DPCI_FQID_NOT_VALID);
-		err |= dpci_set_rx_queue(&dprc->io,
-					dpci,
-					p,
-					&queue_cfg);
+		err |= dpci_set_rx_queue(&dprc->io, dpci, p, &queue_cfg);
 	}
 	ASSERT_COND(!err);
 	
@@ -245,8 +247,6 @@ __COLD_CODE static int dpci_for_mc_add(struct mc_dprc *dprc)
 	}
 
 	err = dpci_close(&dprc->io, dpci);
-	err |= dpci_amq_bdi_init((uint32_t)attr.id);
-
 	return err;
 }
 

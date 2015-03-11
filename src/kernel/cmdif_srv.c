@@ -301,7 +301,8 @@ __COLD_CODE void cmdif_srv_free(void)
 
 int dpci_amq_bdi_set(uint32_t dpci_id);
 int dpci_amq_bdi_init(uint32_t dpci_id);
-int dpci_rx_ctx_init(uint32_t dpci_id);
+int dpci_rx_ctx_init(uint32_t dpci_id, uint32_t id);
+int dpci_rx_ctx_set(uint32_t dpci_id, uint32_t id);
 void dpci_rx_ctx_get(uint32_t *dpci_id, uint32_t *fqid);
 
 __COLD_CODE int dpci_amq_bdi_set(uint32_t dpci_id)
@@ -359,6 +360,7 @@ __COLD_CODE int dpci_amq_bdi_init(uint32_t dpci_id)
 		if (dpci_tbl->count < dpci_tbl->max) {
 			lock_spinlock(&dpci_tbl->lock);
 			
+			ind = dpci_tbl->count;
 			dpci_tbl->ic[ind] = amq_bdi;
 			dpci_tbl->dpci_id[ind] = dpci_id;
 			/* Must be last */
@@ -371,10 +373,10 @@ __COLD_CODE int dpci_amq_bdi_init(uint32_t dpci_id)
 		}
 	}
 	
-	return 0;
+	return ind;
 }
 
-__COLD_CODE int dpci_rx_ctx_init(uint32_t dpci_id)
+__COLD_CODE int dpci_rx_ctx_init(uint32_t dpci_id, uint32_t id)
 {
 	struct mc_dprc *dprc = sys_get_unique_handle(FSL_OS_MOD_AIOP_RC);
 	int err = 0;
@@ -402,11 +404,12 @@ __COLD_CODE int dpci_rx_ctx_init(uint32_t dpci_id)
 		return err;
 	}
 
+	queue_cfg.dest_cfg.dest_type = DPCI_DEST_NONE;
+	queue_cfg.options = CMDIF_Q_OPTIONS;
 	for (i = 0; i < attr.num_of_priorities; i++) {
-		queue_cfg.dest_cfg.dest_type = DPCI_DEST_NONE;
 		queue_cfg.dest_cfg.priority = DPCI_LOW_PR - i;
-		queue_cfg.options = CMDIF_Q_OPTIONS;
-		CMDIF_DPCI_FQID(USER_CTX_SET, dpci_id, DPCI_FQID_NOT_VALID);
+		queue_cfg.user_ctx = 0;
+		CMDIF_DPCI_FQID(USER_CTX_SET, id, DPCI_FQID_NOT_VALID);
 		err = dpci_set_rx_queue(&dprc->io, token, i,
 		                         &queue_cfg);
 		ASSERT_COND(!err);
@@ -420,7 +423,7 @@ __COLD_CODE int dpci_rx_ctx_init(uint32_t dpci_id)
 	return err;
 }
 
-__COLD_CODE int dpci_rx_ctx_set(uint32_t dpci_id)
+__COLD_CODE int dpci_rx_ctx_set(uint32_t dpci_id, uint32_t id)
 {
 	struct mc_dprc *dprc = sys_get_unique_handle(FSL_OS_MOD_AIOP_RC);
 	int err = 0;
@@ -450,16 +453,15 @@ __COLD_CODE int dpci_rx_ctx_set(uint32_t dpci_id)
 		return err;
 	}
 
+	queue_cfg.dest_cfg.dest_type = DPCI_DEST_NONE;
+	queue_cfg.options = CMDIF_Q_OPTIONS;
 	for (i = 0; i < attr.num_of_priorities; i++) {
 
 		err = dpci_get_tx_queue(&dprc->io, token, i, &tx_attr);
 		ASSERT_COND(!err);
-		queue_cfg.dest_cfg.dest_type = DPCI_DEST_NONE;
 		queue_cfg.dest_cfg.priority = DPCI_LOW_PR - i;
-		queue_cfg.options = CMDIF_Q_OPTIONS;
 		queue_cfg.user_ctx = 0;
-		CMDIF_DPCI_FQID(USER_CTX_SET, dpci_id, tx_attr.fqid);
-		
+		CMDIF_DPCI_FQID(USER_CTX_SET, id, tx_attr.fqid);		
 		err = dpci_set_rx_queue(&dprc->io, token, i,
 		                         &queue_cfg);
 		ASSERT_COND(!err);
