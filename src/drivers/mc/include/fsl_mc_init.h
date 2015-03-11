@@ -29,7 +29,6 @@
 
 #include "fsl_dpci.h"
 #include "dplib/fsl_mc_sys.h"
-#include "fsl_icontext.h"
 
 struct mc_dprc {
 	uint16_t		token;
