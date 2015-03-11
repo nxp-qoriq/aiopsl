@@ -356,7 +356,8 @@ int mc_dpci_find(uint32_t dpci_id, uint32_t *ic)
 	int i;
 	
 	for (i = 0; i < dpci_tbl->count; i++) {
-		if (dpci_tbl->dpci_id[i] == dpci_id) {
+		if ((dpci_tbl->dpci_id[i] == dpci_id) || 
+			dpci_tbl->dpci_id_peer[i] == dpci_id) {
 			if (ic != NULL)
 				*ic = dpci_tbl->ic[i];
 			return i;

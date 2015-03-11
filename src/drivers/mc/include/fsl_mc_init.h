@@ -50,6 +50,7 @@ struct mc_dpci_obj {
 struct mc_dpci_tbl {
 	uint32_t *ic;		/**< 0xFFFFFFFF is not valid, must be atomic*/
 	uint32_t *dpci_id;	/**< dpci ids not tokens */
+	uint32_t *dpci_id_peer;	/**< dpci ids not tokens */
 	int32_t count;
 	int max;
 	uint8_t lock;

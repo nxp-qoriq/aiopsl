@@ -305,11 +305,45 @@ int dpci_rx_ctx_init(uint32_t dpci_id, uint32_t id);
 int dpci_rx_ctx_set(uint32_t dpci_id, uint32_t id);
 void dpci_rx_ctx_get(uint32_t *dpci_id, uint32_t *fqid);
 
+__COLD_CODE static int dpci_get_peer_id(uint32_t dpci_id, uint32_t *dpci_id_peer)
+{
+	struct mc_dprc *dprc = sys_get_unique_handle(FSL_OS_MOD_AIOP_RC);
+	int err = 0;
+	uint16_t token;
+	struct dpci_peer_attr peer_attr;
+	uint8_t i;
+	
+	ASSERT_COND(dprc);
+
+	/* memset */
+	MEM_SET(&peer_attr, sizeof(peer_attr), 0);
+
+	err = dpci_open(&dprc->io, (int)dpci_id, &token);
+	if (err) {
+		pr_err("Failed dpci_open dpci id = %d\n", dpci_id);
+		return err;
+	}
+	err = dpci_get_peer_attributes(&dprc->io, token, &peer_attr);
+	if (err) {
+		pr_err("Failed to get peer_id dpci id = %d\n", dpci_id);
+		dpci_close(&dprc->io, token);
+		return err;
+	}
+
+	*dpci_id_peer = (uint32_t)peer_attr.peer_id;
+	pr_debug("DPCI peer id is %d\n", peer_attr.peer_id);
+	
+	err = dpci_close(&dprc->io, token);
+	return err;
+}
+
+/* To be called in runtime only */
 __COLD_CODE int dpci_amq_bdi_set(uint32_t dpci_id)
 {
 	struct mc_dpci_tbl *dpci_tbl = (struct mc_dpci_tbl *)\
 		sys_get_unique_handle(FSL_OS_MOD_DPCI_TBL);
 	int ind = -1;
+	int err;
 	uint32_t amq_bdi = 0;
 	uint16_t amq_bdi_temp = 0;
 	uint16_t pl_icid = PL_ICID_GET;
@@ -329,11 +363,15 @@ __COLD_CODE int dpci_amq_bdi_set(uint32_t dpci_id)
 		if (dpci_tbl->count < dpci_tbl->max) {
 			lock_spinlock(&dpci_tbl->lock);
 			
+			ind = dpci_tbl->count;
 			dpci_tbl->ic[ind] = amq_bdi;
 			dpci_tbl->dpci_id[ind] = dpci_id;
-			/* Must be last */
-			atomic_incr32(&dpci_tbl->count, 1);
+			err = dpci_get_peer_id(dpci_id, 
+			                       &dpci_tbl->dpci_id_peer[ind]);
+			ASSERT_COND(!err); /* peer id must exist */
 			
+			/* Must be last */
+			atomic_incr32(&dpci_tbl->count, 1);			
 			unlock_spinlock(&dpci_tbl->lock);
 		} else {
 			return -ENOMEM;
@@ -350,7 +388,7 @@ __COLD_CODE int dpci_amq_bdi_init(uint32_t dpci_id)
 	int ind = -1;
 	uint32_t amq_bdi = 0;
 
-	CMDIF_ICID_AMQ_BDI(AMQ_BDI_SET, 0xFFFF, 0xFFFF);
+	CMDIF_ICID_AMQ_BDI(AMQ_BDI_SET, ICONTEXT_INVALID, ICONTEXT_INVALID);
 
 	ind = mc_dpci_find(dpci_id, NULL);
 	if (ind > 0) {
@@ -363,9 +401,10 @@ __COLD_CODE int dpci_amq_bdi_init(uint32_t dpci_id)
 			ind = dpci_tbl->count;
 			dpci_tbl->ic[ind] = amq_bdi;
 			dpci_tbl->dpci_id[ind] = dpci_id;
-			/* Must be last */
-			atomic_incr32(&dpci_tbl->count, 1);
+			dpci_tbl->dpci_id_peer[ind] = DPCI_FQID_NOT_VALID;
 			
+			/* Must be last */
+			atomic_incr32(&dpci_tbl->count, 1);			
 			unlock_spinlock(&dpci_tbl->lock);
 		} else {
 			pr_err("Not enough entries\n");
@@ -472,11 +511,11 @@ __COLD_CODE int dpci_rx_ctx_set(uint32_t dpci_id, uint32_t id)
 	return err;
 }
 
-__COLD_CODE void dpci_rx_ctx_get(uint32_t *dpci_id, uint32_t *fqid)
+__COLD_CODE void dpci_rx_ctx_get(uint32_t *id, uint32_t *fqid)
 {
 	uint64_t rx_ctx = CMDIF_RX_CTX_GET;
 	
-	CMDIF_DPCI_FQID(USER_CTX_GET, dpci_id, fqid);
+	CMDIF_DPCI_FQID(USER_CTX_GET, id, fqid);
 }
 
 /*************************************************************************/

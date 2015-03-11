@@ -47,13 +47,16 @@ ASSERT_STRUCT_SIZE(CMDIF_SESSION_OPEN_SIZEOF, CMDIF_SESSION_OPEN_SIZE);
 	(uint32_t)(LLLDW_SWAP((uint32_t)&CMDIF_FQD_CTX_GET, 0) & 0xFFFFFFFF)
 
 #define DPCI_LOW_PR	1
-#define CMDIF_BDI_BIT	0x1
+#define CMDIF_BDI_BIT	((uint16_t)0x1)
 #define CMDIF_Q_OPTIONS (DPCI_QUEUE_OPT_USER_CTX | DPCI_QUEUE_OPT_DEST)
 #define CMDIF_RX_CTX_GET \
 	(LLLDW_SWAP((uint32_t)&CMDIF_FQD_CTX_GET, 0))
 
 #define AMQ_BDI_SET(_offset, _width, _type, _arg) \
 	(amq_bdi |= u32_enc((_offset), (_width), (_arg)))
+
+#define AMQ_BDI_GET(_offset, _width, _type, _arg) \
+	(*(_arg) = (_type)u32_dec(dt->ic[ind], (_offset), (_width)))
 
 #define USER_CTX_SET(_offset, _width, _type, _arg) \
 	(queue_cfg.user_ctx |= u64_enc((_offset), (_width), (_arg)))
