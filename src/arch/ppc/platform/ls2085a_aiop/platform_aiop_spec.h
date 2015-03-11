@@ -75,6 +75,9 @@ struct platform_app_params {
 	uint16_t dpni_buff_size;	/**< size of buffers for dpni pool*/
 	uint16_t dpni_drv_alignment;	/**< dpni pool buffers alignment*/
 	uint16_t app_arr_size;		/**< Maximal size of app init array */
+	uint32_t dpni_sp_def_dhr;   /**< SP Data Head Room */
+	uint32_t dpni_sp_def_dtr;   /**< SP Data Tail Room */
+	uint32_t dpni_sp_def_pds;   /**< SP Private data size */
 };
 
 /** @} */ /* end of ls2085a_g group */
