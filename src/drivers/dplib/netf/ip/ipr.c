@@ -308,12 +308,15 @@ int ipr_reassemble(ipr_instance_handle_t instance_handle)
 	uint32_t status;
 	uint16_t timeout_value;
 	uint8_t	 keysize;
-	uint8_t  ipv6_key[36];
+	/* Following array should be aligned due to ctlu alignment request */
+	uint8_t  ipv6_key[36] __attribute__((aligned(16)));
 	void	*iphdr_ptr;
-	struct ipr_rfdc rfdc;
+	/* Following struct should be aligned due to ctlu alignment request */
+	struct ipr_rfdc rfdc __attribute__((aligned(16)));
 	struct ipr_instance instance_params;
 	struct scope_status_params scope_status;
-	struct table_lookup_result lookup_result;
+	/* Following struct should be aligned due to ctlu alignment request */
+	struct table_lookup_result lookup_result __attribute__((aligned(16)));
 	struct		table_rule rule __attribute__((aligned(16)));
 	struct	presentation_context *prc =
 				(struct presentation_context *) HWC_PRC_ADDRESS;
@@ -1540,11 +1543,11 @@ uint32_t check_for_frag_error (struct ipr_instance instance_params,
 
 void ipr_time_out(uint64_t rfdc_ext_addr, uint16_t opaque_not_used)
 {
-	struct	 ipr_rfdc rfdc;
+	struct	 ipr_rfdc rfdc __attribute__((aligned(16)));
 	struct	 ipr_instance instance_params;
 	uint16_t rfdc_status;
 	uint32_t flags;
-	uint8_t  ipv6_key[36];
+	uint8_t  ipv6_key[36] __attribute__((aligned(16)));
 	uint8_t  num_of_frags;
 	uint8_t  first_frag_index;
 	uint8_t  index = 0;
