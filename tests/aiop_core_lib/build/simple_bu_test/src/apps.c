@@ -24,12 +24,26 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef __DFLAGS_DBG_H
-#define __DFLAGS_DBG_H
+#include "common/fsl_string.h"
+#include "inc/fsl_sys.h"
+#include "apps.h"
 
-#define DEBUG_LEVEL         2
+extern int app_early_init(void);
+extern int app_init(void); extern void app_free(void);
 
-#include "build_flags_non_roc.h"
 
+#define APPS                            	\
+{                                       	\
+	{app_early_init, app_init, app_free},	\
+	{NULL, NULL, NULL} /* never remove! */    	\
+}
 
-#endif /* __DFLAGS_DBG_H */
+void build_apps_array(struct sys_module_desc *apps);
+
+void build_apps_array(struct sys_module_desc *apps)
+{
+	struct sys_module_desc apps_tmp[] = APPS;
+	
+	ASSERT_COND(ARRAY_SIZE(apps_tmp) <= APP_MAX_NUM);
+	memcpy(apps, apps_tmp, sizeof(apps_tmp));
+}

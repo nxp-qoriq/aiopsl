@@ -24,40 +24,13 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef __BUILD_FLAGS_H
-#define __BUILD_FLAGS_H
+#ifndef __DFLAGS_DBG_H
+#define __DFLAGS_DBG_H
 
+#define DEBUG_LEVEL         2
 
-#ifndef DEBUG_LEVEL
-#define DEBUG_LEVEL         0
-#endif /* DEBUG_LEVEL */
+#include "build_flags.h"
 
-#ifndef DEBUG_ERRORS
-#define DEBUG_ERRORS        1
-#endif
+#define CDC_ROC
 
-#define DEBUG_GLOBAL_LEVEL  (REPORT_LEVEL_WARNING + DEBUG_LEVEL)
-#define ERROR_GLOBAL_LEVEL  (REPORT_LEVEL_MAJOR + DEBUG_LEVEL)
-
-#ifndef STACK_OVERFLOW_DETECTION
-#define STACK_OVERFLOW_DETECTION 1
-#endif 
-
-#if (DEBUG_LEVEL > 0)
-#define DEBUG
-#define DEBUG_FSL_OS_MALLOC
-
-#else
-#define DISABLE_SANITY_CHECKS
-#define DISABLE_ASSERTIONS
-#endif /* (DEBUG_LEVEL > 0) */
-
-#define LS2085A
-#define AIOP
-#define SOC_PPC_CORE
-/*#define SYS_SMP_SUPPORT*/
-//#define SIMULATOR
-#define DEBUG_NO_MC
-
-
-#endif /* __BUILD_FLAGS_H */
+#endif /* __DFLAGS_DBG_H */

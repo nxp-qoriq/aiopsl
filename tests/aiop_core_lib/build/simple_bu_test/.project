@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <projectDescription>
-	<name>ipr_demo</name>
+	<name>simple_bu_test</name>
 	<comment></comment>
 	<projects>
 		<project location="PARENT-2-PROJECT_LOC/aiopsl">
@@ -117,9 +117,44 @@ aiop_sl		</project>
 			<locationURI>PARENT-4-PROJECT_LOC/src/arch/ppc/platform/ls2085a_aiop/config.c</locationURI>
 		</link>
 		<link>
-			<name>src/ipr_demo.c</name>
+			<name>src/simple_bu_test.c</name>
 			<type>1</type>
-			<locationURI>PROJECT_LOC/src/ipr_demo.c</locationURI>
+			<locationURI>PROJECT_LOC/src/simple_bu_test.c</locationURI>
+		</link>
+		<link>
+			<name>src/simple_bu_test.h</name>
+			<type>1</type>
+			<locationURI>PROJECT_LOC/src/simple_bu_test.h</locationURI>
+		</link>
+		<link>
+			<name>src/simple_bu_test_gal.c</name>
+			<type>1</type>
+			<locationURI>PROJECT_LOC/src/simple_bu_test_gal.c</locationURI>
+		</link>
+		<link>
+			<name>src/simple_bu_test_ilan.c</name>
+			<type>1</type>
+			<locationURI>PROJECT_LOC/src/simple_bu_test_ilan.c</locationURI>
+		</link>
+		<link>
+			<name>src/simple_bu_test_ipf_ipr.c</name>
+			<type>1</type>
+			<locationURI>PROJECT_LOC/src/simple_bu_test_ipf_ipr.c</locationURI>
+		</link>
+		<link>
+			<name>src/simple_bu_test_ipsec.c</name>
+			<type>1</type>
+			<locationURI>PROJECT_LOC/src/simple_bu_test_ipsec.c</locationURI>
+		</link>
+		<link>
+			<name>src/simple_bu_test_ohad.c</name>
+			<type>1</type>
+			<locationURI>PROJECT_LOC/src/simple_bu_test_ohad.c</locationURI>
+		</link>
+		<link>
+			<name>src/simple_bu_test_yariv.c</name>
+			<type>1</type>
+			<locationURI>PROJECT_LOC/src/simple_bu_test_yariv.c</locationURI>
 		</link>
 	</linkedResources>
 </projectDescription>
