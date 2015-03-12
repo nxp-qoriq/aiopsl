@@ -138,7 +138,7 @@ int test_fdma()
 	
 	struct ldpaa_fd *fd = (struct ldpaa_fd *)HWC_FD_ADDRESS;
 	
-	test_create_frame();
+	//test_create_frame();
 	
 	uint8_t frame_data[FRAME_SIZE] = {
 			0x00, 0x01,0x02,0x03,0x04,0x05,0x06,0x07,\
@@ -317,7 +317,7 @@ int test_fdma()
 		fsl_os_print("**************************************************\n");
 	}
 	
-	//test_replicate_frame();	
+	test_replicate_frame();	
 	
 	fdma_discard_default_frame(FDMA_DIS_NO_FLAGS);
 	
@@ -507,6 +507,7 @@ void test_replicate_frame()
 	insert_params.insert_size = COPY_SIZE;
 	insert_params.seg_handle = params.seg_handle;
 	insert_params.to_offset = 0;
+	insert_params.flags = 0;
 	
 	err = fdma_insert_segment_data(&insert_params);
 	if (err)
