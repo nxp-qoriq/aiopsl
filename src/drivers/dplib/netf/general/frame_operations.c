@@ -44,9 +44,8 @@
 extern __PROFILE_SRAM struct storage_profile 
 		storage_profile[SP_NUM_OF_STORAGE_PROFILES];
 
-#define SP_BDI_MASK		0x00080000
-#define SP_BP_ID_MASK		0x3FFF
-#define FRAME_INITIAL_SIZE	1
+#define SP_BDI_MASK     0x00080000
+#define SP_BP_ID_MASK  0x3FFF
 #endif
 
 int create_frame(
@@ -85,7 +84,7 @@ int create_frame(
 	fd->offset = 0;
 #ifndef REV2  /* WA for TKT254401 */	
 	LDPAA_FD_SET_ADDR(fd, fd_addr);
-	LDPAA_FD_SET_LENGTH(fd, FRAME_INITIAL_SIZE);
+	LDPAA_FD_SET_LENGTH(fd, 1);
 	LDPAA_FD_SET_BPID(fd, bpid);
 #endif	
 
@@ -95,7 +94,7 @@ int create_frame(
 #ifdef REV2  /* WA for TKT254401 */		
 		PRC_SET_SEGMENT_LENGTH(0);
 #else
-		PRC_SET_SEGMENT_LENGTH(FRAME_INITIAL_SIZE);
+		PRC_SET_SEGMENT_LENGTH(1);
 #endif
 		PRC_SET_SEGMENT_OFFSET(0);
 		PRC_SET_SEGMENT_ADDRESS((uint32_t)TLS_SECTION_END_ADDR +
@@ -123,7 +122,7 @@ int create_frame(
 				((uint32_t)ws_address_rs - size);
 			seg_size_rs = seg_size_rs + size;
 		}
-		fdma_replace_default_segment_data(0, FRAME_INITIAL_SIZE, data, size, 
+		fdma_replace_default_segment_data(0, 1, data, size, 
 				ws_address_rs, seg_size_rs, 
 				FDMA_REPLACE_SA_REPRESENT_BIT);
 #endif

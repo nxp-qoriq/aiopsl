@@ -23,23 +23,13 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-/******************************************************************************
- @File          log.h
 
- @Description   LOG internal structures and definitions.
- *//***************************************************************************/
+#ifndef __DFLAGS_DBG_H
+#define __DFLAGS_DBG_H
 
-#ifndef __LOG_H
-#define __LOG_H
+#define DEBUG_LEVEL         2
 
-#include "common/types.h"
-#include "sys.h"
-#include <stdio.h>
-#include "fsl_icontext.h"
-#include "aiop_common.h"
-#include "fsl_log.h"
-#include "fsl_cdma.h"
-#include "fsl_spinlock.h"
+#include "build_flags_non_roc.h"
 
 
-#endif /* __LOG_H */
+#endif /* __DFLAGS_DBG_H */

@@ -229,9 +229,13 @@ uint16_t aiop_verification_keygen(uint32_t asa_seg_addr)
 			struct keygen_kcr_create_or_replace_command *str =
 			(struct keygen_kcr_create_or_replace_command *)
 								asa_seg_addr;
-		
+			uint8_t kcr_ptr[KCR_LENGTH] __attribute__((aligned(16)));
+
+			/* Enforced alignment */
+			fdma_copy_data(KCR_LENGTH,0,(void *)str->kcr_ptr,(void *)kcr_ptr);
+
 			str->status = keygen_kcr_create(str->acc_id,
-						      (uint8_t *)str->kcr_ptr,
+							  (uint8_t *)kcr_ptr,
 						      &str->key_id);
 			*((int32_t *)(str->keygen_status_addr)) = str->status;
 			str_size =

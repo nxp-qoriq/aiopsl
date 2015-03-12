@@ -61,4 +61,6 @@
 
 //#define NO_DP_DDR
 
+#define CDC_ROC
+
 #endif /* __BUILD_FLAGS_H */

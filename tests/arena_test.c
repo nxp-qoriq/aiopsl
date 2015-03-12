@@ -376,10 +376,9 @@ int app_init(void)
 		err = dpni_drv_register_rx_cb((uint16_t)ni/*ni_id*/,
 		                              app_process_packet_flow0);
 
-		if (err){
-			fsl_os_print("ERROR: dpni_drv_register_rx_cb Failed: %d\n ",err);
+		if (err)
 			return err;
-		}
+
 		ep = dpni_drv_get_ordering_mode((uint16_t)ni);
 		fsl_os_print("initial order scope execution phase for tasks %d\n",ep);
 

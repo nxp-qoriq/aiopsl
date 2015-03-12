@@ -47,7 +47,7 @@
 								<option id="com.freescale.ppc.toolchain.linker.base.input.lfile.1883628272" name="Library Files" superClass="com.freescale.ppc.toolchain.linker.base.input.lfile" valueType="libs">
 									<listOptionValue builtIn="false" value="&quot;${AIOPToolsBaseDir}/AIOP_Support/ewl/lib/librt_z4201_VLE_Soft.a&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${AIOPToolsBaseDir}/AIOP_Support/ewl/lib/libc_z4201_VLE_Soft.a&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../aiopsl/out/aiopsl.a&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../aiopsl/non_roc/aiopsl.a&quot;"/>
 								</option>
 								<option id="com.freescale.ppc.toolchain.linker.base.input.lcf_file.1241371429" name="Link Command File (.lcf)" superClass="com.freescale.ppc.toolchain.linker.base.input.lcf_file" value="${ProjDirPath}/../../cw_files/aiop_link.lcf" valueType="string"/>
 								<option id="com.freescale.ppc.toolchain.linker.base.generateBinaryFile.145510427" name="Generate Binary File:" superClass="com.freescale.ppc.toolchain.linker.base.generateBinaryFile" value="com.freescale.ppc.toolchain.linker.base.generateBinaryFile.none" valueType="enumerated"/>
@@ -154,7 +154,7 @@
 				</configuration>
 			</storageModule>
 			<storageModule moduleId="org.eclipse.cdt.core.externalSettings">
-				<externalSettings containerId="aiop_sl;com.freescale.ppc.debug.toolchain.configuration.508235731" factoryId="org.eclipse.cdt.core.cfg.export.settings.sipplier"/>
+				<externalSettings containerId="aiop_sl;com.freescale.ppc.debug.toolchain.configuration.508235731.1385734435" factoryId="org.eclipse.cdt.core.cfg.export.settings.sipplier"/>
 			</storageModule>
 		</cconfiguration>
 	</storageModule>
@@ -166,7 +166,7 @@
 	</storageModule>
 	<storageModule moduleId="org.eclipse.cdt.core.pathentry"/>
 	<storageModule moduleId="refreshScope" versionNumber="1">
-		<resource resourceType="FOLDER" workspacePath="/aiop_sl/out"/>
+		<resource resourceType="FOLDER" workspacePath="/aiop_sl/non_roc"/>
 	</storageModule>
 	<storageModule moduleId="org.eclipse.cdt.make.core.buildtargets"/>
 	<storageModule moduleId="org.eclipse.cdt.internal.ui.text.commentOwnerProjectMappings"/>

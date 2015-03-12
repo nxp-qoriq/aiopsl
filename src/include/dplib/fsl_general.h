@@ -123,10 +123,6 @@
 #define HWC_ACC_OUT_ADDRESS	0x30
 	/** Address for reading results from accelerators (2nd register) */
 #define HWC_ACC_OUT_ADDRESS2	0x34
-	/** Address for reading reserved 1 from hardware accelerator context*/
-#define HWC_ACC_RESERVED1	0x38
-	/** Address for reading reserved 2 from hardware accelerator context*/
-#define HWC_ACC_RESERVED2	0x3C
 	/** Address of Additional Dequeue Context */
 #define HWC_ADC_ADDRESS		0x40
 	/** Address of Presentation Context */

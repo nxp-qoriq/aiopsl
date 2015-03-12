@@ -29,6 +29,7 @@
 
 #define AIOP_EP_TABLE_NUM_OF_ENTRIES	1024
 #define AIOP_INIT_DATA_FIXED_ADDR	(uint8_t *)0x01010000
+#define AIOP_PORAL_FIXED_ADDR		(void *)0x01010400
 
 #define AIOP_ATU_NUM_OF_WINDOWS         8
 
@@ -98,10 +99,10 @@ struct aiop_sl_init_info
 	uint32_t mc_portal_id;                  /* initialized by MC FW during init, before AIOP elf is loaded */
 	uint32_t mc_dpci_id;                    /* initialized by MC FW during init, before AIOP elf is loaded */
 	uint32_t clock_period; 		/* 1588 period In nanosec */
-	
+
 	uint64_t log_buf_paddr; 	/* physical address of log buffer */
 	uint32_t log_buf_size;
-	uint32_t platform_clk; 		/* in Khtz */ 
+	uint32_t sys_clk; /* in Khtz */
 
 	uint64_t options;
 	uint32_t args_size;	/* AIOP command line string length */
@@ -353,18 +354,13 @@ struct aiop_tman_regs {
 	uint32_t tmbah; /* TMan external memory base address high */
 	uint32_t tminit; /* TMan initialization register */
 	uint32_t tmcbcc; /* TMan callback completion confirmation */
-	uint32_t tmsmcacr;
-	uint8_t reserved1[0x4];
+	uint8_t reserved1[0x8];
 	uint32_t tmtstmpl; /* TMan Timestamp Low */
 	uint32_t tmtstmph; /* TMan Timestamp High */
-	uint8_t reserved2[0x8];
-	uint32_t tmeal;
-	uint32_t tmeah;
-	uint32_t tmev;
-	uint8_t reserved3[0x1FC4];
+	uint8_t reserved2[0x1FD8];
 
 	struct aiop_tmi_regs tmi_regs[252];
-	uint8_t reserved4[0x80];
+	uint8_t reserved3[0x80];
 };
 
 struct aiop_tile_regs {

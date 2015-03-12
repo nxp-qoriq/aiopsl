@@ -23,45 +23,41 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-/*!
- *  @file    fsl_log.h
- *  @brief   Log API
- *
- */
-#ifndef __FSL_LOG_H
-#define __FSL_LOG_H
+
+#ifndef __BUILD_FLAGS_H
+#define __BUILD_FLAGS_H
 
 
+#ifndef DEBUG_LEVEL
+#define DEBUG_LEVEL         0
+#endif /* DEBUG_LEVEL */
 
-#define LOG_INIT_SIGN				"START\nEND\n"
-#define LOG_END_SIGN_LENGTH                     4
+#ifndef DEBUG_ERRORS
+#define DEBUG_ERRORS        1
+#endif
+
+#define DEBUG_GLOBAL_LEVEL  (REPORT_LEVEL_WARNING + DEBUG_LEVEL)
+#define ERROR_GLOBAL_LEVEL  (REPORT_LEVEL_MAJOR + DEBUG_LEVEL)
+
+#ifndef STACK_OVERFLOW_DETECTION
+#define STACK_OVERFLOW_DETECTION 1
+#endif 
+
+#if (DEBUG_LEVEL > 0)
+#define DEBUG
+#define DEBUG_FSL_OS_MALLOC
+
+#else
+#define DISABLE_SANITY_CHECKS
+#define DISABLE_ASSERTIONS
+#endif /* (DEBUG_LEVEL > 0) */
+
+#define LS2085A
+#define AIOP
+#define SOC_PPC_CORE
+/*#define SYS_SMP_SUPPORT*/
+//#define SIMULATOR
+#define DEBUG_NO_MC
 
 
-/*******************************************************************
- External Routines
- *******************************************************************/
-
-/**************************************************************************//**
- @Function      log_init
-
- @Description   initialize logger to print to buffer
-
- @Cautions      Only master CORE may call this function. (must be called once).
-*//***************************************************************************/
-int log_init(void);
-
-/**************************************************************************//**
- @Function      log_print_to_buffer
-
- @Description  	function to print the log to buffer..
-
- @Param[in]     str - pointer to generated string which will be printed. 
-
- @Param[in]     str_length - length of the string given by the pointer.
-
- @Cautions      This function use fdma accelerator and cann't be called under
-                spinlock.
-*//***************************************************************************/
-void log_print_to_buffer(char *str, uint16_t str_length);
-
-#endif /* __FSL_LOG_H */
+#endif /* __BUILD_FLAGS_H */

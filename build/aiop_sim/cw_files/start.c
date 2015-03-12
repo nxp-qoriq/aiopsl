@@ -60,102 +60,6 @@ extern char         _SDA_BASE_[];       /* Small Data Area (<=8 bytes) base addr
 
 int  _master = 0xffffffff;
 
-#pragma push
-#pragma force_active on
-#pragma function_align 256 /* IVPR must be aligned to 256 bytes */
-
-asm static __COLD_CODE void tmp_branch_table(void) {
-    nofralloc
-    
-    /* Critical Input Interrupt (Offset 0x00) */
-    li  r3, 0x00
-    b  exception_irq
-    
-    /* Machine Check Interrupt (Offset 0x10) */
-    .align 0x10
-    li  r3, 0x10
-    b  exception_irq
-    
-    /* Data Storage Interrupt (Offset 0x20) */
-    .align 0x10
-    li  r3, 0x20
-    b  exception_irq
-
-    /* Instruction Storage Interrupt (Offset 0x30) */
-    .align 0x10
-    li  r3, 0x30
-    b  exception_irq
-
-    /* External Input Interrupt (Offset 0x40) */
-    .align 0x10
-    li  r3, 0x40
-    b  exception_irq
-
-    /* Alignment Interrupt (Offset 0x50) */
-    .align 0x10
-    li  r3, 0x50
-    b  exception_irq
-    
-    /* Program Interrupt (Offset 0x60) */
-    .align 0x10
-    li  r3, 0x60
-    b  exception_irq
-    
-    /* Performance Monitor Interrupt (Offset 0x70) */
-    .align 0x10
-    li  r3, 0x70
-    b  exception_irq 
-    
-    /* System Call Interrupt (Offset 0x80) */
-    .align 0x10
-    li  r3, 0x80
-    b  exception_irq 
-    
-    /* Debug Interrupt (Offset 0x90) */
-    .align 0x10
-    li  r3, 0x90
-    b  exception_irq
-    
-    /* Embedded Floating-point Data Interrupt (Offset 0xA0) */
-    .align 0x10
-    li  r3, 0xA0
-    b exception_irq
-    
-    /* Embedded Floating-point Round Interrupt (Offset 0xB0) */
-    .align 0x10
-    li  r3, 0xB0
-    b exception_irq
-
-    /* place holder (Offset 0xC0) */
-    .align 0x10
-    nop 
-
-    /* place holder (Offset 0xD0) */
-    .align 0x10
-    nop 
-
-    /* place holder (Offset 0xE0) */
-    .align 0x10
-    nop 
-
-    /* CTS Task Watchdog Timer Interrupt (Offset 0xF0) */
-    .align 0x10
-    li  r3, 0xF0
-    b exception_irq
-    
-    /***************************************************/
-    /*** generic exception *****************************/
-    /***************************************************/
-    .align 0x100
-exception_irq:
-	/* Exit program */
-	lis    r6, exit@ha
-	addi   r6, r6, exit@l
-	mtlr   r6
-	blrl
-}
-
-#pragma pop
 
 /*****************************************************************************/
 __COLD_CODE static void __init_bss(void)
@@ -247,11 +151,6 @@ asm __COLD_CODE void __sys_start(register int argc, register char **argv, regist
     li     r0, 0xffffffff   /* Load up r0 with 0xffffffff */
     stw    r0, 4(r1)         /* Make an illegal return address of 0xffffffff */
    
-    /* Initialize PPC interrupts vector */
-    lis     r3,tmp_branch_table@h
-    ori     r3,r3,tmp_branch_table@l
-    mtspr   IVPR,r3
-    
     /* master-core clears bss sections while others wait */
 	lis     r19, _master@ha
 	addi    r19, r19, _master@l
@@ -263,7 +162,7 @@ halt:
     lwz     r18, 0(r19)
     cmpwi   r18, 0
     bne     halt
-    
+
     /* Branch to main program */
     lis    r6, main@ha
     addi   r6, r6, main@l

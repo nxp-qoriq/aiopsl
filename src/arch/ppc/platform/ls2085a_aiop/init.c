@@ -58,6 +58,7 @@ extern int slab_module_early_init(void);  extern int slab_module_init(void);
 extern void slab_module_free(void);
 extern int aiop_sl_early_init(void);
 extern int aiop_sl_init(void);            extern void aiop_sl_free(void);
+extern int icontext_init();
 
 extern void discard_rx_cb();
 extern void tman_timer_callback(void);
@@ -88,6 +89,7 @@ extern void build_apps_array(struct sys_module_desc *apps);
 
 #define GLOBAL_MODULES                                                       \
 	{    /* slab must be before any module with buffer request*/             \
+	{icontext_init, NULL, NULL},                                             \
 	{NULL, time_init,         time_free},                                    \
 	{NULL, epid_drv_init,     epid_drv_free},                                \
 	{NULL, mc_obj_init,       mc_obj_free},                                  \
@@ -124,7 +126,8 @@ __COLD_CODE void fill_platform_parameters(struct platform_param *platform_param)
 
 	memset(platform_param, 0, sizeof(platform_param));
 
-	platform_param->clock_in_freq_khz = g_init_data.sl_info.platform_clk;
+	/* Each UART is clocked by the platform clock/2 */
+	platform_param->clock_in_freq_khz = (g_init_data.sl_info.sys_clk / 2);
 	platform_param->l1_cache_mode = E_CACHE_MODE_INST_ONLY;
 	platform_param->console_type = PLTFRM_CONSOLE_DUART;
 	platform_param->console_id = (uint8_t)g_init_data.sl_info.uart_port_id;
@@ -139,13 +142,10 @@ __COLD_CODE void fill_platform_parameters(struct platform_param *platform_param)
 		platform_param->console_type = PLTFRM_CONSOLE_NONE;		
 	}
 
-	/* Each UART is clocked by the platform clock/2 
-	 * see platform_enable_console() */
 	if(platform_param->clock_in_freq_khz == 0)
 	{
-		platform_param->clock_in_freq_khz = 800000;
-		pr_warn("rcwsr return 0, platform clock frequency was set to %d KHz\n", 
-		        platform_param->clock_in_freq_khz);
+		platform_param->clock_in_freq_khz = 400000;
+		pr_warn("rcwsr return 0, clock frequency was set to 400000 KHz\n");
 	}
 
 	struct platform_memory_info mem_info[] = MEMORY_PARTITIONS;
@@ -456,7 +456,7 @@ __COLD_CODE int run_apps(void)
 			pr_err("Failed to get attributes from DPBP-%d.\n", dpbp_id[i]);
 			return err;
 		}
-
+#ifndef CDC_ROC
 		if ((err = bman_fill_bpid(num_buffs,
 		                          buffer_size,
 		                          alignment,
@@ -466,7 +466,9 @@ __COLD_CODE int run_apps(void)
 			       dpbp_id[i], attr.bpid, buffer_size);
 			return err;
 		}
-
+		fsl_os_print("Fill DPBP-%d (BPID=%d) with buffer size %d.\n", 
+				dpbp_id[i], attr.bpid, buffer_size);
+#endif
 		/* Prepare parameters to attach to DPNI object */
 		pools_params[i].num_dpbp = 1; /* for AIOP, can be up to 2 */
 		pools_params[i].pools[0].dpbp_id = (uint16_t)dpbp_id[i]; /*!< DPBPs object id */
@@ -484,10 +486,11 @@ __COLD_CODE int run_apps(void)
 				pr_err("Failed to probe DPNI-%d.\n", i);
 				return err;
 			}
+		
 		}
 	}
 
-
+	fsl_os_print("Boot DONE\n");
 
 
 	memset(apps, 0, (app_arr_size * sizeof(struct sys_module_desc)));
