@@ -720,8 +720,9 @@ void keygen_kcr_query(enum keygen_hw_accel_id acc_id,
 @Param[in]	user_metadata - user_metadata field for key composition.
 		(will be taken only if the KCR includes
 		keygen_kcr_builder_add_input_value_fec).
-@Param[out]	key - The key. This structure should be located in the workspace
- 	 	and must be aligned to 16B boundary.
+@Param[out]	key - The key. 128 bytes (regardless of actual key size)
+		which should be located in the workspace and must be aligned to
+		16B boundary.
 @Param[out]	key_size - Key size in bytes.
 
 @Return		0 on Success, or negative value on error.

@@ -557,6 +557,10 @@ int ipsec_generate_encap_sd(
 		}	
 	}	
 	
+	// TODO: test, remove
+	//rta_auth_alginfo.key_type = (enum rta_data_type)RTA_PARAM_PTR;
+
+	
 	if (inl_mask & (1 << 2))
 		rta_cipher_alginfo.key_type = (enum rta_data_type)RTA_PARAM_IMM_DMA;
 	else
@@ -840,6 +844,9 @@ int ipsec_generate_decap_sd(
 		}
 	}
 		
+	// TODO: test, remove
+	//rta_auth_alginfo.key_type = (enum rta_data_type)RTA_PARAM_PTR;
+	
 	if (inl_mask & (1 << 1))
 		rta_cipher_alginfo.key_type = (enum rta_data_type)RTA_PARAM_IMM_DMA;
 
@@ -1141,6 +1148,19 @@ int ipsec_add_sa_descriptor(
 	}
 		
 	desc_addr = IPSEC_DESC_ADDR(*ipsec_handle);
+	
+	/* If the authentication key length is not 0, 
+	 * create a copy of the authentication key in the local buffer 
+	 * (this is a hot fix to ENGR347826, later versions are optimized)*/
+	if (params->authdata.keylen) {
+		ipsec_create_key_copy(
+			params->authdata.key, /* Source Key Address */
+			IPSEC_KEY_SEGMENT_ADDR(desc_addr), /* Destination Key Address */
+			(uint16_t)params->authdata.keylen);   /* Length of the provided key, in bytes */
+	
+		/* Now switch the original key address with the copy address */
+		params->authdata.key = IPSEC_KEY_SEGMENT_ADDR(desc_addr);
+	}
 	
 	/* Build a shared descriptor with the RTA library */
 	/* Then store it in the memory with CDMA */

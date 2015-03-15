@@ -191,27 +191,27 @@
 *//***************************************************************************/
 enum verif_modules_ids {
 	GSO_MODULE = 0,
-	GRO_MODULE,
-	IPR_MODULE,
-	IPF_MODULE,
-	FDMA_MODULE,
-	TMAN_MODULE,
-	STE_MODULE,
-	CDMA_MODULE,
-	TABLE_MODULE,
-	PARSE_MODULE,
-	HM_MODULE,
-	VPOOL_MODULE,
-	IF_MODULE,
-	IF_ELSE_MODULE,
-	TERMINATE_FLOW_MODULE,
-	KEYGEN_MODULE,
-	IPSEC_MODULE,
-	WRITE_DATA_TO_WS_MODULE,
-	UPDATE_ASA_VARIABLE,
-	OSM_MODULE,
-	EXCEPTION_MODULE,
-	UPDATE_EXT_VARIABLE
+	GRO_MODULE, 	// 1
+	IPR_MODULE, 	// 2
+	IPF_MODULE, 	// 3
+	FDMA_MODULE, 	// 4
+	TMAN_MODULE, 	// 5
+	STE_MODULE, 	// 6
+	CDMA_MODULE, 	// 7
+	TABLE_MODULE, 	//  8
+	PARSE_MODULE, 	// 9
+	HM_MODULE, 	// 10
+	VPOOL_MODULE, 	// 11
+	IF_MODULE, 	// 12
+	IF_ELSE_MODULE, // 13
+	TERMINATE_FLOW_MODULE, 	// 14
+	KEYGEN_MODULE, 	// 15
+	IPSEC_MODULE, 	// 16
+	WRITE_DATA_TO_WS_MODULE,// 17
+	UPDATE_ASA_VARIABLE, 	// 18
+	OSM_MODULE, 	// 19
+	EXCEPTION_MODULE, 	// 20
+	UPDATE_EXT_VARIABLE 	// 21
 };
 
 /**************************************************************************//**
@@ -459,8 +459,7 @@ struct update_ext_cmd_var_command {
 };
 
 void aiop_verification_parse();
-void aiop_verification_sr();
-void aiop_verification_fm();
+__declspec(entry_point) void aiop_verification_fm();
 void aiop_verification_fm_temp();
 void aiop_verif_init_parser();
 uint32_t if_statement_result(
