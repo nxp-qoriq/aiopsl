@@ -60,6 +60,7 @@ __START_COLD_CODE
  *//***************************************************************************/
 typedef struct t_mem_mng_param
 {
+#if 0
     void *      (*f_malloc)(uint32_t size);
                 /**< Memory allocation routine for internal structures */
     void        (*f_free)(void *p_mem);
@@ -69,7 +70,7 @@ typedef struct t_mem_mng_param
                 /**< Early allocation routine (before partitions are registered) */
     void        (*f_early_free)(void *p_addr);
                 /**< Early deallocation routine (before partitions are registered) */
-
+#endif
 #ifdef AIOP
     uint8_t *   lock;
 #else /* not AIOP */
@@ -217,9 +218,7 @@ int mem_mng_register_partition(fsl_handle_t  h_mem_mng,
                                   uintptr_t base_address,
                                   uint64_t  size,
                                   uint32_t  attributes,
-                                  char      name[],
-                                  void *    (*f_user_malloc)(uint32_t size, uint32_t alignment),
-                                  void      (*f_user_free)(void *p_addr),
+                                  char      name[],                        
                                   int       enable_debug);
 
 int mem_mng_unregister_partition(fsl_handle_t h_mem_mng, int partition_id);

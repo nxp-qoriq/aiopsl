@@ -60,11 +60,7 @@ typedef struct t_mem_mng_debug_entry
 typedef struct t_mem_mng_partition
 {
     int                     id;             /**< Partition ID */
-    fsl_handle_t                h_mem_manager;   /**< Memory manager handle */
-    void *                  (*f_user_malloc)(uint32_t size, uint32_t alignment);
-                                            /**< Memory allocation routine */
-    void                    (*f_user_free)(void *p_addr);
-                                            /**< Memory deallocation routine */
+    fsl_handle_t            h_mem_manager;   /**< Memory manager handle */
     int                     enable_debug;    /**< '1' to track malloc/free operations */
     int                     was_initialized;
     list_t                  mem_debug_list;   /**< List of allocation entries (for debug) */
@@ -107,20 +103,11 @@ typedef struct t_mem_mng_phys_addr_alloc_partition
  *//***************************************************************************/
 typedef struct t_mem_mng
 {
-    void *      (*f_malloc)(uint32_t size);
-                /**< Memory allocation routine (for internal structures) */
-    void        (*f_free)(void *p_addr);
-                /**< Memory deallocation routine (for internal structures) */
     t_mem_mng_partition mem_partitions_array[PLATFORM_MAX_MEM_INFO_ENTRIES];
                 /**< List of partition control structures */
     t_mem_mng_phys_addr_alloc_partition
            phys_allocation_mem_partitions_array[PLATFORM_MAX_MEM_INFO_ENTRIES];
                 /**< List of partition for fsl_os_get_mem function() control structures */
-    /* Variables related to early memory partition */
-    void *      (*f_early_malloc)(uint32_t size, uint32_t alignment);
-                /**< Early allocation routine (before partitions are registered) */
-    void        (*f_early_free)(void *p_addr);
-                /**< Early deallocation routine (before partitions are registered) */
     list_t      early_mem_debug_list;
                 /**< List of early memory allocation entries (for debug) */
     uint32_t    mem_partitions_initialized;

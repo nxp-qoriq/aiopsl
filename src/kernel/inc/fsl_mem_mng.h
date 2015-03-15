@@ -192,8 +192,6 @@ int sys_register_mem_partition(int        partition_id,
                                  uint64_t   size,
                                  uint32_t   attributes,
                                  char       name[],
-                                 void *     (*f_user_malloc)(uint32_t size, uint32_t alignment),
-                                 void       (*f_user_free)(void *p_addr),
                                  int        enable_debug);
 
 /**************************************************************************//**

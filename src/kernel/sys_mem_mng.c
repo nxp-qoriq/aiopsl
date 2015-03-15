@@ -129,8 +129,6 @@ void sys_shram_free(void *mem)
                                  uint64_t   size,
                                  uint32_t   attributes,
                                  char       name[],
-                                 void *     (*f_user_malloc)(uint32_t size, uint32_t alignment),
-                                 void       (*f_user_free)(void *p_addr),
                                  int        enable_debug)
 {
     int err_code;
@@ -149,13 +147,6 @@ void sys_shram_free(void *mem)
     if ((sys.heap_addr >= base_address) && (sys.heap_addr < (base_address + size)))
     {
         is_heap_partition = 1;
-
-        if (f_user_malloc || f_user_free)
-            RETURN_ERROR(MAJOR, ENOSYS,
-                         ("cannot override malloc/free routines of default heap"));
-
-        f_user_malloc = sys_aligned_malloc;
-        f_user_free = sys_aligned_free;
     }
 
     err_code = mem_mng_register_partition(sys.mem_mng,
@@ -164,8 +155,6 @@ void sys_shram_free(void *mem)
                                         size,
                                         attributes,
                                         name,
-                                        f_user_malloc,
-                                        f_user_free,
                                         enable_debug);
     if (err_code != 0)
     {
