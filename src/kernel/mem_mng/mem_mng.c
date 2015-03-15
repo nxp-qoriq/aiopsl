@@ -816,10 +816,11 @@ void * mem_mng_alloc_mem(fsl_handle_t    h_mem_mng,
         return (UINT_TO_PTR(virt_address));
     }
     /* Check if this is a CW allocation */
+#if 0
     if (partition_id == SYS_DEFAULT_HEAP_PARTITION)
     {
         /* Use early allocation routine */
-        /*p_memory = p_mem_mng->f_early_malloc(size, alignment);*/
+        /*p_memory = p_mem_mng->f_early_malloc(size, alignment);*/    
         p_memory = sys_aligned_malloc(size, alignment);
         if (!p_memory)
         {
@@ -837,7 +838,7 @@ void * mem_mng_alloc_mem(fsl_handle_t    h_mem_mng,
 
         return p_memory;
     }
-
+#endif
 #ifdef AIOP
     lock_spinlock(p_mem_mng->lock);
 #else
@@ -999,6 +1000,7 @@ void mem_mng_free_mem(fsl_handle_t h_mem_mng, void *p_memory)
     int                 partition_id;
     int                address_found = 1;
 
+#if 0    
     /* Try to find the entry in the early allocations list */
     if (mem_mng_remove_early_entry(p_mem_mng, p_memory))
     {
@@ -1007,24 +1009,26 @@ void mem_mng_free_mem(fsl_handle_t h_mem_mng, void *p_memory)
     }
     else
     {
-        if (mem_mng_get_partition_id_by_addr_local(p_mem_mng, addr, &partition_id, &p_partition))
-        {
-            if (p_partition->enable_debug &&
-                !mem_mng_remove_entry(p_mem_mng, p_partition, p_memory))
-            {
-                address_found = 0;
-            }
+#endif
+	if (mem_mng_get_partition_id_by_addr_local(p_mem_mng, addr, &partition_id, &p_partition))
+	{
+		if (p_partition->enable_debug &&
+			!mem_mng_remove_entry(p_mem_mng, p_partition, p_memory))
+		{
+			address_found = 0;
+		}
 
-            if (address_found)
-            {
-                slob_put(p_partition->h_mem_manager, PTR_TO_UINT(p_memory));
-            }
-        }
-        else
-        {
-            address_found = 0;
-        }
-    }
+		if (address_found)
+		{
+			slob_put(p_partition->h_mem_manager, PTR_TO_UINT(p_memory));
+		}
+	}
+	else
+	{
+		address_found = 0;
+	}
+
+//    }
 
     if (!address_found)
     {
