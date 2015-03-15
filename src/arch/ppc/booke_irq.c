@@ -86,11 +86,15 @@ void booke_generic_exception_isr(uint32_t intr_entry)
 		pr_debug("core %d int: CRITICAL\n", core_get_id());
 		break;
 	case(0x10):
-		pr_debug("core %d int: MACHINE_CHECK\n", core_get_id());
-		if(booke_get_spr_MCSR() | 0x0800 /* STACK_ERR */) {
-			pr_debug("Stack exception\n");
+		{
+			uint32_t mcsr = booke_get_spr_MCSR();
+			uint32_t core_id = core_get_id();
+			pr_debug("core %d int: MACHINE_CHECK\n", core_id);
+			if(mcsr | 0x0800 /* STACK_ERR */) {
+				pr_debug("Stack Exception: MCSR = 0x%x\n", mcsr);
+			}
+			break;
 		}
-		break;
 	case(0x20):
 		pr_debug("core %d int: DATA_STORAGE\n", core_get_id());
 		break;
@@ -216,33 +220,37 @@ asm static void branch_table(void) {
     /***************************************************/
     .align 0x100
 exception_irq:
-//    li       r0, 0x00000000
-//    /* disable exceptions and interrupts */
-//    mtspr    DBSR, r0
-//    mtspr    DBCR0, r0
-//    mtspr    DBCR2, r0
-//    /* disable debug and interrupts in MSR */
-//    mtmsr    r0
-//    isync
+    li       r0, 0x00000000
+    /* disable exceptions and interrupts */
+    mtspr    DBSR, r0
+    mtspr    DBCR0, r0
+    mtspr    DBCR2, r0
+    /* disable debug and interrupts in MSR */
+    mtmsr    r0
+    isync
     /* branch to isr */
     lis      r4,booke_generic_exception_isr@h
     ori      r4,r4,booke_generic_exception_isr@l
     mtlr     r4
-    blrl
+    blr
     
     /***************************************************/
     /*** machine check *********************************/
     /***************************************************/
     .align 0x100
 machine_irq:
-	mfspr    r4, MCSR
-	ori      r4, r4, 0x0800 /* STACK_ERR */
-	cmpwi    r4, 0
-	bne      cont_ex
+//	mfspr    r4, MCSR
+//	andi.    r4, r4, 0x0800 /* STACK_ERR */
+//	cmpwi    r4, 0
+//	bne      machine_irq_cont
     li rsp,  0x7ff0 /* clear stack pointer */
-cont_ex:
-    b        exception_irq
-    
+//machine_irq_cont:
+	/* branch to isr */
+	lis      r4,booke_generic_exception_isr@h
+	ori      r4,r4,booke_generic_exception_isr@l
+	mtlr     r4
+	blr
+	
 }
 
 __COLD_CODE asm void booke_init_interrupt_vector(void)
