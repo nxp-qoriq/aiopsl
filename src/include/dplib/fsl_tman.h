@@ -192,8 +192,8 @@ struct tman_tmi_params {
 	/** 10 mSec timer ticks*/
 #define TMAN_CREATE_TIMER_MODE_10_MSEC_GRANULARITY	0x00040000
 	/** 1 Sec timer ticks*/
-#ifdef REV2
 #define TMAN_CREATE_TIMER_MODE_SEC_GRANULARITY		0x00060000
+#ifdef REV2
 	/** 10 uSec timer ticks*/
 #define TMAN_CREATE_TIMER_MODE_10_USEC_GRANULARITY	0x00010000
 	/** 1 mSec timer ticks*/
@@ -241,6 +241,8 @@ enum e_tman_query_timer {
 
 /** @} end of group TMAN_Flags */
 
+
+#include "tman_inline.h"
 
 /**************************************************************************//**
 @Group		TMAN_Functions TMAN functions
@@ -368,7 +370,7 @@ int tman_query_tmi(uint8_t tmi_id,
 @Cautions	This function performs a task switch.
 
 *//***************************************************************************/
-int tman_create_timer(uint8_t tmi_id, uint32_t flags,
+inline int tman_create_timer(uint8_t tmi_id, uint32_t flags,
 			uint16_t duration, tman_arg_8B_t opaque_data1,
 			tman_arg_2B_t opaque_data2, tman_cb_t tman_timer_cb,
 			uint32_t *timer_handle);
@@ -406,7 +408,7 @@ int tman_create_timer(uint8_t tmi_id, uint32_t flags,
 @Cautions	This function performs a task switch.
 
 *//***************************************************************************/
-int tman_delete_timer(uint32_t timer_handle, uint32_t flags);
+inline int tman_delete_timer(uint32_t timer_handle, uint32_t flags);
 
 #ifdef REV2
 /**************************************************************************//**
@@ -484,7 +486,7 @@ void tman_query_timer(uint32_t timer_handle,
 @Cautions	None.
 
 *//***************************************************************************/
-void tman_timer_completion_confirmation(uint32_t timer_handle);
+inline void tman_timer_completion_confirmation(uint32_t timer_handle);
 
 
 /**************************************************************************//**
@@ -502,7 +504,7 @@ void tman_timer_completion_confirmation(uint32_t timer_handle);
 		the TMINIT register).
 
 *//***************************************************************************/
-void tman_get_timestamp(uint64_t *timestamp);
+inline void tman_get_timestamp(uint64_t *timestamp);
 
 /** @} end of group TMAN_Functions */
 /** @} end of group TMAN */

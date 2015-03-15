@@ -38,6 +38,7 @@
 #include "dplib/fsl_l2.h"
 
 int app_init(void);
+int app_early_init(void);
 void app_free(void);
 
 #define APP_NI_GET(ARG)   ((uint16_t)((ARG) & 0x0000FFFF))
@@ -278,6 +279,12 @@ int app_init(void)
 		fsl_os_print("FAILED cmdif_register_module\n!");
 */
 	fsl_os_print("To start test inject packets: \"reassembled_frame.pcap\" after AIOP boot complete.\n");
+	return 0;
+}
+
+int app_early_init(void)
+{
+	/* Early initialization */
 	return 0;
 }
 
