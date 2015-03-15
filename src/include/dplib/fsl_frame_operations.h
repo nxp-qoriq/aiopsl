@@ -101,7 +101,7 @@
 		The FD address in workspace must be aligned to 32 bytes.
 @Param[in]	data - A pointer to the workspace data to be inserted to the
 		frame.
-@Param[in]	size - data size.
+@Param[in]	size - data size. Must be greater than 0.
 @Param[out]	frame_handle - Pointer to the opened working frame handle.
 
 @Return		0 on Success, or negative value on error.
@@ -162,7 +162,7 @@ int create_frame(
 		The FD address in workspace must be aligned to 32 bytes.
 @Param[in]	data - A pointer to the workspace data to be inserted to the
 		frame.
-@Param[in]	size - data size.
+@Param[in]	size - data size. Must be greater than 0.
 @Param[in]	spid - Storage profile ID to be used in case this is not the 
 		default frame.
 

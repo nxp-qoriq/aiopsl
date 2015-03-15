@@ -102,7 +102,7 @@
 /** SP1 mode bits 1st byte - SGHR mask */
 #define sp1_mode_bits1_SGHR_MASK  0x10
 /** SP1 mode bits 1st byte - ASAR mask */
-#define sp1_mode_bits1_ASAR_MASK  0x0f
+#define sp1_mode_bits1_ASAR_MASK  0x02
 
 /** SP1 mode bits 2nd byte - BS mask */
 #define sp1_mode_bits2_BS_MASK  0x80
@@ -120,7 +120,7 @@
 /** SP mode bits 1st byte - SGHR value */
 #define sp1_mode_bits1_SGHR  0x00
 /** SP1 mode bits 1st byte - ASAR value */
-#define sp1_mode_bits1_ASAR  0x0f
+#define sp1_mode_bits1_ASAR  0x02
 
 /** SP1 mode bits 2nd byte - BS value */
 #define sp1_mode_bits2_BS  0x80

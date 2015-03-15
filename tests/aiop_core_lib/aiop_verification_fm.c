@@ -38,6 +38,8 @@
 #include "aiop_verification.h"
 #include "system.h"
 
+#include "cmgw.h"
+
 
 /*
 __TASK tcp_gso_ctx_t tcp_gso_context_addr;
@@ -52,15 +54,51 @@ extern __VERIF_TLS uint8_t slab_parser_error;
 extern __VERIF_TLS uint8_t slab_keygen_error;
 extern __VERIF_TLS uint8_t slab_general_error;
 
+extern __PROFILE_SRAM struct storage_profile storage_profile[SP_NUM_OF_STORAGE_PROFILES];
 
-void aiop_verification_fm()
+__declspec(entry_point) void aiop_verification_fm()
 {
 	uint8_t data_addr[DATA_SIZE];	/* Data Address in workspace*/
 	struct fdma_present_segment_params present_params;
 	uint64_t ext_address;	/* External Data Address */
 	uint16_t str_size = 0;	/* Command struct Size */
 	uint32_t opcode;
+        struct fdma_amq amq;
+        uint16_t icid, flags = 0;
+        uint8_t tmp, spid;
+	uint32_t *pData = (uint32_t *)HWC_FD_ADDRESS;
 
+	fsl_os_print("\n**************************\n");
+	fsl_os_print("*** Start Verification ***\n");
+	fsl_os_print("**************************\n");
+	sl_prolog();
+	
+	spid = *((uint8_t *)HWC_SPID_ADDRESS);
+
+	//Patch for ICID check (Hagit)
+        icid = (uint16_t)(storage_profile[spid].ip_secific_sp_info >> 48);
+        icid = ((icid << 8) & 0xff00) | ((icid >> 8) & 0xff);
+        tmp = (uint8_t)(storage_profile[spid].ip_secific_sp_info >> 40);
+        if (tmp & 0x08)
+               flags |= FDMA_ICID_CONTEXT_BDI;
+        if (tmp & 0x04)
+               flags |= FDMA_ICID_CONTEXT_PL;
+        if (storage_profile[spid].mode_bits2 & sp1_mode_bits2_VA_MASK)
+               flags |= FDMA_ICID_CONTEXT_VA;
+        amq.icid = icid;
+        amq.flags = flags;
+        set_default_amq_attributes(&amq);
+        
+        //fsl_os_print("Storage Profile ASAR 0x%x\n", storage_profile[spid].mode_bits1 & 0xF);
+        //fsl_os_print("Storage Profile PTAR 0x%x\n", (storage_profile[spid].mode_bits1 & 0x80)>>7);
+        /*set storage profile ASAR to 15 */
+        storage_profile[spid].mode_bits1 |= 0xF;
+        /*set storage profile PTAR to 1 */
+        storage_profile[spid].mode_bits1 |= 0x80;
+        fsl_os_print("Storage Profile ASAR %d\n", storage_profile[spid].mode_bits1 & 0xF);
+        fsl_os_print("Storage Profile PTAR %d\n", (storage_profile[spid].mode_bits1 & 0x80)>>7);
+        
+	
 	/* Read last 8 bytes from frame PTA/ last 8 bytes of payload
 	 * This is the external buffer address */
 	if (LDPAA_FD_GET_PTA(HWC_FD_ADDRESS)) {
@@ -97,11 +135,6 @@ void aiop_verification_fm()
 
 	init_verif();
 
-	/* spid=0. This is a temporary spid setter and has to be removed when
-				* the ni function will be run.
-				* (According to Ilan request) */
-	*((uint8_t *)HWC_SPID_ADDRESS) = 0;
-
 	cdma_read((void *)data_addr, ext_address, (uint16_t)DATA_SIZE);
 
 	/* The Terminate command will finish the verification */
@@ -109,8 +142,11 @@ void aiop_verification_fm()
 		/* Read a new buffer from DDR with DATA_SIZE */
 		cdma_read((void *)data_addr, ext_address, (uint16_t)DATA_SIZE);
 
+		
 		opcode  = *((uint32_t *) data_addr);
+		fsl_os_print("opcode received: 0x%x\n", opcode);
 		opcode = (opcode & ACCEL_ID_CMD_MASK) >> 16;
+		
 
 		switch (opcode) {
 
@@ -310,7 +346,7 @@ void aiop_verification_fm()
 
 
 	} while (1);
-
+	
 	fdma_terminate_task();
 
 	return;

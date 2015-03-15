@@ -236,7 +236,7 @@ void verif_tman_callback_no_conf(uint64_t opaque1, uint16_t opaque2)
 void verif_tman_callback(uint64_t opaque1, uint16_t opaque2)
 {
 	uint8_t frame_handle;
-	
+
 	
 	*((uint8_t *)HWC_SPID_ADDRESS) = tman_spid;
 	set_default_amq_attributes(&tman_amq);
