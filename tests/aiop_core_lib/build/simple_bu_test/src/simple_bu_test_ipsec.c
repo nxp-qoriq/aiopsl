@@ -71,6 +71,7 @@ extern __PROFILE_SRAM struct storage_profile storage_profile[SP_NUM_OF_STORAGE_P
 #define	COPY_SIZE	16
 #define AIOP_SP_BDI     0x00080000
 #define SP_BP_PBS_MASK  0x3FFF
+#define PLAIN_PACKET_SIZE	128
 
 #define BU_TMI_BUF_ALIGN 64 /* TMI address alignment (64 bytes) */
 /**< Align a given address - equivalent to ceil(ADDRESS,ALIGNMENT) */
@@ -93,7 +94,7 @@ int simple_bu_test_ipsec(void)
 	int        err  = 0;
 	uint8_t prpid;
 	int i;
-
+	volatile uint32_t data_arr_32bit[8];
 
 	fsl_os_print("Running simple bring-up test\n");
 	
@@ -105,6 +106,16 @@ int simple_bu_test_ipsec(void)
 	default_task_params.current_scope_level = 1;
 	default_task_params.scope_mode_level_arr[0] = EXCLUSIVE;
 
+	/*
+	 *  0000  00 00 01 00 00 01 00 10  94 00 00 02 08 00 45 00
+		0010  00 6e 00 00 00 00 ff 11  3a 26 c0 55 01 02 c0 00
+		0020  00 01 04 00 04 00 00 4e  05 63 00 00 00 00 00 00
+		0030  00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00
+		0040  00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00
+		0050  00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00
+		0060  00 00 00 00 00 00 00 00  f5 d0 64 51 ac 9f 69 d4
+	 */
+	
 	// run create_frame on default frame
 	{
 		struct ldpaa_fd *fd = (struct ldpaa_fd *)HWC_FD_ADDRESS;
@@ -112,7 +123,7 @@ int simple_bu_test_ipsec(void)
 				0x10,0x94,0x00,0x00,0x02,0x08,0x00,0x45,0x00,\
 				0x00,0x6e,0x00,0x00,0x00,0x00,0xff,0x11,0x3a,\
 				0x26,0xc0,0x55,0x01,0x02,0xc0,0x00,0x00,0x01,\
-				0x04,0x00,0x04,0x00,0x00,0x5a,0xff,0xff,0x00,\
+				0x04,0x00,0x04,0x00,0x00,0x4e,0x05,0x63,0x00,\
 				0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,\
 				0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,\
 				0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,\
@@ -137,6 +148,24 @@ int simple_bu_test_ipsec(void)
 				0x64,0x51,0xac,0x9f,0x69,0xd4,0xd3,0xf7,0x39,\
 				0x6e,0x20,0x0e,0x97,0xb7,0xe9,0xe4,0x56,0x3a};
 
+		uint8_t plain_packet[PLAIN_PACKET_SIZE] = {0x00,0x00,0x01,0x00,\
+				0x00,0x01,0x00,0x10,0x94,0x00,0x00,0x02,\
+				0x08,0x00,0x45,0x00,0x00,0x72,0x00,0x00,\
+				0x00,0x00,0xff,0x11,0x99,0x60,0x08,0x08,\
+				0x08,0x05,0x09,0x09,0x09,0x05,0x04,0x00,\
+				0x04,0x00,0x00,0x5e,0xcf,0x86,0x00,0x00,\
+				0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,\
+				0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,\
+				0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,\
+				0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,\
+				0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,\
+				0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,\
+				0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,\
+				0x00,0x00,0x00,0x00,0xf5,0xd0,0x64,0x51,\
+				0xac,0x9f,0x69,0xd4,0xd3,0xf7,0x39,0x6e,\
+				0x20,0x0e,0x97,0xb7,0xe9,0xe4,0x56,0x3a,\
+				0x64,0x12,0x2b,0x9d};
+		
 		uint8_t frame_handle;
 		uint32_t vlan = 0x8100aabb;
 		//int parse_status;
@@ -166,7 +195,9 @@ int simple_bu_test_ipsec(void)
 			fsl_os_print("storage profile arg %d: 0x%x \n", i, *((uint32_t *)(&(storage_profile[0]))+i));
 		
 		
-		err = create_frame(fd, frame_data, FRAME_SIZE, &frame_handle);
+		//err = create_frame(fd, frame_data, FRAME_SIZE, &frame_handle);
+		err = create_frame(fd, plain_packet, PLAIN_PACKET_SIZE, &frame_handle);
+		
 		if (err)
 			fsl_os_print("ERROR: create frame failed!\n");
 
@@ -187,16 +218,70 @@ int simple_bu_test_ipsec(void)
 		for (i=0; i<16 ; i++)
 			fsl_os_print("parse results arg %d: 0x%x \n", i, *((uint32_t *)(0x80)+i));
 
+		// Set FQD:
+		*((uint8_t *)(0x40 + 0)) = 0;
+		*((uint8_t *)(0x40 + 1)) = 0;
+		*((uint8_t *)(0x40 + 2)) = 0;
+		*((uint8_t *)(0x40 + 3)) = 0;
+		
+		*((uint8_t *)(0x40 + 4)) = 0;
+		*((uint8_t *)(0x40 + 5)) = 0;
+		*((uint8_t *)(0x40 + 6)) = 0;
+		*((uint8_t *)(0x40 + 7)) = 0;
+		
+		*((uint8_t *)(0x40 + 8)) = 0;
+		*((uint8_t *)(0x40 + 9)) = 0;
+		*((uint8_t *)(0x40 + 10)) = 0;
+		*((uint8_t *)(0x40 + 11)) = 0;
+		
+		*((uint8_t *)(0x40 + 12)) = 1; // ICID
+		*((uint8_t *)(0x40 + 13)) = 0;
+		*((uint8_t *)(0x40 + 14)) = 0;
+		*((uint8_t *)(0x40 + 15)) = 1; // BDI
+
+		for (i=0; i<8 ; i++) {
+			data_arr_32bit[i] = 0;
+		}	
+		
+
+		tman_get_timestamp(
+				(uint64_t *)(&data_arr_32bit[0])); /* uint64_t *timestamp) */
+		//fsl_os_print("First tman_get_timestamp() high = %d\n", data_arr_32bit[0]);
+		//fsl_os_print("First tman_get_timestamp() low  = %d\n", data_arr_32bit[1]);
+		tman_get_timestamp(
+				(uint64_t *)(&data_arr_32bit[2])); /* uint64_t *timestamp) */
+		//fsl_os_print("Second tman_get_timestamp() high = %d\n", data_arr_32bit[2]);
+		//fsl_os_print("Second tman_get_timestamp() low  = %d\n", data_arr_32bit[3]);
+		
 		/* IPsec Test */
 		err = ipsec_app_init_bu(0); /* Call with NI ID = 0 */
 		if (err) {
 			fsl_os_print("ERROR: IPsec initialization failed\n");
 		}
 		
+		/* Wait, to see seconds lifetime counter is not 0 */
+		fsl_os_print("ipsec: waiting for few seconds\n");
+		while ((data_arr_32bit[3] - data_arr_32bit[1]) < 2000000) {
+			tman_get_timestamp(
+				(uint64_t *)(&data_arr_32bit[2])); /* uint64_t *timestamp) */
+			//fsl_os_print("In while tman_get_timestamp() low  = %d\n", data_arr_32bit[1]);
+		}
+		
 		fsl_os_print("\nCalling ipsec_encr_decr_bu()\n");
-
+		
+		fdma_close_default_segment();
+		fdma_present_default_frame_segment(0, (void *)PRC_GET_SEGMENT_ADDRESS(), 0, 256);
+		
 		ipsec_encr_decr_bu();
 		fsl_os_print("ipsec_encr_decr_bu() completed\n");
+		
+		// Do another encr-decr
+		fsl_os_print("\nCalling ipsec_encr_decr_bu() for the second time\n");
+		fdma_close_default_segment();
+		fdma_present_default_frame_segment(0, (void *)PRC_GET_SEGMENT_ADDRESS(), 0, 256);
+		ipsec_encr_decr_bu();
+		fsl_os_print("ipsec_encr_decr_bu() second time completed\n");
+		
 		
 		fdma_discard_default_frame(FDMA_DIS_NO_FLAGS);
 		
@@ -729,6 +814,9 @@ void ipsec_encr_decr_bu(void)
 		local_test_error |= enc_status;
 	}
 
+	fdma_close_default_segment(); // yariv - BU
+	fdma_present_default_frame_segment(0, (void *)PRC_GET_SEGMENT_ADDRESS(), 0, 256); // yariv - BU
+	
 	fsl_os_print("IPSEC: frame header after encryption\n");
 	/* Print header */
 	ipsec_print_frame_bu();
