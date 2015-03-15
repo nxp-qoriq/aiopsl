@@ -34,15 +34,43 @@
 #define __FSL_SL_DBG_H
 
 #include "fsl_dbg.h"
-
+#include "fsl_string.h"
+#include "fsl_general.h"
 /**************************************************************************//**
  @Group		FSL_DEBUG_GROUP Debug Utilities
 
  @Description	FSL AIOP debug macros
 
  @{
-*//***************************************************************************/
+ *//***************************************************************************/
 
+/**************************************************************************//**
+ @Description	Macro to use debug prints from service layer. Same as pr_debug(),
+		pr_info() but only for service layer developers.
+ 	 	The users will not see those prints. In order to enable them 
+ 	 	recompile the service layer library with SL_DEBUG.
+
+ @Param[in]     _level - printing level (TRACE / MAJOR)
+ @Param[in]     ... - string with arguments to print.
+*//***************************************************************************/
+#ifndef SL_DEBUG
+#define SL_DBG(_level, ...) do {} while(0)
+#define SL_PRINT(...) do {} while(0)
+#else
+#define SL_DBG(_level, ...)                                              \
+	do {                                                             \
+		fsl_os_print("> %s " PRINT_FORMAT ": ",                  \
+		             dbg_level_strings[_level - 1],              \
+		             PRINT_FMT_PARAMS);                          \
+		fsl_os_print(__VA_ARGS__);                               \
+	} while (0)
+
+#define SL_PRINT(...)                                                    \
+	do {                                                             \
+		fsl_os_print(__VA_ARGS__);                               \
+	} while (0)
+
+#endif /* !defined(SL_DEBUG) */
 
 /**************************************************************************//**
  @Function      sl_pr_debug(...)
@@ -65,6 +93,19 @@
  @Param[in]     ... string with arguments to print.
 *//***************************************************************************/
 #define sl_pr_err(...) 	SL_DBG(REPORT_LEVEL_MAJOR, __VA_ARGS__)
+
+/**************************************************************************//**
+ @Function      sl_os_print(...)
+
+ @Description   Same as fsl_os_print() but only for service layer developers
+ 	 	The users will not see those prints. In order to enable them 
+ 	 	recompile the service layer library with SL_DEBUG.
+ 	 	The print recovers Accelerator Hardware Context and restore
+		after the print.
+
+ @Param[in]     ... string with arguments to print.
+*//***************************************************************************/
+#define sl_os_print(...)    SL_PRINT(__VA_ARGS__)
 
 /** @} */ /* end of Debug Utilities */
 

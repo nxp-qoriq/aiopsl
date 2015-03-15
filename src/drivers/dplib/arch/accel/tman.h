@@ -279,6 +279,8 @@ enum tman_function_identifier {
 #define TMAN_TMSTATNCCP_ADDRESS	(TMAN_BASE_ADDRESS+0x200C)
 /** TMSTATE- TMan TMAN State register base address */
 #define TMAN_TMSTATE_ADDRESS	(TMAN_BASE_ADDRESS+0x2018)
+/** TMSTATE- TMan TMAN State register address Workaround for TKT254640 */
+#define TMAN_CCSR_TMSTATE_ADDRESS	0x020a2018
 /** TMan Dedicated EPID */
 #define EPID_TIMER_EVENT_IDX	1
 /** Offset to USER_OPAQUE1 in FD */

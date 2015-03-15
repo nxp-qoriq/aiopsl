@@ -83,7 +83,7 @@ int simple_bu_ipf_ipr_test(void)
 	int ipf_status, reassemble_status;
 	uint8_t *frame_presented;
 	uint32_t frame_length;
-	uint32_t ste_status;
+	//uint32_t ste_status;
 	
 	// run create_frame on default frame
 	struct ldpaa_fd *fd = (struct ldpaa_fd *)HWC_FD_ADDRESS;
@@ -248,10 +248,10 @@ int simple_bu_ipf_ipr_test(void)
 	}
 	
 	reassemble_status = ipr_reassemble(ipr_instance);
-	ste_status = STE_GET_STATUS_REGISTER();
+	/*ste_status = STE_GET_STATUS_REGISTER();
 	fsl_os_print("ste status: STE_GET_STATUS_REGISTER = %x \n", ste_status);
 	ste_status = STE_GET_ERR_CAP_ATTRIBUTES();
-	fsl_os_print("ste status: STE_GET_ERR_CAP_ATTRIBUTES = %x \n", ste_status);
+	fsl_os_print("ste status: STE_GET_ERR_CAP_ATTRIBUTES = %x \n", ste_status);*/
 	
 	if (reassemble_status == IPR_REASSEMBLY_NOT_COMPLETED)
 	{
