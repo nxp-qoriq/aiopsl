@@ -317,8 +317,6 @@ int test_fdma()
 	
 	test_replicate_frame();	
 	
-	test_replicate_frame();	
-	
 	fdma_discard_default_frame(FDMA_DIS_NO_FLAGS);
 	
 	return 0;
@@ -351,6 +349,7 @@ void test_replicate_frame()
 		fsl_os_print("Simple BU ERROR: fdma_store_frame_data FAILED!!\n");
 	else
 		fsl_os_print("Simple BU: fdma_store_frame_data PASSED!! frame size is: 0x%x\n", replic_fd.length);
+	
 	
 	for (i=0; i<8 ; i++)
 		fsl_os_print("Replicated FD content arg %d is %x\n", i, *((uint32_t *)(((uint8_t *)&replic_fd) + i*4)));
