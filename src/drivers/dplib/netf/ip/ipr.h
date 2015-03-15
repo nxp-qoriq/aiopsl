@@ -99,6 +99,9 @@
 #define CE			0x3
 #define IPV4_ECN		0x3
 #define IPV6_ECN		0x00300000
+#define ENOSPC_TIMER		2
+#define ENOMEM_TABLE		3
+#define IPR_ERROR		1
 
 /* todo should move to general or OSM include file */
 #define CONCURRENT		0
@@ -206,6 +209,20 @@ struct link_list_element{
 	uint16_t	res;
 	uint8_t		prev_index;
 	uint8_t 	next_index;
+};
+
+/**************************************************************************//**
+ @enum ipr_functions
+
+ @Description	AIOP IPR Functions enumeration.
+
+ @{
+*//***************************************************************************/
+enum ipr_function_identifier {
+	IPR_INIT = 0,
+	IPR_CREATE_INSTANCE,
+	IPR_DELETE_INSTANCE,
+	IPR_REASSEMBLE
 };
 
 
@@ -319,6 +336,9 @@ void ipr_stats_update(struct ipr_instance instance_params,
 
 int ipr_early_init(uint32_t nbr_of_instances, uint32_t nbr_of_context_buffers);
 
+void ipr_exception_handler(enum ipr_function_identifier func_id,
+		     	   uint32_t line,
+		     	   int32_t status);
 
 /**************************************************************************//**
 @Description	IPR Global parameters
@@ -340,6 +360,7 @@ struct ipr_instance_and_extension{
 	struct ipr_instance_extension	ipr_instance_extension;
 };
 #pragma pack(pop)
+
 
 /* @} end of group FSL_IPR */
 
