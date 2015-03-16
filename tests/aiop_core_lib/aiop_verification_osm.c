@@ -171,12 +171,18 @@ uint16_t aiop_verification_osm(uint32_t asa_seg_addr)
 	
 	case OSM_GET_SCOPE_STR:
 	{
+		int i;
 		struct osm_get_scope_verif_command *str =
 			(struct osm_get_scope_verif_command *) asa_seg_addr;
-		
-		/* initialize TASK_ID (=0) in ORTAR to enable OSM registers */
-		*(uint32_t *)OSM_REG_ORTAR = 0;
+	    register uint32_t task,tmp;
 
+	    /* initialize TASK_ID in ORTAR to enable OSM registers */
+	    asm
+	    {
+			  mfdcr  tmp,dcr476    // TASKCSR0
+			  e_clrlwi task,tmp,24 // clear top 24 bits
+	    }
+		*(uint32_t *)OSM_REG_ORTAR = task;
 		osm_get_scope(&(str->scope_status));
 
 		str->osm_reg.ortdr[0] = OSM_REG_ORTDR0();
@@ -197,6 +203,14 @@ uint16_t aiop_verification_osm(uint32_t asa_seg_addr)
 		str->osm_err_reg.oecr[5] = OSM_REG_OECR5();
 		str->osm_err_reg.oecr[6] = OSM_REG_OECR6();
 		str->osm_err_reg.oecr[7] = OSM_REG_OECR7();
+
+		/* Disable invalid registers - according to valid bit */
+		for (i = 0; ((str->osm_reg.ortdr[i]&(OSM_VALID_BIT_MASK)) && 
+												(i < OSM_REG_NUM)); i = i+2){};
+		for (; i < OSM_REG_NUM; i++)
+		{
+			str->osm_reg.ortdr[i] = 0;
+		}
 
 		str_size = (uint16_t)sizeof(struct osm_get_scope_verif_command);
 		break;

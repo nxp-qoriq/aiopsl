@@ -39,7 +39,7 @@ uint16_t aiop_verification_keygen(uint32_t asa_seg_addr)
 {
 	uint16_t str_size = STR_SIZE_ERR;
 	uint32_t opcode;
-
+	int i;
 	opcode  = *((uint32_t *) asa_seg_addr);
 
 	switch (opcode) {
@@ -229,9 +229,13 @@ uint16_t aiop_verification_keygen(uint32_t asa_seg_addr)
 			struct keygen_kcr_create_or_replace_command *str =
 			(struct keygen_kcr_create_or_replace_command *)
 								asa_seg_addr;
-		
+			uint8_t kcr_ptr[KCR_LENGTH] __attribute__((aligned(16)));
+
+			/* Enforced alignment */
+			fdma_copy_data(KCR_LENGTH,0,(void *)str->kcr_ptr,(void *)kcr_ptr);
+
 			str->status = keygen_kcr_create(str->acc_id,
-						      (uint8_t *)str->kcr_ptr,
+							  (uint8_t *)kcr_ptr,
 						      &str->key_id);
 			*((int32_t *)(str->keygen_status_addr)) = str->status;
 			str_size =
@@ -287,14 +291,26 @@ uint16_t aiop_verification_keygen(uint32_t asa_seg_addr)
 		/* Key Generation Command Verification */
 		case KEYGEN_GEN_KEY_CMD_STR:
 		{
+ 	
 			struct keygen_gen_key_command *str =
 			(struct keygen_gen_key_command *) asa_seg_addr;
-
+			union table_key_desc key_ptr __attribute__((aligned(16)));
+		
 			str->status = keygen_gen_key(str->acc_id,
 						   str->key_id, 
 						   str->opaquein,
-						   (union table_key_desc *)str->key_ptr,						   &str->key_size);
+						   &key_ptr,						   
+						   &str->key_size);
 			*((int32_t *)(str->keygen_status_addr)) = str->status;
+						
+			/* Enforced alignment */
+			*(union table_key_desc *)str->key_ptr = key_ptr;
+			
+			/* WA for TKT255818 - clear unused bytes */
+			for (i=0;i < 128 - str->key_size ;i++){
+				*(uint8_t *)(str->key_ptr + str->key_size + i) = 0;
+			}		
+		
 			str_size =
 				sizeof(struct keygen_gen_key_command);
 			break;
@@ -304,9 +320,15 @@ uint16_t aiop_verification_keygen(uint32_t asa_seg_addr)
 		case KEYGEN_GEN_HASH_CMD_STR:
 		{
 			struct keygen_gen_hash_command *str =
-			(struct keygen_gen_hash_command *) asa_seg_addr;
-			str->status = keygen_gen_hash((union table_key_desc *)str->key_ptr, str->key_size,
-						    &(str->hash));
+			(struct keygen_gen_hash_command *) asa_seg_addr;			
+			union table_key_desc key __attribute__((aligned(16)));
+			uint32_t hash __attribute__((aligned(16)));
+
+			key = *(union table_key_desc *)(str->key_ptr);
+			
+			str->status = keygen_gen_hash((void *)&key, str->key_size, &hash);
+			
+			str->hash = hash;
 			
 			*((int32_t *)(str->keygen_status_addr)) = str->status;
 			str_size =

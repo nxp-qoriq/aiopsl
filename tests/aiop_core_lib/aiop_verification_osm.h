@@ -47,9 +47,13 @@
 *//***************************************************************************/
 
 /* OSM Register  */
-#define	OSM_REG_ORTAR 	0x0209c020
-#define	OSM_REG_OERR 	0x0209ce00
-#define ENABLE_ERR_REG 	0x8000001f
+#define	OSM_REG_ORTAR 		0x0209c020
+#define	OSM_REG_OERR 		0x0209ce00
+#define ENABLE_ERR_REG 		0x8000001f
+#define OSM_VALID_BIT_MASK 	0x80000000
+#define OSM_REG_NUM 		8
+
+
 
 /* Read task registers */
 #define OSM_REG_ORTDR0()\

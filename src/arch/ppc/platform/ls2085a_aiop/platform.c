@@ -393,8 +393,6 @@ __COLD_CODE static int pltfrm_init_mem_partitions_cb(fsl_handle_t h_platform)
 			                                 size,
 			                                 p_mem_info->mem_attribute,
 			                                 name,
-			                                 NULL,
-			                                 NULL,
 #ifdef DEBUG
                                              1
 #else

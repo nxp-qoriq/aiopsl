@@ -66,6 +66,7 @@ inline int sl_prolog(void)
 	/* Load from SHRAM to local stack */
 #ifndef AIOP_VERIF
 #ifndef DISABLE_ASSERTIONS
+
 	dpni_drv_params_local = dpni_drv->dpni_drv_params_var;
 
 	ASSERT_COND_LIGHT(dpni_drv_params_local.starting_hxs == 0);
@@ -76,6 +77,7 @@ inline int sl_prolog(void)
 #endif
 
 	*((uint8_t *)HWC_SPID_ADDRESS) = dpni_drv->dpni_drv_params_var.spid;
+
 	default_task_params.parser_profile_id = 0;
 	default_task_params.parser_starting_hxs = 0;
 	default_task_params.qd_priority = ((*((uint8_t *)(HWC_ADC_ADDRESS + \

@@ -102,6 +102,8 @@ int ipr_init(void)
 			  &ipr_key_id);
 	if (status < 0) {
 		/* todo  Fatal */
+		ipr_exception_handler(IPR_INIT, __LINE__, (int32_t)status);
+
 	}
 	ipr_global_parameters1.ipr_key_id_ipv4 = ipr_key_id;
 	/* For IPv6 */
@@ -119,6 +121,7 @@ int ipr_init(void)
 
 	if (status < 0) {
 		/* todo  Fatal */
+		ipr_exception_handler(IPR_INIT, __LINE__, (int32_t)status);
 	}
 	return 0;
 }
@@ -129,12 +132,11 @@ int ipr_create_instance(struct ipr_params *ipr_params_ptr,
 	struct ipr_instance	      ipr_instance;
 	struct ipr_instance_extension ipr_instance_ext;
 	struct table_create_params tbl_params;
-	int32_t err;
 	uint32_t max_open_frames, aggregate_open_frames, table_location;
 	uint16_t table_location_attr;
 	uint16_t bpid;
 	int table_ipv4_valid = 0;
-	int status;
+	int sr_status;
 
 	/* Reservation is done for 2 extra buffers: 1 one instance_params and
 	 * the other in case of reaching the maximum of open reassembly */
@@ -142,23 +144,22 @@ int ipr_create_instance(struct ipr_params *ipr_params_ptr,
 				ipr_params_ptr->max_open_frames_ipv6 + 2;
 	/* call ARENA function for allocating buffers needed to IPR
 	 * processing (create_slab ) */
-	status = slab_find_and_reserve_bpid(aggregate_open_frames,
+	sr_status = slab_find_and_reserve_bpid(aggregate_open_frames,
 					IPR_CONTEXT_SIZE,
 					8,
 					MEM_PART_DP_DDR,
 					NULL,
 					&bpid);
 
-	if (status < 0)
-		return status;
+	if (sr_status < 0)
+		ipr_exception_handler(IPR_CREATE_INSTANCE, __LINE__,
+				      (int32_t)sr_status);
 
-/*	if(num_filled_buffs != aggregate_open_frames)
-		return IPR_MAX_BUFFERS_REACHED;*/
-
-	err = cdma_acquire_context_memory(bpid,
+	sr_status = cdma_acquire_context_memory(bpid,
 					  ipr_instance_ptr);
-	if (err)
-		return err;
+	if (sr_status)
+		ipr_exception_handler(IPR_CREATE_INSTANCE, __LINE__,
+				      (int32_t)sr_status);
 
 	ipr_instance.bpid = bpid;
 	ipr_instance.flags = ipr_params_ptr->flags;
@@ -187,12 +188,13 @@ int ipr_create_instance(struct ipr_params *ipr_params_ptr,
 		tbl_params.attributes = TABLE_ATTRIBUTE_TYPE_EM | \
 				table_location_attr | \
 				TABLE_ATTRIBUTE_MR_NO_MISS;
-		err = table_create(TABLE_ACCEL_ID_CTLU, &tbl_params,
+		sr_status = table_create(TABLE_ACCEL_ID_CTLU, &tbl_params,
 				&ipr_instance.table_id_ipv4);
-		if (err != TABLE_STATUS_SUCCESS) {
+		if (sr_status != TABLE_STATUS_SUCCESS) {
 			/* todo SR error case */
 			cdma_release_context_memory(*ipr_instance_ptr);
-			return err;
+			ipr_exception_handler(IPR_CREATE_INSTANCE, __LINE__,
+					      ENOMEM_TABLE);
 		}
 		table_ipv4_valid = 1;
 	}
@@ -217,15 +219,16 @@ int ipr_create_instance(struct ipr_params *ipr_params_ptr,
 		tbl_params.attributes = TABLE_ATTRIBUTE_TYPE_EM | \
 				table_location_attr | \
 				TABLE_ATTRIBUTE_MR_NO_MISS;
-		err = table_create(TABLE_ACCEL_ID_CTLU, &tbl_params,
+		sr_status = table_create(TABLE_ACCEL_ID_CTLU, &tbl_params,
 				&ipr_instance.table_id_ipv6);
-		if (err != TABLE_STATUS_SUCCESS) {
+		if (sr_status != TABLE_STATUS_SUCCESS) {
 			/* todo SR error case */
 			cdma_release_context_memory(*ipr_instance_ptr);
 			if (table_ipv4_valid)
 				table_delete(TABLE_ACCEL_ID_CTLU,
 					     ipr_instance.table_id_ipv4);
-			return err;
+			ipr_exception_handler(IPR_CREATE_INSTANCE, __LINE__,
+					      ENOMEM_TABLE);
 		}
 	}
 
@@ -258,7 +261,7 @@ int ipr_create_instance(struct ipr_params *ipr_params_ptr,
 		   &ipr_instance_ext,
 		   sizeof(struct ipr_instance_extension));
 
-	return IPR_CREATE_INSTANCE_SUCCESS;
+	return SUCCESS;
 }
 
 int ipr_delete_instance(ipr_instance_handle_t ipr_instance_ptr,
@@ -269,6 +272,7 @@ int ipr_delete_instance(ipr_instance_handle_t ipr_instance_ptr,
 	uint16_t		timeout_value;
 	uint64_t		ipr_instance_extension_ptr;
 	struct ipr_instance_ext_delete delete_args;
+	int			sr_status;
 
 	cdma_read(&ipr_instance, ipr_instance_ptr, IPR_INSTANCE_SIZE);
 
@@ -289,13 +293,16 @@ int ipr_delete_instance(ipr_instance_handle_t ipr_instance_ptr,
 		   &delete_args,
 		   sizeof( struct ipr_instance_ext_delete));
 
-	tman_create_timer(ipr_instance.tmi_id,
+	sr_status = tman_create_timer(ipr_instance.tmi_id,
 			IPR_TIMEOUT_FLAGS,
 			timeout_value,
 			(tman_arg_8B_t) ipr_instance_ptr,
 			(tman_arg_2B_t) NULL,
 			(tman_cb_t) ipr_delete_instance_after_time_out,
 			&ipr_instance.flags);
+	if(sr_status)
+		ipr_exception_handler(IPR_DELETE_INSTANCE,__LINE__,
+				      (int32_t) sr_status);
 
 	return SUCCESS;
 }
@@ -303,6 +310,7 @@ int ipr_delete_instance(ipr_instance_handle_t ipr_instance_ptr,
 void ipr_delete_instance_after_time_out(ipr_instance_handle_t ipr_instance_ptr)
 {
 	struct ipr_instance_and_extension	ipr_instance_and_extension;
+	int					sr_status;
 
 	ste_barrier();
 
@@ -317,7 +325,7 @@ void ipr_delete_instance_after_time_out(ipr_instance_handle_t ipr_instance_ptr)
 		ipr_instance_extension.num_of_open_reass_frames_ipv6 != 0))
 	{
 		/* Not all the timeouts expired, give more time */
-		tman_create_timer(
+		sr_status = tman_create_timer(
 		     ipr_instance_and_extension.ipr_instance.tmi_id,
 		     IPR_TIMEOUT_FLAGS,
 		     ipr_instance_and_extension.ipr_instance.timeout_value_ipv4,
@@ -325,6 +333,10 @@ void ipr_delete_instance_after_time_out(ipr_instance_handle_t ipr_instance_ptr)
 		     (tman_arg_2B_t) NULL,
 		     (tman_cb_t) ipr_delete_instance_after_time_out,
 		     &ipr_instance_and_extension.ipr_instance.flags);
+		if(sr_status)
+			ipr_exception_handler(IPR_DELETE_INSTANCE,__LINE__,
+					      (int32_t) sr_status);
+
 		fdma_terminate_task();
 	}
 	else
@@ -351,7 +363,7 @@ int ipr_reassemble(ipr_instance_handle_t instance_handle)
 	uint32_t osm_status;
 	uint32_t frame_is_ipv4;
 	uint64_t rfdc_ext_addr;
-	int	 sr_status, timer_status;
+	int	 sr_status;
 	uint32_t status;
 	uint16_t timeout_value;
 	uint8_t	 keysize;
@@ -416,18 +428,23 @@ int ipr_reassemble(ipr_instance_handle_t instance_handle)
 								NO_ERROR) {
 		/* Good fragment */
 		if (frame_is_ipv4) {
+			/* Error is not checked since it is assumed that
+			 * IP header exists and is presented */
 			sr_status = table_lookup_by_keyid_default_frame(
-				TABLE_ACCEL_ID_CTLU,
-				instance_params.table_id_ipv4,
-				ipr_global_parameters1.ipr_key_id_ipv4,
-				&lookup_result);
+					TABLE_ACCEL_ID_CTLU,
+					instance_params.table_id_ipv4,
+					ipr_global_parameters1.ipr_key_id_ipv4,
+					&lookup_result);
 		} else {
+			/* Error is not checked since it is assumed that
+			 * IP header exists and is presented */
 			sr_status = table_lookup_by_keyid_default_frame(
 					TABLE_ACCEL_ID_CTLU,
 					instance_params.table_id_ipv6,
 					ipr_global_parameters1.ipr_key_id_ipv6,
 					&lookup_result);
 		}
+		
 		if (sr_status == TABLE_STATUS_SUCCESS) {
 			/* Hit */
 			rfdc_ext_addr = lookup_result.opaque0_or_reference;
@@ -445,7 +462,9 @@ int ipr_reassemble(ipr_instance_handle_t instance_handle)
 			if (!(rfdc.status & RFDC_VALID)) {
 				move_to_correct_ordering_scope2(osm_status);
 				/* CDMA write, unlock, dec ref_cnt and release
-				 * if ref_cnt=0 */
+				 * if ref_cnt=0.
+				 * Error is not checked since no error
+				 * can't be returned*/
 				cdma_access_context_memory(
 				rfdc_ext_addr,
 				CDMA_ACCESS_CONTEXT_MEM_DEC_REFCOUNT_AND_REL |
@@ -457,13 +476,16 @@ int ipr_reassemble(ipr_instance_handle_t instance_handle)
 				(uint32_t *)REF_COUNT_ADDR_DUMMY);
 
 				/* Early Time out */
-				return IPR_ERROR;
+				return ETIMEDOUT;
 			}
 		} else if (sr_status == TABLE_STATUS_MISS) {
 			/* Miss */
-			cdma_acquire_context_memory(
-					instance_params.bpid,
-					&rfdc_ext_addr);
+			sr_status = cdma_acquire_context_memory(
+							instance_params.bpid,
+							&rfdc_ext_addr);
+			if(sr_status)
+				ipr_exception_handler(IPR_REASSEMBLE,__LINE__,
+						      sr_status);
 			/* Lock RFDC + increment reference count*/
 			cdma_access_context_memory(
 				rfdc_ext_addr,
@@ -486,6 +508,8 @@ int ipr_reassemble(ipr_instance_handle_t instance_handle)
 								 rfdc_ext_addr;
 
 			if (frame_is_ipv4) {
+				/* Error is not checked since it is assumed that
+				 * IP header exists and is presented */
 				keygen_gen_key(
 					KEYGEN_ACCEL_ID_CTLU,
 					ipr_global_parameters1.ipr_key_id_ipv4,
@@ -509,7 +533,7 @@ int ipr_reassemble(ipr_instance_handle_t instance_handle)
 				    cdma_release_context_memory(rfdc_ext_addr);
 				    /* Handle ordering scope */
 				    move_to_correct_ordering_scope1(osm_status);
-				    return IPR_ERROR;
+				    return ENOSPC;
 				}
 				/* store key in RDFC */
 				rfdc.ipv4_key[0] =
@@ -531,6 +555,8 @@ int ipr_reassemble(ipr_instance_handle_t instance_handle)
 
 			} else {
 			    /* IPv6 */
+			    /* Error is not checked since it is assumed that
+			     * IP header exists and is presented */
 			    keygen_gen_key(
 					 KEYGEN_ACCEL_ID_CTLU,
 					 ipr_global_parameters1.ipr_key_id_ipv6,
@@ -552,7 +578,7 @@ int ipr_reassemble(ipr_instance_handle_t instance_handle)
 			    cdma_release_context_memory(rfdc_ext_addr);
 			    /* Handle ordering scope */
 			    move_to_correct_ordering_scope1(osm_status);
-			    return IPR_ERROR;
+			    return ENOSPC;
 			}
 
 			    /* write key in RDFC Extension */
@@ -599,13 +625,16 @@ int ipr_reassemble(ipr_instance_handle_t instance_handle)
 		    else
 			    timeout_value = instance_params.timeout_value_ipv6;
 
-		    tman_create_timer(instance_params.tmi_id,
-				      IPR_TIMEOUT_FLAGS,
-				      timeout_value,
-				      (tman_arg_8B_t) rfdc_ext_addr,
-				      (tman_arg_2B_t) NULL,
-				      (tman_cb_t) ipr_time_out,
-				      &rfdc.timer_handle);
+		    sr_status = tman_create_timer(instance_params.tmi_id,
+					          IPR_TIMEOUT_FLAGS,
+					          timeout_value,
+					          (tman_arg_8B_t) rfdc_ext_addr,
+					          (tman_arg_2B_t) NULL,
+					          (tman_cb_t) ipr_time_out,
+					          &rfdc.timer_handle);
+		    if (sr_status)
+			    ipr_exception_handler(IPR_REASSEMBLE, __LINE__,
+					    	  ENOSPC_TIMER);
 
 		     if (osm_status == NO_BYPASS_OSM) {
 			/* create nested per reassembled frame */
@@ -615,7 +644,7 @@ int ipr_reassemble(ipr_instance_handle_t instance_handle)
 
 	} else {
 		/* TLU lookup SR error */
-		return IPR_ERROR;
+		pr_err("IPR Lookup failed\n");
 	}
 
 	if (rfdc.num_of_frags == MAX_NUM_OF_FRAGS) {
@@ -637,7 +666,7 @@ int ipr_reassemble(ipr_instance_handle_t instance_handle)
 					  more_than_64_frags_ipv4_cntr),
 				 frame_is_ipv4);
 
-		return IPR_ERROR;
+		return ENOTSUP;
 	}
 	status_insert_to_LL = ipr_insert_to_link_list(&rfdc, rfdc_ext_addr,
 						      instance_params,
@@ -653,10 +682,11 @@ int ipr_reassemble(ipr_instance_handle_t instance_handle)
 				/* recharge timer in case of time out
 				 * between fragments */
 				/* Delete timer */
-					timer_status = tman_delete_timer(
+					sr_status = tman_delete_timer(
 					  rfdc.timer_handle,
 					  TMAN_TIMER_DELETE_MODE_WO_EXPIRATION);
-					if(timer_status == SUCCESS)
+					/* DEBUG : check ENAVAIL */
+					if(sr_status == SUCCESS)
 						tman_create_timer(
 					     instance_params.tmi_id,
 					     IPR_TIMEOUT_FLAGS,
@@ -665,16 +695,21 @@ int ipr_reassemble(ipr_instance_handle_t instance_handle)
 					     (tman_arg_2B_t) NULL,
 					     (tman_cb_t) ipr_time_out,
 					     &rfdc.timer_handle);
+					else
+					   ipr_exception_handler(IPR_REASSEMBLE,
+							 __LINE__,ENOSPC_TIMER);
+
 				}
 			} else if (!(instance_params.flags &
 					IPR_MODE_IPV6_TO_TYPE)) {
 				/* recharge timer in case of time out
 				 * between fragments */
 				/* Delete timer */
-					timer_status = tman_delete_timer(
+					sr_status = tman_delete_timer(
 							rfdc.timer_handle,
 					  TMAN_TIMER_DELETE_MODE_WO_EXPIRATION);
-					if(timer_status == SUCCESS)
+					/* DEBUG : check ENAVAIL */
+					if(sr_status == SUCCESS)
 						tman_create_timer(
 					     instance_params.tmi_id,
 					     IPR_TIMEOUT_FLAGS,
@@ -683,6 +718,9 @@ int ipr_reassemble(ipr_instance_handle_t instance_handle)
 					     (tman_arg_2B_t) NULL,
 					     (tman_cb_t) ipr_time_out,
 					     &rfdc.timer_handle);
+					else
+					   ipr_exception_handler(IPR_REASSEMBLE,
+							 __LINE__,ENOSPC_TIMER);
 			}
 		}
 		/* Write and release updated 64 first bytes of RFDC */
@@ -736,9 +774,10 @@ int ipr_reassemble(ipr_instance_handle_t instance_handle)
 			 frame_is_ipv4);
 
 	/* Delete timer */
-	timer_status = tman_delete_timer(rfdc.timer_handle,
+	sr_status = tman_delete_timer(rfdc.timer_handle,
 			  	  	 TMAN_TIMER_DELETE_MODE_WO_EXPIRATION);
-	if(timer_status != SUCCESS) {
+	/* DEBUG : check ENAVAIL */
+	if(sr_status != SUCCESS) {
 		/* Write and release updated 64 first bytes of RFDC,
 		 * unlock, dec ref_cnt, release if 0 */
 		cdma_access_context_memory(
@@ -752,7 +791,7 @@ int ipr_reassemble(ipr_instance_handle_t instance_handle)
 				  (uint32_t *)REF_COUNT_ADDR_DUMMY);
 
 		move_to_correct_ordering_scope2(osm_status);
-		return IPR_ERROR;
+		return ETIMEDOUT;
 	}
 
 	if (frame_is_ipv4) {
@@ -761,6 +800,7 @@ int ipr_reassemble(ipr_instance_handle_t instance_handle)
 				  (union table_key_desc *)&rfdc.ipv4_key,
 				  IPV4_KEY_SIZE,
 				  NULL);
+		/* DEBUG : check EIO */
 	} else {
 		cdma_read(&ipv6_key,
 			  rfdc_ext_addr+RFDC_SIZE+
@@ -771,6 +811,7 @@ int ipr_reassemble(ipr_instance_handle_t instance_handle)
 				  (union table_key_desc *)&ipv6_key,
 				  IPV6_KEY_SIZE,
 				  NULL);
+		/* DEBUG : check EIO */
 	}
 
 	/* Open segment for reassembled frame */
@@ -845,7 +886,7 @@ int ipr_reassemble(ipr_instance_handle_t instance_handle)
 	}
 
 	/* L4 checksum is not valid */
-	return IPR_ERROR;
+	return EIO;
 
 	} else {
 		/* Error fragment */
@@ -1627,6 +1668,7 @@ void ipr_time_out(uint64_t rfdc_ext_addr, uint16_t opaque_not_used)
 				  (union table_key_desc *)&ipv6_key,
 				  IPV6_KEY_SIZE,
 				  NULL);
+		/* DEBUG: check EIO */
 	} else {
 		/* IPV4 */
 		table_rule_delete(TABLE_ACCEL_ID_CTLU,
@@ -1634,6 +1676,7 @@ void ipr_time_out(uint64_t rfdc_ext_addr, uint16_t opaque_not_used)
 				  (union table_key_desc *)&rfdc.ipv4_key,
 				  IPV4_KEY_SIZE,
 				  NULL);
+		/* DEBUG: check EIO */
 	}
 
 	if (rfdc_status & IPV6_FRAME) {
@@ -1675,13 +1718,13 @@ void ipr_time_out(uint64_t rfdc_ext_addr, uint16_t opaque_not_used)
 		/* Non-conform frame opened the entry */
 		/* CDMA write, unlock, dec ref_cnt and release if ref_cnt=0 */
 		cdma_access_context_memory(rfdc_ext_addr,
-					  CDMA_ACCESS_CONTEXT_MEM_DEC_REFCOUNT_AND_REL |
-					  CDMA_ACCESS_CONTEXT_MEM_RM_BIT,
-					  NULL,
-					  &rfdc,
-					  CDMA_ACCESS_CONTEXT_MEM_DMA_WRITE
-					  | RFDC_SIZE,
-					  (uint32_t *)REF_COUNT_ADDR_DUMMY);
+				  CDMA_ACCESS_CONTEXT_MEM_DEC_REFCOUNT_AND_REL |
+				  CDMA_ACCESS_CONTEXT_MEM_RM_BIT,
+				  NULL,
+				  &rfdc,
+				  CDMA_ACCESS_CONTEXT_MEM_DMA_WRITE
+				  | RFDC_SIZE,
+				  (uint32_t *)REF_COUNT_ADDR_DUMMY);
 		fdma_terminate_task();
 	}
 	if ((rfdc_status & OUT_OF_ORDER) && !(rfdc_status & ORDER_AND_OOO))
@@ -2195,3 +2238,82 @@ void ipr_get_reass_frm_cntr(ipr_instance_handle_t ipr_instance,
 			  sizeof(*reass_frm_cntr));
 	return;
 }
+
+#pragma push
+	/* make all following data go into .exception_data */
+#pragma section data_type ".exception_data"
+
+void ipr_exception_handler(enum ipr_function_identifier func_id,
+		     uint32_t line,
+		     int32_t status)
+{
+	char *func_name;
+	char *err_msg;
+	
+	status = status & 0xFF;
+	
+	/* Translate function ID to function name string */
+	switch(func_id) {
+	case IPR_INIT:
+		func_name = "ipr_init";
+		switch(status) {
+			case EINVAL:
+				err_msg = "KCR exceeds maximum KCR size\n";
+				break;
+			case ENOSPC:
+				err_msg = "No more KCRs are available\n";
+				break;
+			default:
+				err_msg = "Unknown or Invalid status Error.\n";
+		}
+		break;
+	case IPR_CREATE_INSTANCE:
+		func_name = "ipr_create_instance";
+		switch(status) {
+			case EINVAL:
+				err_msg = "Could not release into BPID, \
+					   BPID is full\n";
+				break;
+			case ENOMEM:
+			       err_msg = "Not enough memory for partition id\n";
+			       break;
+			case ENOSPC:
+				err_msg = "Buffer Pool Depletion\n";
+				break;
+			case ENOSPC_TIMER:
+				err_msg = "No free timer\n";
+				break;
+			case ENOMEM_TABLE:
+				err_msg = "Not enough memory available to create\
+					   table\n";
+				break;
+			default:
+				err_msg = "Unknown or Invalid status Error.\n";
+
+		}
+		break;
+	case IPR_DELETE_INSTANCE:
+		func_name = "ipr_delete_instance";
+		     err_msg = "No free timer for this tmi id\n";
+		break;
+	case IPR_REASSEMBLE:
+		func_name = "ipr_reassemble";
+		switch(status) {
+			case ENOSPC:
+			     err_msg = "Buffer Pool Depletion\n";
+			     break;
+			default:
+				err_msg = "Unknown or Invalid status Error.\n";
+		}
+
+		break;
+	default:
+		/* create own exception */
+		func_name = "Unknown Function";
+	}
+	
+	exception_handler(__FILE__, func_name, line, err_msg);
+}
+
+#pragma pop
+

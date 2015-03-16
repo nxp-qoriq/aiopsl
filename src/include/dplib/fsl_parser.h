@@ -1583,11 +1583,15 @@ void parser_profile_query(uint8_t prpid,
 		completing all parsing)
 
 @Cautions	In this function the task yields.
- 	 	This function may result in a fatal error.
+ 	  	As a workaround of TKT254635, in case the segment address is not
+ 	  	aligned to 16 bytes, it will be changed to the closest aligned
+ 	  	address and as a result the segment size will be decreased
+ 	  	correspondingly.
 		In case gross running sum is clear, and L4 validation is not
 		required, running sum field in the parse result is not valid.
  	 	In case L4 validation is required but the gross running sum is
  	 	not correct, the user must clear it before calling parser.
+ 	 	This function may result in a fatal error. 	
 *//***************************************************************************/
 inline int parse_result_generate_default(uint8_t flags);
 
@@ -1627,11 +1631,15 @@ inline int parse_result_generate_default(uint8_t flags);
 		completing all parsing)
 
 @Cautions	In this function the task yields.
- 	 	This function may result in a fatal error.
+  	  	As a workaround of TKT254635, in case the segment address is not
+ 	  	aligned to 16 bytes, it will be changed to the closest aligned
+ 	  	address and as a result the segment size will be decreased
+ 	  	correspondingly.
 		In case gross running sum is clear, and L4 validation is not
 		required, running sum field in the parse result is not valid.
  	 	In case L4 validation is required but the gross running sum is
  	 	not correct, the user must clear it before calling parser.
+ 	 	This function may result in a fatal error.
 *//***************************************************************************/
 inline int parse_result_generate(enum parser_starting_hxs_code starting_hxs,
 	uint8_t starting_offset, uint8_t flags);
@@ -1661,9 +1669,13 @@ inline int parse_result_generate(enum parser_starting_hxs_code starting_hxs,
 		completing all parsing)
 
 @Cautions	In this function the task yields.
- 	 	This function may result in a fatal error.
+ 	  	As a workaround of TKT254635, in case the segment address is not
+ 	  	aligned to 16 bytes, it will be changed to the closest aligned
+ 	  	address and as a result the segment size will be decreased
+ 	  	correspondingly.
  	 	If input gross running sum is not correct, both "gross running
  	 	sum" and "running sum" fields in the parse result are not valid.
+ 	 	This function may result in a fatal error.
 *//***************************************************************************/
 inline int parse_result_generate_basic(void);
 

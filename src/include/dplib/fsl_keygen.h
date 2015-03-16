@@ -383,6 +383,7 @@ struct	kcr_builder_fec_mask {
 
 /** @} */ /* end of FSL_KEYGEN_STRUCTS */
 
+#include "keygen_inline.h"
 
 /**************************************************************************//**
 @Group		FSL_KEYGEN_Functions KEYGEN Functions
@@ -412,7 +413,7 @@ struct	kcr_builder_fec_mask {
 
 @Return		None.
 *//***************************************************************************/
-void keygen_kcr_builder_init(struct kcr_builder *kb);
+inline void keygen_kcr_builder_init(struct kcr_builder *kb);
 
 
 /**************************************************************************//**
@@ -486,7 +487,7 @@ int keygen_kcr_builder_add_input_value_fec(uint8_t offset,
 @Retval		0 - Success
 @Retval		EINVAL - KCR exceeds maximum KCR size (64 bytes).
 *//***************************************************************************/
-int keygen_kcr_builder_add_protocol_specific_field
+inline int keygen_kcr_builder_add_protocol_specific_field
 		(enum kcr_builder_protocol_fecid protocol_fecid,
 		struct kcr_builder_fec_mask *mask,
 		struct kcr_builder *kb);
@@ -647,7 +648,7 @@ int keygen_kcr_builder_add_valid_field_fec(uint8_t mask,
 
 @Cautions	In this function the task yields.
 *//***************************************************************************/
-int keygen_kcr_create(enum keygen_hw_accel_id acc_id,
+inline int keygen_kcr_create(enum keygen_hw_accel_id acc_id,
 			uint8_t *kcr,
 			uint8_t *keyid);
 
@@ -719,8 +720,9 @@ void keygen_kcr_query(enum keygen_hw_accel_id acc_id,
 @Param[in]	user_metadata - user_metadata field for key composition.
 		(will be taken only if the KCR includes
 		keygen_kcr_builder_add_input_value_fec).
-@Param[out]	key - The key. This structure should be located in the workspace
- 	 	and must be aligned to 16B boundary.
+@Param[out]	key - The key. 128 bytes (regardless of actual key size)
+		which should be located in the workspace and must be aligned to
+		16B boundary.
 @Param[out]	key_size - Key size in bytes.
 
 @Return		0 on Success, or negative value on error.
@@ -733,7 +735,7 @@ void keygen_kcr_query(enum keygen_hw_accel_id acc_id,
  	 	In Rev1: Due to HW bug (TKT231187) the maximum key size allowed
  	 	is 80 bytes.
 *//***************************************************************************/
-int keygen_gen_key(enum keygen_hw_accel_id acc_id,
+inline int keygen_gen_key(enum keygen_hw_accel_id acc_id,
 		     uint8_t keyid,
 		     uint64_t user_metadata,
 		     void *key,

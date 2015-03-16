@@ -77,6 +77,9 @@
 /* Address of end of TLS section */
 extern const uint16_t TLS_SECTION_END_ADDR[];
 
+/* Address of start of SRAM section */
+extern const uint8_t _ssram_addr[];
+
 /** @} */ /* end of AIOP_General_Macros */
 
 
