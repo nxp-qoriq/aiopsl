@@ -47,6 +47,11 @@ extern __TASK struct aiop_default_task_params default_task_params;
 int parser_profile_create(struct parse_profile_input *parse_profile,
 				uint8_t *prpid)
 {
+	
+#ifdef CHECK_ALIGNMENT 	
+	DEBUG_ALIGN((uint32_t)parse_profile, ALIGNMENT_16B);
+#endif
+	
 	int32_t status;
 
 	status = get_id(ext_prpid_pool_address, prpid);
@@ -72,6 +77,11 @@ int parser_profile_create(struct parse_profile_input *parse_profile,
 void parser_profile_replace(struct parse_profile_input *parse_profile,
 				uint8_t prpid)
 {
+	
+#ifdef CHECK_ALIGNMENT 	
+	DEBUG_ALIGN((uint32_t)parse_profile, ALIGNMENT_16B);
+#endif
+	
 	parse_profile->parse_profile.reserved1 = 0;
 	parse_profile->parse_profile.reserved2 = 0;
 

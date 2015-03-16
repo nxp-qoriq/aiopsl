@@ -41,6 +41,10 @@ extern uint64_t ext_keyid_pool_address;
 
 inline void keygen_kcr_builder_init(struct kcr_builder *kb)
 {
+	
+#ifdef CHECK_ALIGNMENT 	
+	DEBUG_ALIGN((uint32_t)kb, ALIGNMENT_16B);
+#endif
 
 	/* clear the KCR array */
 	cdma_ws_memory_init(kb->kcr, KEYGEN_KCR_LENGTH, 0x0);
@@ -55,6 +59,11 @@ inline int keygen_gen_key(enum keygen_hw_accel_id acc_id,
 		     void *key,
 		     uint8_t *key_size)
 {
+	
+#ifdef CHECK_ALIGNMENT 	
+	DEBUG_ALIGN((uint32_t)key, ALIGNMENT_16B);
+#endif
+	
 	int32_t status;
 	struct keygen_input_message_params input_struct
 					__attribute__((aligned(16)));
@@ -163,6 +172,11 @@ inline int keygen_kcr_create(enum keygen_hw_accel_id acc_id,
 			uint8_t *kcr,
 			uint8_t *keyid)
 {
+	
+#ifdef CHECK_ALIGNMENT 	
+	DEBUG_ALIGN((uint32_t)kcr, ALIGNMENT_16B);
+#endif
+	
 	int32_t status;
 
 	status = get_id(ext_keyid_pool_address, keyid);
