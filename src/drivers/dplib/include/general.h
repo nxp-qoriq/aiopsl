@@ -236,6 +236,7 @@ extern const uint8_t _ssram_addr[];
 															
 #define  ALIGNMENT_16B	0xf  /*!< 16B Alignment*/
 #define  ALIGNMENT_32B	0x1f /*!< 32B Alignment*/
+#define  ALIGNMENT_64B	0x3f /*!< 32B Alignment*/
 
 #define DEBUG_ALIGN(var_addr, alignment)									\
 	if (((uint32_t)var_addr & alignment) != 0)								\
