@@ -273,9 +273,7 @@ int dpni_drv_set_rx_buffer_layout(uint16_t ni_id, const struct dpni_buffer_layou
 		-ENAVAIL - resource not available or not found,
 		-ENOMEM  - not enough memory.
  *//***************************************************************************/
-int dpni_register_requirements(				  uint16_t    head_room,
-                                              uint16_t    tail_room,
-                                              uint16_t    private_data_size);
+int dpni_register_requirements(uint16_t head_room, uint16_t tail_room, uint16_t private_data_size);
 
 /** @} */ /* end of DPNI_DRV_STATUS group */
 #endif /* __DPNI_DRV_H */
