@@ -57,6 +57,7 @@ enum keygen_verif_cmd_type {
 };
 
 /* Keygen Commands Structure identifiers */
+#define KCR_LENGTH 128
 
 /*! Init Key Composition Rule Builder Command Structure identifier*/
 #define KEYGEN_KCR_BUILDER_INIT_CMD_STR   ((KEYGEN_MODULE << 16) | \
@@ -502,6 +503,8 @@ struct keygen_gen_key_command{
 	/** CTLU Generate Key identifier */
 	uint32_t opcode;
 
+	uint8_t pad[4];
+	
 	/** OpaqueIn field for key composition */
 	uint64_t opaquein;
 	
@@ -525,7 +528,7 @@ struct keygen_gen_key_command{
 	uint8_t key_size;
 
 	/** 64-bit alignment */
-	uint8_t	pad[2];
+	uint8_t	pad2[6];
 };
 
 /**************************************************************************//**

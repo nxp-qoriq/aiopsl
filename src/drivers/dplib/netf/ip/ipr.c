@@ -261,7 +261,7 @@ int ipr_create_instance(struct ipr_params *ipr_params_ptr,
 		   &ipr_instance_ext,
 		   sizeof(struct ipr_instance_extension));
 
-	return IPR_CREATE_INSTANCE_SUCCESS;
+	return SUCCESS;
 }
 
 int ipr_delete_instance(ipr_instance_handle_t ipr_instance_ptr,

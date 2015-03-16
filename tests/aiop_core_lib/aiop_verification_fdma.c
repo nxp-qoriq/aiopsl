@@ -243,7 +243,9 @@ uint16_t aiop_verification_fdma(uint32_t asa_seg_addr)
 	{
 		struct fdma_store_default_frame_command *str =
 			(struct fdma_store_default_frame_command *)asa_seg_addr;
+#ifdef AIOP_VERIF
 		*(uint8_t *) HWC_SPID_ADDRESS = str->spid;
+#endif
 		str->status = (int8_t)fdma_store_default_frame_data();
 		str_size = (uint16_t)
 				sizeof(struct fdma_store_default_frame_command);
@@ -274,7 +276,9 @@ uint16_t aiop_verification_fdma(uint32_t asa_seg_addr)
 		struct fdma_enqueue_wf_command *str =
 			(struct fdma_enqueue_wf_command *)asa_seg_addr;
 		struct fdma_queueing_destination_params qdp;
+#ifdef AIOP_VERIF
 		*(uint8_t *) HWC_SPID_ADDRESS = str->spid;
+#endif
 		flags |= ((str->TC == 1) ? (FDMA_EN_TC_TERM_BITS) : 0x0);
 		flags |= ((str->PS) ? FDMA_ENWF_PS_BIT : 0x0);
 
