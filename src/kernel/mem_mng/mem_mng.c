@@ -386,7 +386,8 @@ int mem_mng_register_partition(fsl_handle_t  h_mem_mng,
     }
 
     /* Initialize the memory manager handle for the new partition */
-    if (0 != slob_init(&(p_new_partition->h_mem_manager), base_address, size))
+    if (0 != slob_init(&(p_new_partition->h_mem_manager), base_address, size,
+                       p_mem_mng->h_boot_mem_mng))
     {
         /*p_mem_mng->f_free(p_new_partition);*/
         p_new_partition->was_initialized = 0;
@@ -496,7 +497,8 @@ int mem_mng_register_phys_addr_alloc_partition(fsl_handle_t  h_mem_mng,
 
 
     /* Initialize the memory manager handle for the new partition */
-   if (0 != slob_init(&(p_new_partition->h_mem_manager), base_paddress, size))
+   if (0 != slob_init(&(p_new_partition->h_mem_manager), base_paddress, size,
+		   p_mem_mng->h_boot_mem_mng))
    {
         /*p_mem_mng->f_free(p_new_partition); */
        p_new_partition->was_initialized = 0;

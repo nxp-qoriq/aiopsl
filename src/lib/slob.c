@@ -117,7 +117,43 @@ static t_mem_block * create_new_block(uint64_t base, uint64_t size)
 }
 
 /****************************************************************
- *  Routine:   CreateFreeBlock
+ *  Routine:   create_new_block_by_boot_mng
+ *
+ *  Description:
+ *      Initializes a new memory block of "size" bytes and started
+ *      from "base" address.
+ *
+ *  Arguments:
+ *      base    - base address of the memory block
+ *      size    - size of the memory block
+ *      boot_mem_mng
+ *
+ *  Return value:
+ *      A pointer to new created structure returned on success;
+ *      Otherwise, NULL.
+ ****************************************************************/
+static t_mem_block * create_new_block_by_boot_mng(uint64_t base, uint64_t size,
+		                               struct initial_mem_mng* boot_mem_mng)
+{
+    t_mem_block *p_mem_block;
+    uint32_t address = 0;
+    int rc = boot_get_mem_virt(boot_mem_mng,sizeof(t_mem_block),&address);
+    if(rc)
+    {
+	   REPORT_ERROR(MAJOR, ENOMEM, NO_MSG);
+	   return NULL;
+    }
+
+    p_mem_block = (t_mem_block *)address;
+    p_mem_block->base = base;
+    p_mem_block->end = base+size;
+    p_mem_block->p_next = 0;
+
+    return p_mem_block;
+}
+
+/****************************************************************
+ *  Routine:   create_free_block
  *
  *  Description:
  *      Initializes a new free block of of "size" bytes and
@@ -592,22 +628,30 @@ static uint64_t slob_get_greater_alignment(t_MM *p_MM, uint64_t size, uint64_t a
  **********************************************************************/
 
 /*****************************************************************************/
-int slob_init(fsl_handle_t *slob, uint64_t base, uint64_t size)
+int slob_init(fsl_handle_t *slob, uint64_t base, uint64_t size,
+		      fsl_handle_t h_mem_mng)
 {
     t_MM        *p_MM;
-    int         i;
+    int         i,rc = 0;
+    uint32_t    curr_addrr = 0;
 
     if (0 == size)
     {
         REPORT_ERROR(MAJOR, EDOM, ("Slob size (should be positive)"));
     }
+    struct initial_mem_mng* boot_mem_mng = (struct initial_mem_mng*)h_mem_mng;
+    ASSERT_COND_LIGHT(boot_mem_mng);
 
     /* Initializes a new MM object */
-    p_MM = (t_MM *)fsl_os_malloc(sizeof(t_MM));
-    if (!p_MM)
+    rc = boot_get_mem_virt(boot_mem_mng,sizeof(t_MM),&curr_addrr);
+    //p_MM = (t_MM *)fsl_os_malloc(sizeof(t_MM));
+    if (rc)
     {
         RETURN_ERROR(MAJOR, ENOMEM, NO_MSG);
     }
+    p_MM = (t_MM*)curr_addrr;
+    p_MM->h_mem_mng = h_mem_mng;
+
 #ifdef AIOP
     /*p_MM->lock = (uint8_t *)fsl_os_malloc(sizeof(uint8_t));*/
     /* Fix for bug ENGR00337904. An address for spinlock should reside 
@@ -634,7 +678,7 @@ int slob_init(fsl_handle_t *slob, uint64_t base, uint64_t size)
     p_MM->busy_blocks = 0;
 
     /* Initializes a new memory block */
-    if ((p_MM->mem_blocks = create_new_block(base, size)) == NULL) {
+    if ((p_MM->mem_blocks = create_new_block_by_boot_mng(base, size,boot_mem_mng)) == NULL) {
 	    slob_free(p_MM);
 	    RETURN_ERROR(MAJOR, ENOMEM, NO_MSG);
     }
@@ -671,7 +715,7 @@ int slob_init(fsl_handle_t *slob, uint64_t base, uint64_t size)
 void slob_free(fsl_handle_t slob)
 {
     t_MM        *p_MM = (t_MM *)slob;
-    t_mem_block  *p_mem_block;
+    //t_mem_block  *p_mem_block;
     t_busy_block *p_busy_block;
     t_free_block *p_free_block;
     void        *p_block;
@@ -701,6 +745,7 @@ void slob_free(fsl_handle_t slob)
     }
 
     /* release memory allocated for memory blocks */
+    /* No need to free as memory blocks are allocated by boot manager
     p_mem_block = p_MM->mem_blocks;
     while ( p_mem_block )
     {
@@ -708,6 +753,7 @@ void slob_free(fsl_handle_t slob)
         p_mem_block = p_mem_block->p_next;
         fsl_os_free(p_block);
     }
+    */
 
     if (p_MM->lock) {
 #ifdef AIOP
@@ -720,7 +766,8 @@ void slob_free(fsl_handle_t slob)
     }
 
     /* release memory allocated for MM object itself */
-    fsl_os_free(p_MM);
+    /* Do not need to release p_MM as it is allocated using boot_mam_mng */
+    //fsl_os_free(p_MM);
 }
 
 /*****************************************************************************/
@@ -1255,6 +1302,7 @@ int slob_add(fsl_handle_t slob, uint64_t base, uint64_t size)
 	     RETURN_ERROR(MAJOR, ENOMEM, NO_MSG);
          }
     }
+    struct initial_mem_mng* boot_mem_mng =  (struct initial_mem_mng*)p_MM->h_mem_mng;
     p_mem_b = p_MM->mem_blocks;
     while ( p_mem_b->p_next )
     {
@@ -1281,7 +1329,7 @@ int slob_add(fsl_handle_t slob, uint64_t base, uint64_t size)
     }
 
     /* create a new memory block */
-    if ((p_new_mem_b = create_new_block(base, size)) == NULL)
+    if ((p_new_mem_b = create_new_block_by_boot_mng(base, size,boot_mem_mng)) == NULL)
     {
 #ifdef AIOP
         unlock_spinlock(p_MM->lock);

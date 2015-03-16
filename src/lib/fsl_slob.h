@@ -76,10 +76,12 @@ __START_COLD_CODE
  @Param[in]     slob    - Handle to the MM object.
  @Param[in]     base    - Base address of the MM.
  @Param[in]     size    - Size of the MM.
+ @Param[in]     h_mem_mng Memory manager to allocate from
 
  @Return        0 is returned on success. E_NOMEMORY is returned if the new MM object or a new free block can not be initialized.
 *//***************************************************************************/
-int slob_init(fsl_handle_t *slob, uint64_t base, uint64_t size);
+int slob_init(fsl_handle_t *slob, uint64_t base, uint64_t size,
+		      fsl_handle_t h_mem_mng);
 
 /**************************************************************************//**
  @Function      slob_free

@@ -99,6 +99,7 @@ typedef struct t_MM
     uint32_t        free_blocks_initialized;
     uint64_t        base;
     uint64_t        size;
+    fsl_handle_t    h_mem_mng; // boot memory manager
 } t_MM;
 
 
