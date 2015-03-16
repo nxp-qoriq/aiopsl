@@ -194,7 +194,7 @@ int create_fd(
 	fd->offset = 0;
 #ifndef REV2  /* WA for TKT254401 */	
 	LDPAA_FD_SET_ADDR(fd, fd_addr);
-	LDPAA_FD_SET_LENGTH(fd, 1);
+	LDPAA_FD_SET_LENGTH(fd, FRAME_INITIAL_SIZE);
 	LDPAA_FD_SET_BPID(fd, bpid);
 #endif	
 
@@ -204,7 +204,7 @@ int create_fd(
 #ifdef REV2  /* WA for TKT254401 */		
 		PRC_SET_SEGMENT_LENGTH(0);
 #else
-		PRC_SET_SEGMENT_LENGTH(1);
+		PRC_SET_SEGMENT_LENGTH(FRAME_INITIAL_SIZE);
 #endif
 		PRC_SET_SEGMENT_OFFSET(0);
 		PRC_RESET_NDS_BIT();
@@ -214,8 +214,8 @@ int create_fd(
 		fdma_insert_default_segment_data(0, data, size,
 				FDMA_REPLACE_SA_CLOSE_BIT);
 #else		
-		fdma_replace_default_segment_data(0, 1, data, size, 
-				0, 0, FDMA_REPLACE_SA_CLOSE_BIT);
+		fdma_replace_default_segment_data(0, FRAME_INITIAL_SIZE, data, 
+				size, 0, 0, FDMA_REPLACE_SA_CLOSE_BIT);
 #endif
 
 		return fdma_store_default_frame_data();
