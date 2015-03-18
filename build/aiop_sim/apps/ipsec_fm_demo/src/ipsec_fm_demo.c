@@ -146,6 +146,10 @@ __declspec(entry_point) static void app_process_packet_flow0 (void)
 				enc_status);
 		local_test_error |= enc_status;
 	}
+	
+	/* close-open segment, for the print */
+	fdma_close_default_segment();
+	fdma_present_default_frame_segment(0, (void *)PRC_GET_SEGMENT_ADDRESS(), 0, 256);
 
 	fsl_os_print("IPSEC: frame header after encryption\n");
 	/* Print header */
@@ -409,8 +413,8 @@ int ipsec_app_init(uint16_t ni_id)
 	auth_key_id = 0; /* Keep the initial key array value */ 
 	//auth_key_id = 1; /* Overwrite the initial key array value */ 
 	
-	//tunnel_transport_mode = IPSEC_FLG_TUNNEL_MODE; /* Tunnel Mode */
-	tunnel_transport_mode = 0; /* Transport Mode */
+	tunnel_transport_mode = IPSEC_FLG_TUNNEL_MODE; /* Tunnel Mode */
+	//tunnel_transport_mode = 0; /* Transport Mode */
 	
 	/**********************************************************/
 
