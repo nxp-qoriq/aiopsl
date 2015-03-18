@@ -332,14 +332,14 @@ static int ctrl_cb0(void *dev, uint16_t cmd, uint32_t size,
 	case IC_TEST:
 		ASSERT_COND(size >= sizeof(struct icontext));
 		dpci_id = (((uint8_t *)data)[0]);
-		bpid =  (uint16_t)(((uint8_t *)data)[1]);
-
+		bpid =  (uint16_t)(((uint8_t *)data)[1]);		
+		pr_debug("Isolation context test dpci %d bpid %d:\n", dpci_id, bpid);
+		
 		err = icontext_get(dpci_id, &ic);
 #ifdef CMDIF_TEST_WITH_MC_SRV
 		ic.bdi_flags |= FDMA_ENF_BDI_BIT;
 #endif
 		ASSERT_COND(err == 0);
-		pr_debug("Isolation context test dpci %d bpid %d:\n", dpci_id, bpid);
 		pr_debug("ICID %d:\n dma flags 0x%x \n bdi flags 0x%x \n",
 		         ic.icid,
 		         ic.dma_flags,

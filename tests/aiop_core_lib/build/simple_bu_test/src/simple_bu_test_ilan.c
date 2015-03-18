@@ -225,11 +225,13 @@ int simple_bu_ilan_test(void)
 		int parse_status;
 		uint8_t *frame_presented;
 		uint8_t *seg_addr;
-		struct fdma_amq amq;
+		/*struct fdma_amq amq;
 		uint16_t icid, flags = 0;
-		uint8_t tmp;
+		uint8_t tmp;*/
 		uint32_t frame_length;
 		/* setting SPID = 0 */
+		sl_tman_expiration_task_prolog(0);
+		/*
 		*((uint8_t *)HWC_SPID_ADDRESS) = 0;
 		icid = (uint16_t)(storage_profile[0].ip_secific_sp_info >> 48);
 		icid = ((icid << 8) & 0xff00) | ((icid >> 8) & 0xff);
@@ -244,6 +246,7 @@ int simple_bu_ilan_test(void)
 		amq.flags = flags;
 		set_default_amq_attributes(&amq);
 		*(uint32_t *)(&storage_profile[0].pbs2) = *(uint32_t *)(&storage_profile[0].pbs1);
+		*(uint32_t */
 
 		for (i=0; i<8 ; i++)
 			fsl_os_print("storage profile arg %d: 0x%x \n", i, *((uint32_t *)(&(storage_profile[0]))+i));

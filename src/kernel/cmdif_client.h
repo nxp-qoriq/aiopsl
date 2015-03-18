@@ -40,6 +40,7 @@
 #include "fsl_string.h"
 #include "fsl_sl_dbg.h"
 #include "fsl_ldpaa_aiop.h"
+#include "fsl_mc_init.h"
 
 #pragma warning_errors on
 ASSERT_STRUCT_SIZE(CMDIF_OPEN_SIZEOF, CMDIF_OPEN_SIZE);
@@ -147,13 +148,8 @@ do {\
 #define CMDIF_FREE_SESSION	'\0'
 
 struct cmdif_reg {
-	uint16_t dpci_token;	/**< Open AIOP dpci device */
-	struct dpci_attr *attr; /**< DPCI attributes */
-	struct dpci_peer_attr *peer_attr; /**< DPCI peer attributes */
-	struct dpci_tx_queue_attr *tx_queue_attr[DPCI_PRIO_NUM]; /**< DPCI TX attributes */
-	uint32_t dma_flags;	/**< FDMA dma data flags */
-	uint32_t enq_flags;	/**< FDMA enqueue flags */
-	uint16_t icid;		/**< ICID per DPCI */
+	uint32_t dpci_ind;	/**< DPCI id */
+	struct dpci_tx_queue_attr tx_queue_attr[DPCI_PRIO_NUM]; /**< DPCI TX attributes */
 };
 
 /* To be allocated on DDR */
@@ -197,11 +193,13 @@ static inline int cmdif_cl_session_get(struct cmdif_cl *cl,
                                        uint32_t dpci_id)
 {
 	int i;
+	struct mc_dpci_tbl *dt = (struct mc_dpci_tbl *)\
+		sys_get_unique_handle(FSL_OS_MOD_DPCI_TBL);
 
 	/* TODO stop searching if passed all open sessions cl->count */
 	for (i = 0; i < CMDIF_MN_SESSIONS; i++) {
 		if ((cl->gpp[i].ins_id == ins_id) &&
-			(cl->gpp[i].regs->peer_attr->peer_id == dpci_id) &&
+			(dt->dpci_id_peer[(cl->gpp[i].regs->dpci_ind)] == dpci_id) &&
 			(cl->gpp[i].m_name[0] != CMDIF_FREE_SESSION) &&
 			(strncmp((const char *)&(cl->gpp[i].m_name[0]),
 			         m_name,
@@ -216,9 +214,12 @@ static inline int cmdif_cl_auth_id_find(struct cmdif_cl *cl,
                                        uint32_t dpci_id)
 {
 	int i;
+	struct mc_dpci_tbl *dt = (struct mc_dpci_tbl *)\
+		sys_get_unique_handle(FSL_OS_MOD_DPCI_TBL);
+
 
 	for (i = 0; i < CMDIF_MN_SESSIONS; i++) {
-		if ((cl->gpp[i].regs->peer_attr->peer_id == dpci_id) &&
+		if ((dt->dpci_id_peer[(cl->gpp[i].regs->dpci_ind)] == dpci_id) &&
 			(cl->gpp[i].m_name[0] != CMDIF_FREE_SESSION) &&
 			(cl->gpp[i].dev->auth_id == auth_id))
 			return i;

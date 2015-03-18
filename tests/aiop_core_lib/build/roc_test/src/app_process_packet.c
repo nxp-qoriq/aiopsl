@@ -121,9 +121,12 @@ static void app_process_packet_flow0 (dpni_drv_app_arg_t arg)
 
 
 int app_early_init(void){
+	
+	int err;
+	
 	/* exists in aiop_sl_early_init */
-	/*slab_register_context_buffer_requirements(100, 100, 2688, 64, MEM_PART_DP_DDR, 0, 0);*/
-	return 0;
+	err = ipr_early_init(3, 750);
+	return err;
 }
 
 int app_init(void)
