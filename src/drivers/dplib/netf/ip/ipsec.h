@@ -343,6 +343,12 @@ Big Endian
 #define IPSEC_DPOVRD_OVRD 0x80000000
 #define IPSEC_DPOVRD_OVRD_TRANSPORT 0x80
 
+/* DPOVRD Next Header for ESP */
+/* 4 (0x04) IP-in-IP IP in IP (encapsulation) */
+#define IPSEC_NEXT_HEADER_IPV4 0x04
+/* 41 (0x29) IPv6 IPv6 Encapsulation */ 
+#define IPSEC_NEXT_HEADER_IPV6 0x29
+
 // TMP, removed from the external API
 /** Frames do not include a L2 Header */
 #define IPSEC_FLG_NO_L2_HEADER		0x00000010

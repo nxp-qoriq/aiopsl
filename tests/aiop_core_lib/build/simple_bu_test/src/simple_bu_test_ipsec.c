@@ -266,6 +266,11 @@ int simple_bu_test_ipsec(void)
 				(uint64_t *)(&data_arr_32bit[2])); /* uint64_t *timestamp) */
 			//fsl_os_print("In while tman_get_timestamp() low  = %d\n", data_arr_32bit[1]);
 		}
+		fsl_os_print("\nipsec: done waiting ...\n\n");
+
+		fsl_os_print("First tman_get_timestamp() low  = %d\n", data_arr_32bit[1]);
+		fsl_os_print("Second tman_get_timestamp() low  = %d\n", data_arr_32bit[3]);
+
 		
 		fsl_os_print("\nCalling ipsec_encr_decr_bu()\n");
 		
@@ -276,11 +281,11 @@ int simple_bu_test_ipsec(void)
 		fsl_os_print("ipsec_encr_decr_bu() completed\n");
 		
 		// Do another encr-decr
-		fsl_os_print("\nCalling ipsec_encr_decr_bu() for the second time\n");
-		fdma_close_default_segment();
-		fdma_present_default_frame_segment(0, (void *)PRC_GET_SEGMENT_ADDRESS(), 0, 256);
-		ipsec_encr_decr_bu();
-		fsl_os_print("ipsec_encr_decr_bu() second time completed\n");
+		//fsl_os_print("\nCalling ipsec_encr_decr_bu() for the second time\n");
+		//fdma_close_default_segment();
+		//fdma_present_default_frame_segment(0, (void *)PRC_GET_SEGMENT_ADDRESS(), 0, 256);
+		//ipsec_encr_decr_bu();
+		//fsl_os_print("ipsec_encr_decr_bu() second time completed\n");
 		
 		
 		fdma_discard_default_frame(FDMA_DIS_NO_FLAGS);
@@ -337,13 +342,14 @@ int ipsec_app_init_bu(uint16_t ni_id)
 	//algs = AES128_SHA1;
 
 	/* Set the outer IP header type here */
-	outer_header_ip_version = 4; /* 4 or 6 */
+	//outer_header_ip_version = 4; /* 4 or 6 */
+	outer_header_ip_version = 17; /* UDP */
 	
 	auth_key_id = 0; /* Keep the initial key array value */ 
 	//auth_key_id = 1; /* Overwrite the initial key array value */ 
 	
-	//tunnel_transport_mode = IPSEC_FLG_TUNNEL_MODE; /* Tunnel Mode */
-	tunnel_transport_mode = 0; /* Transport Mode */
+	tunnel_transport_mode = IPSEC_FLG_TUNNEL_MODE; /* Tunnel Mode */
+	//tunnel_transport_mode = 0; /* Transport Mode */
 	
 	/**********************************************************/
 
@@ -513,7 +519,22 @@ int ipsec_app_init_bu(uint16_t ni_id)
 
 		params.encparams.ip_hdr_len = 0x28; /* outer header length is 40 bytes */
 	}
+	// UDP ENCAP
+	else if (outer_header_ip_version == 17) {
 
+		outer_ip_header[0] = 0x45db001c;
+		outer_ip_header[1] = 0x12340000;
+		outer_ip_header[2] = 0xff11386f;
+		outer_ip_header[3] = 0x45a4e14c;
+		outer_ip_header[4] = 0xed035c45;
+		outer_ip_header[5] = 0x11941194;
+		outer_ip_header[6] = 0x00000000;
+
+		params.encparams.ip_hdr_len = 0x1c; /* outer header length is 28 bytes */
+		//params.encparams.ip_hdr_len = 0x18; /* outer header length is 24 bytes */
+
+	}
+	
 	/* Outbound (encryption) parameters */
 	params.direction = IPSEC_DIRECTION_OUTBOUND; /**< Descriptor direction */
 	//params.flags = IPSEC_FLG_TUNNEL_MODE |
@@ -521,12 +542,19 @@ int ipsec_app_init_bu(uint16_t ni_id)
 			IPSEC_FLG_LIFETIME_KB_CNTR_EN | IPSEC_FLG_LIFETIME_PKT_CNTR_EN;
 			/**< Miscellaneous control flags */
 	
+	// UDP ENCAP
+	if ((outer_header_ip_version == 17) && 	
+			(tunnel_transport_mode == IPSEC_FLG_TUNNEL_MODE)) {
+		params.flags |= IPSEC_ENC_OPTS_NAT_EN;
+		params.flags |= IPSEC_ENC_OPTS_NUC_EN;
+		fsl_os_print("IPSEC: Tunnel Mode UDP Encapsulation\n");
+	}
 	
 	params.encparams.ip_nh = 0x0;
 	params.encparams.options = 0x0;
 	params.encparams.seq_num_ext_hi = 0x0;
 	params.encparams.seq_num = 0x0;
-	params.encparams.spi = 0x0;
+	params.encparams.spi = 0xaabb;
 	params.encparams.outer_hdr = (uint32_t *)&outer_ip_header;
 
 	for (i=0; i<sizeof(params.encparams.cbc.iv); i++) {

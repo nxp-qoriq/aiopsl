@@ -49,6 +49,11 @@
 int tman_create_tmi(uint64_t tmi_mem_base_addr,
 			uint32_t max_num_of_timers, uint8_t *tmi_id)
 {
+	
+#ifdef CHECK_ALIGNMENT 	
+	DEBUG_ALIGN((uint32_t)tmi_mem_base_addr, ALIGNMENT_64B);
+#endif
+	
 	/* command parameters and results */
 	uint32_t arg1, arg2, cdma_cfg;
 	unsigned int res1, res2, *tmi_state_ptr;
