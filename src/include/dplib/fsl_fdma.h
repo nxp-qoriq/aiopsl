@@ -2131,15 +2131,8 @@ void fdma_modify_segment_data(
 
 @remark		In case \ref FDMA_REPLACE_SA_REPRESENT_BIT flag is set, the
 		pointer to the workspace start address of the represented
-		segment and the number of frame bytes to represent are
-		calculated automatically in the Service Routine according to the
-		input parameters and the Task Default variables.
-		This is done from performance considerations.
-		The workspace start address of the represented segment
-		calculated as insert_size bytes before the old segment
-		address.
-		The number of frame bytes to represent remains the old
-		segment length.
+		segment and the number of frame bytes to represent remains the 
+		same.
 
 @Cautions	As part of a workaround to ticket TKT237377 this command closes
 		and reopens the segment. (meaning that all segment modifications
@@ -2255,15 +2248,8 @@ int fdma_insert_segment_data(
 
 @remark		In case \ref FDMA_REPLACE_SA_REPRESENT_BIT flag is set the
 		pointer to the workspace start address of the represented
-		segment and the number of frame bytes to represent are
-		calculated automatically in the Service Routine according to the
-		input parameters and the Task Default variables.
-		This is done from performance considerations.
-		The workspace start address of the represented segment
-		calculated as delete_target_size bytes after the old segment
-		address.
-		The number of frame bytes to represent is the old segment
-		length reduced by delete_target_size bytes.
+		segment and the number of frame bytes to represent remains the 
+		same.
 
 @Cautions	As part of a workaround to ticket TKT237377 this command closes
 		and reopens the segment. (meaning that all segment modifications
