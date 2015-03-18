@@ -90,7 +90,7 @@ void booke_generic_exception_isr(uint32_t intr_entry)
 			uint32_t mcsr = booke_get_spr_MCSR();
 			uint32_t core_id = core_get_id();
 			pr_debug("core %d int: MACHINE_CHECK\n", core_id);
-			if(mcsr | 0x0800 /* STACK_ERR */) {
+			if(mcsr & 0x0800 /* STACK_ERR */) {
 				pr_debug("Stack Exception: MCSR = 0x%x\n", mcsr);
 			}
 			break;
