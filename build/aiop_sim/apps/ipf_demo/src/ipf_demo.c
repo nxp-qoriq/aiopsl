@@ -155,7 +155,11 @@ __declspec(entry_point) static void app_process_packet_flow0 (void)
 			fsl_os_print("ERROR = %d: dpni_drv_send()\n",err);
 			local_test_error |= err;
 			if(err == -ENOMEM)
+			{
 				fdma_discard_default_frame(FDMA_DIS_NO_FLAGS);
+				if (ipf_status == IPF_GEN_FRAG_STATUS_IN_PROCESS)
+					ipf_discard_frame_remainder(ipf_context_addr);
+			}
 			else
 				fsl_os_print("ERROR!!! NEED TO CHECK WITH HW TEAM\n");
 			break;

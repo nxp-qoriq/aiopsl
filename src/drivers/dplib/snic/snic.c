@@ -172,6 +172,7 @@ int snic_ipf(struct snic_params *snic)
 	ipf_ctx_t ipf_context_addr
 		__attribute__((aligned(sizeof(struct ldpaa_fd))));
 	int32_t ipf_status;
+	int err;
 	struct fdma_queueing_destination_params enqueue_params;
 
 	ip_offset = PARSER_GET_OUTER_IP_OFFSET_DEFAULT();
@@ -202,8 +203,16 @@ int snic_ipf(struct snic_params *snic)
 		do {
 			ipf_status = ipf_generate_frag(ipf_context_addr);
 			/* todo error cases */
-			fdma_store_and_enqueue_default_frame_qd(&enqueue_params,
+			err = fdma_store_and_enqueue_default_frame_qd(&enqueue_params,
 					FDMA_ENWF_NO_FLAGS);
+			if(err == -ENOMEM)
+			{
+				fdma_discard_default_frame(FDMA_DIS_NO_FLAGS);
+				if (ipf_status == IPF_GEN_FRAG_STATUS_IN_PROCESS)
+					ipf_discard_frame_remainder(ipf_context_addr);
+				break;
+			}
+			/* todo other error case */
 		} while (ipf_status == IPF_GEN_FRAG_STATUS_IN_PROCESS);
 
 		fdma_terminate_task();
