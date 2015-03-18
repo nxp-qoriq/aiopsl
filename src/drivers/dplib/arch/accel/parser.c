@@ -141,27 +141,6 @@ int parse_result_generate_checksum(
 	struct parser_input_message_params input_struct
 					__attribute__((aligned(16)));
 
-#ifndef REV2	
-	/* WA for TKT254635 (CTLU spec - requirement of data alignment for parser 
-	is not mentioned) */
-	
-	int32_t err;
-	uint16_t diff = (PRC_GET_SEGMENT_ADDRESS() & 0x000F);
-	if (diff)
-	{
-		diff = 0x10 - diff;
-		fdma_close_default_segment();
-		err = fdma_present_default_frame_segment(
-				(PRC_GET_SR_BIT())? FDMA_PRES_SR_BIT : 0, 
-				(void *)(PRC_GET_SEGMENT_ADDRESS() + diff), 
-				PRC_GET_SEGMENT_OFFSET(), 
-				PRC_GET_SEGMENT_LENGTH() - diff);
-	}
-#else
-	/* In case the segment address alignment will be removed in REV2,
-	no WA is required. Otherwise, need to change WA to use
-	fdma_replace_default_segment_data */
-#endif	
 	
 	/* Check if Gross Running Sum calculation is needed */
 	if (!pr->gross_running_sum) {
