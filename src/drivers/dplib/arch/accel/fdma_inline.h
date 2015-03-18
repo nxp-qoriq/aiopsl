@@ -266,12 +266,6 @@ inline int fdma_insert_default_segment_data(
 	if (flags & FDMA_REPLACE_SA_REPRESENT_BIT) {
 		ws_address_rs = (void *) PRC_GET_SEGMENT_ADDRESS();
 		seg_size_rs = PRC_GET_SEGMENT_LENGTH();
-		if ((prc->seg_address - (uint32_t)TLS_SECTION_END_ADDR) >=
-				insert_size){
-			ws_address_rs = (void *)
-				((uint32_t)ws_address_rs - insert_size);
-			seg_size_rs = seg_size_rs + insert_size;
-		}
 		arg4 = FDMA_REPLACE_CMD_ARG4(ws_address_rs, seg_size_rs);
 	}
 	/* store command parameters */
@@ -464,9 +458,8 @@ inline int fdma_delete_default_segment_data(
 	arg2 = FDMA_REPLACE_CMD_ARG2(to_offset, delete_target_size);
 	arg3 = FDMA_REPLACE_CMD_ARG3(0, 0);
 	if (flags & FDMA_REPLACE_SA_REPRESENT_BIT) {
-		ws_address_rs = (void *)
-			(PRC_GET_SEGMENT_ADDRESS() + delete_target_size);
-		size_rs = PRC_GET_SEGMENT_LENGTH() - delete_target_size;
+		ws_address_rs = (void *)PRC_GET_SEGMENT_ADDRESS();
+		size_rs = PRC_GET_SEGMENT_LENGTH();
 		arg4 = FDMA_REPLACE_CMD_ARG4(ws_address_rs, size_rs);
 	}
 

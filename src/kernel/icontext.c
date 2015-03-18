@@ -39,6 +39,16 @@
 #include "cmdif_srv.h"
 #include "fsl_io_ccsr.h"
 
+#define ICONTEXT_SET(ICID, AMQ)	\
+do { \
+	ic->icid = (ICID); \
+	ic->dma_flags = (uint32_t)((AMQ) & ~CMDIF_BDI_BIT); \
+	if ((AMQ) & CMDIF_BDI_BIT) \
+		ic->bdi_flags = FDMA_ENF_BDI_BIT; \
+} while(0)
+	
+extern void dpci_rx_ctx_get(uint32_t *id, uint32_t *fqid);
+
 struct icontext icontext_aiop = {0};
 
 void icontext_aiop_get(struct icontext *ic)
@@ -49,46 +59,53 @@ void icontext_aiop_get(struct icontext *ic)
 
 void icontext_cmd_get(struct icontext *ic)
 {
-	uint8_t  ind = (uint8_t)((CMDIF_FQD_GET) >> 1);
-	struct mc_dpci_obj *dt = sys_get_unique_handle(FSL_OS_MOD_DPCI_TBL);
-	
+	uint32_t ind;
+	uint32_t fqid;
+	uint16_t icid;
+	uint16_t amq_bdi;
+	struct mc_dpci_tbl *dt = sys_get_unique_handle(FSL_OS_MOD_DPCI_TBL);
+
 	ASSERT_COND(dt);
 	
-	ic->icid = dt->icid[ind];
-	ic->dma_flags = dt->dma_flags[ind];
-	ic->bdi_flags = dt->bdi_flags[ind];
+	dpci_rx_ctx_get(&ind, &fqid);
+	CMDIF_ICID_AMQ_BDI(AMQ_BDI_GET, &icid, &amq_bdi);
+	ICONTEXT_SET(icid, amq_bdi);	
 #ifndef BDI_BUG_FIXED
+	/* Fix for GPP BDI */
 	ic->bdi_flags &= ~FDMA_ENF_BDI_BIT;
 #endif
+	ASSERT_COND(ic->icid != ICONTEXT_INVALID);
 }
 
 int icontext_get(uint16_t dpci_id, struct icontext *ic)
 {
-	int i = 0;
-	struct mc_dpci_obj *dt = sys_get_unique_handle(FSL_OS_MOD_DPCI_TBL);
+	int ind = 0;
+	struct mc_dpci_tbl *dt = sys_get_unique_handle(FSL_OS_MOD_DPCI_TBL);
+	uint32_t icid_amq_bdi = 0;
+	uint16_t icid;
+	uint16_t amq_bdi;
 
-#ifdef DEBUG
-	if ((ic == NULL) || (dt == NULL))
-		return -EINVAL;
-#endif
+	ASSERT_COND(ic);
+	ASSERT_COND(dt);
+
 	/* search by GPP peer id - most likely case
 	 * or by AIOP dpci id  - to support both cases
 	 * All DPCIs in the world have different IDs */
-	for (i = 0; i < dt->count; i++) {
-		if ((dt->peer_attr[i].peer_id == dpci_id) ||
-			(dt->attr[i].id == dpci_id)) {
-			/* Fill icontext */
-			ic->icid = dt->icid[i];
-			ic->dma_flags = dt->dma_flags[i];
-			ic->bdi_flags = dt->bdi_flags[i];
+	ind = mc_dpci_find(dpci_id, &icid_amq_bdi);
+	if (ind >= 0) {
+		CMDIF_ICID_AMQ_BDI(AMQ_BDI_GET, &icid, &amq_bdi);
+		pr_debug("ind = %d icid = 0x%x amq = 0x%x\n", 
+		         ind, icid, amq_bdi);
+		if (icid == ICONTEXT_INVALID)
+			return -ENAVAIL;
+		ICONTEXT_SET(icid, amq_bdi);
 #ifndef BDI_BUG_FIXED
-			ic->bdi_flags &= ~FDMA_ENF_BDI_BIT;
+		ic->bdi_flags &= ~FDMA_ENF_BDI_BIT;
 #endif
-			return 0;
-		}
+		return 0;
 	}
-
-	/* copy pointer from icid table */
+	
+	pr_err("No entry found for DPCI ID 0x%x\n", dpci_id);
 	return -ENOENT;
 }
 
