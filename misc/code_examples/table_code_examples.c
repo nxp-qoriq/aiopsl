@@ -37,6 +37,8 @@
 
 #define SOME_CONSTANT 0x00
 #define TABLE_EXAMPLE_EM_KEY_SIZE 124
+#define TABLE_EXAMPLE_EM_KEY_RESERVED_SIZE 4
+
 
 int table_exact_match_example();
 int table_longest_prefix_match_example();
@@ -46,13 +48,14 @@ int table_exact_match_example()
 	uint16_t                    table_id;
 	uint8_t                     keysize = TABLE_EXAMPLE_EM_KEY_SIZE;
 	struct table_create_params  table_params;
-	struct table_rule           rule1;
+	struct table_rule           rule1 __attribute__((aligned(16)));
 	union table_lookup_key_desc lkup_key_desc;
-	uint8_t                     em_key[TABLE_EXAMPLE_EM_KEY_SIZE];
-	struct table_lookup_result  lookup_res;
+	uint8_t                     em_key[TABLE_EXAMPLE_EM_KEY_SIZE + 
+	   TABLE_EXAMPLE_EM_KEY_RESERVED_SIZE] __attribute__((aligned(16)));
+	struct table_lookup_result  lookup_res __attribute__((aligned(16)));
 	uint8_t                     keyid;
 	uint8_t                     *kcr;
-	struct kcr_builder          kc_builder;
+	struct kcr_builder          kc_builder __attribute__((aligned(16)));
 
 	/* KCR building, Please refer to Keygen section*/
 	keygen_kcr_builder_init(&kc_builder);
@@ -149,11 +152,11 @@ int table_longest_prefix_match_example()
 {
 	uint16_t                   table_id;
 	struct table_create_params table_params;
-	struct table_rule          rule1;
+	struct table_rule          rule1 __attribute__((aligned(16)));
 	uint8_t                    keyid;
-	struct table_lookup_result lookup_res;
+	struct table_lookup_result lookup_res __attribute__((aligned(16)));
 	uint8_t                    *kcr;
-	struct kcr_builder         kc_builder;
+	struct kcr_builder         kc_builder __attribute__((aligned(16)));
 
 	/* KCR building, Please refer to Keygen section*/
 	keygen_kcr_builder_init(&kc_builder);

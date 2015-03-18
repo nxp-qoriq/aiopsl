@@ -117,12 +117,6 @@ int create_frame(
 #else		
 		ws_address_rs = (void *) PRC_GET_SEGMENT_ADDRESS();
 		seg_size_rs = PRC_GET_SEGMENT_LENGTH();
-		if ((PRC_GET_SEGMENT_ADDRESS() - (uint32_t)TLS_SECTION_END_ADDR)
-				>= size){
-			ws_address_rs = (void *)
-				((uint32_t)ws_address_rs - size);
-			seg_size_rs = seg_size_rs + size;
-		}
 		fdma_replace_default_segment_data(0, FRAME_INITIAL_SIZE, data, size, 
 				ws_address_rs, seg_size_rs, 
 				FDMA_REPLACE_SA_REPRESENT_BIT);
