@@ -686,8 +686,8 @@ int ipr_reassemble(ipr_instance_handle_t instance_handle)
 					  rfdc.timer_handle,
 					  TMAN_TIMER_DELETE_MODE_WO_EXPIRATION);
 					/* DEBUG : check ENAVAIL */
-					if(sr_status == SUCCESS)
-						tman_create_timer(
+					if(sr_status == SUCCESS) {
+						sr_status = tman_create_timer(
 					     instance_params.tmi_id,
 					     IPR_TIMEOUT_FLAGS,
 					     instance_params.timeout_value_ipv4,
@@ -695,10 +695,10 @@ int ipr_reassemble(ipr_instance_handle_t instance_handle)
 					     (tman_arg_2B_t) NULL,
 					     (tman_cb_t) ipr_time_out,
 					     &rfdc.timer_handle);
-					else
+						if (sr_status != SUCCESS)
 					   ipr_exception_handler(IPR_REASSEMBLE,
 							 __LINE__,ENOSPC_TIMER);
-
+					}
 				}
 			} else if (!(instance_params.flags &
 					IPR_MODE_IPV6_TO_TYPE)) {
