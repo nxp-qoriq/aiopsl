@@ -570,6 +570,10 @@ void keygen_kcr_replace(enum keygen_hw_accel_id acc_id,
 			 uint8_t *kcr,
 			 uint8_t keyid)
 {
+	
+#ifdef CHECK_ALIGNMENT 	
+	DEBUG_ALIGN((uint32_t)kcr, ALIGNMENT_16B);
+#endif
 
 	/* Prepare HW context for TLU accelerator call */
 	__stqw(KEYGEN_KEY_COMPOSITION_RULE_CREATE_OR_REPLACE_MTYPE,
@@ -606,6 +610,11 @@ int keygen_kcr_delete(enum keygen_hw_accel_id acc_id,
 void keygen_kcr_query(enum keygen_hw_accel_id acc_id,
 		       uint8_t keyid, uint8_t *kcr)
 {
+	
+#ifdef CHECK_ALIGNMENT 	
+	DEBUG_ALIGN((uint32_t)kcr, ALIGNMENT_16B);
+#endif
+	
 	/* Prepare HW context for TLU accelerator call */
 	__stqw(KEYGEN_KEY_COMPOSITION_RULE_QUERY_MTYPE, (uint32_t)kcr,
 	       ((uint32_t)keyid) << 16, 0, HWC_ACC_IN_ADDRESS, 0);
@@ -619,6 +628,10 @@ void keygen_kcr_query(enum keygen_hw_accel_id acc_id,
 
 int keygen_gen_hash(void *key, uint8_t key_size, uint32_t *hash)
 {
+	
+#ifdef CHECK_ALIGNMENT 	
+	DEBUG_ALIGN((uint32_t)key, ALIGNMENT_16B);
+#endif
 
 	int32_t status;
 

@@ -45,6 +45,11 @@ inline int table_lookup_by_keyid_default_frame(enum table_hw_accel_id acc_id,
 					struct table_lookup_result
 					       *lookup_result)
 {
+	
+#ifdef CHECK_ALIGNMENT 	
+	DEBUG_ALIGN((uint32_t)lookup_result, ALIGNMENT_16B);
+#endif
+	
 	int32_t status;
 
 	/* Prepare HW context for TLU accelerator call */
@@ -87,6 +92,12 @@ inline int table_lookup_by_key(enum table_hw_accel_id acc_id,
 			uint8_t key_size,
 			struct table_lookup_result *lookup_result)
 {
+	
+#ifdef CHECK_ALIGNMENT 	
+	DEBUG_ALIGN((uint32_t)key_desc.em_key, ALIGNMENT_16B);
+	DEBUG_ALIGN((uint32_t)lookup_result, ALIGNMENT_16B);
+#endif
+	
 	int32_t status;
 	/* optimization 1 clock */
 	uint32_t arg2 = (uint32_t)lookup_result;
@@ -116,12 +127,17 @@ inline int table_lookup_by_key(enum table_hw_accel_id acc_id,
 	} /* Switch */
 	return status;
 }
-
+	
 inline int table_rule_create(enum table_hw_accel_id acc_id,
 		      uint16_t table_id,
 		      struct table_rule *rule,
 		      uint8_t key_size)
-{
+{  
+	
+#ifdef CHECK_ALIGNMENT 	
+	DEBUG_ALIGN((uint32_t)rule, ALIGNMENT_16B);
+#endif
+	
 	int32_t status;
 	struct table_old_result aged_res __attribute__((aligned(16)));
 	uint32_t arg2 = (uint32_t)&aged_res;
@@ -206,6 +222,11 @@ inline int table_rule_delete(enum table_hw_accel_id acc_id,
 		      uint8_t key_size,
 		      struct table_result *result)
 {
+	
+#ifdef CHECK_ALIGNMENT 	
+	DEBUG_ALIGN((uint32_t)key_desc, ALIGNMENT_16B);
+#endif
+	
 	int32_t status;
 
 	struct table_old_result old_res __attribute__((aligned(16)));
@@ -251,6 +272,11 @@ inline int table_rule_query(enum table_hw_accel_id acc_id,
 		     struct table_result *result,
 		     uint32_t *timestamp)
 {
+	
+#ifdef CHECK_ALIGNMENT 	
+	DEBUG_ALIGN((uint32_t)key_desc, ALIGNMENT_16B);
+#endif
+	
 	int32_t status;
 	struct table_entry entry __attribute__((aligned(16)));
 	/* Prepare HW context for TLU accelerator call */
@@ -347,6 +373,11 @@ inline int table_rule_replace(enum table_hw_accel_id acc_id,
 		       uint8_t key_size,
 		       struct table_result *old_res)
 {
+	
+#ifdef CHECK_ALIGNMENT 	
+	DEBUG_ALIGN((uint32_t)rule, ALIGNMENT_16B);
+#endif
+	
 	int32_t status;
 
 	struct table_old_result hw_old_res __attribute__((aligned(16)));
