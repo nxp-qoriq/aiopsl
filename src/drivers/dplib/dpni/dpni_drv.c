@@ -702,11 +702,9 @@ int dpni_register_requirements(uint16_t head_room, uint16_t tail_room, uint16_t 
 	
 	g_dpni_early_init_data.head_room_sum += head_room;
 	g_dpni_early_init_data.tail_room_sum += tail_room;
-	g_dpni_early_init_data.private_data_size_sum += private_data_size;
 	
-	if(g_dpni_early_init_data.private_data_size_sum > 64) {
-		//TODO not sure about this...
-		pr_err("Private data size cannot be larger than 64 bytes\n");
+	if(private_data_size) {
+		g_dpni_early_init_data.private_data_size_sum = 64;
 	}
 	
 	return 0;
