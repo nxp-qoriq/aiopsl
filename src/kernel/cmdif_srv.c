@@ -337,11 +337,23 @@ __COLD_CODE static int dpci_get_peer_id(uint32_t dpci_id, uint32_t *dpci_id_peer
 	}
 
 	*dpci_id_peer = (uint32_t)peer_attr.peer_id;
-	
-	pr_debug("DPCI peer id is %d\n", peer_attr.peer_id);
-	
+		
 	err = dpci_close(&dprc->io, token);
 	return err;
+}
+
+__COLD_CODE static void dpci_tbl_dump()
+{
+	int i;
+	struct mc_dpci_tbl *dt = sys_get_unique_handle(FSL_OS_MOD_DPCI_TBL);
+	
+	fsl_os_print("----------DPCI table----------\n");
+	fsl_os_print("dpci_id ptr = 0x%x \n", (uint32_t)dt->dpci_id);
+	fsl_os_print("perr_id ptr = 0x%x \n", (uint32_t)dt->dpci_id_peer);
+	for (i = 0; i < dt->count; i++) {
+		fsl_os_print("ID = 0x%x\t PEER ID = 0x%x\t IC = 0x%x\t\n", 
+		             dt->dpci_id[i], dt->dpci_id_peer[i], dt->ic[i]);
+	}
 }
 
 static inline void amq_bits_update(uint32_t id)
@@ -359,20 +371,28 @@ static inline void amq_bits_update(uint32_t id)
 
 	CMDIF_ICID_AMQ_BDI(AMQ_BDI_SET, ICID_GET(pl_icid), amq_bdi_temp);
 
-	err = dpci_get_peer_id(dt->dpci_id[id], &dt->dpci_id_peer[id]);
+	pr_debug("Updating peer of 0x%x which is now 0x%x\n", 
+	         dt->dpci_id[id], 
+	         dt->dpci_id_peer[id]);
+	err = dpci_get_peer_id(dt->dpci_id[id], &(dt->dpci_id_peer[id]));
 	ASSERT_COND(!err);
-	
+	pr_debug("Updated peer of 0x%x to 0x%x\n", 
+	         dt->dpci_id[id], 
+	         dt->dpci_id_peer[id]);
 	/* Must be written last */
-	dt->ic[id] = amq_bdi; 	
+	dt->ic[id] = amq_bdi;
+	pr_debug("ind = 0x%x id = 0x%x amq_bdi = 0x%x pl_icid = 0x%x\n", 
+	         id, dt->dpci_id[id], amq_bdi, pl_icid);
+	dpci_tbl_dump();
 }
 
 /* To be called in runtime only */
 __COLD_CODE void dpci_amq_bdi_set()
 {
 	uint32_t id = 0;
-	uint32_t dpci_id = 0;
+	uint32_t fqid = 0;
 	
-	dpci_rx_ctx_get(&id, &dpci_id);
+	dpci_rx_ctx_get(&id, &fqid);
 
 	amq_bits_update(id);
 }
@@ -390,7 +410,7 @@ __COLD_CODE int dpci_amq_bdi_init(uint32_t dpci_id)
 	CMDIF_ICID_AMQ_BDI(AMQ_BDI_SET, ICONTEXT_INVALID, ICONTEXT_INVALID);
 
 	ind = mc_dpci_find(dpci_id, NULL);
-	if (ind > 0) {
+	if (ind >= 0) {
 		/* Updated DPCI peer if possible */
 		err = dpci_get_peer_id(dpci_id, &dpci_id_peer);
 		if (!err)
@@ -528,10 +548,10 @@ __COLD_CODE static int rx_ctx_set(uint32_t id, struct dpci_tx_queue_attr *tx)
 __COLD_CODE int dpci_rx_ctx_set()
 {
 	int err = 0;
-	uint32_t dpci_id;
+	uint32_t fqid;
 	uint32_t id;
 
-	dpci_rx_ctx_get(&id, &dpci_id);
+	dpci_rx_ctx_get(&id, &fqid);
 	err = rx_ctx_set(id, NULL);
 
 	return err;
@@ -611,6 +631,9 @@ __HOT_CODE void sync_cmd_done(uint64_t sync_done,
 	sl_pr_debug("sync_done high = 0x%x low = 0x%x \n",
 		(uint32_t)((_sync_done & 0xFF00000000) >> 32),
 		(uint32_t)(_sync_done & 0xFFFFFFFF));
+
+	pr_debug("\n");
+	dpci_tbl_dump();
 
 	if (terminate)
 		fdma_terminate_task();
@@ -861,22 +884,19 @@ __COLD_CODE int session_open(uint16_t *new_auth)
 	int      err;
 
 	cmd_m_name_get(&m_name[0]);
-	sl_pr_debug("m_name = %s\n", m_name);
-
 	m_id = module_id_find(m_name);
-	sl_pr_debug("m_id = %d\n", m_id);
 
 	if (m_id < 0) {
 		/* Did not find module with such name */
-		sl_pr_err("No such module %s\n", m_name);
+		no_stack_pr_err("No such module %s\n", m_name);
 		return -ENODEV;
 	}
 
 	inst_id  = cmd_inst_id_get();
-	sl_pr_debug("inst_id = %d\n", inst_id);
 
+	err = dpci_rx_ctx_set();
+	ASSERT_COND(!err);
 	dpci_amq_bdi_set(); /* Must be before open callback */
-	dpci_rx_ctx_set();
 	
 	OPEN_CB(m_id, inst_id, dev);
 	if (!err) {
@@ -911,6 +931,7 @@ __HOT_CODE void cmdif_srv_isr(void) __attribute__ ((noreturn))
 
 #ifdef DEBUG
 	dump_memory();
+	dpci_tbl_dump();
 #endif
 
 	SAVE_GPP_ICID;
@@ -955,15 +976,19 @@ __HOT_CODE void cmdif_srv_isr(void) __attribute__ ((noreturn))
 
 		/* OPEN will arrive with hash value 0xffff */
 		if (auth_id != OPEN_AUTH_ID) {
-			no_stack_pr_err("No permission to open device 0x%x\n", auth_id);
+			no_stack_pr_err("No permission to open device 0x%x\n",
+			                auth_id);
 			CMDIF_STORE_DATA;
 			sync_cmd_done(sync_done_get(), -EPERM, auth_id,
 			              TRUE, gpp_icid, gpp_dma);
 		}
 
 		open_cmd_print();
-
+		pr_debug("\n");
+		dpci_tbl_dump();
 		err = session_open(&auth_id);
+		pr_debug("\n");
+		dpci_tbl_dump();
 		if (err) {
 			no_stack_pr_err("Open session FAILED err = %d\n", err);
 			CMDIF_STORE_DATA;
@@ -971,12 +996,11 @@ __HOT_CODE void cmdif_srv_isr(void) __attribute__ ((noreturn))
 			              TRUE, gpp_icid, gpp_dma);
 		} else {
 			no_stack_pr_debug("Open session PASSED auth_id = 0x%x\n",
-			         (uint16_t)err);
+			                  auth_id);
 			CMDIF_STORE_DATA;
 			sync_cmd_done(sync_done_get(), 0, auth_id,
 			              TRUE, gpp_icid, gpp_dma);
 		}
-
 	} else if (cmd_id == CMD_ID_CLOSE) {
 
 		if (is_valid_auth_id(auth_id)) {
@@ -1004,6 +1028,8 @@ __HOT_CODE void cmdif_srv_isr(void) __attribute__ ((noreturn))
 		}
 	} else {
 		if (is_valid_auth_id(auth_id)) {
+			pr_debug("\n");
+			dpci_tbl_dump();
 			/* User can ignore data and use presentation context */
 			CTRL_CB(auth_id, cmd_id, cmd_size_get(), \
 			        cmd_data_get());

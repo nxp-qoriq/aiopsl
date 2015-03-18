@@ -66,15 +66,15 @@ ASSERT_STRUCT_SIZE(CMDIF_SESSION_OPEN_SIZEOF, CMDIF_SESSION_OPEN_SIZE);
 
 #define CMDIF_DPCI_FQID(_OP, DPCI, FQID) \
 do { \
-	_OP(32,	32,	uint32_t,	DPCI); \
-	_OP(0,	32,	uint32_t,	FQID); \
+	_OP(32,		32,	uint32_t,	DPCI); \
+	_OP(0,		32,	uint32_t,	FQID); \
 } while (0)
 
 
 #define CMDIF_ICID_AMQ_BDI(_OP, ICID, AMQ_BDI) \
 do { \
-	_OP(16,	16,	uint16_t,	ICID); \
-	_OP(0,	16,	uint16_t,	AMQ_BDI); \
+	_OP(16,		16,	uint16_t,	ICID); \
+	_OP(0,		16,	uint16_t,	AMQ_BDI); \
 } while (0)
 
 struct cmdif_srv_aiop {

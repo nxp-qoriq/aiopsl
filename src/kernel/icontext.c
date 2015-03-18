@@ -85,16 +85,17 @@ int icontext_get(uint16_t dpci_id, struct icontext *ic)
 	uint16_t icid;
 	uint16_t amq_bdi;
 
-#ifdef DEBUG
-	if ((ic == NULL) || (dt == NULL))
-		return -EINVAL;
-#endif
+	ASSERT_COND(ic);
+	ASSERT_COND(dt);
+
 	/* search by GPP peer id - most likely case
 	 * or by AIOP dpci id  - to support both cases
 	 * All DPCIs in the world have different IDs */
 	ind = mc_dpci_find(dpci_id, &icid_amq_bdi);
-	if (ind > 0) {
+	if (ind >= 0) {
 		CMDIF_ICID_AMQ_BDI(AMQ_BDI_GET, &icid, &amq_bdi);
+		pr_debug("ind = %d icid = 0x%x amq = 0x%x\n", 
+		         ind, icid, amq_bdi);
 		if (icid == ICONTEXT_INVALID)
 			return -ENAVAIL;
 		ICONTEXT_SET(icid, amq_bdi);
@@ -104,6 +105,7 @@ int icontext_get(uint16_t dpci_id, struct icontext *ic)
 		return 0;
 	}
 	
+	pr_err("No entry found for DPCI ID 0x%x\n", dpci_id);
 	return -ENOENT;
 }
 

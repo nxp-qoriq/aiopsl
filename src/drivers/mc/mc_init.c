@@ -122,6 +122,14 @@ __COLD_CODE static int dpci_tbl_create(struct mc_dpci_tbl **_dpci_tbl, int dpci_
 	memset(dpci_tbl->dpci_id, 0xff, size);
 
 	size = sizeof(uint32_t) * dpci_count;
+	dpci_tbl->dpci_id_peer = fsl_malloc(size,1);
+	if (dpci_tbl->dpci_id_peer == NULL) {
+		pr_err("No memory for %d DPCIs\n", dpci_count);
+		return -ENOMEM;
+	}
+	memset(dpci_tbl->dpci_id_peer, 0xff, size);
+
+	size = sizeof(uint32_t) * dpci_count;
 	dpci_tbl->ic = fsl_malloc(size,1);
 	if (dpci_tbl->ic == NULL) {
 		pr_err("No memory for %d DPCIs\n", dpci_count);
@@ -171,6 +179,40 @@ __COLD_CODE static int dpci_tbl_add(struct dprc_obj_desc *dev_desc)
 	return err;
 }
 
+__COLD_CODE static void dpci_tbl_dump()
+{
+	int i;
+	struct mc_dpci_tbl *dt = sys_get_unique_handle(FSL_OS_MOD_DPCI_TBL);
+	
+	fsl_os_print("----------DPCI table----------\n");
+	for (i = 0; i < dt->count; i++) {
+		fsl_os_print("ID = 0x%x\t PEER ID = 0x%x\t IC = 0x%x\t\n", 
+		             dt->dpci_id[i], dt->dpci_id_peer[i], dt->ic[i]);
+	}
+}
+
+int mc_dpci_find(uint32_t dpci_id, uint32_t *ic)
+{
+	int i;
+	struct mc_dpci_tbl *dt = sys_get_unique_handle(FSL_OS_MOD_DPCI_TBL);
+	
+	ASSERT_COND(dt);
+	
+	dpci_tbl_dump();
+
+	for (i = 0; i < dt->count; i++) {
+		pr_debug("0x%x <-> 0x%x <-> 0x%x\n", dt->dpci_id[i], dt->dpci_id_peer[i], dpci_id);
+		if ((dt->dpci_id[i] == dpci_id) || 
+			(dt->dpci_id_peer[i] == dpci_id)) {
+			if (ic != NULL)
+				*ic = dt->ic[i];
+			return i;
+		}
+	}
+	
+	return -ENOENT;
+}
+
 __COLD_CODE static int dpci_for_mc_add(struct mc_dprc *dprc)
 {
 	struct dpci_cfg dpci_cfg;
@@ -193,24 +235,6 @@ __COLD_CODE static int dpci_for_mc_add(struct mc_dprc *dprc)
 	/* Get attributes just for dpci id fqids are not there yet */
 	err |= dpci_get_attributes(&dprc->io, dpci, &attr);
 	
-	/* Set priorities 0 and 1
-	 * 0 is high priority
-	 * 1 is low priority
-	 * Making sure that low priority is at index 0*/
-	queue_cfg.options = CMDIF_Q_OPTIONS;
-	queue_cfg.dest_cfg.dest_type = DPCI_DEST_NONE;
-	err = dpci_amq_bdi_init((uint32_t)attr.id);
-	if (err >= 0) {
-		/* Set index to DPCI table */
-		queue_cfg.user_ctx = 0;
-		CMDIF_DPCI_FQID(USER_CTX_SET, err, DPCI_FQID_NOT_VALID);
-	}
-	for (p = 0; p < dpci_cfg.num_of_priorities; p++) {
-		queue_cfg.dest_cfg.priority = DPCI_LOW_PR - p;
-		err |= dpci_set_rx_queue(&dprc->io, dpci, p, &queue_cfg);
-	}
-	ASSERT_COND(!err);
-	
 	/* Connect to dpci that belongs to MC */
 	pr_debug("MC dpci ID[%d] \n", g_init_data.sl_info.mc_dpci_id);
 
@@ -228,23 +252,40 @@ __COLD_CODE static int dpci_for_mc_add(struct mc_dprc *dprc)
 	if (err) {
 		pr_err("dprc_connect failed\n");
 	}
-
+	
+	/* Set priorities 0 and 1
+	 * 0 is high priority
+	 * 1 is low priority
+	 * Making sure that low priority is at index 0*/
+	queue_cfg.options = CMDIF_Q_OPTIONS;
+	queue_cfg.dest_cfg.dest_type = DPCI_DEST_NONE;
+	err = dpci_amq_bdi_init((uint32_t)attr.id); /* Set peer id */
+	if (err >= 0) {
+		/* Set index to DPCI table */
+		queue_cfg.user_ctx = 0;
+		CMDIF_DPCI_FQID(USER_CTX_SET, err, DPCI_FQID_NOT_VALID);
+	} else {
+		dpci_close(&dprc->io, dpci);
+		return err;
+	}
+	for (p = 0; p < dpci_cfg.num_of_priorities; p++) {
+		queue_cfg.dest_cfg.priority = DPCI_LOW_PR - p;
+		err = dpci_set_rx_queue(&dprc->io, dpci, p, &queue_cfg);
+		ASSERT_COND(!err);
+	}
+	
 	err = dpci_enable(&dprc->io, dpci);
 	if (err) {
-		pr_err("dpci_enable failed\n");
+		pr_err("dpci_enable failed err = %d\n", err);
+		dpci_close(&dprc->io, dpci);
+		return err;
 	}
 
 	err = dpci_get_link_state(&dprc->io, dpci, &link_up);
-	if (!link_up) {
-		pr_debug("MC DPCI[%d]<->AIOP DPCI[%d] link is down \n",
-		endpoint1.id,
-		endpoint2.id);
-		/* Don't return error maybe it will be linked in the future */
-	} else {
-		pr_debug("MC DPCI[%d]<->AIOP DPCI[%d] link is up \n",
-		endpoint1.id,
-		endpoint2.id);
-	}
+	pr_debug("MC DPCI[%d]<->AIOP DPCI[%d] link state is %d \n",
+	         endpoint1.id,
+	         endpoint2.id, 
+	         link_up);
 
 	err = dpci_close(&dprc->io, dpci);
 	return err;
@@ -276,7 +317,7 @@ __COLD_CODE static int dpci_tbl_fill(struct mc_dprc *dprc,
 	if (err) {
 		pr_err("Failed to create and link AIOP<->MC DPCI \n");
 	}
-	
+		
 	return err;
 }
 
@@ -317,6 +358,9 @@ __COLD_CODE static int dpci_discovery()
 	}
 
 	err = dpci_tbl_fill(dprc, dpci_count, dev_count);
+	
+	dpci_tbl_dump();
+
 	return err;
 }
 
@@ -346,23 +390,4 @@ __COLD_CODE void mc_obj_free()
 	dpci_discovery_free();
 	/* TODO DPCI close ???
 	 * TODO DPRC close */
-}
-
-
-int mc_dpci_find(uint32_t dpci_id, uint32_t *ic)
-{
-	struct mc_dpci_tbl *dpci_tbl = (struct mc_dpci_tbl *)\
-		sys_get_unique_handle(FSL_OS_MOD_DPCI_TBL);
-	int i;
-	
-	for (i = 0; i < dpci_tbl->count; i++) {
-		if ((dpci_tbl->dpci_id[i] == dpci_id) || 
-			dpci_tbl->dpci_id_peer[i] == dpci_id) {
-			if (ic != NULL)
-				*ic = dpci_tbl->ic[i];
-			return i;
-		}
-	}
-	
-	return -ENOENT;
 }
