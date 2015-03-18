@@ -217,14 +217,6 @@ __declspec(entry_point) static void app_process_packet_flow0 (void)
 		}
 	}
 
-	if(!local_test_error) /* No error found during injection of packets*/
-	{
-		fsl_os_print("Finished SUCCESSFULLY\n");
-		fsl_os_print("\nFrame after decryption the same as origin\n\n");
-	}
-	else
-		fsl_os_print("Finished with ERRORS\n");
-
 	/* Read statistics */
 	fsl_os_print("IPsec Demo: Encryption Statistics:\n");
 	ipsec_print_stats(ws_desc_handle_outbound);
@@ -235,7 +227,23 @@ __declspec(entry_point) static void app_process_packet_flow0 (void)
 	fsl_os_print("IPsec Demo: Core %d Sending Frame number %d\n",
 			core_get_id(), frame_number);
 
-	dpni_drv_send(dpni_get_receive_niid());
+	err = dpni_drv_send(dpni_get_receive_niid());
+	if (err){
+		fsl_os_print("ERROR = %d: dpni_drv_send(ni_id)\n",err);
+		local_test_error |= err;
+		if(err == -ENOMEM)
+			fdma_discard_default_frame(FDMA_DIS_NO_FLAGS);
+		else
+			fsl_os_print("ERROR!!! NEED TO CHECK WITH HW TEAM\n");
+	}
+
+	if(!local_test_error) /* No error found during injection of packets*/
+	{
+		fsl_os_print("Finished SUCCESSFULLY\n");
+		fsl_os_print("\nFrame after decryption the same as origin\n\n");
+	}
+	else
+		fsl_os_print("Finished with ERRORS\n");
 
 	fsl_os_print("IPsec Demo: Done Sending Frame\n\n");
 	/*MUST call fdma_terminate task in the end of cb function*/

@@ -92,6 +92,7 @@ void snic_process_packet(void)
 	struct fdma_queueing_destination_params enqueue_params;
 	int32_t parse_status;
 	uint16_t snic_id;
+	int err;
 
 	/* get sNIC ID */
 	snic_id = SNIC_ID_GET;
@@ -151,9 +152,12 @@ void snic_process_packet(void)
 	enqueue_params.qdbin = 0;
 	enqueue_params.qd = snic->qdid;
 	enqueue_params.qd_priority = default_task_params.qd_priority;
-	/* todo error cases */
-	fdma_store_and_enqueue_default_frame_qd(&enqueue_params, \
+	/* error cases */
+	err = fdma_store_and_enqueue_default_frame_qd(&enqueue_params, \
 			FDMA_ENWF_NO_FLAGS);
+	if(err == -ENOMEM)
+			fdma_discard_default_frame(FDMA_DIS_NO_FLAGS);
+	/* todo other error case */
 	fdma_terminate_task();
 }
 
