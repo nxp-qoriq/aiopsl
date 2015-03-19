@@ -475,6 +475,9 @@ int ipr_reassemble(ipr_instance_handle_t instance_handle)
 				| RFDC_SIZE,
 				(uint32_t *)REF_COUNT_ADDR_DUMMY);
 
+				fdma_discard_fd(
+					     (struct ldpaa_fd *)HWC_FD_ADDRESS,
+					     FDMA_DIS_NO_FLAGS);
 				/* Early Time out */
 				return ETIMEDOUT;
 			}
@@ -764,7 +767,7 @@ int ipr_reassemble(ipr_instance_handle_t instance_handle)
 	}
 	/* Only successfully reassembled frames continue
 	   from here */
-	/* default frame is now the full reassembled frame */
+	/* Currently no default frame */
 
 	/* Increment no of valid fragments in extended statistics
 	 * data structure*/
@@ -819,6 +822,7 @@ int ipr_reassemble(ipr_instance_handle_t instance_handle)
 	prc->seg_address = rfdc.seg_addr;
 	prc->seg_length  = rfdc.seg_length;
 	prc->seg_offset  = rfdc.seg_offset;
+	/* Default frame is now the full reassembled frame */
 	fdma_present_default_frame_default_segment();
 	/* FD length is still not updated */
 

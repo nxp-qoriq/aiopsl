@@ -37,6 +37,7 @@
 #include "fsl_mc_init.h"
 #include "ls2085_aiop/fsl_platform.h"
 #include "cmdif_srv.h"
+#include "fsl_dpci_drv.h"
 
 extern struct aiop_init_info g_init_data;
 
@@ -171,15 +172,18 @@ __COLD_CODE static int dpci_tbl_add(struct dprc_obj_desc *dev_desc)
 	pr_debug("ver_minor - %d\n", dev_desc->ver_minor);
 	pr_debug("irq_count - %d\n\n", dev_desc->irq_count);
 
+#ifdef  ARENA_LEGACY_CODE
 	err = dpci_amq_bdi_init((uint32_t)dev_desc->id);
 	if (err >= 0) {
 		err = dpci_rx_ctx_init((uint32_t)dev_desc->id, (uint32_t)err);
 	}
+#endif
+	err = dpci_drv_added((uint32_t)dev_desc->id);
 
 	return err;
 }
 
-__COLD_CODE static void dpci_tbl_dump()
+__COLD_CODE void mc_dpci_tbl_dump()
 {
 	int i;
 	struct mc_dpci_tbl *dt = sys_get_unique_handle(FSL_OS_MOD_DPCI_TBL);
@@ -196,12 +200,9 @@ int mc_dpci_find(uint32_t dpci_id, uint32_t *ic)
 	int i;
 	struct mc_dpci_tbl *dt = sys_get_unique_handle(FSL_OS_MOD_DPCI_TBL);
 	
-	ASSERT_COND(dt);
-	
-	dpci_tbl_dump();
+	ASSERT_COND(dt);	
 
 	for (i = 0; i < dt->count; i++) {
-		pr_debug("0x%x <-> 0x%x <-> 0x%x\n", dt->dpci_id[i], dt->dpci_id_peer[i], dpci_id);
 		if ((dt->dpci_id[i] == dpci_id) || 
 			(dt->dpci_id_peer[i] == dpci_id)) {
 			if (ic != NULL)
@@ -252,42 +253,17 @@ __COLD_CODE static int dpci_for_mc_add(struct mc_dprc *dprc)
 	if (err) {
 		pr_err("dprc_connect failed\n");
 	}
-	
-	/* Set priorities 0 and 1
-	 * 0 is high priority
-	 * 1 is low priority
-	 * Making sure that low priority is at index 0*/
-	queue_cfg.options = CMDIF_Q_OPTIONS;
-	queue_cfg.dest_cfg.dest_type = DPCI_DEST_NONE;
-	err = dpci_amq_bdi_init((uint32_t)attr.id); /* Set peer id */
-	if (err >= 0) {
-		/* Set index to DPCI table */
-		queue_cfg.user_ctx = 0;
-		CMDIF_DPCI_FQID(USER_CTX_SET, err, DPCI_FQID_NOT_VALID);
-	} else {
-		dpci_close(&dprc->io, dpci);
-		return err;
-	}
-	for (p = 0; p < dpci_cfg.num_of_priorities; p++) {
-		queue_cfg.dest_cfg.priority = DPCI_LOW_PR - p;
-		err = dpci_set_rx_queue(&dprc->io, dpci, p, &queue_cfg);
-		ASSERT_COND(!err);
-	}
-	
-	err = dpci_enable(&dprc->io, dpci);
-	if (err) {
-		pr_err("dpci_enable failed err = %d\n", err);
-		dpci_close(&dprc->io, dpci);
-		return err;
-	}
-
-	err = dpci_get_link_state(&dprc->io, dpci, &link_up);
-	pr_debug("MC DPCI[%d]<->AIOP DPCI[%d] link state is %d \n",
-	         endpoint1.id,
-	         endpoint2.id, 
-	         link_up);
-
 	err = dpci_close(&dprc->io, dpci);
+	ASSERT_COND(!err);
+
+#ifdef  ARENA_LEGACY_CODE
+	err = dpci_amq_bdi_init((uint32_t)attr.id);
+	if (err >= 0) {
+		err = dpci_rx_ctx_init((uint32_t)attr.id, (uint32_t)err);
+	}
+#endif
+	err = dpci_drv_added((uint32_t)attr.id);
+
 	return err;
 }
 
@@ -359,7 +335,7 @@ __COLD_CODE static int dpci_discovery()
 
 	err = dpci_tbl_fill(dprc, dpci_count, dev_count);
 	
-	dpci_tbl_dump();
+	mc_dpci_tbl_dump();
 
 	return err;
 }

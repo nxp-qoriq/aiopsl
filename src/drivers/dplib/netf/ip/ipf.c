@@ -238,6 +238,9 @@ int ipf_move_remaining_frame(struct ipf_context *ipf_ctx)
 			ws_dst_rs = (void *)PRC_GET_SEGMENT_ADDRESS();
 			seg_size_rs = PRC_GET_SEGMENT_LENGTH();
 
+/* Due to the CTLU HW requirement for alignment, presentation address should not 
+ * change */
+/*
 			if ((PRC_GET_SEGMENT_ADDRESS() -
 					(uint32_t)TLS_SECTION_END_ADDR) >=
 					IPV6_FRAGMENT_HEADER_LENGTH){
@@ -245,7 +248,9 @@ int ipf_move_remaining_frame(struct ipf_context *ipf_ctx)
 					(uint32_t)IPV6_FRAGMENT_HEADER_LENGTH);
 				seg_size_rs = seg_size_rs +
 						IPV6_FRAGMENT_HEADER_LENGTH;
-
+			}
+*/
+			
 			fdma_replace_default_segment_data(
 				ipv6_offset,
 				(uint16_t)
@@ -257,7 +262,7 @@ int ipf_move_remaining_frame(struct ipf_context *ipf_ctx)
 				ws_dst_rs,
 				seg_size_rs,
 				FDMA_REPLACE_SA_REPRESENT_BIT);
-		}
+		
 		ipf_ctx->first_frag = 0;
 	} else {
 	/* Not first fragment */
@@ -401,6 +406,8 @@ int ipf_split_ipv4_fragment(struct ipf_context *ipf_ctx)
 		/* Split remaining frame, put split frame in default FD
 		 * location*/
 #ifndef REV2
+/* Due to HW ticket TKT240996 */
+
 		status = fdma_store_frame_data(
 				split_frame_params.source_frame_handle,
 				split_frame_params.spid,
@@ -452,6 +459,7 @@ int ipf_split_ipv4_fragment(struct ipf_context *ipf_ctx)
 			/* Split remaining frame, put split frame in default FD
 			 * location*/
 #ifndef REV2
+/* Due to HW ticket TKT240996 */
 			status = fdma_store_frame_data(
 					split_frame_params.source_frame_handle,
 					split_frame_params.spid,
@@ -557,6 +565,7 @@ int ipf_split_ipv6_fragment(struct ipf_context *ipf_ctx,
 		split_frame_params.split_size_sf = 0;
 
 #ifndef REV2
+/* Due to HW ticket TKT240996 */
 		status = fdma_store_frame_data(
 				split_frame_params.source_frame_handle,
 				split_frame_params.spid,
@@ -610,6 +619,8 @@ int ipf_split_ipv6_fragment(struct ipf_context *ipf_ctx,
 			/* Split remaining frame, put split frame in default FD
 			 * location*/
 #ifndef REV2
+/* Due to HW ticket TKT240996 */
+
 			status = fdma_store_frame_data(
 					split_frame_params.source_frame_handle,
 					split_frame_params.spid,

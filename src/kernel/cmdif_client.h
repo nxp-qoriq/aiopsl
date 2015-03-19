@@ -41,6 +41,7 @@
 #include "fsl_sl_dbg.h"
 #include "fsl_ldpaa_aiop.h"
 #include "fsl_mc_init.h"
+#include "fsl_general.h"
 
 #pragma warning_errors on
 ASSERT_STRUCT_SIZE(CMDIF_OPEN_SIZEOF, CMDIF_OPEN_SIZE);

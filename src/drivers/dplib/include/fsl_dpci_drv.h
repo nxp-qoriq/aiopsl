@@ -24,13 +24,44 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef __DFLAGS_DBG_H
-#define __DFLAGS_DBG_H
+#ifndef __FSL_DPCI_DRV_H
+#define __FSL_DPCI_DRV_H
 
-#define DEBUG_LEVEL         2
+/*
+ * New DPCI was added or the state of the DPCI has changed
+ * The dpci_id must belong to AIOP side
+ */
+int dpci_drv_added(uint32_t dpci_id);
 
-#include "build_flags.h"
+/*
+ * The DPCI was removed from AIOP container
+ * The dpci_id must belong to AIOP side
+ */
+int dpci_drv_removed(uint32_t dpci_id);
 
-#define CDC_ROC
+/*
+ * The DPCI user context and AMQ bits are updated 
+ * This function is to be called only inside the open command and before 
+ * the AMQ bits had been changed to AIOP AMQ bits
+ * For dpci_ind Use mc_dpci_find() or dpci_drv_user_ctx_get()  
+ */
+int dpci_drv_update(uint32_t dpci_ind);
 
-#endif /* __DFLAGS_DBG_H */
+/*
+ * The dpci_id can be either AIOP dpci id or the peer id  
+ */
+int dpci_drv_tx_get(uint32_t dpci_id, struct dpci_tx_queue_attr *tx);
+
+/*
+ * Read the DPCI index and FQID from user context in ADC 
+ */
+void dpci_drv_user_ctx_get(uint32_t *dpci_ind, uint32_t *fqid);
+
+/*
+ * Read icid and amq of specific DPCI table entry 
+ */
+void dpci_drv_icid_get(uint32_t dpci_ind, uint16_t *icid, uint16_t *amq_bdi);
+
+
+
+#endif
