@@ -133,6 +133,7 @@ int create_frame(
 		*frame_handle = PRC_GET_FRAME_HANDLE();
 		return status;
 	} else {
+#ifdef REV2  /* WA for TKT254401 */
 		present_frame_params.fd_src = (void *)fd;
 		present_frame_params.asa_size = 0;
 		present_frame_params.flags = FDMA_INIT_NO_FLAGS;
@@ -154,6 +155,7 @@ int create_frame(
 
 		*frame_handle = present_frame_params.frame_handle;
 
+#endif
 		return SUCCESS;
 	}
 }
@@ -224,6 +226,7 @@ int create_fd(
 
 		return fdma_store_default_frame_data();
 	} else {
+#ifdef REV2  /* WA for TKT254401 */
 		present_frame_params.fd_src = (void *)fd;
 		present_frame_params.asa_size = 0;
 		present_frame_params.flags = FDMA_INIT_NO_FLAGS;
@@ -245,6 +248,9 @@ int create_fd(
 
 		return fdma_store_frame_data(present_frame_params.frame_handle,
 				spid, &amq);
+#else
+		return SUCCESS;
+#endif
 	}
 }
 
