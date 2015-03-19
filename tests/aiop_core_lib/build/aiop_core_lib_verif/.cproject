@@ -161,7 +161,7 @@
 								<option id="com.freescale.ppc.toolchain.compiler.base.general.otherflags.bool.2095647062" name="Enable C++ 'bool' type, 'true' and 'false' Constants" superClass="com.freescale.ppc.toolchain.compiler.base.general.otherflags.bool" value="false" valueType="boolean"/>
 								<option id="com.freescale.ppc.toolchain.compiler.base.preprocessor.include.prefixfile.422290895" name="Prefix Files" superClass="com.freescale.ppc.toolchain.compiler.base.preprocessor.include.prefixfile" valueType="symbolFiles">
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/prefix/lib_ewl.prefix&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}\..\verif_dflags_dbg.h&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/prefix/verif_dflags_dbg.h&quot;"/>
 								</option>
 								<option id="com.freescale.ppc.toolchain.compiler.base.input.include.recursive.433197513" name="User Recursive Path (-ir )" superClass="com.freescale.ppc.toolchain.compiler.base.input.include.recursive" valueType="includePath">
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../tests/aiop_core_lib&quot;"/>
@@ -414,7 +414,7 @@
 								<option id="com.freescale.ppc.toolchain.compiler.base.general.otherflags.bool.2035838690" name="Enable C++ 'bool' type, 'true' and 'false' Constants" superClass="com.freescale.ppc.toolchain.compiler.base.general.otherflags.bool" value="false" valueType="boolean"/>
 								<option id="com.freescale.ppc.toolchain.compiler.base.preprocessor.include.prefixfile.2136302412" name="Prefix Files" superClass="com.freescale.ppc.toolchain.compiler.base.preprocessor.include.prefixfile" valueType="symbolFiles">
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/prefix/lib_ewl.prefix&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}\..\verif_dflags_dbg.h&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/prefix/verif_dflags_dbg.h&quot;"/>
 								</option>
 								<option id="com.freescale.ppc.toolchain.compiler.base.input.include.recursive.1176385030" name="User Recursive Path (-ir )" superClass="com.freescale.ppc.toolchain.compiler.base.input.include.recursive" valueType="includePath">
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../tests/aiop_core_lib&quot;"/>
@@ -668,7 +668,7 @@
 								<option id="com.freescale.ppc.toolchain.compiler.base.general.otherflags.bool.927762637" name="Enable C++ 'bool' type, 'true' and 'false' Constants" superClass="com.freescale.ppc.toolchain.compiler.base.general.otherflags.bool" value="false" valueType="boolean"/>
 								<option id="com.freescale.ppc.toolchain.compiler.base.preprocessor.include.prefixfile.507326197" name="Prefix Files" superClass="com.freescale.ppc.toolchain.compiler.base.preprocessor.include.prefixfile" valueType="symbolFiles">
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/prefix/lib_ewl.prefix&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}\..\verif_dflags_dbg.h&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/prefix/verif_dflags_dbg.h&quot;"/>
 								</option>
 								<option id="com.freescale.ppc.toolchain.compiler.base.input.include.recursive.1508404761" name="User Recursive Path (-ir )" superClass="com.freescale.ppc.toolchain.compiler.base.input.include.recursive" valueType="includePath">
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../tests/aiop_core_lib&quot;"/>
@@ -922,7 +922,7 @@
 								<option id="com.freescale.ppc.toolchain.compiler.base.general.otherflags.bool.1913446435" name="Enable C++ 'bool' type, 'true' and 'false' Constants" superClass="com.freescale.ppc.toolchain.compiler.base.general.otherflags.bool" value="false" valueType="boolean"/>
 								<option id="com.freescale.ppc.toolchain.compiler.base.preprocessor.include.prefixfile.2095177723" name="Prefix Files" superClass="com.freescale.ppc.toolchain.compiler.base.preprocessor.include.prefixfile" valueType="symbolFiles">
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/prefix/lib_ewl.prefix&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}\..\verif_dflags_dbg.h&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/prefix/verif_dflags_dbg.h&quot;"/>
 								</option>
 								<option id="com.freescale.ppc.toolchain.compiler.base.input.include.recursive.635509828" name="User Recursive Path (-ir )" superClass="com.freescale.ppc.toolchain.compiler.base.input.include.recursive" valueType="includePath">
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../tests/aiop_core_lib&quot;"/>
