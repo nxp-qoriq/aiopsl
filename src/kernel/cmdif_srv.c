@@ -342,20 +342,6 @@ __COLD_CODE static int dpci_get_peer_id(uint32_t dpci_id, uint32_t *dpci_id_peer
 	return err;
 }
 
-__COLD_CODE static void dpci_tbl_dump()
-{
-	int i;
-	struct mc_dpci_tbl *dt = sys_get_unique_handle(FSL_OS_MOD_DPCI_TBL);
-	
-	fsl_os_print("----------DPCI table----------\n");
-	fsl_os_print("dpci_id ptr = 0x%x \n", (uint32_t)dt->dpci_id);
-	fsl_os_print("perr_id ptr = 0x%x \n", (uint32_t)dt->dpci_id_peer);
-	for (i = 0; i < dt->count; i++) {
-		fsl_os_print("ID = 0x%x\t PEER ID = 0x%x\t IC = 0x%x\t\n", 
-		             dt->dpci_id[i], dt->dpci_id_peer[i], dt->ic[i]);
-	}
-}
-
 static inline void amq_bits_update(uint32_t id)
 {
 	struct mc_dpci_tbl *dt = (struct mc_dpci_tbl *)\
@@ -381,9 +367,7 @@ static inline void amq_bits_update(uint32_t id)
 	         dt->dpci_id_peer[id]);
 	/* Must be written last */
 	dt->ic[id] = amq_bdi;
-	pr_debug("ind = 0x%x id = 0x%x amq_bdi = 0x%x pl_icid = 0x%x\n", 
-	         id, dt->dpci_id[id], amq_bdi, pl_icid);
-	dpci_tbl_dump();
+	mc_dpci_tbl_dump();
 }
 
 /* To be called in runtime only */
@@ -617,13 +601,13 @@ __HOT_CODE void sync_cmd_done(uint64_t sync_done,
 		_sync_done = cmdif_aiop_srv.srv->sync_done[auth_id];
 
 	if (_sync_done == NULL) {
-		sl_pr_err("Can't finish sync command, no valid address\n");
+		no_stack_pr_err("Can't finish sync command, no valid address\n");
 		/** In this case client will fail on timeout */
 	} else {
 		/*
 		 * Use previously saved AMQ bits and ICID */
-		sl_pr_debug("icid = 0x%x\n", icid);
-		sl_pr_debug("fdma_dma_data flags = 0x%x\n", dma_flags);
+		no_stack_pr_debug("icid = 0x%x\n", icid);
+		no_stack_pr_debug("fdma_dma_data flags = 0x%x\n", dma_flags);
 		fdma_dma_data(4, icid, &resp, _sync_done,
 		              dma_flags | FDMA_DMA_DA_WS_TO_SYS_BIT);
 	}
@@ -631,9 +615,6 @@ __HOT_CODE void sync_cmd_done(uint64_t sync_done,
 	sl_pr_debug("sync_done high = 0x%x low = 0x%x \n",
 		(uint32_t)((_sync_done & 0xFF00000000) >> 32),
 		(uint32_t)(_sync_done & 0xFFFFFFFF));
-
-	pr_debug("\n");
-	dpci_tbl_dump();
 
 	if (terminate)
 		fdma_terminate_task();
@@ -902,7 +883,6 @@ __COLD_CODE int session_open(uint16_t *new_auth)
 	if (!err) {
 		int  new_inst = inst_alloc((uint8_t)m_id);
 		if (new_inst >= 0) {
-			sl_pr_debug("New auth_id = %d module name = %s\n", new_inst, m_name);
 			sync_done_set((uint16_t)new_inst);
 			cmdif_aiop_srv.srv->inst_dev[new_inst] = dev;
 			/* Should change only on success */
@@ -910,7 +890,7 @@ __COLD_CODE int session_open(uint16_t *new_auth)
 			return 0;
 		} else {
 			/* couldn't find free place for new device */
-			sl_pr_err("No free entry for new device\n");
+			no_stack_pr_err("No free entry for new device\n");
 			return -ENOMEM;
 		}
 	} else {
@@ -931,7 +911,6 @@ __HOT_CODE void cmdif_srv_isr(void) __attribute__ ((noreturn))
 
 #ifdef DEBUG
 	dump_memory();
-	dpci_tbl_dump();
 #endif
 
 	SAVE_GPP_ICID;
@@ -984,11 +963,7 @@ __HOT_CODE void cmdif_srv_isr(void) __attribute__ ((noreturn))
 		}
 
 		open_cmd_print();
-		pr_debug("\n");
-		dpci_tbl_dump();
 		err = session_open(&auth_id);
-		pr_debug("\n");
-		dpci_tbl_dump();
 		if (err) {
 			no_stack_pr_err("Open session FAILED err = %d\n", err);
 			CMDIF_STORE_DATA;
@@ -1028,8 +1003,6 @@ __HOT_CODE void cmdif_srv_isr(void) __attribute__ ((noreturn))
 		}
 	} else {
 		if (is_valid_auth_id(auth_id)) {
-			pr_debug("\n");
-			dpci_tbl_dump();
 			/* User can ignore data and use presentation context */
 			CTRL_CB(auth_id, cmd_id, cmd_size_get(), \
 			        cmd_data_get());
