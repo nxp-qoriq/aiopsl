@@ -55,6 +55,11 @@ int create_frame(
 		uint16_t size,
 		uint8_t *frame_handle)
 {
+	
+#ifdef CHECK_ALIGNMENT 	
+	DEBUG_ALIGN((uint32_t)fd, ALIGNMENT_32B);
+#endif
+	
 	struct fdma_present_frame_params present_frame_params;
 	struct fdma_insert_segment_data_params insert_params;
 	struct parse_result *pr = (struct parse_result *)HWC_PARSE_RES_ADDRESS;
@@ -117,12 +122,6 @@ int create_frame(
 #else		
 		ws_address_rs = (void *) PRC_GET_SEGMENT_ADDRESS();
 		seg_size_rs = PRC_GET_SEGMENT_LENGTH();
-		if ((PRC_GET_SEGMENT_ADDRESS() - (uint32_t)TLS_SECTION_END_ADDR)
-				>= size){
-			ws_address_rs = (void *)
-				((uint32_t)ws_address_rs - size);
-			seg_size_rs = seg_size_rs + size;
-		}
 		fdma_replace_default_segment_data(0, FRAME_INITIAL_SIZE, data, size, 
 				ws_address_rs, seg_size_rs, 
 				FDMA_REPLACE_SA_REPRESENT_BIT);
@@ -165,6 +164,11 @@ int create_fd(
 		uint16_t size,
 		uint8_t spid)
 {
+	
+#ifdef CHECK_ALIGNMENT 	
+	DEBUG_ALIGN((uint32_t)fd, ALIGNMENT_32B);
+#endif
+	
 	struct fdma_present_frame_params present_frame_params;
 	struct fdma_insert_segment_data_params insert_params;
 	struct fdma_amq amq;
@@ -251,6 +255,10 @@ int create_arp_request_broadcast(
 		uint8_t *frame_handle)
 {
 
+#ifdef CHECK_ALIGNMENT 	
+	DEBUG_ALIGN((uint32_t)fd, ALIGNMENT_32B);
+#endif
+	
 	uint8_t target_eth[6];
 	*((uint32_t *)target_eth) = (uint32_t)BROADCAST_MAC;
 	*((uint16_t *)(target_eth+4)) = (uint16_t)BROADCAST_MAC;
@@ -266,6 +274,11 @@ int create_arp_request(
 		uint8_t *target_eth,
 		uint8_t *frame_handle)
 {
+	
+#ifdef CHECK_ALIGNMENT 	
+	DEBUG_ALIGN((uint32_t)fd, ALIGNMENT_32B);
+#endif
+	
 	uint8_t arp_data[ARP_PKT_MIN_LEN];
 	uint8_t *ethhdr = arp_data;
 	struct arphdr *arp_hdr =

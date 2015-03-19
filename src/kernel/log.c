@@ -87,7 +87,7 @@ void log_print_to_buffer(char *str, uint16_t str_length)
 		/*Start to write from the last end of write without END delimiter*/
 		local_counter -= LOG_END_SIGN_LENGTH;
 	}
-	else{/*cyclic write needed*/
+	else{/*Write from the end of buffer because the last write was cyclic*/
 		/*write from the end of the buffer (END\n delimiter is in the end of buffer)*/
 		local_counter = g_log_buf_size + (local_counter - LOG_END_SIGN_LENGTH);
 	}
@@ -98,17 +98,54 @@ void log_print_to_buffer(char *str, uint16_t str_length)
 	{
 		/* Enough buffer*/
 		g_log_buf_count = local_counter + str_length;
-		icontext_dma_write(&icontext_aiop, str_length, str, g_log_buf_phys_address + local_counter);
+		
+		icontext_dma_write(&icontext_aiop,
+				str_length - LOG_END_SIGN_LENGTH,
+				&str[LOG_END_SIGN_LENGTH],
+				g_log_buf_phys_address + local_counter + LOG_END_SIGN_LENGTH);
+		
+		icontext_dma_write(&icontext_aiop,
+				LOG_END_SIGN_LENGTH,
+				str,
+				g_log_buf_phys_address + local_counter);	
 	}
 	else /*cyclic write needed*/
 	{
-		/*Two writes needed - calculate the second write*/		
-		second_write_len = str_length - (uint16_t)(g_log_buf_size - local_counter);		
-		str_length -= second_write_len; /*str_length is now first_write length*/
-		g_log_buf_count = second_write_len; /*The counter will point to the end of the string from the beginning of buffer*/
-		icontext_dma_write(&icontext_aiop, str_length, str, g_log_buf_phys_address + local_counter);
-		str += str_length;
-		icontext_dma_write(&icontext_aiop, second_write_len, str, g_log_buf_phys_address );		
+		/*Two writes needed (Not including the overwrite of END delimiter) - calculate the second write*/		
+		second_write_len = str_length - (uint16_t)(g_log_buf_size - local_counter);
+		str_length -= second_write_len; /*str_length is now "first_write" length*/
+		if(second_write_len >= LOG_END_SIGN_LENGTH)/*The END\n delimiter will be written in the second write*/
+		{
+			g_log_buf_count = second_write_len; /*The counter will point to the end of the string from the beginning of buffer*/
+			
+			icontext_dma_write(&icontext_aiop,
+					second_write_len,
+					&str[str_length],
+					g_log_buf_phys_address);
+			
+			icontext_dma_write(&icontext_aiop,
+					str_length,
+					str,
+					g_log_buf_phys_address + local_counter);			
+		}
+		else /*if(second_write_len < LOG_END_SIGN_LENGTH) must be bigger than 0, otherwise no need for cyclic write*/
+		{
+			g_log_buf_count = LOG_END_SIGN_LENGTH;
+			/*First write END\n delimiter to indicate that cyclic write was made*/ 
+			icontext_dma_write(&icontext_aiop,
+					LOG_END_SIGN_LENGTH,
+					&str[str_length + second_write_len - LOG_END_SIGN_LENGTH],
+					g_log_buf_phys_address);
+			str[str_length + second_write_len - 1] = ' ';
+			str[str_length + second_write_len - 2] = ' ';
+			str[str_length + second_write_len - 3] = ' ';
+			str[str_length + second_write_len - 4] = ' ';
+			
+			icontext_dma_write(&icontext_aiop,
+					str_length,
+					str,
+					g_log_buf_phys_address + local_counter);
+		}
 	}
 	/*Unlock mutex*/
 	cdma_mutex_lock_release(g_log_buf_phys_address);
