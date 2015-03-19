@@ -427,6 +427,8 @@ struct tcp_gro_context_params {
 		not done, no frame will be in the default frame area.
 		Only when an aggregation is done, the aggregated frame will be
 		in the default frame area.
+@remark		It is assumed that the address of the presented segment is 
+		aligned to 16 bytes.
 
 @Cautions	The user should zero the \ref tcp_gro_ctx_t allocated space once
 		a new session begins.
