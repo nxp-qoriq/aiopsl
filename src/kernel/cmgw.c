@@ -51,6 +51,13 @@ void cmgw_init(void * cmgw_regs_base)
     abcr_lock = 0;
 }
 
+void cmgw_report_boot_status(uint32_t st)
+{   
+    ASSERT_COND(cmgw_regs);
+
+	iowrite32_ccsr(st, &(cmgw_regs->acgpr[CMGW_ACGPR_BOOT_STATUS]));
+}
+
 /******************************************************************************/
 void cmgw_report_boot_failure()
 {   

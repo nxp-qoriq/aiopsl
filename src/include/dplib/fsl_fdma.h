@@ -914,7 +914,8 @@ struct fdma_delete_segment_data_params {
 		frame from scratch (without a presented frame). In this case
 		the fd address parameter must point to a null FD (all 0x0) in
 		the workspace, and an empty segment must be allocated (of size
-		0).
+		0). Due to PDM TKT254401 this option can work only on the 
+		default frame.
 
 		Implicitly updated values in Task Defaults:  frame handle,
 		segment handle.
@@ -953,7 +954,8 @@ inline int fdma_present_default_frame(void);
 		frame from scratch (without a presented frame). In this case
 		the fd address parameter must point to a null FD (all 0x0) in
 		the workspace, and an empty segment must be allocated (of size
-		0).
+		0). Due to PDM TKT254401 this option can work only on the 
+		default frame.
 
 		In case the fd destination parameter points to the default FD
 		address, the service routine will update Task defaults variables
@@ -1050,7 +1052,7 @@ int fdma_present_frame_without_segments(
 /**************************************************************************//**
 @Function	fdma_present_default_frame_segment
 
-@Description	Open a segment of the default working frame and copy the
+@Description	Open a default segment of the default working frame and copy the
 		segment data into the specified location in the workspace.
 
 		Implicit input parameters in Task Defaults: frame handle.
@@ -1076,7 +1078,7 @@ int fdma_present_frame_without_segments(
 		This return value is caused since the requested presentation 
 		exceeded frame data end.
 
-@Cautions	This command may be invoked only for Data segments.
+@Cautions	This command may be invoked only for a default Data segments.
 @Cautions	This function may result in a fatal error.
 @Cautions	In this Service Routine the task yields.
 *//***************************************************************************/
@@ -1105,6 +1107,7 @@ inline int fdma_present_default_frame_segment(
 		exceeded frame data end.
 
 @Cautions	This command may be invoked only for Data segments.
+@Cautions	This command may not be invoked on the default Data segments.
 @Cautions	This function may result in a fatal error.
 @Cautions	In this Service Routine the task yields.
 *//***************************************************************************/
@@ -2128,15 +2131,8 @@ void fdma_modify_segment_data(
 
 @remark		In case \ref FDMA_REPLACE_SA_REPRESENT_BIT flag is set, the
 		pointer to the workspace start address of the represented
-		segment and the number of frame bytes to represent are
-		calculated automatically in the Service Routine according to the
-		input parameters and the Task Default variables.
-		This is done from performance considerations.
-		The workspace start address of the represented segment
-		calculated as insert_size bytes before the old segment
-		address.
-		The number of frame bytes to represent remains the old
-		segment length.
+		segment and the number of frame bytes to represent remains the 
+		same.
 
 @Cautions	As part of a workaround to ticket TKT237377 this command closes
 		and reopens the segment. (meaning that all segment modifications
@@ -2252,15 +2248,8 @@ int fdma_insert_segment_data(
 
 @remark		In case \ref FDMA_REPLACE_SA_REPRESENT_BIT flag is set the
 		pointer to the workspace start address of the represented
-		segment and the number of frame bytes to represent are
-		calculated automatically in the Service Routine according to the
-		input parameters and the Task Default variables.
-		This is done from performance considerations.
-		The workspace start address of the represented segment
-		calculated as delete_target_size bytes after the old segment
-		address.
-		The number of frame bytes to represent is the old segment
-		length reduced by delete_target_size bytes.
+		segment and the number of frame bytes to represent remains the 
+		same.
 
 @Cautions	As part of a workaround to ticket TKT237377 this command closes
 		and reopens the segment. (meaning that all segment modifications
@@ -2605,9 +2594,13 @@ inline int fdma_replace_default_segment_data(
 @Param[in]	flags - Please refer to
 		\link FDMA_Copy_Flags Copy command flags \endlink.
 @Param[in]	src - A pointer to the location in the workspace/AIOP Shared
-		memory of the source data (limited to 20 bits).
+		memory of the source data (limited to 20 bits). 
+		(SRAM address is relative to SRAM start.
+		Workspace address is relative to Workspace start).
 @Param[in]	dst - A pointer to the location in the workspace/AIOP Shared
 		memory to store the copied data (limited to 20 bits).
+		(SRAM address is relative to SRAM start.
+		Workspace address is relative to Workspace start).
 
 @Return		None.
 

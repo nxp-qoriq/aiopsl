@@ -26,7 +26,7 @@
 				</dictionary>
 				<dictionary>
 					<key>org.eclipse.cdt.make.core.buildLocation</key>
-					<value>${ProjDirPath}/Debug_Coverage</value>
+					<value>${ProjDirPath}/Debug</value>
 				</dictionary>
 				<dictionary>
 					<key>org.eclipse.cdt.make.core.contents</key>
@@ -511,6 +511,21 @@
 			<name>sources/drivers/dplib/include/virtual_pools.h</name>
 			<type>1</type>
 			<locationURI>PARENT-4-PROJECT_LOC/src/drivers/dplib/include/virtual_pools.h</locationURI>
+		</link>
+		<link>
+			<name>sources/drivers/dplib/kernel/console.c</name>
+			<type>1</type>
+			<locationURI>PARENT-4-PROJECT_LOC/src/kernel/console.c</locationURI>
+		</link>
+		<link>
+			<name>sources/drivers/dplib/kernel/icontext.c</name>
+			<type>1</type>
+			<locationURI>PARENT-4-PROJECT_LOC/src/kernel/icontext.c</locationURI>
+		</link>
+		<link>
+			<name>sources/drivers/dplib/kernel/log.c</name>
+			<type>1</type>
+			<locationURI>PARENT-4-PROJECT_LOC/src/kernel/log.c</locationURI>
 		</link>
 		<link>
 			<name>sources/drivers/dplib/kernel/os.c</name>

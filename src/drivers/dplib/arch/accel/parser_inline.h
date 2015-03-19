@@ -53,6 +53,7 @@ inline int parse_result_generate(enum parser_starting_hxs_code starting_hxs,
 	/* 8 Byte aligned for stqw optimization */
 	struct parser_input_message_params input_struct
 				__attribute__((aligned(16)));
+	
 
 	arg1 = (uint32_t)default_task_params.parser_profile_id;
 	arg1 = __e_rlwimi(arg1, (uint32_t)flags, 8, 16, 23);
@@ -126,6 +127,7 @@ inline int parse_result_generate_default(uint8_t flags)
 	struct parser_input_message_params input_struct
 					__attribute__((aligned(16)));
 
+	
 	arg1 = (uint32_t)default_task_params.parser_profile_id;
 	arg1 = __e_rlwimi(arg1, (uint32_t)flags, 8, 16, 23);
 	arg1 = __e_rlwimi(arg1,
@@ -202,6 +204,7 @@ inline int parse_result_generate_basic(void)
 	struct parser_input_message_params input_struct
 					__attribute__((aligned(16)));
 
+	
 	input_struct.gross_running_sum = pr->gross_running_sum;
 
 	arg2 = ((uint32_t)(&input_struct) << 16) |

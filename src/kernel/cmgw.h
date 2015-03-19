@@ -36,10 +36,14 @@
 #include "fsl_errors.h"
 
 #define CMGW_ACGPR_BOOT_FAIL 0
+#define CMGW_ACGPR_BOOT_STATUS 1
+#define CMGW_ACGPR_AIOP_COMPLETION_STATUS 2
 
 #define CMGW_WSCR_NTASKS_MASK 0x0000000F
 
 void cmgw_init(void * cmgw_regs_base);
+void cmgw_report_boot_status(uint32_t st);
+
 void cmgw_report_boot_failure();
 void cmgw_update_core_boot_completion();
 uint32_t cmgw_get_ntasks();

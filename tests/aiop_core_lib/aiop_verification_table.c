@@ -125,10 +125,13 @@ uint16_t aiop_verification_table(uint32_t asa_seg_addr)
 	{
 		struct table_rule_create_command *str =
 		(struct table_rule_create_command *) asa_seg_addr;
+		struct table_rule rule __attribute__((aligned(16)));
+		
+		rule = *(struct table_rule*)(str->rule_ptr);
 		
 		str->status = table_rule_create(str->acc_id,
 			    str->table_id,
-			    (struct table_rule*)str->rule_ptr,
+			    (struct table_rule*)&rule,
 			    str->key_size);
 
 		str_size =
@@ -142,19 +145,21 @@ uint16_t aiop_verification_table(uint32_t asa_seg_addr)
 		struct table_rule_create_replace_command *str =
 		  (struct table_rule_create_replace_command *)
 		  asa_seg_addr;
+		struct table_rule rule_ptr __attribute__((aligned(16)));
 
+		rule_ptr = *(struct table_rule*)str->rule_ptr;
 		if (str->flags & TABLE_VERIF_FLAG_OLD_RESULT_NULL) {
 			str->status = table_rule_create_or_replace
 				(str->acc_id,
 				 str->table_id,
-				 (struct table_rule*)str->rule_ptr,
+				 &rule_ptr,
 				 str->key_size,
 				 (void *)0);
 		} else {
 			str->status = table_rule_create_or_replace
 				(str->acc_id,
 				 str->table_id,
-				 (struct table_rule*)str->rule_ptr,
+				 &rule_ptr,
 				 str->key_size,
 				 &str->old_res);
 		}
@@ -223,15 +228,18 @@ uint16_t aiop_verification_table(uint32_t asa_seg_addr)
 	{
 		struct table_rule_query_command *str =
 		(struct table_rule_query_command *) asa_seg_addr;
+		struct table_result result __attribute__((aligned(16)));
+		cdma_ws_memory_init((void *)&result, sizeof(result), 0);
 
 		str->status = table_rule_query
 			(str->acc_id,
 			 str->table_id,
 			 (union table_key_desc *)str->key_desc_ptr,
 			 str->key_size,
-			 &str->result,
+			 &result,
 			 &str->timestamp);
 
+		str->result = result;
 		str_size =
 			sizeof(struct table_rule_query_command);
 		break;
@@ -241,13 +249,17 @@ uint16_t aiop_verification_table(uint32_t asa_seg_addr)
 	{
 		struct table_lookup_by_key_command *str =
 		(struct table_lookup_by_key_command *) asa_seg_addr;
-
+		struct table_lookup_result lookup_result __attribute__((aligned(16)));
+		union table_lookup_key_desc key_desc __attribute__((aligned(16)));
+		
+		key_desc = str->key_desc;
 		str->status = table_lookup_by_key(str->acc_id,
 						  str->table_id,
-						  str->key_desc,
+						  key_desc,
 						  str->key_size,
-						  &(str->lookup_result));
-
+						  &lookup_result);	
+		str->lookup_result = lookup_result;
+		
 		str_size =
 			sizeof(struct table_lookup_by_key_command);
 		break;
@@ -256,13 +268,22 @@ uint16_t aiop_verification_table(uint32_t asa_seg_addr)
 	case TABLE_LOOKUP_BY_KEYID_DEFAULT_FRAME_CMD_STR:
 	{
 		struct table_lookup_by_keyid_default_frame_command *str =
-		(struct table_lookup_by_keyid_default_frame_command *)
-		asa_seg_addr;
+		(struct table_lookup_by_keyid_default_frame_command *) asa_seg_addr;
+		struct table_lookup_result lookup_result __attribute__((aligned(16)));
+	
+		/* WA for HW segment length issue */
+		uint16_t old_seg_length = PRC_GET_SEGMENT_LENGTH();
+		PRC_SET_SEGMENT_LENGTH(DEFAULT_SEGMENT_SIZE);
 
 		str->status = table_lookup_by_keyid_default_frame(str->acc_id,
 			str->table_id,
-			str->key_id, &(str->lookup_result));
-
+			str->key_id, 
+			&(lookup_result));
+		
+		str->lookup_result = lookup_result;
+		
+		/* WA for HW segment length issue */
+		PRC_SET_SEGMENT_LENGTH(old_seg_length);
 		str_size =
 		  sizeof(struct table_lookup_by_keyid_default_frame_command);
 		break;
@@ -270,15 +291,28 @@ uint16_t aiop_verification_table(uint32_t asa_seg_addr)
 	/* Table Lookup by KeyID Command Verification */
 	case TABLE_LOOKUP_BY_KEYID_CMD_STR:
 	{
+		struct table_lookup_non_default_params ndf_params 
+												__attribute__((aligned(16)));
+		struct table_lookup_result lookup_result 
+												__attribute__((aligned(16)));
 		struct table_lookup_by_keyid_command *str =
 		(struct table_lookup_by_keyid_command *) asa_seg_addr;
+		ndf_params = str->ndf_params;
+
+		/* WA for HW segment length issue */
+		uint16_t old_seg_length = PRC_GET_SEGMENT_LENGTH();
+		PRC_SET_SEGMENT_LENGTH(DEFAULT_SEGMENT_SIZE);
 
 		str->status = table_lookup_by_keyid(str->acc_id,
 						    str->table_id,
 						    str->key_id,
 						    str->flags,
-						    &(str->ndf_params),
-						    &(str->lookup_result));
+						    &(ndf_params),
+						    &(lookup_result));
+		str->lookup_result = lookup_result;
+
+		/* WA for HW segment length issue */
+		PRC_SET_SEGMENT_LENGTH(old_seg_length);
 
 		str_size =
 			sizeof(struct table_lookup_by_keyid_command);
@@ -289,11 +323,19 @@ uint16_t aiop_verification_table(uint32_t asa_seg_addr)
 	{
 		struct table_query_debug_command *str =
 		(struct table_query_debug_command *) asa_seg_addr;
+		struct table_params_query_output_message output_ptr 
+											__attribute__((aligned(16)));
+
 		str->status = table_query_debug(str->acc_id,
 						str->table_id,
-			(struct table_params_query_output_message *)
-			(str->output_ptr));
+						&output_ptr);
 		
+		/* Disable reserved fields */
+		cdma_ws_memory_init((void *)output_ptr.reserved,
+							TABLE_QUERY_OUTPUT_MESSAGE_RESERVED_SPACE, 0);
+
+		*(struct table_params_query_output_message *)str->output_ptr = 
+																output_ptr;
 		str_size =
 			sizeof(struct table_query_debug_command);
 		break;

@@ -39,12 +39,21 @@
 #include "dplib/fsl_ipf.h"
 #include "dplib/fsl_ldpaa.h"
 #include "dplib/fsl_parser.h"
+#include "general.h"
 #include "system.h"
 #include "general.h"
 #include "osm_inline.h"
 #include "kernel/fsl_spinlock.h"
 #include <string.h>
 #include "fsl_dbg.h"
+
+/* TODO - cleanup once the error handling below is moved to verification code.*/
+#if (defined AIOP_VERIF || defined CDC_ROC)
+#include "aiop_verification_data.h"
+#include "aiop_verification.h"
+#include <string.h>
+extern __VERIF_TLS uint64_t initial_ext_address;
+#endif /*AIOP_VERIF*/
 
 __VERIF_GLOBAL uint64_t verif_ipr_instance_handle[16];
 __VERIF_GLOBAL uint8_t verif_prpid_valid;
@@ -81,10 +90,10 @@ extern __TASK struct aiop_default_task_params default_task_params;
 extern __TASK uint32_t seed_32bit;
 
 void init_verif()
-{
+{	
+#ifndef CDC_ROC
 	struct parse_result *pr;
 	
-	exception_counter = 0;
 
 	pr = (struct parse_result *)HWC_PARSE_RES_ADDRESS;
 
@@ -116,12 +125,17 @@ void init_verif()
 
 	/* Need to save running-sum in parse-results LE-> BE */
 	pr->gross_running_sum = LH_SWAP(HWC_FD_ADDRESS + FD_FLC_RUNNING_SUM, 0);
+	/* spid=0 for non roc arena test */
+	*((uint8_t *)HWC_SPID_ADDRESS) = 0;
 
 	osm_task_init();
 	default_task_params.parser_starting_hxs = 0;
 	default_task_params.parser_profile_id = verif_prpid;
 	parse_result_generate_default(0);
-
+#endif
+	
+	exception_counter = 0;
+	
 	status_gro = 0;
 	status_gso = 0;
 	status_ipf1 = 0;
@@ -148,15 +162,14 @@ void exception_handler(char *filename,
 
 	struct fatal_error_command fatal_cmd_str;
 	struct fatal_error_command *fatal_cmd;
-	
 	exception_counter++;
-	
+
 	if (exception_counter > 1){
-		fdma_terminate_task();
-		exit(-1);/* TODO This code is never reached and should be 
-		removed once fdma_terminate_task() is declared as noreturn */
+	        fdma_terminate_task();
+	        exit(-1);/* TODO This code is never reached and should be
+	        removed once fdma_terminate_task() is declared as noreturn */
 	}
-		
+	
 	/* Read command from external buffer in DDR */
 	fatal_cmd = &fatal_cmd_str;
 	cdma_read((void *)fatal_cmd, initial_ext_address,
@@ -178,7 +191,10 @@ void exception_handler(char *filename,
 			(uint32_t)function_name;
 
 #ifndef STACK_CHECK
-	pr_err("Fatal error encountered!\n");
+	pr_err("*** Fatal error encountered ***\n");
+	pr_err("file: %s, line: %d\n", filename, line);
+	pr_err("function: %s\n", function_name);
+	pr_err("exception error: %s\n", message);
 #endif
 
 	fdma_terminate_task();

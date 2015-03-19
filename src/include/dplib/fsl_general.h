@@ -521,6 +521,12 @@ struct aiop_default_task_params {
 };
 /** @} */ /* end of AIOP_DEFAULT_TASK_Params */
 
+/* Workaround for ENGR346926 */
+/*
+#define __stqw(arg1, arg2, arg3, arg4, displ, base)	\
+	__stdw(arg1, arg2, displ, base);    		\
+	__stdw(arg3, arg4, displ+8, base);
+*/
 
 
 /** @} */ /* end of AIOP_General_Definitions */

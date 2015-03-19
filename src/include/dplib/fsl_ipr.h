@@ -308,22 +308,6 @@ struct extended_stats_cntrs {
 
 /** @} */ /* end of group FSL_IPRUpdateFlags */
 
-/**************************************************************************//**
-@Group		FSL_IPRCreateReturnStatus IPR create instance return status
-
-@Description	IPR Create Instance return values.
-
-@{
-*//***************************************************************************/
-
-/** Instance was successfully created */
-#define IPR_CREATE_INSTANCE_SUCCESS	SUCCESS
-/** Instance creation failed due to lack of allocated buffers */
-#define IPR_MAX_BUFFERS_REACHED		(IPR_MODULE_STATUS_ID + 0x0100)
-
-
-/** @} */ /* end of group FSL_IPRCreateReturnStatus */
-
 
 /**************************************************************************//**
 @Group		FSL_IPRReassReturnStatus IPR functions return status
@@ -340,17 +324,9 @@ struct extended_stats_cntrs {
 /** Reassembly isn't completed yet but fragment was successfully added to the
    partially reassembled frame*/
 #define IPR_REASSEMBLY_NOT_COMPLETED	(IPR_MODULE_STATUS_ID + 0x0200)
-/** There were not enough hierarchy scope levels (IPR requires 2 hierarchy scope
-   levels) so the reassembly was done serially (leading to a depressed
-   performance)*/
-#define IPR_MAX_NESTED_REACHED		(IPR_MODULE_STATUS_ID + 0x0300)
-/** Fragment has been recognized as malformed, and wasn't added
-    to the partially reassembled frame*/
+/** Fragment has been recognized as malformed (overlap, duplicate,
+ *  not multiple of 8,...) and wasn't added to the partially reassembled frame*/
 #define IPR_MALFORMED_FRAG		(IPR_MODULE_STATUS_ID + 0x0400)
-/** An error occurred during reassembly, like instance not valid,
- * early time out, number of open reassembly has reached the maximum configured,
- * number of fragments per reassembled frame reached the maximum */
-#define IPR_ERROR			(IPR_MODULE_STATUS_ID + 0x0500)
 
 /** @} */ /* end of group FSL_IPRReassReturnStatus */
 
@@ -407,11 +383,9 @@ int ipr_early_init(uint32_t nbr_of_instances, uint32_t nbr_of_context_buffers);
 		This pointer should points within workspace.
 
 
-@Return		Success or Failure.\n
-		Failure can be one of the following:\n
-		\link FSL_IPRCreateReturnStatus IPR create instance return
-		status \endlink \n		  
+@Return		Success
 
+@Cautions	This function may result in a fatal error.
 @Cautions	In this function, the task yields.
 *//***************************************************************************/
 int ipr_create_instance(struct ipr_params *ipr_params_ptr,
@@ -434,6 +408,7 @@ int ipr_create_instance(struct ipr_params *ipr_params_ptr,
 
 @Return		Success
 
+@Cautions	This function may result in a fatal error.
 @Cautions	In this function, the task yields.
 *//***************************************************************************/
 int ipr_delete_instance(ipr_instance_handle_t ipr_instance_ptr,
@@ -475,7 +450,14 @@ int ipr_delete_instance(ipr_instance_handle_t ipr_instance_ptr,
 @Return		Status -\n
 		\link FSL_IPRReassReturnStatus IP Reassembly Return status
 		\endlink \n
+		ETIMEDOUT - Early Time out. Timeout occurred while a fragment is
+		currently proceeded.
+		ENOSPC - Maximum open reassembled frames has been reached.
+		ENOTSUP - Maximum number of fragments per reassembly has been
+			  reached.
+		EIO - L4 checksum not valid.	  
 
+@Cautions	This function may result in a fatal error.
 @Cautions	It is forbidden to call this function when the task
 		isn't found in any ordering scope (null scope_id).
 		If this function is called in concurrent mode, the scope_id is

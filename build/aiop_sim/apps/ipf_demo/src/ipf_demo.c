@@ -38,6 +38,7 @@
 #include "dplib/fsl_l2.h"
 
 int app_init(void);
+int app_early_init(void);
 void app_free(void);
 
 #define APP_NI_GET(ARG)   ((uint16_t)((ARG) & 0x0000FFFF))
@@ -149,7 +150,20 @@ __declspec(entry_point) static void app_process_packet_flow0 (void)
 				local_test_error |= 1;
 			}
 		}
-		dpni_drv_send(dpni_get_receive_niid());
+		err = dpni_drv_send(dpni_get_receive_niid());
+		if (err){
+			fsl_os_print("ERROR = %d: dpni_drv_send()\n",err);
+			local_test_error |= err;
+			if(err == -ENOMEM)
+			{
+				fdma_discard_default_frame(FDMA_DIS_NO_FLAGS);
+				if (ipf_status == IPF_GEN_FRAG_STATUS_IN_PROCESS)
+					ipf_discard_frame_remainder(ipf_context_addr);
+			}
+			else
+				fsl_os_print("ERROR!!! NEED TO CHECK WITH HW TEAM\n");
+			break;
+		}
 	} while (ipf_status != IPF_GEN_FRAG_STATUS_DONE);
 
 	fsl_os_print
@@ -278,6 +292,12 @@ int app_init(void)
 		fsl_os_print("FAILED cmdif_register_module\n!");
 */
 	fsl_os_print("To start test inject packets: \"reassembled_frame.pcap\" after AIOP boot complete.\n");
+	return 0;
+}
+
+int app_early_init(void)
+{
+	/* Early initialization */
 	return 0;
 }
 

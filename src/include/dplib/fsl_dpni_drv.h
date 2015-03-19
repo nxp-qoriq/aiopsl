@@ -236,6 +236,21 @@ int dpni_drv_get_max_frame_length(uint16_t ni_id,
 inline int sl_prolog(void);
 
 /**************************************************************************//**
+@Function	sl_tman_expiration_task_prolog
+
+@Description	Network Interface SL tman expiration task prolog function. 
+		This function initialize into WS the ICID as taken from the 
+		SPID and clear starting HXS and PRPID.
+		It should be called from the beginning of user's timer 
+		expiration call-back function to assure that fdma create and
+		fdma store functions will work properly.
+
+@param[in]	spid - storage profile id.
+
+*//***************************************************************************/
+inline void sl_tman_expiration_task_prolog(uint16_t spid);
+
+/**************************************************************************//**
 @Function	dpni_drv_send
 
 @Description	Network Interface send (AIOP enqueue) function.

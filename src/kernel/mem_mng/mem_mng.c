@@ -321,8 +321,6 @@ int mem_mng_register_partition(fsl_handle_t  h_mem_mng,
                                   uint64_t  size,
                                   uint32_t  attributes,
                                   char      name[],
-                                  void *    (*f_user_malloc)(uint32_t size, uint32_t alignment),
-                                  void      (*f_user_free)(void *p_addr),
                                   int      enable_debug)
 {
     t_mem_mng            *p_mem_mng = (t_mem_mng *)h_mem_mng;
@@ -379,23 +377,22 @@ int mem_mng_register_partition(fsl_handle_t  h_mem_mng,
     *(p_new_partition->lock) = 0;
 #endif /* AIOP */
 
-    if (!f_user_malloc)
-    {
-        /* Prevent allocation of address 0x00000000 (reserved to NULL) */
-        if (base_address == 0)
-        {
-            base_address += 4;
-            size -= 4;
-        }
 
-        /* Initialize the memory manager handle for the new partition */
-        if (0 != slob_init(&(p_new_partition->h_mem_manager), base_address, size))
-        {
-            /*p_mem_mng->f_free(p_new_partition);*/
-            p_new_partition->was_initialized = 0;
-            RETURN_ERROR(MAJOR, EAGAIN, ("slob  object for partition: %s", name));
-        }
+    /* Prevent allocation of address 0x00000000 (reserved to NULL) */
+    if (base_address == 0)
+    {
+        base_address += 4;
+        size -= 4;
     }
+
+    /* Initialize the memory manager handle for the new partition */
+    if (0 != slob_init(&(p_new_partition->h_mem_manager), base_address, size))
+    {
+        /*p_mem_mng->f_free(p_new_partition);*/
+        p_new_partition->was_initialized = 0;
+        RETURN_ERROR(MAJOR, EAGAIN, ("slob  object for partition: %s", name));
+    }
+
 
     /* Copy partition name */
     strncpy(p_new_partition->info.name, name, MEM_MNG_MAX_PARTITION_NAME_LEN-1);
@@ -408,8 +405,6 @@ int mem_mng_register_partition(fsl_handle_t  h_mem_mng,
     p_new_partition->info.base_address = base_address;
     p_new_partition->info.size = size;
     p_new_partition->info.attributes = attributes;
-    p_new_partition->f_user_malloc = f_user_malloc;
-    p_new_partition->f_user_free = f_user_free;
     p_new_partition->enable_debug = enable_debug;
     p_new_partition->was_initialized = 1;
 
@@ -821,10 +816,11 @@ void * mem_mng_alloc_mem(fsl_handle_t    h_mem_mng,
         return (UINT_TO_PTR(virt_address));
     }
     /* Check if this is a CW allocation */
+#if 0
     if (partition_id == SYS_DEFAULT_HEAP_PARTITION)
     {
         /* Use early allocation routine */
-        /*p_memory = p_mem_mng->f_early_malloc(size, alignment);*/
+        /*p_memory = p_mem_mng->f_early_malloc(size, alignment);*/    
         p_memory = sys_aligned_malloc(size, alignment);
         if (!p_memory)
         {
@@ -842,7 +838,7 @@ void * mem_mng_alloc_mem(fsl_handle_t    h_mem_mng,
 
         return p_memory;
     }
-
+#endif
 #ifdef AIOP
     lock_spinlock(p_mem_mng->lock);
 #else
@@ -861,23 +857,14 @@ void * mem_mng_alloc_mem(fsl_handle_t    h_mem_mng,
 #else
     	    spin_unlock_irqrestore(p_mem_mng->lock, int_flags);
 #endif
-            if (p_partition->f_user_malloc)
-            {
-                /* User-defined malloc */
-                p_memory = p_partition->f_user_malloc(size, alignment);
-                if (!p_memory)
-                    /* Do not report error - let the allocating entity report it */
-                    return NULL;
-            }
-            else
-            {
-                /* Internal MM malloc */
-                p_memory = UINT_TO_PTR(
-                    slob_get(p_partition->h_mem_manager, size, alignment, ""));
-                if ((uintptr_t)p_memory == ILLEGAL_BASE)
-                    /* Do not report error - let the allocating entity report it */
-                    return NULL;
-            }
+
+			/* Internal MM malloc */
+			p_memory = UINT_TO_PTR(
+				slob_get(p_partition->h_mem_manager, size, alignment, ""));
+			if ((uintptr_t)p_memory == ILLEGAL_BASE)
+				/* Do not report error - let the allocating entity report it */
+				return NULL;
+
 #ifdef AIOP
             lock_spinlock(p_mem_mng->lock);
 #else
@@ -943,7 +930,7 @@ int mem_mng_get_phys_mem(fsl_handle_t h_mem_mng, int  partition_id,
     /* Not early allocation - allocate from registered partitions */
     p_partition = &p_mem_mng->phys_allocation_mem_partitions_array[partition_id];
     if (p_partition->was_initialized)
-        {
+    {
 #ifdef AIOP
             unlock_spinlock(p_mem_mng->lock);
 #else
@@ -956,7 +943,7 @@ int mem_mng_get_phys_mem(fsl_handle_t h_mem_mng, int  partition_id,
                                       (uint32_t)(size >> 32),(uint32_t)size,partition_id));  
             }
             return 0; // Success
-        }
+    }
 #ifdef AIOP
     unlock_spinlock(p_mem_mng->lock);
 #else
@@ -1013,6 +1000,7 @@ void mem_mng_free_mem(fsl_handle_t h_mem_mng, void *p_memory)
     int                 partition_id;
     int                address_found = 1;
 
+#if 0    
     /* Try to find the entry in the early allocations list */
     if (mem_mng_remove_early_entry(p_mem_mng, p_memory))
     {
@@ -1021,32 +1009,26 @@ void mem_mng_free_mem(fsl_handle_t h_mem_mng, void *p_memory)
     }
     else
     {
-        if (mem_mng_get_partition_id_by_addr_local(p_mem_mng, addr, &partition_id, &p_partition))
-        {
-            if (p_partition->enable_debug &&
-                !mem_mng_remove_entry(p_mem_mng, p_partition, p_memory))
-            {
-                address_found = 0;
-            }
+#endif
+	if (mem_mng_get_partition_id_by_addr_local(p_mem_mng, addr, &partition_id, &p_partition))
+	{
+		if (p_partition->enable_debug &&
+			!mem_mng_remove_entry(p_mem_mng, p_partition, p_memory))
+		{
+			address_found = 0;
+		}
 
-            if (address_found)
-            {
-                if (p_partition->f_user_free)
-                {
-                    /* User-defined malloc */
-                    p_partition->f_user_free(p_memory);
-                }
-                else
-                {
-                    slob_put(p_partition->h_mem_manager, PTR_TO_UINT(p_memory));
-                }
-            }
-        }
-        else
-        {
-            address_found = 0;
-        }
-    }
+		if (address_found)
+		{
+			slob_put(p_partition->h_mem_manager, PTR_TO_UINT(p_memory));
+		}
+	}
+	else
+	{
+		address_found = 0;
+	}
+
+//    }
 
     if (!address_found)
     {
@@ -1131,11 +1113,10 @@ static void mem_mng_free_partition(t_mem_mng *p_mem_mng,
     spin_unlock_irqrestore(p_partition->lock, int_flags);
 #endif /* AIOP */
 
-    if (!p_partition->f_user_malloc)
-    {
-        /* Release the memory manager object */
-        slob_free(p_partition->h_mem_manager);
-    }
+
+    /* Release the memory manager object */
+    slob_free(p_partition->h_mem_manager);
+
 
     /* Remove from partitions list and free the allocated memory */
     if (p_partition->lock) {

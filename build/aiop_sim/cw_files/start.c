@@ -210,7 +210,7 @@ asm __COLD_CODE void __sys_start(register int argc, register char **argv, regist
     lis r29, 0xffff      	/* Low order bits of DMEM size are driven to 0s */
     ori r29, r29, 0xf000
     and r31, r31, r29
-    e_li r30, 0x100 		/* set counter to 256 (96K = 256 * 128) */  
+    e_li r30, 0x100 		/* set counter to 256 (32K = 256 * 128) */  
     mtctr r30
 init_ws_loop:
     stmw r0, 0(r31)         /* Write 32 GPRs to WS */

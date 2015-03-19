@@ -101,7 +101,7 @@
 		The FD address in workspace must be aligned to 32 bytes.
 @Param[in]	data - A pointer to the workspace data to be inserted to the
 		frame.
-@Param[in]	size - data size.
+@Param[in]	size - data size. Must be greater than 0.
 @Param[out]	frame_handle - Pointer to the opened working frame handle.
 
 @Return		0 on Success, or negative value on error.
@@ -113,7 +113,10 @@
 		of 256 bytes before completing all parsing). (Relevant in case
 		this is the default frame).
 		Recommendation is to discard the frame.
+@Retval		ENOMEM - Failed due to buffer pool depletion.
 
+@Cautions	Due to PDM TKT254401 this function can work only on the default 
+		frame.
 @Cautions	In this Service Routine the task yields.
 @Cautions	The FD address in workspace must be aligned to 32 bytes.
 @Cautions	The frame FD is overwritten in this function.
@@ -159,7 +162,7 @@ int create_frame(
 		The FD address in workspace must be aligned to 32 bytes.
 @Param[in]	data - A pointer to the workspace data to be inserted to the
 		frame.
-@Param[in]	size - data size.
+@Param[in]	size - data size. Must be greater than 0.
 @Param[in]	spid - Storage profile ID to be used in case this is not the 
 		default frame.
 
@@ -170,6 +173,8 @@ int create_frame(
 
 @remark		FD is updated.
 
+@Cautions	Due to PDM TKT254401 this function can work only on the default 
+		frame.
 @Cautions	In this Service Routine the task yields.
 @Cautions	The FD address in workspace must be aligned to 32 bytes.
 @Cautions	The frame FD is overwritten in this function.
@@ -222,6 +227,8 @@ int create_fd(
 		this is the default frame).
 		Recommendation is to discard the frame.
 
+@Cautions	Due to PDM TKT254401 this function can work only on the default 
+		frame.
 @Cautions	In this Service Routine the task yields.
 @Cautions	The FD address in workspace must be aligned to 32 bytes.
 @Cautions	The frame FD is overwritten in this function.
@@ -276,6 +283,8 @@ int create_arp_request_broadcast(
 		this is the default frame).
 		Recommendation is to discard the frame.
 
+@Cautions	Due to PDM TKT254401 this function can work only on the default 
+		frame.
 @Cautions	In this Service Routine the task yields.
 @Cautions	The FD address in workspace must be aligned to 32 bytes.
 @Cautions	The frame FD is overwritten in this function.

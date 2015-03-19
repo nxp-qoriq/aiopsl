@@ -37,6 +37,15 @@
 int fdma_present_frame(
 		struct fdma_present_frame_params *params)
 {
+	
+#ifdef CHECK_ALIGNMENT 
+	if ((uint32_t)params->fd_src == HWC_FD_ADDRESS)
+			DEBUG_ALIGN((uint32_t)params->seg_dst, ALIGNMENT_16B);
+	DEBUG_ALIGN((uint32_t)params->pta_dst, ALIGNMENT_64B);
+	DEBUG_ALIGN((uint32_t)params->asa_dst, ALIGNMENT_64B);
+	DEBUG_ALIGN((uint32_t)params->fd_src, ALIGNMENT_32B);
+#endif
+	
 	/* Presentation Context Pointer */
 	struct presentation_context *prc =
 		(struct presentation_context *) HWC_PRC_ADDRESS;
@@ -203,6 +212,11 @@ int fdma_present_frame_without_segments(
 		uint16_t icid,
 		uint8_t *frame_handle)
 {
+	
+#ifdef CHECK_ALIGNMENT 	
+	DEBUG_ALIGN((uint32_t)fd, ALIGNMENT_32B);
+#endif
+	
 	/* command parameters and results */
 	uint32_t arg1, arg4;
 	int8_t  res1;

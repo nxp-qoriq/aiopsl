@@ -49,18 +49,6 @@ struct shbp;
 #define SHBP_HOST_SAFE		0x2	/*!< Host API is multithread safe */
 
 
-/*!
- * @details	Calculator for 'mem_ptr' size for shbp_create(). num_bufs must
- *		be 2^x and higher than 8.
- *
- * @param[in]	num_bufs - Number of buffers which will be added into the
- *		SHBP pool. num_bufs must be 2^x and higher than 8.
- *
- * @returns	The 'mem_ptr' size required by shbp_create()
- *
- */
-uint32_t shbp_mem_ptr_size(uint32_t num_bufs);
-
 /**
  * @brief	Get buffer from shared pool
  *

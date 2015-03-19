@@ -451,6 +451,7 @@ int ipsec_generate_encap_sd(
 		
 		/* outer header from PDB */
 		pdb_options |= IPSEC_ENC_PDB_OPTIONS_OIHI_PDB;
+		
 	} else {
 	/* Transport Mode Parameters */
 		pdb_options |= (IPSEC_ENC_OPTS_UPDATE_CSUM | IPSEC_ENC_OPTS_INC_IPHDR);
@@ -556,6 +557,10 @@ int ipsec_generate_encap_sd(
 				(uint16_t)rta_auth_alginfo.keylen); /* Key length in bytes */
 		}	
 	}	
+	
+	// TODO: test, remove
+	//rta_auth_alginfo.key_type = (enum rta_data_type)RTA_PARAM_PTR;
+
 	
 	if (inl_mask & (1 << 2))
 		rta_cipher_alginfo.key_type = (enum rta_data_type)RTA_PARAM_IMM_DMA;
@@ -840,6 +845,9 @@ int ipsec_generate_decap_sd(
 		}
 	}
 		
+	// TODO: test, remove
+	//rta_auth_alginfo.key_type = (enum rta_data_type)RTA_PARAM_PTR;
+	
 	if (inl_mask & (1 << 1))
 		rta_cipher_alginfo.key_type = (enum rta_data_type)RTA_PARAM_IMM_DMA;
 
@@ -1142,6 +1150,19 @@ int ipsec_add_sa_descriptor(
 		
 	desc_addr = IPSEC_DESC_ADDR(*ipsec_handle);
 	
+	/* If the authentication key length is not 0, 
+	 * create a copy of the authentication key in the local buffer 
+	 * (this is a hot fix to ENGR347826, later versions are optimized)*/
+	if (params->authdata.keylen) {
+		ipsec_create_key_copy(
+			params->authdata.key, /* Source Key Address */
+			IPSEC_KEY_SEGMENT_ADDR(desc_addr), /* Destination Key Address */
+			(uint16_t)params->authdata.keylen);   /* Length of the provided key, in bytes */
+	
+		/* Now switch the original key address with the copy address */
+		params->authdata.key = IPSEC_KEY_SEGMENT_ADDR(desc_addr);
+	}
+	
 	/* Build a shared descriptor with the RTA library */
 	/* Then store it in the memory with CDMA */
 	if (params->direction == IPSEC_DIRECTION_INBOUND) {
@@ -1245,7 +1266,6 @@ int ipsec_frame_encrypt(
 	uint32_t byte_count;
 	uint16_t checksum;
 	uint8_t dont_encrypt = 0;
-	//int i;
 	ipsec_handle_t desc_addr;
 	uint16_t offset;
 
@@ -1382,7 +1402,16 @@ int ipsec_frame_encrypt(
 	if (sap1.flags & IPSEC_FLG_TUNNEL_MODE) {
 		/* Tunnel Mode */
 		/* Clear FD[FRC], so DPOVRD takes no action */
-		dpovrd.tunnel_encap.word = 0; 
+		//dpovrd.tunnel_encap.word = 0; 
+		
+		if (PARSER_IS_OUTER_IPV4_DEFAULT()) {
+			dpovrd.tunnel_encap.word = 
+				IPSEC_DPOVRD_OVRD | IPSEC_NEXT_HEADER_IPV4;
+		} else {
+			dpovrd.tunnel_encap.word = 
+				IPSEC_DPOVRD_OVRD | IPSEC_NEXT_HEADER_IPV6;
+		}
+		
 	} else {
 		/* For Transport mode set DPOVRD */
 		/* 31 OVRD, 30-28 Reserved, 27-24 ECN (Not relevant for transport mode)
@@ -1487,7 +1516,7 @@ int ipsec_frame_encrypt(
 
 	/* 	6.	Update the FD[FLC] with the flow context buffer address. */
 	LDPAA_FD_SET_FLC(HWC_FD_ADDRESS, IPSEC_FLC_ADDR(desc_addr));	
-	
+
 	/* 	7.	FDMA store default frame command 
 	 * (for closing the frame, updating the other FD fields) */
 	return_val = fdma_store_default_frame_data();
@@ -1532,7 +1561,9 @@ int ipsec_frame_encrypt(
 	__e_hwacceli(AAP_SEC_ACCEL_ID);
 	
 	/* 	10.	SEC Doing Encryption */
+	
 
+	
 			/*---------------------*/
 			/* ipsec_frame_encrypt */
 			/*---------------------*/
@@ -1556,6 +1587,9 @@ int ipsec_frame_encrypt(
 	 * the presentation context */
 	PRC_SET_SEGMENT_LENGTH(DEFAULT_SEGMENT_SIZE);
 		
+	/* Clear the PRC ASA Size, since the SEC does not preserve the ASA */
+	PRC_SET_ASA_SIZE(0);
+	
 	/* 	11.	FDMA present default frame command (open frame) */
 	/* Performance Improvement */
 	/* because earlier the segment was not presented,
@@ -1679,7 +1713,7 @@ int ipsec_frame_encrypt(
 	/* Performance Improvement and change to always count */
 	//if (sap1.flags & 
 	//		(IPSEC_FLG_LIFETIME_KB_CNTR_EN | IPSEC_FLG_LIFETIME_PKT_CNTR_EN)) {
-		ste_inc_and_acc_counters(
+	ste_inc_and_acc_counters(
 			IPSEC_PACKET_COUNTER_ADDR(desc_addr), /* uint64_t counter_addr */
 			byte_count,	/* uint32_t acc_value */
 			/* uint32_t flags */
@@ -2055,6 +2089,9 @@ int ipsec_frame_decrypt(
 	/* Update the default segment length for the new frame  in 
 	 * the presentation context */
 	PRC_SET_SEGMENT_LENGTH(DEFAULT_SEGMENT_SIZE);
+	
+	/* Clear the PRC ASA Size, since the SEC does not preserve the ASA */
+	PRC_SET_ASA_SIZE(0);
 	
 	/* 	12.	FDMA present default frame command */ 
 	return_val = fdma_present_default_frame();

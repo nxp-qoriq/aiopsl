@@ -68,7 +68,7 @@ __declspec(entry_point) static void app_process_packet_flow0 (void)
 	int local_test_error = 0;
 	struct ipv4hdr *ipv4_hdr;
 	uint32_t fd_length;
-
+	int err;
 	uint8_t ipr_demo_flags = IPR_DEMO_WITH_HM;
 
 	uint32_t ip_dst_addr = 0x73bcdc90; // new ipv4 dst_addr
@@ -174,7 +174,15 @@ __declspec(entry_point) static void app_process_packet_flow0 (void)
 			fsl_os_print("ERROR = %x: reassembled frame length error!\n", fd_length);
 			local_test_error |= 1;
 		}
-		dpni_drv_send(dpni_get_receive_niid());
+		err = dpni_drv_send(dpni_get_receive_niid());
+		if (err){
+			fsl_os_print("ERROR = %d: dpni_drv_send()\n",err);
+			local_test_error |= err;
+			if(err == -ENOMEM)
+				fdma_discard_default_frame(FDMA_DIS_NO_FLAGS);
+			else
+				fsl_os_print("ERROR!!! NEED TO CHECK WITH HW TEAM\n");
+		}
 
 		if(!local_test_error) /*No error found during injection of packets*/
 			fsl_os_print("Finished SUCCESSFULLY\n");
@@ -275,5 +283,7 @@ void ipr_timout_cb(ipr_timeout_arg_t arg,
 {
 	UNUSED(arg);
 	UNUSED(flags);
+	/* Need to discard default frame */
+	fdma_discard_default_frame(FDMA_DIS_NO_FLAGS);
 	fdma_terminate_task();
 }

@@ -91,6 +91,11 @@ int table_rule_create_or_replace(enum table_hw_accel_id acc_id,
 				 uint8_t key_size,
 				 struct table_result *old_res)
 {
+	
+#ifdef CHECK_ALIGNMENT 	
+	DEBUG_ALIGN((uint32_t)rule, ALIGNMENT_16B);
+#endif
+	
 	int32_t status;
 
 	struct table_old_result hw_old_res __attribute__((aligned(16)));
@@ -166,6 +171,12 @@ int table_lookup_by_keyid(enum table_hw_accel_id acc_id,
 				 *ndf_params,
 			  struct table_lookup_result *lookup_result)
 {
+	
+#ifdef CHECK_ALIGNMENT 	
+	DEBUG_ALIGN((uint32_t)ndf_params, ALIGNMENT_16B);
+	DEBUG_ALIGN((uint32_t)lookup_result, ALIGNMENT_16B);
+#endif
+	
 	int32_t status;
 
 	/* optimization 1 clock */
@@ -443,7 +454,8 @@ void table_workaround_tkt226361(uint32_t mflu_peb_num_entries,
 	uint16_t                   table_id;
 	uint16_t                   table_loc = TABLE_ATTRIBUTE_LOCATION_PEB;
 	struct table_create_params tbl_crt_prm;
-	struct table_rule          rule;
+	struct table_rule          rule1 __attribute__((aligned(16)));
+	struct table_rule          rule2 __attribute__((aligned(16)));
 	uint32_t                   i;
 	uint32_t                   num_of_entries = mflu_peb_num_entries;
 
@@ -484,15 +496,17 @@ void table_workaround_tkt226361(uint32_t mflu_peb_num_entries,
 			}
 
 			/* Create 2 rules */
-			rule.key_desc.mflu.key[TABLE_TKT226361_KEY_SIZE - 1] =
-					0;
-			rule.key_desc.mflu.mask[TABLE_TKT226361_KEY_SIZE - 1] =
-					0xFF;
-			rule.options = TABLE_RULE_TIMESTAMP_NONE;
-			rule.result.type = TABLE_RESULT_TYPE_OPAQUES;
+			*((uint32_t *)(&rule1.key_desc.mflu.key[0])) =
+					0x12345678;
+			*((uint32_t *)(&rule1.key_desc.mflu.key[TABLE_TKT226361_KEY_SIZE])) =
+					0x00000000; // priority
+			*((uint32_t *)(&rule1.key_desc.mflu.mask[0])) =
+					0xFFFFFFFF;
+			rule1.options = TABLE_RULE_TIMESTAMP_NONE;
+			rule1.result.type = TABLE_RESULT_TYPE_OPAQUES;
 			if (table_rule_create(TABLE_ACCEL_ID_MFLU,
 					table_id,
-					&rule,
+					&rule1,
 					TABLE_TKT226361_KEY_SIZE +
 					TABLE_KEY_MFLU_PRIORITY_FIELD_SIZE)){
 				table_exception_handler_wrp(
@@ -500,11 +514,18 @@ void table_workaround_tkt226361(uint32_t mflu_peb_num_entries,
 					__LINE__,
 					TABLE_SW_STATUS_TKT226361_ERR);
 			}
-			rule.key_desc.mflu.key[TABLE_TKT226361_KEY_SIZE - 1] =
-					0xFF;
+
+			*((uint32_t *)(&rule2.key_desc.mflu.key[0])) =
+					0x87654321;
+			*((uint32_t *)(&rule2.key_desc.mflu.key[TABLE_TKT226361_KEY_SIZE])) =
+					0x00000000; // priority
+			*((uint32_t *)(&rule2.key_desc.mflu.mask[0])) =
+					0xFFFFFFFF;
+			rule2.options = TABLE_RULE_TIMESTAMP_NONE;
+			rule2.result.type = TABLE_RESULT_TYPE_OPAQUES;
 			if (table_rule_create(TABLE_ACCEL_ID_MFLU,
 					table_id,
-					&rule,
+					&rule2,
 					TABLE_TKT226361_KEY_SIZE +
 					TABLE_KEY_MFLU_PRIORITY_FIELD_SIZE)){
 				table_exception_handler_wrp(
