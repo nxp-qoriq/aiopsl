@@ -105,6 +105,10 @@ __declspec(entry_point) static void app_process_packet_flow0 (void)
 	if (err){
 		fsl_os_print("ERROR = %d: dpni_drv_send(ni_id)\n",err);
 		local_test_error |= err;
+		if(err == -ENOMEM)
+			fdma_discard_default_frame(FDMA_DIS_NO_FLAGS);
+		else
+			fsl_os_print("ERROR!!! NEED TO CHECK WITH HW TEAM\n");
 	}
 
 	if(!local_test_error) /*No error found during injection of packets*/
