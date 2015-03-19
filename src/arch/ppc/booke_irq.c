@@ -79,7 +79,7 @@ __COLD_CODE void booke_generic_irq_init(void)
 /*                                                               */
 /*****************************************************************/
 void booke_generic_exception_isr(uint32_t intr_entry)
-{
+{	
 	switch(intr_entry)
 	{
 	case(0x00):
@@ -228,23 +228,20 @@ exception_irq:
     /* disable debug and interrupts in MSR */
     mtmsr    r0
     isync
-    /* branch to isr */
-    lis      r4,booke_generic_exception_isr@h
-    ori      r4,r4,booke_generic_exception_isr@l
-    mtlr     r4
-    blr
+    b        generic_isr
     
     /***************************************************/
     /*** machine check *********************************/
     /***************************************************/
     .align 0x100
 machine_irq:
-//	mfspr    r4, MCSR
-//	andi.    r4, r4, 0x0400 /* STACK_ERR */
-//	cmpwi    r4, 0
-//	bne      machine_irq_cont
-    li rsp,  0x7ff0 /* clear stack pointer */
-//machine_irq_cont:
+	mfspr    r4, MCSR
+	se_btsti r4,21 /* test bit 0x00000400 - STACK_ERR */
+	beq      generic_isr
+    li       rsp,  0x7ff0 /* clear stack pointer */
+    b        generic_isr
+	
+generic_isr:
 	/* branch to isr */
 	lis      r4,booke_generic_exception_isr@h
 	ori      r4,r4,booke_generic_exception_isr@l
