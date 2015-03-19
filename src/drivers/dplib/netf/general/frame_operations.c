@@ -59,9 +59,10 @@ int create_frame(
 #ifdef CHECK_ALIGNMENT 	
 	DEBUG_ALIGN((uint32_t)fd, ALIGNMENT_32B);
 #endif
-	
+#ifdef REV2 /* WA for TKT254401 */	
 	struct fdma_present_frame_params present_frame_params;
 	struct fdma_insert_segment_data_params insert_params;
+#endif
 	struct parse_result *pr = (struct parse_result *)HWC_PARSE_RES_ADDRESS;
 	int32_t status;
 #ifndef REV2 /* WA for TKT254401 */
@@ -166,14 +167,15 @@ int create_fd(
 		uint16_t size,
 		uint8_t spid)
 {
-	
+#ifdef REV2 /* WA for TKT254401 */	
+	struct fdma_present_frame_params present_frame_params;
+	struct fdma_insert_segment_data_params insert_params;
+	struct fdma_amq amq;
+#endif
 #ifdef CHECK_ALIGNMENT 	
 	DEBUG_ALIGN((uint32_t)fd, ALIGNMENT_32B);
 #endif
 	
-	struct fdma_present_frame_params present_frame_params;
-	struct fdma_insert_segment_data_params insert_params;
-	struct fdma_amq amq;
 #ifndef REV2 /* WA for TKT254401 */
 	int32_t status;
 	uint64_t fd_addr;
@@ -181,6 +183,7 @@ int create_fd(
 	uint32_t flags;
 	struct storage_profile *sp;
 	
+	spid = 0;
 	sp = &storage_profile[*((uint8_t *)HWC_SPID_ADDRESS)];
 	icid = LH_SWAP(0, (uint16_t *)&(sp->ip_secific_sp_info)) & ADC_ICID_MASK;
 	flags = (LW_SWAP(0, (uint32_t *)&(sp->ip_secific_sp_info)) & SP_BDI_MASK) ? FDMA_ACQUIRE_BDI_BIT : 0;
