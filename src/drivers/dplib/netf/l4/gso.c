@@ -387,6 +387,11 @@ void tcp_gso_context_init(
 		uint16_t mss,
 		tcp_gso_ctx_t tcp_gso_context_addr)
 {
+	
+#ifdef CHECK_ALIGNMENT 	
+	DEBUG_ALIGN((uint32_t *)tcp_gso_context_addr, ALIGNMENT_32B);
+#endif
+	
 	struct tcp_gso_context *gso_ctx =
 			(struct tcp_gso_context *)tcp_gso_context_addr;
 	gso_ctx->first_seg = 1;
