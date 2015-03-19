@@ -277,8 +277,7 @@ int ip_header_decapsulation(uint8_t flags)
 	/* Update the frame presentation */
 	size_to_be_removed = inner_ip_offset - outer_ip_offset;
 	inner_ip_ptr = (void *)(inner_ip_offset + PRC_GET_SEGMENT_ADDRESS());
-	if ((prc->seg_length - size_to_be_removed) >= MIN_REPRESENT_SIZE)
-		fdma_replace_default_segment_data(
+	fdma_replace_default_segment_data(
 			(uint16_t)outer_ip_offset, /*to_offset*/
 			(uint16_t)(size_to_be_removed + 12), /*to_size*/
 			inner_ip_ptr, /*from_ws_src*/
@@ -286,15 +285,6 @@ int ip_header_decapsulation(uint8_t flags)
 			(void *)prc->seg_address, /*ws_dst_rs*/
 			prc->seg_length, /*size_rs*/
 			FDMA_REPLACE_SA_REPRESENT_BIT);
-	else
-		fdma_replace_default_segment_data(
-				(uint16_t)outer_ip_offset, /*to_offset*/
-				(uint16_t)(size_to_be_removed + 12),/*to_size*/
-				inner_ip_ptr, /*from_ws_src*/
-				12, /*from_size*/
-				(void *)prc->seg_address, /*ws_dst_rs*/
-				MIN_REPRESENT_SIZE, /*size_rs*/
-				FDMA_REPLACE_SA_REPRESENT_BIT);
 
 #ifndef REV2
 	/* Update Etype or MPLS label if needed */
