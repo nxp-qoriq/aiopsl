@@ -54,8 +54,6 @@ do { \
 	} while (0)
 
 
-void dpci_amq_bdi_set();
-int dpci_rx_ctx_set();
 int dpci_amq_bdi_init(uint32_t dpci_id);
 int dpci_rx_ctx_init(uint32_t dpci_id, uint32_t id);
 
@@ -123,15 +121,6 @@ static inline void amq_bits_update(uint32_t id)
 	mc_dpci_tbl_dump();
 }
 
-/* To be called in runtime only */
-__COLD_CODE void dpci_amq_bdi_set()
-{
-	uint32_t id = 0;
-	
-	dpci_drv_user_ctx_get(&id, NULL);
-
-	amq_bits_update(id);
-}
 
 /* To be called upon connected event, assign even */
 __COLD_CODE int dpci_amq_bdi_init(uint32_t dpci_id)
@@ -281,17 +270,6 @@ __COLD_CODE static int rx_ctx_set(uint32_t id, struct dpci_tx_queue_attr *tx)
 	return err;
 }
 
-__COLD_CODE int dpci_rx_ctx_set()
-{
-	int err = 0;
-	uint32_t id;
-
-	dpci_drv_user_ctx_get(&id, NULL);
-	err = rx_ctx_set(id, NULL);
-
-	return err;
-}
-
 
 /*************************************************************************/
 
@@ -302,6 +280,13 @@ __COLD_CODE int dpci_rx_ctx_set()
 __COLD_CODE int dpci_drv_added(uint32_t dpci_id)
 {
 	int err = 0;
+	
+	/*
+	 * TODO
+	 * Lock with cdma mutex WRITE
+	 * count++;
+	 * Update mc_dpci_find() to skip invalid entries
+	 */
 	
 	err = dpci_amq_bdi_init(dpci_id);
 	if (err >= 0) {
@@ -317,7 +302,32 @@ __COLD_CODE int dpci_drv_added(uint32_t dpci_id)
  */
 __COLD_CODE int dpci_drv_removed(uint32_t dpci_id)
 {
+
+	struct mc_dpci_tbl *dt = (struct mc_dpci_tbl *)\
+		sys_get_unique_handle(FSL_OS_MOD_DPCI_TBL);
+	int ind = -1;
+	uint32_t amq_bdi = 0;
+	int err = 0;
+
+	/*
+	 * TODO
+	 * Clear the entry with 0xffff
+	 * Lock with cdma mutex WRITE
+	 * count--;
+	 */
+	CMDIF_ICID_AMQ_BDI(AMQ_BDI_SET, ICONTEXT_INVALID, ICONTEXT_INVALID);
+
+	ind = mc_dpci_find(dpci_id, NULL);
+	if (ind >= 0) {
+		/* Must be last and atomic */
+		dt->ic[ind] = amq_bdi;
+		/* No need to update id and peer id
+		 * It will be updated upon added event
+		 * Invalid icid means the whole entry is not valid */
+	}
 	
+	pr_err("Unknown dpci id 0x%x\n", dpci_id);
+	return -ENOENT;
 }
 
 
@@ -330,6 +340,12 @@ __COLD_CODE int dpci_drv_update(uint32_t ind)
 {
 	int err;
 	
+	/*
+	 * TODO
+	 * Lock with cdma mutex WRITE
+	 * Update mc_dpci_find() to skip invalid entries
+	 */
+
 	amq_bits_update(ind);
 	err = rx_ctx_set(ind, NULL);
 	
@@ -384,7 +400,7 @@ __COLD_CODE int dpci_drv_tx_get(uint32_t dpci_id, struct dpci_tx_queue_attr *tx)
 		return -ENAVAIL;
 	}
 
-	err = dpci_open(&dprc->io, dt->dpci_id[i], &token);
+	err = dpci_open(&dprc->io, (int)dt->dpci_id[i], &token);
 	if (err) 
 		return err;
 
@@ -395,7 +411,7 @@ __COLD_CODE int dpci_drv_tx_get(uint32_t dpci_id, struct dpci_tx_queue_attr *tx)
 	}
 
 	for (i = 0; i < attr.num_of_priorities; i++) {
-		err = dpci_get_tx_queue(&dprc->io, token, i, &tx_attr);
+		err = dpci_get_tx_queue(&dprc->io, token, (uint8_t)i, &tx_attr);
 		ASSERT_COND(!err);
 		ASSERT_COND(tx_attr.fqid != DPCI_FQID_NOT_VALID);
 		if (tx != NULL)
