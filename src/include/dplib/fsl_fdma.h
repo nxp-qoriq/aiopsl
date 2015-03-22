@@ -1138,8 +1138,8 @@ int fdma_present_frame_segment(
 		ASA segment length (the number of bytes actually presented given
 		in 64B units), ASA segment offset.
 
-@Param[in]	ws_dst - A pointer to the location in workspace for the
-		presented ASA segment.
+@Param[in]	ws_dst - A pointer to the location in workspace for 
+		the presented ASA segment.
 @Param[in]	offset - Location within the ASA to start presenting from.
 		Must be within the bound of the frame. Specified in 64B units.
 		Relative to \ref FDMA_PRES_SR_BIT flag.
@@ -1179,8 +1179,8 @@ int fdma_read_default_frame_asa(
 
 		Implicitly updated values in Task Defaults: PTA segment address.
 
-@Param[in]	ws_dst - A pointer to the location in workspace for the
-		presented PTA segment.
+@Param[in]	ws_dst - A pointer to the location in workspace for
+		the presented PTA segment.
 
 @Return		0 on Success, or negative value on error.
 
@@ -2390,8 +2390,8 @@ void fdma_close_segment(uint8_t frame_handle, uint8_t seg_handle);
 		the replacement segment data starts.
 @Param[in]	from_size - The number of 64B units that will replace the
 		specified portion of the ASA segment.
-@Param[in]	ws_dst_rs - A pointer to the location in workspace for the
-		represented frame segment (relevant if \ref
+@Param[in]	ws_dst_rs - A pointer to the location in workspace 
+		for the represented frame segment (relevant if \ref
 		FDMA_REPLACE_SA_REPRESENT_BIT) flag is set).
 @Param[in]	size_rs - Number of frame bytes to represent in 64B portions.
 		Must be greater than 0.
@@ -2449,8 +2449,8 @@ int fdma_replace_default_asa_segment_data(
 		segment flags. \endlink
 @Param[in]	from_ws_src - a pointer to the workspace location from which
 		the replacement segment data starts.
-@Param[in]	ws_dst_rs - A pointer to the location in workspace for the
-		represented frame segment (relevant if \ref
+@Param[in]	ws_dst_rs - A pointer to the location in workspace 
+		for the represented frame segment (relevant if \ref
 		FDMA_REPLACE_SA_REPRESENT_BIT flag is set). In case of
 		representing the PTA, always represent the full PTA (64 bytes).
 @Param[in]	size_type - Replacing segment size type of the PTA

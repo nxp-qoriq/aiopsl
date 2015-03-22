@@ -155,9 +155,14 @@ void snic_process_packet(void)
 	/* error cases */
 	err = fdma_store_and_enqueue_default_frame_qd(&enqueue_params, \
 			FDMA_ENWF_NO_FLAGS);
-	if(err == -ENOMEM)
+	if (err)
+	{
+		if(err == -ENOMEM)
 			fdma_discard_default_frame(FDMA_DIS_NO_FLAGS);
-	/* todo other error case */
+		else /* (err == -EBUSY) */
+			fdma_discard_fd((struct ldpaa_fd *)HWC_FD_ADDRESS, FDMA_DIS_NO_FLAGS);
+	}
+
 	fdma_terminate_task();
 }
 
@@ -205,14 +210,17 @@ int snic_ipf(struct snic_params *snic)
 			/* todo error cases */
 			err = fdma_store_and_enqueue_default_frame_qd(&enqueue_params,
 					FDMA_ENWF_NO_FLAGS);
-			if(err == -ENOMEM)
+			if(err)
 			{
-				fdma_discard_default_frame(FDMA_DIS_NO_FLAGS);
+				if(err == -ENOMEM)
+					fdma_discard_default_frame(FDMA_DIS_NO_FLAGS);
+				else /* (err == -EBUSY) */
+					fdma_discard_fd((struct ldpaa_fd *)HWC_FD_ADDRESS, FDMA_DIS_NO_FLAGS);
 				if (ipf_status == IPF_GEN_FRAG_STATUS_IN_PROCESS)
 					ipf_discard_frame_remainder(ipf_context_addr);
 				break;
 			}
-			/* todo other error case */
+			
 		} while (ipf_status == IPF_GEN_FRAG_STATUS_IN_PROCESS);
 
 		fdma_terminate_task();

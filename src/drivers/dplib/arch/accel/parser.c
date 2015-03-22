@@ -39,7 +39,6 @@
 #include "system.h"
 #include "id_pool.h"
 
-
 extern uint64_t ext_prpid_pool_address;
 
 extern __TASK struct aiop_default_task_params default_task_params;
@@ -120,6 +119,11 @@ int parser_profile_delete(uint8_t prpid)
 void parser_profile_query(uint8_t prpid,
 			struct parse_profile_input *parse_profile)
 {
+	
+#ifdef CHECK_ALIGNMENT 	
+	DEBUG_ALIGN((uint32_t)parse_profile, ALIGNMENT_16B);
+#endif
+	
 	struct parse_profile_delete_query_params parse_profile_query_params
 						__attribute__((aligned(16)));
 
@@ -145,6 +149,11 @@ int parse_result_generate_checksum(
 		uint8_t starting_offset, uint16_t *l3_checksum,
 		uint16_t *l4_checksum)
 {
+	
+#ifdef CHECK_ALIGNMENT 	
+	DEBUG_ALIGN((uint32_t *)PRC_GET_SEGMENT_ADDRESS(), ALIGNMENT_16B);
+#endif
+	
 	uint32_t arg1, arg2;
 	int32_t status;
 	struct parse_result *pr = (struct parse_result *)HWC_PARSE_RES_ADDRESS;

@@ -157,11 +157,13 @@ __declspec(entry_point) static void app_process_packet_flow0 (void)
 			if(err == -ENOMEM)
 			{
 				fdma_discard_default_frame(FDMA_DIS_NO_FLAGS);
-				if (ipf_status == IPF_GEN_FRAG_STATUS_IN_PROCESS)
-					ipf_discard_frame_remainder(ipf_context_addr);
 			}
-			else
-				fsl_os_print("ERROR!!! NEED TO CHECK WITH HW TEAM\n");
+			else /* (err == -EBUSY) */
+				fdma_discard_fd((struct ldpaa_fd *)HWC_FD_ADDRESS, FDMA_DIS_NO_FLAGS);
+
+			
+			if (ipf_status == IPF_GEN_FRAG_STATUS_IN_PROCESS)
+				ipf_discard_frame_remainder(ipf_context_addr);
 			break;
 		}
 	} while (ipf_status != IPF_GEN_FRAG_STATUS_DONE);
