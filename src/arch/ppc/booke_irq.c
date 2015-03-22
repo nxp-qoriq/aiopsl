@@ -83,7 +83,7 @@ void booke_generic_exception_isr(uint32_t intr_entry)
 	switch(intr_entry)
 	{
 	case(0x00):
-		pr_debug("core %d int: CRITICAL\n", core_get_id());
+		fsl_os_print("core %d int: CRITICAL\n", core_get_id());
 		break;
 	case(0x10):
 		{
@@ -93,49 +93,49 @@ void booke_generic_exception_isr(uint32_t intr_entry)
 			uint32_t mcsr = booke_get_spr_MCSR();     /* Syndrome register */
 			uint32_t core_id = core_get_id();
 			
-			pr_debug("core %d int: MACHINE_CHECK\n", core_id);
+			fsl_os_print("core %d int: MACHINE_CHECK\n", core_id);
 			if(mcsr & 0x0400 /* STACK_ERR */) {
-				fsl_os_print("core #%d: Stack Overflow Exception...\n", core_id, mcsr);
+				fsl_os_print("core #%d: Stack Overflow Exception...\n", core_id);
 				fsl_os_print("core #%d: MCSR = 0x%x, MCAR = 0x%x\n", core_id, mcsr, mcar);
 				fsl_os_print("core #%d: MCSRR0 = 0x%x, MCSRR1 = 0x%x\n", core_id, mcsrr0, mcsrr1);
 			}
 			break;
 		}
 	case(0x20):
-		pr_debug("core %d int: DATA_STORAGE\n", core_get_id());
+		fsl_os_print("core %d int: DATA_STORAGE\n", core_get_id());
 		break;
 	case(0x30):
-		pr_debug("core %d int: INSTRUCTION_STORAGE\n", core_get_id());
+		fsl_os_print("core %d int: INSTRUCTION_STORAGE\n", core_get_id());
 		break;
 	case(0x40):
-		pr_debug("core %d int: EXTERNAL\n", core_get_id());
+		fsl_os_print("core %d int: EXTERNAL\n", core_get_id());
 		break;
 	case(0x50):
-		pr_debug("core %d int: ALIGNMENT\n", core_get_id());
+		fsl_os_print("core %d int: ALIGNMENT\n", core_get_id());
 		break;
 	case(0x60):
-		pr_debug("core %d int: PROGRAM\n", core_get_id());
+		fsl_os_print("core %d int: PROGRAM\n", core_get_id());
 		break;
 	case(0x70):
-		pr_debug("core %d int: SYSTEM CALL\n", core_get_id());
+		fsl_os_print("core %d int: SYSTEM CALL\n", core_get_id());
 		break;
 	case(0x80):
-		pr_debug("core %d int: debug\n", core_get_id());
+		fsl_os_print("core %d int: debug\n", core_get_id());
 		break;
 	case(0x90):
-		pr_debug("core %d int: SPE-floating point data\n", core_get_id());
+		fsl_os_print("core %d int: SPE-floating point data\n", core_get_id());
 		break;
 	case(0xA0):
-		pr_debug("core %d int: SPE-floating point round\n", core_get_id());
+		fsl_os_print("core %d int: SPE-floating point round\n", core_get_id());
 		break;
 	case(0xB0):
-		pr_debug("core %d int: performance monitor\n", core_get_id());
+		fsl_os_print("core %d int: performance monitor\n", core_get_id());
 		break;
 	case(0xF0): 
-		pr_debug("core %d int: CTS interrupt\n", core_get_id());
+		fsl_os_print("core %d int: CTS interrupt\n", core_get_id());
 		break;
 	default:
-		pr_warn("undefined interrupt #%x\n", intr_entry);
+		fsl_os_print("undefined interrupt #%x\n", intr_entry);
 		break;
 	}
 	
@@ -230,7 +230,6 @@ machine_irq:
 	se_btsti r4,21 /* test bit 0x00000400 - STACK_ERR */
 	beq      generic_irq
 	/* clear stack pointer */
-	//TODO what if DAC2 is not used for stack overflow detection ??
     mfspr    rsp, DAC2     /* Data address compare 2 */
     stwu     rsp, -16(rsp) /* LinuxABI required SP to always be 16-byte aligned */
     b        generic_irq
