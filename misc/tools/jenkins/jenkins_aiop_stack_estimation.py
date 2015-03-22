@@ -90,8 +90,8 @@ def defines():
 		else:
 			temp_file.write("#define STACK_CHECK\n")
 			print "Added: #define STACK_CHECK"
-			temp_file.write("#define DISABLE_ALL_ASSERTS\n")
-			print "Added: #define DISABLE_ALL_ASSERTS"
+			temp_file.write("#define DISABLE_ASSERTIONS\n")
+			print "Added: #define DISABLE_ASSERTIONS"
 			temp_file.write(line)
 			ins.close()
 			temp_file.close()

@@ -52,12 +52,6 @@
 #define DISABLE_ASSERTIONS
 #endif /* (DEBUG_LEVEL > 0) */
 
-#ifdef STACK_CHECK
-#ifndef DISABLE_ASSERTIONS
-#define DISABLE_ASSERTIONS
-#endif
-#endif
-
 #define LS2085A
 #define AIOP
 #define SOC_PPC_CORE
