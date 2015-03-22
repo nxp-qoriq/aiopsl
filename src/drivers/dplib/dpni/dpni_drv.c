@@ -702,10 +702,6 @@ int dpni_drv_set_rx_buffer_layout(uint16_t ni_id, const struct dpni_buffer_layou
 
 int dpni_register_requirements(uint16_t head_room, uint16_t tail_room, uint16_t private_data_size)
 {
-	//TODO validate data
-	
-	//TODO Under construction
-		
 	g_dpni_early_init_data.count++;
 	
 	g_dpni_early_init_data.head_room_sum += head_room;
