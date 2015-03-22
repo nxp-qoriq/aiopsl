@@ -81,6 +81,30 @@ int dpni_drv_register_rx_cb(uint16_t        ni_id,
 int dpni_drv_unregister_rx_cb(uint16_t		ni_id);
 
 /**************************************************************************//**
+@Function	dpni_drv_enable
+
+@Description	Enable a NI_ID referenced by ni_id. Allows sending and
+		receiving frames.
+
+@Param[in]	ni_id   The Network Interface ID
+
+@Return	OK on success; error code, otherwise.
+*//***************************************************************************/
+int dpni_drv_enable(uint16_t ni_id);
+
+/**************************************************************************//**
+@Function	dpni_drv_disable
+
+@Description	Disables a NI_ID referenced by ni_id. Disallows sending and
+		receiving frames
+
+@Param[in]	ni_id	The Network Interface ID
+
+@Return	OK on success; error code, otherwise.
+*//***************************************************************************/
+int dpni_drv_disable(uint16_t ni_id);
+
+/**************************************************************************//**
 @Function	dpni_get_receive_niid
 
 @Description	Get ID of NI on which the default packet arrived.

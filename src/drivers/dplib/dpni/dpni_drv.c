@@ -89,10 +89,13 @@ int dpni_drv_register_rx_cb (uint16_t		ni_id,
 	
 	/* calculate pointer to the send NI structure */
 	dpni_drv = nis + ni_id;
+	/*Mutex lock to avoid race condition while writing to EPID table*/
+	cdma_mutex_lock_take((uint64_t)nis, CDMA_MUTEX_WRITE_LOCK);
 	lock_spinlock(&dpni_drv->dpni_lock); /*Lock dpni table entry*/
 	iowrite32_ccsr((uint32_t)(dpni_drv->dpni_drv_params_var.epid_idx), &wrks_addr->epas);
 	iowrite32_ccsr(PTR_TO_UINT(cb), &wrks_addr->ep_pc);
 	unlock_spinlock(&dpni_drv->dpni_lock); /*Unlock dpni table entry*/
+	cdma_mutex_lock_release((uint64_t)nis);
 	return 0;
 }
 
@@ -105,10 +108,13 @@ int dpni_drv_unregister_rx_cb (uint16_t		ni_id)
 	
 	/* calculate pointer to the send NI structure */
 	dpni_drv = nis + ni_id;
+	/*Mutex lock to avoid race condition while writing to EPID table*/
+	cdma_mutex_lock_take((uint64_t)nis, CDMA_MUTEX_WRITE_LOCK);
 	lock_spinlock(&dpni_drv->dpni_lock); /*Lock dpni table entry*/
 	iowrite32_ccsr((uint32_t)(dpni_drv->dpni_drv_params_var.epid_idx), &wrks_addr->epas);
 	iowrite32_ccsr(PTR_TO_UINT(discard_rx_cb), &wrks_addr->ep_pc);
 	unlock_spinlock(&dpni_drv->dpni_lock); /*Unlock dpni table entry*/
+	cdma_mutex_lock_release((uint64_t)nis);
 	return 0;
 }
 
@@ -117,13 +123,40 @@ int dpni_drv_enable (uint16_t ni_id)
 	struct dpni_drv *dpni_drv;
 	int		err;
 	struct mc_dprc *dprc = sys_get_unique_handle(FSL_OS_MOD_AIOP_RC);
-
+	struct aiop_psram_entry *sp_addr;
+	struct aiop_psram_entry ddr_storage_profile;
+	uint32_t sp_temp;
+	volatile int alex = 1;
 	/* calculate pointer to the send NI structure */
 	dpni_drv = nis + ni_id;
 
 	if ((err = dpni_enable(&dprc->io, dpni_drv->dpni_drv_params_var.dpni))
-									!= 0)
+			!= 0)
 		return err;
+
+	lock_spinlock(&dpni_drv->dpni_lock); /*Lock dpni table entry*/
+	if(dpni_drv->dpni_drv_params_var.spid_ddr)/*spid for ddr pool can't be 0, it must be higher than spid given from MC*/
+	{
+		sp_addr = (struct aiop_psram_entry *)
+			(AIOP_PERIPHERALS_OFF + AIOP_STORAGE_PROFILE_OFF);
+		sp_addr += dpni_drv->dpni_drv_params_var.spid_ddr;		
+		/*store bpid used for DDR pool*/
+		sp_temp = LOAD_LE32_TO_CPU(&(sp_addr->bp1));
+		sp_temp &= (uint32_t)(SP_MASK_BPID << 16);
+		sp_addr = (struct aiop_psram_entry *)
+			(AIOP_PERIPHERALS_OFF + AIOP_STORAGE_PROFILE_OFF);
+		sp_addr += dpni_drv->dpni_drv_params_var.spid;
+		/*Update other parameters except bpid in DDR storage profile*/
+		sp_temp |= (LOAD_LE32_TO_CPU(&(sp_addr->bp1)) & SP_MASK_BMT_AND_RSV);
+		ddr_storage_profile = *sp_addr;
+		STORE_CPU_TO_LE32(sp_temp,&(ddr_storage_profile.bp1));
+		/*update already used spid*/
+		sp_addr = (struct aiop_psram_entry *)
+			(AIOP_PERIPHERALS_OFF + AIOP_STORAGE_PROFILE_OFF);
+		sp_addr += dpni_drv->dpni_drv_params_var.spid_ddr;
+		*sp_addr = ddr_storage_profile;
+	}
+	unlock_spinlock(&dpni_drv->dpni_lock); /*Unlock dpni table entry*/
 	return 0;
 }
 
@@ -323,7 +356,6 @@ int dpni_drv_get_spid_ddr(uint16_t ni_id, uint16_t *spid_ddr)
 
 	dpni_drv = nis + ni_id;
 	*spid_ddr = dpni_drv->dpni_drv_params_var.spid_ddr;
-
 	return 0;
 }
 
@@ -568,9 +600,14 @@ int dpni_drv_get_ordering_mode(uint16_t ni_id){
 	/* calculate pointer to the NI structure */
 	dpni_drv = nis + ni_id;
 	/* write epid index to epas register */
+	/*Mutex lock to avoid race condition while writing to EPID table*/
+	cdma_mutex_lock_take((uint64_t)nis, CDMA_MUTEX_WRITE_LOCK);
+	lock_spinlock(&dpni_drv->dpni_lock); /*Lock dpni table entry*/
 	iowrite32_ccsr((uint32_t)(dpni_drv->dpni_drv_params_var.epid_idx), &wrks_addr->epas);
 	/* read ep_osc - to get the order scope (concurrent / exclusive) */
 	ep_osc = ioread32_ccsr(&wrks_addr->ep_osc);
+	unlock_spinlock(&dpni_drv->dpni_lock); /*Unlock dpni table entry*/
+	cdma_mutex_lock_release((uint64_t)nis);
 
 	return (int)(ep_osc & ORDER_MODE_BIT_MASK) >> 24;
 }
@@ -584,6 +621,9 @@ static int dpni_drv_set_ordering_mode(uint16_t ni_id, int ep_mode){
 
 	/* calculate pointer to the NI structure */
 	dpni_drv = nis + ni_id;
+	/*Mutex lock to avoid race condition while writing to EPID table*/
+	cdma_mutex_lock_take((uint64_t)nis, CDMA_MUTEX_WRITE_LOCK);
+	lock_spinlock(&dpni_drv->dpni_lock); /*Lock dpni table entry*/
 	/* write epid index to epas register */
 	iowrite32_ccsr((uint32_t)(dpni_drv->dpni_drv_params_var.epid_idx), &wrks_addr->epas);
 	/* read ep_osc - to get the order scope (concurrent / exclusive) */
@@ -592,6 +632,8 @@ static int dpni_drv_set_ordering_mode(uint16_t ni_id, int ep_mode){
 	ep_osc |= (ep_mode & 0x01) << 24;
 	/*Set concurrent mode for NI in epid table*/
 	iowrite32_ccsr(ep_osc, &wrks_addr->ep_osc);
+	unlock_spinlock(&dpni_drv->dpni_lock); /*Unlock dpni table entry*/
+	cdma_mutex_lock_release((uint64_t)nis);
 	return 0;
 }
 

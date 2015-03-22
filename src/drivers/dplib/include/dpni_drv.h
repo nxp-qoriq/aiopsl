@@ -127,30 +127,6 @@ typedef void /*__noreturn*/ (rx_cb_t) (void);
 void discard_rx_cb(void);
 
 /**************************************************************************//**
-@Function	dpni_drv_enable
-
-@Description	Enable a NI_ID referenced by ni_id. Allows sending and
-		receiving frames.
-
-@Param[in]	ni_id   The Network Interface ID
-
-@Return	OK on success; error code, otherwise.
-*//***************************************************************************/
-int dpni_drv_enable(uint16_t ni_id);
-
-/**************************************************************************//**
-@Function	dpni_drv_disable
-
-@Description	Disables a NI_ID referenced by ni_id. Disallows sending and
-		receiving frames
-
-@Param[in]	ni_id	The Network Interface ID
-
-@Return	OK on success; error code, otherwise.
-*//***************************************************************************/
-int dpni_drv_disable(uint16_t ni_id);
-
-/**************************************************************************//**
 @Function	dpni_drv_get_attrib
 
 @Description	Returns the value of the NI_ID attribute specified with the
