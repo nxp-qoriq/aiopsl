@@ -228,6 +228,8 @@ static int ctrl_cb0(void *dev, uint16_t cmd, uint32_t size,
 		ASSERT_COND(temp64 == 0);
 		shbp_test->shbp = 0; /* For test on GPP */
 
+		/* gpp_lbp is taken from metadata 
+		 * p_data is presented in presentation as data */
 		err = shbp_release(gpp_lbp, p_data, &ic);
 		ASSERT_COND(!err);
 
@@ -243,9 +245,9 @@ static int ctrl_cb0(void *dev, uint16_t cmd, uint32_t size,
 		ASSERT_COND(!err && (ic.icid != ICONTEXT_INVALID));
 		p_data = shbp_acquire(lbp, &ic);
 		while (p_data != 0) {
-			i++;			
-			icontext_dma_read(&ic, sizeof(uint64_t), p_data, &temp64);
-			ASSERT_COND(CPU_TO_SRV64(temp64) == lbp);
+			i++;
+			temp64 = CPU_TO_LE64(lbp);
+			icontext_dma_write(&ic, sizeof(uint64_t), &temp64, p_data);
 			err = shbp_release(lbp, p_data, &ic);
 			ASSERT_COND(!err);
 			p_data = shbp_acquire(lbp, &ic);
