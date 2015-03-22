@@ -123,10 +123,11 @@ void stack_estimation(void)
 	dpni_drv_get_spid(ni, &spid);
 	dpni_drv_get_spid_ddr(ni, &spid);
 	/*This function supported in boot mode only*/
-	/*dpni_drv_set_order_scope(ni, &key_cfg); */
+	/*dpni_drv_set_order_scope(ni, &key_cfg);*/
 	dpni_drv_get_connected_dpni_id(ni, &dpni_id, &state);
 	dpni_drv_get_connected_aiop_ni_id(ni, &dpni_id, &state);
 	dpni_drv_get_rx_buffer_layout(ni, &layout);
+	dpni_drv_set_rx_buffer_layout(ni, &layout);
 	dpni_drv_get_counter(ni, DPNI_CNT_ING_FRAME ,&ctr_value);
 	dpni_drv_reset_counter(ni, DPNI_CNT_ING_FRAME);
 	dpni_drv_get_dpni_id(ni, &dpni_id);
@@ -138,6 +139,8 @@ void stack_estimation(void)
 	dpni_drv_add_vlan_id(ni, (uint16_t)1515);
 	dpni_drv_remove_vlan_id(ni, (uint16_t)1515);
 	dpni_drv_get_attributes(ni, &attr);
+	dpni_drv_enable(ni);
+	dpni_drv_disable(ni);
 	/* SHBP Shared buffer pool */
 	shbp_acquire(shbp, &ic);
 	shbp_release(shbp, NULL, &ic);
