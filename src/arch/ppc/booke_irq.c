@@ -223,7 +223,7 @@ machine_irq:
 	mfspr    r4, MCSR
 	se_btsti r4,21 /* test bit 0x00000400 - STACK_ERR */
 	beq      generic_isr
-    li       rsp,  0x7ff0 /* clear stack pointer */
+    li       rsp,  0x7f0 /* clear stack pointer - for 2k WS (smallest) */
     b        generic_isr
 	
     /***************************************************/
