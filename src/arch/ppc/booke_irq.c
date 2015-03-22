@@ -91,7 +91,7 @@ void booke_generic_exception_isr(uint32_t intr_entry)
 			uint32_t core_id = core_get_id();
 			pr_debug("core %d int: MACHINE_CHECK\n", core_id);
 			if(mcsr & 0x0400 /* STACK_ERR */) {
-				pr_debug("Stack Exception: MCSR = 0x%x\n", mcsr);
+				pr_debug("Stack overflow Exception: MCSR = 0x%x\n", mcsr);
 			}
 			break;
 		}
@@ -222,9 +222,9 @@ asm static void branch_table(void) {
 machine_irq:
 	mfspr    r4, MCSR
 	se_btsti r4,21 /* test bit 0x00000400 - STACK_ERR */
-	beq      generic_isr
+	beq      generic_irq
     li       rsp,  0x7f0 /* clear stack pointer - for 2k WS (smallest) */
-    b        generic_isr
+    b        generic_irq
 	
     /***************************************************/
     /*** generic exception handler *********************/
