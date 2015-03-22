@@ -89,14 +89,18 @@ void stack_estimation(void)
 	fsl_get_time_ms(&time);
 
 	/* CMDIF runtime functions */
+#ifdef IRA_NEEDS_TO_FIX
 	cmdif_srv_isr();
+	cmdif_open(&cidesc, NULL, 0, NULL, 0);
+#endif
 	cmdif_cl_isr();
 	cmdif_send(&cidesc, 0, 0, CMDIF_PRI_HIGH, NULL, NULL, NULL);
-	cmdif_open(&cidesc, NULL, 0, NULL, 0);
 	cmdif_close(&cidesc);
 
 	/* Isolation Context runtime API */
+#ifdef IRA_NEEDS_TO_FIX
 	icontext_get(5, &ic);
+#endif
 	icontext_acquire(&ic, 7, &buff);
 	icontext_release(&ic, 7, buff);
 	icontext_dma_read(&ic, 4, buff, &time);

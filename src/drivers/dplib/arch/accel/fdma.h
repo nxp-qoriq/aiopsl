@@ -822,6 +822,9 @@ enum fdma_function_identifier {
 		This error is caused since the requested presentation exceeded
 		frame data end.
 
+@Cautions	In case the presented segment will be used by 
+		PARSER/CTLU/KEYGEN, it should be presented in a 16 byte aligned 
+		workspace address (due to TKT254635).
 @Cautions	This command may be invoked only for Data segments.
 @Cautions	This function may result in a fatal error.
 @Cautions	In this Service Routine the task yields.

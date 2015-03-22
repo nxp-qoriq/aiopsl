@@ -48,6 +48,7 @@ inline int table_lookup_by_keyid_default_frame(enum table_hw_accel_id acc_id,
 	
 #ifdef CHECK_ALIGNMENT 	
 	DEBUG_ALIGN((uint32_t)lookup_result, ALIGNMENT_16B);
+	DEBUG_ALIGN((uint32_t *)PRC_GET_SEGMENT_ADDRESS(), ALIGNMENT_16B);
 #endif
 	
 	int32_t status;

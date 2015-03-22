@@ -107,8 +107,8 @@ __declspec(entry_point) static void app_process_packet_flow0 (void)
 		local_test_error |= err;
 		if(err == -ENOMEM)
 			fdma_discard_default_frame(FDMA_DIS_NO_FLAGS);
-		else
-			fsl_os_print("ERROR!!! NEED TO CHECK WITH HW TEAM\n");
+		else /* (err == -EBUSY) */
+			fdma_discard_fd((struct ldpaa_fd *)HWC_FD_ADDRESS, FDMA_DIS_NO_FLAGS);
 	}
 
 	if(!local_test_error) /*No error found during injection of packets*/

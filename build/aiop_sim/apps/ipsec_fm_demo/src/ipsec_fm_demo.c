@@ -233,8 +233,8 @@ __declspec(entry_point) static void app_process_packet_flow0 (void)
 		local_test_error |= err;
 		if(err == -ENOMEM)
 			fdma_discard_default_frame(FDMA_DIS_NO_FLAGS);
-		else
-			fsl_os_print("ERROR!!! NEED TO CHECK WITH HW TEAM\n");
+		else /* (err == -EBUSY) */
+			fdma_discard_fd((struct ldpaa_fd *)HWC_FD_ADDRESS, FDMA_DIS_NO_FLAGS);
 	}
 
 	if(!local_test_error) /* No error found during injection of packets*/
@@ -304,9 +304,9 @@ int app_early_init(void){
 	
 	/* IPsec resources reservation */
 	err = ipsec_early_init(
-		1, /* uint32_t total_instance_num */
-		2, /* uint32_t total_committed_sa_num */
-		4, /* uint32_t total_max_sa_num */
+		10, /* uint32_t total_instance_num */
+		20, /* uint32_t total_committed_sa_num */
+		40, /* uint32_t total_max_sa_num */
 		0  /* uint32_t flags */
 	);
 	
