@@ -359,7 +359,7 @@ int dpni_drv_get_spid_ddr(uint16_t ni_id, uint16_t *spid_ddr)
 	return 0;
 }
 
-int dpni_get_num_of_ni (void)
+int dpni_drv_get_num_of_nis (void)
 {
 	return num_of_nis;
 }
@@ -688,13 +688,13 @@ int dpni_drv_get_connected_aiop_ni_id(const uint16_t dpni_id, uint16_t *aiop_nii
 	if(err)
 		return err;
 
-	for(i = 0; i <  dpni_get_num_of_ni(); i++){
+	for(i = 0; i <  dpni_drv_get_num_of_nis(); i++){
 		if(endpoint2.id == nis[i].dpni_id){
 			*aiop_niid = i;
 			break;
 		}
 	}
-	if(i == dpni_get_num_of_ni())
+	if(i == dpni_drv_get_num_of_nis())
 		return -ENAVAIL;
 
 	return 0;
@@ -722,30 +722,48 @@ int dpni_drv_get_connected_dpni_id(const uint16_t aiop_niid, uint16_t *dpni_id, 
 	return 0;
 }
 
-int dpni_drv_set_rx_buffer_layout(uint16_t ni_id, const struct dpni_buffer_layout *layout){
+int dpni_drv_set_rx_buffer_layout(uint16_t ni_id, const struct dpni_drv_buf_layout *layout){
 	struct dpni_drv *dpni_drv;
 	struct mc_dprc *dprc = sys_get_unique_handle(FSL_OS_MOD_AIOP_RC);
-
+	struct dpni_buffer_layout dpni_layout;
 	/* calculate pointer to the NI structure */
 	dpni_drv = nis + ni_id;
+	dpni_layout.options = layout->options;
+	dpni_layout.pass_timestamp = layout->pass_timestamp;
+	dpni_layout.pass_parser_result = layout->pass_parser_result;
+	dpni_layout.pass_frame_status = layout->pass_frame_status;
+	dpni_layout.private_data_size = layout->private_data_size;
+	dpni_layout.data_align = layout->data_align;
+	dpni_layout.data_head_room = layout->data_head_room;
+	dpni_layout.data_tail_room = layout->data_tail_room;
 
 	return dpni_set_rx_buffer_layout(&dprc->io,
 	                                 dpni_drv->dpni_drv_params_var.dpni,
-	                                 layout);
+	                                 &dpni_layout);
 }
 
-int dpni_drv_get_rx_buffer_layout(uint16_t ni_id, struct dpni_buffer_layout *layout){
+int dpni_drv_get_rx_buffer_layout(uint16_t ni_id, struct dpni_drv_buf_layout *layout){
 	struct dpni_drv *dpni_drv;
 	struct mc_dprc *dprc = sys_get_unique_handle(FSL_OS_MOD_AIOP_RC);
-
+	struct dpni_buffer_layout dpni_layout;
+	int err;
 	/* calculate pointer to the NI structure */
 	dpni_drv = nis + ni_id;
-	return dpni_get_rx_buffer_layout(&dprc->io,
+	err = dpni_get_rx_buffer_layout(&dprc->io,
 	                                 dpni_drv->dpni_drv_params_var.dpni,
-	                                 layout);
+	                                 &dpni_layout);
+	layout->options = dpni_layout.options;
+	layout->pass_timestamp = dpni_layout.pass_timestamp;
+	layout->pass_parser_result = dpni_layout.pass_parser_result;
+	layout->pass_frame_status = dpni_layout.pass_frame_status;
+	layout->private_data_size = dpni_layout.private_data_size;
+	layout->data_align = dpni_layout.data_align;
+	layout->data_head_room = dpni_layout.data_head_room;
+	layout->data_tail_room = dpni_layout.data_tail_room;
+	return err;
 }
 
-int dpni_drv_get_counter(uint16_t ni_id, enum dpni_counter counter, uint64_t *value){
+int dpni_drv_get_counter(uint16_t ni_id, enum dpni_drv_counter counter, uint64_t *value){
 	struct dpni_drv *dpni_drv;
 	struct mc_dprc *dprc = sys_get_unique_handle(FSL_OS_MOD_AIOP_RC);
 
@@ -753,11 +771,11 @@ int dpni_drv_get_counter(uint16_t ni_id, enum dpni_counter counter, uint64_t *va
 	dpni_drv = nis + ni_id;
 	return dpni_get_counter(&dprc->io,
 	                        dpni_drv->dpni_drv_params_var.dpni,
-	                        counter,
+	                        (enum dpni_counter)counter,
 	                        value);
 }
 
-int dpni_drv_reset_counter(uint16_t ni_id, enum dpni_counter counter){
+int dpni_drv_reset_counter(uint16_t ni_id, enum dpni_drv_counter counter){
 	struct dpni_drv *dpni_drv;
 	struct mc_dprc *dprc = sys_get_unique_handle(FSL_OS_MOD_AIOP_RC);
 
@@ -765,12 +783,12 @@ int dpni_drv_reset_counter(uint16_t ni_id, enum dpni_counter counter){
 	dpni_drv = nis + ni_id;
 	return dpni_set_counter(&dprc->io,
 	                        dpni_drv->dpni_drv_params_var.dpni,
-	                        counter,
+	                        (enum dpni_counter)counter,
 	                        0);
 }
 
 int dpni_drv_get_dpni_id(uint16_t ni_id, uint16_t *dpni_id){
-	if(ni_id >= dpni_get_num_of_ni())
+	if(ni_id >= dpni_drv_get_num_of_nis())
 	{
 		return -ENAVAIL;
 	}
@@ -782,7 +800,7 @@ int dpni_drv_get_dpni_id(uint16_t ni_id, uint16_t *dpni_id){
 int dpni_drv_get_ni_id(uint16_t dpni_id, uint16_t *ni_id){
 	uint16_t i;
 	
-	for(i = 0; i < dpni_get_num_of_ni(); i++)
+	for(i = 0; i < dpni_drv_get_num_of_nis(); i++)
 	{
 		if(nis[i].dpni_id == dpni_id)
 		{
@@ -790,21 +808,27 @@ int dpni_drv_get_ni_id(uint16_t dpni_id, uint16_t *ni_id){
 			break;
 		}
 	}
-	if(i == dpni_get_num_of_ni()){
+	if(i == dpni_drv_get_num_of_nis()){
 		return -ENAVAIL;
 	}
 	return 0;
 }
 
-int dpni_drv_get_link_state(uint16_t ni_id, struct dpni_link_state *state){
+int dpni_drv_get_link_state(uint16_t ni_id, struct dpni_drv_link_state *state){
 	struct dpni_drv *dpni_drv;
 	struct mc_dprc *dprc = sys_get_unique_handle(FSL_OS_MOD_AIOP_RC);
+	struct dpni_link_state link_state;
+	int err;
 
 	/* calculate pointer to the NI structure */
 	dpni_drv = nis + ni_id;
-	return dpni_get_link_state(&dprc->io,
+	err = dpni_get_link_state(&dprc->io,
 	                                 dpni_drv->dpni_drv_params_var.dpni,
-	                                 state);
+	                                 &link_state);
+	state->options = link_state.options;
+	state->rate = link_state.rate;
+	state->up = link_state.up;
+	return err;	
 }
 
 int dpni_drv_clear_mac_filters(uint16_t ni_id, uint8_t unicast, uint8_t multicast){

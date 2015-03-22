@@ -52,7 +52,7 @@ int dpni_drv_test(void){
 		lock_spinlock(&dpni_lock);
 		if(dpni_ctr == 38)
 		{
-			for(ni = 0; ni < dpni_get_num_of_ni(); ni ++)
+			for(ni = 0; ni < dpni_drv_get_num_of_nis(); ni ++)
 			{
 				/*Just to test functionality, because of promiscuous mode enabled - the packets will continue to receive*/
 				err = dpni_drv_remove_mac_addr((uint16_t)ni,((uint8_t []){0x02,0x00,0xC0,0xA8,0x0B,0xFE}));
@@ -126,7 +126,7 @@ int dpni_drv_test(void){
 			fsl_os_print("dpni success - broadcast packets received during the test\n");
 		}
 
-		for(ni = 0; ni < dpni_get_num_of_ni(); ni ++)
+		for(ni = 0; ni < dpni_drv_get_num_of_nis(); ni ++)
 		{
 			err = dpni_drv_set_multicast_promisc((uint16_t)ni, 1);
 			if(err != 0) {
@@ -137,7 +137,7 @@ int dpni_drv_test(void){
 				fsl_os_print("dpni_drv_set_multicast_promisc for ni %d succeeded\n",ni);
 			}
 		}
-		for(ni = 0; ni < dpni_get_num_of_ni(); ni ++)
+		for(ni = 0; ni < dpni_drv_get_num_of_nis(); ni ++)
 		{
 			err = dpni_drv_get_multicast_promisc((uint16_t)ni, &promisc);
 			if(err != 0 || promisc != 1) {
@@ -148,7 +148,7 @@ int dpni_drv_test(void){
 				fsl_os_print("dpni_drv_get_multicast_promisc for ni %d succeeded\n",ni);
 			}
 			
-			err = dpni_drv_reset_counter((uint16_t)ni, DPNI_CNT_ING_FRAME);
+			err = dpni_drv_reset_counter((uint16_t)ni, DPNI_DRV_CNT_ING_FRAME);
 			if(err != 0) {
 				fsl_os_print("dpni_drv_reset_counter error for ni %d\n",ni);
 				local_test_error |= err;

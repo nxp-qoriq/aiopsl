@@ -64,10 +64,10 @@ void stack_estimation(void)
 	uint64_t buff = 0;
 	struct cmdif_desc cidesc = {0};
 	struct icontext ic = {0};
-	struct dpni_buffer_layout layout = {0};
+	struct dpni_drv_buf_layout layout = {0};
 	struct dpkg_profile_cfg key_cfg = {0};
 	struct ldpaa_fd fd = {0};
-	struct dpni_link_state link_state = {0};
+	struct dpni_drv_link_state link_state = {0};
 	struct dpni_attr attr = {0};
 	uint16_t ni = 0, dpni_id, spid, mfl = 0;
 	uint8_t mac_addr[NET_HDR_FLD_ETH_ADDR_SIZE] = {0};
@@ -128,8 +128,8 @@ void stack_estimation(void)
 	dpni_drv_get_connected_aiop_ni_id(ni, &dpni_id, &state);
 	dpni_drv_get_rx_buffer_layout(ni, &layout);
 	dpni_drv_set_rx_buffer_layout(ni, &layout);
-	dpni_drv_get_counter(ni, DPNI_CNT_ING_FRAME ,&ctr_value);
-	dpni_drv_reset_counter(ni, DPNI_CNT_ING_FRAME);
+	dpni_drv_get_counter(ni, DPNI_DRV_CNT_ING_FRAME ,&ctr_value);
+	dpni_drv_reset_counter(ni, DPNI_DRV_CNT_ING_FRAME);
 	dpni_drv_get_dpni_id(ni, &dpni_id);
 	dpni_drv_get_ni_id(dpni_id, &ni);
 	dpni_drv_get_link_state(ni, &link_state);
