@@ -48,7 +48,7 @@ int parser_profile_create(struct parse_profile_input *parse_profile,
 {
 	
 #ifdef CHECK_ALIGNMENT 	
-	DEBUG_ALIGN((uint32_t)parse_profile, ALIGNMENT_16B);
+	DEBUG_ALIGN("parser.c", (uint32_t)parse_profile, ALIGNMENT_16B);
 #endif
 	
 	int32_t status;
@@ -78,7 +78,7 @@ void parser_profile_replace(struct parse_profile_input *parse_profile,
 {
 	
 #ifdef CHECK_ALIGNMENT 	
-	DEBUG_ALIGN((uint32_t)parse_profile, ALIGNMENT_16B);
+	DEBUG_ALIGN("parser.c", (uint32_t)parse_profile, ALIGNMENT_16B);
 #endif
 	
 	parse_profile->parse_profile.reserved1 = 0;
@@ -121,7 +121,7 @@ void parser_profile_query(uint8_t prpid,
 {
 	
 #ifdef CHECK_ALIGNMENT 	
-	DEBUG_ALIGN((uint32_t)parse_profile, ALIGNMENT_16B);
+	DEBUG_ALIGN("parser.c", (uint32_t)parse_profile, ALIGNMENT_16B);
 #endif
 	
 	struct parse_profile_delete_query_params parse_profile_query_params
@@ -151,7 +151,7 @@ int parse_result_generate_checksum(
 {
 	
 #ifdef CHECK_ALIGNMENT 	
-	DEBUG_ALIGN((uint32_t *)PRC_GET_SEGMENT_ADDRESS(), ALIGNMENT_16B);
+	DEBUG_ALIGN("parser.c", (uint32_t *)PRC_GET_SEGMENT_ADDRESS(), ALIGNMENT_16B);
 #endif
 	
 	uint32_t arg1, arg2;

@@ -57,7 +57,7 @@ int create_frame(
 {
 	
 #ifdef CHECK_ALIGNMENT 	
-	DEBUG_ALIGN((uint32_t)fd, ALIGNMENT_32B);
+	DEBUG_ALIGN("frame_operations.c",(uint32_t)fd, ALIGNMENT_32B);
 #endif
 #ifdef REV2 /* WA for TKT254401 */	
 	struct fdma_present_frame_params present_frame_params;
@@ -173,7 +173,7 @@ int create_fd(
 	struct fdma_amq amq;
 #endif
 #ifdef CHECK_ALIGNMENT 	
-	DEBUG_ALIGN((uint32_t)fd, ALIGNMENT_32B);
+	DEBUG_ALIGN("frame_operations.c",(uint32_t)fd, ALIGNMENT_32B);
 #endif
 	
 #ifndef REV2 /* WA for TKT254401 */
@@ -265,7 +265,7 @@ int create_arp_request_broadcast(
 {
 
 #ifdef CHECK_ALIGNMENT 	
-	DEBUG_ALIGN((uint32_t)fd, ALIGNMENT_32B);
+	DEBUG_ALIGN("frame_operations.c",(uint32_t)fd, ALIGNMENT_32B);
 #endif
 	
 	uint8_t target_eth[6];
@@ -285,7 +285,7 @@ int create_arp_request(
 {
 	
 #ifdef CHECK_ALIGNMENT 	
-	DEBUG_ALIGN((uint32_t)fd, ALIGNMENT_32B);
+	DEBUG_ALIGN("frame_operations.c",(uint32_t)fd, ALIGNMENT_32B);
 #endif
 	
 	uint8_t arp_data[ARP_PKT_MIN_LEN];

@@ -389,7 +389,7 @@ void tcp_gso_context_init(
 {
 	
 #ifdef CHECK_ALIGNMENT 	
-	DEBUG_ALIGN((uint32_t *)tcp_gso_context_addr, ALIGNMENT_32B);
+	DEBUG_ALIGN("gso.c",(uint32_t *)tcp_gso_context_addr, ALIGNMENT_32B);
 #endif
 	
 	struct tcp_gso_context *gso_ctx =

@@ -43,7 +43,7 @@ inline void keygen_kcr_builder_init(struct kcr_builder *kb)
 {
 	
 #ifdef CHECK_ALIGNMENT 	
-	DEBUG_ALIGN((uint32_t)kb, ALIGNMENT_16B);
+	DEBUG_ALIGN("keygen_inline.c",(uint32_t)kb, ALIGNMENT_16B);
 #endif
 
 	/* clear the KCR array */
@@ -61,8 +61,8 @@ inline int keygen_gen_key(enum keygen_hw_accel_id acc_id,
 {
 	
 #ifdef CHECK_ALIGNMENT 	
-	DEBUG_ALIGN((uint32_t)key, ALIGNMENT_16B);
-	DEBUG_ALIGN((uint32_t *)PRC_GET_SEGMENT_ADDRESS(), ALIGNMENT_16B);
+	DEBUG_ALIGN("keygen_inline.c",(uint32_t)key, ALIGNMENT_16B);
+	DEBUG_ALIGN("keygen_inline.c",(uint32_t *)PRC_GET_SEGMENT_ADDRESS(), ALIGNMENT_16B);
 #endif
 	
 	int32_t status;
@@ -175,7 +175,7 @@ inline int keygen_kcr_create(enum keygen_hw_accel_id acc_id,
 {
 	
 #ifdef CHECK_ALIGNMENT 	
-	DEBUG_ALIGN((uint32_t)kcr, ALIGNMENT_16B);
+	DEBUG_ALIGN("keygen_inline.c",(uint32_t)kcr, ALIGNMENT_16B);
 #endif
 	
 	int32_t status;

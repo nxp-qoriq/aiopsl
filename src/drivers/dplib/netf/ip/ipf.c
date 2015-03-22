@@ -829,7 +829,7 @@ void ipf_context_init(uint32_t flags, uint16_t mtu, ipf_ctx_t ipf_context_addr)
 {
 	
 #ifdef CHECK_ALIGNMENT 	
-	DEBUG_ALIGN((uint32_t *)ipf_context_addr, ALIGNMENT_32B);
+	DEBUG_ALIGN("ipf.c",(uint32_t *)ipf_context_addr, ALIGNMENT_32B);
 #endif
 	
 	struct ipf_context *ipf_ctx = (struct ipf_context *)ipf_context_addr;
