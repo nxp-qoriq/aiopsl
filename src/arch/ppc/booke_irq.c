@@ -141,7 +141,7 @@ asm static void branch_table(void) {
     
     /* Critical Input Interrupt (Offset 0x00) */
     li  r3, 0x00
-    b  exception_irq
+    b  generic_irq
     
     /* Machine Check Interrupt (Offset 0x10) */
     .align 0x10
@@ -151,52 +151,52 @@ asm static void branch_table(void) {
     /* Data Storage Interrupt (Offset 0x20) */
     .align 0x10
     li  r3, 0x20
-    b  exception_irq
+    b  generic_irq
 
     /* Instruction Storage Interrupt (Offset 0x30) */
     .align 0x10
     li  r3, 0x30
-    b  exception_irq
+    b  generic_irq
 
     /* External Input Interrupt (Offset 0x40) */
     .align 0x10
     li  r3, 0x40
-    b  exception_irq
+    b  generic_irq
 
     /* Alignment Interrupt (Offset 0x50) */
     .align 0x10
     li  r3, 0x50
-    b  exception_irq
+    b  generic_irq
     
     /* Program Interrupt (Offset 0x60) */
     .align 0x10
     li  r3, 0x60
-    b  exception_irq
+    b  generic_irq
     
     /* Performance Monitor Interrupt (Offset 0x70) */
     .align 0x10
     li  r3, 0x70
-    b  exception_irq 
+    b  generic_irq 
     
     /* System Call Interrupt (Offset 0x80) */
     .align 0x10
     li  r3, 0x80
-    b  exception_irq 
+    b  generic_irq 
     
     /* Debug Interrupt (Offset 0x90) */
     .align 0x10
     li  r3, 0x90
-    b  exception_irq
+    b  generic_irq
     
     /* Embedded Floating-point Data Interrupt (Offset 0xA0) */
     .align 0x10
     li  r3, 0xA0
-    b exception_irq
+    b generic_irq
     
     /* Embedded Floating-point Round Interrupt (Offset 0xB0) */
     .align 0x10
     li  r3, 0xB0
-    b exception_irq
+    b generic_irq
 
     /* place holder (Offset 0xC0) */
     .align 0x10
@@ -213,14 +213,7 @@ asm static void branch_table(void) {
     /* CTS Task Watchdog Timer Interrupt (Offset 0xF0) */
     .align 0x10
     li  r3, 0xF0
-    b exception_irq
-    
-    /***************************************************/
-    /*** generic exception *****************************/
-    /***************************************************/
-    .align 0x100
-exception_irq:
-    b        generic_isr
+    b generic_irq
     
     /***************************************************/
     /*** machine check *********************************/
@@ -233,7 +226,11 @@ machine_irq:
     li       rsp,  0x7ff0 /* clear stack pointer */
     b        generic_isr
 	
-generic_isr:
+    /***************************************************/
+    /*** generic exception handler *********************/
+    /***************************************************/
+    .align 0x100
+generic_irq:
 	/* branch to isr */
 	lis      r4,booke_generic_exception_isr@h
 	ori      r4,r4,booke_generic_exception_isr@l
