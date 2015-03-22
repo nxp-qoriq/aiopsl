@@ -101,7 +101,7 @@ These are the commands that can be sent to AIOP module "TEST0".
         AIOP will acquire, release  and write to all the buffers in the pool.
         Each buffer inside this shbp should have the shbp address/handle written to the first 8 bytes,
         shbp should be written by GPP in LE without byte swaps.
-        See aiopsl\tests\cmdif\nadk\cmdif_client_demo.c	as example for GPP side testing */
+        See shbp_test() at mc\tests\cmdif_gpp\srv\cmdif_srv_test.c as an example for GPP side testing */
 
 #define SHBP_TEST_GPP	0x110
 /*!< Test SHBP with GPP as allocation master.
@@ -110,7 +110,17 @@ These are the commands that can be sent to AIOP module "TEST0".
         shbp.dpci_id is the dpci_id where this shbp belongs to.
         AIOP will check that it can't acquire from this shbp, it will write shbp_test->shbp = 0 and
         then it will release the buffer that was sent with this command into this shared buffer pool.
-        See aiopsl\tests\cmdif\nadk\cmdif_client_demo.c	as example for GPP side testing */
+        See shbp_test_gpp() at mc\tests\cmdif_gpp\srv\cmdif_srv_test.c as an example for GPP side testing */
+
+#define SHBP_TEST_AIOP	0x111
+/*!< Test SHBP with AIOP as allocation master.
+        The data of this command have struct shbp_test structure (see cmdif_integration_test.c)
+        shbp_test.shbp is the pointer to struct shbp that was created on GPP
+        shbp.dpci_id is the dpci_id where this shbp belongs to.
+        AIOP will acquire buffer from this shbp, will write shbp and dpci to the buffer and will send
+        no response command to GPP with this buffer.
+        The GPP is expected to release this buffer into the shbp that is written to the buffer.
+        See shbp_test_aiop() at mc\tests\cmdif_gpp\srv\cmdif_srv_test.c as an example for GPP side testing */
 
 Server side test should have this code prior to sending commands to module TEST0:
         err |= cmdif_register("IRA", &ops);
