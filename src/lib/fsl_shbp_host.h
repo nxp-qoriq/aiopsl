@@ -43,8 +43,6 @@
  * @{
  */
 
-struct shbp;
-
 #define SHBP_HOST_IS_MASTER	0x1	/*!< Host is the allocation master */
 #define SHBP_HOST_SAFE		0x2	/*!< Host API is multithread safe */
 
@@ -76,7 +74,8 @@ int shbp_release(uint64_t bp, void *buf);
  *
  * @param[in]	flags    - Flags to be used for pool creation, 0 means AIOP is
  * 		the allocation master, #SHBP_HOST_IS_MASTER means GPP is
- * 		the allocation master, #SHBP_HOST_SAFE makes it thread safe.
+ * 		the allocation master and can acquire buffers from it,
+ * 		#SHBP_HOST_SAFE makes it thread safe.
  * @param[in]	buf_num  - Maximal number of buffers in pool.
  * 		Must be power of 2.
  * @param[out]  bp       - Pointer to shared pool handle
