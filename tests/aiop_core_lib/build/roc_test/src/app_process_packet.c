@@ -136,7 +136,7 @@ int app_init(void)
 	
 	fsl_os_print("Running app_init()\n");
 
-	for (ni = 0; ni < dpni_get_num_of_ni(); ni++)
+	for (ni = 0; ni < dpni_drv_get_num_of_nis(); ni++)
 	{
 	     /* Every ni will have 1 flow */
 	     err = dpni_drv_register_rx_cb((uint16_t)ni/*ni_id*/,

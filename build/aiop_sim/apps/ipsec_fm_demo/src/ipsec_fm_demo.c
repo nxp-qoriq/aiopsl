@@ -341,7 +341,7 @@ int app_init(void)
 #endif /* AIOP_STANDALONE */
 
 
-	for (ni = 0; ni < dpni_get_num_of_ni(); ni++)
+	for (ni = 0; ni < dpni_drv_get_num_of_nis(); ni++)
 	{
 		err = dpni_drv_register_rx_cb((uint16_t)ni /*ni_id*/,
 				app_process_packet_flow0 /* callback */);
