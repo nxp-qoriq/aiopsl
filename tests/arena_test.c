@@ -476,17 +476,27 @@ int app_init(void)
 			fsl_os_print("Error: dpni_drv_get_connected_dpni_id: error %d\n",err);
 			test_error |= 0x01;
 		}
-#if 0/*Remove if 0 when support for setting SP configuration*/
+		err = dpni_drv_disable((uint16_t)ni);
+		if(err){
+			fsl_os_print("Error: dpni_drv_disable: error %d\n",err);
+			test_error |= 0x01;
+		}
+
 		layout.options =  DPNI_BUF_LAYOUT_OPT_DATA_HEAD_ROOM |
 			DPNI_BUF_LAYOUT_OPT_DATA_TAIL_ROOM;
-		layout.data_head_room = 0x20;
-		layout.data_tail_room = 0x30;
+		layout.data_head_room = 0x40;
+		layout.data_tail_room = 0x50;
 		err = dpni_drv_set_rx_buffer_layout((uint16_t)ni,&layout );
 		if(err){
 			fsl_os_print("Error: dpni_drv_get_rx_buffer_layout: error %d\n",err);
 			test_error |= 0x01;
 		}
-#endif
+
+		err = dpni_drv_enable((uint16_t)ni);
+		if(err){
+			fsl_os_print("Error: dpni_drv_enable: error %d\n",err);
+			test_error |= 0x01;
+		}
 		layout.options = DPNI_BUF_LAYOUT_OPT_DATA_HEAD_ROOM |
 			DPNI_BUF_LAYOUT_OPT_DATA_TAIL_ROOM;
 		layout.data_head_room = 0;
@@ -501,12 +511,12 @@ int app_init(void)
 		fsl_os_print("Options: 0x%x\n",layout.options);
 		fsl_os_print("data_head_room: 0x%x\n", layout.data_head_room);
 		fsl_os_print("data_tail_room: 0x%x\n", layout.data_tail_room);
-#if 0
-		if(layout.data_head_room != 0x20 || layout.data_tail_room != 0x30){
+
+		if(layout.data_head_room != 0x40 || layout.data_tail_room != 0x50){
 			fsl_os_print("Error: dpni_drv_get/set_rx_buffer_layout finished with incorrect values\n");
 			test_error |= 0x01;
 		}
-#endif
+
 
 
 		sp_addr = (struct aiop_psram_entry *)
