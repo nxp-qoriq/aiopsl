@@ -723,19 +723,5 @@ int dpni_drv_add_vlan_id(uint16_t ni_id, uint16_t vlan_id);
 *//***************************************************************************/
 int dpni_drv_remove_vlan_id(uint16_t ni_id, uint16_t vlan_id);
 
-/**************************************************************************//**
-@Function	dpni_drv_get_attributes
-
-@Description	Function to retrieve DPNI attributes.
-
-@Param[in]	ni_id The AIOP Network Interface ID.
-
-@Param[out]	attr Returned object's attributes for given NI.
-
-@Return	0 on success;
-	error code, otherwise. For error posix refer to \ref error_g
-*//***************************************************************************/
-int dpni_drv_get_attributes(uint16_t ni_id, struct dpni_attr *attr);
-
 /** @} */ /* end of dpni_g DPNI group */
 #endif /* __FSL_DPNI_DRV_H */

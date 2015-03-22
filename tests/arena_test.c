@@ -332,7 +332,6 @@ int app_init(void)
 	struct aiop_psram_entry *sp_addr;
 	struct dpni_drv_buf_layout layout = {0};
 	struct dpni_drv_link_state link_state = {0};
-	struct dpni_attr attr = {0};
 
 	dist_key_cfg.num_extracts = 1;
 	dist_key_cfg.extracts[0].type = DPKG_EXTRACT_FROM_HDR;
@@ -415,18 +414,6 @@ int app_init(void)
 			fsl_os_print("MAC 02:00:C0:A8:0B:FE added for ni %d\n",ni);
 		}
 		
-		err = dpni_drv_get_attributes((uint16_t)ni, &attr);
-		if (err){
-			fsl_os_print("dpni_drv_get_attributes failed %d\n", err);
-			test_error |= 0x01;
-		}
-		else{
-			fsl_os_print("dpni_drv_get_attributes succeeded in boot\n");
-			fsl_os_print("DPNI options 0x%08x%08x for ni %d\n",
-			             (uint32_t)(attr.options >> 32),
-			             (uint32_t)(attr.options),
-			             ni);
-		}
 	}
 
 	err = slab_init();
