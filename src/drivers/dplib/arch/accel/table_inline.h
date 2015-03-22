@@ -226,7 +226,6 @@ inline int table_rule_delete(enum table_hw_accel_id acc_id,
 	
 #ifdef CHECK_ALIGNMENT 	
 	DEBUG_ALIGN((uint32_t)key_desc, ALIGNMENT_16B);
-	DEBUG_ALIGN((uint32_t)result, ALIGNMENT_16B);
 #endif
 	
 	int32_t status;
@@ -277,7 +276,6 @@ inline int table_rule_query(enum table_hw_accel_id acc_id,
 	
 #ifdef CHECK_ALIGNMENT 	
 	DEBUG_ALIGN((uint32_t)key_desc, ALIGNMENT_16B);
-	DEBUG_ALIGN((uint32_t)result, ALIGNMENT_16B);
 #endif
 	
 	int32_t status;
