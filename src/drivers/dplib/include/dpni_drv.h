@@ -88,6 +88,8 @@ struct dpni_early_init_request{
 	uint16_t head_room_sum; 
 	uint16_t tail_room_sum; 
 	uint16_t private_data_size_sum;
+	
+	uint16_t count; /* Count how many requests have been registered */
 };
 
 /**************************************************************************//**

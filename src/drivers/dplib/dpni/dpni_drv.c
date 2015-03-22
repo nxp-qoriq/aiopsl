@@ -62,7 +62,7 @@ struct dpni_drv nis_first __attribute__((aligned(8)));
 struct dpni_drv *nis = &nis_first;
 int num_of_nis;
 
-struct dpni_early_init_request g_dpni_early_init_data;
+struct dpni_early_init_request g_dpni_early_init_data = {0};
 
 void discard_rx_cb(void)
 {
@@ -215,13 +215,19 @@ __COLD_CODE int dpni_drv_probe(struct mc_dprc *dprc,
 
 			/* TODO: This should be changed for dynamic solution. The hardcoded value is
 			 * temp solution.*/
-			if(g_dpni_early_init_data.head_room_sum)
-				layout.options = DPNI_BUF_LAYOUT_OPT_DATA_HEAD_ROOM;
-			if(g_dpni_early_init_data.tail_room_sum)
-				layout.options |= DPNI_BUF_LAYOUT_OPT_DATA_TAIL_ROOM;
-			layout.data_head_room = g_dpni_early_init_data.head_room_sum;
-			layout.data_tail_room = g_dpni_early_init_data.tail_room_sum;
-			layout.private_data_size = g_dpni_early_init_data.private_data_size_sum;
+			layout.options = DPNI_BUF_LAYOUT_OPT_DATA_HEAD_ROOM 
+						| DPNI_BUF_LAYOUT_OPT_DATA_TAIL_ROOM;
+			
+			if(g_dpni_early_init_data.count > 0) {
+				layout.data_head_room = g_dpni_early_init_data.head_room_sum;
+				layout.data_tail_room = g_dpni_early_init_data.tail_room_sum;
+				layout.private_data_size = g_dpni_early_init_data.private_data_size_sum;
+			}else {
+				layout.data_head_room = 96;
+				layout.data_tail_room = 0;
+				layout.private_data_size = 0;
+			}
+			
 			if ((err = dpni_set_rx_buffer_layout(&dprc->io, dpni, &layout)) != 0) {
 				pr_err("Failed to set rx buffer layout for DP-NI%d\n", mc_niid);
 				return -ENODEV;
@@ -699,6 +705,8 @@ int dpni_register_requirements(uint16_t head_room, uint16_t tail_room, uint16_t 
 	//TODO validate data
 	
 	//TODO Under construction
+		
+	g_dpni_early_init_data.count++;
 	
 	g_dpni_early_init_data.head_room_sum += head_room;
 	g_dpni_early_init_data.tail_room_sum += tail_room;
