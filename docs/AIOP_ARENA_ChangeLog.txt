@@ -1,3 +1,20 @@
+fsl_dpni_drv.h/dpni_drv.c: update API for:
+		dpni_get_num_of_ni to: dpni_drv_get_num_of_nis and expose to users.
+		dpni_drv_set_rx_buffer_layout to: int dpni_drv_set_rx_buffer_layout(uint16_t ni_id, const struct dpni_drv_buf_layout *layout)
+		dpni_drv_get_rx_buffer_layout to: int dpni_drv_get_rx_buffer_layout(uint16_t ni_id, struct dpni_drv_buf_layout *layout)
+		dpni_drv_get_counter to: int dpni_drv_get_counter(uint16_t ni_id, enum dpni_drv_counter counter, uint64_t *value)
+		dpni_drv_reset_counter to: int dpni_drv_reset_counter(uint16_t ni_id, enum dpni_drv_counter counter)
+		dpni_drv_get_link_state to: int dpni_drv_get_link_state(uint16_t ni_id, struct dpni_drv_link_state *state)
+		Added API for dpni_drv_enabe/disable(uint16_t ni_id) (dpni_drv_enable updates the second spid with ddr target pool)
+
+dpni_drv.c/fsl_dpni_drv.h: Added API to support vlan set, add, remove and clear filters:
+        int dpni_drv_clear_vlan_filters(uint16_t ni_id)
+        int dpni_drv_set_vlan_filters(uint16_t ni_id, int en)
+        int dpni_drv_add_vlan_id(uint16_t ni_id, uint16_t vlan_id)
+        int dpni_drv_remove_vlan_id(uint16_t ni_id, uint16_t vlan_id)
+        Added API to query dpni attributes:
+        Added API to reset dpni counter:
+        dpni_drv_reset_counter(uint16_t ni_id, enum dpni_counter counter)
 
 tests/cmdif/README.txt: Added description for the non backward compatible change in SHBP_TEST at cmdif_integration_test.c.
                         Each buffer inside this shbp should have the shbp address/handle written to the first 8 bytes.
