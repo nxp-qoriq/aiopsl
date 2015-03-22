@@ -95,9 +95,9 @@ void booke_generic_exception_isr(uint32_t intr_entry)
 			
 			pr_debug("core %d int: MACHINE_CHECK\n", core_id);
 			if(mcsr & 0x0400 /* STACK_ERR */) {
-				fsl_os_print("Stack overflow Exception\n", mcsr);
-				fsl_os_print("MCSR = 0x%x, MCAR = 0x%x\n", mcsr, mcar);
-				fsl_os_print("MCSRR0 = 0x%x, MCSRR1 = 0x%x\n", mcsrr0, mcsrr1);
+				fsl_os_print("core #%d: Stack Overflow Exception...\n", core_id, mcsr);
+				fsl_os_print("core #%d: MCSR = 0x%x, MCAR = 0x%x\n", core_id, mcsr, mcar);
+				fsl_os_print("core #%d: MCSRR0 = 0x%x, MCSRR1 = 0x%x\n", core_id, mcsrr0, mcsrr1);
 			}
 			break;
 		}
@@ -229,7 +229,10 @@ machine_irq:
 	mfspr    r4, MCSR
 	se_btsti r4,21 /* test bit 0x00000400 - STACK_ERR */
 	beq      generic_irq
-    li       rsp,  0x7f0 /* clear stack pointer - for 2k WS (smallest) */
+	/* clear stack pointer */
+	//TODO what if DAC2 is not used for stack overflow detection ??
+    mfspr    rsp, DAC2     /* Data address compare 2 */
+    stwu     rsp, -16(rsp) /* LinuxABI required SP to always be 16-byte aligned */
     b        generic_irq
 	
     /***************************************************/
