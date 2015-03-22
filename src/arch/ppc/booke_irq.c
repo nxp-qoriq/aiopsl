@@ -87,11 +87,17 @@ void booke_generic_exception_isr(uint32_t intr_entry)
 		break;
 	case(0x10):
 		{
-			uint32_t mcsr = booke_get_spr_MCSR();
+			uint32_t mcsrr0 = booke_get_spr_MCSRR0(); /* Last executed instruction(best effort) */
+			uint32_t mcsrr1 = booke_get_spr_MCSRR1(); /* MSR at the time of the interrupt */
+			uint32_t mcar = booke_get_spr_MCAR();     /* Address register */
+			uint32_t mcsr = booke_get_spr_MCSR();     /* Syndrome register */
 			uint32_t core_id = core_get_id();
+			
 			pr_debug("core %d int: MACHINE_CHECK\n", core_id);
 			if(mcsr & 0x0400 /* STACK_ERR */) {
-				pr_debug("Stack overflow Exception: MCSR = 0x%x\n", mcsr);
+				fsl_os_print("Stack overflow Exception\n", mcsr);
+				fsl_os_print("MCSR = 0x%x, MCAR = 0x%x\n", mcsr, mcar);
+				fsl_os_print("MCSRR0 = 0x%x, MCSRR1 = 0x%x\n", mcsrr0, mcsrr1);
 			}
 			break;
 		}
