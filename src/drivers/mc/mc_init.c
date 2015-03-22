@@ -37,6 +37,7 @@
 #include "fsl_mc_init.h"
 #include "ls2085_aiop/fsl_platform.h"
 #include "cmdif_srv.h"
+#include "fsl_dpci_drv.h"
 
 extern struct aiop_init_info g_init_data;
 
@@ -171,10 +172,13 @@ __COLD_CODE static int dpci_tbl_add(struct dprc_obj_desc *dev_desc)
 	pr_debug("ver_minor - %d\n", dev_desc->ver_minor);
 	pr_debug("irq_count - %d\n\n", dev_desc->irq_count);
 
+#ifdef  ARENA_LEGACY_CODE
 	err = dpci_amq_bdi_init((uint32_t)dev_desc->id);
 	if (err >= 0) {
 		err = dpci_rx_ctx_init((uint32_t)dev_desc->id, (uint32_t)err);
 	}
+#endif
+	err = dpci_drv_added((uint32_t)dev_desc->id);
 
 	return err;
 }
@@ -252,10 +256,13 @@ __COLD_CODE static int dpci_for_mc_add(struct mc_dprc *dprc)
 	err = dpci_close(&dprc->io, dpci);
 	ASSERT_COND(!err);
 
+#ifdef  ARENA_LEGACY_CODE
 	err = dpci_amq_bdi_init((uint32_t)attr.id);
 	if (err >= 0) {
 		err = dpci_rx_ctx_init((uint32_t)attr.id, (uint32_t)err);
 	}
+#endif
+	err = dpci_drv_added((uint32_t)attr.id);
 
 	return err;
 }

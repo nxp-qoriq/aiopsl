@@ -46,6 +46,7 @@
 #include "fsl_io_ccsr.h"
 #include "fsl_icontext.h"
 #include "cmdif_srv.h"
+#include "fsl_dpci_drv.h"
 
 #define CMDIF_TIMEOUT     0x10000000
 
@@ -62,9 +63,9 @@ static inline int send_fd(int pr, void *_sdev)
 	struct cmdif_reg *sdev = (struct cmdif_reg *)_sdev;
 	struct mc_dpci_tbl *dt = (struct mc_dpci_tbl *)\
 		sys_get_unique_handle(FSL_OS_MOD_DPCI_TBL);
-	uint32_t ind;
+	uint32_t flags;
 	uint16_t icid;
-	uint32_t amq_bdi;
+	uint16_t amq_bdi;
 
 	/* Copy fields from FD  */
 	_fd.control = 0;
@@ -77,13 +78,13 @@ static inline int send_fd(int pr, void *_sdev)
 	         sdev->tx_queue_attr[pr]->fqid, sdev->enq_flags, sdev->icid);
 */
 
-	ind = sdev->dpci_ind;
-	CMDIF_ICID_AMQ_BDI(AMQ_BDI_GET, &icid, &amq_bdi);
+	dpci_drv_icid_get(sdev->dpci_ind, &icid, &amq_bdi);
+
 	if (amq_bdi & CMDIF_BDI_BIT)
-		amq_bdi = FDMA_ENF_BDI_BIT;
+		flags = FDMA_ENF_BDI_BIT;
 
 	if (fdma_enqueue_fd_fqid(&_fd, 
-	                         amq_bdi, 
+	                         flags, 
 	                         sdev->tx_queue_attr[pr].fqid, 
 	                         icid)) {	
 		return -EIO;
@@ -115,8 +116,6 @@ static int session_get(const char *m_name,
 		cidesc->regs = (void *)cl->gpp[i].regs;
 		cidesc->dev  = (void *)dev;
 		unlock_spinlock(&cl->lock);
-		/* Must be here to prevent deadlocks because 
-		 * the same lock is used */
 		return icontext_get((uint16_t)dpci_id, \
 		             (struct icontext *)(&(dev->reserved[0])));
 	}
