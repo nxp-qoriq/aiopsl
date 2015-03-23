@@ -84,11 +84,13 @@ int ipsec_early_init(
 	uint32_t dummy = flags; /* dummy assignment, to avoid warning */
 	
 	uint32_t committed_buffs;
+	uint32_t max_buffs;
 	committed_buffs = total_instance_num + total_committed_sa_num;
-	
+	max_buffs = total_instance_num + total_max_sa_num;
+
 	return_val = slab_register_context_buffer_requirements(
 			committed_buffs,
-			total_max_sa_num, /* uint32_t max_buffs */
+			max_buffs, /* uint32_t max_buffs */
 			IPSEC_SA_DESC_BUF_SIZE, /* uint16_t buff_size */
 			IPSEC_SA_DESC_BUF_ALIGN, /* uint16_t alignment */
 	        IPSEC_MEM_PARTITION_ID, /* enum memory_partition_id  mem_pid */
@@ -1599,34 +1601,16 @@ int ipsec_frame_encrypt(
 	// TODO: check for FDMA error
 	
 	/* 	12.	Read the SEC return status from the FD[FRC]. Use swap macro. */
-	//*enc_status = LDPAA_FD_GET_FRC(HWC_FD_ADDRESS);
-	// TODO: which errors can happen in encryption?
-	/* Performance Improvement */
 	if ((LDPAA_FD_GET_FRC(HWC_FD_ADDRESS)) != 0) {
-		switch (LDPAA_FD_GET_FRC(HWC_FD_ADDRESS)) {
-			//case SEC_NO_ERROR:
-			//	break;
-			case SEC_SEQ_NUM_OVERFLOW: /** Sequence Number overflow */
+		if ((LDPAA_FD_GET_FRC(HWC_FD_ADDRESS) & SEC_DECO_ERROR_MASK)
+					== SEC_SEQ_NUM_OVERFLOW) { /** Sequence Number overflow */
 				*enc_status |= IPSEC_SEQ_NUM_OVERFLOW;
-				return_val = -1;
-				break;
-			case SEC_AR_LATE_PACKET:	/** Anti Replay Check: Late packet */
-				*enc_status |= IPSEC_AR_LATE_PACKET;
-				return_val = -1;
-				break;
-			case SEC_AR_REPLAY_PACKET:	/** Anti Replay Check: Replay packet */
-				*enc_status |= IPSEC_AR_REPLAY_PACKET;
-				return_val = -1;
-				break;
-			case SEC_ICV_COMPARE_FAIL:	/** ICV comparison failed */
-				*enc_status |= IPSEC_ICV_COMPARE_FAIL;	
-				return_val = -1;
-				break;
-			default:
+		} else {
 				*enc_status |= IPSEC_GEN_ENCR_ERR;	
-				return_val = -1;
 		}
+		return_val = -1;
 	}
+	
 	/* 	13.	If encryption/encapsulation failed go to END (see below) */
 	// TODO: check results
 		
@@ -2097,32 +2081,26 @@ int ipsec_frame_decrypt(
 	return_val = fdma_present_default_frame();
 
 	/* 	13.	Read the SEC return status from the FD[FRC]. Use swap macro. */
-	// TODO: which errors can happen in decryption?
-	/* Performance Improvement */
 	if ((LDPAA_FD_GET_FRC(HWC_FD_ADDRESS)) != 0) {
-		switch (LDPAA_FD_GET_FRC(HWC_FD_ADDRESS)) {
-			//case SEC_NO_ERROR:
-				//break;
-			case SEC_SEQ_NUM_OVERFLOW: /** Sequence Number overflow */
-				*dec_status |= IPSEC_SEQ_NUM_OVERFLOW;
-				return_val = -1;
-				break;
-			case SEC_AR_LATE_PACKET:	/** Anti Replay Check: Late packet */
-				*dec_status |= IPSEC_AR_LATE_PACKET;
-				return_val = -1;
-				break;
-			case SEC_AR_REPLAY_PACKET:	/** Anti Replay Check: Replay packet */
-				*dec_status |= IPSEC_AR_REPLAY_PACKET;
-				return_val = -1;
-				break;
-			case SEC_ICV_COMPARE_FAIL:	/** ICV comparison failed */
-				*dec_status |= IPSEC_ICV_COMPARE_FAIL;	
-				return_val = -1;
-				break;
-			default:
-				*dec_status |= IPSEC_GEN_DECR_ERR;	
-				return_val = -1;
+		if ((LDPAA_FD_GET_FRC(HWC_FD_ADDRESS) & SEC_CCB_ERROR_MASK)
+											== SEC_ICV_COMPARE_FAIL) {
+			*dec_status |= IPSEC_ICV_COMPARE_FAIL;
+		} else {
+			switch (LDPAA_FD_GET_FRC(HWC_FD_ADDRESS) & SEC_DECO_ERROR_MASK) {
+				case SEC_SEQ_NUM_OVERFLOW: /** Sequence Number overflow */
+					*dec_status |= IPSEC_SEQ_NUM_OVERFLOW;
+					break;
+				case SEC_AR_LATE_PACKET: /* Anti Replay Check: Late packet */
+					*dec_status |= IPSEC_AR_LATE_PACKET;
+					break;
+				case SEC_AR_REPLAY_PACKET: /*Anti Replay Check: Replay packet */
+					*dec_status |= IPSEC_AR_REPLAY_PACKET;
+					break;
+				default:
+					*dec_status |= IPSEC_GEN_DECR_ERR;
+			}	
 		}
+		return_val = -1;
 	}
 	
 	/* 	14.	If encryption/encapsulation failed go to END (see below) */
