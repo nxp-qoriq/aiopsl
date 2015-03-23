@@ -785,7 +785,7 @@ int dpni_drv_register_requirements(uint16_t head_room, uint16_t tail_room, uint1
 	return 0;
 }
 
-int dpni_drv_get_counter(uint16_t ni_id, enum dpni_counter counter, uint64_t *value){
+int dpni_drv_get_counter(uint16_t ni_id, enum dpni_drv_counter counter, uint64_t *value){
 	struct dpni_drv *dpni_drv;
 	struct mc_dprc *dprc = sys_get_unique_handle(FSL_OS_MOD_AIOP_RC);
 
