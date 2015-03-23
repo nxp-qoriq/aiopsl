@@ -147,18 +147,18 @@ __COLD_CODE int dpci_amq_bdi_init(uint32_t dpci_id)
 	ind = mc_dpci_find(dpci_id, NULL);
 	if (ind >= 0) {
 		/* Updated DPCI peer if possible */
+		ASSERT_COND(dt->dpci_id[ind] == dpci_id);
 		err = dpci_get_peer_id(dpci_id, &dpci_id_peer);
 		if (!err)
 			dt->dpci_id_peer[ind] = dpci_id_peer;
 		else
 			dt->dpci_id_peer[ind] = DPCI_FQID_NOT_VALID;
-		/* Must be last */
+
 		dt->ic[ind] = amq_bdi;
 	} else {
-		/* Adding new dpci_id */
-		if (dt->count < dt->max) {
-
-			ind = dt->count;
+		ind = mc_dpci_entry_get();
+		if (ind >= 0) {
+			/* Adding new dpci_id */
 			dt->ic[ind] = amq_bdi;
 			dt->dpci_id[ind] = dpci_id;
 			/* Updated DPCI peer if possible */
@@ -167,8 +167,6 @@ __COLD_CODE int dpci_amq_bdi_init(uint32_t dpci_id)
 				dt->dpci_id_peer[ind] = dpci_id_peer;
 			else
 				dt->dpci_id_peer[ind] = DPCI_FQID_NOT_VALID;
-			/* Must be last */
-			atomic_incr32(&dt->count, 1);
 		} else {
 			pr_err("Not enough entries\n");
 			return -ENOMEM;
@@ -335,12 +333,7 @@ __COLD_CODE int dpci_drv_added(uint32_t dpci_id)
 	int err = 0;
 	struct mc_dpci_tbl *dt = (struct mc_dpci_tbl *)\
 			sys_get_unique_handle(FSL_OS_MOD_DPCI_TBL);
-	/*
-	 * TODO
-	 * Lock with cdma mutex WRITE
-	 * count++;
-	 * Update mc_dpci_find() to skip invalid entries
-	 */
+
 	DPCI_DT_LOCK_W_TAKE;
 
 	err = dpci_amq_bdi_init(dpci_id);
@@ -363,31 +356,21 @@ __COLD_CODE int dpci_drv_removed(uint32_t dpci_id)
 	struct mc_dpci_tbl *dt = (struct mc_dpci_tbl *)\
 		sys_get_unique_handle(FSL_OS_MOD_DPCI_TBL);
 	int ind = -1;
-	uint32_t amq_bdi = 0;
 	int err = 0;
-
-	/*
-	 * TODO
-	 * Clear the entry with 0xffff
-	 * Lock with cdma mutex WRITE
-	 * count--;
-	 */
-	CMDIF_ICID_AMQ_BDI(AMQ_BDI_SET, ICONTEXT_INVALID, ICONTEXT_INVALID);
 
 	DPCI_DT_LOCK_W_TAKE;
 
 	ind = mc_dpci_find(dpci_id, NULL);
 	if (ind >= 0) {
-		/* Must be last and atomic */
-		dt->ic[ind] = amq_bdi;
-		/* No need to update id and peer id
-		 * It will be updated upon added event
-		 * Invalid icid means the whole entry is not valid */
+		ASSERT_COND(dt->dpci_id[ind] == dpci_id);
+		mc_dpci_entry_delete(ind);
+		err = 0;
+	} else {
+		err = -ENOENT;
 	}
 
 	DPCI_DT_LOCK_RELEASE;
-	pr_err("Unknown dpci id 0x%x\n", dpci_id);
-	return -ENOENT;
+	return err;
 }
 
 
@@ -401,12 +384,6 @@ __COLD_CODE int dpci_drv_update(uint32_t ind)
 	int err;
 	struct mc_dpci_tbl *dt = (struct mc_dpci_tbl *)\
 		sys_get_unique_handle(FSL_OS_MOD_DPCI_TBL);
-
-	/*
-	 * TODO
-	 * Lock with cdma mutex WRITE
-	 * Update mc_dpci_find() to skip invalid entries
-	 */
 
 	/* Read lock because many can update same entry with the same values
 	 * New values can be set only inside dpci_drv_removed() dpci_drv_added()
