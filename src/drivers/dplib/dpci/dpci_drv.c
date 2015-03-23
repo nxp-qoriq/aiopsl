@@ -109,14 +109,9 @@ static inline void amq_bits_update(uint32_t id)
 
 	CMDIF_ICID_AMQ_BDI(AMQ_BDI_SET, ICID_GET(pl_icid), amq_bdi_temp);
 
-	pr_debug("Updating peer of 0x%x which is now 0x%x\n",
-	         dt->dpci_id[id],
-	         dt->dpci_id_peer[id]);
 	err = dpci_get_peer_id(dt->dpci_id[id], &(dt->dpci_id_peer[id]));
 	ASSERT_COND(!err);
-	pr_debug("Updated peer of 0x%x to 0x%x\n",
-	         dt->dpci_id[id],
-	         dt->dpci_id_peer[id]);
+
 	/* Must be written last */
 	dt->ic[id] = amq_bdi;
 	mc_dpci_tbl_dump();

@@ -617,15 +617,11 @@ __COLD_CODE int session_open(uint16_t *new_auth)
 
 	inst_id  = cmd_inst_id_get();
 
-#ifdef  ARENA_LEGACY_CODE
-	err = dpci_rx_ctx_set();
-	ASSERT_COND(!err);
-	dpci_amq_bdi_set(); /* Must be before open callback */
-#endif
-
 	dpci_drv_user_ctx_get(&ind, NULL);
+#ifndef STACK_CHECK /* Stack check can ignore it up to user callback */
 	err = dpci_drv_update(ind);
 	ASSERT_COND(!err);
+#endif
 
 	OPEN_CB(m_id, inst_id, dev);
 	if (!err) {
