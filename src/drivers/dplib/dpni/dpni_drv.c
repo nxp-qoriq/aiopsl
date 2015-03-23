@@ -223,9 +223,9 @@ __COLD_CODE int dpni_drv_probe(struct mc_dprc *dprc,
 				layout.data_tail_room = g_dpni_early_init_data.tail_room_sum;
 				layout.private_data_size = g_dpni_early_init_data.private_data_size_sum;
 			}else {
-				layout.data_head_room = 96;
-				layout.data_tail_room = 0;
-				layout.private_data_size = 0;
+				layout.data_head_room = DPNI_DRV_DHR_DEF;
+				layout.data_tail_room = DPNI_DRV_DTR_DEF;
+				layout.private_data_size = DPNI_DRV_PTA_DEF;
 			}
 			
 			if ((err = dpni_set_rx_buffer_layout(&dprc->io, dpni, &layout)) != 0) {
@@ -700,20 +700,6 @@ int dpni_drv_set_rx_buffer_layout(uint16_t ni_id, const struct dpni_buffer_layou
 	                                 layout);
 }
 
-int dpni_register_requirements(uint16_t head_room, uint16_t tail_room, uint16_t private_data_size)
-{
-	g_dpni_early_init_data.count++;
-	
-	g_dpni_early_init_data.head_room_sum += head_room;
-	g_dpni_early_init_data.tail_room_sum += tail_room;
-	
-	if(private_data_size) {
-		g_dpni_early_init_data.private_data_size_sum = 64;
-	}
-	
-	return 0;
-}
-
 int dpni_drv_get_rx_buffer_layout(uint16_t ni_id, struct dpni_buffer_layout *layout){
 	struct dpni_drv *dpni_drv;
 	struct mc_dprc *dprc = sys_get_unique_handle(FSL_OS_MOD_AIOP_RC);
@@ -723,6 +709,20 @@ int dpni_drv_get_rx_buffer_layout(uint16_t ni_id, struct dpni_buffer_layout *lay
 	return dpni_get_rx_buffer_layout(&dprc->io,
 	                                 dpni_drv->dpni_drv_params_var.dpni,
 	                                 layout);
+}
+
+int dpni_drv_register_requirements(uint16_t head_room, uint16_t tail_room, uint16_t private_data_size)
+{
+	g_dpni_early_init_data.count++;
+	
+	g_dpni_early_init_data.head_room_sum += head_room;
+	g_dpni_early_init_data.tail_room_sum += tail_room;
+	
+	if(private_data_size) {
+		g_dpni_early_init_data.private_data_size_sum = DPNI_DRV_PTA_SIZE;
+	}
+	
+	return 0;
 }
 
 int dpni_drv_get_counter(uint16_t ni_id, enum dpni_counter counter, uint64_t *value){

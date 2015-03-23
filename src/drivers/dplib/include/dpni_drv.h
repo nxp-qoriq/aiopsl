@@ -68,6 +68,12 @@
 #define DPNI_DRV_EXCLUSIVE_MODE       1
 #define PARAMS_IOVA_BUFF_SIZE         256
 #define PARAMS_IOVA_ALIGNMENT         8
+#define DPNI_DRV_PTA_SIZE             64
+
+/* Default DPNI requirements values */
+#define DPNI_DRV_DHR_DEF              96 /* Data Head Room */
+#define DPNI_DRV_DTR_DEF              0  /* Data Tail Room */
+#define DPNI_DRV_PTA_DEF              0  /* Pass Thru Annotation - Private Data Size */
 
 /**************************************************************************//**
 @Group	DPNI_DRV_STATUS
@@ -261,21 +267,6 @@ int dpni_drv_get_ordering_mode(uint16_t ni_id);
 	error code, otherwise. For error posix refer to \ref error_g
 *//***************************************************************************/
 int dpni_drv_set_rx_buffer_layout(uint16_t ni_id, const struct dpni_buffer_layout *layout);
-
-/**************************************************************************//**
-@Function	dpni_register_requirements
-
-@Description	register a request for DPNI requirement.
-
-@Param[in]	head_room           Requested head room.
-@Param[in]	tail_room           Requested tail room.
-@Param[in]	private_data_size   Requested private data size.
-
-@Return		0        - on success,
-		-ENAVAIL - resource not available or not found,
-		-ENOMEM  - not enough memory.
- *//***************************************************************************/
-int dpni_register_requirements(uint16_t head_room, uint16_t tail_room, uint16_t private_data_size);
 
 /** @} */ /* end of DPNI_DRV_STATUS group */
 #endif /* __DPNI_DRV_H */
