@@ -732,6 +732,8 @@ void keygen_kcr_query(enum keygen_hw_accel_id acc_id,
 
 @Cautions	In this function the task yields.
  	 	This function may result in a fatal error.
+ 	 	Presented header address in the workspace must be aligned to
+ 	  	16 bytes.
  	 	In Rev1: Due to HW bug (TKT231187) the maximum key size allowed
  	 	is 80 bytes.
 *//***************************************************************************/
