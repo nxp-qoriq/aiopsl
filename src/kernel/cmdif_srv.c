@@ -35,7 +35,6 @@
 #include "sys.h"
 #include "fsl_malloc.h"
 #include "fsl_dbg.h"
-#include "kernel/fsl_spinlock.h"
 #include "fsl_cdma.h"
 #include "aiop_common.h"
 #include "ls2085_aiop/fsl_platform.h"
@@ -89,6 +88,15 @@
 		return;               \
 	} while (0)
 
+#define CMDIF_SRV_LOCK_W_TAKE \
+	do { \
+		cdma_mutex_lock_take((uint64_t)(&cmdif_aiop_srv), CDMA_MUTEX_WRITE_LOCK); \
+	} while(0)
+
+#define CMDIF_SRV_LOCK_RELEASE \
+	do { \
+		cdma_mutex_lock_release((uint64_t)(&cmdif_aiop_srv)); \
+	} while(0)
 
 static struct cmdif_srv_aiop cmdif_aiop_srv = {0};
 
@@ -134,7 +142,7 @@ static inline int inst_alloc(uint8_t m_id)
 
 	ASSERT_COND_LIGHT(is_power_of_2(M_NUM_OF_INSTANCES));
 
-	lock_spinlock(&cmdif_aiop_srv.lock);
+	CMDIF_SRV_LOCK_W_TAKE;
 
 	/* randomly pick instance/authentication id*/
 	r = MODULU_POWER_OF_TWO(fsl_os_rand(), M_NUM_OF_INSTANCES);
@@ -155,22 +163,22 @@ static inline int inst_alloc(uint8_t m_id)
 
 	/* didn't find empty space */
 	if (count >= M_NUM_OF_INSTANCES) {
-		unlock_spinlock(&cmdif_aiop_srv.lock);
+		CMDIF_SRV_LOCK_RELEASE;
 		return -ENAVAIL;
 	} else {
 		cmdif_aiop_srv.srv->m_id[r] = m_id;
 		cmdif_aiop_srv.srv->inst_count++;
-		unlock_spinlock(&cmdif_aiop_srv.lock);
+		CMDIF_SRV_LOCK_RELEASE;
 		return (int)r;
 	}
 }
 
 static inline void inst_dealloc(int inst)
 {
-	lock_spinlock(&cmdif_aiop_srv.lock);
+	CMDIF_SRV_LOCK_W_TAKE;
 	cmdif_aiop_srv.srv->m_id[inst] = FREE_INSTANCE;
 	cmdif_aiop_srv.srv->inst_count--;
-	unlock_spinlock(&cmdif_aiop_srv.lock);
+	CMDIF_SRV_LOCK_RELEASE;
 }
 
 static inline uint16_t cmd_id_get()
@@ -462,7 +470,7 @@ __COLD_CODE int notify_open()
 	ASSERT_COND(!err);
 
 	/* TODO Consider to add lock per DPCI entry */
-	lock_spinlock(&cl->lock);
+	CMDIF_CL_LOCK_W_TAKE;
 
 #ifdef DEBUG
 	/* Don't allow to open the same session twice */
@@ -470,7 +478,7 @@ __COLD_CODE int notify_open()
 					data->inst_id, data->dev_id);
 	if (link_up >= 0) {
 		pr_err("The session already exists\n");
-		unlock_spinlock(&cl->lock);
+		CMDIF_CL_LOCK_RELEASE;
 		return -EEXIST;
 	}
 #endif
@@ -479,7 +487,7 @@ __COLD_CODE int notify_open()
 	link_up = cmdif_cl_free_session_get(cl);
 	if (link_up < 0) {
 		pr_err("Too many sessions\n");
-		unlock_spinlock(&cl->lock);
+		CMDIF_CL_LOCK_RELEASE;
 		return -ENOSPC;
 	}
 
@@ -496,7 +504,7 @@ __COLD_CODE int notify_open()
 	ASSERT_COND(cl->count < CMDIF_MN_SESSIONS);
 	cl->count++;
 
-	unlock_spinlock(&cl->lock);
+	CMDIF_CL_LOCK_RELEASE;
 #endif /* STACK_CHECK */
 
 	return 0;
@@ -514,7 +522,8 @@ __COLD_CODE int notify_close()
 	int i = 0;
 
 	ASSERT_COND_LIGHT(cl != NULL);
-	lock_spinlock(&cl->lock);
+
+	CMDIF_CL_LOCK_W_TAKE;
 
 	i = cmdif_cl_auth_id_find(cl, data->auth_id, data->dev_id);
 
@@ -522,13 +531,13 @@ __COLD_CODE int notify_close()
 	if (i >= 0) {
 		cl->gpp[i].m_name[0] = CMDIF_FREE_SESSION;
 
-		unlock_spinlock(&cl->lock);
+		CMDIF_CL_LOCK_RELEASE;
 		return 0;
 	}
 
 	cl->count--;
 
-	unlock_spinlock(&cl->lock);
+	CMDIF_CL_LOCK_RELEASE;
 #endif /* STACK_CHECK */
 	return -ENAVAIL;
 }

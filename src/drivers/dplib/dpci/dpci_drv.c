@@ -9,6 +9,7 @@
 #include "cmdif_client.h"
 #include "cmdif_srv.h"
 #include "fsl_fdma.h"
+#include "fsl_cdma.h"
 #include "fsl_icontext.h"
 #include "fsl_spinlock.h"
 
@@ -147,7 +148,7 @@ __COLD_CODE int dpci_amq_bdi_init(uint32_t dpci_id)
 	} else {
 		/* Adding new dpci_id */
 		if (dpci_tbl->count < dpci_tbl->max) {
-			lock_spinlock(&dpci_tbl->lock);
+			cdma_mutex_lock_take((uint64_t)dpci_tbl, CDMA_MUTEX_WRITE_LOCK);
 
 			ind = dpci_tbl->count;
 			dpci_tbl->ic[ind] = amq_bdi;
@@ -160,7 +161,7 @@ __COLD_CODE int dpci_amq_bdi_init(uint32_t dpci_id)
 				dpci_tbl->dpci_id_peer[ind] = DPCI_FQID_NOT_VALID;
 			/* Must be last */
 			atomic_incr32(&dpci_tbl->count, 1);
-			unlock_spinlock(&dpci_tbl->lock);
+			cdma_mutex_lock_release((uint64_t)dpci_tbl);
 		} else {
 			pr_err("Not enough entries\n");
 			return -ENOMEM;

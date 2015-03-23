@@ -143,6 +143,21 @@ do {\
 	} while(0)
 #endif
 
+#define CMDIF_CL_LOCK_W_TAKE \
+	do { \
+		cdma_mutex_lock_take((uint64_t)(cl), CDMA_MUTEX_WRITE_LOCK); \
+	} while(0)
+
+#define CMDIF_CL_LOCK_R_TAKE \
+	do { \
+		cdma_mutex_lock_take((uint64_t)(cl), CDMA_MUTEX_READ_LOCK); \
+	} while(0)
+
+#define CMDIF_CL_LOCK_RELEASE \
+	do { \
+		cdma_mutex_lock_release((uint64_t)(cl)); \
+	} while(0)
+
 #define CMDIF_MN_SESSIONS	(64 << 1)
 /**< Maximal number of sessions: 64 SW contexts and avg of 2 modules per each */
 #define CMDIF_NUM_PR		2
@@ -168,8 +183,6 @@ struct cmdif_cl {
 
 	uint8_t count;
 	/**< Count the number of sessions */
-	uint8_t lock;
-	/**< Lock for adding & removing new entries */
 };
 
 
