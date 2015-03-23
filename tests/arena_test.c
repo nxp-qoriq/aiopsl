@@ -238,7 +238,7 @@ __declspec(entry_point) static void app_process_packet_flow0 (void)
 	{ /*40 packets (0 - 39) with one broadcast after the broadcast is dissabled */
 		for(i = 0; i < 11; i++)
 		{
-			err = dpni_drv_get_counter((uint16_t)ni_id,(enum dpni_counter)i ,&ctr_value);
+			err = dpni_drv_get_counter((uint16_t)ni_id,(enum dpni_drv_counter)i ,&ctr_value);
 			if(err != 0) {
 				fsl_os_print("dpni_drv_get_counter failed: CTR %d, error %d\n", i, err);
 				local_test_error |= err;
@@ -330,8 +330,8 @@ int app_init(void)
 	int ep, state = -1;
 	struct dpkg_profile_cfg dist_key_cfg = {0};
 	struct aiop_psram_entry *sp_addr;
-	struct dpni_buffer_layout layout = {0};
-	struct dpni_link_state link_state = {0};
+	struct dpni_drv_buf_layout layout = {0};
+	struct dpni_drv_link_state link_state = {0};
 
 	dist_key_cfg.num_extracts = 1;
 	dist_key_cfg.extracts[0].type = DPKG_EXTRACT_FROM_HDR;
@@ -355,7 +355,7 @@ int app_init(void)
 		test_error |= err;
 	}
 
-	for (ni = 0; ni < dpni_get_num_of_ni(); ni++)
+	for (ni = 0; ni < dpni_drv_get_num_of_nis(); ni++)
 	{
 		err = dpni_drv_add_mac_addr((uint16_t)ni, ((uint8_t []){0x02, 0x00 ,0xc0 ,0x0a8 ,0x0b ,0xfe }));
 
@@ -413,6 +413,7 @@ int app_init(void)
 			fsl_os_print("dpni_drv_add_mac_addr succeeded in boot\n");
 			fsl_os_print("MAC 02:00:C0:A8:0B:FE added for ni %d\n",ni);
 		}
+		
 	}
 
 	err = slab_init();
@@ -454,7 +455,7 @@ int app_init(void)
 		fsl_os_print("ntop_test passed in init phase()\n");
 	}
 
-	for(ni = 0; ni < dpni_get_num_of_ni(); ni++)
+	for(ni = 0; ni < dpni_drv_get_num_of_nis(); ni++)
 	{
 		err = dpni_drv_get_connected_dpni_id((uint16_t)ni, &ni2, &state);
 		fsl_os_print("Given NI: %d, Connected NI: %d, Status: %d\n",ni,ni2,state);
@@ -462,19 +463,29 @@ int app_init(void)
 			fsl_os_print("Error: dpni_drv_get_connected_dpni_id: error %d\n",err);
 			test_error |= 0x01;
 		}
-#if 0/*Remove if 0 when support for setting SP configuration*/
-		layout.options =  DPNI_BUF_LAYOUT_OPT_DATA_HEAD_ROOM |
-			DPNI_BUF_LAYOUT_OPT_DATA_TAIL_ROOM;
-		layout.data_head_room = 0x20;
-		layout.data_tail_room = 0x30;
+		err = dpni_drv_disable((uint16_t)ni);
+		if(err){
+			fsl_os_print("Error: dpni_drv_disable: error %d\n",err);
+			test_error |= 0x01;
+		}
+
+		layout.options = DPNI_DRV_BUF_LAYOUT_OPT_DATA_HEAD_ROOM |
+				DPNI_DRV_BUF_LAYOUT_OPT_DATA_TAIL_ROOM;
+		layout.data_head_room = 0x40;
+		layout.data_tail_room = 0x50;
 		err = dpni_drv_set_rx_buffer_layout((uint16_t)ni,&layout );
 		if(err){
 			fsl_os_print("Error: dpni_drv_get_rx_buffer_layout: error %d\n",err);
 			test_error |= 0x01;
 		}
-#endif
-		layout.options = DPNI_BUF_LAYOUT_OPT_DATA_HEAD_ROOM |
-			DPNI_BUF_LAYOUT_OPT_DATA_TAIL_ROOM;
+
+		err = dpni_drv_enable((uint16_t)ni);
+		if(err){
+			fsl_os_print("Error: dpni_drv_enable: error %d\n",err);
+			test_error |= 0x01;
+		}
+		layout.options = DPNI_DRV_BUF_LAYOUT_OPT_DATA_HEAD_ROOM |
+			DPNI_DRV_BUF_LAYOUT_OPT_DATA_TAIL_ROOM;
 		layout.data_head_room = 0;
 		layout.data_tail_room = 0;
 
@@ -487,12 +498,12 @@ int app_init(void)
 		fsl_os_print("Options: 0x%x\n",layout.options);
 		fsl_os_print("data_head_room: 0x%x\n", layout.data_head_room);
 		fsl_os_print("data_tail_room: 0x%x\n", layout.data_tail_room);
-#if 0
-		if(layout.data_head_room != 0x20 || layout.data_tail_room != 0x30){
+
+		if(layout.data_head_room != 0x40 || layout.data_tail_room != 0x50){
 			fsl_os_print("Error: dpni_drv_get/set_rx_buffer_layout finished with incorrect values\n");
 			test_error |= 0x01;
 		}
-#endif
+
 
 
 		sp_addr = (struct aiop_psram_entry *)

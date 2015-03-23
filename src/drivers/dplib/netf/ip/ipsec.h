@@ -418,6 +418,9 @@ Big Endian
 /** Sequence Number overflow */
 #define	SEC_SEQ_NUM_OVERFLOW 0x40000085
 
+#define	SEC_CCB_ERROR_MASK 0xF000000F
+#define	SEC_DECO_ERROR_MASK 0xF00000FF
+
 /* OSM temporary defines */
 /* TODO: should move to general or OSM include file */
 #define IPSEC_OSM_CONCURRENT			0

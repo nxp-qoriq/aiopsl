@@ -304,9 +304,9 @@ int app_early_init(void){
 	
 	/* IPsec resources reservation */
 	err = ipsec_early_init(
-		1, /* uint32_t total_instance_num */
-		2, /* uint32_t total_committed_sa_num */
-		4, /* uint32_t total_max_sa_num */
+		10, /* uint32_t total_instance_num */
+		20, /* uint32_t total_committed_sa_num */
+		40, /* uint32_t total_max_sa_num */
 		0  /* uint32_t flags */
 	);
 	
@@ -341,7 +341,7 @@ int app_init(void)
 #endif /* AIOP_STANDALONE */
 
 
-	for (ni = 0; ni < dpni_get_num_of_ni(); ni++)
+	for (ni = 0; ni < dpni_drv_get_num_of_nis(); ni++)
 	{
 		err = dpni_drv_register_rx_cb((uint16_t)ni /*ni_id*/,
 				app_process_packet_flow0 /* callback */);

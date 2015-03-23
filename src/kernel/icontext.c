@@ -65,6 +65,10 @@ void icontext_cmd_get(struct icontext *ic)
 	uint16_t amq_bdi;
 	
 	dpci_drv_user_ctx_get(&ind, NULL);
+	/*
+	 * TODO
+	 * Lock with cdma mutex READ
+	 */
 	dpci_drv_icid_get(ind, &icid, &amq_bdi);
 	ICONTEXT_SET(icid, amq_bdi);	
 #ifndef BDI_BUG_FIXED
@@ -77,16 +81,19 @@ void icontext_cmd_get(struct icontext *ic)
 int icontext_get(uint16_t dpci_id, struct icontext *ic)
 {
 	int ind = 0;
-	uint32_t icid_amq_bdi = 0;
 	uint16_t icid;
 	uint16_t amq_bdi;
 
 	ASSERT_COND(ic);
+	/*
+	 * TODO
+	 * Lock with cdma mutex READ
+	 */
 
 	/* search by GPP peer id - most likely case
 	 * or by AIOP dpci id  - to support both cases
 	 * All DPCIs in the world have different IDs */
-	ind = mc_dpci_find(dpci_id, &icid_amq_bdi);
+	ind = mc_dpci_find(dpci_id, NULL);
 	if (ind >= 0) {
 		dpci_drv_icid_get((uint32_t)ind, &icid, &amq_bdi);
 		pr_debug("ind = %d icid = 0x%x amq = 0x%x\n", 

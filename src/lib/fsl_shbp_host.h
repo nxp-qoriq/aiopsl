@@ -43,8 +43,6 @@
  * @{
  */
 
-struct shbp;
-
 #define SHBP_HOST_IS_MASTER	0x1	/*!< Host is the allocation master */
 #define SHBP_HOST_SAFE		0x2	/*!< Host API is multithread safe */
 
@@ -57,7 +55,7 @@ struct shbp;
  * @returns	Address on Success; or NULL code otherwise
  *
  */
-void *shbp_acquire(struct shbp *bp);
+void *shbp_acquire(uint64_t bp);
 
 /**
  * @brief	Return or add buffer into the shared pool
@@ -68,22 +66,24 @@ void *shbp_acquire(struct shbp *bp);
  * @returns	0 on Success; or POSIX error code otherwise
  *
  */
-int shbp_release(struct shbp *bp, void *buf);
+int shbp_release(uint64_t bp, void *buf);
 
 /**
- * @brief	Create empty shared pool
+ * @brief	Create full shared pool
  *
- * The shared pool is created as empty, use shbp_release() to fill it
  *
  * @param[in]	flags    - Flags to be used for pool creation, 0 means AIOP is
  * 		the allocation master, #SHBP_HOST_IS_MASTER means GPP is
- * 		the allocation master, #SHBP_HOST_SAFE makes it thread safe.
- * @param[in]	buf_num  - Number of buffers, maximal pool capacity
+ * 		the allocation master and can acquire buffers from it,
+ * 		#SHBP_HOST_SAFE makes it thread safe.
+ * @param[in]	buf_num  - Maximal number of buffers in pool.
+ * 		Must be power of 2.
  * @param[out]  bp       - Pointer to shared pool handle
  * @returns	0 on Success; or POSIX error code otherwise
  *
  */
-int shbp_create(uint32_t flags, uint32_t buf_num, struct shbp **bp);
+int shbp_create(uint32_t flags, uint32_t buf_num, uint32_t buf_size,
+		uint16_t alignment, uint64_t *bp);
 
 /**
  * @brief	Move free buffers into allocation queue
@@ -94,22 +94,20 @@ int shbp_create(uint32_t flags, uint32_t buf_num, struct shbp **bp);
  * 		to the allocation queue
  *
  */
-int shbp_refill(struct shbp *bp);
+int shbp_refill(uint64_t bp);
 
 
 /**
- * @brief	Returns the pointers from pool that need to be freed upon pool
- * 		destruction
+ * @brief	Destroys shbp and frees all the memory.
  *
- * Pointer to struct shbp will not be returned by shbp_destroy() but it
- * must be freed by user
+ * After this call the bp is no longer valid.
  *
  * @param[in]	bp       - Buffer pool handle
  *
  * @returns	0 on Success; or POSIX error code otherwise
  *
  */
-int shbp_destroy(struct shbp *bp);
+int shbp_destroy(uint64_t bp);
 
 /** @} */ /* end of shbp_g group */
 

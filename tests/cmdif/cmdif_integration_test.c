@@ -66,6 +66,7 @@ extern int gpp_ddr_check(struct icontext *ic, uint64_t iova, uint16_t size);
 #define TMAN_TEST	0x108
 #define SHBP_TEST	0x109
 #define SHBP_TEST_GPP	0x110
+#define SHBP_TEST_AIOP	0x111
 
 #define AIOP_ASYNC_CB_DONE	5  /* Must be in sync with MC ELF */
 #define AIOP_SYNC_BUFF_SIZE	80 /* Must be in sync with MC ELF */
@@ -219,7 +220,7 @@ static int ctrl_cb0(void *dev, uint16_t cmd, uint32_t size,
 		pr_debug("Testing GPP SHBP...\n");
 		shbp_test = data;
 		dpci_id = shbp_test->dpci_id;
-		gpp_lbp = shbp_test->shbp;
+		gpp_lbp = CPU_TO_SRV64(shbp_test->shbp);
 		ASSERT_COND(gpp_lbp);
 		err = icontext_get(dpci_id, &ic);
 		ASSERT_COND(!err && (ic.icid != ICONTEXT_INVALID));
@@ -228,6 +229,8 @@ static int ctrl_cb0(void *dev, uint16_t cmd, uint32_t size,
 		ASSERT_COND(temp64 == 0);
 		shbp_test->shbp = 0; /* For test on GPP */
 
+		/* gpp_lbp is taken from metadata
+		 * p_data is presented in presentation as data */
 		err = shbp_release(gpp_lbp, p_data, &ic);
 		ASSERT_COND(!err);
 
@@ -237,20 +240,31 @@ static int ctrl_cb0(void *dev, uint16_t cmd, uint32_t size,
 	case SHBP_TEST:
 		shbp_test = data;
 		dpci_id = shbp_test->dpci_id;
-		lbp = shbp_test->shbp;
+		lbp = CPU_TO_SRV64(shbp_test->shbp);
 		ASSERT_COND(lbp);
 		err = icontext_get(dpci_id, &ic);
 		ASSERT_COND(!err && (ic.icid != ICONTEXT_INVALID));
 		p_data = shbp_acquire(lbp, &ic);
 		while (p_data != 0) {
-			i++;			
-			icontext_dma_read(&ic, sizeof(uint64_t), p_data, &temp64);
-			ASSERT_COND(CPU_TO_SRV64(temp64) == lbp);
+			i++;
 			err = shbp_release(lbp, p_data, &ic);
 			ASSERT_COND(!err);
 			p_data = shbp_acquire(lbp, &ic);
 		}
 		pr_debug("Acquired and released %d buffers from SHBP\n", i);
+		break;
+	case SHBP_TEST_AIOP:
+		shbp_test = data;
+		dpci_id = shbp_test->dpci_id;
+		lbp = CPU_TO_SRV64(shbp_test->shbp);
+		ASSERT_COND(lbp);
+		err = icontext_get(dpci_id, &ic);
+		ASSERT_COND(!err && (ic.icid != ICONTEXT_INVALID));
+		p_data = shbp_acquire(lbp, &ic);
+		pr_debug("Acquired %d buffers from SHBP, sending no response command\n", 1);
+		icontext_dma_write(&ic, sizeof(struct shbp_test), shbp_test, p_data);
+		err = cmdif_send(&cidesc, 0xa | CMDIF_NORESP_CMD, size,
+		                 CMDIF_PRI_LOW, p_data, NULL, cidesc.regs);
 		break;
 	case TMAN_TEST:
 		err |= tman_create_tmi(tman_addr /* uint64_t tmi_mem_base_addr */,
@@ -332,9 +346,9 @@ static int ctrl_cb0(void *dev, uint16_t cmd, uint32_t size,
 	case IC_TEST:
 		ASSERT_COND(size >= sizeof(struct icontext));
 		dpci_id = (((uint8_t *)data)[0]);
-		bpid =  (uint16_t)(((uint8_t *)data)[1]);		
+		bpid =  (uint16_t)(((uint8_t *)data)[1]);
 		pr_debug("Isolation context test dpci %d bpid %d:\n", dpci_id, bpid);
-		
+
 		err = icontext_get(dpci_id, &ic);
 #ifdef CMDIF_TEST_WITH_MC_SRV
 		ic.bdi_flags |= FDMA_ENF_BDI_BIT;

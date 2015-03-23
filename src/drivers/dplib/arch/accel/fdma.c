@@ -39,9 +39,9 @@ int fdma_present_frame(
 {
 	
 #ifdef CHECK_ALIGNMENT 
-	DEBUG_ALIGN((uint32_t)params->pta_dst, ALIGNMENT_64B);
-	DEBUG_ALIGN((uint32_t)params->asa_dst, ALIGNMENT_64B);
-	DEBUG_ALIGN((uint32_t)params->fd_src, ALIGNMENT_32B);
+	DEBUG_ALIGN("fdma.c", (uint32_t)params->pta_dst, ALIGNMENT_64B);
+	DEBUG_ALIGN("fdma.c", (uint32_t)params->asa_dst, ALIGNMENT_64B);
+	DEBUG_ALIGN("fdma.c", (uint32_t)params->fd_src, ALIGNMENT_32B);
 #endif
 	
 	/* Presentation Context Pointer */
@@ -212,7 +212,7 @@ int fdma_present_frame_without_segments(
 {
 	
 #ifdef CHECK_ALIGNMENT 	
-	DEBUG_ALIGN((uint32_t)fd, ALIGNMENT_32B);
+	DEBUG_ALIGN("fdma.c", (uint32_t)fd, ALIGNMENT_32B);
 #endif
 	
 	/* command parameters and results */
