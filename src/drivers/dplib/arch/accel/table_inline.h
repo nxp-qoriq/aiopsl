@@ -47,8 +47,8 @@ inline int table_lookup_by_keyid_default_frame(enum table_hw_accel_id acc_id,
 {
 	
 #ifdef CHECK_ALIGNMENT 	
-	DEBUG_ALIGN("table_inline.c",(uint32_t)lookup_result, ALIGNMENT_16B);
-	DEBUG_ALIGN("table_inline.c",(uint32_t *)PRC_GET_SEGMENT_ADDRESS(), ALIGNMENT_16B);
+	DEBUG_ALIGN("table_inline.h",(uint32_t)lookup_result, ALIGNMENT_16B);
+	DEBUG_ALIGN("table_inline.h",(uint32_t *)PRC_GET_SEGMENT_ADDRESS(), ALIGNMENT_16B);
 #endif
 	
 	int32_t status;
@@ -95,8 +95,8 @@ inline int table_lookup_by_key(enum table_hw_accel_id acc_id,
 {
 	
 #ifdef CHECK_ALIGNMENT 	
-	DEBUG_ALIGN("table_inline.c",(uint32_t)key_desc.em_key, ALIGNMENT_16B);
-	DEBUG_ALIGN("table_inline.c",(uint32_t)lookup_result, ALIGNMENT_16B);
+	DEBUG_ALIGN("table_inline.h",(uint32_t)key_desc.em_key, ALIGNMENT_16B);
+	DEBUG_ALIGN("table_inline.h",(uint32_t)lookup_result, ALIGNMENT_16B);
 #endif
 	
 	int32_t status;
@@ -136,7 +136,7 @@ inline int table_rule_create(enum table_hw_accel_id acc_id,
 {  
 	
 #ifdef CHECK_ALIGNMENT 	
-	DEBUG_ALIGN("table_inline.c",(uint32_t)rule, ALIGNMENT_16B);
+	DEBUG_ALIGN("table_inline.h",(uint32_t)rule, ALIGNMENT_16B);
 #endif
 	
 	int32_t status;
@@ -225,7 +225,7 @@ inline int table_rule_delete(enum table_hw_accel_id acc_id,
 {
 	
 #ifdef CHECK_ALIGNMENT 	
-	DEBUG_ALIGN("table_inline.c",(uint32_t)key_desc, ALIGNMENT_16B);
+	DEBUG_ALIGN("table_inline.h",(uint32_t)key_desc, ALIGNMENT_16B);
 #endif
 	
 	int32_t status;
@@ -275,7 +275,7 @@ inline int table_rule_query(enum table_hw_accel_id acc_id,
 {
 	
 #ifdef CHECK_ALIGNMENT 	
-	DEBUG_ALIGN("table_inline.c",(uint32_t)key_desc, ALIGNMENT_16B);
+	DEBUG_ALIGN("table_inline.h",(uint32_t)key_desc, ALIGNMENT_16B);
 #endif
 	
 	int32_t status;
@@ -376,7 +376,7 @@ inline int table_rule_replace(enum table_hw_accel_id acc_id,
 {
 	
 #ifdef CHECK_ALIGNMENT 	
-	DEBUG_ALIGN("table_inline.c",(uint32_t)rule, ALIGNMENT_16B);
+	DEBUG_ALIGN("table_inline.h",(uint32_t)rule, ALIGNMENT_16B);
 #endif
 	
 	int32_t status;
