@@ -54,6 +54,20 @@ do { \
 			((uint8_t *)_ADDR)[i] = _VAL; \
 	} while (0)
 
+#define DPCI_DT_LOCK_R_TAKE \
+	do { \
+		cdma_mutex_lock_take((uint64_t)(dt), CDMA_MUTEX_READ_LOCK); \
+	} while(0)
+
+#define DPCI_DT_LOCK_W_TAKE \
+	do { \
+		cdma_mutex_lock_take((uint64_t)(dt), CDMA_MUTEX_WRITE_LOCK); \
+	} while(0)
+
+#define DPCI_DT_LOCK_RELEASE \
+	do { \
+		cdma_mutex_lock_release((uint64_t)(dt)); \
+	} while(0)
 
 int dpci_amq_bdi_init(uint32_t dpci_id);
 int dpci_rx_ctx_init(uint32_t dpci_id, uint32_t id);
@@ -121,7 +135,7 @@ static inline void amq_bits_update(uint32_t id)
 /* To be called upon connected event, assign even */
 __COLD_CODE int dpci_amq_bdi_init(uint32_t dpci_id)
 {
-	struct mc_dpci_tbl *dpci_tbl = (struct mc_dpci_tbl *)\
+	struct mc_dpci_tbl *dt = (struct mc_dpci_tbl *)\
 		sys_get_unique_handle(FSL_OS_MOD_DPCI_TBL);
 	int ind = -1;
 	uint32_t amq_bdi = 0;
@@ -135,28 +149,26 @@ __COLD_CODE int dpci_amq_bdi_init(uint32_t dpci_id)
 		/* Updated DPCI peer if possible */
 		err = dpci_get_peer_id(dpci_id, &dpci_id_peer);
 		if (!err)
-			dpci_tbl->dpci_id_peer[ind] = dpci_id_peer;
+			dt->dpci_id_peer[ind] = dpci_id_peer;
 		else
-			dpci_tbl->dpci_id_peer[ind] = DPCI_FQID_NOT_VALID;
+			dt->dpci_id_peer[ind] = DPCI_FQID_NOT_VALID;
 		/* Must be last */
-		dpci_tbl->ic[ind] = amq_bdi;
+		dt->ic[ind] = amq_bdi;
 	} else {
 		/* Adding new dpci_id */
-		if (dpci_tbl->count < dpci_tbl->max) {
-			cdma_mutex_lock_take((uint64_t)dpci_tbl, CDMA_MUTEX_WRITE_LOCK);
+		if (dt->count < dt->max) {
 
-			ind = dpci_tbl->count;
-			dpci_tbl->ic[ind] = amq_bdi;
-			dpci_tbl->dpci_id[ind] = dpci_id;
+			ind = dt->count;
+			dt->ic[ind] = amq_bdi;
+			dt->dpci_id[ind] = dpci_id;
 			/* Updated DPCI peer if possible */
 			err = dpci_get_peer_id(dpci_id, &dpci_id_peer);
 			if (!err)
-				dpci_tbl->dpci_id_peer[ind] = dpci_id_peer;
+				dt->dpci_id_peer[ind] = dpci_id_peer;
 			else
-				dpci_tbl->dpci_id_peer[ind] = DPCI_FQID_NOT_VALID;
+				dt->dpci_id_peer[ind] = DPCI_FQID_NOT_VALID;
 			/* Must be last */
-			atomic_incr32(&dpci_tbl->count, 1);
-			cdma_mutex_lock_release((uint64_t)dpci_tbl);
+			atomic_incr32(&dt->count, 1);
 		} else {
 			pr_err("Not enough entries\n");
 			return -ENOMEM;
@@ -213,7 +225,7 @@ __COLD_CODE int dpci_rx_ctx_init(uint32_t dpci_id, uint32_t id)
 	return err;
 }
 
-__COLD_CODE static int rx_ctx_set(uint32_t id, struct dpci_tx_queue_attr *tx)
+__COLD_CODE static int rx_ctx_set(uint32_t id)
 {
 	struct mc_dprc *dprc = sys_get_unique_handle(FSL_OS_MOD_AIOP_RC);
 	int err = 0;
@@ -257,8 +269,6 @@ __COLD_CODE static int rx_ctx_set(uint32_t id, struct dpci_tx_queue_attr *tx)
 		err = dpci_set_rx_queue(&dprc->io, token, i,
 		                         &queue_cfg);
 		ASSERT_COND(!err);
-		if (tx != NULL)
-			tx[i].fqid = tx_attr.fqid;
 	}
 
 	err = dpci_close(&dprc->io, token);
@@ -266,113 +276,7 @@ __COLD_CODE static int rx_ctx_set(uint32_t id, struct dpci_tx_queue_attr *tx)
 	return err;
 }
 
-
-/*************************************************************************/
-
-/*
- * New DPCI was added or the state of the DPCI has changed
- * The dpci_id must belong to AIOP side
- */
-__COLD_CODE int dpci_drv_added(uint32_t dpci_id)
-{
-	int err = 0;
-
-	/*
-	 * TODO
-	 * Lock with cdma mutex WRITE
-	 * count++;
-	 * Update mc_dpci_find() to skip invalid entries
-	 */
-
-	err = dpci_amq_bdi_init(dpci_id);
-	if (err >= 0) {
-		err = dpci_rx_ctx_init(dpci_id, (uint32_t)err);
-	}
-
-	return err;
-}
-
-/*
- * The DPCI was removed from AIOP container
- * The dpci_id must belong to AIOP side
- */
-__COLD_CODE int dpci_drv_removed(uint32_t dpci_id)
-{
-
-	struct mc_dpci_tbl *dt = (struct mc_dpci_tbl *)\
-		sys_get_unique_handle(FSL_OS_MOD_DPCI_TBL);
-	int ind = -1;
-	uint32_t amq_bdi = 0;
-	int err = 0;
-
-	/*
-	 * TODO
-	 * Clear the entry with 0xffff
-	 * Lock with cdma mutex WRITE
-	 * count--;
-	 */
-	CMDIF_ICID_AMQ_BDI(AMQ_BDI_SET, ICONTEXT_INVALID, ICONTEXT_INVALID);
-
-	ind = mc_dpci_find(dpci_id, NULL);
-	if (ind >= 0) {
-		/* Must be last and atomic */
-		dt->ic[ind] = amq_bdi;
-		/* No need to update id and peer id
-		 * It will be updated upon added event
-		 * Invalid icid means the whole entry is not valid */
-	}
-
-	pr_err("Unknown dpci id 0x%x\n", dpci_id);
-	return -ENOENT;
-}
-
-
-/*
- * The DPCI user context and AMQ bits are updated
- * This function is to be called only inside the open command and before
- * the AMQ bits had been changed to AIOP AMQ bits
- */
-__COLD_CODE int dpci_drv_update(uint32_t ind)
-{
-	int err;
-
-	/*
-	 * TODO
-	 * Lock with cdma mutex WRITE
-	 * Update mc_dpci_find() to skip invalid entries
-	 */
-
-	amq_bits_update(ind);
-	err = rx_ctx_set(ind, NULL);
-
-	return err;
-}
-
-
-__HOT_CODE void dpci_drv_user_ctx_get(uint32_t *id, uint32_t *fqid)
-{
-	uint64_t rx_ctx = CMDIF_RX_CTX_GET;
-	uint32_t _id;
-	uint32_t _fqid;
-
-	CMDIF_DPCI_FQID(USER_CTX_GET, (&_id), (&_fqid));
-
-	if (id)
-		*id = _id;
-	if (fqid)
-		*fqid = _fqid;
-}
-
-__HOT_CODE void dpci_drv_icid_get(uint32_t ind, uint16_t *icid, uint16_t *amq_bdi)
-{
-	struct mc_dpci_tbl *dt = sys_get_unique_handle(FSL_OS_MOD_DPCI_TBL);
-
-	ASSERT_COND(dt);
-
-	CMDIF_ICID_AMQ_BDI(AMQ_BDI_GET, icid, amq_bdi);
-}
-
-__COLD_CODE int dpci_drv_tx_get(uint32_t dpci_id, uint32_t *tx)
+__COLD_CODE static int tx_get(uint32_t dpci_id, uint32_t *tx)
 {
 
 	struct mc_dprc *dprc = sys_get_unique_handle(FSL_OS_MOD_AIOP_RC);
@@ -415,6 +319,145 @@ __COLD_CODE int dpci_drv_tx_get(uint32_t dpci_id, uint32_t *tx)
 	}
 
 	err = dpci_close(&dprc->io, token);
+
+	return err;
+}
+
+
+/*************************************************************************/
+
+/*
+ * New DPCI was added or the state of the DPCI has changed
+ * The dpci_id must belong to AIOP side
+ */
+__COLD_CODE int dpci_drv_added(uint32_t dpci_id)
+{
+	int err = 0;
+	struct mc_dpci_tbl *dt = (struct mc_dpci_tbl *)\
+			sys_get_unique_handle(FSL_OS_MOD_DPCI_TBL);
+	/*
+	 * TODO
+	 * Lock with cdma mutex WRITE
+	 * count++;
+	 * Update mc_dpci_find() to skip invalid entries
+	 */
+	DPCI_DT_LOCK_W_TAKE;
+
+	err = dpci_amq_bdi_init(dpci_id);
+	if (err >= 0) {
+		err = dpci_rx_ctx_init(dpci_id, (uint32_t)err);
+	}
+
+	DPCI_DT_LOCK_RELEASE;
+
+	return err;
+}
+
+/*
+ * The DPCI was removed from AIOP container
+ * The dpci_id must belong to AIOP side
+ */
+__COLD_CODE int dpci_drv_removed(uint32_t dpci_id)
+{
+
+	struct mc_dpci_tbl *dt = (struct mc_dpci_tbl *)\
+		sys_get_unique_handle(FSL_OS_MOD_DPCI_TBL);
+	int ind = -1;
+	uint32_t amq_bdi = 0;
+	int err = 0;
+
+	/*
+	 * TODO
+	 * Clear the entry with 0xffff
+	 * Lock with cdma mutex WRITE
+	 * count--;
+	 */
+	CMDIF_ICID_AMQ_BDI(AMQ_BDI_SET, ICONTEXT_INVALID, ICONTEXT_INVALID);
+
+	DPCI_DT_LOCK_W_TAKE;
+
+	ind = mc_dpci_find(dpci_id, NULL);
+	if (ind >= 0) {
+		/* Must be last and atomic */
+		dt->ic[ind] = amq_bdi;
+		/* No need to update id and peer id
+		 * It will be updated upon added event
+		 * Invalid icid means the whole entry is not valid */
+	}
+
+	DPCI_DT_LOCK_RELEASE;
+	pr_err("Unknown dpci id 0x%x\n", dpci_id);
+	return -ENOENT;
+}
+
+
+/*
+ * The DPCI user context and AMQ bits are updated
+ * This function is to be called only inside the open command and before
+ * the AMQ bits had been changed to AIOP AMQ bits
+ */
+__COLD_CODE int dpci_drv_update(uint32_t ind)
+{
+	int err;
+	struct mc_dpci_tbl *dt = (struct mc_dpci_tbl *)\
+		sys_get_unique_handle(FSL_OS_MOD_DPCI_TBL);
+
+	/*
+	 * TODO
+	 * Lock with cdma mutex WRITE
+	 * Update mc_dpci_find() to skip invalid entries
+	 */
+
+	/* Read lock because many can update same entry with the same values
+	 * New values can be set only inside dpci_drv_removed() dpci_drv_added()
+	 * */
+	DPCI_DT_LOCK_R_TAKE;
+
+	amq_bits_update(ind);
+	err = rx_ctx_set(ind);
+
+	DPCI_DT_LOCK_RELEASE;
+	return err;
+}
+
+
+__HOT_CODE void dpci_drv_user_ctx_get(uint32_t *id, uint32_t *fqid)
+{
+	uint64_t rx_ctx = CMDIF_RX_CTX_GET;
+	uint32_t _id;
+	uint32_t _fqid;
+
+	CMDIF_DPCI_FQID(USER_CTX_GET, (&_id), (&_fqid));
+
+	if (id)
+		*id = _id;
+	if (fqid)
+		*fqid = _fqid;
+}
+
+__HOT_CODE void dpci_drv_icid_get(uint32_t ind, uint16_t *icid, uint16_t *amq_bdi)
+{
+	struct mc_dpci_tbl *dt = sys_get_unique_handle(FSL_OS_MOD_DPCI_TBL);
+
+	ASSERT_COND(dt);
+
+	DPCI_DT_LOCK_R_TAKE;
+
+	CMDIF_ICID_AMQ_BDI(AMQ_BDI_GET, icid, amq_bdi);
+
+	DPCI_DT_LOCK_RELEASE;
+}
+
+__COLD_CODE int dpci_drv_tx_get(uint32_t dpci_id, uint32_t *tx)
+{
+	int err;
+	struct mc_dpci_tbl *dt = sys_get_unique_handle(FSL_OS_MOD_DPCI_TBL);
+
+	DPCI_DT_LOCK_R_TAKE;
+
+	err = tx_get(dpci_id, tx);
+
+	DPCI_DT_LOCK_RELEASE;
 
 	return err;
 }
