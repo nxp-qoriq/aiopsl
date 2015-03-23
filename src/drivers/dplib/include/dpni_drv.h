@@ -68,6 +68,12 @@
 #define DPNI_DRV_EXCLUSIVE_MODE       1
 #define PARAMS_IOVA_BUFF_SIZE         256
 #define PARAMS_IOVA_ALIGNMENT         8
+#define DPNI_DRV_PTA_SIZE             64
+
+/* Default DPNI requirements values */
+#define DPNI_DRV_DHR_DEF              96 /* Data Head Room */
+#define DPNI_DRV_DTR_DEF              0  /* Data Tail Room */
+#define DPNI_DRV_PTA_DEF              0  /* Pass Thru Annotation - Private Data Size */
 
 /**************************************************************************//**
 @Group	DPNI_DRV_STATUS
@@ -84,6 +90,13 @@ struct dpni_stats {
 	int num_pkts;
 };
 
+struct dpni_early_init_request{
+	uint16_t head_room_sum; 
+	uint16_t tail_room_sum; 
+	uint16_t private_data_size_sum;
+	
+	uint16_t count; /* Count how many requests have been registered */
+};
 
 /**************************************************************************//**
 @Description   Information for every bpid
@@ -137,6 +150,7 @@ void discard_rx_cb(void);
 		1 - Exclusive
 *//***************************************************************************/
 int dpni_drv_get_ordering_mode(uint16_t ni_id);
+
 
 /** @} */ /* end of DPNI_DRV_STATUS group */
 #endif /* __DPNI_DRV_H */

@@ -139,9 +139,8 @@ __COLD_CODE static int dpci_tbl_create(struct mc_dpci_tbl **_dpci_tbl, int dpci_
 	memset(dpci_tbl->ic, 0xff, size);
 
 	dpci_tbl->count = 0;
-	dpci_tbl->lock = 0;
 	dpci_tbl->max = dpci_count;
-	
+
 	err = sys_add_handle(dpci_tbl,
 			FSL_OS_MOD_DPCI_TBL,
 			1,
@@ -187,10 +186,10 @@ __COLD_CODE void mc_dpci_tbl_dump()
 {
 	int i;
 	struct mc_dpci_tbl *dt = sys_get_unique_handle(FSL_OS_MOD_DPCI_TBL);
-	
+
 	fsl_os_print("----------DPCI table----------\n");
 	for (i = 0; i < dt->count; i++) {
-		fsl_os_print("ID = 0x%x\t PEER ID = 0x%x\t IC = 0x%x\t\n", 
+		fsl_os_print("ID = 0x%x\t PEER ID = 0x%x\t IC = 0x%x\t\n",
 		             dt->dpci_id[i], dt->dpci_id_peer[i], dt->ic[i]);
 	}
 }
@@ -199,18 +198,18 @@ int mc_dpci_find(uint32_t dpci_id, uint32_t *ic)
 {
 	int i;
 	struct mc_dpci_tbl *dt = sys_get_unique_handle(FSL_OS_MOD_DPCI_TBL);
-	
-	ASSERT_COND(dt);	
+
+	ASSERT_COND(dt);
 
 	for (i = 0; i < dt->count; i++) {
-		if ((dt->dpci_id[i] == dpci_id) || 
+		if ((dt->dpci_id[i] == dpci_id) ||
 			(dt->dpci_id_peer[i] == dpci_id)) {
 			if (ic != NULL)
 				*ic = dt->ic[i];
 			return i;
 		}
 	}
-	
+
 	return -ENOENT;
 }
 
@@ -235,7 +234,7 @@ __COLD_CODE static int dpci_for_mc_add(struct mc_dprc *dprc)
 
 	/* Get attributes just for dpci id fqids are not there yet */
 	err |= dpci_get_attributes(&dprc->io, dpci, &attr);
-	
+
 	/* Connect to dpci that belongs to MC */
 	pr_debug("MC dpci ID[%d] \n", g_init_data.sl_info.mc_dpci_id);
 
@@ -293,7 +292,7 @@ __COLD_CODE static int dpci_tbl_fill(struct mc_dprc *dprc,
 	if (err) {
 		pr_err("Failed to create and link AIOP<->MC DPCI \n");
 	}
-		
+
 	return err;
 }
 
@@ -326,7 +325,7 @@ __COLD_CODE static int dpci_discovery()
 		}
 	}
 
-	err = dpci_tbl_create(&dpci_tbl, 
+	err = dpci_tbl_create(&dpci_tbl,
 	                      dpci_count + MC_DPCI_NUM + DPCI_DYNAMIC_MAX);
 	if (err != 0) {
 		pr_err("Failed dpci_tbl_create() \n");
@@ -334,7 +333,7 @@ __COLD_CODE static int dpci_discovery()
 	}
 
 	err = dpci_tbl_fill(dprc, dpci_count, dev_count);
-	
+
 	mc_dpci_tbl_dump();
 
 	return err;

@@ -46,8 +46,6 @@ struct cmdif_srv_aiop {
 	/**< Common Server fields */
 	struct mc_dpci_tbl *dpci_tbl;
 	/**< DPCI table according to indexes in dequeue context */
-	uint8_t lock;
-	/**< cmdif spinlock used for module id allocation */
 };
 
 void cmdif_srv_isr(void);

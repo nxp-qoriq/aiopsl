@@ -581,6 +581,21 @@ int dpni_drv_set_rx_buffer_layout(uint16_t ni_id, const struct dpni_drv_buf_layo
 int dpni_drv_get_rx_buffer_layout(uint16_t ni_id, struct dpni_drv_buf_layout *layout);
 
 /**************************************************************************//**
+@Function	dpni_drv_register_requirements
+
+@Description	register a request for DPNI requirement.
+
+@Param[in]	head_room           Requested head room.
+@Param[in]	tail_room           Requested tail room.
+@Param[in]	private_data_size   Requested private data size.
+
+@Return		0        - on success,
+		-ENAVAIL - resource not available or not found,
+		-ENOMEM  - not enough memory.
+ *//***************************************************************************/
+int dpni_drv_register_requirements(uint16_t head_room, uint16_t tail_room, uint16_t private_data_size);
+
+/**************************************************************************//**
 @Function	dpni_drv_get_counter
 
 @Description	Function to receive DPNI counter.

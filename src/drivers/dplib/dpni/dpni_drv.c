@@ -62,6 +62,8 @@ struct dpni_drv nis_first __attribute__((aligned(8)));
 struct dpni_drv *nis = &nis_first;
 int num_of_nis;
 
+struct dpni_early_init_request g_dpni_early_init_data = {0};
+
 void discard_rx_cb(void)
 {
 
@@ -246,13 +248,19 @@ __COLD_CODE int dpni_drv_probe(struct mc_dprc *dprc,
 
 			/* TODO: This should be changed for dynamic solution. The hardcoded value is
 			 * temp solution.*/
-			if(g_app_params.dpni_sp_def_dhr)
-				layout.options = DPNI_BUF_LAYOUT_OPT_DATA_HEAD_ROOM;
-			if(g_app_params.dpni_sp_def_dtr)
-				layout.options |= DPNI_BUF_LAYOUT_OPT_DATA_TAIL_ROOM;
-			layout.data_head_room = g_app_params.dpni_sp_def_dhr;
-			layout.data_tail_room = g_app_params.dpni_sp_def_dtr;
-			layout.private_data_size = g_app_params.dpni_sp_def_pds;
+			layout.options = DPNI_BUF_LAYOUT_OPT_DATA_HEAD_ROOM 
+						| DPNI_BUF_LAYOUT_OPT_DATA_TAIL_ROOM;
+			
+			if(g_dpni_early_init_data.count > 0) {
+				layout.data_head_room = g_dpni_early_init_data.head_room_sum;
+				layout.data_tail_room = g_dpni_early_init_data.tail_room_sum;
+				layout.private_data_size = g_dpni_early_init_data.private_data_size_sum;
+			}else {
+				layout.data_head_room = DPNI_DRV_DHR_DEF;
+				layout.data_tail_room = DPNI_DRV_DTR_DEF;
+				layout.private_data_size = DPNI_DRV_PTA_DEF;
+			}
+			
 			if ((err = dpni_set_rx_buffer_layout(&dprc->io, dpni, &layout)) != 0) {
 				pr_err("Failed to set rx buffer layout for DP-NI%d\n", mc_niid);
 				return -ENODEV;
@@ -761,6 +769,20 @@ int dpni_drv_get_rx_buffer_layout(uint16_t ni_id, struct dpni_drv_buf_layout *la
 	layout->data_head_room = dpni_layout.data_head_room;
 	layout->data_tail_room = dpni_layout.data_tail_room;
 	return err;
+}
+
+int dpni_drv_register_requirements(uint16_t head_room, uint16_t tail_room, uint16_t private_data_size)
+{
+	g_dpni_early_init_data.count++;
+	
+	g_dpni_early_init_data.head_room_sum += head_room;
+	g_dpni_early_init_data.tail_room_sum += tail_room;
+	
+	if(private_data_size) {
+		g_dpni_early_init_data.private_data_size_sum = DPNI_DRV_PTA_SIZE;
+	}
+	
+	return 0;
 }
 
 int dpni_drv_get_counter(uint16_t ni_id, enum dpni_drv_counter counter, uint64_t *value){
