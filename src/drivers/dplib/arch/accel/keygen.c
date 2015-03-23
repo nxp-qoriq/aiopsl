@@ -572,7 +572,7 @@ void keygen_kcr_replace(enum keygen_hw_accel_id acc_id,
 {
 	
 #ifdef CHECK_ALIGNMENT 	
-	DEBUG_ALIGN((uint32_t)kcr, ALIGNMENT_16B);
+	DEBUG_ALIGN("keygen.c", (uint32_t)kcr, ALIGNMENT_16B);
 #endif
 
 	/* Prepare HW context for TLU accelerator call */
@@ -612,7 +612,7 @@ void keygen_kcr_query(enum keygen_hw_accel_id acc_id,
 {
 	
 #ifdef CHECK_ALIGNMENT 	
-	DEBUG_ALIGN((uint32_t)kcr, ALIGNMENT_16B);
+	DEBUG_ALIGN("keygen.c", (uint32_t)kcr, ALIGNMENT_16B);
 #endif
 	
 	/* Prepare HW context for TLU accelerator call */
@@ -630,7 +630,7 @@ int keygen_gen_hash(void *key, uint8_t key_size, uint32_t *hash)
 {
 	
 #ifdef CHECK_ALIGNMENT 	
-	DEBUG_ALIGN((uint32_t)key, ALIGNMENT_16B);
+	DEBUG_ALIGN("keygen.c", (uint32_t)key, ALIGNMENT_16B);
 #endif
 
 	int32_t status;

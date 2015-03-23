@@ -238,9 +238,9 @@ extern const uint8_t _ssram_addr[];
 #define  ALIGNMENT_32B	0x1f /*!< 32B Alignment*/
 #define  ALIGNMENT_64B	0x3f /*!< 32B Alignment*/
 
-#define DEBUG_ALIGN(var_addr, alignment)									\
+#define DEBUG_ALIGN(filename, var_addr, alignment)							\
 	if (((uint32_t)var_addr & alignment) != 0)								\
-			exception_handler(__FILE__, "", __LINE__, "Alignment Error");	
+			exception_handler("filename", "", __LINE__, "Alignment Error");	
 
 /** @} */ /* end of AIOP_Alignment_Macro */
 /** @} */ /* end of FSL_General_Macros */

@@ -64,16 +64,16 @@ void stack_estimation(void)
 	uint64_t buff = 0;
 	struct cmdif_desc cidesc = {0};
 	struct icontext ic = {0};
-	struct dpni_buffer_layout layout = {0};
+	struct dpni_drv_buf_layout layout = {0};
 	struct dpkg_profile_cfg key_cfg = {0};
 	struct ldpaa_fd fd = {0};
-	struct dpni_link_state link_state = {0};
+	struct dpni_drv_link_state link_state = {0};
 	uint16_t ni = 0, dpni_id, spid, mfl = 0;
 	uint8_t mac_addr[NET_HDR_FLD_ETH_ADDR_SIZE] = {0};
 	int state = 0;
 	rx_cb_t *cb = 0;
 	dpni_drv_app_arg_t arg = 0;
-	uint64_t shbp;
+	uint64_t shbp = 0;
 	
 	/*sl_prolog must be called first when packet arrives*/
 	sl_prolog();
@@ -126,15 +126,23 @@ void stack_estimation(void)
 	dpni_drv_get_spid(ni, &spid);
 	dpni_drv_get_spid_ddr(ni, &spid);
 	/*This function supported in boot mode only*/
-	/*dpni_drv_set_order_scope(ni, &key_cfg); */
+	/*dpni_drv_set_order_scope(ni, &key_cfg);*/
 	dpni_drv_get_connected_dpni_id(ni, &dpni_id, &state);
 	dpni_drv_get_connected_aiop_ni_id(ni, &dpni_id, &state);
 	dpni_drv_get_rx_buffer_layout(ni, &layout);
-	dpni_drv_get_counter(ni, DPNI_CNT_ING_FRAME ,&ctr_value);
+	dpni_drv_set_rx_buffer_layout(ni, &layout);
+	dpni_drv_get_counter(ni, DPNI_DRV_CNT_ING_FRAME ,&ctr_value);
+	dpni_drv_reset_counter(ni, DPNI_DRV_CNT_ING_FRAME);
 	dpni_drv_get_dpni_id(ni, &dpni_id);
 	dpni_drv_get_ni_id(dpni_id, &ni);
 	dpni_drv_get_link_state(ni, &link_state);
 	dpni_drv_clear_mac_filters(ni, 1, 1);
+	dpni_drv_clear_vlan_filters(ni);
+	dpni_drv_set_vlan_filters(ni, 1);
+	dpni_drv_add_vlan_id(ni, (uint16_t)1515);
+	dpni_drv_remove_vlan_id(ni, (uint16_t)1515);
+	dpni_drv_enable(ni);
+	dpni_drv_disable(ni);
 	/* SHBP Shared buffer pool */
 	shbp_acquire(shbp, &ic);
 	shbp_release(shbp, NULL, &ic);

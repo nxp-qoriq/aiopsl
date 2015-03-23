@@ -51,7 +51,7 @@ int tman_create_tmi(uint64_t tmi_mem_base_addr,
 {
 	
 #ifdef CHECK_ALIGNMENT 	
-	DEBUG_ALIGN((uint32_t)tmi_mem_base_addr, ALIGNMENT_64B);
+	DEBUG_ALIGN("tman.c", (uint32_t)tmi_mem_base_addr, ALIGNMENT_64B);
 #endif
 	
 	/* command parameters and results */
