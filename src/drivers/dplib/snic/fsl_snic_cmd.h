@@ -158,7 +158,6 @@ do { \
 	_OP(0, 0,	16,	uint16_t,	snic_id); \
 	_OP(0, 16,	16,	uint16_t,	sa_id); \
 	_OP(0, 32,	32,	int32_t,	ipsec_cfg->direction); \
-	_OP(1, 0,	8,	uint8_t,	ipsec_encparams_cfg->ip_nh); \
 	_OP(1, 8,	8,	uint8_t,	cipher_type); \
 	_OP(1, 16,	16,	uint16_t,	ipsec_encparams_cfg->options); \
 	_OP(1, 32,	32,	uint32_t,	ipsec_encparams_cfg->seq_num_ext_hi); \

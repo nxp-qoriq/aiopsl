@@ -1661,6 +1661,7 @@ __COLD_CODE int slab_register_context_buffer_requirements(
 				g_slab_early_init_data->mem_pid_buffer_request[mem_pid]->table_info[i].alignment = 0;
 				g_slab_early_init_data->mem_pid_buffer_request[mem_pid]->table_info[i].committed_bufs = 0;
 				g_slab_early_init_data->mem_pid_buffer_request[mem_pid]->table_info[i].extra = 0;
+				g_slab_early_init_data->mem_pid_buffer_request[mem_pid]->table_info[i].max = 0;
 			}
 		}
 	}

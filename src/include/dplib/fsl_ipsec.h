@@ -332,7 +332,6 @@ struct ipsec_encap_gcm_params {
  * @Description   Container for encapsulation parameters
 *//***************************************************************************/
 struct ipsec_encap_params {
-	uint8_t ip_nh; /**< Next header value used for transport mode */
 	uint16_t options; /**< Options */
 	uint32_t seq_num_ext_hi; /**< Extended sequence number */
 	uint32_t seq_num;	/**< Initial sequence number */
