@@ -167,23 +167,28 @@ int ipsec_create_instance (
 int ipsec_delete_instance(ipsec_instance_handle_t instance_handle)
 {
 	int32_t return_val;
-	uint32_t sa_count;
+
+	struct ipsec_instance_params instance; 
 
 	cdma_read(
-			&sa_count, /* void *ws_dst */
+			&instance, /* void *ws_dst */
 			instance_handle, /* uint64_t ext_address */
-			sizeof(sa_count) /* uint16_t size */
+			sizeof(instance) /* uint16_t size */
 			);
 	
 	/* Check if all SAs were deleted */
-	if (sa_count == 0) {
-		
+	if (instance.sa_count == 0) {
+	
 		/* Release the instance buffer */ 
 		return_val = cdma_refcount_decrement_and_release(instance_handle);
 		/* TODO: check for CDMA errors. Mind reference count zero status */
 		
-		/* TODO: return "committed + 1" buffers back to the slab */
-		
+		/* Un-reserve "committed + 1" buffers back to the slab */
+		return_val = slab_find_and_unreserve_bpid(
+			(int32_t)(instance.committed_sa_num + 1), /* int32_t num_buffs */
+			instance.desc_bpid); /* uint16_t bpid */
+		/* TODO: check for slab error */
+
 		return IPSEC_SUCCESS;
 	} else {
 		/* TODO: handle a case of instance delete before SAs full delete */
@@ -302,12 +307,6 @@ int ipsec_release_buffer(ipsec_instance_handle_t instance_handle,
 		/* Release the buffer */ 
 		return_val = cdma_refcount_decrement_and_release(ipsec_handle); 
 		/* TODO: check for CDMA errors. Mind reference count zero status */
-				
-		/* If buffer taken from 'max' quanta, need to return to slab */
-		if (instance.sa_count > instance.committed_sa_num) {
-		
-			/* TODO: return one buffer back to the slab */
-		}
 		
 		instance.sa_count--;
 		
@@ -318,6 +317,17 @@ int ipsec_release_buffer(ipsec_instance_handle_t instance_handle,
 				&instance.sa_count, /* void *ws_dst */
 				sizeof(instance.sa_count) /* uint16_t size */	
 		);
+		
+		/* If buffer taken from 'max' quanta, need to return to slab */
+		/* The ">=" is because sa_count was already decremented above */
+		if (instance.sa_count >= instance.committed_sa_num) {
+			/* Un-reserve one buffer back to the slab */
+			return_val = slab_find_and_unreserve_bpid(
+					1, /* int32_t num_buffs */
+					instance.desc_bpid); /* uint16_t bpid */
+			/* TODO: check for slab error */
+		}
+		
 		return return_val;
 	} else {
 		/* Release lock */
