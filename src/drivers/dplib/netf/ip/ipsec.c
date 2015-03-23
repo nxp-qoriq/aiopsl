@@ -84,11 +84,13 @@ int ipsec_early_init(
 	uint32_t dummy = flags; /* dummy assignment, to avoid warning */
 	
 	uint32_t committed_buffs;
+	uint32_t max_buffs;
 	committed_buffs = total_instance_num + total_committed_sa_num;
-	
+	max_buffs = total_instance_num + total_max_sa_num;
+
 	return_val = slab_register_context_buffer_requirements(
 			committed_buffs,
-			total_max_sa_num, /* uint32_t max_buffs */
+			max_buffs, /* uint32_t max_buffs */
 			IPSEC_SA_DESC_BUF_SIZE, /* uint16_t buff_size */
 			IPSEC_SA_DESC_BUF_ALIGN, /* uint16_t alignment */
 	        IPSEC_MEM_PARTITION_ID, /* enum memory_partition_id  mem_pid */
@@ -165,23 +167,28 @@ int ipsec_create_instance (
 int ipsec_delete_instance(ipsec_instance_handle_t instance_handle)
 {
 	int32_t return_val;
-	uint32_t sa_count;
+
+	struct ipsec_instance_params instance; 
 
 	cdma_read(
-			&sa_count, /* void *ws_dst */
+			&instance, /* void *ws_dst */
 			instance_handle, /* uint64_t ext_address */
-			sizeof(sa_count) /* uint16_t size */
+			sizeof(instance) /* uint16_t size */
 			);
 	
 	/* Check if all SAs were deleted */
-	if (sa_count == 0) {
-		
+	if (instance.sa_count == 0) {
+	
 		/* Release the instance buffer */ 
 		return_val = cdma_refcount_decrement_and_release(instance_handle);
 		/* TODO: check for CDMA errors. Mind reference count zero status */
 		
-		/* TODO: return "committed + 1" buffers back to the slab */
-		
+		/* Un-reserve "committed + 1" buffers back to the slab */
+		return_val = slab_find_and_unreserve_bpid(
+			(int32_t)(instance.committed_sa_num + 1), /* int32_t num_buffs */
+			instance.desc_bpid); /* uint16_t bpid */
+		/* TODO: check for slab error */
+
 		return IPSEC_SUCCESS;
 	} else {
 		/* TODO: handle a case of instance delete before SAs full delete */
@@ -300,12 +307,6 @@ int ipsec_release_buffer(ipsec_instance_handle_t instance_handle,
 		/* Release the buffer */ 
 		return_val = cdma_refcount_decrement_and_release(ipsec_handle); 
 		/* TODO: check for CDMA errors. Mind reference count zero status */
-				
-		/* If buffer taken from 'max' quanta, need to return to slab */
-		if (instance.sa_count > instance.committed_sa_num) {
-		
-			/* TODO: return one buffer back to the slab */
-		}
 		
 		instance.sa_count--;
 		
@@ -316,6 +317,17 @@ int ipsec_release_buffer(ipsec_instance_handle_t instance_handle,
 				&instance.sa_count, /* void *ws_dst */
 				sizeof(instance.sa_count) /* uint16_t size */	
 		);
+		
+		/* If buffer taken from 'max' quanta, need to return to slab */
+		/* The ">=" is because sa_count was already decremented above */
+		if (instance.sa_count >= instance.committed_sa_num) {
+			/* Un-reserve one buffer back to the slab */
+			return_val = slab_find_and_unreserve_bpid(
+					1, /* int32_t num_buffs */
+					instance.desc_bpid); /* uint16_t bpid */
+			/* TODO: check for slab error */
+		}
+		
 		return return_val;
 	} else {
 		/* Release lock */
@@ -1599,34 +1611,16 @@ int ipsec_frame_encrypt(
 	// TODO: check for FDMA error
 	
 	/* 	12.	Read the SEC return status from the FD[FRC]. Use swap macro. */
-	//*enc_status = LDPAA_FD_GET_FRC(HWC_FD_ADDRESS);
-	// TODO: which errors can happen in encryption?
-	/* Performance Improvement */
 	if ((LDPAA_FD_GET_FRC(HWC_FD_ADDRESS)) != 0) {
-		switch (LDPAA_FD_GET_FRC(HWC_FD_ADDRESS)) {
-			//case SEC_NO_ERROR:
-			//	break;
-			case SEC_SEQ_NUM_OVERFLOW: /** Sequence Number overflow */
+		if ((LDPAA_FD_GET_FRC(HWC_FD_ADDRESS) & SEC_DECO_ERROR_MASK)
+					== SEC_SEQ_NUM_OVERFLOW) { /** Sequence Number overflow */
 				*enc_status |= IPSEC_SEQ_NUM_OVERFLOW;
-				return_val = -1;
-				break;
-			case SEC_AR_LATE_PACKET:	/** Anti Replay Check: Late packet */
-				*enc_status |= IPSEC_AR_LATE_PACKET;
-				return_val = -1;
-				break;
-			case SEC_AR_REPLAY_PACKET:	/** Anti Replay Check: Replay packet */
-				*enc_status |= IPSEC_AR_REPLAY_PACKET;
-				return_val = -1;
-				break;
-			case SEC_ICV_COMPARE_FAIL:	/** ICV comparison failed */
-				*enc_status |= IPSEC_ICV_COMPARE_FAIL;	
-				return_val = -1;
-				break;
-			default:
+		} else {
 				*enc_status |= IPSEC_GEN_ENCR_ERR;	
-				return_val = -1;
 		}
+		return_val = -1;
 	}
+	
 	/* 	13.	If encryption/encapsulation failed go to END (see below) */
 	// TODO: check results
 		
@@ -2097,32 +2091,26 @@ int ipsec_frame_decrypt(
 	return_val = fdma_present_default_frame();
 
 	/* 	13.	Read the SEC return status from the FD[FRC]. Use swap macro. */
-	// TODO: which errors can happen in decryption?
-	/* Performance Improvement */
 	if ((LDPAA_FD_GET_FRC(HWC_FD_ADDRESS)) != 0) {
-		switch (LDPAA_FD_GET_FRC(HWC_FD_ADDRESS)) {
-			//case SEC_NO_ERROR:
-				//break;
-			case SEC_SEQ_NUM_OVERFLOW: /** Sequence Number overflow */
-				*dec_status |= IPSEC_SEQ_NUM_OVERFLOW;
-				return_val = -1;
-				break;
-			case SEC_AR_LATE_PACKET:	/** Anti Replay Check: Late packet */
-				*dec_status |= IPSEC_AR_LATE_PACKET;
-				return_val = -1;
-				break;
-			case SEC_AR_REPLAY_PACKET:	/** Anti Replay Check: Replay packet */
-				*dec_status |= IPSEC_AR_REPLAY_PACKET;
-				return_val = -1;
-				break;
-			case SEC_ICV_COMPARE_FAIL:	/** ICV comparison failed */
-				*dec_status |= IPSEC_ICV_COMPARE_FAIL;	
-				return_val = -1;
-				break;
-			default:
-				*dec_status |= IPSEC_GEN_DECR_ERR;	
-				return_val = -1;
+		if ((LDPAA_FD_GET_FRC(HWC_FD_ADDRESS) & SEC_CCB_ERROR_MASK)
+											== SEC_ICV_COMPARE_FAIL) {
+			*dec_status |= IPSEC_ICV_COMPARE_FAIL;
+		} else {
+			switch (LDPAA_FD_GET_FRC(HWC_FD_ADDRESS) & SEC_DECO_ERROR_MASK) {
+				case SEC_SEQ_NUM_OVERFLOW: /** Sequence Number overflow */
+					*dec_status |= IPSEC_SEQ_NUM_OVERFLOW;
+					break;
+				case SEC_AR_LATE_PACKET: /* Anti Replay Check: Late packet */
+					*dec_status |= IPSEC_AR_LATE_PACKET;
+					break;
+				case SEC_AR_REPLAY_PACKET: /*Anti Replay Check: Replay packet */
+					*dec_status |= IPSEC_AR_REPLAY_PACKET;
+					break;
+				default:
+					*dec_status |= IPSEC_GEN_DECR_ERR;
+			}	
 		}
+		return_val = -1;
 	}
 	
 	/* 	14.	If encryption/encapsulation failed go to END (see below) */

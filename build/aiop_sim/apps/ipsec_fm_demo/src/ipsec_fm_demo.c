@@ -624,7 +624,6 @@ int ipsec_app_init(uint16_t ni_id)
 		fsl_os_print("IPSEC: Tunnel Mode UDP Encapsulation\n");
 	}
 	
-	params.encparams.ip_nh = 0x0;
 	params.encparams.options = 0x0;
 	params.encparams.seq_num_ext_hi = 0x0;
 	params.encparams.seq_num = 0x0;

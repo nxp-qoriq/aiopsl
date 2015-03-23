@@ -32,8 +32,7 @@
 #include <fsl_mc_sys.h>
 #include <fsl_mc_cmd.h>
 #include <kernel/fsl_spinlock.h>
-
-uint8_t g_portal_lock;
+#include <fsl_cdma.h>
 
 static int mc_status_to_error(enum mc_cmd_status status)
 {
@@ -77,8 +76,8 @@ int mc_send_command(struct fsl_mc_io *mc_io, struct mc_command *cmd)
 		return -EACCES;
 
 	/* --- Call lock function here in case portal is shared --- */
-	lock_spinlock(&g_portal_lock);
-	
+	cdma_mutex_lock_take((uint64_t)mc_io->regs, CDMA_MUTEX_WRITE_LOCK);
+
 	mc_write_command(mc_io->regs, cmd);
 
 	/* Spin until status changes */
@@ -95,12 +94,13 @@ int mc_send_command(struct fsl_mc_io *mc_io, struct mc_command *cmd)
 #if 0
 	/* The authentication id is read in create() or open() commands,
 	 * to setup the control session.
-	 */ 
+	 */
 	if (0 == mc_portal->auth)
 		mc_portal->auth = (int)mc_cmd_read_auth_id(mc_portal->regs);
 #endif
+
 	/* --- Call unlock function here in case portal is shared --- */
-	unlock_spinlock(&g_portal_lock);
+	cdma_mutex_lock_release((uint64_t)mc_io->regs);
 
 	return mc_status_to_error(status);
 }
