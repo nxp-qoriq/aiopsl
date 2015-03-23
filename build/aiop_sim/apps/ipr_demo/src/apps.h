@@ -116,10 +116,6 @@
 #define APP_DPNI_BUF_ALIGN_IN_POOL	64	/**< Alignment of buffer */
 #define APP_DPNI_SPID_COUNT		8	/**< Max number of SPIDs */
 
-#define APP_DPNI_SP_DEF_DHR     96 /**< Data head room */
-#define APP_DPNI_SP_DEF_DTR     0  /**< Data tail room */
-#define APP_DPNI_SP_DEF_PDS     0  /**< Private data size */
-
 /** @} */ /* end of app_dpni */
 
 
