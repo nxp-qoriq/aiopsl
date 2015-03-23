@@ -52,7 +52,7 @@ int aiop_app_init(void)
 
     fsl_os_print("AIOP test: NIC\n");
 
-    for (i=0; i<dpni_get_num_of_ni(); i++)
+    for (i=0; i<dpni_drv_get_num_of_nis(); i++)
 	    err = dpni_drv_register_rx_cb(i, 0, NULL, NULL, rflct_rx_cb, i);
 
     return err;

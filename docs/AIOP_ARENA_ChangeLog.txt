@@ -1,15 +1,36 @@
+cmdif_integration_test.c : Added SHBP_TEST_GPP - GPP acquires buffer and AIOP releases,
+                                 SHBP_TEST_AIOP - AIOP acquires buffer and GPP releases.
+                           See aiopsl\tests\cmdif\README.txt.
+fsl_shbp_host.h : SHBP GPP side API changes, replaced struct shbp * with uint64_t.
+fsl_shbp_flib.h : SHBP FLIB API changes, replaced struct shbp * with uint64_t.
+
+fsl_dpni_drv.h/dpni_drv.c: update API for:
+		dpni_get_num_of_ni to: dpni_drv_get_num_of_nis and expose to users.
+		dpni_drv_set_rx_buffer_layout to: int dpni_drv_set_rx_buffer_layout(uint16_t ni_id, const struct dpni_drv_buf_layout *layout)
+		dpni_drv_get_rx_buffer_layout to: int dpni_drv_get_rx_buffer_layout(uint16_t ni_id, struct dpni_drv_buf_layout *layout)
+		dpni_drv_get_counter to: int dpni_drv_get_counter(uint16_t ni_id, enum dpni_drv_counter counter, uint64_t *value)
+		dpni_drv_get_link_state to: int dpni_drv_get_link_state(uint16_t ni_id, struct dpni_drv_link_state *state)
+		Added API for dpni_drv_enabe/disable(uint16_t ni_id) (dpni_drv_enable updates the second spid with ddr target pool)
+
+dpni_drv.c/fsl_dpni_drv.h: Added API to support vlan: set, add, remove and clear filters (option should be set for dpni in layout: DPNI_OPT_VLAN_FILTER.
+        int dpni_drv_clear_vlan_filters(uint16_t ni_id)
+        int dpni_drv_set_vlan_filters(uint16_t ni_id, int en)
+        int dpni_drv_add_vlan_id(uint16_t ni_id, uint16_t vlan_id)
+        int dpni_drv_remove_vlan_id(uint16_t ni_id, uint16_t vlan_id)
+        Added API to reset dpni counter:
+        dpni_drv_reset_counter(uint16_t ni_id, enum dpni_drv_counter counter)
 
 tests/cmdif/README.txt: Added description for the non backward compatible change in SHBP_TEST at cmdif_integration_test.c.
                         Each buffer inside this shbp should have the shbp address/handle written to the first 8 bytes.
-fsl_shbp.h     : AIOP side SHBP API changes. Removed shbp structure wrapper. Added struct icontext *ic to all the APIs.  
-fsl_shbp_host.h: GPP/Host side SHBP API changes. Removed shbp structure wrapper. 
+fsl_shbp.h     : AIOP side SHBP API changes. Removed shbp structure wrapper. Added struct icontext *ic to all the APIs.
+fsl_shbp_host.h: GPP/Host side SHBP API changes. Removed shbp structure wrapper.
 shbp_flib.h    : Added user space to be used by host implementation for locks.
 
 Reorganize SHBP API and FLIB:
   new file : src/lib/fsl_shbp_host.h SHBP Host API for GPP
   renamed  : src/include/lib/fsl_shbp.h      -> src/lib/fsl_shbp_flib.h
-  renamed  : src/include/lib/fsl_shbp_aiop.h -> src/include/lib/fsl_shbp.h  
-  
+  renamed  : src/include/lib/fsl_shbp_aiop.h -> src/include/lib/fsl_shbp.h
+
   API to be used by AIOP appliocation is : src/include/lib/fsl_shbp.h
   API to be used by GPP appliocation is : ssrc/lib/fsl_shbp_host.h
 
@@ -17,29 +38,29 @@ Reorganize CMDIF API and FLIB:
    renamed:    src/include/kernel/fsl_cmdif_flib_c.h -> src/kernel/inc/fsl_cmdif_flib_c.h
    renamed:    src/include/kernel/fsl_cmdif_fd.h     -> src/kernel/inc/fsl_cmdif_flib_fd.h
    renamed:    src/include/kernel/fsl_cmdif_flib_s.h -> src/kernel/inc/fsl_cmdif_flib_s.h
-  
+
 
 dpni_drv.c/fsl_dpni_drv.h: Added API to get dpni link state:
         int dpni_drv_get_link_state(uint16_t ni_id, struct dpni_link_state *state)
-        Added API to clear unicast / multicast filters for given NI:
+        Added API to clear unicast / multicast filters for given NI : (options should be set for dpni in layout DPNI_OPT_MULTICAST_FILTER, DPNI_OPT_UNICAST_FILTER)
         int dpni_drv_clear_mac_filters(uint16_t ni_id, uint8_t unicast, uint8_t multicast)
 dpni_drv.c/fsl_dpni_drv.h: Added API for setting primary MAC address:
         int dpni_drv_set_primary_mac_addr(uint16_t niid, uint8_t mac_addr[NET_HDR_FLD_ETH_ADDR_SIZE])
 
-apps.h: API changes and reorganization of apps.h. 
-        Many macros have been depricated but we keep it backward compatible for current release.  
+apps.h: API changes and reorganization of apps.h.
+        Many macros have been depricated but we keep it backward compatible for current release.
         See aiopsl\build\aiop_sim\apps\app_process_packet\src\apps.h.
         Removed SRU_SIZE.
         Removed g_aiop_lcf_ddr_size.
         Added   APP_DPNI_SPID_COUNT.
         Removed APPLICATION_DP_DDR_SIZE.
-        Renamed DPNI_NUMBER_BUFFERS_IN_POOL to APP_DPNI_NUM_BUFS_IN_POOL.  
-        Renamed DPNI_BUFFER_SIZE_IN_POOL    to APP_DPNI_BUF_SIZE_IN_POOL 
+        Renamed DPNI_NUMBER_BUFFERS_IN_POOL to APP_DPNI_NUM_BUFS_IN_POOL.
+        Renamed DPNI_BUFFER_SIZE_IN_POOL    to APP_DPNI_BUF_SIZE_IN_POOL
         Renamed DPNI_BUFFER_ALIGNMENT       to APP_DPNI_BUF_ALIGN_IN_POOL
-        Renamed APP_MAX_NUM                 to APP_INIT_APP_MAX_NUM 
+        Renamed APP_MAX_NUM                 to APP_INIT_APP_MAX_NUM
         Renamed AIOP_TASKS_PER_CORE         to APP_INIT_TASKS_PER_CORE
-        Renamed AIOP_SL_AND_APP_DDR_SIZE    to APP_MEM_DP_DDR_SIZE 
-        Renamed PEB_SIZE                    to APP_MEM_PEB_SIZE 
+        Renamed AIOP_SL_AND_APP_DDR_SIZE    to APP_MEM_DP_DDR_SIZE
+        Renamed PEB_SIZE                    to APP_MEM_PEB_SIZE
         Renamed SYS_DDR1_SIZE               to APP_MEM_SYS_DDR1_SIZE
         Renamed CTLU_SYS_DDR_NUM_ENTRIES    to APP_CTLU_SYS_DDR_NUM_ENTRIES
         Renamed CTLU_DP_DDR_NUM_ENTRIES     to APP_CTLU_DP_DDR_NUM_ENTRIES
@@ -47,14 +68,14 @@ apps.h: API changes and reorganization of apps.h.
         Renamed MFLU_SYS_DDR_NUM_ENTRIES    to APP_MFLU_SYS_DDR_NUM_ENTRIES
         Renamed MFLU_DP_DDR_NUM_ENTRIES     to APP_MFLU_DP_DDR_NUM_ENTRIES
         Renamed MFLU_PEB_NUM_ENTRIES        to APP_MFLU_PEB_NUM_ENTRIES
- 
+
 ** AIOP SL Release v0.5.3.3 **
 log.c/h, fsl_log.h: Implementation for printing log to buffer updated and moved from console.c to log.c.
                     The logger writes "START\n" in the beginning of the buffer and "END\n" after the last write to the buffer given by MC.
                     Writing to the buffer is done by: void log_print_to_buffer(char *str, uint16_t str_length). The print to buffer is cyclic.
 
 dpl.dtb/dts: Moved ICID pool to DPC.
-dpc.dtb/dts: New configuration file, UART port and log to buffer settings are set here. 
+dpc.dtb/dts: New configuration file, UART port and log to buffer settings are set here.
 
 dpni_drv.c: Set hard coded values for head room and tail room for:
                       Head room: 96 bytes
