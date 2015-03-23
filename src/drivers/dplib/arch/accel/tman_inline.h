@@ -87,9 +87,7 @@ inline int tman_create_timer(uint8_t tmi_id, uint32_t flags,
 	if ((res1 == TMAN_TMR_CONF_WAIT_ERR) ||
 			(res1 == TMAN_TMR_DEPLETION_ERR))
 				return (int)(-ENOSPC);
-	tman_exception_handler(__FILE__,
-			TMAN_TMI_TIMER_CREATE_FUNC_ID,
-			__LINE__, (int)res1);
+	tman_exception_handler(TMAN_TMI_TIMER_CREATE_FUNC_ID, __LINE__, (int)res1);
 }
 
 inline int tman_delete_timer(uint32_t timer_handle, uint32_t flags)
@@ -141,9 +139,7 @@ inline int tman_delete_timer(uint32_t timer_handle, uint32_t flags)
 
 	/* In case TMI State errors and TMAN_DEL_TMR_NOT_ACTIVE_ERR,
 	 * TMAN_DEL_TMR_DEL_ISSUED_ERR, TMAN_DEL_TMR_DEL_ISSUED_CONF_ERR */
-	tman_exception_handler(__FILE__,
-			TMAN_TMI_TIMER_DELETE_FUNC_ID,
-			__LINE__, (int)res1);
+	tman_exception_handler(TMAN_TMI_TIMER_DELETE_FUNC_ID, __LINE__, (int)res1);
 }
 
 #pragma warn_missingreturn on

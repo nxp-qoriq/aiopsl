@@ -371,8 +371,7 @@ void tman_timer_callback(void);
 @Cautions	This is a none return function.
 
 *//***************************************************************************/
-void tman_exception_handler(char *filename,
-		enum tman_function_identifier func_id,
+void tman_exception_handler(enum tman_function_identifier func_id,
 		uint32_t line,
 		int32_t status);
 
