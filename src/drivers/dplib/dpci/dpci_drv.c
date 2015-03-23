@@ -17,7 +17,7 @@
 #define CMDIF_Q_OPTIONS (DPCI_QUEUE_OPT_USER_CTX | DPCI_QUEUE_OPT_DEST)
 
 #define CMDIF_FQD_CTX_GET \
-	(((struct additional_dequeue_context *)HWC_ADC_ADDRESS)->fqd_ctx) 
+	(((struct additional_dequeue_context *)HWC_ADC_ADDRESS)->fqd_ctx)
 
 #define CMDIF_RX_CTX_GET \
 	(LLLDW_SWAP((uint32_t)&CMDIF_FQD_CTX_GET, 0))
@@ -64,7 +64,7 @@ __COLD_CODE static int dpci_get_peer_id(uint32_t dpci_id, uint32_t *dpci_id_peer
 	uint16_t token;
 	struct dpci_peer_attr peer_attr;
 	uint8_t i;
-	
+
 	ASSERT_COND(dprc);
 
 	/* memset */
@@ -88,7 +88,7 @@ __COLD_CODE static int dpci_get_peer_id(uint32_t dpci_id, uint32_t *dpci_id_peer
 	}
 
 	*dpci_id_peer = (uint32_t)peer_attr.peer_id;
-		
+
 	err = dpci_close(&dprc->io, token);
 	return err;
 }
@@ -101,20 +101,20 @@ static inline void amq_bits_update(uint32_t id)
 	uint16_t amq_bdi_temp = 0;
 	uint16_t pl_icid = PL_ICID_GET;
 	int err;
-	
+
 	ADD_AMQ_FLAGS(amq_bdi_temp, pl_icid);
 	if (BDI_GET != 0)
 		amq_bdi_temp |= CMDIF_BDI_BIT;
 
 	CMDIF_ICID_AMQ_BDI(AMQ_BDI_SET, ICID_GET(pl_icid), amq_bdi_temp);
 
-	pr_debug("Updating peer of 0x%x which is now 0x%x\n", 
-	         dt->dpci_id[id], 
+	pr_debug("Updating peer of 0x%x which is now 0x%x\n",
+	         dt->dpci_id[id],
 	         dt->dpci_id_peer[id]);
 	err = dpci_get_peer_id(dt->dpci_id[id], &(dt->dpci_id_peer[id]));
 	ASSERT_COND(!err);
-	pr_debug("Updated peer of 0x%x to 0x%x\n", 
-	         dt->dpci_id[id], 
+	pr_debug("Updated peer of 0x%x to 0x%x\n",
+	         dt->dpci_id[id],
 	         dt->dpci_id_peer[id]);
 	/* Must be written last */
 	dt->ic[id] = amq_bdi;
@@ -148,7 +148,7 @@ __COLD_CODE int dpci_amq_bdi_init(uint32_t dpci_id)
 		/* Adding new dpci_id */
 		if (dpci_tbl->count < dpci_tbl->max) {
 			lock_spinlock(&dpci_tbl->lock);
-			
+
 			ind = dpci_tbl->count;
 			dpci_tbl->ic[ind] = amq_bdi;
 			dpci_tbl->dpci_id[ind] = dpci_id;
@@ -157,16 +157,16 @@ __COLD_CODE int dpci_amq_bdi_init(uint32_t dpci_id)
 			if (!err)
 				dpci_tbl->dpci_id_peer[ind] = dpci_id_peer;
 			else
-				dpci_tbl->dpci_id_peer[ind] = DPCI_FQID_NOT_VALID;			
+				dpci_tbl->dpci_id_peer[ind] = DPCI_FQID_NOT_VALID;
 			/* Must be last */
-			atomic_incr32(&dpci_tbl->count, 1);			
+			atomic_incr32(&dpci_tbl->count, 1);
 			unlock_spinlock(&dpci_tbl->lock);
 		} else {
 			pr_err("Not enough entries\n");
 			return -ENOMEM;
 		}
 	}
-	
+
 	return ind;
 }
 
@@ -179,7 +179,7 @@ __COLD_CODE int dpci_rx_ctx_init(uint32_t dpci_id, uint32_t id)
 	struct dpci_rx_queue_attr rx_attr;
 	struct dpci_attr attr;
 	uint8_t i;
-	
+
 	ASSERT_COND(dprc);
 
 	/* memset */
@@ -237,9 +237,9 @@ __COLD_CODE static int rx_ctx_set(uint32_t id, struct dpci_tx_queue_attr *tx)
 	MEM_SET(&rx_attr, sizeof(rx_attr), 0);
 	MEM_SET(&tx_attr, sizeof(tx_attr), 0);
 	MEM_SET(&attr, sizeof(attr), 0);
-	
+
 	err = dpci_open(&dprc->io, (int)dt->dpci_id[id], &token);
-	if (err) 
+	if (err)
 		return err;
 
 	err = dpci_get_attributes(&dprc->io, token, &attr);
@@ -280,19 +280,19 @@ __COLD_CODE static int rx_ctx_set(uint32_t id, struct dpci_tx_queue_attr *tx)
 __COLD_CODE int dpci_drv_added(uint32_t dpci_id)
 {
 	int err = 0;
-	
+
 	/*
 	 * TODO
 	 * Lock with cdma mutex WRITE
 	 * count++;
 	 * Update mc_dpci_find() to skip invalid entries
 	 */
-	
+
 	err = dpci_amq_bdi_init(dpci_id);
 	if (err >= 0) {
 		err = dpci_rx_ctx_init(dpci_id, (uint32_t)err);
 	}
-	
+
 	return err;
 }
 
@@ -325,21 +325,21 @@ __COLD_CODE int dpci_drv_removed(uint32_t dpci_id)
 		 * It will be updated upon added event
 		 * Invalid icid means the whole entry is not valid */
 	}
-	
+
 	pr_err("Unknown dpci id 0x%x\n", dpci_id);
 	return -ENOENT;
 }
 
 
 /*
- * The DPCI user context and AMQ bits are updated 
- * This function is to be called only inside the open command and before 
+ * The DPCI user context and AMQ bits are updated
+ * This function is to be called only inside the open command and before
  * the AMQ bits had been changed to AIOP AMQ bits
  */
 __COLD_CODE int dpci_drv_update(uint32_t ind)
 {
 	int err;
-	
+
 	/*
 	 * TODO
 	 * Lock with cdma mutex WRITE
@@ -348,22 +348,22 @@ __COLD_CODE int dpci_drv_update(uint32_t ind)
 
 	amq_bits_update(ind);
 	err = rx_ctx_set(ind, NULL);
-	
-	return err;	
+
+	return err;
 }
 
 
 __HOT_CODE void dpci_drv_user_ctx_get(uint32_t *id, uint32_t *fqid)
 {
 	uint64_t rx_ctx = CMDIF_RX_CTX_GET;
-	uint32_t _id; 
+	uint32_t _id;
 	uint32_t _fqid;
-	
+
 	CMDIF_DPCI_FQID(USER_CTX_GET, (&_id), (&_fqid));
-	
-	if (id) 
+
+	if (id)
 		*id = _id;
-	if (fqid) 
+	if (fqid)
 		*fqid = _fqid;
 }
 
@@ -376,7 +376,7 @@ __HOT_CODE void dpci_drv_icid_get(uint32_t ind, uint16_t *icid, uint16_t *amq_bd
 	CMDIF_ICID_AMQ_BDI(AMQ_BDI_GET, icid, amq_bdi);
 }
 
-__COLD_CODE int dpci_drv_tx_get(uint32_t dpci_id, struct dpci_tx_queue_attr *tx)
+__COLD_CODE int dpci_drv_tx_get(uint32_t dpci_id, uint32_t *tx)
 {
 
 	struct mc_dprc *dprc = sys_get_unique_handle(FSL_OS_MOD_AIOP_RC);
@@ -392,7 +392,7 @@ __COLD_CODE int dpci_drv_tx_get(uint32_t dpci_id, struct dpci_tx_queue_attr *tx)
 	/* memset */
 	MEM_SET(&tx_attr, sizeof(tx_attr), 0);
 	MEM_SET(&attr, sizeof(attr), 0);
-		
+
 	/* dpci id may belong to peer */
 	i = mc_dpci_find(dpci_id, NULL);
 	if (i < 0) {
@@ -401,7 +401,7 @@ __COLD_CODE int dpci_drv_tx_get(uint32_t dpci_id, struct dpci_tx_queue_attr *tx)
 	}
 
 	err = dpci_open(&dprc->io, (int)dt->dpci_id[i], &token);
-	if (err) 
+	if (err)
 		return err;
 
 	err = dpci_get_attributes(&dprc->io, token, &attr);
@@ -415,10 +415,10 @@ __COLD_CODE int dpci_drv_tx_get(uint32_t dpci_id, struct dpci_tx_queue_attr *tx)
 		ASSERT_COND(!err);
 		ASSERT_COND(tx_attr.fqid != DPCI_FQID_NOT_VALID);
 		if (tx != NULL)
-			tx[i].fqid = tx_attr.fqid;
+			tx[i] = tx_attr.fqid;
 	}
 
 	err = dpci_close(&dprc->io, token);
 
-	return err;	
+	return err;
 }

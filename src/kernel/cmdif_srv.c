@@ -305,7 +305,7 @@ __HOT_CODE void cmdif_fd_send(int cb_err)
 
 	dpci_drv_user_ctx_get(&ind, &fqid);
 	ASSERT_COND(fqid != DPCI_FQID_NOT_VALID);
-	
+
 	sl_pr_debug("Response FQID = 0x%x pr = 0x%x dpci_ind = 0x%x\n", fqid, pr, ind);
 	sl_pr_debug("CB error = %d\n", cb_err);
 
@@ -439,8 +439,8 @@ __COLD_CODE int notify_open()
 	int ind = 0;
 	int link_up = 1;
 	int err = 0;
-	struct dpci_tx_queue_attr tx_queue_attr[DPCI_PRIO_NUM];
-	
+	uint32_t tx_queue[DPCI_PRIO_NUM];
+
 	/* Create descriptor for client session */
 	ASSERT_COND_LIGHT((cl != NULL) && (cmdif_aiop_srv.dpci_tbl != NULL));
 
@@ -457,10 +457,10 @@ __COLD_CODE int notify_open()
 
 	err = dpci_drv_update((uint32_t)ind); /* dev_id is swapped by GPP */
 	ASSERT_COND(!err);
-	
-	err = dpci_drv_tx_get(data->dev_id, &tx_queue_attr[0]);
+
+	err = dpci_drv_tx_get(data->dev_id, &tx_queue[0]);
 	ASSERT_COND(!err);
-	
+
 	/* TODO Consider to add lock per DPCI entry */
 	lock_spinlock(&cl->lock);
 
@@ -490,12 +490,12 @@ __COLD_CODE int notify_open()
 	strncpy(&cl->gpp[link_up].m_name[0], &data->m_name[0], M_NAME_CHARS);
 	cl->gpp[link_up].m_name[M_NAME_CHARS] = '\0';
 	cl->gpp[link_up].regs->dpci_ind = (uint32_t)ind;
-	cl->gpp[link_up].regs->tx_queue_attr[0].fqid = tx_queue_attr[0].fqid;
-	cl->gpp[link_up].regs->tx_queue_attr[1].fqid = tx_queue_attr[1].fqid;
+	cl->gpp[link_up].regs->tx_queue_attr[0].fqid = tx_queue[0];
+	cl->gpp[link_up].regs->tx_queue_attr[1].fqid = tx_queue[1];
 
 	ASSERT_COND(cl->count < CMDIF_MN_SESSIONS);
 	cl->count++;
-	
+
 	unlock_spinlock(&cl->lock);
 #endif /* STACK_CHECK */
 
@@ -527,7 +527,7 @@ __COLD_CODE int notify_close()
 	}
 
 	cl->count--;
-	
+
 	unlock_spinlock(&cl->lock);
 #endif /* STACK_CHECK */
 	return -ENAVAIL;
@@ -617,7 +617,7 @@ __COLD_CODE int session_open(uint16_t *new_auth)
 	dpci_drv_user_ctx_get(&ind, NULL);
 	err = dpci_drv_update(ind);
 	ASSERT_COND(!err);
-	
+
 	OPEN_CB(m_id, inst_id, dev);
 	if (!err) {
 		int  new_inst = inst_alloc((uint8_t)m_id);
@@ -656,13 +656,13 @@ __HOT_CODE void cmdif_srv_isr(void) __attribute__ ((noreturn))
 
 	cmd_id = cmd_id_get();
 	auth_id = cmd_auth_id_get();
-	
+
 	no_stack_pr_debug("cmd_id = 0x%x\n", cmd_id);
 	no_stack_pr_debug("auth_id = 0x%x\n", auth_id);
 	no_stack_pr_debug("gpp_icid = 0x%x\n", gpp_icid);
 	no_stack_pr_debug("gpp_dma flags = 0x%x\n", gpp_dma);
 
-	
+
 	if (cmd_id == CMD_ID_NOTIFY_OPEN) {
 		/* Support for AIOP -> GPP */
 		if (is_valid_auth_id(auth_id)) {
