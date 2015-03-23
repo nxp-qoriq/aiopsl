@@ -72,6 +72,8 @@
 #define SNIC_MAX_NO_OF_TIMERS   100
 /* maximum open reassembly frames for all snics */
 #define MAX_OPEN_IPR_FRAMES     100
+/* Maximum number of IPsec SAs for all instances/snics */
+#define MAX_SA_NO               100
 
 /** @} */ /* end of SNIC_MACROS */
 

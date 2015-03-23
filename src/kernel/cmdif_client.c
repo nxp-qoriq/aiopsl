@@ -45,6 +45,8 @@
 #include "fsl_spinlock.h"
 #include "fsl_io_ccsr.h"
 #include "fsl_icontext.h"
+#include "cmdif_srv.h"
+#include "fsl_dpci_drv.h"
 
 #define CMDIF_TIMEOUT     0x10000000
 
@@ -59,22 +61,15 @@ extern struct icontext icontext_aiop;
 static inline int send_fd(int pr, void *_sdev)
 {
 	struct cmdif_reg *sdev = (struct cmdif_reg *)_sdev;
+	struct mc_dpci_tbl *dt = (struct mc_dpci_tbl *)\
+		sys_get_unique_handle(FSL_OS_MOD_DPCI_TBL);
+	uint32_t flags;
+	uint16_t icid;
+	uint16_t amq_bdi;
 
-#ifdef DEBUG
-	if ((sdev == NULL) 				||
-		(sdev->attr->num_of_priorities <= pr))
-		return -EINVAL;
-#endif
 	/* Copy fields from FD  */
 	_fd.control = 0;
-	_fd.offset  = (((uint32_t)FD_IVP_MASK) << 8); /* IVP */
-
-	if (sdev->dma_flags & FDMA_DMA_BMT_BIT)
-		_fd.offset |= (((uint32_t)FD_BMT_MASK) << 8);
-	/* TODO check about VA, eVA bit */
-	if (sdev->dma_flags & FDMA_DMA_eVA_BIT)
-		_fd.control |= (((uint32_t)FD_VA_MASK) << 8);
-	
+	_fd.offset  = (((uint32_t)FD_IVP_MASK) << 8); /* IVP */	
 	_fd.control = CPU_TO_LE32(_fd.control);
 	_fd.offset  = CPU_TO_LE32(_fd.offset);
 	
@@ -83,10 +78,15 @@ static inline int send_fd(int pr, void *_sdev)
 	         sdev->tx_queue_attr[pr]->fqid, sdev->enq_flags, sdev->icid);
 */
 
+	dpci_drv_icid_get(sdev->dpci_ind, &icid, &amq_bdi);
+
+	if (amq_bdi & CMDIF_BDI_BIT)
+		flags = FDMA_ENF_BDI_BIT;
+
 	if (fdma_enqueue_fd_fqid(&_fd, 
-	                         sdev->enq_flags , 
-	                         sdev->tx_queue_attr[pr]->fqid, 
-	                         sdev->icid)) {	
+	                         flags, 
+	                         sdev->tx_queue_attr[pr].fqid, 
+	                         icid)) {	
 		return -EIO;
 	}
 
@@ -116,8 +116,6 @@ static int session_get(const char *m_name,
 		cidesc->regs = (void *)cl->gpp[i].regs;
 		cidesc->dev  = (void *)dev;
 		unlock_spinlock(&cl->lock);
-		/* Must be here to prevent deadlocks because 
-		 * the same lock is used */
 		return icontext_get((uint16_t)dpci_id, \
 		             (struct icontext *)(&(dev->reserved[0])));
 	}

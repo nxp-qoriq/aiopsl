@@ -105,6 +105,10 @@ __declspec(entry_point) static void app_process_packet_flow0 (void)
 	if (err){
 		fsl_os_print("ERROR = %d: dpni_drv_send(ni_id)\n",err);
 		local_test_error |= err;
+		if(err == -ENOMEM)
+			fdma_discard_default_frame(FDMA_DIS_NO_FLAGS);
+		else /* (err == -EBUSY) */
+			fdma_discard_fd((struct ldpaa_fd *)HWC_FD_ADDRESS, FDMA_DIS_NO_FLAGS);
 	}
 
 	if(!local_test_error) /*No error found during injection of packets*/
@@ -122,7 +126,7 @@ int app_init(void)
 
 	fsl_os_print("Running app_init()\n");
 
-	for (ni = 0; ni < dpni_get_num_of_ni(); ni++)
+	for (ni = 0; ni < dpni_drv_get_num_of_nis(); ni++)
 	{
 
 		err = dpni_drv_register_rx_cb((uint16_t)ni/*ni_id*/,

@@ -146,6 +146,10 @@ __declspec(entry_point) static void app_process_packet_flow0 (void)
 				enc_status);
 		local_test_error |= enc_status;
 	}
+	
+	/* close-open segment, for the print */
+	fdma_close_default_segment();
+	fdma_present_default_frame_segment(0, (void *)PRC_GET_SEGMENT_ADDRESS(), 0, 256);
 
 	fsl_os_print("IPSEC: frame header after encryption\n");
 	/* Print header */
@@ -213,14 +217,6 @@ __declspec(entry_point) static void app_process_packet_flow0 (void)
 		}
 	}
 
-	if(!local_test_error) /* No error found during injection of packets*/
-	{
-		fsl_os_print("Finished SUCCESSFULLY\n");
-		fsl_os_print("\nFrame after decryption the same as origin\n\n");
-	}
-	else
-		fsl_os_print("Finished with ERRORS\n");
-
 	/* Read statistics */
 	fsl_os_print("IPsec Demo: Encryption Statistics:\n");
 	ipsec_print_stats(ws_desc_handle_outbound);
@@ -231,7 +227,23 @@ __declspec(entry_point) static void app_process_packet_flow0 (void)
 	fsl_os_print("IPsec Demo: Core %d Sending Frame number %d\n",
 			core_get_id(), frame_number);
 
-	dpni_drv_send(dpni_get_receive_niid());
+	err = dpni_drv_send(dpni_get_receive_niid());
+	if (err){
+		fsl_os_print("ERROR = %d: dpni_drv_send(ni_id)\n",err);
+		local_test_error |= err;
+		if(err == -ENOMEM)
+			fdma_discard_default_frame(FDMA_DIS_NO_FLAGS);
+		else /* (err == -EBUSY) */
+			fdma_discard_fd((struct ldpaa_fd *)HWC_FD_ADDRESS, FDMA_DIS_NO_FLAGS);
+	}
+
+	if(!local_test_error) /* No error found during injection of packets*/
+	{
+		fsl_os_print("Finished SUCCESSFULLY\n");
+		fsl_os_print("\nFrame after decryption the same as origin\n\n");
+	}
+	else
+		fsl_os_print("Finished with ERRORS\n");
 
 	fsl_os_print("IPsec Demo: Done Sending Frame\n\n");
 	/*MUST call fdma_terminate task in the end of cb function*/
@@ -292,9 +304,9 @@ int app_early_init(void){
 	
 	/* IPsec resources reservation */
 	err = ipsec_early_init(
-		1, /* uint32_t total_instance_num */
-		2, /* uint32_t total_committed_sa_num */
-		4, /* uint32_t total_max_sa_num */
+		10, /* uint32_t total_instance_num */
+		20, /* uint32_t total_committed_sa_num */
+		40, /* uint32_t total_max_sa_num */
 		0  /* uint32_t flags */
 	);
 	
@@ -329,7 +341,7 @@ int app_init(void)
 #endif /* AIOP_STANDALONE */
 
 
-	for (ni = 0; ni < dpni_get_num_of_ni(); ni++)
+	for (ni = 0; ni < dpni_drv_get_num_of_nis(); ni++)
 	{
 		err = dpni_drv_register_rx_cb((uint16_t)ni /*ni_id*/,
 				app_process_packet_flow0 /* callback */);
@@ -405,12 +417,13 @@ int ipsec_app_init(uint16_t ni_id)
 
 	/* Set the outer IP header type here */
 	outer_header_ip_version = 4; /* 4 or 6 */
-	
+	//outer_header_ip_version = 17; /* UDP encap (Tunnel mode only) */
+
 	auth_key_id = 0; /* Keep the initial key array value */ 
 	//auth_key_id = 1; /* Overwrite the initial key array value */ 
 	
-	//tunnel_transport_mode = IPSEC_FLG_TUNNEL_MODE; /* Tunnel Mode */
-	tunnel_transport_mode = 0; /* Transport Mode */
+	tunnel_transport_mode = IPSEC_FLG_TUNNEL_MODE; /* Tunnel Mode */
+	//tunnel_transport_mode = 0; /* Transport Mode */
 	
 	/**********************************************************/
 
@@ -582,6 +595,19 @@ int ipsec_app_init(uint16_t ni_id)
 
 		params.encparams.ip_hdr_len = 0x28; /* outer header length is 40 bytes */
 	}
+	// UDP ENCAP
+	else if (outer_header_ip_version == 17) {
+
+		outer_ip_header[0] = 0x45db001c;
+		outer_ip_header[1] = 0x12340000;
+		outer_ip_header[2] = 0xff11386f;
+		outer_ip_header[3] = 0x45a4e14c;
+		outer_ip_header[4] = 0xed035c45;
+		outer_ip_header[5] = 0x11941194;
+		outer_ip_header[6] = 0x00000000;
+
+		params.encparams.ip_hdr_len = 0x1c; /* outer header length is 28 bytes */
+	}
 
 	/* Outbound (encryption) parameters */
 	params.direction = IPSEC_DIRECTION_OUTBOUND; /**< Descriptor direction */
@@ -590,6 +616,13 @@ int ipsec_app_init(uint16_t ni_id)
 			IPSEC_FLG_LIFETIME_KB_CNTR_EN | IPSEC_FLG_LIFETIME_PKT_CNTR_EN;
 			/**< Miscellaneous control flags */
 	
+	/* UDP ENCAP (tunnel mode)*/
+	if ((outer_header_ip_version == 17) && 	
+			(tunnel_transport_mode == IPSEC_FLG_TUNNEL_MODE)) {
+		params.flags |= IPSEC_ENC_OPTS_NAT_EN;
+		params.flags |= IPSEC_ENC_OPTS_NUC_EN;
+		fsl_os_print("IPSEC: Tunnel Mode UDP Encapsulation\n");
+	}
 	
 	params.encparams.ip_nh = 0x0;
 	params.encparams.options = 0x0;

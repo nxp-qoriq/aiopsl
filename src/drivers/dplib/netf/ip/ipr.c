@@ -64,7 +64,7 @@ int ipr_early_init(uint32_t nbr_of_instances, uint32_t nbr_of_context_buffers)
 	int err;
 	
 	nbr_of_ipr_contexts = nbr_of_context_buffers + 2*nbr_of_instances;
-	/* IPR IPsec 2688 rounded up modulo 64 - 8 */
+	/* IPR 2688 rounded up modulo 64 - 8 */
 	err = slab_register_context_buffer_requirements(nbr_of_ipr_contexts,
 							nbr_of_ipr_contexts,
 							2744,
@@ -475,6 +475,9 @@ int ipr_reassemble(ipr_instance_handle_t instance_handle)
 				| RFDC_SIZE,
 				(uint32_t *)REF_COUNT_ADDR_DUMMY);
 
+				fdma_discard_fd(
+					     (struct ldpaa_fd *)HWC_FD_ADDRESS,
+					     FDMA_DIS_NO_FLAGS);
 				/* Early Time out */
 				return ETIMEDOUT;
 			}
@@ -686,8 +689,8 @@ int ipr_reassemble(ipr_instance_handle_t instance_handle)
 					  rfdc.timer_handle,
 					  TMAN_TIMER_DELETE_MODE_WO_EXPIRATION);
 					/* DEBUG : check ENAVAIL */
-					if(sr_status == SUCCESS)
-						tman_create_timer(
+					if(sr_status == SUCCESS) {
+						sr_status = tman_create_timer(
 					     instance_params.tmi_id,
 					     IPR_TIMEOUT_FLAGS,
 					     instance_params.timeout_value_ipv4,
@@ -695,10 +698,10 @@ int ipr_reassemble(ipr_instance_handle_t instance_handle)
 					     (tman_arg_2B_t) NULL,
 					     (tman_cb_t) ipr_time_out,
 					     &rfdc.timer_handle);
-					else
+						if (sr_status != SUCCESS)
 					   ipr_exception_handler(IPR_REASSEMBLE,
 							 __LINE__,ENOSPC_TIMER);
-
+					}
 				}
 			} else if (!(instance_params.flags &
 					IPR_MODE_IPV6_TO_TYPE)) {
@@ -764,7 +767,7 @@ int ipr_reassemble(ipr_instance_handle_t instance_handle)
 	}
 	/* Only successfully reassembled frames continue
 	   from here */
-	/* default frame is now the full reassembled frame */
+	/* Currently no default frame */
 
 	/* Increment no of valid fragments in extended statistics
 	 * data structure*/
@@ -819,6 +822,7 @@ int ipr_reassemble(ipr_instance_handle_t instance_handle)
 	prc->seg_address = rfdc.seg_addr;
 	prc->seg_length  = rfdc.seg_length;
 	prc->seg_offset  = rfdc.seg_offset;
+	/* Default frame is now the full reassembled frame */
 	fdma_present_default_frame_default_segment();
 	/* FD length is still not updated */
 
@@ -1797,6 +1801,9 @@ void check_remove_padding()
 	struct ipv4hdr		*ipv4hdr_ptr;
 	struct	parse_result	*pr =
 				  (struct parse_result *)HWC_PARSE_RES_ADDRESS;
+	struct presentation_context *prc =
+		(struct presentation_context *) HWC_PRC_ADDRESS;
+
 
 
 	ipv4hdr_offset = (uint16_t)PARSER_GET_OUTER_IP_OFFSET_DEFAULT();
@@ -1810,6 +1817,8 @@ void check_remove_padding()
 		fdma_delete_default_segment_data(start_padding,
 		                                 delta,
 		                                 FDMA_REPLACE_NO_FLAGS);
+		/* update prc length because represent wasn't done */
+		prc->seg_length -= delta;
 		/* For recalculating running sum */
 		/* Updated FD[length] */
 		LDPAA_FD_SET_LENGTH(HWC_FD_ADDRESS, start_padding);

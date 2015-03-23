@@ -81,7 +81,7 @@ static void release(struct shbp *bp, struct shbp_q *lq,
 	q->enq = CPU_TO_LE32(lq->enq); /* Must be last */
 }
 
-int shbp_flib_create(void *mem_ptr, uint32_t size, uint32_t flags, struct shbp **_bp)
+int shbp_flib_create(void *mem_ptr, uint32_t size, uint32_t flags, uint64_t *_bp)
 {
 	struct shbp *bp;
 	uint32_t ring_size;
@@ -102,7 +102,7 @@ int shbp_flib_create(void *mem_ptr, uint32_t size, uint32_t flags, struct shbp *
 	 * size = 2^bp->size */
 	ring_size = (size - SHBP_TOTAL_BYTES);
 	ring_size = ring_size >> 4;
-	/* Minimum 8 BDs = 64 bytes */
+	/* Minimum 8 BDs = 64 bytes cache line */
 	if (ring_size < 8)
 		return -EINVAL;
 	
@@ -125,16 +125,17 @@ int shbp_flib_create(void *mem_ptr, uint32_t size, uint32_t flags, struct shbp *
 		return -EINVAL;
 #endif
 	
-	*_bp = bp;
+	*_bp = (uint64_t)bp;
 	
 	return 0;
 }
 		
-void *shbp_flib_acquire(struct shbp *bp)
+void *shbp_flib_acquire(uint64_t _bp)
 {
 	void *buf;
 	struct shbp lbp;
-	
+	struct shbp *bp = (struct shbp *)_bp; 
+
 #ifdef DEBUG
 	if (bp == NULL)
 		return NULL;
@@ -153,9 +154,10 @@ void *shbp_flib_acquire(struct shbp *bp)
 	return buf;
 }
 
-int shbp_flib_release(struct shbp *bp, void *buf)
+int shbp_flib_release(uint64_t _bp, void *buf)
 {
 	struct shbp lbp;
+	struct shbp *bp = (struct shbp *)_bp; 
 
 #ifdef DEBUG
 	if ((buf == NULL) || (bp == NULL))
@@ -172,11 +174,12 @@ int shbp_flib_release(struct shbp *bp, void *buf)
 	return 0;
 }
 
-int shbp_flib_refill(struct shbp *bp)
+int shbp_flib_refill(uint64_t _bp)
 {
 	void *buf;
 	int count = 0;
 	struct shbp lbp;
+	struct shbp *bp = (struct shbp *)_bp; 
 
 #ifdef DEBUG
 	if (bp == NULL)
@@ -196,9 +199,10 @@ int shbp_flib_refill(struct shbp *bp)
 	return count;
 }
 
-int shbp_flib_destroy(struct shbp *bp, void **ptr)
+int shbp_flib_destroy(uint64_t _bp, void **ptr)
 {
 	struct shbp lbp;
+	struct shbp *bp = (struct shbp *)_bp; 
 
 #ifdef DEBUG
 	if ((bp == NULL) || (ptr == NULL))

@@ -91,6 +91,11 @@ int table_rule_create_or_replace(enum table_hw_accel_id acc_id,
 				 uint8_t key_size,
 				 struct table_result *old_res)
 {
+	
+#ifdef CHECK_ALIGNMENT 	
+	DEBUG_ALIGN("table.c", (uint32_t)rule, ALIGNMENT_16B);
+#endif
+	
 	int32_t status;
 
 	struct table_old_result hw_old_res __attribute__((aligned(16)));
@@ -166,6 +171,13 @@ int table_lookup_by_keyid(enum table_hw_accel_id acc_id,
 				 *ndf_params,
 			  struct table_lookup_result *lookup_result)
 {
+	
+#ifdef CHECK_ALIGNMENT 	
+	DEBUG_ALIGN("table.c", (uint32_t)ndf_params, ALIGNMENT_16B);
+	DEBUG_ALIGN("table.c", (uint32_t)lookup_result, ALIGNMENT_16B);
+	DEBUG_ALIGN("table.c", (uint32_t *)PRC_GET_SEGMENT_ADDRESS(), ALIGNMENT_16B);
+#endif
+	
 	int32_t status;
 
 	/* optimization 1 clock */

@@ -938,7 +938,9 @@ struct fdma_delete_segment_data_params {
 		the returned frame handle is valid, but no presentations 
 		occurred.
 
-
+@Cautions	In case the presented segment will be used by 
+		PARSER/CTLU/KEYGEN, it should be presented in a 16 byte aligned 
+		workspace address (due to TKT254635).
 @Cautions	This function may result in a fatal error.
 @Cautions	In this Service Routine the task yields.
 *//***************************************************************************/
@@ -982,6 +984,9 @@ inline int fdma_present_default_frame(void);
 		the returned frame handle is valid, but no presentations 
 		occurred.
 
+@Cautions	In case the presented segment will be used by 
+		PARSER/CTLU/KEYGEN, it should be presented in a 16 byte aligned 
+		workspace address (due to TKT254635).
 @Cautions	This function may result in a fatal error.
 @Cautions	In this Service Routine the task yields.
 *//***************************************************************************/
@@ -1078,6 +1083,9 @@ int fdma_present_frame_without_segments(
 		This return value is caused since the requested presentation 
 		exceeded frame data end.
 
+@Cautions	In case the presented segment will be used by 
+		PARSER/CTLU/KEYGEN, it should be presented in a 16 byte aligned 
+		workspace address (due to TKT254635).
 @Cautions	This command may be invoked only for a default Data segments.
 @Cautions	This function may result in a fatal error.
 @Cautions	In this Service Routine the task yields.
@@ -1106,6 +1114,9 @@ inline int fdma_present_default_frame_segment(
 		This return value is caused since the requested presentation 
 		exceeded frame data end.
 
+@Cautions	In case the presented segment will be used by 
+		PARSER/CTLU/KEYGEN, it should be presented in a 16 byte aligned 
+		workspace address (due to TKT254635).
 @Cautions	This command may be invoked only for Data segments.
 @Cautions	This command may not be invoked on the default Data segments.
 @Cautions	This function may result in a fatal error.
@@ -1127,8 +1138,8 @@ int fdma_present_frame_segment(
 		ASA segment length (the number of bytes actually presented given
 		in 64B units), ASA segment offset.
 
-@Param[in]	ws_dst - A pointer to the location in workspace for the
-		presented ASA segment.
+@Param[in]	ws_dst - A pointer to the location in workspace for 
+		the presented ASA segment.
 @Param[in]	offset - Location within the ASA to start presenting from.
 		Must be within the bound of the frame. Specified in 64B units.
 		Relative to \ref FDMA_PRES_SR_BIT flag.
@@ -1168,8 +1179,8 @@ int fdma_read_default_frame_asa(
 
 		Implicitly updated values in Task Defaults: PTA segment address.
 
-@Param[in]	ws_dst - A pointer to the location in workspace for the
-		presented PTA segment.
+@Param[in]	ws_dst - A pointer to the location in workspace for
+		the presented PTA segment.
 
 @Return		0 on Success, or negative value on error.
 
@@ -1795,6 +1806,8 @@ void fdma_terminate_task(void);
 @Retval		EBUSY - Enqueue failed due to congestion in QMAN.
 @Retval		ENOMEM - Failed due to buffer pool depletion.
 
+@Cautions	Due to TKT258499 this service routine can be called only in 
+		order to replicate non-empty frames.
 @Cautions	This function may result in a fatal error.
 @Cautions	In this Service Routine the task yields.
 *//***************************************************************************/
@@ -1844,6 +1857,8 @@ int fdma_replicate_frame_fqid(
 @Retval		EBUSY - Enqueue failed due to congestion in QMAN.
 @Retval		ENOMEM - Failed due to buffer pool depletion.
 
+@Cautions	Due to TKT258499 this service routine can be called only in 
+		order to replicate non-empty frames.
 @Cautions	This function may result in a fatal error.
 @Cautions	In this Service Routine the task yields.
 *//***************************************************************************/
@@ -1940,6 +1955,9 @@ int fdma_concatenate_frames(
 @remark		Frame annotation of the first frame is preserved.
 @remark		If split size is >= frame size then an error will be returned.
 
+@Cautions	In case the presented segment will be used by 
+		PARSER/CTLU/KEYGEN, it should be presented in a 16 byte aligned 
+		workspace address (due to TKT254635).
 @Cautions	This function may result in a fatal error.
 @Cautions	In this Service Routine the task yields.
 @Cautions	Due to ticket TKT240996 the following FDMA functions should be 
@@ -2131,15 +2149,8 @@ void fdma_modify_segment_data(
 
 @remark		In case \ref FDMA_REPLACE_SA_REPRESENT_BIT flag is set, the
 		pointer to the workspace start address of the represented
-		segment and the number of frame bytes to represent are
-		calculated automatically in the Service Routine according to the
-		input parameters and the Task Default variables.
-		This is done from performance considerations.
-		The workspace start address of the represented segment
-		calculated as insert_size bytes before the old segment
-		address.
-		The number of frame bytes to represent remains the old
-		segment length.
+		segment and the number of frame bytes to represent remains the 
+		same due to .
 
 @Cautions	As part of a workaround to ticket TKT237377 this command closes
 		and reopens the segment. (meaning that all segment modifications
@@ -2255,15 +2266,8 @@ int fdma_insert_segment_data(
 
 @remark		In case \ref FDMA_REPLACE_SA_REPRESENT_BIT flag is set the
 		pointer to the workspace start address of the represented
-		segment and the number of frame bytes to represent are
-		calculated automatically in the Service Routine according to the
-		input parameters and the Task Default variables.
-		This is done from performance considerations.
-		The workspace start address of the represented segment
-		calculated as delete_target_size bytes after the old segment
-		address.
-		The number of frame bytes to represent is the old segment
-		length reduced by delete_target_size bytes.
+		segment and the number of frame bytes to represent remains the 
+		same.
 
 @Cautions	As part of a workaround to ticket TKT237377 this command closes
 		and reopens the segment. (meaning that all segment modifications
@@ -2386,8 +2390,8 @@ void fdma_close_segment(uint8_t frame_handle, uint8_t seg_handle);
 		the replacement segment data starts.
 @Param[in]	from_size - The number of 64B units that will replace the
 		specified portion of the ASA segment.
-@Param[in]	ws_dst_rs - A pointer to the location in workspace for the
-		represented frame segment (relevant if \ref
+@Param[in]	ws_dst_rs - A pointer to the location in workspace 
+		for the represented frame segment (relevant if \ref
 		FDMA_REPLACE_SA_REPRESENT_BIT) flag is set).
 @Param[in]	size_rs - Number of frame bytes to represent in 64B portions.
 		Must be greater than 0.
@@ -2445,8 +2449,8 @@ int fdma_replace_default_asa_segment_data(
 		segment flags. \endlink
 @Param[in]	from_ws_src - a pointer to the workspace location from which
 		the replacement segment data starts.
-@Param[in]	ws_dst_rs - A pointer to the location in workspace for the
-		represented frame segment (relevant if \ref
+@Param[in]	ws_dst_rs - A pointer to the location in workspace 
+		for the represented frame segment (relevant if \ref
 		FDMA_REPLACE_SA_REPRESENT_BIT flag is set). In case of
 		representing the PTA, always represent the full PTA (64 bytes).
 @Param[in]	size_type - Replacing segment size type of the PTA

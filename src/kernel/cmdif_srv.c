@@ -45,7 +45,7 @@
 #include "cmdif_rev.h"
 #include "fsl_sl_cmd.h"
 #include "fsl_icontext.h"
-#include "fsl_mc_cmd.h"
+#include "fsl_dpci_drv.h"
 
 /** Blocking commands don't need response FD */
 #define SEND_RESP(CMD)	\
@@ -289,212 +289,23 @@ __COLD_CODE int cmdif_srv_init(void)
 __COLD_CODE void cmdif_srv_free(void)
 {
 	cmdif_srv_deallocate(cmdif_aiop_srv.srv, srv_free);
-	srv_free(cmdif_aiop_srv.dpci_tbl);
 }
-
-#define CMDIF_BDI_BIT	0x1
-#define CMDIF_Q_OPTIONS (DPCI_QUEUE_OPT_USER_CTX | DPCI_QUEUE_OPT_DEST)
-#define CMDIF_RX_CTX_GET \
-	(LLLDW_SWAP((uint32_t)&CMDIF_FQD_CTX_GET, 0))
-
-#define AMQ_BDI_SET(_offset, _width, _type, _arg) \
-	(amq_bdi |= u32_enc((_offset), (_width), (_arg)))
-
-#define USER_CTX_SET(_offset, _width, _type, _arg) \
-	(queue_cfg.user_ctx |= u64_enc((_offset), (_width), (_arg)))
-
-#define USER_CTX_GET(_offset, _width, _type, _arg) \
-	(*(_arg) = (_type)u64_dec(rx_ctx, (_offset), (_width)))
-
-#define CMDIF_DPCI_FQID(_OP, DPCI, FQID) \
-do { \
-	_OP(32,	32,	uint32_t,	DPCI); \
-	_OP(0,	32,	uint32_t,	FQID); \
-} while (0)
-
-
-#define CMDIF_ICID_AMQ_BDI(_OP, ICID, AMQ_BDI) \
-do { \
-	_OP(16,	16,	uint16_t,	ICID); \
-	_OP(0,	16,	uint16_t,	AMQ_BDI); \
-} while (0)
-
-
-
-#define MEM_SET(_ADDR, _SIZE, _VAL) \
-	do { \
-		for (i = 0; i < (_SIZE); i++) \
-			((uint8_t *)_ADDR)[i] = _VAL; \
-	} while (0)
-
-
-static inline int dpci_amq_bdi_update(uint32_t dpci_id)
-{
-	struct mc_dpci_tbl *dpci_tbl = (struct mc_dpci_tbl *)cmdif_aiop_srv.dpci_tbl;
-	int ind = -1;
-	uint32_t amq_bdi = 0;
-	uint16_t amq_bdi_temp = 0;
-	uint16_t pl_icid = PL_ICID_GET;
-	
-	/* TODO find dpci index */
-	
-	ADD_AMQ_FLAGS(amq_bdi_temp, pl_icid);
-	if (BDI_GET != 0)
-		amq_bdi_temp |= CMDIF_BDI_BIT;
-
-	CMDIF_ICID_AMQ_BDI(AMQ_BDI_SET, ICID_GET(pl_icid), amq_bdi_temp);
-
-	/* Must be written last */
-	ind = mc_dpci_find(dpci_id, NULL);
-	if (ind > 0) {
-		dpci_tbl->ic[ind] = amq_bdi;
-	} else {
-		/* Adding new dpci_id */
-		if (dpci_tbl->count < dpci_tbl->max) {
-			lock_spinlock(&dpci_tbl->lock);
-			
-			dpci_tbl->ic[ind] = amq_bdi;
-			dpci_tbl->dpci_id[ind] = dpci_id;
-			dpci_tbl->count++;
-			
-			unlock_spinlock(&dpci_tbl->lock);
-		} else {
-			return -ENOMEM;
-		}
-	}
-	
-	return 0;
-}
-
-__COLD_CODE static int dpci_rx_ctx_init(uint32_t dpci_id)
-{
-	struct mc_dprc *dprc = sys_get_unique_handle(FSL_OS_MOD_AIOP_RC);
-	int err = 0;
-	uint16_t token;
-	struct dpci_rx_queue_cfg queue_cfg;
-	struct dpci_rx_queue_attr rx_attr;
-	struct dpci_attr attr;
-	uint8_t i;
-	
-	ASSERT_COND(dprc);
-
-	/* memset */
-	MEM_SET(&queue_cfg, sizeof(queue_cfg), 0);
-	MEM_SET(&rx_attr, sizeof(rx_attr), 0);
-	MEM_SET(&attr, sizeof(attr), 0);
-
-	err = dpci_open(&dprc->io, (int)dpci_id, &token);
-	if (err) 
-		return err;
-
-	err = dpci_get_attributes(&dprc->io, token, &attr);
-	if (err) {
-		dpci_close(&dprc->io, token);
-		return err;
-	}
-
-	for (i = 0; i < attr.num_of_priorities; i++) {
-		queue_cfg.dest_cfg.dest_type = DPCI_DEST_NONE;
-		queue_cfg.options = CMDIF_Q_OPTIONS;
-		CMDIF_DPCI_FQID(USER_CTX_SET, dpci_id, DPCI_FQID_NOT_VALID);
-		err = dpci_set_rx_queue(&dprc->io, token, i,
-		                         &queue_cfg);
-		ASSERT_COND(!err);
-	}
-
-	err = dpci_close(&dprc->io, token);
-
-	return err;
-}
-
-__COLD_CODE static int dpci_rx_ctx_set(uint32_t dpci_id)
-{
-	struct mc_dprc *dprc = sys_get_unique_handle(FSL_OS_MOD_AIOP_RC);
-	int err = 0;
-	uint16_t token;
-	struct dpci_rx_queue_cfg queue_cfg;
-	struct dpci_attr attr;
-	struct dpci_tx_queue_attr tx_attr;
-	struct dpci_rx_queue_attr rx_attr;
-	uint8_t i;
-	uint32_t amq_bdi = 0;
-
-	ASSERT_COND(dprc);
-	ASSERT_COND(dpci_id < 0xFFFF);
-
-	/* memset */
-	MEM_SET(&queue_cfg, sizeof(queue_cfg), 0);
-	MEM_SET(&rx_attr, sizeof(rx_attr), 0);
-	MEM_SET(&tx_attr, sizeof(tx_attr), 0);
-	MEM_SET(&attr, sizeof(attr), 0);
-
-	err = dpci_open(&dprc->io, (int)dpci_id, &token);
-	if (err) 
-		return err;
-
-	err = dpci_get_attributes(&dprc->io, token, &attr);
-	if (err) {
-		dpci_close(&dprc->io, token);
-		return err;
-	}
-
-	for (i = 0; i < attr.num_of_priorities; i++) {
-
-		err = dpci_get_tx_queue(&dprc->io, token, i, &tx_attr);
-		ASSERT_COND(!err);
-		queue_cfg.dest_cfg.dest_type = DPCI_DEST_NONE;
-		queue_cfg.options = CMDIF_Q_OPTIONS;
-		queue_cfg.user_ctx = 0;
-		CMDIF_DPCI_FQID(USER_CTX_SET, dpci_id, tx_attr.fqid);
-		
-		err = dpci_set_rx_queue(&dprc->io, token, i,
-		                         &queue_cfg);
-		ASSERT_COND(!err);
-	}
-
-	err = dpci_close(&dprc->io, token);
-
-	return err;
-}
-
-__COLD_CODE static void dpci_rx_ctx_get(uint32_t *dpci_id, uint32_t *fqid)
-{
-	uint64_t rx_ctx = CMDIF_RX_CTX_GET;
-	
-	CMDIF_DPCI_FQID(USER_CTX_GET, dpci_id, fqid);
-}
-
 
 __HOT_CODE void cmdif_fd_send(int cb_err);
 __HOT_CODE void cmdif_fd_send(int cb_err)
 {
 	int err;
 	uint64_t flc = LDPAA_FD_GET_FLC(HWC_FD_ADDRESS);
-	uint32_t fqid = CMDIF_FQD_GET;
-	uint8_t  ind = 0;
-	uint8_t  pr  = 0;
+	uint32_t fqid = DPCI_FQID_NOT_VALID;
+	uint32_t ind = 0;
 
 	flc &= ~ERROR_MASK;
 	flc |= ((uint64_t)cb_err) << ERROR_OFF;
 	LDPAA_FD_SET_FLC(HWC_FD_ADDRESS, flc);
 
-
-	ind = (uint8_t)(fqid >> 1);
-	pr  = (uint8_t)(fqid & 1);
-	fqid = cmdif_aiop_srv.dpci_tbl->tx_queue_attr[pr][ind].fqid;
-	/* Do it only if queue is not there yet */
-	if (fqid == DPCI_FQID_NOT_VALID) {
-		struct mc_dprc *dprc = sys_get_unique_handle(FSL_OS_MOD_AIOP_RC);
-		err = dpci_get_tx_queue(&dprc->io,
-					cmdif_aiop_srv.dpci_tbl->token[ind], pr,
-					&cmdif_aiop_srv.dpci_tbl->tx_queue_attr[pr][ind]);
-		fqid = cmdif_aiop_srv.dpci_tbl->tx_queue_attr[pr][ind].fqid;
-		if (err) {
-			sl_pr_err("Failed dpci_get_tx_queue err = %d"
-				"fqid = 0x%x", err, fqid);
-		}
-	}
-
+	dpci_drv_user_ctx_get(&ind, &fqid);
+	ASSERT_COND(fqid != DPCI_FQID_NOT_VALID);
+	
 	sl_pr_debug("Response FQID = 0x%x pr = 0x%x dpci_ind = 0x%x\n", fqid, pr, ind);
 	sl_pr_debug("CB error = %d\n", cb_err);
 
@@ -531,13 +342,13 @@ __HOT_CODE void sync_cmd_done(uint64_t sync_done,
 		_sync_done = cmdif_aiop_srv.srv->sync_done[auth_id];
 
 	if (_sync_done == NULL) {
-		sl_pr_err("Can't finish sync command, no valid address\n");
+		no_stack_pr_err("Can't finish sync command, no valid address\n");
 		/** In this case client will fail on timeout */
 	} else {
 		/*
 		 * Use previously saved AMQ bits and ICID */
-		sl_pr_debug("icid = 0x%x\n", icid);
-		sl_pr_debug("fdma_dma_data flags = 0x%x\n", dma_flags);
+		no_stack_pr_debug("icid = 0x%x\n", icid);
+		no_stack_pr_debug("fdma_dma_data flags = 0x%x\n", dma_flags);
 		fdma_dma_data(4, icid, &resp, _sync_done,
 		              dma_flags | FDMA_DMA_DA_WS_TO_SYS_BIT);
 	}
@@ -558,33 +369,20 @@ static inline void sync_done_set(uint16_t auth_id)
 }
 
 /** Find dpci index and get dpci table */
-static inline int find_dpci(uint32_t dpci_id)
+static inline int find_dpci(uint32_t dpci_id_peer)
 {
 	int i = 0;
-	struct mc_dpci_obj *dt = cmdif_aiop_srv.dpci_tbl;
+	struct mc_dpci_tbl *dt = cmdif_aiop_srv.dpci_tbl;
 
 	for (i = 0; i < dt->count; i++) {
-		if (dt->peer_attr[i].peer_id == dpci_id)
+		if (dt->dpci_id_peer[i] == dpci_id_peer)
 			return i;
 	}
 	return -1;
 }
 
-static inline void amq_bits_update(int ind)
-{
-	uint16_t pl_icid = PL_ICID_GET;
 
-	if (cmdif_aiop_srv.dpci_tbl->icid[ind] == ICONTEXT_INVALID) {
-		cmdif_aiop_srv.dpci_tbl->bdi_flags[ind]  = FDMA_EN_TC_RET_BITS; /* don't change */
-		cmdif_aiop_srv.dpci_tbl->dma_flags[ind]  = FDMA_DMA_DA_SYS_TO_WS_BIT;
-		ADD_AMQ_FLAGS(cmdif_aiop_srv.dpci_tbl->dma_flags[ind], pl_icid);
-		if (BDI_GET != 0)
-			cmdif_aiop_srv.dpci_tbl->bdi_flags[ind] |= FDMA_ENF_BDI_BIT;
-		/* Must be last line */
-		cmdif_aiop_srv.dpci_tbl->icid[ind]       = ICID_GET(pl_icid);
-	}
-}
-
+#if 0
 /* Support for AIOP -> GPP */
 /* int mc_dpci_check(int ind);*/
 static /*inline*/ int mc_dpci_check(int ind)
@@ -628,6 +426,7 @@ static /*inline*/ int mc_dpci_check(int ind)
 
 	return 0;
 }
+#endif
 
 __COLD_CODE int notify_open();
 __COLD_CODE int notify_open()
@@ -640,7 +439,8 @@ __COLD_CODE int notify_open()
 	int ind = 0;
 	int link_up = 1;
 	int err = 0;
-
+	struct dpci_tx_queue_attr tx_queue_attr[DPCI_PRIO_NUM];
+	
 	/* Create descriptor for client session */
 	ASSERT_COND_LIGHT((cl != NULL) && (cmdif_aiop_srv.dpci_tbl != NULL));
 
@@ -649,32 +449,20 @@ __COLD_CODE int notify_open()
 		return -EINVAL;
 	}
 
-	ind = find_dpci(data->dev_id); /* dev_id is swapped by GPP */
+	ind = mc_dpci_find(data->dev_id, NULL); /* dev_id is swapped by GPP */
 	if (ind < 0) {
 		pr_err("Not found DPCI peer %d\n", data->dev_id);
 		return -ENAVAIL;
 	}
 
-	pr_debug("Found dpci %d peer id at index %d \n", \
-		    cmdif_aiop_srv.dpci_tbl->attr[ind].id, ind);
-
-	amq_bits_update(ind);
-
-	/* Locking here for updating dpci table in runtime in case if queues
-	 * are not available yet. This case should not happen.
-	 * After cmdif_open() on AIOP those DPCI queues are not updated anymore
-	 * no lock in runtime.
-	 * TODO consider to add lock per DPCI entry */
+	err = dpci_drv_update((uint32_t)ind); /* dev_id is swapped by GPP */
+	ASSERT_COND(!err);
+	
+	err = dpci_drv_tx_get(data->dev_id, &tx_queue_attr[0]);
+	ASSERT_COND(!err);
+	
+	/* TODO Consider to add lock per DPCI entry */
 	lock_spinlock(&cl->lock);
-
-
-	err = mc_dpci_check(ind);
-	if (err) {
-		unlock_spinlock(&cl->lock);
-		return err;
-	}
-
-
 
 #ifdef DEBUG
 	/* Don't allow to open the same session twice */
@@ -701,23 +489,14 @@ __COLD_CODE int notify_open()
 	cl->gpp[link_up].dev->sync_done   = NULL; /* Not used in AIOP */
 	strncpy(&cl->gpp[link_up].m_name[0], &data->m_name[0], M_NAME_CHARS);
 	cl->gpp[link_up].m_name[M_NAME_CHARS] = '\0';
-	cl->gpp[link_up].regs->dpci_token = cmdif_aiop_srv.dpci_tbl->token[ind];
-	cl->gpp[link_up].regs->attr       = &cmdif_aiop_srv.dpci_tbl->attr[ind];
-	cl->gpp[link_up].regs->peer_attr  = &cmdif_aiop_srv.dpci_tbl->peer_attr[ind];
-	cl->gpp[link_up].regs->tx_queue_attr[0] = &cmdif_aiop_srv.dpci_tbl->tx_queue_attr[0][ind];
-	cl->gpp[link_up].regs->tx_queue_attr[1] = &cmdif_aiop_srv.dpci_tbl->tx_queue_attr[1][ind];
-	cl->gpp[link_up].regs->icid       = cmdif_aiop_srv.dpci_tbl->icid[ind];
-	cl->gpp[link_up].regs->dma_flags  = cmdif_aiop_srv.dpci_tbl->dma_flags[ind];
-	cl->gpp[link_up].regs->enq_flags  = cmdif_aiop_srv.dpci_tbl->bdi_flags[ind];
+	cl->gpp[link_up].regs->dpci_ind = (uint32_t)ind;
+	cl->gpp[link_up].regs->tx_queue_attr[0].fqid = tx_queue_attr[0].fqid;
+	cl->gpp[link_up].regs->tx_queue_attr[1].fqid = tx_queue_attr[1].fqid;
 
+	ASSERT_COND(cl->count < CMDIF_MN_SESSIONS);
 	cl->count++;
-
+	
 	unlock_spinlock(&cl->lock);
-
-	pr_debug("icid = 0x%x\n", cmdif_aiop_srv.dpci_tbl->icid[ind]);
-	pr_debug("enq_flags = 0x%x\n", cmdif_aiop_srv.dpci_tbl->bdi_flags[ind]);
-	pr_debug("dma_flags = 0x%x\n", cmdif_aiop_srv.dpci_tbl->dma_flags[ind]);
-
 #endif /* STACK_CHECK */
 
 	return 0;
@@ -808,14 +587,6 @@ __COLD_CODE static void open_cmd_print()
 #endif
 }
 
-__COLD_CODE static void dpci_icontext_update()
-{
-	uint32_t fqid = CMDIF_FQD_GET;
-	uint8_t  ind = (uint8_t)(fqid >> 1);
-
-	amq_bits_update(ind);
-}
-
 __COLD_CODE int session_open(uint16_t *new_auth);
 __COLD_CODE int session_open(uint16_t *new_auth)
 {
@@ -824,29 +595,33 @@ __COLD_CODE int session_open(uint16_t *new_auth)
 	uint8_t  inst_id;
 	void     *dev;
 	int      err;
+	uint32_t ind;
 
 	cmd_m_name_get(&m_name[0]);
-	sl_pr_debug("m_name = %s\n", m_name);
-
 	m_id = module_id_find(m_name);
-	sl_pr_debug("m_id = %d\n", m_id);
 
 	if (m_id < 0) {
 		/* Did not find module with such name */
-		sl_pr_err("No such module %s\n", m_name);
+		no_stack_pr_err("No such module %s\n", m_name);
 		return -ENODEV;
 	}
 
 	inst_id  = cmd_inst_id_get();
-	sl_pr_debug("inst_id = %d\n", inst_id);
 
-	dpci_icontext_update(); /* Must be before open callback */
+#ifdef  ARENA_LEGACY_CODE
+	err = dpci_rx_ctx_set();
+	ASSERT_COND(!err);
+	dpci_amq_bdi_set(); /* Must be before open callback */
+#endif
 
+	dpci_drv_user_ctx_get(&ind, NULL);
+	err = dpci_drv_update(ind);
+	ASSERT_COND(!err);
+	
 	OPEN_CB(m_id, inst_id, dev);
 	if (!err) {
 		int  new_inst = inst_alloc((uint8_t)m_id);
 		if (new_inst >= 0) {
-			sl_pr_debug("New auth_id = %d module name = %s\n", new_inst, m_name);
 			sync_done_set((uint16_t)new_inst);
 			cmdif_aiop_srv.srv->inst_dev[new_inst] = dev;
 			/* Should change only on success */
@@ -854,7 +629,7 @@ __COLD_CODE int session_open(uint16_t *new_auth)
 			return 0;
 		} else {
 			/* couldn't find free place for new device */
-			sl_pr_err("No free entry for new device\n");
+			no_stack_pr_err("No free entry for new device\n");
 			return -ENOMEM;
 		}
 	} else {
@@ -919,14 +694,14 @@ __HOT_CODE void cmdif_srv_isr(void) __attribute__ ((noreturn))
 
 		/* OPEN will arrive with hash value 0xffff */
 		if (auth_id != OPEN_AUTH_ID) {
-			no_stack_pr_err("No permission to open device 0x%x\n", auth_id);
+			no_stack_pr_err("No permission to open device 0x%x\n",
+			                auth_id);
 			CMDIF_STORE_DATA;
 			sync_cmd_done(sync_done_get(), -EPERM, auth_id,
 			              TRUE, gpp_icid, gpp_dma);
 		}
 
 		open_cmd_print();
-
 		err = session_open(&auth_id);
 		if (err) {
 			no_stack_pr_err("Open session FAILED err = %d\n", err);
@@ -935,12 +710,11 @@ __HOT_CODE void cmdif_srv_isr(void) __attribute__ ((noreturn))
 			              TRUE, gpp_icid, gpp_dma);
 		} else {
 			no_stack_pr_debug("Open session PASSED auth_id = 0x%x\n",
-			         (uint16_t)err);
+			                  auth_id);
 			CMDIF_STORE_DATA;
 			sync_cmd_done(sync_done_get(), 0, auth_id,
 			              TRUE, gpp_icid, gpp_dma);
 		}
-
 	} else if (cmd_id == CMD_ID_CLOSE) {
 
 		if (is_valid_auth_id(auth_id)) {

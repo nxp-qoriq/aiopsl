@@ -36,14 +36,19 @@
 #include "fsl_dpci.h"
 #include "fsl_mc_init.h"
 #include "ls2085_aiop/fsl_platform.h"
+#include "cmdif_srv.h"
+#include "fsl_dpci_drv.h"
 
 extern struct aiop_init_info g_init_data;
 
-#define DPCI_LOW_PR  1
 #define MC_DPCI_NUM 1
+#define DPCI_DYNAMIC_MAX 32
 
 int mc_obj_init();
 void mc_obj_free();
+
+extern int dpci_amq_bdi_init(uint32_t dpci_id);
+extern int dpci_rx_ctx_init(uint32_t dpci_id, uint32_t id);
 
 __COLD_CODE static int aiop_container_init()
 {
@@ -94,15 +99,13 @@ __COLD_CODE static void aiop_container_free()
 		fsl_free(dprc);
 }
 
-__COLD_CODE static int dpci_tbl_create(struct mc_dpci_obj **_dpci_tbl, int dpci_count)
+__COLD_CODE static int dpci_tbl_create(struct mc_dpci_tbl **_dpci_tbl, int dpci_count)
 {
 	uint32_t size = 0;
-	struct   mc_dpci_obj *dpci_tbl = NULL;
+	struct   mc_dpci_tbl *dpci_tbl = NULL;
 	int      err = 0;
-	int 	 i;
 
-	size = sizeof(struct mc_dpci_obj);
-	/*dpci_tbl = fsl_os_xmalloc(size, MEM_PART_SH_RAM, 1);*/
+	size = sizeof(struct mc_dpci_tbl);
 	dpci_tbl = fsl_malloc(size, 1);
 	*_dpci_tbl = dpci_tbl;
 	if (dpci_tbl == NULL) {
@@ -111,81 +114,34 @@ __COLD_CODE static int dpci_tbl_create(struct mc_dpci_obj **_dpci_tbl, int dpci_
 	}
 	memset(dpci_tbl, 0, size);
 
-	size = sizeof(struct dpci_attr) * dpci_count;
-	/*dpci_tbl->attr = fsl_os_xmalloc(size, MEM_PART_SH_RAM, 1);*/
-	dpci_tbl->attr = fsl_malloc(size,1);
-	if (dpci_tbl->attr == NULL) {
+	size = sizeof(uint32_t) * dpci_count;
+	dpci_tbl->dpci_id = fsl_malloc(size,1);
+	if (dpci_tbl->dpci_id == NULL) {
 		pr_err("No memory for %d DPCIs\n", dpci_count);
 		return -ENOMEM;
 	}
-	memset(dpci_tbl->attr, 0, size);
-
-	size = sizeof(struct dpci_peer_attr) * dpci_count;
-	/*dpci_tbl->peer_attr = fsl_os_xmalloc(size, MEM_PART_SH_RAM, 1);*/
-	dpci_tbl->peer_attr = fsl_malloc(size,1);
-	if (dpci_tbl->peer_attr == NULL) {
-		pr_err("No memory for %d DPCIs\n", dpci_count);
-		return -ENOMEM;
-	}
-	memset(dpci_tbl->peer_attr, 0, size);
-
-	for (i = 0; i < DPCI_PRIO_NUM ; i++)
-	{
-		size = sizeof(struct dpci_rx_queue_attr) * dpci_count;
-		/*dpci_tbl->rx_queue_attr[i] = fsl_os_xmalloc(size, MEM_PART_SH_RAM, 1);*/
-		dpci_tbl->rx_queue_attr[i] = fsl_malloc(size, 1);
-		if (dpci_tbl->rx_queue_attr[i] == NULL) {
-			pr_err("No memory for %d DPCIs\n", dpci_count);
-			return -ENOMEM;
-		}
-		memset(dpci_tbl->rx_queue_attr[i], 0, size);
-
-		size = sizeof(struct dpci_tx_queue_attr) * dpci_count;
-		/*dpci_tbl->tx_queue_attr[i] = fsl_os_xmalloc(size, MEM_PART_SH_RAM, 1);*/
-		dpci_tbl->tx_queue_attr[i] = fsl_malloc(size,1);
-		if (dpci_tbl->tx_queue_attr[i] == NULL) {
-			pr_err("No memory for %d DPCIs\n", dpci_count);
-			return -ENOMEM;
-		}
-		memset(dpci_tbl->tx_queue_attr[i], 0, size);
-	}
-
-	size = sizeof(uint16_t) * dpci_count;
-	/*dpci_tbl->token = fsl_os_xmalloc(size, MEM_PART_SH_RAM, 1);*/
-	dpci_tbl->token = fsl_malloc(size,1);
-	if (dpci_tbl->token == NULL) {
-		pr_err("No memory for %d DPCIs\n", dpci_count);
-		return -ENOMEM;
-	}
-	memset(dpci_tbl->token, 0, size);
-
-	size = sizeof(uint16_t) * dpci_count;
-	/*dpci_tbl->icid = fsl_os_xmalloc(size, MEM_PART_SH_RAM, 1);*/
-	dpci_tbl->icid = fsl_malloc(size, 1);
-	if (dpci_tbl->icid == NULL) {
-		pr_err("No memory for %d DPCIs\n", dpci_count);
-		return -ENOMEM;
-	}
-	memset(dpci_tbl->icid, 0xff, size);
+	memset(dpci_tbl->dpci_id, 0xff, size);
 
 	size = sizeof(uint32_t) * dpci_count;
-	/*dpci_tbl->dma_flags = fsl_os_xmalloc(size, MEM_PART_SH_RAM, 1);*/
-	dpci_tbl->dma_flags = fsl_malloc(size,1);
-	if (dpci_tbl->dma_flags == NULL) {
+	dpci_tbl->dpci_id_peer = fsl_malloc(size,1);
+	if (dpci_tbl->dpci_id_peer == NULL) {
 		pr_err("No memory for %d DPCIs\n", dpci_count);
 		return -ENOMEM;
 	}
-	memset(dpci_tbl->dma_flags, 0, size);
+	memset(dpci_tbl->dpci_id_peer, 0xff, size);
 
 	size = sizeof(uint32_t) * dpci_count;
-	/*dpci_tbl->bdi_flags = fsl_os_xmalloc(size, MEM_PART_SH_RAM, 1);*/
-	dpci_tbl->bdi_flags = fsl_malloc(size, 1);
-	if (dpci_tbl->bdi_flags == NULL) {
+	dpci_tbl->ic = fsl_malloc(size,1);
+	if (dpci_tbl->ic == NULL) {
 		pr_err("No memory for %d DPCIs\n", dpci_count);
 		return -ENOMEM;
 	}
-	memset(dpci_tbl->bdi_flags, 0, size);
+	memset(dpci_tbl->ic, 0xff, size);
 
+	dpci_tbl->count = 0;
+	dpci_tbl->lock = 0;
+	dpci_tbl->max = dpci_count;
+	
 	err = sys_add_handle(dpci_tbl,
 			FSL_OS_MOD_DPCI_TBL,
 			1,
@@ -198,14 +154,9 @@ __COLD_CODE static int dpci_tbl_create(struct mc_dpci_obj **_dpci_tbl, int dpci_
 	return err;
 }
 
-__COLD_CODE static int dpci_tbl_add(struct dprc_obj_desc *dev_desc, int ind,
-			struct mc_dpci_obj *dpci_tbl, struct mc_dprc *dprc)
+__COLD_CODE static int dpci_tbl_add(struct dprc_obj_desc *dev_desc)
 {
-	uint16_t dpci = 0;
-	struct   dpci_rx_queue_cfg queue_cfg;
 	int      err = 0;
-	uint8_t  p   = 0;
-	uint8_t  i;
 
 	if (dev_desc == NULL)
 		return -EINVAL;
@@ -221,90 +172,71 @@ __COLD_CODE static int dpci_tbl_add(struct dprc_obj_desc *dev_desc, int ind,
 	pr_debug("ver_minor - %d\n", dev_desc->ver_minor);
 	pr_debug("irq_count - %d\n\n", dev_desc->irq_count);
 
-	memset(&queue_cfg, 0, sizeof(struct dpci_rx_queue_cfg));
-
-	err |= dpci_open(&dprc->io, dev_desc->id, &dpci);
-	/* Set priorities 0 and 1
-	 * 0 is high priority
-	 * 1 is low priority
-	 * Making sure that low priority is at index 0*/
-	queue_cfg.options |= DPCI_QUEUE_OPT_USER_CTX;
-	queue_cfg.options |= DPCI_QUEUE_OPT_DEST;
-	queue_cfg.dest_cfg.dest_type = DPCI_DEST_NONE;
-	for (p = 0; p <= DPCI_LOW_PR; p++) {
-		queue_cfg.dest_cfg.priority = DPCI_LOW_PR - p;
-		queue_cfg.user_ctx = (ind << 1) | p;
-		err |= dpci_set_rx_queue(&dprc->io,
-					dpci,
-					p,
-					&queue_cfg);
+#ifdef  ARENA_LEGACY_CODE
+	err = dpci_amq_bdi_init((uint32_t)dev_desc->id);
+	if (err >= 0) {
+		err = dpci_rx_ctx_init((uint32_t)dev_desc->id, (uint32_t)err);
 	}
-	err |= dpci_enable(&dprc->io, dpci);
-	err |= dpci_get_attributes(&dprc->io,
-				dpci,
-				&dpci_tbl->attr[ind]);
-
-	err |= dpci_get_peer_attributes(&dprc->io, dpci,
-					&dpci_tbl->peer_attr[ind]);
-
-	for (i = 0; i < dpci_tbl->attr->num_of_priorities; i++)
-		err |= dpci_get_rx_queue(&dprc->io, dpci, i,
-					 &dpci_tbl->rx_queue_attr[i][ind]);
-
-	for (i = 0; i < dpci_tbl->peer_attr->num_of_priorities; i++)
-		err |= dpci_get_tx_queue(&dprc->io, dpci, i,
-					 &dpci_tbl->tx_queue_attr[i][ind]);
-
-	dpci_tbl->token[ind] = dpci;
-
-	if (dpci_tbl->peer_attr[ind].peer_id == (-1)) {
-		pr_err("DPCI %d has no peer ! ", dpci_tbl->attr[ind].id);
-		/* Don't return error maybe peer will be attached in the future */
-	}
+#endif
+	err = dpci_drv_added((uint32_t)dev_desc->id);
 
 	return err;
 }
 
-__COLD_CODE static int dpci_for_mc_add(struct mc_dpci_obj *dpci_tbl, struct mc_dprc *dprc, int ind)
+__COLD_CODE void mc_dpci_tbl_dump()
+{
+	int i;
+	struct mc_dpci_tbl *dt = sys_get_unique_handle(FSL_OS_MOD_DPCI_TBL);
+	
+	fsl_os_print("----------DPCI table----------\n");
+	for (i = 0; i < dt->count; i++) {
+		fsl_os_print("ID = 0x%x\t PEER ID = 0x%x\t IC = 0x%x\t\n", 
+		             dt->dpci_id[i], dt->dpci_id_peer[i], dt->ic[i]);
+	}
+}
+
+int mc_dpci_find(uint32_t dpci_id, uint32_t *ic)
+{
+	int i;
+	struct mc_dpci_tbl *dt = sys_get_unique_handle(FSL_OS_MOD_DPCI_TBL);
+	
+	ASSERT_COND(dt);	
+
+	for (i = 0; i < dt->count; i++) {
+		if ((dt->dpci_id[i] == dpci_id) || 
+			(dt->dpci_id_peer[i] == dpci_id)) {
+			if (ic != NULL)
+				*ic = dt->ic[i];
+			return i;
+		}
+	}
+	
+	return -ENOENT;
+}
+
+__COLD_CODE static int dpci_for_mc_add(struct mc_dprc *dprc)
 {
 	struct dpci_cfg dpci_cfg;
-	uint16_t dpci;
+	uint16_t dpci = 0;
 	struct dpci_rx_queue_cfg queue_cfg;
 	struct dprc_endpoint endpoint1 ;
 	struct dprc_endpoint endpoint2;
+	struct dpci_attr attr;
 	uint8_t p = 0;
 	int     err = 0;
 	int     link_up = 0;
-	uint8_t i;
 
 	memset(&queue_cfg, 0, sizeof(struct dpci_rx_queue_cfg));
+	memset(&attr, 0, sizeof(attr));
 
 	dpci_cfg.num_of_priorities = 2;
 
 	err |= dpci_create(&dprc->io, &dpci_cfg, &dpci);
-	/* Set priorities 0 and 1
-	 * 0 is high priority
-	 * 1 is low priority
-	 * Making sure that low priority is at index 0*/
-	queue_cfg.options |= DPCI_QUEUE_OPT_USER_CTX;
-	queue_cfg.options |= DPCI_QUEUE_OPT_DEST;
-	queue_cfg.dest_cfg.dest_type = DPCI_DEST_NONE;
-	for (p = 0; p <= DPCI_LOW_PR; p++) {
-		queue_cfg.dest_cfg.priority = DPCI_LOW_PR - p;
-		queue_cfg.user_ctx = (ind << 1) | p;
-		err |= dpci_set_rx_queue(&dprc->io,
-					dpci,
-					p,
-					&queue_cfg);
-	}
 
-	/* Get attributes just for dpci id,
-	 * fqids are not there yet */
-	err |= dpci_get_attributes(&dprc->io,
-				dpci,
-				&dpci_tbl->attr[ind]);
-
-	/* Connect to dpci 0 that belongs to MC */
+	/* Get attributes just for dpci id fqids are not there yet */
+	err |= dpci_get_attributes(&dprc->io, dpci, &attr);
+	
+	/* Connect to dpci that belongs to MC */
 	pr_debug("MC dpci ID[%d] \n", g_init_data.sl_info.mc_dpci_id);
 
 	memset(&endpoint1, 0, sizeof(struct dprc_endpoint));
@@ -313,49 +245,29 @@ __COLD_CODE static int dpci_for_mc_add(struct mc_dpci_obj *dpci_tbl, struct mc_d
 	endpoint1.interface_id = 0;
 	strcpy(endpoint1.type, "dpci");
 
-	endpoint2.id = dpci_tbl->attr[ind].id;
+	endpoint2.id = attr.id;
 	endpoint2.interface_id = 0;
 	strcpy(endpoint2.type, "dpci");
 
-	err |= dpci_enable(&dprc->io, dpci);
-	if (err) {
-		pr_err("dpci_enable failed\n");
-	}
-
-	err |= dprc_connect(&dprc->io, dprc->token, &endpoint1, &endpoint2);
+	err = dprc_connect(&dprc->io, dprc->token, &endpoint1, &endpoint2);
 	if (err) {
 		pr_err("dprc_connect failed\n");
 	}
+	err = dpci_close(&dprc->io, dpci);
+	ASSERT_COND(!err);
 
-	err |= dpci_get_peer_attributes(&dprc->io, dpci,
-					&dpci_tbl->peer_attr[ind]);
-
-	for (i = 0; i < dpci_tbl->attr->num_of_priorities; i++)
-		err |= dpci_get_rx_queue(&dprc->io, dpci, i,
-					&dpci_tbl->rx_queue_attr[i][ind]);
-
-	for (i = 0; i < dpci_tbl->peer_attr->num_of_priorities; i++)
-		err |= dpci_get_tx_queue(&dprc->io, dpci, i,
-					&dpci_tbl->tx_queue_attr[i][ind]);
-
-	err |= dpci_get_link_state(&dprc->io, dpci, &link_up);
-	if (!link_up) {
-		pr_debug("MC DPCI[%d]<->AIOP DPCI[%d] link is down \n",
-		endpoint1.id,
-		endpoint2.id);
-		/* Don't return error maybe it will be linked in the future */
-	} else {
-		pr_debug("MC DPCI[%d]<->AIOP DPCI[%d] link is up \n",
-		endpoint1.id,
-		endpoint2.id);
+#ifdef  ARENA_LEGACY_CODE
+	err = dpci_amq_bdi_init((uint32_t)attr.id);
+	if (err >= 0) {
+		err = dpci_rx_ctx_init((uint32_t)attr.id, (uint32_t)err);
 	}
+#endif
+	err = dpci_drv_added((uint32_t)attr.id);
 
-	dpci_tbl->token[ind] = dpci;
 	return err;
 }
 
-__COLD_CODE static int dpci_tbl_fill(struct mc_dpci_obj *dpci_tbl,
-				struct mc_dprc *dprc,
+__COLD_CODE static int dpci_tbl_fill(struct mc_dprc *dprc,
 				int dpci_count, int dev_count)
 {
 	int ind = 0;
@@ -363,18 +275,13 @@ __COLD_CODE static int dpci_tbl_fill(struct mc_dpci_obj *dpci_tbl,
 	int err = 0;
 	struct dprc_obj_desc dev_desc;
 
-	if (dpci_tbl == NULL) {
-		pr_err("No DPCI objects in AIOP root container \n");
-		return -EINVAL;
-	}
 
 	while ((i < dev_count) && (ind < dpci_count)) {
 		dprc_get_obj(&dprc->io, dprc->token, i, &dev_desc);
 		if (strcmp(dev_desc.type, "dpci") == 0) {
-			err = dpci_tbl_add(&dev_desc, ind, dpci_tbl, dprc);
+			err = dpci_tbl_add(&dev_desc);
 			if (err) {
 				pr_err("Failed dpci_tbl_add \n");
-				dpci_tbl->count = ind;
 				return -ENODEV;
 			}
 			ind++;
@@ -382,13 +289,11 @@ __COLD_CODE static int dpci_tbl_fill(struct mc_dpci_obj *dpci_tbl,
 		i++;
 	}
 
-	err = dpci_for_mc_add(dpci_tbl, dprc, ind);
+	err = dpci_for_mc_add(dprc);
 	if (err) {
 		pr_err("Failed to create and link AIOP<->MC DPCI \n");
-		dpci_tbl->count = ind;
-	} else {
-		dpci_tbl->count = ind + MC_DPCI_NUM;
 	}
+		
 	return err;
 }
 
@@ -396,7 +301,7 @@ __COLD_CODE static int dpci_discovery()
 {
 	struct dprc_obj_desc dev_desc;
 	struct mc_dprc *dprc = sys_get_unique_handle(FSL_OS_MOD_AIOP_RC);
-	struct mc_dpci_obj *dpci_tbl = NULL;
+	struct mc_dpci_tbl *dpci_tbl = NULL;
 	int dev_count  = 0;
 	int dpci_count = 0;
 	int err        = 0;
@@ -408,9 +313,9 @@ __COLD_CODE static int dpci_discovery()
 	}
 
 	if ((err = dprc_get_obj_count(&dprc->io, dprc->token, &dev_count)) != 0) {
-	pr_err("Failed to get device count for RC auth_d = %d\n",
-		dprc->token);
-	return err;
+		pr_err("Failed to get device count for RC auth_d = %d\n",
+		       dprc->token);
+		return err;
 	}
 
 	/* First count how many DPCI objects we have */
@@ -421,13 +326,17 @@ __COLD_CODE static int dpci_discovery()
 		}
 	}
 
-	err = dpci_tbl_create(&dpci_tbl, dpci_count + MC_DPCI_NUM);
+	err = dpci_tbl_create(&dpci_tbl, 
+	                      dpci_count + MC_DPCI_NUM + DPCI_DYNAMIC_MAX);
 	if (err != 0) {
 		pr_err("Failed dpci_tbl_create() \n");
 		return err;
 	}
 
-	err = dpci_tbl_fill(dpci_tbl, dprc, dpci_count, dev_count);
+	err = dpci_tbl_fill(dprc, dpci_count, dev_count);
+	
+	mc_dpci_tbl_dump();
+
 	return err;
 }
 
@@ -457,22 +366,4 @@ __COLD_CODE void mc_obj_free()
 	dpci_discovery_free();
 	/* TODO DPCI close ???
 	 * TODO DPRC close */
-}
-
-
-int mc_dpci_find(uint32_t dpci_id, uint32_t *ic)
-{
-	struct mc_dpci_tbl *dpci_tbl = (struct mc_dpci_tbl *)\
-		sys_get_unique_handle(FSL_OS_MOD_DPCI_TBL);
-	int i;
-	
-	for (i = 0; i < dpci_tbl->count; i++) {
-		if (dpci_tbl->dpci_id[i] == dpci_id) {
-			if (ic != NULL)
-				*ic = dpci_tbl->ic[i];
-			return i;
-		}
-	}
-	
-	return -ENOENT;
 }

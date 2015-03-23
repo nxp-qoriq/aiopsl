@@ -39,7 +39,6 @@
 #include "system.h"
 #include "id_pool.h"
 
-
 extern uint64_t ext_prpid_pool_address;
 
 extern __TASK struct aiop_default_task_params default_task_params;
@@ -47,6 +46,11 @@ extern __TASK struct aiop_default_task_params default_task_params;
 int parser_profile_create(struct parse_profile_input *parse_profile,
 				uint8_t *prpid)
 {
+	
+#ifdef CHECK_ALIGNMENT 	
+	DEBUG_ALIGN("parser.c", (uint32_t)parse_profile, ALIGNMENT_16B);
+#endif
+	
 	int32_t status;
 
 	status = get_id(ext_prpid_pool_address, prpid);
@@ -72,6 +76,11 @@ int parser_profile_create(struct parse_profile_input *parse_profile,
 void parser_profile_replace(struct parse_profile_input *parse_profile,
 				uint8_t prpid)
 {
+	
+#ifdef CHECK_ALIGNMENT 	
+	DEBUG_ALIGN("parser.c", (uint32_t)parse_profile, ALIGNMENT_16B);
+#endif
+	
 	parse_profile->parse_profile.reserved1 = 0;
 	parse_profile->parse_profile.reserved2 = 0;
 
@@ -110,6 +119,11 @@ int parser_profile_delete(uint8_t prpid)
 void parser_profile_query(uint8_t prpid,
 			struct parse_profile_input *parse_profile)
 {
+	
+#ifdef CHECK_ALIGNMENT 	
+	DEBUG_ALIGN("parser.c", (uint32_t)parse_profile, ALIGNMENT_16B);
+#endif
+	
 	struct parse_profile_delete_query_params parse_profile_query_params
 						__attribute__((aligned(16)));
 
@@ -135,33 +149,17 @@ int parse_result_generate_checksum(
 		uint8_t starting_offset, uint16_t *l3_checksum,
 		uint16_t *l4_checksum)
 {
+	
+#ifdef CHECK_ALIGNMENT 	
+	DEBUG_ALIGN("parser.c", (uint32_t *)PRC_GET_SEGMENT_ADDRESS(), ALIGNMENT_16B);
+#endif
+	
 	uint32_t arg1, arg2;
 	int32_t status;
 	struct parse_result *pr = (struct parse_result *)HWC_PARSE_RES_ADDRESS;
 	struct parser_input_message_params input_struct
 					__attribute__((aligned(16)));
 
-#ifndef REV2	
-	/* WA for TKT254635 (CTLU spec - requirement of data alignment for parser 
-	is not mentioned) */
-	
-	int32_t err;
-	uint16_t diff = (PRC_GET_SEGMENT_ADDRESS() & 0x000F);
-	if (diff)
-	{
-		diff = 0x10 - diff;
-		fdma_close_default_segment();
-		err = fdma_present_default_frame_segment(
-				(PRC_GET_SR_BIT())? FDMA_PRES_SR_BIT : 0, 
-				(void *)(PRC_GET_SEGMENT_ADDRESS() + diff), 
-				PRC_GET_SEGMENT_OFFSET(), 
-				PRC_GET_SEGMENT_LENGTH() - diff);
-	}
-#else
-	/* In case the segment address alignment will be removed in REV2,
-	no WA is required. Otherwise, need to change WA to use
-	fdma_replace_default_segment_data */
-#endif	
 	
 	/* Check if Gross Running Sum calculation is needed */
 	if (!pr->gross_running_sum) {

@@ -121,9 +121,12 @@ static void app_process_packet_flow0 (dpni_drv_app_arg_t arg)
 
 
 int app_early_init(void){
+	
+	int err;
+	
 	/* exists in aiop_sl_early_init */
-	/*slab_register_context_buffer_requirements(100, 100, 2688, 64, MEM_PART_DP_DDR, 0, 0);*/
-	return 0;
+	err = ipr_early_init(3, 750);
+	return err;
 }
 
 int app_init(void)
@@ -133,7 +136,7 @@ int app_init(void)
 	
 	fsl_os_print("Running app_init()\n");
 
-	for (ni = 0; ni < dpni_get_num_of_ni(); ni++)
+	for (ni = 0; ni < dpni_drv_get_num_of_nis(); ni++)
 	{
 	     /* Every ni will have 1 flow */
 	     err = dpni_drv_register_rx_cb((uint16_t)ni/*ni_id*/,

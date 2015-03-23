@@ -440,6 +440,9 @@ int ipr_delete_instance(ipr_instance_handle_t ipr_instance_ptr,
 
 		This function assumes there is an IP outer header.
 		
+		It is assumed that the address of the presented segment
+		is aligned to 16 bytes.
+		
 		Implicitly updated values in task defaults: segment length,
 							    segment address,
 							    segment offset
@@ -450,8 +453,8 @@ int ipr_delete_instance(ipr_instance_handle_t ipr_instance_ptr,
 @Return		Status -\n
 		\link FSL_IPRReassReturnStatus IP Reassembly Return status
 		\endlink \n
-		ETIMEDOUT - Early Time out. Timeout occurred while a fragment is
-		currently proceeded.
+		ETIMEDOUT - Early Time out. Timeout occurred while this fragment
+		is proceeded. No fragment is returned.
 		ENOSPC - Maximum open reassembled frames has been reached.
 		ENOTSUP - Maximum number of fragments per reassembly has been
 			  reached.
