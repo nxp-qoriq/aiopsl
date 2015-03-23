@@ -75,7 +75,8 @@ int app_init(void)
 	int err;
 	fsl_os_print("\n\n***  Starting app_init ***\n\n");
 
-	err = simple_bu_gal_test();
+	err = simple_bu_hagit_test();
+	//err = simple_bu_gal_test();
 	//err = simple_bu_ilan_test();
 	//err = simple_bu_yariv_test();
 	//err = simple_bu_ohad_test();
