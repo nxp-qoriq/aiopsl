@@ -239,8 +239,7 @@ int tman_query_tmi(uint8_t tmi_id,
 	if ((res1 & TMAN_TMI_STATE_MASK) == TMAN_TMI_NOT_ACTIVE)
 		return (int)(-ENAVAIL);
 	if ((res1 & TMAN_TMI_STATE_MASK) == TMAN_TMI_BUS_ERR)
-		tman_exception_handler(__FILE__,
-			TMAN_TMI_TMI_QUERY_FUNC_ID,
+		tman_exception_handler(TMAN_TMI_TMI_QUERY_FUNC_ID,
 			__LINE__, 
 			(int)(TMAN_TMR_TMI_STATE_ERR+TMAN_TMI_BUS_ERR));
 	/* In case TMI is being deleted or being created */
@@ -295,8 +294,7 @@ int tman_recharge_timer(uint32_t timer_handle)
 	/* optimization: all the errors except TMI state errors starts with
 	 *  0x08_00XX */
 	if (res1 & TMAN_TMR_REC_STATE_MASK)
-		tman_exception_handler(__FILE__,
-			TMAN_TMI_TIMER_RECHARGE_FUNC_ID,
+		tman_exception_handler(TMAN_TMI_TIMER_RECHARGE_FUNC_ID,
 			__LINE__, (int)res1);
 	return (int)(-ETIMEDOUT);
 }
