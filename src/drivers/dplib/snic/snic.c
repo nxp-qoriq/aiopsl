@@ -603,6 +603,9 @@ int aiop_snic_early_init(void)
 
 	/* reserve IPR buffers */
 	err = ipr_early_init(MAX_SNIC_NO, MAX_OPEN_IPR_FRAMES);
+	if (err)
+		return err;
+	err = ipsec_early_init(MAX_SNIC_NO, MAX_SA_NO, MAX_SA_NO, 0);
 	return err;
 }
 
