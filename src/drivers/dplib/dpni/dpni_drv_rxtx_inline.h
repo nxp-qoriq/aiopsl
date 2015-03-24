@@ -153,5 +153,11 @@ inline void sl_tman_expiration_task_prolog(uint16_t spid)
 	set_default_amq_attributes(&amq);
 }
 
+inline uint16_t dpni_get_receive_niid(void)
+{
+	return (uint16_t)PRC_GET_PARAMETER();
+}
+
+
 
 #endif /* __DPNI_DRV_RXTX_INLINE_H */
