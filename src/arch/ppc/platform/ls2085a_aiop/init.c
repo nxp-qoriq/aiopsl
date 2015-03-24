@@ -147,6 +147,9 @@ __COLD_CODE void fill_platform_parameters(struct platform_param *platform_param)
 		pr_warn("rcwsr return 0, platform clock frequency was set to %d KHz\n", 
 		        platform_param->clock_in_freq_khz);
 	}
+	else{
+		pr_info("The platform clock frequency is %d KHz\n",platform_param->clock_in_freq_khz);
+	}
 
 	struct platform_memory_info mem_info[] = MEMORY_PARTITIONS;
 	ASSERT_COND(ARRAY_SIZE(platform_param->mem_info) >

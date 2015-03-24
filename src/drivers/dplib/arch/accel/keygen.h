@@ -87,9 +87,6 @@
 @{
 *//***************************************************************************/
 
-#ifdef SIMULATOR
-	#define ENGR00350113_IS_NOT_FIXED
-#endif
 	/** Number of FEC's (first byte in the KCR) */
 #define	KEYGEN_KCR_NFEC			0
 	/** OP0 HET Protocol Based Extraction */
@@ -124,11 +121,7 @@
 	/** Lookup Result FEC size (not including mask) */
 #define KEYGEN_KCR_LOOKUP_RES_FEC_SIZE			4
 	/** Valid Field FEC size (not including mask) */
-#ifndef ENGR00350113_IS_NOT_FIXED
-	#define KEYGEN_KCR_VALID_FIELD_FEC_SIZE			1
-#else
-	#define KEYGEN_KCR_VALID_FIELD_FEC_SIZE			2
-#endif
+#define KEYGEN_KCR_VALID_FIELD_FEC_SIZE			1
 
 	/** Generic Extraction offset 0x00 from start of frame */
 #define KEYGEN_KCR_EOM_FRAME_OFFSET_0x00	0x00
