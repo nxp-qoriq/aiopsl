@@ -50,5 +50,13 @@ struct mc_dpci_tbl {
  */
 int mc_dpci_find(uint32_t dpci_id, uint32_t *ic);
 void mc_dpci_tbl_dump();
+/* 
+ * Find and allocate new entry 
+ */
+int mc_dpci_entry_get();
+/*
+ * Remove this entry from dpci table
+ */
+void mc_dpci_entry_delete(int ind);
 
 #endif /*__FSL_MC_INIT_H */

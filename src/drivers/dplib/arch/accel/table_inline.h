@@ -63,26 +63,19 @@ inline int table_lookup_by_keyid_default_frame(enum table_hw_accel_id acc_id,
 
 	/* Status Handling*/
 	status = *((int32_t *)HWC_ACC_OUT_ADDRESS);
-	switch (status) {
-	case (TABLE_HW_STATUS_SUCCESS):
-		break;
-	case (TABLE_HW_STATUS_MISS):
-		break;
-	case (TABLE_HW_STATUS_EOFH):
+	if (status == TABLE_HW_STATUS_SUCCESS){}
+	else if (status == TABLE_HW_STATUS_MISS){}
+	else if (status == TABLE_HW_STATUS_EOFH)
 		status = -EIO;
-		break;
 	/*TODO EOFH with LOOKUP hit/miss */
-	case (TABLE_HW_STATUS_EOFH | TABLE_HW_STATUS_MISS):
+	else if (status == (TABLE_HW_STATUS_EOFH | TABLE_HW_STATUS_MISS))
 		status = -EIO;
-		break;
-	default:
+	else
 		/* Call fatal error handler */
 		table_exception_handler_wrp(
 			TABLE_LOOKUP_BY_KEYID_DEFAULT_FRAME_FUNC_ID,
 			__LINE__,
 			status);
-		break;
-	} /* Switch */
 
 	return status;
 }
@@ -114,18 +107,13 @@ inline int table_lookup_by_key(enum table_hw_accel_id acc_id,
 
 	/* Status Handling*/
 	status = *((int32_t *)HWC_ACC_OUT_ADDRESS);
-	switch (status) {
-	case (TABLE_HW_STATUS_SUCCESS):
-		break;
-	case (TABLE_HW_STATUS_MISS):
-		break;
-	default:
+	if (status == TABLE_HW_STATUS_SUCCESS){}
+	else if (status == TABLE_HW_STATUS_MISS){}
+	else
 		table_exception_handler_wrp(
 				TABLE_LOOKUP_BY_KEY_FUNC_ID,
 				__LINE__,
 				status);
-		break;
-	} /* Switch */
 	return status;
 }
 	
@@ -170,50 +158,40 @@ inline int table_rule_create(enum table_hw_accel_id acc_id,
 
 	/* Status Handling */
 	status = *((int32_t *)HWC_ACC_OUT_ADDRESS);
-	switch (status) {
-	case (TABLE_HW_STATUS_MISS):
+	if (status == TABLE_HW_STATUS_MISS)
 		/* A rule with the same match description is not found in the
 		 * table. New rule is created. */
 		status = TABLE_STATUS_SUCCESS;
-		break;
-	case (TABLE_HW_STATUS_SUCCESS):
+	else if (status == TABLE_HW_STATUS_SUCCESS)
 		/* A rule with the same match description (and not aged) is
 		 * found in the table. */
 		status = -EIO;
-		break;
 	/* Redirected to exception handler since aging is removed
-	case (TABLE_HW_STATUS_PIEE):
+	else if (status == TABLE_HW_STATUS_PIEE)
 		 * A rule with the same match description (and aged) is found
 		 * in the table. The rule is replaced. Output message is
 		 * valid if command MTYPE is w/o RPTR counter decrement.*
 		status = TABLE_STATUS_SUCCESS;
-		break;	
 	*/
-	case (CTLU_HW_STATUS_NORSC):
+	else if (status == CTLU_HW_STATUS_NORSC)
 		status = -ENOMEM;
-		break;
-	case (MFLU_HW_STATUS_NORSC):
+	else if (status == MFLU_HW_STATUS_NORSC)
 		status = -ENOMEM;
-		break;
-	case (CTLU_HW_STATUS_TEMPNOR):
+	else if (status == CTLU_HW_STATUS_TEMPNOR)
 		/* TODO Rev2 - consider to change it to EAGAIN. it is now
 		 * ENOMEM since in Rev1 it may take a very long time until
 		 * rules are released. */
 		status = -ENOMEM;
-		break;
-	case (MFLU_HW_STATUS_TEMPNOR):
+	else if (status == MFLU_HW_STATUS_TEMPNOR)
 		/* TODO Rev2 - consider to change it to EAGAIN. it is now
 		 * ENOMEM since in Rev1 it may take a very long time until
 		 * rules are released. */
 		status = -ENOMEM;
-		break;
-	default:
+	else
 		/* Call fatal error handler */
 		table_exception_handler_wrp(TABLE_RULE_CREATE_FUNC_ID,
 					    __LINE__,
 					    status);
-		break;
-	}
 	return status;
 }
 
@@ -243,25 +221,21 @@ inline int table_rule_delete(enum table_hw_accel_id acc_id,
 
 	/* Status Handling*/
 	status = *((int32_t *)HWC_ACC_OUT_ADDRESS);
-	switch (status) {
-	case (TABLE_HW_STATUS_SUCCESS):
+	if (status == TABLE_HW_STATUS_SUCCESS) {
 		if (result)
 			/* STQW optimization is not done here so we do not
 			 * force alignment */
 			*result = old_res.result;
-		break;
-	case (TABLE_HW_STATUS_MISS):
+	}
+	else if (status == TABLE_HW_STATUS_MISS)
 		/* Rule was not found */
 		status = -EIO;
-		break;
-	default:
+	else
 		/* Call fatal error handler */
 		table_exception_handler_wrp(
 				TABLE_RULE_DELETE_FUNC_ID,
 				__LINE__,
 				status);
-		break;
-	} /* Switch */
 
 	return status;
 }
@@ -283,6 +257,7 @@ inline int table_rule_query(enum table_hw_accel_id acc_id,
 	/* Prepare HW context for TLU accelerator call */
 	uint32_t arg3 = table_id;
 	uint32_t arg2 = (uint32_t)&entry;
+	uint8_t entry_type;
 	arg3 = __e_rlwimi(arg3, key_size, 16, 0, 15);
 	arg2 = __e_rlwimi(arg2, (uint32_t)key_desc, 16, 0, 15);
 	__stqw(TABLE_RULE_QUERY_MTYPE, arg2, arg3, 0, HWC_ACC_IN_ADDRESS, 0);
@@ -295,74 +270,66 @@ inline int table_rule_query(enum table_hw_accel_id acc_id,
 
 	if (status == TABLE_HW_STATUS_SUCCESS) {
 		/* Copy result and timestamp */
-		switch (entry.type & TABLE_ENTRY_ENTYPE_FIELD_MASK) {
-		case (TABLE_ENTRY_ENTYPE_EME16):
+		entry_type = entry.type & TABLE_ENTRY_ENTYPE_FIELD_MASK;
+		if (entry_type == TABLE_ENTRY_ENTYPE_EME16) {
 			*timestamp = entry.body.eme16.timestamp;
 			/* STQW optimization is not done here so we do not force
 			   alignment */
 			*result = entry.body.eme16.result;
-			break;
-		case (TABLE_ENTRY_ENTYPE_EME24):
+		}
+		else if (entry_type == TABLE_ENTRY_ENTYPE_EME24) {
 			*timestamp = entry.body.eme24.timestamp;
 			/* STQW optimization is not done here so we do not force
 			   alignment */
 			*result = entry.body.eme24.result;
-			break;
-		case (TABLE_ENTRY_ENTYPE_LPM_RES):
+		}
+		else if (entry_type == TABLE_ENTRY_ENTYPE_LPM_RES) {
 			*timestamp = entry.body.lpm_res.timestamp;
 			/* STQW optimization is not done here so we do not force
 			   alignment */
 			*result = entry.body.lpm_res.result;
-			break;
-		case (TABLE_ENTRY_ENTYPE_MFLU_RES):
+		}
+		else if (entry_type == TABLE_ENTRY_ENTYPE_MFLU_RES) {
 			*timestamp = entry.body.mflu_result.timestamp;
 			/* STQW optimization is not done here so we do not force
 			   alignment */
 			*result = entry.body.mflu_result.result;
-			break;
-		default:
+		}
+		else
 			/* Call fatal error handler */
 			table_exception_handler_wrp(
 					TABLE_RULE_QUERY_FUNC_ID,
 					__LINE__,
 					TABLE_SW_STATUS_QUERY_INVAL_ENTYPE);
-			break;
-		} /* Switch */
 	} else {
 		/* Status Handling*/
-		switch (status) {
-		case (TABLE_HW_STATUS_MISS):
+		if (status == TABLE_HW_STATUS_MISS){}
 			/* A rule with the same match description is not found
 			 * in the table. */
-			break;
 
 		/* Redirected to exception handler since aging is removed
-		case (CTLU_HW_STATUS_TEMPNOR):
+		else if (status == CTLU_HW_STATUS_TEMPNOR)
 			* A rule with the same match description is found and
 			 * rule is aged. *
 			status = TABLE_STATUS_MISS;
-			break;
 		*/
 
 		/* Redirected to exception handler since aging is removed - If
 		aging is enabled once again, please check that it is indeed
 		supported for MFLU, elsewhere it still needs to go to exception
 		path.
-		case (MFLU_HW_STATUS_TEMPNOR):
+		else if (status == MFLU_HW_STATUS_TEMPNOR)
 			/* A rule with the same match description is found and
 			 * rule is aged. *
 			status = TABLE_STATUS_MISS;
-			break;
 		*/
 
-		default:
+		else
 			/* Call fatal error handler */
 			table_exception_handler_wrp(
 					TABLE_RULE_QUERY_FUNC_ID,
 					__LINE__,
 					status);
-			break;
-		} /* Switch */
 	}
 
 	return status;
@@ -410,23 +377,19 @@ inline int table_rule_replace(enum table_hw_accel_id acc_id,
 
 	/* Status Handling*/
 	status = *((int32_t *)HWC_ACC_OUT_ADDRESS);
-	switch (status) {
-	case (TABLE_HW_STATUS_SUCCESS):
+	if (status == TABLE_HW_STATUS_SUCCESS) {
 		if (old_res)
 			/* STQW optimization is not done here so we do not
 			 * force alignment */
 			*old_res = hw_old_res.result;
-		break;
-	case (TABLE_HW_STATUS_MISS):
+	}
+	else if (status == TABLE_HW_STATUS_MISS)
 		status = -EIO;
-		break;
-	default:
+	else
 		/* Call fatal error handler */
 		table_exception_handler_wrp(TABLE_RULE_REPLACE_FUNC_ID,
 					    __LINE__,
 					    status);
-		break;
-	} /* Switch */
 
 	return status;
 }
@@ -492,33 +455,25 @@ inline int table_create(enum table_hw_accel_id acc_id,
 	crt_status = *((int32_t *)HWC_ACC_OUT_ADDRESS);
 
 	/* Translate status */
-	switch (crt_status) {
-	case (TABLE_STATUS_SUCCESS):
-		break;
-	case (CTLU_HW_STATUS_NORSC):
+	if (crt_status == TABLE_STATUS_SUCCESS){}
+	else if (crt_status == CTLU_HW_STATUS_NORSC)
 		crt_status = -ENOMEM;
-		break;
-	case (MFLU_HW_STATUS_NORSC):
+	else if (crt_status == MFLU_HW_STATUS_NORSC)
 		crt_status = -ENOMEM;
-		break;
-	case (CTLU_HW_STATUS_TEMPNOR):
+	else if (crt_status == CTLU_HW_STATUS_TEMPNOR)
 		/* TODO Rev2 - consider to change it to EAGAIN. it is
 		 * now ENOMEM since in Rev1 it may take a very long
 		 * time until rules are released. */
 		crt_status = -ENOMEM;
-		break;
-	case (MFLU_HW_STATUS_TEMPNOR):
+	else if (crt_status == MFLU_HW_STATUS_TEMPNOR)
 		/* TODO Rev2 - consider to change it to EAGAIN. it is
 		 * now ENOMEM since in Rev1 it may take a very long
 		 * time until rules are released. */
 		crt_status = -ENOMEM;
-		break;
-	default:
+	else
 		table_exception_handler_wrp(TABLE_CREATE_FUNC_ID,
 					    __LINE__,
 					    crt_status);
-		break;
-	}
 
 	if (crt_status >= 0)
 	/* Get new Table ID */

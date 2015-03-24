@@ -1,3 +1,24 @@
+LDPAA AIOP SERVICE LAYER LDPAA-AIOP-SL-v0.6.0 Change Log
+=============================================================
+FDMA:
+	* FDMA replicate functions can be called in order to replicate non-empty frames only (due to TKT258499).
+	
+TABLE:
+	* Resolved ENGR346557 ("Table delete will not work on the device").
+KEYGEN:
+	* Fix for ENGR350116  (Valid Field takes 2 bytes in KCR instead of only 1 byte)
+	
+PARSER:
+	* Removed Parser WA for TKT254635 (CTLU spec - requirement of data alignment)
+
+Alignment:
+	* FDMA SRs which implicitly compute representation address do not relocate segment on representing in order to keep former segment alignment.
+	* Add FDMA documentation alignment restrictions due to TKT254635.
+	* IPF – each fragment’s segment is presented in the presentation address of the original frame, in order to keep former segment alignment.
+	* Alignment requirements were added to many SRs and FMs.
+
+
+
 LDPAA AIOP SERVICE LAYER LDPAA-AIOP-SL-v0.5.3.3 Change Log
 =============================================================
 STE:
