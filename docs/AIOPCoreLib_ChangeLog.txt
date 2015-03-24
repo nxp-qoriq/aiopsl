@@ -1,3 +1,11 @@
+LDPAA AIOP SERVICE LAYER LDPAA-AIOP-SL-v0.6.0 Change Log
+=============================================================
+FDMA:
+	* FDMA SRs which implicitly compute representation address do not relocate segment on representing in order to keep former segment 		 alignment.
+	* Add FDMA documentation alignment restrictions due to TKT254635.
+	* FDMA replicate functions can be called in order to replicate non-empty frames only (due to TKT258499).
+
+
 LDPAA AIOP SERVICE LAYER LDPAA-AIOP-SL-v0.5.3.3 Change Log
 =============================================================
 STE:
