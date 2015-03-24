@@ -41,6 +41,8 @@
 
 extern __TASK struct aiop_default_task_params default_task_params;
 extern struct dpni_drv *nis;
+extern __PROFILE_SRAM 
+	struct storage_profile storage_profile[SP_NUM_OF_STORAGE_PROFILES];
 
 inline int sl_prolog(void)
 {	
@@ -124,6 +126,31 @@ inline int dpni_drv_send(uint16_t ni_id)
 	err = (int)fdma_store_and_enqueue_default_frame_qd(&enqueue_params, \
 			FDMA_ENWF_NO_FLAGS);
 	return err;
+}
+
+inline void sl_tman_expiration_task_prolog(uint16_t spid)
+{
+	struct fdma_amq amq;
+	uint16_t icid, flags = 0;
+	uint8_t tmp;
+	struct storage_profile *sp_addr = &storage_profile[0];
+	
+	sp_addr += spid;
+	*((uint8_t *)HWC_SPID_ADDRESS) = (uint8_t)spid;
+	default_task_params.parser_profile_id = 0;
+	default_task_params.parser_starting_hxs = 0;
+	icid = (uint16_t)(sp_addr->ip_secific_sp_info >> 48);
+	icid = ((icid << 8) & 0xff00) | ((icid >> 8) & 0xff);
+	tmp = (uint8_t)(sp_addr->ip_secific_sp_info >> 40);
+	if (tmp & 0x08)
+		flags |= FDMA_ICID_CONTEXT_BDI;
+	if (tmp & 0x04)
+		flags |= FDMA_ICID_CONTEXT_PL;
+	if (sp_addr->mode_bits2 & sp1_mode_bits2_VA_MASK)
+		flags |= FDMA_ICID_CONTEXT_VA;
+	amq.icid = icid;
+	amq.flags = flags;
+	set_default_amq_attributes(&amq);
 }
 
 

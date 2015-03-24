@@ -150,7 +150,22 @@ __declspec(entry_point) static void app_process_packet_flow0 (void)
 				local_test_error |= 1;
 			}
 		}
-		dpni_drv_send(dpni_get_receive_niid());
+		err = dpni_drv_send(dpni_get_receive_niid());
+		if (err){
+			fsl_os_print("ERROR = %d: dpni_drv_send()\n",err);
+			local_test_error |= err;
+			if(err == -ENOMEM)
+			{
+				fdma_discard_default_frame(FDMA_DIS_NO_FLAGS);
+			}
+			else /* (err == -EBUSY) */
+				fdma_discard_fd((struct ldpaa_fd *)HWC_FD_ADDRESS, FDMA_DIS_NO_FLAGS);
+
+			
+			if (ipf_status == IPF_GEN_FRAG_STATUS_IN_PROCESS)
+				ipf_discard_frame_remainder(ipf_context_addr);
+			break;
+		}
 	} while (ipf_status != IPF_GEN_FRAG_STATUS_DONE);
 
 	fsl_os_print
@@ -261,7 +276,7 @@ int app_init(void)
 	epid_setup();
 #endif /* AIOP_STANDALONE */
 
-	for (ni = 0; ni < dpni_get_num_of_ni(); ni++)
+	for (ni = 0; ni < dpni_drv_get_num_of_nis(); ni++)
 	{
 		err = dpni_drv_register_rx_cb((uint16_t)ni /*ni_id*/,
 		                              app_process_packet_flow0 /* callback */);

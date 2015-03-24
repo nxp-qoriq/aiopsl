@@ -35,30 +35,28 @@ struct mc_dprc {
 	struct fsl_mc_io	io;
 };
 
-struct mc_dpci_obj {
-	struct dpci_attr	*attr;
-	struct dpci_peer_attr	*peer_attr;
-	struct dpci_rx_queue_attr *rx_queue_attr[DPCI_PRIO_NUM];
-	struct dpci_tx_queue_attr *tx_queue_attr[DPCI_PRIO_NUM];
-	uint16_t		*token;
-	uint16_t		*icid;		/**< ICID per DPCI */
-	uint32_t		*dma_flags;	/**< FDMA dma data flags */
-	uint32_t		*bdi_flags;	/**< FDMA enqueue flags */
-	int    			count;
-};
 
 struct mc_dpci_tbl {
 	uint32_t *ic;		/**< 0xFFFFFFFF is not valid, must be atomic*/
 	uint32_t *dpci_id;	/**< dpci ids not tokens */
-	int count;
+	uint32_t *dpci_id_peer;	/**< dpci ids not tokens */
+	int32_t count;
 	int max;
-	uint8_t lock;
 };
 
 /*
- * Returns dpci index on success or error otherwise 
+ * Returns dpci index on success or error otherwise
  * Once dpci id is added to the table it can't be remove but only invalidated
  */
 int mc_dpci_find(uint32_t dpci_id, uint32_t *ic);
+void mc_dpci_tbl_dump();
+/* 
+ * Find and allocate new entry 
+ */
+int mc_dpci_entry_get();
+/*
+ * Remove this entry from dpci table
+ */
+void mc_dpci_entry_delete(int ind);
 
 #endif /*__FSL_MC_INIT_H */

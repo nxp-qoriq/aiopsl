@@ -332,7 +332,6 @@ struct ipsec_encap_gcm_params {
  * @Description   Container for encapsulation parameters
 *//***************************************************************************/
 struct ipsec_encap_params {
-	uint8_t ip_nh; /**< Next header value used for transport mode */
 	uint16_t options; /**< Options */
 	uint32_t seq_num_ext_hi; /**< Extended sequence number */
 	uint32_t seq_num;	/**< Initial sequence number */
@@ -657,12 +656,14 @@ int ipsec_get_seq_num(
 @Cautions	User should note the following:
 		 - In this function the task yields.
 		 - This function preserves the Order Scope mode of the task. If
-		the Order Scope is of mode concurrent, the Order Scope ID is
-		incremented by 1.
+			the Order Scope is of mode concurrent, the Order Scope ID is
+			incremented by 1.
 		 - It is assumed that IPv6 ESP extension is the last IPv6
-		extension in the packet.
+			extension in the packet.
 		 - This function does not support input frames which are IPv6
-		jumbograms.
+			jumbograms.
+		- It is assumed that the address of the presented segment is
+			aligned to 16 bytes.
 *//****************************************************************************/
 int ipsec_frame_decrypt(
 		ipsec_handle_t ipsec_handle,
@@ -688,15 +689,17 @@ int ipsec_frame_decrypt(
 @Return		General status
 
 @Cautions	User should note the following:
-		 - In this function the task yields.
-		 - This function preserves the Order Scope mode of the task. If
+		- In this function the task yields.
+		- This function preserves the Order Scope mode of the task. If
 			the Order Scope is of mode concurrent, the Order Scope ID is
 			incremented by 1.
 		- In a flow doing IP fragmentation (IPF) before encrypting 
 			the fragments with IPsec, the ordering scope must be Exclusive 
 			before the first fragment enters IPSec.
-		 - This function does not support encrypted frames which are
+		- This function does not support encrypted frames which are
 			IPv6 jumbograms.
+		- It is assumed that the address of the presented segment is
+			aligned to 16 bytes.
 *//****************************************************************************/
 int ipsec_frame_encrypt(
 		ipsec_handle_t ipsec_handle,

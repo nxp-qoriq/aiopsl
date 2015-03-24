@@ -32,26 +32,20 @@
 #include "fsl_mc_init.h"
 #include "cmdif_srv_flib.h"
 #include "fsl_fdma.h"
+#include "fsl_mc_cmd.h"
 
 #pragma warning_errors on
 ASSERT_STRUCT_SIZE(CMDIF_SESSION_OPEN_SIZEOF, CMDIF_SESSION_OPEN_SIZE);
 #pragma warning_errors off
 
-/** Short macro for fqd_ctx, to be used in CMDIF_FQD_GET */
-#define CMDIF_FQD_CTX_GET \
-	(((struct additional_dequeue_context *)HWC_ADC_ADDRESS)->fqd_ctx)
 
-/** Get command dequeue context */
-#define CMDIF_FQD_GET \
-	(uint32_t)(LLLDW_SWAP((uint32_t)&CMDIF_FQD_CTX_GET, 0) & 0xFFFFFFFF)
+#define CMDIF_BDI_BIT	((uint16_t)0x1)
 
 struct cmdif_srv_aiop {
 	struct cmdif_srv *srv;
 	/**< Common Server fields */
-	struct mc_dpci_obj *dpci_tbl;
+	struct mc_dpci_tbl *dpci_tbl;
 	/**< DPCI table according to indexes in dequeue context */
-	uint8_t lock;
-	/**< cmdif spinlock used for module id allocation */
 };
 
 void cmdif_srv_isr(void);

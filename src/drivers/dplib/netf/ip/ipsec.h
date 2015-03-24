@@ -343,6 +343,12 @@ Big Endian
 #define IPSEC_DPOVRD_OVRD 0x80000000
 #define IPSEC_DPOVRD_OVRD_TRANSPORT 0x80
 
+/* DPOVRD Next Header for ESP */
+/* 4 (0x04) IP-in-IP IP in IP (encapsulation) */
+#define IPSEC_NEXT_HEADER_IPV4 0x04
+/* 41 (0x29) IPv6 IPv6 Encapsulation */ 
+#define IPSEC_NEXT_HEADER_IPV6 0x29
+
 // TMP, removed from the external API
 /** Frames do not include a L2 Header */
 #define IPSEC_FLG_NO_L2_HEADER		0x00000010
@@ -411,6 +417,9 @@ Big Endian
 #define	SEC_AR_REPLAY_PACKET 0x40000084
 /** Sequence Number overflow */
 #define	SEC_SEQ_NUM_OVERFLOW 0x40000085
+
+#define	SEC_CCB_ERROR_MASK 0xF000000F
+#define	SEC_DECO_ERROR_MASK 0xF00000FF
 
 /* OSM temporary defines */
 /* TODO: should move to general or OSM include file */

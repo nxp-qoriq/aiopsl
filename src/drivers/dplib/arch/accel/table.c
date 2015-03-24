@@ -91,6 +91,11 @@ int table_rule_create_or_replace(enum table_hw_accel_id acc_id,
 				 uint8_t key_size,
 				 struct table_result *old_res)
 {
+	
+#ifdef CHECK_ALIGNMENT 	
+	DEBUG_ALIGN("table.c", (uint32_t)rule, ALIGNMENT_16B);
+#endif
+	
 	int32_t status;
 
 	struct table_old_result hw_old_res __attribute__((aligned(16)));
@@ -123,36 +128,28 @@ int table_rule_create_or_replace(enum table_hw_accel_id acc_id,
 
 	/* Status Handling*/
 	status = *((int32_t *)HWC_ACC_OUT_ADDRESS);
-	switch (status) {
-	case (TABLE_HW_STATUS_SUCCESS):
+	if (status == TABLE_HW_STATUS_SUCCESS) {
 		/* Replace occurred */
 		if (old_res)
 			/* STQW optimization is not done here so we do not
 			 * force alignment */
 			*old_res = hw_old_res.result;
-		break;
-	case (TABLE_HW_STATUS_MISS):
-		break;
-	case (CTLU_HW_STATUS_NORSC):
+	}
+	else if (status == TABLE_HW_STATUS_MISS){}
+	else if (status == CTLU_HW_STATUS_NORSC)
 		status = -ENOMEM;
-		break;
-	case (MFLU_HW_STATUS_NORSC):
+	else if (status == MFLU_HW_STATUS_NORSC)
 		status = -ENOMEM;
-		break;
-	case (CTLU_HW_STATUS_TEMPNOR):
+	else if (status == CTLU_HW_STATUS_TEMPNOR)
 		status = -ENOMEM;
-		break;
-	case (MFLU_HW_STATUS_TEMPNOR):
+	else if (status == MFLU_HW_STATUS_TEMPNOR)
 		status = -ENOMEM;
-		break;
-	default:
+	else
 		/* Call fatal error handler */
 		table_exception_handler_wrp(
 				TABLE_RULE_CREATE_OR_REPLACE_FUNC_ID,
 				__LINE__,
 				status);
-		break;
-	} /* Switch */
 
 	return status;
 }
@@ -166,6 +163,13 @@ int table_lookup_by_keyid(enum table_hw_accel_id acc_id,
 				 *ndf_params,
 			  struct table_lookup_result *lookup_result)
 {
+	
+#ifdef CHECK_ALIGNMENT 	
+	DEBUG_ALIGN("table.c", (uint32_t)ndf_params, ALIGNMENT_16B);
+	DEBUG_ALIGN("table.c", (uint32_t)lookup_result, ALIGNMENT_16B);
+	DEBUG_ALIGN("table.c", (uint32_t *)PRC_GET_SEGMENT_ADDRESS(), ALIGNMENT_16B);
+#endif
+	
 	int32_t status;
 
 	/* optimization 1 clock */
@@ -186,25 +190,18 @@ int table_lookup_by_keyid(enum table_hw_accel_id acc_id,
 
 	/* Status Handling*/
 	status = *((int32_t *)HWC_ACC_OUT_ADDRESS);
-	switch (status) {
-	case (TABLE_HW_STATUS_SUCCESS):
-		break;
-	case (TABLE_HW_STATUS_MISS):
-		break;
-	case (TABLE_HW_STATUS_EOFH):
+	if (status == TABLE_HW_STATUS_SUCCESS){}
+	else if (status == TABLE_HW_STATUS_MISS){}
+	else if (status == TABLE_HW_STATUS_EOFH)
 		status = -EIO;
-		break;
 	/*TODO EOFH with LOOKUP hit/miss */
-	case (TABLE_HW_STATUS_EOFH | TABLE_HW_STATUS_MISS):
+	else if (status == (TABLE_HW_STATUS_EOFH | TABLE_HW_STATUS_MISS))
 		status = -EIO;
-		break;
-	default:
+	else
 		/* Call fatal error handler */
 		table_exception_handler_wrp(TABLE_LOOKUP_BY_KEYID_FUNC_ID,
 					    __LINE__,
 					    status);
-		break;
-	} /* Switch */
 
 	return status;
 }

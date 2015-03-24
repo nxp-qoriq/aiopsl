@@ -537,23 +537,14 @@ int keygen_kcr_builder_add_valid_field_fec(uint8_t mask,
 
 		kb->kcr[curr_byte] = (KEYGEN_KCR_VF_FECID << 1) |
 				     KEYGEN_KCR_MASK_EXT;
-#ifdef ENGR00350113_IS_NOT_FIXED
-		kb->kcr[curr_byte+1] = 0x0;
-		kb->kcr[curr_byte+2] = nmsk_moff0;
-		kb->kcr[curr_byte+3] = mask;
-#else
 		kb->kcr[curr_byte+1] = nmsk_moff0;
 		kb->kcr[curr_byte+2] = mask;
-#endif
 
 	} else {
 		if ((curr_byte + fec_bytes_num) > KEYGEN_KCR_MAX_KCR_SIZE)
 			return -EINVAL;
 
 		kb->kcr[curr_byte] = KEYGEN_KCR_VF_FECID << 1;
-#ifdef ENGR00350113_IS_NOT_FIXED
-		kb->kcr[curr_byte+1] = 0x0;
-#endif
 	}
 	/* Build the FEC */
 	/* Valid field FECID, mask extension indication*/
@@ -570,6 +561,10 @@ void keygen_kcr_replace(enum keygen_hw_accel_id acc_id,
 			 uint8_t *kcr,
 			 uint8_t keyid)
 {
+	
+#ifdef CHECK_ALIGNMENT 	
+	DEBUG_ALIGN("keygen.c", (uint32_t)kcr, ALIGNMENT_16B);
+#endif
 
 	/* Prepare HW context for TLU accelerator call */
 	__stqw(KEYGEN_KEY_COMPOSITION_RULE_CREATE_OR_REPLACE_MTYPE,
@@ -606,6 +601,11 @@ int keygen_kcr_delete(enum keygen_hw_accel_id acc_id,
 void keygen_kcr_query(enum keygen_hw_accel_id acc_id,
 		       uint8_t keyid, uint8_t *kcr)
 {
+	
+#ifdef CHECK_ALIGNMENT 	
+	DEBUG_ALIGN("keygen.c", (uint32_t)kcr, ALIGNMENT_16B);
+#endif
+	
 	/* Prepare HW context for TLU accelerator call */
 	__stqw(KEYGEN_KEY_COMPOSITION_RULE_QUERY_MTYPE, (uint32_t)kcr,
 	       ((uint32_t)keyid) << 16, 0, HWC_ACC_IN_ADDRESS, 0);
@@ -619,6 +619,10 @@ void keygen_kcr_query(enum keygen_hw_accel_id acc_id,
 
 int keygen_gen_hash(void *key, uint8_t key_size, uint32_t *hash)
 {
+	
+#ifdef CHECK_ALIGNMENT 	
+	DEBUG_ALIGN("keygen.c", (uint32_t)key, ALIGNMENT_16B);
+#endif
 
 	int32_t status;
 

@@ -1237,6 +1237,9 @@ inline int table_lookup_by_key(enum table_hw_accel_id acc_id,
 
 @Cautions	In this function the task yields.
 @Cautions	This function may result in a fatal error.
+@Cautions	Presented header address in the workspace must be aligned to
+			16 bytes.
+
 *//***************************************************************************/
 inline int table_lookup_by_keyid_default_frame(enum table_hw_accel_id acc_id,
 					uint16_t table_id,
@@ -1300,6 +1303,8 @@ inline int table_lookup_by_keyid_default_frame(enum table_hw_accel_id acc_id,
 
 @Cautions	In this function the task yields.
 @Cautions	This function may result in a fatal error.
+@Cautions	Presented header address in the workspace must be aligned to
+			16 bytes.
 *//***************************************************************************/
 int table_lookup_by_keyid(enum table_hw_accel_id acc_id,
 			  uint16_t table_id,

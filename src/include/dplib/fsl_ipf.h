@@ -164,13 +164,11 @@ typedef uint8_t ipf_ctx_t[IPF_CONTEXT_SIZE]
 
 @Cautions	In the output fragment, ASA & PTA are not presented.\n
 		No support in IPv6 jumbograms.\n
+		It is assumed that the address of the presented segment is
+		aligned to 16 bytes.\n
 		Since during fragmentation process of an IPv6 frame, fragment
-		extension (8 bytes) is added to the header, user must ensure
-		that either 8 bytes are available in the headroom, or that
-		Presented segment size is large enough to include these 8 bytes
-		in addition to any existing headers presented.
-		Also, since the fragment's header must not exceed 256 bytes,
-		IPv6 input frame's header must not exceed 248 bytes. 
+		extension (8 bytes) is added to the header, 8 bytes will be
+		removed from the tail of the presented segment.
 *//***************************************************************************/
 int ipf_generate_frag(ipf_ctx_t ipf_context_addr);
 

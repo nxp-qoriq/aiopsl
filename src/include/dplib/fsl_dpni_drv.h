@@ -33,7 +33,6 @@
 #define __FSL_DPNI_DRV_H
 
 #include "types.h"
-#include "fsl_dpni.h"
 #include "fsl_ldpaa.h"
 #include "dpni_drv.h"
 #include "dpni_drv_rxtx_inline.h"
@@ -46,6 +45,87 @@
 
 @{
 *//***************************************************************************/
+
+/**
+ * struct dpni_drv_link_state - Structure representing DPNI driver link state
+ * @rate: Rate
+ * @options: Mask of available options; use 'DPNI_LINK_OPT_<X>' values
+ * @up: Link state; '0' for down, '1' for up
+ */
+struct dpni_drv_link_state {
+	uint64_t rate;
+	uint64_t options;
+	int up;
+};
+
+/**
+ * enum dpni_drv_counter - DPNI driver counter types
+ * @DPNI_DRV_CNT_ING_FRAME: Counts ingress frames
+ * @DPNI_DRV_CNT_ING_BYTE: Counts ingress bytes
+ * @DPNI_DRV_CNT_ING_FRAME_DROP: Counts ingress frames dropped due to explicit
+ * 		'drop' setting
+ * @DPNI_DRV_CNT_ING_FRAME_DISCARD: Counts ingress frames discarded due to errors
+ * @DPNI_DRV_CNT_ING_MCAST_FRAME: Counts ingress multicast frames
+ * @DPNI_DRV_CNT_ING_MCAST_BYTE: Counts ingress multicast bytes
+ * @DPNI_DRV_CNT_ING_BCAST_FRAME: Counts ingress broadcast frames
+ * @DPNI_DRV_CNT_ING_BCAST_BYTES: Counts ingress broadcast bytes
+ * @DPNI_DRV_CNT_EGR_FRAME: Counts egress frames
+ * @DPNI_DRV_CNT_EGR_BYTE: Counts egress bytes
+ * @DPNI_DRV_CNT_EGR_FRAME_DISCARD: Counts egress frames discarded due to errors
+ */
+enum dpni_drv_counter {
+	DPNI_DRV_CNT_ING_FRAME = 0x0,
+	DPNI_DRV_CNT_ING_BYTE = 0x1,
+	DPNI_DRV_CNT_ING_FRAME_DROP = 0x2,
+	DPNI_DRV_CNT_ING_FRAME_DISCARD = 0x3,
+	DPNI_DRV_CNT_ING_MCAST_FRAME = 0x4,
+	DPNI_DRV_CNT_ING_MCAST_BYTE = 0x5,
+	DPNI_DRV_CNT_ING_BCAST_FRAME = 0x6,
+	DPNI_DRV_CNT_ING_BCAST_BYTES = 0x7,
+	DPNI_DRV_CNT_EGR_FRAME = 0x8,
+	DPNI_DRV_CNT_EGR_BYTE = 0x9,
+	DPNI_DRV_CNT_EGR_FRAME_DISCARD = 0xa
+};
+
+/* DPNI DRV buffer layout modification options */
+
+/* Select to modify the time-stamp setting */
+#define DPNI_DRV_BUF_LAYOUT_OPT_TIMESTAMP               0x00000001
+/* Select to modify the parser-result setting; not applicable for Tx */
+#define DPNI_DRV_BUF_LAYOUT_OPT_PARSER_RESULT           0x00000002
+/* Select to modify the frame-status setting */
+#define DPNI_DRV_BUF_LAYOUT_OPT_FRAME_STATUS            0x00000004
+/* Select to modify the private-data-size setting */
+#define DPNI_DRV_BUF_LAYOUT_OPT_PRIVATE_DATA_SIZE	0x00000008
+/* Select to modify the data-alignment setting */
+#define DPNI_DRV_BUF_LAYOUT_OPT_DATA_ALIGN              0x00000010
+/* Select to modify the data-head-room setting */
+#define DPNI_DRV_BUF_LAYOUT_OPT_DATA_HEAD_ROOM          0x00000020
+/*!< Select to modify the data-tail-room setting */
+#define DPNI_DRV_BUF_LAYOUT_OPT_DATA_TAIL_ROOM          0x00000040
+
+/**
+ * struct dpni_drv_buf_layout - Structure representing DPNI buffer layout
+ * @options: Flags representing the suggested modifications to the buffer
+ * 		layout; Use any combination of 'DPNI_DRV_BUF_LAYOUT_OPT_<X>' flags
+ * @pass_timestamp: Pass timestamp value
+ * @pass_parser_result: Pass parser results
+ * @pass_frame_status: Pass frame status
+ * @private_data_size: Size kept for private data (in bytes)
+ * @data_align: Data alignment
+ * @data_head_room: Data head room
+ * @data_tail_room: Data tail room
+ */
+struct dpni_drv_buf_layout {
+	uint32_t options;
+	int pass_timestamp;
+	int pass_parser_result;
+	int pass_frame_status;
+	uint16_t private_data_size;
+	uint16_t data_align;
+	uint16_t data_head_room;
+	uint16_t data_tail_room;
+};
 
 /**************************************************************************//**
 @Function	dpni_drv_register_rx_cb
@@ -79,6 +159,30 @@ int dpni_drv_register_rx_cb(uint16_t        ni_id,
 		\ref error_g
 *//***************************************************************************/
 int dpni_drv_unregister_rx_cb(uint16_t		ni_id);
+
+/**************************************************************************//**
+@Function	dpni_drv_enable
+
+@Description	Enable a NI_ID referenced by ni_id. Allows sending and
+		receiving frames.
+
+@Param[in]	ni_id   The Network Interface ID
+
+@Return	OK on success; error code, otherwise.
+*//***************************************************************************/
+int dpni_drv_enable(uint16_t ni_id);
+
+/**************************************************************************//**
+@Function	dpni_drv_disable
+
+@Description	Disables a NI_ID referenced by ni_id. Disallows sending and
+		receiving frames
+
+@Param[in]	ni_id	The Network Interface ID
+
+@Return	OK on success; error code, otherwise.
+*//***************************************************************************/
+int dpni_drv_disable(uint16_t ni_id);
 
 /**************************************************************************//**
 @Function	dpni_get_receive_niid
@@ -236,6 +340,21 @@ int dpni_drv_get_max_frame_length(uint16_t ni_id,
 inline int sl_prolog(void);
 
 /**************************************************************************//**
+@Function	sl_tman_expiration_task_prolog
+
+@Description	Network Interface SL tman expiration task prolog function. 
+		This function initialize into WS the ICID as taken from the 
+		SPID and clear starting HXS and PRPID.
+		It should be called from the beginning of user's timer 
+		expiration call-back function to assure that fdma create and
+		fdma store functions will work properly.
+
+@param[in]	spid - storage profile id.
+
+*//***************************************************************************/
+inline void sl_tman_expiration_task_prolog(uint16_t spid);
+
+/**************************************************************************//**
 @Function	dpni_drv_send
 
 @Description	Network Interface send (AIOP enqueue) function.
@@ -344,6 +463,17 @@ int dpni_drv_get_spid(uint16_t ni_id, uint16_t *spid);
 int dpni_drv_get_spid_ddr(uint16_t ni_id, uint16_t *spid_ddr);
 
 /**************************************************************************//**
+@Function	dpni_drv_get_num_of_nis
+
+@Description	Returns the number of NI_IDs in the system.  Called by the AIOP
+		applications to learn the maximum number of available network
+		interfaces.
+
+@Return	Number of NI_IDs in the system
+*//***************************************************************************/
+int dpni_drv_get_num_of_nis(void);
+
+/**************************************************************************//**
 @Function	dpni_drv_set_concurrent
 
 @Description	Function to set the initial ordering mode to concurrent for the given NI.
@@ -421,6 +551,22 @@ int dpni_drv_get_connected_aiop_ni_id(const uint16_t dpni_id, uint16_t *aiop_nii
 int dpni_drv_get_connected_dpni_id(const uint16_t aiop_niid, uint16_t *dpni_id, int *state);
 
 /**************************************************************************//**
+@Function	dpni_drv_set_rx_buffer_layout
+
+@Description	Function to change SP’s attributes (specify how many headroom)
+
+@Param[in]	ni_id   The AIOP Network Interface ID
+
+@Param[in]	layout  Structure representing DPNI buffer layout
+
+@warning	Allowed only when DPNI is disabled
+
+@Return	0 on success;
+	error code, otherwise. For error posix refer to \ref error_g
+*//***************************************************************************/
+int dpni_drv_set_rx_buffer_layout(uint16_t ni_id, const struct dpni_drv_buf_layout *layout);
+
+/**************************************************************************//**
 @Function	dpni_drv_get_rx_buffer_layout
 
 @Description	Function to receive SP’s attributes for RX buffer.
@@ -432,7 +578,22 @@ int dpni_drv_get_connected_dpni_id(const uint16_t aiop_niid, uint16_t *dpni_id, 
 @Return	0 on success;
 	error code, otherwise. For error posix refer to \ref error_g
 *//***************************************************************************/
-int dpni_drv_get_rx_buffer_layout(uint16_t ni_id, struct dpni_buffer_layout *layout);
+int dpni_drv_get_rx_buffer_layout(uint16_t ni_id, struct dpni_drv_buf_layout *layout);
+
+/**************************************************************************//**
+@Function	dpni_drv_register_requirements
+
+@Description	register a request for DPNI requirement.
+
+@Param[in]	head_room           Requested head room.
+@Param[in]	tail_room           Requested tail room.
+@Param[in]	private_data_size   Requested private data size.
+
+@Return		0        - on success,
+		-ENAVAIL - resource not available or not found,
+		-ENOMEM  - not enough memory.
+ *//***************************************************************************/
+int dpni_drv_register_requirements(uint16_t head_room, uint16_t tail_room, uint16_t private_data_size);
 
 /**************************************************************************//**
 @Function	dpni_drv_get_counter
@@ -448,7 +609,21 @@ int dpni_drv_get_rx_buffer_layout(uint16_t ni_id, struct dpni_buffer_layout *lay
 @Return	0 on success;
 	error code, otherwise. For error posix refer to \ref error_g
 *//***************************************************************************/
-int dpni_drv_get_counter(uint16_t ni_id, enum dpni_counter counter, uint64_t *value);
+int dpni_drv_get_counter(uint16_t ni_id, enum dpni_drv_counter counter, uint64_t *value);
+
+/**************************************************************************//**
+@Function	dpni_drv_reset_counter
+
+@Description	Function to reset DPNI counter.
+
+@Param[in]	ni_id   The AIOP Network Interface ID
+
+@Param[in]	counter Type of DPNI counter.
+
+@Return	0 on success;
+	error code, otherwise. For error posix refer to \ref error_g
+*//***************************************************************************/
+int dpni_drv_reset_counter(uint16_t ni_id, enum dpni_drv_counter counter);
 
 /**************************************************************************//**
 @Function	dpni_drv_get_dpni_id
@@ -490,7 +665,7 @@ int dpni_drv_get_ni_id(uint16_t dpni_id, uint16_t *ni_id);
 @Return	0 on success;
 	error code, otherwise. For error posix refer to \ref error_g
 *//***************************************************************************/
-int dpni_drv_get_link_state(uint16_t ni_id, struct dpni_link_state *state);
+int dpni_drv_get_link_state(uint16_t ni_id, struct dpni_drv_link_state *state);
 
 /**************************************************************************//**
 @Function	dpni_drv_clear_mac_filters
@@ -508,5 +683,60 @@ int dpni_drv_get_link_state(uint16_t ni_id, struct dpni_link_state *state);
 	error code, otherwise. For error posix refer to \ref error_g
 *//***************************************************************************/
 int dpni_drv_clear_mac_filters(uint16_t ni_id, uint8_t unicast, uint8_t multicast);
+
+/**************************************************************************//**
+@Function	dpni_drv_clear_vlan_filters
+
+@Description	Function to clear VLAN filters for given NI.
+
+@Param[in]	ni_id The AIOP Network Interface ID.
+
+@Return	0 on success;
+	error code, otherwise. For error posix refer to \ref error_g
+*//***************************************************************************/
+int dpni_drv_clear_vlan_filters(uint16_t ni_id);
+
+/**************************************************************************//**
+@Function	dpni_drv_set_vlan_filters
+
+@Description	Function to set VLAN filters for given NI.
+
+@Param[in]	ni_id The AIOP Network Interface ID.
+
+@Param[in]	en Set to '1' to enable; '0' to disable.
+
+@Return	0 on success;
+	error code, otherwise. For error posix refer to \ref error_g
+*//***************************************************************************/
+int dpni_drv_set_vlan_filters(uint16_t ni_id, int en);
+
+/**************************************************************************//**
+@Function	dpni_drv_add_vlan_id
+
+@Description	Function to add VLAN filters for given NI.
+
+@Param[in]	ni_id The AIOP Network Interface ID.
+
+@Param[in]	vlan_id VLAN ID to add to given NI.
+
+@Return	0 on success;
+	error code, otherwise. For error posix refer to \ref error_g
+*//***************************************************************************/
+int dpni_drv_add_vlan_id(uint16_t ni_id, uint16_t vlan_id);
+
+/**************************************************************************//**
+@Function	dpni_drv_remove_vlan_id
+
+@Description	Function to remove VLAN filters in given NI.
+
+@Param[in]	ni_id The AIOP Network Interface ID.
+
+@Param[in]	vlan_id VLAN ID to remove in given NI.
+
+@Return	0 on success;
+	error code, otherwise. For error posix refer to \ref error_g
+*//***************************************************************************/
+int dpni_drv_remove_vlan_id(uint16_t ni_id, uint16_t vlan_id);
+
 /** @} */ /* end of dpni_g DPNI group */
 #endif /* __FSL_DPNI_DRV_H */
