@@ -192,7 +192,7 @@ int dpni_drv_disable(uint16_t ni_id);
 @Return	NI_IDs on which the default packet arrived.
 *//***************************************************************************/
 /* TODO : replace by macros/inline funcs */
-uint16_t dpni_get_receive_niid(void);
+inline uint16_t dpni_get_receive_niid(void);
 
 /**************************************************************************//**
 @Function	dpni_set_send_niid
