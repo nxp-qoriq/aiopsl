@@ -1539,6 +1539,7 @@ int parser_profile_delete(uint8_t prpid);
 @Param[in]	prpid - Parse Profile ID (located in the workspace).
 @Param[out]	parse_profile - Points to a user preallocated memory in the
  	 	workspace to which the parse profile entry will be written.
+		Must be 16 bytes aligned.
 
 @Return		None.
 
@@ -1583,10 +1584,8 @@ void parser_profile_query(uint8_t prpid,
 		completing all parsing)
 
 @Cautions	In this function the task yields.
- 	  	As a workaround of TKT254635, in case the segment address is not
- 	  	aligned to 16 bytes, it will be changed to the closest aligned
- 	  	address and as a result the segment size will be decreased
- 	  	correspondingly.
+ 	  	Presented header address in the workspace must be aligned to
+ 	  	16 bytes.
 		In case gross running sum is clear, and L4 validation is not
 		required, running sum field in the parse result is not valid.
  	 	In case L4 validation is required but the gross running sum is
@@ -1631,10 +1630,8 @@ inline int parse_result_generate_default(uint8_t flags);
 		completing all parsing)
 
 @Cautions	In this function the task yields.
-  	  	As a workaround of TKT254635, in case the segment address is not
- 	  	aligned to 16 bytes, it will be changed to the closest aligned
- 	  	address and as a result the segment size will be decreased
- 	  	correspondingly.
+ 	  	Presented header address in the workspace must be aligned to
+ 	  	16 bytes.
 		In case gross running sum is clear, and L4 validation is not
 		required, running sum field in the parse result is not valid.
  	 	In case L4 validation is required but the gross running sum is
@@ -1669,10 +1666,8 @@ inline int parse_result_generate(enum parser_starting_hxs_code starting_hxs,
 		completing all parsing)
 
 @Cautions	In this function the task yields.
- 	  	As a workaround of TKT254635, in case the segment address is not
- 	  	aligned to 16 bytes, it will be changed to the closest aligned
- 	  	address and as a result the segment size will be decreased
- 	  	correspondingly.
+ 	  	Presented header address in the workspace must be aligned to
+ 	  	16 bytes.
  	 	If input gross running sum is not correct, both "gross running
  	 	sum" and "running sum" fields in the parse result are not valid.
  	 	This function may result in a fatal error.

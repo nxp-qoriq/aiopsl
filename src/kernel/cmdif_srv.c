@@ -35,7 +35,6 @@
 #include "sys.h"
 #include "fsl_malloc.h"
 #include "fsl_dbg.h"
-#include "kernel/fsl_spinlock.h"
 #include "fsl_cdma.h"
 #include "aiop_common.h"
 #include "ls2085_aiop/fsl_platform.h"
@@ -89,6 +88,15 @@
 		return;               \
 	} while (0)
 
+#define CMDIF_SRV_LOCK_W_TAKE \
+	do { \
+		cdma_mutex_lock_take((uint64_t)(&cmdif_aiop_srv), CDMA_MUTEX_WRITE_LOCK); \
+	} while(0)
+
+#define CMDIF_SRV_LOCK_RELEASE \
+	do { \
+		cdma_mutex_lock_release((uint64_t)(&cmdif_aiop_srv)); \
+	} while(0)
 
 static struct cmdif_srv_aiop cmdif_aiop_srv = {0};
 
@@ -134,7 +142,7 @@ static inline int inst_alloc(uint8_t m_id)
 
 	ASSERT_COND_LIGHT(is_power_of_2(M_NUM_OF_INSTANCES));
 
-	lock_spinlock(&cmdif_aiop_srv.lock);
+	CMDIF_SRV_LOCK_W_TAKE;
 
 	/* randomly pick instance/authentication id*/
 	r = MODULU_POWER_OF_TWO(fsl_os_rand(), M_NUM_OF_INSTANCES);
@@ -155,22 +163,22 @@ static inline int inst_alloc(uint8_t m_id)
 
 	/* didn't find empty space */
 	if (count >= M_NUM_OF_INSTANCES) {
-		unlock_spinlock(&cmdif_aiop_srv.lock);
+		CMDIF_SRV_LOCK_RELEASE;
 		return -ENAVAIL;
 	} else {
 		cmdif_aiop_srv.srv->m_id[r] = m_id;
 		cmdif_aiop_srv.srv->inst_count++;
-		unlock_spinlock(&cmdif_aiop_srv.lock);
+		CMDIF_SRV_LOCK_RELEASE;
 		return (int)r;
 	}
 }
 
 static inline void inst_dealloc(int inst)
 {
-	lock_spinlock(&cmdif_aiop_srv.lock);
+	CMDIF_SRV_LOCK_W_TAKE;
 	cmdif_aiop_srv.srv->m_id[inst] = FREE_INSTANCE;
 	cmdif_aiop_srv.srv->inst_count--;
-	unlock_spinlock(&cmdif_aiop_srv.lock);
+	CMDIF_SRV_LOCK_RELEASE;
 }
 
 static inline uint16_t cmd_id_get()
@@ -305,7 +313,7 @@ __HOT_CODE void cmdif_fd_send(int cb_err)
 
 	dpci_drv_user_ctx_get(&ind, &fqid);
 	ASSERT_COND(fqid != DPCI_FQID_NOT_VALID);
-	
+
 	sl_pr_debug("Response FQID = 0x%x pr = 0x%x dpci_ind = 0x%x\n", fqid, pr, ind);
 	sl_pr_debug("CB error = %d\n", cb_err);
 
@@ -439,8 +447,8 @@ __COLD_CODE int notify_open()
 	int ind = 0;
 	int link_up = 1;
 	int err = 0;
-	struct dpci_tx_queue_attr tx_queue_attr[DPCI_PRIO_NUM];
-	
+	uint32_t tx_queue[DPCI_PRIO_NUM];
+
 	/* Create descriptor for client session */
 	ASSERT_COND_LIGHT((cl != NULL) && (cmdif_aiop_srv.dpci_tbl != NULL));
 
@@ -457,12 +465,12 @@ __COLD_CODE int notify_open()
 
 	err = dpci_drv_update((uint32_t)ind); /* dev_id is swapped by GPP */
 	ASSERT_COND(!err);
-	
-	err = dpci_drv_tx_get(data->dev_id, &tx_queue_attr[0]);
+
+	err = dpci_drv_tx_get(data->dev_id, &tx_queue[0]);
 	ASSERT_COND(!err);
-	
+
 	/* TODO Consider to add lock per DPCI entry */
-	lock_spinlock(&cl->lock);
+	CMDIF_CL_LOCK_W_TAKE;
 
 #ifdef DEBUG
 	/* Don't allow to open the same session twice */
@@ -470,7 +478,7 @@ __COLD_CODE int notify_open()
 					data->inst_id, data->dev_id);
 	if (link_up >= 0) {
 		pr_err("The session already exists\n");
-		unlock_spinlock(&cl->lock);
+		CMDIF_CL_LOCK_RELEASE;
 		return -EEXIST;
 	}
 #endif
@@ -479,7 +487,7 @@ __COLD_CODE int notify_open()
 	link_up = cmdif_cl_free_session_get(cl);
 	if (link_up < 0) {
 		pr_err("Too many sessions\n");
-		unlock_spinlock(&cl->lock);
+		CMDIF_CL_LOCK_RELEASE;
 		return -ENOSPC;
 	}
 
@@ -490,13 +498,13 @@ __COLD_CODE int notify_open()
 	strncpy(&cl->gpp[link_up].m_name[0], &data->m_name[0], M_NAME_CHARS);
 	cl->gpp[link_up].m_name[M_NAME_CHARS] = '\0';
 	cl->gpp[link_up].regs->dpci_ind = (uint32_t)ind;
-	cl->gpp[link_up].regs->tx_queue_attr[0].fqid = tx_queue_attr[0].fqid;
-	cl->gpp[link_up].regs->tx_queue_attr[1].fqid = tx_queue_attr[1].fqid;
+	cl->gpp[link_up].regs->tx_queue_attr[0].fqid = tx_queue[0];
+	cl->gpp[link_up].regs->tx_queue_attr[1].fqid = tx_queue[1];
 
 	ASSERT_COND(cl->count < CMDIF_MN_SESSIONS);
 	cl->count++;
-	
-	unlock_spinlock(&cl->lock);
+
+	CMDIF_CL_LOCK_RELEASE;
 #endif /* STACK_CHECK */
 
 	return 0;
@@ -514,7 +522,8 @@ __COLD_CODE int notify_close()
 	int i = 0;
 
 	ASSERT_COND_LIGHT(cl != NULL);
-	lock_spinlock(&cl->lock);
+
+	CMDIF_CL_LOCK_W_TAKE;
 
 	i = cmdif_cl_auth_id_find(cl, data->auth_id, data->dev_id);
 
@@ -522,13 +531,13 @@ __COLD_CODE int notify_close()
 	if (i >= 0) {
 		cl->gpp[i].m_name[0] = CMDIF_FREE_SESSION;
 
-		unlock_spinlock(&cl->lock);
+		CMDIF_CL_LOCK_RELEASE;
 		return 0;
 	}
 
 	cl->count--;
-	
-	unlock_spinlock(&cl->lock);
+
+	CMDIF_CL_LOCK_RELEASE;
 #endif /* STACK_CHECK */
 	return -ENAVAIL;
 }
@@ -608,16 +617,12 @@ __COLD_CODE int session_open(uint16_t *new_auth)
 
 	inst_id  = cmd_inst_id_get();
 
-#ifdef  ARENA_LEGACY_CODE
-	err = dpci_rx_ctx_set();
-	ASSERT_COND(!err);
-	dpci_amq_bdi_set(); /* Must be before open callback */
-#endif
-
 	dpci_drv_user_ctx_get(&ind, NULL);
+#ifndef STACK_CHECK /* Stack check can ignore it up to user callback */
 	err = dpci_drv_update(ind);
 	ASSERT_COND(!err);
-	
+#endif
+
 	OPEN_CB(m_id, inst_id, dev);
 	if (!err) {
 		int  new_inst = inst_alloc((uint8_t)m_id);
@@ -656,13 +661,13 @@ __HOT_CODE void cmdif_srv_isr(void) __attribute__ ((noreturn))
 
 	cmd_id = cmd_id_get();
 	auth_id = cmd_auth_id_get();
-	
+
 	no_stack_pr_debug("cmd_id = 0x%x\n", cmd_id);
 	no_stack_pr_debug("auth_id = 0x%x\n", auth_id);
 	no_stack_pr_debug("gpp_icid = 0x%x\n", gpp_icid);
 	no_stack_pr_debug("gpp_dma flags = 0x%x\n", gpp_dma);
 
-	
+
 	if (cmd_id == CMD_ID_NOTIFY_OPEN) {
 		/* Support for AIOP -> GPP */
 		if (is_valid_auth_id(auth_id)) {

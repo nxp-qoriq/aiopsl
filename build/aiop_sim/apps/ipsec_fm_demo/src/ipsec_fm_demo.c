@@ -341,7 +341,7 @@ int app_init(void)
 #endif /* AIOP_STANDALONE */
 
 
-	for (ni = 0; ni < dpni_get_num_of_ni(); ni++)
+	for (ni = 0; ni < dpni_drv_get_num_of_nis(); ni++)
 	{
 		err = dpni_drv_register_rx_cb((uint16_t)ni /*ni_id*/,
 				app_process_packet_flow0 /* callback */);
@@ -624,7 +624,6 @@ int ipsec_app_init(uint16_t ni_id)
 		fsl_os_print("IPSEC: Tunnel Mode UDP Encapsulation\n");
 	}
 	
-	params.encparams.ip_nh = 0x0;
 	params.encparams.options = 0x0;
 	params.encparams.seq_num_ext_hi = 0x0;
 	params.encparams.seq_num = 0x0;

@@ -49,7 +49,7 @@ inline int parse_result_generate(enum parser_starting_hxs_code starting_hxs,
 {
 	
 #ifdef CHECK_ALIGNMENT 	
-	DEBUG_ALIGN("parser_inline.c",(uint32_t *)PRC_GET_SEGMENT_ADDRESS(), ALIGNMENT_16B);
+	DEBUG_ALIGN("parser_inline.h",(uint32_t *)PRC_GET_SEGMENT_ADDRESS(), ALIGNMENT_16B);
 #endif
 	
 	uint32_t arg1, arg2;
@@ -128,7 +128,7 @@ inline int parse_result_generate_default(uint8_t flags)
 {
 	
 #ifdef CHECK_ALIGNMENT 	
-	DEBUG_ALIGN("parser_inline.c",(uint32_t *)PRC_GET_SEGMENT_ADDRESS(), ALIGNMENT_16B);
+	DEBUG_ALIGN("parser_inline.h",(uint32_t *)PRC_GET_SEGMENT_ADDRESS(), ALIGNMENT_16B);
 #endif
 	
 	uint32_t arg1, arg2;
@@ -210,7 +210,7 @@ inline int parse_result_generate_basic(void)
 {
 	
 #ifdef CHECK_ALIGNMENT 	
-	DEBUG_ALIGN("parser_inline.c",(uint32_t *)PRC_GET_SEGMENT_ADDRESS(), ALIGNMENT_16B);
+	DEBUG_ALIGN("parser_inline.h",(uint32_t *)PRC_GET_SEGMENT_ADDRESS(), ALIGNMENT_16B);
 #endif
 	
 	uint32_t arg2;

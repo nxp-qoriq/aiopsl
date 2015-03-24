@@ -62,6 +62,8 @@ struct dpni_drv nis_first __attribute__((aligned(8)));
 struct dpni_drv *nis = &nis_first;
 int num_of_nis;
 
+struct dpni_early_init_request g_dpni_early_init_data = {0};
+
 void discard_rx_cb(void)
 {
 
@@ -89,10 +91,13 @@ int dpni_drv_register_rx_cb (uint16_t		ni_id,
 	
 	/* calculate pointer to the send NI structure */
 	dpni_drv = nis + ni_id;
+	/*Mutex lock to avoid race condition while writing to EPID table*/
+	cdma_mutex_lock_take((uint64_t)&wrks_addr->epas, CDMA_MUTEX_WRITE_LOCK);
 	lock_spinlock(&dpni_drv->dpni_lock); /*Lock dpni table entry*/
 	iowrite32_ccsr((uint32_t)(dpni_drv->dpni_drv_params_var.epid_idx), &wrks_addr->epas);
 	iowrite32_ccsr(PTR_TO_UINT(cb), &wrks_addr->ep_pc);
 	unlock_spinlock(&dpni_drv->dpni_lock); /*Unlock dpni table entry*/
+	cdma_mutex_lock_release((uint64_t)&wrks_addr->epas);
 	return 0;
 }
 
@@ -105,10 +110,13 @@ int dpni_drv_unregister_rx_cb (uint16_t		ni_id)
 	
 	/* calculate pointer to the send NI structure */
 	dpni_drv = nis + ni_id;
+	/*Mutex lock to avoid race condition while writing to EPID table*/
+	cdma_mutex_lock_take((uint64_t)&wrks_addr->epas, CDMA_MUTEX_WRITE_LOCK);
 	lock_spinlock(&dpni_drv->dpni_lock); /*Lock dpni table entry*/
 	iowrite32_ccsr((uint32_t)(dpni_drv->dpni_drv_params_var.epid_idx), &wrks_addr->epas);
 	iowrite32_ccsr(PTR_TO_UINT(discard_rx_cb), &wrks_addr->ep_pc);
 	unlock_spinlock(&dpni_drv->dpni_lock); /*Unlock dpni table entry*/
+	cdma_mutex_lock_release((uint64_t)&wrks_addr->epas);
 	return 0;
 }
 
@@ -117,13 +125,40 @@ int dpni_drv_enable (uint16_t ni_id)
 	struct dpni_drv *dpni_drv;
 	int		err;
 	struct mc_dprc *dprc = sys_get_unique_handle(FSL_OS_MOD_AIOP_RC);
-
+	struct aiop_psram_entry *sp_addr;
+	struct aiop_psram_entry alternate_storage_profile;
+	uint32_t sp_temp;
 	/* calculate pointer to the send NI structure */
 	dpni_drv = nis + ni_id;
 
 	if ((err = dpni_enable(&dprc->io, dpni_drv->dpni_drv_params_var.dpni))
-									!= 0)
+			!= 0)
 		return err;
+
+	lock_spinlock(&dpni_drv->dpni_lock); /*Lock dpni table entry*/
+	if(dpni_drv->dpni_drv_params_var.spid_ddr)/*spid for ddr pool can't be 0, it must be higher than spid given from MC*/
+	{
+		sp_addr = (struct aiop_psram_entry *)
+			(AIOP_PERIPHERALS_OFF + AIOP_STORAGE_PROFILE_OFF);
+		sp_addr += dpni_drv->dpni_drv_params_var.spid_ddr;		
+		/*store bpid used for DDR pool*/
+		sp_temp = LOAD_LE32_TO_CPU(&(sp_addr->bp1));
+		/*shift the mask 16 bits left*/
+		sp_temp &= (uint32_t)(SP_MASK_BPID << 16);
+		sp_addr = (struct aiop_psram_entry *)
+			(AIOP_PERIPHERALS_OFF + AIOP_STORAGE_PROFILE_OFF);
+		sp_addr += dpni_drv->dpni_drv_params_var.spid;
+		/*Update other parameters except bpid in DDR storage profile*/
+		sp_temp |= (LOAD_LE32_TO_CPU(&(sp_addr->bp1)) & SP_MASK_BMT_AND_RSV);
+		alternate_storage_profile = *sp_addr;
+		STORE_CPU_TO_LE32(sp_temp,&(alternate_storage_profile.bp1));
+		/*update already used spid*/
+		sp_addr = (struct aiop_psram_entry *)
+			(AIOP_PERIPHERALS_OFF + AIOP_STORAGE_PROFILE_OFF);
+		sp_addr += dpni_drv->dpni_drv_params_var.spid_ddr;
+		*sp_addr = alternate_storage_profile;
+	}
+	unlock_spinlock(&dpni_drv->dpni_lock); /*Unlock dpni table entry*/
 	return 0;
 }
 
@@ -155,7 +190,7 @@ __COLD_CODE int dpni_drv_probe(struct mc_dprc *dprc,
 	struct dpni_attr attributes;
 	struct dpni_buffer_layout layout = {0};
 	struct aiop_psram_entry *sp_addr;
-	struct aiop_psram_entry ddr_storage_profile;
+	struct aiop_psram_entry alternate_storage_profile;
 	struct aiop_tile_regs *tile_regs = (struct aiop_tile_regs *)
 			sys_get_handle(FSL_OS_MOD_AIOP_TILE, 1);
 	struct aiop_ws_regs *wrks_addr = &tile_regs->ws_regs;
@@ -213,13 +248,19 @@ __COLD_CODE int dpni_drv_probe(struct mc_dprc *dprc,
 
 			/* TODO: This should be changed for dynamic solution. The hardcoded value is
 			 * temp solution.*/
-			if(g_app_params.dpni_sp_def_dhr)
-				layout.options = DPNI_BUF_LAYOUT_OPT_DATA_HEAD_ROOM;
-			if(g_app_params.dpni_sp_def_dtr)
-				layout.options |= DPNI_BUF_LAYOUT_OPT_DATA_TAIL_ROOM;
-			layout.data_head_room = g_app_params.dpni_sp_def_dhr;
-			layout.data_tail_room = g_app_params.dpni_sp_def_dtr;
-			layout.private_data_size = g_app_params.dpni_sp_def_pds;
+			layout.options = DPNI_BUF_LAYOUT_OPT_DATA_HEAD_ROOM 
+						| DPNI_BUF_LAYOUT_OPT_DATA_TAIL_ROOM;
+			
+			if(g_dpni_early_init_data.count > 0) {
+				layout.data_head_room = g_dpni_early_init_data.head_room_sum;
+				layout.data_tail_room = g_dpni_early_init_data.tail_room_sum;
+				layout.private_data_size = g_dpni_early_init_data.private_data_size_sum;
+			}else {
+				layout.data_head_room = DPNI_DRV_DHR_DEF;
+				layout.data_tail_room = DPNI_DRV_DTR_DEF;
+				layout.private_data_size = DPNI_DRV_PTA_DEF;
+			}
+			
 			if ((err = dpni_set_rx_buffer_layout(&dprc->io, dpni, &layout)) != 0) {
 				pr_err("Failed to set rx buffer layout for DP-NI%d\n", mc_niid);
 				return -ENODEV;
@@ -275,17 +316,17 @@ __COLD_CODE int dpni_drv_probe(struct mc_dprc *dprc,
 					sp_addr = (struct aiop_psram_entry *)
 						(AIOP_PERIPHERALS_OFF + AIOP_STORAGE_PROFILE_OFF);
 					sp_addr += spid;
-					ddr_storage_profile = *sp_addr;
+					alternate_storage_profile = *sp_addr;
 
-					sp_temp = LOAD_LE32_TO_CPU(&ddr_storage_profile.bp1);
+					sp_temp = LOAD_LE32_TO_CPU(&alternate_storage_profile.bp1);
 					sp_temp &= SP_MASK_BMT_AND_RSV;
 					sp_temp |= ((pools_params[1].pools[0].dpbp_id & SP_MASK_BPID) << 16);
-					STORE_CPU_TO_LE32(sp_temp,&ddr_storage_profile.bp1);
+					STORE_CPU_TO_LE32(sp_temp,&alternate_storage_profile.bp1);
 
 					sp_addr = (struct aiop_psram_entry *)
 						(AIOP_PERIPHERALS_OFF + AIOP_STORAGE_PROFILE_OFF);
 					sp_addr += spid_ddr_id;
-					*sp_addr = ddr_storage_profile;
+					*sp_addr = alternate_storage_profile;
 
 					nis[aiop_niid].dpni_drv_params_var.spid_ddr = (uint8_t) spid_ddr_id;
 					spid_ddr_id ++;
@@ -323,11 +364,10 @@ int dpni_drv_get_spid_ddr(uint16_t ni_id, uint16_t *spid_ddr)
 
 	dpni_drv = nis + ni_id;
 	*spid_ddr = dpni_drv->dpni_drv_params_var.spid_ddr;
-
 	return 0;
 }
 
-int dpni_get_num_of_ni (void)
+int dpni_drv_get_num_of_nis (void)
 {
 	return num_of_nis;
 }
@@ -568,9 +608,14 @@ int dpni_drv_get_ordering_mode(uint16_t ni_id){
 	/* calculate pointer to the NI structure */
 	dpni_drv = nis + ni_id;
 	/* write epid index to epas register */
+	/*Mutex lock to avoid race condition while writing to EPID table*/
+	cdma_mutex_lock_take((uint64_t)&wrks_addr->epas, CDMA_MUTEX_WRITE_LOCK);
+	lock_spinlock(&dpni_drv->dpni_lock); /*Lock dpni table entry*/
 	iowrite32_ccsr((uint32_t)(dpni_drv->dpni_drv_params_var.epid_idx), &wrks_addr->epas);
 	/* read ep_osc - to get the order scope (concurrent / exclusive) */
 	ep_osc = ioread32_ccsr(&wrks_addr->ep_osc);
+	unlock_spinlock(&dpni_drv->dpni_lock); /*Unlock dpni table entry*/
+	cdma_mutex_lock_release((uint64_t)&wrks_addr->epas);
 
 	return (int)(ep_osc & ORDER_MODE_BIT_MASK) >> 24;
 }
@@ -584,6 +629,9 @@ static int dpni_drv_set_ordering_mode(uint16_t ni_id, int ep_mode){
 
 	/* calculate pointer to the NI structure */
 	dpni_drv = nis + ni_id;
+	/*Mutex lock to avoid race condition while writing to EPID table*/
+	cdma_mutex_lock_take((uint64_t)&wrks_addr->epas, CDMA_MUTEX_WRITE_LOCK);
+	lock_spinlock(&dpni_drv->dpni_lock); /*Lock dpni table entry*/
 	/* write epid index to epas register */
 	iowrite32_ccsr((uint32_t)(dpni_drv->dpni_drv_params_var.epid_idx), &wrks_addr->epas);
 	/* read ep_osc - to get the order scope (concurrent / exclusive) */
@@ -592,6 +640,8 @@ static int dpni_drv_set_ordering_mode(uint16_t ni_id, int ep_mode){
 	ep_osc |= (ep_mode & 0x01) << 24;
 	/*Set concurrent mode for NI in epid table*/
 	iowrite32_ccsr(ep_osc, &wrks_addr->ep_osc);
+	unlock_spinlock(&dpni_drv->dpni_lock); /*Unlock dpni table entry*/
+	cdma_mutex_lock_release((uint64_t)&wrks_addr->epas);
 	return 0;
 }
 
@@ -646,13 +696,13 @@ int dpni_drv_get_connected_aiop_ni_id(const uint16_t dpni_id, uint16_t *aiop_nii
 	if(err)
 		return err;
 
-	for(i = 0; i <  dpni_get_num_of_ni(); i++){
+	for(i = 0; i <  dpni_drv_get_num_of_nis(); i++){
 		if(endpoint2.id == nis[i].dpni_id){
 			*aiop_niid = i;
 			break;
 		}
 	}
-	if(i == dpni_get_num_of_ni())
+	if(i == dpni_drv_get_num_of_nis())
 		return -ENAVAIL;
 
 	return 0;
@@ -680,30 +730,62 @@ int dpni_drv_get_connected_dpni_id(const uint16_t aiop_niid, uint16_t *dpni_id, 
 	return 0;
 }
 
-int dpni_drv_set_rx_buffer_layout(uint16_t ni_id, const struct dpni_buffer_layout *layout){
+int dpni_drv_set_rx_buffer_layout(uint16_t ni_id, const struct dpni_drv_buf_layout *layout){
 	struct dpni_drv *dpni_drv;
 	struct mc_dprc *dprc = sys_get_unique_handle(FSL_OS_MOD_AIOP_RC);
-
+	struct dpni_buffer_layout dpni_layout;
 	/* calculate pointer to the NI structure */
 	dpni_drv = nis + ni_id;
+	dpni_layout.options = layout->options;
+	dpni_layout.pass_timestamp = layout->pass_timestamp;
+	dpni_layout.pass_parser_result = layout->pass_parser_result;
+	dpni_layout.pass_frame_status = layout->pass_frame_status;
+	dpni_layout.private_data_size = layout->private_data_size;
+	dpni_layout.data_align = layout->data_align;
+	dpni_layout.data_head_room = layout->data_head_room;
+	dpni_layout.data_tail_room = layout->data_tail_room;
 
 	return dpni_set_rx_buffer_layout(&dprc->io,
 	                                 dpni_drv->dpni_drv_params_var.dpni,
-	                                 layout);
+	                                 &dpni_layout);
 }
 
-int dpni_drv_get_rx_buffer_layout(uint16_t ni_id, struct dpni_buffer_layout *layout){
+int dpni_drv_get_rx_buffer_layout(uint16_t ni_id, struct dpni_drv_buf_layout *layout){
 	struct dpni_drv *dpni_drv;
 	struct mc_dprc *dprc = sys_get_unique_handle(FSL_OS_MOD_AIOP_RC);
-
+	struct dpni_buffer_layout dpni_layout;
+	int err;
 	/* calculate pointer to the NI structure */
 	dpni_drv = nis + ni_id;
-	return dpni_get_rx_buffer_layout(&dprc->io,
+	err = dpni_get_rx_buffer_layout(&dprc->io,
 	                                 dpni_drv->dpni_drv_params_var.dpni,
-	                                 layout);
+	                                 &dpni_layout);
+	layout->options = dpni_layout.options;
+	layout->pass_timestamp = dpni_layout.pass_timestamp;
+	layout->pass_parser_result = dpni_layout.pass_parser_result;
+	layout->pass_frame_status = dpni_layout.pass_frame_status;
+	layout->private_data_size = dpni_layout.private_data_size;
+	layout->data_align = dpni_layout.data_align;
+	layout->data_head_room = dpni_layout.data_head_room;
+	layout->data_tail_room = dpni_layout.data_tail_room;
+	return err;
 }
 
-int dpni_drv_get_counter(uint16_t ni_id, enum dpni_counter counter, uint64_t *value){
+int dpni_drv_register_requirements(uint16_t head_room, uint16_t tail_room, uint16_t private_data_size)
+{
+	g_dpni_early_init_data.count++;
+	
+	g_dpni_early_init_data.head_room_sum += head_room;
+	g_dpni_early_init_data.tail_room_sum += tail_room;
+	
+	if(private_data_size) {
+		g_dpni_early_init_data.private_data_size_sum = DPNI_DRV_PTA_SIZE;
+	}
+	
+	return 0;
+}
+
+int dpni_drv_get_counter(uint16_t ni_id, enum dpni_drv_counter counter, uint64_t *value){
 	struct dpni_drv *dpni_drv;
 	struct mc_dprc *dprc = sys_get_unique_handle(FSL_OS_MOD_AIOP_RC);
 
@@ -711,12 +793,24 @@ int dpni_drv_get_counter(uint16_t ni_id, enum dpni_counter counter, uint64_t *va
 	dpni_drv = nis + ni_id;
 	return dpni_get_counter(&dprc->io,
 	                        dpni_drv->dpni_drv_params_var.dpni,
-	                        counter,
+	                        (enum dpni_counter)counter,
 	                        value);
 }
 
+int dpni_drv_reset_counter(uint16_t ni_id, enum dpni_drv_counter counter){
+	struct dpni_drv *dpni_drv;
+	struct mc_dprc *dprc = sys_get_unique_handle(FSL_OS_MOD_AIOP_RC);
+
+	/* calculate pointer to the NI structure */
+	dpni_drv = nis + ni_id;
+	return dpni_set_counter(&dprc->io,
+	                        dpni_drv->dpni_drv_params_var.dpni,
+	                        (enum dpni_counter)counter,
+	                        0);
+}
+
 int dpni_drv_get_dpni_id(uint16_t ni_id, uint16_t *dpni_id){
-	if(ni_id >= dpni_get_num_of_ni())
+	if(ni_id >= dpni_drv_get_num_of_nis())
 	{
 		return -ENAVAIL;
 	}
@@ -728,7 +822,7 @@ int dpni_drv_get_dpni_id(uint16_t ni_id, uint16_t *dpni_id){
 int dpni_drv_get_ni_id(uint16_t dpni_id, uint16_t *ni_id){
 	uint16_t i;
 	
-	for(i = 0; i < dpni_get_num_of_ni(); i++)
+	for(i = 0; i < dpni_drv_get_num_of_nis(); i++)
 	{
 		if(nis[i].dpni_id == dpni_id)
 		{
@@ -736,21 +830,27 @@ int dpni_drv_get_ni_id(uint16_t dpni_id, uint16_t *ni_id){
 			break;
 		}
 	}
-	if(i == dpni_get_num_of_ni()){
+	if(i == dpni_drv_get_num_of_nis()){
 		return -ENAVAIL;
 	}
 	return 0;
 }
 
-int dpni_drv_get_link_state(uint16_t ni_id, struct dpni_link_state *state){
+int dpni_drv_get_link_state(uint16_t ni_id, struct dpni_drv_link_state *state){
 	struct dpni_drv *dpni_drv;
 	struct mc_dprc *dprc = sys_get_unique_handle(FSL_OS_MOD_AIOP_RC);
+	struct dpni_link_state link_state;
+	int err;
 
 	/* calculate pointer to the NI structure */
 	dpni_drv = nis + ni_id;
-	return dpni_get_link_state(&dprc->io,
+	err = dpni_get_link_state(&dprc->io,
 	                                 dpni_drv->dpni_drv_params_var.dpni,
-	                                 state);
+	                                 &link_state);
+	state->options = link_state.options;
+	state->rate = link_state.rate;
+	state->up = link_state.up;
+	return err;	
 }
 
 int dpni_drv_clear_mac_filters(uint16_t ni_id, uint8_t unicast, uint8_t multicast){
@@ -762,5 +862,48 @@ int dpni_drv_clear_mac_filters(uint16_t ni_id, uint8_t unicast, uint8_t multicas
 	return dpni_clear_mac_filters(&dprc->io,
 	                                 dpni_drv->dpni_drv_params_var.dpni,
 	                                 (int)unicast, (int) multicast);
+}
+
+int dpni_drv_clear_vlan_filters(uint16_t ni_id){
+	struct dpni_drv *dpni_drv;
+	struct mc_dprc *dprc = sys_get_unique_handle(FSL_OS_MOD_AIOP_RC);
+
+	/* calculate pointer to the NI structure */
+	dpni_drv = nis + ni_id;
+	return dpni_clear_vlan_filters(&dprc->io,
+	                                 dpni_drv->dpni_drv_params_var.dpni);
+}
+
+int dpni_drv_set_vlan_filters(uint16_t ni_id, int en){
+	struct dpni_drv *dpni_drv;
+	struct mc_dprc *dprc = sys_get_unique_handle(FSL_OS_MOD_AIOP_RC);
+
+	/* calculate pointer to the NI structure */
+	dpni_drv = nis + ni_id;
+	return dpni_set_vlan_filters(&dprc->io,
+	                                 dpni_drv->dpni_drv_params_var.dpni,
+	                                 en);
+}
+
+int dpni_drv_add_vlan_id(uint16_t ni_id, uint16_t vlan_id){
+	struct dpni_drv *dpni_drv;
+	struct mc_dprc *dprc = sys_get_unique_handle(FSL_OS_MOD_AIOP_RC);
+
+	/* calculate pointer to the NI structure */
+	dpni_drv = nis + ni_id;
+	return dpni_add_vlan_id(&dprc->io,
+	                                 dpni_drv->dpni_drv_params_var.dpni,
+	                                 vlan_id);
+}
+
+int dpni_drv_remove_vlan_id(uint16_t ni_id, uint16_t vlan_id){
+	struct dpni_drv *dpni_drv;
+	struct mc_dprc *dprc = sys_get_unique_handle(FSL_OS_MOD_AIOP_RC);
+
+	/* calculate pointer to the NI structure */
+	dpni_drv = nis + ni_id;
+	return dpni_remove_vlan_id(&dprc->io,
+	                                 dpni_drv->dpni_drv_params_var.dpni,
+	                                 vlan_id);
 }
 
