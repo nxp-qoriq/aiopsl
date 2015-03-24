@@ -93,10 +93,10 @@ int dpni_drv_register_rx_cb (uint16_t		ni_id,
 	dpni_drv = nis + ni_id;
 	/*Mutex lock to avoid race condition while writing to EPID table*/
 	cdma_mutex_lock_take((uint64_t)&wrks_addr->epas, CDMA_MUTEX_WRITE_LOCK);
-	lock_spinlock(&dpni_drv->dpni_lock); /*Lock dpni table entry*/
+	cdma_mutex_lock_take((uint64_t)&dpni_drv->dpni_lock, CDMA_MUTEX_WRITE_LOCK); /*Lock dpni table entry*/
 	iowrite32_ccsr((uint32_t)(dpni_drv->dpni_drv_params_var.epid_idx), &wrks_addr->epas);
 	iowrite32_ccsr(PTR_TO_UINT(cb), &wrks_addr->ep_pc);
-	unlock_spinlock(&dpni_drv->dpni_lock); /*Unlock dpni table entry*/
+	cdma_mutex_lock_release((uint64_t)&dpni_drv->dpni_lock); /*Unlock dpni table entry*/
 	cdma_mutex_lock_release((uint64_t)&wrks_addr->epas);
 	return 0;
 }
@@ -112,10 +112,10 @@ int dpni_drv_unregister_rx_cb (uint16_t		ni_id)
 	dpni_drv = nis + ni_id;
 	/*Mutex lock to avoid race condition while writing to EPID table*/
 	cdma_mutex_lock_take((uint64_t)&wrks_addr->epas, CDMA_MUTEX_WRITE_LOCK);
-	lock_spinlock(&dpni_drv->dpni_lock); /*Lock dpni table entry*/
+	cdma_mutex_lock_take((uint64_t)&dpni_drv->dpni_lock, CDMA_MUTEX_WRITE_LOCK); /*Lock dpni table entry*/
 	iowrite32_ccsr((uint32_t)(dpni_drv->dpni_drv_params_var.epid_idx), &wrks_addr->epas);
 	iowrite32_ccsr(PTR_TO_UINT(discard_rx_cb), &wrks_addr->ep_pc);
-	unlock_spinlock(&dpni_drv->dpni_lock); /*Unlock dpni table entry*/
+	cdma_mutex_lock_release((uint64_t)&dpni_drv->dpni_lock); /*Unlock dpni table entry*/
 	cdma_mutex_lock_release((uint64_t)&wrks_addr->epas);
 	return 0;
 }
@@ -135,7 +135,7 @@ int dpni_drv_enable (uint16_t ni_id)
 			!= 0)
 		return err;
 
-	lock_spinlock(&dpni_drv->dpni_lock); /*Lock dpni table entry*/
+	cdma_mutex_lock_take((uint64_t)&dpni_drv->dpni_lock, CDMA_MUTEX_WRITE_LOCK); /*Lock dpni table entry*/
 	if(dpni_drv->dpni_drv_params_var.spid_ddr)/*spid for ddr pool can't be 0, it must be higher than spid given from MC*/
 	{
 		sp_addr = (struct aiop_psram_entry *)
@@ -158,7 +158,7 @@ int dpni_drv_enable (uint16_t ni_id)
 		sp_addr += dpni_drv->dpni_drv_params_var.spid_ddr;
 		*sp_addr = alternate_storage_profile;
 	}
-	unlock_spinlock(&dpni_drv->dpni_lock); /*Unlock dpni table entry*/
+	cdma_mutex_lock_release((uint64_t)&dpni_drv->dpni_lock); /*Unlock dpni table entry*/
 	return 0;
 }
 
@@ -380,9 +380,9 @@ int dpni_drv_get_primary_mac_addr(uint16_t niid, uint8_t mac_addr[NET_HDR_FLD_ET
 	/* calculate pointer to the NI structure */
 	dpni_drv = nis + niid;
 	
-	lock_spinlock(&dpni_drv->dpni_lock); /*Lock dpni table entry*/
+	cdma_mutex_lock_take((uint64_t)&dpni_drv->dpni_lock, CDMA_MUTEX_WRITE_LOCK); /*Lock dpni table entry*/
 	memcpy(mac_addr, dpni_drv->mac_addr, NET_HDR_FLD_ETH_ADDR_SIZE);
-	unlock_spinlock(&dpni_drv->dpni_lock); /*Unlock dpni table entry*/
+	cdma_mutex_lock_release((uint64_t)&dpni_drv->dpni_lock); /*Unlock dpni table entry*/
 
 	return 0;
 }
@@ -395,16 +395,16 @@ int dpni_drv_set_primary_mac_addr(uint16_t niid, uint8_t mac_addr[NET_HDR_FLD_ET
 	/* calculate pointer to the NI structure */
 	dpni_drv = nis + niid;
 
-	lock_spinlock(&dpni_drv->dpni_lock); /*Lock dpni table entry*/
+	cdma_mutex_lock_take((uint64_t)&dpni_drv->dpni_lock, CDMA_MUTEX_WRITE_LOCK); /*Lock dpni table entry*/
 	err = dpni_set_primary_mac_addr(&dprc->io,
 	                                dpni_drv->dpni_drv_params_var.dpni,
 	                                mac_addr);
 	if(err){
-		unlock_spinlock(&dpni_drv->dpni_lock); /*Unlock dpni table entry*/
+		cdma_mutex_lock_release((uint64_t)&dpni_drv->dpni_lock); /*Unlock dpni table entry*/
 		return err;
 	}
 	memcpy(dpni_drv->mac_addr, mac_addr, NET_HDR_FLD_ETH_ADDR_SIZE);
-	unlock_spinlock(&dpni_drv->dpni_lock); /*Unlock dpni table entry*/
+	cdma_mutex_lock_release((uint64_t)&dpni_drv->dpni_lock); /*Unlock dpni table entry*/
 	return 0;
 }
 
@@ -610,11 +610,11 @@ int dpni_drv_get_ordering_mode(uint16_t ni_id){
 	/* write epid index to epas register */
 	/*Mutex lock to avoid race condition while writing to EPID table*/
 	cdma_mutex_lock_take((uint64_t)&wrks_addr->epas, CDMA_MUTEX_WRITE_LOCK);
-	lock_spinlock(&dpni_drv->dpni_lock); /*Lock dpni table entry*/
+	cdma_mutex_lock_take((uint64_t)&dpni_drv->dpni_lock, CDMA_MUTEX_WRITE_LOCK); /*Lock dpni table entry*/
 	iowrite32_ccsr((uint32_t)(dpni_drv->dpni_drv_params_var.epid_idx), &wrks_addr->epas);
 	/* read ep_osc - to get the order scope (concurrent / exclusive) */
 	ep_osc = ioread32_ccsr(&wrks_addr->ep_osc);
-	unlock_spinlock(&dpni_drv->dpni_lock); /*Unlock dpni table entry*/
+	cdma_mutex_lock_release((uint64_t)&dpni_drv->dpni_lock); /*Unlock dpni table entry*/
 	cdma_mutex_lock_release((uint64_t)&wrks_addr->epas);
 
 	return (int)(ep_osc & ORDER_MODE_BIT_MASK) >> 24;
@@ -631,7 +631,7 @@ static int dpni_drv_set_ordering_mode(uint16_t ni_id, int ep_mode){
 	dpni_drv = nis + ni_id;
 	/*Mutex lock to avoid race condition while writing to EPID table*/
 	cdma_mutex_lock_take((uint64_t)&wrks_addr->epas, CDMA_MUTEX_WRITE_LOCK);
-	lock_spinlock(&dpni_drv->dpni_lock); /*Lock dpni table entry*/
+	cdma_mutex_lock_take((uint64_t)&dpni_drv->dpni_lock, CDMA_MUTEX_WRITE_LOCK); /*Lock dpni table entry*/
 	/* write epid index to epas register */
 	iowrite32_ccsr((uint32_t)(dpni_drv->dpni_drv_params_var.epid_idx), &wrks_addr->epas);
 	/* read ep_osc - to get the order scope (concurrent / exclusive) */
@@ -640,7 +640,7 @@ static int dpni_drv_set_ordering_mode(uint16_t ni_id, int ep_mode){
 	ep_osc |= (ep_mode & 0x01) << 24;
 	/*Set concurrent mode for NI in epid table*/
 	iowrite32_ccsr(ep_osc, &wrks_addr->ep_osc);
-	unlock_spinlock(&dpni_drv->dpni_lock); /*Unlock dpni table entry*/
+	cdma_mutex_lock_release((uint64_t)&dpni_drv->dpni_lock); /*Unlock dpni table entry*/
 	cdma_mutex_lock_release((uint64_t)&wrks_addr->epas);
 	return 0;
 }
@@ -808,7 +808,7 @@ int dpni_drv_reset_counter(uint16_t ni_id, enum dpni_drv_counter counter){
 	                        (enum dpni_counter)counter,
 	                        0);
 }
-
+/*TODO: Implement a real search when dynamic dpni will be available*/
 int dpni_drv_get_dpni_id(uint16_t ni_id, uint16_t *dpni_id){
 	if(ni_id >= dpni_drv_get_num_of_nis())
 	{
@@ -818,7 +818,7 @@ int dpni_drv_get_dpni_id(uint16_t ni_id, uint16_t *dpni_id){
 	*dpni_id = nis[ni_id].dpni_id;
 	return 0;
 }
-
+/*TODO: Implement a real search when dynamic dpni will be available*/
 int dpni_drv_get_ni_id(uint16_t dpni_id, uint16_t *ni_id){
 	uint16_t i;
 	
