@@ -74,7 +74,7 @@ void stack_estimation(void)
 	rx_cb_t *cb = 0;
 	dpni_drv_app_arg_t arg = 0;
 	uint64_t shbp = 0;
-	
+
 	/*sl_prolog must be called first when packet arrives*/
 	sl_prolog();
 
@@ -88,18 +88,17 @@ void stack_estimation(void)
 	fsl_get_time_ms(&time);
 
 	/* CMDIF runtime functions */
-#ifdef IRA_NEEDS_TO_FIX
+
 	cmdif_srv_isr();
 	cmdif_open(&cidesc, NULL, 0, NULL, 0);
-#endif
 	cmdif_cl_isr();
 	cmdif_send(&cidesc, 0, 0, CMDIF_PRI_HIGH, NULL, NULL, NULL);
 	cmdif_close(&cidesc);
 
 	/* Isolation Context runtime API */
-#ifdef IRA_NEEDS_TO_FIX
 	icontext_get(5, &ic);
-#endif
+	icontext_aiop_get(&ic);
+	icontext_cmd_get(&ic);
 	icontext_acquire(&ic, 7, &buff);
 	icontext_release(&ic, 7, buff);
 	icontext_dma_read(&ic, 4, buff, &time);
@@ -143,10 +142,11 @@ void stack_estimation(void)
 	dpni_drv_remove_vlan_id(ni, (uint16_t)1515);
 	dpni_drv_enable(ni);
 	dpni_drv_disable(ni);
+
 	/* SHBP Shared buffer pool */
 	shbp_acquire(shbp, &ic);
 	shbp_release(shbp, NULL, &ic);
-	
+
 	/*After packet processing is done, fdma_terminate_task must be called.*/
 	fdma_terminate_task();
 

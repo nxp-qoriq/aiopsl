@@ -38,6 +38,7 @@
 #include "ls2085_aiop/fsl_platform.h"
 #include "cmdif_srv.h"
 #include "fsl_dpci_drv.h"
+#include "fsl_spinlock.h"
 
 extern struct aiop_init_info g_init_data;
 
@@ -200,7 +201,8 @@ int mc_dpci_find(uint32_t dpci_id, uint32_t *ic)
 	struct mc_dpci_tbl *dt = sys_get_unique_handle(FSL_OS_MOD_DPCI_TBL);
 
 	ASSERT_COND(dt);
-
+	ASSERT_COND(dpci_id != DPCI_FQID_NOT_VALID);
+	
 	for (i = 0; i < dt->count; i++) {
 		if ((dt->dpci_id[i] == dpci_id) ||
 			(dt->dpci_id_peer[i] == dpci_id)) {
@@ -211,6 +213,36 @@ int mc_dpci_find(uint32_t dpci_id, uint32_t *ic)
 	}
 
 	return -ENOENT;
+}
+
+int mc_dpci_entry_get()
+{
+	int i;
+	struct mc_dpci_tbl *dt = sys_get_unique_handle(FSL_OS_MOD_DPCI_TBL);
+
+	ASSERT_COND(dt);
+
+	for (i = 0; i < dt->count; i++)
+		if (dt->dpci_id[i] == DPCI_FQID_NOT_VALID)
+			return i;
+
+	if (dt->count < dt->max) {
+		i = dt->count;
+		atomic_incr32(&dt->count, 1);
+		return i;
+	}
+	
+	return -ENOENT;
+}
+
+void mc_dpci_entry_delete(int ind)
+{
+	struct mc_dpci_tbl *dt = sys_get_unique_handle(FSL_OS_MOD_DPCI_TBL);
+
+	dt->ic[ind] = DPCI_FQID_NOT_VALID;
+	dt->dpci_id[ind] = DPCI_FQID_NOT_VALID;
+	dt->dpci_id_peer[ind] = DPCI_FQID_NOT_VALID;
+	atomic_decr32(&dt->count, 1);
 }
 
 __COLD_CODE static int dpci_for_mc_add(struct mc_dprc *dprc)

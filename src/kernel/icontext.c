@@ -47,7 +47,7 @@ do { \
 	if ((AMQ) & CMDIF_BDI_BIT) \
 		ic->bdi_flags = FDMA_ENF_BDI_BIT; \
 } while(0)
-	
+
 extern void dpci_rx_ctx_get(uint32_t *id, uint32_t *fqid);
 
 struct icontext icontext_aiop = {0};
@@ -63,14 +63,14 @@ void icontext_cmd_get(struct icontext *ic)
 	uint32_t ind;
 	uint16_t icid;
 	uint16_t amq_bdi;
-	
+
 	dpci_drv_user_ctx_get(&ind, NULL);
 	/*
 	 * TODO
 	 * Lock with cdma mutex READ
 	 */
 	dpci_drv_icid_get(ind, &icid, &amq_bdi);
-	ICONTEXT_SET(icid, amq_bdi);	
+	ICONTEXT_SET(icid, amq_bdi);
 #ifndef BDI_BUG_FIXED
 	/* Fix for GPP BDI */
 	ic->bdi_flags &= ~FDMA_ENF_BDI_BIT;
@@ -96,8 +96,6 @@ int icontext_get(uint16_t dpci_id, struct icontext *ic)
 	ind = mc_dpci_find(dpci_id, NULL);
 	if (ind >= 0) {
 		dpci_drv_icid_get((uint32_t)ind, &icid, &amq_bdi);
-		pr_debug("ind = %d icid = 0x%x amq = 0x%x\n", 
-		         ind, icid, amq_bdi);
 		if (icid == ICONTEXT_INVALID)
 			return -ENAVAIL;
 		ICONTEXT_SET(icid, amq_bdi);
@@ -106,12 +104,11 @@ int icontext_get(uint16_t dpci_id, struct icontext *ic)
 #endif
 		return 0;
 	}
-	
-	pr_err("No entry found for DPCI ID 0x%x\n", dpci_id);
+
 	return -ENOENT;
 }
 
-int icontext_dma_read(struct icontext *ic, uint16_t size, 
+int icontext_dma_read(struct icontext *ic, uint16_t size,
                                  uint64_t src, void *dest)
 {
 
@@ -119,7 +116,7 @@ int icontext_dma_read(struct icontext *ic, uint16_t size,
 	if ((dest == NULL) || (src == NULL) || (ic == NULL))
 		return -EINVAL;
 #endif
-	
+
 	fdma_dma_data(size,
 	              ic->icid,
 	              dest,
@@ -128,10 +125,10 @@ int icontext_dma_read(struct icontext *ic, uint16_t size,
 	return 0;
 }
 
-int icontext_dma_write(struct icontext *ic, uint16_t size, 
+int icontext_dma_write(struct icontext *ic, uint16_t size,
                                   void *src, uint64_t dest)
 {
-	
+
 #ifdef DEBUG
 	if ((dest == NULL) || (src == NULL) || (ic == NULL))
 		return -EINVAL;
@@ -145,11 +142,11 @@ int icontext_dma_write(struct icontext *ic, uint16_t size,
 	return 0;
 }
 
-int icontext_acquire(struct icontext *ic, uint16_t bpid, 
+int icontext_acquire(struct icontext *ic, uint16_t bpid,
                                 uint64_t *addr)
 {
 	int err = 0;
-	
+
 #ifdef DEBUG
 	if (ic == NULL)
 		return -EINVAL;
@@ -160,7 +157,7 @@ int icontext_acquire(struct icontext *ic, uint16_t bpid,
 	return err;
 }
 
-int icontext_release(struct icontext *ic, uint16_t bpid, 
+int icontext_release(struct icontext *ic, uint16_t bpid,
                                 uint64_t addr)
 {
 	int err = 0;
@@ -169,7 +166,7 @@ int icontext_release(struct icontext *ic, uint16_t bpid,
 	if (ic == NULL)
 		return -EINVAL;
 #endif
-	
+
 	fdma_release_buffer(ic->icid, ic->bdi_flags, bpid, addr);
 
 	return err;
@@ -179,14 +176,14 @@ __COLD_CODE int icontext_init()
 {
 	uint32_t cdma_cfg;
 	struct aiop_tile_regs *ccsr = (struct aiop_tile_regs *)\
-		(AIOP_PERIPHERALS_OFF + 
-			SOC_PERIPH_OFF_AIOP_TILE + 
+		(AIOP_PERIPHERALS_OFF +
+			SOC_PERIPH_OFF_AIOP_TILE +
 			SOC_PERIPH_OFF_AIOP_CMGW);
 
 	ASSERT_COND_LIGHT(ccsr);
-	
+
 	cdma_cfg = ioread32_ccsr(&ccsr->cdma_regs.cfg);
-	
+
 	icontext_aiop.icid = (uint16_t)(cdma_cfg & CDMA_ICID_MASK);
 
 	icontext_aiop.bdi_flags = 0;
@@ -200,10 +197,10 @@ __COLD_CODE int icontext_init()
 		icontext_aiop.dma_flags |= FDMA_DMA_PL_BIT;
 	if (cdma_cfg & CDMA_VA_BIT)
 		icontext_aiop.dma_flags |= FDMA_DMA_eVA_BIT;
-		
+
 	ASSERT_COND_LIGHT(icontext_aiop.bdi_flags); /* BDI bit is set */
 	ASSERT_COND_LIGHT(icontext_aiop.dma_flags); /* PL bit is set */
-	
+
 	return 0;
 }
 
