@@ -63,8 +63,8 @@ inline int table_lookup_by_keyid_default_frame(enum table_hw_accel_id acc_id,
 
 	/* Status Handling*/
 	status = *((int32_t *)HWC_ACC_OUT_ADDRESS);
-	if (status == TABLE_HW_STATUS_SUCCESS);
-	else if (status == TABLE_HW_STATUS_MISS);
+	if (status == TABLE_HW_STATUS_SUCCESS){}
+	else if (status == TABLE_HW_STATUS_MISS){}
 	else if (status == TABLE_HW_STATUS_EOFH)
 		status = -EIO;
 	/*TODO EOFH with LOOKUP hit/miss */
@@ -107,8 +107,8 @@ inline int table_lookup_by_key(enum table_hw_accel_id acc_id,
 
 	/* Status Handling*/
 	status = *((int32_t *)HWC_ACC_OUT_ADDRESS);
-	if (status == TABLE_HW_STATUS_SUCCESS);
-	else if (status == TABLE_HW_STATUS_MISS);
+	if (status == TABLE_HW_STATUS_SUCCESS){}
+	else if (status == TABLE_HW_STATUS_MISS){}
 	else
 		table_exception_handler_wrp(
 				TABLE_LOOKUP_BY_KEY_FUNC_ID,
@@ -303,7 +303,7 @@ inline int table_rule_query(enum table_hw_accel_id acc_id,
 					TABLE_SW_STATUS_QUERY_INVAL_ENTYPE);
 	} else {
 		/* Status Handling*/
-		if (status == TABLE_HW_STATUS_MISS);
+		if (status == TABLE_HW_STATUS_MISS){}
 			/* A rule with the same match description is not found
 			 * in the table. */
 
@@ -455,7 +455,7 @@ inline int table_create(enum table_hw_accel_id acc_id,
 	crt_status = *((int32_t *)HWC_ACC_OUT_ADDRESS);
 
 	/* Translate status */
-	if (crt_status == TABLE_STATUS_SUCCESS);
+	if (crt_status == TABLE_STATUS_SUCCESS){}
 	else if (crt_status == CTLU_HW_STATUS_NORSC)
 		crt_status = -ENOMEM;
 	else if (crt_status == MFLU_HW_STATUS_NORSC)

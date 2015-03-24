@@ -135,7 +135,7 @@ int table_rule_create_or_replace(enum table_hw_accel_id acc_id,
 			 * force alignment */
 			*old_res = hw_old_res.result;
 	}
-	else if (status == TABLE_HW_STATUS_MISS);
+	else if (status == TABLE_HW_STATUS_MISS){}
 	else if (status == CTLU_HW_STATUS_NORSC)
 		status = -ENOMEM;
 	else if (status == MFLU_HW_STATUS_NORSC)
@@ -190,8 +190,8 @@ int table_lookup_by_keyid(enum table_hw_accel_id acc_id,
 
 	/* Status Handling*/
 	status = *((int32_t *)HWC_ACC_OUT_ADDRESS);
-	if (status == TABLE_HW_STATUS_SUCCESS);
-	else if (status == TABLE_HW_STATUS_MISS);
+	if (status == TABLE_HW_STATUS_SUCCESS){}
+	else if (status == TABLE_HW_STATUS_MISS){}
 	else if (status == TABLE_HW_STATUS_EOFH)
 		status = -EIO;
 	/*TODO EOFH with LOOKUP hit/miss */
