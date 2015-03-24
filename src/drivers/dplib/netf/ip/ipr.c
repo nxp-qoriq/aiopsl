@@ -47,6 +47,7 @@
 #include "fsl_cdma.h"
 #include "ip.h"
 #include "fsl_platform.h"
+#include "fsl_dpni_drv.h"
 
 #ifdef AIOP_VERIF
 #include "slab_stub.h"
@@ -56,6 +57,9 @@
 #endif
 
 struct  ipr_global_parameters ipr_global_parameters1;
+extern struct dpni_drv *nis;
+extern __TASK struct aiop_default_task_params default_task_params;
+
 
 #ifndef AIOP_VERIF
 int ipr_early_init(uint32_t nbr_of_instances, uint32_t nbr_of_context_buffers)
@@ -619,8 +623,9 @@ int ipr_reassemble(ipr_instance_handle_t instance_handle)
 			rfdc.current_running_sum	= 0;
 			rfdc.last_frag_index		= 0;
 			rfdc.total_in_order_payload	= 0;
-			get_default_amq_attributes(&rfdc.isolation_bits);
-
+//			get_default_amq_attributes(&rfdc.isolation_bits);
+			rfdc.niid = dpni_get_receive_niid();
+			
 		    /* create Timer in TMAN */
 
 		    if(frame_is_ipv4)
@@ -1637,6 +1642,7 @@ void ipr_time_out(uint64_t rfdc_ext_addr, uint16_t opaque_not_used)
 {
 	struct	 ipr_rfdc rfdc __attribute__((aligned(16)));
 	struct	 ipr_instance instance_params;
+	struct   dpni_drv *dpni_drv;
 	uint16_t rfdc_status;
 	uint32_t flags;
 	uint8_t  ipv6_key[36] __attribute__((aligned(16)));
@@ -1714,8 +1720,15 @@ void ipr_time_out(uint64_t rfdc_ext_addr, uint16_t opaque_not_used)
 	/* Reset valid indication in RFDC */
 	rfdc.status = rfdc_status & ~RFDC_VALID;
 	
-	set_default_amq_attributes(&rfdc.isolation_bits);
-
+	//set_default_amq_attributes(&rfdc.isolation_bits);
+	/* Update task default params */
+	dpni_drv = nis + rfdc.niid;
+	sl_tman_expiration_task_prolog(dpni_drv->dpni_drv_params_var.spid);
+	default_task_params.parser_starting_hxs =
+				   dpni_drv->dpni_drv_params_var.starting_hxs;
+	default_task_params.parser_profile_id =
+				   dpni_drv->dpni_drv_params_var.prpid;
+	
 	/* Discard all the fragments except the first one or one of them */
 	num_of_frags = rfdc.num_of_frags;
 	if (num_of_frags == 0) {
