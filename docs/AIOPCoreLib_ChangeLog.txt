@@ -32,6 +32,14 @@ IPR:
   
 IPsec:
   * Performance optimization.
+  * Removed ip_nh from ipsec_encap_params struct (API change)
+  * Removed ip_nh referencing from ipsec_fm_demo 
+  * Added slab un-reserve call to delete instance/sa 
+  * Fixed ipsec_early_init
+  * Fixed SEC error return codes (ENGR347888)
+  * Clear the PRC ASA Size, since the SEC does not preserve the ASA
+  * Added Next Header setting through DPOVRD for tunnel mode encap (due to SEC issue TKT258803)
+  * Updated the ipsec_fm_demo segment presentation for print & check
 
 New/Updated functions:
   * sl_tman_expiration_task_prolog().
