@@ -1455,6 +1455,22 @@ void fdma_release_buffer(
 		(adc->fdsrc_va_fca_bdi & ~(ADC_BDI_MASK | ADC_VA_MASK)) | flags;
 }
 
+int fdma_discard_fd_wrp(struct ldpaa_fd *fd, uint32_t flags)
+{
+	return fdma_discard_fd(fd, flags);
+}
+
+void fdma_calculate_default_frame_checksum_wrp( uint16_t offset,
+						uint16_t size,
+						uint16_t *checksum)
+{
+	fdma_calculate_default_frame_checksum(offset, size, checksum);
+}
+
+int fdma_store_default_frame_data_wrp(void)
+{
+	fdma_store_default_frame_data();
+}
 
 #pragma push
 	/* make all following data go into .exception_data */

@@ -46,3 +46,15 @@ void ste_barrier()
 	/* YIELD. */
 	__e_hwacceli(YIELD_ACCEL_ID);
 }
+
+void ste_inc_counter_wrp(uint64_t counter_addr, uint32_t inc_value,
+			 uint32_t flags)
+{
+	ste_inc_counter(counter_addr, inc_value, flags);
+}
+
+void ste_dec_counter_wrp(uint64_t counter_addr, uint32_t inc_value,
+			 uint32_t flags)
+{
+	ste_dec_counter(counter_addr, inc_value, flags);
+}

@@ -321,6 +321,39 @@ struct	keygen_hw_fec_mask {
 #pragma pack(pop)
 
 /** @} */ /* end of KEYGEN_STRUCTS */
+
+/**************************************************************************//**
+@Function	keygen_gen_key_wrp
+
+@Description	Wrapper of the function keygen_gen_key.
+		See description of the function keygen_gen_key.
+
+@Param[in]	acc_id - Accelerator ID.
+@Param[in]	keyid - The key ID to be used for the key extraction.
+@Param[in]	user_metadata - user_metadata field for key composition.
+		(will be taken only if the KCR includes
+		keygen_kcr_builder_add_input_value_fec).
+@Param[out]	key - The key. 128 bytes (regardless of actual key size)
+		which should be located in the workspace and must be aligned to
+		16B boundary.
+@Param[out]	key_size - Key size in bytes.
+
+@Return		0 on Success, or negative value on error.
+
+@Retval		0 - Success
+@Retval		EIO - Extract Out Of Frame Header.
+
+@Cautions	In this function the task yields.
+ 	 	This function may result in a fatal error.
+ 	 	In Rev1: Due to HW bug (TKT231187) the maximum key size allowed
+ 	 	is 80 bytes.
+*//***************************************************************************/
+int keygen_gen_key_wrp(enum keygen_hw_accel_id acc_id,
+		     uint8_t keyid,
+		     uint64_t user_metadata,
+		     void *key,
+		     uint8_t *key_size);
+
 /**************************************************************************//**
 @Function	keygen_exception_handler
 

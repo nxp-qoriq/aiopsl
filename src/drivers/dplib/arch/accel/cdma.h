@@ -590,6 +590,129 @@ inline int cdma_access_context_memory(
 		uint16_t dma_param,
 		uint32_t *refcount_value);
 
+/*************************************************************************//**
+@Function	cdma_access_context_memory_wrp
+
+@Description	Wrapper to the function cdma_access_context_memory.
+		See description of the function cdma_access_context_memory_wrp.
+
+
+@Param[in]	context_address - A pointer to Context address. This address is
+		used to read/write data access and/or mutex lock take/release.
+@Param[in]	flags - \link CDMA_AccessCM_ModeBits CDMA Access Context Memory
+		flags \endlink.
+@Param[in]	offset - An offset (in bytes) from the context_address.
+@Param[in]	ws_address - A pointer to the Workspace.
+@Param[in]	dma_param - \link CDMA_AccessCM_DMA CDMA Access Context Memory
+		DMA Parameters \endlink.
+@Param[out]	refcount_value - Current value of reference count.
+
+@Return		0 on Success, negative value on error or positive value on
+		indication.
+
+@Retval		0 - Success
+@Retval		EBUSY - Mutex Lock lock failed on a Try Lock request.
+@Retval		CDMA_REFCOUNT_DECREMENT_TO_ZERO - Decrement reference count
+		caused the reference count to go to zero. (not an error).
+
+@remark
+		- All reference count features are possible only if the
+		ext_address provided with the command is the address of the
+		Context memory (i.e. \ref CDMA_ACCESS_CONTEXT_MEM_AA_BIT == 0).
+		- Each task can have a maximum of 4 simultaneous mutex locks
+		active.
+		- A mutex lock taken by a task must be released by the same
+		task.
+
+@Cautions	If the context memory is released when the reference count
+		drops to zero, a mutex lock (if exists) will not be released.
+@Cautions	In this function the task yields.
+@Cautions	This function may result in a fatal error.
+
+*//***************************************************************************/
+int cdma_access_context_memory_wrp(
+		uint64_t context_address,
+		uint32_t flags,
+		uint16_t offset,
+		void *ws_address,
+		uint16_t dma_param,
+		uint32_t *refcount_value);
+
+
+/*************************************************************************//**
+@Function	cdma_read_wrp
+
+@Description	Wrapper to the function cdma_read.
+		See description of the function cdma_read..
+
+@Param[in]	ws_dst - A pointer to the Workspace.
+@Param[in]	ext_address - A pointer to a context memory address in the
+		external memory (DDR/PEB).
+@Param[in]	size - Read data access size, in bytes.
+
+@Return		None.
+
+@Cautions	The maximum legal access size (in bytes) is 0x3FFF.
+@Cautions	In this function the task yields.
+@Cautions	This function may result in a fatal error.
+
+*//***************************************************************************/
+void cdma_read_wrp(void *ws_dst, uint64_t ext_address, uint16_t size);
+
+/*************************************************************************//**
+@Function	cdma_read_with_mutex_wrp
+
+@Description	Wrapper of the function cdma_read_with_mutex.
+		See description of the function cdma_read_with_mutex.
+
+@Param[in]	ext_address - A pointer to a context memory address in the
+		external memory (DDR/PEB). This address is used to read data
+		access and mutex lock take/release.
+@Param[in]	flags - \link CDMA_DMA_MUTEX_ModeBits CDMA Mutex flags
+		\endlink.
+@Param[in]	ws_dst - A pointer to the Workspace.
+@Param[in]	size - Read data access size, in bytes.
+
+@Return		None.
+
+@remark
+		- Each task can have a maximum of 4 simultaneous mutex locks
+		active.
+		- A mutex lock taken by a task must be released by the same
+		task.
+
+@Cautions	The maximum legal access size (in bytes) is 0x3FFF.
+@Cautions	In this function the task yields.
+@Cautions	This function may result in a fatal error.
+
+*//***************************************************************************/
+void cdma_read_with_mutex_wrp(  uint64_t ext_address,
+				uint32_t flags,
+				void *ws_dst,
+				uint16_t size);
+
+/*************************************************************************//**
+@Function	cdma_write_wrp
+
+@Description	Wrapper to the function cdma_write.
+		See description of the function cdma_write.
+
+@Param[in]	ext_address - A pointer to a context memory address in the
+		external memory (DDR/PEB).
+@Param[in]	ws_src - A pointer to the Workspace.
+@Param[in]	size - Write data access size, in bytes.
+
+@Return		None.
+
+@Cautions	The maximum legal access size (in bytes) is 0x3FFF.
+@Cautions	In this function the task yields.
+@Cautions	This function may result in a fatal error.
+
+*//***************************************************************************/
+void cdma_write_wrp(uint64_t ext_address,
+			   void *ws_src,
+			   uint16_t size);
+
 
 /*************************************************************************//**
 @Function	cdma_handle_fatal_errors

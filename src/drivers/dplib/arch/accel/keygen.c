@@ -647,6 +647,19 @@ int keygen_gen_hash(void *key, uint8_t key_size, uint32_t *hash)
 	}
 }
 
+int keygen_gen_key_wrp(enum keygen_hw_accel_id acc_id,
+		     uint8_t keyid,
+		     uint64_t user_metadata,
+		     void *key,
+		     uint8_t *key_size)
+{
+	return keygen_gen_key(acc_id,
+			      keyid,
+			      user_metadata,
+			      key,
+			      key_size);
+}
+
 #pragma push
 	/* make all following data go into .exception_data */
 #pragma section data_type ".exception_data"

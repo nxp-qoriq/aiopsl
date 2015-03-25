@@ -338,6 +338,20 @@ void tman_timer_callback(void)
 	fdma_terminate_task();
 }
 
+int tman_create_timer_wrp(uint8_t tmi_id, uint32_t flags,
+			uint16_t duration, tman_arg_8B_t opaque_data1,
+			tman_arg_2B_t opaque_data2, tman_cb_t tman_timer_cb,
+			uint32_t *timer_handle)
+{
+	return tman_create_timer(tmi_id, flags, duration, opaque_data1,
+			 	 opaque_data2, tman_timer_cb, timer_handle);
+}
+
+int tman_delete_timer_wrp(uint32_t timer_handle, uint32_t flags)
+{
+	return tman_delete_timer(timer_handle, flags);
+}
+
 #pragma pop
 
 #pragma push
