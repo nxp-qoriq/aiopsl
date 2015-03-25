@@ -38,6 +38,8 @@
 #include "sys.h"
 
 
+typedef void  /*__noreturn*/ (*tman_wrp_cb_t) (uint64_t arg1, uint16_t arg2);
+
 
 /**************************************************************************//**
 @Group		TMANReturnStatus TMAN functions return status
@@ -356,6 +358,75 @@ struct tman_tmi_input_extention {
 
 *//***************************************************************************/
 void tman_timer_callback(void);
+
+/**************************************************************************//**
+@Function	tman_create_timer_wrp
+
+@Description	Wrapper to the function tman_create_timer.
+		See description of the function tman_create_timer.
+
+@Param[in]	tmi_id  - TMAN Instance ID. (TMI ID)
+@Param[in]	flags - \link TMANTimerCreateModeBits TMAN timer create
+		flags \endlink
+@Param[in]	duration - Timer duration time (the number of timer ticks).
+		The duration must have a value larger than 10 ticks and smaller
+		than 2^16-10 ticks.
+@Param[in]	opaque_data1 - Data to be associated with to the created task.
+@Param[in]	opaque_data2 - Data to be associated with to the created task.
+@Param[in]	tman_timer_cb - A callback function used for the task created
+		upon timer expiration.
+@Param[out]	timer_handle - the handle of the timer for future reference.
+		The handle includes the tmi ID and timer ID values.
+
+@Return		0 on success, or negative value on error.
+@Retval		ENOSPC - All timers are used. A timer must be deleted or elapse
+		and confirmed before a new one can be created. This error can
+		occur when the SW has missed a confirmation for a timer. 
+@Retval		EBUSY - The timer was not created due to high TMAN and AIOP
+		load.
+
+@Cautions	This function performs a task switch.
+
+*//***************************************************************************/
+int tman_create_timer_wrp(uint8_t tmi_id, uint32_t flags,
+			uint16_t duration, uint64_t opaque_data1,
+			uint16_t opaque_data2, tman_wrp_cb_t tman_timer_cb,
+			uint32_t *timer_handle);
+
+/**************************************************************************//**
+@Function	tman_delete_timer_wrp
+
+@Description	Wrapper of the function tman_delete_timer.
+		See description of the function tman_delete_timer.
+
+@Param[in]	timer_handle - The handle of the timer to be deleted.
+@Param[in]	flags - \link TMANTimerDeleteModeBits TMAN timer
+		delete flags \endlink.
+
+@Return		0 on success, or negative value on error.
+@Retval		ETIMEDOUT - The timer cannot be deleted. The timer aimed to be
+		deleted expiration date is currently being processed by the
+		TMAN. The timer will elapse shortly. 
+		In case of periodic timer the tman_delete_timer should be
+		called at the expiration routine to avoid this error. If this
+		error do happen for a periodic timer than it is consider as
+		a fatal error (the timer period is too short to handle the
+		timer expiration callback function).
+@Retval		EACCES - The timer cannot be deleted.
+		For one shot timer this error should be treated as an ETIMEDOUT
+		error.
+		For a periodic timer this error should be treated as a fatal
+		error (a delete command was already issued for this periodic
+		timer). 
+@Retval		ENAVAIL - The timer cannot be deleted. The timer is not an
+		active one. This should be treated as a fatal error.
+		When Errata ERR008205 will be fixed this error will
+		automatically generate a fatal error. 
+
+@Cautions	This function performs a task switch.
+
+*//***************************************************************************/
+int tman_delete_timer_wrp(uint32_t timer_handle, uint32_t flags);
 
 
 /**************************************************************************//**

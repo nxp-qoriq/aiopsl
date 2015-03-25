@@ -919,6 +919,78 @@ void fdma_release_buffer(
 		uint64_t addr);
 
 /**************************************************************************//**
+@Function	fdma_discard_fd_wrp
+
+@Description	Wrapper to the function fdma_discard_fd.
+		See description of the function fdma_discard_fd.
+
+@Param[in]	fd - A pointer to the location in the workspace of the FD to be
+		discarded \ref ldpaa_fd.
+@Param[in]	flags - \link FDMA_Discard_WF_Flags discard working frame
+		frame flags. \endlink
+
+@Return		0 on Success, or negative value on error.
+
+@Retval		0 - Success.
+@Retval		EIO - Received frame with non-zero FD[err] field.
+
+@Cautions	This function may result in a fatal error.
+@Cautions	In this Service Routine the task yields.
+*//***************************************************************************/
+int fdma_discard_fd_wrp(struct ldpaa_fd *fd, uint32_t flags);
+
+/**************************************************************************//**
+@Function	fdma_calculate_default_frame_checksum_wrp
+
+@Description	Wrapper of function fdma_calculate_default_frame_checksum.
+		See description of function
+		fdma_calculate_default_frame_checksum.
+
+@Param[in]	offset - Number of bytes offset in the frame from which to start
+		calculation of checksum.
+@Param[in]	size - Number of bytes to do calculation of checksum.
+		Use 0xffff to calculate checksum until the end of the frame.
+@Param[out]	checksum - Ones complement sum over the specified range of the
+		working frame.
+
+@Return		None.
+
+@Cautions	The h/w must have previously opened the frame with an
+		initial presentation or initial presentation command.
+@Cautions	This function may result in a fatal error.
+@Cautions	In this Service Routine the task yields.
+*//***************************************************************************/
+void fdma_calculate_default_frame_checksum_wrp(
+		uint16_t offset,
+		uint16_t size,
+		uint16_t *checksum);
+
+/**************************************************************************//**
+@Function	fdma_store_default_frame_data_wrp
+
+@Description	Wrapper to function fdma_store_default_frame_data.
+		See description of the function
+		fdma_store_default_frame_data_wrp.
+
+@Return		0 on Success, or negative value on error.
+
+@Retval		0 - Success.
+@Retval		ENOMEM - Failed due to buffer pool depletion.
+
+@remark		FD is updated.
+@remark		If some segments of the Working Frame are not closed, they will
+		be closed and the segment handles will be implicitly released.
+@remark		Release frame handle is implicit in this function.
+
+@Cautions	All modified segments (which are to be stored) must be replaced
+		(by a replace command) before storing a frame.
+@Cautions	This function may result in a fatal error.
+@Cautions	In this Service Routine the task yields.
+*//***************************************************************************/
+int fdma_store_default_frame_data_wrp(void);
+
+
+/**************************************************************************//**
 @Function	fdma_exception_handler
 
 @Description	Handler for the error status returned from the FDMA API

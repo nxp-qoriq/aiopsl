@@ -520,6 +520,11 @@ void osm_scope_enter(
 	}
 }
 
+void osm_scope_transition_to_exclusive_with_increment_scope_id_wrp(void)
+{
+	osm_scope_transition_to_exclusive_with_increment_scope_id();
+}
+
 #pragma push
 	/* make all following data go into .exception_data */
 #pragma section data_type ".exception_data"

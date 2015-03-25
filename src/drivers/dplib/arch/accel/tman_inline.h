@@ -34,7 +34,6 @@
 #ifndef __FSL_TMAN_INLINE_H
 #define __FSL_TMAN_INLINE_H
 
-#include "fsl_tman.h"
 #include "tman.h"
 #include "inline_asm.h"
 
