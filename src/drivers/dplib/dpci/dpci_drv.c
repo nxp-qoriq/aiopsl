@@ -123,6 +123,14 @@ static inline void amq_bits_update(uint32_t id)
 
 	CMDIF_ICID_AMQ_BDI(AMQ_BDI_SET, ICID_GET(pl_icid), amq_bdi_temp);
 
+	/*
+	 * TODO
+	 * NOTE : only dpci_peer_id can be updated but not dpci_id.
+	 * Maybe it should not update peer id at all ?? 
+	 * It should be updated only in dpci_drv_added() !!!
+	 * TODO
+	 * Check if amq bits updated and update only if they are 0xffffffff
+	 */
 	err = dpci_get_peer_id(dt->dpci_id[id], &(dt->dpci_id_peer[id]));
 	ASSERT_COND(!err);
 
@@ -388,6 +396,19 @@ __COLD_CODE int dpci_drv_update(uint32_t ind)
 	/* Read lock because many can update same entry with the same values
 	 * New values can be set only inside dpci_drv_removed() dpci_drv_added()
 	 * */
+	
+	/*
+	 * TODO
+	 * Is it possible that DPCI will be removed in the middle of the task ?
+	 * If yes than we need read lock on mc_dpci_find() + dpci_drv_icid_get()
+	 * NOTE : only dpci_peer_id can be updated but not dpci_id.
+	 * Maybe it should not update peer id at all ?? 
+	 * It should be updated only in dpci_drv_added() !!!
+	 * Event connected should be before link up, once there is command the 
+	 * index can't be changed to other dpci_id and dpci_peer_id. 
+	 * If it changes then there should be removed/disconnected event, 
+	 */
+
 	DPCI_DT_LOCK_R_TAKE;
 
 	amq_bits_update(ind);

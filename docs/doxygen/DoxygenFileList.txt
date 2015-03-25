@@ -27,9 +27,6 @@ aiopsl/src/include/dplib/fsl_general.h
 aiopsl/src/include/dplib/fsl_frame_operations.h
 aiopsl/src/include/kernel/fsl_cmdif_server.h
 aiopsl/src/include/kernel/fsl_cmdif_client.h
-aiopsl/src/include/kernel/fsl_cmdif_flib_s.h
-aiopsl/src/include/kernel/fsl_cmdif_flib_c.h
-aiopsl/src/include/kernel/fsl_cmdif_fd.h
 aiopsl/src/include/net/fsl_inet.h
 aiopsl/src/include/lib/fsl_slab.h
 aiopsl/src/include/fsl_io.h
@@ -40,4 +37,4 @@ aiopsl/src/include/fsl_malloc.h
 aiopsl/src/include/arch/ls2085_aiop/fsl_platform.h
 aiopsl/src/include/fsl_dbg.h
 aiopsl/src/include/kernel/fsl_icontext.h
-aiopsl/src/include/lib/fsl_shbp_aiop.h
+aiopsl/src/include/lib/fsl_shbp.h
