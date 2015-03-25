@@ -183,14 +183,15 @@ struct ipr_rfdc{
 	uint16_t	status;
 	uint16_t	total_in_order_payload;
 	uint64_t	ipv4_key[2]; /* this field should stay aligned to 16 */
-	/* 4 next bytes can move to extension */
-	struct 		fdma_amq isolation_bits;
+	/* next 2 bytes (niid) can move to extension */
+	uint16_t	niid;
+	uint16_t 	res2;
 	uint16_t	iphdr_offset;
 	uint16_t	ipv6_fraghdr_offset;
 	uint16_t	seg_addr;
 	uint16_t	seg_length;
 	uint16_t	seg_offset;
-	uint8_t		res2[2];
+	uint8_t		res3[2];
 };
 #pragma pack(pop)
 

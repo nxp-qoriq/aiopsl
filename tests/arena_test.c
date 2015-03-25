@@ -316,7 +316,11 @@ int app_early_init(void){
 	err |= slab_register_context_buffer_requirements(200,250,504,64,MEM_PART_DP_DDR,0, 120);
 	if(err)
 		pr_err("slab_register_context_buffer_requirements failed: %d\n",err);
-
+	
+	err = dpni_drv_register_requirements(96,0,0);
+	if(err)
+		pr_err("dpni_drv_register_requirements failed: %d\n",err);
+		
 	return 0;
 }
 
