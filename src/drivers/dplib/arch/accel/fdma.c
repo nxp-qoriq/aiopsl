@@ -1469,7 +1469,7 @@ void fdma_calculate_default_frame_checksum_wrp( uint16_t offset,
 
 int fdma_store_default_frame_data_wrp(void)
 {
-	fdma_store_default_frame_data();
+	return fdma_store_default_frame_data();
 }
 
 #pragma push
