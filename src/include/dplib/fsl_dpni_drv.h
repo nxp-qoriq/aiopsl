@@ -581,7 +581,7 @@ int dpni_drv_set_rx_buffer_layout(uint16_t ni_id, const struct dpni_drv_buf_layo
 int dpni_drv_get_rx_buffer_layout(uint16_t ni_id, struct dpni_drv_buf_layout *layout);
 
 /**************************************************************************//**
-@Function	dpni_drv_rx_buffer_layout_register_requirements
+@Function	dpni_drv_register_rx_buffer_layout_requirements
 
 @Description	register a request for DPNI requirement.
 
@@ -593,7 +593,7 @@ int dpni_drv_get_rx_buffer_layout(uint16_t ni_id, struct dpni_drv_buf_layout *la
 		-ENAVAIL - resource not available or not found,
 		-ENOMEM  - not enough memory.
  *//***************************************************************************/
-int dpni_drv_rx_buffer_layout_register_requirements(uint16_t head_room, uint16_t tail_room, uint16_t private_data_size);
+int dpni_drv_register_rx_buffer_layout_requirements(uint16_t head_room, uint16_t tail_room, uint16_t private_data_size);
 
 /**************************************************************************//**
 @Function	dpni_drv_get_counter

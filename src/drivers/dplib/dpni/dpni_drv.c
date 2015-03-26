@@ -771,7 +771,7 @@ int dpni_drv_get_rx_buffer_layout(uint16_t ni_id, struct dpni_drv_buf_layout *la
 	return err;
 }
 
-int dpni_drv_rx_buffer_layout_register_requirements(uint16_t head_room, uint16_t tail_room, uint16_t private_data_size)
+int dpni_drv_register_rx_buffer_layout_requirements(uint16_t head_room, uint16_t tail_room, uint16_t private_data_size)
 {
 	g_dpni_early_init_data.count++;
 	
