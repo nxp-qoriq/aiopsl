@@ -115,7 +115,6 @@ static inline void amq_bits_update(uint32_t id)
 	uint32_t amq_bdi = 0;
 	uint16_t amq_bdi_temp = 0;
 	uint16_t pl_icid = PL_ICID_GET;
-	int err;
 
 	ADD_AMQ_FLAGS(amq_bdi_temp, pl_icid);
 	if (BDI_GET != 0)
@@ -131,8 +130,8 @@ static inline void amq_bits_update(uint32_t id)
 	 * TODO
 	 * Check if amq bits updated and update only if they are 0xffffffff
 	 */
-	err = dpci_get_peer_id(dt->dpci_id[id], &(dt->dpci_id_peer[id]));
-	ASSERT_COND(!err);
+	//err = dpci_get_peer_id(dt->dpci_id[id], &(dt->dpci_id_peer[id]));
+	//ASSERT_COND(!err);
 
 	/* Must be written last */
 	dt->ic[id] = amq_bdi;
@@ -339,14 +338,21 @@ __COLD_CODE static int tx_get(uint32_t dpci_id, uint32_t *tx)
 __COLD_CODE int dpci_drv_added(uint32_t dpci_id)
 {
 	int err = 0;
+	int ind = 0;
 	struct mc_dpci_tbl *dt = (struct mc_dpci_tbl *)\
 			sys_get_unique_handle(FSL_OS_MOD_DPCI_TBL);
 
 	DPCI_DT_LOCK_W_TAKE;
 
-	err = dpci_amq_bdi_init(dpci_id);
-	if (err >= 0) {
-		err = dpci_rx_ctx_init(dpci_id, (uint32_t)err);
+	ind = dpci_amq_bdi_init(dpci_id);
+	if (ind >= 0) {
+		err = dpci_rx_ctx_init(dpci_id, (uint32_t)ind);
+		/* Set rx ctx if peer is already connected */
+		if (dt->dpci_id_peer[ind] != DPCI_FQID_NOT_VALID)
+			err = rx_ctx_set((uint32_t)ind);
+		/* 
+		 * TODO what if not connected DPCI is added ? Can it be ?
+		 */
 	}
 
 	DPCI_DT_LOCK_RELEASE;
@@ -389,7 +395,6 @@ __COLD_CODE int dpci_drv_removed(uint32_t dpci_id)
  */
 __COLD_CODE int dpci_drv_update(uint32_t ind)
 {
-	int err;
 	struct mc_dpci_tbl *dt = (struct mc_dpci_tbl *)\
 		sys_get_unique_handle(FSL_OS_MOD_DPCI_TBL);
 
@@ -412,10 +417,15 @@ __COLD_CODE int dpci_drv_update(uint32_t ind)
 	DPCI_DT_LOCK_R_TAKE;
 
 	amq_bits_update(ind);
-	err = rx_ctx_set(ind);
+	/* TODO err = rx_ctx_set(ind);
+	 * rx_ctx_set(ind) moved to added event
+	 * Need to check if this is the right thing
+	 * Can't get tx fqid from GPP inside command, maybe for AIOP it is authorized
+	 * with a different ICID
+	 */
 
 	DPCI_DT_LOCK_RELEASE;
-	return err;
+	return 0;
 }
 
 
