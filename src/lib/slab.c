@@ -384,10 +384,12 @@ __COLD_CODE int slab_create(uint32_t    committed_buffs,
 
 	int found = FALSE;
 	struct slab_v_pool *slab_virtual_pool;
-	struct slab_module_info *slab_m;
+	struct slab_module_info *slab_m = sys_get_unique_handle(FSL_OS_MOD_SLAB);
 	struct slab_v_pool slab_virtual_pool_ddr;
 	uint64_t context_address = 0;
 
+	if(slab_m == NULL)
+		return -ENAVAIL;
 #ifdef DEBUG
 	/* Sanity checks */
 	error = sanity_check_slab_create(buff_size,
@@ -482,9 +484,6 @@ __COLD_CODE int slab_create(uint32_t    committed_buffs,
 
 	g_slab_pool_pointer_ddr += sizeof(pool_id);
 
-	slab_m = sys_get_unique_handle(FSL_OS_MOD_SLAB);
-	if(slab_m == NULL)
-		return -ENAVAIL;
 	fdma_dma_data((uint16_t)sizeof(pool_id),
 	              slab_m->icid,
 	              &pool_id,
