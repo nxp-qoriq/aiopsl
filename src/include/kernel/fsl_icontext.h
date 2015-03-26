@@ -81,7 +81,7 @@ void icontext_aiop_get(struct icontext *ic);
 
 @Description	Copy isolation context parameters for DPCI id.
 
-@Param[in]	dpci_id	- ID of DPCI device.
+@Param[in]	dpci_id	- ID of DPCI device or its peer ID.
 @Param[out]	ic	- Isolation context structure to be used
 			with icontext dependent API.
 

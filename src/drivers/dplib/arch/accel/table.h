@@ -979,6 +979,123 @@ void table_workaround_tkt226361(uint32_t mflu_peb_num_entries,
 				uint32_t mflu_dp_ddr_num_entries,
 				uint32_t mflu_sys_ddr_num_entries);
 
+/**************************************************************************//**
+@Function	table_lookup_by_keyid_default_frame_wrp
+
+@Description	Wrapper of the function table_lookup_by_keyid_default_frame.
+		See description of the function:
+		table_lookup_by_keyid_default_frame
+
+@Param[in]	acc_id ID of the Hardware Table Accelerator that contains
+		the table on which the operation will be performed.
+@Param[in]	table_id Table ID.
+@Param[in]	keyid A Key Composition Rule (KCR) ID for the table lookups
+		(Key Composition Rule specifies how to build a key). The key
+		built by this KCR should fit \ref table_lookup_key_desc union
+		and it's size should be equal to the key size the table was
+		created with except for the following remark:
+		 - the key size should be added priority field size (4 Bytes)
+		for MFLU tables.
+@Param[out]	lookup_result Points to a user preallocated memory to which
+		the table lookup result will be written. The structure pointed
+		by this pointer must be in the task's workspace and must be
+		aligned to 16B boundary.
+
+@Return		0 on success, TABLE_STATUS_MISS on miss or negative value if an
+		error occurred.
+
+@Retval		0 Success.
+@Retval		#TABLE_STATUS_MISS A match was not found during the lookup
+		operation.
+@Retval		EIO Error, Key composition attempted to extract a field which
+		is not in the frame header either because it is placed beyond
+		the first 256 bytes of the frame, or because the frame is
+		shorter than the index evaluated for the extraction.
+
+@Cautions	In this function the task yields.
+@Cautions	This function may result in a fatal error.
+@Cautions	Presented header address in the workspace must be aligned to
+			16 bytes.
+
+*//***************************************************************************/
+int table_lookup_by_keyid_default_frame_wrp(
+				        enum table_hw_accel_id acc_id,
+					uint16_t table_id,
+					uint8_t keyid,
+					struct table_lookup_result
+					       *lookup_result);
+
+/**************************************************************************//**
+@Function	table_rule_create_wrp
+
+@Description	Wrapper of function table_rule_create.
+		See description of the function table_rule_create.
+
+@Param[in]	acc_id ID of the Hardware Table Accelerator that contains
+		the table on which the operation will be performed.
+@Param[in]	table_id Table ID.
+@Param[in]	rule The rule to be added. The structure pointed by this
+		pointer must be in the task's workspace and must be aligned to
+		16B boundary.
+@Param[in]	key_size Key size in bytes. Should be equal to the key size the
+		table was created with except for the following remark:
+		 - the key size should be added priority field size (4 Bytes)
+		for MFLU tables.
+
+@Return		0 on success, or negative value on error.
+
+@Retval		0 Success.
+@Retval		ENOMEM Error, Not enough memory is available.
+@Retval		EIO Error, A valid rule with the same key descriptor is found
+		in the table. No change was made to the table.
+
+@Cautions	In this function the task yields.
+@Cautions	This function may result in a fatal error.
+*//***************************************************************************/
+int table_rule_create_wrp(enum table_hw_accel_id acc_id,
+		      uint16_t table_id,
+		      struct table_rule *rule,
+		      uint8_t key_size);
+
+/**************************************************************************//**
+@Function	table_rule_delete_wrp
+
+@Description	Wrapper of the function table_rule_delete.
+		see the description of the function table_rule_delete.
+
+@Param[in]	acc_id ID of the Hardware Table Accelerator that contains
+		the table on which the operation will be performed.
+@Param[in]	table_id Table ID.
+@Param[in]	key_desc Key Descriptor of the rule to be queried. The
+		structure pointed by this pointer must be in the task's
+		workspace and must be aligned to 16B boundary.
+@Param[in]	key_size Key size in bytes. Should be equal to the key size the
+		table was created with except for the following remark:
+		 - the key size should be added priority field size (4 Bytes)
+		for MFLU tables.
+@Param[in, out]	result The result of the deleted rule. If null the deleted
+		rule's result will not be returned. If not null, structure
+		should be allocated by the caller to this function.
+
+@Return		0 on success or negative value on error.
+
+@Retval		0 Success.
+@Retval		EIO Error, a rule with the same key descriptor is not found
+		in the table.
+
+@Cautions	The key descriptor must be the exact same key descriptor that
+		was used for the rule creation (not including reserved/priority
+		fields).
+@Cautions	In this function the task yields.
+@Cautions	This function may result in a fatal error.
+*//***************************************************************************/
+int table_rule_delete_wrp(enum table_hw_accel_id acc_id,
+		      uint16_t table_id,
+		      union table_key_desc *key_desc,
+		      uint8_t key_size,
+		      struct table_result *result);
+
+
 /** @} */ /* end of TABLE_Functions */
 
 /** @} */ /* end of TABLE */

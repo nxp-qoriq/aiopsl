@@ -227,9 +227,16 @@ __declspec(entry_point) static void app_process_packet_flow0 (void)
 
 
 
-
-	local_test_error |= dpni_drv_send(ni_id);
-
+	err = dpni_drv_send(ni_id);
+	if (err){
+		fsl_os_print("ERROR = %d: dpni_drv_send(ni_id)\n",err);
+		local_test_error |= err;
+		if(err == -ENOMEM)
+			fdma_discard_default_frame(FDMA_DIS_NO_FLAGS);
+		else /* (err == -EBUSY) */
+			fdma_discard_fd((struct ldpaa_fd *)HWC_FD_ADDRESS, FDMA_DIS_NO_FLAGS);
+	}
+	
 	lock_spinlock(&test_error_lock);
 	test_error |= local_test_error; /*mark if error occured during one of the tests*/
 	unlock_spinlock(&test_error_lock);
@@ -317,9 +324,9 @@ int app_early_init(void){
 	if(err)
 		pr_err("slab_register_context_buffer_requirements failed: %d\n",err);
 	
-	err = dpni_drv_register_requirements(96,0,0);
+	err = dpni_drv_rx_buffer_layout_register_requirements(96,0,0);
 	if(err)
-		pr_err("dpni_drv_register_requirements failed: %d\n",err);
+		pr_err("dpni_drv_rx_buffer_layout_register_requirements failed: %d\n",err);
 		
 	return 0;
 }
@@ -372,11 +379,11 @@ int app_init(void)
 			fsl_os_print("MAC 02:00:C0:A8:0B:FE added for ni %d\n",ni);
 		}
 		dpni_drv_set_exclusive((uint16_t)ni);
-		err = dpni_drv_set_order_scope((uint16_t)ni,&dist_key_cfg);
-		if (err){
-			fsl_os_print("dpni_drv_set_order_scope failed %d\n", err);
-					return err;
-		}
+//		err = dpni_drv_set_order_scope((uint16_t)ni,&dist_key_cfg);
+//		if (err){
+//			fsl_os_print("dpni_drv_set_order_scope failed %d\n", err);
+//					return err;
+//		}
 
 		err = dpni_drv_register_rx_cb((uint16_t)ni/*ni_id*/,
 		                              app_process_packet_flow0);

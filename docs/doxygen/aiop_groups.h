@@ -723,9 +723,6 @@
 	/** @defgroup cmdif_server_g  Command Interface - Server
 		 		@ingroup cmdif_g
 		*/	
-	/** @defgroup cmdif_flib_g  Command Interface - FLIB
-		 		@ingroup cmdif_g
-		*/		
 	/** @} */	
 	
 	/** @defgroup ic_g Isolation Context
