@@ -228,7 +228,7 @@ asm static void branch_table(void) {
 machine_irq:
 	mfspr    r4, MCSR
 	se_btsti r4,21 /* test bit 0x00000400 - STACK_ERR */
-	beq      generic_irq
+	beq      generic_irq /* branch to generic irq if machine_check is not stack error */
 	mfdcr    r4, CTSCSR0 /* CTSCSR0 */
 	se_btsti r4, 7       /* check if 2 tasks */
 	li       rsp, 0x3ff0 /* 0x4000 - 0xf = 0x3ff0 */
