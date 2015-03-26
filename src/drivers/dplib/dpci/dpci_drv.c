@@ -115,7 +115,6 @@ static inline void amq_bits_update(uint32_t id)
 	uint32_t amq_bdi = 0;
 	uint16_t amq_bdi_temp = 0;
 	uint16_t pl_icid = PL_ICID_GET;
-	int err;
 
 	ADD_AMQ_FLAGS(amq_bdi_temp, pl_icid);
 	if (BDI_GET != 0)
@@ -396,7 +395,6 @@ __COLD_CODE int dpci_drv_removed(uint32_t dpci_id)
  */
 __COLD_CODE int dpci_drv_update(uint32_t ind)
 {
-	int err;
 	struct mc_dpci_tbl *dt = (struct mc_dpci_tbl *)\
 		sys_get_unique_handle(FSL_OS_MOD_DPCI_TBL);
 
@@ -427,7 +425,7 @@ __COLD_CODE int dpci_drv_update(uint32_t ind)
 	 */
 
 	DPCI_DT_LOCK_RELEASE;
-	return err;
+	return 0;
 }
 
 
