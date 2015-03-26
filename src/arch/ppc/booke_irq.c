@@ -229,10 +229,22 @@ machine_irq:
 	mfspr    r4, MCSR
 	se_btsti r4,21 /* test bit 0x00000400 - STACK_ERR */
 	beq      generic_irq
-	/* clear stack pointer */
-    mfspr    rsp, DAC2     /* Data address compare 2 */
-    stwu     rsp, -16(rsp) /* LinuxABI required SP to always be 16-byte aligned */
-    b        generic_irq
+	mfdcr    r4, CTSCSR0 /* CTSCSR0 */
+	se_btsti r4, 7       /* check if 2 tasks */
+	li       rsp, 0x3ff0 /* 0x4000 - 0xf = 0x3ff0 */
+	bne      generic_irq
+	se_btsti r4, 6       /* check if 4 tasks */
+	li       rsp, 0x1ff0 /* 0x2000 - 0xf = 0x1ff0 */
+	bne      generic_irq
+	se_btsti r4, 5       /* check if 8 tasks */
+	li       rsp, 0xff0  /* 0x1000 - 0xf = 0xff0 */
+	bne      generic_irq
+	se_btsti r4, 4       /* check if 16 tesks */
+	li       rsp, 0x7f0  /* 0x800 - 0xf = 0x7f0 */
+	bne      generic_irq
+	/* else, 1 task (all zeroes) */
+	li       rsp, 0x7ff0 /* 0x8000 - 0xf = 0x7ff0 */
+	b        generic_irq
 	
     /***************************************************/
     /*** generic exception handler *********************/
