@@ -370,8 +370,6 @@ int ipr_reassemble(ipr_instance_handle_t instance_handle)
 	uint8_t  ipv6_key[36] __attribute__((aligned(16)));
 	/* Following struct should be aligned due to ctlu alignment request */
 	struct ipr_rfdc rfdc __attribute__((aligned(16)));
-	/* Following struct should be aligned due to ctlu alignment request */
-	struct table_lookup_result lookup_result __attribute__((aligned(16)));
 	struct ipr_instance instance_params;
 	struct scope_status_params scope_status;
 	uint64_t rfdc_ext_addr;
@@ -429,30 +427,14 @@ int ipr_reassemble(ipr_instance_handle_t instance_handle)
 	else
 		frame_is_ipv4 = 0;
 
-	if (check_for_frag_error(instance_params,frame_is_ipv4, iphdr_ptr) ==
+	if (check_for_frag_error(&instance_params,frame_is_ipv4, iphdr_ptr) ==
 								NO_ERROR) {
-		/* Good fragment */
-		if (frame_is_ipv4) {
-			/* Error is not checked since it is assumed that
-			 * IP header exists and is presented */
-			sr_status = table_lookup_by_keyid_default_frame_wrp(
-					TABLE_ACCEL_ID_CTLU,
-					instance_params.table_id_ipv4,
-					ipr_global_parameters1.ipr_key_id_ipv4,
-					&lookup_result);
-		} else {
-			/* Error is not checked since it is assumed that
-			 * IP header exists and is presented */
-			sr_status = table_lookup_by_keyid_default_frame_wrp(
-					TABLE_ACCEL_ID_CTLU,
-					instance_params.table_id_ipv6,
-					ipr_global_parameters1.ipr_key_id_ipv6,
-					&lookup_result);
-		}
+
+		sr_status = ipr_lookup(frame_is_ipv4, &instance_params,
+					&rfdc_ext_addr);
 		
 		if (sr_status == TABLE_STATUS_SUCCESS) {
 			/* Hit */
-			rfdc_ext_addr = lookup_result.opaque0_or_reference;
 			if (osm_status == NO_BYPASS_OSM) {
 				/* create nested per reassembled frame */
 				osm_scope_enter_to_exclusive_with_new_scope_id(
@@ -757,6 +739,37 @@ int ipr_reassemble(ipr_instance_handle_t instance_handle)
 
 		return IPR_MALFORMED_FRAG;
 	}
+}
+
+int ipr_lookup(uint32_t frame_is_ipv4, struct ipr_instance *instance_params_ptr,
+		uint64_t *rfdc_ext_addr_ptr)
+{
+	/* Following struct should be aligned due to ctlu alignment request */
+	struct table_lookup_result lookup_result __attribute__((aligned(16)));
+	int sr_status;
+	
+	/* Good fragment */
+	if (frame_is_ipv4) {
+		/* Error is not checked since it is assumed that
+		 * IP header exists and is presented */
+		sr_status = table_lookup_by_keyid_default_frame_wrp(
+				TABLE_ACCEL_ID_CTLU,
+				instance_params_ptr->table_id_ipv4,
+				ipr_global_parameters1.ipr_key_id_ipv4,
+				&lookup_result);
+	} else {
+		/* Error is not checked since it is assumed that
+		 * IP header exists and is presented */
+		sr_status = table_lookup_by_keyid_default_frame_wrp(
+				TABLE_ACCEL_ID_CTLU,
+				instance_params_ptr->table_id_ipv6,
+				ipr_global_parameters1.ipr_key_id_ipv6,
+				&lookup_result);
+	}
+	/* Next line is relevant only in case of Hit */
+	*rfdc_ext_addr_ptr = lookup_result.opaque0_or_reference;
+	
+	return sr_status;
 }
 
 int ipr_miss_handling(struct ipr_instance *instance_params_ptr,
@@ -1609,7 +1622,7 @@ uint32_t closing_with_reordering(struct ipr_rfdc *rfdc_ptr,
 	return SUCCESS;
 }
 
-uint32_t check_for_frag_error (struct ipr_instance instance_params,
+uint32_t check_for_frag_error (struct ipr_instance *instance_params,
 				uint32_t frame_is_ipv4, void *iphdr_ptr)
 {
 	uint16_t length, ip_header_size, current_frag_size, ipv6fraghdr_offset;
@@ -1622,7 +1635,7 @@ uint32_t check_for_frag_error (struct ipr_instance instance_params,
 
 	length = (uint16_t) (LDPAA_FD_GET_LENGTH(HWC_FD_ADDRESS));
 	if (frame_is_ipv4) {
-		if (length < instance_params.min_frag_size_ipv4)
+		if (length < instance_params->min_frag_size_ipv4)
 			return MALFORMED_FRAG;
 		ipv4hdr_ptr = (struct ipv4hdr *) iphdr_ptr;
 		frag_offset_shifted =
@@ -1633,7 +1646,7 @@ uint32_t check_for_frag_error (struct ipr_instance instance_params,
 		last_fragment = !(ipv4hdr_ptr->flags_and_offset &
 				IPV4_HDR_M_FLAG_MASK);
 	} else {
-		if (length < instance_params.min_frag_size_ipv6)
+		if (length < instance_params->min_frag_size_ipv6)
 			return MALFORMED_FRAG;
 		ipv6hdr_ptr = (struct ipv6hdr *) iphdr_ptr;
 		ipv6fraghdr_offset =
