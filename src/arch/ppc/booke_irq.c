@@ -230,21 +230,35 @@ machine_irq:
 	se_btsti r4,21 /* test bit 0x00000400 - STACK_ERR */
 	beq      generic_irq /* branch to generic irq if machine_check is not stack error */
 	mfdcr    r4, CTSCSR0 /* CTSCSR0 */
-	se_btsti r4, 7       /* check if 2 tasks */
-	li       rsp, 0x3ff0 /* 0x4000 - 0xf = 0x3ff0 */
-	bne      generic_irq
-	se_btsti r4, 6       /* check if 4 tasks */
-	li       rsp, 0x1ff0 /* 0x2000 - 0xf = 0x1ff0 */
-	bne      generic_irq
-	se_btsti r4, 5       /* check if 8 tasks */
-	li       rsp, 0xff0  /* 0x1000 - 0xf = 0xff0 */
-	bne      generic_irq
-	se_btsti r4, 4       /* check if 16 tesks */
+	andis.   r4, r4, CTSCSR_TASKS_MASK@h
+	/* case: 16 tasks */
+	lis      r0, CTSCSR_16_TASKS@h
+	cmpw     r4, r0
 	li       rsp, 0x7f0  /* 0x800 - 0xf = 0x7f0 */
-	bne      generic_irq
-	/* else, 1 task (all zeroes) */
+	beq      generic_irq
+	/* case: 8 tasks */
+	lis      r0, CTSCSR_8_TASKS@h
+	cmpw     r4, r0
+	li       rsp, 0xff0  /* 0x1000 - 0xf = 0xff0 */
+	beq      generic_irq
+	/* case: 4 tasks */
+	lis      r0, CTSCSR_4_TASKS@h
+	cmpw     r4, r0
+	li       rsp, 0x1ff0 /* 0x2000 - 0xf = 0x1ff0 */
+	beq      generic_irq
+	/* case: 2 tasks */
+	lis      r0, CTSCSR_2_TASKS@h
+	cmpw     r4, r0
+	li       rsp, 0x3ff0 /* 0x4000 - 0xf = 0x3ff0 */
+	beq      generic_irq
+	/* case: 1 task */
+	lis      r0, CTSCSR_1_TASKS@h
+	cmpw     r4, r0
 	li       rsp, 0x7ff0 /* 0x8000 - 0xf = 0x7ff0 */
-	b        generic_irq
+	beq      generic_irq
+	/* case: else (default) */
+	se_illegal
+	se_dnh
 	
     /***************************************************/
     /*** generic exception handler *********************/
