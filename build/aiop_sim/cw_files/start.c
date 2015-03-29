@@ -203,6 +203,11 @@ asm __COLD_CODE void __sys_start(register int argc, register char **argv, regist
     /* Store core ID */
     mfpir  r17
 
+    /* Initialize PPC interrupts vector */
+    lis     r31,tmp_branch_table@h
+    ori     r31,r31,tmp_branch_table@l
+    mtspr   IVPR,r31
+    
     /* MC clear WS for each core to reset ECC */
     /* The WS is a per core 32K RAM. */
     /* Loops to cover WS, stmw allows 128 bytes (32 GPRS x 4 bytes) writes */
@@ -241,11 +246,6 @@ init_ws_loop:
     stw    r0,  0(r1)        /* SysVr4 Supp indicated that initial back chain word should be null */
     li     r0, 0xffffffff   /* Load up r0 with 0xffffffff */
     stw    r0, 4(r1)         /* Make an illegal return address of 0xffffffff */
-   
-    /* Initialize PPC interrupts vector */
-    lis     r3,tmp_branch_table@h
-    ori     r3,r3,tmp_branch_table@l
-    mtspr   IVPR,r3
     
     /* master-core clears bss sections while others wait */
 	lis     r19, _master@ha
