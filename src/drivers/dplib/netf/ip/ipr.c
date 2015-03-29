@@ -385,7 +385,6 @@ int ipr_reassemble(ipr_instance_handle_t instance_handle)
 	struct presentation_context *prc =
 				(struct presentation_context *) HWC_PRC_ADDRESS;
 
-	#pragma fn_ptr_candidates(ipr_reassemble) 
 
 	iphdr_offset = (uint16_t)PARSER_GET_OUTER_IP_OFFSET_DEFAULT();
 	iphdr_ptr = (void *)(iphdr_offset + PRC_GET_SEGMENT_ADDRESS());
