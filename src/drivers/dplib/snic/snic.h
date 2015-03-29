@@ -70,9 +70,9 @@
 /* todo need to set SNIC_MAX_NO_OF_TIMERS bigger than max number of open 
  * reassembly frames and IPsec SAs in all snics */
 #define SNIC_MAX_NO_OF_TIMERS   100
-/* maximum open reassembly frames for all snics */
+/* maximum open reassembly frames per nic */
 #define MAX_OPEN_IPR_FRAMES     100
-/* Maximum number of IPsec SAs for all instances/snics */
+/* Maximum number of IPsec SAs per nic */
 #define MAX_SA_NO               100
 
 /** @} */ /* end of SNIC_MACROS */

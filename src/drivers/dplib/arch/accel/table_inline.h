@@ -37,6 +37,8 @@
 #include "general.h"
 #include "fsl_table.h"
 #include "table.h"
+#include "fsl_errors.h"
+#include "fsl_cdma.h"
 
 
 inline int table_lookup_by_keyid_default_frame(enum table_hw_accel_id acc_id,

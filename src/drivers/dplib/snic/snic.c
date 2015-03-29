@@ -602,10 +602,11 @@ int aiop_snic_early_init(void)
 	int err;
 
 	/* reserve IPR buffers */
-	err = ipr_early_init(MAX_SNIC_NO, MAX_OPEN_IPR_FRAMES);
-	if (err)
+	err = ipr_early_init(MAX_SNIC_NO, MAX_SNIC_NO * MAX_OPEN_IPR_FRAMES);
+	/* todo: currently not allocate for IPsec */
+	/* if (err)
 		return err;
-	err = ipsec_early_init(MAX_SNIC_NO, MAX_SA_NO, MAX_SA_NO, 0);
+	err = ipsec_early_init(MAX_SNIC_NO, MAX_SA_NO, MAX_SA_NO, 0); */
 	return err;
 }
 

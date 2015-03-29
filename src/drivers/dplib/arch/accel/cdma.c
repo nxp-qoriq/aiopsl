@@ -350,10 +350,42 @@ void cdma_refcount_get(
 					CDMA_REF_CNT_OFFSET));
 }
 
+void cdma_read_wrp(void *ws_dst, uint64_t ext_address, uint16_t size)
+{
+	cdma_read(ws_dst, ext_address, size);
+}
+
+void cdma_read_with_mutex_wrp(uint64_t ext_address, uint32_t flags,
+				void *ws_dst, uint16_t size)
+{
+	cdma_read_with_mutex(ext_address, flags, ws_dst, size);
+}
+
+int cdma_access_context_memory_wrp(uint64_t context_address,
+					uint32_t flags,
+					uint16_t offset,
+					void *ws_address,
+					uint16_t dma_param,
+					uint32_t *refcount_value)
+{
+	return cdma_access_context_memory(context_address,
+					   flags,
+					   offset,
+					   ws_address,
+					   dma_param,
+					   refcount_value);
+}
+
+void cdma_write_wrp(uint64_t ext_address, void *ws_src, uint16_t size)
+{
+	cdma_write(ext_address, ws_src, size);
+}
 
 #pragma push
 	/* make all following data go into .exception_data */
 #pragma section data_type ".exception_data"
+
+#pragma stackinfo_ignore on
 
 void cdma_exception_handler(enum cdma_function_identifier func_id,
 		     uint32_t line,

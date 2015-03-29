@@ -30,19 +30,19 @@
 #include <string.h>
 
 
+#pragma stackinfo_ignore on
 
 void exception_handler(char *filename,
 		       char *function_name,
 		       uint32_t line,
 		       char *message) __attribute__ ((noreturn))
 {
-#ifndef STACK_CHECK
 	filename = strrchr(filename, '/') ?
 			strrchr(filename, '/') + 1 : filename;
 	pr_err("Fatal error encountered in file: %s, line: %d\n", filename, line);
 	pr_err("function: %s\n", function_name);
 	pr_err("exception error: %s\n", message);
-#endif
+
 	fdma_terminate_task();
 	exit(-1); /* TODO This code is never reached and should be removed once
 	fdma_terminate_task() is declared as noreturn*/

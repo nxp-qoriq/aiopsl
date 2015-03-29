@@ -1026,7 +1026,8 @@ void fdma_trim_default_segment_presentation(uint16_t offset, uint16_t size)
 	res1 = *((int8_t *)(FDMA_STATUS_ADDR));
 	/* Update Task Defaults */
 	if (res1 == FDMA_SUCCESS) {
-		PRC_SET_SEGMENT_OFFSET(offset);
+		PRC_SET_SEGMENT_ADDRESS(PRC_GET_SEGMENT_ADDRESS() + offset);
+		PRC_SET_SEGMENT_OFFSET(PRC_GET_SEGMENT_OFFSET() + offset);
 		PRC_SET_SEGMENT_LENGTH(size);
 	} else {
 		fdma_exception_handler(FDMA_TRIM_DEFAULT_SEGMENT_PRESENTATION, 
@@ -1353,11 +1354,9 @@ void fdma_dma_data(
 	__e_hwacceli_(FPDMA_ACCEL_ID);
 	/* load command results */
 	res1 = *((int8_t *)(FDMA_STATUS_ADDR));
-/*TODO: remove #ifndef STACK_CHECK when CQ ENGR00347744 resolved*/
-#ifndef STACK_CHECK
+	
 	if (res1 != FDMA_SUCCESS)
 		fdma_exception_handler(FDMA_DMA_DATA, __LINE__, (int32_t)res1);
-#endif
 }
 
 int fdma_acquire_buffer(
@@ -1455,10 +1454,28 @@ void fdma_release_buffer(
 		(adc->fdsrc_va_fca_bdi & ~(ADC_BDI_MASK | ADC_VA_MASK)) | flags;
 }
 
+int fdma_discard_fd_wrp(struct ldpaa_fd *fd, uint32_t flags)
+{
+	return fdma_discard_fd(fd, flags);
+}
+
+void fdma_calculate_default_frame_checksum_wrp( uint16_t offset,
+						uint16_t size,
+						uint16_t *checksum)
+{
+	fdma_calculate_default_frame_checksum(offset, size, checksum);
+}
+
+int fdma_store_default_frame_data_wrp(void)
+{
+	return fdma_store_default_frame_data();
+}
 
 #pragma push
 	/* make all following data go into .exception_data */
 #pragma section data_type ".exception_data"
+
+#pragma stackinfo_ignore on
 
 void fdma_exception_handler(enum fdma_function_identifier func_id,
 		     uint32_t line,

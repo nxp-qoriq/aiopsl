@@ -163,6 +163,22 @@ enum osm_errors {
 *//***************************************************************************/
 
 /**************************************************************************//**
+@Function	osm_scope_transition_to_exclusive_with_increment_scope_id_wrp
+
+@Description	Wrapper to the function
+		osm_scope_transition_to_exclusive_with_increment_scope_id.
+		See description of the function:
+		osm_scope_transition_to_exclusive_with_increment_scope_id
+
+@Param[in]	None.
+
+@Return		None.
+
+*//***************************************************************************/
+
+void osm_scope_transition_to_exclusive_with_increment_scope_id_wrp(void);
+
+/**************************************************************************//**
 @Function	osm_exception_handler
 
 @Description	Handler for the error status returned from the OSM API
