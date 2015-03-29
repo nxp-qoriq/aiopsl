@@ -2,6 +2,7 @@ LDPAA AIOP SERVICE LAYER LDPAA-AIOP-SL-v0.6.0 Change Log
 =============================================================
 FDMA:
 	* FDMA replicate functions can be called in order to replicate non-empty frames only (due to TKT258499).
+	* FDMA trim - fix PRC update (ENGR353299).
 	
 TABLE:
 	* Resolved ENGR346557 ("Table delete will not work on the device").
