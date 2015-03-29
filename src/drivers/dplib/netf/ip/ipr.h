@@ -284,6 +284,11 @@ uint32_t ipr_insert_to_link_list(struct ipr_rfdc *rfdc_ptr,
 				 void *iphdr_ptr,
 				 uint32_t frame_is_ipv4);
 
+int ipr_miss_handling(struct ipr_instance *instance_params_ptr,
+	  uint32_t frame_is_ipv4, uint32_t osm_status, struct ipr_rfdc *rfdc_ptr,
+	  ipr_instance_handle_t instance_handle, uint64_t *rfdc_ext_addr_ptr);
+
+
 uint32_t closing_in_order(uint64_t rfdc_ext_addr, uint8_t num_of_frags);
 
 uint32_t closing_with_reordering(struct ipr_rfdc *rfdc_ptr,
@@ -332,7 +337,7 @@ uint32_t out_of_order(struct ipr_rfdc *rfdc_ptr, uint64_t rfdc_ext_addr,
 
 void ipr_delete_instance_after_time_out(ipr_instance_handle_t ipr_instance_ptr);
 
-void ipr_stats_update(struct ipr_instance instance_params,
+void ipr_stats_update(struct ipr_instance *instance_params_ptr,
 		      uint32_t counter_offset, uint32_t frame_is_ipv4);
 
 int ipr_early_init(uint32_t nbr_of_instances, uint32_t nbr_of_context_buffers);
