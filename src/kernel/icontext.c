@@ -87,7 +87,11 @@ int icontext_get(uint16_t dpci_id, struct icontext *ic)
 	ASSERT_COND(ic);
 	/*
 	 * TODO
-	 * Lock with cdma mutex READ
+	 * Is it possible that DPCI will be removed in the middle of the task ?
+	 * If yes than we need read lock on mc_dpci_find() + dpci_drv_icid_get()
+	 * NOTE : only dpci_peer_id can be updated but not dpci_id.
+	 * Maybe it should not update peer id at all ?? 
+	 * It should be updated only in dpci_drv_added() !!!
 	 */
 
 	/* search by GPP peer id - most likely case

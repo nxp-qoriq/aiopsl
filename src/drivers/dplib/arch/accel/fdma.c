@@ -566,44 +566,6 @@ int fdma_store_and_enqueue_frame_fqid(
 	return (int32_t)(res1);
 }
 
-int fdma_store_and_enqueue_default_frame_qd(
-		struct fdma_queueing_destination_params *qdp,
-		uint32_t	flags)
-{
-	/* command parameters and results */
-	uint32_t arg1, arg2, arg3;
-	int8_t res1;
-	/* storage profile ID */
-	uint8_t spid = *((uint8_t *) HWC_SPID_ADDRESS);
-
-	/* prepare command parameters */
-	flags &= ~FDMA_EN_EIS_BIT;
-	arg1 = FDMA_ENQUEUE_WF_ARG1(spid, PRC_GET_HANDLES(), flags);
-	arg2 = FDMA_ENQUEUE_WF_QD_ARG2(qdp->qd_priority, qdp->qd);
-	arg3 = FDMA_ENQUEUE_WF_QD_ARG3(qdp->qdbin);
-	/* store command parameters */
-	__stdw(arg1, arg2, HWC_ACC_IN_ADDRESS, 0);
-	*((uint32_t *)(HWC_ACC_IN_ADDRESS3)) = arg3;
-	/*__stqw(arg1, arg2, arg3, 0, HWC_ACC_IN_ADDRESS, 0);*/
-
-	/* call FDMA Accelerator */
-	__e_hwacceli_(FODMA_ACCEL_ID);
-	/* load command results */
-	res1 = *((int8_t *) (FDMA_STATUS_ADDR));
-
-	if (res1 == FDMA_SUCCESS)
-		return SUCCESS;
-	else if (res1 == FDMA_ENQUEUE_FAILED_ERR)
-		return -EBUSY;
-	else if (res1 == FDMA_BUFFER_POOL_DEPLETION_ERR)
-		return -ENOMEM;
-	else
-		fdma_exception_handler(FDMA_STORE_AND_ENQUEUE_DEFAULT_FRAME_QD, 
-					__LINE__, (int32_t)res1);
-
-	return (int32_t)(res1);
-}
-
 int fdma_store_and_enqueue_frame_qd(
 		uint8_t  frame_handle,
 		uint32_t flags,
@@ -806,17 +768,6 @@ void fdma_force_discard_fd(struct ldpaa_fd *fd)
 {
 	LDPAA_FD_SET_ERR(fd, 0);
 	fdma_discard_fd(fd, FDMA_DIS_NO_FLAGS);
-}
-
-void fdma_terminate_task(void)
-{
-	/* command parameters and results */
-	uint32_t arg1;
-	/* prepare command parameters */
-	arg1 = FDMA_TERM_TASK_CMD_ARG1();
-	*((uint32_t *)(HWC_ACC_IN_ADDRESS)) = arg1;
-	/* call FDMA Accelerator */
-	__e_hwacceli_(FODMA_ACCEL_ID);
 }
 
 int fdma_replicate_frame_fqid(
@@ -1382,31 +1333,6 @@ int fdma_replace_default_pta_segment_data(
 	return (int32_t)(res1);
 }
 
-void fdma_calculate_default_frame_checksum(
-		uint16_t offset,
-		uint16_t size,
-		uint16_t *checksum)
-{
-	/* command parameters and results */
-	uint32_t arg1, arg2;
-	int8_t res1;
-
-	/* prepare command parameters */
-	arg1 = FDMA_CKS_CMD_ARG1(PRC_GET_FRAME_HANDLE());
-	arg2 = FDMA_CKS_CMD_ARG2(offset, size);
-	/* store command parameters */
-	__stdw(arg1, arg2, HWC_ACC_IN_ADDRESS, 0);
-	/* call FDMA Accelerator */
-	__e_hwacceli_(FODMA_ACCEL_ID);
-	/* load command results */
-	res1 = *((int8_t *)(FDMA_STATUS_ADDR));
-	*checksum = *((uint16_t *)(HWC_ACC_OUT_ADDRESS2+FDMA_CHECKSUM_OFFSET));
-
-	if (res1 != FDMA_SUCCESS)
-		fdma_exception_handler(FDMA_CALCULATE_DEFAULT_FRAME_CHECKSUM, 
-				__LINE__, (int32_t)res1);
-}
-
 void fdma_dma_data(
 		uint16_t copy_size,
 		uint16_t icid,
@@ -1530,6 +1456,22 @@ void fdma_release_buffer(
 		(adc->fdsrc_va_fca_bdi & ~(ADC_BDI_MASK | ADC_VA_MASK)) | flags;
 }
 
+int fdma_discard_fd_wrp(struct ldpaa_fd *fd, uint32_t flags)
+{
+	return fdma_discard_fd(fd, flags);
+}
+
+void fdma_calculate_default_frame_checksum_wrp( uint16_t offset,
+						uint16_t size,
+						uint16_t *checksum)
+{
+	fdma_calculate_default_frame_checksum(offset, size, checksum);
+}
+
+int fdma_store_default_frame_data_wrp(void)
+{
+	return fdma_store_default_frame_data();
+}
 
 #pragma push
 	/* make all following data go into .exception_data */

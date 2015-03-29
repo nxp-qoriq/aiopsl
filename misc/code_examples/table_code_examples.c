@@ -39,9 +39,14 @@
 #define TABLE_EXAMPLE_EM_KEY_SIZE 124
 #define TABLE_EXAMPLE_EM_KEY_RESERVED_SIZE 4
 
+#define MFLU_EXAMPLE_MFLU_KEY_SIZE 4
+#define MFLU_EXAMPLE_MFLU_PRIORITY_SIZE 4
+#define MFLU_MID_PRIORITY 0x0FFFFFFF
+
 
 int table_exact_match_example();
 int table_longest_prefix_match_example();
+int table_mflu_example();
 
 int table_exact_match_example()
 {
@@ -135,7 +140,7 @@ int table_exact_match_example()
 			       lkup_key_desc,
 			       keysize,
 			       &lookup_res)) {
-		/* Error handling */
+		/* Error/Miss handling */
 		return -1;
 	}
 
@@ -238,7 +243,7 @@ int table_longest_prefix_match_example()
 				 TABLE_LOOKUP_FLAG_NONE,
 				 NULL,
 				 &lookup_res)) {
-		/* Error handling */
+		/* Error/Miss handling */
 		return -1;
 	}
 
@@ -250,5 +255,103 @@ int table_longest_prefix_match_example()
 	 * lookup_res.timestamp is filled with the timestamp
 	 * */
 
+	return 0;
+}
+
+int table_mflu_example()
+{
+	uint16_t                   table_id;
+	struct table_create_params table_params;
+	struct table_rule          rule1 __attribute__((aligned(16)));
+	uint8_t                    keyid;
+	struct table_lookup_result lookup_res __attribute__((aligned(16)));
+	uint8_t                    *kcr;
+	struct kcr_builder         kc_builder __attribute__((aligned(16)));
+
+	/* KCR building, Please refer to Keygen section*/
+	keygen_kcr_builder_init(&kc_builder);
+	if (/* Extract the first IP header source address */
+	    keygen_kcr_builder_add_protocol_specific_field(
+			KEYGEN_KCR_IPSRC_1_FECID,
+			NULL,
+			&kc_builder)
+		/* Add highest priority i.e. consider all priorities in mflu lookup */
+		|| keygen_kcr_builder_add_constant_fec(0x00,
+							4,
+							&kc_builder)) {
+
+		/* Error Handling */
+		return -1;
+	}
+	kcr = kc_builder.kcr;
+
+	/* KCR creation, refer to Keygen section */
+	if (keygen_kcr_create(KEYGEN_ACCEL_ID_MFLU, kcr, &keyid)) {
+		/*Error handling */
+	}
+	
+	/* Table Parameter Initialization 
+	 * External (located in DDR) MFLU Table, without a miss result,
+	 * with a guaranteed number of 100 rules and a maximum number of 100
+	 * rules.
+	 * */
+	table_params.attributes = TABLE_ATTRIBUTE_TYPE_MFLU |
+				TABLE_ATTRIBUTE_LOCATION_EXT1 |
+				TABLE_ATTRIBUTE_MR_NO_MISS;
+	table_params.committed_rules = 100;
+	table_params.max_rules = 100;
+	table_params.key_size = MFLU_EXAMPLE_MFLU_KEY_SIZE;
+
+	/* Table Creation */
+	if(table_create(TABLE_ACCEL_ID_MFLU, &table_params,&table_id)) {
+		/* Error handling */
+		return -1;
+	}
+
+	/* Initialize a new table rule with 169.x.35.x */
+	rule1.key_desc.mflu.key[0] = 169;
+	rule1.key_desc.mflu.key[2] = 35;
+	*(uint32_t *)(&rule1.key_desc.mflu.key[MFLU_EXAMPLE_MFLU_KEY_SIZE]) = MFLU_MID_PRIORITY;
+	*(uint32_t *)(&rule1.key_desc.mflu.mask[0]) = 0xff00ff00;
+	
+	rule1.result.type = TABLE_RESULT_TYPE_OPAQUES;
+	rule1.result.op0_rptr_clp.opaque0 = EIGHT_BYTE_USER_DATA_1;
+	rule1.result.opaque1 = EIGHT_BYTE_USER_DATA_2;
+	rule1.result.opaque2 = ONE_BYTE_USER_DATA_1;
+	rule1.options = TABLE_RULE_TIMESTAMP_NONE;
+
+	/* Add a rule to the table */
+	if(table_rule_create(TABLE_ACCEL_ID_MFLU,
+			     table_id,
+			     &rule1,
+			     MFLU_EXAMPLE_MFLU_KEY_SIZE + MFLU_EXAMPLE_MFLU_PRIORITY_SIZE)) {
+		/* Error handling */
+		return -1;
+	}
+	
+	/* Check if packet is IPv4 */
+	if (!PARSER_IS_OUTER_IPV4_DEFAULT()) {
+		/* Error handling */
+		return -1;
+	}
+
+	/* Perform a lookup */
+	if(table_lookup_by_keyid(TABLE_ACCEL_ID_MFLU,
+				 table_id,
+				 keyid,
+				 TABLE_LOOKUP_FLAG_NONE,
+				 NULL,
+				 &lookup_res)) {
+		/* Error/Miss handling */
+		return -1;
+	}
+
+	/* It is expected that after the lookup, if the frame suits
+	 * 169.x.35.x, the following will be true: 
+	 * lookup_res.opaque0_or_reference == rule1.result.op0_rptr_clp.opaque0
+	 * lookup_res.opaque1 == rule1.result.opaque1
+	 * lookup_res.opaque2 == rule1.result.opaque2
+	 * */
+	
 	return 0;
 }

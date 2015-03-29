@@ -1475,7 +1475,7 @@ int fdma_store_and_enqueue_frame_fqid(
 @Cautions	This function may result in a fatal error.
 @Cautions	In this Service Routine the task yields.
 *//***************************************************************************/
-int fdma_store_and_enqueue_default_frame_qd(
+inline int fdma_store_and_enqueue_default_frame_qd(
 		struct fdma_queueing_destination_params *qdp,
 		uint32_t	flags);
 
@@ -1768,7 +1768,7 @@ void fdma_force_discard_fd(struct ldpaa_fd *fd);
 @Cautions	This function may result in a fatal error.
 @Cautions	In this Service Routine the task yields.
 *//***************************************************************************/
-void fdma_terminate_task(void);
+inline void fdma_terminate_task(void);
 
 /**************************************************************************//**
 @Function	fdma_replicate_frame_fqid
@@ -2495,7 +2495,7 @@ int fdma_replace_default_pta_segment_data(
 @Cautions	This function may result in a fatal error.
 @Cautions	In this Service Routine the task yields.
 *//***************************************************************************/
-void fdma_calculate_default_frame_checksum(
+inline void fdma_calculate_default_frame_checksum(
 		uint16_t offset,
 		uint16_t size,
 		uint16_t *checksum);

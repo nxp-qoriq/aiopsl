@@ -55,7 +55,7 @@ static int system_call(int num, int arg0, int arg1, int arg2, int arg3)
 
        return out;
 }
-#endif /* SIMULATOR */
+#endif /* ARENA_LEGACY_CODE */
 
 /*****************************************************************************/
 __COLD_CODE int sys_register_console(fsl_handle_t h_console_dev,

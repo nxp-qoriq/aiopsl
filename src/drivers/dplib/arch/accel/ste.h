@@ -62,6 +62,52 @@ enum e_ste_cmd_type {
 	STE_CMDTYPE_DEC_SUB = 0xF
 };
 
+/**************************************************************************//**
+@Function	ste_inc_counter_wrp
+
+@Description	Wrapper of the function ste_inc_counter.
+		See description of the function ste_inc_counter.
+
+@Param[in]	counter_addr - The counter external address (DDR, PEB
+		and system L3 cache configured as SRAM).
+@Param[in]	inc_value - The value to be added to the counter.
+@Param[in]	flags -  \link StatsFlags Statistics flags
+		\endlink.\n
+
+@Return		None.
+
+@Cautions	This is a fire and forget function. This means that the counter
+		update that was issued by this function may be executed after
+		the this function returns.
+
+*//****************************************************************************/
+void ste_inc_counter_wrp(uint64_t counter_addr,
+			 uint32_t inc_value,
+			 uint32_t flags);
+
+/**************************************************************************//**
+@Function	ste_dec_counter_wrp
+
+@Description	Wrapper of the function ste_dec_counter.
+		See description of the function ste_dec_counter.
+
+@Param[in]	counter_addr - The counter external address (DDR, PEB
+		and system L3 cache configured as SRAM).
+@Param[in]	dec_value - The value to be subtracted from the counter.
+@Param[in]	flags -  \link StatsFlags Statistics flags
+		\endlink.\n
+
+
+@Return		None.
+
+@Cautions	This is a fire and forget function. This means that the counter
+		update that was issued by this function may be executed after
+		the this function returns.
+
+*//****************************************************************************/
+void ste_dec_counter_wrp(uint64_t counter_addr,
+			    uint32_t dec_value,
+			    uint32_t flags);
 
 /** @} end of group STE_functions */
 /** @} end of group STATS */

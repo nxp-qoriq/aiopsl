@@ -24,45 +24,95 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+/**************************************************************************//**
+@File		fsl_dpci_drv.h
+
+@Description	DPCI wrapper that is internally used by CMDIF
+*//***************************************************************************/
+
 #ifndef __FSL_DPCI_DRV_H
 #define __FSL_DPCI_DRV_H
 
-/*
- * New DPCI was added or the state of the DPCI has changed
- * The dpci_id must belong to AIOP side
- */
+
+/**************************************************************************//**
+@Function	dpci_drv_added
+
+@Description	New DPCI was added to AIOP container or the state of 
+		the DPCI has changed. Updates the DPCI table. 
+
+@Param[in]	dpci_id - DPCI id of the AIOP side.
+
+@Return		0      - on success, POSIX error code otherwise
+ *//***************************************************************************/
 int dpci_drv_added(uint32_t dpci_id);
 
-/*
- * The DPCI was removed from AIOP container
- * The dpci_id must belong to AIOP side
- */
+
+/**************************************************************************//**
+@Function	dpci_drv_removed
+
+@Description	The DPCI was removed from AIOP container or disconnected.
+		Updates the DPCI table. 
+
+@Param[in]	dpci_id - DPCI id of the AIOP side.
+
+@Return		0      - on success, POSIX error code otherwise
+ *//***************************************************************************/
 int dpci_drv_removed(uint32_t dpci_id);
 
-/*
- * The DPCI user context and AMQ bits are updated
- * This function is to be called only inside the open command and before
- * the AMQ bits had been changed to AIOP AMQ bits
- * For dpci_ind Use mc_dpci_find() or dpci_drv_user_ctx_get()
- */
+
+/**************************************************************************//**
+@Function	dpci_drv_update
+
+@Description	Updates the entry of DPCI table with the AMQ + BDI from ADC.
+  	  	Updates dpci_peer_id in the DPCI table.
+  	  	To be called only inside the open command and before 
+  	  	the AMQ bits are changed to AIOP AMQ bits  
+
+@Param[in]	dpci_ind - Use mc_dpci_find() or dpci_drv_user_ctx_get().
+
+@Return		0      - on success, POSIX error code otherwise
+ *//***************************************************************************/
 int dpci_drv_update(uint32_t dpci_ind);
 
 /*
  * The dpci_id can be either AIOP dpci id or the peer id
  * tx_fqid - should be array for 2 fqids
  */
+
+/**************************************************************************//**
+@Function	dpci_drv_tx_get
+
+@Description	Get the tx fqids for DPCI.  
+
+@Param[in]	dpci_id - Either AIOP dpci id or the peer id.
+@Param[out]	tx_fqid - Array for 2 fqids.
+
+@Return		0      - on success, POSIX error code otherwise
+ *//***************************************************************************/
 int dpci_drv_tx_get(uint32_t dpci_id, uint32_t *tx_fqid);
 
-/*
- * Read the DPCI index and FQID from user context in ADC
- */
+
+/**************************************************************************//**
+@Function	dpci_drv_user_ctx_get
+
+@Description	Read the DPCI index and FQID from user context in ADC.
+
+@Param[out]	dpci_ind - Index to the DPCI table entry.
+@Param[out]	fqid - fqid for tx
+ *//***************************************************************************/
 void dpci_drv_user_ctx_get(uint32_t *dpci_ind, uint32_t *fqid);
 
-/*
- * Read icid and amq of specific DPCI table entry
- */
-void dpci_drv_icid_get(uint32_t dpci_ind, uint16_t *icid, uint16_t *amq_bdi);
 
+/**************************************************************************//**
+@Function	dpci_drv_icid_get
+
+@Description	Read the ICID + AMQ + BDI from DPCI entry.
+
+@Param[in]	dpci_ind - Index to the DPCI table entry.
+@Param[out]	icid - icid that belongs to this DPCI
+@Param[out]	amq_bdi - AMQ + BDI that belong to this DPCI
+ *//***************************************************************************/
+void dpci_drv_icid_get(uint32_t dpci_ind, uint16_t *icid, uint16_t *amq_bdi);
 
 
 #endif
