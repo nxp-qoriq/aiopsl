@@ -384,8 +384,7 @@ int ipr_reassemble(ipr_instance_handle_t instance_handle)
 	uint16_t iphdr_offset;
 	struct presentation_context *prc =
 				(struct presentation_context *) HWC_PRC_ADDRESS;
-
-
+	
 	iphdr_offset = (uint16_t)PARSER_GET_OUTER_IP_OFFSET_DEFAULT();
 	iphdr_ptr = (void *)(iphdr_offset + PRC_GET_SEGMENT_ADDRESS());
 
@@ -1145,7 +1144,7 @@ uint32_t ipr_insert_to_link_list(struct ipr_rfdc *rfdc_ptr,
 			/* Out of order handling */
 			return_status = out_of_order(rfdc_ptr, rfdc_ext_addr,
 					last_fragment, current_frag_size,
-					frag_offset_shifted, instance_params);
+					frag_offset_shifted, &instance_params);
 			if(return_status == MALFORMED_FRAG)
 				return MALFORMED_FRAG;
 	}
@@ -1867,7 +1866,7 @@ void check_remove_padding()
 uint32_t out_of_order(struct ipr_rfdc *rfdc_ptr, uint64_t rfdc_ext_addr,
 		  uint32_t last_fragment, uint16_t current_frag_size,
 		  uint16_t frag_offset_shifted,
-		  struct ipr_instance instance_params)
+		  struct ipr_instance *instance_params_ptr)
 {
 	uint8_t				current_index;
 	uint8_t				temp_frag_index;
@@ -2008,7 +2007,7 @@ uint32_t out_of_order(struct ipr_rfdc *rfdc_ptr, uint64_t rfdc_ext_addr,
 					/* Check max reassembly size */
 					if((rfdc_ptr->current_total_length +
 					    rfdc_ptr->first_frag_hdr_length) <=
-					   instance_params.max_reass_frm_size) {
+				     instance_params_ptr->max_reass_frm_size) {
 						
 						/* Close current frame before storing FD */
 						fdma_store_default_frame_data_wrp();
@@ -2163,7 +2162,7 @@ uint32_t out_of_order(struct ipr_rfdc *rfdc_ptr, uint64_t rfdc_ext_addr,
 		/* Check max reassembly size */
 		if((rfdc_ptr->current_total_length +
 		    rfdc_ptr->first_frag_hdr_length) <=
-		    instance_params.max_reass_frm_size) {
+		    instance_params_ptr->max_reass_frm_size) {
 			/* Close current frame before storing FD */
 			fdma_store_default_frame_data_wrp();
 
