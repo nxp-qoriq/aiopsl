@@ -1075,7 +1075,8 @@ void fdma_trim_default_segment_presentation(uint16_t offset, uint16_t size)
 	res1 = *((int8_t *)(FDMA_STATUS_ADDR));
 	/* Update Task Defaults */
 	if (res1 == FDMA_SUCCESS) {
-		PRC_SET_SEGMENT_OFFSET(offset);
+		PRC_SET_SEGMENT_ADDRESS(PRC_GET_SEGMENT_ADDRESS() + offset);
+		PRC_SET_SEGMENT_OFFSET(PRC_GET_SEGMENT_OFFSET() + offset);
 		PRC_SET_SEGMENT_LENGTH(size);
 	} else {
 		fdma_exception_handler(FDMA_TRIM_DEFAULT_SEGMENT_PRESENTATION, 
