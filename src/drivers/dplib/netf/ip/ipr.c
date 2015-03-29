@@ -370,8 +370,6 @@ int ipr_reassemble(ipr_instance_handle_t instance_handle)
 	uint8_t  ipv6_key[36] __attribute__((aligned(16)));
 	/* Following struct should be aligned due to ctlu alignment request */
 	struct ipr_rfdc rfdc __attribute__((aligned(16)));
-	/* Following struct should be aligned due to ctlu alignment request */
-//	struct table_lookup_result lookup_result __attribute__((aligned(16)));
 	struct ipr_instance instance_params;
 	struct scope_status_params scope_status;
 	uint64_t rfdc_ext_addr;
@@ -437,7 +435,6 @@ int ipr_reassemble(ipr_instance_handle_t instance_handle)
 		
 		if (sr_status == TABLE_STATUS_SUCCESS) {
 			/* Hit */
-//			rfdc_ext_addr = lookup_result.opaque0_or_reference;
 			if (osm_status == NO_BYPASS_OSM) {
 				/* create nested per reassembled frame */
 				osm_scope_enter_to_exclusive_with_new_scope_id(
