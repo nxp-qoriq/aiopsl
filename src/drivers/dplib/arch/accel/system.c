@@ -310,6 +310,8 @@ void aiop_sl_free(void)
 	/* make all following data go into .exception_data */
 #pragma section data_type ".exception_data"
 
+#pragma stackinfo_ignore on
+
 void system_init_exception_handler(enum system_function_identifier func_id,
 		     uint32_t line,
 		     int32_t status)

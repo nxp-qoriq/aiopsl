@@ -529,6 +529,8 @@ void osm_scope_transition_to_exclusive_with_increment_scope_id_wrp(void)
 	/* make all following data go into .exception_data */
 #pragma section data_type ".exception_data"
 
+#pragma stackinfo_ignore on
+
 void osm_exception_handler(enum osm_function_identifier func_id,
 		     uint32_t line)
 {

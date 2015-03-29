@@ -357,6 +357,9 @@ int tman_delete_timer_wrp(uint32_t timer_handle, uint32_t flags)
 #pragma push
 	/* make all following data go into .exception_data */
 #pragma section data_type ".exception_data"
+
+#pragma stackinfo_ignore on
+
 void tman_exception_handler(enum tman_function_identifier func_id,
 		uint32_t line,
 		int32_t status)
