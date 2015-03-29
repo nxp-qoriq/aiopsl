@@ -209,6 +209,8 @@ int parse_result_generate_checksum(
 	/* make all following data go into .exception_data */
 #pragma section data_type ".exception_data"
 
+#pragma stackinfo_ignore on
+
 void parser_exception_handler(enum parser_function_identifier func_id,
 		     uint32_t line,
 		     int32_t status)

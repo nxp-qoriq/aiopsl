@@ -385,6 +385,8 @@ void cdma_write_wrp(uint64_t ext_address, void *ws_src, uint16_t size)
 	/* make all following data go into .exception_data */
 #pragma section data_type ".exception_data"
 
+#pragma stackinfo_ignore on
+
 void cdma_exception_handler(enum cdma_function_identifier func_id,
 		     uint32_t line,
 		     int32_t status)

@@ -249,11 +249,16 @@ void table_hw_accel_release_lock(enum table_hw_accel_id acc_id)
 #pragma push
 	/* make all following data go into .exception_data */
 #pragma section data_type ".exception_data"
+
+#pragma stackinfo_ignore on
+
 void table_exception_handler_wrp(enum table_function_identifier func_id,
 				 uint32_t line,
 				 int32_t status)  __attribute__ ((noreturn)) {
 	table_exception_handler(__FILE__, func_id, line, status);
 }
+
+#pragma stackinfo_ignore on
 
 void table_exception_handler(char *file_path,
 			     enum table_function_identifier func_id,

@@ -150,8 +150,8 @@ void init_verif()
 	status_cdma = 0;
 }
 
-/* TODO - once our verif project is  using aiopsl library the ARENA 
- * implementation should be in general.c. Keep the declaration in general.h. */
+#pragma stackinfo_ignore on
+
 void exception_handler(char *filename,
 		       char *function_name,
 		       uint32_t line,
@@ -190,12 +190,10 @@ void exception_handler(char *filename,
 	status = -1 + (uint32_t)message + (uint32_t)filename + line +
 			(uint32_t)function_name;
 
-#ifndef STACK_CHECK
 	pr_err("*** Fatal error encountered ***\n");
 	pr_err("file: %s, line: %d\n", filename, line);
 	pr_err("function: %s\n", function_name);
 	pr_err("exception error: %s\n", message);
-#endif
 
 	fdma_terminate_task();
 	exit(-1); /* TODO This code is never reached and should be removed once
