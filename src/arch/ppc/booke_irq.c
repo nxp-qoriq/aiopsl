@@ -228,11 +228,37 @@ asm static void branch_table(void) {
 machine_irq:
 	mfspr    r4, MCSR
 	se_btsti r4,21 /* test bit 0x00000400 - STACK_ERR */
+	beq      generic_irq /* branch to generic irq if machine_check is not stack error */
+	mfdcr    r4, CTSCSR0 /* CTSCSR0 */
+	andis.   r4, r4, CTSCSR_TASKS_MASK@h
+	/* case: 16 tasks */
+	lis      r0, CTSCSR_16_TASKS@h
+	cmpw     r4, r0
+	li       rsp, 0x7f0  /* 0x800 - 0xf = 0x7f0 */
 	beq      generic_irq
-	/* clear stack pointer */
-    mfspr    rsp, DAC2     /* Data address compare 2 */
-    stwu     rsp, -16(rsp) /* LinuxABI required SP to always be 16-byte aligned */
-    b        generic_irq
+	/* case: 8 tasks */
+	lis      r0, CTSCSR_8_TASKS@h
+	cmpw     r4, r0
+	li       rsp, 0xff0  /* 0x1000 - 0xf = 0xff0 */
+	beq      generic_irq
+	/* case: 4 tasks */
+	lis      r0, CTSCSR_4_TASKS@h
+	cmpw     r4, r0
+	li       rsp, 0x1ff0 /* 0x2000 - 0xf = 0x1ff0 */
+	beq      generic_irq
+	/* case: 2 tasks */
+	lis      r0, CTSCSR_2_TASKS@h
+	cmpw     r4, r0
+	li       rsp, 0x3ff0 /* 0x4000 - 0xf = 0x3ff0 */
+	beq      generic_irq
+	/* case: 1 task */
+	lis      r0, CTSCSR_1_TASKS@h
+	cmpw     r4, r0
+	li       rsp, 0x7ff0 /* 0x8000 - 0xf = 0x7ff0 */
+	beq      generic_irq
+	/* case: else (default) */
+	se_illegal
+	se_dnh
 	
     /***************************************************/
     /*** generic exception handler *********************/
