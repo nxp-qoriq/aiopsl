@@ -28,7 +28,7 @@ LS2 HW Setup
    - mc.itb
    - PBL.bin
    - u-boot.bin
-   
+
 ===========================================
 LS2 HW Execution flow
 ===========================================
@@ -73,9 +73,7 @@ Simulator Execution flow
 3. Copy the resulting ELF file from the build project folder(aiop_app.elf)
    to the simulator folder (same location as cfg files).
 4. Run the simulator:
-   ./ccssim2 -port 42333
-             -imodel "ls_sim_init_file=ls2085a_sim_init_params.cfg"
-             -smodel "ls_sim_config_file=ls2085a_sys_test.cfg"
+   ./ccssim2 -port 42333 -imodel "ls_sim_init_file=ls2085a_sim_init_params.cfg" -smodel "ls_sim_config_file=ls2085a_sys_test.cfg"   
 5. Launch mc_app using AFM connection.
    Don't forget to update simulator server IP and port in debug configuration - 42333.
 6. Attach app_process_packet (make sure to un-mark initialization files).

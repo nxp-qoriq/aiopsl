@@ -195,9 +195,6 @@ __COLD_CODE int dpni_drv_probe(struct mc_dprc *dprc,
 			sys_get_handle(FSL_OS_MOD_AIOP_TILE, 1);
 	struct aiop_ws_regs *wrks_addr = &tile_regs->ws_regs;
 
-	extern struct platform_app_params g_app_params;
-
-	
 	/* TODO: replace 1024 w/ #define from Yulia */
 	/* Search for NIID (mc_niid) in EPID table and prepare the NI for usage. */
 	for (i = AIOP_EPID_DPNI_START; i < 1024; i++) {
@@ -753,7 +750,7 @@ int dpni_drv_set_rx_buffer_layout(uint16_t ni_id, const struct dpni_drv_buf_layo
 int dpni_drv_get_rx_buffer_layout(uint16_t ni_id, struct dpni_drv_buf_layout *layout){
 	struct dpni_drv *dpni_drv;
 	struct mc_dprc *dprc = sys_get_unique_handle(FSL_OS_MOD_AIOP_RC);
-	struct dpni_buffer_layout dpni_layout;
+	struct dpni_buffer_layout dpni_layout = {0};
 	int err;
 	/* calculate pointer to the NI structure */
 	dpni_drv = nis + ni_id;
