@@ -641,7 +641,8 @@ int slob_init(fsl_handle_t *slob, uint64_t base, uint64_t size,
     }
     struct initial_mem_mng* boot_mem_mng = (struct initial_mem_mng*)h_mem_mng;
     ASSERT_COND_LIGHT(boot_mem_mng);
-
+    if(NULL == h_mem_mng)
+        return -EINVAL;
     /* Initializes a new MM object */
     rc = boot_get_mem_virt(boot_mem_mng,sizeof(t_MM),&curr_addrr);
     //p_MM = (t_MM *)fsl_os_malloc(sizeof(t_MM));

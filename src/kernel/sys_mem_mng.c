@@ -354,7 +354,32 @@ void sys_print_mem_partition_debug_info(int partition_id, int report_leaks)
     }
 }
 
+/*****************************************************************************/
+void sys_default_free(void *p_memory)
+{
+#ifdef VERILOG
+    int i = sigblock(0x00002000);   /* Block SIGTSTP signal -
+                                       stop signal generated from keyboard */
+    free(p_memory);
+    sigsetmask(i);                  /* Set SIGTSTP signal back */
+#else /* not VERILOG */
+#ifndef AIOP
+    uint32_t    int_flags;
+#endif /* AIOP */
 
+#ifdef AIOP
+    lock_spinlock(&(sys.mem_mng_lock));
+#else /* not AIOP */
+    int_flags = spin_lock_irqsave(&(sys.mem_mng_lock));
+#endif /* AIOP */
+    free(p_memory);
+#ifdef AIOP
+    unlock_spinlock(&(sys.mem_mng_lock));
+#else /* not AIOP */
+    spin_unlock_irqrestore(&(sys.mem_mng_lock), int_flags);
+#endif /* AIOP */
+#endif /* VERILOG */
+}
 /*****************************************************************************/
  int sys_init_memory_management(void)
 {
@@ -451,32 +476,7 @@ void * sys_default_malloc(uint32_t size)
 }
 
 
-/*****************************************************************************/
-void sys_default_free(void *p_memory)
-{
-#ifdef VERILOG
-    int i = sigblock(0x00002000);   /* Block SIGTSTP signal -
-                                       stop signal generated from keyboard */
-    free(p_memory);
-    sigsetmask(i);                  /* Set SIGTSTP signal back */
-#else /* not VERILOG */
-#ifndef AIOP
-    uint32_t    int_flags;
-#endif /* AIOP */
-    
-#ifdef AIOP
-    lock_spinlock(&(sys.mem_mng_lock));
-#else /* not AIOP */
-    int_flags = spin_lock_irqsave(&(sys.mem_mng_lock));
-#endif /* AIOP */
-    free(p_memory);
-#ifdef AIOP
-    unlock_spinlock(&(sys.mem_mng_lock));
-#else /* not AIOP */
-    spin_unlock_irqrestore(&(sys.mem_mng_lock), int_flags);
-#endif /* AIOP */
-#endif /* VERILOG */
-}
+
 
 /*****************************************************************************/
 void * sys_aligned_malloc(uint32_t size, uint32_t alignment)

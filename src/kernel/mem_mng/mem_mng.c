@@ -78,12 +78,6 @@ extern struct aiop_init_info g_init_data;
 __START_COLD_CODE
 
 
-static void mem_mng_add_early_entry(t_mem_mng    *p_mem_mng,
-                                void        *p_memory,
-                                uint32_t    size,
-                                char        *info,
-                                char        *filename,
-                                int         line);
 
 static int mem_mng_remove_early_entry(t_mem_mng *p_mem_mng, void *p_memory);
 
@@ -223,8 +217,9 @@ fsl_handle_t mem_mng_init(fsl_handle_t h_boot_mem_mng,
     */
 
     ASSERT_COND_LIGHT(h_boot_mem_mng);
+    if(NULL == h_boot_mem_mng)
+        return NULL;
     struct initial_mem_mng* boot_mem_mng = (struct initial_mem_mng*)h_boot_mem_mng;
-
     rc = boot_get_mem_virt(boot_mem_mng,sizeof(t_mem_mng),&mem_mng_addr);
     if (rc)
     {
@@ -352,10 +347,12 @@ int mem_mng_register_partition(fsl_handle_t  h_mem_mng,
 #endif
 
     p_new_partition = &p_mem_mng->mem_partitions_array[partition_id];
-    if (!p_new_partition)
+    /* If open this one , there is a Klocwork issue RNPD.DEREF
+    if (NULL == p_new_partition)
     {
         RETURN_ERROR(MAJOR, ENOMEM, ("memory manager partition"));
     }
+    */
     memset(p_new_partition, 0, sizeof(t_mem_mng_partition));
 #ifdef AIOP
     /*
@@ -471,10 +468,12 @@ int mem_mng_register_phys_addr_alloc_partition(fsl_handle_t  h_mem_mng,
     spin_unlock_irqrestore(p_mem_mng->lock, int_flags);
 #endif
    p_new_partition = &p_mem_mng->phys_allocation_mem_partitions_array[partition_id];
+   /* If open this one , there is a KLockwork issue RNPD.DEREF
    if (!p_new_partition)
    {
 	   RETURN_ERROR(MAJOR, ENOMEM, ("memory manager partition"));
    }
+   */
    memset(p_new_partition, 0, sizeof(t_mem_mng_phys_addr_alloc_partition));
 
 #ifdef AIOP
@@ -1158,49 +1157,6 @@ static void mem_phys_mng_free_partition(t_mem_mng *p_mem_mng,
     /* Partition is no longer dynamically allocated*/
     //p_mem_mng->f_free(p_partition);
 }
-
-/*****************************************************************************/
-static void mem_mng_add_early_entry(t_mem_mng    *p_mem_mng,
-                                void        *p_memory,
-                                uint32_t    size,
-                                char        *info,
-                                char        *filename,
-                                int         line)
-{
-    t_mem_mng_debug_entry  *p_mem_mng_debug_entry;
-#ifndef AIOP
-    uint32_t            int_flags;
-#endif /* AIOP */
-
-    p_mem_mng_debug_entry = sys_default_malloc(sizeof(t_mem_mng_debug_entry));
-        //(t_mem_mng_debug_entry *)p_mem_mng->f_malloc(sizeof(t_mem_mng_debug_entry));
-
-    if (p_mem_mng_debug_entry != NULL)
-    {
-        INIT_LIST(&p_mem_mng_debug_entry->node);
-        p_mem_mng_debug_entry->p_memory = p_memory;
-        p_mem_mng_debug_entry->filename = filename;
-        p_mem_mng_debug_entry->info = info;
-        p_mem_mng_debug_entry->line = line;
-        p_mem_mng_debug_entry->size = size;
-#ifdef AIOP
-        lock_spinlock(p_mem_mng->lock);
-#else
-        int_flags = spin_lock_irqsave(p_mem_mng->lock);
-#endif
-        list_add_to_tail(&p_mem_mng_debug_entry->node, &(p_mem_mng->early_mem_debug_list));
-#ifdef AIOP
-        unlock_spinlock(p_mem_mng->lock);
-#else /* not AIOP */
-    	spin_unlock_irqrestore(p_mem_mng->lock, int_flags);
-#endif /* AIOP */
-    }
-    else
-    {
-        REPORT_ERROR(MAJOR, ENOMEM, ("memory manager debug entry"));
-    }
-}
-
 
 /*****************************************************************************/
 static int mem_mng_remove_early_entry(t_mem_mng *p_mem_mng, void *p_memory)
