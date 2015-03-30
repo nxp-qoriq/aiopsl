@@ -282,10 +282,10 @@ __COLD_CODE static int global_sys_init(void)
 	err = sys_add_handle( (fsl_handle_t)aiop_base_addr,
 	                                      FSL_OS_MOD_AIOP_TILE, 1, 0);
 	if (err != 0) return err;
-	
+
 	tile_regs = (struct aiop_tile_regs *)aiop_base_addr;
 	cmgw_init((void *)&tile_regs->cmgw_regs);
-	
+
 	err = sys_add_handle( (fsl_handle_t)&tile_regs->cmgw_regs,
 	                                      FSL_OS_MOD_CMGW, 1, 0);
 	if (err != 0) return err;
@@ -312,13 +312,17 @@ __COLD_CODE int sys_init(void)
 		icontext_init();
 		memset( &pre_console_buf[0], 0, PRE_CONSOLE_BUF_SIZE);
 		sys.p_pre_console_buf = &pre_console_buf[0];
-		
+
 		if(g_init_data.sl_info.log_buf_size){
 			log_init();
 			sys.print_to_buffer = TRUE;
 		}
 		err = global_sys_init();
-		if (err != 0) return err;
+
+		if (err != 0) {
+			sys.p_pre_console_buf = NULL;
+			return err;
+		}
 
 		/* signal all other cores that global initiation is done */
 		sys.boot_sync_flag = SYS_BOOT_SYNC_FLAG_DONE;
@@ -327,6 +331,9 @@ __COLD_CODE int sys_init(void)
 	}
 
 	err = sys_init_platform();
+	sys_barrier();
+	sys.p_pre_console_buf = NULL;
+	sys_barrier();
 	if (err != 0) return err;
 
 	return 0;
