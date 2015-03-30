@@ -28,7 +28,7 @@ tests/cmdif/README.txt: Added description for the non backward compatible change
                         Each buffer inside this shbp should have the shbp address/handle written to the first 8 bytes.
 fsl_shbp.h     : AIOP side SHBP API changes. Removed shbp structure wrapper. Added struct icontext *ic to all the APIs.
 fsl_shbp_host.h: GPP/Host side SHBP API changes. Removed shbp structure wrapper.
-shbp_flib.h    : Added user space to be used by host implementation for locks.
+shbp_flib.h    : Added user-defined field (16 bytes) to be used by the GPP host implementation.
 
 Reorganize SHBP API and FLIB:
   new file : src/lib/fsl_shbp_host.h SHBP Host API for GPP
