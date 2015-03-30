@@ -116,6 +116,8 @@ static inline void amq_bits_update(uint32_t id)
 	uint16_t amq_bdi_temp = 0;
 	uint16_t pl_icid = PL_ICID_GET;
 
+	ASSERT_COND(dt);
+	
 	ADD_AMQ_FLAGS(amq_bdi_temp, pl_icid);
 	if (BDI_GET != 0)
 		amq_bdi_temp |= CMDIF_BDI_BIT;
@@ -148,6 +150,8 @@ __COLD_CODE int dpci_amq_bdi_init(uint32_t dpci_id)
 	uint32_t amq_bdi = 0;
 	uint32_t dpci_id_peer = 0;
 	int err = 0;
+
+	ASSERT_COND(dt);
 
 	CMDIF_ICID_AMQ_BDI(AMQ_BDI_SET, ICONTEXT_INVALID, ICONTEXT_INVALID);
 
@@ -293,6 +297,8 @@ __COLD_CODE static int tx_get(uint32_t dpci_id, uint32_t *tx)
 	struct mc_dpci_tbl *dt = sys_get_unique_handle(FSL_OS_MOD_DPCI_TBL);
 
 	ASSERT_COND(tx);
+	ASSERT_COND(dt);
+	ASSERT_COND(dprc);
 
 	/* memset */
 	MEM_SET(&tx_attr, sizeof(tx_attr), 0);
@@ -342,6 +348,8 @@ __COLD_CODE int dpci_drv_added(uint32_t dpci_id)
 	struct mc_dpci_tbl *dt = (struct mc_dpci_tbl *)\
 			sys_get_unique_handle(FSL_OS_MOD_DPCI_TBL);
 
+	ASSERT_COND(dt);
+	
 	DPCI_DT_LOCK_W_TAKE;
 
 	ind = dpci_amq_bdi_init(dpci_id);
@@ -371,6 +379,8 @@ __COLD_CODE int dpci_drv_removed(uint32_t dpci_id)
 		sys_get_unique_handle(FSL_OS_MOD_DPCI_TBL);
 	int ind = -1;
 	int err = 0;
+
+	ASSERT_COND(dt);
 
 	DPCI_DT_LOCK_W_TAKE;
 

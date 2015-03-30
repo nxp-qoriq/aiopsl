@@ -188,6 +188,8 @@ __COLD_CODE void mc_dpci_tbl_dump()
 	int i;
 	struct mc_dpci_tbl *dt = sys_get_unique_handle(FSL_OS_MOD_DPCI_TBL);
 
+	ASSERT_COND(dt);
+
 	fsl_os_print("----------DPCI table----------\n");
 	for (i = 0; i < dt->count; i++) {
 		fsl_os_print("ID = 0x%x\t PEER ID = 0x%x\t IC = 0x%x\t\n",
@@ -238,6 +240,8 @@ int mc_dpci_entry_get()
 void mc_dpci_entry_delete(int ind)
 {
 	struct mc_dpci_tbl *dt = sys_get_unique_handle(FSL_OS_MOD_DPCI_TBL);
+
+	ASSERT_COND(dt);
 
 	dt->ic[ind] = DPCI_FQID_NOT_VALID;
 	dt->dpci_id[ind] = DPCI_FQID_NOT_VALID;
