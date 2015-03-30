@@ -38,7 +38,7 @@ IPsec:
   * Added slab un-reserve call to delete instance/sa 
   * Fixed ipsec_early_init
   * Fixed SEC error return codes (ENGR347888)
-  * Clear the PRC ASA Size, since the SEC does not preserve the ASA
+  * Clear the PRC ASA Size, since the SEC does not preserve the ASA (ENGR353336)
   * Added Next Header setting through DPOVRD for tunnel mode encap (due to SEC issue TKT258803)
   * Updated the ipsec_fm_demo segment presentation for print & check
 
