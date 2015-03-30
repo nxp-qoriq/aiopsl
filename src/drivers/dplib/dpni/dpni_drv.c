@@ -195,9 +195,6 @@ __COLD_CODE int dpni_drv_probe(struct mc_dprc *dprc,
 			sys_get_handle(FSL_OS_MOD_AIOP_TILE, 1);
 	struct aiop_ws_regs *wrks_addr = &tile_regs->ws_regs;
 
-	extern struct platform_app_params g_app_params;
-
-	
 	/* TODO: replace 1024 w/ #define from Yulia */
 	/* Search for NIID (mc_niid) in EPID table and prepare the NI for usage. */
 	for (i = AIOP_EPID_DPNI_START; i < 1024; i++) {
