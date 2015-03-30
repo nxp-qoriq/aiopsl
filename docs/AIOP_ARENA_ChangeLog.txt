@@ -1,6 +1,6 @@
 
 ** AIOP SL Release v0.6.0 **
-dpl.dts/dpl.dtb: Added option: "DPNI_OPT_TX_CONF_DISABLED" for DPNI objects to disable TX confirmation by default. Update your layout file accordingly.
+dpl.dts/dpl.dtb: Added option: "DPNI_OPT_TX_CONF_DISABLED" for DPNI objects to disable TX confirmation. Update your layout file accordingly.
 fsl_dpni_drv.h : Added API for registering DPNI rx buffer layout requirements(head-room, tail-room, private-data-size)
 cmdif_integration_test.c : Added SHBP_TEST_GPP - GPP acquires buffer and AIOP releases,
                                  SHBP_TEST_AIOP - AIOP acquires buffer and GPP releases.
