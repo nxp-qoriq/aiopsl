@@ -32,98 +32,125 @@
 #ifndef __FSL_DPNI_DRV_H
 #define __FSL_DPNI_DRV_H
 
-#include "types.h"
 #include "fsl_ldpaa.h"
 #include "dpni_drv.h"
 #include "dpni_drv_rxtx_inline.h"
 
 
 /**************************************************************************//**
-@Group		dpni_g DPNI
+@Group		dpni_drv_g DPNI DRV
 
 @Description	Contains initialization APIs and runtime control APIs for DPNI
 
 @{
 *//***************************************************************************/
 
-/**
- * struct dpni_drv_link_state - Structure representing DPNI driver link state
- * @rate: Rate
- * @options: Mask of available options; use 'DPNI_LINK_OPT_<X>' values
- * @up: Link state; '0' for down, '1' for up
- */
+/**************************************************************************//**
+ @Group		DPNI_DRV_LINK_OPT link options
+
+ @Description	Available options to determine dpni link state.
+
+ @{
+*//***************************************************************************/
+/** Enable auto-negotiation */
+#define DPNI_DRV_LINK_OPT_AUTONEG		0x0000000000000001ULL
+/** Enable half-duplex mode */
+#define DPNI_DRV_LINK_OPT_HALF_DUPLEX		0x0000000000000002ULL
+/** @} end of group DPNI_DRV_LINK_OPT */
+
+/**************************************************************************//**
+@Description	Structure representing DPNI driver link state.
+
+*//***************************************************************************/
 struct dpni_drv_link_state {
+	/** Rate */
 	uint64_t rate;
+	/** Mask of available options; use \ref DPNI_DRV_LINK_OPT values*/
 	uint64_t options;
+	/** Link state; '0' for down, '1' for up */
 	int up;
 };
 
-/**
- * enum dpni_drv_counter - DPNI driver counter types
- * @DPNI_DRV_CNT_ING_FRAME: Counts ingress frames
- * @DPNI_DRV_CNT_ING_BYTE: Counts ingress bytes
- * @DPNI_DRV_CNT_ING_FRAME_DROP: Counts ingress frames dropped due to explicit
- * 		'drop' setting
- * @DPNI_DRV_CNT_ING_FRAME_DISCARD: Counts ingress frames discarded due to errors
- * @DPNI_DRV_CNT_ING_MCAST_FRAME: Counts ingress multicast frames
- * @DPNI_DRV_CNT_ING_MCAST_BYTE: Counts ingress multicast bytes
- * @DPNI_DRV_CNT_ING_BCAST_FRAME: Counts ingress broadcast frames
- * @DPNI_DRV_CNT_ING_BCAST_BYTES: Counts ingress broadcast bytes
- * @DPNI_DRV_CNT_EGR_FRAME: Counts egress frames
- * @DPNI_DRV_CNT_EGR_BYTE: Counts egress bytes
- * @DPNI_DRV_CNT_EGR_FRAME_DISCARD: Counts egress frames discarded due to errors
- */
+
+/**************************************************************************//**
+@enum dpni_drv_counter
+
+@Description	AIOP DPNI driver counter types
+
+@{
+*//***************************************************************************/
+
 enum dpni_drv_counter {
+	/** Counts ingress frames */
 	DPNI_DRV_CNT_ING_FRAME = 0x0,
+	/** Counts ingress bytes */
 	DPNI_DRV_CNT_ING_BYTE = 0x1,
+	/** Counts ingress frames dropped due to explicit 'drop' setting */
 	DPNI_DRV_CNT_ING_FRAME_DROP = 0x2,
+	/** Counts ingress frames discarded due to errors */
 	DPNI_DRV_CNT_ING_FRAME_DISCARD = 0x3,
+	/** Counts ingress multicast frames */
 	DPNI_DRV_CNT_ING_MCAST_FRAME = 0x4,
+	/** Counts ingress multicast bytes */
 	DPNI_DRV_CNT_ING_MCAST_BYTE = 0x5,
+	/** Counts ingress broadcast frames */
 	DPNI_DRV_CNT_ING_BCAST_FRAME = 0x6,
+	/** Counts ingress broadcast bytes */
 	DPNI_DRV_CNT_ING_BCAST_BYTES = 0x7,
+	/** Counts egress frames */
 	DPNI_DRV_CNT_EGR_FRAME = 0x8,
+	/** Counts egress bytes */
 	DPNI_DRV_CNT_EGR_BYTE = 0x9,
+	/** Counts egress frames discarded due to errors */
 	DPNI_DRV_CNT_EGR_FRAME_DISCARD = 0xa
 };
+/* @} end of enum dpni_drv_counter */
 
-/* DPNI DRV buffer layout modification options */
 
-/* Select to modify the time-stamp setting */
+/**************************************************************************//**
+ @Group		DPNI_DRV_BUF_LAYOUT_OPT buffer layout modification options
+
+ @Description	buffer layout modification options
+
+ @{
+*//***************************************************************************/
+/** Select to modify the time-stamp setting */
 #define DPNI_DRV_BUF_LAYOUT_OPT_TIMESTAMP               0x00000001
-/* Select to modify the parser-result setting; not applicable for Tx */
+/** Select to modify the parser-result setting; not applicable for Tx */
 #define DPNI_DRV_BUF_LAYOUT_OPT_PARSER_RESULT           0x00000002
-/* Select to modify the frame-status setting */
+/** Select to modify the frame-status setting */
 #define DPNI_DRV_BUF_LAYOUT_OPT_FRAME_STATUS            0x00000004
-/* Select to modify the private-data-size setting */
+/** Select to modify the private-data-size setting */
 #define DPNI_DRV_BUF_LAYOUT_OPT_PRIVATE_DATA_SIZE	0x00000008
-/* Select to modify the data-alignment setting */
+/** Select to modify the data-alignment setting */
 #define DPNI_DRV_BUF_LAYOUT_OPT_DATA_ALIGN              0x00000010
-/* Select to modify the data-head-room setting */
+/** Select to modify the data-head-room setting */
 #define DPNI_DRV_BUF_LAYOUT_OPT_DATA_HEAD_ROOM          0x00000020
-/*!< Select to modify the data-tail-room setting */
+/**!< Select to modify the data-tail-room setting */
 #define DPNI_DRV_BUF_LAYOUT_OPT_DATA_TAIL_ROOM          0x00000040
+/** @} end of group DPNI_DRV_BUF_LAYOUT_OPT */
 
-/**
- * struct dpni_drv_buf_layout - Structure representing DPNI buffer layout
- * @options: Flags representing the suggested modifications to the buffer
- * 		layout; Use any combination of 'DPNI_DRV_BUF_LAYOUT_OPT_<X>' flags
- * @pass_timestamp: Pass timestamp value
- * @pass_parser_result: Pass parser results
- * @pass_frame_status: Pass frame status
- * @private_data_size: Size kept for private data (in bytes)
- * @data_align: Data alignment
- * @data_head_room: Data head room
- * @data_tail_room: Data tail room
- */
+/**************************************************************************//**
+@Description	Structure representing DPNI buffer layout.
+
+*//***************************************************************************/
 struct dpni_drv_buf_layout {
+	/** Flags representing the suggested modifications to the buffer
+	 * layout; Use any combination of \ref DPNI_DRV_BUF_LAYOUT_OPT */
 	uint32_t options;
+	/** Pass timestamp value */
 	int pass_timestamp;
+	/** Pass parser results */
 	int pass_parser_result;
+	/** Pass frame status */
 	int pass_frame_status;
+	/** Size kept for private data (in bytes) */
 	uint16_t private_data_size;
+	/** Data alignment */
 	uint16_t data_align;
+	/** Data head room */
 	uint16_t data_head_room;
+	/** Data tail room */
 	uint16_t data_tail_room;
 };
 
@@ -738,5 +765,5 @@ int dpni_drv_add_vlan_id(uint16_t ni_id, uint16_t vlan_id);
 *//***************************************************************************/
 int dpni_drv_remove_vlan_id(uint16_t ni_id, uint16_t vlan_id);
 
-/** @} */ /* end of dpni_g DPNI group */
+/** @} */ /* end of dpni_drv_g DPNI DRV group */
 #endif /* __FSL_DPNI_DRV_H */
