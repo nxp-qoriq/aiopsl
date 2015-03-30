@@ -753,7 +753,7 @@ int dpni_drv_set_rx_buffer_layout(uint16_t ni_id, const struct dpni_drv_buf_layo
 int dpni_drv_get_rx_buffer_layout(uint16_t ni_id, struct dpni_drv_buf_layout *layout){
 	struct dpni_drv *dpni_drv;
 	struct mc_dprc *dprc = sys_get_unique_handle(FSL_OS_MOD_AIOP_RC);
-	struct dpni_buffer_layout dpni_layout;
+	struct dpni_buffer_layout dpni_layout = {0};
 	int err;
 	/* calculate pointer to the NI structure */
 	dpni_drv = nis + ni_id;
