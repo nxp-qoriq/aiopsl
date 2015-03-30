@@ -1494,7 +1494,7 @@ __COLD_CODE int slab_module_init(void)
 		for(j = 1; j < SLAB_MAX_NUM_VP_DDR ; j++){
 			ddr_value_ptr[j] = ddr_value_ptr[j - 1] + 2;/*add 1 to second bit, (first used for SW/HW pool)*/
 		}
-		fdma_dma_data(sizeof(uint32_t) * SLAB_MAX_NUM_VP_DDR,
+		fdma_dma_data((uint16_t)(sizeof(uint32_t) * SLAB_MAX_NUM_VP_DDR),
 		              slab_m->icid,
 		              &ddr_value_ptr,
 		              ddr_pool_addr,
