@@ -42,7 +42,7 @@ struct fsl_mc_io;
  * dpbp_open() - Open a control session for the specified object.
  * @mc_io:	Pointer to MC portal's I/O object
  * @dpbp_id:	DPBP unique ID
- * @token:	Returned token; use in subsequent API calls 
+ * @token:	Returned token; use in subsequent API calls
  *
  * This function can be used to open a control session for an
  * already created object; an object may have been declared in
@@ -60,7 +60,7 @@ int dpbp_open(struct fsl_mc_io *mc_io, int dpbp_id, uint16_t *token);
  * dpbp_close() - Close the control session of the object
  * @mc_io:	Pointer to MC portal's I/O object
  * @token:	Token of DPBP object
- * 
+ *
  * After this function is called, no further operations are
  * allowed on the object without opening a new control session.
  *
@@ -93,7 +93,7 @@ struct dpbp_cfg {
  * this specific object. For objects that are created using the
  * DPL file, call dpbp_open function to get an authentication
  * token first.
- * 
+ *
  * Return:	'0' on Success; Error code otherwise.
  */
 int dpbp_create(struct fsl_mc_io	*mc_io,
@@ -198,7 +198,7 @@ int dpbp_get_irq(struct fsl_mc_io	*mc_io,
  * Each interrupt can have up to 32 causes.  The enable/disable control's the
  * overall interrupt state. if the interrupt is disabled no causes will cause
  * an interrupt.
- * 
+ *
  * Return:	'0' on Success; Error code otherwise.
  */
 int dpbp_set_irq_enable(struct fsl_mc_io	*mc_io,
@@ -232,7 +232,7 @@ int dpbp_get_irq_enable(struct fsl_mc_io	*mc_io,
  *
  * Every interrupt can have up to 32 causes and the interrupt model supports
  * masking/unmasking each cause independently
- * 
+ *
  * Return:	'0' on Success; Error code otherwise.
  */
 int dpbp_set_irq_mask(struct fsl_mc_io	*mc_io,
@@ -249,7 +249,7 @@ int dpbp_set_irq_mask(struct fsl_mc_io	*mc_io,
  *
  * Every interrupt can have up to 32 causes and the interrupt model supports
  * masking/unmasking each cause independently
- * 
+ *
  * Return:	'0' on Success; Error code otherwise.
  */
 int dpbp_get_irq_mask(struct fsl_mc_io	*mc_io,
@@ -296,7 +296,7 @@ int dpbp_clear_irq_status(struct fsl_mc_io	*mc_io,
  * @id:		DPBP object ID
  * @version:	DPBP version
  * @bpid:	Hardware buffer pool ID; should be used as an argument in
- * 		acquire/release operations on buffers
+ *		acquire/release operations on buffers
  */
 struct dpbp_attr {
 	int id;
