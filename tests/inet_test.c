@@ -29,6 +29,7 @@
 #include "common/fsl_string.h"
 #include "platform.h"
 #include "net/fsl_inet.h"
+#include "fsl_dbg.h"
 
 #define MAX_IPV4_STR_LEN    16              /**< Maximal size of string representation for IPV4 address*/
 #define MIN_IPV4_STR_LEN    8               /**< Minimal size of string representation for IPV4 address*/

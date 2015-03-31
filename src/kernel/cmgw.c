@@ -36,6 +36,7 @@
 #include "fsl_io_ccsr.h"
 #include "fsl_spinlock.h"
 #include "fsl_core.h"
+#include "fsl_dbg.h"
 #include "cmgw.h"
 
 static struct aiop_cmgw_regs * cmgw_regs;
