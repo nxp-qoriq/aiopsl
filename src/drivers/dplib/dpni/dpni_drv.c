@@ -655,22 +655,19 @@ __COLD_CODE int dpni_drv_set_order_scope(uint16_t ni_id, struct dpkg_profile_cfg
 	struct mc_dprc *dprc = sys_get_unique_handle(FSL_OS_MOD_AIOP_RC);
 	struct dpni_rx_tc_dist_cfg cfg = {0};
 	int err;
-	uint64_t params_iova;
 	/* calculate pointer to the NI structure */
 	dpni_drv = nis + ni_id;
 
-	params_iova = (uint64_t)&order_scope_buffer;
+	memset(order_scope_buffer, 0, PARAMS_IOVA_BUFF_SIZE);
+	dpni_prepare_key_cfg(key_cfg, order_scope_buffer);
 
-	memset((void *)params_iova, 0, PARAMS_IOVA_BUFF_SIZE);
 	cfg.dist_size = 0;
 	cfg.dist_mode = DPNI_DIST_MODE_HASH;
-	cfg.dist_key_cfg = key_cfg;
-
+	cfg.key_cfg_iova = (uint64_t)order_scope_buffer;
 	err = dpni_set_rx_tc_dist(&dprc->io,
 	                          dpni_drv->dpni_drv_params_var.dpni,
 	                          0,
-	                          &cfg,
-	                          params_iova);
+	                          &cfg);
 	return err;
 }
 

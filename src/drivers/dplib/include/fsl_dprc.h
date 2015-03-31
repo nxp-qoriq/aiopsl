@@ -124,6 +124,8 @@ int dprc_close(struct fsl_mc_io *mc_io, uint16_t token);
 /* AIOP - Indicates that container belongs to AIOP.  */
 #define DPRC_CFG_OPT_AIOP			0x00000020
 
+/* IRQ Config - Indicates that the container allowed to configure its IRQs.  */
+#define DPRC_CFG_OPT_IRQ_CFG_ALLOWED		0x00000040
 /**
  * struct dprc_cfg - Container configuration options
  * @icid: Container's ICID; if set to 'DPRC_GET_ICID_FROM_POOL', a free
@@ -131,11 +133,13 @@ int dprc_close(struct fsl_mc_io *mc_io, uint16_t token);
  * @portal_id: Portal ID; if set to 'DPRC_GET_PORTAL_ID_FROM_POOL', a free
  * 		portal ID is allocated by the DPRC
  * @options: Combination of 'DPRC_CFG_OPT_<X>' options 
+ * @label: Object's label
  */
 struct dprc_cfg {
 	uint16_t icid;
 	int portal_id;
 	uint64_t options;
+	char label[16];
 };
 
 /**
@@ -144,8 +148,8 @@ struct dprc_cfg {
  * @token:	Token of DPRC object
  * @cfg:	Child container configuration
  * @child_container_id:	Returned child container ID
- * @child_portal_paddr:	Returned base physical address of the
- *					child portal
+ * @child_portal_offset: Returned child portal offset from MC portal base
+ *					
  *
  * Return:	'0' on Success; Error code otherwise.
  */
@@ -153,7 +157,7 @@ int dprc_create_container(struct fsl_mc_io	*mc_io,
 			  uint16_t		token,
 			  struct dprc_cfg	*cfg,
 			  int			*child_container_id,
-			  uint64_t		*child_portal_paddr);
+			  uint64_t		*child_portal_offset);
 
 /**
  * dprc_destroy_container() - Destroy child container.
@@ -210,27 +214,24 @@ int dprc_reset_container(struct fsl_mc_io *mc_io,
 /* Number of dprc's IRQs */
 #define DPRC_NUM_OF_IRQS		1
 
-/* Object irq events */
+/* DPRC IRQ events */
 
-
-/* IRQ event - Indicates that a new object assigned to the container */
+/* IRQ event - Indicates that a new object added to the container */
 #define DPRC_IRQ_EVENT_OBJ_ADDED		0x00000001
-/* IRQ event - Indicates that an object was unassigned from the container */
+/* IRQ event - Indicates that an object was removed from the container */
 #define DPRC_IRQ_EVENT_OBJ_REMOVED		0x00000002
-/* IRQ event - Indicates that resources assigned to the container */
+/* IRQ event - Indicates that resources added to the container */
 #define DPRC_IRQ_EVENT_RES_ADDED		0x00000004
-/* IRQ event - Indicates that resources unassigned from the container */
+/* IRQ event - Indicates that resources removed from the container */
 #define DPRC_IRQ_EVENT_RES_REMOVED		0x00000008
 /* IRQ event - Indicates that one of the descendant containers that opened by
  * this container is destroyed
  */
 #define DPRC_IRQ_EVENT_CONTAINER_DESTROYED	0x00000010
-
 /* IRQ event - Indicates that on one of the container's opened object is
  * destroyed
  */
 #define DPRC_IRQ_EVENT_OBJ_DESTROYED		0x00000020
-
 /* Irq event - Indicates that object is created at the container */
 #define DPRC_IRQ_EVENT_OBJ_CREATED			0x00000040
 
@@ -621,6 +622,7 @@ int dprc_get_obj_count(struct fsl_mc_io *mc_io, uint16_t token, int *obj_count);
  * @irq_count: Number of interrupts supported by the object 
  * @region_count: Number of mappable regions supported by the object 
  * @state: Object state: combination of DPRC_OBJ_STATE_ states 
+ * @label: Object label
  */
 struct dprc_obj_desc {
 	char type[16];
@@ -631,6 +633,7 @@ struct dprc_obj_desc {
 	uint8_t irq_count;
 	uint8_t region_count;
 	uint32_t state;
+	char label[16];
 };
 
 /**
@@ -652,6 +655,51 @@ int dprc_get_obj(struct fsl_mc_io	*mc_io,
 		 int			obj_index,
 		 struct dprc_obj_desc	*obj_desc);
 
+/**
+ * dprc_obj_set_irq() - Set IRQ information for object to trigger an interrupt.
+ * @mc_io:	Pointer to MC portal's I/O object
+ * @token:	Token of DPRC object
+ * @obj_index:  Index of the object to set its IRQ (< obj_count that returned from dprc_get_obj_count())
+ * @irq_index:	Identifies the interrupt index to configure
+ * @irq_addr:	Address that must be written to
+ *			signal a message-based interrupt
+ * @irq_val:	Value to write into irq_addr address
+ * @user_irq_id: Returned a user defined number associated with this IRQ
+ *
+ * Return:	'0' on Success; Error code otherwise.
+ */
+int dprc_obj_set_irq(struct fsl_mc_io	*mc_io,
+		 uint16_t		token,
+		 int			obj_index,
+		 uint8_t		irq_index,
+		 uint64_t		irq_addr,
+		 uint32_t		irq_val,
+		 int			user_irq_id);
+
+
+/**
+ * dprc_obj_get_irq() - Get IRQ information from object.
+ * @mc_io:	Pointer to MC portal's I/O object
+ * @token:	Token of DPRC object
+ * @obj_index:  Index of the object to get its IRQ (< obj_count that returned from dprc_get_obj_count())
+ * @irq_index:	The interrupt index to configure
+ * @type:	Returned interrupt type: 0 represents message interrupt
+ *			type (both irq_addr and irq_val are valid)
+ * @irq_addr:	Returned address that must be written to
+ *			signal the message-based interrupt
+ * @irq_val:	Value to write into irq_addr address
+ * @user_irq_id: A user defined number associated with this IRQ
+ *
+ * Return:	'0' on Success; Error code otherwise.
+ */
+int dprc_obj_get_irq(struct fsl_mc_io	*mc_io,
+		 uint16_t		token,
+		 int			obj_index,
+		 uint8_t		irq_index,
+		 int			*type,
+		 uint64_t		*irq_addr,
+		 uint32_t		*irq_val,
+		 int			*user_irq_id);
 /**
  * dprc_get_res_count() - Obtains the number of free resources that are assigned
  *		to this container, by pool type
@@ -710,26 +758,14 @@ int dprc_get_res_ids(struct fsl_mc_io			*mc_io,
 		     struct dprc_res_ids_range_desc	*range_desc);
 
 /**
- * dprc_get_portal_paddr() - Get the physical address of MC portals
- * @mc_io:	Pointer to MC portal's I/O object
- * @token:	Token of DPRC object
- * @portal_id:	MC portal ID
- * @portal_addr: The physical address of the MC portal ID
- *
- * Return:	'0' on Success; Error code otherwise.
- */
-int dprc_get_portal_paddr(struct fsl_mc_io	*mc_io,
-			  uint16_t		token,
-			  int			portal_id,
-			  uint64_t		*portal_addr);
-
-/**
  * struct dprc_region_desc - Mappable region descriptor
- * @base_paddr: Region base physical address
+ * @base_offset: Region offset from region's base address.
+ * 				 For DPMCP and DPRC objects, region address is the base_offset + MC PORTAL base address
+ * 				 For DPIO, region address is the base_offset + Qman portal base address
  * @size: Region size (in bytes)
  */
 struct dprc_region_desc {
-	uint64_t base_paddr;
+	uint64_t base_offset;
 	uint32_t size;
 };
 
@@ -751,6 +787,19 @@ int dprc_get_obj_region(struct fsl_mc_io	*mc_io,
 			uint8_t			region_index,
 			struct dprc_region_desc	*region_desc);
 
+/**
+ * dprc_set_obj_label() - Set object label.
+ * @mc_io:	Pointer to MC portal's I/O object
+ * @token:	Token of DPRC object
+ * @obj_index;	Object index
+ * @label:	The required label. The maximum length is 16 chars.
+ *
+ * Return:	'0' on Success; Error code otherwise.
+ */
+int dprc_set_obj_label (struct fsl_mc_io *  mc_io,  
+                        uint16_t  token,  
+                        int  obj_index,  
+                        char *label); 
 /**
  * struct dprc_endpoint - Endpoint description for link connect/disconnect 
  * 			operations
