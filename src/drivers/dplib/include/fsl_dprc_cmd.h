@@ -109,7 +109,7 @@ do { \
 } while (0)
 
 /*                cmd, param, offset, width, type, arg_name */
-#define DPRC_RSP_CREATE_CONTAINER(cmd, child_container_id, child_portal_offset) \
+#define DPRC_RSP_CREATE_CONTAINER(cmd, child_container_id, child_portal_offset)\
 do { \
 	MC_RSP_OP(cmd, 1, 0,  32, int,	   child_container_id); \
 	MC_RSP_OP(cmd, 2, 0,  64, uint64_t, child_portal_offset);\
@@ -494,7 +494,8 @@ do { \
 } while (0)
 
 /*                cmd, param, offset, width, type, arg_name */
-#define DPRC_CMD_OBJ_SET_IRQ(cmd, irq_index, obj_index, irq_addr, irq_val, user_irq_id) \
+#define DPRC_CMD_OBJ_SET_IRQ(cmd, irq_index, obj_index, irq_addr, irq_val, \
+			     user_irq_id) \
 do { \
 	MC_CMD_OP(cmd, 0, 32, 8,  uint8_t,  irq_index); \
 	MC_CMD_OP(cmd, 0, 0,  32, uint32_t, irq_val); \
