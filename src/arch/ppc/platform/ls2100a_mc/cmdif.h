@@ -34,6 +34,7 @@
 #include <fsl_endian.h>
 #include <fsl_io.h>
 #include <fsl_mem_mng.h>
+#include <fsl_dbg.h>
 
 #undef LOG_MODULE
 #define LOG_MODULE LOG_MOD_CMDIF
