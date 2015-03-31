@@ -40,7 +40,7 @@
 /**************************************************************************//**
 @Group         slab_g   SLAB
 
-@Description   Slab Memory Manager module functions, definitions and enums.
+@Description   Slab Memory Manager module functions and definitions.
 
 @{
  *//***************************************************************************/
@@ -48,34 +48,42 @@
 /* Each buffer is of the following structure:
  *
  *
- *  +-----------+----------+---------------------------+-----------+-----------+
- *  | Alignment |  Prefix  | Data                      | Postfix   | Alignment |
- *  |  field    |   field  |  field                    |   field   | Padding   |
- *  +-----------+----------+---------------------------+-----------+-----------+
- *  and at the beginning of all bytes, an additional optional padding might
- *  reside to ensure that the first blocks data field is aligned as requested.
+ *  +-----------+--------------------------------------+-----------+
+ *  |HW metadata|             Data                     | Alignment |
+ *  | (align)   |             field                    | Padding   |
+ *  +-----------+--------------------------------------+-----------+
+ *  Alignment padding may exist in the end of the buffer.
  */
 
 /**************************************************************************//**
 @Description   Slab handle type
 *//***************************************************************************/
 struct slab;
-#define SLAB_DDR_MANAGEMENT_FLAG    0x01 
+
 /**Flag to use for requesting slab managed in DDR (lower performance)*/
-#define SLAB_CDMA_REFCOUNT_DECREMENT_TO_ZERO 0x3
+#define SLAB_DDR_MANAGEMENT_FLAG    0x01
+
 /** Decrement reference count caused the reference count to
 	go to zero. (not an error) */
+#define SLAB_CDMA_REFCOUNT_DECREMENT_TO_ZERO 0x3
+
 
 /**************************************************************************//**
 @Description   Available debug information about every slab
 *//***************************************************************************/
 struct slab_debug_info {
-	uint32_t buff_size; /**< Maximal buffer size */
-	uint32_t committed_buffs; /**< The number of available buffers */
-	uint32_t max_buffs; /**< Maximal number of buffers inside this pool */
-	uint16_t pool_id;   /**< HW pool ID */
-	uint16_t alignment; /**< Maximal alignment */
-	uint16_t mem_pid;   /**< Memory partition */
+	/**< Maximal buffer size */
+	uint32_t buff_size;
+	/**< The number of available buffers */
+	uint32_t committed_buffs;
+	/**< Maximal number of buffers inside this pool */
+	uint32_t max_buffs;
+	/**< HW pool ID */
+	uint16_t pool_id;
+	/**< Maximal alignment */
+	uint16_t alignment;
+	/**< Memory partition */
+	uint16_t mem_pid;
 };
 
 /**************************************************************************//**
@@ -94,7 +102,6 @@ typedef void (slab_release_cb_t)(uint64_t);
 		can be allocated by this new pool; max_buffs >= committed_buffs;
 @Param[in]	buff_size           Size of buffers in pool.
 @Param[in]	alignment           Requested alignment for data in bytes.
-		AIOP: HW pool supports up to 8 bytes alignment.
 @Param[in]	mem_partition_id    Memory partition ID for allocation.
 		AIOP: HW pool supports only PEB and DPAA DDR.
 @Param[in]	flags               Set it to 0 for default slab creation.
@@ -211,13 +218,12 @@ int slab_debug_info_get(struct slab *slab, struct slab_debug_info *slab_info);
 		can be allocated by the app; max_buffs >= committed_buffs;
 @Param[in]	buff_size           Size of buffers in pool.
 @Param[in]	alignment           Requested alignment for data in bytes.
-		AIOP: HW pool supports up to 8 bytes alignment.
 @Param[in]	mem_pid             Memory partition ID for allocation.
 		AIOP: HW pool supports only PEB and DPAA DDR.
 @Param[in]	flags               Set it to 0 for default.
-@Param[in]	num_ddr_pools       Number of pools needed in the future 
-		(managed in ddr - slow performance).
-@Cautions       Max buffer size supported - 32760 Byte (32760 + 8 Meta data = 
+@Param[in]	num_ddr_pools       Number of pools needed in the future
+		(managed in DDR - slow performance).
+@Cautions       Max buffer size supported - 32760 Byte (32760 + 8 Meta data =
 		32768), Max alignment supported 32768 Byte.
 		Alignment <= Buffer size + Meta data.
 @Return		0        - on success,
