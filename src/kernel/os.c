@@ -51,6 +51,7 @@ static const char* digits="0123456789abcdef";
 static int vsnprintf_lite(char *buf, size_t size, const char *fmt, va_list args);
 static char *number(char *str, uint64_t num, uint8_t base, uint8_t type, size_t *max_size, uint8_t fix_size);
 static void fsl_os_print_boot(const char *format, va_list args);
+
 /*****************************************************************************/
 __declspec(noreturn) void fsl_os_exit(int status)
 {
