@@ -57,7 +57,8 @@ typedef uint64_t            dma_addr_t;
 #define STARTSECTION(s) _Pragma(STRINGTYPE(DEFINESECTION(s)))
 #define START_CODE_IN_SECTION(s) PUSH STARTSECTION(s)
 #define POP _Pragma("pop")
-
+/**declare function as entry point*/
+#define ENTRY_POINT   __declspec(entry_point)
 /** Task global variables area */
 #define __TASK __declspec(section ".tdata")
 
