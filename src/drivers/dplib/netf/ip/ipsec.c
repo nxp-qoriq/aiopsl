@@ -1093,6 +1093,16 @@ void ipsec_generate_sa_params(
 
 	/* Set valid flag */
 	sap.sap1.valid = 1; /* descriptor valid. */
+
+	/* Get DSCP from the outer header. Mask ECN (2 least significant bits) */
+	if (sap.sap1.flags & IPSEC_FLG_IPV6) {
+		/* IPv6 */
+		
+	} else {
+		/* IPv4 */ 
+		sap.sap1.outer_hdr_dscp = IPSEC_DSCP_MASK &
+			(*(uint8_t *)((uint8_t *)params->encparams.outer_hdr + 1));
+	}
 	
 	/* Descriptor Part #2 */
 	sap.sap2.sec_callback_func = (uint32_t)params->lifetime_callback;
@@ -1676,7 +1686,26 @@ int ipsec_frame_encrypt(
 	if ((!(sap1.flags & IPSEC_FLG_TUNNEL_MODE)) &&
 			(sap1.flags & IPSEC_ENC_OPTS_NAT_EN)) {
 		// TODO, including checksum updates
-	} 
+	} else { 
+	/* In tunnel mode, optionally set the DS field 
+	 * Unfortunately it was removed from SEC Era 8 hardware */	
+		if (sap1.flags & IPSEC_FLG_ENC_DSCP_SET) {
+			// TODO: set the DS according to the provided outer header, 
+			// and update the IP checksum and gross running sum
+			// TODO: need to save the DS from the original outer header in the params
+			if (sap1.flags & IPSEC_FLG_IPV6) { /* IPv6 header */
+				/* IPv6 header: 0-3:Version, 4-11:Traffic Class 
+				 * i.e. 4-9: DSCP */
+				// PARSER_GET_OUTER_IP_POINTER_DEFAULT()
+				
+			} else { /* IPv4 */
+				/* IPv4 header: 0-3:Version, 4-7:IHL, 8-13:DSCP, 14-15:ECN */				
+				// PARSER_GET_OUTER_IP_POINTER_DEFAULT()
+				sap1.outer_hdr_dscp;
+			}
+			
+		}	
+	}
 
 		/*---------------------*/
 		/* ipsec_frame_encrypt */

@@ -112,6 +112,7 @@ enum rta_param_type {
 #define IPSEC_IP_VERSION_IPV6 0x60000000 
 #define IPSEC_ETHERTYPE_IPV6 0x86DD 
 #define IPSEC_ETHERTYPE_IPV4 0x0800 
+#define IPSEC_DSCP_MASK 0xFC
 
 /* PS Pointer Size. This bit determines the size of address pointers */
 #define IPSEC_SEC_POINTER_SIZE 1 /* 1 - SEC Pointers require two 32-bit words */ 
@@ -523,6 +524,8 @@ struct ipsec_sa_params_part1 {
 
 	uint8_t output_spid; /* SEC output buffer SPID */
 	
+	uint8_t outer_hdr_dscp; /* Outer Header DSCP, for set mode */
+
 	/* Total size = */
 	/* 8*8 (64) + 2*4 (8) + 2*2 (4) + 5*1 (5) = 81 bytes */
 };
