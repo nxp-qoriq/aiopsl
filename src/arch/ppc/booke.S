@@ -1620,10 +1620,10 @@ asm_prefix(booke_set_spr_ILLEGAL):
 /* E200-AIOP special regs */
 .global asm_prefix(booke_get_CTSCSR0)
 asm_prefix(booke_get_CTSCSR0):
-    mfdcr   3,464
+    mfdcr   3,CTSCSR0
     blr
 .global asm_prefix(booke_set_CTSCSR0)
 asm_prefix(booke_set_CTSCSR0):
-    mtdcr   464,3
+    mtdcr   CTSCSR0,3
     blr
     
