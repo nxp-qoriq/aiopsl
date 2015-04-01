@@ -178,33 +178,6 @@ char * err_type_strings (int err);
     } while (0)
 #endif /* (DEBUG_ERRORS > 0) */
 
-#if 0
-#ifdef DISABLE_INIT_PARAMETERS_CHECK
-
-#define CHECK_INIT_PARAMETERS(handle, cfg, params, f_check)
-#define CHECK_INIT_PARAMETERS_RETURN_VALUE(handle, cfg, params, f_check, retval)
-
-#else
-#define CHECK_INIT_PARAMETERS(handle, cfg, params, f_check) \
-    do { \
-        int err = f_check(handle, cfg, params); \
-        if (err != 0) { \
-            RETURN_ERROR(MAJOR, err, NO_MSG); \
-        } \
-    } while (0)
-
-#define CHECK_INIT_PARAMETERS_RETURN_VALUE(handle, cfg, params, f_check, retval) \
-    do { \
-        int err = f_check(handle, cfg, params); \
-        if (err != 0) { \
-            REPORT_ERROR(MAJOR, err, NO_MSG); \
-            return (retval); \
-        } \
-    } while (0)
-
-#endif /* DISABLE_INIT_PARAMETERS_CHECK */
-#endif /* 0 */
-
 #ifdef DISABLE_SANITY_CHECKS
 #define SANITY_CHECK_RETURN_ERROR(_cond, _err)
 #define SANITY_CHECK_RETURN_VALUE(_cond, _err, retval)
