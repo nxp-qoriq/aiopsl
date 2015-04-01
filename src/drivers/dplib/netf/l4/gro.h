@@ -121,12 +121,6 @@ struct tcp_gro_context {
 		/** Last Segment header fields which we need to update in the
 		 * aggregated packet. */
 	struct tcp_gro_last_seg_header_fields last_seg_fields;
-		/** Aggregated packet isolation attributes.
-		 * Todo - in case all the segments have the same isolation
-		 * attributes there is no need to save this structure since the
-		 * attributes can be taken from the new segment Additional
-		 * Dequeue Context area. */
-	struct fdma_amq agg_fd_isolation_attributes;
 		/** Function to call upon Time Out occurrence.
 			 * This function takes one argument. */
 	gro_timeout_cb_t *gro_timeout_cb;
@@ -150,11 +144,15 @@ struct tcp_gro_context {
 		 * packet headers + payload).
 		 * A single segment size cannot oversize this limit. */
 	uint16_t packet_size_limit;
+		/* Network Interface ID */
+	uint16_t	niid;
+		/** Queueing Destination Priority */
+	uint8_t qd_priority;
 		/** Maximum aggregated segments per packet limit.
 		 * 0/1 are an illegal values. */
 	uint8_t	seg_num_limit;
 		/* padding*/
-	uint8_t pad[13];
+	uint8_t pad[14];
 };
 
 
