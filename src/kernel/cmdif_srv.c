@@ -81,13 +81,6 @@
 #define SYNC_CMD_RESP_MAKE(ERR, ID)  (0x80000000 | \
 	(((ERR) << 16) & 0x00FF0000) | (ID))
 
-#define PR_ERR_TERMINATE(...) \
-	do {                  \
-		sl_pr_debug(__VA_ARGS__);  \
-		fdma_terminate_task();\
-		return;               \
-	} while (0)
-
 #define CMDIF_SRV_LOCK_W_TAKE \
 	do { \
 		cdma_mutex_lock_take((uint64_t)(&cmdif_aiop_srv), CDMA_MUTEX_WRITE_LOCK); \
@@ -327,13 +320,11 @@ __HOT_CODE void cmdif_fd_send(int cb_err)
 __HOT_CODE void sync_cmd_done(uint64_t sync_done,
 			  int err,
 			  uint16_t auth_id,
-			  char terminate,
 			  uint16_t icid,
 			  uint32_t dma_flags);
 __HOT_CODE void sync_cmd_done(uint64_t sync_done,
 			  int err,
 			  uint16_t auth_id,
-			  char terminate,
 			  uint16_t icid,
 			  uint32_t dma_flags)
 {
@@ -364,9 +355,6 @@ __HOT_CODE void sync_cmd_done(uint64_t sync_done,
 	sl_pr_debug("sync_done high = 0x%x low = 0x%x \n",
 		(uint32_t)((_sync_done & 0xFF00000000) >> 32),
 		(uint32_t)(_sync_done & 0xFFFFFFFF));
-
-	if (terminate)
-		fdma_terminate_task();
 }
 
 /** Save the address for polling on synchronous commands */
@@ -677,23 +665,29 @@ __HOT_CODE void cmdif_srv_isr(void) __attribute__ ((noreturn))
 				no_stack_pr_err("notify_open failed\n");
 			}
 			CMDIF_STORE_DATA;
-			sync_cmd_done(NULL, err, auth_id, TRUE, gpp_icid, gpp_dma);
+			sync_cmd_done(NULL, err, auth_id, gpp_icid, gpp_dma);
+			goto term_task;
 		} else {
 			CMDIF_STORE_DATA; /* Close FDMA */
-			PR_ERR_TERMINATE("Invalid authentication id\n");
+			no_stack_pr_err("Invalid authentication id 0x%x\n", 
+			                auth_id);
+			goto term_task;
 		}
 	} else if (cmd_id == CMD_ID_NOTIFY_CLOSE) {
 		if (is_valid_auth_id(auth_id)) {
-			no_stack_pr_debug("Got notify close for AIOP client \n");
+			no_stack_pr_debug("Got notify close for AIOP client\n");
 			err = notify_close();
 			if (err) {
 				no_stack_pr_err("notify_close failed\n");
 			}
 			CMDIF_STORE_DATA;
-			sync_cmd_done(NULL, err, auth_id, TRUE, gpp_icid, gpp_dma);
+			sync_cmd_done(NULL, err, auth_id, gpp_icid, gpp_dma);
+			goto term_task;
 		} else {
 			CMDIF_STORE_DATA; /* Close FDMA */
-			PR_ERR_TERMINATE("Invalid authentication id\n");
+			no_stack_pr_err("Invalid authentication id 0x%x\n", 
+			                auth_id);
+			goto term_task;
 		}
 	} else if (cmd_id == CMD_ID_OPEN) {
 
@@ -703,7 +697,8 @@ __HOT_CODE void cmdif_srv_isr(void) __attribute__ ((noreturn))
 			                auth_id);
 			CMDIF_STORE_DATA;
 			sync_cmd_done(sync_done_get(), -EPERM, auth_id,
-			              TRUE, gpp_icid, gpp_dma);
+			              gpp_icid, gpp_dma);
+			goto term_task;
 		}
 
 		open_cmd_print();
@@ -712,13 +707,15 @@ __HOT_CODE void cmdif_srv_isr(void) __attribute__ ((noreturn))
 			no_stack_pr_err("Open session FAILED err = %d\n", err);
 			CMDIF_STORE_DATA;
 			sync_cmd_done(sync_done_get(), err, auth_id,
-			              TRUE, gpp_icid, gpp_dma);
+			              gpp_icid, gpp_dma);
+			goto term_task;
 		} else {
-			no_stack_pr_debug("Open session PASSED auth_id = 0x%x\n",
+			no_stack_pr_debug("Open session PASSED auth_id=0x%x\n",
 			                  auth_id);
 			CMDIF_STORE_DATA;
 			sync_cmd_done(sync_done_get(), 0, auth_id,
-			              TRUE, gpp_icid, gpp_dma);
+			              gpp_icid, gpp_dma);
+			goto term_task;
 		}
 	} else if (cmd_id == CMD_ID_CLOSE) {
 
@@ -726,7 +723,7 @@ __HOT_CODE void cmdif_srv_isr(void) __attribute__ ((noreturn))
 			/* Don't reorder this sequence !!*/
 			CLOSE_CB(auth_id);
 			CMDIF_STORE_DATA;
-			sync_cmd_done(NULL, err, auth_id, FALSE,
+			sync_cmd_done(NULL, err, auth_id,
 			              gpp_icid, gpp_dma);
 			if (!err) {
 				/* Free instance entry only if we had no error
@@ -735,7 +732,7 @@ __HOT_CODE void cmdif_srv_isr(void) __attribute__ ((noreturn))
 				inst_dealloc(auth_id);
 			}
 			no_stack_pr_debug("PASSED close command\n");
-			fdma_terminate_task();
+			goto term_task;
 		} else {
 			/* don't bother to send response
 			 * in order not to overload response queue,
@@ -743,7 +740,9 @@ __HOT_CODE void cmdif_srv_isr(void) __attribute__ ((noreturn))
 			 * it might be intentional attack
 			 * */
 			CMDIF_STORE_DATA; /* Close FDMA */
-			PR_ERR_TERMINATE("Invalid authentication id\n");
+			no_stack_pr_err("Invalid authentication id 0x%x\n", 
+			                auth_id);
+			goto term_task;
 		}
 	} else {
 		if (is_valid_auth_id(auth_id)) {
@@ -751,10 +750,11 @@ __HOT_CODE void cmdif_srv_isr(void) __attribute__ ((noreturn))
 			CTRL_CB(auth_id, cmd_id, cmd_size_get(), \
 			        cmd_data_get());
 			if (SYNC_CMD(cmd_id)) {
-				no_stack_pr_debug("PASSED Synchronous Command\n");
+				no_stack_pr_debug("PASSED Sync Command\n");
 				CMDIF_STORE_DATA;
 				sync_cmd_done(NULL, err, auth_id,
-				              TRUE, gpp_icid, gpp_dma);
+				              gpp_icid, gpp_dma);
+				goto term_task;
 			}
 		} else {
 			/* don't bother to send response
@@ -762,7 +762,9 @@ __HOT_CODE void cmdif_srv_isr(void) __attribute__ ((noreturn))
 			 * it might be intentional attack
 			 * */
 			CMDIF_STORE_DATA; /* Close FDMA */
-			PR_ERR_TERMINATE("Invalid authentication id\n");
+			no_stack_pr_err("Invalid authentication id 0x%x\n", 
+			                auth_id);
+			goto term_task;
 		}
 	}
 
@@ -775,5 +777,6 @@ __HOT_CODE void cmdif_srv_isr(void) __attribute__ ((noreturn))
 		CMDIF_STORE_DATA;
 	}
 
+term_task:
 	fdma_terminate_task();
 }
