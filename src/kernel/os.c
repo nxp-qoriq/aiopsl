@@ -53,12 +53,6 @@ static char *number(char *str, uint64_t num, uint8_t base, uint8_t type, size_t 
 static void fsl_os_print_boot(const char *format, va_list args);
 
 /*****************************************************************************/
-__declspec(noreturn) void fsl_os_exit(int status)
-{
-    exit(status);
-}
-
-/*****************************************************************************/
 void fsl_os_print(char *format, ...)
 {
 	va_list args;
