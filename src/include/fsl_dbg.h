@@ -53,6 +53,30 @@
 #else
 
 /**************************************************************************//**
+ @Collection    Debug Levels for Errors and Events
+
+                The level description refers to errors only.
+                For events, classification is done by the user.
+
+                The TRACE, INFO and WARNING levels are allowed only when using
+                the DBG macro, and are not allowed when using the error macros
+                (RETURN_ERROR or REPORT_ERROR).
+ @{
+*//***************************************************************************/
+#define REPORT_LEVEL_CRITICAL   1       /**< Crasher: Incorrect flow, NULL pointers/handles. */
+#define REPORT_LEVEL_MAJOR      2       /**< Cannot proceed: Invalid operation, parameters or
+                                             configuration. */
+#define REPORT_LEVEL_MINOR      3       /**< Recoverable problem: a repeating call with the same
+                                             parameters may be successful. */
+#define REPORT_LEVEL_WARNING    4       /**< Something is not exactly right, yet it is not an error. */
+#define REPORT_LEVEL_INFO       5       /**< Messages which may be of interest to user/programmer. */
+#define REPORT_LEVEL_TRACE      6       /**< Program flow messages. */
+
+#define EVENT_DISABLED          0xff    /**< Disabled event (not reported at all) */
+
+/* @} */
+
+/**************************************************************************//**
  @Function      ASSERT_COND
 
  @Description   Assertion macro.
