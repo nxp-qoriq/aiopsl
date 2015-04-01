@@ -38,7 +38,7 @@ int app_early_init(void);
 int app_init(void);
 void app_free(void);
 
-__declspec(entry_point) static void app_process_packet_flow0 (void)
+__HOT_CODE ENTRY_POINT static void app_process_packet(void)
 {
 	int      err = 0;
 	int local_test_error = 0;
@@ -130,7 +130,7 @@ int app_init(void)
 	{
 
 		err = dpni_drv_register_rx_cb((uint16_t)ni/*ni_id*/,
-				app_process_packet_flow0);
+		                              app_process_packet);
 
 		if (err)
 			return err;

@@ -178,47 +178,6 @@ char * err_type_strings (int err);
     } while (0)
 #endif /* (DEBUG_ERRORS > 0) */
 
-
-/**************************************************************************//**
- @Function      ASSERT_COND
-
- @Description   Assertion macro.
-
- @Param[in]     _cond - The condition being checked, in positive form;
-                        Failure of the condition triggers the assert.
-*//***************************************************************************/
-#ifdef DISABLE_ASSERTIONS
-#define ASSERT_COND(_cond)
-#else
-#define ASSERT_COND(_cond) \
-    do { \
-        if (!(_cond)) { \
-            fsl_os_print("*** ASSERT_COND failed " PRINT_FORMAT "\r\n", \
-                    PRINT_FMT_PARAMS); \
-            DEBUG_HALT; \
-        } \
-    } while (0)
-#endif /* DISABLE_ASSERTIONS */
-
-/**************************************************************************//**
- @Function      ASSERT_COND_LIGHT
-
- @Description   Assertion macro, without printing an error message.
-
- @Param[in]     _cond - The condition being checked, in positive form;
-                        Failure of the condition triggers the assert.
-*//***************************************************************************/
-#ifdef DISABLE_ASSERTIONS
-#define ASSERT_COND_LIGHT(_cond)
-#else
-#define ASSERT_COND_LIGHT(_cond) \
-    do { \
-        if (!(_cond)) { \
-            DEBUG_HALT; \
-        } \
-    } while (0)
-#endif /* DISABLE_ASSERTIONS */
-
 #if 0
 #ifdef DISABLE_INIT_PARAMETERS_CHECK
 
