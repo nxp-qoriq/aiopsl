@@ -307,7 +307,7 @@ __HOT_CODE void cmdif_fd_send(int cb_err)
 	dpci_drv_user_ctx_get(&ind, &fqid);
 	ASSERT_COND(fqid != DPCI_FQID_NOT_VALID);
 
-	sl_pr_debug("Response FQID = 0x%x pr = 0x%x dpci_ind = 0x%x\n", fqid, pr, ind);
+	sl_pr_debug("Response FQID = 0x%x dpci_ind = 0x%x\n", fqid, ind);
 	sl_pr_debug("CB error = %d\n", cb_err);
 
 	err = (int)fdma_store_and_enqueue_default_frame_fqid(

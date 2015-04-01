@@ -262,7 +262,7 @@ enum e_tman_query_timer {
 
 @Param[in]	tmi_mem_base_addr - address to memory used for the timers
 		associated with this instance.
-		The size of the allocated memory should be 64*max_num_of_timers
+		The size of the allocated memory should be 64*(max_num_of_timers +1)
 		bytes. The allocated memory should be 64 byte aligned.\n
 @Param[in]	max_num_of_timers - maximum number of timers associated
 		to this instance. This number must be bigger than 4 and smaller

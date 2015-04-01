@@ -48,10 +48,10 @@
 /* Each buffer is of the following structure:
  *
  *
- *  +-----------+--------------------------------------+-----------+
- *  |HW metadata|             Data                     | Alignment |
- *  | (align)   |             field                    | Padding   |
- *  +-----------+--------------------------------------+-----------+
+ *  +------------------+--------------------------------------+-----------+
+ *  |  HW metadata     |             Data                     | Alignment |
+ *  | 8 Bytes(align)   |             field                    | Padding   |
+ *  +------------------+--------------------------------------+-----------+
  *  Alignment padding may exist in the end of the buffer.
  */
 
@@ -101,13 +101,15 @@ typedef void (slab_release_cb_t)(uint64_t);
 @Param[in]	max_buffs           Maximal number of buffers that
 		can be allocated by this new pool; max_buffs >= committed_buffs;
 @Param[in]	buff_size           Size of buffers in pool.
-@Param[in]	alignment           Requested alignment for data in bytes.
+@Param[in]	alignment           Requested alignment for buffer in bytes.
 @Param[in]	mem_partition_id    Memory partition ID for allocation.
 		AIOP: HW pool supports only PEB and DPAA DDR.
 @Param[in]	flags               Set it to 0 for default slab creation.
 @Param[in]	release_cb          Function to be called on release of buffer
 @Param[out]	slab                Handle to new pool is returned through here.
 
+@Cautions       The alignment starts from HW metadata of 8 bytes and must be
+		a power of 2.
 @Return		0        - on success,
 		-ENAVAIL - resource not available or not found,
 		-ENOMEM  - not enough memory for mem_partition_id
@@ -217,7 +219,7 @@ int slab_debug_info_get(struct slab *slab, struct slab_debug_info *slab_info);
 @Param[in]	max_buffs           Maximal number of buffers that
 		can be allocated by the app; max_buffs >= committed_buffs;
 @Param[in]	buff_size           Size of buffers in pool.
-@Param[in]	alignment           Requested alignment for data in bytes.
+@Param[in]	alignment           Requested alignment for buffer in bytes.
 @Param[in]	mem_pid             Memory partition ID for allocation.
 		AIOP: HW pool supports only PEB and DPAA DDR.
 @Param[in]	flags               Set it to 0 for default.
@@ -226,6 +228,8 @@ int slab_debug_info_get(struct slab *slab, struct slab_debug_info *slab_info);
 @Cautions       Max buffer size supported - 32760 Byte (32760 + 8 Meta data =
 		32768), Max alignment supported 32768 Byte.
 		Alignment <= Buffer size + Meta data.
+		The alignment starts from HW metadata of 8 bytes and must be
+		a power of 2.
 @Return		0        - on success,
 		-ENAVAIL - resource not available or not found,
 		-ENOMEM  - not enough memory for requested memory partition

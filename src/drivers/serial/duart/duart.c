@@ -338,7 +338,7 @@ static int duart_poll_tx(fsl_handle_t duart, uint8_t *data, uint32_t size)
 			status = ioread8(&p_uart->p_mem_map->ulsr);
 			tries++;
 			if (tries >= 1000000000)
-				return ERROR_CODE(EBUSY);
+				return -EBUSY;
 		} while ((status & ULSR_THRE) == 0);
 
 		/* In HW handshake make sure ready to transmit */
@@ -348,7 +348,7 @@ static int duart_poll_tx(fsl_handle_t duart, uint8_t *data, uint32_t size)
 				status = ioread8(&p_uart->p_mem_map->umsr);
 				tries++;
 				if (tries >= 10000)
-					return ERROR_CODE(EBUSY);
+					return -EBUSY;
 			} while ((status & UMSR_CTS) == 0);
 		}
 
@@ -361,7 +361,7 @@ static int duart_poll_tx(fsl_handle_t duart, uint8_t *data, uint32_t size)
 				status = ioread8(&p_uart->p_mem_map->ulsr);
 				tries++;
 				if (tries >= 1000000000)
-					return ERROR_CODE(EBUSY);
+					return -EBUSY;
 			} while ((status & ULSR_THRE) == 0);
 
 			iowrite8(*data++, &p_uart->p_mem_map->UTHR);
