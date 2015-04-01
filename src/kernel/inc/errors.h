@@ -107,7 +107,6 @@ int ERROR_DYNAMIC_LEVEL = ERROR_GLOBAL_LEVEL;
 #define REPORT_ERROR(_level, _err, _vmsg)
 #define RETURN_ERROR(_level, _err, _vmsg) \
         return (_err)
-#define ERROR_CODE(_err)    (_err)
 #define DEBUG_HALT
 #else /* DEBUG_ERRORS > 0 */
 #define DEBUG_HALT asm{se_dnh}
@@ -121,9 +120,6 @@ extern const char *module_strings[];
 
 char * err_type_strings (int err);
 
-#define ERROR_CODE(_err)    (_err)
-#define GET_ERROR_TYPE(_err)    (_err)
-
 #define REPORT_ERROR(_level, _err, _vmsg) \
     do { \
         if (REPORT_LEVEL_##_level <= ERROR_DYNAMIC_LEVEL) { \
@@ -131,7 +127,7 @@ char * err_type_strings (int err);
                      dbg_level_strings[REPORT_LEVEL_##_level - 1], \
                      module_strings[__ERR_MODULE__ >> 16], \
                      PRINT_FMT_PARAMS, \
-                     err_type_strings((int)GET_ERROR_TYPE(_err))); \
+                     err_type_strings((int)(_err))); \
             fsl_os_print _vmsg; \
             fsl_os_print("\r\n"); \
         } \
@@ -140,21 +136,21 @@ char * err_type_strings (int err);
 #define RETURN_ERROR(_level, _err, _vmsg) \
     do { \
         REPORT_ERROR(_level, (_err), _vmsg); \
-        return ERROR_CODE(_err); \
+        return _err; \
     } while (0)
 #endif /* (DEBUG_ERRORS > 0) */
 
 #ifdef DISABLE_SANITY_CHECKS
 #define SANITY_CHECK_RETURN_ERROR(_cond, _err)
 #define SANITY_CHECK_RETURN_VALUE(_cond, _err, retval)
-#define SANITY_CHECK_RETURN(_cond, _err)
 #define SANITY_CHECK_EXIT(_cond, _err)
 
 #else /* DISABLE_SANITY_CHECKS */
 #define SANITY_CHECK_RETURN_ERROR(_cond, _err) \
     do { \
         if (!(_cond)) { \
-            RETURN_ERROR(CRITICAL, (_err), NO_MSG); \
+            REPORT_ERROR(CRITICAL, (_err), NO_MSG); \
+            return -(_err); \
         } \
     } while (0)
 
@@ -163,14 +159,6 @@ char * err_type_strings (int err);
         if (!(_cond)) { \
             REPORT_ERROR(CRITICAL, (_err), NO_MSG); \
             return (retval); \
-        } \
-    } while (0)
-
-#define SANITY_CHECK_RETURN(_cond, _err) \
-    do { \
-        if (!(_cond)) { \
-            REPORT_ERROR(CRITICAL, (_err), NO_MSG); \
-            return; \
         } \
     } while (0)
 #endif /* DISABLE_SANITY_CHECKS */
