@@ -43,13 +43,10 @@
 
 
 //TODO: obsolete - do not use in new code !!!
-#define E_INVALID_STATE       111    /* TODO: obsolete - do not use in new code*/
 #define E_INVALID_SELECTION   112    /* TODO: obsolete - do not use in new code*/
-#define E_CONFLICT            113    /* TODO: obsolete - do not use in new code*/
 #define E_NOT_FOUND           114    /* TODO: obsolete - do not use in new code*/
 #define E_FULL                115    /* TODO: obsolete - do not use in new code*/
 #define E_EMPTY               116    /* TODO: obsolete - do not use in new code*/
-#define E_ALREADY_FREE        117    /* TODO: obsolete - do not use in new code*/
 #define E_READ_FAILED         118    /* TODO: obsolete - do not use in new code*/
 #define E_INVALID_FRAME       119    /* TODO: obsolete - do not use in new code*/
 
