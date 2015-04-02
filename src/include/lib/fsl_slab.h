@@ -105,6 +105,8 @@ typedef void (slab_release_cb_t)(uint64_t);
 @Param[in]	mem_partition_id    Memory partition ID for allocation.
 		AIOP: HW pool supports only PEB and DPAA DDR.
 @Param[in]	flags               Set it to 0 for default slab creation.
+		For extra pools managed in DDR with lower
+		performance set: SLAB_DDR_MANAGEMENT_FLAG
 @Param[in]	release_cb          Function to be called on release of buffer
 @Param[out]	slab                Handle to new pool is returned through here.
 
