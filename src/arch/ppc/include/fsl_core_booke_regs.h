@@ -339,6 +339,7 @@
 #define MCSRR1      571     /* Machine check save/restore register 1 */
 #define MMUCFG      1015    /* MMU configuration register */
 #define MMUCSR0     1012    /* MMU control and status register 0 1 */
+#define CTSCSR0     464     /* CTS General Control and Status Registers 0 */
 
 #define TLB0CFG     688     /* TLB0CFG register 0. */
 #define TLB1CFG     689     /* TLB1CFG register 1. */

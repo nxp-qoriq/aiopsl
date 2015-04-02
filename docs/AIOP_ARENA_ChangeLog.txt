@@ -1,4 +1,9 @@
+errors.h:                  removed fsl_os_exit()
+app_process_packet.c:      rename app_process_packet_flow0 to app_process_packet and add __HOT_CODE
+types_mw.h:                add macro: ENTRY_POINT __declspec(entry_point)
 
+** AIOP SL Release v0.6.0.1 **
+slab.c:      Update assert condition to allow calling slab create with alignment <= buffer size.
 ** AIOP SL Release v0.6.0 **
 dpl.dts/dpl.dtb: Added option: "DPNI_OPT_TX_CONF_DISABLED" for DPNI objects to disable TX confirmation. Update your layout file accordingly.
 fsl_dpni_drv.h : Added API for registering DPNI rx buffer layout requirements(head-room, tail-room, private-data-size)

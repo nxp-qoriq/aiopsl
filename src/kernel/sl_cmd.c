@@ -26,6 +26,7 @@
 #include "common/types.h"
 #include "fsl_sl_cmd.h"
 #include "fsl_errors.h"
+#include "fsl_dbg.h"
 
 int sl_cmd_ctrl_cb(void *dev, uint16_t cmd, uint32_t size, void *data);
 int sl_cmd_open_cb(uint8_t instance_id, void **dev);

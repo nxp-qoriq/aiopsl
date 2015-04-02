@@ -785,7 +785,7 @@ do { \
 do { \
 	MC_EXT_OP(ext, 0, 0,  2, enum dpni_early_drop_mode, cfg->mode); \
 	MC_EXT_OP(ext, 0, 2,  2, \
-	          enum dpni_early_drop_unit, cfg->units); \
+		  enum dpni_early_drop_unit, cfg->units); \
 	MC_EXT_OP(ext, 0, 32, 32, uint32_t, cfg->tail_drop_threshold); \
 	MC_EXT_OP(ext, 1, 0,  8,  uint8_t,  cfg->green.drop_probability); \
 	MC_EXT_OP(ext, 2, 0,  64, uint64_t, cfg->green.max_threshold); \
@@ -803,5 +803,5 @@ do { \
 do { \
 	MC_CMD_OP(cmd, 0, 8,  8,  uint8_t,  tc_id); \
 	MC_CMD_OP(cmd, 1, 0,  64, uint64_t, early_drop_iova); \
-} while (0)	
+} while (0)
 #endif /* _FSL_DPNI_CMD_H */

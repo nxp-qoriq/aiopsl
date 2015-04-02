@@ -174,7 +174,7 @@ int dprc_get_irq(struct fsl_mc_io *mc_io,
 }
 
 int dprc_obj_get_irq(struct fsl_mc_io *mc_io,
-		 uint16_t token,
+		     uint16_t token,
 		 int obj_index,
 		 uint8_t irq_index,
 		 int *type,
@@ -222,7 +222,7 @@ int dprc_set_irq(struct fsl_mc_io *mc_io,
 }
 
 int dprc_obj_set_irq(struct fsl_mc_io *mc_io,
-		 uint16_t token,
+		     uint16_t token,
 		 int obj_index,
 		 uint8_t irq_index,
 		 uint64_t irq_addr,
@@ -235,11 +235,11 @@ int dprc_obj_set_irq(struct fsl_mc_io *mc_io,
 	cmd.header = mc_encode_cmd_header(DPRC_CMDID_OBJ_SET_IRQ,
 					  MC_CMD_PRI_LOW,
 					  token);
-	DPRC_CMD_OBJ_SET_IRQ(cmd, 
-						 irq_index, 
-						 obj_index, 
-						 irq_addr, 
-						 irq_val, 
+	DPRC_CMD_OBJ_SET_IRQ(cmd,
+			     irq_index,
+						 obj_index,
+						 irq_addr,
+						 irq_val,
 						 user_irq_id);
 
 	/* send command to mc*/
@@ -634,10 +634,10 @@ int dprc_get_obj_region(struct fsl_mc_io *mc_io,
 	return 0;
 }
 
-int dprc_set_obj_label (struct fsl_mc_io *  mc_io,  
-                        uint16_t  token,  
-                        int  obj_index,  
-                        char *label)
+int dprc_set_obj_label(struct fsl_mc_io *mc_io,
+		       uint16_t  token,
+		       int  obj_index,
+		       char *label)
 {
 	struct mc_command cmd = { 0 };
 

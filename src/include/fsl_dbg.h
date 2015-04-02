@@ -53,6 +53,70 @@
 #else
 
 /**************************************************************************//**
+ @Collection    Debug Levels for Errors and Events
+
+                The level description refers to errors only.
+                For events, classification is done by the user.
+
+                The TRACE, INFO and WARNING levels are allowed only when using
+                the DBG macro, and are not allowed when using the error macros
+                (RETURN_ERROR or REPORT_ERROR).
+ @{
+*//***************************************************************************/
+#define REPORT_LEVEL_CRITICAL   1       /**< Crasher: Incorrect flow, NULL pointers/handles. */
+#define REPORT_LEVEL_MAJOR      2       /**< Cannot proceed: Invalid operation, parameters or
+                                             configuration. */
+#define REPORT_LEVEL_MINOR      3       /**< Recoverable problem: a repeating call with the same
+                                             parameters may be successful. */
+#define REPORT_LEVEL_WARNING    4       /**< Something is not exactly right, yet it is not an error. */
+#define REPORT_LEVEL_INFO       5       /**< Messages which may be of interest to user/programmer. */
+#define REPORT_LEVEL_TRACE      6       /**< Program flow messages. */
+
+#define EVENT_DISABLED          0xff    /**< Disabled event (not reported at all) */
+
+/* @} */
+
+/**************************************************************************//**
+ @Function      ASSERT_COND
+
+ @Description   Assertion macro.
+
+ @Param[in]     _cond - The condition being checked, in positive form;
+                        Failure of the condition triggers the assert.
+*//***************************************************************************/
+#ifdef DISABLE_ASSERTIONS
+#define ASSERT_COND(_cond)
+#else
+#define ASSERT_COND(_cond) \
+    do { \
+        if (!(_cond)) { \
+            fsl_os_print("*** ASSERT_COND failed " PRINT_FORMAT "\r\n", \
+                    PRINT_FMT_PARAMS); \
+            DEBUG_HALT; \
+        } \
+    } while (0)
+#endif /* DISABLE_ASSERTIONS */
+
+/**************************************************************************//**
+ @Function      ASSERT_COND_LIGHT
+
+ @Description   Assertion macro, without printing an error message.
+
+ @Param[in]     _cond - The condition being checked, in positive form;
+                        Failure of the condition triggers the assert.
+*//***************************************************************************/
+#ifdef DISABLE_ASSERTIONS
+#define ASSERT_COND_LIGHT(_cond)
+#else
+#define ASSERT_COND_LIGHT(_cond) \
+    do { \
+        if (!(_cond)) { \
+            DEBUG_HALT; \
+        } \
+    } while (0)
+#endif /* DISABLE_ASSERTIONS */
+
+/**************************************************************************//**
  @Function      pr_debug(...)
 
  @Description   Macro to add level trace, CPU number and other parameters

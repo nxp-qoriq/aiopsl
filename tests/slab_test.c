@@ -195,7 +195,7 @@ int app_test_slab_init(void)
 
 
 	/* Reuse slab handle test  */
-	err = slab_create(1, 1, 256, 4, MEM_PART_DP_DDR, 0,
+	err = slab_create(1, 1, 256, 64, MEM_PART_DP_DDR, 0,
 	                  NULL, &my_slab);
 	if (err) return err;
 

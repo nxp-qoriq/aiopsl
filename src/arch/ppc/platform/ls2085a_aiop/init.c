@@ -25,21 +25,12 @@
  */
 
 #include "common/fsl_string.h"
-#include "fsl_io_ccsr.h"
-#include "fsl_dprc.h"
-#include "fsl_dpni.h"
 #include "fsl_malloc.h"
-#include "kernel/fsl_spinlock.h"
-#include "../drivers/dplib/arch/accel/fdma.h"  /* TODO: need to place fdma_release_buffer() in separate .h file */
-#include "fsl_dpbp.h"
 #include "sys.h"
 #include "fsl_io_ccsr.h"
-#include "slab.h"
 #include "cmgw.h"
 #include "fsl_mc_init.h"
-#include "fsl_dpni_drv.h"
 #include "fsl_mem_mng.h"
-#include "fsl_bman.h"
 #include "platform.h"
 
 
@@ -136,15 +127,15 @@ __COLD_CODE void fill_platform_parameters(struct platform_param *platform_param)
 	 * 4 - duart2_1
 	 * */
 	if (platform_param->console_id == 0) {
-		platform_param->console_type = PLTFRM_CONSOLE_NONE;		
+		platform_param->console_type = PLTFRM_CONSOLE_NONE;
 	}
 
-	/* Each UART is clocked by the platform clock/2 
+	/* Each UART is clocked by the platform clock/2
 	 * see platform_enable_console() */
 	if(platform_param->clock_in_freq_khz == 0)
 	{
 		platform_param->clock_in_freq_khz = 800000;
-		pr_warn("rcwsr return 0, platform clock frequency was set to %d KHz\n", 
+		pr_warn("rcwsr return 0, platform clock frequency was set to %d KHz\n",
 		        platform_param->clock_in_freq_khz);
 	}
 	else{
@@ -340,50 +331,9 @@ __COLD_CODE void core_ready_for_tasks(void)
 	__e_hwacceli(YIELD_ACCEL_ID); /* Yield */
 }
 
-
-__COLD_CODE static void print_dev_desc(struct dprc_obj_desc* dev_desc)
-{
-	pr_debug(" device %d\n", dev_desc->id);
-	pr_debug("***********\n");
-	pr_debug("vendor - %x\n", dev_desc->vendor);
-
-	if (strcmp(dev_desc->type, "dpni") == 0)
-	{
-		pr_debug("type - DP_DEV_DPNI\n");
-	}
-	else if (strcmp(dev_desc->type, "dprc") == 0)
-	{
-		pr_debug("type - DP_DEV_DPRC\n");
-	}
-	else if (strcmp(dev_desc->type, "dpio") == 0)
-	{
-		pr_debug("type - DP_DEV_DPIO\n");
-	}
-	pr_debug("id - %d\n", dev_desc->id);
-	pr_debug("region_count - %d\n", dev_desc->region_count);
-	pr_debug("ver_major - %d\n", dev_desc->ver_major);
-	pr_debug("ver_minor - %d\n", dev_desc->ver_minor);
-	pr_debug("irq_count - %d\n\n", dev_desc->irq_count);
-
-}
-
 __COLD_CODE int run_apps(void)
 {
 	int i;
-	int err = 0;
-	int dev_count;
-	int num_bpids = 0;
-	/* TODO: replace with memset */
-	uint16_t dpbp = 0;
-	struct dprc_obj_desc dev_desc;
-	int dpbp_id[DPNI_DRV_NUM_USED_BPIDS];
-	struct dpbp_attr attr;
-	struct dpni_pools_cfg pools_params[DPNI_DRV_NUM_USED_BPIDS];
-	uint16_t buffer_size = (uint16_t)g_app_params.dpni_buff_size;
-	uint16_t num_buffs = (uint16_t)g_app_params.dpni_num_buffs;
-	uint16_t alignment;
-	uint8_t mem_pid[] = {DPNI_DRV_FAST_MEMORY, DPNI_DRV_DDR_MEMORY};
-	struct mc_dprc *dprc = sys_get_unique_handle(FSL_OS_MOD_AIOP_RC);
 	uint16_t app_arr_size = g_app_params.app_arr_size;
 	struct sys_module_desc *apps = \
 		fsl_malloc(app_arr_size * sizeof(struct sys_module_desc), 1);
@@ -391,107 +341,6 @@ __COLD_CODE int run_apps(void)
 	if(apps == NULL) {
 		return -ENOMEM;
 	}
-
-	/* TODO - add initialization of global default DP-IO (i.e. call 'dpio_open', 'dpio_init');
-	 * This should be mapped to ALL cores of AIOP and to ALL the tasks */
-	/* TODO - add initialization of global default DP-SP (i.e. call 'dpsp_open', 'dpsp_init');
-	 * This should be mapped to 3 buff-pools with sizes: 128B, 512B, 2KB;
-	 * all should be placed in PEB. */
-	/* TODO - need to scan the bus in order to retrieve the AIOP "Device list" */
-	/* TODO - iterate through the device-list:
-	 * call 'dpni_drv_probe(ni_id, mc_portal_id, dpio, dp-sp)' */
-
-
-	if(IS_POWER_VALID_ALLIGN(g_app_params.dpni_drv_alignment,buffer_size))
-		alignment = (uint16_t)g_app_params.dpni_drv_alignment;
-	else
-	{
-		pr_err("Given alignment is not valid (not power of 2 or <= buffer size)\n");
-	}
-	if (dprc == NULL)
-	{
-		pr_err("Don't find AIOP root container \n");
-		return -ENODEV;
-	}
-	/* TODO: replace the following dpbp_open&init with dpbp_create when available */
-
-
-	if ((err = dprc_get_obj_count(&dprc->io, dprc->token,
-	                              &dev_count)) != 0) {
-		pr_err("Failed to get device count for AIOP RC auth_id = %d.\n",
-		       dprc->token);
-		return err;
-	}
-
-	for (i = 0; i < dev_count; i++) {
-		dprc_get_obj(&dprc->io, dprc->token, i, &dev_desc);
-		if (strcmp(dev_desc.type, "dpbp") == 0) {
-			/* TODO: print conditionally based on log level */
-			pr_info("Found DPBP ID: %d, will be used for frame buffers\n",dev_desc.id);
-			dpbp_id[num_bpids]= dev_desc.id;
-			num_bpids ++;
-
-			if(num_bpids == DPNI_DRV_NUM_USED_BPIDS)
-				break;
-		}
-	}
-
-
-
-	if(num_bpids < DPNI_DRV_NUM_USED_BPIDS){
-		pr_err("Not enough DPBPs found in the container.\n");
-		return -ENAVAIL;
-	}
-
-	for(i = 0; i < DPNI_DRV_NUM_USED_BPIDS; i++)
-	{
-		if ((err = dpbp_open(&dprc->io, dpbp_id[i], &dpbp)) != 0) {
-			pr_err("Failed to open DPBP-%d.\n", dpbp_id[i]);
-			return err;
-		}
-
-		if ((err = dpbp_enable(&dprc->io, dpbp)) != 0) {
-			pr_err("Failed to enable DPBP-%d.\n", dpbp_id[i]);
-			return err;
-		}
-
-		if ((err = dpbp_get_attributes(&dprc->io, dpbp, &attr)) != 0) {
-			pr_err("Failed to get attributes from DPBP-%d.\n", dpbp_id[i]);
-			return err;
-		}
-
-		if ((err = bman_fill_bpid(num_buffs,
-		                          buffer_size,
-		                          alignment,
-		                          (enum memory_partition_id) mem_pid[i],
-		                          attr.bpid)) != 0) {
-			pr_err("Failed to fill DPBP-%d (BPID=%d) with buffer size %d.\n",
-			       dpbp_id[i], attr.bpid, buffer_size);
-			return err;
-		}
-
-		/* Prepare parameters to attach to DPNI object */
-		pools_params[i].num_dpbp = 1; /* for AIOP, can be up to 2 */
-		pools_params[i].pools[0].dpbp_id = (uint16_t)dpbp_id[i]; /*!< DPBPs object id */
-		pools_params[i].pools[0].buffer_size = buffer_size;
-
-		/* Enable all DPNI devices */
-	}
-	for (i = 0; i < dev_count; i++) {
-		dprc_get_obj(&dprc->io, dprc->token, i, &dev_desc);
-		if (strcmp(dev_desc.type, "dpni") == 0) {
-			/* TODO: print conditionally based on log level */
-			print_dev_desc(&dev_desc);
-
-			if ((err = dpni_drv_probe(dprc, (uint16_t)dev_desc.id, (uint16_t)i, pools_params)) != 0) {
-				pr_err("Failed to probe DPNI-%d.\n", i);
-				return err;
-			}
-		}
-	}
-
-
-
 
 	memset(apps, 0, (app_arr_size * sizeof(struct sys_module_desc)));
 	build_apps_array(apps);
@@ -549,7 +398,7 @@ int epid_drv_init(void)
 	struct aiop_tile_regs *tile_regs = (struct aiop_tile_regs *)
 			sys_get_handle(FSL_OS_MOD_AIOP_TILE, 1);
 	struct aiop_ws_regs *wrks_addr = &tile_regs->ws_regs;
-	
+
 	/* CMDIF server epid initialization here*/
 	err |= cmdif_epid_setup(wrks_addr, AIOP_EPID_CMDIF_SERVER, cmdif_srv_isr);
 

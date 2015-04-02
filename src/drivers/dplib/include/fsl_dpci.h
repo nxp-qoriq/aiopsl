@@ -62,7 +62,7 @@ struct fsl_mc_io;
  * associated with the specific object ID and the specific MC
  * portal; this token must be used in all subsequent commands for
  * this specific object.
- * 
+ *
  * Return:	'0' on Success; Error code otherwise.
  */
 int dpci_open(struct fsl_mc_io *mc_io, int dpci_id, uint16_t *token);
@@ -74,7 +74,7 @@ int dpci_open(struct fsl_mc_io *mc_io, int dpci_id, uint16_t *token);
  *
  * After this function is called, no further operations are
  * allowed on the object without opening a new control session.
- *		
+ *
  * Return:	'0' on Success; Error code otherwise.
  */
 int dpci_close(struct fsl_mc_io *mc_io, uint16_t token);
@@ -82,9 +82,9 @@ int dpci_close(struct fsl_mc_io *mc_io, uint16_t token);
 /**
  * struct dpci_cfg - Structure representing DPCI configuration
  * @num_of_priorities:	Number of receive priorities (queues) for the DPCI;
- * 			note, that the number of transmit priorities (queues)
- * 			is determined by the number of receive priorities of 
- * 			the peer DPCI object
+ *			note, that the number of transmit priorities (queues)
+ *			is determined by the number of receive priorities of
+ *			the peer DPCI object
  */
 struct dpci_cfg {
 	uint8_t num_of_priorities;
@@ -95,8 +95,8 @@ struct dpci_cfg {
  * @mc_io:	Pointer to MC portal's I/O object
  * @cfg:	Configuration structure
  * @token:	Returned token; use in subsequent API calls
- * 
- * Create the DPCI object, allocate required resources and perform required 
+ *
+ * Create the DPCI object, allocate required resources and perform required
  * initialization.
  *
  * The object can be created either by declaring it in the
@@ -221,7 +221,7 @@ int dpci_get_irq(struct fsl_mc_io	*mc_io,
  * Each interrupt can have up to 32 causes.  The enable/disable control's the
  * overall interrupt state. if the interrupt is disabled no causes will cause
  * an interrupt.
- * 
+ *
  * Return:	'0' on Success; Error code otherwise.
  */
 int dpci_set_irq_enable(struct fsl_mc_io	*mc_io,
@@ -255,7 +255,7 @@ int dpci_get_irq_enable(struct fsl_mc_io	*mc_io,
  *
  * Every interrupt can have up to 32 causes and the interrupt model supports
  * masking/unmasking each cause independently
- * 
+ *
  * Return:	'0' on Success; Error code otherwise.
  */
 int dpci_set_irq_mask(struct fsl_mc_io	*mc_io,
@@ -272,7 +272,7 @@ int dpci_set_irq_mask(struct fsl_mc_io	*mc_io,
  *
  * Every interrupt can have up to 32 causes and the interrupt model supports
  * masking/unmasking each cause independently
- * 
+ *
  * Return:	'0' on Success; Error code otherwise.
  */
 int dpci_get_irq_mask(struct fsl_mc_io	*mc_io,
@@ -347,8 +347,8 @@ int dpci_get_attributes(struct fsl_mc_io	*mc_io,
 /**
  * struct dpci_peer_attr - Structure representing the peer DPCI attributes
  * @peer_id:	DPCI peer id; if no peer is connected returns (-1)
- * @num_of_priorities: 	The pper's number of receive priorities; determines the
- *  			number of transmit priorities for the local DPCI object
+ * @num_of_priorities:	The pper's number of receive priorities; determines the
+ *			number of transmit priorities for the local DPCI object
  */
 struct dpci_peer_attr {
 	int peer_id;
@@ -376,7 +376,7 @@ int dpci_get_peer_attributes(struct fsl_mc_io		*mc_io,
  * DPCI can be connected to another DPCI, together they
  * create a 'link'. In order to use the DPCI Tx and Rx queues,
  * both objects must be enabled.
- *		
+ *
  * Return:	'0' on Success; Error code otherwise.
  */
 int dpci_get_link_state(struct fsl_mc_io *mc_io, uint16_t token, int *up);
@@ -384,17 +384,17 @@ int dpci_get_link_state(struct fsl_mc_io *mc_io, uint16_t token, int *up);
 /**
  * enum dpci_dest - DPCI destination types
  * @DPCI_DEST_NONE:	Unassigned destination; The queue is set in parked mode
- * 			and does not generate FQDAN notifications; user is 
- * 			expected to dequeue from the queue based on polling or 
- * 			other user-defined method
- * @DPCI_DEST_DPIO: 	The queue is set in schedule mode and generates FQDAN
- * 	 		notifications to the specified DPIO; user is expected 
- * 	 		to dequeue from the queue only after notification is
- * 	 		received
- * @DPCI_DEST_DPCON: 	The queue is set in schedule mode and does not generate 
- * 			FQDAN notifications, but is connected to the specified
- * 			DPCON object;
- * 			user is expected to dequeue from the DPCON channel
+ *			and does not generate FQDAN notifications; user is
+ *			expected to dequeue from the queue based on polling or
+ *			other user-defined method
+ * @DPCI_DEST_DPIO:	The queue is set in schedule mode and generates FQDAN
+ *			notifications to the specified DPIO; user is expected
+ *			to dequeue from the queue only after notification is
+ *			received
+ * @DPCI_DEST_DPCON:	The queue is set in schedule mode and does not generate
+ *			FQDAN notifications, but is connected to the specified
+ *			DPCON object;
+ *			user is expected to dequeue from the DPCON channel
  */
 enum dpci_dest {
 	DPCI_DEST_NONE = 0,
@@ -404,7 +404,7 @@ enum dpci_dest {
 
 /**
  * struct dpci_dest_cfg - Structure representing DPCI destination configuration
- * @dest_type: 	Destination type
+ * @dest_type:	Destination type
  * @dest_id:	Either DPIO ID or DPCON ID, depending on the destination type
  * @priority:	Priority selection within the DPIO or DPCON channel; valid
  *		values are 0-1 or 0-7, depending on the number of priorities
@@ -426,14 +426,14 @@ struct dpci_dest_cfg {
 
 /**
  * struct dpci_rx_queue_cfg - Structure representing RX queue configuration
- * @options: 	Flags representing the suggested modifications to the queue;
- * 		Use any combination of 'DPCI_QUEUE_OPT_<X>' flags
+ * @options:	Flags representing the suggested modifications to the queue;
+ *		Use any combination of 'DPCI_QUEUE_OPT_<X>' flags
  * @user_ctx:	User context value provided in the frame descriptor of each
- * 		dequeued frame;
+ *		dequeued frame;
  *		valid only if 'DPCI_QUEUE_OPT_USER_CTX' is contained in
  *		'options'
  * @dest_cfg:	Queue destination parameters;
- * 		valid only if 'DPCI_QUEUE_OPT_DEST' is contained in 'options'
+ *		valid only if 'DPCI_QUEUE_OPT_DEST' is contained in 'options'
  */
 struct dpci_rx_queue_cfg {
 	uint32_t options;
@@ -461,7 +461,7 @@ int dpci_set_rx_queue(struct fsl_mc_io			*mc_io,
 /**
  * struct dpci_rx_queue_attr - Structure representing Rx queue attributes
  * @user_ctx:	User context value provided in the frame descriptor of each
- *	 	dequeued frame
+ *		dequeued frame
  * @dest_cfg:	Queue destination configuration
  * @fqid:	Virtual FQID value to be used for dequeue operations
  */
@@ -489,9 +489,9 @@ int dpci_get_rx_queue(struct fsl_mc_io		*mc_io,
 /**
  * struct dpci_tx_queue_attr - Structure representing attributes of Tx queues
  * @fqid:	Virtual FQID to be used for sending frames to peer DPCI;
- * 		returns 'DPCI_FQID_NOT_VALID' if a no peer is connected or if
- * 		the selected priority exceeds the number of priorities of the
- * 		peer DPCI object	
+ *		returns 'DPCI_FQID_NOT_VALID' if a no peer is connected or if
+ *		the selected priority exceeds the number of priorities of the
+ *		peer DPCI object
  */
 struct dpci_tx_queue_attr {
 	uint32_t fqid;

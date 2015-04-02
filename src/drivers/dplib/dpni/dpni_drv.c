@@ -37,6 +37,7 @@
 #include "inc/fsl_sys.h"
 #include "fsl_dprc.h"
 #include "fsl_dpbp.h"
+#include "fsl_bman.h"
 #include "ls2085_aiop/fsl_platform.h"
 #include "fsl_dpni_drv.h"
 #include "aiop_common.h"
@@ -51,6 +52,7 @@ void dpni_drv_free(void);
 int dpni_drv_enable_all(void);
 
 extern struct aiop_init_info g_init_data;
+extern struct platform_app_params g_app_params;
 /*Window for storage profile ID's to use with DDR target memory*/
 uint32_t spid_ddr_id;
 uint32_t spid_ddr_id_last;
@@ -63,6 +65,32 @@ struct dpni_drv *nis = &nis_first;
 int num_of_nis;
 
 struct dpni_early_init_request g_dpni_early_init_data = {0};
+
+__COLD_CODE static void print_dev_desc(struct dprc_obj_desc* dev_desc)
+{
+	pr_debug(" device %d\n", dev_desc->id);
+	pr_debug("***********\n");
+	pr_debug("vendor - %x\n", dev_desc->vendor);
+
+	if (strcmp(dev_desc->type, "dpni") == 0)
+	{
+		pr_debug("type - DP_DEV_DPNI\n");
+	}
+	else if (strcmp(dev_desc->type, "dprc") == 0)
+	{
+		pr_debug("type - DP_DEV_DPRC\n");
+	}
+	else if (strcmp(dev_desc->type, "dpio") == 0)
+	{
+		pr_debug("type - DP_DEV_DPIO\n");
+	}
+	pr_debug("id - %d\n", dev_desc->id);
+	pr_debug("region_count - %d\n", dev_desc->region_count);
+	pr_debug("ver_major - %d\n", dev_desc->ver_major);
+	pr_debug("ver_minor - %d\n", dev_desc->ver_minor);
+	pr_debug("irq_count - %d\n\n", dev_desc->irq_count);
+
+}
 
 void discard_rx_cb(void)
 {
@@ -86,9 +114,9 @@ int dpni_drv_register_rx_cb (uint16_t		ni_id,
 {
 	struct dpni_drv *dpni_drv;
 	struct aiop_tile_regs *tile_regs = (struct aiop_tile_regs *)
-			sys_get_handle(FSL_OS_MOD_AIOP_TILE, 1);
+				sys_get_handle(FSL_OS_MOD_AIOP_TILE, 1);
 	struct aiop_ws_regs *wrks_addr = &tile_regs->ws_regs;
-	
+
 	/* calculate pointer to the send NI structure */
 	dpni_drv = nis + ni_id;
 	/*Mutex lock to avoid race condition while writing to EPID table*/
@@ -105,9 +133,9 @@ int dpni_drv_unregister_rx_cb (uint16_t		ni_id)
 {
 	struct dpni_drv *dpni_drv;
 	struct aiop_tile_regs *tile_regs = (struct aiop_tile_regs *)
-			sys_get_handle(FSL_OS_MOD_AIOP_TILE, 1);
+				sys_get_handle(FSL_OS_MOD_AIOP_TILE, 1);
 	struct aiop_ws_regs *wrks_addr = &tile_regs->ws_regs;
-	
+
 	/* calculate pointer to the send NI structure */
 	dpni_drv = nis + ni_id;
 	/*Mutex lock to avoid race condition while writing to EPID table*/
@@ -132,21 +160,21 @@ int dpni_drv_enable (uint16_t ni_id)
 	dpni_drv = nis + ni_id;
 
 	if ((err = dpni_enable(&dprc->io, dpni_drv->dpni_drv_params_var.dpni))
-			!= 0)
+		!= 0)
 		return err;
 
 	cdma_mutex_lock_take((uint64_t)&dpni_drv->dpni_lock, CDMA_MUTEX_WRITE_LOCK); /*Lock dpni table entry*/
 	if(dpni_drv->dpni_drv_params_var.spid_ddr)/*spid for ddr pool can't be 0, it must be higher than spid given from MC*/
 	{
 		sp_addr = (struct aiop_psram_entry *)
-			(AIOP_PERIPHERALS_OFF + AIOP_STORAGE_PROFILE_OFF);
-		sp_addr += dpni_drv->dpni_drv_params_var.spid_ddr;		
+				(AIOP_PERIPHERALS_OFF + AIOP_STORAGE_PROFILE_OFF);
+		sp_addr += dpni_drv->dpni_drv_params_var.spid_ddr;
 		/*store bpid used for DDR pool*/
 		sp_temp = LOAD_LE32_TO_CPU(&(sp_addr->bp1));
 		/*shift the mask 16 bits left*/
 		sp_temp &= (uint32_t)(SP_MASK_BPID << 16);
 		sp_addr = (struct aiop_psram_entry *)
-			(AIOP_PERIPHERALS_OFF + AIOP_STORAGE_PROFILE_OFF);
+				(AIOP_PERIPHERALS_OFF + AIOP_STORAGE_PROFILE_OFF);
 		sp_addr += dpni_drv->dpni_drv_params_var.spid;
 		/*Update other parameters except bpid in DDR storage profile*/
 		sp_temp |= (LOAD_LE32_TO_CPU(&(sp_addr->bp1)) & SP_MASK_BMT_AND_RSV);
@@ -154,7 +182,7 @@ int dpni_drv_enable (uint16_t ni_id)
 		STORE_CPU_TO_LE32(sp_temp,&(alternate_storage_profile.bp1));
 		/*update already used spid*/
 		sp_addr = (struct aiop_psram_entry *)
-			(AIOP_PERIPHERALS_OFF + AIOP_STORAGE_PROFILE_OFF);
+				(AIOP_PERIPHERALS_OFF + AIOP_STORAGE_PROFILE_OFF);
 		sp_addr += dpni_drv->dpni_drv_params_var.spid_ddr;
 		*sp_addr = alternate_storage_profile;
 	}
@@ -174,9 +202,9 @@ int dpni_drv_disable (uint16_t ni_id)
 
 
 __COLD_CODE int dpni_drv_probe(struct mc_dprc *dprc,
-                   uint16_t mc_niid,
-                   uint16_t aiop_niid,
-                   struct dpni_pools_cfg *pools_params)
+                               uint16_t mc_niid,
+                               uint16_t aiop_niid,
+                               struct dpni_pools_cfg *pools_params)
 {
 	int i;
 	uint32_t j;
@@ -192,7 +220,7 @@ __COLD_CODE int dpni_drv_probe(struct mc_dprc *dprc,
 	struct aiop_psram_entry *sp_addr;
 	struct aiop_psram_entry alternate_storage_profile;
 	struct aiop_tile_regs *tile_regs = (struct aiop_tile_regs *)
-			sys_get_handle(FSL_OS_MOD_AIOP_TILE, 1);
+				sys_get_handle(FSL_OS_MOD_AIOP_TILE, 1);
 	struct aiop_ws_regs *wrks_addr = &tile_regs->ws_regs;
 
 	/* TODO: replace 1024 w/ #define from Yulia */
@@ -211,7 +239,8 @@ __COLD_CODE int dpni_drv_probe(struct mc_dprc *dprc,
 			/* Replace MC NI ID with AIOP NI ID */
 			iowrite32_ccsr(aiop_niid, &wrks_addr->ep_pm);
 
-			/* TODO: the mc_niid field will be necessary if we decide to close the DPNI at the end of Probe. */
+			/* TODO: the mc_niid field will be necessary if we
+			 * decide to close the DPNI at the end of Probe. */
 			/* Register MC NI ID in AIOP NI table */
 			nis[aiop_niid].dpni_id = mc_niid;
 
@@ -220,75 +249,103 @@ __COLD_CODE int dpni_drv_probe(struct mc_dprc *dprc,
 				return err;
 			}
 
-			/* Save dpni regs and authentication ID in internal AIOP NI table */
+			/* Save dpni regs and authentication ID in internal
+			 * AIOP NI table */
 			nis[aiop_niid].dpni_drv_params_var.dpni = dpni;
 
 			/* Register MAC address in internal AIOP NI table */
-			if ((err = dpni_get_primary_mac_addr(&dprc->io, dpni, mac_addr)) != 0) {
-				pr_err("Failed to get MAC address for DP-NI%d\n", mc_niid);
+			if ((err = dpni_get_primary_mac_addr(&dprc->io,
+			                                     dpni,
+			                                     mac_addr)) != 0) {
+				pr_err("Failed to get MAC address for DP-NI%d\n",
+				       mc_niid);
 				return err;
 			}
-			memcpy(nis[aiop_niid].mac_addr, mac_addr, NET_HDR_FLD_ETH_ADDR_SIZE);
+			memcpy(nis[aiop_niid].mac_addr,
+			       mac_addr, NET_HDR_FLD_ETH_ADDR_SIZE);
 
 
-			if ((err = dpni_get_attributes(&dprc->io, dpni, &attributes)) != 0) {
-				pr_err("Failed to get attributes of DP-NI%d.\n", mc_niid);
+			if ((err = dpni_get_attributes(&dprc->io,
+			                               dpni,
+			                               &attributes)) != 0) {
+				pr_err("Failed to get attributes of DP-NI%d.\n",
+				       mc_niid);
 				return err;
 			}
 
-			/* TODO: set nis[aiop_niid].starting_hxs according to the DPNI attributes.
-			 * Not yet implemented on MC. Currently always set to zero, which means ETH. */
-			if ((err = dpni_set_pools(&dprc->io, dpni, &pools_params[DPNI_DRV_PEB_BPID_IDX])) != 0) {
-				pr_err("Failed to set the pools to DP-NI%d.\n", mc_niid);
+			/* TODO: set nis[aiop_niid].starting_hxs according to
+			 * the DPNI attributes.
+			 * Not yet implemented on MC.
+			 * Currently always set to zero, which means ETH. */
+			if ((err = dpni_set_pools(
+				&dprc->io,
+			        dpni,
+			        &pools_params[DPNI_DRV_PEB_BPID_IDX])) != 0) {
+				pr_err("Failed to set the pools to DP-NI%d.\n",
+				       mc_niid);
 				return err;
 			}
 
-			/* TODO: This should be changed for dynamic solution. The hardcoded value is
-			 * temp solution.*/
-			layout.options = DPNI_BUF_LAYOUT_OPT_DATA_HEAD_ROOM 
-						| DPNI_BUF_LAYOUT_OPT_DATA_TAIL_ROOM;
-			
+			layout.options = DPNI_BUF_LAYOUT_OPT_DATA_HEAD_ROOM
+				| DPNI_BUF_LAYOUT_OPT_DATA_TAIL_ROOM;
+
 			if(g_dpni_early_init_data.count > 0) {
-				layout.data_head_room = g_dpni_early_init_data.head_room_sum;
-				layout.data_tail_room = g_dpni_early_init_data.tail_room_sum;
-				layout.private_data_size = g_dpni_early_init_data.private_data_size_sum;
+				layout.data_head_room =
+					g_dpni_early_init_data.head_room_sum;
+				layout.data_tail_room =
+					g_dpni_early_init_data.tail_room_sum;
+				layout.private_data_size =
+					g_dpni_early_init_data.private_data_size_sum;
 			}else {
 				layout.data_head_room = DPNI_DRV_DHR_DEF;
 				layout.data_tail_room = DPNI_DRV_DTR_DEF;
 				layout.private_data_size = DPNI_DRV_PTA_DEF;
 			}
-			
-			if ((err = dpni_set_rx_buffer_layout(&dprc->io, dpni, &layout)) != 0) {
-				pr_err("Failed to set rx buffer layout for DP-NI%d\n", mc_niid);
+
+			if ((err = dpni_set_rx_buffer_layout(&dprc->io,
+			                                     dpni,
+			                                     &layout)) != 0) {
+				pr_err("Failed to set rx buffer layout for DP-NI%d\n",
+				       mc_niid);
 				return -ENODEV;
 			}
 
-			/* Enable DPNI before updating the entry point function (EP_PC)
-			 * in order to allow DPNI's attributes to be initialized.
-			 * Frames arriving before the entry point function is updated will be dropped. */
+			/* Enable DPNI before updating the entry point
+			 * function (EP_PC) in order to allow DPNI's attributes
+			 * to be initialized.
+			 * Frames arriving before the entry point function is
+			 * updated will be dropped. */
 			if ((err = dpni_enable(&dprc->io, dpni)) != 0) {
 				pr_err("Failed to enable DP-NI%d\n", mc_niid);
 				return -ENODEV;
 			}
 
-			/* Now a Storage Profile exists and is associated with the NI */
+			/* Now a Storage Profile exists and is associated
+			 * with the NI */
 
 			/* Register QDID in internal AIOP NI table */
-			if ((err = dpni_get_qdid(&dprc->io, dpni, &qdid)) != 0) {
-				pr_err("Failed to get QDID for DP-NI%d\n", mc_niid);
+			if ((err = dpni_get_qdid(&dprc->io,
+			                         dpni, &qdid)) != 0) {
+				pr_err("Failed to get QDID for DP-NI%d\n",
+				       mc_niid);
 				return -ENODEV;
 			}
 			nis[aiop_niid].dpni_drv_tx_params_var.qdid = qdid;
 
 			/* Register SPID in internal AIOP NI table */
-			if ((err = dpni_get_spid(&dprc->io, dpni, &spid)) != 0) {
-				pr_err("Failed to get SPID for DP-NI%d\n", mc_niid);
+			if ((err = dpni_get_spid(&dprc->io,
+			                         dpni, &spid)) != 0) {
+				pr_err("Failed to get SPID for DP-NI%d\n",
+				       mc_niid);
 				return -ENODEV;
 			}
-			nis[aiop_niid].dpni_drv_params_var.spid = (uint8_t)spid; /*TODO: change to uint16_t in nis table for the next release*/
-
+			/*TODO: change to uint16_t in nis table
+			 * for the next release*/
+			nis[aiop_niid].dpni_drv_params_var.spid =
+				(uint8_t)spid;
 			/* Store epid index in AIOP NI's array*/
-			nis[aiop_niid].dpni_drv_params_var.epid_idx = (uint16_t)i;
+			nis[aiop_niid].dpni_drv_params_var.epid_idx =
+				(uint16_t)i;
 
 #if 0
 			/* TODO: need to decide if we should close DPNI at this stage.
@@ -304,14 +361,14 @@ __COLD_CODE int dpni_drv_probe(struct mc_dprc *dprc,
 			ep_osc &= ORDER_MODE_CLEAR_BIT;
 			/*Set concurrent mode for NI in epid table*/
 			iowrite32_ccsr(ep_osc, &wrks_addr->ep_osc);
-
-			if( pools_params[DPNI_DRV_DDR_BPID_IDX].num_dpbp == 1) /*bpid exist to use for ddr pool*/
+			/*bpid exist to use for ddr pool*/
+			if( pools_params[DPNI_DRV_DDR_BPID_IDX].num_dpbp == 1)
 			{
-			/*Create ddr spid here*/
+				/*Create ddr spid here*/
 				if(spid_ddr_id < spid_ddr_id_last)
 				{
 					sp_addr = (struct aiop_psram_entry *)
-						(AIOP_PERIPHERALS_OFF + AIOP_STORAGE_PROFILE_OFF);
+							(AIOP_PERIPHERALS_OFF + AIOP_STORAGE_PROFILE_OFF);
 					sp_addr += spid;
 					alternate_storage_profile = *sp_addr;
 
@@ -321,7 +378,7 @@ __COLD_CODE int dpni_drv_probe(struct mc_dprc *dprc,
 					STORE_CPU_TO_LE32(sp_temp,&alternate_storage_profile.bp1);
 
 					sp_addr = (struct aiop_psram_entry *)
-						(AIOP_PERIPHERALS_OFF + AIOP_STORAGE_PROFILE_OFF);
+							(AIOP_PERIPHERALS_OFF + AIOP_STORAGE_PROFILE_OFF);
 					sp_addr += spid_ddr_id;
 					*sp_addr = alternate_storage_profile;
 
@@ -371,37 +428,44 @@ int dpni_drv_get_num_of_nis (void)
 
 
 /* TODO: replace with macro/inline */
-int dpni_drv_get_primary_mac_addr(uint16_t niid, uint8_t mac_addr[NET_HDR_FLD_ETH_ADDR_SIZE])
+int dpni_drv_get_primary_mac_addr(uint16_t niid,
+                                  uint8_t mac_addr[NET_HDR_FLD_ETH_ADDR_SIZE])
 {
 	struct dpni_drv *dpni_drv;
 	/* calculate pointer to the NI structure */
 	dpni_drv = nis + niid;
-	
-	cdma_mutex_lock_take((uint64_t)&dpni_drv->dpni_lock, CDMA_MUTEX_WRITE_LOCK); /*Lock dpni table entry*/
+	/*Lock dpni table entry*/
+	cdma_mutex_lock_take((uint64_t)&dpni_drv->dpni_lock,
+	                     CDMA_MUTEX_WRITE_LOCK);
 	memcpy(mac_addr, dpni_drv->mac_addr, NET_HDR_FLD_ETH_ADDR_SIZE);
-	cdma_mutex_lock_release((uint64_t)&dpni_drv->dpni_lock); /*Unlock dpni table entry*/
+	/*Unlock dpni table entry*/
+	cdma_mutex_lock_release((uint64_t)&dpni_drv->dpni_lock);
 
 	return 0;
 }
 
-int dpni_drv_set_primary_mac_addr(uint16_t niid, uint8_t mac_addr[NET_HDR_FLD_ETH_ADDR_SIZE])
+int dpni_drv_set_primary_mac_addr(uint16_t niid,
+                                  uint8_t mac_addr[NET_HDR_FLD_ETH_ADDR_SIZE])
 {
 	struct dpni_drv *dpni_drv;
 	struct mc_dprc *dprc = sys_get_unique_handle(FSL_OS_MOD_AIOP_RC);
 	int err;
 	/* calculate pointer to the NI structure */
 	dpni_drv = nis + niid;
-
-	cdma_mutex_lock_take((uint64_t)&dpni_drv->dpni_lock, CDMA_MUTEX_WRITE_LOCK); /*Lock dpni table entry*/
+	/*Lock dpni table entry*/
+	cdma_mutex_lock_take((uint64_t)&dpni_drv->dpni_lock,
+	                     CDMA_MUTEX_WRITE_LOCK);
 	err = dpni_set_primary_mac_addr(&dprc->io,
 	                                dpni_drv->dpni_drv_params_var.dpni,
 	                                mac_addr);
 	if(err){
-		cdma_mutex_lock_release((uint64_t)&dpni_drv->dpni_lock); /*Unlock dpni table entry*/
+		/*Unlock dpni table entry*/
+		cdma_mutex_lock_release((uint64_t)&dpni_drv->dpni_lock);
 		return err;
 	}
 	memcpy(dpni_drv->mac_addr, mac_addr, NET_HDR_FLD_ETH_ADDR_SIZE);
-	cdma_mutex_lock_release((uint64_t)&dpni_drv->dpni_lock); /*Unlock dpni table entry*/
+	/*Unlock dpni table entry*/
+	cdma_mutex_lock_release((uint64_t)&dpni_drv->dpni_lock);
 	return 0;
 }
 
@@ -414,7 +478,7 @@ int dpni_drv_add_mac_addr(uint16_t ni_id,
 	/* calculate pointer to the NI structure */
 	dpni_drv = nis + ni_id;
 	return dpni_add_mac_addr(&dprc->io, dpni_drv->dpni_drv_params_var.dpni,
-								mac_addr);
+	                         mac_addr);
 }
 
 int dpni_drv_remove_mac_addr(uint16_t ni_id,
@@ -426,113 +490,240 @@ int dpni_drv_remove_mac_addr(uint16_t ni_id,
 	/* calculate pointer to the NI structure */
 	dpni_drv = nis + ni_id;
 	return dpni_remove_mac_addr(&dprc->io,
-			dpni_drv->dpni_drv_params_var.dpni, mac_addr);
+	                            dpni_drv->dpni_drv_params_var.dpni,
+	                            mac_addr);
 }
 
 int dpni_drv_set_max_frame_length(uint16_t ni_id,
-                          const uint16_t mfl)
+                                  const uint16_t mfl)
 {
 	struct dpni_drv *dpni_drv;
 	struct mc_dprc *dprc = sys_get_unique_handle(FSL_OS_MOD_AIOP_RC);
 
 	/* calculate pointer to the NI structure */
 	dpni_drv = nis + ni_id;
-	return dpni_set_max_frame_length(&dprc->io, dpni_drv->dpni_drv_params_var.dpni, mfl);
+	return dpni_set_max_frame_length(&dprc->io,
+	                                 dpni_drv->dpni_drv_params_var.dpni,
+	                                 mfl);
 }
 
 int dpni_drv_get_max_frame_length(uint16_t ni_id,
-                          uint16_t *mfl)
+                                  uint16_t *mfl)
 {
 	struct dpni_drv *dpni_drv;
 	struct mc_dprc *dprc = sys_get_unique_handle(FSL_OS_MOD_AIOP_RC);
 
 	/* calculate pointer to the NI structure */
 	dpni_drv = nis + ni_id;
-	return dpni_get_max_frame_length(&dprc->io, dpni_drv->dpni_drv_params_var.dpni, mfl);
+	return dpni_get_max_frame_length(&dprc->io,
+	                                 dpni_drv->dpni_drv_params_var.dpni,
+	                                 mfl);
 }
 
 __COLD_CODE static int parser_profile_init(uint8_t *prpid)
 {
-    struct parse_profile_input parse_profile1 __attribute__((aligned(16)));
-    int i;
+	struct parse_profile_input parse_profile1 __attribute__((aligned(16)));
+	int i;
 
-    /* Init basic parse profile */
-    parse_profile1.parse_profile.eth_hxs_config = 0x0;
-    parse_profile1.parse_profile.llc_snap_hxs_config = 0x0;
-    parse_profile1.parse_profile.vlan_hxs_config.en_erm_soft_seq_start = 0x0;
-    parse_profile1.parse_profile.vlan_hxs_config.configured_tpid_1 = 0x0;
-    parse_profile1.parse_profile.vlan_hxs_config.configured_tpid_2 = 0x0;
-    /* No MTU checking */
-    parse_profile1.parse_profile.pppoe_ppp_hxs_config = 0x0;
-    parse_profile1.parse_profile.mpls_hxs_config.en_erm_soft_seq_start= 0x0;
-    /* Frame Parsing advances to MPLS Default Next Parse (IP HXS) */
-    parse_profile1.parse_profile.mpls_hxs_config.lie_dnp = PARSER_PRP_MPLS_HXS_CONFIG_LIE;
-    parse_profile1.parse_profile.arp_hxs_config = 0x0;
-    parse_profile1.parse_profile.ip_hxs_config = 0x0;
-    parse_profile1.parse_profile.ipv4_hxs_config = 0x0;
-    /* Routing header is ignored and the destination address from
-     * main header is used instead */
-    parse_profile1.parse_profile.ipv6_hxs_config = PARSER_PRP_IPV6_HXS_CONFIG_RHE;
-    parse_profile1.parse_profile.gre_hxs_config = 0x0;
-    parse_profile1.parse_profile.minenc_hxs_config = 0x0;
-    parse_profile1.parse_profile.other_l3_shell_hxs_config= 0x0;
-    /* In short Packet, padding is removed from Checksum calculation */
-    parse_profile1.parse_profile.tcp_hxs_config = PARSER_PRP_TCP_UDP_HXS_CONFIG_SPPR;
-    /* In short Packet, padding is removed from Checksum calculation */
-    parse_profile1.parse_profile.udp_hxs_config = PARSER_PRP_TCP_UDP_HXS_CONFIG_SPPR;
-    parse_profile1.parse_profile.ipsec_hxs_config = 0x0;
-    parse_profile1.parse_profile.sctp_hxs_config = 0x0;
-    parse_profile1.parse_profile.dccp_hxs_config = 0x0;
-    parse_profile1.parse_profile.other_l4_shell_hxs_config = 0x0;
-    parse_profile1.parse_profile.gtp_hxs_config = 0x0;
-    parse_profile1.parse_profile.esp_hxs_config = 0x0;
-    parse_profile1.parse_profile.l5_shell_hxs_config = 0x0;
-    parse_profile1.parse_profile.final_shell_hxs_config = 0x0;
-    /* Assuming no soft examination parameters */
-    for(i=0; i<16; i++)
-        parse_profile1.parse_profile.soft_examination_param_array[i] = 0x0;
+	/* Init basic parse profile */
+	parse_profile1.parse_profile.eth_hxs_config = 0x0;
+	parse_profile1.parse_profile.llc_snap_hxs_config = 0x0;
+	parse_profile1.parse_profile.vlan_hxs_config.en_erm_soft_seq_start = 0x0;
+	parse_profile1.parse_profile.vlan_hxs_config.configured_tpid_1 = 0x0;
+	parse_profile1.parse_profile.vlan_hxs_config.configured_tpid_2 = 0x0;
+	/* No MTU checking */
+	parse_profile1.parse_profile.pppoe_ppp_hxs_config = 0x0;
+	parse_profile1.parse_profile.mpls_hxs_config.en_erm_soft_seq_start= 0x0;
+	/* Frame Parsing advances to MPLS Default Next Parse (IP HXS) */
+	parse_profile1.parse_profile.mpls_hxs_config.lie_dnp = PARSER_PRP_MPLS_HXS_CONFIG_LIE;
+	parse_profile1.parse_profile.arp_hxs_config = 0x0;
+	parse_profile1.parse_profile.ip_hxs_config = 0x0;
+	parse_profile1.parse_profile.ipv4_hxs_config = 0x0;
+	/* Routing header is ignored and the destination address from
+	 * main header is used instead */
+	parse_profile1.parse_profile.ipv6_hxs_config = PARSER_PRP_IPV6_HXS_CONFIG_RHE;
+	parse_profile1.parse_profile.gre_hxs_config = 0x0;
+	parse_profile1.parse_profile.minenc_hxs_config = 0x0;
+	parse_profile1.parse_profile.other_l3_shell_hxs_config= 0x0;
+	/* In short Packet, padding is removed from Checksum calculation */
+	parse_profile1.parse_profile.tcp_hxs_config = PARSER_PRP_TCP_UDP_HXS_CONFIG_SPPR;
+	/* In short Packet, padding is removed from Checksum calculation */
+	parse_profile1.parse_profile.udp_hxs_config = PARSER_PRP_TCP_UDP_HXS_CONFIG_SPPR;
+	parse_profile1.parse_profile.ipsec_hxs_config = 0x0;
+	parse_profile1.parse_profile.sctp_hxs_config = 0x0;
+	parse_profile1.parse_profile.dccp_hxs_config = 0x0;
+	parse_profile1.parse_profile.other_l4_shell_hxs_config = 0x0;
+	parse_profile1.parse_profile.gtp_hxs_config = 0x0;
+	parse_profile1.parse_profile.esp_hxs_config = 0x0;
+	parse_profile1.parse_profile.l5_shell_hxs_config = 0x0;
+	parse_profile1.parse_profile.final_shell_hxs_config = 0x0;
+	/* Assuming no soft examination parameters */
+	for(i=0; i < 16; i++)
+		parse_profile1.parse_profile.soft_examination_param_array[i] = 0x0;
 
-    return parser_profile_create(&(parse_profile1), prpid);
+	return parser_profile_create(&(parse_profile1), prpid);
 }
 
 
 __COLD_CODE int dpni_drv_init(void)
 {
 	int		    i;
-	int         error = 0;
 	uint8_t prpid = 0;
+	int err = 0;
+	int dev_count;
+	int num_bpids = 0;
+	/* TODO: replace with memset */
+	uint16_t dpbp = 0;
+	struct dprc_obj_desc dev_desc;
+	int dpbp_id[DPNI_DRV_NUM_USED_BPIDS];
+	struct dpbp_attr attr;
+	struct dpni_pools_cfg pools_params[DPNI_DRV_NUM_USED_BPIDS];
+	uint16_t buffer_size = (uint16_t)g_app_params.dpni_buff_size;
+	uint16_t num_buffs = (uint16_t)g_app_params.dpni_num_buffs;
+	uint16_t alignment;
+	uint8_t mem_pid[] = {DPNI_DRV_FAST_MEMORY, DPNI_DRV_DDR_MEMORY};
+	struct mc_dprc *dprc = sys_get_unique_handle(FSL_OS_MOD_AIOP_RC);
 
 
 	num_of_nis = 0;
 	/* Allocate initernal AIOP NI table */
 	nis =fsl_malloc(sizeof(struct dpni_drv)*SOC_MAX_NUM_OF_DPNI,64);
 	if (!nis) {
-	    return -ENOMEM;
+		return -ENOMEM;
 	}
 
-	error = parser_profile_init(&prpid);
-	if(error){
-		pr_err("parser profile initialization failed %d\n", error);
-		return error;
+	err = parser_profile_init(&prpid);
+	if(err){
+		pr_err("parser profile initialization failed %d\n", err);
+		return err;
 	}
 	/* Initialize internal AIOP NI table */
 	for (i = 0; i < SOC_MAX_NUM_OF_DPNI; i++) {
 		struct dpni_drv * dpni_drv = nis + i;
-		dpni_drv->dpni_drv_tx_params_var.aiop_niid = (uint16_t)i;
 		dpni_drv->dpni_id                          = 0;
 		dpni_drv->dpni_drv_params_var.spid         = 0;
 		dpni_drv->dpni_drv_params_var.spid_ddr     = 0;
 		dpni_drv->dpni_drv_params_var.epid_idx     = 0;
-		dpni_drv->dpni_drv_params_var.prpid        = prpid; /*parser profile id from parser_profile_init()*/
-		dpni_drv->dpni_drv_params_var.starting_hxs = 0; //ETH HXS
+		/*parser profile id from parser_profile_init()*/
+		dpni_drv->dpni_drv_params_var.prpid        = prpid;
+		/*ETH HXS */
+		dpni_drv->dpni_drv_params_var.starting_hxs = 0;
 		dpni_drv->dpni_drv_tx_params_var.qdid      = 0;
-		dpni_drv->dpni_drv_params_var.flags        = DPNI_DRV_FLG_PARSE | DPNI_DRV_FLG_PARSER_DIS;
+		dpni_drv->dpni_drv_params_var.flags        =
+			DPNI_DRV_FLG_PARSE | DPNI_DRV_FLG_PARSER_DIS;
 		dpni_drv->dpni_lock                        = 0;
 	}
 	/*Window for storage profile ID's to use with DDR target memory*/
 	spid_ddr_id = g_init_data.sl_info.base_spid;
 	spid_ddr_id_last = spid_ddr_id + g_init_data.app_info.spid_count -1;
-	return error;
+
+
+	/* TODO - add initialization of global default DP-IO
+	 * (i.e. call 'dpio_open', 'dpio_init');
+	 * This should be mapped to ALL cores of AIOP and to ALL the tasks */
+	/* TODO - add initialization of global default DP-SP
+	 * (i.e. call 'dpsp_open', 'dpsp_init');
+	 * This should be mapped to 3 buff-pools with sizes: 128B, 512B, 2KB;
+	 * all should be placed in PEB. */
+	/* TODO - need to scan the bus in order to retrieve the AIOP
+	 * "Device list" */
+	/* TODO - iterate through the device-list:
+	 * call 'dpni_drv_probe(ni_id, mc_portal_id, dpio, dp-sp)' */
+
+
+	if(IS_POWER_VALID_ALLIGN(g_app_params.dpni_drv_alignment,buffer_size))
+		alignment = (uint16_t)g_app_params.dpni_drv_alignment;
+	else
+	{
+		pr_err("Given alignment is not valid (not power of 2 or <= buffer size)\n");
+	}
+	if (dprc == NULL)
+	{
+		pr_err("Don't find AIOP root container \n");
+		return -ENODEV;
+	}
+	/* TODO: replace the following dpbp_open&init with dpbp_create when available */
+
+
+	if ((err = dprc_get_obj_count(&dprc->io, dprc->token,
+	                              &dev_count)) != 0) {
+		pr_err("Failed to get device count for AIOP RC auth_id = %d.\n",
+		       dprc->token);
+		return err;
+	}
+
+	for (i = 0; i < dev_count; i++) {
+		dprc_get_obj(&dprc->io, dprc->token, i, &dev_desc);
+		if (strcmp(dev_desc.type, "dpbp") == 0) {
+			/* TODO: print conditionally based on log level */
+			pr_info("Found DPBP ID: %d, will be used for frame buffers\n",dev_desc.id);
+			dpbp_id[num_bpids]= dev_desc.id;
+			num_bpids ++;
+
+			if(num_bpids == DPNI_DRV_NUM_USED_BPIDS)
+				break;
+		}
+	}
+
+
+
+	if(num_bpids < DPNI_DRV_NUM_USED_BPIDS){
+		pr_err("Not enough DPBPs found in the container.\n");
+		return -ENAVAIL;
+	}
+
+	for(i = 0; i < DPNI_DRV_NUM_USED_BPIDS; i++)
+	{
+		if ((err = dpbp_open(&dprc->io, dpbp_id[i], &dpbp)) != 0) {
+			pr_err("Failed to open DPBP-%d.\n", dpbp_id[i]);
+			return err;
+		}
+
+		if ((err = dpbp_enable(&dprc->io, dpbp)) != 0) {
+			pr_err("Failed to enable DPBP-%d.\n", dpbp_id[i]);
+			return err;
+		}
+
+		if ((err = dpbp_get_attributes(&dprc->io, dpbp, &attr)) != 0) {
+			pr_err("Failed to get attributes from DPBP-%d.\n", dpbp_id[i]);
+			return err;
+		}
+
+		if ((err = bman_fill_bpid(num_buffs,
+		                          buffer_size,
+		                          alignment,
+		                          (enum memory_partition_id) mem_pid[i],
+		                          attr.bpid)) != 0) {
+			pr_err("Failed to fill DPBP-%d (BPID=%d) with buffer size %d.\n",
+			       dpbp_id[i], attr.bpid, buffer_size);
+			return err;
+		}
+
+		/* Prepare parameters to attach to DPNI object */
+		/* for AIOP, can be up to 2 */
+		pools_params[i].num_dpbp = 1;
+		/*!< DPBPs object id */
+		pools_params[i].pools[0].dpbp_id = (uint16_t)dpbp_id[i];
+		pools_params[i].pools[0].buffer_size = buffer_size;
+
+		/* Enable all DPNI devices */
+	}
+	for (i = 0; i < dev_count; i++) {
+		dprc_get_obj(&dprc->io, dprc->token, i, &dev_desc);
+		if (strcmp(dev_desc.type, "dpni") == 0) {
+			/* TODO: print conditionally based on log level */
+			print_dev_desc(&dev_desc);
+
+			if ((err = dpni_drv_probe(dprc, (uint16_t)dev_desc.id,
+			                          (uint16_t)i,
+			                          pools_params)) != 0) {
+				pr_err("Failed to probe DPNI-%d.\n", i);
+				return err;
+			}
+		}
+	}
+
+	return err;
 }
 
 __COLD_CODE void dpni_drv_free(void)
@@ -599,7 +790,7 @@ int dpni_drv_get_ordering_mode(uint16_t ni_id){
 	uint32_t ep_osc;
 	struct dpni_drv *dpni_drv;
 	struct aiop_tile_regs *tile_regs = (struct aiop_tile_regs *)
-			sys_get_handle(FSL_OS_MOD_AIOP_TILE, 1);
+				sys_get_handle(FSL_OS_MOD_AIOP_TILE, 1);
 	struct aiop_ws_regs *wrks_addr = &tile_regs->ws_regs;
 
 	/* calculate pointer to the NI structure */
@@ -621,7 +812,7 @@ static int dpni_drv_set_ordering_mode(uint16_t ni_id, int ep_mode){
 	uint32_t ep_osc;
 	struct dpni_drv *dpni_drv;
 	struct aiop_tile_regs *tile_regs = (struct aiop_tile_regs *)
-			sys_get_handle(FSL_OS_MOD_AIOP_TILE, 1);
+				sys_get_handle(FSL_OS_MOD_AIOP_TILE, 1);
 	struct aiop_ws_regs *wrks_addr = &tile_regs->ws_regs;
 
 	/* calculate pointer to the NI structure */
@@ -686,7 +877,7 @@ int dpni_drv_get_connected_aiop_ni_id(const uint16_t dpni_id, uint16_t *aiop_nii
 	strcpy(&endpoint1.type[0], "dpni");
 
 	err = dprc_get_connection(&dprc->io, dprc->token, &endpoint1, &endpoint2,
-	                    state);
+	                          state);
 	if(err)
 		return err;
 
@@ -716,7 +907,7 @@ int dpni_drv_get_connected_dpni_id(const uint16_t aiop_niid, uint16_t *dpni_id, 
 	strcpy(&endpoint1.type[0], "dpni");
 
 	err = dprc_get_connection(&dprc->io, dprc->token, &endpoint1, &endpoint2,
-	                    state);
+	                          state);
 	if(err)
 		return err;
 
@@ -752,8 +943,8 @@ int dpni_drv_get_rx_buffer_layout(uint16_t ni_id, struct dpni_drv_buf_layout *la
 	/* calculate pointer to the NI structure */
 	dpni_drv = nis + ni_id;
 	err = dpni_get_rx_buffer_layout(&dprc->io,
-	                                 dpni_drv->dpni_drv_params_var.dpni,
-	                                 &dpni_layout);
+	                                dpni_drv->dpni_drv_params_var.dpni,
+	                                &dpni_layout);
 	layout->options = dpni_layout.options;
 	layout->pass_timestamp = dpni_layout.pass_timestamp;
 	layout->pass_parser_result = dpni_layout.pass_parser_result;
@@ -768,14 +959,14 @@ int dpni_drv_get_rx_buffer_layout(uint16_t ni_id, struct dpni_drv_buf_layout *la
 int dpni_drv_register_rx_buffer_layout_requirements(uint16_t head_room, uint16_t tail_room, uint16_t private_data_size)
 {
 	g_dpni_early_init_data.count++;
-	
+
 	g_dpni_early_init_data.head_room_sum += head_room;
 	g_dpni_early_init_data.tail_room_sum += tail_room;
-	
+
 	if(private_data_size) {
 		g_dpni_early_init_data.private_data_size_sum = DPNI_DRV_PTA_SIZE;
 	}
-	
+
 	return 0;
 }
 
@@ -808,14 +999,14 @@ int dpni_drv_get_dpni_id(uint16_t ni_id, uint16_t *dpni_id){
 	{
 		return -ENAVAIL;
 	}
-		
+
 	*dpni_id = nis[ni_id].dpni_id;
 	return 0;
 }
 /*TODO: Implement a real search when dynamic dpni will be available*/
 int dpni_drv_get_ni_id(uint16_t dpni_id, uint16_t *ni_id){
 	uint16_t i;
-	
+
 	for(i = 0; i < dpni_drv_get_num_of_nis(); i++)
 	{
 		if(nis[i].dpni_id == dpni_id)
@@ -839,12 +1030,12 @@ int dpni_drv_get_link_state(uint16_t ni_id, struct dpni_drv_link_state *state){
 	/* calculate pointer to the NI structure */
 	dpni_drv = nis + ni_id;
 	err = dpni_get_link_state(&dprc->io,
-	                                 dpni_drv->dpni_drv_params_var.dpni,
-	                                 &link_state);
+	                          dpni_drv->dpni_drv_params_var.dpni,
+	                          &link_state);
 	state->options = link_state.options;
 	state->rate = link_state.rate;
 	state->up = link_state.up;
-	return err;	
+	return err;
 }
 
 int dpni_drv_clear_mac_filters(uint16_t ni_id, uint8_t unicast, uint8_t multicast){
@@ -854,8 +1045,8 @@ int dpni_drv_clear_mac_filters(uint16_t ni_id, uint8_t unicast, uint8_t multicas
 	/* calculate pointer to the NI structure */
 	dpni_drv = nis + ni_id;
 	return dpni_clear_mac_filters(&dprc->io,
-	                                 dpni_drv->dpni_drv_params_var.dpni,
-	                                 (int)unicast, (int) multicast);
+	                              dpni_drv->dpni_drv_params_var.dpni,
+	                              (int)unicast, (int) multicast);
 }
 
 int dpni_drv_clear_vlan_filters(uint16_t ni_id){
@@ -865,7 +1056,7 @@ int dpni_drv_clear_vlan_filters(uint16_t ni_id){
 	/* calculate pointer to the NI structure */
 	dpni_drv = nis + ni_id;
 	return dpni_clear_vlan_filters(&dprc->io,
-	                                 dpni_drv->dpni_drv_params_var.dpni);
+	                               dpni_drv->dpni_drv_params_var.dpni);
 }
 
 int dpni_drv_set_vlan_filters(uint16_t ni_id, int en){
@@ -875,8 +1066,8 @@ int dpni_drv_set_vlan_filters(uint16_t ni_id, int en){
 	/* calculate pointer to the NI structure */
 	dpni_drv = nis + ni_id;
 	return dpni_set_vlan_filters(&dprc->io,
-	                                 dpni_drv->dpni_drv_params_var.dpni,
-	                                 en);
+	                             dpni_drv->dpni_drv_params_var.dpni,
+	                             en);
 }
 
 int dpni_drv_add_vlan_id(uint16_t ni_id, uint16_t vlan_id){
@@ -886,8 +1077,8 @@ int dpni_drv_add_vlan_id(uint16_t ni_id, uint16_t vlan_id){
 	/* calculate pointer to the NI structure */
 	dpni_drv = nis + ni_id;
 	return dpni_add_vlan_id(&dprc->io,
-	                                 dpni_drv->dpni_drv_params_var.dpni,
-	                                 vlan_id);
+	                        dpni_drv->dpni_drv_params_var.dpni,
+	                        vlan_id);
 }
 
 int dpni_drv_remove_vlan_id(uint16_t ni_id, uint16_t vlan_id){
@@ -897,7 +1088,7 @@ int dpni_drv_remove_vlan_id(uint16_t ni_id, uint16_t vlan_id){
 	/* calculate pointer to the NI structure */
 	dpni_drv = nis + ni_id;
 	return dpni_remove_vlan_id(&dprc->io,
-	                                 dpni_drv->dpni_drv_params_var.dpni,
-	                                 vlan_id);
+	                           dpni_drv->dpni_drv_params_var.dpni,
+	                           vlan_id);
 }
 

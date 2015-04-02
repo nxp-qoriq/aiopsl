@@ -53,40 +53,6 @@
 #define E_READ_FAILED         118    /* TODO: obsolete - do not use in new code*/
 #define E_INVALID_FRAME       119    /* TODO: obsolete - do not use in new code*/
 
-/**************************************************************************//**
-@Function      fsl_os_exit
-
-@Description   Stop execution and report status (where it is applicable)
-
-@Param[in]     status - exit status
-*//***************************************************************************/
-void    fsl_os_exit(int status);
-/**************************************************************************//**
- @Collection    Debug Levels for Errors and Events
-
-                The level description refers to errors only.
-                For events, classification is done by the user.
-
-                The TRACE, INFO and WARNING levels are allowed only when using
-                the DBG macro, and are not allowed when using the error macros
-                (RETURN_ERROR or REPORT_ERROR).
- @{
-*//***************************************************************************/
-#define REPORT_LEVEL_CRITICAL   1       /**< Crasher: Incorrect flow, NULL pointers/handles. */
-#define REPORT_LEVEL_MAJOR      2       /**< Cannot proceed: Invalid operation, parameters or
-                                             configuration. */
-#define REPORT_LEVEL_MINOR      3       /**< Recoverable problem: a repeating call with the same
-                                             parameters may be successful. */
-#define REPORT_LEVEL_WARNING    4       /**< Something is not exactly right, yet it is not an error. */
-#define REPORT_LEVEL_INFO       5       /**< Messages which may be of interest to user/programmer. */
-#define REPORT_LEVEL_TRACE      6       /**< Program flow messages. */
-
-#define EVENT_DISABLED          0xff    /**< Disabled event (not reported at all) */
-
-/* @} */
-
-
-
 #define NO_MSG      ("")
 
 #ifndef DEBUG_GLOBAL_LEVEL
@@ -141,7 +107,6 @@ int ERROR_DYNAMIC_LEVEL = ERROR_GLOBAL_LEVEL;
 #define REPORT_ERROR(_level, _err, _vmsg)
 #define RETURN_ERROR(_level, _err, _vmsg) \
         return (_err)
-#define ERROR_CODE(_err)    (_err)
 #define DEBUG_HALT
 #else /* DEBUG_ERRORS > 0 */
 #define DEBUG_HALT asm{se_dnh}
@@ -155,9 +120,6 @@ extern const char *module_strings[];
 
 char * err_type_strings (int err);
 
-#define ERROR_CODE(_err)    (_err)
-#define GET_ERROR_TYPE(_err)    (_err)
-
 #define REPORT_ERROR(_level, _err, _vmsg) \
     do { \
         if (REPORT_LEVEL_##_level <= ERROR_DYNAMIC_LEVEL) { \
@@ -165,7 +127,7 @@ char * err_type_strings (int err);
                      dbg_level_strings[REPORT_LEVEL_##_level - 1], \
                      module_strings[__ERR_MODULE__ >> 16], \
                      PRINT_FMT_PARAMS, \
-                     err_type_strings((int)GET_ERROR_TYPE(_err))); \
+                     err_type_strings((int)(_err))); \
             fsl_os_print _vmsg; \
             fsl_os_print("\r\n"); \
         } \
@@ -174,89 +136,21 @@ char * err_type_strings (int err);
 #define RETURN_ERROR(_level, _err, _vmsg) \
     do { \
         REPORT_ERROR(_level, (_err), _vmsg); \
-        return ERROR_CODE(_err); \
+        return _err; \
     } while (0)
 #endif /* (DEBUG_ERRORS > 0) */
-
-
-/**************************************************************************//**
- @Function      ASSERT_COND
-
- @Description   Assertion macro.
-
- @Param[in]     _cond - The condition being checked, in positive form;
-                        Failure of the condition triggers the assert.
-*//***************************************************************************/
-#ifdef DISABLE_ASSERTIONS
-#define ASSERT_COND(_cond)
-#else
-#define ASSERT_COND(_cond) \
-    do { \
-        if (!(_cond)) { \
-            fsl_os_print("*** ASSERT_COND failed " PRINT_FORMAT "\r\n", \
-                    PRINT_FMT_PARAMS); \
-            DEBUG_HALT; \
-        } \
-    } while (0)
-#endif /* DISABLE_ASSERTIONS */
-
-/**************************************************************************//**
- @Function      ASSERT_COND_LIGHT
-
- @Description   Assertion macro, without printing an error message.
-
- @Param[in]     _cond - The condition being checked, in positive form;
-                        Failure of the condition triggers the assert.
-*//***************************************************************************/
-#ifdef DISABLE_ASSERTIONS
-#define ASSERT_COND_LIGHT(_cond)
-#else
-#define ASSERT_COND_LIGHT(_cond) \
-    do { \
-        if (!(_cond)) { \
-            DEBUG_HALT; \
-        } \
-    } while (0)
-#endif /* DISABLE_ASSERTIONS */
-
-#if 0
-#ifdef DISABLE_INIT_PARAMETERS_CHECK
-
-#define CHECK_INIT_PARAMETERS(handle, cfg, params, f_check)
-#define CHECK_INIT_PARAMETERS_RETURN_VALUE(handle, cfg, params, f_check, retval)
-
-#else
-#define CHECK_INIT_PARAMETERS(handle, cfg, params, f_check) \
-    do { \
-        int err = f_check(handle, cfg, params); \
-        if (err != 0) { \
-            RETURN_ERROR(MAJOR, err, NO_MSG); \
-        } \
-    } while (0)
-
-#define CHECK_INIT_PARAMETERS_RETURN_VALUE(handle, cfg, params, f_check, retval) \
-    do { \
-        int err = f_check(handle, cfg, params); \
-        if (err != 0) { \
-            REPORT_ERROR(MAJOR, err, NO_MSG); \
-            return (retval); \
-        } \
-    } while (0)
-
-#endif /* DISABLE_INIT_PARAMETERS_CHECK */
-#endif /* 0 */
 
 #ifdef DISABLE_SANITY_CHECKS
 #define SANITY_CHECK_RETURN_ERROR(_cond, _err)
 #define SANITY_CHECK_RETURN_VALUE(_cond, _err, retval)
-#define SANITY_CHECK_RETURN(_cond, _err)
 #define SANITY_CHECK_EXIT(_cond, _err)
 
 #else /* DISABLE_SANITY_CHECKS */
 #define SANITY_CHECK_RETURN_ERROR(_cond, _err) \
     do { \
         if (!(_cond)) { \
-            RETURN_ERROR(CRITICAL, (_err), NO_MSG); \
+            REPORT_ERROR(CRITICAL, (_err), NO_MSG); \
+            return -(_err); \
         } \
     } while (0)
 
@@ -265,14 +159,6 @@ char * err_type_strings (int err);
         if (!(_cond)) { \
             REPORT_ERROR(CRITICAL, (_err), NO_MSG); \
             return (retval); \
-        } \
-    } while (0)
-
-#define SANITY_CHECK_RETURN(_cond, _err) \
-    do { \
-        if (!(_cond)) { \
-            REPORT_ERROR(CRITICAL, (_err), NO_MSG); \
-            return; \
         } \
     } while (0)
 #endif /* DISABLE_SANITY_CHECKS */

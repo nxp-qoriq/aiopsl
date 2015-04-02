@@ -80,7 +80,7 @@ int dprc_open(struct fsl_mc_io *mc_io, int container_id, uint16_t *token);
  *
  * After this function is called, no further operations are
  * allowed on the object without opening a new control session.
- * 
+ *
  * Return:	'0' on Success; Error code otherwise.
  */
 int dprc_close(struct fsl_mc_io *mc_io, uint16_t token);
@@ -108,7 +108,7 @@ int dprc_close(struct fsl_mc_io *mc_io, uint16_t token);
 /* Object initialization allowed - software context associated with this
  * container is allowed to invoke object initialization operations.
  */
-#define DPRC_CFG_OPT_OBJ_CREATE_ALLOWED	0x00000004
+#define DPRC_CFG_OPT_OBJ_CREATE_ALLOWED		0x00000004
 
 /* Topology change allowed - software context associated with this
  * container is allowed to invoke topology operations, such as attach/detach
@@ -129,10 +129,10 @@ int dprc_close(struct fsl_mc_io *mc_io, uint16_t token);
 /**
  * struct dprc_cfg - Container configuration options
  * @icid: Container's ICID; if set to 'DPRC_GET_ICID_FROM_POOL', a free
- * 		ICID value is allocated by the DPRC
+ *		ICID value is allocated by the DPRC
  * @portal_id: Portal ID; if set to 'DPRC_GET_PORTAL_ID_FROM_POOL', a free
- * 		portal ID is allocated by the DPRC
- * @options: Combination of 'DPRC_CFG_OPT_<X>' options 
+ *		portal ID is allocated by the DPRC
+ * @options: Combination of 'DPRC_CFG_OPT_<X>' options
  * @label: Object's label
  */
 struct dprc_cfg {
@@ -149,7 +149,7 @@ struct dprc_cfg {
  * @cfg:	Child container configuration
  * @child_container_id:	Returned child container ID
  * @child_portal_offset: Returned child portal offset from MC portal base
- *					
+ *
  *
  * Return:	'0' on Success; Error code otherwise.
  */
@@ -164,7 +164,7 @@ int dprc_create_container(struct fsl_mc_io	*mc_io,
  * @mc_io:	Pointer to MC portal's I/O object
  * @token:	Token of DPRC object
  * @child_container_id:	ID of the container to destroy
- * 
+ *
  * This function terminates the child container, so following this call the
  * child container ID becomes invalid.
  *
@@ -176,7 +176,7 @@ int dprc_create_container(struct fsl_mc_io	*mc_io,
  *
  * warning: Only the parent container is allowed to destroy a child policy
  *		Container 0 can't be destroyed
- *		
+ *
  * Return:	'0' on Success; Error code otherwise.
  *
  */
@@ -202,7 +202,7 @@ int dprc_destroy_container(struct fsl_mc_io	*mc_io,
  * Note that such request may be submitted even if the child software context
  * has not crashed, but the resulting object cleanup operations will not be
  * aware of that.
- * 
+ *
  * Return:	'0' on Success; Error code otherwise.
  */
 int dprc_reset_container(struct fsl_mc_io *mc_io,
@@ -233,7 +233,7 @@ int dprc_reset_container(struct fsl_mc_io *mc_io,
  */
 #define DPRC_IRQ_EVENT_OBJ_DESTROYED		0x00000020
 /* Irq event - Indicates that object is created at the container */
-#define DPRC_IRQ_EVENT_OBJ_CREATED			0x00000040
+#define DPRC_IRQ_EVENT_OBJ_CREATED		0x00000040
 
 /**
  * dprc_set_irq() - Set IRQ information for the DPRC to trigger an interrupt.
@@ -287,7 +287,7 @@ int dprc_get_irq(struct fsl_mc_io	*mc_io,
  * Each interrupt can have up to 32 causes.  The enable/disable control's the
  * overall interrupt state. if the interrupt is disabled no causes will cause
  * an interrupt.
- * 
+ *
  * Return:	'0' on Success; Error code otherwise.
  */
 int dprc_set_irq_enable(struct fsl_mc_io	*mc_io,
@@ -321,7 +321,7 @@ int dprc_get_irq_enable(struct fsl_mc_io	*mc_io,
  *
  * Every interrupt can have up to 32 causes and the interrupt model supports
  * masking/unmasking each cause independently
- * 
+ *
  * Return:	'0' on Success; Error code otherwise.
  */
 int dprc_set_irq_mask(struct fsl_mc_io	*mc_io,
@@ -338,7 +338,7 @@ int dprc_set_irq_mask(struct fsl_mc_io	*mc_io,
  *
  * Every interrupt can have up to 32 causes and the interrupt model supports
  * masking/unmasking each cause independently
- * 
+ *
  * Return:	'0' on Success; Error code otherwise.
  */
 int dprc_get_irq_mask(struct fsl_mc_io	*mc_io,
@@ -416,14 +416,14 @@ int dprc_get_attributes(struct fsl_mc_io	*mc_io,
 
 /**
  * dprc_set_res_quota() - Set allocation policy for a specific resource/object
- * 		type in a child container
+ *		type in a child container
  * @mc_io:	Pointer to MC portal's I/O object
  * @token:	Token of DPRC object
  * @child_container_id:	ID of the child container
  * @type:	Resource/object type
- * @quota:	Sets the maximum number of resources of	the selected type 
- * 		that the child container is allowed to allocate from its parent;
- *		when quota is set to -1, the policy is the same as container's 
+ * @quota:	Sets the maximum number of resources of	the selected type
+ *		that the child container is allowed to allocate from its parent;
+ *		when quota is set to -1, the policy is the same as container's
  *		general policy.
  *
  * Allocation policy determines whether or not a container may allocate
@@ -433,7 +433,7 @@ int dprc_get_attributes(struct fsl_mc_io	*mc_io,
  * This function sets allocation policy for a specific resource type.
  * The default policy for all resource types matches the container's 'global'
  * allocation policy.
- * 
+ *
  * Return:	'0' on Success; Error code otherwise.
  *
  * @warning	Only the parent container is allowed to change a child policy.
@@ -445,14 +445,14 @@ int dprc_set_res_quota(struct fsl_mc_io	*mc_io,
 		       uint16_t		quota);
 
 /**
- * dprc_get_res_quota() - Gets the allocation policy of a specific 
- * 		resource/object type in a child container
+ * dprc_get_res_quota() - Gets the allocation policy of a specific
+ *		resource/object type in a child container
  * @mc_io:	Pointer to MC portal's I/O object
  * @token:	Token of DPRC object
  * @child_container_id;	ID of the child container
  * @type:	resource/object type
- * @quota:	Returnes the maximum number of resources of the selected type 
- * 		that the child container is allowed to allocate from the parent;
+ * @quota:	Returnes the maximum number of resources of the selected type
+ *		that the child container is allowed to allocate from the parent;
  *		when quota is set to -1, the policy is the same as container's
  *		general policy.
  *
@@ -487,20 +487,20 @@ int dprc_get_res_quota(struct fsl_mc_io	*mc_io,
 #define DPRC_RES_REQ_OPT_PLUGGED		0x00000004
 
 /**
- * struct dprc_res_req - Resource request descriptor, to be used in assignment 
- * 			or un-assignment of resources and objects.
+ * struct dprc_res_req - Resource request descriptor, to be used in assignment
+ *			or un-assignment of resources and objects.
  * @type: Resource/object type: Represent as a NULL terminated string.
- * 	This string may received by using dprc_get_pool() to get resource
- * 	type and dprc_get_obj() to get object type;
- * 	Note: it is not possible to assign/un-assign DPRC objects
+ *	This string may received by using dprc_get_pool() to get resource
+ *	type and dprc_get_obj() to get object type;
+ *	Note: it is not possible to assign/un-assign DPRC objects
  * @num: Number of resources
  * @options: Request options: combination of DPRC_RES_REQ_OPT_ options
  * @id_base_align: In case of explicit assignment (DPRC_RES_REQ_OPT_EXPLICIT
- *  		is set at option), this field represents the required base ID
- *  		for resource allocation; In case of aligned assignment 
- *  		(DPRC_RES_REQ_OPT_ALIGNED is set at option), this field
- *  		indicates the required alignment for the resource ID(s) - 
- *  		use 0 if there is no alignment or explicit ID requirements
+ *		is set at option), this field represents the required base ID
+ *		for resource allocation; In case of aligned assignment
+ *		(DPRC_RES_REQ_OPT_ALIGNED is set at option), this field
+ *		indicates the required alignment for the resource ID(s) -
+ *		use 0 if there is no alignment or explicit ID requirements
  */
 struct dprc_res_req {
 	char type[16];
@@ -551,12 +551,12 @@ int dprc_assign(struct fsl_mc_io	*mc_io,
  * @mc_io:	Pointer to MC portal's I/O object
  * @token:	Token of DPRC object
  * @child_container_id:	ID of the child container
- * @res_req:	Describes the type and amount of resources to un-assign from 
- * 		the child container
+ * @res_req:	Describes the type and amount of resources to un-assign from
+ *		the child container
  *
  * Un-assignment of objects can succeed only if the object is not in the
  * plugged or opened state.
- * 
+ *
  * Return:	'0' on Success; Error code otherwise.
  */
 int dprc_unassign(struct fsl_mc_io	*mc_io,
@@ -614,14 +614,14 @@ int dprc_get_obj_count(struct fsl_mc_io *mc_io, uint16_t token, int *obj_count);
 
 /**
  * struct dprc_obj_desc - Object descriptor, returned from dprc_get_obj()
- * @type: Type of object: NULL terminated string 
- * @id: ID of logical object resource 
- * @vendor: Object vendor identifier 
- * @ver_major: Major version number 
- * @ver_minor:  Minor version number 
- * @irq_count: Number of interrupts supported by the object 
- * @region_count: Number of mappable regions supported by the object 
- * @state: Object state: combination of DPRC_OBJ_STATE_ states 
+ * @type: Type of object: NULL terminated string
+ * @id: ID of logical object resource
+ * @vendor: Object vendor identifier
+ * @ver_major: Major version number
+ * @ver_minor:  Minor version number
+ * @irq_count: Number of interrupts supported by the object
+ * @region_count: Number of mappable regions supported by the object
+ * @state: Object state: combination of DPRC_OBJ_STATE_ states
  * @label: Object label
  */
 struct dprc_obj_desc {
@@ -647,7 +647,7 @@ struct dprc_obj_desc {
  * obj_index up to (not including) the value of obj_count returned
  * from dprc_get_obj_count(). dprc_get_obj_count() must
  * be called prior to dprc_get_obj().
- * 
+ *
  * Return:	'0' on Success; Error code otherwise.
  */
 int dprc_get_obj(struct fsl_mc_io	*mc_io,
@@ -659,7 +659,8 @@ int dprc_get_obj(struct fsl_mc_io	*mc_io,
  * dprc_obj_set_irq() - Set IRQ information for object to trigger an interrupt.
  * @mc_io:	Pointer to MC portal's I/O object
  * @token:	Token of DPRC object
- * @obj_index:  Index of the object to set its IRQ (< obj_count that returned from dprc_get_obj_count())
+ * @obj_index:  Index of the object to set its IRQ (< obj_count returned from
+ *		dprc_get_obj_count())
  * @irq_index:	Identifies the interrupt index to configure
  * @irq_addr:	Address that must be written to
  *			signal a message-based interrupt
@@ -669,19 +670,19 @@ int dprc_get_obj(struct fsl_mc_io	*mc_io,
  * Return:	'0' on Success; Error code otherwise.
  */
 int dprc_obj_set_irq(struct fsl_mc_io	*mc_io,
-		 uint16_t		token,
-		 int			obj_index,
-		 uint8_t		irq_index,
-		 uint64_t		irq_addr,
-		 uint32_t		irq_val,
-		 int			user_irq_id);
-
+		     uint16_t		token,
+		     int		obj_index,
+		     uint8_t		irq_index,
+		     uint64_t		irq_addr,
+		     uint32_t		irq_val,
+		     int		user_irq_id);
 
 /**
  * dprc_obj_get_irq() - Get IRQ information from object.
  * @mc_io:	Pointer to MC portal's I/O object
  * @token:	Token of DPRC object
- * @obj_index:  Index of the object to get its IRQ (< obj_count that returned from dprc_get_obj_count())
+ * @obj_index:  Index of the object to get its IRQ (< obj_count returned from
+ *		dprc_get_obj_count())
  * @irq_index:	The interrupt index to configure
  * @type:	Returned interrupt type: 0 represents message interrupt
  *			type (both irq_addr and irq_val are valid)
@@ -693,16 +694,17 @@ int dprc_obj_set_irq(struct fsl_mc_io	*mc_io,
  * Return:	'0' on Success; Error code otherwise.
  */
 int dprc_obj_get_irq(struct fsl_mc_io	*mc_io,
-		 uint16_t		token,
-		 int			obj_index,
-		 uint8_t		irq_index,
-		 int			*type,
-		 uint64_t		*irq_addr,
-		 uint32_t		*irq_val,
-		 int			*user_irq_id);
+		     uint16_t		token,
+		     int		obj_index,
+		     uint8_t		irq_index,
+		     int		*type,
+		     uint64_t		*irq_addr,
+		     uint32_t		*irq_val,
+		     int		*user_irq_id);
+
 /**
- * dprc_get_res_count() - Obtains the number of free resources that are assigned
- *		to this container, by pool type
+ * dprc_get_res_count() - Obtains the number of free resources that are
+ *		assigned to this container, by pool type
  * @mc_io:	Pointer to MC portal's I/O object
  * @token:	Token of DPRC object
  * @type:	pool type
@@ -718,9 +720,9 @@ int dprc_get_res_count(struct fsl_mc_io	*mc_io,
 
 /**
  * enum dprc_iter_status - Iteration status
- * @DPRC_ITER_STATUS_FIRST: Perform first iteration 
- * @DPRC_ITER_STATUS_MORE: Indicates more/next iteration is needed 
- * @DPRC_ITER_STATUS_LAST: Indicates last iteration 
+ * @DPRC_ITER_STATUS_FIRST: Perform first iteration
+ * @DPRC_ITER_STATUS_MORE: Indicates more/next iteration is needed
+ * @DPRC_ITER_STATUS_LAST: Indicates last iteration
  */
 enum dprc_iter_status {
 	DPRC_ITER_STATUS_FIRST = 0,
@@ -730,12 +732,12 @@ enum dprc_iter_status {
 
 /**
  * struct dprc_res_ids_range_desc - Resource ID range descriptor
- * @base_id: Base resource ID of this range 
+ * @base_id: Base resource ID of this range
  * @last_id: Last resource ID of this range
  * @iter_status: Iteration status - should be set to DPRC_ITER_STATUS_FIRST at
- * 	first iteration; while the returned marker is DPRC_ITER_STATUS_MORE,
- * 	additional iterations are needed, until the returned marker is
- * 	DPRC_ITER_STATUS_LAST
+ *	first iteration; while the returned marker is DPRC_ITER_STATUS_MORE,
+ *	additional iterations are needed, until the returned marker is
+ *	DPRC_ITER_STATUS_LAST
  */
 struct dprc_res_ids_range_desc {
 	int base_id;
@@ -760,8 +762,9 @@ int dprc_get_res_ids(struct fsl_mc_io			*mc_io,
 /**
  * struct dprc_region_desc - Mappable region descriptor
  * @base_offset: Region offset from region's base address.
- * 				 For DPMCP and DPRC objects, region address is the base_offset + MC PORTAL base address
- * 				 For DPIO, region address is the base_offset + Qman portal base address
+ *	For DPMCP and DPRC objects, region base is offset from SoC MC portals
+ *	base address; For DPIO, region base is offset from SoC QMan portals
+ *	base address
  * @size: Region size (in bytes)
  */
 struct dprc_region_desc {
@@ -796,17 +799,18 @@ int dprc_get_obj_region(struct fsl_mc_io	*mc_io,
  *
  * Return:	'0' on Success; Error code otherwise.
  */
-int dprc_set_obj_label (struct fsl_mc_io *  mc_io,  
-                        uint16_t  token,  
-                        int  obj_index,  
-                        char *label); 
+int dprc_set_obj_label(struct fsl_mc_io *mc_io,
+		       uint16_t  token,
+		       int obj_index,
+		       char *label);
+
 /**
- * struct dprc_endpoint - Endpoint description for link connect/disconnect 
- * 			operations
- * @type: Endpoint object type: NULL terminated string 
+ * struct dprc_endpoint - Endpoint description for link connect/disconnect
+ *			operations
+ * @type: Endpoint object type: NULL terminated string
  * @id: Endpoint object ID
- * @interface_id: Interface ID; should be set for endpoints with multiple 
- * 		interfaces ("dpsw", "dpdmux"); for others, always set to 0
+ * @interface_id: Interface ID; should be set for endpoints with multiple
+ *		interfaces ("dpsw", "dpdmux"); for others, always set to 0
  */
 struct dprc_endpoint {
 	char type[16];
@@ -843,8 +847,8 @@ int dprc_disconnect(struct fsl_mc_io		*mc_io,
 /**
 * dprc_get_connection() - Get connected endpoint and link status if connection
 *			exists.
-* @mc_io		Pointer to MC portal's I/O object
-* @token		Token of DPRC object
+* @mc_io	Pointer to MC portal's I/O object
+* @token	Token of DPRC object
 * @endpoint1	Endpoint 1 configuration parameters
 * @endpoint2	Returned endpoint 2 configuration parameters
 * @state:	Returned link state: 1 - link is up, 0 - link is down
@@ -858,4 +862,3 @@ int dprc_get_connection(struct fsl_mc_io		*mc_io,
 			int				*state);
 
 #endif /* _FSL_DPRC_H */
-

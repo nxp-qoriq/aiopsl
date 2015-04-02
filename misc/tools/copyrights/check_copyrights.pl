@@ -45,13 +45,32 @@ foreach $path(@files) {
 
 	#if ($path =~ /tools\//){ print LOG "Ignoring $path - Path contains /tools/\n";next;}
 	if ( (`grep -ic   'Copyright 2014-2015 Freescale Semiconductor, Inc.' $path`) >0 ){
-		#print "Copyright is ok in $path\n";
+		if ( (`grep -ic   'Redistribution and use in source and binary forms, with or without' $path`) >0 ){
+			#print "Copyright is ok in $path\n";
+		}
+		else{ 
+			$error_flg=1;
+			print "Copyright is Corrupted in $path\n";
+		}
 	}
-	else{ 	
-		$error_flg=1;
-		print "Copyright is missing in $path\n";
-#		print ERROR "$path  \n";
+	else { 	
+		#check if flib version
+		if( (`grep -ic   'Copyright 2013-2015 Freescale Semiconductor Inc.' $path`) >0 ) {
+			if ( (`grep -ic   'ALTERNATIVELY, this software may be distributed under the terms of the' $path`) >0 ){
+				#print "Copyright is ok in $path\n";
+			}
+			else{ 
+				$error_flg=1;
+				print "Copyright is Corrupted in $path\n";
+			}
+		}
+		else {
+			$error_flg=1;
+			print "Copyright is missing in $path\n";
+			#print ERROR "$path  \n";
+		}
 	}
+	
 }
 if ($error_flg == 1){
 	print "Copyright verification failed\n";
