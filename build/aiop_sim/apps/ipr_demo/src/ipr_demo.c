@@ -174,6 +174,16 @@ __declspec(entry_point) static void app_process_packet_flow0 (void)
 			fsl_os_print("ERROR = %x: reassembled frame length error!\n", fd_length);
 			local_test_error |= 1;
 		}
+		
+/*
+		fsl_os_print("LDPAA_FD_GET_ADDRL = %x\n", (uint32_t)(LDPAA_FD_GET_ADDR(HWC_FD_ADDRESS)));
+		fsl_os_print("LDPAA_FD_GET_ADDRH = %x\n", (uint32_t)(LDPAA_FD_GET_ADDR(HWC_FD_ADDRESS)>>32));
+		fsl_os_print("LDPAA_FD_GET_LENGTH = %x\n", LDPAA_FD_GET_LENGTH(HWC_FD_ADDRESS));
+		fsl_os_print("LDPAA_FD_GET_BPID = %x\n", LDPAA_FD_GET_BPID(HWC_FD_ADDRESS));
+		fsl_os_print("LDPAA_FD_GET_OFFSET = %x\n", LDPAA_FD_GET_OFFSET(HWC_FD_ADDRESS));
+*/
+		
+		
 		err = dpni_drv_send(dpni_get_receive_niid());
 		if (err){
 			fsl_os_print("ERROR = %d: dpni_drv_send()\n",err);
@@ -267,6 +277,11 @@ int app_init(void)
 
 	if (err)
 		return err;
+	
+	err = dpni_drv_set_max_frame_length(1/*ni_id*/,
+	                        0x2000 /* Max frame length*/);
+	if (err) return err;
+
 	/* inject frag1.pcap till frag4.pcap */
 	fsl_os_print("To start test inject packets: \"frag.pcap\" after AIOP boot complete.\n");
 
