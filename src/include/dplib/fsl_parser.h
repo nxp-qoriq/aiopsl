@@ -312,8 +312,8 @@ extern __TASK struct aiop_default_task_params default_task_params;
 #define PARSER_ATT_L4_SOFT_PARSING_ERROR_MASK       0x00000200
 	/** "GTP parsing error" mask for frame_attribute_flags_3 */
 #define PARSER_ATT_GTP_PARSING_ERROR_MASK           0x00000080
-	/** "ESP over UDP parsing error" mask for frame_attribute_flags_3 */
-#define PARSER_ATT_ESP_OVER_UDP_PARSING_ERROR_MASK  0x00000020
+	/** "ESP or IKE over UDP parsing error" mask for frame_attribute_flags_3 */
+#define PARSER_ATT_ESP_OR_IKE_OVER_UDP_PARSING_ERROR_MASK  0x00000020
 	/** "L5 soft parsing error" mask for frame_attribute_flags_3 */
 #define PARSER_ATT_L5_SOFT_PARSING_ERROR_MASK       0x00000002
 
