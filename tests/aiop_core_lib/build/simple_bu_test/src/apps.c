@@ -27,6 +27,7 @@
 #include "common/fsl_string.h"
 #include "inc/fsl_sys.h"
 #include "apps.h"
+#include "fsl_dbg.h"
 
 extern int app_early_init(void);
 extern int app_init(void); extern void app_free(void);
