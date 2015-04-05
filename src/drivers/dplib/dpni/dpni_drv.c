@@ -874,7 +874,6 @@ __COLD_CODE int dpni_drv_set_order_scope(uint16_t ni_id, struct dpkg_profile_cfg
 		iowrite32_ccsr(ep_osc, &wrks_addr->ep_osc);
 		cdma_mutex_lock_release((uint64_t)&dpni_drv->dpni_lock); /*Unlock dpni table entry*/
 		cdma_mutex_lock_release((uint64_t)&wrks_addr->epas);
-		fsl_os_print("\n\n\tDisable order scope\n\n");
 		cfg.dist_mode = DPNI_DIST_MODE_NONE;
 	}
 	else
