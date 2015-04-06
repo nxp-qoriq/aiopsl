@@ -43,6 +43,7 @@
 #include "fsl_platform.h"
 #include "fsl_shbp.h"
 #include "fsl_spinlock.h"
+#include "cmdif_test_common.h"
 
 #ifndef CMDIF_TEST_WITH_MC_SRV
 #warning "If you test with MC define CMDIF_TEST_WITH_MC_SRV inside cmdif.h\n"
@@ -55,34 +56,11 @@ extern int gpp_sys_ddr_init();
 extern int gpp_ddr_check(struct icontext *ic, uint64_t iova, uint16_t size);
 
 
-#define OPEN_CMD	0x100
-#define NORESP_CMD	0x101
-#define ASYNC_CMD	0x102
-#define SYNC_CMD 	(0x103 | CMDIF_NORESP_CMD)
-#define ASYNC_N_CMD	0x104
-#define OPEN_N_CMD	0x105
-#define IC_TEST		0x106
-#define CLOSE_CMD	0x107
-#define TMAN_TEST	0x108
-#define SHBP_TEST	0x109
-#define SHBP_TEST_GPP	0x110
-#define SHBP_TEST_AIOP	0x111
-
-#define AIOP_ASYNC_CB_DONE	5  /* Must be in sync with MC ELF */
-#define AIOP_SYNC_BUFF_SIZE	80 /* Must be in sync with MC ELF */
-
 #ifdef CMDIF_TEST_WITH_MC_SRV
 #define TEST_DPCI_ID    (void *)0 /* For MC use 0 */
 #else
 #define TEST_DPCI_ID    (void *)4 /* For GPP use 4 */
 #endif
-
-//#define CMDIF_PERF_COUNT
-
-struct shbp_test {
-	uint64_t shbp;
-	uint8_t dpci_id;
-};
 
 struct cmdif_desc cidesc;
 uint64_t tman_addr;
