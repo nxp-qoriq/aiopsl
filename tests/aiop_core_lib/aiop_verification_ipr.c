@@ -278,12 +278,10 @@ void ipr_delete_instance_cb_verif(uint64_t arg)
 	struct fdma_queueing_destination_params qdp;
 	uint8_t dummy_data;
 	uint32_t flags = 0;
-	struct ldpaa_fd fd __attribute__((aligned(sizeof(struct ldpaa_fd))));
 	uint8_t frame_handle;
         struct fdma_amq amq;
         uint16_t icid;
         uint8_t tmp;
-
 
 	if (arg == 0)
 		return;
@@ -305,7 +303,8 @@ void ipr_delete_instance_cb_verif(uint64_t arg)
         amq.flags = (uint16_t) flags;
         set_default_amq_attributes(&amq);
 
-	create_frame(&fd,&dummy_data, 1, &frame_handle);
+	create_frame((struct ldpaa_fd *)HWC_FD_ADDRESS,&dummy_data, 1,
+			&frame_handle);
 
 
 	flags = ((str.TC == 1) ? (FDMA_EN_TC_TERM_BITS) : 0x0);

@@ -136,6 +136,12 @@
 	/** Address of parse results */
 #define HWC_PARSE_RES_ADDRESS	0x80
 
+	/** Getter for the Storage Profile ID of the default working frame */
+#define GET_DEFAULT_SPID() 	((uint8_t)(*((uint8_t *)HWC_SPID_ADDRESS)))
+	/** Setter for the Storage Profile ID of the default working frame.
+	 * _spid - new spid value. */
+#define SET_DEFAULT_SPID(_spid) (*((uint8_t *)HWC_SPID_ADDRESS)) = _spid;
+
 /** @} */ /* end of AIOP_HWC_General_Definitions */
 
 /**************************************************************************//**

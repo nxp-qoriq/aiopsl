@@ -64,6 +64,7 @@
 #define SP_MASK_BPID              0x3FFF
 #define ORDER_MODE_CLEAR_BIT      0xFEFFFFFF /*clear the bit for exclusive / concurrent mode*/
 #define ORDER_MODE_BIT_MASK       0x01000000
+#define ORDER_MODE_NO_ORDER_SCOPE 0xEEFCFFF8 /*clear src, ep, sel, osrm*/
 #define DPNI_DRV_CONCURRENT_MODE      0
 #define DPNI_DRV_EXCLUSIVE_MODE       1
 #define PARAMS_IOVA_BUFF_SIZE         256
@@ -91,10 +92,10 @@ struct dpni_stats {
 };
 
 struct dpni_early_init_request{
-	uint16_t head_room_sum; 
-	uint16_t tail_room_sum; 
+	uint16_t head_room_sum;
+	uint16_t tail_room_sum;
 	uint16_t private_data_size_sum;
-	
+
 	uint16_t count; /* Count how many requests have been registered */
 };
 

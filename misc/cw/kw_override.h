@@ -48,8 +48,6 @@ typedef signed long         intptr_t;
 typedef unsigned long       size_t;
 
 
-#define fsl_os_exit(n) abort()
-
 #kw_override ASSERT_COND(_cond)                 \
     do { if (!(_cond)) abort(); } while (0)
 

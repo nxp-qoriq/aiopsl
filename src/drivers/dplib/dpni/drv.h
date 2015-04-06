@@ -72,9 +72,7 @@ struct dpni_drv_params {
 struct dpni_drv_tx_params {
 	/** Queuing destination for the enqueue. */
 	uint16_t            qdid;
-	/** network interface ID which is equal to this entry's index in the NI
-	 *  table - internal to AIOP */
-	uint16_t            aiop_niid;
+
 };
 #pragma pack(pop)
 
