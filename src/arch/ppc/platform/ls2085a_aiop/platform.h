@@ -121,16 +121,6 @@ typedef enum interrupt_type {
 } e_interrupt_type;
 
 /**************************************************************************//**
- @Description   TODO
-*//***************************************************************************/
-typedef enum ipc_search_type {
-    E_IPC_SRC_AND_DEST_ADDRESS_SEARCH_TYPE,
-    E_IPC_DEST_ADDRESS_SEARCH_TYPE,
-    E_IPC_PORT_AND_QUEUE_SEARCH_TYPE
-} e_ipc_search_type;
-
-
-/**************************************************************************//**
  @Description   Chip Type and Revision Information Structure
 *//***************************************************************************/
 typedef struct t_chip_rev_info {
