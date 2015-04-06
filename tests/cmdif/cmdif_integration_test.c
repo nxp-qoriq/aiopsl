@@ -77,6 +77,8 @@ extern int gpp_ddr_check(struct icontext *ic, uint64_t iova, uint16_t size);
 #define TEST_DPCI_ID    (void *)4 /* For GPP use 4 */
 #endif
 
+//#define CMDIF_PERF_COUNT
+
 struct shbp_test {
 	uint64_t shbp;
 	uint8_t dpci_id;
@@ -189,6 +191,18 @@ static void verif_tman_cb(uint64_t opaque1, uint16_t opaque2)
 	pr_debug("PASSED verif_tman_cb \n");
 }
 
+#ifdef CMDIF_PERF_COUNT
+static int ctrl_cb0(void *dev, uint16_t cmd, uint32_t size,
+                              void *data)
+{
+	if ((size > 0) && (data != NULL)) {
+
+		((uint8_t *)data)[0] = 0xDA;
+	}
+	fdma_modify_default_segment_data(0, (uint16_t)PRC_GET_SEGMENT_LENGTH());	
+}
+
+#else
 static int ctrl_cb0(void *dev, uint16_t cmd, uint32_t size,
                               void *data)
 {
@@ -419,7 +433,7 @@ static int ctrl_cb0(void *dev, uint16_t cmd, uint32_t size,
 
 	return err;
 }
-
+#endif
 
 int app_init(void)
 {
