@@ -192,14 +192,15 @@ static void verif_tman_cb(uint64_t opaque1, uint16_t opaque2)
 }
 
 #ifdef CMDIF_PERF_COUNT
+
+#if (DEBUG_LEVEL > 0)
+#error "Set DEBUG_LEVEL to 0 before testing "
+#endif
+
 static int ctrl_cb0(void *dev, uint16_t cmd, uint32_t size,
                               void *data)
 {
-	if ((size > 0) && (data != NULL)) {
-
-		((uint8_t *)data)[0] = 0xDA;
-	}
-	fdma_modify_default_segment_data(0, (uint16_t)PRC_GET_SEGMENT_LENGTH());	
+	return 0;	
 }
 
 #else
