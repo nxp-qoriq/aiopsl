@@ -139,23 +139,12 @@ char * err_type_strings (int err);
 
 #ifdef DISABLE_SANITY_CHECKS
 #define SANITY_CHECK_RETURN_ERROR(_cond, _err)
-#define SANITY_CHECK_RETURN_VALUE(_cond, _err, retval)
-#define SANITY_CHECK_EXIT(_cond, _err)
-
 #else /* DISABLE_SANITY_CHECKS */
 #define SANITY_CHECK_RETURN_ERROR(_cond, _err) \
     do { \
         if (!(_cond)) { \
             REPORT_ERROR(CRITICAL, (_err), NO_MSG); \
             return -(_err); \
-        } \
-    } while (0)
-
-#define SANITY_CHECK_RETURN_VALUE(_cond, _err, retval) \
-    do { \
-        if (!(_cond)) { \
-            REPORT_ERROR(CRITICAL, (_err), NO_MSG); \
-            return (retval); \
         } \
     } while (0)
 #endif /* DISABLE_SANITY_CHECKS */

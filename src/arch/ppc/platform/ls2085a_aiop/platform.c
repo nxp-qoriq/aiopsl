@@ -668,8 +668,10 @@ __COLD_CODE int platform_free(fsl_handle_t h_platform)
 uint32_t platform_get_system_bus_clk(fsl_handle_t h_platform)
 {
 	t_platform  *pltfrm = (t_platform *)h_platform;
-
-	SANITY_CHECK_RETURN_VALUE(pltfrm, ENODEV, 0);
+	if(!pltfrm) {
+		pr_crit("no device");
+		return 0;
+	}
 
 	return (pltfrm->param.clock_in_freq_khz);
 }
