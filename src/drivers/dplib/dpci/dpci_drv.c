@@ -162,6 +162,7 @@ static inline void amq_bits_update(uint32_t id)
 	//ASSERT_COND(!err);
 
 	/* Must be written last */
+	mc_dpci_tbl_dump();
 	dt->ic[id] = amq_bdi;
 	mc_dpci_tbl_dump();
 }
