@@ -48,7 +48,6 @@
 #define DEBUG_FSL_OS_MALLOC
 
 #else
-#define DISABLE_SANITY_CHECKS
 #define DISABLE_ASSERTIONS
 #endif /* (DEBUG_LEVEL > 0) */
 
