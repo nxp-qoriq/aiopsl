@@ -210,6 +210,8 @@ static t_free_block * create_free_block(uint64_t base, uint64_t size)
     return p_free_block;
 }
 
+#if 0
+// Fixed after KW, removed due to cmdif failures
 /****************************************************************/
 static int insert_free_block(t_free_block **p_new_b,t_MM *p_MM,t_free_block *p_curr_b,uint64_t end,
 		                     uint64_t alignment,uint64_t align_base,t_free_block *p_prev_b,
@@ -359,6 +361,142 @@ static int add_free(t_MM *p_MM, uint64_t base, uint64_t end)
 
     return (0);
 }
+#else
+/****************************************************************
+ *  Routine:    AddFree
+ *
+ *  Description:
+ *      Adds a new free block to the free lists. It updates each
+ *      free list to include a new free block.
+ *      Note, that all free block in each free list are ordered
+ *      by their base address.
+ *
+ *  Arguments:
+ *      p_MM  - pointer to the MM object
+ *      base  - base address of a given free block
+ *      end   - end address of a given free block
+ *
+ *  Return value:
+ *
+ *
+ ****************************************************************/
+static int add_free(t_MM *p_MM, uint64_t base, uint64_t end)
+{
+    t_free_block *p_prev_b, *p_curr_b, *p_new_b;
+    uint64_t    alignment;
+    uint64_t    align_base;
+    int         i;
+
+    /* Updates free lists to include  a just released block */
+    for (i=0; i <= MM_MAX_ALIGNMENT; i++)
+    {
+        p_prev_b = p_new_b = 0;
+        p_curr_b = p_MM->free_blocks[i];
+
+        alignment = (uint64_t)(0x1 << i);
+        align_base = MAKE_ALIGNED(base, alignment);
+
+        /* Goes to the next free list if there is no block to free */
+        if (align_base >= end)
+            continue;
+
+        /* Looks for a free block that should be updated */
+        while ( p_curr_b )
+        {
+            if ( align_base <= p_curr_b->end )
+            {
+                if ( end > p_curr_b->end )
+                {
+                    t_free_block *p_next_b;
+                    while ( p_curr_b->p_next && end > p_curr_b->p_next->end )
+                    {
+                        p_next_b = p_curr_b->p_next;
+                        p_curr_b->p_next = p_curr_b->p_next->p_next;
+                        fsl_os_free(p_next_b);
+                    }
+
+                    p_next_b = p_curr_b->p_next;
+                    if ( !p_next_b || (p_next_b && end < p_next_b->base) )
+                    {
+                        p_curr_b->end = end;
+                    }
+                    else
+                    {
+                        p_curr_b->end = p_next_b->end;
+                        p_curr_b->p_next = p_next_b->p_next;
+                        fsl_os_free(p_next_b);
+                    }
+                }
+                else if ( (end < p_curr_b->base) && ((end-align_base) >= alignment) )
+                {
+                    if ((p_new_b = create_free_block(align_base, end-align_base)) == NULL)
+                        RETURN_ERROR(MAJOR, ENOMEM, NO_MSG);
+
+                    p_new_b->p_next = p_curr_b;
+                    if (p_prev_b)
+                        p_prev_b->p_next = p_new_b;
+                    else
+                        p_MM->free_blocks[i] = p_new_b;
+                    break;
+                }
+
+                if ((align_base < p_curr_b->base) && (end >= p_curr_b->base))
+                {
+                    p_curr_b->base = align_base;
+                }
+
+                /* if size of the free block is less then alignment
+                 * deletes that free block from the free list. */
+                if ( (p_curr_b->end - p_curr_b->base) < alignment)
+                {
+                    if ( p_prev_b )
+                        p_prev_b->p_next = p_curr_b->p_next;
+                    else
+                        p_MM->free_blocks[i] = p_curr_b->p_next;
+                    fsl_os_free(p_curr_b);
+                    p_curr_b = NULL;
+                }
+                break;
+            }
+            else
+            {
+                p_prev_b = p_curr_b;
+                p_curr_b = p_curr_b->p_next;
+            }
+        } // while
+
+        /* If no free block found to be updated, insert a new free block
+         * to the end of the free list.
+         */
+        /* This is an old code line that assumes that size of an allocated memory is
+         * multiply of alignment. Replaced this by a condition that a new block
+         * is greater than the current alignment.
+         * if ( !p_curr_b && ((((uint64_t)(end-base)) & ((uint64_t)(alignment-1))) == 0) )
+         * */
+        if ( !p_curr_b &&  (end-align_base) >= alignment )
+        {
+            if ((p_new_b = create_free_block(align_base, end-align_base)) == NULL)
+                RETURN_ERROR(MAJOR, ENOMEM, NO_MSG);
+
+            if (p_prev_b)
+                p_prev_b->p_next = p_new_b;
+            else
+                p_MM->free_blocks[i] = p_new_b;
+        }
+
+        /* Update boundaries of the new free block */
+        if ((alignment == 1) && !p_new_b)
+        {
+            if ( p_curr_b && base > p_curr_b->base )
+                base = p_curr_b->base;
+            if ( p_curr_b && end < p_curr_b->end )
+                end = p_curr_b->end;
+        }
+    }// for
+
+    return (0);
+}
+#endif
 
 /****************************************************************
  *  Routine:      CutFree
