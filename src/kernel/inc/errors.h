@@ -137,18 +137,6 @@ char * err_type_strings (int err);
     } while (0)
 #endif /* (DEBUG_ERRORS > 0) */
 
-#ifdef DISABLE_SANITY_CHECKS
-#define SANITY_CHECK_RETURN_ERROR(_cond, _err)
-#else /* DISABLE_SANITY_CHECKS */
-#define SANITY_CHECK_RETURN_ERROR(_cond, _err) \
-    do { \
-        if (!(_cond)) { \
-            REPORT_ERROR(CRITICAL, (_err), NO_MSG); \
-            return -(_err); \
-        } \
-    } while (0)
-#endif /* DISABLE_SANITY_CHECKS */
-
 /** @} */ /* end of gen_err_g group */
 /** @} */ /* end of gen_g group */
 
