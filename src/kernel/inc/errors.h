@@ -103,10 +103,6 @@ int ERROR_DYNAMIC_LEVEL = ERROR_GLOBAL_LEVEL;
 #define RETURN_ERROR(_level, _err, _vmsg) \
         return (_err)
 #else /* DEBUG_ERRORS > 0 */
-/*
- * se_dnh - Debug Notify Halt
- * Acts as 'se_illegal' if EDBCR0[DNH_EN] is set
- */
 
 extern const char *dbg_level_strings[];
 extern const char *module_strings[];
