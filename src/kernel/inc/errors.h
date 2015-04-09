@@ -47,8 +47,6 @@
 #define E_NOT_FOUND           114    /* TODO: obsolete - do not use in new code*/
 #define E_FULL                115    /* TODO: obsolete - do not use in new code*/
 #define E_EMPTY               116    /* TODO: obsolete - do not use in new code*/
-#define E_READ_FAILED         118    /* TODO: obsolete - do not use in new code*/
-#define E_INVALID_FRAME       119    /* TODO: obsolete - do not use in new code*/
 
 #define NO_MSG      ("")
 
