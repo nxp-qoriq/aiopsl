@@ -102,9 +102,7 @@ int ERROR_DYNAMIC_LEVEL = ERROR_GLOBAL_LEVEL;
 #define REPORT_ERROR(_level, _err, _vmsg)
 #define RETURN_ERROR(_level, _err, _vmsg) \
         return (_err)
-#define DEBUG_HALT
 #else /* DEBUG_ERRORS > 0 */
-#define DEBUG_HALT asm{se_dnh}
 /*
  * se_dnh - Debug Notify Halt
  * Acts as 'se_illegal' if EDBCR0[DNH_EN] is set
