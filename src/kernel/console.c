@@ -69,9 +69,10 @@ __COLD_CODE int sys_register_console(fsl_handle_t h_console_dev,
 #ifdef AIOP
 	uint8_t print_to_buffer_state;
 #endif
-	if (sys.console)
-		RETURN_ERROR(MINOR, EEXIST, ("system console"));
-
+	if (sys.console){
+		pr_err("system console");
+		return -EEXIST;
+	}
 	/* Must have Print routine (Get routine is not mandatory) */
 	ASSERT_COND(f_console_print);
 
@@ -107,8 +108,10 @@ __COLD_CODE int sys_register_console(fsl_handle_t h_console_dev,
 /*****************************************************************************/
 int sys_unregister_console(void)
 {
-	if (!sys.console)
-		RETURN_ERROR(MINOR, EAGAIN, ("console"));
+	if (!sys.console){
+		pr_err("console");
+		return -ENODEV;
+	}
 
 	sys.console = NULL;
 
