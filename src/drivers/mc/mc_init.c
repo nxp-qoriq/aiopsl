@@ -383,6 +383,9 @@ __COLD_CODE static void dpci_discovery_free()
 
 	if (dpci_tbl != NULL)
 		fsl_free(dpci_tbl);
+	/*
+	 * TODO free all entries inside dpci_tbl
+	 */
 }
 
 __COLD_CODE int mc_obj_init()

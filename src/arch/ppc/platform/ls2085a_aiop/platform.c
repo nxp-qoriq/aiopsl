@@ -597,8 +597,10 @@ __COLD_CODE int platform_init(struct platform_param    *pltfrm_param,
 {
 	int             i;
 
-	SANITY_CHECK_RETURN_ERROR(pltfrm_param, ENODEV);
-	SANITY_CHECK_RETURN_ERROR(pltfrm_ops, ENODEV);
+	if((!pltfrm_param) || (!pltfrm_ops)) {
+		pr_crit("Null pointer passed to platform_init");
+		return -ENODEV;
+	}
 
 
 	memset(&s_pltfrm, 0, sizeof(t_platform));
@@ -630,9 +632,6 @@ __COLD_CODE int platform_init(struct platform_param    *pltfrm_param,
 	pltfrm_ops->f_free_soc              = NULL;
 	pltfrm_ops->f_init_timer            = NULL;
 	pltfrm_ops->f_free_timer            = NULL;
-	pltfrm_ops->f_init_ipc              = NULL;
-	pltfrm_ops->f_free_ipc              = NULL;
-
 	pltfrm_ops->f_init_console          = pltfrm_init_console_cb;
 	pltfrm_ops->f_free_console          = pltfrm_free_console_cb;
 
@@ -668,8 +667,10 @@ __COLD_CODE int platform_free(fsl_handle_t h_platform)
 uint32_t platform_get_system_bus_clk(fsl_handle_t h_platform)
 {
 	t_platform  *pltfrm = (t_platform *)h_platform;
-
-	SANITY_CHECK_RETURN_VALUE(pltfrm, ENODEV, 0);
+	if(!pltfrm) {
+		pr_crit("no device");
+		return 0;
+	}
 
 	return (pltfrm->param.clock_in_freq_khz);
 }
@@ -689,13 +690,19 @@ __COLD_CODE int platform_enable_console(fsl_handle_t h_platform)
 	                               SOC_PERIPH_OFF_DUART3,
 	                               SOC_PERIPH_OFF_DUART4
 	};
-	SANITY_CHECK_RETURN_ERROR(pltfrm, ENODEV);
+
+	if(!pltfrm) {
+		pr_crit("Null pointer");
+		return -ENODEV;
+	}
 
 	if(pltfrm->param.console_type == PLTFRM_CONSOLE_NONE)/*if console id is 0, print to buffer*/
 		return -ENAVAIL;
 
-
-	SANITY_CHECK_RETURN_ERROR((pltfrm->param.console_type == PLTFRM_CONSOLE_DUART), ENOTSUP);
+	if(pltfrm->param.console_type != PLTFRM_CONSOLE_DUART) {
+		pr_crit("Console not supported");
+		return -ENOTSUP;
+	}		
 
 	if( pltfrm->param.console_id > 4 )
 		RETURN_ERROR(MAJOR, EAGAIN, ("DUART"));
@@ -764,7 +771,10 @@ __COLD_CODE int platform_disable_console(fsl_handle_t h_platform)
 {
 	t_platform  *pltfrm = (t_platform *)h_platform;
 
-	SANITY_CHECK_RETURN_ERROR(pltfrm, ENODEV);
+	if(!pltfrm) {
+		pr_crit("Null pointer");
+		return -ENODEV;
+	}
 
 	/* Unregister platform console */
 	/* errCode = SYS_UnregisterConsole();

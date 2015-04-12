@@ -545,20 +545,20 @@ void fsl_os_put_mem(uint64_t paddr)
 
 uint32_t fsl_os_current_time(void)
 {
-    REPORT_ERROR(MINOR, ENOTSUP, ("Timer!"));
+    pr_warn("Timer!");
     return 0;
 }
 
 fsl_handle_t fsl_os_create_timer(void)
 {
-    REPORT_ERROR(MINOR, ENOTSUP, ("Timer!"));
+    pr_warn("Timer!");
     return NULL;
 }
 
 void fsl_os_free_timer(fsl_handle_t tmr)
 {
     UNUSED (tmr);
-    REPORT_ERROR(MINOR, ENOTSUP, ("Timer!"));
+    pr_warn("Timer!");
 }
 
 int fsl_os_start_timer(fsl_handle_t   tmr,
@@ -572,33 +572,33 @@ int fsl_os_start_timer(fsl_handle_t   tmr,
     UNUSED (msecs);
     UNUSED (periodic);
     UNUSED (tmr);
-    REPORT_ERROR(MINOR, ENOTSUP, ("Timer!"));
+    pr_warn("Timer!");
     return 0;
 }
 
 void fsl_os_stop_timer(fsl_handle_t tmr)
 {
     UNUSED (tmr);
-    REPORT_ERROR(MINOR, ENOTSUP, ("Timer!"));
+    pr_warn("Timer!");
 }
 
 void fsl_os_mod_timer(fsl_handle_t tmr, uint32_t msecs)
 {
     UNUSED (tmr);
     UNUSED (msecs);
-    REPORT_ERROR(MINOR, ENOTSUP, ("Timer!"));
+    pr_warn("Timer!");
 }
 
 void fsl_os_udelay(uint32_t usecs)
 {
     UNUSED (usecs);
-    REPORT_ERROR(MINOR, ENOTSUP, ("Timer!"));
+    pr_warn("Timer!");
 }
 
 uint32_t fsl_os_sleep(uint32_t msecs)
 {
     UNUSED (msecs);
-    REPORT_ERROR(MINOR, ENOTSUP, ("Timer!"));
+    pr_warn("Timer!");
     return 0;
 }
 #endif

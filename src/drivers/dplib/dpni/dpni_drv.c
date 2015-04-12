@@ -842,18 +842,46 @@ int dpni_drv_set_exclusive(uint16_t ni_id){
 }
 
 __COLD_CODE int dpni_drv_set_order_scope(uint16_t ni_id, struct dpkg_profile_cfg *key_cfg){
+	uint32_t ep_osc;
 	struct dpni_drv *dpni_drv;
 	struct mc_dprc *dprc = sys_get_unique_handle(FSL_OS_MOD_AIOP_RC);
 	struct dpni_rx_tc_dist_cfg cfg = {0};
+	struct aiop_tile_regs *tile_regs = (struct aiop_tile_regs *)
+					sys_get_handle(FSL_OS_MOD_AIOP_TILE, 1);
+	struct aiop_ws_regs *wrks_addr = &tile_regs->ws_regs;
 	int err;
 	/* calculate pointer to the NI structure */
 	dpni_drv = nis + ni_id;
 
 	memset(order_scope_buffer, 0, PARAMS_IOVA_BUFF_SIZE);
-	dpni_prepare_key_cfg(key_cfg, order_scope_buffer);
-
 	cfg.dist_size = 0;
-	cfg.dist_mode = DPNI_DIST_MODE_HASH;
+
+	if(key_cfg == DPNI_DRV_NO_ORDER_SCOPE)
+	{
+		/*Mutex lock to avoid race condition while writing to EPID table*/
+		cdma_mutex_lock_take((uint64_t)&wrks_addr->epas, CDMA_MUTEX_WRITE_LOCK);
+		cdma_mutex_lock_take((uint64_t)&dpni_drv->dpni_lock, CDMA_MUTEX_WRITE_LOCK); /*Lock dpni table entry*/
+		/* write epid index to epas register */
+		iowrite32_ccsr((uint32_t)(dpni_drv->dpni_drv_params_var.epid_idx), &wrks_addr->epas);
+		/* Read ep_osc from EPID table */
+		ep_osc = ioread32_ccsr(&wrks_addr->ep_osc);
+		/* src = 0 - No order scope specified. Task does not enter a scope,
+		 * ep = 0 - executing concurrently,
+		 * sel = 0,
+		 * osrm = 0 - all frames enter scope 0 */
+		ep_osc &= ORDER_MODE_NO_ORDER_SCOPE;
+		/*Write ep_osc to EPID table*/
+		iowrite32_ccsr(ep_osc, &wrks_addr->ep_osc);
+		cdma_mutex_lock_release((uint64_t)&dpni_drv->dpni_lock); /*Unlock dpni table entry*/
+		cdma_mutex_lock_release((uint64_t)&wrks_addr->epas);
+		cfg.dist_mode = DPNI_DIST_MODE_NONE;
+	}
+	else
+	{
+		dpni_prepare_key_cfg(key_cfg, order_scope_buffer);
+		cfg.dist_mode = DPNI_DIST_MODE_HASH;
+	}
+
 	cfg.key_cfg_iova = (uint64_t)order_scope_buffer;
 	err = dpni_set_rx_tc_dist(&dprc->io,
 	                          dpni_drv->dpni_drv_params_var.dpni,

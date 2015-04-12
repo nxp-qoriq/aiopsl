@@ -101,7 +101,7 @@
 								<option id="com.freescale.ppc.toolchain.compiler.base.general.otherflags.prototype.1903279428" name="Require Prototypes" superClass="com.freescale.ppc.toolchain.compiler.base.general.otherflags.prototype" value="true" valueType="boolean"/>
 								<option id="com.freescale.ppc.toolchain.compiler.base.general.cpp.exceptions.2069811104" name="Enable C++ Exceptions" superClass="com.freescale.ppc.toolchain.compiler.base.general.cpp.exceptions" value="false" valueType="boolean"/>
 								<option id="com.freescale.ppc.toolchain.compiler.base.preprocessor.include.prefixfile.554247706" name="Prefix Files" superClass="com.freescale.ppc.toolchain.compiler.base.preprocessor.include.prefixfile" valueType="symbolFiles">
-									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}\..\..\..\..\build\aiop_sim\build_flags\dflags_dbg.h&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../build/aiop_sim/build_flags/dflags_dbg.h&quot;"/>
 								</option>
 								<option id="com.freescale.ppc.toolchain.compiler.base.general.rtti.1262363679" name="Enable RTTI" superClass="com.freescale.ppc.toolchain.compiler.base.general.rtti" value="false" valueType="boolean"/>
 								<option id="com.freescale.ppc.toolchain.compiler.base.general.otherflags.bool.1014859168" name="Enable C++ 'bool' type, 'true' and 'false' Constants" superClass="com.freescale.ppc.toolchain.compiler.base.general.otherflags.bool" value="false" valueType="boolean"/>
@@ -286,7 +286,7 @@
 								<option id="com.freescale.ppc.toolchain.compiler.base.general.otherflags.prototype.302256929" name="Require Prototypes" superClass="com.freescale.ppc.toolchain.compiler.base.general.otherflags.prototype" value="true" valueType="boolean"/>
 								<option id="com.freescale.ppc.toolchain.compiler.base.general.cpp.exceptions.1311611662" name="Enable C++ Exceptions" superClass="com.freescale.ppc.toolchain.compiler.base.general.cpp.exceptions" value="false" valueType="boolean"/>
 								<option id="com.freescale.ppc.toolchain.compiler.base.preprocessor.include.prefixfile.165924799" name="Prefix Files" superClass="com.freescale.ppc.toolchain.compiler.base.preprocessor.include.prefixfile" valueType="symbolFiles">
-									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}\..\..\..\..\build\aiop_sim\build_flags\dflags_dbg.h&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../build/aiop_sim/build_flags/dflags_dbg.h&quot;"/>
 								</option>
 								<option id="com.freescale.ppc.toolchain.compiler.base.general.rtti.261400801" name="Enable RTTI" superClass="com.freescale.ppc.toolchain.compiler.base.general.rtti" value="false" valueType="boolean"/>
 								<option id="com.freescale.ppc.toolchain.compiler.base.general.otherflags.bool.335123600" name="Enable C++ 'bool' type, 'true' and 'false' Constants" superClass="com.freescale.ppc.toolchain.compiler.base.general.otherflags.bool" value="false" valueType="boolean"/>
