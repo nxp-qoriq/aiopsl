@@ -854,7 +854,7 @@ extern __TASK struct aiop_default_task_params default_task_params;
 	frame_attribute_flags_extension & PARSER_ATT_IPV6_ROUTING_HDR_2)
 /** Returns a non-zero value in case VxLAN is found */
 #define PARSER_IS_VXLAN_DEFAULT() (PARSER_IS_UDP_DEFAULT() && \
-		((*((uint16_t *)(PARSER_GET_L4_POINTER_DEFAULT() + 2)) == 4789)) \
+		((*((uint16_t *)((uint32_t)PARSER_GET_L4_POINTER_DEFAULT() + 2)) == 4789)) \
 		? (1) : (0))
 
 /** @} */ /* end of FSL_PARSER_PR_QUERIES */
