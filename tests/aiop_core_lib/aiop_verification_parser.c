@@ -269,6 +269,14 @@ uint16_t aiop_verification_parser(uint32_t asa_seg_addr)
 		struct parser_macros_command *str =
 		(struct parser_macros_command *) asa_seg_addr;
 		
+		/* SW parse results */
+		if (PARSER_IS_VXLAN_DEFAULT())
+			str->sw_parse_res.vxlan = (uint8_t)PARSER_IS_VXLAN_DEFAULT();
+		if (PARSER_IS_IKE_OVER_UDP_DEFAULT())
+			str->sw_parse_res.ike= PARSER_IS_IKE_OVER_UDP_DEFAULT() ;
+		if(PARSER_IS_ESP_OVER_UDP_DEFAULT())
+			str->sw_parse_res.esp = PARSER_IS_ESP_OVER_UDP_DEFAULT() ;
+		
 		/* Next header offset */
 		str->macros_struct.nxt_hdr = PARSER_GET_NEXT_HEADER_DEFAULT();
 
@@ -443,8 +451,8 @@ uint16_t aiop_verification_parser(uint32_t asa_seg_addr)
 			str->macros_struct.frame_attribute_flags_3 |= PARSER_IS_GTP_DEFAULT() ;
 		if (PARSER_IS_GTP_PARSING_ERROR_DEFAULT())
 			str->macros_struct.frame_attribute_flags_3 |= PARSER_IS_GTP_PARSING_ERROR_DEFAULT() ;
-		if (PARSER_IS_IKE_OVER_UDP_DEFAULT())
-			str->macros_struct.frame_attribute_flags_3 |= PARSER_IS_IKE_OVER_UDP_DEFAULT() ;
+		if (PARSER_IS_ESP_OR_IKE_OVER_UDP_DEFAULT())
+			str->macros_struct.frame_attribute_flags_3 |= PARSER_IS_ESP_OR_IKE_OVER_UDP_DEFAULT() ;
 		if (PARSER_IS_ESP_OR_IKE_OVER_UDP_PARSING_ERROR_DEFAULT())
 			str->macros_struct.frame_attribute_flags_3 |= PARSER_IS_ESP_OR_IKE_OVER_UDP_PARSING_ERROR_DEFAULT() ;
 		if (PARSER_IS_ISCSI_DEFAULT())
