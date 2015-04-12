@@ -79,48 +79,6 @@ typedef enum mapped_mem_type {
 } e_mapped_mem_type;
 
 /**************************************************************************//**
- @Description   Platform Events
-*//***************************************************************************/
-typedef enum platform_event {
-    E_PLATFORM_EVENT_LINK_DOWN, /**< Link-up event */
-    E_PLATFORM_EVENT_LINK_UP    /**< Link-down event */
-} e_platform_event;
-
-/**************************************************************************//**
- @Description   Interrupt Source Types
-*//***************************************************************************/
-typedef enum interrupt_type {
-    E_INTR_TYPE_GENERAL,
-    E_INTR_TYPE_IRQ,
-    E_INTR_TYPE_IPI,
-    E_INTR_TYPE_MSG,
-    E_INTR_TYPE_ERR,
-    E_INTR_TYPE_GTIMERS_TIMER,
-    E_INTR_TYPE_RTC_COUNT,
-    E_INTR_TYPE_RTC_ALARM,
-    E_INTR_TYPE_PCI_IRQ,
-    E_INTR_TYPE_PCI_PME,
-    E_INTR_TYPE_PCI_MSI,
-    E_INTR_TYPE_ETSEC_TX,
-    E_INTR_TYPE_ETSEC_RX,
-    E_INTR_TYPE_ETSEC_ERROR,
-    E_INTR_TYPE_RIO_PW,
-    E_INTR_TYPE_RIO_DB_OUT,
-    E_INTR_TYPE_RIO_DB_IN,
-    E_INTR_TYPE_RIO_MSG_OUT,
-    E_INTR_TYPE_RIO_MSG_IN,
-    E_INTR_TYPE_QE_LOW,
-    E_INTR_TYPE_QE_HIGH,
-    E_INTR_TYPE_QE_IO_PORTS,
-    E_INTR_TYPE_QE_IRAM_ERR,
-    E_INTR_TYPE_QE_MURAM_ERR,
-    E_INTR_TYPE_QE_RTT,
-    E_INTR_TYPE_QE_SDMA,
-    E_INTR_TYPE_QE_VT,
-    E_INTR_TYPE_QE_EXT_REQ
-} e_interrupt_type;
-
-/**************************************************************************//**
  @Description   Chip Type and Revision Information Structure
 *//***************************************************************************/
 typedef struct t_chip_rev_info {
@@ -153,7 +111,6 @@ typedef struct t_platform_ops {
     int (*f_init_intr_ctrl)      (fsl_handle_t h_platform);
     int (*f_init_soc)            (fsl_handle_t h_platform);  /**< For master partition only */
     int (*f_init_mem_partitions) (fsl_handle_t h_platform);
-    int (*f_init_ipc)            (fsl_handle_t h_platform);
     int (*f_init_console)        (fsl_handle_t h_platform);
     int (*f_init_private)        (fsl_handle_t h_platform);
 
@@ -163,7 +120,6 @@ typedef struct t_platform_ops {
     int (*f_free_intr_ctrl)      (fsl_handle_t h_platform);
     int (*f_free_soc)            (fsl_handle_t h_platform);  /**< For master partition only */
     int (*f_free_mem_partitions) (fsl_handle_t h_platform);
-    int (*f_free_ipc)            (fsl_handle_t h_platform);
     int (*f_free_console)        (fsl_handle_t h_platform);
     int (*f_free_private)        (fsl_handle_t h_platform);
 
@@ -172,27 +128,6 @@ typedef struct t_platform_ops {
     void    (*f_enable_local_irq)      (fsl_handle_t h_platform);
     void    (*f_disable_local_irq)     (fsl_handle_t h_platform);
 } t_platform_ops;
-
-
-/**************************************************************************//**
- @Description   Callback Function Prototype for Link Events
-*//***************************************************************************/
-typedef void (t_platform_link_events_cb)(fsl_handle_t          h_controller,
-                                         uint8_t           link_id,
-                                         e_platform_event   event);
-
-typedef int (t_tx_ipc_port_function)(fsl_handle_t   h_ipc_port,
-                                           uint32_t   queue_id,
-                                           uint8_t    *p_data,
-                                           uint32_t   data_length);
-
-/* this prototype is for rx polling operation */
-typedef int (t_rx_ipc_port_function)(fsl_handle_t   h_ipc_port,
-                                           uint32_t   queue_id);
-
-typedef int (t_rx_conf_ipc_port_function)(fsl_handle_t h_ipc_port,
-                                                uint32_t queue_id,
-                                                uint8_t  *p_buffer);
 
 
 #if defined(MC)
@@ -314,74 +249,6 @@ uint32_t platform_get_controller_clk(fsl_handle_t     h_platform,
                                    uint32_t     id);
 
 /**************************************************************************//**
- @Function      platform_get_interrupt_id
-
- @Description   Gets the platform's interrupt ID of a given controller object.
-
- @Param[in]     h_platform      - Platform object handle.
- @Param[in]     module          - Controller object type (usually a sub-module type)
- @Param[in]     id              - Controller object identifier
- @Param[in]     intr_type        - Interrupt type selection
- @Param[in]     intr_related_id   - Specific ID that may be related to some
-                                  interrupt types
-
- @Return        The interrupt ID of a given controller object;
-                Returns -'1' if not found or on any error.
-*//***************************************************************************/
-int platform_get_interrupt_id(fsl_handle_t        h_platform,
-                            enum fsl_os_module     module,
-                            uint32_t        id,
-                            e_interrupt_type intr_type,
-                            uint32_t        intr_related_id);
-
-#if 0
-/**************************************************************************//**
- @Function      platform_get_transaction_source_name
-
- @Description   Returns the name of a given bus transaction source.
-
- @Param[in]     h_platform  - Platform object handle.
- @Param[in]     trans_src    - The requested transaction source.
-
- @Return        The name (string) of the given transaction source.
-*//***************************************************************************/
-char * platform_get_transaction_source_name(fsl_handle_t h_platform, e_trans_src trans_src);
-
-/**************************************************************************//**
- @Function      platform_get_local_access_window_info
-
- @Description   Retrieves the base address and size of a local access window that
-                is associated with a given controller object.
-
- @Param[in]     h_platform  - Platform object handle.
- @Param[in]     module      - Controller object type (usually a sub-module type)
- @Param[in]     id          - Controller object identifier
- @Param[out]    p_base_addr  - Returns the physical base address of the local access window
- @Param[out]    p_size      - Returns the size of the local access window
-
- @Return        0 on success; Error code otherwise.
-*//***************************************************************************/
-int platform_get_local_access_window_info(fsl_handle_t      h_platform,
-                                          enum fsl_os_module   module,
-                                          uint32_t      id,
-                                          dma_addr_t *p_base_addr,
-                                          uint64_t      *p_size);
-
-/**************************************************************************//**
- @Function      platform_set_led
-
- @Description   Sets a selected LED on the board to on/off state.
-
- @Param[in]     h_platform  - Platform object handle.
- @Param[in]     led         - LED color selection
- @Param[in]     led_on       - '1' to turn the LED on; '0' to turn it off.
-
- @Return        0 on success; Error code otherwise.
-*//***************************************************************************/
-int platform_set_led(fsl_handle_t h_platform, e_led_color led, int led_on);
-#endif /* 0 */
-
-/**************************************************************************//**
  @Function      platform_init_mac_for_mii_access
 
  @Description   Initialize MAC for MII access only.
@@ -403,31 +270,6 @@ int platform_init_mac_for_mii_access(fsl_handle_t h_platform);
  @Return        0 on success; Error code otherwise.
 *//***************************************************************************/
 int platform_free_mac_for_mii_access(fsl_handle_t h_platform);
-
-/**************************************************************************//**
- @Function      platform_connect_external_request
-
- @Description   Connects a specific module of the chip to external request signal.
-                Usually used when firmware is using the external request as an
-                interrupt signal for controlling the block without CPU involved.
-
-@Param[in]      h_platform      - Platform object handle.
-@Param[in]      module          - Controller object type (usually a sub-module type)
-@Param[in]      id              - Controller object identifier
-@Param[in]      intr_type        - Interrupt type selection
-@Param[in]      intr_related_id   - Specific ID that may be related to some
-                                  interrupt types
-@Param[in]      ext_req_num       - External request number.
-
-
- @Return        0 on success; Error code otherwise.
-*//***************************************************************************/
-int platform_connect_external_request(fsl_handle_t            h_platform,
-                                        enum fsl_os_module         module,
-                                        uint32_t            id,
-                                        e_interrupt_type     intr_type,
-                                        uint32_t            intr_related_id,
-                                        uint8_t             ext_req_num);
 
 /**************************************************************************//**
  @Function      platform_enable_console
@@ -491,31 +333,6 @@ int platform_clear_serdes_loopback(fsl_handle_t    h_platform,
  @{
 *//***************************************************************************/
 #include "inc/fsl_sys.h"
-/**************************************************************************//**
- @Function      sys_get_interrupt_id
-
- @Description   Gets the platform's interrupt ID of a given controller object.
-
- @Param[in]     module          - Controller object type (usually a sub-module type)
- @Param[in]     id              - Controller object identifier
- @Param[in]     intr_type        - Interrupt type selection
- @Param[in]     intr_related_id   - Specific ID that may be related to some
-                                  interrupt types
-
- @Return        The interrupt ID of a given controller object;
-                Returns -1 if not found or on any error.
-*//***************************************************************************/
-static __inline__ int sys_get_interrupt_id(enum fsl_os_module        module,
-                                         uint32_t           id,
-                                         e_interrupt_type    intr_type,
-                                         uint32_t           intr_related_id)
-{
-    return platform_get_interrupt_id(sys_get_unique_handle(FSL_OS_MOD_SOC),
-                                   module,
-                                   id,
-                                   intr_type,
-                                   intr_related_id);
-}
 
 /**************************************************************************//**
  @Function      sys_get_controller_clk

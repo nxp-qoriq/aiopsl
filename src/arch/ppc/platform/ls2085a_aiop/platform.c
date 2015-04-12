@@ -632,9 +632,6 @@ __COLD_CODE int platform_init(struct platform_param    *pltfrm_param,
 	pltfrm_ops->f_free_soc              = NULL;
 	pltfrm_ops->f_init_timer            = NULL;
 	pltfrm_ops->f_free_timer            = NULL;
-	pltfrm_ops->f_init_ipc              = NULL;
-	pltfrm_ops->f_free_ipc              = NULL;
-
 	pltfrm_ops->f_init_console          = pltfrm_init_console_cb;
 	pltfrm_ops->f_free_console          = pltfrm_free_console_cb;
 
