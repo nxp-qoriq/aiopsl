@@ -56,16 +56,7 @@
 #define SL_DBG(_level, ...) do {} while(0)
 #define SL_PRINT(...) do {} while(0)
 #else
-#define SL_DBG(_level, ...)                                              \
-	do {                                                             \
-		cdma_mutex_lock_take((uint64_t)fsl_os_print,             \
-		                     CDMA_MUTEX_WRITE_LOCK);             \
-		fsl_os_print("> %s " PRINT_FORMAT ": ",                  \
-		             dbg_level_strings[_level - 1],              \
-		             PRINT_FMT_PARAMS);                          \
-		fsl_os_print(__VA_ARGS__);                               \
-		cdma_mutex_lock_release((uint64_t)fsl_os_print);         \
-	} while (0)
+#define SL_DBG(_level, ...) DBG(_level, __VA_ARGS__)
 
 #define SL_PRINT(...)                                                    \
 	do {                                                             \
