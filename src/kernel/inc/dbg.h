@@ -267,15 +267,17 @@
 /* No need for DBG macro - debug level is higher anyway */
 #define DBG(_level, ...)
 #else
+/*call to print but without mutex*/
+void dbg_print(char *format, ...);
 #define DBG(_level, ...)                                                \
 	do {                                                            \
 		if (_level <= DEBUG_DYNAMIC_LEVEL) {                    \
 			cdma_mutex_lock_take((uint64_t)fsl_os_print,    \
-				CDMA_MUTEX_WRITE_LOCK);                 \
-			fsl_os_print("> %s " PRINT_FORMAT ": ",         \
+				CDMA_MUTEX_WRITE_LOCK);               \
+			dbg_print("> %s " PRINT_FORMAT ": ",         \
 			             dbg_level_strings[_level - 1],     \
 			             PRINT_FMT_PARAMS);                 \
-			fsl_os_print(__VA_ARGS__);                      \
+			dbg_print(__VA_ARGS__);                      \
 			cdma_mutex_lock_release((uint64_t)fsl_os_print);\
 		}                                                       \
 	} while (0)
