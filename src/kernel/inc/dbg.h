@@ -51,6 +51,22 @@
  *//***************************************************************************/
 
 /**************************************************************************//**
+ @Description   Declaration of Halting the core in debug mode.
+
+                se_dnh - Debug Notify Halt
+                Acts as 'se_illegal' if EDBCR0[DNH_EN] is not set.
+*//***************************************************************************/
+#if (!defined(DEBUG_ERRORS) || (DEBUG_ERRORS == 0))
+	#define DEBUG_HALT
+#else
+	#ifdef __KLOCWORK__
+	#define DEBUG_HALT do { } while (1)
+	#else
+	#define DEBUG_HALT asm { se_dnh }
+	#endif /* __KLOCWORK__ */
+#endif /* DEBUG_ERRORS */
+
+/**************************************************************************//**
  @Group         dump_g  Memory and Registers Dump Mechanism
 
  @Description   Macros for dumping memory mapped structures.
