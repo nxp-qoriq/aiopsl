@@ -61,8 +61,6 @@ char * err_type_strings (int err) {
         case (E_NOT_FOUND):             return "resource not found";
         case (E_FULL):                  return "resource is full";
         case (E_EMPTY):                 return "resource is empty";
-        case (E_READ_FAILED):           return "read access failed";
-        case (E_INVALID_FRAME):         return "invalid frame";
         default:
             break;
     }

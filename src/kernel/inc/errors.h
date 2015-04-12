@@ -47,8 +47,6 @@
 #define E_NOT_FOUND           114    /* TODO: obsolete - do not use in new code*/
 #define E_FULL                115    /* TODO: obsolete - do not use in new code*/
 #define E_EMPTY               116    /* TODO: obsolete - do not use in new code*/
-#define E_READ_FAILED         118    /* TODO: obsolete - do not use in new code*/
-#define E_INVALID_FRAME       119    /* TODO: obsolete - do not use in new code*/
 
 #define NO_MSG      ("")
 
@@ -104,13 +102,7 @@ int ERROR_DYNAMIC_LEVEL = ERROR_GLOBAL_LEVEL;
 #define REPORT_ERROR(_level, _err, _vmsg)
 #define RETURN_ERROR(_level, _err, _vmsg) \
         return (_err)
-#define DEBUG_HALT
 #else /* DEBUG_ERRORS > 0 */
-#define DEBUG_HALT asm{se_dnh}
-/*
- * se_dnh - Debug Notify Halt
- * Acts as 'se_illegal' if EDBCR0[DNH_EN] is set
- */
 
 extern const char *dbg_level_strings[];
 extern const char *module_strings[];
