@@ -42,6 +42,49 @@
 #undef DEBUG_ERRORS
 #endif
 
+#ifndef DEBUG_GLOBAL_LEVEL
+#define DEBUG_GLOBAL_LEVEL  REPORT_LEVEL_WARNING
+#endif /* DEBUG_GLOBAL_LEVEL */
+
+#ifndef ERROR_GLOBAL_LEVEL
+#define ERROR_GLOBAL_LEVEL  DEBUG_GLOBAL_LEVEL
+#endif /* ERROR_GLOBAL_LEVEL */
+
+
+#ifndef DEBUG_DYNAMIC_LEVEL
+#define DEBUG_USING_STATIC_LEVEL
+
+#ifdef DEBUG_STATIC_LEVEL
+#define DEBUG_DYNAMIC_LEVEL DEBUG_STATIC_LEVEL
+#else
+#define DEBUG_DYNAMIC_LEVEL DEBUG_GLOBAL_LEVEL
+#endif /* DEBUG_STATIC_LEVEL */
+
+#else /* DEBUG_DYNAMIC_LEVEL */
+#ifdef DEBUG_STATIC_LEVEL
+#error "please use either DEBUG_STATIC_LEVEL or DEBUG_DYNAMIC_LEVEL (not both)"
+#else
+int DEBUG_DYNAMIC_LEVEL = DEBUG_GLOBAL_LEVEL;
+#endif /* DEBUG_STATIC_LEVEL */
+#endif /* !DEBUG_DYNAMIC_LEVEL */
+
+
+#ifndef ERROR_DYNAMIC_LEVEL
+
+#ifdef ERROR_STATIC_LEVEL
+#define ERROR_DYNAMIC_LEVEL ERROR_STATIC_LEVEL
+#else
+#define ERROR_DYNAMIC_LEVEL ERROR_GLOBAL_LEVEL
+#endif /* ERROR_STATIC_LEVEL */
+
+#else /* ERROR_DYNAMIC_LEVEL */
+#ifdef ERROR_STATIC_LEVEL
+#error "please use either ERROR_STATIC_LEVEL or ERROR_DYNAMIC_LEVEL (not both)"
+#else
+int ERROR_DYNAMIC_LEVEL = ERROR_GLOBAL_LEVEL;
+#endif /* ERROR_STATIC_LEVEL */
+#endif /* !ERROR_DYNAMIC_LEVEL */
+
 /**************************************************************************//**
  @Group         gen_g  General Drivers Utilities
 
@@ -267,15 +310,17 @@
 /* No need for DBG macro - debug level is higher anyway */
 #define DBG(_level, ...)
 #else
+/*call to print but without mutex*/
+void dbg_print(char *format, ...);
 #define DBG(_level, ...)                                                \
 	do {                                                            \
 		if (_level <= DEBUG_DYNAMIC_LEVEL) {                    \
 			cdma_mutex_lock_take((uint64_t)fsl_os_print,    \
-				CDMA_MUTEX_WRITE_LOCK);                 \
-			fsl_os_print("> %s " PRINT_FORMAT ": ",         \
+				CDMA_MUTEX_WRITE_LOCK);               \
+			dbg_print("> %s " PRINT_FORMAT ": ",         \
 			             dbg_level_strings[_level - 1],     \
 			             PRINT_FMT_PARAMS);                 \
-			fsl_os_print(__VA_ARGS__);                      \
+			dbg_print(__VA_ARGS__);                      \
 			cdma_mutex_lock_release((uint64_t)fsl_os_print);\
 		}                                                       \
 	} while (0)

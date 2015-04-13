@@ -788,8 +788,48 @@ struct table_lookup_non_default_params {
 };
 #pragma pack(pop)
 
-/** @} */ /* end of FSL_TABLE_STRUCTS */
+#ifdef REV2_RULEID
+/**************************************************************************//**
+@Description	Table Rule ID Descriptor Structure
+*//***************************************************************************/
+#pragma pack(push, 1)
+struct table_rule_id_desc {
+	/** Reserved for compliance with HW format.
+	User should not access this field. */
+	uint64_t reserved;
+	
+	/** Rule ID */
+	uint64_t rule_id;
+};
+#pragma pack(pop)
 
+/**************************************************************************//**
+@Description	Table Rule ID and Result Descriptor Structure
+*//***************************************************************************/
+#pragma pack(push, 1)
+struct table_ruleid_and_result_desc {
+	/** Rule ID Descriptor */
+	struct table_rule_id_desc rule_id_desc;
+
+	/** Reserved for compliance with HW format.
+	User should not access this field. */
+	uint64_t reserved0[3];
+
+	/** Table Rule Options - Please refer to \ref FSL_TABLE_RULE_OPTIONS
+	for more details.*/
+	uint8_t  options;
+
+	/** Reserved for compliance with HW format.
+	User should not access this field. */
+	uint8_t  reserved1[3];
+
+	/** Table Rule Result */
+	struct table_result result;
+};
+#pragma pack(pop)
+#endif //REV2_RULEID
+
+/** @} */ /* end of FSL_TABLE_STRUCTS */
 
 #include "table_inline.h"
 
@@ -1112,7 +1152,7 @@ inline int table_rule_query(enum table_hw_accel_id acc_id,
 @Param[in]	acc_id ID of the Hardware Table Accelerator that contains
 		the table on which the operation will be performed.
 @Param[in]	table_id Table ID.
-@Param[in]	key_desc Key Descriptor of the rule to be queried. The
+@Param[in]	key_desc Key Descriptor of the rule to be deleted. The
 		structure pointed by this pointer must be in the task's
 		workspace and must be aligned to 16B boundary.
 @Param[in]	key_size Key size in bytes. Should be equal to the key size the
@@ -1313,6 +1353,188 @@ int table_lookup_by_keyid(enum table_hw_accel_id acc_id,
 			  struct table_lookup_non_default_params
 				 *ndf_params,
 			  struct table_lookup_result *lookup_result);
+
+#ifdef REV2_RULEID
+/**************************************************************************//**
+@Function	table_get_next_ruleid
+
+@Description	Retrieves the next Rule ID in a given table.
+
+		This functions may be used by applications to iterate over
+		CTLU/MFLU tables. The function returns a Rule ID value which
+		exists in the given table and is equal or greater than the 
+		value that was passed to it.
+		To iterate over a table, application should initially call this
+		function with Rule ID = 0. For subsequent calls, application 
+		should increment by 1 the Rule ID value that was returned in 
+		a previous call and provide it as input to the function.
+		If there is no next Rule ID the function returns a miss and
+		this may be used by application to terminate the table iteration.
+		If the function returns the Rule ID 0xffffffff_ffffffff then this
+		Rule ID exists in the table and it is the last Rule ID.
+
+@Param[in]	acc_id ID of the Hardware Table Accelerator that contains
+		the table on which the operation will be performed.
+@Param[in]	table_id Table ID.
+@Param[in]	rule_id_desc A Rule ID descriptor. The function returns
+		a Rule ID which is equal or greater than the Rule ID within
+		this descriptor. The structure pointed by this pointer must be in
+		the task's workspace and must be aligned to 16B boundary.
+@Param[out]	next_rule_id_desc The next Rule ID descriptor. The structure 
+		pointed by this pointer must be in the task's workspace and must
+		be aligned to 16B boundary.
+
+@Return		0 on success or TABLE_STATUS_MISS if there is no next Rule ID.
+
+@Retval		0 Success.
+@Retval		#TABLE_STATUS_MISS In this table there is no Rule ID value which
+		is equal or greater than the Rule ID value that was passed as input.
+
+@Cautions	In this function the task yields.
+@Cautions	This function may result in a fatal error.
+@Cautions	In case that a rule is added or deleted (by another task) when 
+		this function is called, the Rule ID of the added/deleted rule may
+		or may not be returned by this function.
+*//***************************************************************************/
+int table_get_next_ruleid(enum table_hw_accel_id acc_id,
+			  uint16_t table_id,
+			  struct table_rule_id_desc *rule_id_desc,
+			  struct table_rule_id_desc *next_rule_id_desc);
+
+
+/**************************************************************************//**
+@Function	table_get_key_desc
+
+@Description	Retrieves the key descriptor for a given Rule ID and Table ID
+
+		This functions gets a Rule ID and returns the corresponding
+		Key descriptor. 
+
+@Param[in]	acc_id ID of the Hardware Table Accelerator that contains
+		the table on which the operation will be performed.
+@Param[in]	table_id Table ID.
+@Param[in]	rule_id_desc Rule ID descriptor. The structure pointed by this
+		pointer must be in the task's workspace and must be aligned
+		to 16B boundary.
+@Param[out]	table_key_desc Key descriptor that corresponds to the input 
+		Rule ID. The structure pointed by this pointer must be in the task's 
+		workspace and must be aligned to 16B boundary.
+
+@Return		0 on success or negative value on error.
+
+@Retval		0 Success.
+@Retval		EIO Error, a rule with the same Rule ID is not found
+		in the table.
+
+@Cautions	In this function the task yields.
+@Cautions	This function may result in a fatal error.
+*//***************************************************************************/
+int table_get_key_desc(enum table_hw_accel_id acc_id,
+			  uint16_t table_id,
+			  struct table_rule_id_desc *rule_id_desc,
+			  union table_key_desc *key_desc);
+
+
+/**************************************************************************//**
+@Function	table_rule_replace_by_ruleid
+
+@Description	Replaces a specified rule in the table.
+		\n \n The rule's key is not modifiable. Caller to this function
+		supplies the Rule ID of the rule to be replaced.
+
+@Param[in]	acc_id ID of the Hardware Table Accelerator that contains
+		the table on which the operation will be performed.
+@Param[in]	table_id Table ID.
+@Param[in]	rule Table rule, contains Rule ID and rule result to be
+		replaced. The structure pointed by this pointer must be in the task's 
+		workspace and must be aligned to 16B boundary.
+@Param[in, out]	old_res The result of the replaced rule. If null the replaced
+		rule's result will not be returned. If not null, structure
+		should be allocated by the caller to this function.
+
+@Return		0 on success or negative value on error.
+
+@Retval		0 Success.
+@Retval		EIO Error, a rule with the same Rule ID is not found
+		in the table.
+
+@Cautions	In this function the task yields.
+@Cautions	This function may result in a fatal error.
+*//***************************************************************************/
+int table_rule_replace_by_ruleid(enum table_hw_accel_id acc_id,
+			  uint16_t table_id,
+			  struct table_ruleid_and_result_desc *rule,
+			  struct table_result *old_res);
+
+
+/**************************************************************************//**
+@Function	table_rule_delete_by_ruleid
+
+@Description	Deletes a specified rule in the table.
+
+@Param[in]	acc_id ID of the Hardware Table Accelerator that contains
+		the table on which the operation will be performed.
+@Param[in]	table_id Table ID.
+@Param[in]	rule_id_desc Rule ID of the rule to be deleted. The
+		structure pointed by this pointer must be in the task's
+		workspace and must be aligned to 16B boundary.
+@Param[in, out]	result The result of the deleted rule. If null the deleted
+		rule's result will not be returned. If not null, structure
+		should be allocated by the caller to this function.
+
+@Return		0 on success or negative value on error.
+
+@Retval		0 Success.
+@Retval		EIO Error, a rule with the same Rule ID is not found
+		in the table.
+
+
+@Cautions	In this function the task yields.
+@Cautions	This function may result in a fatal error.
+*//***************************************************************************/
+int table_rule_delete_by_ruleid(enum table_hw_accel_id acc_id,
+		      uint16_t table_id,
+		      struct table_rule_id_desc *rule_id_desc,
+		      struct table_result *result);
+
+
+/**************************************************************************//**
+@Function	table_rule_query_by_ruleid
+
+@Description	Queries a rule in the table.
+		\n \n This function does not update the matched result
+		timestamp.
+
+@Param[in]	acc_id ID of the Hardware Table Accelerator that contains
+		the table on which the query will be performed.
+@Param[in]	table_id Table ID.
+@Param[in]	rule_id_desc Rule ID of the rule to be queried. The
+		structure pointed by this pointer must be in the task's
+		workspace and must be aligned to 16B boundary.
+@Param[out]	result The result of the query. Structure should be allocated
+		by the caller to this function.
+@Param[out]	timestamp Timestamp of the result. Timestamp is not valid
+		unless the rule queried for was created with suitable options
+		(Please refer to \ref FSL_TABLE_RULE_OPTIONS for more
+		details). Must be allocated by the caller to this function.
+
+@Return		0 on success, #TABLE_STATUS_MISS on miss.
+
+@Retval		0 Success.
+@Retval		#TABLE_STATUS_MISS A rule with the same Rule ID is not
+		found in the table.
+
+@Cautions	In this function the task yields.
+@Cautions	This function may result in a fatal error.
+*//***************************************************************************/
+int table_rule_query_by_ruleid(enum table_hw_accel_id acc_id,
+		     uint16_t table_id,
+		     struct table_rule_id_desc *rule_id_desc,
+		     struct table_result *result,
+		     uint32_t *timestamp);
+
+#endif //REV2_RULEID
+
 
 /** @} */ /* end of FSL_TABLE_Functions */
 /** @} */ /* end of FSL_TABLE */
