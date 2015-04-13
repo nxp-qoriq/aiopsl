@@ -1235,9 +1235,10 @@ inline int table_lookup_by_key(enum table_hw_accel_id acc_id,
 @Description	Performs a lookup with a predefined key and the default frame.
 		\n \n In this lookup process a lookup key will be built
 		according to the Key Composition Rule associated with the Key
-		ID supplied as a parameter to this functions. Default frame
-		header (segment), Parse Result address, and FD address
-		parameters are used in the key creation process.
+		ID supplied as a parameter to this functions. The fields order in the
+		key is according to the FECs order in the Key Composition Rule that is
+		related to the keyid. Default frame header (segment), Parse Result
+		address, and FD address parameters are used in the key creation process
 
 		This function updates the matched result timestamp.
 
@@ -1296,9 +1297,11 @@ inline int table_lookup_by_keyid_default_frame(enum table_hw_accel_id acc_id,
 
 		In this lookup process a lookup key will be built according to
 		the Key Composition Rule associated with the Key ID supplied as
-		a parameter to this functions. Frame header (Segment), Parse
-		result, FD address and Metadata can explicitly be passed to
-		this function for the key creation process.
+		a parameter to this functions. The fields order in the key is
+		according to the FECs order in the Key Composition Rule that is 
+		related to the keyid. Frame header (Segment), Parse result,
+		FD address and Metadata can explicitly be passed to this function
+		for the key creation process.
 
 		This function updates the matched result timestamp.
 
