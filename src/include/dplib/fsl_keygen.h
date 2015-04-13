@@ -714,6 +714,8 @@ void keygen_kcr_query(enum keygen_hw_accel_id acc_id,
 @Function	keygen_gen_key
 
 @Description	Extracts a key from a frame and returns it.
+				The fields order in the key is according to the FECs order
+				in the Key Composition Rule that is related to the keyid.
 
 @Param[in]	acc_id - Accelerator ID.
 @Param[in]	keyid - The key ID to be used for the key extraction.
