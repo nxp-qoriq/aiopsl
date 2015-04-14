@@ -355,6 +355,9 @@ int app_init(void)
 		return err;
 	}
 
+    err = dpni_drv_set_max_frame_length(1/*ni_id*/,
+                            0x2000 /* Max frame length*/);
+
 	/* IPsec Initialization */
 	//err = ipsec_app_init(0); /* Call with NI ID = 0 */
 	//if (err) {
