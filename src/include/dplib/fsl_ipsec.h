@@ -137,7 +137,8 @@ typedef void (ipsec_lifetime_callback_t) (
  * This is the 6 most-significant bits of the TOS field (IPv4) or 
  * Traffic-Class field (IPv6).
  * If this flag is not set, the DS field is copied from the inner header to the
- * outer header */ 
+ * outer header.
+ * This flag must not be set for transport mode. */ 
 #define IPSEC_FLG_ENC_DSCP_SET 		0x00000040
 
 /** Lifetime Counters 
