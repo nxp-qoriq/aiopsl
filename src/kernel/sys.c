@@ -132,12 +132,6 @@ __COLD_CODE static int sys_init_platform(void)
 
 	if (is_master_core) {
 		/* Do not change the sequence of calls in this section */
-		if (sys.platform_ops.f_init_ipc) {
-			err = sys.platform_ops.f_init_ipc(
-				sys.platform_ops.h_platform);
-			if (err != 0) return err;
-		}
-
 		if (sys.platform_ops.f_init_mem_partitions) {
 			err = sys.platform_ops.f_init_mem_partitions(
 				sys.platform_ops.h_platform);
@@ -180,10 +174,6 @@ static int sys_free_platform(void)
 
 		if (sys.platform_ops.f_free_mem_partitions)
 			err = sys.platform_ops.f_free_mem_partitions(
-				sys.platform_ops.h_platform);
-
-		if (sys.platform_ops.f_free_ipc)
-			err = sys.platform_ops.f_free_ipc(
 				sys.platform_ops.h_platform);
 
 	}

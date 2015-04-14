@@ -114,10 +114,15 @@ uint16_t aiop_verification_parser(uint32_t asa_seg_addr)
 		struct parser_prp_create_verif_command *pc =
 				(struct parser_prp_create_verif_command *)
 				asa_seg_addr;
+	
+		/* Enforced alignment */
+		struct parse_profile_input parse_profile __attribute__((aligned(16)));
+		
+		fdma_copy_data(KCR_LENGTH,0,(void *)(pc->parse_profile), (void *)(&parse_profile));
 
 		pc->status =
 			parser_profile_create(
-			(struct parse_profile_input *)pc->parse_profile,
+			(struct parse_profile_input *)(&parse_profile),
 			&pc->prpid);
 		*((int32_t *)(pc->parser_status_addr)) = pc->status;
 		str_size = sizeof(struct parser_prp_create_verif_command);
@@ -138,8 +143,12 @@ uint16_t aiop_verification_parser(uint32_t asa_seg_addr)
 		struct parser_prp_query_verif_command *pq =
 				(struct parser_prp_query_verif_command *)
 				asa_seg_addr;
+		/* Enforced alignment */
+		struct parse_profile_input parse_profile __attribute__((aligned(16)));
 
-		parser_profile_query(pq->prpid, &pq->parse_profile);
+		parser_profile_query(pq->prpid, &parse_profile);
+	
+		fdma_copy_data(KCR_LENGTH,0,(void *)(&parse_profile), (void *)(&(pq->parse_profile)));
 
 		str_size = sizeof(struct parser_prp_query_verif_command);
 		break;
@@ -149,9 +158,13 @@ uint16_t aiop_verification_parser(uint32_t asa_seg_addr)
 		struct parser_prp_replace_verif_command *pq =
 				(struct parser_prp_replace_verif_command *)
 				asa_seg_addr;
+		/* Enforced alignment */
+		struct parse_profile_input parse_profile __attribute__((aligned(16)));
+		
+		fdma_copy_data(KCR_LENGTH,0,(void *)(pq->parse_profile), (void *)(&parse_profile));
 
 		parser_profile_replace(
-			(struct parse_profile_input *)pq->parse_profile,
+			(struct parse_profile_input *)(&parse_profile),
 			pq->prpid);
 
 		str_size = sizeof(struct parser_prp_replace_verif_command);
@@ -255,6 +268,14 @@ uint16_t aiop_verification_parser(uint32_t asa_seg_addr)
 	{
 		struct parser_macros_command *str =
 		(struct parser_macros_command *) asa_seg_addr;
+		
+		/* SW parse results */
+		if (PARSER_IS_VXLAN_DEFAULT())
+			str->sw_parse_res.vxlan = (uint8_t)PARSER_IS_VXLAN_DEFAULT();
+		if (PARSER_IS_IKE_OVER_UDP_DEFAULT())
+			str->sw_parse_res.ike= PARSER_IS_IKE_OVER_UDP_DEFAULT() ;
+		if(PARSER_IS_ESP_OVER_UDP_DEFAULT())
+			str->sw_parse_res.esp = PARSER_IS_ESP_OVER_UDP_DEFAULT() ;
 		
 		/* Next header offset */
 		str->macros_struct.nxt_hdr = PARSER_GET_NEXT_HEADER_DEFAULT();
@@ -430,8 +451,8 @@ uint16_t aiop_verification_parser(uint32_t asa_seg_addr)
 			str->macros_struct.frame_attribute_flags_3 |= PARSER_IS_GTP_DEFAULT() ;
 		if (PARSER_IS_GTP_PARSING_ERROR_DEFAULT())
 			str->macros_struct.frame_attribute_flags_3 |= PARSER_IS_GTP_PARSING_ERROR_DEFAULT() ;
-		if (PARSER_IS_IKE_OVER_UDP_DEFAULT())
-			str->macros_struct.frame_attribute_flags_3 |= PARSER_IS_IKE_OVER_UDP_DEFAULT() ;
+		if (PARSER_IS_ESP_OR_IKE_OVER_UDP_DEFAULT())
+			str->macros_struct.frame_attribute_flags_3 |= PARSER_IS_ESP_OR_IKE_OVER_UDP_DEFAULT() ;
 		if (PARSER_IS_ESP_OR_IKE_OVER_UDP_PARSING_ERROR_DEFAULT())
 			str->macros_struct.frame_attribute_flags_3 |= PARSER_IS_ESP_OR_IKE_OVER_UDP_PARSING_ERROR_DEFAULT() ;
 		if (PARSER_IS_ISCSI_DEFAULT())

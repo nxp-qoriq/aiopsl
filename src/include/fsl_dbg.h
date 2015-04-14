@@ -57,10 +57,6 @@
 
                 The level description refers to errors only.
                 For events, classification is done by the user.
-
-                The TRACE, INFO and WARNING levels are allowed only when using
-                the DBG macro, and are not allowed when using the error macros
-                (RETURN_ERROR or REPORT_ERROR).
  @{
 *//***************************************************************************/
 #define REPORT_LEVEL_CRITICAL   1       /**< Crasher: Incorrect flow, NULL pointers/handles. */

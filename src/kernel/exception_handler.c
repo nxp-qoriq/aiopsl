@@ -29,6 +29,7 @@
 #include "fsl_dbg.h"
 #include <string.h>
 
+extern __TASK uint32_t exception_flag;
 
 #pragma stackinfo_ignore on
 
@@ -37,12 +38,24 @@ void exception_handler(char *filename,
 		       uint32_t line,
 		       char *message) __attribute__ ((noreturn))
 {
+	
+	if (exception_flag > 0){
+		exception_flag = 0;
+		fdma_terminate_task();
+		exit(-1);/* TODO This code is never reached and should be
+		        removed once fdma_terminate_task() is declared as noreturn */
+	}
+	else
+		exception_flag = 1;
+	
 	filename = strrchr(filename, '/') ?
 			strrchr(filename, '/') + 1 : filename;
+
 	pr_err("Fatal error encountered in file: %s, line: %d\n", filename, line);
 	pr_err("function: %s\n", function_name);
-	pr_err("exception error: %s\n", message);
+	pr_err("error: %s\n", message);
 
+	exception_flag = 0;
 	fdma_terminate_task();
 	exit(-1); /* TODO This code is never reached and should be removed once
 	fdma_terminate_task() is declared as noreturn*/
