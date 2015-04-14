@@ -122,7 +122,7 @@ int ipr_init(void)
 				NULL , &kb);
 	keygen_kcr_builder_add_protocol_specific_field(KEYGEN_KCR_IPID_1_FECID,
 					NULL , &kb);
-	keygen_kcr_create(KEYGEN_ACCEL_ID_CTLU,
+	status = keygen_kcr_create(KEYGEN_ACCEL_ID_CTLU,
 			  kb.kcr,
 			  &ipr_key_id);
 	ipr_global_parameters1.ipr_key_id_ipv6 = ipr_key_id;

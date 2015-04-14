@@ -46,7 +46,7 @@
 /**************************************************************************//**
  @Description	Macro to use debug prints from service layer. Same as pr_debug(),
 		pr_info() but only for service layer developers.
- 	 	The users will not see those prints. In order to enable them 
+ 	 	The users will not see those prints. In order to enable them
  	 	recompile the service layer library with SL_DEBUG.
 
  @Param[in]     _level - printing level (TRACE / MAJOR)
@@ -56,13 +56,7 @@
 #define SL_DBG(_level, ...) do {} while(0)
 #define SL_PRINT(...) do {} while(0)
 #else
-#define SL_DBG(_level, ...)                                              \
-	do {                                                             \
-		fsl_os_print("> %s " PRINT_FORMAT ": ",                  \
-		             dbg_level_strings[_level - 1],              \
-		             PRINT_FMT_PARAMS);                          \
-		fsl_os_print(__VA_ARGS__);                               \
-	} while (0)
+#define SL_DBG(_level, ...) DBG(_level, __VA_ARGS__)
 
 #define SL_PRINT(...)                                                    \
 	do {                                                             \
@@ -82,7 +76,7 @@
  @Function      sl_pr_debug(...)
 
  @Description	Same as pr_debug() but only for service layer developers.
- 	 	The users will not see those prints. In order to enable them 
+ 	 	The users will not see those prints. In order to enable them
  	 	recompile the service layer library with SL_DEBUG.
 
  @Param[in]     ... string with arguments to print.
@@ -93,7 +87,7 @@
  @Function      sl_pr_err(...)
 
  @Description   Same as pr_err() but only for service layer developers
-  	 	The users will not see those prints. In order to enable them 
+  	 	The users will not see those prints. In order to enable them
  	 	recompile the service layer library with SL_DEBUG.
 
  @Param[in]     ... string with arguments to print.
@@ -104,7 +98,7 @@
  @Function      sl_os_print(...)
 
  @Description   Same as fsl_os_print() but only for service layer developers
- 	 	The users will not see those prints. In order to enable them 
+ 	 	The users will not see those prints. In order to enable them
  	 	recompile the service layer library with SL_DEBUG.
  	 	The print recovers Accelerator Hardware Context and restore
 		after the print.
@@ -117,7 +111,7 @@
  @Function      no_stack_pr_debug(...)
 
  @Description	Same as pr_debug() but only for service layer developers.
- 	 	Stack estimation test with STACK_CHECK defined 
+ 	 	Stack estimation test with STACK_CHECK defined
  	 	will not see those prints.
 
  @Param[in]     ... string with arguments to print.
@@ -128,7 +122,7 @@
  @Function      no_stack_pr_err(...)
 
  @Description   Same as pr_err() but only for service layer developers
- 	 	Stack estimation test with STACK_CHECK defined 
+ 	 	Stack estimation test with STACK_CHECK defined
  	 	will not see those prints.
 
  @Param[in]     ... string with arguments to print.

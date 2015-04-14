@@ -36,12 +36,15 @@
 #include "fsl_log.h"
 
 __TASK uint32_t seed_32bit;
+__TASK uint32_t exception_flag;
 
 #define __ERR_MODULE__ MODULE_UNKNOWN
 
 #define MAX_UDELAY   50000000
 
 #define SIGN	2
+
+#define PRINT_LOCK 1
 
 #define BUF_SIZE           1024  /*used for print in boot mode*/
 #define RUNTIME_BUF_SIZE   80    /*used for print in runtime mode*/
@@ -51,35 +54,70 @@ static const char* digits="0123456789abcdef";
 static int vsnprintf_lite(char *buf, size_t size, const char *fmt, va_list args);
 static char *number(char *str, uint64_t num, uint8_t base, uint8_t type, size_t *max_size, uint8_t fix_size);
 static void fsl_os_print_boot(const char *format, va_list args);
-/*****************************************************************************/
-__declspec(noreturn) void fsl_os_exit(int status)
-{
-    exit(status);
-}
+
 
 /*****************************************************************************/
-void fsl_os_print(char *format, ...)
+
+inline void os_print( const char *format, va_list args, int lock)
 {
-	va_list args;
 	char    tmp_buf[RUNTIME_BUF_SIZE + LOG_END_SIGN_LENGTH];
 
-	va_start(args, format);
+
 	if(sys.runtime_flag){
 		vsnprintf_lite(tmp_buf, RUNTIME_BUF_SIZE, format, args);
 		va_end(args);
+		/*
+		 * increment exception counter to avoid printing in exception handler
+		 * in case we will get exception during the print
+		 * */
+		exception_flag += 1;
+		
+		if(lock == PRINT_LOCK)
+			cdma_mutex_lock_take((uint64_t)fsl_os_print, CDMA_MUTEX_WRITE_LOCK);
 		sys_print(tmp_buf);
+		if(lock == PRINT_LOCK)
+			cdma_mutex_lock_release((uint64_t)fsl_os_print);
+		/* decrement exception counter */
+		exception_flag -= 1;
 	}
 #ifndef STACK_CHECK
-	else
+	else{
+		if(lock == PRINT_LOCK)
+			cdma_mutex_lock_take((uint64_t)fsl_os_print, CDMA_MUTEX_WRITE_LOCK);
 		fsl_os_print_boot(format, args);
+		if(lock == PRINT_LOCK)
+			cdma_mutex_lock_release((uint64_t)fsl_os_print);
+	}
 #endif
+}
+
+
+void fsl_os_print(char *format, ...)
+{
+	va_list args;
+	va_start(args, format);
+	os_print(format,  args, PRINT_LOCK);
+}
+
+void dbg_print(char *format, ...)
+{
+	va_list args;
+	va_start(args, format);
+	os_print(format,  args, 0);
 }
 
 __COLD_CODE static void fsl_os_print_boot(const char *format, va_list args){
 	char    tmp_buf[BUF_SIZE + LOG_END_SIGN_LENGTH];
 	vsnprintf(tmp_buf, BUF_SIZE, format, args);
 	va_end(args);
+	/*
+	 * increment exception counter to avoid printing in exception handler
+	 * in case we will get exception during the print
+	 * */
+	exception_flag += 1;
 	sys_print(tmp_buf);
+	/* decrement exception counter */
+	exception_flag -= 1;
 }
 
 
@@ -169,12 +207,12 @@ static int vsnprintf_lite(char *buf, size_t size, const char *fmt, va_list args)
 
 		default: /*special inputs are not supported*/
 			if(size){
-			*str++ = '%';
-			size--;
+				*str++ = '%';
+				size--;
 			}
 			if(size){
-			*str++ = *fmt;
-			size--;
+				*str++ = *fmt;
+				size--;
 			}
 			continue;
 		}
@@ -256,7 +294,7 @@ static char *number(char *str, uint64_t num, uint8_t base, uint8_t type, size_t 
 uint32_t fsl_os_rand(void)
 {
 	seed_32bit = (seed_32bit>>1) ^ (-(seed_32bit & 1LL) &
-			0xFBE16801);
+		0xFBE16801);
 
 	return seed_32bit;
 }
@@ -269,14 +307,14 @@ void lock_spinlock(register uint8_t *spinlock)
 	register uint8_t temp1;
 	register uint8_t temp2;
 	asm{
-/* Address is in r3, new value (non zero) in r4 and old in r5 */
-	li	temp1, 1		/* prepare non-zero value */
-spinlock_loop :
-	lbarx	temp2, 0, spinlock	/* load and reserve */
-	cmpwi	temp2, 0		/* check loaded value */
-	bne -	spinlock_loop	/* not equal to 0 - already set */
-	stbcx.	temp1, 0, spinlock	/* try to store non-zero */
-	bne -	spinlock_loop		/* lost reservation */
+		/* Address is in r3, new value (non zero) in r4 and old in r5 */
+		li	temp1, 1		/* prepare non-zero value */
+		spinlock_loop :
+		lbarx	temp2, 0, spinlock	/* load and reserve */
+		cmpwi	temp2, 0		/* check loaded value */
+		bne -	spinlock_loop	/* not equal to 0 - already set */
+		stbcx.	temp1, 0, spinlock	/* try to store non-zero */
+		bne -	spinlock_loop		/* lost reservation */
 	}
 }
 
@@ -297,7 +335,7 @@ spinlock_loop:
 } */
 
 void unlock_spinlock(
-		uint8_t *spinlock) {
+	uint8_t *spinlock) {
 	*spinlock = 0;
 }
 
@@ -306,17 +344,17 @@ void unlock_spinlock(
  *            Using the relevant Core instructions:
  *            lbarx, lharx, lwarx,
  *            stbcx., sthcx., stwcx.
-***************************************************************************/
+ ***************************************************************************/
 /***************************************************************************
  * atomic_incr8
-***************************************************************************/
+ ***************************************************************************/
 void atomic_incr8(register int8_t *var, register int8_t value)
 {
 
 	register int8_t orig_value;
 	register int8_t new_value;
 	asm{
-atomic_loop:
+		atomic_loop:
 		/* load and reserve. "var" is the address of the byte */
 		lbarx orig_value, 0, var
 		/* increment word. "value" is the value to add */
@@ -328,14 +366,14 @@ atomic_loop:
 
 /***************************************************************************
  * atomic_incr16
-***************************************************************************/
+ ***************************************************************************/
 void atomic_incr16(register int16_t *var, register int16_t value)
 {
 
 	register int16_t orig_value;
 	register int16_t new_value;
 	asm{
-atomic_loop:
+		atomic_loop:
 		/* load and reserve. "var" is the address of the half-word */
 		lharx orig_value, 0, var
 		/* increment word. "value" is the value to add */
@@ -352,23 +390,23 @@ void atomic_incr32(register int32_t *var, register int32_t value)
 {
 
 	/* Fetch and Add
-	* The "Fetch and Add" primitive atomically increments a word in storage.
-	* In this example it is assumed that the address of the word
-	* to be incremented is in GPR 3, the increment is in GPR 4,
-	* and the old value is returned in GPR 5.
-	*
-	* Original Example from doc:
-	* loop:
-	* lwarx r5,0,r3 #load and reserve
-	* add r0,r4,r5#increment word
-	* stwcx. r0,0,r3 #store new value if still reserved
-	* bne- loop #loop if lost reservation
-	*/
+	 * The "Fetch and Add" primitive atomically increments a word in storage.
+	 * In this example it is assumed that the address of the word
+	 * to be incremented is in GPR 3, the increment is in GPR 4,
+	 * and the old value is returned in GPR 5.
+	 *
+	 * Original Example from doc:
+	 * loop:
+	 * lwarx r5,0,r3 #load and reserve
+	 * add r0,r4,r5#increment word
+	 * stwcx. r0,0,r3 #store new value if still reserved
+	 * bne- loop #loop if lost reservation
+	 */
 
 	register int32_t orig_value;
 	register int32_t new_value;
 	asm{
-atomic_loop:
+		atomic_loop:
 		/* load and reserve. "var" is the address of the word */
 		lwarx orig_value, 0, var
 		/* increment word. "value" is the value to add */
@@ -388,7 +426,7 @@ void atomic_decr8(register int8_t *var, register int8_t value)
 	register int8_t new_value;
 
 	asm{
-atomic_loop:
+		atomic_loop:
 		/* load and reserve. "var" is the address of the byte */
 		lbarx orig_value, 0, var
 		/* subtract word. "value" is the value to decrement */
@@ -408,7 +446,7 @@ void atomic_decr16(register int16_t *var, register int16_t value)
 	register int16_t new_value;
 
 	asm{
-atomic_loop:
+		atomic_loop:
 		/* load and reserve. "var" is the address of the half-word */
 		lharx orig_value, 0, var
 		/* subtract word. "value" is the value to decrement */
@@ -428,7 +466,7 @@ void atomic_decr32(register int32_t *var, register int32_t value)
 	register int32_t new_value;
 
 	asm{
-atomic_loop:
+		atomic_loop:
 		/* load and reserve. "var" is the address of the word */
 		lwarx orig_value, 0, var
 		/* subtract word. "value" is the value to decrement */
@@ -451,16 +489,16 @@ void *fsl_os_xmalloc_debug(size_t size,
 
 
 #define fsl_os_malloc(sz) \
-    fsl_os_malloc_debug((sz), __FILE__, __LINE__)
+	fsl_os_malloc_debug((sz), __FILE__, __LINE__)
 
 #define fsl_os_xmalloc(sz, memt, al) \
-   fsl_os_xmalloc_debug((sz), (memt), (al), __FILE__, __LINE__)
+	fsl_os_xmalloc_debug((sz), (memt), (al), __FILE__, __LINE__)
 
 
 /*****************************************************************************/
 void * fsl_os_malloc_debug(size_t size, char *fname, int line)
 {
-    return sys_mem_alloc(size, 0, "", fname, line);
+	return sys_mem_alloc(size, 0, "", fname, line);
 }
 
 /*****************************************************************************/
@@ -499,7 +537,7 @@ void * fsl_os_malloc(size_t size)
 #else
 void * fsl_os_malloc(size_t size)
 {
-    return sys_mem_alloc(size, 0, "", "", 0);
+	return sys_mem_alloc(size, 0, "", "", 0);
 }
 #endif
 
@@ -513,7 +551,7 @@ void *fsl_os_xmalloc(size_t size, int partition_id, uint32_t alignment)
 #else
 void *fsl_os_xmalloc(size_t size, int partition_id, uint32_t alignment)
 {
-    return sys_mem_xalloc(partition_id, size, alignment, "", "", 0);
+	return sys_mem_xalloc(partition_id, size, alignment, "", "", 0);
 }
 #endif
 
@@ -521,13 +559,13 @@ void *fsl_os_xmalloc(size_t size, int partition_id, uint32_t alignment)
 /*****************************************************************************/
 void fsl_os_free(void *p_memory)
 {
-    sys_mem_free(p_memory);
+	sys_mem_free(p_memory);
 }
 
 /*****************************************************************************/
 void fsl_os_xfree(void *p_memory)
 {
-    sys_mem_xfree(p_memory);
+	sys_mem_xfree(p_memory);
 }
 #endif
 /*****************************************************************************/
@@ -539,7 +577,7 @@ int fsl_os_get_mem(uint64_t size, int mem_partition_id, uint64_t alignment,
 /*****************************************************************************/
 void fsl_os_put_mem(uint64_t paddr)
 {
-    sys_put_phys_mem(paddr);
+	sys_put_phys_mem(paddr);
 }
 
 
@@ -550,20 +588,20 @@ void fsl_os_put_mem(uint64_t paddr)
 
 uint32_t fsl_os_current_time(void)
 {
-    REPORT_ERROR(MINOR, ENOTSUP, ("Timer!"));
+    pr_warn("Timer!");
     return 0;
 }
 
 fsl_handle_t fsl_os_create_timer(void)
 {
-    REPORT_ERROR(MINOR, ENOTSUP, ("Timer!"));
+    pr_warn("Timer!");
     return NULL;
 }
 
 void fsl_os_free_timer(fsl_handle_t tmr)
 {
     UNUSED (tmr);
-    REPORT_ERROR(MINOR, ENOTSUP, ("Timer!"));
+    pr_warn("Timer!");
 }
 
 int fsl_os_start_timer(fsl_handle_t   tmr,
@@ -577,33 +615,33 @@ int fsl_os_start_timer(fsl_handle_t   tmr,
     UNUSED (msecs);
     UNUSED (periodic);
     UNUSED (tmr);
-    REPORT_ERROR(MINOR, ENOTSUP, ("Timer!"));
+    pr_warn("Timer!");
     return 0;
 }
 
 void fsl_os_stop_timer(fsl_handle_t tmr)
 {
     UNUSED (tmr);
-    REPORT_ERROR(MINOR, ENOTSUP, ("Timer!"));
+    pr_warn("Timer!");
 }
 
 void fsl_os_mod_timer(fsl_handle_t tmr, uint32_t msecs)
 {
     UNUSED (tmr);
     UNUSED (msecs);
-    REPORT_ERROR(MINOR, ENOTSUP, ("Timer!"));
+    pr_warn("Timer!");
 }
 
 void fsl_os_udelay(uint32_t usecs)
 {
     UNUSED (usecs);
-    REPORT_ERROR(MINOR, ENOTSUP, ("Timer!"));
+    pr_warn("Timer!");
 }
 
 uint32_t fsl_os_sleep(uint32_t msecs)
 {
     UNUSED (msecs);
-    REPORT_ERROR(MINOR, ENOTSUP, ("Timer!"));
+    pr_warn("Timer!");
     return 0;
 }
 #endif

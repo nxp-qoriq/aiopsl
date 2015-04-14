@@ -112,6 +112,18 @@ enum parser_verif_cmd_type {
 
 #define  PARSER_GEN_PARSE_RES_BASIC_STR ((PARSE_MODULE << 16) | \
 		PARSER_GEN_PARSE_RES_BASIC_VERIF_CMDTYPE)
+
+
+/**************************************************************************//**
+@Description	Software Parse Result  structure.
+		
+*//***************************************************************************/
+struct sw_parse_result{
+	uint8_t vxlan;
+	uint8_t esp;
+	uint8_t ike;
+};
+
 /**************************************************************************//**
 @Description	Parser verification init gross running sum Command structure.
 
@@ -273,6 +285,7 @@ struct parser_prp_id_pool_create_verif_command {
 struct parser_macros_command {
 	uint32_t             opcode;
 	struct parse_result  macros_struct;
+	struct sw_parse_result sw_parse_res;
 };
 
 /**************************************************************************//**

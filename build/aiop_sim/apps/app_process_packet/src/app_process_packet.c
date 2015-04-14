@@ -38,7 +38,7 @@ int app_early_init(void);
 int app_init(void);
 void app_free(void);
 
-__declspec(entry_point) static void app_process_packet_flow0 (void)
+__HOT_CODE ENTRY_POINT static void app_process_packet(void)
 {
 	int      err = 0;
 	int local_test_error = 0;
@@ -55,31 +55,33 @@ __declspec(entry_point) static void app_process_packet_flow0 (void)
 
 	if (PARSER_IS_OUTER_IPV4_DEFAULT())
 	{
-		fsl_os_print
-		("app_process_packet: Received packet with ipv4 header:\n");
 		ipv4hdr_offset = (uint16_t)PARSER_GET_OUTER_IP_OFFSET_DEFAULT();
 		p_ipv4hdr = (uint8_t *) PRC_GET_SEGMENT_ADDRESS() + ipv4hdr_offset ;
 
 		ipv4header = (struct ipv4hdr *)p_ipv4hdr;
 		ipv4hdr_length = (uint16_t)((ipv4header->vsn_and_ihl & 0x0F) << 2);
-		for( int i = 0; i < ipv4hdr_length; i++)
-		{
-			fsl_os_print(" %x",p_ipv4hdr[i]);
-		}
-		fsl_os_print("\n");
+
+		pr_info("Received packet with ipv4 header:\n");
+		pr_info("%08x %08x %08x %08x %08x\n",
+		        ((uint32_t*)p_ipv4hdr)[0], 
+		        ((uint32_t*)p_ipv4hdr)[1],
+		        ((uint32_t*)p_ipv4hdr)[2],
+		        ((uint32_t*)p_ipv4hdr)[3],
+		        ((uint32_t*)p_ipv4hdr)[4]);
+
 
 		dst_addr = ipv4header->dst_addr;
 		/*for reflection when switching between src and dst IP the checksum remains the same*/
 		err = ip_set_nw_dst(ipv4header->src_addr);
 		if (err) {
-			fsl_os_print("ERROR = %d: ip_set_nw_dst(src_addr)\n", err);
+			pr_warn("ERROR = %d: ip_set_nw_dst(src_addr)\n", err);
 			local_test_error |= err;
-	}
+		}
 		err = ip_set_nw_src(dst_addr);
-	if (err) {
-			fsl_os_print("ERROR = %d: ip_set_nw_src(dst_addr)\n", err);
-		local_test_error |= err;
-	}
+		if (err) {
+			pr_warn("ERROR = %d: ip_set_nw_src(dst_addr)\n", err);
+			local_test_error |= err;
+		}
 	}
 
 	ni_id = (uint16_t)dpni_get_receive_niid();
@@ -92,18 +94,19 @@ __declspec(entry_point) static void app_process_packet_flow0 (void)
 
 	if (!local_test_error && PARSER_IS_OUTER_IPV4_DEFAULT())
 	{
-		fsl_os_print
-		("app_process_packet: Will send a modified packet with ipv4 header:\n");
-		for( int i = 0; i < ipv4hdr_length; i++)
-		{
-			fsl_os_print(" %x",p_ipv4hdr[i]);
-		}
-		fsl_os_print("\n");
+		pr_info("Will send a modified packet with ipv4 header:\n");
+		pr_info("%08x %08x %08x %08x %08x\n",
+		        ((uint32_t*)p_ipv4hdr)[0], 
+		        ((uint32_t*)p_ipv4hdr)[1],
+		        ((uint32_t*)p_ipv4hdr)[2],
+		        ((uint32_t*)p_ipv4hdr)[3],
+		        ((uint32_t*)p_ipv4hdr)[4]);
+
 	}
 	osm_scope_transition_to_exclusive_with_increment_scope_id();
 	err = dpni_drv_send(ni_id);
 	if (err){
-		fsl_os_print("ERROR = %d: dpni_drv_send(ni_id)\n",err);
+		pr_warn("ERROR = %d: dpni_drv_send(ni_id)\n",err);
 		local_test_error |= err;
 		if(err == -ENOMEM)
 			fdma_discard_default_frame(FDMA_DIS_NO_FLAGS);
@@ -112,9 +115,9 @@ __declspec(entry_point) static void app_process_packet_flow0 (void)
 	}
 
 	if(!local_test_error) /*No error found during injection of packets*/
-		fsl_os_print("Finished SUCCESSFULLY\n");
+		pr_info("Finished SUCCESSFULLY\n");
 	else
-		fsl_os_print("Finished with ERRORS\n");
+		pr_warn("Finished with ERRORS\n");
 	/*MUST call fdma_terminate task in the end of cb function*/
 	fdma_terminate_task();
 }
@@ -124,20 +127,20 @@ int app_init(void)
 	int        err  = 0;
 	uint32_t   ni;
 
-	fsl_os_print("Running app_init()\n");
+	pr_info("Running app_init()\n");
 
 	for (ni = 0; ni < dpni_drv_get_num_of_nis(); ni++)
 	{
 
 		err = dpni_drv_register_rx_cb((uint16_t)ni/*ni_id*/,
-				app_process_packet_flow0);
+		                              app_process_packet);
 
 		if (err)
 			return err;
 	}
 
 
-	fsl_os_print("To start test inject packets: \"app_process_packet.pcap\" after AIOP boot complete.\n");
+	pr_info("To start test inject packets: \"app_process_packet.pcap\" after AIOP boot complete.\n");
 
 	return 0;
 }

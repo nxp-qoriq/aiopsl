@@ -46,6 +46,16 @@
 *//***************************************************************************/
 
 /**************************************************************************//**
+ @Group		DPNI_DRV_ORDER_SCOPE order scope options
+
+ @Description	Set initial order scope to "No order scope".
+
+ @{
+*//***************************************************************************/
+#define DPNI_DRV_NO_ORDER_SCOPE 0
+/** @} end of group DPNI_DRV_ORDER_SCOPE */
+
+/**************************************************************************//**
  @Group		DPNI_DRV_LINK_OPT link options
 
  @Description	Available options to determine dpni link state.
@@ -369,10 +379,10 @@ inline int sl_prolog(void);
 /**************************************************************************//**
 @Function	sl_tman_expiration_task_prolog
 
-@Description	Network Interface SL tman expiration task prolog function. 
-		This function initialize into WS the ICID as taken from the 
+@Description	Network Interface SL tman expiration task prolog function.
+		This function initialize into WS the ICID as taken from the
 		SPID and clear starting HXS and PRPID.
-		It should be called from the beginning of user's timer 
+		It should be called from the beginning of user's timer
 		expiration call-back function to assure that fdma create and
 		fdma store functions will work properly.
 
@@ -536,6 +546,7 @@ int dpni_drv_set_exclusive(uint16_t ni_id);
 
 @Param[in]	key_cfg   A structure for defining a full Key Generation
  		profile (rule)
+ 		To disable order scope refer to \ref DPNI_DRV_ORDER_SCOPE
 @Cautions	This method should be called in boot mode only.
 
 

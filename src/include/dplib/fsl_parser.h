@@ -272,8 +272,8 @@ extern __TASK struct aiop_default_task_params default_task_params;
 #define PARSER_ATT_L4_UNKOWN_PROTOCOL_MASK          0x00000400
 	/** "GTP" mask for frame_attribute_flags_3 */
 #define PARSER_ATT_GTP_MASK                         0x00000100
-	/** "ESP" mask for frame_attribute_flags_3 */
-#define PARSER_ATT_ESP_MASK                         0x00000040
+	/** "ESP or IKE over UDP" mask for frame_attribute_flags_3 */
+#define PARSER_ATT_ESP_OR_IKE_OVER_UDP_MASK         0x00000040
 	/** "iSCSI" mask for frame_attribute_flags_3 */
 #define PARSER_ATT_ISCSI_MASK                       0x00000010
 	/** "Capwap control" mask for frame_attribute_flags_3 */
@@ -312,8 +312,8 @@ extern __TASK struct aiop_default_task_params default_task_params;
 #define PARSER_ATT_L4_SOFT_PARSING_ERROR_MASK       0x00000200
 	/** "GTP parsing error" mask for frame_attribute_flags_3 */
 #define PARSER_ATT_GTP_PARSING_ERROR_MASK           0x00000080
-	/** "ESP parsing error" mask for frame_attribute_flags_3 */
-#define PARSER_ATT_ESP_PARSING_ERROR_MASK           0x00000020
+	/** "ESP or IKE over UDP parsing error" mask for frame_attribute_flags_3 */
+#define PARSER_ATT_ESP_OR_IKE_OVER_UDP_PARSING_ERROR_MASK  0x00000020
 	/** "L5 soft parsing error" mask for frame_attribute_flags_3 */
 #define PARSER_ATT_L5_SOFT_PARSING_ERROR_MASK       0x00000002
 
@@ -513,10 +513,10 @@ extern __TASK struct aiop_default_task_params default_task_params;
 #define PARSER_IS_GTP_PARSING_ERROR_DEFAULT() \
 	(((struct parse_result *)HWC_PARSE_RES_ADDRESS)-> \
 	frame_attribute_flags_3 & PARSER_ATT_GTP_PARSING_ERROR_MASK)
-/** Returns a non-zero value in case of ESP parsing error */
-#define PARSER_IS_ESP_PARSING_ERROR_DEFAULT() \
+/** Returns a non-zero value in case of ESP or IKE parsing error */
+#define PARSER_IS_ESP_OR_IKE_OVER_UDP_PARSING_ERROR_DEFAULT() \
 	(((struct parse_result *)HWC_PARSE_RES_ADDRESS)-> \
-	frame_attribute_flags_3 & PARSER_ATT_ESP_PARSING_ERROR_MASK)
+	frame_attribute_flags_3 & PARSER_ATT_ESP_OR_IKE_OVER_UDP_PARSING_ERROR_MASK)
 /** Returns a non-zero value in case of L5 soft parsing error
  * (can be either error in shim or in hard HXS Soft Sequence Attachment) */
 #define PARSER_IS_L5_SOFT_PARSING_ERROR_DEFAULT() \
@@ -818,10 +818,20 @@ extern __TASK struct aiop_default_task_params default_task_params;
 #define PARSER_IS_GTP_DEFAULT() \
 	(((struct parse_result *)HWC_PARSE_RES_ADDRESS)-> \
 	frame_attribute_flags_3 & PARSER_ATT_GTP_MASK)
-/** Returns a non-zero value in case ESP is found */
-#define PARSER_IS_ESP_DEFAULT() \
+/** Returns a non-zero value in case ESP or IKE over UDP is found */
+#define PARSER_IS_ESP_OR_IKE_OVER_UDP_DEFAULT() \
 	(((struct parse_result *)HWC_PARSE_RES_ADDRESS)-> \
-	frame_attribute_flags_3 & PARSER_ATT_ESP_MASK)
+	frame_attribute_flags_3 & PARSER_ATT_ESP_OR_IKE_OVER_UDP_MASK)
+/** Returns a non-zero value in case IKE over UDP is found */
+#define PARSER_IS_IKE_OVER_UDP_DEFAULT() \
+		((PARSER_IS_ESP_OR_IKE_OVER_UDP_DEFAULT() && \
+		(*((uint32_t *)(PARSER_GET_L5_POINTER_DEFAULT())) == 0)) \
+		? (1) : (0))
+/** Returns a non-zero value in case ESP over UDP is found */
+#define PARSER_IS_ESP_OVER_UDP_DEFAULT() \
+		((PARSER_IS_ESP_OR_IKE_OVER_UDP_DEFAULT() && \
+		(*((uint32_t *)(PARSER_GET_L5_POINTER_DEFAULT())) == 0)) \
+		? (0) : (1))
 /** Returns a non-zero value in case iSCSI is found */
 #define PARSER_IS_ISCSI_DEFAULT() \
 	(((struct parse_result *)HWC_PARSE_RES_ADDRESS)-> \
@@ -844,7 +854,7 @@ extern __TASK struct aiop_default_task_params default_task_params;
 	frame_attribute_flags_extension & PARSER_ATT_IPV6_ROUTING_HDR_2)
 /** Returns a non-zero value in case VxLAN is found */
 #define PARSER_IS_VXLAN_DEFAULT() (PARSER_IS_UDP_DEFAULT() && \
-		((*((uint16_t *)(PARSER_GET_L4_POINTER_DEFAULT() + 2)) == 4789)) \
+		((*((uint16_t *)((uint32_t)PARSER_GET_L4_POINTER_DEFAULT() + 2)) == 4789)) \
 		? (1) : (0))
 
 /** @} */ /* end of FSL_PARSER_PR_QUERIES */

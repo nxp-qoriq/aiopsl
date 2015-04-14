@@ -106,9 +106,9 @@ void sys_shram_free(void *mem)
 	ASSERT_COND(sys.mem_mng);
 	 if (partition_id == SYS_DEFAULT_HEAP_PARTITION)
 	 {
-	        RETURN_ERROR(MAJOR, EDOM,
-	                     ("partition ID %d is reserved for default heap",
-	                      SYS_DEFAULT_HEAP_PARTITION));
+	        pr_err("MAJOR invalid value: partition ID %d is reserved for default "
+                    "heap\n",SYS_DEFAULT_HEAP_PARTITION);
+	        return -EDOM;
 	 }
 	 err_code = mem_mng_register_phys_addr_alloc_partition(sys.mem_mng,
 	                                         partition_id,
@@ -118,7 +118,11 @@ void sys_shram_free(void *mem)
 	                                         name);
 	  if (err_code != 0)
 	  {
-	      RETURN_ERROR(MAJOR, err_code, NO_MSG);
+	      if(-EEXIST == err_code)
+              pr_err("MAJOR resource already exists\n");
+          else if(-EAGAIN == err_code)
+              pr_err("MAJOR resource is unavailable\n");
+          return err_code;
 	  }
 	  return 0;
 }
@@ -138,9 +142,9 @@ void sys_shram_free(void *mem)
 
     if (partition_id == SYS_DEFAULT_HEAP_PARTITION)
     {
-        RETURN_ERROR(MAJOR, EDOM,
-                     ("partition ID %d is reserved for default heap",
-                      SYS_DEFAULT_HEAP_PARTITION));
+        pr_err("MAJOR invalid value: partition ID %d is reserved for default heap",
+                SYS_DEFAULT_HEAP_PARTITION);
+        return -EDOM;
     }
 
     /* Check if matches the default heap partition */
@@ -158,7 +162,11 @@ void sys_shram_free(void *mem)
                                         enable_debug);
     if (err_code != 0)
     {
-        RETURN_ERROR(MAJOR, err_code, NO_MSG);
+        if(-EEXIST == err_code)
+            pr_err("MAJOR resource already exists\n");
+        else if(-EAGAIN == err_code)
+            pr_err("MAJOR resource is unavailable \n");
+        return err_code;
     }
     /*
     if (is_heap_partition)
@@ -198,7 +206,7 @@ void sys_shram_free(void *mem)
 
     if (err_code != 0)
     {
-        RETURN_ERROR(MAJOR, err_code, NO_MSG);
+        return err_code;
     }
     /*
     if (partition_id == sys.heap_partition_id)
@@ -227,7 +235,6 @@ int sys_get_mem_partition_info(int partition_id,t_mem_mng_partition_info* partit
 
     if (err_code != 0)
     {
-        REPORT_ERROR(MAJOR, err_code, NO_MSG);
         return (uint32_t)ILLEGAL_BASE;
     }
 
@@ -251,7 +258,6 @@ int sys_get_phys_addr_alloc_partition_info(int partition_id,
 
     if (err_code != 0)
     {
-        REPORT_ERROR(MAJOR, err_code, NO_MSG);
         return (uint32_t)ILLEGAL_BASE;
     }
 
@@ -275,7 +281,6 @@ uint64_t sys_get_mem_partition_base(int partition_id)
 
     if (err_code != 0)
     {
-        REPORT_ERROR(MAJOR, err_code, NO_MSG);
         return (uint32_t)ILLEGAL_BASE;
     }
 
@@ -301,7 +306,6 @@ uint32_t sys_get_mem_partition_attributes(int partition_id)
 
     if (err_code != 0)
     {
-        REPORT_ERROR(MAJOR, err_code, NO_MSG);
         return (uint32_t)0;
     }
 
@@ -416,7 +420,8 @@ void sys_default_free(void *p_memory)
     sys.mem_mng = mem_mng_init(&sys.boot_mem_mng,&mem_mng_param);
     if (!sys.mem_mng)
     {
-        RETURN_ERROR(MAJOR, EAGAIN, ("memory management object"));
+        pr_err("MAJOR resource is unavailable: memory management object\n");
+        return -EAGAIN;
     }  
 
     return 0;
@@ -488,7 +493,7 @@ void * sys_aligned_malloc(uint32_t size, uint32_t alignment)
     alloc_addr = (uintptr_t)sys_default_malloc(size + alignment);
     if (alloc_addr == 0)
     {
-        REPORT_ERROR(MINOR, ENOMEM, ("default heap"));
+        pr_err("MINOR memory allocation failed: default heap\n");
         return NULL;
     }
 

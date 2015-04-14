@@ -194,28 +194,61 @@ asm __COLD_CODE void _ExitProcess(void)
 	se_dnh
 }
 
+/*****************************************************************************/
+asm static __COLD_CODE void __clear_ws(void)
+{
+	nofralloc
+
+    /* MC clear WS for each core to reset ECC */
+    /* The WS is a per core 32K RAM. */
+    /* Loops to cover WS, stmw allows 64 bytes (16 GPRS x 4 bytes) writes */
+    
+    /* clear top 16 registers */
+    li r16, 0x0
+    mr r17, r16
+    mr r18, r16
+    mr r19, r16
+    mr r20, r16
+    mr r21, r16
+    mr r22, r16
+    mr r23, r16
+    mr r24, r16
+    mr r25, r16
+    mr r26, r16
+    mr r27, r16
+    mr r28, r16
+    mr r29, r16
+    mr r30, r16
+    mr r31, r16
+
+    mfspr r14, 694 			/* Extract address of DMEM from DMEMCFG0 (SPR 694) */
+    lis r13, 0xffff      	/* Low order bits of DMEM size are driven to 0s */
+    ori r13, r13, 0xf000
+    and r14, r14, r13
+    e_li r12, 0x200 		/* set counter to 512 (32K = 512 * 64) */
+    mtctr r12
+init_ws_loop:
+    stmw r16, 0(r14)        /* Write 16 GPRs to WS */
+    addi r14, r14, 64       /* Inc the ram ptr; 16 GPRs * 4 bytes = 64 bytes */
+    bdnz init_ws_loop       /* Loop until CTR is non-zero */
+	
+	blr
+}
 
 /*****************************************************************************/
 asm __COLD_CODE void __sys_start(register int argc, register char **argv, register char **envp)
 {
 	nofralloc
-
+	
+    /* Initialize PPC interrupts vector */
+    lis    r31,tmp_branch_table@h
+    ori    r31,r31,tmp_branch_table@l
+    mtspr  IVPR,r31
+    
+    bl     __clear_ws
+    
     /* Store core ID */
     mfpir  r17
-
-    /* MC clear WS for each core to reset ECC */
-    /* The WS is a per core 32K RAM. */
-    /* Loops to cover WS, stmw allows 128 bytes (32 GPRS x 4 bytes) writes */
-    mfspr r31, 694 			/* Extract address of DMEM from DMEMCFG0 (SPR 694) */
-    lis r29, 0xffff      	/* Low order bits of DMEM size are driven to 0s */
-    ori r29, r29, 0xf000
-    and r31, r31, r29
-    e_li r30, 0x100 		/* set counter to 256 (32K = 256 * 128) */  
-    mtctr r30
-init_ws_loop:
-    stmw r0, 0(r31)         /* Write 32 GPRs to WS */
-    addi r31, r31, 128      /* Inc the ram ptr; 32 GPRs * 4 bytes = 128B */
-    bdnz init_ws_loop       /* Loop until CTR is non-zero */
     
     /* Initialize small data area pointers */
     lis    r2, _SDA2_BASE_@ha
@@ -224,8 +257,8 @@ init_ws_loop:
     addi   r13, r13, _SDA_BASE_@l
 
     /* Initialize stack pointer (based on core ID) */
-    lis     r1,    _stack_addr@ha
-    addi    r1, r1, _stack_addr@l
+    lis    r1,    _stack_addr@ha
+    addi   r1, r1, _stack_addr@l
 
     /* Memory access is safe now */
     
@@ -241,23 +274,18 @@ init_ws_loop:
     stw    r0,  0(r1)        /* SysVr4 Supp indicated that initial back chain word should be null */
     li     r0, 0xffffffff   /* Load up r0 with 0xffffffff */
     stw    r0, 4(r1)         /* Make an illegal return address of 0xffffffff */
-   
-    /* Initialize PPC interrupts vector */
-    lis     r3,tmp_branch_table@h
-    ori     r3,r3,tmp_branch_table@l
-    mtspr   IVPR,r3
     
     /* master-core clears bss sections while others wait */
-	lis     r19, _master@ha
-	addi    r19, r19, _master@l
-    cmpwi   r17, 0
-    bne     halt
-    bl      __init_bss   /* Initialize bss section (master core only) */
-    stw     r17, 0(r19)
+	lis    r19, _master@ha
+	addi   r19, r19, _master@l
+    cmpwi  r17, 0
+    bne    halt
+    bl     __init_bss   /* Initialize bss section (master core only) */
+    stw    r17, 0(r19)
 halt:
-    lwz     r18, 0(r19)
-    cmpwi   r18, 0
-    bne     halt
+    lwz    r18, 0(r19)
+    cmpwi  r18, 0
+    bne    halt
     
     /* Branch to main program */
     lis    r6, main@ha

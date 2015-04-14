@@ -355,8 +355,7 @@ static inline int sanity_check_slab_create(uint16_t    buff_size,
 {
 	SLAB_ASSERT_COND_RETURN(buff_size > 0,   -EINVAL);
 	SLAB_ASSERT_COND_RETURN(alignment > 0,   -EINVAL);
-	/* TODO need to support more then 8, align all to 64 bytes */
-	SLAB_ASSERT_COND_RETURN(alignment <= 8,  -EINVAL);
+	SLAB_ASSERT_COND_RETURN(alignment <= buff_size,  -EINVAL);
 	SLAB_ASSERT_COND_RETURN(flags == 0 || flags == SLAB_DDR_MANAGEMENT_FLAG,
 	                        -EINVAL);
 	SLAB_ASSERT_COND_RETURN(is_power_of_2(alignment), -EINVAL);
@@ -388,8 +387,10 @@ __COLD_CODE int slab_create(uint32_t    committed_buffs,
 	struct slab_v_pool slab_virtual_pool_ddr;
 	uint64_t context_address = 0;
 
-	if(slab_m == NULL)
+	if(slab_m == NULL){
+		sl_pr_err("slab_m is NULL\n");
 		return -ENAVAIL;
+	}
 #ifdef DEBUG
 	/* Sanity checks */
 	error = sanity_check_slab_create(buff_size,

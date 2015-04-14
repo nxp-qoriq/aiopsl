@@ -57,15 +57,10 @@ char * err_type_strings (int err) {
         case (ERANGE):                  return "value out of range";
         case (ENOTSUP):                 return "unsupported operation";
         case (ETIMEDOUT):               return "operation timed out";
-        case (E_INVALID_STATE):         return "invalid state";
         case (E_INVALID_SELECTION):     return "invalid selection";
-        case (E_CONFLICT):              return "conflict in settings";
         case (E_NOT_FOUND):             return "resource not found";
         case (E_FULL):                  return "resource is full";
         case (E_EMPTY):                 return "resource is empty";
-        case (E_ALREADY_FREE):          return "resource already free";
-        case (E_READ_FAILED):           return "read access failed";
-        case (E_INVALID_FRAME):         return "invalid frame";
         default:
             break;
     }

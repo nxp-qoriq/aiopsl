@@ -379,15 +379,19 @@ __COLD_CODE static int pltfrm_init_mem_partitions_cb(fsl_handle_t h_platform)
 	build_mem_partitions_table(pltfrm);
 
 	err = sys_add_handle( (fsl_handle_t)pltfrm->mc_portals_base, FSL_OS_MOD_MC_PORTAL, 1, 0);
-	if (err != 0) 
-		RETURN_ERROR(MAJOR, err, NO_MSG);
+	if (err != 0)
+	{
+		pr_err("MAJOR  couldn't add FSL_OS_MOD_MC_PORTAL using sys_add_handle()\n");
+		return err;
+	}
 	
 	for (i = 0; i < pltfrm->num_of_mem_parts; i++) {
 		p_mem_info = &pltfrm->param.mem_info[i];
 		virt_base_addr = p_mem_info->virt_base_addr;
 		size = p_mem_info->size;
 
-		if (p_mem_info->mem_attribute & MEMORY_ATTR_MALLOCABLE) {
+		if (p_mem_info->mem_attribute & MEMORY_ATTR_MALLOCABLE)
+		{
 			err = sys_register_mem_partition(p_mem_info->mem_partition_id,
 			                                 virt_base_addr,
 			                                 size,
@@ -400,8 +404,7 @@ __COLD_CODE static int pltfrm_init_mem_partitions_cb(fsl_handle_t h_platform)
 #endif /* DEBUG */
 			);
 			if (err != 0)
-				RETURN_ERROR(MAJOR, err, NO_MSG);
-
+				return err;
 			pltfrm->registered_partitions[index++] = p_mem_info->mem_partition_id;
 		}
 		if(p_mem_info->mem_attribute & MEMORY_ATTR_PHYS_ALLOCATION){
@@ -413,7 +416,7 @@ __COLD_CODE static int pltfrm_init_mem_partitions_cb(fsl_handle_t h_platform)
 				p_mem_info->name
 			);
 			if (err != 0)
-				RETURN_ERROR(MAJOR, err, NO_MSG);
+				return err;
 		}// end of MEMORY_ATTR_PHYS_ALLOCATION
 	}// for
     sys_mem_partitions_init_complete();
@@ -597,8 +600,10 @@ __COLD_CODE int platform_init(struct platform_param    *pltfrm_param,
 {
 	int             i;
 
-	SANITY_CHECK_RETURN_ERROR(pltfrm_param, ENODEV);
-	SANITY_CHECK_RETURN_ERROR(pltfrm_ops, ENODEV);
+	if((!pltfrm_param) || (!pltfrm_ops)) {
+		pr_crit("Null pointer passed to platform_init");
+		return -ENODEV;
+	}
 
 
 	memset(&s_pltfrm, 0, sizeof(t_platform));
@@ -630,9 +635,6 @@ __COLD_CODE int platform_init(struct platform_param    *pltfrm_param,
 	pltfrm_ops->f_free_soc              = NULL;
 	pltfrm_ops->f_init_timer            = NULL;
 	pltfrm_ops->f_free_timer            = NULL;
-	pltfrm_ops->f_init_ipc              = NULL;
-	pltfrm_ops->f_free_ipc              = NULL;
-
 	pltfrm_ops->f_init_console          = pltfrm_init_console_cb;
 	pltfrm_ops->f_free_console          = pltfrm_free_console_cb;
 
@@ -668,8 +670,10 @@ __COLD_CODE int platform_free(fsl_handle_t h_platform)
 uint32_t platform_get_system_bus_clk(fsl_handle_t h_platform)
 {
 	t_platform  *pltfrm = (t_platform *)h_platform;
-
-	SANITY_CHECK_RETURN_VALUE(pltfrm, ENODEV, 0);
+	if(!pltfrm) {
+		pr_crit("no device");
+		return 0;
+	}
 
 	return (pltfrm->param.clock_in_freq_khz);
 }
@@ -689,13 +693,19 @@ __COLD_CODE int platform_enable_console(fsl_handle_t h_platform)
 	                               SOC_PERIPH_OFF_DUART3,
 	                               SOC_PERIPH_OFF_DUART4
 	};
-	SANITY_CHECK_RETURN_ERROR(pltfrm, ENODEV);
+
+	if(!pltfrm) {
+		pr_crit("Null pointer");
+		return -ENODEV;
+	}
 
 	if(pltfrm->param.console_type == PLTFRM_CONSOLE_NONE)/*if console id is 0, print to buffer*/
 		return -ENAVAIL;
 
-
-	SANITY_CHECK_RETURN_ERROR((pltfrm->param.console_type == PLTFRM_CONSOLE_DUART), ENOTSUP);
+	if(pltfrm->param.console_type != PLTFRM_CONSOLE_DUART) {
+		pr_crit("Console not supported");
+		return -ENOTSUP;
+	}		
 
 	if( pltfrm->param.console_id > 4 )
 		RETURN_ERROR(MAJOR, EAGAIN, ("DUART"));
@@ -764,7 +774,10 @@ __COLD_CODE int platform_disable_console(fsl_handle_t h_platform)
 {
 	t_platform  *pltfrm = (t_platform *)h_platform;
 
-	SANITY_CHECK_RETURN_ERROR(pltfrm, ENODEV);
+	if(!pltfrm) {
+		pr_crit("Null pointer");
+		return -ENODEV;
+	}
 
 	/* Unregister platform console */
 	/* errCode = SYS_UnregisterConsole();

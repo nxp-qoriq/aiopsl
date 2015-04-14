@@ -41,6 +41,7 @@
 #include "general.h"
 #include "fsl_fdma.h"
 #include "checksum.h"
+#include "fsl_dpni_drv.h"
 /*#include "cdma.h"*/
 
 
@@ -57,6 +58,7 @@ int tcp_gro_aggregate_seg(
 	uint32_t ecn;
 	uint16_t seg_size, agg_headers_size;
 	uint8_t data_offset;
+	struct fdma_amq amq;
 
 	/* If segment FD contain errors (FD[err] != 0) return the frame to
 	 * the user. */
@@ -177,8 +179,10 @@ int tcp_gro_aggregate_seg(
 
 	/* store aggregated frame */
 	sr_status = fdma_store_frame_data(PRC_GET_FRAME_HANDLE(),
-			*(uint8_t *)HWC_SPID_ADDRESS,
-			&(gro_ctx.agg_fd_isolation_attributes));
+			*(uint8_t *)HWC_SPID_ADDRESS, 
+			&amq);
+	gro_ctx.niid = dpni_get_receive_niid();
+	gro_ctx.qd_priority = default_task_params.qd_priority;
 
 	if (sr_status == -ENOMEM) {
 		cdma_mutex_lock_release(tcp_gro_context_addr);
@@ -885,6 +889,7 @@ int tcp_gro_flush_aggregation(
 	uint16_t ip_length, outer_ip_offset;
 	uint8_t single_seg;
 	int sr_status;
+	struct   dpni_drv *dpni_drv;
 
 	/* read GRO context*/
 	cdma_read_with_mutex(tcp_gro_context_addr,
@@ -916,7 +921,16 @@ int tcp_gro_flush_aggregation(
 		gro_ctx.timer_handle = TCP_GRO_INVALID_TMAN_HANDLE;
 	}
 
-
+	//set_default_amq_attributes(&(gro_ctx.agg_fd_isolation_attributes));
+	/* Update task default params */
+	dpni_drv = nis + gro_ctx.niid;
+	sl_tman_expiration_task_prolog(dpni_drv->dpni_drv_params_var.spid);
+	default_task_params.parser_starting_hxs =
+				   dpni_drv->dpni_drv_params_var.starting_hxs;
+	default_task_params.parser_profile_id =
+				   dpni_drv->dpni_drv_params_var.prpid;
+	default_task_params.qd_priority = gro_ctx.qd_priority;
+		
 	single_seg = (gro_ctx.metadata.seg_num == 1) ? 1 : 0;
 
 	/* prepare presentation context fields for frame presentation. */
@@ -927,7 +941,6 @@ int tcp_gro_flush_aggregation(
 	PRC_RESET_NDS_BIT();
 	PRC_SET_ASA_SIZE(0);
 	PRC_SET_PTA_ADDRESS(PRC_PTA_NOT_LOADED_ADDRESS);
-	set_default_amq_attributes(&(gro_ctx.agg_fd_isolation_attributes));
 
 	if (gro_ctx.internal_flags & GRO_FLUSH_AGG_SET) {
 		/* reset gro context fields */
@@ -1031,6 +1044,7 @@ void tcp_gro_timeout_callback(uint64_t tcp_gro_context_addr, uint16_t opaque2)
 	uint16_t ip_length, outer_ip_offset;
 	uint8_t single_seg;
 	uint32_t timer_handle;
+	struct   dpni_drv *dpni_drv;
 
 	opaque2 = 0;
 	/* read GRO context*/
@@ -1055,6 +1069,16 @@ void tcp_gro_timeout_callback(uint64_t tcp_gro_context_addr, uint16_t opaque2)
 		return;
 	}
 
+	//set_default_amq_attributes(&(gro_ctx.agg_fd_isolation_attributes));
+	/* Update task default params */
+	dpni_drv = nis + gro_ctx.niid;
+	sl_tman_expiration_task_prolog(dpni_drv->dpni_drv_params_var.spid);
+	default_task_params.parser_starting_hxs =
+				   dpni_drv->dpni_drv_params_var.starting_hxs;
+	default_task_params.parser_profile_id =
+				   dpni_drv->dpni_drv_params_var.prpid;
+	default_task_params.qd_priority = gro_ctx.qd_priority;
+	
 	single_seg = (gro_ctx.metadata.seg_num == 1) ? 1 : 0;
 
 	/* write metadata to external memory */
@@ -1078,7 +1102,6 @@ void tcp_gro_timeout_callback(uint64_t tcp_gro_context_addr, uint16_t opaque2)
 	PRC_RESET_NDS_BIT();
 	PRC_SET_ASA_SIZE(0);
 	PRC_SET_PTA_ADDRESS(PRC_PTA_NOT_LOADED_ADDRESS);
-	set_default_amq_attributes(&(gro_ctx.agg_fd_isolation_attributes));
 	fdma_present_default_frame();
 
 	/* run parser */

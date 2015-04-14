@@ -250,9 +250,13 @@ uint16_t aiop_verification_keygen(uint32_t asa_seg_addr)
 			struct keygen_kcr_create_or_replace_command *str =
 			(struct keygen_kcr_create_or_replace_command *) 
 								asa_seg_addr;
-		
+			uint8_t kcr_ptr[KCR_LENGTH] __attribute__((aligned(16)));
+
+			/* Enforced alignment */
+			fdma_copy_data(KCR_LENGTH,0,(void *)str->kcr_ptr,(void *)kcr_ptr);
+
 			keygen_kcr_replace
-				(str->acc_id, (uint8_t *)str->kcr_ptr, str->key_id);
+				(str->acc_id, (uint8_t *)kcr_ptr, str->key_id);
 			str_size =
 			sizeof (struct keygen_kcr_create_or_replace_command);
 			break;
@@ -279,10 +283,13 @@ uint16_t aiop_verification_keygen(uint32_t asa_seg_addr)
 					
 			struct keygen_kcr_query_command *str =
 			(struct keygen_kcr_query_command *) asa_seg_addr;
-		
+			uint8_t kcr_ptr[KCR_LENGTH] __attribute__((aligned(16)));
+
 			keygen_kcr_query 
-				(str->acc_id, str->key_id, (uint8_t*)(str->kcr_ptr));
+				(str->acc_id, str->key_id, (uint8_t*)(kcr_ptr));
 			
+			fdma_copy_data(KCR_LENGTH,0,(void *)kcr_ptr, (void *)str->kcr_ptr);
+
 			str_size =
 			sizeof (struct keygen_kcr_query_command);
 			break;
