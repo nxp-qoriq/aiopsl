@@ -73,6 +73,8 @@
 #define FDMA_FORCE_DISCARD_FD_CMD	0x00004013
 	/** FDMA Modify default segment command code */
 #define FDMA_MODIFY_CMD			0x00006019
+	/** FDMA Modify default segment command code */
+#define FDMA_MODIFY_FULL_SEG_CMD	0x0000B019
 	/** FDMA Modify segment command code */
 #define FDMA_MODIFY_SEG_CMD		0x0000A019
 	/** FDMA Insert working frame segment command code */
@@ -166,6 +168,9 @@
 #define FDMA_TRIM_CMD_STR	((FDMA_MODULE << 16) | FDMA_TRIM_CMD)
 	/** FDMA Modify default segment Command Structure identifier */
 #define FDMA_MODIFY_CMD_STR	((FDMA_MODULE << 16) | FDMA_MODIFY_CMD)
+	/** FDMA Modify default segment full data Command Structure identifier*/
+#define FDMA_MODIFY_FULL_SEG_CMD_STR					\
+	((FDMA_MODULE << 16) | FDMA_MODIFY_FULL_SEG_CMD)
 	/** FDMA Modify segment Command Structure identifier */
 #define FDMA_MODIFY_SEG_CMD_STR	((FDMA_MODULE << 16) | FDMA_MODIFY_SEG_CMD)
 	/** FDMA Replace working frame segment Command Structure identifier */
@@ -1173,6 +1178,29 @@ struct fdma_modify_command {
 	int8_t	status;
 		/** 64-bit alignment. */
 	uint8_t	pad[7];
+};
+
+/**************************************************************************//**
+@Description	FDMA Modify Default Segment Full data Command structure.
+
+		Includes information needed for FDMA Modify default
+		Segment full data command verification. This command updates the
+		FDMA that certain data in the presented segment was modified. 
+		The updated data is located in the same place the old data was 
+		located at in the segment presentation in workspace.
+
+*//***************************************************************************/
+struct fdma_modify_full_seg_command {
+		/** FDMA Modify Working Frame Segment full data command 
+		 * structure identifier. */
+	uint32_t opcode;
+		/** Command returned status. */
+	int8_t	status;
+		/** 64-bit alignment. */
+	uint8_t	pad[3];
+		/* Returned presentation context structure.
+		 * Represent the modified segment parameters. */
+	struct presentation_context prc;
 };
 
 /**************************************************************************//**
