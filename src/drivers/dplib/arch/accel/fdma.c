@@ -1581,6 +1581,9 @@ void fdma_exception_handler(enum fdma_function_identifier func_id,
 	case FDMA_MODIFY_DEFAULT_SEGMENT_DATA:
 		func_name = "fdma_modify_default_segment_data";
 		break;
+	case FDMA_MODIFY_DEFAULT_SEGMENT_FULL_DATA:
+		func_name = "fdma_modify_default_segment_full_data";
+		break;
 	case FDMA_MODIFY_SEGMENT_DATA:
 		func_name = "fdma_modify_segment_data";
 		break;

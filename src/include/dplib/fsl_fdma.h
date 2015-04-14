@@ -2023,7 +2023,7 @@ void fdma_trim_default_segment_presentation(
 /**************************************************************************//**
 @Function	fdma_modify_default_segment_data
 
-@Description	Modifies data in the default Data segment in the default
+@Description	Modifies data in the default Data segment of the default
 		Working Frame (in the FDMA).
 
 		This Service Routine updates the FDMA that certain data in the
@@ -2060,6 +2060,28 @@ void fdma_trim_default_segment_presentation(
 inline void fdma_modify_default_segment_data(
 		uint16_t offset,
 		uint16_t size);
+
+/**************************************************************************//**
+@Function	fdma_modify_default_segment_full_data
+
+@Description	Modifies full data in the default Data segment of the default
+		Working Frame (in the FDMA).
+
+		This Service Routine updates the FDMA that all the data in the
+		presented segment was modified. The updated data is located in
+		the same place the old data was located at in the segment
+		presentation in workspace.
+
+		Implicit input parameters in Task Defaults: frame handle,
+		segment handle, segment address, segment offset, segment size.
+
+@Return		None.
+
+@Cautions	This command may be invoked only on the default Data segment.
+@Cautions	This function may result in a fatal error.
+@Cautions	In this Service Routine the task yields.
+*//***************************************************************************/
+inline void fdma_modify_default_segment_full_data();
 
 #ifdef REV2
 /*
