@@ -73,7 +73,7 @@
 #define FDMA_FORCE_DISCARD_FD_CMD	0x00004013
 	/** FDMA Modify default segment command code */
 #define FDMA_MODIFY_CMD			0x00006019
-	/** FDMA Modify default segment command code */
+	/** FDMA Modify default segment full data command code */
 #define FDMA_MODIFY_FULL_SEG_CMD	0x0000B019
 	/** FDMA Modify segment command code */
 #define FDMA_MODIFY_SEG_CMD		0x0000A019
