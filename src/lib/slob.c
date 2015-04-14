@@ -91,7 +91,7 @@ static t_busy_block * create_busy_block(uint64_t base, uint64_t size, char *name
     p_busy_block = (t_busy_block *)fsl_os_malloc(sizeof(t_busy_block));
     if ( !p_busy_block )
     {
-        REPORT_ERROR(MAJOR, ENOMEM, NO_MSG);
+        pr_err("MAJOR slob: memory allocation failed\n");
         return NULL;
     }
 
@@ -130,7 +130,7 @@ static t_mem_block * create_new_block(uint64_t base, uint64_t size)
     p_mem_block = (t_mem_block *)fsl_os_malloc(sizeof(t_mem_block));
     if ( !p_mem_block )
     {
-        REPORT_ERROR(MAJOR, ENOMEM, NO_MSG);
+        pr_err("MAJOR memory allocation failed\n");
         return NULL;
     }
 
@@ -165,8 +165,8 @@ static t_mem_block * create_new_block_by_boot_mng(uint64_t base, uint64_t size,
     int rc = boot_get_mem_virt(boot_mem_mng,sizeof(t_mem_block),&address);
     if(rc)
     {
-	   REPORT_ERROR(MAJOR, ENOMEM, NO_MSG);
-	   return NULL;
+        pr_err("MAJOR slob: memory allocation failed\n");
+        return NULL;
     }
 
     p_mem_block = (t_mem_block *)address;
@@ -199,7 +199,7 @@ static t_free_block * create_free_block(uint64_t base, uint64_t size)
     p_free_block = (t_free_block *)fsl_os_malloc(sizeof(t_free_block));
     if ( !p_free_block )
     {
-        REPORT_ERROR(MAJOR, ENOMEM, NO_MSG);
+        pr_err("MAJOR slob: memory allocation failed");
         return NULL;
     }
 
@@ -313,7 +313,10 @@ static int add_free(t_MM *p_MM, uint64_t base, uint64_t end)
                 else if ( (end < p_curr_b->base) && ((end-align_base) >= alignment) )
                 {
                     if ((p_new_b = create_free_block(align_base, end-align_base)) == NULL)
-                        RETURN_ERROR(MAJOR, ENOMEM, NO_MSG);
+                    {
+                        pr_err("MAJOR slob: memory allocation failed\n");
+                        return -ENOMEM;
+                    }
 
                     p_new_b->p_next = p_curr_b;
                     if (p_prev_b)
@@ -352,7 +355,10 @@ static int add_free(t_MM *p_MM, uint64_t base, uint64_t end)
          * to the end of the free list.
          */
         if(0 != insert_free_block(&p_new_b,p_MM,p_curr_b,end,alignment,align_base,p_prev_b,i))
-            RETURN_ERROR(MAJOR, ENOMEM, NO_MSG);
+        {
+            pr_err("MAJOR slob: memory allocation failed\n");
+            return -ENOMEM;
+        }
         /* Update boundaries of the new free block */
         update_boundaries(alignment,p_new_b,p_curr_b,&end,&base);
     }// for
@@ -425,7 +431,10 @@ static int cut_free(t_MM *p_MM, uint64_t hold_base, uint64_t hold_end)
                     if ( (align_base < end) && ((end-align_base) >= alignment) )
                     {
                         if ((p_new_b = create_free_block(align_base, end-align_base)) == NULL)
-                            RETURN_ERROR(MAJOR, ENOMEM, NO_MSG);
+                        {
+                            pr_err("MAJOR slob: memory allocation failed\n");
+                            return -ENOMEM;
+                        }
                         p_new_b->p_next = p_curr_b->p_next;
                         p_curr_b->p_next = p_new_b;
                     }
@@ -568,7 +577,10 @@ static int cut_busy(t_MM *p_MM, uint64_t base, uint64_t end)
                     if ((p_new_b = create_busy_block(end,
                                                   p_curr_b->end-end,
                                                   p_curr_b->name)) == NULL)
-                        RETURN_ERROR(MAJOR, ENOMEM, NO_MSG);
+                    {
+                        pr_err("MAJOR slob: memory allocation failed\n");
+                        return -ENOMEM;
+                    }
                     p_new_b->p_next = p_curr_b->p_next;
                     p_curr_b->p_next = p_new_b;
                 }
@@ -678,7 +690,7 @@ int slob_init(fsl_handle_t *slob, uint64_t base, uint64_t size,
 
     if (0 == size)
     {
-        REPORT_ERROR(MAJOR, EDOM, ("Slob size (should be positive)"));
+        pr_err("MAJOR slob: invalid value slob size (should be positive)\n");
     }
     struct initial_mem_mng* boot_mem_mng = (struct initial_mem_mng*)h_mem_mng;
     ASSERT_COND_LIGHT(boot_mem_mng);
@@ -689,7 +701,8 @@ int slob_init(fsl_handle_t *slob, uint64_t base, uint64_t size,
     //p_MM = (t_MM *)fsl_os_malloc(sizeof(t_MM));
     if (rc)
     {
-        RETURN_ERROR(MAJOR, ENOMEM, NO_MSG);
+        pr_err("MAJOR slob: memory allocation failed\n");
+        return -ENOMEM;
     }
     p_MM = (t_MM*)curr_addrr;
     p_MM->h_mem_mng = h_mem_mng;
@@ -706,7 +719,8 @@ int slob_init(fsl_handle_t *slob, uint64_t base, uint64_t size,
     if (!p_MM->lock)
     {
         fsl_os_free(p_MM);
-        RETURN_ERROR(MAJOR, ENOMEM, ("slob spinlock!"));
+        pr_err("MAJOR slob: memory allocation failed for slob spinlock\n");
+        return -ENOMEM;
     }
 
 #ifdef AIOP
@@ -722,7 +736,8 @@ int slob_init(fsl_handle_t *slob, uint64_t base, uint64_t size,
     /* Initializes a new memory block */
     if ((p_MM->mem_blocks = create_new_block_by_boot_mng(base, size,boot_mem_mng)) == NULL) {
 	    slob_free(p_MM);
-	    RETURN_ERROR(MAJOR, ENOMEM, NO_MSG);
+	    pr_err("MAJOR slob: memory allocation failed\n");
+	    return -ENOMEM;
     }
     if(0 == size)
     {// allow a slob of size 0, should return ILLEGAL_BASE on any slob_get
@@ -744,7 +759,8 @@ int slob_init(fsl_handle_t *slob, uint64_t base, uint64_t size,
 
         if ((p_MM->free_blocks[i] = create_free_block(new_base, new_size)) == NULL) {
         	slob_free(p_MM);
-        	RETURN_ERROR(MAJOR, ENOMEM, NO_MSG);
+            pr_err("MAJOR slob: memory allocation failed");
+            return -ENOMEM;
         }
     }
 #endif
@@ -827,7 +843,7 @@ uint64_t slob_get(fsl_handle_t slob, uint64_t size, uint64_t alignment, char* na
    
     if (size == 0)
     {
-        REPORT_ERROR(MAJOR, EDOM, ("allocation size must be positive"));
+        pr_err("MAJOR slob invalid value: allocation size must be positive\n");
     }
 
 #ifdef AIOP
@@ -844,7 +860,8 @@ uint64_t slob_get(fsl_handle_t slob, uint64_t size, uint64_t alignment, char* na
 #else
             spin_unlock_irqrestore(p_MM->lock, int_flags);
 #endif
-            RETURN_ERROR(MAJOR, ENOMEM, NO_MSG);
+            pr_err("MAJOR memory allocation failed\n");
+            return -ENOMEM;
         }
     }
 #ifdef AIOP
@@ -871,7 +888,7 @@ uint64_t slob_get(fsl_handle_t slob, uint64_t size, uint64_t alignment, char* na
     /* if the given alignment isn't power of two, returns an error */
     if (j != 1)
     {
-        REPORT_ERROR(MAJOR, EDOM, ("alignment (should be power of 2)"));
+        pr_err("MAJOR slob invalid value: alignment (should be power of 2)\n");
         return (uint64_t)ILLEGAL_BASE;
     }
 
@@ -956,7 +973,7 @@ uint64_t slob_get_force(fsl_handle_t slob, uint64_t base, uint64_t size, char* n
     
     if (size == 0)
     {
-        REPORT_ERROR(MAJOR, EDOM, ("allocation size must be positive"));
+        pr_err("MAJOR slob invalid value: allocation size must be positive\n");
     }
 
 #ifdef AIOP
@@ -972,7 +989,8 @@ uint64_t slob_get_force(fsl_handle_t slob, uint64_t base, uint64_t size, char* n
 #else
             spin_unlock_irqrestore(p_MM->lock, int_flags);
 #endif
-	    RETURN_ERROR(MAJOR, ENOMEM, NO_MSG);
+            pr_err("MAJOR memory allocation failed\n");
+            return -ENOMEM;
         }
     }
     p_free_b = p_MM->free_blocks[0]; /* The biggest free blocks are in the
@@ -1052,7 +1070,7 @@ uint64_t slob_get_force_min(fsl_handle_t slob, uint64_t size, uint64_t alignment
     
     if (size == 0)
     {
-        REPORT_ERROR(MAJOR, EDOM, ("allocation size must be positive"));
+        pr_err("MAJOR slob invalid value: allocation size must be positive\n");
     }
 
     /* checks if alignment is a power of two, if it correct and if the
@@ -1083,7 +1101,8 @@ uint64_t slob_get_force_min(fsl_handle_t slob, uint64_t size, uint64_t alignment
 #else
             spin_unlock_irqrestore(p_MM->lock, int_flags);
 #endif
-	    RETURN_ERROR(MAJOR, ENOMEM, NO_MSG);
+            pr_err("MAJOR memory allocation failed\n");
+            return -ENOMEM;
         }
     }
 
@@ -1201,7 +1220,8 @@ uint64_t slob_put(fsl_handle_t slob, uint64_t base)
 #else
             spin_unlock_irqrestore(p_MM->lock, int_flags);
 #endif
-	    RETURN_ERROR(MAJOR, ENOMEM, NO_MSG);
+            pr_err("MAJOR memory allocation failed\n");
+            return -ENOMEM;
         }
     }
     p_busy_b = p_MM->busy_blocks;
@@ -1277,7 +1297,8 @@ uint64_t slob_put_force(fsl_handle_t slob, uint64_t base, uint64_t size)
 #else
             spin_unlock_irqrestore(p_MM->lock, int_flags);
 #endif
-	    RETURN_ERROR(MAJOR, ENOMEM, NO_MSG);
+            pr_err("MAJOR memory allocation failed\n");
+            return -ENOMEM;
         }
     }
     if ( cut_busy( p_MM, base, end ) != 0 )
@@ -1341,7 +1362,8 @@ int slob_add(fsl_handle_t slob, uint64_t base, uint64_t size)
 #else
             spin_unlock_irqrestore(p_MM->lock, int_flags);
 #endif
-	     RETURN_ERROR(MAJOR, ENOMEM, NO_MSG);
+            pr_err("MAJOR memory allocation failed\n");
+            return -ENOMEM;
          }
     }
     struct initial_mem_mng* boot_mem_mng =  (struct initial_mem_mng*)p_MM->h_mem_mng;
@@ -1355,7 +1377,8 @@ int slob_add(fsl_handle_t slob, uint64_t base, uint64_t size)
 #else
             spin_unlock_irqrestore(p_MM->lock, int_flags);
 #endif
-            RETURN_ERROR(MAJOR, EEXIST, NO_MSG);
+            pr_err("MAJOR slob: resource already exists\n");
+            return -ENOMEM;
         }
         p_mem_b = p_mem_b->p_next;
     }
@@ -1367,7 +1390,8 @@ int slob_add(fsl_handle_t slob, uint64_t base, uint64_t size)
 #else
         spin_unlock_irqrestore(p_MM->lock, int_flags);
 #endif
-        RETURN_ERROR(MAJOR, EEXIST, NO_MSG);
+        pr_err("MAJOR slob: resource already exists\n");
+        return -ENOMEM;
     }
 
     /* create a new memory block */
@@ -1378,7 +1402,8 @@ int slob_add(fsl_handle_t slob, uint64_t base, uint64_t size)
 #else
         spin_unlock_irqrestore(p_MM->lock, int_flags);
 #endif
-        RETURN_ERROR(MAJOR, ENOMEM, NO_MSG);
+        pr_err("MAJOR slob: memory allocation failed\n");
+        return -ENOMEM;
     }
 
     /* append a new memory block to the end of the list of memory blocks */
@@ -1493,7 +1518,6 @@ static int  init_free_blocks(t_MM *p_MM)
         if ((p_MM->free_blocks[k] = create_free_block(new_base, new_size)) == NULL) {
             slob_free(p_MM);
             return -ENOMEM;
-            //RETURN_ERROR(MAJOR, ENOMEM, NO_MSG);
         }
     }
     p_MM->free_blocks_initialized = 1;

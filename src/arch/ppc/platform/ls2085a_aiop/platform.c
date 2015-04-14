@@ -379,15 +379,19 @@ __COLD_CODE static int pltfrm_init_mem_partitions_cb(fsl_handle_t h_platform)
 	build_mem_partitions_table(pltfrm);
 
 	err = sys_add_handle( (fsl_handle_t)pltfrm->mc_portals_base, FSL_OS_MOD_MC_PORTAL, 1, 0);
-	if (err != 0) 
-		RETURN_ERROR(MAJOR, err, NO_MSG);
+	if (err != 0)
+	{
+		pr_err("MAJOR  couldn't add FSL_OS_MOD_MC_PORTAL using sys_add_handle()\n");
+		return err;
+	}
 	
 	for (i = 0; i < pltfrm->num_of_mem_parts; i++) {
 		p_mem_info = &pltfrm->param.mem_info[i];
 		virt_base_addr = p_mem_info->virt_base_addr;
 		size = p_mem_info->size;
 
-		if (p_mem_info->mem_attribute & MEMORY_ATTR_MALLOCABLE) {
+		if (p_mem_info->mem_attribute & MEMORY_ATTR_MALLOCABLE)
+		{
 			err = sys_register_mem_partition(p_mem_info->mem_partition_id,
 			                                 virt_base_addr,
 			                                 size,
@@ -400,8 +404,7 @@ __COLD_CODE static int pltfrm_init_mem_partitions_cb(fsl_handle_t h_platform)
 #endif /* DEBUG */
 			);
 			if (err != 0)
-				RETURN_ERROR(MAJOR, err, NO_MSG);
-
+				return err;
 			pltfrm->registered_partitions[index++] = p_mem_info->mem_partition_id;
 		}
 		if(p_mem_info->mem_attribute & MEMORY_ATTR_PHYS_ALLOCATION){
@@ -413,7 +416,7 @@ __COLD_CODE static int pltfrm_init_mem_partitions_cb(fsl_handle_t h_platform)
 				p_mem_info->name
 			);
 			if (err != 0)
-				RETURN_ERROR(MAJOR, err, NO_MSG);
+				return err;
 		}// end of MEMORY_ATTR_PHYS_ALLOCATION
 	}// for
     sys_mem_partitions_init_complete();
