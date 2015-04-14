@@ -398,6 +398,31 @@ inline void fdma_modify_default_segment_data(
 #endif
 }
 
+inline void fdma_modify_default_segment_full_data()
+{
+	/* command parameters and results */
+	uint32_t arg1, arg2, arg3;
+	int8_t res1;
+
+	/* prepare command parameters */
+	arg1 = FDMA_REPLACE_CMD_ARG1(
+			PRC_GET_HANDLES(), FDMA_REPLACE_NO_FLAGS);
+	arg2 = FDMA_REPLACE_CMD_ARG2(0, PRC_GET_SEGMENT_LENGTH());
+	arg3 = FDMA_REPLACE_CMD_ARG3(
+			(PRC_GET_SEGMENT_ADDRESS()), PRC_GET_SEGMENT_LENGTH());
+	/* store command parameters */
+	__stqw(arg1, arg2, arg3, 0, HWC_ACC_IN_ADDRESS, 0);
+	/* call FDMA Accelerator */
+	__e_hwacceli_(FODMA_ACCEL_ID);
+	/* load command results */
+	res1 = *((int8_t *)(FDMA_STATUS_ADDR));
+
+	if (res1 != FDMA_SUCCESS)
+		fdma_exception_handler(FDMA_MODIFY_DEFAULT_SEGMENT_FULL_DATA, 
+				__LINE__, (int32_t)res1);
+	
+}
+
 inline int fdma_discard_fd(struct ldpaa_fd *fd, uint32_t flags)
 {
 	uint8_t frame_handle;

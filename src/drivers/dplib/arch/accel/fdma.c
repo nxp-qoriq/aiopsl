@@ -220,7 +220,7 @@ int fdma_present_frame_without_segments(
 	int8_t  res1;
 
 	/* prepare command parameters */
-	arg1 = FDMA_INIT_CMD_ARG1((uint32_t)fd, flags | FDMA_INIT_NDS_BIT);
+	arg1 = FDMA_INIT_CMD_ARG1((uint32_t)fd, (flags | FDMA_INIT_NDS_BIT));
 
 	/* store command parameters */
 	*((uint32_t *)(HWC_ACC_IN_ADDRESS)) = arg1;
@@ -1580,6 +1580,9 @@ void fdma_exception_handler(enum fdma_function_identifier func_id,
 		break;
 	case FDMA_MODIFY_DEFAULT_SEGMENT_DATA:
 		func_name = "fdma_modify_default_segment_data";
+		break;
+	case FDMA_MODIFY_DEFAULT_SEGMENT_FULL_DATA:
+		func_name = "fdma_modify_default_segment_full_data";
 		break;
 	case FDMA_MODIFY_SEGMENT_DATA:
 		func_name = "fdma_modify_segment_data";
