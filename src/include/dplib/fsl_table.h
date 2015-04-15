@@ -585,10 +585,10 @@ struct table_lookup_result {
 	- A pointer to Slab/CDMA acquired buffer (which has a reference counter)
 
 	Depends on the matching rule result type. */
-	uint64_t opaque0_or_reference;
+	volatile uint64_t opaque0_or_reference;
 
 	/** Opaque data */
-	uint64_t opaque1;
+	volatile uint64_t opaque1;
 
 	/** Reserved for compliance with HW format.
 	User should not access this field. */
@@ -599,7 +599,7 @@ struct table_lookup_result {
 	uint8_t  reserved1;
 
 	/** Opaque data */
-	uint8_t  opaque2;
+	volatile uint8_t  opaque2;
 
 	/** Reserved for compliance with HW format.
 	User should not access this field. */
@@ -608,7 +608,7 @@ struct table_lookup_result {
 	/** Timestamp of the rule that was matched in the lookup process.
 	For this timestamp to be valid, suitable option should be set in
 	\ref table_rule option field. */
-	uint32_t timestamp;
+	volatile uint32_t timestamp;
 };
 #pragma pack(pop)
 
