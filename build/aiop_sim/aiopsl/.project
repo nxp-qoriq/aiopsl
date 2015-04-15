@@ -765,11 +765,6 @@
 			<locationURI>PARENT-3-PROJECT_LOC/src/kernel/inc/dbg.h</locationURI>
 		</link>
 		<link>
-			<name>aiop_sl/kernel/inc/errors.h</name>
-			<type>1</type>
-			<locationURI>PARENT-3-PROJECT_LOC/src/kernel/inc/errors.h</locationURI>
-		</link>
-		<link>
 			<name>aiop_sl/kernel/inc/fsl_cmdif_flib_c.h</name>
 			<type>1</type>
 			<locationURI>PARENT-3-PROJECT_LOC/src/kernel/inc/fsl_cmdif_flib_c.h</locationURI>

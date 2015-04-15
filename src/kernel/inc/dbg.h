@@ -311,6 +311,7 @@
 #define DBG(_level, ...)
 #else
 /*call to print but without mutex*/
+extern const char *dbg_level_strings[];
 void dbg_print(char *format, ...);
 #define DBG(_level, ...)                                                \
 	do {                                                            \

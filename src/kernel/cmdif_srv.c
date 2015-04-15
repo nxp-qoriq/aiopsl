@@ -45,6 +45,7 @@
 #include "fsl_sl_cmd.h"
 #include "fsl_icontext.h"
 #include "fsl_dpci_drv.h"
+#include "fsl_stdlib.h"
 
 /** Blocking commands don't need response FD */
 #define SEND_RESP(CMD)	\
