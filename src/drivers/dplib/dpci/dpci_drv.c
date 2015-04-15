@@ -214,11 +214,13 @@ __COLD_CODE int dpci_amq_bdi_init(uint32_t dpci_id)
 		/* AIOP DPCI to AIOP DPCI case 
 		 * 2 entries must be updated 1->2 and 2->1 */
 		if (dpci_id_peer != DPCI_FQID_NOT_VALID) {
-			ind = mc_dpci_find(dpci_id_peer, NULL);
-			if (ind >= 0) {
+			err = mc_dpci_find(dpci_id_peer, NULL);
+			if (err >= 0) {
 				/* If here then 2 AIOP DPCIs are connected */
-				dt->dpci_id_peer[ind] = dpci_id; 
-				dt->ic[ind] = amq_bdi;
+				dt->dpci_id_peer[err] = dpci_id; 
+				dt->ic[err] = amq_bdi;
+				pr_debug("AIOP DPCI %d to AIOP DPCI %d\n", 
+				         dpci_id, dpci_id_peer);
 			}
 		}
 	}
@@ -514,6 +516,7 @@ __COLD_CODE int dpci_drv_tx_get(uint32_t dpci_id, uint32_t *tx)
 
 	err = tx_get(dpci_id, tx);
 
+	
 	DPCI_DT_LOCK_RELEASE;
 
 	return err;
