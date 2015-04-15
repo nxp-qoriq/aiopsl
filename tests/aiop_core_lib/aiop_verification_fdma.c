@@ -562,6 +562,21 @@ uint16_t aiop_verification_fdma(uint32_t asa_seg_addr)
 				sizeof(struct fdma_modify_command);
 		break;
 	}
+	/* FDMA Replace Command Verification */
+	case FDMA_MODIFY_FULL_SEG_CMD_STR:
+	{
+		struct fdma_modify_full_seg_command *str =
+			(struct fdma_modify_full_seg_command *) asa_seg_addr;
+
+		fdma_modify_default_segment_full_data();
+		str->prc = *((struct presentation_context *)HWC_PRC_ADDRESS);
+		str->prc.osrc_oep_osel_osrm = 0;
+		str->prc.param = 0;
+		str->status = SUCCESS;
+		str_size = (uint16_t)
+				sizeof(struct fdma_modify_full_seg_command);
+		break;
+	}
 #ifdef REV2
 	/* FDMA Replace Command Verification */
 	case FDMA_MODIFY_SEG_CMD_STR:

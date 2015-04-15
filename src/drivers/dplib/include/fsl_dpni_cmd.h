@@ -611,10 +611,11 @@ do { \
 	MC_CMD_OP(cmd, 0, 0,  32, int,      cfg->dest_cfg.dest_id); \
 	MC_CMD_OP(cmd, 0, 32, 8,  uint8_t,  cfg->dest_cfg.priority);\
 	MC_CMD_OP(cmd, 0, 40, 2,  enum dpni_dest, cfg->dest_cfg.dest_type);\
+	MC_CMD_OP(cmd, 0, 42, 1,  int,      cfg->order_preservation_en);\
 	MC_CMD_OP(cmd, 0, 48, 16, uint16_t, flow_id); \
 	MC_CMD_OP(cmd, 1, 0,  64, uint64_t, cfg->user_ctx); \
 	MC_CMD_OP(cmd, 2, 16, 8,  uint8_t,  tc_id); \
-	MC_CMD_OP(cmd, 2, 32,  32, uint32_t, cfg->options); \
+	MC_CMD_OP(cmd, 2, 32, 32, uint32_t, cfg->options); \
 	MC_CMD_OP(cmd, 3, 0,  4,  enum dpni_flc_type, cfg->flc_cfg.flc_type); \
 	MC_CMD_OP(cmd, 3, 4,  4,  enum dpni_stash_size, \
 		cfg->flc_cfg.frame_data_size);\
@@ -637,6 +638,7 @@ do { \
 	MC_RSP_OP(cmd, 0, 0,  32, int,      attr->dest_cfg.dest_id); \
 	MC_RSP_OP(cmd, 0, 32, 8,  uint8_t,  attr->dest_cfg.priority);\
 	MC_RSP_OP(cmd, 0, 40, 2,  enum dpni_dest, attr->dest_cfg.dest_type); \
+	MC_CMD_OP(cmd, 0, 42, 1,  int,      attr->order_preservation_en);\
 	MC_RSP_OP(cmd, 1, 0,  64, uint64_t, attr->user_ctx); \
 	MC_RSP_OP(cmd, 2, 32, 32, uint32_t, attr->fqid); \
 	MC_RSP_OP(cmd, 3, 0,  4,  enum dpni_flc_type, attr->flc_cfg.flc_type); \
@@ -654,6 +656,7 @@ do { \
 	MC_CMD_OP(cmd, 0, 0,  32, int,      cfg->dest_cfg.dest_id); \
 	MC_CMD_OP(cmd, 0, 32, 8,  uint8_t,  cfg->dest_cfg.priority);\
 	MC_CMD_OP(cmd, 0, 40, 2,  enum dpni_dest, cfg->dest_cfg.dest_type);\
+	MC_CMD_OP(cmd, 0, 42, 1,  int,      cfg->order_preservation_en);\
 	MC_CMD_OP(cmd, 1, 0,  64, uint64_t, cfg->user_ctx); \
 	MC_CMD_OP(cmd, 2, 0,  32, uint32_t, cfg->options); \
 	MC_CMD_OP(cmd, 3, 0,  4,  enum dpni_flc_type, cfg->flc_cfg.flc_type); \
@@ -671,6 +674,7 @@ do { \
 	MC_RSP_OP(cmd, 0, 0,  32, int,      attr->dest_cfg.dest_id); \
 	MC_RSP_OP(cmd, 0, 32, 8,  uint8_t,  attr->dest_cfg.priority);\
 	MC_RSP_OP(cmd, 0, 40, 2,  enum dpni_dest, attr->dest_cfg.dest_type);\
+	MC_CMD_OP(cmd, 0, 42, 1,  int,      attr->order_preservation_en);\
 	MC_RSP_OP(cmd, 1, 0,  64, uint64_t, attr->user_ctx); \
 	MC_RSP_OP(cmd, 2, 32, 32, uint32_t, attr->fqid); \
 	MC_RSP_OP(cmd, 3, 0,  4,  enum dpni_flc_type, attr->flc_cfg.flc_type); \
