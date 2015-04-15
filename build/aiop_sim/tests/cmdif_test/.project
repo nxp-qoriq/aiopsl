@@ -122,6 +122,11 @@ aiop_sl		</project>
 			<locationURI>PARENT-4-PROJECT_LOC/tests/cmdif/cmdif_integration_test.c</locationURI>
 		</link>
 		<link>
+			<name>src/cmdif_performance.c</name>
+			<type>1</type>
+			<locationURI>PARENT-4-PROJECT_LOC/tests/cmdif/cmdif_performance.c</locationURI>
+		</link>
+		<link>
 			<name>src/cmdif_test.c</name>
 			<type>1</type>
 			<locationURI>PROJECT_LOC/src/cmdif_test.c</locationURI>
