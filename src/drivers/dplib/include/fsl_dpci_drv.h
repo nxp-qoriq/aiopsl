@@ -84,7 +84,7 @@ int dpci_drv_update(uint32_t dpci_ind);
 
 @Description	Get the tx fqids for DPCI.  
 
-@Param[in]	dpci_id - Either AIOP dpci id or the peer id.
+@Param[in]	dpci_id - DPCI id of the AIOP side.
 @Param[out]	tx_fqid - Array for 2 fqids.
 
 @Return		0      - on success, POSIX error code otherwise

@@ -98,6 +98,9 @@ int icontext_get(uint16_t dpci_id, struct icontext *ic)
 	 * or by AIOP dpci id  - to support both cases
 	 * All DPCIs in the world have different IDs */
 	ind = mc_dpci_find(dpci_id, NULL);
+	if (ind < 0)
+		ind = mc_dpci_peer_find(dpci_id, NULL);
+
 	if (ind >= 0) {
 		dpci_drv_icid_get((uint32_t)ind, &icid, &amq_bdi);
 		if (icid == ICONTEXT_INVALID)
@@ -108,7 +111,7 @@ int icontext_get(uint16_t dpci_id, struct icontext *ic)
 #endif
 		return 0;
 	}
-
+	
 	return -ENOENT;
 }
 

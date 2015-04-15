@@ -163,6 +163,8 @@ static inline void amq_bits_update(uint32_t id)
 
 	/* Must be written last */
 	dt->ic[id] = amq_bdi;
+	/* Don't update AIOP to AIOP DPCI 2 entries because it 
+	 * shouldn't change anyway */
 	mc_dpci_tbl_dump();
 }
 
@@ -174,7 +176,7 @@ __COLD_CODE int dpci_amq_bdi_init(uint32_t dpci_id)
 		sys_get_unique_handle(FSL_OS_MOD_DPCI_TBL);
 	int ind = -1;
 	uint32_t amq_bdi = 0;
-	uint32_t dpci_id_peer = 0;
+	uint32_t dpci_id_peer = DPCI_FQID_NOT_VALID;
 	int err = 0;
 
 	ASSERT_COND(dt);
@@ -207,6 +209,17 @@ __COLD_CODE int dpci_amq_bdi_init(uint32_t dpci_id)
 		} else {
 			pr_err("Not enough entries\n");
 			return -ENOMEM;
+		}
+		
+		/* AIOP DPCI to AIOP DPCI case 
+		 * 2 entries must be updated 1->2 and 2->1 */
+		if (dpci_id_peer != DPCI_FQID_NOT_VALID) {
+			ind = mc_dpci_find(dpci_id_peer, NULL);
+			if (ind >= 0) {
+				/* If here then 2 AIOP DPCIs are connected */
+				dt->dpci_id_peer[ind] = dpci_id; 
+				dt->ic[ind] = amq_bdi;
+			}
 		}
 	}
 
