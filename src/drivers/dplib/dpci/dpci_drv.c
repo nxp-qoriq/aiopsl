@@ -194,26 +194,26 @@ __COLD_CODE int dpci_amq_bdi_init(uint32_t dpci_id)
 			dt->dpci_id_peer[ind] = DPCI_FQID_NOT_VALID;
 
 		dt->ic[ind] = amq_bdi;
-	} else {
+	} else {		
 		ind = mc_dpci_entry_get();
 		if (ind >= 0) {
 			/* Adding new dpci_id */
 			dt->ic[ind] = amq_bdi;
 			dt->dpci_id[ind] = dpci_id;
-			/* Updated DPCI peer if possible */
-			err = dpci_get_peer_id(dpci_id, &dpci_id_peer);
-			if (!err)
-				dt->dpci_id_peer[ind] = dpci_id_peer;
-			else
-				dt->dpci_id_peer[ind] = DPCI_FQID_NOT_VALID;
 		} else {
 			pr_err("Not enough entries\n");
 			return -ENOMEM;
 		}
-		
-		/* AIOP DPCI to AIOP DPCI case 
-		 * 2 entries must be updated 1->2 and 2->1 */
-		if (dpci_id_peer != DPCI_FQID_NOT_VALID) {
+
+		/* Updated DPCI peer if possible */
+		err = dpci_get_peer_id(dpci_id, &dpci_id_peer);
+		if ((dpci_id_peer != DPCI_FQID_NOT_VALID) && (!err)) {
+			if (ind >= 0)
+				dt->dpci_id_peer[ind] = dpci_id_peer;
+			else
+				dt->dpci_id_peer[ind] = DPCI_FQID_NOT_VALID;
+			/* AIOP DPCI to AIOP DPCI case 2 entries must be 
+			 * updated 1->2 and 2->1 */
 			err = mc_dpci_find(dpci_id_peer, NULL);
 			if (err >= 0) {
 				/* If here then 2 AIOP DPCIs are connected */
