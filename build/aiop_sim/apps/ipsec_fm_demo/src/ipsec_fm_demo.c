@@ -615,9 +615,15 @@ int ipsec_app_init(uint16_t ni_id)
 	/* Outbound (encryption) parameters */
 	params.direction = IPSEC_DIRECTION_OUTBOUND; /**< Descriptor direction */
 	//params.flags = IPSEC_FLG_TUNNEL_MODE |
+	//params.flags = tunnel_transport_mode |
+	//		IPSEC_FLG_LIFETIME_KB_CNTR_EN | IPSEC_FLG_LIFETIME_PKT_CNTR_EN;
+	//		/**< Miscellaneous control flags */
+	
+	/* Miscellaneous control flags */
 	params.flags = tunnel_transport_mode |
-			IPSEC_FLG_LIFETIME_KB_CNTR_EN | IPSEC_FLG_LIFETIME_PKT_CNTR_EN;
-			/**< Miscellaneous control flags */
+			IPSEC_FLG_LIFETIME_KB_CNTR_EN | IPSEC_FLG_LIFETIME_PKT_CNTR_EN |
+				IPSEC_FLG_ENC_DSCP_SET;
+	
 	
 	/* UDP ENCAP (tunnel mode)*/
 	if ((outer_header_ip_version == 17) && 	

@@ -1632,7 +1632,7 @@ int ipsec_frame_encrypt(
 			/* New first 16 bits of the IP header, including DSCP */
 			new_val = (original_val & (~IPSEC_DSCP_MASK_IPV4)) |
 					sap1.outer_hdr_dscp;
-				
+			
 			/* Update the IP header checksum */
 			cksum_update_uint32(((uint16_t *) /* uint16_t *cs_ptr */
 					((uint32_t)IPSEC_GET_SEGMENT_ADDRESS(HWC_PRC_ADDRESS) + 
