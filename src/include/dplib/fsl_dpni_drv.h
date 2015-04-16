@@ -394,16 +394,21 @@ inline void sl_tman_expiration_task_prolog(uint16_t spid);
 /**************************************************************************//**
 @Function	dpni_drv_send
 
-@Description	Network Interface send (AIOP enqueue) function.
+@Description	Network Interface send (AIOP store and enqueue) function.
+	Store and enqueue the default Working Frame.
 
-@Param[in]	ni_id - The Network Interface ID
+@Param[in]		ni_id - The Network Interface ID
 	Implicit: Queuing Destination Priority (qd_priority) in the TLS.
 
-@Retval		0 - Success.
-		It is recommended that for any error value user should discard
-		the frame and terminate the task.
-@Retval		EBUSY - Enqueue failed due to congestion in QMAN.
-@Retval		ENOMEM - Failed due to buffer pool depletion.
+@Retval			0 - Success.
+	It is recommended that for any error value user should discard
+	the frame and terminate the task.
+@Retval		EBUSY - Enqueue failed due to congestion in QMAN. It is 
+	recommended calling fdma_discard_fd() afterwards and then terminate task.
+@Retval		ENOMEM - Failed due to buffer pool depletion. It is recommended 
+	calling fdma_discard_default_frame() afterwards and then terminate task.
+@Cautions      The frame to be enqueued must be open (presented)
+	when calling this function 
 *//***************************************************************************/
 inline int dpni_drv_send(uint16_t ni_id);
 
@@ -411,18 +416,22 @@ inline int dpni_drv_send(uint16_t ni_id);
 @Function	dpni_drv_explicit_send
 
 @Description	Network Interface explicit send (AIOP enqueue) function.
+	Enqueue the explicit closed frame.
 
-@Param[in]	ni_id - The Network Interface ID
+@Param[in]		ni_id - The Network Interface ID
 	Implicit: Queuing Destination Priority (qd_priority) in the TLS.
 
-@Param[in]	fd - pointer to explicit FD. The assumption is that user
-		used fdma function to create an explicit FD as
-		fdma_create_frame
+@Param[in]		fd - pointer to the explicit FD.
 
-@Retval		0 - Success.
-		It is recommended that for any error value user should discard
-		the frame and terminate the task.
-@Retval		EBUSY - Enqueue failed due to congestion in QMAN.
+@Retval			0 - Success.
+	It is recommended that for any error value user should discard
+	the frame and terminate the task.
+@Retval		EBUSY - Enqueue failed due to congestion in QMAN. It is 
+	recommended calling fdma_discard_fd() afterwards and then terminate task.
+
+@Cautions	The frame to be enqueued must be closed (stored) when calling
+	this function 
+
 *//***************************************************************************/
 int dpni_drv_explicit_send(uint16_t ni_id, struct ldpaa_fd *fd);
 
