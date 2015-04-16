@@ -162,7 +162,7 @@
 #define TABLE_LPM_IPV4_WC_ENTRIES_PER_RULE			5
 
 /** Number of entries needed for IPv6 LPM rule in worst case */
-#define TABLE_LPM_IPV6_WC_ENTRIES_PER_RULE			9
+#define TABLE_LPM_IPV6_WC_ENTRIES_PER_RULE			17
 
 /** Number of entries needed for MFLU rule for small key in worst case */
 #define TABLE_MFLU_SMALL_KEY_WC_ENTRIES_PER_RULE		3
