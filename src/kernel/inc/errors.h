@@ -53,38 +53,8 @@
 #define PRINT_FORMAT        "[CPU %d, %s:%d %s]"
 #define PRINT_FMT_PARAMS    core_get_id(), __FILE__, __LINE__, __FUNCTION__
 
-
-#if (!defined(DEBUG_ERRORS) || (DEBUG_ERRORS == 0))
-/* No debug/error/event messages at all */
-#define REPORT_ERROR(_level, _err, _vmsg)
-#define RETURN_ERROR(_level, _err, _vmsg) \
-        return (_err)
-#else /* DEBUG_ERRORS > 0 */
-
 extern const char *dbg_level_strings[];
 extern const char *module_strings[];
-
-char * err_type_strings (int err);
-
-#define REPORT_ERROR(_level, _err, _vmsg) \
-    do { \
-        if (REPORT_LEVEL_##_level <= ERROR_DYNAMIC_LEVEL) { \
-            fsl_os_print("! %s %s error " PRINT_FORMAT ": %s; ", \
-                     dbg_level_strings[REPORT_LEVEL_##_level - 1], \
-                     module_strings[__ERR_MODULE__ >> 16], \
-                     PRINT_FMT_PARAMS, \
-                     err_type_strings((int)(_err))); \
-            fsl_os_print _vmsg; \
-            fsl_os_print("\r\n"); \
-        } \
-    } while (0)
-
-#define RETURN_ERROR(_level, _err, _vmsg) \
-    do { \
-        REPORT_ERROR(_level, (_err), _vmsg); \
-        return _err; \
-    } while (0)
-#endif /* (DEBUG_ERRORS > 0) */
 
 /** @} */ /* end of gen_err_g group */
 /** @} */ /* end of gen_g group */
