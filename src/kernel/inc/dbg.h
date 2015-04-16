@@ -98,15 +98,15 @@
 
                 se_dnh - Debug Notify Halt
                 Acts as 'se_illegal' if EDBCR0[DNH_EN] is not set.
-*//***************************************************************************/
+ *//***************************************************************************/
 #if (!defined(DEBUG_ERRORS) || (DEBUG_ERRORS == 0))
-	#define DEBUG_HALT
+#define DEBUG_HALT
 #else
-	#ifdef __KLOCWORK__
-	#define DEBUG_HALT do { } while (1)
-	#else
-	#define DEBUG_HALT asm { se_dnh }
-	#endif /* __KLOCWORK__ */
+#ifdef __KLOCWORK__
+#define DEBUG_HALT do { } while (1)
+#else
+#define DEBUG_HALT asm { se_dnh }
+#endif /* __KLOCWORK__ */
 #endif /* DEBUG_ERRORS */
 
 /**************************************************************************//**
@@ -310,19 +310,20 @@
 /* No need for DBG macro - debug level is higher anyway */
 #define DBG(_level, ...)
 #else
+void enable_print_protection();
+void disable_print_protection();
 /*call to print but without mutex*/
 extern const char *dbg_level_strings[];
 void dbg_print(char *format, ...);
 #define DBG(_level, ...)                                                \
 	do {                                                            \
 		if (_level <= DEBUG_DYNAMIC_LEVEL) {                    \
-			cdma_mutex_lock_take((uint64_t)fsl_os_print,    \
-				CDMA_MUTEX_WRITE_LOCK);               \
-			dbg_print("> %s " PRINT_FORMAT ": ",         \
-			             dbg_level_strings[_level - 1],     \
-			             PRINT_FMT_PARAMS);                 \
-			dbg_print(__VA_ARGS__);                      \
-			cdma_mutex_lock_release((uint64_t)fsl_os_print);\
+			enable_print_protection();                      \
+			dbg_print("> %s " PRINT_FORMAT ": ",            \
+			          dbg_level_strings[_level - 1],        \
+			          PRINT_FMT_PARAMS);                    \
+			dbg_print(__VA_ARGS__);                         \
+			disable_print_protection();                     \
 		}                                                       \
 	} while (0)
 #endif /* (defined(DEBUG_USING_STATIC_LEVEL) && (DEBUG_DYNAMIC_LEVEL < WARNING)) */

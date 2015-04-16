@@ -35,9 +35,11 @@
 #include "sys.h"
 #include "fsl_log.h"
 #include "fsl_stdlib.h"
+#include "fsl_string.h"
 
 __TASK uint32_t seed_32bit;
 __TASK uint32_t exception_flag;
+
 
 #define __ERR_MODULE__ MODULE_UNKNOWN
 
@@ -45,84 +47,111 @@ __TASK uint32_t exception_flag;
 
 #define SIGN	2
 
-#define PRINT_LOCK 1
-
-#define BUF_SIZE           1024  /*used for print in boot mode*/
-#define RUNTIME_BUF_SIZE   80    /*used for print in runtime mode*/
+/* Size of Accelerator Hardware Context to reserve when calling to accelerator*/
+#define SIZE_OF_HWC_TO_RESERVE  32
+/* Buffer size used for print in boot mode*/
+#define BUF_SIZE                1024
+/* Buffer size used for print in runtime mode*/
+#define RUNTIME_BUF_SIZE        80
 
 static const char* digits="0123456789abcdef";
+static uint8_t g_hwc[SIZE_OF_HWC_TO_RESERVE];
 
+void enable_print_protection();
+void disable_print_protection();
+void dbg_print(char *format, ...);
 static int vsnprintf_lite(char *buf, size_t size, const char *fmt, va_list args);
 static char *number(char *str, uint64_t num, uint8_t base, uint8_t type, size_t *max_size, uint8_t fix_size);
 static void fsl_os_print_boot(const char *format, va_list args);
 
 
-/*****************************************************************************/
-
-inline void os_print( const char *format, va_list args, int lock)
+__COLD_CODE void enable_print_protection()
 {
-	char    tmp_buf[RUNTIME_BUF_SIZE + LOG_END_SIGN_LENGTH];
-
-
-	if(sys.runtime_flag){
-		vsnprintf_lite(tmp_buf, RUNTIME_BUF_SIZE, format, args);
-		va_end(args);
-		/*
-		 * increment exception counter to avoid printing in exception handler
-		 * in case we will get exception during the print
-		 * */
-		exception_flag += 1;
-		
-		if(lock == PRINT_LOCK)
-			cdma_mutex_lock_take((uint64_t)fsl_os_print, CDMA_MUTEX_WRITE_LOCK);
-		sys_print(tmp_buf);
-		if(lock == PRINT_LOCK)
-			cdma_mutex_lock_release((uint64_t)fsl_os_print);
-		/* decrement exception counter */
-		exception_flag -= 1;
-	}
-#ifndef STACK_CHECK
-	else{
-		if(lock == PRINT_LOCK)
-			cdma_mutex_lock_take((uint64_t)fsl_os_print, CDMA_MUTEX_WRITE_LOCK);
-		fsl_os_print_boot(format, args);
-		if(lock == PRINT_LOCK)
-			cdma_mutex_lock_release((uint64_t)fsl_os_print);
-	}
-#endif
-}
-
-
-void fsl_os_print(char *format, ...)
-{
-	va_list args;
-	va_start(args, format);
-	os_print(format,  args, PRINT_LOCK);
-}
-
-void dbg_print(char *format, ...)
-{
-	va_list args;
-	va_start(args, format);
-	os_print(format,  args, 0);
-}
-
-__COLD_CODE static void fsl_os_print_boot(const char *format, va_list args){
-	char    tmp_buf[BUF_SIZE + LOG_END_SIGN_LENGTH];
-	vsnprintf(tmp_buf, BUF_SIZE, format, args);
-	va_end(args);
+	uint8_t hwc[SIZE_OF_HWC_TO_RESERVE];
+	/*Save Accelerator Hardware Context*/
+	/**HWC_ACC_IN_ADDRESS - Address for passing parameters to accelerators
+	 * The accelerator hardware context must be stored on stack first,
+	 * because the call for mutex will overwrite those parameters.
+	 * After the mutex is enabled and the global variable is protected, the
+	 * content can be saved in global variable to save stack for print
+	 * function.*/
+	memcpy((void *) hwc, (const void *) HWC_ACC_IN_ADDRESS, SIZE_OF_HWC_TO_RESERVE);
 	/*
 	 * increment exception counter to avoid printing in exception handler
 	 * in case we will get exception during the print
 	 * */
 	exception_flag += 1;
-	sys_print(tmp_buf);
-	/* decrement exception counter */
-	exception_flag -= 1;
+	cdma_mutex_lock_take((uint64_t)fsl_os_print, CDMA_MUTEX_WRITE_LOCK);
+	/*g_hwc already locked by mutex*/
+	memcpy((void *) g_hwc, (const void *) hwc, SIZE_OF_HWC_TO_RESERVE);
 }
 
+__COLD_CODE void disable_print_protection()
+{
+	uint8_t hwc[SIZE_OF_HWC_TO_RESERVE];
+	/* g_hwc already locked by mutex*/
+	/**HWC_ACC_IN_ADDRESS - Address for passing parameters to accelerators
+	 * The accelerator hardware context must be restored to stack first,
+	 * because the call for mutex will overwrite those parameters.
+	 * After the mutex is disabled, the content can be restored.*/
+	memcpy((void *)hwc, (const void *)g_hwc, SIZE_OF_HWC_TO_RESERVE);
+	cdma_mutex_lock_release((uint64_t)fsl_os_print);
+	/* decrement exception counter */
+	exception_flag -= 1;
+	/*Restore Accelerator Hardware Context*/
+	/** Address for passing parameters to accelerators */
+	memcpy((void *) HWC_ACC_IN_ADDRESS, (const void *) hwc,  SIZE_OF_HWC_TO_RESERVE);
+}
 
-static int vsnprintf_lite(char *buf, size_t size, const char *fmt, va_list args)
+static inline void fsl_os_print_runtime(const char *format, va_list args)
+{
+	char    buf[RUNTIME_BUF_SIZE + LOG_END_SIGN_LENGTH];
+	vsnprintf_lite(buf, RUNTIME_BUF_SIZE, format, args);
+	va_end(args);
+	sys_print(buf);
+}
+
+__COLD_CODE void fsl_os_print(char *format, ...)
+{
+	va_list args;
+	va_start(args, format);
+	/*enable_print_protection() - calling to print must be under mutex, with
+	 * exception handler flag on and Accelerator Hardware context backed up
+	 * to restore the previous state*/
+	enable_print_protection();
+	if(sys.runtime_flag){
+		fsl_os_print_runtime(format, args);
+	}
+	else{
+		fsl_os_print_boot(format, args);
+	}
+	disable_print_protection();
+}
+/*dbg_print is called from pr_xxx functions which must call:
+ * enable_print_protection() first*/
+__COLD_CODE void dbg_print(char *format, ...)
+{
+	va_list args;
+	va_start(args, format);
+	if(sys.runtime_flag){
+		fsl_os_print_runtime(format, args);
+	}
+	else{
+		fsl_os_print_boot(format, args);
+	}
+}
+
+/*pragma used to ignore stack check for the function below*/
+#pragma stackinfo_ignore on
+__COLD_CODE static void fsl_os_print_boot(const char *format, va_list args)
+{
+	char    buf[BUF_SIZE + LOG_END_SIGN_LENGTH];
+	vsnprintf(buf, BUF_SIZE, format, args);
+	va_end(args);
+	sys_print(buf);
+}
+
+__COLD_CODE static int vsnprintf_lite(char *buf, size_t size, const char *fmt, va_list args)
 {
 	uint64_t num;
 	uint8_t  base;
@@ -228,8 +257,7 @@ static int vsnprintf_lite(char *buf, size_t size, const char *fmt, va_list args)
 	return str - buf;
 }
 
-
-static char *number(char *str, uint64_t num, uint8_t base, uint8_t type, size_t *max_size, uint8_t fix_size)
+__COLD_CODE static char *number(char *str, uint64_t num, uint8_t base, uint8_t type, size_t *max_size, uint8_t fix_size)
 {
 	uint64_t tmp_num;
 	char *ptr_start, *ptr_end, tmp_char;
@@ -589,20 +617,20 @@ void fsl_os_put_mem(uint64_t paddr)
 
 uint32_t fsl_os_current_time(void)
 {
-    pr_warn("Timer!");
-    return 0;
+	pr_warn("Timer!");
+	return 0;
 }
 
 fsl_handle_t fsl_os_create_timer(void)
 {
-    pr_warn("Timer!");
-    return NULL;
+	pr_warn("Timer!");
+	return NULL;
 }
 
 void fsl_os_free_timer(fsl_handle_t tmr)
 {
-    UNUSED (tmr);
-    pr_warn("Timer!");
+	UNUSED (tmr);
+	pr_warn("Timer!");
 }
 
 int fsl_os_start_timer(fsl_handle_t   tmr,
@@ -611,38 +639,38 @@ int fsl_os_start_timer(fsl_handle_t   tmr,
                        void           (*expired_cb)(fsl_handle_t),
                        fsl_handle_t   arg)
 {
-    UNUSED (arg);
-    UNUSED (expired_cb);
-    UNUSED (msecs);
-    UNUSED (periodic);
-    UNUSED (tmr);
-    pr_warn("Timer!");
-    return 0;
+	UNUSED (arg);
+	UNUSED (expired_cb);
+	UNUSED (msecs);
+	UNUSED (periodic);
+	UNUSED (tmr);
+	pr_warn("Timer!");
+	return 0;
 }
 
 void fsl_os_stop_timer(fsl_handle_t tmr)
 {
-    UNUSED (tmr);
-    pr_warn("Timer!");
+	UNUSED (tmr);
+	pr_warn("Timer!");
 }
 
 void fsl_os_mod_timer(fsl_handle_t tmr, uint32_t msecs)
 {
-    UNUSED (tmr);
-    UNUSED (msecs);
-    pr_warn("Timer!");
+	UNUSED (tmr);
+	UNUSED (msecs);
+	pr_warn("Timer!");
 }
 
 void fsl_os_udelay(uint32_t usecs)
 {
-    UNUSED (usecs);
-    pr_warn("Timer!");
+	UNUSED (usecs);
+	pr_warn("Timer!");
 }
 
 uint32_t fsl_os_sleep(uint32_t msecs)
 {
-    UNUSED (msecs);
-    pr_warn("Timer!");
-    return 0;
+	UNUSED (msecs);
+	pr_warn("Timer!");
+	return 0;
 }
 #endif
