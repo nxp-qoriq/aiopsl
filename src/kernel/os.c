@@ -34,6 +34,7 @@
 #include "fsl_mem_mng.h"
 #include "sys.h"
 #include "fsl_log.h"
+#include "fsl_stdlib.h"
 
 __TASK uint32_t seed_32bit;
 __TASK uint32_t exception_flag;
