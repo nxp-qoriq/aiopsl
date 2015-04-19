@@ -102,10 +102,10 @@ extern const  uint32_t g_boot_mem_mng_size;
 
 /*****************************************************************************/
 int boot_get_mem(struct initial_mem_mng* boot_mem_mng,
-                 uint64_t size,uint64_t* paddr);
+                 const uint64_t size,uint64_t* paddr);
 /*****************************************************************************/
 int boot_get_mem_virt(struct initial_mem_mng* boot_mem_mng,
-                      uint64_t size,uint32_t* vaddr);
+                      const uint64_t size,uint32_t* vaddr);
 /**************************************************************************//**
  @Function      boot_mem_mng_init
 
@@ -115,7 +115,7 @@ int boot_get_mem_virt(struct initial_mem_mng* boot_mem_mng,
 
  @Return        Handle to initialized MEM_MNG object, or NULL on error.
 *//***************************************************************************/
-int boot_mem_mng_init(struct initial_mem_mng* boot_mem_mng,int mem_partition_id);
+int boot_mem_mng_init(struct initial_mem_mng* boot_mem_mng,const int mem_partition_id);
 
 /**************************************************************************//**
  @Function      boot_mem_mng_free
