@@ -11,20 +11,28 @@ TOTAL_CPROJETCTS_FILE = "cprojects_found.properties"
 
 def check_if_file_exists(filename):
 	return os.path.isfile(filename)
-
+#the input of thuis script is two different .cproject to compare
 def check_if_flags_different(app_process_packet, cproject_file):
 	global ignore_flags
 	ignore_flags_exist = False
 
+	#flag to identify if we are checking the first target in .cproject - only first is supported
+	target_1_flag = 0
 	temp_file = []
 	ins = open( cproject_file, "r" )
 	for line in ins:
-		if "superClass=" in line:
+		if "cconfiguration" in line:
+			target_1_flag += 1 
+		if "/cconfiguration" in line:
+			target_1_flag += 1
+
+		if "superClass=" in line and target_1_flag == 1:
 			l = re.compile("superClass=").split(line)
 			if len(l) == 2:
 				temp_file.append( "<" + l[1] )
 	ins.close()
 
+	# the comparison for .cprojects starts from here:
 	different_flag = False
 
 	if 'Null' not in ignore_flags and 'aiopsl' in cproject_file:
@@ -141,6 +149,8 @@ if __name__ == "__main__":
 
 
 	print "[INFO]: Number of flags found in app process packet -\".cproject\": " + str(len(app_process_packet)) + "\n\n"
+
+	#matched - an array to all .cproject paths found in aiopsl.
 	matches = []
 
 	total_cprojects_checked = 0
