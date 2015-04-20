@@ -388,6 +388,9 @@ __COLD_CODE static int snic_ctrl_cb(void *dev, uint16_t cmd, uint32_t size, void
 	union table_lookup_key_desc table_lookup_key_desc  __attribute__((aligned(16)));
 	union table_key_desc key_desc __attribute__((aligned(16)));
 	int32_t direction;
+#ifdef REV2_RULEID
+	uint64_t rule_id;
+#endif
 
 	UNUSED(dev);
 
@@ -537,7 +540,11 @@ __COLD_CODE static int snic_ctrl_cb(void *dev, uint16_t cmd, uint32_t size, void
 		rule.key_desc.em.key[0] = (uint8_t)(sa_id >> 8);
 		rule.key_desc.em.key[1] = (uint8_t)sa_id;
 		err = table_rule_create(TABLE_ACCEL_ID_CTLU,
+#ifdef REV2_RULEID
+				snic_params[snic_id].ipsec_table_id, &rule, 2, &rule_id);
+#else
 				snic_params[snic_id].ipsec_table_id, &rule, 2);
+#endif
 		if (err)
 			return err;
 		/* create rule to bind between dec key and ipsec handle */
@@ -548,8 +555,12 @@ __COLD_CODE static int snic_ctrl_cb(void *dev, uint16_t cmd, uint32_t size, void
 			for (i = 0; i < snic_params[snic_id].ipsec_key_size; i++ )
 				rule.key_desc.em.key[i] = ipsec_dec_key[i];
 			err = table_rule_create(TABLE_ACCEL_ID_CTLU,
-					snic_params[snic_id].dec_ipsec_table_id, 
+					snic_params[snic_id].dec_ipsec_table_id,
+#ifdef REV2_RULEID
+					&rule, snic_params[snic_id].ipsec_key_size,&rule_id);
+#else
 					&rule, snic_params[snic_id].ipsec_key_size);
+#endif
 			if (err)
 				return err;
 		}

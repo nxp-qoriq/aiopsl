@@ -89,7 +89,12 @@ int table_rule_create_or_replace(enum table_hw_accel_id acc_id,
 				 uint16_t table_id,
 				 struct table_rule *rule,
 				 uint8_t key_size,
+#ifdef REV2_RULEID
+				 struct table_result *old_res,
+				 uint64_t *rule_id)
+#else
 				 struct table_result *old_res)
+#endif
 {
 	
 #ifdef CHECK_ALIGNMENT 	
@@ -134,6 +139,9 @@ int table_rule_create_or_replace(enum table_hw_accel_id acc_id,
 			/* STQW optimization is not done here so we do not
 			 * force alignment */
 			*old_res = hw_old_res.result;
+#ifdef REV2_RULEID
+			*rule_id = hw_old_res.rule_id;
+#endif
 	}
 	else if (status == TABLE_HW_STATUS_MISS){}
 	else if (status == CTLU_HW_STATUS_NORSC)
@@ -466,7 +474,9 @@ void table_workaround_tkt226361(uint32_t mflu_peb_num_entries,
 	struct table_rule          rule2 __attribute__((aligned(16)));
 	uint32_t                   i;
 	uint32_t                   num_of_entries = mflu_peb_num_entries;
-
+#ifdef REV2_RULEID
+	uint64_t				   rule_id;
+#endif
 	/* Iterate for each memory region */
 	for(i = 0; i < 3; i++){
 		switch (i) {
@@ -516,7 +526,11 @@ void table_workaround_tkt226361(uint32_t mflu_peb_num_entries,
 					table_id,
 					&rule1,
 					TABLE_TKT226361_KEY_SIZE +
+#ifdef REV2_RULEID
+					TABLE_KEY_MFLU_PRIORITY_FIELD_SIZE,&rule_id)){
+#else
 					TABLE_KEY_MFLU_PRIORITY_FIELD_SIZE)){
+#endif
 				table_exception_handler_wrp(
 					TABLE_WORKAROUND_TKT226361_FUNC_ID,
 					__LINE__,
@@ -535,7 +549,11 @@ void table_workaround_tkt226361(uint32_t mflu_peb_num_entries,
 					table_id,
 					&rule2,
 					TABLE_TKT226361_KEY_SIZE +
+#ifdef REV2_RULEID
+					TABLE_KEY_MFLU_PRIORITY_FIELD_SIZE,&rule_id)){
+#else
 					TABLE_KEY_MFLU_PRIORITY_FIELD_SIZE)){
+#endif
 				table_exception_handler_wrp(
 					TABLE_WORKAROUND_TKT226361_FUNC_ID,
 					__LINE__,
@@ -563,9 +581,18 @@ int table_lookup_by_keyid_default_frame_wrp(enum table_hw_accel_id acc_id,
 int table_rule_create_wrp(enum table_hw_accel_id acc_id,
 		      uint16_t table_id,
 		      struct table_rule *rule,
-		      uint8_t key_size)
+#ifdef REV2_RULEID
+		      uint8_t key_size,
+		      uint64_t *rule_id)
+#else
+			  uint8_t key_size)
+#endif
 {
+#ifdef REV2_RULEID
+	return table_rule_create(acc_id, table_id, rule, key_size, rule_id);
+#else
 	return table_rule_create(acc_id, table_id, rule, key_size);
+#endif
 }
 
 int table_rule_delete_wrp(enum table_hw_accel_id acc_id,
