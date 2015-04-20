@@ -44,81 +44,57 @@
 #include "fsl_shbp.h"
 #include "fsl_spinlock.h"
 #include "cmdif_test_common.h"
+#include "apps.h"
 
 #ifndef CMDIF_TEST_WITH_MC_SRV
 #warning "If you test with MC define CMDIF_TEST_WITH_MC_SRV inside cmdif.h\n"
 #warning "If you test with GPP undef CMDIF_TEST_WITH_MC_SRV and delete #error\n"
+#endif
+#if (DEBUG_LEVEL > 0)
+#warning "Set DEBUG_LEVEL to 0 before testing "
+#endif
+#if (APP_INIT_TASKS_PER_CORE != 1)
+#warning "Set APP_INIT_TASKS_PER_CORE to 1 before testing "
 #endif
 
 #define TIMEOUT_IN_SECONDS	60
 
 struct cmdif_desc cidesc;
 /** Counters ***/
-int32_t async_count = 0;
 int32_t cmd_count = 0;
 /** TMAN ***/
 uint8_t timer_on = 0;
 uint8_t tmi_id = 0;
 uint32_t timer_handle = 0;
 uint64_t tman_addr = 0;
-volatile uint8_t timer_deleted = 0; 
+volatile uint8_t timer_deleted = 1; 
 int app_init(void);
 void app_free(void);
-
-
-__HOT_CODE static int aiop_async_cb(void *async_ctx, int err, uint16_t cmd_id,
-             uint32_t size, void *data)
-{
-	UNUSED(async_ctx);
-	UNUSED(err);
-	UNUSED(cmd_id);	
-	UNUSED(size);
-	UNUSED(data);
-	
-	if (timer_on) {
-		atomic_incr32(&async_count, 1);
-	}	
-
-	return 0;
-}
 
 static int open_cb(uint8_t instance_id, void **dev)
 {
 	UNUSED(dev);
-	pr_info("open_cb inst_id = 0x%x\n", instance_id);
+	fsl_os_print("open_cb inst_id = 0x%x\n", instance_id);
 	return 0;
 }
 
 static int close_cb(void *dev)
 {
 	UNUSED(dev);
-	pr_info("close_cb\n");
+	fsl_os_print("close_cb\n");
 	return 0;
 }
 
-#if (DEBUG_LEVEL > 0)
-#warning "Set DEBUG_LEVEL to 0 before testing "
-#endif
-
 __HOT_CODE static void tman_cb(uint64_t opaque1, uint16_t opaque2)
-{
-	int err;
-	
+{	
 	UNUSED(opaque1);
 	UNUSED(opaque2);
 	
 	timer_on = 0;
-	pr_info("TIMEOUT %d seconds, cmd_count = 0x%x \n", 
-	        TIMEOUT_IN_SECONDS, cmd_count);
-	pr_info("TIMEOUT %d seconds, async_cb_count = 0x%x \n", 
-	        TIMEOUT_IN_SECONDS, async_count);
-	
-	/* Delete timer for running the test again */
-	err = tman_delete_timer(timer_handle, 
-	                        TMAN_TIMER_DELETE_MODE_WO_EXPIRATION);
-	if (err) {
-		pr_err("TMAN timer delete err = %d\n", err);
-	}
+	fsl_os_print("TIMEOUT %d seconds, cmd_count = 0x%x \n", 
+	        TIMEOUT_IN_SECONDS, cmd_count);	
+	/* Confirmation for running the timer again */
+	tman_timer_completion_confirmation(timer_handle);
 	timer_deleted = 1;
 }
 
@@ -132,10 +108,7 @@ __HOT_CODE static int ctrl_cb0(void *dev, uint16_t cmd,
 	UNUSED(size);
 	UNUSED(data);
 
-	if (cmd == PERF_TEST_START) {
-		
-		pr_info("Starting TMAN timer ..\n");
-		
+	if (cmd == PERF_TEST_START) {		
 		/* Wait for timer deletion 
 		 * The sequence should be 
 		 * 1. Send low priority commands, 
@@ -149,8 +122,8 @@ __HOT_CODE static int ctrl_cb0(void *dev, uint16_t cmd,
 		 */
 		do {} while(!timer_deleted);
 		timer_deleted = 0;
-		async_count   = 0;
 		cmd_count     = 0;
+		fsl_os_print("Starting TMAN timer ..\n");
 		err = tman_create_timer(tmi_id/* tmi_id */,
 		                        TMAN_CREATE_TIMER_MODE_SEC_GRANULARITY | TMAN_CREATE_TIMER_ONE_SHOT /* flags */,
 		                        TIMEOUT_IN_SECONDS/* duration */,
@@ -168,7 +141,7 @@ __HOT_CODE static int ctrl_cb0(void *dev, uint16_t cmd,
 		atomic_incr32(&cmd_count, 1);
 	}
 	
-	return 0;	
+	return 0;
 }
 
 
@@ -193,14 +166,14 @@ int app_init(void)
 		       module, err);
 		return err;
 	}
-	pr_info("Registered %d module\n", module);
+	fsl_os_print("Registered %s module\n", module);
 	err = fsl_os_get_mem(1024, MEM_PART_DP_DDR, 64, &tman_addr);
 	if (err || !tman_addr) {
 		pr_err("FAILED fsl_os_get_mem err = %d\n!", err);
 		return err;
 	}
 
-	pr_info("Using TMAN\n");
+	fsl_os_print("Using TMAN\n");
 	err = tman_create_tmi(tman_addr, 10, &tmi_id);
 	if (err) {
 		pr_err("TMAN tmi create err = %d\n", err);
