@@ -780,6 +780,9 @@ int ipr_miss_handling(struct ipr_instance *instance_params_ptr,
 	int sr_status;
 	uint16_t timeout_value;
 	uint8_t	 keysize;
+#ifdef REV2_RULEID
+	uint64_t rule_id;
+#endif
 	
 	/* Miss */
 	sr_status = cdma_acquire_context_memory(
@@ -821,7 +824,11 @@ int ipr_miss_handling(struct ipr_instance *instance_params_ptr,
 				TABLE_ACCEL_ID_CTLU,
 				instance_params_ptr->table_id_ipv4,
 				&rule,
+#ifdef REV2_RULEID
+				keysize,&rule_id);
+#else
 				keysize);
+#endif
 		if (sr_status == -ENOMEM) {
 			/* Maximum open reassembly is reached */
 			ipr_stats_update(
@@ -868,7 +875,11 @@ int ipr_miss_handling(struct ipr_instance *instance_params_ptr,
 			      TABLE_ACCEL_ID_CTLU,
 			      instance_params_ptr->table_id_ipv6,
 			      &rule,
-			      keysize);
+#ifdef REV2_RULEID
+				keysize,&rule_id);
+#else
+				keysize);
+#endif
 	    if (sr_status == -ENOMEM) {
 		    /* Maximum open reassembly is reached */
 		    ipr_stats_update(

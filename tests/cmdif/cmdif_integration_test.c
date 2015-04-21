@@ -169,63 +169,6 @@ static void verif_tman_cb(uint64_t opaque1, uint16_t opaque2)
 	pr_debug("PASSED verif_tman_cb \n");
 }
 
-#ifdef CMDIF_PERF_COUNT
-
-#if (DEBUG_LEVEL > 0)
-#error "Set DEBUG_LEVEL to 0 before testing "
-#endif
-
-int32_t cmd_count = 0;
-uint8_t timeout_done = 0;
-
-static void perf_tman_cb(uint64_t opaque1, uint16_t opaque2)
-{
-	timeout_done = 1;
-	fsl_os_print("TIMEOUT cmd_count = 0x%x \n", cmd_count);
-}
-
-static int ctrl_cb0(void *dev, uint16_t cmd, uint32_t size,
-                              void *data)
-{
-	int err;
-	uint8_t tmi_id = 0;
-	uint32_t timer_handle = 0;
-
-	/* Don't count tman creation command */
-	if (cmd == TMAN_TEST) {
-		
-		fsl_os_print("Using TMAN\n");
-
-		err = tman_create_tmi(tman_addr /* uint64_t tmi_mem_base_addr */,
-		                       10 /* max_num_of_timers */,
-		                       &tmi_id/* tmi_id */);
-		if (err) {
-			pr_err("TMAN tmi create err = %d\n", err);
-		}
-		
-		fsl_os_print("Starting TMAN timer ..\n");
-		err = tman_create_timer(tmi_id/* tmi_id */,
-		                        TMAN_CREATE_TIMER_MODE_SEC_GRANULARITY | TMAN_CREATE_TIMER_ONE_SHOT /* flags */,
-		                        60/* duration */,
-		                        tmi_id /* opaque_data1 */,
-		                        tmi_id /* opaque_data2 */,
-		                        perf_tman_cb /* tman_timer_cb */,
-		                        &timer_handle /* *timer_handle */);
-		if (err) {
-			pr_err("TMAN timer create err = %d\n", err);
-		}
-		
-		return 0;
-	}
-	
-	if (!timeout_done) {
-		atomic_incr32(&cmd_count, 1);
-	}
-	
-	return 0;	
-}
-
-#else
 static int ctrl_cb0(void *dev, uint16_t cmd, uint32_t size,
                               void *data)
 {
@@ -456,7 +399,6 @@ static int ctrl_cb0(void *dev, uint16_t cmd, uint32_t size,
 
 	return err;
 }
-#endif
 
 int app_init(void)
 {

@@ -66,7 +66,8 @@
 #define TABLE_TLUR_TKIDV_BIT_MASK		0x02000000
 
 /** Table old result reserved space */
-#define TABLE_OLD_RESULT_RESERVED_SPACE		44
+#define TABLE_OLD_RESULT_RESERVED1_SPACE	8
+#define TABLE_OLD_RESULT_RESERVED2_SPACE	20
 
 /** @} */ /* end of TABLE_RULE_RESULT_CONSTANTS */
 
@@ -162,7 +163,7 @@
 #define TABLE_LPM_IPV4_WC_ENTRIES_PER_RULE			5
 
 /** Number of entries needed for IPv6 LPM rule in worst case */
-#define TABLE_LPM_IPV6_WC_ENTRIES_PER_RULE			9
+#define TABLE_LPM_IPV6_WC_ENTRIES_PER_RULE			17
 
 /** Number of entries needed for MFLU rule for small key in worst case */
 #define TABLE_MFLU_SMALL_KEY_WC_ENTRIES_PER_RULE		3
@@ -807,12 +808,18 @@ struct table_entry {
 
 
 /**************************************************************************//**
-@Description	Table Entry
+@Description	Table Old Result
 *//***************************************************************************/
 #pragma pack(push, 1)
 struct table_old_result {
 	/* Reserved */
-	uint8_t reserved[TABLE_OLD_RESULT_RESERVED_SPACE];
+	uint8_t reserved1[TABLE_OLD_RESULT_RESERVED1_SPACE];
+	
+	/* Rule ID */
+	uint64_t rule_id;
+	
+	/* Reserved */
+	uint8_t reserved2[TABLE_OLD_RESULT_RESERVED2_SPACE];
 
 	/** The body of the entry (varies per type) */
 	struct table_result result;
@@ -1071,7 +1078,12 @@ int table_lookup_by_keyid_default_frame_wrp(
 int table_rule_create_wrp(enum table_hw_accel_id acc_id,
 		      uint16_t table_id,
 		      struct table_rule *rule,
-		      uint8_t key_size);
+#ifdef REV2_RULEID
+		      uint8_t key_size,
+		      uint64_t *rule_id);
+#else
+			  uint8_t key_size);
+#endif
 
 /**************************************************************************//**
 @Function	table_rule_delete_wrp

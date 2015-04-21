@@ -122,7 +122,12 @@ inline int table_lookup_by_key(enum table_hw_accel_id acc_id,
 inline int table_rule_create(enum table_hw_accel_id acc_id,
 		      uint16_t table_id,
 		      struct table_rule *rule,
-		      uint8_t key_size)
+#ifdef REV2_RULEID
+		      uint8_t key_size,
+		      uint64_t *rule_id)
+#else
+			  uint8_t key_size)
+#endif
 {  
 	
 #ifdef CHECK_ALIGNMENT 	
@@ -160,10 +165,14 @@ inline int table_rule_create(enum table_hw_accel_id acc_id,
 
 	/* Status Handling */
 	status = *((int32_t *)HWC_ACC_OUT_ADDRESS);
-	if (status == TABLE_HW_STATUS_MISS)
+	if (status == TABLE_HW_STATUS_MISS) {
 		/* A rule with the same match description is not found in the
 		 * table. New rule is created. */
 		status = TABLE_STATUS_SUCCESS;
+#ifdef REV2_RULEID
+		*rule_id = aged_res.rule_id;
+#endif 
+	}
 	else if (status == TABLE_HW_STATUS_SUCCESS)
 		/* A rule with the same match description (and not aged) is
 		 * found in the table. */
@@ -426,6 +435,10 @@ inline int table_create(enum table_hw_accel_id acc_id,
 	uint32_t                          committed_rules =
 		tbl_params->committed_rules;
 
+#ifdef REV2_RULEID
+	uint64_t rule_id;
+#endif
+	
 	/* Calculate the number of entries each rule occupies */
 	num_entries_per_rule = table_calc_num_entries_per_rule(
 					attr & TABLE_ATTRIBUTE_TYPE_MASK,
@@ -505,8 +518,13 @@ inline int table_create(enum table_hw_accel_id acc_id,
 		miss_status = table_rule_create(acc_id,
 						*table_id,
 						miss_rule,
+#ifdef REV2_RULEID
+						0,
+						&rule_id);
+#else
 						0);
-
+#endif
+		
 		if (miss_status)
 			table_exception_handler_wrp(
 					TABLE_CREATE_FUNC_ID,

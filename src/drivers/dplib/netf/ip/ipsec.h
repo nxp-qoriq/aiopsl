@@ -113,6 +113,13 @@ enum rta_param_type {
 #define IPSEC_ETHERTYPE_IPV6 0x86DD 
 #define IPSEC_ETHERTYPE_IPV4 0x0800 
 
+/* IPv4 DSCP, bits 8-13 */
+#define IPSEC_DSCP_MASK_IPV4 0x00FC0000
+/* IPv6 DSCP, bits 4-9 */
+#define IPSEC_DSCP_MASK_IPV6 0x0FC00000
+
+#define IPSEC_IPV4_CHECKSUM_OFFSET 10
+
 /* PS Pointer Size. This bit determines the size of address pointers */
 #define IPSEC_SEC_POINTER_SIZE 1 /* 1 - SEC Pointers require two 32-bit words */ 
 
@@ -240,6 +247,10 @@ enum rta_param_type {
 #define IPSEC_KEY_OFFSET_FROM_FLC IPSEC_KEY_SEGMENT_OFFSET -\
 											IPSEC_INTERNAL_PARMS_SIZE
 
+/* Key Offset from Shared Descriptor start */
+#define IPSEC_KEY_OFFSET_FROM_SD IPSEC_KEY_SEGMENT_OFFSET -\
+											IPSEC_INTERNAL_PARMS_SIZE -\
+											IPSEC_FLOW_CONTEXT_SIZE
 
 /* Obsolete, ASA preservation not supported */
 /* #define IPSEC_MAX_ASA_SIZE 960 */ /* Maximum ASA size (960 bytes) */
@@ -271,6 +282,12 @@ enum rta_param_type {
 /* Key Copy Segment */
 #define IPSEC_KEY_SEGMENT_ADDR(ADDRESS) ((ADDRESS) + IPSEC_KEY_SEGMENT_OFFSET)
 #define IPSEC_KEY_ADDR_FROM_FLC(ADDRESS) ((ADDRESS) + IPSEC_KEY_OFFSET_FROM_FLC)
+#define IPSEC_KEY_ADDR_FROM_SD(ADDRESS) ((ADDRESS) + IPSEC_KEY_OFFSET_FROM_SD)
+
+#define IPSEC_GET_SEGMENT_ADDRESS(prc_addr) \
+	((struct presentation_context *)prc_addr)->seg_address
+#define IPSEC_GET_SEGMENT_OFFSET(prc_addr) \
+	((struct presentation_context *)prc_addr)->seg_offset
 
 /*
 * Big-endian systems are systems in which the most significant byte of the word 
@@ -514,15 +531,20 @@ struct ipsec_sa_params_part1 {
 
 	ipsec_instance_handle_t instance_handle; /* Instance handle 8B */
 
+	uint32_t outer_hdr_dscp; /* Outer Header DSCP, for set mode */
+
+	
 	uint16_t udp_src_port; /* UDP source for transport mode. 2B */
 	uint16_t udp_dst_port; /* UDP destination for transport mode. 2B */
 	
+
 	uint8_t valid; /* descriptor valid. 1B */
 	
 	uint8_t sec_buffer_mode; /* new/reuse. 1B */
 
 	uint8_t output_spid; /* SEC output buffer SPID */
 	
+
 	/* Total size = */
 	/* 8*8 (64) + 2*4 (8) + 2*2 (4) + 5*1 (5) = 81 bytes */
 };

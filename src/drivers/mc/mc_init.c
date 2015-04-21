@@ -206,8 +206,26 @@ int mc_dpci_find(uint32_t dpci_id, uint32_t *ic)
 	ASSERT_COND(dpci_id != DPCI_FQID_NOT_VALID);
 	
 	for (i = 0; i < dt->count; i++) {
-		if ((dt->dpci_id[i] == dpci_id) ||
-			(dt->dpci_id_peer[i] == dpci_id)) {
+		if (dt->dpci_id[i] == dpci_id) {
+			if (ic != NULL)
+				*ic = dt->ic[i];
+			return i;
+		}
+	}
+
+	return -ENOENT;
+}
+
+int mc_dpci_peer_find(uint32_t dpci_id, uint32_t *ic)
+{
+	int i;
+	struct mc_dpci_tbl *dt = sys_get_unique_handle(FSL_OS_MOD_DPCI_TBL);
+
+	ASSERT_COND(dt);
+	ASSERT_COND(dpci_id != DPCI_FQID_NOT_VALID);
+	
+	for (i = 0; i < dt->count; i++) {
+		if (dt->dpci_id_peer[i] == dpci_id) {
 			if (ic != NULL)
 				*ic = dt->ic[i];
 			return i;

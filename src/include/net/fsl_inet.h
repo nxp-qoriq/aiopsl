@@ -35,6 +35,7 @@
 #define _FSL_INET_H
 
 #include "common/types.h"
+#include "fsl_stdio.h"
 #include "fsl_errors.h"
 
 /**************************************************************************//**
