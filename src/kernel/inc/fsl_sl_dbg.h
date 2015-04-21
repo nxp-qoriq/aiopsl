@@ -35,6 +35,7 @@
 
 #include "fsl_dbg.h"
 #include "fsl_string.h"
+#include "fsl_core.h"
 /**************************************************************************//**
  @Group		FSL_DEBUG_GROUP Debug Utilities
 
@@ -128,6 +129,13 @@
  @Param[in]     ... string with arguments to print.
 *//***************************************************************************/
 #define no_stack_pr_err(...) NS_DBG(REPORT_LEVEL_MAJOR, __VA_ARGS__)
+
+/**************************************************************************//**
+ @Function      IS_SIM
+
+ @Description   Indication if using HW or Simulator
+*//***************************************************************************/
+#define IS_SIM ((booke_get_spr_PVR() & 0x0c000000) == 0x0c000000)
 
 /** @} */ /* end of Debug Utilities */
 
