@@ -118,12 +118,16 @@ uint16_t aiop_verification_parser(uint32_t asa_seg_addr)
 		/* Enforced alignment */
 		struct parse_profile_input parse_profile __attribute__((aligned(16)));
 		
-		fdma_copy_data(KCR_LENGTH,0,(void *)(pc->parse_profile), (void *)(&parse_profile));
+		fdma_copy_data(sizeof(struct parse_profile_input),0,(void *)(pc->parse_profile), (void *)(&parse_profile));
 
 		pc->status =
 			parser_profile_create(
 			(struct parse_profile_input *)(&parse_profile),
 			&pc->prpid);
+		
+		//Copy back modified fields
+		fdma_copy_data(8, 0, (void *)(&parse_profile), (void *)(pc->parse_profile));
+		
 		*((int32_t *)(pc->parser_status_addr)) = pc->status;
 		str_size = sizeof(struct parser_prp_create_verif_command);
 		break;
@@ -148,7 +152,7 @@ uint16_t aiop_verification_parser(uint32_t asa_seg_addr)
 
 		parser_profile_query(pq->prpid, &parse_profile);
 	
-		fdma_copy_data(KCR_LENGTH,0,(void *)(&parse_profile), (void *)(&(pq->parse_profile)));
+		fdma_copy_data(sizeof(struct parse_profile_input),0,(void *)(&parse_profile), (void *)(&(pq->parse_profile)));
 
 		str_size = sizeof(struct parser_prp_query_verif_command);
 		break;
@@ -161,11 +165,14 @@ uint16_t aiop_verification_parser(uint32_t asa_seg_addr)
 		/* Enforced alignment */
 		struct parse_profile_input parse_profile __attribute__((aligned(16)));
 		
-		fdma_copy_data(KCR_LENGTH,0,(void *)(pq->parse_profile), (void *)(&parse_profile));
+		fdma_copy_data(sizeof(struct parse_profile_input),0,(void *)(pq->parse_profile), (void *)(&parse_profile));
 
 		parser_profile_replace(
 			(struct parse_profile_input *)(&parse_profile),
 			pq->prpid);
+
+		//Copy back modified fields
+		fdma_copy_data(8, 0, (void *)(&parse_profile), (void *)(pq->parse_profile));
 
 		str_size = sizeof(struct parser_prp_replace_verif_command);
 		break;
