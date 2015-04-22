@@ -67,7 +67,7 @@ uint8_t timer_on = 0;
 uint8_t tmi_id = 0;
 uint32_t timer_handle = 0;
 uint64_t tman_addr = 0;
-volatile uint8_t timer_deleted = 1; 
+volatile uint8_t timer_deleted = 1;
 int app_init(void);
 void app_free(void);
 
@@ -86,10 +86,10 @@ static int close_cb(void *dev)
 }
 
 __HOT_CODE static void tman_cb(uint64_t opaque1, uint16_t opaque2)
-{	
+{
 	UNUSED(opaque1);
 	UNUSED(opaque2);
-	
+
 	timer_on = 0;
 	fsl_os_print("TIMEOUT %d seconds, cmd_count = 0x%x \n", 
 	        TIMEOUT_IN_SECONDS, cmd_count);	
@@ -102,24 +102,20 @@ __HOT_CODE static int ctrl_cb0(void *dev, uint16_t cmd,
                                uint32_t size, void *data)
 {
 	int err;
-	
+
 	UNUSED(dev);
 	UNUSED(cmd);
 	UNUSED(size);
 	UNUSED(data);
 
-	if (cmd == PERF_TEST_START) {		
-		/* Wait for timer deletion 
-		 * The sequence should be 
-		 * 1. Send low priority commands, 
-		 * 2. Send high priority no response PERF_TEST_START command,
-		 * 3. Send high priority commands,
-		 * 4. TIMEOUT - print counter since PERF_TEST_START
-		 * 5. Send low priority commands, 
-		 * 6. Send high priority no response PERF_TEST_START command,
-		 * 7. Send high priority commands,
-		 * 8. TIMEOUT- print counter since PERF_TEST_START
+	if (cmd == PERF_TEST_START) {
+		/*
+		 * The sequence for sending commands to AIOP should be
+		 * 1. Send low priority no response PERF_TEST_START command,
+		 * 2. Send high priority commands,
+		 * 3. TIMEOUT - print counter since PERF_TEST_START
 		 */
+		/* Wait for timer deletion */
 		do {} while(!timer_deleted);
 		timer_deleted = 0;
 		cmd_count     = 0;
@@ -136,11 +132,11 @@ __HOT_CODE static int ctrl_cb0(void *dev, uint16_t cmd,
 			pr_err("TMAN timer create err = %d\n", err);
 		}
 	}
-	
+
 	if (timer_on) {
 		atomic_incr32(&cmd_count, 1);
 	}
-	
+
 	return 0;
 }
 
@@ -162,7 +158,7 @@ int app_init(void)
 	snprintf(module, sizeof(module), "TEST%d", i);
 	err = cmdif_register_module(module, &ops);
 	if (err) {
-		pr_err("FAILED cmdif_register_module %s err = %d\n!", 
+		pr_err("FAILED cmdif_register_module %s err = %d\n!",
 		       module, err);
 		return err;
 	}

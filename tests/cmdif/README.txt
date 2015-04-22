@@ -26,6 +26,7 @@ nadk_develop\apps\cmdif_demo\cmdif_client_demo.c  - Example for GPP Client test.
 aiopsl\build\aiop_sim\tests\cmdif_test\integ_out\cmdif_integ_dbg.elf - This is AIOP elf to be used for CMDIF tests.
 aiopsl\tests\cmdif\cmdif_integration_test.c                          - Source code of cmdif_integ_dbg.elf.
 aiopsl\tests\cmdif\nadk\cmdif_client_demo.c	                     - Source code of nadk based test used for testing fsl_shbp_flib.h
+aiopsl\tests\cmdif\cmdif_performance.c                               - Source code of cmdif_performance.elf.
 
 What's new:
 ------------
@@ -33,6 +34,7 @@ What's new:
 2. Added flib postfix to all flib files, see the new naming above.
 3. Remove aiop postfix at shbp API for AIOP.
 4. Updated fsl_shbp.h AIOP API.
+5. Added cmdif_performace target
 
 =================================
 GPP client side:
@@ -60,9 +62,9 @@ Run cmdif_integ_dbg.elf. This elf includes AIOP server & client.
 Use AIOP server to trigger AIOP client as shown at cmdif_srv_test.c and cmdif_integration_test.c.
 "TEST0" control callback will trigger AIOP client according to command id that is sent to it.
 
----------------------------------------------------------------
-These are the commands that can be sent to AIOP module "TEST0".
----------------------------------------------------------------
+------------------------------------------------------------------------------------
+These are the commands that can be sent to AIOP module "TEST0" - cmdif_integ_dbg.elf
+------------------------------------------------------------------------------------
 #define OPEN_CMD	0x100
 /*!< Will trigger cmdif_open("IRA") on AIOP, first byte of the data should be GPP DPCI id.
      If there is no data DPCI id 4 will be used as default. */
@@ -130,3 +132,16 @@ Server side test should have this code prior to sending commands to module TEST0
 I also share the code for cmdif_integ_dbg.elf, look at cmdif_integration_test.c on ctrl_cb0().
 Here you'll see the activation of AIOP client.
 
+------------------------------------------------------------------------------------
+These are the commands that can be sent to AIOP module "TEST0" - cmdif_performance.elf
+------------------------------------------------------------------------------------
+NOTE : pay attention to the warnings while compiling this target. DEBUG_LEVEL must be 0.
+
+#define PERF_TEST_START	(TMAN_TEST | CMDIF_NORESP_CMD)
+/*!< Trigger for the AIOP to start 60 sec timer and to start counting the received commands. 
+     Upon timeout the number of commands is printed on the screen. 
+     The sequence for sending commands to AIOP should be
+      1. Send low priority no response PERF_TEST_START command,
+      2. Send high priority commands,
+      3. TIMEOUT - print counter since PERF_TEST_START
+     */
