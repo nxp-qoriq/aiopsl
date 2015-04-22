@@ -1,5 +1,4 @@
 #include "buffer_pool.h"
-#include "errors.h"
 #include "mem_mng_util.h"
 #include "fsl_spinlock.h"
 #include "buffer_pool.h"
