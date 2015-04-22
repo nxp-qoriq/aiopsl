@@ -50,11 +50,6 @@
 #define AIOP_ASYNC_CB_DONE	5  /* Must be in sync with MC ELF */
 #define AIOP_SYNC_BUFF_SIZE	80 /* Must be in sync with MC ELF */
 
-//#define CMDIF_PERF_COUNT
-//#define CMDIF_PERF_TIMER
-//#define CMDIF_PERF_NORESP
-//#define CMDIF_PERF_SYNC
-//#define CMDIF_PERF_ASYNC
 
 struct shbp_test {
 	uint64_t shbp;
