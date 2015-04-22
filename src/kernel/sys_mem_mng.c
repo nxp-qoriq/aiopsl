@@ -45,12 +45,6 @@ extern int sigsetmask(int);
 #endif /* VERILOG */
 
 
-
-
-//static void *   sys_default_malloc(uint32_t size);
-//static void     sys_default_free(void *p_memory);
-
-
 static void     sys_print_mem_leak(void        *p_memory,
                                 uint32_t    size,
                                 char        *info,
@@ -391,7 +385,6 @@ void sys_default_free(void *p_memory)
      /* Temporary allocation for identifying the default heap region */
     sys.heap_addr = (uintptr_t)sys_default_malloc(8);
     sys_default_free((void *)sys.heap_addr);
-    /*sys.heap_partition_id = MEM_MNG_EARLY_PARTITION_ID; */
 
 #ifdef AIOP
     sys.mem_mng_lock = 0;
@@ -402,13 +395,6 @@ void sys_default_free(void *p_memory)
 #endif /* AIOP */
 
 
-    /* Initialize memory allocation manager module */
-    /*
-    mem_mng_param.f_malloc = sys_default_malloc;
-    mem_mng_param.f_free = sys_default_free;
-    mem_mng_param.f_early_malloc = sys_aligned_malloc;
-    mem_mng_param.f_early_free = sys_aligned_free;
-    */
     mem_mng_param.lock = &(sys.mem_part_mng_lock);
 
     /* initialize boot memory manager to use MEM_PART_DP_DDR*/

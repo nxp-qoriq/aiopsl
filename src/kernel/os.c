@@ -504,43 +504,6 @@ void atomic_decr32(register int32_t *var, register int32_t value)
 		bne - atomic_loop /* loop if lost reservation */
 	}
 }
-
-#if 0
-#ifdef DEBUG_FSL_OS_MALLOC
-void * fsl_os_malloc_debug(size_t size, char *fname, int line);
-
-void *fsl_os_xmalloc_debug(size_t size,
-                           int      mem_partition_id,
-                           uint32_t alignment,
-                           char     *fname,
-                           int      line);
-#endif
-
-
-#define fsl_os_malloc(sz) \
-	fsl_os_malloc_debug((sz), __FILE__, __LINE__)
-
-#define fsl_os_xmalloc(sz, memt, al) \
-	fsl_os_xmalloc_debug((sz), (memt), (al), __FILE__, __LINE__)
-
-
-/*****************************************************************************/
-void * fsl_os_malloc_debug(size_t size, char *fname, int line)
-{
-	return sys_mem_alloc(size, 0, "", fname, line);
-}
-
-/*****************************************************************************/
-
-void *fsl_os_xmalloc_debug(size_t     size,
-                           int          partition_id,
-                           uint32_t     alignment,
-                           char         *fname,
-                           int          line)
-{
-	return sys_mem_xalloc(partition_id, size, alignment, "", fname, line);
-}
-#endif
 /*****************************************************************************/
 void * fsl_malloc(size_t size,uint32_t alignment)
 {
@@ -555,48 +518,6 @@ void fsl_free(void *mem)
 {
 	sys_shram_free(mem);
 }
-
-/*****************************************************************************/
-#if 0
-#ifdef DEBUG_FSL_OS_MALLOC
-void * fsl_os_malloc(size_t size)
-{
-	return  fsl_os_malloc_debug(size, __FILE__, __LINE__);
-}
-#else
-void * fsl_os_malloc(size_t size)
-{
-	return sys_mem_alloc(size, 0, "", "", 0);
-}
-#endif
-
-/*****************************************************************************/
-
-#ifdef DEBUG_FSL_OS_MALLOC
-void *fsl_os_xmalloc(size_t size, int partition_id, uint32_t alignment)
-{
-	return fsl_os_xmalloc_debug(size, partition_id, alignment, __FILE__, __LINE__);
-}
-#else
-void *fsl_os_xmalloc(size_t size, int partition_id, uint32_t alignment)
-{
-	return sys_mem_xalloc(partition_id, size, alignment, "", "", 0);
-}
-#endif
-
-
-/*****************************************************************************/
-void fsl_os_free(void *p_memory)
-{
-	sys_mem_free(p_memory);
-}
-
-/*****************************************************************************/
-void fsl_os_xfree(void *p_memory)
-{
-	sys_mem_xfree(p_memory);
-}
-#endif
 /*****************************************************************************/
 int fsl_os_get_mem(uint64_t size, int mem_partition_id, uint64_t alignment,
                    uint64_t* paddr)
