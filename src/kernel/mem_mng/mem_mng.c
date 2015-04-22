@@ -218,13 +218,12 @@ fsl_handle_t mem_mng_init(fsl_handle_t h_boot_mem_mng,
     rc = boot_get_mem_virt(boot_mem_mng,sizeof(t_mem_mng),&mem_mng_addr);
     if (rc)
     {
-        pr_err("MAJOR mem. manager memory allocation failed: memory manager "
+        pr_err("Mem. manager memory allocation failed: memory manager "
                "structure\n");
         return NULL;
     }
     p_mem_mng = UINT_TO_PTR(mem_mng_addr);
     memset(p_mem_mng, 0, sizeof(t_mem_mng));
-
 
     p_mem_mng->lock    = p_mem_mng_param->lock;
     p_mem_mng->h_boot_mem_mng = h_boot_mem_mng;
@@ -366,7 +365,7 @@ int mem_mng_register_partition(fsl_handle_t  h_mem_mng,
 #else
             spin_unlock_irqrestore(p_mem_mng->lock, int_flags);
 #endif
-            pr_err("MAJOR  mem_manager resource already exists: partition ID %d\n",
+            pr_err("Mem_manager resource already exists: partition ID %d\n",
                     partition_id);
             return -EEXIST;
     }
@@ -392,7 +391,7 @@ int mem_mng_register_partition(fsl_handle_t  h_mem_mng,
     if (!p_new_partition->lock)
     {
 	    p_new_partition->was_initialized = 0;
-        pr_err("MAJOR mem_manager resource is unavailable: spinlock object for"
+        pr_err("Mem_manager resource is unavailable: spinlock object for"
                 "partition: %s\n", name);
         return -EAGAIN;
     }
@@ -415,7 +414,7 @@ int mem_mng_register_partition(fsl_handle_t  h_mem_mng,
     {
         /*p_mem_mng->f_free(p_new_partition);*/
         p_new_partition->was_initialized = 0;
-        pr_err("MAJOR mem_manager resource is unavailable: slob  object for "
+        pr_err("Mem_manager resource is unavailable: slob  object for "
 				"partition: %s\n", name);
 		return -EAGAIN;
     }
@@ -489,7 +488,7 @@ int mem_mng_register_phys_addr_alloc_partition(fsl_handle_t  h_mem_mng,
 #else
             spin_unlock_irqrestore(p_mem_mng->lock, int_flags);
 #endif
-            pr_err("MAJOR mem. manager resource already exists: partition ID %d\n",
+            pr_err("Mem. manager resource already exists: partition ID %d\n",
                    partition_id);
             return -EEXIST;
      }
@@ -516,7 +515,7 @@ int mem_mng_register_phys_addr_alloc_partition(fsl_handle_t  h_mem_mng,
     {
          /*p_mem_mng->f_free(p_new_partition); */
         p_new_partition->was_initialized = 0;
-        pr_err("MAJOR mem. manager resource is unavailable: spinlock object for "
+        pr_err("Mem. manager resource is unavailable: spinlock object for "
                "partition: %s\n", name);
         return -EAGAIN;
     }
@@ -528,7 +527,7 @@ int mem_mng_register_phys_addr_alloc_partition(fsl_handle_t  h_mem_mng,
    {
         /*p_mem_mng->f_free(p_new_partition); */
        p_new_partition->was_initialized = 0;
-       pr_err("MAJOR mem. manager resource is unavailable: slob object for "
+       pr_err("Mem. manager resource is unavailable: slob object for "
                "partition: %s\n",name);
        return -EAGAIN;
    }
@@ -610,7 +609,7 @@ int mem_mng_unregister_partition(fsl_handle_t h_mem_mng, int partition_id)
     spin_unlock_irqrestore(p_mem_mng->lock, int_flags);
 #endif
 
-    pr_err("MAJOR mem. manager unsupported operation: partition ID %d\n", partition_id);
+    pr_err("Mem. manager unsupported operation: partition ID %d\n", partition_id);
     return -ENOTSUP;
 }
 
@@ -651,7 +650,7 @@ int mem_mng_get_partition_info(fsl_handle_t               h_mem_mng,
     spin_unlock_irqrestore(p_mem_mng->lock, int_flags);
 #endif
 
-    pr_err("MAJOR mem. manager resource is unavailable: partition ID %d\n", partition_id);
+    pr_err("Mem. manager resource is unavailable: partition ID %d\n", partition_id);
     return -EAGAIN;
 }
 /*****************************************************************************/
@@ -687,7 +686,7 @@ int mem_mng_get_phys_addr_alloc_info(fsl_handle_t               h_mem_mng,
     spin_unlock_irqrestore(p_mem_mng->lock, int_flags);
 #endif
 
-    pr_err("MAJOR mem. manager resource is unavailable: partition ID %d\n",
+    pr_err("Mem. manager resource is unavailable: partition ID %d\n",
             partition_id);
     return -EAGAIN;
 }
@@ -705,7 +704,7 @@ int mem_mng_get_partition_id_by_addr(fsl_handle_t   h_mem_mng,
 
     if (!found)
     {
-        pr_err("MAJOR mem.manager resource is unavailable: partition ID\n",
+        pr_err("Mem.manager resource is unavailable: partition ID\n",
                p_partition_id);
         return -EAGAIN;
     }
@@ -815,7 +814,7 @@ uint32_t mem_mng_check_leaks(fsl_handle_t                h_mem_mng,
     spin_unlock_irqrestore(p_mem_mng->lock, int_flags);
 #endif
 
-    pr_err("MAJOR mem. manager resource not found: partition ID %d\n",
+    pr_err("Mem. manager resource not found: partition ID %d\n",
             partition_id);
     return 0;
 }
@@ -841,7 +840,7 @@ void * mem_mng_alloc_mem(fsl_handle_t    h_mem_mng,
 
     if (size == 0)
     {
-        pr_err("MAJOR mem.manager invalid value: allocation size must be positive\n");
+        pr_err("Mem.manager invalid value: allocation size must be positive\n");
     }
 
     if(!p_mem_mng->mem_partitions_initialized)
@@ -861,7 +860,7 @@ void * mem_mng_alloc_mem(fsl_handle_t    h_mem_mng,
         p_memory = sys_aligned_malloc(size, alignment);
         if (!p_memory)
         {
-            pr_err("MAJOR mem.manager memory allocation failed: early allocation\n");
+            pr_err("Mem.manager memory allocation failed: early allocation\n");
             return NULL;
         }
 
@@ -933,7 +932,7 @@ void * mem_mng_alloc_mem(fsl_handle_t    h_mem_mng,
     spin_unlock_irqrestore(p_mem_mng->lock, int_flags);
 #endif
 
-    pr_err("MAJOR mem. manager resource not found: partition ID %d\n",
+    pr_err("Mem. manager resource not found: partition ID %d\n",
            partition_id);
     return NULL;
 }
@@ -952,7 +951,7 @@ int mem_mng_get_phys_mem(fsl_handle_t h_mem_mng, int  partition_id,
 
     if (size == 0)
     {
-        pr_err("MAJOR mem. manager invalid value: allocation size must be positive\n");
+        pr_err("Mem. manager invalid value: allocation size must be positive\n");
     }
 #ifdef AIOP
     lock_spinlock(p_mem_mng->lock);
@@ -976,7 +975,7 @@ int mem_mng_get_phys_mem(fsl_handle_t h_mem_mng, int  partition_id,
 #endif
             if((*paddr = slob_get(p_partition->h_mem_manager,size,alignment,"")) == ILLEGAL_BASE)
             {
-                pr_err("MAJOR mem. manager memory allocation failed: Required size 0x%x%08x exceeds "
+                pr_err("Mem. manager memory allocation failed: Required size 0x%x%08x exceeds "
                    "available memory for partition ID %d\n",
                    (uint32_t)(size >> 32),(uint32_t)size,partition_id);
                 return -ENOMEM;
@@ -1071,7 +1070,7 @@ void mem_mng_free_mem(fsl_handle_t h_mem_mng, void *p_memory)
 
     if (!address_found)
     {
-        pr_err("MAJOR mem. manager resource not found: attempt to free "
+        pr_err("Mem. manager resource not found: attempt to free "
                 "unallocated address (0x%08x)\n",p_memory);
     }
 }
@@ -1287,7 +1286,7 @@ static void mem_mng_add_entry(t_mem_mng             *p_mem_mng,
     }
     else
     {
-        pr_err("MAJOR mem. manager memory allocation failed: memory manager "
+        pr_err("Mem. manager memory allocation failed: memory manager "
                 "debug entry \n");
     }
 }
