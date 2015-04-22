@@ -388,7 +388,7 @@ __COLD_CODE static int pltfrm_init_mem_partitions_cb(fsl_handle_t h_platform)
 	err = sys_add_handle( (fsl_handle_t)pltfrm->mc_portals_base, FSL_OS_MOD_MC_PORTAL, 1, 0);
 	if (err != 0)
 	{
-		pr_err("MAJOR  couldn't add FSL_OS_MOD_MC_PORTAL using sys_add_handle()\n");
+		pr_err("Couldn't add FSL_OS_MOD_MC_PORTAL using sys_add_handle()\n");
 		return err;
 	}
 	

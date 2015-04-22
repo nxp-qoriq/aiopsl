@@ -106,7 +106,7 @@ void sys_shram_free(void *mem)
 	ASSERT_COND(sys.mem_mng);
 	 if (partition_id == SYS_DEFAULT_HEAP_PARTITION)
 	 {
-	        pr_err("MAJOR invalid value: partition ID %d is reserved for default "
+	        pr_err("Invalid value: partition ID %d is reserved for default "
                     "heap\n",SYS_DEFAULT_HEAP_PARTITION);
 	        return -EDOM;
 	 }
@@ -119,9 +119,9 @@ void sys_shram_free(void *mem)
 	  if (err_code != 0)
 	  {
 	      if(-EEXIST == err_code)
-              pr_err("MAJOR resource already exists\n");
+              pr_err("Resource already exists\n");
           else if(-EAGAIN == err_code)
-              pr_err("MAJOR resource is unavailable\n");
+              pr_err("Resource is unavailable\n");
           return err_code;
 	  }
 	  return 0;
@@ -142,7 +142,7 @@ void sys_shram_free(void *mem)
 
     if (partition_id == SYS_DEFAULT_HEAP_PARTITION)
     {
-        pr_err("MAJOR invalid value: partition ID %d is reserved for default heap",
+        pr_err("Invalid value: partition ID %d is reserved for default heap",
                 SYS_DEFAULT_HEAP_PARTITION);
         return -EDOM;
     }
@@ -163,9 +163,9 @@ void sys_shram_free(void *mem)
     if (err_code != 0)
     {
         if(-EEXIST == err_code)
-            pr_err("MAJOR resource already exists\n");
+            pr_err("Resource already exists\n");
         else if(-EAGAIN == err_code)
-            pr_err("MAJOR resource is unavailable \n");
+            pr_err("Resource is unavailable \n");
         return err_code;
     }
     /*
@@ -398,9 +398,9 @@ void sys_default_free(void *p_memory)
     sys.mem_part_mng_lock = 0;
 #else /* not AIOP */
     spin_lock_init(&(sys.mem_mng_lock));
-    spin_lock_init(&(sys.mem_part_mng_lock)); 
+    spin_lock_init(&(sys.mem_part_mng_lock));
 #endif /* AIOP */
-    
+
 
     /* Initialize memory allocation manager module */
     /*
@@ -420,9 +420,9 @@ void sys_default_free(void *p_memory)
     sys.mem_mng = mem_mng_init(&sys.boot_mem_mng,&mem_mng_param);
     if (!sys.mem_mng)
     {
-        pr_err("MAJOR resource is unavailable: memory management object\n");
+        pr_err("Resource is unavailable: memory management object\n");
         return -EAGAIN;
-    }  
+    }
 
     return 0;
 }

@@ -830,8 +830,8 @@ extern __TASK struct aiop_default_task_params default_task_params;
 /** Returns a non-zero value in case ESP over UDP is found */
 #define PARSER_IS_ESP_OVER_UDP_DEFAULT() \
 		((PARSER_IS_ESP_OR_IKE_OVER_UDP_DEFAULT() && \
-		(*((uint32_t *)(PARSER_GET_L5_POINTER_DEFAULT())) == 0)) \
-		? (0) : (1))
+		(*((uint32_t *)(PARSER_GET_L5_POINTER_DEFAULT())) != 0)) \
+		? (1) : (0))
 /** Returns a non-zero value in case iSCSI is found */
 #define PARSER_IS_ISCSI_DEFAULT() \
 	(((struct parse_result *)HWC_PARSE_RES_ADDRESS)-> \
@@ -854,8 +854,8 @@ extern __TASK struct aiop_default_task_params default_task_params;
 	frame_attribute_flags_extension & PARSER_ATT_IPV6_ROUTING_HDR_2)
 /** Returns a non-zero value in case VxLAN is found */
 #define PARSER_IS_VXLAN_DEFAULT() (PARSER_IS_UDP_DEFAULT() && \
-		((*((uint16_t *)((uint32_t)PARSER_GET_L4_POINTER_DEFAULT() + 2)) == 4789)) \
-		? (1) : (0))
+	((*((uint16_t *)((uint32_t)PARSER_GET_L4_POINTER_DEFAULT() + 2)) == 4789)) \
+	? (1) : (0))
 
 /** @} */ /* end of FSL_PARSER_PR_QUERIES */
 

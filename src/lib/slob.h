@@ -43,7 +43,6 @@
 #include "fsl_slob.h"
 
 
-#define __ERR_MODULE__  MODULE_SLOB
 
 #define MAKE_ALIGNED(addr, align)    \
     (((uint64_t)(addr) + ((align) - 1)) & (~(((uint64_t)align) - 1)))
