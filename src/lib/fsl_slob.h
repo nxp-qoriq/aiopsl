@@ -81,7 +81,7 @@ __START_COLD_CODE
  @Return        0 is returned on success. E_NOMEMORY is returned if the new MM object or a new free block can not be initialized.
 *//***************************************************************************/
 int slob_init(fsl_handle_t *slob, uint64_t base, uint64_t size,
-		      fsl_handle_t h_mem_mng);
+		      fsl_handle_t h_mem_mng, void *h_slob_bf_pool);
 
 /**************************************************************************//**
  @Function      slob_free
