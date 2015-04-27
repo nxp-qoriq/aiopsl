@@ -1043,6 +1043,7 @@ static inline int cnstr_shdsc_ipsec_decap_des_aes_xcbc(uint32_t *descbuf,
  *     protocol-level shared descriptor.
  * @descbuf: pointer to buffer used for descriptor construction
  * @ps: if 36/40bit addressing is desired, this parameter must be true
+ * @swap: must be true when core endianness doesn't match SEC endianness
  * @pdb: pointer to the PDB to be used with this descriptor
  *       This structure will be copied inline to the descriptor under
  *       construction. No error checking will be made. Refer to the
@@ -1065,6 +1066,7 @@ static inline int cnstr_shdsc_ipsec_decap_des_aes_xcbc(uint32_t *descbuf,
  * Return: size of descriptor written in words or negative number on error
  */
 static inline int cnstr_shdsc_ipsec_new_encap(uint32_t *descbuf, bool ps,
+					      bool swap,
 					      struct ipsec_encap_pdb *pdb,
 					      uint8_t *opt_ip_hdr,
 					      struct alginfo *cipherdata,
@@ -1085,7 +1087,8 @@ static inline int cnstr_shdsc_ipsec_new_encap(uint32_t *descbuf, bool ps,
 	}
 
 	PROGRAM_CNTXT_INIT(p, descbuf, 0);
-	PROGRAM_SET_BSWAP(p);
+	if (swap)
+		PROGRAM_SET_BSWAP(p);
 	if (ps)
 		PROGRAM_SET_36BIT_ADDR(p);
 	phdr = SHR_HDR(p, SHR_SERIAL, hdr, 0);
@@ -1149,6 +1152,7 @@ static inline int cnstr_shdsc_ipsec_new_encap(uint32_t *descbuf, bool ps,
  *     shared descriptor.
  * @descbuf: pointer to buffer used for descriptor construction
  * @ps: if 36/40bit addressing is desired, this parameter must be true
+ * @swap: must be true when core endianness doesn't match SEC endianness
  * @pdb: pointer to the PDB to be used with this descriptor
  *       This structure will be copied inline to the descriptor under
  *       construction. No error checking will be made. Refer to the
@@ -1164,6 +1168,7 @@ static inline int cnstr_shdsc_ipsec_new_encap(uint32_t *descbuf, bool ps,
  * Return: size of descriptor written in words or negative number on error
  */
 static inline int cnstr_shdsc_ipsec_new_decap(uint32_t *descbuf, bool ps,
+					      bool swap,
 					      struct ipsec_decap_pdb *pdb,
 					      struct alginfo *cipherdata,
 					      struct alginfo *authdata)
@@ -1183,7 +1188,8 @@ static inline int cnstr_shdsc_ipsec_new_decap(uint32_t *descbuf, bool ps,
 	}
 
 	PROGRAM_CNTXT_INIT(p, descbuf, 0);
-	PROGRAM_SET_BSWAP(p);
+	if (swap)
+		PROGRAM_SET_BSWAP(p);
 	if (ps)
 		PROGRAM_SET_36BIT_ADDR(p);
 	phdr = SHR_HDR(p, SHR_SERIAL, hdr, 0);
@@ -1299,8 +1305,12 @@ static inline int cnstr_shdsc_authenc(uint32_t *descbuf, bool swap, bool ps,
 	if (ps)
 		PROGRAM_SET_36BIT_ADDR(p);
 
+	/*
+	 * Since we currently assume that key length is equal to hash digest
+	 * size, it's ok to truncate keylen value.
+	 */
 	trunc_len = trunc_len && (trunc_len < authdata->keylen) ?
-			trunc_len : authdata->keylen;
+			trunc_len : (uint8_t)authdata->keylen;
 
 	SHR_HDR(p, SHR_SERIAL, 1, SC);
 

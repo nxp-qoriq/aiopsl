@@ -591,6 +591,7 @@ int ipsec_generate_encap_sd(
 		*sd_size = cnstr_shdsc_ipsec_new_encap(
 			(uint32_t *)(ws_shared_desc), /* uint32_t *descbuf */
 			IPSEC_SEC_POINTER_SIZE, /* unsigned short ps */
+			TRUE, /* swap */
 			&pdb, /* PDB */
 			(uint8_t *)params->encparams.outer_hdr, /* uint8_t *opt_ip_hdr */
 			(struct alginfo *)(&rta_cipher_alginfo),
@@ -879,6 +880,7 @@ int ipsec_generate_decap_sd(
 		*sd_size = cnstr_shdsc_ipsec_new_decap(
 			(uint32_t *)(ws_shared_desc), /* uint32_t *descbuf */
 			IPSEC_SEC_POINTER_SIZE, /* unsigned short ps */
+			TRUE, /* swap */
 			&pdb, /* struct ipsec_encap_pdb *pdb */
 			(struct alginfo *)(&rta_cipher_alginfo),
 			(struct alginfo *)(&rta_auth_alginfo)
