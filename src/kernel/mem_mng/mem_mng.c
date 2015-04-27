@@ -274,9 +274,6 @@ fsl_handle_t mem_mng_init(fsl_handle_t h_boot_mem_mng,
     for(i = 0 ; i < array_size;i++ ){
         p_mem_mng->mem_partitions_array[i].was_initialized = 0;
     }
-    /* Initialize the early allocations list */
-    INIT_LIST(&(p_mem_mng->early_mem_debug_list));
-    /* Initialize the physical allocation list for gem_mem() */
 
     /* Initialize phys internal partitions array */
     array_size = ARRAY_SIZE(p_mem_mng->phys_allocation_mem_partitions_array);
@@ -434,31 +431,6 @@ int mem_mng_register_partition(fsl_handle_t  h_mem_mng,
     p_new_partition->enable_debug = enable_debug;
     p_new_partition->was_initialized = 1;
 
-#if 0
-#ifdef AIOP
-    lock_spinlock(p_mem_mng->lock);
-#else
-    int_flags = spin_lock_irqsave(p_mem_mng->lock);
-#endif
-    /* Add the new partition to the sorted position in the partitions list */
-    if (list_is_empty(&(p_mem_mng->mem_partitions_list)))
-    {
-        list_add(&(p_new_partition->node), &(p_mem_mng->mem_partitions_list));
-    }
-    else
-    {
-	ASSERT_COND(p_partition);
-        if (p_partition->id < partition_id)
-            list_add(&(p_new_partition->node), &(p_partition->node));
-        else
-            list_add(&(p_new_partition->node), p_partition->node.prev);
-    }
-#ifdef AIOP
-    unlock_spinlock(p_mem_mng->lock);
-#else /* not AIOP */
-    spin_unlock_irqrestore(p_mem_mng->lock, int_flags);
-#endif /* AIOP */
-#endif
     return 0;
 }
 /*****************************************************************************/
@@ -733,81 +705,49 @@ uint32_t mem_mng_check_leaks(fsl_handle_t                h_mem_mng,
 #else
     int_flags = spin_lock_irqsave(p_mem_mng->lock);
 #endif
-    if (partition_id == MEM_MNG_EARLY_PARTITION_ID)
+
+/* Search in registered partitions */
+    array_size = ARRAY_SIZE(p_mem_mng->mem_partitions_array);
+    for(i = 0; i < array_size ; i++)
     {
-        if (f_report_leak)
-        {
-            LIST_FOR_EACH(p_debug_iterator, &(p_mem_mng->early_mem_debug_list))
-            {
-                count++;
+	p_partition  = &p_mem_mng->mem_partitions_array[i];
 
-                p_mem_mng_debug_entry = MEM_MNG_DBG_OBJECT(p_debug_iterator);
-
-                f_report_leak(p_mem_mng_debug_entry->p_memory,
-                             p_mem_mng_debug_entry->size,
-                             p_mem_mng_debug_entry->info,
-                             p_mem_mng_debug_entry->filename,
-                             p_mem_mng_debug_entry->line);
-            }
-        }
-        else
-        {
-            LIST_FOR_EACH(p_debug_iterator, &(p_mem_mng->early_mem_debug_list))
-            {
-                count++;
-            }
-        }
+	if (p_partition->id == partition_id)
+	{
 #ifdef AIOP
-        unlock_spinlock(p_mem_mng->lock);
+		lock_spinlock(p_partition->lock);
 #else
-        spin_unlock_irqrestore(p_mem_mng->lock, int_flags);
+		spin_lock(p_partition->lock);
 #endif
-        return count;
+		if (f_report_leak)
+		{
+		    LIST_FOR_EACH(p_debug_iterator, &(p_partition->mem_debug_list))
+		    {
+			count++;
+
+			p_mem_mng_debug_entry = MEM_MNG_DBG_OBJECT(p_debug_iterator);
+
+			f_report_leak(p_mem_mng_debug_entry->p_memory,
+				     p_mem_mng_debug_entry->size,
+				     p_mem_mng_debug_entry->info,
+				     p_mem_mng_debug_entry->filename,
+				     p_mem_mng_debug_entry->line);
+		    }
+		}
+		else
+			count = (uint32_t)list_num_of_objs(&(p_partition->mem_debug_list));
+
+#ifdef AIOP
+		unlock_spinlock(p_partition->lock);
+		unlock_spinlock(p_mem_mng->lock);
+#else
+		spin_unlock(p_partition->lock);
+		spin_unlock_irqrestore(p_mem_mng->lock, int_flags);
+#endif
+		return count;
+	}
     }
-    else
-    {
-        /* Search in registered partitions */
-	array_size = ARRAY_SIZE(p_mem_mng->mem_partitions_array);
-	for(i = 0; i < array_size ; i++)
-        {
-	        p_partition  = &p_mem_mng->mem_partitions_array[i];
 
-            if (p_partition->id == partition_id)
-            {
-#ifdef AIOP
-                lock_spinlock(p_partition->lock);
-#else
-                spin_lock(p_partition->lock);
-#endif
-                if (f_report_leak)
-                {
-                    LIST_FOR_EACH(p_debug_iterator, &(p_partition->mem_debug_list))
-                    {
-                        count++;
-
-                        p_mem_mng_debug_entry = MEM_MNG_DBG_OBJECT(p_debug_iterator);
-
-                        f_report_leak(p_mem_mng_debug_entry->p_memory,
-                                     p_mem_mng_debug_entry->size,
-                                     p_mem_mng_debug_entry->info,
-                                     p_mem_mng_debug_entry->filename,
-                                     p_mem_mng_debug_entry->line);
-                    }
-                }
-                else
-                    count = (uint32_t)list_num_of_objs(&(p_partition->mem_debug_list));
-
-#ifdef AIOP
-                unlock_spinlock(p_partition->lock);
-                unlock_spinlock(p_mem_mng->lock);
-#else
-                spin_unlock(p_partition->lock);
-                spin_unlock_irqrestore(p_mem_mng->lock, int_flags);
-#endif
-                return count;
-            }
-        }
-    }
 #ifdef AIOP
     unlock_spinlock(p_mem_mng->lock);
 #else
@@ -832,7 +772,7 @@ void * mem_mng_alloc_mem(fsl_handle_t    h_mem_mng,
     t_mem_mng            *p_mem_mng = (t_mem_mng *)h_mem_mng;
     struct initial_mem_mng* boot_mem_mng = NULL;
     t_mem_mng_partition   *p_partition;
-    uint32_t i = 0, array_size = 0,virt_address = 0;;
+    uint32_t i = 0, array_size = 0,virt_address = 0;
     void                *p_memory;
 #ifndef AIOP
     uint32_t            int_flags;
@@ -843,38 +783,6 @@ void * mem_mng_alloc_mem(fsl_handle_t    h_mem_mng,
         pr_err("Mem.manager invalid value: allocation size must be positive\n");
     }
 
-    if(!p_mem_mng->mem_partitions_initialized)
-    {
-        ASSERT_COND_LIGHT(partition_id == SYS_DEFAULT_HEAP_PARTITION) ;
-        boot_mem_mng = (struct initial_mem_mng*)p_mem_mng->h_boot_mem_mng;
-        if(boot_get_mem_virt(boot_mem_mng,size,&virt_address) != 0)
-            return NULL;
-        return (UINT_TO_PTR(virt_address));
-    }
-    /* Check if this is a CW allocation */
-#if 0
-    if (partition_id == SYS_DEFAULT_HEAP_PARTITION)
-    {
-        /* Use early allocation routine */
-        /*p_memory = p_mem_mng->f_early_malloc(size, alignment);*/
-        p_memory = sys_aligned_malloc(size, alignment);
-        if (!p_memory)
-        {
-            pr_err("Mem.manager memory allocation failed: early allocation\n");
-            return NULL;
-        }
-
-        mem_mng_add_early_entry(p_mem_mng,
-                            p_memory,
-                            size,
-                            info,
-                            filename,
-                            line);
-
-
-        return p_memory;
-    }
-#endif
 #ifdef AIOP
     lock_spinlock(p_mem_mng->lock);
 #else
@@ -894,12 +802,12 @@ void * mem_mng_alloc_mem(fsl_handle_t    h_mem_mng,
     	    spin_unlock_irqrestore(p_mem_mng->lock, int_flags);
 #endif
 
-			/* Internal MM malloc */
-			p_memory = UINT_TO_PTR(
-				slob_get(p_partition->h_mem_manager, size, alignment, ""));
-			if ((uintptr_t)p_memory == ILLEGAL_BASE)
-				/* Do not report error - let the allocating entity report it */
-				return NULL;
+    	    /* Internal MM malloc */
+    	    p_memory = UINT_TO_PTR(
+    		    slob_get(p_partition->h_mem_manager, size, alignment, ""));
+    	    if ((uintptr_t)p_memory == ILLEGAL_BASE)
+		/* Do not report error - let the allocating entity report it */
+    		    return NULL;
 
 #ifdef AIOP
             lock_spinlock(p_mem_mng->lock);
@@ -1038,16 +946,6 @@ void mem_mng_free_mem(fsl_handle_t h_mem_mng, void *p_memory)
     int                 partition_id;
     int                address_found = 1;
 
-#if 0
-    /* Try to find the entry in the early allocations list */
-    if (mem_mng_remove_early_entry(p_mem_mng, p_memory))
-    {
-        //p_mem_mng->f_early_free(p_memory);
-        sys_aligned_free(p_memory);
-    }
-    else
-    {
-#endif
 	if (mem_mng_get_partition_id_by_addr_local(p_mem_mng, addr, &partition_id, &p_partition))
 	{
 		if (p_partition->enable_debug &&
@@ -1186,54 +1084,11 @@ static void mem_phys_mng_free_partition(t_mem_mng *p_mem_mng,
 /* For AIOP lock is no longer dynamically allocated, g_mem_part_spinlock is used
  * instead
  */
-	    /* fsl_os_free((void *) p_partition->lock); */
 #else
         spin_lock_free(p_partition->lock);
 #endif
     }
-    /* Partition is no longer dynamically allocated*/
-    //p_mem_mng->f_free(p_partition);
 }
-
-/*****************************************************************************/
-static int mem_mng_remove_early_entry(t_mem_mng *p_mem_mng, void *p_memory)
-{
-    t_mem_mng_debug_entry  *p_mem_mng_debug_entry;
-    list_t              *p_debug_iterator, *p_tmp_iterator;
-#ifdef AIOP
-    lock_spinlock(p_mem_mng->lock);
-#else
-    uint32_t            int_flags;
-    int_flags = spin_lock_irqsave(p_mem_mng->lock);
-#endif /* AIOP */
-
-    LIST_FOR_EACH_SAFE(p_debug_iterator, p_tmp_iterator, &(p_mem_mng->early_mem_debug_list))
-    {
-        p_mem_mng_debug_entry = MEM_MNG_DBG_OBJECT(p_debug_iterator);
-
-        if (p_mem_mng_debug_entry->p_memory == p_memory)
-        {
-            list_del(p_debug_iterator);
-#ifdef AIOP
-            unlock_spinlock(p_mem_mng->lock);
-#else /* not AIOP */
-    	    spin_unlock_irqrestore(p_mem_mng->lock, int_flags);
-#endif /* AIOP */
-            //p_mem_mng->f_free(p_mem_mng_debug_entry);
-            sys_default_free(p_mem_mng_debug_entry);
-            return 1;
-        }
-    }
-#ifdef AIOP
-    unlock_spinlock(p_mem_mng->lock);
-#else /* not AIOP */
-    spin_unlock_irqrestore(p_mem_mng->lock, int_flags);
-#endif /* AIOP */
-
-    return 0;
-}
-
-
 /*****************************************************************************/
 static void mem_mng_add_entry(t_mem_mng             *p_mem_mng,
                            t_mem_mng_partition    *p_partition,
@@ -1321,7 +1176,6 @@ static int mem_mng_remove_entry(t_mem_mng          *p_mem_mng,
 #else /* not AIOP */
     	    spin_unlock_irqrestore(p_partition->lock, int_flags);
 #endif /* AIOP */
-            //p_mem_mng->f_free(p_mem_mng_debug_entry);
             sys_default_free(p_mem_mng_debug_entry);
             return 1;
         }

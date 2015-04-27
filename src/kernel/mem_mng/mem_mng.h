@@ -109,8 +109,6 @@ typedef struct t_mem_mng
     t_mem_mng_phys_addr_alloc_partition
            phys_allocation_mem_partitions_array[PLATFORM_MAX_MEM_INFO_ENTRIES];
                 /**< List of partition for fsl_os_get_mem function() control structures */
-    list_t      early_mem_debug_list;
-                /**< List of early memory allocation entries (for debug) */
     uint32_t    mem_partitions_initialized;
     fsl_handle_t h_boot_mem_mng;
      struct buffer_pool slob_bf_pool;
