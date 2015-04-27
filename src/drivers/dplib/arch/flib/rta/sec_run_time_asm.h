@@ -461,10 +461,29 @@ static inline void __rta_out_le32(struct program *program, uint32_t val)
 static inline void __rta_out64(struct program *program, bool is_ext,
 			       uint64_t val)
 {
-	if (is_ext)
-		__rta_out32(program, upper_32_bits(val));
+	if (is_ext) {
+		/*
+		 * Since we are guaranteed only a 4-byte alignment in the
+		 * descriptor buffer, we have to do 2 x 32-bit (word) writes.
+		 * For the order of the 2 words to be correct, we need to
+		 * take into account the endianness of the CPU.
+		 */
+#ifdef __BIG_ENDIAN
+		__rta_out32(program, program->bswap ? lower_32_bits(val) :
+						      upper_32_bits(val));
 
-	__rta_out32(program, lower_32_bits(val));
+		__rta_out32(program, program->bswap ? upper_32_bits(val) :
+						      lower_32_bits(val));
+#else
+		__rta_out32(program, program->bswap ? upper_32_bits(val) :
+						      lower_32_bits(val));
+
+		__rta_out32(program, program->bswap ? lower_32_bits(val) :
+						      upper_32_bits(val));
+#endif
+	} else {
+		__rta_out32(program, lower_32_bits(val));
+	}
 }
 
 static inline unsigned rta_word(struct program *program, uint32_t val)

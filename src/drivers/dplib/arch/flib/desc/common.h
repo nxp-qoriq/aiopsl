@@ -19,6 +19,8 @@
  * struct alginfo - Container for algorithm details
  * @algtype: algorithm selector; for valid values, see documentation of the
  *           functions where it is used.
+ * @algmode: algorithm mode selector; for valid values, see documentation of the
+ *           functions where it is used.
  * @keylen: length of the provided algorithm key, in bytes
  * @key: address where algorithm key resides; virtual address if key_type is
  *       RTA_DATA_IMM, physical (bus) address if key_type is RTA_DATA_PTR or
@@ -29,6 +31,7 @@
  */
 struct alginfo {
 	uint32_t algtype;
+	uint32_t algmode;
 	uint32_t keylen;
 	uint64_t key;
 	uint32_t key_enc_flags;
