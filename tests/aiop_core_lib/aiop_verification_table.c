@@ -132,7 +132,12 @@ uint16_t aiop_verification_table(uint32_t asa_seg_addr)
 		str->status = table_rule_create(str->acc_id,
 			    str->table_id,
 			    (struct table_rule*)&rule,
-			    str->key_size);
+#ifdef REV2_RULEID
+				str->key_size,
+				&str->rule_id);
+#else
+				str->key_size);
+#endif
 
 		str_size =
 			sizeof(struct table_rule_create_command);
@@ -154,14 +159,24 @@ uint16_t aiop_verification_table(uint32_t asa_seg_addr)
 				 str->table_id,
 				 &rule_ptr,
 				 str->key_size,
-				 (void *)0);
+#ifdef REV2_RULEID
+			 (void *)0,
+			 &str->rule_id);
+#else
+			 (void *)0);
+#endif
 		} else {
 			str->status = table_rule_create_or_replace
 				(str->acc_id,
 				 str->table_id,
 				 &rule_ptr,
 				 str->key_size,
-				 &str->old_res);
+#ifdef REV2_RULEID
+			 &str->old_res,
+			 &str->rule_id);
+#else
+			 &str->old_res);
+#endif
 		}
 		str_size =
 			sizeof(struct table_rule_create_replace_command);
@@ -318,6 +333,91 @@ uint16_t aiop_verification_table(uint32_t asa_seg_addr)
 			sizeof(struct table_lookup_by_keyid_command);
 		break;
 	}
+#ifdef REV2_RULEID
+	/* Table Get next Rule ID Command Verification */
+	case TABLE_GET_NEXT_RULEID_CMD_STR:
+	{
+		struct table_rule_id_desc rule_id __attribute__((aligned(16)));
+		struct table_rule_id_desc next_rule_id __attribute__((aligned(16)));
+		struct table_get_next_ruleid_command *str =
+		(struct table_get_next_ruleid_command *) asa_seg_addr;
+		rule_id = *(str->rule_id_desc);
+		
+		str->status = table_get_next_ruleid(str->acc_id,
+						str->table_id,
+						&rule_id,
+						&next_rule_id);
+		*(str->next_rule_id_desc) = next_rule_id;
+		str_size = sizeof(struct table_get_next_ruleid_command);
+		break;
+	}
+	/* Table Get Key Descriptor Command Verification */
+	case TABLE_GET_KEY_DESC_CMD_STR:
+	{
+		struct table_rule_id_desc rule_id __attribute__((aligned(16)));
+		union table_key_desc key_desc __attribute__((aligned(16)));
+		struct table_get_key_desc_command *str =
+		(struct table_get_key_desc_command *) asa_seg_addr;
+		rule_id = *(str->rule_id_desc);
+		
+		str->status = table_get_key_desc(str->acc_id,
+						str->table_id,
+						&rule_id,
+						&key_desc);
+		*(str->key_desc) = key_desc;
+		str_size = sizeof(struct table_get_key_desc_command);
+		break;
+	}
+	/* Table Rule Replace by Rule ID Command Verification */
+	case TABLE_RULE_REPLACE_BY_RULEID_CMD_STR:
+	{
+		struct table_ruleid_and_result_desc rule __attribute__((aligned(16)));
+		
+		struct table_rule_replace_by_ruleid_command *str =
+		(struct table_rule_replace_by_ruleid_command *) asa_seg_addr;
+		rule = *(str->rule);
+		
+		str->status = table_rule_replace_by_ruleid(str->acc_id,
+						str->table_id,
+						&rule,
+						str->old_res);
+		str_size = sizeof(struct table_rule_replace_by_ruleid_command);
+		break;
+	}
+	/* Table Rule Delete by Rule ID Command Verification */
+	case TABLE_RULE_DELETE_BY_RULEID_CMD_STR:
+	{
+		struct table_rule_id_desc rule_id __attribute__((aligned(16)));
+		
+		struct table_rule_delete_by_ruleid_command *str =
+		(struct table_rule_delete_by_ruleid_command *) asa_seg_addr;
+		rule_id = *(str->rule_id_desc);
+		
+		str->status = table_rule_delete_by_ruleid(str->acc_id,
+						str->table_id,
+						&rule_id,
+						str->result);
+		str_size = sizeof(struct table_rule_delete_by_ruleid_command);
+		break;
+	}
+	/* Table Rule Query by Rule ID Command Verification */
+	case TABLE_RULE_QUERY_BY_RULEID_CMD_STR:
+	{
+		struct table_rule_id_desc rule_id __attribute__((aligned(16)));
+		
+		struct table_rule_query_by_ruleid_command *str =
+		(struct table_rule_query_by_ruleid_command *) asa_seg_addr;
+		rule_id = *(str->rule_id_desc);
+		
+		str->status = table_rule_query_by_ruleid(str->acc_id,
+						str->table_id,
+						&rule_id,
+						str->result,
+						str->timestamp);
+		str_size = sizeof(struct table_rule_query_by_ruleid_command);
+		break;
+	}
+#endif
 	/* Table Query Command Verification */
 	case TABLE_QUERY_DEBUG_CMD_STR:
 	{

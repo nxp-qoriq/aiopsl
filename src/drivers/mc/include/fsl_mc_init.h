@@ -49,6 +49,8 @@ struct mc_dpci_tbl {
  * Once dpci id is added to the table it can't be remove but only invalidated
  */
 int mc_dpci_find(uint32_t dpci_id, uint32_t *ic);
+int mc_dpci_peer_find(uint32_t dpci_id, uint32_t *ic);
+
 void mc_dpci_tbl_dump();
 /* 
  * Find and allocate new entry 

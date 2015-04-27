@@ -185,23 +185,29 @@ __COLD_CODE int cmdif_close_done(struct cmdif_desc *cidesc)
 static inline void async_cb_get(struct cmdif_fd *fd, cmdif_cb_t **async_cb, 
                          void **async_ctx)
 {
-	struct cmdif_async * async_data = \
-		(struct cmdif_async *)CMDIF_ASYNC_ADDR_GET(fd->u_addr.d_addr, \
+	void * async_data = \
+		(void *)CMDIF_ASYNC_ADDR_GET(fd->u_addr.d_addr, \
 		                                           fd->d_size);
-		
-	*async_cb  = (cmdif_cb_t *)async_data->async_cb;
-	*async_ctx = (void *)async_data->async_ctx;
+	struct cmdif_async temp;
+
+	memcpy(&temp, async_data, sizeof(temp));
+
+	*async_cb  = (cmdif_cb_t *)temp.async_cb;
+	*async_ctx = (void *)temp.async_ctx;
+
 }
 
 static inline void async_cb_set(struct cmdif_fd *fd, 
                          cmdif_cb_t *async_cb, void *async_ctx) 
 {
-	struct cmdif_async * async_data = \
-		(struct cmdif_async *)CMDIF_ASYNC_ADDR_GET(fd->u_addr.d_addr, \
-		                                           fd->d_size);
+	void * async_data = \
+		(void *)CMDIF_ASYNC_ADDR_GET(fd->u_addr.d_addr, fd->d_size);
+	struct cmdif_async temp;
 	
-	async_data->async_cb  = (uint64_t)async_cb;
-	async_data->async_ctx = (uint64_t)async_ctx;
+	temp.async_cb = (uint64_t)async_cb;
+	temp.async_ctx = (uint64_t)async_ctx;
+	
+	memcpy(async_data, &temp, sizeof(temp));
 }
 
 __HOT_CODE int cmdif_cmd(struct cmdif_desc *cidesc,

@@ -46,6 +46,7 @@
 #include "kernel/fsl_spinlock.h"
 #include <string.h>
 #include "fsl_dbg.h"
+#include "fsl_stdlib.h"
 
 /* TODO - cleanup once the error handling below is moved to verification code.*/
 #if (defined AIOP_VERIF || defined CDC_ROC)

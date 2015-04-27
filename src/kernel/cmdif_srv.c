@@ -45,6 +45,7 @@
 #include "fsl_sl_cmd.h"
 #include "fsl_icontext.h"
 #include "fsl_dpci_drv.h"
+#include "fsl_stdlib.h"
 
 /** Blocking commands don't need response FD */
 #define SEND_RESP(CMD)	\
@@ -445,17 +446,23 @@ __COLD_CODE int notify_open()
 		return -EINVAL;
 	}
 
-	ind = mc_dpci_find(data->dev_id, NULL); /* dev_id is swapped by GPP */
+	ind = mc_dpci_peer_find(data->dev_id, NULL); /* dev_id is swapped by GPP */
 	pr_debug("dpci id = %d ind = %d\n", data->dev_id, ind);
 	if (ind < 0) {
 		pr_err("Not found DPCI peer %d\n", data->dev_id);
+		/* TODO This needs to be updated for dynamic DPCI
+		 * Assuming that 2 DPCIs must be connected before 
+		 * it gets to AIOP 
+		 * TODO it may send GPP DPCI that is not yet connected and 
+		 * I need to ad an entry for it and update the amq bits */
 		return -ENAVAIL;
 	}
 
 	err = dpci_drv_update((uint32_t)ind); /* dev_id is swapped by GPP */
 	ASSERT_COND(!err);
 
-	err = dpci_drv_tx_get(data->dev_id, &tx_queue[0]);
+	err = dpci_drv_tx_get(cmdif_aiop_srv.dpci_tbl->dpci_id[ind], 
+	                      &tx_queue[0]);
 	ASSERT_COND(!err);
 
 	/* TODO Consider to add lock per DPCI entry */

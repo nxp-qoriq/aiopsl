@@ -585,10 +585,10 @@ struct table_lookup_result {
 	- A pointer to Slab/CDMA acquired buffer (which has a reference counter)
 
 	Depends on the matching rule result type. */
-	uint64_t opaque0_or_reference;
+	volatile uint64_t opaque0_or_reference;
 
 	/** Opaque data */
-	uint64_t opaque1;
+	volatile uint64_t opaque1;
 
 	/** Reserved for compliance with HW format.
 	User should not access this field. */
@@ -599,7 +599,7 @@ struct table_lookup_result {
 	uint8_t  reserved1;
 
 	/** Opaque data */
-	uint8_t  opaque2;
+	volatile uint8_t  opaque2;
 
 	/** Reserved for compliance with HW format.
 	User should not access this field. */
@@ -608,7 +608,7 @@ struct table_lookup_result {
 	/** Timestamp of the rule that was matched in the lookup process.
 	For this timestamp to be valid, suitable option should be set in
 	\ref table_rule option field. */
-	uint32_t timestamp;
+	volatile uint32_t timestamp;
 };
 #pragma pack(pop)
 
@@ -982,6 +982,43 @@ inline void table_delete(enum table_hw_accel_id acc_id,
 /* ######################################################################### */
 /* ######################## Table Rule Operations ########################## */
 /* ######################################################################### */
+#ifdef REV2_RULEID
+/**************************************************************************//**
+@Function	table_rule_create
+
+@Description	Adds a rule to a specified table.
+		\n \n If the rule key already exists, the rule will not be
+		added and a status will be returned.
+
+@Param[in]	acc_id ID of the Hardware Table Accelerator that contains
+		the table on which the operation will be performed.
+@Param[in]	table_id Table ID.
+@Param[in]	rule The rule to be added. The structure pointed by this
+		pointer must be in the task's workspace and must be aligned to
+		16B boundary.
+@Param[in]	key_size Key size in bytes. Should be equal to the key size the
+		table was created with except for the following remark:
+		 - the key size should be added priority field size (4 Bytes)
+		for MFLU tables.
+@Param[out]	rule_id. Rule ID of the rule that was created. This ID can be used
+		as a reference to this rule by other functions.
+
+@Return		0 on success, or negative value on error.
+
+@Retval		0 Success.
+@Retval		ENOMEM Error, Not enough memory is available.
+@Retval		EIO Error, A valid rule with the same key descriptor is found
+		in the table. No change was made to the table.
+
+@Cautions	In this function the task yields.
+@Cautions	This function may result in a fatal error.
+*//***************************************************************************/
+inline int table_rule_create(enum table_hw_accel_id acc_id,
+		      uint16_t table_id,
+		      struct table_rule *rule,
+		      uint8_t key_size,
+		      uint64_t *rule_id);
+#else
 /**************************************************************************//**
 @Function	table_rule_create
 
@@ -1014,8 +1051,52 @@ inline int table_rule_create(enum table_hw_accel_id acc_id,
 		      uint16_t table_id,
 		      struct table_rule *rule,
 		      uint8_t key_size);
+#endif
 
+#ifdef REV2_RULEID
+/**************************************************************************//**
+@Function	table_rule_create_or_replace
 
+@Description	Adds/replaces a rule to a specified table.
+		\n \n If the rule key already exists, the rule will be replaced
+		by the one specified in the function's parameters. Else, a new
+		rule will be created in the table.
+
+@Param[in]	acc_id ID of the Hardware Table Accelerator that contains
+		the table on which the operation will be performed.
+@Param[in]	table_id Table ID.
+@Param[in]	rule The rule to be added. The structure pointed by this
+		pointer must be in the task's workspace and must be aligned to
+		16B boundary.
+@Param[in]	key_size Key size in bytes.Should be equal to the key size the
+		table was created with except for the following remark:
+		 - the key size should be added priority field size (4 Bytes)
+		for MFLU tables.
+@Param[in, out]	old_res The result of the replaced rule. Valid only if
+		replace took place. If set to null the replaced rule's result
+		will not be returned. If not null, structure should be
+		allocated by the caller to this function.
+@Param[out]	rule_id. Rule ID of the rule that was created or replaced. This
+		ID can be used as a reference to this rule by other functions.
+
+@Return		0 or positive value on success. Negative value on error.
+
+@Retval		0 Success.  A rule with the same key descriptor was found in
+		the table. The rule was replaced.
+@Retval		#TABLE_STATUS_MISS Success, A rule with the same key descriptor
+		was not found in the table. A new rule is created.
+@Retval		ENOMEM Error, Not enough memory is available.
+
+@Cautions	In this function the task yields.
+@Cautions	This function may result in a fatal error.
+*//***************************************************************************/
+int table_rule_create_or_replace(enum table_hw_accel_id acc_id,
+				 uint16_t table_id,
+				 struct table_rule *rule,
+				 uint8_t key_size,
+				 struct table_result *old_res,
+				 uint64_t *rule_id);
+#else
 /**************************************************************************//**
 @Function	table_rule_create_or_replace
 
@@ -1055,6 +1136,7 @@ int table_rule_create_or_replace(enum table_hw_accel_id acc_id,
 				 struct table_rule *rule,
 				 uint8_t key_size,
 				 struct table_result *old_res);
+#endif
 
 
 /**************************************************************************//**

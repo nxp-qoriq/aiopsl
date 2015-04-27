@@ -136,8 +136,10 @@ __COLD_CODE static int init_l1_cache(t_platform *pltfrm)
 		booke_icache_enable();
 	}
 
-	if (pltfrm->param.l1_cache_mode & E_CACHE_MODE_DATA_ONLY)
-		RETURN_ERROR(MAJOR, ENOTSUP, NO_MSG);
+	if (pltfrm->param.l1_cache_mode & E_CACHE_MODE_DATA_ONLY) {
+		pr_err("unsupported operation");
+		return -ENOTSUP;
+	}
 
 	return 0;
 }
@@ -148,8 +150,10 @@ __COLD_CODE static int disable_l1_cache(t_platform *pltfrm)
 	if (pltfrm->param.l1_cache_mode & E_CACHE_MODE_INST_ONLY)
 		booke_icache_disable();
 
-	if (pltfrm->param.l1_cache_mode & E_CACHE_MODE_DATA_ONLY)
-		RETURN_ERROR(MAJOR, ENOTSUP, NO_MSG);
+	if (pltfrm->param.l1_cache_mode & E_CACHE_MODE_DATA_ONLY) {
+		pr_err("unsupported operation");
+		return -ENOTSUP;
+	}
 
 	return 0;
 }
@@ -295,14 +299,17 @@ __COLD_CODE static int pltfrm_init_core_cb(fsl_handle_t h_platform)
 	/* Initialize L1 Cache                                  */
 	/*------------------------------------------------------*/
 	err = init_l1_cache(pltfrm);
-	if (err != 0)
-		RETURN_ERROR(MAJOR, err, NO_MSG);
+	if (err != 0) {
+		pr_err("init l1 cache failed\n");
+		return err;
+	}
 
 	/*initialize random seeds*/
 	err = init_random_seed(WSCR_tasks_bit);
-
-	if (err != 0)
-		RETURN_ERROR(MAJOR, err, NO_MSG);
+	if (err != 0) {
+		pr_err("init random seed failed\n");
+		return err;
+	}
 
 	return 0;
 }
@@ -381,7 +388,7 @@ __COLD_CODE static int pltfrm_init_mem_partitions_cb(fsl_handle_t h_platform)
 	err = sys_add_handle( (fsl_handle_t)pltfrm->mc_portals_base, FSL_OS_MOD_MC_PORTAL, 1, 0);
 	if (err != 0)
 	{
-		pr_err("MAJOR  couldn't add FSL_OS_MOD_MC_PORTAL using sys_add_handle()\n");
+		pr_err("Couldn't add FSL_OS_MOD_MC_PORTAL using sys_add_handle()\n");
 		return err;
 	}
 	
@@ -707,8 +714,10 @@ __COLD_CODE int platform_enable_console(fsl_handle_t h_platform)
 		return -ENOTSUP;
 	}		
 
-	if( pltfrm->param.console_id > 4 )
-		RETURN_ERROR(MAJOR, EAGAIN, ("DUART"));
+	if( pltfrm->param.console_id > 4 ) {
+		pr_err("resource is unavailable: DUART");
+		return -EAGAIN;
+	}
 
 	/* Fill DUART configuration parameters */
 	duart_uart_param.irq                = NO_IRQ;
@@ -727,35 +736,47 @@ __COLD_CODE int platform_enable_console(fsl_handle_t h_platform)
 
 	/* Configure and initialize DUART driver */
 	uart = duart_config(&duart_uart_param);
-	if (!uart)
-		RETURN_ERROR(MAJOR, EAGAIN, ("DUART"));
+	if (!uart) {
+		pr_err("resource is unavailable: DUART");
+		return -EAGAIN;
+	}
 
 	/* Configure polling mode */
 	err = duart_config_poll_mode(uart, 1);
-	if (err != 0)
-		RETURN_ERROR(MAJOR, err, NO_MSG);
+	if (err != 0) {
+		pr_err("duart poll\n");
+		return err;
+	}
 
 	/* Convert end-of-line indicators */
 	err = duart_config_poll_lf2crlf(uart, 1);
-	if (err != 0)
-		RETURN_ERROR(MAJOR, err, NO_MSG);
+	if (err != 0) {
+		pr_err("duart poll\n");
+		return err;
+	}
 
 	/* Prevent blocking */
 	err = duart_config_rx_timeout(uart, 0);
-	if (err != 0)
-		RETURN_ERROR(MAJOR, err, NO_MSG);
+	if (err != 0) {
+		pr_err("duart rx timeout\n");
+		return err;
+	}
 
 	err = duart_init(uart);
-	if (err != 0)
-		RETURN_ERROR(MAJOR, err, NO_MSG);
+	if (err != 0) {
+		pr_err("duart init\n");
+		return err;
+	}
 
 	/* Lock DUART handle in system */
 	/*TODO: sys_get_handle in aiop does not support num_of_id > 0
 	 * change FSL_OS_MOD_UART to FSL_OS_MOD_UART_0 */
 
 	err = sys_add_handle(uart, FSL_OS_MOD_UART, 1, pltfrm->param.console_id);
-	if (err != 0)
-		RETURN_ERROR(MAJOR, err, NO_MSG);
+	if (err != 0) {
+		pr_err("add handle failed\n");
+		return err;
+	}
 
 	pltfrm->uart = uart;
 	pltfrm->duart_id = pltfrm->param.console_id;
