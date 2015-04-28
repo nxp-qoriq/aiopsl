@@ -439,10 +439,10 @@ static inline int __rta_rsa_dec_proto(uint16_t protoinfo)
  * DKP Protocol - Restrictions on key (SRC,DST) combinations
  * For e.g. key_in_out[0][0] = 1 means (SRC=IMM,DST=IMM) combination is allowed
  */
-static const uint8_t key_in_out[4][4] = {1, 0, 0, 0,
-					 1, 1, 1, 1,
-					 1, 0, 1, 0,
-					 1, 0, 0, 1};
+static const uint8_t key_in_out[4][4] = { {1, 0, 0, 0},
+					  {1, 1, 1, 1},
+					  {1, 0, 1, 0},
+					  {1, 0, 0, 1} };
 
 static inline int __rta_dkp_proto(uint16_t protoinfo)
 {

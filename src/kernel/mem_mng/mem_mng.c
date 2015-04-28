@@ -81,8 +81,6 @@ __START_COLD_CODE
 
 
 
-static int mem_mng_remove_early_entry(t_mem_mng *p_mem_mng, void *p_memory);
-
 static void mem_mng_add_entry(t_mem_mng             *p_mem_mng,
                            t_mem_mng_partition    *p_partition,
                            void                 *p_memory,
@@ -111,7 +109,8 @@ static void mem_phys_mng_free_partition(t_mem_mng *p_mem_mng,
 
 
 extern const uint8_t AIOP_DDR_START[],AIOP_DDR_END[];
-const uint32_t  g_boot_mem_mng_size = 16*KILOBYTE;
+const uint32_t  g_boot_mem_mng_size = 1*MEGABYTE;
+
 
 
 int boot_mem_mng_init(struct initial_mem_mng* boot_mem_mng,
@@ -228,15 +227,15 @@ fsl_handle_t mem_mng_init(fsl_handle_t h_boot_mem_mng,
     p_mem_mng->lock    = p_mem_mng_param->lock;
     p_mem_mng->h_boot_mem_mng = h_boot_mem_mng;
 
-#if 0
+
     rc = buffer_pool_create(&p_mem_mng->slob_bf_pool,E_BFT_SLOB_BLOCK,10,
-                            sizeof(t_free_block),h_boot_mem_mng);
+                            sizeof(t_slob_block),h_boot_mem_mng);
     if(rc)
     {
 	    pr_err("MAJOR mem.manager memory allocation failed slob free blocks\n");
 	    return NULL;
     }
-
+#if 0
     uint64_t buffer_addr = 0;
     rc = -ENAVAIL;
     rc = get_buff(&p_mem_mng->slob_bf_pool,&buffer_addr);
@@ -407,7 +406,7 @@ int mem_mng_register_partition(fsl_handle_t  h_mem_mng,
 
     /* Initialize the memory manager handle for the new partition */
     if (0 != slob_init(&(p_new_partition->h_mem_manager), base_address, size,
-                       p_mem_mng->h_boot_mem_mng))
+                       p_mem_mng->h_boot_mem_mng,&p_mem_mng->slob_bf_pool))
     {
         /*p_mem_mng->f_free(p_new_partition);*/
         p_new_partition->was_initialized = 0;
@@ -495,7 +494,7 @@ int mem_mng_register_phys_addr_alloc_partition(fsl_handle_t  h_mem_mng,
 
     /* Initialize the memory manager handle for the new partition */
    if (0 != slob_init(&(p_new_partition->h_mem_manager), base_paddress, size,
-		   p_mem_mng->h_boot_mem_mng))
+		   p_mem_mng->h_boot_mem_mng,&p_mem_mng->slob_bf_pool))
    {
         /*p_mem_mng->f_free(p_new_partition); */
        p_new_partition->was_initialized = 0;
