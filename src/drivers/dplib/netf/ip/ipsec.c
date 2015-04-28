@@ -1697,12 +1697,14 @@ int ipsec_frame_encrypt(
 			val = *(uint32_t *)((uint32_t)0x60 + j*4);
 			fsl_os_print("Word %d = 0x%x\n", j, val);
 		}
-		val= LDPAA_FD_GET_FRC(HWC_FD_ADDRESS);
+		val = LDPAA_FD_GET_FRC(HWC_FD_ADDRESS);
 		fsl_os_print("FRC = 0x%x\n", val);
 		// Offset
 		val = *(uint32_t *)((uint32_t)0x60 + 3*4);
 		fsl_os_print("FD[OFFSET] = 0x%x%x\n", (val & 0x0F), (val & 0xFF00)>>8);
-
+		
+		val = LDPAA_FD_GET_LENGTH(HWC_FD_ADDRESS);
+		fsl_os_print("FD[LENGTH] = 0x%x\n", val);
 	}
 	// Debug End //
 #endif	
@@ -1815,12 +1817,53 @@ int ipsec_frame_encrypt(
 		// TODO: it may be necessary to re-run the parser at this stage
 	} 
 
+#if(0)
+	// Debug //
+	{
+		fsl_os_print("IPSEC: Reading FD before the parser\n");
+		uint32_t j;
+		uint32_t val;
+		for(j=0;j<8;j++) {
+			val = *(uint32_t *)((uint32_t)0x60 + j*4);
+			fsl_os_print("Word %d = 0x%x\n", j, val);
+		}
+		val = LDPAA_FD_GET_FRC(HWC_FD_ADDRESS);
+		fsl_os_print("FRC = 0x%x\n", val);
+		// Offset
+		val = *(uint32_t *)((uint32_t)0x60 + 3*4);
+		fsl_os_print("FD[OFFSET] = 0x%x%x\n", (val & 0x0F), (val & 0xFF00)>>8);
+		
+		val = LDPAA_FD_GET_LENGTH(HWC_FD_ADDRESS);
+		fsl_os_print("FD[LENGTH] = 0x%x\n", val);
+	}
+	// Debug End //
+#endif	
+	
 	/* 	Set the gross running to 0 (invalidate) */
 	pr->gross_running_sum = 0;
 	
 	/* 	Run parser and check for errors. */
 	return_val = parse_result_generate_default(PARSER_NO_FLAGS);
 	// TODO: check results (TBD)
+	
+#if(0)
+	// Debug //
+	{
+		fsl_os_print("IPSEC: Reading Parser results after encryption\n");
+		uint32_t j;
+		uint32_t val;
+		for(j=0;j<12;j++) {
+			val = *(uint32_t *)((uint32_t)0x80 + j*4);
+			fsl_os_print("Word %d = 0x%x\n", j, val);
+		}
+		val = (uint32_t)((uint8_t *)PARSER_GET_L5_OFFSET_DEFAULT());
+		fsl_os_print("PARSER_GET_L5_OFFSET_DEFAULT = 0x%x\n", val);
+		val = (uint32_t)((uint8_t *)PARSER_GET_OUTER_IP_OFFSET_DEFAULT());	
+		fsl_os_print("PARSER_GET_OUTER_IP_OFFSET_DEFAULT = 0x%x\n", val);
+		
+	}
+	// Debug End //
+#endif	
 	
 	/* 	17.	Restore the original FD[FLC], FD[FRC] (from stack). 
 	 * No need for additional FDMA command. */
@@ -2011,7 +2054,7 @@ int ipsec_frame_decrypt(
 			((uint32_t)((uint8_t *)PARSER_GET_L5_OFFSET_DEFAULT()) - 
 				(uint32_t)((uint8_t *)PARSER_GET_OUTER_IP_OFFSET_DEFAULT()) +
 				eth_length); 
-				
+		
 		dpovrd.tunnel_decap.word = 
 				IPSEC_DPOVRD_OVRD |
 				(eth_length<<12) | /* AOIPHO */
@@ -2079,6 +2122,30 @@ int ipsec_frame_decrypt(
 			  * the running sum. */
 		}
 	}
+
+#if(0)
+	// Debug //
+	{
+		fsl_os_print("IPSEC: Reading FD and FRC before SEC\n");
+		uint32_t j;
+		uint32_t val;
+		for(j=0;j<8;j++) {
+			val = *(uint32_t *)((uint32_t)0x60 + j*4);
+			fsl_os_print("Word %d = 0x%x\n", j, val);
+		}
+		val = LDPAA_FD_GET_FRC(HWC_FD_ADDRESS);
+		fsl_os_print("FRC = 0x%x\n", val);
+		
+		// Offset
+		val = *(uint32_t *)((uint32_t)0x60 + 3*4);
+		//val = LDPAA_FD_GET_OFFSET(HWC_FD_ADDRESS);
+		//fsl_os_print("FD[OFFSET] = 0x%x %x\n", (val & 0xFF), (val & 0xFF00));
+		fsl_os_print("FD[OFFSET] = 0x%x%x\n", (val & 0x0F), (val & 0xFF00)>>8);
+		fsl_os_print("DPOVRD = 0x%x\n", *((uint32_t *)(&dpovrd)));
+
+	}
+	// Debug End //
+#endif
 
 	/*---------------------*/
 	/* ipsec_frame_decrypt */
@@ -2186,6 +2253,9 @@ int ipsec_frame_decrypt(
 		}
 		val= LDPAA_FD_GET_FRC(HWC_FD_ADDRESS);
 		fsl_os_print("FRC = 0x%x\n", val);
+		// Offset
+		val = *(uint32_t *)((uint32_t)0x60 + 3*4);
+		fsl_os_print("FD[OFFSET] = 0x%x%x\n", (val & 0x0F), (val & 0xFF00)>>8);
 	}
 	// Debug End //
 #endif

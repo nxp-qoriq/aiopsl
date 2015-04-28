@@ -427,7 +427,7 @@ int ipsec_app_init(uint16_t ni_id)
 	//algs = AES128_SHA1;
 
 	/* Set the outer IP header type here */
-	outer_header_ip_version = 4; /* 4 or 6 */
+	outer_header_ip_version = 6; /* 4 or 6 */
 	//outer_header_ip_version = 17; /* UDP encap (Tunnel mode only) */
 
 	auth_key_id = 0; /* Keep the initial key array value */ 
@@ -636,7 +636,8 @@ int ipsec_app_init(uint16_t ni_id)
 	else if (outer_header_ip_version == 6) {
 
 		outer_ip_header[0] = 0x60000000;
-		outer_ip_header[1] = 0x002032ff;
+//		outer_ip_header[1] = 0x002032ff;
+		outer_ip_header[1] = 0x000032ff;
 		outer_ip_header[2] = 0xfe800000;
 		outer_ip_header[3] = 0x00000000;
 		outer_ip_header[4] = 0x021125ff;
