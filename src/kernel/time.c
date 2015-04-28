@@ -30,7 +30,8 @@
 #include "fsl_sys.h"
 #include "fsl_dbg.h"
 #include "fsl_spinlock.h"
-
+#include "cmgw.h"
+#include "tman_inline.h"
 
 uint64_t time_epoch_to_midnight_ms __attribute__((aligned(8))) = 0; /*microseconds since epoch till midnight
 * This global variable should be double word aligned to support load as atomic command.
@@ -44,7 +45,8 @@ extern struct aiop_init_info g_init_data;
 int time_init(void);
 void time_free(void);
 
-int _get_time_fast(uint64_t *time)
+/*****************************************************************************/
+int _get_time_1588(uint64_t *time)
 {
 	uint32_t TEMP, TSCRU, TSCRL;
 	uint64_t temp_val;
@@ -76,6 +78,18 @@ int _get_time_fast(uint64_t *time)
 
 	/*TODO: if time period set to different value then 1000 in MC, devision should be made*/
 	*time = temp_val;
+	return 0;
+}
+
+/*****************************************************************************/
+int _get_time_tman(uint64_t *time)
+{
+	//TODO handle edge cases (what if time_base is being updated as I read it ???)
+
+	tman_get_timestamp(time);
+	*time += cmgw_get_time_base();
+	*time = udiv1000(*time);
+
 	return 0;
 }
 
@@ -122,13 +136,18 @@ uint32_t fsl_os_current_time(void)
 /*****************************************************************************/
 __COLD_CODE int time_init(void)
 {
+#if 0
+	/* New implementation using TMAN instead of 1588 timers */
+	time_get_func_ptr = _get_time_tman;
+	return 0;
+#else
 	if(g_init_data.sl_info.clock_period == 1000)
 	{
 		struct aiop_tile_regs *aiop_regs = (struct aiop_tile_regs *)
 				       		       sys_get_handle(FSL_OS_MOD_AIOP_TILE, 1);
 		time_cmgw_regs = (struct aiop_cmgw_regs*) &aiop_regs->cmgw_regs;
 
-		time_get_func_ptr = _get_time_fast;
+		time_get_func_ptr = _get_time_1588;
 		return 0;
 	}
 	else
@@ -137,6 +156,7 @@ __COLD_CODE int time_init(void)
 		pr_err("Only fast path supported for time period 1000, time period: %d\n",g_init_data.sl_info.clock_period);
 		return -ENOTSUP;
 	}
+#endif /* 0 */
 }
 
 /*****************************************************************************/
