@@ -190,63 +190,15 @@ int platform_free(fsl_handle_t h_platform);
 int platform_get_chip_rev_info(fsl_handle_t h_platform, t_chip_rev_info *p_chip_rev_info);
 
 /**************************************************************************//**
- @Function      platform_get_core_clk
+ @Function      platform_get_clk
 
- @Description   Gets the core clock frequency of the device.
-
- @Param[in]     h_platform - Platform object handle.
-
- @Return        The core clock frequency (Hz).
-*//***************************************************************************/
-uint32_t platform_get_core_clk(fsl_handle_t h_platform);
-
-/**************************************************************************//**
- @Function      platform_get_system_bus_clk
-
- @Description   Gets the system bus frequency of the device.
+ @Description   Gets the platform clock of the device.
 
  @Param[in]     h_platform - Platform object handle.
 
- @Return        The system bus frequency (KHz).
+ @Return        The clock in KHz.
 *//***************************************************************************/
-uint32_t platform_get_system_bus_clk(fsl_handle_t h_platform);
-
-/**************************************************************************//**
- @Function      platform_get_ddr_clk
-
- @Description   Gets the local bus frequency of the device.
-
- @Param[in]     h_platform - Platform object handle.
-
- @Return        The DDR clock frequency (Hz).
-*//***************************************************************************/
-uint32_t platform_get_ddr_clk(fsl_handle_t h_platform);
-
-/**************************************************************************//**
- @Function      platform_get_local_bus_clk
-
- @Description   Gets the local bus frequency of the device.
-
- @Param[in]     h_platform - Platform object handle.
-
- @Return        The local bus frequency (Hz).
-*//***************************************************************************/
-uint32_t platform_get_local_bus_clk(fsl_handle_t h_platform);
-
-/**************************************************************************//**
- @Function      platform_get_controller_clk
-
- @Description   Gets the input clock frequency of a given controller object.
-
- @Param[in]     h_platform  - Platform object handle.
- @Param[in]     module      - Controller object type (usually a sub-module type)
- @Param[in]     id          - Controller object identifier
-
- @Return        The input clock frequency of a given controller object (Hz).
-*//***************************************************************************/
-uint32_t platform_get_controller_clk(fsl_handle_t     h_platform,
-                                   enum fsl_os_module  module,
-                                   uint32_t     id);
+uint32_t platform_get_clk(fsl_handle_t h_platform);
 
 /**************************************************************************//**
  @Function      platform_init_mac_for_mii_access
@@ -335,44 +287,32 @@ int platform_clear_serdes_loopback(fsl_handle_t    h_platform,
 #include "inc/fsl_sys.h"
 
 /**************************************************************************//**
- @Function      sys_get_controller_clk
+ @Function      sys_get_platform_clk
 
- @Description   Gets the input clock frequency of a given controller object.
+ @Description   Gets the platform clock
 
- @Param[in]     module  - Controller object type (usually a sub-module type)
- @Param[in]     id      - Controller object identifier
-
- @Return        The input clock frequency of a given controller object (Hz).
+ @Return        The platform clock frequency (KHz)
 *//***************************************************************************/
-static __inline__ uint32_t sys_get_controller_clk(enum fsl_os_module module, uint32_t id)
+static inline uint32_t sys_get_platform_clk()
 {
-    return platform_get_controller_clk(sys_get_unique_handle(FSL_OS_MOD_SOC),
-                                     module,
-                                     id);
+    return platform_get_clk(sys_get_unique_handle(FSL_OS_MOD_SOC));
 }
 
 /**************************************************************************//**
- @Function      sys_get_core_clk
+ @Function      sys_get_sys_clk
 
- @Description   Gets the core clock frequency of the device.
+ @Description   Gets the system bus frequency of the device
 
- @Return        The core clock frequency (Hz).
+                It is the AIOP clock which has been feed by the platform clock
+
+ @Return        The system bus frequency (KHz).
 *//***************************************************************************/
-static __inline__ uint32_t sys_get_core_clk(void)
+static __inline__ uint32_t sys_get_sys_clk(void)
 {
-    return platform_get_core_clk(sys_get_unique_handle(FSL_OS_MOD_SOC));
-}
-
-/**************************************************************************//**
- @Function      sys_get_system_bus_clk
-
- @Description   Gets the system bus frequency of the device.
-
- @Return        The system bus frequency (Hz).
-*//***************************************************************************/
-static __inline__ uint32_t sys_get_system_bus_clk(void)
-{
-    return platform_get_system_bus_clk(sys_get_unique_handle(FSL_OS_MOD_SOC));
+	/*
+	 * AIOP gets clock of (platform clk / 1)
+	*/
+    return platform_get_clk(sys_get_unique_handle(FSL_OS_MOD_SOC));
 }
 
 #if 0
