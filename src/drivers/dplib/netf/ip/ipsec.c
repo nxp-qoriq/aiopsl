@@ -996,22 +996,6 @@ void ipsec_generate_flc(
 				*(sp_byte + i); 
 	}
 	
-	/* Storage Profile DL = 256 bytes = 0x0100 --> 0x00010000 (little endian) */
-	/* TODO: calculate the actual DL */
-	//*((uint32_t *)((uint32_t *)flow_context.storage_profile)) = 0x00010000;
-
-	/* Total max growth for encapsulation:	
-	 * 4-byte SPI, 4-byte Seq Num, 16-byte IV, 15-byte Padding (AES),
-	 * 1-byte pad length, 1-byte Next Header, 32-byte ICV (SHA 512)	
-	 * = Total: 73, rounded up to 80 (0x50)
-	 * In tunnel mode, add the outer IP header + UDP
-	 * */
-	/* Set the DL (tailroom growth) */
-	if (params->direction == IPSEC_DIRECTION_OUTBOUND) {
-		sp_controls = (uint32_t)params->encparams.ip_hdr_len + 80;
-		STW_SWAP(sp_controls, 0, (uint32_t *)flow_context.storage_profile);
-	} 
-	
 	/* reuse buffer mode */
 	if (params->flags & IPSEC_FLG_BUFFER_REUSE) {
 		
@@ -1033,7 +1017,7 @@ void ipsec_generate_flc(
 		 * PTAR = 0 (ignored)
 		 * SGHR = 0 (ignored)
 		 * ASAR - preserve existing size
-		 * DHR = negative correction value in 1's complement format
+		 * DHR = negative correction value in 2's complement format
 		*/
 		
 		/* Read-swap the storage profile word at offset 4 */
@@ -1044,10 +1028,10 @@ void ipsec_generate_flc(
 		/* set BS = 0b1, FF = 0b10 */
 		if (params->direction == IPSEC_DIRECTION_OUTBOUND) {
 
-			/* Set BS=1, FF = 01, ASAR and DHR (1's complement) */
+			/* Set BS=1, FF = 01, ASAR and DHR (negative, 2's complement) */
 			sp_controls = (sp_controls & IPSEC_SP_ASAR_MASK) | 
 					IPSEC_SP_REUSE_BS_FF |
-					(IPSEC_SP_DHR_MASK & (~(IPSEC_MAX_FRAME_GROWTH + 
+					(IPSEC_SP_DHR_MASK & (-(IPSEC_MAX_FRAME_GROWTH + 
 							(uint32_t)params->encparams.ip_hdr_len))); 
 			
 		} else {
