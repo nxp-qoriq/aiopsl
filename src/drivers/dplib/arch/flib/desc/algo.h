@@ -103,7 +103,7 @@ static inline int cnstr_shdsc_snow_f9(uint32_t *descbuf, bool ps,
 }
 
 /**
- * cnstr_shdsc_cbc_blkcipher - CBC block cipher
+ * cnstr_shdsc_blkcipher - block cipher transformation
  * @descbuf: pointer to descriptor-under-construction buffer
  * @ps: if 36/40bit addressing is desired, this parameter must be true
  * @cipherdata: pointer to block cipher transform definitions
@@ -113,7 +113,7 @@ static inline int cnstr_shdsc_snow_f9(uint32_t *descbuf, bool ps,
  *
  * Return: size of descriptor written in words or negative number on error
  */
-static inline int cnstr_shdsc_cbc_blkcipher(uint32_t *descbuf, bool ps,
+static inline int cnstr_shdsc_blkcipher(uint32_t *descbuf, bool ps,
 			       struct alginfo *cipherdata, uint8_t *iv,
 			       uint32_t ivlen, uint8_t dir)
 {
@@ -137,7 +137,7 @@ static inline int cnstr_shdsc_cbc_blkcipher(uint32_t *descbuf, bool ps,
 	    cipherdata->keylen, INLINE_KEY(cipherdata));
 
 	if (is_aes_dec) {
-		ALG_OPERATION(p, cipherdata->algtype, OP_ALG_AAI_CBC,
+		ALG_OPERATION(p, cipherdata->algtype, cipherdata->algmode,
 			      OP_ALG_AS_INITFINAL, ICV_CHECK_DISABLE, dir);
 
 		pskipdk = JUMP(p, skipdk, LOCAL_JUMP, ALL_TRUE, 0);
@@ -145,12 +145,12 @@ static inline int cnstr_shdsc_cbc_blkcipher(uint32_t *descbuf, bool ps,
 	SET_LABEL(p, keyjmp);
 
 	if (is_aes_dec) {
-		ALG_OPERATION(p, OP_ALG_ALGSEL_AES, OP_ALG_AAI_CBC |
+		ALG_OPERATION(p, OP_ALG_ALGSEL_AES, cipherdata->algmode |
 			      OP_ALG_AAI_DK, OP_ALG_AS_INITFINAL,
 			      ICV_CHECK_DISABLE, dir);
 		SET_LABEL(p, skipdk);
 	} else {
-		ALG_OPERATION(p, cipherdata->algtype, OP_ALG_AAI_CBC,
+		ALG_OPERATION(p, cipherdata->algtype, cipherdata->algmode,
 			      OP_ALG_AS_INITFINAL, ICV_CHECK_DISABLE, dir);
 	}
 

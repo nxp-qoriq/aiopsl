@@ -128,6 +128,10 @@ enum rta_param_type {
 #define IPSEC_INTERNAL_PARMS_SIZE 128 /* 128 bytes */
 #define IPSEC_FLOW_CONTEXT_SIZE 64 /* 64 bytes */
 #define IPSEC_KEY_SEGMENT_SIZE 128 /* Key Copy segment, 128 bytes */
+#define IPSEC_SP_ASAR_MASK 0x000F0000 /* Storage profile ASAR field mask */
+#define IPSEC_SP_DHR_MASK 0x00000FFF
+#define IPSEC_SP_REUSE_BS_FF 0xA0000000
+
 
 #define IPSEC_ENC_PDB_HMO_MASK 0xF000
 #define IPSEC_DEC_PDB_HMO_MASK 0xF000
@@ -454,6 +458,12 @@ Big Endian
  * 64 words - 13 words reserved for the Job descriptor */
 #define IPSEC_MAX_SD_SIZE_WORDS (64-13) 
 
+/* Total max growth for encapsulation (not including outer IP/UDP header):	
+ * 4-byte SPI, 4-byte Seq Num, 16-byte IV, 15-byte Padding (AES),
+ * 1-byte pad length, 1-byte Next Header, 32-byte ICV (SHA 512)	
+ * = Total: 73, rounded up to 76 */
+#define IPSEC_MAX_FRAME_GROWTH 76 
+
 
 // TMP, removed from the external API
 /**************************************************************************//**
@@ -710,7 +720,8 @@ struct ipsec_flow_context {
 *//***************************************************************************/
 void ipsec_generate_flc(
 		uint64_t flc_address, /* Flow Context Address in external memory */
-		uint16_t spid, /* Storage Profile ID of the SEC output frame */
+		//uint16_t spid, /* Storage Profile ID of the SEC output frame */
+		struct ipsec_descriptor_params *params, 
 		int sd_size /* Shared descriptor Length */
 );
 

@@ -46,7 +46,7 @@ typedef int (_time_get_t)(uint64_t*);
 /** Macro to divide unsigned long numerator by 1000 */
 
 /**************************************************************************//**
-@Function      _get_time_fast
+@Function      _get_time_1588
 
 @Description   routine to receive time in milliseconds from CM-GW TS registers
                (1588). (work if clock period defined as 1000)
@@ -59,7 +59,23 @@ typedef int (_time_get_t)(uint64_t*);
  	 	 For error posix refer to
 		\ref error_g
 *//***************************************************************************/
-int _get_time_fast(uint64_t *time);
+int _get_time_1588(uint64_t *time);
+
+/**************************************************************************//**
+@Function      _get_time_tman
+
+@Description   routine to receive time in milliseconds from tman registers
+               using time base passed from MC
+
+
+@Param[in]     time - on success: time is stored in the pointer as the number of
+               milliseconds since the Epoch,
+               1970-01-01 00:00:00 +0000 (UTC)
+@Return          standard POSIX error code.
+ 	 	 For error posix refer to
+		\ref error_g
+*//***************************************************************************/
+int _get_time_tman(uint64_t *time);
 
 /**************************************************************************//**
 @Function      ulldiv1000

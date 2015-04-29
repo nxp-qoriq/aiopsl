@@ -54,7 +54,16 @@ enum table_verif_cmd_type {
 	TABLE_QUERY_DEBUG_VERIF_CMDTYPE,
 	TABLE_HW_ACCEL_ACQUIRE_LOCK_CMDTYPE,
 	TABLE_HW_ACCEL_RELEASE_LOCK_CMDTYPE,
+#ifdef REV2_RULEID
+	TABLE_LOOKUP_BY_KEYID_VERIF_CMDTYPE,
+	TABLE_GET_NEXT_RULEID_VERIF_CMDTYPE,
+	TABLE_GET_KEY_DESC_VERIF_CMDTYPE,
+	TABLE_RULE_REPLACE_BY_RULEID_VERIF_CMDTYPE,
+	TABLE_RULE_DELETE_BY_RULEID_VERIF_CMDTYPE,
+	TABLE_RULE_QUERY_BY_RULEID_VERIF_CMDTYPE
+#else
 	TABLE_LOOKUP_BY_KEYID_VERIF_CMDTYPE
+#endif
 };
 
 /* CTLU Commands Structure identifiers */
@@ -123,6 +132,28 @@ enum table_verif_cmd_type {
 /** Table Release Lock Debug Command Structure identifier */
 #define TABLE_HW_ACCEL_RELEASE_LOCK_CMD_STR	((TABLE_MODULE << 16) | \
 				TABLE_HW_ACCEL_RELEASE_LOCK_CMDTYPE)
+
+#ifdef REV2_RULEID
+/** Table Get Next Rule ID Command Structure identifier */
+#define TABLE_GET_NEXT_RULEID_CMD_STR	((TABLE_MODULE << 16) | \
+		TABLE_GET_NEXT_RULEID_VERIF_CMDTYPE)
+
+/** Table Get Key Descriptor Command Structure identifier */
+#define TABLE_GET_KEY_DESC_CMD_STR	((TABLE_MODULE << 16) | \
+		TABLE_GET_KEY_DESC_VERIF_CMDTYPE)
+
+/** Table Rule Replace by Rule ID Command Structure identifier */
+#define TABLE_RULE_REPLACE_BY_RULEID_CMD_STR	((TABLE_MODULE << 16) | \
+		TABLE_RULE_REPLACE_BY_RULEID_VERIF_CMDTYPE)
+
+/** Table Rule Delete by Rule ID Command Structure identifier */
+#define TABLE_RULE_DELETE_BY_RULEID_CMD_STR	((TABLE_MODULE << 16) | \
+		TABLE_RULE_DELETE_BY_RULEID_VERIF_CMDTYPE)
+
+/** Table Rule Query by Rule ID Command Structure identifier */
+#define TABLE_RULE_QUERY_BY_RULEID_CMD_STR	((TABLE_MODULE << 16) | \
+		TABLE_RULE_QUERY_BY_RULEID_VERIF_CMDTYPE)
+#endif
 
 /** \addtogroup AIOP_Service_Routines_Verification
  *  @{
@@ -294,6 +325,11 @@ struct table_rule_create_command{
 
 	/** Table Accelerator ID */
 	enum table_hw_accel_id acc_id;
+#ifdef REV2_RULEID
+	
+	/** Rule ID */
+	uint64_t rule_id;
+#endif
 };
 
 
@@ -327,6 +363,11 @@ struct table_rule_create_replace_command{
 
 	/** Table Accelerator ID */
 	enum table_hw_accel_id acc_id;
+#ifdef REV2_RULEID
+	
+	/** Rule ID */
+	uint64_t	rule_id;
+#endif
 };
 
 
@@ -483,6 +524,127 @@ struct table_lookup_by_keyid_command{
 	enum table_hw_accel_id acc_id;
 };
 
+#ifdef REV2_RULEID
+/**************************************************************************//**
+@Description	Table Get Next Rule ID Command structure.
+*//***************************************************************************/
+struct table_get_next_ruleid_command{
+	/** CTLU Generate Hash identifier */
+	uint32_t opcode;
+
+	/** Command returned status */
+	int32_t  status;
+	
+	/** Rule ID */
+	struct table_rule_id_desc *rule_id_desc;
+
+	/** Next Rule ID */
+	struct table_rule_id_desc *next_rule_id_desc;
+
+	/** Table ID */
+	uint16_t table_id;
+
+	/** Table Accelerator ID */
+	enum table_hw_accel_id acc_id;
+};
+
+/**************************************************************************//**
+@Description	Table Get Key Descriptor Command structure.
+*//***************************************************************************/
+struct table_get_key_desc_command{
+	/** CTLU Generate Hash identifier */
+	uint32_t opcode;
+
+	/** Command returned status */
+	int32_t  status;
+	
+	/** Rule ID */
+	struct table_rule_id_desc *rule_id_desc;
+
+	/** Key Descriptor */
+	union table_key_desc *key_desc;
+
+	/** Table ID */
+	uint16_t table_id;
+
+	/** Table Accelerator ID */
+	enum table_hw_accel_id acc_id;
+};
+
+/**************************************************************************//**
+@Description	Table Rule Replace by Rule ID Command structure.
+*//***************************************************************************/
+struct table_rule_replace_by_ruleid_command{
+	/** CTLU Generate Hash identifier */
+	uint32_t opcode;
+
+	/** Command returned status */
+	int32_t  status;
+	
+	/** Rule ID */
+	struct table_ruleid_and_result_desc *rule;
+
+	/** Old Result */
+	struct table_result *old_res;
+
+	/** Table ID */
+	uint16_t table_id;
+
+	/** Table Accelerator ID */
+	enum table_hw_accel_id acc_id;
+};
+
+/**************************************************************************//**
+@Description	Table Rule Delete by Rule ID Command structure.
+*//***************************************************************************/
+struct table_rule_delete_by_ruleid_command{
+	/** CTLU Generate Hash identifier */
+	uint32_t opcode;
+
+	/** Command returned status */
+	int32_t  status;
+	
+	/** Rule ID */
+	struct table_rule_id_desc *rule_id_desc;
+
+	/** Result */
+	struct table_result *result;
+
+	/** Table ID */
+	uint16_t table_id;
+
+	/** Table Accelerator ID */
+	enum table_hw_accel_id acc_id;
+};
+
+/**************************************************************************//**
+@Description	Table Rule Query by Rule ID Command structure.
+*//***************************************************************************/
+struct table_rule_query_by_ruleid_command{
+	/** CTLU Generate Hash identifier */
+	uint32_t opcode;
+
+	/** Command returned status */
+	int32_t  status;
+	
+	/** Rule ID */
+	struct table_rule_id_desc *rule_id_desc;
+
+	/** Result */
+	struct table_result *result;
+	
+	/** Timestamp */
+	uint32_t *timestamp;
+
+	/** Table ID */
+	uint16_t table_id;
+
+	/** Table Accelerator ID */
+	enum table_hw_accel_id acc_id;
+};
+
+#endif
+
 /**************************************************************************//**
 @Description	Table Query Debug Command structure.
 
@@ -536,6 +698,7 @@ struct table_hw_accel_release_lock_command{
 	/** Table Accelerator ID */
 	enum table_hw_accel_id acc_id;
 };
+
 
 /** @} */ /* end of AIOP_Table_SRs_Verification */
 
