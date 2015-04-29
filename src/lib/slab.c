@@ -167,13 +167,7 @@ __COLD_CODE static int slab_add_bman_buffs_to_pool(
 {
 	uint16_t  bman_array_index = 0;
 
-#ifdef DEBUG
-	/* Check the arguments correctness */
-	if (bman_pool_id >= SLAB_MAX_BMAN_POOLS_NUM)
-		return -EINVAL;
-#endif
-
-	/* Check which BMAN pool ID array element matches the ID */
+	/* Check which BMAN pool ID entry matches BPID */
 	for (bman_array_index = 0; bman_array_index < SLAB_MAX_BMAN_POOLS_NUM; bman_array_index++) {
 		if (g_slab_bman_pools[bman_array_index].bman_pool_id == bman_pool_id) {
 			break;
@@ -182,8 +176,10 @@ __COLD_CODE static int slab_add_bman_buffs_to_pool(
 
 
 	/* Check the arguments correctness */
-	if (bman_array_index == SLAB_MAX_BMAN_POOLS_NUM)
+	if (bman_array_index == SLAB_MAX_BMAN_POOLS_NUM){
+		sl_pr_err("Error, pool with bpid %d not found\n", bman_pool_id);
 		return -EINVAL;
+	}
 
 	/* Increment the total available BMAN pool buffers */
 	atomic_incr32(&g_slab_bman_pools[bman_array_index].remaining,
@@ -198,24 +194,20 @@ __COLD_CODE static int slab_decr_bman_buffs_from_pool(
 	uint16_t bman_pool_id,
 	int32_t less_bufs)
 {
-
-	int i;
 	uint16_t bman_array_index = 0;
 
-#ifdef DEBUG
-	/* Check the arguments correctness */
-	if (bman_pool_id >= SLAB_MAX_BMAN_POOLS_NUM)
-		return -EINVAL;
-#endif
-
-	/* Check which BMAN pool ID array element matches the ID */
-	for (i=0; i< SLAB_MAX_BMAN_POOLS_NUM; i++) {
-		if (g_slab_bman_pools[i].bman_pool_id == bman_pool_id) {
-			bman_array_index = (uint16_t)i;
+	/* Check which BMAN pool ID entry matches BPID */
+	for (bman_array_index = 0; bman_array_index < SLAB_MAX_BMAN_POOLS_NUM; bman_array_index++) {
+		if (g_slab_bman_pools[bman_array_index].bman_pool_id == bman_pool_id) {
 			break;
 		}
 	}
 
+	/* Check the arguments correctness */
+	if (bman_array_index == SLAB_MAX_BMAN_POOLS_NUM){
+		sl_pr_err("Error, pool with bpid %d not found\n", bman_pool_id);
+		return -EINVAL;
+	}
 	lock_spinlock(
 		(uint8_t *)&g_slab_bman_pools[bman_array_index].spinlock);
 
@@ -235,10 +227,7 @@ __COLD_CODE static int slab_decr_bman_buffs_from_pool(
 	}
 
 	return 0;
-} /* End of vpool_decr_bman_bufs */
-
-
-
+}
 
 __COLD_CODE static void free_buffs_from_bman_pool(uint16_t bpid, int32_t num_buffs,
                                       uint16_t icid, uint32_t flags)
