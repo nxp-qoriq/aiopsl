@@ -75,8 +75,10 @@ __declspec(entry_point) static void app_process_packet_flow0 (void)
 	uint16_t udp_dst_port = 0xd720; //new udp dest port
 	int reassemble_status, hm_status;
 
-	sl_prolog();
-
+	err = sl_prolog();
+	if (err)
+		fsl_os_print("ERROR = %d: sl_prolog()\n",err);
+		
 	if (PARSER_IS_OUTER_IPV4_DEFAULT())
 	{
 		fsl_os_print
@@ -183,8 +185,8 @@ __declspec(entry_point) static void app_process_packet_flow0 (void)
 		fsl_os_print("LDPAA_FD_GET_OFFSET = %x\n", LDPAA_FD_GET_OFFSET(HWC_FD_ADDRESS));
 */
 		
-		
 		err = dpni_drv_send(dpni_get_receive_niid());
+						
 		if (err){
 			fsl_os_print("ERROR = %d: dpni_drv_send()\n",err);
 			local_test_error |= err;
