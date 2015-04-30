@@ -693,7 +693,8 @@ __COLD_CODE int dpni_drv_init(void)
 		                          buffer_size,
 		                          alignment,
 		                          (enum memory_partition_id) mem_pid[i],
-		                          attr.bpid)) != 0) {
+		                          attr.bpid,
+		                          0)) != 0) {
 			pr_err("Failed to fill DPBP-%d (BPID=%d) with buffer size %d.\n",
 			       dpbp_id[i], attr.bpid, buffer_size);
 			return err;
