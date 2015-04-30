@@ -42,7 +42,7 @@ int slab_test(void);
 extern struct slab_virtual_pools_main_desc g_slab_virtual_pools;
 extern struct slab_bman_pool_desc g_slab_bman_pools[SLAB_MAX_BMAN_POOLS_NUM];
 int app_test_slab_overload_test();
-int app_test_slab(struct slab *slab, int num_times, enum memory_partition_id mem_pid);
+int app_test_slab(struct slab *slab, int num_times, enum memory_partition_id mem_pid, uint16_t alignment);
 
 
 static void slab_callback_test(uint64_t context_address){
@@ -123,12 +123,13 @@ int app_test_slab_overload_test()
 
 int app_test_slab_init(void)
 {
-	int        err = 0;
+	int        err = 0, i;
 	dma_addr_t buff[] = {0,0,0,0,0};
 	struct slab *my_slab;
 	struct slab_debug_info slab_info;
 
-	err = slab_create(2, 4, 256, 4, MEM_PART_DP_DDR, 0,
+
+	err = slab_create(2, 4, 248, 16, MEM_PART_DP_DDR, 0,
 	                  &slab_callback_test, &my_slab);
 	if (err) return err;
 
@@ -149,6 +150,16 @@ int app_test_slab_init(void)
 	else
 		fsl_os_print("PASSED - Acquire more buffers than MAX failed\n");
 
+	fsl_os_print("Slab: check if buffers aligned to 16: ");
+	for(i = 0; i < 4; i++)
+	{
+		if((buff[i]%16) != 0)
+		{
+			fsl_os_print("Error, buffers are not aligned\n");
+			return -EFAULT;
+		}
+	}
+	fsl_os_print("Done\n");
 	if (slab_refcount_decr(buff[0]) == SLAB_CDMA_REFCOUNT_DECREMENT_TO_ZERO){
 		err = slab_release(my_slab, buff[0]);
 		if (err) return err;
@@ -195,7 +206,7 @@ int app_test_slab_init(void)
 
 
 	/* Reuse slab handle test  */
-	err = slab_create(1, 1, 256, 64, MEM_PART_DP_DDR, 0,
+	err = slab_create(1, 1, 248, 64, MEM_PART_DP_DDR, 0,
 	                  NULL, &my_slab);
 	if (err) return err;
 
@@ -231,13 +242,13 @@ static int app_write_buff_and_release(struct slab *slab, uint64_t buff)
 	return 0;
 }
 
-int app_test_slab(struct slab *slab, int num_times, enum memory_partition_id mem_pid)
+int app_test_slab(struct slab *slab, int num_times, enum memory_partition_id mem_pid, uint16_t alignment)
 {
 	uint64_t buff[4] = {0, 0, 0, 0};
 	int      err = 0, start = 1, end = 1;
-	int      i = 0;
+	int      i, j;
 	struct slab *my_slab;
-	err = slab_create(5, 5, 100, 4, mem_pid, SLAB_DDR_MANAGEMENT_FLAG,
+	err = slab_create(5, 5, 100, alignment, mem_pid, SLAB_DDR_MANAGEMENT_FLAG,
 	                  NULL, &my_slab);
 	if (err){
 		fsl_os_print("error in slab create \n");
@@ -261,11 +272,17 @@ int app_test_slab(struct slab *slab, int num_times, enum memory_partition_id mem
 		if (buff[2] == NULL) return -ENOMEM;
 		slab_refcount_incr(buff[2]);
 		if (buff[2] == NULL) return -ENOMEM;
-
-
-
 		err = slab_acquire(my_slab, &buff[3]);
 		if (err || (buff[3] == NULL)) return -ENOMEM;
+
+		for(j = 0; j < 4; j++)
+		{
+			if((buff[j]%alignment) != 0)
+			{
+				fsl_os_print("Error, buffers are not aligned\n");
+				return -EFAULT;
+			}
+		}
 
 		err = app_write_buff_and_release(slab, buff[1]);
 		if (err) return err;
@@ -316,8 +333,9 @@ int slab_test(void)
 	struct slab *slab_dp_ddr = 0;
 	struct slab *slab_sys_ddr = 0;
 	struct slab_debug_info slab_info;
+	uint16_t alignment = 64;
 	/* PEB DDR SLAB creation */
-	err = slab_create(5, 5, 200, 4, MEM_PART_DP_DDR, 0,
+	err = slab_create(5, 5, 200, alignment, MEM_PART_DP_DDR, 0,
 	                  NULL, &slab_dp_ddr);
 	if (err) return err;
 
@@ -331,7 +349,7 @@ int slab_test(void)
 	}
 
 	/* SYSTEM DDR SLAB creation */
-	err = slab_create(5, 5, 200, 4, MEM_PART_SYSTEM_DDR, 0,
+	err = slab_create(5, 5, 200, alignment, MEM_PART_SYSTEM_DDR, 0,
 	                  NULL, &slab_sys_ddr);
 	if (err) return err;
 
@@ -345,7 +363,7 @@ int slab_test(void)
 	}
 
 	/* PEB SLAB creation */
-	err = slab_create(5, 5, 100, 4, MEM_PART_PEB, 0, NULL, &slab_peb);
+	err = slab_create(5, 5, 100, alignment, MEM_PART_PEB, 0, NULL, &slab_peb);
 	if (err) return err;
 
 	err = slab_debug_info_get(slab_peb, &slab_info);
@@ -354,17 +372,17 @@ int slab_test(void)
 			(slab_info.committed_buffs == 0))
 			return -ENODEV;
 
-	err |= app_test_slab(slab_peb, 4, MEM_PART_PEB);
+	err |= app_test_slab(slab_peb, 4, MEM_PART_PEB, alignment);
 	if (err) {
 		fsl_os_print("ERROR = %d: app_test_slab(slab_peb, 4)\n", err);
 	}
 
-	err |= app_test_slab(slab_dp_ddr, 4, MEM_PART_DP_DDR);
+	err |= app_test_slab(slab_dp_ddr, 4, MEM_PART_DP_DDR, alignment);
 	if (err) {
 		fsl_os_print("ERROR = %d: app_test_slab(slab_dp_ddr, 4)\n", err);
 	}
 
-	err |= app_test_slab(slab_sys_ddr, 4, MEM_PART_SYSTEM_DDR);
+	err |= app_test_slab(slab_sys_ddr, 4, MEM_PART_SYSTEM_DDR, alignment);
 	if (err) {
 		fsl_os_print("ERROR = %d: app_test_slab(slab_sys_ddr, 4)\n", err);
 	}
