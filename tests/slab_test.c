@@ -153,7 +153,7 @@ int app_test_slab_init(void)
 	fsl_os_print("Slab: check if buffers aligned to 16: ");
 	for(i = 0; i < 4; i++)
 	{
-		if((buff[i]%16) != 0)
+		if((buff[i] & (16 - 1)) != 0)
 		{
 			fsl_os_print("Error, buffers are not aligned\n");
 			return -EFAULT;
@@ -277,7 +277,7 @@ int app_test_slab(struct slab *slab, int num_times, enum memory_partition_id mem
 
 		for(j = 0; j < 4; j++)
 		{
-			if((buff[j]%alignment) != 0)
+			if((buff[j] & (alignment - 1)) != 0)
 			{
 				fsl_os_print("Error, buffers are not aligned\n");
 				return -EFAULT;
