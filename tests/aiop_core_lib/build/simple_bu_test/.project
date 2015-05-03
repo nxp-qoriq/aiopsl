@@ -157,6 +157,11 @@ aiop_sl		</project>
 			<locationURI>PROJECT_LOC/src/simple_bu_test_ohad.c</locationURI>
 		</link>
 		<link>
+			<name>src/simple_bu_test_parser.c</name>
+			<type>1</type>
+			<locationURI>PROJECT_LOC/src/simple_bu_test_parser.c</locationURI>
+		</link>
+		<link>
 			<name>src/simple_bu_test_yariv.c</name>
 			<type>1</type>
 			<locationURI>PROJECT_LOC/src/simple_bu_test_yariv.c</locationURI>
