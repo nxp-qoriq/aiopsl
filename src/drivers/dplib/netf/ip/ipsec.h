@@ -241,8 +241,11 @@ enum rta_param_type {
 #define IPSEC_SA_DESC_BUF_SIZE 768 /* SA descriptor buffer size */
 #define IPSEC_SA_DESC_BUF_ALIGN 64 /* SA descriptor alignment */
 #define IPSEC_BUF_META_DATA_SIZE 8
-#define IPSEC_ALIGN_OFFSET IPSEC_SA_DESC_BUF_ALIGN - IPSEC_BUF_META_DATA_SIZE
-	/* The slab buffer handle alignment is at requested alignment + meta-data */
+//#define IPSEC_ALIGN_OFFSET IPSEC_SA_DESC_BUF_ALIGN - IPSEC_BUF_META_DATA_SIZE
+//	/* The slab buffer handle alignment is at requested alignment + meta-data */
+#define IPSEC_ALIGN_OFFSET 0
+	/* After the slab change, the slab returned buffer handle is aligned */
+
 #define IPSEC_MAX_NUM_OF_TASKS 256 /* Total maximum number of tasks in AIOP */
 #define IPSEC_MEM_PARTITION_ID MEM_PART_DP_DDR
 					/* Memory partition ID */
