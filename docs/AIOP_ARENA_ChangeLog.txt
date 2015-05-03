@@ -1,5 +1,8 @@
+slab.c, bman.c: ENGR00356178 - Change AIOP SL to honor user’s requested alignment.
+        (if user requests 16Byte alignment, user will get a 16Byte aligned buffer and the metadata will not be aligned)
+slab.c: ENGR00356128 - Removed unneeded check for bpid's if their ID's out of range [0,15]
 
-dbg.h, fsl_dbg.h: update for macro DBG to use mutex and prevent message interleaving in multi-core AIOP (pr_xxx, sl_pr_xxx) - CQ ENGR00354715
+dbg.h, fsl_dbg.h: ENGR00354715 - update for macro DBG to use mutex and prevent message interleaving in multi-core AIOP (pr_xxx, sl_pr_xxx)
 dpni_drv.c/fsl_dpni_drv.h: Added option to clear order scope by calling: dpni_drv_set_order_scope(ni, DPNI_DRV_NO_ORDER_SCOPE)
 
 errors.h:                  removed fsl_os_exit()
