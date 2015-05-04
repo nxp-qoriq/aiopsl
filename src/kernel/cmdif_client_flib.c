@@ -65,7 +65,7 @@ __COLD_CODE int cmdif_open_cmd(struct cmdif_desc *cidesc,
 		|| (v_data == NULL)
 		|| (p_data == 0)
 		|| (p_data & 0x7) /* must be 8 byte aligned */
-		|| (v_data & 0x7))/* must be 8 byte aligned */
+		|| ((uint64_t)v_data & 0x7))/* must be 8 byte aligned */
 		return -EINVAL;
 #endif
 
