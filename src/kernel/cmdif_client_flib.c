@@ -63,9 +63,12 @@ __COLD_CODE int cmdif_open_cmd(struct cmdif_desc *cidesc,
 	if ((m_name == NULL)
 		|| (cidesc == NULL)
 		|| (v_data == NULL)
-		|| (p_data == 0))
+		|| (p_data == 0)
+		|| (p_data & 0x7) /* must be 8 byte aligned */
+		|| (v_data & 0x7))/* must be 8 byte aligned */
 		return -EINVAL;
 #endif
+
 
 	if (!IS_VLD_OPEN_SIZE(size))
 		return -ENOMEM;
