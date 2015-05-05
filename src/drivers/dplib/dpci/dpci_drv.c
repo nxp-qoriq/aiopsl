@@ -29,7 +29,7 @@
 #include "fsl_errors.h"
 #include "fsl_sys.h"
 #include "fsl_dpci.h"
-#include "fsl_dpci_drv.h"
+#include "fsl_dpci_event.h"
 #include "fsl_mc_init.h"
 #include "fsl_dbg.h"
 #include "cmdif_client.h"
