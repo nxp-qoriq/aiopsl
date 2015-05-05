@@ -139,6 +139,22 @@ __COLD_CODE static int dpci_tbl_create(struct mc_dpci_tbl **_dpci_tbl, int dpci_
 	}
 	memset(dpci_tbl->ic, 0xff, size);
 
+	size = sizeof(uint16_t) * dpci_count;
+	dpci_tbl->token = fsl_malloc(size,1);
+	if (dpci_tbl->token == NULL) {
+		pr_err("No memory for %d DPCIs\n", dpci_count);
+		return -ENOMEM;
+	}
+	memset(dpci_tbl->token, 0xff, size);
+	
+	size = sizeof(uint8_t) * dpci_count;
+	dpci_tbl->state = fsl_malloc(size,1);
+	if (dpci_tbl->state == NULL) {
+		pr_err("No memory for %d DPCIs\n", dpci_count);
+		return -ENOMEM;
+	}
+	memset(dpci_tbl->state, 0, size);
+	
 	dpci_tbl->count = 0;
 	dpci_tbl->max = dpci_count;
 

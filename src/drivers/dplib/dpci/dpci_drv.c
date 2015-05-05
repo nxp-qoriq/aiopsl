@@ -522,3 +522,62 @@ __COLD_CODE int dpci_drv_tx_get(uint32_t dpci_id, uint32_t *tx)
 
 	return err;
 }
+
+__COLD_CODE int dpci_drv_enable(uint32_t dpci_id)
+{
+	struct mc_dpci_tbl *dt = sys_get_unique_handle(FSL_OS_MOD_DPCI_TBL);
+	struct mc_dprc *dprc = sys_get_unique_handle(FSL_OS_MOD_AIOP_RC);
+	int err = 0;
+	uint16_t token = 0xffff;
+	
+	ASSERT_COND(dprc && dt);
+	
+	err = dpci_open(&dprc->io, (int)dpci_id, &token);
+	if (err) {
+		dpci_close(&dprc->io, token);
+		return err;
+	}
+	
+	err = dpci_enable(&dprc->io, token);
+	if (err) {
+		pr_err("DPCI enable failed\n");
+		dpci_close(&dprc->io, token);
+		return err;
+	}
+	
+	/*
+	 * TODO maybe need to keep enable bit in dt table ???
+	 */
+	dpci_close(&dprc->io, token);
+	return err;
+}
+
+__COLD_CODE int dpci_drv_disable(uint32_t dpci_id)
+{
+	struct mc_dpci_tbl *dt = sys_get_unique_handle(FSL_OS_MOD_DPCI_TBL);
+	struct mc_dprc *dprc = sys_get_unique_handle(FSL_OS_MOD_AIOP_RC);
+	int err = 0;
+	uint16_t token = 0xffff;
+	
+	ASSERT_COND(dprc && dt);
+	
+	err = dpci_open(&dprc->io, (int)dpci_id, &token);
+	if (err) {
+		dpci_close(&dprc->io, token);
+		return err;
+	}
+	
+	err = dpci_disable(&dprc->io, token);
+	if (err) {
+		pr_err("DPCI disable failed\n");
+		dpci_close(&dprc->io, token);
+		return err;
+	}
+	
+	/*
+	 * TODO maybe need to keep enable bit in dt table ???
+	 * TODO draining !!!!!
+	 */
+	dpci_close(&dprc->io, token);
+	return err;
+}
