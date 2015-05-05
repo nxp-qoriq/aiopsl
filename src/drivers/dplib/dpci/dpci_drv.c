@@ -30,6 +30,7 @@
 #include "fsl_sys.h"
 #include "fsl_dpci.h"
 #include "fsl_dpci_event.h"
+#include "fsl_dpci_drv.h"
 #include "fsl_mc_init.h"
 #include "fsl_dbg.h"
 #include "cmdif_client.h"
@@ -382,7 +383,7 @@ __COLD_CODE static int tx_get(uint32_t dpci_id, uint32_t *tx)
  * New DPCI was added or the state of the DPCI has changed
  * The dpci_id must belong to AIOP side
  */
-__COLD_CODE int dpci_drv_added(uint32_t dpci_id)
+__COLD_CODE int dpci_event_assign(uint32_t dpci_id)
 {
 	int err = 0;
 	int ind = 0;
@@ -413,7 +414,7 @@ __COLD_CODE int dpci_drv_added(uint32_t dpci_id)
  * The DPCI was removed from AIOP container
  * The dpci_id must belong to AIOP side
  */
-__COLD_CODE int dpci_drv_removed(uint32_t dpci_id)
+__COLD_CODE int dpci_event_unassign(uint32_t dpci_id)
 {
 
 	struct mc_dpci_tbl *dt = (struct mc_dpci_tbl *)\
@@ -444,7 +445,7 @@ __COLD_CODE int dpci_drv_removed(uint32_t dpci_id)
  * This function is to be called only inside the open command and before
  * the AMQ bits had been changed to AIOP AMQ bits
  */
-__COLD_CODE int dpci_drv_update(uint32_t ind)
+__COLD_CODE int dpci_event_update(uint32_t ind)
 {
 	struct mc_dpci_tbl *dt = (struct mc_dpci_tbl *)\
 		sys_get_unique_handle(FSL_OS_MOD_DPCI_TBL);
