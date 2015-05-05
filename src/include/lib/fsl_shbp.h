@@ -47,7 +47,7 @@
  */
 
 /**
- * @brief	Get buffer from shared pool
+ * @brief	Get buffer from shared pool;
  * Use icontext_dma_read(), icontext_dma_write() to access the data
  * 
  * @param[in]	shbp - Buffer pool handle as received from host
