@@ -88,7 +88,6 @@ int _get_time_tman(uint64_t *time)
 
 	tman_get_timestamp(time);
 	*time += cmgw_get_time_base();
-	*time = udiv1000(*time);
 
 	return 0;
 }
