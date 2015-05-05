@@ -110,6 +110,7 @@ static void mem_phys_mng_free_partition(t_mem_mng *p_mem_mng,
 
 extern const uint8_t AIOP_DDR_START[],AIOP_DDR_END[];
 const uint32_t  g_boot_mem_mng_size = 1*MEGABYTE;
+const uint32_t g_buffer_pool_size = 512*KILOBYTE;
 
 
 
@@ -207,6 +208,7 @@ fsl_handle_t mem_mng_init(fsl_handle_t h_boot_mem_mng,
     t_mem_mng    *p_mem_mng;
     uint32_t      mem_mng_addr = 0;
     int rc = 0, i, array_size = 0;
+    uint32_t slob_blocks_num = 0;
 
 
 
@@ -227,8 +229,8 @@ fsl_handle_t mem_mng_init(fsl_handle_t h_boot_mem_mng,
     p_mem_mng->lock    = p_mem_mng_param->lock;
     p_mem_mng->h_boot_mem_mng = h_boot_mem_mng;
 
-
-    rc = buffer_pool_create(&p_mem_mng->slob_bf_pool,E_BFT_SLOB_BLOCK,10,
+    slob_blocks_num = g_buffer_pool_size/sizeof(t_slob_block);
+    rc = buffer_pool_create(&p_mem_mng->slob_bf_pool,E_BFT_SLOB_BLOCK,slob_blocks_num,
                             sizeof(t_slob_block),h_boot_mem_mng);
     if(rc)
     {

@@ -64,6 +64,7 @@ typedef struct t_slob_block
 
     uint64_t  base;                 /* Base address of the block */
     uint64_t  end;                  /* End address of the block */
+    uint64_t  next_addr;
 } t_slob_block;
 
 
@@ -92,14 +93,12 @@ typedef struct t_MM
 
     t_mem_block      *mem_blocks;     /* List of memory blocks (Memory list) */
     t_slob_block     *busy_blocks;    /* List of busy blocks (Busy list) */
+    uint64_t         head_busy_blocks_addr;
     t_slob_block     *free_blocks[MM_MAX_ALIGNMENT + 1];
                                     /* Alignment lists of free blocks (Free lists) */
+    uint64_t         head_free_blocks_addr[MM_MAX_ALIGNMENT + 1];
 
     uint64_t        free_mem_size;    /* Total size of free memory (in bytes) */
-    /* A flag that shows whether there was allocation for free_blocks */
-    uint32_t        free_blocks_initialized;
-    uint64_t        base;
-    uint64_t        size;
     fsl_handle_t    h_mem_mng; // boot memory manager
     fsl_handle_t    h_slob_bf_pool;
 } t_MM;

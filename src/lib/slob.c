@@ -39,17 +39,6 @@
 #include "slob.h"
 #include "buffer_pool.h"
 
-#ifdef AIOP
-	#define fsl_os_free sys_aligned_free
-#else
-	#define fsl_os_free fsl_os_free
-#endif
-
-#ifdef AIOP
-	#define fsl_os_malloc(size) sys_aligned_malloc((size),0)
-#else
-	#define fsl_os_malloc(size) fsl_os_malloc((size))
-#endif
 
 static struct icontext s_ic;
 
@@ -61,7 +50,11 @@ static uint32_t g_spinlock_index = 0;
 /* Put all function (execution code) into  dtext_vle section , aka __COLD_CODE */
 __START_COLD_CODE
 
-static int  init_free_blocks(t_MM *p_MM);
+
+static uint32_t phys2virt(uint64_t phys_addr)
+{
+	return (uint32_t)(phys_addr - 0x6000000000) + 0x40000000;
+}
 
 /**********************************************************************
  *                     MM internal routines set                       *
@@ -84,28 +77,42 @@ static int  init_free_blocks(t_MM *p_MM);
  *      A pointer to new created structure returned on success;
  *      Otherwise, NULL.
  ****************************************************************/
-static t_slob_block * create_busy_block(t_MM *p_MM,const uint64_t base, const uint64_t size)
+static  int create_busy_block(t_MM *p_MM,
+                              const uint64_t base,
+                              const uint64_t size,
+                               t_slob_block ** p_busy_block,
+                               uint64_t *block_addr)
 {
-    t_slob_block *p_busy_block = NULL;
+    int rc = -ENAVAIL;
+    uint32_t virt_block_addr = 0;
     struct buffer_pool* slob_bf_pool = (struct buffer_pool*)(p_MM->h_slob_bf_pool);
-    p_busy_block = (t_slob_block *)fsl_os_malloc(sizeof(t_slob_block));
-    if ( NULL == p_busy_block)
+    t_slob_block loc_slob_block = {0};
+    rc = get_buff(slob_bf_pool,block_addr);
+    /*
+    *p_busy_block = (t_slob_block *)fsl_os_malloc(sizeof(t_slob_block));
+    if ( NULL == *p_busy_block)
     {
         pr_err("Slob: memory allocation failed\n");
-        return NULL;
+        return -ENAVAIL;
     }
-    p_busy_block->base = base;
-    p_busy_block->end = base + size;
-#if 0
-    n = strlen(name);
-    if (n >= MM_MAX_NAME_LEN)
-        n = MM_MAX_NAME_LEN - 1;
-    strncpy(p_busy_block->name, name, MM_MAX_NAME_LEN-1);
-    p_busy_block->name[n] = '\0';
-#endif
-    p_busy_block->p_next = 0;
+    (*p_busy_block)->base = base;
+    (*p_busy_block)->end = base + size;
+    (*p_busy_block)->p_next = 0;
+    */
+    if ( 0 != rc)
+    {
+        pr_err("Slob: memory allocation failed\n");
+        return -ENAVAIL;
+    }
+    virt_block_addr = phys2virt(*block_addr);
+    *p_busy_block = (t_slob_block *)virt_block_addr;
+    loc_slob_block.base = base;
+    loc_slob_block.end = base + size;
+    loc_slob_block.p_next = NULL;
+    loc_slob_block.next_addr = 0;
 
-    return p_busy_block;
+    cdma_write(*block_addr,&loc_slob_block,sizeof(loc_slob_block));
+    return 0;
 }
 
 /****************************************************************
@@ -160,32 +167,53 @@ static t_mem_block * create_new_block_by_boot_mng(const uint64_t base,
  *      A pointer to new created structure returned on success;
  *      Otherwise, NULL.
  ****************************************************************/
-static t_slob_block * create_free_block(t_MM *p_MM,const uint64_t base,
-                                        const uint64_t size)
+static  int create_free_block(t_MM *p_MM,
+                          const uint64_t base,
+                          const uint64_t size,
+                          t_slob_block **p_free_block,
+                          uint64_t *block_addr)
 {
-    t_slob_block *p_free_block  = NULL;
-
+    int rc = -ENAVAIL;
     struct buffer_pool* slob_bf_pool = (struct buffer_pool*)(p_MM->h_slob_bf_pool);
-    p_free_block = (t_slob_block *)fsl_os_malloc(sizeof(t_slob_block));
-    if (NULL == p_free_block )
+    uint32_t virt_block_addr = 0;
+    t_slob_block loc_slob_block = {0};
+    rc = get_buff(slob_bf_pool,block_addr);
+    /* *p_free_block = (t_slob_block *)fsl_os_malloc(sizeof(t_slob_block));
+    if (NULL == *p_free_block)
+    {
+	    pr_err("Slob: memory allocation failed");
+	    return NULL;
+    }
+    */
+    if (0 != rc)
     {
         pr_err("Slob: memory allocation failed");
         return NULL;
     }
-
-    p_free_block->base = base;
-    p_free_block->end = base + size;
-    p_free_block->p_next = 0;
-
-    return p_free_block;
+    virt_block_addr = phys2virt(*block_addr);
+    *p_free_block = (t_slob_block *)virt_block_addr;
+    loc_slob_block.base = base;
+    loc_slob_block.end = base + size;
+    loc_slob_block.p_next = NULL;
+    loc_slob_block.next_addr = 0;
+    cdma_write(*block_addr,&loc_slob_block,sizeof(loc_slob_block));
+    /*
+    (*p_free_block)->base = base;
+    (*p_free_block)->end = base + size;
+    (*p_free_block)->p_next = 0;
+    (*p_free_block)->next_addr = 0;
+    //return p_free_block;
+     * */
+    return 0;
 }
 
 /****************************************************************/
-static int insert_free_block(t_slob_block **p_new_b,t_MM *p_MM,
+static int insert_free_block(t_slob_block **p_new_b,uint64_t *new_b_addr,t_MM *p_MM,
                              const t_slob_block *p_curr_b,const uint64_t end,
 		             const uint64_t alignment,const uint64_t align_base,
 		             t_slob_block *p_prev_b,const int     i)
 {
+	int rc = -ENAVAIL;
 	 /* This is an old code line that assumes that size of an allocated memory is
 	 * multiply of alignment. Replaced this by a condition that a new block
 	 * is greater than the current alignment.
@@ -193,12 +221,19 @@ static int insert_free_block(t_slob_block **p_new_b,t_MM *p_MM,
 	 * */
 	if ( !p_curr_b &&  (end-align_base) >= alignment )
 	{
-		if ((*p_new_b = create_free_block(p_MM,align_base, end-align_base)) == NULL)
+		if ((rc  = create_free_block(p_MM,align_base, end-align_base,
+		                                  p_new_b,new_b_addr)) != 0)
 			return  -ENOMEM;
 		if (p_prev_b)
+		{
 			p_prev_b->p_next = *p_new_b;
+			p_prev_b->next_addr = *new_b_addr;
+		}
 		else
+		{
 			p_MM->free_blocks[i] = *p_new_b;
+			p_MM->head_free_blocks_addr[i] = *new_b_addr;
+		}
 	}
 	return 0;
 }
@@ -238,6 +273,9 @@ static int add_free(t_MM *p_MM, uint64_t base, uint64_t end)
 {
 
     t_slob_block *p_prev_b = NULL, *p_curr_b = NULL, *p_new_b = NULL;
+    t_slob_block *p_next_b = NULL;
+    uint64_t    prev_b_addr = 0,new_b_addr = 0 , next_b_addr = 0, curr_b_addr = 0;
+    int rc = -ENAVAIL;
     uint64_t    alignment = 4;
     uint64_t    align_base = 0;
     int         i;
@@ -246,8 +284,9 @@ static int add_free(t_MM *p_MM, uint64_t base, uint64_t end)
     /* Updates free lists to include  a just released block */
     for (i=0; i <= MM_MAX_ALIGNMENT; i++)
     {
-        p_prev_b = p_new_b = 0;
+        p_prev_b = p_new_b = NULL;
         p_curr_b = p_MM->free_blocks[i];
+        curr_b_addr =  p_MM->head_free_blocks_addr[i];
 
         alignment = (uint64_t)(0x1 << i);
         align_base = MAKE_ALIGNED(base, alignment);
@@ -263,15 +302,18 @@ static int add_free(t_MM *p_MM, uint64_t base, uint64_t end)
             {
                 if ( end > p_curr_b->end )
                 {
-                    t_slob_block *p_next_b;
                     while ( p_curr_b->p_next && end > p_curr_b->p_next->end )
                     {
                         p_next_b = p_curr_b->p_next;
+                        next_b_addr = p_curr_b->next_addr;
                         p_curr_b->p_next = p_curr_b->p_next->p_next;
-                        fsl_os_free(p_next_b);
+                        p_curr_b->next_addr = p_curr_b->p_next->next_addr;
+                        //fsl_os_free(p_next_b);
+                        put_buff(slob_bf_pool,next_b_addr);
                     }
 
                     p_next_b = p_curr_b->p_next;
+                    next_b_addr = p_curr_b->next_addr;
                     if ( !p_next_b || (p_next_b && end < p_next_b->base) )
                     {
                         p_curr_b->end = end;
@@ -280,22 +322,32 @@ static int add_free(t_MM *p_MM, uint64_t base, uint64_t end)
                     {
                         p_curr_b->end = p_next_b->end;
                         p_curr_b->p_next = p_next_b->p_next;
-                        fsl_os_free(p_next_b);
+                        p_curr_b->next_addr = p_next_b->next_addr;
+                        //fsl_os_free(p_next_b);
+                        put_buff(slob_bf_pool,next_b_addr);
                     }
                 }
                 else if ( (end < p_curr_b->base) && ((end-align_base) >= alignment) )
                 {
-                    if ((p_new_b = create_free_block(p_MM,align_base, end-align_base)) == NULL)
+                    if ((rc  = create_free_block(p_MM,align_base, end-align_base,
+                                                     &p_new_b,&new_b_addr)) != 0)
                     {
                         pr_err("Slob: memory allocation failed\n");
                         return -ENOMEM;
                     }
 
                     p_new_b->p_next = p_curr_b;
+                    p_new_b->next_addr = curr_b_addr;
                     if (p_prev_b)
+                    {
                         p_prev_b->p_next = p_new_b;
+                        p_prev_b->next_addr = new_b_addr;
+                    }
                     else
+                    {
                         p_MM->free_blocks[i] = p_new_b;
+                        p_MM->head_free_blocks_addr[i] = new_b_addr;
+                    }
                     break;
                 }
 
@@ -309,17 +361,27 @@ static int add_free(t_MM *p_MM, uint64_t base, uint64_t end)
                 if ( (p_curr_b->end - p_curr_b->base) < alignment)
                 {
                     if ( p_prev_b )
+                    {
                         p_prev_b->p_next = p_curr_b->p_next;
+                        p_prev_b->next_addr = p_curr_b->next_addr;
+                    }
                     else
+                    {
                         p_MM->free_blocks[i] = p_curr_b->p_next;
-                    fsl_os_free(p_curr_b);
+                        p_MM->head_free_blocks_addr[i] = p_curr_b->next_addr;
+                    }
+                    //fsl_os_free(p_curr_b);
+                    put_buff(slob_bf_pool,curr_b_addr);
                     p_curr_b = NULL;
+                    curr_b_addr = 0;
                 }
                 break;
             }
             else
             {
                 p_prev_b = p_curr_b;
+                prev_b_addr = curr_b_addr;
+                curr_b_addr  = p_curr_b->next_addr;
                 p_curr_b = p_curr_b->p_next;
             }
         } // while
@@ -327,7 +389,7 @@ static int add_free(t_MM *p_MM, uint64_t base, uint64_t end)
         /* If no free block found to be updated, insert a new free block
          * to the end of the free list.
          */
-        if(0 != insert_free_block(&p_new_b,p_MM,p_curr_b,end,alignment,align_base,p_prev_b,i))
+        if(0 != insert_free_block(&p_new_b,&new_b_addr,p_MM,p_curr_b,end,alignment,align_base,p_prev_b,i))
         {
             pr_err("Slob: memory allocation failed\n");
             return -ENOMEM;
@@ -364,6 +426,8 @@ static int cut_free(t_MM *p_MM, const uint64_t hold_base, const uint64_t hold_en
 {
     struct buffer_pool* slob_bf_pool = (struct buffer_pool*)p_MM->h_slob_bf_pool;
     t_slob_block *p_prev_b = NULL, *p_curr_b = NULL, *p_new_b = NULL;
+    uint64_t new_b_addr = 0,prev_b_addr = 0,curr_b_addr = 0;
+    int rc = -ENAVAIL;
     uint64_t    align_base = 0, base = 0, end = 0;
     uint64_t    alignment = 4;
     int         i;
@@ -372,6 +436,7 @@ static int cut_free(t_MM *p_MM, const uint64_t hold_base, const uint64_t hold_en
     {
         p_prev_b = p_new_b = 0;
         p_curr_b = p_MM->free_blocks[i];
+        curr_b_addr =  p_MM->head_free_blocks_addr[i];
 
         alignment = (uint64_t)(0x1 << i);
         align_base = MAKE_ALIGNED(hold_end, alignment);
@@ -387,10 +452,17 @@ static int cut_free(t_MM *p_MM, const uint64_t hold_base, const uint64_t hold_en
                      (align_base < end && ((end-align_base) < alignment)) )
                 {
                     if (p_prev_b)
+                    {
                         p_prev_b->p_next = p_curr_b->p_next;
+                        p_prev_b->next_addr = p_curr_b->next_addr;
+                    }
                     else
+                    {
                         p_MM->free_blocks[i] = p_curr_b->p_next;
-                    fsl_os_free(p_curr_b);
+                        p_MM->head_free_blocks_addr[i] =  p_curr_b->next_addr;
+                    }
+                    //fsl_os_free(p_curr_b);
+                    put_buff(slob_bf_pool,curr_b_addr);
                 }
                 else
                 {
@@ -404,13 +476,17 @@ static int cut_free(t_MM *p_MM, const uint64_t hold_base, const uint64_t hold_en
                 {
                     if ( (align_base < end) && ((end-align_base) >= alignment) )
                     {
-                        if ((p_new_b = create_free_block(p_MM,align_base, end-align_base)) == NULL)
+                        if ((rc  = create_free_block(p_MM,align_base,
+                                                         end-align_base,&p_new_b,
+                                                         &new_b_addr)) != 0)
                         {
                             pr_err("Slob: memory allocation failed\n");
                             return -ENOMEM;
                         }
                         p_new_b->p_next = p_curr_b->p_next;
+                        p_new_b->next_addr = p_curr_b->next_addr;
                         p_curr_b->p_next = p_new_b;
+                        p_curr_b->next_addr = new_b_addr;
                     }
                     p_curr_b->end = hold_base;
                 }
@@ -421,21 +497,28 @@ static int cut_free(t_MM *p_MM, const uint64_t hold_base, const uint64_t hold_en
                 else
                 {
                     if (p_prev_b)
+                    {
                         p_prev_b->p_next = p_curr_b->p_next;
+                        p_prev_b->next_addr = p_curr_b->next_addr;
+                    }
                     else
+                    {
                         p_MM->free_blocks[i] = p_curr_b->p_next;
-                    fsl_os_free(p_curr_b);
+                        p_MM->head_free_blocks_addr[i] = p_curr_b->next_addr;
+                    }
+                    //fsl_os_free(p_curr_b);
+                    put_buff(slob_bf_pool,curr_b_addr);
                 }
                 break;
             }
             else
             {
                 p_prev_b = p_curr_b;
+                curr_b_addr = p_curr_b->next_addr;
                 p_curr_b = p_curr_b->p_next;
             }
         }
     }
-
     return (0);
 }
 
@@ -455,27 +538,39 @@ static int cut_free(t_MM *p_MM, const uint64_t hold_base, const uint64_t hold_en
  *      None.
  *
  ****************************************************************/
-static void add_busy(t_MM *p_MM, t_slob_block *p_new_busy_b)
+static void add_busy(t_MM *p_MM, t_slob_block *p_new_busy_b,
+                     const uint64_t new_busy_addr)
 {
     t_slob_block *p_curr_busy_b = NULL, *p_prev_busy_b = NULL;
+    uint64_t curr_busy_b_addr = 0, prev_busy_b_addr = 0;
 
     /* finds a place of a new busy block in the list of busy blocks */
-    p_prev_busy_b = 0;
     p_curr_busy_b = p_MM->busy_blocks;
+    curr_busy_b_addr = p_MM->head_busy_blocks_addr;
+
 
     while ( p_curr_busy_b && p_new_busy_b->base > p_curr_busy_b->base )
     {
         p_prev_busy_b = p_curr_busy_b;
+        curr_busy_b_addr = p_curr_busy_b->next_addr;
         p_curr_busy_b = p_curr_busy_b->p_next;
     }
-
     /* insert the new busy block into the list of busy blocks */
     if ( p_curr_busy_b )
+    {
         p_new_busy_b->p_next = p_curr_busy_b;
+        p_new_busy_b->next_addr = curr_busy_b_addr;
+    }
     if ( p_prev_busy_b )
+    {
         p_prev_busy_b->p_next = p_new_busy_b;
+        p_prev_busy_b->next_addr = new_busy_addr;
+    }
     else
+    {
         p_MM->busy_blocks = p_new_busy_b;
+        p_MM->head_busy_blocks_addr = new_busy_addr;
+    }
 }
 
 /****************************************************************
@@ -501,12 +596,18 @@ static void add_busy(t_MM *p_MM, t_slob_block *p_new_busy_b)
  *      0 on success, E_NOMEMORY otherwise.
  *
  ****************************************************************/
+#if 0
 static int cut_busy(t_MM *p_MM, const uint64_t base, const uint64_t end)
 {
     t_slob_block  *p_curr_b = NULL, *p_prev_b = NULL, *p_new_b = NULL,
 	          *p_next_b = NULL;
+    uint64_t new_b_addr = 0, next_b_addr = 0,curr_b_addr = 0;
+    int rc = -ENAVAIL;
+    struct buffer_pool* slob_bf_pool = (struct buffer_pool*)(p_MM->h_slob_bf_pool);
 
     p_curr_b = p_MM->busy_blocks;
+    curr_b_addr = p_MM->head_busy_blocks_addr;
+
     p_prev_b = p_new_b = 0;
 
     while ( p_curr_b )
@@ -518,8 +619,11 @@ static int cut_busy(t_MM *p_MM, const uint64_t base, const uint64_t end)
                 while ( p_curr_b->p_next && end >= p_curr_b->p_next->end )
                 {
                     p_next_b = p_curr_b->p_next;
+                    next_b_addr = p_curr_b->next_addr;
                     p_curr_b->p_next = p_curr_b->p_next->p_next;
-                    fsl_os_free(p_next_b);
+                    p_curr_b->next_addr = p_curr_b->p_next->next_addr;
+                    //fsl_os_free(p_next_b);
+                    put_buff(slob_bf_pool,next_b_addr);
                 }
 
                 p_next_b = p_curr_b->p_next;
@@ -538,24 +642,34 @@ static int cut_busy(t_MM *p_MM, const uint64_t base, const uint64_t end)
                 else if ( end >= p_curr_b->end )
                 {
                     if ( p_prev_b )
+                    {
                         p_prev_b->p_next = p_curr_b->p_next;
+                        p_prev_b->next_addr = p_curr_b->next_addr;
+                    }
                     else
+                    {
                         p_MM->busy_blocks = p_curr_b->p_next;
-                    fsl_os_free(p_curr_b);
+                        p_MM->head_busy_blocks_addr = p_curr_b->next_addr;
+                    }
+                    //fsl_os_free(p_curr_b);
+                    put_buff(slob_bf_pool,curr_b_addr);
                 }
             }
             else
             {
                 if ( end < p_curr_b->end && end > p_curr_b->base )
                 {
-                    if ((p_new_b = create_busy_block(p_MM,end,
-                                                  p_curr_b->end-end)) == NULL)
+                    if ((rc  = create_busy_block(p_MM,end,
+                                                  p_curr_b->end-end,
+                                                  &p_new_b,&new_b_addr)) != 0)
                     {
                         pr_err("Slob: memory allocation failed\n");
                         return -ENOMEM;
                     }
                     p_new_b->p_next = p_curr_b->p_next;
+                    p_new_b->next_addr = p_curr_b->next_addr;
                     p_curr_b->p_next = p_new_b;
+                    p_curr_b->next_addr = new_b_addr;
                 }
                 p_curr_b->end = base;
             }
@@ -564,13 +678,14 @@ static int cut_busy(t_MM *p_MM, const uint64_t base, const uint64_t end)
         else
         {
             p_prev_b = p_curr_b;
+            curr_b_addr = p_curr_b->next_addr;
             p_curr_b = p_curr_b->p_next;
         }
     }
 
     return (0);
 }
-
+#endif
 /****************************************************************
  *  Routine:     MmGetGreaterAlignment
  *
@@ -605,8 +720,13 @@ static uint64_t slob_get_greater_alignment(t_MM *p_MM, const uint64_t size,
 {
     struct buffer_pool* slob_bf_pool = (struct buffer_pool*)p_MM->h_slob_bf_pool;
     t_slob_block *p_free_b = NULL,*p_new_busy_b = NULL;
+    uint64_t new_busy_addr = 0;
+    int rc = -ENAVAIL;
     UNUSED(name);
     uint64_t    hold_base = 0, hold_end = 0, align_base = 0;
+
+    slob_bf_pool = (struct buffer_pool* )p_MM->h_slob_bf_pool;
+
 
     /* goes over free blocks of the 64 byte alignment list
        and look for a block of the suitable size and
@@ -635,17 +755,18 @@ static uint64_t slob_get_greater_alignment(t_MM *p_MM, const uint64_t size,
     hold_end = align_base + size;
 
     /* init a new busy block */
-    if ((p_new_busy_b = create_busy_block(p_MM,hold_base, size)) == NULL)
+    if ((rc = create_busy_block(p_MM,hold_base, size,&p_new_busy_b,&new_busy_addr)) != 0)
         return (uint64_t)(ILLEGAL_BASE);
 
     /* calls Update routine to update a lists of free blocks */
     if ( cut_free ( p_MM, hold_base, hold_end ) != 0 ) {
-	    fsl_os_free(p_new_busy_b);
+	    //fsl_os_free(p_new_busy_b);
+            put_buff( slob_bf_pool,new_busy_addr);
 	    return (uint64_t)(ILLEGAL_BASE);
     }
 
     /* insert the new busy block into the list of busy blocks */
-    add_busy ( p_MM, p_new_busy_b );
+    add_busy ( p_MM, p_new_busy_b,new_busy_addr);
 
     return (hold_base);
 }
@@ -662,6 +783,8 @@ int slob_init(fsl_handle_t *slob, const uint64_t base, const uint64_t size,
     t_MM        *p_MM = NULL;
     int         i,rc = 0;
     uint32_t    curr_addrr = 0;
+    uint64_t    free_blocks_addr = 0;
+    uint64_t    new_base, new_size;
 
     if (0 == size)
     {
@@ -683,28 +806,23 @@ int slob_init(fsl_handle_t *slob, const uint64_t base, const uint64_t size,
     p_MM->h_mem_mng = h_mem_mng;
     p_MM->h_slob_bf_pool = h_slob_bf_pool;
 
-#ifdef AIOP
     ASSERT_COND(g_spinlock_index < PLATFORM_MAX_MEM_INFO_ENTRIES-1);
     p_MM->lock = &g_slob_spinlock[g_spinlock_index++];
-#else
-    p_MM->lock = spin_lock_create();
-#endif
+
     if (!p_MM->lock)
     {
-        fsl_os_free(p_MM);
         pr_err("Slob: memory allocation failed for slob spinlock\n");
         return -ENOMEM;
     }
-
-#ifdef AIOP
     *(p_MM->lock) = 0;
-#endif
+
 
     /* Initializes counter of free memory to total size */
     p_MM->free_mem_size = size;
 
     /* A busy list is empty */
-    p_MM->busy_blocks = 0;
+    p_MM->busy_blocks = NULL;
+    p_MM->head_busy_blocks_addr = 0;
 
     /* Initializes a new memory block */
     if ((p_MM->mem_blocks = create_new_block_by_boot_mng(base, size,boot_mem_mng)) == NULL) {
@@ -716,27 +834,29 @@ int slob_init(fsl_handle_t *slob, const uint64_t base, const uint64_t size,
     {// allow a slob of size 0, should return ILLEGAL_BASE on any slob_get
         *slob = p_MM;
         for (i=0; i <= MM_MAX_ALIGNMENT; i++){
-            p_MM->free_blocks[i] = 0;
+            p_MM->free_blocks[i] = NULL;
+            p_MM->head_free_blocks_addr[i] = 0;
         }
         return 0;
     }
-    p_MM->free_blocks_initialized = 0;
-    p_MM->base = base;
-    p_MM->size = size;
-#if 0
+
     /* Initializes a new free block for each free list*/
     for (i=0; i <= MM_MAX_ALIGNMENT; i++)
     {
         new_base = MAKE_ALIGNED( base, (0x1 << i) );
         new_size = size - (new_base - base);
 
-        if ((p_MM->free_blocks[i] = create_free_block(new_base, new_size)) == NULL) {
+        if ((rc  = create_free_block(p_MM,
+                                     new_base,
+                                     new_size,
+                                     &(p_MM->free_blocks[i]),
+                                     &free_blocks_addr)) != 0) {
         	slob_free(p_MM);
             pr_err("Slob: memory allocation failed");
             return -ENOMEM;
         }
+        p_MM->head_free_blocks_addr[i] = free_blocks_addr;
     }
-#endif
     *slob = p_MM;
 
     return (0);
@@ -748,6 +868,7 @@ void slob_free(fsl_handle_t slob)
     t_MM        *p_MM = (t_MM *)slob;
     //t_mem_block  *p_mem_block;
     t_slob_block *p_busy_block = NULL, *p_free_block = NULL;
+    uint64_t    busy_block_addr = 0, free_block_addr = 0, block_adr = 0;
     void        *p_block = NULL;
     int         i;
 
@@ -756,22 +877,32 @@ void slob_free(fsl_handle_t slob)
 
     /* release memory allocated for busy blocks */
     p_busy_block = p_MM->busy_blocks;
+    busy_block_addr = p_MM->head_busy_blocks_addr;
+
     while ( p_busy_block )
     {
         p_block = p_busy_block;
+        block_adr = busy_block_addr;
+        busy_block_addr = p_busy_block->next_addr;
         p_busy_block = p_busy_block->p_next;
-        fsl_os_free(p_block);
+        //fsl_os_free(p_block);
+        put_buff(slob_bf_pool,busy_block_addr);
     }
 
     /* release memory allocated for free blocks */
     for (i=0; i <= MM_MAX_ALIGNMENT; i++)
     {
         p_free_block = p_MM->free_blocks[i];
+        free_block_addr = p_MM->head_free_blocks_addr[i];
+
         while ( p_free_block )
         {
             p_block = p_free_block;
+            block_adr = free_block_addr;
             p_free_block = p_free_block->p_next;
-            fsl_os_free(p_block);
+            free_block_addr =  p_free_block->next_addr;
+            //fsl_os_free(p_block);
+            put_buff(slob_bf_pool,busy_block_addr);
         }
     }
 
@@ -785,10 +916,11 @@ uint64_t slob_get(fsl_handle_t slob, const uint64_t size, uint64_t alignment, ch
     t_MM        *p_MM = (t_MM *)slob;
     struct buffer_pool* slob_bf_pool = NULL;
     t_slob_block *p_free_b = NULL, *p_new_busy_b = NULL;
+    int rc = -ENAVAIL;
     uint64_t    hold_base, hold_end, j, i = 0;
-#ifndef AIOP
-    uint32_t    int_flags;
-#endif
+    uint64_t    new_busy_b_addr = 0, free_b_addr = 0;
+    t_slob_block free_b = {0};
+
 
     ASSERT_COND(p_MM);
 
@@ -797,30 +929,6 @@ uint64_t slob_get(fsl_handle_t slob, const uint64_t size, uint64_t alignment, ch
     {
         pr_err("Slob invalid value: allocation size must be positive\n");
     }
-
-#ifdef AIOP
-    lock_spinlock(p_MM->lock);
-#else
-    int_flags = spin_lock_irqsave(p_MM->lock);
-#endif
-    if(!p_MM->free_blocks_initialized)
-    {
-        if(init_free_blocks(p_MM) != 0 )
-        {
-#ifdef AIOP
-            unlock_spinlock(p_MM->lock);
-#else
-            spin_unlock_irqrestore(p_MM->lock, int_flags);
-#endif
-            pr_err("Memory allocation failed\n");
-            return -ENOMEM;
-        }
-    }
-#ifdef AIOP
-    unlock_spinlock(p_MM->lock);
-#else
-    spin_unlock_irqrestore(p_MM->lock, int_flags);
-#endif
     /* checks that alignment value is greater then zero */
     if (alignment == 0)
     {
@@ -849,24 +957,21 @@ uint64_t slob_get(fsl_handle_t slob, const uint64_t size, uint64_t alignment, ch
         return (slob_get_greater_alignment(p_MM, size, alignment, name));
     }
 
-#ifdef AIOP
     lock_spinlock(p_MM->lock);
-#else
-    int_flags = spin_lock_irqsave(p_MM->lock);
-#endif
+
     /* look for a block of the size greater or equal to the required size. */
     p_free_b = p_MM->free_blocks[i];
+    free_b_addr = p_MM->head_free_blocks_addr[i];
+
     while ( p_free_b && (p_free_b->end - p_free_b->base) < size )
+    {
         p_free_b = p_free_b->p_next;
+    }
 
     /* If such block is found */
     if ( !p_free_b )
     {
-#ifdef AIOP
         unlock_spinlock(p_MM->lock);
-#else
-        spin_unlock_irqrestore(p_MM->lock, int_flags);
-#endif
         return (uint64_t)(ILLEGAL_BASE);
     }
 
@@ -874,77 +979,49 @@ uint64_t slob_get(fsl_handle_t slob, const uint64_t size, uint64_t alignment, ch
     hold_end = hold_base + size;
 
     /* init a new busy block */
-    if ((p_new_busy_b = create_busy_block(p_MM,hold_base, size)) == NULL)
+    if ((rc  = create_busy_block(p_MM,hold_base, size,&p_new_busy_b,
+                                          &new_busy_b_addr)) != 0)
     {
-#ifdef AIOP
         unlock_spinlock(p_MM->lock);
-#else
-        spin_unlock_irqrestore(p_MM->lock, int_flags);
-#endif
         return (uint64_t)(ILLEGAL_BASE);
     }
-
     /* calls Update routine to update a lists of free blocks */
     if ( cut_free ( p_MM, hold_base, hold_end ) != 0 )
     {
-#ifdef AIOP
         unlock_spinlock(p_MM->lock);
-#else
-        spin_unlock_irqrestore(p_MM->lock, int_flags);
-#endif
-        fsl_os_free(p_new_busy_b);
+        //fsl_os_free(p_new_busy_b);
+        put_buff(slob_bf_pool,new_busy_b_addr);
         return (uint64_t)(ILLEGAL_BASE);
     }
 
     /* Decreasing the allocated memory size from free memory size */
     p_MM->free_mem_size -= size;
-
     /* insert the new busy block into the list of busy blocks */
-    add_busy ( p_MM, p_new_busy_b );
-#ifdef AIOP
+    add_busy ( p_MM, p_new_busy_b,new_busy_b_addr);
     unlock_spinlock(p_MM->lock);
-#else
-    spin_unlock_irqrestore(p_MM->lock, int_flags);
-#endif
-
     return (hold_base);
 }
 
 /*****************************************************************************/
+#if 0
 uint64_t slob_get_force(fsl_handle_t slob, const uint64_t base, const uint64_t size, char* name)
 {
     t_MM        *p_MM = (t_MM *)slob;
     t_slob_block *p_free_b = NULL, *p_new_busy_b = NULL;
+    uint64_t new_busy_b_addr = 0;
+    int rc = -ENAVAIL;
+    struct buffer_pool* slob_bf_pool = NULL;
     UNUSED(name);
-#ifndef AIOP
-    uint32_t    int_flags;
-#endif
+
     int         block_is_free = 0;
 
     ASSERT_COND(p_MM);
-
+    slob_bf_pool = (struct buffer_pool* )p_MM->h_slob_bf_pool;
     if (size == 0)
     {
         pr_err("Slob invalid value: allocation size must be positive\n");
     }
-
-#ifdef AIOP
     lock_spinlock(p_MM->lock);
-#else
-    int_flags = spin_lock_irqsave(p_MM->lock);
-#endif
-    if(!p_MM->free_blocks_initialized)
-    {
-        if(init_free_blocks(p_MM) != 0 ){
-#ifdef AIOP
-            unlock_spinlock(p_MM->lock);
-#else
-            spin_unlock_irqrestore(p_MM->lock, int_flags);
-#endif
-            pr_err("Memory allocation failed\n");
-            return -ENOMEM;
-        }
-    }
     p_free_b = p_MM->free_blocks[0]; /* The biggest free blocks are in the
                                       free list with alignment 1 */
 
@@ -961,34 +1038,23 @@ uint64_t slob_get_force(fsl_handle_t slob, const uint64_t base, const uint64_t s
 
     if ( !block_is_free )
     {
-#ifdef AIOP
         unlock_spinlock(p_MM->lock);
-#else
-        spin_unlock_irqrestore(p_MM->lock, int_flags);
-#endif
         return (uint64_t)(ILLEGAL_BASE);
     }
 
     /* init a new busy block */
-    if ((p_new_busy_b = create_busy_block(p_MM,base, size)) == NULL)
+    if ((rc = create_busy_block(p_MM,base, size,&p_new_busy_b,&new_busy_b_addr)) != 0)
     {
-#ifdef AIOP
         unlock_spinlock(p_MM->lock);
-#else
-        spin_unlock_irqrestore(p_MM->lock, int_flags);
-#endif
         return (uint64_t)(ILLEGAL_BASE);
     }
 
     /* calls Update routine to update a lists of free blocks */
     if ( cut_free ( p_MM, base, base+size ) != 0 )
     {
-#ifdef AIOP
         unlock_spinlock(p_MM->lock);
-#else
-        spin_unlock_irqrestore(p_MM->lock, int_flags);
-#endif
-        fsl_os_free(p_new_busy_b);
+        //fsl_os_free(p_new_busy_b);
+        put_buff(slob_bf_pool,new_busy_b_addr);
         return (uint64_t)(ILLEGAL_BASE);
     }
 
@@ -996,12 +1062,8 @@ uint64_t slob_get_force(fsl_handle_t slob, const uint64_t base, const uint64_t s
     p_MM->free_mem_size -= size;
 
     /* insert the new busy block into the list of busy blocks */
-    add_busy ( p_MM, p_new_busy_b );
-#ifdef AIOP
+    add_busy ( p_MM, p_new_busy_b,new_busy_b_addr);
     unlock_spinlock(p_MM->lock);
-#else
-    spin_unlock_irqrestore(p_MM->lock, int_flags);
-#endif
 
     return (base);
 }
@@ -1014,15 +1076,14 @@ uint64_t slob_get_force_min(fsl_handle_t slob,
 {
     t_MM        *p_MM = (t_MM *)slob;
     t_slob_block *p_free_b = NULL, *p_new_busy_b = NULL;
+    uint64_t new_busy_b_addr = 0;
+    int rc = -ENAVAIL;
+    struct buffer_pool* slob_bf_pool = NULL;
     UNUSED(name);
     uint64_t    hold_base, hold_end, j = alignment, i=0, k=0;
 
-#ifndef AIOP
-    uint32_t    int_flags;
-#endif
-
     ASSERT_COND(p_MM);
-
+    slob_bf_pool = (struct buffer_pool* )p_MM->h_slob_bf_pool;
     if (size == 0)
     {
         pr_err("Slob invalid value: allocation size must be positive\n");
@@ -1041,25 +1102,7 @@ uint64_t slob_get_force_min(fsl_handle_t slob,
         return (uint64_t)(ILLEGAL_BASE);
     }
 
-#ifdef AIOP
     lock_spinlock(p_MM->lock);
-#else
-    int_flags = spin_lock_irqsave(p_MM->lock);
-#endif
-
-    /* Initializes a new free block for each free list*/
-    if(!p_MM->free_blocks_initialized)
-    {
-        if(init_free_blocks(p_MM) != 0 ){
-#ifdef AIOP
-            unlock_spinlock(p_MM->lock);
-#else
-            spin_unlock_irqrestore(p_MM->lock, int_flags);
-#endif
-            pr_err("Memory allocation failed\n");
-            return -ENOMEM;
-        }
-    }
 
     p_free_b = p_MM->free_blocks[i];
 
@@ -1073,11 +1116,7 @@ uint64_t slob_get_force_min(fsl_handle_t slob,
     /* If such block is found */
     if ( !p_free_b )
     {
-#ifdef AIOP
         unlock_spinlock(p_MM->lock);
-#else
-        spin_unlock_irqrestore(p_MM->lock, int_flags);
-#endif
         return (uint64_t)(ILLEGAL_BASE);
     }
 
@@ -1096,11 +1135,7 @@ uint64_t slob_get_force_min(fsl_handle_t slob,
         /* If such block is found */
         if ( !p_free_b )
         {
-#ifdef AIOP
             unlock_spinlock(p_MM->lock);
-#else
-            spin_unlock_irqrestore(p_MM->lock, int_flags);
-#endif
             return (uint64_t)(ILLEGAL_BASE);
         }
 
@@ -1109,25 +1144,19 @@ uint64_t slob_get_force_min(fsl_handle_t slob,
     }
 
     /* init a new busy block */
-    if ((p_new_busy_b = create_busy_block(p_MM,hold_base, size)) == NULL)
+    if ((rc = create_busy_block(p_MM,hold_base, size,&p_new_busy_b,
+                                          &new_busy_b_addr)) != 0)
     {
-#ifdef AIOP
         unlock_spinlock(p_MM->lock);
-#else
-        spin_unlock_irqrestore(p_MM->lock, int_flags);
-#endif
         return (uint64_t)(ILLEGAL_BASE);
     }
 
     /* calls Update routine to update a lists of free blocks */
     if ( cut_free( p_MM, hold_base, hold_end ) != 0 )
     {
-#ifdef AIOP
         unlock_spinlock(p_MM->lock);
-#else
-        spin_unlock_irqrestore(p_MM->lock, int_flags);
-#endif
-        fsl_os_free(p_new_busy_b);
+        //fsl_os_free(p_new_busy_b);
+        put_buff(slob_bf_pool,new_busy_b_addr);
         return (uint64_t)(ILLEGAL_BASE);
     }
 
@@ -1135,202 +1164,133 @@ uint64_t slob_get_force_min(fsl_handle_t slob,
     p_MM->free_mem_size -= size;
 
     /* insert the new busy block into the list of busy blocks */
-    add_busy( p_MM, p_new_busy_b );
-#ifdef AIOP
+    add_busy( p_MM, p_new_busy_b,new_busy_b_addr);
     unlock_spinlock(p_MM->lock);
-#else
-    spin_unlock_irqrestore(p_MM->lock, int_flags);
-#endif
-
     return (hold_base);
 }
-
+#endif
 /*****************************************************************************/
 uint64_t slob_put(fsl_handle_t slob, const uint64_t base)
 {
     t_MM        *p_MM = (t_MM *)slob;
     t_slob_block *p_busy_b = NULL, *p_prev_busy_b = NULL;
+    struct buffer_pool *slob_bf_pool = NULL;
     uint64_t    size;
-#ifndef AIOP
-    uint32_t    int_flags;
-#endif
+    uint64_t   busy_b_addr = 0, prev_busy_b_addr = 0;
+
 
     ASSERT_COND(p_MM);
+    slob_bf_pool  = (struct buffer_pool *)p_MM->h_slob_bf_pool;
+
 
     /* Look for a busy block that have the given base value.
      * That block will be returned back to the memory.
      */
 
-#ifdef AIOP
     lock_spinlock(p_MM->lock);
-#else
-    int_flags = spin_lock_irqsave(p_MM->lock);
-#endif
-    if(!p_MM->free_blocks_initialized)
-    {
-        if(init_free_blocks(p_MM) != 0 ){
-#ifdef AIOP
-            unlock_spinlock(p_MM->lock);
-#else
-            spin_unlock_irqrestore(p_MM->lock, int_flags);
-#endif
-            pr_err("Memory allocation failed\n");
-            return -ENOMEM;
-        }
-    }
+
     p_busy_b = p_MM->busy_blocks;
+    busy_b_addr = p_MM->head_busy_blocks_addr;
     while ( p_busy_b && base != p_busy_b->base )
     {
         p_prev_busy_b = p_busy_b;
+        prev_busy_b_addr = busy_b_addr;
+        busy_b_addr = p_busy_b->next_addr;
         p_busy_b = p_busy_b->p_next;
     }
 
     if ( !p_busy_b )
     {
-#ifdef AIOP
         unlock_spinlock(p_MM->lock);
-#else
-        spin_unlock_irqrestore(p_MM->lock, int_flags);
-#endif
         return (uint64_t)(0);
     }
 
     if ( add_free( p_MM, p_busy_b->base, p_busy_b->end ) != 0 )
     {
-#ifdef AIOP
         unlock_spinlock(p_MM->lock);
-#else
-        spin_unlock_irqrestore(p_MM->lock, int_flags);
-#endif
         return (uint64_t)(0);
     }
 
     /* removes a busy block form the list of busy blocks */
     if ( p_prev_busy_b )
+    {
         p_prev_busy_b->p_next = p_busy_b->p_next;
+        p_prev_busy_b->next_addr = p_busy_b->next_addr;
+    }
     else
+    {
         p_MM->busy_blocks = p_busy_b->p_next;
+        p_MM->head_busy_blocks_addr = busy_b_addr;
+    }
 
     size = p_busy_b->end - p_busy_b->base;
 
     /* Adding the deallocated memory size to free memory size */
     p_MM->free_mem_size += size;
+    //fsl_os_free(p_busy_b);
+    put_buff(slob_bf_pool,busy_b_addr);
 
-    fsl_os_free(p_busy_b);
-#ifdef AIOP
     unlock_spinlock(p_MM->lock);
-#else
-    spin_unlock_irqrestore(p_MM->lock, int_flags);
-#endif
-
     return (size);
 }
 
 /*****************************************************************************/
+#if 0
 uint64_t slob_put_force(fsl_handle_t slob, const uint64_t base, const uint64_t size)
 {
     t_MM        *p_MM = (t_MM *)slob;
     uint64_t    end = base + size;
 
-#ifndef AIOP
-    uint32_t    int_flags;
-#endif
+
 
     ASSERT_COND(p_MM);
 
-#ifdef AIOP
     lock_spinlock(p_MM->lock);
-#else
-    int_flags = spin_lock_irqsave(p_MM->lock);
-#endif
-    if(!p_MM->free_blocks_initialized)
-    {
-        if(init_free_blocks(p_MM) != 0 ){
-#ifdef AIOP
-            unlock_spinlock(p_MM->lock);
-#else
-            spin_unlock_irqrestore(p_MM->lock, int_flags);
-#endif
-            pr_err("Memory allocation failed\n");
-            return -ENOMEM;
-        }
-    }
+
     if ( cut_busy( p_MM, base, end ) != 0 )
     {
-#ifdef AIOP
         unlock_spinlock(p_MM->lock);
-#else
-        spin_unlock_irqrestore(p_MM->lock, int_flags);
-#endif
         return (uint64_t)(0);
     }
 
     if ( add_free ( p_MM, base, end ) != 0 )
     {
-#ifdef AIOP
         unlock_spinlock(p_MM->lock);
-#else
-        spin_unlock_irqrestore(p_MM->lock, int_flags);
-#endif
         return (uint64_t)(0);
     }
 
     /* Adding the deallocated memory size to free memory size */
     p_MM->free_mem_size += size;
 
-#ifdef AIOP
     unlock_spinlock(p_MM->lock);
-#else
-    spin_unlock_irqrestore(p_MM->lock, int_flags);
-#endif
+
 
     return (size);
 }
 
 /*****************************************************************************/
+
 int slob_add(fsl_handle_t slob, const uint64_t base, const uint64_t size)
 {
     t_MM        *p_MM = (t_MM *)slob;
     t_mem_block  *p_mem_b = NULL, *p_new_mem_b = NULL;
     int     err_code;
-#ifndef AIOP
-    uint32_t    int_flags;
-#endif
 
     ASSERT_COND(p_MM);
 
     /* find a last block in the list of memory blocks to insert a new
      * memory block
      */
-#ifdef AIOP
     lock_spinlock(p_MM->lock);
-#else
-    int_flags = spin_lock_irqsave(p_MM->lock);
-#endif
 
-    if(!p_MM->free_blocks_initialized)
-    {
-         if(init_free_blocks(p_MM) != 0 ){
-#ifdef AIOP
-            unlock_spinlock(p_MM->lock);
-#else
-            spin_unlock_irqrestore(p_MM->lock, int_flags);
-#endif
-            pr_err("Memory allocation failed\n");
-            return -ENOMEM;
-         }
-    }
+
     struct initial_mem_mng* boot_mem_mng =  (struct initial_mem_mng*)p_MM->h_mem_mng;
     p_mem_b = p_MM->mem_blocks;
     while ( p_mem_b->p_next )
     {
         if ( base >= p_mem_b->base && base < p_mem_b->end )
         {
-#ifdef AIOP
             unlock_spinlock(p_MM->lock);
-#else
-            spin_unlock_irqrestore(p_MM->lock, int_flags);
-#endif
             pr_err("Slob: resource already exists\n");
             return -ENOMEM;
         }
@@ -1339,11 +1299,7 @@ int slob_add(fsl_handle_t slob, const uint64_t base, const uint64_t size)
     /* check for a last memory block */
     if ( base >= p_mem_b->base && base < p_mem_b->end )
     {
-#ifdef AIOP
         unlock_spinlock(p_MM->lock);
-#else
-        spin_unlock_irqrestore(p_MM->lock, int_flags);
-#endif
         pr_err("Slob: resource already exists\n");
         return -ENOMEM;
     }
@@ -1351,11 +1307,7 @@ int slob_add(fsl_handle_t slob, const uint64_t base, const uint64_t size)
     /* create a new memory block */
     if ((p_new_mem_b = create_new_block_by_boot_mng(base, size,boot_mem_mng)) == NULL)
     {
-#ifdef AIOP
         unlock_spinlock(p_MM->lock);
-#else
-        spin_unlock_irqrestore(p_MM->lock, int_flags);
-#endif
         pr_err("Slob: memory allocation failed\n");
         return -ENOMEM;
     }
@@ -1367,11 +1319,7 @@ int slob_add(fsl_handle_t slob, const uint64_t base, const uint64_t size)
     err_code = add_free(p_MM, base, base+size);
     if (err_code)
     {
-#ifdef AIOP
         unlock_spinlock(p_MM->lock);
-#else
-        spin_unlock_irqrestore(p_MM->lock, int_flags);
-#endif
         p_mem_b->p_next = 0;
         fsl_os_free(p_new_mem_b);
         return (err_code);
@@ -1380,15 +1328,11 @@ int slob_add(fsl_handle_t slob, const uint64_t base, const uint64_t size)
     /* Adding the new block size to free memory size */
     p_MM->free_mem_size += size;
 
-#ifdef AIOP
-            unlock_spinlock(p_MM->lock);
-#else
-            spin_unlock_irqrestore(p_MM->lock, int_flags);
-#endif
+    unlock_spinlock(p_MM->lock);
 
     return (0);
 }
-
+#endif
 /*****************************************************************************/
 uint64_t slob_get_base(fsl_handle_t slob)
 {
@@ -1458,22 +1402,4 @@ void slob_dump(fsl_handle_t slob)
     }
 }
 
-static int  init_free_blocks(t_MM *p_MM)
-{
-    int   k = 0;
-    uint64_t    new_base, new_size;
-    /* Initializes a new free block for each free list*/
-    for (k=0; k <= MM_MAX_ALIGNMENT; k++)
-    {
-        new_base = MAKE_ALIGNED( p_MM->base, (0x1 << k) );
-        new_size = p_MM->size - (new_base - p_MM->base);
-
-        if ((p_MM->free_blocks[k] = create_free_block(p_MM,new_base, new_size)) == NULL) {
-            slob_free(p_MM);
-            return -ENOMEM;
-        }
-    }
-    p_MM->free_blocks_initialized = 1;
-    return 0;
-}
 __END_COLD_CODE
