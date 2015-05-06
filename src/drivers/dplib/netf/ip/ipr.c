@@ -1843,7 +1843,6 @@ void move_to_correct_ordering_scope2(uint32_t osm_status)
 		 * the ipr_reassemble function */
 		osm_scope_exit();
 		osm_scope_exit();
-		osm_scope_relinquish_exclusivity();
 	} else if (osm_status & START_CONCURRENT) {
 		osm_scope_relinquish_exclusivity();
 	}
