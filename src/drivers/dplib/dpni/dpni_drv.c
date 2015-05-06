@@ -49,7 +49,6 @@
 #define ETH_BROADCAST_ADDR		((uint8_t []){0xff,0xff,0xff,0xff,0xff,0xff})
 int dpni_drv_init(void);
 void dpni_drv_free(void);
-int dpni_drv_enable_all(void);
 
 extern struct aiop_init_info g_init_data;
 extern struct platform_app_params g_app_params;
