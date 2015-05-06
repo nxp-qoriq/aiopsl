@@ -97,8 +97,6 @@ int dpci_scan_and_enable()
 			err |= dpci_drv_enable((uint32_t)dev_desc.id);
 		}
 	}
-	
-	mc_dpci_tbl_dump();
-	
+		
 	return err;
 }
