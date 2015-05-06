@@ -112,6 +112,9 @@ extern __TASK struct aiop_default_task_params default_task_params;
 	/** OSM Scope Enter: relinquish_exclusivity_parent=true,
 	 * scope_id=INCR, request_exclusivity=true */
 #define OSM_SCOPE_ENTER_EXCL_SCOPE_INC_REL_PARENT_OP	0x17
+	/** OSM Scope Enter: relinquish_exclusivity_parent=false, scope_id=N,
+	 * request_exclusivity=true, relinquish_son=once accel is done */
+#define OSM_SCOPE_ENTER_EXCL_CALL_ACCEL_REL_SON_AFTER_ACCEL_OP	0x19
 
 
 /**************************************************************************//**
