@@ -113,6 +113,9 @@ extern __TASK struct aiop_default_task_params default_task_params;
 	 * scope_id=INCR, request_exclusivity=true */
 #define OSM_SCOPE_ENTER_EXCL_SCOPE_INC_REL_PARENT_OP	0x17
 
+#ifdef FDMA_OSM_LIMIT
+	#define OSM_SCOPE_ID_FDMA_OSM_LIMIT_MASK	0x000000c0
+#endif
 
 /**************************************************************************//**
  @enum osm_functions
