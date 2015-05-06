@@ -100,6 +100,7 @@ extern int sl_cmd_open_cb(uint8_t instance_id, void **dev);
 extern int sl_cmd_close_cb_t(void *dev);
 
 extern struct icontext icontext_aiop;
+extern struct dpci_mng_tbl g_dpci_tbl;
 
 static inline int is_valid_auth_id(uint16_t id)
 {
@@ -269,15 +270,6 @@ __COLD_CODE int cmdif_srv_init(void)
 		return -ENOMEM;
 	}
 	cmdif_aiop_srv.srv = srv;
-	cmdif_aiop_srv.dpci_tbl = sys_get_unique_handle(FSL_OS_MOD_DPCI_TBL);
-
-	if (cmdif_aiop_srv.dpci_tbl == NULL)
-	{
-		pr_err("No DPCI table on AIOP, CMDIF is not functional \n");
-		pr_info("All AIOP DPCIs should be defined in DPL\n");
-		pr_info("All AIOP DPCIs should have peer before AIOP boot\n");
-		return -ENODEV;
-	}
 
 	/* Register ARENA SL module */
 	err = cmdif_register_module(SL_CMD_MODULE, &ops);
@@ -366,53 +358,6 @@ static inline void sync_done_set(uint16_t auth_id)
 	cmdif_aiop_srv.srv->sync_done[auth_id] = sync_done_get(); /* Phys addr for cdma */
 }
 
-
-#if 0
-/* Support for AIOP -> GPP */
-/* int mc_dpci_check(int ind);*/
-static /*inline*/ int mc_dpci_check(int ind)
-{
-	uint8_t i;
-	struct mc_dprc *dprc = NULL;
-	int link_up = 1;
-	int err;
-
-	/* Do it only if queues are not there, it should not happen */
-	if ((cmdif_aiop_srv.dpci_tbl->tx_queue_attr[0][ind].fqid == DPCI_FQID_NOT_VALID) ||
-		(cmdif_aiop_srv.dpci_tbl->rx_queue_attr[0][ind].fqid == DPCI_FQID_NOT_VALID)) {
-		pr_err("DPCI queues are not known to AIOP, will try again\n");
-
-		dprc = sys_get_unique_handle(FSL_OS_MOD_AIOP_RC);
-		ASSERT_COND_LIGHT(dprc != NULL);
-
-		err = dpci_get_link_state(&dprc->io, cmdif_aiop_srv.dpci_tbl->token[ind], &link_up);
-		if (err) {
-			pr_err("Failed to get dpci_get_link_state\n");
-		}
-
-		if ((cmdif_aiop_srv.dpci_tbl->peer_attr[ind].peer_id == (-1)) || !link_up) {
-			pr_err("DPCI is not attached or there is no link \n");
-			return -EACCES; /*Invalid device state*/
-		}
-
-		for (i = 0; i < DPCI_PRIO_NUM; i++) {
-			err |= dpci_get_tx_queue(&dprc->io, cmdif_aiop_srv.dpci_tbl->token[ind], i,
-			                         &cmdif_aiop_srv.dpci_tbl->tx_queue_attr[i][ind]);
-			err |= dpci_get_rx_queue(&dprc->io, cmdif_aiop_srv.dpci_tbl->token[ind], i,
-			                         &cmdif_aiop_srv.dpci_tbl->rx_queue_attr[i][ind]);
-		}
-		if (cmdif_aiop_srv.dpci_tbl->rx_queue_attr[0][ind].fqid != DPCI_FQID_NOT_VALID) {
-			pr_debug("DPCI queues are now set\n");
-			return 0;
-		} else {
-			return -EFAULT;
-		}
-	}
-
-	return 0;
-}
-#endif
-
 __COLD_CODE int notify_open();
 __COLD_CODE int notify_open()
 {
@@ -427,7 +372,7 @@ __COLD_CODE int notify_open()
 	uint32_t tx_queue[DPCI_PRIO_NUM];
 
 	/* Create descriptor for client session */
-	ASSERT_COND_LIGHT((cl != NULL) && (cmdif_aiop_srv.dpci_tbl != NULL));
+	ASSERT_COND_LIGHT(cl != NULL);
 
 	if (PRC_GET_SEGMENT_LENGTH() < sizeof(struct cmdif_session_data)) {
 		pr_err("Segment length is too small\n");
@@ -449,7 +394,9 @@ __COLD_CODE int notify_open()
 	err = dpci_event_update((uint32_t)ind); /* dev_id is swapped by GPP */
 	ASSERT_COND(!err);
 
-	err = dpci_mng_tx_get(cmdif_aiop_srv.dpci_tbl->dpci_id[ind], 
+	/* notify_open is always from GPP thus it is ok 
+	 * to send commands to MC bc MC is not waiting for the AIOP */
+	err = dpci_mng_tx_get(g_dpci_tbl.dpci_id[ind], 
 	                      &tx_queue[0]);
 	ASSERT_COND(!err);
 

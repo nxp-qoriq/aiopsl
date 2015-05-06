@@ -60,8 +60,6 @@ extern struct icontext icontext_aiop;
 static inline int send_fd(int pr, void *_sdev)
 {
 	struct cmdif_reg *sdev = (struct cmdif_reg *)_sdev;
-	struct mc_dpci_tbl *dt = (struct mc_dpci_tbl *)\
-		sys_get_unique_handle(FSL_OS_MOD_DPCI_TBL);
 	uint32_t flags = 0;
 	uint16_t icid;
 	uint16_t amq_bdi;

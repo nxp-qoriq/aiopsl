@@ -33,15 +33,20 @@
 #ifndef __FSL_DPCI_MNG_H
 #define __FSL_DPCI_MNG_H
 
+#include "fsl_dpci.h"
+
+#define DPCI_DYNAMIC_MAX	64
+
 struct dpci_mng_tbl {
-	uint32_t *ic;		/**< 0xFFFFFFFF is not valid, must be atomic*/
-	uint32_t *dpci_id;	/**< dpci ids not tokens */
-	uint32_t *dpci_id_peer;	/**< dpci ids not tokens */
-	uint16_t *token;	/**< TODO use it dpci token for open session */
-	uint8_t  *state;	/**< TODO use it */
 	uint32_t mc_dpci_id;	/**< DPCI id used by MC to send events */
-	int32_t count;
-	int max;
+	int32_t  count;
+	int      max;
+	uint32_t ic[DPCI_DYNAMIC_MAX];				/**< 0xFFFFFFFF is not valid, must be atomic*/
+	uint32_t dpci_id[DPCI_DYNAMIC_MAX];			/**< dpci ids not tokens */
+	uint32_t dpci_id_peer[DPCI_DYNAMIC_MAX];		/**< dpci ids not tokens */
+	uint32_t tx_queue[DPCI_DYNAMIC_MAX * DPCI_PRIO_NUM];	/**< Use DPCI_PRIO_NUM between DPCI jumps */
+	uint16_t token[DPCI_DYNAMIC_MAX];			/**< TODO use it dpci token for open session */
+	uint8_t  state[DPCI_DYNAMIC_MAX];			/**< TODO use it */
 };
 
 /**************************************************************************//**

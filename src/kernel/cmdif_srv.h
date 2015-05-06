@@ -45,8 +45,6 @@ ASSERT_STRUCT_SIZE(CMDIF_SESSION_OPEN_SIZEOF, CMDIF_SESSION_OPEN_SIZE);
 struct cmdif_srv_aiop {
 	struct cmdif_srv *srv;
 	/**< Common Server fields */
-	struct dpci_mng_tbl *dpci_tbl;
-	/**< DPCI table according to indexes in dequeue context */
 };
 
 void cmdif_srv_isr(void);
