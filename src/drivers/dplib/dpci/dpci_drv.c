@@ -268,10 +268,6 @@ __COLD_CODE int dpci_rx_ctx_init(uint32_t dpci_id, uint32_t id)
 		ASSERT_COND(!err);
 	}
 
-	err = dpci_enable(&dprc->io, token);
-	if (err) {
-		pr_err("DPCI enable failed\n");
-	}
 	err = dpci_close(&dprc->io, token);
 	return err;
 }
@@ -407,6 +403,11 @@ __COLD_CODE int dpci_event_assign(uint32_t dpci_id)
 
 	DPCI_DT_LOCK_RELEASE;
 
+	if (dt->mc_dpci_id != dpci_id) {
+		/* TODO call EVM here 
+		 * TODO keep mc_dpci_id internally if this memory is reused */
+	}
+	
 	return err;
 }
 

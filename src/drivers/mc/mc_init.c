@@ -38,6 +38,7 @@
 #include "ls2085_aiop/fsl_platform.h"
 #include "cmdif_srv.h"
 #include "fsl_dpci_event.h"
+#include "fsl_dpci_drv.h"
 #include "fsl_spinlock.h"
 
 extern struct aiop_init_info g_init_data;
@@ -170,35 +171,6 @@ __COLD_CODE static int dpci_tbl_create(struct mc_dpci_tbl **_dpci_tbl, int dpci_
 	return err;
 }
 
-__COLD_CODE static int dpci_tbl_add(struct dprc_obj_desc *dev_desc)
-{
-	int      err = 0;
-
-	if (dev_desc == NULL)
-		return -EINVAL;
-
-	pr_debug(" Found DPCI device\n");
-	pr_debug("***********\n");
-	pr_debug("vendor - %x\n", dev_desc->vendor);
-	pr_debug("type - %s\n", dev_desc->type);
-	pr_debug("id - %d\n", dev_desc->id);
-	pr_debug("region_count - %d\n", dev_desc->region_count);
-	pr_debug("state - %d\n", dev_desc->state);
-	pr_debug("ver_major - %d\n", dev_desc->ver_major);
-	pr_debug("ver_minor - %d\n", dev_desc->ver_minor);
-	pr_debug("irq_count - %d\n\n", dev_desc->irq_count);
-
-#ifdef  ARENA_LEGACY_CODE
-	err = dpci_amq_bdi_init((uint32_t)dev_desc->id);
-	if (err >= 0) {
-		err = dpci_rx_ctx_init((uint32_t)dev_desc->id, (uint32_t)err);
-	}
-#endif
-	err = dpci_event_assign((uint32_t)dev_desc->id);
-
-	return err;
-}
-
 __COLD_CODE void mc_dpci_tbl_dump()
 {
 	int i;
@@ -294,6 +266,8 @@ __COLD_CODE static int dpci_for_mc_add(struct mc_dprc *dprc)
 	uint8_t p = 0;
 	int     err = 0;
 	int     link_up = 0;
+	struct mc_dpci_tbl *dt = (struct mc_dpci_tbl *)\
+			sys_get_unique_handle(FSL_OS_MOD_DPCI_TBL);
 
 	memset(&queue_cfg, 0, sizeof(struct dpci_rx_queue_cfg));
 	memset(&attr, 0, sizeof(attr));
@@ -306,8 +280,9 @@ __COLD_CODE static int dpci_for_mc_add(struct mc_dprc *dprc)
 	err |= dpci_get_attributes(&dprc->io, dpci, &attr);
 
 	/* Connect to dpci that belongs to MC */
-	pr_debug("MC dpci ID[%d] \n", g_init_data.sl_info.mc_dpci_id);
-
+	dt->mc_dpci_id = g_init_data.sl_info.mc_dpci_id;
+	pr_debug("MC dpci ID[%d] \n", dt->mc_dpci_id);
+	
 	memset(&endpoint1, 0, sizeof(struct dprc_endpoint));
 	memset(&endpoint2, 0, sizeof(struct dprc_endpoint));
 	endpoint1.id = (int)g_init_data.sl_info.mc_dpci_id;
@@ -324,45 +299,11 @@ __COLD_CODE static int dpci_for_mc_add(struct mc_dprc *dprc)
 	}
 	err = dpci_close(&dprc->io, dpci);
 	ASSERT_COND(!err);
-
-#ifdef  ARENA_LEGACY_CODE
-	err = dpci_amq_bdi_init((uint32_t)attr.id);
-	if (err >= 0) {
-		err = dpci_rx_ctx_init((uint32_t)attr.id, (uint32_t)err);
-	}
-#endif
+	
 	err = dpci_event_assign((uint32_t)attr.id);
+	ASSERT_COND(!err);
 
-	return err;
-}
-
-__COLD_CODE static int dpci_tbl_fill(struct mc_dprc *dprc,
-				int dpci_count, int dev_count)
-{
-	int ind = 0;
-	int i   = 0;
-	int err = 0;
-	struct dprc_obj_desc dev_desc;
-
-
-	while ((i < dev_count) && (ind < dpci_count)) {
-		dprc_get_obj(&dprc->io, dprc->token, i, &dev_desc);
-		if (strcmp(dev_desc.type, "dpci") == 0) {
-			err = dpci_tbl_add(&dev_desc);
-			if (err) {
-				pr_err("Failed dpci_tbl_add \n");
-				return -ENODEV;
-			}
-			ind++;
-		}
-		i++;
-	}
-
-	err = dpci_for_mc_add(dprc);
-	if (err) {
-		pr_err("Failed to create and link AIOP<->MC DPCI \n");
-	}
-
+	err = dpci_drv_enable((uint32_t)attr.id);
 	return err;
 }
 
@@ -402,8 +343,11 @@ __COLD_CODE static int dpci_discovery()
 		return err;
 	}
 
-	err = dpci_tbl_fill(dprc, dpci_count, dev_count);
-
+	err = dpci_for_mc_add(dprc);
+	if (err) {
+		pr_err("Failed to create and link AIOP<->MC DPCI \n");
+	}
+	
 	mc_dpci_tbl_dump();
 
 	return err;

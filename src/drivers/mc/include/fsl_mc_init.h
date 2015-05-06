@@ -42,6 +42,7 @@ struct mc_dpci_tbl {
 	uint32_t *dpci_id_peer;	/**< dpci ids not tokens */
 	uint16_t *token;	/**< TODO use it dpci token for open session */
 	uint8_t  *state;	/**< TODO use it */
+	uint32_t mc_dpci_id;	/**< DPCI id used by MC to send events */
 	int32_t count;
 	int max;
 };
