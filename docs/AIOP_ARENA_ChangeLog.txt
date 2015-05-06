@@ -1,3 +1,6 @@
+fsl_cmdif_client.h: Updated documentation for cmdif_open(): the buffer must be 8 bytes aligned, relevant for GPP only
+fsl_cmdif_server.h: Updated documentation for cmdif_session_open(): the buffer must be 8 bytes aligned, relevant for GPP only
+
 dpni_drv.c/h, fsl_dpni_drv.h: ENGR00354821 - Configure-able initial frame presentation (EPID table). Added API for dpni_drv_get/set_initial_presentation
 
 slab.c, bman.c: ENGR00356178 - Change AIOP SL to honor user’s requested alignment.

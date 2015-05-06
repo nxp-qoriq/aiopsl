@@ -75,6 +75,12 @@ struct cmdif_async {
 	uint64_t async_ctx;/*!< Pointer to asynchronous context */
 };
 
+/*
+ * The order of the open buffer is:
+ * 1) struct cmdif_dev
+ * 2) union cmdif_data
+ * Do not change those structures because of possible unaligned memory accesses
+ */
 struct cmdif_dev {
 	uint64_t   p_sync_done;
 	/*!< Physical address of sync_done */

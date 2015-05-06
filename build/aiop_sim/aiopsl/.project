@@ -940,9 +940,9 @@
 			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/dplib/include/fsl_dpbp_cmd.h</locationURI>
 		</link>
 		<link>
-			<name>aiop_sl/drivers/dplib/include/fsl_dpci_drv.h</name>
+			<name>aiop_sl/drivers/dplib/include/fsl_dpci_event.h</name>
 			<type>1</type>
-			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/dplib/include/fsl_dpci_drv.h</locationURI>
+			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/dplib/include/fsl_dpci_event.h</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/drivers/dplib/include/fsl_dpkg.h</name>

@@ -115,7 +115,6 @@ __COLD_CODE void fill_platform_parameters(struct platform_param *platform_param)
 
 	memset(platform_param, 0, sizeof(platform_param));
 
-	platform_param->clock_in_freq_khz = g_init_data.sl_info.platform_clk;
 	platform_param->l1_cache_mode = E_CACHE_MODE_INST_ONLY;
 	platform_param->console_type = PLTFRM_CONSOLE_DUART;
 	platform_param->console_id = (uint8_t)g_init_data.sl_info.uart_port_id;
@@ -128,18 +127,6 @@ __COLD_CODE void fill_platform_parameters(struct platform_param *platform_param)
 	 * */
 	if (platform_param->console_id == 0) {
 		platform_param->console_type = PLTFRM_CONSOLE_NONE;
-	}
-
-	/* Each UART is clocked by the platform clock/2
-	 * see platform_enable_console() */
-	if(platform_param->clock_in_freq_khz == 0)
-	{
-		platform_param->clock_in_freq_khz = 800000;
-		pr_warn("rcwsr return 0, platform clock frequency was set to %d KHz\n",
-		        platform_param->clock_in_freq_khz);
-	}
-	else{
-		pr_info("The platform clock frequency is %d KHz\n",platform_param->clock_in_freq_khz);
 	}
 
 	struct platform_memory_info mem_info[] = MEMORY_PARTITIONS;
