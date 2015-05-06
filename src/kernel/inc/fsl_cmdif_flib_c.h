@@ -63,6 +63,7 @@
  * 		by command interface.
  * 		The core is going to access the buffer through this address.
  * 		This address should be accessible by Server and Client.
+ * 		Must be 8 byte aligned.
  * @param[in]	p_data	    - Physical address or SMMU virtual address of the
  * 		v_data buffer to be set inside the fd of command.
  * @param[in]	size        - Size of the v_data buffer. If the size if not

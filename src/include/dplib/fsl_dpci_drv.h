@@ -24,53 +24,38 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/*!
- * @file    fsl_shbp.h
- * @brief   Shared Buffer Pool API
- *
- * This is shared pool API for AIOP.
- *
- */
+/**************************************************************************//**
+@File		fsl_dpci_drv.h
 
-#ifndef __FSL_SHBP_H
-#define __FSL_SHBP_H
+@Description	Data Path Command Interface API
+*//***************************************************************************/
+#ifndef __FSL_DPCI_DRV_H
+#define __FSL_DPCI_DRV_H
 
-#include <types.h>
-#include <fsl_icontext.h>
+/**************************************************************************//**
+@Function	dpci_drv_enable
 
-/*!
- * @Group	shbp_aiop_g  Shared Buffer Pool
- *
- * @brief	API to be used for shared buffer pool.
- *
- * @{
- */
+@Description	Enable the DPCI.
 
-/**
- * @brief	Get buffer from shared pool;
- * Use icontext_dma_read(), icontext_dma_write() to access the data
- * 
- * @param[in]	shbp - Buffer pool handle as received from host
- * @param[in]	ic   - Pointer to isolation context for shared pool
- * 
- * @returns	Address on Success; or NULL code otherwise
- *
- */
-uint64_t shbp_acquire(uint64_t shbp, struct icontext *ic);
+If the peer DPCI is already enabled then it will result in link up. 
 
-/**
- * @brief	Return buffer into shared pool
- *
- * @param[in]	shbp - Buffer pool handle as received from host
- * @param[in]	buf - Buffer address
- * @param[in]	ic  - Pointer to isolation context for shared pool
- * 
- * @returns	0 on Success; or error code otherwise
- *
- */
-int shbp_release(uint64_t shbp, uint64_t buf, struct icontext *ic);
+@Param[in]	dpci_id - DPCI id of the AIOP side.
 
+@Return		0      - on success, POSIX error code otherwise
+ *//***************************************************************************/
+int dpci_drv_enable(uint32_t dpci_id);
 
-/** @} */ /* end of shbp_aiop_g group */
+/**************************************************************************//**
+@Function	dpci_drv_disable
 
-#endif /* __FSL_SHBP_H */
+@Description	Disable the DPCI.
+
+It will result in link down. 
+
+@Param[in]	dpci_id - DPCI id of the AIOP side.
+
+@Return		0      - on success, POSIX error code otherwise
+ *//***************************************************************************/
+int dpci_drv_disable(uint32_t dpci_id);
+
+#endif /* __FSL_DPCI_DRV_H */

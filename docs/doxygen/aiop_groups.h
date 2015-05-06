@@ -410,7 +410,7 @@
 				@ingroup AIOPSL
 				@{
 			*/
-				/** @defgroup dpni_g	DPNI
+				/** @defgroup dpni_drv_g DPNI DRV
 					@ingroup grp_dplib_aiop
 				*/
 			/** @} */

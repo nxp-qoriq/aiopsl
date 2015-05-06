@@ -1,3 +1,6 @@
+fsl_cmdif_client.h: Updated documentation for cmdif_open(): the buffer must be 8 bytes aligned, relevant for GPP only
+fsl_cmdif_server.h: Updated documentation for cmdif_session_open(): the buffer must be 8 bytes aligned, relevant for GPP only
+
 slab.c, bman.c: ENGR00356178 - Change AIOP SL to honor user’s requested alignment.
         (if user requests 16Byte alignment, user will get a 16Byte aligned buffer and the metadata will not be aligned)
 slab.c: ENGR00356128 - Removed unneeded check for bpid's if their ID's out of range [0,15]

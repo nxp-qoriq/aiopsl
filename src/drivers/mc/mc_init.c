@@ -37,7 +37,7 @@
 #include "fsl_mc_init.h"
 #include "ls2085_aiop/fsl_platform.h"
 #include "cmdif_srv.h"
-#include "fsl_dpci_drv.h"
+#include "fsl_dpci_event.h"
 #include "fsl_spinlock.h"
 
 extern struct aiop_init_info g_init_data;
@@ -139,6 +139,22 @@ __COLD_CODE static int dpci_tbl_create(struct mc_dpci_tbl **_dpci_tbl, int dpci_
 	}
 	memset(dpci_tbl->ic, 0xff, size);
 
+	size = sizeof(uint16_t) * dpci_count;
+	dpci_tbl->token = fsl_malloc(size,1);
+	if (dpci_tbl->token == NULL) {
+		pr_err("No memory for %d DPCIs\n", dpci_count);
+		return -ENOMEM;
+	}
+	memset(dpci_tbl->token, 0xff, size);
+	
+	size = sizeof(uint8_t) * dpci_count;
+	dpci_tbl->state = fsl_malloc(size,1);
+	if (dpci_tbl->state == NULL) {
+		pr_err("No memory for %d DPCIs\n", dpci_count);
+		return -ENOMEM;
+	}
+	memset(dpci_tbl->state, 0, size);
+	
 	dpci_tbl->count = 0;
 	dpci_tbl->max = dpci_count;
 
@@ -178,7 +194,7 @@ __COLD_CODE static int dpci_tbl_add(struct dprc_obj_desc *dev_desc)
 		err = dpci_rx_ctx_init((uint32_t)dev_desc->id, (uint32_t)err);
 	}
 #endif
-	err = dpci_drv_added((uint32_t)dev_desc->id);
+	err = dpci_event_assign((uint32_t)dev_desc->id);
 
 	return err;
 }
@@ -315,7 +331,7 @@ __COLD_CODE static int dpci_for_mc_add(struct mc_dprc *dprc)
 		err = dpci_rx_ctx_init((uint32_t)attr.id, (uint32_t)err);
 	}
 #endif
-	err = dpci_drv_added((uint32_t)attr.id);
+	err = dpci_event_assign((uint32_t)attr.id);
 
 	return err;
 }

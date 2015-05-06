@@ -113,18 +113,18 @@ typedef int (cmdif_cb_t)(void *async_ctx,
 
 @Param[in]	cidesc		Command interface descriptor, cmdif device will
 		be returned inside this descriptor.
-		Sharing of the same cidesc by multiple threads requires locks 
-		outside CMDIF API, as an alternative each thread can open it's 
-		own session by calling cmdif_open(). 
+		Sharing of the same cidesc by multiple threads requires locks
+		outside CMDIF API, as an alternative each thread can open it's
+		own session by calling cmdif_open().
 		Only cidesc.regs must be set by user see struct cmdif_desc.
 @Param[in]	module_name	Module name, up to 8 characters.
 @Param[in]	instance_id	Instance id which will be passed to #open_cb_t
-@Param[in]	data		Buffer to be used by command interface.
+@Param[in]	data		8 bytes aligned buffer for internal use of the
+		command interface.
 		This address should be accessible by Server and Client.
 		This buffer can be freed only after cmdif_close().
-		On AIOP, set data as NULL. 
-		On GPP it must be from Write-Back Cacheable and 
-		Outer Shareable memory. 
+		On AIOP, set data as NULL. On GPP it must be from Write-Back 
+		Cacheable and Outer Shareable memory.
 @Param[in]	size		Size of the data buffer. If the size is not
 		enough cmdif_open() will return -ENOMEM. On AIOP, set it to 0.
 		By default, set it to #CMDIF_OPEN_SIZE bytes.
