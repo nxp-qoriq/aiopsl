@@ -26,6 +26,8 @@
  * @key_enc_flags: key encryption flags; see encrypt_flags parameter of KEY
  *                 command for valid values.
  * @key_type: enum rta_data_type
+ * @algmode: algorithm mode selector; for valid values, see documentation of the
+ *           functions where it is used.
  */
 struct alginfo {
 	uint32_t algtype;
@@ -33,6 +35,7 @@ struct alginfo {
 	uint64_t key;
 	uint32_t key_enc_flags;
 	enum rta_data_type key_type;
+	uint16_t algmode;
 };
 
 #define INLINE_KEY(alginfo)	inline_flags(alginfo->key_type)

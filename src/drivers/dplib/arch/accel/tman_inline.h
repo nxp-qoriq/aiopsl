@@ -35,6 +35,7 @@
 #define __FSL_TMAN_INLINE_H
 
 #include "tman.h"
+#include "fsl_tman.h"
 #include "inline_asm.h"
 
 /* The below pragma is to remove compilation warning:"return value expected" */
@@ -77,7 +78,7 @@ inline int tman_create_timer(uint8_t tmi_id, uint32_t flags,
 	__e_hwacceli(TMAN_ACCEL_ID);
 	/* Load command results */
 	__ldw(&res1, &res2, HWC_ACC_OUT_ADDRESS, 0);
-	
+
 	*timer_handle = res2;
 	if (!((res1) & TMAN_FAIL_BIT_MASK))
 			return (int)(TMAN_TMR_CREATE_SUCCESS);
@@ -97,7 +98,7 @@ inline int tman_delete_timer(uint32_t timer_handle, uint32_t flags)
 	/* Optimization: remove 1 cycle using EABI */
 	__stdw(flags, timer_handle, HWC_ACC_IN_ADDRESS, 0);
 
-	/* call TMAN. and check if passed. 
+	/* call TMAN. and check if passed.
 	 * Optimization using compiler pattern*/
 #if 0
 /* todo - change when compiler ticket ENGR00338394 is fixed */
@@ -114,11 +115,11 @@ inline int tman_delete_timer(uint32_t timer_handle, uint32_t flags)
 	if (!((res1) & TMAN_FAIL_BIT_MASK))
 		return (int)(TMAN_DEL_TMR_DELETE_SUCCESS);
 #endif
-		
+
 	/* The order of the error check is according to its frequency */
-	
+
 	/* To check if A=0 && CCP=1 */
-	/* One shot - TO occurred. 
+	/* One shot - TO occurred.
 	 * Periodic - Timer was deleted */
 	if((res1 & TMAN_TMR_DEL_STATE_D_MASK) == TMAN_DEL_CCP_WAIT_ERR)
 		return (int)(-EACCES);
@@ -134,7 +135,7 @@ inline int tman_delete_timer(uint32_t timer_handle, uint32_t flags)
 	/* The next code is due to Errata ERR008205 */
 	if(res1 == TMAN_DEL_TMR_NOT_ACTIVE_ERR)
 		return (int)(-ENAVAIL);
-	/* End of Errata ERR008205 related code */	
+	/* End of Errata ERR008205 related code */
 
 	/* In case TMI State errors and TMAN_DEL_TMR_NOT_ACTIVE_ERR,
 	 * TMAN_DEL_TMR_DEL_ISSUED_ERR, TMAN_DEL_TMR_DEL_ISSUED_CONF_ERR */

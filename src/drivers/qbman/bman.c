@@ -31,13 +31,15 @@
 #include "fsl_malloc.h"
 #include "fsl_fdma.h"
 #include "fsl_dbg.h"
+#include "slab.h"
 
 /*****************************************************************************/
 __COLD_CODE int bman_fill_bpid(uint32_t num_buffs,
                      uint16_t buff_size,
                      uint16_t alignment,
                      enum memory_partition_id  mem_partition_id,
-                     uint16_t bpid)
+                     uint16_t bpid,
+                     uint16_t alignment_extension)
 {
 	int        i = 0;
 	dma_addr_t addr  = 0;
@@ -48,7 +50,8 @@ __COLD_CODE int bman_fill_bpid(uint32_t num_buffs,
 	case MEM_PART_DP_DDR:
 	case MEM_PART_SYSTEM_DDR:
 	case MEM_PART_PEB:
-		err = fsl_os_get_mem((uint32_t)buff_size * num_buffs,
+		err = fsl_os_get_mem((uint32_t)buff_size * num_buffs +
+		                     alignment_extension,
 		                     mem_partition_id,
 		                     alignment,
 		                     &addr);
@@ -65,6 +68,11 @@ __COLD_CODE int bman_fill_bpid(uint32_t num_buffs,
 		return -ENOMEM;
 	/* AIOP ICID and AMQ bits are needed for filling BPID */
 	icontext_aiop_get(&ic);
+
+
+	/*This is to make user data to be align if called from slab,
+	* otherwise 0 will be added*/
+	addr += alignment_extension;
 
 	for (i = 0; i < num_buffs; i++) {
 		fdma_release_buffer(ic.icid, ic.bdi_flags, bpid, addr);

@@ -366,8 +366,6 @@ void ipr_delete_instance_after_time_out(ipr_instance_handle_t ipr_instance_ptr)
 
 int ipr_reassemble(ipr_instance_handle_t instance_handle)
 {
-	/* Following array should be aligned due to ctlu alignment request */
-	uint8_t  ipv6_key[36] __attribute__((aligned(16)));
 	/* Following struct should be aligned due to ctlu alignment request */
 	struct ipr_rfdc rfdc __attribute__((aligned(16)));
 	struct ipr_instance instance_params;
@@ -382,7 +380,7 @@ int ipr_reassemble(ipr_instance_handle_t instance_handle)
 	uint16_t iphdr_offset;
 	struct presentation_context *prc =
 				(struct presentation_context *) HWC_PRC_ADDRESS;
-	
+		
 	iphdr_offset = (uint16_t)PARSER_GET_OUTER_IP_OFFSET_DEFAULT();
 	iphdr_ptr = (void *)(iphdr_offset + PRC_GET_SEGMENT_ADDRESS());
 
@@ -505,7 +503,7 @@ int ipr_reassemble(ipr_instance_handle_t instance_handle)
 		return ENOTSUP;
 	}
 	status_insert_to_LL = ipr_insert_to_link_list(&rfdc, rfdc_ext_addr,
-						      instance_params,
+						      &instance_params,
 						      iphdr_ptr, frame_is_ipv4);
 	switch (status_insert_to_LL) {
 	case FRAG_OK_REASS_NOT_COMPL:
@@ -638,16 +636,7 @@ int ipr_reassemble(ipr_instance_handle_t instance_handle)
 				  NULL);
 		/* DEBUG : check EIO */
 	} else {
-		cdma_read_wrp(&ipv6_key,
-			  rfdc_ext_addr+RFDC_SIZE+
-				  offsetof(struct extended_ipr_rfdc,ipv6_key),
-			  IPV6_KEY_SIZE);
-		table_rule_delete_wrp(TABLE_ACCEL_ID_CTLU,
-				  instance_params.table_id_ipv6,
-				  (union table_key_desc *)&ipv6_key,
-				  IPV6_KEY_SIZE,
-				  NULL);
-		/* DEBUG : check EIO */
+		ipv6_rule_delete(rfdc_ext_addr,&instance_params);
 	}
 
 	/* Open segment for reassembled frame */
@@ -741,6 +730,22 @@ int ipr_reassemble(ipr_instance_handle_t instance_handle)
 	}
 }
 
+void ipv6_rule_delete(uint64_t rfdc_ext_addr,
+		      struct ipr_instance *instance_params_ptr)
+{
+	/* Following array should be aligned due to ctlu alignment request */
+	uint8_t  ipv6_key[36] __attribute__((aligned(16)));
+
+	cdma_read_wrp(&ipv6_key, rfdc_ext_addr+RFDC_SIZE+
+			  	  offsetof(struct extended_ipr_rfdc,ipv6_key),
+		      IPV6_KEY_SIZE);
+	table_rule_delete_wrp(TABLE_ACCEL_ID_CTLU,
+			  instance_params_ptr->table_id_ipv6,
+			  (union table_key_desc *)&ipv6_key,
+			  IPV6_KEY_SIZE,
+			  NULL);
+	/* DEBUG : check EIO */
+}
 int ipr_lookup(uint32_t frame_is_ipv4, struct ipr_instance *instance_params_ptr,
 		uint64_t *rfdc_ext_addr_ptr)
 {
@@ -960,7 +965,7 @@ int ipr_miss_handling(struct ipr_instance *instance_params_ptr,
 }
 uint32_t ipr_insert_to_link_list(struct ipr_rfdc *rfdc_ptr,
 				 uint64_t rfdc_ext_addr,
-				 struct ipr_instance instance_params,
+				 struct ipr_instance *instance_params_ptr,
 				 void *iphdr_ptr,
 				 uint32_t frame_is_ipv4)
 {
@@ -1083,7 +1088,7 @@ uint32_t ipr_insert_to_link_list(struct ipr_rfdc *rfdc_ptr,
 			if (last_fragment) {
 				if((rfdc_ptr->current_total_length +
 				   rfdc_ptr->first_frag_hdr_length) <=
-				   instance_params.max_reass_frm_size) {
+				   instance_params_ptr->max_reass_frm_size) {
 					/* Close current frame before storing FD */
 					fdma_store_default_frame_data();
 
@@ -1168,7 +1173,8 @@ uint32_t ipr_insert_to_link_list(struct ipr_rfdc *rfdc_ptr,
 			/* Out of order handling */
 			return_status = out_of_order(rfdc_ptr, rfdc_ext_addr,
 					last_fragment, current_frag_size,
-					frag_offset_shifted, &instance_params);
+					frag_offset_shifted,
+					instance_params_ptr);
 			if(return_status == MALFORMED_FRAG)
 				return MALFORMED_FRAG;
 	}
@@ -1692,7 +1698,6 @@ void ipr_time_out(uint64_t rfdc_ext_addr, uint16_t opaque_not_used)
 	struct   dpni_drv *dpni_drv;
 	uint16_t rfdc_status;
 	uint32_t flags;
-	uint8_t  ipv6_key[36] __attribute__((aligned(16)));
 	uint8_t  num_of_frags;
 	uint8_t  first_frag_index;
 	uint8_t  index = 0;
@@ -1716,16 +1721,7 @@ void ipr_time_out(uint64_t rfdc_ext_addr, uint16_t opaque_not_used)
 	rfdc_status = rfdc.status;
 	
 	if (rfdc_status & IPV6_FRAME) {
-		cdma_read(&ipv6_key,
-			  rfdc_ext_addr+RFDC_SIZE+
-				  offsetof(struct extended_ipr_rfdc,ipv6_key),
-			  IPV6_KEY_SIZE);
-		table_rule_delete(TABLE_ACCEL_ID_CTLU,
-				  instance_params.table_id_ipv6,
-				  (union table_key_desc *)&ipv6_key,
-				  IPV6_KEY_SIZE,
-				  NULL);
-		/* DEBUG: check EIO */
+		ipv6_rule_delete(rfdc_ext_addr,&instance_params);
 	} else {
 		/* IPV4 */
 		table_rule_delete(TABLE_ACCEL_ID_CTLU,
@@ -1847,7 +1843,6 @@ void move_to_correct_ordering_scope2(uint32_t osm_status)
 		 * the ipr_reassemble function */
 		osm_scope_exit();
 		osm_scope_exit();
-		osm_scope_relinquish_exclusivity();
 	} else if (osm_status & START_CONCURRENT) {
 		osm_scope_relinquish_exclusivity();
 	}

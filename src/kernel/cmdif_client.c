@@ -45,7 +45,7 @@
 #include "fsl_io_ccsr.h"
 #include "fsl_icontext.h"
 #include "cmdif_srv.h"
-#include "fsl_dpci_drv.h"
+#include "fsl_dpci_event.h"
 
 #define CMDIF_TIMEOUT     0x10000000
 

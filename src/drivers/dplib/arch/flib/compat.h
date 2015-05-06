@@ -132,6 +132,13 @@ typedef unsigned char			_Bool;
 #define swab64(x) swap_uint64(x)
 #define cpu_to_be32(x)	CPU_TO_BE32(x)
 #define cpu_to_le32(x)	CPU_TO_LE32(x)
+#ifdef CORE_IS_BIG_ENDIAN
+#define __BIG_ENDIAN
+#elif defined(CORE_IS_LITTLE_ENDIAN)
+#define __LITTLE_ENDIAN
+#else
+#error Endianness not set in environment!
+#endif /* CORE_IS_BIG_ENDIAN */
 #endif
 
 #endif /* __RTA_COMPAT_H__ */

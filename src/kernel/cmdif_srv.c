@@ -44,7 +44,7 @@
 #include "cmdif_rev.h"
 #include "fsl_sl_cmd.h"
 #include "fsl_icontext.h"
-#include "fsl_dpci_drv.h"
+#include "fsl_dpci_event.h"
 #include "fsl_stdlib.h"
 
 /** Blocking commands don't need response FD */
@@ -458,7 +458,7 @@ __COLD_CODE int notify_open()
 		return -ENAVAIL;
 	}
 
-	err = dpci_drv_update((uint32_t)ind); /* dev_id is swapped by GPP */
+	err = dpci_event_update((uint32_t)ind); /* dev_id is swapped by GPP */
 	ASSERT_COND(!err);
 
 	err = dpci_drv_tx_get(cmdif_aiop_srv.dpci_tbl->dpci_id[ind], 
@@ -615,7 +615,7 @@ __COLD_CODE int session_open(uint16_t *new_auth)
 
 	dpci_drv_user_ctx_get(&ind, NULL);
 #ifndef STACK_CHECK /* Stack check can ignore it up to user callback */
-	err = dpci_drv_update(ind);
+	err = dpci_event_update(ind);
 	ASSERT_COND(!err);
 #endif
 
@@ -649,6 +649,11 @@ __HOT_CODE void cmdif_srv_isr(void) __attribute__ ((noreturn))
 
 	ASSERT_COND_LIGHT(cmdif_aiop_srv.srv != NULL);
 
+	
+#ifdef FDMA_OSM_LIMIT
+	SET_FRAME_TYPE(PRC_GET_FRAME_HANDLE(), HWC_FD_ADDRESS);
+#endif
+	
 #ifdef DEBUG
 	dump_memory();
 #endif

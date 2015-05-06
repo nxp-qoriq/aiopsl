@@ -104,7 +104,7 @@
 
 
 
-/* Maximum number of BMAN pools used by the slab virtual pools */
+/* Maximum number of BMAN pools used by the slab pools array */
 #define SLAB_MAX_BMAN_POOLS_NUM 16
 
 /**************************************************************************//**

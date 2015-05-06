@@ -38,7 +38,7 @@
 #include "fsl_spinlock.h"
 #include "cmdif_srv.h"
 #include "fsl_io_ccsr.h"
-#include "fsl_dpci_drv.h"
+#include "fsl_dpci_event.h"
 
 #define ICONTEXT_SET(ICID, AMQ)	\
 do { \
