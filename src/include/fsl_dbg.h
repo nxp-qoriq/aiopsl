@@ -36,6 +36,7 @@
 #include "inc/dbg.h"
 #include "inc/fsl_core.h"
 #include "fsl_smp.h"
+#include "fsl_stdio.h"
 
 /**************************************************************************//**
  @Group			FSL_DEBUG_GROUP Debug Utilities
@@ -71,6 +72,9 @@
 #define EVENT_DISABLED          0xff    /**< Disabled event (not reported at all) */
 
 /* @} */
+
+#define PRINT_FORMAT        "[CPU %d, %s:%d %s]"
+#define PRINT_FMT_PARAMS    core_get_id(), __FILE__, __LINE__, __FUNCTION__
 
 /**************************************************************************//**
  @Function      ASSERT_COND

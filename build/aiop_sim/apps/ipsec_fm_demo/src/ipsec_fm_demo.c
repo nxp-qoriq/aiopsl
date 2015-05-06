@@ -355,6 +355,9 @@ int app_init(void)
 		return err;
 	}
 
+    err = dpni_drv_set_max_frame_length(1/*ni_id*/,
+                            0x2000 /* Max frame length*/);
+
 	/* IPsec Initialization */
 	//err = ipsec_app_init(0); /* Call with NI ID = 0 */
 	//if (err) {
@@ -388,7 +391,8 @@ int ipsec_app_init(uint16_t ni_id)
 	uint8_t cipher_key[16] = "1122334455667788";
 	//uint8_t auth_key[128];
 	//uint8_t auth_key[128] = "12345678123456781234"; // 20 bytes
-	uint8_t auth_key[128] = "12345678123456781234567812345678"; // 32 bytes
+	//uint8_t auth_key[128] = "12345678123456781234567812345678"; // 32 bytes
+	uint8_t auth_key[128] = "1234567812345678123456781234567812345678123456781234567812345678"; // 64 bytes
 	uint8_t auth_key_id = 0;
 	
 	uint32_t cipher_alg;
@@ -399,11 +403,16 @@ int ipsec_app_init(uint16_t ni_id)
 	uint32_t outer_header_ip_version;
 	uint16_t ni_spid;
 	uint32_t tunnel_transport_mode;
+	uint32_t reuse_buffer_mode = 0;
+	uint32_t set_dscp = 0;
+	uint16_t esn_enable = 0;
 
 	enum key_types {
-		NULL_ENCRYPTION = 0,
+		NULL_MD5 = 0,
+		NULL_SHA512,
 		AES128_SHA1,
 		AES128_SHA256,
+		AES128_SHA512,
 		AES128_NULL
 	};
 
@@ -411,12 +420,14 @@ int ipsec_app_init(uint16_t ni_id)
 	/*                    Control Parameters                  */
 	/**********************************************************/
 	/* Set the required algorithms here */
-	algs = NULL_ENCRYPTION;
+	//algs = NULL_MD5;
+	//algs = NULL_SHA512;
 	//algs = AES128_SHA256;
+	algs = AES128_SHA512;
 	//algs = AES128_SHA1;
 
 	/* Set the outer IP header type here */
-	outer_header_ip_version = 4; /* 4 or 6 */
+	outer_header_ip_version = 6; /* 4 or 6 */
 	//outer_header_ip_version = 17; /* UDP encap (Tunnel mode only) */
 
 	auth_key_id = 0; /* Keep the initial key array value */ 
@@ -424,6 +435,19 @@ int ipsec_app_init(uint16_t ni_id)
 	
 	tunnel_transport_mode = IPSEC_FLG_TUNNEL_MODE; /* Tunnel Mode */
 	//tunnel_transport_mode = 0; /* Transport Mode */
+	
+	/* DSCP setting, valid only for tunnel mode */
+	if (tunnel_transport_mode) {
+		set_dscp = IPSEC_FLG_ENC_DSCP_SET; /* Set DSCP in outer header */
+		//set_dscp = 0; /* Copy DSCP from inner to outer header */
+	}	
+	
+	esn_enable = 0; /* ESN Disabled */
+	//esn_enable = IPSEC_OPTS_ESP_ESN; /* ESN Enabled */
+
+	reuse_buffer_mode = 0; /* New Buffer Mode */
+	//reuse_buffer_mode = IPSEC_FLG_BUFFER_REUSE; /* Reuse mode */
+	
 	
 	/**********************************************************/
 
@@ -439,8 +463,21 @@ int ipsec_app_init(uint16_t ni_id)
 
 	frame_number = 0;
 
-	fsl_os_print("\n++++\n  IPsec Demo: Doing IPsec Initialization\n+++\n");
+	fsl_os_print("\n++++\n  IPsec Demo: Doing IPsec Initialization\n++++\n");
+	
+	if (tunnel_transport_mode == IPSEC_FLG_TUNNEL_MODE) {
+		fsl_os_print("IPsec Demo: Tunnel Mode\n");
+	} else {
+		fsl_os_print("IPsec Demo: Transport Mode\n");
+	}
+	
+	if (reuse_buffer_mode == IPSEC_FLG_BUFFER_REUSE) {
+		fsl_os_print("IPsec Demo: Reuse Buffer Mode\n");
+	} else {
+		fsl_os_print("IPsec Demo: New Buffer Mode\n");
+	}
 
+	
 	dpni_drv_get_spid(
 		ni_id, /* uint16_t ni_id */
 		&ni_spid /* uint16_t *spid */
@@ -517,13 +554,21 @@ int ipsec_app_init(uint16_t ni_id)
 	}
 
 	switch (algs) {
-		case NULL_ENCRYPTION:
+		case NULL_MD5:
 			fsl_os_print("Cipher Algorithm: IPSEC_CIPHER_NULL\n");
 			fsl_os_print("Authentication Algorithm: IPSEC_AUTH_HMAC_MD5_96\n");
 			cipher_alg = IPSEC_CIPHER_NULL;
 			cipher_keylen = 0x0;
 			auth_alg = IPSEC_AUTH_HMAC_MD5_96;
 			auth_keylen = 16;
+			break;
+		case NULL_SHA512:
+			fsl_os_print("Cipher Algorithm: IPSEC_CIPHER_NULL\n");
+			fsl_os_print("Authentication Algorithm: IPSEC_AUTH_HMAC_SHA2_512_256\n");
+			cipher_alg = IPSEC_CIPHER_NULL;
+			cipher_keylen = 0x0;
+			auth_alg = IPSEC_AUTH_HMAC_SHA2_512_256;
+			auth_keylen = 64;
 			break;
 		case AES128_SHA1:
 			fsl_os_print("Cipher Algorithm: IPSEC_CIPHER_AES_CBC\n");
@@ -542,6 +587,14 @@ int ipsec_app_init(uint16_t ni_id)
 			//auth_keylen = 64;
 			auth_keylen = 32;
 			break;
+		case AES128_SHA512:
+			fsl_os_print("Cipher Algorithm: IPSEC_CIPHER_AES_CBC\n");
+			fsl_os_print("Authentication Algorithm: IPSEC_AUTH_HMAC_SHA2_512_256\n");
+			cipher_alg = IPSEC_CIPHER_AES_CBC;
+			cipher_keylen = 16;
+			auth_alg = IPSEC_AUTH_HMAC_SHA2_512_256;
+			auth_keylen = 64;
+			break;	
 		case AES128_NULL:
 			fsl_os_print("Cipher Algorithm: IPSEC_CIPHER_AES_CBC\n");
 			fsl_os_print("Authentication Algorithm: IPSEC_AUTH_HMAC_NULL\n");
@@ -583,7 +636,8 @@ int ipsec_app_init(uint16_t ni_id)
 	else if (outer_header_ip_version == 6) {
 
 		outer_ip_header[0] = 0x60000000;
-		outer_ip_header[1] = 0x002032ff;
+//		outer_ip_header[1] = 0x002032ff;
+		outer_ip_header[1] = 0x000032ff;
 		outer_ip_header[2] = 0xfe800000;
 		outer_ip_header[3] = 0x00000000;
 		outer_ip_header[4] = 0x021125ff;
@@ -609,12 +663,20 @@ int ipsec_app_init(uint16_t ni_id)
 		params.encparams.ip_hdr_len = 0x1c; /* outer header length is 28 bytes */
 	}
 
+	//params.encparams.ip_hdr_len = 0x00; //DEBUG 
+	
 	/* Outbound (encryption) parameters */
 	params.direction = IPSEC_DIRECTION_OUTBOUND; /**< Descriptor direction */
 	//params.flags = IPSEC_FLG_TUNNEL_MODE |
+	//params.flags = tunnel_transport_mode |
+	//		IPSEC_FLG_LIFETIME_KB_CNTR_EN | IPSEC_FLG_LIFETIME_PKT_CNTR_EN;
+	//		/**< Miscellaneous control flags */
+	
+	/* Miscellaneous control flags */
 	params.flags = tunnel_transport_mode |
-			IPSEC_FLG_LIFETIME_KB_CNTR_EN | IPSEC_FLG_LIFETIME_PKT_CNTR_EN;
-			/**< Miscellaneous control flags */
+			IPSEC_FLG_LIFETIME_KB_CNTR_EN | IPSEC_FLG_LIFETIME_PKT_CNTR_EN |
+				set_dscp | reuse_buffer_mode;
+	
 	
 	/* UDP ENCAP (tunnel mode)*/
 	if ((outer_header_ip_version == 17) && 	
@@ -624,7 +686,10 @@ int ipsec_app_init(uint16_t ni_id)
 		fsl_os_print("IPSEC: Tunnel Mode UDP Encapsulation\n");
 	}
 	
-	params.encparams.options = 0x0;
+	//params.encparams.options = 0x0;
+	//params.encparams.options = IPSEC_OPTS_ESP_ESN;
+	params.encparams.options = esn_enable;
+	
 	params.encparams.seq_num_ext_hi = 0x0;
 	params.encparams.seq_num = 0x0;
 	params.encparams.spi = 0x0;
@@ -684,10 +749,21 @@ int ipsec_app_init(uint16_t ni_id)
 	params.flags = tunnel_transport_mode |
 			IPSEC_FLG_LIFETIME_KB_CNTR_EN | IPSEC_FLG_LIFETIME_PKT_CNTR_EN;
 			/**< Miscellaneous control flags */
-
-	params.decparams.options = 0x0;
+	
+	/*
+	params.flags = tunnel_transport_mode |
+				IPSEC_FLG_LIFETIME_KB_CNTR_EN | IPSEC_FLG_LIFETIME_PKT_CNTR_EN;
+	*/
+	/* Reuse Buffer Mode */
+	params.flags = tunnel_transport_mode |
+				IPSEC_FLG_LIFETIME_KB_CNTR_EN | IPSEC_FLG_LIFETIME_PKT_CNTR_EN |
+				reuse_buffer_mode;
+	
+	//params.decparams.options = 0x0;
 	//params.decparams.options = IPSEC_DEC_OPTS_ARS32; /* Anti Replay 32 bit enabled */
-
+	//params.decparams.options = IPSEC_OPTS_ESP_ESN;
+	params.decparams.options = esn_enable;
+	
 	params.decparams.seq_num_ext_hi = 0x0;
 	params.decparams.seq_num = 0x0;
 

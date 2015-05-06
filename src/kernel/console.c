@@ -38,33 +38,33 @@
 #ifdef ARENA_LEGACY_CODE
 static int system_call(int num, int arg0, int arg1, int arg2, int arg3)
 {
-       int out;
+	int out;
 
-       __asm__ volatile (
-             "mr 0, %5"  "\n"
-             "mr 3, %1" "\n"
-             "mr 4, %2" "\n"
-             "mr 5, %3" "\n"
-             "mr 6, %4" "\n"
-             "sc" "\n"
-             "mr %0, 3" "\n"
-             : "=r"(out)
-             : "r"(arg0), "r"(arg1), "r"(arg2), "r"(arg3), "r"(num)
-             : "r0", "r3", "r4", "r5", "r6", "r7"
-       );
+	__asm__ volatile (
+		"mr 0, %5"  "\n"
+		"mr 3, %1" "\n"
+		"mr 4, %2" "\n"
+		"mr 5, %3" "\n"
+		"mr 6, %4" "\n"
+		"sc" "\n"
+		"mr %0, 3" "\n"
+		: "=r"(out)
+		  : "r"(arg0), "r"(arg1), "r"(arg2), "r"(arg3), "r"(num)
+		    : "r0", "r3", "r4", "r5", "r6", "r7"
+	);
 
-       return out;
+	return out;
 }
 #endif /* ARENA_LEGACY_CODE */
 
 /*****************************************************************************/
 __COLD_CODE int sys_register_console(fsl_handle_t h_console_dev,
-                               int(*f_console_print)(fsl_handle_t h_console_dev,
-                                                     uint8_t *p_data,
-                                                     uint32_t size),
-                               int(*f_console_get)(fsl_handle_t h_console_dev,
-                                                   uint8_t *p_data,
-                                                   uint32_t size))
+                                     int(*f_console_print)(fsl_handle_t h_console_dev,
+                                	     uint8_t *p_data,
+                                	     uint32_t size),
+                                	     int(*f_console_get)(fsl_handle_t h_console_dev,
+                                		     uint8_t *p_data,
+                                		     uint32_t size))
 {
 #ifdef AIOP
 	uint8_t print_to_buffer_state;
@@ -82,10 +82,8 @@ __COLD_CODE int sys_register_console(fsl_handle_t h_console_dev,
 
 	sys.f_console_get = f_console_get;
 
-#ifdef AIOP
-	sys.console_lock = 0; /* spinlock init */
-#else
-    spin_lock_init(&(sys.console_lock));
+#ifdef MC
+	spin_lock_init(&(sys.console_lock));
 #endif
 
 	/* Flush pre-console printouts as necessary */
@@ -119,55 +117,47 @@ int sys_unregister_console(void)
 }
 
 /*****************************************************************************/
+/*pragma used to ignore stack check for the function below*/
+#pragma stackinfo_ignore on
+static void sys_print_to_pre_console_buf(char *str, uint32_t count)
+{
+	if (sys.p_pre_console_buf) {
+		if (count >= (PRE_CONSOLE_BUF_SIZE - sys.pre_console_buf_pos)) {
+			/* Reached buffer end - overwrite from buffer start */
+			sys.pre_console_buf_pos = 0;
+			sys.pre_console_buf_pos += sprintf(
+				sys.p_pre_console_buf, "[TRUNCATED]...\n");
+		}
+
+		memcpy(&(sys.p_pre_console_buf[sys.pre_console_buf_pos]),
+		       str/*sys.print_buf*/, count);
+		sys.pre_console_buf_pos += count;
+
+	}
+}
+
+/*****************************************************************************/
 void sys_print(char *str)
 {
 	uint32_t count = (uint32_t)strlen(str);
-
 #ifdef AIOP
 	if(sys.print_to_buffer)
-		/*print to buffer using fdma (the pointer to buffer inside spinlock for safety)*/
+		/*print to buffer using fdma*/
 		log_print_to_buffer(str, (uint16_t)count);/*Don't call this function if you under spinlock*/
-
-	lock_spinlock(&(sys.console_lock));
 #else
 	uint32_t int_flags;
 	int_flags = spin_lock_irqsave(&(sys.console_lock));
 #endif
 	/* Print to the registered console, if exists */
 #pragma fn_ptr_candidates(console_print_cb)
-	if (sys.console)
+	if (sys.console){
 		sys.f_console_print(sys.console, (uint8_t *)str, count);
-#ifndef STACK_CHECK /*Printing to pre console buffer should not be checked - happens only in boot*/
-	else {
-		if (!sys.p_pre_console_buf) {
-				/* Cannot print error message - print called before entering to sys_init */
-#ifdef AIOP
-				unlock_spinlock(&(sys.console_lock));
-#else
-				spin_unlock_irqrestore(&(sys.console_lock), int_flags);
-#endif
-				return;
-		}
-		else
-		{
-			if (count >= (PRE_CONSOLE_BUF_SIZE - sys.pre_console_buf_pos)) {
-				/* Reached buffer end - overwrite from buffer start */
-				sys.pre_console_buf_pos = 0;
-				sys.pre_console_buf_pos += sprintf(
-						sys.p_pre_console_buf, "[TRUNCATED]...\n");
-			}
-
-			memcpy(&(sys.p_pre_console_buf[sys.pre_console_buf_pos]),
-				   str/*sys.print_buf*/, count);
-			sys.pre_console_buf_pos += count;
-		}
-
 	}
-#endif /*STACK_CHECK*/
-#ifdef AIOP
-				unlock_spinlock(&(sys.console_lock));
-#else
-				spin_unlock_irqrestore(&(sys.console_lock), int_flags);
+	else{
+		sys_print_to_pre_console_buf(str, count);
+	}
+#ifdef MC
+	spin_unlock_irqrestore(&(sys.console_lock), int_flags);
 #endif
 }
 

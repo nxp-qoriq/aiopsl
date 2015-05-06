@@ -66,7 +66,6 @@ typedef struct t_system {
 	char                        *p_pre_console_buf;
 	uint32_t                    pre_console_buf_pos;
 	uint8_t                     print_to_buffer;
-	uint8_t                     console_lock;
 
 	/* Multi-Processing variables */
 	int                  is_tile_master[INTG_MAX_NUM_OF_CORES];

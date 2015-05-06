@@ -124,6 +124,11 @@ typedef void (ipsec_lifetime_callback_t) (
  * In tunnel mode pad check is always done*/
 #define IPSEC_FLG_TRANSPORT_PAD_CHECK	0x00000002
 
+/** Reuse the input frame buffer.
+ * If this bit is set, the input frame buffer is used for the output frame. 
+ * Otherwise a new buffer is allocated and the input buffer is released. */
+#define IPSEC_FLG_BUFFER_REUSE	0x00000004
+
 /** NAT UDP Encapsulation enable. (IPv4 only) */
 #define IPSEC_ENC_OPTS_NAT_EN		0x00000010
 
@@ -131,6 +136,15 @@ typedef void (ipsec_lifetime_callback_t) (
  * When set, the outer header UDP checksum is calculated.
  * If not set, the the outer header UDP checksum is zero. */
 #define IPSEC_ENC_OPTS_NUC_EN		0x00000020
+
+/** Set the differentiated services field in the outer IP header according to 
+ * the value provided by the ipsec_encap_params.outer_hdr (tunnel mode only).
+ * This is the 6 most-significant bits of the TOS field (IPv4) or 
+ * Traffic-Class field (IPv6).
+ * If this flag is not set, the DS field is copied from the inner header to the
+ * outer header.
+ * This flag must not be set for transport mode. */ 
+#define IPSEC_FLG_ENC_DSCP_SET 		0x00000040
 
 /** Lifetime Counters 
  * These flags control if the lifetime counters status is checked.

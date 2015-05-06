@@ -26,6 +26,7 @@
 
 #include "common/types.h"
 #include "fsl_errors.h"
+#include "fsl_stdio.h"
 #include "inc/fsl_gen.h"
 #include "common/fsl_string.h"
 #include "fsl_io.h"

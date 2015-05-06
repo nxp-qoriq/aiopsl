@@ -40,7 +40,6 @@ extern int global_post_init(void);
 extern int apps_early_init(void);
 extern int run_apps(void);
 extern void core_ready_for_tasks(void);
-extern int dpni_drv_enable_all(void);
 #if (STACK_OVERFLOW_DETECTION == 1)
 __COLD_CODE static inline void configure_stack_overflow_detection(void)
 {

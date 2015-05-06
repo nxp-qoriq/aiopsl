@@ -1492,12 +1492,17 @@ struct dpni_flc_cfg {
  * not applicable for Tx-conf/Err queues as the FD comes from the user
  */
 #define DPNI_QUEUE_OPT_FLC		0x00000004
+/* Select to modify the queue's order preservation */
+#define DPNI_QUEUE_OPT_ORDER_PRESERVATION 0x00000008
 
 
 /**
  * struct dpni_queue_cfg - Structure representing queue configuration
  * @options: Flags representing the suggested modifications to the queue;
  *		Use any combination of 'DPNI_QUEUE_OPT_<X>' flags
+ * @order_preservation_en: enable/disable order preservation;
+ *		valid only if 'DPNI_QUEUE_OPT_ORDER_PRESERVATION' is contained
+ *		in 'options'
  * @user_ctx: User context value provided in the frame descriptor of each
  *		dequeued frame; valid only if 'DPNI_QUEUE_OPT_USER_CTX'
  *		is contained in 'options'
@@ -1511,6 +1516,7 @@ struct dpni_flc_cfg {
  */
 struct dpni_queue_cfg {
 	uint32_t options;
+	int order_preservation_en;
 	uint64_t user_ctx;
 	struct dpni_dest_cfg dest_cfg;
 	struct dpni_flc_cfg flc_cfg;
@@ -1518,6 +1524,7 @@ struct dpni_queue_cfg {
 
 /**
  * struct dpni_queue_attr - Structure representing queue attributes
+ * @order_preservation_en: enable/disable order preservation
  * @user_ctx: User context value provided in the frame descriptor of each
  *	dequeued frame
  * @dest_cfg: Queue destination configuration
@@ -1526,6 +1533,7 @@ struct dpni_queue_cfg {
  */
 struct dpni_queue_attr {
 	uint64_t user_ctx;
+	int order_preservation_en;
 	struct dpni_dest_cfg dest_cfg;
 	struct dpni_flc_cfg flc_cfg;
 	uint32_t fqid;

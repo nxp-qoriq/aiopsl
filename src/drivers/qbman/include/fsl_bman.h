@@ -52,6 +52,9 @@
 @Param[in]     mem_partition_id  Memory partition ID for buffer type.
 				 AIOP: HW pool supports only PEB and DDR.
 @Param[in]     bpid              Id of pool to fill with buffers.
+@Param[in]     alignment_extension Used to shift first buffer if 8 bytes of HW
+				metadata exist and make user field aligned.
+				(Default 0 must be entered if not used for slab)
 
 
 @Return        0       - on success,
@@ -62,7 +65,8 @@ int bman_fill_bpid(uint32_t num_buffs,
                      uint16_t buff_size,
                      uint16_t alignment,
                      enum memory_partition_id  mem_partition_id,
-                     uint16_t bpid);
+                     uint16_t bpid,
+                     uint16_t alignment_extension);
 
 
 #endif /* __FSL_BMAN_H */

@@ -42,28 +42,4 @@ const char *dbg_level_strings[] = {
     ,"TRACE"
 };
 
-char * err_type_strings (int err) {
-    switch (err) {
-        case (0):                       return "OK";
-        case (EIO):                     return "write access failed";
-        case (ENODEV):                  return "no device";
-        case (EAGAIN):                  return "resource is unavailable";
-        case (ENOMEM):                  return "memory allocation failed";
-        case (EFAULT):                  return "invalid address";
-        case (EBUSY):                   return "resource is busy";
-        case (EEXIST):                  return "resource already exists";
-        case (ENOSYS):                  return "invalid operation";
-        case (EDOM):                    return "invalid value";
-        case (ERANGE):                  return "value out of range";
-        case (ENOTSUP):                 return "unsupported operation";
-        case (ETIMEDOUT):               return "operation timed out";
-        case (E_INVALID_SELECTION):     return "invalid selection";
-        case (E_NOT_FOUND):             return "resource not found";
-        case (E_FULL):                  return "resource is full";
-        case (E_EMPTY):                 return "resource is empty";
-        default:
-            break;
-    }
-    return NULL;
-}
 #endif /* (defined(DEBUG_ERRORS) && (DEBUG_ERRORS > 0)) */

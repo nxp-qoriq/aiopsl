@@ -27,6 +27,7 @@
 #include "general.h"
 #include "fsl_fdma.h"
 #include "fsl_dbg.h"
+#include "fsl_stdlib.h"
 #include <string.h>
 
 extern __TASK uint32_t exception_flag;

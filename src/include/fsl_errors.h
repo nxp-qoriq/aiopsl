@@ -34,8 +34,6 @@
 #define __FSL_ERRORS_H
 
 #include <errno.h>
-#include "inc/errors.h"
-
 
 /**************************************************************************//**
  @Group         error_g Error Handling

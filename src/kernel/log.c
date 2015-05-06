@@ -53,11 +53,11 @@ int log_init()
 {
 	char str[] = LOG_INIT_SIGN;
 	struct icontext ic;
-	
-	g_log_buf_phys_address = g_init_data.sl_info.log_buf_paddr;	
+
+	g_log_buf_phys_address = g_init_data.sl_info.log_buf_paddr;
 	g_log_buf_size = g_init_data.sl_info.log_buf_size;
-	g_log_buf_count = sizeof(str) - 1; 
-	
+	g_log_buf_count = sizeof(str) - 1;
+
 	ASSERT_COND_LIGHT(g_log_buf_size > 1 * KILOBYTE);
 	icontext_aiop_get(&ic);
 	ASSERT_COND_LIGHT(ic.dma_flags);
@@ -65,36 +65,19 @@ int log_init()
 	icontext_dma_write(&ic, (uint16_t)g_log_buf_count, str, g_log_buf_phys_address);
 	return 0;
 }
-
+/*
+ * @Cautions - Calling this function from not protected by mutex print is dangerous.
+ * */
 void log_print_to_buffer(char *str, uint16_t str_length)
 {
-	uint32_t local_counter;	
+	uint32_t local_counter;
 	uint16_t second_write_len;
-
-	/*Save Accelerator Hardware Context*/
-	/** Address for passing parameters to accelerators */
-	uint32_t hwc1 = *((uint32_t *) HWC_ACC_IN_ADDRESS);
-	/** Address for passing parameters to accelerators */
-	uint32_t hwc2 = *((uint32_t *) HWC_ACC_IN_ADDRESS2);
-	/** Address for passing parameters to accelerators */
-	uint32_t hwc3 = *((uint32_t *) HWC_ACC_IN_ADDRESS3);
-	/** Address for passing parameters to accelerators */
-	uint32_t hwc4 = *((uint32_t *) HWC_ACC_IN_ADDRESS4);
-	/** Address for reading results from accelerators (1st register) */
-	uint32_t hwc5 = *((uint32_t *) HWC_ACC_OUT_ADDRESS);
-	/** Address for reading results from accelerators (2nd register) */
-	uint32_t hwc6 = *((uint32_t *) HWC_ACC_OUT_ADDRESS2);
-	/** Address for reading reserved 1 from hardware accelerator context*/
-	uint32_t hwc7 = *((uint32_t *) HWC_ACC_RESERVED1);
-	/** Address for reading reserved 2 from hardware accelerator context*/
-	uint32_t hwc8 = *((uint32_t *) HWC_ACC_RESERVED2);
-
 	/*
 	 * Adding END\n delimiter.
-	 * The full str buffer size was given with 4 bytes extra for the end delimiter 
+	 * The full str buffer size was given with 4 bytes extra for the end delimiter
 	 * */
-	
-	str[str_length++] = 'E'; 
+
+	str[str_length++] = 'E';
 	str[str_length++] = 'N';
 	str[str_length++] = 'D';
 	str[str_length++] = '\n';
@@ -103,11 +86,10 @@ void log_print_to_buffer(char *str, uint16_t str_length)
 	if(str_length > g_log_buf_size) /*in case the length is too big */
 	{
 		return;
-	}	
-	/*Lock mutex*/
-	cdma_mutex_lock_take(g_log_buf_phys_address, CDMA_MUTEX_WRITE_LOCK);
+	}
+	/*The call to function must be protected*/
 	local_counter = g_log_buf_count;
-	/*Move the pointer 4 bytes back */ 
+	/*Move the pointer 4 bytes back */
 	if(local_counter >= LOG_END_SIGN_LENGTH){
 		/*Start to write from the last end of write without END delimiter*/
 		local_counter -= LOG_END_SIGN_LENGTH;
@@ -116,80 +98,61 @@ void log_print_to_buffer(char *str, uint16_t str_length)
 		/*write from the end of the buffer (END\n delimiter is in the end of buffer)*/
 		local_counter = g_log_buf_size + (local_counter - LOG_END_SIGN_LENGTH);
 	}
-	
+
 
 	/*Fast phase*/
 	if(local_counter + str_length <= g_log_buf_size )/*last position + string length + END delimiter*/
 	{
 		/* Enough buffer*/
 		g_log_buf_count = local_counter + str_length;
-		
+
 		icontext_dma_write(&icontext_aiop,
-				str_length - LOG_END_SIGN_LENGTH,
-				&str[LOG_END_SIGN_LENGTH],
-				g_log_buf_phys_address + local_counter + LOG_END_SIGN_LENGTH);
-		
+		                   str_length - LOG_END_SIGN_LENGTH,
+		                   &str[LOG_END_SIGN_LENGTH],
+		                   g_log_buf_phys_address + local_counter + LOG_END_SIGN_LENGTH);
+
 		icontext_dma_write(&icontext_aiop,
-				LOG_END_SIGN_LENGTH,
-				str,
-				g_log_buf_phys_address + local_counter);	
+		                   LOG_END_SIGN_LENGTH,
+		                   str,
+		                   g_log_buf_phys_address + local_counter);
 	}
 	else /*cyclic write needed*/
 	{
-		/*Two writes needed (Not including the overwrite of END delimiter) - calculate the second write*/		
+		/*Two writes needed (Not including the overwrite of END delimiter) - calculate the second write*/
 		second_write_len = str_length - (uint16_t)(g_log_buf_size - local_counter);
 		str_length -= second_write_len; /*str_length is now "first_write" length*/
 		if(second_write_len >= LOG_END_SIGN_LENGTH)/*The END\n delimiter will be written in the second write*/
 		{
 			g_log_buf_count = second_write_len; /*The counter will point to the end of the string from the beginning of buffer*/
-			
+
 			icontext_dma_write(&icontext_aiop,
-					second_write_len,
-					&str[str_length],
-					g_log_buf_phys_address);
-			
+			                   second_write_len,
+			                   &str[str_length],
+			                   g_log_buf_phys_address);
+
 			icontext_dma_write(&icontext_aiop,
-					str_length,
-					str,
-					g_log_buf_phys_address + local_counter);			
+			                   str_length,
+			                   str,
+			                   g_log_buf_phys_address + local_counter);
 		}
 		else /*if(second_write_len < LOG_END_SIGN_LENGTH) must be bigger than 0, otherwise no need for cyclic write*/
 		{
 			g_log_buf_count = LOG_END_SIGN_LENGTH;
-			/*First write END\n delimiter to indicate that cyclic write was made*/ 
+			/*First write END\n delimiter to indicate that cyclic write was made*/
 			icontext_dma_write(&icontext_aiop,
-					LOG_END_SIGN_LENGTH,
-					&str[str_length + second_write_len - LOG_END_SIGN_LENGTH],
-					g_log_buf_phys_address);
+			                   LOG_END_SIGN_LENGTH,
+			                   &str[str_length + second_write_len - LOG_END_SIGN_LENGTH],
+			                   g_log_buf_phys_address);
 			str[str_length + second_write_len - 1] = ' ';
 			str[str_length + second_write_len - 2] = ' ';
 			str[str_length + second_write_len - 3] = ' ';
 			str[str_length + second_write_len - 4] = ' ';
-			
+
 			icontext_dma_write(&icontext_aiop,
-					str_length,
-					str,
-					g_log_buf_phys_address + local_counter);
+			                   str_length,
+			                   str,
+			                   g_log_buf_phys_address + local_counter);
 		}
 	}
-	/*Unlock mutex*/
-	cdma_mutex_lock_release(g_log_buf_phys_address);
-	/*Restore Accelerator Hardware Context*/
-	/** Address for passing parameters to accelerators */
-	*((uint32_t *) HWC_ACC_IN_ADDRESS) = hwc1;
-	/** Address for passing parameters to accelerators */
-	*((uint32_t *) HWC_ACC_IN_ADDRESS2) = hwc2;
-	/** Address for passing parameters to accelerators */
-	*((uint32_t *) HWC_ACC_IN_ADDRESS3) = hwc3;
-	/** Address for passing parameters to accelerators */
-	*((uint32_t *) HWC_ACC_IN_ADDRESS4) = hwc4;
-	/** Address for reading results from accelerators (1st register) */
-	*((uint32_t *) HWC_ACC_OUT_ADDRESS) = hwc5;
-	/** Address for reading results from accelerators (2nd register) */
-	*((uint32_t *) HWC_ACC_OUT_ADDRESS2) = hwc6;
-	/** Address for reading reserved 1 from hardware accelerator context*/
-	*((uint32_t *) HWC_ACC_RESERVED1) = hwc7;
-	/** Address for reading reserved 2 from hardware accelerator context*/
-	*((uint32_t *) HWC_ACC_RESERVED2) = hwc8;
 }
 

@@ -297,6 +297,9 @@ __COLD_CODE int cmdif_srv_open(void *_srv,
 	void   *dev = NULL;
 
 #ifdef DEBUG
+	if ((uint64_t)v_data & 0x7)
+		return -EINVAL;
+
 	if ((v_data != NULL) && (size < CMDIF_SESSION_OPEN_SIZEOF))
 		return -EINVAL;
 

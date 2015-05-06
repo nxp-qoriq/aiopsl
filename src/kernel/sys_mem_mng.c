@@ -28,7 +28,7 @@
 #include "fsl_malloc.h"
 #include "kernel/fsl_spinlock.h"
 #include "fsl_dbg.h"
-
+#include "fsl_stdlib.h"
 #include "inc/mem_mng_util.h"
 #include "fsl_mem_mng.h"
 #include "sys.h"
@@ -43,12 +43,6 @@ extern int sigsetmask(int);
 #define sigsetmask(i)
 #endif /* GNUC */
 #endif /* VERILOG */
-
-
-
-
-//static void *   sys_default_malloc(uint32_t size);
-//static void     sys_default_free(void *p_memory);
 
 
 static void     sys_print_mem_leak(void        *p_memory,
@@ -106,7 +100,7 @@ void sys_shram_free(void *mem)
 	ASSERT_COND(sys.mem_mng);
 	 if (partition_id == SYS_DEFAULT_HEAP_PARTITION)
 	 {
-	        pr_err("MAJOR invalid value: partition ID %d is reserved for default "
+	        pr_err("Invalid value: partition ID %d is reserved for default "
                     "heap\n",SYS_DEFAULT_HEAP_PARTITION);
 	        return -EDOM;
 	 }
@@ -119,9 +113,9 @@ void sys_shram_free(void *mem)
 	  if (err_code != 0)
 	  {
 	      if(-EEXIST == err_code)
-              pr_err("MAJOR resource already exists\n");
+              pr_err("Resource already exists\n");
           else if(-EAGAIN == err_code)
-              pr_err("MAJOR resource is unavailable\n");
+              pr_err("Resource is unavailable\n");
           return err_code;
 	  }
 	  return 0;
@@ -142,7 +136,7 @@ void sys_shram_free(void *mem)
 
     if (partition_id == SYS_DEFAULT_HEAP_PARTITION)
     {
-        pr_err("MAJOR invalid value: partition ID %d is reserved for default heap",
+        pr_err("Invalid value: partition ID %d is reserved for default heap",
                 SYS_DEFAULT_HEAP_PARTITION);
         return -EDOM;
     }
@@ -163,9 +157,9 @@ void sys_shram_free(void *mem)
     if (err_code != 0)
     {
         if(-EEXIST == err_code)
-            pr_err("MAJOR resource already exists\n");
+            pr_err("Resource already exists\n");
         else if(-EAGAIN == err_code)
-            pr_err("MAJOR resource is unavailable \n");
+            pr_err("Resource is unavailable \n");
         return err_code;
     }
     /*
@@ -391,24 +385,16 @@ void sys_default_free(void *p_memory)
      /* Temporary allocation for identifying the default heap region */
     sys.heap_addr = (uintptr_t)sys_default_malloc(8);
     sys_default_free((void *)sys.heap_addr);
-    /*sys.heap_partition_id = MEM_MNG_EARLY_PARTITION_ID; */
 
 #ifdef AIOP
     sys.mem_mng_lock = 0;
     sys.mem_part_mng_lock = 0;
 #else /* not AIOP */
     spin_lock_init(&(sys.mem_mng_lock));
-    spin_lock_init(&(sys.mem_part_mng_lock)); 
+    spin_lock_init(&(sys.mem_part_mng_lock));
 #endif /* AIOP */
-    
 
-    /* Initialize memory allocation manager module */
-    /*
-    mem_mng_param.f_malloc = sys_default_malloc;
-    mem_mng_param.f_free = sys_default_free;
-    mem_mng_param.f_early_malloc = sys_aligned_malloc;
-    mem_mng_param.f_early_free = sys_aligned_free;
-    */
+
     mem_mng_param.lock = &(sys.mem_part_mng_lock);
 
     /* initialize boot memory manager to use MEM_PART_DP_DDR*/
@@ -420,9 +406,9 @@ void sys_default_free(void *p_memory)
     sys.mem_mng = mem_mng_init(&sys.boot_mem_mng,&mem_mng_param);
     if (!sys.mem_mng)
     {
-        pr_err("MAJOR resource is unavailable: memory management object\n");
+        pr_err("Resource is unavailable: memory management object\n");
         return -EAGAIN;
-    }  
+    }
 
     return 0;
 }

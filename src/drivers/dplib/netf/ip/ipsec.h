@@ -113,6 +113,13 @@ enum rta_param_type {
 #define IPSEC_ETHERTYPE_IPV6 0x86DD 
 #define IPSEC_ETHERTYPE_IPV4 0x0800 
 
+/* IPv4 DSCP, bits 8-13 */
+#define IPSEC_DSCP_MASK_IPV4 0x00FC0000
+/* IPv6 DSCP, bits 4-9 */
+#define IPSEC_DSCP_MASK_IPV6 0x0FC00000
+
+#define IPSEC_IPV4_CHECKSUM_OFFSET 10
+
 /* PS Pointer Size. This bit determines the size of address pointers */
 #define IPSEC_SEC_POINTER_SIZE 1 /* 1 - SEC Pointers require two 32-bit words */ 
 
@@ -121,6 +128,10 @@ enum rta_param_type {
 #define IPSEC_INTERNAL_PARMS_SIZE 128 /* 128 bytes */
 #define IPSEC_FLOW_CONTEXT_SIZE 64 /* 64 bytes */
 #define IPSEC_KEY_SEGMENT_SIZE 128 /* Key Copy segment, 128 bytes */
+#define IPSEC_SP_ASAR_MASK 0x000F0000 /* Storage profile ASAR field mask */
+#define IPSEC_SP_DHR_MASK 0x00000FFF
+#define IPSEC_SP_REUSE_BS_FF 0xA0000000
+
 
 #define IPSEC_ENC_PDB_HMO_MASK 0xF000
 #define IPSEC_DEC_PDB_HMO_MASK 0xF000
@@ -230,8 +241,11 @@ enum rta_param_type {
 #define IPSEC_SA_DESC_BUF_SIZE 768 /* SA descriptor buffer size */
 #define IPSEC_SA_DESC_BUF_ALIGN 64 /* SA descriptor alignment */
 #define IPSEC_BUF_META_DATA_SIZE 8
-#define IPSEC_ALIGN_OFFSET IPSEC_SA_DESC_BUF_ALIGN - IPSEC_BUF_META_DATA_SIZE
-	/* The slab buffer handle alignment is at requested alignment + meta-data */
+//#define IPSEC_ALIGN_OFFSET IPSEC_SA_DESC_BUF_ALIGN - IPSEC_BUF_META_DATA_SIZE
+//	/* The slab buffer handle alignment is at requested alignment + meta-data */
+#define IPSEC_ALIGN_OFFSET 0
+	/* After the slab change, the slab returned buffer handle is aligned */
+
 #define IPSEC_MAX_NUM_OF_TASKS 256 /* Total maximum number of tasks in AIOP */
 #define IPSEC_MEM_PARTITION_ID MEM_PART_DP_DDR
 					/* Memory partition ID */
@@ -240,6 +254,10 @@ enum rta_param_type {
 #define IPSEC_KEY_OFFSET_FROM_FLC IPSEC_KEY_SEGMENT_OFFSET -\
 											IPSEC_INTERNAL_PARMS_SIZE
 
+/* Key Offset from Shared Descriptor start */
+#define IPSEC_KEY_OFFSET_FROM_SD IPSEC_KEY_SEGMENT_OFFSET -\
+											IPSEC_INTERNAL_PARMS_SIZE -\
+											IPSEC_FLOW_CONTEXT_SIZE
 
 /* Obsolete, ASA preservation not supported */
 /* #define IPSEC_MAX_ASA_SIZE 960 */ /* Maximum ASA size (960 bytes) */
@@ -271,6 +289,12 @@ enum rta_param_type {
 /* Key Copy Segment */
 #define IPSEC_KEY_SEGMENT_ADDR(ADDRESS) ((ADDRESS) + IPSEC_KEY_SEGMENT_OFFSET)
 #define IPSEC_KEY_ADDR_FROM_FLC(ADDRESS) ((ADDRESS) + IPSEC_KEY_OFFSET_FROM_FLC)
+#define IPSEC_KEY_ADDR_FROM_SD(ADDRESS) ((ADDRESS) + IPSEC_KEY_OFFSET_FROM_SD)
+
+#define IPSEC_GET_SEGMENT_ADDRESS(prc_addr) \
+	((struct presentation_context *)prc_addr)->seg_address
+#define IPSEC_GET_SEGMENT_OFFSET(prc_addr) \
+	((struct presentation_context *)prc_addr)->seg_offset
 
 /*
 * Big-endian systems are systems in which the most significant byte of the word 
@@ -437,6 +461,12 @@ Big Endian
  * 64 words - 13 words reserved for the Job descriptor */
 #define IPSEC_MAX_SD_SIZE_WORDS (64-13) 
 
+/* Total max growth for encapsulation (not including outer IP/UDP header):	
+ * 4-byte SPI, 4-byte Seq Num, 16-byte IV, 15-byte Padding (AES),
+ * 1-byte pad length, 1-byte Next Header, 32-byte ICV (SHA 512)	
+ * = Total: 73, rounded up to 76 */
+#define IPSEC_MAX_FRAME_GROWTH 76 
+
 
 // TMP, removed from the external API
 /**************************************************************************//**
@@ -514,15 +544,20 @@ struct ipsec_sa_params_part1 {
 
 	ipsec_instance_handle_t instance_handle; /* Instance handle 8B */
 
+	uint32_t outer_hdr_dscp; /* Outer Header DSCP, for set mode */
+
+	
 	uint16_t udp_src_port; /* UDP source for transport mode. 2B */
 	uint16_t udp_dst_port; /* UDP destination for transport mode. 2B */
 	
+
 	uint8_t valid; /* descriptor valid. 1B */
 	
 	uint8_t sec_buffer_mode; /* new/reuse. 1B */
 
 	uint8_t output_spid; /* SEC output buffer SPID */
 	
+
 	/* Total size = */
 	/* 8*8 (64) + 2*4 (8) + 2*2 (4) + 5*1 (5) = 81 bytes */
 };
@@ -688,7 +723,8 @@ struct ipsec_flow_context {
 *//***************************************************************************/
 void ipsec_generate_flc(
 		uint64_t flc_address, /* Flow Context Address in external memory */
-		uint16_t spid, /* Storage Profile ID of the SEC output frame */
+		//uint16_t spid, /* Storage Profile ID of the SEC output frame */
+		struct ipsec_descriptor_params *params, 
 		int sd_size /* Shared descriptor Length */
 );
 

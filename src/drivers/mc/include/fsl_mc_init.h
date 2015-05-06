@@ -40,6 +40,9 @@ struct mc_dpci_tbl {
 	uint32_t *ic;		/**< 0xFFFFFFFF is not valid, must be atomic*/
 	uint32_t *dpci_id;	/**< dpci ids not tokens */
 	uint32_t *dpci_id_peer;	/**< dpci ids not tokens */
+	uint16_t *token;	/**< TODO use it dpci token for open session */
+	uint8_t  *state;	/**< TODO use it */
+	uint32_t mc_dpci_id;	/**< DPCI id used by MC to send events */
 	int32_t count;
 	int max;
 };
@@ -49,6 +52,8 @@ struct mc_dpci_tbl {
  * Once dpci id is added to the table it can't be remove but only invalidated
  */
 int mc_dpci_find(uint32_t dpci_id, uint32_t *ic);
+int mc_dpci_peer_find(uint32_t dpci_id, uint32_t *ic);
+
 void mc_dpci_tbl_dump();
 /* 
  * Find and allocate new entry 

@@ -34,6 +34,7 @@
 
 #include "inc/mem_mng_util.h"
 #include "fsl_list.h"
+#include "buffer_pool.h"
 
 
 #define __ERR_MODULE__  MODULE_UNKNOWN
@@ -108,18 +109,21 @@ typedef struct t_mem_mng
     t_mem_mng_phys_addr_alloc_partition
            phys_allocation_mem_partitions_array[PLATFORM_MAX_MEM_INFO_ENTRIES];
                 /**< List of partition for fsl_os_get_mem function() control structures */
-    list_t      early_mem_debug_list;
-                /**< List of early memory allocation entries (for debug) */
     uint32_t    mem_partitions_initialized;
     fsl_handle_t h_boot_mem_mng;
+     struct buffer_pool slob_bf_pool;
 #ifdef AIOP
     uint8_t *   lock;
 #else /* not AIOP */
     fsl_handle_t    lock;
 #endif
-    
+
 } t_mem_mng;
 
+typedef enum buffer_pool_type{
+	E_BFT_SLOB_BLOCK = 0,
+	E_BFT_DEBUG_BLOCK
+} e_buffer_pool_type;
 
 #endif /* __MEM_MNG_H */
 

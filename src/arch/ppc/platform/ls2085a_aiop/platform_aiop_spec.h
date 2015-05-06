@@ -58,12 +58,10 @@ typedef enum platform_console_type {
  @Description   Platform configuration parameters structure
 *//***************************************************************************/
 struct platform_param {
-    uint32_t                        clock_in_freq_khz;
+    struct platform_memory_info     mem_info[PLATFORM_MAX_MEM_INFO_ENTRIES];
     enum cache_mode                 l1_cache_mode;
     enum platform_console_type      console_type;
     uint8_t                         console_id;
-
-    struct platform_memory_info     mem_info[PLATFORM_MAX_MEM_INFO_ENTRIES];
 };
 
 

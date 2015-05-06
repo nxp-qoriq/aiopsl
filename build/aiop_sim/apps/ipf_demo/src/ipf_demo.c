@@ -79,7 +79,7 @@ __declspec(entry_point) static void app_process_packet_flow0 (void)
 	if (PARSER_IS_OUTER_IPV4_DEFAULT())
 	{
 		fsl_os_print
-		("ipr_demo:Core %d received packet with ipv4 header:\n",
+		("ipf_demo:Core %d received packet with ipv4 header:\n",
 	    core_get_id());
 		ipv4hdr_offset = (uint16_t)PARSER_GET_OUTER_IP_OFFSET_DEFAULT();
 		p_ipv4hdr = UINT_TO_PTR((ipv4hdr_offset + PRC_GET_SEGMENT_ADDRESS()));

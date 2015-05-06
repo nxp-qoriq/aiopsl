@@ -25,17 +25,17 @@
  */
 
 /**************************************************************************//**
-@File		fsl_dpci_drv.h
+@File		fsl_dpci_event.h
 
-@Description	DPCI wrapper that is internally used by CMDIF
+@Description	DPCI wrapper that is internally used by Service Layer
 *//***************************************************************************/
 
-#ifndef __FSL_DPCI_DRV_H
-#define __FSL_DPCI_DRV_H
+#ifndef __FSL_DPCI_EVENT_H
+#define __FSL_DPCI_EVENT_H
 
 
 /**************************************************************************//**
-@Function	dpci_drv_added
+@Function	dpci_event_assign
 
 @Description	New DPCI was added to AIOP container or the state of 
 		the DPCI has changed. Updates the DPCI table. 
@@ -44,11 +44,11 @@
 
 @Return		0      - on success, POSIX error code otherwise
  *//***************************************************************************/
-int dpci_drv_added(uint32_t dpci_id);
+int dpci_event_assign(uint32_t dpci_id);
 
 
 /**************************************************************************//**
-@Function	dpci_drv_removed
+@Function	dpci_event_unassign
 
 @Description	The DPCI was removed from AIOP container or disconnected.
 		Updates the DPCI table. 
@@ -57,11 +57,11 @@ int dpci_drv_added(uint32_t dpci_id);
 
 @Return		0      - on success, POSIX error code otherwise
  *//***************************************************************************/
-int dpci_drv_removed(uint32_t dpci_id);
+int dpci_event_unassign(uint32_t dpci_id);
 
 
 /**************************************************************************//**
-@Function	dpci_drv_update
+@Function	dpci_event_update
 
 @Description	Updates the entry of DPCI table with the AMQ + BDI from ADC.
   	  	Updates dpci_peer_id in the DPCI table.
@@ -72,19 +72,14 @@ int dpci_drv_removed(uint32_t dpci_id);
 
 @Return		0      - on success, POSIX error code otherwise
  *//***************************************************************************/
-int dpci_drv_update(uint32_t dpci_ind);
-
-/*
- * The dpci_id can be either AIOP dpci id or the peer id
- * tx_fqid - should be array for 2 fqids
- */
+int dpci_event_update(uint32_t dpci_ind);
 
 /**************************************************************************//**
 @Function	dpci_drv_tx_get
 
 @Description	Get the tx fqids for DPCI.  
 
-@Param[in]	dpci_id - Either AIOP dpci id or the peer id.
+@Param[in]	dpci_id - DPCI id of the AIOP side.
 @Param[out]	tx_fqid - Array for 2 fqids.
 
 @Return		0      - on success, POSIX error code otherwise
@@ -115,4 +110,4 @@ void dpci_drv_user_ctx_get(uint32_t *dpci_ind, uint32_t *fqid);
 void dpci_drv_icid_get(uint32_t dpci_ind, uint16_t *icid, uint16_t *amq_bdi);
 
 
-#endif
+#endif /* __FSL_DPCI_EVENT_H */

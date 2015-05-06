@@ -135,7 +135,10 @@ int app_init(void)
 		err = dpni_drv_register_rx_cb((uint16_t)ni/*ni_id*/,
 		                              app_process_packet);
 
-		if (err)
+	    err = dpni_drv_set_max_frame_length((uint16_t)ni/*ni_id*/,
+	                            0x2000 /* Max frame length*/);
+
+	if (err)
 			return err;
 	}
 

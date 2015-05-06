@@ -32,7 +32,7 @@ aiop_sl		</project>
 				</dictionary>
 				<dictionary>
 					<key>org.eclipse.cdt.make.core.buildLocation</key>
-					<value>${ProjDirPath}/integ_out</value>
+					<value>${ProjDirPath}/performance</value>
 				</dictionary>
 				<dictionary>
 					<key>org.eclipse.cdt.make.core.cleanBuildTarget</key>
@@ -102,6 +102,11 @@ aiop_sl		</project>
 			<locationURI>PARENT-2-PROJECT_LOC/cw_files/aiop_link.lcf</locationURI>
 		</link>
 		<link>
+			<name>src/README.txt</name>
+			<type>1</type>
+			<locationURI>PARENT-4-PROJECT_LOC/tests/cmdif/README.txt</locationURI>
+		</link>
+		<link>
 			<name>src/apps.c</name>
 			<type>1</type>
 			<locationURI>PROJECT_LOC/src/apps.c</locationURI>
@@ -120,6 +125,11 @@ aiop_sl		</project>
 			<name>src/cmdif_integration_test.c</name>
 			<type>1</type>
 			<locationURI>PARENT-4-PROJECT_LOC/tests/cmdif/cmdif_integration_test.c</locationURI>
+		</link>
+		<link>
+			<name>src/cmdif_performance.c</name>
+			<type>1</type>
+			<locationURI>PARENT-4-PROJECT_LOC/tests/cmdif/cmdif_performance.c</locationURI>
 		</link>
 		<link>
 			<name>src/cmdif_test.c</name>

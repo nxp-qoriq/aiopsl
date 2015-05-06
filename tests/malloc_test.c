@@ -26,6 +26,7 @@
 
 #include "fsl_malloc.h"
 #include "fsl_errors.h"
+#include "fsl_stdio.h"
 #include "fsl_io.h"
 #include "platform.h"
 #include "ls2085_aiop/fsl_platform.h"

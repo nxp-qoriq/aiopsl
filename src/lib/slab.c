@@ -115,7 +115,7 @@ __COLD_CODE static int slab_read_pool(uint32_t slab_pool_id,
 
 	*callback_func = slab_virtual_pool->callback_func;
 	return 0;
-} /* slab_read_virtual_pool */
+}
 
 /***************************************************************************
  * slab_pool_init used by: slab_module_init
@@ -157,7 +157,7 @@ __COLD_CODE static void slab_pool_init(
 	for (i = 0; i <= g_slab_virtual_pools.num_clusters ; i++) /*number of clusters: 1 for SHRAM and 100 for DDR*/
 		g_slab_virtual_pools.slab_context_address[i] = 0;
 
-} /* End of vpool_init */
+}
 
 /*****************************************************************************/
 
@@ -167,13 +167,7 @@ __COLD_CODE static int slab_add_bman_buffs_to_pool(
 {
 	uint16_t  bman_array_index = 0;
 
-#ifdef DEBUG
-	/* Check the arguments correctness */
-	if (bman_pool_id >= SLAB_MAX_BMAN_POOLS_NUM)
-		return -EINVAL;
-#endif
-
-	/* Check which BMAN pool ID array element matches the ID */
+	/* Check which BMAN pool ID entry matches BPID */
 	for (bman_array_index = 0; bman_array_index < SLAB_MAX_BMAN_POOLS_NUM; bman_array_index++) {
 		if (g_slab_bman_pools[bman_array_index].bman_pool_id == bman_pool_id) {
 			break;
@@ -182,15 +176,17 @@ __COLD_CODE static int slab_add_bman_buffs_to_pool(
 
 
 	/* Check the arguments correctness */
-	if (bman_array_index == SLAB_MAX_BMAN_POOLS_NUM)
+	if (bman_array_index == SLAB_MAX_BMAN_POOLS_NUM){
+		sl_pr_err("Error, pool with bpid %d not found\n", bman_pool_id);
 		return -EINVAL;
+	}
 
 	/* Increment the total available BMAN pool buffers */
 	atomic_incr32(&g_slab_bman_pools[bman_array_index].remaining,
 	              additional_bufs);
 
 	return 0;
-} /* End of vpool_add_total_bman_bufs */
+}
 
 /*****************************************************************************/
 
@@ -198,24 +194,20 @@ __COLD_CODE static int slab_decr_bman_buffs_from_pool(
 	uint16_t bman_pool_id,
 	int32_t less_bufs)
 {
-
-	int i;
 	uint16_t bman_array_index = 0;
 
-#ifdef DEBUG
-	/* Check the arguments correctness */
-	if (bman_pool_id >= SLAB_MAX_BMAN_POOLS_NUM)
-		return -EINVAL;
-#endif
-
-	/* Check which BMAN pool ID array element matches the ID */
-	for (i=0; i< SLAB_MAX_BMAN_POOLS_NUM; i++) {
-		if (g_slab_bman_pools[i].bman_pool_id == bman_pool_id) {
-			bman_array_index = (uint16_t)i;
+	/* Check which BMAN pool ID entry matches BPID */
+	for (bman_array_index = 0; bman_array_index < SLAB_MAX_BMAN_POOLS_NUM; bman_array_index++) {
+		if (g_slab_bman_pools[bman_array_index].bman_pool_id == bman_pool_id) {
 			break;
 		}
 	}
 
+	/* Check the arguments correctness */
+	if (bman_array_index == SLAB_MAX_BMAN_POOLS_NUM){
+		sl_pr_err("Error, pool with bpid %d not found\n", bman_pool_id);
+		return -EINVAL;
+	}
 	lock_spinlock(
 		(uint8_t *)&g_slab_bman_pools[bman_array_index].spinlock);
 
@@ -235,10 +227,7 @@ __COLD_CODE static int slab_decr_bman_buffs_from_pool(
 	}
 
 	return 0;
-} /* End of vpool_decr_bman_bufs */
-
-
-
+}
 
 __COLD_CODE static void free_buffs_from_bman_pool(uint16_t bpid, int32_t num_buffs,
                                       uint16_t icid, uint32_t flags)
@@ -1017,6 +1006,7 @@ __COLD_CODE static int slab_alocate_memory(int num_bpids, struct slab_module_inf
 	int err = 0;
 	dma_addr_t addr = 0;
 	uint16_t buff_size;
+	uint16_t alignment_extension;
 	/* Set BPIDs */
 	for(i = 0; i < num_bpids; i++)
 	{
@@ -1046,13 +1036,21 @@ __COLD_CODE static int slab_alocate_memory(int num_bpids, struct slab_module_inf
 		        (*bpids_arr)->mem_pid);
 		(*bpids_arr) ++; /*move array pointer after saving the bpid*/
 
+		/*This is to make user data to be align*/
+		if(slab_m->hw_pools[i].alignment > SLAB_HW_META_OFFSET){
+			alignment_extension = slab_m->hw_pools[i].alignment -
+				SLAB_HW_META_OFFSET;
+		}
+		else{
+			alignment_extension = 0;
+		}
 		/*Big malloc allocation for all buffers in bpid*/
-
 		err = bman_fill_bpid((size_t)slab_m->hw_pools[i].total_num_buffs,
 		                     buff_size,
 		                     slab_m->hw_pools[i].alignment,
 		                     (enum memory_partition_id)slab_m->hw_pools[i].mem_pid,
-		                     slab_m->hw_pools[i].pool_id);
+		                     slab_m->hw_pools[i].pool_id,
+		                     alignment_extension);
 		if(err){
 			pr_err("ERROR: Filling bpid with buffers failed - %d\n",err);
 			return err;
