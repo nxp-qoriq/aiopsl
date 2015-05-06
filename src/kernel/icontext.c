@@ -38,7 +38,7 @@
 #include "fsl_spinlock.h"
 #include "cmdif_srv.h"
 #include "fsl_io_ccsr.h"
-#include "fsl_dpci_event.h"
+#include "fsl_dpci_mng.h"
 
 #define ICONTEXT_SET(ICID, AMQ)	\
 do { \
@@ -64,12 +64,12 @@ void icontext_cmd_get(struct icontext *ic)
 	uint16_t icid;
 	uint16_t amq_bdi;
 
-	dpci_drv_user_ctx_get(&ind, NULL);
+	dpci_mng_user_ctx_get(&ind, NULL);
 	/*
 	 * TODO
 	 * Lock with cdma mutex READ
 	 */
-	dpci_drv_icid_get(ind, &icid, &amq_bdi);
+	dpci_mng_icid_get(ind, &icid, &amq_bdi);
 	ICONTEXT_SET(icid, amq_bdi);
 #ifndef BDI_BUG_FIXED
 	/* Fix for GPP BDI */
@@ -88,7 +88,7 @@ int icontext_get(uint16_t dpci_id, struct icontext *ic)
 	/*
 	 * TODO
 	 * Is it possible that DPCI will be removed in the middle of the task ?
-	 * If yes than we need read lock on mc_dpci_find() + dpci_drv_icid_get()
+	 * If yes than we need read lock on dpci_mng_find() + dpci_mng_icid_get()
 	 * NOTE : only dpci_peer_id can be updated but not dpci_id.
 	 * Maybe it should not update peer id at all ?? 
 	 * It should be updated only in dpci_drv_added() !!!
@@ -97,12 +97,12 @@ int icontext_get(uint16_t dpci_id, struct icontext *ic)
 	/* search by GPP peer id - most likely case
 	 * or by AIOP dpci id  - to support both cases
 	 * All DPCIs in the world have different IDs */
-	ind = mc_dpci_find(dpci_id, NULL);
+	ind = dpci_mng_find(dpci_id, NULL);
 	if (ind < 0)
-		ind = mc_dpci_peer_find(dpci_id, NULL);
+		ind = dpci_mng_peer_find(dpci_id, NULL);
 
 	if (ind >= 0) {
-		dpci_drv_icid_get((uint32_t)ind, &icid, &amq_bdi);
+		dpci_mng_icid_get((uint32_t)ind, &icid, &amq_bdi);
 		if (icid == ICONTEXT_INVALID)
 			return -ENAVAIL;
 		ICONTEXT_SET(icid, amq_bdi);

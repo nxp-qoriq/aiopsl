@@ -42,6 +42,7 @@
 #include "fsl_ldpaa_aiop.h"
 #include "fsl_mc_init.h"
 #include "fsl_general.h"
+#include "fsl_dpci_mng.h"
 
 #pragma warning_errors on
 ASSERT_STRUCT_SIZE(CMDIF_OPEN_SIZEOF, CMDIF_OPEN_SIZE);
@@ -207,19 +208,24 @@ static inline int cmdif_cl_session_get(struct cmdif_cl *cl,
                                        uint32_t dpci_id)
 {
 	int i;
-	struct mc_dpci_tbl *dt = (struct mc_dpci_tbl *)\
-		sys_get_unique_handle(FSL_OS_MOD_DPCI_TBL);
-
+	int ind;
+	
+	ind = dpci_mng_peer_find(dpci_id, NULL);
+	if (ind < 0) {
+		return -ENOENT;
+	}
+	
 	/* TODO stop searching if passed all open sessions cl->count */
 	for (i = 0; i < CMDIF_MN_SESSIONS; i++) {
 		if ((cl->gpp[i].ins_id == ins_id) &&
-			(dt->dpci_id_peer[(cl->gpp[i].regs->dpci_ind)] == dpci_id) &&
+			(cl->gpp[i].regs->dpci_ind == ind) &&
 			(cl->gpp[i].m_name[0] != CMDIF_FREE_SESSION) &&
 			(strncmp((const char *)&(cl->gpp[i].m_name[0]),
 			         m_name,
 			         M_NAME_CHARS) == 0))
 			return i;
 	}
+	
 	return -ENAVAIL;
 }
 
@@ -228,16 +234,20 @@ static inline int cmdif_cl_auth_id_find(struct cmdif_cl *cl,
                                        uint32_t dpci_id)
 {
 	int i;
-	struct mc_dpci_tbl *dt = (struct mc_dpci_tbl *)\
-		sys_get_unique_handle(FSL_OS_MOD_DPCI_TBL);
-
+	int ind;
+	
+	ind = dpci_mng_peer_find(dpci_id, NULL);
+	if (ind < 0) {
+		return -ENOENT;
+	}
 
 	for (i = 0; i < CMDIF_MN_SESSIONS; i++) {
-		if ((dt->dpci_id_peer[(cl->gpp[i].regs->dpci_ind)] == dpci_id) &&
+		if ((cl->gpp[i].regs->dpci_ind == ind) &&
 			(cl->gpp[i].m_name[0] != CMDIF_FREE_SESSION) &&
 			(cl->gpp[i].dev->auth_id == auth_id))
 			return i;
 	}
+	
 	return -ENAVAIL;
 }
 

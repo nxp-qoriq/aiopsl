@@ -33,6 +33,7 @@
 #include "cmdif_srv_flib.h"
 #include "fsl_fdma.h"
 #include "fsl_mc_cmd.h"
+#include "fsl_dpci_mng.h"
 
 #pragma warning_errors on
 ASSERT_STRUCT_SIZE(CMDIF_SESSION_OPEN_SIZEOF, CMDIF_SESSION_OPEN_SIZE);
@@ -44,7 +45,7 @@ ASSERT_STRUCT_SIZE(CMDIF_SESSION_OPEN_SIZEOF, CMDIF_SESSION_OPEN_SIZE);
 struct cmdif_srv_aiop {
 	struct cmdif_srv *srv;
 	/**< Common Server fields */
-	struct mc_dpci_tbl *dpci_tbl;
+	struct dpci_mng_tbl *dpci_tbl;
 	/**< DPCI table according to indexes in dequeue context */
 };
 

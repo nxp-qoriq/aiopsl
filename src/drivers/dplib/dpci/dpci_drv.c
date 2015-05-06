@@ -33,6 +33,7 @@
 #include "fsl_dpci.h"
 #include "fsl_dpci_event.h"
 #include "fsl_dpci_drv.h"
+#include "fsl_dpci_mng.h"
 #include "fsl_mc_init.h"
 #include "fsl_dbg.h"
 #include "cmdif_client.h"
@@ -111,10 +112,10 @@ void dpci_drv_free();
 extern struct aiop_init_info g_init_data;
 
 
-__COLD_CODE static void mc_dpci_tbl_dump()
+__COLD_CODE static void dpci_tbl_dump()
 {
 	int i;
-	struct mc_dpci_tbl *dt = sys_get_unique_handle(FSL_OS_MOD_DPCI_TBL);
+	struct dpci_mng_tbl *dt = sys_get_unique_handle(FSL_OS_MOD_DPCI_TBL);
 
 	ASSERT_COND(dt);
 
@@ -125,10 +126,10 @@ __COLD_CODE static void mc_dpci_tbl_dump()
 	}
 }
 
-int mc_dpci_find(uint32_t dpci_id, uint32_t *ic)
+int dpci_mng_find(uint32_t dpci_id, uint32_t *ic)
 {
 	int i;
-	struct mc_dpci_tbl *dt = sys_get_unique_handle(FSL_OS_MOD_DPCI_TBL);
+	struct dpci_mng_tbl *dt = sys_get_unique_handle(FSL_OS_MOD_DPCI_TBL);
 
 	ASSERT_COND(dt);
 	ASSERT_COND(dpci_id != DPCI_FQID_NOT_VALID);
@@ -144,10 +145,10 @@ int mc_dpci_find(uint32_t dpci_id, uint32_t *ic)
 	return -ENOENT;
 }
 
-int mc_dpci_peer_find(uint32_t dpci_id, uint32_t *ic)
+int dpci_mng_peer_find(uint32_t dpci_id, uint32_t *ic)
 {
 	int i;
-	struct mc_dpci_tbl *dt = sys_get_unique_handle(FSL_OS_MOD_DPCI_TBL);
+	struct dpci_mng_tbl *dt = sys_get_unique_handle(FSL_OS_MOD_DPCI_TBL);
 
 	ASSERT_COND(dt);
 	ASSERT_COND(dpci_id != DPCI_FQID_NOT_VALID);
@@ -163,10 +164,10 @@ int mc_dpci_peer_find(uint32_t dpci_id, uint32_t *ic)
 	return -ENOENT;
 }
 
-static int mc_dpci_entry_get()
+static int dpci_entry_get()
 {
 	int i;
-	struct mc_dpci_tbl *dt = sys_get_unique_handle(FSL_OS_MOD_DPCI_TBL);
+	struct dpci_mng_tbl *dt = sys_get_unique_handle(FSL_OS_MOD_DPCI_TBL);
 
 	ASSERT_COND(dt);
 
@@ -183,9 +184,9 @@ static int mc_dpci_entry_get()
 	return -ENOENT;
 }
 
-static void mc_dpci_entry_delete(int ind)
+static void dpci_entry_delete(int ind)
 {
-	struct mc_dpci_tbl *dt = sys_get_unique_handle(FSL_OS_MOD_DPCI_TBL);
+	struct dpci_mng_tbl *dt = sys_get_unique_handle(FSL_OS_MOD_DPCI_TBL);
 
 	ASSERT_COND(dt);
 
@@ -233,7 +234,7 @@ __COLD_CODE static int dpci_get_peer_id(uint32_t dpci_id, uint32_t *dpci_id_peer
 
 static inline void amq_bits_update(uint32_t id)
 {
-	struct mc_dpci_tbl *dt = (struct mc_dpci_tbl *)\
+	struct dpci_mng_tbl *dt = (struct dpci_mng_tbl *)\
 		sys_get_unique_handle(FSL_OS_MOD_DPCI_TBL);
 	uint32_t amq_bdi = 0;
 	uint16_t amq_bdi_temp = 0;
@@ -262,14 +263,14 @@ static inline void amq_bits_update(uint32_t id)
 	dt->ic[id] = amq_bdi;
 	/* Don't update AIOP to AIOP DPCI 2 entries because it 
 	 * shouldn't change anyway */
-	mc_dpci_tbl_dump();
+	dpci_tbl_dump();
 }
 
 
 /* To be called upon connected event, assign even */
 __COLD_CODE int dpci_amq_bdi_init(uint32_t dpci_id)
 {
-	struct mc_dpci_tbl *dt = (struct mc_dpci_tbl *)\
+	struct dpci_mng_tbl *dt = (struct dpci_mng_tbl *)\
 		sys_get_unique_handle(FSL_OS_MOD_DPCI_TBL);
 	int ind = -1;
 	uint32_t amq_bdi = 0;
@@ -280,7 +281,7 @@ __COLD_CODE int dpci_amq_bdi_init(uint32_t dpci_id)
 
 	CMDIF_ICID_AMQ_BDI(AMQ_BDI_SET, ICONTEXT_INVALID, ICONTEXT_INVALID);
 
-	ind = mc_dpci_find(dpci_id, NULL);
+	ind = dpci_mng_find(dpci_id, NULL);
 	if (ind >= 0) {
 		/* Updated DPCI peer if possible */
 		ASSERT_COND(dt->dpci_id[ind] == dpci_id);
@@ -292,7 +293,7 @@ __COLD_CODE int dpci_amq_bdi_init(uint32_t dpci_id)
 
 		dt->ic[ind] = amq_bdi;
 	} else {		
-		ind = mc_dpci_entry_get();
+		ind = dpci_entry_get();
 		if (ind >= 0) {
 			/* Adding new dpci_id */
 			dt->ic[ind] = amq_bdi;
@@ -311,7 +312,7 @@ __COLD_CODE int dpci_amq_bdi_init(uint32_t dpci_id)
 				dt->dpci_id_peer[ind] = DPCI_FQID_NOT_VALID;
 			/* AIOP DPCI to AIOP DPCI case 2 entries must be 
 			 * updated 1->2 and 2->1 */
-			err = mc_dpci_find(dpci_id_peer, NULL);
+			err = dpci_mng_find(dpci_id_peer, NULL);
 			if (err >= 0) {
 				/* If here then 2 AIOP DPCIs are connected */
 				dt->dpci_id_peer[err] = dpci_id; 
@@ -378,7 +379,7 @@ __COLD_CODE static int rx_ctx_set(uint32_t id)
 	struct dpci_tx_queue_attr tx_attr;
 	struct dpci_rx_queue_attr rx_attr;
 	uint8_t i;
-	struct mc_dpci_tbl *dt = (struct mc_dpci_tbl *)\
+	struct dpci_mng_tbl *dt = (struct dpci_mng_tbl *)\
 		sys_get_unique_handle(FSL_OS_MOD_DPCI_TBL);
 
 	ASSERT_COND(dprc && dt);
@@ -428,7 +429,7 @@ __COLD_CODE static int tx_get(uint32_t dpci_id, uint32_t *tx)
 	struct dpci_attr attr;
 	struct dpci_tx_queue_attr tx_attr;
 	int i;
-	struct mc_dpci_tbl *dt = sys_get_unique_handle(FSL_OS_MOD_DPCI_TBL);
+	struct dpci_mng_tbl *dt = sys_get_unique_handle(FSL_OS_MOD_DPCI_TBL);
 
 	ASSERT_COND(tx);
 	ASSERT_COND(dt);
@@ -439,7 +440,7 @@ __COLD_CODE static int tx_get(uint32_t dpci_id, uint32_t *tx)
 	MEM_SET(&attr, sizeof(attr), 0);
 
 	/* dpci id may belong to peer */
-	i = mc_dpci_find(dpci_id, NULL);
+	i = dpci_mng_find(dpci_id, NULL);
 	if (i < 0) {
 		pr_err("Not found DPCI id or it's peer %d\n", dpci_id);
 		return -ENAVAIL;
@@ -479,7 +480,7 @@ __COLD_CODE int dpci_event_assign(uint32_t dpci_id)
 {
 	int err = 0;
 	int ind = 0;
-	struct mc_dpci_tbl *dt = (struct mc_dpci_tbl *)\
+	struct dpci_mng_tbl *dt = (struct dpci_mng_tbl *)\
 			sys_get_unique_handle(FSL_OS_MOD_DPCI_TBL);
 
 	ASSERT_COND(dt);
@@ -504,7 +505,7 @@ __COLD_CODE int dpci_event_assign(uint32_t dpci_id)
 		 * TODO keep mc_dpci_id internally if this memory is reused */
 	}
 	
-	mc_dpci_tbl_dump();
+	dpci_tbl_dump();
 	
 	return err;
 }
@@ -516,7 +517,7 @@ __COLD_CODE int dpci_event_assign(uint32_t dpci_id)
 __COLD_CODE int dpci_event_unassign(uint32_t dpci_id)
 {
 
-	struct mc_dpci_tbl *dt = (struct mc_dpci_tbl *)\
+	struct dpci_mng_tbl *dt = (struct dpci_mng_tbl *)\
 		sys_get_unique_handle(FSL_OS_MOD_DPCI_TBL);
 	int ind = -1;
 	int err = 0;
@@ -525,10 +526,10 @@ __COLD_CODE int dpci_event_unassign(uint32_t dpci_id)
 
 	DPCI_DT_LOCK_W_TAKE;
 
-	ind = mc_dpci_find(dpci_id, NULL);
+	ind = dpci_mng_find(dpci_id, NULL);
 	if (ind >= 0) {
 		ASSERT_COND(dt->dpci_id[ind] == dpci_id);
-		mc_dpci_entry_delete(ind);
+		dpci_entry_delete(ind);
 		err = 0;
 	} else {
 		err = -ENOENT;
@@ -536,7 +537,7 @@ __COLD_CODE int dpci_event_unassign(uint32_t dpci_id)
 
 	DPCI_DT_LOCK_RELEASE;
 	
-	mc_dpci_tbl_dump();
+	dpci_tbl_dump();
 
 	return err;
 }
@@ -549,7 +550,7 @@ __COLD_CODE int dpci_event_unassign(uint32_t dpci_id)
  */
 __COLD_CODE int dpci_event_update(uint32_t ind)
 {
-	struct mc_dpci_tbl *dt = (struct mc_dpci_tbl *)\
+	struct dpci_mng_tbl *dt = (struct dpci_mng_tbl *)\
 		sys_get_unique_handle(FSL_OS_MOD_DPCI_TBL);
 
 	/* Read lock because many can update same entry with the same values
@@ -559,7 +560,7 @@ __COLD_CODE int dpci_event_update(uint32_t ind)
 	/*
 	 * TODO
 	 * Is it possible that DPCI will be removed in the middle of the task ?
-	 * If yes than we need read lock on mc_dpci_find() + dpci_drv_icid_get()
+	 * If yes than we need read lock on dpci_mng_find() + dpci_drv_icid_get()
 	 * NOTE : only dpci_peer_id can be updated but not dpci_id.
 	 * Maybe it should not update peer id at all ?? 
 	 * It should be updated only in dpci_drv_added() !!!
@@ -583,7 +584,7 @@ __COLD_CODE int dpci_event_update(uint32_t ind)
 }
 
 
-__HOT_CODE void dpci_drv_user_ctx_get(uint32_t *id, uint32_t *fqid)
+__HOT_CODE void dpci_mng_user_ctx_get(uint32_t *id, uint32_t *fqid)
 {
 	uint64_t rx_ctx = CMDIF_RX_CTX_GET;
 	uint32_t _id;
@@ -597,9 +598,9 @@ __HOT_CODE void dpci_drv_user_ctx_get(uint32_t *id, uint32_t *fqid)
 		*fqid = _fqid;
 }
 
-__HOT_CODE void dpci_drv_icid_get(uint32_t ind, uint16_t *icid, uint16_t *amq_bdi)
+__HOT_CODE void dpci_mng_icid_get(uint32_t ind, uint16_t *icid, uint16_t *amq_bdi)
 {
-	struct mc_dpci_tbl *dt = sys_get_unique_handle(FSL_OS_MOD_DPCI_TBL);
+	struct dpci_mng_tbl *dt = sys_get_unique_handle(FSL_OS_MOD_DPCI_TBL);
 
 	ASSERT_COND(dt);
 
@@ -610,10 +611,10 @@ __HOT_CODE void dpci_drv_icid_get(uint32_t ind, uint16_t *icid, uint16_t *amq_bd
 	DPCI_DT_LOCK_RELEASE;
 }
 
-__COLD_CODE int dpci_drv_tx_get(uint32_t dpci_id, uint32_t *tx)
+__COLD_CODE int dpci_mng_tx_get(uint32_t dpci_id, uint32_t *tx)
 {
 	int err;
-	struct mc_dpci_tbl *dt = sys_get_unique_handle(FSL_OS_MOD_DPCI_TBL);
+	struct dpci_mng_tbl *dt = sys_get_unique_handle(FSL_OS_MOD_DPCI_TBL);
 
 	DPCI_DT_LOCK_R_TAKE;
 
@@ -627,7 +628,7 @@ __COLD_CODE int dpci_drv_tx_get(uint32_t dpci_id, uint32_t *tx)
 
 __COLD_CODE int dpci_drv_enable(uint32_t dpci_id)
 {
-	struct mc_dpci_tbl *dt = sys_get_unique_handle(FSL_OS_MOD_DPCI_TBL);
+	struct dpci_mng_tbl *dt = sys_get_unique_handle(FSL_OS_MOD_DPCI_TBL);
 	struct mc_dprc *dprc = sys_get_unique_handle(FSL_OS_MOD_AIOP_RC);
 	int err = 0;
 	uint16_t token = 0xffff;
@@ -656,7 +657,7 @@ __COLD_CODE int dpci_drv_enable(uint32_t dpci_id)
 
 __COLD_CODE int dpci_drv_disable(uint32_t dpci_id)
 {
-	struct mc_dpci_tbl *dt = sys_get_unique_handle(FSL_OS_MOD_DPCI_TBL);
+	struct dpci_mng_tbl *dt = sys_get_unique_handle(FSL_OS_MOD_DPCI_TBL);
 	struct mc_dprc *dprc = sys_get_unique_handle(FSL_OS_MOD_AIOP_RC);
 	int err = 0;
 	uint16_t token = 0xffff;
@@ -684,13 +685,13 @@ __COLD_CODE int dpci_drv_disable(uint32_t dpci_id)
 	return err;
 }
 
-__COLD_CODE static int dpci_tbl_create(struct mc_dpci_tbl **_dpci_tbl, int dpci_count)
+__COLD_CODE static int dpci_tbl_create(struct dpci_mng_tbl **_dpci_tbl, int dpci_count)
 {
 	uint32_t size = 0;
-	struct   mc_dpci_tbl *dpci_tbl = NULL;
+	struct   dpci_mng_tbl *dpci_tbl = NULL;
 	int      err = 0;
 
-	size = sizeof(struct mc_dpci_tbl);
+	size = sizeof(struct dpci_mng_tbl);
 	dpci_tbl = fsl_malloc(size, 1);
 	*_dpci_tbl = dpci_tbl;
 	if (dpci_tbl == NULL) {
@@ -765,7 +766,7 @@ __COLD_CODE static int dpci_for_mc_add(struct mc_dprc *dprc)
 	uint8_t p = 0;
 	int     err = 0;
 	int     link_up = 0;
-	struct mc_dpci_tbl *dt = (struct mc_dpci_tbl *)\
+	struct dpci_mng_tbl *dt = (struct dpci_mng_tbl *)\
 			sys_get_unique_handle(FSL_OS_MOD_DPCI_TBL);
 
 	memset(&queue_cfg, 0, sizeof(struct dpci_rx_queue_cfg));
@@ -810,7 +811,7 @@ __COLD_CODE int dpci_drv_init()
 {
 	struct dprc_obj_desc dev_desc;
 	struct mc_dprc *dprc = sys_get_unique_handle(FSL_OS_MOD_AIOP_RC);
-	struct mc_dpci_tbl *dpci_tbl = NULL;
+	struct dpci_mng_tbl *dpci_tbl = NULL;
 	int dev_count  = 0;
 	int dpci_count = 0;
 	int err        = 0;
@@ -847,7 +848,7 @@ __COLD_CODE int dpci_drv_init()
 		pr_err("Failed to create and link AIOP<->MC DPCI \n");
 	}
 	
-	mc_dpci_tbl_dump();
+	dpci_tbl_dump();
 
 	return err;
 }

@@ -45,6 +45,7 @@
 #include "fsl_sl_cmd.h"
 #include "fsl_icontext.h"
 #include "fsl_dpci_event.h"
+#include "fsl_dpci_mng.h"
 #include "fsl_stdlib.h"
 
 /** Blocking commands don't need response FD */
@@ -305,7 +306,7 @@ __HOT_CODE void cmdif_fd_send(int cb_err)
 	flc |= ((uint64_t)cb_err) << ERROR_OFF;
 	LDPAA_FD_SET_FLC(HWC_FD_ADDRESS, flc);
 
-	dpci_drv_user_ctx_get(&ind, &fqid);
+	dpci_mng_user_ctx_get(&ind, &fqid);
 	ASSERT_COND(fqid != DPCI_FQID_NOT_VALID);
 
 	sl_pr_debug("Response FQID = 0x%x dpci_ind = 0x%x\n", fqid, ind);
@@ -363,19 +364,6 @@ __HOT_CODE void sync_cmd_done(uint64_t sync_done,
 static inline void sync_done_set(uint16_t auth_id)
 {
 	cmdif_aiop_srv.srv->sync_done[auth_id] = sync_done_get(); /* Phys addr for cdma */
-}
-
-/** Find dpci index and get dpci table */
-static inline int find_dpci(uint32_t dpci_id_peer)
-{
-	int i = 0;
-	struct mc_dpci_tbl *dt = cmdif_aiop_srv.dpci_tbl;
-
-	for (i = 0; i < dt->count; i++) {
-		if (dt->dpci_id_peer[i] == dpci_id_peer)
-			return i;
-	}
-	return -1;
 }
 
 
@@ -446,7 +434,7 @@ __COLD_CODE int notify_open()
 		return -EINVAL;
 	}
 
-	ind = mc_dpci_peer_find(data->dev_id, NULL); /* dev_id is swapped by GPP */
+	ind = dpci_mng_peer_find(data->dev_id, NULL); /* dev_id is swapped by GPP */
 	pr_debug("dpci id = %d ind = %d\n", data->dev_id, ind);
 	if (ind < 0) {
 		pr_err("Not found DPCI peer %d\n", data->dev_id);
@@ -461,7 +449,7 @@ __COLD_CODE int notify_open()
 	err = dpci_event_update((uint32_t)ind); /* dev_id is swapped by GPP */
 	ASSERT_COND(!err);
 
-	err = dpci_drv_tx_get(cmdif_aiop_srv.dpci_tbl->dpci_id[ind], 
+	err = dpci_mng_tx_get(cmdif_aiop_srv.dpci_tbl->dpci_id[ind], 
 	                      &tx_queue[0]);
 	ASSERT_COND(!err);
 
@@ -613,7 +601,7 @@ __COLD_CODE int session_open(uint16_t *new_auth)
 
 	inst_id  = cmd_inst_id_get();
 
-	dpci_drv_user_ctx_get(&ind, NULL);
+	dpci_mng_user_ctx_get(&ind, NULL);
 #ifndef STACK_CHECK /* Stack check can ignore it up to user callback */
 	err = dpci_event_update(ind);
 	ASSERT_COND(!err);

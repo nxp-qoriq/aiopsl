@@ -77,7 +77,7 @@ static inline int send_fd(int pr, void *_sdev)
 	         sdev->tx_queue_attr[pr]->fqid, sdev->enq_flags, sdev->icid);
 */
 
-	dpci_drv_icid_get(sdev->dpci_ind, &icid, &amq_bdi);
+	dpci_mng_icid_get(sdev->dpci_ind, &icid, &amq_bdi);
 
 	if (amq_bdi & CMDIF_BDI_BIT)
 		flags = FDMA_ENF_BDI_BIT;
