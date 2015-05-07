@@ -56,6 +56,7 @@ void cmdif_cl_isr();
 __TASK static struct ldpaa_fd _fd __attribute__((aligned(sizeof(struct ldpaa_fd))));
 
 extern struct icontext icontext_aiop;
+extern struct dpci_mng_tbl g_dpci_tbl;
 
 static inline int send_fd(int pr, void *_sdev)
 {
@@ -63,7 +64,8 @@ static inline int send_fd(int pr, void *_sdev)
 	uint32_t flags = 0;
 	uint16_t icid;
 	uint16_t amq_bdi;
-
+	uint32_t fqid;
+	
 	/* Copy fields from FD  */
 	_fd.control = 0;
 	_fd.offset  = (((uint32_t)FD_IVP_MASK) << 8); /* IVP */
@@ -76,13 +78,15 @@ static inline int send_fd(int pr, void *_sdev)
 */
 
 	dpci_mng_icid_get(sdev->dpci_ind, &icid, &amq_bdi);
-
+	dpci_mng_tx_get(sdev->dpci_ind, pr, &fqid);
+	ASSERT_COND(fqid != DPCI_FQID_NOT_VALID);
+	
 	if (amq_bdi & CMDIF_BDI_BIT)
 		flags = FDMA_ENF_BDI_BIT;
 
 	if (fdma_enqueue_fd_fqid(&_fd,
 	                         flags,
-	                         sdev->tx_queue_attr[pr].fqid,
+	                         g_dpci_tbl.tx_queue[sdev->dpci_ind][pr],
 	                         icid)) {
 		return -EIO;
 	}

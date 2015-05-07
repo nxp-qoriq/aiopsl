@@ -44,22 +44,21 @@ struct dpci_mng_tbl {
 	uint32_t ic[DPCI_DYNAMIC_MAX];				/**< 0xFFFFFFFF is not valid, must be atomic*/
 	uint32_t dpci_id[DPCI_DYNAMIC_MAX];			/**< dpci ids not tokens */
 	uint32_t dpci_id_peer[DPCI_DYNAMIC_MAX];		/**< dpci ids not tokens */
-	uint32_t tx_queue[DPCI_DYNAMIC_MAX * DPCI_PRIO_NUM];	/**< Use DPCI_PRIO_NUM between DPCI jumps */
+	uint32_t tx_queue[DPCI_DYNAMIC_MAX][DPCI_PRIO_NUM];	/**< Use DPCI_PRIO_NUM between DPCI jumps */
 	uint16_t token[DPCI_DYNAMIC_MAX];			/**< TODO use it dpci token for open session */
 	uint8_t  state[DPCI_DYNAMIC_MAX];			/**< TODO use it */
 };
 
 /**************************************************************************//**
-@Function	dpci_mng_tx_get
+@Function	dpci_mng_tx_set
 
-@Description	Get the tx fqids for DPCI.  
+@Description	Set the tx fqids for DPCI.  
 
-@Param[in]	dpci_id - DPCI id of the AIOP side.
-@Param[out]	tx_fqid - Array for 2 fqids.
+@Param[in]	dpci_ind - Index to the DPCI table entry.
 
 @Return		0      - on success, POSIX error code otherwise
  *//***************************************************************************/
-int dpci_mng_tx_get(uint32_t dpci_id, uint32_t *tx_fqid);
+int dpci_mng_tx_set(uint32_t dpci_ind);
 
 
 /**************************************************************************//**
@@ -84,6 +83,16 @@ void dpci_mng_user_ctx_get(uint32_t *dpci_ind, uint32_t *fqid);
  *//***************************************************************************/
 void dpci_mng_icid_get(uint32_t dpci_ind, uint16_t *icid, uint16_t *amq_bdi);
 
+/**************************************************************************//**
+@Function	dpci_mng_tx_get
+
+@Description	Read the ICID + AMQ + BDI from DPCI entry.
+
+@Param[in]	dpci_ind - Index to the DPCI table entry.
+@Param[out]	pr - High or Low priority
+@Param[out]	fqid - The frame queue id
+ *//***************************************************************************/
+void dpci_mng_tx_get(uint32_t dpci_ind, int pr, uint32_t *fqid);
 /*
  * Returns dpci index on success or error otherwise
  * Once dpci id is added to the table it can't be remove but only invalidated

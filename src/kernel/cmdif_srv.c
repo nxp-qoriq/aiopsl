@@ -369,8 +369,8 @@ __COLD_CODE int notify_open()
 	int ind = 0;
 	int link_up = 1;
 	int err = 0;
-	uint32_t tx_queue[DPCI_PRIO_NUM];
-
+	int i = 0;
+	
 	/* Create descriptor for client session */
 	ASSERT_COND_LIGHT(cl != NULL);
 
@@ -396,8 +396,7 @@ __COLD_CODE int notify_open()
 
 	/* notify_open is always from GPP thus it is ok 
 	 * to send commands to MC bc MC is not waiting for the AIOP */
-	err = dpci_mng_tx_get(g_dpci_tbl.dpci_id[ind], 
-	                      &tx_queue[0]);
+	err = dpci_mng_tx_set((uint32_t)ind);
 	ASSERT_COND(!err);
 
 	/* TODO Consider to add lock per DPCI entry */
@@ -429,9 +428,6 @@ __COLD_CODE int notify_open()
 	strncpy(&cl->gpp[link_up].m_name[0], &data->m_name[0], M_NAME_CHARS);
 	cl->gpp[link_up].m_name[M_NAME_CHARS] = '\0';
 	cl->gpp[link_up].regs->dpci_ind = (uint32_t)ind;
-	cl->gpp[link_up].regs->tx_queue_attr[0].fqid = tx_queue[0];
-	cl->gpp[link_up].regs->tx_queue_attr[1].fqid = tx_queue[1];
-
 	ASSERT_COND(cl->count < CMDIF_MN_SESSIONS);
 	cl->count++;
 

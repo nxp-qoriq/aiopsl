@@ -176,9 +176,14 @@ static int dpci_entry_get()
 static void dpci_entry_delete(int ind)
 {
 
+	int i;
+	
 	g_dpci_tbl.ic[ind] = DPCI_FQID_NOT_VALID;
 	g_dpci_tbl.dpci_id[ind] = DPCI_FQID_NOT_VALID;
 	g_dpci_tbl.dpci_id_peer[ind] = DPCI_FQID_NOT_VALID;
+	for (i = 0 ; i < DPCI_PRIO_NUM; i++)
+		g_dpci_tbl.tx_queue[ind][i] = DPCI_FQID_NOT_VALID;
+	g_dpci_tbl.token[ind] = 0xffff;
 	atomic_decr32(&g_dpci_tbl.count, 1);
 }
 
@@ -396,7 +401,7 @@ __COLD_CODE static int rx_ctx_set(uint32_t id)
 	return err;
 }
 
-__COLD_CODE static int tx_get(uint32_t dpci_id, uint32_t *tx)
+__COLD_CODE static int tx_get(uint32_t ind, uint32_t *tx)
 {
 
 	struct mc_dprc *dprc = sys_get_unique_handle(FSL_OS_MOD_AIOP_RC);
@@ -405,7 +410,7 @@ __COLD_CODE static int tx_get(uint32_t dpci_id, uint32_t *tx)
 	struct dpci_attr attr;
 	struct dpci_tx_queue_attr tx_attr;
 	int i;
-
+	
 	ASSERT_COND(tx);
 	ASSERT_COND(dprc);
 
@@ -413,14 +418,7 @@ __COLD_CODE static int tx_get(uint32_t dpci_id, uint32_t *tx)
 	MEM_SET(&tx_attr, sizeof(tx_attr), 0);
 	MEM_SET(&attr, sizeof(attr), 0);
 
-	/* dpci id may belong to peer */
-	i = dpci_mng_find(dpci_id, NULL);
-	if (i < 0) {
-		pr_err("Not found DPCI id or it's peer %d\n", dpci_id);
-		return -ENAVAIL;
-	}
-
-	err = dpci_open(&dprc->io, (int)g_dpci_tbl.dpci_id[i], &token);
+	err = dpci_open(&dprc->io, (int)g_dpci_tbl.dpci_id[ind], &token);
 	if (err)
 		return err;
 
@@ -532,7 +530,7 @@ __COLD_CODE int dpci_event_update(uint32_t ind)
 	 * If it changes then there should be removed/disconnected event, 
 	 */
 
-	DPCI_DT_LOCK_R_TAKE;
+	//DPCI_DT_LOCK_W_TAKE;
 
 	amq_bits_update(ind);
 	/* TODO err = rx_ctx_set(ind);
@@ -542,7 +540,7 @@ __COLD_CODE int dpci_event_update(uint32_t ind)
 	 * with a different ICID
 	 */
 
-	DPCI_DT_LOCK_RELEASE;
+	//DPCI_DT_LOCK_RELEASE;
 	return 0;
 }
 
@@ -563,23 +561,40 @@ __HOT_CODE void dpci_mng_user_ctx_get(uint32_t *id, uint32_t *fqid)
 
 __HOT_CODE void dpci_mng_icid_get(uint32_t ind, uint16_t *icid, uint16_t *amq_bdi)
 {
-	DPCI_DT_LOCK_R_TAKE;
+	// DPCI_DT_LOCK_R_TAKE;
 
 	CMDIF_ICID_AMQ_BDI(AMQ_BDI_GET, icid, amq_bdi);
 
-	DPCI_DT_LOCK_RELEASE;
+	//DPCI_DT_LOCK_RELEASE;
 }
 
-__COLD_CODE int dpci_mng_tx_get(uint32_t dpci_id, uint32_t *tx)
+__HOT_CODE void dpci_mng_tx_get(uint32_t ind, int pr, uint32_t *fqid)
+{
+	//DPCI_DT_LOCK_R_TAKE;
+
+	*fqid = g_dpci_tbl.tx_queue[ind][pr];
+
+	//DPCI_DT_LOCK_RELEASE;
+}
+
+__COLD_CODE int dpci_mng_tx_set(uint32_t ind)
 {
 	int err;
-	
-	DPCI_DT_LOCK_R_TAKE;
 
-	err = tx_get(dpci_id, tx);
+	/*
+	 * TODO Move it inside update/link up event
+	 */
+	if (g_dpci_tbl.tx_queue[ind][0] != DPCI_FQID_NOT_VALID) {
+		/* No need to update if it is already set */
+		return 0;
+	}
+	
+	//DPCI_DT_LOCK_W_TAKE;
+
+	err = tx_get(ind, &g_dpci_tbl.tx_queue[ind][0]);
 
 	
-	DPCI_DT_LOCK_RELEASE;
+	//DPCI_DT_LOCK_RELEASE;
 
 	return err;
 }

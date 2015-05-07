@@ -166,7 +166,6 @@ do {\
 
 struct cmdif_reg {
 	uint32_t dpci_ind;	/**< DPCI id */
-	struct dpci_tx_queue_attr tx_queue_attr[DPCI_PRIO_NUM]; /**< DPCI TX attributes */
 };
 
 /* To be allocated on DDR */
