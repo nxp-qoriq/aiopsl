@@ -659,8 +659,8 @@ int dprc_get_obj(struct fsl_mc_io	*mc_io,
  * dprc_obj_set_irq() - Set IRQ information for object to trigger an interrupt.
  * @mc_io:	Pointer to MC portal's I/O object
  * @token:	Token of DPRC object
- * @obj_index:  Index of the object to set its IRQ (< obj_count returned from
- *		dprc_get_obj_count())
+ * @obj_type:  	Type of the object to set its IRQ 
+ * @obj_id:  	ID of the object to set its IRQ 
  * @irq_index:	Identifies the interrupt index to configure
  * @irq_addr:	Address that must be written to
  *			signal a message-based interrupt
@@ -671,7 +671,8 @@ int dprc_get_obj(struct fsl_mc_io	*mc_io,
  */
 int dprc_obj_set_irq(struct fsl_mc_io	*mc_io,
 		     uint16_t		token,
-		     int		obj_index,
+		     char		*obj_type,
+		     int		obj_id,
 		     uint8_t		irq_index,
 		     uint64_t		irq_addr,
 		     uint32_t		irq_val,
@@ -681,8 +682,8 @@ int dprc_obj_set_irq(struct fsl_mc_io	*mc_io,
  * dprc_obj_get_irq() - Get IRQ information from object.
  * @mc_io:	Pointer to MC portal's I/O object
  * @token:	Token of DPRC object
- * @obj_index:  Index of the object to get its IRQ (< obj_count returned from
- *		dprc_get_obj_count())
+ * @obj_type:	Type od the object to get its IRQ
+ * @obj_id:  	ID of the object to get its IRQ
  * @irq_index:	The interrupt index to configure
  * @type:	Returned interrupt type: 0 represents message interrupt
  *			type (both irq_addr and irq_val are valid)
@@ -695,7 +696,8 @@ int dprc_obj_set_irq(struct fsl_mc_io	*mc_io,
  */
 int dprc_obj_get_irq(struct fsl_mc_io	*mc_io,
 		     uint16_t		token,
-		     int		obj_index,
+		     char		*obj_type,
+		     int		obj_id,
 		     uint8_t		irq_index,
 		     int		*type,
 		     uint64_t		*irq_addr,
@@ -794,14 +796,16 @@ int dprc_get_obj_region(struct fsl_mc_io	*mc_io,
  * dprc_set_obj_label() - Set object label.
  * @mc_io:	Pointer to MC portal's I/O object
  * @token:	Token of DPRC object
- * @obj_index;	Object index
+ * @obj_type:	Object's type
+ * @obj_id;	Object's ID
  * @label:	The required label. The maximum length is 16 chars.
  *
  * Return:	'0' on Success; Error code otherwise.
  */
 int dprc_set_obj_label(struct fsl_mc_io *mc_io,
 		       uint16_t  token,
-		       int obj_index,
+		       char *obj_type,
+		       int obj_id,
 		       char *label);
 
 /**
