@@ -59,7 +59,8 @@ int dpci_event_assign(uint32_t dpci_id);
  *//***************************************************************************/
 int dpci_event_unassign(uint32_t dpci_id);
 
-
+#define DPCI_EVENT_UPDATE_ICID	0x1
+#define DPCI_EVENT_UPDATE_TX	0x2
 /**************************************************************************//**
 @Function	dpci_event_update
 
@@ -69,9 +70,10 @@ int dpci_event_unassign(uint32_t dpci_id);
   	  	the AMQ bits are changed to AIOP AMQ bits  
 
 @Param[in]	dpci_ind - Use mc_dpci_find() or dpci_drv_user_ctx_get().
+@Param[in]	flags    - DPCI_EVENT_UPDATE_ICID, DPCI_EVENT_UPDATE_TX.
 
 @Return		0      - on success, POSIX error code otherwise
  *//***************************************************************************/
-int dpci_event_update(uint32_t dpci_ind);
+int dpci_event_update(uint32_t dpci_ind, uint8_t flags);
 
 #endif /* __FSL_DPCI_EVENT_H */

@@ -50,18 +50,6 @@ struct dpci_mng_tbl {
 };
 
 /**************************************************************************//**
-@Function	dpci_mng_tx_set
-
-@Description	Set the tx fqids for DPCI.  
-
-@Param[in]	dpci_ind - Index to the DPCI table entry.
-
-@Return		0      - on success, POSIX error code otherwise
- *//***************************************************************************/
-int dpci_mng_tx_set(uint32_t dpci_ind);
-
-
-/**************************************************************************//**
 @Function	dpci_mng_user_ctx_get
 
 @Description	Read the DPCI index and FQID from user context in ADC.
