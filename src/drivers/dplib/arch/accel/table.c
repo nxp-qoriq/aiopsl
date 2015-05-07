@@ -97,7 +97,7 @@ int table_rule_create_or_replace(enum table_hw_accel_id acc_id,
 #endif
 {
 	
-#ifdef CHECK_ALIGNMENT 	
+#ifdef CHECK_ALIGNMENT
 	DEBUG_ALIGN("table.c", (uint32_t)rule, ALIGNMENT_16B);
 #endif
 	
@@ -475,7 +475,7 @@ void table_workaround_tkt226361(uint32_t mflu_peb_num_entries,
 	uint32_t                   i;
 	uint32_t                   num_of_entries = mflu_peb_num_entries;
 #ifdef REV2_RULEID
-	uint64_t				   rule_id;
+	uint64_t                   rule_id;
 #endif
 	/* Iterate for each memory region */
 	for(i = 0; i < 3; i++){
@@ -516,7 +516,8 @@ void table_workaround_tkt226361(uint32_t mflu_peb_num_entries,
 			/* Create 2 rules */
 			*((uint32_t *)(&rule1.key_desc.mflu.key[0])) =
 					0x12345678;
-			*((uint32_t *)(&rule1.key_desc.mflu.key[TABLE_TKT226361_KEY_SIZE])) =
+			*((uint32_t *)(&rule1.key_desc.mflu.
+				key[TABLE_TKT226361_KEY_SIZE])) =
 					0x00000000; // priority
 			*((uint32_t *)(&rule1.key_desc.mflu.mask[0])) =
 					0xFFFFFFFF;
@@ -527,7 +528,8 @@ void table_workaround_tkt226361(uint32_t mflu_peb_num_entries,
 					&rule1,
 					TABLE_TKT226361_KEY_SIZE +
 #ifdef REV2_RULEID
-					TABLE_KEY_MFLU_PRIORITY_FIELD_SIZE,&rule_id)){
+					TABLE_KEY_MFLU_PRIORITY_FIELD_SIZE,
+					&rule_id)){
 #else
 					TABLE_KEY_MFLU_PRIORITY_FIELD_SIZE)){
 #endif
@@ -579,11 +581,11 @@ int table_lookup_by_keyid_default_frame_wrp(enum table_hw_accel_id acc_id,
 }
 
 int table_rule_create_wrp(enum table_hw_accel_id acc_id,
-		      uint16_t table_id,
-		      struct table_rule *rule,
+			  uint16_t table_id,
+			  struct table_rule *rule,
 #ifdef REV2_RULEID
-		      uint8_t key_size,
-		      uint64_t *rule_id)
+			  uint8_t key_size,
+			  uint64_t *rule_id)
 #else
 			  uint8_t key_size)
 #endif
@@ -611,11 +613,11 @@ int table_get_next_ruleid(enum table_hw_accel_id acc_id,
 			  struct table_rule_id_desc *next_rule_id_desc)
 {
 
-#ifdef CHECK_ALIGNMENT 	
+#ifdef CHECK_ALIGNMENT
 	DEBUG_ALIGN("table_inline.h",(uint32_t)rule_id_desc, ALIGNMENT_16B);
 	DEBUG_ALIGN("table_inline.h",(uint32_t)next_rule_id_desc, ALIGNMENT_16B);
 #endif
-	
+
 	int32_t status;
 
 	uint32_t arg2 = (uint32_t)next_rule_id_desc;
