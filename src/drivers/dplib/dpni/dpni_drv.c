@@ -212,7 +212,7 @@ __COLD_CODE int dpni_drv_probe(struct mc_dprc *dprc,
 	uint16_t dpni = 0;
 	uint8_t mac_addr[NET_HDR_FLD_ETH_ADDR_SIZE];
 	uint16_t qdid;
-	uint16_t spid;
+	uint16_t spids[2];
 	uint32_t sp_temp;
 	struct dpni_attr attributes;
 	struct dpni_buffer_layout layout = {0};
@@ -332,8 +332,8 @@ __COLD_CODE int dpni_drv_probe(struct mc_dprc *dprc,
 			nis[aiop_niid].dpni_drv_tx_params_var.qdid = qdid;
 
 			/* Register SPID in internal AIOP NI table */
-			if ((err = dpni_get_spid(&dprc->io,
-			                         dpni, &spid)) != 0) {
+			if ((err = dpni_get_spids(&dprc->io,
+			                         dpni, spids)) != 0) {
 				pr_err("Failed to get SPID for DP-NI%d\n",
 				       mc_niid);
 				return -ENODEV;
@@ -341,7 +341,7 @@ __COLD_CODE int dpni_drv_probe(struct mc_dprc *dprc,
 			/*TODO: change to uint16_t in nis table
 			 * for the next release*/
 			nis[aiop_niid].dpni_drv_params_var.spid =
-				(uint8_t)spid;
+				(uint8_t)spids[0];
 			/* Store epid index in AIOP NI's array*/
 			nis[aiop_niid].dpni_drv_params_var.epid_idx =
 				(uint16_t)i;
@@ -368,7 +368,7 @@ __COLD_CODE int dpni_drv_probe(struct mc_dprc *dprc,
 				{
 					sp_addr = (struct aiop_psram_entry *)
 							(AIOP_PERIPHERALS_OFF + AIOP_STORAGE_PROFILE_OFF);
-					sp_addr += spid;
+					sp_addr += spids[0];
 					alternate_storage_profile = *sp_addr;
 
 					sp_temp = LOAD_LE32_TO_CPU(&alternate_storage_profile.bp1);

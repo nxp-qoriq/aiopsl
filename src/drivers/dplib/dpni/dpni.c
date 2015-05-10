@@ -673,13 +673,13 @@ int dpni_get_qdid(struct fsl_mc_io *mc_io, uint16_t token, uint16_t *qdid)
 	return 0;
 }
 
-int dpni_get_spid(struct fsl_mc_io *mc_io, uint16_t token, uint16_t *spid)
+int dpni_get_spids(struct fsl_mc_io *mc_io, uint16_t token, uint16_t *spids)
 {
 	struct mc_command cmd = { 0 };
 	int err;
 
 	/* prepare command */
-	cmd.header = mc_encode_cmd_header(DPNI_CMDID_GET_SPID,
+	cmd.header = mc_encode_cmd_header(DPNI_CMDID_GET_SPIDS,
 					  MC_CMD_PRI_LOW,
 					  token);
 
@@ -689,7 +689,7 @@ int dpni_get_spid(struct fsl_mc_io *mc_io, uint16_t token, uint16_t *spid)
 		return err;
 
 	/* retrieve response parameters */
-	DPNI_RSP_GET_SPID(cmd, *spid);
+	DPNI_RSP_GET_SPIDS(cmd, spids);
 
 	return 0;
 }

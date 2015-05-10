@@ -762,16 +762,16 @@ int dpni_get_l4_chksum_validation(struct fsl_mc_io	*mc_io,
 int dpni_get_qdid(struct fsl_mc_io *mc_io, uint16_t token, uint16_t *qdid);
 
 /**
- * dpni_get_spid() - Get the AIOP storage profile ID associated with the DPNI
+ * dpni_get_spids() - Get the AIOP storage profile IDs associated with the DPNI
  * @mc_io:	Pointer to MC portal's I/O object
  * @token:	Token of DPNI object
- * @spid:	Returned aiop storage-profile ID
+ * @spids:	Returned aiop storage-profile IDs
  *
  * Return:	'0' on Success; Error code otherwise.
  *
  * @warning	Only relevant for DPNI that belongs to AIOP container.
  */
-int dpni_get_spid(struct fsl_mc_io *mc_io, uint16_t token, uint16_t *spid);
+int dpni_get_spids(struct fsl_mc_io *mc_io, uint16_t token, uint16_t *spids);
 
 /**
  * dpni_get_tx_data_offset() - Get the Tx data offset (from start of buffer)
@@ -1500,9 +1500,6 @@ struct dpni_flc_cfg {
  * struct dpni_queue_cfg - Structure representing queue configuration
  * @options: Flags representing the suggested modifications to the queue;
  *		Use any combination of 'DPNI_QUEUE_OPT_<X>' flags
- * @order_preservation_en: enable/disable order preservation;
- *		valid only if 'DPNI_QUEUE_OPT_ORDER_PRESERVATION' is contained
- *		in 'options'
  * @user_ctx: User context value provided in the frame descriptor of each
  *		dequeued frame; valid only if 'DPNI_QUEUE_OPT_USER_CTX'
  *		is contained in 'options'
@@ -1513,29 +1510,33 @@ struct dpni_flc_cfg {
  *		in the case of FS (flow-steering) the flow's FLC settings
  *		are used.
  *		valid only if 'DPNI_QUEUE_OPT_FLC' is contained in 'options'
+ * @order_preservation_en: enable/disable order preservation;
+ *		valid only if 'DPNI_QUEUE_OPT_ORDER_PRESERVATION' is contained
+ *		in 'options'
  */
 struct dpni_queue_cfg {
 	uint32_t options;
-	int order_preservation_en;
 	uint64_t user_ctx;
 	struct dpni_dest_cfg dest_cfg;
 	struct dpni_flc_cfg flc_cfg;
+	int order_preservation_en;
 };
 
 /**
  * struct dpni_queue_attr - Structure representing queue attributes
- * @order_preservation_en: enable/disable order preservation
  * @user_ctx: User context value provided in the frame descriptor of each
  *	dequeued frame
  * @dest_cfg: Queue destination configuration
  * @flc_cfg: Flow context configuration
+ * @order_preservation_en: enable/disable order preservation
  * @fqid: Virtual fqid value to be used for dequeue operations
  */
 struct dpni_queue_attr {
 	uint64_t user_ctx;
-	int order_preservation_en;
 	struct dpni_dest_cfg dest_cfg;
 	struct dpni_flc_cfg flc_cfg;
+	int order_preservation_en;
+
 	uint32_t fqid;
 };
 
