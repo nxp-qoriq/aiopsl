@@ -339,7 +339,7 @@ __COLD_CODE static int dpci_entry_init(uint32_t dpci_id)
 		}
 	}
 	
-	ASSERT_COND(g_dpci_tbl.dpci_id[ind] == dpci_id);
+	ASSERT_COND((ind >= 0) && (ind < g_dpci_tbl.max));
 
 	g_dpci_tbl.dpci_id[ind] = dpci_id;
 	g_dpci_tbl.ic[ind] = amq_bdi;
