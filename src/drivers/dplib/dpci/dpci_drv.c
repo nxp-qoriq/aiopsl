@@ -490,7 +490,7 @@ __COLD_CODE int dpci_event_assign(uint32_t dpci_id)
 		if (g_dpci_tbl.dpci_id_peer[ind] != DPCI_FQID_NOT_VALID) {
 			err = rx_ctx_set((uint32_t)ind);
 			err |= tx_set((uint32_t)ind);
-			
+			ASSERT_COND(!err);
 			/* AIOP DPCI to AIOP DPCI case 2 entries must be 
 			 * updated 1->2 and 2->1 */
 			err = dpci_mng_find(g_dpci_tbl.dpci_id_peer[ind], NULL);
@@ -500,7 +500,7 @@ __COLD_CODE int dpci_event_assign(uint32_t dpci_id)
 				pr_debug("AIOP DPCI %d to AIOP DPCI %d\n", 
 				         g_dpci_tbl.dpci_id[err], g_dpci_tbl.dpci_id_peer[err]);
 			}
-
+			err = 0;
 		}
 	}
 
