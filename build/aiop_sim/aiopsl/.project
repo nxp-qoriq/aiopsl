@@ -380,6 +380,16 @@
 			<locationURI>PARENT-3-PROJECT_LOC/src/kernel/time.h</locationURI>
 		</link>
 		<link>
+			<name>aiop_sl/lib/evm.c</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/lib/evm.c</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/lib/evm.h</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/lib/evm.h</locationURI>
+		</link>
+		<link>
 			<name>aiop_sl/lib/fsl_list.h</name>
 			<type>1</type>
 			<locationURI>PARENT-3-PROJECT_LOC/src/lib/fsl_list.h</locationURI>
@@ -735,6 +745,11 @@
 			<locationURI>PARENT-3-PROJECT_LOC/src/include/kernel/types_mw.h</locationURI>
 		</link>
 		<link>
+			<name>aiop_sl/include/lib/fsl_evm.h</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/include/lib/fsl_evm.h</locationURI>
+		</link>
+		<link>
 			<name>aiop_sl/include/lib/fsl_shbp.h</name>
 			<type>1</type>
 			<locationURI>PARENT-3-PROJECT_LOC/src/include/lib/fsl_shbp.h</locationURI>
@@ -910,6 +925,11 @@
 			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/dplib/dprc/dprc.h</locationURI>
 		</link>
 		<link>
+			<name>aiop_sl/drivers/dplib/dprc/dprc_drv.c</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/dplib/dprc/dprc_drv.c</locationURI>
+		</link>
+		<link>
 			<name>aiop_sl/drivers/dplib/include/checksum.h</name>
 			<type>1</type>
 			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/dplib/include/checksum.h</locationURI>
@@ -918,6 +938,11 @@
 			<name>aiop_sl/drivers/dplib/include/dpni_drv.h</name>
 			<type>1</type>
 			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/dplib/include/dpni_drv.h</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/drivers/dplib/include/dprc_drv.h</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/dplib/include/dprc_drv.h</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/drivers/dplib/include/fsl_dpbp.h</name>
