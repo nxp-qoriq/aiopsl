@@ -909,6 +909,11 @@ int fdma_concatenate_frames(
 
 	/* call FDMA Accelerator */
 	__e_hwacceli_(FODMA_ACCEL_ID);
+
+#ifdef FDMA_OSM_LIMIT
+	frame_types[params->frame1] = SCATTER_GATHER_FRAME;
+#endif
+	
 	/* load command results */
 	res1 = *((int8_t *) (FDMA_STATUS_ADDR));
 
