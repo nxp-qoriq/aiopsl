@@ -429,11 +429,11 @@ int ipr_delete_instance(ipr_instance_handle_t ipr_instance_ptr,
 		it enters (exclusive or concurrent).
 				
 		In case of completed reassembly, the reassembled frame is
-		returned as default frame and segment is presented.
+		returned as default frame and segment is presented.\n
 		In case of malformed fragment, the presented fragment is
-		returned.
+		returned.\n
 		In case of reassembly not completed, no open frame is returned,
-		no segment is presented.
+		no segment is presented.\n
 
 		This functions assumes that at least 60 bytes are presented in
 		the presentation area. 
@@ -454,21 +454,23 @@ int ipr_delete_instance(ipr_instance_handle_t ipr_instance_ptr,
 		\link FSL_IPRReassReturnStatus IP Reassembly Return status
 		\endlink \n
 		ETIMEDOUT - Early Time out. Timeout occurred while this fragment
-		is proceeded. No fragment is returned.
-		ENOSPC - Maximum open reassembled frames has been reached.
+		is proceeded. No fragment is returned.\n
+		ENOSPC - Maximum open reassembled frames has been reached.\n
 		ENOTSUP - Maximum number of fragments per reassembly has been
-			  reached.
+			  reached.\n
 		EIO - L4 checksum not valid.	  
 
 @Cautions	This function may result in a fatal error.
+@Cautions       As part of a workaround to ticket TKT260685 in REV1 this 
+                function requires one of the four nested scope levels.
 @Cautions	It is forbidden to call this function when the task
-		isn't found in any ordering scope (null scope_id).
+		isn't found in any ordering scope (null scope_id).\n
 		If this function is called in concurrent mode, the scope_id is
 		incremented.\n
 		If this function is called while the task is currently
-		in exclusive mode, the scope_id is preserved.
+		in exclusive mode, the scope_id is preserved.\n
 		This function requires 1 CDMA mutex
-		(out of 4 available per task).
+		(out of 4 available per task).\n
 		In this function, the task yields.
 
 *//***************************************************************************/
