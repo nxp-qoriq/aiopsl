@@ -399,7 +399,11 @@ int ipr_reassemble(ipr_instance_handle_t instance_handle)
 	    osm_scope_transition_to_exclusive_with_increment_scope_id_wrp();
 	    if (PARSER_IS_OUTER_IP_FRAGMENT_DEFAULT()) {
 		/* Fragment */
-		    if (scope_status.scope_level <= 2) {
+#ifdef FDMA_OSM_LIMIT		    
+		    if (scope_status.scope_level <= 1) {
+#else
+		    if (scope_status.scope_level <= 2) {			    
+#endif			    
 			    osm_status = NO_BYPASS_OSM;
 			/* create nested exclusive for the fragments of
 			 * the same flow*/
