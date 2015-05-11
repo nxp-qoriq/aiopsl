@@ -44,20 +44,25 @@
 @{
 *//***************************************************************************/
 
-enum evm_types {
-	AIOP_DPRC_ASSIGN = 0,
-	AIOP_DPRC_UNASSIGN,
-	AIOP_DPNI_LINK_CHANGE,
-	AIOP_DPCI_LINK_CHANGE,
-	AIOP_NUM_OF_EVENTS
-};
+/**************************************************************************//**
+ @Group		EVM_EVENT_TYPES Event manager events
 
-enum evm_objects {
-	AIOP_DPRC = 0,
-	AIOP_DPNI,
-	AIOP_DPCI,
-	AIOP_NUM_OF_OBJECTS
+ @Description	EVM events, supported for application use.
+
+ @{
+ *//***************************************************************************/
+enum evm_event_types {
+	DPNI_EVENT_ADDED = 0,
+	DPNI_EVENT_REMOVED,
+	DPNI_EVENT_LINK_UP,
+	DPNI_EVENT_LINK_DOWN,
+	DPCI_EVENT_ADDED,
+	DPCI_EVENT_REMOVED,
+	DPCI_EVENT_LINK_UP,
+	DPCI_EVENT_LINK_DOWN,
+	NUM_OF_USER_EVENTS
 };
+/** @} end of group EVM_EVENT_TYPES */
 
 /**************************************************************************//**
 @Description	Prototype of event manager callback function. An application
@@ -68,12 +73,13 @@ enum evm_objects {
 
 @Param[in]	event_id  Identifier of the event specific to the application
 		generating event. The value can range from 0 to 255.
+		\ref EVM_EVENT_TYPES
 		A unique combination of generator_id and event_id corresponds
 		to a unique event in the system.
 
 @param[in]	size  size of event data.
 
-@param[in]	event_data  A pointer to structure specific for event
+@param[in]	event_data  A pointer to data specific for event
 
 
 @Return		The return code is not interpreted by event manager.
@@ -81,7 +87,7 @@ enum evm_objects {
 *//***************************************************************************/
 typedef int (*evm_cb)(
 			uint8_t generator_id,
-			uint16_t event_id,
+			uint8_t event_id,
 			uint32_t size,
 			void *event_data);
 
@@ -95,6 +101,7 @@ typedef int (*evm_cb)(
 
 @Param[in]	event_id  Identifier of the event specific to the application
 		generating event. The value can range from 0 to 255.
+		\ref EVM_EVENT_TYPES
 		A unique combination of generator_id and event_id corresponds
 		to a unique event in the system.
 
@@ -111,7 +118,7 @@ typedef int (*evm_cb)(
 *//***************************************************************************/
 int evm_app_register(
 		uint8_t generator_id,
-		enum evm_types event_id,
+		uint8_t event_id,
 		uint8_t priority,
 		evm_cb cb);
 
@@ -125,6 +132,7 @@ int evm_app_register(
 
 @Param[in]	event_id  Identifier of the event specific to the application
 		generating event. The value can range from 0 to 255.
+		\ref EVM_EVENT_TYPES
 		A unique combination of generator_id and event_id corresponds
 		to a unique event in the system.
 
@@ -141,7 +149,7 @@ int evm_app_register(
 *//***************************************************************************/
 int evm_unregister(
 		uint8_t generator_id,
-		enum evm_types event_id,
+		uint8_t event_id,
 		uint8_t priority,
 		evm_cb cb);
 

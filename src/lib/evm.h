@@ -44,6 +44,22 @@
 #define EVM_APP_REGISTRATION_FLAG 1
 
 
+enum evm_all_event_types {
+	DPRC_EVENT_OBJ_ADDED = NUM_OF_USER_EVENTS,
+	DPRC_EVENT_OBJ_REMOVED,
+	DPNI_EVENT_LINK_CHANGE,
+	DPCI_EVENT_LINK_CHANGE,
+	NUM_OF_ALL_EVENTS
+};
+
+enum evm_objects {
+	DPRC = 0,
+	DPNI,
+	DPCI,
+	NUM_OF_EVM_OBJECTS
+};
+
+
 /**************************************************************************//**
 @Function	evm_sl_register
 
@@ -69,7 +85,7 @@
 *//***************************************************************************/
 int evm_sl_register(
 		uint8_t generator_id,
-		enum evm_types event_id,
+		uint8_t event_id,
 		uint8_t priority,
 		evm_cb cb);
 
@@ -96,7 +112,7 @@ struct evm_priority_list {
 *//***************************************************************************/
 struct evm{
 	/** Identifier of the specific event */
-	enum evm_types event_id;
+	uint8_t event_id;
 	/** Number of registered callback functions */
 	uint8_t num_cbs;
 	/** Pointer to the first list with callback function for the same event

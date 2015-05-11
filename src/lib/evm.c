@@ -33,7 +33,7 @@
 struct evm *event_data;
 
 static int add_event_registration(uint8_t generator_id,
-                                  enum evm_types event_id,
+                                  uint8_t event_id,
                                   uint8_t priority,
                                   evm_cb cb,
                                   uint8_t priority_flag)
@@ -52,14 +52,14 @@ static int add_event_registration(uint8_t generator_id,
 		sl_pr_debug("CB is NULL\n");
 		return -EINVAL;
 	}
-	if(event_id >= AIOP_NUM_OF_EVENTS || event_id < 0){
+	if(event_id >= NUM_OF_ALL_EVENTS || event_id < 0){
 		sl_pr_debug("event_id value is out of bounds\n");
 		return -EINVAL;
 	}
 #endif
-	if((priority < MINIMUM_PRIORITY || priority > MAXIMUM_PRIORITY)
+	if((priority < MINIMUM_PRIORITY || priority > MAXIMUM_PRIORITY || event_id >= NUM_OF_USER_EVENTS)
 		&& priority_flag == EVM_APP_REGISTRATION_FLAG){
-		sl_pr_debug("priority value is out of bounds\n");
+		sl_pr_debug("priority/event value incorrect\n");
 		return -EINVAL;
 	}
 
@@ -115,17 +115,18 @@ static int add_event_registration(uint8_t generator_id,
 	return 0;
 }
 
-int evm_sl_register(uint8_t generator_id, enum evm_types event_id, uint8_t priority, evm_cb cb){
+int evm_sl_register(uint8_t generator_id, uint8_t event_id, uint8_t priority, evm_cb cb)
+{
 	return add_event_registration(generator_id, event_id, priority, cb, EVM_SL_REGISTRATION_FLAG);
 }
 
 
-int evm_app_register(uint8_t generator_id, enum evm_types event_id, uint8_t priority, evm_cb cb)
+int evm_app_register(uint8_t generator_id, uint8_t event_id, uint8_t priority, evm_cb cb)
 {
 	return add_event_registration(generator_id, event_id, priority, cb, EVM_APP_REGISTRATION_FLAG);
 }
 
-int evm_unregister(uint8_t generator_id, enum evm_types event_id,
+int evm_unregister(uint8_t generator_id, uint8_t event_id,
                    uint8_t priority, evm_cb cb)
 {
 	struct evm *evm_ptr = event_data;
@@ -142,7 +143,7 @@ int evm_unregister(uint8_t generator_id, enum evm_types event_id,
 		sl_pr_debug("CB is NULL\n");
 		return -EINVAL;
 	}
-	if(event_id >= AIOP_NUM_OF_EVENTS || event_id < 0){
+	if(event_id >= NUM_OF_ALL_EVENTS || event_id < 0){
 		sl_pr_debug("event_id value is out of bounds\n");
 		return -EINVAL;
 	}
@@ -218,7 +219,7 @@ static int evm_raise_event_cb(void *dev, uint16_t cmd, uint32_t size, void *data
 	int i;
 	UNUSED(dev);
 	cmd &= ~CMDIF_NORESP_CMD;
-	if(cmd >= AIOP_NUM_OF_EVENTS || cmd < 0)
+	if(cmd >= NUM_OF_ALL_EVENTS || cmd < 0)
 	{
 		sl_pr_err("Event %d not supported\n",cmd);
 		return -ENOTSUP;
@@ -237,7 +238,7 @@ static int evm_raise_event_cb(void *dev, uint16_t cmd, uint32_t size, void *data
 
 	for(i = 0; i < evm_ptr->num_cbs; i++){
 		evm_cb_list_ptr->cb(evm_cb_list_ptr->generator_id,
-		                    (enum evm_types)cmd,
+		                    (uint8_t)cmd,
 		                    size,
 		                    data);
 		evm_cb_list_ptr = evm_cb_list_ptr->next;
@@ -266,7 +267,7 @@ int evm_init(void)
 	struct evm *evm_ptr;
 	struct cmdif_module_ops evm_ops;
 	int i, err;
-	event_data = (struct evm *) fsl_malloc(AIOP_NUM_OF_EVENTS *
+	event_data = (struct evm *) fsl_malloc(NUM_OF_ALL_EVENTS *
 	                                       sizeof(struct evm),
 	                                       64);
 	if(event_data == NULL) {
@@ -275,11 +276,11 @@ int evm_init(void)
 	}
 	evm_ptr = event_data;
 
-	memset(event_data, 0, AIOP_NUM_OF_EVENTS * sizeof(struct evm));
+	memset(event_data, 0, NUM_OF_ALL_EVENTS * sizeof(struct evm));
 
 	/*Register for the events in MC*/
-	for(i = 0; i < AIOP_NUM_OF_EVENTS; i++){
-		evm_ptr->event_id = (enum evm_types) i;
+	for(i = 0; i < NUM_OF_ALL_EVENTS; i++){
+		evm_ptr->event_id = (uint8_t) i;
 	}
 
 
