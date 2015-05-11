@@ -394,11 +394,9 @@ __COLD_CODE int notify_open()
 		return -ENAVAIL;
 	}
 
-	err = dpci_event_update((uint32_t)ind, 
-	                        DPCI_EVENT_UPDATE_ICID | DPCI_EVENT_UPDATE_TX);
+	err = dpci_event_update((uint32_t)ind);
 	ASSERT_COND(!err);
 
-	/* TODO Consider to add lock per DPCI entry */
 	CMDIF_CL_LOCK_W_TAKE;
 
 #ifdef DEBUG
@@ -545,7 +543,7 @@ __COLD_CODE int session_open(uint16_t *new_auth)
 
 	dpci_mng_user_ctx_get(&ind, NULL);
 #ifndef STACK_CHECK /* Stack check can ignore it up to user callback */
-	err = dpci_event_update(ind, DPCI_EVENT_UPDATE_ICID);
+	err = dpci_event_update(ind);
 	ASSERT_COND(!err);
 #endif
 

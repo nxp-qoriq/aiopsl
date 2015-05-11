@@ -226,7 +226,8 @@ static inline void amq_bits_update(uint32_t id)
 }
 
 /*
- * Set the peer id and the tx queues only if they are not yet set
+ * Set the peer id and the tx queues
+ * Reset it if it is not yet available
  */
 __COLD_CODE static int tx_peer_set(uint32_t ind)
 {
@@ -242,10 +243,9 @@ __COLD_CODE static int tx_peer_set(uint32_t ind)
 	ASSERT_COND(tx);
 	ASSERT_COND(dprc);
 
-	if (g_dpci_tbl.dpci_id_peer[ind] != DPCI_FQID_NOT_VALID) {
-		/* No need to update if it is already set */
-		ASSERT_COND(tx[0] != DPCI_FQID_NOT_VALID);
-		return 0;
+	g_dpci_tbl.dpci_id_peer[ind] = DPCI_FQID_NOT_VALID;
+	for (i = 0; i < DPCI_PRIO_NUM; i++) {
+		tx[i] = DPCI_FQID_NOT_VALID;
 	}
 
 	/* memset */
@@ -296,7 +296,7 @@ __COLD_CODE static int dpci_entry_init(uint32_t dpci_id)
 			return -ENOMEM;
 		}
 	}
-	
+
 	ASSERT_COND((ind >= 0) && (ind < g_dpci_tbl.max));
 
 	g_dpci_tbl.dpci_id[ind] = dpci_id;
@@ -389,10 +389,10 @@ __COLD_CODE int dpci_event_unassign(uint32_t dpci_id)
  * This function is to be called only inside the open command and before
  * the AMQ bits had been changed to AIOP AMQ bits
  */
-__COLD_CODE int dpci_event_update(uint32_t ind, uint8_t flags)
+__COLD_CODE int dpci_event_update(uint32_t ind)
 {
 	int err = 0;
-		
+
 	/*
 	 * TODO
 	 * Is it possible that DPCI will be removed in the middle of the task ?
@@ -403,27 +403,36 @@ __COLD_CODE int dpci_event_update(uint32_t ind, uint8_t flags)
 	 */
 
 	DPCI_DT_LOCK_W_TAKE;
+
+	amq_bits_update(ind);
+
+	DPCI_DT_LOCK_RELEASE;
+
+	return err;
+}
+
+/*
+ * The DPCI user context and AMQ bits are updated
+ * This function is to be called only inside the open command and before
+ * the AMQ bits had been changed to AIOP AMQ bits
+ */
+__COLD_CODE int dpci_event_link_change(uint32_t dpci_id)
+{
+	int err = 0;
+	int ind;
 	
-	if (flags & DPCI_EVENT_UPDATE_ICID) {
-		amq_bits_update(ind);
-		/* TODO err = rx_ctx_set(ind);
-		 * rx_ctx_set(ind) moved to added event
-		 * Need to check if this is the right thing
-		 * Can't get tx fqid from GPP inside command, 
-		 * maybe for AIOP it is authorized
-		 * with a different ICID
-		 */
-	}
-	
-	if (flags & DPCI_EVENT_UPDATE_TX) {
-		err = tx_peer_set(ind);
-	}
+	DPCI_DT_LOCK_W_TAKE;
+
+	ind = dpci_mng_find(dpci_id, NULL);
+	if (ind >= 0)
+		err = tx_peer_set((uint32_t)ind);
+	else
+		err = -ENODEV;
 	
 	DPCI_DT_LOCK_RELEASE;
 	
 	return err;
 }
-
 
 __HOT_CODE void dpci_mng_user_ctx_get(uint32_t *id, uint32_t *fqid)
 {
@@ -445,7 +454,7 @@ __HOT_CODE void dpci_mng_icid_get(uint32_t ind, uint16_t *icid, uint16_t *amq_bd
 
 	/* 1. Atomic read of 4 bytes so that icid and amq are always in sync 
 	 * 2. Retrieve the icid and amq & bdi */
-	
+
 	CMDIF_ICID_AMQ_BDI(AMQ_BDI_GET, icid, amq_bdi_out);
 }
 
@@ -465,7 +474,7 @@ __COLD_CODE int dpci_drv_enable(uint32_t dpci_id)
 	uint8_t i;
 
 	ASSERT_COND(dprc);
-	
+
 	DPCI_DT_LOCK_W_TAKE;
 	/*
 	 * Update DPCI table tx and peer
@@ -475,12 +484,12 @@ __COLD_CODE int dpci_drv_enable(uint32_t dpci_id)
 		DPCI_DT_LOCK_RELEASE;
 		return -ENOENT;
 	}
-		
+
 	err = tx_peer_set((uint32_t)ind);
 
 	DPCI_DT_LOCK_RELEASE;
-	
-	
+
+
 	MEM_SET(&attr, sizeof(attr), 0);
 	MEM_SET(&queue_cfg, sizeof(queue_cfg), 0);
 
@@ -489,7 +498,7 @@ __COLD_CODE int dpci_drv_enable(uint32_t dpci_id)
 		dpci_close(&dprc->io, token);
 		return err;
 	}
-	
+
 	err = dpci_get_attributes(&dprc->io, token, &attr);
 	if (err) {
 		dpci_close(&dprc->io, token);
@@ -516,9 +525,9 @@ __COLD_CODE int dpci_drv_enable(uint32_t dpci_id)
 		dpci_close(&dprc->io, token);
 		return err;
 	}
-	
+
 	dpci_close(&dprc->io, token);
-	
+
 	return err;
 }
 
