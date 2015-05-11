@@ -73,7 +73,8 @@ int dprc_drv_init(void)
 
 void dprc_drv_free(void)
 {
-
+	aiop_container_free();
+	/*TODO what else should be freed*/
 }
 
 
