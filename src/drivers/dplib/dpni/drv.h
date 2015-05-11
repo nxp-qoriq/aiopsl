@@ -37,7 +37,7 @@
 #include "fsl_dpni_drv.h"
 #include "fsl_net.h"
 #include "fsl_dprc.h"
-#include "fsl_mc_init.h"
+#include "fsl_dprc_drv.h"
 
 int dpni_drv_probe(struct mc_dprc *dprc,
                    uint16_t mc_niid,

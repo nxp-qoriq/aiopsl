@@ -34,7 +34,7 @@
 #include "sys.h"
 #include "fsl_dbg.h"
 #include "fsl_icontext.h"
-#include "fsl_mc_init.h"
+#include "fsl_dprc_drv.h"
 #include "fsl_spinlock.h"
 #include "cmdif_srv.h"
 #include "fsl_io_ccsr.h"

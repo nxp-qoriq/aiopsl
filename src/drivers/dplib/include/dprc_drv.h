@@ -33,7 +33,7 @@
 #define __DPRC_DRV_H
 
 #include "types.h"
-
+#include "fsl_dprc_drv.h"
 
 
 

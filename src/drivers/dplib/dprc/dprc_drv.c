@@ -35,15 +35,20 @@
 #include "fsl_dbg.h"
 #include "evm.h"
 #include "fsl_sys.h"
-#include "fsl_mc_init.h"
+#include "fsl_malloc.h"
+#include "aiop_common.h"
 
-
+extern struct aiop_init_info g_init_data;
 int dprc_drv_init(void);
 void dprc_drv_free(void);
+static int aiop_container_init(void);
+static void aiop_container_free(void);
 
-static int dprc_drv_ev_cb(uint8_t id, uint16_t cmd, uint32_t size, void *data)
+
+static int dprc_drv_ev_cb(uint8_t id, uint8_t cmd, uint32_t size, void *data)
 {
 	/*Container was updated*/
+
 
 	return 0;
 }
@@ -51,37 +56,16 @@ static int dprc_drv_ev_cb(uint8_t id, uint16_t cmd, uint32_t size, void *data)
 int dprc_drv_init(void)
 {
 	int err;
-	struct mc_dprc *dprc = sys_get_unique_handle(FSL_OS_MOD_AIOP_RC);
+	err = aiop_container_init();
+	if(err){
+		pr_err("Failed to initialize AIOP container, %d.\n", err);
+		return err;
+	}
+
 	err = dprc_drv_scan();
 	if(err){
 		pr_err("Failed to scan resource container, %d.\n", err);
 		return err;
-	}
-
-	err = dprc_set_irq(&dprc->io, dprc->token, DPRC_IRQ_EVENT_OBJ_ADDED,
-	                   AIOP_DPRC, AIOP_DPRC_ASSIGN, 0);
-	if(err){
-		pr_err("Set irq for new object added failed\n");
-		return -ENAVAIL;
-	}
-
-	err = evm_sl_register(AIOP_DPRC, AIOP_DPRC_ASSIGN, 1, dprc_drv_ev_cb);
-	if(err){
-		pr_err("EVM registration for DPRC assign failed\n");
-		return -ENAVAIL;
-	}
-
-	err = dprc_set_irq(&dprc->io, dprc->token, DPRC_IRQ_EVENT_OBJ_REMOVED,
-	                   AIOP_DPRC, AIOP_DPRC_UNASSIGN, 0);
-	if(err){
-		pr_err("Set irq for new object added failed\n");
-		return -ENAVAIL;
-	}
-
-	err = evm_sl_register(AIOP_DPRC, AIOP_DPRC_UNASSIGN, 1, dprc_drv_ev_cb);
-	if(err){
-		pr_err("EVM registration for DPRC un-assign failed\n");
-		return -ENAVAIL;
 	}
 	return 0;
 }
@@ -117,5 +101,81 @@ int dprc_drv_scan(void)
 	return 0;
 }
 
+__COLD_CODE static int aiop_container_init(void)
+{
+	void *p_vaddr;
+	int err = 0;
+	int container_id;
+	/*struct mc_dprc *dprc = fsl_os_xmalloc(sizeof(struct mc_dprc),
+					MEM_PART_SH_RAM,
+					1);*/
+	struct mc_dprc *dprc = fsl_malloc(sizeof(struct mc_dprc),
+						1);
+	if (dprc == NULL) {
+		pr_err("No memory for AIOP Root Container \n");
+		return -ENOMEM;
+	}
+	memset(dprc, 0, sizeof(struct mc_dprc));
+
+	/* TODO : in this call, can 3rd argument be zero? */
+	/* Get virtual address of MC portal */
+	p_vaddr = UINT_TO_PTR(((uintptr_t)sys_get_handle(FSL_OS_MOD_MC_PORTAL, 0))
+			+ SOC_PERIPH_OFF_PORTALS_MC(g_init_data.sl_info.mc_portal_id));
+
+	pr_debug("MC portal ID[%d] addr = 0x%x\n", g_init_data.sl_info.mc_portal_id, (uint32_t)p_vaddr);
+
+	/* Open root container in order to create and query for devices */
+	dprc->io.regs = p_vaddr;
+	err = dprc_get_container_id(&dprc->io, &container_id);
+	if(err){
+		pr_err("Failed to get AIOP root container ID.\n");
+		return err;
+	}
+	err = dprc_open(&dprc->io, container_id, &dprc->token);
+	if(err){
+		pr_err("Failed to open AIOP root container DP-RC%d.\n",
+		container_id);
+		return err;
+	}
+
+	err = dprc_set_irq(&dprc->io, dprc->token, DPRC_IRQ_EVENT_OBJ_ADDED,
+	                   DPRC, DPRC_EVENT_OBJ_ADDED, 0);
+	if(err){
+		pr_err("Set irq for DPRC object added failed\n");
+		return -ENAVAIL;
+	}
+
+	err = evm_sl_register(DPRC, DPRC_EVENT_OBJ_ADDED, 0, dprc_drv_ev_cb);
+	if(err){
+		pr_err("EVM registration for DPRC object added failed\n");
+		return -ENAVAIL;
+	}
+
+	err = dprc_set_irq(&dprc->io, dprc->token, DPRC_IRQ_EVENT_OBJ_REMOVED,
+	                   DPRC, DPRC_EVENT_OBJ_REMOVED, 0);
+	if(err){
+		pr_err("Set irq for DPRC object removed failed\n");
+		return -ENAVAIL;
+	}
+
+	err = evm_sl_register(DPRC, DPRC_EVENT_OBJ_REMOVED, 0, dprc_drv_ev_cb);
+	if(err){
+		pr_err("EVM registration for DPRC object removed failed\n");
+		return -ENAVAIL;
+	}
+
+	err = sys_add_handle(dprc, FSL_OS_MOD_AIOP_RC, 1, 0);
+	return err;
+}
+
+__COLD_CODE static void aiop_container_free(void)
+{
+	void *dprc = sys_get_unique_handle(FSL_OS_MOD_AIOP_RC);
+
+	sys_remove_handle(FSL_OS_MOD_AIOP_RC, 0);
+
+	if (dprc != NULL)
+		fsl_free(dprc);
+}
 
 

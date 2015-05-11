@@ -42,7 +42,7 @@
 #include "fsl_dpni_drv.h"
 #include "aiop_common.h"
 #include "system.h"
-#include "fsl_mc_init.h"
+#include "fsl_dprc_drv.h"
 #include "slab.h"
 
 #define __ERR_MODULE__  MODULE_DPNI
@@ -719,6 +719,10 @@ __COLD_CODE int dpni_drv_init(void)
 			                          pools_params)) != 0) {
 				pr_err("Failed to probe DPNI-%d.\n", i);
 				return err;
+			}
+			else
+			{
+				/*TODO Trigger AIOP event manager*/
 			}
 		}
 	}

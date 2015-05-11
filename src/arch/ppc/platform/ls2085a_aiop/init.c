@@ -29,7 +29,7 @@
 #include "sys.h"
 #include "fsl_io_ccsr.h"
 #include "cmgw.h"
-#include "fsl_mc_init.h"
+#include "fsl_dprc_drv.h"
 #include "fsl_mem_mng.h"
 #include "platform.h"
 
@@ -41,11 +41,12 @@ extern struct platform_app_params g_app_params;
 extern struct aiop_init_info g_init_data;
 /*********************************************************************/
 extern int time_init();                   extern void time_free();
-extern int mc_obj_init();                 extern void mc_obj_free();
 extern int cmdif_client_init();           extern void cmdif_client_free();
 extern int cmdif_srv_init(void);          extern void cmdif_srv_free(void);
+extern int dprc_drv_init(void);           extern void dprc_drv_free(void);
 extern int dpni_drv_init(void);           extern void dpni_drv_free(void);
 extern int dpci_drv_init();               extern void dpci_drv_free();
+extern int evm_init(void);                extern void evm_free(void);
 extern int slab_module_early_init(void);  extern int slab_module_init(void);
 extern void slab_module_free(void);
 extern int aiop_sl_early_init(void);
@@ -81,13 +82,14 @@ extern void build_apps_array(struct sys_module_desc *apps);
 	{    /* slab must be before any module with buffer request*/             \
 	{NULL, time_init,         time_free},                                    \
 	{NULL, epid_drv_init,     epid_drv_free},                                \
-	{NULL, mc_obj_init,       mc_obj_free},                                  \
+	{NULL, dprc_drv_init,     dprc_drv_free},                                \
 	{NULL, dpci_drv_init,     dpci_drv_free}, /*must be before EVM */        \
 	{slab_module_early_init, slab_module_init,  slab_module_free},           \
 	{NULL, cmdif_client_init, cmdif_client_free}, /* must be before srv */   \
 	{NULL, cmdif_srv_init,    cmdif_srv_free},                               \
-	{aiop_sl_early_init, aiop_sl_init,      aiop_sl_free},                                 \
+	{aiop_sl_early_init, aiop_sl_init,      aiop_sl_free},                   \
 	{NULL, dpni_drv_init,     dpni_drv_free}, /*must be after aiop_sl_init*/ \
+	{NULL, evm_init,     evm_free}, /*must be after cmdif*/                  \
 	{NULL, NULL, NULL} /* never remove! */                                   \
 	}
 

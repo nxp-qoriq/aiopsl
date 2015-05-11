@@ -40,7 +40,7 @@
 #include "fsl_string.h"
 #include "fsl_sl_dbg.h"
 #include "fsl_ldpaa_aiop.h"
-#include "fsl_mc_init.h"
+#include "fsl_dprc_drv.h"
 #include "fsl_general.h"
 #include "fsl_dpci_mng.h"
 
