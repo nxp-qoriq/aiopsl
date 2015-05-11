@@ -37,6 +37,21 @@
 
 #define DPCI_DYNAMIC_MAX	64
 
+#define DPCI_DT_LOCK_R_TAKE \
+	do { \
+		cdma_mutex_lock_take((uint64_t)(&g_dpci_tbl), CDMA_MUTEX_READ_LOCK); \
+	} while(0)
+
+#define DPCI_DT_LOCK_W_TAKE \
+	do { \
+		cdma_mutex_lock_take((uint64_t)(&g_dpci_tbl), CDMA_MUTEX_WRITE_LOCK); \
+	} while(0)
+
+#define DPCI_DT_LOCK_RELEASE \
+	do { \
+		cdma_mutex_lock_release((uint64_t)(&g_dpci_tbl)); \
+	} while(0)
+
 struct dpci_mng_tbl {
 	uint32_t mc_dpci_id;	/**< DPCI id used by MC to send events */
 	int32_t  count;

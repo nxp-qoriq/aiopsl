@@ -299,10 +299,13 @@ __HOT_CODE void cmdif_fd_send(int cb_err)
 	LDPAA_FD_SET_FLC(HWC_FD_ADDRESS, flc);
 
 	dpci_mng_user_ctx_get(&ind, &fqid);
-	ASSERT_COND(fqid != DPCI_FQID_NOT_VALID);
+	if (fqid == DPCI_FQID_NOT_VALID) {
+		no_stack_pr_err("No valid fqid for dpci index 0x%x \n", ind);
+		return;
+	}
 
-	sl_pr_debug("Response FQID = 0x%x dpci_ind = 0x%x\n", fqid, ind);
-	sl_pr_debug("CB error = %d\n", cb_err);
+	no_stack_pr_debug("Response FQID = 0x%x dpci_ind = 0x%x\n", fqid, ind);
+	no_stack_pr_debug("CB error = %d\n", cb_err);
 
 	err = (int)fdma_store_and_enqueue_default_frame_fqid(
 		fqid, CMDIF_FDMA_ENQ_TC);

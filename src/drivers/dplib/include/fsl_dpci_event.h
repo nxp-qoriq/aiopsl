@@ -33,6 +33,8 @@
 #ifndef __FSL_DPCI_EVENT_H
 #define __FSL_DPCI_EVENT_H
 
+#define DPCI_EVENT_UPDATE_ICID	0x1
+#define DPCI_EVENT_UPDATE_TX	0x2
 
 /**************************************************************************//**
 @Function	dpci_event_assign
@@ -59,8 +61,6 @@ int dpci_event_assign(uint32_t dpci_id);
  *//***************************************************************************/
 int dpci_event_unassign(uint32_t dpci_id);
 
-#define DPCI_EVENT_UPDATE_ICID	0x1
-#define DPCI_EVENT_UPDATE_TX	0x2
 /**************************************************************************//**
 @Function	dpci_event_update
 
