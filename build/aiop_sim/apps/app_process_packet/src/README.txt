@@ -12,6 +12,9 @@ This demo shows an "autonomous" packet flow through the AIOP and illustrates the
 6. Packet modification within the AIOP - reflection (Flip the MAC and IP source and destination addresses)
 7. Packet transmission from the AIOP (to a PCAP file)
 
+The app_process_packet project is intended to demonstrate how to write applications for the AIOP, through a very simple example.
+It is not meant to demonstrate AIOP performance.
+
 ===========================================
 LS2 HW Setup
 ===========================================

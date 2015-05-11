@@ -74,7 +74,7 @@
 #define DPNI_CMDID_SET_ERRORS_BEHAVIOR		0x20B
 
 #define DPNI_CMDID_GET_QDID			0x210
-#define DPNI_CMDID_GET_SPID			0x211
+#define DPNI_CMDID_GET_SPIDS			0x211
 #define DPNI_CMDID_GET_TX_DATA_OFFSET		0x212
 #define DPNI_CMDID_GET_COUNTER			0x213
 #define DPNI_CMDID_SET_COUNTER			0x214
@@ -404,9 +404,12 @@ do { \
 	MC_RSP_OP(cmd, 0, 0,  16, uint16_t, qdid)
 
 /*                cmd, param, offset, width, type, arg_name */
-#define DPNI_RSP_GET_SPID(cmd, spid) \
-	MC_RSP_OP(cmd, 0, 0,  16, uint16_t, spid)
-
+#define DPNI_RSP_GET_SPIDS(cmd, spids) \
+do { \
+	MC_RSP_OP(cmd, 0, 0,  16, uint16_t, spids[0]); \
+	MC_RSP_OP(cmd, 0, 16, 16, uint16_t, spids[1]); \
+} while (0)
+	
 /*                cmd, param, offset, width, type, arg_name */
 #define DPNI_RSP_GET_TX_DATA_OFFSET(cmd, data_offset) \
 	MC_RSP_OP(cmd, 0, 0,  16, uint16_t, data_offset)

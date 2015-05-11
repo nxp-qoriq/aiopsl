@@ -137,6 +137,7 @@ int cmdif_srv_register(void *srv, const char *m_name,
  * @param[in]	dev_id   - Transport device id to be used for this session.
  * @param[out]	v_data   - Buffer allocated by user. If not NULL this buffer
  * 		will carry all the information of this session.
+ * 		Must be 8 bytes aligned.
  * @param[out]	auth_id  - Session id as returned by server.
  *
  * @returns	O on success or error code otherwise.
