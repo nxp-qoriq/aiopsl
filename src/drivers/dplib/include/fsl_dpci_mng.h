@@ -98,9 +98,8 @@ void dpci_mng_icid_get(uint32_t dpci_ind, uint16_t *icid, uint16_t *amq_bdi);
 void dpci_mng_tx_get(uint32_t dpci_ind, int pr, uint32_t *fqid);
 /*
  * Returns dpci index on success or error otherwise
- * Once dpci id is added to the table it can't be remove but only invalidated
  */
-int dpci_mng_find(uint32_t dpci_id, uint32_t *ic);
-int dpci_mng_peer_find(uint32_t dpci_id, uint32_t *ic);
+int dpci_mng_find(uint32_t dpci_id);
+int dpci_mng_peer_find(uint32_t dpci_id);
 
 #endif /* __FSL_DPCI_MNG_H */

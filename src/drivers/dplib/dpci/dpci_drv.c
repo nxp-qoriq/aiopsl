@@ -120,7 +120,7 @@ __COLD_CODE static void dpci_tbl_dump()
 	}
 }
 
-int dpci_mng_find(uint32_t dpci_id, uint32_t *ic)
+int dpci_mng_find(uint32_t dpci_id)
 {
 	int i = 0;
 	int count = 0;
@@ -132,8 +132,6 @@ int dpci_mng_find(uint32_t dpci_id, uint32_t *ic)
 
 		if (g_dpci_tbl.dpci_id[i] != DPCI_FQID_NOT_VALID) {
 			if (g_dpci_tbl.dpci_id[i] == dpci_id) {
-				if (ic != NULL)
-					*ic = g_dpci_tbl.ic[i];
 				return i;
 			}
 			count++;
@@ -144,7 +142,7 @@ int dpci_mng_find(uint32_t dpci_id, uint32_t *ic)
 	return -ENOENT;
 }
 
-int dpci_mng_peer_find(uint32_t dpci_id, uint32_t *ic)
+int dpci_mng_peer_find(uint32_t dpci_id)
 {
 	int i = 0;
 	int count = 0;
@@ -156,8 +154,6 @@ int dpci_mng_peer_find(uint32_t dpci_id, uint32_t *ic)
 
 		if (g_dpci_tbl.dpci_id[i] != DPCI_FQID_NOT_VALID) {
 			if (g_dpci_tbl.dpci_id_peer[i] == dpci_id) {
-				if (ic != NULL)
-					*ic = g_dpci_tbl.ic[i];
 				return i;
 			}
 			count++;
@@ -288,7 +284,7 @@ __COLD_CODE static int dpci_entry_init(uint32_t dpci_id)
 
 	CMDIF_ICID_AMQ_BDI(AMQ_BDI_SET, ICONTEXT_INVALID, ICONTEXT_INVALID);
 
-	ind = dpci_mng_find(dpci_id, NULL);
+	ind = dpci_mng_find(dpci_id);
 	if (ind < 0) {		
 		ind = dpci_entry_get();
 		if (ind < 0) {
@@ -308,7 +304,7 @@ __COLD_CODE static int dpci_entry_init(uint32_t dpci_id)
 	if (!err) {
 		/* Check AIOP DPCI to AIOP DPCI case 2 entries must be updated 
 		 * 1->2 and 2->1 */
-		err = dpci_mng_find(g_dpci_tbl.dpci_id_peer[ind], NULL);
+		err = dpci_mng_find(g_dpci_tbl.dpci_id_peer[ind]);
 		if (err >= 0) {
 			/* If here then 2 AIOP DPCIs are connected */
 			tx_peer_set((uint32_t)err);
@@ -363,7 +359,7 @@ __COLD_CODE int dpci_event_unassign(uint32_t dpci_id)
 
 	DPCI_DT_LOCK_W_TAKE;
 
-	ind = dpci_mng_find(dpci_id, NULL);
+	ind = dpci_mng_find(dpci_id);
 	if (ind >= 0) {
 		ASSERT_COND(g_dpci_tbl.dpci_id[ind] == dpci_id);
 		dpci_entry_delete(ind);
@@ -423,7 +419,7 @@ __COLD_CODE int dpci_event_link_change(uint32_t dpci_id)
 	
 	DPCI_DT_LOCK_W_TAKE;
 
-	ind = dpci_mng_find(dpci_id, NULL);
+	ind = dpci_mng_find(dpci_id);
 	if (ind >= 0)
 		err = tx_peer_set((uint32_t)ind);
 	else
@@ -479,7 +475,7 @@ __COLD_CODE int dpci_drv_enable(uint32_t dpci_id)
 	/*
 	 * Update DPCI table tx and peer
 	 */
-	ind = dpci_mng_find(dpci_id, NULL);
+	ind = dpci_mng_find(dpci_id);
 	if (ind < 0) {
 		DPCI_DT_LOCK_RELEASE;
 		return -ENOENT;
@@ -547,7 +543,7 @@ __COLD_CODE int dpci_drv_disable(uint32_t dpci_id)
 	/*
 	 * Update DPCI table tx and peer
 	 */
-	ind = dpci_mng_find(dpci_id, NULL);
+	ind = dpci_mng_find(dpci_id);
 	if (ind < 0) {
 		DPCI_DT_LOCK_RELEASE;
 		return -ENOENT;

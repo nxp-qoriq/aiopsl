@@ -382,7 +382,7 @@ __COLD_CODE int notify_open()
 		return -EINVAL;
 	}
 
-	ind = dpci_mng_peer_find(data->dev_id, NULL); /* dev_id is swapped by GPP */
+	ind = dpci_mng_peer_find(data->dev_id); /* dev_id is swapped by GPP */
 	pr_debug("dpci id = %d ind = %d\n", data->dev_id, ind);
 	if (ind < 0) {
 		pr_err("Not found DPCI peer %d\n", data->dev_id);
