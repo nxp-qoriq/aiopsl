@@ -299,10 +299,13 @@ __HOT_CODE void cmdif_fd_send(int cb_err)
 	LDPAA_FD_SET_FLC(HWC_FD_ADDRESS, flc);
 
 	dpci_mng_user_ctx_get(&ind, &fqid);
-	ASSERT_COND(fqid != DPCI_FQID_NOT_VALID);
+	if (fqid == DPCI_FQID_NOT_VALID) {
+		no_stack_pr_err("No valid fqid for dpci index 0x%x \n", ind);
+		return;
+	}
 
-	sl_pr_debug("Response FQID = 0x%x dpci_ind = 0x%x\n", fqid, ind);
-	sl_pr_debug("CB error = %d\n", cb_err);
+	no_stack_pr_debug("Response FQID = 0x%x dpci_ind = 0x%x\n", fqid, ind);
+	no_stack_pr_debug("CB error = %d\n", cb_err);
 
 	err = (int)fdma_store_and_enqueue_default_frame_fqid(
 		fqid, CMDIF_FDMA_ENQ_TC);
@@ -379,7 +382,7 @@ __COLD_CODE int notify_open()
 		return -EINVAL;
 	}
 
-	ind = dpci_mng_peer_find(data->dev_id, NULL); /* dev_id is swapped by GPP */
+	ind = dpci_mng_peer_find(data->dev_id); /* dev_id is swapped by GPP */
 	pr_debug("dpci id = %d ind = %d\n", data->dev_id, ind);
 	if (ind < 0) {
 		pr_err("Not found DPCI peer %d\n", data->dev_id);
@@ -391,11 +394,9 @@ __COLD_CODE int notify_open()
 		return -ENAVAIL;
 	}
 
-	err = dpci_event_update((uint32_t)ind, 
-	                        DPCI_EVENT_UPDATE_ICID | DPCI_EVENT_UPDATE_TX);
+	err = dpci_event_update((uint32_t)ind);
 	ASSERT_COND(!err);
 
-	/* TODO Consider to add lock per DPCI entry */
 	CMDIF_CL_LOCK_W_TAKE;
 
 #ifdef DEBUG
@@ -542,7 +543,7 @@ __COLD_CODE int session_open(uint16_t *new_auth)
 
 	dpci_mng_user_ctx_get(&ind, NULL);
 #ifndef STACK_CHECK /* Stack check can ignore it up to user callback */
-	err = dpci_event_update(ind, DPCI_EVENT_UPDATE_ICID);
+	err = dpci_event_update(ind);
 	ASSERT_COND(!err);
 #endif
 

@@ -37,6 +37,21 @@
 
 #define DPCI_DYNAMIC_MAX	64
 
+#define DPCI_DT_LOCK_R_TAKE \
+	do { \
+		cdma_mutex_lock_take((uint64_t)(&g_dpci_tbl), CDMA_MUTEX_READ_LOCK); \
+	} while(0)
+
+#define DPCI_DT_LOCK_W_TAKE \
+	do { \
+		cdma_mutex_lock_take((uint64_t)(&g_dpci_tbl), CDMA_MUTEX_WRITE_LOCK); \
+	} while(0)
+
+#define DPCI_DT_LOCK_RELEASE \
+	do { \
+		cdma_mutex_lock_release((uint64_t)(&g_dpci_tbl)); \
+	} while(0)
+
 struct dpci_mng_tbl {
 	uint32_t mc_dpci_id;	/**< DPCI id used by MC to send events */
 	int32_t  count;
@@ -83,9 +98,8 @@ void dpci_mng_icid_get(uint32_t dpci_ind, uint16_t *icid, uint16_t *amq_bdi);
 void dpci_mng_tx_get(uint32_t dpci_ind, int pr, uint32_t *fqid);
 /*
  * Returns dpci index on success or error otherwise
- * Once dpci id is added to the table it can't be remove but only invalidated
  */
-int dpci_mng_find(uint32_t dpci_id, uint32_t *ic);
-int dpci_mng_peer_find(uint32_t dpci_id, uint32_t *ic);
+int dpci_mng_find(uint32_t dpci_id);
+int dpci_mng_peer_find(uint32_t dpci_id);
 
 #endif /* __FSL_DPCI_MNG_H */

@@ -209,7 +209,7 @@ static inline int cmdif_cl_session_get(struct cmdif_cl *cl,
 	int i;
 	int ind;
 	
-	ind = dpci_mng_peer_find(dpci_id, NULL);
+	ind = dpci_mng_peer_find(dpci_id);
 	if (ind < 0) {
 		return -ENOENT;
 	}
@@ -235,7 +235,7 @@ static inline int cmdif_cl_auth_id_find(struct cmdif_cl *cl,
 	int i;
 	int ind;
 	
-	ind = dpci_mng_peer_find(dpci_id, NULL);
+	ind = dpci_mng_peer_find(dpci_id);
 	if (ind < 0) {
 		return -ENOENT;
 	}

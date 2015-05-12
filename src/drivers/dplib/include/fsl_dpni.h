@@ -255,10 +255,12 @@ struct dpni_pools_cfg {
 	 * struct pools - Buffer pools parameters
 	 * @dpbp_id: DPBP object ID
 	 * @buffer_size: Buffer size
+	 * @backup_pool: Backup pool
 	 */
 	struct {
 		int dpbp_id;
 		uint16_t buffer_size;
+		int backup_pool;
 	} pools[DPNI_MAX_DPBP];
 };
 

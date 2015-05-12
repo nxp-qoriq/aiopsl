@@ -77,9 +77,16 @@ static inline int send_fd(int pr, void *_sdev)
 	         sdev->tx_queue_attr[pr]->fqid, sdev->enq_flags, sdev->icid);
 */
 
+	DPCI_DT_LOCK_R_TAKE;
+	
 	dpci_mng_icid_get(sdev->dpci_ind, &icid, &amq_bdi);
 	dpci_mng_tx_get(sdev->dpci_ind, pr, &fqid);
-	ASSERT_COND(fqid != DPCI_FQID_NOT_VALID);
+	
+	DPCI_DT_LOCK_RELEASE;
+	
+	if (fqid == DPCI_FQID_NOT_VALID) {
+		return -ENODEV;
+	}
 	
 	if (amq_bdi & CMDIF_BDI_BIT)
 		flags = FDMA_ENF_BDI_BIT;

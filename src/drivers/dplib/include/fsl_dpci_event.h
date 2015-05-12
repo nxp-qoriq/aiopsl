@@ -33,7 +33,6 @@
 #ifndef __FSL_DPCI_EVENT_H
 #define __FSL_DPCI_EVENT_H
 
-
 /**************************************************************************//**
 @Function	dpci_event_assign
 
@@ -59,21 +58,32 @@ int dpci_event_assign(uint32_t dpci_id);
  *//***************************************************************************/
 int dpci_event_unassign(uint32_t dpci_id);
 
-#define DPCI_EVENT_UPDATE_ICID	0x1
-#define DPCI_EVENT_UPDATE_TX	0x2
 /**************************************************************************//**
 @Function	dpci_event_update
 
 @Description	Updates the entry of DPCI table with the AMQ + BDI from ADC.
-  	  	Updates dpci_peer_id in the DPCI table.
-  	  	To be called only inside the open command and before 
-  	  	the AMQ bits are changed to AIOP AMQ bits  
+		To be called only inside the open command and before 
+		the AMQ bits are changed to AIOP AMQ bits  
 
-@Param[in]	dpci_ind - Use mc_dpci_find() or dpci_drv_user_ctx_get().
-@Param[in]	flags    - DPCI_EVENT_UPDATE_ICID, DPCI_EVENT_UPDATE_TX.
+@Param[in]	dpci_ind - Use dpci_mng_find() or dpci_mng_user_ctx_get().
 
 @Return		0      - on success, POSIX error code otherwise
  *//***************************************************************************/
-int dpci_event_update(uint32_t dpci_ind, uint8_t flags);
+int dpci_event_update(uint32_t dpci_ind);
+
+/**************************************************************************//**
+@Function	dpci_event_link_change
+
+@Description	Updates the entry of DPCI table with the dpci_peer_id and the 
+		tx queues.
+		Updates dpci_peer_id in the DPCI table.
+		To be called only inside the open command and before 
+		the AMQ bits are changed to AIOP AMQ bits  
+
+@Param[in]	dpci_ind - Use dpci_mng_find() or dpci_mng_user_ctx_get().
+
+@Return		0      - on success, POSIX error code otherwise
+ *//***************************************************************************/
+int dpci_event_link_change(uint32_t dpci_id);
 
 #endif /* __FSL_DPCI_EVENT_H */

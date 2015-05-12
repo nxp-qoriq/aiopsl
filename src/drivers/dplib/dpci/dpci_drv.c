@@ -86,24 +86,14 @@ do { \
 			((uint8_t *)_ADDR)[i] = _VAL; \
 	} while (0)
 
-#define DPCI_DT_LOCK_R_TAKE \
-	do { \
-		cdma_mutex_lock_take((uint64_t)(&g_dpci_tbl), CDMA_MUTEX_READ_LOCK); \
-	} while(0)
-
-#define DPCI_DT_LOCK_W_TAKE \
-	do { \
-		cdma_mutex_lock_take((uint64_t)(&g_dpci_tbl), CDMA_MUTEX_WRITE_LOCK); \
-	} while(0)
-
-#define DPCI_DT_LOCK_RELEASE \
-	do { \
-		cdma_mutex_lock_release((uint64_t)(&g_dpci_tbl)); \
-	} while(0)
-
 #define DPCI_ENTRY_LOCK_W_TAKE(IND) \
 	do { \
 		cdma_mutex_lock_take((uint64_t)(&g_dpci_tbl.dpci_id[IND]), CDMA_MUTEX_WRITE_LOCK); \
+	} while(0)
+
+#define DPCI_ENTRY_LOCK_R_TAKE(IND) \
+	do { \
+		cdma_mutex_lock_take((uint64_t)(&g_dpci_tbl.dpci_id[IND]), CDMA_MUTEX_READ_LOCK); \
 	} while(0)
 
 #define DPCI_ENTRY_LOCK_RELEASE(IND) \
@@ -130,7 +120,7 @@ __COLD_CODE static void dpci_tbl_dump()
 	}
 }
 
-int dpci_mng_find(uint32_t dpci_id, uint32_t *ic)
+int dpci_mng_find(uint32_t dpci_id)
 {
 	int i = 0;
 	int count = 0;
@@ -142,8 +132,6 @@ int dpci_mng_find(uint32_t dpci_id, uint32_t *ic)
 
 		if (g_dpci_tbl.dpci_id[i] != DPCI_FQID_NOT_VALID) {
 			if (g_dpci_tbl.dpci_id[i] == dpci_id) {
-				if (ic != NULL)
-					*ic = g_dpci_tbl.ic[i];
 				return i;
 			}
 			count++;
@@ -154,7 +142,7 @@ int dpci_mng_find(uint32_t dpci_id, uint32_t *ic)
 	return -ENOENT;
 }
 
-int dpci_mng_peer_find(uint32_t dpci_id, uint32_t *ic)
+int dpci_mng_peer_find(uint32_t dpci_id)
 {
 	int i = 0;
 	int count = 0;
@@ -166,8 +154,6 @@ int dpci_mng_peer_find(uint32_t dpci_id, uint32_t *ic)
 
 		if (g_dpci_tbl.dpci_id[i] != DPCI_FQID_NOT_VALID) {
 			if (g_dpci_tbl.dpci_id_peer[i] == dpci_id) {
-				if (ic != NULL)
-					*ic = g_dpci_tbl.ic[i];
 				return i;
 			}
 			count++;
@@ -205,52 +191,12 @@ static void dpci_entry_delete(int ind)
 	atomic_decr32(&g_dpci_tbl.count, 1);
 }
 
-__COLD_CODE static int dpci_get_peer_id(uint32_t dpci_id, uint32_t *dpci_id_peer)
-{
-	struct mc_dprc *dprc = sys_get_unique_handle(FSL_OS_MOD_AIOP_RC);
-	int err = 0;
-	uint16_t token;
-	struct dpci_peer_attr peer_attr;
-	uint8_t i;
-
-	ASSERT_COND(dprc);
-
-	/* memset */
-	MEM_SET(&peer_attr, sizeof(peer_attr), 0);
-
-	err = dpci_open(&dprc->io, (int)dpci_id, &token);
-	if (err) {
-		pr_err("Failed dpci_open dpci id = %d\n", dpci_id);
-		return err;
-	}
-	err = dpci_get_peer_attributes(&dprc->io, token, &peer_attr);
-	if (err) {
-		pr_err("Failed to get peer_id dpci id = %d\n", dpci_id);
-		dpci_close(&dprc->io, token);
-		return err;
-	}
-
-	if (peer_attr.peer_id == -1) {
-		err = dpci_close(&dprc->io, token);
-		return -EINVAL;
-	}
-
-	*dpci_id_peer = (uint32_t)peer_attr.peer_id;
-
-	err = dpci_close(&dprc->io, token);
-	return err;
-}
-
 static inline void amq_bits_update(uint32_t id)
 {
 	uint32_t amq_bdi = 0;
 	uint16_t amq_bdi_temp = 0;
 	uint16_t pl_icid = PL_ICID_GET;
-	
-	/* Don't update if it's already set */
-	if (g_dpci_tbl.ic[id] != DPCI_FQID_NOT_VALID)
-		return;
-	
+		
 	ADD_AMQ_FLAGS(amq_bdi_temp, pl_icid);
 	if (BDI_GET != 0)
 		amq_bdi_temp |= CMDIF_BDI_BIT;
@@ -275,40 +221,49 @@ static inline void amq_bits_update(uint32_t id)
 	dpci_tbl_dump();
 }
 
-__COLD_CODE static int tx_set(uint32_t ind)
+/*
+ * Set the peer id and the tx queues
+ * Reset it if it is not yet available
+ */
+__COLD_CODE static int tx_peer_set(uint32_t ind)
 {
 
 	struct mc_dprc *dprc = sys_get_unique_handle(FSL_OS_MOD_AIOP_RC);
 	int err = 0;
 	uint16_t token;
-	struct dpci_attr attr;
 	struct dpci_tx_queue_attr tx_attr;
+	struct dpci_peer_attr peer_attr;
 	int i;
 	uint32_t *tx = &g_dpci_tbl.tx_queue[ind][0];
 	
 	ASSERT_COND(tx);
 	ASSERT_COND(dprc);
 
-	if (tx[0] != DPCI_FQID_NOT_VALID) {
-		/* No need to update if it is already set */
-		return 0;
+	g_dpci_tbl.dpci_id_peer[ind] = DPCI_FQID_NOT_VALID;
+	for (i = 0; i < DPCI_PRIO_NUM; i++) {
+		tx[i] = DPCI_FQID_NOT_VALID;
 	}
 
 	/* memset */
 	MEM_SET(&tx_attr, sizeof(tx_attr), 0);
-	MEM_SET(&attr, sizeof(attr), 0);
+	MEM_SET(&peer_attr, sizeof(peer_attr), 0);
 
 	err = dpci_open(&dprc->io, (int)g_dpci_tbl.dpci_id[ind], &token);
 	if (err)
 		return err;
 
-	err = dpci_get_attributes(&dprc->io, token, &attr);
-	if (err) {
+
+	err = dpci_get_peer_attributes(&dprc->io, token, &peer_attr);
+	if (err || (peer_attr.peer_id == -1)) {
+		pr_err("Failed to get peer_id dpci id = %d\n", 
+		       g_dpci_tbl.dpci_id[ind]);
 		dpci_close(&dprc->io, token);
 		return err;
 	}
 
-	for (i = 0; i < attr.num_of_priorities; i++) {
+	g_dpci_tbl.dpci_id_peer[ind] = (uint32_t)peer_attr.peer_id;
+	
+	for (i = 0; i < peer_attr.num_of_priorities; i++) {
 		err = dpci_get_tx_queue(&dprc->io, token, (uint8_t)i, &tx_attr);
 		ASSERT_COND(!err);
 		ASSERT_COND(tx_attr.fqid != DPCI_FQID_NOT_VALID);
@@ -325,12 +280,11 @@ __COLD_CODE static int dpci_entry_init(uint32_t dpci_id)
 {
 	int ind = -1;
 	uint32_t amq_bdi = 0;
-	uint32_t dpci_id_peer = DPCI_FQID_NOT_VALID;
 	int err = 0;
 
 	CMDIF_ICID_AMQ_BDI(AMQ_BDI_SET, ICONTEXT_INVALID, ICONTEXT_INVALID);
 
-	ind = dpci_mng_find(dpci_id, NULL);
+	ind = dpci_mng_find(dpci_id);
 	if (ind < 0) {		
 		ind = dpci_entry_get();
 		if (ind < 0) {
@@ -338,77 +292,28 @@ __COLD_CODE static int dpci_entry_init(uint32_t dpci_id)
 			return -ENOMEM;
 		}
 	}
-	
+
 	ASSERT_COND((ind >= 0) && (ind < g_dpci_tbl.max));
 
 	g_dpci_tbl.dpci_id[ind] = dpci_id;
 	g_dpci_tbl.ic[ind] = amq_bdi;
 
-	/* Updated DPCI peer if possible */
-	err = dpci_get_peer_id(dpci_id, &dpci_id_peer);
-	if (!err)
-		g_dpci_tbl.dpci_id_peer[ind] = dpci_id_peer;
-	else
-		g_dpci_tbl.dpci_id_peer[ind] = DPCI_FQID_NOT_VALID;
-	
-	if (g_dpci_tbl.dpci_id_peer[ind] != DPCI_FQID_NOT_VALID) {
-		err = tx_set((uint32_t)ind);
-		ASSERT_COND(!err);
-		/* AIOP DPCI to AIOP DPCI case 2 entries must be updated 
+	/* Updated DPCI peer if possible 
+	 * error is possible */
+	err = tx_peer_set((uint32_t)ind);
+	if (!err) {
+		/* Check AIOP DPCI to AIOP DPCI case 2 entries must be updated 
 		 * 1->2 and 2->1 */
-		err = dpci_mng_find(dpci_id_peer, NULL);
+		err = dpci_mng_find(g_dpci_tbl.dpci_id_peer[ind]);
 		if (err >= 0) {
 			/* If here then 2 AIOP DPCIs are connected */
-			g_dpci_tbl.dpci_id_peer[err] = dpci_id; 
-			g_dpci_tbl.ic[err] = amq_bdi;
-			tx_set((uint32_t)err);
+			tx_peer_set((uint32_t)err);
 			pr_debug("AIOP DPCI %d to AIOP DPCI %d\n", 
-			         dpci_id, dpci_id_peer);
+			         dpci_id, g_dpci_tbl.dpci_id_peer[err]);
 		}
 	}
-	
+
 	return ind;
-}
-
-__COLD_CODE static int dpci_rx_ctx_init(uint32_t id)
-{
-	struct mc_dprc *dprc = sys_get_unique_handle(FSL_OS_MOD_AIOP_RC);
-	int err = 0;
-	uint16_t token;
-	struct dpci_rx_queue_cfg queue_cfg;
-	struct dpci_attr attr;
-	uint8_t i;
-	
-	ASSERT_COND(dprc);
-
-	/* memset */
-	MEM_SET(&queue_cfg, sizeof(queue_cfg), 0);
-	MEM_SET(&attr, sizeof(attr), 0);
-
-	err = dpci_open(&dprc->io, (int)g_dpci_tbl.dpci_id[id], &token);
-	if (err)
-		return err;
-
-	err = dpci_get_attributes(&dprc->io, token, &attr);
-	if (err) {
-		dpci_close(&dprc->io, token);
-		return err;
-	}
-
-	queue_cfg.dest_cfg.dest_type = DPCI_DEST_NONE;
-	queue_cfg.options = CMDIF_Q_OPTIONS;
-	for (i = 0; i < attr.num_of_priorities; i++) {
-		queue_cfg.dest_cfg.priority = DPCI_LOW_PR - i;
-		queue_cfg.user_ctx = 0;
-		CMDIF_DPCI_FQID(USER_CTX_SET, id, g_dpci_tbl.tx_queue[id][i]);
-		err = dpci_set_rx_queue(&dprc->io, token, i,
-		                         &queue_cfg);
-		ASSERT_COND(!err);
-	}
-
-	err = dpci_close(&dprc->io, token);
-
-	return err;
 }
 
 /*************************************************************************/
@@ -431,9 +336,6 @@ __COLD_CODE int dpci_event_assign(uint32_t dpci_id)
 	 * 4. Update rx_ctx if possible
 	 */
 	ind = dpci_entry_init(dpci_id);
-	if (ind >= 0) {
-		err = dpci_rx_ctx_init((uint32_t)ind);
-	}
 
 	DPCI_DT_LOCK_RELEASE;
 
@@ -457,7 +359,7 @@ __COLD_CODE int dpci_event_unassign(uint32_t dpci_id)
 
 	DPCI_DT_LOCK_W_TAKE;
 
-	ind = dpci_mng_find(dpci_id, NULL);
+	ind = dpci_mng_find(dpci_id);
 	if (ind >= 0) {
 		ASSERT_COND(g_dpci_tbl.dpci_id[ind] == dpci_id);
 		dpci_entry_delete(ind);
@@ -483,10 +385,10 @@ __COLD_CODE int dpci_event_unassign(uint32_t dpci_id)
  * This function is to be called only inside the open command and before
  * the AMQ bits had been changed to AIOP AMQ bits
  */
-__COLD_CODE int dpci_event_update(uint32_t ind, uint8_t flags)
+__COLD_CODE int dpci_event_update(uint32_t ind)
 {
 	int err = 0;
-		
+
 	/*
 	 * TODO
 	 * Is it possible that DPCI will be removed in the middle of the task ?
@@ -496,27 +398,37 @@ __COLD_CODE int dpci_event_update(uint32_t ind, uint8_t flags)
 	 * table or just entry for the new tasks only. 
 	 */
 
-	DPCI_ENTRY_LOCK_W_TAKE(ind);
-	
-	if (flags & DPCI_EVENT_UPDATE_ICID) {
-		amq_bits_update(ind);
-		/* TODO err = rx_ctx_set(ind);
-		 * rx_ctx_set(ind) moved to added event
-		 * Need to check if this is the right thing
-		 * Can't get tx fqid from GPP inside command, 
-		 * maybe for AIOP it is authorized
-		 * with a different ICID
-		 */
-	}
-	
-	if (flags & DPCI_EVENT_UPDATE_TX) {
-		err = tx_set(ind);
-	}
-	
-	DPCI_ENTRY_LOCK_RELEASE(ind);
+	DPCI_DT_LOCK_W_TAKE;
+
+	amq_bits_update(ind);
+
+	DPCI_DT_LOCK_RELEASE;
+
 	return err;
 }
 
+/*
+ * The DPCI user context and AMQ bits are updated
+ * This function is to be called only inside the open command and before
+ * the AMQ bits had been changed to AIOP AMQ bits
+ */
+__COLD_CODE int dpci_event_link_change(uint32_t dpci_id)
+{
+	int err = 0;
+	int ind;
+	
+	DPCI_DT_LOCK_W_TAKE;
+
+	ind = dpci_mng_find(dpci_id);
+	if (ind >= 0)
+		err = tx_peer_set((uint32_t)ind);
+	else
+		err = -ENODEV;
+	
+	DPCI_DT_LOCK_RELEASE;
+	
+	return err;
+}
 
 __HOT_CODE void dpci_mng_user_ctx_get(uint32_t *id, uint32_t *fqid)
 {
@@ -538,7 +450,7 @@ __HOT_CODE void dpci_mng_icid_get(uint32_t ind, uint16_t *icid, uint16_t *amq_bd
 
 	/* 1. Atomic read of 4 bytes so that icid and amq are always in sync 
 	 * 2. Retrieve the icid and amq & bdi */
-	
+
 	CMDIF_ICID_AMQ_BDI(AMQ_BDI_GET, icid, amq_bdi_out);
 }
 
@@ -551,27 +463,67 @@ __COLD_CODE int dpci_drv_enable(uint32_t dpci_id)
 {
 	struct mc_dprc *dprc = sys_get_unique_handle(FSL_OS_MOD_AIOP_RC);
 	int err = 0;
+	int ind;
 	uint16_t token = 0xffff;
-	
+	struct dpci_rx_queue_cfg queue_cfg;
+	struct dpci_attr attr;
+	uint8_t i;
+
 	ASSERT_COND(dprc);
-	
+
+	DPCI_DT_LOCK_W_TAKE;
+	/*
+	 * Update DPCI table tx and peer
+	 */
+	ind = dpci_mng_find(dpci_id);
+	if (ind < 0) {
+		DPCI_DT_LOCK_RELEASE;
+		return -ENOENT;
+	}
+
+	err = tx_peer_set((uint32_t)ind);
+
+	DPCI_DT_LOCK_RELEASE;
+
+
+	MEM_SET(&attr, sizeof(attr), 0);
+	MEM_SET(&queue_cfg, sizeof(queue_cfg), 0);
+
 	err = dpci_open(&dprc->io, (int)dpci_id, &token);
 	if (err) {
 		dpci_close(&dprc->io, token);
 		return err;
 	}
-	
+
+	err = dpci_get_attributes(&dprc->io, token, &attr);
+	if (err) {
+		dpci_close(&dprc->io, token);
+		return err;
+	}
+
+	/*
+	 * Set the tx queue in user context 
+	 */
+	queue_cfg.dest_cfg.dest_type = DPCI_DEST_NONE;
+	queue_cfg.options = CMDIF_Q_OPTIONS;
+	for (i = 0; i < attr.num_of_priorities; i++) {
+		queue_cfg.dest_cfg.priority = DPCI_LOW_PR - i;
+		queue_cfg.user_ctx = 0;
+		CMDIF_DPCI_FQID(USER_CTX_SET, ind, g_dpci_tbl.tx_queue[ind][i]);
+		err = dpci_set_rx_queue(&dprc->io, token, i,
+		                         &queue_cfg);
+		ASSERT_COND(!err);
+	}
+
 	err = dpci_enable(&dprc->io, token);
 	if (err) {
 		pr_err("DPCI enable failed\n");
 		dpci_close(&dprc->io, token);
 		return err;
 	}
-	
-	/*
-	 * TODO maybe need to keep enable bit in dt table ???
-	 */
+
 	dpci_close(&dprc->io, token);
+
 	return err;
 }
 
@@ -580,9 +532,34 @@ __COLD_CODE int dpci_drv_disable(uint32_t dpci_id)
 	struct mc_dprc *dprc = sys_get_unique_handle(FSL_OS_MOD_AIOP_RC);
 	int err = 0;
 	uint16_t token = 0xffff;
-	
+	int ind;
+	uint8_t i;
+	struct dpci_rx_queue_cfg queue_cfg;
+	struct dpci_attr attr;
+
 	ASSERT_COND(dprc);
 	
+	DPCI_DT_LOCK_W_TAKE;
+	/*
+	 * Update DPCI table tx and peer
+	 */
+	ind = dpci_mng_find(dpci_id);
+	if (ind < 0) {
+		DPCI_DT_LOCK_RELEASE;
+		return -ENOENT;
+	}
+	/*  ICID was not updated inside dpci_drv_enable thus it is not reset 
+	 * here 
+	 * ICID will re-update only with new open */
+	g_dpci_tbl.dpci_id_peer[ind] = DPCI_FQID_NOT_VALID;
+	for (i = 0; i < DPCI_PRIO_NUM; i++)
+		g_dpci_tbl.tx_queue[ind][i] = DPCI_FQID_NOT_VALID;
+	
+	DPCI_DT_LOCK_RELEASE;
+	
+	MEM_SET(&attr, sizeof(attr), 0);
+	MEM_SET(&queue_cfg, sizeof(queue_cfg), 0);
+
 	err = dpci_open(&dprc->io, (int)dpci_id, &token);
 	if (err) {
 		dpci_close(&dprc->io, token);
@@ -597,10 +574,26 @@ __COLD_CODE int dpci_drv_disable(uint32_t dpci_id)
 	}
 	
 	/*
+	 * Set the tx queue in user context
+	 * tx queues will be set to -1  
+	 */
+	queue_cfg.dest_cfg.dest_type = DPCI_DEST_NONE;
+	queue_cfg.options = CMDIF_Q_OPTIONS;
+	for (i = 0; i < attr.num_of_priorities; i++) {
+		queue_cfg.dest_cfg.priority = DPCI_LOW_PR - i;
+		queue_cfg.user_ctx = 0;
+		CMDIF_DPCI_FQID(USER_CTX_SET, ind, g_dpci_tbl.tx_queue[ind][i]);
+		err = dpci_set_rx_queue(&dprc->io, token, i,
+		                         &queue_cfg);
+		ASSERT_COND(!err);
+	}
+
+	/*
 	 * TODO maybe need to keep enable bit in dt table ???
 	 * TODO draining !!!!!
 	 */
 	dpci_close(&dprc->io, token);
+
 	return err;
 }
 
