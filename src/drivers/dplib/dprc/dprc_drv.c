@@ -36,19 +36,45 @@
 #include "evm.h"
 #include "fsl_sys.h"
 #include "fsl_malloc.h"
+#include "dpni_drv.h"
+#include "drv.h"
 #include "aiop_common.h"
 
 extern struct aiop_init_info g_init_data;
+
 int dprc_drv_init(void);
 void dprc_drv_free(void);
 static int aiop_container_init(void);
 static void aiop_container_free(void);
 
 
-static int dprc_drv_ev_cb(uint8_t id, uint8_t cmd, uint32_t size, void *data)
+static int dprc_drv_ev_cb(uint8_t generator_id, uint8_t event_id, uint32_t size, void *data)
 {
 	/*Container was updated*/
-
+	int err;
+	UNUSED(generator_id);
+	UNUSED(size);
+	UNUSED(data);
+	if(event_id == DPRC_EVENT_OBJ_ADDED){
+		sl_pr_debug("DPRC objects added event\n");
+		err = dprc_drv_add_obj();
+		if(err){
+			sl_pr_err("Failed to add dp object, %d.\n", err);
+			return err;
+		}
+	}
+	else if(event_id == DPRC_EVENT_OBJ_REMOVED){
+		sl_pr_debug("DPRC object removed event\n");
+		err = dprc_drv_remove_obj();
+		if(err){
+			sl_pr_err("Failed to remove dp object, %d.\n", err);
+			return err;
+		}
+	}
+	else{
+		sl_pr_debug("Event %d is not supported\n",event_id);
+		return -EINVAL;
+	}
 
 	return 0;
 }
@@ -62,11 +88,6 @@ int dprc_drv_init(void)
 		return err;
 	}
 
-	err = dprc_drv_scan();
-	if(err){
-		pr_err("Failed to scan resource container, %d.\n", err);
-		return err;
-	}
 	return 0;
 }
 
@@ -79,7 +100,61 @@ void dprc_drv_free(void)
 
 
 
-int dprc_drv_scan(void)
+int dprc_drv_add_obj(void)
+{
+	int i, aiop_niid, err, dev_count = 0;
+	struct dprc_obj_desc dev_desc;
+	struct mc_dprc *dprc = sys_get_unique_handle(FSL_OS_MOD_AIOP_RC);
+
+
+	if ((err = dprc_get_obj_count(&dprc->io, dprc->token,
+	                              &dev_count)) != 0) {
+		sl_pr_err("Failed to get device count for AIOP RC auth_id = %d.\n",
+		       dprc->token);
+		return err;
+	}
+
+	for(i = 0, aiop_niid = 0; i < dev_count; i++){
+		dprc_get_obj(&dprc->io, dprc->token, i, &dev_desc);
+		if (strcmp(dev_desc.type, "dpni") == 0) {
+
+			if(dpni_drv_is_dpni_exist((uint16_t)dev_desc.id)
+				== FALSE){
+			/*object not found in the
+			table and should be added*/
+				if ((err = dpni_drv_probe(dprc,
+				                          (uint16_t)dev_desc.id,
+				                          (uint16_t)aiop_niid))
+				                          != 0) {
+					sl_pr_err("Failed to probe DPNI-%d.\n", i);
+					return err;
+				}
+				else{
+					/*send event: "DPNI_ADDED_EVENT" to EVM */
+				}
+			}
+			aiop_niid++;
+		}
+		else if(strcmp(dev_desc.type, "dpci") == 0) {
+
+//			if(dpci_drv_is_dpci_exist(dev_desc.id)){
+//				/*object not found in the
+//						table and should be added*/
+//				if ((err = dpci_event_assign(
+//				                          (uint32_t)dev_desc.id) != 0) {
+//					sl_pr_err("Failed to add DPCI-%d.\n", i);
+//					return err;
+//				}
+//				else{
+//					/*send event: "DPCI_ADDED_EVENT" to EVM */
+//				}
+//			}
+		}
+	}
+	return 0;
+}
+
+int dprc_drv_remove_obj(void)
 {
 	int i, err, dev_count = 0;
 	struct dprc_obj_desc dev_desc;
@@ -96,6 +171,7 @@ int dprc_drv_scan(void)
 	for(i = 0; i < dev_count; i++){
 		dprc_get_obj(&dprc->io, dprc->token, i, &dev_desc);
 	}
+
 
 
 

@@ -41,7 +41,7 @@
 #include "general.h"
 #include "fsl_fdma.h"
 #include "checksum.h"
-#include "fsl_dpni_drv.h"
+#include "dpni_drv.h"
 /*#include "cdma.h"*/
 
 

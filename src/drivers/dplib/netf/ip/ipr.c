@@ -47,7 +47,7 @@
 #include "fsl_cdma.h"
 #include "ip.h"
 #include "fsl_platform.h"
-#include "fsl_dpni_drv.h"
+#include "dpni_drv.h"
 
 /* For wrapper functions */
 #include "cdma.h"

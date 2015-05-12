@@ -39,7 +39,7 @@
 #include "fsl_dpbp.h"
 #include "fsl_bman.h"
 #include "ls2085_aiop/fsl_platform.h"
-#include "fsl_dpni_drv.h"
+#include "dpni_drv.h"
 #include "aiop_common.h"
 #include "system.h"
 #include "fsl_dprc_drv.h"
@@ -53,6 +53,11 @@ void dpni_drv_free(void);
 extern struct aiop_init_info g_init_data;
 extern struct platform_app_params g_app_params;
 
+/*
+ * struct for pool params used for storage profile
+ * This struct is set during dpni_drv_init and can not change in runtime
+ */
+struct dpni_pools_cfg pools_params;
 /*buffer used for dpni_drv_set_order_scope*/
 uint8_t order_scope_buffer[PARAMS_IOVA_BUFF_SIZE];
 /* TODO - get rid */
@@ -164,11 +169,25 @@ int dpni_drv_disable (uint16_t ni_id)
 	return dpni_disable(&dprc->io, dpni_drv->dpni_drv_params_var.dpni);
 }
 
+int dpni_drv_is_dpni_exist(uint16_t mc_niid)
+{
+	int i;
+	cdma_mutex_lock_take((uint64_t)nis, CDMA_MUTEX_WRITE_LOCK);
+	for(i = 0; i < SOC_MAX_NUM_OF_DPNI; i++){
+		if(nis[i].dpni_id == mc_niid){
+			break;
+		}
+	}
+	cdma_mutex_lock_release((uint64_t)nis);
+	if(i == SOC_MAX_NUM_OF_DPNI)
+		return FALSE;
+	else
+		return TRUE;
 
+}
 __COLD_CODE int dpni_drv_probe(struct mc_dprc *dprc,
                                uint16_t mc_niid,
-                               uint16_t aiop_niid,
-                               struct dpni_pools_cfg *pools_params)
+                               uint16_t aiop_niid)
 {
 	int i;
 	uint32_t j;
@@ -241,7 +260,7 @@ __COLD_CODE int dpni_drv_probe(struct mc_dprc *dprc,
 			if ((err = dpni_set_pools(
 				&dprc->io,
 				dpni,
-				pools_params)) != 0) {
+				&pools_params)) != 0) {
 				pr_err("Failed to set the pools to DP-NI%d.\n",
 				       mc_niid);
 				return err;
@@ -323,7 +342,7 @@ __COLD_CODE int dpni_drv_probe(struct mc_dprc *dprc,
 			/*Set concurrent mode for NI in epid table*/
 			iowrite32_ccsr(ep_osc, &wrks_addr->ep_osc);
 			/*bpid exist to use for ddr pool*/
-			if(pools_params->num_dpbp == 2){
+			if(pools_params.num_dpbp == 2){
 				nis[aiop_niid].dpni_drv_params_var.spid_ddr =
 					(uint8_t)spids[1];
 			}
@@ -516,14 +535,13 @@ __COLD_CODE int dpni_drv_init(void)
 	struct dprc_obj_desc dev_desc;
 	int dpbp_id[DPNI_DRV_NUM_USED_BPIDS];
 	struct dpbp_attr attr;
-	struct dpni_pools_cfg pools_params = {0};
 	uint16_t buffer_size = (uint16_t)g_app_params.dpni_buff_size;
 	uint16_t num_buffs = (uint16_t)g_app_params.dpni_num_buffs;
 	uint16_t alignment;
 	uint8_t mem_pid[] = {DPNI_DRV_FAST_MEMORY, DPNI_DRV_DDR_MEMORY};
 	struct mc_dprc *dprc = sys_get_unique_handle(FSL_OS_MOD_AIOP_RC);
 
-
+	memset(&pools_params, 0, sizeof(struct dpni_pools_cfg));
 	num_of_nis = 0;
 	/* Allocate internal AIOP NI table */
 	nis =fsl_malloc(sizeof(struct dpni_drv)*SOC_MAX_NUM_OF_DPNI,64);
@@ -652,8 +670,7 @@ __COLD_CODE int dpni_drv_init(void)
 			print_dev_desc(&dev_desc);
 
 			if ((err = dpni_drv_probe(dprc, (uint16_t)dev_desc.id,
-			                          (uint16_t)i,
-			                          &pools_params)) != 0) {
+			                          (uint16_t)i)) != 0) {
 				pr_err("Failed to probe DPNI-%d.\n", i);
 				return err;
 			}

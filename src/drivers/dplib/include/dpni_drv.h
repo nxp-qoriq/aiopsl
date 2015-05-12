@@ -36,6 +36,9 @@
 #include "fsl_dpni.h"
 #include "fsl_ldpaa.h"
 #include "fsl_platform.h"
+#include "fsl_dpni_drv.h"
+#include "fsl_dprc_drv.h"
+#include "dpni_drv_rxtx_inline.h"
 
 /**************************************************************************//**
 @Group		grp_dplib_aiop	DPLIB
@@ -154,16 +157,23 @@ struct aiop_psram_entry {
 };
 
 /**************************************************************************//**
-@Description	Application Receive callback
+@Function	dpni_drv_probe
 
-		User provides this function. Driver invokes it when it gets a
-		frame received on this interface.
+@Description	Function to probe the DPNI object.
 
+@Param[in]	dprc - Pointer to resource container
+
+@Param[in]	mc_niid - MC DP Network Interface ID
+
+@Param[in]	aiop_niid - AIOP internal ID for nis table
 
 @Return	OK on success; error code, otherwise.
+		For error posix refer to
+		\ref error_g
 *//***************************************************************************/
-typedef void /*__noreturn*/ (rx_cb_t) (void);
-
+int dpni_drv_probe(struct mc_dprc *dprc,
+                   uint16_t mc_niid,
+                   uint16_t aiop_niid);
 /**************************************************************************//**
 @Function	discard_rx_cb
 
@@ -177,6 +187,7 @@ void discard_rx_cb(void);
 @Function	dpni_drv_get_ordering_mode
 
 @Description	Returns the configuration in epid table for ordering mode.
+
 @Param[in]	ni_id - Network Interface ID
 
 @Return	Ordering mode for given NI
@@ -185,6 +196,18 @@ void discard_rx_cb(void);
 *//***************************************************************************/
 int dpni_drv_get_ordering_mode(uint16_t ni_id);
 
+/**************************************************************************//**
+@Function	dpni_drv_is_dpni_exist
+
+@Description	Returns TRUE if mc_niid already exist or FALSE otherwise.
+
+@Param[in]	mc_niid - DPNI unique ID
+
+@Return	status if DPNI exist in nis table or not
+		-ENAVAIL (-119) - Not exist
+		0 - Exist
+*//***************************************************************************/
+int dpni_drv_is_dpni_exist(uint16_t mc_niid);
 
 /** @} */ /* end of DPNI_DRV_STATUS group */
 #endif /* __DPNI_DRV_H */

@@ -33,7 +33,8 @@
 #define __FSL_DPNI_DRV_H
 
 #include "fsl_ldpaa.h"
-#include "dpni_drv.h"
+#include "fsl_net.h"
+#include "fsl_dpkg.h"
 #include "dpni_drv_rxtx_inline.h"
 
 
@@ -230,6 +231,17 @@ struct dpni_drv_init_presentation {
 	uint8_t  nds;
 };
 /** @} end of group dpni_drv_initial_presentation */
+
+/**************************************************************************//**
+@Description	Application Receive callback
+
+		User provides this function. Driver invokes it when it gets a
+		frame received on this interface.
+
+
+@Return	OK on success; error code, otherwise.
+*//***************************************************************************/
+typedef void /*__noreturn*/ (rx_cb_t) (void);
 
 /**************************************************************************//**
 @Function	dpni_drv_register_rx_cb

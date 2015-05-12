@@ -33,6 +33,7 @@
 #include "fsl_cdma.h"
 #include "fsl_l2.h"
 #include "fsl_osm.h"
+#include "fsl_dbg.h"
 
 int app_early_init(void);
 int app_init(void);
@@ -63,7 +64,7 @@ __HOT_CODE ENTRY_POINT static void app_process_packet(void)
 
 		pr_info("Received packet with ipv4 header:\n");
 		pr_info("%08x %08x %08x %08x %08x\n",
-		        ((uint32_t*)p_ipv4hdr)[0], 
+		        ((uint32_t*)p_ipv4hdr)[0],
 		        ((uint32_t*)p_ipv4hdr)[1],
 		        ((uint32_t*)p_ipv4hdr)[2],
 		        ((uint32_t*)p_ipv4hdr)[3],
@@ -96,7 +97,7 @@ __HOT_CODE ENTRY_POINT static void app_process_packet(void)
 	{
 		pr_info("Will send a modified packet with ipv4 header:\n");
 		pr_info("%08x %08x %08x %08x %08x\n",
-		        ((uint32_t*)p_ipv4hdr)[0], 
+		        ((uint32_t*)p_ipv4hdr)[0],
 		        ((uint32_t*)p_ipv4hdr)[1],
 		        ((uint32_t*)p_ipv4hdr)[2],
 		        ((uint32_t*)p_ipv4hdr)[3],
