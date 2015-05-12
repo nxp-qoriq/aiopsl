@@ -525,7 +525,7 @@ __COLD_CODE static int parser_profile_init(uint8_t *prpid)
 
 __COLD_CODE int dpni_drv_init(void)
 {
-	int		    i;
+	int i, aiop_niid;
 	uint8_t prpid = 0;
 	int err = 0;
 	int dev_count;
@@ -663,14 +663,14 @@ __COLD_CODE int dpni_drv_init(void)
 
 		/* Enable all DPNI devices */
 	}
-	for (i = 0; i < dev_count; i++) {
+	for (i = 0, aiop_niid = 0; i < dev_count; i++) {
 		dprc_get_obj(&dprc->io, dprc->token, i, &dev_desc);
 		if (strcmp(dev_desc.type, "dpni") == 0) {
 			/* TODO: print conditionally based on log level */
 			print_dev_desc(&dev_desc);
 
 			if ((err = dpni_drv_probe(dprc, (uint16_t)dev_desc.id,
-			                          (uint16_t)i)) != 0) {
+			                          (uint16_t)aiop_niid)) != 0) {
 				pr_err("Failed to probe DPNI-%d.\n", i);
 				return err;
 			}
@@ -678,6 +678,7 @@ __COLD_CODE int dpni_drv_init(void)
 			{
 				/*TODO Trigger AIOP event manager*/
 			}
+			aiop_niid ++;
 		}
 	}
 
