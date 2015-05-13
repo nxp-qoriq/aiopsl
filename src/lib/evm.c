@@ -218,7 +218,10 @@ int evm_raise_event_cb(void *dev, uint16_t cmd, uint32_t size, void *data)
 	struct evm_priority_list *evm_cb_list_ptr;
 	int i;
 	UNUSED(dev);
-	cmd &= ~CMDIF_NORESP_CMD;
+
+	if(cmd & CMDIF_NORESP_CMD)
+		cmd &= ~CMDIF_NORESP_CMD;
+
 	if(cmd >= NUM_OF_ALL_EVENTS || cmd < 0)
 	{
 		sl_pr_err("Event %d not supported\n",cmd);
