@@ -31,7 +31,7 @@
 #include "fsl_string.h"
 
 struct evm *event_data;
-
+int evm_raise_event_cb(void *dev, uint16_t cmd, uint32_t size, void *data);
 static int add_event_registration(uint8_t generator_id,
                                   uint8_t event_id,
                                   uint8_t priority,
@@ -212,7 +212,7 @@ int evm_unregister(uint8_t generator_id, uint8_t event_id,
 @Return	0 on success;
 	error code, otherwise. For error posix refer to \ref error_g
 *//***************************************************************************/
-static int evm_raise_event_cb(void *dev, uint16_t cmd, uint32_t size, void *data)
+int evm_raise_event_cb(void *dev, uint16_t cmd, uint32_t size, void *data)
 {
 	struct evm *evm_ptr = event_data;
 	struct evm_priority_list *evm_cb_list_ptr;
