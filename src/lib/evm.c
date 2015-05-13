@@ -225,7 +225,7 @@ int evm_raise_event_cb(void *dev, uint16_t cmd, uint32_t size, void *data)
 		return -ENOTSUP;
 	}
 	evm_ptr += cmd;
-
+	/*Only one event can be processed at a time*/
 	cdma_mutex_lock_take((uint64_t) evm_ptr, CDMA_MUTEX_WRITE_LOCK);
 	if(evm_ptr->num_cbs == 0)
 	{
@@ -262,11 +262,10 @@ static int evm_close_cb(void *dev)
 	return 0;
 }
 
-int evm_init(void)
+int evm_early_init(void)
 {
 	struct evm *evm_ptr;
-	struct cmdif_module_ops evm_ops;
-	int i, err;
+	int i;
 	event_data = (struct evm *) fsl_malloc(NUM_OF_ALL_EVENTS *
 	                                       sizeof(struct evm),
 	                                       64);
@@ -278,12 +277,19 @@ int evm_init(void)
 
 	memset(event_data, 0, NUM_OF_ALL_EVENTS * sizeof(struct evm));
 
-	/*Register for the events in MC*/
+	/* Initialize events available for service layer and applications */
 	for(i = 0; i < NUM_OF_ALL_EVENTS; i++){
 		evm_ptr->event_id = (uint8_t) i;
 	}
 
+	return 0;
+}
 
+
+int evm_init(void)
+{
+	struct cmdif_module_ops evm_ops;
+	int err;
 
 	evm_ops.open_cb = (open_cb_t *)evm_open_cb;
 	evm_ops.close_cb = (close_cb_t *)evm_close_cb;

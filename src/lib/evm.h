@@ -120,7 +120,7 @@ struct evm{
 	struct evm_priority_list *head;
 };
 
-
+int evm_early_init(void);
 int evm_init(void);
 void evm_free(void);
 
