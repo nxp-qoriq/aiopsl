@@ -39,6 +39,8 @@
 #include "dpni_drv.h"
 #include "drv.h"
 #include "aiop_common.h"
+#include "fsl_dpci_mng.h"
+#include "fsl_dpci_event.h"
 
 extern struct aiop_init_info g_init_data;
 
@@ -46,7 +48,7 @@ int dprc_drv_init(void);
 void dprc_drv_free(void);
 static int aiop_container_init(void);
 static void aiop_container_free(void);
-
+extern int evm_raise_event_cb(void *dev, uint16_t cmd, uint32_t size, void *data);
 
 static int dprc_drv_ev_cb(uint8_t generator_id, uint8_t event_id, uint32_t size, void *data)
 {
@@ -106,9 +108,8 @@ int dprc_drv_add_obj(void)
 	struct dprc_obj_desc dev_desc;
 	struct mc_dprc *dprc = sys_get_unique_handle(FSL_OS_MOD_AIOP_RC);
 
-
-	if ((err = dprc_get_obj_count(&dprc->io, dprc->token,
-	                              &dev_count)) != 0) {
+	err = dprc_get_obj_count(&dprc->io, dprc->token, &dev_count);
+	if (err) {
 		sl_pr_err("Failed to get device count for AIOP RC auth_id = %d.\n",
 		       dprc->token);
 		return err;
@@ -118,37 +119,50 @@ int dprc_drv_add_obj(void)
 		dprc_get_obj(&dprc->io, dprc->token, i, &dev_desc);
 		if (strcmp(dev_desc.type, "dpni") == 0) {
 
-			if(dpni_drv_is_dpni_exist((uint16_t)dev_desc.id)
-				== FALSE){
-			/*object not found in the
-			table and should be added*/
-				if ((err = dpni_drv_probe(dprc,
-				                          (uint16_t)dev_desc.id,
-				                          (uint16_t)aiop_niid))
-				                          != 0) {
-					sl_pr_err("Failed to probe DPNI-%d.\n", i);
+			if(dpni_drv_is_dpni_exist((uint16_t)dev_desc.id) == -1){
+			/*object not found in the table and should be added*/
+				err = dpni_drv_probe(dprc,
+				                     (uint16_t)dev_desc.id,
+				                     (uint16_t)aiop_niid);
+				if (err) {
+					sl_pr_err("Failed to probe DPNI-%d.\n",
+					          dev_desc.id);
 					return err;
 				}
-				else{
-					/*send event: "DPNI_ADDED_EVENT" to EVM */
+				/*send event: "DPNI_ADDED_EVENT" to EVM */
+				err = evm_raise_event_cb((void *)DPNI,
+				                         DPNI_EVENT_ADDED,
+				                         sizeof(dev_desc.id),
+				                         &dev_desc.id);
+				if(err){
+					sl_pr_err("Failed to raise event for "
+						"DPNI-%d.\n", dev_desc.id);
+					return err;
 				}
 			}
 			aiop_niid++;
 		}
 		else if(strcmp(dev_desc.type, "dpci") == 0) {
 
-//			if(dpci_drv_is_dpci_exist(dev_desc.id)){
-//				/*object not found in the
-//						table and should be added*/
-//				if ((err = dpci_event_assign(
-//				                          (uint32_t)dev_desc.id) != 0) {
-//					sl_pr_err("Failed to add DPCI-%d.\n", i);
-//					return err;
-//				}
-//				else{
-//					/*send event: "DPCI_ADDED_EVENT" to EVM */
-//				}
-//			}
+			if(dpci_mng_find((uint32_t)dev_desc.id) < 0){
+				/*object not found in the
+						table and should be added*/
+				err = dpci_event_assign((uint32_t)dev_desc.id);
+				if(err){
+					sl_pr_err("Failed to add DPCI-%d.\n", i);
+					return err;
+				}
+				/*send event: "DPNI_ADDED_EVENT" to EVM */
+				err = evm_raise_event_cb((void *)DPCI,
+				                         DPCI_EVENT_ADDED,
+				                         sizeof(dev_desc.id),
+				                         &dev_desc.id);
+				if(err){
+					sl_pr_err("Failed to raise event for "
+						"DPCI-%d.\n", dev_desc.id);
+					return err;
+				}
+			}
 		}
 	}
 	return 0;
@@ -156,25 +170,56 @@ int dprc_drv_add_obj(void)
 
 int dprc_drv_remove_obj(void)
 {
-	int i, err, dev_count = 0;
+	int i, index, err, dev_count = 0;
 	struct dprc_obj_desc dev_desc;
+	/*each bit represent the object index in internal table which is in use*/
+	uint64_t valid_dpnis = 0;
+	uint64_t valid_dpcis = 0;
+
 	struct mc_dprc *dprc = sys_get_unique_handle(FSL_OS_MOD_AIOP_RC);
 
+	dpni_drv_valid_dpnis(&valid_dpnis);
+/*	dpni_drv_valid_dpcis(&valid_dpcis);*/
 
-	if ((err = dprc_get_obj_count(&dprc->io, dprc->token,
-	                              &dev_count)) != 0) {
-		pr_err("Failed to get device count for AIOP RC auth_id = %d.\n",
+	err = dprc_get_obj_count(&dprc->io, dprc->token, &dev_count);
+	if (err){
+		sl_pr_err("Failed to get device count for AIOP RC auth_id = %d.\n",
 		       dprc->token);
 		return err;
 	}
 
 	for(i = 0; i < dev_count; i++){
 		dprc_get_obj(&dprc->io, dprc->token, i, &dev_desc);
+		if (strcmp(dev_desc.type, "dpni") == 0){
+			index = dpni_drv_is_dpni_exist((uint16_t)dev_desc.id);
+			/* check if index valid and if this dpni was found
+			 * before exist*/
+			if((index >= 0) &&
+				(valid_dpnis & (uint64_t)(1 << index))){
+				valid_dpnis ^= (uint64_t)(1 << index);
+			}
+		}
+		else if(strcmp(dev_desc.type, "dpci") == 0){
+			index = dpci_mng_find((uint32_t)dev_desc.id);
+			/* check if index valid and if this dpni was found
+			 * before exist*/
+			if((index >= 0) &&
+				(valid_dpcis & (uint64_t)(1 << index))){
+				valid_dpcis ^= (uint64_t)(1 << index);
+			}
+		}
 	}
-
-
-
-
+	for(i = 0; i < 64; i++, valid_dpcis = valid_dpcis >> 1,
+				valid_dpnis = valid_dpnis >> 1){
+		if(valid_dpnis & 0x01){
+			/*dpni_drv_unprobe (should return the mc_niid)*/
+			/*send event: "DPNI_REMOVED_EVENT" to EVM with mc_niid */
+		}
+		if(valid_dpcis & 0x01){
+			/*dpci_drv_unprobe (should return the dpci id)*/
+			/*send event: "DPCI_REMOVED_EVENT" to EVM with dpci id */
+		}
+	}
 	return 0;
 }
 
