@@ -306,6 +306,25 @@ int evm_init(void)
 
 void evm_free(void)
 {
+	int i;
+	struct evm *evm_ptr = event_data;
+	struct evm_priority_list *evm_cb_list_ptr;
+	struct evm_priority_list *evm_cb_list_next_ptr;
 
+	pr_info("Free memory used by EVM\n");
+	for(i = 0; i < NUM_OF_ALL_EVENTS; i++, evm_ptr ++ )
+	{
+		evm_cb_list_ptr = evm_ptr->head;
+		if(evm_cb_list_ptr)
+		{
+			do{
+				evm_cb_list_next_ptr = evm_cb_list_ptr->next;
+				fsl_free(evm_cb_list_ptr);
+				evm_cb_list_ptr = evm_cb_list_next_ptr;
+			}while(evm_cb_list_ptr != NULL);
+		}
+	}
+	fsl_free(event_data);
 }
+
 
