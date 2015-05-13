@@ -180,11 +180,25 @@ int dpni_drv_is_dpni_exist(uint16_t mc_niid)
 	}
 	cdma_mutex_lock_release((uint64_t)nis);
 	if(i == SOC_MAX_NUM_OF_DPNI)
-		return FALSE;
+		return -1;
 	else
-		return TRUE;
-
+		return i;
 }
+
+void dpni_drv_valid_dpnis(uint64_t *valid_dpnis)
+{
+	int i;
+	uint64_t dpni_index;
+	cdma_mutex_lock_take((uint64_t)nis, CDMA_MUTEX_WRITE_LOCK);
+	for(i = 0, dpni_index = 1; i < SOC_MAX_NUM_OF_DPNI;
+		i++, dpni_index = dpni_index << 1){
+		if(nis[i].dpni_id != DPNI_NOT_IN_USE){
+			*valid_dpnis |= dpni_index;
+		}
+	}
+	cdma_mutex_lock_release((uint64_t)nis);
+}
+
 __COLD_CODE int dpni_drv_probe(struct mc_dprc *dprc,
                                uint16_t mc_niid,
                                uint16_t aiop_niid)
@@ -557,7 +571,7 @@ __COLD_CODE int dpni_drv_init(void)
 	/* Initialize internal AIOP NI table */
 	for (i = 0; i < SOC_MAX_NUM_OF_DPNI; i++) {
 		struct dpni_drv * dpni_drv = nis + i;
-		dpni_drv->dpni_id                          = 0;
+		dpni_drv->dpni_id                          = DPNI_NOT_IN_USE;
 		dpni_drv->dpni_drv_params_var.spid         = 0;
 		dpni_drv->dpni_drv_params_var.spid_ddr     = 0;
 		dpni_drv->dpni_drv_params_var.epid_idx     = 0;

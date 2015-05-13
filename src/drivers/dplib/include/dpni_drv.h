@@ -56,8 +56,8 @@
 *//***************************************************************************/
 
 /* TODO - move to soc files */
-#define SOC_MAX_NUM_OF_DPNI		64
-
+#define SOC_MAX_NUM_OF_DPNI           64
+#define DPNI_NOT_IN_USE               0xFFFF
 #define DPNI_DRV_FAST_MEMORY    MEM_PART_PEB
 #define DPNI_DRV_DDR_MEMORY     MEM_PART_DP_DDR
 #define DPNI_DRV_NUM_USED_BPIDS   BPIDS_USED_FOR_POOLS_IN_DPNI
@@ -203,11 +203,22 @@ int dpni_drv_get_ordering_mode(uint16_t ni_id);
 
 @Param[in]	mc_niid - DPNI unique ID
 
-@Return	status if DPNI exist in nis table or not
-		-ENAVAIL (-119) - Not exist
-		0 - Exist
+@Return		-1 if not exist
+		index in nis table if exist
 *//***************************************************************************/
 int dpni_drv_is_dpni_exist(uint16_t mc_niid);
+
+/**************************************************************************//**
+@Function	dpni_drv_valid_dpnis
+
+@Description	Turn on a bit that represent an index of existing dpni in nis
+		table.
+
+@Param[out]	valid_dpnis - register to represent indexes for existing valid
+				dpnis.
+
+*//***************************************************************************/
+void dpni_drv_valid_dpnis(uint64_t *valid_dpnis);
 
 /** @} */ /* end of DPNI_DRV_STATUS group */
 #endif /* __DPNI_DRV_H */
