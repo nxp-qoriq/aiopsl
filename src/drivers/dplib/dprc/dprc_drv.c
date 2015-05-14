@@ -48,7 +48,6 @@ int dprc_drv_init(void);
 void dprc_drv_free(void);
 static int aiop_container_init(void);
 static void aiop_container_free(void);
-extern int evm_raise_event_cb(void *dev, uint16_t cmd, uint32_t size, void *data);
 
 static int dprc_drv_ev_cb(uint8_t generator_id, uint8_t event_id, uint32_t size, void *data)
 {
@@ -104,7 +103,7 @@ void dprc_drv_free(void)
 
 int dprc_drv_add_obj(void)
 {
-	int i, aiop_niid, err, dev_count = 0;
+	int i, err, dev_count = 0;
 	struct dprc_obj_desc dev_desc;
 	struct mc_dprc *dprc = sys_get_unique_handle(FSL_OS_MOD_AIOP_RC);
 
@@ -115,15 +114,14 @@ int dprc_drv_add_obj(void)
 		return err;
 	}
 
-	for(i = 0, aiop_niid = 0; i < dev_count; i++){
+	for(i = 0; i < dev_count; i++){
 		dprc_get_obj(&dprc->io, dprc->token, i, &dev_desc);
 		if (strcmp(dev_desc.type, "dpni") == 0) {
 
 			if(dpni_drv_is_dpni_exist((uint16_t)dev_desc.id) == -1){
 			/*object not found in the table and should be added*/
 				err = dpni_drv_probe(dprc,
-				                     (uint16_t)dev_desc.id,
-				                     (uint16_t)aiop_niid);
+				                     (uint16_t)dev_desc.id);
 				if (err) {
 					sl_pr_err("Failed to probe DPNI-%d.\n",
 					          dev_desc.id);
@@ -140,7 +138,6 @@ int dprc_drv_add_obj(void)
 					return err;
 				}
 			}
-			aiop_niid++;
 		}
 		else if(strcmp(dev_desc.type, "dpci") == 0) {
 
@@ -152,7 +149,7 @@ int dprc_drv_add_obj(void)
 					sl_pr_err("Failed to add DPCI-%d.\n", i);
 					return err;
 				}
-				/*send event: "DPNI_ADDED_EVENT" to EVM */
+				/*send event: "DPCI_ADDED_EVENT" to EVM */
 				err = evm_raise_event_cb((void *)DPCI,
 				                         DPCI_EVENT_ADDED,
 				                         sizeof(dev_desc.id),
