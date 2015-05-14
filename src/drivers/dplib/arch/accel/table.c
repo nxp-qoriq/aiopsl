@@ -124,7 +124,7 @@ int table_rule_create_or_replace(enum table_hw_accel_id acc_id,
 
 	/* Prepare ACC context for CTLU accelerator call */
 	arg2 = __e_rlwimi(arg2, (uint32_t)rule, 16, 0, 15);
-	arg3 = __e_rlwimi(arg3, key_size, 16, 0, 15);
+	arg3 = __e_rlwimi(arg3, (uint32_t)key_size, 16, 0, 15);
 	__stqw(TABLE_RULE_CREATE_OR_REPLACE_MTYPE, arg2, arg3, 0,
 	       HWC_ACC_IN_ADDRESS, 0);
 
@@ -572,43 +572,6 @@ void table_workaround_tkt226361(uint32_t mflu_peb_num_entries,
 	}
 }
 
-int table_lookup_by_keyid_default_frame_wrp(enum table_hw_accel_id acc_id,
-					uint16_t table_id,
-					uint8_t keyid,
-					struct table_lookup_result
-					       *lookup_result)
-{
-	return table_lookup_by_keyid_default_frame(acc_id,
-						    table_id,
-						    keyid,
-						    lookup_result);
-}
-
-int table_rule_create_wrp(enum table_hw_accel_id acc_id,
-			  uint16_t table_id,
-			  struct table_rule *rule,
-#ifdef REV2_RULEID
-			  uint8_t key_size,
-			  uint64_t *rule_id)
-#else
-			  uint8_t key_size)
-#endif
-{
-#ifdef REV2_RULEID
-	return table_rule_create(acc_id, table_id, rule, key_size, rule_id);
-#else
-	return table_rule_create(acc_id, table_id, rule, key_size);
-#endif
-}
-
-int table_rule_delete_wrp(enum table_hw_accel_id acc_id,
-		      uint16_t table_id,
-		      union table_key_desc *key_desc,
-		      uint8_t key_size,
-		      struct table_result *result)
-{
-	return table_rule_delete(acc_id, table_id, key_desc, key_size, result);
-}
 
 #ifdef REV2_RULEID
 int table_get_next_ruleid(enum table_hw_accel_id acc_id,
@@ -887,3 +850,41 @@ int table_rule_query_by_ruleid(enum table_hw_accel_id acc_id,
 
 
 #endif //REV2_RULEID
+
+int table_lookup_by_keyid_default_frame_wrp(enum table_hw_accel_id acc_id,
+					uint16_t table_id,
+					uint8_t keyid,
+					struct table_lookup_result
+					       *lookup_result)
+{
+	return table_lookup_by_keyid_default_frame(acc_id,
+						    table_id,
+						    keyid,
+						    lookup_result);
+}
+
+int table_rule_create_wrp(enum table_hw_accel_id acc_id,
+			  uint16_t table_id,
+			  struct table_rule *rule,
+#ifdef REV2_RULEID
+			  uint8_t key_size,
+			  uint64_t *rule_id)
+#else
+			  uint8_t key_size)
+#endif
+{
+#ifdef REV2_RULEID
+	return table_rule_create(acc_id, table_id, rule, key_size, rule_id);
+#else
+	return table_rule_create(acc_id, table_id, rule, key_size);
+#endif
+}
+
+int table_rule_delete_wrp(enum table_hw_accel_id acc_id,
+		      uint16_t table_id,
+		      union table_key_desc *key_desc,
+		      uint8_t key_size,
+		      struct table_result *result)
+{
+	return table_rule_delete(acc_id, table_id, key_desc, key_size, result);
+}

@@ -120,13 +120,13 @@ inline int table_lookup_by_key(enum table_hw_accel_id acc_id,
 }
 	
 inline int table_rule_create(enum table_hw_accel_id acc_id,
-		      uint16_t table_id,
-		      struct table_rule *rule,
+			     uint16_t table_id,
+			     struct table_rule *rule,
 #ifdef REV2_RULEID
-		      uint8_t key_size,
-		      uint64_t *rule_id)
+			     uint8_t key_size,
+			     uint64_t *rule_id)
 #else
-			  uint8_t key_size)
+			     uint8_t key_size)
 #endif
 {  
 	
@@ -156,7 +156,7 @@ inline int table_rule_create(enum table_hw_accel_id acc_id,
 
 	/* Prepare ACC context for CTLU accelerator call */
 	arg2 = __e_rlwimi(arg2, (uint32_t)rule, 16, 0, 15);
-	arg3 = __e_rlwimi(arg3, key_size, 16, 0, 15);
+	arg3 = __e_rlwimi(arg3, (uint32_t)key_size, 16, 0, 15);
 	/* Not using RPTR DEC because aging is disabled */
 	__stqw(TABLE_RULE_CREATE_MTYPE, arg2, arg3, 0, HWC_ACC_IN_ADDRESS, 0);
 
@@ -228,7 +228,7 @@ inline int table_rule_delete(enum table_hw_accel_id acc_id,
 	uint32_t arg2 = (uint32_t)&old_res;
 	uint32_t arg3 = table_id;
 	arg2 = __e_rlwimi(arg2, (uint32_t)key_desc, 16, 0, 15);
-	arg3 = __e_rlwimi(arg3, key_size, 16, 0, 15);
+	arg3 = __e_rlwimi(arg3, (uint32_t)key_size, 16, 0, 15);
 	__stqw(TABLE_RULE_DELETE_MTYPE, arg2, arg3, 0, HWC_ACC_IN_ADDRESS, 0);
 
 	/* Accelerator call */
@@ -273,7 +273,7 @@ inline int table_rule_query(enum table_hw_accel_id acc_id,
 	uint32_t arg3 = table_id;
 	uint32_t arg2 = (uint32_t)&entry;
 	uint8_t entry_type;
-	arg3 = __e_rlwimi(arg3, key_size, 16, 0, 15);
+	arg3 = __e_rlwimi(arg3, (uint32_t)key_size, 16, 0, 15);
 	arg2 = __e_rlwimi(arg2, (uint32_t)key_desc, 16, 0, 15);
 	__stqw(TABLE_RULE_QUERY_MTYPE, arg2, arg3, 0, HWC_ACC_IN_ADDRESS, 0);
 
@@ -384,7 +384,7 @@ inline int table_rule_replace(enum table_hw_accel_id acc_id,
 
 	/* Prepare ACC context for CTLU accelerator call */
 	arg2 = __e_rlwimi(arg2, (uint32_t)rule, 16, 0, 15);
-	arg3 = __e_rlwimi(arg3, key_size, 16, 0, 15);
+	arg3 = __e_rlwimi(arg3, (uint32_t)key_size, 16, 0, 15);
 	__stqw(TABLE_RULE_REPLACE_MTYPE, arg2, arg3, 0, HWC_ACC_IN_ADDRESS, 0);
 
 	/* Accelerator call */
