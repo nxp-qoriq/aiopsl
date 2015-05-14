@@ -117,7 +117,7 @@ __COLD_CODE void fill_platform_parameters(struct platform_param *platform_param)
 
 	int err = 0;
 
-	memset(platform_param, 0, sizeof(platform_param));
+	memset(platform_param, 0, sizeof(struct platform_param));
 
 	platform_param->l1_cache_mode = E_CACHE_MODE_INST_ONLY;
 	platform_param->console_type = PLTFRM_CONSOLE_DUART;
