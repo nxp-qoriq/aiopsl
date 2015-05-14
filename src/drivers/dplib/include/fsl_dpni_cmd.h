@@ -74,7 +74,7 @@
 #define DPNI_CMDID_SET_ERRORS_BEHAVIOR		0x20B
 
 #define DPNI_CMDID_GET_QDID			0x210
-#define DPNI_CMDID_GET_SPID			0x211
+#define DPNI_CMDID_GET_SPIDS			0x211
 #define DPNI_CMDID_GET_TX_DATA_OFFSET		0x212
 #define DPNI_CMDID_GET_COUNTER			0x213
 #define DPNI_CMDID_SET_COUNTER			0x214
@@ -173,6 +173,14 @@ do { \
 #define DPNI_CMD_SET_POOLS(cmd, cfg) \
 do { \
 	MC_CMD_OP(cmd, 0, 0,  8,  uint8_t,  cfg->num_dpbp); \
+	MC_CMD_OP(cmd, 0, 8,  1,  int,      cfg->pools[0].backup_pool); \
+	MC_CMD_OP(cmd, 0, 9,  1,  int,      cfg->pools[1].backup_pool); \
+	MC_CMD_OP(cmd, 0, 10, 1,  int,      cfg->pools[2].backup_pool); \
+	MC_CMD_OP(cmd, 0, 11, 1,  int,      cfg->pools[3].backup_pool); \
+	MC_CMD_OP(cmd, 0, 12, 1,  int,      cfg->pools[4].backup_pool); \
+	MC_CMD_OP(cmd, 0, 13, 1,  int,      cfg->pools[5].backup_pool); \
+	MC_CMD_OP(cmd, 0, 14, 1,  int,      cfg->pools[6].backup_pool); \
+	MC_CMD_OP(cmd, 0, 15, 1,  int,      cfg->pools[7].backup_pool); \
 	MC_CMD_OP(cmd, 0, 32, 32, int,      cfg->pools[0].dpbp_id); \
 	MC_CMD_OP(cmd, 4, 32, 16, uint16_t, cfg->pools[0].buffer_size);\
 	MC_CMD_OP(cmd, 1, 0,  32, int,      cfg->pools[1].dpbp_id); \
@@ -404,9 +412,12 @@ do { \
 	MC_RSP_OP(cmd, 0, 0,  16, uint16_t, qdid)
 
 /*                cmd, param, offset, width, type, arg_name */
-#define DPNI_RSP_GET_SPID(cmd, spid) \
-	MC_RSP_OP(cmd, 0, 0,  16, uint16_t, spid)
-
+#define DPNI_RSP_GET_SPIDS(cmd, spids) \
+do { \
+	MC_RSP_OP(cmd, 0, 0,  16, uint16_t, spids[0]); \
+	MC_RSP_OP(cmd, 0, 16, 16, uint16_t, spids[1]); \
+} while (0)
+	
 /*                cmd, param, offset, width, type, arg_name */
 #define DPNI_RSP_GET_TX_DATA_OFFSET(cmd, data_offset) \
 	MC_RSP_OP(cmd, 0, 0,  16, uint16_t, data_offset)

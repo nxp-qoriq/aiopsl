@@ -470,7 +470,11 @@ int fdma_extend_default_segment_presentation(
 	/* store command parameters */
 	__stdw(arg1, arg2, HWC_ACC_IN_ADDRESS, 0);
 	/* call FDMA Accelerator */
+#ifndef FDMA_OSM_LIMIT
 	__e_hwacceli_(FPDMA_ACCEL_ID);
+#else
+	FDMA_OSM_LIMIT_CALL(FPDMA_ACCEL_ID, PRC_GET_FRAME_HANDLE());
+#endif
 	/* load command results */
 	res1 = *((int8_t *) (FDMA_STATUS_ADDR));
 	/* Update Task Defaults */
@@ -909,6 +913,11 @@ int fdma_concatenate_frames(
 
 	/* call FDMA Accelerator */
 	__e_hwacceli_(FODMA_ACCEL_ID);
+
+#ifdef FDMA_OSM_LIMIT
+	frame_types[params->frame1] = SCATTER_GATHER_FRAME;
+#endif
+	
 	/* load command results */
 	res1 = *((int8_t *) (FDMA_STATUS_ADDR));
 

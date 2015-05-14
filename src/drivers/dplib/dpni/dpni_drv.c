@@ -52,9 +52,6 @@ void dpni_drv_free(void);
 
 extern struct aiop_init_info g_init_data;
 extern struct platform_app_params g_app_params;
-/*Window for storage profile ID's to use with DDR target memory*/
-uint32_t spid_ddr_id;
-uint32_t spid_ddr_id_last;
 
 /*buffer used for dpni_drv_set_order_scope*/
 uint8_t order_scope_buffer[PARAMS_IOVA_BUFF_SIZE];
@@ -150,43 +147,11 @@ int dpni_drv_unregister_rx_cb (uint16_t		ni_id)
 int dpni_drv_enable (uint16_t ni_id)
 {
 	struct dpni_drv *dpni_drv;
-	int		err;
 	struct mc_dprc *dprc = sys_get_unique_handle(FSL_OS_MOD_AIOP_RC);
-	struct aiop_psram_entry *sp_addr;
-	struct aiop_psram_entry alternate_storage_profile;
-	uint32_t sp_temp;
+
 	/* calculate pointer to the send NI structure */
 	dpni_drv = nis + ni_id;
-
-	if ((err = dpni_enable(&dprc->io, dpni_drv->dpni_drv_params_var.dpni))
-		!= 0)
-		return err;
-
-	cdma_mutex_lock_take((uint64_t)&dpni_drv->dpni_lock, CDMA_MUTEX_WRITE_LOCK); /*Lock dpni table entry*/
-	if(dpni_drv->dpni_drv_params_var.spid_ddr)/*spid for ddr pool can't be 0, it must be higher than spid given from MC*/
-	{
-		sp_addr = (struct aiop_psram_entry *)
-				(AIOP_PERIPHERALS_OFF + AIOP_STORAGE_PROFILE_OFF);
-		sp_addr += dpni_drv->dpni_drv_params_var.spid_ddr;
-		/*store bpid used for DDR pool*/
-		sp_temp = LOAD_LE32_TO_CPU(&(sp_addr->bp1));
-		/*shift the mask 16 bits left*/
-		sp_temp &= (uint32_t)(SP_MASK_BPID << 16);
-		sp_addr = (struct aiop_psram_entry *)
-				(AIOP_PERIPHERALS_OFF + AIOP_STORAGE_PROFILE_OFF);
-		sp_addr += dpni_drv->dpni_drv_params_var.spid;
-		/*Update other parameters except bpid in DDR storage profile*/
-		sp_temp |= (LOAD_LE32_TO_CPU(&(sp_addr->bp1)) & SP_MASK_BMT_AND_RSV);
-		alternate_storage_profile = *sp_addr;
-		STORE_CPU_TO_LE32(sp_temp,&(alternate_storage_profile.bp1));
-		/*update already used spid*/
-		sp_addr = (struct aiop_psram_entry *)
-				(AIOP_PERIPHERALS_OFF + AIOP_STORAGE_PROFILE_OFF);
-		sp_addr += dpni_drv->dpni_drv_params_var.spid_ddr;
-		*sp_addr = alternate_storage_profile;
-	}
-	cdma_mutex_lock_release((uint64_t)&dpni_drv->dpni_lock); /*Unlock dpni table entry*/
-	return 0;
+	return dpni_enable(&dprc->io, dpni_drv->dpni_drv_params_var.dpni);
 }
 
 int dpni_drv_disable (uint16_t ni_id)
@@ -212,12 +177,9 @@ __COLD_CODE int dpni_drv_probe(struct mc_dprc *dprc,
 	uint16_t dpni = 0;
 	uint8_t mac_addr[NET_HDR_FLD_ETH_ADDR_SIZE];
 	uint16_t qdid;
-	uint16_t spid;
-	uint32_t sp_temp;
+	uint16_t spids[2];
 	struct dpni_attr attributes;
 	struct dpni_buffer_layout layout = {0};
-	struct aiop_psram_entry *sp_addr;
-	struct aiop_psram_entry alternate_storage_profile;
 	struct aiop_tile_regs *tile_regs = (struct aiop_tile_regs *)
 				sys_get_handle(FSL_OS_MOD_AIOP_TILE, 1);
 	struct aiop_ws_regs *wrks_addr = &tile_regs->ws_regs;
@@ -279,7 +241,7 @@ __COLD_CODE int dpni_drv_probe(struct mc_dprc *dprc,
 			if ((err = dpni_set_pools(
 				&dprc->io,
 				dpni,
-				&pools_params[DPNI_DRV_PEB_BPID_IDX])) != 0) {
+				pools_params)) != 0) {
 				pr_err("Failed to set the pools to DP-NI%d.\n",
 				       mc_niid);
 				return err;
@@ -332,8 +294,8 @@ __COLD_CODE int dpni_drv_probe(struct mc_dprc *dprc,
 			nis[aiop_niid].dpni_drv_tx_params_var.qdid = qdid;
 
 			/* Register SPID in internal AIOP NI table */
-			if ((err = dpni_get_spid(&dprc->io,
-			                         dpni, &spid)) != 0) {
+			if ((err = dpni_get_spids(&dprc->io,
+			                         dpni, spids)) != 0) {
 				pr_err("Failed to get SPID for DP-NI%d\n",
 				       mc_niid);
 				return -ENODEV;
@@ -341,7 +303,7 @@ __COLD_CODE int dpni_drv_probe(struct mc_dprc *dprc,
 			/*TODO: change to uint16_t in nis table
 			 * for the next release*/
 			nis[aiop_niid].dpni_drv_params_var.spid =
-				(uint8_t)spid;
+				(uint8_t)spids[0];
 			/* Store epid index in AIOP NI's array*/
 			nis[aiop_niid].dpni_drv_params_var.epid_idx =
 				(uint16_t)i;
@@ -361,36 +323,14 @@ __COLD_CODE int dpni_drv_probe(struct mc_dprc *dprc,
 			/*Set concurrent mode for NI in epid table*/
 			iowrite32_ccsr(ep_osc, &wrks_addr->ep_osc);
 			/*bpid exist to use for ddr pool*/
-			if( pools_params[DPNI_DRV_DDR_BPID_IDX].num_dpbp == 1)
-			{
-				/*Create ddr spid here*/
-				if(spid_ddr_id < spid_ddr_id_last)
-				{
-					sp_addr = (struct aiop_psram_entry *)
-							(AIOP_PERIPHERALS_OFF + AIOP_STORAGE_PROFILE_OFF);
-					sp_addr += spid;
-					alternate_storage_profile = *sp_addr;
-
-					sp_temp = LOAD_LE32_TO_CPU(&alternate_storage_profile.bp1);
-					sp_temp &= SP_MASK_BMT_AND_RSV;
-					sp_temp |= ((pools_params[1].pools[0].dpbp_id & SP_MASK_BPID) << 16);
-					STORE_CPU_TO_LE32(sp_temp,&alternate_storage_profile.bp1);
-
-					sp_addr = (struct aiop_psram_entry *)
-							(AIOP_PERIPHERALS_OFF + AIOP_STORAGE_PROFILE_OFF);
-					sp_addr += spid_ddr_id;
-					*sp_addr = alternate_storage_profile;
-
-					nis[aiop_niid].dpni_drv_params_var.spid_ddr = (uint8_t) spid_ddr_id;
-					spid_ddr_id ++;
-				}
-				else{
-					pr_err("No free spid available \n");
-				}
-
+			if(pools_params->num_dpbp == 2){
+				nis[aiop_niid].dpni_drv_params_var.spid_ddr =
+					(uint8_t)spids[1];
 			}
-			else
+			else{
+				pr_err("DDR spid is not available \n");
 				nis[aiop_niid].dpni_drv_params_var.spid_ddr = 0;
+			}
 			num_of_nis ++;
 			return 0;
 		}
@@ -576,7 +516,7 @@ __COLD_CODE int dpni_drv_init(void)
 	struct dprc_obj_desc dev_desc;
 	int dpbp_id[DPNI_DRV_NUM_USED_BPIDS];
 	struct dpbp_attr attr;
-	struct dpni_pools_cfg pools_params[DPNI_DRV_NUM_USED_BPIDS];
+	struct dpni_pools_cfg pools_params = {0};
 	uint16_t buffer_size = (uint16_t)g_app_params.dpni_buff_size;
 	uint16_t num_buffs = (uint16_t)g_app_params.dpni_num_buffs;
 	uint16_t alignment;
@@ -585,7 +525,7 @@ __COLD_CODE int dpni_drv_init(void)
 
 
 	num_of_nis = 0;
-	/* Allocate initernal AIOP NI table */
+	/* Allocate internal AIOP NI table */
 	nis =fsl_malloc(sizeof(struct dpni_drv)*SOC_MAX_NUM_OF_DPNI,64);
 	if (!nis) {
 		return -ENOMEM;
@@ -612,10 +552,6 @@ __COLD_CODE int dpni_drv_init(void)
 			DPNI_DRV_FLG_PARSE | DPNI_DRV_FLG_PARSER_DIS;
 		dpni_drv->dpni_lock                        = 0;
 	}
-	/*Window for storage profile ID's to use with DDR target memory*/
-	spid_ddr_id = g_init_data.sl_info.base_spid;
-	spid_ddr_id_last = spid_ddr_id + g_init_data.app_info.spid_count -1;
-
 
 	/* TODO - add initialization of global default DP-IO
 	 * (i.e. call 'dpio_open', 'dpio_init');
@@ -664,8 +600,6 @@ __COLD_CODE int dpni_drv_init(void)
 		}
 	}
 
-
-
 	if(num_bpids < DPNI_DRV_NUM_USED_BPIDS){
 		pr_err("Not enough DPBPs found in the container.\n");
 		return -ENAVAIL;
@@ -701,10 +635,13 @@ __COLD_CODE int dpni_drv_init(void)
 
 		/* Prepare parameters to attach to DPNI object */
 		/* for AIOP, can be up to 2 */
-		pools_params[i].num_dpbp = 1;
+		pools_params.num_dpbp ++;
 		/*!< DPBPs object id */
-		pools_params[i].pools[0].dpbp_id = (uint16_t)dpbp_id[i];
-		pools_params[i].pools[0].buffer_size = buffer_size;
+		pools_params.pools[i].dpbp_id = (uint16_t)dpbp_id[i];
+		pools_params.pools[i].buffer_size = buffer_size;
+		if(mem_pid[i] == DPNI_DRV_DDR_MEMORY){
+			pools_params.pools[i].backup_pool = 1;
+		}
 
 		/* Enable all DPNI devices */
 	}
@@ -716,7 +653,7 @@ __COLD_CODE int dpni_drv_init(void)
 
 			if ((err = dpni_drv_probe(dprc, (uint16_t)dev_desc.id,
 			                          (uint16_t)i,
-			                          pools_params)) != 0) {
+			                          &pools_params)) != 0) {
 				pr_err("Failed to probe DPNI-%d.\n", i);
 				return err;
 			}
