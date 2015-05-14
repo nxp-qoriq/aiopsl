@@ -654,9 +654,10 @@ __COLD_CODE static int dpci_for_mc_add(struct mc_dprc *dprc)
 	err |= dpci_get_attributes(&dprc->io, dpci, &attr);
 
 	/* Connect to dpci that belongs to MC */
-	g_dpci_tbl.mc_dpci_id = g_init_data.sl_info.mc_dpci_id;
-	pr_debug("MC dpci ID[%d] \n", g_dpci_tbl.mc_dpci_id);
-	
+	g_dpci_tbl.mc_dpci_id = attr.id;
+	pr_debug("MC dpci ID[%d] \n", g_init_data.sl_info.mc_dpci_id);
+	pr_debug("AIOP dpci ID[%d] \n", g_dpci_tbl.mc_dpci_id);
+
 	memset(&endpoint1, 0, sizeof(struct dprc_endpoint));
 	memset(&endpoint2, 0, sizeof(struct dprc_endpoint));
 	endpoint1.id = (int)g_init_data.sl_info.mc_dpci_id;
