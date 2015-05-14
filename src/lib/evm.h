@@ -120,6 +120,25 @@ struct evm{
 	struct evm_priority_list *head;
 };
 
+
+/**************************************************************************//**
+@Function	evm_raise_event_cb
+
+@Description	event manager callback function to process registered events.
+
+@Param[in]	dev  Identifier of module generating event.
+
+@Param[in]	cmd  Identifier of the specific event
+
+@param[in]	size  size of event data.
+
+@param[in]	data  A pointer to data specific for event
+
+@Return	0 on success;
+	error code, otherwise. For error posix refer to \ref error_g
+*//***************************************************************************/
+int evm_raise_event_cb(void *dev, uint16_t cmd, uint32_t size, void *data);
+
 int evm_early_init(void);
 int evm_init(void);
 void evm_free(void);

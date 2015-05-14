@@ -31,7 +31,7 @@
 #include "fsl_string.h"
 
 struct evm *event_data;
-int evm_raise_event_cb(void *dev, uint16_t cmd, uint32_t size, void *data);
+
 static int add_event_registration(uint8_t generator_id,
                                   uint8_t event_id,
                                   uint8_t priority,
@@ -114,17 +114,19 @@ static int add_event_registration(uint8_t generator_id,
 	cdma_mutex_lock_release((uint64_t) evm_ptr);
 	return 0;
 }
+/*****************************************************************************/
 
 int evm_sl_register(uint8_t generator_id, uint8_t event_id, uint8_t priority, evm_cb cb)
 {
 	return add_event_registration(generator_id, event_id, priority, cb, EVM_SL_REGISTRATION_FLAG);
 }
-
+/*****************************************************************************/
 
 int evm_app_register(uint8_t generator_id, uint8_t event_id, uint8_t priority, evm_cb cb)
 {
 	return add_event_registration(generator_id, event_id, priority, cb, EVM_APP_REGISTRATION_FLAG);
 }
+/*****************************************************************************/
 
 int evm_unregister(uint8_t generator_id, uint8_t event_id,
                    uint8_t priority, evm_cb cb)
@@ -194,24 +196,8 @@ int evm_unregister(uint8_t generator_id, uint8_t event_id,
 	cdma_mutex_lock_release((uint64_t) evm_ptr);
 	return 0;
 }
-/**************************************************************************//**
-@Function	evm_raise_event_cb
+/*****************************************************************************/
 
-@Description	Function to generate an event.
-
-@Param[in]	generator_id  Identifier of the application generating event.
-
-@Param[in]	event_id  Identifier of the specific event.
-		The value can range from 0 to 255.
-		A unique combination of generator_id and event_id corresponds
-		to a unique event in the system.
-
-@param[in]	event_data  A pointer to structure specific for event
-
-
-@Return	0 on success;
-	error code, otherwise. For error posix refer to \ref error_g
-*//***************************************************************************/
 int evm_raise_event_cb(void *dev, uint16_t cmd, uint32_t size, void *data)
 {
 	struct evm *evm_ptr = event_data;
@@ -247,10 +233,11 @@ int evm_raise_event_cb(void *dev, uint16_t cmd, uint32_t size, void *data)
 		evm_cb_list_ptr = evm_cb_list_ptr->next;
 	}
 	cdma_mutex_lock_release((uint64_t) evm_ptr);
-	pr_info("EVM: Event received: %d\n",cmd);
+	sl_pr_debug("EVM: Event received: %d\n",cmd);
 
 	return 0;
 }
+/*****************************************************************************/
 
 static int evm_open_cb(uint8_t instance_id, void **dev)
 {
@@ -258,12 +245,15 @@ static int evm_open_cb(uint8_t instance_id, void **dev)
 	sl_pr_debug("open_cb inst_id = 0x%x\n", instance_id);
 	return 0;
 }
+/*****************************************************************************/
+
 static int evm_close_cb(void *dev)
 {
 	UNUSED(dev);
 	sl_pr_debug("close_cb\n");
 	return 0;
 }
+/*****************************************************************************/
 
 int evm_early_init(void)
 {
@@ -287,7 +277,7 @@ int evm_early_init(void)
 
 	return 0;
 }
-
+/*****************************************************************************/
 
 int evm_init(void)
 {
@@ -305,7 +295,7 @@ int evm_init(void)
 	}
 	return 0;
 }
-
+/*****************************************************************************/
 
 void evm_free(void)
 {
@@ -329,5 +319,6 @@ void evm_free(void)
 	}
 	fsl_free(event_data);
 }
+/*****************************************************************************/
 
 
