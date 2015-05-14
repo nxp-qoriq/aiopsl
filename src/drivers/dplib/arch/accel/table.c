@@ -144,6 +144,10 @@ int table_rule_create_or_replace(enum table_hw_accel_id acc_id,
 #endif
 	}
 	else if (status == TABLE_HW_STATUS_MISS){}
+	else if (status == CTLU_HW_STATUS_NORSC_TLUMISS)
+		status = -ENOMEM;
+	else if (status == MFLU_HW_STATUS_NORSC_TLUMISS)
+		status = -ENOMEM;
 	else if (status == CTLU_HW_STATUS_NORSC)
 		status = -ENOMEM;
 	else if (status == MFLU_HW_STATUS_NORSC)

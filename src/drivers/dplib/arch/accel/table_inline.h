@@ -184,6 +184,10 @@ inline int table_rule_create(enum table_hw_accel_id acc_id,
 		 * valid if command MTYPE is w/o RPTR counter decrement.*
 		status = TABLE_STATUS_SUCCESS;
 	*/
+	else if (status == CTLU_HW_STATUS_NORSC_TLUMISS)
+		status = -ENOMEM;
+	else if (status == MFLU_HW_STATUS_NORSC_TLUMISS)
+		status = -ENOMEM;
 	else if (status == CTLU_HW_STATUS_NORSC)
 		status = -ENOMEM;
 	else if (status == MFLU_HW_STATUS_NORSC)

@@ -328,6 +328,14 @@ A general bit that is set in some errors conditions */
  * */
 #define CTLU_HW_STATUS_NORSC	(0x00000020 | (TABLE_ACCEL_ID_CTLU << 24) | \
 						TABLE_HW_STATUS_MGCF)
+
+/** Resource is not available
+ * */
+#define CTLU_HW_STATUS_NORSC_TLUMISS	(0x00000020 | \
+					(TABLE_ACCEL_ID_CTLU << 24) | \
+					TABLE_HW_STATUS_MISS | \
+					TABLE_HW_STATUS_MGCF)
+
 /** Resource Is Temporarily Not Available.
  * Temporarily Not Available occurs if an other resource is in the process of
  * being freed up. Once the process ends, the resource may be available for new
@@ -344,6 +352,14 @@ A general bit that is set in some errors conditions */
  * */
 #define MFLU_HW_STATUS_NORSC	(0x00000020 | (TABLE_ACCEL_ID_MFLU << 24) | \
 						TABLE_HW_STATUS_MGCF)
+
+/** Resource is not available
+ * */
+#define MFLU_HW_STATUS_NORSC_TLUMISS	(0x00000020 | \
+					(TABLE_ACCEL_ID_MFLU << 24) | \
+					TABLE_HW_STATUS_MISS | \
+					TABLE_HW_STATUS_MGCF)
+
 /** Resource Is Temporarily Not Available.
  * Temporarily Not Available occurs if an other resource is in the process of
  * being freed up. Once the process ends, the resource may be available for new
