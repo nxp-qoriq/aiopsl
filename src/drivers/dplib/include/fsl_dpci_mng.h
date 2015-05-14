@@ -53,7 +53,7 @@
 	} while(0)
 
 struct dpci_mng_tbl {
-	uint32_t mc_dpci_id;	/**< DPCI id used by MC to send events */
+	uint32_t mc_dpci_id;	/**< AIOP side DPCI id that is connected to MC */
 	int32_t  count;
 	int      max;
 	uint32_t ic[DPCI_DYNAMIC_MAX];				/**< 0xFFFFFFFF is not valid, must be atomic*/

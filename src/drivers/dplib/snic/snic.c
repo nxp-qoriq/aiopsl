@@ -60,6 +60,7 @@
 
 #include "ls2085_aiop/fsl_platform.h"
 #include "fsl_malloc.h"
+#include "slab.h"
 
 
 #define SNIC_CMD_READ(_param, _offset, _width, _type, _arg) \
@@ -127,7 +128,7 @@ void snic_process_packet(void)
 		if (snic->snic_enable_flags & SNIC_VLAN_REMOVE_EN)
 			l2_pop_vlan();
 		/* Check if ipsec transport mode is required */
-		if (snic->snic_enable_flags & SNIC_IPSEC_DECRYPT)
+		if (snic->snic_enable_flags & SNIC_IPSEC_EN)
 			snic_ipsec_decrypt(snic);
 	}
 	/* Egress*/
@@ -136,7 +137,7 @@ void snic_process_packet(void)
 				(HWC_ADC_ADDRESS +
 				ADC_WQID_PRI_OFFSET)) & ADC_WQID_MASK) >> 4);
 		/* Check if ipsec transport mode is required */
-		if (snic->snic_enable_flags & SNIC_IPSEC_ENCRYPT)
+		if (snic->snic_enable_flags & SNIC_IPSEC_EN)
 			snic_ipsec_encrypt(snic);
 		/* For Egress may need to do add Vlan and then IPF */
 		if (snic->snic_enable_flags & SNIC_VLAN_ADD_EN)
@@ -273,11 +274,23 @@ int snic_ipsec_decrypt(struct snic_params *snic)
 	/* check if ipsec and if not table miss then decrypt */
 	if (PARSER_IS_IPSEC_DEFAULT())
 	{
-		sr_status = table_lookup_by_keyid_default_frame(
-			TABLE_ACCEL_ID_CTLU,
-			snic->dec_ipsec_table_id,
-			snic->dec_ipsec_key_id,
-			&lookup_result);
+		if (PARSER_IS_OUTER_IPV4_DEFAULT())
+		{
+			sr_status = table_lookup_by_keyid_default_frame(
+				TABLE_ACCEL_ID_CTLU,
+				(uint16_t)snic->dec_ipsec_ipv4_table_id,
+				snic->dec_ipsec_ipv4_key_id,
+				&lookup_result);
+		}
+		else
+		{
+			sr_status = table_lookup_by_keyid_default_frame(
+				TABLE_ACCEL_ID_CTLU,
+				(uint16_t)snic->dec_ipsec_ipv6_table_id,
+				snic->dec_ipsec_ipv6_key_id,
+				&lookup_result);
+		}
+
 		if (sr_status == TABLE_STATUS_SUCCESS) 
 		{
 			/* Hit */
@@ -292,7 +305,7 @@ int snic_ipsec_decrypt(struct snic_params *snic)
 
 int snic_ipsec_encrypt(struct snic_params *snic)
 {
-	uint16_t sa_id;
+	uint8_t sa_id;
 	struct presentation_context *presentation_context;
 	uint32_t asa_seg_addr;	/* ASA Segment Address */
 	int sr_status;
@@ -306,10 +319,10 @@ int snic_ipsec_encrypt(struct snic_params *snic)
 		(struct presentation_context *) HWC_PRC_ADDRESS;
 	asa_seg_addr = (uint32_t)(presentation_context->
 			asapa_asaps & PRC_ASAPA_MASK);
-	sa_id = *((uint16_t *)(PTR_MOVE(asa_seg_addr, 0x54)));
+	sa_id = *((uint8_t *)(PTR_MOVE(asa_seg_addr, 0x54)));
 	
 	key_desc.em_key = &sa_id;
-	sr_status = table_lookup_by_key(TABLE_ACCEL_ID_CTLU, snic->ipsec_table_id, key_desc, 2, &lookup_result);
+	sr_status = table_lookup_by_key(TABLE_ACCEL_ID_CTLU, (uint16_t)snic->ipsec_table_id, key_desc, 1, &lookup_result);
 
 	if (sr_status == TABLE_STATUS_SUCCESS) 
 	{
@@ -343,12 +356,12 @@ __COLD_CODE static int snic_ctrl_cb(void *dev, uint16_t cmd, uint32_t size, void
 	ipr_instance_handle_t ipr_instance = 0;
 	ipr_instance_handle_t *ipr_instance_ptr = &ipr_instance;
 	uint16_t snic_id = 0xFFFF, ipf_mtu, snic_flags, qdid, spid;
-	int i;
+	int i, k;
 	struct snic_cmd_data *cmd_data = (struct snic_cmd_data *)data;
 	struct ipr_params ipr_params = {0};
 	struct ipr_params *cfg = &ipr_params;
 	struct ipsec_descriptor_params ipsec_params = {0};
-	struct ipsec_encap_params encparams = {0};
+	/*struct ipsec_encap_params encparams = {0};
 	struct ipsec_decap_params decparams = {0};
 	struct ipsec_encap_cbc_params encap_cbc = {0};
 	struct ipsec_encap_ctr_params encap_ctr = {0};
@@ -356,11 +369,13 @@ __COLD_CODE static int snic_ctrl_cb(void *dev, uint16_t cmd, uint32_t size, void
 	struct ipsec_encap_gcm_params encap_gcm = {0};
 	struct ipsec_decap_ctr_params decap_ctr = {0};
 	struct ipsec_decap_ccm_params decap_ccm = {0};
-	struct ipsec_decap_gcm_params decap_gcm = {0};
+	struct ipsec_decap_gcm_params decap_gcm = {0};*/
 	/* should get value from: enum ipsec_cipher_type */
-	uint8_t cipher_type;
+	//uint8_t cipher_type;
 	struct ipsec_descriptor_params *ipsec_cfg = &ipsec_params;
-	struct ipsec_encap_params *ipsec_encparams_cfg = &encparams;
+	struct snic_ipsec_sa_cfg *snic_ipsec_sa_cfg;
+	struct snic_ipsec_cfg *snic_ipsec_cfg;
+	/*struct ipsec_encap_params *ipsec_encparams_cfg = &encparams;
 	struct ipsec_decap_params *ipsec_decparams_cfg = &decparams;
 	struct ipsec_encap_cbc_params *ipsec_encap_cbc_cfg = &encap_cbc;
 	struct ipsec_encap_ctr_params *ipsec_encap_ctr_cfg = &encap_ctr;
@@ -368,29 +383,37 @@ __COLD_CODE static int snic_ctrl_cb(void *dev, uint16_t cmd, uint32_t size, void
 	struct ipsec_encap_gcm_params *ipsec_encap_gcm_cfg = &encap_gcm;
 	struct ipsec_decap_ctr_params *ipsec_decap_ctr_cfg = &decap_ctr;
 	struct ipsec_decap_ccm_params *ipsec_decap_ccm_cfg = &decap_ccm;
-	struct ipsec_decap_gcm_params *ipsec_decap_gcm_cfg = &decap_gcm;
+	struct ipsec_decap_gcm_params *ipsec_decap_gcm_cfg = &decap_gcm;*/
 	uint32_t snic_ep_pc;
 	int err = 0;
-	uint32_t committed_sa_num, max_sa_num;
-	uint32_t dec_committed_sa_num, dec_max_sa_num;
-	uint32_t enc_committed_sa_num, enc_max_sa_num;
+	uint32_t num_sa;
 	ipsec_instance_handle_t ws_instance_handle = 0;
 	uint8_t fec_no, key_size;
 	uint8_t fec_array[8];
-	uint32_t table_location;
-	uint16_t sa_id;
-	/* example: SPI, IP dest. and protocol */
-	uint8_t ipsec_dec_key[48];
+	//uint32_t table_location;
+	uint8_t sa_id;
+	/* Max: SPI, IPv6 src + dest is 36 bytes */
+	uint8_t ipsec_dec_key[36];
 	ipsec_handle_t ipsec_handle = 0;
 	struct table_rule rule
 					__attribute__((aligned(16)));
 	struct table_lookup_result lookup_result __attribute__((aligned(16)));
 	union table_lookup_key_desc table_lookup_key_desc  __attribute__((aligned(16)));
 	union table_key_desc key_desc __attribute__((aligned(16)));
-	int32_t direction;
 #ifdef REV2_RULEID
 	uint64_t rule_id;
 #endif
+	uint8_t direction;
+	uint16_t options = 0;
+	uint16_t bpid;
+	uint64_t ipsec_ext_key_ptr;
+	uint32_t key_enc_flags = 0;
+	uint32_t sa_options;
+	uint16_t sa_nic_options;
+	uint32_t spi;
+	uint8_t ip_src[16];
+	uint8_t ip_dst[16];
+	uint16_t table_id;
 
 	UNUSED(dev);
 
@@ -452,28 +475,81 @@ __COLD_CODE static int snic_ctrl_cb(void *dev, uint16_t cmd, uint32_t size, void
 		memset(&snic_params[snic_id], 0, sizeof(struct snic_params));
 		return 0;
 	case SNIC_IPSEC_CREATE_INSTANCE:
-		SNIC_IPSEC_CREATE_INSTANCE_CMD(SNIC_CMD_READ);
-		committed_sa_num = dec_committed_sa_num + enc_committed_sa_num;
-		max_sa_num = dec_max_sa_num + enc_max_sa_num;
-		err =  ipsec_create_instance(committed_sa_num, max_sa_num,
+		//SNIC_IPSEC_CREATE_INSTANCE_CMD(SNIC_CMD_READ);
+		snic_ipsec_cfg = (struct snic_ipsec_cfg *)cmd_data;
+		num_sa = (uint32_t)((snic_ipsec_cfg->num_sa_ipv4 + snic_ipsec_cfg->num_sa_ipv6) << 1);
+		err =  ipsec_create_instance(num_sa, num_sa,
 				0, snic_tmi_id, &ws_instance_handle);
 		if (err)
 			return err;
+		snic_id = snic_ipsec_cfg->snic_id;
 		snic_params[snic_id].ipsec_instance_val = ws_instance_handle;
-		snic_params[snic_id].ipsec_key_size = key_size;
-		/* create keyid and tableid for decapsulation*/
-		err = snic_create_table_key_id(fec_no, fec_array, key_size,
-				table_location, dec_committed_sa_num, dec_max_sa_num,
-				&snic_params[snic_id].dec_ipsec_key_id,
-				&snic_params[snic_id].dec_ipsec_table_id);
-		if (err)
-			return err;
-		/* create tableid for SA ID management*/
-		err = snic_create_table_key_id(0, NULL, key_size,
-				table_location, committed_sa_num, max_sa_num,
+		if (snic_ipsec_cfg->num_sa_ipv4)
+		{
+			key_size = 4;
+			fec_no = 1;
+			i=0;
+			if (snic_ipsec_cfg->options & SNIC_IPSEC_OPT_INCLUDE_IP_SRC_IN_SA_SELECT)
+			{
+				key_size += 4;
+				fec_no++;
+				fec_array[i++] = KEYGEN_KCR_IPSRC_1_FECID;
+			}
+			if (snic_ipsec_cfg->options & SNIC_IPSEC_OPT_INCLUDE_IP_DST_IN_SA_SELECT)
+			{
+				key_size += 4;
+				fec_no++;
+				fec_array[i++] = KEYGEN_KCR_IPDST_1_FECID;
+			}
+			fec_array[i] = KEYGEN_KCR_IPSECSPI_FECID;
+			snic_params[snic_id].ipsec_ipv4_key_size = key_size;
+			/* create keyid and tableid for decapsulation */
+			err = snic_create_table_key_id(fec_no, fec_array, key_size,
+				snic_ipsec_cfg->num_sa_ipv4, snic_ipsec_cfg->num_sa_ipv4,
+				&snic_params[snic_id].dec_ipsec_ipv4_key_id,
+				&table_id);
+			snic_params[snic_id].dec_ipsec_ipv4_table_id = (uint8_t)table_id;
+			if (err)
+				return err;
+			snic_params[snic_id].ipsec_flags |= SNIC_IPSEC_IPV4_ENABLE;
+		}
+		if (snic_ipsec_cfg->num_sa_ipv6)
+		{
+			key_size = 4;
+			fec_no = 1;
+			i=0;
+			if (snic_ipsec_cfg->options & SNIC_IPSEC_OPT_INCLUDE_IP_SRC_IN_SA_SELECT)
+			{
+				key_size += 16;
+				fec_no++;
+				fec_array[i++] = KEYGEN_KCR_IPSRC_1_FECID;
+			}
+			if (snic_ipsec_cfg->options & SNIC_IPSEC_OPT_INCLUDE_IP_DST_IN_SA_SELECT)
+			{
+				key_size += 16;
+				fec_no++;
+				fec_array[i++] = KEYGEN_KCR_IPDST_1_FECID;
+			}
+			fec_array[i] = KEYGEN_KCR_IPSECSPI_FECID;
+			snic_params[snic_id].ipsec_ipv6_key_size = key_size;
+			/* create key-id and table-id for de-capsulation */
+			err = snic_create_table_key_id(fec_no, fec_array, key_size,
+				snic_ipsec_cfg->num_sa_ipv6, snic_ipsec_cfg->num_sa_ipv6,
+				&snic_params[snic_id].dec_ipsec_ipv6_key_id,
+				&table_id);
+			snic_params[snic_id].dec_ipsec_ipv6_table_id = (uint8_t)table_id;
+			if (err)
+				return err;
+			snic_params[snic_id].ipsec_flags |= SNIC_IPSEC_IPV6_ENABLE;
+		}
+		/* create tableid for SA ID management */
+		err = snic_create_table_key_id(0, NULL, 1,
+				num_sa, num_sa,
 				NULL,
-				&snic_params[snic_id].ipsec_table_id);
+				&table_id);
+		snic_params[snic_id].ipsec_table_id = (uint8_t)table_id;
 		return err;
+
 		/* This command must be after setting SPID in the SNIC params*/
 	case SNIC_IPSEC_DELETE_INSTANCE:
 		SNIC_IPSEC_DELETE_INSTANCE_CMD(SNIC_CMD_READ);
@@ -482,39 +558,127 @@ __COLD_CODE static int snic_ctrl_cb(void *dev, uint16_t cmd, uint32_t size, void
 			return err;
 		/* return  set of keyid and 2 sets of table ids */
 		table_delete(TABLE_ACCEL_ID_CTLU,
-				snic_params[snic_id].ipsec_table_id);
-		table_delete(TABLE_ACCEL_ID_CTLU,
-				snic_params[snic_id].dec_ipsec_table_id);
-		err = keygen_kcr_delete(KEYGEN_ACCEL_ID_CTLU,
-				snic_params[snic_id].dec_ipsec_key_id);
-		if (err)
-			return err;
+				(uint16_t)snic_params[snic_id].ipsec_table_id);
+		if (snic_params[snic_id].ipsec_flags & SNIC_IPSEC_IPV4_ENABLE)
+		{
+			table_delete(TABLE_ACCEL_ID_CTLU,
+					(uint16_t)snic_params[snic_id].dec_ipsec_ipv4_table_id);
+			err = keygen_kcr_delete(KEYGEN_ACCEL_ID_CTLU,
+					snic_params[snic_id].dec_ipsec_ipv4_key_id);
+			if (err)
+				return err;
+		}
+		
+		if (snic_params[snic_id].ipsec_flags & SNIC_IPSEC_IPV6_ENABLE)
+		{
+			table_delete(TABLE_ACCEL_ID_CTLU,
+					(uint16_t)snic_params[snic_id].dec_ipsec_ipv6_table_id);
+			err = keygen_kcr_delete(KEYGEN_ACCEL_ID_CTLU,
+					snic_params[snic_id].dec_ipsec_ipv6_key_id);
+			if (err)
+				return err;
+		}
+
 		return 0;
 		
 	case SNIC_IPSEC_ADD_SA:
-		SNIC_IPSEC_ADD_SA_CMD(SNIC_CMD_READ);
-		if (ipsec_cfg->direction == IPSEC_DIRECTION_OUTBOUND)
+		//SNIC_IPSEC_ADD_SA_CMD(SNIC_CMD_READ);
+		snic_ipsec_sa_cfg = (struct snic_ipsec_sa_cfg *)cmd_data;
+		snic_id = snic_ipsec_sa_cfg->snic_id;
+		if (snic_ipsec_sa_cfg->options & SNIC_IPSEC_SA_OPT_EXT_SEQ_NUM)
+			options |= IPSEC_OPTS_ESP_ESN;
+		if (snic_ipsec_sa_cfg->options & SNIC_IPSEC_SA_OPT_IPV6)
+			options |= IPSEC_OPTS_ESP_IPVSN;
+		if (snic_ipsec_sa_cfg->direction == SNIC_IPSEC_SA_DECAP)
 		{
-			ipsec_cfg->encparams = encparams;
-			if (cipher_type == CIPHER_TYPE_CBC)
-				ipsec_cfg->encparams.cbc = encap_cbc;
-			else if (cipher_type == CIPHER_TYPE_CTR)
-				ipsec_cfg->encparams.ctr = encap_ctr;
-			else if (cipher_type == CIPHER_TYPE_CCM)
-				ipsec_cfg->encparams.ccm = encap_ccm;
-			else
-				ipsec_cfg->encparams.gcm = encap_gcm;
+			ipsec_cfg->direction = IPSEC_DIRECTION_INBOUND;
+			if (snic_ipsec_sa_cfg->dir.dec.anti_replay == 
+					SNIC_IPSEC_SA_ANTI_REPLAY_NONE)
+				options |= IPSEC_DEC_OPTS_ARSNONE;
+			else 
+			{	
+				if (snic_ipsec_sa_cfg->dir.dec.anti_replay == SNIC_IPSEC_SA_ANTI_REPLAY_WS_32)
+					options |= IPSEC_DEC_OPTS_ARS32;
+				else
+				{
+					if (snic_ipsec_sa_cfg->dir.dec.anti_replay == SNIC_IPSEC_SA_ANTI_REPLAY_WS_64)
+						options |= IPSEC_DEC_OPTS_ARS64;
+					else
+						options |= IPSEC_DEC_OPTS_ARS128;
+				}
+			}
+			ipsec_cfg->decparams.options = options;
+			ipsec_cfg->decparams.seq_num_ext_hi = snic_ipsec_sa_cfg->seq_num_ext;
+			ipsec_cfg->decparams.seq_num = snic_ipsec_sa_cfg->seq_num;
+			/* it is not important what the exact alg is since it is always array of 4 bytes anyway */
+			for (i=0; i < 4; i++)
+				ipsec_cfg->decparams.gcm.salt[i]= snic_ipsec_sa_cfg->dir.dec.alg.gcm.salt[i];
+			
 		}
 		else
 		{
-			ipsec_cfg->decparams = decparams;
-			if (cipher_type == CIPHER_TYPE_CCM)
-				ipsec_cfg->decparams.ccm = decap_ccm;
-			else if (cipher_type == CIPHER_TYPE_CTR)
-				ipsec_cfg->decparams.ctr = decap_ctr;
-			else
-				ipsec_cfg->decparams.gcm = decap_gcm;
+			ipsec_cfg->direction = IPSEC_DIRECTION_OUTBOUND;
+			if (snic_ipsec_sa_cfg->options & SNIC_IPSEC_SA_OPT_RND_GEN_IV)
+						options |= IPSEC_ENC_OPTS_IVSRC;
+			if (snic_ipsec_sa_cfg->nic_options & SNIC_IPSEC_OPT_SEQ_NUM_ROLLOVER_EVENT)
+						options |= IPSEC_ENC_OPTS_SNR_EN;
+			ipsec_cfg->encparams.options = options;
+			ipsec_cfg->encparams.seq_num_ext_hi = snic_ipsec_sa_cfg->seq_num_ext;
+			ipsec_cfg->encparams.seq_num = snic_ipsec_sa_cfg->seq_num;
+			ipsec_cfg->encparams.spi = snic_ipsec_sa_cfg->spi;
+			/* it is not important what the exact alg */
+			for (i=0; i < 16; i++)
+				ipsec_cfg->encparams.cbc.iv[i] = snic_ipsec_sa_cfg->dir.enc.alg.cbc.iv[i];
 		}
+
+		err = slab_find_and_reserve_bpid(1,
+						96, /* chiper key needs 64 + auth key needs 32*/
+						8,
+						MEM_PART_DP_DDR,
+						NULL,
+						&bpid);
+
+		if (err < 0)
+			return err;
+
+		err = cdma_acquire_context_memory(bpid,
+						  &ipsec_ext_key_ptr);
+		if (err < 0)
+			return err;
+		/* write cipher/auth keys */
+		cdma_write(ipsec_ext_key_ptr, snic_ipsec_sa_cfg->cipher.key, snic_ipsec_sa_cfg->cipher.key_size);
+		cdma_write(ipsec_ext_key_ptr + 64, snic_ipsec_sa_cfg->auth.key, snic_ipsec_sa_cfg->auth.key_size);
+
+		if (snic_ipsec_sa_cfg->cipher.alg == SNIC_IPSEC_CIPHER_DES_IV64)
+			ipsec_cfg->cipherdata.algtype = IPSEC_CIPHER_DES_IV64;
+		if (snic_ipsec_sa_cfg->cipher.alg == SNIC_IPSEC_CIPHER_DES)
+			ipsec_cfg->cipherdata.algtype = IPSEC_CIPHER_DES;
+		if (snic_ipsec_sa_cfg->cipher.alg == SNIC_IPSEC_CIPHER_3DES)
+			ipsec_cfg->cipherdata.algtype = IPSEC_CIPHER_3DES;
+		if (snic_ipsec_sa_cfg->cipher.alg == SNIC_IPSEC_CIPHER_NULL)
+			ipsec_cfg->cipherdata.algtype = IPSEC_CIPHER_NULL;
+		if (snic_ipsec_sa_cfg->cipher.alg == SNIC_IPSEC_CIPHER_AES_CBC)
+			ipsec_cfg->cipherdata.algtype = IPSEC_CIPHER_AES_CBC;
+		if (snic_ipsec_sa_cfg->cipher.alg == SNIC_IPSEC_CIPHER_AES_CTR)
+			ipsec_cfg->cipherdata.algtype = IPSEC_CIPHER_AES_CTR;
+		if (snic_ipsec_sa_cfg->cipher.alg == SNIC_IPSEC_CIPHER_AES_CCM8)
+			ipsec_cfg->cipherdata.algtype = IPSEC_CIPHER_AES_CCM8;
+		if (snic_ipsec_sa_cfg->cipher.alg == SNIC_IPSEC_CIPHER_AES_CCM12)
+			ipsec_cfg->cipherdata.algtype = IPSEC_CIPHER_AES_CCM12;
+		if (snic_ipsec_sa_cfg->cipher.alg == SNIC_IPSEC_CIPHER_AES_CCM16)
+			ipsec_cfg->cipherdata.algtype = IPSEC_CIPHER_AES_CCM16;
+		if (snic_ipsec_sa_cfg->cipher.alg == SNIC_IPSEC_CIPHER_AES_GCM8)
+			ipsec_cfg->cipherdata.algtype = IPSEC_CIPHER_AES_GCM8;
+		if (snic_ipsec_sa_cfg->cipher.alg == SNIC_IPSEC_CIPHER_AES_GCM12)
+			ipsec_cfg->cipherdata.algtype = IPSEC_CIPHER_AES_GCM12;
+		if (snic_ipsec_sa_cfg->cipher.alg == SNIC_IPSEC_CIPHER_AES_GCM16)
+			ipsec_cfg->cipherdata.algtype = IPSEC_CIPHER_AES_GCM16;
+		if (snic_ipsec_sa_cfg->cipher.alg == SNIC_IPSEC_CIPHER_AES_NULL_WITH_GMAC)
+			ipsec_cfg->cipherdata.algtype = IPSEC_CIPHER_AES_NULL_WITH_GMAC;
+		ipsec_cfg->cipherdata.keylen = snic_ipsec_sa_cfg->cipher.key_size;
+		ipsec_cfg->cipherdata.key = ipsec_ext_key_ptr;
+		ipsec_cfg->cipherdata.key_enc_flags = key_enc_flags;
+
 		/* transport mode. IPSEC_FLG_LIFETIME_SEC_CNTR_EN not supported yet */
 		ipsec_params.flags = IPSEC_FLG_LIFETIME_KB_CNTR_EN | IPSEC_FLG_LIFETIME_PKT_CNTR_EN;
 		ipsec_params.soft_kilobytes_limit = 0xffffffffffffffff; 
@@ -533,34 +697,84 @@ __COLD_CODE static int snic_ctrl_cb(void *dev, uint16_t cmd, uint32_t size, void
 				&ipsec_handle);
 		if (err)
 			return err;
+
 		/* create rule to bind between sa_id and ipsec_handle */
 		rule.options = 0;
 		rule.result.type = TABLE_RESULT_TYPE_REFERENCE;
 		rule.result.op0_rptr_clp.reference_pointer = ipsec_handle;
-		rule.key_desc.em.key[0] = (uint8_t)(sa_id >> 8);
-		rule.key_desc.em.key[1] = (uint8_t)sa_id;
+		rule.key_desc.em.key[0] = snic_ipsec_sa_cfg->sa_id;
 		err = table_rule_create(TABLE_ACCEL_ID_CTLU,
 #ifdef REV2_RULEID
-				snic_params[snic_id].ipsec_table_id, &rule, 2, &rule_id);
+		(uint16_t)snic_params[snic_id].ipsec_table_id, &rule, 1, &rule_id);
 #else
-				snic_params[snic_id].ipsec_table_id, &rule, 2);
+		(uint16_t)snic_params[snic_id].ipsec_table_id, &rule, 1);
 #endif
 		if (err)
 			return err;
 		/* create rule to bind between dec key and ipsec handle */
-		if (ipsec_params.direction == IPSEC_DIRECTION_INBOUND)
+		if (snic_ipsec_sa_cfg->direction == SNIC_IPSEC_SA_DECAP)
 		{
 			rule.result.op0_rptr_clp.reference_pointer = 
 					ipsec_handle;
-			for (i = 0; i < snic_params[snic_id].ipsec_key_size; i++ )
-				rule.key_desc.em.key[i] = ipsec_dec_key[i];
-			err = table_rule_create(TABLE_ACCEL_ID_CTLU,
-					snic_params[snic_id].dec_ipsec_table_id,
+			if (snic_ipsec_sa_cfg->options & SNIC_IPSEC_SA_OPT_IPV6)
+			{
+				k = 0;
+				if (snic_ipsec_sa_cfg->nic_options & SNIC_IPSEC_OPT_INCLUDE_IP_SRC_IN_SA_SELECT)
+				{
+					k = 16;
+					for (i = 0; i < 16; i++)
+						ipsec_dec_key[i] = snic_ipsec_sa_cfg->dir.dec.ip_src[i];
+				}
+				if (snic_ipsec_sa_cfg->nic_options & SNIC_IPSEC_OPT_INCLUDE_IP_DST_IN_SA_SELECT)
+				{
+					for (i = 0; i < 16; i++)
+						ipsec_dec_key[k + i] = snic_ipsec_sa_cfg->dir.dec.ip_dst[i];
+					k += 16;
+				}
+				ipsec_dec_key[k++] = (uint8_t)(snic_ipsec_sa_cfg->spi >> 24);
+				ipsec_dec_key[k++] = (uint8_t)(snic_ipsec_sa_cfg->spi >> 16);
+				ipsec_dec_key[k++] = (uint8_t)(snic_ipsec_sa_cfg->spi >> 8);
+				ipsec_dec_key[k] = (uint8_t)(snic_ipsec_sa_cfg->spi);
+				for (i = 0; i < snic_params[snic_id].ipsec_ipv6_key_size; i++ )
+					rule.key_desc.em.key[i] = ipsec_dec_key[i];
+				err = table_rule_create(TABLE_ACCEL_ID_CTLU,
+						(uint16_t)snic_params[snic_id].dec_ipsec_ipv6_table_id,
 #ifdef REV2_RULEID
-					&rule, snic_params[snic_id].ipsec_key_size,&rule_id);
+						&rule, snic_params[snic_id].ipsec_ipv6_key_size, &rule_id);
 #else
-					&rule, snic_params[snic_id].ipsec_key_size);
+						&rule, snic_params[snic_id].ipsec_ipv6_key_size);
 #endif
+			}
+			else
+			{
+				k = 0;
+				if (snic_ipsec_sa_cfg->nic_options & SNIC_IPSEC_OPT_INCLUDE_IP_SRC_IN_SA_SELECT)
+				{
+					k = 4;
+					for (i = 0; i < 4; i++)
+						ipsec_dec_key[i] = snic_ipsec_sa_cfg->dir.dec.ip_src[i];
+				}
+				if (snic_ipsec_sa_cfg->nic_options & SNIC_IPSEC_OPT_INCLUDE_IP_DST_IN_SA_SELECT)
+				{
+					for (i = 0; i < 4; i++)
+						ipsec_dec_key[k + i] = snic_ipsec_sa_cfg->dir.dec.ip_dst[i];
+					k += 4;
+				}
+				ipsec_dec_key[k++] = (uint8_t)(snic_ipsec_sa_cfg->spi >> 24);
+				ipsec_dec_key[k++] = (uint8_t)(snic_ipsec_sa_cfg->spi >> 16);
+				ipsec_dec_key[k++] = (uint8_t)(snic_ipsec_sa_cfg->spi >> 8);
+				ipsec_dec_key[k] = (uint8_t)(snic_ipsec_sa_cfg->spi);
+				for (i = 0; i < snic_params[snic_id].ipsec_ipv4_key_size; i++)
+					rule.key_desc.em.key[i] = ipsec_dec_key[i];
+				err = table_rule_create(TABLE_ACCEL_ID_CTLU,
+						(uint16_t)snic_params[snic_id].dec_ipsec_ipv4_table_id,
+#ifdef REV2_RULEID
+						&rule, snic_params[snic_id].ipsec_ipv4_key_size, &rule_id);
+#else
+						&rule, snic_params[snic_id].ipsec_ipv4_key_size);
+#endif
+			}
+
 			if (err)
 				return err;
 		}
@@ -568,37 +782,81 @@ __COLD_CODE static int snic_ctrl_cb(void *dev, uint16_t cmd, uint32_t size, void
 	case SNIC_IPSEC_DEL_SA:
 		SNIC_IPSEC_DEL_SA_CMD(SNIC_CMD_READ);
 		table_lookup_key_desc.em_key = &sa_id;
-		err = table_lookup_by_key(TABLE_ACCEL_ID_CTLU, snic_params[snic_id].ipsec_table_id, table_lookup_key_desc, 2, &lookup_result);
+		err = table_lookup_by_key(TABLE_ACCEL_ID_CTLU, (uint16_t)snic_params[snic_id].ipsec_table_id, table_lookup_key_desc, 1, &lookup_result);
 		if (err == TABLE_STATUS_SUCCESS) {
 			/* Hit */
 			ipsec_handle = lookup_result.opaque0_or_reference;
 			/* need to delete rules from the 2 tables (or one for enc.) */
-			key_desc.em.key[0] = (uint8_t)(sa_id >> 8);
-			key_desc.em.key[1] = (uint8_t)sa_id;
+			key_desc.em.key[0] = sa_id;
 			err = table_rule_delete(TABLE_ACCEL_ID_CTLU,
-					snic_params[snic_id].ipsec_table_id,
+					(uint16_t)snic_params[snic_id].ipsec_table_id,
 					&key_desc,
-					2,
+					1,
 					NULL);
 			if (err)
 				return err;
 			/* Need to check if decryption SA need to remove another rule*/
-			if (direction == IPSEC_DIRECTION_INBOUND)
+			if (direction == SNIC_IPSEC_SA_DECAP)
 			{
-				for (i = 0; i < snic_params[snic_id].ipsec_key_size; i++ )
-					key_desc.em.key[i] = ipsec_dec_key[i];
-				err = table_rule_delete(TABLE_ACCEL_ID_CTLU,
-						snic_params[snic_id].dec_ipsec_table_id,
+				if (sa_options & SNIC_IPSEC_SA_OPT_IPV6)
+				{
+					k = 0;
+					if (sa_nic_options & SNIC_IPSEC_OPT_INCLUDE_IP_SRC_IN_SA_SELECT)
+					{
+						k = 16;
+						for (i = 0; i < 16; i++)
+							ipsec_dec_key[i] = ip_src[i];
+					}
+					if (sa_nic_options & SNIC_IPSEC_OPT_INCLUDE_IP_DST_IN_SA_SELECT)
+					{
+						for (i = 0; i < 16; i++)
+							ipsec_dec_key[k + i] = ip_dst[i];
+						k += 16;
+					}
+					ipsec_dec_key[k++] = (uint8_t)(spi >> 24);
+					ipsec_dec_key[k++] = (uint8_t)(spi >> 16);
+					ipsec_dec_key[k++] = (uint8_t)(spi >> 8);
+					ipsec_dec_key[k] = (uint8_t)spi;
+					for (i = 0; i < snic_params[snic_id].ipsec_ipv6_key_size; i++ )
+						key_desc.em.key[i] = ipsec_dec_key[i];
+					err = table_rule_delete(TABLE_ACCEL_ID_CTLU,
+						(uint16_t)snic_params[snic_id].dec_ipsec_ipv6_table_id,
 						&key_desc,
-						snic_params[snic_id].ipsec_key_size,
+						snic_params[snic_id].ipsec_ipv6_key_size,
 						NULL);
+				}
+				else
+				{
+					k = 0;
+					if (sa_nic_options & SNIC_IPSEC_OPT_INCLUDE_IP_SRC_IN_SA_SELECT)
+					{
+						k = 4;
+						for (i = 0; i < 4; i++)
+							ipsec_dec_key[i] = ip_src[i];
+					}
+					if (sa_nic_options & SNIC_IPSEC_OPT_INCLUDE_IP_DST_IN_SA_SELECT)
+					{
+						for (i = 0; i < 4; i++)
+							ipsec_dec_key[k + i] = ip_dst[i];
+						k += 4;
+					}
+					ipsec_dec_key[k++] = (uint8_t)(spi >> 24);
+					ipsec_dec_key[k++] = (uint8_t)(spi >> 16);
+					ipsec_dec_key[k++] = (uint8_t)(spi >> 8);
+					ipsec_dec_key[k] = (uint8_t)spi;
+					for (i = 0; i < snic_params[snic_id].ipsec_ipv4_key_size; i++ )
+						key_desc.em.key[i] = ipsec_dec_key[i];
+					err = table_rule_delete(TABLE_ACCEL_ID_CTLU,
+						(uint16_t)snic_params[snic_id].dec_ipsec_ipv4_table_id,
+						&key_desc,
+						snic_params[snic_id].ipsec_ipv4_key_size,
+						NULL);
+				}
 				if (err)
 					return err;
 			}
 			err = ipsec_del_sa_descriptor(ipsec_handle);
-			if (err)
-				return err;
-			return 0;
+			return err;
 		}
 		else
 			return err;
@@ -609,15 +867,24 @@ __COLD_CODE static int snic_ctrl_cb(void *dev, uint16_t cmd, uint32_t size, void
 }
 
 int aiop_snic_early_init(void)
-{
-	int err;
+{	int err;
 
 	/* reserve IPR buffers */
 	err = ipr_early_init(MAX_SNIC_NO, MAX_SNIC_NO * MAX_OPEN_IPR_FRAMES);
-	/* todo: currently not allocate for IPsec */
-	/* if (err)
+	if (err)
 		return err;
-	err = ipsec_early_init(MAX_SNIC_NO, MAX_SA_NO, MAX_SA_NO, 0); */
+	/* IPsec buffers */
+	err = ipsec_early_init(MAX_SNIC_NO, MAX_SNIC_NO * MAX_SA_NO, MAX_SNIC_NO * MAX_SA_NO, 0);
+	if (err)
+			return err;
+	/* IPsec: Auth (32 bytes) and chipher (64 bytes) key length are  rounded up modulo 64 - 8 */
+	err = slab_register_context_buffer_requirements(MAX_SNIC_NO * MAX_SA_NO,
+							MAX_SNIC_NO * MAX_SA_NO,
+							120,
+							64,
+							MEM_PART_DP_DDR,
+							0,
+							0);
 	return err;
 }
 
@@ -677,7 +944,7 @@ void snic_ipr_confirm_delete_cb(ipr_del_arg_t arg)
 }
 
 int snic_create_table_key_id(uint8_t fec_no, uint8_t fec_array[8], 
-				uint8_t key_size, uint32_t table_location,
+				uint8_t key_size,
 				uint32_t committed_sa_num, uint32_t max_sa_num,
 				uint8_t *key_id,
 				uint16_t *table_id)
@@ -686,7 +953,6 @@ int snic_create_table_key_id(uint8_t fec_no, uint8_t fec_array[8],
 			__attribute__((aligned(16)));
 	int	err, i;
 	struct table_create_params tbl_params;
-	uint16_t table_location_attr;
 
 	if (fec_no)
 	{
@@ -709,20 +975,26 @@ int snic_create_table_key_id(uint8_t fec_no, uint8_t fec_array[8],
 	tbl_params.committed_rules = committed_sa_num;
 	tbl_params.max_rules = max_sa_num;
 	tbl_params.key_size = key_size;
-	if (table_location == IPR_MODE_TABLE_LOCATION_INT)
-		table_location_attr = TABLE_ATTRIBUTE_LOCATION_INT;
-	else if (table_location == IPR_MODE_TABLE_LOCATION_PEB)
-		table_location_attr = TABLE_ATTRIBUTE_LOCATION_PEB;
-	else if (table_location == IPR_MODE_TABLE_LOCATION_EXT1)
-		table_location_attr = TABLE_ATTRIBUTE_LOCATION_EXT1;
-	else
-		table_location_attr = TABLE_ATTRIBUTE_LOCATION_EXT2;
 	tbl_params.attributes = TABLE_ATTRIBUTE_TYPE_EM | \
-			table_location_attr | \
+			TABLE_ATTRIBUTE_LOCATION_PEB | \
 			TABLE_ATTRIBUTE_MR_NO_MISS;
 	err = table_create(TABLE_ACCEL_ID_CTLU, &tbl_params,
 			table_id);
-	if (err != TABLE_STATUS_SUCCESS)
-		return err;
-	return 0;
+	if (err)
+	{
+		tbl_params.attributes = TABLE_ATTRIBUTE_TYPE_EM | \
+				TABLE_ATTRIBUTE_LOCATION_EXT1 | \
+				TABLE_ATTRIBUTE_MR_NO_MISS;
+		err = table_create(TABLE_ACCEL_ID_CTLU, &tbl_params,
+				table_id);
+		if (err)
+		{
+			tbl_params.attributes = TABLE_ATTRIBUTE_TYPE_EM | \
+					TABLE_ATTRIBUTE_LOCATION_EXT2 | \
+					TABLE_ATTRIBUTE_MR_NO_MISS;
+			err = table_create(TABLE_ACCEL_ID_CTLU, &tbl_params,
+					table_id);
+		}
+	}
+	return err;
 }

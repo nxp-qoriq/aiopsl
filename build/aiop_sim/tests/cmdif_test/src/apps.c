@@ -31,10 +31,12 @@
 #include "fsl_dprc.h"
 #include "fsl_dpci_drv.h"
 #include "fsl_dpci_event.h"
-#include "fsl_dpci_event.h"
+#include "fsl_dpci_mng.h"
 #include "fsl_mc_init.h"
 
 int dpci_scan_and_enable();
+
+extern struct dpci_mng_tbl g_dpci_tbl;
 
 extern int app_init(void); extern void app_free(void);
 
@@ -82,7 +84,8 @@ int dpci_scan_and_enable()
 
 	for (i = 0; i < dev_count; i++) {
 		dprc_get_obj(&dprc->io, dprc->token, i, &dev_desc);
-		if (strcmp(dev_desc.type, "dpci") == 0) {
+		if ((strcmp(dev_desc.type, "dpci") == 0)
+			&& (g_dpci_tbl.mc_dpci_id != dev_desc.id)) {
 			pr_debug(" Found DPCI device\n");
 			pr_debug("***********\n");
 			pr_debug("vendor - %x\n", dev_desc.vendor);
@@ -97,6 +100,6 @@ int dpci_scan_and_enable()
 			err |= dpci_drv_enable((uint32_t)dev_desc.id);
 		}
 	}
-		
+
 	return err;
 }
