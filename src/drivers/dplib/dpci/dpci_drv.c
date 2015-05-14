@@ -101,6 +101,7 @@ do { \
 		cdma_mutex_lock_release((uint64_t)(&g_dpci_tbl.dpci_id[IND])); \
 	} while(0)
 
+
 int dpci_drv_init();
 void dpci_drv_free();
 
@@ -187,7 +188,6 @@ static void dpci_entry_delete(int ind)
 	g_dpci_tbl.dpci_id_peer[ind] = DPCI_FQID_NOT_VALID;
 	for (i = 0 ; i < DPCI_PRIO_NUM; i++)
 		g_dpci_tbl.tx_queue[ind][i] = DPCI_FQID_NOT_VALID;
-	g_dpci_tbl.token[ind] = 0xffff;
 	atomic_decr32(&g_dpci_tbl.count, 1);
 }
 
@@ -433,12 +433,23 @@ __COLD_CODE int dpci_event_link_change(uint32_t dpci_id)
 
 	DPCI_DT_LOCK_RELEASE;
 
+	if (g_dpci_tbl.mc_dpci_id != dpci_id) {
+		/* Re-use ind as link up indication */
+		ind = 0;
+		err = dpci_get_link_state(&dprc->io, token, &ind);
+		ASSERT_COND(!err);
+
+		if (ind == 0) {
+			/* Link down event 
+			 * TODO call EVM here */
+		} else {
+			/* Link up event 
+			 * TODO call EVM here */
+		}
+	}
+
 	err = dpci_close(&dprc->io, token);
 	ASSERT_COND(!err);
-
-	if (g_dpci_tbl.mc_dpci_id != dpci_id) {
-		/* TODO call EVM here */
-	}
 
 	return err;
 }
@@ -548,8 +559,6 @@ __COLD_CODE int dpci_drv_disable(uint32_t dpci_id)
 	struct mc_dprc *dprc = sys_get_unique_handle(FSL_OS_MOD_AIOP_RC);
 	int err = 0;
 	uint16_t token = 0xffff;
-	int ind;
-	uint8_t i;
 
 #if 0
 	struct dpci_rx_queue_cfg queue_cfg;
@@ -635,14 +644,8 @@ __COLD_CODE static int dpci_tbl_create(int dpci_count)
 	size = sizeof(g_dpci_tbl.ic) ;
 	memset(&g_dpci_tbl.ic, 0xff, size);
 
-	size = sizeof(g_dpci_tbl.token);
-	memset(&g_dpci_tbl.token, 0xff, size);
-
 	size = sizeof(g_dpci_tbl.tx_queue);
 	memset(&g_dpci_tbl.tx_queue, 0xff, size);
-
-	size = sizeof(g_dpci_tbl.state);
-	memset(&g_dpci_tbl.state, 0, size);
 
 	g_dpci_tbl.count = 0;
 	g_dpci_tbl.max = dpci_count;

@@ -60,8 +60,6 @@ struct dpci_mng_tbl {
 	uint32_t dpci_id[DPCI_DYNAMIC_MAX];			/**< dpci ids not tokens */
 	uint32_t dpci_id_peer[DPCI_DYNAMIC_MAX];		/**< dpci ids not tokens */
 	uint32_t tx_queue[DPCI_DYNAMIC_MAX][DPCI_PRIO_NUM];	/**< Use DPCI_PRIO_NUM between DPCI jumps */
-	uint16_t token[DPCI_DYNAMIC_MAX];			/**< TODO use it dpci token for open session */
-	uint8_t  state[DPCI_DYNAMIC_MAX];			/**< TODO use it */
 };
 
 /**************************************************************************//**
