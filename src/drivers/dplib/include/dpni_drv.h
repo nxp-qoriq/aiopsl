@@ -165,15 +165,12 @@ struct aiop_psram_entry {
 
 @Param[in]	mc_niid - MC DP Network Interface ID
 
-@Param[in]	aiop_niid - AIOP internal ID for nis table
-
 @Return	OK on success; error code, otherwise.
 		For error posix refer to
 		\ref error_g
 *//***************************************************************************/
 int dpni_drv_probe(struct mc_dprc *dprc,
-                   uint16_t mc_niid,
-                   uint16_t aiop_niid);
+                   uint16_t mc_niid);
 /**************************************************************************//**
 @Function	discard_rx_cb
 
