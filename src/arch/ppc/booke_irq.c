@@ -76,7 +76,13 @@ static inline void booke_exception_machine_check_isr()
 
 	fsl_os_print("core %d int: MACHINE_CHECK\n", core_id);
 	if(mcsr & 0x0400 /* STACK_ERR */) {
+		uint32_t dac1, dac2; /* Data Address Compare Registers */
+
 		fsl_os_print("core #%d: Stack Overflow Exception...\n", core_id);
+
+		dac1 = booke_get_spr_DAC1();
+		dac2 = booke_get_spr_DAC2();
+		fsl_os_print("core #%d: Stack size is: 0x%x Bytes\n", dac2 - dac1);
 	}
 
 	if(mcsr & 0x80000 /* MAV */) {
