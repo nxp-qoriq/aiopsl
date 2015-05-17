@@ -203,7 +203,6 @@ static int insert_free_block(t_slob_block **p_new_b,uint64_t *new_b_addr,t_MM *p
 		if (prev_b_addr)
 		{
 			cdma_read(&prev_b,prev_b_addr,sizeof(prev_b));
-			prev_b.p_next = *p_new_b;
 			prev_b.next_addr = *new_b_addr;
 			cdma_write(prev_b_addr,&prev_b,sizeof(prev_b));
 		}
@@ -287,7 +286,7 @@ static int add_free(t_MM *p_MM, uint64_t base, uint64_t end)
             {
         	if ( end > curr_b.end )
                 {
-                    while ( 0 != curr_b.next_addr /*curr_b.p_next*/ && end > curr_b.p_next->end )
+                    while ( 0 != curr_b.next_addr && end > curr_b.p_next->end )
                     {
                 	next_b_addr = curr_b.next_addr;
                 	curr_b.p_next = curr_b.p_next->p_next;
@@ -306,7 +305,6 @@ static int add_free(t_MM *p_MM, uint64_t base, uint64_t end)
                     else
                     {
                 	curr_b.end = next_b.end;
-                	curr_b.p_next = next_b.p_next;
                 	curr_b.next_addr = next_b.next_addr;
                         put_buff(slob_bf_pool,next_b_addr);
                         cdma_write(curr_b_addr,&curr_b,sizeof(curr_b));
@@ -321,12 +319,11 @@ static int add_free(t_MM *p_MM, uint64_t base, uint64_t end)
                         return -ENOMEM;
                     }
                     cdma_read(&new_b,new_b_addr,sizeof(new_b));
-                    new_b.p_next = p_curr_b;
+                    new_b.p_next = p_curr_b; // Now
                     new_b.next_addr = curr_b_addr;
                     cdma_write(new_b_addr,&new_b,sizeof(new_b));
                     if (prev_b_addr)
                     {
-                	prev_b.p_next = p_new_b;
                 	prev_b.next_addr = new_b_addr;
                 	cdma_write(prev_b_addr,&prev_b,sizeof(prev_b));
 		    }
@@ -349,7 +346,6 @@ static int add_free(t_MM *p_MM, uint64_t base, uint64_t end)
                 {
                     if ( prev_b_addr )
 		    {
-			prev_b.p_next = curr_b.p_next;
 			prev_b.next_addr = curr_b.next_addr;
 			cdma_write(prev_b_addr,&prev_b,sizeof(prev_b));
 		    }
@@ -445,7 +441,6 @@ static int cut_free(t_MM *p_MM, const uint64_t hold_base, const uint64_t hold_en
                     if (0 != prev_b_addr)
                     {
                         cdma_read(&prev_b,prev_b_addr,sizeof(prev_b));
-                        //prev_b.p_next = curr_b.p_next;
                         prev_b.next_addr = curr_b.next_addr;
                         cdma_write(prev_b_addr,&prev_b,sizeof(prev_b));
                     }
@@ -477,10 +472,8 @@ static int cut_free(t_MM *p_MM, const uint64_t hold_base, const uint64_t hold_en
                             return -ENOMEM;
                         }
                         cdma_read(&new_b,new_b_addr,sizeof(new_b));
-                        //new_b.p_next = curr_b.p_next;
                         new_b.next_addr = curr_b.next_addr;
                         cdma_write(new_b_addr,&new_b,sizeof(new_b));
-                        //curr_b.p_next = p_new_b;
                         curr_b.next_addr = new_b_addr;
                     }
                     curr_b.end = hold_base;
@@ -494,7 +487,6 @@ static int cut_free(t_MM *p_MM, const uint64_t hold_base, const uint64_t hold_en
                     if (0 != prev_b_addr)
                     {
                         cdma_read(&prev_b,prev_b_addr,sizeof(prev_b));
-                        //prev_b.p_next = curr_b.p_next;
                         prev_b.next_addr = curr_b.next_addr;
                         cdma_write(prev_b_addr,&prev_b,sizeof(prev_b));
                     }
@@ -540,13 +532,11 @@ static int cut_free(t_MM *p_MM, const uint64_t hold_base, const uint64_t hold_en
 static void add_busy(t_MM *p_MM, t_slob_block *p_new_busy_b,
                      const uint64_t new_busy_addr)
 {
-    t_slob_block *p_curr_busy_b = NULL;
     t_slob_block new_busy_b = {0},curr_busy_b = {0}, prev_busy_b = {0};
     uint64_t curr_busy_b_addr = 0, prev_busy_b_addr = 0;
 
     cdma_read(&new_busy_b,new_busy_addr,sizeof(new_busy_b));
     /* finds a place of a new busy block in the list of busy blocks */
-    p_curr_busy_b = p_MM->busy_blocks;
     curr_busy_b_addr = p_MM->head_busy_blocks_addr;
     if(0 != curr_busy_b_addr)
 	    cdma_read(&curr_busy_b,curr_busy_b_addr,sizeof(curr_busy_b));
@@ -555,7 +545,6 @@ static void add_busy(t_MM *p_MM, t_slob_block *p_new_busy_b,
     {
 	prev_busy_b_addr = curr_busy_b_addr;
 	curr_busy_b_addr = curr_busy_b.next_addr;
-	p_curr_busy_b = curr_busy_b.p_next;
         if(0 != curr_busy_b_addr)
         	cdma_read(&curr_busy_b,curr_busy_b_addr,sizeof(curr_busy_b));
     }
@@ -563,14 +552,12 @@ static void add_busy(t_MM *p_MM, t_slob_block *p_new_busy_b,
     if ( curr_busy_b_addr )
     {
 	new_busy_b.next_addr =  curr_busy_b_addr;
-	new_busy_b.p_next = p_curr_busy_b;
         cdma_write(new_busy_addr,&new_busy_b,sizeof(new_busy_b));
     }
     if ( prev_busy_b_addr )
     {
 	cdma_read(&prev_busy_b,prev_busy_b_addr,sizeof(prev_busy_b));
 	prev_busy_b.next_addr = new_busy_addr;
-	prev_busy_b.p_next = p_new_busy_b;
 	cdma_write(prev_busy_b_addr,&prev_busy_b,sizeof(prev_busy_b));
     }
     else
@@ -1422,28 +1409,34 @@ uint64_t slob_get_free_mem_size(fsl_handle_t slob)
 void slob_dump(fsl_handle_t slob)
 {
     t_MM        *p_MM = (t_MM *)slob;
-    t_slob_block *p_free_b = NULL,*p_busy_b = NULL;
+    t_slob_block block = {0};
+    uint64_t busy_b_addr = 0,free_b_addr = 0;
     int          i;
 
     ASSERT_COND(p_MM);
 
-    p_busy_b = p_MM->busy_blocks;
+    busy_b_addr = p_MM->head_busy_blocks_addr;
+
     pr_debug("list of busy blocks:\n");
-    while (p_busy_b)
+    while (busy_b_addr)
     {
-        pr_debug("\t0x%p: ( b=0x%llx, e=0x%llx)\n", p_busy_b, p_busy_b->base, p_busy_b->end );
-        p_busy_b = p_busy_b->p_next;
+	cdma_read(&block,busy_b_addr,sizeof(block));
+        pr_debug("\t0x%llx: ( b=0x%llx, e=0x%llx)\n", busy_b_addr, block.base, block.end );
+        busy_b_addr = block.next_addr;
     }
 
     pr_debug("\n_lists of free blocks according to alignment:\n");
     for (i=0; i <= MM_MAX_ALIGNMENT; i++)
     {
         pr_debug("%d alignment:\n", (0x1 << i));
-        p_free_b = p_MM->free_blocks[i];
-        while (p_free_b)
+        //p_free_b = p_MM->free_blocks[i];
+        free_b_addr = p_MM->head_free_blocks_addr[i];
+        while (free_b_addr)
         {
-            pr_debug("\t0x%p: (b=0x%llx, e=0x%llx)\n", p_free_b, p_free_b->base, p_free_b->end);
-            p_free_b = p_free_b->p_next;
+            cdma_read(&block,free_b_addr,sizeof(block));
+            pr_debug("\t0x%llx: (b=0x%llx, e=0x%llx)\n", free_b_addr, block.base, block.end);
+            //p_free_b = p_free_b->p_next;
+            free_b_addr = block.next_addr;
         }
         pr_debug("\n");
     }
