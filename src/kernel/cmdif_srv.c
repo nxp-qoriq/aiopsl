@@ -491,6 +491,7 @@ __COLD_CODE void dump_memory()
 	         (uint32_t)(( addr & 0xFF00000000) >> 32),
 	         (uint32_t)(addr & 0xFFFFFFFF));
 
+#if 0
 	while (len > 15)
 	{
 		pr_debug("0x%x: %x %x %x %x\r\n",
@@ -508,6 +509,8 @@ __COLD_CODE void dump_memory()
 		len -= 4;
 		p += 4;
 	}
+#endif
+	mem_disp(p, (int)len);
 #endif /* STACK_CHECK */
 }
 
