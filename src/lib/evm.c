@@ -30,53 +30,14 @@
 #include "fsl_malloc.h"
 #include "fsl_string.h"
 
-struct evm *event_data;
+struct evm *g_evm_sl_events_list;
+struct evm *g_evm_events_list;
 
-static int add_event_registration(uint8_t generator_id,
-                                  uint8_t event_id,
-                                  uint8_t priority,
-                                  evm_cb cb,
-                                  uint8_t priority_flag)
+static int add_event_registration(struct evm *evm_ptr, struct evm_priority_list *evm_cb_list)
 {
-	struct evm *evm_ptr = event_data;
-	struct evm_priority_list *evm_cb_list;
 	struct evm_priority_list *evm_cb_list_ptr;
 	struct evm_priority_list *evm_cb_list_tmp_ptr;
 
-#ifdef DEBUG
-	if(generator_id == NULL){
-		sl_pr_debug("Generator ID is NULL\n");
-		return -EINVAL;
-	}
-	if(cb == NULL){
-		sl_pr_debug("CB is NULL\n");
-		return -EINVAL;
-	}
-	if(event_id >= NUM_OF_ALL_EVENTS || event_id < 0){
-		sl_pr_debug("event_id value is out of bounds\n");
-		return -EINVAL;
-	}
-#endif
-	if((priority < MINIMUM_PRIORITY || priority > MAXIMUM_PRIORITY || event_id >= NUM_OF_USER_EVENTS)
-		&& priority_flag == EVM_APP_REGISTRATION_FLAG){
-		sl_pr_debug("priority/event value incorrect\n");
-		return -EINVAL;
-	}
-
-	evm_cb_list = (struct evm_priority_list *)
-				fsl_malloc(sizeof(struct evm_priority_list), 8);
-	if(evm_cb_list == NULL){
-		sl_pr_debug("Allocation of memory for evm cb list failed\n");
-		return -ENOMEM;
-	}
-
-	evm_cb_list->generator_id = generator_id;
-	evm_cb_list->cb = cb;
-	evm_cb_list->priority = priority;
-	evm_cb_list->next = NULL;
-
-
-	evm_ptr += event_id;
 	/* Lock event entry in the EVM table*/
 	cdma_mutex_lock_take((uint64_t) evm_ptr, CDMA_MUTEX_WRITE_LOCK);
 	if(evm_ptr->head != NULL){
@@ -84,13 +45,13 @@ static int add_event_registration(uint8_t generator_id,
 		evm_cb_list_tmp_ptr = evm_cb_list_ptr;
 
 		while(evm_cb_list_ptr->next != NULL &&
-			evm_cb_list_ptr->priority <= priority)
+			evm_cb_list_ptr->priority <= evm_cb_list->priority)
 		{
 			evm_cb_list_tmp_ptr = evm_cb_list_ptr;
 			evm_cb_list_ptr = evm_cb_list_ptr->next;
 		}
 
-		if(evm_cb_list_ptr->priority > priority){
+		if(evm_cb_list_ptr->priority > evm_cb_list->priority){
 			/*insert the list with cb function between:
 			 *  evm_cb_list_tmp_ptr->"evm_cb_list"->evm_cb_list_ptr*/
 			evm_cb_list->next = evm_cb_list_ptr;
@@ -116,42 +77,85 @@ static int add_event_registration(uint8_t generator_id,
 }
 /*****************************************************************************/
 
-int evm_sl_register(uint8_t generator_id, uint8_t event_id, uint8_t priority, evm_cb cb)
+int evm_sl_register(uint8_t event_id, uint8_t priority, uint64_t app_ctx, evm_cb cb)
 {
-	return add_event_registration(generator_id, event_id, priority, cb, EVM_SL_REGISTRATION_FLAG);
-}
-/*****************************************************************************/
-
-int evm_app_register(uint8_t generator_id, uint8_t event_id, uint8_t priority, evm_cb cb)
-{
-	return add_event_registration(generator_id, event_id, priority, cb, EVM_APP_REGISTRATION_FLAG);
-}
-/*****************************************************************************/
-
-int evm_unregister(uint8_t generator_id, uint8_t event_id,
-                   uint8_t priority, evm_cb cb)
-{
-	struct evm *evm_ptr = event_data;
-	struct evm_priority_list *evm_cb_list_ptr;
-	struct evm_priority_list *evm_cb_list_tmp_ptr;
-	int i = 0;
+	struct evm *evm_ptr = g_evm_sl_events_list;
+	struct evm_priority_list *evm_cb_list;
 
 #ifdef DEBUG
-	if(generator_id == NULL){
-		sl_pr_debug("Generator ID is NULL\n");
-		return -EINVAL;
-	}
 	if(cb == NULL){
 		sl_pr_debug("CB is NULL\n");
 		return -EINVAL;
 	}
-	if(event_id >= NUM_OF_ALL_EVENTS || event_id < 0){
+	if(event_id >= NUM_OF_SL_EVENTS){
 		sl_pr_debug("event_id value is out of bounds\n");
 		return -EINVAL;
 	}
 #endif
 
+	evm_cb_list = (struct evm_priority_list *)
+				fsl_malloc(sizeof(struct evm_priority_list), 8);
+	if(evm_cb_list == NULL){
+		sl_pr_debug("Allocation of memory for evm cb list failed\n");
+		return -ENOMEM;
+	}
+
+	evm_cb_list->app_ctx = app_ctx;
+	evm_cb_list->cb = cb;
+	evm_cb_list->priority = priority;
+	evm_cb_list->next = NULL;
+
 	evm_ptr += event_id;
+
+	return add_event_registration(evm_ptr, evm_cb_list);
+
+}
+/*****************************************************************************/
+
+int evm_register(uint8_t event_id, uint8_t priority, uint64_t app_ctx, evm_cb cb)
+{
+	struct evm *evm_ptr = g_evm_events_list;
+	struct evm_priority_list *evm_cb_list;
+
+#ifdef DEBUG
+	if(cb == NULL){
+		sl_pr_debug("CB is NULL\n");
+		return -EINVAL;
+	}
+	if(event_id >= MAX_EVENT_ID){
+		sl_pr_debug("event_id value is out of bounds\n");
+		return -EINVAL;
+	}
+#endif
+
+
+	evm_cb_list = (struct evm_priority_list *)
+						fsl_malloc(sizeof(struct evm_priority_list), 8);
+	if(evm_cb_list == NULL){
+		sl_pr_debug("Allocation of memory for evm cb list failed\n");
+		return -ENOMEM;
+	}
+
+	evm_cb_list->app_ctx = app_ctx;
+	evm_cb_list->cb = cb;
+	evm_cb_list->priority = priority;
+	evm_cb_list->next = NULL;
+
+	evm_ptr += event_id;
+
+	return add_event_registration(evm_ptr, evm_cb_list);
+
+}
+/*****************************************************************************/
+static int remove_event_registration(struct evm *evm_ptr,
+                                     uint8_t priority,
+                                     uint64_t app_ctx,
+                                     evm_cb cb)
+{
+	struct evm_priority_list *evm_cb_list_ptr;
+	struct evm_priority_list *evm_cb_list_tmp_ptr;
+	int i = 0;
+
 	/* Lock event entry in the EVM table*/
 	cdma_mutex_lock_take((uint64_t) evm_ptr, CDMA_MUTEX_WRITE_LOCK);
 	evm_cb_list_ptr = evm_ptr->head;
@@ -159,8 +163,8 @@ int evm_unregister(uint8_t generator_id, uint8_t event_id,
 
 	for(i = 0; i < evm_ptr->num_cbs; i++){
 		if(evm_cb_list_ptr->cb == cb &&
-			evm_cb_list_ptr->generator_id == generator_id &&
-			evm_cb_list_ptr->priority == priority){
+			evm_cb_list_ptr->priority == priority &&
+			evm_cb_list_ptr->app_ctx == app_ctx){
 			break;
 		}
 		evm_cb_list_tmp_ptr = evm_cb_list_ptr;
@@ -196,19 +200,55 @@ int evm_unregister(uint8_t generator_id, uint8_t event_id,
 	cdma_mutex_lock_release((uint64_t) evm_ptr);
 	return 0;
 }
+
+int evm_sl_unregister(uint8_t event_id, uint8_t priority, uint64_t app_ctx, evm_cb cb)
+{
+	struct evm *evm_ptr = g_evm_sl_events_list;
+#ifdef DEBUG
+	if(cb == NULL){
+		sl_pr_debug("CB is NULL\n");
+		return -EINVAL;
+	}
+	if(event_id >= NUM_OF_SL_EVENTS ){
+		sl_pr_debug("event_id value is out of bounds\n");
+		return -EINVAL;
+	}
+#endif
+	evm_ptr += event_id;
+	return remove_event_registration(evm_ptr, priority, app_ctx, cb);
+}
 /*****************************************************************************/
 
-int evm_raise_event_cb(void *dev, uint16_t cmd, uint32_t size, void *data)
+int evm_unregister(uint8_t event_id, uint8_t priority, uint64_t app_ctx, evm_cb cb)
 {
-	struct evm *evm_ptr = event_data;
+	struct evm *evm_ptr = g_evm_events_list;
+#ifdef DEBUG
+	if(cb == NULL){
+		sl_pr_debug("CB is NULL\n");
+		return -EINVAL;
+	}
+	if(event_id >= MAX_EVENT_ID ){
+		sl_pr_debug("event_id value is out of bounds\n");
+		return -EINVAL;
+	}
+#endif
+	evm_ptr += event_id;
+	return remove_event_registration(evm_ptr, priority, app_ctx, cb);
+}
+/*****************************************************************************/
+
+int evm_raise_event_cb(void *dev, uint16_t cmd, uint32_t size, void *event_data)
+{
+	struct evm *evm_ptr = g_evm_sl_events_list;
 	struct evm_priority_list *evm_cb_list_ptr;
 	int i;
 	UNUSED(dev);
+	UNUSED(size);
 
 	if(cmd & CMDIF_NORESP_CMD)
 		cmd &= ~CMDIF_NORESP_CMD;
 
-	if(cmd >= NUM_OF_ALL_EVENTS || cmd < 0)
+	if(cmd >= NUM_OF_SL_EVENTS || cmd < 0)
 	{
 		sl_pr_err("Event %d not supported\n",cmd);
 		return -ENOTSUP;
@@ -226,15 +266,52 @@ int evm_raise_event_cb(void *dev, uint16_t cmd, uint32_t size, void *data)
 	evm_cb_list_ptr = evm_ptr->head;
 
 	for(i = 0; i < evm_ptr->num_cbs; i++){
-		evm_cb_list_ptr->cb(evm_cb_list_ptr->generator_id,
-		                    (uint8_t)cmd,
-		                    size,
-		                    data);
+		evm_cb_list_ptr->cb((uint8_t)cmd,
+		                    evm_cb_list_ptr->app_ctx,
+		                    event_data);
 		evm_cb_list_ptr = evm_cb_list_ptr->next;
 	}
 	cdma_mutex_lock_release((uint64_t) evm_ptr);
 	sl_pr_debug("EVM: Event received: %d\n",cmd);
 
+	return 0;
+}
+/*****************************************************************************/
+//
+int evm_raise_event(uint8_t event_id, void *event_data)
+{
+	struct evm *evm_ptr = g_evm_events_list;
+	struct evm_priority_list *evm_cb_list_ptr;
+	int i;
+
+#ifdef DEBUG
+	if(event_id >= MAX_EVENT_ID)
+	{
+		sl_pr_err("Event %d not supported\n",event_id);
+		return -ENOTSUP;
+	}
+#endif
+
+	sl_pr_debug("EVM: Event received: %d\n",event_id);
+	evm_ptr += event_id;
+	/*Only one event can be processed at a time*/
+	cdma_mutex_lock_take((uint64_t) evm_ptr, CDMA_MUTEX_WRITE_LOCK);
+	if(evm_ptr->num_cbs == 0)
+	{
+		cdma_mutex_lock_release((uint64_t) evm_ptr);
+		sl_pr_debug("No registered CB's for event %d\n",cmd);
+		return 0;
+	}
+
+	evm_cb_list_ptr = evm_ptr->head;
+
+	for(i = 0; i < evm_ptr->num_cbs; i++){
+		evm_cb_list_ptr->cb((uint8_t)event_id,
+		                    evm_cb_list_ptr->app_ctx,
+		                    event_data);
+		evm_cb_list_ptr = evm_cb_list_ptr->next;
+	}
+	cdma_mutex_lock_release((uint64_t) evm_ptr);
 	return 0;
 }
 /*****************************************************************************/
@@ -257,22 +334,35 @@ static int evm_close_cb(void *dev)
 
 int evm_early_init(void)
 {
-	struct evm *evm_ptr;
 	int i;
-	event_data = (struct evm *) fsl_malloc(NUM_OF_ALL_EVENTS *
+	g_evm_sl_events_list = (struct evm *) fsl_malloc(NUM_OF_SL_EVENTS *
 	                                       sizeof(struct evm),
 	                                       64);
-	if(event_data == NULL) {
-		pr_err("memory allocation failed\n");
+	if(g_evm_sl_events_list == NULL) {
+		pr_err("memory allocation for sl events failed\n");
 		return -ENOMEM;
 	}
-	evm_ptr = event_data;
 
-	memset(event_data, 0, NUM_OF_ALL_EVENTS * sizeof(struct evm));
+	memset(g_evm_sl_events_list, 0, NUM_OF_SL_EVENTS * sizeof(struct evm));
 
 	/* Initialize events available for service layer and applications */
-	for(i = 0; i < NUM_OF_ALL_EVENTS; i++){
-		evm_ptr->event_id = (uint8_t) i;
+	for(i = 0; i < NUM_OF_SL_EVENTS; i++){
+		g_evm_sl_events_list->event_id = (uint8_t) i;
+	}
+
+	g_evm_events_list = (struct evm *)
+		fsl_malloc(MAX_EVENT_ID * sizeof(struct evm), 64);
+
+	if(g_evm_events_list == NULL) {
+		pr_err("memory allocation for events failed\n");
+		return -ENOMEM;
+	}
+
+	memset(g_evm_events_list, 0, MAX_EVENT_ID * sizeof(struct evm));
+
+	/* Initialize events created by / allowed to  applications */
+	for(i = 0; i < MAX_EVENT_ID; i++){
+		g_evm_events_list->event_id = (uint8_t) i;
 	}
 
 	return 0;
@@ -300,12 +390,14 @@ int evm_init(void)
 void evm_free(void)
 {
 	int i;
-	struct evm *evm_ptr = event_data;
+	struct evm *evm_ptr;
 	struct evm_priority_list *evm_cb_list_ptr;
 	struct evm_priority_list *evm_cb_list_next_ptr;
 
 	pr_info("Free memory used by EVM\n");
-	for(i = 0; i < NUM_OF_ALL_EVENTS; i++, evm_ptr ++ )
+
+	evm_ptr = g_evm_events_list;
+	for(i = 0; i < MAX_EVENT_ID; i++, evm_ptr ++ )
 	{
 		evm_cb_list_ptr = evm_ptr->head;
 		if(evm_cb_list_ptr)
@@ -317,7 +409,22 @@ void evm_free(void)
 			}while(evm_cb_list_ptr != NULL);
 		}
 	}
-	fsl_free(event_data);
+	fsl_free(g_evm_events_list);
+
+	evm_ptr = g_evm_sl_events_list;
+	for(i = 0; i < NUM_OF_SL_EVENTS; i++, evm_ptr ++ )
+	{
+		evm_cb_list_ptr = evm_ptr->head;
+		if(evm_cb_list_ptr)
+		{
+			do{
+				evm_cb_list_next_ptr = evm_cb_list_ptr->next;
+				fsl_free(evm_cb_list_ptr);
+				evm_cb_list_ptr = evm_cb_list_next_ptr;
+			}while(evm_cb_list_ptr != NULL);
+		}
+	}
+	fsl_free(g_evm_sl_events_list);
 }
 /*****************************************************************************/
 

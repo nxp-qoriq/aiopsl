@@ -38,18 +38,16 @@
 #include "types.h"
 
 
-#define MINIMUM_PRIORITY 2
-#define MAXIMUM_PRIORITY 8
-#define EVM_SL_REGISTRATION_FLAG  0
-#define EVM_APP_REGISTRATION_FLAG 1
+#define EVM_SL_REGISTRATION_FLAG   0x00
+#define EVM_APP_REGISTRATION_FLAG  0x01
+#define EVM_APP_DEFINED_EVENT_FLAG 0x02
 
-
-enum evm_all_event_types {
-	DPRC_EVENT_OBJ_ADDED = NUM_OF_USER_EVENTS,
+enum evm_sl_event_types {
+	DPRC_EVENT_OBJ_ADDED = 0,
 	DPRC_EVENT_OBJ_REMOVED,
 	DPNI_EVENT_LINK_CHANGE,
 	DPCI_EVENT_LINK_CHANGE,
-	NUM_OF_ALL_EVENTS
+	NUM_OF_SL_EVENTS
 };
 
 enum evm_objects {
@@ -66,27 +64,52 @@ enum evm_objects {
 @Description	This function is to register a callback function to listen for
 		specific events.
 
-@Param[in]	generator_id  Identifier of the application generating event.
-
 @Param[in]	event_id  Identifier of the event specific to the application
 		generating event. The value can range from 0 to 255.
-		A unique combination of generator_id and event_id corresponds
-		to a unique event in the system.
 
 @Param[in]	priority  priority number of the callback function.
 		The lesser value is considered as higher priority. For example,
 		a callback function registered with priority 10 will be invoked
 		before a callback function registered with priority 20.
 
+@Param[in]	app_ctx User/SL data that can be passed to CB function when raising
+		event.
+
 @param[in]	cb  Callback function to be invoked.
 
 @Return	0 on success;
 	error code, otherwise. For error posix refer to \ref error_g
 *//***************************************************************************/
-int evm_sl_register(
-		uint8_t generator_id,
-		uint8_t event_id,
+int evm_sl_register(uint8_t event_id,
 		uint8_t priority,
+		uint64_t app_ctx,
+		evm_cb cb);
+
+/**************************************************************************//**
+@Function	evm_sl_unregister
+
+@Description	This function is to unregister a callback function from
+		listening for specific events.
+
+@Param[in]	event_id  Identifier of the event specific to the application
+		generating event. The value can range from 0 to 255.
+
+@Param[in]	priority  priority number of the callback function.
+		The lesser value is considered as higher priority. For example,
+		a callback function registered with priority 10 will be invoked
+		before a callback function registered with priority 20.
+
+@Param[in]	app_ctx User/SL data that can be passed to CB function when raising
+		event.
+
+@param[in]	cb  Callback function to be invoked.
+
+@Return	0 on success;
+	error code, otherwise. For error posix refer to \ref error_g
+*//***************************************************************************/
+int evm_sl_unregister(uint8_t event_id,
+		uint8_t priority,
+		uint64_t app_ctx,
 		evm_cb cb);
 
 /**************************************************************************//**
@@ -95,9 +118,9 @@ int evm_sl_register(
 *//***************************************************************************/
 struct evm_priority_list {
 	/** priority of the event*/
-	uint8_t generator_id;
-	/** priority of the event*/
 	uint8_t priority;
+	/** data to be passed with CB (can be user / SL data)*/
+	uint64_t app_ctx;
 	/** Callback function to be called when event arrived */
 	evm_cb cb;
 	/** Pointer to the next list with callback function for the same event
@@ -132,12 +155,12 @@ struct evm{
 
 @param[in]	size  size of event data.
 
-@param[in]	data  A pointer to data specific for event
+@param[in]	event_data  data specific for event
 
 @Return	0 on success;
 	error code, otherwise. For error posix refer to \ref error_g
 *//***************************************************************************/
-int evm_raise_event_cb(void *dev, uint16_t cmd, uint32_t size, void *data);
+int evm_raise_event_cb(void *dev, uint16_t cmd, uint32_t size, void *event_data);
 
 int evm_early_init(void);
 int evm_init(void);

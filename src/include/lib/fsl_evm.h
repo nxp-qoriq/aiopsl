@@ -44,6 +44,8 @@
 @{
 *//***************************************************************************/
 
+#define EVM_NUM_OF_APP_DEFINED_EVENTS 32
+
 /**************************************************************************//**
  @Group		EVM_EVENT_TYPES Event manager events
 
@@ -60,7 +62,8 @@ enum evm_event_types {
 	DPCI_EVENT_REMOVED,
 	DPCI_EVENT_LINK_UP,
 	DPCI_EVENT_LINK_DOWN,
-	NUM_OF_USER_EVENTS
+	NUM_OF_DEFINED_EVENTS,
+	MAX_EVENT_ID = NUM_OF_DEFINED_EVENTS + EVM_NUM_OF_APP_DEFINED_EVENTS
 };
 /** @} end of group EVM_EVENT_TYPES */
 
@@ -69,15 +72,12 @@ enum evm_event_types {
 		provides a callback function of this prototype if it wants to
 		listen for specific events.
 
-@Param[in]	generator_id  Identifier of the application generating event.
-
 @Param[in]	event_id  Identifier of the event specific to the application
-		generating event. The value can range from 0 to 255.
+		generating event. The value can range from 0 to:
 		\ref EVM_EVENT_TYPES
-		A unique combination of generator_id and event_id corresponds
-		to a unique event in the system.
 
-@param[in]	size  size of event data.
+@Param[in]	app_ctx  User/SL data saved during registration and passed to CB
+		function when raising event.
 
 @param[in]	event_data  A pointer to data specific for event
 
@@ -85,25 +85,21 @@ enum evm_event_types {
 @Return		The return code is not interpreted by event manager.
 		However callback function should return 0.
 *//***************************************************************************/
-typedef int (*evm_cb)(
-			uint8_t generator_id,
-			uint8_t event_id,
-			uint32_t size,
+typedef int (*evm_cb)(	uint8_t event_id,
+			uint64_t app_ctx,
 			void *event_data);
 
 /**************************************************************************//**
-@Function	evm_app_register
+@Function	evm_register
 
 @Description	This function is to register a callback function to listen for
 		specific events.
 
-@Param[in]	generator_id  Identifier of the application generating event.
-
 @Param[in]	event_id  Identifier of the event specific to the application
-		generating event. The value can range from 0 to 255.
+		generating event. The value can range from 0 to:
 		\ref EVM_EVENT_TYPES
-		A unique combination of generator_id and event_id corresponds
-		to a unique event in the system.
+		To use app defined events, the provided event id should be
+		higher then the available events.
 
 @Param[in]	priority  priority number of the callback function.
 		This value ranges from MINIMUM_PRIORITY to MAXIMUM_PRIORITY.
@@ -111,15 +107,18 @@ typedef int (*evm_cb)(
 		a callback function registered with priority 10 will be invoked
 		before a callback function registered with priority 20.
 
+@Param[in]	app_ctx User/SL data that can be passed to CB function when raising
+		event.
+
 @param[in]	cb  Callback function to be invoked.
 
 @Return	0 on success;
 	error code, otherwise. For error posix refer to \ref error_g
 *//***************************************************************************/
-int evm_app_register(
-		uint8_t generator_id,
+int evm_register(
 		uint8_t event_id,
 		uint8_t priority,
+		uint64_t app_ctx,
 		evm_cb cb);
 
 /**************************************************************************//**
@@ -127,14 +126,9 @@ int evm_app_register(
 
 @Description	This function is to unregister previously callback function.
 
-@Param[in]	generator_id  Identifier of the application given at the time
-		of registration.
-
 @Param[in]	event_id  Identifier of the event specific to the application
-		generating event. The value can range from 0 to 255.
+		generating event. The value can range from 0 to:
 		\ref EVM_EVENT_TYPES
-		A unique combination of generator_id and event_id corresponds
-		to a unique event in the system.
 
 @Param[in]	priority  priority number of the callback function.
 		This value ranges from MINIMUM_PRIORITY to MAXIMUM_PRIORITY.
@@ -142,16 +136,36 @@ int evm_app_register(
 		a callback function registered with priority 10 will be invoked
 		before a callback function registered with priority 20.
 
+@Param[in]	app_ctx User/SL data that can be passed to CB function when raising
+		event.
+
 @param[in]	cb  Callback function to be invoked.
 
 @Return	0 on success;
 	error code, otherwise. For error posix refer to \ref error_g
 *//***************************************************************************/
 int evm_unregister(
-		uint8_t generator_id,
 		uint8_t event_id,
 		uint8_t priority,
+		uint64_t app_ctx,
 		evm_cb cb);
+
+/**************************************************************************//**
+@Function	evm_raise_event
+
+@Description	This function is to raise specific event and launch registered
+		for it callback functions.
+
+@Param[in]	event_id  Identifier of the event specific to the application
+		generating event. The value can range from 0 to:
+		\ref EVM_EVENT_TYPES
+
+@Param[in]	event_data  A pointer to data specific for event
+
+@Return	0 on success;
+	error code, otherwise. For error posix refer to \ref error_g
+*//***************************************************************************/
+int evm_raise_event(uint8_t event_id, void *event_data);
 
 /** @} */ /* end of evm_g Event Manager group */
 #endif /* __FSL_EVM_H */
