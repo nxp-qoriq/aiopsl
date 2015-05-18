@@ -434,7 +434,7 @@ __COLD_CODE int dpni_drv_probe(struct mc_dprc *dprc,
 
 			err = dpni_set_irq(&dprc->io, dpni,
 				DPNI_IRQ_INDEX, DPNI_EVENT_LINK_CHANGE,
-				DPNI | (mc_niid << 16), 0);
+				(uint32_t)(DPNI | (mc_niid << 16)), 0);
 			if(err){
 				sl_pr_err("Failed to set irq for DP-NI%d\n",
 				          mc_niid);

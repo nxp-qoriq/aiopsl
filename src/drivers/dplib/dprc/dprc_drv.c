@@ -53,22 +53,53 @@ static int dprc_drv_evm_cb(uint8_t event_id, uint64_t app_ctx, void *event_data)
 {
 	/*Container was updated*/
 	int err;
+	uint32_t status;
+	struct mc_dprc *dprc = sys_get_unique_handle(FSL_OS_MOD_AIOP_RC);
 	UNUSED(app_ctx);
+	UNUSED(event_data);
 
-	if(event_id == DPRC_EVENT_OBJ_ADDED){
-		sl_pr_debug("DPRC objects added event\n");
-		err = dprc_drv_add_obj();
+	if(event_id == DPRC_EVENT_OBJ_CHANGE){
+		sl_pr_debug("DPRC objects changed event\n");
+
+		err = dprc_get_irq_status(&dprc->io, dprc->token,
+		                          DPRC_NUM_OF_IRQS,
+		                          &status);
 		if(err){
-			sl_pr_err("Failed to add dp object, %d.\n", err);
-			return err;
+			sl_pr_err("Get irq status for DPRC object change "
+				"failed\n");
+			return -ENAVAIL;
 		}
-	}
-	else if(event_id == DPRC_EVENT_OBJ_REMOVED){
-		sl_pr_debug("DPRC object removed event\n");
-		err = dprc_drv_remove_obj();
-		if(err){
-			sl_pr_err("Failed to remove dp object, %d.\n", err);
-			return err;
+
+		if(status & DPRC_IRQ_EVENT_OBJ_ADDED){
+			err = dprc_drv_add_obj();
+			if(err){
+				sl_pr_err("Failed to add dp object, %d.\n", err);
+				return err;
+			}
+			err = dprc_clear_irq_status(&dprc->io, dprc->token,
+		                          DPRC_NUM_OF_IRQS,
+		                          DPRC_IRQ_EVENT_OBJ_ADDED);
+			if(err){
+				sl_pr_err("Get clear status for DPRC object "
+					"change failed\n");
+				return err;
+			}
+		}
+		if(status & DPRC_IRQ_EVENT_OBJ_REMOVED){
+			err = dprc_drv_remove_obj();
+			if(err){
+				sl_pr_err("Failed to remove dp object, %d.\n",
+				          err);
+				return err;
+			}
+			err = dprc_clear_irq_status(&dprc->io, dprc->token,
+			                            DPRC_NUM_OF_IRQS,
+			                            DPRC_IRQ_EVENT_OBJ_REMOVED);
+			if(err){
+				sl_pr_err("Get clear status for DPRC object "
+					"change failed\n");
+				return err;
+			}
 		}
 	}
 	else{
@@ -266,29 +297,29 @@ __COLD_CODE static int aiop_container_init(void)
 		return err;
 	}
 
-	err = dprc_set_irq(&dprc->io, dprc->token, DPRC_IRQ_EVENT_OBJ_ADDED,
-	                   DPRC, DPRC_EVENT_OBJ_ADDED, 0);
+	err = dprc_set_irq(&dprc->io, dprc->token, DPRC_NUM_OF_IRQS,
+	                   DPRC_EVENT_OBJ_CHANGE, DPRC, 0);
 	if(err){
-		pr_err("Set irq for DPRC object added failed\n");
+		pr_err("Set irq for DPRC object change failed\n");
+		return -ENAVAIL;
+	}
+	err = dprc_set_irq_mask(&dprc->io, dprc->token, DPRC_NUM_OF_IRQS,
+	                        DPRC_IRQ_EVENT_OBJ_ADDED |
+	                        DPRC_IRQ_EVENT_OBJ_REMOVED);
+	if(err){
+		pr_err("Set irq mask for DPRC object change failed\n");
 		return -ENAVAIL;
 	}
 
-	err = evm_sl_register(DPRC_EVENT_OBJ_ADDED, 0, 0, dprc_drv_evm_cb);
+	err = evm_sl_register(DPRC_EVENT_OBJ_CHANGE, 0, 0, dprc_drv_evm_cb);
 	if(err){
-		pr_err("EVM registration for DPRC object added failed\n");
+		pr_err("EVM registration for DPRC object change failed\n");
 		return -ENAVAIL;
 	}
 
-	err = dprc_set_irq(&dprc->io, dprc->token, DPRC_IRQ_EVENT_OBJ_REMOVED,
-	                   DPRC, DPRC_EVENT_OBJ_REMOVED, 0);
+	err = dprc_set_irq_enable(&dprc->io, dprc->token, DPRC_NUM_OF_IRQS, 1);
 	if(err){
-		pr_err("Set irq for DPRC object removed failed\n");
-		return -ENAVAIL;
-	}
-
-	err = evm_sl_register(DPRC_EVENT_OBJ_REMOVED, 0, 0, dprc_drv_evm_cb);
-	if(err){
-		pr_err("EVM registration for DPRC object removed failed\n");
+		pr_err("Set irq enable for DPRC object change failed\n");
 		return -ENAVAIL;
 	}
 
