@@ -121,7 +121,7 @@ __COLD_CODE static void dpci_tbl_dump()
 	}
 }
 
-int dpci_mng_find(uint32_t dpci_id)
+__HOT_CODE int dpci_mng_find(uint32_t dpci_id)
 {
 	int i = 0;
 	int count = 0;
@@ -143,7 +143,7 @@ int dpci_mng_find(uint32_t dpci_id)
 	return -ENOENT;
 }
 
-int dpci_mng_peer_find(uint32_t dpci_id)
+__HOT_CODE int dpci_mng_peer_find(uint32_t dpci_id)
 {
 	int i = 0;
 	int count = 0;
@@ -165,6 +165,24 @@ int dpci_mng_peer_find(uint32_t dpci_id)
 	return -ENOENT;
 }
 
+__COLD_CODE void dpci_mng_valid_dpcis(uint64_t *valid_dpcis)
+{
+	int i = 0;
+	int count = 0;
+
+	ASSERT_COND(g_dpci_tbl.max == 64);
+	ASSERT_COND(valid_dpcis != NULL);
+
+	*valid_dpcis = 0;
+	while (count < g_dpci_tbl.count) {
+		if (g_dpci_tbl.dpci_id[i] != DPCI_FQID_NOT_VALID) {
+			*valid_dpcis |= (((uint64_t)1) << i);
+			count++;
+		}
+		i++;
+	}
+}
+
 static int dpci_entry_get()
 {
 	int i;
@@ -178,7 +196,7 @@ static int dpci_entry_get()
 	return -ENOENT;
 }
 
-static void dpci_entry_delete(int ind)
+__COLD_CODE static void dpci_entry_delete(int ind)
 {
 
 	int i;
