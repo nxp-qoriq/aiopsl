@@ -249,9 +249,9 @@ __COLD_CODE static int tx_peer_set(uint32_t ind, uint16_t token)
 
 	err = dpci_get_peer_attributes(&dprc->io, token, &peer_attr);
 	if (err || (peer_attr.peer_id == -1)) {
-		pr_err("Failed to get peer_id dpci id = %d\n",
-		       g_dpci_tbl.dpci_id[ind]);
-		return err;
+		pr_err("Failed to get peer_id dpci id = %d err = %d\n",
+		       g_dpci_tbl.dpci_id[ind], err);
+		return -ENODEV;
 	}
 
 	g_dpci_tbl.dpci_id_peer[ind] = (uint32_t)peer_attr.peer_id;
@@ -651,7 +651,7 @@ __COLD_CODE static int dpci_tbl_create(int dpci_count)
 	g_dpci_tbl.max = dpci_count;
 	g_dpci_tbl.mc_dpci_id = 0xff;
 
-	mem_disp((void *)&g_dpci_tbl, sizeof(g_dpci_tbl));
+	//mem_disp((void *)&g_dpci_tbl, sizeof(g_dpci_tbl));
 
 	return 0;
 }
