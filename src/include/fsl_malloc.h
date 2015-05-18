@@ -24,11 +24,11 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/**************************************************************************//**        
+/**************************************************************************//**
  @File          fsl_malloc.h
 
  @Description   Prototypes, externals and typedefs for dynamic  memory allocation.
- 
+
 *//***************************************************************************/
 
 #ifndef __FSL_MALLOC_H
@@ -58,8 +58,8 @@ void * fsl_malloc(size_t size, uint32_t alignment);
 /**************************************************************************//**
  @Function      fsl_free
 
- @Description   frees the memory block pointed to by "mem" in shared ram
-                Only for memory allocated by fsl_malloc().
+ @Description   frees the memory block pointed to by "mem" in shared ram.
+                Applicable only for memory allocated by fsl_malloc().
 
  @Param[in]     mem     A pointer to the memory block.
 *//***************************************************************************/
@@ -71,11 +71,12 @@ void fsl_free(void *mem);
 @Description   Allocates contiguous block of memory with the specified
                 alignment and from the specified  memory partition.
 @Param[in]     size                Number of bytes to allocate.
-@Param[in]     mem_partition_id    Memory partition ID;
+@Param[in]     mem_partition_id    Memory partition ID,
                Valid values: MEM_PART_DP_DDR,MEM_PART_PEB,MEM_PART_SYSTEM_DDR
 @Param[in]     alignment           Required memory alignment (in bytes).
 @Param[out]    paddr               A valid allocated physical address(64 bit) if success,
-                                   NULL if failure.
+                                   in case of failure (non_zero return value), this
+                                   value is undefined and should not be used.
 @Return        0                   on success,
                -ENOMEM (not enough memory to allocate)or
                -EINVAL ( invalid memory partition ) on failure.

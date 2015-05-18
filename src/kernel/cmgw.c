@@ -39,6 +39,8 @@
 #include "fsl_dbg.h"
 #include "cmgw.h"
 
+#define TIME_BASE_IS_UPDATING (0xffffffff)
+
 static struct aiop_cmgw_regs * cmgw_regs;
 
 uint8_t abcr_lock = 0;
@@ -64,15 +66,19 @@ void cmgw_report_boot_status(uint32_t st)
 uint64_t cmgw_get_time_base()
 {
 	uint32_t tmr_base_h, tmr_base_l;
+	uint32_t tmr_base_h_2;
 	uint64_t tmr_base = 0;
 
     ASSERT_COND(cmgw_regs);
 
-    //TODO decide with Yulia which register is MSB and which is LSB
-    //TODO decide with Yulia how to make time base modification atomic
-
     tmr_base_h = ioread32_ccsr(&(cmgw_regs->mgpr[CMGW_ACGPR_TIME_BASE_HIGH]));
     tmr_base_l = ioread32_ccsr(&(cmgw_regs->mgpr[CMGW_ACGPR_TIME_BASE_LOW]));
+    tmr_base_h_2 = ioread32_ccsr(&(cmgw_regs->mgpr[CMGW_ACGPR_TIME_BASE_HIGH]));
+
+    if(tmr_base_h == TIME_BASE_IS_UPDATING)
+	    return CMGW_TIME_BASE_NOT_VALID;
+    if(tmr_base_h != tmr_base_h_2)
+	    return CMGW_TIME_BASE_NOT_VALID;
 
     tmr_base = (uint64_t)(((uint64_t)tmr_base_h << 32) | (uint64_t)tmr_base_l);
 

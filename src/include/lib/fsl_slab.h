@@ -72,17 +72,17 @@ struct slab;
 @Description   Available debug information about every slab
 *//***************************************************************************/
 struct slab_debug_info {
-	/**< Maximal buffer size */
+	/** Maximal buffer size */
 	uint32_t buff_size;
-	/**< The number of available buffers */
+	/** The number of available buffers */
 	uint32_t committed_buffs;
-	/**< Maximal number of buffers inside this pool */
+	/** Maximal number of buffers inside this pool */
 	uint32_t max_buffs;
-	/**< HW pool ID */
+	/** HW pool ID */
 	uint16_t pool_id;
-	/**< Maximal alignment */
+	/** Maximal alignment */
 	uint16_t alignment;
-	/**< Memory partition */
+	/** Memory partition */
 	uint16_t mem_pid;
 };
 

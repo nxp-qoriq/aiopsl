@@ -51,7 +51,7 @@ do { \
 extern void dpci_rx_ctx_get(uint32_t *id, uint32_t *fqid);
 
 struct icontext icontext_aiop = {0};
-extern struct dpci_mng_tbl g_dpci_tbl = {0};
+extern struct dpci_mng_tbl g_dpci_tbl;
 
 void icontext_aiop_get(struct icontext *ic)
 {
@@ -100,9 +100,9 @@ int icontext_get(uint16_t dpci_id, struct icontext *ic)
 	/* search by GPP peer id - most likely case
 	 * or by AIOP dpci id  - to support both cases
 	 * All DPCIs in the world have different IDs */
-	ind = dpci_mng_find(dpci_id, NULL);
+	ind = dpci_mng_find(dpci_id);
 	if (ind < 0)
-		ind = dpci_mng_peer_find(dpci_id, NULL);
+		ind = dpci_mng_peer_find(dpci_id);
 
 	if (ind >= 0) {
 		dpci_mng_icid_get((uint32_t)ind, &icid, &amq_bdi);

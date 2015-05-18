@@ -84,11 +84,20 @@ int _get_time_1588(uint64_t *time)
 /*****************************************************************************/
 int _get_time_tman(uint64_t *time)
 {
-	//TODO handle edge cases (what if time_base is being updated as I read it ???)
+	uint64_t time_base = 0;
+
+	time_base = cmgw_get_time_base(); /* Timebase is in mSec */
+
+	if(time_base == CMGW_TIME_BASE_NOT_VALID)
+		return -EACCES; /* Something wrong while reading */
+
+	if(time_base == 0)
+		return -ENODEV; /* Time-base is not yet configured by MC */
 
 	tman_get_timestamp(time);
-	*time += cmgw_get_time_base();
-	*time = udiv1000(*time);
+	*time = ulldiv1000(*time); /* Convert Tman value to mSec */
+
+	*time += time_base;
 
 	return 0;
 }
@@ -125,12 +134,6 @@ int fsl_get_time_ms(uint32_t *time)
 int fsl_get_time_since_epoch_ms(uint64_t *time)
 {
 	return (time_get_func_ptr)(time);
-}
-
-/*****************************************************************************/
-uint32_t fsl_os_current_time(void)
-{
-	return 0;
 }
 
 /*****************************************************************************/

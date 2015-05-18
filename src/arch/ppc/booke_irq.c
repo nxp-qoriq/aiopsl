@@ -27,9 +27,9 @@
 /*
  *
  * @File          booke_irq.c
- * 
- * @Description   This is an E200 z490 specific implementation. 
- *                This file contain the PPC general exception 
+ *
+ * @Description   This is an E200 z490 specific implementation.
+ *                This file contain the PPC general exception
  *                interrupt routines.
  *
  * @Cautions
@@ -66,6 +66,43 @@ __COLD_CODE void booke_generic_irq_init(void)
     booke_init_interrupt_vector();
 }
 
+static inline void booke_exception_machine_check_isr()
+{
+	uint32_t mcsrr0 = booke_get_spr_MCSRR0(); /* Last executed instruction(best effort) */
+	uint32_t mcsrr1 = booke_get_spr_MCSRR1(); /* MSR at the time of the interrupt */
+	uint32_t mcar = booke_get_spr_MCAR();     /* Address register */
+	uint32_t mcsr = booke_get_spr_MCSR();     /* Syndrome register */
+	uint32_t core_id = core_get_id();
+
+	fsl_os_print("core %d int: MACHINE_CHECK\n", core_id);
+	if(mcsr & 0x0400 /* STACK_ERR */) {
+		uint32_t dac1, dac2; /* Data Address Compare Registers */
+
+		fsl_os_print("core #%d: Stack Overflow Exception...\n", core_id);
+
+		dac1 = booke_get_spr_DAC1();
+		dac2 = booke_get_spr_DAC2();
+		fsl_os_print("core #%d: Stack size is: 0x%x Bytes\n", dac2 - dac1);
+	}
+
+	if(mcsr & 0x80000 /* MAV */) {
+		if(mcsr & 0x40000 /* MEA */) {
+			fsl_os_print("core #%d: Violation effective address: 0x%x\n", core_id, mcar);
+		}
+		else {
+			fsl_os_print("core #%d: Violation real address: 0x%x\n", core_id, mcar);
+		}
+	}
+
+	if(mcsr & 0x8000 /* LD */) {
+		fsl_os_print("core #%d: An error occurred during the attempt to execute the load type instruction located at 0x%x.\n", core_id, mcsrr0);
+	}
+
+	if(mcsr & 0x4000 /* ST */) {
+		fsl_os_print("core #%d: An error occurred during the attempt to execute the store type instruction located at 0x%x.\n", core_id, mcsrr0);
+	}
+}
+
 /*****************************************************************/
 /* routine:       booke_generic_exception_isr                    */
 /*                                                               */
@@ -79,28 +116,15 @@ __COLD_CODE void booke_generic_irq_init(void)
 /*                                                               */
 /*****************************************************************/
 void booke_generic_exception_isr(uint32_t intr_entry)
-{	
+{
 	switch(intr_entry)
 	{
 	case(0x00):
 		fsl_os_print("core %d int: CRITICAL\n", core_get_id());
 		break;
-	case(0x10):
-		{
-			uint32_t mcsrr0 = booke_get_spr_MCSRR0(); /* Last executed instruction(best effort) */
-			uint32_t mcsrr1 = booke_get_spr_MCSRR1(); /* MSR at the time of the interrupt */
-			uint32_t mcar = booke_get_spr_MCAR();     /* Address register */
-			uint32_t mcsr = booke_get_spr_MCSR();     /* Syndrome register */
-			uint32_t core_id = core_get_id();
-			
-			fsl_os_print("core %d int: MACHINE_CHECK\n", core_id);
-			if(mcsr & 0x0400 /* STACK_ERR */) {
-				fsl_os_print("core #%d: Stack Overflow Exception...\n", core_id);
-				fsl_os_print("core #%d: MCSR = 0x%x, MCAR = 0x%x\n", core_id, mcsr, mcar);
-				fsl_os_print("core #%d: MCSRR0 = 0x%x, MCSRR1 = 0x%x\n", core_id, mcsrr0, mcsrr1);
-			}
-			break;
-		}
+	case(0x10): /* MACHINE_CHECK */
+		booke_exception_machine_check_isr();
+		break;
 	case(0x20):
 		fsl_os_print("core %d int: DATA_STORAGE\n", core_get_id());
 		break;
@@ -131,29 +155,29 @@ void booke_generic_exception_isr(uint32_t intr_entry)
 	case(0xB0):
 		fsl_os_print("core %d int: performance monitor\n", core_get_id());
 		break;
-	case(0xF0): 
+	case(0xF0):
 		fsl_os_print("core %d int: CTS interrupt\n", core_get_id());
 		break;
 	default:
 		fsl_os_print("undefined interrupt #%x\n", intr_entry);
 		break;
 	}
-	
+
 	while(1){}
 }
 
 asm static void branch_table(void) {
     nofralloc
-    
+
     /* Critical Input Interrupt (Offset 0x00) */
     li  r3, 0x00
     b  generic_irq
-    
+
     /* Machine Check Interrupt (Offset 0x10) */
     .align 0x10
     li  r3, 0x10
     b  machine_irq
-    
+
     /* Data Storage Interrupt (Offset 0x20) */
     .align 0x10
     li  r3, 0x20
@@ -173,32 +197,32 @@ asm static void branch_table(void) {
     .align 0x10
     li  r3, 0x50
     b  generic_irq
-    
+
     /* Program Interrupt (Offset 0x60) */
     .align 0x10
     li  r3, 0x60
     b  generic_irq
-    
+
     /* Performance Monitor Interrupt (Offset 0x70) */
     .align 0x10
     li  r3, 0x70
-    b  generic_irq 
-    
+    b  generic_irq
+
     /* System Call Interrupt (Offset 0x80) */
     .align 0x10
     li  r3, 0x80
-    b  generic_irq 
-    
+    b  generic_irq
+
     /* Debug Interrupt (Offset 0x90) */
     .align 0x10
     li  r3, 0x90
     b  generic_irq
-    
+
     /* Embedded Floating-point Data Interrupt (Offset 0xA0) */
     .align 0x10
     li  r3, 0xA0
     b generic_irq
-    
+
     /* Embedded Floating-point Round Interrupt (Offset 0xB0) */
     .align 0x10
     li  r3, 0xB0
@@ -206,21 +230,21 @@ asm static void branch_table(void) {
 
     /* place holder (Offset 0xC0) */
     .align 0x10
-    nop 
+    nop
 
     /* place holder (Offset 0xD0) */
     .align 0x10
-    nop 
+    nop
 
     /* place holder (Offset 0xE0) */
     .align 0x10
-    nop 
+    nop
 
     /* CTS Task Watchdog Timer Interrupt (Offset 0xF0) */
     .align 0x10
     li  r3, 0xF0
     b generic_irq
-    
+
     /***************************************************/
     /*** machine check *********************************/
     /***************************************************/
@@ -259,7 +283,7 @@ machine_irq:
 	/* case: else (default) */
 	se_illegal
 	se_dnh
-	
+
     /***************************************************/
     /*** generic exception handler *********************/
     /***************************************************/
@@ -270,7 +294,7 @@ generic_irq:
 	ori      r4,r4,booke_generic_exception_isr@l
 	mtlr     r4
 	blr
-	
+
 }
 
 __COLD_CODE asm void booke_init_interrupt_vector(void)

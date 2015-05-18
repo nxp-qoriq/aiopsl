@@ -430,8 +430,14 @@ struct tcp_gro_context_params {
 @remark		It is assumed that the address of the presented segment is 
 		aligned to 16 bytes.
 
+@Cautions	As part of a workaround to ticket TKT260685 in REV1 this 
+		function requires one of the four nested scope levels.
 @Cautions	The user should zero the \ref tcp_gro_ctx_t allocated space once
 		a new session begins.
+@Cautions	This function requires 1 CDMA mutex (out of 4 available per 
+		task).
+@Cautions	This function requires 1 FDMA working frame (out of 6 available 
+		per task), and 1 FDMA segment (out of 8 available per task).
 *//***************************************************************************/
 int tcp_gro_aggregate_seg(
 		uint64_t tcp_gro_context_addr,
@@ -457,8 +463,14 @@ int tcp_gro_aggregate_seg(
 
 @Return		GRO Status - please refer to \ref TCP_GRO_FLUSH_STATUS.
 
+@Cautions	As part of a workaround to ticket TKT260685 in REV1 this 
+		function requires one of the four nested scope levels.
 @Cautions	No frame should reside at the default frame location in
 		workspace before this function is called.
+@Cautions	This function requires 1 CDMA mutex (out of 4 available per 
+		task).
+@Cautions	This function requires 1 FDMA working frame (out of 6 available 
+		per task), and 1 FDMA segment (out of 8 available per task).
 *//***************************************************************************/
 int tcp_gro_flush_aggregation(
 		uint64_t tcp_gro_context_addr);

@@ -53,15 +53,13 @@
 	} while(0)
 
 struct dpci_mng_tbl {
-	uint32_t mc_dpci_id;	/**< DPCI id used by MC to send events */
+	uint32_t mc_dpci_id;	/**< AIOP side DPCI id that is connected to MC */
 	int32_t  count;
 	int      max;
 	uint32_t ic[DPCI_DYNAMIC_MAX];				/**< 0xFFFFFFFF is not valid, must be atomic*/
 	uint32_t dpci_id[DPCI_DYNAMIC_MAX];			/**< dpci ids not tokens */
 	uint32_t dpci_id_peer[DPCI_DYNAMIC_MAX];		/**< dpci ids not tokens */
 	uint32_t tx_queue[DPCI_DYNAMIC_MAX][DPCI_PRIO_NUM];	/**< Use DPCI_PRIO_NUM between DPCI jumps */
-	uint16_t token[DPCI_DYNAMIC_MAX];			/**< TODO use it dpci token for open session */
-	uint8_t  state[DPCI_DYNAMIC_MAX];			/**< TODO use it */
 };
 
 /**************************************************************************//**
@@ -98,9 +96,8 @@ void dpci_mng_icid_get(uint32_t dpci_ind, uint16_t *icid, uint16_t *amq_bdi);
 void dpci_mng_tx_get(uint32_t dpci_ind, int pr, uint32_t *fqid);
 /*
  * Returns dpci index on success or error otherwise
- * Once dpci id is added to the table it can't be remove but only invalidated
  */
-int dpci_mng_find(uint32_t dpci_id, uint32_t *ic);
-int dpci_mng_peer_find(uint32_t dpci_id, uint32_t *ic);
+int dpci_mng_find(uint32_t dpci_id);
+int dpci_mng_peer_find(uint32_t dpci_id);
 
 #endif /* __FSL_DPCI_MNG_H */
