@@ -58,7 +58,7 @@ static int dprc_drv_evm_cb(uint8_t event_id, uint64_t app_ctx, void *event_data)
 	UNUSED(app_ctx);
 	UNUSED(event_data);
 
-	if(event_id == DPRC_EVENT_OBJ_CHANGE){
+	if(event_id == DPRC_EVENT){
 		sl_pr_debug("DPRC objects changed event\n");
 
 		err = dprc_get_irq_status(&dprc->io, dprc->token,
@@ -298,7 +298,7 @@ __COLD_CODE static int aiop_container_init(void)
 	}
 
 	err = dprc_set_irq(&dprc->io, dprc->token, DPRC_NUM_OF_IRQS,
-	                   DPRC_EVENT_OBJ_CHANGE, DPRC, 0);
+	                   DPRC_EVENT,(uint32_t) container_id, 0);
 	if(err){
 		pr_err("Set irq for DPRC object change failed\n");
 		return -ENAVAIL;
@@ -311,7 +311,7 @@ __COLD_CODE static int aiop_container_init(void)
 		return -ENAVAIL;
 	}
 
-	err = evm_sl_register(DPRC_EVENT_OBJ_CHANGE, 0, 0, dprc_drv_evm_cb);
+	err = evm_sl_register(DPRC_EVENT, 0, 0, dprc_drv_evm_cb);
 	if(err){
 		pr_err("EVM registration for DPRC object change failed\n");
 		return -ENAVAIL;

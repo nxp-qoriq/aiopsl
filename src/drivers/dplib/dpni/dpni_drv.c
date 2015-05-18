@@ -433,8 +433,8 @@ __COLD_CODE int dpni_drv_probe(struct mc_dprc *dprc,
 			}
 
 			err = dpni_set_irq(&dprc->io, dpni,
-				DPNI_IRQ_INDEX, DPNI_EVENT_LINK_CHANGE,
-				(uint32_t)(DPNI | (mc_niid << 16)), 0);
+				DPNI_IRQ_INDEX, DPNI_EVENT,
+				(uint32_t)mc_niid, 0);
 			if(err){
 				sl_pr_err("Failed to set irq for DP-NI%d\n",
 				          mc_niid);
@@ -802,7 +802,7 @@ __COLD_CODE int dpni_drv_init(void)
 		}
 	}
 
-	err = evm_sl_register(DPNI_EVENT_LINK_CHANGE, 0, 0, dpni_drv_ev_cb);
+	err = evm_sl_register(DPNI_EVENT, 0, 0, dpni_drv_ev_cb);
 	if(err){
 		pr_err("EVM registration for DPRC object added failed\n");
 		return -ENAVAIL;
@@ -816,6 +816,7 @@ static int dpni_drv_ev_cb(uint8_t event_id, uint64_t app_ctx, void *event_data)
 	/*Container was updated*/
 	int err;
 	uint16_t ni_id;
+	uint32_t status;
 	struct dpni_drv *dpni_drv;
 	struct mc_dprc *dprc = sys_get_unique_handle(FSL_OS_MOD_AIOP_RC);
 	struct dpni_link_state link_state;
@@ -823,33 +824,53 @@ static int dpni_drv_ev_cb(uint8_t event_id, uint64_t app_ctx, void *event_data)
 	UNUSED(app_ctx);
 	/*TODO SIZE should be cooperated with Ehud*/
 
-	ni_id = *((uint16_t*)event_data);
-
-	if(event_id == DPNI_EVENT_LINK_CHANGE){
-		sl_pr_debug("DPNI link changed event\n");
-
+	if(event_id == DPNI_EVENT){
+		ni_id = *((uint16_t*)event_data);
+		sl_pr_debug("DPNI event\n");
 		/* calculate pointer to the NI structure */
 		dpni_drv = nis + ni_id;
-		err = dpni_get_link_state(&dprc->io,
+
+		err = dpni_get_irq_status(&dprc->io,
 		                          dpni_drv->dpni_drv_params_var.dpni,
-		                          &link_state);
+		                          DPNI_IRQ_INDEX,
+		                          &status);
 		if(err){
-			sl_pr_err("Failed to get dpni link state, %d.\n", err);
-			return err;
+			sl_pr_err("Get irq status for NI %d "
+				"failed\n", ni_id);
+			return -ENAVAIL;
 		}
 
-		if(link_state.up){
-			err = evm_raise_event(DPNI_EVENT_LINK_UP,
-			                      &ni_id);
-		}
-		else{
-			err = evm_raise_event(DPNI_EVENT_LINK_DOWN,
-			                      &ni_id);
-		}
-		if(err){
-			sl_pr_err("Failed to raise event for "
-				"NI-%d.\n", ni_id);
-			return err;
+		if(status & DPNI_IRQ_EVENT_LINK_CHANGED){
+			err = dpni_get_link_state(&dprc->io,
+			                          dpni_drv->dpni_drv_params_var.dpni,
+			                          &link_state);
+			if(err){
+				sl_pr_err("Failed to get dpni link state, %d.\n", err);
+				return err;
+			}
+
+			if(link_state.up){
+				err = evm_raise_event(DPNI_EVENT_LINK_UP,
+				                      &ni_id);
+			}
+			else{
+				err = evm_raise_event(DPNI_EVENT_LINK_DOWN,
+				                      &ni_id);
+			}
+			if(err){
+				sl_pr_err("Failed to raise event for "
+					"NI-%d.\n", ni_id);
+				return err;
+			}
+
+			err = dpni_clear_irq_status(&dprc->io, dprc->token,
+			                            DPNI_IRQ_INDEX,
+			                            DPNI_IRQ_EVENT_LINK_CHANGED);
+			if(err){
+				sl_pr_err("Clear status for DPNI link "
+					"change failed\n");
+				return err;
+			}
 		}
 	}
 	else{
