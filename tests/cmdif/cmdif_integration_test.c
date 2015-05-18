@@ -369,6 +369,7 @@ static int ctrl_cb0(void *dev, uint16_t cmd, uint32_t size,
 		icontext_aiop_get(&ic);
 		ASSERT_COND(ic.dma_flags);
 		ASSERT_COND(ic.bdi_flags);
+		ASSERT_COND(ic.icid != ic_cmd.icid);
 		pr_debug("AIOP ICID = 0x%x bdi flags = 0x%x\n", ic.icid, \
 		         ic.bdi_flags);
 		pr_debug("AIOP ICID = 0x%x dma flags = 0x%x\n", ic.icid, \
