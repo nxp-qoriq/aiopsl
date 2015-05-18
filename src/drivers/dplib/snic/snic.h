@@ -137,6 +137,10 @@ int snic_create_table_key_id(uint8_t fec_no, uint8_t fec_array[8],
 void snic_tman_confirm_cb(tman_arg_8B_t arg1, tman_arg_2B_t arg2);
 int snic_ipsec_decrypt(struct snic_params *snic);
 int snic_ipsec_encrypt(struct snic_params *snic);
+int snic_ipsec_create_instance(struct snic_cmd_data *cmd_data);
+int snic_ipsec_add_sa(struct snic_cmd_data *cmd_data);
+int snic_ipsec_del_sa(struct snic_cmd_data *cmd_data);
+int snic_ipsec_del_instance(struct snic_cmd_data *cmd_data);
 /** @} */ /* end of SNIC */
 
 

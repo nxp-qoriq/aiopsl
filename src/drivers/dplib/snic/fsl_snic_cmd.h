@@ -60,7 +60,7 @@ struct snic_cmd_data {
 #define SNIC_REGISTER              6
 #define SNIC_UNREGISTER            7
 #define SNIC_IPSEC_CREATE_INSTANCE 8
-#define SNIC_IPSEC_DELETE_INSTANCE 9
+#define SNIC_IPSEC_DEL_INSTANCE    9
 #define SNIC_IPSEC_ADD_SA          10
 #define SNIC_IPSEC_DEL_SA          11
 
@@ -73,17 +73,19 @@ struct snic_cmd_data {
 #define SNIC_CMDSZ_SET_SPID            8
 #define SNIC_CMDSZ_REGISTER            8
 #define SNIC_CMDSZ_UNREGISTER          8
+#define SNIC_CMDSZ_IPSEC_CREATE_INSTANCE	8
+#define SNIC_CMDSZ_IPSEC_ADD_SA		(19*8)
 #define SNIC_CMDSZ_IPSEC_DELETE_INSTANCE  8
 #define SNIC_CMDSZ_IPSEC_DEL_SA       (6*8)
 
-/* ipsec "options" mapping  (also used as ipsec SA "nic_options") */
-#define SNIC_IPSEC_OPT_SEQ_NUM_ROLLOVER_EVENT		0x0001
-#define SNIC_IPSEC_OPT_INCLUDE_IP_SRC_IN_SA_SELECT	0x0002
-#define SNIC_IPSEC_OPT_INCLUDE_IP_DST_IN_SA_SELECT	0x0004
+/* ipsec "sa_selectors" mapping  (also used as ipsec SA "nic_options") */
+#define SNIC_IPSEC_OPT_SEQ_NUM_ROLLOVER_EVENT		0x01
+#define SNIC_IPSEC_OPT_INCLUDE_IP_SRC_IN_SA_SELECT	0x02
+#define SNIC_IPSEC_OPT_INCLUDE_IP_DST_IN_SA_SELECT	0x04
 
 /* ipsec SA "direction" mapping */
-#define SNIC_IPSEC_SA_ENCAP		0
-#define SNIC_IPSEC_SA_DECAP		1
+#define SNIC_IPSEC_SA_OUT		0
+#define SNIC_IPSEC_SA_IN		1
 
 /* ipsec SA "options" mapping */
 #define SNIC_IPSEC_SA_OPT_EXT_SEQ_NUM		0x00000001
@@ -124,14 +126,17 @@ struct snic_cmd_data {
 #define SNIC_IPSEC_AUTH_HMAC_SHA2_384_192	0x18
 #define SNIC_IPSEC_AUTH_HMAC_SHA2_512_256	0x19
 
+/* SA mode */
+#define SNIC_IPSEC_SA_MODE_TRANSPORT		0x0
+#define SNIC_IPSEC_SA_MODE_TUNNEL		0x1
+
 struct snic_ipsec_cfg {
-	uint16_t snic_id;  /* non-user */
-	uint16_t options;
+	uint8_t sa_selectors;
 	uint8_t num_sa_ipv4;
 	uint8_t num_sa_ipv6;
 };
 
-struct snic_ipsec_sa_dec_cfg {
+struct snic_ipsec_sa_in_cfg {
 	uint8_t ip_src[16];	/* IP source for SA selection; required
 				   only if DPNI_IPSEC_MATCH_IP_SRC is set;
 				   Size of address depends on the setting of
@@ -141,73 +146,69 @@ struct snic_ipsec_sa_dec_cfg {
 				   Size of address depends on the setting of
 				   DPNI_IPSEC_IPV6. */
 	uint8_t anti_replay; 	/* anti replay configuration */
-	uint8_t reserved[3]; 	/* anti replay configuration */
-	union {
-		struct {
-			uint8_t nonce[4];
-		} ctr;
-		struct {
-			uint8_t salt[4];
-		} gcm;
-		struct {
-			uint8_t salt[4];
-		} ccm;
-	} alg;
 };
 
-struct snic_ipsec_sa_enc_cfg {
-	union {
-		struct {
-			uint8_t iv[16];
-		} cbc;
-		struct {
-			uint64_t iv;
-			uint8_t nonce[4];
-		} ctr;
-		struct {
-			uint64_t iv;
-			uint8_t salt[4];
-		} ccm;
-		struct {
-			uint64_t iv;
-			uint8_t salt[4];
-		} gcm;
-	} alg;
+struct snic_ipsec_sa_out_cfg {
+	uint16_t frag_size;
+	uint16_t outer_hdr_size; 	/**< Outer Header length in bytes
+	                             	     (tunnel mode only).*/
+	uint64_t outer_hdr_paddr; 	/**< Outer header content (tunnel mode only)*/
 };
 
-struct snic_ipsec_sa_cipher_info {
+struct snic_ipsec_cipher_cfg {
+	uint8_t alg;
+	uint8_t iv[16];
+	uint8_t nonce_or_salt[4];
+	uint8_t key_size;
+	uint64_t key_paddr; /* up to 64 byte key */
+};
+
+struct snic_ipsec_auth_cfg {
 	uint8_t alg;
 	uint8_t key_size;
-	uint8_t key[64];
+	uint64_t key_paddr; /* up to 32 byte key */
 };
 
-struct snic_ipsec_sa_auth_info {
-	uint8_t alg;
-	uint8_t key_size;
-	uint8_t key[32];
+struct snic_ipsec_sa_lifetime_limits {
+	uint64_t soft_kb;	/**< Soft Kilobytes limit, in bytes. */
+	uint64_t hard_kb; 	/**< Hard Kilobytes limit, in bytes. */
+	uint64_t soft_packet; 	/**< Soft Packet count limit. */
+	uint64_t hard_packet;		/**< Hard Packet count limit. */
+	uint32_t soft_sec;	/**< Soft Seconds limit. */
+	uint32_t hard_sec; 	/**< Hard Second limit. */
 };
 
-/* IMPORTANT!!! this struct may only be changed in accordance with FLIB, DPNI driver
- * corresponding adjustments, as well as AIOP adjustments.
- */
 struct snic_ipsec_sa_cfg {
 	uint32_t options;
 	uint32_t spi;
 	uint32_t seq_num;
 	uint32_t seq_num_ext;
-	uint16_t nic_options;  /* non-user */
-	uint16_t snic_id;  /* non-user */
-	uint8_t sa_id;  /* non-user */
+	uint8_t mode;
 	uint8_t direction;
-	uint8_t reserved[2];
-	struct snic_ipsec_sa_cipher_info cipher;
-	struct snic_ipsec_sa_auth_info auth;
-	union {
-		struct snic_ipsec_sa_dec_cfg dec;
-		struct snic_ipsec_sa_enc_cfg enc;
-	} dir;
-
+	struct snic_ipsec_sa_in_cfg in;
+	struct snic_ipsec_sa_out_cfg out;
+	struct snic_ipsec_cipher_cfg cipher;
+	struct snic_ipsec_auth_cfg auth;
+	struct snic_ipsec_sa_lifetime_limits lifetime;
 };
+
+struct snic_ipsec_sa_rmv_cfg {
+	uint32_t options;
+	uint32_t spi;
+	uint8_t direction;
+	uint8_t ip_src[16];	/* Relevant only if direction =
+				   SNIC_IPSEC_SA_IN and
+				   DPNI_IPSEC_MATCH_IP_SRC is set;
+				   IP Source for SA selection;
+				   Size of address depends on the setting of
+				   DPNI_IPSEC_IPV6. */
+	uint8_t ip_dst[16];	/* Relevant only if direction =
+				   SNIC_IPSEC_SA_IN and
+				   DPNI_IPSEC_MATCH_IP_DST is set;
+				   IP Destination for SA selection;
+				   Size of address depends on the setting of
+				   DPNI_IPSEC_IPV6. */
+} ;
 
 /*	param, offset, width,	type,			arg_name */
 #define SNIC_CMD_MTU(_OP) \
@@ -260,51 +261,71 @@ do { \
 #define SNIC_UNREGISTER_CMD(_OP) \
 	_OP(0,  0,	16,	uint16_t,		snic_id)
 
+
+/*	param, offset, width,	type,			arg_name */
+#define SNIC_IPSEC_CREATE_INSTANCE_CMD(_OP) \
+do { \
+	_OP(0, 0,	16,	uint16_t,	snic_id); \
+	_OP(0, 8,	8,	uint8_t,	cfg->sa_selectors); \
+	_OP(0, 24,	8,	uint8_t, 	cfg->num_sa_ipv4); \
+	_OP(0, 32,	8,	uint8_t, 	cfg->num_sa_ipv6); \
+} while (0)
+
+/*	param, offset, width,	type,			arg_name */
+#define SNIC_IPSEC_ADD_SA_CMD(_OP, _OP2) \
+do { \
+	_OP(0, 0,	32,	uint32_t,	cfg->options); \
+	_OP(0, 32,	32,	uint32_t,	cfg->spi); \
+	_OP(1, 0,	32,	uint32_t,	cfg->seq_num); \
+	_OP(1, 32,	32,	uint32_t,	cfg->seq_num_ext); \
+	_OP(2, 0,	32,	uint32_t,	nic_options); \
+	_OP(2, 32,	16,	uint16_t,	snic_id); \
+	_OP(2, 48,	8,	uint8_t,	sa_id); \
+	_OP(2, 56,	8,	uint8_t,	cfg->mode); \
+	_OP(3, 0,	8,	uint8_t,	cfg->direction); \
+	_OP(3, 8,	8,	uint8_t,	cfg->in.anti_replay); \
+	_OP2\
+	   (3, 16,	(16*8),	uint8_t,	cfg->in.ip_src); \
+	_OP2\
+	   (5, 16,	(16*8),	uint8_t,	cfg->in.ip_dst); \
+	_OP(7, 16,	16,	uint16_t,	cfg->out.outer_hdr_size); \
+	_OP(7, 32,	16,	uint16_t,	cfg->out.frag_size); \
+	_OP(7, 48,	8,	uint8_t,	cfg->cipher.alg); \
+	_OP(7, 56,	8,	uint8_t,	cfg->cipher.key_size); \
+	_OP(8, 0,	64,	uint64_t,	cfg->cipher.key_paddr); \
+	_OP(9, 0,	64,	uint64_t,	cfg->out.outer_hdr_paddr); \
+	_OP2\
+	   (10, 0,	(16*8),	uint8_t,	cfg->cipher.iv); \
+	_OP2\
+	   (12, 0,	(4*8),	uint8_t,	cfg->cipher.nonce_or_salt); \
+        _OP(12, 32,	8,	uint8_t,	cfg->auth.alg); \
+	_OP(12, 40,	8,	uint8_t,	cfg->auth.key_size); \
+	_OP(13, 0,	64,	uint64_t,	cfg->auth.key_paddr); \
+	_OP(14, 0,	64,	uint64_t,	cfg->lifetime.soft_kb); \
+	_OP(15, 0,	64,	uint64_t,	cfg->lifetime.hard_kb); \
+	_OP(16, 0,	64,	uint64_t,	cfg->lifetime.soft_packet); \
+	_OP(17, 0,	64,	uint64_t,	cfg->lifetime.hard_packet); \
+	_OP(18, 0,	32,	uint32_t,	cfg->lifetime.soft_sec); \
+	_OP(18, 32,	32,	uint32_t,	cfg->lifetime.hard_sec); \
+} while (0)
+
 /*	param, offset, width,	type,			arg_name */
 #define SNIC_IPSEC_DELETE_INSTANCE_CMD(_OP) \
 	_OP(0, 0,	16,	uint16_t,	snic_id)
 
 /*	param, offset, width,	type,			arg_name */
-#define SNIC_IPSEC_DEL_SA_CMD(_OP) \
+#define SNIC_IPSEC_DEL_SA_CMD(_OP, _OP2) \
 do { \
 	_OP(0, 0,	16,	uint16_t,	snic_id); \
 	_OP(0, 16,	8,	uint8_t,	sa_id); \
-	_OP(0, 24,	8,	uint8_t,	direction); \
-	_OP(0, 32,	32,	uint32_t,	sa_options); \
-	_OP(1, 0,	32,	uint32_t,	spi); \
-	_OP(1, 32,	16,	uint16_t,	sa_nic_options); \
-	_OP(2, 0,	8,	uint8_t,	ip_src[0]); \
-	_OP(2, 8,	8,	uint8_t,	ip_src[1]); \
-	_OP(2, 16,	8,	uint8_t,	ip_src[2]); \
-	_OP(2, 24,	8,	uint8_t,	ip_src[3]); \
-	_OP(2, 32,	8,	uint8_t,	ip_src[4]); \
-	_OP(2, 40,	8,	uint8_t,	ip_src[5]); \
-	_OP(2, 48,	8,	uint8_t,	ip_src[6]); \
-	_OP(2, 56,	8,	uint8_t,	ip_src[7]); \
-	_OP(3, 0,	8,	uint8_t,	ip_src[8]); \
-	_OP(3, 8,	8,	uint8_t,	ip_src[9]); \
-	_OP(3, 16,	8,	uint8_t,	ip_src[10]); \
-	_OP(3, 24,	8,	uint8_t,	ip_src[11]); \
-	_OP(3, 32,	8,	uint8_t,	ip_src[12]); \
-	_OP(3, 40,	8,	uint8_t,	ip_src[13]); \
-	_OP(3, 48,	8,	uint8_t,	ip_src[14]); \
-	_OP(3, 56,	8,	uint8_t,	ip_src[15]); \
-	_OP(4, 0,	8,	uint8_t,	ip_dst[0]); \
-	_OP(4, 8,	8,	uint8_t,	ip_dst[1]); \
-	_OP(4, 16,	8,	uint8_t,	ip_dst[2]); \
-	_OP(4, 24,	8,	uint8_t,	ip_dst[3]); \
-	_OP(4, 32,	8,	uint8_t,	ip_dst[4]); \
-	_OP(4, 40,	8,	uint8_t,	ip_dst[5]); \
-	_OP(4, 48,	8,	uint8_t,	ip_dst[6]); \
-	_OP(4, 56,	8,	uint8_t,	ip_dst[7]); \
-	_OP(5, 0,	8,	uint8_t,	ip_dst[8]); \
-	_OP(5, 8,	8,	uint8_t,	ip_dst[9]); \
-	_OP(5, 16,	8,	uint8_t,	ip_dst[10]); \
-	_OP(5, 24,	8,	uint8_t,	ip_dst[11]); \
-	_OP(5, 32,	8,	uint8_t,	ip_dst[12]); \
-	_OP(5, 40,	8,	uint8_t,	ip_dst[13]); \
-	_OP(5, 48,	8,	uint8_t,	ip_dst[14]); \
-	_OP(5, 56,	8,	uint8_t,	ip_dst[15]); \
+	_OP(0, 24,	8,	uint8_t,	cfg->direction); \
+	_OP(0, 32,	32,	uint32_t,	cfg->options); \
+	_OP(1, 0,	32,	uint32_t,	cfg->spi); \
+	_OP(1, 32,	32,	uint32_t,	nic_options); \
+	_OP2\
+		(2, 0,	(16*8),	uint8_t,	cfg->ip_src); \
+	_OP2\
+		(4, 0,	(16*8),	uint8_t,	cfg->ip_dst); \
 } while (0)
 
 #endif /* _FSL_SNIC_CMD_H */
