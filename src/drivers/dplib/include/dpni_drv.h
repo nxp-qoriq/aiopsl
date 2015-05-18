@@ -157,6 +157,22 @@ struct aiop_psram_entry {
 };
 
 /**************************************************************************//**
+@Function	dpni_drv_unprobe
+
+@Description	Function to unprobe the DPNI object.
+
+@Param[in]	dprc - Pointer to resource container
+
+@Param[in]	aiop_niid - AIOP Network Interface ID
+
+@Return		0 on success; error code, otherwise.
+		For error posix refer to
+		\ref error_g
+*//***************************************************************************/
+int dpni_drv_unprobe(struct mc_dprc *dprc,
+                               uint16_t aiop_niid);
+
+/**************************************************************************//**
 @Function	dpni_drv_probe
 
 @Description	Function to probe the DPNI object.
@@ -165,7 +181,7 @@ struct aiop_psram_entry {
 
 @Param[in]	mc_niid - MC DP Network Interface ID
 
-@Return	OK on success; error code, otherwise.
+@Return	aiop_niid (aiop_niid >= 0)on success; error code, otherwise.
 		For error posix refer to
 		\ref error_g
 *//***************************************************************************/

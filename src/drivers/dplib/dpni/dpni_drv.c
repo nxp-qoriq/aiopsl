@@ -68,7 +68,7 @@ int num_of_nis;
 
 struct dpni_early_init_request g_dpni_early_init_data = {0};
 
-static int dpni_drv_ev_cb(uint8_t generator_id, uint8_t event_id, uint32_t size, void *data);
+static int dpni_drv_ev_cb(uint8_t event_id, uint64_t size, void *event_data);
 
 __COLD_CODE static void print_dev_desc(struct dprc_obj_desc* dev_desc)
 {
@@ -201,6 +201,39 @@ void dpni_drv_valid_dpnis(uint64_t *valid_dpnis)
 	}
 	cdma_mutex_lock_release((uint64_t)nis);
 }
+
+__COLD_CODE int dpni_drv_unprobe(struct mc_dprc *dprc,
+                               uint16_t aiop_niid)
+{
+	int err;
+	struct aiop_tile_regs *tile_regs = (struct aiop_tile_regs *)
+					sys_get_handle(FSL_OS_MOD_AIOP_TILE, 1);
+	struct aiop_ws_regs *wrks_addr = &tile_regs->ws_regs;
+
+	cdma_mutex_lock_take((uint64_t)&(nis), CDMA_MUTEX_WRITE_LOCK);
+
+	/*Mutex lock to avoid race condition while writing to EPID table*/
+	cdma_mutex_lock_take((uint64_t)&wrks_addr->epas, CDMA_MUTEX_WRITE_LOCK);
+	iowrite32_ccsr((uint32_t)nis[aiop_niid].dpni_drv_params_var.epid_idx,
+	               &wrks_addr->epas);
+	/*clear ep_pc*/
+	iowrite32_ccsr(PTR_TO_UINT(discard_rx_cb), &wrks_addr->ep_pc);
+	/*Mutex unlock EPID table*/
+	cdma_mutex_lock_release((uint64_t)&wrks_addr->epas);
+
+	err = dpni_close(&dprc->io, nis[aiop_niid].dpni_drv_params_var.dpni);
+	if(err){
+		sl_pr_err("Error %d, "
+			"failed to close DP-NI%d\n.", err,
+			nis[aiop_niid].dpni_id);
+	}
+
+	memset(&(nis[aiop_niid]), 0, sizeof(struct dpni_drv));
+	nis[aiop_niid].dpni_id = DPNI_NOT_IN_USE;
+	cdma_mutex_lock_release((uint64_t)&(nis));
+	return 0;
+}
+
 
 __COLD_CODE int dpni_drv_probe(struct mc_dprc *dprc,
                                uint16_t mc_niid)
@@ -400,10 +433,27 @@ __COLD_CODE int dpni_drv_probe(struct mc_dprc *dprc,
 			}
 
 			err = dpni_set_irq(&dprc->io, dpni,
-				DPNI_IRQ_EVENT_LINK_CHANGED, DPNI,
-				DPNI_EVENT_LINK_CHANGE, mc_niid);
+				DPNI_IRQ_INDEX, DPNI_EVENT_LINK_CHANGE,
+				DPNI | (mc_niid << 16), 0);
 			if(err){
 				sl_pr_err("Failed to set irq for DP-NI%d\n",
+				          mc_niid);
+				break;
+			}
+
+			err = dpni_set_irq_mask(&dprc->io, dpni,
+			                   DPNI_IRQ_INDEX,
+			                   DPNI_IRQ_EVENT_LINK_CHANGED);
+			if(err){
+				sl_pr_err("Failed to set irq mask for DP-NI%d\n",
+				          mc_niid);
+				break;
+			}
+
+			err = dpni_set_irq_enable(&dprc->io, dpni,
+			                        DPNI_IRQ_INDEX, 1);
+			if(err){
+				sl_pr_err("Failed to set irq enable for DP-NI%d\n",
 				          mc_niid);
 				break;
 			}
@@ -412,7 +462,7 @@ __COLD_CODE int dpni_drv_probe(struct mc_dprc *dprc,
 			nis[aiop_niid].dpni_id = mc_niid;
 			/* Unlock nis table*/
 			cdma_mutex_lock_release((uint64_t)&(nis));
-			return 0;
+			return (int)aiop_niid;
 		}
 	}
 
@@ -595,7 +645,7 @@ __COLD_CODE static int parser_profile_init(uint8_t *prpid)
 
 __COLD_CODE int dpni_drv_init(void)
 {
-	int i, aiop_niid;
+	int i;
 	uint8_t prpid = 0;
 	int err = 0;
 	int dev_count;
@@ -733,7 +783,7 @@ __COLD_CODE int dpni_drv_init(void)
 
 		/* Enable all DPNI devices */
 	}
-	for (i = 0, aiop_niid = 0; i < dev_count; i++) {
+	for (i = 0; i < dev_count; i++) {
 		dprc_get_obj(&dprc->io, dprc->token, i, &dev_desc);
 		if (strcmp(dev_desc.type, "dpni") == 0) {
 			/* TODO: print conditionally based on log level */
@@ -749,11 +799,10 @@ __COLD_CODE int dpni_drv_init(void)
 			{
 				/*TODO Trigger AIOP event manager*/
 			}
-			aiop_niid ++;
 		}
 	}
 
-	err = evm_sl_register(DPNI, DPNI_EVENT_LINK_CHANGE, 0, dpni_drv_ev_cb);
+	err = evm_sl_register(DPNI_EVENT_LINK_CHANGE, 0, 0, dpni_drv_ev_cb);
 	if(err){
 		pr_err("EVM registration for DPRC object added failed\n");
 		return -ENAVAIL;
@@ -762,7 +811,7 @@ __COLD_CODE int dpni_drv_init(void)
 	return err;
 }
 
-static int dpni_drv_ev_cb(uint8_t generator_id, uint8_t event_id, uint32_t size, void *data)
+static int dpni_drv_ev_cb(uint8_t event_id, uint64_t app_ctx, void *event_data)
 {
 	/*Container was updated*/
 	int err;
@@ -771,11 +820,10 @@ static int dpni_drv_ev_cb(uint8_t generator_id, uint8_t event_id, uint32_t size,
 	struct mc_dprc *dprc = sys_get_unique_handle(FSL_OS_MOD_AIOP_RC);
 	struct dpni_link_state link_state;
 
-	UNUSED(generator_id);
+	UNUSED(app_ctx);
 	/*TODO SIZE should be cooperated with Ehud*/
-	if(size == 4){
-		ni_id = *((uint16_t*)data);
-	}
+
+	ni_id = *((uint16_t*)event_data);
 
 	if(event_id == DPNI_EVENT_LINK_CHANGE){
 		sl_pr_debug("DPNI link changed event\n");
@@ -791,16 +839,12 @@ static int dpni_drv_ev_cb(uint8_t generator_id, uint8_t event_id, uint32_t size,
 		}
 
 		if(link_state.up){
-			err = evm_raise_event_cb((void *)DPNI,
-			                         DPNI_EVENT_LINK_UP,
-			                         sizeof(ni_id),
-			                         &ni_id);
+			err = evm_raise_event(DPNI_EVENT_LINK_UP,
+			                      &ni_id);
 		}
 		else{
-			err = evm_raise_event_cb((void *)DPNI,
-			                         DPNI_EVENT_LINK_DOWN,
-			                         sizeof(ni_id),
-			                         &ni_id);
+			err = evm_raise_event(DPNI_EVENT_LINK_DOWN,
+			                      &ni_id);
 		}
 		if(err){
 			sl_pr_err("Failed to raise event for "
