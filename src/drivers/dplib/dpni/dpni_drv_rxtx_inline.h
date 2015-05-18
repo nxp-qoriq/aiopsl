@@ -45,6 +45,10 @@ extern struct dpni_drv *nis;
 extern __PROFILE_SRAM 
 	struct storage_profile storage_profile[SP_NUM_OF_STORAGE_PROFILES];
 
+#ifdef FDMA_OSM_LIMIT
+extern __TASK uint8_t frame_types[MAX_FRAMES_PER_TASK];
+#endif
+
 inline int sl_prolog(void)
 {	
 	struct dpni_drv *dpni_drv;
@@ -87,6 +91,10 @@ inline int sl_prolog(void)
 			ADC_WQID_PRI_OFFSET)) & ADC_WQID_MASK) >> 4);
 	
 	err = parse_result_generate_basic();
+	
+#ifdef FDMA_OSM_LIMIT
+	SET_FRAME_TYPE(PRC_GET_FRAME_HANDLE(), HWC_FD_ADDRESS);
+#endif	
 	return err;
 }
 

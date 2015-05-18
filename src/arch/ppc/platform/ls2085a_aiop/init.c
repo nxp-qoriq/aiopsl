@@ -45,11 +45,11 @@ extern int mc_obj_init();                 extern void mc_obj_free();
 extern int cmdif_client_init();           extern void cmdif_client_free();
 extern int cmdif_srv_init(void);          extern void cmdif_srv_free(void);
 extern int dpni_drv_init(void);           extern void dpni_drv_free(void);
+extern int dpci_drv_init();               extern void dpci_drv_free();
 extern int slab_module_early_init(void);  extern int slab_module_init(void);
 extern void slab_module_free(void);
 extern int aiop_sl_early_init(void);
 extern int aiop_sl_init(void);            extern void aiop_sl_free(void);
-
 extern void discard_rx_cb();
 extern void tman_timer_callback(void);
 extern void cmdif_cl_isr(void);
@@ -82,6 +82,7 @@ extern void build_apps_array(struct sys_module_desc *apps);
 	{NULL, time_init,         time_free},                                    \
 	{NULL, epid_drv_init,     epid_drv_free},                                \
 	{NULL, mc_obj_init,       mc_obj_free},                                  \
+	{NULL, dpci_drv_init,     dpci_drv_free}, /*must be before EVM */        \
 	{slab_module_early_init, slab_module_init,  slab_module_free},           \
 	{NULL, cmdif_client_init, cmdif_client_free}, /* must be before srv */   \
 	{NULL, cmdif_srv_init,    cmdif_srv_free},                               \
@@ -113,7 +114,7 @@ __COLD_CODE void fill_platform_parameters(struct platform_param *platform_param)
 
 	int err = 0;
 
-	memset(platform_param, 0, sizeof(platform_param));
+	memset(platform_param, 0, sizeof(struct platform_param));
 
 	platform_param->l1_cache_mode = E_CACHE_MODE_INST_ONLY;
 	platform_param->console_type = PLTFRM_CONSOLE_DUART;

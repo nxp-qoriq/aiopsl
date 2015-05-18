@@ -399,7 +399,11 @@ int ipr_reassemble(ipr_instance_handle_t instance_handle)
 	    osm_scope_transition_to_exclusive_with_increment_scope_id_wrp();
 	    if (PARSER_IS_OUTER_IP_FRAGMENT_DEFAULT()) {
 		/* Fragment */
-		    if (scope_status.scope_level <= 2) {
+#ifdef FDMA_OSM_LIMIT		    
+		    if (scope_status.scope_level <= 1) {
+#else
+		    if (scope_status.scope_level <= 2) {			    
+#endif			    
 			    osm_status = NO_BYPASS_OSM;
 			/* create nested exclusive for the fragments of
 			 * the same flow*/
@@ -651,6 +655,7 @@ int ipr_reassemble(ipr_instance_handle_t instance_handle)
 	/* Parser is not re-run here, and iphdr offset will be retrieved
 	   from RFDC*/
 
+	/* todo check if write context and then exit from OSM can be done here */
 	if (frame_is_ipv4)
 		status = ipv4_header_update_and_l4_validation(&rfdc);
 	else
@@ -1843,7 +1848,6 @@ void move_to_correct_ordering_scope2(uint32_t osm_status)
 		 * the ipr_reassemble function */
 		osm_scope_exit();
 		osm_scope_exit();
-		osm_scope_relinquish_exclusivity();
 	} else if (osm_status & START_CONCURRENT) {
 		osm_scope_relinquish_exclusivity();
 	}

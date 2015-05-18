@@ -72,17 +72,17 @@ struct slab;
 @Description   Available debug information about every slab
 *//***************************************************************************/
 struct slab_debug_info {
-	/**< Maximal buffer size */
+	/** Maximal buffer size */
 	uint32_t buff_size;
-	/**< The number of available buffers */
+	/** The number of available buffers */
 	uint32_t committed_buffs;
-	/**< Maximal number of buffers inside this pool */
+	/** Maximal number of buffers inside this pool */
 	uint32_t max_buffs;
-	/**< HW pool ID */
+	/** HW pool ID */
 	uint16_t pool_id;
-	/**< Maximal alignment */
+	/** Maximal alignment */
 	uint16_t alignment;
-	/**< Memory partition */
+	/** Memory partition */
 	uint16_t mem_pid;
 };
 
@@ -224,7 +224,8 @@ int slab_debug_info_get(struct slab *slab, struct slab_debug_info *slab_info);
 @Param[in]	committed_buffs     Number of buffers needed for the app.
 @Param[in]	max_buffs           Maximal number of buffers that
 		can be allocated by the app; max_buffs >= committed_buffs;
-@Param[in]	buff_size           Size of buffers in pool.
+@Param[in]	buff_size           Size of buffers in pool, actual buffer size
+		will be 8 bytes larger, to accommodate for metadata.
 @Param[in]	alignment           Requested alignment for buffer in bytes.
 @Param[in]	mem_pid             Memory partition ID for allocation.
 		AIOP: HW pool supports only PEB and DPAA DDR.

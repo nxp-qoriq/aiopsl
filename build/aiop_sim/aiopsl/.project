@@ -785,6 +785,11 @@
 			<locationURI>PARENT-3-PROJECT_LOC/src/kernel/inc/fsl_core.h</locationURI>
 		</link>
 		<link>
+			<name>aiop_sl/kernel/inc/fsl_dpci_mng.h</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/dplib/include/fsl_dpci_mng.h</locationURI>
+		</link>
+		<link>
 			<name>aiop_sl/kernel/inc/fsl_mem_mng.h</name>
 			<type>1</type>
 			<locationURI>PARENT-3-PROJECT_LOC/src/kernel/inc/fsl_mem_mng.h</locationURI>

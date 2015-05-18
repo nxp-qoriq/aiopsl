@@ -196,6 +196,7 @@ struct dpni_drv_buf_layout {
 
 @Description	Structure representing initial presentation settings.
 
+@{
 *//***************************************************************************/
 struct dpni_drv_init_presentation {
 	/** Flags representing the requested modifications to initial

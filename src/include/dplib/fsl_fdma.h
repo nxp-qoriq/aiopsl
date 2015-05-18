@@ -1557,7 +1557,7 @@ int fdma_store_and_enqueue_frame_qd(
 @Retval		0 - Success.
 @Retval		EBUSY - Enqueue failed due to congestion in QMAN.
 
-@Cautions	The frame associated with the FD must not be presented.
+@Cautions	The frame associated with the FD must not be presented (closed).
 @Cautions	Function may not return.
 @Cautions	This function may result in a fatal error.
 @Cautions	In this Service Routine the task yields.
@@ -1588,7 +1588,7 @@ int fdma_enqueue_default_fd_fqid(
 @Retval		0 - Success.
 @Retval		EBUSY - Enqueue failed due to congestion in QMAN.
 
-@Cautions	The frame associated with the FD must not be presented.
+@Cautions	The frame associated with the FD must not be presented (closed).
 @Cautions	Function may not return.
 @Cautions	This function may result in a fatal error.
 @Cautions	In this Service Routine the task yields.
@@ -1621,7 +1621,7 @@ int fdma_enqueue_fd_fqid(
 @Retval		0 - Success.
 @Retval		EBUSY - Enqueue failed due to congestion in QMAN.
 
-@Cautions	The frame associated with the FD must not be presented.
+@Cautions	The frame associated with the FD must not be presented (closed).
 @Cautions	Function may not return.
 @Cautions	This function may result in a fatal error.
 @Cautions	In this Service Routine the task yields.
@@ -1653,7 +1653,7 @@ int fdma_enqueue_default_fd_qd(
 @Retval		0 - Success.
 @Retval		EBUSY - Enqueue failed due to congestion in QMAN.
 
-@Cautions	The frame associated with the FD must not be presented.
+@Cautions	The frame associated with the FD must not be presented (closed).
 @Cautions	Function may not return.
 @Cautions	This function may result in a fatal error.
 @Cautions	In this Service Routine the task yields.
@@ -1727,7 +1727,7 @@ void fdma_discard_frame(uint16_t frame, uint32_t flags);
 @Retval		0 - Success.
 @Retval		EIO - Received frame with non-zero FD[err] field.
 
-@Cautions	The frame associated with the FD must not be presented.
+@Cautions	The frame associated with the FD must not be presented (closed).
 @Cautions	This function may result in a fatal error.
 @Cautions	In this Service Routine the task yields.
 *//***************************************************************************/
@@ -1750,7 +1750,7 @@ inline int fdma_discard_fd(struct ldpaa_fd *fd, uint32_t flags);
 
 @Return		None.
 
-@Cautions	The frame associated with the FD must not be presented.
+@Cautions	The frame associated with the FD must not be presented (closed).
 @Cautions	This function may result in a fatal error.
 @Cautions	In this Service Routine the task yields.
 *//***************************************************************************/

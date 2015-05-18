@@ -25,65 +25,79 @@
  */
 
 /**************************************************************************//**
-@File		fsl_dpci_event.h
+@File		fsl_dpci_mng.h
 
 @Description	DPCI wrapper that is internally used by Service Layer
 *//***************************************************************************/
 
-#ifndef __FSL_DPCI_EVENT_H
-#define __FSL_DPCI_EVENT_H
+#ifndef __FSL_DPCI_MNG_H
+#define __FSL_DPCI_MNG_H
+
+#include "fsl_dpci.h"
+
+#define DPCI_DYNAMIC_MAX	64
+
+#define DPCI_DT_LOCK_R_TAKE \
+	do { \
+		cdma_mutex_lock_take((uint64_t)(&g_dpci_tbl), CDMA_MUTEX_READ_LOCK); \
+	} while(0)
+
+#define DPCI_DT_LOCK_W_TAKE \
+	do { \
+		cdma_mutex_lock_take((uint64_t)(&g_dpci_tbl), CDMA_MUTEX_WRITE_LOCK); \
+	} while(0)
+
+#define DPCI_DT_LOCK_RELEASE \
+	do { \
+		cdma_mutex_lock_release((uint64_t)(&g_dpci_tbl)); \
+	} while(0)
+
+struct dpci_mng_tbl {
+	uint32_t mc_dpci_id;	/**< AIOP side DPCI id that is connected to MC */
+	int32_t  count;
+	int      max;
+	uint32_t ic[DPCI_DYNAMIC_MAX];				/**< 0xFFFFFFFF is not valid, must be atomic*/
+	uint32_t dpci_id[DPCI_DYNAMIC_MAX];			/**< dpci ids not tokens */
+	uint32_t dpci_id_peer[DPCI_DYNAMIC_MAX];		/**< dpci ids not tokens */
+	uint32_t tx_queue[DPCI_DYNAMIC_MAX][DPCI_PRIO_NUM];	/**< Use DPCI_PRIO_NUM between DPCI jumps */
+};
 
 /**************************************************************************//**
-@Function	dpci_event_assign
+@Function	dpci_mng_user_ctx_get
 
-@Description	New DPCI was added to AIOP container or the state of 
-		the DPCI has changed. Updates the DPCI table. 
+@Description	Read the DPCI index and FQID from user context in ADC.
 
-@Param[in]	dpci_id - DPCI id of the AIOP side.
-
-@Return		0      - on success, POSIX error code otherwise
+@Param[out]	dpci_ind - Index to the DPCI table entry.
+@Param[out]	fqid - fqid for tx
  *//***************************************************************************/
-int dpci_event_assign(uint32_t dpci_id);
+void dpci_mng_user_ctx_get(uint32_t *dpci_ind, uint32_t *fqid);
 
 
 /**************************************************************************//**
-@Function	dpci_event_unassign
+@Function	dpci_mng_icid_get
 
-@Description	The DPCI was removed from AIOP container or disconnected.
-		Updates the DPCI table. 
+@Description	Read the ICID + AMQ + BDI from DPCI entry.
 
-@Param[in]	dpci_id - DPCI id of the AIOP side.
-
-@Return		0      - on success, POSIX error code otherwise
+@Param[in]	dpci_ind - Index to the DPCI table entry.
+@Param[out]	icid - icid that belongs to this DPCI
+@Param[out]	amq_bdi - AMQ + BDI that belong to this DPCI
  *//***************************************************************************/
-int dpci_event_unassign(uint32_t dpci_id);
+void dpci_mng_icid_get(uint32_t dpci_ind, uint16_t *icid, uint16_t *amq_bdi);
 
 /**************************************************************************//**
-@Function	dpci_event_update
+@Function	dpci_mng_tx_get
 
-@Description	Updates the entry of DPCI table with the AMQ + BDI from ADC.
-		To be called only inside the open command and before 
-		the AMQ bits are changed to AIOP AMQ bits  
+@Description	Read the ICID + AMQ + BDI from DPCI entry.
 
-@Param[in]	dpci_ind - Use dpci_mng_find() or dpci_mng_user_ctx_get().
-
-@Return		0      - on success, POSIX error code otherwise
+@Param[in]	dpci_ind - Index to the DPCI table entry.
+@Param[out]	pr - High or Low priority
+@Param[out]	fqid - The frame queue id
  *//***************************************************************************/
-int dpci_event_update(uint32_t dpci_ind);
+void dpci_mng_tx_get(uint32_t dpci_ind, int pr, uint32_t *fqid);
+/*
+ * Returns dpci index on success or error otherwise
+ */
+int dpci_mng_find(uint32_t dpci_id);
+int dpci_mng_peer_find(uint32_t dpci_id);
 
-/**************************************************************************//**
-@Function	dpci_event_link_change
-
-@Description	Updates the entry of DPCI table with the dpci_peer_id and the 
-		tx queues.
-		Updates dpci_peer_id in the DPCI table.
-		To be called only inside the open command and before 
-		the AMQ bits are changed to AIOP AMQ bits  
-
-@Param[in]	dpci_ind - Use dpci_mng_find() or dpci_mng_user_ctx_get().
-
-@Return		0      - on success, POSIX error code otherwise
- *//***************************************************************************/
-int dpci_event_link_change(uint32_t dpci_id);
-
-#endif /* __FSL_DPCI_EVENT_H */
+#endif /* __FSL_DPCI_MNG_H */

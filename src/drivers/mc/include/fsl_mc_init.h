@@ -27,40 +27,11 @@
 #ifndef __FSL_MC_INIT_H
 #define __FSL_MC_INIT_H
 
-#include "fsl_dpci.h"
 #include "dplib/fsl_mc_sys.h"
 
 struct mc_dprc {
 	uint16_t		token;
 	struct fsl_mc_io	io;
 };
-
-
-struct mc_dpci_tbl {
-	uint32_t *ic;		/**< 0xFFFFFFFF is not valid, must be atomic*/
-	uint32_t *dpci_id;	/**< dpci ids not tokens */
-	uint32_t *dpci_id_peer;	/**< dpci ids not tokens */
-	uint16_t *token;	/**< TODO use it dpci token for open session */
-	uint8_t  *state;	/**< TODO use it */
-	int32_t count;
-	int max;
-};
-
-/*
- * Returns dpci index on success or error otherwise
- * Once dpci id is added to the table it can't be remove but only invalidated
- */
-int mc_dpci_find(uint32_t dpci_id, uint32_t *ic);
-int mc_dpci_peer_find(uint32_t dpci_id, uint32_t *ic);
-
-void mc_dpci_tbl_dump();
-/* 
- * Find and allocate new entry 
- */
-int mc_dpci_entry_get();
-/*
- * Remove this entry from dpci table
- */
-void mc_dpci_entry_delete(int ind);
 
 #endif /*__FSL_MC_INIT_H */
