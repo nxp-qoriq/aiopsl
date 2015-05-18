@@ -605,6 +605,11 @@
 			<locationURI>PARENT-3-PROJECT_LOC/src/include/dplib/fsl_cdma.h</locationURI>
 		</link>
 		<link>
+			<name>aiop_sl/include/dplib/fsl_dpci_drv.h</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/include/dplib/fsl_dpci_drv.h</locationURI>
+		</link>
+		<link>
 			<name>aiop_sl/include/dplib/fsl_dpni_drv.h</name>
 			<type>1</type>
 			<locationURI>PARENT-3-PROJECT_LOC/src/include/dplib/fsl_dpni_drv.h</locationURI>
