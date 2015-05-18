@@ -655,6 +655,7 @@ int ipr_reassemble(ipr_instance_handle_t instance_handle)
 	/* Parser is not re-run here, and iphdr offset will be retrieved
 	   from RFDC*/
 
+	/* todo check if write context and then exit from OSM can be done here */
 	if (frame_is_ipv4)
 		status = ipv4_header_update_and_l4_validation(&rfdc);
 	else
