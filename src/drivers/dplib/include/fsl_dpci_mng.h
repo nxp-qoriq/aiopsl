@@ -92,12 +92,42 @@ void dpci_mng_icid_get(uint32_t dpci_ind, uint16_t *icid, uint16_t *amq_bdi);
 @Param[in]	dpci_ind - Index to the DPCI table entry.
 @Param[out]	pr - High or Low priority
 @Param[out]	fqid - The frame queue id
- *//***************************************************************************/
+*//***************************************************************************/
 void dpci_mng_tx_get(uint32_t dpci_ind, int pr, uint32_t *fqid);
-/*
- * Returns dpci index on success or error otherwise
- */
+
+/**************************************************************************//**
+@Function	dpci_mng_find
+
+@Description	Find the entry that belongs to this dpci_id
+
+@Param[in]	dpci_id - id of the device
+
+@Return		dpci index on success or error code otherwise
+*//***************************************************************************/
 int dpci_mng_find(uint32_t dpci_id);
+
+/**************************************************************************//**
+@Function	dpci_mng_peer_find
+
+@Description	Find the entry that has this dpci peer id
+
+@Param[in]	dpci_id - id of the device
+
+@Return		dpci index on success or error code otherwise
+*//***************************************************************************/
 int dpci_mng_peer_find(uint32_t dpci_id);
+
+/**************************************************************************//**
+@Function	dpci_mng_valid_dpcis
+
+@Description	Sets bit per every valid DPCI entry 63...0.
+
+The function is not multicore protected as it assumes that events are handled 
+one by one
+
+@Param[out]	valid_dpcis - Bit per valid DPCI entry
+ *//***************************************************************************/
+void dpci_mng_valid_dpcis(uint64_t *valid_dpcis);
+
 
 #endif /* __FSL_DPCI_MNG_H */
