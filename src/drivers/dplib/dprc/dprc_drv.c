@@ -49,13 +49,12 @@ void dprc_drv_free(void);
 static int aiop_container_init(void);
 static void aiop_container_free(void);
 
-static int dprc_drv_ev_cb(uint8_t generator_id, uint8_t event_id, uint32_t size, void *data)
+static int dprc_drv_evm_cb(uint8_t event_id, uint64_t app_ctx, void *event_data)
 {
 	/*Container was updated*/
 	int err;
-	UNUSED(generator_id);
-	UNUSED(size);
-	UNUSED(data);
+	UNUSED(app_ctx);
+
 	if(event_id == DPRC_EVENT_OBJ_ADDED){
 		sl_pr_debug("DPRC objects added event\n");
 		err = dprc_drv_add_obj();
@@ -103,7 +102,7 @@ void dprc_drv_free(void)
 
 int dprc_drv_add_obj(void)
 {
-	int i, err, dev_count = 0;
+	int i, err, status, dev_count = 0;
 	struct dprc_obj_desc dev_desc;
 	struct mc_dprc *dprc = sys_get_unique_handle(FSL_OS_MOD_AIOP_RC);
 
@@ -120,21 +119,20 @@ int dprc_drv_add_obj(void)
 
 			if(dpni_drv_is_dpni_exist((uint16_t)dev_desc.id) == -1){
 			/*object not found in the table and should be added*/
-				err = dpni_drv_probe(dprc,
+				status = dpni_drv_probe(dprc,
 				                     (uint16_t)dev_desc.id);
-				if (err) {
+				if (status < 0) {
 					sl_pr_err("Failed to probe DPNI-%d.\n",
 					          dev_desc.id);
-					return err;
+					return status;
 				}
-				/*send event: "DPNI_ADDED_EVENT" to EVM */
-				err = evm_raise_event_cb((void *)DPNI,
-				                         DPNI_EVENT_ADDED,
-				                         sizeof(dev_desc.id),
-				                         &dev_desc.id);
+				/*send event: "DPNI_ADDED_EVENT" to EVM with
+				 * AIOP NI ID */
+				err = evm_raise_event(DPNI_EVENT_ADDED,
+				                         &status);
 				if(err){
 					sl_pr_err("Failed to raise event for "
-						"DPNI-%d.\n", dev_desc.id);
+						"NI-%d.\n", status);
 					return err;
 				}
 			}
@@ -150,9 +148,7 @@ int dprc_drv_add_obj(void)
 					return err;
 				}
 				/*send event: "DPCI_ADDED_EVENT" to EVM */
-				err = evm_raise_event_cb((void *)DPCI,
-				                         DPCI_EVENT_ADDED,
-				                         sizeof(dev_desc.id),
+				err = evm_raise_event(DPCI_EVENT_ADDED,
 				                         &dev_desc.id);
 				if(err){
 					sl_pr_err("Failed to raise event for "
@@ -209,8 +205,21 @@ int dprc_drv_remove_obj(void)
 	for(i = 0; i < 64; i++, valid_dpcis = valid_dpcis >> 1,
 				valid_dpnis = valid_dpnis >> 1){
 		if(valid_dpnis & 0x01){
-			/*dpni_drv_unprobe (should return the mc_niid)*/
-			/*send event: "DPNI_REMOVED_EVENT" to EVM with mc_niid */
+			err = dpni_drv_unprobe(dprc,
+			                        (uint16_t)i);
+			if (err) {
+				sl_pr_err("Failed to unprobe NI-%d.\n", i);
+				return err;
+			}
+			/*send event: "DPNI_REMOVED_EVENT" to EVM with
+			 * AIOP NI ID */
+			err = evm_raise_event(DPNI_EVENT_REMOVED,
+			                         &i);
+			if(err){
+				sl_pr_err("Failed to raise event for "
+					"NI-%d.\n", i);
+				return err;
+			}
 		}
 		if(valid_dpcis & 0x01){
 			/*dpci_drv_unprobe (should return the dpci id)*/
@@ -264,7 +273,7 @@ __COLD_CODE static int aiop_container_init(void)
 		return -ENAVAIL;
 	}
 
-	err = evm_sl_register(DPRC, DPRC_EVENT_OBJ_ADDED, 0, dprc_drv_ev_cb);
+	err = evm_sl_register(DPRC_EVENT_OBJ_ADDED, 0, 0, dprc_drv_evm_cb);
 	if(err){
 		pr_err("EVM registration for DPRC object added failed\n");
 		return -ENAVAIL;
@@ -277,7 +286,7 @@ __COLD_CODE static int aiop_container_init(void)
 		return -ENAVAIL;
 	}
 
-	err = evm_sl_register(DPRC, DPRC_EVENT_OBJ_REMOVED, 0, dprc_drv_ev_cb);
+	err = evm_sl_register(DPRC_EVENT_OBJ_REMOVED, 0, 0, dprc_drv_evm_cb);
 	if(err){
 		pr_err("EVM registration for DPRC object removed failed\n");
 		return -ENAVAIL;
