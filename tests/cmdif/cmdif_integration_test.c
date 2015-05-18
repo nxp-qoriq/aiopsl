@@ -331,10 +331,8 @@ static int ctrl_cb0(void *dev, uint16_t cmd, uint32_t size,
 		pr_debug("Isolation context test dpci %d bpid %d:\n", dpci_id, bpid);
 
 		err = icontext_get(dpci_id, &ic);
-#ifdef CMDIF_TEST_WITH_MC_SRV
-		ic.bdi_flags |= FDMA_ENF_BDI_BIT;
-#endif
 		ASSERT_COND(err == 0);
+
 		pr_debug("ICID %d:\n dma flags 0x%x \n bdi flags 0x%x \n",
 		         ic.icid,
 		         ic.dma_flags,
@@ -361,9 +359,7 @@ static int ctrl_cb0(void *dev, uint16_t cmd, uint32_t size,
 		}
 		/* Must be after icontext_get(&ic) */
 		icontext_cmd_get(&ic_cmd);
-#ifdef CMDIF_TEST_WITH_MC_SRV
-		ic_cmd.bdi_flags |= FDMA_ENF_BDI_BIT;
-#endif
+
 		ASSERT_COND(ic_cmd.icid != ICONTEXT_INVALID);
 		ASSERT_COND(ic_cmd.icid == ic.icid);
 		ASSERT_COND(ic_cmd.bdi_flags == ic.bdi_flags);
