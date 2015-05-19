@@ -34,6 +34,7 @@
 #include "fsl_l2.h"
 #include "fsl_osm.h"
 #include "fsl_dbg.h"
+#include "fsl_evm.h"
 
 int app_early_init(void);
 int app_init(void);
@@ -123,26 +124,45 @@ __HOT_CODE ENTRY_POINT static void app_process_packet(void)
 	fdma_terminate_task();
 }
 
+static int app_config_dpni_cb(uint8_t event_id,
+			uint64_t app_ctx,
+			void *event_data)
+{
+	uint16_t ni = *(uint16_t*)event_data;
+	int err;
+	pr_info("Event received for dpni %d\n",ni);
+	if(event_id == DPNI_EVENT_ADDED){
+		err = dpni_drv_register_rx_cb(ni/*ni_id*/,
+		                              (rx_cb_t *)app_ctx);
+		if (err){
+			pr_err("dpni_drv_register_rx_cb for ni %d failed: %d\n", ni, err);
+			return err;
+		}
+		err = dpni_drv_set_max_frame_length(ni/*ni_id*/,
+		                                    0x2000 /* Max frame length*/);
+		if (err){
+			pr_err("dpni_drv_set_max_frame_length for ni %d failed: %d\n", ni, err);
+			return err;
+		}
+	}
+	else{
+		pr_err("Event %d not supported\n", event_id);
+	}
+	return 0;
+
+}
+
 int app_init(void)
 {
-	int        err  = 0;
-	uint32_t   ni;
+	int err;
 
 	pr_info("Running app_init()\n");
 
-	for (ni = 0; ni < dpni_drv_get_num_of_nis(); ni++)
-	{
-
-		err = dpni_drv_register_rx_cb((uint16_t)ni/*ni_id*/,
-		                              app_process_packet);
-
-	    err = dpni_drv_set_max_frame_length((uint16_t)ni/*ni_id*/,
-	                            0x2000 /* Max frame length*/);
-
-	if (err)
-			return err;
+	err = evm_register(DPNI_EVENT_ADDED, 1,(uint64_t) app_process_packet, app_config_dpni_cb);
+	if (err){
+		pr_err("EVM registration for DPNI_EVENT_ADDED failed: %d\n", err);
+		return err;
 	}
-
 
 	pr_info("To start test inject packets: \"app_process_packet.pcap\" after AIOP boot complete.\n");
 

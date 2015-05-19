@@ -29,7 +29,7 @@
 #include "sys.h"
 #include "fsl_io_ccsr.h"
 #include "cmgw.h"
-#include "fsl_dprc_drv.h"
+#include "dprc_drv.h"
 #include "fsl_mem_mng.h"
 #include "platform.h"
 
@@ -250,7 +250,8 @@ __COLD_CODE int apps_early_init(void)
 
 __COLD_CODE int global_post_init(void)
 {
-	return 0;
+	pr_info("global post init\n");
+	return dprc_drv_scan();
 }
 
 #if (STACK_OVERFLOW_DETECTION == 1)
@@ -342,7 +343,6 @@ __COLD_CODE int apps_init(void)
 	}
 
 	fsl_free(apps);
-
 	return 0;
 }
 
