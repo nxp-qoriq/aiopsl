@@ -92,9 +92,9 @@ typedef struct t_MM
 #endif
 
     t_mem_block      *mem_blocks;     /* List of memory blocks (Memory list) */
-    t_slob_block     *busy_blocks;    /* List of busy blocks (Busy list) */
+    //t_slob_block     *busy_blocks;    /* List of busy blocks (Busy list) */
     uint64_t         head_busy_blocks_addr;
-    t_slob_block     *free_blocks[MM_MAX_ALIGNMENT + 1];
+    //t_slob_block     *free_blocks[MM_MAX_ALIGNMENT + 1];
                                     /* Alignment lists of free blocks (Free lists) */
     uint64_t         head_free_blocks_addr[MM_MAX_ALIGNMENT + 1];
 
