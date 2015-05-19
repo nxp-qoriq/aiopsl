@@ -52,7 +52,7 @@
 @{
 *//***************************************************************************/
 
-
+#if 0
 /**************************************************************************//**
 @Function	dprc_drv_add_obj
 
@@ -62,7 +62,7 @@
 		For error posix refer to
 		\ref error_g
 *//***************************************************************************/
-int dprc_drv_add_obj(void);
+//int dprc_drv_add_obj(void);
 
 /**************************************************************************//**
 @Function	dprc_drv_remove_obj
@@ -74,8 +74,19 @@ int dprc_drv_add_obj(void);
 		For error posix refer to
 		\ref error_g
 *//***************************************************************************/
-int dprc_drv_remove_obj(void);
+//int dprc_drv_remove_obj(void);
+#endif
+/**************************************************************************//**
+@Function	dprc_drv_scan
 
+@Description	Function to scan for objects changes in resource
+		container.
+
+@Return	OK on success; error code, otherwise.
+		For error posix refer to
+		\ref error_g
+*//***************************************************************************/
+int dprc_drv_scan(void);
 /** @} */ /* end of grp_dprc_aiop group */
 /** @} */ /* end of grp_dplib_aiop group */
 #endif /* __DPRC_DRV_H */

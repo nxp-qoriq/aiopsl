@@ -299,7 +299,7 @@ int evm_raise_event(uint8_t event_id, void *event_data)
 	if(evm_ptr->num_cbs == 0)
 	{
 		cdma_mutex_lock_release((uint64_t) evm_ptr);
-		sl_pr_debug("No registered CB's for event %d\n",cmd);
+		sl_pr_debug("No registered CB's for event %d\n",event_id);
 		return 0;
 	}
 

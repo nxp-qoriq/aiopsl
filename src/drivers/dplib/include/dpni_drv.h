@@ -186,7 +186,8 @@ int dpni_drv_unprobe(struct mc_dprc *dprc,
 		\ref error_g
 *//***************************************************************************/
 int dpni_drv_probe(struct mc_dprc *dprc,
-                   uint16_t mc_niid);
+                   uint16_t mc_niid,
+                   uint16_t *niid);
 /**************************************************************************//**
 @Function	discard_rx_cb
 
@@ -232,6 +233,9 @@ int dpni_drv_is_dpni_exist(uint16_t mc_niid);
 
 *//***************************************************************************/
 void dpni_drv_valid_dpnis(uint64_t *valid_dpnis);
+
+int dpni_drv_update_obj(struct mc_dprc *dprc, uint16_t mc_niid);
+int dpni_drv_sync(struct mc_dprc *dprc);
 
 /** @} */ /* end of DPNI_DRV_STATUS group */
 #endif /* __DPNI_DRV_H */

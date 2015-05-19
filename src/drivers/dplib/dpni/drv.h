@@ -41,6 +41,7 @@
 #define DPNI_DRV_FLG_PARSE		0x80
 #define DPNI_DRV_FLG_PARSER_DIS		0x40
 #define DPNI_DRV_FLG_MTU_ENABLE		0x20
+#define DPNI_DRV_FLG_SCANNED		0x01
 
 
 #pragma pack(push, 1)

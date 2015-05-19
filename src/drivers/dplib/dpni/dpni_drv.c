@@ -175,13 +175,11 @@ int dpni_drv_disable (uint16_t ni_id)
 int dpni_drv_is_dpni_exist(uint16_t mc_niid)
 {
 	int i;
-	cdma_mutex_lock_take((uint64_t)nis, CDMA_MUTEX_WRITE_LOCK);
 	for(i = 0; i < SOC_MAX_NUM_OF_DPNI; i++){
 		if(nis[i].dpni_id == mc_niid){
 			break;
 		}
 	}
-	cdma_mutex_lock_release((uint64_t)nis);
 	if(i == SOC_MAX_NUM_OF_DPNI)
 		return -1;
 	else
@@ -201,8 +199,71 @@ void dpni_drv_valid_dpnis(uint64_t *valid_dpnis)
 	}
 	cdma_mutex_lock_release((uint64_t)nis);
 }
+int dpni_drv_update_obj(struct mc_dprc *dprc, uint16_t mc_niid)
+{
+	int err;
+	uint16_t aiop_niid;
+	int index;
+	cdma_mutex_lock_take((uint64_t)nis, CDMA_MUTEX_WRITE_LOCK);
+	index = dpni_drv_is_dpni_exist(mc_niid);
+	if(index == -1){
+		sl_pr_debug("DPNI %d not exist nis table\n",mc_niid);
+		err = dpni_drv_probe(dprc, mc_niid, &aiop_niid);
+		if(err){
+			cdma_mutex_lock_release((uint64_t)nis);
+			sl_pr_err("DP-NI %d was not probed, err: %d.\n",
+			          mc_niid,
+			          aiop_niid);
+			return err;
+		}
+		/*send event: "DPNI_ADDED_EVENT" to EVM with
+		 * AIOP NI ID */
+		err = evm_raise_event(DPNI_EVENT_ADDED,
+		                      &aiop_niid);
+		if(err){
+			sl_pr_err("Failed to raise event for "
+				"NI-%d.\n", aiop_niid);
+			return err;
+		}
+		index = (int)aiop_niid;
+	}
 
-__COLD_CODE int dpni_drv_unprobe(struct mc_dprc *dprc,
+	/*update that this index scanned*/
+	nis[index].dpni_drv_params_var.flags |= DPNI_DRV_FLG_SCANNED;
+	cdma_mutex_lock_release((uint64_t)nis);
+	return 0;
+}
+
+int dpni_drv_sync(struct mc_dprc *dprc)
+{
+	uint16_t aiop_niid;
+	int err;
+	cdma_mutex_lock_take((uint64_t)nis, CDMA_MUTEX_WRITE_LOCK);
+	for(aiop_niid = 0; aiop_niid < SOC_MAX_NUM_OF_DPNI; aiop_niid++)
+	{
+		if(nis[aiop_niid].dpni_drv_params_var.flags &
+			DPNI_DRV_FLG_SCANNED){
+			nis[aiop_niid].dpni_drv_params_var.flags &= 0xFE;
+		}
+		else if(nis[aiop_niid].dpni_id != DPNI_NOT_IN_USE){
+			dpni_drv_unprobe(dprc, aiop_niid);
+			/*send event: "DPNI_REMOVED_EVENT" to EVM with
+			 * AIOP NI ID */
+			err = evm_raise_event(DPNI_EVENT_REMOVED,
+			                      &aiop_niid);
+			if(err){
+				sl_pr_err("Failed to raise event for "
+					"NI-%d.\n", aiop_niid);
+				return err;
+			}
+		}
+	}
+	cdma_mutex_lock_release((uint64_t)nis);
+	return 0;
+}
+
+
+int dpni_drv_unprobe(struct mc_dprc *dprc,
                                uint16_t aiop_niid)
 {
 	int err;
@@ -210,7 +271,6 @@ __COLD_CODE int dpni_drv_unprobe(struct mc_dprc *dprc,
 					sys_get_handle(FSL_OS_MOD_AIOP_TILE, 1);
 	struct aiop_ws_regs *wrks_addr = &tile_regs->ws_regs;
 
-	cdma_mutex_lock_take((uint64_t)&(nis), CDMA_MUTEX_WRITE_LOCK);
 
 	/*Mutex lock to avoid race condition while writing to EPID table*/
 	cdma_mutex_lock_take((uint64_t)&wrks_addr->epas, CDMA_MUTEX_WRITE_LOCK);
@@ -228,15 +288,28 @@ __COLD_CODE int dpni_drv_unprobe(struct mc_dprc *dprc,
 			nis[aiop_niid].dpni_id);
 	}
 
-	memset(&(nis[aiop_niid]), 0, sizeof(struct dpni_drv));
+	nis[aiop_niid].dpni_drv_params_var.spid         = 0;
+	nis[aiop_niid].dpni_drv_params_var.spid_ddr     = 0;
+	nis[aiop_niid].dpni_drv_params_var.epid_idx     = 0;
+	/*parser profile id from parser_profile_init()*/
+	/*
+	TODO: prpid should be updated dynamically in dpni_drv_probe
+	nis[aiop_niid].dpni_drv_params_var.prpid        = prpid;
+	*/
+	/*ETH HXS */
+	nis[aiop_niid].dpni_drv_params_var.starting_hxs = 0;
+	nis[aiop_niid].dpni_drv_tx_params_var.qdid      = 0;
+	nis[aiop_niid].dpni_drv_params_var.flags        =
+		DPNI_DRV_FLG_PARSE | DPNI_DRV_FLG_PARSER_DIS;
+	nis[aiop_niid].dpni_lock                   = 0;
 	nis[aiop_niid].dpni_id = DPNI_NOT_IN_USE;
-	cdma_mutex_lock_release((uint64_t)&(nis));
 	return 0;
 }
 
 
-__COLD_CODE int dpni_drv_probe(struct mc_dprc *dprc,
-                               uint16_t mc_niid)
+int dpni_drv_probe(struct mc_dprc *dprc,
+                               uint16_t mc_niid,
+                               uint16_t *niid)
 {
 	int i;
 	uint32_t j;
@@ -253,9 +326,7 @@ __COLD_CODE int dpni_drv_probe(struct mc_dprc *dprc,
 				sys_get_handle(FSL_OS_MOD_AIOP_TILE, 1);
 	struct aiop_ws_regs *wrks_addr = &tile_regs->ws_regs;
 
-	/* Check if dpni with same ID already exists and find first entry to use
-	 * for new dpni - Lock nis table with mutex*/
-	cdma_mutex_lock_take((uint64_t)&(nis), CDMA_MUTEX_WRITE_LOCK);
+	/* Check if dpni with same ID already exists and find first entry to use*/
 	for (i = 0, aiop_niid = SOC_MAX_NUM_OF_DPNI;
 		i < SOC_MAX_NUM_OF_DPNI; i++)
 	{
@@ -265,13 +336,11 @@ __COLD_CODE int dpni_drv_probe(struct mc_dprc *dprc,
 		}
 		if(nis[i].dpni_id == mc_niid)
 		{
-			cdma_mutex_lock_release((uint64_t)&(nis));
 			sl_pr_err("DPNI %d already exist in nis[]\n", mc_niid);
 			return -EEXIST;
 		}
 	}
 	if(aiop_niid == SOC_MAX_NUM_OF_DPNI){
-		cdma_mutex_lock_release((uint64_t)&(nis));
 		sl_pr_err("NI's table is full\n");
 		return -ENOSPC;
 	}
@@ -290,8 +359,6 @@ __COLD_CODE int dpni_drv_probe(struct mc_dprc *dprc,
 
 		/*MC dpni id found in EPID table*/
 		if (j == mc_niid) {
-
-			memset(&(nis[aiop_niid]), 0, sizeof(struct dpni_drv));
 			/* Replace MC NI ID with AIOP NI ID */
 			iowrite32_ccsr(aiop_niid, &wrks_addr->ep_pm);
 
@@ -461,8 +528,8 @@ __COLD_CODE int dpni_drv_probe(struct mc_dprc *dprc,
 
 			nis[aiop_niid].dpni_id = mc_niid;
 			/* Unlock nis table*/
-			cdma_mutex_lock_release((uint64_t)&(nis));
-			return (int)aiop_niid;
+			*niid = aiop_niid;
+			return 0;
 		}
 	}
 
@@ -470,12 +537,9 @@ __COLD_CODE int dpni_drv_probe(struct mc_dprc *dprc,
 	if(i == AIOP_EPID_TABLE_SIZE){ /*MC dpni id not found in EPID table*/
 		/*Unlock EPID table*/
 		cdma_mutex_lock_release((uint64_t)&wrks_addr->epas);
-		sl_pr_err("DP-NI%d not found in EPID table.\n", mc_niid);
+		sl_pr_err("DP-NI %d not found in EPID table.\n", mc_niid);
 		err = -ENODEV;
 	}
-
-	/* Unlock nis table*/
-	cdma_mutex_lock_release((uint64_t)&(nis));
 	return err;
 }
 
@@ -783,29 +847,38 @@ __COLD_CODE int dpni_drv_init(void)
 
 		/* Enable all DPNI devices */
 	}
-	for (i = 0; i < dev_count; i++) {
-		dprc_get_obj(&dprc->io, dprc->token, i, &dev_desc);
-		if (strcmp(dev_desc.type, "dpni") == 0) {
-			/* TODO: print conditionally based on log level */
-			print_dev_desc(&dev_desc);
-
-			err = dpni_drv_probe(dprc, (uint16_t)dev_desc.id);
-			if(err){
-				pr_err("Error: %d, failed to probe DPNI-%d.\n",
-				       err, i);
-				return err;
-			}
-			else
-			{
-				/*TODO Trigger AIOP event manager*/
-			}
-		}
-	}
+//	for (i = 0; i < dev_count; i++) {
+//		dprc_get_obj(&dprc->io, dprc->token, i, &dev_desc);
+//		if (strcmp(dev_desc.type, "dpni") == 0) {
+//			/* TODO: print conditionally based on log level */
+//			print_dev_desc(&dev_desc);
+//
+//
+//			err = dpni_drv_probe(dprc, (uint16_t)dev_desc.id, &aiop_niid);
+//			if(err){
+//				pr_err("Error: %d, failed to probe DPNI-%d.\n",
+//				       err, dev_desc.id);
+//				return err;
+//			}
+//			/*send event: "DPNI_ADDED_EVENT" to EVM with
+//			 * AIOP NI ID */
+//			err = evm_raise_event(DPNI_EVENT_ADDED,
+//			                      &aiop_niid);
+//			if(err){
+//				sl_pr_err("Failed to raise event for "
+//					"NI-%d.\n", aiop_niid);
+//				return err;
+//			}
+//		}
+//	}
 
 	err = evm_sl_register(DPNI_EVENT, 0, 0, dpni_drv_ev_cb);
 	if(err){
-		pr_err("EVM registration for DPRC object added failed\n");
+		pr_err("EVM registration for DPNI events failed %d\n",err);
 		return -ENAVAIL;
+	}
+	else{
+		pr_info("Registered to: dpni_drv_ev_cb\n");
 	}
 
 	return err;

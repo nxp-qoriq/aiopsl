@@ -69,7 +69,7 @@ static int dprc_drv_evm_cb(uint8_t event_id, uint64_t app_ctx, void *event_data)
 				"failed\n");
 			return -ENAVAIL;
 		}
-
+#if 0
 		if(status & DPRC_IRQ_EVENT_OBJ_ADDED){
 			err = dprc_drv_add_obj();
 			if(err){
@@ -77,8 +77,8 @@ static int dprc_drv_evm_cb(uint8_t event_id, uint64_t app_ctx, void *event_data)
 				return err;
 			}
 			err = dprc_clear_irq_status(&dprc->io, dprc->token,
-		                          DPRC_NUM_OF_IRQS,
-		                          DPRC_IRQ_EVENT_OBJ_ADDED);
+			                            DPRC_NUM_OF_IRQS,
+			                            DPRC_IRQ_EVENT_OBJ_ADDED);
 			if(err){
 				sl_pr_err("Get clear status for DPRC object "
 					"change failed\n");
@@ -97,6 +97,24 @@ static int dprc_drv_evm_cb(uint8_t event_id, uint64_t app_ctx, void *event_data)
 			                            DPRC_IRQ_EVENT_OBJ_REMOVED);
 			if(err){
 				sl_pr_err("Get clear status for DPRC object "
+					"change failed\n");
+				return err;
+			}
+		}
+#endif
+		if(status & (DPRC_IRQ_EVENT_OBJ_ADDED |
+			DPRC_IRQ_EVENT_OBJ_REMOVED)){
+			err = dprc_drv_scan();
+			if(err){
+				sl_pr_err("Failed to scan dp object, %d.\n", err);
+				return err;
+			}
+			err = dprc_clear_irq_status(&dprc->io, dprc->token,
+			                            DPRC_NUM_OF_IRQS,
+			                            DPRC_IRQ_EVENT_OBJ_ADDED |
+			                            DPRC_IRQ_EVENT_OBJ_REMOVED);
+			if(err){
+				sl_pr_err("Clear status for DPRC object "
 					"change failed\n");
 				return err;
 			}
@@ -129,8 +147,45 @@ void dprc_drv_free(void)
 	/*TODO what else should be freed*/
 }
 
+int dprc_drv_scan(void)
+{
+	int i, err, dev_count = 0;
+	struct dprc_obj_desc dev_desc;
+	struct mc_dprc *dprc = sys_get_unique_handle(FSL_OS_MOD_AIOP_RC);
+
+	err = dprc_get_obj_count(&dprc->io, dprc->token, &dev_count);
+	if (err) {
+		sl_pr_err("Failed to get device count for AIOP RC auth_id = %d.\n",
+		          dprc->token);
+		return err;
+	}
+	sl_pr_debug("Num of objects found: %d\n",dev_count);
+	for(i = 0; i < dev_count; i++){
+		dprc_get_obj(&dprc->io, dprc->token, i, &dev_desc);
+		if (strcmp(dev_desc.type, "dpni") == 0) {
+			sl_pr_debug("DPNI %d found\n",dev_desc.id);
+
+			err = dpni_drv_update_obj(dprc,
+			                          (uint16_t)dev_desc.id);
+			if (err) {
+				sl_pr_err("Failed to update DPNI %d.\n",
+				          dev_desc.id);
+				return err;
+			}
+
+		}
+		else if(strcmp(dev_desc.type, "dpci") == 0) {
+
+		}
+	}
+	dpni_drv_sync(dprc);
+	return 0;
+
+}
 
 
+
+#if 0
 int dprc_drv_add_obj(void)
 {
 	int i, err, status, dev_count = 0;
@@ -140,7 +195,7 @@ int dprc_drv_add_obj(void)
 	err = dprc_get_obj_count(&dprc->io, dprc->token, &dev_count);
 	if (err) {
 		sl_pr_err("Failed to get device count for AIOP RC auth_id = %d.\n",
-		       dprc->token);
+		          dprc->token);
 		return err;
 	}
 
@@ -149,9 +204,9 @@ int dprc_drv_add_obj(void)
 		if (strcmp(dev_desc.type, "dpni") == 0) {
 
 			if(dpni_drv_is_dpni_exist((uint16_t)dev_desc.id) == -1){
-			/*object not found in the table and should be added*/
+				/*object not found in the table and should be added*/
 				status = dpni_drv_probe(dprc,
-				                     (uint16_t)dev_desc.id);
+				                        (uint16_t)dev_desc.id);
 				if (status < 0) {
 					sl_pr_err("Failed to probe DPNI-%d.\n",
 					          dev_desc.id);
@@ -160,7 +215,7 @@ int dprc_drv_add_obj(void)
 				/*send event: "DPNI_ADDED_EVENT" to EVM with
 				 * AIOP NI ID */
 				err = evm_raise_event(DPNI_EVENT_ADDED,
-				                         &status);
+				                      &status);
 				if(err){
 					sl_pr_err("Failed to raise event for "
 						"NI-%d.\n", status);
@@ -180,7 +235,7 @@ int dprc_drv_add_obj(void)
 				}
 				/*send event: "DPCI_ADDED_EVENT" to EVM */
 				err = evm_raise_event(DPCI_EVENT_ADDED,
-				                         &dev_desc.id);
+				                      &dev_desc.id);
 				if(err){
 					sl_pr_err("Failed to raise event for "
 						"DPCI-%d.\n", dev_desc.id);
@@ -203,12 +258,12 @@ int dprc_drv_remove_obj(void)
 	struct mc_dprc *dprc = sys_get_unique_handle(FSL_OS_MOD_AIOP_RC);
 
 	dpni_drv_valid_dpnis(&valid_dpnis);
-/*	dpni_drv_valid_dpcis(&valid_dpcis);*/
+	/*	dpni_drv_valid_dpcis(&valid_dpcis);*/
 
 	err = dprc_get_obj_count(&dprc->io, dprc->token, &dev_count);
 	if (err){
 		sl_pr_err("Failed to get device count for AIOP RC auth_id = %d.\n",
-		       dprc->token);
+		          dprc->token);
 		return err;
 	}
 
@@ -234,10 +289,10 @@ int dprc_drv_remove_obj(void)
 		}
 	}
 	for(i = 0; i < 64; i++, valid_dpcis = valid_dpcis >> 1,
-				valid_dpnis = valid_dpnis >> 1){
+	valid_dpnis = valid_dpnis >> 1){
 		if(valid_dpnis & 0x01){
 			err = dpni_drv_unprobe(dprc,
-			                        (uint16_t)i);
+			                       (uint16_t)i);
 			if (err) {
 				sl_pr_err("Failed to unprobe NI-%d.\n", i);
 				return err;
@@ -245,7 +300,7 @@ int dprc_drv_remove_obj(void)
 			/*send event: "DPNI_REMOVED_EVENT" to EVM with
 			 * AIOP NI ID */
 			err = evm_raise_event(DPNI_EVENT_REMOVED,
-			                         &i);
+			                      &i);
 			if(err){
 				sl_pr_err("Failed to raise event for "
 					"NI-%d.\n", i);
@@ -259,7 +314,7 @@ int dprc_drv_remove_obj(void)
 	}
 	return 0;
 }
-
+#endif
 __COLD_CODE static int aiop_container_init(void)
 {
 	void *p_vaddr;
@@ -269,7 +324,7 @@ __COLD_CODE static int aiop_container_init(void)
 					MEM_PART_SH_RAM,
 					1);*/
 	struct mc_dprc *dprc = fsl_malloc(sizeof(struct mc_dprc),
-						1);
+	                                  1);
 	if (dprc == NULL) {
 		pr_err("No memory for AIOP Root Container \n");
 		return -ENOMEM;
@@ -279,7 +334,7 @@ __COLD_CODE static int aiop_container_init(void)
 	/* TODO : in this call, can 3rd argument be zero? */
 	/* Get virtual address of MC portal */
 	p_vaddr = UINT_TO_PTR(((uintptr_t)sys_get_handle(FSL_OS_MOD_MC_PORTAL, 0))
-			+ SOC_PERIPH_OFF_PORTALS_MC(g_init_data.sl_info.mc_portal_id));
+	                      + SOC_PERIPH_OFF_PORTALS_MC(g_init_data.sl_info.mc_portal_id));
 
 	pr_debug("MC portal ID[%d] addr = 0x%x\n", g_init_data.sl_info.mc_portal_id, (uint32_t)p_vaddr);
 
@@ -293,17 +348,17 @@ __COLD_CODE static int aiop_container_init(void)
 	err = dprc_open(&dprc->io, container_id, &dprc->token);
 	if(err){
 		pr_err("Failed to open AIOP root container DP-RC%d.\n",
-		container_id);
+		       container_id);
 		return err;
 	}
 
-	err = dprc_set_irq(&dprc->io, dprc->token, DPRC_NUM_OF_IRQS,
+	err = dprc_set_irq(&dprc->io, dprc->token, 0,
 	                   DPRC_EVENT,(uint32_t) container_id, 0);
 	if(err){
 		pr_err("Set irq for DPRC object change failed\n");
 		return -ENAVAIL;
 	}
-	err = dprc_set_irq_mask(&dprc->io, dprc->token, DPRC_NUM_OF_IRQS,
+	err = dprc_set_irq_mask(&dprc->io, dprc->token, 0,
 	                        DPRC_IRQ_EVENT_OBJ_ADDED |
 	                        DPRC_IRQ_EVENT_OBJ_REMOVED);
 	if(err){
@@ -317,7 +372,7 @@ __COLD_CODE static int aiop_container_init(void)
 		return -ENAVAIL;
 	}
 
-	err = dprc_set_irq_enable(&dprc->io, dprc->token, DPRC_NUM_OF_IRQS, 1);
+	err = dprc_set_irq_enable(&dprc->io, dprc->token, 0, 1);
 	if(err){
 		pr_err("Set irq enable for DPRC object change failed\n");
 		return -ENAVAIL;
