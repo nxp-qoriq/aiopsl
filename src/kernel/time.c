@@ -139,11 +139,11 @@ int fsl_get_time_since_epoch_ms(uint64_t *time)
 /*****************************************************************************/
 __COLD_CODE int time_init(void)
 {
-#if 0
+
 	/* New implementation using TMAN instead of 1588 timers */
 	time_get_func_ptr = _get_time_tman;
 	return 0;
-#else
+#if 0
 	if(g_init_data.sl_info.clock_period == 1000)
 	{
 		struct aiop_tile_regs *aiop_regs = (struct aiop_tile_regs *)

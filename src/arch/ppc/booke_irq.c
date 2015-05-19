@@ -82,7 +82,7 @@ static inline void booke_exception_machine_check_isr()
 
 		dac1 = booke_get_spr_DAC1();
 		dac2 = booke_get_spr_DAC2();
-		fsl_os_print("core #%d: Stack size is: 0x%x Bytes\n", dac2 - dac1);
+		fsl_os_print("core #%d: Stack size is: 0x%x Bytes\n", core_id, (dac2 - dac1));
 	}
 
 	if(mcsr & 0x80000 /* MAV */) {

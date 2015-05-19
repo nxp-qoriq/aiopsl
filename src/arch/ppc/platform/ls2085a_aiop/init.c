@@ -102,7 +102,7 @@ int apps_early_init(void);
 int global_post_init(void);
 int tile_init(void);
 int cluster_init(void);
-int run_apps(void);
+int apps_init(void);
 void core_ready_for_tasks(void);
 void global_free(void);
 int epid_drv_init(void);
@@ -322,7 +322,7 @@ __COLD_CODE void core_ready_for_tasks(void)
 	__e_hwacceli(YIELD_ACCEL_ID); /* Yield */
 }
 
-__COLD_CODE int run_apps(void)
+__COLD_CODE int apps_init(void)
 {
 	int i;
 	uint16_t app_arr_size = g_app_params.app_arr_size;

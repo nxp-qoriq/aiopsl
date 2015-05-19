@@ -313,6 +313,9 @@ __declspec(entry_point) static void app_process_packet_flow0 (void)
 			fsl_os_print("ARENA Test Finished with ERRORS\n");
 		}
 	}
+	if(local_test_error == 0){
+		fsl_os_print("Packet Processed SUCCESSFULLY\n");
+	}
 	/*MUST call fdma_terminate task in the end of cb function*/
 	fdma_terminate_task();
 }

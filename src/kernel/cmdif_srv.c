@@ -454,12 +454,11 @@ __COLD_CODE int notify_close()
 	/* Set this session entry as free */
 	if (i >= 0) {
 		cl->gpp[i].m_name[0] = CMDIF_FREE_SESSION;
-
+		
+		cl->count--;
 		CMDIF_CL_LOCK_RELEASE;
 		return 0;
 	}
-
-	cl->count--;
 
 	CMDIF_CL_LOCK_RELEASE;
 #endif /* STACK_CHECK */
