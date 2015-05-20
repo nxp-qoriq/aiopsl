@@ -79,39 +79,6 @@
 #define DPNI_DRV_DTR_DEF              0  /* Data Tail Room */
 #define DPNI_DRV_PTA_DEF              0  /* Pass Thru Annotation - Private Data Size */
 
-/* Supported options for initializing presentation fields*/
-#define DPNI_DRV_SUPPORTED_INIT_PRESENTATION_OPTIONS    \
-		DPNI_DRV_INIT_PRESENTATION_OPT_PTA   |  \
-		DPNI_DRV_INIT_PRESENTATION_OPT_ASAPA |  \
-		DPNI_DRV_INIT_PRESENTATION_OPT_ASAPO |  \
-		DPNI_DRV_INIT_PRESENTATION_OPT_ASAPS |  \
-		DPNI_DRV_INIT_PRESENTATION_OPT_SPA   |  \
-		DPNI_DRV_INIT_PRESENTATION_OPT_SPS   |  \
-		DPNI_DRV_INIT_PRESENTATION_OPT_SPO   |  \
-		DPNI_DRV_INIT_PRESENTATION_OPT_SR    |  \
-		DPNI_DRV_INIT_PRESENTATION_OPT_NDS
-
-/* Initial Presentation settings, masks, shift */
-#define FDPA_MASK                 0xFFE00000
-#define FDPA_SHIFT                21
-#define ADPCA_MASK                0x0000FFE0
-#define ADPCA_SHIFT               5
-#define PTAPA_MASK                0x0000FFC0
-#define PTAPA_SHIFT               6
-#define ASAPS_MASK                0x000F0000
-#define ASAPS_SHIFT               16
-#define ASAPA_MASK                0x0000FFC0
-#define ASAPA_SHIFT               6
-#define ASAPO_MASK                0x0000000F
-#define SPA_MASK                  0x0000FFFF
-#define SPS_MASK                  0xFFFF0000
-#define SPS_SHIFT                 16
-#define SR_MASK                   0x80000000
-#define SR_SHIFT                  31
-#define NDS_MASK                  0x02000000
-#define NDS_SHIFT                 25
-#define SPO_MASK                  0x0000FFFF
-
 /**************************************************************************//**
 @Group	DPNI_DRV_STATUS
 @{

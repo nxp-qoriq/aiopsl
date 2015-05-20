@@ -45,6 +45,7 @@
 #include "fsl_dprc_drv.h"
 #include "slab.h"
 #include "evm.h"
+#include "fsl_ep_mng.h"
 
 #define __ERR_MODULE__  MODULE_DPNI
 #define ETH_BROADCAST_ADDR		((uint8_t []){0xff,0xff,0xff,0xff,0xff,0xff})
@@ -1350,255 +1351,39 @@ int dpni_drv_remove_vlan_id(uint16_t ni_id, uint16_t vlan_id){
 
 int dpni_drv_get_initial_presentation(
 	uint16_t ni_id,
-	struct dpni_drv_init_presentation* const init_presentation){
-	uint32_t ep_fdpa;
-	uint32_t ep_ptapa;
-	uint32_t ep_asapa;
-	uint32_t ep_spa;
-	uint32_t ep_spo;
+	struct ep_init_presentation* const init_presentation){
 	struct dpni_drv *dpni_drv;
-	struct aiop_tile_regs *tile_regs = (struct aiop_tile_regs *)
-		sys_get_handle(FSL_OS_MOD_AIOP_TILE, 1);
-	struct aiop_ws_regs *wrks_addr = &tile_regs->ws_regs;
-
-#ifdef DEBUG
-	if(init_presentation == NULL)
-		return -EINVAL;
-#endif
+	int err;
 
 	/* calculate pointer to the NI structure */
 	dpni_drv = nis + ni_id;
 
-	/*Mutex lock to avoid race condition while writing to EPID table*/
-	cdma_mutex_lock_take((uint64_t)&wrks_addr->epas, CDMA_MUTEX_WRITE_LOCK);
 	/*Lock dpni table entry*/
 	cdma_mutex_lock_take((uint64_t)&dpni_drv->dpni_lock, CDMA_MUTEX_WRITE_LOCK);
-	/* write epid index to epas register */
-	iowrite32_ccsr((uint32_t)(dpni_drv->dpni_drv_params_var.epid_idx), &wrks_addr->epas);
-	/* read ep_fdpa - to get Entry Point Frame Descriptor Presentation
-	 * Address */
-	ep_fdpa = ioread32_ccsr(&wrks_addr->ep_fdpa);
-	/* read ep_ptapa - to get Entry Point Pass Through Annotation
-	 * Presentation Address */
-	ep_ptapa = ioread32_ccsr(&wrks_addr->ep_ptapa);
-	/* read ep_asapa - to get Entry Point Accelerator Specific
-	 * Annotation Presentation Address */
-	ep_asapa = ioread32_ccsr(&wrks_addr->ep_asapa);
-	/* read ep_spa - to get Entry Point Segment Presentation
-	 * Address */
-	ep_spa = ioread32_ccsr(&wrks_addr->ep_spa);
-	/* read ep_spo - to get Entry Point Segment Presentation Offset
-	 * Address */
-	ep_spo = ioread32_ccsr(&wrks_addr->ep_spo);
+
+	err = ep_mng_get_initial_presentation(
+			dpni_drv->dpni_drv_params_var.epid_idx, init_presentation);
 	/*Unlock dpni table entry*/
 	cdma_mutex_lock_release((uint64_t)&dpni_drv->dpni_lock);
-	/*Mutex unlock EPID table*/
-	cdma_mutex_lock_release((uint64_t)&wrks_addr->epas);
 
-	init_presentation->fdpa = (uint16_t)
-			((ep_fdpa & FDPA_MASK) >> FDPA_SHIFT);
-
-	init_presentation->adpca = (uint16_t)
-			((ep_fdpa & ADPCA_MASK) >> ADPCA_SHIFT);
-
-	init_presentation->ptapa = (uint16_t)
-			((ep_ptapa & PTAPA_MASK) >> PTAPA_SHIFT);
-
-	init_presentation->asapa = (uint16_t)
-			((ep_asapa & ASAPA_MASK) >> ASAPA_SHIFT);
-
-	init_presentation->asapo = (uint8_t) (ep_asapa & ASAPO_MASK);
-
-	init_presentation->asaps = (uint8_t)
-			((ep_asapa & ASAPS_MASK) >> ASAPS_SHIFT);
-
-	init_presentation->spa = (uint16_t) (ep_spa & SPA_MASK);
-
-	init_presentation->sps = (uint16_t)
-			((ep_spa & SPS_MASK) >> SPS_SHIFT);
-	init_presentation->sr = (uint8_t)
-			((ep_spo & SR_MASK) >> SR_SHIFT);
-
-	init_presentation->nds = (uint8_t)
-			((ep_spo & NDS_MASK) >> NDS_SHIFT);
-
-	init_presentation->spo = (uint16_t) (ep_spo & SPO_MASK);
-
-	return 0;
+	return err;
 }
 
 int dpni_drv_set_initial_presentation(
 	uint16_t ni_id,
-	const struct dpni_drv_init_presentation* const init_presentation){
-	uint32_t ep_ptapa = 0;
-	uint32_t ep_asapa = 0;
-	uint32_t ep_spa = 0;
-	uint32_t ep_spo = 0;
-	uint32_t ep_temp;
+	const struct ep_init_presentation* const init_presentation){
 	struct dpni_drv *dpni_drv;
-	struct aiop_tile_regs *tile_regs = (struct aiop_tile_regs *)
-		sys_get_handle(FSL_OS_MOD_AIOP_TILE, 1);
-	struct aiop_ws_regs *wrks_addr = &tile_regs->ws_regs;
-
-#ifdef DEBUG
-	if(init_presentation == NULL)
-		return -EINVAL;
-	if(init_presentation->options == 0)
-		return -EINVAL;
-#endif
-	if(init_presentation->options &
-		~(DPNI_DRV_SUPPORTED_INIT_PRESENTATION_OPTIONS))
-		return -ENOTSUP;
-
+	int err;
 	/* calculate pointer to the NI structure */
 	dpni_drv = nis + ni_id;
 
-	if(init_presentation->options & DPNI_DRV_INIT_PRESENTATION_OPT_PTA)
-	{
-		ep_ptapa |= (((uint32_t)(init_presentation->ptapa)
-			<< PTAPA_SHIFT) & PTAPA_MASK);
-	}
-	if(init_presentation->options & DPNI_DRV_INIT_PRESENTATION_OPT_ASAPA)
-	{
-		ep_asapa |= (((uint32_t)(init_presentation->asapa)
-			<< ASAPA_SHIFT) & ASAPA_MASK);
-	}
-	if(init_presentation->options & DPNI_DRV_INIT_PRESENTATION_OPT_ASAPO)
-	{
-		ep_asapa |= ((uint32_t)(init_presentation->asapo) & ASAPO_MASK);
-	}
-	if(init_presentation->options & DPNI_DRV_INIT_PRESENTATION_OPT_ASAPS)
-	{
-		ep_asapa |= (((uint32_t)(init_presentation->asaps)
-			<< ASAPS_SHIFT) & ASAPS_MASK);
-	}
-	if(init_presentation->options & DPNI_DRV_INIT_PRESENTATION_OPT_SPA)
-	{
-		ep_spa |= ((uint32_t)(init_presentation->spa) & SPA_MASK);
-	}
-	if(init_presentation->options & DPNI_DRV_INIT_PRESENTATION_OPT_SPS)
-	{
-		ep_spa |= (((uint32_t)(init_presentation->sps)
-			<< SPS_SHIFT) & SPS_MASK);
-	}
-	if(init_presentation->options & DPNI_DRV_INIT_PRESENTATION_OPT_SR)
-	{
-		ep_spo |= (((uint32_t)(init_presentation->sr)
-			<< SR_SHIFT) & SR_MASK);
-	}
-	if(init_presentation->options & DPNI_DRV_INIT_PRESENTATION_OPT_NDS)
-	{
-		ep_spo |= (((uint32_t)(init_presentation->nds)
-			<< NDS_SHIFT) & NDS_MASK);
-	}
-	if(init_presentation->options & DPNI_DRV_INIT_PRESENTATION_OPT_SPO)
-	{
-		ep_spo |= ((uint32_t)(init_presentation->spo) & SPO_MASK);
-	}
+	/*Lock dpni table entry*/
+	cdma_mutex_lock_take((uint64_t)&dpni_drv->dpni_lock, CDMA_MUTEX_WRITE_LOCK);
 
-	/*Mutex lock to avoid race condition while writing to EPID table*/
-	cdma_mutex_lock_take((uint64_t)&wrks_addr->epas, CDMA_MUTEX_WRITE_LOCK);
-	cdma_mutex_lock_take((uint64_t)&dpni_drv->dpni_lock, CDMA_MUTEX_WRITE_LOCK); /*Lock dpni table entry*/
-	/* write epid index to epas register */
-	iowrite32_ccsr((uint32_t)(dpni_drv->dpni_drv_params_var.epid_idx), &wrks_addr->epas);
+	err = ep_mng_set_initial_presentation(
+			dpni_drv->dpni_drv_params_var.epid_idx, init_presentation);
 
-	if(init_presentation->options & DPNI_DRV_INIT_PRESENTATION_OPT_PTA)
-	{
-		/* read ep_ptapa - to get Entry Point Pass Through
-		 * Annotation Presentation Address */
-		ep_temp = ioread32_ccsr(&wrks_addr->ep_ptapa);
-		/* Clear PTAAPA field */
-		ep_temp &= ~PTAPA_MASK;
-
-		ep_temp |= ep_ptapa;
-		/* write ep_ptapa - to set Entry Point Pass Through
-		 * Annotation Presentation Address */
-		iowrite32_ccsr(ep_temp, &wrks_addr->ep_ptapa);
-	}
-
-	if(init_presentation->options & (DPNI_DRV_INIT_PRESENTATION_OPT_ASAPA |
-		DPNI_DRV_INIT_PRESENTATION_OPT_ASAPO |
-		DPNI_DRV_INIT_PRESENTATION_OPT_ASAPS))
-	{
-		/* read ep_asapa - to get Entry Point Accelerator Specific
-		 * Annotation Presentation Address */
-		ep_temp = ioread32_ccsr(&wrks_addr->ep_asapa);
-		if(init_presentation->options & DPNI_DRV_INIT_PRESENTATION_OPT_ASAPA)
-		{
-			/* Clear ASAPA field */
-			ep_temp &= ~ASAPA_MASK;
-		}
-		if(init_presentation->options & DPNI_DRV_INIT_PRESENTATION_OPT_ASAPO)
-		{
-			/* Clear ASAPO field */
-			ep_temp &= ~ASAPO_MASK;
-		}
-
-		if(init_presentation->options & DPNI_DRV_INIT_PRESENTATION_OPT_ASAPS)
-		{
-			/* Clear ASAPS field */
-			ep_temp &= ~ASAPS_MASK;
-		}
-
-		ep_temp |= ep_asapa;
-		/* write ep_asapa - to set Entry Point Accelerator Specific
-		 * Annotation Presentation Address */
-		iowrite32_ccsr(ep_temp, &wrks_addr->ep_asapa);
-	}
-
-	if(init_presentation->options & (DPNI_DRV_INIT_PRESENTATION_OPT_SPA |
-		DPNI_DRV_INIT_PRESENTATION_OPT_SPS))
-	{
-		/* read ep_spa - to get Entry Point Segment Presentation
-		 * Address */
-		ep_temp = ioread32_ccsr(&wrks_addr->ep_spa);
-		if(init_presentation->options & DPNI_DRV_INIT_PRESENTATION_OPT_SPA)
-		{
-			/* Clear SPA field */
-			ep_temp &= ~SPA_MASK;
-		}
-		if(init_presentation->options & DPNI_DRV_INIT_PRESENTATION_OPT_SPS)
-		{
-			/* Clear SPS field */
-			ep_temp &= ~SPS_MASK;
-		}
-
-		ep_temp |= ep_spa;
-		/* write ep_spa - to set Entry Point Segment Presentation
-		 * Address */
-		iowrite32_ccsr(ep_temp, &wrks_addr->ep_spa);
-	}
-
-	if(init_presentation->options & (DPNI_DRV_INIT_PRESENTATION_OPT_SPO |
-		DPNI_DRV_INIT_PRESENTATION_OPT_SR |
-		DPNI_DRV_INIT_PRESENTATION_OPT_NDS))
-	{
-		/* read ep_spo - to get Entry Point Segment Presentation
-		 * Offsets */
-		ep_temp = ioread32_ccsr(&wrks_addr->ep_spo);
-		if(init_presentation->options & DPNI_DRV_INIT_PRESENTATION_OPT_SR)
-		{
-			/* Clear SR field */
-			ep_temp &= ~SR_MASK;
-		}
-		if(init_presentation->options & DPNI_DRV_INIT_PRESENTATION_OPT_NDS)
-		{
-			/* Clear NDS field */
-			ep_temp &= ~NDS_MASK;
-		}
-		if(init_presentation->options & DPNI_DRV_INIT_PRESENTATION_OPT_SPO)
-		{
-			/* Clear SPO field */
-			ep_temp &= ~SPO_MASK;
-		}
-		ep_temp |= ep_spo;
-		/* write ep_spo - to set Entry Point Segment Presentation
-		 * Offset */
-		iowrite32_ccsr(ep_temp, &wrks_addr->ep_spo);
-	}
 	/*Unlock dpni table entry*/
 	cdma_mutex_lock_release((uint64_t)&dpni_drv->dpni_lock);
-	/*Mutex unlock EPID table*/
-	cdma_mutex_lock_release((uint64_t)&wrks_addr->epas);
-	return 0;
+	return err;
 }
