@@ -163,7 +163,7 @@ int dprc_drv_scan(void)
 	for(i = 0; i < dev_count; i++){
 		dprc_get_obj(&dprc->io, dprc->token, i, &dev_desc);
 		if (strcmp(dev_desc.type, "dpni") == 0) {
-			sl_pr_debug("DPNI %d found\n",dev_desc.id);
+			sl_pr_debug("DPNI %d found in the container\n",dev_desc.id);
 
 			err = dpni_drv_update_obj(dprc,
 			                          (uint16_t)dev_desc.id);

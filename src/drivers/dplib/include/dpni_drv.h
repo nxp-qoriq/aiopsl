@@ -223,18 +223,33 @@ int dpni_drv_get_ordering_mode(uint16_t ni_id);
 int dpni_drv_is_dpni_exist(uint16_t mc_niid);
 
 /**************************************************************************//**
-@Function	dpni_drv_valid_dpnis
+@Function	dpni_drv_update_obj
 
-@Description	Turn on a bit that represent an index of existing dpni in nis
-		table.
+@Description	Update NIS table regarding given mc dpni id and mark if this
+		object exist so the sync function wont remove it.
 
-@Param[out]	valid_dpnis - register to represent indexes for existing valid
-				dpnis.
+@Param[in]	dprc - A pointer for AIOP received container.
 
+@Param[in]	mc_niid - DPNI id of an object in the container.
+
+@Return		0 on success; error code, otherwise.
+		For error posix refer to
+		\ref error_g
 *//***************************************************************************/
-void dpni_drv_valid_dpnis(uint64_t *valid_dpnis);
-
 int dpni_drv_update_obj(struct mc_dprc *dprc, uint16_t mc_niid);
+
+/**************************************************************************//**
+@Function	dpni_drv_sync
+
+@Description	Update NIS table and remove the NI's which were not found
+		during the scan.
+
+@Param[in]	dprc - A pointer for AIOP received container.
+
+@Return		0 on success; error code, otherwise.
+		For error posix refer to
+		\ref error_g
+*//***************************************************************************/
 int dpni_drv_sync(struct mc_dprc *dprc);
 
 /** @} */ /* end of DPNI_DRV_STATUS group */
