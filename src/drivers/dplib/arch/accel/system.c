@@ -77,7 +77,6 @@ extern struct  ipr_global_parameters ipr_global_parameters1;
 
 /* Time module globals */
 extern struct aiop_cmgw_regs *time_cmgw_regs;
-extern _time_get_t *time_get_func_ptr;
 /* Storage profiles array */
 __PROFILE_SRAM struct storage_profile storage_profile[SP_NUM_OF_STORAGE_PROFILES];
 
@@ -185,17 +184,17 @@ int aiop_sl_init(void)
 	storage_profile[0].bpid3 = 0x0000;
 	storage_profile[0].pbs4 = 0x0000;
 	storage_profile[0].bpid4 = 0x0000;
-	
+
 	/* Storage Profile 1 - Reuse buffer mode */
 	storage_profile[1].ip_secific_sp_info = 0;
 	storage_profile[1].dl = 0;
 	storage_profile[1].reserved = 0;
-	
+
 	/* In reuse buffer mode (BS=1) the DHR field is treated
 	 * as a signed value of a data headroom correction and defines by
-	 * how many bytes an existing offset should be adjusted to make room 
+	 * how many bytes an existing offset should be adjusted to make room
 	 * for additional output data or any need to move the output ‘forward’ */
-	/* In this case, DHR is set to 0, 
+	/* In this case, DHR is set to 0,
 	 * to preserve the offset of the input frame */
 	storage_profile[1].dhr = 0;
 
