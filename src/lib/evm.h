@@ -38,10 +38,6 @@
 #include "types.h"
 
 
-#define EVM_SL_REGISTRATION_FLAG   0x00
-#define EVM_APP_REGISTRATION_FLAG  0x01
-#define EVM_APP_DEFINED_EVENT_FLAG 0x02
-
 enum evm_sl_event_types {
 	DPRC_EVENT = 0,
 	DPNI_EVENT,
@@ -49,12 +45,6 @@ enum evm_sl_event_types {
 	NUM_OF_SL_EVENTS
 };
 
-enum evm_objects {
-	DPRC = 0,
-	DPNI,
-	DPCI,
-	NUM_OF_EVM_OBJECTS
-};
 
 
 /**************************************************************************//**
@@ -64,7 +54,8 @@ enum evm_objects {
 		specific events.
 
 @Param[in]	event_id  Identifier of the event specific to the application
-		generating event. The value can range from 0 to 255.
+		generating event. The value can range from 0 to: NUM_OF_SL_EVENTS
+
 
 @Param[in]	priority  priority number of the callback function.
 		The lesser value is considered as higher priority. For example,
@@ -91,7 +82,7 @@ int evm_sl_register(uint8_t event_id,
 		listening for specific events.
 
 @Param[in]	event_id  Identifier of the event specific to the application
-		generating event. The value can range from 0 to 255.
+		generating event. The value can range from 0 to: NUM_OF_SL_EVENTS
 
 @Param[in]	priority  priority number of the callback function.
 		The lesser value is considered as higher priority. For example,

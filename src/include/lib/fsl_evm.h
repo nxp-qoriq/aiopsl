@@ -102,7 +102,7 @@ typedef int (*evm_cb)(	uint8_t event_id,
 		higher then the available events.
 
 @Param[in]	priority  priority number of the callback function.
-		This value ranges from MINIMUM_PRIORITY to MAXIMUM_PRIORITY.
+		This value ranges from 0 - 127.
 		The lesser value is considered as higher priority. For example,
 		a callback function registered with priority 10 will be invoked
 		before a callback function registered with priority 20.
@@ -131,7 +131,7 @@ int evm_register(
 		\ref EVM_EVENT_TYPES
 
 @Param[in]	priority  priority number of the callback function.
-		This value ranges from MINIMUM_PRIORITY to MAXIMUM_PRIORITY.
+		This value ranges from 0 - 127.
 		The lesser value is considered as higher priority. For example,
 		a callback function registered with priority 10 will be invoked
 		before a callback function registered with priority 20.
