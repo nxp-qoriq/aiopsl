@@ -51,31 +51,6 @@
 
 @{
 *//***************************************************************************/
-
-#if 0
-/**************************************************************************//**
-@Function	dprc_drv_add_obj
-
-@Description	Function to scan for changes add object to resource container.
-
-@Return	OK on success; error code, otherwise.
-		For error posix refer to
-		\ref error_g
-*//***************************************************************************/
-//int dprc_drv_add_obj(void);
-
-/**************************************************************************//**
-@Function	dprc_drv_remove_obj
-
-@Description	Function to scan for changes and remove object from resource
-		container.
-
-@Return	OK on success; error code, otherwise.
-		For error posix refer to
-		\ref error_g
-*//***************************************************************************/
-//int dprc_drv_remove_obj(void);
-#endif
 /**************************************************************************//**
 @Function	dprc_drv_scan
 

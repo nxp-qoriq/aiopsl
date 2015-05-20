@@ -187,19 +187,6 @@ int dpni_drv_is_dpni_exist(uint16_t mc_niid)
 		return i;
 }
 
-void dpni_drv_valid_dpnis(uint64_t *valid_dpnis)
-{
-	int i;
-	uint64_t dpni_index;
-	cdma_mutex_lock_take((uint64_t)nis, CDMA_MUTEX_WRITE_LOCK);
-	for(i = 0, dpni_index = 1; i < SOC_MAX_NUM_OF_DPNI;
-		i++, dpni_index = dpni_index << 1){
-		if(nis[i].dpni_id != DPNI_NOT_IN_USE){
-			*valid_dpnis |= dpni_index;
-		}
-	}
-	cdma_mutex_lock_release((uint64_t)nis);
-}
 int dpni_drv_update_obj(struct mc_dprc *dprc, uint16_t mc_niid)
 {
 	int err;
