@@ -30,7 +30,7 @@
 #include "common/types.h"
 #include "common/fsl_string.h"
 #include "fsl_soc.h"
-#include "fsl_mc_init.h"
+#include "fsl_dprc_drv.h"
 #include "fsl_dprc.h"
 #include "aiop_common.h"
 #include "sys.h"

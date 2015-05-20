@@ -32,6 +32,7 @@
 #include "fsl_general.h"
 #include "fsl_cdma.h"
 #include "fsl_l2.h"
+#include "fsl_evm.h"
 
 #include "aiop_verification.h"
 #include "fsl_slab.h"
@@ -42,7 +43,7 @@ int app_init(void);
 void app_free(void);
 
 
-static void app_process_packet_flow0 (dpni_drv_app_arg_t arg)
+static void app_process_packet_flow0 (void)
 {
 	int      err = 0;
 	int local_test_error = 0;
@@ -54,8 +55,6 @@ static void app_process_packet_flow0 (dpni_drv_app_arg_t arg)
 	uint32_t dst_addr = 0;// ipv4 dst_addr - will store original destination address
 	uint8_t local_hw_addr[NET_HDR_FLD_ETH_ADDR_SIZE];
 	struct ipv4hdr *ipv4header;
-	
-	UNUSED(arg);
 
 	if (PARSER_IS_OUTER_IPV4_DEFAULT())
 	{
@@ -115,37 +114,58 @@ static void app_process_packet_flow0 (dpni_drv_app_arg_t arg)
 		fsl_os_print("Finished SUCCESSFULLY\n");
 	else
 		fsl_os_print("Finished with ERRORS\n");
-	
+
 	fdma_terminate_task();
 }
 
 
 int app_early_init(void){
-	
+
 	int err;
-	
+
 	/* exists in aiop_sl_early_init */
 	err = ipr_early_init(3, 750);
 	return err;
 }
 
+static int app_config_dpni_cb(uint8_t event_id,
+			uint64_t app_ctx,
+			void *event_data)
+{
+	uint16_t ni = *(uint16_t*)event_data;
+	int err;
+	pr_info("Event received for dpni %d\n",ni);
+	if(event_id == DPNI_EVENT_ADDED){
+		err = dpni_drv_register_rx_cb(ni/*ni_id*/,
+		                              (rx_cb_t *)app_ctx);
+		if (err){
+			pr_err("dpni_drv_register_rx_cb for ni %d failed: %d\n", ni, err);
+			return err;
+		}
+	}
+	else{
+		pr_err("Event %d not supported\n", event_id);
+	}
+	return 0;
+
+}
+
+
 int app_init(void)
 {
 	int        err  = 0;
-	uint16_t   ni;
-	
+
 	fsl_os_print("Running app_init()\n");
 
-	for (ni = 0; ni < dpni_drv_get_num_of_nis(); ni++)
-	{
-	     /* Every ni will have 1 flow */
-	     err = dpni_drv_register_rx_cb((uint16_t)ni/*ni_id*/,
-				 aiop_verification_fm/* callback for flow_id*/);
-	     if (err) return err;
+	err = evm_register(DPNI_EVENT_ADDED, 1,(uint64_t) aiop_verification_fm, app_config_dpni_cb);
+	if (err){
+		pr_err("EVM registration for DPNI_EVENT_ADDED failed: %d\n", err);
+		return err;
 	}
 
+
 	fsl_os_print("To start test inject packets: \"eth_ipv4_udp.pcap\"\n");
-	
+
 	return 0;
 }
 

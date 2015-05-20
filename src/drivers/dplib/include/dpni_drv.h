@@ -87,8 +87,6 @@
 #define	DPNI_DRV_MTU_ERR	(DPNI_DRV_MODULE_STATUS_ID | 0x1)
 /* @} */
 
-typedef uint64_t	dpni_drv_app_arg_t;
-
 /* TODO: need to define stats */
 struct dpni_stats {
 	int num_pkts;

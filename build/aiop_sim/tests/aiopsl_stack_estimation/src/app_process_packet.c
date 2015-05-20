@@ -48,7 +48,7 @@ extern void cmdif_srv_isr(void);
 extern void cmdif_cl_isr(void);
 extern void receive_cb(void);
 
-__declspec(entry_point) static void app_process_packet_flow0 (void)
+__HOT_CODE ENTRY_POINT static void app_process_packet(void)
 {
 	/*Function used for stack estimation to sl routines*/
 	stack_estimation();
@@ -73,7 +73,6 @@ void stack_estimation(void)
 	uint8_t mac_addr[NET_HDR_FLD_ETH_ADDR_SIZE] = {0};
 	int state = 0;
 	rx_cb_t *cb = 0;
-	dpni_drv_app_arg_t arg = 0;
 	uint64_t shbp = 0;
 
 	/*sl_prolog must be called first when packet arrives*/
@@ -157,18 +156,7 @@ void stack_estimation(void)
 
 int app_init(void)
 {
-	int        err  = 0;
-
 	fsl_os_print("Running app_init()\n");
-
-	err = dpni_drv_register_rx_cb(1,
-				      app_process_packet_flow0);
-	if (err)
-		return err;
-
-
-	fsl_os_print("To start test inject packets: \"eth_ipv4_udp.pcap\"\n");
-
 	return 0;
 }
 

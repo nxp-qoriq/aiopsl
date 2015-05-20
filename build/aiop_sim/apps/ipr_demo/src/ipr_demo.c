@@ -42,6 +42,7 @@
 #include "fsl_tman.h"
 #include "fsl_slab.h"
 #include "fsl_malloc.h"
+#include "fsl_evm.h"
 
 int app_early_init(void);
 int app_init(void);
@@ -60,7 +61,7 @@ void ipr_timout_cb(ipr_timeout_arg_t arg,
 /* Global IPR var in Shared RAM */
 ipr_instance_handle_t ipr_instance_val;
 
-__declspec(entry_point) static void app_process_packet_flow0 (void)
+__HOT_CODE ENTRY_POINT static void app_process_packet(void)
 {
 	const uint16_t ipv4hdr_length = sizeof(struct ipv4hdr);
 	uint16_t ipv4hdr_offset = 0;
@@ -78,7 +79,7 @@ __declspec(entry_point) static void app_process_packet_flow0 (void)
 	err = sl_prolog();
 	if (err)
 		fsl_os_print("ERROR = %d: sl_prolog()\n",err);
-		
+
 	if (PARSER_IS_OUTER_IPV4_DEFAULT())
 	{
 		fsl_os_print
@@ -176,7 +177,7 @@ __declspec(entry_point) static void app_process_packet_flow0 (void)
 			fsl_os_print("ERROR = %x: reassembled frame length error!\n", fd_length);
 			local_test_error |= 1;
 		}
-		
+
 /*
 		fsl_os_print("LDPAA_FD_GET_ADDRL = %x\n", (uint32_t)(LDPAA_FD_GET_ADDR(HWC_FD_ADDRESS)));
 		fsl_os_print("LDPAA_FD_GET_ADDRH = %x\n", (uint32_t)(LDPAA_FD_GET_ADDR(HWC_FD_ADDRESS)>>32));
@@ -184,9 +185,9 @@ __declspec(entry_point) static void app_process_packet_flow0 (void)
 		fsl_os_print("LDPAA_FD_GET_BPID = %x\n", LDPAA_FD_GET_BPID(HWC_FD_ADDRESS));
 		fsl_os_print("LDPAA_FD_GET_OFFSET = %x\n", LDPAA_FD_GET_OFFSET(HWC_FD_ADDRESS));
 */
-		
+
 		err = dpni_drv_send(dpni_get_receive_niid());
-						
+
 		if (err){
 			fsl_os_print("ERROR = %d: dpni_drv_send()\n",err);
 			local_test_error |= err;
@@ -222,9 +223,41 @@ static void epid_setup()
 }
 #endif /* AIOP_STANDALONE */
 
+
+static int app_config_dpni_cb(uint8_t event_id,
+			uint64_t app_ctx,
+			void *event_data)
+{
+	uint16_t ni = *(uint16_t*)event_data;
+	uint16_t    mfl = 0x2000; /* Maximum Frame Length */
+	int err;
+	pr_info("Event received for dpni %d\n",ni);
+	if(event_id == DPNI_EVENT_ADDED){
+		err = dpni_drv_register_rx_cb(ni/*ni_id*/,
+		                              (rx_cb_t *)app_ctx);
+		if (err){
+			pr_err("dpni_drv_register_rx_cb for ni %d failed: %d\n", ni, err);
+			return err;
+		}
+		err = dpni_drv_set_max_frame_length(ni/*ni_id*/,
+		                                    mfl /* Max frame length*/);
+		if (err){
+			pr_err("dpni_drv_set_max_frame_length for ni %d failed: %d\n", ni, err);
+			return err;
+		}
+	}
+	else{
+		pr_err("Event %d not supported\n", event_id);
+	}
+	return 0;
+
+}
+
+
+
 int app_early_init(void){
 	int err;
-	
+
 	err = ipr_early_init(1, 100);
 	return err;
 }
@@ -274,15 +307,11 @@ int app_init(void)
 	epid_setup();
 #endif /* AIOP_STANDALONE */
 
-	err = dpni_drv_register_rx_cb(1,
-				      app_process_packet_flow0);
-
-	if (err)
+	err = evm_register(DPNI_EVENT_ADDED, 1,(uint64_t) app_process_packet, app_config_dpni_cb);
+	if (err){
+		pr_err("EVM registration for DPNI_EVENT_ADDED failed: %d\n", err);
 		return err;
-	
-	err = dpni_drv_set_max_frame_length(1/*ni_id*/,
-	                        0x2000 /* Max frame length*/);
-	if (err) return err;
+	}
 
 	/* inject frag1.pcap till frag4.pcap */
 	fsl_os_print("To start test inject packets: \"frag.pcap\" after AIOP boot complete.\n");
