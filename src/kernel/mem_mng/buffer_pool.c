@@ -6,20 +6,47 @@
 #include "fsl_sl_dbg.h"
 
 
+/* Put all function (execution code) into  dtext_vle section , aka __COLD_CODE */
+__START_COLD_CODE
 
 const uint32_t STACK_ENTRY_BYTE_SIZE = 8;
 
+static uint32_t compute_block_size(const uint16_t        buff_size,
+                                         const uint16_t     buff_alignment);
 
-__COLD_CODE int buffer_pool_create(struct buffer_pool *p_bf_pool,
+static uint32_t compute_block_size(const uint16_t        buff_size,
+                                         const uint16_t  buff_alignment)
+{
+	uint32_t  block_size = buff_size;
+	if(block_size < buff_alignment)
+	    block_size = buff_alignment;
+	else{
+		if(buff_size%buff_alignment)
+			block_size += buff_alignment - buff_size%buff_alignment;
+	}
+	return block_size;
+}
+
+uint32_t compute_num_buffers(const uint32_t  total_mem_size,
+	                        const uint16_t  buff_size,
+                                const uint16_t  buff_alignment)
+{
+    uint32_t block_size = compute_block_size(buff_size,buff_alignment);
+    return (total_mem_size - buff_alignment)/block_size;
+}
+
+int buffer_pool_create(struct buffer_pool *p_bf_pool,
                       const uint32_t        bf_pool_id,
                       const uint32_t        num_buffs,
                       const uint16_t        buff_size,
+                      const uint16_t        buff_alignment,
                       void 	    	    *h_boot_mem_mng)
 {
 	int rc = 0;
 	uint64_t phys_addr = 0;
 	uint64_t curr_buffer_addr = 0;
 	uint64_t *curr_buff_stack = NULL;
+	uint32_t aligned_buffer_size = 0;
 	struct icontext ic = {0};
 	//struct buffer_pool *p_bf_pool = NULL;
 	ASSERT_COND_LIGHT(h_boot_mem_mng);
@@ -38,13 +65,15 @@ __COLD_CODE int buffer_pool_create(struct buffer_pool *p_bf_pool,
 		return -ENOMEM;
 	}
 	p_bf_pool->buffers_stack_addr = phys_addr;
+	aligned_buffer_size = compute_block_size(buff_size,buff_alignment);
 	/* Allocate blocks */
-	rc =  boot_get_mem(boot_mem_mng,num_buffs*buff_size,&phys_addr);
+	rc =  boot_get_mem(boot_mem_mng,num_buffs*aligned_buffer_size,&phys_addr);
 	if(rc){
 		pr_err("Memory allocation failed in buffer_pool_create, "
 			"bf_pool_id %d\n",bf_pool_id);
 		return -ENOMEM;
 	}
+	phys_addr= ALIGN_UP(phys_addr,buff_alignment);
 	p_bf_pool->p_buffers_addr = phys_addr;
 	curr_buffer_addr = p_bf_pool->p_buffers_addr;
 	/* initialize pointers to buffers */
@@ -55,12 +84,12 @@ __COLD_CODE int buffer_pool_create(struct buffer_pool *p_bf_pool,
 				   &curr_buffer_addr,
 				   p_bf_pool->buffers_stack_addr+i*STACK_ENTRY_BYTE_SIZE);
 		/*p_bf_pool->p_buffers_stack[i] = curr_buffer_addr;*/
-		curr_buffer_addr += buff_size;
+		curr_buffer_addr += aligned_buffer_size;
 	}
 	return 0;
 }
 
-__COLD_CODE int get_buff(struct buffer_pool *bf_pool, uint64_t* buffer_addr)
+int get_buff(struct buffer_pool *bf_pool, uint64_t* buffer_addr)
 {
 	struct icontext ic = {0};
 #ifdef DEBUG
@@ -98,7 +127,7 @@ __COLD_CODE int get_buff(struct buffer_pool *bf_pool, uint64_t* buffer_addr)
 	return 0;
 }
 
-__COLD_CODE int put_buff(struct buffer_pool  *bf_pool, uint64_t buffer_addr)
+int put_buff(struct buffer_pool  *bf_pool, uint64_t buffer_addr)
 {
 	struct icontext ic = {0};
 	ASSERT_COND(bf_pool);
@@ -125,3 +154,5 @@ __COLD_CODE int put_buff(struct buffer_pool  *bf_pool, uint64_t buffer_addr)
 	cdma_mutex_lock_release(bf_pool->p_buffers_addr);
 	return -ENOSPC;
 }
+
+__END_COLD_CODE

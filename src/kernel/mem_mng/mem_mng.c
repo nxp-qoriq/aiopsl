@@ -209,6 +209,7 @@ fsl_handle_t mem_mng_init(fsl_handle_t h_boot_mem_mng,
     uint32_t      mem_mng_addr = 0;
     int rc = 0, i, array_size = 0;
     uint32_t slob_blocks_num = 0;
+    uint16_t alignment = 0;
 
 
 
@@ -229,9 +230,11 @@ fsl_handle_t mem_mng_init(fsl_handle_t h_boot_mem_mng,
     p_mem_mng->lock    = p_mem_mng_param->lock;
     p_mem_mng->h_boot_mem_mng = h_boot_mem_mng;
 
-    slob_blocks_num = g_buffer_pool_size/sizeof(t_slob_block);
+    NEXT_POWER_OF_2(sizeof(t_slob_block),alignment);
+    slob_blocks_num = compute_num_buffers(g_buffer_pool_size,sizeof(t_slob_block),alignment);
+
     rc = buffer_pool_create(&p_mem_mng->slob_bf_pool,E_BFT_SLOB_BLOCK,slob_blocks_num,
-                            sizeof(t_slob_block),h_boot_mem_mng);
+                            sizeof(t_slob_block),alignment,h_boot_mem_mng);
     if(rc)
     {
 	    pr_err("MAJOR mem.manager memory allocation failed slob free blocks\n");

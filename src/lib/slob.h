@@ -60,7 +60,7 @@ typedef struct t_mem_block {
 /* t_FreeBlock data structure defines parameters of the Free Block */
 typedef struct t_slob_block
 {
-    struct t_slob_block *p_next;     /* Pointer to the next free block */
+    //struct t_slob_block *p_next;     /* Pointer to the next free block */
 
     uint64_t  base;                 /* Base address of the block */
     uint64_t  end;                  /* End address of the block */
@@ -68,29 +68,11 @@ typedef struct t_slob_block
 } t_slob_block;
 
 
-/* t_BusyBlock data structure defines parameters of the Busy Block  */
-#if 0
-typedef struct t_busy_block
-{
-    struct t_busy_block *p_next;         /* Pointer to the next free block */
-
-    uint64_t    base;                   /* Base address of the block */
-    uint64_t    end;                    /* End address of the block */
-    char        name[MM_MAX_NAME_LEN];  /* That block of memory was allocated for
-                                           something specified by the Name */
-} t_busy_block;
-#endif
 
 
 /* t_MM data structure defines parameters of the MM object */
 typedef struct t_MM
 {
-#ifdef AIOP
-    uint8_t          *lock;
-#else
-     struct spinlock    lock;
-#endif
-
     t_mem_block      *mem_blocks;     /* List of memory blocks (Memory list) */
     //t_slob_block     *busy_blocks;    /* List of busy blocks (Busy list) */
     uint64_t         head_busy_blocks_addr;

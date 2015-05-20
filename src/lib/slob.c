@@ -41,10 +41,7 @@
 
 
 
-/* Array of spinlocks should reside in shared ram memory.
- * They are initialized to 0 (unlocked)  */
-static uint8_t g_slob_spinlock[PLATFORM_MAX_MEM_INFO_ENTRIES] = {0};
-static uint32_t g_spinlock_index = 0;
+
 
 /* Put all function (execution code) into  dtext_vle section , aka __COLD_CODE */
 __START_COLD_CODE
@@ -78,7 +75,6 @@ static  int create_busy_block(t_MM *p_MM,
                                uint64_t *block_addr)
 {
     int rc = -ENAVAIL;
-    //uint32_t virt_block_addr = 0;
     struct buffer_pool* slob_bf_pool = (struct buffer_pool*)(p_MM->h_slob_bf_pool);
     t_slob_block loc_slob_block = {0};
     rc = get_buff(slob_bf_pool,block_addr);
@@ -89,7 +85,6 @@ static  int create_busy_block(t_MM *p_MM,
     }
     loc_slob_block.base = base;
     loc_slob_block.end = base + size;
-    loc_slob_block.p_next = NULL;
     loc_slob_block.next_addr = 0;
 
     cdma_write(*block_addr,&loc_slob_block,sizeof(loc_slob_block));
@@ -164,7 +159,6 @@ static  int create_free_block(t_MM *p_MM,
     }
     loc_slob_block.base = base;
     loc_slob_block.end = base + size;
-    loc_slob_block.p_next = NULL;
     loc_slob_block.next_addr = 0;
     cdma_write(*block_addr,&loc_slob_block,sizeof(loc_slob_block));
     return 0;
@@ -735,7 +729,7 @@ static uint64_t slob_get_greater_alignment(t_MM *p_MM, const uint64_t size,
     hold_end = align_base + size;
 
     /* init a new busy block */
-    if ((rc = create_busy_block(p_MM,hold_base, size,/*&p_new_busy_b,*/&new_busy_addr)) != 0)
+    if ((rc = create_busy_block(p_MM,hold_base, size,&new_busy_addr)) != 0)
     {
 	cdma_mutex_lock_release((uint64_t)p_MM);
         return (uint64_t)(ILLEGAL_BASE);
@@ -788,16 +782,6 @@ int slob_init(fsl_handle_t *slob, const uint64_t base, const uint64_t size,
     p_MM = (t_MM*)curr_addrr;
     p_MM->h_mem_mng = h_mem_mng;
     p_MM->h_slob_bf_pool = h_slob_bf_pool;
-
-    ASSERT_COND(g_spinlock_index < PLATFORM_MAX_MEM_INFO_ENTRIES-1);
-    p_MM->lock = &g_slob_spinlock[g_spinlock_index++];
-
-    if (!p_MM->lock)
-    {
-        pr_err("Slob: memory allocation failed for slob spinlock\n");
-        return -ENOMEM;
-    }
-    *(p_MM->lock) = 0;
 
 
     /* Initializes counter of free memory to total size */
@@ -931,6 +915,7 @@ uint64_t slob_get(fsl_handle_t slob, const uint64_t size, uint64_t alignment, ch
     {
         return (slob_get_greater_alignment(p_MM, size, alignment, name));
     }
+
     cdma_mutex_lock_take((uint64_t)p_MM, CDMA_MUTEX_WRITE_LOCK);
 
     /* look for a block of the size greater or equal to the required size. */
@@ -955,8 +940,8 @@ uint64_t slob_get(fsl_handle_t slob, const uint64_t size, uint64_t alignment, ch
     hold_end = hold_base + size;
 
     /* init a new busy block */
-    if ((rc  = create_busy_block(p_MM,hold_base, size,/*&p_new_busy_b,*/
-                                          &new_busy_b_addr)) != 0)
+    if ((rc  = create_busy_block(p_MM,hold_base, size,
+                                 &new_busy_b_addr)) != 0)
     {
 	cdma_mutex_lock_release((uint64_t)p_MM);
         return (uint64_t)(ILLEGAL_BASE);
