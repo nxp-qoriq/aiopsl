@@ -1043,6 +1043,7 @@ static inline int cnstr_shdsc_ipsec_decap_des_aes_xcbc(uint32_t *descbuf,
  *     protocol-level shared descriptor.
  * @descbuf: pointer to buffer used for descriptor construction
  * @ps: if 36/40bit addressing is desired, this parameter must be true
+ * @swap: must be true when core endianness doesn't match SEC endianness
  * @pdb: pointer to the PDB to be used with this descriptor
  *       This structure will be copied inline to the descriptor under
  *       construction. No error checking will be made. Refer to the
@@ -1065,6 +1066,7 @@ static inline int cnstr_shdsc_ipsec_decap_des_aes_xcbc(uint32_t *descbuf,
  * Return: size of descriptor written in words or negative number on error
  */
 static inline int cnstr_shdsc_ipsec_new_encap(uint32_t *descbuf, bool ps,
+					      bool swap,
 					      struct ipsec_encap_pdb *pdb,
 					      uint8_t *opt_ip_hdr,
 					      struct alginfo *cipherdata,
@@ -1085,7 +1087,8 @@ static inline int cnstr_shdsc_ipsec_new_encap(uint32_t *descbuf, bool ps,
 	}
 
 	PROGRAM_CNTXT_INIT(p, descbuf, 0);
-	PROGRAM_SET_BSWAP(p);
+	if (swap)
+		PROGRAM_SET_BSWAP(p);
 	if (ps)
 		PROGRAM_SET_36BIT_ADDR(p);
 	phdr = SHR_HDR(p, SHR_SERIAL, hdr, 0);
@@ -1149,6 +1152,7 @@ static inline int cnstr_shdsc_ipsec_new_encap(uint32_t *descbuf, bool ps,
  *     shared descriptor.
  * @descbuf: pointer to buffer used for descriptor construction
  * @ps: if 36/40bit addressing is desired, this parameter must be true
+ * @swap: must be true when core endianness doesn't match SEC endianness
  * @pdb: pointer to the PDB to be used with this descriptor
  *       This structure will be copied inline to the descriptor under
  *       construction. No error checking will be made. Refer to the
@@ -1164,6 +1168,7 @@ static inline int cnstr_shdsc_ipsec_new_encap(uint32_t *descbuf, bool ps,
  * Return: size of descriptor written in words or negative number on error
  */
 static inline int cnstr_shdsc_ipsec_new_decap(uint32_t *descbuf, bool ps,
+					      bool swap,
 					      struct ipsec_decap_pdb *pdb,
 					      struct alginfo *cipherdata,
 					      struct alginfo *authdata)
@@ -1183,7 +1188,8 @@ static inline int cnstr_shdsc_ipsec_new_decap(uint32_t *descbuf, bool ps,
 	}
 
 	PROGRAM_CNTXT_INIT(p, descbuf, 0);
-	PROGRAM_SET_BSWAP(p);
+	if (swap)
+		PROGRAM_SET_BSWAP(p);
 	if (ps)
 		PROGRAM_SET_36BIT_ADDR(p);
 	phdr = SHR_HDR(p, SHR_SERIAL, hdr, 0);
@@ -1201,6 +1207,246 @@ static inline int cnstr_shdsc_ipsec_new_decap(uint32_t *descbuf, bool ps,
 		 (uint16_t)(cipherdata->algtype | authdata->algtype));
 	PATCH_JUMP(p, pkeyjmp, keyjmp);
 	PATCH_HDR(p, phdr, hdr);
+	return PROGRAM_FINALIZE(p);
+}
+
+/**
+ * cnstr_shdsc_authenc - authenc-like descriptor
+ * @descbuf: pointer to buffer used for descriptor construction
+ * @swap: if true, perform descriptor byte swapping on a 4-byte boundary
+ * @ps: if 36/40bit addressing is desired, this parameter must be true
+ * @cipherdata: ointer to block cipher transform definitions.
+ *              Valid algorithm values one of OP_ALG_ALGSEL_* {DES, 3DES, AES}
+ * @authdata: pointer to authentication transform definitions.
+ *            Valid algorithm values - one of OP_ALG_ALGSEL_* {MD5, SHA1,
+ *            SHA224, SHA256, SHA384, SHA512}
+ * Note: The key for authentication is supposed to be given as plain text.
+ * Note: There's no support for keys longer than the corresponding digest size,
+ *       according to the selected algorithm.
+ *
+ * @ivlen: length of the IV to be read from the input frame, before any data
+ *         to be processed
+ * @auth_only_len: length of the data to be authenticated-only (commonly IP
+ *                 header, IV, Sequence number and SPI)
+ * Note: Extended Sequence Number processing is NOT supported
+ *
+ * @trunc_len: the length of the ICV to be written to the output frame. If 0,
+ *             then the corresponding length of the digest, according to the
+ *             selected algorithm shall be used.
+ * @dir: Protocol direction, encapsulation or decapsulation (DIR_ENC/DIR_DEC)
+ *
+ * Note: Here's how the input frame needs to be formatted so that the processing
+ *       will be done correctly:
+ * For encapsulation:
+ *     Input:
+ * +----+----------------+---------------------------------------------+
+ * | IV | Auth-only data | Padded data to be authenticated & Encrypted |
+ * +----+----------------+---------------------------------------------+
+ *     Output:
+ * +--------------------------------------+
+ * | Authenticated & Encrypted data | ICV |
+ * +--------------------------------+-----+
+
+ * For decapsulation:
+ *     Input:
+ * +----+----------------+--------------------------------+-----+
+ * | IV | Auth-only data | Authenticated & Encrypted data | ICV |
+ * +----+----------------+--------------------------------+-----+
+ *     Output:
+ * +----+--------------------------+
+ * | Decrypted & authenticated data |
+ * +----+--------------------------+
+ *
+ * Note: This descriptor can use per-packet commands, encoded as below in the
+ *       DPOVRD register:
+ * 32    24    16               0
+ * +------+---------------------+
+ * | 0x80 | 0x00| auth_only_len |
+ * +------+---------------------+
+ *
+ * This mechanism is available only for SoCs having SEC ERA >= 3. In other
+ * words, this will not work for P4080TO2
+ *
+ * Note: The descriptor does not add any kind of padding to the input data,
+ *       so the upper layer needs to ensure that the data is padded properly,
+ *       according to the selected cipher. Failure to do so will result in
+ *       the descriptor failing with a data-size error.
+ *
+ * Return: size of descriptor written in words or negative number on error
+ */
+static inline int cnstr_shdsc_authenc(uint32_t *descbuf, bool swap, bool ps,
+				      struct alginfo *cipherdata,
+				      struct alginfo *authdata,
+				      uint16_t ivlen, uint16_t auth_only_len,
+				      uint8_t trunc_len, uint8_t dir)
+{
+	struct program prg;
+	struct program *p = &prg;
+	const bool is_aes_dec = (dir == DIR_DEC) &&
+				(cipherdata->algtype == OP_ALG_ALGSEL_AES);
+
+	LABEL(skip_patch_len);
+	LABEL(keyjmp);
+	LABEL(skipkeys);
+	LABEL(aonly_len_offset);
+	LABEL(out_skip_offset);
+	LABEL(patch_icv_off);
+	LABEL(skip_patch_icv_off);
+	REFERENCE(pskip_patch_len);
+	REFERENCE(pkeyjmp);
+	REFERENCE(pskipkeys);
+	REFERENCE(read_len);
+	REFERENCE(write_len);
+
+	PROGRAM_CNTXT_INIT(p, descbuf, 0);
+
+	if (swap)
+		PROGRAM_SET_BSWAP(p);
+	if (ps)
+		PROGRAM_SET_36BIT_ADDR(p);
+
+	/*
+	 * Since we currently assume that key length is equal to hash digest
+	 * size, it's ok to truncate keylen value.
+	 */
+	trunc_len = trunc_len && (trunc_len < authdata->keylen) ?
+			trunc_len : (uint8_t)authdata->keylen;
+
+	SHR_HDR(p, SHR_SERIAL, 1, SC);
+
+	/*
+	 * M0 will contain the value provided by the user when creating
+	 * the shared descriptor. If the user provided an override in
+	 * DPOVRD, then M0 will contain that value
+	 */
+	MATHB(p, MATH0, ADD, auth_only_len, MATH0, 4, IMMED2);
+
+	if (rta_sec_era >= RTA_SEC_ERA_3) {
+		/*
+		 * Check if the user wants to override the auth-only len
+		 */
+		MATHB(p, DPOVRD, ADD, 0x80000000, MATH2, 4, IMMED2);
+
+		/*
+		 * No need to patch the length of the auth-only data read if
+		 * the user did not override it
+		 */
+		pskip_patch_len = JUMP(p, skip_patch_len, LOCAL_JUMP, ALL_TRUE,
+				  MATH_N);
+
+		/* Get auth-only len in M0 */
+		MATHB(p, MATH2, AND, 0xFFFF, MATH0, 4, IMMED2);
+
+		/*
+		 * Since M0 is used in calculations, don't mangle it, copy
+		 * its content to M1 and use this for patching.
+		 */
+		MATHB(p, MATH0, ADD, MATH1, MATH1, 4, 0);
+
+		read_len = MOVE(p, DESCBUF, 0, MATH1, 0, 6, WAITCOMP | IMMED);
+		write_len = MOVE(p, MATH1, 0, DESCBUF, 0, 8, WAITCOMP | IMMED);
+
+		SET_LABEL(p, skip_patch_len);
+	}
+	/*
+	 * MATH0 contains the value in DPOVRD w/o the MSB, or the initial
+	 * value, as provided by the user at descriptor creation time
+	 */
+	if (dir == DIR_ENC)
+		MATHB(p, MATH0, ADD, ivlen, MATH0, 4, IMMED2);
+	else
+		MATHB(p, MATH0, ADD, ivlen + trunc_len, MATH0, 4, IMMED2);
+
+	pkeyjmp = JUMP(p, keyjmp, LOCAL_JUMP, ALL_TRUE, SHRD);
+
+	KEY(p, KEY2, authdata->key_enc_flags, authdata->key, authdata->keylen,
+	    INLINE_KEY(authdata));
+
+	/* Insert Key */
+	KEY(p, KEY1, cipherdata->key_enc_flags, cipherdata->key,
+	    cipherdata->keylen, INLINE_KEY(cipherdata));
+
+	/* Do operation */
+	ALG_OPERATION(p, authdata->algtype, OP_ALG_AAI_HMAC,
+		      OP_ALG_AS_INITFINAL,
+		      dir == DIR_ENC ? ICV_CHECK_DISABLE : ICV_CHECK_ENABLE,
+		      dir);
+
+	if (is_aes_dec)
+		ALG_OPERATION(p, OP_ALG_ALGSEL_AES, cipherdata->algmode,
+			      OP_ALG_AS_INITFINAL, ICV_CHECK_DISABLE, dir);
+	pskipkeys = JUMP(p, skipkeys, LOCAL_JUMP, ALL_TRUE, 0);
+
+	SET_LABEL(p, keyjmp);
+
+	ALG_OPERATION(p, authdata->algtype, OP_ALG_AAI_HMAC_PRECOMP,
+		      OP_ALG_AS_INITFINAL,
+		      dir == DIR_ENC ? ICV_CHECK_DISABLE : ICV_CHECK_ENABLE,
+		      dir);
+
+	if (is_aes_dec) {
+		ALG_OPERATION(p, OP_ALG_ALGSEL_AES, cipherdata->algmode |
+			      OP_ALG_AAI_DK, OP_ALG_AS_INITFINAL,
+			      ICV_CHECK_DISABLE, dir);
+		SET_LABEL(p, skipkeys);
+	} else {
+		SET_LABEL(p, skipkeys);
+		ALG_OPERATION(p, cipherdata->algtype, cipherdata->algmode,
+			      OP_ALG_AS_INITFINAL, ICV_CHECK_DISABLE, dir);
+	}
+
+	/*
+	 * Prepare the length of the data to be both encrypted/decrypted
+	 * and authenticated/checked
+	 */
+	MATHB(p, SEQINSZ, SUB, MATH0, VSEQINSZ, 4, 0);
+
+	MATHB(p, VSEQINSZ, SUB, MATH3, VSEQOUTSZ, 4, 0);
+
+	/* Prepare for writing the output frame */
+	SEQFIFOSTORE(p, MSG, 0, 0, VLF);
+
+	SET_LABEL(p, aonly_len_offset);
+
+	/* Read IV */
+	SEQLOAD(p, CONTEXT1, 0, ivlen, 0);
+
+	/*
+	 * Read data needed only for authentication. This is overwritten above
+	 * if the user requested it.
+	 */
+	SEQFIFOLOAD(p, MSG2, auth_only_len, 0);
+
+	if (dir == DIR_ENC) {
+		/*
+		 * Read input plaintext, encrypt and authenticate & write to
+		 * output
+		 */
+		SEQFIFOLOAD(p, MSGOUTSNOOP, 0, VLF | LAST1 | LAST2 | FLUSH1);
+
+		/* Finally, write the ICV */
+		SEQSTORE(p, CONTEXT2, 0, trunc_len, 0);
+	} else {
+		/*
+		 * Read input ciphertext, decrypt and authenticate & write to
+		 * output
+		 */
+		SEQFIFOLOAD(p, MSGINSNOOP, 0, VLF | LAST1 | LAST2 | FLUSH1);
+
+		/* Read the ICV to check */
+		SEQFIFOLOAD(p, ICV2, trunc_len, LAST2);
+	}
+
+	PATCH_JUMP(p, pkeyjmp, keyjmp);
+	PATCH_JUMP(p, pskipkeys, skipkeys);
+	PATCH_JUMP(p, pskipkeys, skipkeys);
+
+	if (rta_sec_era >= RTA_SEC_ERA_3) {
+		PATCH_JUMP(p, pskip_patch_len, skip_patch_len);
+		PATCH_MOVE(p, read_len, aonly_len_offset);
+		PATCH_MOVE(p, write_len, aonly_len_offset);
+	}
+
 	return PROGRAM_FINALIZE(p);
 }
 

@@ -410,9 +410,16 @@
 				@ingroup AIOPSL
 				@{
 			*/
-				/** @defgroup dpni_g	DPNI
+				/** @defgroup dpni_drv_g DPNI DRV
 					@ingroup grp_dplib_aiop
 				*/
+					/** @defgroup DPNI_DRV_LINK_OPT Link Options
+					@ingroup dpni_drv_g
+					*/
+					/** @defgroup DPNI_DRV_BUF_LAYOUT_OPT Buffer Layout modification options
+					@ingroup dpni_drv_g
+					*/
+				
 			/** @} */
 	
 	

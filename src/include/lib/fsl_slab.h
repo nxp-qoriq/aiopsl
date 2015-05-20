@@ -49,8 +49,8 @@
  *
  *
  *  +------------------+--------------------------------------+-----------+
- *  |  HW metadata     |             Data                     | Alignment |
- *  | 8 Bytes(align)   |             field                    | Padding   |
+ *  |  HW metadata     |             Data field               | Alignment |
+ *  |  8 Bytes         |             (align)                  | Padding   |
  *  +------------------+--------------------------------------+-----------+
  *  Alignment padding may exist in the end of the buffer.
  */
@@ -72,17 +72,17 @@ struct slab;
 @Description   Available debug information about every slab
 *//***************************************************************************/
 struct slab_debug_info {
-	/**< Maximal buffer size */
+	/** Maximal buffer size */
 	uint32_t buff_size;
-	/**< The number of available buffers */
+	/** The number of available buffers */
 	uint32_t committed_buffs;
-	/**< Maximal number of buffers inside this pool */
+	/** Maximal number of buffers inside this pool */
 	uint32_t max_buffs;
-	/**< HW pool ID */
+	/** HW pool ID */
 	uint16_t pool_id;
-	/**< Maximal alignment */
+	/** Maximal alignment */
 	uint16_t alignment;
-	/**< Memory partition */
+	/** Memory partition */
 	uint16_t mem_pid;
 };
 
@@ -111,10 +111,9 @@ typedef void (slab_release_cb_t)(uint64_t);
 @Param[in]	release_cb          Function to be called on release of buffer
 @Param[out]	slab                Handle to new pool is returned through here.
 
-@Cautions	The alignment starts from HW metadata of 8 bytes and must be
-		a power of 2.
-		Buffer size and alignment should match (not higher than)
-		the inputs that were pre-registered in:
+@Cautions	The alignment starts from data field and must be a power of 2.
+		Buffer size + 8 bytes HW metadata and alignment should match
+		(not higher than) the inputs that were pre-registered in:
 		slab_register_context_buffer_requirements() function.
 @Return		0        - on success,
 		-ENAVAIL - resource not available or not found,
@@ -195,7 +194,8 @@ inline void slab_refcount_incr(uint64_t buff){
 @Param[in]	buff - The buffer for which to decrement reference counter.
 
 @Return		0       - on success,
-		#SLAB_CDMA_REFCOUNT_DECREMENT_TO_ZERO - On success and the reference counter is 0.
+		#SLAB_CDMA_REFCOUNT_DECREMENT_TO_ZERO - On success and the
+		reference counter is 0.
 *//***************************************************************************/
 inline int slab_refcount_decr(uint64_t buff){
 	return cdma_refcount_decrement(buff);
@@ -224,7 +224,8 @@ int slab_debug_info_get(struct slab *slab, struct slab_debug_info *slab_info);
 @Param[in]	committed_buffs     Number of buffers needed for the app.
 @Param[in]	max_buffs           Maximal number of buffers that
 		can be allocated by the app; max_buffs >= committed_buffs;
-@Param[in]	buff_size           Size of buffers in pool.
+@Param[in]	buff_size           Size of buffers in pool, actual buffer size
+		will be 8 bytes larger, to accommodate for metadata.
 @Param[in]	alignment           Requested alignment for buffer in bytes.
 @Param[in]	mem_pid             Memory partition ID for allocation.
 		AIOP: HW pool supports only PEB and DPAA DDR.
@@ -236,8 +237,7 @@ int slab_debug_info_get(struct slab *slab, struct slab_debug_info *slab_info);
 		Buffer size must be higher than 0.
 		Max alignment supported 32768 Byte (minimum is 0).
 		0 <= Alignment <= Buffer size + Meta data.
-		The alignment starts from HW metadata of 8 bytes and must be
-		a power of 2.
+		The alignment starts from data field and must be a power of 2.
 @Return		0        - on success,
 		-ENAVAIL - resource not available or not found,
 		-ENOMEM  - not enough memory for requested memory partition

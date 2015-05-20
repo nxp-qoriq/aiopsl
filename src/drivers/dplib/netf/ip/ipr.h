@@ -280,17 +280,20 @@ int ipr_init(void);
 
 uint32_t ipr_insert_to_link_list(struct ipr_rfdc *rfdc_ptr,
 				 uint64_t rfdc_ext_addr,
-				 struct ipr_instance instance_params,
+				 struct ipr_instance *instance_params,
 				 void *iphdr_ptr,
 				 uint32_t frame_is_ipv4);
+
+void ipv6_rule_delete(uint64_t rfdc_ext_addr,
+		      struct ipr_instance *instance_params_ptr);
 
 int ipr_lookup(uint32_t frame_is_ipv4,
 	       struct ipr_instance *instance_params_ptr,
 	       uint64_t *rfdc_ext_addr_ptr);
 
 int ipr_miss_handling(struct ipr_instance *instance_params_ptr,
-	  uint32_t frame_is_ipv4, uint32_t osm_status, struct ipr_rfdc *rfdc_ptr,
-	  ipr_instance_handle_t instance_handle, uint64_t *rfdc_ext_addr_ptr);
+	 uint32_t frame_is_ipv4, uint32_t osm_status, struct ipr_rfdc *rfdc_ptr,
+	 ipr_instance_handle_t instance_handle, uint64_t *rfdc_ext_addr_ptr);
 
 
 uint32_t closing_in_order(uint64_t rfdc_ext_addr, uint8_t num_of_frags);

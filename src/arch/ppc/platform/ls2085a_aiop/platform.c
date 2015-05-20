@@ -49,12 +49,12 @@ typedef struct t_platform {
 	/* Copy of platform parameters */
 	struct platform_param   param;
 
-	/* Platform-owned module handles */
-	fsl_handle_t            h_part;
-
 	/* Memory-related variables */
 	int                     num_of_mem_parts;
 	int                     registered_partitions[PLATFORM_MAX_MEM_INFO_ENTRIES];
+
+	/* Platform clock in KHz */
+	uint32_t                platform_clk;
 
 	/* Console-related variables */
 	fsl_handle_t            uart;
@@ -630,6 +630,12 @@ __COLD_CODE int platform_init(struct platform_param    *pltfrm_param,
 	}
 	s_pltfrm.num_of_mem_parts = i;
 
+	/* Read clocks :
+	 * s_pltfrm.platform_clk == 0 will not happen on SIMULATOR
+	 * because the clock comes from MC
+	 * */
+	s_pltfrm.platform_clk = g_init_data.sl_info.platform_clk;
+
 	/* Store AIOP-peripherals base (for convenience) */
 	s_pltfrm.aiop_base = AIOP_PERIPHERALS_OFF;
 	/* Initialize platform operations structure */
@@ -674,7 +680,7 @@ __COLD_CODE int platform_free(fsl_handle_t h_platform)
 }
 
 /*****************************************************************************/
-uint32_t platform_get_system_bus_clk(fsl_handle_t h_platform)
+uint32_t platform_get_clk(fsl_handle_t h_platform)
 {
 	t_platform  *pltfrm = (t_platform *)h_platform;
 	if(!pltfrm) {
@@ -682,7 +688,7 @@ uint32_t platform_get_system_bus_clk(fsl_handle_t h_platform)
 		return 0;
 	}
 
-	return (pltfrm->param.clock_in_freq_khz);
+	return (pltfrm->platform_clk);
 }
 
 
@@ -723,7 +729,7 @@ __COLD_CODE int platform_enable_console(fsl_handle_t h_platform)
 	duart_uart_param.irq                = NO_IRQ;
 	duart_uart_param.base_address       = pltfrm->ccsr_base + uart_port_offset[ pltfrm->param.console_id];
 	/* Each UART is clocked by the platform clock/2 */
-	duart_uart_param.system_clock_mhz   = (platform_get_system_bus_clk(pltfrm) / 1000 /*convert to MHz*/) / 2;
+	duart_uart_param.system_clock_mhz   = (platform_get_clk(pltfrm) / 1000 /*convert to MHz*/) / 2;
 	duart_uart_param.baud_rate          = 115200;
 	duart_uart_param.parity             = E_DUART_PARITY_NONE;
 	duart_uart_param.data_bits          = E_DUART_DATA_BITS_8;

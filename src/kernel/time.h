@@ -40,16 +40,14 @@
 #include "fsl_errors.h"
 #include "fsl_time.h"
 
-typedef int (_time_get_t)(uint64_t*);
-
 #define udiv1000(numerator) ((numerator * 0x83126e98ULL) >> 41);
 /** Macro to divide unsigned long numerator by 1000 */
 
 /**************************************************************************//**
-@Function      _get_time_fast
+@Function      _get_time_tman
 
-@Description   routine to receive time in milliseconds from CM-GW TS registers
-               (1588). (work if clock period defined as 1000)
+@Description   routine to receive time in milliseconds from tman registers
+               using time base passed from MC
 
 
 @Param[in]     time - on success: time is stored in the pointer as the number of
@@ -59,7 +57,7 @@ typedef int (_time_get_t)(uint64_t*);
  	 	 For error posix refer to
 		\ref error_g
 *//***************************************************************************/
-int _get_time_fast(uint64_t *time);
+int _get_time_tman(uint64_t *time);
 
 /**************************************************************************//**
 @Function      ulldiv1000

@@ -39,29 +39,55 @@
 #include "fsl_dbg.h"
 #include "cmgw.h"
 
+#define TIME_BASE_IS_UPDATING (0xffffffff)
+
 static struct aiop_cmgw_regs * cmgw_regs;
 
 uint8_t abcr_lock = 0;
 
 /******************************************************************************/
-void cmgw_init(void * cmgw_regs_base) 
+void cmgw_init(void * cmgw_regs_base)
 {
     ASSERT_COND(cmgw_regs_base);
-	
+
     cmgw_regs = cmgw_regs_base;
     abcr_lock = 0;
 }
 
+/******************************************************************************/
 void cmgw_report_boot_status(uint32_t st)
-{   
+{
     ASSERT_COND(cmgw_regs);
 
 	iowrite32_ccsr(st, &(cmgw_regs->acgpr[CMGW_ACGPR_BOOT_STATUS]));
 }
 
 /******************************************************************************/
+uint64_t cmgw_get_time_base()
+{
+	uint32_t tmr_base_h, tmr_base_l;
+	uint32_t tmr_base_h_2;
+	uint64_t tmr_base = 0;
+
+    ASSERT_COND(cmgw_regs);
+
+    tmr_base_h = ioread32_ccsr(&(cmgw_regs->mgpr[CMGW_ACGPR_TIME_BASE_HIGH]));
+    tmr_base_l = ioread32_ccsr(&(cmgw_regs->mgpr[CMGW_ACGPR_TIME_BASE_LOW]));
+    tmr_base_h_2 = ioread32_ccsr(&(cmgw_regs->mgpr[CMGW_ACGPR_TIME_BASE_HIGH]));
+
+    if(tmr_base_h == TIME_BASE_IS_UPDATING)
+	    return CMGW_TIME_BASE_NOT_VALID;
+    if(tmr_base_h != tmr_base_h_2)
+	    return CMGW_TIME_BASE_NOT_VALID;
+
+    tmr_base = (uint64_t)(((uint64_t)tmr_base_h << 32) | (uint64_t)tmr_base_l);
+
+	return tmr_base;
+}
+
+/******************************************************************************/
 void cmgw_report_boot_failure()
-{   
+{
     ASSERT_COND(cmgw_regs);
 
 	iowrite32_ccsr(0x1, &(cmgw_regs->acgpr[CMGW_ACGPR_BOOT_FAIL]));
@@ -73,7 +99,7 @@ void cmgw_update_core_boot_completion()
     uint32_t abcr_val;
 
     uint32_t* abcr = &(cmgw_regs->abcr);
-    
+
     /* Write AIOP boot status (ABCR) */
     lock_spinlock(&abcr_lock);
     abcr_val = ioread32_ccsr(abcr);

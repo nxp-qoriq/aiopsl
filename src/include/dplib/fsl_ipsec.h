@@ -124,6 +124,11 @@ typedef void (ipsec_lifetime_callback_t) (
  * In tunnel mode pad check is always done*/
 #define IPSEC_FLG_TRANSPORT_PAD_CHECK	0x00000002
 
+/** Reuse the input frame buffer.
+ * If this bit is set, the input frame buffer is used for the output frame. 
+ * Otherwise a new buffer is allocated and the input buffer is released. */
+#define IPSEC_FLG_BUFFER_REUSE	0x00000004
+
 /** NAT UDP Encapsulation enable. (IPv4 only) */
 #define IPSEC_ENC_OPTS_NAT_EN		0x00000010
 

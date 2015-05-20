@@ -313,13 +313,16 @@ __declspec(entry_point) static void app_process_packet_flow0 (void)
 			fsl_os_print("ARENA Test Finished with ERRORS\n");
 		}
 	}
+	if(local_test_error == 0){
+		fsl_os_print("Packet Processed SUCCESSFULLY\n");
+	}
 	/*MUST call fdma_terminate task in the end of cb function*/
 	fdma_terminate_task();
 }
 int app_early_init(void){
 	int err = 0;
-	err |= slab_register_context_buffer_requirements(200,250,200,64,MEM_PART_SYSTEM_DDR,0, 0);
-	err |= slab_register_context_buffer_requirements(200,250,200,64,MEM_PART_PEB,0, 0);
+	err |= slab_register_context_buffer_requirements(200,250,248,64,MEM_PART_SYSTEM_DDR,0, 0);
+	err |= slab_register_context_buffer_requirements(200,250,248,64,MEM_PART_PEB,0, 0);
 	err |= slab_register_context_buffer_requirements(200,250,504,64,MEM_PART_DP_DDR,0, 120);
 	if(err)
 		pr_err("slab_register_context_buffer_requirements failed: %d\n",err);

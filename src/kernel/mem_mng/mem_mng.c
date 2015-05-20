@@ -114,6 +114,7 @@ const uint32_t g_buffer_pool_size = 512*KILOBYTE;
 
 
 
+
 int boot_mem_mng_init(struct initial_mem_mng* boot_mem_mng,
                       const int mem_partition_id)
 {
@@ -230,6 +231,7 @@ fsl_handle_t mem_mng_init(fsl_handle_t h_boot_mem_mng,
     p_mem_mng->lock    = p_mem_mng_param->lock;
     p_mem_mng->h_boot_mem_mng = h_boot_mem_mng;
 
+
     NEXT_POWER_OF_2(sizeof(t_slob_block),alignment);
     slob_blocks_num = compute_num_buffers(g_buffer_pool_size,sizeof(t_slob_block),alignment);
 
@@ -240,35 +242,6 @@ fsl_handle_t mem_mng_init(fsl_handle_t h_boot_mem_mng,
 	    pr_err("MAJOR mem.manager memory allocation failed slob free blocks\n");
 	    return NULL;
     }
-#if 0
-    uint64_t buffer_addr = 0;
-    rc = -ENAVAIL;
-    rc = get_buff(&p_mem_mng->slob_bf_pool,&buffer_addr);
-    if(0 != rc)
-    {
-	    pr_err("MAJOR get_buff failed 1 \n");
-    }
-    pr_err("get_buff 1 allocated addr = 0x%x%08x\n",
-           (uint32_t)(buffer_addr >> 32),
-	   (uint32_t)(buffer_addr));
-    put_buff(&p_mem_mng->slob_bf_pool,buffer_addr);
-    rc = get_buff(&p_mem_mng->slob_bf_pool,&buffer_addr);
-    if(0 != rc)
-    {
-	    pr_err("MAJOR get_buff failed 1 \n");
-    }
-    pr_err("get_buff 2 allocated addr = 0x%x%08x\n",
-           (uint32_t)(buffer_addr >> 32),
-           (uint32_t)(buffer_addr));
-    rc = get_buff(&p_mem_mng->slob_bf_pool,&buffer_addr);
-    if(0 != rc)
-    {
-	    pr_err("MAJOR get_buff failed 1 \n");
-    }
-    pr_err("get_buff 3 allocated addr = 0x%x%08x\n",
-       (uint32_t)(buffer_addr >> 32),
-       (uint32_t)(buffer_addr));
-#endif
 
     p_mem_mng->mem_partitions_initialized = 0;
     /* Initialize internal partitions array */

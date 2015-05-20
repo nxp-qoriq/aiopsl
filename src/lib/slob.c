@@ -69,6 +69,7 @@ __START_COLD_CODE
  *      A pointer to new created structure returned on success;
  *      Otherwise, NULL.
  ****************************************************************/
+
 static  int create_busy_block(t_MM *p_MM,
                               const uint64_t base,
                               const uint64_t size,
@@ -182,7 +183,6 @@ static int insert_free_block(uint64_t *new_b_addr,t_MM *p_MM,
 		if ((rc  = create_free_block(p_MM,align_base, end-align_base,
 		                                  new_b_addr)) != 0)
 			return  -ENOMEM;
-
 		if (prev_b_addr)
 		{
 			cdma_read(&prev_b,prev_b_addr,sizeof(prev_b));
@@ -562,7 +562,9 @@ static void add_busy(t_MM *p_MM, const uint64_t new_busy_addr)
  *      0 on success, E_NOMEMORY otherwise.
  *
  ****************************************************************/
+
 #if 0
+
 static int cut_busy(t_MM *p_MM, const uint64_t base, const uint64_t end)
 {
     t_slob_block  *p_curr_b = NULL, *p_prev_b = NULL, *p_new_b = NULL,
@@ -625,6 +627,7 @@ static int cut_busy(t_MM *p_MM, const uint64_t base, const uint64_t end)
             {
                 if ( end < p_curr_b->end && end > p_curr_b->base )
                 {
+
                     if ((rc  = create_busy_block(p_MM,end,
                                                   p_curr_b->end-end,
                                                   &p_new_b,&new_b_addr)) != 0)
@@ -731,7 +734,7 @@ static uint64_t slob_get_greater_alignment(t_MM *p_MM, const uint64_t size,
     /* init a new busy block */
     if ((rc = create_busy_block(p_MM,hold_base, size,&new_busy_addr)) != 0)
     {
-	cdma_mutex_lock_release((uint64_t)p_MM);
+	    cdma_mutex_lock_release((uint64_t)p_MM);
         return (uint64_t)(ILLEGAL_BASE);
     }
 
@@ -832,6 +835,7 @@ void slob_free(fsl_handle_t slob)
     t_MM        *p_MM = (t_MM *)slob;
     t_slob_block busy_block = {0}, free_block = {0};
     uint64_t    busy_block_addr = 0, free_block_addr = 0, block_adr = 0;
+
     void        *p_block = NULL;
     int         i;
 
@@ -940,6 +944,7 @@ uint64_t slob_get(fsl_handle_t slob, const uint64_t size, uint64_t alignment, ch
     hold_end = hold_base + size;
 
     /* init a new busy block */
+
     if ((rc  = create_busy_block(p_MM,hold_base, size,
                                  &new_busy_b_addr)) != 0)
     {
@@ -965,10 +970,12 @@ uint64_t slob_get(fsl_handle_t slob, const uint64_t size, uint64_t alignment, ch
 
 /*****************************************************************************/
 #if 0
+
 uint64_t slob_get_force(fsl_handle_t slob, const uint64_t base, const uint64_t size, char* name)
 {
     t_MM        *p_MM = (t_MM *)slob;
     t_slob_block *p_free_b = NULL, *p_new_busy_b = NULL;
+
     uint64_t new_busy_b_addr = 0;
     int rc = -ENAVAIL;
     struct buffer_pool* slob_bf_pool = NULL;
@@ -1007,6 +1014,7 @@ uint64_t slob_get_force(fsl_handle_t slob, const uint64_t base, const uint64_t s
 
     /* init a new busy block */
     if ((rc = create_busy_block(p_MM,base, size,&p_new_busy_b,&new_busy_b_addr)) != 0)
+
     {
         //unlock_spinlock(p_MM->lock);
 	cdma_mutex_lock_release((uint64_t)p_MM);
@@ -1041,6 +1049,7 @@ uint64_t slob_get_force_min(fsl_handle_t slob,
 {
     t_MM        *p_MM = (t_MM *)slob;
     t_slob_block *p_free_b = NULL, *p_new_busy_b = NULL;
+
     uint64_t new_busy_b_addr = 0;
     int rc = -ENAVAIL;
     struct buffer_pool* slob_bf_pool = NULL;
@@ -1114,6 +1123,7 @@ uint64_t slob_get_force_min(fsl_handle_t slob,
     /* init a new busy block */
     if ((rc = create_busy_block(p_MM,hold_base, size,&p_new_busy_b,
                                           &new_busy_b_addr)) != 0)
+
     {
         //unlock_spinlock(p_MM->lock);
 	cdma_mutex_lock_release((uint64_t)p_MM);
@@ -1159,6 +1169,7 @@ uint64_t slob_put(fsl_handle_t slob, const uint64_t base)
      * That block will be returned back to the memory.
      */
     cdma_mutex_lock_take((uint64_t)p_MM, CDMA_MUTEX_WRITE_LOCK);
+
 
     busy_b_addr = p_MM->head_busy_blocks_addr;
     if(0 != busy_b_addr)
@@ -1245,6 +1256,7 @@ uint64_t slob_put_force(fsl_handle_t slob, const uint64_t base, const uint64_t s
 }
 
 /*****************************************************************************/
+
 
 int slob_add(fsl_handle_t slob, const uint64_t base, const uint64_t size)
 {
@@ -1387,5 +1399,6 @@ void slob_dump(fsl_handle_t slob)
         pr_debug("\n");
     }
 }
+
 
 __END_COLD_CODE

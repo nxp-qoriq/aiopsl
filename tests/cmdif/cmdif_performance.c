@@ -43,186 +43,103 @@
 #include "fsl_platform.h"
 #include "fsl_shbp.h"
 #include "fsl_spinlock.h"
-
-#define CMDIF_PERF_COUNT
 #include "cmdif_test_common.h"
+#include "apps.h"
+
+extern int dpci_scan_and_enable();
 
 #ifndef CMDIF_TEST_WITH_MC_SRV
 #warning "If you test with MC define CMDIF_TEST_WITH_MC_SRV inside cmdif.h\n"
 #warning "If you test with GPP undef CMDIF_TEST_WITH_MC_SRV and delete #error\n"
 #endif
-
-int app_init(void);
-void app_free(void);
-extern int gpp_sys_ddr_init();
-extern int gpp_ddr_check(struct icontext *ic, uint64_t iova, uint16_t size);
-
-
-#ifdef CMDIF_TEST_WITH_MC_SRV
-#define TEST_DPCI_ID    (void *)0 /* For MC use 0 */
-#else
-#define TEST_DPCI_ID    (void *)4 /* For GPP use 4 */
+#if (DEBUG_LEVEL > 0)
+#warning "Set DEBUG_LEVEL to 0 before testing "
 #endif
+#if (APP_INIT_TASKS_PER_CORE != 1)
+#warning "Set APP_INIT_TASKS_PER_CORE to 1 before testing "
+#endif
+
+#define TIMEOUT_IN_SECONDS	60
 
 struct cmdif_desc cidesc;
-uint64_t tman_addr;
-uint64_t lbp;
-uint64_t gpp_lbp;
-int32_t async_count = 0;
-
-static void aiop_ws_check()
-{
-	struct icontext ic;
-	uint16_t pl_icid = PL_ICID_GET;
-
-	icontext_aiop_get(&ic);
-	ASSERT_COND(ICID_GET(pl_icid) == ic.icid);
-
-	if (ic.bdi_flags) {
-		ASSERT_COND(BDI_GET);
-	}
-	if (ic.dma_flags & FDMA_DMA_PL_BIT) {
-		ASSERT_COND(PL_GET(pl_icid));
-	}
-	if (ic.dma_flags & FDMA_DMA_eVA_BIT) {
-		ASSERT_COND(VA_GET);
-	}
-	pr_debug("ICID in WS is 0x%x\n", ic.icid);
-}
-
-static int aiop_async_cb(void *async_ctx, int err, uint16_t cmd_id,
-             uint32_t size, void *data)
-{
-	UNUSED(cmd_id);
-	UNUSED(async_ctx);
-
-	aiop_ws_check();
-
-	pr_debug("ASYNC CB data 0x%x size = 0x%x\n", (uint32_t)data , size);
-	pr_debug("Default segment handle = 0x%x size = 0x%x\n",
-	             PRC_GET_SEGMENT_HANDLE(), PRC_GET_SEGMENT_LENGTH());
-	ASSERT_COND(PRC_GET_SEGMENT_HANDLE() == 0);
-	ASSERT_COND(PRC_GET_FRAME_HANDLE() == 0);
-
-	if (err != 0) {
-		pr_err("ERROR inside aiop_async_cb\n");
-	}
-	if ((size > 0) && (data != NULL)) {
-#ifdef CMDIF_TEST_WITH_MC_SRV
-		pr_debug("Setting first byte of data with val = 0x%x\n",
-		             AIOP_ASYNC_CB_DONE);
-		pr_debug("Default segment handle = 0x%x\n",
-		             PRC_GET_SEGMENT_HANDLE());
-		((uint8_t *)data)[0] = AIOP_ASYNC_CB_DONE;
-		pr_debug("Default segment handle = 0x%x\n",
-		             PRC_GET_SEGMENT_HANDLE());
-		fdma_modify_default_segment_data(0, (uint16_t)PRC_GET_SEGMENT_LENGTH());
-#endif
-	} else {
-		pr_debug("No data inside aiop_async_cb\n");
-	}
-	atomic_incr32(&async_count, 1);
-	pr_debug("PASSED AIOP ASYNC CB[%d] cmd_id = 0x%x\n",
-	         async_count, cmd_id);
-
-	return err;
-}
+/** Counters ***/
+int32_t cmd_count = 0;
+/** TMAN ***/
+uint8_t timer_on = 0;
+uint8_t tmi_id = 0;
+uint32_t timer_handle = 0;
+uint64_t tman_addr = 0;
+volatile uint8_t timer_deleted = 1;
+int app_init(void);
+void app_free(void);
 
 static int open_cb(uint8_t instance_id, void **dev)
 {
 	UNUSED(dev);
-	pr_debug("open_cb inst_id = 0x%x\n", instance_id);
+	fsl_os_print("open_cb inst_id = 0x%x\n", instance_id);
 	return 0;
 }
 
 static int close_cb(void *dev)
 {
 	UNUSED(dev);
-	pr_debug("close_cb\n");
+	fsl_os_print("close_cb\n");
 	return 0;
 }
 
-static int ctrl_cb(void *dev, uint16_t cmd, uint32_t size,
-                              void *data)
+__HOT_CODE static void tman_cb(uint64_t opaque1, uint16_t opaque2)
 {
-	int err = 0;
+	UNUSED(opaque1);
+	UNUSED(opaque2);
 
-	UNUSED(dev);
-	pr_debug("ctrl_cb cmd = 0x%x, size = %d, data 0x%x\n",
-	             cmd,
-	             size,
-	             (uint32_t)data);
-	/*
-	 * TODO add more test scenarios for AIOP server
-	 * 1. async response with error
-	 * 2. high low priority, high must be served before low
-	 * 3. verify data modified by server & client
-	 * TODO add more test scenarios for AIOP client
-	 * 1. verify data modified by server & client
-	 * */
-	return 0;
+	timer_on = 0;
+	fsl_os_print("TIMEOUT %d seconds, cmd_count = 0x%x \n", 
+	        TIMEOUT_IN_SECONDS, cmd_count);	
+	/* Confirmation for running the timer again */
+	tman_timer_completion_confirmation(timer_handle);
+	timer_deleted = 1;
 }
 
-static void verif_tman_cb(uint64_t opaque1, uint16_t opaque2)
-{
-	pr_debug("Inside verif_tman_cb \n");
-	ASSERT_COND(opaque1 == 0x12345);
-	ASSERT_COND(opaque2 == 0x1616);
-	pr_debug("PASSED verif_tman_cb \n");
-}
-
-#if (DEBUG_LEVEL > 0)
-#warning "Set DEBUG_LEVEL to 0 before testing "
-#endif
-
-int32_t cmd_count = 0;
-uint8_t timeout_done = 0;
-
-static void perf_tman_cb(uint64_t opaque1, uint16_t opaque2)
-{
-	timeout_done = 1;
-	fsl_os_print("TIMEOUT cmd_count = 0x%x \n", cmd_count);
-}
-
-static int ctrl_cb0(void *dev, uint16_t cmd, uint32_t size,
-                              void *data)
+__HOT_CODE static int ctrl_cb0(void *dev, uint16_t cmd, 
+                               uint32_t size, void *data)
 {
 	int err;
-	uint8_t tmi_id = 0;
-	uint32_t timer_handle = 0;
 
-	/* Don't count tman creation command */
-	if (cmd == TMAN_TEST) {
-		
-		fsl_os_print("Using TMAN\n");
+	UNUSED(dev);
+	UNUSED(cmd);
+	UNUSED(size);
+	UNUSED(data);
 
-		err = tman_create_tmi(tman_addr /* uint64_t tmi_mem_base_addr */,
-		                       10 /* max_num_of_timers */,
-		                       &tmi_id/* tmi_id */);
-		if (err) {
-			pr_err("TMAN tmi create err = %d\n", err);
-		}
-		
+	if (cmd == PERF_TEST_START) {
+		/*
+		 * The sequence for sending commands to AIOP should be
+		 * 1. Send low priority no response PERF_TEST_START command,
+		 * 2. Send high priority commands,
+		 * 3. TIMEOUT - print counter since PERF_TEST_START
+		 */
+		/* Wait for timer deletion */
+		do {} while(!timer_deleted);
+		timer_deleted = 0;
+		cmd_count     = 0;
 		fsl_os_print("Starting TMAN timer ..\n");
 		err = tman_create_timer(tmi_id/* tmi_id */,
 		                        TMAN_CREATE_TIMER_MODE_SEC_GRANULARITY | TMAN_CREATE_TIMER_ONE_SHOT /* flags */,
-		                        60/* duration */,
+		                        TIMEOUT_IN_SECONDS/* duration */,
 		                        tmi_id /* opaque_data1 */,
 		                        tmi_id /* opaque_data2 */,
-		                        perf_tman_cb /* tman_timer_cb */,
+		                        tman_cb /* tman_timer_cb */,
 		                        &timer_handle /* *timer_handle */);
+		timer_on = 1; /* Count tman creation command too */
 		if (err) {
 			pr_err("TMAN timer create err = %d\n", err);
 		}
-		
-		return 0;
 	}
-	
-	if (!timeout_done) {
+
+	if (timer_on) {
 		atomic_incr32(&cmd_count, 1);
 	}
-	
-	return 0;	
+
+	return 0;
 }
 
 
@@ -237,26 +154,33 @@ int app_init(void)
 
 	pr_debug("Running app_init()\n");
 
-	for (i = 0; i < 20; i++) {
-		ops.close_cb = close_cb;
-		ops.open_cb = open_cb;
-		if (i == 0)
-			ops.ctrl_cb = ctrl_cb0; /* TEST0 is used for srv tests*/
-		else
-			ops.ctrl_cb = ctrl_cb;
-		snprintf(module, sizeof(module), "TEST%d", i);
-		err = cmdif_register_module(module, &ops);
-		if (err) {
-			pr_err("FAILED cmdif_register_module %s\n!",
-			             module);
-			return err;
-		}
+	err = dpci_scan_and_enable();
+	ASSERT_COND(!err);
+
+	ops.close_cb = close_cb;
+	ops.open_cb = open_cb;
+	ops.ctrl_cb = ctrl_cb0; /* TEST0 is used for srv tests*/
+	snprintf(module, sizeof(module), "TEST%d", i);
+	err = cmdif_register_module(module, &ops);
+	if (err) {
+		pr_err("FAILED cmdif_register_module %s err = %d\n!",
+		       module, err);
+		return err;
+	}
+	fsl_os_print("Registered %s module\n", module);
+	err = fsl_os_get_mem(1024, MEM_PART_DP_DDR, 64, &tman_addr);
+	if (err || !tman_addr) {
+		pr_err("FAILED fsl_os_get_mem err = %d\n!", err);
+		return err;
 	}
 
-	err = fsl_os_get_mem(1024, MEM_PART_DP_DDR, 64, &tman_addr);
-	ASSERT_COND(!err && tman_addr);
+	fsl_os_print("Using TMAN\n");
+	err = tman_create_tmi(tman_addr, 10, &tmi_id);
+	if (err) {
+		pr_err("TMAN tmi create err = %d\n", err);
+		return err;
+	}
 
-	err = gpp_sys_ddr_init();
 	return err;
 }
 

@@ -69,10 +69,10 @@ typedef struct t_slob_block
 
 
 
-
 /* t_MM data structure defines parameters of the MM object */
 typedef struct t_MM
 {
+
     t_mem_block      *mem_blocks;     /* List of memory blocks (Memory list) */
     //t_slob_block     *busy_blocks;    /* List of busy blocks (Busy list) */
     uint64_t         head_busy_blocks_addr;

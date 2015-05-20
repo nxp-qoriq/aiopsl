@@ -25,17 +25,16 @@
  */
 
 /**************************************************************************//**
-@File		fsl_dpci_drv.h
+@File		fsl_dpci_event.h
 
-@Description	DPCI wrapper that is internally used by CMDIF
+@Description	DPCI wrapper that is internally used by Service Layer
 *//***************************************************************************/
 
-#ifndef __FSL_DPCI_DRV_H
-#define __FSL_DPCI_DRV_H
-
+#ifndef __FSL_DPCI_EVENT_H
+#define __FSL_DPCI_EVENT_H
 
 /**************************************************************************//**
-@Function	dpci_drv_added
+@Function	dpci_event_assign
 
 @Description	New DPCI was added to AIOP container or the state of 
 		the DPCI has changed. Updates the DPCI table. 
@@ -44,11 +43,11 @@
 
 @Return		0      - on success, POSIX error code otherwise
  *//***************************************************************************/
-int dpci_drv_added(uint32_t dpci_id);
+int dpci_event_assign(uint32_t dpci_id);
 
 
 /**************************************************************************//**
-@Function	dpci_drv_removed
+@Function	dpci_event_unassign
 
 @Description	The DPCI was removed from AIOP container or disconnected.
 		Updates the DPCI table. 
@@ -57,62 +56,34 @@ int dpci_drv_added(uint32_t dpci_id);
 
 @Return		0      - on success, POSIX error code otherwise
  *//***************************************************************************/
-int dpci_drv_removed(uint32_t dpci_id);
-
+int dpci_event_unassign(uint32_t dpci_id);
 
 /**************************************************************************//**
-@Function	dpci_drv_update
+@Function	dpci_event_update
 
 @Description	Updates the entry of DPCI table with the AMQ + BDI from ADC.
-  	  	Updates dpci_peer_id in the DPCI table.
-  	  	To be called only inside the open command and before 
-  	  	the AMQ bits are changed to AIOP AMQ bits  
+		To be called only inside the open command and before 
+		the AMQ bits are changed to AIOP AMQ bits  
 
-@Param[in]	dpci_ind - Use mc_dpci_find() or dpci_drv_user_ctx_get().
-
-@Return		0      - on success, POSIX error code otherwise
- *//***************************************************************************/
-int dpci_drv_update(uint32_t dpci_ind);
-
-/*
- * The dpci_id can be either AIOP dpci id or the peer id
- * tx_fqid - should be array for 2 fqids
- */
-
-/**************************************************************************//**
-@Function	dpci_drv_tx_get
-
-@Description	Get the tx fqids for DPCI.  
-
-@Param[in]	dpci_id - DPCI id of the AIOP side.
-@Param[out]	tx_fqid - Array for 2 fqids.
+@Param[in]	dpci_ind - Use dpci_mng_find() or dpci_mng_user_ctx_get().
 
 @Return		0      - on success, POSIX error code otherwise
  *//***************************************************************************/
-int dpci_drv_tx_get(uint32_t dpci_id, uint32_t *tx_fqid);
-
-
-/**************************************************************************//**
-@Function	dpci_drv_user_ctx_get
-
-@Description	Read the DPCI index and FQID from user context in ADC.
-
-@Param[out]	dpci_ind - Index to the DPCI table entry.
-@Param[out]	fqid - fqid for tx
- *//***************************************************************************/
-void dpci_drv_user_ctx_get(uint32_t *dpci_ind, uint32_t *fqid);
-
+int dpci_event_update(uint32_t dpci_ind);
 
 /**************************************************************************//**
-@Function	dpci_drv_icid_get
+@Function	dpci_event_link_change
 
-@Description	Read the ICID + AMQ + BDI from DPCI entry.
+@Description	Updates the entry of DPCI table with the dpci_peer_id and the 
+		tx queues.
+		Updates dpci_peer_id in the DPCI table.
+		To be called only inside the open command and before 
+		the AMQ bits are changed to AIOP AMQ bits  
 
-@Param[in]	dpci_ind - Index to the DPCI table entry.
-@Param[out]	icid - icid that belongs to this DPCI
-@Param[out]	amq_bdi - AMQ + BDI that belong to this DPCI
+@Param[in]	dpci_ind - Use dpci_mng_find() or dpci_mng_user_ctx_get().
+
+@Return		0      - on success, POSIX error code otherwise
  *//***************************************************************************/
-void dpci_drv_icid_get(uint32_t dpci_ind, uint16_t *icid, uint16_t *amq_bdi);
+int dpci_event_link_change(uint32_t dpci_id);
 
-
-#endif
+#endif /* __FSL_DPCI_EVENT_H */

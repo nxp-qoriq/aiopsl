@@ -80,6 +80,10 @@ extern const uint16_t TLS_SECTION_END_ADDR[];
 /* Address of start of SRAM section */
 extern const uint8_t _ssram_addr[];
 
+#ifndef REV2
+#define FDMA_OSM_LIMIT
+#endif
+
 /** @} */ /* end of AIOP_General_Macros */
 
 

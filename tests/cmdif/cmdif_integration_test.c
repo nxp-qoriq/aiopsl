@@ -54,6 +54,7 @@ int app_init(void);
 void app_free(void);
 extern int gpp_sys_ddr_init();
 extern int gpp_ddr_check(struct icontext *ic, uint64_t iova, uint16_t size);
+extern int dpci_scan_and_enable();
 
 
 #ifdef CMDIF_TEST_WITH_MC_SRV
@@ -330,10 +331,8 @@ static int ctrl_cb0(void *dev, uint16_t cmd, uint32_t size,
 		pr_debug("Isolation context test dpci %d bpid %d:\n", dpci_id, bpid);
 
 		err = icontext_get(dpci_id, &ic);
-#ifdef CMDIF_TEST_WITH_MC_SRV
-		ic.bdi_flags |= FDMA_ENF_BDI_BIT;
-#endif
 		ASSERT_COND(err == 0);
+
 		pr_debug("ICID %d:\n dma flags 0x%x \n bdi flags 0x%x \n",
 		         ic.icid,
 		         ic.dma_flags,
@@ -360,9 +359,7 @@ static int ctrl_cb0(void *dev, uint16_t cmd, uint32_t size,
 		}
 		/* Must be after icontext_get(&ic) */
 		icontext_cmd_get(&ic_cmd);
-#ifdef CMDIF_TEST_WITH_MC_SRV
-		ic_cmd.bdi_flags |= FDMA_ENF_BDI_BIT;
-#endif
+
 		ASSERT_COND(ic_cmd.icid != ICONTEXT_INVALID);
 		ASSERT_COND(ic_cmd.icid == ic.icid);
 		ASSERT_COND(ic_cmd.bdi_flags == ic.bdi_flags);
@@ -372,6 +369,7 @@ static int ctrl_cb0(void *dev, uint16_t cmd, uint32_t size,
 		icontext_aiop_get(&ic);
 		ASSERT_COND(ic.dma_flags);
 		ASSERT_COND(ic.bdi_flags);
+		ASSERT_COND(ic.icid != ic_cmd.icid);
 		pr_debug("AIOP ICID = 0x%x bdi flags = 0x%x\n", ic.icid, \
 		         ic.bdi_flags);
 		pr_debug("AIOP ICID = 0x%x dma flags = 0x%x\n", ic.icid, \
@@ -411,6 +409,9 @@ int app_init(void)
 
 	pr_debug("Running app_init()\n");
 
+	err = dpci_scan_and_enable();
+	ASSERT_COND(!err);
+	
 	for (i = 0; i < 20; i++) {
 		ops.close_cb = close_cb;
 		ops.open_cb = open_cb;

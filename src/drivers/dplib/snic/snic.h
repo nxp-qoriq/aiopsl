@@ -75,6 +75,10 @@
 /* Maximum number of IPsec SAs per nic */
 #define MAX_SA_NO               100
 
+/* ipsec_flags */
+#define SNIC_IPSEC_IPV4_ENABLE  0x01
+#define SNIC_IPSEC_IPV6_ENABLE  0x02
+
 /** @} */ /* end of SNIC_MACROS */
 
 /**************************************************************************//**
@@ -104,11 +108,14 @@ struct snic_params {
 	uint32_t valid;
 	/** Storage profile ID */
 	uint8_t spid;
-	uint8_t ipsec_key_size;
-	uint16_t ipsec_table_id;
-	uint8_t res;
-	uint8_t dec_ipsec_key_id;
-	uint16_t dec_ipsec_table_id;	
+	uint8_t ipsec_ipv4_key_size;
+	uint8_t ipsec_table_id;
+	uint8_t ipsec_ipv6_key_size;
+	uint8_t dec_ipsec_ipv4_key_id;
+	uint8_t dec_ipsec_ipv4_table_id;
+	uint8_t dec_ipsec_ipv6_table_id;
+	uint8_t dec_ipsec_ipv6_key_id;
+	uint8_t ipsec_flags;
 };
 
 /** @} */ /* end of SNIC_STRUCTS */
@@ -123,13 +130,17 @@ int snic_add_vlan(void);
 void snic_ipr_timout_cb(ipr_timeout_arg_t arg, uint32_t flags);
 void snic_ipr_confirm_delete_cb(ipr_del_arg_t arg);
 int snic_create_table_key_id(uint8_t fec_no, uint8_t fec_array[8], 
-				uint8_t key_size, uint32_t table_location,
+				uint8_t key_size,
 				uint32_t committed_sa_num, uint32_t max_sa_num,
 				uint8_t *key_id,
 				uint16_t *table_id);
 void snic_tman_confirm_cb(tman_arg_8B_t arg1, tman_arg_2B_t arg2);
 int snic_ipsec_decrypt(struct snic_params *snic);
 int snic_ipsec_encrypt(struct snic_params *snic);
+int snic_ipsec_create_instance(struct snic_cmd_data *cmd_data);
+int snic_ipsec_add_sa(struct snic_cmd_data *cmd_data);
+int snic_ipsec_del_sa(struct snic_cmd_data *cmd_data);
+int snic_ipsec_del_instance(struct snic_cmd_data *cmd_data);
 /** @} */ /* end of SNIC */
 
 

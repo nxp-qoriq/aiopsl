@@ -26,56 +26,39 @@
 
 #include "time.h"
 #include "aiop_common.h"
-#include "fsl_io_ccsr.h"
+//#include "fsl_io_ccsr.h"
 #include "fsl_sys.h"
 #include "fsl_dbg.h"
 #include "fsl_spinlock.h"
-
+#include "cmgw.h"
+#include "tman_inline.h"
 
 uint64_t time_epoch_to_midnight_ms __attribute__((aligned(8))) = 0; /*microseconds since epoch till midnight
 * This global variable should be double word aligned to support load as atomic command.
 */
 uint8_t time_to_midnight_lock = 0;
-_time_get_t *time_get_func_ptr;   /*initialized in time_init*/
-struct aiop_cmgw_regs *time_cmgw_regs;
-
-extern struct aiop_init_info g_init_data;
 
 int time_init(void);
 void time_free(void);
 
-int _get_time_fast(uint64_t *time)
+/*****************************************************************************/
+int _get_time_tman(uint64_t *time)
 {
-	uint32_t TEMP, TSCRU, TSCRL;
-	uint64_t temp_val;
-	register struct aiop_cmgw_regs *time_regs_cmgw = time_cmgw_regs;
-#ifdef DEBUG
-	if(time == NULL)
-		return -EACCES;
-	if(time_regs_cmgw == NULL)
-		return -ENAVAIL;
-#endif
+	uint64_t time_base = 0;
 
-	TEMP = ioread32_ccsr(&time_regs_cmgw->tscru);
-	TSCRL = ioread32_ccsr(&time_regs_cmgw->tscrl);
-	if ((TSCRU = ioread32_ccsr(&time_regs_cmgw->tscru)) > TEMP )
-		TSCRL = 0;
-	else if(TSCRU < TEMP) /*something wrong while reading*/
-		return -EACCES;
+	time_base = cmgw_get_time_base(); /* Timebase is in mSec */
 
-	TEMP = udiv1000(TSCRU);
-	TSCRU = TSCRU-(1000*TEMP); // remainder
-	temp_val = TEMP;
-	temp_val <<= 32;
-	TSCRU = (TSCRU << 16) | (TSCRL >> 16);
-	TEMP = udiv1000(TSCRU);
-	TSCRU = TSCRU - (1000 * TEMP); // remainder
-	temp_val |= ((uint64_t) TEMP) << 16;
-	TSCRU = (TSCRU << 16) | (TSCRL & 0xffff);
-	temp_val |= udiv1000(TSCRU);
+	if(time_base == CMGW_TIME_BASE_NOT_VALID)
+		return -EACCES; /* Something wrong while reading */
 
-	/*TODO: if time period set to different value then 1000 in MC, devision should be made*/
-	*time = temp_val;
+	if(time_base == 0)
+		return -ENODEV; /* Time-base is not yet configured by MC */
+
+	tman_get_timestamp(time);
+	*time = ulldiv1000(*time); /* Convert Tman value to mSec */
+
+	*time += time_base;
+
 	return 0;
 }
 
@@ -86,7 +69,7 @@ int fsl_get_time_ms(uint32_t *time)
 	uint64_t local_epoch_to_midnight;
 	int err;
 
-	err = (time_get_func_ptr)(&time_ms);
+	err = _get_time_tman(&time_ms);
 	if(err < 0)
 		return err;
 
@@ -110,33 +93,13 @@ int fsl_get_time_ms(uint32_t *time)
 /*****************************************************************************/
 int fsl_get_time_since_epoch_ms(uint64_t *time)
 {
-	return (time_get_func_ptr)(time);
-}
-
-/*****************************************************************************/
-uint32_t fsl_os_current_time(void)
-{
-	return 0;
+	return _get_time_tman(time);
 }
 
 /*****************************************************************************/
 __COLD_CODE int time_init(void)
 {
-	if(g_init_data.sl_info.clock_period == 1000)
-	{
-		struct aiop_tile_regs *aiop_regs = (struct aiop_tile_regs *)
-				       		       sys_get_handle(FSL_OS_MOD_AIOP_TILE, 1);
-		time_cmgw_regs = (struct aiop_cmgw_regs*) &aiop_regs->cmgw_regs;
-
-		time_get_func_ptr = _get_time_fast;
-		return 0;
-	}
-	else
-	{
-		time_get_func_ptr = NULL;
-		pr_err("Only fast path supported for time period 1000, time period: %d\n",g_init_data.sl_info.clock_period);
-		return -ENOTSUP;
-	}
+	return 0;
 }
 
 /*****************************************************************************/

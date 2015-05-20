@@ -89,7 +89,7 @@
 <listEntry value="Cortex-A57#8"/>
 <listEntry value="MC#0"/>
 <listEntry value="MC#1"/>
-<listEntry value="AIOP#2"/>
+<listEntry value="AIOP#0"/>
 </listAttribute>
 <listAttribute key="com.freescale.cdt.debug.cw.Debug"/>
 <booleanAttribute key="com.freescale.cdt.debug.cw.Embedded Download.ExecuteTasks" value="false"/>

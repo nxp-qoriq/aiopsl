@@ -1,6 +1,8 @@
 
 int parser_init(uint8_t *prpid);
+int simple_bu_lpm_test(void);
 int simple_bu_hagit_test(void);
+int simple_bu_parser_test(void);
 int simple_bu_gal_test(void);
 int simple_bu_ilan_test(void);
 int simple_bu_yariv_test(void);

@@ -42,6 +42,7 @@
 #define IC_TEST		0x106
 #define CLOSE_CMD	0x107
 #define TMAN_TEST	0x108
+#define PERF_TEST_START	(TMAN_TEST | CMDIF_NORESP_CMD)
 #define SHBP_TEST	0x109
 #define SHBP_TEST_GPP	0x110
 #define SHBP_TEST_AIOP	0x111
@@ -49,11 +50,6 @@
 #define AIOP_ASYNC_CB_DONE	5  /* Must be in sync with MC ELF */
 #define AIOP_SYNC_BUFF_SIZE	80 /* Must be in sync with MC ELF */
 
-//#define CMDIF_PERF_COUNT
-//#define CMDIF_PERF_TIMER
-//#define CMDIF_PERF_NORESP
-//#define CMDIF_PERF_SYNC
-//#define CMDIF_PERF_ASYNC
 
 struct shbp_test {
 	uint64_t shbp;
