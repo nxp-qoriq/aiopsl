@@ -29,11 +29,15 @@
 #include "fsl_cmdif_client.h"
 #include "fsl_malloc.h"
 #include "fsl_string.h"
+#include "fsl_spinlock.h"
 
 struct evm *g_evm_irq_events_list;
 struct evm *g_evm_events_list;
+uint32_t *g_evm_b_pool_pointer;
+uint32_t *g_evm_last_b_pool_pointer;
+uint8_t g_evm_b_pool_spinlock;
 
-static int add_event_registration(struct evm *evm_ptr, struct evm_priority_list *evm_cb_list)
+static void add_event_registration(struct evm *evm_ptr, struct evm_priority_list *evm_cb_list)
 {
 	struct evm_priority_list *evm_cb_list_ptr;
 	struct evm_priority_list *evm_cb_list_tmp_ptr;
@@ -73,7 +77,6 @@ static int add_event_registration(struct evm *evm_ptr, struct evm_priority_list 
 	}
 	evm_ptr->num_cbs ++;
 	cdma_mutex_lock_release((uint64_t) evm_ptr);
-	return 0;
 }
 /*****************************************************************************/
 
@@ -82,7 +85,6 @@ int evm_irq_register(uint8_t event_id, uint8_t priority, uint64_t app_ctx, evm_c
 	struct evm *evm_ptr = g_evm_irq_events_list;
 	struct evm_priority_list *evm_cb_list;
 
-#ifdef DEBUG
 	if(cb == NULL){
 		sl_pr_debug("CB is NULL\n");
 		return -EINVAL;
@@ -91,14 +93,19 @@ int evm_irq_register(uint8_t event_id, uint8_t priority, uint64_t app_ctx, evm_c
 		sl_pr_debug("event_id value is out of bounds\n");
 		return -EINVAL;
 	}
-#endif
 
-	evm_cb_list = (struct evm_priority_list *)
-				fsl_malloc(sizeof(struct evm_priority_list), 8);
-	if(evm_cb_list == NULL){
-		sl_pr_debug("Allocation of memory for evm cb list failed\n");
+	/*Lock spinlock to take the next address for buffer to list
+	 * of registration request*/
+	lock_spinlock(&g_evm_b_pool_spinlock);
+	/* If the number of allocated list reach the limit, return error*/
+	if(*g_evm_b_pool_pointer == *g_evm_last_b_pool_pointer){
+		unlock_spinlock(&g_evm_b_pool_spinlock);
 		return -ENOMEM;
 	}
+	evm_cb_list = (struct evm_priority_list *)*g_evm_b_pool_pointer;
+	g_evm_b_pool_pointer ++;
+	/*Unlock spinlock*/
+	unlock_spinlock(&g_evm_b_pool_spinlock);
 
 	evm_cb_list->app_ctx = app_ctx;
 	evm_cb_list->cb = cb;
@@ -107,8 +114,8 @@ int evm_irq_register(uint8_t event_id, uint8_t priority, uint64_t app_ctx, evm_c
 
 	evm_ptr += event_id;
 
-	return add_event_registration(evm_ptr, evm_cb_list);
-
+	add_event_registration(evm_ptr, evm_cb_list);
+	return 0;
 }
 /*****************************************************************************/
 
@@ -117,7 +124,6 @@ int evm_register(uint8_t event_id, uint8_t priority, uint64_t app_ctx, evm_cb cb
 	struct evm *evm_ptr = g_evm_events_list;
 	struct evm_priority_list *evm_cb_list;
 
-#ifdef DEBUG
 	if(cb == NULL){
 		sl_pr_debug("CB is NULL\n");
 		return -EINVAL;
@@ -126,15 +132,20 @@ int evm_register(uint8_t event_id, uint8_t priority, uint64_t app_ctx, evm_cb cb
 		sl_pr_debug("event_id value is out of bounds\n");
 		return -EINVAL;
 	}
-#endif
 
 
-	evm_cb_list = (struct evm_priority_list *)
-						fsl_malloc(sizeof(struct evm_priority_list), 8);
-	if(evm_cb_list == NULL){
-		sl_pr_debug("Allocation of memory for evm cb list failed\n");
+	/*Lock spinlock to take the next address for buffer to list
+	 * of registration request*/
+	lock_spinlock(&g_evm_b_pool_spinlock);
+	/* If the number of allocated list reach the limit, return error*/
+	if(*g_evm_b_pool_pointer == *g_evm_last_b_pool_pointer){
+		unlock_spinlock(&g_evm_b_pool_spinlock);
 		return -ENOMEM;
 	}
+	evm_cb_list = (struct evm_priority_list *)*g_evm_b_pool_pointer;
+	g_evm_b_pool_pointer ++;
+	/*Unlock spinlock*/
+	unlock_spinlock(&g_evm_b_pool_spinlock);
 
 	evm_cb_list->app_ctx = app_ctx;
 	evm_cb_list->cb = cb;
@@ -143,8 +154,8 @@ int evm_register(uint8_t event_id, uint8_t priority, uint64_t app_ctx, evm_cb cb
 
 	evm_ptr += event_id;
 
-	return add_event_registration(evm_ptr, evm_cb_list);
-
+	add_event_registration(evm_ptr, evm_cb_list);
+	return 0;
 }
 /*****************************************************************************/
 static int remove_event_registration(struct evm *evm_ptr,
@@ -195,7 +206,16 @@ static int remove_event_registration(struct evm *evm_ptr,
 		}
 	}
 
-	fsl_free((void *) evm_cb_list_ptr);
+	/*Lock spinlock to take the next address for buffer to list
+	 * of registration request*/
+	lock_spinlock(&g_evm_b_pool_spinlock);
+	/* Decrement buffer pool pointer to insert the memory pointer back
+	 * to pool for future registrations*/
+	g_evm_b_pool_pointer --;
+	*g_evm_b_pool_pointer = (uint32_t)evm_cb_list_ptr;
+	/*Unlock spinlock*/
+	unlock_spinlock(&g_evm_b_pool_spinlock);
+
 	evm_ptr->num_cbs --;
 	cdma_mutex_lock_release((uint64_t) evm_ptr);
 	return 0;
@@ -204,7 +224,7 @@ static int remove_event_registration(struct evm *evm_ptr,
 int evm_irq_unregister(uint8_t event_id, uint8_t priority, uint64_t app_ctx, evm_cb cb)
 {
 	struct evm *evm_ptr = g_evm_irq_events_list;
-#ifdef DEBUG
+
 	if(cb == NULL){
 		sl_pr_debug("CB is NULL\n");
 		return -EINVAL;
@@ -213,7 +233,7 @@ int evm_irq_unregister(uint8_t event_id, uint8_t priority, uint64_t app_ctx, evm
 		sl_pr_debug("event_id value is out of bounds\n");
 		return -EINVAL;
 	}
-#endif
+
 	evm_ptr += event_id;
 	return remove_event_registration(evm_ptr, priority, app_ctx, cb);
 }
@@ -222,7 +242,7 @@ int evm_irq_unregister(uint8_t event_id, uint8_t priority, uint64_t app_ctx, evm
 int evm_unregister(uint8_t event_id, uint8_t priority, uint64_t app_ctx, evm_cb cb)
 {
 	struct evm *evm_ptr = g_evm_events_list;
-#ifdef DEBUG
+
 	if(cb == NULL){
 		sl_pr_debug("CB is NULL\n");
 		return -EINVAL;
@@ -231,7 +251,7 @@ int evm_unregister(uint8_t event_id, uint8_t priority, uint64_t app_ctx, evm_cb 
 		sl_pr_debug("event_id value is out of bounds\n");
 		return -EINVAL;
 	}
-#endif
+
 	evm_ptr += event_id;
 	return remove_event_registration(evm_ptr, priority, app_ctx, cb);
 }
@@ -348,11 +368,15 @@ static int evm_close_cb(void *dev)
 int evm_early_init(void)
 {
 	int i;
+	struct evm_priority_list *evm_list_ptr;
+	uint32_t *evm_b_pool_pointer;
+	uint16_t num_evm_registartions = (MAX_EVENT_ID + NUM_OF_IRQ_EVENTS) *
+		EVM_NUM_OF_REGISTRATIONS_PER_EVENT;
 	g_evm_irq_events_list = (struct evm *) fsl_malloc(NUM_OF_IRQ_EVENTS *
 	                                       sizeof(struct evm),
-	                                       64);
+	                                       1);
 	if(g_evm_irq_events_list == NULL) {
-		pr_err("memory allocation for sl events failed\n");
+		pr_err("memory allocation for evm sl events failed\n");
 		return -ENOMEM;
 	}
 
@@ -364,7 +388,7 @@ int evm_early_init(void)
 	}
 
 	g_evm_events_list = (struct evm *)
-		fsl_malloc(MAX_EVENT_ID * sizeof(struct evm), 64);
+		fsl_malloc(MAX_EVENT_ID * sizeof(struct evm), 1);
 
 	if(g_evm_events_list == NULL) {
 		pr_err("memory allocation for events failed\n");
@@ -377,6 +401,48 @@ int evm_early_init(void)
 	for(i = 0; i < MAX_EVENT_ID; i++){
 		g_evm_events_list->event_id = (uint8_t) i;
 	}
+
+	/*allocate memory to registrations for events*/
+
+	evm_list_ptr = (struct evm_priority_list *)
+		fsl_malloc(
+			num_evm_registartions *
+			sizeof(struct evm_priority_list),
+			1);
+	if(evm_list_ptr == NULL){
+		pr_err("memory allocation for evm lists failed\n");
+		return -ENOMEM;
+	}
+
+	evm_b_pool_pointer = (uint32_t *)fsl_malloc(
+		num_evm_registartions * sizeof(uint32_t *), 1);
+	g_evm_b_pool_pointer = evm_b_pool_pointer;
+
+	if(g_evm_b_pool_pointer == NULL){
+		pr_err("memory allocation for buffer pool to evm failed\n");
+		return -ENOMEM;
+	}
+
+	for(i = 0; i < num_evm_registartions; i++){
+		*evm_b_pool_pointer = (uint32_t)evm_list_ptr;
+		evm_b_pool_pointer++;
+		evm_list_ptr++;
+	}
+
+	*g_evm_last_b_pool_pointer = (uint32_t)evm_list_ptr;
+
+	g_evm_b_pool_spinlock = 0;
+
+	pr_info("\n"
+		"EVM pool ptr:0x%x\n"
+		"EVM last ptr:0x%x\n"
+		"EVM list size: %d\n"
+		"EVM num lists: %d\n",
+		*g_evm_b_pool_pointer,
+		*g_evm_last_b_pool_pointer,
+		sizeof(struct evm_priority_list),
+		num_evm_registartions);
+
 
 	return 0;
 }

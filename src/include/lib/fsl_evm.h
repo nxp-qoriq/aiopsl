@@ -43,8 +43,10 @@
 
 @{
 *//***************************************************************************/
-
-#define EVM_NUM_OF_APP_DEFINED_EVENTS 32
+/** Number of average registrations allowed per event*/
+#define EVM_NUM_OF_REGISTRATIONS_PER_EVENT                5
+/** Maximum number of defined events allowed for applications */
+#define EVM_NUM_OF_APP_DEFINED_EVENTS                    32
 
 /**************************************************************************//**
  @Group		EVM_EVENT_TYPES Event manager events
