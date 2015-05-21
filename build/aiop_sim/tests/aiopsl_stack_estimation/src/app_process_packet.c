@@ -175,8 +175,8 @@ void stack_estimation(void)
 	dpni_drv_set_initial_presentation(ni, &ep_init);
 	dpni_drv_get_initial_presentation(ni, &ep_init);
 	evm_raise_event(1, (void *) &time);
-//	evm_register(1, 1, (uint64_t)app_process_packet, app_config_dpni_cb);
-//	evm_unregister(1, 1, (uint64_t)app_process_packet, app_config_dpni_cb);
+	evm_register(1, 1, (uint64_t)app_process_packet, app_config_dpni_cb);
+	evm_unregister(1, 1, (uint64_t)app_process_packet, app_config_dpni_cb);
 
 	/* SHBP Shared buffer pool */
 	shbp_acquire(shbp, &ic);
