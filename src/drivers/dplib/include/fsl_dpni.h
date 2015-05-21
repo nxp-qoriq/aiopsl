@@ -47,6 +47,8 @@ struct fsl_mc_io;
 #define DPNI_MAX_TC				8
 /* Maximum number of buffer pools per DPNI */
 #define DPNI_MAX_DPBP				8
+/* Maximum number of storage-profiles per DPNI */
+#define DPNI_MAX_SP				2
 
 /* All traffic classes considered; see dpni_set_rx_flow() */
 #define DPNI_ALL_TCS				(uint8_t)(-1)
@@ -764,16 +766,27 @@ int dpni_get_l4_chksum_validation(struct fsl_mc_io	*mc_io,
 int dpni_get_qdid(struct fsl_mc_io *mc_io, uint16_t token, uint16_t *qdid);
 
 /**
+ * struct dpni_sp_info - Structure representing DPNI storage-profile information
+ * (relevant only for DPNI owned by AIOP)
+ * @spids: array of storage-profiles
+ */
+struct dpni_sp_info {
+	uint16_t spids[DPNI_MAX_SP];
+};
+
+/**
  * dpni_get_spids() - Get the AIOP storage profile IDs associated with the DPNI
  * @mc_io:	Pointer to MC portal's I/O object
  * @token:	Token of DPNI object
- * @spids:	Returned aiop storage-profile IDs
+ * @sp_info:	Returned AIOP storage-profile information
  *
  * Return:	'0' on Success; Error code otherwise.
  *
  * @warning	Only relevant for DPNI that belongs to AIOP container.
  */
-int dpni_get_spids(struct fsl_mc_io *mc_io, uint16_t token, uint16_t *spids);
+int dpni_get_sp_info(struct fsl_mc_io		*mc_io,
+		     uint16_t			token,
+		     struct dpni_sp_info	*sp_info);
 
 /**
  * dpni_get_tx_data_offset() - Get the Tx data offset (from start of buffer)
@@ -1756,6 +1769,27 @@ int dpni_set_tx_conf_err_queue(struct fsl_mc_io			*mc_io,
 int dpni_get_tx_conf_err_queue(struct fsl_mc_io		*mc_io,
 			       uint16_t			token,
 			       struct dpni_queue_attr	*attr);
+
+/**
+ * dpni_set_tx_conf_revoke() - Tx confirmation revocation
+ * @mc_io	Pointer to MC portal's I/O object
+ * @token	Token of DPNI object
+ * @revoke	revoke or not
+ *
+ * This function is useful only when 'DPNI_OPT_TX_CONF_DISABLED' is not
+ * selected at DPNI creation.
+ * Calling this function with 'revoke' set to '1' disables all transmit
+ * confirmation (including the private confirmation queues), regardless of
+ * previous settings; Note that in this case, Tx error frames are still
+ * enqueued to the general transmit errors queue.
+ * Calling this function with 'revoke' set to '0' restores the previous
+ * settings for both general and private transmit confirmation.
+ *
+ * Return:	'0' on Success; Error code otherwise.
+ */
+int dpni_set_tx_conf_revoke(struct fsl_mc_io		*mc_io,
+	       	     	    uint16_t			token,
+			    int 			revoke);
 
 /**
  * struct dpni_qos_tbl_cfg - Structure representing QOS table configuration
