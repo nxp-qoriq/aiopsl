@@ -62,8 +62,8 @@ enum evm_event_types {
 	DPCI_EVENT_REMOVED,
 	DPCI_EVENT_LINK_UP,
 	DPCI_EVENT_LINK_DOWN,
-	NUM_OF_DEFINED_EVENTS,
-	MAX_EVENT_ID = NUM_OF_DEFINED_EVENTS + EVM_NUM_OF_APP_DEFINED_EVENTS
+	NUM_OF_SL_DEFINED_EVENTS,
+	MAX_EVENT_ID = NUM_OF_SL_DEFINED_EVENTS + EVM_NUM_OF_APP_DEFINED_EVENTS
 };
 /** @} end of group EVM_EVENT_TYPES */
 
@@ -73,10 +73,10 @@ enum evm_event_types {
 		listen for specific events.
 
 @Param[in]	event_id  Identifier of the event specific to the application
-		generating event. The value can range from 0 to:
+		generating event. The value can range from 0 to MAX_EVENT_ID -1
 		\ref EVM_EVENT_TYPES
 
-@Param[in]	app_ctx  User/SL data saved during registration and passed to CB
+@Param[in]	app_ctx  App/SL data saved during registration and passed to CB
 		function when raising event.
 
 @param[in]	event_data  A pointer to data specific for event
@@ -96,10 +96,10 @@ typedef int (*evm_cb)(	uint8_t event_id,
 		specific events.
 
 @Param[in]	event_id  Identifier of the event specific to the application
-		generating event. The value can range from 0 to:
+		generating event. The value can range from 0 to MAX_EVENT_ID -1
 		\ref EVM_EVENT_TYPES
 		To use app defined events, the provided event id should be
-		higher then the available events.
+		from NUM_OF_SL_DEFINED_EVENTS to MAX_EVENT_ID -1.
 
 @Param[in]	priority  priority number of the callback function.
 		This value ranges from 0 - 127.
@@ -107,8 +107,8 @@ typedef int (*evm_cb)(	uint8_t event_id,
 		a callback function registered with priority 10 will be invoked
 		before a callback function registered with priority 20.
 
-@Param[in]	app_ctx User/SL data that can be passed to CB function when raising
-		event.
+@Param[in]	app_ctx  App data that can be passed to CB function when
+		raising event.
 
 @param[in]	cb  Callback function to be invoked.
 
@@ -127,7 +127,7 @@ int evm_register(
 @Description	This function is to unregister previously callback function.
 
 @Param[in]	event_id  Identifier of the event specific to the application
-		generating event. The value can range from 0 to:
+		generating event. The value can range from 0 to MAX_EVENT_ID -1
 		\ref EVM_EVENT_TYPES
 
 @Param[in]	priority  priority number of the callback function.
@@ -136,8 +136,8 @@ int evm_register(
 		a callback function registered with priority 10 will be invoked
 		before a callback function registered with priority 20.
 
-@Param[in]	app_ctx User/SL data that can be passed to CB function when raising
-		event.
+@Param[in]	app_ctx App data that can be passed to CB function when
+		raising event.
 
 @param[in]	cb  Callback function to be invoked.
 
@@ -153,11 +153,12 @@ int evm_unregister(
 /**************************************************************************//**
 @Function	evm_raise_event
 
-@Description	This function is to raise specific event and launch registered
-		for it callback functions.
+@Description	This function raises a specific event and launches the callback
+		functions registered to it.
 
 @Param[in]	event_id  Identifier of the event specific to the application
-		generating event. The value can range from 0 to:
+		generating event. The value can range from NUM_OF_SL_DEFINED_EVENTS
+		to MAX_EVENT_ID -1
 		\ref EVM_EVENT_TYPES
 
 @Param[in]	event_data  A pointer to data specific for event

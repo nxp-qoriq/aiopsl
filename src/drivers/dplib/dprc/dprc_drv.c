@@ -202,7 +202,7 @@ __COLD_CODE static int aiop_container_init(void)
 		return -ENAVAIL;
 	}
 
-	err = evm_sl_register(DPRC_EVENT, 0, 0, dprc_drv_evm_cb);
+	err = evm_irq_register(DPRC_EVENT, 0, 0, dprc_drv_evm_cb);
 	if(err){
 		pr_err("EVM registration for DPRC object change failed\n");
 		return -ENAVAIL;

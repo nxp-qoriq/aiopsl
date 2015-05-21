@@ -30,7 +30,7 @@
 #include "fsl_malloc.h"
 #include "fsl_string.h"
 
-struct evm *g_evm_sl_events_list;
+struct evm *g_evm_irq_events_list;
 struct evm *g_evm_events_list;
 
 static int add_event_registration(struct evm *evm_ptr, struct evm_priority_list *evm_cb_list)
@@ -77,9 +77,9 @@ static int add_event_registration(struct evm *evm_ptr, struct evm_priority_list 
 }
 /*****************************************************************************/
 
-int evm_sl_register(uint8_t event_id, uint8_t priority, uint64_t app_ctx, evm_cb cb)
+int evm_irq_register(uint8_t event_id, uint8_t priority, uint64_t app_ctx, evm_cb cb)
 {
-	struct evm *evm_ptr = g_evm_sl_events_list;
+	struct evm *evm_ptr = g_evm_irq_events_list;
 	struct evm_priority_list *evm_cb_list;
 
 #ifdef DEBUG
@@ -87,7 +87,7 @@ int evm_sl_register(uint8_t event_id, uint8_t priority, uint64_t app_ctx, evm_cb
 		sl_pr_debug("CB is NULL\n");
 		return -EINVAL;
 	}
-	if(event_id >= NUM_OF_SL_EVENTS){
+	if(event_id >= NUM_OF_IRQ_EVENTS){
 		sl_pr_debug("event_id value is out of bounds\n");
 		return -EINVAL;
 	}
@@ -201,15 +201,15 @@ static int remove_event_registration(struct evm *evm_ptr,
 	return 0;
 }
 
-int evm_sl_unregister(uint8_t event_id, uint8_t priority, uint64_t app_ctx, evm_cb cb)
+int evm_irq_unregister(uint8_t event_id, uint8_t priority, uint64_t app_ctx, evm_cb cb)
 {
-	struct evm *evm_ptr = g_evm_sl_events_list;
+	struct evm *evm_ptr = g_evm_irq_events_list;
 #ifdef DEBUG
 	if(cb == NULL){
 		sl_pr_debug("CB is NULL\n");
 		return -EINVAL;
 	}
-	if(event_id >= NUM_OF_SL_EVENTS ){
+	if(event_id >= NUM_OF_IRQ_EVENTS ){
 		sl_pr_debug("event_id value is out of bounds\n");
 		return -EINVAL;
 	}
@@ -237,9 +237,9 @@ int evm_unregister(uint8_t event_id, uint8_t priority, uint64_t app_ctx, evm_cb 
 }
 /*****************************************************************************/
 
-int evm_raise_event_cb(void *dev, uint16_t cmd, uint32_t size, void *event_data)
+int evm_raise_irq_event_cb(void *dev, uint16_t cmd, uint32_t size, void *event_data)
 {
-	struct evm *evm_ptr = g_evm_sl_events_list;
+	struct evm *evm_ptr = g_evm_irq_events_list;
 	struct evm_priority_list *evm_cb_list_ptr;
 	int i;
 	UNUSED(dev);
@@ -248,7 +248,7 @@ int evm_raise_event_cb(void *dev, uint16_t cmd, uint32_t size, void *event_data)
 	if(cmd & CMDIF_NORESP_CMD)
 		cmd &= ~CMDIF_NORESP_CMD;
 
-	if(cmd >= NUM_OF_SL_EVENTS || cmd < 0)
+	if(cmd >= NUM_OF_IRQ_EVENTS || cmd < 0)
 	{
 		sl_pr_err("Event %d not supported\n",cmd);
 		return -ENOTSUP;
@@ -277,20 +277,12 @@ int evm_raise_event_cb(void *dev, uint16_t cmd, uint32_t size, void *event_data)
 	return 0;
 }
 /*****************************************************************************/
-//
-int evm_raise_event(uint8_t event_id, void *event_data)
+
+static int raise_event(uint8_t event_id, void *event_data)
 {
 	struct evm *evm_ptr = g_evm_events_list;
 	struct evm_priority_list *evm_cb_list_ptr;
 	int i;
-
-#ifdef DEBUG
-	if(event_id >= MAX_EVENT_ID)
-	{
-		sl_pr_err("Event %d not supported\n",event_id);
-		return -ENOTSUP;
-	}
-#endif
 
 	sl_pr_debug("EVM: Event received: %d\n",event_id);
 	evm_ptr += event_id;
@@ -314,6 +306,27 @@ int evm_raise_event(uint8_t event_id, void *event_data)
 	cdma_mutex_lock_release((uint64_t) evm_ptr);
 	return 0;
 }
+
+
+int evm_sl_raise_event(uint8_t event_id, void *event_data)
+{
+	if(event_id >= MAX_EVENT_ID)
+	{
+		sl_pr_err("Event %d not supported\n",event_id);
+		return -ENOTSUP;
+	}
+	return raise_event(event_id, event_data);
+}
+
+int evm_raise_event(uint8_t event_id, void *event_data)
+{
+	if(event_id < NUM_OF_SL_DEFINED_EVENTS || event_id >= MAX_EVENT_ID)
+	{
+		sl_pr_err("Event %d not supported\n",event_id);
+		return -ENOTSUP;
+	}
+	return raise_event(event_id, event_data);
+}
 /*****************************************************************************/
 
 static int evm_open_cb(uint8_t instance_id, void **dev)
@@ -335,19 +348,19 @@ static int evm_close_cb(void *dev)
 int evm_early_init(void)
 {
 	int i;
-	g_evm_sl_events_list = (struct evm *) fsl_malloc(NUM_OF_SL_EVENTS *
+	g_evm_irq_events_list = (struct evm *) fsl_malloc(NUM_OF_IRQ_EVENTS *
 	                                       sizeof(struct evm),
 	                                       64);
-	if(g_evm_sl_events_list == NULL) {
+	if(g_evm_irq_events_list == NULL) {
 		pr_err("memory allocation for sl events failed\n");
 		return -ENOMEM;
 	}
 
-	memset(g_evm_sl_events_list, 0, NUM_OF_SL_EVENTS * sizeof(struct evm));
+	memset(g_evm_irq_events_list, 0, NUM_OF_IRQ_EVENTS * sizeof(struct evm));
 
 	/* Initialize events available for service layer and applications */
-	for(i = 0; i < NUM_OF_SL_EVENTS; i++){
-		g_evm_sl_events_list->event_id = (uint8_t) i;
+	for(i = 0; i < NUM_OF_IRQ_EVENTS; i++){
+		g_evm_irq_events_list->event_id = (uint8_t) i;
 	}
 
 	g_evm_events_list = (struct evm *)
@@ -376,7 +389,7 @@ int evm_init(void)
 
 	evm_ops.open_cb = (open_cb_t *)evm_open_cb;
 	evm_ops.close_cb = (close_cb_t *)evm_close_cb;
-	evm_ops.ctrl_cb = (ctrl_cb_t *)evm_raise_event_cb;
+	evm_ops.ctrl_cb = (ctrl_cb_t *)evm_raise_irq_event_cb;
 	pr_info("EVM: register with cmdif module!\n");
 	err = cmdif_register_module("EVM", &evm_ops);
 	if(err) {
@@ -411,8 +424,8 @@ void evm_free(void)
 	}
 	fsl_free(g_evm_events_list);
 
-	evm_ptr = g_evm_sl_events_list;
-	for(i = 0; i < NUM_OF_SL_EVENTS; i++, evm_ptr ++ )
+	evm_ptr = g_evm_irq_events_list;
+	for(i = 0; i < NUM_OF_IRQ_EVENTS; i++, evm_ptr ++ )
 	{
 		evm_cb_list_ptr = evm_ptr->head;
 		if(evm_cb_list_ptr)
@@ -424,7 +437,7 @@ void evm_free(void)
 			}while(evm_cb_list_ptr != NULL);
 		}
 	}
-	fsl_free(g_evm_sl_events_list);
+	fsl_free(g_evm_irq_events_list);
 }
 /*****************************************************************************/
 

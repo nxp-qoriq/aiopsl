@@ -206,7 +206,7 @@ int dpni_drv_update_obj(struct mc_dprc *dprc, uint16_t mc_niid)
 		}
 		/*send event: "DPNI_ADDED_EVENT" to EVM with
 		 * AIOP NI ID */
-		err = evm_raise_event(DPNI_EVENT_ADDED,
+		err = evm_sl_raise_event(DPNI_EVENT_ADDED,
 		                      &aiop_niid);
 		if(err){
 			sl_pr_err("Failed to raise event for "
@@ -237,7 +237,7 @@ int dpni_drv_sync(struct mc_dprc *dprc)
 			dpni_drv_unprobe(dprc, aiop_niid);
 			/*send event: "DPNI_REMOVED_EVENT" to EVM with
 			 * AIOP NI ID */
-			err = evm_raise_event(DPNI_EVENT_REMOVED,
+			err = evm_sl_raise_event(DPNI_EVENT_REMOVED,
 			                      &aiop_niid);
 			if(err){
 				sl_pr_err("Failed to raise event for "
@@ -850,7 +850,7 @@ __COLD_CODE int dpni_drv_init(void)
 //			}
 //			/*send event: "DPNI_ADDED_EVENT" to EVM with
 //			 * AIOP NI ID */
-//			err = evm_raise_event(DPNI_EVENT_ADDED,
+//			err = evm_sl_raise_event(DPNI_EVENT_ADDED,
 //			                      &aiop_niid);
 //			if(err){
 //				sl_pr_err("Failed to raise event for "
@@ -860,7 +860,7 @@ __COLD_CODE int dpni_drv_init(void)
 //		}
 //	}
 
-	err = evm_sl_register(DPNI_EVENT, 0, 0, dpni_drv_ev_cb);
+	err = evm_irq_register(DPNI_EVENT, 0, 0, dpni_drv_ev_cb);
 	if(err){
 		pr_err("EVM registration for DPNI events failed %d\n",err);
 		return -ENAVAIL;
@@ -911,11 +911,11 @@ static int dpni_drv_ev_cb(uint8_t event_id, uint64_t app_ctx, void *event_data)
 			}
 
 			if(link_state.up){
-				err = evm_raise_event(DPNI_EVENT_LINK_UP,
+				err = evm_sl_raise_event(DPNI_EVENT_LINK_UP,
 				                      &ni_id);
 			}
 			else{
-				err = evm_raise_event(DPNI_EVENT_LINK_DOWN,
+				err = evm_sl_raise_event(DPNI_EVENT_LINK_DOWN,
 				                      &ni_id);
 			}
 			if(err){
