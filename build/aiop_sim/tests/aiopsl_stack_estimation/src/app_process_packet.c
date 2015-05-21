@@ -39,6 +39,7 @@
 #include "fsl_icontext.h"
 #include "fsl_shbp.h"
 #include "fsl_stdlib.h"
+#include "fsl_evm.h"
 
 int app_early_init(void);
 int app_init(void);
@@ -52,6 +53,34 @@ __HOT_CODE ENTRY_POINT static void app_process_packet(void)
 {
 	/*Function used for stack estimation to sl routines*/
 	stack_estimation();
+
+}
+
+static int app_config_dpni_cb(uint8_t event_id,
+			uint64_t app_ctx,
+			void *event_data)
+{
+	uint16_t ni = *(uint16_t*)event_data;
+	int err;
+	pr_info("Event received for dpni %d\n",ni);
+	if(event_id == DPNI_EVENT_ADDED){
+		err = dpni_drv_register_rx_cb(ni/*ni_id*/,
+		                              (rx_cb_t *)app_ctx);
+		if (err){
+			pr_err("dpni_drv_register_rx_cb for ni %d failed: %d\n", ni, err);
+			return err;
+		}
+		err = dpni_drv_set_max_frame_length(ni/*ni_id*/,
+		                                    0x2000 /* Max frame length*/);
+		if (err){
+			pr_err("dpni_drv_set_max_frame_length for ni %d failed: %d\n", ni, err);
+			return err;
+		}
+	}
+	else{
+		pr_err("Event %d not supported\n", event_id);
+	}
+	return 0;
 
 }
 
@@ -69,6 +98,7 @@ void stack_estimation(void)
 	struct dpkg_profile_cfg key_cfg = {0};
 	struct ldpaa_fd fd = {0};
 	struct dpni_drv_link_state link_state = {0};
+	struct ep_init_presentation ep_init = {0};
 	uint16_t ni = 0, dpni_id, spid, mfl = 0;
 	uint8_t mac_addr[NET_HDR_FLD_ETH_ADDR_SIZE] = {0};
 	int state = 0;
@@ -142,6 +172,11 @@ void stack_estimation(void)
 	dpni_drv_remove_vlan_id(ni, (uint16_t)1515);
 	dpni_drv_enable(ni);
 	dpni_drv_disable(ni);
+	dpni_drv_set_initial_presentation(ni, &ep_init);
+	dpni_drv_get_initial_presentation(ni, &ep_init);
+	evm_raise_event(1, (void *) &time);
+//	evm_register(1, 1, (uint64_t)app_process_packet, app_config_dpni_cb);
+//	evm_unregister(1, 1, (uint64_t)app_process_packet, app_config_dpni_cb);
 
 	/* SHBP Shared buffer pool */
 	shbp_acquire(shbp, &ic);
