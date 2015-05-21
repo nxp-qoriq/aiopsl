@@ -67,6 +67,7 @@ Current	----->	|  64b Address_1           |    	|    Buffer1        |
  @Param[in]     bf_pool_id Id of this buffer pool.
  @Param[in]     num_buffs Number of buffers to be created.
  @Param[in]	buff_size - Size of each buffer in bytes.
+ @param[in]     buff_alignment - Alignment that the buffers will be aligned to.
  @Param[in]     h_boot_mem_mng - Handle to boot memory manage.
 
  @Return        0 - if success, a  non-zero value in case of error
@@ -108,7 +109,7 @@ int put_buff(struct buffer_pool  *bf_pool, const uint64_t buffer_addr);
  @Description   Returns a number of buffers that might be allocated from total_mem_size.
 
  @Param[in]	buff_size - Size of each buffer in bytes.
- @Param[in]    buff_alignment  Alignment that the buffers will aligned to.
+ @Param[in]     buff_alignment  Alignment that the buffers will aligned to.
 
  @Return        Number of buffers that fits into total_mem_size.
 *//***************************************************************************/

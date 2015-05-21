@@ -231,7 +231,7 @@ fsl_handle_t mem_mng_init(fsl_handle_t h_boot_mem_mng,
     p_mem_mng->lock    = p_mem_mng_param->lock;
     p_mem_mng->h_boot_mem_mng = h_boot_mem_mng;
 
-
+    /* Set a next power of 2 of sizeof(t_slob_block) as an alignment */
     NEXT_POWER_OF_2(sizeof(t_slob_block),alignment);
     slob_blocks_num = compute_num_buffers(g_buffer_pool_size,sizeof(t_slob_block),alignment);
 

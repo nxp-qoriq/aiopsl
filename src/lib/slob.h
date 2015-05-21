@@ -72,14 +72,13 @@ typedef struct t_slob_block
 /* t_MM data structure defines parameters of the MM object */
 typedef struct t_MM
 {
-
     t_mem_block      *mem_blocks;     /* List of memory blocks (Memory list) */
-    //t_slob_block     *busy_blocks;    /* List of busy blocks (Busy list) */
+    /*t_slob_block     *busy_blocks; */
     uint64_t         head_busy_blocks_addr;
-    //t_slob_block     *free_blocks[MM_MAX_ALIGNMENT + 1];
-                                    /* Alignment lists of free blocks (Free lists) */
+                     /* List of busy blocks (Busy list) */
+    /*t_slob_block     *free_blocks[MM_MAX_ALIGNMENT + 1];*/
     uint64_t         head_free_blocks_addr[MM_MAX_ALIGNMENT + 1];
-
+                     /* Alignment lists of free blocks (Free lists) */
     uint64_t        free_mem_size;    /* Total size of free memory (in bytes) */
     fsl_handle_t    h_mem_mng; // boot memory manager
     fsl_handle_t    h_slob_bf_pool;

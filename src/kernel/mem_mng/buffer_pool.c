@@ -37,11 +37,15 @@ __START_COLD_CODE
 
 const uint32_t STACK_ENTRY_BYTE_SIZE = 8;
 
-static uint32_t compute_block_size(const uint16_t        buff_size,
-                                         const uint16_t     buff_alignment);
 
-static uint32_t compute_block_size(const uint16_t        buff_size,
-                                         const uint16_t  buff_alignment)
+static uint32_t compute_block_size(const uint16_t     buff_size,
+                                   const uint16_t     buff_alignment);
+/*
+ *  Computes an aligned buffer size based on provided buffer size and an
+ *  buff_alignment.
+ */
+static uint32_t compute_block_size(const uint16_t  buff_size,
+                                   const uint16_t  buff_alignment)
 {
 	uint32_t  block_size = buff_size;
 	if(block_size < buff_alignment)
@@ -53,6 +57,10 @@ static uint32_t compute_block_size(const uint16_t        buff_size,
 	return block_size;
 }
 
+/*
+ * Computes maximal number of buffers that might be allocated from provided
+ * total  memory size.
+ */
 uint32_t compute_num_buffers(const uint32_t  total_mem_size,
 	                        const uint16_t  buff_size,
                                 const uint16_t  buff_alignment)
@@ -99,6 +107,7 @@ int buffer_pool_create(struct buffer_pool *p_bf_pool,
 			"bf_pool_id %d\n",bf_pool_id);
 		return -ENOMEM;
 	}
+	//  Set the first phys_addr to be aligned to buff_alignment
 	phys_addr= ALIGN_UP(phys_addr,buff_alignment);
 	p_bf_pool->p_buffers_addr = phys_addr;
 	curr_buffer_addr = p_bf_pool->p_buffers_addr;
