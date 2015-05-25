@@ -30,6 +30,7 @@
 #include "fsl_ep_mng.h"
 #include "aiop_common.h"
 #include "fsl_io_ccsr.h"
+#include "fsl_dbg.h"
 
 /* Supported options for initializing presentation fields*/
 #define EP_SUPPORTED_INIT_PRESENTATION_OPTIONS    \
