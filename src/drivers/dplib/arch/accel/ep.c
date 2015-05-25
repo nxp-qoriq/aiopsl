@@ -70,7 +70,7 @@ extern void cmdif_cl_isr(void);
 extern void cmdif_srv_isr(void);
 
 int ep_mng_init(void);
-int ep_mng_free(void);
+void ep_mng_free(void);
 
 
 int ep_mng_get_initial_presentation(
