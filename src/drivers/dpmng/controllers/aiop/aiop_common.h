@@ -97,11 +97,10 @@ struct aiop_sl_init_info
 	uint32_t uart_port_id;      /* initialized by MC FW during init, before AIOP elf is loaded */
 	uint32_t mc_portal_id;                  /* initialized by MC FW during init, before AIOP elf is loaded */
 	uint32_t mc_dpci_id;                    /* initialized by MC FW during init, before AIOP elf is loaded */
-	uint32_t clock_period; 		/* 1588 period In nanosec */
-	
+
 	uint64_t log_buf_paddr; 	/* physical address of log buffer */
 	uint32_t log_buf_size;
-	uint32_t platform_clk; 		/* in Khtz */ 
+	uint32_t platform_clk; 		/* in Khtz */
 
 	uint64_t options;
 	uint32_t args_size;	/* AIOP command line string length */
@@ -169,12 +168,12 @@ struct aiop_cmgw_regs {
 
 	/* AIOP Block Registers */
 	uint32_t stecr1; /* Statistics engine control register 1 */
-	uint32_t reserved10; 
+	uint32_t reserved10;
 	uint32_t ste_smcacr; 		/* 0x208 STE_SMCACR—Stats Engine System Memory Cache Attribute
 					Control Register */
 	uint32_t stesr; 		/* 0x20C STESR—Stats Engine Error Status Register */
 	uint32_t ste_err_captr[4]; 	/* 0x210 STE_ERR_CAPT1-4R—Stats Engine Error Capture Register */
-	uint8_t reserved11[0xE0]; 
+	uint8_t reserved11[0xE0];
 	/* AIOP Discovery Registers */
 	uint32_t tile_disc[4]; /* Tile discovery registers 1-4 */
 	uint8_t reserved12[0xCF0];
