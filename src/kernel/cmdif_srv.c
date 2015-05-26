@@ -454,12 +454,11 @@ __COLD_CODE int notify_close()
 	/* Set this session entry as free */
 	if (i >= 0) {
 		cl->gpp[i].m_name[0] = CMDIF_FREE_SESSION;
-
+		
+		cl->count--;
 		CMDIF_CL_LOCK_RELEASE;
 		return 0;
 	}
-
-	cl->count--;
 
 	CMDIF_CL_LOCK_RELEASE;
 #endif /* STACK_CHECK */
@@ -491,6 +490,7 @@ __COLD_CODE void dump_memory()
 	         (uint32_t)(( addr & 0xFF00000000) >> 32),
 	         (uint32_t)(addr & 0xFFFFFFFF));
 
+#if 0
 	while (len > 15)
 	{
 		pr_debug("0x%x: %x %x %x %x\r\n",
@@ -508,6 +508,8 @@ __COLD_CODE void dump_memory()
 		len -= 4;
 		p += 4;
 	}
+#endif
+	mem_disp(p, (int)len);
 #endif /* STACK_CHECK */
 }
 

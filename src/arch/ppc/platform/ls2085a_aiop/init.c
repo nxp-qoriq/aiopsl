@@ -40,6 +40,7 @@ extern const uint8_t AIOP_INIT_DATA[];
 extern struct platform_app_params g_app_params;
 extern struct aiop_init_info g_init_data;
 /*********************************************************************/
+extern int ep_mng_init(void);             extern void ep_mng_free(void);
 extern int time_init();                   extern void time_free();
 extern int mc_obj_init();                 extern void mc_obj_free();
 extern int cmdif_client_init();           extern void cmdif_client_free();
@@ -50,10 +51,6 @@ extern int slab_module_early_init(void);  extern int slab_module_init(void);
 extern void slab_module_free(void);
 extern int aiop_sl_early_init(void);
 extern int aiop_sl_init(void);            extern void aiop_sl_free(void);
-extern void discard_rx_cb();
-extern void tman_timer_callback(void);
-extern void cmdif_cl_isr(void);
-extern void cmdif_srv_isr(void);
 
 
 extern void build_apps_array(struct sys_module_desc *apps);
@@ -80,13 +77,13 @@ extern void build_apps_array(struct sys_module_desc *apps);
 #define GLOBAL_MODULES                                                       \
 	{    /* slab must be before any module with buffer request*/             \
 	{NULL, time_init,         time_free},                                    \
-	{NULL, epid_drv_init,     epid_drv_free},                                \
+	{NULL, ep_mng_init,       ep_mng_free},                                \
 	{NULL, mc_obj_init,       mc_obj_free},                                  \
 	{NULL, dpci_drv_init,     dpci_drv_free}, /*must be before EVM */        \
 	{slab_module_early_init, slab_module_init,  slab_module_free},           \
 	{NULL, cmdif_client_init, cmdif_client_free}, /* must be before srv */   \
 	{NULL, cmdif_srv_init,    cmdif_srv_free},                               \
-	{aiop_sl_early_init, aiop_sl_init,      aiop_sl_free},                                 \
+	{aiop_sl_early_init, aiop_sl_init,      aiop_sl_free},                   \
 	{NULL, dpni_drv_init,     dpni_drv_free}, /*must be after aiop_sl_init*/ \
 	{NULL, NULL, NULL} /* never remove! */                                   \
 	}
@@ -99,11 +96,9 @@ int apps_early_init(void);
 int global_post_init(void);
 int tile_init(void);
 int cluster_init(void);
-int run_apps(void);
+int apps_init(void);
 void core_ready_for_tasks(void);
 void global_free(void);
-int epid_drv_init(void);
-void epid_drv_free(void);
 
 #include "general.h"
 /** Global task params */
@@ -319,7 +314,7 @@ __COLD_CODE void core_ready_for_tasks(void)
 	__e_hwacceli(YIELD_ACCEL_ID); /* Yield */
 }
 
-__COLD_CODE int run_apps(void)
+__COLD_CODE int apps_init(void)
 {
 	int i;
 	uint16_t app_arr_size = g_app_params.app_arr_size;
@@ -341,83 +336,4 @@ __COLD_CODE int run_apps(void)
 	fsl_free(apps);
 
 	return 0;
-}
-
-static int cmdif_epid_setup(struct aiop_ws_regs *wrks_addr,
-                            uint32_t epid,
-                            void (*isr_cb)(void))
-{
-	uint32_t data = 0;
-	int      err = 0;
-
-	iowrite32_ccsr(epid, &wrks_addr->epas); /* EPID = 2 */
-	iowrite32_ccsr(PTR_TO_UINT(isr_cb), &wrks_addr->ep_pc);
-
-	/* no PTA presentation is required (even if there is a PTA)*/
-	iowrite32_ccsr(0x0000ffc0, &wrks_addr->ep_ptapa);
-	/* set epid ASA presentation size to 0 */
-	iowrite32_ccsr(0x00000000, &wrks_addr->ep_asapa);
-	/* Set mask for hash to 16 low bits OSRM = 5 */
-	iowrite32_ccsr(0x11000005, &wrks_addr->ep_osc);
-	data = ioread32_ccsr(&wrks_addr->ep_osc);
-	if (data != 0x11000005)
-		err |= -EINVAL;
-
-	pr_info("CMDIF is setting EPID = %d\n", epid);
-	pr_info("ep_pc = 0x%x \n", ioread32_ccsr(&wrks_addr->ep_pc));
-	pr_info("ep_fdpa = 0x%x \n", ioread32_ccsr(&wrks_addr->ep_fdpa));
-	pr_info("ep_ptapa = 0x%x \n", ioread32_ccsr(&wrks_addr->ep_ptapa));
-	pr_info("ep_asapa = 0x%x \n", ioread32_ccsr(&wrks_addr->ep_asapa));
-	pr_info("ep_spa = 0x%x \n", ioread32_ccsr(&wrks_addr->ep_spa));
-	pr_info("ep_spo = 0x%x \n", ioread32_ccsr(&wrks_addr->ep_spo));
-	pr_info("ep_osc = 0x%x \n", ioread32_ccsr(&wrks_addr->ep_osc));
-
-	if (err) {
-		pr_err("Failed to setup EPID %d\n", epid);
-		/* No return err here in order to setup the rest of EPIDs */
-	}
-	return err;
-}
-
-int epid_drv_init(void)
-{
-	int i = 0;
-	int err = 0;
-	struct aiop_tile_regs *tile_regs = (struct aiop_tile_regs *)
-			sys_get_handle(FSL_OS_MOD_AIOP_TILE, 1);
-	struct aiop_ws_regs *wrks_addr = &tile_regs->ws_regs;
-
-	/* CMDIF server epid initialization here*/
-	err |= cmdif_epid_setup(wrks_addr, AIOP_EPID_CMDIF_SERVER, cmdif_srv_isr);
-
-	/* TMAN epid initialization */
-	iowrite32_ccsr(AIOP_EPID_TIMER_EVENT_IDX, &wrks_addr->epas); /* EPID = 1 */
-	iowrite32_ccsr(PTR_TO_UINT(tman_timer_callback), &wrks_addr->ep_pc);
-	iowrite32_ccsr(0x02000000, &wrks_addr->ep_spo); /* SET NDS bit */
-
-	pr_info("TMAN is setting EPID = %d\n", AIOP_EPID_TIMER_EVENT_IDX);
-	pr_info("ep_pc = 0x%x\n", ioread32_ccsr(&wrks_addr->ep_pc));
-	pr_info("ep_fdpa = 0x%x\n", ioread32_ccsr(&wrks_addr->ep_fdpa));
-	pr_info("ep_ptapa = 0x%x\n", ioread32_ccsr(&wrks_addr->ep_ptapa));
-	pr_info("ep_asapa = 0x%x\n", ioread32_ccsr(&wrks_addr->ep_asapa));
-	pr_info("ep_spa = 0x%x\n", ioread32_ccsr(&wrks_addr->ep_spa));
-	pr_info("ep_spo = 0x%x\n", ioread32_ccsr(&wrks_addr->ep_spo));
-
-
-	/* CMDIF interface client epid initialization here*/
-	err |= cmdif_epid_setup(wrks_addr, AIOP_EPID_CMDIF_CLIENT, cmdif_cl_isr);
-
-	/* Initialize EPID-table with discard_rx_cb for all NI's entries (EP_PC field) */
-	for (i = AIOP_EPID_DPNI_START; i < AIOP_EPID_TABLE_SIZE; i++) {
-		/* Prepare to write to entry i in EPID table - EPAS reg */
-		iowrite32_ccsr((uint32_t)i, &wrks_addr->epas);
-
-		iowrite32_ccsr(PTR_TO_UINT(discard_rx_cb), &wrks_addr->ep_pc);
-	}
-
-	return err;
-}
-
-void epid_drv_free(void)
-{
 }

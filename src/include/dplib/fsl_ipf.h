@@ -169,6 +169,9 @@ typedef uint8_t ipf_ctx_t[IPF_CONTEXT_SIZE]
 		Since during fragmentation process of an IPv6 frame, fragment
 		extension (8 bytes) is added to the header, 8 bytes will be
 		removed from the tail of the presented segment.
+		As part of a workaround to ticket TKT260685 in REV1 this 
+        function requires one of the four nested scope levels.
+
 *//***************************************************************************/
 int ipf_generate_frag(ipf_ctx_t ipf_context_addr);
 

@@ -121,7 +121,7 @@ __COLD_CODE static void dpci_tbl_dump()
 	}
 }
 
-int dpci_mng_find(uint32_t dpci_id)
+__HOT_CODE int dpci_mng_find(uint32_t dpci_id)
 {
 	int i = 0;
 	int count = 0;
@@ -143,7 +143,7 @@ int dpci_mng_find(uint32_t dpci_id)
 	return -ENOENT;
 }
 
-int dpci_mng_peer_find(uint32_t dpci_id)
+__HOT_CODE int dpci_mng_peer_find(uint32_t dpci_id)
 {
 	int i = 0;
 	int count = 0;
@@ -165,6 +165,24 @@ int dpci_mng_peer_find(uint32_t dpci_id)
 	return -ENOENT;
 }
 
+__COLD_CODE void dpci_mng_valid_dpcis(uint64_t *valid_dpcis)
+{
+	int i = 0;
+	int count = 0;
+
+	ASSERT_COND(g_dpci_tbl.max == 64);
+	ASSERT_COND(valid_dpcis != NULL);
+
+	*valid_dpcis = 0;
+	while (count < g_dpci_tbl.count) {
+		if (g_dpci_tbl.dpci_id[i] != DPCI_FQID_NOT_VALID) {
+			*valid_dpcis |= (((uint64_t)1) << i);
+			count++;
+		}
+		i++;
+	}
+}
+
 static int dpci_entry_get()
 {
 	int i;
@@ -178,7 +196,7 @@ static int dpci_entry_get()
 	return -ENOENT;
 }
 
-static void dpci_entry_delete(int ind)
+__COLD_CODE static void dpci_entry_delete(int ind)
 {
 
 	int i;
@@ -249,9 +267,9 @@ __COLD_CODE static int tx_peer_set(uint32_t ind, uint16_t token)
 
 	err = dpci_get_peer_attributes(&dprc->io, token, &peer_attr);
 	if (err || (peer_attr.peer_id == -1)) {
-		pr_err("Failed to get peer_id dpci id = %d\n",
-		       g_dpci_tbl.dpci_id[ind]);
-		return err;
+		pr_err("Failed to get peer_id dpci id = %d err = %d\n",
+		       g_dpci_tbl.dpci_id[ind], err);
+		return -ENODEV;
 	}
 
 	g_dpci_tbl.dpci_id_peer[ind] = (uint32_t)peer_attr.peer_id;
@@ -651,7 +669,7 @@ __COLD_CODE static int dpci_tbl_create(int dpci_count)
 	g_dpci_tbl.max = dpci_count;
 	g_dpci_tbl.mc_dpci_id = 0xff;
 
-	mem_disp((void *)&g_dpci_tbl, sizeof(g_dpci_tbl));
+	//mem_disp((void *)&g_dpci_tbl, sizeof(g_dpci_tbl));
 
 	return 0;
 }

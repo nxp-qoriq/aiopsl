@@ -97,7 +97,9 @@ int dpci_scan_and_enable()
 			pr_debug("ver_minor - %d\n", dev_desc.ver_minor);
 			pr_debug("irq_count - %d\n\n", dev_desc.irq_count);
 			err |= dpci_event_assign((uint32_t)dev_desc.id);
+			pr_debug("Assign err = %d\n", err);
 			err |= dpci_drv_enable((uint32_t)dev_desc.id);
+			pr_debug("Enable err = %d\n", err);
 		}
 	}
 

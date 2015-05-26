@@ -673,13 +673,14 @@ int dpni_get_qdid(struct fsl_mc_io *mc_io, uint16_t token, uint16_t *qdid)
 	return 0;
 }
 
-int dpni_get_spids(struct fsl_mc_io *mc_io, uint16_t token, uint16_t *spids)
+int dpni_get_sp_info(struct fsl_mc_io *mc_io, uint16_t token, 
+                     struct dpni_sp_info *sp_info)
 {
 	struct mc_command cmd = { 0 };
 	int err;
 
 	/* prepare command */
-	cmd.header = mc_encode_cmd_header(DPNI_CMDID_GET_SPIDS,
+	cmd.header = mc_encode_cmd_header(DPNI_CMDID_GET_SP_INFO,
 					  MC_CMD_PRI_LOW,
 					  token);
 
@@ -689,7 +690,7 @@ int dpni_get_spids(struct fsl_mc_io *mc_io, uint16_t token, uint16_t *spids)
 		return err;
 
 	/* retrieve response parameters */
-	DPNI_RSP_GET_SPIDS(cmd, spids);
+	DPNI_RSP_GET_SP_INFO(cmd, sp_info);
 
 	return 0;
 }
@@ -1261,6 +1262,20 @@ int dpni_get_tx_conf_err_queue(struct fsl_mc_io *mc_io, uint16_t token,
 	return 0;
 }
 
+int dpni_set_tx_conf_revoke(struct fsl_mc_io		*mc_io,
+	       	     	    uint16_t			token,
+			    int 			revoke)
+{
+	struct mc_command cmd = { 0 };
+
+	/* prepare command */
+	cmd.header = mc_encode_cmd_header(DPNI_CMDID_SET_TX_CONF_REVOKE,
+					  MC_CMD_PRI_LOW, token);
+	DPNI_CMD_SET_TX_CONF_REVOKE(cmd, revoke);
+
+	/* send command to mc*/
+	return mc_send_command(mc_io, &cmd);	
+}
 
 int dpni_set_qos_table(struct fsl_mc_io *mc_io,
 		       uint16_t token,

@@ -605,9 +605,19 @@
 			<locationURI>PARENT-3-PROJECT_LOC/src/include/dplib/fsl_cdma.h</locationURI>
 		</link>
 		<link>
+			<name>aiop_sl/include/dplib/fsl_dpci_drv.h</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/include/dplib/fsl_dpci_drv.h</locationURI>
+		</link>
+		<link>
 			<name>aiop_sl/include/dplib/fsl_dpni_drv.h</name>
 			<type>1</type>
 			<locationURI>PARENT-3-PROJECT_LOC/src/include/dplib/fsl_dpni_drv.h</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/include/dplib/fsl_ep.h</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/include/dplib/fsl_ep.h</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/include/dplib/fsl_fdma.h</name>
@@ -975,6 +985,11 @@
 			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/dplib/include/fsl_dprc_cmd.h</locationURI>
 		</link>
 		<link>
+			<name>aiop_sl/drivers/dplib/include/fsl_ep_mng.h</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/dplib/include/fsl_ep_mng.h</locationURI>
+		</link>
+		<link>
 			<name>aiop_sl/drivers/dplib/include/general.h</name>
 			<type>1</type>
 			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/dplib/include/general.h</locationURI>
@@ -1138,6 +1153,11 @@
 			<name>aiop_sl/drivers/dplib/arch/accel/cdma_inline.h</name>
 			<type>1</type>
 			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/dplib/arch/accel/cdma_inline.h</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/drivers/dplib/arch/accel/ep.c</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/dplib/arch/accel/ep.c</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/drivers/dplib/arch/accel/fdma.c</name>

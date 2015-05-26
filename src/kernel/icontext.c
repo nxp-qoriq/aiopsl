@@ -72,10 +72,7 @@ void icontext_cmd_get(struct icontext *ic)
 	 */
 	dpci_mng_icid_get(ind, &icid, &amq_bdi);
 	ICONTEXT_SET(icid, amq_bdi);
-#ifndef BDI_BUG_FIXED
-	/* Fix for GPP BDI */
-	ic->bdi_flags &= ~FDMA_ENF_BDI_BIT;
-#endif
+
 	ASSERT_COND(ic->icid != ICONTEXT_INVALID);
 }
 
@@ -111,9 +108,7 @@ int icontext_get(uint16_t dpci_id, struct icontext *ic)
 			return -ENAVAIL;
 		}
 		ICONTEXT_SET(icid, amq_bdi);
-#ifndef BDI_BUG_FIXED
-		ic->bdi_flags &= ~FDMA_ENF_BDI_BIT;
-#endif
+
 		DPCI_DT_LOCK_RELEASE;
 		return 0;
 	}

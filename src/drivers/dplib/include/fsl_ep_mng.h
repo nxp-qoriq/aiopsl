@@ -25,75 +25,55 @@
  */
 
 /**************************************************************************//**
- @file          time.h
+@File		fsl_ep_mng.h
 
- @brief         AIOP Service Layer Time Queries routines
-
- @details       Contains AIOP SL Time Queries internal routines API declarations.
-
+@Description	Entry Point driver internal API
 *//***************************************************************************/
 
-#ifndef __TIME_H
-#define __TIME_H
-
-#include "common/types.h"
-#include "fsl_errors.h"
-#include "fsl_time.h"
-
-#define udiv1000(numerator) ((numerator * 0x83126e98ULL) >> 41);
-/** Macro to divide unsigned long numerator by 1000 */
+#ifndef __FSL_EP_MNG_H
+#define __FSL_EP_MNG_H
 
 /**************************************************************************//**
-@Function      _get_time_tman
+@Function	ep_mng_get_initial_presentation
 
-@Description   routine to receive time in milliseconds from tman registers
-               using time base passed from MC
+@Description	Function to get initial presentation settings from EPID table
+		for given NI.
 
+@Param[in]	epid The entry point index
 
-@Param[in]     time - on success: time is stored in the pointer as the number of
-               milliseconds since the Epoch,
-               1970-01-01 00:00:00 +0000 (UTC)
-@Return          standard POSIX error code.
- 	 	 For error posix refer to
-		\ref error_g
+@Param[out]	init_presentation Get initial presentation parameters
+ 	 	 \ref ep_initial_presentation
+
+@Return	0 on success;
+	error code, otherwise. For error posix refer to \ref error_g
 *//***************************************************************************/
-int _get_time_tman(uint64_t *time);
+int ep_mng_get_initial_presentation(
+	uint16_t epid,
+	struct ep_init_presentation* const init_presentation);
 
 /**************************************************************************//**
-@Function      ulldiv1000
+@Function	ep_mng_set_initial_presentation
 
-@Description   routine to receive time in microseconds from CM-GW TS registers
-               (1588).
+@Description	Function to set initial presentation settings in EPID table for
+		given NI.
 
+@Param[in]	epid The entry point index
 
-@Param[in]     numerator - unsigned long long numerator to be divided by
-				1000
-@Return        quotient - (result of dividing by 1000)
+@Param[in]	init_presentation Set initial presentation parameters for given
+		options and parameters \ref ep_initial_presentation
+
+@Cautions	1) Data Segment, PTA Segment, ASA Segment must not reside
+		   outside the bounds of the
+		   presentation area. i.e. They must not fall within the HWC,
+		   TLS or Stack areas.
+		2) There should not be any overlap among the Segment, PTA & ASA.
+		3) Minimum presented segment size must be configured.
+
+@Return	0 on success;
+	error code, otherwise. For error posix refer to \ref error_g
 *//***************************************************************************/
-static inline uint64_t ulldiv1000(uint64_t numerator) {
-	uint32_t msw , lsw, w;
-	uint64_t quotient;
+int ep_mng_set_initial_presentation(
+	uint16_t epid,
+	const struct ep_init_presentation* const init_presentation);
 
-	lsw = (uint32_t) (numerator);
-	msw = (uint32_t) (numerator >> 32);
-	w = udiv1000(msw);
-	msw = msw-(1000*w); // remainder
-
-	quotient = w;
-	quotient <<= 32;
-
-	msw = (msw << 16) | (lsw >> 16);
-
-	w = udiv1000(msw);
-	msw = msw - (1000 * w); // remainder
-
-	quotient |= ((uint64_t) w) << 16;
-
-	msw = (msw << 16) | (lsw & 0xffff);
-	quotient |= udiv1000(msw);
-
-	return quotient;
-}
-
-
-#endif /* _TIME_H */
+#endif

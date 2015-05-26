@@ -72,9 +72,10 @@
 #define DPNI_CMDID_SET_L4_CHKSUM_VALIDATION	0x209
 #define DPNI_CMDID_GET_L4_CHKSUM_VALIDATION	0x20A
 #define DPNI_CMDID_SET_ERRORS_BEHAVIOR		0x20B
+#define DPNI_CMDID_SET_TX_CONF_REVOKE		0x20C
 
 #define DPNI_CMDID_GET_QDID			0x210
-#define DPNI_CMDID_GET_SPIDS			0x211
+#define DPNI_CMDID_GET_SP_INFO			0x211
 #define DPNI_CMDID_GET_TX_DATA_OFFSET		0x212
 #define DPNI_CMDID_GET_COUNTER			0x213
 #define DPNI_CMDID_SET_COUNTER			0x214
@@ -412,10 +413,10 @@ do { \
 	MC_RSP_OP(cmd, 0, 0,  16, uint16_t, qdid)
 
 /*                cmd, param, offset, width, type, arg_name */
-#define DPNI_RSP_GET_SPIDS(cmd, spids) \
+#define DPNI_RSP_GET_SP_INFO(cmd, sp_info) \
 do { \
-	MC_RSP_OP(cmd, 0, 0,  16, uint16_t, spids[0]); \
-	MC_RSP_OP(cmd, 0, 16, 16, uint16_t, spids[1]); \
+	MC_RSP_OP(cmd, 0, 0,  16, uint16_t, sp_info->spids[0]); \
+	MC_RSP_OP(cmd, 0, 16, 16, uint16_t, sp_info->spids[1]); \
 } while (0)
 	
 /*                cmd, param, offset, width, type, arg_name */
@@ -718,6 +719,10 @@ do { \
 } while (0)
 
 /*                cmd, param, offset, width, type, arg_name */
+#define DPNI_CMD_SET_TX_CONF_REVOKE(cmd, revoke) \
+	MC_CMD_OP(cmd, 0, 0,  1,  int,      revoke)
+
+/*                cmd, param, offset, width, type, arg_name */
 #define DPNI_CMD_SET_QOS_TABLE(cmd, cfg) \
 do { \
 	MC_CMD_OP(cmd, 0, 32, 8,  uint8_t,  cfg->default_tc); \
@@ -788,7 +793,7 @@ do { \
 	MC_CMD_OP(cmd, 0, 4,  4, enum dpni_policer_color, cfg->default_color); \
 	MC_CMD_OP(cmd, 0, 8,  4, enum dpni_policer_unit, cfg->units); \
 	MC_CMD_OP(cmd, 0, 16, 8,  uint8_t,  tc_id); \
-	MC_CMD_OP(cmd, 0, 32, 32, uint32_t,  cfg->options); \
+	MC_CMD_OP(cmd, 0, 32, 32, uint32_t, cfg->options); \
 	MC_CMD_OP(cmd, 1, 0,  32, uint32_t, cfg->cir); \
 	MC_CMD_OP(cmd, 1, 32, 32, uint32_t, cfg->cbs); \
 	MC_CMD_OP(cmd, 2, 0,  32, uint32_t, cfg->eir); \
