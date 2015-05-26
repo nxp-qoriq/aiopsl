@@ -308,7 +308,6 @@ inline void move_to_correct_ordering_scope1(uint32_t osm_status)
 			/* return to original ordering scope that entered
 			 * the ipr_reassemble function */
 			osm_scope_exit();
-			osm_scope_relinquish_exclusivity();
 		} else if(osm_status & START_CONCURRENT) {
 			osm_scope_relinquish_exclusivity();
 		}
