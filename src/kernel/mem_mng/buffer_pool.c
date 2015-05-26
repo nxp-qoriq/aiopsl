@@ -61,15 +61,17 @@ static uint32_t compute_block_size(const uint16_t  buff_size,
  * Computes maximal number of buffers that might be allocated from provided
  * total  memory size.
  */
-uint32_t compute_num_buffers(const uint32_t  total_mem_size,
+uint32_t buff_pool_compute_num_buffers(const uint32_t  total_mem_size,
 	                        const uint16_t  buff_size,
                                 const uint16_t  buff_alignment)
 {
     uint32_t block_size = compute_block_size(buff_size,buff_alignment);
+    if(total_mem_size < block_size || total_mem_size < buff_alignment)
+	    return 0;
     return (total_mem_size - buff_alignment)/block_size;
 }
 
-int buffer_pool_create(struct buffer_pool *p_bf_pool,
+int buff_pool_create(struct buffer_pool *p_bf_pool,
                       const uint32_t        bf_pool_id,
                       const uint32_t        num_buffs,
                       const uint16_t        buff_size,
@@ -124,7 +126,7 @@ int buffer_pool_create(struct buffer_pool *p_bf_pool,
 	return 0;
 }
 
-int get_buff(struct buffer_pool *bf_pool, uint64_t* buffer_addr)
+int buff_pool_get(struct buffer_pool *bf_pool, uint64_t* buffer_addr)
 {
 	struct icontext ic = {0};
 #ifdef DEBUG
@@ -162,7 +164,7 @@ int get_buff(struct buffer_pool *bf_pool, uint64_t* buffer_addr)
 	return 0;
 }
 
-int put_buff(struct buffer_pool  *bf_pool, uint64_t buffer_addr)
+int buff_pool_put(struct buffer_pool  *bf_pool, uint64_t buffer_addr)
 {
 	struct icontext ic = {0};
 	ASSERT_COND(bf_pool);

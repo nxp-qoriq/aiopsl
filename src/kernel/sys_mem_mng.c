@@ -537,17 +537,6 @@ void  sys_put_phys_mem(uint64_t paddr)
 	mem_mng_put_phys_mem(sys.mem_mng,paddr);
 }
 
-#if 0
-#include "mem_mng.h"
-#include "fsl_slob.h"
-int sys_slob_free(int mem_partition_id)
-{
-	t_mem_mng    *p_mem_mng = (t_mem_mng *)sys.mem_mng;
-	t_mem_mng_partition   *p_partition = &p_mem_mng->mem_partitions_array[mem_partition_id];
-	slob_free(p_partition->h_mem_manager);
-	return 0;
-}
-#endif
 
 __END_COLD_CODE
 

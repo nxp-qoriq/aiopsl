@@ -235,9 +235,9 @@ fsl_handle_t mem_mng_init(fsl_handle_t h_boot_mem_mng,
 
     /* Set a next power of 2 of sizeof(t_slob_block) as an alignment */
     NEXT_POWER_OF_2(sizeof(t_slob_block),alignment);
-    slob_blocks_num = compute_num_buffers(g_buffer_pool_size,sizeof(t_slob_block),alignment);
+    slob_blocks_num = buff_pool_compute_num_buffers(g_buffer_pool_size,sizeof(t_slob_block),alignment);
 
-    rc = buffer_pool_create(&p_mem_mng->slob_bf_pool,E_BFT_SLOB_BLOCK,slob_blocks_num,
+    rc = buff_pool_create(&p_mem_mng->slob_bf_pool,E_BFT_SLOB_BLOCK,slob_blocks_num,
                             sizeof(t_slob_block),alignment,h_boot_mem_mng);
     if(rc)
     {
@@ -783,7 +783,7 @@ void * mem_mng_alloc_mem(fsl_handle_t    h_mem_mng,
 
     	    /* Internal MM malloc */
     	    p_memory = UINT_TO_PTR(
-    		    slob_get(p_partition->h_mem_manager, size, alignment, ""));
+    	        slob_get(p_partition->h_mem_manager, size, alignment));
     	    if ((uintptr_t)p_memory == ILLEGAL_BASE)
 		/* Do not report error - let the allocating entity report it */
     		    return NULL;
@@ -860,7 +860,7 @@ int mem_mng_get_phys_mem(fsl_handle_t h_mem_mng, int  partition_id,
 #else
             spin_unlock_irqrestore(p_mem_mng->lock, int_flags);
 #endif
-            if((*paddr = slob_get(p_partition->h_mem_manager,size,alignment,"")) == ILLEGAL_BASE)
+            if((*paddr = slob_get(p_partition->h_mem_manager,size,alignment)) == ILLEGAL_BASE)
             {
                 pr_err("Mem. manager memory allocation failed: Required size 0x%x%08x exceeds "
                    "available memory for partition ID %d\n",

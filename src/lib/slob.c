@@ -30,14 +30,13 @@
 #include "fsl_malloc.h"
 #include "kernel/fsl_spinlock.h"
 #include "fsl_dbg.h"
-#ifdef AIOP
 #include "fsl_platform.h"
 #include "platform.h"
 #include "platform_aiop_spec.h"
 #include "fsl_mem_mng.h"
-#endif
 #include "slob.h"
 #include "buffer_pool.h"
+#include "fsl_sl_dbg.h"
 
 
 
@@ -78,7 +77,7 @@ static t_mem_block * create_new_block_by_boot_mng(const uint64_t base,
     int rc = boot_get_mem_virt(boot_mem_mng,sizeof(t_mem_block),&address);
     if(rc)
     {
-        pr_err("Slob: memory allocation failed\n");
+        sl_pr_err("Slob: memory allocation failed\n");
         return NULL;
     }
 
@@ -115,10 +114,10 @@ static  int create_new_block(t_MM *p_MM,
     int rc = -ENAVAIL;
     struct buffer_pool* slob_bf_pool = (struct buffer_pool*)(p_MM->h_slob_bf_pool);
     t_slob_block loc_slob_block = {0};
-    rc = get_buff(slob_bf_pool,block_addr);
+    rc = buff_pool_get(slob_bf_pool,block_addr);
     if (0 != rc)
     {
-        pr_err("Slob: memory allocation failed");
+        sl_pr_err("Slob: memory allocation failed");
         return rc;
     }
     loc_slob_block.base = base;
@@ -236,7 +235,7 @@ static int add_free(t_MM *p_MM, uint64_t base, uint64_t end)
                         next_b_addr = curr_b.next_addr;
                         curr_b.next_addr = next_b.next_addr;
                         cdma_write(curr_b_addr,&curr_b,sizeof(curr_b));
-                        put_buff(slob_bf_pool,next_b_addr);
+                        buff_pool_put(slob_bf_pool,next_b_addr);
                         if(0 != curr_b.next_addr)
                               cdma_read(&next_b,curr_b.next_addr,sizeof(next_b));
                     }
@@ -252,7 +251,7 @@ static int add_free(t_MM *p_MM, uint64_t base, uint64_t end)
                     {
                         curr_b.end = next_b.end;
                         curr_b.next_addr = next_b.next_addr;
-                        put_buff(slob_bf_pool,next_b_addr);
+                        buff_pool_put(slob_bf_pool,next_b_addr);
                         cdma_write(curr_b_addr,&curr_b,sizeof(curr_b));
                     }
                 }
@@ -261,7 +260,7 @@ static int add_free(t_MM *p_MM, uint64_t base, uint64_t end)
                     if ((rc  = create_new_block(p_MM,align_base, end-align_base,
                                                      &new_b_addr)) != 0)
                     {
-                        pr_err("Slob: memory allocation failed\n");
+                        sl_pr_err("Slob: memory allocation failed\n");
                         return -ENOMEM;
                     }
                     cdma_read(&new_b,new_b_addr,sizeof(new_b));
@@ -297,7 +296,7 @@ static int add_free(t_MM *p_MM, uint64_t base, uint64_t end)
                     {
                         p_MM->head_free_blocks_addr[i] = curr_b.next_addr;
                     }
-                    put_buff(slob_bf_pool,curr_b_addr);
+                    buff_pool_put(slob_bf_pool,curr_b_addr);
                     curr_b_addr = 0;
                 }
                 break;
@@ -317,7 +316,7 @@ static int add_free(t_MM *p_MM, uint64_t base, uint64_t end)
          */
         if(0 != insert_free_block(&new_b_addr,p_MM,curr_b_addr,end,alignment,align_base,prev_b_addr,i))
         {
-            pr_err("Slob: memory allocation failed\n");
+            sl_pr_err("Slob: memory allocation failed\n");
             return -ENOMEM;
         }
         /* Update boundaries of the new free block */
@@ -387,7 +386,7 @@ static int cut_free(t_MM *p_MM, const uint64_t hold_base, const uint64_t hold_en
                     {
                         p_MM->head_free_blocks_addr[i] =  curr_b.next_addr;
                     }
-                    put_buff(slob_bf_pool,curr_b_addr);
+                    buff_pool_put(slob_bf_pool,curr_b_addr);
                 }
                 else
                 {
@@ -406,7 +405,7 @@ static int cut_free(t_MM *p_MM, const uint64_t hold_base, const uint64_t hold_en
                                                          end-align_base,
                                                          &new_b_addr)) != 0)
                         {
-                            pr_err("Slob: memory allocation failed\n");
+                            sl_pr_err("Slob: memory allocation failed\n");
                             return -ENOMEM;
                         }
                         cdma_read(&new_b,new_b_addr,sizeof(new_b));
@@ -432,7 +431,7 @@ static int cut_free(t_MM *p_MM, const uint64_t hold_base, const uint64_t hold_en
                     {
                         p_MM->head_free_blocks_addr[i] = curr_b.next_addr;
                     }
-                    put_buff(slob_bf_pool,curr_b_addr);
+                    buff_pool_put(slob_bf_pool,curr_b_addr);
                 }
                 cdma_write(curr_b_addr,&curr_b,sizeof(curr_b));
                 break;
@@ -554,7 +553,7 @@ static int cut_busy(t_MM *p_MM, const uint64_t base, const uint64_t end)
                     p_curr_b->p_next = p_curr_b->p_next->p_next;
                     p_curr_b->next_addr = p_curr_b->p_next->next_addr;
                     //fsl_os_free(p_next_b);
-                    put_buff(slob_bf_pool,next_b_addr);
+                    buffer_pool_put(slob_bf_pool,next_b_addr);
                 }
 
                 p_next_b = p_curr_b->p_next;
@@ -583,7 +582,7 @@ static int cut_busy(t_MM *p_MM, const uint64_t base, const uint64_t end)
                         p_MM->head_busy_blocks_addr = p_curr_b->next_addr;
                     }
                     //fsl_os_free(p_curr_b);
-                    put_buff(slob_bf_pool,curr_b_addr);
+                    buffer_pool_put(slob_bf_pool,curr_b_addr);
                 }
             }
             else
@@ -595,7 +594,7 @@ static int cut_busy(t_MM *p_MM, const uint64_t base, const uint64_t end)
                                                   p_curr_b->end-end,
                                                   &p_new_b,&new_b_addr)) != 0)
                     {
-                        pr_err("Slob: memory allocation failed\n");
+                        sl_pr_err("Slob: memory allocation failed\n");
                         return -ENOMEM;
                     }
                     p_new_b->p_next = p_curr_b->p_next;
@@ -703,7 +702,7 @@ static uint64_t slob_get_greater_alignment(t_MM *p_MM, const uint64_t size,
     /* calls Update routine to update a lists of free blocks */
     if ( cut_free ( p_MM, hold_base, hold_end ) != 0 ) {
 	    //fsl_os_free(p_new_busy_b);
-            put_buff( slob_bf_pool,new_busy_addr);
+            buff_pool_put( slob_bf_pool,new_busy_addr);
             cdma_mutex_lock_release((uint64_t)p_MM);
 	    return (uint64_t)(ILLEGAL_BASE);
     }
@@ -731,7 +730,7 @@ int slob_init(fsl_handle_t *slob, const uint64_t base, const uint64_t size,
 
     if (0 == size)
     {
-        pr_err("Slob: invalid value slob size (should be positive)\n");
+        sl_pr_err("Slob: invalid value slob size (should be positive)\n");
     }
     struct initial_mem_mng* boot_mem_mng = (struct initial_mem_mng*)h_mem_mng;
     ASSERT_COND_LIGHT(boot_mem_mng);
@@ -741,7 +740,7 @@ int slob_init(fsl_handle_t *slob, const uint64_t base, const uint64_t size,
     rc = boot_get_mem_virt(boot_mem_mng,sizeof(t_MM),&curr_addrr);
     if (rc)
     {
-        pr_err("Slob: memory allocation failed\n");
+        sl_pr_err("Slob: memory allocation failed\n");
         return -ENOMEM;
     }
     p_MM = (t_MM*)curr_addrr;
@@ -758,7 +757,7 @@ int slob_init(fsl_handle_t *slob, const uint64_t base, const uint64_t size,
     /* Initializes a new memory block */
     if ((p_MM->mem_blocks = create_new_block_by_boot_mng(base, size,boot_mem_mng)) == NULL) {
 	    slob_free(p_MM);
-	    pr_err("Slob: memory allocation failed\n");
+	    sl_pr_err("Slob: memory allocation failed\n");
 	    return -ENOMEM;
     }
     if(0 == size)
@@ -781,7 +780,7 @@ int slob_init(fsl_handle_t *slob, const uint64_t base, const uint64_t size,
                                      new_size,
                                      &free_blocks_addr)) != 0) {
         	slob_free(p_MM);
-            pr_err("Slob: memory allocation failed");
+            sl_pr_err("Slob: memory allocation failed");
             return -ENOMEM;
         }
         p_MM->head_free_blocks_addr[i] = free_blocks_addr;
@@ -816,7 +815,7 @@ void slob_free(fsl_handle_t slob)
         if( 0 != busy_block_addr)
             cdma_read(&busy_block,busy_block_addr,sizeof(busy_block_addr));
         //fsl_os_free(p_block);
-        put_buff(slob_bf_pool,block_adr);
+        buff_pool_put(slob_bf_pool,block_adr);
     }
 
     /* release memory allocated for free blocks */
@@ -831,13 +830,13 @@ void slob_free(fsl_handle_t slob)
             free_block_addr =  free_block.next_addr;
             if(0 != free_block_addr)
                 cdma_read(&free_block,free_block_addr,sizeof(free_block));
-            put_buff(slob_bf_pool,block_adr);
+            buff_pool_put(slob_bf_pool,block_adr);
         }
     }
 }
 
 /*****************************************************************************/
-uint64_t slob_get(fsl_handle_t slob, const uint64_t size, uint64_t alignment, char* name)
+uint64_t slob_get(fsl_handle_t slob, const uint64_t size, uint64_t alignment)
 {
     t_MM        *p_MM = (t_MM *)slob;
     struct buffer_pool* slob_bf_pool = (struct buffer_pool* )p_MM->h_slob_bf_pool;
@@ -846,12 +845,11 @@ uint64_t slob_get(fsl_handle_t slob, const uint64_t size, uint64_t alignment, ch
     uint64_t    new_busy_b_addr = 0, free_b_addr = 0;
     t_slob_block free_b = {0};
 
-    UNUSED(name);
     ASSERT_COND(p_MM);
 
     if (size == 0)
     {
-        pr_err("Slob invalid value: allocation size must be positive\n");
+        sl_pr_err("Slob invalid value: allocation size must be positive\n");
     }
     /* checks that alignment value is greater then zero */
     if (alignment == 0)
@@ -872,7 +870,7 @@ uint64_t slob_get(fsl_handle_t slob, const uint64_t size, uint64_t alignment, ch
     /* if the given alignment isn't power of two, returns an error */
     if (j != 1)
     {
-        pr_err("Slob invalid value: alignment (should be power of 2)\n");
+        sl_pr_err("Slob invalid value: alignment (should be power of 2)\n");
         return (uint64_t)ILLEGAL_BASE;
     }
 
@@ -917,7 +915,7 @@ uint64_t slob_get(fsl_handle_t slob, const uint64_t size, uint64_t alignment, ch
     {
 	cdma_mutex_lock_release((uint64_t)p_MM);
         //fsl_os_free(p_new_busy_b);
-        put_buff(slob_bf_pool,new_busy_b_addr);
+        buff_pool_put(slob_bf_pool,new_busy_b_addr);
         return (uint64_t)(ILLEGAL_BASE);
     }
 
@@ -948,7 +946,7 @@ uint64_t slob_get_force(fsl_handle_t slob, const uint64_t base, const uint64_t s
     slob_bf_pool = (struct buffer_pool* )p_MM->h_slob_bf_pool;
     if (size == 0)
     {
-        pr_err("Slob invalid value: allocation size must be positive\n");
+        sl_pr_err("Slob invalid value: allocation size must be positive\n");
     }
     //lock_spinlock(p_MM->lock);
     cdma_mutex_lock_take((uint64_t)p_MM, CDMA_MUTEX_WRITE_LOCK);
@@ -987,7 +985,7 @@ uint64_t slob_get_force(fsl_handle_t slob, const uint64_t base, const uint64_t s
     {
         //unlock_spinlock(p_MM->lock);
 	cdma_mutex_lock_release((uint64_t)p_MM);
-        put_buff(slob_bf_pool,new_busy_b_addr);
+        buffer_pool_put(slob_bf_pool,new_busy_b_addr);
         return (uint64_t)(ILLEGAL_BASE);
     }
 
@@ -1021,7 +1019,7 @@ uint64_t slob_get_force_min(fsl_handle_t slob,
     slob_bf_pool = (struct buffer_pool* )p_MM->h_slob_bf_pool;
     if (size == 0)
     {
-        pr_err("Slob invalid value: allocation size must be positive\n");
+        sl_pr_err("Slob invalid value: allocation size must be positive\n");
     }
 
     /* checks if alignment is a power of two, if it correct and if the
@@ -1097,7 +1095,7 @@ uint64_t slob_get_force_min(fsl_handle_t slob,
         //unlock_spinlock(p_MM->lock);
 	cdma_mutex_lock_release((uint64_t)p_MM);
         //fsl_os_free(p_new_busy_b);
-        put_buff(slob_bf_pool,new_busy_b_addr);
+        buffer_pool_put(slob_bf_pool,new_busy_b_addr);
         return (uint64_t)(ILLEGAL_BASE);
     }
 
@@ -1172,7 +1170,7 @@ uint64_t slob_put(fsl_handle_t slob, const uint64_t base)
     /* Adding the deallocated memory size to free memory size */
     p_MM->free_mem_size += size;
     //fsl_os_free(p_busy_b);
-    put_buff(slob_bf_pool,busy_b_addr);
+    buff_pool_put(slob_bf_pool,busy_b_addr);
 
     cdma_mutex_lock_release((uint64_t)p_MM);
     return (size);
@@ -1242,7 +1240,7 @@ int slob_add(fsl_handle_t slob, const uint64_t base, const uint64_t size)
         {
             //unlock_spinlock(p_MM->lock);
             cdma_mutex_lock_release((uint64_t)p_MM);
-            pr_err("Slob: resource already exists\n");
+            sl_pr_err("Slob: resource already exists\n");
             return -ENOMEM;
         }
         p_mem_b = p_mem_b->p_next;
@@ -1252,7 +1250,7 @@ int slob_add(fsl_handle_t slob, const uint64_t base, const uint64_t size)
     {
         //unlock_spinlock(p_MM->lock);
 	cdma_mutex_lock_release((uint64_t)p_MM);
-        pr_err("Slob: resource already exists\n");
+        sl_pr_err("Slob: resource already exists\n");
         return -ENOMEM;
     }
 
@@ -1261,7 +1259,7 @@ int slob_add(fsl_handle_t slob, const uint64_t base, const uint64_t size)
     {
         //unlock_spinlock(p_MM->lock);
 	cdma_mutex_lock_release((uint64_t)p_MM);
-        pr_err("Slob: memory allocation failed\n");
+        sl_pr_err("Slob: memory allocation failed\n");
         return -ENOMEM;
     }
 

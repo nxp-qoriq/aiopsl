@@ -144,11 +144,10 @@ int slob_add(fsl_handle_t slob, uint64_t base, uint64_t size);
  @Param[in]     size        - Size of the MM.
  @Param[in]     alignment   - Index as a power of two defines a required
                               alignment (in bytes); Should be 1, 2, 4, 8, 16, 32 or 64
- @Param[in]     name        - The name that specifies an allocated block.
 
  @Return        base address of an allocated block ILLEGAL_BASE if can't allocate a block
 *//***************************************************************************/
-uint64_t slob_get(fsl_handle_t slob, uint64_t size, uint64_t alignment, char *name);
+uint64_t slob_get(fsl_handle_t slob, uint64_t size, uint64_t alignment);
 
 /**************************************************************************//**
  @Function      slob_get_force
