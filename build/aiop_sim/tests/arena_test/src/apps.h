@@ -85,18 +85,6 @@
 
 /** @} */ /* end of app_mflu */
 
-
-/**************************************************************************//**
-@Group		app_tman	TMAN
-
-@Description	Use the following macros to define the TMAN setup.
-@{
-*//***************************************************************************/
-
-#define APP_TMAN_FREQUENCY		800	/**< Tman frequency */
-
-/** @} */ /* end of app_tman */
-
 /**************************************************************************//**
 @Group		app_dpni	DPNI
 

@@ -30,6 +30,7 @@
 #include "fsl_ep_mng.h"
 #include "aiop_common.h"
 #include "fsl_io_ccsr.h"
+#include "fsl_dbg.h"
 
 /* Supported options for initializing presentation fields*/
 #define EP_SUPPORTED_INIT_PRESENTATION_OPTIONS    \
@@ -63,6 +64,15 @@
 #define NDS_MASK                  0x02000000
 #define NDS_SHIFT                 25
 #define SPO_MASK                  0x0000FFFF
+
+extern void discard_rx_cb();
+extern void tman_timer_callback(void);
+extern void cmdif_cl_isr(void);
+extern void cmdif_srv_isr(void);
+
+int ep_mng_init(void);
+void ep_mng_free(void);
+
 
 int ep_mng_get_initial_presentation(
 	uint16_t epid,
@@ -307,4 +317,83 @@ int ep_mng_set_initial_presentation(
 	/*Mutex unlock EPID table*/
 	cdma_mutex_lock_release((uint64_t)&wrks_addr->epas);
 	return 0;
+}
+
+static int cmdif_epid_setup(struct aiop_ws_regs *wrks_addr,
+                            uint32_t epid,
+                            void (*isr_cb)(void))
+{
+	uint32_t data = 0;
+	int      err = 0;
+
+	iowrite32_ccsr(epid, &wrks_addr->epas); /* EPID = 2 */
+	iowrite32_ccsr(PTR_TO_UINT(isr_cb), &wrks_addr->ep_pc);
+
+	/* no PTA presentation is required (even if there is a PTA)*/
+	iowrite32_ccsr(0x0000ffc0, &wrks_addr->ep_ptapa);
+	/* set epid ASA presentation size to 0 */
+	iowrite32_ccsr(0x00000000, &wrks_addr->ep_asapa);
+	/* Set mask for hash to 16 low bits OSRM = 5 */
+	iowrite32_ccsr(0x11000005, &wrks_addr->ep_osc);
+	data = ioread32_ccsr(&wrks_addr->ep_osc);
+	if (data != 0x11000005)
+		err |= -EINVAL;
+
+	pr_info("CMDIF is setting EPID = %d\n", epid);
+	pr_info("ep_pc = 0x%x \n", ioread32_ccsr(&wrks_addr->ep_pc));
+	pr_info("ep_fdpa = 0x%x \n", ioread32_ccsr(&wrks_addr->ep_fdpa));
+	pr_info("ep_ptapa = 0x%x \n", ioread32_ccsr(&wrks_addr->ep_ptapa));
+	pr_info("ep_asapa = 0x%x \n", ioread32_ccsr(&wrks_addr->ep_asapa));
+	pr_info("ep_spa = 0x%x \n", ioread32_ccsr(&wrks_addr->ep_spa));
+	pr_info("ep_spo = 0x%x \n", ioread32_ccsr(&wrks_addr->ep_spo));
+	pr_info("ep_osc = 0x%x \n", ioread32_ccsr(&wrks_addr->ep_osc));
+
+	if (err) {
+		pr_err("Failed to setup EPID %d\n", epid);
+		/* No return err here in order to setup the rest of EPIDs */
+	}
+	return err;
+}
+
+int ep_mng_init(void)
+{
+	int i = 0;
+	int err = 0;
+	struct aiop_tile_regs *tile_regs = (struct aiop_tile_regs *)
+			sys_get_handle(FSL_OS_MOD_AIOP_TILE, 1);
+	struct aiop_ws_regs *wrks_addr = &tile_regs->ws_regs;
+
+	/* CMDIF server epid initialization here*/
+	err |= cmdif_epid_setup(wrks_addr, AIOP_EPID_CMDIF_SERVER, cmdif_srv_isr);
+
+	/* TMAN epid initialization */
+	iowrite32_ccsr(AIOP_EPID_TIMER_EVENT_IDX, &wrks_addr->epas); /* EPID = 1 */
+	iowrite32_ccsr(PTR_TO_UINT(tman_timer_callback), &wrks_addr->ep_pc);
+	iowrite32_ccsr(0x02000000, &wrks_addr->ep_spo); /* SET NDS bit */
+
+	pr_info("TMAN is setting EPID = %d\n", AIOP_EPID_TIMER_EVENT_IDX);
+	pr_info("ep_pc = 0x%x\n", ioread32_ccsr(&wrks_addr->ep_pc));
+	pr_info("ep_fdpa = 0x%x\n", ioread32_ccsr(&wrks_addr->ep_fdpa));
+	pr_info("ep_ptapa = 0x%x\n", ioread32_ccsr(&wrks_addr->ep_ptapa));
+	pr_info("ep_asapa = 0x%x\n", ioread32_ccsr(&wrks_addr->ep_asapa));
+	pr_info("ep_spa = 0x%x\n", ioread32_ccsr(&wrks_addr->ep_spa));
+	pr_info("ep_spo = 0x%x\n", ioread32_ccsr(&wrks_addr->ep_spo));
+
+
+	/* CMDIF interface client epid initialization here*/
+	err |= cmdif_epid_setup(wrks_addr, AIOP_EPID_CMDIF_CLIENT, cmdif_cl_isr);
+
+	/* Initialize EPID-table with discard_rx_cb for all NI's entries (EP_PC field) */
+	for (i = AIOP_EPID_DPNI_START; i < AIOP_EPID_TABLE_SIZE; i++) {
+		/* Prepare to write to entry i in EPID table - EPAS reg */
+		iowrite32_ccsr((uint32_t)i, &wrks_addr->epas);
+
+		iowrite32_ccsr(PTR_TO_UINT(discard_rx_cb), &wrks_addr->ep_pc);
+	}
+
+	return err;
+}
+
+void ep_mng_free(void)
+{
 }

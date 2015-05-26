@@ -1,3 +1,7 @@
+apps.h:             Removed  APP_TMAN_FREQUENCY, it had no effect. MC sets it.
+icontext.c:         Removed WA related to MC CQ ENGR00345218.
+fsl_ep.h:           Entry point modification API. It is exposed to users through DPCI and DPNI drivers. 
+fsl_dpci_drv.h:     Added new API for DPCI objects as part of dynamic objects management effort. 
 fsl_cmdif_client.h: Updated documentation for cmdif_open(): the buffer must be 8 bytes aligned, relevant for GPP only
 fsl_cmdif_server.h: Updated documentation for cmdif_session_open(): the buffer must be 8 bytes aligned, relevant for GPP only
 
