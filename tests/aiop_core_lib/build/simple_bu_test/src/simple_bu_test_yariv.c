@@ -54,6 +54,7 @@
 
 void bu_tman_callback(uint64_t opaque1, uint16_t opaque2);
 void bu_tman_callback_oneshot(uint64_t opaque1, uint16_t opaque2);
+void bu_tman_callback_oneshot_accuracy(uint64_t opaque1, uint16_t opaque2);
 int ipsec_app_init(uint16_t ni_id);
 void ipsec_print_frame(void);
 void ipsec_print_stats (ipsec_handle_t desc_handle);
@@ -85,6 +86,7 @@ extern __PROFILE_SRAM struct storage_profile storage_profile[SP_NUM_OF_STORAGE_P
 
 uint32_t global_timer_handle1;
 uint32_t global_timer_handle2;
+uint32_t global_timer_handle3;
 uint32_t global_timer_callback_counter = 0;
 
 /* Global IPsec vars in Shared RAM */
@@ -113,6 +115,7 @@ int simple_bu_yariv_test(void)
 	uint8_t tmi_id;
 	uint32_t timer_handle1;
 	uint32_t timer_handle2;
+	uint32_t timer_handle3;
 
 	fsl_os_print("Running simple bring-up test\n");
 	
@@ -474,7 +477,7 @@ int simple_bu_yariv_test(void)
 	
 		err = tman_create_tmi(
 				tmi_timer_addr, /* uint64_t tmi_mem_base_addr */
-				5, /* uint32_t max_num_of_timers */
+				6, /* uint32_t max_num_of_timers */
 				&tmi_id); /* uint8_t *tmi_id */
 				
 		if (err) {
@@ -515,7 +518,7 @@ int simple_bu_yariv_test(void)
 				0x44, /* tman_arg_2B_t opaque_data2 */ 
 				&bu_tman_callback_oneshot, /* tman_cb_t tman_timer_cb */
 				&timer_handle2); /*	uint32_t *timer_handle */
-		
+
 		global_timer_handle2 = timer_handle2;
 		
 		if (err) {
@@ -523,6 +526,34 @@ int simple_bu_yariv_test(void)
 		} else {
 			fsl_os_print("tman_create_timer() PASSED :-)\n");
 		}
+
+		fsl_os_print("Calling tman_create_timer() for one shot timer"
+				"accuracy check\n");
+		tman_get_timestamp(
+				(uint64_t *)(&data_arr_32bit[4])); /* uint64_t *timestamp) */
+		err = tman_create_timer(
+				tmi_id, /* uint8_t tmi_id */
+				TMAN_CREATE_TIMER_MODE_10_MSEC_GRANULARITY |
+					TMAN_CREATE_TIMER_ONE_SHOT, /* uint32_t flags */
+					/* 10 mSec timer ticks*/
+				100, /*	uint16_t duration; 100*1ms = 1 sec */
+				(tman_arg_8B_t)data_arr_32bit[5], /* tman_arg_8B_t opaque_data1 */
+				0x44, /* tman_arg_2B_t opaque_data2 */ 
+				&bu_tman_callback_oneshot_accuracy, /* tman_cb_t tman_timer_cb */
+				&timer_handle3); /*	uint32_t *timer_handle */
+		tman_get_timestamp(
+				(uint64_t *)(&data_arr_32bit[4])); /* uint64_t *timestamp) */
+		fsl_os_print("Third tman_get_timestamp() high = %d\n", data_arr_32bit[4]);
+		fsl_os_print("Third tman_get_timestamp() low  = %d\n", data_arr_32bit[5]);
+
+		global_timer_handle3 = timer_handle3;
+		
+		if (err) {
+			fsl_os_print("ERROR: tman_create_timer() failed\n");
+		} else {
+			fsl_os_print("tman_create_timer() PASSED :-)\n");
+		}
+		
 		/* End of TMAN Test */ 
 #endif
 
@@ -596,6 +627,38 @@ void bu_tman_callback_oneshot(uint64_t opaque1, uint16_t opaque2)
 	//fsl_os_print("\nbu_tman_callback_oneshot(): Calling ipsec_encr_decr()\n");
 	//ipsec_encr_decr();
 	//fsl_os_print("bu_tman_callback_oneshot(): ipsec_encr_decr() completed\n");
+	
+	fsl_os_print("bu_tman_callback_oneshot() completed\n");
+}
+
+void bu_tman_callback_oneshot_accuracy(uint64_t opaque1, uint16_t opaque2)
+{
+	
+	uint32_t opaque1_32bit = (uint32_t)opaque1;
+	uint32_t opaque2_32bit = (uint32_t)opaque2;
+	uint32_t timestamp_32bit[2];
+	uint32_t delta;
+
+	tman_get_timestamp(
+			(uint64_t *)(&timestamp_32bit[0])); /* uint64_t *timestamp) */
+	
+	fsl_os_print("\nIn bu_tman_callback_oneshot \n");
+	fsl_os_print("opaque1 = %x,  opaque2 = %x\n", opaque1_32bit, opaque2_32bit);
+
+	fsl_os_print("Doing tman_timer_completion_confirmation() in"
+			" bu_tman_callback_oneshot_accuracy\n");
+	tman_timer_completion_confirmation(global_timer_handle3);
+
+
+	fsl_os_print("tman_get_timestamp() At callback low portion"
+			" = %d\n", timestamp_32bit[1]);
+	delta = timestamp_32bit[1]-opaque1_32bit;
+	fsl_os_print("Timer expiration time in uSec = %d\n", delta);
+	if((delta < 1010001) && (delta > 98999)) {
+		fsl_os_print("Accuracy test PASSED \n");
+	} else {
+		fsl_os_print("ERROR in Accuracy test \n");
+	}
 	
 	fsl_os_print("bu_tman_callback_oneshot() completed\n");
 }
