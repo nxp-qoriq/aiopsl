@@ -429,6 +429,18 @@ int dpni_drv_probe(struct mc_dprc *dprc,
 				break;
 			}
 
+			/*
+			 * Disable TX confirmation for DPNI's in AIOP in case
+			 * the option: 'DPNI_OPT_TX_CONF_DISABLED' was not
+			 * selected at DPNI creation.
+			 * */
+			err = dpni_set_tx_conf_revoke(&dprc->io, dpni, 1);
+			if(err){
+				sl_pr_err("Failed to set tx_conf_revoke for DP-NI%d\n",
+				          mc_niid);
+				break;
+			}
+
 			/* Enable DPNI before updating the entry point
 			 * function (EP_PC) in order to allow DPNI's attributes
 			 * to be initialized.
