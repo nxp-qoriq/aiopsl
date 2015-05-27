@@ -37,53 +37,54 @@ uint32_t *g_evm_b_pool_pointer;
 uint32_t *g_evm_last_b_pool_pointer;
 uint8_t g_evm_b_pool_spinlock;
 
-static void add_event_registration(struct evm *evm_ptr, struct evm_priority_list *evm_cb_list)
+static void add_event_registration(struct evm *evm_ptr, struct evm_priority_list *evmng_cb_list)
 {
-	struct evm_priority_list *evm_cb_list_ptr;
-	struct evm_priority_list *evm_cb_list_tmp_ptr;
+	struct evm_priority_list *evmng_cb_list_ptr;
+	struct evm_priority_list *evmng_cb_list_tmp_ptr;
 
 	/* Lock event entry in the EVM table*/
 	cdma_mutex_lock_take((uint64_t) evm_ptr, CDMA_MUTEX_WRITE_LOCK);
 	if(evm_ptr->head != NULL){
-		evm_cb_list_ptr = evm_ptr->head;
-		evm_cb_list_tmp_ptr = evm_cb_list_ptr;
+		evmng_cb_list_ptr = evm_ptr->head;
+		evmng_cb_list_tmp_ptr = evmng_cb_list_ptr;
 
-		while(evm_cb_list_ptr->next != NULL &&
-			evm_cb_list_ptr->priority <= evm_cb_list->priority)
+		while(evmng_cb_list_ptr->next != NULL &&
+			evmng_cb_list_ptr->priority <= evmng_cb_list->priority)
 		{
-			evm_cb_list_tmp_ptr = evm_cb_list_ptr;
-			evm_cb_list_ptr = evm_cb_list_ptr->next;
+			evmng_cb_list_tmp_ptr = evmng_cb_list_ptr;
+			evmng_cb_list_ptr = evmng_cb_list_ptr->next;
 		}
 
-		if(evm_cb_list_ptr->priority > evm_cb_list->priority){
+		if(evmng_cb_list_ptr->priority > evmng_cb_list->priority){
 			/*insert the list with cb function between:
-			 *  evm_cb_list_tmp_ptr->"evm_cb_list"->evm_cb_list_ptr*/
-			evm_cb_list->next = evm_cb_list_ptr;
-			if(evm_cb_list_tmp_ptr != evm_ptr->head){
-				evm_cb_list_tmp_ptr->next = evm_cb_list;
+			 *  evmng_cb_list_tmp_ptr->"evmng_cb_list"->evmng_cb_list_ptr*/
+			evmng_cb_list->next = evmng_cb_list_ptr;
+			if(evmng_cb_list_tmp_ptr != evm_ptr->head){
+				evmng_cb_list_tmp_ptr->next = evmng_cb_list;
 
 			}
 			else{
 				/*Become first in the list*/
-				evm_ptr->head = evm_cb_list;
+				evm_ptr->head = evmng_cb_list;
 			}
 		}
 		else{
-			evm_cb_list_ptr->next = evm_cb_list;
+			evmng_cb_list_ptr->next = evmng_cb_list;
 		}
 	}
 	else{
-		evm_ptr->head = evm_cb_list;
+		evm_ptr->head = evmng_cb_list;
 	}
 	evm_ptr->num_cbs ++;
 	cdma_mutex_lock_release((uint64_t) evm_ptr);
 }
 /*****************************************************************************/
 
-int evm_irq_register(uint8_t event_id, uint8_t priority, uint64_t app_ctx, evm_cb cb)
+int evmng_irq_register(uint8_t generator_id, uint8_t event_id, uint8_t priority,
+                       uint64_t app_ctx, evmng_cb cb)
 {
 	struct evm *evm_ptr = g_evm_irq_events_list;
-	struct evm_priority_list *evm_cb_list;
+	struct evm_priority_list *evmng_cb_list;
 
 	if(cb == NULL){
 		sl_pr_debug("CB is NULL\n");
@@ -102,27 +103,27 @@ int evm_irq_register(uint8_t event_id, uint8_t priority, uint64_t app_ctx, evm_c
 		unlock_spinlock(&g_evm_b_pool_spinlock);
 		return -ENOMEM;
 	}
-	evm_cb_list = (struct evm_priority_list *)*g_evm_b_pool_pointer;
+	evmng_cb_list = (struct evm_priority_list *)*g_evm_b_pool_pointer;
 	g_evm_b_pool_pointer ++;
 	/*Unlock spinlock*/
 	unlock_spinlock(&g_evm_b_pool_spinlock);
 
-	evm_cb_list->app_ctx = app_ctx;
-	evm_cb_list->cb = cb;
-	evm_cb_list->priority = priority;
-	evm_cb_list->next = NULL;
+	evmng_cb_list->app_ctx = app_ctx;
+	evmng_cb_list->cb = cb;
+	evmng_cb_list->priority = priority;
+	evmng_cb_list->next = NULL;
 
 	evm_ptr += event_id;
 
-	add_event_registration(evm_ptr, evm_cb_list);
+	add_event_registration(evm_ptr, evmng_cb_list);
 	return 0;
 }
 /*****************************************************************************/
 
-int evm_register(uint8_t event_id, uint8_t priority, uint64_t app_ctx, evm_cb cb)
+int evmng_register(uint8_t generator_id, uint8_t event_id, uint8_t priority, uint64_t app_ctx, evmng_cb cb)
 {
 	struct evm *evm_ptr = g_evm_events_list;
-	struct evm_priority_list *evm_cb_list;
+	struct evm_priority_list *evmng_cb_list;
 
 	if(cb == NULL){
 		sl_pr_debug("CB is NULL\n");
@@ -142,44 +143,44 @@ int evm_register(uint8_t event_id, uint8_t priority, uint64_t app_ctx, evm_cb cb
 		unlock_spinlock(&g_evm_b_pool_spinlock);
 		return -ENOMEM;
 	}
-	evm_cb_list = (struct evm_priority_list *)*g_evm_b_pool_pointer;
+	evmng_cb_list = (struct evm_priority_list *)*g_evm_b_pool_pointer;
 	g_evm_b_pool_pointer ++;
 	/*Unlock spinlock*/
 	unlock_spinlock(&g_evm_b_pool_spinlock);
 
-	evm_cb_list->app_ctx = app_ctx;
-	evm_cb_list->cb = cb;
-	evm_cb_list->priority = priority;
-	evm_cb_list->next = NULL;
+	evmng_cb_list->app_ctx = app_ctx;
+	evmng_cb_list->cb = cb;
+	evmng_cb_list->priority = priority;
+	evmng_cb_list->next = NULL;
 
 	evm_ptr += event_id;
 
-	add_event_registration(evm_ptr, evm_cb_list);
+	add_event_registration(evm_ptr, evmng_cb_list);
 	return 0;
 }
 /*****************************************************************************/
 static int remove_event_registration(struct evm *evm_ptr,
                                      uint8_t priority,
                                      uint64_t app_ctx,
-                                     evm_cb cb)
+                                     evmng_cb cb)
 {
-	struct evm_priority_list *evm_cb_list_ptr;
-	struct evm_priority_list *evm_cb_list_tmp_ptr;
+	struct evm_priority_list *evmng_cb_list_ptr;
+	struct evm_priority_list *evmng_cb_list_tmp_ptr;
 	int i = 0;
 
 	/* Lock event entry in the EVM table*/
 	cdma_mutex_lock_take((uint64_t) evm_ptr, CDMA_MUTEX_WRITE_LOCK);
-	evm_cb_list_ptr = evm_ptr->head;
-	evm_cb_list_tmp_ptr = evm_cb_list_ptr;
+	evmng_cb_list_ptr = evm_ptr->head;
+	evmng_cb_list_tmp_ptr = evmng_cb_list_ptr;
 
 	for(i = 0; i < evm_ptr->num_cbs; i++){
-		if(evm_cb_list_ptr->cb == cb &&
-			evm_cb_list_ptr->priority == priority &&
-			evm_cb_list_ptr->app_ctx == app_ctx){
+		if(evmng_cb_list_ptr->cb == cb &&
+			evmng_cb_list_ptr->priority == priority &&
+			evmng_cb_list_ptr->app_ctx == app_ctx){
 			break;
 		}
-		evm_cb_list_tmp_ptr = evm_cb_list_ptr;
-		evm_cb_list_ptr = evm_cb_list_ptr->next;
+		evmng_cb_list_tmp_ptr = evmng_cb_list_ptr;
+		evmng_cb_list_ptr = evmng_cb_list_ptr->next;
 	}
 
 	if(i == evm_ptr->num_cbs){
@@ -188,18 +189,18 @@ static int remove_event_registration(struct evm *evm_ptr,
 		return -ENAVAIL;
 	}
 
-	if(evm_cb_list_tmp_ptr != evm_ptr->head)
+	if(evmng_cb_list_tmp_ptr != evm_ptr->head)
 	{
-		if(evm_cb_list_ptr->next != NULL){
-			evm_cb_list_tmp_ptr->next = evm_cb_list_ptr->next;
+		if(evmng_cb_list_ptr->next != NULL){
+			evmng_cb_list_tmp_ptr->next = evmng_cb_list_ptr->next;
 		}
 		else{
-			evm_cb_list_tmp_ptr->next = NULL;
+			evmng_cb_list_tmp_ptr->next = NULL;
 		}
 	}
 	else{
-		if(evm_cb_list_ptr->next != NULL){
-			evm_ptr->head = evm_cb_list_ptr->next;
+		if(evmng_cb_list_ptr->next != NULL){
+			evm_ptr->head = evmng_cb_list_ptr->next;
 		}
 		else{
 			evm_ptr->head = NULL;
@@ -212,7 +213,7 @@ static int remove_event_registration(struct evm *evm_ptr,
 	/* Decrement buffer pool pointer to insert the memory pointer back
 	 * to pool for future registrations*/
 	g_evm_b_pool_pointer --;
-	*g_evm_b_pool_pointer = (uint32_t)evm_cb_list_ptr;
+	*g_evm_b_pool_pointer = (uint32_t)evmng_cb_list_ptr;
 	/*Unlock spinlock*/
 	unlock_spinlock(&g_evm_b_pool_spinlock);
 
@@ -221,7 +222,7 @@ static int remove_event_registration(struct evm *evm_ptr,
 	return 0;
 }
 
-int evm_irq_unregister(uint8_t event_id, uint8_t priority, uint64_t app_ctx, evm_cb cb)
+int evmng_irq_unregister(uint8_t generator_id, uint8_t event_id, uint8_t priority, uint64_t app_ctx, evmng_cb cb)
 {
 	struct evm *evm_ptr = g_evm_irq_events_list;
 
@@ -239,7 +240,7 @@ int evm_irq_unregister(uint8_t event_id, uint8_t priority, uint64_t app_ctx, evm
 }
 /*****************************************************************************/
 
-int evm_unregister(uint8_t event_id, uint8_t priority, uint64_t app_ctx, evm_cb cb)
+int evmng_unregister(uint8_t generator_id, uint8_t event_id, uint8_t priority, uint64_t app_ctx, evmng_cb cb)
 {
 	struct evm *evm_ptr = g_evm_events_list;
 
@@ -257,10 +258,10 @@ int evm_unregister(uint8_t event_id, uint8_t priority, uint64_t app_ctx, evm_cb 
 }
 /*****************************************************************************/
 
-int evm_raise_irq_event_cb(void *dev, uint16_t cmd, uint32_t size, void *event_data)
+int evmng_raise_irq_event_cb(void *dev, uint16_t cmd, uint32_t size, void *event_data)
 {
 	struct evm *evm_ptr = g_evm_irq_events_list;
-	struct evm_priority_list *evm_cb_list_ptr;
+	struct evm_priority_list *evmng_cb_list_ptr;
 	int i;
 	UNUSED(dev);
 	UNUSED(size);
@@ -283,13 +284,15 @@ int evm_raise_irq_event_cb(void *dev, uint16_t cmd, uint32_t size, void *event_d
 		return 0;
 	}
 
-	evm_cb_list_ptr = evm_ptr->head;
+	evmng_cb_list_ptr = evm_ptr->head;
 
 	for(i = 0; i < evm_ptr->num_cbs; i++){
-		evm_cb_list_ptr->cb((uint8_t)cmd,
-		                    evm_cb_list_ptr->app_ctx,
-		                    event_data);
-		evm_cb_list_ptr = evm_cb_list_ptr->next;
+		evmng_cb_list_ptr->cb(
+				EVM_GENERATOR_AIOPSL,
+				(uint8_t)cmd,
+				evmng_cb_list_ptr->app_ctx,
+				event_data);
+		evmng_cb_list_ptr = evmng_cb_list_ptr->next;
 	}
 	cdma_mutex_lock_release((uint64_t) evm_ptr);
 	sl_pr_debug("EVM: Event received: %d\n",cmd);
@@ -298,10 +301,10 @@ int evm_raise_irq_event_cb(void *dev, uint16_t cmd, uint32_t size, void *event_d
 }
 /*****************************************************************************/
 
-static int raise_event(uint8_t event_id, void *event_data)
+static int raise_event(uint8_t generator_id, uint8_t event_id, void *event_data)
 {
 	struct evm *evm_ptr = g_evm_events_list;
-	struct evm_priority_list *evm_cb_list_ptr;
+	struct evm_priority_list *evmng_cb_list_ptr;
 	int i;
 
 	sl_pr_debug("EVM: Event received: %d\n",event_id);
@@ -315,41 +318,43 @@ static int raise_event(uint8_t event_id, void *event_data)
 		return 0;
 	}
 
-	evm_cb_list_ptr = evm_ptr->head;
+	evmng_cb_list_ptr = evm_ptr->head;
 
 	for(i = 0; i < evm_ptr->num_cbs; i++){
-		evm_cb_list_ptr->cb((uint8_t)event_id,
-		                    evm_cb_list_ptr->app_ctx,
-		                    event_data);
-		evm_cb_list_ptr = evm_cb_list_ptr->next;
+		evmng_cb_list_ptr->cb(
+				generator_id,
+				event_id,
+				evmng_cb_list_ptr->app_ctx,
+				event_data);
+		evmng_cb_list_ptr = evmng_cb_list_ptr->next;
 	}
 	cdma_mutex_lock_release((uint64_t) evm_ptr);
 	return 0;
 }
 
 
-int evm_sl_raise_event(uint8_t event_id, void *event_data)
+int evmng_sl_raise_event(uint8_t generator_id, uint8_t event_id, void *event_data)
 {
 	if(event_id >= MAX_EVENT_ID)
 	{
 		sl_pr_err("Event %d not supported\n",event_id);
 		return -ENOTSUP;
 	}
-	return raise_event(event_id, event_data);
+	return raise_event(generator_id, event_id, event_data);
 }
 
-int evm_raise_event(uint8_t event_id, void *event_data)
+int evmng_raise_event(uint8_t generator_id, uint8_t event_id, void *event_data)
 {
 	if(event_id < NUM_OF_SL_DEFINED_EVENTS || event_id >= MAX_EVENT_ID)
 	{
 		sl_pr_err("Event %d not supported\n",event_id);
 		return -ENOTSUP;
 	}
-	return raise_event(event_id, event_data);
+	return raise_event(generator_id, event_id, event_data);
 }
 /*****************************************************************************/
 
-static int evm_open_cb(uint8_t instance_id, void **dev)
+static int evmng_open_cb(uint8_t instance_id, void **dev)
 {
 	UNUSED(dev); UNUSED(instance_id);
 	sl_pr_debug("open_cb inst_id = 0x%x\n", instance_id);
@@ -357,7 +362,7 @@ static int evm_open_cb(uint8_t instance_id, void **dev)
 }
 /*****************************************************************************/
 
-static int evm_close_cb(void *dev)
+static int evmng_close_cb(void *dev)
 {
 	UNUSED(dev);
 	sl_pr_debug("close_cb\n");
@@ -365,7 +370,7 @@ static int evm_close_cb(void *dev)
 }
 /*****************************************************************************/
 
-int evm_early_init(void)
+int evmng_early_init(void)
 {
 	int i;
 	struct evm_priority_list *evm_list_ptr;
@@ -448,16 +453,16 @@ int evm_early_init(void)
 }
 /*****************************************************************************/
 
-int evm_init(void)
+int evmng_init(void)
 {
-	struct cmdif_module_ops evm_ops;
+	struct cmdif_module_ops evmng_ops;
 	int err;
 
-	evm_ops.open_cb = (open_cb_t *)evm_open_cb;
-	evm_ops.close_cb = (close_cb_t *)evm_close_cb;
-	evm_ops.ctrl_cb = (ctrl_cb_t *)evm_raise_irq_event_cb;
+	evmng_ops.open_cb = (open_cb_t *)evmng_open_cb;
+	evmng_ops.close_cb = (close_cb_t *)evmng_close_cb;
+	evmng_ops.ctrl_cb = (ctrl_cb_t *)evmng_raise_irq_event_cb;
 	pr_info("EVM: register with cmdif module!\n");
-	err = cmdif_register_module("EVM", &evm_ops);
+	err = cmdif_register_module("EVM", &evmng_ops);
 	if(err) {
 		pr_err("EVM: Failed to register with cmdif module!\n");
 		return err;
@@ -466,26 +471,26 @@ int evm_init(void)
 }
 /*****************************************************************************/
 
-void evm_free(void)
+void evmng_free(void)
 {
 	int i;
 	struct evm *evm_ptr;
-	struct evm_priority_list *evm_cb_list_ptr;
-	struct evm_priority_list *evm_cb_list_next_ptr;
+	struct evm_priority_list *evmng_cb_list_ptr;
+	struct evm_priority_list *evmng_cb_list_next_ptr;
 
 	pr_info("Free memory used by EVM\n");
 
 	evm_ptr = g_evm_events_list;
 	for(i = 0; i < MAX_EVENT_ID; i++, evm_ptr ++ )
 	{
-		evm_cb_list_ptr = evm_ptr->head;
-		if(evm_cb_list_ptr)
+		evmng_cb_list_ptr = evm_ptr->head;
+		if(evmng_cb_list_ptr)
 		{
 			do{
-				evm_cb_list_next_ptr = evm_cb_list_ptr->next;
-				fsl_free(evm_cb_list_ptr);
-				evm_cb_list_ptr = evm_cb_list_next_ptr;
-			}while(evm_cb_list_ptr != NULL);
+				evmng_cb_list_next_ptr = evmng_cb_list_ptr->next;
+				fsl_free(evmng_cb_list_ptr);
+				evmng_cb_list_ptr = evmng_cb_list_next_ptr;
+			}while(evmng_cb_list_ptr != NULL);
 		}
 	}
 	fsl_free(g_evm_events_list);
@@ -493,14 +498,14 @@ void evm_free(void)
 	evm_ptr = g_evm_irq_events_list;
 	for(i = 0; i < NUM_OF_IRQ_EVENTS; i++, evm_ptr ++ )
 	{
-		evm_cb_list_ptr = evm_ptr->head;
-		if(evm_cb_list_ptr)
+		evmng_cb_list_ptr = evm_ptr->head;
+		if(evmng_cb_list_ptr)
 		{
 			do{
-				evm_cb_list_next_ptr = evm_cb_list_ptr->next;
-				fsl_free(evm_cb_list_ptr);
-				evm_cb_list_ptr = evm_cb_list_next_ptr;
-			}while(evm_cb_list_ptr != NULL);
+				evmng_cb_list_next_ptr = evmng_cb_list_ptr->next;
+				fsl_free(evmng_cb_list_ptr);
+				evmng_cb_list_ptr = evmng_cb_list_next_ptr;
+			}while(evmng_cb_list_ptr != NULL);
 		}
 	}
 	fsl_free(g_evm_irq_events_list);

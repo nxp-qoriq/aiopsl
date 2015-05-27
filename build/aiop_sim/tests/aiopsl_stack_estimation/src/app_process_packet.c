@@ -56,14 +56,16 @@ __HOT_CODE ENTRY_POINT static void app_process_packet(void)
 
 }
 
-static int app_config_dpni_cb(uint8_t event_id,
-			uint64_t app_ctx,
-			void *event_data)
+static int app_config_dpni_cb(
+	uint8_t generator_id,
+	uint8_t event_id,
+	uint64_t app_ctx,
+	void *event_data)
 {
 	uint16_t ni = *(uint16_t*)event_data;
 	int err;
 	pr_info("Event received for dpni %d\n",ni);
-	if(event_id == DPNI_EVENT_ADDED){
+	if(event_id == DPNI_EVENT_ADDED && generator_id == EVM_GENERATOR_AIOPSL){
 		err = dpni_drv_register_rx_cb(ni/*ni_id*/,
 		                              (rx_cb_t *)app_ctx);
 		if (err){
@@ -174,9 +176,9 @@ void stack_estimation(void)
 	dpni_drv_disable(ni);
 	dpni_drv_set_initial_presentation(ni, &ep_init);
 	dpni_drv_get_initial_presentation(ni, &ep_init);
-	evm_raise_event(1, (void *) &time);
-	evm_register(1, 1, (uint64_t)app_process_packet, app_config_dpni_cb);
-	evm_unregister(1, 1, (uint64_t)app_process_packet, app_config_dpni_cb);
+	evmng_raise_event(1, 1, (void *) &time);
+	evmng_register(1, 1, 1, (uint64_t)app_process_packet, app_config_dpni_cb);
+	evmng_unregister(1, 1, 1, (uint64_t)app_process_packet, app_config_dpni_cb);
 
 	/* SHBP Shared buffer pool */
 	shbp_acquire(shbp, &ic);

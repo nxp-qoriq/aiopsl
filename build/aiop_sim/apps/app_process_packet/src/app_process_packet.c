@@ -124,14 +124,17 @@ __HOT_CODE ENTRY_POINT static void app_process_packet(void)
 	fdma_terminate_task();
 }
 
-static int app_config_dpni_cb(uint8_t event_id,
+static int app_config_dpni_cb(
+			uint8_t generator_id,
+			uint8_t event_id,
 			uint64_t app_ctx,
 			void *event_data)
 {
 	uint16_t ni = *(uint16_t*)event_data;
 	int err;
 	pr_info("Event received for dpni %d\n",ni);
-	if(event_id == DPNI_EVENT_ADDED){
+	if(event_id == DPNI_EVENT_ADDED && generator_id == EVM_GENERATOR_AIOPSL)
+	{
 		err = dpni_drv_register_rx_cb(ni/*ni_id*/,
 		                              (rx_cb_t *)app_ctx);
 		if (err){
@@ -158,7 +161,7 @@ int app_init(void)
 
 	pr_info("Running app_init()\n");
 
-	err = evm_register(DPNI_EVENT_ADDED, 1,(uint64_t) app_process_packet, app_config_dpni_cb);
+	err = evmng_register(EVM_GENERATOR_AIOPSL, DPNI_EVENT_ADDED, 1,(uint64_t) app_process_packet, app_config_dpni_cb);
 	if (err){
 		pr_err("EVM registration for DPNI_EVENT_ADDED failed: %d\n", err);
 		return err;

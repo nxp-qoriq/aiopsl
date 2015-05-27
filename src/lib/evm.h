@@ -46,13 +46,16 @@ enum evm_irq_event_types {
 };
 
 
-
+#define EVM_MAX_NUM_OF_EVENTS             128
 /**************************************************************************//**
-@Function	evm_irq_register
+@Function	evmng_irq_register
 
 @Description	This function is to register a callback function to listen for
 		specific events.
 
+@Param[in]	generator_id  Identifier of the application/SL generating the
+		event
+
 @Param[in]	event_id  Identifier of the event specific to the application
 		generating event. The value can range from 0 to:
 		NUM_OF_IRQ_EVENTS -1
@@ -71,17 +74,22 @@ enum evm_irq_event_types {
 @Return	0 on success;
 	error code, otherwise. For error posix refer to \ref error_g
 *//***************************************************************************/
-int evm_irq_register(uint8_t event_id,
+int evmng_irq_register(
+		uint8_t generator_id,
+		uint8_t event_id,
 		uint8_t priority,
 		uint64_t app_ctx,
-		evm_cb cb);
+		evmng_cb cb);
 
 /**************************************************************************//**
-@Function	evm_irq_unregister
+@Function	evmng_irq_unregister
 
 @Description	This function is to unregister a callback function from
 		listening for specific events.
 
+@Param[in]	generator_id  Identifier of the application/SL generating the
+		event
+
 @Param[in]	event_id  Identifier of the event specific to the application
 		generating event. The value can range from 0 to:
 		NUM_OF_IRQ_EVENTS -1
@@ -99,10 +107,12 @@ int evm_irq_register(uint8_t event_id,
 @Return	0 on success;
 	error code, otherwise. For error posix refer to \ref error_g
 *//***************************************************************************/
-int evm_irq_unregister(uint8_t event_id,
+int evmng_irq_unregister(
+		uint8_t generator_id,
+		uint8_t event_id,
 		uint8_t priority,
 		uint64_t app_ctx,
-		evm_cb cb);
+		evmng_cb cb);
 
 /**************************************************************************//**
 @Description Structure representing linked list per event_id sorted by priority.
@@ -114,7 +124,7 @@ struct evm_priority_list {
 	/** data to be passed with CB (can be user / SL data)*/
 	uint64_t app_ctx;
 	/** Callback function to be called when event arrived */
-	evm_cb cb;
+	evmng_cb cb;
 	/** Pointer to the next list with callback function for the same event
 	 * and higher or equal priority*/
 	struct evm_priority_list *next;
@@ -126,6 +136,8 @@ struct evm_priority_list {
 
 *//***************************************************************************/
 struct evm{
+	/** Identifier of the application/module*/
+	uint8_t generator_id;
 	/** Identifier of the specific event */
 	uint8_t event_id;
 	/** Number of registered callback functions */
@@ -137,7 +149,7 @@ struct evm{
 
 
 /**************************************************************************//**
-@Function	evm_raise_irq_event_cb
+@Function	evmng_raise_irq_event_cb
 
 @Description	event manager callback function to process registered events.
 
@@ -152,13 +164,16 @@ struct evm{
 @Return	0 on success;
 	error code, otherwise. For error posix refer to \ref error_g
 *//***************************************************************************/
-int evm_raise_irq_event_cb(void *dev, uint16_t cmd, uint32_t size, void *event_data);
+int evmng_raise_irq_event_cb(void *dev, uint16_t cmd, uint32_t size, void *event_data);
 
 /**************************************************************************//**
-@Function	evm_sl_raise_event
+@Function	evmng_sl_raise_event
 
 @Description	This function raises a specific event and launches the callback
 		functions registered to it.
+
+@Param[in]	generator_id  Identifier of the application/SL generating the
+		event
 
 @Param[in]	event_id  Identifier of the event specific to the application
 		generating event. The value can range from 0 to MAX_EVENT_ID -1
@@ -169,10 +184,10 @@ int evm_raise_irq_event_cb(void *dev, uint16_t cmd, uint32_t size, void *event_d
 @Return	0 on success;
 	error code, otherwise. For error posix refer to \ref error_g
 *//***************************************************************************/
-int evm_sl_raise_event(uint8_t event_id, void *event_data);
+int evmng_sl_raise_event(uint8_t generator_id, uint8_t event_id, void *event_data);
 
-int evm_early_init(void);
-int evm_init(void);
-void evm_free(void);
+int evmng_early_init(void);
+int evmng_init(void);
+void evmng_free(void);
 
 #endif /* __EVM_H */

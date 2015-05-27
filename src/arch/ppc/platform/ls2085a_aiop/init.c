@@ -47,8 +47,8 @@ extern int cmdif_srv_init(void);          extern void cmdif_srv_free(void);
 extern int dprc_drv_init(void);           extern void dprc_drv_free(void);
 extern int dpni_drv_init(void);           extern void dpni_drv_free(void);
 extern int dpci_drv_init();               extern void dpci_drv_free();
-extern int evm_early_init(void);
-extern int evm_init(void);                extern void evm_free(void);
+extern int evmng_early_init(void);
+extern int evmng_init(void);                extern void evmng_free(void);
 extern int slab_module_early_init(void);  extern int slab_module_init(void);
 extern void slab_module_free(void);
 extern int aiop_sl_early_init(void);
@@ -87,7 +87,7 @@ extern void build_apps_array(struct sys_module_desc *apps);
 	{NULL, cmdif_srv_init,    cmdif_srv_free},                               \
 	{aiop_sl_early_init, aiop_sl_init,      aiop_sl_free},                   \
 	{NULL, dpni_drv_init,     dpni_drv_free}, /*must be after aiop_sl_init*/ \
-	{evm_early_init, evm_init, evm_free}, /*must be after cmdif*/            \
+	{evmng_early_init, evmng_init, evmng_free}, /*must be after cmdif*/            \
 	{NULL, NULL, NULL} /* never remove! */                                   \
 	}
 

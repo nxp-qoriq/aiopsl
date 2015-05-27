@@ -55,6 +55,10 @@
 
  @{
  *//***************************************************************************/
+
+/** AIOP service layer generator ID (0 means the entry is empty)*/
+#define EVM_GENERATOR_AIOPSL                        1
+
 enum evm_event_types {
 	DPNI_EVENT_ADDED = 0,
 	DPNI_EVENT_REMOVED,
@@ -74,6 +78,9 @@ enum evm_event_types {
 		provides a callback function of this prototype if it wants to
 		listen for specific events.
 
+@Param[in]	generator_id  Identifier of the application/SL generating the
+		event
+
 @Param[in]	event_id  Identifier of the event specific to the application
 		generating event. The value can range from 0 to MAX_EVENT_ID -1
 		\ref EVM_EVENT_TYPES
@@ -87,15 +94,19 @@ enum evm_event_types {
 @Return		The return code is not interpreted by event manager.
 		However callback function should return 0.
 *//***************************************************************************/
-typedef int (*evm_cb)(	uint8_t event_id,
+typedef int (*evmng_cb)(uint8_t generator_id,
+			uint8_t event_id,
 			uint64_t app_ctx,
 			void *event_data);
 
 /**************************************************************************//**
-@Function	evm_register
+@Function	evmng_register
 
 @Description	This function is to register a callback function to listen for
 		specific events.
+
+@Param[in]	generator_id  Identifier of the application/SL generating the
+		event
 
 @Param[in]	event_id  Identifier of the event specific to the application
 		generating event. The value can range from 0 to MAX_EVENT_ID -1
@@ -117,16 +128,20 @@ typedef int (*evm_cb)(	uint8_t event_id,
 @Return	0 on success;
 	error code, otherwise. For error posix refer to \ref error_g
 *//***************************************************************************/
-int evm_register(
+int evmng_register(
+		uint8_t generator_id,
 		uint8_t event_id,
 		uint8_t priority,
 		uint64_t app_ctx,
-		evm_cb cb);
+		evmng_cb cb);
 
 /**************************************************************************//**
-@Function	evm_unregister
+@Function	evmng_unregister
 
 @Description	This function is to unregister previously callback function.
+
+@Param[in]	generator_id  Identifier of the application/SL generating the
+		event
 
 @Param[in]	event_id  Identifier of the event specific to the application
 		generating event. The value can range from 0 to MAX_EVENT_ID -1
@@ -146,17 +161,21 @@ int evm_register(
 @Return	0 on success;
 	error code, otherwise. For error posix refer to \ref error_g
 *//***************************************************************************/
-int evm_unregister(
+int evmng_unregister(
+		uint8_t generator_id,
 		uint8_t event_id,
 		uint8_t priority,
 		uint64_t app_ctx,
-		evm_cb cb);
+		evmng_cb cb);
 
 /**************************************************************************//**
-@Function	evm_raise_event
+@Function	evmng_raise_event
 
 @Description	This function raises a specific event and launches the callback
 		functions registered to it.
+
+@Param[in]	generator_id  Identifier of the application/SL generating the
+		event
 
 @Param[in]	event_id  Identifier of the event specific to the application
 		generating event. The value can range from NUM_OF_SL_DEFINED_EVENTS
@@ -168,7 +187,7 @@ int evm_unregister(
 @Return	0 on success;
 	error code, otherwise. For error posix refer to \ref error_g
 *//***************************************************************************/
-int evm_raise_event(uint8_t event_id, void *event_data);
+int evmng_raise_event(uint8_t generator_id, uint8_t event_id, void *event_data);
 
 /** @} */ /* end of evm_g Event Manager group */
 #endif /* __FSL_EVM_H */
