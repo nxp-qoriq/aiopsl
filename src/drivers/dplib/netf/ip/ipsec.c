@@ -1165,6 +1165,20 @@ void ipsec_generate_sa_params(
 		sap.sap1.sec_buffer_mode = IPSEC_SEC_REUSE_BUFFER_MODE;
 	} else {
 		sap.sap1.sec_buffer_mode = IPSEC_SEC_NEW_BUFFER_MODE; 
+
+#ifndef  TKT265088_WA_DISABLE
+		{
+			/* TKT265088: 
+			 * CAAM/SEC: The FD[BPID] is not updated after an AIOP operation */
+			struct storage_profile *sp_addr = &storage_profile[0];
+			sp_addr += params->spid; 
+		
+			/* 14 bit BPID is at offset 0x12 (18) of the storage profile */ 
+			/* Read-swap and mask the 2 MSbs */
+			sap.sap1.bpid = (LH_SWAP(0,(uint16_t *)((uint8_t *)sp_addr + 0x12)))
+					& 0x3FFF;
+		}	
+#endif		
 	}
 	
 	sap.sap1.output_spid = (uint8_t)(params->spid);
@@ -1667,6 +1681,11 @@ int ipsec_frame_encrypt(
 	 * since the SEC does not preserve the ASA */
 	if (sap1.sec_buffer_mode == IPSEC_SEC_NEW_BUFFER_MODE) { 
 		PRC_SET_ASA_SIZE(0);
+
+#ifndef  TKT265088_WA_DISABLE
+		LDPAA_FD_SET_BPID(HWC_FD_ADDRESS, sap1.bpid);
+#endif		
+	
 	}
 	
 	/* 	11.	FDMA present default frame command (open frame) */
@@ -2215,9 +2234,16 @@ int ipsec_frame_decrypt(
 	/* Clear the PRC ASA Size, since the SEC does not preserve the ASA */
 	PRC_SET_ASA_SIZE(0);
 	
+#ifndef  TKT265088_WA_DISABLE
+	if (sap1.sec_buffer_mode == IPSEC_SEC_NEW_BUFFER_MODE) { 
+		LDPAA_FD_SET_BPID(HWC_FD_ADDRESS, sap1.bpid);
+	}	
+#endif	
+		
 	/* 	12.	FDMA present default frame command */ 
 	return_val = fdma_present_default_frame();
 
+	
 	/* 	13.	Read the SEC return status from the FD[FRC]. Use swap macro. */
 	if ((LDPAA_FD_GET_FRC(HWC_FD_ADDRESS)) != 0) {
 		if ((LDPAA_FD_GET_FRC(HWC_FD_ADDRESS) & SEC_CCB_ERROR_MASK)
