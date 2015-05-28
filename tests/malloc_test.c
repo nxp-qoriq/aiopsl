@@ -45,7 +45,6 @@ static int allocate_check_mem(int memory_partition,
 		                      void** allocated_pointers );
 static int get_mem_test();
 static int check_non_valid_get_mem_partitions();
-static int check_get_mem_size_alignment();
 static  int check_returned_get_mem_address(uint64_t paddr,
                                            uint64_t size,
                                            uint64_t alignment,
@@ -68,6 +67,42 @@ static t_mem_mng_phys_addr_alloc_info dp_ddr_info = {0};
 extern struct aiop_init_info g_init_data;
 /* Number of malloc allocations for each partition */
 #define NUM_TEST_ITER 10
+
+static int check_get_mem_size_alignment(uint64_t size,uint64_t alignment)
+{
+	int rc = 0, local_error = 0;
+
+
+	uint64_t paddr = 0;
+
+	/* test get_mem() for MEM_PART_DP_DDR */
+	if((local_error = fsl_os_get_mem(size,MEM_PART_DP_DDR,alignment,&paddr)) != 0){
+		fsl_os_print("get_mem(): fsl_os_get_mem from MEM_PART_DP_DDR failed\n") ;
+	}
+	rc |= local_error;
+	rc |= check_returned_get_mem_address(paddr,size,alignment,&dp_ddr_info);
+	fsl_os_put_mem(paddr);
+
+    /* test get_mem() for MEM_PART_SYSTEM_DDR */
+    if(g_init_data.app_info.sys_ddr1_size){
+	    if((local_error = fsl_os_get_mem(size,MEM_PART_SYSTEM_DDR,alignment,&paddr)) != 0){
+		    fsl_os_print("get_mem(): fsl_os_get_mem from MEM_PART_SYSTEM_DDR failed\n") ;
+	    }
+	    rc |= local_error;
+	    rc |= check_returned_get_mem_address(paddr,size,alignment,&sys_ddr_info);
+	    fsl_os_put_mem(paddr);
+    }
+
+	/* test get_mem() for MEM_PART_PEB */
+	if((local_error=fsl_os_get_mem(size,MEM_PART_PEB,alignment,&paddr)) != 0){
+		fsl_os_print("get_mem(): fsl_os_get_mem from MEM_PART_PEB failed\n") ;
+	}
+	rc |= local_error;
+	rc |= check_returned_get_mem_address(paddr,size,alignment,&peb_info);
+	fsl_os_put_mem(paddr);
+
+	return rc;
+}
 
 int malloc_test()
 {
@@ -153,11 +188,23 @@ static int get_mem_test()
 	else
 	    fsl_os_print("get_mem(): check_non_valid_get_mem_partitions succeeded\n") ;
 	error |= local_error;
-	if((local_error = check_get_mem_size_alignment()) != 0){
+	if((local_error = check_get_mem_size_alignment(1*KILOBYTE,1*KILOBYTE)) != 0){
 		fsl_os_print("get_mem(): check_get_mem_size_alignment failed\n") ;
 	}
 	else
 		fsl_os_print("get_mem(): check_get_mem_size_alignment succeeded\n") ;
+	/*
+	if((local_error = check_get_mem_size_alignment(0,1*KILOBYTE)) != 0){
+		fsl_os_print("get_mem(): check_get_mem_size_alignment failed\n") ;
+	}
+	else
+		fsl_os_print("get_mem(): check_get_mem_size_alignment succeeded\n") ;
+	*/
+	if((local_error = check_get_mem_size_alignment(1*KILOBYTE,0)) != 0){
+	    fsl_os_print("get_mem(): check_get_mem_size_alignment failed\n") ;
+	}
+	else
+	    fsl_os_print("get_mem(): check_get_mem_size_alignment succeeded\n") ;
 	error |= local_error;
 	return error;
 }
@@ -178,44 +225,7 @@ static int check_non_valid_get_mem_partitions()
     return 0;
 }
 
-static int check_get_mem_size_alignment()
-{
-	int rc = 0, local_error = 0;
 
-
-	uint64_t size = 1*KILOBYTE,  paddr = 0;
-	uint64_t alignment =  size;
-
-
-
-	/* test get_mem() for MEM_PART_DP_DDR */
-	if((local_error = fsl_os_get_mem(size,MEM_PART_DP_DDR,alignment,&paddr)) != 0){
-		fsl_os_print("get_mem(): fsl_os_get_mem from MEM_PART_DP_DDR failed\n") ;
-	}
-	rc |= local_error;
-	rc |= check_returned_get_mem_address(paddr,size,alignment,&dp_ddr_info);
-	fsl_os_put_mem(paddr);
-
-    /* test get_mem() for MEM_PART_SYSTEM_DDR */
-    if(g_init_data.app_info.sys_ddr1_size){
-	    if((local_error = fsl_os_get_mem(size,MEM_PART_SYSTEM_DDR,alignment,&paddr)) != 0){
-		    fsl_os_print("get_mem(): fsl_os_get_mem from MEM_PART_SYSTEM_DDR failed\n") ;
-	    }
-	    rc |= local_error;
-	    rc |= check_returned_get_mem_address(paddr,size,alignment,&sys_ddr_info);
-	    fsl_os_put_mem(paddr);
-    }
-
-	/* test get_mem() for MEM_PART_PEB */
-	if((local_error=fsl_os_get_mem(size,MEM_PART_PEB,alignment,&paddr)) != 0){
-		fsl_os_print("get_mem(): fsl_os_get_mem from MEM_PART_PEB failed\n") ;
-	}
-	rc |= local_error;
-	rc |= check_returned_get_mem_address(paddr,size,alignment,&peb_info);
-	fsl_os_put_mem(paddr);
-
-	return rc;
-}
 
 static  int check_returned_get_mem_address(uint64_t paddr,
                                            uint64_t size,
@@ -227,7 +237,8 @@ static  int check_returned_get_mem_address(uint64_t paddr,
     error = (paddr < part_info->base_paddress) ||
 	    (paddr > part_info->base_paddress + part_info->size - size);
     // check alignment;
-    error |=  (int)(paddr & (uint64_t)(alignment-1));
+    if(alignment >= 1)
+        error |=  (int)(paddr & (uint64_t)(alignment-1));
     return error;
 }
 

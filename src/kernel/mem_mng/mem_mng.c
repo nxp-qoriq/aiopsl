@@ -40,7 +40,7 @@
 #include "aiop_common.h"
 #endif /* AIOP */
 #include "mem_mng.h"
-#include "fsl_dbg.h"
+#include "fsl_sl_dbg.h"
 #include "fsl_platform.h"
 #include "fsl_mem_mng.h"
 #include "slob.h"
@@ -759,7 +759,7 @@ void * mem_mng_alloc_mem(fsl_handle_t    h_mem_mng,
 
     if (size == 0)
     {
-        pr_err("Mem.manager invalid value: allocation size must be positive\n");
+        sl_pr_err("Mem.manager invalid value: allocation size must be positive\n");
     }
 
 #ifdef AIOP
@@ -784,7 +784,7 @@ void * mem_mng_alloc_mem(fsl_handle_t    h_mem_mng,
     	    /* Internal MM malloc */
     	    p_memory = UINT_TO_PTR(
     	        slob_get(p_partition->h_mem_manager, size, alignment));
-    	    if ((uintptr_t)p_memory == ILLEGAL_BASE)
+            if ((uintptr_t)p_memory == 0LL)
 		/* Do not report error - let the allocating entity report it */
     		    return NULL;
 
@@ -819,7 +819,7 @@ void * mem_mng_alloc_mem(fsl_handle_t    h_mem_mng,
     spin_unlock_irqrestore(p_mem_mng->lock, int_flags);
 #endif
 
-    pr_err("Mem. manager resource not found: partition ID %d\n",
+    sl_pr_err("Mem. manager resource not found: partition ID %d\n",
            partition_id);
     return NULL;
 }
@@ -860,7 +860,7 @@ int mem_mng_get_phys_mem(fsl_handle_t h_mem_mng, int  partition_id,
 #else
             spin_unlock_irqrestore(p_mem_mng->lock, int_flags);
 #endif
-            if((*paddr = slob_get(p_partition->h_mem_manager,size,alignment)) == ILLEGAL_BASE)
+            if((*paddr = slob_get(p_partition->h_mem_manager,size,alignment)) == 0LL)
             {
                 pr_err("Mem. manager memory allocation failed: Required size 0x%x%08x exceeds "
                    "available memory for partition ID %d\n",

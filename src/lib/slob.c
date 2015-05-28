@@ -626,7 +626,7 @@ static int cut_busy(t_MM *p_MM, const uint64_t base, const uint64_t end)
  *      routine if the required alignment is greater then MM_MAX_ALIGNMENT.
  *      In that case, it goes over free blocks of 64 byte align list
  *      and checks if it has the required size of bytes of the required
- *      alignment. If no blocks found returns ILLEGAL_BASE.
+ *      alignment. If no blocks found returns 0.
  *      After the block is found and data is allocated, it calls
  *      the internal CutFree routine to update all free lists
  *      do not include a just allocated block. Of course, each
@@ -643,7 +643,7 @@ static int cut_busy(t_MM *p_MM, const uint64_t base, const uint64_t end)
  *
  *  Return value:
  *      base address of an allocated block.
- *      ILLEGAL_BASE if can't allocate a block
+ *      0 if can't allocate a block
  *
  ****************************************************************/
 static uint64_t slob_get_greater_alignment(t_MM *p_MM, const uint64_t size,
@@ -686,7 +686,7 @@ static uint64_t slob_get_greater_alignment(t_MM *p_MM, const uint64_t size,
     if ( 0 == free_addr  )
     {
 	cdma_mutex_lock_release((uint64_t)p_MM);
-        return (uint64_t)(ILLEGAL_BASE);
+        return 0LL;
     }
 
     hold_base = align_base;
@@ -696,7 +696,7 @@ static uint64_t slob_get_greater_alignment(t_MM *p_MM, const uint64_t size,
     if ((rc = create_new_block(p_MM,hold_base, size,&new_busy_addr)) != 0)
     {
 	    cdma_mutex_lock_release((uint64_t)p_MM);
-        return (uint64_t)(ILLEGAL_BASE);
+        return 0LL;
     }
 
     /* calls Update routine to update a lists of free blocks */
@@ -704,7 +704,7 @@ static uint64_t slob_get_greater_alignment(t_MM *p_MM, const uint64_t size,
 	    //fsl_os_free(p_new_busy_b);
             buff_pool_put( slob_bf_pool,new_busy_addr);
             cdma_mutex_lock_release((uint64_t)p_MM);
-	    return (uint64_t)(ILLEGAL_BASE);
+	    return 0LL;
     }
 
     /* insert the new busy block into the list of busy blocks */
@@ -761,7 +761,7 @@ int slob_init(fsl_handle_t *slob, const uint64_t base, const uint64_t size,
 	    return -ENOMEM;
     }
     if(0 == size)
-    {// allow a slob of size 0, should return ILLEGAL_BASE on any slob_get
+    {// allow a slob of size 0, should return 0 on any slob_get
         *slob = p_MM;
         for (i=0; i <= MM_MAX_ALIGNMENT; i++){
             p_MM->head_free_blocks_addr[i] = 0;
@@ -871,7 +871,7 @@ uint64_t slob_get(fsl_handle_t slob, const uint64_t size, uint64_t alignment)
     if (j != 1)
     {
         sl_pr_err("Slob invalid value: alignment (should be power of 2)\n");
-        return (uint64_t)ILLEGAL_BASE;
+        return 0LL;
     }
 
     if (i > MM_MAX_ALIGNMENT)
@@ -896,7 +896,7 @@ uint64_t slob_get(fsl_handle_t slob, const uint64_t size, uint64_t alignment)
     if ( free_b_addr == 0)
     {
 	cdma_mutex_lock_release((uint64_t)p_MM);
-        return (uint64_t)(ILLEGAL_BASE);
+        return 0LL;
     }
 
     hold_base =  free_b.base;
@@ -908,7 +908,7 @@ uint64_t slob_get(fsl_handle_t slob, const uint64_t size, uint64_t alignment)
                                  &new_busy_b_addr)) != 0)
     {
 	cdma_mutex_lock_release((uint64_t)p_MM);
-        return (uint64_t)(ILLEGAL_BASE);
+        return 0LL;
     }
     /* calls Update routine to update a lists of free blocks */
     if ( cut_free ( p_MM, hold_base, hold_end ) != 0 )
@@ -916,7 +916,7 @@ uint64_t slob_get(fsl_handle_t slob, const uint64_t size, uint64_t alignment)
 	cdma_mutex_lock_release((uint64_t)p_MM);
         //fsl_os_free(p_new_busy_b);
         buff_pool_put(slob_bf_pool,new_busy_b_addr);
-        return (uint64_t)(ILLEGAL_BASE);
+        return 0LL;
     }
 
     /* Decreasing the allocated memory size from free memory size */
@@ -968,7 +968,7 @@ uint64_t slob_get_force(fsl_handle_t slob, const uint64_t base, const uint64_t s
     {
         //unlock_spinlock(p_MM->lock);
 	cdma_mutex_lock_release((uint64_t)p_MM);
-        return (uint64_t)(ILLEGAL_BASE);
+        return 0LL;
     }
 
     /* init a new busy block */
@@ -977,7 +977,7 @@ uint64_t slob_get_force(fsl_handle_t slob, const uint64_t base, const uint64_t s
     {
         //unlock_spinlock(p_MM->lock);
 	cdma_mutex_lock_release((uint64_t)p_MM);
-        return (uint64_t)(ILLEGAL_BASE);
+        return 0LL;
     }
 
     /* calls Update routine to update a lists of free blocks */
@@ -986,7 +986,7 @@ uint64_t slob_get_force(fsl_handle_t slob, const uint64_t base, const uint64_t s
         //unlock_spinlock(p_MM->lock);
 	cdma_mutex_lock_release((uint64_t)p_MM);
         buffer_pool_put(slob_bf_pool,new_busy_b_addr);
-        return (uint64_t)(ILLEGAL_BASE);
+        return 0LL;
     }
 
     /* Decreasing the allocated memory size from free memory size */
@@ -1032,7 +1032,7 @@ uint64_t slob_get_force_min(fsl_handle_t slob,
 
     if ( (j != 1) || (i > MM_MAX_ALIGNMENT) )
     {
-        return (uint64_t)(ILLEGAL_BASE);
+        return 0LL;
     }
 
     //lock_spinlock(p_MM->lock);
@@ -1052,7 +1052,7 @@ uint64_t slob_get_force_min(fsl_handle_t slob,
     {
         //unlock_spinlock(p_MM->lock);
 	cdma_mutex_lock_release((uint64_t)p_MM);
-        return (uint64_t)(ILLEGAL_BASE);
+        return 0LL;
     }
 
     /* if this block is large enough, use this block */
@@ -1072,7 +1072,7 @@ uint64_t slob_get_force_min(fsl_handle_t slob,
         {
             //unlock_spinlock(p_MM->lock);
             cdma_mutex_lock_release((uint64_t)p_MM);
-            return (uint64_t)(ILLEGAL_BASE);
+            return 0LL;
         }
 
         hold_base = p_free_b->base;
@@ -1086,7 +1086,7 @@ uint64_t slob_get_force_min(fsl_handle_t slob,
     {
         //unlock_spinlock(p_MM->lock);
 	cdma_mutex_lock_release((uint64_t)p_MM);
-        return (uint64_t)(ILLEGAL_BASE);
+        return 0LL;
     }
 
     /* calls Update routine to update a lists of free blocks */
@@ -1096,7 +1096,7 @@ uint64_t slob_get_force_min(fsl_handle_t slob,
 	cdma_mutex_lock_release((uint64_t)p_MM);
         //fsl_os_free(p_new_busy_b);
         buffer_pool_put(slob_bf_pool,new_busy_b_addr);
-        return (uint64_t)(ILLEGAL_BASE);
+        return 0LL;
     }
 
     /* Decreasing the allocated memory size from free memory size */
@@ -1144,13 +1144,13 @@ uint64_t slob_put(fsl_handle_t slob, const uint64_t base)
     if ( 0 == busy_b_addr)
     {
 	cdma_mutex_lock_release((uint64_t)p_MM);
-        return (uint64_t)(0);
+        return 0LL;
     }
 
     if ( add_free( p_MM, busy_b.base, busy_b.end ) != 0 )
     {
 	cdma_mutex_lock_release((uint64_t)p_MM);
-        return (uint64_t)(0);
+        return 0LL;
     }
 
     /* removes a busy block form the list of busy blocks */
@@ -1194,14 +1194,14 @@ uint64_t slob_put_force(fsl_handle_t slob, const uint64_t base, const uint64_t s
     {
         //unlock_spinlock(p_MM->lock);
 	cdma_mutex_lock_release((uint64_t)p_MM);
-        return (uint64_t)(0);
+        return 0LL;
     }
 
     if ( add_free ( p_MM, base, end ) != 0 )
     {
         //unlock_spinlock(p_MM->lock);
 	cdma_mutex_lock_release((uint64_t)p_MM);
-        return (uint64_t)(0);
+        return 0LL;
     }
 
     /* Adding the deallocated memory size to free memory size */
@@ -1213,7 +1213,6 @@ uint64_t slob_put_force(fsl_handle_t slob, const uint64_t base, const uint64_t s
 
     return (size);
 }
-
 /*****************************************************************************/
 
 
