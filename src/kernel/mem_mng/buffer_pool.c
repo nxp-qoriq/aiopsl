@@ -110,7 +110,7 @@ int buff_pool_create(struct buffer_pool *p_bf_pool,
 		return -ENOMEM;
 	}
 	//  Set the first phys_addr to be aligned to buff_alignment
-	phys_addr= ALIGN_UP(phys_addr,buff_alignment);
+	phys_addr= ALIGN_UP_64(phys_addr,buff_alignment);
 	p_bf_pool->p_buffers_addr = phys_addr;
 	curr_buffer_addr = p_bf_pool->p_buffers_addr;
 	/* initialize pointers to buffers */
