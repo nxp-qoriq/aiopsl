@@ -484,8 +484,8 @@ __COLD_CODE void dump_memory()
 
 	dump_param_get(&len, &p, &addr);
 
-	pr_debug("----- Dump of SEGMENT_ADDRESS 0x%x size %d -----\n",
-	         p, len);
+	pr_debug("----- Dump of SEGMENT_ADDRESS 0x%x size %d seg len %d-----\n",
+	         p, len, (int)PRC_GET_SEGMENT_LENGTH());
 	pr_debug("Virtual addr high = 0x%x low = 0x%x \n",
 	         (uint32_t)(( addr & 0xFF00000000) >> 32),
 	         (uint32_t)(addr & 0xFFFFFFFF));
