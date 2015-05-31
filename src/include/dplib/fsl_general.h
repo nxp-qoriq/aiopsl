@@ -263,11 +263,11 @@ struct additional_dequeue_context {
 struct presentation_context {
 
 		/** Entry point opaque parameter value. */
-	uint32_t param;
+	volatile uint32_t param;
 		/** Segment presentation address. */
-	uint16_t seg_address;
+	volatile uint16_t seg_address;
 		/** Segment actual size. */
-	uint16_t seg_length;
+	volatile uint16_t seg_length;
 		/**
 		- bits<0-9>  : Pass Through Annotation(PTA) presentation
 		address value.
@@ -275,7 +275,7 @@ struct presentation_context {
 		- bits<11> : No ASA segment (NAS).
 		- bits<12-15>: Acceleration Specific Annotation(ASA)
 		presentation offset value. */
-	uint16_t  ptapa_asapo;
+	volatile uint16_t  ptapa_asapo;
 		/**
 		- bits<0-9>  : Accelerator Specific Annotation (ASA)
 		presentation address value.
@@ -283,19 +283,19 @@ struct presentation_context {
 		- bits<11>   : No Data segment (NDS).
 		- bits<12-15>: Acceleration Specific Annotation (ASA)
 		presentation size value. */
-	uint16_t  asapa_asaps;
+	volatile uint16_t  asapa_asaps;
 		/**
 		- bits<0>  : OSM Entry Point Source value.
 		- bits<1>  : OSM Entry Point Execution Phase value.
 		- bits<2-3>: OSM Entry Point Select value.
 		- bits<5-7>: OSM Entry Point Order Scope Range Mask value. */
-	uint8_t osrc_oep_osel_osrm;
+	volatile uint8_t osrc_oep_osel_osrm;
 		/**
 		- bits<0-3>  : Working Frame Handle.
 		- bits<4-7>  : Open Segment Handle. */
-	uint8_t handles;
+	volatile uint8_t handles;
 		/** Segment Presentation Offset value. */
-	uint16_t seg_offset;
+	volatile uint16_t seg_offset;
 };
 
 /* Presentation Context (PRC) Macros */

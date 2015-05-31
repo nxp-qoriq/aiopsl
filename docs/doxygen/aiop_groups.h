@@ -400,16 +400,23 @@
 					/** @defgroup STE_functions Statistics functions
 						@ingroup STATS
 					*/
-			/**@} */	
+			/**@} */
 /*End group STE  */
-			
-		/** @} */	
-/*End group ACCEL  */		
+
+		/** @} */
+/*End group ACCEL  */
 			/** @defgroup grp_dplib_aiop DPLIB
 				@details Management complex firmware provides datapath objects for initialization, configuration and management of DPAA2 hardware resources. DPLIB functions enable AIOP developers to access these MC firmware capabilities.
 				@ingroup AIOPSL
 				@{
 			*/
+				/** @defgroup dpci_drv_g DPCI DRV
+					@ingroup grp_dplib_aiop
+				*/
+					/** @defgroup DPCI_DRV_INIT_PR_Flags DPCI Entry Point flags
+						@ingroup dpci_drv_g
+					 */
+
 				/** @defgroup dpni_drv_g DPNI DRV
 					@ingroup grp_dplib_aiop
 				*/
@@ -419,7 +426,7 @@
 					/** @defgroup DPNI_DRV_BUF_LAYOUT_OPT Buffer Layout modification options
 					@ingroup dpni_drv_g
 					*/
-				
+
 			/** @} */
 	
 	

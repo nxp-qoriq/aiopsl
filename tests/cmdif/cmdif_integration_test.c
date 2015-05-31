@@ -44,6 +44,7 @@
 #include "fsl_shbp.h"
 #include "fsl_spinlock.h"
 #include "cmdif_test_common.h"
+#include "fsl_dpci_drv.h"
 
 #ifndef CMDIF_TEST_WITH_MC_SRV
 #warning "If you test with MC define CMDIF_TEST_WITH_MC_SRV inside cmdif.h\n"
@@ -398,6 +399,89 @@ static int ctrl_cb0(void *dev, uint16_t cmd, uint32_t size,
 	return err;
 }
 
+static int app_dpci_test()
+{
+	uint8_t flags = DPCI_DRV_EP_SERVER;
+	struct ep_init_presentation init_presentation1 = {0};
+	struct ep_init_presentation init_presentation2 = {0};
+	int err = 0;
+
+	init_presentation1.options =
+		(EP_INIT_PRESENTATION_OPT_PTA	||
+			EP_INIT_PRESENTATION_OPT_ASAPA	||
+			EP_INIT_PRESENTATION_OPT_ASAPO	||
+			EP_INIT_PRESENTATION_OPT_ASAPS	||
+			EP_INIT_PRESENTATION_OPT_SPA	||
+			EP_INIT_PRESENTATION_OPT_SPS	||
+			EP_INIT_PRESENTATION_OPT_SPO	||
+			EP_INIT_PRESENTATION_OPT_SR	||
+			EP_INIT_PRESENTATION_OPT_NDS);
+	init_presentation2.options = init_presentation1.options;
+
+	err |= dpci_drv_get_initial_presentation(flags, &init_presentation1);
+	err |= dpci_drv_set_initial_presentation(flags, &init_presentation1);
+	err |= dpci_drv_get_initial_presentation(flags, &init_presentation2);
+	ASSERT_COND(!err);
+
+	if (init_presentation1.adpca != init_presentation2.adpca)
+		err |= 1;
+	if (init_presentation1.asapa != init_presentation2.asapa)
+		err |= 2;
+	if (init_presentation1.asapo != init_presentation2.asapo)
+		err |= 4;
+	if (init_presentation1.asaps != init_presentation2.asaps)
+		err |= 8;
+	if (init_presentation1.fdpa != init_presentation2.fdpa)
+		err |= 16;
+	if (init_presentation1.nds != init_presentation2.nds)
+		err |= 32;
+	if (init_presentation1.ptapa != init_presentation2.ptapa)
+		err |= 64;
+	if (init_presentation1.spa != init_presentation2.spa)
+		err |= 128;
+	if (init_presentation1.spo != init_presentation2.spo)
+		err |= 256;
+	if (init_presentation1.sps != init_presentation2.sps)
+		err |= 512;
+	if (init_presentation1.sr != init_presentation2.sr)
+		err |= 1024;
+
+	if (err) {
+		pr_err("server get and set ep err = %d\n");
+	}
+	
+	flags = DPCI_DRV_EP_CLIENT;
+	err |= dpci_drv_get_initial_presentation(flags, &init_presentation2);
+	if (init_presentation1.adpca != init_presentation2.adpca)
+		err |= 1;
+	if (init_presentation1.asapa != init_presentation2.asapa)
+		err |= 2;
+	if (init_presentation1.asapo != init_presentation2.asapo)
+		err |= 4;
+	if (init_presentation1.asaps != init_presentation2.asaps)
+		err |= 8;
+	if (init_presentation1.fdpa != init_presentation2.fdpa)
+		err |= 16;
+	if (init_presentation1.nds != init_presentation2.nds)
+		err |= 32;
+	if (init_presentation1.ptapa != init_presentation2.ptapa)
+		err |= 64;
+	if (init_presentation1.spa != init_presentation2.spa)
+		err |= 128;
+	if (init_presentation1.spo != init_presentation2.spo)
+		err |= 256;
+	if (init_presentation1.sps != init_presentation2.sps)
+		err |= 512;
+	if (init_presentation1.sr != init_presentation2.sr)
+		err |= 1024;
+
+	if (err) {
+		pr_err("client and server ep have differences err = %d\n");
+	}
+
+	return err;
+}
+
 int app_init(void)
 {
 	int        err  = 0;
@@ -430,6 +514,9 @@ int app_init(void)
 
 	err = fsl_os_get_mem(1024, MEM_PART_DP_DDR, 64, &tman_addr);
 	ASSERT_COND(!err && tman_addr);
+
+	err = app_dpci_test();
+	ASSERT_COND(!err);
 
 	err = gpp_sys_ddr_init();
 	return err;

@@ -43,6 +43,9 @@
 #include "fsl_icontext.h"
 #include "fsl_spinlock.h"
 #include "fsl_malloc.h"
+#include "aiop_common.h"
+#include "fsl_ep.h"
+#include "fsl_ep_mng.h"
 
 /*************************************************************************/
 #define DPCI_LOW_PR		1
@@ -773,6 +776,35 @@ __COLD_CODE int dpci_drv_init()
 __COLD_CODE void dpci_drv_free()
 {
 	/*
-	 * TODO do I need to free anything ? 
+	 * TODO do I need to free anything ?
 	 */
+}
+
+int dpci_drv_get_initial_presentation(uint8_t flags,
+	struct ep_init_presentation* const init_presentation)
+{
+	uint16_t epid = AIOP_EPID_CMDIF_SERVER;
+
+	ASSERT_COND((flags == DPCI_DRV_EP_SERVER) ||
+	            (flags == DPCI_DRV_EP_CLIENT));
+
+	if (flags == DPCI_DRV_EP_CLIENT)
+		epid = AIOP_EPID_CMDIF_CLIENT;
+
+	return ep_mng_get_initial_presentation(epid, init_presentation);
+}
+
+
+int dpci_drv_set_initial_presentation(uint8_t flags,
+	const struct ep_init_presentation* const init_presentation)
+{
+	uint16_t epid = AIOP_EPID_CMDIF_SERVER;
+
+	ASSERT_COND((flags == DPCI_DRV_EP_SERVER) ||
+	            (flags == DPCI_DRV_EP_CLIENT));
+
+	if (flags == DPCI_DRV_EP_CLIENT)
+		epid = AIOP_EPID_CMDIF_CLIENT;
+
+	return ep_mng_set_initial_presentation(epid, init_presentation);
 }
