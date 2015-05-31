@@ -42,7 +42,7 @@
 #include "fsl_tman.h"
 #include "fsl_slab.h"
 #include "fsl_malloc.h"
-#include "fsl_evm.h"
+#include "fsl_evmng.h"
 
 int app_early_init(void);
 int app_init(void);

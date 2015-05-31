@@ -34,7 +34,7 @@
 #include "fsl_l2.h"
 #include "fsl_osm.h"
 #include "fsl_dbg.h"
-#include "fsl_evm.h"
+#include "fsl_evmng.h"
 
 int app_early_init(void);
 int app_init(void);

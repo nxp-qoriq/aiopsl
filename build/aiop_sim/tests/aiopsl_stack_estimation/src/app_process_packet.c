@@ -39,7 +39,7 @@
 #include "fsl_icontext.h"
 #include "fsl_shbp.h"
 #include "fsl_stdlib.h"
-#include "fsl_evm.h"
+#include "fsl_evmng.h"
 
 int app_early_init(void);
 int app_init(void);

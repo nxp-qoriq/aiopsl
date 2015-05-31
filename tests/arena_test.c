@@ -41,7 +41,7 @@
 #include "dplib/fsl_parser.h"
 #include "fsl_osm.h"
 #include "fsl_dbg.h"
-#include "fsl_evm.h"
+#include "fsl_evmng.h"
 
 int app_early_init(void);
 int app_init(void);

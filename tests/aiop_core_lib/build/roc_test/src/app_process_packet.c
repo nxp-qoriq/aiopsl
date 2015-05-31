@@ -32,7 +32,7 @@
 #include "fsl_general.h"
 #include "fsl_cdma.h"
 #include "fsl_l2.h"
-#include "fsl_evm.h"
+#include "fsl_evmng.h"
 
 #include "aiop_verification.h"
 #include "fsl_slab.h"

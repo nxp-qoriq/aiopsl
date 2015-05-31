@@ -24,8 +24,8 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "evm.h"
-#include "evm_common.h"
+#include "evmng.h"
+#include "evmng_common.h"
 #include "fsl_cmdif_server.h"
 #include "fsl_cmdif_client.h"
 #include "fsl_malloc.h"

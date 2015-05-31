@@ -33,7 +33,7 @@
 #include "dprc_drv.h"
 #include "fsl_dprc.h"
 #include "fsl_dbg.h"
-#include "evm.h"
+#include "evmng.h"
 #include "fsl_sys.h"
 #include "fsl_malloc.h"
 #include "dpni_drv.h"

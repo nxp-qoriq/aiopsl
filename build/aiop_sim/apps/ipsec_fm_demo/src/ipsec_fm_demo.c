@@ -39,7 +39,7 @@
 #include "ls2085_aiop/fsl_platform.h"
 #include "lib/fsl_slab.h"
 #include "system.h" // TMP
-#include "fsl_evm.h"
+#include "fsl_evmng.h"
 
 int app_early_init(void);
 int app_init(void);

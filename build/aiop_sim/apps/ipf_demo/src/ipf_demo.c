@@ -36,7 +36,7 @@
 /*#include "fsl_cmdif_server.h"*/
 #include "dplib/fsl_cdma.h"
 #include "dplib/fsl_l2.h"
-#include "fsl_evm.h"
+#include "fsl_evmng.h"
 
 int app_init(void);
 int app_early_init(void);
