@@ -59,8 +59,6 @@ static int add_event_registration(
 	/*Unlock spinlock*/
 	unlock_spinlock(&g_evm_b_pool_spinlock);
 
-	sl_pr_debug("adding cb list\n");
-
 	evmng_cb_list->app_ctx = app_ctx;
 	evmng_cb_list->cb = cb;
 	evmng_cb_list->priority = priority;
@@ -100,7 +98,7 @@ static int add_event_registration(
 		evm_ptr->head = evmng_cb_list;
 	}
 	evm_ptr->num_cbs ++;
-	sl_pr_debug("Register successfully for event\n");
+	sl_pr_debug("Registered successfully for event\n");
 	return 0;
 }
 /*****************************************************************************/
@@ -150,9 +148,6 @@ int evmng_register(
 	/* Lock EVM table*/
 	cdma_mutex_lock_take((uint64_t) g_evm_events_list, CDMA_MUTEX_WRITE_LOCK);
 
-	sl_pr_debug("reg: Generator %d Event %d\n", generator_id,event_id);
-
-
 	for(i = 0; i < EVM_MAX_NUM_OF_EVENTS; i++ )
 	{
 		if(g_evm_events_list[i].generator_id == generator_id &&
@@ -168,11 +163,9 @@ int evmng_register(
 	if(i < EVM_MAX_NUM_OF_EVENTS)
 	{
 		evm_ptr = &g_evm_events_list[i];
-		sl_pr_debug("Event found in list of events\n");
 	}
 	else if(empty_index >= 0)
 	{
-		sl_pr_debug("New event should be registered %d\n",empty_index);
 		g_evm_events_list[empty_index].generator_id = generator_id;
 		g_evm_events_list[empty_index].event_id = event_id;
 		evm_ptr = &g_evm_events_list[empty_index];
@@ -347,7 +340,6 @@ int evmng_raise_irq_event_cb(void *dev, uint16_t cmd, uint32_t size, void *event
 		evmng_cb_list_ptr = evmng_cb_list_ptr->next;
 	}
 	cdma_mutex_lock_release((uint64_t) g_evm_irq_events_list);
-	sl_pr_debug("EVM: Event received: %d\n",addr);
 
 	return 0;
 }
@@ -358,34 +350,28 @@ static int raise_event(uint8_t generator_id, uint8_t event_id, void *event_data)
 	struct evm_priority_list *evmng_cb_list_ptr;
 	int i;
 
-	sl_pr_debug("EVM: Event received: %d \n",event_id);
 	/*Only one event can be processed at a time*/
 	/* Find the index in table which has the same generator and event id.
 	 * The table should be locked.*/
 	/* Lock EVM table*/
 	cdma_mutex_lock_take((uint64_t) g_evm_events_list, CDMA_MUTEX_READ_LOCK);
 
-	sl_pr_debug("EVM: after mutex");
 	for(i = 0; i < EVM_MAX_NUM_OF_EVENTS; i++){
 		if(g_evm_events_list[i].generator_id == generator_id &&
 			g_evm_events_list[i].event_id == event_id){
 			break;
 		}
 	}
-	sl_pr_debug("EVM: entry found %d\n",i);
 	if(i == EVM_MAX_NUM_OF_EVENTS){
 		cdma_mutex_lock_release((uint64_t) g_evm_events_list);
 		return -ENOMEM;
 	}
 
-	sl_pr_debug("EVM: entry is valid %d\n",i);
 	if(g_evm_events_list[i].num_cbs == 0)
 	{
 		cdma_mutex_lock_release((uint64_t) g_evm_events_list);
-		sl_pr_debug("No CB's for event %d and generator %d\n",event_id, generator_id);
 		return 0;
 	}
-	sl_pr_debug("EVM: num cb's is %d\n",g_evm_events_list[i].num_cbs);
 	evmng_cb_list_ptr = g_evm_events_list[i].head;
 
 	for(i = 0; i < g_evm_events_list[i].num_cbs; i++){
