@@ -62,6 +62,7 @@ inline int fdma_replace_default_segment_data(
 	flags_wa = flags & ~FDMA_REPLACE_SA_REPRESENT_BIT;
 	flags_wa |= FDMA_REPLACE_SA_CLOSE_BIT;
 	arg1 = FDMA_REPLACE_CMD_ARG1(prc->handles, flags_wa);
+	arg4 = 0;
 #else
 	arg1 = FDMA_REPLACE_CMD_ARG1(prc->handles, flags);
 	arg4 = FDMA_REPLACE_CMD_ARG4(ws_dst_rs, size_rs);
