@@ -67,7 +67,7 @@
 
 /** Table old result reserved space */
 #define TABLE_OLD_RESULT_RESERVED1_SPACE	8
-#define TABLE_OLD_RESULT_RESERVED2_SPACE	20
+#define TABLE_OLD_RESULT_RESERVED2_SPACE	28
 
 /** @} */ /* end of TABLE_RULE_RESULT_CONSTANTS */
 
