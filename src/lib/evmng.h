@@ -45,6 +45,11 @@ enum evm_irq_event_types {
 	NUM_OF_IRQ_EVENTS
 };
 
+/** Number of average registrations allowed per event*/
+#define EVMNG_NUM_OF_REGISTRATIONS_PER_EVENT                1
+/** Sum of all events in the system */
+#define EVMNG_MAX_NUM_OF_EVENTS (NUM_OF_SL_DEFINED_EVENTS + 128)
+
 /**************************************************************************//**
 @Function	evmng_irq_register
 

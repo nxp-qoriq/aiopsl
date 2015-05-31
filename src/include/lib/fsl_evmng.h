@@ -52,9 +52,6 @@
  @{
  *//***************************************************************************/
 
-/** AIOP service layer generator ID (0 means the entry is empty)*/
-#define EVMNG_GENERATOR_AIOPSL                        1
-
 enum evm_event_types {
 	DPNI_EVENT_ADDED = 0,
 	DPNI_EVENT_REMOVED,
@@ -68,10 +65,18 @@ enum evm_event_types {
 };
 /** @} end of group EVMNG_EVENT_TYPES */
 
-/** Number of average registrations allowed per event*/
-#define EVMNG_NUM_OF_REGISTRATIONS_PER_EVENT                1
-/** Sum of all events in the system */
-#define EVMNG_MAX_NUM_OF_EVENTS (NUM_OF_SL_DEFINED_EVENTS + 128)
+/**************************************************************************//**
+ @Group		EVMNG_AIOPSL_GENERATOR_ID AIOPSL Generator ID
+
+ @Description	Generator ID for AIOPSL events.
+
+ @{
+*//***************************************************************************/
+/** AIOP service layer generator ID (0 means the entry is empty)*/
+#define EVMNG_GENERATOR_AIOPSL                              1
+/** @} end of group EVMNG_AIOPSL_GENERATOR_ID */
+
+
 /**************************************************************************//**
 @Description	Prototype of event manager callback function. An application
 		provides a callback function of this prototype if it wants to
