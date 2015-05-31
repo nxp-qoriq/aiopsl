@@ -29,6 +29,7 @@
 #include "common/types.h"
 #include "fsl_smp.h"
 #include "fsl_icontext.h"
+
 /**************************************************************************//*
  @Description    Buffer pool structure
 *//***************************************************************************/
@@ -40,6 +41,9 @@
 	uint32_t  current;            /* Current buffer */
 	uint32_t  bf_pool_id;
 };
+
+ /* Put all function (execution code) into  dtext_vle section,aka __COLD_CODE */
+ __START_COLD_CODE
 
 /**************************************************************************//**
  *              Stack of 64 bit addresses to    	Buffers,
@@ -63,14 +67,17 @@ Current	----->	|  64b Address_1           |    	|    Buffer1        |
  @Param[in]     bf_pool_id Id of this buffer pool.
  @Param[in]     num_buffs Number of buffers to be created.
  @Param[in]	buff_size - Size of each buffer in bytes.
+ @param[in]     buff_alignment - Alignment that the buffers will be aligned to.
+                                 Shouldn't be 0.
  @Param[in]     h_boot_mem_mng - Handle to boot memory manage.
 
  @Return        0 - if success, a  non-zero value in case of error
 *//***************************************************************************/
-int buffer_pool_create(struct buffer_pool    *bf_pool,
+int buff_pool_create(struct buffer_pool    *bf_pool,
                       const uint32_t 	    bf_pool_id,
                       const uint32_t        num_buffs,
                       const uint16_t        buff_size,
+                      const uint16_t        buff_alignment,
                       void*           h_boot_mem_mng);
 
 /**************************************************************************//**
@@ -83,7 +90,7 @@ int buffer_pool_create(struct buffer_pool    *bf_pool,
 
  @Return        0 - if success, a  non-zero value in case of error
 *//***************************************************************************/
-int get_buff(struct buffer_pool *bf_pool,uint64_t* buff_addr );
+int buff_pool_get(struct buffer_pool *bf_pool,uint64_t* buff_addr );
 
 /**************************************************************************//**
  @Function      put_buff
@@ -95,6 +102,21 @@ int get_buff(struct buffer_pool *bf_pool,uint64_t* buff_addr );
 
  @Return        0 - if success, a  non-zero value in case of error
 *//***************************************************************************/
-int put_buff(struct buffer_pool  *bf_pool, const uint64_t buffer_addr);
+int buff_pool_put(struct buffer_pool  *bf_pool, const uint64_t buffer_addr);
 
+/**************************************************************************//**
+ @Function      compute_num_buffers
+
+ @Description   Returns a number of buffers that might be allocated from total_mem_size.
+
+ @Param[in]	buff_size - Size of each buffer in bytes.
+ @Param[in]     buff_alignment  Alignment that the buffers will aligned to.
+                                Shouldn't be 0
+ @Return        Number of buffers that fits into total_mem_size.
+*//***************************************************************************/
+uint32_t buff_pool_compute_num_buffers(const uint32_t  total_mem_size,
+	                     const uint16_t  buff_size,
+                             const uint16_t  buff_alignment);
+
+__END_COLD_CODE
 #endif
