@@ -480,13 +480,13 @@ int snic_ipsec_create_instance(struct snic_cmd_data *cmd_data)
 		key_size = 4;
 		fec_no = 1;
 		i=0;
-		if (cfg->sa_selectors & SNIC_IPSEC_OPT_INCLUDE_IP_SRC_IN_SA_SELECT)
+		if (cfg->sa_selectors & SNIC_IPSEC_INCLUDE_IP_SRC_IN_SA_SELECT)
 		{
 			key_size += 4;
 			fec_no++;
 			fec_array[i++] = KEYGEN_KCR_IPSRC_1_FECID;
 		}
-		if (cfg->sa_selectors & SNIC_IPSEC_OPT_INCLUDE_IP_DST_IN_SA_SELECT)
+		if (cfg->sa_selectors & SNIC_IPSEC_INCLUDE_IP_DST_IN_SA_SELECT)
 		{
 			key_size += 4;
 			fec_no++;
@@ -509,13 +509,13 @@ int snic_ipsec_create_instance(struct snic_cmd_data *cmd_data)
 		key_size = 4;
 		fec_no = 1;
 		i=0;
-		if (cfg->sa_selectors & SNIC_IPSEC_OPT_INCLUDE_IP_SRC_IN_SA_SELECT)
+		if (cfg->sa_selectors & SNIC_IPSEC_INCLUDE_IP_SRC_IN_SA_SELECT)
 		{
 			key_size += 16;
 			fec_no++;
 			fec_array[i++] = KEYGEN_KCR_IPSRC_1_FECID;
 		}
-		if (cfg->sa_selectors & SNIC_IPSEC_OPT_INCLUDE_IP_DST_IN_SA_SELECT)
+		if (cfg->sa_selectors & SNIC_IPSEC_INCLUDE_IP_DST_IN_SA_SELECT)
 		{
 			key_size += 16;
 			fec_no++;
@@ -602,7 +602,7 @@ int snic_ipsec_add_sa(struct snic_cmd_data *cmd_data)
 		if (nic_options & SNIC_IPSEC_OPT_SEQ_NUM_ROLLOVER_EVENT)
 					options |= IPSEC_ENC_OPTS_SNR_EN;
 		ipsec_cfg->encparams.options = options;
-		if (cfg->mode == SNIC_IPSEC_SA_MODE_TUNNEL)
+		if (cfg->mode == SNIC_IPSEC_SA_TUNNEL)
 		{
 			outer_hdr_size = cfg->out.outer_hdr_size;
 			ipsec_cfg->encparams.ip_hdr_len = outer_hdr_size;
@@ -671,7 +671,7 @@ int snic_ipsec_add_sa(struct snic_cmd_data *cmd_data)
 	ipsec_cfg->authdata.key_enc_flags = key_enc_flags;
 
 	/* transport mode. IPSEC_FLG_LIFETIME_SEC_CNTR_EN not supported yet */
-	if (cfg->mode == SNIC_IPSEC_SA_MODE_TUNNEL)
+	if (cfg->mode == SNIC_IPSEC_SA_TUNNEL)
 		ipsec_params.flags = IPSEC_FLG_LIFETIME_KB_CNTR_EN | IPSEC_FLG_LIFETIME_PKT_CNTR_EN | IPSEC_FLG_TUNNEL_MODE;
 	else
 		ipsec_params.flags = IPSEC_FLG_LIFETIME_KB_CNTR_EN | IPSEC_FLG_LIFETIME_PKT_CNTR_EN;
@@ -713,13 +713,13 @@ int snic_ipsec_add_sa(struct snic_cmd_data *cmd_data)
 		if (cfg->options & SNIC_IPSEC_SA_OPT_IPV6)
 		{
 			k = 0;
-			if (nic_options & SNIC_IPSEC_OPT_INCLUDE_IP_SRC_IN_SA_SELECT)
+			if (nic_options & SNIC_IPSEC_INCLUDE_IP_SRC_IN_SA_SELECT)
 			{
 				k = 16;
 				for (i = 0; i < 16; i++)
 					ipsec_dec_key[i] = cfg->in.ip_src[i];
 			}
-			if (nic_options & SNIC_IPSEC_OPT_INCLUDE_IP_DST_IN_SA_SELECT)
+			if (nic_options & SNIC_IPSEC_INCLUDE_IP_DST_IN_SA_SELECT)
 			{
 				for (i = 0; i < 16; i++)
 					ipsec_dec_key[k + i] = cfg->in.ip_dst[i];
@@ -742,13 +742,13 @@ int snic_ipsec_add_sa(struct snic_cmd_data *cmd_data)
 		else
 		{
 			k = 0;
-			if (nic_options & SNIC_IPSEC_OPT_INCLUDE_IP_SRC_IN_SA_SELECT)
+			if (nic_options & SNIC_IPSEC_INCLUDE_IP_SRC_IN_SA_SELECT)
 			{
 				k = 4;
 				for (i = 0; i < 4; i++)
 					ipsec_dec_key[i] = cfg->in.ip_src[i];
 			}
-			if (nic_options & SNIC_IPSEC_OPT_INCLUDE_IP_DST_IN_SA_SELECT)
+			if (nic_options & SNIC_IPSEC_INCLUDE_IP_DST_IN_SA_SELECT)
 			{
 				for (i = 0; i < 4; i++)
 					ipsec_dec_key[k + i] = cfg->in.ip_dst[i];
@@ -778,8 +778,8 @@ int snic_ipsec_add_sa(struct snic_cmd_data *cmd_data)
 int snic_ipsec_del_sa(struct snic_cmd_data *cmd_data)
 {
 	uint8_t sa_id;
-	struct snic_ipsec_sa_rmv_cfg snic_ipsec_sa_rmv_cfg;
-	struct snic_ipsec_sa_rmv_cfg *cfg = &snic_ipsec_sa_rmv_cfg;
+	struct snic_ipsec_sa_cfg snic_ipsec_sa_cfg;
+	struct snic_ipsec_sa_cfg *cfg = &snic_ipsec_sa_cfg;
 	/* Max: SPI, IPv6 src + dest is 36 bytes */
 	uint8_t ipsec_dec_key[36];
 	uint16_t snic_id;
@@ -812,16 +812,16 @@ int snic_ipsec_del_sa(struct snic_cmd_data *cmd_data)
 			if (cfg->options & SNIC_IPSEC_SA_OPT_IPV6)
 			{
 				k = 0;
-				if (nic_options & SNIC_IPSEC_OPT_INCLUDE_IP_SRC_IN_SA_SELECT)
+				if (nic_options & SNIC_IPSEC_INCLUDE_IP_SRC_IN_SA_SELECT)
 				{
 					k = 16;
 					for (i = 0; i < 16; i++)
-						ipsec_dec_key[i] = cfg->ip_src[i];
+						ipsec_dec_key[i] = cfg->in.ip_src[i];
 				}
-				if (nic_options & SNIC_IPSEC_OPT_INCLUDE_IP_DST_IN_SA_SELECT)
+				if (nic_options & SNIC_IPSEC_INCLUDE_IP_DST_IN_SA_SELECT)
 				{
 					for (i = 0; i < 16; i++)
-						ipsec_dec_key[k + i] = cfg->ip_dst[i];
+						ipsec_dec_key[k + i] = cfg->in.ip_dst[i];
 					k += 16;
 				}
 				spi = cfg->spi;
@@ -840,16 +840,16 @@ int snic_ipsec_del_sa(struct snic_cmd_data *cmd_data)
 			else
 			{
 				k = 0;
-				if (nic_options & SNIC_IPSEC_OPT_INCLUDE_IP_SRC_IN_SA_SELECT)
+				if (nic_options & SNIC_IPSEC_INCLUDE_IP_SRC_IN_SA_SELECT)
 				{
 					k = 4;
 					for (i = 0; i < 4; i++)
-						ipsec_dec_key[i] = cfg->ip_src[i];
+						ipsec_dec_key[i] = cfg->in.ip_src[i];
 				}
-				if (nic_options & SNIC_IPSEC_OPT_INCLUDE_IP_DST_IN_SA_SELECT)
+				if (nic_options & SNIC_IPSEC_INCLUDE_IP_DST_IN_SA_SELECT)
 				{
 					for (i = 0; i < 4; i++)
-						ipsec_dec_key[k + i] = cfg->ip_dst[i];
+						ipsec_dec_key[k + i] = cfg->in.ip_dst[i];
 					k += 4;
 				}
 				spi = cfg->spi;
