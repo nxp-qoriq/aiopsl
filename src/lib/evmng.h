@@ -30,8 +30,8 @@
 @Description	Event Manager API
 *//***************************************************************************/
 
-#ifndef __EVM_H
-#define __EVM_H
+#ifndef __EVMNG_H
+#define __EVMNG_H
 
 #include "fsl_evmng.h"
 #include "fsl_sl_dbg.h"
@@ -116,7 +116,7 @@ int evmng_irq_unregister(
 @Description Structure representing linked list per event_id sorted by priority.
 
 *//***************************************************************************/
-struct evm_priority_list {
+struct evmng_priority_list {
 	/** priority of the event*/
 	uint8_t priority;
 	/** data to be passed with CB (can be user / SL data)*/
@@ -125,7 +125,7 @@ struct evm_priority_list {
 	evmng_cb cb;
 	/** Pointer to the next list with callback function for the same event
 	 * and higher or equal priority*/
-	struct evm_priority_list *next;
+	struct evmng_priority_list *next;
 };
 
 /**************************************************************************//**
@@ -133,7 +133,7 @@ struct evm_priority_list {
 		callback functions sorted by priority.
 
 *//***************************************************************************/
-struct evm{
+struct evmng{
 	/** Identifier of the application/module*/
 	uint8_t generator_id;
 	/** Identifier of the specific event */
@@ -142,7 +142,7 @@ struct evm{
 	uint8_t num_cbs;
 	/** Pointer to the first list with callback function for the same event
 	 * sorted by priority*/
-	struct evm_priority_list *head;
+	struct evmng_priority_list *head;
 };
 
 
@@ -188,4 +188,4 @@ int evmng_early_init(void);
 int evmng_init(void);
 void evmng_free(void);
 
-#endif /* __EVM_H */
+#endif /* __EVMNG_H */

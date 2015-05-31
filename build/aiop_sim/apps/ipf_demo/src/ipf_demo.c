@@ -274,7 +274,7 @@ static int app_config_dpni_cb(
 	uint16_t    mfl = 0x2000; /* Maximum Frame Length */
 	int err;
 	pr_info("Event received for dpni %d\n",ni);
-	if(event_id == DPNI_EVENT_ADDED && generator_id == EVM_GENERATOR_AIOPSL){
+	if(event_id == DPNI_EVENT_ADDED && generator_id == EVMNG_GENERATOR_AIOPSL){
 		err = dpni_drv_register_rx_cb(ni/*ni_id*/,
 		                              (rx_cb_t *)app_ctx);
 		if (err){
@@ -305,7 +305,7 @@ int app_init(void)
 	epid_setup();
 #endif /* AIOP_STANDALONE */
 
-	err = evmng_register(EVM_GENERATOR_AIOPSL, DPNI_EVENT_ADDED, 1,(uint64_t) app_process_packet, app_config_dpni_cb);
+	err = evmng_register(EVMNG_GENERATOR_AIOPSL, DPNI_EVENT_ADDED, 1,(uint64_t) app_process_packet, app_config_dpni_cb);
 	if (err){
 		pr_err("EVM registration for DPNI_EVENT_ADDED failed: %d\n", err);
 		return err;

@@ -207,7 +207,7 @@ int dpni_drv_update_obj(struct mc_dprc *dprc, uint16_t mc_niid)
 		/*send event: "DPNI_ADDED_EVENT" to EVM with
 		 * AIOP NI ID */
 		err = evmng_sl_raise_event(
-			EVM_GENERATOR_AIOPSL,
+			EVMNG_GENERATOR_AIOPSL,
 			DPNI_EVENT_ADDED,
 			&aiop_niid);
 		if(err){
@@ -240,7 +240,7 @@ int dpni_drv_sync(struct mc_dprc *dprc)
 			/*send event: "DPNI_REMOVED_EVENT" to EVM with
 			 * AIOP NI ID */
 			err = evmng_sl_raise_event(
-				EVM_GENERATOR_AIOPSL,
+				EVMNG_GENERATOR_AIOPSL,
 				DPNI_EVENT_REMOVED,
 				&aiop_niid);
 			if(err){
@@ -876,7 +876,7 @@ __COLD_CODE int dpni_drv_init(void)
 //		}
 //	}
 
-	err = evmng_irq_register(EVM_GENERATOR_AIOPSL,
+	err = evmng_irq_register(EVMNG_GENERATOR_AIOPSL,
 	                         DPNI_EVENT,
 	                         0,
 	                         0,
@@ -905,7 +905,7 @@ static int dpni_drv_ev_cb(uint8_t generator_id, uint8_t event_id, uint64_t app_c
 	UNUSED(app_ctx);
 	/*TODO SIZE should be cooperated with Ehud*/
 
-	if(event_id == DPNI_EVENT && generator_id == EVM_GENERATOR_AIOPSL){
+	if(event_id == DPNI_EVENT && generator_id == EVMNG_GENERATOR_AIOPSL){
 		ni_id = *((uint16_t*)event_data);
 		sl_pr_debug("DPNI event\n");
 		/* calculate pointer to the NI structure */
@@ -932,13 +932,13 @@ static int dpni_drv_ev_cb(uint8_t generator_id, uint8_t event_id, uint64_t app_c
 
 			if(link_state.up){
 				err = evmng_sl_raise_event(
-					EVM_GENERATOR_AIOPSL,
+					EVMNG_GENERATOR_AIOPSL,
 					DPNI_EVENT_LINK_UP,
 					&ni_id);
 			}
 			else{
 				err = evmng_sl_raise_event(
-					EVM_GENERATOR_AIOPSL,
+					EVMNG_GENERATOR_AIOPSL,
 					DPNI_EVENT_LINK_DOWN,
 					&ni_id);
 			}

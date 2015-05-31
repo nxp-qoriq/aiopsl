@@ -360,7 +360,7 @@ static int app_config_dpni_cb(
 	dist_key_cfg.extracts[0].extract.from_hdr.type = DPKG_FULL_FIELD;
 
 	pr_info("Event received for dpni %d\n",ni);
-	if(event_id == DPNI_EVENT_ADDED && generator_id == EVM_GENERATOR_AIOPSL){
+	if(event_id == DPNI_EVENT_ADDED && generator_id == EVMNG_GENERATOR_AIOPSL){
 		err = dpni_drv_add_mac_addr(ni, ((uint8_t []){0x02, 0x00 ,0xc0 ,0x0a8 ,0x0b ,0xfe }));
 
 		if (err){
@@ -513,7 +513,7 @@ int app_init(void)
 
 	fsl_os_print("Running AIOP arena app_init()\n");
 
-	err = evmng_register(EVM_GENERATOR_AIOPSL, DPNI_EVENT_ADDED, 1,
+	err = evmng_register(EVMNG_GENERATOR_AIOPSL, DPNI_EVENT_ADDED, 1,
 	                     (uint64_t) app_process_packet, app_config_dpni_cb);
 	if (err){
 		pr_err("EVM registration for DPNI_EVENT_ADDED failed: %d\n", err);

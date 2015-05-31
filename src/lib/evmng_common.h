@@ -25,19 +25,19 @@
  */
 
 /**************************************************************************//**
-@File		evm_common.h
+@File		evmng_common.h
 
 @Description	Event Manager common file
 *//***************************************************************************/
 
-#ifndef __EVM_COMMON_H
-#define __EVM_COMMON_H
+#ifndef __EVMNG_COMMON_H
+#define __EVMNG_COMMON_H
 
-/**EVM send command id when using cmdif to notify from MC*/
-#define EVM_EVENT_SEND         2
+/**EVMNG send command id when using cmdif to notify from MC*/
+#define EVMNG_EVENT_SEND         2
 
 /**default buffer size in the command*/
-#define EVM_CMDSZ_EVENT_SEND   64
+#define EVMNG_CMDSZ_EVENT_SEND   64
 
 
-#endif /* __EVM_COMMON_H */
+#endif /* __EVMNG_COMMON_H */

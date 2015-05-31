@@ -30,13 +30,13 @@
 @Description	Event Manager API
 *//***************************************************************************/
 
-#ifndef __FSL_EVM_H
-#define __FSL_EVM_H
+#ifndef __FSL_EVMNG_H
+#define __FSL_EVMNG_H
 
 #include "types.h"
 
 /**************************************************************************//**
-@Group		evm_g Event Manager
+@Group		evmng_g Event Manager
 
 @Description	Contains initialization APIs and runtime control APIs for Event
 		Manager
@@ -45,15 +45,15 @@
 *//***************************************************************************/
 
 /**************************************************************************//**
- @Group		EVM_EVENT_TYPES Event manager events
+ @Group		EVMNG_EVENT_TYPES Event manager events
 
- @Description	EVM events, supported for application use.
+ @Description	EVMNG events, supported for application use.
 
  @{
  *//***************************************************************************/
 
 /** AIOP service layer generator ID (0 means the entry is empty)*/
-#define EVM_GENERATOR_AIOPSL                        1
+#define EVMNG_GENERATOR_AIOPSL                        1
 
 enum evm_event_types {
 	DPNI_EVENT_ADDED = 0,
@@ -66,12 +66,12 @@ enum evm_event_types {
 	DPCI_EVENT_LINK_DOWN,
 	NUM_OF_SL_DEFINED_EVENTS,
 };
-/** @} end of group EVM_EVENT_TYPES */
+/** @} end of group EVMNG_EVENT_TYPES */
 
 /** Number of average registrations allowed per event*/
-#define EVM_NUM_OF_REGISTRATIONS_PER_EVENT                1
+#define EVMNG_NUM_OF_REGISTRATIONS_PER_EVENT                1
 /** Sum of all events in the system */
-#define EVM_MAX_NUM_OF_EVENTS (NUM_OF_SL_DEFINED_EVENTS + 128)
+#define EVMNG_MAX_NUM_OF_EVENTS (NUM_OF_SL_DEFINED_EVENTS + 128)
 /**************************************************************************//**
 @Description	Prototype of event manager callback function. An application
 		provides a callback function of this prototype if it wants to
@@ -188,5 +188,5 @@ int evmng_unregister(
 *//***************************************************************************/
 int evmng_raise_event(uint8_t generator_id, uint8_t event_id, void *event_data);
 
-/** @} */ /* end of evm_g Event Manager group */
-#endif /* __FSL_EVM_H */
+/** @} */ /* end of evmng_g Event Manager group */
+#endif /* __FSL_EVMNG_H */

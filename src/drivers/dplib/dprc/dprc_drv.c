@@ -58,7 +58,7 @@ static int dprc_drv_evmng_cb(uint8_t generator_id, uint8_t event_id, uint64_t ap
 	UNUSED(app_ctx);
 	UNUSED(event_data);
 
-	if(event_id == DPRC_EVENT && generator_id == EVM_GENERATOR_AIOPSL){
+	if(event_id == DPRC_EVENT && generator_id == EVMNG_GENERATOR_AIOPSL){
 		sl_pr_debug("DPRC objects changed event\n");
 
 		err = dprc_get_irq_status(&dprc->io, dprc->token,
@@ -202,7 +202,7 @@ __COLD_CODE static int aiop_container_init(void)
 		return -ENAVAIL;
 	}
 
-	err = evmng_irq_register(EVM_GENERATOR_AIOPSL,
+	err = evmng_irq_register(EVMNG_GENERATOR_AIOPSL,
 	                         DPRC_EVENT, 0, 0, dprc_drv_evmng_cb);
 	if(err){
 		pr_err("EVM registration for DPRC object change failed\n");
