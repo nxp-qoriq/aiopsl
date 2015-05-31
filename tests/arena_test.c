@@ -352,6 +352,7 @@ static int app_config_dpni_cb(
 	struct aiop_psram_entry *sp_addr;
 	struct dpni_drv_buf_layout layout = {0};
 	struct dpni_drv_link_state link_state = {0};
+	struct ep_init_presentation init_pres = {0};
 
 	dist_key_cfg.num_extracts = 1;
 	dist_key_cfg.extracts[0].type = DPKG_EXTRACT_FROM_HDR;
@@ -437,6 +438,61 @@ static int app_config_dpni_cb(
 		if(err){
 			fsl_os_print("Error: dpni_drv_get_rx_buffer_layout: error %d\n",err);
 			test_error |= 0x01;
+		}
+
+		memset(&init_pres, 0, sizeof(struct ep_init_presentation));
+
+		init_pres.options = EP_INIT_PRESENTATION_OPT_SPA |
+			EP_INIT_PRESENTATION_OPT_SPO |
+			EP_INIT_PRESENTATION_OPT_SPS |
+			EP_INIT_PRESENTATION_OPT_NDS;
+		init_pres.spa = 0x0150;
+		init_pres.spo = 0x0020;
+		init_pres.sps = 0x0020;
+		init_pres.nds = 1;
+
+		err = dpni_drv_set_initial_presentation((uint16_t)ni,
+		                                        &init_pres);
+		if (err){
+			fsl_os_print("dpni_drv_set_initial_presentation failed %d\n", err);
+			test_error |= 0x01;
+		}
+		else{
+			fsl_os_print("dpni_drv_set_initial_presentation succeeded in boot\n");
+		}
+		memset(&init_pres, 0, sizeof(struct ep_init_presentation));
+
+		err = dpni_drv_get_initial_presentation((uint16_t)ni,
+		                                        &init_pres);
+		if (err){
+			fsl_os_print("dpni_drv_get_initial_presentation failed %d\n", err);
+			test_error |= 0x01;
+		}
+		else{
+			fsl_os_print("dpni_drv_get_initial_presentation succeeded in boot\n");
+			fsl_os_print("Initial_presentation params:\n");
+			fsl_os_print("fdpa: %x\n"
+				"adpca:%x\n"
+				"ptapa:%x\n"
+				"asapa:%x\n"
+				"asapo:%x\n"
+				"asaps:%x\n"
+				"spa:  %x\n"
+				"sps:  %x\n"
+				"spo:  %x\n"
+				"sr:   %x\n"
+				"nds:  %x\n",
+				init_pres.fdpa,
+				init_pres.adpca,
+				init_pres.ptapa,
+				init_pres.asapa,
+				init_pres.asapo,
+				init_pres.asaps,
+				init_pres.spa,
+				init_pres.sps,
+				init_pres.spo,
+				init_pres.sr,
+				init_pres.nds);
 		}
 
 		err = dpni_drv_enable(ni);
