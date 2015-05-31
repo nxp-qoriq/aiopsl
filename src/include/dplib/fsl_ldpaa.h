@@ -172,12 +172,12 @@
  of an annotation section containing frame meta-data.
  *//***************************************************************************/
 struct ldpaa_fd {
-	uint64_t addr; /**< Buffer address 	 */
-	uint32_t length; /**< Frame data length 	 */
-	uint32_t offset; /**< Frame data offset 	 */
-	uint32_t frc; /**< Frame Context 	 */
-	uint32_t control; /**< Fame control fields */
-	uint64_t flc; /**< Flow Context 	 */
+	volatile uint64_t addr; /**< Buffer address 	 */
+	volatile uint32_t length; /**< Frame data length 	 */
+	volatile uint32_t offset; /**< Frame data offset 	 */
+	volatile uint32_t frc; /**< Frame Context 	 */
+	volatile uint32_t control; /**< Fame control fields */
+	volatile uint64_t flc; /**< Flow Context 	 */
 };
 
 
