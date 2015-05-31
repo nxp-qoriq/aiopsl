@@ -385,6 +385,11 @@
 			<locationURI>PARENT-3-PROJECT_LOC/src/lib/evm.h</locationURI>
 		</link>
 		<link>
+			<name>aiop_sl/lib/evm_common.h</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/lib/evm_common.h</locationURI>
+		</link>
+		<link>
 			<name>aiop_sl/lib/fsl_list.h</name>
 			<type>1</type>
 			<locationURI>PARENT-3-PROJECT_LOC/src/lib/fsl_list.h</locationURI>

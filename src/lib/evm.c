@@ -25,26 +25,49 @@
  */
 
 #include "evm.h"
+#include "evm_common.h"
 #include "fsl_cmdif_server.h"
 #include "fsl_cmdif_client.h"
 #include "fsl_malloc.h"
 #include "fsl_string.h"
 #include "fsl_spinlock.h"
 
-struct evm *g_evm_irq_events_list;
-struct evm *g_evm_events_list;
+struct evm g_evm_irq_events_list[NUM_OF_IRQ_EVENTS];
+struct evm g_evm_events_list[EVM_MAX_NUM_OF_EVENTS];
 uint32_t *g_evm_b_pool_pointer;
 uint32_t *g_evm_last_b_pool_pointer;
 uint8_t g_evm_b_pool_spinlock;
 
-static void add_event_registration(struct evm *evm_ptr, struct evm_priority_list *evmng_cb_list)
+static int add_event_registration(
+	uint8_t priority, uint64_t app_ctx, evmng_cb cb,
+	struct evm *evm_ptr)
 {
+	struct evm_priority_list *evmng_cb_list;
 	struct evm_priority_list *evmng_cb_list_ptr;
 	struct evm_priority_list *evmng_cb_list_tmp_ptr;
 
-	/* Lock event entry in the EVM table*/
-	cdma_mutex_lock_take((uint64_t) evm_ptr, CDMA_MUTEX_WRITE_LOCK);
+	/*Lock spinlock to take the next address for buffer to list
+	 * of registration request*/
+	lock_spinlock(&g_evm_b_pool_spinlock);
+	/* If the number of allocated list reach the limit, return error*/
+	if(*g_evm_b_pool_pointer == *g_evm_last_b_pool_pointer){
+		unlock_spinlock(&g_evm_b_pool_spinlock);
+		return -ENOMEM;
+	}
+	evmng_cb_list = (struct evm_priority_list *)*g_evm_b_pool_pointer;
+	g_evm_b_pool_pointer ++;
+	/*Unlock spinlock*/
+	unlock_spinlock(&g_evm_b_pool_spinlock);
+
+	sl_pr_debug("adding cb list\n");
+
+	evmng_cb_list->app_ctx = app_ctx;
+	evmng_cb_list->cb = cb;
+	evmng_cb_list->priority = priority;
+	evmng_cb_list->next = NULL;
+
 	if(evm_ptr->head != NULL){
+		sl_pr_debug("head is not null\n");
 		evmng_cb_list_ptr = evm_ptr->head;
 		evmng_cb_list_tmp_ptr = evmng_cb_list_ptr;
 
@@ -73,90 +96,103 @@ static void add_event_registration(struct evm *evm_ptr, struct evm_priority_list
 		}
 	}
 	else{
+		sl_pr_debug("head is null\n");
 		evm_ptr->head = evmng_cb_list;
 	}
 	evm_ptr->num_cbs ++;
-	cdma_mutex_lock_release((uint64_t) evm_ptr);
+	sl_pr_debug("Register successfully for event\n");
+	return 0;
 }
 /*****************************************************************************/
 
-int evmng_irq_register(uint8_t generator_id, uint8_t event_id, uint8_t priority,
-                       uint64_t app_ctx, evmng_cb cb)
+int evmng_irq_register(
+	uint8_t generator_id, uint8_t event_id,
+	uint8_t priority, uint64_t app_ctx, evmng_cb cb)
 {
-	struct evm *evm_ptr = g_evm_irq_events_list;
-	struct evm_priority_list *evmng_cb_list;
+	int err;
 
 	if(cb == NULL){
 		sl_pr_debug("CB is NULL\n");
 		return -EINVAL;
 	}
-	if(event_id >= NUM_OF_IRQ_EVENTS){
-		sl_pr_debug("event_id value is out of bounds\n");
+	if(event_id >= NUM_OF_IRQ_EVENTS || generator_id != EVM_GENERATOR_AIOPSL){
+		sl_pr_debug("event or generator id value is out of bounds\n");
 		return -EINVAL;
 	}
 
-	/*Lock spinlock to take the next address for buffer to list
-	 * of registration request*/
-	lock_spinlock(&g_evm_b_pool_spinlock);
-	/* If the number of allocated list reach the limit, return error*/
-	if(*g_evm_b_pool_pointer == *g_evm_last_b_pool_pointer){
-		unlock_spinlock(&g_evm_b_pool_spinlock);
-		return -ENOMEM;
-	}
-	evmng_cb_list = (struct evm_priority_list *)*g_evm_b_pool_pointer;
-	g_evm_b_pool_pointer ++;
-	/*Unlock spinlock*/
-	unlock_spinlock(&g_evm_b_pool_spinlock);
-
-	evmng_cb_list->app_ctx = app_ctx;
-	evmng_cb_list->cb = cb;
-	evmng_cb_list->priority = priority;
-	evmng_cb_list->next = NULL;
-
-	evm_ptr += event_id;
-
-	add_event_registration(evm_ptr, evmng_cb_list);
-	return 0;
+	/* Find the index in table which has the same generator and event id or
+	 * find the first empty index.
+	 * The table should be locked.*/
+	/* Lock EVM table*/
+	cdma_mutex_lock_take((uint64_t) g_evm_irq_events_list, CDMA_MUTEX_WRITE_LOCK);
+	err = add_event_registration(priority, app_ctx, cb, &g_evm_irq_events_list[event_id]);
+	cdma_mutex_lock_release((uint64_t) g_evm_irq_events_list);
+	return err;
 }
 /*****************************************************************************/
 
-int evmng_register(uint8_t generator_id, uint8_t event_id, uint8_t priority, uint64_t app_ctx, evmng_cb cb)
+int evmng_register(
+	uint8_t generator_id, uint8_t event_id,
+	uint8_t priority, uint64_t app_ctx, evmng_cb cb)
 {
-	struct evm *evm_ptr = g_evm_events_list;
-	struct evm_priority_list *evmng_cb_list;
+	struct evm *evm_ptr;
+
+	int i, empty_index = -1, err;
 
 	if(cb == NULL){
 		sl_pr_debug("CB is NULL\n");
 		return -EINVAL;
 	}
-	if(event_id >= MAX_EVENT_ID){
-		sl_pr_debug("event_id value is out of bounds\n");
-		return -EINVAL;
+
+	/* Find the index in table which has the same generator and event id or
+	 * find the first empty index.
+	 * The table should be locked.*/
+	/* Lock EVM table*/
+	cdma_mutex_lock_take((uint64_t) g_evm_events_list, CDMA_MUTEX_WRITE_LOCK);
+
+	sl_pr_debug("reg: Generator %d Event %d\n", generator_id,event_id);
+
+
+	for(i = 0; i < EVM_MAX_NUM_OF_EVENTS; i++ )
+	{
+		if(g_evm_events_list[i].generator_id == generator_id &&
+			g_evm_events_list[i].event_id == event_id){
+			break;
+		}
+		if(g_evm_events_list[i].generator_id == NULL &&
+			empty_index == -1){
+			empty_index = i;
+		}
 	}
 
-
-	/*Lock spinlock to take the next address for buffer to list
-	 * of registration request*/
-	lock_spinlock(&g_evm_b_pool_spinlock);
-	/* If the number of allocated list reach the limit, return error*/
-	if(*g_evm_b_pool_pointer == *g_evm_last_b_pool_pointer){
-		unlock_spinlock(&g_evm_b_pool_spinlock);
+	if(i < EVM_MAX_NUM_OF_EVENTS)
+	{
+		evm_ptr = &g_evm_events_list[i];
+		sl_pr_debug("Event found in list of events\n");
+	}
+	else if(empty_index >= 0)
+	{
+		sl_pr_debug("New event should be registered %d\n",empty_index);
+		g_evm_events_list[empty_index].generator_id = generator_id;
+		g_evm_events_list[empty_index].event_id = event_id;
+		evm_ptr = &g_evm_events_list[empty_index];
+	}
+	else
+	{
+		cdma_mutex_lock_release((uint64_t) g_evm_events_list);
 		return -ENOMEM;
 	}
-	evmng_cb_list = (struct evm_priority_list *)*g_evm_b_pool_pointer;
-	g_evm_b_pool_pointer ++;
-	/*Unlock spinlock*/
-	unlock_spinlock(&g_evm_b_pool_spinlock);
 
-	evmng_cb_list->app_ctx = app_ctx;
-	evmng_cb_list->cb = cb;
-	evmng_cb_list->priority = priority;
-	evmng_cb_list->next = NULL;
+	err = add_event_registration(priority, app_ctx, cb, evm_ptr);
 
-	evm_ptr += event_id;
+	/* if err != 0, check if the generator ID need to be cleared again */
+	if(err && i == EVM_MAX_NUM_OF_EVENTS)
+	{
+		g_evm_events_list[empty_index].generator_id = NULL;
 
-	add_event_registration(evm_ptr, evmng_cb_list);
-	return 0;
+	}
+	cdma_mutex_lock_release((uint64_t) g_evm_events_list);
+	return err;
 }
 /*****************************************************************************/
 static int remove_event_registration(struct evm *evm_ptr,
@@ -168,8 +204,6 @@ static int remove_event_registration(struct evm *evm_ptr,
 	struct evm_priority_list *evmng_cb_list_tmp_ptr;
 	int i = 0;
 
-	/* Lock event entry in the EVM table*/
-	cdma_mutex_lock_take((uint64_t) evm_ptr, CDMA_MUTEX_WRITE_LOCK);
 	evmng_cb_list_ptr = evm_ptr->head;
 	evmng_cb_list_tmp_ptr = evmng_cb_list_ptr;
 
@@ -184,12 +218,11 @@ static int remove_event_registration(struct evm *evm_ptr,
 	}
 
 	if(i == evm_ptr->num_cbs){
-		cdma_mutex_lock_release((uint64_t) evm_ptr);
 		sl_pr_debug("Registration not found for given parameters\n");
 		return -ENAVAIL;
 	}
 
-	if(evmng_cb_list_tmp_ptr != evm_ptr->head)
+	if(evmng_cb_list_ptr != evm_ptr->head)
 	{
 		if(evmng_cb_list_ptr->next != NULL){
 			evmng_cb_list_tmp_ptr->next = evmng_cb_list_ptr->next;
@@ -204,6 +237,7 @@ static int remove_event_registration(struct evm *evm_ptr,
 		}
 		else{
 			evm_ptr->head = NULL;
+			evm_ptr->generator_id = NULL;
 		}
 	}
 
@@ -216,86 +250,104 @@ static int remove_event_registration(struct evm *evm_ptr,
 	*g_evm_b_pool_pointer = (uint32_t)evmng_cb_list_ptr;
 	/*Unlock spinlock*/
 	unlock_spinlock(&g_evm_b_pool_spinlock);
-
 	evm_ptr->num_cbs --;
-	cdma_mutex_lock_release((uint64_t) evm_ptr);
 	return 0;
 }
 
 int evmng_irq_unregister(uint8_t generator_id, uint8_t event_id, uint8_t priority, uint64_t app_ctx, evmng_cb cb)
 {
-	struct evm *evm_ptr = g_evm_irq_events_list;
+	int err;
 
 	if(cb == NULL){
 		sl_pr_debug("CB is NULL\n");
 		return -EINVAL;
 	}
-	if(event_id >= NUM_OF_IRQ_EVENTS ){
+	if(event_id >= NUM_OF_IRQ_EVENTS || generator_id != EVM_GENERATOR_AIOPSL){
 		sl_pr_debug("event_id value is out of bounds\n");
 		return -EINVAL;
 	}
-
-	evm_ptr += event_id;
-	return remove_event_registration(evm_ptr, priority, app_ctx, cb);
+	cdma_mutex_lock_take((uint64_t) g_evm_irq_events_list, CDMA_MUTEX_WRITE_LOCK);
+	err = remove_event_registration(&g_evm_irq_events_list[event_id], priority, app_ctx, cb);
+	cdma_mutex_lock_release((uint64_t) g_evm_irq_events_list);
+	return err;
 }
 /*****************************************************************************/
 
 int evmng_unregister(uint8_t generator_id, uint8_t event_id, uint8_t priority, uint64_t app_ctx, evmng_cb cb)
 {
-	struct evm *evm_ptr = g_evm_events_list;
+	int i, err;
 
 	if(cb == NULL){
 		sl_pr_debug("CB is NULL\n");
 		return -EINVAL;
 	}
-	if(event_id >= MAX_EVENT_ID ){
-		sl_pr_debug("event_id value is out of bounds\n");
-		return -EINVAL;
+
+	cdma_mutex_lock_take((uint64_t) g_evm_events_list, CDMA_MUTEX_WRITE_LOCK);
+	for(i = 0; i < EVM_MAX_NUM_OF_EVENTS; i++ )
+	{
+		if(g_evm_events_list[i].generator_id == generator_id &&
+			g_evm_events_list[i].event_id == event_id){
+			break;
+		}
+	}
+	/*Check if entry with generator and event id was found*/
+	if(i == EVM_MAX_NUM_OF_EVENTS){
+		cdma_mutex_lock_release((uint64_t) g_evm_events_list);
+		return -ENAVAIL;
 	}
 
-	evm_ptr += event_id;
-	return remove_event_registration(evm_ptr, priority, app_ctx, cb);
+	err = remove_event_registration(&g_evm_events_list[i], priority, app_ctx, cb);
+	cdma_mutex_lock_release((uint64_t) g_evm_events_list);
+	return err;
 }
 /*****************************************************************************/
 
 int evmng_raise_irq_event_cb(void *dev, uint16_t cmd, uint32_t size, void *event_data)
 {
-	struct evm *evm_ptr = g_evm_irq_events_list;
 	struct evm_priority_list *evmng_cb_list_ptr;
 	int i;
 	UNUSED(dev);
-	UNUSED(size);
+	uint64_t addr;
+	uint32_t val;
+	uint32_t *event_data_ptr = event_data;
 
 	if(cmd & CMDIF_NORESP_CMD)
-		cmd &= ~CMDIF_NORESP_CMD;
+			cmd &= ~CMDIF_NORESP_CMD;
 
-	if(cmd >= NUM_OF_IRQ_EVENTS || cmd < 0)
+	if(cmd != EVM_EVENT_SEND || size < 12){
+		return -EINVAL;
+	}
+	memcpy32(&addr, event_data_ptr, sizeof(addr));
+	event_data_ptr += 2;
+	memcpy32(&val, event_data_ptr, sizeof(val));
+
+
+	if(addr >= NUM_OF_IRQ_EVENTS)
 	{
-		sl_pr_err("Event %d not supported\n",cmd);
+		sl_pr_err("Event %d not supported\n",addr);
 		return -ENOTSUP;
 	}
-	evm_ptr += cmd;
 	/*Only one event can be processed at a time*/
-	cdma_mutex_lock_take((uint64_t) evm_ptr, CDMA_MUTEX_WRITE_LOCK);
-	if(evm_ptr->num_cbs == 0)
+	cdma_mutex_lock_take((uint64_t) g_evm_irq_events_list, CDMA_MUTEX_WRITE_LOCK);
+	if(g_evm_irq_events_list[addr].num_cbs == 0)
 	{
-		cdma_mutex_lock_release((uint64_t) evm_ptr);
-		sl_pr_debug("No registered CB's for event %d\n",cmd);
+		cdma_mutex_lock_release((uint64_t) g_evm_irq_events_list);
+		sl_pr_debug("No registered CB's for event %d\n",addr);
 		return 0;
 	}
 
-	evmng_cb_list_ptr = evm_ptr->head;
+	evmng_cb_list_ptr = g_evm_irq_events_list[addr].head;
 
-	for(i = 0; i < evm_ptr->num_cbs; i++){
+	for(i = 0; i < g_evm_irq_events_list[addr].num_cbs; i++){
 		evmng_cb_list_ptr->cb(
 				EVM_GENERATOR_AIOPSL,
-				(uint8_t)cmd,
+				(uint8_t)addr,
 				evmng_cb_list_ptr->app_ctx,
-				event_data);
+				&val);
 		evmng_cb_list_ptr = evmng_cb_list_ptr->next;
 	}
-	cdma_mutex_lock_release((uint64_t) evm_ptr);
-	sl_pr_debug("EVM: Event received: %d\n",cmd);
+	cdma_mutex_lock_release((uint64_t) g_evm_irq_events_list);
+	sl_pr_debug("EVM: Event received: %d\n",addr);
 
 	return 0;
 }
@@ -303,24 +355,40 @@ int evmng_raise_irq_event_cb(void *dev, uint16_t cmd, uint32_t size, void *event
 
 static int raise_event(uint8_t generator_id, uint8_t event_id, void *event_data)
 {
-	struct evm *evm_ptr = g_evm_events_list;
 	struct evm_priority_list *evmng_cb_list_ptr;
 	int i;
 
-	sl_pr_debug("EVM: Event received: %d\n",event_id);
-	evm_ptr += event_id;
+	sl_pr_debug("EVM: Event received: %d \n",event_id);
 	/*Only one event can be processed at a time*/
-	cdma_mutex_lock_take((uint64_t) evm_ptr, CDMA_MUTEX_WRITE_LOCK);
-	if(evm_ptr->num_cbs == 0)
-	{
-		cdma_mutex_lock_release((uint64_t) evm_ptr);
-		sl_pr_debug("No registered CB's for event %d\n",event_id);
-		return 0;
+	/* Find the index in table which has the same generator and event id.
+	 * The table should be locked.*/
+	/* Lock EVM table*/
+	cdma_mutex_lock_take((uint64_t) g_evm_events_list, CDMA_MUTEX_READ_LOCK);
+
+	sl_pr_debug("EVM: after mutex");
+	for(i = 0; i < EVM_MAX_NUM_OF_EVENTS; i++){
+		if(g_evm_events_list[i].generator_id == generator_id &&
+			g_evm_events_list[i].event_id == event_id){
+			break;
+		}
+	}
+	sl_pr_debug("EVM: entry found %d\n",i);
+	if(i == EVM_MAX_NUM_OF_EVENTS){
+		cdma_mutex_lock_release((uint64_t) g_evm_events_list);
+		return -ENOMEM;
 	}
 
-	evmng_cb_list_ptr = evm_ptr->head;
+	sl_pr_debug("EVM: entry is valid %d\n",i);
+	if(g_evm_events_list[i].num_cbs == 0)
+	{
+		cdma_mutex_lock_release((uint64_t) g_evm_events_list);
+		sl_pr_debug("No CB's for event %d and generator %d\n",event_id, generator_id);
+		return 0;
+	}
+	sl_pr_debug("EVM: num cb's is %d\n",g_evm_events_list[i].num_cbs);
+	evmng_cb_list_ptr = g_evm_events_list[i].head;
 
-	for(i = 0; i < evm_ptr->num_cbs; i++){
+	for(i = 0; i < g_evm_events_list[i].num_cbs; i++){
 		evmng_cb_list_ptr->cb(
 				generator_id,
 				event_id,
@@ -328,16 +396,18 @@ static int raise_event(uint8_t generator_id, uint8_t event_id, void *event_data)
 				event_data);
 		evmng_cb_list_ptr = evmng_cb_list_ptr->next;
 	}
-	cdma_mutex_lock_release((uint64_t) evm_ptr);
+	cdma_mutex_lock_release((uint64_t) g_evm_events_list);
 	return 0;
 }
 
 
 int evmng_sl_raise_event(uint8_t generator_id, uint8_t event_id, void *event_data)
 {
-	if(event_id >= MAX_EVENT_ID)
+	if(event_id >= NUM_OF_SL_DEFINED_EVENTS ||
+		generator_id != EVM_GENERATOR_AIOPSL)
 	{
-		sl_pr_err("Event %d not supported\n",event_id);
+		sl_pr_err("Event %d and generator %d are not supported\n",
+				event_id, generator_id);
 		return -ENOTSUP;
 	}
 	return raise_event(generator_id, event_id, event_data);
@@ -345,9 +415,11 @@ int evmng_sl_raise_event(uint8_t generator_id, uint8_t event_id, void *event_dat
 
 int evmng_raise_event(uint8_t generator_id, uint8_t event_id, void *event_data)
 {
-	if(event_id < NUM_OF_SL_DEFINED_EVENTS || event_id >= MAX_EVENT_ID)
+	if(event_id < NUM_OF_SL_DEFINED_EVENTS &&
+		generator_id == EVM_GENERATOR_AIOPSL)
 	{
-		sl_pr_err("Event %d not supported\n",event_id);
+		sl_pr_err("Event %d and generator %d are not supported\n",
+				event_id, generator_id);
 		return -ENOTSUP;
 	}
 	return raise_event(generator_id, event_id, event_data);
@@ -375,40 +447,28 @@ int evmng_early_init(void)
 	int i;
 	struct evm_priority_list *evm_list_ptr;
 	uint32_t *evm_b_pool_pointer;
-	uint16_t num_evm_registartions = (MAX_EVENT_ID + NUM_OF_IRQ_EVENTS) *
+	uint16_t num_evm_registartions = (EVM_MAX_NUM_OF_EVENTS + NUM_OF_IRQ_EVENTS) *
 		EVM_NUM_OF_REGISTRATIONS_PER_EVENT;
-	g_evm_irq_events_list = (struct evm *) fsl_malloc(NUM_OF_IRQ_EVENTS *
-	                                       sizeof(struct evm),
-	                                       1);
-	if(g_evm_irq_events_list == NULL) {
-		pr_err("memory allocation for evm sl events failed\n");
-		return -ENOMEM;
-	}
 
 	memset(g_evm_irq_events_list, 0, NUM_OF_IRQ_EVENTS * sizeof(struct evm));
 
 	/* Initialize events available for service layer and applications */
 	for(i = 0; i < NUM_OF_IRQ_EVENTS; i++){
-		g_evm_irq_events_list->event_id = (uint8_t) i;
+		g_evm_irq_events_list[i].generator_id = EVM_GENERATOR_AIOPSL;
+		g_evm_irq_events_list[i].event_id = (uint8_t) i;
 	}
 
-	g_evm_events_list = (struct evm *)
-		fsl_malloc(MAX_EVENT_ID * sizeof(struct evm), 1);
 
-	if(g_evm_events_list == NULL) {
-		pr_err("memory allocation for events failed\n");
-		return -ENOMEM;
-	}
-
-	memset(g_evm_events_list, 0, MAX_EVENT_ID * sizeof(struct evm));
+	memset(g_evm_events_list, 0, EVM_MAX_NUM_OF_EVENTS *  sizeof(struct evm));
 
 	/* Initialize events created by / allowed to  applications */
-	for(i = 0; i < MAX_EVENT_ID; i++){
-		g_evm_events_list->event_id = (uint8_t) i;
+	for(i = 0; i < NUM_OF_SL_DEFINED_EVENTS; i++){
+		g_evm_events_list[i].generator_id = EVM_GENERATOR_AIOPSL;
+		g_evm_events_list[i].event_id = (uint8_t) i;
 	}
 
-	/*allocate memory to registrations for events*/
 
+	/*allocate memory to registrations for events*/
 	evm_list_ptr = (struct evm_priority_list *)
 		fsl_malloc(
 			num_evm_registartions *
@@ -474,36 +534,49 @@ int evmng_init(void)
 void evmng_free(void)
 {
 	int i;
-	struct evm *evm_ptr;
 	struct evm_priority_list *evmng_cb_list_ptr;
 	struct evm_priority_list *evmng_cb_list_next_ptr;
 
 	pr_info("Free memory used by EVM\n");
 
-	evm_ptr = g_evm_events_list;
-	for(i = 0; i < MAX_EVENT_ID; i++, evm_ptr ++ )
+	for(i = 0; i < EVM_MAX_NUM_OF_EVENTS; i++)
 	{
-		evmng_cb_list_ptr = evm_ptr->head;
+		evmng_cb_list_ptr = g_evm_events_list[i].head;
 		if(evmng_cb_list_ptr)
 		{
 			do{
 				evmng_cb_list_next_ptr = evmng_cb_list_ptr->next;
-				fsl_free(evmng_cb_list_ptr);
+				/*Lock spinlock to take the next address for buffer to list
+				 * of registration request*/
+				lock_spinlock(&g_evm_b_pool_spinlock);
+				/* Decrement buffer pool pointer to insert the memory pointer back
+				 * to pool for future registrations*/
+				g_evm_b_pool_pointer --;
+				*g_evm_b_pool_pointer = (uint32_t)evmng_cb_list_ptr;
+				/*Unlock spinlock*/
+				unlock_spinlock(&g_evm_b_pool_spinlock);
 				evmng_cb_list_ptr = evmng_cb_list_next_ptr;
 			}while(evmng_cb_list_ptr != NULL);
 		}
 	}
 	fsl_free(g_evm_events_list);
 
-	evm_ptr = g_evm_irq_events_list;
-	for(i = 0; i < NUM_OF_IRQ_EVENTS; i++, evm_ptr ++ )
+	for(i = 0; i < NUM_OF_IRQ_EVENTS; i++)
 	{
-		evmng_cb_list_ptr = evm_ptr->head;
+		evmng_cb_list_ptr = g_evm_irq_events_list[i].head;
 		if(evmng_cb_list_ptr)
 		{
 			do{
 				evmng_cb_list_next_ptr = evmng_cb_list_ptr->next;
-				fsl_free(evmng_cb_list_ptr);
+				/*Lock spinlock to take the next address for buffer to list
+				 * of registration request*/
+				lock_spinlock(&g_evm_b_pool_spinlock);
+				/* Decrement buffer pool pointer to insert the memory pointer back
+				 * to pool for future registrations*/
+				g_evm_b_pool_pointer --;
+				*g_evm_b_pool_pointer = (uint32_t)evmng_cb_list_ptr;
+				/*Unlock spinlock*/
+				unlock_spinlock(&g_evm_b_pool_spinlock);
 				evmng_cb_list_ptr = evmng_cb_list_next_ptr;
 			}while(evmng_cb_list_ptr != NULL);
 		}

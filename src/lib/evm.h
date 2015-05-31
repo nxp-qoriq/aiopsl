@@ -45,8 +45,6 @@ enum evm_irq_event_types {
 	NUM_OF_IRQ_EVENTS
 };
 
-
-#define EVM_MAX_NUM_OF_EVENTS             128
 /**************************************************************************//**
 @Function	evmng_irq_register
 

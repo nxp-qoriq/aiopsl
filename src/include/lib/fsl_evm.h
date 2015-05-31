@@ -43,10 +43,6 @@
 
 @{
 *//***************************************************************************/
-/** Number of average registrations allowed per event*/
-#define EVM_NUM_OF_REGISTRATIONS_PER_EVENT                5
-/** Maximum number of defined events allowed for applications */
-#define EVM_NUM_OF_APP_DEFINED_EVENTS                    32
 
 /**************************************************************************//**
  @Group		EVM_EVENT_TYPES Event manager events
@@ -69,10 +65,13 @@ enum evm_event_types {
 	DPCI_EVENT_LINK_UP,
 	DPCI_EVENT_LINK_DOWN,
 	NUM_OF_SL_DEFINED_EVENTS,
-	MAX_EVENT_ID = NUM_OF_SL_DEFINED_EVENTS + EVM_NUM_OF_APP_DEFINED_EVENTS
 };
 /** @} end of group EVM_EVENT_TYPES */
 
+/** Number of average registrations allowed per event*/
+#define EVM_NUM_OF_REGISTRATIONS_PER_EVENT                1
+/** Sum of all events in the system */
+#define EVM_MAX_NUM_OF_EVENTS (NUM_OF_SL_DEFINED_EVENTS + 128)
 /**************************************************************************//**
 @Description	Prototype of event manager callback function. An application
 		provides a callback function of this prototype if it wants to
