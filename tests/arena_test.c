@@ -360,6 +360,8 @@ static int app_dpni_event_added_cb(
 	dist_key_cfg.extracts[0].extract.from_hdr.field = NET_HDR_FLD_IP_SRC;
 	dist_key_cfg.extracts[0].extract.from_hdr.type = DPKG_FULL_FIELD;
 
+	UNUSED(generator_id);
+	UNUSED(event_id);
 	pr_info("Event received for dpni %d\n",ni);
 	err = dpni_drv_add_mac_addr(ni, ((uint8_t []){0x02, 0x00 ,0xc0 ,0x0a8 ,0x0b ,0xfe }));
 

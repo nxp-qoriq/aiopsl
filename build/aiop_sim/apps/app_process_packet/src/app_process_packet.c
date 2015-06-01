@@ -132,6 +132,9 @@ static int app_dpni_event_added_cb(
 {
 	uint16_t ni = *(uint16_t*)event_data;
 	int err;
+
+	UNUSED(generator_id);
+	UNUSED(event_id);
 	pr_info("Event received for dpni %d\n",ni);
 
 	err = dpni_drv_register_rx_cb(ni/*ni_id*/,
