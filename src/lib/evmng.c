@@ -35,6 +35,7 @@
 struct evmng g_evmng_irq_events_list[NUM_OF_IRQ_EVENTS];
 struct evmng g_evmng_events_list[EVMNG_MAX_NUM_OF_EVENTS];
 uint32_t *g_evmng_b_pool_pointer;
+uint32_t *g_evmng_first_b_pool_pointer;
 uint32_t *g_evmng_last_b_pool_pointer;
 uint8_t g_evmng_b_pool_spinlock;
 
@@ -50,7 +51,7 @@ static int add_event_registration(
 	 * of registration request*/
 	lock_spinlock(&g_evmng_b_pool_spinlock);
 	/* If the number of allocated list reach the limit, return error*/
-	if(*g_evmng_b_pool_pointer == *g_evmng_last_b_pool_pointer){
+	if(g_evmng_b_pool_pointer == g_evmng_last_b_pool_pointer){
 		unlock_spinlock(&g_evmng_b_pool_spinlock);
 		return -ENOMEM;
 	}
@@ -341,7 +342,7 @@ static int raise_event(uint8_t generator_id, uint8_t event_id, void *event_data)
 	struct evmng_priority_list *evmng_cb_list_ptr;
 	int i;
 
-	/*Only one event can be processed at a time*/
+	/* More than one event can be processed at a time*/
 	/* Find the index in table which has the same generator and event id.
 	 * The table should be locked.*/
 	/* Lock EVM table*/
@@ -445,25 +446,25 @@ int evmng_early_init(void)
 	}
 
 
-	/*allocate memory to registrations for events*/
-	evmng_list_ptr = (struct evmng_priority_list *)
-		fsl_malloc(
-			num_evmng_registartions *
-			sizeof(struct evmng_priority_list),
-			1);
-	if(evmng_list_ptr == NULL){
-		pr_err("memory allocation for evmng lists failed\n");
-		return -ENOMEM;
-	}
-
+	/* allocate memory for buffer pool and the registrations for events
+	 * used in linked list*/
 	evmng_b_pool_pointer = (uint32_t *)fsl_malloc(
-		num_evmng_registartions * sizeof(uint32_t *), 1);
-	g_evmng_b_pool_pointer = evmng_b_pool_pointer;
+		num_evmng_registartions *
+		(sizeof(uint32_t *) + sizeof(struct evmng_priority_list)), 1);
 
-	if(g_evmng_b_pool_pointer == NULL){
-		pr_err("memory allocation for buffer pool to evmng failed\n");
+	if(evmng_b_pool_pointer == NULL){
+		pr_err("memory allocation for evmng failed\n");
 		return -ENOMEM;
 	}
+
+	g_evmng_b_pool_pointer = evmng_b_pool_pointer;
+	g_evmng_first_b_pool_pointer = evmng_b_pool_pointer;
+	g_evmng_last_b_pool_pointer = evmng_b_pool_pointer;
+	g_evmng_last_b_pool_pointer += num_evmng_registartions;
+
+
+	/*allocate memory to registrations for events*/
+	evmng_list_ptr = (struct evmng_priority_list *) (g_evmng_last_b_pool_pointer);
 
 	for(i = 0; i < num_evmng_registartions; i++){
 		*evmng_b_pool_pointer = (uint32_t)evmng_list_ptr;
@@ -471,7 +472,8 @@ int evmng_early_init(void)
 		evmng_list_ptr++;
 	}
 
-	*g_evmng_last_b_pool_pointer = (uint32_t)evmng_list_ptr;
+	pr_info("Start of malloced space 0x%x\n",(uint32_t)g_evmng_first_b_pool_pointer);
+	pr_info("End of malloced space 0x%x\n",(uint32_t)evmng_list_ptr);
 
 	g_evmng_b_pool_spinlock = 0;
 
@@ -480,8 +482,8 @@ int evmng_early_init(void)
 		"EVMNG last ptr:0x%x\n"
 		"EVMNG list size: %d\n"
 		"EVMNG num lists: %d\n",
-		*g_evmng_b_pool_pointer,
-		*g_evmng_last_b_pool_pointer,
+		g_evmng_b_pool_pointer,
+		g_evmng_last_b_pool_pointer,
 		sizeof(struct evmng_priority_list),
 		num_evmng_registartions);
 
@@ -510,55 +512,8 @@ int evmng_init(void)
 
 void evmng_free(void)
 {
-	int i;
-	struct evmng_priority_list *evmng_cb_list_ptr;
-	struct evmng_priority_list *evmng_cb_list_next_ptr;
-
 	pr_info("Free memory used by EVMNG\n");
-
-	for(i = 0; i < EVMNG_MAX_NUM_OF_EVENTS; i++)
-	{
-		evmng_cb_list_ptr = g_evmng_events_list[i].head;
-		if(evmng_cb_list_ptr)
-		{
-			do{
-				evmng_cb_list_next_ptr = evmng_cb_list_ptr->next;
-				/*Lock spinlock to take the next address for buffer to list
-				 * of registration request*/
-				lock_spinlock(&g_evmng_b_pool_spinlock);
-				/* Decrement buffer pool pointer to insert the memory pointer back
-				 * to pool for future registrations*/
-				g_evmng_b_pool_pointer --;
-				*g_evmng_b_pool_pointer = (uint32_t)evmng_cb_list_ptr;
-				/*Unlock spinlock*/
-				unlock_spinlock(&g_evmng_b_pool_spinlock);
-				evmng_cb_list_ptr = evmng_cb_list_next_ptr;
-			}while(evmng_cb_list_ptr != NULL);
-		}
-	}
-	fsl_free(g_evmng_events_list);
-
-	for(i = 0; i < NUM_OF_IRQ_EVENTS; i++)
-	{
-		evmng_cb_list_ptr = g_evmng_irq_events_list[i].head;
-		if(evmng_cb_list_ptr)
-		{
-			do{
-				evmng_cb_list_next_ptr = evmng_cb_list_ptr->next;
-				/*Lock spinlock to take the next address for buffer to list
-				 * of registration request*/
-				lock_spinlock(&g_evmng_b_pool_spinlock);
-				/* Decrement buffer pool pointer to insert the memory pointer back
-				 * to pool for future registrations*/
-				g_evmng_b_pool_pointer --;
-				*g_evmng_b_pool_pointer = (uint32_t)evmng_cb_list_ptr;
-				/*Unlock spinlock*/
-				unlock_spinlock(&g_evmng_b_pool_spinlock);
-				evmng_cb_list_ptr = evmng_cb_list_next_ptr;
-			}while(evmng_cb_list_ptr != NULL);
-		}
-	}
-	fsl_free(g_evmng_irq_events_list);
+	fsl_free(g_evmng_first_b_pool_pointer);
 }
 /*****************************************************************************/
 
