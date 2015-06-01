@@ -40,6 +40,8 @@
 #include "fsl_shbp.h"
 #include "fsl_stdlib.h"
 #include "fsl_evmng.h"
+#include "fsl_dpci_drv.h"
+#include "fsl_dpci_event.h"
 
 int app_early_init(void);
 int app_init(void);
@@ -184,6 +186,27 @@ void stack_estimation(void)
 	shbp_acquire(shbp, &ic);
 	shbp_release(shbp, NULL, &ic);
 
+	/* DPCI */
+	dpci_drv_disable(0);
+	//dpci_drv_enable(0);
+	dpci_drv_get_initial_presentation(0, NULL);
+	dpci_drv_set_initial_presentation(0, NULL);
+	/* 
+	 * The stack of those functions should be measured with EVM
+	 * All the code before user callback can be ignores
+	 *   
+	 * dpci_event_assign(0);
+	 * dpci_event_unassign(0); 
+	 * dpci_event_link_change(0); 
+	 * 
+	 */
+	dpci_event_assign(0);
+	dpci_event_unassign(0);
+	dpci_event_link_change(0);
+	
+	/* dpci_event_update(0); called only by SL in cmdif open command t 
+	 * the stack is not important */
+	
 	/*After packet processing is done, fdma_terminate_task must be called.*/
 	fdma_terminate_task();
 
