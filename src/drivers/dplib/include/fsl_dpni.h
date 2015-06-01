@@ -326,23 +326,30 @@ int dpni_reset(struct fsl_mc_io *mc_io, uint16_t token);
 #define DPNI_IRQ_EVENT_LINK_CHANGED		0x00000001
 
 /**
+ * struct dpni_irq_cfg - IRQ configuration
+ * @addr:	Address that must be written to signal a message-based interrupt
+ * @val:	Value to write into irq_addr address
+ * @user_irq_id: A user defined number associated with this IRQ
+ */
+struct dpni_irq_cfg {
+	     uint64_t		addr;
+	     uint32_t		val;
+	     int		user_irq_id;	
+};
+
+/**
  * dpni_set_irq() - Set IRQ information for the DPNI to trigger an interrupt.
  * @mc_io:	Pointer to MC portal's I/O object
  * @token:	Token of DPNI object
  * @irq_index:	Identifies the interrupt index to configure
- * @irq_addr:	Address that must be written to
- *			signal a message-based interrupt
- * @irq_val:	Value to write into irq_addr address
- * @user_irq_id: A user defined number associated with this IRQ
+ * @irq_cfg: 	IRQ configuration
  *
  * Return:	'0' on Success; Error code otherwise.
  */
 int dpni_set_irq(struct fsl_mc_io	*mc_io,
 		 uint16_t		token,
 		 uint8_t		irq_index,
-		 uint64_t		irq_addr,
-		 uint32_t		irq_val,
-		 int			user_irq_id);
+		 struct dpni_irq_cfg	*irq_cfg);
 
 /**
  * dpni_get_irq() - Get IRQ information from the DPNI.
@@ -350,11 +357,8 @@ int dpni_set_irq(struct fsl_mc_io	*mc_io,
  * @token:	Token of DPNI object
  * @irq_index:	The interrupt index to configure
  * @type:	Interrupt type: 0 represents message interrupt
- *			type (both irq_addr and irq_val are valid)
- * @irq_addr:	Returned address that must be written to
- *			signal the message-based interrupt
- * @irq_val:	Value to write into irq_addr address
- * @user_irq_id: Returned a user defined number associated with this IRQ
+ *		type (both irq_addr and irq_val are valid)
+ * @irq_cfg:	IRQ attributes
  *
  * Return:	'0' on Success; Error code otherwise.
  */
@@ -362,9 +366,7 @@ int dpni_get_irq(struct fsl_mc_io	*mc_io,
 		 uint16_t		token,
 		 uint8_t		irq_index,
 		 int			*type,
-		 uint64_t		*irq_addr,
-		 uint32_t		*irq_val,
-		 int			*user_irq_id);
+		 struct dpni_irq_cfg	*irq_cfg);
 
 /**
  * dpni_set_irq_enable() - Set overall interrupt state.
@@ -1159,6 +1161,51 @@ int dpni_set_tx_tc(struct fsl_mc_io		*mc_io,
 		   uint16_t			token,
 		   uint8_t			tc_id,
 		   const struct dpni_tx_tc_cfg	*cfg);
+
+/**
+ * enum dpni_tx_tc_schedule_mode - DPNI Tx traffic-class scheduling mode
+ * @DPNI_TX_TC_SCHED_STRICT_PRIORITY: strict priority
+ * @DPNI_TX_TC_SCHED_WEIGHTED: weighted based scheduling
+ */
+enum dpni_tx_tc_schedule_mode {
+        DPNI_TX_TC_SCHED_STRICT_PRIORITY,
+        DPNI_TX_TC_SCHED_WEIGHTED,
+};
+
+/**
+ * struct dpni_tx_tc_schedule_cfg - Structure representing Tx traffic class
+ * 	scheduling configuration
+ * @mode: scheduling mode
+ * @delta_bandwidth: Bandwidth represented in weights from 1 to 10;
+ *	not applicable for 'strict-priority' mode;
+ */
+struct dpni_tx_tc_schedule_cfg {
+       enum dpni_tx_tc_schedule_mode mode;
+       uint8_t delta_bandwidth;
+};
+
+/**
+ * struct dpni_tx_selection_cfg - Structure representing transmission
+ * 	selection configuration
+ * @tc: an array of traffic-classes
+ */
+struct dpni_tx_selection_cfg {
+        struct dpni_tx_tc_schedule_cfg tc[DPNI_MAX_TC];
+};
+
+/**
+ * dpni_set_tx_selection() - Set transmission selection configuration
+ * @mc_io:	Pointer to MC portal's I/O object
+ * @token:	Token of DPNI object
+ * @cfg:	transmission selection configuration
+ *
+ * warning: 	Allowed only when DPNI is disabled
+ *
+ * Return:	'0' on Success; Error code otherwise.
+ */
+int dpni_set_tx_selection(struct fsl_mc_io		*mc_io,
+			  uint16_t			token,
+		          struct dpni_tx_selection_cfg	*cfg);
 
 /**
  * enum dpni_dist_mode - DPNI distribution mode
