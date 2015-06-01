@@ -125,6 +125,8 @@
 #define DPNI_CMDID_SET_IPR			0x249
 #define DPNI_CMDID_SET_IPF			0x24A
 
+#define DPNI_CMDID_SET_TX_SELECTION			0x250
+
 /*                cmd, param, offset, width, type, arg_name */
 #define DPNI_CMD_OPEN(cmd, dpni_id) \
 	MC_CMD_OP(cmd,	 0,	0,	32,	int,	dpni_id)
@@ -205,12 +207,12 @@ do { \
 	MC_RSP_OP(cmd, 0, 0,  1,  int,	    en)
 
 /*                cmd, param, offset, width, type, arg_name */
-#define DPNI_CMD_SET_IRQ(cmd, irq_index, irq_addr, irq_val, user_irq_id) \
+#define DPNI_CMD_SET_IRQ(cmd, irq_index, irq_cfg) \
 do { \
-	MC_CMD_OP(cmd, 0, 0,  32, uint32_t, irq_val); \
+	MC_CMD_OP(cmd, 0, 0,  32, uint32_t, irq_cfg->val); \
 	MC_CMD_OP(cmd, 0, 32, 8,  uint8_t,  irq_index); \
-	MC_CMD_OP(cmd, 1, 0,  64, uint64_t, irq_addr); \
-	MC_CMD_OP(cmd, 2, 0,  32, int,	     user_irq_id); \
+	MC_CMD_OP(cmd, 1, 0,  64, uint64_t, irq_cfg->addr); \
+	MC_CMD_OP(cmd, 2, 0,  32, int,	    irq_cfg->user_irq_id); \
 } while (0)
 
 /*                cmd, param, offset, width, type, arg_name */
@@ -218,11 +220,11 @@ do { \
 	MC_CMD_OP(cmd, 0, 32, 8,  uint8_t,  irq_index)
 
 /*                cmd, param, offset, width, type, arg_name */
-#define DPNI_RSP_GET_IRQ(cmd, type, irq_addr, irq_val, user_irq_id) \
+#define DPNI_RSP_GET_IRQ(cmd, type, irq_cfg) \
 do { \
-	MC_RSP_OP(cmd, 0, 0,  32, uint32_t, irq_val); \
-	MC_RSP_OP(cmd, 1, 0,  64, uint64_t, irq_addr); \
-	MC_RSP_OP(cmd, 2, 0,  32, int,      user_irq_id); \
+	MC_RSP_OP(cmd, 0, 0,  32, uint32_t, irq_cfg->val); \
+	MC_RSP_OP(cmd, 1, 0,  64, uint64_t, irq_cfg->addr); \
+	MC_RSP_OP(cmd, 2, 0,  32, int,      irq_cfg->user_irq_id); \
 	MC_RSP_OP(cmd, 2, 32, 32, int,	    type); \
 } while (0)
 
@@ -553,6 +555,35 @@ do { \
 do { \
 	MC_CMD_OP(cmd, 0, 0,  16, uint16_t, cfg->depth_limit); \
 	MC_CMD_OP(cmd, 0, 16, 8,  uint8_t,  tc_id); \
+} while (0)
+
+/*                cmd, param, offset, width, type, arg_name */
+#define DPNI_CMD_SET_TX_SELECTION(cmd, cfg) \
+do { \
+	MC_CMD_OP(cmd, 0, 0,  8,  uint8_t, cfg->tc[0].delta_bandwidth); \
+	MC_CMD_OP(cmd, 0, 8,  4,  enum dpni_tx_tc_schedule_mode, \
+				cfg->tc[0].mode); \
+	MC_CMD_OP(cmd, 0, 32, 8,  uint8_t, cfg->tc[1].delta_bandwidth); \
+	MC_CMD_OP(cmd, 0, 40, 4,  enum dpni_tx_tc_schedule_mode, \
+				cfg->tc[1].mode); \
+	MC_CMD_OP(cmd, 1, 0,  8,  uint8_t, cfg->tc[2].delta_bandwidth); \
+	MC_CMD_OP(cmd, 1, 8,  4,  enum dpni_tx_tc_schedule_mode, \
+				cfg->tc[2].mode); \
+	MC_CMD_OP(cmd, 1, 32, 8,  uint8_t, cfg->tc[3].delta_bandwidth); \
+	MC_CMD_OP(cmd, 1, 40, 4,  enum dpni_tx_tc_schedule_mode, \
+				cfg->tc[3].mode); \
+	MC_CMD_OP(cmd, 2, 0,  8,  uint8_t, cfg->tc[4].delta_bandwidth); \
+	MC_CMD_OP(cmd, 2, 8,  4,  enum dpni_tx_tc_schedule_mode, \
+				cfg->tc[4].mode); \
+	MC_CMD_OP(cmd, 2, 32, 8,  uint8_t, cfg->tc[5].delta_bandwidth); \
+	MC_CMD_OP(cmd, 2, 40, 4,  enum dpni_tx_tc_schedule_mode, \
+				cfg->tc[5].mode); \
+	MC_CMD_OP(cmd, 3, 0,  8,  uint8_t, cfg->tc[6].delta_bandwidth); \
+	MC_CMD_OP(cmd, 3, 8,  4,  enum dpni_tx_tc_schedule_mode, \
+				cfg->tc[6].mode); \
+	MC_CMD_OP(cmd, 3, 32, 8,  uint8_t, cfg->tc[7].delta_bandwidth); \
+	MC_CMD_OP(cmd, 3, 40, 4,  enum dpni_tx_tc_schedule_mode, \
+				cfg->tc[7].mode); \
 } while (0)
 
 /*                cmd, param, offset, width, type, arg_name */

@@ -160,22 +160,22 @@ struct additional_dequeue_context {
 
 		/** Frame Queue Context as received from QMan
 		 * via the AIOP DCP. */
-	uint64_t fqd_ctx;
+	volatile uint64_t fqd_ctx;
 		/**
 		- bits<0-7>: AIOP Channel that this FD arrived on.
 		- bits<8-31>: The QMan Frame Queue ID that
 		this frame arrived was dequeued from. */
-	uint32_t channel_fqid;
+	volatile uint32_t channel_fqid;
 		/**
 		- bits<0>: Privilege Level.
 		- bits<1-15>: The Isolation Context ID that the dequeued frame
 		belongs to. */
-	uint16_t pl_icid;
+	volatile uint16_t pl_icid;
 		/**
 		- bits<1-3>: QMan Work Queue ID that this FD was dequeued from.
 		- bits<5-7>: Entry Priority. Indicates the priority of the
 		presented FD. */
-	uint8_t wqid_pri;
+	volatile uint8_t wqid_pri;
 		/**
 		 * - bits<1-3>: FD Source. Coded value indicating the source of
 		 * the presented FD:\n
@@ -192,7 +192,7 @@ struct additional_dequeue_context {
 		 * - bits<7>  : Bypass DPAA Resource Isolation
 		 * .
 		 * */
-	uint8_t fdsrc_va_fca_bdi;
+	volatile uint8_t fdsrc_va_fca_bdi;
 };
 
 /* Additional Dequeue Context (ADC) Masks */
