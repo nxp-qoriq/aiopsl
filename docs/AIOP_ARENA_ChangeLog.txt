@@ -1,3 +1,11 @@
+ls2085a_sim_init_params.cfg: Added flags to work with simulator m0133:
+                             mc.enable_dmi=false
+                             aiop.enable_dmi=false
+                             aiop.use_reserved_mem=true
+                             aiop.ctlu.use_addr_alignment=false
+                             aiop.relinquish_return=true
+                             caam.ENGR00323173_fix=false
+
 fsl_dpci_drv.h:     Added API for ENGR00357593 : Configure-able presentation parameters for AIOP CmdIF.
 fsl_ep.h:           Added new file with entry point common API that is used by DPNI and DPCI DRV. 
 apps.h:             Removed  APP_TMAN_FREQUENCY, it had no effect. MC sets it.
