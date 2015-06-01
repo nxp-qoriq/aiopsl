@@ -150,6 +150,16 @@ struct evmng{
 	struct evmng_priority_list *head;
 };
 
+/**************************************************************************//**
+@Description Structure representing IRQ parameters passed with cmdif.
+
+*//***************************************************************************/
+struct evmng_irq_params {
+	/** addr - address for the interrupt, provided by IRQ*/
+	uint64_t addr;
+	/** val - interrupt value provided via IRQ API*/
+	uint32_t val;
+};
 
 /**************************************************************************//**
 @Function	evmng_raise_irq_event_cb

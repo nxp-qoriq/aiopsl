@@ -297,43 +297,39 @@ int evmng_unregister(uint8_t generator_id, uint8_t event_id, uint8_t priority, u
 int evmng_raise_irq_event_cb(void *dev, uint16_t cmd, uint32_t size, void *event_data)
 {
 	struct evmng_priority_list *evmng_cb_list_ptr;
+	struct evmng_irq_params *evmng_irq_cfg;
 	int i;
+
 	UNUSED(dev);
-	uint64_t addr;
-	uint32_t val;
-	uint32_t *event_data_ptr = event_data;
 
-	if(cmd & CMDIF_NORESP_CMD)
-			cmd &= ~CMDIF_NORESP_CMD;
-
-	if(cmd != EVMNG_EVENT_SEND || size < 12){
+	if((cmd & (~CMDIF_NORESP_CMD)) != EVMNG_EVENT_SEND ||
+		size < sizeof(struct evmng_irq_params)){
 		return -EINVAL;
 	}
-	memcpy32(&addr, event_data_ptr, sizeof(addr));
-	event_data_ptr += 2;
-	memcpy32(&val, event_data_ptr, sizeof(val));
+
+	evmng_irq_cfg = (struct evmng_irq_params *)event_data;
 
 
-	if(addr >= NUM_OF_IRQ_EVENTS)
+	if(evmng_irq_cfg->addr >= NUM_OF_IRQ_EVENTS)
 	{
 		sl_pr_err("Event %d not supported\n",addr);
 		return -ENOTSUP;
 	}
 	/*Only one event can be processed at a time*/
-	if(g_evmng_irq_events_list[addr].num_cbs == 0)
+	if(g_evmng_irq_events_list[evmng_irq_cfg->addr].num_cbs == 0)
 	{
-		sl_pr_debug("No registered CB's for event %d\n",addr);
+		sl_pr_debug("No registered CB's for event %d\n",evmng_irq_cfg->addr);
 		return 0;
 	}
 
-	evmng_cb_list_ptr = g_evmng_irq_events_list[addr].head;
+	evmng_cb_list_ptr = g_evmng_irq_events_list[evmng_irq_cfg->addr].head;
 
-	for(i = 0; i < g_evmng_irq_events_list[addr].num_cbs; i++){
+	for(i = 0; i < g_evmng_irq_events_list[evmng_irq_cfg->addr].num_cbs; i++){
 		evmng_cb_list_ptr->cb(
 				EVMNG_GENERATOR_AIOPSL,
-				(uint8_t)addr,
+				(uint8_t)evmng_irq_cfg->addr,
 				evmng_cb_list_ptr->app_ctx,
-				&val);
+				&evmng_irq_cfg->val);
 		evmng_cb_list_ptr = evmng_cb_list_ptr->next;
 	}
 	return 0;
