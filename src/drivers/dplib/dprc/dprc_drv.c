@@ -156,6 +156,7 @@ __COLD_CODE static int aiop_container_init(void)
 	void *p_vaddr;
 	int err = 0;
 	int container_id;
+	struct dprc_irq_cfg irq_cfg;
 	/*struct mc_dprc *dprc = fsl_os_xmalloc(sizeof(struct mc_dprc),
 					MEM_PART_SH_RAM,
 					1);*/
@@ -188,8 +189,11 @@ __COLD_CODE static int aiop_container_init(void)
 		return err;
 	}
 
-	err = dprc_set_irq(&dprc->io, dprc->token, 0,
-	                   DPRC_EVENT,(uint32_t) container_id, 0);
+	irq_cfg.addr = DPRC_EVENT;
+	irq_cfg.val = (uint32_t) container_id;
+	irq_cfg.user_irq_id = 0;
+
+	err = dprc_set_irq(&dprc->io, dprc->token, 0, &irq_cfg);
 	if(err){
 		pr_err("Set irq for DPRC object change failed\n");
 		return -ENAVAIL;

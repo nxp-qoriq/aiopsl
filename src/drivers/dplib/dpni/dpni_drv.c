@@ -311,6 +311,7 @@ int dpni_drv_probe(struct mc_dprc *dprc,
 	uint16_t dpni = 0;
 	uint8_t mac_addr[NET_HDR_FLD_ETH_ADDR_SIZE];
 	uint16_t qdid;
+	struct dpni_irq_cfg irq_cfg;
 	struct dpni_sp_info sp_info = { 0 };
 	struct dpni_attr attributes;
 	struct dpni_buffer_layout layout = {0};
@@ -503,9 +504,12 @@ int dpni_drv_probe(struct mc_dprc *dprc,
 				nis[aiop_niid].dpni_drv_params_var.spid_ddr = 0;
 			}
 
+			irq_cfg.addr = DPNI_EVENT;
+			irq_cfg.val = (uint32_t)mc_niid;
+			irq_cfg.user_irq_id = 0;
+
 			err = dpni_set_irq(&dprc->io, dpni,
-				DPNI_IRQ_INDEX, DPNI_EVENT,
-				(uint32_t)mc_niid, 0);
+				DPNI_IRQ_INDEX, &irq_cfg);
 			if(err){
 				sl_pr_err("Failed to set irq for DP-NI%d\n",
 				          mc_niid);
