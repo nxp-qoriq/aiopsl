@@ -40,7 +40,7 @@
 #include "aiop_common.h"
 #endif /* AIOP */
 #include "mem_mng.h"
-#include "fsl_dbg.h"
+#include "fsl_sl_dbg.h"
 #include "fsl_platform.h"
 #include "fsl_mem_mng.h"
 #include "slob.h"
@@ -109,7 +109,11 @@ static void mem_phys_mng_free_partition(t_mem_mng *p_mem_mng,
 
 
 extern const uint8_t AIOP_DDR_START[],AIOP_DDR_END[];
+/* Total size of boot memory manager */
 const uint32_t  g_boot_mem_mng_size = 1*MEGABYTE;
+/* Total size of buffer pool for slob allocations */
+const uint32_t g_buffer_pool_size = 512*KILOBYTE;
+
 
 
 
@@ -207,6 +211,8 @@ fsl_handle_t mem_mng_init(fsl_handle_t h_boot_mem_mng,
     t_mem_mng    *p_mem_mng;
     uint32_t      mem_mng_addr = 0;
     int rc = 0, i, array_size = 0;
+    uint32_t slob_blocks_num = 0;
+    uint16_t alignment = 0;
 
 
 
@@ -227,43 +233,17 @@ fsl_handle_t mem_mng_init(fsl_handle_t h_boot_mem_mng,
     p_mem_mng->lock    = p_mem_mng_param->lock;
     p_mem_mng->h_boot_mem_mng = h_boot_mem_mng;
 
+    /* Set a next power of 2 of sizeof(t_slob_block) as an alignment */
+    NEXT_POWER_OF_2(sizeof(t_slob_block),alignment);
+    slob_blocks_num = buff_pool_compute_num_buffers(g_buffer_pool_size,sizeof(t_slob_block),alignment);
 
-    rc = buffer_pool_create(&p_mem_mng->slob_bf_pool,E_BFT_SLOB_BLOCK,10,
-                            sizeof(t_slob_block),h_boot_mem_mng);
+    rc = buff_pool_create(&p_mem_mng->slob_bf_pool,E_BFT_SLOB_BLOCK,slob_blocks_num,
+                            sizeof(t_slob_block),alignment,h_boot_mem_mng);
     if(rc)
     {
 	    pr_err("MAJOR mem.manager memory allocation failed slob free blocks\n");
 	    return NULL;
     }
-#if 0
-    uint64_t buffer_addr = 0;
-    rc = -ENAVAIL;
-    rc = get_buff(&p_mem_mng->slob_bf_pool,&buffer_addr);
-    if(0 != rc)
-    {
-	    pr_err("MAJOR get_buff failed 1 \n");
-    }
-    pr_err("get_buff 1 allocated addr = 0x%x%08x\n",
-           (uint32_t)(buffer_addr >> 32),
-	   (uint32_t)(buffer_addr));
-    put_buff(&p_mem_mng->slob_bf_pool,buffer_addr);
-    rc = get_buff(&p_mem_mng->slob_bf_pool,&buffer_addr);
-    if(0 != rc)
-    {
-	    pr_err("MAJOR get_buff failed 1 \n");
-    }
-    pr_err("get_buff 2 allocated addr = 0x%x%08x\n",
-           (uint32_t)(buffer_addr >> 32),
-           (uint32_t)(buffer_addr));
-    rc = get_buff(&p_mem_mng->slob_bf_pool,&buffer_addr);
-    if(0 != rc)
-    {
-	    pr_err("MAJOR get_buff failed 1 \n");
-    }
-    pr_err("get_buff 3 allocated addr = 0x%x%08x\n",
-       (uint32_t)(buffer_addr >> 32),
-       (uint32_t)(buffer_addr));
-#endif
 
     p_mem_mng->mem_partitions_initialized = 0;
     /* Initialize internal partitions array */
@@ -779,7 +759,7 @@ void * mem_mng_alloc_mem(fsl_handle_t    h_mem_mng,
 
     if (size == 0)
     {
-        pr_err("Mem.manager invalid value: allocation size must be positive\n");
+        sl_pr_err("Mem.manager invalid value: allocation size must be positive\n");
     }
 
 #ifdef AIOP
@@ -803,8 +783,8 @@ void * mem_mng_alloc_mem(fsl_handle_t    h_mem_mng,
 
     	    /* Internal MM malloc */
     	    p_memory = UINT_TO_PTR(
-    		    slob_get(p_partition->h_mem_manager, size, alignment, ""));
-    	    if ((uintptr_t)p_memory == ILLEGAL_BASE)
+    	        slob_get(p_partition->h_mem_manager, size, alignment));
+            if ((uintptr_t)p_memory == 0LL)
 		/* Do not report error - let the allocating entity report it */
     		    return NULL;
 
@@ -839,7 +819,7 @@ void * mem_mng_alloc_mem(fsl_handle_t    h_mem_mng,
     spin_unlock_irqrestore(p_mem_mng->lock, int_flags);
 #endif
 
-    pr_err("Mem. manager resource not found: partition ID %d\n",
+    sl_pr_err("Mem. manager resource not found: partition ID %d\n",
            partition_id);
     return NULL;
 }
@@ -880,7 +860,7 @@ int mem_mng_get_phys_mem(fsl_handle_t h_mem_mng, int  partition_id,
 #else
             spin_unlock_irqrestore(p_mem_mng->lock, int_flags);
 #endif
-            if((*paddr = slob_get(p_partition->h_mem_manager,size,alignment,"")) == ILLEGAL_BASE)
+            if((*paddr = slob_get(p_partition->h_mem_manager,size,alignment)) == 0LL)
             {
                 pr_err("Mem. manager memory allocation failed: Required size 0x%x%08x exceeds "
                    "available memory for partition ID %d\n",

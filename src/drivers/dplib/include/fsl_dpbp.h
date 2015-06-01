@@ -147,23 +147,30 @@ int dpbp_is_enabled(struct fsl_mc_io *mc_io, uint16_t token, int *en);
 int dpbp_reset(struct fsl_mc_io *mc_io, uint16_t token);
 
 /**
+ * struct dpbp_irq_cfg - IRQ configuration
+ * @addr:	Address that must be written to signal a message-based interrupt
+ * @val:	Value to write into irq_addr address
+ * @user_irq_id: A user defined number associated with this IRQ
+ */
+struct dpbp_irq_cfg {
+	     uint64_t		addr;
+	     uint32_t		val;
+	     int		user_irq_id;	
+};
+
+/**
  * dpbp_set_irq() - Set IRQ information for the DPBP to trigger an interrupt.
  * @mc_io:	Pointer to MC portal's I/O object
  * @token:	Token of DPBP object
  * @irq_index:	Identifies the interrupt index to configure
- * @irq_addr:	Address that must be written to
- *				signal a message-based interrupt
- * @irq_val:	Value to write into irq_addr address
- * @user_irq_id: A user defined number associated with this IRQ
+ * @irq_cfg:	IRQ configuration
  *
  * Return:	'0' on Success; Error code otherwise.
  */
 int dpbp_set_irq(struct fsl_mc_io	*mc_io,
 		 uint16_t		token,
 		 uint8_t		irq_index,
-		 uint64_t		irq_addr,
-		 uint32_t		irq_val,
-		 int			user_irq_id);
+		 struct dpbp_irq_cfg	*irq_cfg);
 
 /**
  * dpbp_get_irq() - Get IRQ information from the DPBP.
@@ -171,11 +178,8 @@ int dpbp_set_irq(struct fsl_mc_io	*mc_io,
  * @token:	Token of DPBP object
  * @irq_index:	The interrupt index to configure
  * @type:	Interrupt type: 0 represents message interrupt
- *				type (both irq_addr and irq_val are valid)
- * @irq_addr:	Returned address that must be written to
- *				signal the message-based interrupt
- * @irq_val:	Value to write into irq_addr address
- * @user_irq_id: A user defined number associated with this IRQ
+ *		type (both irq_addr and irq_val are valid)
+ * @irq_cfg:	IRQ attributes
  *
  * Return:	'0' on Success; Error code otherwise.
  */
@@ -183,9 +187,7 @@ int dpbp_get_irq(struct fsl_mc_io	*mc_io,
 		 uint16_t		token,
 		 uint8_t		irq_index,
 		 int			*type,
-		 uint64_t		*irq_addr,
-		 uint32_t		*irq_val,
-		 int			*user_irq_id);
+		 struct dpbp_irq_cfg	*irq_cfg);
 
 /**
  * dpbp_set_irq_enable() - Set overall interrupt state.

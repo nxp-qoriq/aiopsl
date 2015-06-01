@@ -32,12 +32,38 @@
 #ifndef __FSL_DPCI_DRV_H
 #define __FSL_DPCI_DRV_H
 
+#include "fsl_ep.h"
+
+/**************************************************************************//**
+@Group		dpci_drv_g DPCI DRV
+
+@Description	Contains the API for DPCI devices which are used by command
+ 	 	interface
+
+@{
+*//***************************************************************************/
+
+/**************************************************************************//**
+@Group		DPCI_DRV_INIT_PR_Flags  DPCI Entry Point flags
+
+@Description	Flags to get or set intial presentation of the client or server
+
+@{
+*//***************************************************************************/
+
+#define DPCI_DRV_EP_SERVER	0
+/**< Read or update server entry point */
+#define DPCI_DRV_EP_CLIENT	1
+/**< Read or update client asynchronous responses entry point */
+
+/** @} end of group DPCI_DRV_INIT_PR_Flags */
+
 /**************************************************************************//**
 @Function	dpci_drv_enable
 
 @Description	Enable the DPCI.
 
-If the peer DPCI is already enabled then it will result in link up. 
+If the peer DPCI is already enabled then it will result in link up.
 
 @Param[in]	dpci_id - DPCI id of the AIOP side.
 
@@ -50,12 +76,55 @@ int dpci_drv_enable(uint32_t dpci_id);
 
 @Description	Disable the DPCI.
 
-It will result in link down. 
+It will result in link down.
 
 @Param[in]	dpci_id - DPCI id of the AIOP side.
 
 @Return		0      - on success, POSIX error code otherwise
  *//***************************************************************************/
 int dpci_drv_disable(uint32_t dpci_id);
+
+/**************************************************************************//**
+@Function	dpci_drv_get_initial_presentation
+
+@Description	Function to get initial presentation settings from EPID table.
+
+@Param[in]	flags \link DPCI_DRV_INIT_PR_Flags
+		DPCI Entry Point flags \endlink
+
+@Param[out]	init_presentation Get initial presentation parameters
+ 	 	 \ref ep_initial_presentation
+
+@Return		0 on success;
+		error code, otherwise. For error posix refer to \ref error_g
+*//***************************************************************************/
+int dpci_drv_get_initial_presentation(uint8_t flags,
+	struct ep_init_presentation* const init_presentation);
+
+/**************************************************************************//**
+@Function	dpni_drv_set_initial_presentation
+
+@Description	Function to set initial presentation settings in EPID table.
+
+@Param[in]	flags \link DPCI_DRV_INIT_PR_Flags
+		DPCI Entry Point flags \endlink
+
+@Param[in]	init_presentation Set initial presentation parameters for given
+		options and parameters \ref ep_initial_presentation
+
+@Cautions	1) Data Segment, PTA Segment, ASA Segment must not reside
+		   outside the bounds of the
+		   presentation area. i.e. They must not fall within the HWC,
+		   TLS or Stack areas.
+		2) There should not be any overlap among the Segment, PTA & ASA.
+		3) Minimum presented segment size must be configured.
+
+@Return		0 on success;
+		error code, otherwise. For error posix refer to \ref error_g
+*//***************************************************************************/
+int dpci_drv_set_initial_presentation(uint8_t flags,
+	const struct ep_init_presentation* const init_presentation);
+
+/** @} */ /* end of dpci_drv_g */
 
 #endif /* __FSL_DPCI_DRV_H */

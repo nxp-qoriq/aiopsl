@@ -35,7 +35,7 @@
 #include "fsl_dpci_drv.h"
 #include "fsl_dpci_mng.h"
 #include "fsl_mc_init.h"
-#include "fsl_dbg.h"
+#include "fsl_sl_dbg.h"
 #include "cmdif_client.h"
 #include "cmdif_srv.h"
 #include "fsl_fdma.h"
@@ -43,6 +43,9 @@
 #include "fsl_icontext.h"
 #include "fsl_spinlock.h"
 #include "fsl_malloc.h"
+#include "aiop_common.h"
+#include "fsl_ep.h"
+#include "fsl_ep_mng.h"
 
 /*************************************************************************/
 #define DPCI_LOW_PR		1
@@ -236,7 +239,6 @@ static inline void amq_bits_update(uint32_t id)
 	g_dpci_tbl.ic[id] = amq_bdi;
 	/* Don't update AIOP to AIOP DPCI 2 entries because it 
 	 * shouldn't change anyway */
-	dpci_tbl_dump();
 }
 
 /*
@@ -247,7 +249,7 @@ __COLD_CODE static int tx_peer_set(uint32_t ind, uint16_t token)
 {
 
 	struct mc_dprc *dprc = sys_get_unique_handle(FSL_OS_MOD_AIOP_RC);
-	int err = 0;
+	int err;
 	struct dpci_tx_queue_attr tx_attr;
 	struct dpci_peer_attr peer_attr;
 	int i;
@@ -267,7 +269,7 @@ __COLD_CODE static int tx_peer_set(uint32_t ind, uint16_t token)
 
 	err = dpci_get_peer_attributes(&dprc->io, token, &peer_attr);
 	if (err || (peer_attr.peer_id == -1)) {
-		pr_err("Failed to get peer_id dpci id = %d err = %d\n",
+		sl_pr_err("Failed to get peer_id dpci id = %d err = %d\n",
 		       g_dpci_tbl.dpci_id[ind], err);
 		return -ENODEV;
 	}
@@ -334,7 +336,6 @@ __COLD_CODE static int dpci_entry_init(uint32_t dpci_id, uint16_t token)
 __COLD_CODE int dpci_event_assign(uint32_t dpci_id)
 {
 	int err = 0;
-	int ind = 0;
 	uint16_t token = 0xffff;
 	struct mc_dprc *dprc = sys_get_unique_handle(FSL_OS_MOD_AIOP_RC);
 
@@ -350,7 +351,9 @@ __COLD_CODE int dpci_event_assign(uint32_t dpci_id)
 	 * 3. Init rx_ctx
 	 * 4. Update rx_ctx if possible
 	 */
-	ind = dpci_entry_init(dpci_id, token);
+#ifndef STACK_CHECK
+	dpci_entry_init(dpci_id, token);
+#endif /* STACK_CHECK */
 
 	DPCI_DT_LOCK_RELEASE;
 
@@ -361,7 +364,9 @@ __COLD_CODE int dpci_event_assign(uint32_t dpci_id)
 		/* TODO call EVM here */
 	}
 
+#ifndef STACK_CHECK /* Stack check can be ignore after user callback */
 	dpci_tbl_dump();
+#endif /* STACK_CHECK */
 
 	return err;
 }
@@ -392,7 +397,9 @@ __COLD_CODE int dpci_event_unassign(uint32_t dpci_id)
 		/* TODO call EVM here */
 	}
 
+#ifndef STACK_CHECK /* Stack check can be ignore after user callback */
 	dpci_tbl_dump();
+#endif /* STACK_CHECK */
 
 	return err;
 }
@@ -405,8 +412,6 @@ __COLD_CODE int dpci_event_unassign(uint32_t dpci_id)
  */
 __COLD_CODE int dpci_event_update(uint32_t ind)
 {
-	int err = 0;
-
 	/*
 	 * TODO
 	 * Is it possible that DPCI will be removed in the middle of the task ?
@@ -422,7 +427,9 @@ __COLD_CODE int dpci_event_update(uint32_t ind)
 
 	DPCI_DT_LOCK_RELEASE;
 
-	return err;
+	dpci_tbl_dump();
+
+	return 0;
 }
 
 /*
@@ -501,15 +508,47 @@ __HOT_CODE void dpci_mng_tx_get(uint32_t ind, int pr, uint32_t *fqid)
 	*fqid = g_dpci_tbl.tx_queue[ind][pr];
 }
 
+__COLD_CODE static uint8_t num_priorities_get(struct fsl_mc_io *mc_io, 
+                                             uint16_t token)
+{
+	struct dpci_attr attr;
+	uint8_t i;
+
+	MEM_SET(&attr, sizeof(attr), 0);
+	dpci_get_attributes(mc_io, token, &attr);
+	return attr.num_of_priorities;
+}
+
+__COLD_CODE static void tx_user_context_set(struct mc_dprc *dprc, int ind, uint16_t token, uint8_t num_pr)
+{
+	uint8_t i;
+	struct dpci_rx_queue_cfg queue_cfg;
+
+	ASSERT_COND(num_pr >= 1);
+	
+	MEM_SET(&queue_cfg, sizeof(queue_cfg), 0);
+
+	DPCI_DT_LOCK_R_TAKE;
+	/*
+	 * Set the tx queue in user context
+	 */
+	queue_cfg.dest_cfg.dest_type = DPCI_DEST_NONE;
+	queue_cfg.options = CMDIF_Q_OPTIONS;
+	for (i = 0; i < num_pr; i++) {
+		queue_cfg.dest_cfg.priority = DPCI_LOW_PR - i;
+		queue_cfg.user_ctx = 0;
+		CMDIF_DPCI_FQID(USER_CTX_SET, ind, g_dpci_tbl.tx_queue[ind][i]);
+		dpci_set_rx_queue(&dprc->io, token, i, &queue_cfg);
+	}
+	DPCI_DT_LOCK_RELEASE;
+}
+
 __COLD_CODE int dpci_drv_enable(uint32_t dpci_id)
 {
 	struct mc_dprc *dprc = sys_get_unique_handle(FSL_OS_MOD_AIOP_RC);
-	int err = 0;
+	int err;
 	int ind;
 	uint16_t token = 0xffff;
-	struct dpci_rx_queue_cfg queue_cfg;
-	struct dpci_attr attr;
-	uint8_t i;
 
 	ASSERT_COND(dprc);
 
@@ -533,35 +572,12 @@ __COLD_CODE int dpci_drv_enable(uint32_t dpci_id)
 
 	DPCI_DT_LOCK_RELEASE;
 
-
-	MEM_SET(&attr, sizeof(attr), 0);
-	MEM_SET(&queue_cfg, sizeof(queue_cfg), 0);
-
-	err = dpci_get_attributes(&dprc->io, token, &attr);
-	if (err) {
-		dpci_close(&dprc->io, token);
-		return err;
-	}
-
-	DPCI_DT_LOCK_R_TAKE;
-	/*
-	 * Set the tx queue in user context
-	 */
-	queue_cfg.dest_cfg.dest_type = DPCI_DEST_NONE;
-	queue_cfg.options = CMDIF_Q_OPTIONS;
-	for (i = 0; i < attr.num_of_priorities; i++) {
-		queue_cfg.dest_cfg.priority = DPCI_LOW_PR - i;
-		queue_cfg.user_ctx = 0;
-		CMDIF_DPCI_FQID(USER_CTX_SET, ind, g_dpci_tbl.tx_queue[ind][i]);
-		err = dpci_set_rx_queue(&dprc->io, token, i,
-		                         &queue_cfg);
-		ASSERT_COND(!err);
-	}
-	DPCI_DT_LOCK_RELEASE;
+	tx_user_context_set(dprc, ind, token, 
+	                    num_priorities_get(&dprc->io, token));
 
 	err = dpci_enable(&dprc->io, token);
 	if (err) {
-		pr_err("DPCI enable failed\n");
+		sl_pr_err("DPCI enable failed\n");
 		dpci_close(&dprc->io, token);
 		return err;
 	}
@@ -578,32 +594,6 @@ __COLD_CODE int dpci_drv_disable(uint32_t dpci_id)
 	int err = 0;
 	uint16_t token = 0xffff;
 
-#if 0
-	struct dpci_rx_queue_cfg queue_cfg;
-	struct dpci_attr attr;
-
-
-	DPCI_DT_LOCK_W_TAKE;
-	/*
-	 * Update DPCI table tx and peer
-	 */
-	ind = dpci_mng_find(dpci_id);
-	if (ind < 0) {
-		DPCI_DT_LOCK_RELEASE;
-		return -ENOENT;
-	}
-	/*  ICID was not updated inside dpci_drv_enable thus it is not reset
-	 * here
-	 * ICID will re-update only with new open */
-	g_dpci_tbl.dpci_id_peer[ind] = DPCI_FQID_NOT_VALID;
-	for (i = 0; i < DPCI_PRIO_NUM; i++)
-		g_dpci_tbl.tx_queue[ind][i] = DPCI_FQID_NOT_VALID;
-	DPCI_DT_LOCK_RELEASE;
-
-	MEM_SET(&attr, sizeof(attr), 0);
-	MEM_SET(&queue_cfg, sizeof(queue_cfg), 0);
-#endif
-
 	ASSERT_COND(dprc);
 
 	err = dpci_open(&dprc->io, (int)dpci_id, &token);
@@ -613,27 +603,10 @@ __COLD_CODE int dpci_drv_disable(uint32_t dpci_id)
 
 	err = dpci_disable(&dprc->io, token);
 	if (err) {
-		pr_err("DPCI disable failed\n");
+		sl_pr_err("DPCI disable failed\n");
 		dpci_close(&dprc->io, token);
 		return err;
 	}
-
-#if 0
-	/*
-	 * Set the tx queue in user context
-	 * tx queues will be set to -1
-	 */
-	queue_cfg.dest_cfg.dest_type = DPCI_DEST_NONE;
-	queue_cfg.options = CMDIF_Q_OPTIONS;
-	for (i = 0; i < attr.num_of_priorities; i++) {
-		queue_cfg.dest_cfg.priority = DPCI_LOW_PR - i;
-		queue_cfg.user_ctx = 0;
-		CMDIF_DPCI_FQID(USER_CTX_SET, ind, g_dpci_tbl.tx_queue[ind][i]);
-		err = dpci_set_rx_queue(&dprc->io, token, i,
-		                         &queue_cfg);
-		ASSERT_COND(!err);
-	}
-#endif
 
 	/*
 	 * I don't update the table in order to allow the existing tasks
@@ -773,6 +746,35 @@ __COLD_CODE int dpci_drv_init()
 __COLD_CODE void dpci_drv_free()
 {
 	/*
-	 * TODO do I need to free anything ? 
+	 * TODO do I need to free anything ?
 	 */
+}
+
+int dpci_drv_get_initial_presentation(uint8_t flags,
+	struct ep_init_presentation* const init_presentation)
+{
+	uint16_t epid = AIOP_EPID_CMDIF_SERVER;
+
+	ASSERT_COND((flags == DPCI_DRV_EP_SERVER) ||
+	            (flags == DPCI_DRV_EP_CLIENT));
+
+	if (flags == DPCI_DRV_EP_CLIENT)
+		epid = AIOP_EPID_CMDIF_CLIENT;
+
+	return ep_mng_get_initial_presentation(epid, init_presentation);
+}
+
+
+int dpci_drv_set_initial_presentation(uint8_t flags,
+	const struct ep_init_presentation* const init_presentation)
+{
+	uint16_t epid = AIOP_EPID_CMDIF_SERVER;
+
+	ASSERT_COND((flags == DPCI_DRV_EP_SERVER) ||
+	            (flags == DPCI_DRV_EP_CLIENT));
+
+	if (flags == DPCI_DRV_EP_CLIENT)
+		epid = AIOP_EPID_CMDIF_CLIENT;
+
+	return ep_mng_set_initial_presentation(epid, init_presentation);
 }

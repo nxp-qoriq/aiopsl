@@ -160,12 +160,10 @@ int dpci_reset(struct fsl_mc_io *mc_io, uint16_t token)
 	return mc_send_command(mc_io, &cmd);
 }
 
-int dpci_set_irq(struct fsl_mc_io *mc_io,
-		 uint16_t token,
-		 uint8_t irq_index,
-		 uint64_t irq_addr,
-		 uint32_t irq_val,
-		 int user_irq_id)
+int dpci_set_irq(struct fsl_mc_io	*mc_io,
+		 uint16_t		token,
+		 uint8_t		irq_index,
+		 struct dpci_irq_cfg	*irq_cfg)
 {
 	struct mc_command cmd = { 0 };
 
@@ -173,19 +171,17 @@ int dpci_set_irq(struct fsl_mc_io *mc_io,
 	cmd.header = mc_encode_cmd_header(DPCI_CMDID_SET_IRQ,
 					  MC_CMD_PRI_LOW,
 					  token);
-	DPCI_CMD_SET_IRQ(cmd, irq_index, irq_val, irq_addr, user_irq_id);
+	DPCI_CMD_SET_IRQ(cmd, irq_index, irq_cfg);
+
 
 	/* send command to mc*/
 	return mc_send_command(mc_io, &cmd);
 }
-
-int dpci_get_irq(struct fsl_mc_io *mc_io,
-		 uint16_t token,
-		 uint8_t irq_index,
-		 int *type,
-		 uint64_t *irq_addr,
-		 uint32_t *irq_val,
-		 int *user_irq_id)
+int dpci_get_irq(struct fsl_mc_io	*mc_io,
+		 uint16_t		token,
+		 uint8_t		irq_index,
+		 int 			*type,
+		 struct dpci_irq_cfg	*irq_cfg)
 {
 	struct mc_command cmd = { 0 };
 	int err;
@@ -202,7 +198,7 @@ int dpci_get_irq(struct fsl_mc_io *mc_io,
 		return err;
 
 	/* retrieve response parameters */
-	DPCI_RSP_GET_IRQ(cmd, *type, *irq_addr, *irq_val, *user_irq_id);
+	DPCI_RSP_GET_IRQ(cmd, *type, irq_cfg);
 
 	return 0;
 }

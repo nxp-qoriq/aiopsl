@@ -144,11 +144,10 @@ int slob_add(fsl_handle_t slob, uint64_t base, uint64_t size);
  @Param[in]     size        - Size of the MM.
  @Param[in]     alignment   - Index as a power of two defines a required
                               alignment (in bytes); Should be 1, 2, 4, 8, 16, 32 or 64
- @Param[in]     name        - The name that specifies an allocated block.
 
- @Return        base address of an allocated block ILLEGAL_BASE if can't allocate a block
+ @Return        base address of an allocated block, 0 if can't allocate a block
 *//***************************************************************************/
-uint64_t slob_get(fsl_handle_t slob, uint64_t size, uint64_t alignment, char *name);
+uint64_t slob_get(fsl_handle_t slob, uint64_t size, uint64_t alignment);
 
 /**************************************************************************//**
  @Function      slob_get_force
@@ -166,7 +165,7 @@ uint64_t slob_get(fsl_handle_t slob, uint64_t size, uint64_t alignment, char *na
  @Param[in]     size    - Size of the MM.
  @Param[in]     name    - Name that specifies an allocated block.
 
- @Return        base address of an allocated block, ILLEGAL_BASE if can't allocate a block.
+ @Return        base address of an allocated block, 0  if can't allocate a block.
 *//***************************************************************************/
 uint64_t slob_get_force(fsl_handle_t slob, uint64_t base, uint64_t size, char *name);
 
@@ -201,7 +200,7 @@ uint64_t slob_get_force(fsl_handle_t slob, uint64_t base, uint64_t size, char *n
  @Param[in]     min         - The minimum base address of the block.
  @Param[in]     name        - Name that specifies an allocated block.
 
- @Return        base address of an allocated block,ILLEGAL_BASE if can't allocate a block.
+ @Return        base address of an allocated block,0  if can't allocate a block.
 *//***************************************************************************/
 uint64_t slob_get_force_min(fsl_handle_t slob,
                             uint64_t size,

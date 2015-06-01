@@ -134,6 +134,12 @@
         /**< Align a given address - equivalent to ceil(ADDRESS,ALIGNMENT) */
 #endif /* ALIGN_UP */
 
+#ifndef ALIGN_UP_64
+#define ALIGN_UP_64(ADDRESS, ALIGNMENT)           \
+        ((((uint64_t)(ADDRESS)) + ((uint64_t)(ALIGNMENT)) - 1LL) & (~(((uint64_t)(ALIGNMENT)) - 1LL)))
+        /**< Align a given address - equivalent to ceil(ADDRESS,ALIGNMENT) */
+#endif /* ALIGN_UP */
+
 #ifndef ALIGN_DOWN
 #define ALIGN_DOWN(ADDRESS, ALIGNMENT)      \
         ((uint32_t)(ADDRESS) & (~(((uint32_t)(ALIGNMENT)) - 1)))

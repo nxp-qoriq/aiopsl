@@ -160,22 +160,22 @@ struct additional_dequeue_context {
 
 		/** Frame Queue Context as received from QMan
 		 * via the AIOP DCP. */
-	uint64_t fqd_ctx;
+	volatile uint64_t fqd_ctx;
 		/**
 		- bits<0-7>: AIOP Channel that this FD arrived on.
 		- bits<8-31>: The QMan Frame Queue ID that
 		this frame arrived was dequeued from. */
-	uint32_t channel_fqid;
+	volatile uint32_t channel_fqid;
 		/**
 		- bits<0>: Privilege Level.
 		- bits<1-15>: The Isolation Context ID that the dequeued frame
 		belongs to. */
-	uint16_t pl_icid;
+	volatile uint16_t pl_icid;
 		/**
 		- bits<1-3>: QMan Work Queue ID that this FD was dequeued from.
 		- bits<5-7>: Entry Priority. Indicates the priority of the
 		presented FD. */
-	uint8_t wqid_pri;
+	volatile uint8_t wqid_pri;
 		/**
 		 * - bits<1-3>: FD Source. Coded value indicating the source of
 		 * the presented FD:\n
@@ -192,7 +192,7 @@ struct additional_dequeue_context {
 		 * - bits<7>  : Bypass DPAA Resource Isolation
 		 * .
 		 * */
-	uint8_t fdsrc_va_fca_bdi;
+	volatile uint8_t fdsrc_va_fca_bdi;
 };
 
 /* Additional Dequeue Context (ADC) Masks */
@@ -263,11 +263,11 @@ struct additional_dequeue_context {
 struct presentation_context {
 
 		/** Entry point opaque parameter value. */
-	uint32_t param;
+	volatile uint32_t param;
 		/** Segment presentation address. */
-	uint16_t seg_address;
+	volatile uint16_t seg_address;
 		/** Segment actual size. */
-	uint16_t seg_length;
+	volatile uint16_t seg_length;
 		/**
 		- bits<0-9>  : Pass Through Annotation(PTA) presentation
 		address value.
@@ -275,7 +275,7 @@ struct presentation_context {
 		- bits<11> : No ASA segment (NAS).
 		- bits<12-15>: Acceleration Specific Annotation(ASA)
 		presentation offset value. */
-	uint16_t  ptapa_asapo;
+	volatile uint16_t  ptapa_asapo;
 		/**
 		- bits<0-9>  : Accelerator Specific Annotation (ASA)
 		presentation address value.
@@ -283,19 +283,19 @@ struct presentation_context {
 		- bits<11>   : No Data segment (NDS).
 		- bits<12-15>: Acceleration Specific Annotation (ASA)
 		presentation size value. */
-	uint16_t  asapa_asaps;
+	volatile uint16_t  asapa_asaps;
 		/**
 		- bits<0>  : OSM Entry Point Source value.
 		- bits<1>  : OSM Entry Point Execution Phase value.
 		- bits<2-3>: OSM Entry Point Select value.
 		- bits<5-7>: OSM Entry Point Order Scope Range Mask value. */
-	uint8_t osrc_oep_osel_osrm;
+	volatile uint8_t osrc_oep_osel_osrm;
 		/**
 		- bits<0-3>  : Working Frame Handle.
 		- bits<4-7>  : Open Segment Handle. */
-	uint8_t handles;
+	volatile uint8_t handles;
 		/** Segment Presentation Offset value. */
-	uint16_t seg_offset;
+	volatile uint16_t seg_offset;
 };
 
 /* Presentation Context (PRC) Macros */

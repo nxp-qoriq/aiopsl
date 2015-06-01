@@ -375,6 +375,7 @@ __COLD_CODE static int snic_ctrl_cb(void *dev, uint16_t cmd, uint32_t size, void
 	int err = 0;
 
 	UNUSED(dev);
+	UNUSED(size);
 
 	switch(cmd)
 	{
@@ -424,7 +425,7 @@ __COLD_CODE static int snic_ctrl_cb(void *dev, uint16_t cmd, uint32_t size, void
 			}
 		}
 		SNIC_REGISTER_CMD(SNIC_RSP_PREP);
-		fdma_modify_default_segment_data(0, (uint16_t)size);
+		fdma_modify_default_segment_data(0, SNIC_CMDSZ_REGISTER);
 		if (i == MAX_SNIC_NO)
 			return -ENAVAIL;
 		else
@@ -447,6 +448,10 @@ __COLD_CODE static int snic_ctrl_cb(void *dev, uint16_t cmd, uint32_t size, void
 
 	case SNIC_IPSEC_DEL_SA:
 		err = snic_ipsec_del_sa(cmd_data);
+		return err;
+		
+	case SNIC_IPSEC_SA_GET_STATS:
+		err = snic_ipsec_sa_get_stats(cmd_data);
 		return err;
 
 	default:
@@ -480,13 +485,13 @@ int snic_ipsec_create_instance(struct snic_cmd_data *cmd_data)
 		key_size = 4;
 		fec_no = 1;
 		i=0;
-		if (cfg->sa_selectors & SNIC_IPSEC_OPT_INCLUDE_IP_SRC_IN_SA_SELECT)
+		if (cfg->sa_selectors & SNIC_IPSEC_INCLUDE_IP_SRC_IN_SA_SELECT)
 		{
 			key_size += 4;
 			fec_no++;
 			fec_array[i++] = KEYGEN_KCR_IPSRC_1_FECID;
 		}
-		if (cfg->sa_selectors & SNIC_IPSEC_OPT_INCLUDE_IP_DST_IN_SA_SELECT)
+		if (cfg->sa_selectors & SNIC_IPSEC_INCLUDE_IP_DST_IN_SA_SELECT)
 		{
 			key_size += 4;
 			fec_no++;
@@ -509,13 +514,13 @@ int snic_ipsec_create_instance(struct snic_cmd_data *cmd_data)
 		key_size = 4;
 		fec_no = 1;
 		i=0;
-		if (cfg->sa_selectors & SNIC_IPSEC_OPT_INCLUDE_IP_SRC_IN_SA_SELECT)
+		if (cfg->sa_selectors & SNIC_IPSEC_INCLUDE_IP_SRC_IN_SA_SELECT)
 		{
 			key_size += 16;
 			fec_no++;
 			fec_array[i++] = KEYGEN_KCR_IPSRC_1_FECID;
 		}
-		if (cfg->sa_selectors & SNIC_IPSEC_OPT_INCLUDE_IP_DST_IN_SA_SELECT)
+		if (cfg->sa_selectors & SNIC_IPSEC_INCLUDE_IP_DST_IN_SA_SELECT)
 		{
 			key_size += 16;
 			fec_no++;
@@ -563,6 +568,7 @@ int snic_ipsec_add_sa(struct snic_cmd_data *cmd_data)
 	uint32_t key_enc_flags = 0;
 	uint32_t nic_options;
 	ipsec_handle_t ipsec_handle;
+	uint32_t flags = 0;
 	struct table_rule rule
 					__attribute__((aligned(16)));
 
@@ -586,6 +592,15 @@ int snic_ipsec_add_sa(struct snic_cmd_data *cmd_data)
 				else
 					options |= IPSEC_DEC_OPTS_ARS128;
 			}
+			if (cfg->mode == SNIC_IPSEC_SA_TUNNEL)
+			{
+				if (cfg->options & SNIC_IPSEC_SA_OPT_TECN)
+					options |= IPSEC_DEC_OPTS_TECN;
+				if (cfg->options & SNIC_IPSEC_SA_OPT_DECR_INNER_TTL_IN)
+					options |= IPSEC_DEC_OPTS_DTTL;
+				if (cfg->options & SNIC_IPSEC_SA_OPT_COPY_OUTER_DIFFSERV)
+					options |= IPSEC_DEC_OPTS_DSC;
+			}
 		}
 		ipsec_cfg->decparams.options = options;
 		ipsec_cfg->decparams.seq_num_ext_hi = cfg->seq_num_ext;
@@ -601,14 +616,18 @@ int snic_ipsec_add_sa(struct snic_cmd_data *cmd_data)
 					options |= IPSEC_ENC_OPTS_IVSRC;
 		if (nic_options & SNIC_IPSEC_OPT_SEQ_NUM_ROLLOVER_EVENT)
 					options |= IPSEC_ENC_OPTS_SNR_EN;
-		ipsec_cfg->encparams.options = options;
-		if (cfg->mode == SNIC_IPSEC_SA_MODE_TUNNEL)
+		if (cfg->mode == SNIC_IPSEC_SA_TUNNEL)
 		{
+			if (cfg->options & SNIC_IPSEC_SA_OPT_COPY_INNER_DF)
+				options |= IPSEC_ENC_OPTS_DFC;
+			if (cfg->options & SNIC_IPSEC_SA_OPT_DECR_INNER_TTL_OUT)
+				options |= IPSEC_ENC_OPTS_DTTL;
 			outer_hdr_size = cfg->out.outer_hdr_size;
 			ipsec_cfg->encparams.ip_hdr_len = outer_hdr_size;
 			cdma_read(outer_header, cfg->out.outer_hdr_paddr, outer_hdr_size);
 			ipsec_cfg->encparams.outer_hdr = (uint32_t *)outer_header;
 		}
+		ipsec_cfg->encparams.options = options;
 		ipsec_cfg->encparams.seq_num_ext_hi = cfg->seq_num_ext;
 		ipsec_cfg->encparams.seq_num = cfg->seq_num;
 		ipsec_cfg->encparams.spi = cfg->spi;
@@ -644,6 +663,14 @@ int snic_ipsec_add_sa(struct snic_cmd_data *cmd_data)
 		ipsec_cfg->cipherdata.algtype = IPSEC_CIPHER_AES_NULL_WITH_GMAC;
 	ipsec_cfg->cipherdata.keylen = cfg->cipher.key_size;
 	ipsec_cfg->cipherdata.key = cfg->cipher.key_paddr;
+	if (cfg->options & SNIC_IPSEC_SA_OPT_KEY_ENCRYPT)
+		key_enc_flags |= IPSEC_KEY_ENC;
+	if (cfg->options & SNIC_IPSEC_SA_OPT_KEY_NO_WR_BCK)
+		key_enc_flags |= IPSEC_KEY_NWB;
+	if (cfg->options & SNIC_IPSEC_SA_OPT_KEY_ENHANC_ENCRYPT)
+		key_enc_flags |= IPSEC_KEY_EKT;
+	if (cfg->options & SNIC_IPSEC_SA_OPT_KEY_TRUST_ENCRYPT)
+		key_enc_flags |= IPSEC_KEY_TK;
 	ipsec_cfg->cipherdata.key_enc_flags = key_enc_flags;
 	
 	if (cfg->auth.alg == SNIC_IPSEC_AUTH_NULL)
@@ -671,10 +698,31 @@ int snic_ipsec_add_sa(struct snic_cmd_data *cmd_data)
 	ipsec_cfg->authdata.key_enc_flags = key_enc_flags;
 
 	/* transport mode. IPSEC_FLG_LIFETIME_SEC_CNTR_EN not supported yet */
-	if (cfg->mode == SNIC_IPSEC_SA_MODE_TUNNEL)
-		ipsec_params.flags = IPSEC_FLG_LIFETIME_KB_CNTR_EN | IPSEC_FLG_LIFETIME_PKT_CNTR_EN | IPSEC_FLG_TUNNEL_MODE;
+	if (cfg->mode == SNIC_IPSEC_SA_TUNNEL)
+	{
+		flags |= IPSEC_FLG_TUNNEL_MODE;
+		if (cfg->options & SNIC_IPSEC_SA_OPT_NAT_UDP_CHKS)
+			flags |= IPSEC_ENC_OPTS_NUC_EN;
+		if (cfg->options & SNIC_IPSEC_SA_OPT_CFG_DSCP)
+			flags |= IPSEC_FLG_ENC_DSCP_SET;
+	}
 	else
-		ipsec_params.flags = IPSEC_FLG_LIFETIME_KB_CNTR_EN | IPSEC_FLG_LIFETIME_PKT_CNTR_EN;
+	{
+		if (cfg->options & SNIC_IPSEC_SA_OPT_PAD_CHECK)
+			flags |= IPSEC_FLG_TRANSPORT_PAD_CHECK;
+	}
+	if (cfg->options & SNIC_IPSEC_SA_OPT_BUFF_REUSE)
+		flags |= IPSEC_FLG_BUFFER_REUSE;
+	if (cfg->options & SNIC_IPSEC_SA_OPT_NAT) /* tunnel only??? */
+		flags |= SNIC_IPSEC_SA_OPT_NAT;
+	if (cfg->options & SNIC_IPSEC_SA_OPT_KB_CNT)
+		flags |= IPSEC_FLG_LIFETIME_KB_CNTR_EN;
+	if (cfg->options & SNIC_IPSEC_SA_OPT_PKT_CNT)
+		flags |= IPSEC_FLG_LIFETIME_PKT_CNTR_EN;
+	if (cfg->options & SNIC_IPSEC_SA_OPT_SEC_CNT)
+		flags |= IPSEC_FLG_LIFETIME_SEC_CNTR_EN;
+	ipsec_params.flags = flags;
+	
 	ipsec_params.soft_kilobytes_limit = cfg->lifetime.soft_kb; 
 	ipsec_params.hard_kilobytes_limit = cfg->lifetime.hard_kb;
 	ipsec_params.soft_packet_limit = cfg->lifetime.soft_packet;
@@ -713,13 +761,13 @@ int snic_ipsec_add_sa(struct snic_cmd_data *cmd_data)
 		if (cfg->options & SNIC_IPSEC_SA_OPT_IPV6)
 		{
 			k = 0;
-			if (nic_options & SNIC_IPSEC_OPT_INCLUDE_IP_SRC_IN_SA_SELECT)
+			if (nic_options & SNIC_IPSEC_INCLUDE_IP_SRC_IN_SA_SELECT)
 			{
 				k = 16;
 				for (i = 0; i < 16; i++)
 					ipsec_dec_key[i] = cfg->in.ip_src[i];
 			}
-			if (nic_options & SNIC_IPSEC_OPT_INCLUDE_IP_DST_IN_SA_SELECT)
+			if (nic_options & SNIC_IPSEC_INCLUDE_IP_DST_IN_SA_SELECT)
 			{
 				for (i = 0; i < 16; i++)
 					ipsec_dec_key[k + i] = cfg->in.ip_dst[i];
@@ -742,13 +790,13 @@ int snic_ipsec_add_sa(struct snic_cmd_data *cmd_data)
 		else
 		{
 			k = 0;
-			if (nic_options & SNIC_IPSEC_OPT_INCLUDE_IP_SRC_IN_SA_SELECT)
+			if (nic_options & SNIC_IPSEC_INCLUDE_IP_SRC_IN_SA_SELECT)
 			{
 				k = 4;
 				for (i = 0; i < 4; i++)
 					ipsec_dec_key[i] = cfg->in.ip_src[i];
 			}
-			if (nic_options & SNIC_IPSEC_OPT_INCLUDE_IP_DST_IN_SA_SELECT)
+			if (nic_options & SNIC_IPSEC_INCLUDE_IP_DST_IN_SA_SELECT)
 			{
 				for (i = 0; i < 4; i++)
 					ipsec_dec_key[k + i] = cfg->in.ip_dst[i];
@@ -778,8 +826,8 @@ int snic_ipsec_add_sa(struct snic_cmd_data *cmd_data)
 int snic_ipsec_del_sa(struct snic_cmd_data *cmd_data)
 {
 	uint8_t sa_id;
-	struct snic_ipsec_sa_rmv_cfg snic_ipsec_sa_rmv_cfg;
-	struct snic_ipsec_sa_rmv_cfg *cfg = &snic_ipsec_sa_rmv_cfg;
+	struct snic_ipsec_sa_cfg snic_ipsec_sa_cfg;
+	struct snic_ipsec_sa_cfg *cfg = &snic_ipsec_sa_cfg;
 	/* Max: SPI, IPv6 src + dest is 36 bytes */
 	uint8_t ipsec_dec_key[36];
 	uint16_t snic_id;
@@ -812,16 +860,16 @@ int snic_ipsec_del_sa(struct snic_cmd_data *cmd_data)
 			if (cfg->options & SNIC_IPSEC_SA_OPT_IPV6)
 			{
 				k = 0;
-				if (nic_options & SNIC_IPSEC_OPT_INCLUDE_IP_SRC_IN_SA_SELECT)
+				if (nic_options & SNIC_IPSEC_INCLUDE_IP_SRC_IN_SA_SELECT)
 				{
 					k = 16;
 					for (i = 0; i < 16; i++)
-						ipsec_dec_key[i] = cfg->ip_src[i];
+						ipsec_dec_key[i] = cfg->in.ip_src[i];
 				}
-				if (nic_options & SNIC_IPSEC_OPT_INCLUDE_IP_DST_IN_SA_SELECT)
+				if (nic_options & SNIC_IPSEC_INCLUDE_IP_DST_IN_SA_SELECT)
 				{
 					for (i = 0; i < 16; i++)
-						ipsec_dec_key[k + i] = cfg->ip_dst[i];
+						ipsec_dec_key[k + i] = cfg->in.ip_dst[i];
 					k += 16;
 				}
 				spi = cfg->spi;
@@ -840,16 +888,16 @@ int snic_ipsec_del_sa(struct snic_cmd_data *cmd_data)
 			else
 			{
 				k = 0;
-				if (nic_options & SNIC_IPSEC_OPT_INCLUDE_IP_SRC_IN_SA_SELECT)
+				if (nic_options & SNIC_IPSEC_INCLUDE_IP_SRC_IN_SA_SELECT)
 				{
 					k = 4;
 					for (i = 0; i < 4; i++)
-						ipsec_dec_key[i] = cfg->ip_src[i];
+						ipsec_dec_key[i] = cfg->in.ip_src[i];
 				}
-				if (nic_options & SNIC_IPSEC_OPT_INCLUDE_IP_DST_IN_SA_SELECT)
+				if (nic_options & SNIC_IPSEC_INCLUDE_IP_DST_IN_SA_SELECT)
 				{
 					for (i = 0; i < 4; i++)
-						ipsec_dec_key[k + i] = cfg->ip_dst[i];
+						ipsec_dec_key[k + i] = cfg->in.ip_dst[i];
 					k += 4;
 				}
 				spi = cfg->spi;
@@ -908,6 +956,38 @@ int snic_ipsec_del_instance(struct snic_cmd_data *cmd_data)
 	}
 
 	return 0;
+}
+
+int snic_ipsec_sa_get_stats(struct snic_cmd_data *cmd_data)
+{
+	uint16_t snic_id;
+	uint8_t sa_id;
+	uint32_t secs;
+	uint64_t kbytes, packets;
+	struct snic_params *snic;
+	struct table_lookup_result lookup_result __attribute__((aligned(16)));
+	ipsec_handle_t ipsec_handle;
+	union table_lookup_key_desc key_desc  __attribute__((aligned(16)));
+	int err;
+	
+	SNIC_IPSEC_SA_GET_STATS_CMD(SNIC_CMD_READ);
+	snic = snic_params + snic_id;
+	key_desc.em_key = &sa_id;
+	err = table_lookup_by_key(TABLE_ACCEL_ID_CTLU, (uint16_t)snic->ipsec_table_id, key_desc, 1, &lookup_result);
+
+	if (err == TABLE_STATUS_SUCCESS) 
+	{
+		/* Hit */
+		ipsec_handle = lookup_result.opaque0_or_reference;
+		err = ipsec_get_lifetime_stats(ipsec_handle, &kbytes, &packets, &secs);
+		if (err)
+			return err;
+		SNIC_IPSEC_SA_GET_STATS_RSP_CMD(SNIC_RSP_PREP);
+		fdma_modify_default_segment_data(0, SNIC_CMDSZ_IPSEC_SA_GET_STATS_RSP);
+		return 0;
+	}
+	else
+		return err;
 }
 
 int aiop_snic_early_init(void)
