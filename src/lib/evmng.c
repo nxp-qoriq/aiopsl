@@ -34,6 +34,7 @@
 
 struct evmng g_evmng_irq_events_list[NUM_OF_IRQ_EVENTS];
 struct evmng g_evmng_events_list[EVMNG_MAX_NUM_OF_EVENTS];
+int g_evmng_events_last_used_index;
 uint32_t *g_evmng_b_pool_pointer;
 uint32_t *g_evmng_first_b_pool_pointer;
 uint32_t *g_evmng_last_b_pool_pointer;
@@ -148,7 +149,7 @@ int evmng_register(
 	/* Lock EVM table*/
 	cdma_mutex_lock_take((uint64_t) g_evmng_events_list, CDMA_MUTEX_WRITE_LOCK);
 
-	for(i = 0; i < EVMNG_MAX_NUM_OF_EVENTS; i++ )
+	for(i = 0; i < g_evmng_events_last_used_index; i++ )
 	{
 		if(g_evmng_events_list[i].generator_id == generator_id &&
 			g_evmng_events_list[i].event_id == event_id){
@@ -160,15 +161,24 @@ int evmng_register(
 		}
 	}
 
-	if(i < EVMNG_MAX_NUM_OF_EVENTS)
+	if(i < g_evmng_events_last_used_index)
 	{
 		evmng_ptr = &g_evmng_events_list[i];
 	}
+	/* empty entry was found during search of used indexes*/
 	else if(empty_index >= 0)
 	{
 		g_evmng_events_list[empty_index].generator_id = generator_id;
 		g_evmng_events_list[empty_index].event_id = event_id;
 		evmng_ptr = &g_evmng_events_list[empty_index];
+	}
+	else if(g_evmng_events_last_used_index < EVMNG_MAX_NUM_OF_EVENTS)
+	{
+		empty_index = g_evmng_events_last_used_index;
+		g_evmng_events_list[empty_index].generator_id = generator_id;
+		g_evmng_events_list[empty_index].event_id = event_id;
+		evmng_ptr = &g_evmng_events_list[empty_index];
+		g_evmng_events_last_used_index ++;
 	}
 	else
 	{
@@ -188,7 +198,7 @@ int evmng_register(
 	return err;
 }
 /*****************************************************************************/
-static int remove_event_registration(struct evmng *evmng_ptr,
+static void remove_event_registration(struct evmng *evmng_ptr,
                                      uint8_t priority,
                                      uint64_t app_ctx,
                                      evmng_cb cb)
@@ -208,11 +218,6 @@ static int remove_event_registration(struct evmng *evmng_ptr,
 		}
 		evmng_cb_list_tmp_ptr = evmng_cb_list_ptr;
 		evmng_cb_list_ptr = evmng_cb_list_ptr->next;
-	}
-
-	if(i == evmng_ptr->num_cbs){
-		sl_pr_debug("Registration not found for given parameters\n");
-		return -ENAVAIL;
 	}
 
 	if(evmng_cb_list_ptr != evmng_ptr->head)
@@ -244,13 +249,10 @@ static int remove_event_registration(struct evmng *evmng_ptr,
 	/*Unlock spinlock*/
 	unlock_spinlock(&g_evmng_b_pool_spinlock);
 	evmng_ptr->num_cbs --;
-	return 0;
 }
 
 int evmng_irq_unregister(uint8_t generator_id, uint8_t event_id, uint8_t priority, uint64_t app_ctx, evmng_cb cb)
 {
-	int err;
-
 	if(cb == NULL){
 		sl_pr_debug("CB is NULL\n");
 		return -EINVAL;
@@ -260,15 +262,15 @@ int evmng_irq_unregister(uint8_t generator_id, uint8_t event_id, uint8_t priorit
 		return -EINVAL;
 	}
 	cdma_mutex_lock_take((uint64_t) g_evmng_irq_events_list, CDMA_MUTEX_WRITE_LOCK);
-	err = remove_event_registration(&g_evmng_irq_events_list[event_id], priority, app_ctx, cb);
+	remove_event_registration(&g_evmng_irq_events_list[event_id], priority, app_ctx, cb);
 	cdma_mutex_lock_release((uint64_t) g_evmng_irq_events_list);
-	return err;
+	return 0;
 }
 /*****************************************************************************/
 
 int evmng_unregister(uint8_t generator_id, uint8_t event_id, uint8_t priority, uint64_t app_ctx, evmng_cb cb)
 {
-	int i, err;
+	int i;
 
 	if(cb == NULL){
 		sl_pr_debug("CB is NULL\n");
@@ -276,22 +278,26 @@ int evmng_unregister(uint8_t generator_id, uint8_t event_id, uint8_t priority, u
 	}
 
 	cdma_mutex_lock_take((uint64_t) g_evmng_events_list, CDMA_MUTEX_WRITE_LOCK);
-	for(i = 0; i < EVMNG_MAX_NUM_OF_EVENTS; i++ )
+	for(i = 0; i < g_evmng_events_last_used_index; i++ )
 	{
 		if(g_evmng_events_list[i].generator_id == generator_id &&
 			g_evmng_events_list[i].event_id == event_id){
 			break;
 		}
 	}
-	/*Check if entry with generator and event id was found*/
-	if(i == EVMNG_MAX_NUM_OF_EVENTS){
+	/* Check if entry with generator and event id was found */
+	if(i == g_evmng_events_last_used_index){
 		cdma_mutex_lock_release((uint64_t) g_evmng_events_list);
 		return -ENAVAIL;
 	}
+	/* Check if the removed index is the last used one */
+	else if(i + 1 == g_evmng_events_last_used_index){
+		g_evmng_events_last_used_index --;
+	}
 
-	err = remove_event_registration(&g_evmng_events_list[i], priority, app_ctx, cb);
+	remove_event_registration(&g_evmng_events_list[i], priority, app_ctx, cb);
 	cdma_mutex_lock_release((uint64_t) g_evmng_events_list);
-	return err;
+	return 0;
 }
 /*****************************************************************************/
 
@@ -348,13 +354,13 @@ static int raise_event(uint8_t generator_id, uint8_t event_id, void *event_data)
 	/* Lock EVM table*/
 	cdma_mutex_lock_take((uint64_t) g_evmng_events_list, CDMA_MUTEX_READ_LOCK);
 
-	for(i = 0; i < EVMNG_MAX_NUM_OF_EVENTS; i++){
+	for(i = 0; i < g_evmng_events_last_used_index; i++){
 		if(g_evmng_events_list[i].generator_id == generator_id &&
 			g_evmng_events_list[i].event_id == event_id){
 			break;
 		}
 	}
-	if(i == EVMNG_MAX_NUM_OF_EVENTS){
+	if(i == g_evmng_events_last_used_index){
 		cdma_mutex_lock_release((uint64_t) g_evmng_events_list);
 		return -ENOMEM;
 	}
@@ -439,12 +445,7 @@ int evmng_early_init(void)
 
 	memset(g_evmng_events_list, 0, EVMNG_MAX_NUM_OF_EVENTS *  sizeof(struct evmng));
 
-	/* Initialize events created by / allowed to  applications */
-	for(i = 0; i < NUM_OF_SL_DEFINED_EVENTS; i++){
-		g_evmng_events_list[i].generator_id = EVMNG_GENERATOR_AIOPSL;
-		g_evmng_events_list[i].event_id = (uint8_t) i;
-	}
-
+	g_evmng_events_last_used_index = 0;
 
 	/* allocate memory for buffer pool and the registrations for events
 	 * used in linked list*/
