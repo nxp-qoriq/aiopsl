@@ -472,17 +472,16 @@ int evmng_early_init(void)
 		evmng_list_ptr++;
 	}
 
-	pr_info("Start of malloced space 0x%x\n",(uint32_t)g_evmng_first_b_pool_pointer);
-	pr_info("End of malloced space 0x%x\n",(uint32_t)evmng_list_ptr);
-
 	g_evmng_b_pool_spinlock = 0;
 
 	pr_info("\n"
 		"EVMNG pool ptr:0x%x\n"
+		"EVMNG buf first ptr:0x%x\n"
 		"EVMNG last ptr:0x%x\n"
 		"EVMNG list size: %d\n"
 		"EVMNG num lists: %d\n",
 		g_evmng_b_pool_pointer,
+		*g_evmng_b_pool_pointer,
 		g_evmng_last_b_pool_pointer,
 		sizeof(struct evmng_priority_list),
 		num_evmng_registartions);
