@@ -286,6 +286,40 @@ __COLD_CODE static int tx_peer_set(uint32_t ind, uint16_t token)
 	return err;
 }
 
+__COLD_CODE static uint8_t num_priorities_get(struct fsl_mc_io *mc_io, 
+                                             uint16_t token)
+{
+	struct dpci_attr attr;
+	uint8_t i;
+
+	MEM_SET(&attr, sizeof(attr), 0);
+	dpci_get_attributes(mc_io, token, &attr);
+	return attr.num_of_priorities;
+}
+
+__COLD_CODE static void tx_user_context_set(struct mc_dprc *dprc, int ind,
+                                            uint16_t token, uint8_t num_pr)
+{
+	uint8_t i;
+	struct dpci_rx_queue_cfg queue_cfg;
+
+	ASSERT_COND(num_pr >= 1);
+	
+	MEM_SET(&queue_cfg, sizeof(queue_cfg), 0);
+
+	/*
+	 * Set the tx queue in user context
+	 */
+	queue_cfg.dest_cfg.dest_type = DPCI_DEST_NONE;
+	queue_cfg.options = CMDIF_Q_OPTIONS;
+	for (i = 0; i < num_pr; i++) {
+		queue_cfg.dest_cfg.priority = DPCI_LOW_PR - i;
+		queue_cfg.user_ctx = 0;
+		CMDIF_DPCI_FQID(USER_CTX_SET, ind, g_dpci_tbl.tx_queue[ind][i]);
+		dpci_set_rx_queue(&dprc->io, token, i, &queue_cfg);
+	}
+}
+
 /* To be called upon connected event, assign even */
 __COLD_CODE static int dpci_entry_init(uint32_t dpci_id, uint16_t token)
 {
@@ -312,6 +346,10 @@ __COLD_CODE static int dpci_entry_init(uint32_t dpci_id, uint16_t token)
 	/* Updated DPCI peer if possible
 	 * error is possible */
 	err = tx_peer_set((uint32_t)ind, token);
+#if 0
+	/*
+	 * Should be resolved by connected event or upon link change event
+	 */
 	if (!err) {
 		/* Check AIOP DPCI to AIOP DPCI case 2 entries must be updated
 		 * 1->2 and 2->1 */
@@ -323,7 +361,7 @@ __COLD_CODE static int dpci_entry_init(uint32_t dpci_id, uint16_t token)
 			         dpci_id, g_dpci_tbl.dpci_id_peer[err]);
 		}
 	}
-
+#endif
 	return ind;
 }
 
@@ -452,11 +490,13 @@ __COLD_CODE int dpci_event_link_change(uint32_t dpci_id)
 
 	ind = dpci_mng_find(dpci_id);
 	if (ind >= 0)
-		err = tx_peer_set((uint32_t)ind, token);
+		tx_peer_set((uint32_t)ind, token);
 	else
 		err = -ENODEV;
 
 	DPCI_DT_LOCK_RELEASE;
+	if (err) 
+		return err;
 
 	if (g_dpci_tbl.mc_dpci_id != dpci_id) {
 		/* Re-use ind as link up indication */
@@ -468,6 +508,14 @@ __COLD_CODE int dpci_event_link_change(uint32_t dpci_id)
 			/* Link down event 
 			 * TODO call EVM here */
 		} else {
+			DPCI_DT_LOCK_R_TAKE;
+#ifndef STACK_CHECK
+			tx_user_context_set(dprc, ind, token, 
+			                    num_priorities_get(&dprc->io, 
+			                                       token));
+#endif /* STACK_CHECK */
+			DPCI_DT_LOCK_RELEASE;
+
 			/* Link up event 
 			 * TODO call EVM here */
 		}
@@ -508,41 +556,6 @@ __HOT_CODE void dpci_mng_tx_get(uint32_t ind, int pr, uint32_t *fqid)
 	*fqid = g_dpci_tbl.tx_queue[ind][pr];
 }
 
-__COLD_CODE static uint8_t num_priorities_get(struct fsl_mc_io *mc_io, 
-                                             uint16_t token)
-{
-	struct dpci_attr attr;
-	uint8_t i;
-
-	MEM_SET(&attr, sizeof(attr), 0);
-	dpci_get_attributes(mc_io, token, &attr);
-	return attr.num_of_priorities;
-}
-
-__COLD_CODE static void tx_user_context_set(struct mc_dprc *dprc, int ind, uint16_t token, uint8_t num_pr)
-{
-	uint8_t i;
-	struct dpci_rx_queue_cfg queue_cfg;
-
-	ASSERT_COND(num_pr >= 1);
-	
-	MEM_SET(&queue_cfg, sizeof(queue_cfg), 0);
-
-	DPCI_DT_LOCK_R_TAKE;
-	/*
-	 * Set the tx queue in user context
-	 */
-	queue_cfg.dest_cfg.dest_type = DPCI_DEST_NONE;
-	queue_cfg.options = CMDIF_Q_OPTIONS;
-	for (i = 0; i < num_pr; i++) {
-		queue_cfg.dest_cfg.priority = DPCI_LOW_PR - i;
-		queue_cfg.user_ctx = 0;
-		CMDIF_DPCI_FQID(USER_CTX_SET, ind, g_dpci_tbl.tx_queue[ind][i]);
-		dpci_set_rx_queue(&dprc->io, token, i, &queue_cfg);
-	}
-	DPCI_DT_LOCK_RELEASE;
-}
-
 __COLD_CODE int dpci_drv_enable(uint32_t dpci_id)
 {
 	struct mc_dprc *dprc = sys_get_unique_handle(FSL_OS_MOD_AIOP_RC);
@@ -569,11 +582,12 @@ __COLD_CODE int dpci_drv_enable(uint32_t dpci_id)
 	}
 
 	err = tx_peer_set((uint32_t)ind, token);
-
 	DPCI_DT_LOCK_RELEASE;
 
+	DPCI_DT_LOCK_R_TAKE;
 	tx_user_context_set(dprc, ind, token, 
 	                    num_priorities_get(&dprc->io, token));
+	DPCI_DT_LOCK_RELEASE;
 
 	err = dpci_enable(&dprc->io, token);
 	if (err) {
@@ -737,7 +751,7 @@ __COLD_CODE int dpci_drv_init()
 	if (err) {
 		pr_err("Failed to create and link AIOP<->MC DPCI \n");
 	}
-	
+
 	dpci_tbl_dump();
 
 	return err;
