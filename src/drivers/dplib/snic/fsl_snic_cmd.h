@@ -79,6 +79,7 @@ struct snic_cmd_data {
 #define SNIC_CMDSZ_IPSEC_DEL_SA     (6*8)
 #define SNIC_CMDSZ_IPSEC_DELETE_INSTANCE  8
 #define SNIC_CMDSZ_IPSEC_SA_GET_STATS 8
+#define SNIC_CMDSZ_IPSEC_SA_GET_STATS_RSP (3*8)
 
 /* ipsec "options" mapping  (used as ipsec SA "nic_options") */
 #define SNIC_IPSEC_OPT_SEQ_NUM_ROLLOVER_EVENT		0x04

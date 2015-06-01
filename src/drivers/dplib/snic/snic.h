@@ -141,6 +141,7 @@ int snic_ipsec_create_instance(struct snic_cmd_data *cmd_data);
 int snic_ipsec_add_sa(struct snic_cmd_data *cmd_data);
 int snic_ipsec_del_sa(struct snic_cmd_data *cmd_data);
 int snic_ipsec_del_instance(struct snic_cmd_data *cmd_data);
+int snic_ipsec_sa_get_stats(struct snic_cmd_data *cmd_data);
 /** @} */ /* end of SNIC */
 
 
