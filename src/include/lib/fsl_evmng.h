@@ -119,7 +119,7 @@ typedef int (*evmng_cb)(uint8_t generator_id,
 		from NUM_OF_SL_DEFINED_EVENTS to MAX_EVENT_ID -1.
 
 @Param[in]	priority  priority number of the callback function.
-		This value ranges from 0 - 127.
+		This value ranges from 1 - 127.
 		The lesser value is considered as higher priority. For example,
 		a callback function registered with priority 10 will be invoked
 		before a callback function registered with priority 20.
@@ -128,6 +128,9 @@ typedef int (*evmng_cb)(uint8_t generator_id,
 		raising event.
 
 @param[in]	cb  Callback function to be invoked.
+
+@Cautions	The application can register for event only in app_init or at
+		runtime.
 
 @Return	0 on success;
 	error code, otherwise. For error posix refer to \ref error_g
@@ -152,7 +155,7 @@ int evmng_register(
 		\ref EVM_EVENT_TYPES
 
 @Param[in]	priority  priority number of the callback function.
-		This value ranges from 0 - 127.
+		This value ranges from 1 - 127.
 		The lesser value is considered as higher priority. For example,
 		a callback function registered with priority 10 will be invoked
 		before a callback function registered with priority 20.
@@ -161,6 +164,9 @@ int evmng_register(
 		raising event.
 
 @param[in]	cb  Callback function to be invoked.
+
+@Cautions	The application can unregister from event only in app_init or at
+		runtime.
 
 @Return	0 on success;
 	error code, otherwise. For error posix refer to \ref error_g

@@ -204,7 +204,7 @@ int dpni_drv_is_dpni_exist(uint16_t mc_niid);
 int dpni_drv_update_obj(struct mc_dprc *dprc, uint16_t mc_niid);
 
 /**************************************************************************//**
-@Function	dpni_drv_sync
+@Function	dpni_drv_handle_removed_objects
 
 @Description	Update NIS table and remove the NI's which were not found
 		during the scan.
@@ -215,7 +215,7 @@ int dpni_drv_update_obj(struct mc_dprc *dprc, uint16_t mc_niid);
 		For error posix refer to
 		\ref error_g
 *//***************************************************************************/
-int dpni_drv_sync(struct mc_dprc *dprc);
+int dpni_drv_handle_removed_objects(struct mc_dprc *dprc);
 
 /** @} */ /* end of DPNI_DRV_STATUS group */
 #endif /* __DPNI_DRV_H */

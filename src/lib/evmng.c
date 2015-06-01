@@ -134,7 +134,6 @@ int evmng_register(
 	uint8_t priority, uint64_t app_ctx, evmng_cb cb)
 {
 	struct evmng *evmng_ptr;
-
 	int i, empty_index = -1, err;
 
 	if(cb == NULL){
@@ -321,10 +320,8 @@ int evmng_raise_irq_event_cb(void *dev, uint16_t cmd, uint32_t size, void *event
 		return -ENOTSUP;
 	}
 	/*Only one event can be processed at a time*/
-	cdma_mutex_lock_take((uint64_t) g_evmng_irq_events_list, CDMA_MUTEX_WRITE_LOCK);
 	if(g_evmng_irq_events_list[addr].num_cbs == 0)
 	{
-		cdma_mutex_lock_release((uint64_t) g_evmng_irq_events_list);
 		sl_pr_debug("No registered CB's for event %d\n",addr);
 		return 0;
 	}
@@ -339,8 +336,6 @@ int evmng_raise_irq_event_cb(void *dev, uint16_t cmd, uint32_t size, void *event
 				&val);
 		evmng_cb_list_ptr = evmng_cb_list_ptr->next;
 	}
-	cdma_mutex_lock_release((uint64_t) g_evmng_irq_events_list);
-
 	return 0;
 }
 /*****************************************************************************/

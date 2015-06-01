@@ -224,7 +224,7 @@ int dpni_drv_update_obj(struct mc_dprc *dprc, uint16_t mc_niid)
 	return 0;
 }
 
-int dpni_drv_sync(struct mc_dprc *dprc)
+int dpni_drv_handle_removed_objects(struct mc_dprc *dprc)
 {
 	uint16_t aiop_niid;
 	int err;
@@ -272,13 +272,6 @@ int dpni_drv_unprobe(struct mc_dprc *dprc,
 	iowrite32_ccsr(PTR_TO_UINT(discard_rx_cb), &wrks_addr->ep_pc);
 	/*Mutex unlock EPID table*/
 	cdma_mutex_lock_release((uint64_t)&wrks_addr->epas);
-
-	err = dpni_close(&dprc->io, nis[aiop_niid].dpni_drv_params_var.dpni);
-	if(err){
-		sl_pr_err("Error %d, "
-			"failed to close DP-NI%d\n.", err,
-			nis[aiop_niid].dpni_id);
-	}
 
 	nis[aiop_niid].dpni_drv_params_var.spid         = 0;
 	nis[aiop_niid].dpni_drv_params_var.spid_ddr     = 0;
