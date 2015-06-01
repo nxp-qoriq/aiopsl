@@ -443,6 +443,12 @@ __COLD_CODE static int snic_ctrl_cb(void *dev, uint16_t cmd, uint32_t size, void
 		err = snic_ipsec_del_instance(cmd_data);
 		return err;
 	case SNIC_IPSEC_ADD_SA:
+		if (PRC_GET_SEGMENT_LENGTH() < SNIC_CMDSZ_IPSEC_ADD_SA)
+		{	
+			fdma_close_default_segment();
+			fdma_present_default_frame_segment(FDMA_PRES_NO_FLAGS, (void *)PRC_GET_SEGMENT_ADDRESS(), 
+					PRC_GET_SEGMENT_OFFSET(), SNIC_CMDSZ_IPSEC_ADD_SA);
+		}
 		err = snic_ipsec_add_sa(cmd_data);
 		return err;
 
@@ -983,7 +989,7 @@ int snic_ipsec_sa_get_stats(struct snic_cmd_data *cmd_data)
 		if (err)
 			return err;
 		SNIC_IPSEC_SA_GET_STATS_RSP_CMD(SNIC_RSP_PREP);
-		fdma_modify_default_segment_data(0, SNIC_CMDSZ_IPSEC_SA_GET_STATS_RSP);
+		fdma_modify_default_segment_data(0, SNIC_CMDSZ_IPSEC_SA_GET_STATS_MAX);
 		return 0;
 	}
 	else
