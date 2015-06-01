@@ -137,19 +137,13 @@ static int app_dpni_event_added_cb(
 	uint16_t ni = *(uint16_t*)event_data;
 	int err;
 	pr_info("Event received for dpni %d\n",ni);
-	if(event_id == DPNI_EVENT_ADDED && generator_id == EVMNG_GENERATOR_AIOPSL){
-		err = dpni_drv_register_rx_cb(ni/*ni_id*/,
-		                              (rx_cb_t *)app_ctx);
-		if (err){
-			pr_err("dpni_drv_register_rx_cb for ni %d failed: %d\n", ni, err);
-			return err;
-		}
-	}
-	else{
-		pr_err("Event %d not supported\n", event_id);
+	err = dpni_drv_register_rx_cb(ni/*ni_id*/,
+	                              (rx_cb_t *)app_ctx);
+	if (err){
+		pr_err("dpni_drv_register_rx_cb for ni %d failed: %d\n", ni, err);
+		return err;
 	}
 	return 0;
-
 }
 
 
