@@ -146,7 +146,7 @@ int dprc_drv_scan(void)
 
 		}
 	}
-	dpni_drv_handle_removed_objects(dprc);
+	dpni_drv_handle_removed_objects();
 	return 0;
 
 }

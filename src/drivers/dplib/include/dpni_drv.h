@@ -126,16 +126,10 @@ struct aiop_psram_entry {
 
 @Description	Function to unprobe the DPNI object.
 
-@Param[in]	dprc - Pointer to resource container
-
 @Param[in]	aiop_niid - AIOP Network Interface ID
 
-@Return		0 on success; error code, otherwise.
-		For error posix refer to
-		\ref error_g
 *//***************************************************************************/
-int dpni_drv_unprobe(struct mc_dprc *dprc,
-                               uint16_t aiop_niid);
+void dpni_drv_unprobe(uint16_t aiop_niid);
 
 /**************************************************************************//**
 @Function	dpni_drv_probe
@@ -209,13 +203,11 @@ int dpni_drv_update_obj(struct mc_dprc *dprc, uint16_t mc_niid);
 @Description	Update NIS table and remove the NI's which were not found
 		during the scan.
 
-@Param[in]	dprc - A pointer for AIOP received container.
-
 @Return		0 on success; error code, otherwise.
 		For error posix refer to
 		\ref error_g
 *//***************************************************************************/
-int dpni_drv_handle_removed_objects(struct mc_dprc *dprc);
+int dpni_drv_handle_removed_objects(void);
 
 /** @} */ /* end of DPNI_DRV_STATUS group */
 #endif /* __DPNI_DRV_H */

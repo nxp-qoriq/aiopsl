@@ -224,7 +224,7 @@ int dpni_drv_update_obj(struct mc_dprc *dprc, uint16_t mc_niid)
 	return 0;
 }
 
-int dpni_drv_handle_removed_objects(struct mc_dprc *dprc)
+int dpni_drv_handle_removed_objects(void)
 {
 	uint16_t aiop_niid;
 	int err;
@@ -236,7 +236,7 @@ int dpni_drv_handle_removed_objects(struct mc_dprc *dprc)
 			nis[aiop_niid].dpni_drv_params_var.flags &= 0xFE;
 		}
 		else if(nis[aiop_niid].dpni_id != DPNI_NOT_IN_USE){
-			dpni_drv_unprobe(dprc, aiop_niid);
+			dpni_drv_unprobe(aiop_niid);
 			/*send event: "DPNI_REMOVED_EVENT" to EVM with
 			 * AIOP NI ID */
 			err = evmng_sl_raise_event(
@@ -255,10 +255,8 @@ int dpni_drv_handle_removed_objects(struct mc_dprc *dprc)
 }
 
 
-int dpni_drv_unprobe(struct mc_dprc *dprc,
-                               uint16_t aiop_niid)
+void dpni_drv_unprobe(uint16_t aiop_niid)
 {
-	int err;
 	struct aiop_tile_regs *tile_regs = (struct aiop_tile_regs *)
 					sys_get_handle(FSL_OS_MOD_AIOP_TILE, 1);
 	struct aiop_ws_regs *wrks_addr = &tile_regs->ws_regs;
@@ -288,7 +286,6 @@ int dpni_drv_unprobe(struct mc_dprc *dprc,
 		DPNI_DRV_FLG_PARSE | DPNI_DRV_FLG_PARSER_DIS;
 	nis[aiop_niid].dpni_lock                   = 0;
 	nis[aiop_niid].dpni_id = DPNI_NOT_IN_USE;
-	return 0;
 }
 
 
