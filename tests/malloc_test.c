@@ -67,12 +67,16 @@ static t_mem_mng_phys_addr_alloc_info dp_ddr_info = {0};
 extern struct aiop_init_info g_init_data;
 /* Number of malloc allocations for each partition */
 #define NUM_TEST_ITER 10
+#define MAX_DEPLETION_ITER 25
+
+
+
+
+
 
 static int check_get_mem_size_alignment(uint64_t size,uint64_t alignment)
 {
 	int rc = 0, local_error = 0;
-
-
 	uint64_t paddr = 0;
 
 	/* test get_mem() for MEM_PART_DP_DDR */
@@ -108,6 +112,7 @@ int malloc_test()
 {
 	uint32_t num_iter = NUM_TEST_ITER, size = 0x100;
 	void* allocated_pointers[NUM_TEST_ITER];
+
 	int err = 0, local_error = 0, rc = -1;
 
 	if((rc = sys_get_phys_addr_alloc_partition_info(MEM_PART_DP_DDR,
@@ -134,14 +139,11 @@ int malloc_test()
 	local_error = mem_depletion_test(MEM_PART_PEB,4*MEGABYTE,MEGABYTE);
 	err |= local_error;
 	local_error = mem_depletion_test(MEM_PART_SYSTEM_DDR,4*MEGABYTE,MEGABYTE);
-        err |= local_error;
-        local_error = mem_depletion_test(MEM_PART_DP_DDR,4*MEGABYTE,4*MEGABYTE);
-               err |= local_error;
+	err |= local_error;
+	local_error = mem_depletion_test(MEM_PART_DP_DDR,4*MEGABYTE,4*MEGABYTE);
+	       err |= local_error;
 	local_error = mem_depletion_test(MEM_PART_SH_RAM,MEGABYTE,MEGABYTE);
 	err |= local_error;
-
-
-	//fsl_slob_free(MEM_PART_SH_RAM);
 	return err;
 }
 
@@ -250,12 +252,16 @@ static int mem_depletion_test(e_memory_partition_id mem_partition,
 	uint32_t prev_size =  0x10;
 	uint32_t alignment = size;
 	uint32_t prev_alignment = alignment ;
+	uint32_t count = 0;
 	void *prev_addr = NULL,*curr_addr = NULL;
 	uint64_t prev_addr_64 = 0, curr_addr_64 = 0;
+	void* shram_addresses[MAX_DEPLETION_ITER] = {0};
+	uint64_t adresses[MAX_DEPLETION_ITER] = {0};
 	if(mem_partition == MEM_PART_SH_RAM)
 	{
 		while((curr_addr = fsl_malloc(size,alignment)) != NULL)
 		{
+			shram_addresses[count++] = curr_addr;
 			prev_addr = curr_addr;
 			prev_size = size;
 			prev_alignment = alignment;
@@ -265,10 +271,15 @@ static int mem_depletion_test(e_memory_partition_id mem_partition,
 				break;
 		}
 		fsl_free(prev_addr);
-		if(fsl_malloc(prev_size,prev_alignment) == NULL)
+		if((curr_addr = fsl_malloc(prev_size,prev_alignment)) == NULL)
 		{
 			fsl_os_print("mem_depletion_test from  SHARED RAM failed\n");
 			return -ENAVAIL;
+		}
+		fsl_free(curr_addr);
+		for(int i = 0 ; i < count-1 ; i++)
+		{
+			fsl_free(shram_addresses[i]);
 		}
 		fsl_os_print("mem_depletion_test from  SHARED RAM succeeded\n");
 		return 0;
@@ -277,6 +288,7 @@ static int mem_depletion_test(e_memory_partition_id mem_partition,
 	{
 		while((fsl_os_get_mem(size,mem_partition,alignment,&curr_addr_64)) == 0)
 		{
+			adresses[count++] = curr_addr_64;
 			if(check_returned_address(curr_addr_64,size,alignment,mem_partition) != 0)
 				return -1;
 			prev_addr_64 = curr_addr_64;
@@ -292,6 +304,11 @@ static int mem_depletion_test(e_memory_partition_id mem_partition,
 		{
 			fsl_os_print("mem_depletion_test from %d failed\n",mem_partition);
 			return -ENAVAIL;
+		}
+		fsl_os_put_mem(curr_addr_64);
+		for(int i = 0 ; i < count-1 ; i++)
+		{
+			fsl_os_put_mem(adresses[i]);
 		}
 		fsl_os_print("mem_depletion_test from %d succeeded\n",mem_partition);
 		return 0;
