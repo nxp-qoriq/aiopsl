@@ -236,35 +236,39 @@ int dprc_reset_container(struct fsl_mc_io *mc_io,
 #define DPRC_IRQ_EVENT_OBJ_CREATED		0x00000040
 
 /**
+ * struct dprc_irq_cfg - IRQ configuration
+ * @addr:	Address that must be written to signal a message-based interrupt
+ * @val:	Value to write into irq_addr address
+ * @user_irq_id: A user defined number associated with this IRQ
+ */
+struct dprc_irq_cfg {
+	     uint64_t		addr;
+	     uint32_t		val;
+	     int		user_irq_id;	
+};
+
+/**
  * dprc_set_irq() - Set IRQ information for the DPRC to trigger an interrupt.
  * @mc_io:	Pointer to MC portal's I/O object
  * @token:	Token of DPRC object
  * @irq_index:	Identifies the interrupt index to configure
- * @irq_addr:	Address that must be written to
- *			signal a message-based interrupt
- * @irq_val:	Value to write into irq_addr address
- * @user_irq_id: Returned a user defined number associated with this IRQ
+ * @irq_cfg:	IRQ configuration
  *
  * Return:	'0' on Success; Error code otherwise.
  */
 int dprc_set_irq(struct fsl_mc_io	*mc_io,
 		 uint16_t		token,
 		 uint8_t		irq_index,
-		 uint64_t		irq_addr,
-		 uint32_t		irq_val,
-		 int			user_irq_id);
+		 struct dprc_irq_cfg	*irq_cfg);
 
 /**
  * dprc_get_irq() - Get IRQ information from the DPRC.
  * @mc_io:	Pointer to MC portal's I/O object
  * @token:	Token of DPRC object
  * @irq_index:	The interrupt index to configure
- * @type:	Returned interrupt type: 0 represents message interrupt
- *			type (both irq_addr and irq_val are valid)
- * @irq_addr:	Returned address that must be written to
- *			signal the message-based interrupt
- * @irq_val:	Value to write into irq_addr address
- * @user_irq_id: A user defined number associated with this IRQ
+ * @type:	Interrupt type: 0 represents message interrupt
+ *		type (both irq_addr and irq_val are valid)
+ * @irq_cfg:	IRQ attributes
  *
  * Return:	'0' on Success; Error code otherwise.
  */
@@ -272,9 +276,7 @@ int dprc_get_irq(struct fsl_mc_io	*mc_io,
 		 uint16_t		token,
 		 uint8_t		irq_index,
 		 int			*type,
-		 uint64_t		*irq_addr,
-		 uint32_t		*irq_val,
-		 int			*user_irq_id);
+		 struct dprc_irq_cfg	*irq_cfg);
 
 /**
  * dprc_set_irq_enable() - Set overall interrupt state.
@@ -656,53 +658,43 @@ int dprc_get_obj(struct fsl_mc_io	*mc_io,
 		 struct dprc_obj_desc	*obj_desc);
 
 /**
- * dprc_obj_set_irq() - Set IRQ information for object to trigger an interrupt.
+ * dprc_set_obj_irq() - Set IRQ information for object to trigger an interrupt.
  * @mc_io:	Pointer to MC portal's I/O object
  * @token:	Token of DPRC object
  * @obj_type:  	Type of the object to set its IRQ 
  * @obj_id:  	ID of the object to set its IRQ 
- * @irq_index:	Identifies the interrupt index to configure
- * @irq_addr:	Address that must be written to
- *			signal a message-based interrupt
- * @irq_val:	Value to write into irq_addr address
- * @user_irq_id: Returned a user defined number associated with this IRQ
+ * @irq_index:	The interrupt index to configure
+ * @irq_cfg:	IRQ configuration
  *
  * Return:	'0' on Success; Error code otherwise.
  */
-int dprc_obj_set_irq(struct fsl_mc_io	*mc_io,
+int dprc_set_obj_irq(struct fsl_mc_io	*mc_io,
 		     uint16_t		token,
 		     char		*obj_type,
 		     int		obj_id,
 		     uint8_t		irq_index,
-		     uint64_t		irq_addr,
-		     uint32_t		irq_val,
-		     int		user_irq_id);
+		     struct dprc_irq_cfg *irq_cfg);
 
 /**
- * dprc_obj_get_irq() - Get IRQ information from object.
+ * dprc_get_obj_irq() - Get IRQ information from object.
  * @mc_io:	Pointer to MC portal's I/O object
  * @token:	Token of DPRC object
  * @obj_type:	Type od the object to get its IRQ
  * @obj_id:  	ID of the object to get its IRQ
  * @irq_index:	The interrupt index to configure
- * @type:	Returned interrupt type: 0 represents message interrupt
- *			type (both irq_addr and irq_val are valid)
- * @irq_addr:	Returned address that must be written to
- *			signal the message-based interrupt
- * @irq_val:	Value to write into irq_addr address
- * @user_irq_id: A user defined number associated with this IRQ
+ * @type:	Interrupt type: 0 represents message interrupt
+ *		type (both irq_addr and irq_val are valid)
+ * @irq_cfg:	The returned IRQ attributes
  *
  * Return:	'0' on Success; Error code otherwise.
  */
-int dprc_obj_get_irq(struct fsl_mc_io	*mc_io,
+int dprc_get_obj_irq(struct fsl_mc_io	*mc_io,
 		     uint16_t		token,
 		     char		*obj_type,
 		     int		obj_id,
 		     uint8_t		irq_index,
 		     int		*type,
-		     uint64_t		*irq_addr,
-		     uint32_t		*irq_val,
-		     int		*user_irq_id);
+		     struct dprc_irq_cfg *irq_cfg);
 
 /**
  * dprc_get_res_count() - Obtains the number of free resources that are

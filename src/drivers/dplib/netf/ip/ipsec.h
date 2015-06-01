@@ -550,6 +550,7 @@ struct ipsec_sa_params_part1 {
 	uint16_t udp_src_port; /* UDP source for transport mode. 2B */
 	uint16_t udp_dst_port; /* UDP destination for transport mode. 2B */
 	
+	uint16_t bpid; /* BPID of output frame in new buffer mode */
 
 	uint8_t valid; /* descriptor valid. 1B */
 	

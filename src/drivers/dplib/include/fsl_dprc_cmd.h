@@ -65,8 +65,8 @@
 #define DPRC_CMDID_GET_RES_COUNT		0x15B
 #define DPRC_CMDID_GET_RES_IDS			0x15C
 #define DPRC_CMDID_GET_OBJ_REG			0x15E
-#define DPRC_CMDID_OBJ_SET_IRQ			0x15F
-#define DPRC_CMDID_OBJ_GET_IRQ			0x160
+#define DPRC_CMDID_SET_OBJ_IRQ			0x15F
+#define DPRC_CMDID_GET_OBJ_IRQ			0x160
 #define DPRC_CMDID_SET_OBJ_LABEL		0x161
 
 #define DPRC_CMDID_CONNECT			0x167
@@ -125,12 +125,12 @@ do { \
 
 
 /*                cmd, param, offset, width, type, arg_name */
-#define DPRC_CMD_SET_IRQ(cmd, irq_index, irq_addr, irq_val, user_irq_id) \
+#define DPRC_CMD_SET_IRQ(cmd, irq_index, irq_cfg) \
 do { \
 	MC_CMD_OP(cmd, 0, 32, 8,  uint8_t,  irq_index); \
-	MC_CMD_OP(cmd, 0, 0,  32, uint32_t, irq_val); \
-	MC_CMD_OP(cmd, 1, 0,  64, uint64_t, irq_addr);\
-	MC_CMD_OP(cmd, 2, 0,  32, int,	    user_irq_id); \
+	MC_CMD_OP(cmd, 0, 0,  32, uint32_t, irq_cfg->val); \
+	MC_CMD_OP(cmd, 1, 0,  64, uint64_t, irq_cfg->addr);\
+	MC_CMD_OP(cmd, 2, 0,  32, int,	    irq_cfg->user_irq_id); \
 } while (0)
 
 /*                cmd, param, offset, width, type, arg_name */
@@ -138,11 +138,11 @@ do { \
 	MC_CMD_OP(cmd, 0, 32, 8,  uint8_t,  irq_index)
 
 /*                cmd, param, offset, width, type, arg_name */
-#define DPRC_RSP_GET_IRQ(cmd, type, irq_addr, irq_val, user_irq_id) \
+#define DPRC_RSP_GET_IRQ(cmd, type, irq_cfg) \
 do { \
-	MC_RSP_OP(cmd, 0, 0,  32, uint32_t, irq_val); \
-	MC_RSP_OP(cmd, 1, 0,  64, uint64_t, irq_addr);\
-	MC_RSP_OP(cmd, 2, 0,  32, int,	    user_irq_id); \
+	MC_RSP_OP(cmd, 0, 0,  32, uint32_t, irq_cfg->val); \
+	MC_RSP_OP(cmd, 1, 0,  64, uint64_t, irq_cfg->addr);\
+	MC_RSP_OP(cmd, 2, 0,  32, int,	    irq_cfg->user_irq_id); \
 	MC_RSP_OP(cmd, 2, 32, 32, int,      type); \
 } while (0)
 
@@ -510,13 +510,12 @@ do { \
 } while (0)
 
 /*                cmd, param, offset, width, type, arg_name */
-#define DPRC_CMD_OBJ_SET_IRQ(cmd, obj_type, obj_id, irq_index, irq_addr, \
-                             irq_val, user_irq_id) \
+#define DPRC_CMD_SET_OBJ_IRQ(cmd, obj_type, obj_id, irq_index, irq_cfg) \
 do { \
 	MC_CMD_OP(cmd, 0, 32, 8,  uint8_t,  irq_index); \
-	MC_CMD_OP(cmd, 0, 0,  32, uint32_t, irq_val); \
-	MC_CMD_OP(cmd, 1, 0,  64, uint64_t, irq_addr);\
-	MC_CMD_OP(cmd, 2, 0,  32, int,	    user_irq_id); \
+	MC_CMD_OP(cmd, 0, 0,  32, uint32_t, irq_cfg->val); \
+	MC_CMD_OP(cmd, 1, 0,  64, uint64_t, irq_cfg->addr);\
+	MC_CMD_OP(cmd, 2, 0,  32, int,	    irq_cfg->user_irq_id); \
 	MC_CMD_OP(cmd, 2, 32, 32, int,	    obj_id); \
 	MC_CMD_OP(cmd, 3, 0,  8,  char,	    obj_type[0]);\
 	MC_CMD_OP(cmd, 3, 8,  8,  char,	    obj_type[1]);\
@@ -537,7 +536,7 @@ do { \
 } while (0)
 
 /*                cmd, param, offset, width, type, arg_name */
-#define DPRC_CMD_OBJ_GET_IRQ(cmd, obj_type, obj_id, irq_index) \
+#define DPRC_CMD_GET_OBJ_IRQ(cmd, obj_type, obj_id, irq_index) \
 do { \
 	MC_CMD_OP(cmd, 0, 0,  32, int,	    obj_id); \
 	MC_CMD_OP(cmd, 0, 32, 8,  uint8_t,  irq_index); \
@@ -560,11 +559,11 @@ do { \
 } while (0)
 
 /*                cmd, param, offset, width, type, arg_name */
-#define DPRC_RSP_OBJ_GET_IRQ(cmd, type, irq_addr, irq_val, user_irq_id) \
+#define DPRC_RSP_GET_OBJ_IRQ(cmd, type, irq_cfg) \
 do { \
-	MC_RSP_OP(cmd, 0, 0,  32, uint32_t, irq_val); \
-	MC_RSP_OP(cmd, 1, 0,  64, uint64_t, irq_addr);\
-	MC_RSP_OP(cmd, 2, 0,  32, int,	    user_irq_id); \
+	MC_RSP_OP(cmd, 0, 0,  32, uint32_t, irq_cfg->val); \
+	MC_RSP_OP(cmd, 1, 0,  64, uint64_t, irq_cfg->addr);\
+	MC_RSP_OP(cmd, 2, 0,  32, int,	    irq_cfg->user_irq_id); \
 	MC_RSP_OP(cmd, 2, 32, 32, int,      type); \
 } while (0)
 

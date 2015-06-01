@@ -407,20 +407,22 @@ static int app_dpci_test()
 	int err = 0;
 
 	init_presentation1.options =
-		(EP_INIT_PRESENTATION_OPT_PTA	||
-			EP_INIT_PRESENTATION_OPT_ASAPA	||
-			EP_INIT_PRESENTATION_OPT_ASAPO	||
-			EP_INIT_PRESENTATION_OPT_ASAPS	||
-			EP_INIT_PRESENTATION_OPT_SPA	||
-			EP_INIT_PRESENTATION_OPT_SPS	||
-			EP_INIT_PRESENTATION_OPT_SPO	||
-			EP_INIT_PRESENTATION_OPT_SR	||
+		(EP_INIT_PRESENTATION_OPT_PTA	|
+			EP_INIT_PRESENTATION_OPT_ASAPA	|
+			EP_INIT_PRESENTATION_OPT_ASAPO	|
+			EP_INIT_PRESENTATION_OPT_ASAPS	|
+			EP_INIT_PRESENTATION_OPT_SPA	|
+			EP_INIT_PRESENTATION_OPT_SPS	|
+			EP_INIT_PRESENTATION_OPT_SPO	|
+			EP_INIT_PRESENTATION_OPT_SR	|
 			EP_INIT_PRESENTATION_OPT_NDS);
 	init_presentation2.options = init_presentation1.options;
 
-	err |= dpci_drv_get_initial_presentation(flags, &init_presentation1);
-	err |= dpci_drv_set_initial_presentation(flags, &init_presentation1);
-	err |= dpci_drv_get_initial_presentation(flags, &init_presentation2);
+	err = dpci_drv_get_initial_presentation(flags, &init_presentation1);
+	ASSERT_COND(!err);
+	err = dpci_drv_set_initial_presentation(flags, &init_presentation1);
+	ASSERT_COND(!err);
+	err = dpci_drv_get_initial_presentation(flags, &init_presentation2);
 	ASSERT_COND(!err);
 
 	if (init_presentation1.adpca != init_presentation2.adpca)
