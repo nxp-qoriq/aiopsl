@@ -328,7 +328,7 @@ int app_early_init(void){
 	return err;
 }
 
-static int app_config_dpni_cb(
+static int app_dpni_event_added_cb(
 			uint8_t generator_id,
 			uint8_t event_id,
 			uint64_t app_ctx,
@@ -372,7 +372,7 @@ int app_init(void)
 #endif /* AIOP_STANDALONE */
 
 
-	err = evmng_register(EVMNG_GENERATOR_AIOPSL, DPNI_EVENT_ADDED, 1,(uint64_t) app_process_packet, app_config_dpni_cb);
+	err = evmng_register(EVMNG_GENERATOR_AIOPSL, DPNI_EVENT_ADDED, 1,(uint64_t) app_process_packet, app_dpni_event_added_cb);
 	if (err){
 		pr_err("EVM registration for DPNI_EVENT_ADDED failed: %d\n", err);
 		return err;

@@ -58,7 +58,7 @@ __HOT_CODE ENTRY_POINT static void app_process_packet(void)
 
 }
 
-static int app_config_dpni_cb(
+static int app_dpni_event_added_cb(
 	uint8_t generator_id,
 	uint8_t event_id,
 	uint64_t app_ctx,
@@ -179,8 +179,8 @@ void stack_estimation(void)
 	dpni_drv_set_initial_presentation(ni, &ep_init);
 	dpni_drv_get_initial_presentation(ni, &ep_init);
 	evmng_raise_event(1, 1, (void *) &time);
-	evmng_register(1, 1, 1, (uint64_t)app_process_packet, app_config_dpni_cb);
-	evmng_unregister(1, 1, 1, (uint64_t)app_process_packet, app_config_dpni_cb);
+	evmng_register(1, 1, 1, (uint64_t)app_process_packet, app_dpni_event_added_cb);
+	evmng_unregister(1, 1, 1, (uint64_t)app_process_packet, app_dpni_event_added_cb);
 
 	/* SHBP Shared buffer pool */
 	shbp_acquire(shbp, &ic);
