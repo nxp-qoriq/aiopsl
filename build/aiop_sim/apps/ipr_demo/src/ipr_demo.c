@@ -177,6 +177,7 @@ __declspec(entry_point) static void app_process_packet_flow0 (void)
 			local_test_error |= 1;
 		}
 		
+
 /*
 		fsl_os_print("LDPAA_FD_GET_ADDRL = %x\n", (uint32_t)(LDPAA_FD_GET_ADDR(HWC_FD_ADDRESS)));
 		fsl_os_print("LDPAA_FD_GET_ADDRH = %x\n", (uint32_t)(LDPAA_FD_GET_ADDR(HWC_FD_ADDRESS)>>32));
@@ -184,6 +185,7 @@ __declspec(entry_point) static void app_process_packet_flow0 (void)
 		fsl_os_print("LDPAA_FD_GET_BPID = %x\n", LDPAA_FD_GET_BPID(HWC_FD_ADDRESS));
 		fsl_os_print("LDPAA_FD_GET_OFFSET = %x\n", LDPAA_FD_GET_OFFSET(HWC_FD_ADDRESS));
 */
+
 		
 		err = dpni_drv_send(dpni_get_receive_niid());
 						
