@@ -37,16 +37,11 @@
 #include "fsl_dpni_drv.h"
 #include "fsl_net.h"
 #include "fsl_dprc.h"
-#include "fsl_mc_init.h"
-
-int dpni_drv_probe(struct mc_dprc *dprc,
-                   uint16_t mc_niid,
-                   uint16_t aiop_niid,
-                   struct dpni_pools_cfg *pools_params);
 
 #define DPNI_DRV_FLG_PARSE		0x80
 #define DPNI_DRV_FLG_PARSER_DIS		0x40
 #define DPNI_DRV_FLG_MTU_ENABLE		0x20
+#define DPNI_DRV_FLG_SCANNED		0x01
 
 
 #pragma pack(push, 1)

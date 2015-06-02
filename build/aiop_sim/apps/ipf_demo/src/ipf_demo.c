@@ -36,6 +36,7 @@
 /*#include "fsl_cmdif_server.h"*/
 #include "dplib/fsl_cdma.h"
 #include "dplib/fsl_l2.h"
+#include "fsl_evmng.h"
 
 int app_init(void);
 int app_early_init(void);
@@ -53,7 +54,7 @@ __TASK ipf_ctx_t ipf_context_addr
 	__attribute__((aligned(sizeof(struct ldpaa_fd))));
 
 
-__declspec(entry_point) static void app_process_packet_flow0 (void)
+__HOT_CODE ENTRY_POINT static void app_process_packet(void)
 {
 	int      err = 0;
 	const uint16_t ipv4hdr_length = sizeof(struct ipv4hdr);
@@ -116,7 +117,7 @@ __declspec(entry_point) static void app_process_packet_flow0 (void)
 			fsl_os_print
 			("ipf_demo: Core %d will send a fragment with ipv4 header:\n"
 				, core_get_id());
-		
+
 			ipv4hdr_offset = (uint16_t)PARSER_GET_OUTER_IP_OFFSET_DEFAULT();
 			p_ipv4hdr = UINT_TO_PTR((ipv4hdr_offset + PRC_GET_SEGMENT_ADDRESS()));
 
@@ -161,7 +162,7 @@ __declspec(entry_point) static void app_process_packet_flow0 (void)
 			else /* (err == -EBUSY) */
 				fdma_discard_fd((struct ldpaa_fd *)HWC_FD_ADDRESS, FDMA_DIS_NO_FLAGS);
 
-			
+
 			if (ipf_status == IPF_GEN_FRAG_STATUS_IN_PROCESS)
 				ipf_discard_frame_remainder(ipf_context_addr);
 			break;
@@ -261,31 +262,50 @@ static struct cmdif_module_ops ops = {
                                .ctrl_cb = ctrl_cb
 };
 */
+
+
+static int app_dpni_event_added_cb(
+			uint8_t generator_id,
+			uint8_t event_id,
+			uint64_t app_ctx,
+			void *event_data)
+{
+	uint16_t ni = *(uint16_t*)event_data;
+	uint16_t    mfl = 0x2000; /* Maximum Frame Length */
+	int err;
+
+	UNUSED(generator_id);
+	UNUSED(event_id);
+	pr_info("Event received for dpni %d\n",ni);
+	err = dpni_drv_register_rx_cb(ni/*ni_id*/,
+	                              (rx_cb_t *)app_ctx);
+	if (err){
+		pr_err("dpni_drv_register_rx_cb for ni %d failed: %d\n", ni, err);
+		return err;
+	}
+	err = dpni_drv_set_max_frame_length(ni/*ni_id*/,
+	                                    mfl /* Max frame length*/);
+	if (err){
+		pr_err("dpni_drv_set_max_frame_length for ni %d failed: %d\n", ni, err);
+		return err;
+	}
+	return 0;
+}
+
 int app_init(void)
 {
 	int        err  = 0;
-	uint32_t   ni   = 0;
-	dma_addr_t buff = 0;
-
-	uint16_t    mfl = 0x2000; /* Maximum Frame Length */
 
 	fsl_os_print("Running app_init()\n");
-
 #ifdef AIOP_STANDALONE
 	/* This is temporal WA for stand alone demo only */
 	epid_setup();
 #endif /* AIOP_STANDALONE */
 
-	for (ni = 0; ni < dpni_drv_get_num_of_nis(); ni++)
-	{
-		err = dpni_drv_register_rx_cb((uint16_t)ni /*ni_id*/,
-		                              app_process_packet_flow0 /* callback */);
-		if (err) return err;
-
-		err = dpni_drv_set_max_frame_length((uint16_t)ni/*ni_id*/,
-		                        mfl /* Max frame length*/);
-		if (err) return err;
-
+	err = evmng_register(EVMNG_GENERATOR_AIOPSL, DPNI_EVENT_ADDED, 1,(uint64_t) app_process_packet, app_dpni_event_added_cb);
+	if (err){
+		pr_err("EVM registration for DPNI_EVENT_ADDED failed: %d\n", err);
+		return err;
 	}
 
 /*

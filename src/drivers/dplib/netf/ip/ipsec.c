@@ -1055,7 +1055,7 @@ void ipsec_generate_flc(
 
 	}
 	
-#if(0)
+#if(1)
 	{
 		fsl_os_print("IPSEC: Flow Context Storage Profile\n");
 		uint32_t j;
@@ -1165,6 +1165,20 @@ void ipsec_generate_sa_params(
 		sap.sap1.sec_buffer_mode = IPSEC_SEC_REUSE_BUFFER_MODE;
 	} else {
 		sap.sap1.sec_buffer_mode = IPSEC_SEC_NEW_BUFFER_MODE; 
+
+#ifndef  TKT265088_WA_DISABLE
+		{
+			/* TKT265088: 
+			 * CAAM/SEC: The FD[BPID] is not updated after an AIOP operation */
+			struct storage_profile *sp_addr = &storage_profile[0];
+			sp_addr += params->spid; 
+		
+			/* 14 bit BPID is at offset 0x12 (18) of the storage profile */ 
+			/* Read-swap and mask the 2 MSbs */
+			sap.sap1.bpid = (LH_SWAP(0,(uint16_t *)((uint8_t *)sp_addr + 0x12)))
+					& 0x3FFF;
+		}	
+#endif		
 	}
 	
 	sap.sap1.output_spid = (uint8_t)(params->spid);
@@ -1391,7 +1405,7 @@ int ipsec_frame_encrypt(
 	*enc_status = 0; /* Initialize */
 	
 	/* 	Outbound frame encryption and encapsulation */
-#if(0)
+#if(1)
 	// Debug //
 	{
 		fsl_os_print("IPSEC: Reading FD and FRC before SEC\n");
@@ -1401,15 +1415,18 @@ int ipsec_frame_encrypt(
 			val = *(uint32_t *)((uint32_t)0x60 + j*4);
 			fsl_os_print("Word %d = 0x%x\n", j, val);
 		}
-		val = LDPAA_FD_GET_FRC(HWC_FD_ADDRESS);
-		fsl_os_print("FRC = 0x%x\n", val);
+		//val = LDPAA_FD_GET_FRC(HWC_FD_ADDRESS);
+		//fsl_os_print("FRC = 0x%x\n", val);
 		
+		//val = LDPAA_FD_GET_BPID(HWC_FD_ADDRESS);
+		val = *(uint8_t *)((uint32_t)0x60 + 12);
+		fsl_os_print("FD[BPID] = 0x%x\n", val);
+
 		// Offset
-		val = *(uint32_t *)((uint32_t)0x60 + 3*4);
+		//val = *(uint32_t *)((uint32_t)0x60 + 3*4);
 		//val = LDPAA_FD_GET_OFFSET(HWC_FD_ADDRESS);
 		//fsl_os_print("FD[OFFSET] = 0x%x %x\n", (val & 0xFF), (val & 0xFF00));
-		fsl_os_print("FD[OFFSET] = 0x%x%x\n", (val & 0x0F), (val & 0xFF00)>>8);
-
+		//fsl_os_print("FD[OFFSET] = 0x%x%x\n", (val & 0x0F), (val & 0xFF00)>>8);
 	}
 	// Debug End //
 #endif
@@ -1650,10 +1667,32 @@ int ipsec_frame_encrypt(
 			/*---------------------*/
 			/* ipsec_frame_encrypt */
 			/*---------------------*/
+#if(1)
+	// Debug //
+	{
+		fsl_os_print("IPSEC: Reading FD and FRC after SEC (before FDMA)\n");
+		uint32_t j;
+		uint32_t val;
+		for(j=0;j<8;j++) {
+			val = *(uint32_t *)((uint32_t)0x60 + j*4);
+			fsl_os_print("Word %d = 0x%x\n", j, val);
+		}
+		
+		val = *(uint8_t *)((uint32_t)0x60 + 12);
+		fsl_os_print("FD[BPID] = 0x%x\n", val);
+		
+		//val = LDPAA_FD_GET_FRC(HWC_FD_ADDRESS);
+		//fsl_os_print("FRC = 0x%x\n", val);
+		// Offset
+		//val = *(uint32_t *)((uint32_t)0x60 + 3*4);
+		//fsl_os_print("FD[OFFSET] = 0x%x%x\n", (val & 0x0F), (val & 0xFF00)>>8);
+		
+		//val = LDPAA_FD_GET_LENGTH(HWC_FD_ADDRESS);
+		//fsl_os_print("FD[LENGTH] = 0x%x\n", val);
+	}
+	// Debug End //
+#endif	
 	
-	/* Update the SPID of the new frame (SEC output) in the HW Context*/
-	*((uint8_t *)HWC_SPID_ADDRESS) = sap1.output_spid;
-
 	/* If the L2 header was removed, the segment address have changed, 
 	 * so set the original segment address before opening the new frame 
 	 * (for performance optimization it is done in any case) */
@@ -1667,6 +1706,14 @@ int ipsec_frame_encrypt(
 	 * since the SEC does not preserve the ASA */
 	if (sap1.sec_buffer_mode == IPSEC_SEC_NEW_BUFFER_MODE) { 
 		PRC_SET_ASA_SIZE(0);
+
+		/* Update the SPID of the new frame (SEC output) in the HW Context*/
+		*((uint8_t *)HWC_SPID_ADDRESS) = sap1.output_spid;
+
+#ifndef  TKT265088_WA_DISABLE
+		LDPAA_FD_SET_BPID(HWC_FD_ADDRESS, sap1.bpid);
+#endif		
+	
 	}
 	
 	/* 	11.	FDMA present default frame command (open frame) */
@@ -2198,10 +2245,9 @@ int ipsec_frame_decrypt(
 
 	/* 	11.	SEC Doing Decryption */
 
-	/* Check if started in concurrent mode */
-
-	/* Update the SPID of the new frame (SEC output) in the HW Context*/
-	*((uint8_t *)HWC_SPID_ADDRESS) = sap1.output_spid;
+	/*---------------------*/
+	/* ipsec_frame_decrypt */
+	/*---------------------*/
 	
 	/* If the L2 header was removed, the segment address have changed, 
 	 * so set the original segment address before opening the new frame. 
@@ -2212,12 +2258,23 @@ int ipsec_frame_decrypt(
 	 * the presentation context */
 	PRC_SET_SEGMENT_LENGTH(DEFAULT_SEGMENT_SIZE);
 	
-	/* Clear the PRC ASA Size, since the SEC does not preserve the ASA */
-	PRC_SET_ASA_SIZE(0);
-	
+	if (sap1.sec_buffer_mode == IPSEC_SEC_NEW_BUFFER_MODE) { 
+		/* In new output buffer mode, clear the PRC ASA Size, 
+		 * since the SEC does not preserve the ASA */
+		PRC_SET_ASA_SIZE(0);
+			
+		/* Update the SPID of the new frame (SEC output) in the HW Context*/
+		*((uint8_t *)HWC_SPID_ADDRESS) = sap1.output_spid;
+
+#ifndef  TKT265088_WA_DISABLE
+		LDPAA_FD_SET_BPID(HWC_FD_ADDRESS, sap1.bpid);
+#endif	
+		
+	}	
+		
 	/* 	12.	FDMA present default frame command */ 
 	return_val = fdma_present_default_frame();
-
+	
 	/* 	13.	Read the SEC return status from the FD[FRC]. Use swap macro. */
 	if ((LDPAA_FD_GET_FRC(HWC_FD_ADDRESS)) != 0) {
 		if ((LDPAA_FD_GET_FRC(HWC_FD_ADDRESS) & SEC_CCB_ERROR_MASK)

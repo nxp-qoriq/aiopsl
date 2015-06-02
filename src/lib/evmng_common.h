@@ -24,42 +24,20 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "fsl_errors.h"
-#include "fsl_io.h"
-#include "fsl_platform.h"
-#include "common/types.h"
-#include "common/fsl_string.h"
-#include "fsl_soc.h"
-#include "fsl_dprc_drv.h"
-#include "fsl_dprc.h"
-#include "aiop_common.h"
-#include "sys.h"
+/**************************************************************************//**
+@File		evmng_common.h
 
-#define CORE_ID_GET		(get_cpu_id() >> 4)
+@Description	Event Manager common file
+*//***************************************************************************/
 
-extern struct aiop_init_info g_init_data;
+#ifndef __EVMNG_COMMON_H
+#define __EVMNG_COMMON_H
 
-int aiop_mc_cmd_test();
+/**EVMNG send command id when using cmdif to notify from MC*/
+#define EVMNG_EVENT_SEND         2
 
-int aiop_mc_cmd_test()
-{
-	uint32_t mc_portal_id = g_init_data.sl_info.mc_portal_id;
-	uint64_t mc_portals_vaddr = g_init_data.sl_info.mc_portals_vaddr + \
-		SOC_PERIPH_OFF_PORTALS_MC(mc_portal_id);
-	void *p_vaddr = UINT_TO_PTR(mc_portals_vaddr);
-	int container_id = -1;
-	int err = 0;
-	struct mc_dprc dprc;
-	int i;
+/**default buffer size in the command*/
+#define EVMNG_CMDSZ_EVENT_SEND   64
 
-	/* Get container ID from MC */
-	dprc.io.regs = p_vaddr;
-	for (i = 0; i < 10; i++) {
-		err = dprc_get_container_id(&dprc.io, &container_id);
-		err |= err;
-		if (container_id == -1)
-			err |= -EINVAL;
-	}
 
-	return err;
-}
+#endif /* __EVMNG_COMMON_H */

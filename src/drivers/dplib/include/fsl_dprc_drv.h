@@ -24,31 +24,14 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef __CMDIF_SRV_H
-#define __CMDIF_SRV_H
+#ifndef __FSL_DPRC_DRV_H
+#define __FSL_DPRC_DRV_H
 
-#include "fsl_cmdif_server.h"
-#include "fsl_cmdif_client.h"
-#include "fsl_dprc_drv.h"
-#include "cmdif_srv_flib.h"
-#include "fsl_fdma.h"
-#include "fsl_mc_cmd.h"
-#include "fsl_dpci_mng.h"
+#include "dplib/fsl_mc_sys.h"
 
-#pragma warning_errors on
-ASSERT_STRUCT_SIZE(CMDIF_SESSION_OPEN_SIZEOF, CMDIF_SESSION_OPEN_SIZE);
-#pragma warning_errors off
-
-
-#define CMDIF_BDI_BIT	((uint16_t)0x1)
-
-struct cmdif_srv_aiop {
-	struct cmdif_srv *srv;
-	/**< Common Server fields */
+struct mc_dprc {
+	uint16_t		token;
+	struct fsl_mc_io	io;
 };
 
-void cmdif_srv_isr(void);
-int cmdif_srv_init(void);
-void cmdif_srv_free(void);
-
-#endif /* __CMDIF_SRV_H */
+#endif /*__FSL_DPRC_DRV_H */

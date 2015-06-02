@@ -149,9 +149,7 @@ int dprc_get_irq(struct fsl_mc_io *mc_io,
 		 uint16_t token,
 		 uint8_t irq_index,
 		 int *type,
-		 uint64_t *irq_addr,
-		 uint32_t *irq_val,
-		 int *user_irq_id)
+		 struct dprc_irq_cfg *irq_cfg)
 {
 	struct mc_command cmd = { 0 };
 	int err;
@@ -168,37 +166,7 @@ int dprc_get_irq(struct fsl_mc_io *mc_io,
 		return err;
 
 	/* retrieve response parameters */
-	DPRC_RSP_GET_IRQ(cmd, *type, *irq_addr, *irq_val, *user_irq_id);
-
-	return 0;
-}
-
-int dprc_obj_get_irq(struct fsl_mc_io *mc_io,
-		     uint16_t token,
-		 char	 *obj_type,
-		 int obj_id,
-		 uint8_t irq_index,
-		 int *type,
-		 uint64_t *irq_addr,
-		 uint32_t *irq_val,
-		 int *user_irq_id)
-{
-	struct mc_command cmd = { 0 };
-	int err;
-
-	/* prepare command */
-	cmd.header = mc_encode_cmd_header(DPRC_CMDID_OBJ_GET_IRQ,
-					  MC_CMD_PRI_LOW,
-					  token);
-	DPRC_CMD_OBJ_GET_IRQ(cmd, obj_type, obj_id, irq_index);
-
-	/* send command to mc*/
-	err = mc_send_command(mc_io, &cmd);
-	if (err)
-		return err;
-
-	/* retrieve response parameters */
-	DPRC_RSP_OBJ_GET_IRQ(cmd, *type, *irq_addr, *irq_val, *user_irq_id);
+	DPRC_RSP_GET_IRQ(cmd, *type, irq_cfg);
 
 	return 0;
 }
@@ -206,9 +174,7 @@ int dprc_obj_get_irq(struct fsl_mc_io *mc_io,
 int dprc_set_irq(struct fsl_mc_io *mc_io,
 		 uint16_t token,
 		 uint8_t irq_index,
-		 uint64_t irq_addr,
-		 uint32_t irq_val,
-		 int user_irq_id)
+		 struct dprc_irq_cfg *irq_cfg)
 {
 	struct mc_command cmd = { 0 };
 
@@ -216,34 +182,7 @@ int dprc_set_irq(struct fsl_mc_io *mc_io,
 	cmd.header = mc_encode_cmd_header(DPRC_CMDID_SET_IRQ,
 					  MC_CMD_PRI_LOW,
 					  token);
-	DPRC_CMD_SET_IRQ(cmd, irq_index, irq_addr, irq_val, user_irq_id);
-
-	/* send command to mc*/
-	return mc_send_command(mc_io, &cmd);
-}
-
-int dprc_obj_set_irq(struct fsl_mc_io *mc_io,
-		     uint16_t token,
-		     char *obj_type,
-		     int obj_id,
-		     uint8_t irq_index,
-		     uint64_t irq_addr,
-		     uint32_t irq_val,
-		     int user_irq_id)
-{
-	struct mc_command cmd = { 0 };
-
-	/* prepare command */
-	cmd.header = mc_encode_cmd_header(DPRC_CMDID_OBJ_SET_IRQ,
-					  MC_CMD_PRI_LOW,
-					  token);
-	DPRC_CMD_OBJ_SET_IRQ(cmd,
-	                     obj_type,
-	                     obj_id,
-			     irq_index,
-			     irq_addr,
-			     irq_val,
-			     user_irq_id);
+	DPRC_CMD_SET_IRQ(cmd, irq_index, irq_cfg);
 
 	/* send command to mc*/
 	return mc_send_command(mc_io, &cmd);
@@ -560,6 +499,56 @@ int dprc_get_obj(struct fsl_mc_io *mc_io,
 	return 0;
 }
 
+int dprc_set_obj_irq(struct fsl_mc_io *mc_io,
+		     uint16_t token,
+		     char *obj_type,
+		     int obj_id,
+		     uint8_t irq_index,
+		     struct dprc_irq_cfg *irq_cfg)
+{
+	struct mc_command cmd = { 0 };
+
+	/* prepare command */
+	cmd.header = mc_encode_cmd_header(DPRC_CMDID_SET_OBJ_IRQ,
+					  MC_CMD_PRI_LOW,
+					  token);
+	DPRC_CMD_SET_OBJ_IRQ(cmd,
+	                     obj_type,
+	                     obj_id,
+			     irq_index,
+			     irq_cfg);
+
+	/* send command to mc*/
+	return mc_send_command(mc_io, &cmd);
+}
+
+int dprc_get_obj_irq(struct fsl_mc_io 	*mc_io,
+		     uint16_t 		token,
+		     char	 	*obj_type,
+		     int 		obj_id,
+		     uint8_t 		irq_index,
+		     int 		*type,
+		     struct dprc_irq_cfg *irq_cfg)
+{
+	struct mc_command cmd = { 0 };
+	int err;
+
+	/* prepare command */
+	cmd.header = mc_encode_cmd_header(DPRC_CMDID_GET_OBJ_IRQ,
+					  MC_CMD_PRI_LOW,
+					  token);
+	DPRC_CMD_GET_OBJ_IRQ(cmd, obj_type, obj_id, irq_index);
+
+	/* send command to mc*/
+	err = mc_send_command(mc_io, &cmd);
+	if (err)
+		return err;
+
+	/* retrieve response parameters */
+	DPRC_RSP_GET_OBJ_IRQ(cmd, *type, irq_cfg);
+
+	return 0;
+}
 
 int dprc_get_res_count(struct fsl_mc_io *mc_io,
 		       uint16_t token,
