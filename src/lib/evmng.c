@@ -99,7 +99,6 @@ static int add_event_registration(
 		sl_pr_debug("head is null\n");
 		evmng_ptr->head = evmng_cb_list;
 	}
-	evmng_ptr->num_cbs ++;
 	sl_pr_debug("Registered successfully for event\n");
 	return 0;
 }
@@ -210,7 +209,7 @@ static void remove_event_registration(struct evmng *evmng_ptr,
 	evmng_cb_list_ptr = evmng_ptr->head;
 	evmng_cb_list_tmp_ptr = evmng_cb_list_ptr;
 
-	for(i = 0; i < evmng_ptr->num_cbs; i++){
+	while(evmng_cb_list_ptr != NULL){
 		if(evmng_cb_list_ptr->cb == cb &&
 			evmng_cb_list_ptr->priority == priority &&
 			evmng_cb_list_ptr->app_ctx == app_ctx){
@@ -248,7 +247,6 @@ static void remove_event_registration(struct evmng *evmng_ptr,
 	*g_evmng_b_pool_pointer = (uint32_t)evmng_cb_list_ptr;
 	/*Unlock spinlock*/
 	unlock_spinlock(&g_evmng_b_pool_spinlock);
-	evmng_ptr->num_cbs --;
 }
 
 int evmng_irq_unregister(uint8_t generator_id, uint8_t event_id, uint8_t priority, uint64_t app_ctx, evmng_cb cb)
@@ -305,7 +303,6 @@ int evmng_raise_irq_event_cb(void *dev, uint16_t cmd, uint32_t size, void *event
 {
 	struct evmng_priority_list *evmng_cb_list_ptr;
 	struct evmng_irq_params *evmng_irq_cfg;
-	int i;
 
 	UNUSED(dev);
 
@@ -323,7 +320,7 @@ int evmng_raise_irq_event_cb(void *dev, uint16_t cmd, uint32_t size, void *event
 		return -ENOTSUP;
 	}
 	/*Only one event can be processed at a time*/
-	if(g_evmng_irq_events_list[evmng_irq_cfg->addr].num_cbs == 0)
+	if(g_evmng_irq_events_list[evmng_irq_cfg->addr].head == NULL)
 	{
 		sl_pr_debug("No registered CB's for event %d\n",evmng_irq_cfg->addr);
 		return 0;
@@ -331,7 +328,7 @@ int evmng_raise_irq_event_cb(void *dev, uint16_t cmd, uint32_t size, void *event
 
 	evmng_cb_list_ptr = g_evmng_irq_events_list[evmng_irq_cfg->addr].head;
 
-	for(i = 0; i < g_evmng_irq_events_list[evmng_irq_cfg->addr].num_cbs; i++){
+	while(evmng_cb_list_ptr != NULL){
 		evmng_cb_list_ptr->cb(
 				EVMNG_GENERATOR_AIOPSL,
 				(uint8_t)evmng_irq_cfg->addr,
@@ -365,14 +362,14 @@ static int raise_event(uint8_t generator_id, uint8_t event_id, void *event_data)
 		return -ENOMEM;
 	}
 
-	if(g_evmng_events_list[i].num_cbs == 0)
+	if(g_evmng_events_list[i].head == NULL)
 	{
 		cdma_mutex_lock_release((uint64_t) g_evmng_events_list);
 		return 0;
 	}
 	evmng_cb_list_ptr = g_evmng_events_list[i].head;
 
-	for(i = 0; i < g_evmng_events_list[i].num_cbs; i++){
+	while(evmng_cb_list_ptr != NULL){
 		evmng_cb_list_ptr->cb(
 				generator_id,
 				event_id,

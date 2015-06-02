@@ -143,8 +143,6 @@ struct evmng{
 	uint8_t generator_id;
 	/** Identifier of the specific event */
 	uint8_t event_id;
-	/** Number of registered callback functions */
-	uint8_t num_cbs;
 	/** Pointer to the first list with callback function for the same event
 	 * sorted by priority*/
 	struct evmng_priority_list *head;
