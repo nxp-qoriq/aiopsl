@@ -55,8 +55,7 @@ int app_init(void);
 void app_free(void);
 extern int gpp_sys_ddr_init();
 extern int gpp_ddr_check(struct icontext *ic, uint64_t iova, uint16_t size);
-extern int dpci_scan_and_enable();
-
+extern int app_evm_register();
 
 #ifdef CMDIF_TEST_WITH_MC_SRV
 #define TEST_DPCI_ID    (void *)0 /* For MC use 0 */
@@ -495,9 +494,9 @@ int app_init(void)
 
 	pr_debug("Running app_init()\n");
 
-	err = dpci_scan_and_enable();
+	err = app_evm_register();
 	ASSERT_COND(!err);
-	
+
 	for (i = 0; i < 20; i++) {
 		ops.close_cb = close_cb;
 		ops.open_cb = open_cb;
@@ -519,7 +518,7 @@ int app_init(void)
 
 	err = app_dpci_test();
 	ASSERT_COND(!err);
-
+	
 	err = gpp_sys_ddr_init();
 	return err;
 }
