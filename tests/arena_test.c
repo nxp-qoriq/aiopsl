@@ -161,7 +161,8 @@ __HOT_CODE ENTRY_POINT static void app_process_packet(void)
 	err = malloc_test();
 
 	if (err) {
-		fsl_os_print("ERROR = %d: malloc_test failed in runtime phase \n", err);
+		fsl_os_print("ERROR = %d: Malloc test failed in runtime phase for\
+                packet number %d,on core %d \n", err,local_packet_number, core_id);
 		local_test_error |= err;
 	} else {
 		fsl_os_print("Malloc test passed for packet number %d, on core %d\n", local_packet_number, core_id);

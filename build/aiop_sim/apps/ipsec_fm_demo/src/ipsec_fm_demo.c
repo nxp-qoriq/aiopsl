@@ -325,6 +325,12 @@ int app_early_init(void){
 	        0 /* uint32_t num_ddr_pools */
 	        );
 
+	if (err)
+		return err;
+
+	/* Set DHR to 256 in the default storage profile */
+	err = dpni_drv_register_rx_buffer_layout_requirements(256,0,0);
+			
 	return err;
 }
 
