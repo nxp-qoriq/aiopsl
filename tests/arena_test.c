@@ -27,7 +27,7 @@
 #include "common/types.h"
 #include "common/fsl_stdio.h"
 #include "common/fsl_string.h"
-#include "fsl_dpni_drv.h"
+#include "dpni_drv.h"
 #include "fsl_fdma.h"
 #include "general.h"
 #include "fsl_time.h"
@@ -41,6 +41,7 @@
 #include "dplib/fsl_parser.h"
 #include "fsl_osm.h"
 #include "fsl_dbg.h"
+#include "fsl_evmng.h"
 
 int app_early_init(void);
 int app_init(void);
@@ -85,7 +86,7 @@ uint64_t global_time;
 int test_error;
 uint8_t test_error_lock;
 
-__declspec(entry_point) static void app_process_packet_flow0 (void)
+__HOT_CODE ENTRY_POINT static void app_process_packet(void)
 {
 	int      err = 0, i, j;
 	int core_id;
@@ -335,18 +336,24 @@ int app_early_init(void){
 	return 0;
 }
 
-int app_init(void)
+static int app_dpni_event_added_cb(
+	uint8_t generator_id,
+	uint8_t event_id,
+	uint64_t app_ctx,
+	void *event_data)
 {
-	int        err  = 0;
+	uint16_t ni = *(uint16_t*)event_data;
+	uint16_t ni2 = 0;
+	int err;
 	uint16_t spid = 0;
-	uint32_t   ni   = 0;
-	uint16_t   ni2  = 0;
+
 	dma_addr_t buff = 0;
 	int ep, state = -1;
 	struct dpkg_profile_cfg dist_key_cfg = {0};
 	struct aiop_psram_entry *sp_addr;
 	struct dpni_drv_buf_layout layout = {0};
 	struct dpni_drv_link_state link_state = {0};
+	struct ep_init_presentation init_pres = {0};
 
 	dist_key_cfg.num_extracts = 1;
 	dist_key_cfg.extracts[0].type = DPKG_EXTRACT_FROM_HDR;
@@ -354,8 +361,217 @@ int app_init(void)
 	dist_key_cfg.extracts[0].extract.from_hdr.field = NET_HDR_FLD_IP_SRC;
 	dist_key_cfg.extracts[0].extract.from_hdr.type = DPKG_FULL_FIELD;
 
+	UNUSED(generator_id);
+	UNUSED(event_id);
+	pr_info("Event received for dpni %d\n",ni);
+	err = dpni_drv_add_mac_addr(ni, ((uint8_t []){0x02, 0x00 ,0xc0 ,0x0a8 ,0x0b ,0xfe }));
+
+	if (err){
+		fsl_os_print("dpni_drv_add_mac_addr failed %d\n", err);
+		test_error |= 0x01;
+	}
+	else{
+		fsl_os_print("dpni_drv_add_mac_addr succeeded in boot\n");
+		fsl_os_print("MAC 02:00:C0:A8:0B:FE added for ni %d\n",ni);
+	}
+	dpni_drv_set_exclusive(ni);
+	err = dpni_drv_set_order_scope(ni,&dist_key_cfg);
+	if (err){
+		fsl_os_print("dpni_drv_set_order_scope failed %d\n", err);
+		return err;
+	}
+
+	err = dpni_drv_register_rx_cb(ni/*ni_id*/,
+								  (rx_cb_t *)app_ctx);
+
+	if (err){
+		fsl_os_print("ERROR: dpni_drv_register_rx_cb Failed: %d\n ",err);
+		return err;
+	}
+	ep = dpni_drv_get_ordering_mode(ni);
+	fsl_os_print("initial order scope execution phase for tasks %d\n",ep);
+
+	err = dpni_drv_get_link_state( ni, &link_state);
+	if(err){
+		fsl_os_print("dpni_drv_get_link_state failed %d\n", err);
+		test_error |= 0x01;
+	}
+	else{
+		fsl_os_print("dpni_drv_get_link_state succeeded in boot\n");
+		fsl_os_print("link state: %d for ni %d\n", link_state.up, ni);
+	}
+
+	err = dpni_drv_clear_mac_filters( ni, 1, 1);
+	if(err){
+		fsl_os_print("dpni_drv_clear_mac_filters failed %d\n", err);
+		test_error |= 0x01;
+	}
+	else{
+		fsl_os_print("dpni_drv_clear_mac_filters succeeded in boot\n");
+	}
+
+	err = dpni_drv_add_mac_addr(ni, ((uint8_t []){0x02, 0x00 ,0xc0 ,0x0a8 ,0x0b ,0xfe }));
+
+	if (err){
+		fsl_os_print("dpni_drv_add_mac_addr failed %d\n", err);
+		test_error |= 0x01;
+	}
+	else{
+		fsl_os_print("dpni_drv_add_mac_addr succeeded in boot\n");
+		fsl_os_print("MAC 02:00:C0:A8:0B:FE added for ni %d\n",ni);
+	}
+	err = dpni_drv_get_connected_dpni_id(ni, &ni2, &state);
+	fsl_os_print("Given NI: %d, Connected NI: %d, Status: %d\n",ni,ni2,state);
+	if(err){
+		fsl_os_print("Error: dpni_drv_get_connected_dpni_id: error %d\n",err);
+		test_error |= 0x01;
+	}
+	err = dpni_drv_disable(ni);
+	if(err){
+		fsl_os_print("Error: dpni_drv_disable: error %d\n",err);
+		test_error |= 0x01;
+	}
+
+	layout.options = DPNI_DRV_BUF_LAYOUT_OPT_DATA_HEAD_ROOM |
+		DPNI_DRV_BUF_LAYOUT_OPT_DATA_TAIL_ROOM;
+	layout.data_head_room = 0x40;
+	layout.data_tail_room = 0x50;
+	err = dpni_drv_set_rx_buffer_layout(ni,&layout );
+	if(err){
+		fsl_os_print("Error: dpni_drv_get_rx_buffer_layout: error %d\n",err);
+		test_error |= 0x01;
+	}
+
+	memset(&init_pres, 0, sizeof(struct ep_init_presentation));
+
+	init_pres.options = EP_INIT_PRESENTATION_OPT_SPA |
+		EP_INIT_PRESENTATION_OPT_SPO |
+		EP_INIT_PRESENTATION_OPT_SPS |
+		EP_INIT_PRESENTATION_OPT_NDS;
+	init_pres.spa = 0x0150;
+	init_pres.spo = 0x0020;
+	init_pres.sps = 0x0020;
+	init_pres.nds = 1;
+
+	err = dpni_drv_set_initial_presentation((uint16_t)ni,
+											&init_pres);
+	if (err){
+		fsl_os_print("dpni_drv_set_initial_presentation failed %d\n", err);
+		test_error |= 0x01;
+	}
+	else{
+		fsl_os_print("dpni_drv_set_initial_presentation succeeded in boot\n");
+	}
+	memset(&init_pres, 0, sizeof(struct ep_init_presentation));
+
+	err = dpni_drv_get_initial_presentation((uint16_t)ni,
+											&init_pres);
+	if (err){
+		fsl_os_print("dpni_drv_get_initial_presentation failed %d\n", err);
+		test_error |= 0x01;
+	}
+	else{
+		fsl_os_print("dpni_drv_get_initial_presentation succeeded in boot\n");
+		fsl_os_print("Initial_presentation params:\n");
+		fsl_os_print("fdpa: %x\n"
+			"adpca:%x\n"
+			"ptapa:%x\n"
+			"asapa:%x\n"
+			"asapo:%x\n"
+			"asaps:%x\n"
+			"spa:  %x\n"
+			"sps:  %x\n"
+			"spo:  %x\n"
+			"sr:   %x\n"
+			"nds:  %x\n",
+			init_pres.fdpa,
+			init_pres.adpca,
+			init_pres.ptapa,
+			init_pres.asapa,
+			init_pres.asapo,
+			init_pres.asaps,
+			init_pres.spa,
+			init_pres.sps,
+			init_pres.spo,
+			init_pres.sr,
+			init_pres.nds);
+	}
+
+	err = dpni_drv_enable(ni);
+	if(err){
+		fsl_os_print("Error: dpni_drv_enable: error %d\n",err);
+		test_error |= 0x01;
+	}
+	layout.options = DPNI_DRV_BUF_LAYOUT_OPT_DATA_HEAD_ROOM |
+		DPNI_DRV_BUF_LAYOUT_OPT_DATA_TAIL_ROOM;
+	layout.data_head_room = 0;
+	layout.data_tail_room = 0;
+
+	err = dpni_drv_get_rx_buffer_layout(ni,&layout );
+	if(err){
+		fsl_os_print("Error: dpni_drv_get_rx_buffer_layout: error %d\n",err);
+		test_error |= 0x01;
+	}
+	fsl_os_print("Buffer Layout:\n");
+	fsl_os_print("Options: 0x%x\n",layout.options);
+	fsl_os_print("data_head_room: 0x%x\n", layout.data_head_room);
+	fsl_os_print("data_tail_room: 0x%x\n", layout.data_tail_room);
+
+	if(layout.data_head_room != 0x40 || layout.data_tail_room != 0x50){
+		fsl_os_print("Error: dpni_drv_get/set_rx_buffer_layout finished with incorrect values\n");
+		test_error |= 0x01;
+	}
+
+
+
+	sp_addr = (struct aiop_psram_entry *)
+		(AIOP_PERIPHERALS_OFF + AIOP_STORAGE_PROFILE_OFF);
+	err = dpni_drv_get_spid(ni, &spid);
+	if (err) {
+		fsl_os_print("ERROR = %d: dpni_drv_get_spid failed\n", err);
+		test_error |= err;
+	} else {
+		fsl_os_print("NI %d - spid is %d\n", ni, spid);
+	}
+
+	sp_addr += spid;
+	if(sp_addr->bp1 == 0){
+		fsl_os_print("Error: spid bp1 is 0\n");
+		test_error |= 0x01;
+	}
+
+	sp_addr = (struct aiop_psram_entry *)
+		(AIOP_PERIPHERALS_OFF + AIOP_STORAGE_PROFILE_OFF);
+	err = dpni_drv_get_spid_ddr(ni, &spid);
+	if (err) {
+		fsl_os_print("ERROR = %d: dpni_drv_get_spid_ddr failed\n", err);
+		test_error |= err;
+	} else {
+		fsl_os_print("NI %d - spid DDR is %d\n", ni, spid);
+	}
+
+	sp_addr += spid;
+	if(sp_addr->bp1 == 0){
+		fsl_os_print("Error: spid ddr bp1 is 0\n");
+		test_error |= 0x01;
+	}
+	return 0;
+}
+
+
+
+int app_init(void)
+{
+	int        err  = 0;
 
 	fsl_os_print("Running AIOP arena app_init()\n");
+
+	err = evmng_register(EVMNG_GENERATOR_AIOPSL, DPNI_EVENT_ADDED, 1,
+	                     (uint64_t) app_process_packet, app_dpni_event_added_cb);
+	if (err){
+		pr_err("EVM registration for DPNI_EVENT_ADDED failed: %d\n", err);
+		return err;
+	}
 
 	err = single_cluster_test();
 	err |= multi_cluster_test();
@@ -368,67 +584,6 @@ int app_init(void)
 	if (err) {
 		fsl_os_print("ERROR = %d: aiop_mc_cmd_test failed in init phase()\n", err);
 		test_error |= err;
-	}
-
-	for (ni = 0; ni < dpni_drv_get_num_of_nis(); ni++)
-	{
-		err = dpni_drv_add_mac_addr((uint16_t)ni, ((uint8_t []){0x02, 0x00 ,0xc0 ,0x0a8 ,0x0b ,0xfe }));
-
-		if (err){
-			fsl_os_print("dpni_drv_add_mac_addr failed %d\n", err);
-			test_error |= 0x01;
-		}
-		else{
-			fsl_os_print("dpni_drv_add_mac_addr succeeded in boot\n");
-			fsl_os_print("MAC 02:00:C0:A8:0B:FE added for ni %d\n",ni);
-		}
-		dpni_drv_set_exclusive((uint16_t)ni);
-		err = dpni_drv_set_order_scope((uint16_t)ni,&dist_key_cfg);
-		if (err){
-			fsl_os_print("dpni_drv_set_order_scope failed %d\n", err);
-					return err;
-		}
-
-		err = dpni_drv_register_rx_cb((uint16_t)ni/*ni_id*/,
-		                              app_process_packet_flow0);
-
-		if (err){
-			fsl_os_print("ERROR: dpni_drv_register_rx_cb Failed: %d\n ",err);
-			return err;
-		}
-		ep = dpni_drv_get_ordering_mode((uint16_t)ni);
-		fsl_os_print("initial order scope execution phase for tasks %d\n",ep);
-
-		err = dpni_drv_get_link_state((uint16_t) ni, &link_state);
-		if(err){
-			fsl_os_print("dpni_drv_get_link_state failed %d\n", err);
-			test_error |= 0x01;
-		}
-		else{
-			fsl_os_print("dpni_drv_get_link_state succeeded in boot\n");
-			fsl_os_print("link state: %d for ni %d\n", link_state.up, ni);
-		}
-
-		err = dpni_drv_clear_mac_filters((uint16_t) ni, 1, 1);
-		if(err){
-			fsl_os_print("dpni_drv_clear_mac_filters failed %d\n", err);
-			test_error |= 0x01;
-		}
-		else{
-			fsl_os_print("dpni_drv_clear_mac_filters succeeded in boot\n");
-		}
-
-		err = dpni_drv_add_mac_addr((uint16_t)ni, ((uint8_t []){0x02, 0x00 ,0xc0 ,0x0a8 ,0x0b ,0xfe }));
-
-		if (err){
-			fsl_os_print("dpni_drv_add_mac_addr failed %d\n", err);
-			test_error |= 0x01;
-		}
-		else{
-			fsl_os_print("dpni_drv_add_mac_addr succeeded in boot\n");
-			fsl_os_print("MAC 02:00:C0:A8:0B:FE added for ni %d\n",ni);
-		}
-
 	}
 
 	err = slab_init();
@@ -468,92 +623,6 @@ int app_init(void)
 		test_error |= err;
 	} else {
 		fsl_os_print("ntop_test passed in init phase()\n");
-	}
-
-	for(ni = 0; ni < dpni_drv_get_num_of_nis(); ni++)
-	{
-		err = dpni_drv_get_connected_dpni_id((uint16_t)ni, &ni2, &state);
-		fsl_os_print("Given NI: %d, Connected NI: %d, Status: %d\n",ni,ni2,state);
-		if(err){
-			fsl_os_print("Error: dpni_drv_get_connected_dpni_id: error %d\n",err);
-			test_error |= 0x01;
-		}
-		err = dpni_drv_disable((uint16_t)ni);
-		if(err){
-			fsl_os_print("Error: dpni_drv_disable: error %d\n",err);
-			test_error |= 0x01;
-		}
-
-		layout.options = DPNI_DRV_BUF_LAYOUT_OPT_DATA_HEAD_ROOM |
-				DPNI_DRV_BUF_LAYOUT_OPT_DATA_TAIL_ROOM;
-		layout.data_head_room = 0x40;
-		layout.data_tail_room = 0x50;
-		err = dpni_drv_set_rx_buffer_layout((uint16_t)ni,&layout );
-		if(err){
-			fsl_os_print("Error: dpni_drv_get_rx_buffer_layout: error %d\n",err);
-			test_error |= 0x01;
-		}
-
-		err = dpni_drv_enable((uint16_t)ni);
-		if(err){
-			fsl_os_print("Error: dpni_drv_enable: error %d\n",err);
-			test_error |= 0x01;
-		}
-		layout.options = DPNI_DRV_BUF_LAYOUT_OPT_DATA_HEAD_ROOM |
-			DPNI_DRV_BUF_LAYOUT_OPT_DATA_TAIL_ROOM;
-		layout.data_head_room = 0;
-		layout.data_tail_room = 0;
-
-		err = dpni_drv_get_rx_buffer_layout((uint16_t)ni,&layout );
-		if(err){
-			fsl_os_print("Error: dpni_drv_get_rx_buffer_layout: error %d\n",err);
-			test_error |= 0x01;
-		}
-		fsl_os_print("Buffer Layout:\n");
-		fsl_os_print("Options: 0x%x\n",layout.options);
-		fsl_os_print("data_head_room: 0x%x\n", layout.data_head_room);
-		fsl_os_print("data_tail_room: 0x%x\n", layout.data_tail_room);
-
-		if(layout.data_head_room != 0x40 || layout.data_tail_room != 0x50){
-			fsl_os_print("Error: dpni_drv_get/set_rx_buffer_layout finished with incorrect values\n");
-			test_error |= 0x01;
-		}
-
-
-
-		sp_addr = (struct aiop_psram_entry *)
-						(AIOP_PERIPHERALS_OFF + AIOP_STORAGE_PROFILE_OFF);
-		err = dpni_drv_get_spid((uint16_t)ni, &spid);
-		if (err) {
-			fsl_os_print("ERROR = %d: dpni_drv_get_spid failed\n", err);
-			test_error |= err;
-		} else {
-			fsl_os_print("NI %d - spid is %d\n", ni, spid);
-		}
-
-		sp_addr += spid;
-		if(sp_addr->bp1 == 0){
-			fsl_os_print("Error: spid bp1 is 0\n");
-			test_error |= 0x01;
-		}
-
-		sp_addr = (struct aiop_psram_entry *)
-			(AIOP_PERIPHERALS_OFF + AIOP_STORAGE_PROFILE_OFF);
-		err = dpni_drv_get_spid_ddr((uint16_t)ni, &spid);
-		if (err) {
-			fsl_os_print("ERROR = %d: dpni_drv_get_spid_ddr failed\n", err);
-			test_error |= err;
-		} else {
-			fsl_os_print("NI %d - spid DDR is %d\n", ni, spid);
-		}
-
-		sp_addr += spid;
-		if(sp_addr->bp1 == 0){
-			fsl_os_print("Error: spid ddr bp1 is 0\n");
-			test_error |= 0x01;
-		}
-
-
 	}
 
 	fsl_os_print("To start test inject packets: \"arena_test_40.pcap\" after AIOP boot complete.\n");

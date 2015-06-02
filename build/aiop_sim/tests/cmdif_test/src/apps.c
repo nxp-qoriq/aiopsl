@@ -32,7 +32,7 @@
 #include "fsl_dpci_drv.h"
 #include "fsl_dpci_event.h"
 #include "fsl_dpci_mng.h"
-#include "fsl_mc_init.h"
+#include "fsl_dprc_drv.h"
 
 int dpci_scan_and_enable();
 

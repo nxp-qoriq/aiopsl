@@ -104,7 +104,6 @@
 								<option id="com.freescale.ppc.toolchain.compiler.base.options.speedSpace.352722340" name="Speed vs. Size" superClass="com.freescale.ppc.toolchain.compiler.base.options.speedSpace" value="com.freescale.ppc.toolchain.compiler.base.optionCategory.optimization.speedspace.speed" valueType="enumerated"/>
 								<option id="com.freescale.ppc.toolchain.compiler.base.input.include.system.1031676032" name="System Path (-I- -I)" superClass="com.freescale.ppc.toolchain.compiler.base.input.include.system" valueType="includePath">
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../build_flags&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../src/drivers/mc/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../src/arch/soc_db&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../src/drivers/dpmng/controllers/aiop&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../src/lib&quot;"/>
