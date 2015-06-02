@@ -233,7 +233,7 @@ int dpni_drv_handle_removed_objects(void)
 	{
 		if(nis[aiop_niid].dpni_drv_params_var.flags &
 			DPNI_DRV_FLG_SCANNED){
-			nis[aiop_niid].dpni_drv_params_var.flags &= 0xFE;
+			nis[aiop_niid].dpni_drv_params_var.flags &= ~DPNI_DRV_FLG_SCANNED;
 		}
 		else if(nis[aiop_niid].dpni_id != DPNI_NOT_IN_USE){
 			dpni_drv_unprobe(aiop_niid);
@@ -246,6 +246,7 @@ int dpni_drv_handle_removed_objects(void)
 			if(err){
 				sl_pr_err("Failed to raise event for "
 					"NI-%d.\n", aiop_niid);
+				cdma_mutex_lock_release((uint64_t)nis);
 				return err;
 			}
 		}
@@ -270,6 +271,7 @@ void dpni_drv_unprobe(uint16_t aiop_niid)
 	iowrite32_ccsr(PTR_TO_UINT(discard_rx_cb), &wrks_addr->ep_pc);
 	/*Mutex unlock EPID table*/
 	cdma_mutex_lock_release((uint64_t)&wrks_addr->epas);
+	nis[aiop_niid].dpni_id = DPNI_NOT_IN_USE;
 
 	nis[aiop_niid].dpni_drv_params_var.spid         = 0;
 	nis[aiop_niid].dpni_drv_params_var.spid_ddr     = 0;
@@ -285,7 +287,7 @@ void dpni_drv_unprobe(uint16_t aiop_niid)
 	nis[aiop_niid].dpni_drv_params_var.flags        =
 		DPNI_DRV_FLG_PARSE | DPNI_DRV_FLG_PARSER_DIS;
 	nis[aiop_niid].dpni_lock                   = 0;
-	nis[aiop_niid].dpni_id = DPNI_NOT_IN_USE;
+
 }
 
 
@@ -576,7 +578,7 @@ int dpni_drv_get_primary_mac_addr(uint16_t niid,
 	dpni_drv = nis + niid;
 	/*Lock dpni table entry*/
 	cdma_mutex_lock_take((uint64_t)&dpni_drv->dpni_lock,
-	                     CDMA_MUTEX_WRITE_LOCK);
+	                     CDMA_MUTEX_READ_LOCK);
 	memcpy(mac_addr, dpni_drv->mac_addr, NET_HDR_FLD_ETH_ADDR_SIZE);
 	/*Unlock dpni table entry*/
 	cdma_mutex_lock_release((uint64_t)&dpni_drv->dpni_lock);
