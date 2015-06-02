@@ -1055,7 +1055,7 @@ void ipsec_generate_flc(
 
 	}
 	
-#if(1)
+#if(0)
 	{
 		fsl_os_print("IPSEC: Flow Context Storage Profile\n");
 		uint32_t j;
@@ -1405,7 +1405,7 @@ int ipsec_frame_encrypt(
 	*enc_status = 0; /* Initialize */
 	
 	/* 	Outbound frame encryption and encapsulation */
-#if(1)
+#if(0)
 	// Debug //
 	{
 		fsl_os_print("IPSEC: Reading FD and FRC before SEC\n");
@@ -1667,7 +1667,7 @@ int ipsec_frame_encrypt(
 			/*---------------------*/
 			/* ipsec_frame_encrypt */
 			/*---------------------*/
-#if(1)
+#if(0)
 	// Debug //
 	{
 		fsl_os_print("IPSEC: Reading FD and FRC after SEC (before FDMA)\n");
@@ -1678,11 +1678,11 @@ int ipsec_frame_encrypt(
 			fsl_os_print("Word %d = 0x%x\n", j, val);
 		}
 		
-		val = *(uint8_t *)((uint32_t)0x60 + 12);
-		fsl_os_print("FD[BPID] = 0x%x\n", val);
+		//val = *(uint8_t *)((uint32_t)0x60 + 12);
+		//fsl_os_print("FD[BPID] = 0x%x\n", val);
 		
-		//val = LDPAA_FD_GET_FRC(HWC_FD_ADDRESS);
-		//fsl_os_print("FRC = 0x%x\n", val);
+		val = LDPAA_FD_GET_FRC(HWC_FD_ADDRESS);
+		fsl_os_print("FRC = 0x%x\n", val);
 		// Offset
 		//val = *(uint32_t *)((uint32_t)0x60 + 3*4);
 		//fsl_os_print("FD[OFFSET] = 0x%x%x\n", (val & 0x0F), (val & 0xFF00)>>8);
@@ -1700,7 +1700,7 @@ int ipsec_frame_encrypt(
 			
 	/* Update the default segment length for the new frame  in 
 	 * the presentation context */
-	PRC_SET_SEGMENT_LENGTH(DEFAULT_SEGMENT_SIZE);
+	//PRC_SET_SEGMENT_LENGTH(DEFAULT_SEGMENT_SIZE);
 	
 	/* In new output buffer mode, clear the PRC ASA Size, 
 	 * since the SEC does not preserve the ASA */
@@ -2256,7 +2256,7 @@ int ipsec_frame_decrypt(
 	
 	/* Update the default segment length for the new frame  in 
 	 * the presentation context */
-	PRC_SET_SEGMENT_LENGTH(DEFAULT_SEGMENT_SIZE);
+	//PRC_SET_SEGMENT_LENGTH(DEFAULT_SEGMENT_SIZE);
 	
 	if (sap1.sec_buffer_mode == IPSEC_SEC_NEW_BUFFER_MODE) { 
 		/* In new output buffer mode, clear the PRC ASA Size, 

@@ -53,7 +53,7 @@ void ipsec_print_sp (uint16_t ni_spid);
 #define APP_FLOW_GET(ARG) (((uint16_t)(((ARG) & 0xFFFF0000) >> 16)
 /**< Get flow id from callback argument, it's demo specific macro */
 
-#define IPSEC_DEBUG_PRINT_SP
+//#define IPSEC_DEBUG_PRINT_SP
 #ifdef IPSEC_DEBUG_PRINT_SP
 extern __PROFILE_SRAM struct storage_profile 
 			storage_profile[SP_NUM_OF_STORAGE_PROFILES];
@@ -149,8 +149,9 @@ __declspec(entry_point) static void app_process_packet_flow0 (void)
 	
 	/* close-open segment, for the print */
 	fdma_close_default_segment();
-	fdma_present_default_frame_segment(0, (void *)PRC_GET_SEGMENT_ADDRESS(), 0, 256);
-
+	fdma_present_default_frame_segment(0, (void *)PRC_GET_SEGMENT_ADDRESS(), 0, seg_len);
+		
+	
 	fsl_os_print("IPSEC: frame header after encryption\n");
 	/* Print header */
 	ipsec_print_frame();
