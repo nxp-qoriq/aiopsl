@@ -357,9 +357,10 @@ static int raise_event(uint8_t generator_id, uint8_t event_id, void *event_data)
 			break;
 		}
 	}
+
 	if(i == g_evmng_events_last_used_index){
 		cdma_mutex_lock_release((uint64_t) g_evmng_events_list);
-		return -ENOMEM;
+		return 0;
 	}
 
 	if(g_evmng_events_list[i].head == NULL)
