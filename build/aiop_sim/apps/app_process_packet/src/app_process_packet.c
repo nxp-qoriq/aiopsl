@@ -130,7 +130,7 @@ static int app_dpni_event_added_cb(
 			uint64_t app_ctx,
 			void *event_data)
 {
-	uint16_t ni = *(uint16_t*)event_data;
+	uint16_t ni = (uint16_t)((uint32_t)event_data);
 	int err;
 
 	UNUSED(generator_id);

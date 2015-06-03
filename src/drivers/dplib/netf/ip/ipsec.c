@@ -1055,7 +1055,7 @@ void ipsec_generate_flc(
 
 	}
 	
-#if(1)
+#if(0)
 	{
 		fsl_os_print("IPSEC: Flow Context Storage Profile\n");
 		uint32_t j;
@@ -1133,7 +1133,16 @@ void ipsec_generate_sa_params(
 			if ((*(params->encparams.outer_hdr) & IPSEC_IP_VERSION_MASK) == 
 					IPSEC_IP_VERSION_IPV6) {
 				sap.sap1.flags |= IPSEC_FLG_OUTER_HEADER_IPV6;
+				
+				/* DSCP for IPv6 */
+				sap.sap1.outer_hdr_dscp = IPSEC_DSCP_MASK_IPV6 &
+					(*(uint32_t *)params->encparams.outer_hdr);
+			} else {
+				/* DSCP for IPv4 */
+				sap.sap1.outer_hdr_dscp = IPSEC_DSCP_MASK_IPV4 &
+					(*(uint32_t *)params->encparams.outer_hdr);
 			}
+			
 		} else {
 			/* Add IPv6/IPv4 indication to the flags field in transport mode */
 			if ((params->encparams.options) & IPSEC_PDB_OPTIONS_MASK & 
@@ -1194,17 +1203,6 @@ void ipsec_generate_sa_params(
 	/* Set valid flag */
 	sap.sap1.valid = 1; /* descriptor valid. */
 
-	/* Get DSCP from the outer header. Mask ECN (2 least significant bits) */
-	if (sap.sap1.flags & IPSEC_FLG_IPV6) {
-		/* IPv6 */
-		sap.sap1.outer_hdr_dscp = IPSEC_DSCP_MASK_IPV6 &
-			(*(uint32_t *)params->encparams.outer_hdr);
-	} else {
-		/* IPv4 */ 
-		sap.sap1.outer_hdr_dscp = IPSEC_DSCP_MASK_IPV4 &
-			(*(uint32_t *)params->encparams.outer_hdr);
-	}
-	
 	/* Descriptor Part #2 */
 	sap.sap2.sec_callback_func = (uint32_t)params->lifetime_callback;
 	sap.sap2.sec_callback_arg = params->callback_arg;
@@ -1405,7 +1403,7 @@ int ipsec_frame_encrypt(
 	*enc_status = 0; /* Initialize */
 	
 	/* 	Outbound frame encryption and encapsulation */
-#if(1)
+#if(0)
 	// Debug //
 	{
 		fsl_os_print("IPSEC: Reading FD and FRC before SEC\n");
@@ -1667,7 +1665,7 @@ int ipsec_frame_encrypt(
 			/*---------------------*/
 			/* ipsec_frame_encrypt */
 			/*---------------------*/
-#if(1)
+#if(0)
 	// Debug //
 	{
 		fsl_os_print("IPSEC: Reading FD and FRC after SEC (before FDMA)\n");
@@ -1678,11 +1676,11 @@ int ipsec_frame_encrypt(
 			fsl_os_print("Word %d = 0x%x\n", j, val);
 		}
 		
-		val = *(uint8_t *)((uint32_t)0x60 + 12);
-		fsl_os_print("FD[BPID] = 0x%x\n", val);
+		//val = *(uint8_t *)((uint32_t)0x60 + 12);
+		//fsl_os_print("FD[BPID] = 0x%x\n", val);
 		
-		//val = LDPAA_FD_GET_FRC(HWC_FD_ADDRESS);
-		//fsl_os_print("FRC = 0x%x\n", val);
+		val = LDPAA_FD_GET_FRC(HWC_FD_ADDRESS);
+		fsl_os_print("FRC = 0x%x\n", val);
 		// Offset
 		//val = *(uint32_t *)((uint32_t)0x60 + 3*4);
 		//fsl_os_print("FD[OFFSET] = 0x%x%x\n", (val & 0x0F), (val & 0xFF00)>>8);
@@ -1700,7 +1698,7 @@ int ipsec_frame_encrypt(
 			
 	/* Update the default segment length for the new frame  in 
 	 * the presentation context */
-	PRC_SET_SEGMENT_LENGTH(DEFAULT_SEGMENT_SIZE);
+	//PRC_SET_SEGMENT_LENGTH(DEFAULT_SEGMENT_SIZE);
 	
 	/* In new output buffer mode, clear the PRC ASA Size, 
 	 * since the SEC does not preserve the ASA */
@@ -1798,8 +1796,8 @@ int ipsec_frame_encrypt(
 		 * frame. Assuming the frame is at beginning of the segment */
 		original_val = 
 				*((uint32_t *)IPSEC_GET_SEGMENT_ADDRESS(HWC_PRC_ADDRESS));
-			
-		if (sap1.flags & IPSEC_FLG_IPV6) { /* IPv6 header */
+
+		if (sap1.flags & IPSEC_FLG_OUTER_HEADER_IPV6) { /* IPv6 header */
 			/* IPv6 header: 0-3:Version, 4-11:Traffic Class (4-9: DSCP) */
 			/* New first 16 bits of the IP header, including DSCP */
 			new_val = (original_val & (~IPSEC_DSCP_MASK_IPV6)) |
@@ -2256,7 +2254,7 @@ int ipsec_frame_decrypt(
 	
 	/* Update the default segment length for the new frame  in 
 	 * the presentation context */
-	PRC_SET_SEGMENT_LENGTH(DEFAULT_SEGMENT_SIZE);
+	//PRC_SET_SEGMENT_LENGTH(DEFAULT_SEGMENT_SIZE);
 	
 	if (sap1.sec_buffer_mode == IPSEC_SEC_NEW_BUFFER_MODE) { 
 		/* In new output buffer mode, clear the PRC ASA Size, 

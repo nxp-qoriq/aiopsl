@@ -54,7 +54,7 @@ void ipsec_print_sp (uint16_t ni_spid);
 #define APP_FLOW_GET(ARG) (((uint16_t)(((ARG) & 0xFFFF0000) >> 16)
 /**< Get flow id from callback argument, it's demo specific macro */
 
-#define IPSEC_DEBUG_PRINT_SP
+//#define IPSEC_DEBUG_PRINT_SP
 #ifdef IPSEC_DEBUG_PRINT_SP
 extern __PROFILE_SRAM struct storage_profile
 			storage_profile[SP_NUM_OF_STORAGE_PROFILES];
@@ -150,8 +150,9 @@ __HOT_CODE ENTRY_POINT static void app_process_packet(void)
 
 	/* close-open segment, for the print */
 	fdma_close_default_segment();
-	fdma_present_default_frame_segment(0, (void *)PRC_GET_SEGMENT_ADDRESS(), 0, 256);
-
+	fdma_present_default_frame_segment(0, (void *)PRC_GET_SEGMENT_ADDRESS(), 0, seg_len);
+		
+	
 	fsl_os_print("IPSEC: frame header after encryption\n");
 	/* Print header */
 	ipsec_print_frame();
@@ -340,7 +341,7 @@ static int app_dpni_event_added_cb(
 			uint64_t app_ctx,
 			void *event_data)
 {
-	uint16_t ni = *(uint16_t*)event_data;
+	uint16_t ni = (uint16_t)((uint32_t)event_data);
 	uint16_t    mfl = 0x2000; /* Maximum Frame Length */
 	int err;
 
@@ -667,7 +668,8 @@ int ipsec_app_init(uint16_t ni_id)
 	}
 	else if (outer_header_ip_version == 6) {
 
-		outer_ip_header[0] = 0x60000000;
+//		outer_ip_header[0] = 0x60000000;
+		outer_ip_header[0] = 0x6db00000;
 //		outer_ip_header[1] = 0x002032ff;
 		outer_ip_header[1] = 0x000032ff;
 		outer_ip_header[2] = 0xfe800000;

@@ -168,6 +168,10 @@ int dpci_reset(struct fsl_mc_io *mc_io, uint16_t token);
 
 /* IRQ event - indicates a change in link state */
 #define DPCI_IRQ_EVENT_LINK_CHANGED		0x00000001
+/* IRQ event - indicates a connection event */
+#define DPCI_IRQ_EVENT_CONNECTED                0x00000002
+/* IRQ event - indicates a disconnection event */
+#define DPCI_IRQ_EVENT_DISCONNECTED             0x00000004
 
 /**
  * struct dpci_irq_cfg - IRQ configuration

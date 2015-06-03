@@ -64,7 +64,7 @@ static int app_dpni_event_added_cb(
 	uint64_t app_ctx,
 	void *event_data)
 {
-	uint16_t ni = *(uint16_t*)event_data;
+	uint16_t ni = (uint16_t)((uint32_t)event_data);
 	int err;
 
 	UNUSED(generator_id);
@@ -185,7 +185,7 @@ void stack_estimation(void)
 
 	/* DPCI */
 	dpci_drv_disable(0);
-	//dpci_drv_enable(0);
+	//dpci_drv_enable(0); its 304 bytes stack
 	dpci_drv_get_initial_presentation(0, NULL);
 	dpci_drv_set_initial_presentation(0, NULL);
 	/* 
@@ -197,9 +197,6 @@ void stack_estimation(void)
 	 * dpci_event_link_change(0); 
 	 * 
 	 */
-	dpci_event_assign(0);
-	dpci_event_unassign(0);
-	dpci_event_link_change(0);
 	
 	/* dpci_event_update(0); called only by SL in cmdif open command t 
 	 * the stack is not important */

@@ -60,6 +60,7 @@ struct dpci_mng_tbl {
 	uint32_t dpci_id[DPCI_DYNAMIC_MAX];			/**< dpci ids not tokens */
 	uint32_t dpci_id_peer[DPCI_DYNAMIC_MAX];		/**< dpci ids not tokens */
 	uint32_t tx_queue[DPCI_DYNAMIC_MAX][DPCI_PRIO_NUM];	/**< Use DPCI_PRIO_NUM between DPCI jumps */
+	uint8_t  flags[DPCI_DYNAMIC_MAX];
 };
 
 /**************************************************************************//**
@@ -116,18 +117,6 @@ int dpci_mng_find(uint32_t dpci_id);
 @Return		dpci index on success or error code otherwise
 *//***************************************************************************/
 int dpci_mng_peer_find(uint32_t dpci_id);
-
-/**************************************************************************//**
-@Function	dpci_mng_valid_dpcis
-
-@Description	Sets bit per every valid DPCI entry 63...0.
-
-The function is not multicore protected as it assumes that events are handled 
-one by one
-
-@Param[out]	valid_dpcis - Bit per valid DPCI entry
- *//***************************************************************************/
-void dpci_mng_valid_dpcis(uint64_t *valid_dpcis);
 
 
 #endif /* __FSL_DPCI_MNG_H */

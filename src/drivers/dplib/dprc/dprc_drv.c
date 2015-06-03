@@ -30,13 +30,13 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "dprc_drv.h"
+#include "fsl_sl_dprc_drv.h"
 #include "fsl_dprc.h"
 #include "fsl_dbg.h"
-#include "evmng.h"
+#include "fsl_sl_evmng.h"
 #include "fsl_sys.h"
 #include "fsl_malloc.h"
-#include "dpni_drv.h"
+#include "fsl_sl_dpni_drv.h"
 #include "drv.h"
 #include "aiop_common.h"
 #include "fsl_dpci_mng.h"
@@ -141,12 +141,18 @@ int dprc_drv_scan(void)
 				return err;
 			}
 
-		}
-		else if(strcmp(dev_desc.type, "dpci") == 0) {
+		} else if(strcmp(dev_desc.type, "dpci") == 0) {
+			/*err = dpci_event_update_obj((uint32_t)dev_desc.id);
+			if (err) {
+				sl_pr_err("Failed to update DPCI %d.\n",
+				          dev_desc.id);
+				return err;
+			}*/
 
 		}
 	}
 	dpni_drv_handle_removed_objects();
+	//dpci_event_handle_removed_objects();
 	return 0;
 
 }

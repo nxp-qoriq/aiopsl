@@ -211,6 +211,9 @@ int dprc_reset_container(struct fsl_mc_io *mc_io,
 
 /* IRQ */
 
+/* IRQ index */
+#define DPRC_IRQ_INDEX          0
+
 /* Number of dprc's IRQs */
 #define DPRC_NUM_OF_IRQS		1
 

@@ -155,6 +155,7 @@ int32_t tcp_gso_split_segment(struct tcp_gso_context *gso_ctx)
 	struct ipv6hdr *outer_ipv6_ptr;
 	struct fdma_present_segment_params present_segment_params;
 	struct fdma_insert_segment_data_params insert_segment_data_params;
+	uint16_t tmp_gross;
 
 	/* params for Split remaining frame */
 	split_frame_params.flags = FDMA_CFA_COPY_BIT |
@@ -338,8 +339,9 @@ int32_t tcp_gso_split_segment(struct tcp_gso_context *gso_ctx)
 
 	/* Calculation of Gross Running Sum*/
 	fdma_calculate_default_frame_checksum(
-			0, 0xFFFF, &pr->gross_running_sum);
-
+			0, 0xFFFF, &tmp_gross);
+	pr->gross_running_sum = tmp_gross;
+	
 	/* Run parser */
 	/* Update TCP checksum + Calculate IPv4 checksum */
 	parse_result_generate_checksum(

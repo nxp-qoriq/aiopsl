@@ -27,7 +27,7 @@
 #include "common/types.h"
 #include "common/fsl_stdio.h"
 #include "common/fsl_string.h"
-#include "dpni_drv.h"
+#include "fsl_sl_dpni_drv.h"
 #include "fsl_fdma.h"
 #include "general.h"
 #include "fsl_time.h"
@@ -342,7 +342,7 @@ static int app_dpni_event_added_cb(
 	uint64_t app_ctx,
 	void *event_data)
 {
-	uint16_t ni = *(uint16_t*)event_data;
+	uint16_t ni = (uint16_t)((uint32_t)event_data);
 	uint16_t ni2 = 0;
 	int err;
 	uint16_t spid = 0;
