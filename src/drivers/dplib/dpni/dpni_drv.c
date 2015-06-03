@@ -44,7 +44,7 @@
 #include "system.h"
 #include "fsl_dprc_drv.h"
 #include "slab.h"
-#include "evmng.h"
+#include "fsl_sl_evmng.h"
 #include "fsl_ep_mng.h"
 
 #define __ERR_MODULE__  MODULE_DPNI
