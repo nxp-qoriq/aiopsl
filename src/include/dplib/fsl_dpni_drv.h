@@ -33,8 +33,10 @@
 #define __FSL_DPNI_DRV_H
 
 #include "fsl_ldpaa.h"
-#include "dpni_drv.h"
+#include "fsl_net.h"
+#include "fsl_dpkg.h"
 #include "dpni_drv_rxtx_inline.h"
+#include "fsl_ep.h"
 
 
 /**************************************************************************//**
@@ -165,71 +167,15 @@ struct dpni_drv_buf_layout {
 };
 
 /**************************************************************************//**
- @Group		DPNI_DRV_INIT_PRESENTATION_OPT initial presentation options
+@Description	Application Receive callback
 
- @Description	initial presentation modification options
+		User provides this function. Driver invokes it when it gets a
+		frame received on this interface.
 
- @{
+
+@Return	OK on success; error code, otherwise.
 *//***************************************************************************/
-/** Select to modify the PTA Presentation address */
-#define DPNI_DRV_INIT_PRESENTATION_OPT_PTA             0x0004
-/** Select to modify the ASA presentation address */
-#define DPNI_DRV_INIT_PRESENTATION_OPT_ASAPA           0x0008
-/** Select to modify the ASA presentation offset */
-#define DPNI_DRV_INIT_PRESENTATION_OPT_ASAPO           0x0010
-/** Select to modify the ASA presentation size */
-#define DPNI_DRV_INIT_PRESENTATION_OPT_ASAPS           0x0020
-/** Select to modify the segment presentation address */
-#define DPNI_DRV_INIT_PRESENTATION_OPT_SPA             0x0040
-/** Select to modify the segment presentation size */
-#define DPNI_DRV_INIT_PRESENTATION_OPT_SPS             0x0080
-/** Select to modify the segment presentation offset */
-#define DPNI_DRV_INIT_PRESENTATION_OPT_SPO             0x0100
-/** Select to modify the segment reference bit */
-#define DPNI_DRV_INIT_PRESENTATION_OPT_SR              0x0200
-/** Select to modify no data segment bit */
-#define DPNI_DRV_INIT_PRESENTATION_OPT_NDS             0x0400
-/** @} end of group DPNI_DRV_INIT_PRESENTATION_OPT */
-
-/**************************************************************************//**
-@Group		dpni_drv_initial_presentation Initial Presentation
-
-@Description	Structure representing initial presentation settings.
-
-@{
-*//***************************************************************************/
-struct dpni_drv_init_presentation {
-	/** Flags representing the requested modifications to initial
-	 * presentation;
-	 * Use any combination of \ref DPNI_DRV_INIT_PRESENTATION_OPT */
-	uint16_t options;
-	/** FD Presentation Address - updating this
-	 * value is not supported*/
-	uint16_t fdpa;
-	/** Additional Dequeue and Presentation Context Address - updating this
-	 * value is not supported*/
-	uint16_t adpca;
-	/** PTA Presentation Address */
-	uint16_t ptapa;
-	/** ASA Presentation Address */
-	uint16_t asapa;
-	/** Offset within ASA to begin presenting from */
-	uint8_t  asapo;
-	/** ASA Presentation Size */
-	uint8_t  asaps;
-	/** Segment Presentation Address */
-	uint16_t spa;
-	/** Segment Presentation Size */
-	uint16_t sps;
-	/** Segment Presentation Offset within frame to begin presenting */
-	uint16_t spo;
-	/** Segment Reference bit - 0: start, 1: end. (Reference within the
-	 * frame to present from) */
-	uint8_t  sr;
-	/**  No Data Segment bit - 1: to not allocate data segment  */
-	uint8_t  nds;
-};
-/** @} end of group dpni_drv_initial_presentation */
+typedef void /*__noreturn*/ (rx_cb_t) (void);
 
 /**************************************************************************//**
 @Function	dpni_drv_register_rx_cb
@@ -862,14 +808,14 @@ int dpni_drv_remove_vlan_id(uint16_t ni_id, uint16_t vlan_id);
 @Param[in]	ni_id The AIOP Network Interface ID.
 
 @Param[out]	init_presentation Get initial presentation parameters
- 	 	 \ref dpni_drv_initial_presentation
+ 	 	 \ref ep_initial_presentation
 
 @Return	0 on success;
 	error code, otherwise. For error posix refer to \ref error_g
 *//***************************************************************************/
 int dpni_drv_get_initial_presentation(
 	uint16_t ni_id,
-	struct dpni_drv_init_presentation* const init_presentation);
+	struct ep_init_presentation* const init_presentation);
 
 /**************************************************************************//**
 @Function	dpni_drv_set_initial_presentation
@@ -880,7 +826,7 @@ int dpni_drv_get_initial_presentation(
 @Param[in]	ni_id The AIOP Network Interface ID.
 
 @Param[in]	init_presentation Set initial presentation parameters for given
-		options and parameters \ref dpni_drv_initial_presentation
+		options and parameters \ref ep_initial_presentation
 
 @Cautions	1) Data Segment, PTA Segment, ASA Segment must not reside
 		   outside the bounds of the
@@ -894,7 +840,7 @@ int dpni_drv_get_initial_presentation(
 *//***************************************************************************/
 int dpni_drv_set_initial_presentation(
 	uint16_t ni_id,
-	const struct dpni_drv_init_presentation* const init_presentation);
+	const struct ep_init_presentation* const init_presentation);
 
 /** @} */ /* end of dpni_drv_g DPNI DRV group */
 #endif /* __FSL_DPNI_DRV_H */

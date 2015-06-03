@@ -29,7 +29,7 @@
 #include "sys.h"
 #include "fsl_io_ccsr.h"
 #include "cmgw.h"
-#include "fsl_mc_init.h"
+#include "dprc_drv.h"
 #include "fsl_mem_mng.h"
 #include "platform.h"
 
@@ -42,11 +42,13 @@ extern struct aiop_init_info g_init_data;
 /*********************************************************************/
 extern int ep_mng_init(void);             extern void ep_mng_free(void);
 extern int time_init();                   extern void time_free();
-extern int mc_obj_init();                 extern void mc_obj_free();
 extern int cmdif_client_init();           extern void cmdif_client_free();
 extern int cmdif_srv_init(void);          extern void cmdif_srv_free(void);
+extern int dprc_drv_init(void);           extern void dprc_drv_free(void);
 extern int dpni_drv_init(void);           extern void dpni_drv_free(void);
 extern int dpci_drv_init();               extern void dpci_drv_free();
+extern int evmng_early_init(void);
+extern int evmng_init(void);                extern void evmng_free(void);
 extern int slab_module_early_init(void);  extern int slab_module_init(void);
 extern void slab_module_free(void);
 extern int aiop_sl_early_init(void);
@@ -74,17 +76,18 @@ extern void build_apps_array(struct sys_module_desc *apps);
 		MEMORY_ATTR_PHYS_ALLOCATION,"SYSTEM_DDR"},\
 }
 
-#define GLOBAL_MODULES                                                       \
+#define GLOBAL_MODULES                                                           \
 	{    /* slab must be before any module with buffer request*/             \
 	{NULL, time_init,         time_free},                                    \
 	{NULL, ep_mng_init,       ep_mng_free},                                \
-	{NULL, mc_obj_init,       mc_obj_free},                                  \
+	{NULL, dprc_drv_init,     dprc_drv_free},                                \
 	{NULL, dpci_drv_init,     dpci_drv_free}, /*must be before EVM */        \
 	{slab_module_early_init, slab_module_init,  slab_module_free},           \
 	{NULL, cmdif_client_init, cmdif_client_free}, /* must be before srv */   \
 	{NULL, cmdif_srv_init,    cmdif_srv_free},                               \
 	{aiop_sl_early_init, aiop_sl_init,      aiop_sl_free},                   \
 	{NULL, dpni_drv_init,     dpni_drv_free}, /*must be after aiop_sl_init*/ \
+	{evmng_early_init, evmng_init, evmng_free}, /*must be after cmdif*/            \
 	{NULL, NULL, NULL} /* never remove! */                                   \
 	}
 
@@ -242,7 +245,8 @@ __COLD_CODE int apps_early_init(void)
 
 __COLD_CODE int global_post_init(void)
 {
-	return 0;
+	pr_info("global post init\n");
+	return dprc_drv_scan();
 }
 
 #if (STACK_OVERFLOW_DETECTION == 1)
@@ -334,6 +338,5 @@ __COLD_CODE int apps_init(void)
 	}
 
 	fsl_free(apps);
-
 	return 0;
 }

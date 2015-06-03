@@ -34,16 +34,16 @@
 #define __FSL_DPCI_EVENT_H
 
 /**************************************************************************//**
-@Function	dpci_event_assign
+@Function	dpci_event_update_obj
 
-@Description	New DPCI was added to AIOP container or the state of 
-		the DPCI has changed. Updates the DPCI table. 
+@Description	Add new DPCI entry if dpci_id is new. 
+		Mark the DPCI entry as visited.   
 
 @Param[in]	dpci_id - DPCI id of the AIOP side.
 
 @Return		0      - on success, POSIX error code otherwise
  *//***************************************************************************/
-int dpci_event_assign(uint32_t dpci_id);
+int dpci_event_update_obj(uint32_t dpci_id);
 
 
 /**************************************************************************//**

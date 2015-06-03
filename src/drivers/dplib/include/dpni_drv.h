@@ -36,6 +36,9 @@
 #include "fsl_dpni.h"
 #include "fsl_ldpaa.h"
 #include "fsl_platform.h"
+#include "fsl_dpni_drv.h"
+#include "fsl_dprc_drv.h"
+#include "dpni_drv_rxtx_inline.h"
 
 /**************************************************************************//**
 @Group		grp_dplib_aiop	DPLIB
@@ -53,8 +56,8 @@
 *//***************************************************************************/
 
 /* TODO - move to soc files */
-#define SOC_MAX_NUM_OF_DPNI		64
-
+#define SOC_MAX_NUM_OF_DPNI           64
+#define DPNI_NOT_IN_USE               0xFFFF
 #define DPNI_DRV_FAST_MEMORY    MEM_PART_PEB
 #define DPNI_DRV_DDR_MEMORY     MEM_PART_DP_DDR
 #define DPNI_DRV_NUM_USED_BPIDS   BPIDS_USED_FOR_POOLS_IN_DPNI
@@ -76,39 +79,6 @@
 #define DPNI_DRV_DTR_DEF              0  /* Data Tail Room */
 #define DPNI_DRV_PTA_DEF              0  /* Pass Thru Annotation - Private Data Size */
 
-/* Supported options for initializing presentation fields*/
-#define DPNI_DRV_SUPPORTED_INIT_PRESENTATION_OPTIONS    \
-		DPNI_DRV_INIT_PRESENTATION_OPT_PTA   |  \
-		DPNI_DRV_INIT_PRESENTATION_OPT_ASAPA |  \
-		DPNI_DRV_INIT_PRESENTATION_OPT_ASAPO |  \
-		DPNI_DRV_INIT_PRESENTATION_OPT_ASAPS |  \
-		DPNI_DRV_INIT_PRESENTATION_OPT_SPA   |  \
-		DPNI_DRV_INIT_PRESENTATION_OPT_SPS   |  \
-		DPNI_DRV_INIT_PRESENTATION_OPT_SPO   |  \
-		DPNI_DRV_INIT_PRESENTATION_OPT_SR    |  \
-		DPNI_DRV_INIT_PRESENTATION_OPT_NDS
-
-/* Initial Presentation settings, masks, shift */
-#define FDPA_MASK                 0xFFE00000
-#define FDPA_SHIFT                21
-#define ADPCA_MASK                0x0000FFE0
-#define ADPCA_SHIFT               5
-#define PTAPA_MASK                0x0000FFC0
-#define PTAPA_SHIFT               6
-#define ASAPS_MASK                0x000F0000
-#define ASAPS_SHIFT               16
-#define ASAPA_MASK                0x0000FFC0
-#define ASAPA_SHIFT               6
-#define ASAPO_MASK                0x0000000F
-#define SPA_MASK                  0x0000FFFF
-#define SPS_MASK                  0xFFFF0000
-#define SPS_SHIFT                 16
-#define SR_MASK                   0x80000000
-#define SR_SHIFT                  31
-#define NDS_MASK                  0x02000000
-#define NDS_SHIFT                 25
-#define SPO_MASK                  0x0000FFFF
-
 /**************************************************************************//**
 @Group	DPNI_DRV_STATUS
 @{
@@ -116,8 +86,6 @@
 /** MTU was crossed for DPNI driver send function */
 #define	DPNI_DRV_MTU_ERR	(DPNI_DRV_MODULE_STATUS_ID | 0x1)
 /* @} */
-
-typedef uint64_t	dpni_drv_app_arg_t;
 
 /* TODO: need to define stats */
 struct dpni_stats {
@@ -154,16 +122,31 @@ struct aiop_psram_entry {
 };
 
 /**************************************************************************//**
-@Description	Application Receive callback
+@Function	dpni_drv_unprobe
 
-		User provides this function. Driver invokes it when it gets a
-		frame received on this interface.
+@Description	Function to unprobe the DPNI object.
 
+@Param[in]	aiop_niid - AIOP Network Interface ID
 
-@Return	OK on success; error code, otherwise.
 *//***************************************************************************/
-typedef void /*__noreturn*/ (rx_cb_t) (void);
+void dpni_drv_unprobe(uint16_t aiop_niid);
 
+/**************************************************************************//**
+@Function	dpni_drv_probe
+
+@Description	Function to probe the DPNI object.
+
+@Param[in]	dprc - Pointer to resource container
+
+@Param[in]	mc_niid - MC DP Network Interface ID
+
+@Return	aiop_niid (aiop_niid >= 0)on success; error code, otherwise.
+		For error posix refer to
+		\ref error_g
+*//***************************************************************************/
+int dpni_drv_probe(struct mc_dprc *dprc,
+                   uint16_t mc_niid,
+                   uint16_t *niid);
 /**************************************************************************//**
 @Function	discard_rx_cb
 
@@ -177,6 +160,7 @@ void discard_rx_cb(void);
 @Function	dpni_drv_get_ordering_mode
 
 @Description	Returns the configuration in epid table for ordering mode.
+
 @Param[in]	ni_id - Network Interface ID
 
 @Return	Ordering mode for given NI
@@ -185,6 +169,45 @@ void discard_rx_cb(void);
 *//***************************************************************************/
 int dpni_drv_get_ordering_mode(uint16_t ni_id);
 
+/**************************************************************************//**
+@Function	dpni_drv_is_dpni_exist
+
+@Description	Returns TRUE if mc_niid already exist or FALSE otherwise.
+
+@Param[in]	mc_niid - DPNI unique ID
+
+@Return		-1 if not exist
+		index in nis table if exist
+*//***************************************************************************/
+int dpni_drv_is_dpni_exist(uint16_t mc_niid);
+
+/**************************************************************************//**
+@Function	dpni_drv_update_obj
+
+@Description	Update NIS table regarding given mc dpni id and mark if this
+		object exist so the sync function wont remove it.
+
+@Param[in]	dprc - A pointer for AIOP received container.
+
+@Param[in]	mc_niid - DPNI id of an object in the container.
+
+@Return		0 on success; error code, otherwise.
+		For error posix refer to
+		\ref error_g
+*//***************************************************************************/
+int dpni_drv_update_obj(struct mc_dprc *dprc, uint16_t mc_niid);
+
+/**************************************************************************//**
+@Function	dpni_drv_handle_removed_objects
+
+@Description	Update NIS table and remove the NI's which were not found
+		during the scan.
+
+@Return		0 on success; error code, otherwise.
+		For error posix refer to
+		\ref error_g
+*//***************************************************************************/
+int dpni_drv_handle_removed_objects(void);
 
 /** @} */ /* end of DPNI_DRV_STATUS group */
 #endif /* __DPNI_DRV_H */

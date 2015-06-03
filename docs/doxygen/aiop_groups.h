@@ -724,6 +724,17 @@
 		*/		
 	/** @} */
 	
+	/** @defgroup evmng_g  Event Manager
+		@ingroup kernel_g
+		@{ */
+			/** @defgroup EVMNG_EVENT_TYPES Events provided by AIOPSL
+				@ingroup evmng_g
+			*/
+			/** @defgroup EVMNG_AIOPSL_GENERATOR_ID AIOPSL Generator ID
+				@ingroup evmng_g
+			*/
+	/** @} */
+	
 	/** @defgroup cmdif_g  Command Interface
 	@ingroup kernel_g
 	@{ */

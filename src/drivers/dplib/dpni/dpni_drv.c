@@ -25,7 +25,7 @@
  */
 
 #include "common/types.h"
-#include "fsl_dbg.h"
+#include "fsl_sl_dbg.h"
 #include "common/fsl_string.h"
 #include "kernel/fsl_spinlock.h"
 #include "fsl_malloc.h"
@@ -39,11 +39,13 @@
 #include "fsl_dpbp.h"
 #include "fsl_bman.h"
 #include "ls2085_aiop/fsl_platform.h"
-#include "fsl_dpni_drv.h"
+#include "dpni_drv.h"
 #include "aiop_common.h"
 #include "system.h"
-#include "fsl_mc_init.h"
+#include "fsl_dprc_drv.h"
 #include "slab.h"
+#include "evmng.h"
+#include "fsl_ep_mng.h"
 
 #define __ERR_MODULE__  MODULE_DPNI
 #define ETH_BROADCAST_ADDR		((uint8_t []){0xff,0xff,0xff,0xff,0xff,0xff})
@@ -53,6 +55,11 @@ void dpni_drv_free(void);
 extern struct aiop_init_info g_init_data;
 extern struct platform_app_params g_app_params;
 
+/*
+ * struct for pool params used for storage profile
+ * This struct is set during dpni_drv_init and can not change in runtime
+ */
+struct dpni_pools_cfg pools_params;
 /*buffer used for dpni_drv_set_order_scope*/
 uint8_t order_scope_buffer[PARAMS_IOVA_BUFF_SIZE];
 /* TODO - get rid */
@@ -61,6 +68,8 @@ struct dpni_drv *nis = &nis_first;
 int num_of_nis;
 
 struct dpni_early_init_request g_dpni_early_init_data = {0};
+
+static int dpni_drv_ev_cb(uint8_t generator_id, uint8_t event_id, uint64_t size, void *event_data);
 
 __COLD_CODE static void print_dev_desc(struct dprc_obj_desc* dev_desc)
 {
@@ -164,19 +173,137 @@ int dpni_drv_disable (uint16_t ni_id)
 	return dpni_disable(&dprc->io, dpni_drv->dpni_drv_params_var.dpni);
 }
 
+int dpni_drv_is_dpni_exist(uint16_t mc_niid)
+{
+	int i;
+	for(i = 0; i < SOC_MAX_NUM_OF_DPNI; i++){
+		if(nis[i].dpni_id == mc_niid){
+			break;
+		}
+	}
+	if(i == SOC_MAX_NUM_OF_DPNI)
+		return -1;
+	else
+		return i;
+}
 
-__COLD_CODE int dpni_drv_probe(struct mc_dprc *dprc,
+int dpni_drv_update_obj(struct mc_dprc *dprc, uint16_t mc_niid)
+{
+	int err;
+	uint16_t aiop_niid;
+	int index;
+	cdma_mutex_lock_take((uint64_t)nis, CDMA_MUTEX_WRITE_LOCK);
+	index = dpni_drv_is_dpni_exist(mc_niid);
+	if(index == -1){
+		sl_pr_debug("DPNI %d not exist nis table\n",mc_niid);
+		err = dpni_drv_probe(dprc, mc_niid, &aiop_niid);
+		if(err){
+			cdma_mutex_lock_release((uint64_t)nis);
+			sl_pr_err("DP-NI %d was not probed, err: %d.\n",
+			          mc_niid,
+			          aiop_niid);
+			return err;
+		}
+		/*send event: "DPNI_ADDED_EVENT" to EVM with
+		 * AIOP NI ID */
+		err = evmng_sl_raise_event(
+			EVMNG_GENERATOR_AIOPSL,
+			DPNI_EVENT_ADDED,
+			&aiop_niid);
+		if(err){
+			sl_pr_err("Failed to raise event for "
+				"NI-%d.\n", aiop_niid);
+			return err;
+		}
+		index = (int)aiop_niid;
+	}
+
+	/*update that this index scanned*/
+	nis[index].dpni_drv_params_var.flags |= DPNI_DRV_FLG_SCANNED;
+	cdma_mutex_lock_release((uint64_t)nis);
+	return 0;
+}
+
+int dpni_drv_handle_removed_objects(void)
+{
+	uint16_t aiop_niid;
+	int err;
+	cdma_mutex_lock_take((uint64_t)nis, CDMA_MUTEX_WRITE_LOCK);
+	for(aiop_niid = 0; aiop_niid < SOC_MAX_NUM_OF_DPNI; aiop_niid++)
+	{
+		if(nis[aiop_niid].dpni_drv_params_var.flags &
+			DPNI_DRV_FLG_SCANNED){
+			nis[aiop_niid].dpni_drv_params_var.flags &= ~DPNI_DRV_FLG_SCANNED;
+		}
+		else if(nis[aiop_niid].dpni_id != DPNI_NOT_IN_USE){
+			dpni_drv_unprobe(aiop_niid);
+			/*send event: "DPNI_REMOVED_EVENT" to EVM with
+			 * AIOP NI ID */
+			err = evmng_sl_raise_event(
+				EVMNG_GENERATOR_AIOPSL,
+				DPNI_EVENT_REMOVED,
+				&aiop_niid);
+			if(err){
+				sl_pr_err("Failed to raise event for "
+					"NI-%d.\n", aiop_niid);
+				cdma_mutex_lock_release((uint64_t)nis);
+				return err;
+			}
+		}
+	}
+	cdma_mutex_lock_release((uint64_t)nis);
+	return 0;
+}
+
+
+void dpni_drv_unprobe(uint16_t aiop_niid)
+{
+	struct aiop_tile_regs *tile_regs = (struct aiop_tile_regs *)
+					sys_get_handle(FSL_OS_MOD_AIOP_TILE, 1);
+	struct aiop_ws_regs *wrks_addr = &tile_regs->ws_regs;
+
+
+	/*Mutex lock to avoid race condition while writing to EPID table*/
+	cdma_mutex_lock_take((uint64_t)&wrks_addr->epas, CDMA_MUTEX_WRITE_LOCK);
+	iowrite32_ccsr((uint32_t)nis[aiop_niid].dpni_drv_params_var.epid_idx,
+	               &wrks_addr->epas);
+	/*clear ep_pc*/
+	iowrite32_ccsr(PTR_TO_UINT(discard_rx_cb), &wrks_addr->ep_pc);
+	/*Mutex unlock EPID table*/
+	cdma_mutex_lock_release((uint64_t)&wrks_addr->epas);
+	nis[aiop_niid].dpni_id = DPNI_NOT_IN_USE;
+
+	nis[aiop_niid].dpni_drv_params_var.spid         = 0;
+	nis[aiop_niid].dpni_drv_params_var.spid_ddr     = 0;
+	nis[aiop_niid].dpni_drv_params_var.epid_idx     = 0;
+	/*parser profile id from parser_profile_init()*/
+	/*
+	TODO: prpid should be updated dynamically in dpni_drv_probe
+	nis[aiop_niid].dpni_drv_params_var.prpid        = prpid;
+	*/
+	/*ETH HXS */
+	nis[aiop_niid].dpni_drv_params_var.starting_hxs = 0;
+	nis[aiop_niid].dpni_drv_tx_params_var.qdid      = 0;
+	nis[aiop_niid].dpni_drv_params_var.flags        =
+		DPNI_DRV_FLG_PARSE | DPNI_DRV_FLG_PARSER_DIS;
+	nis[aiop_niid].dpni_lock                   = 0;
+
+}
+
+
+int dpni_drv_probe(struct mc_dprc *dprc,
                                uint16_t mc_niid,
-                               uint16_t aiop_niid,
-                               struct dpni_pools_cfg *pools_params)
+                               uint16_t *niid)
 {
 	int i;
 	uint32_t j;
 	uint32_t ep_osc;
+	uint16_t aiop_niid;
 	int err = 0;
 	uint16_t dpni = 0;
 	uint8_t mac_addr[NET_HDR_FLD_ETH_ADDR_SIZE];
 	uint16_t qdid;
+	struct dpni_irq_cfg irq_cfg;
 	struct dpni_sp_info sp_info = { 0 };
 	struct dpni_attr attributes;
 	struct dpni_buffer_layout layout = {0};
@@ -184,30 +311,54 @@ __COLD_CODE int dpni_drv_probe(struct mc_dprc *dprc,
 				sys_get_handle(FSL_OS_MOD_AIOP_TILE, 1);
 	struct aiop_ws_regs *wrks_addr = &tile_regs->ws_regs;
 
-	/* TODO: replace 1024 w/ #define from Yulia */
+	/* Check if dpni with same ID already exists and find first entry to use*/
+	for (i = 0, aiop_niid = SOC_MAX_NUM_OF_DPNI;
+		i < SOC_MAX_NUM_OF_DPNI; i++)
+	{
+		if(nis[i].dpni_id == DPNI_NOT_IN_USE &&
+			aiop_niid == SOC_MAX_NUM_OF_DPNI){
+			aiop_niid = (uint16_t)i;
+		}
+		if(nis[i].dpni_id == mc_niid)
+		{
+			sl_pr_err("DPNI %d already exist in nis[]\n", mc_niid);
+			return -EEXIST;
+		}
+	}
+	if(aiop_niid == SOC_MAX_NUM_OF_DPNI){
+		sl_pr_err("NI's table is full\n");
+		return -ENOSPC;
+	}
+
+	/*Mutex lock to avoid race condition while writing to EPID table*/
+	cdma_mutex_lock_take((uint64_t)&wrks_addr->epas, CDMA_MUTEX_WRITE_LOCK);
 	/* Search for NIID (mc_niid) in EPID table and prepare the NI for usage. */
-	for (i = AIOP_EPID_DPNI_START; i < 1024; i++) {
+	for (i = AIOP_EPID_DPNI_START; i < AIOP_EPID_TABLE_SIZE; i++) {
 		/* Prepare to read from entry i in EPID table - EPAS reg */
 		iowrite32_ccsr((uint32_t)i, &wrks_addr->epas);
 
 		/* Read Entry Point Param (EP_PM) which contains the MC NI ID */
 		j = ioread32_ccsr(&wrks_addr->ep_pm);
 
-		pr_debug("EPID[%d].EP_PM = %d\n", i, j);
+		sl_pr_debug("EPID[%d].EP_PM = %d\n", i, j);
 
+		/*MC dpni id found in EPID table*/
 		if (j == mc_niid) {
-
 			/* Replace MC NI ID with AIOP NI ID */
 			iowrite32_ccsr(aiop_niid, &wrks_addr->ep_pm);
 
-			/* TODO: the mc_niid field will be necessary if we
-			 * decide to close the DPNI at the end of Probe. */
-			/* Register MC NI ID in AIOP NI table */
-			nis[aiop_niid].dpni_id = mc_niid;
+			ep_osc = ioread32_ccsr(&wrks_addr->ep_osc);
+			ep_osc &= ORDER_MODE_CLEAR_BIT;
+			/*Set concurrent mode for NI in epid table*/
+			iowrite32_ccsr(ep_osc, &wrks_addr->ep_osc);
 
-			if ((err = dpni_open(&dprc->io, mc_niid, &dpni)) != 0) {
-				pr_err("Failed to open DP-NI%d\n.", mc_niid);
-				return err;
+			/*Mutex unlock EPID table*/
+			cdma_mutex_lock_release((uint64_t)&wrks_addr->epas);
+
+			err = dpni_open(&dprc->io, mc_niid, &dpni);
+			if(err){
+				sl_pr_err("Failed to open DP-NI%d\n.", mc_niid);
+				break;
 			}
 
 			/* Save dpni regs and authentication ID in internal
@@ -215,36 +366,39 @@ __COLD_CODE int dpni_drv_probe(struct mc_dprc *dprc,
 			nis[aiop_niid].dpni_drv_params_var.dpni = dpni;
 
 			/* Register MAC address in internal AIOP NI table */
-			if ((err = dpni_get_primary_mac_addr(&dprc->io,
+			err = dpni_get_primary_mac_addr(&dprc->io,
 			                                     dpni,
-			                                     mac_addr)) != 0) {
-				pr_err("Failed to get MAC address for DP-NI%d\n",
+			                                     mac_addr);
+			if(err){
+				sl_pr_err("Failed to get MAC address for DP-NI%d\n",
 				       mc_niid);
-				return err;
+				break;
 			}
 			memcpy(nis[aiop_niid].mac_addr,
 			       mac_addr, NET_HDR_FLD_ETH_ADDR_SIZE);
 
 
-			if ((err = dpni_get_attributes(&dprc->io,
+			err = dpni_get_attributes(&dprc->io,
 			                               dpni,
-			                               &attributes)) != 0) {
-				pr_err("Failed to get attributes of DP-NI%d.\n",
+			                               &attributes);
+			if(err){
+				sl_pr_err("Failed to get attributes of DP-NI%d.\n",
 				       mc_niid);
-				return err;
+				break;
 			}
 
 			/* TODO: set nis[aiop_niid].starting_hxs according to
 			 * the DPNI attributes.
 			 * Not yet implemented on MC.
 			 * Currently always set to zero, which means ETH. */
-			if ((err = dpni_set_pools(
+			err = dpni_set_pools(
 				&dprc->io,
 				dpni,
-				pools_params)) != 0) {
-				pr_err("Failed to set the pools to DP-NI%d.\n",
+				&pools_params);
+			if(err){
+				sl_pr_err("Failed to set the pools to DP-NI%d.\n",
 				       mc_niid);
-				return err;
+				break;
 			}
 
 			layout.options = DPNI_BUF_LAYOUT_OPT_DATA_HEAD_ROOM
@@ -263,12 +417,25 @@ __COLD_CODE int dpni_drv_probe(struct mc_dprc *dprc,
 				layout.private_data_size = DPNI_DRV_PTA_DEF;
 			}
 
-			if ((err = dpni_set_rx_buffer_layout(&dprc->io,
+			err = dpni_set_rx_buffer_layout(&dprc->io,
 			                                     dpni,
-			                                     &layout)) != 0) {
-				pr_err("Failed to set rx buffer layout for DP-NI%d\n",
+			                                     &layout);
+			if(err){
+				sl_pr_err("Failed to set rx buffer layout for DP-NI%d\n",
 				       mc_niid);
-				return -ENODEV;
+				break;
+			}
+
+			/*
+			 * Disable TX confirmation for DPNI's in AIOP in case
+			 * the option: 'DPNI_OPT_TX_CONF_DISABLED' was not
+			 * selected at DPNI creation.
+			 * */
+			err = dpni_set_tx_conf_revoke(&dprc->io, dpni, 1);
+			if(err){
+				sl_pr_err("Failed to set tx_conf_revoke for DP-NI%d\n",
+				          mc_niid);
+				break;
 			}
 
 			/* Enable DPNI before updating the entry point
@@ -276,29 +443,31 @@ __COLD_CODE int dpni_drv_probe(struct mc_dprc *dprc,
 			 * to be initialized.
 			 * Frames arriving before the entry point function is
 			 * updated will be dropped. */
-			if ((err = dpni_enable(&dprc->io, dpni)) != 0) {
-				pr_err("Failed to enable DP-NI%d\n", mc_niid);
-				return -ENODEV;
+			err = dpni_enable(&dprc->io, dpni);
+			if(err){
+				sl_pr_err("Failed to enable DP-NI%d\n", mc_niid);
+				break;
 			}
 
 			/* Now a Storage Profile exists and is associated
 			 * with the NI */
 
 			/* Register QDID in internal AIOP NI table */
-			if ((err = dpni_get_qdid(&dprc->io,
-			                         dpni, &qdid)) != 0) {
-				pr_err("Failed to get QDID for DP-NI%d\n",
+			err = dpni_get_qdid(&dprc->io,
+			                         dpni, &qdid);
+			if(err){
+				sl_pr_err("Failed to get QDID for DP-NI%d\n",
 				       mc_niid);
-				return -ENODEV;
+				break;
 			}
 			nis[aiop_niid].dpni_drv_tx_params_var.qdid = qdid;
 
 			/* Register SPID in internal AIOP NI table */
 			if ((err = dpni_get_sp_info(&dprc->io,
 			                         dpni, &sp_info)) != 0) {
-				pr_err("Failed to get SPID for DP-NI%d\n",
+				sl_pr_err("Failed to get SPID for DP-NI%d\n",
 				       mc_niid);
-				return -ENODEV;
+				break;
 			}
 			/*TODO: change to uint16_t in nis table
 			 * for the next release*/
@@ -317,27 +486,61 @@ __COLD_CODE int dpni_drv_probe(struct mc_dprc *dprc,
 
 			/* TODO: need to initialize additional NI table fields according to DPNI attributes */
 
-
-			ep_osc = ioread32_ccsr(&wrks_addr->ep_osc);
-			ep_osc &= ORDER_MODE_CLEAR_BIT;
-			/*Set concurrent mode for NI in epid table*/
-			iowrite32_ccsr(ep_osc, &wrks_addr->ep_osc);
 			/*bpid exist to use for ddr pool*/
-			if(pools_params->num_dpbp == 2){
+			if(pools_params.num_dpbp == 2){
 				nis[aiop_niid].dpni_drv_params_var.spid_ddr =
 					(uint8_t)sp_info.spids[1];
 			}
 			else{
-				pr_err("DDR spid is not available \n");
+				sl_pr_err("DDR spid is not available \n");
 				nis[aiop_niid].dpni_drv_params_var.spid_ddr = 0;
 			}
+
+			irq_cfg.addr = DPNI_EVENT;
+			irq_cfg.val = (uint32_t)mc_niid;
+			irq_cfg.user_irq_id = 0;
+
+			err = dpni_set_irq(&dprc->io, dpni,
+				DPNI_IRQ_INDEX, &irq_cfg);
+			if(err){
+				sl_pr_err("Failed to set irq for DP-NI%d\n",
+				          mc_niid);
+				break;
+			}
+
+			err = dpni_set_irq_mask(&dprc->io, dpni,
+			                   DPNI_IRQ_INDEX,
+			                   DPNI_IRQ_EVENT_LINK_CHANGED);
+			if(err){
+				sl_pr_err("Failed to set irq mask for DP-NI%d\n",
+				          mc_niid);
+				break;
+			}
+
+			err = dpni_set_irq_enable(&dprc->io, dpni,
+			                        DPNI_IRQ_INDEX, 1);
+			if(err){
+				sl_pr_err("Failed to set irq enable for DP-NI%d\n",
+				          mc_niid);
+				break;
+			}
 			num_of_nis ++;
+
+			nis[aiop_niid].dpni_id = mc_niid;
+			/* Unlock nis table*/
+			*niid = aiop_niid;
 			return 0;
 		}
 	}
 
-	pr_err("DP-NI%d not found in EPID table.\n", mc_niid);
-	return(-ENODEV);
+
+	if(i == AIOP_EPID_TABLE_SIZE){ /*MC dpni id not found in EPID table*/
+		/*Unlock EPID table*/
+		cdma_mutex_lock_release((uint64_t)&wrks_addr->epas);
+		sl_pr_err("DP-NI %d not found in EPID table.\n", mc_niid);
+		err = -ENODEV;
+	}
+	return err;
 }
 
 
@@ -375,7 +578,7 @@ int dpni_drv_get_primary_mac_addr(uint16_t niid,
 	dpni_drv = nis + niid;
 	/*Lock dpni table entry*/
 	cdma_mutex_lock_take((uint64_t)&dpni_drv->dpni_lock,
-	                     CDMA_MUTEX_WRITE_LOCK);
+	                     CDMA_MUTEX_READ_LOCK);
 	memcpy(mac_addr, dpni_drv->mac_addr, NET_HDR_FLD_ETH_ADDR_SIZE);
 	/*Unlock dpni table entry*/
 	cdma_mutex_lock_release((uint64_t)&dpni_drv->dpni_lock);
@@ -506,7 +709,7 @@ __COLD_CODE static int parser_profile_init(uint8_t *prpid)
 
 __COLD_CODE int dpni_drv_init(void)
 {
-	int		    i;
+	int i;
 	uint8_t prpid = 0;
 	int err = 0;
 	int dev_count;
@@ -516,14 +719,13 @@ __COLD_CODE int dpni_drv_init(void)
 	struct dprc_obj_desc dev_desc;
 	int dpbp_id[DPNI_DRV_NUM_USED_BPIDS];
 	struct dpbp_attr attr;
-	struct dpni_pools_cfg pools_params = {0};
 	uint16_t buffer_size = (uint16_t)g_app_params.dpni_buff_size;
 	uint16_t num_buffs = (uint16_t)g_app_params.dpni_num_buffs;
 	uint16_t alignment;
 	uint8_t mem_pid[] = {DPNI_DRV_FAST_MEMORY, DPNI_DRV_DDR_MEMORY};
 	struct mc_dprc *dprc = sys_get_unique_handle(FSL_OS_MOD_AIOP_RC);
 
-
+	memset(&pools_params, 0, sizeof(struct dpni_pools_cfg));
 	num_of_nis = 0;
 	/* Allocate internal AIOP NI table */
 	nis =fsl_malloc(sizeof(struct dpni_drv)*SOC_MAX_NUM_OF_DPNI,64);
@@ -539,7 +741,7 @@ __COLD_CODE int dpni_drv_init(void)
 	/* Initialize internal AIOP NI table */
 	for (i = 0; i < SOC_MAX_NUM_OF_DPNI; i++) {
 		struct dpni_drv * dpni_drv = nis + i;
-		dpni_drv->dpni_id                          = 0;
+		dpni_drv->dpni_id                          = DPNI_NOT_IN_USE;
 		dpni_drv->dpni_drv_params_var.spid         = 0;
 		dpni_drv->dpni_drv_params_var.spid_ddr     = 0;
 		dpni_drv->dpni_drv_params_var.epid_idx     = 0;
@@ -645,22 +847,119 @@ __COLD_CODE int dpni_drv_init(void)
 
 		/* Enable all DPNI devices */
 	}
-	for (i = 0; i < dev_count; i++) {
-		dprc_get_obj(&dprc->io, dprc->token, i, &dev_desc);
-		if (strcmp(dev_desc.type, "dpni") == 0) {
-			/* TODO: print conditionally based on log level */
-			print_dev_desc(&dev_desc);
+//	for (i = 0; i < dev_count; i++) {
+//		dprc_get_obj(&dprc->io, dprc->token, i, &dev_desc);
+//		if (strcmp(dev_desc.type, "dpni") == 0) {
+//			/* TODO: print conditionally based on log level */
+//			print_dev_desc(&dev_desc);
+//
+//
+//			err = dpni_drv_probe(dprc, (uint16_t)dev_desc.id, &aiop_niid);
+//			if(err){
+//				pr_err("Error: %d, failed to probe DPNI-%d.\n",
+//				       err, dev_desc.id);
+//				return err;
+//			}
+//			/*send event: "DPNI_ADDED_EVENT" to EVM with
+//			 * AIOP NI ID */
+//			err = evmng_sl_raise_event(DPNI_EVENT_ADDED,
+//			                      &aiop_niid);
+//			if(err){
+//				sl_pr_err("Failed to raise event for "
+//					"NI-%d.\n", aiop_niid);
+//				return err;
+//			}
+//		}
+//	}
 
-			if ((err = dpni_drv_probe(dprc, (uint16_t)dev_desc.id,
-			                          (uint16_t)i,
-			                          &pools_params)) != 0) {
-				pr_err("Failed to probe DPNI-%d.\n", i);
+	err = evmng_irq_register(EVMNG_GENERATOR_AIOPSL,
+	                         DPNI_EVENT,
+	                         0,
+	                         0,
+	                         dpni_drv_ev_cb);
+	if(err){
+		pr_err("EVM registration for DPNI events failed %d\n",err);
+		return -ENAVAIL;
+	}
+	else{
+		pr_info("Registered to: dpni_drv_ev_cb\n");
+	}
+
+	return err;
+}
+
+static int dpni_drv_ev_cb(uint8_t generator_id, uint8_t event_id, uint64_t app_ctx, void *event_data)
+{
+	/*Container was updated*/
+	int err;
+	uint16_t ni_id;
+	uint32_t status;
+	struct dpni_drv *dpni_drv;
+	struct mc_dprc *dprc = sys_get_unique_handle(FSL_OS_MOD_AIOP_RC);
+	struct dpni_link_state link_state;
+
+	UNUSED(app_ctx);
+	/*TODO SIZE should be cooperated with Ehud*/
+
+	if(event_id == DPNI_EVENT && generator_id == EVMNG_GENERATOR_AIOPSL){
+		ni_id = *((uint16_t*)event_data);
+		sl_pr_debug("DPNI event\n");
+		/* calculate pointer to the NI structure */
+		dpni_drv = nis + ni_id;
+
+		err = dpni_get_irq_status(&dprc->io,
+		                          dpni_drv->dpni_drv_params_var.dpni,
+		                          DPNI_IRQ_INDEX,
+		                          &status);
+		if(err){
+			sl_pr_err("Get irq status for NI %d "
+				"failed\n", ni_id);
+			return -ENAVAIL;
+		}
+
+		if(status & DPNI_IRQ_EVENT_LINK_CHANGED){
+			err = dpni_get_link_state(&dprc->io,
+			                          dpni_drv->dpni_drv_params_var.dpni,
+			                          &link_state);
+			if(err){
+				sl_pr_err("Failed to get dpni link state, %d.\n", err);
+				return err;
+			}
+
+			if(link_state.up){
+				err = evmng_sl_raise_event(
+					EVMNG_GENERATOR_AIOPSL,
+					DPNI_EVENT_LINK_UP,
+					&ni_id);
+			}
+			else{
+				err = evmng_sl_raise_event(
+					EVMNG_GENERATOR_AIOPSL,
+					DPNI_EVENT_LINK_DOWN,
+					&ni_id);
+			}
+			if(err){
+				sl_pr_err("Failed to raise event for "
+					"NI-%d.\n", ni_id);
+				return err;
+			}
+
+			err = dpni_clear_irq_status(&dprc->io, dprc->token,
+			                            DPNI_IRQ_INDEX,
+			                            DPNI_IRQ_EVENT_LINK_CHANGED);
+			if(err){
+				sl_pr_err("Clear status for DPNI link "
+					"change failed\n");
 				return err;
 			}
 		}
 	}
+	else{
+		sl_pr_debug("Event %d is not supported\n",event_id);
+		return -EINVAL;
+	}
 
-	return err;
+	return 0;
 }
 
 __COLD_CODE void dpni_drv_free(void)
@@ -1059,255 +1358,39 @@ int dpni_drv_remove_vlan_id(uint16_t ni_id, uint16_t vlan_id){
 
 int dpni_drv_get_initial_presentation(
 	uint16_t ni_id,
-	struct dpni_drv_init_presentation* const init_presentation){
-	uint32_t ep_fdpa;
-	uint32_t ep_ptapa;
-	uint32_t ep_asapa;
-	uint32_t ep_spa;
-	uint32_t ep_spo;
+	struct ep_init_presentation* const init_presentation){
 	struct dpni_drv *dpni_drv;
-	struct aiop_tile_regs *tile_regs = (struct aiop_tile_regs *)
-		sys_get_handle(FSL_OS_MOD_AIOP_TILE, 1);
-	struct aiop_ws_regs *wrks_addr = &tile_regs->ws_regs;
-
-#ifdef DEBUG
-	if(init_presentation == NULL)
-		return -EINVAL;
-#endif
+	int err;
 
 	/* calculate pointer to the NI structure */
 	dpni_drv = nis + ni_id;
 
-	/*Mutex lock to avoid race condition while writing to EPID table*/
-	cdma_mutex_lock_take((uint64_t)&wrks_addr->epas, CDMA_MUTEX_WRITE_LOCK);
 	/*Lock dpni table entry*/
 	cdma_mutex_lock_take((uint64_t)&dpni_drv->dpni_lock, CDMA_MUTEX_WRITE_LOCK);
-	/* write epid index to epas register */
-	iowrite32_ccsr((uint32_t)(dpni_drv->dpni_drv_params_var.epid_idx), &wrks_addr->epas);
-	/* read ep_fdpa - to get Entry Point Frame Descriptor Presentation
-	 * Address */
-	ep_fdpa = ioread32_ccsr(&wrks_addr->ep_fdpa);
-	/* read ep_ptapa - to get Entry Point Pass Through Annotation
-	 * Presentation Address */
-	ep_ptapa = ioread32_ccsr(&wrks_addr->ep_ptapa);
-	/* read ep_asapa - to get Entry Point Accelerator Specific
-	 * Annotation Presentation Address */
-	ep_asapa = ioread32_ccsr(&wrks_addr->ep_asapa);
-	/* read ep_spa - to get Entry Point Segment Presentation
-	 * Address */
-	ep_spa = ioread32_ccsr(&wrks_addr->ep_spa);
-	/* read ep_spo - to get Entry Point Segment Presentation Offset
-	 * Address */
-	ep_spo = ioread32_ccsr(&wrks_addr->ep_spo);
+
+	err = ep_mng_get_initial_presentation(
+			dpni_drv->dpni_drv_params_var.epid_idx, init_presentation);
 	/*Unlock dpni table entry*/
 	cdma_mutex_lock_release((uint64_t)&dpni_drv->dpni_lock);
-	/*Mutex unlock EPID table*/
-	cdma_mutex_lock_release((uint64_t)&wrks_addr->epas);
 
-	init_presentation->fdpa = (uint16_t)
-			((ep_fdpa & FDPA_MASK) >> FDPA_SHIFT);
-
-	init_presentation->adpca = (uint16_t)
-			((ep_fdpa & ADPCA_MASK) >> ADPCA_SHIFT);
-
-	init_presentation->ptapa = (uint16_t)
-			((ep_ptapa & PTAPA_MASK) >> PTAPA_SHIFT);
-
-	init_presentation->asapa = (uint16_t)
-			((ep_asapa & ASAPA_MASK) >> ASAPA_SHIFT);
-
-	init_presentation->asapo = (uint8_t) (ep_asapa & ASAPO_MASK);
-
-	init_presentation->asaps = (uint8_t)
-			((ep_asapa & ASAPS_MASK) >> ASAPS_SHIFT);
-
-	init_presentation->spa = (uint16_t) (ep_spa & SPA_MASK);
-
-	init_presentation->sps = (uint16_t)
-			((ep_spa & SPS_MASK) >> SPS_SHIFT);
-	init_presentation->sr = (uint8_t)
-			((ep_spo & SR_MASK) >> SR_SHIFT);
-
-	init_presentation->nds = (uint8_t)
-			((ep_spo & NDS_MASK) >> NDS_SHIFT);
-
-	init_presentation->spo = (uint16_t) (ep_spo & SPO_MASK);
-
-	return 0;
+	return err;
 }
 
 int dpni_drv_set_initial_presentation(
 	uint16_t ni_id,
-	const struct dpni_drv_init_presentation* const init_presentation){
-	uint32_t ep_ptapa = 0;
-	uint32_t ep_asapa = 0;
-	uint32_t ep_spa = 0;
-	uint32_t ep_spo = 0;
-	uint32_t ep_temp;
+	const struct ep_init_presentation* const init_presentation){
 	struct dpni_drv *dpni_drv;
-	struct aiop_tile_regs *tile_regs = (struct aiop_tile_regs *)
-		sys_get_handle(FSL_OS_MOD_AIOP_TILE, 1);
-	struct aiop_ws_regs *wrks_addr = &tile_regs->ws_regs;
-
-#ifdef DEBUG
-	if(init_presentation == NULL)
-		return -EINVAL;
-	if(init_presentation->options == 0)
-		return -EINVAL;
-#endif
-	if(init_presentation->options &
-		~(DPNI_DRV_SUPPORTED_INIT_PRESENTATION_OPTIONS))
-		return -ENOTSUP;
-
+	int err;
 	/* calculate pointer to the NI structure */
 	dpni_drv = nis + ni_id;
 
-	if(init_presentation->options & DPNI_DRV_INIT_PRESENTATION_OPT_PTA)
-	{
-		ep_ptapa |= (((uint32_t)(init_presentation->ptapa)
-			<< PTAPA_SHIFT) & PTAPA_MASK);
-	}
-	if(init_presentation->options & DPNI_DRV_INIT_PRESENTATION_OPT_ASAPA)
-	{
-		ep_asapa |= (((uint32_t)(init_presentation->asapa)
-			<< ASAPA_SHIFT) & ASAPA_MASK);
-	}
-	if(init_presentation->options & DPNI_DRV_INIT_PRESENTATION_OPT_ASAPO)
-	{
-		ep_asapa |= ((uint32_t)(init_presentation->asapo) & ASAPO_MASK);
-	}
-	if(init_presentation->options & DPNI_DRV_INIT_PRESENTATION_OPT_ASAPS)
-	{
-		ep_asapa |= (((uint32_t)(init_presentation->asaps)
-			<< ASAPS_SHIFT) & ASAPS_MASK);
-	}
-	if(init_presentation->options & DPNI_DRV_INIT_PRESENTATION_OPT_SPA)
-	{
-		ep_spa |= ((uint32_t)(init_presentation->spa) & SPA_MASK);
-	}
-	if(init_presentation->options & DPNI_DRV_INIT_PRESENTATION_OPT_SPS)
-	{
-		ep_spa |= (((uint32_t)(init_presentation->sps)
-			<< SPS_SHIFT) & SPS_MASK);
-	}
-	if(init_presentation->options & DPNI_DRV_INIT_PRESENTATION_OPT_SR)
-	{
-		ep_spo |= (((uint32_t)(init_presentation->sr)
-			<< SR_SHIFT) & SR_MASK);
-	}
-	if(init_presentation->options & DPNI_DRV_INIT_PRESENTATION_OPT_NDS)
-	{
-		ep_spo |= (((uint32_t)(init_presentation->nds)
-			<< NDS_SHIFT) & NDS_MASK);
-	}
-	if(init_presentation->options & DPNI_DRV_INIT_PRESENTATION_OPT_SPO)
-	{
-		ep_spo |= ((uint32_t)(init_presentation->spo) & SPO_MASK);
-	}
+	/*Lock dpni table entry*/
+	cdma_mutex_lock_take((uint64_t)&dpni_drv->dpni_lock, CDMA_MUTEX_WRITE_LOCK);
 
-	/*Mutex lock to avoid race condition while writing to EPID table*/
-	cdma_mutex_lock_take((uint64_t)&wrks_addr->epas, CDMA_MUTEX_WRITE_LOCK);
-	cdma_mutex_lock_take((uint64_t)&dpni_drv->dpni_lock, CDMA_MUTEX_WRITE_LOCK); /*Lock dpni table entry*/
-	/* write epid index to epas register */
-	iowrite32_ccsr((uint32_t)(dpni_drv->dpni_drv_params_var.epid_idx), &wrks_addr->epas);
+	err = ep_mng_set_initial_presentation(
+			dpni_drv->dpni_drv_params_var.epid_idx, init_presentation);
 
-	if(init_presentation->options & DPNI_DRV_INIT_PRESENTATION_OPT_PTA)
-	{
-		/* read ep_ptapa - to get Entry Point Pass Through
-		 * Annotation Presentation Address */
-		ep_temp = ioread32_ccsr(&wrks_addr->ep_ptapa);
-		/* Clear PTAAPA field */
-		ep_temp &= ~PTAPA_MASK;
-
-		ep_temp |= ep_ptapa;
-		/* write ep_ptapa - to set Entry Point Pass Through
-		 * Annotation Presentation Address */
-		iowrite32_ccsr(ep_temp, &wrks_addr->ep_ptapa);
-	}
-
-	if(init_presentation->options & (DPNI_DRV_INIT_PRESENTATION_OPT_ASAPA |
-		DPNI_DRV_INIT_PRESENTATION_OPT_ASAPO |
-		DPNI_DRV_INIT_PRESENTATION_OPT_ASAPS))
-	{
-		/* read ep_asapa - to get Entry Point Accelerator Specific
-		 * Annotation Presentation Address */
-		ep_temp = ioread32_ccsr(&wrks_addr->ep_asapa);
-		if(init_presentation->options & DPNI_DRV_INIT_PRESENTATION_OPT_ASAPA)
-		{
-			/* Clear ASAPA field */
-			ep_temp &= ~ASAPA_MASK;
-		}
-		if(init_presentation->options & DPNI_DRV_INIT_PRESENTATION_OPT_ASAPO)
-		{
-			/* Clear ASAPO field */
-			ep_temp &= ~ASAPO_MASK;
-		}
-
-		if(init_presentation->options & DPNI_DRV_INIT_PRESENTATION_OPT_ASAPS)
-		{
-			/* Clear ASAPS field */
-			ep_temp &= ~ASAPS_MASK;
-		}
-
-		ep_temp |= ep_asapa;
-		/* write ep_asapa - to set Entry Point Accelerator Specific
-		 * Annotation Presentation Address */
-		iowrite32_ccsr(ep_temp, &wrks_addr->ep_asapa);
-	}
-
-	if(init_presentation->options & (DPNI_DRV_INIT_PRESENTATION_OPT_SPA |
-		DPNI_DRV_INIT_PRESENTATION_OPT_SPS))
-	{
-		/* read ep_spa - to get Entry Point Segment Presentation
-		 * Address */
-		ep_temp = ioread32_ccsr(&wrks_addr->ep_spa);
-		if(init_presentation->options & DPNI_DRV_INIT_PRESENTATION_OPT_SPA)
-		{
-			/* Clear SPA field */
-			ep_temp &= ~SPA_MASK;
-		}
-		if(init_presentation->options & DPNI_DRV_INIT_PRESENTATION_OPT_SPS)
-		{
-			/* Clear SPS field */
-			ep_temp &= ~SPS_MASK;
-		}
-
-		ep_temp |= ep_spa;
-		/* write ep_spa - to set Entry Point Segment Presentation
-		 * Address */
-		iowrite32_ccsr(ep_temp, &wrks_addr->ep_spa);
-	}
-
-	if(init_presentation->options & (DPNI_DRV_INIT_PRESENTATION_OPT_SPO |
-		DPNI_DRV_INIT_PRESENTATION_OPT_SR |
-		DPNI_DRV_INIT_PRESENTATION_OPT_NDS))
-	{
-		/* read ep_spo - to get Entry Point Segment Presentation
-		 * Offsets */
-		ep_temp = ioread32_ccsr(&wrks_addr->ep_spo);
-		if(init_presentation->options & DPNI_DRV_INIT_PRESENTATION_OPT_SR)
-		{
-			/* Clear SR field */
-			ep_temp &= ~SR_MASK;
-		}
-		if(init_presentation->options & DPNI_DRV_INIT_PRESENTATION_OPT_NDS)
-		{
-			/* Clear NDS field */
-			ep_temp &= ~NDS_MASK;
-		}
-		if(init_presentation->options & DPNI_DRV_INIT_PRESENTATION_OPT_SPO)
-		{
-			/* Clear SPO field */
-			ep_temp &= ~SPO_MASK;
-		}
-		ep_temp |= ep_spo;
-		/* write ep_spo - to set Entry Point Segment Presentation
-		 * Offset */
-		iowrite32_ccsr(ep_temp, &wrks_addr->ep_spo);
-	}
 	/*Unlock dpni table entry*/
 	cdma_mutex_lock_release((uint64_t)&dpni_drv->dpni_lock);
-	/*Mutex unlock EPID table*/
-	cdma_mutex_lock_release((uint64_t)&wrks_addr->epas);
-	return 0;
+	return err;
 }

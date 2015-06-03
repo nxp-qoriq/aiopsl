@@ -24,14 +24,44 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef __FSL_MC_INIT_H
-#define __FSL_MC_INIT_H
+/**************************************************************************//**
+@File		dprc_drv.h
 
-#include "dplib/fsl_mc_sys.h"
+@Description	Data Path Resource Container API
+*//***************************************************************************/
+#ifndef __DPRC_DRV_H
+#define __DPRC_DRV_H
 
-struct mc_dprc {
-	uint16_t		token;
-	struct fsl_mc_io	io;
-};
+#include "types.h"
+#include "fsl_dprc_drv.h"
 
-#endif /*__FSL_MC_INIT_H */
+
+
+/**************************************************************************//**
+@Group		grp_dplib_aiop	DPLIB
+
+@Description	Contains initialization APIs and runtime control APIs for DPRC
+
+@{
+*//***************************************************************************/
+/**************************************************************************//**
+@Group		grp_dprc_aiop	DPRC (AIOP Data Path Resource Container API)
+
+@Description	Contains initialization APIs and runtime control APIs for DPRC
+
+@{
+*//***************************************************************************/
+/**************************************************************************//**
+@Function	dprc_drv_scan
+
+@Description	Function to scan for objects changes in resource
+		container.
+
+@Return	OK on success; error code, otherwise.
+		For error posix refer to
+		\ref error_g
+*//***************************************************************************/
+int dprc_drv_scan(void);
+/** @} */ /* end of grp_dprc_aiop group */
+/** @} */ /* end of grp_dplib_aiop group */
+#endif /* __DPRC_DRV_H */

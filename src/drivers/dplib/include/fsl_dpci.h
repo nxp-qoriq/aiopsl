@@ -49,6 +49,11 @@ struct fsl_mc_io;
 /* All queues considered; see dpci_set_rx_queue() */
 #define DPCI_ALL_QUEUES		(uint8_t)(-1)
 
+#define DPCI_IRQ_INDEX					0
+#define DPCI_IRQ_EVENT_LINK_CHANGED		0x00000001
+#define DPCI_IRQ_EVENT_CONNECTED		0x00000002
+#define DPCI_IRQ_EVENT_DISCONNECTED		0x00000004
+
 /**
  * dpci_open() - Open a control session for the specified object
  * @mc_io:	Pointer to MC portal's I/O object
@@ -168,6 +173,10 @@ int dpci_reset(struct fsl_mc_io *mc_io, uint16_t token);
 
 /* IRQ event - indicates a change in link state */
 #define DPCI_IRQ_EVENT_LINK_CHANGED		0x00000001
+/* IRQ event - indicates a connection event */
+#define DPCI_IRQ_EVENT_CONNECTED                0x00000002
+/* IRQ event - indicates a disconnection event */
+#define DPCI_IRQ_EVENT_DISCONNECTED             0x00000004
 
 /**
  * struct dpci_irq_cfg - IRQ configuration
