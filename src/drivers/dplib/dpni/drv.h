@@ -82,7 +82,6 @@ struct dpni_drv {
 	/** MAC address of this NI */
 	uint8_t 	    mac_addr[NET_HDR_FLD_ETH_ADDR_SIZE];
 	/* lock for multi-core support */
-	uint8_t             dpni_lock;
 };
 #pragma pack(pop)
 
