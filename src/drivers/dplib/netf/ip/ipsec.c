@@ -1133,7 +1133,16 @@ void ipsec_generate_sa_params(
 			if ((*(params->encparams.outer_hdr) & IPSEC_IP_VERSION_MASK) == 
 					IPSEC_IP_VERSION_IPV6) {
 				sap.sap1.flags |= IPSEC_FLG_OUTER_HEADER_IPV6;
+				
+				/* DSCP for IPv6 */
+				sap.sap1.outer_hdr_dscp = IPSEC_DSCP_MASK_IPV6 &
+					(*(uint32_t *)params->encparams.outer_hdr);
+			} else {
+				/* DSCP for IPv4 */
+				sap.sap1.outer_hdr_dscp = IPSEC_DSCP_MASK_IPV4 &
+					(*(uint32_t *)params->encparams.outer_hdr);
 			}
+			
 		} else {
 			/* Add IPv6/IPv4 indication to the flags field in transport mode */
 			if ((params->encparams.options) & IPSEC_PDB_OPTIONS_MASK & 
@@ -1194,17 +1203,6 @@ void ipsec_generate_sa_params(
 	/* Set valid flag */
 	sap.sap1.valid = 1; /* descriptor valid. */
 
-	/* Get DSCP from the outer header. Mask ECN (2 least significant bits) */
-	if (sap.sap1.flags & IPSEC_FLG_IPV6) {
-		/* IPv6 */
-		sap.sap1.outer_hdr_dscp = IPSEC_DSCP_MASK_IPV6 &
-			(*(uint32_t *)params->encparams.outer_hdr);
-	} else {
-		/* IPv4 */ 
-		sap.sap1.outer_hdr_dscp = IPSEC_DSCP_MASK_IPV4 &
-			(*(uint32_t *)params->encparams.outer_hdr);
-	}
-	
 	/* Descriptor Part #2 */
 	sap.sap2.sec_callback_func = (uint32_t)params->lifetime_callback;
 	sap.sap2.sec_callback_arg = params->callback_arg;
@@ -1798,8 +1796,8 @@ int ipsec_frame_encrypt(
 		 * frame. Assuming the frame is at beginning of the segment */
 		original_val = 
 				*((uint32_t *)IPSEC_GET_SEGMENT_ADDRESS(HWC_PRC_ADDRESS));
-			
-		if (sap1.flags & IPSEC_FLG_IPV6) { /* IPv6 header */
+
+		if (sap1.flags & IPSEC_FLG_OUTER_HEADER_IPV6) { /* IPv6 header */
 			/* IPv6 header: 0-3:Version, 4-11:Traffic Class (4-9: DSCP) */
 			/* New first 16 bits of the IP header, including DSCP */
 			new_val = (original_val & (~IPSEC_DSCP_MASK_IPV6)) |
