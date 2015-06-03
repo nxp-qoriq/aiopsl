@@ -82,6 +82,11 @@ static int app_dpni_event_added_cb(
 		pr_err("dpni_drv_set_max_frame_length for ni %d failed: %d\n", ni, err);
 		return err;
 	}
+	err = dpni_drv_enable(ni);
+	if(err){
+		pr_err("dpni_drv_enable for ni %d failed: %d\n", ni, err);
+		return err;
+	}
 	return 0;
 }
 

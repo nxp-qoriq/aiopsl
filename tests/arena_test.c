@@ -426,11 +426,6 @@ static int app_dpni_event_added_cb(
 		fsl_os_print("Error: dpni_drv_get_connected_dpni_id: error %d\n",err);
 		test_error |= 0x01;
 	}
-	err = dpni_drv_disable(ni);
-	if(err){
-		fsl_os_print("Error: dpni_drv_disable: error %d\n",err);
-		test_error |= 0x01;
-	}
 
 	layout.options = DPNI_DRV_BUF_LAYOUT_OPT_DATA_HEAD_ROOM |
 		DPNI_DRV_BUF_LAYOUT_OPT_DATA_TAIL_ROOM;
@@ -502,6 +497,12 @@ static int app_dpni_event_added_cb(
 		fsl_os_print("Error: dpni_drv_enable: error %d\n",err);
 		test_error |= 0x01;
 	}
+	err = dpni_drv_disable(ni);
+	if(err){
+		pr_err("dpni_drv_disable for ni %d failed: %d\n", ni, err);
+		return err;
+	}
+	
 	layout.options = DPNI_DRV_BUF_LAYOUT_OPT_DATA_HEAD_ROOM |
 		DPNI_DRV_BUF_LAYOUT_OPT_DATA_TAIL_ROOM;
 	layout.data_head_room = 0;
@@ -553,6 +554,11 @@ static int app_dpni_event_added_cb(
 	sp_addr += spid;
 	if(sp_addr->bp1 == 0){
 		fsl_os_print("Error: spid ddr bp1 is 0\n");
+		test_error |= 0x01;
+	}
+	err = dpni_drv_enable(ni);
+	if(err){
+		fsl_os_print("Error: dpni_drv_enable: error %d\n",err);
 		test_error |= 0x01;
 	}
 	return 0;

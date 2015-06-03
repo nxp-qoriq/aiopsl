@@ -443,17 +443,6 @@ int dpni_drv_probe(struct mc_dprc *dprc,
 				break;
 			}
 
-			/* Enable DPNI before updating the entry point
-			 * function (EP_PC) in order to allow DPNI's attributes
-			 * to be initialized.
-			 * Frames arriving before the entry point function is
-			 * updated will be dropped. */
-			err = dpni_enable(&dprc->io, dpni);
-			if(err){
-				sl_pr_err("Failed to enable DP-NI%d\n", mc_niid);
-				break;
-			}
-
 			/* Now a Storage Profile exists and is associated
 			 * with the NI */
 
