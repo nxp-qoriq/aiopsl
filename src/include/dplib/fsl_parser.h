@@ -1229,64 +1229,64 @@ enum parser_starting_hxs_code {
 #pragma pack(push, 1)
 struct parse_result {
 	/** Next header */
-	uint16_t nxt_hdr;
+	volatile uint16_t	nxt_hdr;
 	/** Frame Attribute Flags Extension */
-	uint16_t frame_attribute_flags_extension;
+	volatile uint16_t	frame_attribute_flags_extension;
 	/** Frame Attribute Flags (part 1) */
-	uint32_t frame_attribute_flags_1;
+	volatile uint32_t	frame_attribute_flags_1;
 	/** Frame Attribute Flags (part 2) */
-	uint32_t frame_attribute_flags_2;
+	volatile uint32_t	frame_attribute_flags_2;
 	/** Frame Attribute Flags (part 3) */
-	uint32_t frame_attribute_flags_3;
+	volatile uint32_t	frame_attribute_flags_3;
 	/** Shim Offset 1 */
-	uint8_t  shim_offset_1;
+	volatile uint8_t	shim_offset_1;
 	/** Shim Offset 2 */
-	uint8_t  shim_offset_2;
+	volatile uint8_t	shim_offset_2;
 	/** IP protocol field offset */
-	uint8_t  ip_pid_offset;
+	volatile uint8_t	ip_pid_offset;
 	/** Ethernet offset */
-	uint8_t  eth_offset;
+	volatile uint8_t	eth_offset;
 	/** LLC+SNAP offset */
-	uint8_t  llc_snap_offset;
+	volatile uint8_t	llc_snap_offset;
 	/** First VLAN's TCI field offset*/
-	uint8_t  vlan_tci1_offset;
+	volatile uint8_t	vlan_tci1_offset;
 	/** Last VLAN's TCI field offset*/
-	uint8_t  vlan_tcin_offset;
+	volatile uint8_t	vlan_tcin_offset;
 	/** Last Ethertype offset*/
-	uint8_t  last_etype_offset;
+	volatile uint8_t	last_etype_offset;
 	/** PPPoE offset */
-	uint8_t  pppoe_offset;
+	volatile uint8_t	pppoe_offset;
 	/** First MPLS offset */
-	uint8_t  mpls_offset_1;
+	volatile uint8_t	mpls_offset_1;
 	/** Last MPLS offset */
-	uint8_t  mpls_offset_n;
+	volatile uint8_t	mpls_offset_n;
 	/** Outer IP or ARP offset */
-	uint8_t  ip1_or_arp_offset;
+	volatile uint8_t	ip1_or_arp_offset;
 	/** Inner IP or MinEncap offset*/
-	uint8_t	 ipn_or_minencapO_offset;
+	volatile uint8_t	ipn_or_minencapO_offset;
 	/** GRE offset */
-	uint8_t  gre_offset;
+	volatile uint8_t	gre_offset;
 	/** Layer 4 offset*/
-	uint8_t  l4_offset;
+	volatile uint8_t	l4_offset;
 	/** GTP/ESP/IPsec offset */
-	uint8_t  gtp_esp_ipsec_offset;
+	volatile uint8_t	gtp_esp_ipsec_offset;
 	/** Routing header offset of 1st IPv6 header */
-	uint8_t  routing_hdr_offset1;
+	volatile uint8_t	routing_hdr_offset1;
 	/** Routing header offset of 2nd IPv6 header */
-	uint8_t  routing_hdr_offset2;
+	volatile uint8_t	routing_hdr_offset2;
 	/** Next header offset */
-	uint8_t  nxt_hdr_offset;
+	volatile uint8_t	nxt_hdr_offset;
 	/** IPv6 fragmentable part offset */
-	uint8_t  ipv6_frag_offset;
+	volatile uint8_t	ipv6_frag_offset;
 	/** Frame's untouched running sum, input to parser */
-	uint16_t gross_running_sum;
+	volatile uint16_t	gross_running_sum;
 	/** Running Sum */
-	uint16_t running_sum;
+	volatile uint16_t	running_sum;
 	/** Parse Error code.
 	 * Please refer to \ref FSL_PARSER_ERROR_CODES*/
-	uint8_t  parse_error_code;
+	volatile uint8_t	parse_error_code;
 	/** Reserved for Soft parsing context*/
-	uint8_t  soft_parsing_context[23];
+	volatile uint8_t	soft_parsing_context[23];
 };
 #pragma pack(pop)
 

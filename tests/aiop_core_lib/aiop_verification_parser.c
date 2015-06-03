@@ -92,6 +92,7 @@ uint16_t aiop_verification_parser(uint32_t asa_seg_addr)
 {
 	uint16_t str_size = STR_SIZE_ERR;
 	uint32_t opcode;
+	uint16_t tmp_gross;
 
 	opcode  = *((uint32_t *) asa_seg_addr);
 
@@ -103,9 +104,9 @@ uint16_t aiop_verification_parser(uint32_t asa_seg_addr)
 						asa_seg_addr;
 		struct parse_result *pr =
 						(struct parse_result *)HWC_PARSE_RES_ADDRESS;
-		fdma_calculate_default_frame_checksum(0, 0xFFFF,
-				&pr->gross_running_sum);
-
+		fdma_calculate_default_frame_checksum(0, 0xFFFF, &tmp_gross);
+		pr->gross_running_sum = tmp_gross;
+		
 		str_size = sizeof(struct parser_init_gross_verif_command);
 		break;
 	}

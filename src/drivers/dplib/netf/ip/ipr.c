@@ -1059,9 +1059,11 @@ uint32_t ipr_insert_to_link_list(struct ipr_rfdc *rfdc_ptr,
 		/* Add current frag's running sum for L4 checksum check */
 		if (pr->gross_running_sum == 0) {
 			fdma_calculate_default_frame_checksum_wrp(
-							0,
-							0xffff,
-						        &pr->gross_running_sum);
+				0,
+				0xffff,	
+				&current_running_sum);/* tmp location for stack optimization*/
+			
+			pr->gross_running_sum = current_running_sum;
 			/* Run parser in order to get valid running sum */
 			parse_result_generate_default(0);
 		}
@@ -1073,9 +1075,11 @@ uint32_t ipr_insert_to_link_list(struct ipr_rfdc *rfdc_ptr,
 		rfdc_ptr->first_frag_hdr_length = ip_header_size;
 		if (pr->gross_running_sum == 0)
 			fdma_calculate_default_frame_checksum_wrp(
-							0,
-							0xffff,
-							&pr->gross_running_sum);
+				0,
+				0xffff,
+				&current_running_sum);/* tmp location for stack optimization*/
+			
+			pr->gross_running_sum = current_running_sum;
 		/* Set 1rst frag's running sum for L4 checksum check */
 		current_running_sum = cksum_ones_complement_sum16(
 				  	          rfdc_ptr->current_running_sum,

@@ -316,7 +316,7 @@ int evmng_raise_irq_event_cb(void *dev, uint16_t cmd, uint32_t size, void *event
 
 	if(evmng_irq_cfg->addr >= NUM_OF_IRQ_EVENTS)
 	{
-		sl_pr_err("Event %d not supported\n",addr);
+		sl_pr_err("Event %d not supported\n",evmng_irq_cfg->addr);
 		return -ENOTSUP;
 	}
 	/*Only one event can be processed at a time*/
@@ -357,9 +357,10 @@ static int raise_event(uint8_t generator_id, uint8_t event_id, void *event_data)
 			break;
 		}
 	}
+
 	if(i == g_evmng_events_last_used_index){
 		cdma_mutex_lock_release((uint64_t) g_evmng_events_list);
-		return -ENOMEM;
+		return 0;
 	}
 
 	if(g_evmng_events_list[i].head == NULL)

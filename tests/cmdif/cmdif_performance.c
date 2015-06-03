@@ -46,7 +46,7 @@
 #include "cmdif_test_common.h"
 #include "apps.h"
 
-extern int dpci_scan_and_enable();
+extern int app_evm_register();
 
 #ifndef CMDIF_TEST_WITH_MC_SRV
 #warning "If you test with MC define CMDIF_TEST_WITH_MC_SRV inside cmdif.h\n"
@@ -154,7 +154,7 @@ int app_init(void)
 
 	pr_debug("Running app_init()\n");
 
-	err = dpci_scan_and_enable();
+	err = app_evm_register();
 	ASSERT_COND(!err);
 
 	ops.close_cb = close_cb;

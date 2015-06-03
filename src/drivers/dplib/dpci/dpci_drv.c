@@ -46,6 +46,8 @@
 #include "aiop_common.h"
 #include "fsl_ep.h"
 #include "fsl_ep_mng.h"
+#include "fsl_evmng.h"
+#include "evmng.h"
 
 /*************************************************************************/
 #define DPCI_LOW_PR		1
@@ -297,6 +299,7 @@ __COLD_CODE static uint8_t num_priorities_get(struct fsl_mc_io *mc_io,
 	return attr.num_of_priorities;
 }
 
+#pragma optimization_level 2
 __COLD_CODE static void tx_user_context_set(struct mc_dprc *dprc, int ind,
                                             uint16_t token, uint8_t num_pr)
 {
@@ -319,29 +322,34 @@ __COLD_CODE static void tx_user_context_set(struct mc_dprc *dprc, int ind,
 		dpci_set_rx_queue(&dprc->io, token, i, &queue_cfg);
 	}
 }
+#pragma optimization_level reset
 
 /* To be called upon connected event, assign even */
-__COLD_CODE static int dpci_entry_init(uint32_t dpci_id, uint16_t token)
+__COLD_CODE static int dpci_entry_init(uint32_t dpci_id)
 {
 	int ind = -1;
 	uint32_t amq_bdi = 0;
 	int err = 0;
+	uint16_t token = 0xffff;
+	struct mc_dprc *dprc;
 
 	CMDIF_ICID_AMQ_BDI(AMQ_BDI_SET, ICONTEXT_INVALID, ICONTEXT_INVALID);
 
-	ind = dpci_mng_find(dpci_id);
+	ind = dpci_entry_get();
 	if (ind < 0) {
-		ind = dpci_entry_get();
-		if (ind < 0) {
-			pr_err("Not enough entries\n");
-			return -ENOMEM;
-		}
+		pr_err("Not enough entries\n");
+		return -ENOMEM;
 	}
 
 	ASSERT_COND((ind >= 0) && (ind < g_dpci_tbl.max));
 
 	g_dpci_tbl.dpci_id[ind] = dpci_id;
 	g_dpci_tbl.ic[ind] = amq_bdi;
+
+	dprc = sys_get_unique_handle(FSL_OS_MOD_AIOP_RC);
+	err = dpci_open(&dprc->io, (int)dpci_id, &token);
+	if (err)
+		return err;
 
 	/* Updated DPCI peer if possible
 	 * error is possible */
@@ -362,7 +370,11 @@ __COLD_CODE static int dpci_entry_init(uint32_t dpci_id, uint16_t token)
 		}
 	}
 #endif
-	return ind;
+
+	err = dpci_close(&dprc->io, token);
+	ASSERT_COND(!err);
+
+	return 0;
 }
 
 /*************************************************************************/
@@ -371,40 +383,36 @@ __COLD_CODE static int dpci_entry_init(uint32_t dpci_id, uint16_t token)
  * New DPCI was added or the state of the DPCI has changed
  * The dpci_id must belong to AIOP side
  */
-__COLD_CODE int dpci_event_assign(uint32_t dpci_id)
+__COLD_CODE int dpci_event_update_obj(uint32_t dpci_id)
 {
 	int err = 0;
-	uint16_t token = 0xffff;
-	struct mc_dprc *dprc = sys_get_unique_handle(FSL_OS_MOD_AIOP_RC);
 
-	err = dpci_open(&dprc->io, (int)dpci_id, &token);
-	if (err)
-		return err;
+	/*
+	 * MC<->AIOP DPCI does not change and it is added and enabled by SL 
+	 */
+	if (g_dpci_tbl.mc_dpci_id == dpci_id)
+		return 0;
 
 	DPCI_DT_LOCK_W_TAKE;
 
-	/*
-	 * 1. Init DPCI entry
-	 * 2. Update peer and tx queues if possible
-	 * 3. Init rx_ctx
-	 * 4. Update rx_ctx if possible
-	 */
-#ifndef STACK_CHECK
-	dpci_entry_init(dpci_id, token);
-#endif /* STACK_CHECK */
+	err = dpci_mng_find(dpci_id);
+	if (err < 0)
+		err = dpci_entry_init(dpci_id);
 
 	DPCI_DT_LOCK_RELEASE;
 
-	err = dpci_close(&dprc->io, token);
-	ASSERT_COND(!err);
-
-	if (g_dpci_tbl.mc_dpci_id != dpci_id) {
-		/* TODO call EVM here */
-	}
-
-#ifndef STACK_CHECK /* Stack check can be ignore after user callback */
 	dpci_tbl_dump();
-#endif /* STACK_CHECK */
+
+	if (!err) {
+		err = evmng_sl_raise_event(EVMNG_GENERATOR_AIOPSL,
+		                           DPCI_EVENT_ADDED,
+		                           (void *)dpci_id);
+		if(err){
+			pr_err("Failed to raise event for "
+				"CI-%d.\n", dpci_id);
+			return err;
+		}
+	}
 
 	return err;
 }
@@ -705,7 +713,7 @@ __COLD_CODE static int dpci_for_mc_add(struct mc_dprc *dprc)
 	err = dpci_close(&dprc->io, dpci);
 	ASSERT_COND(!err);
 	
-	err = dpci_event_assign((uint32_t)attr.id);
+	err = dpci_entry_init((uint32_t)attr.id);
 	ASSERT_COND(!err);
 
 	err = dpci_drv_enable((uint32_t)attr.id);

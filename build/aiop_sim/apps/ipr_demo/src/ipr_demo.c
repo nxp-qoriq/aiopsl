@@ -178,6 +178,7 @@ __HOT_CODE ENTRY_POINT static void app_process_packet(void)
 			local_test_error |= 1;
 		}
 
+
 /*
 		fsl_os_print("LDPAA_FD_GET_ADDRL = %x\n", (uint32_t)(LDPAA_FD_GET_ADDR(HWC_FD_ADDRESS)));
 		fsl_os_print("LDPAA_FD_GET_ADDRH = %x\n", (uint32_t)(LDPAA_FD_GET_ADDR(HWC_FD_ADDRESS)>>32));
@@ -230,7 +231,7 @@ static int app_dpni_event_added_cb(
 			uint64_t app_ctx,
 			void *event_data)
 {
-	uint16_t ni = *(uint16_t*)event_data;
+	uint16_t ni = (uint16_t)((uint32_t)event_data);
 	uint16_t    mfl = 0x2000; /* Maximum Frame Length */
 	int err;
 
