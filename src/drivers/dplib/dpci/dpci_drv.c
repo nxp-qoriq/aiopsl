@@ -299,6 +299,7 @@ __COLD_CODE static uint8_t num_priorities_get(struct fsl_mc_io *mc_io,
 	return attr.num_of_priorities;
 }
 
+#pragma optimization_level 2
 __COLD_CODE static void tx_user_context_set(struct mc_dprc *dprc, int ind,
                                             uint16_t token, uint8_t num_pr)
 {
@@ -321,6 +322,7 @@ __COLD_CODE static void tx_user_context_set(struct mc_dprc *dprc, int ind,
 		dpci_set_rx_queue(&dprc->io, token, i, &queue_cfg);
 	}
 }
+#pragma optimization_level reset
 
 /* To be called upon connected event, assign even */
 __COLD_CODE static int dpci_entry_init(uint32_t dpci_id)

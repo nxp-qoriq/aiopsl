@@ -204,23 +204,25 @@ int dpni_drv_update_obj(struct mc_dprc *dprc, uint16_t mc_niid)
 			          aiop_niid);
 			return err;
 		}
+		nis[aiop_niid].dpni_drv_params_var.flags |= DPNI_DRV_FLG_SCANNED;
+		cdma_mutex_lock_release((uint64_t)nis);
 		/*send event: "DPNI_ADDED_EVENT" to EVM with
 		 * AIOP NI ID */
 		err = evmng_sl_raise_event(
 			EVMNG_GENERATOR_AIOPSL,
 			DPNI_EVENT_ADDED,
-			&aiop_niid);
+			(void *)aiop_niid);
 		if(err){
 			sl_pr_err("Failed to raise event for "
 				"NI-%d.\n", aiop_niid);
 			return err;
 		}
-		index = (int)aiop_niid;
 	}
-
-	/*update that this index scanned*/
-	nis[index].dpni_drv_params_var.flags |= DPNI_DRV_FLG_SCANNED;
-	cdma_mutex_lock_release((uint64_t)nis);
+	else{
+		/*update that this index scanned*/
+		nis[index].dpni_drv_params_var.flags |= DPNI_DRV_FLG_SCANNED;
+		cdma_mutex_lock_release((uint64_t)nis);
+	}
 	return 0;
 }
 
@@ -228,30 +230,34 @@ int dpni_drv_handle_removed_objects(void)
 {
 	uint16_t aiop_niid;
 	int err;
-	cdma_mutex_lock_take((uint64_t)nis, CDMA_MUTEX_WRITE_LOCK);
+
 	for(aiop_niid = 0; aiop_niid < SOC_MAX_NUM_OF_DPNI; aiop_niid++)
 	{
+		cdma_mutex_lock_take((uint64_t)nis, CDMA_MUTEX_WRITE_LOCK);
 		if(nis[aiop_niid].dpni_drv_params_var.flags &
 			DPNI_DRV_FLG_SCANNED){
 			nis[aiop_niid].dpni_drv_params_var.flags &= ~DPNI_DRV_FLG_SCANNED;
+			cdma_mutex_lock_release((uint64_t)nis);
 		}
 		else if(nis[aiop_niid].dpni_id != DPNI_NOT_IN_USE){
 			dpni_drv_unprobe(aiop_niid);
 			/*send event: "DPNI_REMOVED_EVENT" to EVM with
 			 * AIOP NI ID */
+			cdma_mutex_lock_release((uint64_t)nis);
 			err = evmng_sl_raise_event(
 				EVMNG_GENERATOR_AIOPSL,
 				DPNI_EVENT_REMOVED,
-				&aiop_niid);
+				(void *)aiop_niid);
 			if(err){
 				sl_pr_err("Failed to raise event for "
 					"NI-%d.\n", aiop_niid);
-				cdma_mutex_lock_release((uint64_t)nis);
 				return err;
 			}
 		}
+		else{
+			cdma_mutex_lock_release((uint64_t)nis);
+		}
 	}
-	cdma_mutex_lock_release((uint64_t)nis);
 	return 0;
 }
 
@@ -930,13 +936,13 @@ static int dpni_drv_ev_cb(uint8_t generator_id, uint8_t event_id, uint64_t app_c
 				err = evmng_sl_raise_event(
 					EVMNG_GENERATOR_AIOPSL,
 					DPNI_EVENT_LINK_UP,
-					&ni_id);
+					(void *)ni_id);
 			}
 			else{
 				err = evmng_sl_raise_event(
 					EVMNG_GENERATOR_AIOPSL,
 					DPNI_EVENT_LINK_DOWN,
-					&ni_id);
+					(void *)ni_id);
 			}
 			if(err){
 				sl_pr_err("Failed to raise event for "
