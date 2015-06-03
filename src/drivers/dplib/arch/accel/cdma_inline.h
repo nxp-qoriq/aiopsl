@@ -281,16 +281,17 @@ inline int cdma_access_context_memory(
 	__stqw(arg1, arg2, arg3, arg4, HWC_ACC_IN_ADDRESS, 0);
 
 	/* call CDMA */
-	__e_hwacceli_(CDMA_ACCEL_ID);
-
+	if ((__e_hwacceli_(CDMA_ACCEL_ID)) == CDMA_SUCCESS) {
+		*refcount_value = *((uint32_t *)(HWC_ACC_OUT_ADDRESS+
+						CDMA_REF_CNT_OFFSET));
+		return 0;
+	} 
+		
 	/* load command results */
 	res1 = *((uint8_t *)(HWC_ACC_OUT_ADDRESS+CDMA_STATUS_OFFSET));
 	*refcount_value = *((uint32_t *)(HWC_ACC_OUT_ADDRESS+
 				CDMA_REF_CNT_OFFSET));
 
-
-	if (((int32_t)res1) == CDMA_SUCCESS)
-		return 0;
 	if (((int32_t)res1) == (CDMA_REFCOUNT_DECREMENT_TO_ZERO))
 		return (int32_t)(res1);
 	if (((int32_t)res1) == (CDMA_MUTEX_LOCK_FAILED))
