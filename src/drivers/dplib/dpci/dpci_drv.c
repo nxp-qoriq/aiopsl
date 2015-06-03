@@ -51,6 +51,7 @@
 
 /*************************************************************************/
 #define DPCI_LOW_PR		1
+#define DPCI_ID_FLG_SCANNED	1
 
 #define CMDIF_Q_OPTIONS (DPCI_QUEUE_OPT_USER_CTX | DPCI_QUEUE_OPT_DEST)
 
@@ -134,7 +135,9 @@ __HOT_CODE int dpci_mng_find(uint32_t dpci_id)
 	ASSERT_COND(dpci_id != DPCI_FQID_NOT_VALID);
 	ASSERT_COND(g_dpci_tbl.count <= g_dpci_tbl.max);
 
-	while (count < g_dpci_tbl.count) {
+	/* If in the middle of ADD or REMOVE then g_dpci_tbl.count be 1 higher
+	 * than the number of valid entries, but it can't be lower */
+	while ((count < g_dpci_tbl.count) && (i < g_dpci_tbl.max)) {
 
 		if (g_dpci_tbl.dpci_id[i] != DPCI_FQID_NOT_VALID) {
 			if (g_dpci_tbl.dpci_id[i] == dpci_id) {
@@ -156,7 +159,9 @@ __HOT_CODE int dpci_mng_peer_find(uint32_t dpci_id)
 	ASSERT_COND(dpci_id != DPCI_FQID_NOT_VALID);
 	ASSERT_COND(g_dpci_tbl.count <= g_dpci_tbl.max);
 
-	while (count < g_dpci_tbl.count) {
+	/* If in the middle of ADD or REMOVE then g_dpci_tbl.count be 1 higher
+	 * than the number of valid entries, but it can't be lower */
+	while ((count < g_dpci_tbl.count) && (i < g_dpci_tbl.max)) {
 
 		if (g_dpci_tbl.dpci_id[i] != DPCI_FQID_NOT_VALID) {
 			if (g_dpci_tbl.dpci_id_peer[i] == dpci_id) {
@@ -170,30 +175,15 @@ __HOT_CODE int dpci_mng_peer_find(uint32_t dpci_id)
 	return -ENOENT;
 }
 
-__COLD_CODE void dpci_mng_valid_dpcis(uint64_t *valid_dpcis)
-{
-	int i = 0;
-	int count = 0;
-
-	ASSERT_COND(g_dpci_tbl.max == 64);
-	ASSERT_COND(valid_dpcis != NULL);
-
-	*valid_dpcis = 0;
-	while (count < g_dpci_tbl.count) {
-		if (g_dpci_tbl.dpci_id[i] != DPCI_FQID_NOT_VALID) {
-			*valid_dpcis |= (((uint64_t)1) << i);
-			count++;
-		}
-		i++;
-	}
-}
-
 static int dpci_entry_get()
 {
 	int i;
 
 	for (i = 0; i < g_dpci_tbl.max; i++)
 		if (g_dpci_tbl.dpci_id[i] == DPCI_FQID_NOT_VALID) {
+			ASSERT_COND(g_dpci_tbl.ic[i] == DPCI_FQID_NOT_VALID);
+			/* Must be last and atomic because the search 
+			 * is not protected */
 			atomic_incr32(&g_dpci_tbl.count, 1);
 			return i;
 		}
@@ -206,11 +196,13 @@ __COLD_CODE static void dpci_entry_delete(int ind)
 
 	int i;
 	
-	g_dpci_tbl.ic[ind] = DPCI_FQID_NOT_VALID;
 	g_dpci_tbl.dpci_id[ind] = DPCI_FQID_NOT_VALID;
+	g_dpci_tbl.ic[ind] = DPCI_FQID_NOT_VALID;
 	g_dpci_tbl.dpci_id_peer[ind] = DPCI_FQID_NOT_VALID;
+	g_dpci_tbl.flags[ind] = 0;
 	for (i = 0 ; i < DPCI_PRIO_NUM; i++)
 		g_dpci_tbl.tx_queue[ind][i] = DPCI_FQID_NOT_VALID;
+	/* Must be last and atomic because the search is not protected */
 	atomic_decr32(&g_dpci_tbl.count, 1);
 }
 
@@ -374,7 +366,7 @@ __COLD_CODE static int dpci_entry_init(uint32_t dpci_id)
 	err = dpci_close(&dprc->io, token);
 	ASSERT_COND(!err);
 
-	return 0;
+	return ind;
 }
 
 /*************************************************************************/
@@ -393,13 +385,19 @@ __COLD_CODE int dpci_event_update_obj(uint32_t dpci_id)
 	if (g_dpci_tbl.mc_dpci_id == dpci_id)
 		return 0;
 
-	DPCI_DT_LOCK_W_TAKE;
-
 	err = dpci_mng_find(dpci_id);
-	if (err < 0)
+	if (err < 0) {
+		DPCI_DT_LOCK_W_TAKE;
 		err = dpci_entry_init(dpci_id);
+		DPCI_DT_LOCK_RELEASE;
+	}
 
-	DPCI_DT_LOCK_RELEASE;
+	if(err >= 0) {
+		ASSERT_COND(!(g_dpci_tbl.flags[err] & DPCI_ID_FLG_SCANNED));
+		/* flags are updated only during add/remove 
+		 * event which are handled one at a time */
+		g_dpci_tbl.flags[err] |= DPCI_ID_FLG_SCANNED;
+	}
 
 	dpci_tbl_dump();
 
@@ -417,37 +415,43 @@ __COLD_CODE int dpci_event_update_obj(uint32_t dpci_id)
 	return err;
 }
 
-/*
- * The DPCI was removed from AIOP container
- * The dpci_id must belong to AIOP side
- */
-__COLD_CODE int dpci_event_unassign(uint32_t dpci_id)
+__COLD_CODE void dpci_event_handle_removed_objects()
 {
-	int ind = -1;
-	int err = 0;
+	int i = 0;
+	int count = 0;
+	int err;
 
-	DPCI_DT_LOCK_W_TAKE;
+	ASSERT_COND(g_dpci_tbl.count <= g_dpci_tbl.max);
 
-	ind = dpci_mng_find(dpci_id);
-	if (ind >= 0) {
-		ASSERT_COND(g_dpci_tbl.dpci_id[ind] == dpci_id);
-		dpci_entry_delete(ind);
-		err = 0;
-	} else {
-		err = -ENOENT;
+	while (count < g_dpci_tbl.count) {
+
+		if (g_dpci_tbl.dpci_id[i] != DPCI_FQID_NOT_VALID) {
+
+			if (!(g_dpci_tbl.flags[i] & DPCI_ID_FLG_SCANNED)) {
+
+				DPCI_DT_LOCK_W_TAKE;
+				dpci_entry_delete(i);
+				DPCI_DT_LOCK_RELEASE;
+
+				err = evmng_sl_raise_event(
+					EVMNG_GENERATOR_AIOPSL,
+					DPCI_EVENT_REMOVED,
+					(void *)g_dpci_tbl.dpci_id[i]);
+				if (err) {
+					pr_err("Failed event DPCI-%d.\n",
+					       g_dpci_tbl.dpci_id[i]);
+				}
+			}
+			if (g_dpci_tbl.mc_dpci_id != g_dpci_tbl.dpci_id[i]) {
+				/* flags are updated only during add/remove 
+				 * event which are handled one at a time */
+				g_dpci_tbl.flags[i] &= ~DPCI_ID_FLG_SCANNED;
+			}
+
+			count++;
+		}
+		i++;
 	}
-
-	DPCI_DT_LOCK_RELEASE;
-
-	if (g_dpci_tbl.mc_dpci_id != dpci_id) {
-		/* TODO call EVM here */
-	}
-
-#ifndef STACK_CHECK /* Stack check can be ignore after user callback */
-	dpci_tbl_dump();
-#endif /* STACK_CHECK */
-
-	return err;
 }
 
 
@@ -478,11 +482,6 @@ __COLD_CODE int dpci_event_update(uint32_t ind)
 	return 0;
 }
 
-/*
- * The DPCI user context and AMQ bits are updated
- * This function is to be called only inside the open command and before
- * the AMQ bits had been changed to AIOP AMQ bits
- */
 __COLD_CODE int dpci_event_link_change(uint32_t dpci_id)
 {
 	int err = 0;
@@ -494,15 +493,15 @@ __COLD_CODE int dpci_event_link_change(uint32_t dpci_id)
 	if (err)
 		return err;
 
-	DPCI_DT_LOCK_W_TAKE;
-
 	ind = dpci_mng_find(dpci_id);
-	if (ind >= 0)
+	if (ind >= 0) {
+		DPCI_DT_LOCK_W_TAKE;
 		tx_peer_set((uint32_t)ind, token);
-	else
-		err = -ENODEV;
+		DPCI_DT_LOCK_RELEASE;
+	} else {
+		return -ENODEV;
+	}
 
-	DPCI_DT_LOCK_RELEASE;
 	if (err) 
 		return err;
 
@@ -517,11 +516,9 @@ __COLD_CODE int dpci_event_link_change(uint32_t dpci_id)
 			 * TODO call EVM here */
 		} else {
 			DPCI_DT_LOCK_R_TAKE;
-#ifndef STACK_CHECK
 			tx_user_context_set(dprc, ind, token, 
 			                    num_priorities_get(&dprc->io, 
 			                                       token));
-#endif /* STACK_CHECK */
 			DPCI_DT_LOCK_RELEASE;
 
 			/* Link up event 
@@ -579,16 +576,15 @@ __COLD_CODE int dpci_drv_enable(uint32_t dpci_id)
 		return err;
 	}
 
-	DPCI_DT_LOCK_W_TAKE;
 	/*
-	 * Update DPCI table tx and peer
+	 * Update DPCI table tx and peer 
 	 */
 	ind = dpci_mng_find(dpci_id);
 	if (ind < 0) {
-		DPCI_DT_LOCK_RELEASE;
 		return -ENOENT;
 	}
 
+	DPCI_DT_LOCK_W_TAKE;
 	err = tx_peer_set((uint32_t)ind, token);
 	DPCI_DT_LOCK_RELEASE;
 
@@ -714,7 +710,9 @@ __COLD_CODE static int dpci_for_mc_add(struct mc_dprc *dprc)
 	ASSERT_COND(!err);
 	
 	err = dpci_entry_init((uint32_t)attr.id);
-	ASSERT_COND(!err);
+	ASSERT_COND(err >= 0);
+	/* MC dpci can't be removed */
+	g_dpci_tbl.flags[err] |= DPCI_ID_FLG_SCANNED;
 
 	err = dpci_drv_enable((uint32_t)attr.id);
 	return err;
