@@ -30,7 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "dprc_drv.h"
+#include "fsl_sl_dprc_drv.h"
 #include "fsl_dprc.h"
 #include "fsl_dbg.h"
 #include "fsl_sl_evmng.h"
