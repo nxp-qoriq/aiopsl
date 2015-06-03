@@ -30,7 +30,7 @@
 #include "fsl_fdma.h"
 #include "fsl_parser.h"
 
-#include "dpni_drv.h"
+#include "fsl_sl_dpni_drv.h"
 
 
 #define __ERR_MODULE__  MODULE_DPNI

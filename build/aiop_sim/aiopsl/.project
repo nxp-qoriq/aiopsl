@@ -920,6 +920,11 @@
 			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/dplib/dpni/dpni_drv.c</locationURI>
 		</link>
 		<link>
+			<name>aiop_sl/drivers/dplib/dpni/dpni_drv.h</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/dplib/dpni/dpni_drv.h</locationURI>
+		</link>
+		<link>
 			<name>aiop_sl/drivers/dplib/dpni/dpni_drv_rxtx.c</name>
 			<type>1</type>
 			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/dplib/dpni/dpni_drv_rxtx.c</locationURI>
@@ -953,11 +958,6 @@
 			<name>aiop_sl/drivers/dplib/include/checksum.h</name>
 			<type>1</type>
 			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/dplib/include/checksum.h</locationURI>
-		</link>
-		<link>
-			<name>aiop_sl/drivers/dplib/include/dpni_drv.h</name>
-			<type>1</type>
-			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/dplib/include/dpni_drv.h</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/drivers/dplib/include/dprc_drv.h</name>
@@ -1013,6 +1013,11 @@
 			<name>aiop_sl/drivers/dplib/include/fsl_ep_mng.h</name>
 			<type>1</type>
 			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/dplib/include/fsl_ep_mng.h</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/drivers/dplib/include/fsl_sl_dpni_drv.h</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/dplib/include/fsl_sl_dpni_drv.h</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/drivers/dplib/include/general.h</name>
