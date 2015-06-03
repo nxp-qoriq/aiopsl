@@ -369,12 +369,42 @@ __COLD_CODE static int dpci_entry_init(uint32_t dpci_id)
 	return ind;
 }
 
-/*************************************************************************/
+__COLD_CODE static int mc_intr_set(uint32_t dpci_id, struct mc_dprc *dprc,
+                                   uint16_t token)
+{
+	struct dpci_irq_cfg irq_cfg;
+	int err;
+	
+	irq_cfg.addr = DPCI_EVENT;
+	irq_cfg.val = dpci_id;
+	irq_cfg.user_irq_id = 0;
 
-/*
- * New DPCI was added or the state of the DPCI has changed
- * The dpci_id must belong to AIOP side
- */
+	err = dpci_set_irq(&dprc->io, token, DPCI_IRQ_INDEX, &irq_cfg);
+	if(err){
+		pr_err("Failed to set irq for DP-CI%d\n", dpci_id);
+		return err;
+	}
+
+	err = dpci_set_irq_mask(&dprc->io, 
+	                        token,
+	                        DPCI_IRQ_INDEX,
+	                        DPCI_IRQ_EVENT_LINK_CHANGED | 
+	                        DPCI_IRQ_EVENT_CONNECTED | 
+	                        DPCI_IRQ_EVENT_DISCONNECTED);
+	if(err){
+		pr_err("Failed to set irq mask for DP-CI%d\n", dpci_id);
+		return err;
+	}
+
+	err = dpci_set_irq_enable(&dprc->io, token, DPCI_IRQ_INDEX, 1);
+	if(err){
+		pr_err("Failed to set irq enable for DP-CI%d\n", dpci_id);
+		return err;
+	}
+
+	return 0;
+}
+
 __COLD_CODE int dpci_event_update_obj(uint32_t dpci_id)
 {
 	int err = 0;
