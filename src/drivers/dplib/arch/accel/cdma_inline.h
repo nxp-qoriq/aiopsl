@@ -198,14 +198,12 @@ inline void cdma_write_with_mutex(
 	__stqw(arg1, arg2, arg3, arg4, HWC_ACC_IN_ADDRESS, 0);
 
 	/* call CDMA */
-	__e_hwacceli_(CDMA_ACCEL_ID);
+	if ((__e_hwacceli_(CDMA_ACCEL_ID)) == CDMA_SUCCESS)
+		return;
 
 	/* load command results */
 	res1 = *((uint8_t *)(HWC_ACC_OUT_ADDRESS+CDMA_STATUS_OFFSET));
-
-	if (((int32_t)res1) != CDMA_SUCCESS)
-		cdma_exception_handler(CDMA_WRITE_WITH_MUTEX, __LINE__,
-				(int32_t)res1);
+	cdma_exception_handler(CDMA_WRITE_WITH_MUTEX, __LINE__,(int32_t)res1);
 }
 
 
