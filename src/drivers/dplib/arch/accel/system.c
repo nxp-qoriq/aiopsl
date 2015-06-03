@@ -52,7 +52,7 @@ extern void tman_timer_callback(void);
 #define AIOP_WRKS_REGISTERS_OFFSET				0x0209d000
 
 #else
-#include "slab.h"
+#include "fsl_sl_slab.h"
 #include "platform.h"
 
 #include "fsl_dbg.h"

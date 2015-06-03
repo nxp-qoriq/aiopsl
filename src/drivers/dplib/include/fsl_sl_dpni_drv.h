@@ -62,7 +62,6 @@
 #define	DPNI_DRV_MTU_ERR	(DPNI_DRV_MODULE_STATUS_ID | 0x1)
 /* @} */
 
-
 struct dpni_early_init_request{
 	uint16_t head_room_sum;
 	uint16_t tail_room_sum;

@@ -41,6 +41,7 @@
 #include "fsl_sl_dprc_drv.h"
 #include "fsl_icontext.h"
 #include "fsl_bman.h"
+#include "fsl_sys.h"
 
 struct slab_bman_pool_desc g_slab_bman_pools[SLAB_MAX_BMAN_POOLS_NUM];
 struct slab_virtual_pools_main_desc g_slab_virtual_pools;

@@ -825,6 +825,11 @@
 			<locationURI>PARENT-3-PROJECT_LOC/src/kernel/inc/fsl_sl_evmng.h</locationURI>
 		</link>
 		<link>
+			<name>aiop_sl/kernel/inc/fsl_sl_slab.h</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/kernel/inc/fsl_sl_slab.h</locationURI>
+		</link>
+		<link>
 			<name>aiop_sl/kernel/inc/fsl_smp.h</name>
 			<type>1</type>
 			<locationURI>PARENT-3-PROJECT_LOC/src/kernel/inc/fsl_smp.h</locationURI>

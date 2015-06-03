@@ -24,8 +24,8 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef __FSL_DPRC_DRV_H
-#define __FSL_DPRC_DRV_H
+#ifndef __FSL_SL_DPRC_DRV_H
+#define __FSL_SL_DPRC_DRV_H
 
 #include "dplib/fsl_mc_sys.h"
 
@@ -47,4 +47,4 @@ struct mc_dprc {
 *//***************************************************************************/
 int dprc_drv_scan(void);
 
-#endif /*__FSL_DPRC_DRV_H */
+#endif /*__FSL_SL_DPRC_DRV_H */

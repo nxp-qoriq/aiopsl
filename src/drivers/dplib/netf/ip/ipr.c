@@ -58,7 +58,7 @@
 #include "slab_stub.h"
 #else
 #include "fsl_dbg.h"
-#include "slab.h"
+#include "fsl_sl_slab.h"
 #endif
 
 struct  ipr_global_parameters ipr_global_parameters1;
