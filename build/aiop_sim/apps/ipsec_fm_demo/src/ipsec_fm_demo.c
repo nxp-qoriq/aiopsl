@@ -642,7 +642,8 @@ int ipsec_app_init(uint16_t ni_id)
 	}
 	else if (outer_header_ip_version == 6) {
 
-		outer_ip_header[0] = 0x60000000;
+//		outer_ip_header[0] = 0x60000000;
+		outer_ip_header[0] = 0x6db00000;
 //		outer_ip_header[1] = 0x002032ff;
 		outer_ip_header[1] = 0x000032ff;
 		outer_ip_header[2] = 0xfe800000;
