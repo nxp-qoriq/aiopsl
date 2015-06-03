@@ -42,8 +42,8 @@
 #include "dpni_drv.h"
 #include "aiop_common.h"
 #include "system.h"
-#include "fsl_dprc_drv.h"
-#include "slab.h"
+#include "fsl_sl_dprc_drv.h"
+#include "fsl_sl_slab.h"
 #include "fsl_sl_evmng.h"
 #include "fsl_ep_mng.h"
 

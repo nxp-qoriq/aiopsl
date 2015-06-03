@@ -35,9 +35,8 @@
 #ifndef __SLAB_H
 #define __SLAB_H
 
-#include "fsl_slab.h"
-#include "platform.h"
-
+#include "fsl_sl_slab.h"
+#include "fsl_bman.h"
 
 #define SLAB_HW_HANDLE(SLAB) ((uint32_t)(SLAB)) /**< Casted HW handle */
 
@@ -99,10 +98,6 @@
 #define SLAB_MAX_NUM_VP_SHRAM   1000
 #define SLAB_MAX_NUM_VP_DDR     64
 #define SLAB_BUFFER_TO_MANAGE_IN_DDR  1
-#define IS_POWER_VALID_ALLIGN(_val, _max_size) \
-    (((((uint32_t)_val) <= (_max_size)) && ((((uint32_t)_val) & (~((uint32_t)_val) + 1)) == ((uint32_t)_val))))
-
-
 
 /* Maximum number of BMAN pools used by the slab pools array */
 #define SLAB_MAX_BMAN_POOLS_NUM 16
@@ -247,74 +242,5 @@ struct memory_types_table{
 	uint32_t num_ddr_pools;
 	/*counter for requested ddr management pools*/
 };
-
-/**************************************************************************//**
-@Function      slab_module_init
-
-@Description   Initialize SLAB module
-
-		In AIOP during slab_module_init() we will call MC API in order
-		to get all BPIDs
-
-@Return        0 on success, error code otherwise.
- *//***************************************************************************/
-int slab_module_init(void);
-
-/**************************************************************************//**
-@Function      slab_module_free
-
-@Description   Frees SLAB module
-
-		In addition to memory de-allocation it will return BPIDs to MC
-
-@Return        None
- *//***************************************************************************/
-void slab_module_free(void);
-
-/**************************************************************************//**
-@Function      slab_find_and_reserve_bpid
-
-@Description   Finds and reserve buffers from buffer pool.
-
-		This function is part of SLAB module therefore it should be
-		called only after it has been initialized by slab_module_init()
-
-@Param[in]     num_buffs         Number of buffers in new pool.
-@Param[in]     buff_size         Size of buffers in pool.
-@Param[in]     alignment         Requested alignment for data field (in bytes).
-@Param[in]     mem_partition_id  Memory partition ID for buffer type.
-				 AIOP: HW pool supports only PEB and DDR.
-@Param[out]    bpid_array_index  Index for bman pool array which reserved the
-				 buffers.
-@Param[out]    bpid              Id of pool that supply the requested buffers.
-
-@Return        0       - on success,
-	       -EINVAL - slab module handle is null
-	       -ENOMEM - not enough memory for mem_partition_id
- *//***************************************************************************/
-int slab_find_and_reserve_bpid(uint32_t num_buffs,
-			uint16_t buff_size,
-			uint16_t alignment,
-			enum memory_partition_id  mem_partition_id,
-			uint16_t *bpid_array_index,
-			uint16_t *bpid);
-
-/**************************************************************************//**
-@Function      slab_find_and_unreserve_bpid
-
-@Description   Finds and unreserved buffers in buffer pool.
-
-		This function is part of SLAB module therefore it should be
-		called only after it has been initialized by slab_module_init()
-		the function is for service layer to return buffers to bman pool.
-
-@Param[in]    num_buffs        Number of buffers in new pool.
-@Param[in]    bpid              Id of pool that was filled with new buffers.
-
-@Return        0       - on success,
-	       -ENAVAIL - bman pool not found
- *//***************************************************************************/
-int slab_find_and_unreserve_bpid(int32_t num_buffs,
-                            uint16_t bpid);
 
 #endif /* __SLAB_H */

@@ -578,6 +578,9 @@ struct table_rule_replace_by_ruleid_command{
 	/** CTLU Generate Hash identifier */
 	uint32_t opcode;
 
+	/* Flags for this operation */
+	uint32_t flags;
+
 	/** Command returned status */
 	int32_t  status;
 	
@@ -600,6 +603,9 @@ struct table_rule_replace_by_ruleid_command{
 struct table_rule_delete_by_ruleid_command{
 	/** CTLU Generate Hash identifier */
 	uint32_t opcode;
+
+	/* Flags for this operation */
+	uint32_t flags;
 
 	/** Command returned status */
 	int32_t  status;

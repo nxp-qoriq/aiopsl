@@ -34,7 +34,6 @@
 #include "aiop_verification_table.h"
 #include "system.h"
 
-
 uint16_t aiop_verification_table(uint32_t asa_seg_addr)
 {
 	uint16_t str_size = STR_SIZE_ERR;
@@ -376,11 +375,17 @@ uint16_t aiop_verification_table(uint32_t asa_seg_addr)
 		struct table_rule_replace_by_ruleid_command *str =
 		(struct table_rule_replace_by_ruleid_command *) asa_seg_addr;
 		rule = *(str->rule);
-		
-		str->status = table_rule_replace_by_ruleid(str->acc_id,
-						str->table_id,
-						&rule,
-						str->old_res);
+		if (str->flags & TABLE_VERIF_FLAG_OLD_RESULT_NULL) {
+			str->status = table_rule_replace_by_ruleid(str->acc_id,
+								   str->table_id,
+								   &rule,
+								   (void *) 0);
+		} else {
+			str->status = table_rule_replace_by_ruleid(str->acc_id,
+								   str->table_id,
+								   &rule,
+								   str->old_res);
+		}
 		str_size = sizeof(struct table_rule_replace_by_ruleid_command);
 		break;
 	}
@@ -392,11 +397,17 @@ uint16_t aiop_verification_table(uint32_t asa_seg_addr)
 		struct table_rule_delete_by_ruleid_command *str =
 		(struct table_rule_delete_by_ruleid_command *) asa_seg_addr;
 		rule_id = *(str->rule_id_desc);
-		
-		str->status = table_rule_delete_by_ruleid(str->acc_id,
-						str->table_id,
-						&rule_id,
-						str->result);
+		if (str->flags & TABLE_VERIF_FLAG_OLD_RESULT_NULL) {
+			str->status = table_rule_delete_by_ruleid(str->acc_id,
+								  str->table_id,
+								  &rule_id,
+								  (void *) 0);
+		} else {
+			str->status = table_rule_delete_by_ruleid(str->acc_id,
+								  str->table_id,
+								  &rule_id,
+								  str->result);
+		}
 		str_size = sizeof(struct table_rule_delete_by_ruleid_command);
 		break;
 	}

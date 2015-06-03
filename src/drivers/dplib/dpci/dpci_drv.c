@@ -34,7 +34,7 @@
 #include "fsl_dpci_event.h"
 #include "fsl_dpci_drv.h"
 #include "fsl_dpci_mng.h"
-#include "fsl_dprc_drv.h"
+#include "fsl_sl_dprc_drv.h"
 #include "fsl_sl_dbg.h"
 #include "cmdif_client.h"
 #include "cmdif_srv.h"
