@@ -46,8 +46,7 @@
 #include "aiop_common.h"
 #include "fsl_ep.h"
 #include "fsl_ep_mng.h"
-#include "fsl_evmng.h"
-#include "evmng.h"
+#include "fsl_sl_evmng.h"
 
 /*************************************************************************/
 #define DPCI_LOW_PR		1
@@ -187,7 +186,7 @@ static int dpci_entry_get()
 			atomic_incr32(&g_dpci_tbl.count, 1);
 			return i;
 		}
-		
+
 	return -ENOENT;
 }
 
@@ -195,7 +194,7 @@ __COLD_CODE static void dpci_entry_delete(int ind)
 {
 
 	int i;
-	
+
 	g_dpci_tbl.dpci_id[ind] = DPCI_FQID_NOT_VALID;
 	g_dpci_tbl.ic[ind] = DPCI_FQID_NOT_VALID;
 	g_dpci_tbl.dpci_id_peer[ind] = DPCI_FQID_NOT_VALID;
@@ -211,7 +210,7 @@ static inline void amq_bits_update(uint32_t id)
 	uint32_t amq_bdi = 0;
 	uint16_t amq_bdi_temp = 0;
 	uint16_t pl_icid = PL_ICID_GET;
-		
+
 	ADD_AMQ_FLAGS(amq_bdi_temp, pl_icid);
 	if (BDI_GET != 0)
 		amq_bdi_temp |= CMDIF_BDI_BIT;
@@ -221,7 +220,7 @@ static inline void amq_bits_update(uint32_t id)
 	/*
 	 * TODO
 	 * NOTE : only dpci_peer_id can be updated but not dpci_id.
-	 * Maybe it should not update peer id at all ?? 
+	 * Maybe it should not update peer id at all ??
 	 * It should be updated only in dpci_drv_added() !!!
 	 * TODO
 	 * Check if amq bits updated and update only if they are 0xffffffff
@@ -231,7 +230,7 @@ static inline void amq_bits_update(uint32_t id)
 
 	/* Must be written last */
 	g_dpci_tbl.ic[id] = amq_bdi;
-	/* Don't update AIOP to AIOP DPCI 2 entries because it 
+	/* Don't update AIOP to AIOP DPCI 2 entries because it
 	 * shouldn't change anyway */
 }
 
@@ -280,7 +279,7 @@ __COLD_CODE static int tx_peer_set(uint32_t ind, uint16_t token)
 	return err;
 }
 
-__COLD_CODE static uint8_t num_priorities_get(struct fsl_mc_io *mc_io, 
+__COLD_CODE static uint8_t num_priorities_get(struct fsl_mc_io *mc_io,
                                              uint16_t token)
 {
 	struct dpci_attr attr;
@@ -299,7 +298,7 @@ __COLD_CODE static void tx_user_context_set(struct mc_dprc *dprc, int ind,
 	struct dpci_rx_queue_cfg queue_cfg;
 
 	ASSERT_COND(num_pr >= 1);
-	
+
 	MEM_SET(&queue_cfg, sizeof(queue_cfg), 0);
 
 	/*
@@ -410,7 +409,7 @@ __COLD_CODE int dpci_event_update_obj(uint32_t dpci_id)
 	int err = 0;
 
 	/*
-	 * MC<->AIOP DPCI does not change and it is added and enabled by SL 
+	 * MC<->AIOP DPCI does not change and it is added and enabled by SL
 	 */
 	if (g_dpci_tbl.mc_dpci_id == dpci_id)
 		return 0;
@@ -496,9 +495,9 @@ __COLD_CODE int dpci_event_update(uint32_t ind)
 	 * TODO
 	 * Is it possible that DPCI will be removed in the middle of the task ?
 	 * Answer : NO
-	 * AIOP SL will wait for all the tasks to finish and only then it will 
-	 * delete the entry. Before the waiting AIOP SL will change the dpci 
-	 * table or just entry for the new tasks only. 
+	 * AIOP SL will wait for all the tasks to finish and only then it will
+	 * delete the entry. Before the waiting AIOP SL will change the dpci
+	 * table or just entry for the new tasks only.
 	 */
 
 	DPCI_DT_LOCK_W_TAKE;
@@ -532,7 +531,7 @@ __COLD_CODE int dpci_event_link_change(uint32_t dpci_id)
 		return -ENODEV;
 	}
 
-	if (err) 
+	if (err)
 		return err;
 
 	if (g_dpci_tbl.mc_dpci_id != dpci_id) {
@@ -542,16 +541,16 @@ __COLD_CODE int dpci_event_link_change(uint32_t dpci_id)
 		ASSERT_COND(!err);
 
 		if (ind == 0) {
-			/* Link down event 
+			/* Link down event
 			 * TODO call EVM here */
 		} else {
 			DPCI_DT_LOCK_R_TAKE;
-			tx_user_context_set(dprc, ind, token, 
-			                    num_priorities_get(&dprc->io, 
+			tx_user_context_set(dprc, ind, token,
+			                    num_priorities_get(&dprc->io,
 			                                       token));
 			DPCI_DT_LOCK_RELEASE;
 
-			/* Link up event 
+			/* Link up event
 			 * TODO call EVM here */
 		}
 	}
@@ -619,7 +618,7 @@ __COLD_CODE int dpci_drv_enable(uint32_t dpci_id)
 	DPCI_DT_LOCK_RELEASE;
 
 	DPCI_DT_LOCK_R_TAKE;
-	tx_user_context_set(dprc, ind, token, 
+	tx_user_context_set(dprc, ind, token,
 	                    num_priorities_get(&dprc->io, token));
 	DPCI_DT_LOCK_RELEASE;
 
@@ -738,7 +737,7 @@ __COLD_CODE static int dpci_for_mc_add(struct mc_dprc *dprc)
 	}
 	err = dpci_close(&dprc->io, dpci);
 	ASSERT_COND(!err);
-	
+
 	err = dpci_entry_init((uint32_t)attr.id);
 	ASSERT_COND(err >= 0);
 	/* MC dpci can't be removed */
