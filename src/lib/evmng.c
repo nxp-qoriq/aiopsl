@@ -316,7 +316,7 @@ int evmng_raise_irq_event_cb(void *dev, uint16_t cmd, uint32_t size, void *event
 
 	if(evmng_irq_cfg->addr >= NUM_OF_IRQ_EVENTS)
 	{
-		sl_pr_err("Event %d not supported\n",addr);
+		sl_pr_err("Event %d not supported\n",evmng_irq_cfg->addr);
 		return -ENOTSUP;
 	}
 	/*Only one event can be processed at a time*/
