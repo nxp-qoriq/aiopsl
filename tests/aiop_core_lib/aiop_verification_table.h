@@ -597,7 +597,7 @@ struct table_rule_replace_by_ruleid_command{
 	struct table_ruleid_and_result_desc *rule;
 
 	/** Old Result */
-	struct table_result *old_res;
+	struct table_result old_res;
 
 	/** Table ID */
 	uint16_t table_id;
@@ -623,7 +623,7 @@ struct table_rule_delete_by_ruleid_command{
 	struct table_rule_id_desc *rule_id_desc;
 
 	/** Result */
-	struct table_result *result;
+	struct table_result result;
 
 	/** Table ID */
 	uint16_t table_id;
@@ -649,10 +649,10 @@ struct table_rule_query_by_ruleid_command{
 	struct table_rule_id_desc *rule_id_desc;
 
 	/** Result */
-	struct table_result *result;
+	struct table_result result;
 	
 	/** Timestamp */
-	uint32_t *timestamp;
+	uint32_t timestamp;
 
 	/** Table ID */
 	uint16_t table_id;

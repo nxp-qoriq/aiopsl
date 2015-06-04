@@ -390,7 +390,7 @@ uint16_t aiop_verification_table(uint32_t asa_seg_addr)
 			str->status = table_rule_replace_by_ruleid(str->acc_id,
 								   str->table_id,
 								   &rule,
-								   str->old_res);
+								   &(str->old_res));
 		}
 		str_size = sizeof(struct table_rule_replace_by_ruleid_command);
 		break;
@@ -415,7 +415,7 @@ uint16_t aiop_verification_table(uint32_t asa_seg_addr)
 			str->status = table_rule_delete_by_ruleid(str->acc_id,
 								  str->table_id,
 								  &rule_id,
-								  str->result);
+								  &(str->result));
 		}
 		str_size = sizeof(struct table_rule_delete_by_ruleid_command);
 		break;
@@ -434,8 +434,8 @@ uint16_t aiop_verification_table(uint32_t asa_seg_addr)
 		str->status = table_rule_query_by_ruleid(str->acc_id,
 							 str->table_id,
 							 &rule_id,
-							 str->result,
-							 str->timestamp);
+							 &(str->result),
+							 &(str->timestamp));
 		str_size = sizeof(struct table_rule_query_by_ruleid_command);
 		break;
 	}
