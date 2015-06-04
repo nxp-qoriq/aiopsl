@@ -47,6 +47,10 @@ inline void cdma_refcount_increment(
 	/* command parameters and results */
 	uint32_t arg1, arg2, arg3, arg4;
 	uint8_t res1;
+	
+#ifdef DISABLE_REF_CNT
+	 return;
+#endif
 
 	/* prepare command parameters */
 	arg1 = CDMA_REFCNT_INC_CMD_ARG1();
@@ -72,6 +76,10 @@ inline int cdma_refcount_decrement(
 	/* command parameters and results */
 	uint32_t arg1, arg2, arg3, arg4;
 	uint8_t res1;
+	
+#ifdef DISABLE_REF_CNT
+	 return 0;
+#endif
 
 	/* prepare command parameters */
 	arg1 = CDMA_REFCNT_DEC_CMD_ARG1();
