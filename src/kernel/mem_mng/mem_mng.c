@@ -783,7 +783,7 @@ void * mem_mng_alloc_mem(fsl_handle_t    h_mem_mng,
 
     	    /* Internal MM malloc */
     	    p_memory = UINT_TO_PTR(
-    	        slob_get(p_partition->h_mem_manager, size, alignment));
+    	        slob_get(&p_partition->h_mem_manager, size, alignment));
             if ((uintptr_t)p_memory == 0LL)
 		/* Do not report error - let the allocating entity report it */
     		    return NULL;
@@ -860,7 +860,7 @@ int mem_mng_get_phys_mem(fsl_handle_t h_mem_mng, int  partition_id,
 #else
             spin_unlock_irqrestore(p_mem_mng->lock, int_flags);
 #endif
-            if((*paddr = slob_get(p_partition->h_mem_manager,size,alignment)) == 0LL)
+            if((*paddr = slob_get(&p_partition->h_mem_manager,size,alignment)) == 0LL)
             {
                 pr_err("Mem. manager memory allocation failed: Required size 0x%x%08x exceeds "
                    "available memory for partition ID %d\n",
@@ -905,7 +905,7 @@ void mem_mng_put_phys_mem(fsl_handle_t h_mem_mng, uint64_t paddress)
 	    #else
 	        spin_unlock_irqrestore(p_mem_mng->lock, int_flags);
 	    #endif
-            slob_put(p_partition->h_mem_manager,paddress);
+            slob_put(&p_partition->h_mem_manager,paddress);
             return;
 	}
     }// for
@@ -935,7 +935,7 @@ void mem_mng_free_mem(fsl_handle_t h_mem_mng, void *p_memory)
 
 		if (address_found)
 		{
-			slob_put(p_partition->h_mem_manager, PTR_TO_UINT(p_memory));
+			slob_put(&p_partition->h_mem_manager, PTR_TO_UINT(p_memory));
 		}
 	}
 	else
@@ -1030,7 +1030,7 @@ static void mem_mng_free_partition(t_mem_mng *p_mem_mng,
 
 
     /* Release the memory manager object */
-    slob_free(p_partition->h_mem_manager);
+    slob_free(&p_partition->h_mem_manager);
 
 
     /* Remove from partitions list and free the allocated memory */
@@ -1056,7 +1056,7 @@ static void mem_phys_mng_free_partition(t_mem_mng *p_mem_mng,
 #endif /* AIOP */
     UNUSED(p_mem_mng);
     /* Release the memory manager object */
-    slob_free(p_partition->h_mem_manager);
+    slob_free(&p_partition->h_mem_manager);
     /* Remove from partitions list and free the allocated memory */
     if (p_partition->lock) {
 #ifdef AIOP
