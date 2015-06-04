@@ -53,13 +53,12 @@ int cdma_acquire_context_memory(
 	__stqw(arg1, arg2, arg3, arg4, HWC_ACC_IN_ADDRESS, 0);
 
 	/* call CDMA */
-	__e_hwacceli_(CDMA_ACCEL_ID);
+	if ((__e_hwacceli_(CDMA_ACCEL_ID)) == CDMA_SUCCESS)
+		return 0;
 
 	/* load command results */
 	res1 = *((uint8_t *)(HWC_ACC_OUT_ADDRESS+CDMA_STATUS_OFFSET));
 
-	if (((int32_t)res1) == CDMA_SUCCESS)
-		return 0;
 	if (((int32_t)res1) == CDMA_BUFFER_POOL_DEPLETION_ERR)
 		return -ENOSPC;
 	cdma_exception_handler(CDMA_ACQUIRE_CONTEXT_MEMORY, __LINE__,
@@ -83,14 +82,12 @@ void cdma_release_context_memory(
 	__stqw(arg1, arg2, arg3, arg4, HWC_ACC_IN_ADDRESS, 0);
 
 	/* call CDMA */
-	__e_hwacceli_(CDMA_ACCEL_ID);
+	if ((__e_hwacceli_(CDMA_ACCEL_ID)) == CDMA_SUCCESS)
+		return;
 
 	/* load command results */
 	res1 = *((uint8_t *)(HWC_ACC_OUT_ADDRESS+CDMA_STATUS_OFFSET));
-
-	if (((int32_t)res1) != CDMA_SUCCESS)
-		cdma_exception_handler(CDMA_RELEASE_CONTEXT_MEMORY, __LINE__,
-						(int32_t)res1);
+	cdma_exception_handler(CDMA_RELEASE_CONTEXT_MEMORY, __LINE__,(int32_t)res1);
 }
 
 /*void cdma_write(
@@ -229,13 +226,12 @@ int cdma_refcount_decrement_and_release(
 	__stqw(arg1, arg2, arg3, arg4, HWC_ACC_IN_ADDRESS, 0);
 
 	/* call CDMA */
-	__e_hwacceli_(CDMA_ACCEL_ID);
+	if ((__e_hwacceli_(CDMA_ACCEL_ID)) == CDMA_SUCCESS)
+		return 0;
 
 	/* load command results */
 	res1 = *((uint8_t *)(HWC_ACC_OUT_ADDRESS+CDMA_STATUS_OFFSET));
 
-	if (((int32_t)res1) == CDMA_SUCCESS)
-		return 0;
 	if (((int32_t)res1) == CDMA_REFCOUNT_DECREMENT_TO_ZERO)
 		return (int32_t)(res1);
 	cdma_exception_handler(CDMA_REFCOUNT_DECREMENT_AND_RELEASE, __LINE__,
@@ -263,13 +259,12 @@ void cdma_write_lock_dma_read_and_increment(
 	__stqw(arg1, arg2, arg3, arg4, HWC_ACC_IN_ADDRESS, 0);
 
 	/* call CDMA */
-	__e_hwacceli_(CDMA_ACCEL_ID);
+	if ((__e_hwacceli_(CDMA_ACCEL_ID)) == CDMA_SUCCESS)
+		return;
 
 	/* load command results */
 	res1 = *((uint8_t *)(HWC_ACC_OUT_ADDRESS+CDMA_STATUS_OFFSET));
-
-	if (((int32_t)res1) != CDMA_SUCCESS)
-		cdma_exception_handler(CDMA_WRITE_LOCK_DMA_READ_AND_INCREMENT,
+	cdma_exception_handler(CDMA_WRITE_LOCK_DMA_READ_AND_INCREMENT,
 				__LINE__,(int32_t)res1);
 }
 
@@ -293,13 +288,12 @@ int cdma_write_release_lock_and_decrement(
 	__stqw(arg1, arg2, arg3, arg4, HWC_ACC_IN_ADDRESS, 0);
 
 	/* call CDMA */
-	__e_hwacceli_(CDMA_ACCEL_ID);
+	if ((__e_hwacceli_(CDMA_ACCEL_ID)) == CDMA_SUCCESS)
+		return 0;
 
 	/* load command results */
 	res1 = *((uint8_t *)(HWC_ACC_OUT_ADDRESS+CDMA_STATUS_OFFSET));
 
-	if (((int32_t)res1) == CDMA_SUCCESS)
-		return 0;
 	if (((int32_t)res1) == CDMA_REFCOUNT_DECREMENT_TO_ZERO)
 		return (int32_t)(res1);
 	cdma_exception_handler(CDMA_WRITE_RELEASE_LOCK_AND_DECREMENT,__LINE__,

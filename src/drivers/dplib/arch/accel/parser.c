@@ -179,14 +179,15 @@ int parse_result_generate_checksum(
 	__stqw((PARSER_GRSV_MASK | PARSER_GEN_PARSE_RES_MTYPE), arg2, 0, arg1,
 						HWC_ACC_IN_ADDRESS, 0);
 
-	__e_hwacceli(CTLU_PARSE_CLASSIFY_ACCEL_ID);
-
-	status = *(int32_t *)HWC_ACC_OUT_ADDRESS;
-	if (status == PARSER_HW_STATUS_SUCCESS) {
+	if ((__e_hwacceli_(CTLU_PARSE_CLASSIFY_ACCEL_ID)) == 
+				PARSER_HW_STATUS_SUCCESS) {
 		*l3_checksum = *((uint16_t *)HWC_ACC_OUT_ADDRESS2);
 		*l4_checksum = *((uint16_t *)(HWC_ACC_OUT_ADDRESS2+2));
 		return 0;
-	} else if (status & PARSER_HW_STATUS_CYCLE_LIMIT_EXCCEEDED) {
+	}
+
+	status = *(int32_t *)HWC_ACC_OUT_ADDRESS;
+	if (status & PARSER_HW_STATUS_CYCLE_LIMIT_EXCCEEDED) {
 		parser_exception_handler(PARSE_RESULT_GENERATE_CHECKSUM,
 			__LINE__, 
 			(status & PARSER_HW_STATUS_CYCLE_LIMIT_EXCCEEDED));
