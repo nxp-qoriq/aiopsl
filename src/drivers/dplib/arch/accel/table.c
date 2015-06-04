@@ -609,7 +609,6 @@ int table_get_next_ruleid(enum table_hw_accel_id acc_id,
 					    status);
 
 	return status;
-
 }
 
 int table_get_key_desc(enum table_hw_accel_id acc_id,
@@ -617,12 +616,10 @@ int table_get_key_desc(enum table_hw_accel_id acc_id,
 			  struct table_rule_id_desc *rule_id_desc,
 			  union table_key_desc *key_desc)
 {
-	
 #ifdef CHECK_ALIGNMENT 	
 	DEBUG_ALIGN("table_inline.h",(uint32_t)rule_id_desc, ALIGNMENT_16B);
 	DEBUG_ALIGN("table_inline.h",(uint32_t)key_desc, ALIGNMENT_16B);
 #endif
-	
 	int32_t status;
 
 	uint32_t arg2 = (uint32_t)key_desc;
@@ -635,7 +632,7 @@ int table_get_key_desc(enum table_hw_accel_id acc_id,
 
 	/* Accelerator call */
 	__e_hwaccel(acc_id);
-	
+
 	/* Status Handling*/
 	status = *((int32_t *)HWC_ACC_OUT_ADDRESS);
 	if (status == TABLE_HW_STATUS_SUCCESS) {}
@@ -648,7 +645,7 @@ int table_get_key_desc(enum table_hw_accel_id acc_id,
 					    status);
 
 	return status;
-	
+
 }
 
 
@@ -719,7 +716,7 @@ int table_rule_delete_by_ruleid(enum table_hw_accel_id acc_id,
 #ifdef CHECK_ALIGNMENT 	
 	DEBUG_ALIGN("table_inline.h",(uint32_t)rule_id_desc, ALIGNMENT_16B);
 #endif
-	
+
 	int32_t status;
 
 	struct table_old_result old_res __attribute__((aligned(16)));
@@ -764,7 +761,7 @@ int table_rule_query_by_ruleid(enum table_hw_accel_id acc_id,
 #ifdef CHECK_ALIGNMENT 	
 	DEBUG_ALIGN("table_inline.h",(uint32_t)rule_id_desc, ALIGNMENT_16B);
 #endif
-	
+
 	int32_t status;
 	struct table_entry entry __attribute__((aligned(16)));
 	/* Prepare HW context for TLU accelerator call */
