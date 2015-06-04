@@ -31,7 +31,7 @@
 #include "fsl_malloc.h"
 #include "fsl_fdma.h"
 #include "fsl_dbg.h"
-#include "slab.h"
+#include "fsl_sl_slab.h"
 
 /*****************************************************************************/
 __COLD_CODE int bman_fill_bpid(uint32_t num_buffs,

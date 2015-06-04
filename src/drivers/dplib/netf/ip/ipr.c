@@ -47,7 +47,7 @@
 #include "fsl_cdma.h"
 #include "ip.h"
 #include "fsl_platform.h"
-#include "dpni_drv.h"
+#include "fsl_sl_dpni_drv.h"
 
 /* For wrapper functions */
 #include "cdma.h"
@@ -58,7 +58,7 @@
 #include "slab_stub.h"
 #else
 #include "fsl_dbg.h"
-#include "slab.h"
+#include "fsl_sl_slab.h"
 #endif
 
 struct  ipr_global_parameters ipr_global_parameters1;

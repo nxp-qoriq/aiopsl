@@ -47,16 +47,12 @@ int dpci_event_update_obj(uint32_t dpci_id);
 
 
 /**************************************************************************//**
-@Function	dpci_event_unassign
+@Function	dpci_event_handle_removed_objects
 
-@Description	The DPCI was removed from AIOP container or disconnected.
-		Updates the DPCI table. 
+@Description	Delete all the DPCI entries that haven't been scanned. 
 
-@Param[in]	dpci_id - DPCI id of the AIOP side.
-
-@Return		0      - on success, POSIX error code otherwise
  *//***************************************************************************/
-int dpci_event_unassign(uint32_t dpci_id);
+void dpci_event_handle_removed_objects();
 
 /**************************************************************************//**
 @Function	dpci_event_update

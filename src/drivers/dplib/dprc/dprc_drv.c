@@ -30,13 +30,13 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "dprc_drv.h"
+#include "fsl_sl_dprc_drv.h"
 #include "fsl_dprc.h"
 #include "fsl_dbg.h"
-#include "evmng.h"
+#include "fsl_sl_evmng.h"
 #include "fsl_sys.h"
 #include "fsl_malloc.h"
-#include "dpni_drv.h"
+#include "fsl_sl_dpni_drv.h"
 #include "drv.h"
 #include "aiop_common.h"
 #include "fsl_dpci_mng.h"

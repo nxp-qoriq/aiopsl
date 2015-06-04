@@ -32,7 +32,7 @@
 #include "fsl_dpci_drv.h"
 #include "fsl_dpci_event.h"
 #include "fsl_dpci_mng.h"
-#include "fsl_dprc_drv.h"
+#include "fsl_sl_dprc_drv.h"
 #include "fsl_evmng.h"
 
 int app_evm_register();
@@ -66,8 +66,10 @@ static int app_evmng_cb(uint8_t generator_id, uint8_t event_id,
 	UNUSED(generator_id);
 	UNUSED(app_ctx);
 
+	pr_debug("Event 0x%x data 0x%x\n", event_id, (uint32_t)event_data);
 	switch (event_id) {
 	case DPCI_EVENT_ADDED:
+		pr_debug("Before enable\n");
 		err |= dpci_drv_enable((uint32_t)event_data);
 		break;
 	case DPCI_EVENT_REMOVED:
@@ -82,6 +84,7 @@ static int app_evmng_cb(uint8_t generator_id, uint8_t event_id,
 		break;
 	}
 
+	pr_debug("Event done err = %d\n", err);
 	return err;
 }
 

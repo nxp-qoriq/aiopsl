@@ -169,10 +169,16 @@ enum table_verif_cmd_type {
 *//***************************************************************************/
 /* No Flags */
 #define TABLE_VERIF_FLAG_NO_FLAGS		0x00000000
+
 /** when set, the verification will pass NULL as a pointer to the verified
  * function instead of old/replaced/deleted result*/
 #define TABLE_VERIF_FLAG_OLD_RESULT_NULL	0x00000001
 
+#ifdef REV2_RULEID
+/** When set, the verification wrapper will pass 0xFFFF_FFFF_FFFF_FFFF ruleID
+ * to the called function. To be used only with suitable functions.*/
+#define TABLE_VERIF_FLAG_RULE_ID_ALL_ONE	0x00000002
+#endif
 /** @} */ /* end of AIOP_Table_SRs_Verification_MACROS */
 
 /**************************************************************************//**
@@ -555,6 +561,9 @@ struct table_get_key_desc_command{
 	/** CTLU Generate Hash identifier */
 	uint32_t opcode;
 
+	/* Flags for this operation */
+	uint32_t flags;
+
 	/** Command returned status */
 	int32_t  status;
 	
@@ -577,6 +586,9 @@ struct table_get_key_desc_command{
 struct table_rule_replace_by_ruleid_command{
 	/** CTLU Generate Hash identifier */
 	uint32_t opcode;
+
+	/* Flags for this operation */
+	uint32_t flags;
 
 	/** Command returned status */
 	int32_t  status;
@@ -601,6 +613,9 @@ struct table_rule_delete_by_ruleid_command{
 	/** CTLU Generate Hash identifier */
 	uint32_t opcode;
 
+	/* Flags for this operation */
+	uint32_t flags;
+
 	/** Command returned status */
 	int32_t  status;
 	
@@ -623,6 +638,9 @@ struct table_rule_delete_by_ruleid_command{
 struct table_rule_query_by_ruleid_command{
 	/** CTLU Generate Hash identifier */
 	uint32_t opcode;
+
+	/* Flags for this operation */
+	uint32_t flags;
 
 	/** Command returned status */
 	int32_t  status;
