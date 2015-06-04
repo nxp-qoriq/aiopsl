@@ -467,8 +467,10 @@ do { \
 /*	param, offset, width,	type,		arg_name */
 #define DPRC_RSP_GET_OBJ_REGION(cmd, region_desc) \
 do { \
-	MC_RSP_OP(cmd, 1, 0,  64, uint64_t, region_desc->base_offset);\
+	MC_RSP_OP(cmd, 1, 0,  32, uint32_t, region_desc->base_offset);\
 	MC_RSP_OP(cmd, 2, 0,  32, uint32_t, region_desc->size); \
+	MC_RSP_OP(cmd, 2, 32, 4,  enum dprc_region_type, region_desc->type);\
+	MC_RSP_OP(cmd, 3, 0,  32, uint32_t, region_desc->flags);\
 } while (0)
 
 /*                cmd, param, offset, width, type, arg_name */
