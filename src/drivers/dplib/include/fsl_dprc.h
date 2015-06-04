@@ -756,6 +756,20 @@ int dprc_get_res_ids(struct fsl_mc_io			*mc_io,
 		     char				*type,
 		     struct dprc_res_ids_range_desc	*range_desc);
 
+/* Region flags */ 
+/* Cacheable - Indicates that region should be mapped as cacheable */
+#define DPRC_REGION_CACHEABLE	0x00000001
+
+/**
+ * enum dprc_region_type - Region type
+ * @DPRC_REGION_TYPE_MC_PORTAL: MC portal region
+ * @DPRC_REGION_TYPE_QBMAN_PORTAL: Qbman portal region
+ */
+enum dprc_region_type {
+	DPRC_REGION_TYPE_MC_PORTAL,
+	DPRC_REGION_TYPE_QBMAN_PORTAL
+};
+
 /**
  * struct dprc_region_desc - Mappable region descriptor
  * @base_offset: Region offset from region's base address.
@@ -763,10 +777,14 @@ int dprc_get_res_ids(struct fsl_mc_io			*mc_io,
  *	base address; For DPIO, region base is offset from SoC QMan portals
  *	base address
  * @size: Region size (in bytes)
+ * @flags: Region attributes
+ * @type: Portal region type
  */
 struct dprc_region_desc {
-	uint64_t base_offset;
+	uint32_t base_offset;
 	uint32_t size;
+	uint32_t flags;
+	enum dprc_region_type type;
 };
 
 /**

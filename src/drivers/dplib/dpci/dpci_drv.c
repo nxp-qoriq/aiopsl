@@ -407,6 +407,7 @@ __COLD_CODE static int mc_intr_set(uint32_t dpci_id, struct mc_dprc *dprc,
 __COLD_CODE int dpci_event_update_obj(uint32_t dpci_id)
 {
 	int err = 0;
+	int raise_event = 0;
 
 	/*
 	 * MC<->AIOP DPCI does not change and it is added and enabled by SL
@@ -419,6 +420,11 @@ __COLD_CODE int dpci_event_update_obj(uint32_t dpci_id)
 		DPCI_DT_LOCK_W_TAKE;
 		err = dpci_entry_init(dpci_id);
 		DPCI_DT_LOCK_RELEASE;
+		if (err >= 0) {
+			raise_event = 1;
+		} else {
+			pr_err("Add new DPCI 0x%x failed\n", dpci_id);
+		}
 	}
 
 	if(err >= 0) {
@@ -430,7 +436,7 @@ __COLD_CODE int dpci_event_update_obj(uint32_t dpci_id)
 
 	dpci_tbl_dump();
 
-	if (!err) {
+	if (raise_event) {
 		err = evmng_sl_raise_event(EVMNG_GENERATOR_AIOPSL,
 		                           DPCI_EVENT_ADDED,
 		                           (void *)dpci_id);

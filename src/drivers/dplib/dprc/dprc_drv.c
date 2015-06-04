@@ -142,17 +142,17 @@ int dprc_drv_scan(void)
 			}
 
 		} else if(strcmp(dev_desc.type, "dpci") == 0) {
-			/*err = dpci_event_update_obj((uint32_t)dev_desc.id);
+			err = dpci_event_update_obj((uint32_t)dev_desc.id);
 			if (err) {
 				sl_pr_err("Failed to update DPCI %d.\n",
 				          dev_desc.id);
 				return err;
-			}*/
+			}
 
 		}
 	}
 	dpni_drv_handle_removed_objects();
-	//dpci_event_handle_removed_objects();
+	// TODO dpci_event_handle_removed_objects();
 	return 0;
 
 }
