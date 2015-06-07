@@ -1163,34 +1163,34 @@ int dpni_set_tx_tc(struct fsl_mc_io		*mc_io,
 		   const struct dpni_tx_tc_cfg	*cfg);
 
 /**
- * enum dpni_tx_tc_schedule_mode - DPNI Tx traffic-class scheduling mode
- * @DPNI_TX_TC_SCHED_STRICT_PRIORITY: strict priority
- * @DPNI_TX_TC_SCHED_WEIGHTED: weighted based scheduling
+ * enum dpni_tx_schedule_mode - DPNI Tx scheduling mode
+ * @DPNI_TX_SCHED_STRICT_PRIORITY: strict priority
+ * @DPNI_TX_SCHED_WEIGHTED: weighted based scheduling
  */
-enum dpni_tx_tc_schedule_mode {
-        DPNI_TX_TC_SCHED_STRICT_PRIORITY,
-        DPNI_TX_TC_SCHED_WEIGHTED,
+enum dpni_tx_schedule_mode {
+        DPNI_TX_SCHED_STRICT_PRIORITY,
+        DPNI_TX_SCHED_WEIGHTED,
 };
 
 /**
- * struct dpni_tx_tc_schedule_cfg - Structure representing Tx traffic class
+ * struct dpni_tx_schedule_cfg - Structure representing Tx 
  * 	scheduling configuration
  * @mode: scheduling mode
  * @delta_bandwidth: Bandwidth represented in weights from 1 to 10;
  *	not applicable for 'strict-priority' mode;
  */
-struct dpni_tx_tc_schedule_cfg {
-       enum dpni_tx_tc_schedule_mode mode;
+struct dpni_tx_schedule_cfg {
+       enum dpni_tx_schedule_mode mode;
        uint8_t delta_bandwidth;
 };
 
 /**
  * struct dpni_tx_selection_cfg - Structure representing transmission
  * 	selection configuration
- * @tc: an array of traffic-classes
+ * @tc_sched: an array of traffic-classes
  */
 struct dpni_tx_selection_cfg {
-        struct dpni_tx_tc_schedule_cfg tc[DPNI_MAX_TC];
+        struct dpni_tx_schedule_cfg tc_sched[DPNI_MAX_TC];
 };
 
 /**
