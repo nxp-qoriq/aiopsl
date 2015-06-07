@@ -1389,7 +1389,7 @@ int ipsec_frame_encrypt(
 	/* uint16_t checksum; */
 	uint8_t dont_encrypt = 0;
 	ipsec_handle_t desc_addr;
-	uint16_t offset;
+	//uint16_t offset;
 	uint32_t original_val, new_val;
 	
 	struct ipsec_sa_params_part1 sap1; /* Parameters to read from ext buffer */
@@ -1432,27 +1432,26 @@ int ipsec_frame_encrypt(
 	desc_addr = IPSEC_DESC_ADDR(ipsec_handle);
 
 	/* 	2.	Read relevant descriptor fields with CDMA. */
-	//cdma_read(
-	//		&sap1, /* void *ws_dst */
-	//		//ipsec_handle, /* uint64_t ext_address */
-	//		desc_addr, /* uint64_t ext_address */
-	//		sizeof(sap1) /* uint16_t size */
-	//		);
+	cdma_read(
+			&sap1, /* void *ws_dst */
+			desc_addr, /* uint64_t ext_address */
+			sizeof(sap1) /* uint16_t size */
+			);
+
 	/* Performance Improvement */
 	/* CDMA read and reference counter increment with a single command */
-	//#define REF_COUNT_ADDR_DUMMY  HWC_ACC_OUT_ADDRESS+CDMA_REF_CNT_OFFSET
 	// TODO: optionally use cdma_access_context_memory_no_refcount_get()
 	// when this function is available
-	offset = (uint16_t)(desc_addr-ipsec_handle);
-	cdma_access_context_memory(
-			ipsec_handle,
-			CDMA_ACCESS_CONTEXT_MEM_INC_REFCOUNT,
-			offset,
-			&sap1,
-			CDMA_ACCESS_CONTEXT_MEM_DMA_READ | sizeof(sap1),
-			(uint32_t *)(HWC_ACC_OUT_ADDRESS+CDMA_REF_CNT_OFFSET)
-				/* REF_COUNT_ADDR_DUMMY */
-			);
+	//offset = (uint16_t)(desc_addr-ipsec_handle);
+	//cdma_access_context_memory(
+	//		ipsec_handle,
+	//		CDMA_ACCESS_CONTEXT_MEM_INC_REFCOUNT,
+	//		offset,
+	//		&sap1,
+	//		CDMA_ACCESS_CONTEXT_MEM_DMA_READ | sizeof(sap1),
+	//		(uint32_t *)(HWC_ACC_OUT_ADDRESS+CDMA_REF_CNT_OFFSET)
+	//			/* REF_COUNT_ADDR_DUMMY */
+	//		);
 	
 	/*---------------------*/
 	/* ipsec_frame_encrypt */
@@ -1587,7 +1586,9 @@ int ipsec_frame_encrypt(
 
 		eth_pointer_default = (uint8_t *)PARSER_GET_ETH_POINTER_DEFAULT();
 	
-		fdma_copy_data(eth_length, 0 ,eth_pointer_default,eth_header);
+		//fdma_copy_data(eth_length, 0 ,eth_pointer_default,eth_header);
+		/* Copy the input frame Ethernet header to workspace */
+		memcpy(eth_header, eth_pointer_default, eth_length);
 		
 		/* Remove L2 Header */	
 		/* Note: The gross running sum of the frame becomes invalid 
@@ -1940,7 +1941,7 @@ encrypt_end:
 	/* 	19.1. Update the encryption status (enc_status) and return status. */
 
 	/* Decrement the reference counter */
-	return_val = cdma_refcount_decrement(ipsec_handle);
+	//return_val = cdma_refcount_decrement(ipsec_handle);
 	// TODO: check CDMA return status
 	
 	/* 	19.3.	Return */
@@ -1968,7 +1969,7 @@ int ipsec_frame_decrypt(
 	uint8_t dont_decrypt = 0;
 	//int i;
 	ipsec_handle_t desc_addr;
-	uint16_t offset;
+	//uint16_t offset;
 
 	struct ipsec_sa_params_part1 sap1; /* Parameters to read from ext buffer */
 	struct scope_status_params scope_status;
@@ -1988,27 +1989,26 @@ int ipsec_frame_decrypt(
 	desc_addr = IPSEC_DESC_ADDR(ipsec_handle);
 
 	/* 	2.	Read relevant descriptor fields with CDMA. */
-	//cdma_read(
-	//		&sap1, /* void *ws_dst */
-	//		//ipsec_handle, /* uint64_t ext_address */
-	//		desc_addr, /* uint64_t ext_address */
-	//		sizeof(sap1) /* uint16_t size */
-	//		);
+	cdma_read(
+			&sap1, /* void *ws_dst */
+			desc_addr, /* uint64_t ext_address */
+			sizeof(sap1) /* uint16_t size */
+			);
+	
 	/* Performance Improvement */
 	/* CDMA read and reference counter increment with a single command */
-	//#define REF_COUNT_ADDR_DUMMY  HWC_ACC_OUT_ADDRESS+CDMA_REF_CNT_OFFSET
 	// TODO: optionally use cdma_access_context_memory_no_refcount_get()
 	// when this function is available
-	offset = (uint16_t)(desc_addr-ipsec_handle);
-	cdma_access_context_memory(
-			ipsec_handle,
-			CDMA_ACCESS_CONTEXT_MEM_INC_REFCOUNT,
-			offset,
-			&sap1,
-			CDMA_ACCESS_CONTEXT_MEM_DMA_READ | sizeof(sap1),
-			(uint32_t *)(HWC_ACC_OUT_ADDRESS+CDMA_REF_CNT_OFFSET)
-				/* REF_COUNT_ADDR_DUMMY */
-			);
+	//offset = (uint16_t)(desc_addr-ipsec_handle);
+	//cdma_access_context_memory(
+	//		ipsec_handle,
+	//		CDMA_ACCESS_CONTEXT_MEM_INC_REFCOUNT,
+	//		offset,
+	//		&sap1,
+	//		CDMA_ACCESS_CONTEXT_MEM_DMA_READ | sizeof(sap1),
+	//		(uint32_t *)(HWC_ACC_OUT_ADDRESS+CDMA_REF_CNT_OFFSET)
+	//			/* REF_COUNT_ADDR_DUMMY */
+	//		);
 	
 	/*---------------------*/
 	/* ipsec_frame_decrypt */
@@ -2145,8 +2145,11 @@ int ipsec_frame_decrypt(
 		/* Save Ethernet header. Note: no swap */
 		/* up to 6 VLANs x 4 bytes + 14 regular bytes */
 			eth_pointer_default = (uint8_t *)PARSER_GET_ETH_POINTER_DEFAULT();
-			fdma_copy_data(eth_length, 0 ,eth_pointer_default,eth_header);
+			//fdma_copy_data(eth_length, 0 ,eth_pointer_default,eth_header);
+			/* Copy the input frame Ethernet header to workspace */
+			memcpy(eth_header, eth_pointer_default, eth_length);
 
+			
 			/* Remove L2 Header */	
 			/* Note: The gross running sum of the frame becomes invalid 
 			 * after calling this function. */ 
@@ -2406,7 +2409,7 @@ decrypt_end:
 	 *  (AAP does that, only register through OSM functions). */
 	
 	/* Decrement the reference counter */
-	return_val = cdma_refcount_decrement(ipsec_handle);
+	//return_val = cdma_refcount_decrement(ipsec_handle);
 	// TODO: check CDMA return status
 	
 	/* Return */
