@@ -25,19 +25,19 @@
  */
 
 /**************************************************************************//**
-@File		dpni_drv.h
+@File		fsl_sl_dpni_drv.h
 
 @Description	Data Path Network Interface API
 *//***************************************************************************/
-#ifndef __DPNI_DRV_H
-#define __DPNI_DRV_H
+#ifndef __FSL_SL_DPNI_DRV_H
+#define __FSL_SL_DPNI_DRV_H
 
 #include "types.h"
 #include "fsl_dpni.h"
 #include "fsl_ldpaa.h"
 #include "fsl_platform.h"
 #include "fsl_dpni_drv.h"
-#include "fsl_dprc_drv.h"
+#include "fsl_sl_dprc_drv.h"
 #include "dpni_drv_rxtx_inline.h"
 
 /**************************************************************************//**
@@ -53,31 +53,6 @@
 @Description	Contains initialization APIs and runtime control APIs for DPNI
 
 @{
-*//***************************************************************************/
-
-/* TODO - move to soc files */
-#define SOC_MAX_NUM_OF_DPNI           64
-#define DPNI_NOT_IN_USE               0xFFFF
-#define DPNI_DRV_FAST_MEMORY    MEM_PART_PEB
-#define DPNI_DRV_DDR_MEMORY     MEM_PART_DP_DDR
-#define DPNI_DRV_NUM_USED_BPIDS   BPIDS_USED_FOR_POOLS_IN_DPNI
-#define DPNI_DRV_PEB_BPID_IDX         0
-#define DPNI_DRV_DDR_BPID_IDX         1
-#define SP_MASK_BMT_AND_RSV       0xC000FFFF
-#define SP_MASK_BPID              0x3FFF
-#define ORDER_MODE_CLEAR_BIT      0xFEFFFFFF /*clear the bit for exclusive / concurrent mode*/
-#define ORDER_MODE_BIT_MASK       0x01000000
-#define ORDER_MODE_NO_ORDER_SCOPE 0xEEFCFFF8 /*clear src, ep, sel, osrm*/
-#define DPNI_DRV_CONCURRENT_MODE      0
-#define DPNI_DRV_EXCLUSIVE_MODE       1
-#define PARAMS_IOVA_BUFF_SIZE         256
-#define PARAMS_IOVA_ALIGNMENT         8
-#define DPNI_DRV_PTA_SIZE             64
-
-/* Default DPNI requirements values */
-#define DPNI_DRV_DHR_DEF              96 /* Data Head Room */
-#define DPNI_DRV_DTR_DEF              0  /* Data Tail Room */
-#define DPNI_DRV_PTA_DEF              0  /* Pass Thru Annotation - Private Data Size */
 
 /**************************************************************************//**
 @Group	DPNI_DRV_STATUS
@@ -86,11 +61,6 @@
 /** MTU was crossed for DPNI driver send function */
 #define	DPNI_DRV_MTU_ERR	(DPNI_DRV_MODULE_STATUS_ID | 0x1)
 /* @} */
-
-/* TODO: need to define stats */
-struct dpni_stats {
-	int num_pkts;
-};
 
 struct dpni_early_init_request{
 	uint16_t head_room_sum;
@@ -210,4 +180,4 @@ int dpni_drv_update_obj(struct mc_dprc *dprc, uint16_t mc_niid);
 int dpni_drv_handle_removed_objects(void);
 
 /** @} */ /* end of DPNI_DRV_STATUS group */
-#endif /* __DPNI_DRV_H */
+#endif /* __FSL_SL_DPNI_DRV_H */

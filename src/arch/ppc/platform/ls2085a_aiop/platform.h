@@ -49,8 +49,6 @@
 *//***************************************************************************/
 
 #define NO_IRQ (~0)              /**< Set no IRQ even though IRQ is not supported in AIOP */
-/*TODO: Need to be removed when dynamic support for number of pools used for dpni's will be added*/
-#define BPIDS_USED_FOR_POOLS_IN_DPNI         2
 
 #define PLATFORM_IO_MODE_ANY            (~0)    /**< Unspecified I/O mode */
 

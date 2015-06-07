@@ -51,7 +51,7 @@
 #ifdef AIOP_VERIF
 #include "slab_stub.h"
 #else
-#include "slab.h"
+#include "fsl_sl_slab.h"
 #endif /* AIOP_VERIF */
 
 #pragma push

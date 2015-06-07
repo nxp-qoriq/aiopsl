@@ -60,7 +60,7 @@
 
 #include "ls2085_aiop/fsl_platform.h"
 #include "fsl_malloc.h"
-#include "slab.h"
+#include "fsl_sl_slab.h"
 
 
 #define SNIC_CMD_READ(_param, _offset, _width, _type, _arg) \
@@ -147,6 +147,13 @@ void snic_process_packet(void)
 		default_task_params.qd_priority = ((*((uint8_t *)
 				(HWC_ADC_ADDRESS +
 				ADC_WQID_PRI_OFFSET)) & ADC_WQID_MASK) >> 4);
+		/* epid defaults is not present ASA */
+		if ((snic->snic_enable_flags & SNIC_VLAN_ADD_EN) ||
+			(snic->snic_enable_flags & SNIC_IPSEC_EN))
+		{
+			fdma_read_default_frame_asa((void*)SNIC_ASA_LOCATION, 0,
+					SNIC_ASA_SIZE);
+		}
 		/* Check if ipsec transport mode is required */
 		if (snic->snic_enable_flags & SNIC_IPSEC_EN)
 			snic_ipsec_encrypt(snic);

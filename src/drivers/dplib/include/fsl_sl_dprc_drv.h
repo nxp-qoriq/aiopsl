@@ -24,33 +24,17 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/**************************************************************************//**
-@File		dprc_drv.h
+#ifndef __FSL_SL_DPRC_DRV_H
+#define __FSL_SL_DPRC_DRV_H
 
-@Description	Data Path Resource Container API
-*//***************************************************************************/
-#ifndef __DPRC_DRV_H
-#define __DPRC_DRV_H
+#include "dplib/fsl_mc_sys.h"
 
-#include "types.h"
-#include "fsl_dprc_drv.h"
-
+struct mc_dprc {
+	uint16_t		token;
+	struct fsl_mc_io	io;
+};
 
 
-/**************************************************************************//**
-@Group		grp_dplib_aiop	DPLIB
-
-@Description	Contains initialization APIs and runtime control APIs for DPRC
-
-@{
-*//***************************************************************************/
-/**************************************************************************//**
-@Group		grp_dprc_aiop	DPRC (AIOP Data Path Resource Container API)
-
-@Description	Contains initialization APIs and runtime control APIs for DPRC
-
-@{
-*//***************************************************************************/
 /**************************************************************************//**
 @Function	dprc_drv_scan
 
@@ -62,6 +46,5 @@
 		\ref error_g
 *//***************************************************************************/
 int dprc_drv_scan(void);
-/** @} */ /* end of grp_dprc_aiop group */
-/** @} */ /* end of grp_dplib_aiop group */
-#endif /* __DPRC_DRV_H */
+
+#endif /*__FSL_SL_DPRC_DRV_H */

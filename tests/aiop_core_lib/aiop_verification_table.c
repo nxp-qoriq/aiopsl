@@ -34,7 +34,6 @@
 #include "aiop_verification_table.h"
 #include "system.h"
 
-
 uint16_t aiop_verification_table(uint32_t asa_seg_addr)
 {
 	uint16_t str_size = STR_SIZE_ERR;
@@ -357,9 +356,12 @@ uint16_t aiop_verification_table(uint32_t asa_seg_addr)
 		struct table_rule_id_desc rule_id __attribute__((aligned(16)));
 		union table_key_desc key_desc __attribute__((aligned(16)));
 		struct table_get_key_desc_command *str =
-		(struct table_get_key_desc_command *) asa_seg_addr;
+			(struct table_get_key_desc_command *) asa_seg_addr;
 		rule_id = *(str->rule_id_desc);
 		
+		if (str->flags & TABLE_VERIF_FLAG_RULE_ID_ALL_ONE){
+			rule_id.rule_id = UINT64_MAX;
+		}
 		str->status = table_get_key_desc(str->acc_id,
 						str->table_id,
 						&rule_id,
@@ -376,11 +378,20 @@ uint16_t aiop_verification_table(uint32_t asa_seg_addr)
 		struct table_rule_replace_by_ruleid_command *str =
 		(struct table_rule_replace_by_ruleid_command *) asa_seg_addr;
 		rule = *(str->rule);
-		
-		str->status = table_rule_replace_by_ruleid(str->acc_id,
-						str->table_id,
-						&rule,
-						str->old_res);
+		if (str->flags & TABLE_VERIF_FLAG_RULE_ID_ALL_ONE){
+			rule.rule_id_desc.rule_id = UINT64_MAX;
+		}
+		if (str->flags & TABLE_VERIF_FLAG_OLD_RESULT_NULL) {
+			str->status = table_rule_replace_by_ruleid(str->acc_id,
+								   str->table_id,
+								   &rule,
+								   (void *) 0);
+		} else {
+			str->status = table_rule_replace_by_ruleid(str->acc_id,
+								   str->table_id,
+								   &rule,
+								   &(str->old_res));
+		}
 		str_size = sizeof(struct table_rule_replace_by_ruleid_command);
 		break;
 	}
@@ -392,11 +403,20 @@ uint16_t aiop_verification_table(uint32_t asa_seg_addr)
 		struct table_rule_delete_by_ruleid_command *str =
 		(struct table_rule_delete_by_ruleid_command *) asa_seg_addr;
 		rule_id = *(str->rule_id_desc);
-		
-		str->status = table_rule_delete_by_ruleid(str->acc_id,
-						str->table_id,
-						&rule_id,
-						str->result);
+		if (str->flags & TABLE_VERIF_FLAG_RULE_ID_ALL_ONE){
+			rule_id.rule_id = UINT64_MAX;
+		}
+		if (str->flags & TABLE_VERIF_FLAG_OLD_RESULT_NULL) {
+			str->status = table_rule_delete_by_ruleid(str->acc_id,
+								  str->table_id,
+								  &rule_id,
+								  (void *) 0);
+		} else {
+			str->status = table_rule_delete_by_ruleid(str->acc_id,
+								  str->table_id,
+								  &rule_id,
+								  &(str->result));
+		}
 		str_size = sizeof(struct table_rule_delete_by_ruleid_command);
 		break;
 	}
@@ -404,16 +424,18 @@ uint16_t aiop_verification_table(uint32_t asa_seg_addr)
 	case TABLE_RULE_QUERY_BY_RULEID_CMD_STR:
 	{
 		struct table_rule_id_desc rule_id __attribute__((aligned(16)));
-		
+
 		struct table_rule_query_by_ruleid_command *str =
 		(struct table_rule_query_by_ruleid_command *) asa_seg_addr;
 		rule_id = *(str->rule_id_desc);
-		
+		if (str->flags & TABLE_VERIF_FLAG_RULE_ID_ALL_ONE){
+			rule_id.rule_id = UINT64_MAX;
+		}
 		str->status = table_rule_query_by_ruleid(str->acc_id,
-						str->table_id,
-						&rule_id,
-						str->result,
-						str->timestamp);
+							 str->table_id,
+							 &rule_id,
+							 &(str->result),
+							 &(str->timestamp));
 		str_size = sizeof(struct table_rule_query_by_ruleid_command);
 		break;
 	}
@@ -424,18 +446,18 @@ uint16_t aiop_verification_table(uint32_t asa_seg_addr)
 		struct table_query_debug_command *str =
 		(struct table_query_debug_command *) asa_seg_addr;
 		struct table_params_query_output_message output_ptr 
-											__attribute__((aligned(16)));
+			__attribute__((aligned(16)));
 
 		str->status = table_query_debug(str->acc_id,
 						str->table_id,
 						&output_ptr);
-		
+
 		/* Disable reserved fields */
 		cdma_ws_memory_init((void *)output_ptr.reserved,
 							TABLE_QUERY_OUTPUT_MESSAGE_RESERVED_SPACE, 0);
 
-		*(struct table_params_query_output_message *)str->output_ptr = 
-																output_ptr;
+		*(struct table_params_query_output_message *)str->output_ptr =
+				output_ptr;
 		str_size =
 			sizeof(struct table_query_debug_command);
 		break;

@@ -63,6 +63,9 @@ enum mc_cmd_status {
 
 #define MC_CMD_HDR_CMDID_O	52	/* Command ID field offset */
 #define MC_CMD_HDR_CMDID_S	12	/* Command ID field size */
+#define MC_CMD_HDR_INTR_DIS_O 48 /* Command completion interrupt 
+										disable offset*/
+#define MC_CMD_HDR_INTR_DIS_S 1  /* Command completion interrupt disable size */
 #define MC_CMD_HDR_TOKEN_O	38	/* Token field offset */
 #define MC_CMD_HDR_TOKEN_S	10	/* Token field size */
 #define MC_CMD_HDR_STATUS_O	16	/* Status field offset */
@@ -91,11 +94,13 @@ enum mc_cmd_status {
 
 static inline uint64_t mc_encode_cmd_header(uint16_t cmd_id,
 					    uint8_t priority,
-					    uint16_t token)
+					    uint16_t token, 
+					    int intr_dis)
 {
 	uint64_t hdr;
 
 	hdr = u64_enc(MC_CMD_HDR_CMDID_O, MC_CMD_HDR_CMDID_S, cmd_id);
+	hdr |= u64_enc(MC_CMD_HDR_INTR_DIS_O, MC_CMD_HDR_INTR_DIS_S, intr_dis);
 	hdr |= u64_enc(MC_CMD_HDR_TOKEN_O, MC_CMD_HDR_TOKEN_S, token);
 	hdr |= u64_enc(MC_CMD_HDR_PRI_O, MC_CMD_HDR_PRI_S, priority);
 	hdr |= u64_enc(MC_CMD_HDR_STATUS_O, MC_CMD_HDR_STATUS_S,

@@ -138,12 +138,13 @@ inline void fdma_copy_data(
 	__stdw(arg1, (uint32_t)src, HWC_ACC_IN_ADDRESS, 0);
 	*((uint32_t *) HWC_ACC_IN_ADDRESS3) = (uint32_t)dst;
 	/* call FDMA Accelerator */
-	__e_hwacceli_(FPDMA_ACCEL_ID);
+	if ((__e_hwacceli_(FODMA_ACCEL_ID)) == FDMA_SUCCESS)
+		return;
+	
 	/* load command results */
 	res1 = *((int8_t *)(FDMA_STATUS_ADDR));
 
-	if (res1 != FDMA_SUCCESS)
-		fdma_exception_handler(FDMA_COPY_DATA, __LINE__, (int32_t)res1);
+	fdma_exception_handler(FDMA_COPY_DATA, __LINE__, (int32_t)res1);
 }
 
 inline int fdma_store_default_frame_data(void)
@@ -158,13 +159,13 @@ inline int fdma_store_default_frame_data(void)
 	arg1 = FDMA_STORE_DEFAULT_CMD_ARG1(spid, PRC_GET_HANDLES());
 	*((uint32_t *)(HWC_ACC_IN_ADDRESS)) = arg1;
 	/* call FDMA Accelerator */
-	__e_hwacceli_(FODMA_ACCEL_ID);
+	if ((__e_hwacceli_(FODMA_ACCEL_ID)) == FDMA_SUCCESS)
+		return SUCCESS;
+
 	/* load command results */
 	res1 = *((int8_t *) (FDMA_STATUS_ADDR));
 
-	if (res1 == FDMA_SUCCESS)
-		return SUCCESS;
-	else if (res1 == FDMA_BUFFER_POOL_DEPLETION_ERR)
+	if (res1 == FDMA_BUFFER_POOL_DEPLETION_ERR)
 		return -ENOMEM;
 	else
 		fdma_exception_handler(FDMA_STORE_DEFAULT_FRAME_DATA, __LINE__, 
@@ -611,13 +612,14 @@ inline void fdma_discard_default_frame(uint32_t flags)
 		arg1 = FDMA_DISCARD_ARG1_FD(HWC_FD_ADDRESS, flags);*/
 	*((uint32_t *)(HWC_ACC_IN_ADDRESS)) = arg1;
 	/* call FDMA Accelerator */
-	__e_hwacceli_(FODMA_ACCEL_ID);
+	if ((__e_hwacceli_(FODMA_ACCEL_ID)) == FDMA_SUCCESS)
+		return;
+
 	/* load command results */
 	res1 = *((int8_t *) (FDMA_STATUS_ADDR));
 
-	if (res1 != FDMA_SUCCESS)
-		fdma_exception_handler(FDMA_DISCARD_DEFAULT_FRAME, __LINE__, 
-					(int32_t)res1);
+	fdma_exception_handler(FDMA_DISCARD_DEFAULT_FRAME, __LINE__, 
+			(int32_t)res1);
 }
 
 inline void fdma_calculate_default_frame_checksum(
@@ -635,13 +637,14 @@ inline void fdma_calculate_default_frame_checksum(
 	/* store command parameters */
 	__stdw(arg1, arg2, HWC_ACC_IN_ADDRESS, 0);
 	/* call FDMA Accelerator */
-	__e_hwacceli_(FODMA_ACCEL_ID);
+	if ((__e_hwacceli_(FODMA_ACCEL_ID)) == FDMA_SUCCESS) {
+		*checksum = *((uint16_t *)(HWC_ACC_OUT_ADDRESS2+FDMA_CHECKSUM_OFFSET));
+		return;
+	}
+
 	/* load command results */
 	res1 = *((int8_t *)(FDMA_STATUS_ADDR));
-	*checksum = *((uint16_t *)(HWC_ACC_OUT_ADDRESS2+FDMA_CHECKSUM_OFFSET));
-
-	if (res1 != FDMA_SUCCESS)
-		fdma_exception_handler(FDMA_CALCULATE_DEFAULT_FRAME_CHECKSUM, 
+	fdma_exception_handler(FDMA_CALCULATE_DEFAULT_FRAME_CHECKSUM, 
 				__LINE__, (int32_t)res1);
 }
 
@@ -666,13 +669,12 @@ inline int fdma_store_and_enqueue_default_frame_qd(
 	/*__stqw(arg1, arg2, arg3, 0, HWC_ACC_IN_ADDRESS, 0);*/
 
 	/* call FDMA Accelerator */
-	__e_hwacceli_(FODMA_ACCEL_ID);
+	if ((__e_hwacceli_(FODMA_ACCEL_ID)) == FDMA_SUCCESS)
+		return SUCCESS;
 	/* load command results */
 	res1 = *((int8_t *) (FDMA_STATUS_ADDR));
 
-	if (res1 == FDMA_SUCCESS)
-		return SUCCESS;
-	else if (res1 == FDMA_ENQUEUE_FAILED_ERR)
+	if (res1 == FDMA_ENQUEUE_FAILED_ERR)
 		return -EBUSY;
 	else if (res1 == FDMA_BUFFER_POOL_DEPLETION_ERR)
 		return -ENOMEM;

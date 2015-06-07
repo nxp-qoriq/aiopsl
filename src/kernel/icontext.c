@@ -34,7 +34,7 @@
 #include "sys.h"
 #include "fsl_dbg.h"
 #include "fsl_icontext.h"
-#include "fsl_dprc_drv.h"
+#include "fsl_sl_dprc_drv.h"
 #include "fsl_spinlock.h"
 #include "cmdif_srv.h"
 #include "fsl_io_ccsr.h"
@@ -92,7 +92,6 @@ int icontext_get(uint16_t dpci_id, struct icontext *ic)
 	 * It should be updated only in dpci_drv_added() !!!
 	 */
 
-	DPCI_DT_LOCK_R_TAKE;
 	
 	/* search by GPP peer id - most likely case
 	 * or by AIOP dpci id  - to support both cases
@@ -102,6 +101,8 @@ int icontext_get(uint16_t dpci_id, struct icontext *ic)
 		ind = dpci_mng_peer_find(dpci_id);
 
 	if (ind >= 0) {
+		DPCI_DT_LOCK_R_TAKE;
+
 		dpci_mng_icid_get((uint32_t)ind, &icid, &amq_bdi);
 		if (icid == ICONTEXT_INVALID) {
 			DPCI_DT_LOCK_RELEASE;
@@ -112,9 +113,7 @@ int icontext_get(uint16_t dpci_id, struct icontext *ic)
 		DPCI_DT_LOCK_RELEASE;
 		return 0;
 	}
-	
-	DPCI_DT_LOCK_RELEASE;
-	
+
 	return -ENOENT;
 }
 

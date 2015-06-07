@@ -39,6 +39,9 @@
 #include "fsl_errors.h"
 #include "fsl_platform.h"
 
+/* Macro for number of bpids used in dpni driver for DPNI pools*/
+#define BPIDS_USED_FOR_POOLS_IN_DPNI         2
+
 
 /**************************************************************************//**
 @Function      bman_fill_bpid

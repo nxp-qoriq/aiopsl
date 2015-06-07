@@ -46,6 +46,7 @@
 
 struct fsl_mc_io {
 	void *regs;
+	int intr_dis;
 };
 
 #endif /* _FSL_DPLIB_SYS_H */

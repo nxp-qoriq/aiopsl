@@ -29,7 +29,7 @@
 
 #include "fsl_cmdif_server.h"
 #include "fsl_cmdif_client.h"
-#include "fsl_dprc_drv.h"
+#include "fsl_sl_dprc_drv.h"
 #include "cmdif_srv_flib.h"
 #include "fsl_fdma.h"
 #include "fsl_mc_cmd.h"
