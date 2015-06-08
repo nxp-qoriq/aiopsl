@@ -318,13 +318,12 @@ __COLD_CODE static void tx_user_context_set(struct mc_dprc *dprc, int ind,
 #pragma optimization_level reset
 
 /* To be called upon connected event, assign even */
-__COLD_CODE static int dpci_entry_init(uint32_t dpci_id)
+__COLD_CODE static int dpci_entry_init(uint32_t dpci_id, 
+                                       struct mc_dprc *dprc, uint16_t token)
 {
 	int ind = -1;
 	uint32_t amq_bdi = 0;
 	int err = 0;
-	uint16_t token = 0xffff;
-	struct mc_dprc *dprc;
 
 	CMDIF_ICID_AMQ_BDI(AMQ_BDI_SET, ICONTEXT_INVALID, ICONTEXT_INVALID);
 
@@ -338,11 +337,6 @@ __COLD_CODE static int dpci_entry_init(uint32_t dpci_id)
 
 	g_dpci_tbl.dpci_id[ind] = dpci_id;
 	g_dpci_tbl.ic[ind] = amq_bdi;
-
-	dprc = sys_get_unique_handle(FSL_OS_MOD_AIOP_RC);
-	err = dpci_open(&dprc->io, (int)dpci_id, &token);
-	if (err)
-		return err;
 
 	/* Updated DPCI peer if possible
 	 * error is possible */
@@ -363,9 +357,6 @@ __COLD_CODE static int dpci_entry_init(uint32_t dpci_id)
 		}
 	}
 #endif
-
-	err = dpci_close(&dprc->io, token);
-	ASSERT_COND(!err);
 
 	return ind;
 }
@@ -409,7 +400,10 @@ __COLD_CODE static int mc_intr_set(uint32_t dpci_id, struct mc_dprc *dprc,
 __COLD_CODE int dpci_event_update_obj(uint32_t dpci_id)
 {
 	int err = 0;
+	int ind = -1;
 	int raise_event = 0;
+	uint16_t token = 0xffff;
+	struct mc_dprc *dprc;
 
 	/*
 	 * MC<->AIOP DPCI does not change and it is added and enabled by SL
@@ -417,23 +411,38 @@ __COLD_CODE int dpci_event_update_obj(uint32_t dpci_id)
 	if (g_dpci_tbl.mc_dpci_id == dpci_id)
 		return 0;
 
-	err = dpci_mng_find(dpci_id);
-	if (err < 0) {
+	ind = dpci_mng_find(dpci_id);
+	if (ind < 0) {
+
+		dprc = sys_get_unique_handle(FSL_OS_MOD_AIOP_RC);
+		ASSERT_COND(dprc);
+		err = dpci_open(&dprc->io, (int)dpci_id, &token);
+		if (err)
+			return err;
+
 		DPCI_DT_LOCK_W_TAKE;
-		err = dpci_entry_init(dpci_id);
+		ind = dpci_entry_init(dpci_id, dprc, token);
 		DPCI_DT_LOCK_RELEASE;
-		if (err >= 0) {
+		if (ind >= 0) {
 			raise_event = 1;
 		} else {
 			pr_err("Add new DPCI 0x%x failed\n", dpci_id);
 		}
+		
+		err = mc_intr_set(dpci_id, dprc, token);
+		if (err) {
+			pr_err("Failed to set irq for events\n");
+		}
+
+		err = dpci_close(&dprc->io, token);
+		ASSERT_COND(!err);
 	}
 
-	if(err >= 0) {
-		ASSERT_COND(!(g_dpci_tbl.flags[err] & DPCI_ID_FLG_SCANNED));
+	if(ind >= 0) {
+		ASSERT_COND(!(g_dpci_tbl.flags[ind] & DPCI_ID_FLG_SCANNED));
 		/* flags are updated only during add/remove 
 		 * event which are handled one at a time */
-		g_dpci_tbl.flags[err] |= DPCI_ID_FLG_SCANNED;
+		g_dpci_tbl.flags[ind] |= DPCI_ID_FLG_SCANNED;
 	}
 
 	dpci_tbl_dump();
@@ -727,10 +736,12 @@ __COLD_CODE static int dpci_for_mc_add(struct mc_dprc *dprc)
 
 	dpci_cfg.num_of_priorities = 2;
 
-	err |= dpci_create(&dprc->io, &dpci_cfg, &dpci);
+	err = dpci_create(&dprc->io, &dpci_cfg, &dpci);
+	ASSERT_COND(!err);
 
 	/* Get attributes just for dpci id fqids are not there yet */
-	err |= dpci_get_attributes(&dprc->io, dpci, &attr);
+	err = dpci_get_attributes(&dprc->io, dpci, &attr);
+	ASSERT_COND(!err);
 
 	/* Connect to dpci that belongs to MC */
 	g_dpci_tbl.mc_dpci_id = (uint32_t)attr.id;
@@ -751,13 +762,14 @@ __COLD_CODE static int dpci_for_mc_add(struct mc_dprc *dprc)
 	if (err) {
 		pr_err("dprc_connect failed\n");
 	}
-	err = dpci_close(&dprc->io, dpci);
-	ASSERT_COND(!err);
 
-	err = dpci_entry_init((uint32_t)attr.id);
+	err = dpci_entry_init((uint32_t)attr.id, dprc, dpci);
 	ASSERT_COND(err >= 0);
 	/* MC dpci can't be removed */
 	g_dpci_tbl.flags[err] |= DPCI_ID_FLG_SCANNED;
+
+	err = dpci_close(&dprc->io, dpci);
+	ASSERT_COND(!err);
 
 	err = dpci_drv_enable((uint32_t)attr.id);
 	return err;
