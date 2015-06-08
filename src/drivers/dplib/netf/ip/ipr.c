@@ -380,7 +380,7 @@ int ipr_reassemble(ipr_instance_handle_t instance_handle)
 	uint16_t iphdr_offset;
 	struct presentation_context *prc =
 				(struct presentation_context *) HWC_PRC_ADDRESS;
-		
+
 	iphdr_offset = (uint16_t)PARSER_GET_OUTER_IP_OFFSET_DEFAULT();
 	iphdr_ptr = (void *)(iphdr_offset + PRC_GET_SEGMENT_ADDRESS());
 
@@ -1058,10 +1058,12 @@ uint32_t ipr_insert_to_link_list(struct ipr_rfdc *rfdc_ptr,
 
 		/* Add current frag's running sum for L4 checksum check */
 		if (pr->gross_running_sum == 0) {
+			/* current_running_sum is used as a temporary location
+			 * for stack optimization*/
 			fdma_calculate_default_frame_checksum_wrp(
 				0,
 				0xffff,	
-				&current_running_sum);/* tmp location for stack optimization*/
+				&current_running_sum);
 			
 			pr->gross_running_sum = current_running_sum;
 			/* Run parser in order to get valid running sum */
@@ -1073,13 +1075,15 @@ uint32_t ipr_insert_to_link_list(struct ipr_rfdc *rfdc_ptr,
 						  pr->running_sum);
 	} else {
 		rfdc_ptr->first_frag_hdr_length = ip_header_size;
-		if (pr->gross_running_sum == 0)
+		if (pr->gross_running_sum == 0) {
+			/* current_running_sum is used as a temporary location
+			 * for stack optimization*/
 			fdma_calculate_default_frame_checksum_wrp(
 				0,
 				0xffff,
-				&current_running_sum);/* tmp location for stack optimization*/
-			
+				&current_running_sum);
 			pr->gross_running_sum = current_running_sum;
+		}
 		/* Set 1rst frag's running sum for L4 checksum check */
 		current_running_sum = cksum_ones_complement_sum16(
 				  	          rfdc_ptr->current_running_sum,
