@@ -119,10 +119,12 @@ __COLD_CODE static void dpci_tbl_dump()
 {
 	int i;
 
-	fsl_os_print("----------DPCI table----------\n");
+	fsl_os_print("----------DPCI table: count = %d----------\n", 
+	             g_dpci_tbl.count);
 	for (i = 0; i < g_dpci_tbl.count; i++) {
-		fsl_os_print("ID = 0x%x\t PEER ID = 0x%x\t IC = 0x%x\t\n",
-		             g_dpci_tbl.dpci_id[i], g_dpci_tbl.dpci_id_peer[i], g_dpci_tbl.ic[i]);
+		fsl_os_print("ID = 0x%x\t PEER ID = 0x%x\t IC = 0x%x\t flags = 0x%x\t\n",
+		             g_dpci_tbl.dpci_id[i], g_dpci_tbl.dpci_id_peer[i], 
+		             g_dpci_tbl.ic[i], g_dpci_tbl.flags[i]);
 	}
 }
 
@@ -458,16 +460,19 @@ __COLD_CODE void dpci_event_handle_removed_objects()
 
 	ASSERT_COND(g_dpci_tbl.count <= g_dpci_tbl.max);
 
-	while (count < g_dpci_tbl.count) {
+	while ((count < g_dpci_tbl.count) && (i < g_dpci_tbl.max)) {
+
+		pr_debug("i=%d count=%d\n", i, count);
 
 		if (g_dpci_tbl.dpci_id[i] != DPCI_FQID_NOT_VALID) {
-
+			
 			if (!(g_dpci_tbl.flags[i] & DPCI_ID_FLG_SCANNED)) {
 
 				DPCI_DT_LOCK_W_TAKE;
 				dpci_entry_delete(i);
 				DPCI_DT_LOCK_RELEASE;
-
+				
+				pr_debug("evmng_sl_raise_event\n");
 				err = evmng_sl_raise_event(
 					EVMNG_GENERATOR_AIOPSL,
 					DPCI_EVENT_REMOVED,
@@ -477,16 +482,21 @@ __COLD_CODE void dpci_event_handle_removed_objects()
 					       g_dpci_tbl.dpci_id[i]);
 				}
 			}
+
 			if (g_dpci_tbl.mc_dpci_id != g_dpci_tbl.dpci_id[i]) {
 				/* flags are updated only during add/remove 
 				 * event which are handled one at a time */
 				g_dpci_tbl.flags[i] &= ~DPCI_ID_FLG_SCANNED;
+				pr_debug("Cleared DPCI_ID_FLG_SCANNED\n");
 			}
 
 			count++;
 		}
+
 		i++;
 	}
+
+	dpci_tbl_dump();
 }
 
 
