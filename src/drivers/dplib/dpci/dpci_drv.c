@@ -213,22 +213,14 @@ static inline void amq_bits_update(uint32_t id)
 	uint16_t amq_bdi_temp = 0;
 	uint16_t pl_icid = PL_ICID_GET;
 
+	if (g_dpci_tbl.dpci_id[id] == DPCI_FQID_NOT_VALID)
+		return;
+
 	ADD_AMQ_FLAGS(amq_bdi_temp, pl_icid);
 	if (BDI_GET != 0)
 		amq_bdi_temp |= CMDIF_BDI_BIT;
 
 	CMDIF_ICID_AMQ_BDI(AMQ_BDI_SET, ICID_GET(pl_icid), amq_bdi_temp);
-
-	/*
-	 * TODO
-	 * NOTE : only dpci_peer_id can be updated but not dpci_id.
-	 * Maybe it should not update peer id at all ??
-	 * It should be updated only in dpci_drv_added() !!!
-	 * TODO
-	 * Check if amq bits updated and update only if they are 0xffffffff
-	 */
-	//err = dpci_get_peer_id(g_dpci_tbl.dpci_id[id], &(g_dpci_tbl.dpci_id_peer[id]));
-	//ASSERT_COND(!err);
 
 	/* Must be written last */
 	g_dpci_tbl.ic[id] = amq_bdi;
@@ -410,18 +402,20 @@ __COLD_CODE int dpci_event_update_obj(uint32_t dpci_id)
 	if (g_dpci_tbl.mc_dpci_id == dpci_id)
 		return 0;
 
+	DPCI_DT_LOCK_W_TAKE;
+
 	ind = dpci_mng_find(dpci_id);
 	if (ind < 0) {
 
 		dprc = sys_get_unique_handle(FSL_OS_MOD_AIOP_RC);
 		ASSERT_COND(dprc);
 		err = dpci_open(&dprc->io, (int)dpci_id, &token);
-		if (err)
+		if (err) {
+			DPCI_DT_LOCK_RELEASE;
 			return err;
+		}
 
-		DPCI_DT_LOCK_W_TAKE;
 		ind = dpci_entry_init(dpci_id, token);
-		DPCI_DT_LOCK_RELEASE;
 		if (ind >= 0) {
 			raise_event = 1;
 		} else {
@@ -443,6 +437,8 @@ __COLD_CODE int dpci_event_update_obj(uint32_t dpci_id)
 		 * event which are handled one at a time */
 		g_dpci_tbl.flags[ind] |= DPCI_ID_FLG_SCANNED;
 	}
+
+	DPCI_DT_LOCK_RELEASE;
 
 	dpci_tbl_dump();
 
@@ -468,6 +464,8 @@ __COLD_CODE void dpci_event_handle_removed_objects()
 
 	ASSERT_COND(g_dpci_tbl.count <= g_dpci_tbl.max);
 
+	DPCI_DT_LOCK_W_TAKE;
+
 	while ((count < g_dpci_tbl.count) && (i < g_dpci_tbl.max)) {
 
 		pr_debug("i=%d count=%d\n", i, count);
@@ -476,9 +474,7 @@ __COLD_CODE void dpci_event_handle_removed_objects()
 			
 			if (!(g_dpci_tbl.flags[i] & DPCI_ID_FLG_SCANNED)) {
 
-				DPCI_DT_LOCK_W_TAKE;
 				dpci_entry_delete(i);
-				DPCI_DT_LOCK_RELEASE;
 				
 				pr_debug("evmng_sl_raise_event\n");
 				err = evmng_sl_raise_event(
@@ -504,6 +500,8 @@ __COLD_CODE void dpci_event_handle_removed_objects()
 		i++;
 	}
 
+	DPCI_DT_LOCK_RELEASE;
+
 	dpci_tbl_dump();
 }
 
@@ -513,26 +511,12 @@ __COLD_CODE void dpci_event_handle_removed_objects()
  * This function is to be called only inside the open command and before
  * the AMQ bits had been changed to AIOP AMQ bits
  */
-__COLD_CODE int dpci_event_update(uint32_t ind)
+__COLD_CODE void dpci_mng_update(uint32_t ind)
 {
-	/*
-	 * TODO
-	 * Is it possible that DPCI will be removed in the middle of the task ?
-	 * Answer : NO
-	 * AIOP SL will wait for all the tasks to finish and only then it will
-	 * delete the entry. Before the waiting AIOP SL will change the dpci
-	 * table or just entry for the new tasks only.
-	 */
-
-	DPCI_DT_LOCK_W_TAKE;
 
 	amq_bits_update(ind);
 
-	DPCI_DT_LOCK_RELEASE;
-
 	dpci_tbl_dump();
-
-	return 0;
 }
 
 __COLD_CODE int dpci_event_link_change(uint32_t dpci_id)
@@ -556,10 +540,10 @@ __COLD_CODE int dpci_event_link_change(uint32_t dpci_id)
 	ASSERT_COND(!err);
 
 	if (status & DPCI_IRQ_EVENT_CONNECTED) {
-		event_id = DPCI_EVENT_LINK_UP;// TODO DPCI_EVENT_CONNECTED;
+		event_id = DPCI_EVENT_CONNECTED;
 		status = DPCI_IRQ_EVENT_CONNECTED;
 	} else if (status & DPCI_IRQ_EVENT_DISCONNECTED) {
-		event_id = DPCI_EVENT_LINK_DOWN;// TODO DPCI_EVENT_DISCONNECTED;
+		event_id = DPCI_EVENT_DISCONNECTED;
 		status = DPCI_IRQ_EVENT_DISCONNECTED;
 	} else 	if (status & DPCI_IRQ_EVENT_LINK_CHANGED) {
 
@@ -646,31 +630,24 @@ __COLD_CODE int dpci_drv_enable(uint32_t dpci_id)
 	/*
 	 * Update DPCI table tx and peer 
 	 */
+	DPCI_DT_LOCK_W_TAKE;
+
 	ind = dpci_mng_find(dpci_id);
-	if (ind < 0) {
-		return -ENOENT;
+	if (ind >= 0) {
+		tx_peer_set((uint32_t)ind, token);
+		tx_user_context_set(dprc, ind, token,
+		                    num_priorities_get(&dprc->io, token));
+	} else {
+		sl_pr_err("No DPCI in the table \n");		
 	}
 
-	DPCI_DT_LOCK_W_TAKE;
-	err = tx_peer_set((uint32_t)ind, token);
-	DPCI_DT_LOCK_RELEASE;
-
-	DPCI_DT_LOCK_R_TAKE;
-	tx_user_context_set(dprc, ind, token,
-	                    num_priorities_get(&dprc->io, token));
 	DPCI_DT_LOCK_RELEASE;
 
 	err = dpci_enable(&dprc->io, token);
-	if (err) {
-		sl_pr_err("DPCI enable failed\n");
-		dpci_close(&dprc->io, token);
-		return err;
-	}
 
-	err = dpci_close(&dprc->io, token);
-	ASSERT_COND(!err);
+	dpci_close(&dprc->io, token);
 
-	return err;
+	return err; /* Error of enable matters */
 }
 
 __COLD_CODE int dpci_drv_disable(uint32_t dpci_id)

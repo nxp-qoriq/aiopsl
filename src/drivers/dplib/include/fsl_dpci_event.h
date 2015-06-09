@@ -45,7 +45,6 @@
  *//***************************************************************************/
 int dpci_event_update_obj(uint32_t dpci_id);
 
-
 /**************************************************************************//**
 @Function	dpci_event_handle_removed_objects
 
@@ -53,19 +52,6 @@ int dpci_event_update_obj(uint32_t dpci_id);
 
  *//***************************************************************************/
 void dpci_event_handle_removed_objects();
-
-/**************************************************************************//**
-@Function	dpci_event_update
-
-@Description	Updates the entry of DPCI table with the AMQ + BDI from ADC.
-		To be called only inside the open command and before 
-		the AMQ bits are changed to AIOP AMQ bits  
-
-@Param[in]	dpci_ind - Use dpci_mng_find() or dpci_mng_user_ctx_get().
-
-@Return		0      - on success, POSIX error code otherwise
- *//***************************************************************************/
-int dpci_event_update(uint32_t dpci_ind);
 
 /**************************************************************************//**
 @Function	dpci_event_link_change
