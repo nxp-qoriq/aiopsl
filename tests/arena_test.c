@@ -173,8 +173,8 @@ __HOT_CODE ENTRY_POINT static void app_process_packet(void)
 	err = random_test();
 	if (err) {
 		fsl_os_print("ERROR = %d: random_test failed in runtime phase \n", err);
-		if(seed_32bit != 0)/*TODO remove this condition after moving to sim f118*/
-			local_test_error |= err;
+		local_test_error |= err;
+		fsl_os_print("seed %x\n",seed_32bit);
 	}
 	else{
 		fsl_os_print("seed %x\n",seed_32bit);
@@ -502,7 +502,7 @@ static int app_dpni_event_added_cb(
 		pr_err("dpni_drv_disable for ni %d failed: %d\n", ni, err);
 		return err;
 	}
-	
+
 	layout.options = DPNI_DRV_BUF_LAYOUT_OPT_DATA_HEAD_ROOM |
 		DPNI_DRV_BUF_LAYOUT_OPT_DATA_TAIL_ROOM;
 	layout.data_head_room = 0;
