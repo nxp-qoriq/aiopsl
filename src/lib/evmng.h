@@ -81,7 +81,7 @@ struct evmng_irq_params {
 	/** addr - address for the interrupt, provided by IRQ*/
 	uint64_t addr;
 	/** val - interrupt value provided via IRQ API*/
-	uint32_t val;
+	uint64_t val;
 };
 
 #endif /* __EVMNG_H */
