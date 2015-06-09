@@ -456,11 +456,11 @@ int ipsec_app_init(uint16_t ni_id)
 	//algs = NULL_MD5;
 	//algs = NULL_SHA512;
 	//algs = AES128_SHA256;
-	algs = AES128_SHA512;
-	//algs = AES128_SHA1;
+	//algs = AES128_SHA512;
+	algs = AES128_SHA1;
 
 	/* Set the outer IP header type here */
-	outer_header_ip_version = 6; /* 4 or 6 */
+	outer_header_ip_version = 4; /* 4 or 6 */
 	//outer_header_ip_version = 17; /* UDP encap (Tunnel mode only) */
 
 	auth_key_id = 0; /* Keep the initial key array value */
@@ -471,8 +471,8 @@ int ipsec_app_init(uint16_t ni_id)
 
 	/* DSCP setting, valid only for tunnel mode */
 	if (tunnel_transport_mode) {
-		set_dscp = IPSEC_FLG_ENC_DSCP_SET; /* Set DSCP in outer header */
-		//set_dscp = 0; /* Copy DSCP from inner to outer header */
+		//set_dscp = IPSEC_FLG_ENC_DSCP_SET; /* Set DSCP in outer header */
+		set_dscp = 0; /* Copy DSCP from inner to outer header */
 	}
 
 	esn_enable = 0; /* ESN Disabled */

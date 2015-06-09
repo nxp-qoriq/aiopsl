@@ -94,12 +94,12 @@ inline int parse_result_generate(enum parser_starting_hxs_code starting_hxs,
 		}
 	}
 
-	__e_hwacceli(CTLU_PARSE_CLASSIFY_ACCEL_ID);
+	if ((__e_hwacceli_(CTLU_PARSE_CLASSIFY_ACCEL_ID)) == 
+			PARSER_HW_STATUS_SUCCESS)
+			return 0;
 
 	status = *(int32_t *)HWC_ACC_OUT_ADDRESS;
-	if (status == PARSER_HW_STATUS_SUCCESS) {
-		return 0;
-	} else if ((status ==
+	if ((status ==
 			PARSER_HW_STATUS_L3_CHECKSUM_VALIDATION_SUCCEEDED) ||
 		(status ==
 			PARSER_HW_STATUS_L4_CHECKSUM_VALIDATION_SUCCEEDED) ||
@@ -174,14 +174,14 @@ inline int parse_result_generate_default(uint8_t flags)
 		}
 	}
 	
-	__e_hwacceli(CTLU_PARSE_CLASSIFY_ACCEL_ID);
+	if ((__e_hwacceli_(CTLU_PARSE_CLASSIFY_ACCEL_ID)) == 
+			PARSER_HW_STATUS_SUCCESS)
+			return 0;
 
 	status = *(int32_t *)HWC_ACC_OUT_ADDRESS;
 	/* implementation of errors is priority based (if-else) since multiple
 	 * error indications may appear at the same time */
-	if (status == PARSER_HW_STATUS_SUCCESS) {
-		return 0;
-	} else if ((status ==
+	if ((status ==
 			PARSER_HW_STATUS_L3_CHECKSUM_VALIDATION_SUCCEEDED) ||
 		(status ==
 			PARSER_HW_STATUS_L4_CHECKSUM_VALIDATION_SUCCEEDED) ||
@@ -227,13 +227,12 @@ inline int parse_result_generate_basic(void)
 	__stqw((PARSER_GRSV_MASK | PARSER_GEN_PARSE_RES_MTYPE),
 		arg2, 0, 0, HWC_ACC_IN_ADDRESS, 0);
 
-	__e_hwacceli(CTLU_PARSE_CLASSIFY_ACCEL_ID);
-
+	if ((__e_hwacceli_(CTLU_PARSE_CLASSIFY_ACCEL_ID)) == 
+				PARSER_HW_STATUS_SUCCESS)
+				return 0;
 
 	status = *(int32_t *)HWC_ACC_OUT_ADDRESS;
-       if (status == PARSER_HW_STATUS_SUCCESS) {
-             return 0;
-       } else if (status & PARSER_HW_STATUS_CYCLE_LIMIT_EXCCEEDED) {
+    if (status & PARSER_HW_STATUS_CYCLE_LIMIT_EXCCEEDED) {
 		parser_exception_handler(PARSE_RESULT_GENERATE_BASIC,
 			__LINE__, 
 			(status & PARSER_HW_STATUS_CYCLE_LIMIT_EXCCEEDED));

@@ -760,6 +760,9 @@ int ipsec_generate_decap_sd(
 					IPSEC_DEC_OPTS_VERIFY_CSUM);
 		}
 	}
+	
+	//pdb.options |= (16<<8);
+	
 	/*
 	3 	OUT_FMT 	Output Frame format:
 		0 - All Input Frame fields copied to Output Frame
@@ -1389,8 +1392,10 @@ int ipsec_frame_encrypt(
 	/* uint16_t checksum; */
 	uint8_t dont_encrypt = 0;
 	ipsec_handle_t desc_addr;
-	uint16_t offset;
+	//uint16_t offset;
 	uint32_t original_val, new_val;
+	uint16_t fd_offset;
+	uint32_t fd_len;
 	
 	struct ipsec_sa_params_part1 sap1; /* Parameters to read from ext buffer */
 	struct scope_status_params scope_status;
@@ -1432,27 +1437,26 @@ int ipsec_frame_encrypt(
 	desc_addr = IPSEC_DESC_ADDR(ipsec_handle);
 
 	/* 	2.	Read relevant descriptor fields with CDMA. */
-	//cdma_read(
-	//		&sap1, /* void *ws_dst */
-	//		//ipsec_handle, /* uint64_t ext_address */
-	//		desc_addr, /* uint64_t ext_address */
-	//		sizeof(sap1) /* uint16_t size */
-	//		);
+	cdma_read(
+			&sap1, /* void *ws_dst */
+			desc_addr, /* uint64_t ext_address */
+			sizeof(sap1) /* uint16_t size */
+			);
+
 	/* Performance Improvement */
 	/* CDMA read and reference counter increment with a single command */
-	//#define REF_COUNT_ADDR_DUMMY  HWC_ACC_OUT_ADDRESS+CDMA_REF_CNT_OFFSET
 	// TODO: optionally use cdma_access_context_memory_no_refcount_get()
 	// when this function is available
-	offset = (uint16_t)(desc_addr-ipsec_handle);
-	cdma_access_context_memory(
-			ipsec_handle,
-			CDMA_ACCESS_CONTEXT_MEM_INC_REFCOUNT,
-			offset,
-			&sap1,
-			CDMA_ACCESS_CONTEXT_MEM_DMA_READ | sizeof(sap1),
-			(uint32_t *)(HWC_ACC_OUT_ADDRESS+CDMA_REF_CNT_OFFSET)
-				/* REF_COUNT_ADDR_DUMMY */
-			);
+	//offset = (uint16_t)(desc_addr-ipsec_handle);
+	//cdma_access_context_memory(
+	//		ipsec_handle,
+	//		CDMA_ACCESS_CONTEXT_MEM_INC_REFCOUNT,
+	//		offset,
+	//		&sap1,
+	//		CDMA_ACCESS_CONTEXT_MEM_DMA_READ | sizeof(sap1),
+	//		(uint32_t *)(HWC_ACC_OUT_ADDRESS+CDMA_REF_CNT_OFFSET)
+	//			/* REF_COUNT_ADDR_DUMMY */
+	//		);
 	
 	/*---------------------*/
 	/* ipsec_frame_encrypt */
@@ -1520,6 +1524,12 @@ int ipsec_frame_encrypt(
 				IPSEC_DPOVRD_OVRD | IPSEC_NEXT_HEADER_IPV6;
 		}
 		
+		// 13-8 AOIPHO
+		//dpovrd.tunnel_encap.word |= (16<<8); // including Ethernet   
+		// 27-16 Outer IP Header Material Length 
+		//dpovrd.tunnel_encap.word |= (14<<16); // including Ethernet   
+		//fsl_os_print("dpovrd.tunnel_encap.word 0x%x\n", dpovrd.tunnel_encap.word);
+
 	} else {
 		/* For Transport mode set DPOVRD */
 		/* 31 OVRD, 30-28 Reserved, 27-24 ECN (Not relevant for transport mode)
@@ -1587,11 +1597,15 @@ int ipsec_frame_encrypt(
 
 		eth_pointer_default = (uint8_t *)PARSER_GET_ETH_POINTER_DEFAULT();
 	
-		fdma_copy_data(eth_length, 0 ,eth_pointer_default,eth_header);
+		//fdma_copy_data(eth_length, 0 ,eth_pointer_default,eth_header);
+		/* Copy the input frame Ethernet header to workspace */
+		memcpy(eth_header, eth_pointer_default, eth_length);
 		
 		/* Remove L2 Header */	
 		/* Note: The gross running sum of the frame becomes invalid 
 		 * after calling this function. */
+		
+#if(0)
 		fdma_replace_default_segment_data(
 				(uint16_t)PARSER_GET_ETH_OFFSET_DEFAULT(),
 				eth_length,
@@ -1600,9 +1614,9 @@ int ipsec_frame_encrypt(
 				(void *)prc->seg_address,
 				128,
 				(uint32_t)(FDMA_REPLACE_SA_CLOSE_BIT));
-
+#endif
+		
 	}
-
 			/*---------------------*/
 			/* ipsec_frame_encrypt */
 			/*---------------------*/
@@ -1623,6 +1637,21 @@ int ipsec_frame_encrypt(
 	return_val = fdma_store_default_frame_data();
 	// TODO: check FDMA return status
 
+	/* Update the FD such that the SEC "thinks" the frame starts after the
+	 * L2 header, right from the IP. 
+	 * The L2 header becomes part of the headroom  */
+	
+	/* Update the 12 bit FD offset. Do it on all 16 bits, 
+	 * since the result is the same */
+	fd_offset = LH_SWAP(14, HWC_FD_ADDRESS);
+	fd_offset += eth_length;
+	STH_SWAP(fd_offset, 14, HWC_FD_ADDRESS);
+	
+	/* Update the FD length */
+	fd_len = LW_SWAP(8, HWC_FD_ADDRESS);
+	fd_len -= eth_length;
+	STW_SWAP(fd_len, 8, HWC_FD_ADDRESS);
+	
 	/* 	8.	Prepare AAP parameters in the Workspace memory. */
 	/* 	8.1.	Use accelerator macros for storing parameters */
 	/* 
@@ -1836,6 +1865,7 @@ int ipsec_frame_encrypt(
 	if (eth_length) {
 		/* Note: The Ethertype was already updated before removing the 
 		 * L2 header */
+#if(1)
 		return_val = fdma_insert_default_segment_data(
 				0, /* uint16_t to_offset */
 				eth_header, /* void	 *from_ws_src */
@@ -1843,7 +1873,7 @@ int ipsec_frame_encrypt(
 				FDMA_REPLACE_SA_REPRESENT_BIT 
 					/* uint32_t flags */
 				);
-		
+#endif		
 		/* TODO: Re-run parser ??? */
 		//		parse_result_generate_default(0);
 		
@@ -1885,7 +1915,7 @@ int ipsec_frame_encrypt(
 #endif	
 	
 	/* 	Set the gross running to 0 (invalidate) */
-	pr->gross_running_sum = 0;
+	//pr->gross_running_sum = 0;
 	
 	/* 	Run parser and check for errors. */
 	return_val = parse_result_generate_default(PARSER_NO_FLAGS);
@@ -1940,7 +1970,7 @@ encrypt_end:
 	/* 	19.1. Update the encryption status (enc_status) and return status. */
 
 	/* Decrement the reference counter */
-	return_val = cdma_refcount_decrement(ipsec_handle);
+	//return_val = cdma_refcount_decrement(ipsec_handle);
 	// TODO: check CDMA return status
 	
 	/* 	19.3.	Return */
@@ -1968,8 +1998,10 @@ int ipsec_frame_decrypt(
 	uint8_t dont_decrypt = 0;
 	//int i;
 	ipsec_handle_t desc_addr;
-	uint16_t offset;
-
+	//uint16_t offset;
+	uint16_t fd_offset;
+	uint32_t fd_len;
+	
 	struct ipsec_sa_params_part1 sap1; /* Parameters to read from ext buffer */
 	struct scope_status_params scope_status;
 
@@ -1988,27 +2020,26 @@ int ipsec_frame_decrypt(
 	desc_addr = IPSEC_DESC_ADDR(ipsec_handle);
 
 	/* 	2.	Read relevant descriptor fields with CDMA. */
-	//cdma_read(
-	//		&sap1, /* void *ws_dst */
-	//		//ipsec_handle, /* uint64_t ext_address */
-	//		desc_addr, /* uint64_t ext_address */
-	//		sizeof(sap1) /* uint16_t size */
-	//		);
+	cdma_read(
+			&sap1, /* void *ws_dst */
+			desc_addr, /* uint64_t ext_address */
+			sizeof(sap1) /* uint16_t size */
+			);
+	
 	/* Performance Improvement */
 	/* CDMA read and reference counter increment with a single command */
-	//#define REF_COUNT_ADDR_DUMMY  HWC_ACC_OUT_ADDRESS+CDMA_REF_CNT_OFFSET
 	// TODO: optionally use cdma_access_context_memory_no_refcount_get()
 	// when this function is available
-	offset = (uint16_t)(desc_addr-ipsec_handle);
-	cdma_access_context_memory(
-			ipsec_handle,
-			CDMA_ACCESS_CONTEXT_MEM_INC_REFCOUNT,
-			offset,
-			&sap1,
-			CDMA_ACCESS_CONTEXT_MEM_DMA_READ | sizeof(sap1),
-			(uint32_t *)(HWC_ACC_OUT_ADDRESS+CDMA_REF_CNT_OFFSET)
-				/* REF_COUNT_ADDR_DUMMY */
-			);
+	//offset = (uint16_t)(desc_addr-ipsec_handle);
+	//cdma_access_context_memory(
+	//		ipsec_handle,
+	//		CDMA_ACCESS_CONTEXT_MEM_INC_REFCOUNT,
+	//		offset,
+	//		&sap1,
+	//		CDMA_ACCESS_CONTEXT_MEM_DMA_READ | sizeof(sap1),
+	//		(uint32_t *)(HWC_ACC_OUT_ADDRESS+CDMA_REF_CNT_OFFSET)
+	//			/* REF_COUNT_ADDR_DUMMY */
+	//		);
 	
 	/*---------------------*/
 	/* ipsec_frame_decrypt */
@@ -2145,8 +2176,11 @@ int ipsec_frame_decrypt(
 		/* Save Ethernet header. Note: no swap */
 		/* up to 6 VLANs x 4 bytes + 14 regular bytes */
 			eth_pointer_default = (uint8_t *)PARSER_GET_ETH_POINTER_DEFAULT();
-			fdma_copy_data(eth_length, 0 ,eth_pointer_default,eth_header);
+			//fdma_copy_data(eth_length, 0 ,eth_pointer_default,eth_header);
+			/* Copy the input frame Ethernet header to workspace */
+			memcpy(eth_header, eth_pointer_default, eth_length);
 
+#if(0)			
 			/* Remove L2 Header */	
 			/* Note: The gross running sum of the frame becomes invalid 
 			 * after calling this function. */ 
@@ -2158,7 +2192,7 @@ int ipsec_frame_decrypt(
 					(void *)prc->seg_address,
 					128,
 					(uint32_t)(FDMA_REPLACE_SA_CLOSE_BIT));
-			
+#endif			
 			/* This is done here because L2 is removed only in Transport */
 			PRC_RESET_NDS_BIT(); 
 			
@@ -2209,6 +2243,22 @@ int ipsec_frame_decrypt(
 	/* 	8.	FDMA store default frame command 
 	 * (for closing the frame, updating the other FD fields) */
 	return_val = fdma_store_default_frame_data();
+	
+	/* Update the FD such that the SEC "thinks" the frame starts after the
+	 * L2 header, right from the IP. 
+	 * The L2 header becomes part of the headroom  */
+	if (!(sap1.flags & IPSEC_FLG_TUNNEL_MODE)) {
+		/* Update the 12 bit FD offset. Do it on all 16 bits, 
+		 * since the result is the same */
+		fd_offset = LH_SWAP(14, HWC_FD_ADDRESS);
+		fd_offset += eth_length;
+		STH_SWAP(fd_offset, 14, HWC_FD_ADDRESS);
+		
+		/* Update the FD length */
+		fd_len = LW_SWAP(8, HWC_FD_ADDRESS);
+		fd_len -= eth_length;
+		STW_SWAP(fd_len, 8, HWC_FD_ADDRESS);
+	}
 	
 	/* 	9.	Prepare AAP parameters in the Workspace memory. */
 	/* 3 USE_FLC_SP Use Flow Context Storage Profile = 1 */ 
@@ -2340,7 +2390,7 @@ int ipsec_frame_decrypt(
 	
 	byte_count = LW_SWAP(HWC_FD_ADDRESS + FD_FLC_DS_AS_CS_OFFSET + 0, 0);	
 	/* 	16.	Update the gross running checksum in the Workspace parser results.*/
-	pr->gross_running_sum = 0;
+	//pr->gross_running_sum = 0;
 	// TODO: currently setting to 0 (invalid), so parser will call
 	// FDMA to recalculate the gross running sum
 	// Later need to manipulate the checksum returned from SEC
@@ -2368,7 +2418,9 @@ int ipsec_frame_decrypt(
 			/*---------------------*/
 
 	/* 	17.	Run parser and check for errors. */
-	return_val = parse_result_generate_default(PARSER_VALIDATE_L3_L4_CHECKSUM);
+	//return_val = parse_result_generate_default(PARSER_VALIDATE_L3_L4_CHECKSUM);
+	return_val = parse_result_generate_default(PARSER_NO_FLAGS);
+
 	// TODO: mask out some parser error bits, in case there is no L4 etc.
 	// TODO: special handling in case of fragments
 	
@@ -2406,7 +2458,7 @@ decrypt_end:
 	 *  (AAP does that, only register through OSM functions). */
 	
 	/* Decrement the reference counter */
-	return_val = cdma_refcount_decrement(ipsec_handle);
+	//return_val = cdma_refcount_decrement(ipsec_handle);
 	// TODO: check CDMA return status
 	
 	/* Return */

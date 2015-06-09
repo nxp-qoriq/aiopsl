@@ -192,7 +192,7 @@
 	/** Macro to get FD BPID field.
 	 * _fd - the FD address in workspace. */
 #define LDPAA_FD_GET_BPID(_fd)						\
-	(uint16_t)(LH_SWAP_MASK(0, (uint16_t)(((char *)_fd) + FD_BPID_OFFSET),\
+	(uint16_t)(LH_SWAP_MASK(0, (((char *)_fd) + FD_BPID_OFFSET),	\
 			FD_BPID_MASK))
 	/** Macro to get FD IVP field.
 	 * _fd - the FD address in workspace. */
@@ -213,7 +213,7 @@
 	/** Macro to get FD OFFSET field.
 	 * _fd - the FD address in workspace. */
 #define LDPAA_FD_GET_OFFSET(_fd)					\
-	(LH_SWAP_MASK(0, (uint16_t)(((char *)_fd) + FD_OFFSET_OFFSET),	\
+	(uint16_t)(LH_SWAP_MASK(0, (((char *)_fd) + FD_OFFSET_OFFSET),	\
 			FD_OFFSET_MASK))
 	/** Macro to get FD FMT field.
 	 * _fd - the FD address in workspace. */
