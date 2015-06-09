@@ -99,7 +99,7 @@ int app_evm_register()
 	int err = 0;
 	uint8_t i = 0;
 
-	for (i = DPCI_EVENT_ADDED; i < NUM_OF_SL_DEFINED_EVENTS; i++) {
+	for (i = DPCI_EVENT_ADDED; i <= DPCI_EVENT_DISCONNECTED; i++) {
 		err = evmng_register(EVMNG_GENERATOR_AIOPSL,
 		                     i, 
 		                     1,
