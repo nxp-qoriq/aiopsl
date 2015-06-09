@@ -56,8 +56,6 @@ struct dpni_drv_params {
 	uint8_t             spid;
 	/** Storage profile ID to use DDR pool*/
 	uint8_t             spid_ddr;
-	/** connection for the command interface */
-	uint16_t            dpni;
 	/** epid table index */
 	uint16_t            epid_idx;
 };
