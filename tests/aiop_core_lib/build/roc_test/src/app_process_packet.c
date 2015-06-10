@@ -125,6 +125,38 @@ int app_early_init(void){
 
 	/* exists in aiop_sl_early_init */
 	err = ipr_early_init(3, 750);
+	
+	if (err)
+		return err;
+	
+	/* IPsec resources reservation */
+	err = ipsec_early_init(
+		10, /* uint32_t total_instance_num */
+		20, /* uint32_t total_committed_sa_num */
+		40, /* uint32_t total_max_sa_num */
+		0  /* uint32_t flags */
+	);
+
+	if (err)
+		return err;
+
+	/* Reserve some general buffers for keys etc. */
+	err = slab_register_context_buffer_requirements(
+			10, /* uint32_t committed_buffs*/
+			10, /* uint32_t max_buffs */
+			512, /* uint16_t buff_size */
+			8, /* uint16_t alignment */
+			MEM_PART_DP_DDR, /* enum memory_partition_id  mem_pid */
+	        0, /* uint32_t flags */
+	        0 /* uint32_t num_ddr_pools */
+	        );
+
+	if (err)
+		return err;
+
+	/* Set DHR to 256 in the default storage profile, for IPsec */
+	err = dpni_drv_register_rx_buffer_layout_requirements(256,0,0);
+	
 	return err;
 }
 
@@ -144,6 +176,11 @@ static int app_dpni_event_added_cb(
 	                              (rx_cb_t *)app_ctx);
 	if (err){
 		pr_err("dpni_drv_register_rx_cb for ni %d failed: %d\n", ni, err);
+		return err;
+	}
+	err = dpni_drv_enable(ni);
+	if(err){
+		pr_err("dpni_drv_enable for ni %d failed: %d\n", ni, err);
 		return err;
 	}
 	return 0;

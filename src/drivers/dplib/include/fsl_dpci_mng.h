@@ -118,5 +118,15 @@ int dpci_mng_find(uint32_t dpci_id);
 *//***************************************************************************/
 int dpci_mng_peer_find(uint32_t dpci_id);
 
+/**************************************************************************//**
+@Function	dpci_mnd_update
+
+@Description	Updates the entry of DPCI table with the AMQ + BDI from ADC.
+		To be called only inside the open command and before 
+		the AMQ bits are changed to AIOP AMQ bits  
+
+@Param[in]	dpci_ind - Use dpci_mng_find() or dpci_mng_user_ctx_get().
+*//***************************************************************************/
+void dpci_mng_update(uint32_t dpci_ind);
 
 #endif /* __FSL_DPCI_MNG_H */

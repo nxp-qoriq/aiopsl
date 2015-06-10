@@ -82,6 +82,11 @@ static int app_dpni_event_added_cb(
 		pr_err("dpni_drv_set_max_frame_length for ni %d failed: %d\n", ni, err);
 		return err;
 	}
+	err = dpni_drv_enable(ni);
+	if(err){
+		pr_err("dpni_drv_enable for ni %d failed: %d\n", ni, err);
+		return err;
+	}
 	return 0;
 }
 
@@ -185,7 +190,7 @@ void stack_estimation(void)
 
 	/* DPCI */
 	dpci_drv_disable(0);
-	//dpci_drv_enable(0); its 304 bytes stack
+	dpci_drv_enable(0);
 	dpci_drv_get_initial_presentation(0, NULL);
 	dpci_drv_set_initial_presentation(0, NULL);
 	/* 

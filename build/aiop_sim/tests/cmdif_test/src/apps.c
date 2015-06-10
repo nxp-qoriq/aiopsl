@@ -78,6 +78,12 @@ static int app_evmng_cb(uint8_t generator_id, uint8_t event_id,
 		break;
 	case DPCI_EVENT_LINK_UP:
 		break;
+	case DPCI_EVENT_DISCONNECTED:
+		break;
+	case DPCI_EVENT_CONNECTED:
+		pr_debug("Before enable\n");
+		err |= dpci_drv_enable((uint32_t)event_data);
+		break;
 	default:
 		pr_err("Unknown event id 0x%x", event_id);
 		err = -EINVAL;
@@ -93,7 +99,7 @@ int app_evm_register()
 	int err = 0;
 	uint8_t i = 0;
 
-	for (i = DPCI_EVENT_ADDED; i < NUM_OF_SL_DEFINED_EVENTS; i++) {
+	for (i = DPCI_EVENT_ADDED; i <= DPCI_EVENT_DISCONNECTED; i++) {
 		err = evmng_register(EVMNG_GENERATOR_AIOPSL,
 		                     i, 
 		                     1,

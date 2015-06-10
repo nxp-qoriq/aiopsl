@@ -30,11 +30,12 @@
 @Description	This file contains the AIOP statistics API.
 
 @Cautions	The counters that are updated by the STE must not be updated
-		using any other means since the STE is not synchronized with
-		the CDMA.\n
-		All counters memory addresses should be aligned at minimum to their
-		size. i.e. 4 byte counter should be 4 byte aligned and 8 byte counter
-		should be 8 byte aligned.
+		or initialized using any other means other than the STE API
+		functions since the STE block is not synchronized with the 
+		CDMA/FDMA/e200 cores hardware.\n
+		All counters memory addresses should be aligned at minimum to
+		their size. i.e. 4 byte counter should be 4 byte aligned and 8
+		byte counter should be 8 byte aligned.
 		
 *//***************************************************************************/
 
@@ -311,6 +312,9 @@ enum e_ste_err_ec {
 
 @Description	This routine sets a given value to a 4 bytes
 		statistics counter residing in the external memory.
+		When initializing an STE counter value this function must be
+		used. CDMA HW/FDMA HW/AIOP core stores should not be used to
+		initialize counter values that are handled by the STE.
 
 @Param[in]	counter_addr - The counter external address (DDR, PEB
 		and system L3 cache configured as SRAM).
@@ -330,6 +334,9 @@ inline void ste_set_32bit_counter(uint64_t counter_addr, uint32_t value);
 
 @Description	This routine sets a given value to a 8 bytes
 		statistics counter residing in the external memory.
+		When initializing an STE counter value this function must be
+		used. CDMA HW/FDMA HW/AIOP core stores should not be used to
+		initialize counter values that are handled by the STE.
 
 @Param[in]	counter_addr - The counter external address (DDR, PEB
 		and system L3 cache configured as SRAM).
@@ -410,9 +417,10 @@ inline void ste_dec_counter(uint64_t counter_addr,
 @Cautions	This is a fire and forget function. This means that the counter
 		update that was issued by this function may be executed after
 		the this function returns.\n
-		If the counter or the accumulator size is 8 byte the counter memory
-		address should be 16 byte aligned. If both counter and accumulator
-		are 4 byte size than the counter memory should be 8 byte aligned.
+		If the counter or the accumulator size is 8 byte the counter
+		memory address should be 16 byte aligned. If both counter and
+		accumulator are 4 byte size than the counter memory should be 8
+		byte aligned.
 
 *//****************************************************************************/
 inline void ste_inc_and_acc_counters(uint64_t counter_addr,
@@ -439,9 +447,10 @@ inline void ste_inc_and_acc_counters(uint64_t counter_addr,
 @Cautions	This is a fire and forget function. This means that the counter
 		update that was issued by this function may be executed after
 		the this function returns.\n
-		If the counter or the accumulator size is 8 byte the counter memory
-		address should be 16 byte aligned. If both counter and accumulator
-		are 4 byte size than the counter memory should be 8 byte aligned.
+		If the counter or the accumulator size is 8 byte the counter
+		memory address should be 16 byte aligned. If both counter and
+		accumulator are 4 byte size than the counter memory should be 8
+		byte aligned.
 
 *//****************************************************************************/
 inline void ste_inc_and_sub_counters(uint64_t counter_addr,
@@ -468,9 +477,10 @@ inline void ste_inc_and_sub_counters(uint64_t counter_addr,
 @Cautions	This is a fire and forget function. This means that the counter
 		update that was issued by this function may be executed after
 		the this function returns.\n
-		If the counter or the accumulator size is 8 byte the counter memory
-		address should be 16 byte aligned. If both counter and accumulator
-		are 4 byte size than the counter memory should be 8 byte aligned.
+		If the counter or the accumulator size is 8 byte the counter
+		memory address should be 16 byte aligned. If both counter and
+		accumulator are 4 byte size than the counter memory should be 8
+		byte aligned.
 
 *//****************************************************************************/
 inline void ste_dec_and_acc_counters(uint64_t counter_addr,
@@ -497,9 +507,10 @@ inline void ste_dec_and_acc_counters(uint64_t counter_addr,
 @Cautions	This is a fire and forget function. This means that the counter
 		update that was issued by this function may be executed after
 		the this function returns.\n
-		If the counter or the accumulator size is 8 byte the counter memory
-		address should be 16 byte aligned. If both counter and accumulator
-		are 4 byte size than the counter memory should be 8 byte aligned.
+		If the counter or the accumulator size is 8 byte the counter
+		memory address should be 16 byte aligned. If both counter and
+		accumulator are 4 byte size than the counter memory should be 8
+		byte aligned.
 
 *//****************************************************************************/
 inline void ste_dec_and_sub_counters(uint64_t counter_addr,

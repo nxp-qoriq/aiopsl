@@ -220,7 +220,7 @@ int dpci_set_irq_enable(struct fsl_mc_io *mc_io,
 	cmd.header = mc_encode_cmd_header(DPCI_CMDID_SET_IRQ_ENABLE,
 					  MC_CMD_PRI_LOW, 
 					  token, mc_io->intr_dis);
-	DPCI_CMD_SET_IRQ_ENABLE(cmd, en, irq_index);
+	DPCI_CMD_SET_IRQ_ENABLE(cmd, irq_index, en);
 
 	/* send command to mc*/
 	return mc_send_command(mc_io, &cmd);
@@ -262,7 +262,7 @@ int dpci_set_irq_mask(struct fsl_mc_io *mc_io,
 	cmd.header = mc_encode_cmd_header(DPCI_CMDID_SET_IRQ_MASK,
 					  MC_CMD_PRI_LOW,
 					  token, mc_io->intr_dis);
-	DPCI_CMD_SET_IRQ_MASK(cmd, mask, irq_index);
+	DPCI_CMD_SET_IRQ_MASK(cmd, irq_index, mask);
 
 	/* send command to mc*/
 	return mc_send_command(mc_io, &cmd);

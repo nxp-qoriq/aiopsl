@@ -1139,7 +1139,8 @@ int fdma_present_frame_segment(
 		in 64B units), ASA segment offset.
 
 @Param[in]	ws_dst - A pointer to the location in workspace for 
-		the presented ASA segment.
+		the presented ASA segment (64 bytes aligned address due to a HW
+		issue). 
 @Param[in]	offset - Location within the ASA to start presenting from.
 		Must be within the bound of the frame. Specified in 64B units.
 		Relative to \ref FDMA_PRES_SR_BIT flag.
@@ -1180,7 +1181,8 @@ int fdma_read_default_frame_asa(
 		Implicitly updated values in Task Defaults: PTA segment address.
 
 @Param[in]	ws_dst - A pointer to the location in workspace for
-		the presented PTA segment.
+		the presented PTA segment (64 bytes aligned address due to a HW
+		issue). 
 
 @Return		0 on Success, or negative value on error.
 
@@ -2427,6 +2429,8 @@ void fdma_close_segment(uint8_t frame_handle, uint8_t seg_handle);
 		Relevant if \ref FDMA_REPLACE_SA_REPRESENT_BIT flag is set.
 @Param[in]	flags - \link FDMA_Replace_Flags replace working frame
 		segment flags. \endlink
+		In REV1 \ref FDMA_REPLACE_SA_REPRESENT_BIT flag is not supported
+		due to ERR008620.
 
 @Return		0 or positive value on success. Negative value on error.
 
@@ -2476,6 +2480,8 @@ int fdma_replace_default_asa_segment_data(
 
 @Param[in]	flags - \link FDMA_Replace_Flags replace working frame
 		segment flags. \endlink
+		In REV1 \ref FDMA_REPLACE_SA_REPRESENT_BIT flag is not supported
+		due to ERR008620.
 @Param[in]	from_ws_src - a pointer to the workspace location from which
 		the replacement segment data starts.
 @Param[in]	ws_dst_rs - A pointer to the location in workspace 
