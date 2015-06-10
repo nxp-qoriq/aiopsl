@@ -442,7 +442,7 @@ inline int table_create(enum table_hw_accel_id acc_id,
 #ifdef REV2_RULEID
 	uint64_t rule_id;
 #endif
-	
+
 	/* Calculate the number of entries each rule occupies */
 	num_entries_per_rule = table_calc_num_entries_per_rule(
 					attr & TABLE_ATTRIBUTE_TYPE_MASK,
