@@ -34,21 +34,7 @@
 #define __FSL_STRING_H
 
 #include "common/types.h"
-#if defined(SYS_OS_LINUX) && defined(__KERNEL__)
-#include <linux/kernel.h>
-#include <linux/string.h>
-extern char * strtok ( char * str, const char * delimiters );
-
-#elif defined(SYS_OS_VXWORKS)
-#include "string.h"
-
-#else
 #include <string.h>
-
-#endif /* defined(SYS_OS_LINUX) && defined(__KERNEL__) */
-
-
-
 
 /**************************************************************************//**
  @Group         fsl_lib_g   Utility Library Application Programming Interface
