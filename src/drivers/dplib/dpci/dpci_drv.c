@@ -360,7 +360,9 @@ __COLD_CODE static int mc_intr_set(uint32_t dpci_id, struct mc_dprc *dprc,
 {
 	struct dpci_irq_cfg irq_cfg;
 	int err;
-	
+	uint32_t mask = DPCI_IRQ_EVENT_LINK_CHANGED | 
+		DPCI_IRQ_EVENT_CONNECTED | 
+		DPCI_IRQ_EVENT_DISCONNECTED;
 	irq_cfg.addr = DPCI_EVENT;
 	irq_cfg.val = dpci_id;
 	irq_cfg.user_irq_id = 0;
@@ -374,20 +376,20 @@ __COLD_CODE static int mc_intr_set(uint32_t dpci_id, struct mc_dprc *dprc,
 	err = dpci_set_irq_mask(&dprc->io, 
 	                        token,
 	                        DPCI_IRQ_INDEX,
-	                        DPCI_IRQ_EVENT_LINK_CHANGED | 
-	                        DPCI_IRQ_EVENT_CONNECTED | 
-	                        DPCI_IRQ_EVENT_DISCONNECTED);
+	                        mask);
 	if(err){
 		pr_err("Failed to set irq mask for DP-CI%d\n", dpci_id);
 		return err;
 	}
+
+	err = dpci_clear_irq_status(&dprc->io, token, DPCI_IRQ_INDEX, mask);
+	ASSERT_COND(!err);
 
 	err = dpci_set_irq_enable(&dprc->io, token, DPCI_IRQ_INDEX, 1);
 	if(err){
 		pr_err("Failed to set irq enable for DP-CI%d\n", dpci_id);
 		return err;
 	}
-
 	return 0;
 }
 
@@ -583,6 +585,7 @@ __COLD_CODE int dpci_event_link_change(uint32_t dpci_id)
 	err = dpci_close(&dprc->io, token);
 	ASSERT_COND(!err);
 
+	pr_debug("Done DPCI EVENT\n");
 	return err;
 }
 
@@ -781,6 +784,7 @@ __COLD_CODE static int dpci_event_cb(uint8_t generator_id, uint8_t event_id,
 	ASSERT_COND((event_id == DPCI_EVENT) &&
 	            (generator_id == EVMNG_GENERATOR_AIOPSL));
 
+	pr_debug("DPCI EVENT \n");
 	err = dpci_event_link_change((uint32_t)event_data);
 	return err;
 }
