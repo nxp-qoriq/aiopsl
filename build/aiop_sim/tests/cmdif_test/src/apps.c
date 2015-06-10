@@ -69,29 +69,29 @@ static int app_evmng_cb(uint8_t generator_id, uint8_t event_id,
 	pr_debug("Event 0x%x data 0x%x\n", event_id, (uint32_t)event_data);
 	switch (event_id) {
 	case DPCI_EVENT_ADDED:
-		pr_debug("DPCI_EVENT_ADDED\n");
+		pr_debug("************DPCI_EVENT_ADDED************\n");
 		pr_debug("Before enable\n");
 		err |= dpci_drv_enable((uint32_t)event_data);
 		break;
 	case DPCI_EVENT_REMOVED:
-		pr_debug("DPCI_EVENT_REMOVED\n");
+		pr_debug("************DPCI_EVENT_REMOVED************\n");
 		break;
 	case DPCI_EVENT_LINK_DOWN:
-		pr_debug("DPCI_EVENT_LINK_DOWN\n");
+		pr_debug("************DPCI_EVENT_LINK_DOWN************\n");
 		break;
 	case DPCI_EVENT_LINK_UP:
-		pr_debug("DPCI_EVENT_LINK_UP\n");
+		pr_debug("************DPCI_EVENT_LINK_UP************\n");
 		break;
 	case DPCI_EVENT_DISCONNECTED:
-		pr_debug("DPCI_EVENT_DISCONNECTED\n");
+		pr_debug("************DPCI_EVENT_DISCONNECTED************\n");
 		break;
 	case DPCI_EVENT_CONNECTED:
-		pr_debug("DPCI_EVENT_CONNECTED\n");
+		pr_debug("************DPCI_EVENT_CONNECTED************\n");
 		pr_debug("Before enable\n");
 		err |= dpci_drv_enable((uint32_t)event_data);
 		break;
 	default:
-		pr_err("Unknown event id 0x%x", event_id);
+		pr_err("************Unknown event id 0x%x************\n", event_id);
 		err = -EINVAL;
 		break;
 	}
