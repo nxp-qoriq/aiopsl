@@ -94,18 +94,22 @@ int dpni_drv_test(void){
 	}
 
 	eth_ptr = (char *)PARSER_GET_ETH_POINTER_DEFAULT();
+	enable_print_protection();
+	dbg_print("DEST MAC: ");
+	for(i = 0; i < NET_HDR_FLD_ETH_ADDR_SIZE; i++){
+
+		dbg_print("%x ", *eth_ptr);
+		eth_ptr ++;
+	}
+	dbg_print("\n");
+	disable_print_protection();
+
+	eth_ptr = (char *)PARSER_GET_ETH_POINTER_DEFAULT();
 	for(i = 0; i < NET_HDR_FLD_ETH_ADDR_SIZE; i++) /*check if destination mac is broadcast*/
 		if(*eth_ptr++ != 0xff)
 			break;
 
-	eth_ptr = (char *)PARSER_GET_ETH_POINTER_DEFAULT();
-	fsl_os_print("DEST MAC: ");
-	for(i = 0; i < NET_HDR_FLD_ETH_ADDR_SIZE; i++){
 
-		fsl_os_print("%x ", *eth_ptr);
-		eth_ptr ++;
-	}
-	fsl_os_print("\n");
 
 
 
@@ -147,7 +151,7 @@ int dpni_drv_test(void){
 			else {
 				fsl_os_print("dpni_drv_get_multicast_promisc for ni %d succeeded\n",ni);
 			}
-			
+
 			err = dpni_drv_reset_counter((uint16_t)ni, DPNI_DRV_CNT_ING_FRAME);
 			if(err != 0) {
 				fsl_os_print("dpni_drv_reset_counter error for ni %d\n",ni);
