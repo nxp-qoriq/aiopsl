@@ -151,7 +151,6 @@ __HOT_CODE ENTRY_POINT static void app_process_packet(void)
 		local_test_error |= err;
 	} else {
 		fsl_os_print("aiop_mc_cmd_test passed in runtime phase()\n");
-		ORDER_SCOPE_CHECK(local_packet_number);
 	}
 
 	err = pton_test();
@@ -262,7 +261,6 @@ __HOT_CODE ENTRY_POINT static void app_process_packet(void)
 		else /* (err == -EBUSY) */
 			fdma_discard_fd((struct ldpaa_fd *)HWC_FD_ADDRESS, FDMA_DIS_NO_FLAGS);
 	}
-	ORDER_SCOPE_CHECK(local_packet_number);
 	lock_spinlock(&test_error_lock);
 	test_error |= local_test_error; /*mark if error occured during one of the tests*/
 	unlock_spinlock(&test_error_lock);
