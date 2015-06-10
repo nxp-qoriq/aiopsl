@@ -190,7 +190,7 @@ void stack_estimation(void)
 
 	/* DPCI */
 	dpci_drv_disable(0);
-	dpci_drv_enable(0);
+	//dpci_drv_enable(0);
 	dpci_drv_get_initial_presentation(0, NULL);
 	dpci_drv_set_initial_presentation(0, NULL);
 	/* 

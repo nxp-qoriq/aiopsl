@@ -284,7 +284,9 @@ __COLD_CODE static uint8_t num_priorities_get(struct fsl_mc_io *mc_io,
 	return attr.num_of_priorities;
 }
 
+/* Stack size issue */
 //#pragma optimization_level 2
+#pragma inline_depth(0)
 __COLD_CODE static void tx_user_context_set(struct mc_dprc *dprc, int ind,
                                             uint16_t token, uint8_t num_pr)
 {
@@ -307,6 +309,7 @@ __COLD_CODE static void tx_user_context_set(struct mc_dprc *dprc, int ind,
 		dpci_set_rx_queue(&dprc->io, token, i, &queue_cfg);
 	}
 }
+#pragma inline_depth(smart)
 //#pragma optimization_level reset
 
 /* To be called upon connected event, assign even */
@@ -612,6 +615,7 @@ __HOT_CODE void dpci_mng_tx_get(uint32_t ind, int pr, uint32_t *fqid)
 	*fqid = g_dpci_tbl.tx_queue[ind][pr];
 }
 
+/* Stack size issue */
 #pragma inline_depth(0)
 __COLD_CODE int dpci_drv_enable(uint32_t dpci_id)
 {
