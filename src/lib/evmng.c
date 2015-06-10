@@ -197,6 +197,7 @@ int evmng_register(
 	return err;
 }
 /*****************************************************************************/
+
 static void remove_event_registration(struct evmng *evmng_ptr,
                                      uint8_t priority,
                                      uint64_t app_ctx,
@@ -248,6 +249,7 @@ static void remove_event_registration(struct evmng *evmng_ptr,
 	/*Unlock spinlock*/
 	unlock_spinlock(&g_evmng_b_pool_spinlock);
 }
+/*****************************************************************************/
 
 int evmng_irq_unregister(uint8_t generator_id, uint8_t event_id, uint8_t priority, uint64_t app_ctx, evmng_cb cb)
 {
@@ -344,7 +346,7 @@ int evmng_raise_irq_event_cb(void *dev, uint16_t cmd, uint32_t size, void *event
 	}
 
 	evmng_cb_list_ptr = g_evmng_irq_events_list[evmng_irq_cfg->addr].head;
-
+#pragma fn_ptr_candidates(dprc_drv_evmng_cb)
 	while(evmng_cb_list_ptr != NULL){
 		evmng_cb_list_ptr->cb(
 				EVMNG_GENERATOR_AIOPSL,
@@ -386,7 +388,7 @@ static int raise_event(uint8_t generator_id, uint8_t event_id, void *event_data)
 		return 0;
 	}
 	evmng_cb_list_ptr = g_evmng_events_list[i].head;
-
+#pragma fn_ptr_candidates(app_dpni_event_added_cb)
 	while(evmng_cb_list_ptr != NULL){
 		evmng_cb_list_ptr->cb(
 				generator_id,
@@ -398,7 +400,7 @@ static int raise_event(uint8_t generator_id, uint8_t event_id, void *event_data)
 	cdma_mutex_lock_release((uint64_t) g_evmng_events_list);
 	return 0;
 }
-
+/*****************************************************************************/
 
 int evmng_sl_raise_event(uint8_t generator_id, uint8_t event_id, void *event_data)
 {

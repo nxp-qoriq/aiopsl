@@ -50,6 +50,7 @@ void stack_estimation(void);
 extern void cmdif_srv_isr(void);
 extern void cmdif_cl_isr(void);
 extern void receive_cb(void);
+extern int evmng_raise_irq_event_cb(void *dev, uint16_t cmd, uint32_t size, void *event_data);
 
 __HOT_CODE ENTRY_POINT static void app_process_packet(void)
 {
@@ -58,6 +59,7 @@ __HOT_CODE ENTRY_POINT static void app_process_packet(void)
 
 }
 
+
 static int app_dpni_event_added_cb(
 	uint8_t generator_id,
 	uint8_t event_id,
@@ -65,28 +67,10 @@ static int app_dpni_event_added_cb(
 	void *event_data)
 {
 	uint16_t ni = (uint16_t)((uint32_t)event_data);
-	int err;
 
 	UNUSED(generator_id);
 	UNUSED(event_id);
-	pr_info("Event received for dpni %d\n",ni);
-	err = dpni_drv_register_rx_cb(ni/*ni_id*/,
-	                              (rx_cb_t *)app_ctx);
-	if (err){
-		pr_err("dpni_drv_register_rx_cb for ni %d failed: %d\n", ni, err);
-		return err;
-	}
-	err = dpni_drv_set_max_frame_length(ni/*ni_id*/,
-	                                    0x2000 /* Max frame length*/);
-	if (err){
-		pr_err("dpni_drv_set_max_frame_length for ni %d failed: %d\n", ni, err);
-		return err;
-	}
-	err = dpni_drv_enable(ni);
-	if(err){
-		pr_err("dpni_drv_enable for ni %d failed: %d\n", ni, err);
-		return err;
-	}
+	UNUSED(app_ctx);
 	return 0;
 }
 
@@ -183,7 +167,8 @@ void stack_estimation(void)
 	evmng_raise_event(1, 1, (void *) &time);
 	evmng_register(1, 1, 1, (uint64_t)app_process_packet, app_dpni_event_added_cb);
 	evmng_unregister(1, 1, 1, (uint64_t)app_process_packet, app_dpni_event_added_cb);
-
+//	void *dev = NULL;
+//	evmng_raise_irq_event_cb(dev,1,64,dev);
 	/* SHBP Shared buffer pool */
 	shbp_acquire(shbp, &ic);
 	shbp_release(shbp, NULL, &ic);
@@ -193,19 +178,19 @@ void stack_estimation(void)
 	//dpci_drv_enable(0); its 304 bytes stack
 	dpci_drv_get_initial_presentation(0, NULL);
 	dpci_drv_set_initial_presentation(0, NULL);
-	/* 
+	/*
 	 * The stack of those functions should be measured with EVM
 	 * All the code before user callback can be ignores
-	 *   
+	 *
 	 * dpci_event_assign(0);
-	 * dpci_event_unassign(0); 
-	 * dpci_event_link_change(0); 
-	 * 
+	 * dpci_event_unassign(0);
+	 * dpci_event_link_change(0);
+	 *
 	 */
-	
-	/* dpci_event_update(0); called only by SL in cmdif open command t 
+
+	/* dpci_event_update(0); called only by SL in cmdif open command t
 	 * the stack is not important */
-	
+
 	/*After packet processing is done, fdma_terminate_task must be called.*/
 	fdma_terminate_task();
 
