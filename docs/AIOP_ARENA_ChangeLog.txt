@@ -1,3 +1,8 @@
+cmdif_integration_test.c : Added registration for DPCI events in order to enable the AIOP side DPCIs.
+                           See aiopsl\build\aiop_sim\tests\cmdif_test\src\app.c:app_evm_register() as 
+                           an example of the code that needs to be added to all AIOP applications 
+                           that use GPP-AIOP cmdif.
+
 dpni_drv.c: ENGR00353570 - Set tx confirmation disabled by default to each probed dpni.
 
 app_process_packet.c, ipf_demo.c, ipr_demo.c, ipsec_fm_demo.c,
