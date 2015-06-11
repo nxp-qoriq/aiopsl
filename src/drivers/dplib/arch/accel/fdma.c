@@ -1011,7 +1011,7 @@ int fdma_split_frame(
 					(params->flags & FDMA_SPLIT_SR_BIT) ?
 							PRC_SR_MASK : 0;
 				if (!(params->flags & FDMA_SPLIT_SM_BIT)) {
-					LDPAA_FD_SET_SL(HWC_FD_ADDRESS, 0);
+					//LDPAA_FD_SET_SL(HWC_FD_ADDRESS, 0);
 					LDPAA_FD_SET_LENGTH(HWC_FD_ADDRESS,
 							params->split_size_sf);
 				}
@@ -1026,7 +1026,7 @@ int fdma_split_frame(
 				prc->ptapa_asapo = PRC_PTA_NOT_LOADED_ADDRESS;
 				prc->asapa_asaps = 0;
 				if (!(params->flags & FDMA_SPLIT_SM_BIT)) {
-					LDPAA_FD_SET_SL(HWC_FD_ADDRESS, 0);
+					//LDPAA_FD_SET_SL(HWC_FD_ADDRESS, 0);
 					LDPAA_FD_SET_LENGTH(HWC_FD_ADDRESS,
 						params->split_size_sf);
 				}
