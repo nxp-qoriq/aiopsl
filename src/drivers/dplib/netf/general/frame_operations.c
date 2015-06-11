@@ -46,6 +46,7 @@ extern __PROFILE_SRAM struct storage_profile
 
 #define SP_BDI_MASK		0x00080000
 #define SP_BP_ID_MASK		0x3FFF
+#define SP_PBS_MASK		0xFFC0
 #define FRAME_INITIAL_SIZE	1
 #endif
 
@@ -67,7 +68,7 @@ int create_frame(
 	int32_t status;
 #ifndef REV2 /* WA for TKT254401 */
 	uint64_t fd_addr;
-	uint16_t icid, bpid;
+	uint16_t icid, bpid, offset;
 	uint32_t flags;
 	struct storage_profile *sp;
 	uint16_t *ws_address_rs;
@@ -93,6 +94,8 @@ int create_frame(
 	LDPAA_FD_SET_ADDR(fd, fd_addr);
 	LDPAA_FD_SET_LENGTH(fd, FRAME_INITIAL_SIZE);
 	LDPAA_FD_SET_BPID(fd, bpid);
+	offset = (LH_SWAP(0, &(sp->pbs1)) & SP_PBS_MASK) - FRAME_INITIAL_SIZE;
+	LDPAA_FD_SET_OFFSET(fd, offset);
 #endif	
 
 	if ((uint32_t)fd == HWC_FD_ADDRESS) {
@@ -179,7 +182,7 @@ int create_fd(
 #ifndef REV2 /* WA for TKT254401 */
 	int32_t status;
 	uint64_t fd_addr;
-	uint16_t icid, bpid;
+	uint16_t icid, bpid, offset;
 	uint32_t flags;
 	struct storage_profile *sp;
 	
@@ -205,6 +208,8 @@ int create_fd(
 	LDPAA_FD_SET_ADDR(fd, fd_addr);
 	LDPAA_FD_SET_LENGTH(fd, FRAME_INITIAL_SIZE);
 	LDPAA_FD_SET_BPID(fd, bpid);
+	offset = (LH_SWAP(0, &(sp->pbs1)) & SP_PBS_MASK) - FRAME_INITIAL_SIZE;
+	LDPAA_FD_SET_OFFSET(fd, offset);
 #endif	
 
 	if ((uint32_t)fd == HWC_FD_ADDRESS) {
