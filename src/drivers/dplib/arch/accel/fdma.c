@@ -1699,7 +1699,9 @@ void fdma_exception_handler(enum fdma_function_identifier func_id,
 		break;
 	case FDMA_FRAME_STORE_ERR:
 		err_msg = "Frame Store failed, single buffer frame full and "
-				"Storage Profile FF is set to 10.\n";
+				"Storage Profile FF is set to 10. "
+				"This error can occur also in case of storage "
+				"profile fields mismatch (ASAR/PTAR/SGHR/DHR)n";
 		break;
 	case FDMA_UNABLE_TO_PRESENT_FULL_SEGMENT_ERR:
 		err_msg = "Unable to fulfill specified segment presentation "
