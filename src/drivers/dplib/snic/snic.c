@@ -226,8 +226,7 @@ int snic_ipf(struct snic_params *snic)
 
 		do {
 			ipf_status = ipf_generate_frag(ipf_context_addr);
-			if (ipf_status == IPF_GEN_FRAG_STATUS_DF_SET ||
-					ipf_status == -ENOMEM)
+			if (ipf_status == IPF_GEN_FRAG_STATUS_DF_SET)
 			{
 				fdma_discard_default_frame(FDMA_DIS_NO_FLAGS);
 				break;
