@@ -34,6 +34,9 @@
 #include "fsl_dpci_mng.h"
 #include "fsl_sl_dprc_drv.h"
 #include "fsl_evmng.h"
+#include "fsl_dpni_drv.h"
+
+#define DPNI_EVM_TEST
 
 int app_evm_register();
 
@@ -53,12 +56,12 @@ void build_apps_array(struct sys_module_desc *apps);
 void build_apps_array(struct sys_module_desc *apps)
 {
 	struct sys_module_desc apps_tmp[] = APPS;
-	
+
 	ASSERT_COND(ARRAY_SIZE(apps_tmp) <= APP_INIT_APP_MAX_NUM);
 	memcpy(apps, apps_tmp, sizeof(apps_tmp));
 }
 
-static int app_evmng_cb(uint8_t generator_id, uint8_t event_id, 
+static int app_evmng_cb(uint8_t generator_id, uint8_t event_id,
                     uint64_t app_ctx, void *event_data)
 {
 	int err = 0;
@@ -68,6 +71,18 @@ static int app_evmng_cb(uint8_t generator_id, uint8_t event_id,
 
 	pr_debug("Event 0x%x data 0x%x\n", event_id, (uint32_t)event_data);
 	switch (event_id) {
+	case DPNI_EVENT_ADDED:
+		pr_debug("************DPNI_EVENT_ADDED************\n");
+		break;
+	case DPNI_EVENT_REMOVED:
+		pr_debug("************DPNI_EVENT_REMOVED************\n");
+		break;
+	case DPNI_EVENT_LINK_DOWN:
+		pr_debug("************DPNI_EVENT_LINK_DOWN************\n");
+		break;
+	case DPNI_EVENT_LINK_UP:
+		pr_debug("************DPNI_EVENT_LINK_UP************\n");
+		break;
 	case DPCI_EVENT_ADDED:
 		pr_debug("************DPCI_EVENT_ADDED************\n");
 		pr_debug("Before enable\n");
@@ -81,14 +96,6 @@ static int app_evmng_cb(uint8_t generator_id, uint8_t event_id,
 		break;
 	case DPCI_EVENT_LINK_UP:
 		pr_debug("************DPCI_EVENT_LINK_UP************\n");
-		break;
-	case DPCI_EVENT_DISCONNECTED:
-		pr_debug("************DPCI_EVENT_DISCONNECTED************\n");
-		break;
-	case DPCI_EVENT_CONNECTED:
-		pr_debug("************DPCI_EVENT_CONNECTED************\n");
-		pr_debug("Before enable\n");
-		err |= dpci_drv_enable((uint32_t)event_data);
 		break;
 	default:
 		pr_err("************Unknown event id 0x%x************\n", event_id);
@@ -105,9 +112,9 @@ int app_evm_register()
 	int err = 0;
 	uint8_t i = 0;
 
-	for (i = DPCI_EVENT_ADDED; i <= DPCI_EVENT_DISCONNECTED; i++) {
+	for (i = DPNI_EVENT_ADDED; i < NUM_OF_SL_DEFINED_EVENTS; i++) {
 		err = evmng_register(EVMNG_GENERATOR_AIOPSL,
-		                     i, 
+		                     i,
 		                     1,
 		                     (uint64_t)NULL, app_evmng_cb);
 		if (err){

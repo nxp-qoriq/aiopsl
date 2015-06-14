@@ -579,6 +579,7 @@ __COLD_CODE int session_open(uint16_t *new_auth)
 	void     *dev;
 	int      err;
 	uint32_t ind;
+	uint32_t fqid = DPCI_FQID_NOT_VALID;
 
 	cmd_m_name_get(&m_name[0]);
 	m_id = module_id_find(m_name);
@@ -591,7 +592,14 @@ __COLD_CODE int session_open(uint16_t *new_auth)
 
 	inst_id  = cmd_inst_id_get();
 
-	dpci_mng_user_ctx_get(&ind, NULL);
+	dpci_mng_user_ctx_get(&ind, &fqid);
+	if (fqid == DPCI_FQID_NOT_VALID) {
+		no_stack_pr_err("Oooops DP-CI%d is not ready yet \n",
+		                g_dpci_tbl.dpci_id[ind]);
+		no_stack_pr_err("Please retry after AIOP will finish DPCI"
+			"link up update \n");
+		return -ENODEV;
+	}
 
 #ifndef STACK_CHECK /* Stack check can ignore it up to user callback */
 	DPCI_DT_LOCK_W_TAKE;
