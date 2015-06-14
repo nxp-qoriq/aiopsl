@@ -45,6 +45,8 @@
 #include "fsl_spinlock.h"
 #include "cmdif_test_common.h"
 #include "fsl_dpci_drv.h"
+#include "fsl_dpci_mng.h"
+#include "fsl_sl_evmng.h"
 
 #ifndef CMDIF_TEST_WITH_MC_SRV
 #warning "If you test with MC define CMDIF_TEST_WITH_MC_SRV inside cmdif.h\n"
@@ -63,11 +65,51 @@ extern int app_evm_register();
 #define TEST_DPCI_ID    (void *)4 /* For GPP use 4 */
 #endif
 
+extern struct dpci_mng_tbl g_dpci_tbl;
+
 struct cmdif_desc cidesc;
 uint64_t tman_addr;
 uint64_t lbp;
 uint64_t gpp_lbp;
 int32_t async_count = 0;
+
+static void mc_intr_set(uint32_t dpci_id)
+{
+	struct dpci_irq_cfg irq_cfg;
+	int err;
+	uint32_t mask = DPCI_IRQ_EVENT_LINK_CHANGED | 
+		DPCI_IRQ_EVENT_CONNECTED | 
+		DPCI_IRQ_EVENT_DISCONNECTED;
+	struct mc_dprc *dprc = sys_get_unique_handle(FSL_OS_MOD_AIOP_RC);
+	uint16_t token;
+	
+	ASSERT_COND(dprc);
+
+	irq_cfg.addr = DPCI_EVENT;
+	irq_cfg.val = dpci_id;
+	irq_cfg.user_irq_id = 0;
+
+	err = dpci_open(&dprc->io, (int)dpci_id, &token);
+	ASSERT_COND(!err);
+
+	err = dpci_set_irq(&dprc->io, token, DPCI_IRQ_INDEX, &irq_cfg);
+	ASSERT_COND(!err);
+
+	err = dpci_set_irq_mask(&dprc->io, 
+	                        token,
+	                        DPCI_IRQ_INDEX,
+	                        mask);
+	ASSERT_COND(!err);
+
+	err = dpci_clear_irq_status(&dprc->io, token, DPCI_IRQ_INDEX, mask);
+	ASSERT_COND(!err);
+
+	err = dpci_set_irq_enable(&dprc->io, token, DPCI_IRQ_INDEX, 1);
+	ASSERT_COND(!err);
+
+	err = dpci_close(&dprc->io, token);
+	ASSERT_COND(!err);
+}
 
 static void aiop_ws_check()
 {
@@ -515,6 +557,10 @@ int app_init(void)
 
 	err = fsl_os_get_mem(1024, MEM_PART_DP_DDR, 64, &tman_addr);
 	ASSERT_COND(!err && tman_addr);
+
+#ifdef CMDIF_TEST_WITH_MC_SRV
+	mc_intr_set(g_dpci_tbl.mc_dpci_id);
+#endif
 
 	err = app_dpci_test();
 	ASSERT_COND(!err);

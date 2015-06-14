@@ -58,7 +58,8 @@ extern __PROFILE_SRAM struct storage_profile storage_profile[SP_NUM_OF_STORAGE_P
 
 __declspec(entry_point) void aiop_verification_fm()
 {
-	uint8_t data_addr[DATA_SIZE];	/* Data Address in workspace*/
+	/* Data Address in workspace*/
+	uint8_t data_addr[DATA_SIZE] __attribute__((aligned(64)));
 	struct fdma_present_segment_params present_params;
 	uint64_t ext_address;	/* External Data Address */
 	uint16_t str_size = 0;	/* Command struct Size */

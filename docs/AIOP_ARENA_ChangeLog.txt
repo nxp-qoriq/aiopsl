@@ -1,3 +1,8 @@
+cmdif_integration_test.c : Added registration for DPCI events in order to enable the AIOP side DPCIs.
+                           See aiopsl\build\aiop_sim\tests\cmdif_test\src\app.c:app_evm_register() as 
+                           an example of the code that needs to be added to all AIOP applications 
+                           that use GPP-AIOP cmdif.
+
 dpni_drv.c: ENGR00353570 - Set tx confirmation disabled by default to each probed dpni.
 
 app_process_packet.c, ipf_demo.c, ipr_demo.c, ipsec_fm_demo.c,
@@ -5,6 +10,7 @@ build\aiop_sim\tests\aiopsl_stack_estimation\src\app_process_packet.c
 tests\aiop_core_lib\build\roc_test\src\app_process_packet.c
 tests\arena_test.c : Added callback function to be called when dpni added event raised.
                      All calls to dpni_drv functions were moved to this CB (no more dpni_drv calls are allowed in app_init). 
+                     Add dpni_drv_enable at the end of processing the event.(each app must do it manually)
 
 evmng.c/h, fsl_evmng.h : Added new API for ENGR00348753 to register/unregister and raise AIOPSL/APP events.
                 int evmng_register(uint8_t generator_id, uint8_t event_id, uint8_t priority, uint64_t app_ctx, evmng_cb cb);

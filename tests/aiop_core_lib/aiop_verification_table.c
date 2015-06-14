@@ -125,19 +125,17 @@ uint16_t aiop_verification_table(uint32_t asa_seg_addr)
 		struct table_rule_create_command *str =
 		(struct table_rule_create_command *) asa_seg_addr;
 		struct table_rule rule __attribute__((aligned(16)));
-		
 		rule = *(struct table_rule*)(str->rule_ptr);
 		
 		str->status = table_rule_create(str->acc_id,
-			    str->table_id,
-			    (struct table_rule*)&rule,
-#ifdef REV2_RULEID
-				str->key_size,
-				&str->rule_id);
+						str->table_id,
+						(struct table_rule*)&rule,
+#ifndef REV2_RULEID
+						str->key_size);
 #else
-				str->key_size);
+						str->key_size,
+						str->rule_id);
 #endif
-
 		str_size =
 			sizeof(struct table_rule_create_command);
 		break;
@@ -399,7 +397,7 @@ uint16_t aiop_verification_table(uint32_t asa_seg_addr)
 	case TABLE_RULE_DELETE_BY_RULEID_CMD_STR:
 	{
 		struct table_rule_id_desc rule_id __attribute__((aligned(16)));
-		
+
 		struct table_rule_delete_by_ruleid_command *str =
 		(struct table_rule_delete_by_ruleid_command *) asa_seg_addr;
 		rule_id = *(str->rule_id_desc);

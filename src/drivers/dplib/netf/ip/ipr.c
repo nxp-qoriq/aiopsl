@@ -604,6 +604,9 @@ int ipr_reassemble(ipr_instance_handle_t instance_handle)
 	   from here */
 	/* Currently no default frame */
 
+	/* Reset Valid bit of RFDC */
+	rfdc.status = rfdc.status & ~RFDC_VALID;
+	
 	/* Increment no of valid fragments in extended statistics
 	 * data structure*/
 	ipr_stats_update(&instance_params,
@@ -1376,7 +1379,7 @@ uint32_t ipv4_header_update_and_l4_validation(struct ipr_rfdc *rfdc_ptr)
 	/* Run Parser and check L4 checksum if needed */
 	if (parse_result_generate_default(PARSER_VALIDATE_L4_CHECKSUM)){
 		/* error in L4 checksum */
-		return IPR_ERROR;
+		return EIO;
 	}
 	return SUCCESS;
 }
@@ -1463,7 +1466,7 @@ uint32_t ipv6_header_update_and_l4_validation(struct ipr_rfdc *rfdc_ptr)
 
 	if(parse_result_generate_default(PARSER_VALIDATE_L4_CHECKSUM)) {
 			/* error in L4 checksum */
-			return IPR_ERROR;
+			return EIO;
 		}
 	return SUCCESS;
 }

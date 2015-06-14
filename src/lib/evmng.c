@@ -40,6 +40,8 @@ uint32_t *g_evmng_first_b_pool_pointer;
 uint32_t *g_evmng_last_b_pool_pointer;
 uint8_t g_evmng_b_pool_spinlock;
 
+extern int cmdif_srv_mc_evm_session_open();
+
 static int add_event_registration(
 	uint8_t priority, uint64_t app_ctx, evmng_cb cb,
 	struct evmng *evmng_ptr)
@@ -303,8 +305,14 @@ int evmng_raise_irq_event_cb(void *dev, uint16_t cmd, uint32_t size, void *event
 {
 	struct evmng_priority_list *evmng_cb_list_ptr;
 	struct evmng_irq_params *evmng_irq_cfg;
-
+	/* TODO: remove, when integration with MC will be completed*/
+#ifdef SL_DEBUG
+	uint32_t *mem_dump_ptr;
+	int i;
+#endif
 	UNUSED(dev);
+
+	sl_pr_debug("Event received from MC\n");
 
 	if((cmd & (~CMDIF_NORESP_CMD)) != EVMNG_EVENT_SEND ||
 		size < sizeof(struct evmng_irq_params)){
@@ -313,12 +321,23 @@ int evmng_raise_irq_event_cb(void *dev, uint16_t cmd, uint32_t size, void *event
 
 	evmng_irq_cfg = (struct evmng_irq_params *)event_data;
 
+#ifdef SL_DEBUG
+	mem_dump_ptr = (uint32_t *)event_data;
 
+
+	for(i = 0; i < size; i += 4)
+	{
+		fsl_os_print("0x%08x\n", *mem_dump_ptr);
+		mem_dump_ptr ++;
+	}
+#endif
 	if(evmng_irq_cfg->addr >= NUM_OF_IRQ_EVENTS)
 	{
 		sl_pr_err("Event %d not supported\n",evmng_irq_cfg->addr);
 		return -ENOTSUP;
 	}
+
+	sl_pr_debug("addr %d, val %d\n", (int)evmng_irq_cfg->addr, (int)evmng_irq_cfg->val);
 	/*Only one event can be processed at a time*/
 	if(g_evmng_irq_events_list[evmng_irq_cfg->addr].head == NULL)
 	{
@@ -333,7 +352,7 @@ int evmng_raise_irq_event_cb(void *dev, uint16_t cmd, uint32_t size, void *event
 				EVMNG_GENERATOR_AIOPSL,
 				(uint8_t)evmng_irq_cfg->addr,
 				evmng_cb_list_ptr->app_ctx,
-				&evmng_irq_cfg->val);
+				(void *)evmng_irq_cfg->val);
 		evmng_cb_list_ptr = evmng_cb_list_ptr->next;
 	}
 	return 0;
@@ -504,6 +523,10 @@ int evmng_init(void)
 		pr_err("Failed to register with cmdif module!\n");
 		return err;
 	}
+
+	err = cmdif_srv_mc_evm_session_open();
+	ASSERT_COND(!err);
+
 	return 0;
 }
 /*****************************************************************************/

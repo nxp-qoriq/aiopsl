@@ -34,6 +34,9 @@
 
 #define AIOP_MAX_COMMAND_LINE_ARGS      512
 
+#define AIOP_SRV_EVM_AUTH_ID		0x1
+#define AIOP_SRV_EVM_NAME		"EVMNG"
+
 /**************************************************************************//**
  @Description   EPID table
 *//***************************************************************************/

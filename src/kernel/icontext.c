@@ -66,11 +66,11 @@ void icontext_cmd_get(struct icontext *ic)
 	uint16_t amq_bdi;
 
 	dpci_mng_user_ctx_get(&ind, NULL);
-	/*
-	 * TODO
-	 * Lock with cdma mutex READ
-	 */
+
+	DPCI_DT_LOCK_R_TAKE;
 	dpci_mng_icid_get(ind, &icid, &amq_bdi);
+	DPCI_DT_LOCK_RELEASE;
+
 	ICONTEXT_SET(icid, amq_bdi);
 
 	ASSERT_COND(ic->icid != ICONTEXT_INVALID);
@@ -83,16 +83,9 @@ int icontext_get(uint16_t dpci_id, struct icontext *ic)
 	uint16_t amq_bdi;
 
 	ASSERT_COND(ic);
-	/*
-	 * TODO
-	 * Is it possible that DPCI will be removed in the middle of the task ?
-	 * If yes than we need read lock on dpci_mng_find() + dpci_mng_icid_get()
-	 * NOTE : only dpci_peer_id can be updated but not dpci_id.
-	 * Maybe it should not update peer id at all ?? 
-	 * It should be updated only in dpci_drv_added() !!!
-	 */
-
 	
+	DPCI_DT_LOCK_R_TAKE;
+
 	/* search by GPP peer id - most likely case
 	 * or by AIOP dpci id  - to support both cases
 	 * All DPCIs in the world have different IDs */
@@ -101,8 +94,6 @@ int icontext_get(uint16_t dpci_id, struct icontext *ic)
 		ind = dpci_mng_peer_find(dpci_id);
 
 	if (ind >= 0) {
-		DPCI_DT_LOCK_R_TAKE;
-
 		dpci_mng_icid_get((uint32_t)ind, &icid, &amq_bdi);
 		if (icid == ICONTEXT_INVALID) {
 			DPCI_DT_LOCK_RELEASE;
@@ -114,6 +105,7 @@ int icontext_get(uint16_t dpci_id, struct icontext *ic)
 		return 0;
 	}
 
+	DPCI_DT_LOCK_RELEASE;
 	return -ENOENT;
 }
 

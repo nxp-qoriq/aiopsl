@@ -255,6 +255,44 @@ __COLD_CODE static void srv_free(void *ptr)
 		fsl_free(ptr);
 }
 
+int cmdif_srv_mc_evm_session_open();
+__COLD_CODE int cmdif_srv_mc_evm_session_open()
+{
+	const char *m_name = AIOP_SRV_EVM_NAME;
+	int      m_id;
+	uint8_t  inst_id;
+	void     *dev;
+	int      err;
+
+	m_id = module_id_find(m_name);
+	pr_debug("EVM moduel id %d\n", m_id);
+
+	if (m_id < 0) {
+		/* Did not find module with such name */
+		pr_err("No such module %s\n", m_name);
+		return -ENODEV;
+	}
+
+	ASSERT_COND(cmdif_aiop_srv.srv->open_cb[m_id]);
+	ASSERT_COND(cmdif_aiop_srv.srv->close_cb[m_id]);
+	ASSERT_COND(cmdif_aiop_srv.srv->ctrl_cb[m_id]);
+
+	inst_id  = 0;
+	OPEN_CB(m_id, inst_id, dev);
+	if (!err) {
+		/* This is boot code thus no mutexes */
+		int new_inst = AIOP_SRV_EVM_AUTH_ID;
+		cmdif_aiop_srv.srv->m_id[new_inst] = (uint8_t)m_id;
+		cmdif_aiop_srv.srv->inst_dev[new_inst] = dev;
+		cmdif_aiop_srv.srv->sync_done[new_inst] = 0;
+		cmdif_aiop_srv.srv->inst_count++;
+		pr_info("Reserving EVM auth_id %d\n", new_inst);
+		return 0;
+	} else {
+		return err; /* User error */
+	}
+}
+
 __COLD_CODE int cmdif_srv_init(void)
 {
 	int  err = 0;
@@ -382,20 +420,29 @@ __COLD_CODE int notify_open()
 		return -EINVAL;
 	}
 
+	DPCI_DT_LOCK_W_TAKE;
 	ind = dpci_mng_peer_find(data->dev_id); /* dev_id is swapped by GPP */
 	pr_debug("dpci id = %d ind = %d\n", data->dev_id, ind);
 	if (ind < 0) {
 		pr_err("Not found DPCI peer %d\n", data->dev_id);
-		/* TODO This needs to be updated for dynamic DPCI
-		 * Assuming that 2 DPCIs must be connected before 
+		pr_err("GPP DPCI peer %d is not connected to any AIOP DPCI\n",
+		       data->dev_id);
+		pr_err("Checking if DPCI id %d belongs to AIOP ...\n",
+		       data->dev_id);
+		ind = dpci_mng_find(data->dev_id);
+		if (ind < 0) {
+
+			DPCI_DT_LOCK_RELEASE;
+			return -ENAVAIL;
+		}
+		/* Assuming that 2 DPCIs must be connected before 
 		 * it gets to AIOP 
 		 * TODO it may send GPP DPCI that is not yet connected and 
 		 * I need to ad an entry for it and update the amq bits */
-		return -ENAVAIL;
 	}
 
-	err = dpci_event_update((uint32_t)ind);
-	ASSERT_COND(!err);
+	dpci_mng_update((uint32_t)ind);
+	DPCI_DT_LOCK_RELEASE;
 
 	CMDIF_CL_LOCK_W_TAKE;
 
@@ -429,6 +476,7 @@ __COLD_CODE int notify_open()
 	cl->count++;
 
 	CMDIF_CL_LOCK_RELEASE;
+
 #endif /* STACK_CHECK */
 
 	return 0;
@@ -544,9 +592,11 @@ __COLD_CODE int session_open(uint16_t *new_auth)
 	inst_id  = cmd_inst_id_get();
 
 	dpci_mng_user_ctx_get(&ind, NULL);
+
 #ifndef STACK_CHECK /* Stack check can ignore it up to user callback */
-	err = dpci_event_update(ind);
-	ASSERT_COND(!err);
+	DPCI_DT_LOCK_W_TAKE;
+	dpci_mng_update(ind);
+	DPCI_DT_LOCK_RELEASE;
 #endif
 
 	OPEN_CB(m_id, inst_id, dev);
@@ -567,7 +617,6 @@ __COLD_CODE int session_open(uint16_t *new_auth)
 		return err; /* User error */
 	}
 }
-
 
 __HOT_CODE void cmdif_srv_isr(void) __attribute__ ((noreturn))
 {
