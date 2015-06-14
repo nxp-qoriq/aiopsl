@@ -1626,4 +1626,11 @@ asm_prefix(booke_get_CTSCSR0):
 asm_prefix(booke_set_CTSCSR0):
     mtdcr   CTSCSR0,3
     blr
-    
+.global asm_prefix(booke_get_CTSTWS)
+asm_prefix(booke_get_CTSTWS):
+    mfdcr   3,CTSTWS
+    blr
+.global asm_prefix(booke_set_CTSTWS)
+asm_prefix(booke_set_CTSTWS):
+    mtdcr   CTSTWS,3
+    blr
