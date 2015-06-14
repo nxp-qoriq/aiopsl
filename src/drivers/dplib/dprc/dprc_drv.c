@@ -62,7 +62,7 @@ static int dprc_drv_evmng_cb(uint8_t generator_id, uint8_t event_id, uint64_t ap
 		sl_pr_debug("DPRC objects changed event\n");
 
 		err = dprc_get_irq_status(&dprc->io, dprc->token,
-		                          DPRC_NUM_OF_IRQS,
+		                          DPRC_IRQ_INDEX,
 		                          &status);
 		if(err){
 			sl_pr_err("Get irq status for DPRC object change "
@@ -72,18 +72,18 @@ static int dprc_drv_evmng_cb(uint8_t generator_id, uint8_t event_id, uint64_t ap
 
 		if(status & (DPRC_IRQ_EVENT_OBJ_ADDED |
 			DPRC_IRQ_EVENT_OBJ_REMOVED)){
-			err = dprc_drv_scan();
-			if(err){
-				sl_pr_err("Failed to scan dp object, %d.\n", err);
-				return err;
-			}
 			err = dprc_clear_irq_status(&dprc->io, dprc->token,
-			                            DPRC_NUM_OF_IRQS,
+			                            DPRC_IRQ_INDEX,
 			                            DPRC_IRQ_EVENT_OBJ_ADDED |
 			                            DPRC_IRQ_EVENT_OBJ_REMOVED);
 			if(err){
 				sl_pr_err("Clear status for DPRC object "
 					"change failed\n");
+				return err;
+			}
+			err = dprc_drv_scan();
+			if(err){
+				sl_pr_err("Failed to scan dp object, %d.\n", err);
 				return err;
 			}
 		}
@@ -199,12 +199,12 @@ __COLD_CODE static int aiop_container_init(void)
 	irq_cfg.val = (uint32_t) container_id;
 	irq_cfg.user_irq_id = 0;
 
-	err = dprc_set_irq(&dprc->io, dprc->token, 0, &irq_cfg);
+	err = dprc_set_irq(&dprc->io, dprc->token, DPRC_IRQ_INDEX, &irq_cfg);
 	if(err){
 		pr_err("Set irq for DPRC object change failed\n");
 		return -ENAVAIL;
 	}
-	err = dprc_set_irq_mask(&dprc->io, dprc->token, 0,
+	err = dprc_set_irq_mask(&dprc->io, dprc->token, DPRC_IRQ_INDEX,
 	                        DPRC_IRQ_EVENT_OBJ_ADDED |
 	                        DPRC_IRQ_EVENT_OBJ_REMOVED);
 	if(err){
@@ -212,8 +212,17 @@ __COLD_CODE static int aiop_container_init(void)
 		return -ENAVAIL;
 	}
 
+	err = dprc_clear_irq_status(&dprc->io, dprc->token,
+	                            DPRC_IRQ_INDEX,
+	                            DPRC_IRQ_EVENT_OBJ_ADDED |
+	                            DPRC_IRQ_EVENT_OBJ_REMOVED);
+	if(err){
+		pr_err("Set irq mask for DPRC object change failed\n");
+		return -ENAVAIL;
+	}
+
 	err = evmng_irq_register(EVMNG_GENERATOR_AIOPSL,
-	                         DPRC_EVENT, 0, 0, dprc_drv_evmng_cb);
+	                         DPRC_EVENT, 1, 0, dprc_drv_evmng_cb);
 	if(err){
 		pr_err("EVM registration for DPRC object change failed\n");
 		return -ENAVAIL;
