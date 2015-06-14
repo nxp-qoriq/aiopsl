@@ -27,9 +27,14 @@
 #include "kernel/fsl_spinlock.h"
 #include "dplib/fsl_parser.h"
 #include "fsl_net.h"
+#include "fsl_sys.h"
+#include "fsl_dpni.h"
+#include "fsl_sl_dprc_drv.h"
+#include "fsl_sl_dbg.h"
 
 int dpni_drv_test(void);
-
+int dpni_drv_test_create(void);
+int dpni_drv_test_destroy(uint16_t ni);
 extern uint8_t dpni_lock; /*lock to change dpni_ctr and dpni_broadcast_flag safely */
 extern uint8_t dpni_ctr; /*counts number of packets received before removing broadcast address*/
 extern uint8_t dpni_broadcast_flag; /*flag if packet with broadcast mac destination received during the test*/
@@ -109,11 +114,6 @@ int dpni_drv_test(void){
 		if(*eth_ptr++ != 0xff)
 			break;
 
-
-
-
-
-
 	if(i == NET_HDR_FLD_ETH_ADDR_SIZE) /*check if all the destination MAC was broadcast FF:FF:FF:FF:FF:FF*/
 	{
 		lock_spinlock(&dpni_lock);
@@ -166,3 +166,67 @@ int dpni_drv_test(void){
 
 	return local_test_error;
 }
+
+static int dpni_drv_create(uint16_t *token)
+{
+	int err;
+	struct mc_dprc *dprc = sys_get_unique_handle(FSL_OS_MOD_AIOP_RC);
+	struct dpni_cfg cfg = {0};
+	cfg.adv.options = DPNI_OPT_MULTICAST_FILTER | DPNI_OPT_UNICAST_FILTER | DPNI_OPT_DIST_HASH;
+
+	err = dpni_create(&dprc->io, &cfg, token);
+	if(err){
+		sl_pr_err("dpni_create failed\n");
+		return err;
+	}
+
+	return 0;
+}
+static int dpni_drv_destroy(uint16_t ni_id)
+{
+	uint16_t dpni;
+	int err;
+	struct mc_dprc *dprc = sys_get_unique_handle(FSL_OS_MOD_AIOP_RC);
+
+	cdma_mutex_lock_take((uint64_t)nis, CDMA_MUTEX_READ_LOCK); /*Lock dpni table*/
+	err = dpni_open(&dprc->io, (int)nis[ni_id].dpni_id, &dpni);
+	cdma_mutex_lock_release((uint64_t)nis); /*Unlock dpni table*/
+	if(err){
+		sl_pr_err("Open DPNI failed\n");
+		return err;
+	}
+	err = dpni_destroy(&dprc->io, dpni);
+	if(err){
+		sl_pr_err("dpni_destroy failed\n");
+		dpni_close(&dprc->io, dpni);
+		return err;
+	}
+	return 0;
+}
+
+int dpni_drv_test_create(void)
+{
+	int err;
+	uint16_t token;
+	err = dpni_drv_create(&token);
+	if(err){
+		fsl_os_print("Creating dpni failed %d\n",err);
+	}
+	else{
+		fsl_os_print("DPNI created successfully with token %d\n",token);
+	}
+	return err;
+}
+
+int dpni_drv_test_destroy(uint16_t ni)
+{
+	int err;
+	err = dpni_drv_destroy(ni);
+	if (err) {
+		fsl_os_print("ERROR = %d: dpni_drv_destroy failed\n", err);
+	} else {
+		fsl_os_print("dpni_drv_destroy passed for NI %d\n", ni);
+	}
+	return err;
+}
+

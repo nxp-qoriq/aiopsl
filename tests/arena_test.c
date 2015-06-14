@@ -42,6 +42,7 @@
 #include "fsl_osm.h"
 #include "fsl_dbg.h"
 #include "fsl_evmng.h"
+#include "sys.h"
 
 int app_early_init(void);
 int app_init(void);
@@ -69,6 +70,9 @@ extern int dpni_drv_test(void);
 extern int single_cluster_test();
 extern int multi_cluster_test();
 extern int aiop_mc_cmd_test();
+extern int dprc_drv_test_init(void);
+extern int dpni_drv_test_create(void);
+extern int dpni_drv_test_destroy(uint16_t ni);
 
 extern int num_of_cores;
 extern int num_of_tasks;
@@ -372,6 +376,22 @@ static void arena_test_finished(void)
 	}
 }
 
+static int app_dpni_event_removed_cb(
+	uint8_t generator_id,
+	uint8_t event_id,
+	uint64_t app_ctx,
+	void *event_data)
+{
+	uint16_t ni = (uint16_t)((uint32_t)event_data);
+	UNUSED(generator_id);
+	UNUSED(event_id);
+	UNUSED(app_ctx);
+
+	fsl_os_print("AIOP ni %d was removed\n", ni);
+	fsl_os_print("All the supported events for DPNI and DPRC passed\n");
+	arena_test_finished();
+	return 0;
+}
 static int app_dpni_event_added_cb(
 	uint8_t generator_id,
 	uint8_t event_id,
@@ -382,7 +402,7 @@ static int app_dpni_event_added_cb(
 	uint16_t ni2 = 0;
 	int err;
 	uint16_t spid = 0;
-
+	extern t_system sys;
 	dma_addr_t buff = 0;
 	int ep, state = -1;
 	struct dpkg_profile_cfg dist_key_cfg = {0};
@@ -412,12 +432,13 @@ static int app_dpni_event_added_cb(
 		fsl_os_print("MAC 02:00:C0:A8:0B:FE added for ni %d\n",ni);
 	}
 	dpni_drv_set_exclusive(ni);
-	err = dpni_drv_set_order_scope(ni,&dist_key_cfg);
-	if (err){
-		fsl_os_print("dpni_drv_set_order_scope failed %d\n", err);
-		return err;
+	if(!sys.runtime_flag){
+		err = dpni_drv_set_order_scope(ni,&dist_key_cfg);
+		if (err){
+			fsl_os_print("dpni_drv_set_order_scope failed %d\n", err);
+			return err;
+		}
 	}
-
 	err = dpni_drv_register_rx_cb(ni/*ni_id*/,
 								  (rx_cb_t *)app_ctx);
 
@@ -657,6 +678,11 @@ static int app_dpni_event_added_cb(
 		fsl_os_print("Error: dpni_drv_enable: error %d\n",err);
 		test_error |= 0x01;
 	}
+	if(sys.runtime_flag){
+		if(dpni_drv_test_destroy(ni)){
+			test_error |= 1;
+		}
+	}
 	return 0;
 }
 
@@ -668,7 +694,6 @@ static int app_dpni_link_change_cb(
 {
 	uint16_t ni = (uint16_t)((uint32_t)event_data);
 	int err;
-
 	UNUSED(generator_id);
 	UNUSED(event_id);
 
@@ -707,7 +732,10 @@ static int app_dpni_link_change_cb(
 		else{
 			fsl_os_print("Concurrent test PASSED\n");
 		}
-		arena_test_finished();
+
+		if(dpni_drv_test_create()){
+			test_error |= 1;
+		}
 	}
 	else{
 		fsl_os_print("Event not supported %d\n", event_id);
@@ -720,12 +748,21 @@ int app_init(void)
 {
 	int        err  = 0;
 
-	fsl_os_print("Running AIOP arena app_init()\n");
-
+	err = dprc_drv_test_init();
+	if(err){
+		pr_err("DPRC DRV test init failed %d\n", err);
+		return err;
+	}
 	err = evmng_register(EVMNG_GENERATOR_AIOPSL, DPNI_EVENT_ADDED, 1,
 	                     (uint64_t) app_process_packet, app_dpni_event_added_cb);
 	if (err){
 		pr_err("EVM registration for DPNI_EVENT_ADDED failed: %d\n", err);
+		return err;
+	}
+	err = evmng_register(EVMNG_GENERATOR_AIOPSL, DPNI_EVENT_REMOVED, 1,
+	                     (uint64_t) app_process_packet, app_dpni_event_removed_cb);
+	if (err){
+		pr_err("EVM registration for DPNI_EVENT_REMOVED failed: %d\n", err);
 		return err;
 	}
 
