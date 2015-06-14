@@ -1219,6 +1219,16 @@ void ipsec_generate_sa_params(
 	/* Get timestamp from TMAN */
 	tman_get_timestamp(&(sap.sap1.timestamp));
 	
+	/* Cleasr the STE counters, since CDMA is not enough due to 
+	 * the STE internal cache */ 
+	ste_set_64bit_counter(
+			IPSEC_PACKET_COUNTER_ADDR(desc_addr), /* uint64_t counter_addr */
+			0); /* uint64_t value */
+
+	ste_set_64bit_counter(
+			IPSEC_KB_COUNTER_ADDR(desc_addr), /* uint64_t counter_addr */
+			0); /* uint64_t value */
+	
 	/* Store to external memory with CDMA */
 	cdma_write(
 			desc_addr, /* uint64_t ext_address */
@@ -1348,6 +1358,15 @@ int ipsec_del_sa_descriptor(
 	 * statistics engine request queue. */
 	ste_barrier();
 
+	/* Cleasr the STE counters, due to the STE internal cache */ 
+	ste_set_64bit_counter(
+			IPSEC_PACKET_COUNTER_ADDR(desc_addr), /* uint64_t counter_addr */
+			0); /* uint64_t value */
+
+	ste_set_64bit_counter(
+			IPSEC_KB_COUNTER_ADDR(desc_addr), /* uint64_t counter_addr */
+			0); /* uint64_t value */
+	
 	/* Read the instance handle from params area */
 	cdma_read(
 			&instance_handle, /* void *ws_dst */
