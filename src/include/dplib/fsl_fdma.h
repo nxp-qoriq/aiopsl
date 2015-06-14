@@ -1139,8 +1139,8 @@ int fdma_present_frame_segment(
 		in 64B units), ASA segment offset.
 
 @Param[in]	ws_dst - A pointer to the location in workspace for 
-		the presented ASA segment. (The address is specified in 64bytes
-		units due to a HW bug). 
+		the presented ASA segment (64 bytes aligned address due to a HW
+		issue). 
 @Param[in]	offset - Location within the ASA to start presenting from.
 		Must be within the bound of the frame. Specified in 64B units.
 		Relative to \ref FDMA_PRES_SR_BIT flag.
@@ -1181,8 +1181,8 @@ int fdma_read_default_frame_asa(
 		Implicitly updated values in Task Defaults: PTA segment address.
 
 @Param[in]	ws_dst - A pointer to the location in workspace for
-		the presented PTA segment. (The address is specified in 64bytes
-		units due to a HW bug).
+		the presented PTA segment (64 bytes aligned address due to a HW
+		issue). 
 
 @Return		0 on Success, or negative value on error.
 

@@ -623,6 +623,8 @@ void booke_set_spr_HDBCR7(uint32_t newvalue);
 
 uint32_t booke_get_CTSCSR0(void);            /* [464]  CTS gen control and status reg 0. */
 void booke_set_CTSCSR0(uint32_t newvalue);   /* [464]  CTS gen control and status reg 0. */
+uint32_t booke_get_CTSTWS(void);            /* [467]  CTS Task Watchdog Status Register. */
+void booke_set_CTSTWS(uint32_t newvalue);   /* [467]  CTS Task Watchdog Status Register. */
 #endif /* CORE_E200 */
 
 /** @} */ /* end of booke_init_grp group */

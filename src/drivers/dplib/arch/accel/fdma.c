@@ -382,7 +382,13 @@ int fdma_read_default_frame_asa(
 	/* prepare command parameters */
 	arg1 = FDMA_PRESENT_CMD_ARG1(PRC_GET_HANDLES(),
 			FDMA_ST_ASA_SEGMENT_BIT);
+	/* Due to HW bug which expects the workspace address to be in 64bytes 
+	 * units */
+#ifndef REV2
+	arg2 = FDMA_PRESENT_CMD_ARG2(((uint32_t)ws_dst)>>6, offset);
+#else
 	arg2 = FDMA_PRESENT_CMD_ARG2((uint32_t)ws_dst, offset);
+#endif
 	arg3 = FDMA_PRESENT_CMD_ARG3(present_size);
 	/* store command parameters */
 	__stqw(arg1, arg2, arg3, 0, HWC_ACC_IN_ADDRESS, 0);
@@ -428,7 +434,13 @@ int fdma_read_default_frame_pta(
 	/* prepare command parameters */
 	arg1 = FDMA_PRESENT_CMD_ARG1(PRC_GET_HANDLES(),
 			FDMA_ST_PTA_SEGMENT_BIT);
+	/* Due to HW bug which expects the workspace address to be in 64bytes 
+	 * units */
+#ifndef REV2
+	arg2 = FDMA_PRESENT_CMD_ARG2(((uint16_t)((uint32_t)ws_dst)>>6), 0);
+#else
 	arg2 = FDMA_PRESENT_CMD_ARG2((uint16_t)((uint32_t)ws_dst), 0);
+#endif
 	/* store command parameters */
 	__stdw(arg1, arg2, HWC_ACC_IN_ADDRESS, 0);
 
@@ -999,7 +1011,7 @@ int fdma_split_frame(
 					(params->flags & FDMA_SPLIT_SR_BIT) ?
 							PRC_SR_MASK : 0;
 				if (!(params->flags & FDMA_SPLIT_SM_BIT)) {
-					LDPAA_FD_SET_SL(HWC_FD_ADDRESS, 0);
+					//LDPAA_FD_SET_SL(HWC_FD_ADDRESS, 0);
 					LDPAA_FD_SET_LENGTH(HWC_FD_ADDRESS,
 							params->split_size_sf);
 				}
@@ -1014,7 +1026,7 @@ int fdma_split_frame(
 				prc->ptapa_asapo = PRC_PTA_NOT_LOADED_ADDRESS;
 				prc->asapa_asaps = 0;
 				if (!(params->flags & FDMA_SPLIT_SM_BIT)) {
-					LDPAA_FD_SET_SL(HWC_FD_ADDRESS, 0);
+					//LDPAA_FD_SET_SL(HWC_FD_ADDRESS, 0);
 					LDPAA_FD_SET_LENGTH(HWC_FD_ADDRESS,
 						params->split_size_sf);
 				}
@@ -1687,7 +1699,9 @@ void fdma_exception_handler(enum fdma_function_identifier func_id,
 		break;
 	case FDMA_FRAME_STORE_ERR:
 		err_msg = "Frame Store failed, single buffer frame full and "
-				"Storage Profile FF is set to 10.\n";
+				"Storage Profile FF is set to 10. "
+				"This error can occur also in case of storage "
+				"profile fields mismatch (ASAR/PTAR/SGHR/DHR)n";
 		break;
 	case FDMA_UNABLE_TO_PRESENT_FULL_SEGMENT_ERR:
 		err_msg = "Unable to fulfill specified segment presentation "

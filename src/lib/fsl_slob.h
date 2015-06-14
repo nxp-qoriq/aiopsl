@@ -80,7 +80,7 @@ __START_COLD_CODE
 
  @Return        0 is returned on success. E_NOMEMORY is returned if the new MM object or a new free block can not be initialized.
 *//***************************************************************************/
-int slob_init(fsl_handle_t *slob, uint64_t base, uint64_t size,
+int slob_init(uint64_t *slob, uint64_t base, uint64_t size,
 		      fsl_handle_t h_mem_mng, void *h_slob_bf_pool);
 
 /**************************************************************************//**
@@ -90,7 +90,7 @@ int slob_init(fsl_handle_t *slob, uint64_t base, uint64_t size,
 
  @Param[in]     slob - Handle of the MM object.
 *//***************************************************************************/
-void slob_free(fsl_handle_t slob);
+void slob_free(uint64_t* slob);
 
 /**************************************************************************//**
  @Function      slob_get_base
@@ -101,24 +101,7 @@ void slob_free(fsl_handle_t slob);
 
  @Return        base address of the block.
 *//***************************************************************************/
-uint64_t slob_get_base(fsl_handle_t slob);
-
-/**************************************************************************//**
- @Function      slob_add
-
- @Description   Adds a new memory block for memory allocation.
-
-                When a new memory block is initialized and added to the
-                memory list, it calls to MM_AddFree routine to add the
-                new free block to the free lists.
-
- @Param[in]     slob    - Handle to the MM object.
- @Param[in]     base    - Base address of the memory block.
- @Param[in]     size    - Size of the memory block.
-
- @Return        0 on success, otherwise returns an error code.
-*//***************************************************************************/
-int slob_add(fsl_handle_t slob, uint64_t base, uint64_t size);
+uint64_t slob_get_base(uint64_t* slob);
 
 /**************************************************************************//**
  @Function      slob_get
@@ -147,66 +130,8 @@ int slob_add(fsl_handle_t slob, uint64_t base, uint64_t size);
 
  @Return        base address of an allocated block, 0 if can't allocate a block
 *//***************************************************************************/
-uint64_t slob_get(fsl_handle_t slob, uint64_t size, uint64_t alignment);
+uint64_t slob_get(uint64_t* slob, uint64_t size, uint32_t alignment);
 
-/**************************************************************************//**
- @Function      slob_get_force
-
- @Description   Force memory allocation.
-
-                It means to allocate a block of memory of the given
-                size from the given base address.
-                The routine checks if the required block can be allocated
-                (that is it is free) and then, calls the internal MM_CutFree
-                routine to update all free lists do not include that block.
-
- @Param[in]     slob    - Handle to the MM object.
- @Param[in]     base    - Base address of the MM.
- @Param[in]     size    - Size of the MM.
- @Param[in]     name    - Name that specifies an allocated block.
-
- @Return        base address of an allocated block, 0  if can't allocate a block.
-*//***************************************************************************/
-uint64_t slob_get_force(fsl_handle_t slob, uint64_t base, uint64_t size, char *name);
-
-/**************************************************************************//**
- @Function      slob_get_force_min
-
- @Description   Allocates a block of memory according to the given size, the alignment and minimum base address.
-
-                The Alignment argument tells from which
-                free list allocate a block of memory. 2^alignment indicates
-                the alignment that the base address of the allocated block
-                should have. So, the only values 1, 2, 4, 8, 16, 32 and 64
-                are available for the alignment argument.
-                The minimum baser address forces the location of the block
-                to be from a given address onward.
-                The routine passes through the specific free list of free
-                blocks and seeks for the first base address equal or smaller
-                than the required minimum address and end address larger than
-                than the required base + its size - i.e. that may contain
-                the required block.
-                After the block is found and data is allocated, it calls
-                the internal MM_CutFree routine to update all free lists
-                do not include a just allocated block. Of course, each
-                free list contains a free blocks with the same alignment.
-                It is also creates a busy block that holds
-                information about an allocated block.
-
- @Param[in]     slob        - Handle to the MM object.
- @Param[in]     size        - Size of the MM.
- @Param[in]     alignment   - Index as a power of two defines a required
-                              alignment (in bytes); Should be 1, 2, 4, 8, 16, 32 or 64
- @Param[in]     min         - The minimum base address of the block.
- @Param[in]     name        - Name that specifies an allocated block.
-
- @Return        base address of an allocated block,0  if can't allocate a block.
-*//***************************************************************************/
-uint64_t slob_get_force_min(fsl_handle_t slob,
-                            uint64_t size,
-                            uint64_t alignment,
-                            uint64_t min,
-                            char     *name);
 
 /**************************************************************************//**
  @Function      slob_put
@@ -227,24 +152,8 @@ uint64_t slob_get_force_min(fsl_handle_t slob,
 
  @Return         The size of bytes released, 0 if failed.
 *//***************************************************************************/
-uint64_t slob_put(fsl_handle_t slob, uint64_t base);
+uint64_t slob_put(uint64_t* slob, uint64_t base);
 
-/**************************************************************************//**
- @Function      slob_put_force
-
- @Description   Releases a block of memory of the required size from the required base address.
-
-                First, it calls to MM_CutBusy routine
-                to cut a free block from the busy list. And then, calls to
-                MM_AddFree routine to add the free block to the free lists.
-
- @Param[in]     slob    - Handle to the MM object.
- @Param[in]     base    - Base address of of a block to free.
- @Param[in]     size    - Size of a block to free.
-
- @Return        The number of bytes released, 0 on failure.
-*//***************************************************************************/
-uint64_t slob_put_force(fsl_handle_t slob, uint64_t base, uint64_t size);
 
 /**************************************************************************//**
  @Function      slob_dump
@@ -253,7 +162,7 @@ uint64_t slob_put_force(fsl_handle_t slob, uint64_t base, uint64_t size);
 
  @Param[in]     slob        - Handle to the MM object.
 *//***************************************************************************/
-void slob_dump(fsl_handle_t slob);
+void slob_dump(uint64_t* slob);
 
 /**************************************************************************//**
  @Function      slob_in_range
@@ -265,7 +174,7 @@ void slob_dump(fsl_handle_t slob);
 
  @Return        Non-zero value if the address is in the address range of the block, zero otherwise.
 *//***************************************************************************/
-int slob_in_range(fsl_handle_t slob, uint64_t addr);
+int slob_in_range(uint64_t* slob, uint64_t addr);
 
 /**************************************************************************//**
  @Function      slob_get_free_mem_size
@@ -276,7 +185,7 @@ int slob_in_range(fsl_handle_t slob, uint64_t addr);
 
  @Return        Free memory size in bytes.
 *//***************************************************************************/
-uint64_t slob_get_free_mem_size(fsl_handle_t slob);
+uint64_t slob_get_free_mem_size(uint64_t* slob);
 
 /** @} */ /* end of slob_g group */
 /** @} */ /* end of fsl_lib_g group */

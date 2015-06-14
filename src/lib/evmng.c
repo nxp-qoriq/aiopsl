@@ -40,6 +40,8 @@ uint32_t *g_evmng_first_b_pool_pointer;
 uint32_t *g_evmng_last_b_pool_pointer;
 uint8_t g_evmng_b_pool_spinlock;
 
+extern int cmdif_srv_mc_evm_session_open();
+
 static int add_event_registration(
 	uint8_t priority, uint64_t app_ctx, evmng_cb cb,
 	struct evmng *evmng_ptr)
@@ -523,6 +525,10 @@ int evmng_init(void)
 		pr_err("Failed to register with cmdif module!\n");
 		return err;
 	}
+
+	err = cmdif_srv_mc_evm_session_open();
+	ASSERT_COND(!err);
+
 	return 0;
 }
 /*****************************************************************************/

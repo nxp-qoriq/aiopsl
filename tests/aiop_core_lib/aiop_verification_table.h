@@ -332,9 +332,8 @@ struct table_rule_create_command{
 	/** Table Accelerator ID */
 	enum table_hw_accel_id acc_id;
 #ifdef REV2_RULEID
-	
 	/** Rule ID */
-	uint64_t rule_id;
+	uint64_t *rule_id;
 #endif
 };
 

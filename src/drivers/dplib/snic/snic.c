@@ -226,7 +226,11 @@ int snic_ipf(struct snic_params *snic)
 
 		do {
 			ipf_status = ipf_generate_frag(ipf_context_addr);
-			/* todo error cases */
+			if (ipf_status == IPF_GEN_FRAG_STATUS_DF_SET)
+			{
+				fdma_discard_default_frame(FDMA_DIS_NO_FLAGS);
+				break;
+			}
 			err = fdma_store_and_enqueue_default_frame_qd(&enqueue_params,
 					FDMA_ENWF_NO_FLAGS);
 			if(err)

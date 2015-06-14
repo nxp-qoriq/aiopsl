@@ -61,7 +61,7 @@ typedef struct t_mem_mng_debug_entry
 typedef struct t_mem_mng_partition
 {
     int                     id;             /**< Partition ID */
-    fsl_handle_t            h_mem_manager;   /**< Memory manager handle */
+    uint64_t                h_mem_manager;    /**< Memory manager handle */
     int                     enable_debug;    /**< '1' to track malloc/free operations */
     int                     was_initialized;
     list_t                  mem_debug_list;   /**< List of allocation entries (for debug) */
@@ -81,7 +81,7 @@ typedef struct t_mem_mng_partition
 typedef struct t_mem_mng_phys_addr_alloc_partition
 {
     int                              id;             /**< Partition ID */
-    fsl_handle_t                     h_mem_manager;   /**< Memory manager handle */
+    uint64_t                         h_mem_manager;   /**< Memory manager handle */
     list_t                           node;
     t_mem_mng_phys_addr_alloc_info   info;           /**< Partition information */
 #ifdef AIOP
