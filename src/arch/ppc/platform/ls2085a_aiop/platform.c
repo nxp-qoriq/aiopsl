@@ -183,27 +183,6 @@ static int console_get_line_cb(fsl_handle_t h_console_dev, uint8_t *p_data, uint
 
 	return (int)count;
 }
-#ifdef ARENA_LEGACY_CODE
-/*****************************************************************************/
-static void pltfrm_enable_local_irq_cb(fsl_handle_t h_platform)
-{
-	UNUSED(h_platform);
-
-	msr_enable_ee();
-	msr_enable_me();
-	msr_enable_ce();
-}
-
-/*****************************************************************************/
-static void pltfrm_disable_local_irq_cb(fsl_handle_t h_platform)
-{
-	UNUSED(h_platform);
-
-	msr_disable_ee();
-	msr_disable_me();
-	msr_disable_ce();
-}
-#endif
 
 /*****************************************************************************/
 __COLD_CODE static int init_random_seed(uint32_t num_of_tasks)
@@ -640,13 +619,6 @@ __COLD_CODE int platform_init(struct platform_param    *pltfrm_param,
 	s_pltfrm.aiop_base = AIOP_PERIPHERALS_OFF;
 	/* Initialize platform operations structure */
 	pltfrm_ops->h_platform              = &s_pltfrm;
-#ifdef ARENA_LEGACY_CODE
-	pltfrm_ops->f_enable_local_irq      = pltfrm_enable_local_irq_cb;
-	pltfrm_ops->f_disable_local_irq     = pltfrm_disable_local_irq_cb;
-#else
-	pltfrm_ops->f_enable_local_irq      = NULL;
-	pltfrm_ops->f_disable_local_irq     = NULL;
-#endif
 
 	memset(pltfrm_ops->modules, NULL, sizeof(struct pltform_module_desc) * PLTFORM_NUM_OF_INIT_MODULES);
 	i = 0;
