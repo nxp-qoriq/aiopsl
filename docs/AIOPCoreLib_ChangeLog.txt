@@ -1,6 +1,7 @@
 PARSER:
 	* Added macros for ESP and IKE over UDP
-
+Table:
+	* API: Table location Macros change
 
 LDPAA AIOP SERVICE LAYER LDPAA-AIOP-SL-v0.6.0 Change Log
 =============================================================

@@ -529,7 +529,7 @@ int simple_bu_ilan_test(void)
 			tbl_params.miss_result.opaque2 = 0x43;
 			tbl_params.miss_result.op0_rptr_clp.opaque0 = 0xfedc;
 			
-			table_location_attr = TABLE_ATTRIBUTE_LOCATION_EXT1;
+			table_location_attr = TABLE_ATTRIBUTE_LOCATION_DP_DDR;
 
 			tbl_params.attributes = TABLE_ATTRIBUTE_TYPE_EM | \
 					table_location_attr | \
