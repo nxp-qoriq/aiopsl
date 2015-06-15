@@ -19,3 +19,5 @@ mc/tests/cmdif_gpp/shbp/shbp_flib.c:aiop/src/lib/shbp_flib.c:B17975
 mc/tests/cmdif_gpp/shbp/shbp_flib.h:aiop/src/lib/shbp_flib.h:B17975
 mc/tests/cmdif_gpp/shbp/fsl_shbp_flib.h:aiop/src/lib/fsl_shbp_flib.h:B17975       
 mc/tests/cmdif_gpp/shbp/fsl_shbp_host.h:aiop/src/lib/fsl_shbp_host.h:B17975    
+mc/src/lib/memcpy.c:aiop/src/lib/memcpy.c:B42006
+mc/src/include/common/fsl_string.h:aiop/src/include/common/fsl_string.h:B42006
