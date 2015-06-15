@@ -28,6 +28,9 @@
 #include "fsl_slab.h"
 #include "fsl_tman.h"
 #include "fsl_malloc.h"
+#include "aiop_common.h"
+#include "fsl_io_ccsr.h"
+#include "fsl_core_booke.h"
 
 struct slab *g_rcu_slab = NULL;
 uint8_t g_sl_tmi_id = 0xff;
@@ -42,7 +45,7 @@ int rcu_early_init(void)
 	                                                30,
 	                                                64,
 	                                                64,
-	                                                MEM_PART_SYSTEM_DDR,
+	                                                MEM_PART_DP_DDR,
 	                                                0,
 	                                                0);
 	ASSERT_COND(!err);
@@ -58,7 +61,7 @@ int rcu_init()
 	                  30,
 	                  64,
 	                  64,
-	                  MEM_PART_SYSTEM_DDR,
+	                  MEM_PART_DP_DDR,
 	                  0,
 	                  NULL,
 	                  &g_rcu_slab);
@@ -75,6 +78,53 @@ int rcu_init()
 		err = tman_create_tmi(tman_addr, 10, &g_sl_tmi_id);
 		ASSERT_COND(!err);
 	}
+}
+
+int rcu_synchronize(void (*cb)(uint64_t), uint64_t param)
+{
+	struct aiop_dcsr_regs *regs = (struct aiop_dcsr_regs *)\
+		(AIOP_PERIPHERALS_OFF + SOC_PERIPH_OFF_DCSR);
+	int cluster;
+	int core;
+	uint32_t ctstws;
+	uint32_t task_id;
+	
+	cluster = 1;
+	core = 2;
+	
+	pr_debug("Cluster %d Core %d CTWS 0x%x should be 0x%x\n",
+	         cluster + 1,
+	         core + 1,
+	         (uint32_t)(&regs->clustr[cluster].core[core].ctstws),
+	         (0x02000000 + 0x0100000 + 0x90000 + 0x0800 + 0x30C));
+	
+	ctstws = ioread32_ccsr(&regs->clustr[cluster].core[core].ctstws);
+	iowrite32_ccsr(0, &regs->clustr[cluster].core[core].ctstws);
+	ctstws = ioread32_ccsr(&regs->clustr[cluster].core[core].ctstws);
+
+	pr_debug("Cluster %d Core %d CTWS val 0x%x\n",
+	         cluster + 1,
+	         core + 1,
+	         ctstws);
+
+	ctstws = booke_get_CTSTWS();
+	core = core_get_id();
+	cluster = core / 4; 
+	core = core & 0x3;
+	task_id = (booke_get_TASKSCR0() & 0xF);
+	
+	iowrite32_ccsr(0, &regs->clustr[cluster].core[core].ctstws);
+	ctstws = ioread32_ccsr(&regs->clustr[cluster].core[core].ctstws);
+
+	pr_debug("Cluster %d Core %d CTWS val 0x%x task_id 0x%x\n",
+	         cluster + 1,
+	         core + 1,
+	         ctstws,
+	         task_id);
+
+	ASSERT_COND(ctstws == booke_get_CTSTWS());
+
+	return 0;
 }
 
 #if 0
