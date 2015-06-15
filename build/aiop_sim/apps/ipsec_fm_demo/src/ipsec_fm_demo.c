@@ -347,7 +347,7 @@ static int app_dpni_event_added_cb(
 
 	UNUSED(generator_id);
 	UNUSED(event_id);
-	pr_info("Event received for dpni %d\n",ni);
+	pr_info("Event received for AIOP NI ID %d\n",ni);
 	err = dpni_drv_register_rx_cb(ni/*ni_id*/,
 	                              (rx_cb_t *)app_ctx);
 	if (err){
@@ -360,6 +360,13 @@ static int app_dpni_event_added_cb(
 		pr_err("dpni_drv_set_max_frame_length for ni %d failed: %d\n", ni, err);
 		return err;
 	}
+	
+	err = dpni_drv_enable(ni);
+	if(err){
+		pr_err("dpni_drv_enable for ni %d failed: %d\n", ni, err);
+		return err;
+	}
+	
 	return 0;
 }
 int app_init(void)
