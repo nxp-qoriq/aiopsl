@@ -31,14 +31,12 @@
 #ifndef _FSL_DPLIB_SYS_H
 #define _FSL_DPLIB_SYS_H
 
-
+#define __iomem
 
 #include "common/types.h"
 #include "fsl_errors.h"
 #include "fsl_io.h"
-
-#define __iomem
-
+#include <fsl_mc_cmd.h>
 
 #define cpu_to_le64 CPU_TO_LE64
 
@@ -46,7 +44,8 @@
 
 struct fsl_mc_io {
 	void *regs;
-	int intr_dis;
 };
+
+int mc_send_command(struct fsl_mc_io *mc_io, struct mc_command *cmd);
 
 #endif /* _FSL_DPLIB_SYS_H */

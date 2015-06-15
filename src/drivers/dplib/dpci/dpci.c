@@ -34,16 +34,18 @@
 #include <fsl_dpci.h>
 #include <fsl_dpci_cmd.h>
 
-int dpci_open(struct fsl_mc_io *mc_io, int dpci_id, uint16_t *token)
+int dpci_open(struct fsl_mc_io *mc_io,
+	      uint32_t cmd_flags,
+	      int dpci_id,
+	      uint16_t *token)
 {
 	struct mc_command cmd = { 0 };
 	int err;
 
 	/* prepare command */
 	cmd.header = mc_encode_cmd_header(DPCI_CMDID_OPEN,
-					  MC_CMD_PRI_LOW, 
-					  0, 
-					  mc_io->intr_dis);
+					  cmd_flags,
+					  0);
 	DPCI_CMD_OPEN(cmd, dpci_id);
 
 	/* send command to mc*/
@@ -57,21 +59,24 @@ int dpci_open(struct fsl_mc_io *mc_io, int dpci_id, uint16_t *token)
 	return 0;
 }
 
-int dpci_close(struct fsl_mc_io *mc_io, uint16_t token)
+int dpci_close(struct fsl_mc_io *mc_io,
+	       uint32_t cmd_flags,
+	       uint16_t token)
 {
 	struct mc_command cmd = { 0 };
 
 	/* prepare command */
 	cmd.header = mc_encode_cmd_header(DPCI_CMDID_CLOSE,
-					  MC_CMD_PRI_HIGH,
-					  token,
-					  mc_io->intr_dis);
+					  cmd_flags,
+					  token);
+
 
 	/* send command to mc*/
 	return mc_send_command(mc_io, &cmd);
 }
 
 int dpci_create(struct fsl_mc_io *mc_io,
+		uint32_t cmd_flags,
 		const struct dpci_cfg *cfg,
 		uint16_t *token)
 {
@@ -80,8 +85,8 @@ int dpci_create(struct fsl_mc_io *mc_io,
 
 	/* prepare command */
 	cmd.header = mc_encode_cmd_header(DPCI_CMDID_CREATE,
-					  MC_CMD_PRI_LOW,
-					  0, mc_io->intr_dis);
+					  cmd_flags,
+					  0);
 	DPCI_CMD_CREATE(cmd, cfg);
 
 	/* send command to mc*/
@@ -95,52 +100,61 @@ int dpci_create(struct fsl_mc_io *mc_io,
 	return 0;
 }
 
-int dpci_destroy(struct fsl_mc_io *mc_io, uint16_t token)
+int dpci_destroy(struct fsl_mc_io *mc_io,
+		 uint32_t cmd_flags,
+		 uint16_t token)
 {
 	struct mc_command cmd = { 0 };
 
 	/* prepare command */
 	cmd.header = mc_encode_cmd_header(DPCI_CMDID_DESTROY,
-					  MC_CMD_PRI_LOW,
-					  token, mc_io->intr_dis);
+					  cmd_flags,
+					  token);
 
 	/* send command to mc*/
 	return mc_send_command(mc_io, &cmd);
 }
 
-int dpci_enable(struct fsl_mc_io *mc_io, uint16_t token)
+int dpci_enable(struct fsl_mc_io *mc_io,
+		uint32_t cmd_flags,
+		uint16_t token)
 {
 	struct mc_command cmd = { 0 };
 
 	/* prepare command */
 	cmd.header = mc_encode_cmd_header(DPCI_CMDID_ENABLE,
-					  MC_CMD_PRI_LOW, 
-					  token, mc_io->intr_dis);
+					  cmd_flags,
+					  token);
 
 	/* send command to mc*/
 	return mc_send_command(mc_io, &cmd);
 }
 
-int dpci_disable(struct fsl_mc_io *mc_io, uint16_t token)
+int dpci_disable(struct fsl_mc_io *mc_io,
+		 uint32_t cmd_flags,
+		 uint16_t token)
 {
 	struct mc_command cmd = { 0 };
 
 	/* prepare command */
 	cmd.header = mc_encode_cmd_header(DPCI_CMDID_DISABLE,
-					  MC_CMD_PRI_LOW,
-					  token, mc_io->intr_dis);
+					  cmd_flags,
+					  token);
 
 	/* send command to mc*/
 	return mc_send_command(mc_io, &cmd);
 }
 
-int dpci_is_enabled(struct fsl_mc_io *mc_io, uint16_t token, int *en)
+int dpci_is_enabled(struct fsl_mc_io *mc_io,
+		    uint32_t cmd_flags,
+		    uint16_t token,
+		    int *en)
 {
 	struct mc_command cmd = { 0 };
 	int err;
 	/* prepare command */
-	cmd.header = mc_encode_cmd_header(DPCI_CMDID_IS_ENABLED, MC_CMD_PRI_LOW,
-					  token, mc_io->intr_dis);
+	cmd.header = mc_encode_cmd_header(DPCI_CMDID_IS_ENABLED, cmd_flags,
+					  token);
 
 	/* send command to mc*/
 	err = mc_send_command(mc_io, &cmd);
@@ -153,20 +167,23 @@ int dpci_is_enabled(struct fsl_mc_io *mc_io, uint16_t token, int *en)
 	return 0;
 }
 
-int dpci_reset(struct fsl_mc_io *mc_io, uint16_t token)
+int dpci_reset(struct fsl_mc_io *mc_io,
+	       uint32_t cmd_flags,
+	       uint16_t token)
 {
 	struct mc_command cmd = { 0 };
 
 	/* prepare command */
 	cmd.header = mc_encode_cmd_header(DPCI_CMDID_RESET,
-					  MC_CMD_PRI_LOW, 
-					  token, mc_io->intr_dis);
+					  cmd_flags,
+					  token);
 
 	/* send command to mc*/
 	return mc_send_command(mc_io, &cmd);
 }
 
-int dpci_set_irq(struct fsl_mc_io	*mc_io,
+int dpci_set_irq(struct fsl_mc_io *mc_io,
+		 uint32_t cmd_flags,
 		 uint16_t		token,
 		 uint8_t		irq_index,
 		 struct dpci_irq_cfg	*irq_cfg)
@@ -175,18 +192,19 @@ int dpci_set_irq(struct fsl_mc_io	*mc_io,
 
 	/* prepare command */
 	cmd.header = mc_encode_cmd_header(DPCI_CMDID_SET_IRQ,
-					  MC_CMD_PRI_LOW,
-					  token, mc_io->intr_dis);
+					  cmd_flags,
+					  token);
 	DPCI_CMD_SET_IRQ(cmd, irq_index, irq_cfg);
 
 	/* send command to mc*/
 	return mc_send_command(mc_io, &cmd);
 }
 
-int dpci_get_irq(struct fsl_mc_io	*mc_io,
+int dpci_get_irq(struct fsl_mc_io *mc_io,
+		 uint32_t cmd_flags,
 		 uint16_t		token,
 		 uint8_t		irq_index,
-		 int 			*type,
+		 int			*type,
 		 struct dpci_irq_cfg	*irq_cfg)
 {
 	struct mc_command cmd = { 0 };
@@ -194,8 +212,8 @@ int dpci_get_irq(struct fsl_mc_io	*mc_io,
 
 	/* prepare command */
 	cmd.header = mc_encode_cmd_header(DPCI_CMDID_GET_IRQ,
-					  MC_CMD_PRI_LOW,
-					  token, mc_io->intr_dis);
+					  cmd_flags,
+					  token);
 	DPCI_CMD_GET_IRQ(cmd, irq_index);
 
 	/* send command to mc*/
@@ -210,6 +228,7 @@ int dpci_get_irq(struct fsl_mc_io	*mc_io,
 }
 
 int dpci_set_irq_enable(struct fsl_mc_io *mc_io,
+			uint32_t cmd_flags,
 			uint16_t token,
 			uint8_t irq_index,
 			uint8_t en)
@@ -218,8 +237,8 @@ int dpci_set_irq_enable(struct fsl_mc_io *mc_io,
 
 	/* prepare command */
 	cmd.header = mc_encode_cmd_header(DPCI_CMDID_SET_IRQ_ENABLE,
-					  MC_CMD_PRI_LOW, 
-					  token, mc_io->intr_dis);
+					  cmd_flags,
+					  token);
 	DPCI_CMD_SET_IRQ_ENABLE(cmd, irq_index, en);
 
 	/* send command to mc*/
@@ -227,6 +246,7 @@ int dpci_set_irq_enable(struct fsl_mc_io *mc_io,
 }
 
 int dpci_get_irq_enable(struct fsl_mc_io *mc_io,
+			uint32_t cmd_flags,
 			uint16_t token,
 			uint8_t irq_index,
 			uint8_t *en)
@@ -236,8 +256,8 @@ int dpci_get_irq_enable(struct fsl_mc_io *mc_io,
 
 	/* prepare command */
 	cmd.header = mc_encode_cmd_header(DPCI_CMDID_GET_IRQ_ENABLE,
-					  MC_CMD_PRI_LOW,
-					  token, mc_io->intr_dis);
+					  cmd_flags,
+					  token);
 	DPCI_CMD_GET_IRQ_ENABLE(cmd, irq_index);
 
 	/* send command to mc*/
@@ -252,6 +272,7 @@ int dpci_get_irq_enable(struct fsl_mc_io *mc_io,
 }
 
 int dpci_set_irq_mask(struct fsl_mc_io *mc_io,
+		      uint32_t cmd_flags,
 		      uint16_t token,
 		      uint8_t irq_index,
 		      uint32_t mask)
@@ -260,8 +281,8 @@ int dpci_set_irq_mask(struct fsl_mc_io *mc_io,
 
 	/* prepare command */
 	cmd.header = mc_encode_cmd_header(DPCI_CMDID_SET_IRQ_MASK,
-					  MC_CMD_PRI_LOW,
-					  token, mc_io->intr_dis);
+					  cmd_flags,
+					  token);
 	DPCI_CMD_SET_IRQ_MASK(cmd, irq_index, mask);
 
 	/* send command to mc*/
@@ -269,6 +290,7 @@ int dpci_set_irq_mask(struct fsl_mc_io *mc_io,
 }
 
 int dpci_get_irq_mask(struct fsl_mc_io *mc_io,
+		      uint32_t cmd_flags,
 		      uint16_t token,
 		      uint8_t irq_index,
 		      uint32_t *mask)
@@ -278,8 +300,8 @@ int dpci_get_irq_mask(struct fsl_mc_io *mc_io,
 
 	/* prepare command */
 	cmd.header = mc_encode_cmd_header(DPCI_CMDID_GET_IRQ_MASK,
-					  MC_CMD_PRI_LOW, 
-					  token, mc_io->intr_dis);
+					  cmd_flags,
+					  token);
 	DPCI_CMD_GET_IRQ_MASK(cmd, irq_index);
 
 	/* send command to mc*/
@@ -294,6 +316,7 @@ int dpci_get_irq_mask(struct fsl_mc_io *mc_io,
 }
 
 int dpci_get_irq_status(struct fsl_mc_io *mc_io,
+			uint32_t cmd_flags,
 			uint16_t token,
 			uint8_t irq_index,
 			uint32_t *status)
@@ -303,8 +326,8 @@ int dpci_get_irq_status(struct fsl_mc_io *mc_io,
 
 	/* prepare command */
 	cmd.header = mc_encode_cmd_header(DPCI_CMDID_GET_IRQ_STATUS,
-					  MC_CMD_PRI_LOW, 
-					  token, mc_io->intr_dis);
+					  cmd_flags,
+					  token);
 	DPCI_CMD_GET_IRQ_STATUS(cmd, irq_index);
 
 	/* send command to mc*/
@@ -319,6 +342,7 @@ int dpci_get_irq_status(struct fsl_mc_io *mc_io,
 }
 
 int dpci_clear_irq_status(struct fsl_mc_io *mc_io,
+			  uint32_t cmd_flags,
 			  uint16_t token,
 			  uint8_t irq_index,
 			  uint32_t status)
@@ -327,8 +351,8 @@ int dpci_clear_irq_status(struct fsl_mc_io *mc_io,
 
 	/* prepare command */
 	cmd.header = mc_encode_cmd_header(DPCI_CMDID_CLEAR_IRQ_STATUS,
-					  MC_CMD_PRI_LOW, 
-					  token, mc_io->intr_dis);
+					  cmd_flags,
+					  token);
 	DPCI_CMD_CLEAR_IRQ_STATUS(cmd, irq_index, status);
 
 	/* send command to mc*/
@@ -336,6 +360,7 @@ int dpci_clear_irq_status(struct fsl_mc_io *mc_io,
 }
 
 int dpci_get_attributes(struct fsl_mc_io *mc_io,
+			uint32_t cmd_flags,
 			uint16_t token,
 			struct dpci_attr *attr)
 {
@@ -344,8 +369,8 @@ int dpci_get_attributes(struct fsl_mc_io *mc_io,
 
 	/* prepare command */
 	cmd.header = mc_encode_cmd_header(DPCI_CMDID_GET_ATTR,
-					  MC_CMD_PRI_LOW,
-					  token, mc_io->intr_dis);
+					  cmd_flags,
+					  token);
 
 	/* send command to mc*/
 	err = mc_send_command(mc_io, &cmd);
@@ -359,6 +384,7 @@ int dpci_get_attributes(struct fsl_mc_io *mc_io,
 }
 
 int dpci_get_peer_attributes(struct fsl_mc_io *mc_io,
+			     uint32_t cmd_flags,
 			     uint16_t token,
 			     struct dpci_peer_attr *attr)
 {
@@ -367,8 +393,8 @@ int dpci_get_peer_attributes(struct fsl_mc_io *mc_io,
 
 	/* prepare command */
 	cmd.header = mc_encode_cmd_header(DPCI_CMDID_GET_PEER_ATTR,
-					  MC_CMD_PRI_LOW,
-					  token, mc_io->intr_dis);
+					  cmd_flags,
+					  token);
 
 	/* send command to mc*/
 	err = mc_send_command(mc_io, &cmd);
@@ -381,15 +407,18 @@ int dpci_get_peer_attributes(struct fsl_mc_io *mc_io,
 	return 0;
 }
 
-int dpci_get_link_state(struct fsl_mc_io *mc_io, uint16_t token, int *up)
+int dpci_get_link_state(struct fsl_mc_io *mc_io,
+			uint32_t cmd_flags,
+			uint16_t token,
+			int *up)
 {
 	struct mc_command cmd = { 0 };
 	int err;
 
 	/* prepare command */
 	cmd.header = mc_encode_cmd_header(DPCI_CMDID_GET_LINK_STATE,
-					  MC_CMD_PRI_LOW,
-					  token, mc_io->intr_dis);
+					  cmd_flags,
+					  token);
 
 	/* send command to mc*/
 	err = mc_send_command(mc_io, &cmd);
@@ -403,6 +432,7 @@ int dpci_get_link_state(struct fsl_mc_io *mc_io, uint16_t token, int *up)
 }
 
 int dpci_set_rx_queue(struct fsl_mc_io *mc_io,
+		      uint32_t cmd_flags,
 		      uint16_t token,
 		      uint8_t priority,
 		      const struct dpci_rx_queue_cfg *cfg)
@@ -411,15 +441,18 @@ int dpci_set_rx_queue(struct fsl_mc_io *mc_io,
 
 	/* prepare command */
 	cmd.header = mc_encode_cmd_header(DPCI_CMDID_SET_RX_QUEUE,
-					  MC_CMD_PRI_LOW, 
-					  token, mc_io->intr_dis);
+					  cmd_flags,
+					  token);
 	DPCI_CMD_SET_RX_QUEUE(cmd, priority, cfg);
 
 	/* send command to mc*/
 	return mc_send_command(mc_io, &cmd);
 }
 
-int dpci_get_rx_queue(struct fsl_mc_io *mc_io, uint16_t token, uint8_t priority,
+int dpci_get_rx_queue(struct fsl_mc_io *mc_io,
+		      uint32_t cmd_flags,
+		      uint16_t token,
+		      uint8_t priority,
 		      struct dpci_rx_queue_attr *attr)
 {
 	struct mc_command cmd = { 0 };
@@ -427,8 +460,8 @@ int dpci_get_rx_queue(struct fsl_mc_io *mc_io, uint16_t token, uint8_t priority,
 
 	/* prepare command */
 	cmd.header = mc_encode_cmd_header(DPCI_CMDID_GET_RX_QUEUE,
-					  MC_CMD_PRI_LOW,
-					  token, mc_io->intr_dis);
+					  cmd_flags,
+					  token);
 	DPCI_CMD_GET_RX_QUEUE(cmd, priority);
 
 	/* send command to mc*/
@@ -442,7 +475,10 @@ int dpci_get_rx_queue(struct fsl_mc_io *mc_io, uint16_t token, uint8_t priority,
 	return 0;
 }
 
-int dpci_get_tx_queue(struct fsl_mc_io *mc_io, uint16_t token, uint8_t priority,
+int dpci_get_tx_queue(struct fsl_mc_io *mc_io,
+		      uint32_t cmd_flags,
+		      uint16_t token,
+		      uint8_t priority,
 		      struct dpci_tx_queue_attr *attr)
 {
 	struct mc_command cmd = { 0 };
@@ -450,8 +486,8 @@ int dpci_get_tx_queue(struct fsl_mc_io *mc_io, uint16_t token, uint8_t priority,
 
 	/* prepare command */
 	cmd.header = mc_encode_cmd_header(DPCI_CMDID_GET_TX_QUEUE,
-					  MC_CMD_PRI_LOW,
-					  token, mc_io->intr_dis);
+					  cmd_flags,
+					  token);
 	DPCI_CMD_GET_TX_QUEUE(cmd, priority);
 
 	/* send command to mc*/

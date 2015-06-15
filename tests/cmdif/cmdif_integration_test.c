@@ -98,25 +98,25 @@ static void mc_intr_set(uint32_t dpci_id)
 	irq_cfg.val = dpci_id;
 	irq_cfg.user_irq_id = 0;
 
-	err = dpci_open(&dprc->io, (int)dpci_id, &token);
+	err = dpci_open(&dprc->io, 0, (int)dpci_id, &token);
 	ASSERT_COND(!err);
 
-	err = dpci_set_irq(&dprc->io, token, DPCI_IRQ_INDEX, &irq_cfg);
+	err = dpci_set_irq(&dprc->io, 0, token, DPCI_IRQ_INDEX, &irq_cfg);
 	ASSERT_COND(!err);
 
-	err = dpci_set_irq_mask(&dprc->io, 
+	err = dpci_set_irq_mask(&dprc->io,0,  
 	                        token,
 	                        DPCI_IRQ_INDEX,
 	                        mask);
 	ASSERT_COND(!err);
 
-	err = dpci_clear_irq_status(&dprc->io, token, DPCI_IRQ_INDEX, mask);
+	err = dpci_clear_irq_status(&dprc->io, 0, token, DPCI_IRQ_INDEX, mask);
 	ASSERT_COND(!err);
 
-	err = dpci_set_irq_enable(&dprc->io, token, DPCI_IRQ_INDEX, 1);
+	err = dpci_set_irq_enable(&dprc->io, 0, token, DPCI_IRQ_INDEX, 1);
 	ASSERT_COND(!err);
 
-	err = dpci_close(&dprc->io, token);
+	err = dpci_close(&dprc->io, 0, token);
 	ASSERT_COND(!err);
 }
 
@@ -129,7 +129,7 @@ static int dpci_dynamic_rm_test()
 	atomic_incr32(&dpci_rm_count, 1);
 
 	/* Take 2 last DPCIs from dpci_dynamic_add_test */
-	err = dpci_open(&dprc->io, attr.id, &token);
+	err = dpci_open(&dprc->io, 0, attr.id, &token);
 	ASSERT_COND(!err);
 
 	/* Link down event */
@@ -144,18 +144,18 @@ static int dpci_dynamic_rm_test()
 	} while ((volatile int32_t)dpci_down_ev_count < \
 		(volatile int32_t)(dpci_rm_count * 2));
 
-	err = dpci_destroy(&dprc->io, token);
+	err = dpci_destroy(&dprc->io, 0, token);
 	ASSERT_COND(!err);
 
 	/* Take 2 last DPCIs from dpci_dynamic_add_test */
-	err = dpci_open(&dprc->io, attr_c.id, &token);
+	err = dpci_open(&dprc->io, 0, attr_c.id, &token);
 	ASSERT_COND(!err);
 
 	/* Link down event */
 	err = dpci_drv_disable((uint32_t)attr_c.id);
 	ASSERT_COND(!err);
 
-	err = dpci_destroy(&dprc->io, token);
+	err = dpci_destroy(&dprc->io, 0, token);
 	ASSERT_COND(!err);
 
 	err = dprc_drv_scan();
@@ -170,6 +170,7 @@ static int dpci_dynamic_add_test()
 	struct dpci_rx_queue_cfg queue_cfg;
 	struct dprc_endpoint endpoint1 ;
 	struct dprc_endpoint endpoint2;
+	struct dprc_connection_cfg connection_cfg = { 0 };
 	uint8_t p = 0;
 	int     err = 0;
 	int     link_up = 0;
@@ -184,18 +185,18 @@ static int dpci_dynamic_add_test()
 	dpci_cfg.num_of_priorities = 2;
 
 	/* DPCI 1 */
-	err = dpci_create(&dprc->io, &dpci_cfg, &dpci);
+	err = dpci_create(&dprc->io, 0, &dpci_cfg, &dpci);
 	ASSERT_COND(!err);
 
-	err = dpci_get_attributes(&dprc->io, dpci, &attr);
+	err = dpci_get_attributes(&dprc->io, 0, dpci, &attr);
 	ASSERT_COND(!err);
 
 
 	/* DPCI 2 */
-	err = dpci_create(&dprc->io, &dpci_cfg, &dpci_c);
+	err = dpci_create(&dprc->io, 0, &dpci_cfg, &dpci_c);
 	ASSERT_COND(!err);
 
-	err = dpci_get_attributes(&dprc->io, dpci_c, &attr_c);
+	err = dpci_get_attributes(&dprc->io, 0, dpci_c, &attr_c);
 	ASSERT_COND(!err);
 
 
@@ -204,24 +205,25 @@ static int dpci_dynamic_add_test()
 	memset(&endpoint2, 0, sizeof(struct dprc_endpoint));
 
 	endpoint1.id = attr_c.id;
-	endpoint1.interface_id = 0;
+	endpoint1.if_id = 0;
 	strcpy(endpoint1.type, "dpci");
 
 	endpoint2.id = attr.id;
-	endpoint2.interface_id = 0;
+	endpoint2.if_id = 0;
 	strcpy(endpoint2.type, "dpci");
 
 	pr_debug("Connect %d to %d\n", attr.id, attr_c.id);
 	
-	err = dprc_connect(&dprc->io, dprc->token, &endpoint1, &endpoint2);
+	err = dprc_connect(&dprc->io, 0, dprc->token, &endpoint1, &endpoint2, 
+	                   &connection_cfg);
 	if (err) {
 		pr_err("dprc_connect failed\n");
 	}
 
-	err = dpci_close(&dprc->io, dpci);
+	err = dpci_close(&dprc->io, 0, dpci);
 	ASSERT_COND(!err);
 
-	err = dpci_close(&dprc->io, dpci_c);
+	err = dpci_close(&dprc->io, 0, dpci_c);
 	ASSERT_COND(!err);
 
 	err = dprc_drv_scan();

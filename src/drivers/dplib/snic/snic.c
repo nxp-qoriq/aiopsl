@@ -64,7 +64,7 @@
 
 
 #define SNIC_CMD_READ(_param, _offset, _width, _type, _arg) \
-	_arg = (_type)u64_dec(cmd_data->params[_param], _offset, _width);
+	_arg = (_type)mc_dec(cmd_data->params[_param], _offset, _width);
 
 #define SNIC_CMD_READ_BYTE_ARRAY(_param, _offset, _width, _type, _arg) \
 {\
@@ -73,12 +73,12 @@
 	 		 u_offset = (_offset + (i * 8)) % 64;\
 	 		 if (u_offset == 0)\
 	 		 	 u_param += 1;\
-	 		 	 ((*(_arg + i)) |= (_type)u64_dec(cmd_data->params[u_param], (u_offset), (8)));\
+	 		 	 ((*(_arg + i)) |= (_type)mc_dec(cmd_data->params[u_param], (u_offset), (8)));\
 	 	 }\
 	}
 
 #define SNIC_RSP_PREP(_param, _offset, _width, _type, _arg) \
-	cmd_data->params[_param] |= u64_enc(_offset, _width, _arg);
+	cmd_data->params[_param] |= mc_enc(_offset, _width, _arg);
 
 /** This is where FQD CTX should reside */
 #define FQD_CTX_GET \

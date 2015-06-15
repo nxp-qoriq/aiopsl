@@ -175,7 +175,7 @@ static int dpni_drv_create(uint16_t *token)
 	struct dpni_cfg cfg = {0};
 	cfg.adv.options = DPNI_OPT_MULTICAST_FILTER | DPNI_OPT_UNICAST_FILTER | DPNI_OPT_DIST_HASH;
 
-	err = dpni_create(&dprc->io, &cfg, token);
+	err = dpni_create(&dprc->io, 0, &cfg, token);
 	if(err){
 		sl_pr_err("dpni_create failed\n");
 		return err;
@@ -190,16 +190,16 @@ static int dpni_drv_destroy(uint16_t ni_id)
 	struct mc_dprc *dprc = sys_get_unique_handle(FSL_OS_MOD_AIOP_RC);
 
 	cdma_mutex_lock_take((uint64_t)nis, CDMA_MUTEX_READ_LOCK); /*Lock dpni table*/
-	err = dpni_open(&dprc->io, (int)nis[ni_id].dpni_id, &dpni);
+	err = dpni_open(&dprc->io, 0, (int)nis[ni_id].dpni_id, &dpni);
 	cdma_mutex_lock_release((uint64_t)nis); /*Unlock dpni table*/
 	if(err){
 		sl_pr_err("Open DPNI failed\n");
 		return err;
 	}
-	err = dpni_destroy(&dprc->io, dpni);
+	err = dpni_destroy(&dprc->io,0,  dpni);
 	if(err){
 		sl_pr_err("dpni_destroy failed\n");
-		dpni_close(&dprc->io, dpni);
+		dpni_close(&dprc->io,0,  dpni);
 		return err;
 	}
 	return 0;
