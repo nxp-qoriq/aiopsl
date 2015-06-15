@@ -604,6 +604,9 @@ int ipr_reassemble(ipr_instance_handle_t instance_handle)
 	   from here */
 	/* Currently no default frame */
 
+	/* Reset Valid bit of RFDC */
+	rfdc.status = rfdc.status & ~RFDC_VALID;
+	
 	/* Increment no of valid fragments in extended statistics
 	 * data structure*/
 	ipr_stats_update(&instance_params,
