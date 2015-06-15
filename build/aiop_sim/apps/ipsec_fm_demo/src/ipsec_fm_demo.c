@@ -347,7 +347,7 @@ static int app_dpni_event_added_cb(
 
 	UNUSED(generator_id);
 	UNUSED(event_id);
-	pr_info("Event received for dpni %d\n",ni);
+	pr_info("Event received for AIOP NI ID %d\n",ni);
 	err = dpni_drv_register_rx_cb(ni/*ni_id*/,
 	                              (rx_cb_t *)app_ctx);
 	if (err){
