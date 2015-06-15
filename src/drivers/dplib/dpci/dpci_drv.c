@@ -691,6 +691,31 @@ __COLD_CODE int dpci_drv_disable(uint32_t dpci_id)
 	return err;
 }
 
+__COLD_CODE int dpci_drv_linkup(uint32_t dpci_id, int *up)
+{
+	struct mc_dprc *dprc = sys_get_unique_handle(FSL_OS_MOD_AIOP_RC);
+	int err = 0;
+	uint16_t token = 0xffff;
+
+	ASSERT_COND(dprc);
+
+	err = dpci_open(&dprc->io, (int)dpci_id, &token);
+	if (err) {
+		return err;
+	}
+
+	err = dpci_get_link_state(&dprc->io, token, up);
+	if (err) {
+		sl_pr_err("Get link state failed\n");
+		dpci_close(&dprc->io, token);
+		return err;
+	}
+
+	dpci_close(&dprc->io, token);
+
+	return err;
+}
+
 __COLD_CODE static int dpci_tbl_create(int dpci_count)
 {
 	uint32_t size = 0;

@@ -65,6 +65,7 @@ static int app_evmng_cb(uint8_t generator_id, uint8_t event_id,
                     uint64_t app_ctx, void *event_data)
 {
 	int err = 0;
+	int up = 0;
 
 	UNUSED(generator_id);
 	UNUSED(app_ctx);
@@ -87,6 +88,8 @@ static int app_evmng_cb(uint8_t generator_id, uint8_t event_id,
 		pr_debug("************DPCI_EVENT_ADDED************\n");
 		pr_debug("Before enable\n");
 		err |= dpci_drv_enable((uint32_t)event_data);
+		err |= dpci_drv_linkup((uint32_t)event_data, &up);
+		pr_debug("DPCI link state is %d\n", up);
 		break;
 	case DPCI_EVENT_REMOVED:
 		pr_debug("************DPCI_EVENT_REMOVED************\n");
