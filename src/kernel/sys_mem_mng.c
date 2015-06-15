@@ -26,12 +26,13 @@
 
 
 #include "fsl_malloc.h"
-#include "kernel/fsl_spinlock.h"
+#include "fsl_spinlock.h"
 #include "fsl_dbg.h"
 #include "fsl_stdlib.h"
-#include "inc/mem_mng_util.h"
+#include "mem_mng_util.h"
 #include "fsl_mem_mng.h"
 #include "sys.h"
+#include "fsl_string.h"
 
 
 #ifdef VERILOG
@@ -45,6 +46,13 @@ extern int sigsetmask(int);
 #endif /* VERILOG */
 
 
+
+
+
+
+/* Put all function (execution code) into  dtext_vle section,aka __COLD_CODE */
+__START_COLD_CODE
+
 static void     sys_print_mem_leak(void        *p_memory,
                                 uint32_t    size,
                                 char        *info,
@@ -53,11 +61,8 @@ static void     sys_print_mem_leak(void        *p_memory,
 
 void sys_mem_partitions_init_complete()
 {
-    mem_mng_mem_partitions_init_completed(sys.mem_mng);
+    mem_mng_mem_partitions_init_completed(&sys.mem_mng);
 }
-
-/* Put all function (execution code) into  dtext_vle section,aka __COLD_CODE */
-__START_COLD_CODE
 
 /*****************************************************************************/
  /* Implement a trivial version of conversion, return the same value as received. */
@@ -73,9 +78,8 @@ void * sys_shram_alloc(uint32_t    size,
                     char        *filename,
                     int         line)
 {
-	 ASSERT_COND(sys.mem_mng);
 	 ASSERT_COND(size > 0);
-	 return mem_mng_alloc_mem(sys.mem_mng,
+	 return mem_mng_alloc_mem(&sys.mem_mng,
 			           MEM_PART_SH_RAM,
 	                   size,
 	                   alignment,
@@ -86,8 +90,7 @@ void * sys_shram_alloc(uint32_t    size,
 /*****************************************************************************/
 void sys_shram_free(void *mem)
 {
-    ASSERT_COND(sys.mem_mng);
-	mem_mng_free_mem(sys.mem_mng, mem);
+    mem_mng_free_mem(&sys.mem_mng, mem);
 }
 /*****************************************************************************/
  int sys_register_phys_addr_alloc_partition(int  partition_id,
@@ -97,14 +100,15 @@ void sys_shram_free(void *mem)
          char       name[])
 {
 	int err_code;
-	ASSERT_COND(sys.mem_mng);
-	 if (partition_id == SYS_DEFAULT_HEAP_PARTITION)
-	 {
-	        pr_err("Invalid value: partition ID %d is reserved for default "
-                    "heap\n",SYS_DEFAULT_HEAP_PARTITION);
+
+	if (partition_id == SYS_DEFAULT_HEAP_PARTITION)
+	{
+	        pr_err("Invalid value in sys_register_phys_addr_alloc_partition:"
+	               "partition ID %d is reserved for default heap\n",
+	               SYS_DEFAULT_HEAP_PARTITION);
 	        return -EDOM;
-	 }
-	 err_code = mem_mng_register_phys_addr_alloc_partition(sys.mem_mng,
+	}
+	err_code = mem_mng_register_phys_addr_alloc_partition(&sys.mem_mng,
 	                                         partition_id,
 	                                         base_paddress,
 	                                         size,
@@ -113,10 +117,10 @@ void sys_shram_free(void *mem)
 	  if (err_code != 0)
 	  {
 	      if(-EEXIST == err_code)
-              pr_err("Resource already exists\n");
-          else if(-EAGAIN == err_code)
-              pr_err("Resource is unavailable\n");
-          return err_code;
+                  pr_err("Resource already exists\n");
+              else if(-EAGAIN == err_code)
+                  pr_err("Resource is unavailable\n");
+              return err_code;
 	  }
 	  return 0;
 }
@@ -130,24 +134,17 @@ void sys_shram_free(void *mem)
                                  int        enable_debug)
 {
     int err_code;
-    int    is_heap_partition = 0;
 
-    ASSERT_COND(sys.mem_mng);
 
     if (partition_id == SYS_DEFAULT_HEAP_PARTITION)
     {
-        pr_err("Invalid value: partition ID %d is reserved for default heap",
-                SYS_DEFAULT_HEAP_PARTITION);
+        pr_err("Invalid value in sys_register_mem_partition: partition ID %d"
+               "is reserved for default heap",SYS_DEFAULT_HEAP_PARTITION);
         return -EDOM;
     }
 
-    /* Check if matches the default heap partition */
-    if ((sys.heap_addr >= base_address) && (sys.heap_addr < (base_address + size)))
-    {
-        is_heap_partition = 1;
-    }
 
-    err_code = mem_mng_register_partition(sys.mem_mng,
+    err_code = mem_mng_register_partition(&sys.mem_mng,
                                         partition_id,
                                         base_address,
                                         size,
@@ -162,14 +159,6 @@ void sys_shram_free(void *mem)
             pr_err("Resource is unavailable \n");
         return err_code;
     }
-    /*
-    if (is_heap_partition)
-    { */
-        /* From this point we can trace the heap partition */
-    /*
-        sys.heap_partition_id = partition_id;
-    } */
-
     return 0;
 }
 
@@ -181,34 +170,35 @@ void sys_shram_free(void *mem)
     uint32_t                leaks_count;
     int                 err_code;
 
-    ASSERT_COND(sys.mem_mng);
 
-    leaks_count = mem_mng_check_leaks(sys.mem_mng, partition_id, NULL);
+    if (partition_id == SYS_DEFAULT_HEAP_PARTITION)
+    {
+        pr_err("Invalid value in sys_unregister_mem_partition: partition ID %d"
+               "is reserved for default heap",
+	   SYS_DEFAULT_HEAP_PARTITION);
+        return -EDOM;
+    }
+
+    leaks_count = mem_mng_check_leaks(&sys.mem_mng, partition_id, NULL);
 
     if (leaks_count)
     {
         /* Print memory leaks for this partition */
-        mem_mng_get_partition_info(sys.mem_mng, partition_id, &partition_info);
+        mem_mng_get_partition_info(&sys.mem_mng, partition_id, &partition_info);
 
         pr_info("\r\n_memory leaks report - %s:\r\n", partition_info.name);
         pr_info("------------------------------------------------------------\r\n");
-        mem_mng_check_leaks(sys.mem_mng, partition_id, sys_print_mem_leak);
+        mem_mng_check_leaks(&sys.mem_mng, partition_id, sys_print_mem_leak);
         pr_info("------------------------------------------------------------\r\n");
     }
 
-    err_code = mem_mng_unregister_partition(sys.mem_mng, partition_id);
+    err_code = mem_mng_unregister_partition(&sys.mem_mng, partition_id);
 
     if (err_code != 0)
     {
         return err_code;
     }
-    /*
-    if (partition_id == sys.heap_partition_id)
-    { */
-        /* Reset value of default heap partition */
-    /*
-        sys.heap_partition_id = MEM_MNG_EARLY_PARTITION_ID;
-    } */
+
 
     return 0;
 }
@@ -218,14 +208,15 @@ int sys_get_mem_partition_info(int partition_id,t_mem_mng_partition_info* partit
 {
     int                 err_code;
 
-    ASSERT_COND(sys.mem_mng);
-
     if (partition_id == SYS_DEFAULT_HEAP_PARTITION)
     {
-        /*partition_id = sys.heap_partition_id; */
+       pr_err("Invalid value in sys_get_mem_partition_info: partition ID %d is "
+	       "reserved for default heap",SYS_DEFAULT_HEAP_PARTITION);
+       return -EDOM;
     }
 
-    err_code = mem_mng_get_partition_info(sys.mem_mng, partition_id, partition_info);
+
+    err_code = mem_mng_get_partition_info(&sys.mem_mng, partition_id, partition_info);
 
     if (err_code != 0)
     {
@@ -241,14 +232,16 @@ int sys_get_phys_addr_alloc_partition_info(int partition_id,
 {
     int                 err_code;
 
-    ASSERT_COND(sys.mem_mng);
 
     if (partition_id == SYS_DEFAULT_HEAP_PARTITION)
     {
-        /*partition_id = sys.heap_partition_id; */
+       pr_err("Invalid value in sys_get_phys_addr_alloc_partition_info: "
+	       "partition ID %d is reserved for default heap",
+	       SYS_DEFAULT_HEAP_PARTITION);
+       return -EDOM;
     }
 
-    err_code = mem_mng_get_phys_addr_alloc_info(sys.mem_mng, partition_id, partition_info);
+    err_code = mem_mng_get_phys_addr_alloc_info(&sys.mem_mng, partition_id, partition_info);
 
     if (err_code != 0)
     {
@@ -263,15 +256,14 @@ uint64_t sys_get_mem_partition_base(int partition_id)
     t_mem_mng_partition_info   partition_info;
     int                 err_code;
 
-    ASSERT_COND(sys.mem_mng);
-
-    /*
     if (partition_id == SYS_DEFAULT_HEAP_PARTITION)
     {
-        partition_id = sys.heap_partition_id;
-    } */
+        pr_err("Invalid value in sys_get_mem_partition_base: partition ID %d is"
+               "reserved for default heap",SYS_DEFAULT_HEAP_PARTITION);
+        return -EDOM;
+    }
 
-    err_code = mem_mng_get_partition_info(sys.mem_mng, partition_id, &partition_info);
+    err_code = mem_mng_get_partition_info(&sys.mem_mng, partition_id, &partition_info);
 
     if (err_code != 0)
     {
@@ -288,15 +280,16 @@ uint32_t sys_get_mem_partition_attributes(int partition_id)
     t_mem_mng_partition_info   partition_info;
     int                 err_code;
 
-    ASSERT_COND(sys.mem_mng);
 
     if (partition_id == SYS_DEFAULT_HEAP_PARTITION)
-    { /*
-        partition_id = sys.heap_partition_id;
-        */
+    {
+       pr_err("Invalid value in sys_get_mem_partition_attributes: partition"
+	       "ID %d is reserved for default heap",
+	   SYS_DEFAULT_HEAP_PARTITION);
+       return 0;
     }
 
-    err_code = mem_mng_get_partition_info(sys.mem_mng, partition_id, &partition_info);
+    err_code = mem_mng_get_partition_info(&sys.mem_mng, partition_id, &partition_info);
 
     if (err_code != 0)
     {
@@ -313,28 +306,26 @@ void sys_print_mem_partition_debug_info(int partition_id, int report_leaks)
     t_mem_mng_partition_info   partition_info;
     uint32_t                leaks_count;
 
-    ASSERT_COND(sys.mem_mng);
 
     if (partition_id == SYS_DEFAULT_HEAP_PARTITION)
     {
-        /*partition_id = sys.heap_partition_id; */
+       pr_err("Invalid value in sys_print_mem_partition_debug_info: no debug "
+	       "information for default heap\n");
+       return;
     }
 
-    mem_mng_get_partition_info(sys.mem_mng, partition_id, &partition_info);
+    mem_mng_get_partition_info(&sys.mem_mng, partition_id, &partition_info);
 
-    /*
-    pr_info("\r\n_memory usage - %s%s:\r\n",
-             partition_info.name,
-             ((partition_id == sys.heap_partition_id) ? " (default heap)" : ""));
-             */
     pr_info("\r\n_memory usage - %s:\r\n",partition_info.name);
     pr_info("------------------------------------------------------------\r\n");
     pr_info("base address:         0x%08X\r\n", partition_info.base_address);
     pr_info("total size (KB):      %10lu\r\n", (partition_info.size / 1024));
+#ifdef ENABLE_DEBUG_ENTRIES
     pr_info("current usage (KB):   %10lu\r\n", (partition_info.current_usage / 1024));
     pr_info("maximum usage (KB):   %10lu\r\n", (partition_info.maximum_usage / 1024));
     pr_info("total allocations:    %10lu\r\n", partition_info.total_allocations);
     pr_info("total deallocations:  %10lu\r\n", partition_info.total_deallocations);
+#endif
     pr_info("\r\n");
 
     if (report_leaks)
@@ -342,7 +333,7 @@ void sys_print_mem_partition_debug_info(int partition_id, int report_leaks)
         pr_info("\r\n_memory leaks report - %s:\r\n", partition_info.name);
         pr_info("------------------------------------------------------------\r\n");
 
-        leaks_count = mem_mng_check_leaks(sys.mem_mng, partition_id, sys_print_mem_leak);
+        leaks_count = mem_mng_check_leaks(&sys.mem_mng, partition_id, sys_print_mem_leak);
 
         if (!leaks_count)
         {
@@ -353,38 +344,10 @@ void sys_print_mem_partition_debug_info(int partition_id, int report_leaks)
 }
 
 /*****************************************************************************/
-void sys_default_free(void *p_memory)
-{
-#ifdef VERILOG
-    int i = sigblock(0x00002000);   /* Block SIGTSTP signal -
-                                       stop signal generated from keyboard */
-    free(p_memory);
-    sigsetmask(i);                  /* Set SIGTSTP signal back */
-#else /* not VERILOG */
-#ifndef AIOP
-    uint32_t    int_flags;
-#endif /* AIOP */
-
-#ifdef AIOP
-    lock_spinlock(&(sys.mem_mng_lock));
-#else /* not AIOP */
-    int_flags = spin_lock_irqsave(&(sys.mem_mng_lock));
-#endif /* AIOP */
-    free(p_memory);
-#ifdef AIOP
-    unlock_spinlock(&(sys.mem_mng_lock));
-#else /* not AIOP */
-    spin_unlock_irqrestore(&(sys.mem_mng_lock), int_flags);
-#endif /* AIOP */
-#endif /* VERILOG */
-}
-/*****************************************************************************/
  int sys_init_memory_management(void)
 {
     t_mem_mng_param mem_mng_param;
-     /* Temporary allocation for identifying the default heap region */
-    sys.heap_addr = (uintptr_t)sys_default_malloc(8);
-    sys_default_free((void *)sys.heap_addr);
+
 
 #ifdef AIOP
     sys.mem_mng_lock = 0;
@@ -403,8 +366,7 @@ void sys_default_free(void *p_memory)
 #else
     boot_mem_mng_init(&sys.boot_mem_mng,MEM_PART_SYSTEM_DDR);
 #endif
-    sys.mem_mng = mem_mng_init(&sys.boot_mem_mng,&mem_mng_param);
-    if (!sys.mem_mng)
+    if(mem_mng_init(&sys.boot_mem_mng,&mem_mng_param,&sys.mem_mng) != 0)
     {
         pr_err("Resource is unavailable: memory management object\n");
         return -EAGAIN;
@@ -419,89 +381,24 @@ void sys_default_free(void *p_memory)
 {
     uint32_t leaks_count;
 
-    if (sys.mem_mng)
+
+
+    leaks_count = mem_mng_check_leaks(&sys.mem_mng, MEM_MNG_EARLY_PARTITION_ID, NULL);
+
+    if (leaks_count)
     {
-        leaks_count = mem_mng_check_leaks(sys.mem_mng, MEM_MNG_EARLY_PARTITION_ID, NULL);
-
-        if (leaks_count)
-        {
-            /* Print memory leaks of early allocations */
-            pr_info("\r\n_memory leaks report - early allocations:\r\n");
-            pr_info("------------------------------------------------------------\r\n");
-            mem_mng_check_leaks(sys.mem_mng, MEM_MNG_EARLY_PARTITION_ID, sys_print_mem_leak);
-            pr_info("------------------------------------------------------------\r\n");
-        }
-
-        mem_mng_free(sys.mem_mng,&sys.boot_mem_mng);
-        sys.mem_mng = NULL;
+        /* Print memory leaks of early allocations */
+        pr_info("\r\n_memory leaks report - early allocations:\r\n");
+        pr_info("------------------------------------------------------------\r\n");
+        mem_mng_check_leaks(&sys.mem_mng, MEM_MNG_EARLY_PARTITION_ID, sys_print_mem_leak);
+        pr_info("------------------------------------------------------------\r\n");
     }
+
+    mem_mng_free(&sys.mem_mng,&sys.boot_mem_mng);
+    memset(&sys.mem_mng,0,sizeof(sys.mem_mng));
 
     return 0;
 }
-
-/*****************************************************************************/
-void * sys_default_malloc(uint32_t size)
-{
-    void        *p;
-#ifdef VERILOG
-    int         i = sigblock(0x00002000);   /* Block SIGTSTP signal -
-                                               stop signal generated from keyboard */
-    p = (void *)malloc(size);
-    sigsetmask(i);                          /* Set SIGTSTP signal back */
-#else  /* not VERILOG */
-#ifdef AIOP
-    lock_spinlock(&(sys.mem_mng_lock));
-#else /* not AIOP */
-    uint32_t    int_flags;
-    int_flags = spin_lock_irqsave(&(sys.mem_mng_lock));
-#endif /* AIOP */
-    p = (void *)malloc(size);
-#ifdef AIOP
-    unlock_spinlock(&(sys.mem_mng_lock));
-#else /* not AIOP */
-    spin_unlock_irqrestore(&(sys.mem_mng_lock), int_flags);
-#endif /* AIOP */
-#endif /* not VERILOG */
-
-    return p;
-}
-
-
-
-
-/*****************************************************************************/
-void * sys_aligned_malloc(uint32_t size, uint32_t alignment)
-{
-    uintptr_t    alloc_addr, aligned_addr;
-    if (alignment < sizeof(uintptr_t))
-        alignment = sizeof(uintptr_t);
-
-    alloc_addr = (uintptr_t)sys_default_malloc(size + alignment);
-    if (alloc_addr == 0)
-    {
-        pr_err("MINOR memory allocation failed: default heap\n");
-        return NULL;
-    }
-
-    /* Reasonable assumption:
-       Memory returned from default heap is at least sizeof(uintptr_t) bytes aligned */
-    ASSERT_COND((alloc_addr & (sizeof(uintptr_t)-1)) == 0);
-    /* Store the real allocated address in the alignment area */
-    aligned_addr = (uintptr_t)((alloc_addr + alignment) & ~((uintptr_t)alignment - 1));
-    *(uintptr_t *)(aligned_addr - sizeof(uintptr_t)) = alloc_addr;
-
-    return UINT_TO_PTR(aligned_addr);
-}
-
-/*****************************************************************************/
-void sys_aligned_free(void *p_memory)
-{
-    /* Find allocated address from aligned address */
-    uintptr_t alloc_addr = *(uintptr_t *)(((uintptr_t)p_memory) - sizeof(uintptr_t));
-
-    sys_default_free(UINT_TO_PTR(alloc_addr));
-}
-
 
 /*****************************************************************************/
 static void sys_print_mem_leak(void        *p_memory,
@@ -520,10 +417,8 @@ static void sys_print_mem_leak(void        *p_memory,
 int  sys_get_phys_mem(uint64_t size, int mem_partition_id, uint64_t alignment,
                  uint64_t* paddr)
 {
-
-	ASSERT_COND(sys.mem_mng);
 	ASSERT_COND(size > 0);
-	return  mem_mng_get_phys_mem(sys.mem_mng,
+	return  mem_mng_get_phys_mem(&sys.mem_mng,
                                 mem_partition_id,
                                 size,
 	                        alignment,
@@ -533,8 +428,7 @@ int  sys_get_phys_mem(uint64_t size, int mem_partition_id, uint64_t alignment,
 /*****************************************************************************/
 void  sys_put_phys_mem(uint64_t paddr)
 {
-	ASSERT_COND(sys.mem_mng);
-	mem_mng_put_phys_mem(sys.mem_mng,paddr);
+	mem_mng_put_phys_mem(&sys.mem_mng,paddr);
 }
 
 

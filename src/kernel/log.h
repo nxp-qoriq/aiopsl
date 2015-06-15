@@ -33,7 +33,6 @@
 #define __LOG_H
 
 #include "common/types.h"
-#include "sys.h"
 #include <stdio.h>
 #include "fsl_icontext.h"
 #include "aiop_common.h"

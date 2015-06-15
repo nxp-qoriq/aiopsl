@@ -33,6 +33,7 @@
 
 #include "general.h"
 #include "tman.h"
+#include "sys.h"
 #include "dplib/fsl_tman.h"
 #include "dplib/fsl_fdma.h"
 #include "osm_inline.h"
@@ -49,11 +50,11 @@
 int tman_create_tmi(uint64_t tmi_mem_base_addr,
 			uint32_t max_num_of_timers, uint8_t *tmi_id)
 {
-	
-#ifdef CHECK_ALIGNMENT 	
+
+#ifdef CHECK_ALIGNMENT
 	DEBUG_ALIGN("tman.c", (uint32_t)tmi_mem_base_addr, ALIGNMENT_64B);
 #endif
-	
+
 	/* command parameters and results */
 	uint32_t arg1, arg2, cdma_cfg;
 	unsigned int res1, res2, *tmi_state_ptr;
@@ -71,7 +72,7 @@ int tman_create_tmi(uint64_t tmi_mem_base_addr,
 	/* Add BDI bit */
 	arg1 = arg1 | ((cdma_cfg & CDMA_BDI_MASK) << 12);
 	/* Add PL and VA to max_num_of_timers */
-	arg2 = ((cdma_cfg & CDMA_PL_VA_MASK) << 8) | 
+	arg2 = ((cdma_cfg & CDMA_PL_VA_MASK) << 8) |
 			(max_num_of_timers & 0x00FFFFFF);
 
 	/* Store command parameters */
@@ -88,7 +89,7 @@ int tman_create_tmi(uint64_t tmi_mem_base_addr,
 	*tmi_id = (uint8_t)res2;
 	if (res1 == TMAN_TMIID_DEPLETION_ERR)
 		return (int)(-ENOSPC);
-	
+
 	tmi_state_ptr = (unsigned int*)((unsigned int)TMAN_CCSR_TMSTATE_ADDRESS
 			+ ((*tmi_id)<<5));
 
@@ -123,7 +124,7 @@ void tman_delete_tmi(tman_cb_t tman_confirm_cb, uint32_t flags,
 	/* The next code is due to Errata ERR008205 */
 	uint32_t i, timer_handle, *tmi_statsntc_ptr, *tmi_statsnccp_ptr;
 	int status;
-	
+
 	status = tman_query_tmi_sw(tmi_id);
 	if (status != 0)
 	{
@@ -151,7 +152,7 @@ void tman_delete_tmi(tman_cb_t tman_confirm_cb, uint32_t flags,
 	{
 		timer_handle = (i << 8) | tmi_id;
 		/* As in Rev1 only force expiration is supported */
-		tman_delete_timer(timer_handle,	
+		tman_delete_timer(timer_handle,
 				TMAN_TIMER_DELETE_MODE_FORCE_EXP);
 	}
 	tmi_statsntc_ptr = (uint32_t*)((uint32_t)TMAN_TMSTATNAT_ADDRESS
@@ -163,7 +164,7 @@ void tman_delete_tmi(tman_cb_t tman_confirm_cb, uint32_t flags,
 		/* YIELD. May not be optimized due to CTS behavior*/
 		sys_yield();
 	}
-	/* End of Errata ERR008205 related code */	
+	/* End of Errata ERR008205 related code */
 
 	/* extention_params.conf_opaque_data1 = conf_opaque_data1;
 	Optimization: remove 1 cycle of store word (this rely on EABI) */
@@ -191,12 +192,12 @@ void tman_delete_tmi(tman_cb_t tman_confirm_cb, uint32_t flags,
 		res1 = *((uint32_t *) HWC_ACC_OUT_ADDRESS);
 		/* check each loop instance to verify if in the time of the
 		 * command another task did'nt deleted the same TMI */
-		if (((res1 & TMAN_FAIL_BIT_MASK) != 0) && 
+		if (((res1 & TMAN_FAIL_BIT_MASK) != 0) &&
 				((res1 & TMAN_TMI_DEL_TMP_ERR_MASK) == 0))
 			tman_exception_handler(TMAN_TMI_DELETE_FUNC_ID,
 					__LINE__, (int)res1);
 	} while (res1 & TMAN_TMI_DEL_TMP_ERR_MASK);
-	
+
 }
 
 #ifndef REV2
@@ -240,7 +241,7 @@ int tman_query_tmi(uint8_t tmi_id,
 		return (int)(-ENAVAIL);
 	if ((res1 & TMAN_TMI_STATE_MASK) == TMAN_TMI_BUS_ERR)
 		tman_exception_handler(TMAN_TMI_TMI_QUERY_FUNC_ID,
-			__LINE__, 
+			__LINE__,
 			(int)(TMAN_TMR_TMI_STATE_ERR+TMAN_TMI_BUS_ERR));
 	/* In case TMI is being deleted or being created */
 	return (int)(-EACCES);
@@ -291,7 +292,7 @@ void tman_recharge_timer(uint32_t timer_handle)
 	/* Store first two command parameters */
 	__stdw(cmd_type, timer_handle, HWC_ACC_IN_ADDRESS, 0);
 
-	/* call TMAN. and check if passed. 
+	/* call TMAN. and check if passed.
 	 * Optimization using compiler pattern*/
 #ifndef REV2
 	__e_hwacceli_(TMAN_ACCEL_ID);
@@ -329,7 +330,7 @@ void tman_query_timer(uint32_t timer_handle,
 		res1 &= 0x1;
 	else
 		res1 &= TMAN_TMR_QUERY_STATE_MASK;
-	
+
 	*state = (enum e_tman_query_timer)res1;
 }
 
@@ -413,7 +414,7 @@ void tman_exception_handler(enum tman_function_identifier func_id,
 				  "tman_exception_handler got unknown"
 				  "function identifier.\n");
 	}
-	
+
 	switch(status) {
 	case TMAN_TMIID_DEPLETION_ERR:
 		exception_handler(__FILE__, func_name, line,
