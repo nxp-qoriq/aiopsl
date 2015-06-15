@@ -544,13 +544,13 @@ __COLD_CODE int dpci_event_link_change(uint32_t dpci_id)
 	                          &status);
 	ASSERT_COND(!err);
 
-	if (status & DPCI_IRQ_EVENT_CONNECTED) {
-		event_id = DPCI_EVENT_CONNECTED;
-		status = DPCI_IRQ_EVENT_CONNECTED;
-	} else if (status & DPCI_IRQ_EVENT_DISCONNECTED) {
-		event_id = DPCI_EVENT_DISCONNECTED;
-		status = DPCI_IRQ_EVENT_DISCONNECTED;
-	} else 	if (status & DPCI_IRQ_EVENT_LINK_CHANGED) {
+	if (status & DPCI_IRQ_EVENT_LINK_CHANGED) {
+
+		status = DPCI_IRQ_EVENT_LINK_CHANGED;
+
+		err = dpci_clear_irq_status(&dprc->io, token,
+		                            DPCI_IRQ_INDEX, status);
+		ASSERT_COND(!err);
 
 		linkup = 0;
 		err = dpci_get_link_state(&dprc->io, token, &linkup);
@@ -561,8 +561,11 @@ __COLD_CODE int dpci_event_link_change(uint32_t dpci_id)
 		else
 			event_id = DPCI_EVENT_LINK_UP;
 
-		status = DPCI_IRQ_EVENT_LINK_CHANGED;
 	} else {
+
+		err = dpci_close(&dprc->io, token);
+		ASSERT_COND(!err);
+
 		return -ENOTSUP;
 	}
 
@@ -579,8 +582,6 @@ __COLD_CODE int dpci_event_link_change(uint32_t dpci_id)
 	                           (void *)dpci_id);
 	ASSERT_COND(!err);
 
-	err = dpci_clear_irq_status(&dprc->io, token, DPCI_IRQ_INDEX, status);
-	ASSERT_COND(!err);
 
 	err = dpci_close(&dprc->io, token);
 	ASSERT_COND(!err);
@@ -685,6 +686,31 @@ __COLD_CODE int dpci_drv_disable(uint32_t dpci_id)
 	 * The table will be updated upon
 	 * dpci_drv_enable()/dpci_event_link_change()
 	 */
+	dpci_close(&dprc->io, token);
+
+	return err;
+}
+
+__COLD_CODE int dpci_drv_linkup(uint32_t dpci_id, int *up)
+{
+	struct mc_dprc *dprc = sys_get_unique_handle(FSL_OS_MOD_AIOP_RC);
+	int err = 0;
+	uint16_t token = 0xffff;
+
+	ASSERT_COND(dprc);
+
+	err = dpci_open(&dprc->io, (int)dpci_id, &token);
+	if (err) {
+		return err;
+	}
+
+	err = dpci_get_link_state(&dprc->io, token, up);
+	if (err) {
+		sl_pr_err("Get link state failed\n");
+		dpci_close(&dprc->io, token);
+		return err;
+	}
+
 	dpci_close(&dprc->io, token);
 
 	return err;
