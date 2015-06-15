@@ -346,7 +346,7 @@
 #define TLB1CFG     689     /* TLB1CFG register 1. */
 #define TLB0PS      344     /* TLB0PS register 0. */
 #define TLB1PS      345     /* TLB1PS register 1. */
-
+#define TASKSCR0    476     /* Task Control and Status Register 0 */
 #define PID0        48      /* Process ID register 0. */
 #define PID1        633     /* Process ID register 1 1 */
 #define PID2        634     /* Process ID register 2 1 */

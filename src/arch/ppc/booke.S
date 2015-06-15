@@ -1634,3 +1634,7 @@ asm_prefix(booke_get_CTSTWS):
 asm_prefix(booke_set_CTSTWS):
     mtdcr   CTSTWS,3
     blr
+.global asm_prefix(booke_get_TASKSCR0)
+asm_prefix(booke_get_TASKSCR0):
+    mfdcr   3,TASKSCR0
+    blr
