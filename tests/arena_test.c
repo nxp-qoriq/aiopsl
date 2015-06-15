@@ -420,7 +420,7 @@ static int app_dpni_event_added_cb(
 
 	UNUSED(generator_id);
 	UNUSED(event_id);
-	pr_info("Event received for dpni %d\n",ni);
+	pr_info("Event received for AIOP NI ID %d\n",ni);
 	err = dpni_drv_add_mac_addr(ni, ((uint8_t []){0x02, 0x00 ,0xc0 ,0x0a8 ,0x0b ,0xfe }));
 
 	if (err){
@@ -718,23 +718,26 @@ static int app_dpni_link_change_cb(
 			fsl_os_print("app_ctx 0x%x for link up must be 0x4321\n", app_ctx);
 			test_error |= 1;
 		}
-		if(order_scope_ordering_err > 0){
-			fsl_os_print("Ordering test failed for 40 packets (no order by src ip)\n");
-			test_error |= 1;
-		}
-		else{
-			fsl_os_print("Ordering by src ip test PASSED (always pass for exclusive mode)\n");
-		}
-		if(order_scope_conc == 0){
-			fsl_os_print("Ordering test failed for 40 packets (not concurrent)\n");
-			test_error |= 1;
-		}
-		else{
-			fsl_os_print("Concurrent test PASSED\n");
-		}
 
-		if(dpni_drv_test_create()){
-			test_error |= 1;
+		if(packet_number >= 38){ /*Only when done injecting packets.*/
+			if(order_scope_ordering_err > 0){
+				fsl_os_print("Ordering test failed for 40 packets (no order by src ip)\n");
+				test_error |= 1;
+			}
+			else{
+				fsl_os_print("Ordering by src ip test PASSED (always pass for exclusive mode)\n");
+			}
+			if(order_scope_conc == 0){
+				fsl_os_print("Ordering test failed for 40 packets (not concurrent)\n");
+				test_error |= 1;
+			}
+			else{
+				fsl_os_print("Concurrent test PASSED\n");
+			}
+
+			if(dpni_drv_test_create()){
+				test_error |= 1;
+			}
 		}
 	}
 	else{
@@ -753,13 +756,13 @@ int app_init(void)
 		pr_err("DPRC DRV test init failed %d\n", err);
 		return err;
 	}
-	err = evmng_register(EVMNG_GENERATOR_AIOPSL, DPNI_EVENT_ADDED, 1,
+	err = evmng_register(EVMNG_GENERATOR_AIOPSL, DPNI_EVENT_ADDED, 0,
 	                     (uint64_t) app_process_packet, app_dpni_event_added_cb);
 	if (err){
 		pr_err("EVM registration for DPNI_EVENT_ADDED failed: %d\n", err);
 		return err;
 	}
-	err = evmng_register(EVMNG_GENERATOR_AIOPSL, DPNI_EVENT_REMOVED, 1,
+	err = evmng_register(EVMNG_GENERATOR_AIOPSL, DPNI_EVENT_REMOVED, 0,
 	                     (uint64_t) app_process_packet, app_dpni_event_removed_cb);
 	if (err){
 		pr_err("EVM registration for DPNI_EVENT_REMOVED failed: %d\n", err);

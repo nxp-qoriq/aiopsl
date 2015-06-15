@@ -101,6 +101,16 @@ int dprc_drv_test_init(void)
 		pr_err("Set irq mask for DPRC object change failed\n");
 		return -ENAVAIL;
 	}
+	err = dprc_clear_irq_status(&dprc->io, dprc->token,
+	                            DPRC_IRQ_INDEX,
+	                            DPRC_IRQ_EVENT_OBJ_ADDED |
+	                            DPRC_IRQ_EVENT_OBJ_REMOVED |
+	                            DPRC_IRQ_EVENT_OBJ_CREATED |
+	                            DPRC_IRQ_EVENT_OBJ_DESTROYED);
+	if(err){
+		pr_err("Set irq mask for DPRC object change failed\n");
+		return -ENAVAIL;
+	}
 	err = evmng_irq_register(EVMNG_GENERATOR_AIOPSL,
 	                         DPRC_EVENT, 0, 0, dprc_drv_test_evmng_cb);
 	if(err){
