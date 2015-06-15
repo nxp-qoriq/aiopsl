@@ -49,7 +49,8 @@
 #define MAKE_UMASK64(_width)	((uint64_t)((_width) < 64 ? ((uint64_t)1 << (_width)) - 1 \
                                  : -1))
 
-
+#define OS_MEM_RESERVED(start_addr,next_addr) volatile uint8_t reserved##start_addr [next_addr - start_addr] 
+/**< Reserved uint8_t space generation; Useful for memory maps */
 
 /*----------------------*/
 /* Miscellaneous macros */
