@@ -1395,7 +1395,7 @@ int ipsec_del_sa_descriptor(
 /**************************************************************************//**
 * ipsec_frame_encrypt
 *//****************************************************************************/
-int ipsec_frame_encrypt(
+__IPSEC_HOT_CODE int ipsec_frame_encrypt(
 		ipsec_handle_t ipsec_handle,
 		uint32_t *enc_status
 		)
@@ -1999,7 +1999,7 @@ encrypt_end:
 /**************************************************************************//**
 * ipsec_frame_decrypt
 *//****************************************************************************/
-int ipsec_frame_decrypt(
+__IPSEC_HOT_CODE int ipsec_frame_decrypt(
 		ipsec_handle_t ipsec_handle,
 		uint32_t *dec_status
 		)
