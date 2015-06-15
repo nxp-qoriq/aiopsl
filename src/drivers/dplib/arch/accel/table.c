@@ -486,11 +486,11 @@ void table_workaround_tkt226361(uint32_t mflu_peb_num_entries,
 		switch (i) {
 		/* case 0 is already assigned at function init */
 		case 1:
-			table_loc = TABLE_ATTRIBUTE_LOCATION_EXT1;
+			table_loc = TABLE_ATTRIBUTE_LOCATION_DP_DDR;
 			num_of_entries = mflu_dp_ddr_num_entries;
 			break;
 		case 2:
-			table_loc = TABLE_ATTRIBUTE_LOCATION_EXT2;
+			table_loc = TABLE_ATTRIBUTE_LOCATION_SYS_DDR;
 			num_of_entries = mflu_sys_ddr_num_entries;
 			break;
 		default:

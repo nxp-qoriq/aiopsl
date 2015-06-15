@@ -69,7 +69,7 @@ int num_of_nis;
 
 struct dpni_early_init_request g_dpni_early_init_data = {0};
 
-static int dpni_drv_ev_cb(uint8_t generator_id, uint8_t event_id, uint64_t size, void *event_data);
+static int dpni_drv_evmng_cb(uint8_t generator_id, uint8_t event_id, uint64_t size, void *event_data);
 
 __COLD_CODE static void print_dev_desc(struct dprc_obj_desc* dev_desc)
 {
@@ -275,6 +275,7 @@ int dpni_drv_handle_removed_objects(void)
 			/*send event: "DPNI_REMOVED_EVENT" to EVM with
 			 * AIOP NI ID */
 			cdma_mutex_lock_release((uint64_t)nis);
+			sl_pr_debug("DPNI with NI %d removed from nis table\n",aiop_niid);
 			err = evmng_sl_raise_event(
 				EVMNG_GENERATOR_AIOPSL,
 				DPNI_EVENT_REMOVED,
@@ -531,6 +532,15 @@ int dpni_drv_probe(struct mc_dprc *dprc,
 			                        DPNI_IRQ_EVENT_LINK_CHANGED);
 			if(err){
 				sl_pr_err("Failed to set irq mask for DP-NI%d\n",
+				          mc_niid);
+				break;
+			}
+
+			err = dpni_clear_irq_status(&dprc->io, dpni,
+			                        DPNI_IRQ_INDEX,
+			                        DPNI_IRQ_EVENT_LINK_CHANGED);
+			if(err){
+				sl_pr_err("Failed to clear IRQ status for DP-NI%d\n",
 				          mc_niid);
 				break;
 			}
@@ -950,19 +960,19 @@ __COLD_CODE int dpni_drv_init(void)
 	                         DPNI_EVENT,
 	                         0,
 	                         0,
-	                         dpni_drv_ev_cb);
+	                         dpni_drv_evmng_cb);
 	if(err){
 		pr_err("EVM registration for DPNI events failed %d\n",err);
 		return -ENAVAIL;
 	}
 	else{
-		pr_info("Registered to: dpni_drv_ev_cb\n");
+		pr_info("Registered to: dpni_drv_evmng_cb\n");
 	}
 
 	return err;
 }
 
-static int dpni_drv_ev_cb(uint8_t generator_id, uint8_t event_id, uint64_t app_ctx, void *event_data)
+static int dpni_drv_evmng_cb(uint8_t generator_id, uint8_t event_id, uint64_t app_ctx, void *event_data)
 {
 	/*Container was updated*/
 	struct mc_dprc *dprc = sys_get_unique_handle(FSL_OS_MOD_AIOP_RC);
@@ -984,7 +994,7 @@ static int dpni_drv_ev_cb(uint8_t generator_id, uint8_t event_id, uint64_t app_c
 		cdma_mutex_lock_take((uint64_t)nis, CDMA_MUTEX_READ_LOCK); /*Lock dpni table*/
 		/* Check if the received dpni id exists in nis table*/
 		ni_id = dpni_drv_is_dpni_exist((uint16_t)((uint32_t)event_data));
-		fsl_os_print("NI id %d, DPNI id %d\n", ni_id, (int)nis[ni_id].dpni_id);
+		sl_pr_debug("NI id %d, DPNI id %d\n", ni_id, (int)nis[ni_id].dpni_id);
 		if(ni_id == -1){
 			sl_pr_debug("DPNI %d not exist in nis table\n", (uint16_t)((uint32_t)event_data));
 			cdma_mutex_lock_release((uint64_t)nis); /*Unlock dpni table*/
@@ -1009,15 +1019,6 @@ static int dpni_drv_ev_cb(uint8_t generator_id, uint8_t event_id, uint64_t app_c
 		}
 
 		if(status & DPNI_IRQ_EVENT_LINK_CHANGED){
-			err = dpni_get_link_state(&dprc->io,
-			                          dpni,
-			                          &link_state);
-			if(err){
-				sl_pr_err("Failed to get dpni link state, %d.\n", err);
-				dpni_close(&dprc->io, dpni);
-				return err;
-			}
-
 			err = dpni_clear_irq_status(&dprc->io, dpni,
 			                            DPNI_IRQ_INDEX,
 			                            DPNI_IRQ_EVENT_LINK_CHANGED);
@@ -1028,6 +1029,14 @@ static int dpni_drv_ev_cb(uint8_t generator_id, uint8_t event_id, uint64_t app_c
 				return err;
 			}
 
+			err = dpni_get_link_state(&dprc->io,
+			                          dpni,
+			                          &link_state);
+			if(err){
+				sl_pr_err("Failed to get dpni link state, %d.\n", err);
+				dpni_close(&dprc->io, dpni);
+				return err;
+			}
 			err = dpni_close(&dprc->io, dpni);
 			if(err){
 				sl_pr_err("Close DPNI failed\n");
@@ -1738,3 +1747,4 @@ int dpni_drv_set_initial_presentation(
 
 	return ep_mng_set_initial_presentation(epid, init_presentation);
 }
+
