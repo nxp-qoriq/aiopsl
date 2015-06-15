@@ -38,6 +38,13 @@
 #include "types.h"
 
 /**************************************************************************//**
+@Description	Callback to be called after all the current tasks are done
+
+@Param[in]	param   User parameter as passed to rcu_synchronize()
+ *//***************************************************************************/
+typedef void (rcu_cb_t)(uint64_t param);
+
+/**************************************************************************//**
 @Function	rcu_synchronize
 
 @Description	Activate the callback after all the active AIOP tasks
@@ -52,7 +59,7 @@
 @Cautions	Set APP_RCU_COMMITTED, APP_RCU_MAX, APP_RCU_TIMER_DURATION at
 		apps.h before using the RCU module
 *//***************************************************************************/
-int rcu_synchronize(void(*cb)(uint64_t), uint64_t param);
+int rcu_synchronize(rcu_cb_t *cb, uint64_t param);
 
 /**************************************************************************//**
 @Function	rcu_read_unlock
