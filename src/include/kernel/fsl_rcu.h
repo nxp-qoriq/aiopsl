@@ -27,8 +27,8 @@
 /**************************************************************************//**
 @File		fsl_rcu.h
 
-@Description	This file contains the API for Read-Copy-Update 
-		synchronization mechanism 
+@Description	This file contains the API for Read-Copy-Update
+		synchronization mechanism
 
 *//***************************************************************************/
 
@@ -36,6 +36,25 @@
 #define __FSL_RCU_H
 
 #include "types.h"
+
+/**************************************************************************//**
+@Function	rcu_early_init
+
+@Description	RCU parameters that should be passed by each application
+		at early init
+
+@Param[in]	delay	Delay in milliseconds until the first RCU task creation.
+  	  	  	The longer delay the more RCU jobs will be handled by
+  	  	  	one RCU task.
+
+@Param[in]	committed	Committed size of the RCU jobs list
+@Param[in]	max		RCU list can get up to max size if committed
+				is not enough
+
+@Return		0 on succees, POSIX error code otherwise  \ref error_g
+
+*//***************************************************************************/
+int rcu_early_init(uint16_t delay, uint32_t committed, uint32_t max);
 
 /**************************************************************************//**
 @Description	Callback to be called after all the current tasks are done
@@ -95,6 +114,5 @@ void rcu_read_unlock();
 		be considered as a task that does not hold any resource.
 *//***************************************************************************/
 void rcu_read_unlock_cancel();
-
 
 #endif /* __FSL_RCU_H */
