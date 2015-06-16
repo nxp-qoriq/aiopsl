@@ -1748,3 +1748,69 @@ int dpni_drv_set_initial_presentation(
 	return ep_mng_set_initial_presentation(epid, init_presentation);
 }
 
+/* This function is not exposed to users */
+int dpni_drv_set_irq_enable(uint16_t ni_id, uint8_t en)
+{
+	struct mc_dprc *dprc = sys_get_unique_handle(FSL_OS_MOD_AIOP_RC);
+	int err;
+	uint16_t mc_niid;
+	uint16_t dpni;
+	struct dpni_irq_cfg irq_cfg = { 0 };
+
+	ASSERT_COND_LIGHT(en == 0 || en == 1);
+	cdma_mutex_lock_take((uint64_t)nis, CDMA_MUTEX_READ_LOCK); /*Lock dpni table*/
+	mc_niid = nis[ni_id].dpni_id;
+	cdma_mutex_lock_release((uint64_t)nis); /*Unlock dpni table*/
+	err = dpni_open(&dprc->io, (int)mc_niid, &dpni);
+	if(err){
+		sl_pr_err("Open DPNI failed\n");
+		return err;
+	}
+	if(en){
+		irq_cfg.addr = (uint64_t)DPNI_EVENT;
+		irq_cfg.val = (uint32_t)mc_niid;
+		irq_cfg.user_irq_id = 0;
+
+		sl_pr_debug("Register for irq with addr %d and val %d\n", (int)irq_cfg.addr, (int)irq_cfg.val);
+
+
+		err = dpni_set_irq(&dprc->io, dpni,
+		                   DPNI_IRQ_INDEX, &irq_cfg);
+		if(err){
+			sl_pr_err("Failed to set irq for DP-NI%d\n", mc_niid);
+			dpni_close(&dprc->io, dpni);
+			return err;
+		}
+
+		err = dpni_set_irq_mask(&dprc->io, dpni,
+		                        DPNI_IRQ_INDEX,
+		                        DPNI_IRQ_EVENT_LINK_CHANGED);
+		if(err){
+			sl_pr_err("Failed to set irq mask for DP-NI%d\n", mc_niid);
+			dpni_close(&dprc->io, dpni);
+			return err;
+		}
+
+		err = dpni_clear_irq_status(&dprc->io, dpni,
+		                            DPNI_IRQ_INDEX,
+		                            DPNI_IRQ_EVENT_LINK_CHANGED);
+		if(err){
+			sl_pr_err("Failed to clear IRQ status for DP-NI%d\n", mc_niid);
+			dpni_close(&dprc->io, dpni);
+			return err;
+		}
+	}
+	err = dpni_set_irq_enable(&dprc->io, dpni,
+	                          DPNI_IRQ_INDEX, en);
+	if(err){
+		sl_pr_err("dpni_set_irq_enable failed\n");
+		dpni_close(&dprc->io, dpni);
+		return err;
+	}
+	err = dpni_close(&dprc->io, dpni);
+	if(err){
+		sl_pr_err("Close DPNI failed\n");
+		return err;
+	}
+	return 0;
+}
