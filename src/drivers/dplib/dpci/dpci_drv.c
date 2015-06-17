@@ -797,6 +797,9 @@ __COLD_CODE static int dpci_for_mc_add(struct mc_dprc *dprc)
 	ASSERT_COND(!err);
 
 	err = dpci_drv_enable((uint32_t)attr.id);
+	if (err) {
+		pr_err("Failed enable for DP-CI%d err = %d\n", attr.id, err);
+	}
 	return err;
 }
 

@@ -99,6 +99,7 @@ int dpni_drv_test(void){
 	}
 
 	eth_ptr = (char *)PARSER_GET_ETH_POINTER_DEFAULT();
+#if !(!defined(DEBUG_ERRORS) || (DEBUG_ERRORS == 0))
 	enable_print_protection();
 	dbg_print("DEST MAC: ");
 	for(i = 0; i < NET_HDR_FLD_ETH_ADDR_SIZE; i++){
@@ -108,7 +109,7 @@ int dpni_drv_test(void){
 	}
 	dbg_print("\n");
 	disable_print_protection();
-
+#endif
 	eth_ptr = (char *)PARSER_GET_ETH_POINTER_DEFAULT();
 	for(i = 0; i < NET_HDR_FLD_ETH_ADDR_SIZE; i++) /*check if destination mac is broadcast*/
 		if(*eth_ptr++ != 0xff)

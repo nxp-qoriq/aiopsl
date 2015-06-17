@@ -44,6 +44,7 @@ extern struct slab_bman_pool_desc g_slab_bman_pools[SLAB_MAX_BMAN_POOLS_NUM];
 int app_test_slab_overload_test();
 int app_test_slab(struct slab *slab, int num_times, enum memory_partition_id mem_pid, uint16_t alignment);
 
+/* The CQ should be solved in sim m134 - remove when fixed*/
 #ifdef SIMULATOR
 #define ENGR358518
 #endif

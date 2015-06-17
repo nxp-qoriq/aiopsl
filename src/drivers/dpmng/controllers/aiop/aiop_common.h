@@ -27,6 +27,8 @@
 #ifndef __AIOP_COMMON_H
 #define __AIOP_COMMON_H
 
+#include "inc/fsl_gen.h"
+
 #define AIOP_EP_TABLE_NUM_OF_ENTRIES	1024
 #define AIOP_INIT_DATA_FIXED_ADDR	(uint8_t *)0x01000000
 
@@ -36,6 +38,9 @@
 
 #define AIOP_SRV_EVM_AUTH_ID		0x1
 #define AIOP_SRV_EVM_NAME		"EVMNG"
+
+#define AIOP_MAX_NUM_CORES_IN_CLUSTER	4
+#define AIOP_MAX_NUM_CLUSTERS		4
 
 /**************************************************************************//**
  @Description   EPID table
@@ -385,6 +390,25 @@ struct aiop_tile_regs {
 	struct aiop_pm_regs pm_regs; /* Power Management Registers */
 	struct aiop_tman_regs tman_regs; /* Timer Manager - Configuration Access Port */
 	uint8_t reserved3[0x3C000];
+};
+
+struct aiop_dcsr_core {
+	OS_MEM_RESERVED(0x0, 0x30C);
+	volatile uint32_t ctstws; /**< CTS Task Watchdog Status Register */
+	OS_MEM_RESERVED(0x310, 0x400);
+};
+
+struct aiop_dcsr_clustr {
+	struct aiop_dcsr_core core[AIOP_MAX_NUM_CORES_IN_CLUSTER];
+	OS_MEM_RESERVED(0x081000, 0x090000);
+};
+
+/**
+ * AIOP peripherals DCSR memory map 
+ */
+struct aiop_dcsr_regs {
+	OS_MEM_RESERVED(0x0100000, 0x0180000);
+	struct aiop_dcsr_clustr clustr[AIOP_MAX_NUM_CLUSTERS];
 };
 
 #endif /* __AIOP_COMMON_H */

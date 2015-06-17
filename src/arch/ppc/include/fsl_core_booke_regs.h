@@ -216,8 +216,7 @@
 /*******************************************************
 * interrupt vector
 *
-* IVORx is loaded with this value
-* Also the handler is fixed to this address.
+* The handler is fixed to this address.
 ********************************************************/
 #define CRITICAL_INTR               0x0100
 #define MACHINE_CHECK_INTR          0x0200
@@ -260,24 +259,6 @@
 #define ESR         62      /* Exception syndrome register */
 #define IAC1        312     /* Instruction address compare 1 */
 #define IAC2        313     /* Instruction address compare 2 */
-#define IVOR0       400     /* Critical input */
-#define IVOR1       401     /* Machine check interrupt offset */
-#define IVOR2       402     /* Data storage interrupt offset */
-#define IVOR3       403     /* Instruction storage interrupt offset */
-#define IVOR4       404     /* External input interrupt offset */
-#define IVOR5       405     /* Alignment interrupt offset */
-#define IVOR6       406     /* Program interrupt offset */
-#define IVOR8       408     /* System call interrupt offset */
-#define IVOR10      410     /* Decrementer interrupt offset */
-#define IVOR11      411     /* Fixed-interval timer interrupt offset */
-#define IVOR12      412     /* Watchdog timer interrupt offset */
-#define IVOR13      413     /* Data TLB error interrupt offset */
-#define IVOR14      414     /* Instruction TLB error interrupt offset */
-#define IVOR15      415     /* Debug interrupt offset */
-#define IVOR32      528     /* SPE APU unavailable interrupt offset */
-#define IVOR33      529     /* Floating-point data exception interrupt offset */
-#define IVOR34      530     /* Floating-point round exception interrupt offset */
-#define IVOR35      531     /* Performance monitor */
 #define IVPR        63      /* Interrupt vector */
 #define LR          8       /* Link register */
 #define PID         48      /* Process ID register */
@@ -346,7 +327,7 @@
 #define TLB1CFG     689     /* TLB1CFG register 1. */
 #define TLB0PS      344     /* TLB0PS register 0. */
 #define TLB1PS      345     /* TLB1PS register 1. */
-
+#define TASKSCR0    476     /* Task Control and Status Register 0 */
 #define PID0        48      /* Process ID register 0. */
 #define PID1        633     /* Process ID register 1 1 */
 #define PID2        634     /* Process ID register 2 1 */

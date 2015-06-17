@@ -92,6 +92,11 @@ uint8_t order_scope_max[] = {0 , 1};
 uint8_t order_scope_conc = 0;
 uint8_t order_scope_ordering_err = 0;
 
+/* The code should be removed when the CQ 360148 will be solved */
+#ifdef SIMULATOR
+#define ENGR360148
+#endif
+
 #define ORDER_SCOPE_CHECK(pack_num)                              \
 {                                                                \
 	uint8_t order_scope_max_id = pack_num % 2;               \
@@ -316,6 +321,22 @@ int app_early_init(void){
 
 static void arena_test_finished(void)
 {
+	if(order_scope_ordering_err > 0){
+		fsl_os_print("Ordering test failed for 40 packets (no order by src ip)\n");
+		test_error |= 1;
+	}
+	else{
+		fsl_os_print("Ordering by src ip test PASSED (always pass for exclusive mode)\n");
+	}
+	if(order_scope_conc == 0){
+		fsl_os_print("Ordering test failed for 40 packets (not concurrent)\n");
+		test_error |= 1;
+	}
+	else{
+		fsl_os_print("Concurrent test PASSED\n");
+	}
+
+
 	if (test_error == 0)
 	{
 		int i, j;
@@ -420,6 +441,10 @@ static int app_dpni_event_added_cb(
 
 	UNUSED(generator_id);
 	UNUSED(event_id);
+
+#ifdef ENGR360148
+	dpni_drv_set_irq_enable(ni, 0);
+#endif
 	pr_info("Event received for AIOP NI ID %d\n",ni);
 	err = dpni_drv_add_mac_addr(ni, ((uint8_t []){0x02, 0x00 ,0xc0 ,0x0a8 ,0x0b ,0xfe }));
 
@@ -683,6 +708,9 @@ static int app_dpni_event_added_cb(
 			test_error |= 1;
 		}
 	}
+#ifdef ENGR360148
+	dpni_drv_set_irq_enable(ni, 1);
+#endif
 	return 0;
 }
 
@@ -720,21 +748,6 @@ static int app_dpni_link_change_cb(
 		}
 
 		if(packet_number >= 38){ /*Only when done injecting packets.*/
-			if(order_scope_ordering_err > 0){
-				fsl_os_print("Ordering test failed for 40 packets (no order by src ip)\n");
-				test_error |= 1;
-			}
-			else{
-				fsl_os_print("Ordering by src ip test PASSED (always pass for exclusive mode)\n");
-			}
-			if(order_scope_conc == 0){
-				fsl_os_print("Ordering test failed for 40 packets (not concurrent)\n");
-				test_error |= 1;
-			}
-			else{
-				fsl_os_print("Concurrent test PASSED\n");
-			}
-
 			if(dpni_drv_test_create()){
 				test_error |= 1;
 			}

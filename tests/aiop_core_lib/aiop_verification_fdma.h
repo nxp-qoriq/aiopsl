@@ -676,6 +676,12 @@ struct fdma_enqueue_wf_command {
 	uint8_t	EIS;
 		/** Command returned status. */
 	int8_t  status;
+		/** Use implicit Queueing destination parameters. 
+		* - 0: Use supplied Queueing destination parameters
+		* - 1: Use implicit Queueing destination parameters. */
+	int8_t	implicit_qd_params;
+		/** 64-bit alignment. */
+	uint8_t	pad[7];
 };
 
 /**************************************************************************//**
@@ -721,8 +727,12 @@ struct fdma_enqueue_wf_exp_command {
 	uint8_t	EIS;
 		/** Command returned status. */
 	int8_t  status;
+		/** Use implicit Queueing destination parameters.  
+		* - 0: Use supplied Queueing destination parameters
+		* - 1: Use implicit Queueing destination parameters.*/
+	int8_t	implicit_qd_params;
 		/** 64-bit alignment. */
-	uint8_t	pad[7];
+	uint8_t	pad[6];
 };
 
 /**************************************************************************//**
@@ -775,8 +785,12 @@ struct fdma_enqueue_frame_command {
 	uint8_t	BDI;
 		/** Command returned status. */
 	int8_t  status;
+		/** Use implicit Queueing destination parameters. 
+		* - 0: Use supplied Queueing destination parameters
+		* - 1: Use implicit Queueing destination parameters. */
+	int8_t	implicit_qd_params;	
 		/** 64-bit alignment. */
-	uint8_t	pad[6];
+	uint8_t	pad[5];
 };
 
 /**************************************************************************//**
@@ -831,8 +845,12 @@ struct fdma_enqueue_frame_exp_command {
 	uint8_t	BDI;
 		/** Command returned status. */
 	int8_t  status;
+		/** Use implicit Queueing destination parameters. 
+		* - 0: Use supplied Queueing destination parameters
+		* - 1: Use implicit Queueing destination parameters.*/
+	int8_t	implicit_qd_params;
 		/** 64-bit alignment. */
-	uint8_t	pad[2];
+	uint8_t	pad[1];
 };
 
 /**************************************************************************//**

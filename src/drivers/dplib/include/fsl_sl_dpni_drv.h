@@ -177,7 +177,18 @@ int dpni_drv_update_obj(struct mc_dprc *dprc, uint16_t mc_niid);
 		For error posix refer to
 		\ref error_g
 *//***************************************************************************/
-int dpni_drv_handle_removed_objects(void);
+void dpni_drv_handle_removed_objects(void);
 
+/**************************************************************************//**
+@Function	dpni_drv_get_ordering_mode
+
+@Description	Function to enable / disable the IRQ for given NI.
+
+@Param[in]	ni_id - Network Interface ID
+
+@Param[in]	en - Interrupt state: - enable = 1, disable = 0
+
+*//***************************************************************************/
+int dpni_drv_set_irq_enable(uint16_t ni_id, uint8_t en);
 /** @} */ /* end of DPNI_DRV_STATUS group */
 #endif /* __FSL_SL_DPNI_DRV_H */
