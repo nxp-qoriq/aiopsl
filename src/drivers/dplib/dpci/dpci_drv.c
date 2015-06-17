@@ -360,9 +360,7 @@ __COLD_CODE static int mc_intr_set(uint32_t dpci_id, struct mc_dprc *dprc,
 {
 	struct dpci_irq_cfg irq_cfg;
 	int err;
-	uint32_t mask = DPCI_IRQ_EVENT_LINK_CHANGED | 
-		DPCI_IRQ_EVENT_CONNECTED | 
-		DPCI_IRQ_EVENT_DISCONNECTED;
+	uint32_t mask = DPCI_IRQ_EVENT_LINK_CHANGED;
 	irq_cfg.addr = DPCI_EVENT;
 	irq_cfg.val = dpci_id;
 	irq_cfg.user_irq_id = 0;
