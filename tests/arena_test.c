@@ -287,7 +287,10 @@ __HOT_CODE ENTRY_POINT static void app_process_packet(void)
 				fsl_os_print("dpni_drv_get_counter: CTR: %d = %ll\n",i,ctr_value);
 			}
 		}
-
+		if(dpni_drv_test_create()){
+			test_error |= 1;
+			pr_err("dpni_drv_test_create for ni %d failed\n", ni_id);
+		}
 		err = dpni_drv_disable(ni_id);
 		if(err){
 			pr_err("dpni_drv_disable for ni %d failed: %d\n", ni_id, err);
