@@ -471,12 +471,14 @@ __COLD_CODE void dpci_event_handle_removed_objects()
 
 	while ((count < g_dpci_tbl.count) && (i < g_dpci_tbl.max)) {
 
-		pr_debug("i=%d count=%d\n", i, count);
+		sl_pr_debug("i=%d count=%d\n", i, count);
 
 		if (g_dpci_tbl.dpci_id[i] != DPCI_FQID_NOT_VALID) {
 			
 			if (!(g_dpci_tbl.flags[i] & DPCI_ID_FLG_SCANNED)) {
 
+				pr_debug("Deleted DP-CI%d\n",
+				         (int)g_dpci_tbl.dpci_id[i]);
 				dpci_entry_delete(i);
 				
 				pr_debug("evmng_sl_raise_event\n");
@@ -494,7 +496,7 @@ __COLD_CODE void dpci_event_handle_removed_objects()
 				/* flags are updated only during add/remove 
 				 * event which are handled one at a time */
 				g_dpci_tbl.flags[i] &= ~DPCI_ID_FLG_SCANNED;
-				pr_debug("Cleared DPCI_ID_FLG_SCANNED\n");
+				sl_pr_debug("Cleared DPCI_ID_FLG_SCANNED\n");
 			}
 
 			count++;
@@ -504,7 +506,7 @@ __COLD_CODE void dpci_event_handle_removed_objects()
 	}
 
 	DPCI_DT_LOCK_RELEASE;
-
+	
 	dpci_tbl_dump();
 }
 
