@@ -219,6 +219,7 @@ enum rta_param_type {
 #define IPSEC_ESN_MASK 0x10 /* Extended sequence number option mask */
 #define IPSEC_SEC_NEW_BUFFER_MODE 0
 #define IPSEC_SEC_REUSE_BUFFER_MODE 1
+#define IPSEC_FMT_SINGLE_BUFFER 0
 
 /*                 SA Descriptor Structure
  * ------------------------------------------------------
