@@ -321,6 +321,22 @@ int app_early_init(void){
 
 static void arena_test_finished(void)
 {
+	if(order_scope_ordering_err > 0){
+		fsl_os_print("Ordering test failed for 40 packets (no order by src ip)\n");
+		test_error |= 1;
+	}
+	else{
+		fsl_os_print("Ordering by src ip test PASSED (always pass for exclusive mode)\n");
+	}
+	if(order_scope_conc == 0){
+		fsl_os_print("Ordering test failed for 40 packets (not concurrent)\n");
+		test_error |= 1;
+	}
+	else{
+		fsl_os_print("Concurrent test PASSED\n");
+	}
+
+
 	if (test_error == 0)
 	{
 		int i, j;
@@ -732,21 +748,6 @@ static int app_dpni_link_change_cb(
 		}
 
 		if(packet_number >= 38){ /*Only when done injecting packets.*/
-			if(order_scope_ordering_err > 0){
-				fsl_os_print("Ordering test failed for 40 packets (no order by src ip)\n");
-				test_error |= 1;
-			}
-			else{
-				fsl_os_print("Ordering by src ip test PASSED (always pass for exclusive mode)\n");
-			}
-			if(order_scope_conc == 0){
-				fsl_os_print("Ordering test failed for 40 packets (not concurrent)\n");
-				test_error |= 1;
-			}
-			else{
-				fsl_os_print("Concurrent test PASSED\n");
-			}
-
 			if(dpni_drv_test_create()){
 				test_error |= 1;
 			}
