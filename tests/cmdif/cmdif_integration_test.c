@@ -383,10 +383,12 @@ static int ctrl_cb0(void *dev, uint16_t cmd, uint32_t size,
 
 	switch (cmd) {
 	case DPCI_ADD:
-		err = dpci_dynamic_add_test();
+		if (!IS_SIM)
+			err = dpci_dynamic_add_test();
 		break;
 	case DPCI_RM:
-		err = dpci_dynamic_rm_test();
+		if (!IS_SIM)
+			err = dpci_dynamic_rm_test();
 		break;
 	case SHBP_TEST_GPP:
 		pr_debug("Testing GPP SHBP...\n");
@@ -715,8 +717,10 @@ int app_init(void)
 	ASSERT_COND(!err);
 
 #ifdef CMDIF_TEST_WITH_MC_SRV
-	err = dpci_dynamic_add_test();
-	ASSERT_COND(!err);
+	if (!IS_SIM) {
+		err = dpci_dynamic_add_test();
+		ASSERT_COND(!err);
+	}
 #endif
 
 	err = gpp_sys_ddr_init();
