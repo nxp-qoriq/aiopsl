@@ -132,13 +132,10 @@ int dpni_drv_register_rx_cb (uint16_t ni_id, rx_cb_t *cb)
 
 int dpni_drv_unregister_rx_cb (uint16_t ni_id)
 {
-	struct dpni_drv *dpni_drv;
 	struct aiop_tile_regs *tile_regs = (struct aiop_tile_regs *)
 					sys_get_handle(FSL_OS_MOD_AIOP_TILE, 1);
 	struct aiop_ws_regs *wrks_addr = &tile_regs->ws_regs;
 
-	/* calculate pointer to the send NI structure */
-	dpni_drv = nis + ni_id;
 	/*Mutex lock to avoid race condition while writing to EPID table*/
 	cdma_mutex_lock_take((uint64_t)&wrks_addr->epas, CDMA_MUTEX_WRITE_LOCK);
 	cdma_mutex_lock_take((uint64_t)nis, CDMA_MUTEX_READ_LOCK); /*Lock dpni table*/
@@ -239,15 +236,10 @@ int dpni_drv_update_obj(struct mc_dprc *dprc, uint16_t mc_niid)
 		cdma_mutex_lock_release((uint64_t)nis);
 		/*send event: "DPNI_ADDED_EVENT" to EVM with
 		 * AIOP NI ID */
-		err = evmng_sl_raise_event(
+		evmng_sl_raise_event(
 			EVMNG_GENERATOR_AIOPSL,
 			DPNI_EVENT_ADDED,
 			(void *)aiop_niid);
-		if(err){
-			sl_pr_err("Failed to raise event for "
-				"NI-%d.\n", aiop_niid);
-			return err;
-		}
 	}
 	else{
 		/*update that this index scanned*/
@@ -257,10 +249,9 @@ int dpni_drv_update_obj(struct mc_dprc *dprc, uint16_t mc_niid)
 	return 0;
 }
 
-int dpni_drv_handle_removed_objects(void)
+void dpni_drv_handle_removed_objects(void)
 {
 	uint16_t aiop_niid;
-	int err;
 
 	for(aiop_niid = 0; aiop_niid < SOC_MAX_NUM_OF_DPNI; aiop_niid++)
 	{
@@ -276,21 +267,16 @@ int dpni_drv_handle_removed_objects(void)
 			 * AIOP NI ID */
 			cdma_mutex_lock_release((uint64_t)nis);
 			sl_pr_debug("DPNI with NI %d removed from nis table\n",aiop_niid);
-			err = evmng_sl_raise_event(
+			evmng_sl_raise_event(
 				EVMNG_GENERATOR_AIOPSL,
 				DPNI_EVENT_REMOVED,
 				(void *)aiop_niid);
-			if(err){
-				sl_pr_err("Failed to raise event for "
-					"NI-%d.\n", aiop_niid);
-				return err;
-			}
 		}
 		else{
 			cdma_mutex_lock_release((uint64_t)nis);
 		}
 	}
-	return 0;
+	return;
 }
 
 
@@ -1044,21 +1030,16 @@ static int dpni_drv_evmng_cb(uint8_t generator_id, uint8_t event_id, uint64_t ap
 			}
 
 			if(link_state.up){
-				err = evmng_sl_raise_event(
+				evmng_sl_raise_event(
 					EVMNG_GENERATOR_AIOPSL,
 					DPNI_EVENT_LINK_UP,
 					(void *)ni_id);
 			}
 			else{
-				err = evmng_sl_raise_event(
+				evmng_sl_raise_event(
 					EVMNG_GENERATOR_AIOPSL,
 					DPNI_EVENT_LINK_DOWN,
 					(void *)ni_id);
-			}
-			if(err){
-				sl_pr_err("Failed to raise event for "
-					"NI-%d.\n", ni_id);
-				return err;
 			}
 		}
 		else{
