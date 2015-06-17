@@ -118,11 +118,6 @@ typedef struct platform_memory_info {
 
 typedef struct t_platform_ops {
     fsl_handle_t h_platform;
-
-    /* Enable/disable functions */
-    void    (*f_enable_local_irq)      (fsl_handle_t h_platform);
-    void    (*f_disable_local_irq)     (fsl_handle_t h_platform);
-
     struct pltform_module_desc modules[PLTFORM_NUM_OF_INIT_MODULES];
 } t_platform_ops;
 

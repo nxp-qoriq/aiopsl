@@ -95,10 +95,6 @@ __COLD_CODE static int sys_init_platform(void)
 	int i, err = 0;
 	int is_master_core = sys_is_master_core();
 
-	if (sys.platform_ops.f_disable_local_irq)
-		sys.platform_ops.f_disable_local_irq(
-			sys.platform_ops.h_platform);
-
 	for (i = 0 ; i < PLTFORM_NUM_OF_INIT_MODULES ; i++)
 	{
 		if (sys.platform_ops.modules[i].init)
@@ -122,10 +118,6 @@ __COLD_CODE static int sys_init_platform(void)
 			}
 		}
 	}
-
-	if (sys.platform_ops.f_enable_local_irq)
-		sys.platform_ops.f_enable_local_irq(
-			sys.platform_ops.h_platform);
 
 	return 0;
 }
