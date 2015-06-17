@@ -117,15 +117,20 @@ struct dpci_mng_tbl g_dpci_tbl = {0};
 
 __COLD_CODE static void dpci_tbl_dump()
 {
+#ifdef DEBUG
 	int i;
+	int num_entries = (g_dpci_tbl.count + 2 ? \
+		(g_dpci_tbl.max - g_dpci_tbl.count) >=2 : \
+		g_dpci_tbl.max);
 
-	fsl_os_print("----------DPCI table: count = %d----------\n", 
+	pr_debug("----------DPCI table: count = %d----------\n", 
 	             g_dpci_tbl.count);
-	for (i = 0; i < g_dpci_tbl.count; i++) {
-		fsl_os_print("ID = 0x%x\t PEER ID = 0x%x\t IC = 0x%x\t flags = 0x%x\t\n",
+	for (i = 0; i < num_entries; i++) {
+		pr_debug("ID = 0x%x\t PEER ID = 0x%x\t IC = 0x%x\t flags = 0x%x\t\n",
 		             g_dpci_tbl.dpci_id[i], g_dpci_tbl.dpci_id_peer[i], 
 		             g_dpci_tbl.ic[i], g_dpci_tbl.flags[i]);
 	}
+#endif
 }
 
 __HOT_CODE int dpci_mng_find(uint32_t dpci_id)
@@ -312,7 +317,7 @@ __COLD_CODE static void tx_user_context_set(struct mc_dprc *dprc, int ind,
 #pragma inline_depth(smart)
 //#pragma optimization_level reset
 
-/* To be called upon connected event, assign even */
+/* To be called upon add even */
 __COLD_CODE static int dpci_entry_init(uint32_t dpci_id, uint16_t token)
 {
 	int ind = -1;
@@ -331,6 +336,7 @@ __COLD_CODE static int dpci_entry_init(uint32_t dpci_id, uint16_t token)
 
 	g_dpci_tbl.dpci_id[ind] = dpci_id;
 	g_dpci_tbl.ic[ind] = amq_bdi;
+	g_dpci_tbl.flags[ind] = 0;
 
 	/* Updated DPCI peer if possible
 	 * error is possible */
@@ -405,6 +411,8 @@ __COLD_CODE int dpci_event_update_obj(uint32_t dpci_id)
 	if (g_dpci_tbl.mc_dpci_id == dpci_id)
 		return 0;
 
+	pr_debug("Scan event DP-CI%d\n", (int)dpci_id);
+
 	DPCI_DT_LOCK_W_TAKE;
 
 	ind = dpci_mng_find(dpci_id);
@@ -436,13 +444,12 @@ __COLD_CODE int dpci_event_update_obj(uint32_t dpci_id)
 
 	if(ind >= 0) {
 		ASSERT_COND(!(g_dpci_tbl.flags[ind] & DPCI_ID_FLG_SCANNED));
-		/* flags are updated only during add/remove 
-		 * event which are handled one at a time */
+		/* flags are updated only during add/remove */
 		g_dpci_tbl.flags[ind] |= DPCI_ID_FLG_SCANNED;
 	}
 
 	DPCI_DT_LOCK_RELEASE;
-
+	
 	dpci_tbl_dump();
 
 	if (raise_event) {
@@ -464,14 +471,19 @@ __COLD_CODE void dpci_event_handle_removed_objects()
 	int i = 0;
 	int count = 0;
 	int err;
+	uint32_t delete_dpci_id;
+	int32_t count_before_delete;
 
 	ASSERT_COND(g_dpci_tbl.count <= g_dpci_tbl.max);
 
 	DPCI_DT_LOCK_W_TAKE;
 
-	while ((count < g_dpci_tbl.count) && (i < g_dpci_tbl.max)) {
+	/* Count is changing inside dpci_entry_delete() */
+	count_before_delete = g_dpci_tbl.count;
 
-		sl_pr_debug("i=%d count=%d\n", i, count);
+	while ((count < count_before_delete) && (i < g_dpci_tbl.max)) {
+
+		pr_debug("i=%d count=%d\n", i, count);
 
 		if (g_dpci_tbl.dpci_id[i] != DPCI_FQID_NOT_VALID) {
 			
@@ -479,16 +491,17 @@ __COLD_CODE void dpci_event_handle_removed_objects()
 
 				pr_debug("Deleted DP-CI%d\n",
 				         (int)g_dpci_tbl.dpci_id[i]);
+				delete_dpci_id = g_dpci_tbl.dpci_id[i];
 				dpci_entry_delete(i);
 				
 				pr_debug("evmng_sl_raise_event\n");
 				err = evmng_sl_raise_event(
 					EVMNG_GENERATOR_AIOPSL,
 					DPCI_EVENT_REMOVED,
-					(void *)g_dpci_tbl.dpci_id[i]);
+					(void *)delete_dpci_id);
 				if (err) {
 					pr_err("Failed event DPCI-%d.\n",
-					       g_dpci_tbl.dpci_id[i]);
+					       delete_dpci_id);
 				}
 			}
 
@@ -496,7 +509,7 @@ __COLD_CODE void dpci_event_handle_removed_objects()
 				/* flags are updated only during add/remove 
 				 * event which are handled one at a time */
 				g_dpci_tbl.flags[i] &= ~DPCI_ID_FLG_SCANNED;
-				sl_pr_debug("Cleared DPCI_ID_FLG_SCANNED\n");
+				pr_debug("Cleared DPCI_ID_FLG_SCANNED\n");
 			}
 
 			count++;
@@ -507,6 +520,7 @@ __COLD_CODE void dpci_event_handle_removed_objects()
 
 	DPCI_DT_LOCK_RELEASE;
 	
+	pr_debug("Exit\n");
 	dpci_tbl_dump();
 }
 
@@ -535,8 +549,10 @@ __COLD_CODE int dpci_event_link_change(uint32_t dpci_id)
 	struct mc_dprc *dprc = sys_get_unique_handle(FSL_OS_MOD_AIOP_RC);
 
 	err = dpci_open(&dprc->io, (int)dpci_id, &token);
-	if (err)
+	if (err) {
+		pr_err("DP-CI%d no longer exists\n", dpci_id);
 		return err;
+	}
 
 	err = dpci_get_irq_status(&dprc->io,
 	                          token,
@@ -565,7 +581,7 @@ __COLD_CODE int dpci_event_link_change(uint32_t dpci_id)
 
 		err = dpci_close(&dprc->io, token);
 		ASSERT_COND(!err);
-
+		pr_err("Received unknown event 0x%x\n", status);
 		return -ENOTSUP;
 	}
 
@@ -813,7 +829,7 @@ __COLD_CODE static int dpci_event_cb(uint8_t generator_id, uint8_t event_id,
 	ASSERT_COND((event_id == DPCI_EVENT) &&
 	            (generator_id == EVMNG_GENERATOR_AIOPSL));
 
-	pr_debug("DPCI EVENT \n");
+	pr_debug("DPCI EVENT for %d\n", (int)event_data);
 	err = dpci_event_link_change((uint32_t)event_data);
 	return err;
 }
