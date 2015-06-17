@@ -176,6 +176,8 @@ static int dpci_dynamic_add_test()
 	int     link_up = 0;
 	struct mc_dprc *dprc = sys_get_unique_handle(FSL_OS_MOD_AIOP_RC);
 
+	pr_debug("Enter\n");
+
 	atomic_incr32(&dpci_add_count, 1);
 
 	memset(&queue_cfg, 0, sizeof(struct dpci_rx_queue_cfg));
@@ -309,12 +311,14 @@ static void print_counters()
 	pr_debug("dpci_rm_event_count %d\n", dpci_rm_ev_count);
 	pr_debug("dpci_up_event_count %d\n", dpci_up_ev_count);
 	pr_debug("dpci_down_event_count %d\n", dpci_down_ev_count);
-	ASSERT_COND(dpci_add_count > 1);
-	ASSERT_COND(dpci_rm_count > 1);
-	ASSERT_COND(dpci_add_ev_count > 1);
-	ASSERT_COND(dpci_rm_ev_count > 1);
-	ASSERT_COND(dpci_up_ev_count > 1);
-	ASSERT_COND(dpci_down_ev_count > 1);
+	if (!IS_SIM) {
+		ASSERT_COND(dpci_add_count > 1);
+		ASSERT_COND(dpci_rm_count > 1);
+		ASSERT_COND(dpci_add_ev_count > 1);
+		ASSERT_COND(dpci_rm_ev_count > 1);
+		ASSERT_COND(dpci_up_ev_count > 1);
+		ASSERT_COND(dpci_down_ev_count > 1);
+	}
 #endif
 }
 
@@ -385,12 +389,12 @@ static int ctrl_cb0(void *dev, uint16_t cmd, uint32_t size,
 
 	switch (cmd) {
 	case DPCI_ADD:
-		if (!IS_SIM)
-			err = dpci_dynamic_add_test();
+//		if (!IS_SIM)
+//			err = dpci_dynamic_add_test();
 		break;
 	case DPCI_RM:
-		if (!IS_SIM)
-			err = dpci_dynamic_rm_test();
+//		if (!IS_SIM)
+//			err = dpci_dynamic_rm_test();
 		break;
 	case SHBP_TEST_GPP:
 		pr_debug("Testing GPP SHBP...\n");
@@ -720,7 +724,7 @@ int app_init(void)
 
 #ifdef CMDIF_TEST_WITH_MC_SRV
 	if (!IS_SIM) {
-		err = dpci_dynamic_add_test();
+		//TODO err = dpci_dynamic_add_test();
 		ASSERT_COND(!err);
 	}
 #endif
