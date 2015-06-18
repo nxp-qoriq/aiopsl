@@ -311,6 +311,7 @@ static void print_counters()
 	pr_debug("dpci_rm_event_count %d\n", dpci_rm_ev_count);
 	pr_debug("dpci_up_event_count %d\n", dpci_up_ev_count);
 	pr_debug("dpci_down_event_count %d\n", dpci_down_ev_count);
+#if 0
 	if (!IS_SIM) {
 		ASSERT_COND(dpci_add_count > 1);
 		ASSERT_COND(dpci_rm_count > 1);
@@ -318,6 +319,7 @@ static void print_counters()
 		ASSERT_COND(dpci_rm_ev_count > 1);
 		ASSERT_COND(dpci_up_ev_count > 1);
 		ASSERT_COND(dpci_down_ev_count > 1);
+#endif
 	}
 #endif
 }
