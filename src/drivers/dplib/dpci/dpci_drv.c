@@ -47,6 +47,7 @@
 #include "fsl_ep.h"
 #include "fsl_ep_mng.h"
 #include "fsl_sl_evmng.h"
+#include "fsl_gen.h"
 
 /*************************************************************************/
 #define DPCI_LOW_PR		1
@@ -61,16 +62,16 @@
 	(LLLDW_SWAP((uint32_t)&CMDIF_FQD_CTX_GET, 0))
 
 #define AMQ_BDI_SET(_offset, _width, _type, _arg) \
-	(amq_bdi |= mc_enc((_offset), (_width), (_arg)))
+	(amq_bdi |= u32_enc((_offset), (_width), (_arg)))
 
 #define AMQ_BDI_GET(_offset, _width, _type, _arg) \
-	(*(_arg) = (_type)mc_dec(amq_bdi, (_offset), (_width)))
+	(*(_arg) = (_type)u32_dec(amq_bdi, (_offset), (_width)))
 
 #define USER_CTX_SET(_offset, _width, _type, _arg) \
-	(queue_cfg.user_ctx |= mc_enc((_offset), (_width), (_arg)))
+	(queue_cfg.user_ctx |= u64_enc((_offset), (_width), (_arg)))
 
 #define USER_CTX_GET(_offset, _width, _type, _arg) \
-	(*(_arg) = (_type)mc_dec(rx_ctx, (_offset), (_width)))
+	(*(_arg) = (_type)u64_dec(rx_ctx, (_offset), (_width)))
 
 #define CMDIF_DPCI_FQID(_OP, DPCI, FQID) \
 do { \
