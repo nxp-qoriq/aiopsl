@@ -23,12 +23,14 @@ aiopsl/src/include/dplib/fsl_ste.h
 aiopsl/src/include/common/fsl_stdlib.h
 aiopsl/src/include/dplib/fsl_tman.h
 aiopsl/src/include/dplib/fsl_dpni_drv.h
+aiopsl/src/include/dplib/fsl_ep.h
 aiopsl/src/include/dplib/fsl_general.h
 aiopsl/src/include/dplib/fsl_frame_operations.h
 aiopsl/src/include/kernel/fsl_cmdif_server.h
 aiopsl/src/include/kernel/fsl_cmdif_client.h
 aiopsl/src/include/net/fsl_inet.h
 aiopsl/src/include/lib/fsl_slab.h
+aiopsl/src/include/lib/fsl_evmng.h
 aiopsl/src/include/fsl_io.h
 aiopsl/src/include/common/fsl_stdio.h
 aiopsl/src/include/fsl_time.h
