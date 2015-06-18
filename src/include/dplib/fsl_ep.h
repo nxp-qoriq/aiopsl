@@ -34,6 +34,13 @@
 #define __FSL_EP_H
 
 /**************************************************************************//**
+@Group		ep_g EPID
+
+@{
+*//***************************************************************************/
+
+
+/**************************************************************************//**
  @Group		EP_INIT_PRESENTATION_OPT initial presentation options
 
  @Description	initial presentation modification options
@@ -100,4 +107,5 @@ struct ep_init_presentation {
 };
 /** @} end of group ep_initial_presentation */
 
-#endif /* __FSL_DPCI_EVENT_H */
+/** @} end of group ep_g */
+#endif /* __FSL_EP_H */
