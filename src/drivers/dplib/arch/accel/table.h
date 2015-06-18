@@ -281,16 +281,15 @@
 @Group	TABLE_STATUS Status returned to calling function
 @{
 *//***************************************************************************/
-/* TODO documentation here */
 /** Command successful */
 #define TABLE_HW_STATUS_SUCCESS	TABLE_STATUS_SUCCESS
 
 /** Command failed general status bit.
-A general bit that is set in some errors conditions */
+ * A general bit that is set in some errors conditions */
 #define TABLE_HW_STATUS_BIT_MGCF		0x80000000
 
 /** Miss Occurred.
- * This status is set when a matching rule is not found. Note that on chained
+ * This bit is set when a matching rule is not found. Note that on chained
  * lookups this status is set only if the last lookup results in a miss. 
  * This bit is N/A if any other bit is set */
 #define TABLE_HW_STATUS_BIT_MISS	TABLE_STATUS_MISS
@@ -428,8 +427,21 @@ enum table_function_identifier {
 	TABLE_CALC_NUM_ENTRIES_PER_RULE_FUNC_ID,
 	TABLE_WORKAROUND_TKT226361_FUNC_ID
 };
-
 /** @} */ /* end of table_function_identifier */
+
+
+/**************************************************************************//**
+@enum	table_entity
+
+@Description	Distinguishes between entities that initiate fatal 
+
+@{
+*//***************************************************************************/
+enum table_entity {
+	TABLE_ENTITY_SW,
+	TABLE_ENTITY_HW,
+};
+/** @} */ /* end of table_entity */
 
 /** @} */ /* end of TABLE_Enumerations */
 
@@ -926,7 +938,9 @@ void table_hw_accel_release_lock(enum table_hw_accel_id acc_id);
 *//***************************************************************************/
 void table_exception_handler_wrp(enum table_function_identifier func_id,
 				 uint32_t line,
-				 int32_t status) __attribute__ ((noreturn));
+				 int32_t status,
+				 enum table_entity entity)
+					__attribute__ ((noreturn));
 
 /**************************************************************************//**
 @Function	table_exception_handler
@@ -946,7 +960,9 @@ void table_exception_handler_wrp(enum table_function_identifier func_id,
 void table_exception_handler(char *file_path,
 			     enum table_function_identifier func_id,
 			     uint32_t line,
-			     int32_t status_id) __attribute__ ((noreturn));
+			     int32_t status_id,
+			     enum table_entity entity)
+				__attribute__ ((noreturn));
 
 /**************************************************************************//**
 @Function	table_calc_num_entries_per_rule

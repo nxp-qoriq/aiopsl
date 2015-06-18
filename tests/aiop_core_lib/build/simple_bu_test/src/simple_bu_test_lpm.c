@@ -133,6 +133,11 @@ int simple_bu_lpm_test(void)
 		struct table_lookup_result lookup_res __attribute__((aligned(16)));
 		uint8_t *kcr __attribute__((aligned(16)));
 		struct kcr_builder kc_builder __attribute__((aligned(16)));
+		struct table_get_params_output tbl_params __attribute__((aligned(16)));
+		
+		table_get_params(TABLE_ACCEL_ID_CTLU,
+				      0,
+				      &tbl_params);
 		
 		/* Table Parameter Initialization */		
 		table_params.attributes = TABLE_ATTRIBUTE_TYPE_LPM |

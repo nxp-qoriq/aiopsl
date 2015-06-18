@@ -598,7 +598,7 @@ void bu_tman_callback(uint64_t opaque1, uint16_t opaque2)
 		fsl_os_print("Doing tman_delete_timer() in bu_tman_callback\n");
 		err = tman_delete_timer(
 				global_timer_handle1, /* uint32_t timer_handle */
-				TMAN_TIMER_DELETE_MODE_WAIT_EXP); /*uint32_t flags */
+				TMAN_TIMER_DELETE_MODE_FORCE_EXP); /*uint32_t flags */
 		if (!err) {
 			fsl_os_print("tman_delete_timer() SUCCESS\n");
 		} else {

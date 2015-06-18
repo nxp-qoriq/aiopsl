@@ -43,7 +43,9 @@
 inline void table_inline_exception_handler(
 				 enum table_function_identifier func_id,
 				 uint32_t line,
-				 int32_t status)  __attribute__ ((noreturn));
+				 int32_t status,
+				 enum table_entity entity)
+					__attribute__ ((noreturn));
 
 
 inline int table_lookup_by_keyid_default_frame(enum table_hw_accel_id acc_id,
@@ -80,7 +82,8 @@ inline int table_lookup_by_keyid_default_frame(enum table_hw_accel_id acc_id,
 		table_inline_exception_handler(
 			TABLE_LOOKUP_BY_KEYID_DEFAULT_FRAME_FUNC_ID,
 			__LINE__,
-			status);
+			status,
+			TABLE_ENTITY_HW);
 	}
 	else if (status & TABLE_HW_STATUS_BIT_EOFH)
 		status = -EIO;
@@ -89,7 +92,8 @@ inline int table_lookup_by_keyid_default_frame(enum table_hw_accel_id acc_id,
 		table_exception_handler_wrp(
 			TABLE_LOOKUP_BY_KEYID_DEFAULT_FRAME_FUNC_ID,
 			__LINE__,
-			status);
+			status,
+			TABLE_ENTITY_HW);
 
 	return status;
 }
@@ -128,7 +132,8 @@ inline int table_lookup_by_key(enum table_hw_accel_id acc_id,
 		table_inline_exception_handler(
 				TABLE_LOOKUP_BY_KEY_FUNC_ID,
 				__LINE__,
-				status);
+				status,
+				TABLE_ENTITY_HW);
 	return status;
 }
 
@@ -201,7 +206,8 @@ inline int table_rule_create(enum table_hw_accel_id acc_id,
 	else if (status & TABLE_HW_STATUS_BIT_TIDE) {
 		table_inline_exception_handler(TABLE_RULE_CREATE_FUNC_ID,
 					       __LINE__,
-					       status);
+					       status,
+					       TABLE_ENTITY_HW);
 	}
 	else if (status & TABLE_HW_STATUS_BIT_NORSC){
 		status = -ENOMEM;
@@ -210,7 +216,8 @@ inline int table_rule_create(enum table_hw_accel_id acc_id,
 		/* Call fatal error handler */
 		table_inline_exception_handler(TABLE_RULE_CREATE_FUNC_ID,
 					       __LINE__,
-					       status);
+					       status,
+					       TABLE_ENTITY_HW);
 	}
 	return status;
 }
@@ -255,7 +262,8 @@ inline int table_rule_delete(enum table_hw_accel_id acc_id,
 		/* Call fatal error handler */
 		table_inline_exception_handler(TABLE_RULE_DELETE_FUNC_ID,
 					       __LINE__,
-					       status);
+					       status,
+					       TABLE_ENTITY_HW);
 
 	return status;
 }
@@ -321,7 +329,8 @@ inline int table_rule_query(enum table_hw_accel_id acc_id,
 			table_exception_handler_wrp(
 					TABLE_RULE_QUERY_FUNC_ID,
 					__LINE__,
-					TABLE_SW_STATUS_QUERY_INVAL_ENTYPE);
+					TABLE_SW_STATUS_QUERY_INVAL_ENTYPE,
+					TABLE_ENTITY_SW);
 	} else {
 		/* Status Handling*/
 		if (status == TABLE_HW_STATUS_BIT_MISS){}
@@ -350,7 +359,8 @@ inline int table_rule_query(enum table_hw_accel_id acc_id,
 			table_inline_exception_handler(
 					TABLE_RULE_QUERY_FUNC_ID,
 					__LINE__,
-					status);
+					status,
+					TABLE_ENTITY_HW);
 	}
 
 	return status;
@@ -411,7 +421,8 @@ inline int table_rule_replace(enum table_hw_accel_id acc_id,
 		/* Call fatal error handler */
 		table_inline_exception_handler(TABLE_RULE_REPLACE_FUNC_ID,
 					       __LINE__,
-					       status);
+					       status,
+					       TABLE_ENTITY_HW);
 
 	return status;
 }
@@ -492,7 +503,8 @@ inline int table_create(enum table_hw_accel_id acc_id,
 	else
 		table_inline_exception_handler(TABLE_CREATE_FUNC_ID,
 					       __LINE__,
-					       crt_status);
+					       crt_status,
+					       TABLE_ENTITY_HW);
 
 	if (crt_status >= 0)
 	/* Get new Table ID */
@@ -533,7 +545,8 @@ inline int table_create(enum table_hw_accel_id acc_id,
 			table_inline_exception_handler(
 					TABLE_CREATE_FUNC_ID,
 					__LINE__,
-					TABLE_SW_STATUS_MISS_RES_CRT_FAIL);
+					TABLE_SW_STATUS_MISS_RES_CRT_FAIL,
+					TABLE_ENTITY_SW);
 	}
 	return crt_status;
 }
@@ -555,7 +568,8 @@ inline void table_delete(enum table_hw_accel_id acc_id,
 	if (status)
 		table_inline_exception_handler(TABLE_DELETE_FUNC_ID,
 					       __LINE__,
-					       status);
+					       status,
+					       TABLE_ENTITY_HW);
 
 	return;
 }
@@ -589,7 +603,8 @@ inline void table_replace_miss_result(enum table_hw_accel_id acc_id,
 		table_inline_exception_handler(
 			TABLE_REPLACE_MISS_RESULT_FUNC_ID,
 			__LINE__,
-			TABLE_SW_STATUS_MISS_RES_RPL_FAIL);
+			TABLE_SW_STATUS_MISS_RES_RPL_FAIL,
+			TABLE_ENTITY_SW);
 	return;
 }
 
@@ -601,8 +616,10 @@ inline void table_replace_miss_result(enum table_hw_accel_id acc_id,
 
 inline void table_inline_exception_handler(enum table_function_identifier func_id,
 				 uint32_t line,
-				 int32_t status)  __attribute__ ((noreturn)) {
-	table_exception_handler(__FILE__, func_id, line, status);
+				 int32_t status,
+				 enum table_entity entity)
+					__attribute__ ((noreturn)) {
+	table_exception_handler(__FILE__, func_id, line, status, entity);
 }
 
 #pragma pop
