@@ -34,6 +34,7 @@
 #include "dplib/fsl_cdma.h"
 #include "dplib/fsl_table.h"
 #include "table_inline.h"
+#include "fsl_stdio.h"
 
 void table_get_params(enum table_hw_accel_id acc_id,
 		      uint16_t table_id,
@@ -62,7 +63,8 @@ void table_get_params(enum table_hw_accel_id acc_id,
 	if (status)
 		table_exception_handler_wrp(TABLE_GET_PARAMS_FUNC_ID,
 					    __LINE__,
-					    status);
+					    status,
+					    TABLE_ENTITY_HW);
 
 	return;
 }
@@ -80,7 +82,8 @@ void table_get_miss_result(enum table_hw_accel_id acc_id,
 	if (status)
 		table_exception_handler_wrp(TABLE_GET_MISS_RESULT_FUNC_ID,
 					    __LINE__,
-					    TABLE_SW_STATUS_MISS_RES_GET_FAIL);
+					    TABLE_SW_STATUS_MISS_RES_GET_FAIL,
+					    TABLE_ENTITY_SW);
 	return;
 }
 
@@ -143,26 +146,28 @@ int table_rule_create_or_replace(enum table_hw_accel_id acc_id,
 			*rule_id = hw_old_res.rule_id;
 #endif
 	}
-	else if (status == TABLE_HW_STATUS_MISS){}
-	else if (status == CTLU_HW_STATUS_NORSC_TLUMISS)
+	else if (status == TABLE_HW_STATUS_BIT_MISS){}
+	else if (status & TABLE_HW_STATUS_BIT_TIDE) {
+		table_exception_handler_wrp(
+			TABLE_RULE_CREATE_OR_REPLACE_FUNC_ID,
+			__LINE__,
+			status,
+			TABLE_ENTITY_HW);
+	}
+	else if (status & TABLE_HW_STATUS_BIT_NORSC) {
 		status = -ENOMEM;
-	else if (status == MFLU_HW_STATUS_NORSC_TLUMISS)
-		status = -ENOMEM;
-	else if (status == CTLU_HW_STATUS_NORSC)
-		status = -ENOMEM;
-	else if (status == MFLU_HW_STATUS_NORSC)
-		status = -ENOMEM;
-	else if (status == CTLU_HW_STATUS_TEMPNOR)
-		status = -ENOMEM;
-	else if (status == MFLU_HW_STATUS_TEMPNOR)
-		status = -ENOMEM;
-	else
+	/* TODO Rev2 - consider to check TEMPNOR for EAGAIN. it is
+	 * now ENOMEM since in Rev1 it may take a very long  time until rules
+	 * are released. */
+	}
+	else {
 		/* Call fatal error handler */
 		table_exception_handler_wrp(
 				TABLE_RULE_CREATE_OR_REPLACE_FUNC_ID,
 				__LINE__,
-				status);
-
+				status,
+				TABLE_ENTITY_HW);
+	}
 	return status;
 }
 
@@ -203,18 +208,27 @@ int table_lookup_by_keyid(enum table_hw_accel_id acc_id,
 	/* Status Handling*/
 	status = *((int32_t *)HWC_ACC_OUT_ADDRESS);
 	if (status == TABLE_HW_STATUS_SUCCESS){}
-	else if (status == TABLE_HW_STATUS_MISS){}
-	else if (status == TABLE_HW_STATUS_EOFH)
+	else if (status == TABLE_HW_STATUS_BIT_MISS){}
+	else if (status &
+		 (TABLE_HW_STATUS_BIT_TIDE |
+		  TABLE_HW_STATUS_BIT_NORSC |
+		  TABLE_HW_STATUS_BIT_KSE))
+	{
+		table_inline_exception_handler(TABLE_LOOKUP_BY_KEYID_FUNC_ID,
+					       __LINE__,
+					       status,
+					       TABLE_ENTITY_HW);
+	}
+	else if (status & TABLE_HW_STATUS_BIT_EOFH) {
 		status = -EIO;
-	/*TODO EOFH with LOOKUP hit/miss */
-	else if (status == (TABLE_HW_STATUS_EOFH | TABLE_HW_STATUS_MISS))
-		status = -EIO;
-	else
+	}
+	else {
 		/* Call fatal error handler */
 		table_exception_handler_wrp(TABLE_LOOKUP_BY_KEYID_FUNC_ID,
 					    __LINE__,
-					    status);
-
+					    status,
+					    TABLE_ENTITY_HW);
+	}
 	return status;
 }
 
@@ -266,8 +280,10 @@ void table_hw_accel_release_lock(enum table_hw_accel_id acc_id)
 
 void table_exception_handler_wrp(enum table_function_identifier func_id,
 				 uint32_t line,
-				 int32_t status)  __attribute__ ((noreturn)) {
-	table_exception_handler(__FILE__, func_id, line, status);
+				 int32_t status,
+				 enum table_entity entity)
+					__attribute__ ((noreturn)) {
+	table_exception_handler(__FILE__, func_id, line, status, entity);
 }
 
 #pragma stackinfo_ignore on
@@ -275,9 +291,11 @@ void table_exception_handler_wrp(enum table_function_identifier func_id,
 void table_exception_handler(char *file_path,
 			     enum table_function_identifier func_id,
 			     uint32_t line,
-			     int32_t status_id) __attribute__ ((noreturn)) {
+			     int32_t status_id,
+			     enum table_entity entity)
+				__attribute__ ((noreturn)) {
 	char *func_name, *status;
-
+	fsl_os_print("File string address: 0x%x\n",(uint32_t)file_path);
 	/* Translate function ID to function name string */
 	switch(func_id) {
 	case TABLE_CREATE_FUNC_ID:
@@ -366,45 +384,45 @@ void table_exception_handler(char *file_path,
 				  "table_exception_handler got unknown"
 				  "function identifier.\n");
 	}
-
-	/* Call general exception handler */
-	switch (status_id) {
-	case (TABLE_HW_STATUS_MNLE):
-		status = "Maximum number of chained lookups reached.\n";
-		break;
-	case (TABLE_HW_STATUS_KSE):
-		status = "Key size error.\n";
-		break;
-	case (MFLU_HW_STATUS_TIDE):
-		status = "Invalid MFLU table ID.\n";
-		break;
-	case (CTLU_HW_STATUS_TIDE):
-		status = "Invalid CTLU table ID.\n";
-		break;
-	case(TABLE_SW_STATUS_MISS_RES_CRT_FAIL):
-		status = "Table miss rule creation failed.\n";
-		break;
-	case(TABLE_SW_STATUS_MISS_RES_RPL_FAIL):
-		status = "Table replace miss result failed due to non-existence"
-			 " of a miss result in the table.\n";
-		break;
-	case(TABLE_SW_STATUS_MISS_RES_GET_FAIL):
-		status = "Table get miss result failed due to non-existence of"
-			  " a miss result in the table.\n";
-		break;
-	case(TABLE_SW_STATUS_QUERY_INVAL_ENTYPE):
-		status = "Rule query failed due to unrecognized entry type"
-			 " returned from HW.\n";
-		break;
-	case(TABLE_SW_STATUS_UNKNOWN_TBL_TYPE):
-		status = "Unknown table type.\n";
-		break;
-	case(TABLE_SW_STATUS_TKT226361_ERR):
-		status = "PDM TKT226361 Workaround failed.\n";
-		break;
-	default:
-		status = "Unknown or Invalid status.\n";
-		break;
+	if (entity == TABLE_ENTITY_HW){
+		/* Call general exception handler */
+		if (status_id & TABLE_HW_STATUS_BIT_TIDE) {
+			status = "Invalid table ID.\n";
+		} else if (status_id & TABLE_HW_STATUS_BIT_KSE) {
+			status = "Key size error.\n";
+		} else if (status_id & TABLE_HW_STATUS_BIT_MNLE) {
+			status = "Maximum number of chained lookups reached.\n";
+		} else {
+			status = "Unknown or Invalid HW status.\n";
+		}
+	}
+	else {
+		switch (status_id) {
+		case(TABLE_SW_STATUS_MISS_RES_CRT_FAIL):
+			status = "Table miss rule creation failed.\n";
+			break;
+		case(TABLE_SW_STATUS_MISS_RES_RPL_FAIL):
+			status = "Table replace miss result failed due to non-existence"
+				 " of a miss result in the table.\n";
+			break;
+		case(TABLE_SW_STATUS_MISS_RES_GET_FAIL):
+			status = "Table get miss result failed due to non-existence of"
+				  " a miss result in the table.\n";
+			break;
+		case(TABLE_SW_STATUS_QUERY_INVAL_ENTYPE):
+			status = "Rule query failed due to unrecognized entry type"
+				 " returned from HW.\n";
+			break;
+		case(TABLE_SW_STATUS_UNKNOWN_TBL_TYPE):
+			status = "Unknown table type.\n";
+			break;
+		case(TABLE_SW_STATUS_TKT226361_ERR):
+			status = "PDM TKT226361 Workaround failed.\n";
+			break;
+		default:
+			status = "Unknown or Invalid SW status.\n";
+			break;
+		}
 	}
 	exception_handler(file_path, func_name, line, status);
 }
@@ -459,7 +477,8 @@ int table_calc_num_entries_per_rule(uint16_t type, uint8_t key_size){
 		table_exception_handler_wrp(
 				TABLE_CALC_NUM_ENTRIES_PER_RULE_FUNC_ID,
 				__LINE__,
-				TABLE_SW_STATUS_UNKNOWN_TBL_TYPE);
+				TABLE_SW_STATUS_UNKNOWN_TBL_TYPE,
+				TABLE_ENTITY_SW);
 		break;
 	}
 
@@ -514,7 +533,8 @@ void table_workaround_tkt226361(uint32_t mflu_peb_num_entries,
 				table_exception_handler_wrp(
 					TABLE_WORKAROUND_TKT226361_FUNC_ID,
 					__LINE__,
-					TABLE_SW_STATUS_TKT226361_ERR);
+					TABLE_SW_STATUS_TKT226361_ERR,
+					TABLE_ENTITY_SW);
 			}
 
 			/* Create 2 rules */
@@ -540,7 +560,8 @@ void table_workaround_tkt226361(uint32_t mflu_peb_num_entries,
 				table_exception_handler_wrp(
 					TABLE_WORKAROUND_TKT226361_FUNC_ID,
 					__LINE__,
-					TABLE_SW_STATUS_TKT226361_ERR);
+					TABLE_SW_STATUS_TKT226361_ERR,
+					TABLE_ENTITY_SW);
 			}
 
 			*((uint32_t *)(&rule2.key_desc.mflu.key[0])) =
@@ -563,7 +584,8 @@ void table_workaround_tkt226361(uint32_t mflu_peb_num_entries,
 				table_exception_handler_wrp(
 					TABLE_WORKAROUND_TKT226361_FUNC_ID,
 					__LINE__,
-					TABLE_SW_STATUS_TKT226361_ERR);
+					TABLE_SW_STATUS_TKT226361_ERR,
+					TABLE_ENTITY_SW);
 			}
 
 			/* Delete the table */
@@ -855,9 +877,9 @@ int table_lookup_by_keyid_default_frame_wrp(enum table_hw_accel_id acc_id,
 					       *lookup_result)
 {
 	return table_lookup_by_keyid_default_frame(acc_id,
-						    table_id,
-						    keyid,
-						    lookup_result);
+						   table_id,
+						   keyid,
+						   lookup_result);
 }
 
 int table_rule_create_wrp(enum table_hw_accel_id acc_id,
