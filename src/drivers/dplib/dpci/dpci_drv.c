@@ -120,14 +120,14 @@ __COLD_CODE static void dpci_tbl_dump()
 {
 #ifdef DEBUG
 	int i;
-	int num_entries = (g_dpci_tbl.count + 2 ? \
-		(g_dpci_tbl.max - g_dpci_tbl.count) >=2 : \
+	int num_entries = (((g_dpci_tbl.max - g_dpci_tbl.count) >= 2) ? \
+		(g_dpci_tbl.count + 2) : \
 		g_dpci_tbl.max);
 
-	pr_debug("----------DPCI table: count = %d----------\n", 
-	             g_dpci_tbl.count);
+	pr_debug("----------DPCI table: count = %d max = %d printing = %d----------\n", 
+	             g_dpci_tbl.count, g_dpci_tbl.max, num_entries);
 	for (i = 0; i < num_entries; i++) {
-		pr_debug("ID = 0x%x\t PEER ID = 0x%x\t IC = 0x%x\t flags = 0x%x\t\n",
+		fsl_os_print("ID = 0x%x\t PEER ID = 0x%x\t IC = 0x%x\t flags = 0x%x\t\n",
 		             g_dpci_tbl.dpci_id[i], g_dpci_tbl.dpci_id_peer[i], 
 		             g_dpci_tbl.ic[i], g_dpci_tbl.flags[i]);
 	}
@@ -289,6 +289,7 @@ __COLD_CODE static uint8_t num_priorities_get(struct fsl_mc_io *mc_io,
 	MEM_SET(&attr, sizeof(attr), 0);
 	err = dpci_get_attributes(mc_io, 0, token, &attr);
 	ASSERT_COND(!err);
+	ASSERT_COND(attr.num_of_priorities > 0);
 	return attr.num_of_priorities;
 }
 
@@ -300,8 +301,8 @@ __COLD_CODE static void tx_user_context_set(struct mc_dprc *dprc, int ind,
 {
 	uint8_t i;
 	struct dpci_rx_queue_cfg queue_cfg;
-
-	ASSERT_COND(num_pr >= 1);
+	
+	ASSERT_COND(num_pr > 0);
 
 	MEM_SET(&queue_cfg, sizeof(queue_cfg), 0);
 
@@ -539,7 +540,7 @@ __COLD_CODE void dpci_mng_update(uint32_t ind)
 
 	amq_bits_update(ind);
 
-	dpci_tbl_dump();
+	//dpci_tbl_dump();
 }
 
 __COLD_CODE int dpci_event_link_change(uint32_t dpci_id)
