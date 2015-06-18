@@ -275,16 +275,27 @@ int tman_increase_timer_duration(uint32_t timer_handle, uint16_t duration)
 	} while ((res1 == TMAN_TMR_TMP_ERR1) || (res1 == TMAN_TMR_TMP_ERR2));
 	return (int)(res1);
 }
+#endif
 
+#ifdef REV2
 int tman_recharge_timer(uint32_t timer_handle)
+#else
+void tman_recharge_timer(uint32_t timer_handle)
+#endif
 {
-	uint32_t cmd_type = TMAN_CMDTYPE_TIMER_RECHARGE, res1;
-
+	uint32_t cmd_type = TMAN_CMDTYPE_TIMER_RECHARGE;
+#ifdef REV2
+	uint32_t res1;
+#endif
+	
 	/* Store first two command parameters */
 	__stdw(cmd_type, timer_handle, HWC_ACC_IN_ADDRESS, 0);
 
 	/* call TMAN. and check if passed. 
 	 * Optimization using compiler pattern*/
+#ifndef REV2
+	__e_hwacceli_(TMAN_ACCEL_ID);
+#else
 	if(__e_hwacceli_(TMAN_ACCEL_ID) == 0)
 		return (int)(TMAN_REC_TMR_SUCCESS);
 
@@ -293,12 +304,13 @@ int tman_recharge_timer(uint32_t timer_handle)
 
 	/* optimization: all the errors except TMI state errors starts with
 	 *  0x08_00XX */
-	if (res1 & TMAN_TMR_REC_STATE_MASK)
+	if ((res1 & TMAN_TMR_REC_STATE_MASK) ||
+			(res1 == TMAN_REC_TMR_NOT_ACTIVE_ERR))
 		tman_exception_handler(TMAN_TMI_TIMER_RECHARGE_FUNC_ID,
 			__LINE__, (int)res1);
 	return (int)(-ETIMEDOUT);
-}
 #endif
+}
 
 void tman_query_timer(uint32_t timer_handle,
 			enum e_tman_query_timer *state)
@@ -444,6 +456,7 @@ void tman_exception_handler(enum tman_function_identifier func_id,
 		break;
 
 	case TMAN_DEL_TMR_NOT_ACTIVE_ERR:
+	case TMAN_REC_TMR_NOT_ACTIVE_ERR:
 		exception_handler(__FILE__, func_name, line,
 				"A non active timer was provided as an"
 				" input.\n");
@@ -479,7 +492,6 @@ void tman_exception_handler(enum tman_function_identifier func_id,
 				" This timer will elapse one more time "
 				" before being deleted\n");
 		break;
-
 #ifdef REV2
 	case TMAN_MOD_TMR_NOT_ACTIVE_ERR:
 		exception_handler(__FILE__, func_name, line,

@@ -24,28 +24,38 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "fsl_rcu.h"
-#include "fsl_slab.h"
 #include "fsl_tman.h"
 #include "fsl_malloc.h"
+#include "aiop_common.h"
+#include "fsl_io_ccsr.h"
+#include "fsl_core_booke.h"
+#include "rcu.h"
 
-struct slab *g_rcu_slab = NULL;
+struct rcu g_rcu = {0, 0, 0, NULL, 0, 0, 0xFFFF};
 uint8_t g_sl_tmi_id = 0xff;
 
-int rcu_early_init(void);
-int rcu_early_init(void)
+int rcu_early_init(uint16_t delay, uint32_t committed, uint32_t max);
+
+int rcu_early_init(uint16_t delay, uint32_t committed, uint32_t max)
 {
 	int err;
-	
-	/* TODO max, committed to be taken from app.h */
-	err = slab_register_context_buffer_requirements(10,
-	                                                30,
-	                                                64,
-	                                                64,
-	                                                MEM_PART_SYSTEM_DDR,
+
+	err = slab_register_context_buffer_requirements(committed,
+	                                                max,
+	                                                sizeof(struct rcu_job),
+	                                                8,
+	                                                MEM_PART_DP_DDR,
 	                                                0,
 	                                                0);
 	ASSERT_COND(!err);
+	
+	g_rcu.committed += committed;
+	if ((max - committed) > g_rcu.max)
+		g_rcu.max = (max - committed);
+	
+	/* Smallest delay */
+	if (delay < g_rcu.delay)
+		g_rcu.delay = delay;
 }
 
 int rcu_init();
@@ -54,16 +64,24 @@ int rcu_init()
 	int err;
 	uint64_t tman_addr;
 
-	err = slab_create(10,
-	                  30,
-	                  64,
-	                  64,
-	                  MEM_PART_SYSTEM_DDR,
+	if (g_rcu.committed == 0) {
+		pr_err("Call rcu_early_init() to setup rcu \n"); 
+		pr_err("Setting RCU defaults.. \n");
+		g_rcu.committed = 64;
+		g_rcu.max = 128;
+		g_rcu.delay = 10;
+	}
+
+	err = slab_create(g_rcu.committed,
+	                  g_rcu.max,
+	                  sizeof(struct rcu_job),
+	                  8,
+	                  MEM_PART_DP_DDR,
 	                  0,
 	                  NULL,
-	                  &g_rcu_slab);
+	                  &(g_rcu.slab));
 	ASSERT_COND(!err);
-	
+
 	if (g_sl_tmi_id == 0xff) {
 		tman_addr = 0;
 		err = fsl_os_get_mem((64 * 16 + 1), 
@@ -75,6 +93,97 @@ int rcu_init()
 		err = tman_create_tmi(tman_addr, 10, &g_sl_tmi_id);
 		ASSERT_COND(!err);
 	}
+}
+
+void rcu_free();
+void rcu_free()
+{
+	/* TODO destroy slab */
+	
+	/* TODO destroy tmi */
+}
+
+static int enqueue()
+{
+	uint32_t size = -1;
+	int err;
+	uint64_t job;
+	uint64_t next;
+
+	job = 0;
+	err = slab_acquire(g_rcu.slab, &job);
+	if (err || (job == 0))
+		return err;
+
+	/* TODO copy the job using CDMA 
+	 * Read / Update next */
+	// job->next = 0;
+
+	// MUTES LOCK
+	
+	if (g_rcu.list_size == 0) {
+		size = 1;
+		g_rcu.list_head = job;
+		g_rcu.list_tail = g_rcu.list_head;
+	} else {
+		ASSERT_COND(g_rcu.list_tail);
+		//g_rcu.list_tail->next = job;
+	}
+
+	g_rcu.list_size++;
+
+	size = g_rcu.list_size;
+	
+	// MUTES UNLOCK
+
+	return size;
+}
+
+int rcu_synchronize(void (*cb)(uint64_t), uint64_t param)
+{
+	struct aiop_dcsr_regs *regs = (struct aiop_dcsr_regs *)\
+		(AIOP_PERIPHERALS_OFF + SOC_PERIPH_OFF_DCSR);
+	int cluster;
+	uint32_t core;
+	uint32_t ctstws;
+	uint32_t task_id;
+
+	cluster = 1;
+	core = 2;
+
+	pr_debug("Cluster %d Core %d CTWS 0x%x should be 0x%x\n",
+	         cluster + 1,
+	         core + 1,
+	         (uint32_t)(&regs->clustr[cluster].core[core].ctstws),
+	         (0x02000000 + 0x0100000 + 0x90000 + 0x0800 + 0x30C));
+
+	ctstws = ioread32_ccsr(&regs->clustr[cluster].core[core].ctstws);
+	iowrite32_ccsr(0, &regs->clustr[cluster].core[core].ctstws);
+	ctstws = ioread32_ccsr(&regs->clustr[cluster].core[core].ctstws);
+
+	pr_debug("Cluster %d Core %d CTWS val 0x%x\n",
+	         cluster + 1,
+	         core + 1,
+	         ctstws);
+
+	ctstws = booke_get_CTSTWS();
+	core = core_get_id();
+	cluster = core / 4; 
+	core = core & 0x3;
+	task_id = (booke_get_TASKSCR0() & 0xF);
+
+	iowrite32_ccsr(0, &regs->clustr[cluster].core[core].ctstws);
+	ctstws = ioread32_ccsr(&regs->clustr[cluster].core[core].ctstws);
+
+	pr_debug("Cluster %d Core %d CTWS val 0x%x task_id 0x%x\n",
+	         cluster + 1,
+	         core + 1,
+	         ctstws,
+	         task_id);
+
+	ASSERT_COND(ctstws == booke_get_CTSTWS());
+
+	return 0;
 }
 
 #if 0

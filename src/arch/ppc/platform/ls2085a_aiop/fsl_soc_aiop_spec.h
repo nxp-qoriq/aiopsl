@@ -49,6 +49,7 @@
 
 #define INTG_MAX_NUM_OF_CORES   16
 #define INTG_THREADS_PER_CORE   1
+#define INTG_MAX_NUM_OF_CLUSTR  4
 
 
 /**************************************************************************//**
@@ -89,5 +90,6 @@ enum fsl_os_module {
 #define SOC_PERIPH_OFF_AIOP_WRKS        0x1d000
 #define SOC_PERIPH_OFF_AIOP_TILE        0x00080000
 #define SOC_PERIPH_OFF_AIOP_CMGW        0x0
+#define SOC_PERIPH_OFF_DCSR             0x0100000
 
 #endif /* __FSL_SOC_AIOP_SPEC_H */

@@ -41,6 +41,7 @@
 #include "aiop_verification.h"
 #include "aiop_verification_fdma.h"
 
+void set_implicit_qdp(struct fdma_queueing_destination_params *qdp);
 
 uint16_t aiop_verification_fdma(uint32_t asa_seg_addr)
 {
@@ -287,9 +288,13 @@ uint16_t aiop_verification_fdma(uint32_t asa_seg_addr)
 				fdma_store_and_enqueue_default_frame_fqid(
 					str->qd_fqid, flags);
 		} else{
-			qdp.qd = (uint16_t)(str->qd_fqid);
-			qdp.qdbin = str->qdbin;
-			qdp.qd_priority = str->qd_priority;
+			if (str->implicit_qd_params) {
+				set_implicit_qdp(&qdp);
+			} else {
+				qdp.qd = (uint16_t)(str->qd_fqid);
+				qdp.qdbin = str->qdbin;
+				qdp.qd_priority = str->qd_priority;
+			}
 			str->status = (int8_t)
 				fdma_store_and_enqueue_default_frame_qd(
 						&qdp, flags);
@@ -312,9 +317,13 @@ uint16_t aiop_verification_fdma(uint32_t asa_seg_addr)
 					str->frame_handle, flags,
 					str->qd_fqid, str->spid);
 		} else{
-			qdp.qd = (uint16_t)(str->qd_fqid);
-			qdp.qdbin = str->qdbin;
-			qdp.qd_priority = str->qd_priority;
+			if (str->implicit_qd_params) {
+				set_implicit_qdp(&qdp);
+			} else {
+				qdp.qd = (uint16_t)(str->qd_fqid);
+				qdp.qdbin = str->qdbin;
+				qdp.qd_priority = str->qd_priority;
+			}
 			str->status = (int8_t)
 				fdma_store_and_enqueue_frame_qd(
 						str->frame_handle, flags,
@@ -339,9 +348,13 @@ uint16_t aiop_verification_fdma(uint32_t asa_seg_addr)
 				fdma_enqueue_default_fd_fqid(
 					str->icid, flags, str->qd_fqid);
 		} else{
-			qdp.qd = (uint16_t)(str->qd_fqid);
-			qdp.qdbin = str->qdbin;
-			qdp.qd_priority = str->qd_priority;
+			if (str->implicit_qd_params) {
+				set_implicit_qdp(&qdp);
+			} else {
+				qdp.qd = (uint16_t)(str->qd_fqid);
+				qdp.qdbin = str->qdbin;
+				qdp.qd_priority = str->qd_priority;
+			}
 			str->status = (int8_t)
 				fdma_enqueue_default_fd_qd(
 						str->icid, flags, &qdp);
@@ -365,9 +378,13 @@ uint16_t aiop_verification_fdma(uint32_t asa_seg_addr)
 				fdma_enqueue_fd_fqid(str->fd, flags,
 					str->qd_fqid, str->icid);
 		} else{
-			qdp.qd = (uint16_t)(str->qd_fqid);
-			qdp.qdbin = str->qdbin;
-			qdp.qd_priority = str->qd_priority;
+			if (str->implicit_qd_params) {
+				set_implicit_qdp(&qdp);
+			} else {
+				qdp.qd = (uint16_t)(str->qd_fqid);
+				qdp.qdbin = str->qdbin;
+				qdp.qd_priority = str->qd_priority;
+			}
 			str->status = (int8_t)
 				fdma_enqueue_fd_qd(str->fd, flags,
 						&qdp, str->icid);
@@ -899,5 +916,14 @@ uint16_t aiop_verification_fdma(uint32_t asa_seg_addr)
 	return str_size;
 }
 
-
-
+void set_implicit_qdp(struct fdma_queueing_destination_params *qdp)
+{
+	struct dpni_drv *dpni_drv;
+	
+	/* calculate pointer to the send NI structure   */
+	dpni_drv = nis + PRC_GET_PARAMETER(); 
+	
+	qdp->qdbin = 0;
+	qdp->qd = dpni_drv->dpni_drv_tx_params_var.qdid;
+	qdp->qd_priority = default_task_params.qd_priority;
+}

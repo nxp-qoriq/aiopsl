@@ -42,6 +42,7 @@
 #include "fsl_osm.h"
 #include "fsl_dbg.h"
 #include "fsl_evmng.h"
+#include "sys.h"
 
 int app_early_init(void);
 int app_init(void);
@@ -69,6 +70,9 @@ extern int dpni_drv_test(void);
 extern int single_cluster_test();
 extern int multi_cluster_test();
 extern int aiop_mc_cmd_test();
+extern int dprc_drv_test_init(void);
+extern int dpni_drv_test_create(void);
+extern int dpni_drv_test_destroy(uint16_t ni);
 
 extern int num_of_cores;
 extern int num_of_tasks;
@@ -83,12 +87,36 @@ uint8_t packet_lock;
 uint8_t time_lock;
 uint64_t global_time;
 
+uint8_t order_scope_lock = 0;
+uint8_t order_scope_max[] = {0 , 1};
+uint8_t order_scope_conc = 0;
+uint8_t order_scope_ordering_err = 0;
+
+/* The code should be removed when the CQ 360148 will be solved */
+#ifdef SIMULATOR
+#define ENGR360148
+#endif
+
+#define ORDER_SCOPE_CHECK(pack_num)                              \
+{                                                                \
+	uint8_t order_scope_max_id = pack_num % 2;               \
+	lock_spinlock(&order_scope_lock);                        \
+	if(order_scope_max[order_scope_max_id] > pack_num)       \
+		order_scope_ordering_err |= 1;                   \
+	else                                                     \
+		order_scope_max[order_scope_max_id] = pack_num;  \
+	if(order_scope_max[order_scope_max_id ^ 1] > pack_num && \
+		pack_num > 1)                                    \
+		order_scope_conc += 1;                           \
+	unlock_spinlock(&order_scope_lock);                      \
+}
+
 int test_error;
 uint8_t test_error_lock;
 
 __HOT_CODE ENTRY_POINT static void app_process_packet(void)
 {
-	int      err = 0, i, j;
+	int      err = 0, i;
 	int core_id;
 	uint16_t ni_id;
 	uint64_t time_ms_since_epoch = 0, flc = 0;
@@ -156,6 +184,7 @@ __HOT_CODE ENTRY_POINT static void app_process_packet(void)
 		local_test_error |= err;
 	} else {
 		fsl_os_print("Slab test passed for packet number %d, on core %d\n", local_packet_number, core_id);
+		ORDER_SCOPE_CHECK(local_packet_number);
 	}
 
 	err = malloc_test();
@@ -166,6 +195,7 @@ __HOT_CODE ENTRY_POINT static void app_process_packet(void)
 		local_test_error |= err;
 	} else {
 		fsl_os_print("Malloc test passed for packet number %d, on core %d\n", local_packet_number, core_id);
+		ORDER_SCOPE_CHECK(local_packet_number);
 	}
 
 	/*Random Test*/
@@ -179,6 +209,7 @@ __HOT_CODE ENTRY_POINT static void app_process_packet(void)
 	else{
 		fsl_os_print("seed %x\n",seed_32bit);
 		fsl_os_print("Random test passed for packet number %d, on core %d\n", local_packet_number, core_id);
+		ORDER_SCOPE_CHECK(local_packet_number);
 	}
 
 
@@ -215,6 +246,7 @@ __HOT_CODE ENTRY_POINT static void app_process_packet(void)
 		{
 			fsl_os_print("time test passed for packet number %d, on core %d\n", local_packet_number, core_id);
 			global_time = local_time;
+			ORDER_SCOPE_CHECK(local_packet_number);
 		}
 		else
 		{
@@ -238,7 +270,6 @@ __HOT_CODE ENTRY_POINT static void app_process_packet(void)
 		else /* (err == -EBUSY) */
 			fdma_discard_fd((struct ldpaa_fd *)HWC_FD_ADDRESS, FDMA_DIS_NO_FLAGS);
 	}
-
 	lock_spinlock(&test_error_lock);
 	test_error |= local_test_error; /*mark if error occured during one of the tests*/
 	unlock_spinlock(&test_error_lock);
@@ -257,63 +288,15 @@ __HOT_CODE ENTRY_POINT static void app_process_packet(void)
 			}
 		}
 
-		if (test_error == 0)
-		{
-			int not_active_task = 0;
-			fsl_os_print("No errors were found during injection of 40 packets\n");
-			fsl_os_print("1 packet was sent with removed MAC address\n");
-			fsl_os_print("Only 39 (0-38) packets should be received\n");
-			fsl_os_print("Test executed with %d cores and %d tasks per core\n", num_of_cores, num_of_tasks);
-			fsl_os_print("Cores/Tasks processed packets during the test:\n");
-			fsl_os_print("CORE/TASK ");
-			for(i = 0; i < num_of_tasks; i++)
-				fsl_os_print("  %d ",i);
-
-			for(i = 0; i < num_of_cores; i++)
-			{
-				if(i < 10)
-					fsl_os_print("\nCore  %d:  ", i);
-				else
-					fsl_os_print("\nCore %d:  ", i);
-				for(j = 0; j < num_of_tasks; j++)
-				{
-					if(rnd_seed[i][j] == 0)
-					{
-						not_active_task ++;
-
-						if(j < 10)
-							fsl_os_print("  X ");
-						else
-							fsl_os_print("   X ");
-					}
-					else
-					{
-						if(j <10)
-							fsl_os_print("  V ");
-						else
-							fsl_os_print("   V ");
-					}
-				}
-			}
-
-			if(not_active_task > 0){
-				fsl_os_print("\nWARNING: Not all the tasks were active during the test!\n");
-
-			}
-
-
-			fsl_os_print("\nARENA Test Finished SUCCESSFULLY\n");
-			for(i = 0; i < SLAB_MAX_BMAN_POOLS_NUM; i++){
-
-				fsl_os_print("Slab bman pools status:\n");
-				fsl_os_print("bman pool id: %d, remaining: %d\n",g_slab_bman_pools[i].bman_pool_id, g_slab_bman_pools[i].remaining);
-
-			}
-
-		}
-		else {
+		err = dpni_drv_disable(ni_id);
+		if(err){
+			pr_err("dpni_drv_disable for ni %d failed: %d\n", ni_id, err);
+			pr_err("Generating link change event should fail\n");
 			fsl_os_print("ARENA Test Finished with ERRORS\n");
+			fdma_terminate_task();
 		}
+
+
 	}
 	if(local_test_error == 0){
 		fsl_os_print("Packet Processed SUCCESSFULLY\n");
@@ -336,6 +319,100 @@ int app_early_init(void){
 	return 0;
 }
 
+static void arena_test_finished(void)
+{
+	if(order_scope_ordering_err > 0){
+		fsl_os_print("Ordering test failed for 40 packets (no order by src ip)\n");
+		test_error |= 1;
+	}
+	else{
+		fsl_os_print("Ordering by src ip test PASSED (always pass for exclusive mode)\n");
+	}
+	if(order_scope_conc == 0){
+		fsl_os_print("Ordering test failed for 40 packets (not concurrent)\n");
+		test_error |= 1;
+	}
+	else{
+		fsl_os_print("Concurrent test PASSED\n");
+	}
+
+
+	if (test_error == 0)
+	{
+		int i, j;
+		int not_active_task = 0;
+		fsl_os_print("No errors were found during injection of 40 packets\n");
+		fsl_os_print("1 packet was sent with removed MAC address\n");
+		fsl_os_print("Only 39 (0-38) packets should be received\n");
+		fsl_os_print("Test executed with %d cores and %d tasks per core\n", num_of_cores, num_of_tasks);
+		fsl_os_print("Cores/Tasks processed packets during the test:\n");
+		fsl_os_print("CORE/TASK ");
+		for(i = 0; i < num_of_tasks; i++)
+			fsl_os_print("  %d ",i);
+
+		for(i = 0; i < num_of_cores; i++)
+		{
+			if(i < 10)
+				fsl_os_print("\nCore  %d:  ", i);
+			else
+				fsl_os_print("\nCore %d:  ", i);
+			for(j = 0; j < num_of_tasks; j++)
+			{
+				if(rnd_seed[i][j] == 0)
+				{
+					not_active_task ++;
+
+					if(j < 10)
+						fsl_os_print("  X ");
+					else
+						fsl_os_print("   X ");
+				}
+				else
+				{
+					if(j <10)
+						fsl_os_print("  V ");
+					else
+						fsl_os_print("   V ");
+				}
+			}
+		}
+
+		if(not_active_task > 0){
+			fsl_os_print("\nWARNING: Not all the tasks were active during the test!\n");
+
+		}
+
+
+		fsl_os_print("\nARENA Test Finished SUCCESSFULLY\n");
+		for(i = 0; i < SLAB_MAX_BMAN_POOLS_NUM; i++){
+
+			fsl_os_print("Slab bman pools status:\n");
+			fsl_os_print("bman pool id: %d, remaining: %d\n",g_slab_bman_pools[i].bman_pool_id, g_slab_bman_pools[i].remaining);
+
+		}
+
+	}
+	else {
+		fsl_os_print("ARENA Test Finished with ERRORS\n");
+	}
+}
+
+static int app_dpni_event_removed_cb(
+	uint8_t generator_id,
+	uint8_t event_id,
+	uint64_t app_ctx,
+	void *event_data)
+{
+	uint16_t ni = (uint16_t)((uint32_t)event_data);
+	UNUSED(generator_id);
+	UNUSED(event_id);
+	UNUSED(app_ctx);
+
+	fsl_os_print("AIOP ni %d was removed\n", ni);
+	fsl_os_print("All the supported events for DPNI and DPRC passed\n");
+	arena_test_finished();
+	return 0;
+}
 static int app_dpni_event_added_cb(
 	uint8_t generator_id,
 	uint8_t event_id,
@@ -346,7 +423,7 @@ static int app_dpni_event_added_cb(
 	uint16_t ni2 = 0;
 	int err;
 	uint16_t spid = 0;
-
+	extern t_system sys;
 	dma_addr_t buff = 0;
 	int ep, state = -1;
 	struct dpkg_profile_cfg dist_key_cfg = {0};
@@ -354,6 +431,7 @@ static int app_dpni_event_added_cb(
 	struct dpni_drv_buf_layout layout = {0};
 	struct dpni_drv_link_state link_state = {0};
 	struct ep_init_presentation init_pres = {0};
+	struct ep_init_presentation init_orig_pres = {0};
 
 	dist_key_cfg.num_extracts = 1;
 	dist_key_cfg.extracts[0].type = DPKG_EXTRACT_FROM_HDR;
@@ -363,7 +441,11 @@ static int app_dpni_event_added_cb(
 
 	UNUSED(generator_id);
 	UNUSED(event_id);
-	pr_info("Event received for dpni %d\n",ni);
+
+#ifdef ENGR360148
+	dpni_drv_set_irq_enable(ni, 0);
+#endif
+	pr_info("Event received for AIOP NI ID %d\n",ni);
 	err = dpni_drv_add_mac_addr(ni, ((uint8_t []){0x02, 0x00 ,0xc0 ,0x0a8 ,0x0b ,0xfe }));
 
 	if (err){
@@ -375,12 +457,13 @@ static int app_dpni_event_added_cb(
 		fsl_os_print("MAC 02:00:C0:A8:0B:FE added for ni %d\n",ni);
 	}
 	dpni_drv_set_exclusive(ni);
-	err = dpni_drv_set_order_scope(ni,&dist_key_cfg);
-	if (err){
-		fsl_os_print("dpni_drv_set_order_scope failed %d\n", err);
-		return err;
+	if(!sys.runtime_flag){
+		err = dpni_drv_set_order_scope(ni,&dist_key_cfg);
+		if (err){
+			fsl_os_print("dpni_drv_set_order_scope failed %d\n", err);
+			return err;
+		}
 	}
-
 	err = dpni_drv_register_rx_cb(ni/*ni_id*/,
 								  (rx_cb_t *)app_ctx);
 
@@ -437,6 +520,41 @@ static int app_dpni_event_added_cb(
 		test_error |= 0x01;
 	}
 
+	/* Get original initialize presentation */
+	memset(&init_orig_pres, 0, sizeof(struct ep_init_presentation));
+	err = dpni_drv_get_initial_presentation((uint16_t)ni,
+			&init_orig_pres);
+	if (err){
+		fsl_os_print("dpni_drv_get_initial_presentation failed %d\n", err);
+		test_error |= 0x01;
+	}
+	else{
+		fsl_os_print("Initial_presentation ORIGINAL params:\n");
+		fsl_os_print("fdpa: %x\n"
+			"adpca:%x\n"
+			"ptapa:%x\n"
+			"asapa:%x\n"
+			"asapo:%x\n"
+			"asaps:%x\n"
+			"spa:  %x\n"
+			"sps:  %x\n"
+			"spo:  %x\n"
+			"sr:   %x\n"
+			"nds:  %x\n",
+			init_pres.fdpa,
+			init_pres.adpca,
+			init_pres.ptapa,
+			init_pres.asapa,
+			init_pres.asapo,
+			init_pres.asaps,
+			init_pres.spa,
+			init_pres.sps,
+			init_pres.spo,
+			init_pres.sr,
+			init_pres.nds);
+	}
+
+
 	memset(&init_pres, 0, sizeof(struct ep_init_presentation));
 
 	init_pres.options = EP_INIT_PRESENTATION_OPT_SPA |
@@ -492,6 +610,30 @@ static int app_dpni_event_added_cb(
 			init_pres.nds);
 	}
 
+	if(init_pres.spa != 0x0150 ||
+		init_pres.spo != 0x0020 ||
+		init_pres.sps != 0x0020 ||
+		init_pres.nds != 1){
+
+		test_error |= 0x01;
+		fsl_os_print("Error: dpni_drv_get_initial_presentation values are incorrect\n");
+
+	}
+
+	init_orig_pres.options = EP_INIT_PRESENTATION_OPT_SPA |
+			EP_INIT_PRESENTATION_OPT_SPO |
+			EP_INIT_PRESENTATION_OPT_SPS |
+			EP_INIT_PRESENTATION_OPT_NDS;
+
+	err = dpni_drv_set_initial_presentation((uint16_t)ni,
+	                                        &init_orig_pres);
+	if (err){
+		fsl_os_print("dpni_drv_set_initial_presentation back to origin failed %d\n", err);
+		test_error |= 0x01;
+	}
+	else{
+		fsl_os_print("dpni_drv_set_initial_presentation back to origin succeeded in boot\n");
+	}
 	err = dpni_drv_enable(ni);
 	if(err){
 		fsl_os_print("Error: dpni_drv_enable: error %d\n",err);
@@ -561,21 +703,94 @@ static int app_dpni_event_added_cb(
 		fsl_os_print("Error: dpni_drv_enable: error %d\n",err);
 		test_error |= 0x01;
 	}
+	if(sys.runtime_flag){
+		if(dpni_drv_test_destroy(ni)){
+			test_error |= 1;
+		}
+	}
+#ifdef ENGR360148
+	dpni_drv_set_irq_enable(ni, 1);
+#endif
 	return 0;
 }
 
+static int app_dpni_link_change_cb(
+			uint8_t generator_id,
+			uint8_t event_id,
+			uint64_t app_ctx,
+			void *event_data)
+{
+	uint16_t ni = (uint16_t)((uint32_t)event_data);
+	int err;
+	UNUSED(generator_id);
+	UNUSED(event_id);
 
+	if(event_id == DPNI_EVENT_LINK_DOWN){
+		fsl_os_print("DPNI link down NI %d\n",ni);
+		if(app_ctx != 0x1234){
+			fsl_os_print("app_ctx 0x%x for link down must be 0x1234\n", app_ctx);
+			test_error |= 1;
+		}
+		err = dpni_drv_enable(ni);
+		if(err){
+			fsl_os_print("dpni_drv_enable for ni %d failed: %d\n", ni, err);
+			return err;
+		}
+		else{
+			fsl_os_print("DPNI enabled for AIOP ni %d\n",ni);
+		}
+	}
+	else if(event_id == DPNI_EVENT_LINK_UP){
+		fsl_os_print("DPNI link up NI %d\n",ni);
+		if(app_ctx != 0x4321){
+			fsl_os_print("app_ctx 0x%x for link up must be 0x4321\n", app_ctx);
+			test_error |= 1;
+		}
+
+		if(packet_number >= 38){ /*Only when done injecting packets.*/
+			if(dpni_drv_test_create()){
+				test_error |= 1;
+			}
+		}
+	}
+	else{
+		fsl_os_print("Event not supported %d\n", event_id);
+	}
+
+	return 0;
+}
 
 int app_init(void)
 {
 	int        err  = 0;
 
-	fsl_os_print("Running AIOP arena app_init()\n");
-
-	err = evmng_register(EVMNG_GENERATOR_AIOPSL, DPNI_EVENT_ADDED, 1,
+	err = dprc_drv_test_init();
+	if(err){
+		pr_err("DPRC DRV test init failed %d\n", err);
+		return err;
+	}
+	err = evmng_register(EVMNG_GENERATOR_AIOPSL, DPNI_EVENT_ADDED, 0,
 	                     (uint64_t) app_process_packet, app_dpni_event_added_cb);
 	if (err){
 		pr_err("EVM registration for DPNI_EVENT_ADDED failed: %d\n", err);
+		return err;
+	}
+	err = evmng_register(EVMNG_GENERATOR_AIOPSL, DPNI_EVENT_REMOVED, 0,
+	                     (uint64_t) app_process_packet, app_dpni_event_removed_cb);
+	if (err){
+		pr_err("EVM registration for DPNI_EVENT_REMOVED failed: %d\n", err);
+		return err;
+	}
+
+	err = evmng_register(EVMNG_GENERATOR_AIOPSL, DPNI_EVENT_LINK_DOWN, 1,(uint64_t) 0x1234, app_dpni_link_change_cb);
+	if (err){
+		pr_err("EVM registration for DPNI_EVENT_LINK_DOWN failed: %d\n", err);
+		return err;
+	}
+
+	err = evmng_register(EVMNG_GENERATOR_AIOPSL, DPNI_EVENT_LINK_UP, 1,(uint64_t) 0x4321, app_dpni_link_change_cb);
+	if (err){
+		pr_err("EVM registration for DPNI_EVENT_LINK_UP failed: %d\n", err);
 		return err;
 	}
 

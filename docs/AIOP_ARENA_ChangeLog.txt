@@ -1,3 +1,4 @@
+fsl_dpci_drv.h:            Added new API for dpci_drv_linkup().
 cmdif_integration_test.c : Added registration for DPCI events in order to enable the AIOP side DPCIs.
                            See aiopsl\build\aiop_sim\tests\cmdif_test\src\app.c:app_evm_register() as 
                            an example of the code that needs to be added to all AIOP applications 
