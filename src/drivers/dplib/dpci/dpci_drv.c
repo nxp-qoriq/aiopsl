@@ -282,10 +282,12 @@ __COLD_CODE static uint8_t num_priorities_get(struct fsl_mc_io *mc_io,
                                              uint16_t token)
 {
 	struct dpci_attr attr;
+	int err;
 	uint8_t i;
 
 	MEM_SET(&attr, sizeof(attr), 0);
-	dpci_get_attributes(mc_io, 0, token, &attr);
+	err = dpci_get_attributes(mc_io, 0, token, &attr);
+	ASSERT_COND(!err);
 	return attr.num_of_priorities;
 }
 

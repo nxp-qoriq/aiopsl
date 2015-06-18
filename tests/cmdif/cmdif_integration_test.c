@@ -167,7 +167,6 @@ static int dpci_dynamic_add_test()
 	struct dpci_cfg dpci_cfg;
 	uint16_t dpci = 0;
 	uint16_t dpci_c = 0;
-	struct dpci_rx_queue_cfg queue_cfg;
 	struct dprc_endpoint endpoint1 ;
 	struct dprc_endpoint endpoint2;
 	struct dprc_connection_cfg connection_cfg = { 0 };
@@ -180,13 +179,12 @@ static int dpci_dynamic_add_test()
 
 	atomic_incr32(&dpci_add_count, 1);
 
-	memset(&queue_cfg, 0, sizeof(struct dpci_rx_queue_cfg));
 	memset(&attr, 0, sizeof(attr));
 	memset(&attr_c, 0, sizeof(attr_c));
 
+	/* DPCI 1 */
 	dpci_cfg.num_of_priorities = 2;
 
-	/* DPCI 1 */
 	err = dpci_create(&dprc->io, 0, &dpci_cfg, &dpci);
 	ASSERT_COND(!err);
 
@@ -195,6 +193,8 @@ static int dpci_dynamic_add_test()
 
 
 	/* DPCI 2 */
+	dpci_cfg.num_of_priorities = 2;
+
 	err = dpci_create(&dprc->io, 0, &dpci_cfg, &dpci_c);
 	ASSERT_COND(!err);
 
