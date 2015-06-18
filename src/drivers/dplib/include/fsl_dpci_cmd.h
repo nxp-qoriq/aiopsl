@@ -34,7 +34,7 @@
 
 /* DPCI Version */
 #define DPCI_VER_MAJOR				2
-#define DPCI_VER_MINOR				0
+#define DPCI_VER_MINOR				1
 
 /* Command IDs */
 #define DPCI_CMDID_CLOSE				0x800

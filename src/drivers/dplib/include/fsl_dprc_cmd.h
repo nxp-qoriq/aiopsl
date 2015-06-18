@@ -33,7 +33,7 @@
 #define _FSL_DPRC_CMD_H
 
 /* DPRC Version */
-#define DPRC_VER_MAJOR				4
+#define DPRC_VER_MAJOR				5
 #define DPRC_VER_MINOR				0
 
 /* Command IDs */
