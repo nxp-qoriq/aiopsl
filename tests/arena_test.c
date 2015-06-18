@@ -287,10 +287,7 @@ __HOT_CODE ENTRY_POINT static void app_process_packet(void)
 				fsl_os_print("dpni_drv_get_counter: CTR: %d = %ll\n",i,ctr_value);
 			}
 		}
-		if(dpni_drv_test_create()){
-			test_error |= 1;
-			pr_err("dpni_drv_test_create for ni %d failed\n", ni_id);
-		}
+
 		err = dpni_drv_disable(ni_id);
 		if(err){
 			pr_err("dpni_drv_disable for ni %d failed: %d\n", ni_id, err);
@@ -729,7 +726,7 @@ static int app_dpni_link_change_cb(
 	UNUSED(event_id);
 
 	if(event_id == DPNI_EVENT_LINK_DOWN){
-		fsl_os_print("DPNI link down\n");
+		fsl_os_print("DPNI link down NI %d\n",ni);
 		if(app_ctx != 0x1234){
 			fsl_os_print("app_ctx 0x%x for link down must be 0x1234\n", app_ctx);
 			test_error |= 1;
@@ -744,7 +741,7 @@ static int app_dpni_link_change_cb(
 		}
 	}
 	else if(event_id == DPNI_EVENT_LINK_UP){
-		fsl_os_print("DPNI link up\n");
+		fsl_os_print("DPNI link up NI %d\n",ni);
 		if(app_ctx != 0x4321){
 			fsl_os_print("app_ctx 0x%x for link up must be 0x4321\n", app_ctx);
 			test_error |= 1;
