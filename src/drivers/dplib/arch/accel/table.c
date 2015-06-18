@@ -34,6 +34,7 @@
 #include "dplib/fsl_cdma.h"
 #include "dplib/fsl_table.h"
 #include "table_inline.h"
+#include "fsl_stdio.h"
 
 void table_get_params(enum table_hw_accel_id acc_id,
 		      uint16_t table_id,
@@ -143,26 +144,26 @@ int table_rule_create_or_replace(enum table_hw_accel_id acc_id,
 			*rule_id = hw_old_res.rule_id;
 #endif
 	}
-	else if (status == TABLE_HW_STATUS_MISS){}
-	else if (status == CTLU_HW_STATUS_NORSC_TLUMISS)
+	else if (status == TABLE_HW_STATUS_BIT_MISS){}
+	else if (status & TABLE_HW_STATUS_BIT_TIDE) {
+		table_exception_handler_wrp(
+			TABLE_RULE_CREATE_OR_REPLACE_FUNC_ID,
+			__LINE__,
+			status);
+	}
+	else if (status & TABLE_HW_STATUS_BIT_NORSC) {
 		status = -ENOMEM;
-	else if (status == MFLU_HW_STATUS_NORSC_TLUMISS)
-		status = -ENOMEM;
-	else if (status == CTLU_HW_STATUS_NORSC)
-		status = -ENOMEM;
-	else if (status == MFLU_HW_STATUS_NORSC)
-		status = -ENOMEM;
-	else if (status == CTLU_HW_STATUS_TEMPNOR)
-		status = -ENOMEM;
-	else if (status == MFLU_HW_STATUS_TEMPNOR)
-		status = -ENOMEM;
-	else
+	/* TODO Rev2 - consider to check TEMPNOR for EAGAIN. it is
+	 * now ENOMEM since in Rev1 it may take a very long  time until rules
+	 * are released. */
+	}
+	else {
 		/* Call fatal error handler */
 		table_exception_handler_wrp(
 				TABLE_RULE_CREATE_OR_REPLACE_FUNC_ID,
 				__LINE__,
 				status);
-
+	}
 	return status;
 }
 
@@ -203,18 +204,25 @@ int table_lookup_by_keyid(enum table_hw_accel_id acc_id,
 	/* Status Handling*/
 	status = *((int32_t *)HWC_ACC_OUT_ADDRESS);
 	if (status == TABLE_HW_STATUS_SUCCESS){}
-	else if (status == TABLE_HW_STATUS_MISS){}
-	else if (status == TABLE_HW_STATUS_EOFH)
+	else if (status == TABLE_HW_STATUS_BIT_MISS){}
+	else if (status &
+		 (TABLE_HW_STATUS_BIT_TIDE |
+		  TABLE_HW_STATUS_BIT_NORSC |
+		  TABLE_HW_STATUS_BIT_KSE))
+	{
+		table_inline_exception_handler(TABLE_LOOKUP_BY_KEYID_FUNC_ID,
+					       __LINE__,
+					       status);
+	}
+	else if (status & TABLE_HW_STATUS_BIT_EOFH) {
 		status = -EIO;
-	/*TODO EOFH with LOOKUP hit/miss */
-	else if (status == (TABLE_HW_STATUS_EOFH | TABLE_HW_STATUS_MISS))
-		status = -EIO;
-	else
+	}
+	else {
 		/* Call fatal error handler */
 		table_exception_handler_wrp(TABLE_LOOKUP_BY_KEYID_FUNC_ID,
 					    __LINE__,
 					    status);
-
+	}
 	return status;
 }
 
@@ -277,7 +285,7 @@ void table_exception_handler(char *file_path,
 			     uint32_t line,
 			     int32_t status_id) __attribute__ ((noreturn)) {
 	char *func_name, *status;
-
+	fsl_os_print("File string address: 0x%x\n",(uint32_t)file_path);
 	/* Translate function ID to function name string */
 	switch(func_id) {
 	case TABLE_CREATE_FUNC_ID:
@@ -368,18 +376,17 @@ void table_exception_handler(char *file_path,
 	}
 
 	/* Call general exception handler */
+	if (status_id & TABLE_HW_STATUS_BIT_TIDE) {
+		status = "Invalid CTLU table ID.\n";
+	} else if (status_id & TABLE_HW_STATUS_BIT_KSE) {
+		status = "Key size error.\n";
+	} else if (status_id & TABLE_HW_STATUS_BIT_MNLE) {
+		status = "Maximum number of chained lookups reached.\n";
+	}
+	/*TODO*//*
 	switch (status_id) {
 	case (TABLE_HW_STATUS_MNLE):
-		status = "Maximum number of chained lookups reached.\n";
-		break;
-	case (TABLE_HW_STATUS_KSE):
-		status = "Key size error.\n";
-		break;
-	case (MFLU_HW_STATUS_TIDE):
-		status = "Invalid MFLU table ID.\n";
-		break;
-	case (CTLU_HW_STATUS_TIDE):
-		status = "Invalid CTLU table ID.\n";
+		
 		break;
 	case(TABLE_SW_STATUS_MISS_RES_CRT_FAIL):
 		status = "Table miss rule creation failed.\n";
@@ -406,6 +413,7 @@ void table_exception_handler(char *file_path,
 		status = "Unknown or Invalid status.\n";
 		break;
 	}
+	*/
 	exception_handler(file_path, func_name, line, status);
 }
 #pragma pop
@@ -855,9 +863,9 @@ int table_lookup_by_keyid_default_frame_wrp(enum table_hw_accel_id acc_id,
 					       *lookup_result)
 {
 	return table_lookup_by_keyid_default_frame(acc_id,
-						    table_id,
-						    keyid,
-						    lookup_result);
+						   table_id,
+						   keyid,
+						   lookup_result);
 }
 
 int table_rule_create_wrp(enum table_hw_accel_id acc_id,
