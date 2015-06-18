@@ -311,15 +311,12 @@ static void print_counters()
 	pr_debug("dpci_rm_event_count %d\n", dpci_rm_ev_count);
 	pr_debug("dpci_up_event_count %d\n", dpci_up_ev_count);
 	pr_debug("dpci_down_event_count %d\n", dpci_down_ev_count);
-#if 0
-	ASSERT_COND(dpci_add_count > 1);
-	ASSERT_COND(dpci_rm_count > 1);
+	ASSERT_COND(dpci_add_count > 0);
+	ASSERT_COND(dpci_rm_count > 0);
 	ASSERT_COND(dpci_add_ev_count > 1);
 	ASSERT_COND(dpci_rm_ev_count > 1);
 	ASSERT_COND(dpci_up_ev_count > 1);
 	ASSERT_COND(dpci_down_ev_count > 1);
-#endif
-
 #endif
 }
 
@@ -390,14 +387,10 @@ static int ctrl_cb0(void *dev, uint16_t cmd, uint32_t size,
 
 	switch (cmd) {
 	case DPCI_ADD:
-#if 0
 		err = dpci_dynamic_add_test();
-#endif
 		break;
 	case DPCI_RM:
-#if 0
 		err = dpci_dynamic_rm_test();
-#endif
 		break;
 	case SHBP_TEST_GPP:
 		pr_debug("Testing GPP SHBP...\n");
