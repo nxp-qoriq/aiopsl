@@ -45,9 +45,9 @@
 *//***************************************************************************/
 
 /**************************************************************************//**
- @Group		EVMNG_EVENT_TYPES Event manager events
+ @Group		EVMNG_EVENT_TYPES Events provided by AIOPSL
 
- @Description	EVMNG events, supported for application use.
+ @Description	EVMNG events for application use.
 
  @{
  *//***************************************************************************/
@@ -87,7 +87,7 @@ enum evm_event_types {
 
 @Param[in]	event_id  Identifier of the event specific to the application
 		generating event. The value can range from 0 to MAX_EVENT_ID -1
-		\ref EVM_EVENT_TYPES
+		\ref EVMNG_EVENT_TYPES
 
 @Param[in]	app_ctx  App/SL data saved during registration and passed to CB
 		function when raising event.
@@ -114,7 +114,7 @@ typedef int (*evmng_cb)(uint8_t generator_id,
 
 @Param[in]	event_id  Identifier of the event specific to the application
 		generating event. The value can range from 0 to MAX_EVENT_ID -1
-		\ref EVM_EVENT_TYPES
+		\ref EVMNG_EVENT_TYPES
 		To use app defined events, the provided event id should be
 		from NUM_OF_SL_DEFINED_EVENTS to MAX_EVENT_ID -1.
 
@@ -152,7 +152,7 @@ int evmng_register(
 
 @Param[in]	event_id  Identifier of the event specific to the application
 		generating event. The value can range from 0 to MAX_EVENT_ID -1
-		\ref EVM_EVENT_TYPES
+		\ref EVMNG_EVENT_TYPES
 
 @Param[in]	priority  priority number of the callback function.
 		This value ranges from 1 - 127.
@@ -190,7 +190,7 @@ int evmng_unregister(
 @Param[in]	event_id  Identifier of the event specific to the application
 		generating event. The value can range from NUM_OF_SL_DEFINED_EVENTS
 		to MAX_EVENT_ID -1
-		\ref EVM_EVENT_TYPES
+		\ref EVMNG_EVENT_TYPES
 
 @Param[in]	event_data  A pointer to data specific for event
 

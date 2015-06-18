@@ -420,6 +420,9 @@
 				/** @defgroup dpni_drv_g DPNI DRV
 					@ingroup grp_dplib_aiop
 				*/
+					/** @defgroup DPNI_DRV_ORDER_SCOPE Order Scope options
+					@ingroup dpni_drv_g
+					*/
 					/** @defgroup DPNI_DRV_LINK_OPT Link Options
 					@ingroup dpni_drv_g
 					*/
