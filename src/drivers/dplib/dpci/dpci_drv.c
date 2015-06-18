@@ -61,16 +61,16 @@
 	(LLLDW_SWAP((uint32_t)&CMDIF_FQD_CTX_GET, 0))
 
 #define AMQ_BDI_SET(_offset, _width, _type, _arg) \
-	(amq_bdi |= u32_enc((_offset), (_width), (_arg)))
+	(amq_bdi |= mc_enc((_offset), (_width), (_arg)))
 
 #define AMQ_BDI_GET(_offset, _width, _type, _arg) \
-	(*(_arg) = (_type)u32_dec(amq_bdi, (_offset), (_width)))
+	(*(_arg) = (_type)mc_dec(amq_bdi, (_offset), (_width)))
 
 #define USER_CTX_SET(_offset, _width, _type, _arg) \
-	(queue_cfg.user_ctx |= u64_enc((_offset), (_width), (_arg)))
+	(queue_cfg.user_ctx |= mc_enc((_offset), (_width), (_arg)))
 
 #define USER_CTX_GET(_offset, _width, _type, _arg) \
-	(*(_arg) = (_type)u64_dec(rx_ctx, (_offset), (_width)))
+	(*(_arg) = (_type)mc_dec(rx_ctx, (_offset), (_width)))
 
 #define CMDIF_DPCI_FQID(_OP, DPCI, FQID) \
 do { \
@@ -117,15 +117,20 @@ struct dpci_mng_tbl g_dpci_tbl = {0};
 
 __COLD_CODE static void dpci_tbl_dump()
 {
+#ifdef DEBUG
 	int i;
+	int num_entries = (g_dpci_tbl.count + 2 ? \
+		(g_dpci_tbl.max - g_dpci_tbl.count) >=2 : \
+		g_dpci_tbl.max);
 
-	fsl_os_print("----------DPCI table: count = %d----------\n", 
+	pr_debug("----------DPCI table: count = %d----------\n", 
 	             g_dpci_tbl.count);
-	for (i = 0; i < g_dpci_tbl.count; i++) {
-		fsl_os_print("ID = 0x%x\t PEER ID = 0x%x\t IC = 0x%x\t flags = 0x%x\t\n",
+	for (i = 0; i < num_entries; i++) {
+		pr_debug("ID = 0x%x\t PEER ID = 0x%x\t IC = 0x%x\t flags = 0x%x\t\n",
 		             g_dpci_tbl.dpci_id[i], g_dpci_tbl.dpci_id_peer[i], 
 		             g_dpci_tbl.ic[i], g_dpci_tbl.flags[i]);
 	}
+#endif
 }
 
 __HOT_CODE int dpci_mng_find(uint32_t dpci_id)
@@ -254,7 +259,7 @@ __COLD_CODE static int tx_peer_set(uint32_t ind, uint16_t token)
 	MEM_SET(&tx_attr, sizeof(tx_attr), 0);
 	MEM_SET(&peer_attr, sizeof(peer_attr), 0);
 
-	err = dpci_get_peer_attributes(&dprc->io, token, &peer_attr);
+	err = dpci_get_peer_attributes(&dprc->io, 0, token, &peer_attr);
 	if (err || (peer_attr.peer_id == -1)) {
 		sl_pr_err("Failed to get peer_id dpci id = %d err = %d\n",
 		       g_dpci_tbl.dpci_id[ind], err);
@@ -264,7 +269,7 @@ __COLD_CODE static int tx_peer_set(uint32_t ind, uint16_t token)
 	g_dpci_tbl.dpci_id_peer[ind] = (uint32_t)peer_attr.peer_id;
 
 	for (i = 0; i < peer_attr.num_of_priorities; i++) {
-		err = dpci_get_tx_queue(&dprc->io, token, (uint8_t)i, &tx_attr);
+		err = dpci_get_tx_queue(&dprc->io, 0, token, (uint8_t)i, &tx_attr);
 		ASSERT_COND(!err);
 		ASSERT_COND(tx_attr.fqid != DPCI_FQID_NOT_VALID);
 		tx[i] = tx_attr.fqid;
@@ -280,7 +285,7 @@ __COLD_CODE static uint8_t num_priorities_get(struct fsl_mc_io *mc_io,
 	uint8_t i;
 
 	MEM_SET(&attr, sizeof(attr), 0);
-	dpci_get_attributes(mc_io, token, &attr);
+	dpci_get_attributes(mc_io, 0, token, &attr);
 	return attr.num_of_priorities;
 }
 
@@ -306,13 +311,13 @@ __COLD_CODE static void tx_user_context_set(struct mc_dprc *dprc, int ind,
 		queue_cfg.dest_cfg.priority = DPCI_LOW_PR - i;
 		queue_cfg.user_ctx = 0;
 		CMDIF_DPCI_FQID(USER_CTX_SET, ind, g_dpci_tbl.tx_queue[ind][i]);
-		dpci_set_rx_queue(&dprc->io, token, i, &queue_cfg);
+		dpci_set_rx_queue(&dprc->io, 0, token, i, &queue_cfg);
 	}
 }
 #pragma inline_depth(smart)
 //#pragma optimization_level reset
 
-/* To be called upon connected event, assign even */
+/* To be called upon add even */
 __COLD_CODE static int dpci_entry_init(uint32_t dpci_id, uint16_t token)
 {
 	int ind = -1;
@@ -331,6 +336,7 @@ __COLD_CODE static int dpci_entry_init(uint32_t dpci_id, uint16_t token)
 
 	g_dpci_tbl.dpci_id[ind] = dpci_id;
 	g_dpci_tbl.ic[ind] = amq_bdi;
+	g_dpci_tbl.flags[ind] = 0;
 
 	/* Updated DPCI peer if possible
 	 * error is possible */
@@ -360,20 +366,19 @@ __COLD_CODE static int mc_intr_set(uint32_t dpci_id, struct mc_dprc *dprc,
 {
 	struct dpci_irq_cfg irq_cfg;
 	int err;
-	uint32_t mask = DPCI_IRQ_EVENT_LINK_CHANGED | 
-		DPCI_IRQ_EVENT_CONNECTED | 
-		DPCI_IRQ_EVENT_DISCONNECTED;
+	uint32_t mask = DPCI_IRQ_EVENT_LINK_CHANGED;
 	irq_cfg.addr = DPCI_EVENT;
 	irq_cfg.val = dpci_id;
 	irq_cfg.user_irq_id = 0;
 
-	err = dpci_set_irq(&dprc->io, token, DPCI_IRQ_INDEX, &irq_cfg);
+	err = dpci_set_irq(&dprc->io, 0, token, DPCI_IRQ_INDEX, &irq_cfg);
 	if(err){
 		pr_err("Failed to set irq for DP-CI%d\n", dpci_id);
 		return err;
 	}
 
-	err = dpci_set_irq_mask(&dprc->io, 
+	err = dpci_set_irq_mask(&dprc->io,
+	                        0, 
 	                        token,
 	                        DPCI_IRQ_INDEX,
 	                        mask);
@@ -382,10 +387,10 @@ __COLD_CODE static int mc_intr_set(uint32_t dpci_id, struct mc_dprc *dprc,
 		return err;
 	}
 
-	err = dpci_clear_irq_status(&dprc->io, token, DPCI_IRQ_INDEX, mask);
+	err = dpci_clear_irq_status(&dprc->io, 0, token, DPCI_IRQ_INDEX, mask);
 	ASSERT_COND(!err);
 
-	err = dpci_set_irq_enable(&dprc->io, token, DPCI_IRQ_INDEX, 1);
+	err = dpci_set_irq_enable(&dprc->io, 0, token, DPCI_IRQ_INDEX, 1);
 	if(err){
 		pr_err("Failed to set irq enable for DP-CI%d\n", dpci_id);
 		return err;
@@ -407,6 +412,8 @@ __COLD_CODE int dpci_event_update_obj(uint32_t dpci_id)
 	if (g_dpci_tbl.mc_dpci_id == dpci_id)
 		return 0;
 
+	pr_debug("Scan event DP-CI%d\n", (int)dpci_id);
+
 	DPCI_DT_LOCK_W_TAKE;
 
 	ind = dpci_mng_find(dpci_id);
@@ -414,7 +421,7 @@ __COLD_CODE int dpci_event_update_obj(uint32_t dpci_id)
 
 		dprc = sys_get_unique_handle(FSL_OS_MOD_AIOP_RC);
 		ASSERT_COND(dprc);
-		err = dpci_open(&dprc->io, (int)dpci_id, &token);
+		err = dpci_open(&dprc->io, 0, (int)dpci_id, &token);
 		if (err) {
 			DPCI_DT_LOCK_RELEASE;
 			return err;
@@ -432,19 +439,18 @@ __COLD_CODE int dpci_event_update_obj(uint32_t dpci_id)
 			pr_err("Failed to set irq for events\n");
 		}
 
-		err = dpci_close(&dprc->io, token);
+		err = dpci_close(&dprc->io, 0, token);
 		ASSERT_COND(!err);
 	}
 
 	if(ind >= 0) {
 		ASSERT_COND(!(g_dpci_tbl.flags[ind] & DPCI_ID_FLG_SCANNED));
-		/* flags are updated only during add/remove 
-		 * event which are handled one at a time */
+		/* flags are updated only during add/remove */
 		g_dpci_tbl.flags[ind] |= DPCI_ID_FLG_SCANNED;
 	}
 
 	DPCI_DT_LOCK_RELEASE;
-
+	
 	dpci_tbl_dump();
 
 	if (raise_event) {
@@ -466,12 +472,17 @@ __COLD_CODE void dpci_event_handle_removed_objects()
 	int i = 0;
 	int count = 0;
 	int err;
+	uint32_t delete_dpci_id;
+	int32_t count_before_delete;
 
 	ASSERT_COND(g_dpci_tbl.count <= g_dpci_tbl.max);
 
 	DPCI_DT_LOCK_W_TAKE;
 
-	while ((count < g_dpci_tbl.count) && (i < g_dpci_tbl.max)) {
+	/* Count is changing inside dpci_entry_delete() */
+	count_before_delete = g_dpci_tbl.count;
+
+	while ((count < count_before_delete) && (i < g_dpci_tbl.max)) {
 
 		pr_debug("i=%d count=%d\n", i, count);
 
@@ -479,16 +490,19 @@ __COLD_CODE void dpci_event_handle_removed_objects()
 			
 			if (!(g_dpci_tbl.flags[i] & DPCI_ID_FLG_SCANNED)) {
 
+				pr_debug("Deleted DP-CI%d\n",
+				         (int)g_dpci_tbl.dpci_id[i]);
+				delete_dpci_id = g_dpci_tbl.dpci_id[i];
 				dpci_entry_delete(i);
 				
 				pr_debug("evmng_sl_raise_event\n");
 				err = evmng_sl_raise_event(
 					EVMNG_GENERATOR_AIOPSL,
 					DPCI_EVENT_REMOVED,
-					(void *)g_dpci_tbl.dpci_id[i]);
+					(void *)delete_dpci_id);
 				if (err) {
 					pr_err("Failed event DPCI-%d.\n",
-					       g_dpci_tbl.dpci_id[i]);
+					       delete_dpci_id);
 				}
 			}
 
@@ -506,7 +520,8 @@ __COLD_CODE void dpci_event_handle_removed_objects()
 	}
 
 	DPCI_DT_LOCK_RELEASE;
-
+	
+	pr_debug("Exit\n");
 	dpci_tbl_dump();
 }
 
@@ -534,11 +549,13 @@ __COLD_CODE int dpci_event_link_change(uint32_t dpci_id)
 	uint8_t event_id;
 	struct mc_dprc *dprc = sys_get_unique_handle(FSL_OS_MOD_AIOP_RC);
 
-	err = dpci_open(&dprc->io, (int)dpci_id, &token);
-	if (err)
+	err = dpci_open(&dprc->io, 0, (int)dpci_id, &token);
+	if (err) {
+		pr_err("DP-CI%d no longer exists\n", dpci_id);
 		return err;
+	}
 
-	err = dpci_get_irq_status(&dprc->io,
+	err = dpci_get_irq_status(&dprc->io,0, 
 	                          token,
 	                          DPCI_IRQ_INDEX,
 	                          &status);
@@ -548,12 +565,12 @@ __COLD_CODE int dpci_event_link_change(uint32_t dpci_id)
 
 		status = DPCI_IRQ_EVENT_LINK_CHANGED;
 
-		err = dpci_clear_irq_status(&dprc->io, token,
+		err = dpci_clear_irq_status(&dprc->io, 0, token,
 		                            DPCI_IRQ_INDEX, status);
 		ASSERT_COND(!err);
 
 		linkup = 0;
-		err = dpci_get_link_state(&dprc->io, token, &linkup);
+		err = dpci_get_link_state(&dprc->io, 0, token, &linkup);
 		ASSERT_COND(!err);
 
 		if (linkup == 0)
@@ -563,9 +580,9 @@ __COLD_CODE int dpci_event_link_change(uint32_t dpci_id)
 
 	} else {
 
-		err = dpci_close(&dprc->io, token);
+		err = dpci_close(&dprc->io, 0, token);
 		ASSERT_COND(!err);
-
+		pr_err("Received unknown event 0x%x\n", status);
 		return -ENOTSUP;
 	}
 
@@ -583,7 +600,7 @@ __COLD_CODE int dpci_event_link_change(uint32_t dpci_id)
 	ASSERT_COND(!err);
 
 
-	err = dpci_close(&dprc->io, token);
+	err = dpci_close(&dprc->io, 0, token);
 	ASSERT_COND(!err);
 
 	pr_debug("Done DPCI EVENT\n");
@@ -631,7 +648,7 @@ __COLD_CODE int dpci_drv_enable(uint32_t dpci_id)
 	ASSERT_COND(dprc);
 
 	/* Open must be the first action to lock the object */
-	err = dpci_open(&dprc->io, (int)dpci_id, &token);
+	err = dpci_open(&dprc->io, 0, (int)dpci_id, &token);
 	if (err) {
 		return err;
 	}
@@ -652,9 +669,9 @@ __COLD_CODE int dpci_drv_enable(uint32_t dpci_id)
 
 	DPCI_DT_LOCK_RELEASE;
 
-	err = dpci_enable(&dprc->io, token);
+	err = dpci_enable(&dprc->io, 0, token);
 
-	dpci_close(&dprc->io, token);
+	dpci_close(&dprc->io, 0, token);
 
 	return err; /* Error of enable matters */
 }
@@ -668,15 +685,15 @@ __COLD_CODE int dpci_drv_disable(uint32_t dpci_id)
 
 	ASSERT_COND(dprc);
 
-	err = dpci_open(&dprc->io, (int)dpci_id, &token);
+	err = dpci_open(&dprc->io, 0, (int)dpci_id, &token);
 	if (err) {
 		return err;
 	}
 
-	err = dpci_disable(&dprc->io, token);
+	err = dpci_disable(&dprc->io, 0, token);
 	if (err) {
 		sl_pr_err("DPCI disable failed\n");
-		dpci_close(&dprc->io, token);
+		dpci_close(&dprc->io, 0, token);
 		return err;
 	}
 
@@ -686,7 +703,7 @@ __COLD_CODE int dpci_drv_disable(uint32_t dpci_id)
 	 * The table will be updated upon
 	 * dpci_drv_enable()/dpci_event_link_change()
 	 */
-	dpci_close(&dprc->io, token);
+	dpci_close(&dprc->io, 0, token);
 
 	return err;
 }
@@ -699,19 +716,19 @@ __COLD_CODE int dpci_drv_linkup(uint32_t dpci_id, int *up)
 
 	ASSERT_COND(dprc);
 
-	err = dpci_open(&dprc->io, (int)dpci_id, &token);
+	err = dpci_open(&dprc->io, 0, (int)dpci_id, &token);
 	if (err) {
 		return err;
 	}
 
-	err = dpci_get_link_state(&dprc->io, token, up);
+	err = dpci_get_link_state(&dprc->io, 0, token, up);
 	if (err) {
 		sl_pr_err("Get link state failed\n");
-		dpci_close(&dprc->io, token);
+		dpci_close(&dprc->io, 0, token);
 		return err;
 	}
 
-	dpci_close(&dprc->io, token);
+	dpci_close(&dprc->io, 0, token);
 
 	return err;
 }
@@ -751,6 +768,7 @@ __COLD_CODE static int dpci_for_mc_add(struct mc_dprc *dprc)
 	struct dpci_rx_queue_cfg queue_cfg;
 	struct dprc_endpoint endpoint1 ;
 	struct dprc_endpoint endpoint2;
+	struct dprc_connection_cfg connection_cfg;
 	struct dpci_attr attr;
 	uint8_t p = 0;
 	int     err = 0;
@@ -761,11 +779,11 @@ __COLD_CODE static int dpci_for_mc_add(struct mc_dprc *dprc)
 
 	dpci_cfg.num_of_priorities = 2;
 
-	err = dpci_create(&dprc->io, &dpci_cfg, &dpci);
+	err = dpci_create(&dprc->io, 0, &dpci_cfg, &dpci);
 	ASSERT_COND(!err);
 
 	/* Get attributes just for dpci id fqids are not there yet */
-	err = dpci_get_attributes(&dprc->io, dpci, &attr);
+	err = dpci_get_attributes(&dprc->io, 0, dpci, &attr);
 	ASSERT_COND(!err);
 
 	/* Connect to dpci that belongs to MC */
@@ -775,15 +793,17 @@ __COLD_CODE static int dpci_for_mc_add(struct mc_dprc *dprc)
 
 	memset(&endpoint1, 0, sizeof(struct dprc_endpoint));
 	memset(&endpoint2, 0, sizeof(struct dprc_endpoint));
+	memset(&connection_cfg, 0, sizeof(struct dprc_connection_cfg));
 	endpoint1.id = (int)g_init_data.sl_info.mc_dpci_id;
-	endpoint1.interface_id = 0;
+	endpoint1.if_id = 0;
 	strcpy(endpoint1.type, "dpci");
 
 	endpoint2.id = attr.id;
-	endpoint2.interface_id = 0;
+	endpoint2.if_id = 0;
 	strcpy(endpoint2.type, "dpci");
 
-	err = dprc_connect(&dprc->io, dprc->token, &endpoint1, &endpoint2);
+	err = dprc_connect(&dprc->io, 0, dprc->token, &endpoint1, 
+	                   &endpoint2, &connection_cfg);
 	if (err) {
 		pr_err("dprc_connect failed\n");
 	}
@@ -793,7 +813,7 @@ __COLD_CODE static int dpci_for_mc_add(struct mc_dprc *dprc)
 	/* MC dpci can't be removed */
 	g_dpci_tbl.flags[err] |= DPCI_ID_FLG_SCANNED;
 
-	err = dpci_close(&dprc->io, dpci);
+	err = dpci_close(&dprc->io, 0, dpci);
 	ASSERT_COND(!err);
 
 	err = dpci_drv_enable((uint32_t)attr.id);
@@ -813,7 +833,7 @@ __COLD_CODE static int dpci_event_cb(uint8_t generator_id, uint8_t event_id,
 	ASSERT_COND((event_id == DPCI_EVENT) &&
 	            (generator_id == EVMNG_GENERATOR_AIOPSL));
 
-	pr_debug("DPCI EVENT \n");
+	pr_debug("DPCI EVENT for %d\n", (int)event_data);
 	err = dpci_event_link_change((uint32_t)event_data);
 	return err;
 }
@@ -833,7 +853,7 @@ __COLD_CODE int dpci_drv_init()
 		return -ENODEV;
 	}
 
-	if ((err = dprc_get_obj_count(&dprc->io, dprc->token, &dev_count)) != 0) {
+	if ((err = dprc_get_obj_count(&dprc->io, 0, dprc->token, &dev_count)) != 0) {
 		pr_err("Failed to get device count for RC auth_d = %d\n",
 		       dprc->token);
 		return err;
@@ -841,7 +861,7 @@ __COLD_CODE int dpci_drv_init()
 
 	/* First count how many DPCI objects we have */
 	for (i = 0; i < dev_count; i++) {
-		dprc_get_obj(&dprc->io, dprc->token, i, &dev_desc);
+		dprc_get_obj(&dprc->io, 0, dprc->token, i, &dev_desc);
 		if (strcmp(dev_desc.type, "dpci") == 0) {
 			dpci_count++;
 		}

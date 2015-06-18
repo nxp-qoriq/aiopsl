@@ -46,7 +46,7 @@ static int dprc_drv_test_evmng_cb(uint8_t generator_id, uint8_t event_id, uint64
 	if(event_id == DPRC_EVENT && generator_id == EVMNG_GENERATOR_AIOPSL){
 		sl_pr_debug("DPRC objects changed event\n");
 
-		err = dprc_get_irq_status(&dprc->io, dprc->token,
+		err = dprc_get_irq_status(&dprc->io, 0, dprc->token,
 		                          DPRC_IRQ_INDEX,
 		                          &status);
 		if(err){
@@ -59,7 +59,7 @@ static int dprc_drv_test_evmng_cb(uint8_t generator_id, uint8_t event_id, uint64
 			DPRC_IRQ_EVENT_OBJ_REMOVED |
 			DPRC_IRQ_EVENT_OBJ_CREATED |
 			DPRC_IRQ_EVENT_OBJ_DESTROYED)){
-			err = dprc_clear_irq_status(&dprc->io, dprc->token,
+			err = dprc_clear_irq_status(&dprc->io, 0, dprc->token,
 			                            DPRC_IRQ_INDEX,
 			                            DPRC_IRQ_EVENT_OBJ_ADDED |
 			                            DPRC_IRQ_EVENT_OBJ_REMOVED |
@@ -92,7 +92,7 @@ int dprc_drv_test_init(void)
 	fsl_os_print("Running AIOP dprc_drv_test_init()\n");
 	fsl_os_print("Update IRQ mask to support OBJ CREATED & DESTROYED to simulate Add/Remove event\n");
 
-	err = dprc_set_irq_mask(&dprc->io, dprc->token, 0,
+	err = dprc_set_irq_mask(&dprc->io, 0, dprc->token, 0,
 	                        DPRC_IRQ_EVENT_OBJ_ADDED |
 	                        DPRC_IRQ_EVENT_OBJ_REMOVED |
 	                        DPRC_IRQ_EVENT_OBJ_CREATED |
@@ -101,7 +101,7 @@ int dprc_drv_test_init(void)
 		pr_err("Set irq mask for DPRC object change failed\n");
 		return -ENAVAIL;
 	}
-	err = dprc_clear_irq_status(&dprc->io, dprc->token,
+	err = dprc_clear_irq_status(&dprc->io, 0, dprc->token,
 	                            DPRC_IRQ_INDEX,
 	                            DPRC_IRQ_EVENT_OBJ_ADDED |
 	                            DPRC_IRQ_EVENT_OBJ_REMOVED |

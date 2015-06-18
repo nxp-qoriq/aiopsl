@@ -176,7 +176,7 @@ do { \
 
 /*                cmd, param, offset, width, type, arg_name */
 #define DPCI_CMD_GET_RX_QUEUE(cmd, priority) \
-	MC_CMD_OP(cmd, 0, 40, 8,  uint8_t,  priority);\
+	MC_CMD_OP(cmd, 0, 40, 8,  uint8_t,  priority)
 
 /*                cmd, param, offset, width, type, arg_name */
 #define DPCI_RSP_GET_RX_QUEUE(cmd, attr) \
@@ -190,11 +190,11 @@ do { \
 
 /*                cmd, param, offset, width, type, arg_name */
 #define DPCI_CMD_GET_TX_QUEUE(cmd, priority) \
-	MC_CMD_OP(cmd, 0, 40, 8,  uint8_t,  priority);
+	MC_CMD_OP(cmd, 0, 40, 8,  uint8_t,  priority)
 
 /*                cmd, param, offset, width, type, arg_name */
 #define DPCI_RSP_GET_TX_QUEUE(cmd, attr) \
-	MC_RSP_OP(cmd, 0, 32, 32, uint32_t,  attr->fqid);
+	MC_RSP_OP(cmd, 0, 32, 32, uint32_t,  attr->fqid)
 
 
 #endif /* _FSL_DPCI_CMD_H */
