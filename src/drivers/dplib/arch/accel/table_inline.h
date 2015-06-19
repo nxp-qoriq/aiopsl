@@ -313,7 +313,7 @@ inline int table_rule_query(enum table_hw_accel_id acc_id,
 		}
 		else
 			/* Call fatal error handler */
-			table_exception_handler_wrp(
+			table_inline_exception_handler(
 					TABLE_RULE_QUERY_FUNC_ID,
 					__LINE__,
 					TABLE_SW_STATUS_QUERY_INVAL_ENTYPE,
@@ -395,7 +395,7 @@ inline int table_lookup_by_keyid_default_frame(enum table_hw_accel_id acc_id,
 		status = -EIO;
 	else
 		/* Call fatal error handler */
-		table_exception_handler_wrp(
+		table_inline_exception_handler(
 			TABLE_LOOKUP_BY_KEYID_DEFAULT_FRAME_FUNC_ID,
 			__LINE__,
 			status,

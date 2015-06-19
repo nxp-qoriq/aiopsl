@@ -915,7 +915,7 @@ int table_hw_accel_acquire_lock(enum table_hw_accel_id acc_id);
 void table_hw_accel_release_lock(enum table_hw_accel_id acc_id);
 
 /**************************************************************************//**
-@Function	table_exception_handler_wrp
+@Function	table_c_exception_handler
 
 @Description	Wrapper for the handler of the error status returned from the
 		Table API functions.
@@ -938,14 +938,14 @@ void table_hw_accel_release_lock(enum table_hw_accel_id acc_id);
 
 @Cautions	This is a non return function.
 *//***************************************************************************/
-void table_exception_handler_wrp(enum table_function_identifier func_id,
-				 uint32_t line,
-				 int32_t status,
-				 enum table_entity entity)
+void table_c_exception_handler(enum table_function_identifier func_id,
+			       uint32_t line,
+			       int32_t status,
+			       enum table_entity entity)
 					__attribute__ ((noreturn));
 
 /**************************************************************************//**
-@Function	table_exception_handler_wrp
+@Function	table_inline_exception_handler
 
 @Description	Wrapper for the handler of the error status returned from the
 		Table API functions.

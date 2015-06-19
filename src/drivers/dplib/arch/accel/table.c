@@ -60,10 +60,10 @@ void table_get_params(enum table_hw_accel_id acc_id,
 	/* Check status */
 	status = *((int32_t *)HWC_ACC_OUT_ADDRESS);
 	if (status)
-		table_exception_handler_wrp(TABLE_GET_PARAMS_FUNC_ID,
-					    __LINE__,
-					    status,
-					    TABLE_ENTITY_HW);
+		table_c_exception_handler(TABLE_GET_PARAMS_FUNC_ID,
+					  __LINE__,
+					  status,
+					  TABLE_ENTITY_HW);
 
 	return;
 }
@@ -79,10 +79,10 @@ void table_get_miss_result(enum table_hw_accel_id acc_id,
 				  &invalid_timestamp);
 
 	if (status)
-		table_exception_handler_wrp(TABLE_GET_MISS_RESULT_FUNC_ID,
-					    __LINE__,
-					    TABLE_SW_STATUS_MISS_RES_GET_FAIL,
-					    TABLE_ENTITY_SW);
+		table_c_exception_handler(TABLE_GET_MISS_RESULT_FUNC_ID,
+					  __LINE__,
+					  TABLE_SW_STATUS_MISS_RES_GET_FAIL,
+					  TABLE_ENTITY_SW);
 	return;
 }
 
@@ -147,11 +147,10 @@ int table_rule_create_or_replace(enum table_hw_accel_id acc_id,
 	}
 	else if (status == TABLE_HW_STATUS_BIT_MISS){}
 	else if (status & TABLE_HW_STATUS_BIT_TIDE) {
-		table_exception_handler_wrp(
-			TABLE_RULE_CREATE_OR_REPLACE_FUNC_ID,
-			__LINE__,
-			status,
-			TABLE_ENTITY_HW);
+		table_c_exception_handler(TABLE_RULE_CREATE_OR_REPLACE_FUNC_ID,
+					  __LINE__,
+					  status,
+					  TABLE_ENTITY_HW);
 	}
 	else if (status & TABLE_HW_STATUS_BIT_NORSC) {
 		status = -ENOMEM;
@@ -161,11 +160,10 @@ int table_rule_create_or_replace(enum table_hw_accel_id acc_id,
 	}
 	else {
 		/* Call fatal error handler */
-		table_exception_handler_wrp(
-				TABLE_RULE_CREATE_OR_REPLACE_FUNC_ID,
-				__LINE__,
-				status,
-				TABLE_ENTITY_HW);
+		table_c_exception_handler(TABLE_RULE_CREATE_OR_REPLACE_FUNC_ID,
+					  __LINE__,
+					  status,
+					  TABLE_ENTITY_HW);
 	}
 	return status;
 }
@@ -213,20 +211,20 @@ int table_lookup_by_keyid(enum table_hw_accel_id acc_id,
 		  TABLE_HW_STATUS_BIT_NORSC |
 		  TABLE_HW_STATUS_BIT_KSE))
 	{
-		table_inline_exception_handler(TABLE_LOOKUP_BY_KEYID_FUNC_ID,
-					       __LINE__,
-					       status,
-					       TABLE_ENTITY_HW);
+		table_c_exception_handler(TABLE_LOOKUP_BY_KEYID_FUNC_ID,
+					  __LINE__,
+					  status,
+					  TABLE_ENTITY_HW);
 	}
 	else if (status & TABLE_HW_STATUS_BIT_EOFH) {
 		status = -EIO;
 	}
 	else {
 		/* Call fatal error handler */
-		table_exception_handler_wrp(TABLE_LOOKUP_BY_KEYID_FUNC_ID,
-					    __LINE__,
-					    status,
-					    TABLE_ENTITY_HW);
+		table_c_exception_handler(TABLE_LOOKUP_BY_KEYID_FUNC_ID,
+					  __LINE__,
+					  status,
+					  TABLE_ENTITY_HW);
 	}
 	return status;
 }
@@ -358,7 +356,7 @@ int table_rule_replace_by_ruleid(enum table_hw_accel_id acc_id,
 		status = -EIO;
 	else
 		/* Call fatal error handler */
-		table_exception_handler_wrp(TABLE_RULE_REPLACE_BY_RULEID_FUNC_ID,
+		table_c_exception_handler(TABLE_RULE_REPLACE_BY_RULEID_FUNC_ID,
 					    __LINE__,
 					    status);
 
@@ -401,7 +399,7 @@ int table_rule_delete_by_ruleid(enum table_hw_accel_id acc_id,
 		status = -EIO;
 	else
 		/* Call fatal error handler */
-		table_exception_handler_wrp(
+		table_c_exception_handler(
 				TABLE_RULE_DELETE_BY_RULEID_FUNC_ID,
 				__LINE__,
 				status);
@@ -494,7 +492,7 @@ int table_rule_query_by_ruleid(enum table_hw_accel_id acc_id,
 
 		else
 			/* Call fatal error handler */
-			table_exception_handler_wrp(
+			table_c_exception_handler(
 					TABLE_RULE_QUERY_BY_RULEID_FUNC_ID,
 					__LINE__,
 					status);
@@ -552,10 +550,10 @@ void table_hw_accel_release_lock(enum table_hw_accel_id acc_id)
 
 #pragma stackinfo_ignore on
 
-void table_exception_handler_wrp(enum table_function_identifier func_id,
-				 uint32_t line,
-				 int32_t status,
-				 enum table_entity entity)
+void table_c_exception_handler(enum table_function_identifier func_id,
+			       uint32_t line,
+			       int32_t status,
+			       enum table_entity entity)
 					__attribute__ ((noreturn)) {
 	table_exception_handler(__FILE__, func_id, line, status, entity);
 }
@@ -748,7 +746,7 @@ int table_calc_num_entries_per_rule(uint16_t type, uint8_t key_size){
 		break;
 
 	default:
-		table_exception_handler_wrp(
+		table_c_exception_handler(
 				TABLE_CALC_NUM_ENTRIES_PER_RULE_FUNC_ID,
 				__LINE__,
 				TABLE_SW_STATUS_UNKNOWN_TBL_TYPE,
@@ -759,7 +757,7 @@ int table_calc_num_entries_per_rule(uint16_t type, uint8_t key_size){
 	return num_entries_per_rule;
 }
 
-
+/* TODO remove for Rev2 */
 void table_workaround_tkt226361(uint32_t mflu_peb_num_entries,
 				uint32_t mflu_dp_ddr_num_entries,
 				uint32_t mflu_sys_ddr_num_entries){
@@ -804,7 +802,7 @@ void table_workaround_tkt226361(uint32_t mflu_peb_num_entries,
 			
 			if(table_create(TABLE_ACCEL_ID_MFLU,&tbl_crt_prm,
 					&table_id)) {
-				table_exception_handler_wrp(
+				table_c_exception_handler(
 					TABLE_WORKAROUND_TKT226361_FUNC_ID,
 					__LINE__,
 					TABLE_SW_STATUS_TKT226361_ERR,
@@ -831,7 +829,7 @@ void table_workaround_tkt226361(uint32_t mflu_peb_num_entries,
 #else
 					TABLE_KEY_MFLU_PRIORITY_FIELD_SIZE)){
 #endif
-				table_exception_handler_wrp(
+				table_c_exception_handler(
 					TABLE_WORKAROUND_TKT226361_FUNC_ID,
 					__LINE__,
 					TABLE_SW_STATUS_TKT226361_ERR,
@@ -855,7 +853,7 @@ void table_workaround_tkt226361(uint32_t mflu_peb_num_entries,
 #else
 					TABLE_KEY_MFLU_PRIORITY_FIELD_SIZE)){
 #endif
-				table_exception_handler_wrp(
+				table_c_exception_handler(
 					TABLE_WORKAROUND_TKT226361_FUNC_ID,
 					__LINE__,
 					TABLE_SW_STATUS_TKT226361_ERR,
