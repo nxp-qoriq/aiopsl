@@ -1045,9 +1045,9 @@ inline int table_rule_create(enum table_hw_accel_id acc_id,
 @Cautions	This function may result in a fatal error.
 *//***************************************************************************/
 inline int table_rule_create(enum table_hw_accel_id acc_id,
-		      uint16_t table_id,
-		      struct table_rule *rule,
-		      uint8_t key_size);
+			     uint16_t table_id,
+			     struct table_rule *rule,
+			     uint8_t key_size);
 #endif
 
 #ifdef REV2_RULEID

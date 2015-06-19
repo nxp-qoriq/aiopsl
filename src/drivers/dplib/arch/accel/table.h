@@ -931,12 +931,45 @@ void table_hw_accel_release_lock(enum table_hw_accel_id acc_id);
 @Param[in]	func_id The function in which the error occurred.
 @Param[in]	line The line in which the error occurred.
 @Param[in]	status Status to be handled in this function.
+@Param[in]	entity Distinguishes between entities that initiate the
+		exception request.
 
 @Return		None.
 
 @Cautions	This is a non return function.
 *//***************************************************************************/
 void table_exception_handler_wrp(enum table_function_identifier func_id,
+				 uint32_t line,
+				 int32_t status,
+				 enum table_entity entity)
+					__attribute__ ((noreturn));
+
+/**************************************************************************//**
+@Function	table_exception_handler_wrp
+
+@Description	Wrapper for the handler of the error status returned from the
+		Table API functions.
+		This wrapper adds the file path in which the error occurred. It
+		should be implemented inside a special compiler pragma which
+		tells the compiler to store data (e.g. strings) in a dedicated
+		location, so there will be good memory usage.
+		This wrapper eases the process of relocation functions if
+		needed (they can call another wrapper instead (i.e. wrapper is
+		per file but the exception handling function of table API is
+		located in one place and should not be changed over time.
+
+@Param[in]	func_id The function in which the error occurred.
+@Param[in]	line The line in which the error occurred.
+@Param[in]	status Status to be handled in this function.
+@Param[in]	entity Distinguishes between entities that initiate the
+		exception request.
+
+@Return		None.
+
+@Cautions	This is a non return function.
+*//***************************************************************************/
+inline void table_inline_exception_handler(
+				 enum table_function_identifier func_id,
 				 uint32_t line,
 				 int32_t status,
 				 enum table_entity entity)
@@ -952,6 +985,8 @@ void table_exception_handler_wrp(enum table_function_identifier func_id,
 @Param[in]	func_id The function in which the error occurred.
 @Param[in]	line The line in which the error occurred.
 @Param[in]	status_id Status ID to be handled in this function.
+@Param[in]	entity Distinguishes between entities that initiate the
+		exception request.
 
 @Return		None.
 
