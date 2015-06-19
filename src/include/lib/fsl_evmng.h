@@ -38,8 +38,8 @@
 /**************************************************************************//**
 @Group		evmng_g Event Manager
 
-@Description	Contains initialization APIs and runtime control APIs for Event
-		Manager
+@Description	EVMNG API for registration to application and service layer
+		events and the ability to raise application events by priority.
 
 @{
 *//***************************************************************************/
@@ -86,7 +86,7 @@ enum evm_event_types {
 		event
 
 @Param[in]	event_id  Identifier of the event specific to the application
-		generating event. The value can range from 0 to MAX_EVENT_ID -1
+		generating event. The value can range from 0 to MAX_EVENT_ID -1.
 		\ref EVMNG_EVENT_TYPES
 
 @Param[in]	app_ctx  App/SL data saved during registration and passed to CB
@@ -113,10 +113,10 @@ typedef int (*evmng_cb)(uint8_t generator_id,
 		event
 
 @Param[in]	event_id  Identifier of the event specific to the application
-		generating event. The value can range from 0 to MAX_EVENT_ID -1
-		\ref EVMNG_EVENT_TYPES
-		To use app defined events, the provided event id should be
-		from NUM_OF_SL_DEFINED_EVENTS to MAX_EVENT_ID -1.
+		generating event. The value can range from 0 to MAX_EVENT_ID -1.
+		\ref EVMNG_EVENT_TYPES.
+		To use application defined events, the provided event id must be
+		in range of [NUM_OF_SL_DEFINED_EVENTS , MAX_EVENT_ID -1]
 
 @Param[in]	priority  priority number of the callback function.
 		This value ranges from 1 - 127.
@@ -151,7 +151,7 @@ int evmng_register(
 		event
 
 @Param[in]	event_id  Identifier of the event specific to the application
-		generating event. The value can range from 0 to MAX_EVENT_ID -1
+		generating event. The value can range from 0 to MAX_EVENT_ID -1.
 		\ref EVMNG_EVENT_TYPES
 
 @Param[in]	priority  priority number of the callback function.
@@ -189,7 +189,7 @@ int evmng_unregister(
 
 @Param[in]	event_id  Identifier of the event specific to the application
 		generating event. The value can range from NUM_OF_SL_DEFINED_EVENTS
-		to MAX_EVENT_ID -1
+		to MAX_EVENT_ID -1.
 		\ref EVMNG_EVENT_TYPES
 
 @Param[in]	event_data  A pointer to data specific for event

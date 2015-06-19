@@ -738,6 +738,17 @@
 			*/
 	/** @} */
 	
+		/** @defgroup ep_g  EPID
+		@ingroup kernel_g
+		@{ */
+			/** @defgroup EP_INIT_PRESENTATION_OPT initial presentation options
+				@ingroup ep_g
+			*/
+			/** @defgroup ep_initial_presentation Initial Presentation
+				@ingroup ep_g
+			*/
+	/** @} */
+	
 	/** @defgroup cmdif_g  Command Interface
 	@ingroup kernel_g
 	@{ */
