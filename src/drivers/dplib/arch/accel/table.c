@@ -98,7 +98,6 @@ int table_rule_create_or_replace(enum table_hw_accel_id acc_id,
 				 struct table_result *old_res)
 #endif
 {
-	
 #ifdef CHECK_ALIGNMENT
 	DEBUG_ALIGN("table.c", (uint32_t)rule, ALIGNMENT_16B);
 #endif
@@ -178,12 +177,11 @@ int table_lookup_by_keyid(enum table_hw_accel_id acc_id,
 			  struct table_lookup_result *lookup_result)
 {
 	
-#ifdef CHECK_ALIGNMENT 	
+#ifdef CHECK_ALIGNMENT
 	DEBUG_ALIGN("table.c", (uint32_t)ndf_params, ALIGNMENT_16B);
 	DEBUG_ALIGN("table.c", (uint32_t)lookup_result, ALIGNMENT_16B);
 	DEBUG_ALIGN("table.c", (uint32_t *)PRC_GET_SEGMENT_ADDRESS(), ALIGNMENT_16B);
 #endif
-	
 	int32_t status;
 
 	/* optimization 1 clock */
@@ -299,9 +297,7 @@ int table_get_key_desc(enum table_hw_accel_id acc_id,
 		table_exception_handler_wrp(TABLE_GET_KEY_DESC_FUNC_ID,
 					    __LINE__,
 					    status);
-
 	return status;
-
 }
 
 
@@ -310,11 +306,9 @@ int table_rule_replace_by_ruleid(enum table_hw_accel_id acc_id,
 		       struct table_ruleid_and_result_desc *rule,
 		       struct table_result *old_res)
 {
-	
 #ifdef CHECK_ALIGNMENT 	
 	DEBUG_ALIGN("table_inline.h",(uint32_t)rule, ALIGNMENT_16B);
 #endif
-	
 	int32_t status;
 
 	struct table_old_result hw_old_res __attribute__((aligned(16)));
@@ -368,7 +362,6 @@ int table_rule_delete_by_ruleid(enum table_hw_accel_id acc_id,
 		      struct table_rule_id_desc *rule_id_desc,
 		      struct table_result *result)
 {
-	
 #ifdef CHECK_ALIGNMENT 	
 	DEBUG_ALIGN("table_inline.h",(uint32_t)rule_id_desc, ALIGNMENT_16B);
 #endif
@@ -413,7 +406,6 @@ int table_rule_query_by_ruleid(enum table_hw_accel_id acc_id,
 		     struct table_result *result,
 		     uint32_t *timestamp)
 {
-	
 #ifdef CHECK_ALIGNMENT 	
 	DEBUG_ALIGN("table_inline.h",(uint32_t)rule_id_desc, ALIGNMENT_16B);
 #endif
@@ -674,16 +666,18 @@ void table_exception_handler(char *file_path,
 			status = "Table miss rule creation failed.\n";
 			break;
 		case(TABLE_SW_STATUS_MISS_RES_RPL_FAIL):
-			status = "Table replace miss result failed due to non-existence"
-				 " of a miss result in the table.\n";
+			status = "Table replace miss result failed due to"
+				 " non-existence of a miss result in the table."
+				 "\n";
 			break;
 		case(TABLE_SW_STATUS_MISS_RES_GET_FAIL):
-			status = "Table get miss result failed due to non-existence of"
-				  " a miss result in the table.\n";
+			status = "Table get miss result failed due to "
+				 "non-existence of a miss result in the"
+				 " table.\n";
 			break;
 		case(TABLE_SW_STATUS_QUERY_INVAL_ENTYPE):
-			status = "Rule query failed due to unrecognized entry type"
-				 " returned from HW.\n";
+			status = "Rule query failed due to unrecognized entry"
+				 " type returned from HW.\n";
 			break;
 		case(TABLE_SW_STATUS_UNKNOWN_TBL_TYPE):
 			status = "Unknown table type.\n";
@@ -838,8 +832,9 @@ void table_workaround_tkt226361(uint32_t mflu_peb_num_entries,
 
 			*((uint32_t *)(&rule2.key_desc.mflu.key[0])) =
 					0x87654321;
-			*((uint32_t *)(&rule2.key_desc.mflu.key[TABLE_TKT226361_KEY_SIZE])) =
-					0x00000000; // priority
+			*((uint32_t *)(&rule2.key_desc.mflu.key
+					[TABLE_TKT226361_KEY_SIZE])) =
+							0x00000000; // priority
 			*((uint32_t *)(&rule2.key_desc.mflu.mask[0])) =
 					0xFFFFFFFF;
 			rule2.options = TABLE_RULE_TIMESTAMP_NONE;
