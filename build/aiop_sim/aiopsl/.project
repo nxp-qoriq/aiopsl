@@ -520,11 +520,6 @@
 			<locationURI>virtual:/virtual</locationURI>
 		</link>
 		<link>
-			<name>aiop_sl/drivers/dplib/ep</name>
-			<type>2</type>
-			<locationURI>virtual:/virtual</locationURI>
-		</link>
-		<link>
 			<name>aiop_sl/drivers/dplib/include</name>
 			<type>2</type>
 			<locationURI>virtual:/virtual</locationURI>
@@ -975,11 +970,6 @@
 			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/dplib/dprc/dprc_drv.c</locationURI>
 		</link>
 		<link>
-			<name>aiop_sl/drivers/dplib/ep/ep.c</name>
-			<type>1</type>
-			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/dplib/ep/ep.c</locationURI>
-		</link>
-		<link>
 			<name>aiop_sl/drivers/dplib/include/checksum.h</name>
 			<type>1</type>
 			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/dplib/include/checksum.h</locationURI>
@@ -1198,6 +1188,11 @@
 			<name>aiop_sl/drivers/dplib/arch/accel/cdma_inline.h</name>
 			<type>1</type>
 			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/dplib/arch/accel/cdma_inline.h</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/drivers/dplib/arch/accel/ep.c</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/dplib/arch/accel/ep.c</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/drivers/dplib/arch/accel/fdma.c</name>
