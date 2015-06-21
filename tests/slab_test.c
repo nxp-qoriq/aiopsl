@@ -44,11 +44,6 @@ extern struct slab_bman_pool_desc g_slab_bman_pools[SLAB_MAX_BMAN_POOLS_NUM];
 int app_test_slab_overload_test();
 int app_test_slab(struct slab *slab, int num_times, enum memory_partition_id mem_pid, uint16_t alignment);
 
-/* The CQ should be solved in sim m134 - remove when fixed*/
-#ifdef SIMULATOR
-#define ENGR358518
-#endif
-
 static void slab_callback_test(uint64_t context_address){
 
 	fsl_os_print("slab_release: callback function\n");
@@ -164,8 +159,7 @@ int app_test_slab_init(void)
 		}
 	}
 	fsl_os_print("Done\n");
-/* TODO: The original code is under ifdef until the CQ bellow will be resolved */
-#ifndef ENGR358518
+
 	if (slab_refcount_decr(buff[0]) == SLAB_CDMA_REFCOUNT_DECREMENT_TO_ZERO){
 		err = slab_release(my_slab, buff[0]);
 		if (err) return err;
@@ -192,34 +186,6 @@ int app_test_slab_init(void)
 	}
 	else
 		return -ENODEV;
-#else
-	if (slab_refcount_decr(buff[0]) == 0){
-		err = slab_release(my_slab, buff[0]);
-		if (err) return err;
-	}
-
-	else
-		return -ENODEV;
-
-	if (slab_refcount_decr(buff[1]) == 0){
-		err = slab_release(my_slab, buff[1]);
-		if (err) return err;
-	}
-	else
-		return -ENODEV;
-	if (slab_refcount_decr(buff[2]) == 0){
-		err = slab_release(my_slab, buff[2]);
-		if (err) return err;
-	}
-	else
-		return -ENODEV;
-	if (slab_refcount_decr(buff[3]) == 0){
-		err = slab_release(my_slab, buff[3]);
-		if (err) return err;
-	}
-	else
-		return -ENODEV;
-#endif
 
 	err = slab_debug_info_get(my_slab, &slab_info);
 	if (err) {

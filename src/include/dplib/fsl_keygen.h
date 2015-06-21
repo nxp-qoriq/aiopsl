@@ -502,7 +502,7 @@ inline int keygen_kcr_builder_add_protocol_specific_field
 		specific offset. Field extraction starts from this offset.
 		Please refer to \ref kcr_builder_parse_result_offset.
 @Param[in]	extract_offset - offset from the beginning of the protocol
-		header. Must not exceed 0xF.
+		header. In Rev1: Must not exceed 0xF.
 @Param[in]	extract_size - size of extraction (1-16 bytes).
 @Param[in]	mask - a structure of up to 4 bitwise masks from defined
 		offsets. If user is not interested in mask for this FEC,
@@ -566,9 +566,8 @@ int keygen_kcr_builder_add_generic_extract_fec(uint8_t offset,
 	struct kcr_builder_fec_mask *mask, struct kcr_builder *kb);
 
 
-#ifdef REV2
 /**************************************************************************//**
-@Function	keygen_kcr_builder_add_lookup_result_field_fec
+@Function	keygen_kcr_builder_add_lookup_result_field_fec (OBSOLETE)
 
 @Description	This function adds extracted lookup result field
 		Field Extract Command (FEC) for key composition rule (kcr).
@@ -594,11 +593,12 @@ int keygen_kcr_builder_add_generic_extract_fec(uint8_t offset,
 
 @Cautions	This function is not available for rev1.
 *//***************************************************************************/
+/*
 int keygen_kcr_builder_add_lookup_result_field_fec(
 	enum kcr_builder_ext_lookup_res_field extract_field,
 	uint8_t offset_in_opaque, uint8_t extract_size_in_opaque,
 	struct kcr_builder_fec_mask *mask, struct kcr_builder *kb);
-#endif /*REV2*/
+*/
 
 
 /**************************************************************************//**
@@ -736,8 +736,8 @@ void keygen_kcr_query(enum keygen_hw_accel_id acc_id,
  	 	This function may result in a fatal error.
  	 	Presented header address in the workspace must be aligned to
  	  	16 bytes.
- 	 	In Rev1: Due to HW bug (TKT231187) the maximum key size allowed
- 	 	is 80 bytes.
+ 	 	In Rev1: Due to HW bug (ERR008450) the maximum key size allowed
+ 	 	is 80 bytes for CTLU and 48 bytes for MFLU.
 *//***************************************************************************/
 inline int keygen_gen_key(enum keygen_hw_accel_id acc_id,
 		     uint8_t keyid,
