@@ -34,14 +34,16 @@
 #define __FSL_EP_H
 
 /**************************************************************************//**
-@Group		ep_g EPID
+@Group		ep_g EP
+
+@Description	Entry Point lookup table
 
 @{
 *//***************************************************************************/
 
 
 /**************************************************************************//**
- @Group		EP_INIT_PRESENTATION_OPT initial presentation options
+ @Group		EP_INIT_PRESENTATION_OPT Initial Presentation Options
 
  @Description	initial presentation modification options
 
@@ -68,7 +70,7 @@
 /** @} end of group EP_INIT_PRESENTATION_OPT */
 
 /**************************************************************************//**
-@Group		ep_initial_presentation Initial Presentation
+@Group		EP_INIT_PRESENTATION Initial Presentation
 
 @Description	Structure representing initial presentation settings.
 
@@ -105,7 +107,7 @@ struct ep_init_presentation {
 	/**  No Data Segment bit - 1: to not allocate data segment  */
 	uint8_t  nds;
 };
-/** @} end of group ep_initial_presentation */
+/** @} end of group EP_INIT_PRESENTATION */
 
 /** @} end of group ep_g */
 #endif /* __FSL_EP_H */

@@ -808,7 +808,7 @@ int dpni_drv_remove_vlan_id(uint16_t ni_id, uint16_t vlan_id);
 @Param[in]	ni_id The AIOP Network Interface ID.
 
 @Param[out]	init_presentation Get initial presentation parameters
- 	 	 \ref ep_initial_presentation
+ 	 	 \ref EP_INIT_PRESENTATION
 
 @Return	0 on success;
 	error code, otherwise. For error posix refer to \ref error_g
@@ -826,7 +826,7 @@ int dpni_drv_get_initial_presentation(
 @Param[in]	ni_id The AIOP Network Interface ID.
 
 @Param[in]	init_presentation Set initial presentation parameters for given
-		options and parameters \ref ep_initial_presentation
+		options and parameters \ref EP_INIT_PRESENTATION
 
 @Cautions	1) Data Segment, PTA Segment, ASA Segment must not reside
 		   outside the bounds of the

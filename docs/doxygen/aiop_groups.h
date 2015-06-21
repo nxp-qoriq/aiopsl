@@ -430,6 +430,16 @@
 					@ingroup dpni_drv_g
 					*/
 
+				/** @defgroup ep_g  EP
+					@ingroup grp_dplib_aiop
+				*/
+					/** @defgroup EP_INIT_PRESENTATION_OPT Initial Presentation Options
+					@ingroup ep_g
+					*/
+					/** @defgroup EP_INIT_PRESENTATION Initial Presentation
+					@ingroup ep_g
+					*/
+					
 			/** @} */
 	
 	
@@ -441,7 +451,7 @@
       */
 	  
 		/** @defgroup AIOP_NETF_GENERAL GENERAL
-			*ingroup NETF
+			@ingroup NETF
 			@{
 		*/
 
@@ -735,17 +745,6 @@
 			*/
 			/** @defgroup EVMNG_AIOPSL_GENERATOR_ID AIOPSL Generator ID
 				@ingroup evmng_g
-			*/
-	/** @} */
-	
-		/** @defgroup ep_g  EPID
-		@ingroup kernel_g
-		@{ */
-			/** @defgroup EP_INIT_PRESENTATION_OPT initial presentation options
-				@ingroup ep_g
-			*/
-			/** @defgroup ep_initial_presentation Initial Presentation
-				@ingroup ep_g
 			*/
 	/** @} */
 	
