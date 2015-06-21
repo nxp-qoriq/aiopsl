@@ -165,7 +165,8 @@ static int dpci_dynamic_rm_test()
 	ASSERT_COND(err < 0);
 	err = dpci_mng_find((uint32_t)attr.id);
 	ASSERT_COND(err < 0);
-
+	
+	return 0;
 }
 
 static int dpci_dynamic_add_test()
@@ -245,7 +246,7 @@ static int dpci_dynamic_add_test()
 	ASSERT_COND(err >= 0);
 	ASSERT_COND(g_dpci_tbl.tx_queue[err][0] != DPCI_FQID_NOT_VALID);
 
-	return err;
+	return 0;
 }
 
 static void aiop_ws_check()
