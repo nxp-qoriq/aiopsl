@@ -160,6 +160,12 @@ static int dpci_dynamic_rm_test()
 
 	err = dprc_drv_scan();
 	ASSERT_COND(!err);
+	
+	err = dpci_mng_find((uint32_t)attr_c.id);
+	ASSERT_COND(err < 0);
+	err = dpci_mng_find((uint32_t)attr.id);
+	ASSERT_COND(err < 0);
+
 }
 
 static int dpci_dynamic_add_test()
@@ -230,9 +236,14 @@ static int dpci_dynamic_add_test()
 	ASSERT_COND(!err);
 
 	err = dprc_drv_scan();
-	if (err) {
-		pr_err("dprc_drv_scan err = %d\n", err);
-	}
+	ASSERT_COND(!err);
+
+	err = dpci_mng_find((uint32_t)endpoint2.id);
+	ASSERT_COND(err >= 0);
+	ASSERT_COND(g_dpci_tbl.tx_queue[err][0] != DPCI_FQID_NOT_VALID);
+	err = dpci_mng_find((uint32_t)endpoint1.id);
+	ASSERT_COND(err >= 0);
+	ASSERT_COND(g_dpci_tbl.tx_queue[err][0] != DPCI_FQID_NOT_VALID);
 
 	return err;
 }
