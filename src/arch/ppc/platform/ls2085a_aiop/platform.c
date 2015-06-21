@@ -183,27 +183,6 @@ static int console_get_line_cb(fsl_handle_t h_console_dev, uint8_t *p_data, uint
 
 	return (int)count;
 }
-#ifdef ARENA_LEGACY_CODE
-/*****************************************************************************/
-static void pltfrm_enable_local_irq_cb(fsl_handle_t h_platform)
-{
-	UNUSED(h_platform);
-
-	msr_enable_ee();
-	msr_enable_me();
-	msr_enable_ce();
-}
-
-/*****************************************************************************/
-static void pltfrm_disable_local_irq_cb(fsl_handle_t h_platform)
-{
-	UNUSED(h_platform);
-
-	msr_disable_ee();
-	msr_disable_me();
-	msr_disable_ce();
-}
-#endif
 
 /*****************************************************************************/
 __COLD_CODE static int init_random_seed(uint32_t num_of_tasks)
@@ -285,7 +264,7 @@ __COLD_CODE static int pltfrm_init_core_cb(fsl_handle_t h_platform)
 	/* Initialize PPC interrupts vector                     */
 	/*------------------------------------------------------*/
 	booke_generic_irq_init();
-	
+
 #ifndef DEBUG
 	/* Enable the BTB - branches predictor */
 	booke_set_spr_BUCSR(booke_get_spr_BUCSR() | 0x00000201);
@@ -340,10 +319,10 @@ __COLD_CODE static int pltfrm_init_console_cb(fsl_handle_t h_platform)
 		err = platform_enable_console(pltfrm);
 		if (err != 0){
 			err = sys_register_console((fsl_handle_t) -1, console_print_cb_uart_disabled, NULL);
-			
+
 			/*Uart failed. the print will go only to buffer*/
 			pr_warn("UART print failed, all debug data will be printed to buffer.\n");
-			
+
 			return err;
 		}
 
@@ -391,7 +370,7 @@ __COLD_CODE static int pltfrm_init_mem_partitions_cb(fsl_handle_t h_platform)
 		pr_err("Couldn't add FSL_OS_MOD_MC_PORTAL using sys_add_handle()\n");
 		return err;
 	}
-	
+
 	for (i = 0; i < pltfrm->num_of_mem_parts; i++) {
 		p_mem_info = &pltfrm->param.mem_info[i];
 		virt_base_addr = p_mem_info->virt_base_addr;
@@ -640,34 +619,20 @@ __COLD_CODE int platform_init(struct platform_param    *pltfrm_param,
 	s_pltfrm.aiop_base = AIOP_PERIPHERALS_OFF;
 	/* Initialize platform operations structure */
 	pltfrm_ops->h_platform              = &s_pltfrm;
-	pltfrm_ops->f_init_core             = pltfrm_init_core_cb;
-	pltfrm_ops->f_free_core             = pltfrm_free_core_cb;
-	pltfrm_ops->f_init_intr_ctrl        = NULL;
-	pltfrm_ops->f_free_intr_ctrl        = NULL;
-	pltfrm_ops->f_init_soc              = NULL;
-	pltfrm_ops->f_free_soc              = NULL;
-	pltfrm_ops->f_init_timer            = NULL;
-	pltfrm_ops->f_free_timer            = NULL;
-	pltfrm_ops->f_init_console          = pltfrm_init_console_cb;
-	pltfrm_ops->f_free_console          = pltfrm_free_console_cb;
 
-	pltfrm_ops->f_init_mem_partitions   = pltfrm_init_mem_partitions_cb;
-	pltfrm_ops->f_free_mem_partitions   = pltfrm_free_mem_partitions_cb;
+	memset(pltfrm_ops->modules, NULL, sizeof(struct pltform_module_desc) * PLTFORM_NUM_OF_INIT_MODULES);
+	i = 0;
+
+	/*
+	 * Note: order of execution is according to the array placement
+	 */
+	pltfrm_ops->modules[i++] = (struct pltform_module_desc){.init = pltfrm_init_core_cb, .free = pltfrm_free_core_cb, .is_single_core = PLATFORM_MULTI_CORE};
+	pltfrm_ops->modules[i++] = (struct pltform_module_desc){.init = pltfrm_init_mem_partitions_cb, .free = pltfrm_free_mem_partitions_cb, .is_single_core = PLATFORM_SINGLE_CORE};
+	pltfrm_ops->modules[i++] = (struct pltform_module_desc){.init = pltfrm_init_console_cb, .free = pltfrm_free_console_cb, .is_single_core = PLATFORM_SINGLE_CORE};
 #ifdef ARENA_LEGACY_CODE
-pltfrm_ops->f_init_private          = pltfrm_init_private_cb;
-pltfrm_ops->f_free_private          = pltfrm_free_private_cb;
-#else
-pltfrm_ops->f_init_private          = NULL;
-pltfrm_ops->f_free_private          = NULL;
+	pltfrm_ops->modules[i++] = (struct pltform_module_desc){.init = pltfrm_init_private_cb, .free = pltfrm_free_private_cb, .is_single_core = PLATFORM_MULTI_CORE};
 #endif
-pltfrm_ops->f_enable_cores          = NULL;
-#ifdef ARENA_LEGACY_CODE
-pltfrm_ops->f_enable_local_irq      = pltfrm_enable_local_irq_cb;
-pltfrm_ops->f_disable_local_irq     = pltfrm_disable_local_irq_cb;
-#else
-pltfrm_ops->f_enable_local_irq      = NULL;
-pltfrm_ops->f_disable_local_irq     = NULL;
-#endif
+	ASSERT_COND(i <= PLTFORM_NUM_OF_INIT_MODULES);
 
 return 0;
 }
@@ -718,7 +683,7 @@ __COLD_CODE int platform_enable_console(fsl_handle_t h_platform)
 	if(pltfrm->param.console_type != PLTFRM_CONSOLE_DUART) {
 		pr_crit("Console not supported");
 		return -ENOTSUP;
-	}		
+	}
 
 	if( pltfrm->param.console_id > 4 ) {
 		pr_err("resource is unavailable: DUART");

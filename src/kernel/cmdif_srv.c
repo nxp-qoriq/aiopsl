@@ -265,12 +265,17 @@ __COLD_CODE int cmdif_srv_mc_evm_session_open()
 	int      err;
 
 	m_id = module_id_find(m_name);
+	pr_debug("EVM moduel id %d\n", m_id);
 
 	if (m_id < 0) {
 		/* Did not find module with such name */
 		pr_err("No such module %s\n", m_name);
 		return -ENODEV;
 	}
+
+	ASSERT_COND(cmdif_aiop_srv.srv->open_cb[m_id]);
+	ASSERT_COND(cmdif_aiop_srv.srv->close_cb[m_id]);
+	ASSERT_COND(cmdif_aiop_srv.srv->ctrl_cb[m_id]);
 
 	inst_id  = 0;
 	OPEN_CB(m_id, inst_id, dev);
@@ -279,6 +284,7 @@ __COLD_CODE int cmdif_srv_mc_evm_session_open()
 		int new_inst = AIOP_SRV_EVM_AUTH_ID;
 		cmdif_aiop_srv.srv->m_id[new_inst] = (uint8_t)m_id;
 		cmdif_aiop_srv.srv->inst_dev[new_inst] = dev;
+		cmdif_aiop_srv.srv->sync_done[new_inst] = 0;
 		cmdif_aiop_srv.srv->inst_count++;
 		pr_info("Reserving EVM auth_id %d\n", new_inst);
 		return 0;
@@ -573,6 +579,7 @@ __COLD_CODE int session_open(uint16_t *new_auth)
 	void     *dev;
 	int      err;
 	uint32_t ind;
+	uint32_t fqid = DPCI_FQID_NOT_VALID;
 
 	cmd_m_name_get(&m_name[0]);
 	m_id = module_id_find(m_name);
@@ -585,7 +592,14 @@ __COLD_CODE int session_open(uint16_t *new_auth)
 
 	inst_id  = cmd_inst_id_get();
 
-	dpci_mng_user_ctx_get(&ind, NULL);
+	dpci_mng_user_ctx_get(&ind, &fqid);
+	if (fqid == DPCI_FQID_NOT_VALID) {
+		no_stack_pr_err("Oooops DP-CI%d is not ready yet \n",
+		                g_dpci_tbl.dpci_id[ind]);
+		no_stack_pr_err("Please retry after AIOP will finish DPCI"
+			"link up update \n");
+		return -ENODEV;
+	}
 
 #ifndef STACK_CHECK /* Stack check can ignore it up to user callback */
 	DPCI_DT_LOCK_W_TAKE;

@@ -285,86 +285,55 @@
 #define TABLE_HW_STATUS_SUCCESS	TABLE_STATUS_SUCCESS
 
 /** Command failed general status bit.
-A general bit that is set in some errors conditions */
-#define TABLE_HW_STATUS_MGCF	0x80000000
+ * A general bit that is set in some errors conditions */
+#define TABLE_HW_STATUS_BIT_MGCF		0x80000000
 
 /** Miss Occurred.
- * This status is set when a matching rule is not found. Note that on chained
- * lookups this status is set only if the last lookup results in a miss. */
-#define TABLE_HW_STATUS_MISS	TABLE_STATUS_MISS
+ * This bit is set when a matching rule is not found. Note that on chained
+ * lookups this status is set only if the last lookup results in a miss. 
+ * This bit is N/A if any other bit is set */
+#define TABLE_HW_STATUS_BIT_MISS	TABLE_STATUS_MISS
+
+/** Invalid Table ID.
+ * This status is set if the lookup table associated with the TID is not
+ * initialized. */
+#define TABLE_HW_STATUS_BIT_TIDE	0x00000080
+
+/** Resource is not available
+ * This bit is N/A if #TABLE_HW_STATUS_BIT_TIDE is set.
+ * */
+#define TABLE_HW_STATUS_BIT_NORSC	0x00000020
 
 /** Key Composition Error.
- * This status is set when a key composition error occurs, meaning one of the
+ * This bit is set when a key composition error occurs, meaning one of the
  * following:
  * - Invalid Key Composition ID was used.
  * - Key Size Error.
+ * This bit is N/A if #TABLE_HW_STATUS_BIT_TIDE or #TABLE_HW_STATUS_BIT_NORSC
+ * are set.
  * */
-#define TABLE_HW_STATUS_KSE	0x00000400
+#define TABLE_HW_STATUS_BIT_KSE		0x00000400
 
 /** Extract Out Of Frame Header.
  * This status is set if key composition attempts to extract a field which is
  * not in the frame header either because it is placed beyond the first 256
  * bytes of the frame, or because the frame is shorter than the index evaluated
- * for the extraction. */
-#define TABLE_HW_STATUS_EOFH	0x00000200
+ * for the extraction. 
+ * This bit is N/A if #TABLE_HW_STATUS_BIT_TIDE, #TABLE_HW_STATUS_BIT_NORSC,
+ * or #TABLE_HW_STATUS_BIT_KSE are set.*/
+#define TABLE_HW_STATUS_BIT_EOFH	0x00000200
 
 /** Maximum Number Of Chained Lookups Is Reached.
- * This status is set if the number of table lookups performed by the CTLU
- * reached the threshold. Not supported in Rev1 */
-#define TABLE_HW_STATUS_MNLE	0x00000100
+ * This bit is set if the number of table lookups performed by the CTLU
+ * reached the threshold. Not supported in Rev1 
+ * This bit is N/A if #TABLE_HW_STATUS_BIT_TIDE, #TABLE_HW_STATUS_BIT_NORSC,
+ * #TABLE_HW_STATUS_BIT_KSE or #TABLE_HW_STATUS_BIT_EOFH are set.*/
+#define TABLE_HW_STATUS_BIT_MNLE	0x00000100
 
 /** Policer Initialization Entry Error.
  * Might be used in CTLU/MFLU to indicate other stuff.
  * */
-#define TABLE_HW_STATUS_PIEE	0x00000040 
-
-/** Invalid Table ID.
- * This status is set if the lookup table associated with the TID is not
- * initialized. */
-#define CTLU_HW_STATUS_TIDE	(0x00000080 | (TABLE_ACCEL_ID_CTLU << 24) | \
-						TABLE_HW_STATUS_MGCF)
-
-/** Resource is not available
- * */
-#define CTLU_HW_STATUS_NORSC	(0x00000020 | (TABLE_ACCEL_ID_CTLU << 24) | \
-						TABLE_HW_STATUS_MGCF)
-
-/** Resource is not available
- * */
-#define CTLU_HW_STATUS_NORSC_TLUMISS	(0x00000020 | \
-					(TABLE_ACCEL_ID_CTLU << 24) | \
-					TABLE_HW_STATUS_MISS | \
-					TABLE_HW_STATUS_MGCF)
-
-/** Resource Is Temporarily Not Available.
- * Temporarily Not Available occurs if an other resource is in the process of
- * being freed up. Once the process ends, the resource may be available for new
- * allocation (availability is not guaranteed). */
-#define CTLU_HW_STATUS_TEMPNOR	(0x00000010 | CTLU_HW_STATUS_NORSC)
-
-/** Invalid Table ID.
- * This status is set if the lookup table associated with the TID is not
- * initialized. */
-#define MFLU_HW_STATUS_TIDE	(0x00000080 | (TABLE_ACCEL_ID_MFLU << 24) | \
-						TABLE_HW_STATUS_MGCF)
-
-/** Resource is not available
- * */
-#define MFLU_HW_STATUS_NORSC	(0x00000020 | (TABLE_ACCEL_ID_MFLU << 24) | \
-						TABLE_HW_STATUS_MGCF)
-
-/** Resource is not available
- * */
-#define MFLU_HW_STATUS_NORSC_TLUMISS	(0x00000020 | \
-					(TABLE_ACCEL_ID_MFLU << 24) | \
-					TABLE_HW_STATUS_MISS | \
-					TABLE_HW_STATUS_MGCF)
-
-/** Resource Is Temporarily Not Available.
- * Temporarily Not Available occurs if an other resource is in the process of
- * being freed up. Once the process ends, the resource may be available for new
- * allocation (availability is not guaranteed). */
-#define MFLU_HW_STATUS_TEMPNOR	(0x00000010 | MFLU_HW_STATUS_NORSC)
+#define TABLE_HW_STATUS_PIEE		0x00000040 
 
 /**
  * Miss result creation failed in table creation
@@ -391,7 +360,6 @@ A general bit that is set in some errors conditions */
  * Unknown table type.
  */
 #define TABLE_SW_STATUS_UNKNOWN_TBL_TYPE	0xFF000005
-
 
 /**
  * Work around for TKT226361 error.
@@ -459,8 +427,21 @@ enum table_function_identifier {
 	TABLE_CALC_NUM_ENTRIES_PER_RULE_FUNC_ID,
 	TABLE_WORKAROUND_TKT226361_FUNC_ID
 };
-
 /** @} */ /* end of table_function_identifier */
+
+
+/**************************************************************************//**
+@enum	table_entity
+
+@Description	Distinguishes between entities that initiate fatal 
+
+@{
+*//***************************************************************************/
+enum table_entity {
+	TABLE_ENTITY_SW,
+	TABLE_ENTITY_HW,
+};
+/** @} */ /* end of table_entity */
 
 /** @} */ /* end of TABLE_Enumerations */
 
@@ -934,7 +915,7 @@ int table_hw_accel_acquire_lock(enum table_hw_accel_id acc_id);
 void table_hw_accel_release_lock(enum table_hw_accel_id acc_id);
 
 /**************************************************************************//**
-@Function	table_exception_handler_wrp
+@Function	table_c_exception_handler
 
 @Description	Wrapper for the handler of the error status returned from the
 		Table API functions.
@@ -950,14 +931,49 @@ void table_hw_accel_release_lock(enum table_hw_accel_id acc_id);
 @Param[in]	func_id The function in which the error occurred.
 @Param[in]	line The line in which the error occurred.
 @Param[in]	status Status to be handled in this function.
+@Param[in]	entity Distinguishes between entities that initiate the
+		exception request.
 
 @Return		None.
 
 @Cautions	This is a non return function.
 *//***************************************************************************/
-void table_exception_handler_wrp(enum table_function_identifier func_id,
+void table_c_exception_handler(enum table_function_identifier func_id,
+			       uint32_t line,
+			       int32_t status,
+			       enum table_entity entity)
+					__attribute__ ((noreturn));
+
+/**************************************************************************//**
+@Function	table_inline_exception_handler
+
+@Description	Wrapper for the handler of the error status returned from the
+		Table API functions.
+		This wrapper adds the file path in which the error occurred. It
+		should be implemented inside a special compiler pragma which
+		tells the compiler to store data (e.g. strings) in a dedicated
+		location, so there will be good memory usage.
+		This wrapper eases the process of relocation functions if
+		needed (they can call another wrapper instead (i.e. wrapper is
+		per file but the exception handling function of table API is
+		located in one place and should not be changed over time.
+
+@Param[in]	func_id The function in which the error occurred.
+@Param[in]	line The line in which the error occurred.
+@Param[in]	status Status to be handled in this function.
+@Param[in]	entity Distinguishes between entities that initiate the
+		exception request.
+
+@Return		None.
+
+@Cautions	This is a non return function.
+*//***************************************************************************/
+inline void table_inline_exception_handler(
+				 enum table_function_identifier func_id,
 				 uint32_t line,
-				 int32_t status) __attribute__ ((noreturn));
+				 int32_t status,
+				 enum table_entity entity)
+					__attribute__ ((noreturn));
 
 /**************************************************************************//**
 @Function	table_exception_handler
@@ -969,6 +985,8 @@ void table_exception_handler_wrp(enum table_function_identifier func_id,
 @Param[in]	func_id The function in which the error occurred.
 @Param[in]	line The line in which the error occurred.
 @Param[in]	status_id Status ID to be handled in this function.
+@Param[in]	entity Distinguishes between entities that initiate the
+		exception request.
 
 @Return		None.
 
@@ -977,7 +995,9 @@ void table_exception_handler_wrp(enum table_function_identifier func_id,
 void table_exception_handler(char *file_path,
 			     enum table_function_identifier func_id,
 			     uint32_t line,
-			     int32_t status_id) __attribute__ ((noreturn));
+			     int32_t status_id,
+			     enum table_entity entity)
+				__attribute__ ((noreturn));
 
 /**************************************************************************//**
 @Function	table_calc_num_entries_per_rule

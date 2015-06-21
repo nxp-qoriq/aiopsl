@@ -46,6 +46,8 @@
 #define SHBP_TEST	0x109
 #define SHBP_TEST_GPP	0x110
 #define SHBP_TEST_AIOP	0x111
+#define DPCI_ADD	0x112
+#define DPCI_RM		0x113
 
 #define AIOP_ASYNC_CB_DONE	5  /* Must be in sync with MC ELF */
 #define AIOP_SYNC_BUFF_SIZE	80 /* Must be in sync with MC ELF */

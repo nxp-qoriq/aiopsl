@@ -92,63 +92,31 @@ int sys_remove_handle(enum fsl_os_module module, int num_of_ids, ...)
 /*****************************************************************************/
 __COLD_CODE static int sys_init_platform(void)
 {
-	int     err = 0;
+	int i, err = 0;
 	int is_master_core = sys_is_master_core();
 
-	if (sys.platform_ops.f_disable_local_irq)
-		sys.platform_ops.f_disable_local_irq(
-			sys.platform_ops.h_platform);
+	for (i = 0 ; i < PLTFORM_NUM_OF_INIT_MODULES ; i++)
+	{
+		if (sys.platform_ops.modules[i].init)
+		{
+			if(sys.platform_ops.modules[i].is_single_core)
+			{
+				if(is_master_core)
+				{
+					err = sys.platform_ops.modules[i].init(
+							sys.platform_ops.h_platform);
+					if(err) return err;
+				}
 
-	if (sys.platform_ops.f_init_core) {
-		err = sys.platform_ops.f_init_core(sys.platform_ops.h_platform);
-		if (err != 0) return err;
-	}
-
-	if (sys.platform_ops.f_init_timer) {
-		err = sys.platform_ops.f_init_timer(
-			sys.platform_ops.h_platform);
-		if (err != 0) return err;
-	}
-
-	if (is_master_core) {
-		/* Do not change the sequence of calls in this section */
-
-		if (sys.platform_ops.f_init_intr_ctrl) {
-			err = sys.platform_ops.f_init_intr_ctrl(
-				sys.platform_ops.h_platform);
-			if (err != 0) return err;
+				sys_barrier();
+			}
+			else
+			{
+				err = sys.platform_ops.modules[i].init(
+						sys.platform_ops.h_platform);
+				if(err) return err;
+			}
 		}
-
-		if (sys.platform_ops.f_init_soc) {
-			err = sys.platform_ops.f_init_soc(
-				sys.platform_ops.h_platform);
-			if (err != 0) return err;
-		}
-	}
-
-	if (sys.platform_ops.f_enable_local_irq)
-		sys.platform_ops.f_enable_local_irq(
-			sys.platform_ops.h_platform);
-
-	if (is_master_core) {
-		/* Do not change the sequence of calls in this section */
-		if (sys.platform_ops.f_init_mem_partitions) {
-			err = sys.platform_ops.f_init_mem_partitions(
-				sys.platform_ops.h_platform);
-			if (err != 0) return err;
-		}
-
-		if (sys.platform_ops.f_init_console) {
-			err = sys.platform_ops.f_init_console(
-				sys.platform_ops.h_platform);
-			if (err != 0) return err;
-		}
-	}
-
-	if (sys.platform_ops.f_init_private) {
-		err = sys.platform_ops.f_init_private(
-			sys.platform_ops.h_platform);
-		if (err != 0) return err;
 	}
 
 	return 0;
@@ -158,49 +126,32 @@ __COLD_CODE static int sys_init_platform(void)
 /*****************************************************************************/
 static int sys_free_platform(void)
 {
-	int     err = 0;
+	int i, err = 0;
 	int is_master_core = sys_is_master_core();
 
-	if (sys.platform_ops.f_free_private)
-		err = sys.platform_ops.f_free_private(
-			sys.platform_ops.h_platform);
+	for (i = PLTFORM_NUM_OF_INIT_MODULES - 1; i >= 0 ; i--)
+	{
+		if (sys.platform_ops.modules[i].free)
+		{
+			if(sys.platform_ops.modules[i].is_single_core)
+			{
+				if(is_master_core)
+				{
+					err = sys.platform_ops.modules[i].free(
+							sys.platform_ops.h_platform);
+					if(err) return err;
+				}
 
-	if (is_master_core) {
-		/* Do not change the sequence of calls in this section */
-
-		if (sys.platform_ops.f_free_console)
-			err = sys.platform_ops.f_free_console(
-				sys.platform_ops.h_platform);
-
-		if (sys.platform_ops.f_free_mem_partitions)
-			err = sys.platform_ops.f_free_mem_partitions(
-				sys.platform_ops.h_platform);
-
+				sys_barrier();
+			}
+			else
+			{
+				err = sys.platform_ops.modules[i].free(
+						sys.platform_ops.h_platform);
+				if(err) return err;
+			}
+		}
 	}
-
-	sys_barrier();
-
-	if (sys.platform_ops.f_free_timer)
-		err = sys.platform_ops.f_free_timer(
-			sys.platform_ops.h_platform);
-
-	if (is_master_core) {
-		/* Do not change the sequence of calls in this section */
-
-		if (sys.platform_ops.f_free_soc)
-			err = sys.platform_ops.f_free_soc(
-				sys.platform_ops.h_platform);
-
-		if (sys.platform_ops.f_free_intr_ctrl)
-			err = sys.platform_ops.f_free_intr_ctrl(
-				sys.platform_ops.h_platform);
-	}
-
-	sys_barrier();
-
-	if (sys.platform_ops.f_free_core)
-		err = sys.platform_ops.f_free_core(
-			sys.platform_ops.h_platform);
 
 	if (is_master_core) {
 		err = platform_free(

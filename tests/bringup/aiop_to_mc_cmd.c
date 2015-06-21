@@ -55,7 +55,7 @@ int aiop_mc_cmd_test()
 	/* Get container ID from MC */
 	dprc.io.regs = p_vaddr;
 	for (i = 0; i < 10; i++) {
-		err = dprc_get_container_id(&dprc.io, &container_id);
+		err = dprc_get_container_id(&dprc.io, 0, &container_id);
 		err |= err;
 		if (container_id == -1)
 			err |= -EINVAL;

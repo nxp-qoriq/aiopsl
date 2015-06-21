@@ -48,7 +48,7 @@
 *//***************************************************************************/
 
 /**************************************************************************//**
- @Group		DPNI_DRV_ORDER_SCOPE order scope options
+ @Group		DPNI_DRV_ORDER_SCOPE Order Scope options
 
  @Description	Set initial order scope to "No order scope".
 
@@ -58,7 +58,7 @@
 /** @} end of group DPNI_DRV_ORDER_SCOPE */
 
 /**************************************************************************//**
- @Group		DPNI_DRV_LINK_OPT link options
+ @Group		DPNI_DRV_LINK_OPT Link Options
 
  @Description	Available options to determine dpni link state.
 
@@ -120,7 +120,7 @@ enum dpni_drv_counter {
 
 
 /**************************************************************************//**
- @Group		DPNI_DRV_BUF_LAYOUT_OPT buffer layout modification options
+ @Group		DPNI_DRV_BUF_LAYOUT_OPT Buffer Layout modification options
 
  @Description	buffer layout modification options
 

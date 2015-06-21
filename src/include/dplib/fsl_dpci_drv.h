@@ -85,6 +85,18 @@ It will result in link down.
 int dpci_drv_disable(uint32_t dpci_id);
 
 /**************************************************************************//**
+@Function	dpci_drv_linkup
+
+@Description	Get linkup status.
+
+@Param[in]	dpci_id - DPCI id of the AIOP side.
+@Param[out]	up - 1 if the link is up or 0 otherwise.
+
+@Return		0      - on success, POSIX error code otherwise
+ *//***************************************************************************/
+int dpci_drv_linkup(uint32_t dpci_id, int *up);
+
+/**************************************************************************//**
 @Function	dpci_drv_get_initial_presentation
 
 @Description	Function to get initial presentation settings from EPID table.

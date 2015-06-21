@@ -133,6 +133,11 @@ int simple_bu_lpm_test(void)
 		struct table_lookup_result lookup_res __attribute__((aligned(16)));
 		uint8_t *kcr __attribute__((aligned(16)));
 		struct kcr_builder kc_builder __attribute__((aligned(16)));
+		struct table_get_params_output tbl_params __attribute__((aligned(16)));
+		
+		table_get_params(TABLE_ACCEL_ID_CTLU,
+				      0,
+				      &tbl_params);
 		
 		/* Table Parameter Initialization */		
 		table_params.attributes = TABLE_ATTRIBUTE_TYPE_LPM |
@@ -143,11 +148,11 @@ int simple_bu_lpm_test(void)
 		table_params.key_size = TABLE_KEY_LPM_IPV4_SIZE;
 		
 		/* Table Creation */
-		err = table_create(TABLE_ACCEL_ID_CTLU, &table_params,&table_id);
-		if (err)
+		//err = table_create(TABLE_ACCEL_ID_CTLU, &table_params,&table_id);
+		/*if (err)
 			fsl_os_print("ERROR: table_create failed with err = %x!\n", err);
 
-		fsl_os_print("table_create Done with table_id %d!\n", table_id);
+		fsl_os_print("table_create Done with table_id %d!\n", table_id);*/
 
 		/* Initialize a new table rule */
 		rule1.key_desc.lpm_ipv4.exact_match = 0x00004d03;

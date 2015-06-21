@@ -190,9 +190,9 @@ int ipr_create_instance(struct ipr_params *ipr_params_ptr,
 		else if (table_location == IPR_MODE_TABLE_LOCATION_PEB)
 			table_location_attr = TABLE_ATTRIBUTE_LOCATION_PEB;
 		else if (table_location == IPR_MODE_TABLE_LOCATION_EXT1)
-			table_location_attr = TABLE_ATTRIBUTE_LOCATION_EXT1;
+			table_location_attr = TABLE_ATTRIBUTE_LOCATION_DP_DDR;
 		else if (table_location == IPR_MODE_TABLE_LOCATION_EXT2)
-			table_location_attr = TABLE_ATTRIBUTE_LOCATION_EXT2;
+			table_location_attr = TABLE_ATTRIBUTE_LOCATION_SYS_DDR;
 		tbl_params.attributes = TABLE_ATTRIBUTE_TYPE_EM | \
 				table_location_attr | \
 				TABLE_ATTRIBUTE_MR_NO_MISS;
@@ -221,9 +221,9 @@ int ipr_create_instance(struct ipr_params *ipr_params_ptr,
 		else if (table_location == IPR_MODE_TABLE_LOCATION_PEB)
 			table_location_attr = TABLE_ATTRIBUTE_LOCATION_PEB;
 		else if (table_location == IPR_MODE_TABLE_LOCATION_EXT1)
-			table_location_attr = TABLE_ATTRIBUTE_LOCATION_EXT1;
+			table_location_attr = TABLE_ATTRIBUTE_LOCATION_DP_DDR;
 		else if (table_location == IPR_MODE_TABLE_LOCATION_EXT2)
-			table_location_attr = TABLE_ATTRIBUTE_LOCATION_EXT2;
+			table_location_attr = TABLE_ATTRIBUTE_LOCATION_SYS_DDR;
 		tbl_params.attributes = TABLE_ATTRIBUTE_TYPE_EM | \
 				table_location_attr | \
 				TABLE_ATTRIBUTE_MR_NO_MISS;
@@ -604,6 +604,9 @@ int ipr_reassemble(ipr_instance_handle_t instance_handle)
 	   from here */
 	/* Currently no default frame */
 
+	/* Reset Valid bit of RFDC */
+	rfdc.status = rfdc.status & ~RFDC_VALID;
+	
 	/* Increment no of valid fragments in extended statistics
 	 * data structure*/
 	ipr_stats_update(&instance_params,

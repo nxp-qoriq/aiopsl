@@ -37,7 +37,7 @@
 
 /* DPNI Version */
 #define DPNI_VER_MAJOR				5
-#define DPNI_VER_MINOR				0
+#define DPNI_VER_MINOR				1
 
 /* Command IDs */
 #define DPNI_CMDID_OPEN				0x801
@@ -84,7 +84,8 @@
 #define DPNI_CMDID_GET_MAX_FRAME_LENGTH		0x217
 #define DPNI_CMDID_SET_MTU			0x218
 #define DPNI_CMDID_GET_MTU			0x219
-#define DPNI_CMDID_SET_LINK_CFG		0x21A
+#define DPNI_CMDID_SET_LINK_CFG			0x21A
+#define DPNI_CMDID_SET_TX_SHAPING		0x21B
 
 #define DPNI_CMDID_SET_MCAST_PROMISC		0x220
 #define DPNI_CMDID_GET_MCAST_PROMISC		0x221
@@ -420,7 +421,7 @@ do { \
 	MC_RSP_OP(cmd, 0, 0,  16, uint16_t, sp_info->spids[0]); \
 	MC_RSP_OP(cmd, 0, 16, 16, uint16_t, sp_info->spids[1]); \
 } while (0)
-	
+
 /*                cmd, param, offset, width, type, arg_name */
 #define DPNI_RSP_GET_TX_DATA_OFFSET(cmd, data_offset) \
 	MC_RSP_OP(cmd, 0, 0,  16, uint16_t, data_offset)
@@ -453,6 +454,13 @@ do { \
 	MC_RSP_OP(cmd, 0, 32,  1, int,      state->up);\
 	MC_RSP_OP(cmd, 1, 0,  32, uint32_t, state->rate);\
 	MC_RSP_OP(cmd, 2, 0,  64, uint64_t, state->options);\
+} while (0)
+
+/*                cmd, param, offset, width, type, arg_name */
+#define DPNI_CMD_SET_TX_SHAPING(cmd, tx_shaper) \
+do { \
+	MC_CMD_OP(cmd, 0, 0,  16, uint16_t, tx_shaper->max_burst_size);\
+	MC_CMD_OP(cmd, 1, 0,  64, uint64_t, tx_shaper->rate_limit);\
 } while (0)
 
 /*                cmd, param, offset, width, type, arg_name */

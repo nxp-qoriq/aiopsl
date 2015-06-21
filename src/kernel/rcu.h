@@ -1,4 +1,5 @@
-/* Copyright 2014-2015 Freescale Semiconductor Inc.
+/*
+ * Copyright 2014-2015 Freescale Semiconductor, Inc.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -11,12 +12,6 @@
  *     names of its contributors may be used to endorse or promote products
  *     derived from this software without specific prior written permission.
  *
- *
- * ALTERNATIVELY, this software may be distributed under the terms of the
- * GNU General Public License ("GPL") as published by the Free Software
- * Foundation, either version 2 of that License or (at your option) any
- * later version.
- *
  * THIS SOFTWARE IS PROVIDED BY Freescale Semiconductor ``AS IS'' AND ANY
  * EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -28,24 +23,28 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-#ifndef _FSL_DPLIB_SYS_H
-#define _FSL_DPLIB_SYS_H
 
-#define __iomem
+#ifndef __RCU_H
+#define __RCU_H
 
-#include "common/types.h"
-#include "fsl_errors.h"
-#include "fsl_io.h"
-#include <fsl_mc_cmd.h>
+#include "fsl_rcu.h"
+#include "fsl_slab.h"
 
-#define cpu_to_le64 CPU_TO_LE64
-
-
-
-struct fsl_mc_io {
-	void *regs;
+struct rcu {
+	uint64_t list_head;		/**< RCU list is palced at DP DDR */
+	uint64_t list_tail;		/**< RCU list is palced at DP DDR */
+	uint32_t list_size;
+	struct slab *slab;
+	uint32_t committed;	/**< Committed number of accumulated rcu jobs */
+	uint32_t max;		/**< Maximal number of accumulated rcu jobs */
+	uint16_t delay;
 };
 
-int mc_send_command(struct fsl_mc_io *mc_io, struct mc_command *cmd);
+struct rcu_job {
+	uint64_t next;
+	uint64_t param;
+	void *cb;
+	
+};
 
-#endif /* _FSL_DPLIB_SYS_H */
+#endif /* __RCU_H */

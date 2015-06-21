@@ -46,6 +46,8 @@ do { \
 	ic->dma_flags = (uint32_t)((AMQ) & ~CMDIF_BDI_BIT); \
 	if ((AMQ) & CMDIF_BDI_BIT) \
 		ic->bdi_flags = FDMA_ENF_BDI_BIT; \
+	else \
+		ic->bdi_flags = 0; \
 } while(0)
 
 extern void dpci_rx_ctx_get(uint32_t *id, uint32_t *fqid);

@@ -34,10 +34,21 @@
 #include "fsl_dpci_mng.h"
 #include "fsl_sl_dprc_drv.h"
 #include "fsl_evmng.h"
+#include "fsl_dpni_drv.h"
+#include "fsl_string.h"
+#include "fsl_icontext.h"
+#include "fsl_spinlock.h"
+
+#define DPNI_EVM_TEST
 
 int app_evm_register();
 
 extern struct dpci_mng_tbl g_dpci_tbl;
+extern struct icontext icontext_aiop;
+extern int32_t dpci_add_ev_count;
+extern int32_t dpci_rm_ev_count;
+extern int32_t dpci_up_ev_count;
+extern int32_t dpci_down_ev_count;
 
 extern int app_init(void); extern void app_free(void);
 
@@ -53,42 +64,53 @@ void build_apps_array(struct sys_module_desc *apps);
 void build_apps_array(struct sys_module_desc *apps)
 {
 	struct sys_module_desc apps_tmp[] = APPS;
-	
+
 	ASSERT_COND(ARRAY_SIZE(apps_tmp) <= APP_INIT_APP_MAX_NUM);
 	memcpy(apps, apps_tmp, sizeof(apps_tmp));
 }
 
-static int app_evmng_cb(uint8_t generator_id, uint8_t event_id, 
+static int app_evmng_cb(uint8_t generator_id, uint8_t event_id,
                     uint64_t app_ctx, void *event_data)
 {
 	int err = 0;
+	int up = 0;
 
 	UNUSED(generator_id);
 	UNUSED(app_ctx);
 
-	pr_debug("Event 0x%x data 0x%x\n", event_id, (uint32_t)event_data);
+	pr_debug("Event 0x%x event_data 0x%x\n", event_id, (uint32_t)event_data);
 	switch (event_id) {
+	case DPNI_EVENT_ADDED:
+		pr_debug("************DPNI_EVENT_ADDED************\n");
+		break;
+	case DPNI_EVENT_REMOVED:
+		pr_debug("************DPNI_EVENT_REMOVED************\n");
+		break;
+	case DPNI_EVENT_LINK_DOWN:
+		pr_debug("************DPNI_EVENT_LINK_DOWN************\n");
+		break;
+	case DPNI_EVENT_LINK_UP:
+		pr_debug("************DPNI_EVENT_LINK_UP************\n");
+		break;
 	case DPCI_EVENT_ADDED:
 		pr_debug("************DPCI_EVENT_ADDED************\n");
-		pr_debug("Before enable\n");
+		pr_debug("Before enable DP-CI%d\n", (int)event_data);
 		err |= dpci_drv_enable((uint32_t)event_data);
+		err |= dpci_drv_linkup((uint32_t)event_data, &up);
+		pr_debug("DPCI link state is %d\n", up);
+		atomic_incr32(&dpci_add_ev_count, 1);
 		break;
 	case DPCI_EVENT_REMOVED:
 		pr_debug("************DPCI_EVENT_REMOVED************\n");
+		atomic_incr32(&dpci_rm_ev_count, 1);
 		break;
 	case DPCI_EVENT_LINK_DOWN:
 		pr_debug("************DPCI_EVENT_LINK_DOWN************\n");
+		atomic_incr32(&dpci_down_ev_count, 1);
 		break;
 	case DPCI_EVENT_LINK_UP:
 		pr_debug("************DPCI_EVENT_LINK_UP************\n");
-		break;
-	case DPCI_EVENT_DISCONNECTED:
-		pr_debug("************DPCI_EVENT_DISCONNECTED************\n");
-		break;
-	case DPCI_EVENT_CONNECTED:
-		pr_debug("************DPCI_EVENT_CONNECTED************\n");
-		pr_debug("Before enable\n");
-		err |= dpci_drv_enable((uint32_t)event_data);
+		atomic_incr32(&dpci_up_ev_count, 1);
 		break;
 	default:
 		pr_err("************Unknown event id 0x%x************\n", event_id);
@@ -105,9 +127,9 @@ int app_evm_register()
 	int err = 0;
 	uint8_t i = 0;
 
-	for (i = DPCI_EVENT_ADDED; i <= DPCI_EVENT_DISCONNECTED; i++) {
+	for (i = DPNI_EVENT_ADDED; i < NUM_OF_SL_DEFINED_EVENTS; i++) {
 		err = evmng_register(EVMNG_GENERATOR_AIOPSL,
-		                     i, 
+		                     i,
 		                     1,
 		                     (uint64_t)NULL, app_evmng_cb);
 		if (err){

@@ -123,23 +123,20 @@ available table locations. \n User should select one of the following defines
 	 * MFLU Table HW Accelerator. Not available for Rev1. */
 #define TABLE_ATTRIBUTE_LOCATION_INT	0x0200
 
-	/** Packet Express Buffer table (Exact memory region is specified by
-	 * the user at the initialization time of the Table HW Accelerator) */
-#define TABLE_ATTRIBUTE_LOCATION_PEB	0x0300
+	/** Packet Express Buffer table */
+#define TABLE_ATTRIBUTE_LOCATION_PEB		0x0300
 
-	/** External table 1 (Exact memory region is specified by the user at
-	 * the initialization time of the Table HW Accelerator) */
-#define TABLE_ATTRIBUTE_LOCATION_EXT1	0x0400
+	/** Data Path DDR */
+#define TABLE_ATTRIBUTE_LOCATION_DP_DDR		0x0400
 
-	/** External table 2 (Exact memory region is specified by the user at
-	 * the initialization time of the Table HW Accelerator) */
-#define TABLE_ATTRIBUTE_LOCATION_EXT2	0x0500
+	/** System DDR */
+#define TABLE_ATTRIBUTE_LOCATION_SYS_DDR	0x0500
 
 	/** Table Location sub field mask */
-#define TABLE_ATTRIBUTE_LOCATION_MASK	0x0700
+#define TABLE_ATTRIBUTE_LOCATION_MASK		0x0700
 
 	/** Table Location sub field offset */
-#define TABLE_ATTRIBUTE_LOCATION_OFFSET	8
+#define TABLE_ATTRIBUTE_LOCATION_OFFSET		8
 
 /** @} */ /* end of FSL_CTLU_TABLE_ATTRIBUTE_LOCATION */
 
@@ -1048,9 +1045,9 @@ inline int table_rule_create(enum table_hw_accel_id acc_id,
 @Cautions	This function may result in a fatal error.
 *//***************************************************************************/
 inline int table_rule_create(enum table_hw_accel_id acc_id,
-		      uint16_t table_id,
-		      struct table_rule *rule,
-		      uint8_t key_size);
+			     uint16_t table_id,
+			     struct table_rule *rule,
+			     uint8_t key_size);
 #endif
 
 #ifdef REV2_RULEID

@@ -37,7 +37,14 @@
 #include "fsl_errors.h"
 #include "fsl_soc.h"
 
+#define PLATFORM_SINGLE_CORE 1
+#define PLATFORM_MULTI_CORE 0
 
+#ifdef ARENA_LEGACY_CODE
+#define PLTFORM_NUM_OF_INIT_MODULES 4
+#else
+#define PLTFORM_NUM_OF_INIT_MODULES 3
+#endif
 
 /**************************************************************************//**
  @Group         platform_grp PLATFORM Application Programming Interface
@@ -89,6 +96,15 @@ typedef struct t_chip_rev_info {
 } t_chip_rev_info;
 
 /**************************************************************************//**
+ @Description   Platform initialization module description
+*//***************************************************************************/
+struct pltform_module_desc {
+	int (*init) (fsl_handle_t h_platform);
+	int (*free) (fsl_handle_t h_platform);
+	int is_single_core;
+};
+
+/**************************************************************************//**
  @Description   Descriptor memory-partition
 *//***************************************************************************/
 typedef struct platform_memory_info {
@@ -102,29 +118,7 @@ typedef struct platform_memory_info {
 
 typedef struct t_platform_ops {
     fsl_handle_t h_platform;
-
-    /* Platform initialization functions */
-    int (*f_init_core)           (fsl_handle_t h_platform);
-    int (*f_init_timer)          (fsl_handle_t h_platform);
-    int (*f_init_intr_ctrl)      (fsl_handle_t h_platform);
-    int (*f_init_soc)            (fsl_handle_t h_platform);  /**< For master partition only */
-    int (*f_init_mem_partitions) (fsl_handle_t h_platform);
-    int (*f_init_console)        (fsl_handle_t h_platform);
-    int (*f_init_private)        (fsl_handle_t h_platform);
-
-    /* Platform termination functions */
-    int (*f_free_core)           (fsl_handle_t h_platform);
-    int (*f_free_timer)          (fsl_handle_t h_platform);
-    int (*f_free_intr_ctrl)      (fsl_handle_t h_platform);
-    int (*f_free_soc)            (fsl_handle_t h_platform);  /**< For master partition only */
-    int (*f_free_mem_partitions) (fsl_handle_t h_platform);
-    int (*f_free_console)        (fsl_handle_t h_platform);
-    int (*f_free_private)        (fsl_handle_t h_platform);
-
-    /* Enable/disable functions */
-    void    (*f_enable_cores)          (fsl_handle_t h_platform, uint64_t core_mask);
-    void    (*f_enable_local_irq)      (fsl_handle_t h_platform);
-    void    (*f_disable_local_irq)     (fsl_handle_t h_platform);
+    struct pltform_module_desc modules[PLTFORM_NUM_OF_INIT_MODULES];
 } t_platform_ops;
 
 

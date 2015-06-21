@@ -47,6 +47,8 @@
 #include "fsl_dpci_drv.h"
 #include "fsl_dpci_mng.h"
 #include "fsl_sl_evmng.h"
+#include "fsl_dprc.h"
+#include "fsl_string.h"
 
 #ifndef CMDIF_TEST_WITH_MC_SRV
 #warning "If you test with MC define CMDIF_TEST_WITH_MC_SRV inside cmdif.h\n"
@@ -58,6 +60,7 @@ void app_free(void);
 extern int gpp_sys_ddr_init();
 extern int gpp_ddr_check(struct icontext *ic, uint64_t iova, uint16_t size);
 extern int app_evm_register();
+extern int dprc_drv_scan(void);
 
 #ifdef CMDIF_TEST_WITH_MC_SRV
 #define TEST_DPCI_ID    (void *)0 /* For MC use 0 */
@@ -68,18 +71,24 @@ extern int app_evm_register();
 extern struct dpci_mng_tbl g_dpci_tbl;
 
 struct cmdif_desc cidesc;
+struct dpci_attr attr = {0};
+struct dpci_attr attr_c = {0};
 uint64_t tman_addr;
 uint64_t lbp;
 uint64_t gpp_lbp;
 int32_t async_count = 0;
+int32_t dpci_add_count = 0;
+int32_t dpci_rm_count = 0;
+int32_t dpci_add_ev_count = 0;
+int32_t dpci_rm_ev_count = 0;
+int32_t dpci_up_ev_count = 0;
+int32_t dpci_down_ev_count = 0;
 
 static void mc_intr_set(uint32_t dpci_id)
 {
 	struct dpci_irq_cfg irq_cfg;
 	int err;
-	uint32_t mask = DPCI_IRQ_EVENT_LINK_CHANGED | 
-		DPCI_IRQ_EVENT_CONNECTED | 
-		DPCI_IRQ_EVENT_DISCONNECTED;
+	uint32_t mask = DPCI_IRQ_EVENT_LINK_CHANGED;
 	struct mc_dprc *dprc = sys_get_unique_handle(FSL_OS_MOD_AIOP_RC);
 	uint16_t token;
 	
@@ -89,26 +98,154 @@ static void mc_intr_set(uint32_t dpci_id)
 	irq_cfg.val = dpci_id;
 	irq_cfg.user_irq_id = 0;
 
-	err = dpci_open(&dprc->io, (int)dpci_id, &token);
+	err = dpci_open(&dprc->io, 0, (int)dpci_id, &token);
 	ASSERT_COND(!err);
 
-	err = dpci_set_irq(&dprc->io, token, DPCI_IRQ_INDEX, &irq_cfg);
+	err = dpci_set_irq(&dprc->io, 0, token, DPCI_IRQ_INDEX, &irq_cfg);
 	ASSERT_COND(!err);
 
-	err = dpci_set_irq_mask(&dprc->io, 
+	err = dpci_set_irq_mask(&dprc->io,0,  
 	                        token,
 	                        DPCI_IRQ_INDEX,
 	                        mask);
 	ASSERT_COND(!err);
 
-	err = dpci_clear_irq_status(&dprc->io, token, DPCI_IRQ_INDEX, mask);
+	err = dpci_clear_irq_status(&dprc->io, 0, token, DPCI_IRQ_INDEX, mask);
 	ASSERT_COND(!err);
 
-	err = dpci_set_irq_enable(&dprc->io, token, DPCI_IRQ_INDEX, 1);
+	err = dpci_set_irq_enable(&dprc->io, 0, token, DPCI_IRQ_INDEX, 1);
 	ASSERT_COND(!err);
 
-	err = dpci_close(&dprc->io, token);
+	err = dpci_close(&dprc->io, 0, token);
 	ASSERT_COND(!err);
+}
+
+static int dpci_dynamic_rm_test()
+{
+	struct mc_dprc *dprc = sys_get_unique_handle(FSL_OS_MOD_AIOP_RC);
+	uint16_t token;
+	int err;
+
+	atomic_incr32(&dpci_rm_count, 1);
+
+	/* Take 2 last DPCIs from dpci_dynamic_add_test */
+	err = dpci_open(&dprc->io, 0, attr.id, &token);
+	ASSERT_COND(!err);
+
+	/* Link down event */
+	err = dpci_drv_disable((uint32_t)attr.id);
+	ASSERT_COND(!err);
+
+	do {
+		pr_debug("waiting for link down rm_count = %d"
+			"link_down_count = %d\n",
+			dpci_rm_count, dpci_down_ev_count);
+
+	} while ((volatile int32_t)dpci_down_ev_count < \
+		(volatile int32_t)(dpci_rm_count * 2));
+
+	err = dpci_destroy(&dprc->io, 0, token);
+	ASSERT_COND(!err);
+
+	/* Take 2 last DPCIs from dpci_dynamic_add_test */
+	err = dpci_open(&dprc->io, 0, attr_c.id, &token);
+	ASSERT_COND(!err);
+
+	/* Link down event */
+	err = dpci_drv_disable((uint32_t)attr_c.id);
+	ASSERT_COND(!err);
+
+	err = dpci_destroy(&dprc->io, 0, token);
+	ASSERT_COND(!err);
+
+	err = dprc_drv_scan();
+	ASSERT_COND(!err);
+	
+	err = dpci_mng_find((uint32_t)attr_c.id);
+	ASSERT_COND(err < 0);
+	err = dpci_mng_find((uint32_t)attr.id);
+	ASSERT_COND(err < 0);
+
+}
+
+static int dpci_dynamic_add_test()
+{
+	struct dpci_cfg dpci_cfg;
+	uint16_t dpci = 0;
+	uint16_t dpci_c = 0;
+	struct dprc_endpoint endpoint1 ;
+	struct dprc_endpoint endpoint2;
+	struct dprc_connection_cfg connection_cfg = { 0 };
+	uint8_t p = 0;
+	int     err = 0;
+	int     link_up = 0;
+	struct mc_dprc *dprc = sys_get_unique_handle(FSL_OS_MOD_AIOP_RC);
+
+	pr_debug("Enter\n");
+
+	atomic_incr32(&dpci_add_count, 1);
+
+	memset(&attr, 0, sizeof(attr));
+	memset(&attr_c, 0, sizeof(attr_c));
+
+	/* DPCI 1 */
+	dpci_cfg.num_of_priorities = 2;
+
+	err = dpci_create(&dprc->io, 0, &dpci_cfg, &dpci);
+	ASSERT_COND(!err);
+
+	err = dpci_get_attributes(&dprc->io, 0, dpci, &attr);
+	ASSERT_COND(!err);
+	ASSERT_COND(attr.num_of_priorities == dpci_cfg.num_of_priorities);
+
+
+	/* DPCI 2 */
+	dpci_cfg.num_of_priorities = 2;
+
+	err = dpci_create(&dprc->io, 0, &dpci_cfg, &dpci_c);
+	ASSERT_COND(!err);
+
+	err = dpci_get_attributes(&dprc->io, 0, dpci_c, &attr_c);
+	ASSERT_COND(!err);
+	ASSERT_COND(attr_c.num_of_priorities == dpci_cfg.num_of_priorities);
+
+	/* Connect 2 DPCIs  */
+	memset(&endpoint1, 0, sizeof(struct dprc_endpoint));
+	memset(&endpoint2, 0, sizeof(struct dprc_endpoint));
+
+	endpoint1.id = attr_c.id;
+	endpoint1.if_id = 0;
+	strcpy(endpoint1.type, "dpci");
+
+	endpoint2.id = attr.id;
+	endpoint2.if_id = 0;
+	strcpy(endpoint2.type, "dpci");
+
+	pr_debug("Connect %d to %d\n", attr.id, attr_c.id);
+	
+	err = dprc_connect(&dprc->io, 0, dprc->token, &endpoint1, &endpoint2, 
+	                   &connection_cfg);
+	if (err) {
+		pr_err("dprc_connect failed\n");
+	}
+
+	err = dpci_close(&dprc->io, 0, dpci);
+	ASSERT_COND(!err);
+
+	err = dpci_close(&dprc->io, 0, dpci_c);
+	ASSERT_COND(!err);
+
+	err = dprc_drv_scan();
+	ASSERT_COND(!err);
+
+	err = dpci_mng_find((uint32_t)endpoint2.id);
+	ASSERT_COND(err >= 0);
+	ASSERT_COND(g_dpci_tbl.tx_queue[err][0] != DPCI_FQID_NOT_VALID);
+	err = dpci_mng_find((uint32_t)endpoint1.id);
+	ASSERT_COND(err >= 0);
+	ASSERT_COND(g_dpci_tbl.tx_queue[err][0] != DPCI_FQID_NOT_VALID);
+
+	return err;
 }
 
 static void aiop_ws_check()
@@ -173,7 +310,24 @@ static int open_cb(uint8_t instance_id, void **dev)
 {
 	UNUSED(dev);
 	pr_debug("open_cb inst_id = 0x%x\n", instance_id);
+	aiop_ws_check();
 	return 0;
+}
+
+static void check_counters()
+{
+	pr_debug("dpci_add_count %d\n", dpci_add_count);
+	pr_debug("dpci_rm_count %d\n", dpci_rm_count);
+	pr_debug("dpci_add_event_count %d\n", dpci_add_ev_count);
+	pr_debug("dpci_rm_event_count %d\n", dpci_rm_ev_count);
+	pr_debug("dpci_up_event_count %d\n", dpci_up_ev_count);
+	pr_debug("dpci_down_event_count %d\n", dpci_down_ev_count);
+	ASSERT_COND(dpci_add_count > 0);
+	ASSERT_COND(dpci_rm_count > 0);
+	ASSERT_COND(dpci_add_ev_count >= (dpci_add_count * 2));
+	ASSERT_COND(dpci_rm_ev_count == (dpci_rm_count * 2));
+	ASSERT_COND(dpci_up_ev_count >= (dpci_add_count * 2));
+	ASSERT_COND(dpci_down_ev_count >= (dpci_rm_count * 2));
 }
 
 static int close_cb(void *dev)
@@ -189,10 +343,12 @@ static int ctrl_cb(void *dev, uint16_t cmd, uint32_t size,
 	int err = 0;
 
 	UNUSED(dev);
+
 	pr_debug("ctrl_cb cmd = 0x%x, size = %d, data 0x%x\n",
 	             cmd,
 	             size,
 	             (uint32_t)data);
+
 	/*
 	 * TODO add more test scenarios for AIOP server
 	 * 1. async response with error
@@ -239,6 +395,13 @@ static int ctrl_cb0(void *dev, uint16_t cmd, uint32_t size,
 	aiop_ws_check();
 
 	switch (cmd) {
+	case DPCI_ADD:
+		err = dpci_dynamic_add_test();
+		break;
+	case DPCI_RM:
+		err = dpci_dynamic_rm_test();
+		check_counters();
+		break;
 	case SHBP_TEST_GPP:
 		pr_debug("Testing GPP SHBP...\n");
 		shbp_test = data;
@@ -564,7 +727,14 @@ int app_init(void)
 
 	err = app_dpci_test();
 	ASSERT_COND(!err);
-	
+
+#if 0
+#ifdef CMDIF_TEST_WITH_MC_SRV
+		err = dpci_dynamic_add_test();
+		ASSERT_COND(!err);
+#endif
+#endif
+
 	err = gpp_sys_ddr_init();
 	return err;
 }

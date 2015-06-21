@@ -1219,6 +1219,16 @@ void ipsec_generate_sa_params(
 	/* Get timestamp from TMAN */
 	tman_get_timestamp(&(sap.sap1.timestamp));
 	
+	/* Cleasr the STE counters, since CDMA is not enough due to 
+	 * the STE internal cache */ 
+	ste_set_64bit_counter(
+			IPSEC_PACKET_COUNTER_ADDR(desc_addr), /* uint64_t counter_addr */
+			0); /* uint64_t value */
+
+	ste_set_64bit_counter(
+			IPSEC_KB_COUNTER_ADDR(desc_addr), /* uint64_t counter_addr */
+			0); /* uint64_t value */
+	
 	/* Store to external memory with CDMA */
 	cdma_write(
 			desc_addr, /* uint64_t ext_address */
@@ -1348,6 +1358,15 @@ int ipsec_del_sa_descriptor(
 	 * statistics engine request queue. */
 	ste_barrier();
 
+	/* Cleasr the STE counters, due to the STE internal cache */ 
+	ste_set_64bit_counter(
+			IPSEC_PACKET_COUNTER_ADDR(desc_addr), /* uint64_t counter_addr */
+			0); /* uint64_t value */
+
+	ste_set_64bit_counter(
+			IPSEC_KB_COUNTER_ADDR(desc_addr), /* uint64_t counter_addr */
+			0); /* uint64_t value */
+	
 	/* Read the instance handle from params area */
 	cdma_read(
 			&instance_handle, /* void *ws_dst */
@@ -1376,7 +1395,7 @@ int ipsec_del_sa_descriptor(
 /**************************************************************************//**
 * ipsec_frame_encrypt
 *//****************************************************************************/
-int ipsec_frame_encrypt(
+__IPSEC_HOT_CODE int ipsec_frame_encrypt(
 		ipsec_handle_t ipsec_handle,
 		uint32_t *enc_status
 		)
@@ -1389,14 +1408,15 @@ int ipsec_frame_encrypt(
 	uint16_t orig_seg_addr;
 	uint8_t *eth_pointer_default;
 	uint32_t byte_count;
-	/* uint16_t checksum; */
+	//uint32_t checksum;
 	uint8_t dont_encrypt = 0;
 	ipsec_handle_t desc_addr;
 	//uint16_t offset;
 	uint32_t original_val, new_val;
 	uint16_t fd_offset;
 	uint32_t fd_len;
-	
+	uint8_t fd_frame_format; /* FD[FMT] */ 
+
 	struct ipsec_sa_params_part1 sap1; /* Parameters to read from ext buffer */
 	struct scope_status_params scope_status;
 	struct dpovrd_general dpovrd;
@@ -1569,6 +1589,9 @@ int ipsec_frame_encrypt(
 	 * before the (optional) L2 header removal */
 	orig_seg_addr = PRC_GET_SEGMENT_ADDRESS();
 
+	/* Get the frame format */
+	fd_frame_format = LDPAA_FD_GET_FMT(HWC_FD_ADDRESS);
+	
 	/* 	4.	Identify if L2 header exist in the frame: */
 	/* Check if Ethernet/802.3 MAC header exist and remove it */
 	if (PARSER_IS_ETH_MAC_DEFAULT()) { /* Check if Ethernet header exist */
@@ -1602,11 +1625,10 @@ int ipsec_frame_encrypt(
 		memcpy(eth_header, eth_pointer_default, eth_length);
 		
 		/* Remove L2 Header */	
-		/* Note: The gross running sum of the frame becomes invalid 
-		 * after calling this function. */
-		
-#if(0)
-		fdma_replace_default_segment_data(
+		/* If this is a not a single buffer frame (i.e. scatter-gather),
+		 * remove the L2 Header with FDMA */
+		if (fd_frame_format != IPSEC_FMT_SINGLE_BUFFER) {
+			fdma_replace_default_segment_data(
 				(uint16_t)PARSER_GET_ETH_OFFSET_DEFAULT(),
 				eth_length,
 				NULL,
@@ -1614,8 +1636,7 @@ int ipsec_frame_encrypt(
 				(void *)prc->seg_address,
 				128,
 				(uint32_t)(FDMA_REPLACE_SA_CLOSE_BIT));
-#endif
-		
+		}
 	}
 			/*---------------------*/
 			/* ipsec_frame_encrypt */
@@ -1641,16 +1662,19 @@ int ipsec_frame_encrypt(
 	 * L2 header, right from the IP. 
 	 * The L2 header becomes part of the headroom  */
 	
+	/* If this is a single buffer frame, remove the L2 Header by FD change */
+	if (fd_frame_format == IPSEC_FMT_SINGLE_BUFFER) {
 	/* Update the 12 bit FD offset. Do it on all 16 bits, 
 	 * since the result is the same */
-	fd_offset = LH_SWAP(14, HWC_FD_ADDRESS);
-	fd_offset += eth_length;
-	STH_SWAP(fd_offset, 14, HWC_FD_ADDRESS);
+		fd_offset = LH_SWAP(14, HWC_FD_ADDRESS);
+		fd_offset += eth_length;
+		STH_SWAP(fd_offset, 14, HWC_FD_ADDRESS);
 	
-	/* Update the FD length */
-	fd_len = LW_SWAP(8, HWC_FD_ADDRESS);
-	fd_len -= eth_length;
-	STW_SWAP(fd_len, 8, HWC_FD_ADDRESS);
+		/* Update the FD length */
+		fd_len = LW_SWAP(8, HWC_FD_ADDRESS);
+		fd_len -= eth_length;
+		STW_SWAP(fd_len, 8, HWC_FD_ADDRESS);
+	}
 	
 	/* 	8.	Prepare AAP parameters in the Workspace memory. */
 	/* 	8.1.	Use accelerator macros for storing parameters */
@@ -1710,6 +1734,10 @@ int ipsec_frame_encrypt(
 		
 		val = LDPAA_FD_GET_FRC(HWC_FD_ADDRESS);
 		fsl_os_print("FRC = 0x%x\n", val);
+		
+		val = (uint32_t)LDPAA_FD_GET_FMT(HWC_FD_ADDRESS);
+		fsl_os_print("FMT = 0x%x\n", val);
+
 		// Offset
 		//val = *(uint32_t *)((uint32_t)0x60 + 3*4);
 		//fsl_os_print("FD[OFFSET] = 0x%x%x\n", (val & 0x0F), (val & 0xFF00)>>8);
@@ -1806,13 +1834,10 @@ int ipsec_frame_encrypt(
 	 * _displ - a word aligned constant value between 0-1020.
 	 * _base - a variable containing the base address.
 	 * If 'base' is a literal 0, the base address is considered as 0. */
-	//checksum = LH_SWAP(HWC_FD_ADDRESS + FD_FLC_DS_AS_CS_OFFSET + 4, 0);
-	// TODO: currently not using the SEC calculated checksum
+	//checksum = (uint16_t)LH_SWAP(HWC_FD_ADDRESS + FD_FLC_DS_AS_CS_OFFSET + 4, 0);
+	// not using the SEC calculated checksum for encryption
 	
 	byte_count = LW_SWAP(HWC_FD_ADDRESS + FD_FLC_DS_AS_CS_OFFSET + 0, 0);
-
-	/* 	15.	Update the gross running checksum in the Workspace parser results.*/
-	// TODO: is it needed for encryption?
 	
 	/* In tunnel mode, optionally set the DSCP field 
 	 * This option is not supported by the SEC Era 8 hardware */	
@@ -1859,13 +1884,13 @@ int ipsec_frame_encrypt(
 				0, /* offset */
 				12);  /* uint16_t size 
 							12 bytes cover both DSCP and Checksum (IPv4)*/
+		
 	} /* End of DSCP setting */
 
 	/* 	16.	If L2 header existed in the original frame, add it back: */
 	if (eth_length) {
 		/* Note: The Ethertype was already updated before removing the 
 		 * L2 header */
-#if(1)
 		return_val = fdma_insert_default_segment_data(
 				0, /* uint16_t to_offset */
 				eth_header, /* void	 *from_ws_src */
@@ -1873,12 +1898,26 @@ int ipsec_frame_encrypt(
 				FDMA_REPLACE_SA_REPRESENT_BIT 
 					/* uint32_t flags */
 				);
-#endif		
-		/* TODO: Re-run parser ??? */
-		//		parse_result_generate_default(0);
 		
-		/* TODO: Update running sum ??? */
-		//		pr->gross_running_sum = 0;
+//		fsl_os_print("SEC Checksum = 0x%x\n", checksum);
+//
+//		for (i=0;i<(eth_length>>1);i++) {
+//			fsl_os_print("Ethernet HW #%d = 0x%x\n",i, (*((uint16_t *)eth_header + i)));
+//
+//			checksum = (*((uint16_t *)eth_header + i)) + checksum;
+//			fsl_os_print("Ethernet HW #%d checksum = 0x%x\n",i, checksum);
+//
+//			checksum = (uint16_t)(checksum + (checksum >> 16));
+//			fsl_os_print("Ethernet HW #%d checksum add carry = 0x%x\n",i, checksum);
+//
+//		}
+//			
+//		fsl_os_print("Gross running sum = 0x%x\n", checksum);
+//
+//			/* Update gross running sum */
+//			//pr->gross_running_sum = 0; // Invalidate
+//		pr->gross_running_sum = (uint16_t)checksum;
+
 	}
 
 		/*---------------------*/
@@ -1914,8 +1953,9 @@ int ipsec_frame_encrypt(
 	// Debug End //
 #endif	
 	
-	/* 	Set the gross running to 0 (invalidate) */
-	//pr->gross_running_sum = 0;
+	/* 	Set the gross running to 0 (invalidate) 
+	 * There will be no checksum calculation with PARSER_NO_FLAGS */
+	pr->gross_running_sum = 0;
 	
 	/* 	Run parser and check for errors. */
 	return_val = parse_result_generate_default(PARSER_NO_FLAGS);
@@ -1980,7 +2020,7 @@ encrypt_end:
 /**************************************************************************//**
 * ipsec_frame_decrypt
 *//****************************************************************************/
-int ipsec_frame_decrypt(
+__IPSEC_HOT_CODE int ipsec_frame_decrypt(
 		ipsec_handle_t ipsec_handle,
 		uint32_t *dec_status
 		)
@@ -1994,14 +2034,15 @@ int ipsec_frame_decrypt(
 	uint16_t outer_material_length;
 	uint8_t *eth_pointer_default;
 	uint32_t byte_count;
-	/* uint16_t checksum; */
+	uint32_t checksum;
 	uint8_t dont_decrypt = 0;
-	//int i;
 	ipsec_handle_t desc_addr;
 	//uint16_t offset;
 	uint16_t fd_offset;
 	uint32_t fd_len;
-	
+	//uint16_t i;
+	uint8_t fd_frame_format; /* FD[FMT] */ 
+
 	struct ipsec_sa_params_part1 sap1; /* Parameters to read from ext buffer */
 	struct scope_status_params scope_status;
 
@@ -2011,8 +2052,6 @@ int ipsec_frame_decrypt(
 	struct   presentation_context *prc =
 					(struct presentation_context *) HWC_PRC_ADDRESS;
 
-	/* Increment the reference counter */
-	
 	*dec_status = 0; /* Initialize */
 	
 	/* 	Inbound frame decryption and decapsulation */
@@ -2171,6 +2210,9 @@ int ipsec_frame_decrypt(
 		
 		dpovrd.transport_decap.reserved = 0;
 
+		/* Get the frame format */
+		fd_frame_format = LDPAA_FD_GET_FMT(HWC_FD_ADDRESS);
+		
 		/* 	If L2 header exist in the frame, save it and remove from frame */
 		if (eth_length) {
 		/* Save Ethernet header. Note: no swap */
@@ -2180,11 +2222,11 @@ int ipsec_frame_decrypt(
 			/* Copy the input frame Ethernet header to workspace */
 			memcpy(eth_header, eth_pointer_default, eth_length);
 
-#if(0)			
 			/* Remove L2 Header */	
-			/* Note: The gross running sum of the frame becomes invalid 
-			 * after calling this function. */ 
-			fdma_replace_default_segment_data(
+			/* If this is a not a single buffer frame (i.e. scatter-gather),
+			 * remove the L2 Header with FDMA */
+			if (fd_frame_format != IPSEC_FMT_SINGLE_BUFFER) {
+				fdma_replace_default_segment_data(
 					(uint16_t)PARSER_GET_ETH_OFFSET_DEFAULT(),
 					eth_length,
 					NULL,
@@ -2192,7 +2234,8 @@ int ipsec_frame_decrypt(
 					(void *)prc->seg_address,
 					128,
 					(uint32_t)(FDMA_REPLACE_SA_CLOSE_BIT));
-#endif			
+			}
+			
 			/* This is done here because L2 is removed only in Transport */
 			PRC_RESET_NDS_BIT(); 
 			
@@ -2244,20 +2287,24 @@ int ipsec_frame_decrypt(
 	 * (for closing the frame, updating the other FD fields) */
 	return_val = fdma_store_default_frame_data();
 	
-	/* Update the FD such that the SEC "thinks" the frame starts after the
-	 * L2 header, right from the IP. 
-	 * The L2 header becomes part of the headroom  */
 	if (!(sap1.flags & IPSEC_FLG_TUNNEL_MODE)) {
-		/* Update the 12 bit FD offset. Do it on all 16 bits, 
-		 * since the result is the same */
-		fd_offset = LH_SWAP(14, HWC_FD_ADDRESS);
-		fd_offset += eth_length;
-		STH_SWAP(fd_offset, 14, HWC_FD_ADDRESS);
+		/* In transport mode, single buffer frame, update the FD 
+		 * such that the SEC "thinks" the frame starts after the
+		 * L2 header, right from the IP. 
+		 * The L2 header becomes part of the headroom  */
+		if (fd_frame_format == IPSEC_FMT_SINGLE_BUFFER) {
+
+			/* Update the 12 bit FD offset. Do it on all 16 bits, 
+			 * since the result is the same */
+			fd_offset = LH_SWAP(14, HWC_FD_ADDRESS);
+			fd_offset += eth_length;
+			STH_SWAP(fd_offset, 14, HWC_FD_ADDRESS);
 		
-		/* Update the FD length */
-		fd_len = LW_SWAP(8, HWC_FD_ADDRESS);
-		fd_len -= eth_length;
-		STW_SWAP(fd_len, 8, HWC_FD_ADDRESS);
+			/* Update the FD length */
+			fd_len = LW_SWAP(8, HWC_FD_ADDRESS);
+			fd_len -= eth_length;
+			STW_SWAP(fd_len, 8, HWC_FD_ADDRESS);
+		}	
 	}
 	
 	/* 	9.	Prepare AAP parameters in the Workspace memory. */
@@ -2359,8 +2406,8 @@ int ipsec_frame_decrypt(
 		val= LDPAA_FD_GET_FRC(HWC_FD_ADDRESS);
 		fsl_os_print("FRC = 0x%x\n", val);
 		// Offset
-		val = *(uint32_t *)((uint32_t)0x60 + 3*4);
-		fsl_os_print("FD[OFFSET] = 0x%x%x\n", (val & 0x0F), (val & 0xFF00)>>8);
+		//val = *(uint32_t *)((uint32_t)0x60 + 3*4);
+		//fsl_os_print("FD[OFFSET] = 0x%x%x\n", (val & 0x0F), (val & 0xFF00)>>8);
 	}
 	// Debug End //
 #endif
@@ -2385,8 +2432,9 @@ int ipsec_frame_decrypt(
 	 * Offset: 0x0  0x1  0x2  0x3  0x4  0x5  0x6  0x7
 	 * Value:  0xB4 0xB3 0xB2 0xB1 0xC2 0xC1 0x00 0x00.
 	*/
-	/* checksum is currently not used */
-	//checksum = LH_SWAP(HWC_FD_ADDRESS + FD_FLC_DS_AS_CS_OFFSET + 4, 0);
+	
+	/* checksum and bytecount from SEC */
+	checksum = LH_SWAP(HWC_FD_ADDRESS + FD_FLC_DS_AS_CS_OFFSET + 4, 0);
 	
 	byte_count = LW_SWAP(HWC_FD_ADDRESS + FD_FLC_DS_AS_CS_OFFSET + 0, 0);	
 	/* 	16.	Update the gross running checksum in the Workspace parser results.*/
@@ -2411,18 +2459,63 @@ int ipsec_frame_decrypt(
 					/* uint32_t flags */
 				);
 		
+		
+		/* Update the SEC checksum if adding L2 header*/
+		/*
+		fsl_os_print("SEC Checksum = 0x%x\n", checksum);
+
+		for (i=0;i<(eth_length>>1);i++) {
+			fsl_os_print("Ethernet HW #%d = 0x%x\n",i, (*((uint16_t *)eth_header + i)));
+
+			checksum = (*((uint16_t *)eth_header + i)) + checksum;
+			fsl_os_print("Ethernet HW #%d checksum = 0x%x\n",i, checksum);
+
+			checksum = (uint16_t)(checksum + (checksum >> 16));
+			fsl_os_print("Ethernet HW #%d checksum add carry = 0x%x\n",i, checksum);
+
+		}
+		*/	
 	}
 	
 			/*---------------------*/
 			/* ipsec_frame_decrypt */
 			/*---------------------*/
+	
+	//fsl_os_print("Gross running sum = 0x%x\n", checksum);
+	//pr->gross_running_sum = (uint16_t)checksum;
 
 	/* 	17.	Run parser and check for errors. */
 	//return_val = parse_result_generate_default(PARSER_VALIDATE_L3_L4_CHECKSUM);
 	return_val = parse_result_generate_default(PARSER_NO_FLAGS);
 
-	// TODO: mask out some parser error bits, in case there is no L4 etc.
-	// TODO: special handling in case of fragments
+	//if (return_val) {
+	//	fsl_os_print("\nIPSEC: ERROR parser validation failed\n\n");
+	//} 
+	//else {
+	//	fsl_os_print("IPSEC: parser validation passed\n");
+	//}
+		
+	/////////////  Debug - FDMA checksum /////////////////////////////////////
+	//fdma_calculate_default_frame_checksum(
+	//		0, /* uint16_t offset, */
+	//		128, /* uint16_t size, */
+	//		&i); /* uint16_t *checksum) */
+	//
+	//checksum = (uint32_t)i;
+			
+	//fsl_os_print("FDMA gross running sum = 0x%x\n", checksum);
+	//pr->gross_running_sum = (uint16_t)checksum;
+	//return_val = parse_result_generate_default(PARSER_VALIDATE_L3_L4_CHECKSUM);
+	//return_val = parse_result_generate_default(PARSER_NO_FLAGS);
+
+	//if (return_val) {
+	//	fsl_os_print("\nIPSEC: ERROR parser validation failed\n\n");
+	//} 
+	//else {
+	//	fsl_os_print("IPSEC: parser validation passed\n");
+	//}
+
+	///////////////////// End Debu //////////////////////////////////////
 	
 	/* 	18.	If validity check failed, go to END, return with error. */
 	// TODO

@@ -420,6 +420,9 @@
 				/** @defgroup dpni_drv_g DPNI DRV
 					@ingroup grp_dplib_aiop
 				*/
+					/** @defgroup DPNI_DRV_ORDER_SCOPE Order Scope options
+					@ingroup dpni_drv_g
+					*/
 					/** @defgroup DPNI_DRV_LINK_OPT Link Options
 					@ingroup dpni_drv_g
 					*/
@@ -732,6 +735,17 @@
 			*/
 			/** @defgroup EVMNG_AIOPSL_GENERATOR_ID AIOPSL Generator ID
 				@ingroup evmng_g
+			*/
+	/** @} */
+	
+		/** @defgroup ep_g  EPID
+		@ingroup kernel_g
+		@{ */
+			/** @defgroup EP_INIT_PRESENTATION_OPT initial presentation options
+				@ingroup ep_g
+			*/
+			/** @defgroup ep_initial_presentation Initial Presentation
+				@ingroup ep_g
 			*/
 	/** @} */
 	

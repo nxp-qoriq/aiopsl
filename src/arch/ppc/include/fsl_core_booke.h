@@ -450,34 +450,6 @@ uint32_t booke_get_spr_IAC1(void);            /* [312]        Instruction addres
 void booke_set_spr_IAC1(uint32_t newvalue);   /* [312]        Instruction address compare 1 */
 uint32_t booke_get_spr_IAC2(void);            /* [313]        Instruction address compare 2 */
 void booke_set_spr_IAC2(uint32_t newvalue);   /* [313]        Instruction address compare 2 */
-uint32_t booke_get_spr_IVOR0(void);           /* [400]        Critical input */
-void booke_set_spr_IVOR0(uint32_t newvalue);  /* [400]        Critical input */
-uint32_t booke_get_spr_IVOR1(void);           /* [401]        Machine check interrupt offset */
-void booke_set_spr_IVOR1(uint32_t newvalue);  /* [401]        Machine check interrupt offset */
-uint32_t booke_get_spr_IVOR2(void);           /* [402]        Data storage interrupt offset */
-void booke_set_spr_IVOR2(uint32_t newvalue);  /* [402]        Data storage interrupt offset */
-uint32_t booke_get_spr_IVOR3(void);           /* [403]        Instruction storage interrupt offset */
-void booke_set_spr_IVOR3(uint32_t newvalue);  /* [403]        Instruction storage interrupt offset */
-uint32_t booke_get_spr_IVOR4(void);           /* [404]        External input interrupt offset */
-void booke_set_spr_IVOR4(uint32_t newvalue);  /* [404]        External input interrupt offset */
-uint32_t booke_get_spr_IVOR5(void);           /* [405]        Alignment interrupt offset */
-void booke_set_spr_IVOR5(uint32_t newvalue);  /* [405]        Alignment interrupt offset */
-uint32_t booke_get_spr_IVOR6(void);           /* [406]        Program interrupt offset */
-void booke_set_spr_IVOR6(uint32_t newvalue);  /* [406]        Program interrupt offset */
-uint32_t booke_get_spr_IVOR8(void);           /* [408]        System call interrupt offset */
-void booke_set_spr_IVOR8(uint32_t newvalue);  /* [408]        System call interrupt offset */
-uint32_t booke_get_spr_IVOR10(void);          /* [410]        Decrementer interrupt offset */
-void booke_set_spr_IVOR10(uint32_t newvalue); /* [410]        Decrementer interrupt offset */
-uint32_t booke_get_spr_IVOR11(void);          /* [411]        Fixed-interval timer interrupt offset */
-void booke_set_spr_IVOR11(uint32_t newvalue); /* [411]        Fixed-interval timer interrupt offset */
-uint32_t booke_get_spr_IVOR12(void);          /* [412]        Watchdog timer interrupt offset */
-void booke_set_spr_IVOR12(uint32_t newvalue); /* [412]        Watchdog timer interrupt offset */
-uint32_t booke_get_spr_IVOR13(void);          /* [413]        Data TLB error interrupt offset */
-void booke_set_spr_IVOR13(uint32_t newvalue); /* [413]        Data TLB error interrupt offset */
-uint32_t booke_get_spr_IVOR14(void);          /* [414]        Instruction TLB error interrupt offset */
-void booke_set_spr_IVOR14(uint32_t newvalue); /* [414]        Instruction TLB error interrupt offset */
-uint32_t booke_get_spr_IVOR15(void);          /* [415]        Debug interrupt offset */
-void booke_set_spr_IVOR15(uint32_t newvalue); /* [415]        Debug interrupt offset */
 uint32_t booke_get_spr_IVPR(void);            /* [63]         Interrupt vector */
 void booke_set_spr_IVPR(uint32_t newvalue);   /* [63]         Interrupt vector */
 uint32_t booke_get_spr_LR(void);              /* [8]          Link register */
@@ -538,14 +510,6 @@ uint32_t booke_get_spr_HID0(void);            /* [1008]       Hardware implement
 void booke_set_spr_HID0(uint32_t newvalue);   /* [1008]       Hardware implementation dependent reg 0 1 */
 uint32_t booke_get_spr_HID1(void);            /* [1009]       Hardware implementation dependent reg 1 1 */
 void booke_set_spr_HID1(uint32_t newvalue);   /* [1009]       Hardware implementation dependent reg 1 1 */
-uint32_t booke_get_spr_IVOR32(void);          /* [528]        SPE APU unavailable interrupt offset */
-void booke_set_spr_IVOR32(uint32_t newvalue); /* [528]        SPE APU unavailable interrupt offset */
-uint32_t booke_get_spr_IVOR33(void);          /* [529]        Floating-point data exception interrupt offset */
-void booke_set_spr_IVOR33(uint32_t newvalue); /* [529]        Floating-point data exception interrupt offset */
-uint32_t booke_get_spr_IVOR34(void);          /* [530]        Floating-point round exception interrupt offset */
-void booke_set_spr_IVOR34(uint32_t newvalue); /* [530]        Floating-point round exception interrupt offset */
-uint32_t booke_get_spr_IVOR35(void);          /* [531]        Performance monitor */
-void booke_set_spr_IVOR35(uint32_t newvalue); /* [531]        Performance monitor */
 uint32_t booke_get_spr_L1CFG0(void);          /* [515]        L1 cache configuration register 0 */
 void booke_set_spr_L1CFG0(uint32_t newvalue); /* [515]        L1 cache configuration register 0 */
 uint32_t booke_get_spr_L1CFG1(void);          /* [516]        L1 cache configuration register 1 */
@@ -621,10 +585,12 @@ void booke_set_spr_HDBCR7(uint32_t newvalue);
 #define CTSCSR_16_TASKS 	(0x04000000)
 #define CTSCSR_TASKS_MASK 	(0x0f000000)
 
-uint32_t booke_get_CTSCSR0(void);            /* [464]  CTS gen control and status reg 0. */
-void booke_set_CTSCSR0(uint32_t newvalue);   /* [464]  CTS gen control and status reg 0. */
+uint32_t booke_get_CTSCSR0(void);           /* [464]  CTS gen control and status reg 0. */
+void booke_set_CTSCSR0(uint32_t newvalue);  /* [464]  CTS gen control and status reg 0. */
 uint32_t booke_get_CTSTWS(void);            /* [467]  CTS Task Watchdog Status Register. */
 void booke_set_CTSTWS(uint32_t newvalue);   /* [467]  CTS Task Watchdog Status Register. */
+uint32_t booke_get_TASKSCR0(void);          /* [476]  Task Control and Status Register 0 */
+
 #endif /* CORE_E200 */
 
 /** @} */ /* end of booke_init_grp group */
