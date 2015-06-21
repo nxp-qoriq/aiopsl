@@ -111,16 +111,17 @@ static void rcu_test()
 #endif
 }
 
-static void rcu_test_check()
+static int rcu_test_check()
 {
 #ifdef RCU_TESTING
 	/* I can't have a good check here because it depends on timer */
 	pr_debug("####### RCU test results = count %d == %d #######\n",
 	         rcu_sync_count, rcu_cb_count);
-//	ASSERT_COND(rcu_cb_count > 0);
-	ASSERT_COND(rcu_sync_count > 0);
-//	ASSERT_COND(rcu_sync_count == rcu_cb_count);
+
+	if (rcu_sync_count == rcu_cb_count)
+		return 0;
 #endif
+	return -1;
 }
 
 static void mc_intr_set(uint32_t dpci_id)
@@ -375,7 +376,6 @@ static int close_cb(void *dev)
 {
 	UNUSED(dev);
 	pr_debug("close_cb\n");
-	rcu_test_check();
 	return 0;
 }
 
@@ -435,9 +435,14 @@ static int ctrl_cb0(void *dev, uint16_t cmd, uint32_t size,
 	ASSERT_COND(PRC_GET_FRAME_HANDLE() == 0);
 
 	aiop_ws_check();
-	rcu_test();
 
 	switch (cmd) {
+	case RCU_SYNC_TEST:
+		rcu_test();
+		break;
+	case RCU_SYNC_CHECK:
+		err = rcu_test_check();
+		break;
 	case DPCI_ADD:
 		err = dpci_dynamic_add_test();
 		break;
