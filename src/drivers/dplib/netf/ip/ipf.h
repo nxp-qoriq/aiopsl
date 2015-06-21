@@ -117,8 +117,11 @@ struct ipf_context {
  @{
 *//***************************************************************************/
 
-	/** Size of IPF Context. */
+/** Size of IPF Context. */
 #define SIZEOF_IPF_CONTEXT	(sizeof(struct ipf_context))
+
+/** Fragmentation of fragment indication. */
+#define	FRAGMENTATION_OF_FRAG	0x80000000
 
 #pragma warning_errors on
 /** IPF internal struct size assertion check. */
