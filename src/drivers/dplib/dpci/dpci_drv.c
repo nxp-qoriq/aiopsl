@@ -540,7 +540,7 @@ __COLD_CODE void dpci_mng_update(uint32_t ind)
 
 	amq_bits_update(ind);
 
-	//dpci_tbl_dump();
+	dpci_tbl_dump();
 }
 
 __COLD_CODE int dpci_event_link_change(uint32_t dpci_id)

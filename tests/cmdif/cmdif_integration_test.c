@@ -190,6 +190,7 @@ static int dpci_dynamic_add_test()
 
 	err = dpci_get_attributes(&dprc->io, 0, dpci, &attr);
 	ASSERT_COND(!err);
+	ASSERT_COND(attr.num_of_priorities == dpci_cfg.num_of_priorities);
 
 
 	/* DPCI 2 */
@@ -200,7 +201,7 @@ static int dpci_dynamic_add_test()
 
 	err = dpci_get_attributes(&dprc->io, 0, dpci_c, &attr_c);
 	ASSERT_COND(!err);
-
+	ASSERT_COND(attr_c.num_of_priorities == dpci_cfg.num_of_priorities);
 
 	/* Connect 2 DPCIs  */
 	memset(&endpoint1, 0, sizeof(struct dprc_endpoint));
