@@ -119,44 +119,47 @@ void booke_generic_exception_isr(uint32_t intr_entry)
 {
 	switch(intr_entry)
 	{
-	case(0x00):
+	case(CRITICAL_INTR):
 		fsl_os_print("core %d int: CRITICAL\n", core_get_id());
 		break;
-	case(0x10): /* MACHINE_CHECK */
+	case(MACHINE_CHECK_INTR): /* MACHINE_CHECK */
 		booke_exception_machine_check_isr();
 		break;
-	case(0x20):
+	case(DATA_STORAGE_INTR):
 		fsl_os_print("core %d int: DATA_STORAGE\n", core_get_id());
 		break;
-	case(0x30):
+	case(INSTRUCTION_STORAGE_INTR):
 		fsl_os_print("core %d int: INSTRUCTION_STORAGE\n", core_get_id());
 		break;
-	case(0x40):
+	case(EXTERNAL_INTR):
 		fsl_os_print("core %d int: EXTERNAL\n", core_get_id());
 		break;
-	case(0x50):
+	case(ALIGNMENT_INTR):
 		fsl_os_print("core %d int: ALIGNMENT\n", core_get_id());
 		break;
-	case(0x60):
+	case(PROGRAM_INTR):
 		fsl_os_print("core %d int: PROGRAM\n", core_get_id());
 		break;
-	case(0x70):
-		fsl_os_print("core %d int: SYSTEM CALL\n", core_get_id());
-		break;
-	case(0x80):
-		fsl_os_print("core %d int: debug\n", core_get_id());
-		break;
-	case(0x90):
-		fsl_os_print("core %d int: SPE-floating point data\n", core_get_id());
-		break;
-	case(0xA0):
-		fsl_os_print("core %d int: SPE-floating point round\n", core_get_id());
-		break;
-	case(0xB0):
+	case(PERF_MONITOR_INTR):
 		fsl_os_print("core %d int: performance monitor\n", core_get_id());
 		break;
-	case(0xF0):
-		fsl_os_print("core %d int: CTS interrupt\n", core_get_id());
+	case(SYSTEM_CALL_INTR):
+		fsl_os_print("core %d int: SYSTEM CALL\n", core_get_id());
+		break;
+	case(DEBUG_INTR):
+		fsl_os_print("core %d int: debug\n", core_get_id());
+		break;
+	case(EFPU_DATA_INTR):
+		fsl_os_print("core %d int: floating point data\n", core_get_id());
+		break;
+	case(EFPU_ROUND_INTR):
+		fsl_os_print("core %d int: floating point round\n", core_get_id());
+		break;
+	case(EFPU_NA_INTR):
+		fsl_os_print("core %d int: floating point unavailable\n", core_get_id());
+		break;
+	case(CTS_WD_INTR):
+		fsl_os_print("core %d int: CTS Task Watchdog interrupt\n", core_get_id());
 		break;
 	default:
 		fsl_os_print("undefined interrupt #%x\n", intr_entry);
@@ -170,62 +173,62 @@ asm static void branch_table(void) {
     nofralloc
 
     /* Critical Input Interrupt (Offset 0x00) */
-    li  r3, 0x00
+    li  r3, CRITICAL_INTR
     b  generic_irq
 
     /* Machine Check Interrupt (Offset 0x10) */
     .align 0x10
-    li  r3, 0x10
+    li  r3, MACHINE_CHECK_INTR
     b  machine_irq
 
     /* Data Storage Interrupt (Offset 0x20) */
     .align 0x10
-    li  r3, 0x20
+    li  r3, DATA_STORAGE_INTR
     b  generic_irq
 
     /* Instruction Storage Interrupt (Offset 0x30) */
     .align 0x10
-    li  r3, 0x30
+    li  r3, INSTRUCTION_STORAGE_INTR
     b  generic_irq
 
     /* External Input Interrupt (Offset 0x40) */
     .align 0x10
-    li  r3, 0x40
+    li  r3, EXTERNAL_INTR
     b  generic_irq
 
     /* Alignment Interrupt (Offset 0x50) */
     .align 0x10
-    li  r3, 0x50
+    li  r3, ALIGNMENT_INTR
     b  generic_irq
 
     /* Program Interrupt (Offset 0x60) */
     .align 0x10
-    li  r3, 0x60
+    li  r3, PROGRAM_INTR
     b  generic_irq
 
     /* Performance Monitor Interrupt (Offset 0x70) */
     .align 0x10
-    li  r3, 0x70
+    li  r3, PERF_MONITOR_INTR
     b  generic_irq
 
     /* System Call Interrupt (Offset 0x80) */
     .align 0x10
-    li  r3, 0x80
+    li  r3, SYSTEM_CALL_INTR
     b  generic_irq
 
     /* Debug Interrupt (Offset 0x90) */
     .align 0x10
-    li  r3, 0x90
+    li  r3, DEBUG_INTR
     b  generic_irq
 
     /* Embedded Floating-point Data Interrupt (Offset 0xA0) */
     .align 0x10
-    li  r3, 0xA0
+    li  r3, EFPU_DATA_INTR
     b generic_irq
 
     /* Embedded Floating-point Round Interrupt (Offset 0xB0) */
     .align 0x10
-    li  r3, 0xB0
+    li  r3, EFPU_ROUND_INTR
     b generic_irq
 
     /* place holder (Offset 0xC0) */
@@ -242,7 +245,7 @@ asm static void branch_table(void) {
 
     /* CTS Task Watchdog Timer Interrupt (Offset 0xF0) */
     .align 0x10
-    li  r3, 0xF0
+    li  r3, CTS_WD_INTR
     b generic_irq
 
     /***************************************************/
