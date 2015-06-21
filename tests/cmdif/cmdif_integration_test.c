@@ -49,6 +49,7 @@
 #include "fsl_sl_evmng.h"
 #include "fsl_dprc.h"
 #include "fsl_string.h"
+#include "fsl_rcu.h"
 
 #ifndef CMDIF_TEST_WITH_MC_SRV
 #warning "If you test with MC define CMDIF_TEST_WITH_MC_SRV inside cmdif.h\n"
@@ -64,6 +65,7 @@ extern int dprc_drv_scan(void);
 
 #ifdef CMDIF_TEST_WITH_MC_SRV
 #define TEST_DPCI_ID    (void *)0 /* For MC use 0 */
+#define RCU_TESTING
 #else
 #define TEST_DPCI_ID    (void *)4 /* For GPP use 4 */
 #endif
@@ -83,6 +85,43 @@ int32_t dpci_add_ev_count = 0;
 int32_t dpci_rm_ev_count = 0;
 int32_t dpci_up_ev_count = 0;
 int32_t dpci_down_ev_count = 0;
+int32_t rcu_sync_count = 0;
+int32_t rcu_cb_count = 0;
+
+static void rcu_sync_cb(uint64_t param)
+{
+	atomic_incr32(&rcu_cb_count, 1);
+	pr_debug("####### param = 0x%x count = %d #######\n",
+	         (uint32_t)param, rcu_cb_count);
+}
+
+static void rcu_test()
+{
+#ifdef RCU_TESTING
+	int err;
+	int i;
+
+	for (i = 0; i < 10; i++) {
+		atomic_incr32(&rcu_sync_count, 1);
+		pr_debug("####### rcu_synchronize = num %d #######\n",
+		         rcu_sync_count);
+		err = rcu_synchronize(rcu_sync_cb, 0x7);
+		ASSERT_COND(!err);
+	}
+#endif
+}
+
+static void rcu_test_check()
+{
+#ifdef RCU_TESTING
+	/* I can't have a good check here because it depends on timer */
+	pr_debug("####### RCU test results = count %d == %d #######\n",
+	         rcu_sync_count, rcu_cb_count);
+//	ASSERT_COND(rcu_cb_count > 0);
+	ASSERT_COND(rcu_sync_count > 0);
+//	ASSERT_COND(rcu_sync_count == rcu_cb_count);
+#endif
+}
 
 static void mc_intr_set(uint32_t dpci_id)
 {
@@ -312,6 +351,7 @@ static int open_cb(uint8_t instance_id, void **dev)
 	UNUSED(dev);
 	pr_debug("open_cb inst_id = 0x%x\n", instance_id);
 	aiop_ws_check();
+
 	return 0;
 }
 
@@ -335,6 +375,7 @@ static int close_cb(void *dev)
 {
 	UNUSED(dev);
 	pr_debug("close_cb\n");
+	rcu_test_check();
 	return 0;
 }
 
@@ -394,6 +435,7 @@ static int ctrl_cb0(void *dev, uint16_t cmd, uint32_t size,
 	ASSERT_COND(PRC_GET_FRAME_HANDLE() == 0);
 
 	aiop_ws_check();
+	rcu_test();
 
 	switch (cmd) {
 	case DPCI_ADD:
