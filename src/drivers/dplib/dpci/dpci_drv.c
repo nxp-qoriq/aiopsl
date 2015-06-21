@@ -435,7 +435,11 @@ __COLD_CODE int dpci_event_update_obj(uint32_t dpci_id)
 		if (ind >= 0) {
 			raise_event = 1;
 		} else {
+			DPCI_DT_LOCK_RELEASE;
 			pr_err("Add new DPCI 0x%x failed\n", dpci_id);
+			dpci_close(&dprc->io, 0, token);
+			ASSERT_COND(!err);
+			return -ENOMEM;
 		}
 
 		err = mc_intr_set(dpci_id, dprc, token);
@@ -447,11 +451,10 @@ __COLD_CODE int dpci_event_update_obj(uint32_t dpci_id)
 		ASSERT_COND(!err);
 	}
 
-	if(ind >= 0) {
-		ASSERT_COND(!(g_dpci_tbl.flags[ind] & DPCI_ID_FLG_SCANNED));
-		/* flags are updated only during add/remove */
-		g_dpci_tbl.flags[ind] |= DPCI_ID_FLG_SCANNED;
-	}
+	ASSERT_COND(ind >= 0);
+	ASSERT_COND(!(g_dpci_tbl.flags[ind] & DPCI_ID_FLG_SCANNED));
+	/* flags are updated only during add/remove */
+	g_dpci_tbl.flags[ind] |= DPCI_ID_FLG_SCANNED;
 
 	DPCI_DT_LOCK_RELEASE;
 	
@@ -461,11 +464,7 @@ __COLD_CODE int dpci_event_update_obj(uint32_t dpci_id)
 		err = evmng_sl_raise_event(EVMNG_GENERATOR_AIOPSL,
 		                           DPCI_EVENT_ADDED,
 		                           (void *)dpci_id);
-		if(err){
-			pr_err("Failed to raise event for "
-				"CI-%d.\n", dpci_id);
-			return err;
-		}
+		ASSERT_COND(!err);
 	}
 
 	return err;
@@ -474,21 +473,15 @@ __COLD_CODE int dpci_event_update_obj(uint32_t dpci_id)
 __COLD_CODE void dpci_event_handle_removed_objects()
 {
 	int i = 0;
-	int count = 0;
 	int err;
 	uint32_t delete_dpci_id;
-	int32_t count_before_delete;
 
 	ASSERT_COND(g_dpci_tbl.count <= g_dpci_tbl.max);
 
-	DPCI_DT_LOCK_W_TAKE;
 
-	/* Count is changing inside dpci_entry_delete() */
-	count_before_delete = g_dpci_tbl.count;
+	while (i < g_dpci_tbl.max) {
 
-	while ((count < count_before_delete) && (i < g_dpci_tbl.max)) {
-
-		pr_debug("i=%d count=%d\n", i, count);
+		DPCI_DT_LOCK_W_TAKE;
 
 		if (g_dpci_tbl.dpci_id[i] != DPCI_FQID_NOT_VALID) {
 			
@@ -500,31 +493,30 @@ __COLD_CODE void dpci_event_handle_removed_objects()
 				dpci_entry_delete(i);
 				
 				pr_debug("evmng_sl_raise_event\n");
+
+				DPCI_DT_LOCK_RELEASE;
+
 				err = evmng_sl_raise_event(
 					EVMNG_GENERATOR_AIOPSL,
 					DPCI_EVENT_REMOVED,
 					(void *)delete_dpci_id);
-				if (err) {
-					pr_err("Failed event DPCI-%d.\n",
-					       delete_dpci_id);
-				}
-			}
+				ASSERT_COND(!err);
+			} else {
+				if (g_dpci_tbl.mc_dpci_id \
+					!= g_dpci_tbl.dpci_id[i])
+					g_dpci_tbl.flags[i] \
+					&= ~DPCI_ID_FLG_SCANNED;
 
-			if (g_dpci_tbl.mc_dpci_id != g_dpci_tbl.dpci_id[i]) {
-				/* flags are updated only during add/remove 
-				 * event which are handled one at a time */
-				g_dpci_tbl.flags[i] &= ~DPCI_ID_FLG_SCANNED;
-				pr_debug("Cleared DPCI_ID_FLG_SCANNED\n");
+				DPCI_DT_LOCK_RELEASE;
 			}
+		} else {
 
-			count++;
+			DPCI_DT_LOCK_RELEASE;
 		}
 
 		i++;
 	}
 
-	DPCI_DT_LOCK_RELEASE;
-	
 	pr_debug("Exit\n");
 	dpci_tbl_dump();
 }
@@ -599,12 +591,11 @@ __COLD_CODE int dpci_event_link_change(uint32_t dpci_id)
 	                                       token));
 	DPCI_DT_LOCK_RELEASE;
 
-	err = evmng_sl_raise_event(EVMNG_GENERATOR_AIOPSL, event_id,
-	                           (void *)dpci_id);
+	err = dpci_close(&dprc->io, 0, token);
 	ASSERT_COND(!err);
 
-
-	err = dpci_close(&dprc->io, 0, token);
+	err = evmng_sl_raise_event(EVMNG_GENERATOR_AIOPSL, event_id,
+	                           (void *)dpci_id);
 	ASSERT_COND(!err);
 
 	pr_debug("Done DPCI EVENT\n");
@@ -641,7 +632,7 @@ __HOT_CODE void dpci_mng_tx_get(uint32_t ind, int pr, uint32_t *fqid)
 }
 
 /* Stack size issue */
-#pragma inline_depth(0)
+//#pragma inline_depth(0)
 __COLD_CODE int dpci_drv_enable(uint32_t dpci_id)
 {
 	struct mc_dprc *dprc = sys_get_unique_handle(FSL_OS_MOD_AIOP_RC);
@@ -679,7 +670,7 @@ __COLD_CODE int dpci_drv_enable(uint32_t dpci_id)
 
 	return err; /* Error of enable matters */
 }
-#pragma inline_depth(smart)
+//#pragma inline_depth(smart)
 
 __COLD_CODE int dpci_drv_disable(uint32_t dpci_id)
 {

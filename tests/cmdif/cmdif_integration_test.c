@@ -160,6 +160,12 @@ static int dpci_dynamic_rm_test()
 
 	err = dprc_drv_scan();
 	ASSERT_COND(!err);
+	
+	err = dpci_mng_find((uint32_t)attr_c.id);
+	ASSERT_COND(err < 0);
+	err = dpci_mng_find((uint32_t)attr.id);
+	ASSERT_COND(err < 0);
+
 }
 
 static int dpci_dynamic_add_test()
@@ -230,9 +236,14 @@ static int dpci_dynamic_add_test()
 	ASSERT_COND(!err);
 
 	err = dprc_drv_scan();
-	if (err) {
-		pr_err("dprc_drv_scan err = %d\n", err);
-	}
+	ASSERT_COND(!err);
+
+	err = dpci_mng_find((uint32_t)endpoint2.id);
+	ASSERT_COND(err >= 0);
+	ASSERT_COND(g_dpci_tbl.tx_queue[err][0] != DPCI_FQID_NOT_VALID);
+	err = dpci_mng_find((uint32_t)endpoint1.id);
+	ASSERT_COND(err >= 0);
+	ASSERT_COND(g_dpci_tbl.tx_queue[err][0] != DPCI_FQID_NOT_VALID);
 
 	return err;
 }
@@ -303,29 +314,26 @@ static int open_cb(uint8_t instance_id, void **dev)
 	return 0;
 }
 
-static void print_counters()
+static void check_counters()
 {
-#ifdef CMDIF_TEST_WITH_MC_SRV
 	pr_debug("dpci_add_count %d\n", dpci_add_count);
 	pr_debug("dpci_rm_count %d\n", dpci_rm_count);
 	pr_debug("dpci_add_event_count %d\n", dpci_add_ev_count);
 	pr_debug("dpci_rm_event_count %d\n", dpci_rm_ev_count);
 	pr_debug("dpci_up_event_count %d\n", dpci_up_ev_count);
 	pr_debug("dpci_down_event_count %d\n", dpci_down_ev_count);
-//	ASSERT_COND(dpci_add_count > 0);
-//	ASSERT_COND(dpci_rm_count > 0);
-//	ASSERT_COND(dpci_add_ev_count > 1);
-//	ASSERT_COND(dpci_rm_ev_count > 1);
-//	ASSERT_COND(dpci_up_ev_count > 1);
-//	ASSERT_COND(dpci_down_ev_count > 1);
-#endif
+	ASSERT_COND(dpci_add_count > 0);
+	ASSERT_COND(dpci_rm_count > 0);
+	ASSERT_COND(dpci_add_ev_count >= (dpci_add_count * 2));
+	ASSERT_COND(dpci_rm_ev_count == (dpci_rm_count * 2));
+	ASSERT_COND(dpci_up_ev_count >= (dpci_add_count * 2));
+	ASSERT_COND(dpci_down_ev_count >= (dpci_rm_count * 2));
 }
 
 static int close_cb(void *dev)
 {
 	UNUSED(dev);
 	pr_debug("close_cb\n");
-	print_counters();
 	return 0;
 }
 
@@ -392,6 +400,7 @@ static int ctrl_cb0(void *dev, uint16_t cmd, uint32_t size,
 		break;
 	case DPCI_RM:
 		err = dpci_dynamic_rm_test();
+		check_counters();
 		break;
 	case SHBP_TEST_GPP:
 		pr_debug("Testing GPP SHBP...\n");
