@@ -51,11 +51,11 @@ extern int32_t dpci_up_ev_count;
 extern int32_t dpci_down_ev_count;
 
 extern int app_init(void); extern void app_free(void);
-
+extern int app_early_init(void);
 
 #define APPS                            	\
 {                                       	\
-	{NULL, app_init, app_free},		\
+	{app_early_init, app_init, app_free},	\
 	{NULL, NULL, NULL} /* never remove! */	\
 }
 

@@ -50,6 +50,7 @@
 #include "fsl_dprc.h"
 #include "fsl_string.h"
 #include "fsl_rcu.h"
+#include "rcu.h"
 
 #ifndef CMDIF_TEST_WITH_MC_SRV
 #warning "If you test with MC define CMDIF_TEST_WITH_MC_SRV inside cmdif.h\n"
@@ -58,6 +59,7 @@
 
 int app_init(void);
 void app_free(void);
+int app_early_init(void);
 extern int gpp_sys_ddr_init();
 extern int gpp_ddr_check(struct icontext *ic, uint64_t iova, uint16_t size);
 extern int app_evm_register();
@@ -65,12 +67,12 @@ extern int dprc_drv_scan(void);
 
 #ifdef CMDIF_TEST_WITH_MC_SRV
 #define TEST_DPCI_ID    (void *)0 /* For MC use 0 */
-#define RCU_TESTING
 #else
 #define TEST_DPCI_ID    (void *)4 /* For GPP use 4 */
 #endif
 
 extern struct dpci_mng_tbl g_dpci_tbl;
+extern struct rcu g_rcu;
 
 struct cmdif_desc cidesc;
 struct dpci_attr attr = {0};
@@ -97,7 +99,6 @@ static void rcu_sync_cb(uint64_t param)
 
 static void rcu_test()
 {
-#ifdef RCU_TESTING
 	int err;
 	int i;
 
@@ -108,19 +109,17 @@ static void rcu_test()
 		err = rcu_synchronize(rcu_sync_cb, 0x7);
 		ASSERT_COND(!err);
 	}
-#endif
 }
 
 static int rcu_test_check()
 {
-#ifdef RCU_TESTING
 	/* I can't have a good check here because it depends on timer */
 	pr_debug("####### RCU test results = count %d == %d #######\n",
 	         rcu_sync_count, rcu_cb_count);
 
 	if (rcu_sync_count == rcu_cb_count)
 		return 0;
-#endif
+
 	return -1;
 }
 
@@ -734,6 +733,24 @@ static int app_dpci_test()
 	}
 
 	return err;
+}
+
+int app_early_init(void)
+{
+	int err = 0;
+
+	err = rcu_early_init(5, 10, 15);
+	ASSERT_COND(!err);
+	
+	err = rcu_early_init(10, 64, 128);
+	ASSERT_COND(!err);
+
+	err = rcu_early_init(20, 64, 128);
+	ASSERT_COND(!err);
+
+	ASSERT_COND(g_rcu.committed == (64 + 64 + 10));
+	ASSERT_COND(g_rcu.max == (128 - 64));
+	ASSERT_COND(g_rcu.delay == 5);
 }
 
 int app_init(void)
