@@ -563,14 +563,10 @@ static int ctrl_cb0(void *dev, uint16_t cmd, uint32_t size,
 		         (uint32_t)((p_data & 0xFF00000000) >> 32),
 		         (uint32_t)(p_data & 0xFFFFFFFF),
 		         AIOP_SYNC_BUFF_SIZE);
-		err |= cmdif_send(&cidesc, 0x1 | CMDIF_ASYNC_CMD, AIOP_SYNC_BUFF_SIZE,
-		                  CMDIF_PRI_LOW, p_data, aiop_async_cb, cidesc.regs);
-		err |= cmdif_send(&cidesc, 0x2 | CMDIF_ASYNC_CMD, AIOP_SYNC_BUFF_SIZE,
-		                  CMDIF_PRI_HIGH, p_data, aiop_async_cb, cidesc.regs);
-		err |= cmdif_send(&cidesc, 0x3 | CMDIF_ASYNC_CMD, AIOP_SYNC_BUFF_SIZE,
-		                  CMDIF_PRI_LOW, p_data, aiop_async_cb, cidesc.regs);
-		err |= cmdif_send(&cidesc, 0x4 | CMDIF_ASYNC_CMD, AIOP_SYNC_BUFF_SIZE,
-		                  CMDIF_PRI_HIGH, p_data, aiop_async_cb, cidesc.regs);
+		for (i = 0 ; i < AIOP_ASYNC_N_NUM; i++) {
+			err |= cmdif_send(&cidesc, (uint16_t)(i + 1) | CMDIF_ASYNC_CMD, AIOP_SYNC_BUFF_SIZE,
+			                  CMDIF_PRI_LOW, p_data, aiop_async_cb, cidesc.regs);
+		}
 		break;
 	case SYNC_CMD:
 		err = cmdif_send(&cidesc, 0xa, size, CMDIF_PRI_LOW, p_data,
