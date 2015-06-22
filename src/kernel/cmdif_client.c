@@ -219,12 +219,11 @@ int cmdif_open(struct cmdif_desc *cidesc,
 #endif
 
 	err = session_get(module_name, ins_id, (uint32_t)cidesc->regs, cidesc);
-
-/*
 	if (err != 0) {
-		pr_err("Session not found\n");
+		pr_err("Session for %s inst 0x%x dpci_id 0x%x not found\n",
+		       module_name, ins_id, (uint32_t)cidesc->regs);
 	}
-*/
+
 	return err;
 }
 

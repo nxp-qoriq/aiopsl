@@ -478,7 +478,8 @@ __COLD_CODE int notify_open()
 	CMDIF_CL_LOCK_RELEASE;
 
 #endif /* STACK_CHECK */
-
+	
+	pr_debug("Added session for %s at ind %d\n", data->m_name, link_up);
 	return 0;
 }
 
@@ -501,10 +502,11 @@ __COLD_CODE int notify_close()
 
 	/* Set this session entry as free */
 	if (i >= 0) {
+		pr_debug("Removed session for %s at ind %d\n", cl->gpp[i].m_name, i);
 		cl->gpp[i].m_name[0] = CMDIF_FREE_SESSION;
-		
 		cl->count--;
 		CMDIF_CL_LOCK_RELEASE;
+
 		return 0;
 	}
 

@@ -66,9 +66,9 @@ extern int app_evm_register();
 extern int dprc_drv_scan(void);
 
 #ifdef CMDIF_TEST_WITH_MC_SRV
-#define TEST_DPCI_ID    (void *)0 /* For MC use 0 */
+#define TEST_DPCI_ID    ((void *)0) /* For MC use 0 */
 #else
-#define TEST_DPCI_ID    (void *)4 /* For GPP use 4 */
+#define TEST_DPCI_ID    ((void *)4) /* For GPP use 4 */
 #endif
 
 extern struct dpci_mng_tbl g_dpci_tbl;
@@ -528,18 +528,17 @@ static int ctrl_cb0(void *dev, uint16_t cmd, uint32_t size,
 		err = cmdif_close(&cidesc);
 		break;
 	case OPEN_N_CMD:
-		cidesc_arr[0].regs = TEST_DPCI_ID; /* DPCI 0 is used by MC */
+		dpci_id = (uint16_t)TEST_DPCI_ID; /* DPCI 0 is used by MC */
 		if (size > 0) {
-			cidesc_arr[0].regs = (void *)(((uint8_t *)data)[0]);
+			dpci_id = (((uint8_t *)data)[0]);
 		}
-		pr_debug("Testing AIOP client against GPP DPCI%d\n",
-		         (uint32_t)cidesc.regs);
+		pr_debug("Testing AIOP client against GPP DPCI%d\n", dpci_id);
 		for (i = 0; i < AIOP_CL_REGISTER_NUM; i++) {
-			cidesc_arr[i].regs = cidesc_arr[0].regs;
+			cidesc_arr[i].regs = (void *)dpci_id;
 			snprintf(module, sizeof(module), "IRA%d", i);
 			err |= cmdif_open(&cidesc_arr[i], module, 0, NULL, 0);
 			if (err) {
-				pr_debug("failed to cmdif_open()\n");
+				pr_debug("failed to cmdif_open(%s)\n", module);
 				return err;
 			}
 		}
