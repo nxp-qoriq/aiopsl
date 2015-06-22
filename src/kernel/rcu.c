@@ -74,6 +74,8 @@ int rcu_early_init(uint16_t delay, uint32_t committed, uint32_t max)
 	/* Smallest delay */
 	if (delay < g_rcu.delay)
 		g_rcu.delay = delay;
+	
+	return 0;
 }
 
 int rcu_init()
@@ -113,7 +115,10 @@ int rcu_init()
 	                  0,
 	                  NULL,
 	                  &(g_rcu.slab));
-	ASSERT_COND(!err);
+	if (err) {
+		pr_err("No slab for RCU\n");
+		return err;
+	}
 
 	/*
 	 * TODO Move SL tmi create to a separate module
@@ -129,6 +134,8 @@ int rcu_init()
 		err = tman_create_tmi(tman_addr, m_timers, &g_sl_tmi_id);
 		ASSERT_COND(!err);
 	}
+	
+	return 0;
 }
 
 static void delete_tmi_cb(uint64_t opaque1, uint16_t opaque2)

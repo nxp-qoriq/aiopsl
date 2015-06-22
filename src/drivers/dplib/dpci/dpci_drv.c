@@ -295,6 +295,7 @@ __COLD_CODE static uint8_t num_priorities_get(struct fsl_mc_io *mc_io,
 
 /* Stack size issue */
 //#pragma optimization_level 2
+#pragma push
 #pragma inline_depth(0)
 __COLD_CODE static void tx_user_context_set(struct mc_dprc *dprc, int ind,
                                             uint16_t token, uint8_t num_pr)
@@ -318,7 +319,8 @@ __COLD_CODE static void tx_user_context_set(struct mc_dprc *dprc, int ind,
 		dpci_set_rx_queue(&dprc->io, 0, token, i, &queue_cfg);
 	}
 }
-#pragma inline_depth(smart)
+#pragma pop
+//#pragma inline_depth(smart)
 //#pragma optimization_level reset
 
 /* To be called upon add even */
@@ -804,7 +806,12 @@ __COLD_CODE static int dpci_for_mc_add(struct mc_dprc *dprc)
 	}
 
 	err = dpci_entry_init((uint32_t)attr.id, dpci);
-	ASSERT_COND(err >= 0);
+	if (err < 0) {
+		pr_err("Failed err = %d\n", err);
+		dpci_close(&dprc->io, 0, dpci);
+		return err;
+	}
+
 	/* MC dpci can't be removed */
 	g_dpci_tbl.flags[err] |= DPCI_ID_FLG_SCANNED;
 
