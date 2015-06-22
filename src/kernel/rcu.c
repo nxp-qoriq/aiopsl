@@ -30,11 +30,28 @@
 #include "fsl_io_ccsr.h"
 #include "fsl_core_booke.h"
 #include "rcu.h"
+#include "fsl_fdma.h"
+#include "fsl_cdma.h"
+#include "fsl_spinlock.h"
+#include "fsl_sl_dbg.h"
+#include "fsl_spinlock.h"
 
-struct rcu g_rcu = {0, 0, 0, NULL, 0, 0, 0xFFFF};
+struct rcu g_rcu = {0,		/* list_head */
+                    0,		/* list_tail */
+                    {0},	/* sw_ctstws */
+                    0,		/* list_size */
+                    NULL,	/* slab */
+                    NULL,	/* dcsr regs */
+                    0,		/* committed */
+                    0,		/* max */
+                    0xFFFF,	/* delay */
+                    0};		/* sw_ctstws_lock */
+
 uint8_t g_sl_tmi_id = 0xff;
 
-int rcu_early_init(uint16_t delay, uint32_t committed, uint32_t max);
+int rcu_init();
+void rcu_free();
+void rcu_tman_cb(uint64_t opaque1, uint16_t opaque2);
 
 int rcu_early_init(uint16_t delay, uint32_t committed, uint32_t max)
 {
@@ -48,28 +65,44 @@ int rcu_early_init(uint16_t delay, uint32_t committed, uint32_t max)
 	                                                0,
 	                                                0);
 	ASSERT_COND(!err);
-	
+
 	g_rcu.committed += committed;
+	/* Count extra buffers */
 	if ((max - committed) > g_rcu.max)
 		g_rcu.max = (max - committed);
-	
+
 	/* Smallest delay */
 	if (delay < g_rcu.delay)
 		g_rcu.delay = delay;
 }
 
-int rcu_init();
 int rcu_init()
 {
-	int err;
+	int err, cluster, core;
 	uint64_t tman_addr;
+	uint32_t m_timers = 10;
 
 	if (g_rcu.committed == 0) {
-		pr_err("Call rcu_early_init() to setup rcu \n"); 
+		pr_err("Call rcu_early_init() to setup rcu \n");
 		pr_err("Setting RCU defaults.. \n");
 		g_rcu.committed = 64;
 		g_rcu.max = 128;
 		g_rcu.delay = 10;
+	} else {
+		/* Convert extra to committed */
+		g_rcu.max += g_rcu.committed;
+	}
+
+	pr_info("RCU committed = %d, max = %d, delay = %d\n",
+	        (int)g_rcu.committed, (int)g_rcu.max, (int)g_rcu.delay);
+
+	g_rcu.regs = (struct aiop_dcsr_regs *)\
+		(AIOP_PERIPHERALS_OFF + SOC_PERIPH_OFF_DCSR);
+
+	for (cluster = 0; cluster < AIOP_MAX_NUM_CLUSTERS; cluster++) {
+		for (core = 0; core < AIOP_MAX_NUM_CORES_IN_CLUSTER; core++) {
+			g_rcu.sw_ctstws[cluster][core] = CTSTWS_TASKS_MASK;
+		}
 	}
 
 	err = slab_create(g_rcu.committed,
@@ -82,111 +115,307 @@ int rcu_init()
 	                  &(g_rcu.slab));
 	ASSERT_COND(!err);
 
+	/*
+	 * TODO Move SL tmi create to a separate module
+	 */
 	if (g_sl_tmi_id == 0xff) {
 		tman_addr = 0;
-		err = fsl_os_get_mem((64 * 16 + 1), 
-		                     MEM_PART_DP_DDR, 
-		                     64, 
+		err = fsl_os_get_mem((64 * m_timers + 1),
+		                     MEM_PART_DP_DDR,
+		                     64,
 		                     &tman_addr);
 		ASSERT_COND(!err && tman_addr);
 
-		err = tman_create_tmi(tman_addr, 10, &g_sl_tmi_id);
+		err = tman_create_tmi(tman_addr, m_timers, &g_sl_tmi_id);
 		ASSERT_COND(!err);
 	}
 }
 
-void rcu_free();
-void rcu_free()
+static void delete_tmi_cb(uint64_t opaque1, uint16_t opaque2)
 {
-	/* TODO destroy slab */
-	
-	/* TODO destroy tmi */
+	UNUSED(opaque1);
+	UNUSED(opaque2);
+	fdma_terminate_task();
 }
 
-static int enqueue()
+void rcu_free()
 {
-	uint32_t size = -1;
+	int err;
+
+	/* destroy slab */
+	err = slab_free(&g_rcu.slab);
+	ASSERT_COND(!err);
+
+	/* destroy tmi
+	 * TODO SL timer should be in a separate module */
+	if (g_sl_tmi_id != 0xff) {
+		tman_delete_tmi(delete_tmi_cb, 0,
+		                      g_sl_tmi_id, 0, 0);
+		g_sl_tmi_id = 0xff;
+	}
+}
+
+static int enqueue(rcu_cb_t *cb, uint64_t param)
+{
+	uint32_t size;
 	int err;
 	uint64_t job;
 	uint64_t next;
+	struct rcu_job s_job;
 
 	job = 0;
 	err = slab_acquire(g_rcu.slab, &job);
 	if (err || (job == 0))
 		return err;
 
-	/* TODO copy the job using CDMA 
-	 * Read / Update next */
-	// job->next = 0;
+	/* Copy the job using CDMA */
+	s_job.next	= 0;
+	s_job.cb	= cb;
+	s_job.param	= param;
+	cdma_write(job, &s_job, sizeof(struct rcu_job));
 
-	// MUTES LOCK
-	
+
+	RCU_MUTEX_W_TAKE;
+
 	if (g_rcu.list_size == 0) {
-		size = 1;
 		g_rcu.list_head = job;
 		g_rcu.list_tail = g_rcu.list_head;
 	} else {
 		ASSERT_COND(g_rcu.list_tail);
-		//g_rcu.list_tail->next = job;
+		next = job;
+		cdma_write(g_rcu.list_tail + offsetof(struct rcu_job, next),
+		           &next, sizeof(next));
+
+		g_rcu.list_tail = job;
 	}
 
-	g_rcu.list_size++;
+	atomic_incr32(&g_rcu.list_size, 1);
+	size = (uint32_t)g_rcu.list_size;
 
-	size = g_rcu.list_size;
-	
-	// MUTES UNLOCK
+	RCU_MUTEX_RELEASE;
 
-	return size;
+	return (int)size;
 }
 
-int rcu_synchronize(void (*cb)(uint64_t), uint64_t param)
+static int dequeue(rcu_cb_t **cb, uint64_t *param)
 {
-	struct aiop_dcsr_regs *regs = (struct aiop_dcsr_regs *)\
-		(AIOP_PERIPHERALS_OFF + SOC_PERIPH_OFF_DCSR);
-	int cluster;
-	uint32_t core;
-	uint32_t ctstws;
-	uint32_t task_id;
+	uint64_t job;
+	int err;
+	struct rcu_job s_job;
+	int lock = (g_rcu.list_size > 1 ? 0 : 1);
+	/* No multicore dequeue, it should be protected only from enqueue
+	 * g_rcu.list_size can get higher but not lower */
 
-	cluster = 1;
-	core = 2;
+	ASSERT_COND(g_rcu.list_size > 0);
+	ASSERT_COND(g_rcu.list_head);
 
-	pr_debug("Cluster %d Core %d CTWS 0x%x should be 0x%x\n",
-	         cluster + 1,
-	         core + 1,
-	         (uint32_t)(&regs->clustr[cluster].core[core].ctstws),
-	         (0x02000000 + 0x0100000 + 0x90000 + 0x0800 + 0x30C));
+	if (lock)
+		RCU_MUTEX_W_TAKE;
 
-	ctstws = ioread32_ccsr(&regs->clustr[cluster].core[core].ctstws);
-	iowrite32_ccsr(0, &regs->clustr[cluster].core[core].ctstws);
-	ctstws = ioread32_ccsr(&regs->clustr[cluster].core[core].ctstws);
+	cdma_read(&s_job, g_rcu.list_head, sizeof(struct rcu_job));
+	*cb = s_job.cb;
+	*param = s_job.param;
 
-	pr_debug("Cluster %d Core %d CTWS val 0x%x\n",
-	         cluster + 1,
-	         core + 1,
-	         ctstws);
+	job = g_rcu.list_head;
+	g_rcu.list_head = s_job.next;
 
-	ctstws = booke_get_CTSTWS();
-	core = core_get_id();
-	cluster = core / 4; 
-	core = core & 0x3;
-	task_id = (booke_get_TASKSCR0() & 0xF);
+	if (g_rcu.list_head == 0) {
+		g_rcu.list_tail = 0;
+		ASSERT_COND(g_rcu.list_size == 1);
+	}
 
-	iowrite32_ccsr(0, &regs->clustr[cluster].core[core].ctstws);
-	ctstws = ioread32_ccsr(&regs->clustr[cluster].core[core].ctstws);
+	atomic_decr32(&g_rcu.list_size, 1);
 
-	pr_debug("Cluster %d Core %d CTWS val 0x%x task_id 0x%x\n",
-	         cluster + 1,
-	         core + 1,
-	         ctstws,
-	         task_id);
+	if (lock)
+		RCU_MUTEX_RELEASE;
 
-	ASSERT_COND(ctstws == booke_get_CTSTWS());
+	err = slab_release(g_rcu.slab, job);
 
 	return 0;
 }
 
-#if 0
+static void prime_CTSTWS()
+{
+	int cluster, core;
+
+	for (cluster = 0; cluster < AIOP_MAX_NUM_CLUSTERS; cluster++) {
+		for (core = 0; core < AIOP_MAX_NUM_CORES_IN_CLUSTER; core++) {
+			iowrite32_ccsr(0,
+			               &(g_rcu.regs->\
+			               clustr[cluster].core[core].ctstws));
+		}
+	}
+}
+
+static int done_CTSTWS()
+{
+	uint32_t cluster;
+	uint32_t core;
+	uint32_t mask;
+	uint32_t ctstws;
+
+	for (cluster = 0; cluster < AIOP_MAX_NUM_CLUSTERS; cluster++) {
+		for (core = 0; core < AIOP_MAX_NUM_CORES_IN_CLUSTER; core++) {
+
+			ctstws = ioread32_ccsr(&(g_rcu.regs->\
+				clustr[cluster].core[core].ctstws));
+			mask = g_rcu.sw_ctstws[cluster][core];
+
+			if (ctstws & mask) {
+				return 0;
+			}
+		}
+	}
+
+	return 1;
+}
+
+static int init_one_shot_timer(int batch_size)
+{
+	int err;
+	uint32_t timer_handle;
+	uint16_t delay;
+
+	/*
+	 * TODO consider using different delays for polling and the first
+	 * rcu task, should there be a correlation between them ?
+	 */
+	delay = g_rcu.delay * 10; /* User defined delay */
+	if (batch_size > 0)
+		delay = 11; /* ~1 msec delay for polling on CTSTWS */
+
+	/* Tman requirement */
+	ASSERT_COND(delay > 10);
+
+	err = tman_create_timer(g_sl_tmi_id/* tmi_id */,
+	                        TMAN_CREATE_TIMER_MODE_100_USEC_GRANULARITY |
+	                        TMAN_CREATE_TIMER_ONE_SHOT /* flags */,
+	                        delay /* duration */,
+	                        (uint64_t)batch_size /* opaque_data1 */,
+	                        0 /* opaque_data2 */,
+	                        rcu_tman_cb /* tman_timer_cb */,
+	                        &timer_handle /* *timer_handle */);
+	return err;
+}
+
+void rcu_tman_cb(uint64_t ubatch_size, uint16_t opaque2)
+{
+	int batch_size = (int)ubatch_size;
+	int i;
+	rcu_cb_t *cb;
+	uint64_t param;
+	int err;
+
+	UNUSED(opaque2);
+
+	rcu_read_unlock();
+
+	/* Confirmation for running the timer again */
+	tman_timer_completion_confirmation(\
+		TMAN_GET_TIMER_HANDLE(HWC_FD_ADDRESS));
+
+	if (batch_size == -1) {
+		batch_size = (int)g_rcu.list_size;
+		/* next prime will be only after this one has finished */
+		prime_CTSTWS();
+	}
+
+	if (done_CTSTWS()) {
+
+		ASSERT_COND(batch_size > 0);
+		for (i = 0; i < batch_size; i++) {
+			err = dequeue(&cb, &param);
+			ASSERT_COND(!err);
+			cb(param);
+		}
+
+		if (g_rcu.list_size != 0)
+			init_one_shot_timer(-1);
+
+	} else {
+		init_one_shot_timer(batch_size);
+	}
+
+	rcu_read_unlock_cancel();
+	fdma_terminate_task();
+}
+
+int rcu_synchronize(rcu_cb_t *cb, uint64_t param)
+{
+	int size;
+
+	ASSERT_COND(cb);
+
+	size = enqueue(cb, param);
+	if (size < 0) {
+		pr_err("Failed enqueue err = %d\n", size);
+		return -ENOMEM;
+	}
+
+	if (size == 1) {
+		size = init_one_shot_timer(-1);
+		if (size) {
+			pr_err("Failed timer err = %d\n", size);
+			return size;
+		}
+	}
+	return 0;
+}
+
+void rcu_read_unlock()
+{
+	uint32_t temp;
+	uint32_t my_cluster, my_core;
+	uint32_t my_task_id;
+
+	my_core		= core_get_id();
+	my_cluster	= my_core / AIOP_MAX_NUM_CLUSTERS;
+	my_core		= my_core & (AIOP_MAX_NUM_CORES_IN_CLUSTER - 1);
+	my_task_id	= (booke_get_TASKSCR0() & 0xF);
+
+	lock_spinlock(&g_rcu.sw_ctstws_lock);
+
+	/* 1 - need to wait for task
+	 * 0 - no need to wait for task
+	 * must be atomic write */
+	temp = g_rcu.sw_ctstws[my_cluster][my_core] & \
+		~(CTSTWS_TASK0_BIT >> my_task_id);
+	g_rcu.sw_ctstws[my_cluster][my_core] = temp;
+
+	unlock_spinlock(&g_rcu.sw_ctstws_lock);
+}
+
+void rcu_read_unlock_cancel()
+{
+	uint32_t temp;
+	uint32_t my_cluster, my_core;
+	uint32_t my_task_id;
+
+	my_core		= core_get_id();
+	my_cluster	= my_core / AIOP_MAX_NUM_CLUSTERS;
+	my_core		= my_core & (AIOP_MAX_NUM_CORES_IN_CLUSTER - 1);
+	my_task_id	= (booke_get_TASKSCR0() & 0xF);
+
+	lock_spinlock(&g_rcu.sw_ctstws_lock);
+
+	/* 1 - need to wait for task
+	 * 0 - no need to wait for task
+	 * must be atomic write */
+	temp = g_rcu.sw_ctstws[my_cluster][my_core] | \
+		(CTSTWS_TASK0_BIT >> my_task_id);
+	g_rcu.sw_ctstws[my_cluster][my_core] = temp;
+
+	unlock_spinlock(&g_rcu.sw_ctstws_lock);
+}
+
+#if 0 /* PSEUDOCODE_AFTER_REVIEW */
+
+/*
+ *
+ * This is pseudo code that was used for design review - ignore it
+ *
+ */
+
 static void rcu_read_unlock()
 {
 	SPIN_LOCK(SW_CTSTWS);

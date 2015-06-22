@@ -218,27 +218,20 @@
 *
 * The handler is fixed to this address.
 ********************************************************/
-#define CRITICAL_INTR               0x0100
-#define MACHINE_CHECK_INTR          0x0200
-#define DATA_STORAGE_INTR           0x0300
-#define INSTRUCTION_STORAGE_INTR    0x0400
-#define EXTERNAL_INTR               0x0500
-#define ALIGNMENT_INTR              0x0600
-#define PROGRAM_INTR                0x0700
-#define DECREMENTER_INTR            0x0900
-#define WATCHDOG_TIMER_INTR         0x0b00
-#define SYSTEM_CALL_INTR            0x0c00
-#define FIXED_INTERVAL_INTR         0x0f00
-#define I_TLB_ERROR_INTR            0x1000
-#define D_TLB_ERROR_INTR            0x1100
-#define DEBUG_INTR                  0x1500
-#define SPE_APU_INTR                0x1600
-#define SPE_FLT_DATA_INTR           0x1700
-#define SPE_FLT_ROUND_INTR          0x1800
-#define PERF_MONITOR_INTR           0x1900
-/* Next should be +1 from last Interrupt, for table build */
-#define LAST_INTR_INDEX             0x1b00
-
+#define CRITICAL_INTR               0x00
+#define MACHINE_CHECK_INTR          0x10
+#define DATA_STORAGE_INTR           0x20
+#define INSTRUCTION_STORAGE_INTR    0x30
+#define EXTERNAL_INTR               0x40
+#define ALIGNMENT_INTR              0x50
+#define PROGRAM_INTR                0x60
+#define PERF_MONITOR_INTR           0x70
+#define SYSTEM_CALL_INTR            0x80
+#define DEBUG_INTR                  0x90
+#define EFPU_DATA_INTR              0xa0
+#define EFPU_ROUND_INTR             0xb0
+#define EFPU_NA_INTR                0xc0
+#define CTS_WD_INTR                 0xf0
 
 /*
  *
