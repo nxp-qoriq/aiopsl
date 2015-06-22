@@ -53,7 +53,8 @@
 
 #define AIOP_ASYNC_CB_DONE	5  /* Must be in sync with MC ELF */
 #define AIOP_SYNC_BUFF_SIZE	80 /* Must be in sync with MC ELF */
-#define AIOP_ASYNC_N_NUM	8
+#define AIOP_CL_REGISTER_NUM	10
+#define AIOP_ASYNC_N_NUM	AIOP_CL_REGISTER_NUM
 
 
 struct shbp_test {

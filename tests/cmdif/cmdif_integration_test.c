@@ -75,6 +75,7 @@ extern struct dpci_mng_tbl g_dpci_tbl;
 extern struct rcu g_rcu;
 
 struct cmdif_desc cidesc;
+struct cmdif_desc cidesc_arr[AIOP_CL_REGISTER_NUM];
 struct dpci_attr attr = {0};
 struct dpci_attr attr_c = {0};
 uint64_t tman_addr;
@@ -423,6 +424,7 @@ static int ctrl_cb0(void *dev, uint16_t cmd, uint32_t size,
 	uint32_t timer_handle = 0;
 	struct shbp_test *shbp_test;
 	uint64_t temp64;
+	char     module[10];
 
 	UNUSED(dev);
 	pr_debug("ctrl_cb0 cmd = 0x%x, size = %d, data  0x%x\n",
@@ -526,18 +528,20 @@ static int ctrl_cb0(void *dev, uint16_t cmd, uint32_t size,
 		err = cmdif_close(&cidesc);
 		break;
 	case OPEN_N_CMD:
-		cidesc.regs = TEST_DPCI_ID; /* DPCI 0 is used by MC */
+		cidesc_arr[0].regs = TEST_DPCI_ID; /* DPCI 0 is used by MC */
 		if (size > 0) {
-			cidesc.regs = (void *)(((uint8_t *)data)[0]);
+			cidesc_arr[0].regs = (void *)(((uint8_t *)data)[0]);
 		}
 		pr_debug("Testing AIOP client against GPP DPCI%d\n",
 		         (uint32_t)cidesc.regs);
-		err |= cmdif_open(&cidesc, "IRA0", 0, NULL, 0);
-		err |= cmdif_open(&cidesc, "IRA3", 0, NULL, 0);
-		err |= cmdif_open(&cidesc, "IRA2", 0, NULL, 0);
-		if (err) {
-			pr_debug("failed to cmdif_open()\n");
-			return err;
+		for (i = 0; i < AIOP_CL_REGISTER_NUM; i++) {
+			cidesc_arr[i].regs = cidesc_arr[0].regs;
+			snprintf(module, sizeof(module), "IRA%d", i);
+			err |= cmdif_open(&cidesc_arr[i], module, 0, NULL, 0);
+			if (err) {
+				pr_debug("failed to cmdif_open()\n");
+				return err;
+			}
 		}
 		break;
 	case NORESP_CMD:
@@ -563,9 +567,11 @@ static int ctrl_cb0(void *dev, uint16_t cmd, uint32_t size,
 		         (uint32_t)((p_data & 0xFF00000000) >> 32),
 		         (uint32_t)(p_data & 0xFFFFFFFF),
 		         AIOP_SYNC_BUFF_SIZE);
+		ASSERT_COND(AIOP_ASYNC_N_NUM <= AIOP_CL_REGISTER_NUM);
 		for (i = 0 ; i < AIOP_ASYNC_N_NUM; i++) {
-			err |= cmdif_send(&cidesc, (uint16_t)(i + 1) | CMDIF_ASYNC_CMD, AIOP_SYNC_BUFF_SIZE,
-			                  CMDIF_PRI_LOW, p_data, aiop_async_cb, cidesc.regs);
+			err |= cmdif_send(&cidesc_arr[i], (uint16_t)(i + 1) | CMDIF_ASYNC_CMD, AIOP_SYNC_BUFF_SIZE,
+			                  CMDIF_PRI_LOW, p_data, aiop_async_cb, cidesc_arr[i].regs);
+			ASSERT_COND(!err);
 		}
 		break;
 	case SYNC_CMD:
