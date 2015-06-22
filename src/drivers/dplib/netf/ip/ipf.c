@@ -369,11 +369,10 @@ int ipf_move_remaining_frame(struct ipf_context *ipf_ctx)
 			ipv4_hdr->flags_and_offset,
 			frag_offset);
 	ipv4_hdr->flags_and_offset = frag_offset;
-	
 	/* For fragment's fragmentation, last frag should have M bit set */
-	if (ipf_ctx->flags | FRAGMENTATION_OF_FRAG)
+	if (ipf_ctx->flags & FRAGMENTATION_OF_FRAG)
 		ipv4_hdr->flags_and_offset |= IPV4_HDR_M_FLAG_MASK;
-	
+
 	ip_total_length = (uint16_t)LDPAA_FD_GET_LENGTH(HWC_FD_ADDRESS) -
 					ipv4_offset - ipf_ctx->prc_seg_offset;
 	cksum_update_uint32(&ipv4_hdr->hdr_cksum,
@@ -776,10 +775,10 @@ int ipf_generate_frag(ipf_ctx_t ipf_context_addr)
 						IPV4_HDR_D_FLAG_MASK)
 					return IPF_GEN_FRAG_STATUS_DF_SET;
 			/* Check if this is fragmentation of a fragment */	
-				if (ipv4_hdr->flags_and_offset |
+				if (ipv4_hdr->flags_and_offset &
 						IPV4_HDR_M_FLAG_MASK)
 					ipf_ctx->flags |= FRAGMENTATION_OF_FRAG;
-				
+
 				ip_header_length = (uint16_t)
 				(ipv4_hdr->vsn_and_ihl & IPV4_HDR_IHL_MASK)<<2;
 				mtu_payload_length =
