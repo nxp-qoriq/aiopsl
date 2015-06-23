@@ -35,6 +35,7 @@
 #include "common/types.h"
 #include "fsl_errors.h"
 
+
 /* Put all function (execution code) into  dtext_vle section,aka __COLD_CODE */
 __START_COLD_CODE
 /**************************************************************************//**
@@ -60,17 +61,6 @@ __START_COLD_CODE
  *//***************************************************************************/
 typedef struct t_mem_mng_param
 {
-#if 0
-    void *      (*f_malloc)(uint32_t size);
-                /**< Memory allocation routine for internal structures */
-    void        (*f_free)(void *p_mem);
-                /**< Memory deallocation routine for internal structures */
-
-    void *      (*f_early_malloc)(uint32_t size, uint32_t alignment);
-                /**< Early allocation routine (before partitions are registered) */
-    void        (*f_early_free)(void *p_addr);
-                /**< Early deallocation routine (before partitions are registered) */
-#endif
 #ifdef AIOP
     uint8_t *   lock;
 #else /* not AIOP */
@@ -81,7 +71,7 @@ typedef struct t_mem_mng_param
 } t_mem_mng_param;
 
 /**************************************************************************//**
- @Description   Initial Memory management, used for allocations during boot. 
+ @Description   Initial Memory management, used for allocations during boot.
  *//***************************************************************************/
 struct initial_mem_mng
 {
@@ -128,7 +118,8 @@ int boot_mem_mng_init(struct initial_mem_mng* boot_mem_mng,const int mem_partiti
 *//***************************************************************************/
 int boot_mem_mng_free(struct initial_mem_mng* boot_mem_mng);
 
-
+/* Forward declaration */
+struct t_mem_mng;
 /**************************************************************************//**
  @Function      mem_mng_init
 
@@ -140,8 +131,9 @@ int boot_mem_mng_free(struct initial_mem_mng* boot_mem_mng);
 
  @Return        Handle to initialized MEM_MNG object, or NULL on error.
 *//***************************************************************************/
-fsl_handle_t mem_mng_init(fsl_handle_t h_boot_mem_mng,
-		                  t_mem_mng_param *p_mem_mng_param);
+int mem_mng_init(fsl_handle_t h_boot_mem_mng,
+                 const t_mem_mng_param *p_mem_mng_param,
+                 struct t_mem_mng    *p_mem_mng);
 
 /**************************************************************************//**
  @Function      mem_mng_free
@@ -186,10 +178,12 @@ typedef struct t_mem_mng_partition_info
     uint64_t    base_address;
     uint64_t    size;
     uint32_t    attributes;
+#if ENABLE_DEBUG_ENTRIES
     uint32_t    current_usage;
     uint32_t    maximum_usage;
     uint32_t    total_allocations;
     uint32_t    total_deallocations;
+#endif
 
 } t_mem_mng_partition_info;
 
@@ -218,7 +212,7 @@ int mem_mng_register_partition(fsl_handle_t  h_mem_mng,
                                   uintptr_t base_address,
                                   uint64_t  size,
                                   uint32_t  attributes,
-                                  char      name[],                        
+                                  char      name[],
                                   int       enable_debug);
 
 int mem_mng_unregister_partition(fsl_handle_t h_mem_mng, int partition_id);

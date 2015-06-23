@@ -30,6 +30,8 @@
  @Description   Implementation of the memory allocation management module.
 *//***************************************************************************/
 
+//#define ENABLE_DEBUG_ENTRIES
+
 #include "inc/fsl_gen.h"
 #include "common/fsl_string.h"
 #include "kernel/fsl_spinlock.h"
@@ -45,6 +47,7 @@
 #include "fsl_mem_mng.h"
 #include "slob.h"
 #include "buffer_pool.h"
+
 
 
 #ifdef UNDER_CONSTRUCTION
@@ -81,7 +84,7 @@ __START_COLD_CODE
 
 
 
-static void mem_mng_add_entry(t_mem_mng             *p_mem_mng,
+static void mem_mng_add_entry(struct t_mem_mng             *p_mem_mng,
                            t_mem_mng_partition    *p_partition,
                            void                 *p_memory,
                            uint32_t             size,
@@ -89,20 +92,20 @@ static void mem_mng_add_entry(t_mem_mng             *p_mem_mng,
                            char                 *filename,
                            int                  line);
 
-static int mem_mng_remove_entry(t_mem_mng          *p_mem_mng,
+static int mem_mng_remove_entry(struct t_mem_mng          *p_mem_mng,
                               t_mem_mng_partition *p_partition,
                               void              *p_memory);
 
-static int mem_mng_get_partition_id_by_addr_local(t_mem_mng             *p_mem_mng,
+static int mem_mng_get_partition_id_by_addr_local(struct t_mem_mng             *p_mem_mng,
                                        uint64_t             addr,
                                        int                  *p_partition_id,
                                        t_mem_mng_partition    **p_partition);
 
 
-static void mem_mng_free_partition(t_mem_mng *p_mem_mng,
+static void mem_mng_free_partition(struct t_mem_mng *p_mem_mng,
                                    t_mem_mng_partition* p_partition);
 
-static void mem_phys_mng_free_partition(t_mem_mng *p_mem_mng,
+static void mem_phys_mng_free_partition(struct t_mem_mng *p_mem_mng,
                            t_mem_mng_phys_addr_alloc_partition   *p_partition);
 
 
@@ -205,10 +208,10 @@ int boot_get_mem_virt(struct initial_mem_mng* boot_mem_mng,
 	return  0;
 }
 /*****************************************************************************/
-fsl_handle_t mem_mng_init(fsl_handle_t h_boot_mem_mng,
-                           t_mem_mng_param *p_mem_mng_param)
+int  mem_mng_init(void *  h_boot_mem_mng,
+                    const t_mem_mng_param *p_mem_mng_param,
+                    struct t_mem_mng    *p_mem_mng)
 {
-    t_mem_mng    *p_mem_mng;
     uint32_t      mem_mng_addr = 0;
     int rc = 0, i, array_size = 0;
     uint32_t slob_blocks_num = 0;
@@ -220,15 +223,17 @@ fsl_handle_t mem_mng_init(fsl_handle_t h_boot_mem_mng,
     if(NULL == h_boot_mem_mng)
         return NULL;
     struct initial_mem_mng* boot_mem_mng = (struct initial_mem_mng*)h_boot_mem_mng;
-    rc = boot_get_mem_virt(boot_mem_mng,sizeof(t_mem_mng),&mem_mng_addr);
+    /*rc = boot_get_mem_virt(boot_mem_mng,sizeof(t_mem_mng),&mem_mng_addr);
     if (rc)
     {
         pr_err("Mem. manager memory allocation failed: memory manager "
                "structure\n");
-        return NULL;
+        return -ENOMEM;
     }
+
     p_mem_mng = UINT_TO_PTR(mem_mng_addr);
-    memset(p_mem_mng, 0, sizeof(t_mem_mng));
+    */
+    memset(p_mem_mng, 0, sizeof(struct t_mem_mng));
 
     p_mem_mng->lock    = p_mem_mng_param->lock;
     p_mem_mng->h_boot_mem_mng = h_boot_mem_mng;
@@ -242,7 +247,7 @@ fsl_handle_t mem_mng_init(fsl_handle_t h_boot_mem_mng,
     if(rc)
     {
 	    pr_err("MAJOR mem.manager memory allocation failed slob free blocks\n");
-	    return NULL;
+	    return -ENOMEM;
     }
 
     p_mem_mng->mem_partitions_initialized = 0;
@@ -264,14 +269,14 @@ fsl_handle_t mem_mng_init(fsl_handle_t h_boot_mem_mng,
 
     p_mem_mng->mem_partitions_initialized = 0;
 
-    return p_mem_mng;
+    return 0 ;
 }
 
 
 /*****************************************************************************/
-void mem_mng_free(fsl_handle_t h_mem_mng,fsl_handle_t h_boot_mem_mng)
+void mem_mng_free(void*  h_mem_mng,void*  h_boot_mem_mng)
 {
-    t_mem_mng            *p_mem_mng = (t_mem_mng *)h_mem_mng;
+    struct t_mem_mng            *p_mem_mng = (struct t_mem_mng *)h_mem_mng;
 #ifndef AIOP
     uint32_t            int_flags;
 #endif /* AIOP */
@@ -307,13 +312,10 @@ void mem_mng_free(fsl_handle_t h_mem_mng,fsl_handle_t h_boot_mem_mng)
 #endif /* AIOP */
     }
 
-/* mem manager is no longer allocated by malloc, so no need to release it
-    p_mem_mng->f_free(p_mem_mng);
-*/
 }
 
 /*****************************************************************************/
-int mem_mng_register_partition(fsl_handle_t  h_mem_mng,
+int mem_mng_register_partition(void*   h_mem_mng,
                                   int       partition_id,
                                   uintptr_t base_address,
                                   uint64_t  size,
@@ -321,7 +323,7 @@ int mem_mng_register_partition(fsl_handle_t  h_mem_mng,
                                   char      name[],
                                   int      enable_debug)
 {
-    t_mem_mng            *p_mem_mng = (t_mem_mng *)h_mem_mng;
+    struct t_mem_mng            *p_mem_mng = (struct t_mem_mng *)h_mem_mng;
     t_mem_mng_partition   *p_partition = NULL, *p_new_partition;
 #ifndef AIOP
     uint32_t            int_flags;
@@ -366,7 +368,7 @@ int mem_mng_register_partition(fsl_handle_t  h_mem_mng,
 #endif
     if (!p_new_partition->lock)
     {
-	    p_new_partition->was_initialized = 0;
+	p_new_partition->was_initialized = 0;
         pr_err("Mem_manager resource is unavailable: spinlock object for"
                 "partition: %s\n", name);
         return -EAGAIN;
@@ -388,19 +390,20 @@ int mem_mng_register_partition(fsl_handle_t  h_mem_mng,
     if (0 != slob_init(&(p_new_partition->h_mem_manager), base_address, size,
                        p_mem_mng->h_boot_mem_mng,&p_mem_mng->slob_bf_pool))
     {
-        /*p_mem_mng->f_free(p_new_partition);*/
         p_new_partition->was_initialized = 0;
         pr_err("Mem_manager resource is unavailable: slob  object for "
 				"partition: %s\n", name);
-		return -EAGAIN;
+	return -EAGAIN;
     }
 
 
     /* Copy partition name */
     strncpy(p_new_partition->info.name, name, MEM_MNG_MAX_PARTITION_NAME_LEN-1);
 
+#ifdef ENABLE_DEBUG_ENTRIES
     /* Initialize debug entries list */
     INIT_LIST(&(p_new_partition->mem_debug_list));
+#endif
 
     /* Store other parameters */
     p_new_partition->id = partition_id;
@@ -414,14 +417,14 @@ int mem_mng_register_partition(fsl_handle_t  h_mem_mng,
 }
 /*****************************************************************************/
 
-int mem_mng_register_phys_addr_alloc_partition(fsl_handle_t  h_mem_mng,
+int mem_mng_register_phys_addr_alloc_partition(void*   h_mem_mng,
                                   int       partition_id,
                                   uint64_t base_paddress,
                                   uint64_t  size,
                                   uint32_t  attributes,
                                   char      name[])
 {
-	t_mem_mng            *p_mem_mng = (t_mem_mng *)h_mem_mng;
+	struct t_mem_mng            *p_mem_mng = (struct t_mem_mng *)h_mem_mng;
 	t_mem_mng_phys_addr_alloc_partition   *p_partition = NULL, *p_new_partition;
 	uint32_t i = 0, array_size = 0;
 #ifndef AIOP
@@ -476,7 +479,6 @@ int mem_mng_register_phys_addr_alloc_partition(fsl_handle_t  h_mem_mng,
    if (0 != slob_init(&(p_new_partition->h_mem_manager), base_paddress, size,
 		   p_mem_mng->h_boot_mem_mng,&p_mem_mng->slob_bf_pool))
    {
-        /*p_mem_mng->f_free(p_new_partition); */
        p_new_partition->was_initialized = 0;
        pr_err("Mem. manager resource is unavailable: slob object for "
                "partition: %s\n",name);
@@ -495,7 +497,6 @@ int mem_mng_register_phys_addr_alloc_partition(fsl_handle_t  h_mem_mng,
    p_new_partition->info.base_paddress = base_paddress;
    p_new_partition->info.size = size;
    p_new_partition->info.attributes = attributes;
-   p_new_partition->curr_paddress = base_paddress;
    p_new_partition->was_initialized = 1;
 
 #ifdef AIOP
@@ -510,9 +511,9 @@ int mem_mng_register_phys_addr_alloc_partition(fsl_handle_t  h_mem_mng,
 
 
 /*****************************************************************************/
-int mem_mng_unregister_partition(fsl_handle_t h_mem_mng, int partition_id)
+int mem_mng_unregister_partition(void*  h_mem_mng, int partition_id)
 {
-    t_mem_mng            *p_mem_mng = (t_mem_mng *)h_mem_mng;
+    struct t_mem_mng            *p_mem_mng = (struct t_mem_mng *)h_mem_mng;
     t_mem_mng_partition   *p_partition;
     t_mem_mng_phys_addr_alloc_partition *p_phys_partition;
     uint32_t i = 0, array_size = 0;
@@ -541,7 +542,7 @@ int mem_mng_unregister_partition(fsl_handle_t h_mem_mng, int partition_id)
     }
     else
     {
-	    p_phys_partition = &p_mem_mng->phys_allocation_mem_partitions_array[partition_id];
+	p_phys_partition = &p_mem_mng->phys_allocation_mem_partitions_array[partition_id];
         if (p_phys_partition->was_initialized)
         {
 #ifdef AIOP
@@ -566,11 +567,11 @@ int mem_mng_unregister_partition(fsl_handle_t h_mem_mng, int partition_id)
 
 
 /*****************************************************************************/
-int mem_mng_get_partition_info(fsl_handle_t               h_mem_mng,
+int mem_mng_get_partition_info(void*                h_mem_mng,
                                   int                   partition_id,
                                   t_mem_mng_partition_info *p_partition_info)
 {
-    t_mem_mng            *p_mem_mng = (t_mem_mng *)h_mem_mng;
+    struct t_mem_mng            *p_mem_mng = (struct t_mem_mng *)h_mem_mng;
     t_mem_mng_partition   *p_partition;
     uint32_t i = 0, array_size = 0;
 #ifndef AIOP
@@ -605,11 +606,11 @@ int mem_mng_get_partition_info(fsl_handle_t               h_mem_mng,
     return -EAGAIN;
 }
 /*****************************************************************************/
-int mem_mng_get_phys_addr_alloc_info(fsl_handle_t               h_mem_mng,
+int mem_mng_get_phys_addr_alloc_info(void*                h_mem_mng,
                                   int                   partition_id,
                                   t_mem_mng_phys_addr_alloc_info *p_partition_info)
 {
-    t_mem_mng            *p_mem_mng = (t_mem_mng *)h_mem_mng;
+    struct t_mem_mng            *p_mem_mng = (struct t_mem_mng *)h_mem_mng;
     t_mem_mng_phys_addr_alloc_partition   *p_partition;
 #ifndef AIOP
     uint32_t            int_flags;
@@ -643,11 +644,11 @@ int mem_mng_get_phys_addr_alloc_info(fsl_handle_t               h_mem_mng,
 }
 
 /*****************************************************************************/
-int mem_mng_get_partition_id_by_addr(fsl_handle_t   h_mem_mng,
+int mem_mng_get_partition_id_by_addr(void*    h_mem_mng,
                                      uint64_t   addr,
                                      int        *p_partition_id)
 {
-    t_mem_mng            *p_mem_mng = (t_mem_mng *)h_mem_mng;
+    struct t_mem_mng            *p_mem_mng = (struct t_mem_mng *)h_mem_mng;
     t_mem_mng_partition   *p_partition;
     int                found;
 
@@ -665,14 +666,19 @@ int mem_mng_get_partition_id_by_addr(fsl_handle_t   h_mem_mng,
 
 
 /*****************************************************************************/
-uint32_t mem_mng_check_leaks(fsl_handle_t                h_mem_mng,
+uint32_t mem_mng_check_leaks(void*                 h_mem_mng,
                             int                     partition_id,
                             t_mem_mng_leak_report_func  *f_report_leak)
 {
-    t_mem_mng            *p_mem_mng = (t_mem_mng *)h_mem_mng;
+    struct t_mem_mng            *p_mem_mng = (struct t_mem_mng *)h_mem_mng;
     t_mem_mng_partition   *p_partition;
+#ifdef ENABLE_DEBUG_ENTRIES
     t_mem_mng_debug_entry  *p_mem_mng_debug_entry;
     list_t              *p_debug_iterator;
+#else
+    UNUSED(f_report_leak);
+#endif
+
     uint32_t            count = 0;
     uint32_t  i = 0, array_size = 0;
 #ifndef AIOP
@@ -687,60 +693,58 @@ uint32_t mem_mng_check_leaks(fsl_handle_t                h_mem_mng,
 
 /* Search in registered partitions */
     array_size = ARRAY_SIZE(p_mem_mng->mem_partitions_array);
-    for(i = 0; i < array_size ; i++)
+    p_partition  = &p_mem_mng->mem_partitions_array[partition_id];
+    if(p_partition->id != partition_id)
     {
-	p_partition  = &p_mem_mng->mem_partitions_array[i];
-
-	if (p_partition->id == partition_id)
-	{
 #ifdef AIOP
-		lock_spinlock(p_partition->lock);
+        unlock_spinlock(p_mem_mng->lock);
 #else
-		spin_lock(p_partition->lock);
+        spin_unlock_irqrestore(p_mem_mng->lock, int_flags);
 #endif
-		if (f_report_leak)
-		{
-		    LIST_FOR_EACH(p_debug_iterator, &(p_partition->mem_debug_list))
-		    {
-			count++;
 
-			p_mem_mng_debug_entry = MEM_MNG_DBG_OBJECT(p_debug_iterator);
-
-			f_report_leak(p_mem_mng_debug_entry->p_memory,
-				     p_mem_mng_debug_entry->size,
-				     p_mem_mng_debug_entry->info,
-				     p_mem_mng_debug_entry->filename,
-				     p_mem_mng_debug_entry->line);
-		    }
-		}
-		else
-			count = (uint32_t)list_num_of_objs(&(p_partition->mem_debug_list));
-
-#ifdef AIOP
-		unlock_spinlock(p_partition->lock);
-		unlock_spinlock(p_mem_mng->lock);
-#else
-		spin_unlock(p_partition->lock);
-		spin_unlock_irqrestore(p_mem_mng->lock, int_flags);
-#endif
-		return count;
-	}
+        pr_err("Mem. manager resource not found: partition ID %d\n",
+            partition_id);
+        return 0;
     }
 
 #ifdef AIOP
-    unlock_spinlock(p_mem_mng->lock);
+    lock_spinlock(p_partition->lock);
 #else
-    spin_unlock_irqrestore(p_mem_mng->lock, int_flags);
+    spin_lock(p_partition->lock);
 #endif
 
-    pr_err("Mem. manager resource not found: partition ID %d\n",
-            partition_id);
-    return 0;
+#ifdef ENABLE_DEBUG_ENTRIES
+    if (f_report_leak)
+    {
+        LIST_FOR_EACH(p_debug_iterator, &(p_partition->mem_debug_list))
+	{
+	    count++;
+            p_mem_mng_debug_entry = MEM_MNG_DBG_OBJECT(p_debug_iterator);
+
+	    f_report_leak(p_mem_mng_debug_entry->p_memory,
+			  p_mem_mng_debug_entry->size,
+			  p_mem_mng_debug_entry->info,
+			  p_mem_mng_debug_entry->filename,
+			  p_mem_mng_debug_entry->line);
+
+	}
+    }
+    else
+	count = (uint32_t)list_num_of_objs(&(p_partition->mem_debug_list));
+#endif
+
+#ifdef AIOP
+	unlock_spinlock(p_partition->lock);
+	unlock_spinlock(p_mem_mng->lock);
+#else
+	spin_unlock(p_partition->lock);
+	spin_unlock_irqrestore(p_mem_mng->lock, int_flags);
+#endif
+	return count;
 }
 
-
 /*****************************************************************************/
-void * mem_mng_alloc_mem(fsl_handle_t    h_mem_mng,
+void * mem_mng_alloc_mem(void*     h_mem_mng,
                         int         partition_id,
                         uint32_t    size,
                         uint32_t    alignment,
@@ -748,7 +752,7 @@ void * mem_mng_alloc_mem(fsl_handle_t    h_mem_mng,
                         char        *filename,
                         int         line)
 {
-    t_mem_mng            *p_mem_mng = (t_mem_mng *)h_mem_mng;
+    struct t_mem_mng            *p_mem_mng = (struct t_mem_mng *)h_mem_mng;
     struct initial_mem_mng* boot_mem_mng = NULL;
     t_mem_mng_partition   *p_partition;
     uint32_t i = 0, array_size = 0,virt_address = 0;
@@ -756,6 +760,12 @@ void * mem_mng_alloc_mem(fsl_handle_t    h_mem_mng,
 #ifndef AIOP
     uint32_t            int_flags;
 #endif /* AIOP */
+
+#ifndef ENABLE_DEBUG_ENTRIES
+    UNUSED(info);
+    UNUSED(filename);
+    UNUSED(line);
+#endif
 
     if (size == 0)
     {
@@ -768,68 +778,61 @@ void * mem_mng_alloc_mem(fsl_handle_t    h_mem_mng,
     int_flags = spin_lock_irqsave(p_mem_mng->lock);
 #endif
     /* Not early allocation - allocate from registered partitions */
-    array_size = ARRAY_SIZE(p_mem_mng->mem_partitions_array);
-    for(i = 0; i < array_size; i++)
+    p_partition = &p_mem_mng->mem_partitions_array[partition_id];
+    if(!p_partition->was_initialized || p_partition->id != partition_id)
     {
-        p_partition = &p_mem_mng->mem_partitions_array[i];
-
-        if (p_partition->id == partition_id)
-        {
 #ifdef AIOP
-            unlock_spinlock(p_mem_mng->lock);
+        unlock_spinlock(p_mem_mng->lock);
 #else
-    	    spin_unlock_irqrestore(p_mem_mng->lock, int_flags);
+        spin_unlock_irqrestore(p_mem_mng->lock, int_flags);
 #endif
-
-    	    /* Internal MM malloc */
-    	    p_memory = UINT_TO_PTR(
-    	        slob_get(&p_partition->h_mem_manager, size, alignment));
-            if ((uintptr_t)p_memory == 0LL)
-		/* Do not report error - let the allocating entity report it */
-    		    return NULL;
-
-#ifdef AIOP
-            lock_spinlock(p_mem_mng->lock);
-#else
-            int_flags = spin_lock_irqsave(p_mem_mng->lock);
-#endif
-
-            if (p_partition->enable_debug)
-            {
-                mem_mng_add_entry(p_mem_mng,
-                               p_partition,
-                               p_memory,
-                               size,
-                               info,
-                               filename,
-                               line);
-            }
-
-#ifdef AIOP
-            unlock_spinlock(p_mem_mng->lock);
-#else
-    	    spin_unlock_irqrestore(p_mem_mng->lock, int_flags);
-#endif
-            return p_memory;
-        }
+        sl_pr_err("Mem. manager resource not found: partition ID %d\n",
+                  partition_id);
+        return NULL;
     }
 #ifdef AIOP
     unlock_spinlock(p_mem_mng->lock);
 #else
     spin_unlock_irqrestore(p_mem_mng->lock, int_flags);
 #endif
-
-    sl_pr_err("Mem. manager resource not found: partition ID %d\n",
-           partition_id);
+    p_memory = UINT_TO_PTR(
+    slob_get(&p_partition->h_mem_manager, size, alignment));
+    if ((uintptr_t)p_memory == 0LL)
+        /* Do not report error - let the allocating entity report it */
     return NULL;
+#ifdef ENABLE_DEBUG_ENTRIES
+#ifdef AIOP
+        lock_spinlock(p_mem_mng->lock);
+#else
+        int_flags = spin_lock_irqsave(p_mem_mng->lock);
+#endif
+
+        if (p_partition->enable_debug)
+        {
+            mem_mng_add_entry(p_mem_mng,
+                           p_partition,
+                           p_memory,
+                           size,
+                           info,
+                           filename,
+                           line);
+        }
+
+#ifdef AIOP
+            unlock_spinlock(p_mem_mng->lock);
+#else
+    	    spin_unlock_irqrestore(p_mem_mng->lock, int_flags);
+#endif
+#endif
+        return p_memory;
 }
 
 /*****************************************************************************/
-int mem_mng_get_phys_mem(fsl_handle_t h_mem_mng, int  partition_id,
+int mem_mng_get_phys_mem(void*  h_mem_mng, int  partition_id,
                         uint64_t size, uint64_t alignment,
                         uint64_t *paddr)
 {
-    t_mem_mng            *p_mem_mng = (t_mem_mng *)h_mem_mng;
+    struct t_mem_mng            *p_mem_mng = (struct t_mem_mng *)h_mem_mng;
     t_mem_mng_phys_addr_alloc_partition   *p_partition;
     uint32_t array_size = 0, i = 0;
 #ifndef AIOP
@@ -860,7 +863,8 @@ int mem_mng_get_phys_mem(fsl_handle_t h_mem_mng, int  partition_id,
 #else
             spin_unlock_irqrestore(p_mem_mng->lock, int_flags);
 #endif
-            if((*paddr = slob_get(&p_partition->h_mem_manager,size,alignment)) == 0LL)
+            if((*paddr = slob_get(&p_partition->h_mem_manager,size,
+                                  (uint32_t)alignment)) == 0LL)
             {
                 pr_err("Mem. manager memory allocation failed: Required size 0x%x%08x exceeds "
                    "available memory for partition ID %d\n",
@@ -878,9 +882,9 @@ int mem_mng_get_phys_mem(fsl_handle_t h_mem_mng, int  partition_id,
     return -EINVAL;
 }
 /*****************************************************************************/
-void mem_mng_put_phys_mem(fsl_handle_t h_mem_mng, uint64_t paddress)
+void mem_mng_put_phys_mem(void*  h_mem_mng, uint64_t paddress)
 {
-    t_mem_mng            *p_mem_mng = (t_mem_mng *)h_mem_mng;
+    struct t_mem_mng            *p_mem_mng = (struct t_mem_mng *)h_mem_mng;
     t_mem_mng_phys_addr_alloc_partition   *p_partition;
     uint32_t             array_size = 0, i = 0;
     #ifndef AIOP
@@ -917,33 +921,32 @@ void mem_mng_put_phys_mem(fsl_handle_t h_mem_mng, uint64_t paddress)
     return;
 }
 /*****************************************************************************/
-void mem_mng_free_mem(fsl_handle_t h_mem_mng, void *p_memory)
+void mem_mng_free_mem(void*  h_mem_mng, void *p_memory)
 {
-    t_mem_mng            *p_mem_mng = (t_mem_mng *)h_mem_mng;
+    struct t_mem_mng            *p_mem_mng = (struct t_mem_mng *)h_mem_mng;
     t_mem_mng_partition   *p_partition;
     uintptr_t           addr = (uintptr_t)p_memory;
     int                 partition_id;
     int                address_found = 1;
 
-	if (mem_mng_get_partition_id_by_addr_local(p_mem_mng, addr, &partition_id, &p_partition))
-	{
-		if (p_partition->enable_debug &&
-			!mem_mng_remove_entry(p_mem_mng, p_partition, p_memory))
-		{
-			address_found = 0;
-		}
-
-		if (address_found)
-		{
-			slob_put(&p_partition->h_mem_manager, PTR_TO_UINT(p_memory));
-		}
-	}
-	else
+    if (mem_mng_get_partition_id_by_addr_local(p_mem_mng, addr, &partition_id, &p_partition))
+    {
+#ifdef ENABLE_DENUG_ENTRIES
+        if (p_partition->enable_debug &&
+	    !mem_mng_remove_entry(p_mem_mng, p_partition, p_memory))
 	{
 		address_found = 0;
 	}
-
-//    }
+#endif
+	if (address_found)
+	{
+		slob_put(&p_partition->h_mem_manager, PTR_TO_UINT(p_memory));
+	}
+    }
+    else
+    {
+	address_found = 0;
+    }
 
     if (!address_found)
     {
@@ -954,7 +957,7 @@ void mem_mng_free_mem(fsl_handle_t h_mem_mng, void *p_memory)
 
 
 /*****************************************************************************/
-static int mem_mng_get_partition_id_by_addr_local(t_mem_mng          *p_mem_mng,
+static int mem_mng_get_partition_id_by_addr_local(struct t_mem_mng          *p_mem_mng,
                                        uint64_t          addr,
                                        int               *p_partition_id,
                                        t_mem_mng_partition **p_partition)
@@ -994,14 +997,15 @@ static int mem_mng_get_partition_id_by_addr_local(t_mem_mng          *p_mem_mng,
 
     return 0;
 }
-
-
 /*****************************************************************************/
-static void mem_mng_free_partition(t_mem_mng *p_mem_mng,
+static void mem_mng_free_partition(struct t_mem_mng *p_mem_mng,
                                    t_mem_mng_partition* p_partition)
 {
+#ifdef ENABLE_DEBUG_ENTRIES
     t_mem_mng_debug_entry  *p_mem_mng_debug_entry;
     list_t              *p_debug_iterator, *p_tmp_iterator;
+#endif
+
 #ifndef AIOP
     uint32_t            int_flags;
 #endif /* AIOP */
@@ -1013,6 +1017,7 @@ static void mem_mng_free_partition(t_mem_mng *p_mem_mng,
     int_flags = spin_lock_irqsave(p_partition->lock);
 #endif
 
+#ifdef ENABLE_DEBUG_ENTRIES
     /* Release the debug entries list */
     LIST_FOR_EACH_SAFE(p_debug_iterator, p_tmp_iterator, &(p_partition->mem_debug_list))
     {
@@ -1020,8 +1025,9 @@ static void mem_mng_free_partition(t_mem_mng *p_mem_mng,
 
         list_del(p_debug_iterator);
         sys_default_free(p_mem_mng_debug_entry);
-        //p_mem_mng->f_free(p_mem_mng_debug_entry);
     }
+#endif
+
 #ifdef AIOP
     unlock_spinlock(p_partition->lock);
 #else /* not AIOP */
@@ -1039,7 +1045,6 @@ static void mem_mng_free_partition(t_mem_mng *p_mem_mng,
 /* For AIOP lock is no longer dynamically allocated, g_mem_part_spinlock is used
  * instead
  */
-	    /* fsl_os_free((void *) p_partition->lock); */
 #else
         spin_lock_free(p_partition->lock);
 #endif
@@ -1047,7 +1052,7 @@ static void mem_mng_free_partition(t_mem_mng *p_mem_mng,
 }
 
 /*****************************************************************************/
-static void mem_phys_mng_free_partition(t_mem_mng *p_mem_mng,
+static void mem_phys_mng_free_partition(struct t_mem_mng *p_mem_mng,
                                         t_mem_mng_phys_addr_alloc_partition   *p_partition )
 {
 
@@ -1069,7 +1074,8 @@ static void mem_phys_mng_free_partition(t_mem_mng *p_mem_mng,
     }
 }
 /*****************************************************************************/
-static void mem_mng_add_entry(t_mem_mng             *p_mem_mng,
+#ifdef ENABLE_DEBUG_ENTRIES
+static void mem_mng_add_entry(struct t_mem_mng             *p_mem_mng,
                            t_mem_mng_partition    *p_partition,
                            void                 *p_memory,
                            uint32_t             size,
@@ -1127,7 +1133,7 @@ static void mem_mng_add_entry(t_mem_mng             *p_mem_mng,
 
 
 /*****************************************************************************/
-static int mem_mng_remove_entry(t_mem_mng          *p_mem_mng,
+static int mem_mng_remove_entry(struct t_mem_mng          *p_mem_mng,
                               t_mem_mng_partition *p_partition,
                               void              *p_memory)
 {
@@ -1168,9 +1174,11 @@ static int mem_mng_remove_entry(t_mem_mng          *p_mem_mng,
 
     return 0;
 }
-int mem_mng_mem_partitions_init_completed(fsl_handle_t h_mem_mng)
+#endif
+
+int mem_mng_mem_partitions_init_completed(void*  h_mem_mng)
 {
-	t_mem_mng  *p_mem_mng = (t_mem_mng *)h_mem_mng;
+	struct t_mem_mng  *p_mem_mng = (struct t_mem_mng *)h_mem_mng;
 	p_mem_mng->mem_partitions_initialized = 1;
 	return 0;
 }
