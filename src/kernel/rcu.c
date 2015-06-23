@@ -52,30 +52,65 @@ uint8_t g_sl_tmi_id = 0xff;
 int rcu_init();
 void rcu_free();
 void rcu_tman_cb(uint64_t opaque1, uint16_t opaque2);
+int rcu_default_early_init();
 
 int rcu_early_init(uint16_t delay, uint32_t committed, uint32_t max)
 {
 	int err;
 
-	err = slab_register_context_buffer_requirements(committed,
-	                                                max,
+	/* Count extra buffers */
+	if ((max - committed) > g_rcu.max)
+		g_rcu.max = (max - committed);
+
+	if (g_rcu.committed >= RCU_DEFAULT_COMMITTED) {
+		err = slab_register_context_buffer_requirements(committed,
+		                                                committed + g_rcu.max,
+		                                                sizeof(struct rcu_job),
+		                                                8,
+		                                                MEM_PART_DP_DDR,
+		                                                0,
+		                                                0);
+		ASSERT_COND(!err);
+
+	} else if ((g_rcu.committed + committed) > RCU_DEFAULT_COMMITTED) {
+		committed = (g_rcu.committed + committed) \
+			- RCU_DEFAULT_COMMITTED;
+		err = slab_register_context_buffer_requirements(committed,
+		                                                committed + g_rcu.max,
+		                                                sizeof(struct rcu_job),
+		                                                8,
+		                                                MEM_PART_DP_DDR,
+		                                                0,
+		                                                0);
+		ASSERT_COND(!err);
+	} else {
+		pr_info("RCU already reserved committed %d max %d buffers\n",
+		        RCU_DEFAULT_COMMITTED, RCU_DEFAULT_MAX);
+	}
+
+	g_rcu.committed += committed;
+
+	/* Smallest delay */
+	if (delay < g_rcu.delay)
+		g_rcu.delay = delay;
+
+	return 0;
+}
+
+int rcu_default_early_init()
+{
+	int err;
+
+	pr_info("RCU module reserves committed %d max %d buffers\n",
+			        RCU_DEFAULT_COMMITTED, RCU_DEFAULT_MAX);
+	err = slab_register_context_buffer_requirements(RCU_DEFAULT_COMMITTED,
+	                                                RCU_DEFAULT_MAX,
 	                                                sizeof(struct rcu_job),
 	                                                8,
 	                                                MEM_PART_DP_DDR,
 	                                                0,
 	                                                0);
 	ASSERT_COND(!err);
-
-	g_rcu.committed += committed;
-	/* Count extra buffers */
-	if ((max - committed) > g_rcu.max)
-		g_rcu.max = (max - committed);
-
-	/* Smallest delay */
-	if (delay < g_rcu.delay)
-		g_rcu.delay = delay;
-	
-	return 0;
 }
 
 int rcu_init()
@@ -84,14 +119,15 @@ int rcu_init()
 	uint64_t tman_addr;
 	uint32_t m_timers = 10;
 
-	if (g_rcu.committed == 0) {
+	if (g_rcu.delay == 0xFFFF) {
 		pr_err("Call rcu_early_init() to setup rcu \n");
 		pr_err("Setting RCU defaults.. \n");
-		g_rcu.committed = 64;
-		g_rcu.max = 128;
-		g_rcu.delay = 10;
+		g_rcu.committed = RCU_DEFAULT_COMMITTED;
+		g_rcu.max = RCU_DEFAULT_MAX;
+		g_rcu.delay = RCU_DEFAULT_DELAY;
 	} else {
-		/* Convert extra to committed */
+		/* Convert extra to committed, default extra max can be reused
+		 * by other applications */
 		g_rcu.max += g_rcu.committed;
 	}
 
@@ -172,8 +208,9 @@ static int enqueue(rcu_cb_t *cb, uint64_t param)
 
 	job = 0;
 	err = slab_acquire(g_rcu.slab, &job);
-	if (err || (job == 0))
+	if (err || (job == 0)) {
 		return err;
+	}
 
 	/* Copy the job using CDMA */
 	s_job.next	= 0;
@@ -209,15 +246,12 @@ static int dequeue(rcu_cb_t **cb, uint64_t *param)
 	uint64_t job;
 	int err;
 	struct rcu_job s_job;
-	int lock = (g_rcu.list_size > 1 ? 0 : 1);
-	/* No multicore dequeue, it should be protected only from enqueue
-	 * g_rcu.list_size can get higher but not lower */
+	int size;
 
 	ASSERT_COND(g_rcu.list_size > 0);
 	ASSERT_COND(g_rcu.list_head);
 
-	if (lock)
-		RCU_MUTEX_W_TAKE;
+	RCU_MUTEX_W_TAKE;
 
 	cdma_read(&s_job, g_rcu.list_head, sizeof(struct rcu_job));
 	*cb = s_job.cb;
@@ -232,24 +266,29 @@ static int dequeue(rcu_cb_t **cb, uint64_t *param)
 	}
 
 	atomic_decr32(&g_rcu.list_size, 1);
+	size = g_rcu.list_size;
 
-	if (lock)
-		RCU_MUTEX_RELEASE;
+	RCU_MUTEX_RELEASE;
 
 	err = slab_release(g_rcu.slab, job);
+	ASSERT_COND(!err);
 
-	return 0;
+	return size;
 }
 
 static void prime_CTSTWS()
 {
 	int cluster, core;
+//	uint32_t ctstws;
 
 	for (cluster = 0; cluster < AIOP_MAX_NUM_CLUSTERS; cluster++) {
 		for (core = 0; core < AIOP_MAX_NUM_CORES_IN_CLUSTER; core++) {
 			iowrite32_ccsr(0,
 			               &(g_rcu.regs->\
 			               clustr[cluster].core[core].ctstws));
+//			ctstws = ioread32_ccsr(&(g_rcu.regs->\
+//			               clustr[cluster].core[core].ctstws));
+//			pr_debug("core %d ctstws = 0x%x\n", (cluster * 4 + core), ctstws);
 		}
 	}
 }
@@ -269,6 +308,7 @@ static int done_CTSTWS()
 			mask = g_rcu.sw_ctstws[cluster][core];
 
 			if (ctstws & mask) {
+//				pr_debug("core 0x%x ctstws = 0x%x\n", (cluster * 4 + core), ctstws);
 				return 0;
 			}
 		}
@@ -311,7 +351,7 @@ void rcu_tman_cb(uint64_t ubatch_size, uint16_t opaque2)
 	int i;
 	rcu_cb_t *cb;
 	uint64_t param;
-	int err;
+	int size;
 
 	UNUSED(opaque2);
 
@@ -328,18 +368,21 @@ void rcu_tman_cb(uint64_t ubatch_size, uint16_t opaque2)
 	}
 
 	if (done_CTSTWS()) {
-
+//		pr_debug("############ DONE batch_size = %d\n", batch_size);
 		ASSERT_COND(batch_size > 0);
 		for (i = 0; i < batch_size; i++) {
-			err = dequeue(&cb, &param);
-			ASSERT_COND(!err);
+			size = dequeue(&cb, &param);
+			ASSERT_COND(size >= 0);
 			cb(param);
 		}
 
-		if (g_rcu.list_size != 0)
+		if (size != 0) {
+//			pr_debug("Do prime -1 \n");
 			init_one_shot_timer(-1);
+		}
 
 	} else {
+//		pr_debug("############ Keep pooling batch_size = %d\n", batch_size);
 		init_one_shot_timer(batch_size);
 	}
 
@@ -355,11 +398,13 @@ int rcu_synchronize(rcu_cb_t *cb, uint64_t param)
 
 	size = enqueue(cb, param);
 	if (size < 0) {
-		pr_err("Failed enqueue err = %d\n", size);
+		pr_err("Failed enqueue err = %d list size = %d \n",
+		       size, g_rcu.list_size);
 		return -ENOMEM;
 	}
 
 	if (size == 1) {
+//		pr_debug("Do prime -1 \n");
 		size = init_one_shot_timer(-1);
 		if (size) {
 			pr_err("Failed timer err = %d\n", size);

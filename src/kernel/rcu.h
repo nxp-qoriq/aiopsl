@@ -34,6 +34,10 @@
 #define CTSTWS_TASK0_BIT	0x80000000
 #define CTSTWS_TASKS_MASK	0xFFFF0000
 
+#define RCU_DEFAULT_COMMITTED	64
+#define RCU_DEFAULT_MAX		128
+#define RCU_DEFAULT_DELAY	10
+
 #define RCU_MUTEX_R_TAKE \
 	do { \
 		cdma_mutex_lock_take((uint64_t)(&g_rcu), CDMA_MUTEX_READ_LOCK); \
