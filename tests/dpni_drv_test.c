@@ -122,7 +122,7 @@ int dpni_drv_test(void){
 		unlock_spinlock(&dpni_lock);
 	}
 
-	if(dpni_ctr == 10){
+	if(dpni_ctr == 3){
 		if(dpni_broadcast_flag == 0) {
 			fsl_os_print("dpni error - broadcast packets didn't received\n");
 			local_test_error |= 0x01;
