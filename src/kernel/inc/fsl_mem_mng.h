@@ -225,6 +225,7 @@ int sys_unregister_mem_partition(int partition_id);
 int sys_get_phys_addr_alloc_partition_info(int partition_id,
                                            t_mem_mng_phys_addr_alloc_info* partition_info);
 
+#if 0
 /**************************************************************************//**
  @Function      sys_get_mem_partition_info
 
@@ -239,7 +240,6 @@ int sys_get_phys_addr_alloc_partition_info(int partition_id,
 
 int sys_get_mem_partition_info(int partition_id,
                                t_mem_mng_partition_info* partition_info);
-
 /**************************************************************************//**
  @Function      SYS_GetMemPartitionBase
 
@@ -262,6 +262,7 @@ uint64_t sys_get_mem_partition_base(int partition_id);
 *//***************************************************************************/
 uint32_t sys_get_mem_partition_attributes(int partition_id);
 
+
 /**************************************************************************//**
  @Function      SYS_PrintMemPartitionDebugInfo
 
@@ -274,6 +275,7 @@ uint32_t sys_get_mem_partition_attributes(int partition_id);
  @Return        None.
 *//***************************************************************************/
 void sys_print_mem_partition_debug_info(int partition_id, int report_leaks);
+#endif
 
 /**************************************************************************//**
 @Function      sys_get_phys_mem

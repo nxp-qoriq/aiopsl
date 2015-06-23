@@ -644,6 +644,7 @@ int mem_mng_get_phys_addr_alloc_info(void*                h_mem_mng,
 }
 
 /*****************************************************************************/
+#if 0
 int mem_mng_get_partition_id_by_addr(void*    h_mem_mng,
                                      uint64_t   addr,
                                      int        *p_partition_id)
@@ -664,7 +665,7 @@ int mem_mng_get_partition_id_by_addr(void*    h_mem_mng,
     return 0;
 }
 
-
+#endif
 /*****************************************************************************/
 uint32_t mem_mng_check_leaks(void*                 h_mem_mng,
                             int                     partition_id,
