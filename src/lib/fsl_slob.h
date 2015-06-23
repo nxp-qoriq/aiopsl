@@ -92,16 +92,7 @@ int slob_init(uint64_t *slob, uint64_t base, uint64_t size,
 *//***************************************************************************/
 void slob_free(uint64_t* slob);
 
-/**************************************************************************//**
- @Function      slob_get_base
 
- @Description   Gets the base address of the required MM objects.
-
- @Param[in]     slob - Handle to the MM object.
-
- @Return        base address of the block.
-*//***************************************************************************/
-uint64_t slob_get_base(uint64_t* slob);
 
 /**************************************************************************//**
  @Function      slob_get
@@ -154,7 +145,17 @@ uint64_t slob_get(uint64_t* slob, uint64_t size, uint32_t alignment);
 *//***************************************************************************/
 uint64_t slob_put(uint64_t* slob, uint64_t base);
 
+#if 0
+/**************************************************************************//**
+ @Function      slob_get_base
 
+ @Description   Gets the base address of the required MM objects.
+
+ @Param[in]     slob - Handle to the MM object.
+
+ @Return        base address of the block.
+*//***************************************************************************/
+uint64_t slob_get_base(uint64_t* slob);
 /**************************************************************************//**
  @Function      slob_dump
 
@@ -186,6 +187,7 @@ int slob_in_range(uint64_t* slob, uint64_t addr);
  @Return        Free memory size in bytes.
 *//***************************************************************************/
 uint64_t slob_get_free_mem_size(uint64_t* slob);
+#endif
 
 /** @} */ /* end of slob_g group */
 /** @} */ /* end of fsl_lib_g group */
