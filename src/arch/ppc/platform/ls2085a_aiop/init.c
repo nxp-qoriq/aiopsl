@@ -66,9 +66,9 @@ extern void build_apps_array(struct sys_module_desc *apps);
 	        MEMORY_ATTR_NONE, "BOOT MEMORY MANAGER"},\
 	{MEM_PART_DP_DDR,                    0xFFFFFFFF,  0xFFFFFFFF,  0xFFFFFFFF,\
 		MEMORY_ATTR_PHYS_ALLOCATION,"DP_DDR"},\
-	{MEM_PART_MC_PORTALS,                0xFFFFFFFF,  0xFFFFFFFF, (64  * MEGABYTE),\
+	{MEM_PART_MC_PORTALS,                0xFFFFFFFF,  0xFFFFFFFF, 0xFFFFFFFF,\
 		MEMORY_ATTR_NONE,"MC Portals"},\
-	{MEM_PART_CCSR,                      0xFFFFFFFF,  0xFFFFFFFF, (64 * MEGABYTE),\
+	{MEM_PART_CCSR,                      0xFFFFFFFF,  0xFFFFFFFF, 0xFFFFFFFF,\
 		MEMORY_ATTR_NONE,"SoC CCSR"  },\
 	{MEM_PART_SH_RAM,                    0xFFFFFFFF,   0xFFFFFFFF,0xFFFFFFFF,\
 		MEMORY_ATTR_MALLOCABLE,"Shared-SRAM"},\
