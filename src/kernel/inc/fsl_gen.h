@@ -52,6 +52,9 @@
 #define OS_MEM_RESERVED(start_addr,next_addr) volatile uint8_t reserved##start_addr [next_addr - start_addr] 
 /**< Reserved uint8_t space generation; Useful for memory maps */
 
+#define IS_SIM ((booke_get_spr_PVR() & 0x0c000000) == 0x0c000000)
+/**< Indication if using HW or Simulator */
+
 /*----------------------*/
 /* Miscellaneous macros */
 /*----------------------*/

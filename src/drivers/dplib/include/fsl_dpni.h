@@ -1004,7 +1004,7 @@ int dpni_get_link_state(struct fsl_mc_io	*mc_io,
  * @max_burst_size: burst size in bytes (up to 64KB)
  */
 struct dpni_tx_shaping_cfg {
-	uint64_t rate_limit;
+	uint32_t rate_limit;
 	uint16_t max_burst_size;
 };
 
@@ -1313,7 +1313,7 @@ enum dpni_tx_schedule_mode {
  */
 struct dpni_tx_schedule_cfg {
 	enum dpni_tx_schedule_mode	mode;
-	uint8_t			delta_bandwidth;
+	uint16_t		delta_bandwidth;
 };
 
 /**

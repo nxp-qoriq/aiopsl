@@ -82,14 +82,12 @@ typedef struct t_mem_mng_phys_addr_alloc_partition
 {
     int                              id;             /**< Partition ID */
     uint64_t                         h_mem_manager;   /**< Memory manager handle */
-    list_t                           node;
     t_mem_mng_phys_addr_alloc_info   info;           /**< Partition information */
 #ifdef AIOP
     uint8_t *                        lock;
 #else
     fsl_handle_t                     lock;
 #endif
-    uint64_t 	                     curr_paddress;
     int                              was_initialized;
 } t_mem_mng_phys_addr_alloc_partition;
 
@@ -102,7 +100,7 @@ typedef struct t_mem_mng_phys_addr_alloc_partition
 /**************************************************************************//**
  @Description   Memory management module internal parameters
  *//***************************************************************************/
-typedef struct t_mem_mng
+struct t_mem_mng
 {
     t_mem_mng_partition mem_partitions_array[PLATFORM_MAX_MEM_INFO_ENTRIES];
                 /**< List of partition control structures */
@@ -111,14 +109,14 @@ typedef struct t_mem_mng
                 /**< List of partition for fsl_os_get_mem function() control structures */
     uint32_t    mem_partitions_initialized;
     fsl_handle_t h_boot_mem_mng;
-     struct buffer_pool slob_bf_pool;
+    struct buffer_pool slob_bf_pool;
 #ifdef AIOP
     uint8_t *   lock;
 #else /* not AIOP */
     fsl_handle_t    lock;
 #endif
 
-} t_mem_mng;
+};
 
 typedef enum buffer_pool_type{
 	E_BFT_SLOB_BLOCK = 0,

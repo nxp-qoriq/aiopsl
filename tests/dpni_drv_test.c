@@ -46,7 +46,6 @@ int dpni_drv_test(void){
 	uint16_t ipv4hdr_offset = 0;
 	char *eth_ptr;
 	char *ip_ptr;
-	int promisc;
 	int i;
 	struct ipv4hdr *ipv4header;
 
@@ -122,7 +121,7 @@ int dpni_drv_test(void){
 		unlock_spinlock(&dpni_lock);
 	}
 
-	if(dpni_ctr == 10){
+	if(dpni_ctr == 3){
 		if(dpni_broadcast_flag == 0) {
 			fsl_os_print("dpni error - broadcast packets didn't received\n");
 			local_test_error |= 0x01;
@@ -130,39 +129,6 @@ int dpni_drv_test(void){
 		else {
 			fsl_os_print("dpni success - broadcast packets received during the test\n");
 		}
-
-		for(ni = 0; ni < dpni_drv_get_num_of_nis(); ni ++)
-		{
-			err = dpni_drv_set_multicast_promisc((uint16_t)ni, 1);
-			if(err != 0) {
-				fsl_os_print("dpni_drv_set_multicast_promisc error for ni %d\n",ni);
-				local_test_error |= err;
-			}
-			else {
-				fsl_os_print("dpni_drv_set_multicast_promisc for ni %d succeeded\n",ni);
-			}
-		}
-		for(ni = 0; ni < dpni_drv_get_num_of_nis(); ni ++)
-		{
-			err = dpni_drv_get_multicast_promisc((uint16_t)ni, &promisc);
-			if(err != 0 || promisc != 1) {
-				fsl_os_print("dpni_drv_get_multicast_promisc error for ni %d\n",ni);
-				local_test_error |= err;
-			}
-			else {
-				fsl_os_print("dpni_drv_get_multicast_promisc for ni %d succeeded\n",ni);
-			}
-
-			err = dpni_drv_reset_counter((uint16_t)ni, DPNI_DRV_CNT_ING_FRAME);
-			if(err != 0) {
-				fsl_os_print("dpni_drv_reset_counter error for ni %d\n",ni);
-				local_test_error |= err;
-			}
-			else {
-				fsl_os_print("dpni_drv_reset_counter for ni %d succeeded\n",ni);
-			}
-		}
-
 	}
 
 	return local_test_error;

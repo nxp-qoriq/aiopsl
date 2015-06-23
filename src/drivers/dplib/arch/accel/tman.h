@@ -35,7 +35,6 @@
 
 #include "general.h"
 #include "fsl_errors.h"
-#include "sys.h"
 
 
 typedef void  /*__noreturn*/ (*tman_wrp_cb_t) (uint64_t arg1, uint16_t arg2);
@@ -82,7 +81,7 @@ enum tman_timer_create_status {
 	TMAN_TMR_CREATE_SUCCESS = 0,
 	/** illegal Timer Create Fields Description[DURATION] */
 	TMAN_ILLEGAL_DURATION_VAL_ERR = 0x81800010,
-	/** The TMI timer list head is waiting for confirmation. In this case 
+	/** The TMI timer list head is waiting for confirmation. In this case
 	 * the timer handle will contain the list head. */
 	TMAN_TMR_CONF_WAIT_ERR = 0x81800040,
 	/** A non active TMI was provided as an input */
@@ -144,7 +143,7 @@ enum tman_timer_delete_status {
 	 * in the process of deleting the timer. The timer will elapse in the
 	 * future. */
 	TMAN_DEL_TMR_DEL_ISSUED_ERR = 0x81800056,
-	/** A delete command for this periodic timer was already issued. 
+	/** A delete command for this periodic timer was already issued.
 	 * The timer has already elapsed and it is pending a completion
 	 * confirmation (done by calling the tman_timer_completion_confirmation
 	 * function). This timer will elapse one more time before being
@@ -282,7 +281,7 @@ enum tman_function_identifier {
 #endif
 /** TMSTATNAT- TMan TMAN Stats Num of Active Timers register base address */
 #define TMAN_TMSTATNAT_ADDRESS	(TMAN_BASE_ADDRESS+0x2008)
-/** TMSTATNCCP- TMan TMAN Stats Number of Callback Confirmation Pending 
+/** TMSTATNCCP- TMan TMAN Stats Number of Callback Confirmation Pending
  * register base address */
 #define TMAN_TMSTATNCCP_ADDRESS	(TMAN_BASE_ADDRESS+0x200C)
 /** TMSTATE- TMan TMAN State register base address */
@@ -387,7 +386,7 @@ void tman_timer_callback(void);
 @Return		0 on success, or negative value on error.
 @Retval		ENOSPC - All timers are used. A timer must be deleted or elapse
 		and confirmed before a new one can be created. This error can
-		occur when the SW has missed a confirmation for a timer. 
+		occur when the SW has missed a confirmation for a timer.
 @Retval		EBUSY - The timer was not created due to high TMAN and AIOP
 		load.
 
@@ -412,7 +411,7 @@ int tman_create_timer_wrp(uint8_t tmi_id, uint32_t flags,
 @Return		0 on success, or negative value on error.
 @Retval		ETIMEDOUT - The timer cannot be deleted. The timer aimed to be
 		deleted expiration date is currently being processed by the
-		TMAN. The timer will elapse shortly. 
+		TMAN. The timer will elapse shortly.
 		In case of periodic timer the tman_delete_timer should be
 		called at the expiration routine to avoid this error. If this
 		error do happen for a periodic timer than it is consider as
@@ -423,11 +422,11 @@ int tman_create_timer_wrp(uint8_t tmi_id, uint32_t flags,
 		error.
 		For a periodic timer this error should be treated as a fatal
 		error (a delete command was already issued for this periodic
-		timer). 
+		timer).
 @Retval		ENAVAIL - The timer cannot be deleted. The timer is not an
 		active one. This should be treated as a fatal error.
 		When Errata ERR008205 will be fixed this error will
-		automatically generate a fatal error. 
+		automatically generate a fatal error.
 
 @Cautions	This function performs a task switch.
 

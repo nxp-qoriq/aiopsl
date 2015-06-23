@@ -417,6 +417,7 @@ static int app_dpni_event_added_cb(
 	uint16_t ni = (uint16_t)((uint32_t)event_data);
 	uint16_t ni2 = 0;
 	int err;
+	int promisc;
 	uint16_t spid = 0;
 	extern t_system sys;
 	dma_addr_t buff = 0;
@@ -690,6 +691,48 @@ static int app_dpni_event_added_cb(
 		fsl_os_print("Error: spid ddr bp1 is 0\n");
 		test_error |= 0x01;
 	}
+
+	err = dpni_drv_set_multicast_promisc(ni, 1);
+	if(err != 0) {
+		fsl_os_print("dpni_drv_set_multicast_promisc error for ni %d\n",ni);
+		test_error |= err;
+	}
+	else {
+		fsl_os_print("dpni_drv_set_multicast_promisc for ni %d succeeded\n",ni);
+	}
+
+
+	err = dpni_drv_get_multicast_promisc(ni, &promisc);
+	if(err != 0 || promisc != 1) {
+		fsl_os_print("dpni_drv_get_multicast_promisc error for ni %d\n",ni);
+		test_error |= err;
+	}
+	else {
+		fsl_os_print("dpni_drv_get_multicast_promisc for ni %d succeeded\n",ni);
+	}
+
+
+	err  = dpni_drv_reset_counter(ni, DPNI_DRV_CNT_ING_FRAME);
+	err |= dpni_drv_reset_counter(ni, DPNI_DRV_CNT_ING_BYTE);
+	err |= dpni_drv_reset_counter(ni, DPNI_DRV_CNT_ING_FRAME_DROP);
+	err |= dpni_drv_reset_counter(ni, DPNI_DRV_CNT_ING_FRAME_DISCARD);
+	err |= dpni_drv_reset_counter(ni, DPNI_DRV_CNT_ING_MCAST_FRAME);
+	err |= dpni_drv_reset_counter(ni, DPNI_DRV_CNT_ING_MCAST_BYTE);
+	err |= dpni_drv_reset_counter(ni, DPNI_DRV_CNT_ING_BCAST_FRAME);
+	err |= dpni_drv_reset_counter(ni, DPNI_DRV_CNT_ING_BCAST_BYTES);
+	err |= dpni_drv_reset_counter(ni, DPNI_DRV_CNT_EGR_FRAME);
+	err |= dpni_drv_reset_counter(ni, DPNI_DRV_CNT_EGR_BYTE);
+	err |= dpni_drv_reset_counter(ni, DPNI_DRV_CNT_EGR_FRAME_DISCARD);
+	if(err != 0) {
+		fsl_os_print("dpni_drv_reset_counter error for ni %d\n",ni);
+		test_error |= err;
+	}
+	else {
+		fsl_os_print("dpni_drv_reset_counter for ni %d succeeded\n",ni);
+	}
+
+
+
 	err = dpni_drv_enable(ni);
 	if(err){
 		fsl_os_print("Error: dpni_drv_enable: error %d\n",err);
