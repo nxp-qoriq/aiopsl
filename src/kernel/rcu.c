@@ -73,10 +73,8 @@ int rcu_early_init(uint16_t delay, uint32_t committed, uint32_t max)
 		ASSERT_COND(!err);
 
 	} else if ((g_rcu.committed + committed) > RCU_DEFAULT_COMMITTED) {
-		committed = (g_rcu.committed + committed) \
-			- RCU_DEFAULT_COMMITTED;
-		err = slab_register_context_buffer_requirements(committed,
-		                                                committed + g_rcu.max,
+		err = slab_register_context_buffer_requirements((g_rcu.committed + committed) - RCU_DEFAULT_COMMITTED,
+		                                                (g_rcu.committed + committed) - RCU_DEFAULT_COMMITTED + g_rcu.max,
 		                                                sizeof(struct rcu_job),
 		                                                8,
 		                                                MEM_PART_DP_DDR,
@@ -395,6 +393,7 @@ int rcu_synchronize(rcu_cb_t *cb, uint64_t param)
 	int size;
 
 	ASSERT_COND(cb);
+	ASSERT_COND(g_rcu.slab);
 
 	size = enqueue(cb, param);
 	if (size < 0) {
