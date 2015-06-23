@@ -153,7 +153,7 @@ int dpni_drv_test(void){
 				fsl_os_print("dpni_drv_get_multicast_promisc for ni %d succeeded\n",ni);
 			}
 
-			err = dpni_drv_reset_counter((uint16_t)ni, DPNI_DRV_CNT_ING_FRAME);
+			err = dpni_drv_reset_counter((uint16_t)ni, DPNI_DRV_CNT_ING_BCAST_BYTES);
 			if(err != 0) {
 				fsl_os_print("dpni_drv_reset_counter error for ni %d\n",ni);
 				local_test_error |= err;
