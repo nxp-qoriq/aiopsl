@@ -402,7 +402,7 @@ int rcu_synchronize(rcu_cb_t *cb, uint64_t param)
 
 	size = enqueue(cb, param);
 	if (size < 0) {
-		pr_err("Failed enqueue err = %d list size = %d \n",
+		sl_pr_err("Failed enqueue err = %d list size = %d \n",
 		       size, g_rcu.list_size);
 		return -ENOMEM;
 	}
@@ -411,7 +411,7 @@ int rcu_synchronize(rcu_cb_t *cb, uint64_t param)
 //		pr_debug("Do prime -1 \n");
 		size = init_one_shot_timer(-1);
 		if (size) {
-			pr_err("Failed timer err = %d\n", size);
+			sl_pr_err("Failed timer err = %d\n", size);
 			return size;
 		}
 	}
