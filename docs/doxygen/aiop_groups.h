@@ -766,6 +766,10 @@
 	/** @defgroup ic_g Isolation Context
 	@ingroup kernel_g
 	@{ @} */
+
+	/** @defgroup rcu_g RCU
+	@ingroup kernel_g
+	@{ @} */
 	
 	
 	

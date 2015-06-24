@@ -105,7 +105,7 @@ int dpci_drv_linkup(uint32_t dpci_id, int *up);
 		DPCI Entry Point flags \endlink
 
 @Param[out]	init_presentation Get initial presentation parameters
- 	 	 \ref ep_initial_presentation
+ 	 	 \ref EP_INIT_PRESENTATION
 
 @Return		0 on success;
 		error code, otherwise. For error posix refer to \ref error_g
@@ -122,7 +122,7 @@ int dpci_drv_get_initial_presentation(uint8_t flags,
 		DPCI Entry Point flags \endlink
 
 @Param[in]	init_presentation Set initial presentation parameters for given
-		options and parameters \ref ep_initial_presentation
+		options and parameters \ref EP_INIT_PRESENTATION
 
 @Cautions	1) Data Segment, PTA Segment, ASA Segment must not reside
 		   outside the bounds of the
