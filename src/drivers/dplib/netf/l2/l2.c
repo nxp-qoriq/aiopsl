@@ -49,9 +49,6 @@ void l2_header_remove(void)
 	uint32_t fdma_flags;
 	struct   parse_result *pr =
 				(struct parse_result *)HWC_PARSE_RES_ADDRESS;
-	struct   presentation_context *prc =
-				(struct presentation_context *) HWC_PRC_ADDRESS;
-
 
 	/* If eth_offset is always 0 can remove following line*/
 	first_offset = PARSER_GET_ETH_OFFSET_DEFAULT();
@@ -83,9 +80,6 @@ int l2_vlan_header_remove()
 	uint16_t size_to_be_removed;
 	struct   parse_result *pr =
 				(struct parse_result *)HWC_PARSE_RES_ADDRESS;
-	struct   presentation_context *prc =
-				(struct presentation_context *) HWC_PRC_ADDRESS;
-
 
 	if (PARSER_IS_ONE_VLAN_DEFAULT()) {
 
@@ -261,8 +255,6 @@ int l2_pop_vlan()
 	uint16_t vlan_offset;
 	struct   parse_result *pr =
 				(struct parse_result *)HWC_PARSE_RES_ADDRESS;
-	struct   presentation_context *prc =
-				(struct presentation_context *) HWC_PRC_ADDRESS;
 
 	if (PARSER_IS_ONE_VLAN_DEFAULT()) {
 		vlan_offset = (uint16_t)
