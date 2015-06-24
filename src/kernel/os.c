@@ -36,6 +36,7 @@
 #include "fsl_log.h"
 #include "fsl_stdlib.h"
 #include "fsl_string.h"
+#include "fsl_cdma.h"
 
 __TASK uint32_t seed_32bit;
 __TASK uint32_t exception_flag;

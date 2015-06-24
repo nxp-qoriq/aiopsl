@@ -37,7 +37,7 @@
 #include "slob.h"
 #include "buffer_pool.h"
 #include "fsl_sl_dbg.h"
-
+#include "fsl_cdma.h"
 
 
 #define NEXT_ADDR_OFFSET (PTR_TO_UINT(&((t_slob_block *)0)->next_addr))
