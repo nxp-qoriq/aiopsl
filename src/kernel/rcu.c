@@ -109,6 +109,8 @@ int rcu_default_early_init()
 	                                                0,
 	                                                0);
 	ASSERT_COND(!err);
+
+	return 0;
 }
 
 int rcu_init()
@@ -117,6 +119,7 @@ int rcu_init()
 	uint64_t tman_addr;
 	uint32_t m_timers = 10;
 
+	pr_info("Init RCU\n");
 	if (g_rcu.delay == 0xFFFF) {
 		pr_err("Call rcu_early_init() to setup rcu \n");
 		pr_err("Setting RCU defaults.. \n");
@@ -331,6 +334,7 @@ static int init_one_shot_timer(int batch_size)
 
 	/* Tman requirement */
 	ASSERT_COND(delay > 10);
+	ASSERT_COND(delay < ((0x1 << 16) - 10));
 
 	err = tman_create_timer(g_sl_tmi_id/* tmi_id */,
 	                        TMAN_CREATE_TIMER_MODE_USEC_GRANULARITY |
@@ -344,6 +348,7 @@ static int init_one_shot_timer(int batch_size)
 }
 
 void rcu_tman_cb(uint64_t ubatch_size, uint16_t opaque2)
+						__attribute__ ((noreturn))
 {
 	int batch_size = (int)ubatch_size;
 	int i;
