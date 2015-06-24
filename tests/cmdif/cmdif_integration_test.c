@@ -772,7 +772,7 @@ int app_init(void)
 		if (i == 0)
 			ops.ctrl_cb = ctrl_cb0; /* TEST0 is used for srv tests*/
 		else
-			ops.ctrl_cb = ctrl_cb;
+			ops.ctrl_cb = ctrl_cb0;
 		snprintf(module, sizeof(module), "TEST%d", i);
 		err = cmdif_register_module(module, &ops);
 		if (err) {
