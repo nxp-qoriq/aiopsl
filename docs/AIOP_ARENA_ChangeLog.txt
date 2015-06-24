@@ -1,3 +1,4 @@
+cmdif_srv.c:               Added error that will be returned to cmdif_open() if it is called before AIOP has finished the linkup setup of this DPCI.
 fsl_dpci_drv.h:            Added new API for dpci_drv_linkup().
 cmdif_integration_test.c : Added registration for DPCI events in order to enable the AIOP side DPCIs.
                            See aiopsl\build\aiop_sim\tests\cmdif_test\src\app.c:app_evm_register() as 
