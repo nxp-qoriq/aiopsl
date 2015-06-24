@@ -220,7 +220,7 @@ int cmdif_open(struct cmdif_desc *cidesc,
 
 	err = session_get(module_name, ins_id, (uint32_t)cidesc->regs, cidesc);
 	if (err != 0) {
-		pr_err("Session for %s inst 0x%x dpci_id 0x%x not found\n",
+		sl_pr_err("Session for %s inst 0x%x dpci_id 0x%x not found\n",
 		       module_name, ins_id, (uint32_t)cidesc->regs);
 	}
 
