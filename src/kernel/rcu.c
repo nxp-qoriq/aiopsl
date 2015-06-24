@@ -325,15 +325,15 @@ static int init_one_shot_timer(int batch_size)
 	 * TODO consider using different delays for polling and the first
 	 * rcu task, should there be a correlation between them ?
 	 */
-	delay = g_rcu.delay * 10; /* User defined delay */
+	delay = g_rcu.delay * 1000; /* User defined delay */
 	if (batch_size > 0)
-		delay = 11; /* ~1 msec delay for polling on CTSTWS */
+		delay = 1000; /* 1 msec delay for polling on CTSTWS */
 
 	/* Tman requirement */
 	ASSERT_COND(delay > 10);
 
 	err = tman_create_timer(g_sl_tmi_id/* tmi_id */,
-	                        TMAN_CREATE_TIMER_MODE_100_USEC_GRANULARITY |
+	                        TMAN_CREATE_TIMER_MODE_USEC_GRANULARITY |
 	                        TMAN_CREATE_TIMER_ONE_SHOT /* flags */,
 	                        delay /* duration */,
 	                        (uint64_t)batch_size /* opaque_data1 */,
