@@ -440,18 +440,30 @@ Big Endian
 /** No Error */
 #define	SEC_NO_ERROR 0x00000000
 
+#define	SEC_COMPRESSED_ERROR 0x83000000
+#define	SEC_COMPRESSED_ERROR_MASK 0xFF000000
+
 /** ICV comparison failed */
 #define	SEC_ICV_COMPARE_FAIL 0x2000000A
+#define	SEC_ICV_COMPARE_FAIL_COMPRESSED 0x8320000A
 
 /** Anti Replay Check: Late packet */
 #define	SEC_AR_LATE_PACKET 0x40000083
+#define	SEC_AR_LATE_PACKET_COMPRESSED 0x83400083
+
 /** Anti Replay Check: Replay packet */
 #define	SEC_AR_REPLAY_PACKET 0x40000084
+#define	SEC_AR_REPLAY_PACKET_COMPRESSED 0x83400084
+
 /** Sequence Number overflow */
 #define	SEC_SEQ_NUM_OVERFLOW 0x40000085
+#define	SEC_SEQ_NUM_OVERFLOW_COMPRESSED 0x83400085
 
 #define	SEC_CCB_ERROR_MASK 0xF000000F
 #define	SEC_DECO_ERROR_MASK 0xF00000FF
+
+#define	SEC_CCB_ERROR_MASK_COMPRESSED  0xFFF0000F
+#define	SEC_DECO_ERROR_MASK_COMPRESSED 0xFFF000FF
 
 /* OSM temporary defines */
 /* TODO: should move to general or OSM include file */

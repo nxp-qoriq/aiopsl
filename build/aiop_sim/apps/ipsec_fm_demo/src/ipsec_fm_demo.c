@@ -148,106 +148,109 @@ __HOT_CODE ENTRY_POINT static void app_process_packet(void)
 		local_test_error |= enc_status;
 	}
 
-	/* close-open segment, for the print */
-	fdma_close_default_segment();
-	fdma_present_default_frame_segment(0, (void *)PRC_GET_SEGMENT_ADDRESS(), 0, seg_len);
-		
+	if (!local_test_error) {
+		/* close-open segment, for the print */
+		fdma_close_default_segment();
+		fdma_present_default_frame_segment(
+				0, (void *)PRC_GET_SEGMENT_ADDRESS(), 0, seg_len);
 	
-	fsl_os_print("IPSEC: frame header after encryption\n");
-	/* Print header */
-	ipsec_print_frame();
-	fsl_os_print("\n");
+		fsl_os_print("IPSEC: frame header after encryption\n");
+		/* Print header */
+		ipsec_print_frame();
+		fsl_os_print("\n");
 
-	fsl_os_print("IPSEC: Starting Decryption\n");
-	err = ipsec_frame_decrypt(
+		fsl_os_print("IPSEC: Starting Decryption\n");
+		
+		err = ipsec_frame_decrypt(
 			ws_desc_handle_inbound,
 			&dec_status
 			);
-
-	if (err)
-	{
-		fsl_os_print("ERROR: ipsec_frame_decrypt() failed\n");
-		local_test_error |= err;
-	}
-	else
+		
+		if (err) {
+			fsl_os_print("ERROR: ipsec_frame_decrypt() failed\n");
+			local_test_error |= err;
+		} 		else
 		fsl_os_print("ipsec_frame_decrypt() completed successfully\n");
 
-	if (dec_status)
-	{
-		fsl_os_print("ERROR: SEC Decryption Failed (dec_status = 0x%x)\n",
+		if (dec_status) {
+			fsl_os_print("ERROR: SEC Decryption Failed (dec_status = 0x%x)\n",
 				dec_status);
-		local_test_error |=dec_status;
+			local_test_error |=dec_status;
+		}
 	}
+	
+	
+	if (!local_test_error) {
+		/* Due to the parser unaligned segment WA, represent again */
+		fdma_close_default_segment();
 
-    /* Due to the parser unaligned segment WA, represent again */
-    fdma_close_default_segment();
-
-    err = fdma_present_default_frame_segment(
+		err = fdma_present_default_frame_segment(
     		FDMA_PRES_NO_FLAGS, /* uint32_t flags */
     		(void *)original_seg_addr, /* void *ws_dst */
     		0, /* uint16_t offset */
     		seg_len); /* uint16_t present_size */
 
-   	fsl_os_print("STATUS: fdma_present_default_frame_segment returned %d\n", err);
+		fsl_os_print("STATUS: fdma_present_default_frame_segment returned %d\n", err);
 
-	fsl_os_print("IPSEC: frame header after decryption\n");
-	/* Print header */
-	ipsec_print_frame();
-	fsl_os_print("\n");
+		fsl_os_print("IPSEC: frame header after decryption\n");
+		/* Print header */
+		ipsec_print_frame();
+		fsl_os_print("\n");
 
-	/* Compare decrypted frame to original frame */
-	err = 0;
-	eth_pointer_byte = (uint8_t *)PARSER_GET_ETH_POINTER_DEFAULT();
-	frame_len = LDPAA_FD_GET_LENGTH(HWC_FD_ADDRESS);
+		/* Compare decrypted frame to original frame */
+		err = 0;
+		eth_pointer_byte = (uint8_t *)PARSER_GET_ETH_POINTER_DEFAULT();
+		frame_len = LDPAA_FD_GET_LENGTH(HWC_FD_ADDRESS);
 
-	if (frame_len != original_frame_len) {
-		fsl_os_print("ERROR: incorrect frame length (FD[length] = %d)\n",
+		if (frame_len != original_frame_len) {
+			fsl_os_print("ERROR: incorrect frame length (FD[length] = %d)\n",
 				frame_len);
-		err = 1;
-		local_test_error |= err;
-	} else {
-		for(i = 0; ((i<frame_len) && (i<seg_len));i ++)
-		{
-			if (frame_before_encr[i] !=  *eth_pointer_byte) {
-				fsl_os_print(
+			err = 1;
+			local_test_error |= err;
+		} else {
+			for(i = 0; ((i<frame_len) && (i<seg_len));i ++)
+			{
+				if (frame_before_encr[i] !=  *eth_pointer_byte) {
+					fsl_os_print(
 						"ERROR: frame after decryption differ from origin\n");
-				err = 1;
-				local_test_error |= err;
-				break;
+					err = 1;
+					local_test_error |= err;
+					break;
+				}
+				eth_pointer_byte++;
 			}
-			eth_pointer_byte++;
 		}
-	}
+	
+		/* Read statistics */
+		fsl_os_print("IPsec Demo: Encryption Statistics:\n");
+		ipsec_print_stats(ws_desc_handle_outbound);
 
-	/* Read statistics */
-	fsl_os_print("IPsec Demo: Encryption Statistics:\n");
-	ipsec_print_stats(ws_desc_handle_outbound);
+		fsl_os_print("IPsec Demo: Decryption Statistics:\n");
+		ipsec_print_stats(ws_desc_handle_inbound);
 
-	fsl_os_print("IPsec Demo: Decryption Statistics:\n");
-	ipsec_print_stats(ws_desc_handle_inbound);
-
-	fsl_os_print("IPsec Demo: Core %d Sending Frame number %d\n",
+		fsl_os_print("IPsec Demo: Core %d Sending Frame number %d\n",
 			core_get_id(), frame_number);
 
-	err = dpni_drv_send(dpni_get_receive_niid());
-	if (err){
-		fsl_os_print("ERROR = %d: dpni_drv_send(ni_id)\n",err);
-		local_test_error |= err;
-		if(err == -ENOMEM)
-			fdma_discard_default_frame(FDMA_DIS_NO_FLAGS);
-		else /* (err == -EBUSY) */
-			fdma_discard_fd((struct ldpaa_fd *)HWC_FD_ADDRESS, FDMA_DIS_NO_FLAGS);
-	}
-
+		err = dpni_drv_send(dpni_get_receive_niid());
+		if (err){
+			fsl_os_print("ERROR = %d: dpni_drv_send(ni_id)\n",err);
+			local_test_error |= err;
+			if(err == -ENOMEM)
+				fdma_discard_default_frame(FDMA_DIS_NO_FLAGS);
+			else /* (err == -EBUSY) */
+				fdma_discard_fd((struct ldpaa_fd *)HWC_FD_ADDRESS, FDMA_DIS_NO_FLAGS);
+		}
+	} 
+	
 	if(!local_test_error) /* No error found during injection of packets*/
 	{
 		fsl_os_print("Finished SUCCESSFULLY\n");
 		fsl_os_print("\nFrame after decryption the same as origin\n\n");
+		fsl_os_print("IPsec Demo: Done Sending Frame\n\n");
 	}
 	else
 		fsl_os_print("Finished with ERRORS\n");
 
-	fsl_os_print("IPsec Demo: Done Sending Frame\n\n");
 	/*MUST call fdma_terminate task in the end of cb function*/
 	fdma_terminate_task();
 }
@@ -704,14 +707,8 @@ int ipsec_app_init(uint16_t ni_id)
 		params.encparams.ip_hdr_len = 0x1c; /* outer header length is 28 bytes */
 	}
 
-	//params.encparams.ip_hdr_len = 0x00; //DEBUG
-
 	/* Outbound (encryption) parameters */
 	params.direction = IPSEC_DIRECTION_OUTBOUND; /**< Descriptor direction */
-	//params.flags = IPSEC_FLG_TUNNEL_MODE |
-	//params.flags = tunnel_transport_mode |
-	//		IPSEC_FLG_LIFETIME_KB_CNTR_EN | IPSEC_FLG_LIFETIME_PKT_CNTR_EN;
-	//		/**< Miscellaneous control flags */
 
 	/* Miscellaneous control flags */
 	params.flags = tunnel_transport_mode |
@@ -727,8 +724,6 @@ int ipsec_app_init(uint16_t ni_id)
 		fsl_os_print("IPSEC: Tunnel Mode UDP Encapsulation\n");
 	}
 
-	//params.encparams.options = 0x0;
-	//params.encparams.options = IPSEC_OPTS_ESP_ESN;
 	params.encparams.options = esn_enable;
 
 	params.encparams.seq_num_ext_hi = 0x0;
@@ -786,16 +781,8 @@ int ipsec_app_init(uint16_t ni_id)
 
 	/* Inbound (decryption) parameters */
 	params.direction = IPSEC_DIRECTION_INBOUND; /**< Descriptor direction */
-	//params.flags = IPSEC_FLG_TUNNEL_MODE |
-	params.flags = tunnel_transport_mode |
-			IPSEC_FLG_LIFETIME_KB_CNTR_EN | IPSEC_FLG_LIFETIME_PKT_CNTR_EN;
-			/**< Miscellaneous control flags */
 
-	/*
-	params.flags = tunnel_transport_mode |
-				IPSEC_FLG_LIFETIME_KB_CNTR_EN | IPSEC_FLG_LIFETIME_PKT_CNTR_EN;
-	*/
-	/* Reuse Buffer Mode */
+	/* Flags */
 	params.flags = tunnel_transport_mode |
 				IPSEC_FLG_LIFETIME_KB_CNTR_EN | IPSEC_FLG_LIFETIME_PKT_CNTR_EN |
 				reuse_buffer_mode;
