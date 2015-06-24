@@ -3,6 +3,10 @@ LDPAA AIOP SERVICE LAYER LDPAA-AIOP-SL-v0.7.0 Change Log
 =============================================================
 Table:
 	* API: Table location Macros change
+FDMA:
+	* Read ASA and PTA SRs - Expects a 64 bytes aligned workspace destination address due to a HW issue.
+	* Optimize workaround for TKT237377: unite replace + close HW calls.
+	* Replace ASA and PTA SRs - In REV1 Replace and represent option (SA=1) is not supported due to HW issue ERR008620.
 
 
 	
