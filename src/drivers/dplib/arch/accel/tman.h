@@ -187,7 +187,6 @@ enum tman_timer_mod_status {
 };
 
 /** @} end of enum tman_timer_mod_status */
-#endif
 
 /**************************************************************************//**
  @enum tman_timer_recharge_status
@@ -200,34 +199,33 @@ enum tman_timer_recharge_status {
 	/** Success. */
 	TMAN_REC_TMR_SUCCESS = 0,
 	/** A non active timer was provided as an input */
-	TMAN_REC_TMR_NOT_ACTIVE_ERR = 0x81800070,
+	TMAN_REC_TMR_NOT_ACTIVE_ERR = 0x81400070,
 	/** The one shot timer has expired but it is pending a completion
 	 * confirmation (done by calling the tman_timer_completion_confirmation
 	 * function) */
-	TMAN_REC_CCP_WAIT_ERR = 0x81800071,
+	TMAN_REC_CCP_WAIT_ERR = 0x81400071,
 	/** The periodic timer has expired but it is pending a completion
 	 * confirmation (done by calling the tman_timer_completion_confirmation
 	 * function) */
-	TMAN_REC_PERIODIC_CCP_WAIT_ERR = 0x81800075,
+	TMAN_REC_PERIODIC_CCP_WAIT_ERR = 0x81400075,
 	/** A delete command was already issued for this timer and the TMAN is
 	 * in the process of deleting the timer. The timer will elapse in the
 	 * future. */
-	TMAN_REC_TMR_DEL_ISSUED_ERR = 0x81800076,
+	TMAN_REC_TMR_DEL_ISSUED_ERR = 0x81400076,
 	/** A delete command was already issued. The timer has already elapsed
 	 * for the last time and it is pending a completion confirmation
 	 * (done by calling the tman_timer_completion_confirmation function) */
-	TMAN_REC_TMR_DEL_ISSUED_CONF_ERR = 0x81800077,
+	TMAN_REC_TMR_DEL_ISSUED_CONF_ERR = 0x81400077,
 	/** The timer is elapsing in this timer tick */
 	TMAN_REC_TMR_CURR_ELAPSE = 0x81800020,
 	/** Because of processing load the TMAN is lagging behind the wall
 	 * clock. This causes the timer aimed to be recharged expiration date
 	 * to currently being processed. */
-	TMAN_REC_TMR_BUSY = 0x81800030,
-	/** The TMI state error */
-	TMAN_REC_TMI_STATE_ERR = 0x81C00010
+	TMAN_REC_TMR_BUSY = 0x81800030
 };
 
 /** @} end of enum tman_timer_recharge_status */
+#endif
 
 /** @} end of group TMANReturnStatus */
 
@@ -273,12 +271,8 @@ enum tman_function_identifier {
 #define TMAN_TMCBCC_ADDRESS	(TMAN_BASE_ADDRESS+0x014)
 /** TMTSTMP- TMan TMAN Timestamp register address */
 #define TMAN_TMTSTMP_ADDRESS	(TMAN_BASE_ADDRESS+0x020)
-#ifdef REV2 /* Errata ERR009305 */
 /** TMEV- TMan Error Event register base address */
 #define TMAN_TMEV_ADDRESS	(TMAN_BASE_ADDRESS+0x38)
-#else
-#define TMAN_TMEV_ADDRESS	0x020a0038 /* CCSR Address */
-#endif
 /** TMSTATNAT- TMan TMAN Stats Num of Active Timers register base address */
 #define TMAN_TMSTATNAT_ADDRESS	(TMAN_BASE_ADDRESS+0x2008)
 /** TMSTATNCCP- TMan TMAN Stats Number of Callback Confirmation Pending
