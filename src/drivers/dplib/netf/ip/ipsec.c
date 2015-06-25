@@ -2062,7 +2062,7 @@ __IPSEC_HOT_CODE int ipsec_frame_decrypt(
 	struct scope_status_params scope_status;
 
 	struct dpovrd_general dpovrd;
-	struct parse_result *pr = (struct parse_result *)HWC_PARSE_RES_ADDRESS;
+	//struct parse_result *pr = (struct parse_result *)HWC_PARSE_RES_ADDRESS;
 	
 	struct   presentation_context *prc =
 					(struct presentation_context *) HWC_PRC_ADDRESS;
