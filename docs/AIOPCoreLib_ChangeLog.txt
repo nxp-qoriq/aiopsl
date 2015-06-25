@@ -8,6 +8,16 @@ FDMA:
 	* Optimize workaround for TKT237377: unite replace + close HW calls.
 	* Replace ASA and PTA SRs - In REV1 Replace and represent option (SA=1) is not supported due to HW issue ERR008620.
 
+IPSEC:
+	* Performance optimization updates.
+	* Error flow updates.
+	* Added STE counters clear for SA add/delete.
+	* Fixed ENGR355255, IPsec: incorrect SEC compressed format errors codes handling.
+	* Fixed ENGR358512, IPSec FM: DSCP SET in the outer IP header is not functional for IPv6.
+	* Fixed ENGR357856, IPSec FM: Fatal errors from FDMA when RE-USE buffer mode used
+	* Fixed ENGR353336, IPsec FM: incorrect handling of PRC ASA Size in new buffer mode
+	* Updated the error flow in the IPsec FM demo.
+
 
 	
 LDPAA AIOP SERVICE LAYER LDPAA-AIOP-SL-v0.6.0.3 Change Log
