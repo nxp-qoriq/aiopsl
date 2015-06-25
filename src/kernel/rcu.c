@@ -109,6 +109,8 @@ int rcu_default_early_init()
 	                                                0,
 	                                                0);
 	ASSERT_COND(!err);
+
+	return 0;
 }
 
 int rcu_init()
@@ -117,6 +119,7 @@ int rcu_init()
 	uint64_t tman_addr;
 	uint32_t m_timers = 10;
 
+	pr_info("Init RCU\n");
 	if (g_rcu.delay == 0xFFFF) {
 		pr_err("Call rcu_early_init() to setup rcu \n");
 		pr_err("Setting RCU defaults.. \n");
@@ -325,15 +328,16 @@ static int init_one_shot_timer(int batch_size)
 	 * TODO consider using different delays for polling and the first
 	 * rcu task, should there be a correlation between them ?
 	 */
-	delay = g_rcu.delay * 10; /* User defined delay */
+	delay = g_rcu.delay * 1000; /* User defined delay */
 	if (batch_size > 0)
-		delay = 11; /* ~1 msec delay for polling on CTSTWS */
+		delay = 1000; /* 1 msec delay for polling on CTSTWS */
 
 	/* Tman requirement */
 	ASSERT_COND(delay > 10);
+	ASSERT_COND(delay < ((0x1 << 16) - 10));
 
 	err = tman_create_timer(g_sl_tmi_id/* tmi_id */,
-	                        TMAN_CREATE_TIMER_MODE_100_USEC_GRANULARITY |
+	                        TMAN_CREATE_TIMER_MODE_USEC_GRANULARITY |
 	                        TMAN_CREATE_TIMER_ONE_SHOT /* flags */,
 	                        delay /* duration */,
 	                        (uint64_t)batch_size /* opaque_data1 */,
@@ -344,6 +348,7 @@ static int init_one_shot_timer(int batch_size)
 }
 
 void rcu_tman_cb(uint64_t ubatch_size, uint16_t opaque2)
+						__attribute__ ((noreturn))
 {
 	int batch_size = (int)ubatch_size;
 	int i;
@@ -397,7 +402,7 @@ int rcu_synchronize(rcu_cb_t *cb, uint64_t param)
 
 	size = enqueue(cb, param);
 	if (size < 0) {
-		pr_err("Failed enqueue err = %d list size = %d \n",
+		sl_pr_err("Failed enqueue err = %d list size = %d \n",
 		       size, g_rcu.list_size);
 		return -ENOMEM;
 	}
@@ -406,7 +411,7 @@ int rcu_synchronize(rcu_cb_t *cb, uint64_t param)
 //		pr_debug("Do prime -1 \n");
 		size = init_one_shot_timer(-1);
 		if (size) {
-			pr_err("Failed timer err = %d\n", size);
+			sl_pr_err("Failed timer err = %d\n", size);
 			return size;
 		}
 	}

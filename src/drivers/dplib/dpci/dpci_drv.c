@@ -328,7 +328,6 @@ __COLD_CODE static int dpci_entry_init(uint32_t dpci_id, uint16_t token)
 {
 	int ind = -1;
 	uint32_t amq_bdi = 0;
-	int err = 0;
 
 	CMDIF_ICID_AMQ_BDI(AMQ_BDI_SET, ICONTEXT_INVALID, ICONTEXT_INVALID);
 
@@ -346,7 +345,7 @@ __COLD_CODE static int dpci_entry_init(uint32_t dpci_id, uint16_t token)
 
 	/* Updated DPCI peer if possible
 	 * error is possible */
-	err = tx_peer_set((uint32_t)ind, token);
+	tx_peer_set((uint32_t)ind, token);
 #if 0
 	/*
 	 * Should be resolved by connected event or upon link change event

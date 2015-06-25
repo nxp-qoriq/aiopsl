@@ -477,9 +477,10 @@ __COLD_CODE int notify_open()
 
 	CMDIF_CL_LOCK_RELEASE;
 
+	pr_debug("Added session for %s at ind %d\n", data->m_name, link_up);
+
 #endif /* STACK_CHECK */
 	
-	pr_debug("Added session for %s at ind %d\n", data->m_name, link_up);
 	return 0;
 }
 
