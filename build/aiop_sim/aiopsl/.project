@@ -145,6 +145,11 @@
 			<locationURI>virtual:/virtual</locationURI>
 		</link>
 		<link>
+			<name>aiop_sl/drivers/ep</name>
+			<type>2</type>
+			<locationURI>virtual:/virtual</locationURI>
+		</link>
+		<link>
 			<name>aiop_sl/drivers/qbman</name>
 			<type>2</type>
 			<locationURI>virtual:/virtual</locationURI>
@@ -551,6 +556,16 @@
 		</link>
 		<link>
 			<name>aiop_sl/drivers/dpmng/controllers</name>
+			<type>2</type>
+			<locationURI>virtual:/virtual</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/drivers/ep/ep.c</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/ep/ep.c</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/drivers/ep/include</name>
 			<type>2</type>
 			<locationURI>virtual:/virtual</locationURI>
 		</link>
@@ -1020,11 +1035,6 @@
 			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/dplib/include/fsl_dprc_cmd.h</locationURI>
 		</link>
 		<link>
-			<name>aiop_sl/drivers/dplib/include/fsl_ep_mng.h</name>
-			<type>1</type>
-			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/dplib/include/fsl_ep_mng.h</locationURI>
-		</link>
-		<link>
 			<name>aiop_sl/drivers/dplib/include/fsl_sl_dpni_drv.h</name>
 			<type>1</type>
 			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/dplib/include/fsl_sl_dpni_drv.h</locationURI>
@@ -1115,6 +1125,11 @@
 			<locationURI>virtual:/virtual</locationURI>
 		</link>
 		<link>
+			<name>aiop_sl/drivers/ep/include/fsl_ep_mng.h</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/ep/include/fsl_ep_mng.h</locationURI>
+		</link>
+		<link>
 			<name>aiop_sl/drivers/qbman/include/fsl_bman.h</name>
 			<type>1</type>
 			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/qbman/include/fsl_bman.h</locationURI>
@@ -1193,11 +1208,6 @@
 			<name>aiop_sl/drivers/dplib/arch/accel/cdma_inline.h</name>
 			<type>1</type>
 			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/dplib/arch/accel/cdma_inline.h</locationURI>
-		</link>
-		<link>
-			<name>aiop_sl/drivers/dplib/arch/accel/ep.c</name>
-			<type>1</type>
-			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/dplib/arch/accel/ep.c</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/drivers/dplib/arch/accel/fdma.c</name>

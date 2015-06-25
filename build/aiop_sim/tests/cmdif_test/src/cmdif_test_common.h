@@ -48,7 +48,7 @@
 #define SHBP_TEST_AIOP	0x111
 #define DPCI_ADD	0x112
 #define DPCI_RM		0x113
-#define RCU_SYNC_TEST	0x114
+#define RCU_SYNC_TEST	(0x114 | CMDIF_NORESP_CMD)
 #define RCU_SYNC_CHECK	0x115
 
 #define AIOP_ASYNC_CB_DONE	5  /* Must be in sync with MC ELF */

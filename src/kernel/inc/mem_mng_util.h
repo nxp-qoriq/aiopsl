@@ -199,10 +199,11 @@ typedef struct t_mem_mng_phys_addr_alloc_info
     uint32_t    attributes;
 } t_mem_mng_phys_addr_alloc_info;
 
-
+#if 0
 int mem_mng_get_partition_id_by_addr(fsl_handle_t   h_mem_mng,
                                      uint64_t   addr,
                                      int        *p_partition_id);
+#endif
 
 
 int mem_mng_get_available_partition_id(fsl_handle_t h_mem_mng);

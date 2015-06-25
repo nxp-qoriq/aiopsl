@@ -477,11 +477,10 @@ __COLD_CODE static int build_mem_partitions_table(t_platform  *pltfrm)
 			// TODO fill all the rest fields from g_init_data.sl_info
 			/* Store MC-Portals bases (for convenience) */
 			pltfrm->mc_portals_base =  p_mem_info->virt_base_addr;
-			pr_debug("MEM_PART_MC_PORTALS:virt_add=0x%x,phys_add=0x%x%08x,size=0x%x\n",
+			pr_debug("MEM_PART_MC_PORTALS:virt_add=0x%x,phys_add=0x%x%08x\n",
 			         p_mem_info->virt_base_addr,
 			         (uint32_t)(p_mem_info->phys_base_addr >> 32),
-			         (uint32_t)(p_mem_info->phys_base_addr),
-			         (uint32_t)(p_mem_info->size));
+			         (uint32_t)(p_mem_info->phys_base_addr));
 			break;
 		case MEM_PART_CCSR:
 			p_mem_info->virt_base_addr =
@@ -490,11 +489,10 @@ __COLD_CODE static int build_mem_partitions_table(t_platform  *pltfrm)
 			// TODO fill all the rest fields from g_init_data.sl_info
 			/* Store CCSR base (for convenience) */
 			pltfrm->ccsr_base =  p_mem_info->virt_base_addr;
-			pr_debug("MEM_PART_CCSR:virt_add= 0x%x,phys_add=0x%x%08x,size=0x%x\n",
+			pr_debug("MEM_PART_CCSR:virt_add= 0x%x,phys_add=0x%x%08x\n",
 			         p_mem_info->virt_base_addr,
 			         (uint32_t)(p_mem_info->phys_base_addr >> 32),
-			         (uint32_t)(p_mem_info->phys_base_addr),
-			         (uint32_t)(p_mem_info->size));
+			         (uint32_t)(p_mem_info->phys_base_addr));
 			break;
 		case MEM_PART_SH_RAM:
 			uint32_t shared_ram_non_heap_size = (uint32_t)_ssram_heap_start -

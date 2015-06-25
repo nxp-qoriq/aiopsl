@@ -202,8 +202,8 @@ void sys_shram_free(void *mem)
 
     return 0;
 }
-
 /*****************************************************************************/
+#if 0
 int sys_get_mem_partition_info(int partition_id,t_mem_mng_partition_info* partition_info)
 {
     int                 err_code;
@@ -225,7 +225,7 @@ int sys_get_mem_partition_info(int partition_id,t_mem_mng_partition_info* partit
 
     return 0;
 }
-
+#endif
 /*****************************************************************************/
 int sys_get_phys_addr_alloc_partition_info(int partition_id,
                                            t_mem_mng_phys_addr_alloc_info* partition_info)
@@ -251,6 +251,7 @@ int sys_get_phys_addr_alloc_partition_info(int partition_id,
     return 0;
 }
 /*****************************************************************************/
+#if 0
 uint64_t sys_get_mem_partition_base(int partition_id)
 {
     t_mem_mng_partition_info   partition_info;
@@ -342,7 +343,7 @@ void sys_print_mem_partition_debug_info(int partition_id, int report_leaks)
         pr_info("\r\n");
     }
 }
-
+#endif
 /*****************************************************************************/
  int sys_init_memory_management(void)
 {

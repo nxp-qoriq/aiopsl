@@ -977,6 +977,7 @@ uint64_t slob_put(uint64_t* slob, const uint64_t base)
     cdma_mutex_lock_release(slob_addr);
     return (size);
 }
+#if 0
 /*****************************************************************************/
 uint64_t slob_get_base(uint64_t* slob)
 {
@@ -1061,6 +1062,6 @@ void slob_dump(uint64_t* slob)
         pr_debug("\n");
     }
 }
-
+#endif
 
 __END_COLD_CODE

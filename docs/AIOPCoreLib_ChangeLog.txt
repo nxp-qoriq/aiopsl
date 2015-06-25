@@ -1,8 +1,61 @@
-PARSER:
-	* Added macros for ESP and IKE over UDP
+
+LDPAA AIOP SERVICE LAYER LDPAA-AIOP-SL-v0.7.0 Change Log
+=============================================================
 Table:
 	* API: Table location Macros change
+FDMA:
+	* Read ASA and PTA SRs - Expects a 64 bytes aligned workspace destination address due to a HW issue.
+	* Optimize workaround for TKT237377: unite replace + close HW calls.
+	* Replace ASA and PTA SRs - In REV1 Replace and represent option (SA=1) is not supported due to HW issue ERR008620.
 
+
+	
+LDPAA AIOP SERVICE LAYER LDPAA-AIOP-SL-v0.6.0.3 Change Log
+=============================================================
+IPR:
+	* Remove unnecessary relinquish (CR:ENGR00356636)
+FDMA:
+	* Fix FDMA HW TKT260685 - use OSM to limit the number of concurrent vulnerable FDMA commands to 3.
+	  Hence, user has only 3 nested scope levels (instead of 4).
+OSM:
+	* Fix FDMA HW TKT260685 - MASK 2 bits in the scope ID.
+IPSEC: 
+	* Implemeted WA for the following HW bug: 
+		IPsec HW TKT265088 - “CAAM/SEC: The FD[BPID] is not updated after an AIOP operation”.
+	* Adjust to new slab alignment.
+	* Added DSCP set support (API change, ENGR341311).
+  * Added support to SEC reuse buffer mode (API change).
+  * Removed ip_nh from ipsec_encap_params struct (API change).
+  * Integrated RTA version 0.6.3 (fsl-lssdk-v0.6.3), fix of issues ENGR354607 and ENGR355247.
+  * Fixed issues with reuse buffer mode (ENGR355248).
+  * Added slab un-reserve call to delete instance/sa (ipsec.c).
+  * Updated IPv6 outer header payload length and added more algorithms in IPsec FM demo.
+
+
+
+
+LDPAA AIOP SERVICE LAYER LDPAA-AIOP-SL-v0.6.0.2 Change Log
+=============================================================
+OSM:
+	* Performance optimization: converted functions to inline.
+CHECKSUM:
+	* Performance optimization: converted functions to inline.
+FDMA:
+	* Fdma new API suggested by Howard including a partial fix for the fdma Hw issue.
+IPR:
+	* Stack optimization.
+PARSER: 
+	* New macros.
+TABLE:
+	* Fix for CQ ENGR346557 (table delete will not work on the device).
+	* Bypass refcount (under ifdef DISABLE_REF_CNT).
+	* Fix for ENGR00354623 (added ‘volatile’ to table_lookup_result fields).
+CDMA:
+	* Bypass refcount (under ifdef DISABLE_REF_CNT).
+   
+
+	
+	
 LDPAA AIOP SERVICE LAYER LDPAA-AIOP-SL-v0.6.0 Change Log
 =============================================================
 FDMA:

@@ -1771,24 +1771,6 @@ __IPSEC_HOT_CODE int ipsec_frame_encrypt(
 	
 	}
 	
-	/* 	11.	FDMA present default frame command (open frame) */
-	/* because earlier the segment was not presented,
-	 * added PRC_RESET_NDS_BIT(); */
-	PRC_RESET_NDS_BIT();
-	return_val = fdma_present_default_frame();
-	// TODO: check for FDMA error
-	
-	/* 	12.	Read the SEC return status from the FD[FRC]. Use swap macro. */
-	if ((LDPAA_FD_GET_FRC(HWC_FD_ADDRESS)) != 0) {
-		if ((LDPAA_FD_GET_FRC(HWC_FD_ADDRESS) & SEC_DECO_ERROR_MASK)
-					== SEC_SEQ_NUM_OVERFLOW) { /** Sequence Number overflow */
-				*enc_status |= IPSEC_SEQ_NUM_OVERFLOW;
-		} else {
-				*enc_status |= IPSEC_GEN_ENCR_ERR;	
-		}
-		return_val = -1;
-	}
-	
 #if(0)
 	// Debug //
 	{
@@ -1810,9 +1792,42 @@ __IPSEC_HOT_CODE int ipsec_frame_encrypt(
 	}
 	// Debug End //
 #endif	
+		
+	/* 	12.	Read the SEC return status from the FD[FRC]. Use swap macro. */
+	if ((LDPAA_FD_GET_FRC(HWC_FD_ADDRESS)) != 0) {
+		/* Compressed mode errors */		
+		if ((LDPAA_FD_GET_FRC(HWC_FD_ADDRESS) & SEC_COMPRESSED_ERROR_MASK)
+													== SEC_COMPRESSED_ERROR) {
+			if ((LDPAA_FD_GET_FRC(HWC_FD_ADDRESS) 
+					& SEC_DECO_ERROR_MASK_COMPRESSED)
+					== SEC_SEQ_NUM_OVERFLOW_COMPRESSED) { 
+				/* Sequence Number overflow */
+				*enc_status |= IPSEC_SEQ_NUM_OVERFLOW;
+			} else {
+				*enc_status |= IPSEC_GEN_ENCR_ERR;	
+			}
+			
+		} else {
+		/* Non-compressed mode errors */
+			if ((LDPAA_FD_GET_FRC(HWC_FD_ADDRESS) & SEC_DECO_ERROR_MASK)
+					== SEC_SEQ_NUM_OVERFLOW) { /* Sequence Number overflow */
+				*enc_status |= IPSEC_SEQ_NUM_OVERFLOW;
+			} else {
+				*enc_status |= IPSEC_GEN_ENCR_ERR;	
+			}
+		}
+		
+		return_val = IPSEC_ERROR;
+		goto encrypt_end;
+	}
 	
-	/* 	13.	If encryption/encapsulation failed go to END (see below) */
-	// TODO: check results
+	/* 	11.	FDMA present default frame command (open frame) */
+	/* because earlier the segment was not presented,
+	 * added PRC_RESET_NDS_BIT(); */
+	PRC_RESET_NDS_BIT();
+	return_val = fdma_present_default_frame();
+	// TODO: check for FDMA error
+	
 		
 	/* 	14.	Get new running sum and byte count (encrypted/encapsulated frame) 
 	 * from the FD[FLC] */
@@ -2367,32 +2382,6 @@ __IPSEC_HOT_CODE int ipsec_frame_decrypt(
 		
 	}	
 		
-	/* 	12.	FDMA present default frame command */ 
-	return_val = fdma_present_default_frame();
-	
-	/* 	13.	Read the SEC return status from the FD[FRC]. Use swap macro. */
-	if ((LDPAA_FD_GET_FRC(HWC_FD_ADDRESS)) != 0) {
-		if ((LDPAA_FD_GET_FRC(HWC_FD_ADDRESS) & SEC_CCB_ERROR_MASK)
-											== SEC_ICV_COMPARE_FAIL) {
-			*dec_status |= IPSEC_ICV_COMPARE_FAIL;
-		} else {
-			switch (LDPAA_FD_GET_FRC(HWC_FD_ADDRESS) & SEC_DECO_ERROR_MASK) {
-				case SEC_SEQ_NUM_OVERFLOW: /** Sequence Number overflow */
-					*dec_status |= IPSEC_SEQ_NUM_OVERFLOW;
-					break;
-				case SEC_AR_LATE_PACKET: /* Anti Replay Check: Late packet */
-					*dec_status |= IPSEC_AR_LATE_PACKET;
-					break;
-				case SEC_AR_REPLAY_PACKET: /*Anti Replay Check: Replay packet */
-					*dec_status |= IPSEC_AR_REPLAY_PACKET;
-					break;
-				default:
-					*dec_status |= IPSEC_GEN_DECR_ERR;
-			}	
-		}
-		return_val = -1;
-	}
-	
 #if(0)
 	// Debug //
 	{
@@ -2412,9 +2401,66 @@ __IPSEC_HOT_CODE int ipsec_frame_decrypt(
 	// Debug End //
 #endif
 	
-	/* 	14.	If encryption/encapsulation failed go to END (see below) */
-	// TODO: check results
-		
+	/* 	13.	Read the SEC return status from the FD[FRC]. Use swap macro. */
+	if ((LDPAA_FD_GET_FRC(HWC_FD_ADDRESS)) != 0) {
+		/* Compressed mode errors */		
+		if ((LDPAA_FD_GET_FRC(HWC_FD_ADDRESS) & SEC_COMPRESSED_ERROR_MASK)
+													== SEC_COMPRESSED_ERROR) {
+			if ((LDPAA_FD_GET_FRC(HWC_FD_ADDRESS) & 
+							SEC_CCB_ERROR_MASK_COMPRESSED) == 
+									SEC_ICV_COMPARE_FAIL_COMPRESSED) {
+				*dec_status |= IPSEC_ICV_COMPARE_FAIL;
+			} else {
+				switch (LDPAA_FD_GET_FRC(HWC_FD_ADDRESS) & 
+						SEC_DECO_ERROR_MASK_COMPRESSED) {
+					case SEC_SEQ_NUM_OVERFLOW_COMPRESSED: 
+						/** Sequence Number overflow */
+						*dec_status |= IPSEC_SEQ_NUM_OVERFLOW;
+						break;
+					case SEC_AR_LATE_PACKET_COMPRESSED: 
+						/* Anti Replay Check: Late packet */
+						*dec_status |= IPSEC_AR_LATE_PACKET;
+						break;
+					case SEC_AR_REPLAY_PACKET_COMPRESSED: 
+						/*Anti Replay Check: Replay packet */
+						*dec_status |= IPSEC_AR_REPLAY_PACKET;
+						break;
+					default:
+						*dec_status |= IPSEC_GEN_DECR_ERR;
+				}	
+			}	
+		} else {
+		/* Non-compressed mode errors */	
+			if ((LDPAA_FD_GET_FRC(HWC_FD_ADDRESS) & SEC_CCB_ERROR_MASK)
+											== SEC_ICV_COMPARE_FAIL) {
+				*dec_status |= IPSEC_ICV_COMPARE_FAIL;
+			} else {
+				switch (LDPAA_FD_GET_FRC(HWC_FD_ADDRESS) & 
+													SEC_DECO_ERROR_MASK) {
+					case SEC_SEQ_NUM_OVERFLOW: /* Sequence Number overflow */
+						*dec_status |= IPSEC_SEQ_NUM_OVERFLOW;
+						break;
+					case SEC_AR_LATE_PACKET: 
+						/* Anti Replay Check: Late packet */
+						*dec_status |= IPSEC_AR_LATE_PACKET;
+						break;
+					case SEC_AR_REPLAY_PACKET: 
+						/* Anti Replay Check: Replay packet */
+						*dec_status |= IPSEC_AR_REPLAY_PACKET;
+						break;
+					default:
+						*dec_status |= IPSEC_GEN_DECR_ERR;
+				}	
+			}
+		}
+		return_val = IPSEC_ERROR;
+		/* If encryption/encapsulation failed do not present the frame */
+		goto decrypt_end;
+	}
+	
+	/* 	FDMA present default frame command */ 
+	return_val = fdma_present_default_frame();
+	
 	/* 	15.	Get new running sum and byte count (encrypted/encapsulated frame) 
 	 * from the FD[FLC] */
 	

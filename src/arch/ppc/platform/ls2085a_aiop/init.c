@@ -54,6 +54,7 @@ extern void slab_module_free(void);
 extern int aiop_sl_early_init(void);
 extern int aiop_sl_init(void);            extern void aiop_sl_free(void);
 extern int rcu_init();                    extern void rcu_free();
+extern int rcu_default_early_init();
 
 
 extern void build_apps_array(struct sys_module_desc *apps);
@@ -65,9 +66,9 @@ extern void build_apps_array(struct sys_module_desc *apps);
 	        MEMORY_ATTR_NONE, "BOOT MEMORY MANAGER"},\
 	{MEM_PART_DP_DDR,                    0xFFFFFFFF,  0xFFFFFFFF,  0xFFFFFFFF,\
 		MEMORY_ATTR_PHYS_ALLOCATION,"DP_DDR"},\
-	{MEM_PART_MC_PORTALS,                0xFFFFFFFF,  0xFFFFFFFF, (64  * MEGABYTE),\
+	{MEM_PART_MC_PORTALS,                0xFFFFFFFF,  0xFFFFFFFF, 0xFFFFFFFF,\
 		MEMORY_ATTR_NONE,"MC Portals"},\
-	{MEM_PART_CCSR,                      0xFFFFFFFF,  0xFFFFFFFF, (64 * MEGABYTE),\
+	{MEM_PART_CCSR,                      0xFFFFFFFF,  0xFFFFFFFF, 0xFFFFFFFF,\
 		MEMORY_ATTR_NONE,"SoC CCSR"  },\
 	{MEM_PART_SH_RAM,                    0xFFFFFFFF,   0xFFFFFFFF,0xFFFFFFFF,\
 		MEMORY_ATTR_MALLOCABLE,"Shared-SRAM"},\
@@ -89,7 +90,7 @@ extern void build_apps_array(struct sys_module_desc *apps);
 	{aiop_sl_early_init, aiop_sl_init,      aiop_sl_free},                   \
 	{NULL, dpni_drv_init,     dpni_drv_free}, /*must be after aiop_sl_init*/ \
 	{evmng_early_init, evmng_init, evmng_free}, /*must be after cmdif*/            \
-	{NULL, rcu_init, rcu_free}, /*must be after slab*/            \
+	{rcu_default_early_init, rcu_init, rcu_free}, /*must be after slab*/            \
 	{NULL, NULL, NULL} /* never remove! */                                   \
 	}
 
