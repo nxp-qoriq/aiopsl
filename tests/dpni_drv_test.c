@@ -39,7 +39,7 @@ extern uint8_t dpni_lock; /*lock to change dpni_ctr and dpni_broadcast_flag safe
 extern uint8_t dpni_ctr; /*counts number of packets received before removing broadcast address*/
 extern uint8_t dpni_broadcast_flag; /*flag if packet with broadcast mac destination received during the test*/
 
-extern uint8_t num_of_nis;
+extern uint8_t num_of_nis_arena;
 
 int dpni_drv_test(void){
 	int err = 0;
@@ -58,7 +58,7 @@ int dpni_drv_test(void){
 		lock_spinlock(&dpni_lock);
 		if(dpni_ctr == 38)
 		{
-			for(ni = 0; ni < num_of_nis; ni ++)
+			for(ni = 0; ni < num_of_nis_arena; ni ++)
 			{
 				/*Just to test functionality, because of promiscuous mode enabled - the packets will continue to receive*/
 				err = dpni_drv_remove_mac_addr((uint16_t)ni,((uint8_t []){0x02,0x00,0xC0,0xA8,0x0B,0xFE}));
