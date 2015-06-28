@@ -18,6 +18,9 @@ IPSEC:
 	* Fixed ENGR353336, IPsec FM: incorrect handling of PRC ASA Size in new buffer mode
 	* Updated the error flow in the IPsec FM demo.
 
+STE:
+	* Added remarks that forbids the use of CDMA or FDMA to init counters.
+
 
 	
 LDPAA AIOP SERVICE LAYER LDPAA-AIOP-SL-v0.6.0.3 Change Log
