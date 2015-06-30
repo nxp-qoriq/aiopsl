@@ -20,6 +20,19 @@ IPSEC:
 
 IPF:
 	* Fixed ENGR360390 (Fragmentation on Fragment (more fragment bit set) - More fragment bit is not set for the last fragment).
+
+STE:
+	* Added remarks that forbids the use of CDMA or FDMA to init counters.
+
+IPR:
+	* Fix ENGR358861.
+	* Fix return status in case of L4 checksum error.
+	* Fix ENGR356636 (remove extra relinquish).
+	
+General:
+	* Performance improvement for accelerators return. The following blocks were improved:
+	  CDMA, FDMA, TMAN. 
+
 	
 LDPAA AIOP SERVICE LAYER LDPAA-AIOP-SL-v0.6.0.3 Change Log
 =============================================================
