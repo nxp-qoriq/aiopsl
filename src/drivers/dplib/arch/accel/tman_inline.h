@@ -48,7 +48,7 @@ inline int tman_create_timer(uint8_t tmi_id, uint32_t flags,
 	struct tman_tmi_input_extention extention_params
 		__attribute__((aligned(TMAN_EXT_PARAM_ALIGNMENT)));
 	uint32_t cmd_type = TMAN_CMDTYPE_TIMER_CREATE;
-	unsigned int res1, res2;
+	unsigned int res1;
 	uint32_t epid = EPID_TIMER_EVENT_IDX;
 
 	/* Fill command parameters */
@@ -76,12 +76,11 @@ inline int tman_create_timer(uint8_t tmi_id, uint32_t flags,
 	*(uint32_t *)(HWC_ACC_IN_ADDRESS + 0xc) = flags;
 	/* call TMAN. */
 	if ((__e_hwacceli_(TMAN_ACCEL_ID)) == TMAN_TMR_CREATE_SUCCESS) {
-		__ldw(&res1, &res2, HWC_ACC_OUT_ADDRESS, 0);
-		*timer_handle = res2;
+		*timer_handle = *((uint32_t *) (HWC_ACC_OUT_ADDRESS+4));
 		return (int)(TMAN_TMR_CREATE_SUCCESS);
 	}
 	/* Load command results */
-	__ldw(&res1, &res2, HWC_ACC_OUT_ADDRESS, 0);
+	res1 = *((uint32_t *) (HWC_ACC_OUT_ADDRESS));
 	
 	if(res1 == TMAN_TMR_TMP_ERR1)
 		return (int)(-EBUSY);
@@ -102,8 +101,7 @@ inline int tman_delete_timer(uint32_t timer_handle, uint32_t flags)
 	/* call TMAN. and check if passed.
 	 * Optimization using compiler pattern*/
 
-/* todo - change when compiler ticket ENGR00338394 is fixed */
-	if(__e_hwacceli_(TMAN_ACCEL_ID) == TMAN_TMR_CREATE_SUCCESS)
+	if(__e_hwacceli_(TMAN_ACCEL_ID) == TMAN_DEL_TMR_DELETE_SUCCESS)
 		return (int)(TMAN_DEL_TMR_DELETE_SUCCESS);
 	/* Load command results */
 	res1 = *((uint32_t *) HWC_ACC_OUT_ADDRESS);
@@ -124,11 +122,13 @@ inline int tman_delete_timer(uint32_t timer_handle, uint32_t flags)
 	if (res1 & TMAN_TMR_DEL_TMP_TYPE_MASK)
 		return (int)(-ETIMEDOUT);
 
+#ifndef REV2 /* In rev2 this error is considered fatal error */
 	/* The next code is due to Errata ERR008205 */
 	if(res1 == TMAN_DEL_TMR_NOT_ACTIVE_ERR)
 		return (int)(-ENAVAIL);
 	/* End of Errata ERR008205 related code */
-
+#endif
+	
 	/* In case TMI State errors and TMAN_DEL_TMR_NOT_ACTIVE_ERR,
 	 * TMAN_DEL_TMR_DEL_ISSUED_ERR, TMAN_DEL_TMR_DEL_ISSUED_CONF_ERR */
 	tman_exception_handler(TMAN_TMI_TIMER_DELETE_FUNC_ID, __LINE__, (int)res1);
