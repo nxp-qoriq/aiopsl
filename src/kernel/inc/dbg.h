@@ -230,7 +230,7 @@
 #define DUMP_VAR(st, phrase) \
 		do { \
 			void            *addr = (void *)&((st)->phrase); \
-			dma_addr_t   phys_addr = sys_virt_to_phys(addr); \
+			uint64_t   phys_addr = sys_virt_to_phys(addr); \
 			_CREATE_DUMP_SUBSTR(phrase); \
 			dump_var_size = sizeof((st)->phrase); \
 			switch (dump_var_size) \
@@ -262,7 +262,7 @@
  *//***************************************************************************/
 #define DUMP_ARR(st, phrase) \
 		do { \
-			dma_addr_t phys_addr; \
+			uint64_t phys_addr; \
 			_CREATE_DUMP_SUBSTR(phrase); \
 			dump_arr_size = ARRAY_SIZE((st)->phrase); \
 			dump_var_size = sizeof((st)->phrase[0]); \

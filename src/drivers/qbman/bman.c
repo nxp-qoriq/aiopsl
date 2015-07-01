@@ -42,7 +42,7 @@ __COLD_CODE int bman_fill_bpid(uint32_t num_buffs,
                      uint16_t alignment_extension)
 {
 	int        i = 0;
-	dma_addr_t addr  = 0;
+	uint64_t addr  = 0;
 	struct icontext ic;
 	int err;
 

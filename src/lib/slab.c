@@ -1005,7 +1005,7 @@ __COLD_CODE static int slab_alocate_memory(int num_bpids, struct slab_module_inf
 {
 	int i = 0, j = 0;
 	int err = 0;
-	dma_addr_t addr = 0;
+	uint64_t addr = 0;
 	uint16_t buff_size;
 	uint16_t alignment_extension;
 	/* Set BPIDs */
@@ -1380,7 +1380,7 @@ __COLD_CODE int slab_module_init(void)
 	int      num_bpids = 0;
 	struct   slab_module_info *slab_m = NULL;
 	int      err = 0, i, j;
-	dma_addr_t ddr_pool_addr;
+	uint64_t ddr_pool_addr;
 	uint32_t ddr_value_ptr[SLAB_MAX_NUM_VP_DDR];
 	struct icontext ic;
 	uint32_t num_clusters_for_ddr_mamangement_pools = 0;

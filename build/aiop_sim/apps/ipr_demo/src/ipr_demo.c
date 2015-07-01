@@ -272,7 +272,7 @@ int app_init(void)
 {
 	int        err  = 0;
 	uint32_t   ni   = 0;
-	dma_addr_t buff = 0;
+	uint64_t buff = 0;
 	uint64_t tmi_mem_base_addr;
 
 	struct ipr_params ipr_demo_params;

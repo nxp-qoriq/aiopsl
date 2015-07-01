@@ -421,7 +421,7 @@ static int app_dpni_event_added_cb(
 	int promisc;
 	uint16_t spid = 0;
 	extern t_system sys;
-	dma_addr_t buff = 0;
+	uint64_t buff = 0;
 	int ep, state = -1;
 	struct dpkg_profile_cfg dist_key_cfg = {0};
 	struct aiop_psram_entry *sp_addr;
