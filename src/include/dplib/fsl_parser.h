@@ -85,19 +85,19 @@ extern __TASK struct aiop_default_task_params default_task_params;
 #ifdef REV2
 	/** "Routing header in 2nd IPv6 header" mask 
 	 * for frame_attribute_flags_1 */
-#define PARSER_ATT_IPV6_ROUTING_HDR_2               0x80000000
+#define PARSER_ATT_IPV6_ROUTING_HDR_2_MASK          0x80000000
 	/** "GTP Primed" mask for frame_attribute_flags_1 */
 #define PARSER_ATT_GTP_PRIMED_MASK                  0x40000000
 	/** "VLAN Priority (VID=0)" mask for frame_attribute_flags_1 */
 #define PARSER_ATT_VLAN_PRIORITY_MASK               0x20000000
 	/** "PTP (1588)" mask for frame_attribute_flags_1 */
-#define PARSER_ATT_PTP_MASK              	    0x10000000
+#define PARSER_ATT_PTP_MASK              	    	0x10000000
 	/** "VXLAN" mask for frame_attribute_flags_1 */
-#define PARSER_ATT_VXLAN_MASK              	    0x08000000
+#define PARSER_ATT_VXLAN_MASK              	    	0x08000000
 	/** "Ethernt Slow Protocol" mask for frame_attribute_flags_1 */
 #define PARSER_ATT_ETH_SLOW_PROTOCOL_MASK     	    0x02000000
 	/** "IKE over UDP" mask for frame_attribute_flags_1 */
-#define PARSER_ATT_IKE_MASK              	    0x01000000
+#define PARSER_ATT_IKE_MASK              	    	0x01000000
 #endif
 	/** "Ethernet MAC" mask for frame_attribute_flags_1 */
 #define PARSER_ATT_ETH_MAC_MASK                     0x00200000
@@ -571,6 +571,10 @@ extern __TASK struct aiop_default_task_params default_task_params;
 @{
 *//***************************************************************************/
 #ifdef REV2
+/** Returns a non-zero value in case Routing hdr in 2nd IPv6 header is found */
+#define PARSER_IS_ROUTING_HDR_IN_2ND_IPV6_HDR_DEFAULT() \
+		(((struct parse_result *)HWC_PARSE_RES_ADDRESS)-> \
+		frame_attribute_flags_1 & PARSER_ATT_IPV6_ROUTING_HDR_2_MASK)
 /** Returns a non-zero value in case GTP Primed is found */
 #define PARSER_IS_GTP_PRIMED_DEFAULT() \
 	(((struct parse_result *)HWC_PARSE_RES_ADDRESS)-> \
@@ -583,6 +587,9 @@ extern __TASK struct aiop_default_task_params default_task_params;
 #define PARSER_IS_PTP_DEFAULT() \
 	(((struct parse_result *)HWC_PARSE_RES_ADDRESS)-> \
 	frame_attribute_flags_1 & PARSER_ATT_PTP_MASK)
+#define PARSER_IS_VXLAN_DEFAULT() \
+	(((struct parse_result *)HWC_PARSE_RES_ADDRESS)-> \
+	frame_attribute_flags_1 & PARSER_ATT_VXLAN_MASK)
 /** Returns a non-zero value in case Ethernet Slow Protocol is found */
 #define PARSER_IS_ETH_SLOW_PROTOCOL_DEFAULT() \
 	(((struct parse_result *)HWC_PARSE_RES_ADDRESS)-> \
@@ -913,18 +920,14 @@ extern __TASK struct aiop_default_task_params default_task_params;
 	(((struct parse_result *)HWC_PARSE_RES_ADDRESS)-> \
 	frame_attribute_flags_3 & PARSER_ATT_IPV6_ROUTING_HDR_1)
 /** Returns a non-zero value in case Routing hdr in 2nd IPv6 header is found */
+#ifndef REV2
 #define PARSER_IS_ROUTING_HDR_IN_2ND_IPV6_HDR_DEFAULT() \
 	(((struct parse_result *)HWC_PARSE_RES_ADDRESS)-> \
 	frame_attribute_flags_extension & PARSER_ATT_IPV6_ROUTING_HDR_2)
 /** Returns a non-zero value in case VxLAN is found */
-#ifndef REV2
 #define PARSER_IS_VXLAN_DEFAULT() (PARSER_IS_UDP_DEFAULT() && \
 	((*((uint16_t *)((uint32_t)PARSER_GET_L4_POINTER_DEFAULT() + 2)) == 4789)) \
 	? (1) : (0))
-#else
-#define PARSER_IS_VXLAN_DEFAULT() \
-	(((struct parse_result *)HWC_PARSE_RES_ADDRESS)-> \
-	frame_attribute_flags_1 & PARSER_ATT_VXLAN_MASK)
 #endif
 /** @} */ /* end of FSL_PARSER_PR_QUERIES */
 
