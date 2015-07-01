@@ -421,14 +421,14 @@ static int configure_dpni_irq(struct mc_dprc *dprc, uint16_t mc_niid, uint16_t d
 	sl_pr_debug("Register for irq with addr %d and val %d\n", (int)irq_cfg.addr, (int)irq_cfg.val);
 
 
-	err = dpni_set_irq(&dprc->io, 0, dpni, 
+	err = dpni_set_irq(&dprc->io, 0, dpni,
 	                   DPNI_IRQ_INDEX, &irq_cfg);
 	if(err){
 		sl_pr_err("Failed to set irq\n");
 		return err;
 	}
 
-	err = dpni_set_irq_mask(&dprc->io, 0, dpni, 
+	err = dpni_set_irq_mask(&dprc->io, 0, dpni,
 	                        DPNI_IRQ_INDEX,
 	                        DPNI_IRQ_EVENT_LINK_CHANGED);
 	if(err){
@@ -470,7 +470,7 @@ static int initialize_dpni(struct mc_dprc *dprc, uint16_t mc_niid, uint16_t aiop
 	}
 
 	/* Register MAC address in internal AIOP NI table */
-	err = dpni_get_primary_mac_addr(&dprc->io, 0, 
+	err = dpni_get_primary_mac_addr(&dprc->io, 0,
 	                                dpni,
 	                                mac_addr);
 	if(err){
@@ -484,7 +484,7 @@ static int initialize_dpni(struct mc_dprc *dprc, uint16_t mc_niid, uint16_t aiop
 
 
 	/* Register QDID in internal AIOP NI table */
-	err = dpni_get_qdid(&dprc->io, 0, 
+	err = dpni_get_qdid(&dprc->io, 0,
 	                    dpni, &qdid);
 	if(err){
 		sl_pr_err("Failed to get QDID for DP-NI%d\n",
@@ -566,6 +566,7 @@ int dpni_drv_probe(struct mc_dprc *dprc,
 		/*MC dpni id found in EPID table*/
 		if (j == mc_niid) {
 			/* Replace MC NI ID with AIOP NI ID */
+			sl_pr_debug("Found EPID[%d].EP_PM = %d\n", i, j);
 			iowrite32_ccsr(aiop_niid, &wrks_addr->ep_pm);
 
 			ep_osc = ioread32_ccsr(&wrks_addr->ep_osc);
@@ -1009,8 +1010,8 @@ static int dpni_drv_check_irq_status(struct mc_dprc *dprc, uint16_t dpni)
 	int err;
 	uint32_t status;
 
-	err = dpni_get_irq_status(&dprc->io, 
-	                          0, 
+	err = dpni_get_irq_status(&dprc->io,
+	                          0,
 	                          dpni,
 	                          DPNI_IRQ_INDEX,
 	                          &status);
@@ -1092,7 +1093,7 @@ static int dpni_drv_evmng_cb(uint8_t generator_id, uint8_t event_id, uint64_t ap
 		}
 
 		err = dpni_get_link_state(&dprc->io,
-		                          0, 
+		                          0,
 		                          dpni,
 		                          &link_state);
 		if(err){
@@ -1541,7 +1542,7 @@ int dpni_drv_reset_counter(uint16_t ni_id, enum dpni_drv_counter counter)
 		sl_pr_err("Open DPNI failed\n");
 		return err;
 	}
-	err = dpni_set_counter(&dprc->io,0, 
+	err = dpni_set_counter(&dprc->io,0,
 	                       dpni,
 	                       (enum dpni_counter)counter,
 	                       0);
