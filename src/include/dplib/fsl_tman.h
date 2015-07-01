@@ -82,7 +82,12 @@ typedef void /*__noreturn*/ (*tman_cb_t) (
 *//***************************************************************************/
 
 /** Macro to get the number of missed expiration for periodic timers.
- * This macro may be called on the periodic timer expiration task. */
+ * This macro may be called on the periodic timer expiration task. 
+ * On REV 1 due to errata ERR009100 this macro will return the accumulated 
+ * value of the missed expiration for the elapsed timer. On REV 1, in order to
+ * know how many missed expiration happened between the previous expiration and
+ * the current expiration the new value need to be subtracted from the old
+ * value of the missed expiration. */
 #define TMAN_GET_MISSED_EXPIRATION(_fd)					\
 	(uint8_t)(uint32_t)({register uint8_t *__rR = 0;		\
 	uint8_t err = *((uint8_t *) (((char *)_fd) + FD_BPID_OFFSET));\
@@ -162,10 +167,12 @@ struct tman_tmi_params {
 	/** If set, the timer will be forced into the expiration
 	     queue although its expiration time was not reached yet. */
 #define TMAN_TIMER_DELETE_MODE_FORCE_EXP 0x2002
+#ifdef REV2 /* Errata ERR009228 */
 	/** If set, the timer will be deleted after its next expiration.
 	     Timer Id will be returned to free pool after callback
 	     completion confirmation. */
 #define TMAN_TIMER_DELETE_MODE_WAIT_EXP 0x2003
+#endif
 
 /** @} end of group TMANTimerDeleteModeBits */
 
@@ -266,7 +273,7 @@ enum e_tman_query_timer {
 		bytes. The allocated memory should be 64 byte aligned.\n
 @Param[in]	max_num_of_timers - maximum number of timers associated
 		to this instance. This number must be bigger than 4 and smaller
-		than (2^24)-1.
+		than (2^22)-1.
 		This variable should be 3 timers larger than the actual maximum
 		number of timers needed in this TMI.
 @Param[out]	tmi_id - TMAN instance ID (TMI ID).
@@ -402,10 +409,13 @@ inline int tman_create_timer(uint8_t tmi_id, uint32_t flags,
 		timer). 
 @Retval		ENAVAIL - The timer cannot be deleted. The timer is not an
 		active one. This should be treated as a fatal error.
-		When Errata ERR008205 will be fixed this error will
-		automatically generate a fatal error. 
+		On REV 2 this error will automatically generate a fatal error 
+		(Errata ERR008205). 
 
-@Cautions	This function performs a task switch.
+@Cautions	This function performs a task switch. In Rev 1, for one-shot
+		timers, this function should be called after calling the
+		tman_recharge_timer function for the one-shot timer (this in
+		order to workaround errata ERR009310).
 
 *//***************************************************************************/
 inline int tman_delete_timer(uint32_t timer_handle, uint32_t flags);
@@ -433,7 +443,9 @@ inline int tman_delete_timer(uint32_t timer_handle, uint32_t flags);
 
 *//***************************************************************************/
 int tman_increase_timer_duration(uint32_t timer_handle, uint16_t duration);
+#endif
 
+#ifdef REV2
 /**************************************************************************//**
 @Function	tman_recharge_timer
 
@@ -449,8 +461,27 @@ int tman_increase_timer_duration(uint32_t timer_handle, uint16_t duration);
 
 *//***************************************************************************/
 int tman_recharge_timer(uint32_t timer_handle);
-#endif
 
+#else
+/**************************************************************************//**
+@Function	tman_recharge_timer
+
+@Description	Re-start TMAN one-shot timer to the initial value.
+
+@Param[in]	timer_handle - The handle of the timer to be re-started.
+
+@Return		None
+
+@Cautions	This function performs a task switch. This is a best effort
+		function. It is not guaranteed that the timer will be recharged
+		after calling this function.
+		E.g. The recharge can fail if the timer already elapsed or
+		going to elapse in the near future.
+
+*//***************************************************************************/
+void tman_recharge_timer(uint32_t timer_handle);
+
+#endif
 /**************************************************************************//**
 @Function	tman_query_timer
 
