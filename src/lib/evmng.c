@@ -31,6 +31,7 @@
 #include "fsl_malloc.h"
 #include "fsl_string.h"
 #include "fsl_spinlock.h"
+#include "fsl_cdma.h"
 
 struct evmng g_evmng_irq_events_list[NUM_OF_IRQ_EVENTS];
 struct evmng g_evmng_events_list[EVMNG_MAX_NUM_OF_EVENTS];
