@@ -412,7 +412,9 @@ inline int tman_create_timer(uint8_t tmi_id, uint32_t flags,
 		On REV 2 this error will automatically generate a fatal error 
 		(Errata ERR008205). 
 
-@Cautions	This function performs a task switch. In Rev 1, for one-shot
+@Cautions	This function performs a task switch. 
+		In case of periodic timer the tman_delete_timer should be
+		called at the expiration routine. In Rev 1, for one-shot
 		timers, this function should be called after calling the
 		tman_recharge_timer function for the one-shot timer (this in
 		order to workaround errata ERR009310).
