@@ -61,6 +61,12 @@ static  int check_returned_address(uint64_t paddr,
                                            uint64_t alignment,
                                            uint32_t mem_partition);
 
+static  int check_returned_malloc_address(uint32_t vaddr,
+                                           uint32_t size,
+                                           uint32_t alignment,
+                                           t_mem_mng_partition_info* part_info);
+
+static t_mem_mng_partition_info sh_ram_info = {0};
 static t_mem_mng_phys_addr_alloc_info sys_ddr_info = {0};
 static t_mem_mng_phys_addr_alloc_info peb_info = {0};
 static t_mem_mng_phys_addr_alloc_info dp_ddr_info = {0};
@@ -133,6 +139,12 @@ int malloc_test()
 	if((rc = sys_get_phys_addr_alloc_partition_info(MEM_PART_PEB,
 							&peb_info)) != 0){
 		fsl_os_print("sys_get_phys_addr_alloc_partition_info for MEM_PART_PEB failed\n");
+		return rc;
+	}
+	if((rc = sys_get_mem_partition_info(MEM_PART_SH_RAM,
+					   &sh_ram_info)) != 0)
+	{
+		fsl_os_print("sys_get_mem_partition_info for MEM_PART_SH_RAM failed\n");
 		return rc;
 	}
 	local_error = get_mem_test();
@@ -261,7 +273,20 @@ static  int check_returned_get_mem_address(uint64_t paddr,
     return error;
 }
 
-
+static  int check_returned_malloc_address(uint32_t vaddr,
+                                           uint32_t size,
+                                           uint32_t alignment,
+                                           t_mem_mng_partition_info* part_info)
+{
+    int error = 0;
+    // check if returned address is in boundaries;
+    error = (vaddr < part_info->base_address) ||
+	    (vaddr > part_info->base_address + part_info->size - size);
+    // check alignment;
+    if(alignment >= 1)
+        error |=  (int)(vaddr & (uint64_t)(alignment-1));
+    return error;
+}
 
 static int mem_depletion_test(e_memory_partition_id mem_partition,
                               const uint32_t max_alloc_size,
@@ -281,6 +306,8 @@ static int mem_depletion_test(e_memory_partition_id mem_partition,
 		while((curr_addr = fsl_malloc(size,alignment)) != NULL)
 		{
 			shram_addresses[count++] = curr_addr;
+			if(check_returned_address((uint64_t)curr_addr,size,alignment,mem_partition) != 0)
+				return -1;
 			prev_addr = curr_addr;
 			prev_size = size;
 			prev_alignment = alignment;
@@ -295,6 +322,8 @@ static int mem_depletion_test(e_memory_partition_id mem_partition,
 			fsl_os_print("mem_depletion_test from  SHARED RAM failed\n");
 			return -ENAVAIL;
 		}
+		if(check_returned_address((uint64_t)curr_addr,prev_size,prev_alignment,mem_partition) != 0)
+						return -1;
 		fsl_free(curr_addr);
 		for(int i = 0 ; i < count-1 ; i++)
 		{
@@ -324,6 +353,8 @@ static int mem_depletion_test(e_memory_partition_id mem_partition,
 			fsl_os_print("mem_depletion_test from %d failed\n",mem_partition);
 			return -ENAVAIL;
 		}
+		if(check_returned_address(curr_addr_64,prev_size,prev_alignment,mem_partition) != 0)
+						return -1;
 		fsl_os_put_mem(curr_addr_64);
 		for(int i = 0 ; i < count-1 ; i++)
 		{
@@ -362,6 +393,14 @@ static  int check_returned_address(uint64_t paddr,
 		fsl_os_print("check_returned_address failed for MEM_PART_SYSTEM_DDR\n");
 		return -1;
 	    }
+	    break;
+	case MEM_PART_SH_RAM:
+            if(check_returned_malloc_address((uint32_t)paddr,(uint32_t)size,
+                                             (uint32_t)alignment,&sh_ram_info))
+            {
+	        fsl_os_print("check_returned_address failed for MEM_PART_SH_RAM\n");
+	        return -1;
+            }
 	    break;
     }
     return 0;
