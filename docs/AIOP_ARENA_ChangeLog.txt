@@ -1,3 +1,7 @@
+cmdif_client.c:   Fix ENGR00361548 cmdif_cl_isr should have SET_FRAME_TYPE() 
+cmdif_srv_flib.c: Fix ENGR00361727 inst_alloc can't alloc all instance
+cmdif_srv.c:      Fix ENGR00361727 inst_alloc can't alloc all instance
+
 ** AIOP SL Release v0.7.0 **
 cmdif_srv.c:               Added error that will be returned to cmdif_open() if it is called before AIOP has finished the linkup setup of this DPCI.
 fsl_dpci_drv.h:            Added new API for dpci_drv_linkup().
