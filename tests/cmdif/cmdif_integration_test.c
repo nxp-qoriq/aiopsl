@@ -759,7 +759,7 @@ int app_init(void)
 {
 	int        err  = 0;
 	uint32_t   ni   = 0;
-	dma_addr_t buff = 0;
+	uint64_t   buff = 0;
 	char       module[10];
 	int        i = 0;
 	struct cmdif_module_ops ops;

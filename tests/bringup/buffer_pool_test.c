@@ -65,7 +65,7 @@ int buffer_pool_test()
 	struct dpbp_attr attr;
 	struct icontext ic;
 	uint32_t buff_size = 2048;
-	dma_addr_t addr  = 0x6002000000;/*DP-DDR phys address*/
+	uint64_t addr  = 0x6002000000;/*DP-DDR phys address*/
 
 	if (dprc == NULL)
 	{

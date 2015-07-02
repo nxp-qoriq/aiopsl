@@ -30,6 +30,7 @@
 #include "buffer_pool.h"
 #include "fsl_dbg.h"
 #include "fsl_sl_dbg.h"
+#include "fsl_cdma.h"
 
 
 /* Put all function (execution code) into  dtext_vle section , aka __COLD_CODE */

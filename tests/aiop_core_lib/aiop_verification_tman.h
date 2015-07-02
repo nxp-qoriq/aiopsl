@@ -92,9 +92,9 @@ enum e_tman_verif_cmd_type {
 #define TMAN_TIMER_INC_DURATION_CMD_STR	((TMAN_MODULE << 16) | \
 		(uint32_t)TMAN_CMDTYPE_TIMER_INC_DURATION_VERIF)
 
+#endif
 #define TMAN_TIMER_RECHARGE_CMD_STR	((TMAN_MODULE << 16) | \
 		(uint32_t)TMAN_CMDTYPE_TIMER_RECHARGE_VERIF)
-#endif
 
 #define TMAN_TIMER_QUERY_CMD_STR	((TMAN_MODULE << 16) | \
 		(uint32_t)TMAN_CMDTYPE_TIMER_QUERY_VERIF)
@@ -220,16 +220,24 @@ struct tman_timer_increase_duration_command {
 	uint16_t	duration;
 	uint8_t		pad[2];
 };
+#endif
 
 /**************************************************************************//**
 @Description	TMAN timer recharge Command structure.
 
 		Includes information needed for TMAN Command verification.
 *//***************************************************************************/
+#ifdef REV2
 struct tman_timer_recharge_command {
 	uint32_t	opcode;
 		/**< Command structure identifier. */
 	int32_t		status;
+	uint32_t	timer_handle;
+};
+#else
+struct tman_timer_recharge_command {
+	uint32_t	opcode;
+		/**< Command structure identifier. */
 	uint32_t	timer_handle;
 };
 #endif

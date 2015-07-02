@@ -129,7 +129,7 @@ int dpbp_test()
 	struct mc_dprc *dprc = &g_mc_dprc;
 	struct dpbp_attr attr;
 	struct icontext ic;
-	dma_addr_t addr  = 0x6001000000;/*DP-DDR phys address*/
+	uint64_t addr  = 0x6001000000;/*DP-DDR phys address*/
 
 	if (dprc == NULL)
 	{

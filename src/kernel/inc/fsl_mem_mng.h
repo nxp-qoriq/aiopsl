@@ -85,7 +85,7 @@ __START_COLD_CODE
  @Param[in]     addr    - Virtual address
 
 *//***************************************************************************/
-dma_addr_t sys_virt_to_phys(void *addr);
+uint64_t sys_virt_to_phys(void *addr);
 
 #define SYS_DEFAULT_HEAP_PARTITION  0   /**< Partition ID for default heap */
 

@@ -412,13 +412,16 @@
 			*/
 				/** @defgroup dpci_drv_g DPCI DRV
 					@ingroup grp_dplib_aiop
+					@{
 				*/
 					/** @defgroup DPCI_DRV_INIT_PR_Flags DPCI Entry Point flags
 						@ingroup dpci_drv_g
 					 */
-
+				/** @} */
+				
 				/** @defgroup dpni_drv_g DPNI DRV
 					@ingroup grp_dplib_aiop
+					@{
 				*/
 					/** @defgroup DPNI_DRV_ORDER_SCOPE Order Scope options
 					@ingroup dpni_drv_g
@@ -429,9 +432,11 @@
 					/** @defgroup DPNI_DRV_BUF_LAYOUT_OPT Buffer Layout modification options
 					@ingroup dpni_drv_g
 					*/
+				/** @} */
 
 				/** @defgroup ep_g  EP
 					@ingroup grp_dplib_aiop
+					@{
 				*/
 					/** @defgroup EP_INIT_PRESENTATION_OPT Initial Presentation Options
 					@ingroup ep_g
@@ -439,7 +444,7 @@
 					/** @defgroup EP_INIT_PRESENTATION Initial Presentation
 					@ingroup ep_g
 					*/
-					
+				/** @} */
 			/** @} */
 	
 	

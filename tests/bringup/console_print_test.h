@@ -332,7 +332,7 @@ typedef struct t_platform {
 	uint32_t                duart_id;
 
 	uintptr_t               ccsr_base;
-	dma_addr_t              mc_mem_phys_base;
+	uint64_t                mc_mem_phys_base;
 } t_platform;
 
 #endif /* __CONSOLE_PRINT_TEST_H */

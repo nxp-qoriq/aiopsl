@@ -81,7 +81,7 @@ int app_test_slab_overload_test()
 	struct slab *my_slab[2000];
 	int        err = 0;
 	int 	i;
-	dma_addr_t buff = 0;
+	uint64_t buff = 0;
 
 	for (i = 0; i < 2000 ; i++)
 	{
@@ -123,7 +123,7 @@ int app_test_slab_overload_test()
 int app_test_slab_init(void)
 {
 	int        err = 0, i;
-	dma_addr_t buff[] = {0,0,0,0,0};
+	uint64_t buff[] = {0,0,0,0,0};
 	struct slab *my_slab;
 	struct slab_debug_info slab_info;
 

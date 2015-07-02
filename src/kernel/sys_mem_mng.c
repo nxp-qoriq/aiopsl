@@ -66,9 +66,9 @@ void sys_mem_partitions_init_complete()
 
 /*****************************************************************************/
  /* Implement a trivial version of conversion, return the same value as received. */
-dma_addr_t sys_virt_to_phys(void *virt_addr)
+uint64_t sys_virt_to_phys(void *virt_addr)
 {
-    return (dma_addr_t)virt_addr;
+    return (uint64_t)virt_addr;
 }
 
 /*****************************************************************************/

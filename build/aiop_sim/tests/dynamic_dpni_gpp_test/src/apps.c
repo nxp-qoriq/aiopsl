@@ -24,59 +24,29 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-
-#include "fsl_bman.h"
-#include "fsl_icontext.h"
-#include "fsl_io.h"
-#include "fsl_malloc.h"
-#include "fsl_fdma.h"
+#include "common/fsl_string.h"
+#include "inc/fsl_sys.h"
 #include "fsl_dbg.h"
-#include "fsl_sl_slab.h"
+#include "apps.h"
 
-/*****************************************************************************/
-__COLD_CODE int bman_fill_bpid(uint32_t num_buffs,
-                     uint16_t buff_size,
-                     uint16_t alignment,
-                     enum memory_partition_id  mem_partition_id,
-                     uint16_t bpid,
-                     uint16_t alignment_extension)
-{
-	int        i = 0;
-	uint64_t addr  = 0;
-	struct icontext ic;
-	int err;
-
-	switch(mem_partition_id){
-	case MEM_PART_DP_DDR:
-	case MEM_PART_SYSTEM_DDR:
-	case MEM_PART_PEB:
-		err = fsl_os_get_mem((uint32_t)buff_size * num_buffs +
-		                     alignment_extension,
-		                     mem_partition_id,
-		                     alignment,
-		                     &addr);
-		if(err)
-			return err;
-	break;
-	default:
-		pr_err("Memory partition %d is not supported.\n", mem_partition_id);
-		return -EINVAL;
-	}
+extern int app_early_init(void);
+extern int app_init(void); extern void app_free(void);
 
 
-	if(addr == NULL)
-		return -ENOMEM;
-	/* AIOP ICID and AMQ bits are needed for filling BPID */
-	icontext_aiop_get(&ic);
-
-
-	/*This is to make user data to be align if called from slab,
-	* otherwise 0 will be added*/
-	addr += alignment_extension;
-
-	for (i = 0; i < num_buffs; i++) {
-		fdma_release_buffer(ic.icid, ic.bdi_flags, bpid, addr);
-		addr += buff_size;
-	}
-	return 0;
+#define APPS                            	\
+{                                       	\
+	{app_early_init, app_init, app_free},	\
+	{NULL, NULL, NULL} /* never remove! */    	\
 }
+
+void build_apps_array(struct sys_module_desc *apps);
+void build_apps_early_init_array(int (*early_init[])(void));
+
+void build_apps_array(struct sys_module_desc *apps)
+{
+	struct sys_module_desc apps_tmp[] = APPS;
+	
+	ASSERT_COND(ARRAY_SIZE(apps_tmp) <= APP_INIT_APP_MAX_NUM);
+	memcpy(apps, apps_tmp, sizeof(apps_tmp));
+}
+

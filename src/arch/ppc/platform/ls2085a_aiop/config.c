@@ -143,7 +143,7 @@ struct aiop_init_info g_init_data =
 {
  /* aiop_sl_init_info */
  {
-  3,		/* aiop_rev_major     AIOP  */
+  4,		/* aiop_rev_major     AIOP  */
   0,		/* aiop_rev_minor     AIOP  */
   0,		/* revision           AIOP */
   0,            /* base_spid MC */

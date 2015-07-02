@@ -85,7 +85,7 @@ uint8_t dpni_broadcast_flag; /*flag if packet with broadcast mac destination rec
 uint8_t packet_number;
 uint8_t packet_lock;
 uint8_t time_lock;
-uint8_t num_of_nis = 0;
+uint8_t num_of_nis_arena = 0;
 uint64_t global_time;
 
 uint8_t order_scope_lock = 0;
@@ -421,7 +421,7 @@ static int app_dpni_event_added_cb(
 	int promisc;
 	uint16_t spid = 0;
 	extern t_system sys;
-	dma_addr_t buff = 0;
+	uint64_t buff = 0;
 	int ep, state = -1;
 	struct dpkg_profile_cfg dist_key_cfg = {0};
 	struct aiop_psram_entry *sp_addr;
@@ -452,7 +452,7 @@ static int app_dpni_event_added_cb(
 	}
 	dpni_drv_set_exclusive(ni);
 	if(!sys.runtime_flag){
-		num_of_nis ++;
+		num_of_nis_arena ++;
 		err = dpni_drv_set_order_scope(ni,&dist_key_cfg);
 		if (err){
 			fsl_os_print("dpni_drv_set_order_scope failed %d\n", err);

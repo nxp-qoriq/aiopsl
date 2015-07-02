@@ -1,3 +1,4 @@
+** AIOP SL Release v0.7.0 **
 cmdif_srv.c:               Added error that will be returned to cmdif_open() if it is called before AIOP has finished the linkup setup of this DPCI.
 fsl_dpci_drv.h:            Added new API for dpci_drv_linkup().
 cmdif_integration_test.c : Added registration for DPCI events in order to enable the AIOP side DPCIs.
@@ -42,16 +43,19 @@ fsl_cmdif_server.h: Updated documentation for cmdif_session_open(): the buffer m
 
 dpni_drv.c/h, fsl_dpni_drv.h: ENGR00354821 - Configure-able initial frame presentation (EPID table). Added API for dpni_drv_get/set_initial_presentation
 
-slab.c, bman.c: ENGR00356178 - Change AIOP SL to honor user’s requested alignment.
-        (if user requests 16Byte alignment, user will get a 16Byte aligned buffer and the metadata will not be aligned)
-slab.c: ENGR00356128 - Removed unneeded check for bpid's if their ID's out of range [0,15]
-
 dbg.h, fsl_dbg.h: ENGR00354715 - update for macro DBG to use mutex and prevent message interleaving in multi-core AIOP (pr_xxx, sl_pr_xxx)
 dpni_drv.c/fsl_dpni_drv.h: Added option to clear order scope by calling: dpni_drv_set_order_scope(ni, DPNI_DRV_NO_ORDER_SCOPE)
 
 errors.h:                  removed fsl_os_exit()
 app_process_packet.c:      rename app_process_packet_flow0 to app_process_packet and add __HOT_CODE
 types_mw.h:                add macro: ENTRY_POINT __declspec(entry_point)
+
+** AIOP SL Release v0.6.0.3 **
+slab.c, bman.c: ENGR00356178 - Change AIOP SL to honor user’s requested alignment.
+        (if user requests 16Byte alignment, user will get a 16Byte aligned buffer and the metadata will not be aligned)
+
+** AIOP SL Release v0.6.0.2 **
+slab.c: ENGR00356128 - Removed unneeded check for bpid's if their ID's out of range [0,15]
 
 ** AIOP SL Release v0.6.0.1 **
 slab.c:      Update assert condition to allow calling slab create with alignment <= buffer size.

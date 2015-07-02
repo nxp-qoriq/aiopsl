@@ -376,7 +376,7 @@ int app_init(void)
 {
 	int        err  = 0;
 	uint32_t   ni   = 0;
-	dma_addr_t buff = 0;
+	uint64_t buff = 0;
 
 	fsl_os_print("Running app_init()\n");
 
