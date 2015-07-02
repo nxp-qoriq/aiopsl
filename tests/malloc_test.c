@@ -68,6 +68,11 @@ extern struct aiop_init_info g_init_data;
 /* Number of malloc allocations for each partition */
 #define NUM_TEST_ITER 10
 #define MAX_DEPLETION_ITER 25
+/* Locks per each memory partition to let only one task perform depletion test */
+static uint8_t s_shared_ram_lock = 0;
+static uint8_t s_dp_ddr_lock = 0;
+static uint8_t s_system_ddr_lock = 0;
+static uint8_t s_peb_lock = 0;
 
 
 
@@ -133,23 +138,28 @@ int malloc_test()
 	local_error = get_mem_test();
 	err |= local_error;
 	/* Check fsl_malloc() function */
-	if(!(local_error = shared_ram_allocate_check_mem(num_iter,size,allocated_pointers)))
+	cdma_mutex_lock_take((uint64_t)&s_shared_ram_lock,CDMA_MUTEX_WRITE_LOCK);
+	local_error = shared_ram_allocate_check_mem(num_iter,size,allocated_pointers);
+	cdma_mutex_lock_release((uint64_t)&s_shared_ram_lock);
+	if(!local_error)
 		fsl_os_print("malloc_test from  SHARED RAM succeeded\n");
-	err |= local_error ;
-	local_error = mem_depletion_test(MEM_PART_PEB,4*MEGABYTE,MEGABYTE);
-	err |= local_error;
-	local_error = mem_depletion_test(MEM_PART_SYSTEM_DDR,4*MEGABYTE,MEGABYTE);
-	err |= local_error;
-	local_error = mem_depletion_test(MEM_PART_DP_DDR,4*MEGABYTE,4*MEGABYTE);
-	       err |= local_error;
-	/* Comment out depletion test for shared ram  just to make sure the test pass.
-	 * Should investigate why it fails.
-	 *
-	 */
-	/*
-	local_error = mem_depletion_test(MEM_PART_SH_RAM,MEGABYTE,MEGABYTE);
-	*/
 
+	err |= local_error ;
+	cdma_mutex_lock_take((uint64_t)&s_peb_lock,CDMA_MUTEX_WRITE_LOCK);
+	local_error = mem_depletion_test(MEM_PART_PEB,4*MEGABYTE,MEGABYTE);
+	cdma_mutex_lock_release((uint64_t)&s_peb_lock);
+	err |= local_error;
+	cdma_mutex_lock_take((uint64_t)&s_system_ddr_lock,CDMA_MUTEX_WRITE_LOCK);
+	local_error = mem_depletion_test(MEM_PART_SYSTEM_DDR,4*MEGABYTE,MEGABYTE);
+	cdma_mutex_lock_release((uint64_t)&s_system_ddr_lock);
+	err |= local_error;
+	cdma_mutex_lock_take((uint64_t)&s_dp_ddr_lock,CDMA_MUTEX_WRITE_LOCK);
+	local_error = mem_depletion_test(MEM_PART_DP_DDR,4*MEGABYTE,4*MEGABYTE);
+	cdma_mutex_lock_release((uint64_t)&s_dp_ddr_lock);
+	err |= local_error;
+	cdma_mutex_lock_take((uint64_t)&s_shared_ram_lock,CDMA_MUTEX_WRITE_LOCK);
+	local_error = mem_depletion_test(MEM_PART_SH_RAM,MEGABYTE,MEGABYTE);
+	cdma_mutex_lock_release((uint64_t)&s_shared_ram_lock);
 	err |= local_error;
 	return err;
 }
@@ -251,6 +261,8 @@ static  int check_returned_get_mem_address(uint64_t paddr,
     return error;
 }
 
+
+
 static int mem_depletion_test(e_memory_partition_id mem_partition,
                               const uint32_t max_alloc_size,
                               const uint32_t max_alignment_size)
@@ -288,7 +300,7 @@ static int mem_depletion_test(e_memory_partition_id mem_partition,
 		{
 			fsl_free(shram_addresses[i]);
 		}
-		fsl_os_print("mem_depletion_test from  SHARED RAM succeeded\n");
+		fsl_os_print("mem_depletion_test from  SHARED RAM succeeded \n");
 		return 0;
 	}
 	else
