@@ -334,8 +334,8 @@ static int cmdif_epid_setup(struct aiop_ws_regs *wrks_addr,
 	/* set epid ASA presentation size to 0 */
 	iowrite32_ccsr(0x00000000, &wrks_addr->ep_asapa);
 	/* Set mask for hash to 16 low bits 
-	 * OSRM = 5
-	 * mask for auth_id 0x0000_FFFF 
+	 * OSRM = 2
+	 * mask for auth_id 0xFFFF_0000 
 	 * SRC = 1 
 	 * Scope ID taken from the specified slice of the received 
 	 * frame’s FD[FLC]. Slice is specified in the SEL field.
@@ -344,7 +344,7 @@ static int cmdif_epid_setup(struct aiop_ws_regs *wrks_addr,
 	 * SEL = 0 
 	 * Order Scope ID is taken from FLC[63:32]
 	 * */
-	iowrite32_ccsr(0x11000005, &wrks_addr->ep_osc);
+	iowrite32_ccsr(0x11000002, &wrks_addr->ep_osc);
 	data = ioread32_ccsr(&wrks_addr->ep_osc);
 	if (data != 0x11000005)
 		err |= -EINVAL;
