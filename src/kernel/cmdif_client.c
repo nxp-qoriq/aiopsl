@@ -334,6 +334,10 @@ void cmdif_cl_isr(void)
 	struct cmdif_fd fd;
 	struct cmdif_async async_data;
 
+#ifdef FDMA_OSM_LIMIT
+	SET_FRAME_TYPE(PRC_GET_FRAME_HANDLE(), HWC_FD_ADDRESS);
+#endif
+
 	fd.d_size        = LDPAA_FD_GET_LENGTH(HWC_FD_ADDRESS);
 	fd.u_addr.d_addr = LDPAA_FD_GET_ADDR(HWC_FD_ADDRESS);
 	fd.u_flc.flc     = LDPAA_FD_GET_FLC(HWC_FD_ADDRESS);
