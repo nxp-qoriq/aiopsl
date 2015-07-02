@@ -1854,3 +1854,80 @@ int dpni_drv_set_irq_enable(uint16_t ni_id, uint8_t en)
 	}
 	return 0;
 }
+
+int dpni_drv_set_tx_checksum(uint16_t ni_id,
+                             const struct dpni_drv_tx_checksum * const tx_checksum)
+{
+	struct mc_dprc *dprc = sys_get_unique_handle(FSL_OS_MOD_AIOP_RC);
+	int err;
+	uint16_t dpni;
+	uint16_t flow_id = 0;
+	struct dpni_tx_flow_cfg dpni_cfg = { 0 };
+
+	if(tx_checksum->l3_checksum_gen == 1){
+		dpni_cfg.options |= DPNI_TX_FLOW_OPT_L3_CHKSUM_GEN;
+		dpni_cfg.l3_chksum_gen = 1;
+	}
+	if(tx_checksum->l4_checksum_gen == 1){
+		dpni_cfg.options |= DPNI_TX_FLOW_OPT_L4_CHKSUM_GEN;
+		dpni_cfg.l4_chksum_gen = 1;
+	}
+
+	if(dpni_cfg.options){
+		/*Lock dpni table*/
+		cdma_mutex_lock_take((uint64_t)nis, CDMA_MUTEX_READ_LOCK);
+		err = dpni_open(&dprc->io, 0, (int)nis[ni_id].dpni_id, &dpni);
+		cdma_mutex_lock_release((uint64_t)nis); /*Unlock dpni table*/
+		if(err){
+			sl_pr_err("Open DPNI failed\n");
+			return err;
+		}
+		err = dpni_set_tx_flow(&dprc->io, 0, dpni, &flow_id, &dpni_cfg);
+		if(err){
+			sl_pr_err("dpni_set_tx_flow failed\n");
+			dpni_close(&dprc->io, 0, dpni);
+			return err;
+		}
+		err = dpni_close(&dprc->io, 0, dpni);
+		if(err){
+			sl_pr_err("Close DPNI failed\n");
+			return err;
+		}
+	}
+	return 0;
+}
+
+int dpni_drv_get_tx_checksum(uint16_t ni_id,
+                            struct dpni_drv_tx_checksum * const tx_checksum)
+{
+	struct mc_dprc *dprc = sys_get_unique_handle(FSL_OS_MOD_AIOP_RC);
+	int err;
+	uint16_t dpni;
+	struct dpni_tx_flow_attr dpni_attr = { 0 };
+	/*Lock dpni table*/
+	cdma_mutex_lock_take((uint64_t)nis, CDMA_MUTEX_READ_LOCK);
+	err = dpni_open(&dprc->io, 0, (int)nis[ni_id].dpni_id, &dpni);
+	cdma_mutex_lock_release((uint64_t)nis); /*Unlock dpni table*/
+	if(err){
+		sl_pr_err("Open DPNI failed\n");
+		return err;
+	}
+
+	err = dpni_get_tx_flow(&dprc->io, 0, dpni, 0, &dpni_attr);
+	if(err){
+		sl_pr_err("dpni_get_tx_flow failed\n");
+		dpni_close(&dprc->io, 0, dpni);
+		return err;
+	}
+
+	tx_checksum->l3_checksum_gen = (uint16_t)dpni_attr.l3_chksum_gen;
+	tx_checksum->l4_checksum_gen = (uint16_t)dpni_attr.l4_chksum_gen;
+
+	err = dpni_close(&dprc->io, 0, dpni);
+	if(err){
+		sl_pr_err("Close DPNI failed\n");
+		return err;
+	}
+	return 0;
+}
+
