@@ -158,7 +158,7 @@ static inline int inst_alloc(uint8_t m_id)
 	}
 
 	/* didn't find empty space */
-	if (count >= M_NUM_OF_INSTANCES) {
+	if (cmdif_aiop_srv.srv->m_id[r] != FREE_INSTANCE) {
 		CMDIF_SRV_LOCK_RELEASE;
 		return -ENAVAIL;
 	} else {
@@ -446,7 +446,6 @@ __COLD_CODE int notify_open()
 
 	CMDIF_CL_LOCK_W_TAKE;
 
-#ifdef DEBUG
 	/* Don't allow to open the same session twice */
 	link_up = cmdif_cl_session_get(cl, data->m_name,
 					data->inst_id, data->dev_id);
@@ -455,7 +454,6 @@ __COLD_CODE int notify_open()
 		CMDIF_CL_LOCK_RELEASE;
 		return -EEXIST;
 	}
-#endif
 
 	/*  REUSING link_up as free_ind */
 	link_up = cmdif_cl_free_session_get(cl);

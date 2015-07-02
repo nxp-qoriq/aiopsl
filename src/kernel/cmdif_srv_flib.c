@@ -266,7 +266,7 @@ __HOT_CODE static int inst_alloc(struct cmdif_srv *srv, uint8_t m_id)
 	}
 
 	/* didn't find empty space */
-	if (count >= M_NUM_OF_INSTANCES) {
+	if (srv->m_id[r] != FREE_INSTANCE) {
 		return -ENAVAIL;
 	} else {
 		srv->m_id[r] = m_id;
