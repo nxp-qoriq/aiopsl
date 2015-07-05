@@ -1,3 +1,5 @@
+fsl_cmdif_flib_fd.h: Fix ENGR00361539 : CMDIF auth_id (used as ordering scope id) conflicts with FDMA WA that uses nested OrderScopeID
+cmdif_srv_flib.h:    Fix ENGR00361539 : CMDIF auth_id (used as ordering scope id) conflicts with FDMA WA that uses nested OrderScopeID
 cmdif_client.c:   Fix ENGR00361548 cmdif_cl_isr should have SET_FRAME_TYPE() 
 cmdif_srv_flib.c: Fix ENGR00361727 inst_alloc can't alloc all instance
 cmdif_srv.c:      Fix ENGR00361727 inst_alloc can't alloc all instance
