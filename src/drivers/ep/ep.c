@@ -346,7 +346,7 @@ static int cmdif_epid_setup(struct aiop_ws_regs *wrks_addr,
 	 * */
 	iowrite32_ccsr(0x11000002, &wrks_addr->ep_osc);
 	data = ioread32_ccsr(&wrks_addr->ep_osc);
-	if (data != 0x11000005)
+	if (data != 0x11000002)
 		err |= -EINVAL;
 
 	pr_info("CMDIF is setting EPID = %d\n", epid);
