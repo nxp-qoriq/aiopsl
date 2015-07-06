@@ -99,7 +99,7 @@ enum kcr_builder_gec_source {
 
 #ifdef REV2
 /**************************************************************************//**
-@enum	kcr_builder_ext_lookup_res_field
+@enum	kcr_builder_ext_lookup_res_field (OBSOLETE)
 
 @Description	Key Composition Rule Builder Lookup Result Field Extract
 		Not available for Rev1.
