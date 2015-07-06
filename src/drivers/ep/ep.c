@@ -93,7 +93,7 @@ int ep_mng_get_initial_presentation(
 #endif
 
 	/*Mutex lock to avoid race condition while writing to EPID table*/
-	cdma_mutex_lock_take((uint64_t)&wrks_addr->epas, CDMA_MUTEX_READ_LOCK);
+	EP_MNG_MUTEX_R_TAKE;
 
 	/* write epid index to epas register */
 	iowrite32_ccsr((uint32_t)(epid), &wrks_addr->epas);
@@ -114,7 +114,7 @@ int ep_mng_get_initial_presentation(
 	ep_spo = ioread32_ccsr(&wrks_addr->ep_spo);
 
 	/*Mutex unlock EPID table*/
-	cdma_mutex_lock_release((uint64_t)&wrks_addr->epas);
+	EP_MNG_MUTEX_RELEASE;
 
 	init_presentation->fdpa = (uint16_t)
 			((ep_fdpa & FDPA_MASK) >> FDPA_SHIFT);
@@ -215,7 +215,7 @@ int ep_mng_set_initial_presentation(
 	}
 
 	/*Mutex lock to avoid race condition while writing to EPID table*/
-	cdma_mutex_lock_take((uint64_t)&wrks_addr->epas, CDMA_MUTEX_WRITE_LOCK);
+	EP_MNG_MUTEX_W_TAKE;
 
 	/* write epid index to epas register */
 	iowrite32_ccsr((uint32_t)(epid), &wrks_addr->epas);
@@ -314,8 +314,9 @@ int ep_mng_set_initial_presentation(
 		 * Offset */
 		iowrite32_ccsr(ep_temp, &wrks_addr->ep_spo);
 	}
+
 	/*Mutex unlock EPID table*/
-	cdma_mutex_lock_release((uint64_t)&wrks_addr->epas);
+	EP_MNG_MUTEX_RELEASE;
 	return 0;
 }
 
