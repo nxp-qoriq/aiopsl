@@ -561,10 +561,10 @@ int dpni_drv_probe(struct mc_dprc *dprc,
 		/* Read Entry Point Param (EP_PM) which contains the MC NI ID */
 		j = ioread32_ccsr(&wrks_addr->ep_pm);
 
-		sl_pr_debug("EPID[%d].EP_PM = %d\n", i, j);
+		sl_pr_debug("EPID[%d].EP_PM = 0x%x\n", i, j);
 
 		/*MC dpni id found in EPID table*/
-		if (j == mc_niid) {
+		if (j == (mc_niid | AIOP_DPNI_SIGN)) {
 			/* Replace MC NI ID with AIOP NI ID */
 			sl_pr_debug("Found EPID[%d].EP_PM = %d\n", i, j);
 			iowrite32_ccsr(aiop_niid, &wrks_addr->ep_pm);
