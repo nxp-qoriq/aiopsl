@@ -1374,13 +1374,13 @@ int dpni_drv_get_connected_aiop_ni_id(const uint16_t dpni_id, uint16_t *aiop_nii
 	}
 
 	cdma_mutex_lock_take((uint64_t)nis, CDMA_MUTEX_READ_LOCK); /*Lock dpni table*/
-	for(i = 0; i <  dpni_drv_get_num_of_nis(); i++){
+	for(i = 0; i < (uint16_t) num_of_nis; i++){
 		if(endpoint2.id == nis[i].dpni_id){
 			*aiop_niid = i;
 			break;
 		}
 	}
-	if(i == dpni_drv_get_num_of_nis()){
+	if(i == (uint16_t) num_of_nis){
 		sl_pr_err("connected AIOP NI to DPNI %d not found\n", endpoint2.id);
 		err = -ENAVAIL;
 	}
@@ -1562,7 +1562,7 @@ int dpni_drv_reset_counter(uint16_t ni_id, enum dpni_drv_counter counter)
 int dpni_drv_get_dpni_id(uint16_t ni_id, uint16_t *dpni_id)
 {
 	cdma_mutex_lock_take((uint64_t)nis, CDMA_MUTEX_READ_LOCK); /*Lock dpni table*/
-	if(ni_id >= dpni_drv_get_num_of_nis() ||
+	if(ni_id >= (uint16_t)num_of_nis ||
 		nis[ni_id].dpni_id == DPNI_NOT_IN_USE)
 	{
 		cdma_mutex_lock_release((uint64_t)nis); /*Unlock dpni table*/
@@ -1579,7 +1579,7 @@ int dpni_drv_get_ni_id(uint16_t dpni_id, uint16_t *ni_id)
 {
 	uint16_t i;
 	cdma_mutex_lock_take((uint64_t)nis, CDMA_MUTEX_READ_LOCK); /*Lock dpni table*/
-	for(i = 0; i < dpni_drv_get_num_of_nis(); i++)
+	for(i = 0; i < (uint16_t)num_of_nis; i++)
 	{
 		if(nis[i].dpni_id == dpni_id)
 		{
@@ -1587,7 +1587,7 @@ int dpni_drv_get_ni_id(uint16_t dpni_id, uint16_t *ni_id)
 			break;
 		}
 	}
-	if(i == dpni_drv_get_num_of_nis()){
+	if(i == (uint16_t)num_of_nis){
 		cdma_mutex_lock_release((uint64_t)nis); /*Unlock dpni table*/
 		sl_pr_err("DPNI ID %d not exist\n", dpni_id);
 		return -ENAVAIL;
