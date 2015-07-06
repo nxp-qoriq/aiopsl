@@ -62,8 +62,10 @@
                 be unregistered before a new one is registered.
 *//***************************************************************************/
 int sys_register_console(fsl_handle_t    h_console_dev,
-                            int         (*f_console_print)(fsl_handle_t h_console_dev, uint8_t *p_data, uint32_t size),
-                            int         (*f_console_get)(fsl_handle_t h_console_dev, uint8_t *p_data, uint32_t size));
+                         int (*f_console_print)(fsl_handle_t h_console_dev,
+                        	 uint8_t *p_data, uint32_t size),
+                         int (*f_console_get)(fsl_handle_t h_console_dev,
+                        	 uint8_t *p_data, uint32_t size));
 
 /**************************************************************************//**
  @Function      sys_unregister_console
@@ -89,18 +91,6 @@ int sys_unregister_console(void);
 *//***************************************************************************/
 void sys_print(char *str);
 
-/**************************************************************************//**
- @Function      sys_get_char
-
- @Description   Reads a single character from the console device.
-
- @Return        The character read from the console; Zero on failure or if no
-                console has been registered yet.
-*//***************************************************************************/
-char sys_get_char(void);
-
 /** @} */ /* end of sys_console_grp */
 /** @} */ /* end of sys_grp */
-
-
 #endif /* __SYS_CONSOLE_H */

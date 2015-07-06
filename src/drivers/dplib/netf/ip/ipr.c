@@ -1869,6 +1869,7 @@ void check_remove_padding()
 	uint8_t			delta;
 	uint16_t		ipv4hdr_offset;
 	uint16_t		start_padding;
+	uint16_t		seg_length;
 	struct ipv4hdr		*ipv4hdr_ptr;
 	struct	parse_result	*pr =
 				  (struct parse_result *)HWC_PARSE_RES_ADDRESS;
@@ -1885,11 +1886,14 @@ void check_remove_padding()
 	delta = (uint8_t) (LDPAA_FD_GET_LENGTH(HWC_FD_ADDRESS) - start_padding);
 
 	if (delta != 0) {
+		/* Save seg_length before delete
+		 * because seg_length can't be overwritten with wrong value by FDMA */ 
+		seg_length = prc->seg_length;
 		fdma_delete_default_segment_data(start_padding,
 		                                 delta,
 		                                 FDMA_REPLACE_NO_FLAGS);
 		/* update prc length because represent wasn't done */
-		prc->seg_length -= delta;
+		prc->seg_length = seg_length - delta;
 		/* For recalculating running sum */
 		/* Updated FD[length] */
 		LDPAA_FD_SET_LENGTH(HWC_FD_ADDRESS, start_padding);

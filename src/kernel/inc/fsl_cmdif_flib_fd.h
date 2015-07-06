@@ -58,24 +58,24 @@ struct cmdif_fd {
 		uint64_t flc;
 		/*!< Full FLC field */
 		struct {
+			uint16_t auth_id;  /*!< Authentication id */
 			uint8_t dev_h;     /*!< 7 high bits of cmdif_desc.dev */
 			uint8_t err;       /*!< Reserved for error on response*/
-			uint16_t auth_id;  /*!< Authentication id */
 			uint16_t cmid;     /*!< Command id */
 			uint16_t epid;     /*!< Reserved fog EPID */
 		} cmd;
 		/*!< FLC field for command after the session is open */
 		struct {
+			uint16_t auth_id;   /*!< Authentication id */
 			uint8_t inst_id;    /*!< Module instance id*/
 			uint8_t reserved0;
-			uint16_t auth_id;   /*!< Authentication id */
 			uint16_t cmid;      /*!< Command id */
 			uint16_t epid;      /*!< Reserved fog EPID */
 		} open;
 		/*!< FLC field for open command */
 		struct {
-			uint8_t reserved[2];
 			uint16_t auth_id;   /*!< Authentication id */
+			uint8_t reserved[2];
 			uint16_t cmid;      /*!< Command id */
 			uint16_t epid;      /*!< Reserved fog EPID */
 		} close;

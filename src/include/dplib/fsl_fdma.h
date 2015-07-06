@@ -481,7 +481,13 @@ enum fdma_pta_size_type {
 @{
 *//***************************************************************************/
 
-	/** Default command configuration. */
+	/** Default command configuration.
+	 * The segment will remain open.
+	 * After using this flag:
+	 * 	1. Segment data in workspace will not be synchronized with the 
+	 * 	actual Frame data in the FDMA memory.
+	 * 	2. Segment length attribute in the Presentation Context will not
+	 * 	be consistent with the actual FDMA segment length. */
 #define FDMA_REPLACE_NO_FLAGS	0x00000000
 	/** Segment action options. Only one option may be
 	 * choose from \ref fdma_replace_sa_options. */

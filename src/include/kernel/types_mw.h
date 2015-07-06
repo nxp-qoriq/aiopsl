@@ -44,8 +44,6 @@
 typedef uint32_t uintptr_t;
 typedef int32_t intptr_t;
 
-typedef uint64_t            dma_addr_t;
-
 
 #ifndef NULL
 #define NULL ((0L))

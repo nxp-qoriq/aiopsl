@@ -274,6 +274,10 @@ int  mem_mng_init(void *  h_boot_mem_mng,
 
 
 /*****************************************************************************/
+/*
+ Caution: * There are no locks on p_mem_mng->mem_partitions_array therefore
+ this function should be called only by one core.
+ */
 void mem_mng_free(void*  h_mem_mng,void*  h_boot_mem_mng)
 {
     struct t_mem_mng            *p_mem_mng = (struct t_mem_mng *)h_mem_mng;
@@ -567,79 +571,44 @@ int mem_mng_unregister_partition(void*  h_mem_mng, int partition_id)
 
 
 /*****************************************************************************/
+/*
+ * Caution: No locks on p_mem_mng->mem_partitions_array.
+ */
 int mem_mng_get_partition_info(void*                h_mem_mng,
                                   int                   partition_id,
                                   t_mem_mng_partition_info *p_partition_info)
 {
     struct t_mem_mng            *p_mem_mng = (struct t_mem_mng *)h_mem_mng;
     t_mem_mng_partition   *p_partition;
-    uint32_t i = 0, array_size = 0;
-#ifndef AIOP
-    uint32_t            int_flags;
-#endif /* AIOP */
-
-#ifdef AIOP
-    lock_spinlock(p_mem_mng->lock);
-#else
-    int_flags = spin_lock_irqsave(p_mem_mng->lock);
-#endif
-
-    p_partition = &p_mem_mng->mem_partitions_array[partition_id];
-
+    p_partition =  &(p_mem_mng->mem_partitions_array[partition_id]);
     if (p_partition->was_initialized)
     {
-            *p_partition_info = p_partition->info;
-#ifdef AIOP
-            unlock_spinlock(p_mem_mng->lock);
-#else
-            spin_unlock_irqrestore(p_mem_mng->lock, int_flags);
-#endif
+	    *p_partition_info = p_partition->info;
             return 0;
     }
-#ifdef AIOP
-    unlock_spinlock(p_mem_mng->lock);
-#else
-    spin_unlock_irqrestore(p_mem_mng->lock, int_flags);
-#endif
-
-    pr_err("Mem. manager resource is unavailable: partition ID %d\n", partition_id);
+    sl_pr_err("Mem. manager resource is unavailable: partition ID %d\n",
+              partition_id);
     return -EAGAIN;
 }
 /*****************************************************************************/
+/*
+ * Caution: No locks on p_mem_mng->mem_partitions_array.
+ */
 int mem_mng_get_phys_addr_alloc_info(void*                h_mem_mng,
                                   int                   partition_id,
                                   t_mem_mng_phys_addr_alloc_info *p_partition_info)
 {
     struct t_mem_mng            *p_mem_mng = (struct t_mem_mng *)h_mem_mng;
     t_mem_mng_phys_addr_alloc_partition   *p_partition;
-#ifndef AIOP
-    uint32_t            int_flags;
-#endif /* AIOP */
-
-#ifdef AIOP
-    lock_spinlock(p_mem_mng->lock);
-#else
-    int_flags = spin_lock_irqsave(p_mem_mng->lock);
-#endif
     p_partition =  &(p_mem_mng->phys_allocation_mem_partitions_array[partition_id]);
     if (p_partition->was_initialized)
     {
             *p_partition_info = p_partition->info;
-#ifdef AIOP
-            unlock_spinlock(p_mem_mng->lock);
-#else
-            spin_unlock_irqrestore(p_mem_mng->lock, int_flags);
-#endif
             return 0;
     }
-#ifdef AIOP
-    unlock_spinlock(p_mem_mng->lock);
-#else
-    spin_unlock_irqrestore(p_mem_mng->lock, int_flags);
-#endif
 
-    pr_err("Mem. manager resource is unavailable: partition ID %d\n",
-            partition_id);
+    sl_pr_err("Mem. manager resource is unavailable: partition ID %d\n",
+              partition_id);
     return -EAGAIN;
 }
 
@@ -667,6 +636,9 @@ int mem_mng_get_partition_id_by_addr(void*    h_mem_mng,
 
 #endif
 /*****************************************************************************/
+/*
+ * Caution: No locks on p_mem_mng->mem_partitions_array.
+ */
 uint32_t mem_mng_check_leaks(void*                 h_mem_mng,
                             int                     partition_id,
                             t_mem_mng_leak_report_func  *f_report_leak)
@@ -682,38 +654,16 @@ uint32_t mem_mng_check_leaks(void*                 h_mem_mng,
 
     uint32_t            count = 0;
     uint32_t  i = 0, array_size = 0;
-#ifndef AIOP
-    uint32_t            int_flags;
-#endif /* AIOP */
-
-#ifdef AIOP
-    lock_spinlock(p_mem_mng->lock);
-#else
-    int_flags = spin_lock_irqsave(p_mem_mng->lock);
-#endif
 
 /* Search in registered partitions */
     array_size = ARRAY_SIZE(p_mem_mng->mem_partitions_array);
     p_partition  = &p_mem_mng->mem_partitions_array[partition_id];
     if(p_partition->id != partition_id)
     {
-#ifdef AIOP
-        unlock_spinlock(p_mem_mng->lock);
-#else
-        spin_unlock_irqrestore(p_mem_mng->lock, int_flags);
-#endif
-
         pr_err("Mem. manager resource not found: partition ID %d\n",
             partition_id);
         return 0;
     }
-
-#ifdef AIOP
-    lock_spinlock(p_partition->lock);
-#else
-    spin_lock(p_partition->lock);
-#endif
-
 #ifdef ENABLE_DEBUG_ENTRIES
     if (f_report_leak)
     {
@@ -736,15 +686,16 @@ uint32_t mem_mng_check_leaks(void*                 h_mem_mng,
 
 #ifdef AIOP
 	unlock_spinlock(p_partition->lock);
-	unlock_spinlock(p_mem_mng->lock);
 #else
 	spin_unlock(p_partition->lock);
-	spin_unlock_irqrestore(p_mem_mng->lock, int_flags);
 #endif
 	return count;
 }
 
 /*****************************************************************************/
+/*
+ * Caution: No locks on p_mem_mng->mem_partitions_array.
+ */
 void * mem_mng_alloc_mem(void*     h_mem_mng,
                         int         partition_id,
                         uint32_t    size,
@@ -758,9 +709,6 @@ void * mem_mng_alloc_mem(void*     h_mem_mng,
     t_mem_mng_partition   *p_partition;
     uint32_t i = 0, array_size = 0,virt_address = 0;
     void                *p_memory;
-#ifndef AIOP
-    uint32_t            int_flags;
-#endif /* AIOP */
 
 #ifndef ENABLE_DEBUG_ENTRIES
     UNUSED(info);
@@ -773,29 +721,14 @@ void * mem_mng_alloc_mem(void*     h_mem_mng,
         sl_pr_err("Mem.manager invalid value: allocation size must be positive\n");
     }
 
-#ifdef AIOP
-    lock_spinlock(p_mem_mng->lock);
-#else
-    int_flags = spin_lock_irqsave(p_mem_mng->lock);
-#endif
     /* Not early allocation - allocate from registered partitions */
     p_partition = &p_mem_mng->mem_partitions_array[partition_id];
     if(!p_partition->was_initialized || p_partition->id != partition_id)
     {
-#ifdef AIOP
-        unlock_spinlock(p_mem_mng->lock);
-#else
-        spin_unlock_irqrestore(p_mem_mng->lock, int_flags);
-#endif
         sl_pr_err("Mem. manager resource not found: partition ID %d\n",
                   partition_id);
         return NULL;
     }
-#ifdef AIOP
-    unlock_spinlock(p_mem_mng->lock);
-#else
-    spin_unlock_irqrestore(p_mem_mng->lock, int_flags);
-#endif
     p_memory = UINT_TO_PTR(
     slob_get(&p_partition->h_mem_manager, size, alignment));
     if ((uintptr_t)p_memory == 0LL)
@@ -829,6 +762,9 @@ void * mem_mng_alloc_mem(void*     h_mem_mng,
 }
 
 /*****************************************************************************/
+/*
+ * Caution: No locks on p_mem_mng->mem_partitions_array.
+ */
 int mem_mng_get_phys_mem(void*  h_mem_mng, int  partition_id,
                         uint64_t size, uint64_t alignment,
                         uint64_t *paddr)
@@ -836,19 +772,12 @@ int mem_mng_get_phys_mem(void*  h_mem_mng, int  partition_id,
     struct t_mem_mng            *p_mem_mng = (struct t_mem_mng *)h_mem_mng;
     t_mem_mng_phys_addr_alloc_partition   *p_partition;
     uint32_t array_size = 0, i = 0;
-#ifndef AIOP
-	uint32_t            int_flags;
-#endif /* AIOP */
 
     if (size == 0)
     {
-        pr_err("Mem. manager invalid value: allocation size must be positive\n");
+        sl_pr_err("Mem. manager invalid value: allocation size must be positive\n");
     }
-#ifdef AIOP
-    lock_spinlock(p_mem_mng->lock);
-#else
-    int_flags = spin_lock_irqsave(p_mem_mng->lock);
-#endif
+
 
 #ifdef NO_DP_DDR
     /* Replace dp_ddr memory partition to system ddr */
@@ -859,66 +788,41 @@ int mem_mng_get_phys_mem(void*  h_mem_mng, int  partition_id,
     p_partition = &p_mem_mng->phys_allocation_mem_partitions_array[partition_id];
     if (p_partition->was_initialized)
     {
-#ifdef AIOP
-            unlock_spinlock(p_mem_mng->lock);
-#else
-            spin_unlock_irqrestore(p_mem_mng->lock, int_flags);
-#endif
             if((*paddr = slob_get(&p_partition->h_mem_manager,size,
                                   (uint32_t)alignment)) == 0LL)
             {
-                pr_err("Mem. manager memory allocation failed: Required size 0x%x%08x exceeds "
+                sl_pr_err("Mem. manager memory allocation failed: Required size 0x%x%08x exceeds "
                    "available memory for partition ID %d\n",
                    (uint32_t)(size >> 32),(uint32_t)size,partition_id);
                 return -ENOMEM;
             }
             return 0; // Success
     }
-#ifdef AIOP
-    unlock_spinlock(p_mem_mng->lock);
-#else
-    spin_unlock_irqrestore(p_mem_mng->lock, int_flags);
-#endif
-    pr_err("Partition ID %d is not found\n", partition_id);
+    sl_pr_err("Partition ID %d is not found\n", partition_id);
     return -EINVAL;
 }
 /*****************************************************************************/
+/*
+ * Caution: No locks on p_mem_mng->mem_partitions_array.
+ */
 void mem_mng_put_phys_mem(void*  h_mem_mng, uint64_t paddress)
 {
     struct t_mem_mng            *p_mem_mng = (struct t_mem_mng *)h_mem_mng;
     t_mem_mng_phys_addr_alloc_partition   *p_partition;
     uint32_t             array_size = 0, i = 0;
-    #ifndef AIOP
-    uint32_t            int_flags;
-    #endif /* AIOP */
 
     array_size = ARRAY_SIZE(p_mem_mng->phys_allocation_mem_partitions_array);
-    #ifdef AIOP
-        lock_spinlock(p_mem_mng->lock);
-    #else
-        int_flags = spin_lock_irqsave(p_mem_mng->lock);
-    #endif
     /* Not early allocation - allocate from registered partitions */
     for(i = 0; i < array_size ; i++)
     {
-	    p_partition  = &(p_mem_mng->phys_allocation_mem_partitions_array[i]);
-	    if (p_partition->was_initialized && paddress >= p_partition->info.base_paddress &&
-	    paddress < (p_partition->info.base_paddress + p_partition->info.size))
+        p_partition  = &(p_mem_mng->phys_allocation_mem_partitions_array[i]);
+        if (p_partition->was_initialized && paddress >= p_partition->info.base_paddress &&
+           paddress < (p_partition->info.base_paddress + p_partition->info.size))
 	{
-	    #ifdef AIOP
-	        unlock_spinlock(p_mem_mng->lock);
-	    #else
-	        spin_unlock_irqrestore(p_mem_mng->lock, int_flags);
-	    #endif
             slob_put(&p_partition->h_mem_manager,paddress);
             return;
 	}
     }// for
-#ifdef AIOP
-    unlock_spinlock(p_mem_mng->lock);
-#else
-    spin_unlock_irqrestore(p_mem_mng->lock, int_flags);
-#endif
     return;
 }
 /*****************************************************************************/
@@ -958,6 +862,9 @@ void mem_mng_free_mem(void*  h_mem_mng, void *p_memory)
 
 
 /*****************************************************************************/
+/*
+ * Caution: No locks on p_mem_mng->mem_partitions_array.
+ */
 static int mem_mng_get_partition_id_by_addr_local(struct t_mem_mng          *p_mem_mng,
                                        uint64_t          addr,
                                        int               *p_partition_id,
@@ -965,12 +872,6 @@ static int mem_mng_get_partition_id_by_addr_local(struct t_mem_mng          *p_m
 {
     t_mem_mng_partition   *p_tmp_partition;
     uint32_t i = 0, array_size = 0;
-#ifdef AIOP
-    lock_spinlock(p_mem_mng->lock);
-#else
-    uint32_t            int_flags;
-    int_flags = spin_lock_irqsave(p_mem_mng->lock);
-#endif /* AIOP */
 
     array_size = ARRAY_SIZE(p_mem_mng->mem_partitions_array);
     for (i = 0; i < array_size; i++)
@@ -982,19 +883,9 @@ static int mem_mng_get_partition_id_by_addr_local(struct t_mem_mng          *p_m
         {
             *p_partition_id = p_tmp_partition->id;
             *p_partition = p_tmp_partition;
-#ifdef AIOP
-            unlock_spinlock(p_mem_mng->lock);
-#else /* not AIOP */
-    	    spin_unlock_irqrestore(p_mem_mng->lock, int_flags);
-#endif /* AIOP */
             return 1;
         }
     }
-#ifdef AIOP
-    unlock_spinlock(p_mem_mng->lock);
-#else /* not AIOP */
-    spin_unlock_irqrestore(p_mem_mng->lock, int_flags);
-#endif /* AIOP */
 
     return 0;
 }
@@ -1038,41 +929,15 @@ static void mem_mng_free_partition(struct t_mem_mng *p_mem_mng,
 
     /* Release the memory manager object */
     slob_free(&p_partition->h_mem_manager);
-
-
-    /* Remove from partitions list and free the allocated memory */
-    if (p_partition->lock) {
-#ifdef AIOP
-/* For AIOP lock is no longer dynamically allocated, g_mem_part_spinlock is used
- * instead
- */
-#else
-        spin_lock_free(p_partition->lock);
-#endif
-    }
 }
 
 /*****************************************************************************/
 static void mem_phys_mng_free_partition(struct t_mem_mng *p_mem_mng,
                                         t_mem_mng_phys_addr_alloc_partition   *p_partition )
 {
-
-#ifndef AIOP
-    uint32_t            int_flags;
-#endif /* AIOP */
     UNUSED(p_mem_mng);
     /* Release the memory manager object */
     slob_free(&p_partition->h_mem_manager);
-    /* Remove from partitions list and free the allocated memory */
-    if (p_partition->lock) {
-#ifdef AIOP
-/* For AIOP lock is no longer dynamically allocated, g_mem_part_spinlock is used
- * instead
- */
-#else
-        spin_lock_free(p_partition->lock);
-#endif
-    }
 }
 /*****************************************************************************/
 #ifdef ENABLE_DEBUG_ENTRIES

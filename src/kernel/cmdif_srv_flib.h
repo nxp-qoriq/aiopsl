@@ -32,12 +32,12 @@
 #define CMD_ID_MASK	   0x00000000FFFF0000 /**< FLC */
 #define CMD_ID_OFF	   16
 
-#define AUTH_ID_MASK	   0x0000FFFF00000000 /**< FLC[hash] */
-#define AUTH_ID_OFF	   32
-#define ERROR_MASK	   0x00FF000000000000 /**< FLC[hash] */
-#define ERROR_OFF	   48
-#define DEV_H_MASK	   0xFF00000000000000 /**< FLC[hash] */
-#define DEV_H_OFF	   56
+#define AUTH_ID_MASK	   0xFFFF000000000000 /**< FLC[hash] */
+#define AUTH_ID_OFF	   48
+#define ERROR_MASK	   0x000000FF00000000 /**< FLC[hash] */
+#define ERROR_OFF	   32
+#define DEV_H_MASK	   0x0000FF0000000000 /**< FLC[hash] */
+#define DEV_H_OFF	   40
 #define INST_ID_MASK	   DEV_H_MASK         /**< FLC[hash] */
 #define INST_ID_OFF	   DEV_H_OFF
 

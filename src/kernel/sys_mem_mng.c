@@ -66,9 +66,9 @@ void sys_mem_partitions_init_complete()
 
 /*****************************************************************************/
  /* Implement a trivial version of conversion, return the same value as received. */
-dma_addr_t sys_virt_to_phys(void *virt_addr)
+uint64_t sys_virt_to_phys(void *virt_addr)
 {
-    return (dma_addr_t)virt_addr;
+    return (uint64_t)virt_addr;
 }
 
 /*****************************************************************************/
@@ -203,7 +203,6 @@ void sys_shram_free(void *mem)
     return 0;
 }
 /*****************************************************************************/
-#if 0
 int sys_get_mem_partition_info(int partition_id,t_mem_mng_partition_info* partition_info)
 {
     int                 err_code;
@@ -225,7 +224,6 @@ int sys_get_mem_partition_info(int partition_id,t_mem_mng_partition_info* partit
 
     return 0;
 }
-#endif
 /*****************************************************************************/
 int sys_get_phys_addr_alloc_partition_info(int partition_id,
                                            t_mem_mng_phys_addr_alloc_info* partition_info)

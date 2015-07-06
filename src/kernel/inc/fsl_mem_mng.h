@@ -85,7 +85,7 @@ __START_COLD_CODE
  @Param[in]     addr    - Virtual address
 
 *//***************************************************************************/
-dma_addr_t sys_virt_to_phys(void *addr);
+uint64_t sys_virt_to_phys(void *addr);
 
 #define SYS_DEFAULT_HEAP_PARTITION  0   /**< Partition ID for default heap */
 
@@ -225,7 +225,7 @@ int sys_unregister_mem_partition(int partition_id);
 int sys_get_phys_addr_alloc_partition_info(int partition_id,
                                            t_mem_mng_phys_addr_alloc_info* partition_info);
 
-#if 0
+
 /**************************************************************************//**
  @Function      sys_get_mem_partition_info
 
@@ -240,6 +240,7 @@ int sys_get_phys_addr_alloc_partition_info(int partition_id,
 
 int sys_get_mem_partition_info(int partition_id,
                                t_mem_mng_partition_info* partition_info);
+#if 0
 /**************************************************************************//**
  @Function      SYS_GetMemPartitionBase
 

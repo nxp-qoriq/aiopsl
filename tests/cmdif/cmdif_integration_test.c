@@ -66,9 +66,9 @@ extern int app_evm_register();
 extern int dprc_drv_scan(void);
 
 #ifdef CMDIF_TEST_WITH_MC_SRV
-#define TEST_DPCI_ID    ((void *)0) /* For MC use 0 */
+#define TEST_DPCI_ID    (0) /* For MC use 0 */
 #else
-#define TEST_DPCI_ID    ((void *)4) /* For GPP use 4 */
+#define TEST_DPCI_ID    (4) /* For GPP use 4 */
 #endif
 
 extern struct dpci_mng_tbl g_dpci_tbl;
@@ -124,6 +124,7 @@ static int rcu_test_check()
 	return -1;
 }
 
+#if 0
 static void mc_intr_set(uint32_t dpci_id)
 {
 	struct dpci_irq_cfg irq_cfg;
@@ -159,6 +160,7 @@ static void mc_intr_set(uint32_t dpci_id)
 	err = dpci_close(&dprc->io, 0, token);
 	ASSERT_COND(!err);
 }
+#endif
 
 static int dpci_dynamic_rm_test()
 {
@@ -515,7 +517,7 @@ static int ctrl_cb0(void *dev, uint16_t cmd, uint32_t size,
 		pr_debug("TMAN timer created err = %d\n", err);
 		break;
 	case OPEN_CMD:
-		cidesc.regs = TEST_DPCI_ID; /* DPCI 0 is used by MC */
+		cidesc.regs = (void *)TEST_DPCI_ID;
 		/* GPP will send DPCI id at the first byte of the data */
 		if (size > 0) {
 			cidesc.regs = (void *)(((uint8_t *)data)[0]);
@@ -528,7 +530,7 @@ static int ctrl_cb0(void *dev, uint16_t cmd, uint32_t size,
 		err = cmdif_close(&cidesc);
 		break;
 	case OPEN_N_CMD:
-		dpci_id = (uint16_t)(TEST_DPCI_ID); /* DPCI 0 is used by MC */
+		dpci_id = (uint16_t)(TEST_DPCI_ID);
 		if (size > 0) {
 			dpci_id = (((uint8_t *)data)[0]);
 		}
@@ -759,7 +761,7 @@ int app_init(void)
 {
 	int        err  = 0;
 	uint32_t   ni   = 0;
-	dma_addr_t buff = 0;
+	uint64_t   buff = 0;
 	char       module[10];
 	int        i = 0;
 	struct cmdif_module_ops ops;
@@ -788,9 +790,14 @@ int app_init(void)
 	err = fsl_os_get_mem(1024, MEM_PART_DP_DDR, 64, &tman_addr);
 	ASSERT_COND(!err && tman_addr);
 
-#ifdef CMDIF_TEST_WITH_MC_SRV
-	mc_intr_set(g_dpci_tbl.mc_dpci_id);
-#endif
+	/* 
+	 * Remove it because it is no longer part of DPCI testing
+	 * TODO when enabling, it cause issues in MC server cmdif test during
+	 * cmdif_open()
+	 */
+//#ifdef CMDIF_TEST_WITH_MC_SRV
+//	mc_intr_set(g_dpci_tbl.mc_dpci_id);
+//#endif
 
 	err = app_dpci_test();
 	ASSERT_COND(!err);
