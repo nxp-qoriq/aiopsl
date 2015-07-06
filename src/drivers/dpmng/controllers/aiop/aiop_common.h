@@ -42,7 +42,7 @@
 #define AIOP_MAX_NUM_CORES_IN_CLUSTER	4
 #define AIOP_MAX_NUM_CLUSTERS		4
 
-#define AIOP_DPNI_SIGN			0x80000000
+#define AIOP_EPID_SET_BY_DPNI		0x80000000
 
 /**************************************************************************//**
  @Description   EPID table
