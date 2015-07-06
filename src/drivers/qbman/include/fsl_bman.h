@@ -37,7 +37,7 @@
 
 #include "common/types.h"
 #include "fsl_errors.h"
-#include "fsl_platform.h"
+#include "fsl_malloc.h"
 
 /* Macro for number of bpids used in dpni driver for DPNI pools*/
 #define BPIDS_USED_FOR_POOLS_IN_DPNI         2

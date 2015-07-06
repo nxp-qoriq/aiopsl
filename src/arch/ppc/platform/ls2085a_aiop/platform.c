@@ -32,7 +32,7 @@
 #include "fsl_duart.h"
 #include "inc/console.h"
 #include "platform.h"
-#include "ls2085_aiop/fsl_platform.h"
+#include "fsl_malloc.h"
 #include "fsl_smp.h"
 #include "fsl_io_ccsr.h"
 #include "fsl_mem_mng.h"

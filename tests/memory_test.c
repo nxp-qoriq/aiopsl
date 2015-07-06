@@ -29,7 +29,6 @@
 #include "fsl_io.h"
 #include "aiop_common.h" /* for struct aiop_init_info */
 #include "fsl_malloc.h"
-#include "fsl_platform.h"
 
 int memory_test();
 static int cdma_peb_test();

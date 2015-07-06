@@ -38,7 +38,7 @@
 #include "fsl_dprc.h"
 #include "fsl_dpbp.h"
 #include "fsl_bman.h"
-#include "ls2085_aiop/fsl_platform.h"
+#include "fsl_malloc.h"
 #include "dpni_drv.h"
 #include "aiop_common.h"
 #include "system.h"

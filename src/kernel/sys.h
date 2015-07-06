@@ -35,7 +35,7 @@
 #include "fsl_dbg.h"
 #include "fsl_smp.h"
 #include "platform.h"
-#include "ls2085_aiop/fsl_platform.h"
+#include "fsl_malloc.h"
 #include "inc/fsl_sys.h"
 #include "fsl_log.h"
 #include "mem_mng.h"

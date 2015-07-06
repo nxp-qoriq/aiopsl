@@ -41,7 +41,7 @@
 #include "fsl_cdma.h"
 #include "fsl_endian.h"
 #include "fsl_general.h"
-#include "ls2085_aiop/fsl_platform.h"
+#include "fsl_malloc.h"
 #include "fsl_io_ccsr.h"
 #include "fsl_icontext.h"
 #include "cmdif_srv.h"

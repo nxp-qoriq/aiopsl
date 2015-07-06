@@ -26,7 +26,7 @@
 #include "common/types.h"
 #include "sys.h"
 #include "platform.h"
-#include "ls2085_aiop/fsl_platform.h"
+#include "fsl_malloc.h"
 #include "console.h"
 #include "../../../tests/bringup/console_print_test.h"
 #include "fsl_string.h"

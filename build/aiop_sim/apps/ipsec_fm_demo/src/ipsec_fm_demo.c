@@ -36,7 +36,7 @@
 #include "kernel/fsl_cmdif_server.h"
 #include "dplib/fsl_cdma.h"
 #include "dplib/fsl_ipsec.h"
-#include "ls2085_aiop/fsl_platform.h"
+#include "fsl_malloc.h"
 #include "lib/fsl_slab.h"
 #include "system.h" // TMP
 #include "fsl_evmng.h"

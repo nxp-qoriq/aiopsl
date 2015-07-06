@@ -33,7 +33,7 @@
 #include "fsl_cdma.h"
 #include "slab.h"
 #include "platform.h"
-#include "ls2085_aiop/fsl_platform.h"
+#include "fsl_malloc.h"
 #include "fsl_io.h"
 
 int app_test_slab_init(void);

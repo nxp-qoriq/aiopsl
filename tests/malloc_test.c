@@ -29,7 +29,7 @@
 #include "fsl_stdio.h"
 #include "fsl_io.h"
 #include "platform.h"
-#include "ls2085_aiop/fsl_platform.h"
+#include "fsl_malloc.h"
 #include "fsl_slab.h"
 #include "ls2085a_aiop/platform_aiop_spec.h"
 #include "aiop_common.h" /* for struct aiop_init_info */

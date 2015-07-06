@@ -43,6 +43,24 @@
 
  @{
 *//***************************************************************************/
+
+/**************************************************************************//**
+ @Description   Memory Partition Identifiers.
+                Used as a parameter for fsl_os_get_mem().
+                Note that not all memory partitions are supported by all
+                platforms. Every platform may select which memory partitions
+                to support.
+*//***************************************************************************/
+typedef enum memory_partition_id {
+    MEM_PART_DP_DDR = 2,/**< Primary DDR  memory partition */
+    MEM_PART_SYSTEM_DDR,    /**< Secondary DDR  memory partition */
+    MEM_PART_SH_RAM,                   /**< Shared-SRAM memory */
+    MEM_PART_PEB,                      /**< Packet-Express-Buffer memory partition */
+    MEM_PART_MC_PORTALS,               /**< MC portals for cmdif memory partition */
+    MEM_PART_CCSR,                     /**< SoC CCSR memory partition */
+    MEM_PART_LAST                      /**< Invalid memory partition */
+} e_memory_partition_id;
+
 /**************************************************************************//**
  @Function      fsl_malloc
 

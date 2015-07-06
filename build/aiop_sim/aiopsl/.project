@@ -160,11 +160,6 @@
 			<locationURI>virtual:/virtual</locationURI>
 		</link>
 		<link>
-			<name>aiop_sl/include/arch</name>
-			<type>2</type>
-			<locationURI>virtual:/virtual</locationURI>
-		</link>
-		<link>
 			<name>aiop_sl/include/common</name>
 			<type>2</type>
 			<locationURI>virtual:/virtual</locationURI>
@@ -586,16 +581,6 @@
 		</link>
 		<link>
 			<name>aiop_sl/drivers/serial/include</name>
-			<type>2</type>
-			<locationURI>virtual:/virtual</locationURI>
-		</link>
-		<link>
-			<name>aiop_sl/include/arch/fsl_ldpaa_aiop.h</name>
-			<type>1</type>
-			<locationURI>PARENT-3-PROJECT_LOC/src/include/arch/fsl_ldpaa_aiop.h</locationURI>
-		</link>
-		<link>
-			<name>aiop_sl/include/arch/ls2085_aiop</name>
 			<type>2</type>
 			<locationURI>virtual:/virtual</locationURI>
 		</link>
@@ -1148,11 +1133,6 @@
 			<name>aiop_sl/drivers/serial/include/fsl_duart.h</name>
 			<type>1</type>
 			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/serial/include/fsl_duart.h</locationURI>
-		</link>
-		<link>
-			<name>aiop_sl/include/arch/ls2085_aiop/fsl_platform.h</name>
-			<type>1</type>
-			<locationURI>PARENT-3-PROJECT_LOC/src/include/arch/ls2085_aiop/fsl_platform.h</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/arch/ppc/platform/ls2085a_aiop/cmdif.h</name>
