@@ -1,3 +1,4 @@
+dpni_drv.c: Fix for nested mutex calls when calling functions: dpni_drv_get_dpni_id() and dpni_drv_get_ni_id() - ENGR00361988
 dpni_drv.c: Added fix to distinguish between DPNI and NI (AIOPSL) ids in EPID table during the probe - ENGR00362157.
 
 sim_files/*.cfg:     Moved to misc/sim/*.cfg
