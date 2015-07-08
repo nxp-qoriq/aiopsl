@@ -603,8 +603,29 @@ int dpni_drv_set_order_scope(uint16_t ni_id, struct dpkg_profile_cfg *key_cfg);
 
 @Return 0 on success;
 	error code, otherwise. For error posix refer to \ref error_g
+
+@Deprecated	The function is deprecated and will be removed in the next release.
+		The function: "dpni_drv_get_connected_ni()" should be used instead.
 *//***************************************************************************/
 int dpni_drv_get_connected_aiop_ni_id(const uint16_t dpni_id, uint16_t *aiop_niid, int *state);
+
+/**************************************************************************//**
+@Function	dpni_drv_get_connected_ni
+
+@Description	Function to receive the connected AIOP NI ID for OBJ ID and type.
+
+@Param[in]	id  object ID to find connection.
+
+@Param[in]	type  The type of the give object ID ("dpni", dpmac").
+
+@Param[out]	aiop_niid  Connected NI ID.
+
+@Param[out]	state  link state on success: 1 - link is up, 0 - link is down;
+
+@Return 0 on success;
+	error code, otherwise. For error posix refer to \ref error_g
+*//***************************************************************************/
+int dpni_drv_get_connected_ni(const int id, const char type[16], uint16_t *aiop_niid, int *state);
 
 /**************************************************************************//**
 @Function	dpni_drv_get_connected_dpni_id
@@ -619,9 +640,29 @@ int dpni_drv_get_connected_aiop_ni_id(const uint16_t dpni_id, uint16_t *aiop_nii
 
 @Return 0 on success;
 	error code, otherwise. For error posix refer to \ref error_g
+
+@Deprecated	The function is deprecated and will be removed in the next release.
+		The function: "dpni_drv_get_connected_obj()" should be used instead.
 *//***************************************************************************/
 int dpni_drv_get_connected_dpni_id(const uint16_t aiop_niid, uint16_t *dpni_id, int *state);
 
+/**************************************************************************//**
+@Function	dpni_drv_get_connected_obj
+
+@Description	Function to receive the connected OBJ ID and type.
+
+@Param[in]	aiop_niid  The AIOP Network Interface ID
+
+@Param[out]	id  Connected object ID to the given NI ID
+
+@Param[out]	type  The type of the connected object for given NI.
+
+@Param[out]	state  link state on success: 1 - link is up, 0 - link is down;
+
+@Return 0 on success;
+	error code, otherwise. For error posix refer to \ref error_g
+*//***************************************************************************/
+int dpni_drv_get_connected_obj(const uint16_t aiop_niid, int *id, char type[16], int *state);
 /**************************************************************************//**
 @Function	dpni_drv_set_rx_buffer_layout
 
