@@ -28,7 +28,7 @@
 #include "icontext.h"
 #include "fsl_errors.h"
 #include "general.h"
-#include "fsl_ldpaa_aiop.h"
+#include "fsl_ldpaa.h"
 #include "fsl_fdma.h"
 #include "fsl_cdma.h"
 #include "sys.h"

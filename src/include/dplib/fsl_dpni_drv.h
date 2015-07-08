@@ -167,6 +167,17 @@ struct dpni_drv_buf_layout {
 };
 
 /**************************************************************************//**
+@Description	Structure representing DPNI ls_checksum.
+
+*//***************************************************************************/
+struct dpni_drv_tx_checksum {
+	/* '1' to enable L3 checksum generation; '0' disable;*/
+	uint16_t l3_checksum_gen;
+	/* '1' to enable L4 checksum generation; '0' disable;*/
+	uint16_t l4_checksum_gen;
+};
+
+/**************************************************************************//**
 @Description	Application Receive callback
 
 		User provides this function. Driver invokes it when it gets a
@@ -842,5 +853,34 @@ int dpni_drv_set_initial_presentation(
 	uint16_t ni_id,
 	const struct ep_init_presentation* const init_presentation);
 
+/**************************************************************************//**
+@Function	dpni_drv_set_tx_checksum
+
+@Description	Function to enable/disable l3/l4 check-sum for given NI.
+
+@Param[in]	ni_id The AIOP Network Interface ID.
+
+@Param[in]	tx_checksum representing checksums to be enabled/disabled.
+
+@Return	0 on success;
+	error code, otherwise. For error posix refer to \ref error_g
+*//***************************************************************************/
+int dpni_drv_set_tx_checksum(uint16_t ni_id,
+                             const struct dpni_drv_tx_checksum * const tx_checksum);
+
+/**************************************************************************//**
+@Function	dpni_drv_get_tx_checksum
+
+@Description	Function to get status of l3/l4 check-sum for given NI.
+
+@Param[in]	ni_id The AIOP Network Interface ID.
+
+@Param[out]	tx_checksum return the status for l3/l4 checksums.
+
+@Return	0 on success;
+	error code, otherwise. For error posix refer to \ref error_g
+*//***************************************************************************/
+int dpni_drv_get_tx_checksum(uint16_t ni_id,
+                            struct dpni_drv_tx_checksum * const tx_checksum);
 /** @} */ /* end of dpni_drv_g DPNI DRV group */
 #endif /* __FSL_DPNI_DRV_H */

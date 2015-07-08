@@ -33,7 +33,7 @@
 #include "system.h"
 #include "id_pool.h"
 #include "fsl_cdma.h"
-#include "fsl_platform.h"
+#include "fsl_malloc.h"
 
 #include "fsl_ipsec.h"
 #include "fsl_keygen.h"

@@ -420,6 +420,7 @@ static int app_dpni_event_added_cb(
 	int err;
 	int promisc;
 	uint16_t spid = 0;
+	uint16_t dpni;
 	extern t_system sys;
 	uint64_t buff = 0;
 	int ep, state = -1;
@@ -733,7 +734,27 @@ static int app_dpni_event_added_cb(
 		fsl_os_print("dpni_drv_reset_counter for ni %d succeeded\n",ni);
 	}
 
+	err = dpni_drv_get_dpni_id(ni, &dpni);
+	if(err != 0) {
+		fsl_os_print("dpni_drv_get_dpni_id error for ni %d\n",ni);
+		test_error |= err;
+	}
+	else {
+		fsl_os_print("dpni_drv_get_dpni_id for ni %d succeeded - DPNI %d\n",(int)ni,(int)dpni);
 
+		err = dpni_drv_get_ni_id(dpni, &ni2);
+		if(err != 0) {
+			fsl_os_print("dpni_drv_get_ni_id error for ni %d\n",ni);
+			test_error |= err;
+		}
+		else if(ni == ni2) {
+			fsl_os_print("dpni_drv_get_ni_id for ni %d succeeded, NI's are the same\n",ni);
+		}
+		else{
+			fsl_os_print("dpni_drv_get_ni_id error, ni's not match %d, %d\n",(int)ni, (int)ni2);
+			test_error |= 0x1;
+		}
+	}
 
 	err = dpni_drv_enable(ni);
 	if(err){

@@ -38,7 +38,7 @@
 #include "dplib/fsl_fdma.h"
 #include "dplib/fsl_ip.h"
 #include "dplib/fsl_l4.h"
-#include "ls2085_aiop/fsl_platform.h"
+#include "fsl_malloc.h"
 #include "fsl_tman.h"
 #include "fsl_slab.h"
 #include "fsl_malloc.h"

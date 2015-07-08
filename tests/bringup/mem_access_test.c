@@ -26,7 +26,7 @@
 #include "fsl_errors.h"
 #include "fsl_io.h"
 #include "platform.h"
-#include "fsl_platform.h"
+#include "fsl_malloc.h"
 #include "fsl_smp.h"
 #include "common/types.h"
 #include "common/fsl_string.h"

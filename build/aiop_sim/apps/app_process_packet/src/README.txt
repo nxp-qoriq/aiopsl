@@ -56,7 +56,7 @@ Simultor Setup
 1. Install Code Warrior (see Release Note for the compatible CW version).
 2. Download the linux version of the simulator (see Release Note for the compatible LS_SIM version).
 3. Copy the files ls2085a_sim_init_params.cfg and ls2085a_sys_test.cfg
-   from the source tree at: aiopsl/build/aiop_sim/sim_files.
+   from the source tree at: aiopsl/misc/sim/.
    into the simulator folder at: dtsim_release/linux64/
 4. Update the “LD_LIBRARY_PATH” variable to point to the simulator folder.
    setenv LD_LIBRARY_PATH {$LD_LIBRARY_PATH}:/home/user/LS_SIM_<version>/dtsim_release/linux64

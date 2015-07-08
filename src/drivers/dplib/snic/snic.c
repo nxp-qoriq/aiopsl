@@ -58,7 +58,6 @@
 #include "dplib/fsl_table.h"
 #include "fsl_cmdif_server.h"
 
-#include "ls2085_aiop/fsl_platform.h"
 #include "fsl_malloc.h"
 #include "fsl_sl_slab.h"
 

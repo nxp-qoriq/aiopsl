@@ -35,7 +35,7 @@
 
 #include "common/types.h"
 #include "fsl_cdma.h"
-#include "fsl_platform.h"
+#include "fsl_malloc.h"
 
 /**************************************************************************//**
 @Group         slab_g   SLAB

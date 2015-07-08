@@ -35,7 +35,7 @@
 #include "types.h"
 #include "fsl_dpni.h"
 #include "fsl_ldpaa.h"
-#include "fsl_platform.h"
+#include "fsl_malloc.h"
 #include "fsl_dpni_drv.h"
 #include "fsl_sl_dprc_drv.h"
 #include "dpni_drv_rxtx_inline.h"

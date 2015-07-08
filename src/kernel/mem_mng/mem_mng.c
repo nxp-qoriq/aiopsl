@@ -43,7 +43,7 @@
 #endif /* AIOP */
 #include "mem_mng.h"
 #include "fsl_sl_dbg.h"
-#include "fsl_platform.h"
+#include "fsl_malloc.h"
 #include "fsl_mem_mng.h"
 #include "slob.h"
 #include "buffer_pool.h"

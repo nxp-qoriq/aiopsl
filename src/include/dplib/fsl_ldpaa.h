@@ -373,15 +373,7 @@ struct ldpaa_fd {
 /** @} *//* end of ldpaa_g group */
 
 
-#if defined(AIOP)
-#include "arch/fsl_ldpaa_aiop.h"
-#elif defined(MC)
-#include "arch/fsl_ldpaa_mc.h"
-#elif defined(GPP)
-#include "arch/fsl_ldpaa_gpp.h"
-#else
-#error "SoC subsystem not defined!"
-#endif /* defined(AIOP) */
+#include "fsl_ldpaa_aiop.h"
 
 /** @} */ /* end of AIOP_General_Definitions */
 

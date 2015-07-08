@@ -42,6 +42,8 @@
 #define AIOP_MAX_NUM_CORES_IN_CLUSTER	4
 #define AIOP_MAX_NUM_CLUSTERS		4
 
+#define AIOP_EPID_SET_BY_DPNI		0x80000000
+
 /**************************************************************************//**
  @Description   EPID table
 *//***************************************************************************/
@@ -404,7 +406,7 @@ struct aiop_dcsr_clustr {
 };
 
 /**
- * AIOP peripherals DCSR memory map 
+ * AIOP peripherals DCSR memory map
  */
 struct aiop_dcsr_regs {
 	OS_MEM_RESERVED(0x0100000, 0x0180000);

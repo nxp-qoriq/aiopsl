@@ -30,7 +30,6 @@
 #include "fsl_malloc.h"
 #include "kernel/fsl_spinlock.h"
 #include "fsl_dbg.h"
-#include "fsl_platform.h"
 #include "platform.h"
 #include "platform_aiop_spec.h"
 #include "fsl_mem_mng.h"

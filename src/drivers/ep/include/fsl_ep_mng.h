@@ -34,6 +34,30 @@
 #define __FSL_EP_MNG_H
 
 /**************************************************************************//**
+ @Description   Take write mutex for EP entry
+ *//***************************************************************************/
+#define EP_MNG_MUTEX_W_TAKE \
+do { \
+cdma_mutex_lock_take((uint64_t)&wrks_addr->epas, CDMA_MUTEX_WRITE_LOCK); \
+} while(0)
+
+/**************************************************************************//**
+ @Description   Take read mutex for EP entry
+ *//***************************************************************************/
+#define EP_MNG_MUTEX_R_TAKE \
+do { \
+cdma_mutex_lock_take((uint64_t)&wrks_addr->epas, CDMA_MUTEX_READ_LOCK); \
+} while(0)
+
+/**************************************************************************//**
+ @Description   Release mutex for EP entry
+ *//***************************************************************************/
+#define EP_MNG_MUTEX_RELEASE \
+do { \
+cdma_mutex_lock_release((uint64_t)&wrks_addr->epas); \
+} while(0)
+
+/**************************************************************************//**
 @Function	ep_mng_get_initial_presentation
 
 @Description	Function to get initial presentation settings from EPID table

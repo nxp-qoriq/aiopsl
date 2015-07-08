@@ -93,7 +93,7 @@ int ep_mng_get_initial_presentation(
 #endif
 
 	/*Mutex lock to avoid race condition while writing to EPID table*/
-	cdma_mutex_lock_take((uint64_t)&wrks_addr->epas, CDMA_MUTEX_READ_LOCK);
+	EP_MNG_MUTEX_R_TAKE;
 
 	/* write epid index to epas register */
 	iowrite32_ccsr((uint32_t)(epid), &wrks_addr->epas);
@@ -114,7 +114,7 @@ int ep_mng_get_initial_presentation(
 	ep_spo = ioread32_ccsr(&wrks_addr->ep_spo);
 
 	/*Mutex unlock EPID table*/
-	cdma_mutex_lock_release((uint64_t)&wrks_addr->epas);
+	EP_MNG_MUTEX_RELEASE;
 
 	init_presentation->fdpa = (uint16_t)
 			((ep_fdpa & FDPA_MASK) >> FDPA_SHIFT);
@@ -215,7 +215,7 @@ int ep_mng_set_initial_presentation(
 	}
 
 	/*Mutex lock to avoid race condition while writing to EPID table*/
-	cdma_mutex_lock_take((uint64_t)&wrks_addr->epas, CDMA_MUTEX_WRITE_LOCK);
+	EP_MNG_MUTEX_W_TAKE;
 
 	/* write epid index to epas register */
 	iowrite32_ccsr((uint32_t)(epid), &wrks_addr->epas);
@@ -314,8 +314,9 @@ int ep_mng_set_initial_presentation(
 		 * Offset */
 		iowrite32_ccsr(ep_temp, &wrks_addr->ep_spo);
 	}
+
 	/*Mutex unlock EPID table*/
-	cdma_mutex_lock_release((uint64_t)&wrks_addr->epas);
+	EP_MNG_MUTEX_RELEASE;
 	return 0;
 }
 
@@ -334,8 +335,8 @@ static int cmdif_epid_setup(struct aiop_ws_regs *wrks_addr,
 	/* set epid ASA presentation size to 0 */
 	iowrite32_ccsr(0x00000000, &wrks_addr->ep_asapa);
 	/* Set mask for hash to 16 low bits 
-	 * OSRM = 5
-	 * mask for auth_id 0x0000_FFFF 
+	 * OSRM = 2
+	 * mask for auth_id 0xFFFF_0000 
 	 * SRC = 1 
 	 * Scope ID taken from the specified slice of the received 
 	 * frame’s FD[FLC]. Slice is specified in the SEL field.
@@ -344,9 +345,9 @@ static int cmdif_epid_setup(struct aiop_ws_regs *wrks_addr,
 	 * SEL = 0 
 	 * Order Scope ID is taken from FLC[63:32]
 	 * */
-	iowrite32_ccsr(0x11000005, &wrks_addr->ep_osc);
+	iowrite32_ccsr(0x11000002, &wrks_addr->ep_osc);
 	data = ioread32_ccsr(&wrks_addr->ep_osc);
-	if (data != 0x11000005)
+	if (data != 0x11000002)
 		err |= -EINVAL;
 
 	pr_info("CMDIF is setting EPID = %d\n", epid);
