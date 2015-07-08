@@ -82,9 +82,6 @@ static uint8_t s_peb_lock = 0;
 
 
 
-
-
-
 static int check_get_mem_size_alignment(uint64_t size,uint64_t alignment)
 {
 	int rc = 0, local_error = 0;
@@ -97,7 +94,6 @@ static int check_get_mem_size_alignment(uint64_t size,uint64_t alignment)
 	rc |= local_error;
 	rc |= check_returned_get_mem_address(paddr,size,alignment,&dp_ddr_info);
 	fsl_os_put_mem(paddr);
-
     /* test get_mem() for MEM_PART_SYSTEM_DDR */
     if(g_init_data.app_info.sys_ddr1_size){
 	    if((local_error = fsl_os_get_mem(size,MEM_PART_SYSTEM_DDR,alignment,&paddr)) != 0){
@@ -115,7 +111,6 @@ static int check_get_mem_size_alignment(uint64_t size,uint64_t alignment)
 	rc |= local_error;
 	rc |= check_returned_get_mem_address(paddr,size,alignment,&peb_info);
 	fsl_os_put_mem(paddr);
-
 	return rc;
 }
 
@@ -180,14 +175,23 @@ static int shared_ram_allocate_check_mem(uint32_t num_iter, uint32_t size,
 		                      void **allocated_pointers)
 {
 	int i = 0;
+	uint32_t alignment = 16;
 	uint32_t value = 0xdeadbeef,expected_value = 0xdeadbeef;
 	for(i = 0 ; i < num_iter; i++)
 	{
-		allocated_pointers[i] = fsl_malloc(size,4);
+		allocated_pointers[i] = fsl_malloc(size,alignment);
 		if(NULL == allocated_pointers[i])
 		{
 		    fsl_os_print("fsl_malloc() from shared ram  failed\n");
 		    return -ENOMEM;
+		}
+		if(check_returned_malloc_address((uint32_t)allocated_pointers[i],
+		                                 size,
+		                                 alignment,
+		                                 &sh_ram_info)){
+		   fsl_os_print("fsl_malloc from  shared ram has failed, address %x\n",
+                                 PTR_TO_UINT(allocated_pointers[i]));
+		   return -EFAULT;
 		}
 		iowrite32(value,allocated_pointers[i]);
 		value = ioread32(allocated_pointers[i]);
@@ -307,7 +311,7 @@ static int mem_depletion_test(e_memory_partition_id mem_partition,
 		{
 			shram_addresses[count++] = curr_addr;
 			if(check_returned_address((uint64_t)curr_addr,size,alignment,mem_partition) != 0)
-				return -1;
+			    return -1;
 			prev_addr = curr_addr;
 			prev_size = size;
 			prev_alignment = alignment;
@@ -323,7 +327,7 @@ static int mem_depletion_test(e_memory_partition_id mem_partition,
 			return -ENAVAIL;
 		}
 		if(check_returned_address((uint64_t)curr_addr,prev_size,prev_alignment,mem_partition) != 0)
-						return -1;
+		    return -1;
 		fsl_free(curr_addr);
 		for(int i = 0 ; i < count-1 ; i++)
 		{
