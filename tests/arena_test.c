@@ -430,6 +430,8 @@ static int app_dpni_event_added_cb(
 	struct dpni_drv_link_state link_state = {0};
 	struct ep_init_presentation init_pres = {0};
 	struct ep_init_presentation init_orig_pres = {0};
+	char type[16];
+	int id;
 
 	dist_key_cfg.num_extracts = 1;
 	dist_key_cfg.extracts[0].type = DPKG_EXTRACT_FROM_HDR;
@@ -503,6 +505,24 @@ static int app_dpni_event_added_cb(
 	fsl_os_print("Given NI: %d, Connected NI: %d, Status: %d\n",ni,ni2,state);
 	if(err){
 		fsl_os_print("Error: dpni_drv_get_connected_dpni_id: error %d\n",err);
+		test_error |= 0x01;
+	}
+
+	err = dpni_drv_get_connected_obj(ni, &id, type, &state);
+	fsl_os_print("Given NI: %d, Con. obj. ID: %d, Type %s, Stat: %d\n",(int)ni,(int)id,type,(int)state);
+	if(err){
+		fsl_os_print("Error: dpni_drv_get_connected_obj: error %d\n",err);
+		test_error |= 0x01;
+	}
+
+	err = dpni_drv_get_connected_ni(id, type, &ni2, &state);
+	fsl_os_print("Given OBJ ID: %d, Type %s, Con. NI: %d, Stat: %d\n",(int)id,type,(int)ni2,(int)state);
+	if(err){
+		fsl_os_print("Error: dpni_drv_get_connected_obj: error %d\n",err);
+		test_error |= 0x01;
+	}
+	if(ni != ni2){
+		fsl_os_print("NI's are not the same %d,%d\n",(int)ni,(int)ni2);
 		test_error |= 0x01;
 	}
 
