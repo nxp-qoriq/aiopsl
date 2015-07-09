@@ -38,13 +38,129 @@
 #include "inc/fsl_gen.h"
 
 
-#if defined(LS2085A)
-#include "fsl_soc_spec_ls2085a.h"
-#elif defined(LS1080A)
-#include "fsl_soc_spec_ls1080a.h"
-#else
-#error "unable to proceed without chip-definition"
-#endif /* chip select */
+/**************************************************************************//**
+ @Group         ls2085a_g LS2085A Application Programming Interface
+
+ @Description   LS2085A Chip functions,definitions and enums.
+
+ @{
+*//***************************************************************************/
+
+#define CORE_E200
+#define CORE_E200_Z490
+
+#define INTG_MAX_NUM_OF_CORES   16
+#define INTG_THREADS_PER_CORE   1
+#define INTG_MAX_NUM_OF_CLUSTR  4
+
+
+/**************************************************************************//**
+ @Description   Module types.
+*//***************************************************************************/
+enum fsl_os_module {
+	FSL_OS_MOD_SOC = 0,
+
+	/* FSL_OS_MOD_CMDIF_SRV, */ /**< AIOP server handle */
+	FSL_OS_MOD_CMDIF_CL,  /**< AIOP client handle */
+	FSL_OS_MOD_SLAB,
+	FSL_OS_MOD_UART,
+	FSL_OS_MOD_CMGW,
+	FSL_OS_MOD_DPRC,
+	FSL_OS_MOD_DPNI,
+	FSL_OS_MOD_DPIO,
+	FSL_OS_MOD_DPSP,
+	FSL_OS_MOD_DPSW,
+
+	FSL_OS_MOD_AIOP_TILE,
+
+	FSL_OS_MOD_MC_PORTAL,
+	FSL_OS_MOD_AIOP_RC,    /**< AIOP root container from DPL */
+
+	FSL_OS_MOD_LAYOUT, /* TODO - review *//**< layout */
+
+	FSL_OS_MOD_DUMMY_LAST
+};
+
+/** @} */ /* end of ls2085a_g group */
+
+/* AIOP Peripherals Offset in AIOP memory map */
+#define AIOP_PERIPHERALS_OFF            0X2000000
+
+/* AIOP Profile SRAM offset */
+#define AIOP_STORAGE_PROFILE_OFF        0x30000
+/* Offsets relative to CCSR base */
+#define SOC_PERIPH_OFF_AIOP_WRKS        0x1d000
+#define SOC_PERIPH_OFF_AIOP_TILE        0x00080000
+#define SOC_PERIPH_OFF_AIOP_CMGW        0x0
+#define SOC_PERIPH_OFF_DCSR             0x0100000
+
+/**************************************************************************//**
+ @Group         ls2085a_g LS2085A Application Programming Interface
+
+ @Description   LS2085A Chip functions,definitions and enums.
+
+ @{
+*//***************************************************************************/
+
+#define FSL_OS_NUM_MODULES  FSL_OS_MOD_DUMMY_LAST
+
+/* Offsets relative to CCSR base */
+
+#define SOC_PERIPH_OFF_DUART1           0x021c0500
+#define SOC_PERIPH_OFF_DUART2           0x021c0600
+#define SOC_PERIPH_OFF_DUART3           0x021d0500
+#define SOC_PERIPH_OFF_DUART4           0x021d0600
+#define SOC_PERIPH_OFF_QBMAN            0x08180000
+#define SOC_PERIPH_OFF_EIOP             0x08b90000
+#define SOC_PERIPH_OFF_MC               0x08340000
+#define SOC_PERIPH_OFF_SEC_GEN          0x08000000
+#define SOC_PERIPH_OFF_EIOP_IFPS        0x08800000
+
+#define SHARED_RAM_SIZE 256*KILOBYTE
+
+
+/* Offset of MC portals  relative to MC area base */
+#define PERIPH_OFF_MC_PORTALS_AREA  0x0000000
+#define SOC_PERIPH_MC_PORTAL_ALIGNMENT  0x10000 /* Alignment of a MC portal in SoC */
+
+
+
+#define SOC_PERIPH_OFF_PORTALS_MC(_prtl) \
+    (PERIPH_OFF_MC_PORTALS_AREA + SOC_PERIPH_MC_PORTAL_ALIGNMENT * (_prtl))
+
+
+
+/**************************************************************************//**
+ @Group         ls2085a_init_g LS2085A Initialization Unit
+
+ @Description   LS2085A initialization unit API functions, definitions and enums
+
+ @{
+*//***************************************************************************/
+
+/** @} */ /* end of ls2085a_init_g group */
+/** @} */ /* end of ls2085a_g group */
+
+
+
+/*****************************************************************************
+ INTEGRATION-SPECIFIC MODULE CODES
+******************************************************************************/
+#define MODULE_UNKNOWN          0x00000000
+#define MODULE_SLAB             0x00010000
+#define MODULE_SLOB             0x00020000
+#define MODULE_SOC_PLATFORM     0x00030000
+#define MODULE_PIC              0x00040000
+#define MODULE_DUART            0x00050000
+#define MODULE_DPSW             0x00060000
+#define MODULE_DPRC             0x00070000
+#define MODULE_LINKMAN          0x00080000
+#define MODULE_DPDMUX		0x00090000
+#define MODULE_DPMAC		0x000a0000
+#define MODULE_DPCI             0x000b0000
+#define MODULE_DPSECI           0x000c0000
+
+
 
 
 /**************************************************************************//**
@@ -57,18 +173,6 @@ struct fsl_soc_device_name {
    int         has_sec;         /**< If the chip is with security supported */
 };
 
-/**************************************************************************//*
- @Description   Part data structure - must be contained in any integration
-                data structure.
-*//***************************************************************************/
-#if 0
-struct fsl_soc {
-    uintptr_t           (* f_get_module_base)(fsl_handle_t soc, enum fsl_os_module module_id);
-        /**< Returns the address of the module's memory map base. */
-    enum fsl_os_module  (* f_get_module_id_by_base)(fsl_handle_t soc, uintptr_t base_address);
-        /**< Returns the module's ID according to its memory map base. */
-};
-#endif
 
 #endif /* __FSL_SOC_H */
 

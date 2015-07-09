@@ -26,14 +26,12 @@
 
 /**
 
- @File          fsl_soc_aiop_spec.h
+ @File          platform_aiop_spec.h
 
- @Description   LS2085A external definitions and structures.
+ @Description   LS2085A Pltform external definitions and structures.
 *//***************************************************************************/
-#ifndef __FSL_SOC_AIOP_SPEC_H
-#define __FSL_SOC_AIOP_SPEC_H
-
-#include "common/types.h"
+#ifndef __FSL_PLATFORM_AIOP_SPEC_H
+#define __FSL_PLATFORM_AIOP_SPEC_H
 
 
 /**************************************************************************//**
@@ -44,52 +42,42 @@
  @{
 *//***************************************************************************/
 
-#define CORE_E200
-#define CORE_E200_Z490
+#define PLATFORM_MAX_MEM_INFO_ENTRIES   8
 
-#define INTG_MAX_NUM_OF_CORES   16
-#define INTG_THREADS_PER_CORE   1
-#define INTG_MAX_NUM_OF_CLUSTR  4
+/**************************************************************************//**
+ @Description   Platform Console Types
+*//***************************************************************************/
+typedef enum platform_console_type {
+    PLTFRM_CONSOLE_NONE,        /**< Do not use platform console */
+    PLTFRM_CONSOLE_DUART        /**< Use DUART-x as console port */
+} e_platform_console_type;
+
 
 
 /**************************************************************************//**
- @Description   Module types.
+ @Description   Platform configuration parameters structure
 *//***************************************************************************/
-enum fsl_os_module {
-	FSL_OS_MOD_SOC = 0,
+struct platform_param {
+    struct platform_memory_info     mem_info[PLATFORM_MAX_MEM_INFO_ENTRIES];
+    enum cache_mode                 l1_cache_mode;
+    enum platform_console_type      console_type;
+    uint8_t                         console_id;
+};
 
-	/* FSL_OS_MOD_CMDIF_SRV, */ /**< AIOP server handle */
-	FSL_OS_MOD_CMDIF_CL,  /**< AIOP client handle */
-	FSL_OS_MOD_SLAB,
-	FSL_OS_MOD_UART,
-	FSL_OS_MOD_CMGW,
-	FSL_OS_MOD_DPRC,
-	FSL_OS_MOD_DPNI,
-	FSL_OS_MOD_DPIO,
-	FSL_OS_MOD_DPSP,
-	FSL_OS_MOD_DPSW,
 
-	FSL_OS_MOD_AIOP_TILE,
-
-	FSL_OS_MOD_MC_PORTAL,
-	FSL_OS_MOD_AIOP_RC,    /**< AIOP root container from DPL */
-
-	FSL_OS_MOD_LAYOUT, /* TODO - review *//**< layout */
-
-	FSL_OS_MOD_DUMMY_LAST
+/**************************************************************************//**
+ @Description   Platform application parameters structure
+*//***************************************************************************/
+struct platform_app_params {
+	uint16_t dpni_num_buffs;	/**< number of buffers for dpni pool*/
+	uint16_t dpni_buff_size;	/**< size of buffers for dpni pool*/
+	uint16_t dpni_drv_alignment;	/**< dpni pool buffers alignment*/
+	uint16_t app_arr_size;		/**< Maximal size of app init array */
 };
 
 /** @} */ /* end of ls2085a_g group */
 
-/* AIOP Peripherals Offset in AIOP memory map */
-#define AIOP_PERIPHERALS_OFF            0X2000000
 
-/* AIOP Profile SRAM offset */
-#define AIOP_STORAGE_PROFILE_OFF        0x30000
-/* Offsets relative to CCSR base */
-#define SOC_PERIPH_OFF_AIOP_WRKS        0x1d000
-#define SOC_PERIPH_OFF_AIOP_TILE        0x00080000
-#define SOC_PERIPH_OFF_AIOP_CMGW        0x0
-#define SOC_PERIPH_OFF_DCSR             0x0100000
 
-#endif /* __FSL_SOC_AIOP_SPEC_H */
+#endif /* __FSL_PLATFORM_AIOP_SPEC_H */
+
