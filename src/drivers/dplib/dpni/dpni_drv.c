@@ -566,7 +566,7 @@ int dpni_drv_probe(struct mc_dprc *dprc,
 		/*MC dpni id found in EPID table*/
 		if (j == (mc_niid | AIOP_EPID_SET_BY_DPNI)) {
 			/* Replace MC NI ID with AIOP NI ID */
-			sl_pr_debug("Found EPID[%d].EP_PM = %d\n", i, j);
+			sl_pr_debug("Found EPID[%d].EP_PM = %d\n", i, (j & ~(AIOP_EPID_SET_BY_DPNI)));
 			iowrite32_ccsr(aiop_niid, &wrks_addr->ep_pm);
 
 			ep_osc = ioread32_ccsr(&wrks_addr->ep_osc);
