@@ -517,13 +517,15 @@ static int app_dpni_event_added_cb(
 
 	err = dpni_drv_get_connected_ni(id, type, &ni2, &state);
 	fsl_os_print("Given OBJ ID: %d, Type %s, Con. NI: %d, Stat: %d\n",(int)id,type,(int)ni2,(int)state);
-	if(err){
-		fsl_os_print("Error: dpni_drv_get_connected_obj: error %d\n",err);
-		test_error |= 0x01;
-	}
-	if(ni != ni2){
-		fsl_os_print("NI's are not the same %d,%d\n",(int)ni,(int)ni2);
-		test_error |= 0x01;
+	if(!sys.runtime_flag){ /*In runtime we create a dpni which is not connected to any object*/
+		if(err){
+			fsl_os_print("Error: dpni_drv_get_connected_obj: error %d\n",err);
+			test_error |= 0x01;
+		}
+		if(ni != ni2){
+			fsl_os_print("NI's are not the same %d,%d\n",(int)ni,(int)ni2);
+			test_error |= 0x01;
+		}
 	}
 
 	layout.options = DPNI_DRV_BUF_LAYOUT_OPT_DATA_HEAD_ROOM |
