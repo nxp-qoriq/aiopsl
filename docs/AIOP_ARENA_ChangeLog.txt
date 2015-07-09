@@ -1,3 +1,11 @@
+dpni_drv.c/fsl_dpni_drv.h: Added new API to get connected object for given NI and to get NI for given object ID and type.
+                           int dpni_drv_get_connected_obj(const uint16_t aiop_niid, int *id, char type[16], int *state);
+                           int dpni_drv_get_connected_ni(const int id, const char type[16], uint16_t *aiop_niid, int *state);
+                           The following functions are deprecated and will be removed in the next release (Use functions above instead):
+                           int dpni_drv_get_connected_dpni_id(const uint16_t aiop_niid, uint16_t *dpni_id, int *state);
+                           int dpni_drv_get_connected_aiop_ni_id(const uint16_t dpni_id, uint16_t *aiop_niid, int *state);
+                           CQ: ENGR00362002
+
 dpni_drv.c: Fix for nested mutex calls when calling functions: dpni_drv_get_dpni_id() and dpni_drv_get_ni_id() - ENGR00361988
 dpni_drv.c: Added fix to distinguish between DPNI and NI (AIOPSL) ids in EPID table during the probe - ENGR00362157.
 
