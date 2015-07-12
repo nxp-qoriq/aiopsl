@@ -276,7 +276,7 @@ int platform_clear_serdes_loopback(fsl_handle_t    h_platform,
 
  @{
 *//***************************************************************************/
-#include "inc/fsl_sys.h"
+#include "fsl_sys.h"
 
 /**************************************************************************//**
  @Function      sys_get_platform_clk

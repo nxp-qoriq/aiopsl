@@ -25,7 +25,7 @@
  */
 
 #include "common/fsl_string.h"
-#include "inc/fsl_sys.h"
+#include "fsl_sys.h"
 #include "fsl_dbg.h"
 #include "apps.h"
 

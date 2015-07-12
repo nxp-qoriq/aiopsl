@@ -32,7 +32,7 @@
 
 //#define ENABLE_DEBUG_ENTRIES
 
-#include "inc/fsl_gen.h"
+#include "fsl_gen.h"
 #include "common/fsl_string.h"
 #include "kernel/fsl_spinlock.h"
 #include "fsl_slob.h"

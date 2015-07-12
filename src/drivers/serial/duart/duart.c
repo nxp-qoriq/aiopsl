@@ -35,7 +35,7 @@
 #include "common/fsl_string.h"
 #include "fsl_dbg.h"
 #include "fsl_io.h"
-#include "inc/fsl_gen.h"
+#include "fsl_gen.h"
 
 #include "duart.h"
 #ifdef AIOP

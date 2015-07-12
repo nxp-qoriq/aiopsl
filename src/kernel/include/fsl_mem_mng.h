@@ -29,7 +29,7 @@
 
 #include "common/types.h"
 #include "fsl_errors.h"
-#include "inc/mem_mng_util.h"
+#include "mem_mng_util.h"
 
 
 /**************************************************************************//**

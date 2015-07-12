@@ -82,11 +82,6 @@ aiop_sl		</project>
 	</natures>
 	<linkedResources>
 		<link>
-			<name>README.txt</name>
-			<type>1</type>
-			<locationURI>PARENT-5-PROJECT_LOC/apps/app_process_packet/README.txt</locationURI>
-		</link>
-		<link>
 			<name>lcf</name>
 			<type>2</type>
 			<locationURI>virtual:/virtual</locationURI>
@@ -102,6 +97,11 @@ aiop_sl		</project>
 			<locationURI>PARENT-3-PROJECT_LOC/cw_files/aiop_link.lcf</locationURI>
 		</link>
 		<link>
+			<name>src/README.txt</name>
+			<type>1</type>
+			<locationURI>PARENT-5-PROJECT_LOC/apps/app_process_packet/README.txt</locationURI>
+		</link>
+		<link>
 			<name>src/app_process_packet.c</name>
 			<type>1</type>
 			<locationURI>PARENT-5-PROJECT_LOC/apps/app_process_packet/app_process_packet.c</locationURI>
@@ -115,6 +115,11 @@ aiop_sl		</project>
 			<name>src/apps.h</name>
 			<type>1</type>
 			<locationURI>PARENT-5-PROJECT_LOC/apps/app_process_packet/apps.h</locationURI>
+		</link>
+		<link>
+			<name>src/apps_arch.h</name>
+			<type>1</type>
+			<locationURI>PARENT-5-PROJECT_LOC/apps/app_process_packet/ls1088a/apps_arch.h</locationURI>
 		</link>
 		<link>
 			<name>src/config.c</name>

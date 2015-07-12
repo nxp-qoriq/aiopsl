@@ -27,7 +27,7 @@
 #ifndef __AIOP_COMMON_H
 #define __AIOP_COMMON_H
 
-#include "inc/fsl_gen.h"
+#include "fsl_gen.h"
 
 #define AIOP_EP_TABLE_NUM_OF_ENTRIES	1024
 #define AIOP_INIT_DATA_FIXED_ADDR	(uint8_t *)0x01000000

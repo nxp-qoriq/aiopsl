@@ -36,7 +36,7 @@
 #include "fsl_smp.h"
 #include "platform.h"
 #include "fsl_malloc.h"
-#include "inc/fsl_sys.h"
+#include "fsl_sys.h"
 #include "fsl_log.h"
 #include "mem_mng.h"
 

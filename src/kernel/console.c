@@ -25,11 +25,11 @@
  */
 
 #include "common/types.h"
-#include "inc/fsl_gen.h"
+#include "fsl_gen.h"
 #include "kernel/fsl_spinlock.h"
 #include "common/fsl_string.h"
 #include "fsl_malloc.h"
-#include "inc/console.h"
+#include "console.h"
 #include "fsl_log.h"
 #include "sys.h"
 

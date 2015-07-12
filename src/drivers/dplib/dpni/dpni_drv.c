@@ -34,7 +34,7 @@
 #include "dplib/fsl_fdma.h"
 #include "dplib/fsl_parser.h"
 #include "platform.h"
-#include "inc/fsl_sys.h"
+#include "fsl_sys.h"
 #include "fsl_dprc.h"
 #include "fsl_dpbp.h"
 #include "fsl_bman.h"

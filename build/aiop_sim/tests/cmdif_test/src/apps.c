@@ -25,7 +25,7 @@
  */
 
 #include "common/fsl_string.h"
-#include "inc/fsl_sys.h"
+#include "fsl_sys.h"
 #include "fsl_dbg.h"
 #include "apps.h"
 #include "fsl_dprc.h"
@@ -38,8 +38,6 @@
 #include "fsl_string.h"
 #include "fsl_icontext.h"
 #include "fsl_spinlock.h"
-
-#define DPNI_EVM_TEST
 
 int app_evm_register();
 

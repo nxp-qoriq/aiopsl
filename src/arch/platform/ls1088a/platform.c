@@ -30,13 +30,13 @@
 #include "common/fsl_string.h"
 #include "aiop_common.h"
 #include "fsl_duart.h"
-#include "inc/console.h"
+#include "console.h"
 #include "platform.h"
 #include "fsl_malloc.h"
 #include "fsl_smp.h"
 #include "fsl_io_ccsr.h"
 #include "fsl_mem_mng.h"
-#include "inc/fsl_sys.h"
+#include "fsl_sys.h"
 #include "fsl_mem_mng.h"
 
 #define __ERR_MODULE__  MODULE_SOC_PLATFORM

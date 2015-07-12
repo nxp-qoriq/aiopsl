@@ -30,7 +30,7 @@
 #include "aiop_common.h"
 #include "fsl_io.h"
 #include "fsl_smp.h"
-#include "inc/console.h"
+#include "console.h"
 #include "fsl_mem_mng.h"
 #include "sys.h"
 #include "fsl_log.h"

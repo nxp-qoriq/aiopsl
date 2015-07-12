@@ -36,7 +36,7 @@
 #define __FSL_SYS_MP_H
 
 #include "common/types.h"
-#include "inc/fsl_core.h"
+#include "fsl_core.h"
 
 
 /**************************************************************************//**

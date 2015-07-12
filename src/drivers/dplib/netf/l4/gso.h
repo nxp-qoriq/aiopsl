@@ -33,7 +33,7 @@
 #define __GSO_H
 
 #include "dplib/fsl_gso.h"
-#include "inc/fsl_gen.h"
+#include "fsl_gen.h"
 
 
 /** \addtogroup FSL_AIOP_GSO
