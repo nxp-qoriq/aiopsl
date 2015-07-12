@@ -115,6 +115,6 @@ EXCEPTION_HANDLERS   = ADDR(exception_handlers);
 TLS_SECTION_END_ADDR = ADDR(tls)+SIZEOF(tls);
 
 /* Definitions for required space of AIOP image in DDR */
-/* Used for initialization of aiop_app_init_info dp_ddr size */
+/* Used for initialization of aiop_app_init_info ddr size */
 AIOP_DDR_START       = ADDR(exception_handlers);
 AIOP_DDR_END         = _heap_end;
