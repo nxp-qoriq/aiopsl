@@ -32,7 +32,7 @@
 #ifndef __MEM_MNG_H
 #define __MEM_MNG_H
 
-#include "inc/mem_mng_util.h"
+#include "mem_mng_util.h"
 #include "fsl_list.h"
 #include "buffer_pool.h"
 

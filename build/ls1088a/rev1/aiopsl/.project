@@ -290,21 +290,6 @@
 			<locationURI>PARENT-4-PROJECT_LOC/src/kernel/exception_handler.c</locationURI>
 		</link>
 		<link>
-			<name>aiop_sl/kernel/fsl_gen.h</name>
-			<type>1</type>
-			<locationURI>PARENT-4-PROJECT_LOC/src/kernel/inc/fsl_gen.h</locationURI>
-		</link>
-		<link>
-			<name>aiop_sl/kernel/fsl_io_ccsr.h</name>
-			<type>1</type>
-			<locationURI>PARENT-4-PROJECT_LOC/src/kernel/fsl_io_ccsr.h</locationURI>
-		</link>
-		<link>
-			<name>aiop_sl/kernel/fsl_log.h</name>
-			<type>1</type>
-			<locationURI>PARENT-4-PROJECT_LOC/src/kernel/fsl_log.h</locationURI>
-		</link>
-		<link>
 			<name>aiop_sl/kernel/icontext.c</name>
 			<type>1</type>
 			<locationURI>PARENT-4-PROJECT_LOC/src/kernel/icontext.c</locationURI>
@@ -315,7 +300,7 @@
 			<locationURI>PARENT-4-PROJECT_LOC/src/kernel/icontext.h</locationURI>
 		</link>
 		<link>
-			<name>aiop_sl/kernel/inc</name>
+			<name>aiop_sl/kernel/include</name>
 			<type>2</type>
 			<locationURI>virtual:/virtual</locationURI>
 		</link>
@@ -830,79 +815,89 @@
 			<locationURI>PARENT-4-PROJECT_LOC/src/include/net/fsl_net.h</locationURI>
 		</link>
 		<link>
-			<name>aiop_sl/kernel/inc/console.h</name>
+			<name>aiop_sl/kernel/include/console.h</name>
 			<type>1</type>
-			<locationURI>PARENT-4-PROJECT_LOC/src/kernel/inc/console.h</locationURI>
+			<locationURI>PARENT-4-PROJECT_LOC/src/kernel/include/console.h</locationURI>
 		</link>
 		<link>
-			<name>aiop_sl/kernel/inc/dbg.h</name>
+			<name>aiop_sl/kernel/include/dbg.h</name>
 			<type>1</type>
-			<locationURI>PARENT-4-PROJECT_LOC/src/kernel/inc/dbg.h</locationURI>
+			<locationURI>PARENT-4-PROJECT_LOC/src/kernel/include/dbg.h</locationURI>
 		</link>
 		<link>
-			<name>aiop_sl/kernel/inc/fsl_cmdif_flib_c.h</name>
+			<name>aiop_sl/kernel/include/fsl_cmdif_flib_c.h</name>
 			<type>1</type>
-			<locationURI>PARENT-4-PROJECT_LOC/src/kernel/inc/fsl_cmdif_flib_c.h</locationURI>
+			<locationURI>PARENT-4-PROJECT_LOC/src/kernel/include/fsl_cmdif_flib_c.h</locationURI>
 		</link>
 		<link>
-			<name>aiop_sl/kernel/inc/fsl_cmdif_flib_fd.h</name>
+			<name>aiop_sl/kernel/include/fsl_cmdif_flib_fd.h</name>
 			<type>1</type>
-			<locationURI>PARENT-4-PROJECT_LOC/src/kernel/inc/fsl_cmdif_flib_fd.h</locationURI>
+			<locationURI>PARENT-4-PROJECT_LOC/src/kernel/include/fsl_cmdif_flib_fd.h</locationURI>
 		</link>
 		<link>
-			<name>aiop_sl/kernel/inc/fsl_cmdif_flib_s.h</name>
+			<name>aiop_sl/kernel/include/fsl_cmdif_flib_s.h</name>
 			<type>1</type>
-			<locationURI>PARENT-4-PROJECT_LOC/src/kernel/inc/fsl_cmdif_flib_s.h</locationURI>
+			<locationURI>PARENT-4-PROJECT_LOC/src/kernel/include/fsl_cmdif_flib_s.h</locationURI>
 		</link>
 		<link>
-			<name>aiop_sl/kernel/inc/fsl_core.h</name>
+			<name>aiop_sl/kernel/include/fsl_core.h</name>
 			<type>1</type>
-			<locationURI>PARENT-4-PROJECT_LOC/src/kernel/inc/fsl_core.h</locationURI>
+			<locationURI>PARENT-4-PROJECT_LOC/src/kernel/include/fsl_core.h</locationURI>
 		</link>
 		<link>
-			<name>aiop_sl/kernel/inc/fsl_dpci_mng.h</name>
+			<name>aiop_sl/kernel/include/fsl_gen.h</name>
 			<type>1</type>
-			<locationURI>PARENT-4-PROJECT_LOC/src/drivers/dplib/include/fsl_dpci_mng.h</locationURI>
+			<locationURI>PARENT-4-PROJECT_LOC/src/kernel/include/fsl_gen.h</locationURI>
 		</link>
 		<link>
-			<name>aiop_sl/kernel/inc/fsl_mem_mng.h</name>
+			<name>aiop_sl/kernel/include/fsl_io_ccsr.h</name>
 			<type>1</type>
-			<locationURI>PARENT-4-PROJECT_LOC/src/kernel/inc/fsl_mem_mng.h</locationURI>
+			<locationURI>PARENT-4-PROJECT_LOC/src/kernel/include/fsl_io_ccsr.h</locationURI>
 		</link>
 		<link>
-			<name>aiop_sl/kernel/inc/fsl_sl_cmd.h</name>
+			<name>aiop_sl/kernel/include/fsl_log.h</name>
 			<type>1</type>
-			<locationURI>PARENT-4-PROJECT_LOC/src/kernel/inc/fsl_sl_cmd.h</locationURI>
+			<locationURI>PARENT-4-PROJECT_LOC/src/kernel/include/fsl_log.h</locationURI>
 		</link>
 		<link>
-			<name>aiop_sl/kernel/inc/fsl_sl_dbg.h</name>
+			<name>aiop_sl/kernel/include/fsl_mem_mng.h</name>
 			<type>1</type>
-			<locationURI>PARENT-4-PROJECT_LOC/src/kernel/inc/fsl_sl_dbg.h</locationURI>
+			<locationURI>PARENT-4-PROJECT_LOC/src/kernel/include/fsl_mem_mng.h</locationURI>
 		</link>
 		<link>
-			<name>aiop_sl/kernel/inc/fsl_sl_evmng.h</name>
+			<name>aiop_sl/kernel/include/fsl_sl_cmd.h</name>
 			<type>1</type>
-			<locationURI>PARENT-4-PROJECT_LOC/src/kernel/inc/fsl_sl_evmng.h</locationURI>
+			<locationURI>PARENT-4-PROJECT_LOC/src/kernel/include/fsl_sl_cmd.h</locationURI>
 		</link>
 		<link>
-			<name>aiop_sl/kernel/inc/fsl_sl_slab.h</name>
+			<name>aiop_sl/kernel/include/fsl_sl_dbg.h</name>
 			<type>1</type>
-			<locationURI>PARENT-4-PROJECT_LOC/src/kernel/inc/fsl_sl_slab.h</locationURI>
+			<locationURI>PARENT-4-PROJECT_LOC/src/kernel/include/fsl_sl_dbg.h</locationURI>
 		</link>
 		<link>
-			<name>aiop_sl/kernel/inc/fsl_smp.h</name>
+			<name>aiop_sl/kernel/include/fsl_sl_evmng.h</name>
 			<type>1</type>
-			<locationURI>PARENT-4-PROJECT_LOC/src/kernel/inc/fsl_smp.h</locationURI>
+			<locationURI>PARENT-4-PROJECT_LOC/src/kernel/include/fsl_sl_evmng.h</locationURI>
 		</link>
 		<link>
-			<name>aiop_sl/kernel/inc/fsl_sys.h</name>
+			<name>aiop_sl/kernel/include/fsl_sl_slab.h</name>
 			<type>1</type>
-			<locationURI>PARENT-4-PROJECT_LOC/src/kernel/inc/fsl_sys.h</locationURI>
+			<locationURI>PARENT-4-PROJECT_LOC/src/kernel/include/fsl_sl_slab.h</locationURI>
 		</link>
 		<link>
-			<name>aiop_sl/kernel/inc/mem_mng_util.h</name>
+			<name>aiop_sl/kernel/include/fsl_smp.h</name>
 			<type>1</type>
-			<locationURI>PARENT-4-PROJECT_LOC/src/kernel/inc/mem_mng_util.h</locationURI>
+			<locationURI>PARENT-4-PROJECT_LOC/src/kernel/include/fsl_smp.h</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/kernel/include/fsl_sys.h</name>
+			<type>1</type>
+			<locationURI>PARENT-4-PROJECT_LOC/src/kernel/include/fsl_sys.h</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/kernel/include/mem_mng_util.h</name>
+			<type>1</type>
+			<locationURI>PARENT-4-PROJECT_LOC/src/kernel/include/mem_mng_util.h</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/kernel/mem_mng/buffer_pool.c</name>

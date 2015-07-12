@@ -33,8 +33,8 @@
 #ifndef __FSL_DBG_H
 #define __FSL_DBG_H
 
-#include "inc/dbg.h"
-#include "inc/fsl_core.h"
+#include "dbg.h"
+#include "fsl_core.h"
 #include "fsl_smp.h"
 #include "fsl_stdio.h"
 

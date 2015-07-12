@@ -44,7 +44,7 @@
 #ifndef __FSL_SWAB_H_
 #define __FSL_SWAB_H_
 #include "common/types.h"
-#include "inc/fsl_core.h"
+#include "fsl_core.h"
 
 /**
  * reverses bytes of each halfword in unsigned int expression to return an

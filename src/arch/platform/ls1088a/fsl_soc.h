@@ -35,7 +35,7 @@
 #define __FSL_SOC_H
 
 #include "common/types.h"
-#include "inc/fsl_gen.h"
+#include "fsl_gen.h"
 
 
 /**************************************************************************//**

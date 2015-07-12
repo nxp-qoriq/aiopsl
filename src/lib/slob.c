@@ -25,7 +25,7 @@
  */
 #include "common/types.h"
 #include "fsl_errors.h"
-#include "inc/fsl_gen.h"
+#include "fsl_gen.h"
 #include "common/fsl_string.h"
 #include "fsl_malloc.h"
 #include "kernel/fsl_spinlock.h"
