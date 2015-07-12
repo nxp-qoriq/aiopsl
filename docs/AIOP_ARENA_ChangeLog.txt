@@ -1,4 +1,3 @@
-
 dpni_drv.c/fsl_dpni_drv.h: Added new API to get connected object for given NI and to get NI for given object ID and type.
                            int dpni_drv_get_connected_obj(const uint16_t aiop_niid, int *id, char type[16], int *state);
                            int dpni_drv_get_connected_ni(const int id, const char type[16], uint16_t *aiop_niid, int *state);
