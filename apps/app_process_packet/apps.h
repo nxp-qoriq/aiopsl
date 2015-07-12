@@ -30,6 +30,11 @@
 @Description   This file contains the AIOP SL user defined setup.
 *//***************************************************************************/
 
+#ifndef __APPS_H
+#define __APPS_H
+
+#include "apps_arch.h"
+
 /**************************************************************************//**
 @Group		app_init	General
 
@@ -53,7 +58,7 @@
 		All the sizes should be aligned to a power of 2.
 @{
 *//***************************************************************************/
-#define APP_MEM_DP_DDR_SIZE	(128 * MEGABYTE)/**< DP DDR size */ 
+#define APP_MEM_DP_DDR_SIZE	ARCH_DP_DDR_SIZE/**< DP DDR size */ 
 #define APP_MEM_PEB_SIZE	(512 * KILOBYTE)/**< PEB size */
 #define APP_MEM_SYS_DDR1_SIZE 	(4 * MEGABYTE)	/**< System DDR size */
 
@@ -106,6 +111,6 @@
 
 /** @} */ /* end of app_dpni */
 
-
+#endif /* __APPS_H */
 
 

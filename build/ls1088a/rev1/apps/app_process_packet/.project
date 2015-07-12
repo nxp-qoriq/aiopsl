@@ -117,6 +117,11 @@ aiop_sl		</project>
 			<locationURI>PARENT-5-PROJECT_LOC/apps/app_process_packet/apps.h</locationURI>
 		</link>
 		<link>
+			<name>src/apps_arch.h</name>
+			<type>1</type>
+			<locationURI>PARENT-5-PROJECT_LOC/apps/app_process_packet/ls1088a/apps_arch.h</locationURI>
+		</link>
+		<link>
 			<name>src/config.c</name>
 			<type>1</type>
 			<locationURI>PARENT-5-PROJECT_LOC/src/arch/platform/ls1088a/config.c</locationURI>
