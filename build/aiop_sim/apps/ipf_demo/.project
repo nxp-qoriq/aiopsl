@@ -114,7 +114,7 @@ aiop_sl		</project>
 		<link>
 			<name>src/config.c</name>
 			<type>1</type>
-			<locationURI>PARENT-4-PROJECT_LOC/src/arch/ppc/platform/ls2085a_aiop/config.c</locationURI>
+			<locationURI>PARENT-4-PROJECT_LOC/src/arch/platform/ls2085a/config.c</locationURI>
 		</link>
 		<link>
 			<name>src/ipf_demo.c</name>

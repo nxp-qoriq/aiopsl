@@ -125,12 +125,12 @@
 			<locationURI>PARENT-1-PROJECT_LOC/cw_files/start_secondary.S</locationURI>
 		</link>
 		<link>
-			<name>aiop_sl/arch/ppc</name>
+			<name>aiop_sl/arch/ls2085a</name>
 			<type>2</type>
 			<locationURI>virtual:/virtual</locationURI>
 		</link>
 		<link>
-			<name>aiop_sl/arch/soc_db</name>
+			<name>aiop_sl/arch/ppc</name>
 			<type>2</type>
 			<locationURI>virtual:/virtual</locationURI>
 		</link>
@@ -455,6 +455,56 @@
 			<locationURI>PARENT-3-PROJECT_LOC/src/lib/slob.h</locationURI>
 		</link>
 		<link>
+			<name>aiop_sl/arch/ls2085a/cmdif.h</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/arch/platform/ls2085a/cmdif.h</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/arch/ls2085a/fsl_mc_cmd.h</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/arch/platform/ls2085a/fsl_mc_cmd.h</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/arch/ls2085a/fsl_soc.h</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/arch/platform/ls2085a/fsl_soc.h</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/arch/ls2085a/fsl_swab.h</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/arch/platform/ls2085a/fsl_swab.h</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/arch/ls2085a/init.c</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/arch/platform/ls2085a/init.c</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/arch/ls2085a/platform.c</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/arch/platform/ls2085a/platform.c</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/arch/ls2085a/platform.h</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/arch/platform/ls2085a/platform.h</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/arch/ls2085a/platform_aiop_spec.h</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/arch/platform/ls2085a/platform_aiop_spec.h</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/arch/ls2085a/rev1</name>
+			<type>2</type>
+			<locationURI>virtual:/virtual</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/arch/ls2085a/rev2</name>
+			<type>2</type>
+			<locationURI>virtual:/virtual</locationURI>
+		</link>
+		<link>
 			<name>aiop_sl/arch/ppc/booke.S</name>
 			<type>1</type>
 			<locationURI>PARENT-3-PROJECT_LOC/src/arch/ppc/booke.S</locationURI>
@@ -483,21 +533,6 @@
 			<name>aiop_sl/arch/ppc/include</name>
 			<type>2</type>
 			<locationURI>virtual:/virtual</locationURI>
-		</link>
-		<link>
-			<name>aiop_sl/arch/ppc/platform</name>
-			<type>2</type>
-			<locationURI>virtual:/virtual</locationURI>
-		</link>
-		<link>
-			<name>aiop_sl/arch/soc_db/fsl_soc.h</name>
-			<type>1</type>
-			<locationURI>PARENT-3-PROJECT_LOC/src/arch/soc_db/fsl_soc.h</locationURI>
-		</link>
-		<link>
-			<name>aiop_sl/arch/soc_db/fsl_soc_spec_ls2085a.h</name>
-			<type>1</type>
-			<locationURI>PARENT-3-PROJECT_LOC/src/arch/soc_db/fsl_soc_spec_ls2085a.h</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/drivers/dplib/arch</name>
@@ -880,6 +915,16 @@
 			<locationURI>PARENT-3-PROJECT_LOC/src/kernel/mem_mng/mem_mng.h</locationURI>
 		</link>
 		<link>
+			<name>aiop_sl/arch/ls2085a/rev1/cmdif_rev.h</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/arch/platform/ls2085a/rev1/cmdif_rev.h</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/arch/ls2085a/rev2/cmdif_rev.h</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/arch/platform/ls2085a/rev2/cmdif_rev.h</locationURI>
+		</link>
+		<link>
 			<name>aiop_sl/arch/ppc/include/fsl_core_booke.h</name>
 			<type>1</type>
 			<locationURI>PARENT-3-PROJECT_LOC/src/arch/ppc/include/fsl_core_booke.h</locationURI>
@@ -893,11 +938,6 @@
 			<name>aiop_sl/arch/ppc/include/fsl_core_ppc.h</name>
 			<type>1</type>
 			<locationURI>PARENT-3-PROJECT_LOC/src/arch/ppc/include/fsl_core_ppc.h</locationURI>
-		</link>
-		<link>
-			<name>aiop_sl/arch/ppc/platform/ls2085a_aiop</name>
-			<type>2</type>
-			<locationURI>virtual:/virtual</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/drivers/dplib/arch/accel</name>
@@ -1133,46 +1173,6 @@
 			<name>aiop_sl/drivers/serial/include/fsl_duart.h</name>
 			<type>1</type>
 			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/serial/include/fsl_duart.h</locationURI>
-		</link>
-		<link>
-			<name>aiop_sl/arch/ppc/platform/ls2085a_aiop/cmdif.h</name>
-			<type>1</type>
-			<locationURI>PARENT-3-PROJECT_LOC/src/arch/ppc/platform/ls2085a_aiop/cmdif.h</locationURI>
-		</link>
-		<link>
-			<name>aiop_sl/arch/ppc/platform/ls2085a_aiop/fsl_mc_cmd.h</name>
-			<type>1</type>
-			<locationURI>PARENT-3-PROJECT_LOC/src/arch/ppc/platform/ls2085a_aiop/fsl_mc_cmd.h</locationURI>
-		</link>
-		<link>
-			<name>aiop_sl/arch/ppc/platform/ls2085a_aiop/fsl_soc_aiop_spec.h</name>
-			<type>1</type>
-			<locationURI>PARENT-3-PROJECT_LOC/src/arch/ppc/platform/ls2085a_aiop/fsl_soc_aiop_spec.h</locationURI>
-		</link>
-		<link>
-			<name>aiop_sl/arch/ppc/platform/ls2085a_aiop/fsl_swab.h</name>
-			<type>1</type>
-			<locationURI>PARENT-3-PROJECT_LOC/src/arch/ppc/platform/ls2085a_aiop/fsl_swab.h</locationURI>
-		</link>
-		<link>
-			<name>aiop_sl/arch/ppc/platform/ls2085a_aiop/init.c</name>
-			<type>1</type>
-			<locationURI>PARENT-3-PROJECT_LOC/src/arch/ppc/platform/ls2085a_aiop/init.c</locationURI>
-		</link>
-		<link>
-			<name>aiop_sl/arch/ppc/platform/ls2085a_aiop/platform.c</name>
-			<type>1</type>
-			<locationURI>PARENT-3-PROJECT_LOC/src/arch/ppc/platform/ls2085a_aiop/platform.c</locationURI>
-		</link>
-		<link>
-			<name>aiop_sl/arch/ppc/platform/ls2085a_aiop/platform.h</name>
-			<type>1</type>
-			<locationURI>PARENT-3-PROJECT_LOC/src/arch/ppc/platform/ls2085a_aiop/platform.h</locationURI>
-		</link>
-		<link>
-			<name>aiop_sl/arch/ppc/platform/ls2085a_aiop/platform_aiop_spec.h</name>
-			<type>1</type>
-			<locationURI>PARENT-3-PROJECT_LOC/src/arch/ppc/platform/ls2085a_aiop/platform_aiop_spec.h</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/drivers/dplib/arch/accel/cdma.c</name>

@@ -24,7 +24,7 @@ aiop_sl		</project>
 				</dictionary>
 				<dictionary>
 					<key>org.eclipse.cdt.make.core.buildArguments</key>
-					<value></value>
+					<value>-j8</value>
 				</dictionary>
 				<dictionary>
 					<key>org.eclipse.cdt.make.core.buildCommand</key>
@@ -119,7 +119,7 @@ aiop_sl		</project>
 		<link>
 			<name>src/config.c</name>
 			<type>1</type>
-			<locationURI>PARENT-4-PROJECT_LOC/src/arch/ppc/platform/ls2085a_aiop/config.c</locationURI>
+			<locationURI>PARENT-4-PROJECT_LOC/src/arch/platform/ls2085a/config.c</locationURI>
 		</link>
 	</linkedResources>
 </projectDescription>
