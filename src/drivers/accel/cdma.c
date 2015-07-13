@@ -33,7 +33,7 @@
 #include "general.h"
 #include "common/types.h"
 
-#include "dplib/fsl_cdma.h"
+#include "fsl_cdma.h"
 
 
 int cdma_acquire_context_memory(

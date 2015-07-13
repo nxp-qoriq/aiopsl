@@ -22,7 +22,7 @@
 #include "common/fsl_stdlib.h"
 #include "common/fsl_stdio.h"
 #if defined(AIOP)
-#include "dplib/fsl_cdma.h"
+#include "fsl_cdma.h"
 #endif
 #include "fsl_dbg.h"
 #include "fsl_endian.h"

@@ -38,8 +38,8 @@
 #define __FSL_LIB_L4_H
 
 #include "common/types.h"
-#include "dplib/fsl_gso.h"
-#include "dplib/fsl_gro.h"
+#include "fsl_gso.h"
+#include "fsl_gro.h"
 
 
 /**************************************************************************//**

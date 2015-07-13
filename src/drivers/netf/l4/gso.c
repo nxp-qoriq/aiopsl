@@ -31,15 +31,15 @@
 
 *//***************************************************************************/
 
-#include "dplib/fsl_gso.h"
+#include "fsl_gso.h"
 #include "gso.h"
 #include "general.h"
-#include "net/fsl_net.h"
-#include "dplib/fsl_fdma.h"
-#include "dplib/fsl_parser.h"
-#include "dplib/fsl_l4.h"
+#include "fsl_net.h"
+#include "fsl_fdma.h"
+#include "fsl_parser.h"
+#include "fsl_l4.h"
 #include "checksum.h"
-#include "common/fsl_stdlib.h"
+#include "fsl_stdlib.h"
 ////////#include "gro.h"
 
 extern __TASK struct aiop_default_task_params default_task_params;

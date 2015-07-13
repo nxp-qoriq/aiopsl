@@ -37,7 +37,7 @@
 #define __TABLE_H
 
 #include "general.h"
-#include "dplib/fsl_table.h"
+#include "fsl_table.h"
 
 /**************************************************************************//**
 @Group	TABLE Table (Internal)

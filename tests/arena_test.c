@@ -38,7 +38,7 @@
 #include "fsl_io.h"
 #include "aiop_common.h"
 #include "kernel/fsl_spinlock.h"
-#include "dplib/fsl_parser.h"
+#include "fsl_parser.h"
 #include "fsl_osm.h"
 #include "fsl_dbg.h"
 #include "fsl_evmng.h"
