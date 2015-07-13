@@ -468,7 +468,16 @@ int ipsec_generate_encap_sd(
 		
 	} else {
 	/* Transport Mode Parameters */
-		pdb_options |= (IPSEC_ENC_OPTS_UPDATE_CSUM | IPSEC_ENC_OPTS_INC_IPHDR);
+		/* IPv6, no checksum */
+		if ((params->encparams.options) & IPSEC_PDB_OPTIONS_MASK & 
+				IPSEC_OPTS_ESP_IPVSN) {
+			pdb_options |= IPSEC_ENC_OPTS_INC_IPHDR;
+
+		} else {
+		/* IPv4, checksum update */
+			pdb_options |= (IPSEC_ENC_OPTS_UPDATE_CSUM | 
+					IPSEC_ENC_OPTS_INC_IPHDR);
+		}
 	}
 
 	/*
@@ -756,12 +765,14 @@ int ipsec_generate_decap_sd(
 		/* If ESP pad checking is not required output frame is only the PDU */
 		if (!(params->flags & IPSEC_FLG_TRANSPORT_PAD_CHECK)) {
 			pdb.options |= (IPSEC_DEC_PDB_OPTIONS_AOFL | 
-					IPSEC_DEC_PDB_OPTIONS_OUTFMT |
-					IPSEC_DEC_OPTS_VERIFY_CSUM);
+					IPSEC_DEC_PDB_OPTIONS_OUTFMT);
+		}
+		/*  IPv4, checksum update (in IPv6 there is no checksum) */
+		if (!((params->encparams.options) & IPSEC_PDB_OPTIONS_MASK & 
+				IPSEC_OPTS_ESP_IPVSN)) {
+			pdb.options |= IPSEC_DEC_OPTS_VERIFY_CSUM;
 		}
 	}
-	
-	//pdb.options |= (16<<8);
 	
 	/*
 	3 	OUT_FMT 	Output Frame format:
