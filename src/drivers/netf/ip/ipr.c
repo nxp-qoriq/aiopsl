@@ -46,7 +46,7 @@
 #include "ipr.h"
 #include "fsl_cdma.h"
 #include "ip.h"
-#include "fsl_malloc.h"
+#include "fsl_platform.h"
 #include "fsl_sl_dpni_drv.h"
 
 /* For wrapper functions */
@@ -437,27 +437,37 @@ int ipr_reassemble(ipr_instance_handle_t instance_handle)
 		
 		if (sr_status == TABLE_STATUS_SUCCESS) {
 			/* Hit */
-			if (osm_status == NO_BYPASS_OSM) {
-				/* create nested per reassembled frame */
+			
+			/* create nested per reassembled frame 
+			 * Also serve as mutex for Timeout */
+			if ((osm_status == NO_BYPASS_OSM) ||
+					(osm_status == START_CONCURRENT)) {
+				/* release parent to concurrent */
 				osm_scope_enter_to_exclusive_with_new_scope_id(
 						  (uint32_t)rfdc_ext_addr);
 			}
-			/* read and lock RFDC */
-			cdma_read_with_mutex_wrp(rfdc_ext_addr,
-					  CDMA_PREDMA_MUTEX_WRITE_LOCK,
-					  &rfdc,
+			else {
+			      /* Next step is needed only for mutex with 
+			       * Timeout.
+			       * Doesn't release parent to concurrent */
+			     osm_scope_enter(OSM_SCOPE_ENTER_CHILD_TO_EXCLUSIVE,
+					     (uint32_t)rfdc_ext_addr);
+			}				
+			
+			/* read RFDC */
+			cdma_read_wrp(&rfdc,
+				      rfdc_ext_addr,
 					  RFDC_SIZE);
 
 			if (!(rfdc.status & RFDC_VALID)) {
 				move_to_correct_ordering_scope2(osm_status);
-				/* CDMA write, unlock, dec ref_cnt and release
+				/* CDMA write, dec ref_cnt and release
 				 * if ref_cnt=0.
 				 * Error is not checked since no error
 				 * can't be returned*/
 				cdma_access_context_memory_wrp(
 				rfdc_ext_addr,
-				CDMA_ACCESS_CONTEXT_MEM_DEC_REFCOUNT_AND_REL |
-				CDMA_ACCESS_CONTEXT_MEM_RM_BIT,
+				CDMA_ACCESS_CONTEXT_MEM_DEC_REFCOUNT_AND_REL,
 				NULL,
 				&rfdc,
 				CDMA_ACCESS_CONTEXT_MEM_DMA_WRITE
@@ -486,11 +496,10 @@ int ipr_reassemble(ipr_instance_handle_t instance_handle)
 	}
 
 	if (rfdc.num_of_frags == MAX_NUM_OF_FRAGS) {
-		/* Release RFDC, unlock, dec ref_cnt, release if 0 */
+		/* Release RFDC, dec ref_cnt, release if 0 */
 		cdma_access_context_memory_wrp(
 				  rfdc_ext_addr,
-				  CDMA_ACCESS_CONTEXT_MEM_DEC_REFCOUNT_AND_REL |
-				  CDMA_ACCESS_CONTEXT_MEM_RM_BIT,
+				  CDMA_ACCESS_CONTEXT_MEM_DEC_REFCOUNT_AND_REL,
 				  NULL,
 				  &rfdc,
 				  CDMA_ACCESS_CONTEXT_NO_MEM_DMA |
@@ -511,7 +520,6 @@ int ipr_reassemble(ipr_instance_handle_t instance_handle)
 						      iphdr_ptr, frame_is_ipv4);
 	switch (status_insert_to_LL) {
 	case FRAG_OK_REASS_NOT_COMPL:
-		move_to_correct_ordering_scope2(osm_status);
 		if (rfdc.num_of_frags != 1) {
 			/* other fragments than the opening one */
 			if(frame_is_ipv4) {
@@ -561,11 +569,17 @@ int ipr_reassemble(ipr_instance_handle_t instance_handle)
 							 __LINE__,ENOSPC_TIMER);
 			}
 		}
-		/* Write and release updated 64 first bytes of RFDC */
-		cdma_write_release_lock_and_decrement(
+		/* Write updated 64 first bytes of RFDC */
+		cdma_access_context_memory_wrp(
 				       rfdc_ext_addr,
+				       CDMA_ACCESS_CONTEXT_MEM_DEC_REFCOUNT_AND_REL,
+				       NULL,
 				       &rfdc,
-				       RFDC_SIZE);
+				       CDMA_ACCESS_CONTEXT_MEM_DMA_WRITE | RFDC_SIZE,
+				       (uint32_t *)REF_COUNT_ADDR_DUMMY);
+
+		move_to_correct_ordering_scope2(osm_status);
+
 		/* Increment no of valid fragments in extended
 		 * statistics data structure*/
 		ipr_stats_update(&instance_params,
@@ -582,12 +596,16 @@ int ipr_reassemble(ipr_instance_handle_t instance_handle)
 		break;
 	case MALFORMED_FRAG:
 		/* duplicate, overlap, or non-conform fragment */
-		/* Write and release updated 64 first bytes of RFDC */
-		/* RFDC is written for the case the opening frag is malformed */
-		cdma_write_release_lock_and_decrement(
+		/* Write updated 64 first bytes of RFDC */
+		/* RFDC is written in case the opening frag is malformed */
+		if(rfdc.num_of_frags == 0)
+			cdma_access_context_memory_wrp(
 				       rfdc_ext_addr,
+				       CDMA_ACCESS_CONTEXT_MEM_DEC_REFCOUNT_AND_REL,
+				       NULL,
 				       &rfdc,
-				       RFDC_SIZE);
+				       CDMA_ACCESS_CONTEXT_MEM_DMA_WRITE | RFDC_SIZE,
+				       (uint32_t *)REF_COUNT_ADDR_DUMMY);
 
 		/* Increment no of malformed frames in extended
 		 * statistics data structure*/
@@ -620,11 +638,10 @@ int ipr_reassemble(ipr_instance_handle_t instance_handle)
 	/* DEBUG : check ENAVAIL */
 	if(sr_status != SUCCESS) {
 		/* Write and release updated 64 first bytes of RFDC,
-		 * unlock, dec ref_cnt, release if 0 */
+		 * dec ref_cnt, release if 0 */
 		cdma_access_context_memory_wrp(
 				  rfdc_ext_addr,
-				  CDMA_ACCESS_CONTEXT_MEM_DEC_REFCOUNT_AND_REL |
-				  CDMA_ACCESS_CONTEXT_MEM_RM_BIT,
+				  CDMA_ACCESS_CONTEXT_MEM_DEC_REFCOUNT_AND_REL,
 				  NULL,
 				  &rfdc,
 				  CDMA_ACCESS_CONTEXT_MEM_DMA_WRITE |
@@ -665,12 +682,11 @@ int ipr_reassemble(ipr_instance_handle_t instance_handle)
 		status = ipv6_header_update_and_l4_validation(&rfdc);
 
 	/* Write and release updated 64 first bytes of RFDC */
-	/* CDMA write, unlock, dec ref_cnt and release if
+	/* CDMA write, dec ref_cnt and release if
 	 * ref_cnt=0 */
 	cdma_access_context_memory_wrp(
 				  rfdc_ext_addr,
-				  CDMA_ACCESS_CONTEXT_MEM_DEC_REFCOUNT_AND_REL |
-				  CDMA_ACCESS_CONTEXT_MEM_RM_BIT,
+				  CDMA_ACCESS_CONTEXT_MEM_DEC_REFCOUNT_AND_REL,
 				  NULL,
 				  &rfdc,
 				  CDMA_ACCESS_CONTEXT_MEM_DMA_WRITE |
@@ -804,10 +820,9 @@ int ipr_miss_handling(struct ipr_instance *instance_params_ptr,
 	if(sr_status)
 		ipr_exception_handler(IPR_REASSEMBLE,__LINE__,
 				      sr_status);
-	/* Lock RFDC + increment reference count*/
+	/* increment reference count*/
 	cdma_access_context_memory_wrp(
 		*rfdc_ext_addr_ptr,
-		CDMA_ACCESS_CONTEXT_MEM_MUTEX_WRITE_LOCK |
 		CDMA_ACCESS_CONTEXT_MEM_INC_REFCOUNT,
 		0,
 		(void *)0,
@@ -872,7 +887,8 @@ int ipr_miss_handling(struct ipr_instance *instance_params_ptr,
 			 1,
 			 STE_MODE_32_BIT_CNTR_SIZE);
 	
-		rfdc_ptr->status = RFDC_VALID | IPV4_FRAME;
+		rfdc_ptr->status = RFDC_VALID | IPV4_FRAME | 
+			 (uint16_t)(default_task_params.current_scope_level<<4);
 	
 	} else {
 	    /* IPv6 */
@@ -924,12 +940,11 @@ int ipr_miss_handling(struct ipr_instance *instance_params_ptr,
 			 1,
 			 STE_MODE_32_BIT_CNTR_SIZE);
 	
-		rfdc_ptr->status = RFDC_VALID | IPV6_FRAME;
+		rfdc_ptr->status = RFDC_VALID | IPV6_FRAME | 
+			  (uint16_t)default_task_params.current_scope_level<<4;
 	
 	}
 	
-	/* todo release struct rule  or call function for
-	* gen+add rule */
 	rfdc_ptr->instance_handle		= instance_handle;
 	rfdc_ptr->expected_total_length	= 0;
 	rfdc_ptr->index_to_out_of_order	= 0;
@@ -963,11 +978,20 @@ int ipr_miss_handling(struct ipr_instance *instance_params_ptr,
 	    ipr_exception_handler(IPR_REASSEMBLE, __LINE__,
 				  ENOSPC_TIMER);
 	
-	if (osm_status == NO_BYPASS_OSM) {
-	/* create nested per reassembled frame */
-	osm_scope_enter_to_exclusive_with_new_scope_id(
-						  (uint32_t)*rfdc_ext_addr_ptr);
+	/* create nested per reassembled frame 
+	 * Also serve as mutex for Timeout */
+	if ((osm_status == NO_BYPASS_OSM) || (osm_status == START_CONCURRENT)) {
+		/* release parent to concurrent */
+		osm_scope_enter_to_exclusive_with_new_scope_id(
+						  	  	  	  	  	  	  (uint32_t)*rfdc_ext_addr_ptr);
 	}
+	else {
+		/* Next step is needed only for mutex with Timeout */
+		/* doesn't release parent to concurrent */
+		osm_scope_enter(OSM_SCOPE_ENTER_CHILD_TO_EXCLUSIVE,
+				(uint32_t)*rfdc_ext_addr_ptr);
+	}
+	
 	return SUCCESS;
 	
 }
@@ -1714,25 +1738,44 @@ void ipr_time_out(uint64_t rfdc_ext_addr, uint16_t opaque_not_used)
 	struct   dpni_drv *dpni_drv;
 	uint16_t rfdc_status;
 	uint32_t flags;
+	uint8_t  enter_number;
 	uint8_t  num_of_frags;
 	uint8_t  first_frag_index;
 	uint8_t  index = 0;
 
 	UNUSED(opaque_not_used);
 
-	/* read and lock RFDC */
-	cdma_read_with_mutex(rfdc_ext_addr,
-			     CDMA_PREDMA_MUTEX_WRITE_LOCK,
-			     &rfdc,
+	/* read RFDC */
+	cdma_read(&rfdc,
+		  rfdc_ext_addr,
 			     RFDC_SIZE);
 	
-	/* confirm timer expiration */
-	tman_timer_completion_confirmation(rfdc.timer_handle);
-
 	/* read instance parameters */
 	cdma_read(&instance_params,
 		  rfdc.instance_handle,
 		  IPR_INSTANCE_SIZE);
+
+	/* Recover OSM scope */
+	enter_number = (uint8_t)((rfdc.status & SCOPE_LEVEL) >> 4) -
+					default_task_params.current_scope_level ;
+	fsl_os_print("TIME OUT enter number %d\n", enter_number);
+	while(enter_number != 0) {
+		/* Intentionally doesn't relinquish parent automatically */ 
+		osm_scope_enter(OSM_SCOPE_ENTER_CHILD_TO_EXCLUSIVE,
+						(uint32_t)rfdc_ext_addr);
+		enter_number--;
+	}	
+	
+	osm_scope_enter(OSM_SCOPE_ENTER_CHILD_TO_EXCLUSIVE,
+			(uint32_t)rfdc_ext_addr);
+
+	/* confirm timer expiration */
+	tman_timer_completion_confirmation(rfdc.timer_handle);
+	
+	/* Re-read RFDC since it could have changed */
+	cdma_read(&rfdc,
+		  rfdc_ext_addr,
+		  RFDC_SIZE);
 
 	rfdc_status = rfdc.status;
 	
@@ -1792,10 +1835,9 @@ void ipr_time_out(uint64_t rfdc_ext_addr, uint16_t opaque_not_used)
 	num_of_frags = rfdc.num_of_frags;
 	if (num_of_frags == 0) {
 		/* Non-conform frame opened the entry */
-		/* CDMA write, unlock, dec ref_cnt and release if ref_cnt=0 */
+		/* CDMA write, dec ref_cnt and release if ref_cnt=0 */
 		cdma_access_context_memory(rfdc_ext_addr,
-				  CDMA_ACCESS_CONTEXT_MEM_DEC_REFCOUNT_AND_REL |
-				  CDMA_ACCESS_CONTEXT_MEM_RM_BIT,
+				  CDMA_ACCESS_CONTEXT_MEM_DEC_REFCOUNT_AND_REL,
 				  NULL,
 				  &rfdc,
 				  CDMA_ACCESS_CONTEXT_MEM_DMA_WRITE
@@ -1823,10 +1865,9 @@ void ipr_time_out(uint64_t rfdc_ext_addr, uint16_t opaque_not_used)
 	cdma_read((void *) HWC_FD_ADDRESS,
 		   rfdc_ext_addr+START_OF_FDS_LIST+first_frag_index*32,
 		   FD_SIZE);
-	/* CDMA write, unlock, dec ref_cnt and release if ref_cnt=0 */
+	/* CDMA write, dec ref_cnt and release if ref_cnt=0 */
 	cdma_access_context_memory(rfdc_ext_addr,
-				  CDMA_ACCESS_CONTEXT_MEM_DEC_REFCOUNT_AND_REL |
-				  CDMA_ACCESS_CONTEXT_MEM_RM_BIT,
+				  CDMA_ACCESS_CONTEXT_MEM_DEC_REFCOUNT_AND_REL,
 				  NULL,
 				  &rfdc,
 				  CDMA_ACCESS_CONTEXT_MEM_DMA_WRITE
@@ -1854,14 +1895,14 @@ void ipr_time_out(uint64_t rfdc_ext_addr, uint16_t opaque_not_used)
 
 void move_to_correct_ordering_scope2(uint32_t osm_status)
 {
+	/* return to original ordering scope that entered
+	 * the ipr_reassemble function */
+	osm_scope_exit();
 	if (osm_status == 0) {
-		/* return to original ordering scope that entered
-		 * the ipr_reassemble function */
+		/* Tasks which started in concurrent and have 2 free levels */
 		osm_scope_exit();
-		osm_scope_exit();
-	} else if (osm_status & START_CONCURRENT) {
-		osm_scope_relinquish_exclusivity();
 	}
+	
 }
 
 void check_remove_padding()

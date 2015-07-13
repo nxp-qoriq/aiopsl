@@ -72,6 +72,7 @@
 #define FIRST_ARRIVED		0x2000 /* in RFDC status */
 #define RFDC_STATUS_NOT_ECT	0x0004 /* in RFDC status */
 #define RFDC_STATUS_CE		0x0008 /* in RFDC status */
+#define SCOPE_LEVEL		0x0030 /* in RFDC status */
 /*following define includes both cases: pure OOO and OOO_and_IN_ORDER */
 #define OUT_OF_ORDER		0x0001 /* in RFDC status */
 #define ORDER_AND_OOO		0x0002 /* in RFDC status */
@@ -304,11 +305,13 @@ uint32_t closing_with_reordering(struct ipr_rfdc *rfdc_ptr,
 
 inline void move_to_correct_ordering_scope1(uint32_t osm_status)
 {
+	/* return to original ordering scope that entered
+	 * the ipr_reassemble function */
 		if(osm_status == 0) {
-			/* return to original ordering scope that entered
-			 * the ipr_reassemble function */
+			/* Tasks which started in concurrent and have 2 free levels */
 			osm_scope_exit();
 		} else if(osm_status & START_CONCURRENT) {
+			/* Tasks which started in concurrent and hadn't 2 free levels */
 			osm_scope_relinquish_exclusivity();
 		}
 }
