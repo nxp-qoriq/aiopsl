@@ -116,7 +116,7 @@ enum fsl_os_module {
 #define SOC_PERIPH_OFF_SEC_GEN          0x08000000
 #define SOC_PERIPH_OFF_EIOP_IFPS        0x08800000
 
-#define SHARED_RAM_SIZE 256*KILOBYTE
+#define SHARED_RAM_SIZE (128*KILOBYTE)
 
 
 /* Offset of MC portals  relative to MC area base */
