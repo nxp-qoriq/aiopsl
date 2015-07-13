@@ -455,11 +455,6 @@
 			<locationURI>PARENT-3-PROJECT_LOC/src/arch/platform/ls2085a/fsl_soc.h</locationURI>
 		</link>
 		<link>
-			<name>aiop_sl/arch/ls2085a/fsl_swab.h</name>
-			<type>1</type>
-			<locationURI>PARENT-3-PROJECT_LOC/src/arch/platform/ls2085a/fsl_swab.h</locationURI>
-		</link>
-		<link>
 			<name>aiop_sl/arch/ls2085a/init.c</name>
 			<type>1</type>
 			<locationURI>PARENT-3-PROJECT_LOC/src/arch/platform/ls2085a/init.c</locationURI>
@@ -933,6 +928,11 @@
 			<name>aiop_sl/arch/ppc/include/fsl_core_ppc.h</name>
 			<type>1</type>
 			<locationURI>PARENT-3-PROJECT_LOC/src/arch/ppc/include/fsl_core_ppc.h</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/arch/ppc/include/fsl_swab.h</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/arch/ppc/include/fsl_swab.h</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/drivers/dplib/arch/accel</name>
