@@ -31,7 +31,7 @@
 #include "kernel/fsl_spinlock.h"
 #include "fsl_dbg.h"
 #include "platform.h"
-#include "platform_aiop_spec.h"
+#include "platform.h"
 #include "fsl_mem_mng.h"
 #include "slob.h"
 #include "buffer_pool.h"
