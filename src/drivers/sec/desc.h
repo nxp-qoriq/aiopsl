@@ -12,7 +12,7 @@
 
 /* flib/compat.h is not delivered in kernel */
 #ifndef __KERNEL__
-#include "flib/compat.h"
+#include "compat.h"
 #endif
 
 /* Max size of any SEC descriptor in 32-bit words, inclusive of header */
