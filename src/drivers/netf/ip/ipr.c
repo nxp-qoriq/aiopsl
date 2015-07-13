@@ -46,7 +46,7 @@
 #include "ipr.h"
 #include "fsl_cdma.h"
 #include "ip.h"
-#include "fsl_platform.h"
+#include "fsl_malloc.h"
 #include "fsl_sl_dpni_drv.h"
 
 /* For wrapper functions */
@@ -1934,7 +1934,7 @@ void check_remove_padding()
 		                                 delta,
 		                                 FDMA_REPLACE_NO_FLAGS);
 		/* update prc length because represent wasn't done */
-		prc->seg_length = seg_length - delta;
+		prc->seg_length = seg_length - (uint16_t)delta;
 		/* For recalculating running sum */
 		/* Updated FD[length] */
 		LDPAA_FD_SET_LENGTH(HWC_FD_ADDRESS, start_padding);
