@@ -24,7 +24,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "dplib/fsl_parser.h"
+#include "fsl_parser.h"
 #include "fsl_net.h"
 #include "fsl_sys.h"
 #include "fsl_sl_evmng.h"
