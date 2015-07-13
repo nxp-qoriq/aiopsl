@@ -670,6 +670,11 @@
 			<locationURI>PARENT-4-PROJECT_LOC/src/drivers/accel/virtual_pools.c</locationURI>
 		</link>
 		<link>
+			<name>aiop_sl/drivers/dplib/arch</name>
+			<type>2</type>
+			<locationURI>virtual:/virtual</locationURI>
+		</link>
+		<link>
 			<name>aiop_sl/drivers/dplib/dpbp</name>
 			<type>2</type>
 			<locationURI>virtual:/virtual</locationURI>

@@ -115,13 +115,12 @@
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../src/drivers/serial/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../src/drivers/dplib/dpni&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../src/drivers/dplib/dprc&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../src/drivers/dplib/netf/l4&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../src/drivers/dplib/netf/ip&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../src/drivers/netf/l4&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../src/drivers/netf/ip&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../src/drivers/accel&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../src/drivers/dplib/arch&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../src/drivers/dplib/arch/flib&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../src/drivers/dplib/arch/flib/rta&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../src/drivers/dplib/arch/flib/desc&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../src/drivers/sec&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../src/drivers/sec/rta&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../src/drivers/sec/desc&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../src/drivers/qbman/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${AIOPToolsBaseDir}/AIOP_Support/ewl/EWL_C/include/aiop&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${AIOPToolsBaseDir}/AIOP_Support/ewl/EWL_C/include&quot;"/>
@@ -149,7 +148,7 @@
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../src/include/common&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../src/include/dplib&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../src/include/net&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../src/drivers/dplib/snic&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../src/drivers/snic&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../src/drivers/ep/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../src/arch/platform/ls2085a&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../src/arch/platform/ls2085a/rev1&quot;"/>
