@@ -59,24 +59,6 @@ extern int rcu_default_early_init();
 
 extern void build_apps_array(struct sys_module_desc *apps);
 
-// TODO remove hard-coded values from  MEM_PART_MC_PORTALS and MEM_PART_CCSR
-#define MEMORY_PARTITIONS\
-{   /* Memory partition ID                  Phys. Addr.  Virt. Addr.  Size , Attributes */\
-	{MEM_PART_SYSTEM_DDR1_BOOT_MEM_MNG,  0xFFFFFFFF,  0xFFFFFFFF, g_boot_mem_mng_size,\
-	        MEMORY_ATTR_NONE, "BOOT MEMORY MANAGER"},\
-	{MEM_PART_DP_DDR,                    0xFFFFFFFF,  0xFFFFFFFF,  0xFFFFFFFF,\
-		MEMORY_ATTR_PHYS_ALLOCATION,"DP_DDR"},\
-	{MEM_PART_MC_PORTALS,                0xFFFFFFFF,  0xFFFFFFFF, 0xFFFFFFFF,\
-		MEMORY_ATTR_NONE,"MC Portals"},\
-	{MEM_PART_CCSR,                      0xFFFFFFFF,  0xFFFFFFFF, 0xFFFFFFFF,\
-		MEMORY_ATTR_NONE,"SoC CCSR"  },\
-	{MEM_PART_SH_RAM,                    0xFFFFFFFF,   0xFFFFFFFF,0xFFFFFFFF,\
-		MEMORY_ATTR_MALLOCABLE,"Shared-SRAM"},\
-	{MEM_PART_PEB,                        0xFFFFFFFF,  0xFFFFFFFF,0xFFFFFFFF,\
-		MEMORY_ATTR_PHYS_ALLOCATION,"PEB"},\
-	{MEM_PART_SYSTEM_DDR,                 0xFFFFFFFF,  0xFFFFFFFF,0xFFFFFFFF,\
-		MEMORY_ATTR_PHYS_ALLOCATION,"SYSTEM_DDR"},\
-}
 
 #define GLOBAL_MODULES                                                           \
 	{    /* slab must be before any module with buffer request*/             \
