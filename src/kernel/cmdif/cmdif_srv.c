@@ -36,7 +36,7 @@
 #include "fsl_malloc.h"
 #include "fsl_dbg.h"
 #include "fsl_cdma.h"
-#include "aiop_common.h"
+#include "fsl_aiop_common.h"
 #include "fsl_malloc.h"
 #include "cmdif_srv.h"
 #include "fsl_cmdif_flib_s.h"

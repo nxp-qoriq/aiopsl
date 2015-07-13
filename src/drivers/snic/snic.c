@@ -39,7 +39,7 @@
 #include "fsl_errors.h"
 #include "platform.h"
 #include "fsl_io.h"
-#include "aiop_common.h"
+#include "fsl_aiop_common.h"
 #include "fsl_parser.h"
 #include "general.h"
 #include "fsl_dbg.h"

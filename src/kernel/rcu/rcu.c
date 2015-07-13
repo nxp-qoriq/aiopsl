@@ -26,7 +26,7 @@
 
 #include "fsl_tman.h"
 #include "fsl_malloc.h"
-#include "aiop_common.h"
+#include "fsl_aiop_common.h"
 #include "fsl_io_ccsr.h"
 #include "fsl_core_booke.h"
 #include "rcu.h"

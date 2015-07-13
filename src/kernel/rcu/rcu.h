@@ -29,7 +29,7 @@
 
 #include "fsl_rcu.h"
 #include "fsl_slab.h"
-#include "aiop_common.h"
+#include "fsl_aiop_common.h"
 
 #define CTSTWS_TASK0_BIT	0x80000000
 #define CTSTWS_TASKS_MASK	0xFFFF0000

@@ -35,7 +35,7 @@
 #ifndef __FSL_CLI_H_
 #define __FSL_CLI_H_
 
-#include "aiop_common.h"
+#include "fsl_aiop_common.h"
 
 extern struct aiop_init_info g_init_data;
 /**************************************************************************//**

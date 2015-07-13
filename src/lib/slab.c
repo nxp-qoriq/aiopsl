@@ -37,7 +37,7 @@
 #include "fsl_io.h"
 #include "fsl_cdma.h"
 #include "fsl_io_ccsr.h"
-#include "aiop_common.h"
+#include "fsl_aiop_common.h"
 #include "fsl_sl_dprc_drv.h"
 #include "fsl_icontext.h"
 #include "fsl_bman.h"

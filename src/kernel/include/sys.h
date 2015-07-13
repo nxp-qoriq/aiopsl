@@ -28,7 +28,7 @@
 #define __SYS_H
 
 #include "general.h"
-#include "aiop_common.h"
+#include "fsl_aiop_common.h"
 #include "common/types.h"
 #include "fsl_errors.h"
 #include "fsl_list.h"

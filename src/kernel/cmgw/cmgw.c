@@ -32,12 +32,12 @@
  *//***************************************************************************/
 
 #include "common/types.h"
-#include "aiop_common.h"
+#include "fsl_aiop_common.h"
 #include "fsl_io_ccsr.h"
 #include "fsl_spinlock.h"
 #include "fsl_core.h"
 #include "fsl_dbg.h"
-#include "cmgw.h"
+#include "fsl_cmgw.h"
 
 #define TIME_BASE_IS_UPDATING (0xffffffff)
 

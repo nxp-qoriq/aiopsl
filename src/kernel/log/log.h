@@ -35,7 +35,7 @@
 #include "common/types.h"
 #include <stdio.h>
 #include "fsl_icontext.h"
-#include "aiop_common.h"
+#include "fsl_aiop_common.h"
 #include "fsl_log.h"
 #include "fsl_cdma.h"
 #include "fsl_spinlock.h"

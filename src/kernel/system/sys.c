@@ -33,7 +33,7 @@
 #include "platform.h"
 #include "fsl_smp.h"
 #include "fsl_io_ccsr.h"
-#include "cmgw.h"
+#include "fsl_cmgw.h"
 
 #include "sys.h"
 #include "fsl_dbg.h"

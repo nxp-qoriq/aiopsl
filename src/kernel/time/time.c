@@ -25,12 +25,11 @@
  */
 
 #include "time.h"
-#include "aiop_common.h"
-//#include "fsl_io_ccsr.h"
+#include "fsl_aiop_common.h"
 #include "fsl_sys.h"
 #include "fsl_dbg.h"
 #include "fsl_spinlock.h"
-#include "cmgw.h"
+#include "fsl_cmgw.h"
 #include "tman_inline.h"
 
 uint64_t time_epoch_to_midnight_ms __attribute__((aligned(8))) = 0; /*microseconds since epoch till midnight

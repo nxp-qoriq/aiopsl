@@ -27,7 +27,7 @@
 #include "fsl_malloc.h"
 #include "common/fsl_stdarg.h"
 #include "kernel/fsl_spinlock.h"
-#include "aiop_common.h"
+#include "fsl_aiop_common.h"
 #include "fsl_io.h"
 #include "fsl_smp.h"
 #include "console.h"

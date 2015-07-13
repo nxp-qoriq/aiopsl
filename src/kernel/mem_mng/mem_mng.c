@@ -38,7 +38,7 @@
 #include "fsl_slob.h"
 #include "platform.h"
 #include "platform.h"
-#include "aiop_common.h"
+#include "fsl_aiop_common.h"
 #include "mem_mng.h"
 #include "fsl_sl_dbg.h"
 #include "fsl_malloc.h"
