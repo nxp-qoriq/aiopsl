@@ -38,8 +38,8 @@
 #include "parser.h"
 #include "general.h"
 #include "common/types.h"
-#include "dplib/fsl_fdma.h"
-#include "dplib/fsl_parser.h"
+#include "fsl_fdma.h"
+#include "fsl_parser.h"
 
 #include "system.h"
 #include "id_pool.h"

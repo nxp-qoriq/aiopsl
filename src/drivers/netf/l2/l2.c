@@ -32,12 +32,12 @@
 
 *//***************************************************************************/
 
-#include "dplib/fsl_parser.h"
-#include "dplib/fsl_fdma.h"
-#include "dplib/fsl_l2.h"
-#include "dplib/fsl_cdma.h"
-#include "dplib/fsl_dpni_drv.h"
-#include "net/fsl_net.h"
+#include "fsl_parser.h"
+#include "fsl_fdma.h"
+#include "fsl_l2.h"
+#include "fsl_cdma.h"
+#include "fsl_dpni_drv.h"
+#include "fsl_net.h"
 #include "header_modification.h"
 #include "general.h"
 

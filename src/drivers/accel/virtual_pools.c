@@ -33,7 +33,7 @@
 
 #include "virtual_pools.h"
 #include "kernel/fsl_spinlock.h"
-#include "dplib/fsl_cdma.h"
+#include "fsl_cdma.h"
 #include "fsl_dbg.h"
 /*#include "cdma.h"*/
 

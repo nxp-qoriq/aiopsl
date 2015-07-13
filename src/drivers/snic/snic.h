@@ -35,10 +35,10 @@
 #define __SNIC_H
 
 #include "common/types.h"
-#include "dplib/fsl_ipr.h"
-#include "dplib/fsl_ipsec.h"
+#include "fsl_ipr.h"
+#include "fsl_ipsec.h"
 #include "ipsec.h"
-#include "dplib/fsl_keygen.h"
+#include "fsl_keygen.h"
 #include "fsl_snic_cmd.h"
 #include "fsl_tman.h"
 

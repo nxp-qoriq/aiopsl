@@ -32,7 +32,7 @@
 #ifndef __GSO_H
 #define __GSO_H
 
-#include "dplib/fsl_gso.h"
+#include "fsl_gso.h"
 #include "fsl_gen.h"
 
 

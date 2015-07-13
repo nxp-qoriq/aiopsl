@@ -33,9 +33,9 @@
 
 #include "snic.h"
 #include "system.h"
-#include "net/fsl_net.h"
-#include "common/fsl_stdio.h"
-#include "common/fsl_string.h"
+#include "fsl_net.h"
+#include "fsl_stdio.h"
+#include "fsl_string.h"
 #include "fsl_errors.h"
 #include "platform.h"
 #include "fsl_io.h"
@@ -44,18 +44,18 @@
 #include "general.h"
 #include "fsl_dbg.h"
 
-#include "dplib/fsl_parser.h"
-#include "dplib/fsl_l2.h"
-#include "dplib/fsl_fdma.h"
-#include "dplib/fsl_mc_sys.h"
+#include "fsl_parser.h"
+#include "fsl_l2.h"
+#include "fsl_fdma.h"
+#include "fsl_mc_sys.h"
 #include "fsl_mc_cmd.h"
 #include "fsl_snic_cmd.h"
 
 #include "general.h"
 #include "osm_inline.h"
 
-#include "dplib/fsl_ipf.h"
-#include "dplib/fsl_table.h"
+#include "fsl_ipf.h"
+#include "fsl_table.h"
 #include "fsl_cmdif_server.h"
 
 #include "fsl_malloc.h"

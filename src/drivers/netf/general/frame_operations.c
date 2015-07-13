@@ -33,11 +33,11 @@
 
 #include "common/types.h"
 #include "fsl_errors.h"
-#include "dplib/fsl_frame_operations.h"
-#include "dplib/fsl_fdma.h"
-#include "dplib/fsl_parser.h"
-#include "dplib/fsl_dpni_drv.h"
-#include "net/fsl_net.h"
+#include "fsl_frame_operations.h"
+#include "fsl_fdma.h"
+#include "fsl_parser.h"
+#include "fsl_dpni_drv.h"
+#include "fsl_net.h"
 #include "header_modification.h"
 
 #ifndef REV2  /* WA for TKT254401 */
