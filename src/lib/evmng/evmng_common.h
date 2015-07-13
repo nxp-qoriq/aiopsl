@@ -24,27 +24,20 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef __FSL_SL_DPRC_DRV_H
-#define __FSL_SL_DPRC_DRV_H
-
-#include "fsl_mc_sys.h"
-
-struct mc_dprc {
-	uint16_t		token;
-	struct fsl_mc_io	io;
-};
-
-
 /**************************************************************************//**
-@Function	dprc_drv_scan
+@File		evmng_common.h
 
-@Description	Function to scan for objects changes in resource
-		container.
-
-@Return	OK on success; error code, otherwise.
-		For error posix refer to
-		\ref error_g
+@Description	Event Manager common file
 *//***************************************************************************/
-int dprc_drv_scan(void);
 
-#endif /*__FSL_SL_DPRC_DRV_H */
+#ifndef __EVMNG_COMMON_H
+#define __EVMNG_COMMON_H
+
+/**EVMNG send command id when using cmdif to notify from MC*/
+#define EVMNG_EVENT_SEND         2
+
+/**default buffer size in the command*/
+#define EVMNG_CMDSZ_EVENT_SEND   64
+
+
+#endif /* __EVMNG_COMMON_H */

@@ -33,7 +33,7 @@
 
 *//***************************************************************************/
 
-#include "net/fsl_inet.h"
+#include "fsl_inet.h"
 #include <cstring>
 
 #define IPV4_ADDR_SIZE  4            /**< IPV4 address size in bytes */

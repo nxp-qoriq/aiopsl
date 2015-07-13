@@ -33,7 +33,7 @@
 
 #include "snic.h"
 #include "system.h"
-#include "net/fsl_net.h"
+#include "fsl_net.h"
 #include "common/fsl_stdio.h"
 #include "common/fsl_string.h"
 #include "fsl_errors.h"
@@ -47,7 +47,7 @@
 #include "dplib/fsl_parser.h"
 #include "dplib/fsl_l2.h"
 #include "dplib/fsl_fdma.h"
-#include "dplib/fsl_mc_sys.h"
+#include "fsl_mc_sys.h"
 #include "fsl_mc_cmd.h"
 #include "fsl_snic_cmd.h"
 
