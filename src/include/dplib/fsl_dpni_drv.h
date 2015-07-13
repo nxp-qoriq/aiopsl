@@ -177,6 +177,75 @@ struct dpni_drv_tx_checksum {
 	uint16_t l4_checksum_gen;
 };
 
+
+/* Set to select color aware mode (otherwise - color blind) */
+#define DPNI_DRV_POLICER_OPT_COLOR_AWARE         0x00000001
+/* Set to discard frame with RED color */
+#define DPNI_DRV_POLICER_OPT_DISCARD_RED         0x00000002
+
+/**
+ *  enum dpni_policer_mode - selecting the policer mode
+ *  @DPNI_POLICER_MODE_NONE: Policer is disabled
+ *  @DPNI_POLICER_MODE_PASS_THROUGH: Policer pass through
+ *  @DPNI_POLICER_MODE_RFC_2698: Policer algorithm RFC 2698
+ *  @DPNI_POLICER_MODE_RFC_4115: Policer algorithm RFC 4115
+ */
+enum dpni_drv_policer_mode {
+	DPNI_POLICER_MODE_NONE = 0,
+	DPNI_POLICER_MODE_PASS_THROUGH,
+	DPNI_POLICER_MODE_RFC_2698,
+	DPNI_POLICER_MODE_RFC_4115
+};
+
+/**
+ *  enum dpni_policer_unit - DPNI policer units
+ *  @DPNI_POLICER_UNIT_BYTES: bytes units
+ *  @DPNI_POLICER_UNIT_PACKETS: packets units
+ */
+enum dpni_drv_policer_unit {
+	DPNI_POLICER_UNIT_BYTES = 0,
+	DPNI_POLICER_UNIT_PACKETS
+};
+
+/**
+ *  enum dpni_policer_color - selecting the policer color
+ *  @DPNI_POLICER_COLOR_GREEN: Green color
+ *  @DPNI_POLICER_COLOR_YELLOW: Yellow color
+ *  @DPNI_POLICER_COLOR_RED: Red color
+ */
+enum dpni_drv_policer_color {
+	DPNI_POLICER_COLOR_GREEN = 0,
+	DPNI_POLICER_COLOR_YELLOW,
+	DPNI_POLICER_COLOR_RED
+};
+
+/**************************************************************************//**
+@Description	Structure representing DPNI policer configuration.
+
+*//***************************************************************************/
+struct dpni_drv_rx_tc_policing_cfg{
+	/* Mask of available options; use 'DPNI_DRV_POLICER_OPT_<X>' values */
+	uint32_t			options;
+	/* Policer mode */
+	enum dpni_drv_policer_mode	mode;
+	/* Bytes or Packets */
+	enum dpni_drv_policer_unit	units;
+	/* For pass-through mode the policer re-colors with this
+	 * color any incoming packets. For Color aware non-pass-through mode:
+	 * policer re-colors with this color all packets with FD[DROPP]>2. */
+	enum dpni_drv_policer_color	default_color;
+	/* Committed information rate (CIR) in Kbps or packets/second */
+	uint32_t			cir;
+	/* Committed burst size (CBS) in bytes or packets */
+	uint32_t			cbs;
+	/* Peak information rate (PIR, rfc2698) in Kbps or packets/second */
+	uint32_t			eir;
+	/* Peak burst size (PBS, rfc2698) in bytes or packets
+	 * Excess burst size (EBS, rfc4115) in bytes or packets */
+	uint32_t			ebs;
+};
+
+
 /**************************************************************************//**
 @Description	Application Receive callback
 

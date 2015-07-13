@@ -1999,3 +1999,10 @@ int dpni_drv_get_tx_checksum(uint16_t ni_id,
 	return 0;
 }
 
+int dpni_drv_set_rx_tc_policing(uint16_t ni_id, uint8_t tc_id,
+			    const struct dpni_drv_rx_tc_policing_cfg *cfg)
+{
+
+
+
+}
