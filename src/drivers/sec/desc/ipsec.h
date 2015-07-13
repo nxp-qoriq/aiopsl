@@ -7,7 +7,7 @@
 #ifndef __DESC_IPSEC_H__
 #define __DESC_IPSEC_H__
 
-#include "flib/rta.h"
+#include "rta.h"
 #include "common.h"
 
 /**

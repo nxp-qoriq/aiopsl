@@ -7,11 +7,11 @@
 #ifndef __RTA_SEC_RUN_TIME_ASM_H__
 #define __RTA_SEC_RUN_TIME_ASM_H__
 
-#include "flib/desc.h"
+#include "desc.h"
 
 /* flib/compat.h is not delivered in kernel */
 #ifndef __KERNEL__
-#include "flib/compat.h"
+#include "compat.h"
 #endif
 
 /**
