@@ -33,13 +33,13 @@
 
 #include "common/types.h"
 #include "kernel/fsl_spinlock.h"
-#include "dplib/fsl_cdma.h"
-#include "dplib/fsl_parser.h"
-#include "dplib/fsl_fdma.h"
-#include "dplib/fsl_l2.h"
-#include "dplib/fsl_tman.h"
-#include "dplib/fsl_ste.h"
-#include "dplib/fsl_osm.h"
+#include "fsl_cdma.h"
+#include "fsl_parser.h"
+#include "fsl_fdma.h"
+#include "fsl_l2.h"
+#include "fsl_tman.h"
+#include "fsl_ste.h"
+#include "fsl_osm.h"
 #include "header_modification.h"
 #include "checksum.h"
 
@@ -56,7 +56,7 @@
 
 #pragma push
 
-#include "dplib/fsl_ipsec.h"
+#include "fsl_ipsec.h"
 #include "ipsec.h"
 
 #include "rta.h"

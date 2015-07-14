@@ -25,7 +25,7 @@
  */
 #include "fsl_dpni_drv.h"
 #include "kernel/fsl_spinlock.h"
-#include "dplib/fsl_parser.h"
+#include "fsl_parser.h"
 #include "fsl_net.h"
 #include "fsl_sys.h"
 #include "fsl_dpni.h"

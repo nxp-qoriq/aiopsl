@@ -87,7 +87,7 @@ struct initial_mem_mng
 
 };
 
-extern const  uint32_t g_boot_mem_mng_size;
+
 #define MEM_PART_SYSTEM_DDR1_BOOT_MEM_MNG MEM_PART_LAST+1
 
 /*****************************************************************************/

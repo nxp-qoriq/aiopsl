@@ -307,6 +307,26 @@ int sys_get_phys_mem(uint64_t size, int mem_partition_id,  uint64_t alignment,
 void  sys_put_phys_mem(uint64_t paddr);
 
 void  sys_mem_partitions_init_complete();
+
+
+extern const  uint32_t g_boot_mem_mng_size;
+#define MEMORY_PARTITIONS\
+{   /* Memory partition ID                  Phys. Addr.  Virt. Addr.  Size , Attributes */\
+	{MEM_PART_SYSTEM_DDR1_BOOT_MEM_MNG,  0xFFFFFFFF,  0xFFFFFFFF, g_boot_mem_mng_size,\
+	        MEMORY_ATTR_NONE, "BOOT MEMORY MANAGER"},\
+	{MEM_PART_DP_DDR,                    0xFFFFFFFF,  0xFFFFFFFF,  0xFFFFFFFF,\
+		MEMORY_ATTR_PHYS_ALLOCATION,"DP_DDR"},\
+	{MEM_PART_MC_PORTALS,                0xFFFFFFFF,  0xFFFFFFFF, 0xFFFFFFFF,\
+		MEMORY_ATTR_NONE,"MC Portals"},\
+	{MEM_PART_CCSR,                      0xFFFFFFFF,  0xFFFFFFFF, 0xFFFFFFFF,\
+		MEMORY_ATTR_NONE,"SoC CCSR"  },\
+	{MEM_PART_SH_RAM,                    0xFFFFFFFF,   0xFFFFFFFF,0xFFFFFFFF,\
+		MEMORY_ATTR_MALLOCABLE,"Shared-SRAM"},\
+	{MEM_PART_PEB,                        0xFFFFFFFF,  0xFFFFFFFF,0xFFFFFFFF,\
+		MEMORY_ATTR_PHYS_ALLOCATION,"PEB"},\
+	{MEM_PART_SYSTEM_DDR,                 0xFFFFFFFF,  0xFFFFFFFF,0xFFFFFFFF,\
+		MEMORY_ATTR_PHYS_ALLOCATION,"SYSTEM_DDR"},\
+}
 /** @} */ /* end of sys_mem_grp */
 /** @} */ /* end of sys_grp */
 __END_COLD_CODE

@@ -725,69 +725,9 @@
 			<locationURI>PARENT-4-PROJECT_LOC/src/include/common/types.h</locationURI>
 		</link>
 		<link>
-			<name>aiop_sl/include/dplib/fsl_cdma.h</name>
-			<type>1</type>
-			<locationURI>PARENT-4-PROJECT_LOC/src/include/dplib/fsl_cdma.h</locationURI>
-		</link>
-		<link>
-			<name>aiop_sl/include/dplib/fsl_fdma.h</name>
-			<type>1</type>
-			<locationURI>PARENT-4-PROJECT_LOC/src/include/dplib/fsl_fdma.h</locationURI>
-		</link>
-		<link>
-			<name>aiop_sl/include/dplib/fsl_frame_operations.h</name>
-			<type>1</type>
-			<locationURI>PARENT-4-PROJECT_LOC/src/include/dplib/fsl_frame_operations.h</locationURI>
-		</link>
-		<link>
 			<name>aiop_sl/include/dplib/fsl_general.h</name>
 			<type>1</type>
 			<locationURI>PARENT-4-PROJECT_LOC/src/include/dplib/fsl_general.h</locationURI>
-		</link>
-		<link>
-			<name>aiop_sl/include/dplib/fsl_gro.h</name>
-			<type>1</type>
-			<locationURI>PARENT-4-PROJECT_LOC/src/include/dplib/fsl_gro.h</locationURI>
-		</link>
-		<link>
-			<name>aiop_sl/include/dplib/fsl_gso.h</name>
-			<type>1</type>
-			<locationURI>PARENT-4-PROJECT_LOC/src/include/dplib/fsl_gso.h</locationURI>
-		</link>
-		<link>
-			<name>aiop_sl/include/dplib/fsl_ip.h</name>
-			<type>1</type>
-			<locationURI>PARENT-4-PROJECT_LOC/src/include/dplib/fsl_ip.h</locationURI>
-		</link>
-		<link>
-			<name>aiop_sl/include/dplib/fsl_ipf.h</name>
-			<type>1</type>
-			<locationURI>PARENT-4-PROJECT_LOC/src/include/dplib/fsl_ipf.h</locationURI>
-		</link>
-		<link>
-			<name>aiop_sl/include/dplib/fsl_ipr.h</name>
-			<type>1</type>
-			<locationURI>PARENT-4-PROJECT_LOC/src/include/dplib/fsl_ipr.h</locationURI>
-		</link>
-		<link>
-			<name>aiop_sl/include/dplib/fsl_ipsec.h</name>
-			<type>1</type>
-			<locationURI>PARENT-4-PROJECT_LOC/src/include/dplib/fsl_ipsec.h</locationURI>
-		</link>
-		<link>
-			<name>aiop_sl/include/dplib/fsl_keygen.h</name>
-			<type>1</type>
-			<locationURI>PARENT-4-PROJECT_LOC/src/include/dplib/fsl_keygen.h</locationURI>
-		</link>
-		<link>
-			<name>aiop_sl/include/dplib/fsl_l2.h</name>
-			<type>1</type>
-			<locationURI>PARENT-4-PROJECT_LOC/src/include/dplib/fsl_l2.h</locationURI>
-		</link>
-		<link>
-			<name>aiop_sl/include/dplib/fsl_l4.h</name>
-			<type>1</type>
-			<locationURI>PARENT-4-PROJECT_LOC/src/include/dplib/fsl_l4.h</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/include/dplib/fsl_ldpaa.h</name>
@@ -800,34 +740,9 @@
 			<locationURI>PARENT-4-PROJECT_LOC/src/include/dplib/fsl_ldpaa_aiop.h</locationURI>
 		</link>
 		<link>
-			<name>aiop_sl/include/dplib/fsl_nat.h</name>
-			<type>1</type>
-			<locationURI>PARENT-4-PROJECT_LOC/src/include/dplib/fsl_nat.h</locationURI>
-		</link>
-		<link>
-			<name>aiop_sl/include/dplib/fsl_osm.h</name>
-			<type>1</type>
-			<locationURI>PARENT-4-PROJECT_LOC/src/include/dplib/fsl_osm.h</locationURI>
-		</link>
-		<link>
-			<name>aiop_sl/include/dplib/fsl_parser.h</name>
-			<type>1</type>
-			<locationURI>PARENT-4-PROJECT_LOC/src/include/dplib/fsl_parser.h</locationURI>
-		</link>
-		<link>
-			<name>aiop_sl/include/dplib/fsl_ste.h</name>
-			<type>1</type>
-			<locationURI>PARENT-4-PROJECT_LOC/src/include/dplib/fsl_ste.h</locationURI>
-		</link>
-		<link>
-			<name>aiop_sl/include/dplib/fsl_table.h</name>
-			<type>1</type>
-			<locationURI>PARENT-4-PROJECT_LOC/src/include/dplib/fsl_table.h</locationURI>
-		</link>
-		<link>
-			<name>aiop_sl/include/dplib/fsl_tman.h</name>
-			<type>1</type>
-			<locationURI>PARENT-4-PROJECT_LOC/src/include/dplib/fsl_tman.h</locationURI>
+			<name>aiop_sl/include/drivers/accel</name>
+			<type>2</type>
+			<locationURI>virtual:/virtual</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/include/drivers/fsl_dpci_drv.h</name>
@@ -843,6 +758,11 @@
 			<name>aiop_sl/include/drivers/fsl_ep.h</name>
 			<type>1</type>
 			<locationURI>PARENT-4-PROJECT_LOC/src/include/drivers/fsl_ep.h</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/include/drivers/netf</name>
+			<type>2</type>
+			<locationURI>virtual:/virtual</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/include/kernel/fsl_cli.h</name>
@@ -1678,6 +1598,96 @@
 			<name>aiop_sl/drivers/serial/duart/duart.h</name>
 			<type>1</type>
 			<locationURI>PARENT-4-PROJECT_LOC/src/drivers/serial/duart/duart.h</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/include/drivers/accel/fsl_cdma.h</name>
+			<type>1</type>
+			<locationURI>PARENT-4-PROJECT_LOC/src/include/drivers/accel/fsl_cdma.h</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/include/drivers/accel/fsl_fdma.h</name>
+			<type>1</type>
+			<locationURI>PARENT-4-PROJECT_LOC/src/include/drivers/accel/fsl_fdma.h</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/include/drivers/accel/fsl_keygen.h</name>
+			<type>1</type>
+			<locationURI>PARENT-4-PROJECT_LOC/src/include/drivers/accel/fsl_keygen.h</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/include/drivers/accel/fsl_osm.h</name>
+			<type>1</type>
+			<locationURI>PARENT-4-PROJECT_LOC/src/include/drivers/accel/fsl_osm.h</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/include/drivers/accel/fsl_parser.h</name>
+			<type>1</type>
+			<locationURI>PARENT-4-PROJECT_LOC/src/include/drivers/accel/fsl_parser.h</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/include/drivers/accel/fsl_ste.h</name>
+			<type>1</type>
+			<locationURI>PARENT-4-PROJECT_LOC/src/include/drivers/accel/fsl_ste.h</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/include/drivers/accel/fsl_table.h</name>
+			<type>1</type>
+			<locationURI>PARENT-4-PROJECT_LOC/src/include/drivers/accel/fsl_table.h</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/include/drivers/accel/fsl_tman.h</name>
+			<type>1</type>
+			<locationURI>PARENT-4-PROJECT_LOC/src/include/drivers/accel/fsl_tman.h</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/include/drivers/netf/fsl_frame_operations.h</name>
+			<type>1</type>
+			<locationURI>PARENT-4-PROJECT_LOC/src/include/drivers/netf/fsl_frame_operations.h</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/include/drivers/netf/fsl_gro.h</name>
+			<type>1</type>
+			<locationURI>PARENT-4-PROJECT_LOC/src/include/drivers/netf/fsl_gro.h</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/include/drivers/netf/fsl_gso.h</name>
+			<type>1</type>
+			<locationURI>PARENT-4-PROJECT_LOC/src/include/drivers/netf/fsl_gso.h</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/include/drivers/netf/fsl_ip.h</name>
+			<type>1</type>
+			<locationURI>PARENT-4-PROJECT_LOC/src/include/drivers/netf/fsl_ip.h</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/include/drivers/netf/fsl_ipf.h</name>
+			<type>1</type>
+			<locationURI>PARENT-4-PROJECT_LOC/src/include/drivers/netf/fsl_ipf.h</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/include/drivers/netf/fsl_ipr.h</name>
+			<type>1</type>
+			<locationURI>PARENT-4-PROJECT_LOC/src/include/drivers/netf/fsl_ipr.h</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/include/drivers/netf/fsl_ipsec.h</name>
+			<type>1</type>
+			<locationURI>PARENT-4-PROJECT_LOC/src/include/drivers/netf/fsl_ipsec.h</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/include/drivers/netf/fsl_l2.h</name>
+			<type>1</type>
+			<locationURI>PARENT-4-PROJECT_LOC/src/include/drivers/netf/fsl_l2.h</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/include/drivers/netf/fsl_l4.h</name>
+			<type>1</type>
+			<locationURI>PARENT-4-PROJECT_LOC/src/include/drivers/netf/fsl_l4.h</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/include/drivers/netf/fsl_nat.h</name>
+			<type>1</type>
+			<locationURI>PARENT-4-PROJECT_LOC/src/include/drivers/netf/fsl_nat.h</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/kernel/cmdif/01_01/cmdif_rev.h</name>

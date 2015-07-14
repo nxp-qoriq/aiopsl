@@ -31,8 +31,8 @@
 
 *//***************************************************************************/
 
-#include "dplib/fsl_cdma.h"
-#include "dplib/fsl_table.h"
+#include "fsl_cdma.h"
+#include "fsl_table.h"
 #include "table_inline.h"
 
 void table_get_params(enum table_hw_accel_id acc_id,
