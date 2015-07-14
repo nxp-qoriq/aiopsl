@@ -36,10 +36,10 @@
 #define __AIOP_VERIFICATION_IPF_H_
 
 #include "dplib/fsl_ldpaa.h"
-#include "inc/fsl_gen.h"
+#include "fsl_gen.h"
 #include "general.h"
 #include "ipf.h"
-#include "dplib/fsl_parser.h"
+#include "fsl_parser.h"
 
 
 /* IPF Command IDs */

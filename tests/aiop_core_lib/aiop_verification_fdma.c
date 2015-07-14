@@ -31,12 +31,12 @@
 
 *//***************************************************************************/
 
-#include "dplib/fsl_fdma.h"
-#include "dplib/fsl_frame_operations.h"
+#include "fsl_fdma.h"
+#include "fsl_frame_operations.h"
 
 /* TODO - get rid of this! */
 /* Yariv: not sure why Shlomi changed itand wrote it */
-#include "../arch/accel/fdma.h"
+#include "fdma.h"
 
 #include "aiop_verification.h"
 #include "aiop_verification_fdma.h"

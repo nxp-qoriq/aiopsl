@@ -36,10 +36,10 @@
 #define __AIOP_VERIFICATION_GSO_H_
 
 #include "dplib/fsl_ldpaa.h"
-#include "inc/fsl_gen.h"
+#include "fsl_gen.h"
 #include "general.h"
 #include "gso.h"
-#include "dplib/fsl_parser.h"
+#include "fsl_parser.h"
 
 
 /* TCP_GSO Command IDs */

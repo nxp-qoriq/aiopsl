@@ -34,7 +34,7 @@
 #ifndef __AIOP_VERIFICATION_TABLE_H_
 #define __AIOP_VERIFICATION_TABLE_H_
 
-#include "dplib/fsl_table.h"
+#include "fsl_table.h"
 #include "table_inline.h"
 /** \enum table_verif_cmd_type defines the parser verification CMDTYPE
  * field. */

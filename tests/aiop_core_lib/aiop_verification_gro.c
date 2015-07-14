@@ -33,7 +33,7 @@
 
 
 #include "aiop_verification.h"
-#include "dplib/fsl_cdma.h"
+#include "fsl_cdma.h"
 
 uint16_t  aiop_verification_gro(uint32_t data_addr)
 {

@@ -31,7 +31,7 @@
 
 *//***************************************************************************/
 
-#include "dplib/fsl_osm.h"
+#include "fsl_osm.h"
 
 #include "osm_inline.h"
 
