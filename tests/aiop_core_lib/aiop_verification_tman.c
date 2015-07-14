@@ -30,9 +30,9 @@
 @Description   This file contains the AIOP TMAN SRs SW Verification
 *//***************************************************************************/
 
-#include "dplib/fsl_tman.h"
+#include "fsl_tman.h"
 #include "tman.h" /* only to check tman_query_tmi_sw function */
-#include "dplib/fsl_frame_operations.h"
+#include "fsl_frame_operations.h"
 
 #include "aiop_verification.h"
 #include "aiop_verification_tman.h"

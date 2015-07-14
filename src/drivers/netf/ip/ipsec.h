@@ -36,7 +36,7 @@
 #define __AIOP_IPSEC_H
 
 #include "common/types.h"
-#include "net/fsl_net.h"
+#include "fsl_net.h"
 
 /**************************************************************************//**
  @Group		NETF NETF (Network Libraries)

@@ -36,7 +36,7 @@
 #define __AIOP_VERIFICATION_OSM_H_
 
 //#include "dplib/fsl_ldpaa.h"
-#include "dplib/fsl_osm.h"
+#include "fsl_osm.h"
 #include "general.h"
 #include "osm_inline.h"
 

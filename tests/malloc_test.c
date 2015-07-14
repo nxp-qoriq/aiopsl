@@ -28,10 +28,10 @@
 #include "fsl_errors.h"
 #include "fsl_stdio.h"
 #include "fsl_io.h"
-#include "platform.h"
+#include "fsl_platform.h"
 #include "fsl_malloc.h"
 #include "fsl_slab.h"
-#include "aiop_common.h" /* for struct aiop_init_info */
+#include "fsl_aiop_common.h" /* for struct aiop_init_info */
 #include "mem_mng_util.h"
 #include "fsl_mem_mng.h"
 

@@ -36,11 +36,8 @@
 #include "common/fsl_string.h"
 #include "kernel/fsl_spinlock.h"
 #include "fsl_slob.h"
-#include "platform.h"
-#ifdef AIOP
-#include "platform_aiop_spec.h"
-#include "aiop_common.h"
-#endif /* AIOP */
+#include "fsl_platform.h"
+#include "fsl_aiop_common.h"
 #include "mem_mng.h"
 #include "fsl_sl_dbg.h"
 #include "fsl_malloc.h"

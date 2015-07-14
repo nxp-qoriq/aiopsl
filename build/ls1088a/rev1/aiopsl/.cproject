@@ -48,48 +48,79 @@
 								<option id="com.freescale.ppc.toolchain.linker.base.input.linkorder.456617233" name="Link Order" superClass="com.freescale.ppc.toolchain.linker.base.input.linkorder" valueType="stringList">
 									<listOptionValue builtIn="false" value="aiop_sl/arch/ppc/booke.S"/>
 									<listOptionValue builtIn="false" value="aiop_sl/arch/ppc/booke.c"/>
-									<listOptionValue builtIn="false" value="aiop_sl/arch/ppc/booke_irq.S"/>
 									<listOptionValue builtIn="false" value="aiop_sl/arch/ppc/booke_irq.c"/>
-									<listOptionValue builtIn="false" value="aiop_sl/arch/ppc/platform/ls2085a_aiop/init.c"/>
-									<listOptionValue builtIn="false" value="aiop_sl/arch/ppc/platform/ls2085a_aiop/platform.c"/>
 									<listOptionValue builtIn="false" value="aiop_sl/drivers/dplib/dpni/dpni.c"/>
 									<listOptionValue builtIn="false" value="aiop_sl/drivers/dplib/dpni/dpni_drv.c"/>
-									<listOptionValue builtIn="false" value="aiop_sl/kernel/cmdif_client.c"/>
-									<listOptionValue builtIn="false" value="aiop_sl/kernel/console.c"/>
-									<listOptionValue builtIn="false" value="aiop_sl/kernel/error.c"/>
-									<listOptionValue builtIn="false" value="aiop_sl/kernel/event_mgr.c"/>
 									<listOptionValue builtIn="false" value="aiop_sl/kernel/main.c"/>
 									<listOptionValue builtIn="false" value="aiop_sl/kernel/mem_mng/mem_mng.c"/>
-									<listOptionValue builtIn="false" value="aiop_sl/kernel/os.c"/>
-									<listOptionValue builtIn="false" value="aiop_sl/kernel/smp.c"/>
-									<listOptionValue builtIn="false" value="aiop_sl/kernel/sys.c"/>
-									<listOptionValue builtIn="false" value="aiop_sl/kernel/sys_mem_mng.c"/>
 									<listOptionValue builtIn="false" value="aiop_sl/lib/list.c"/>
 									<listOptionValue builtIn="false" value="aiop_sl/lib/slab.c"/>
 									<listOptionValue builtIn="false" value="aiop_sl/lib/slob.c"/>
 									<listOptionValue builtIn="false" value="cw_files/start.c"/>
-									<listOptionValue builtIn="false" value="aiop_sl/drivers/dplib/netf/l2/l2.c"/>
-									<listOptionValue builtIn="false" value="aiop_sl/drivers/dplib/arch/accel/cdma.c"/>
-									<listOptionValue builtIn="false" value="aiop_sl/drivers/dplib/arch/accel/ctlu.c"/>
-									<listOptionValue builtIn="false" value="aiop_sl/drivers/dplib/arch/accel/fdma.c"/>
-									<listOptionValue builtIn="false" value="aiop_sl/drivers/dplib/arch/accel/osm.c"/>
-									<listOptionValue builtIn="false" value="aiop_sl/drivers/dplib/arch/accel/parser.c"/>
-									<listOptionValue builtIn="false" value="aiop_sl/drivers/dplib/arch/accel/ste.c"/>
-									<listOptionValue builtIn="false" value="aiop_sl/drivers/dplib/arch/accel/system.c"/>
-									<listOptionValue builtIn="false" value="aiop_sl/drivers/dplib/arch/accel/tman.c"/>
 									<listOptionValue builtIn="false" value="aiop_sl/drivers/dplib/dpni/dpni_drv_rxtx.c"/>
 									<listOptionValue builtIn="false" value="aiop_sl/drivers/dplib/dprc/dprc.c"/>
-									<listOptionValue builtIn="false" value="aiop_sl/drivers/dplib/netf/ip/ip.c"/>
-									<listOptionValue builtIn="false" value="aiop_sl/drivers/dplib/netf/ip/ipf.c"/>
-									<listOptionValue builtIn="false" value="aiop_sl/drivers/dplib/netf/ip/ipv4_checksum.c"/>
-									<listOptionValue builtIn="false" value="aiop_sl/drivers/dplib/netf/l4/gro.c"/>
-									<listOptionValue builtIn="false" value="aiop_sl/drivers/dplib/netf/l4/gso.c"/>
-									<listOptionValue builtIn="false" value="aiop_sl/drivers/dplib/netf/l4/l4.c"/>
-									<listOptionValue builtIn="false" value="aiop_sl/drivers/dplib/netf/l4/l4_checksum.c"/>
-									<listOptionValue builtIn="false" value="aiop_sl/drivers/dplib/netf/nat/nat.c"/>
 									<listOptionValue builtIn="false" value="aiop_sl/drivers/dplib/util/checksum.c"/>
-									<listOptionValue builtIn="false" value="aiop_sl/kernel/cmdif_srv.c"/>
 									<listOptionValue builtIn="false" value="aiop_sl/lib/inet.c"/>
+									<listOptionValue builtIn="false" value="aiop_sl/arch/ls1088a/init.c"/>
+									<listOptionValue builtIn="false" value="aiop_sl/arch/ls1088a/platform.c"/>
+									<listOptionValue builtIn="false" value="aiop_sl/drivers/accel/cdma.c"/>
+									<listOptionValue builtIn="false" value="aiop_sl/drivers/accel/fdma.c"/>
+									<listOptionValue builtIn="false" value="aiop_sl/drivers/accel/keygen.c"/>
+									<listOptionValue builtIn="false" value="aiop_sl/drivers/accel/osm.c"/>
+									<listOptionValue builtIn="false" value="aiop_sl/drivers/accel/parser.c"/>
+									<listOptionValue builtIn="false" value="aiop_sl/drivers/accel/ste.c"/>
+									<listOptionValue builtIn="false" value="aiop_sl/drivers/accel/system.c"/>
+									<listOptionValue builtIn="false" value="aiop_sl/drivers/accel/table.c"/>
+									<listOptionValue builtIn="false" value="aiop_sl/drivers/accel/tman.c"/>
+									<listOptionValue builtIn="false" value="aiop_sl/drivers/accel/virtual_pools.c"/>
+									<listOptionValue builtIn="false" value="aiop_sl/drivers/dplib/dpbp/dpbp.c"/>
+									<listOptionValue builtIn="false" value="aiop_sl/drivers/dplib/dpci/dpci.c"/>
+									<listOptionValue builtIn="false" value="aiop_sl/drivers/dplib/dpci/dpci_drv.c"/>
+									<listOptionValue builtIn="false" value="aiop_sl/drivers/dplib/dprc/dprc_drv.c"/>
+									<listOptionValue builtIn="false" value="aiop_sl/drivers/dplib/mc_sys.c"/>
+									<listOptionValue builtIn="false" value="aiop_sl/drivers/dplib/util/general.c"/>
+									<listOptionValue builtIn="false" value="aiop_sl/drivers/dplib/util/id_pool.c"/>
+									<listOptionValue builtIn="false" value="aiop_sl/drivers/ep/ep.c"/>
+									<listOptionValue builtIn="false" value="aiop_sl/drivers/netf/general/frame_operations.c"/>
+									<listOptionValue builtIn="false" value="aiop_sl/drivers/netf/ip/ip.c"/>
+									<listOptionValue builtIn="false" value="aiop_sl/drivers/netf/ip/ipf.c"/>
+									<listOptionValue builtIn="false" value="aiop_sl/drivers/netf/ip/ipr.c"/>
+									<listOptionValue builtIn="false" value="aiop_sl/drivers/netf/ip/ipsec.c"/>
+									<listOptionValue builtIn="false" value="aiop_sl/drivers/netf/l2/l2.c"/>
+									<listOptionValue builtIn="false" value="aiop_sl/drivers/netf/l4/gro.c"/>
+									<listOptionValue builtIn="false" value="aiop_sl/drivers/netf/l4/gso.c"/>
+									<listOptionValue builtIn="false" value="aiop_sl/drivers/netf/l4/l4.c"/>
+									<listOptionValue builtIn="false" value="aiop_sl/drivers/netf/nat/nat.c"/>
+									<listOptionValue builtIn="false" value="aiop_sl/drivers/qbman/bman.c"/>
+									<listOptionValue builtIn="false" value="aiop_sl/drivers/serial/duart/duart.c"/>
+									<listOptionValue builtIn="false" value="aiop_sl/drivers/snic/snic.c"/>
+									<listOptionValue builtIn="false" value="aiop_sl/kernel/cmdif/cmdif_client.c"/>
+									<listOptionValue builtIn="false" value="aiop_sl/kernel/cmdif/cmdif_client_flib.c"/>
+									<listOptionValue builtIn="false" value="aiop_sl/kernel/cmdif/cmdif_srv.c"/>
+									<listOptionValue builtIn="false" value="aiop_sl/kernel/cmdif/cmdif_srv_flib.c"/>
+									<listOptionValue builtIn="false" value="aiop_sl/kernel/cmdif/sl_cmd.c"/>
+									<listOptionValue builtIn="false" value="aiop_sl/kernel/cmgw/cmgw.c"/>
+									<listOptionValue builtIn="false" value="aiop_sl/kernel/console/console.c"/>
+									<listOptionValue builtIn="false" value="aiop_sl/kernel/dpl/data.c"/>
+									<listOptionValue builtIn="false" value="aiop_sl/kernel/dpl/dtc.c"/>
+									<listOptionValue builtIn="false" value="aiop_sl/kernel/dpl/fdt.c"/>
+									<listOptionValue builtIn="false" value="aiop_sl/kernel/dpl/fdt_ro.c"/>
+									<listOptionValue builtIn="false" value="aiop_sl/kernel/dpl/livetree.c"/>
+									<listOptionValue builtIn="false" value="aiop_sl/kernel/dpl/util.c"/>
+									<listOptionValue builtIn="false" value="aiop_sl/kernel/error/error.c"/>
+									<listOptionValue builtIn="false" value="aiop_sl/kernel/error/exception_handler.c"/>
+									<listOptionValue builtIn="false" value="aiop_sl/kernel/icontext/icontext.c"/>
+									<listOptionValue builtIn="false" value="aiop_sl/kernel/log/log.c"/>
+									<listOptionValue builtIn="false" value="aiop_sl/kernel/mem_mng/buffer_pool.c"/>
+									<listOptionValue builtIn="false" value="aiop_sl/kernel/mem_mng/sys_mem_mng.c"/>
+									<listOptionValue builtIn="false" value="aiop_sl/kernel/rcu/rcu.c"/>
+									<listOptionValue builtIn="false" value="aiop_sl/kernel/system/os.c"/>
+									<listOptionValue builtIn="false" value="aiop_sl/kernel/system/smp.c"/>
+									<listOptionValue builtIn="false" value="aiop_sl/kernel/system/sys.c"/>
+									<listOptionValue builtIn="false" value="aiop_sl/kernel/time/time.c"/>
+									<listOptionValue builtIn="false" value="aiop_sl/lib/evmng.c"/>
+									<listOptionValue builtIn="false" value="aiop_sl/lib/memcpy.c"/>
+									<listOptionValue builtIn="false" value="aiop_sl/lib/shbp.c"/>
 								</option>
 								<option id="com.freescale.ppc.toolchain.linker.base.optionCategory.projectOption.454800088" name="Output Type" superClass="com.freescale.ppc.toolchain.linker.base.optionCategory.projectOption" value="com.freescale.ppc.toolchain.linker.base.optionCategory.projectOption.library" valueType="enumerated"/>
 								<option id="com.freescale.ppc.toolchain.linker.base.generateSrec.eol.1362915637" name="EOL Character:" superClass="com.freescale.ppc.toolchain.linker.base.generateSrec.eol" value="com.freescale.ppc.toolchain.linker.base.generateSrec.unix" valueType="enumerated"/>
@@ -103,25 +134,6 @@
 								<option id="com.freescale.ppc.toolchain.compiler.base.optionCategory.processor.vectorSupport.1999395191" name="Vector Support" superClass="com.freescale.ppc.toolchain.compiler.base.optionCategory.processor.vectorSupport" value="com.freescale.ppc.toolchain.compiler.base.optionCategory.processor.vectorSupport.none" valueType="enumerated"/>
 								<option id="com.freescale.ppc.toolchain.compiler.base.options.speedSpace.352722340" name="Speed vs. Size" superClass="com.freescale.ppc.toolchain.compiler.base.options.speedSpace" value="com.freescale.ppc.toolchain.compiler.base.optionCategory.optimization.speedspace.speed" valueType="enumerated"/>
 								<option id="com.freescale.ppc.toolchain.compiler.base.input.include.system.1031676032" name="System Path (-I- -I)" superClass="com.freescale.ppc.toolchain.compiler.base.input.include.system" valueType="includePath">
-									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/drivers/dpmng/controllers/aiop&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/lib&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/arch/ppc/include&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/kernel&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/kernel/dpl&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/kernel/mem_mng&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/drivers/serial/duart&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/drivers/snic&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/drivers/dplib/include&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/drivers/serial/include&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/drivers/dplib/dpni&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/drivers/dplib/dprc&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/drivers/netf/l4&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/drivers/netf/ip&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/drivers/accel&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/drivers/sec&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/drivers/sec/rta&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/drivers/sec/desc&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/drivers/qbman/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${AIOPToolsBaseDir}/AIOP_Support/ewl/EWL_C/include/aiop&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${AIOPToolsBaseDir}/AIOP_Support/ewl/EWL_C/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${AIOPToolsBaseDir}/AIOP_Support/ewl/EWL_Runtime/Runtime_AIOP/Include&quot;"/>
@@ -142,21 +154,47 @@
 								<option id="com.freescale.ppc.toolchain.compiler.base.general.wchar.off.710680589" name="Enable wchar_t Support" superClass="com.freescale.ppc.toolchain.compiler.base.general.wchar.off" value="false" valueType="boolean"/>
 								<option id="com.freescale.ppc.toolchain.compiler.base.general.enableC99.204780793" name="Enable C99 Extensions" superClass="com.freescale.ppc.toolchain.compiler.base.general.enableC99" value="true" valueType="boolean"/>
 								<option id="com.freescale.ppc.toolchain.compiler.base.input.include.210104601" name="User Path (-i)" superClass="com.freescale.ppc.toolchain.compiler.base.input.include" valueType="includePath">
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/arch/ppc/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/include/drivers/ldpaa&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/drivers/dplib/dpni&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/drivers/dplib/dprc&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/drivers/dplib/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/drivers/serial/duart&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/drivers/snic&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/drivers/netf/l4&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/drivers/netf/ip&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/drivers/accel&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/drivers/sec&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/drivers/sec/rta&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/drivers/sec/desc&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/lib&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/kernel&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/kernel/dpl&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/kernel/mem_mng&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/include/lib&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/include/kernel&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/include/common&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/include/dplib&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/include/net&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/drivers/ep/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/arch/platform/ls1088a&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/arch/platform/ls1088a/rev1&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../build_flags&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/include/drivers&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/include/drivers/netf&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/include/drivers/accel&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/arch/ppc/&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/kernel/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/drivers/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/kernel/cmdif/01_01&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/kernel/cmdif&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/kernel/rcu&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/kernel/time&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/kernel/log&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/include/drivers&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/kernel/icontext&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/arch/ppc&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/lib/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/lib/shbp&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/lib/evmng&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/lib/slob&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/lib/slab&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/include/drivers/accel&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/include/drivers/netf&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/arch/platform&quot;"/>
 								</option>
 								<option id="com.freescale.ppc.toolchain.compiler.base.debugging.c.428256618" name="Compile Only, Do Not Link" superClass="com.freescale.ppc.toolchain.compiler.base.debugging.c" value="true" valueType="boolean"/>
 								<option id="com.freescale.ppc.toolchain.compiler.base.warnings.extended.783193360" name="Extended Error Checking" superClass="com.freescale.ppc.toolchain.compiler.base.warnings.extended" value="true" valueType="boolean"/>
@@ -180,6 +218,7 @@
 								<option id="com.freescale.ppc.toolchain.compiler.base.preprocessor.macroUndefined.1359355247" name="Undefined Macros (-U)" superClass="com.freescale.ppc.toolchain.compiler.base.preprocessor.macroUndefined"/>
 								<option id="com.freescale.ppc.toolchain.compiler.base.optionCategory.processor.aiop.132769758" name="Generate AIOP code extensions" superClass="com.freescale.ppc.toolchain.compiler.base.optionCategory.processor.aiop" value="true" valueType="boolean"/>
 								<option id="com.freescale.ppc.toolchain.compiler.base.optionCategory.processor.nogen.1459816144" name="Disable AIOP e_ldw/e_stdw code generation" superClass="com.freescale.ppc.toolchain.compiler.base.optionCategory.processor.nogen" value="false" valueType="boolean"/>
+								<option id="com.freescale.ppc.toolchain.compiler.base.debugging.nosyspath.396037443" name="Always Search User Paths" superClass="com.freescale.ppc.toolchain.compiler.base.debugging.nosyspath" value="true" valueType="boolean"/>
 								<inputType id="com.freescale.ppc.toolchain.compiler.base.input.1059220879" name="com.freescale.ppc.toolchain.cf Compiler Input" superClass="com.freescale.ppc.toolchain.compiler.base.input"/>
 							</tool>
 							<tool command="&quot;${AIOPToolsDir}/asmaiop&quot;" commandLinePattern="${COMMAND} ${FLAGS} ${OUTPUT_FLAG} ${OUTPUT_PREFIX}${OUTPUT} ${INPUTS}" errorParsers="" id="com.freescale.ppc.toolchain.assembler.1023235475" name="Assembler" superClass="com.freescale.ppc.toolchain.assembler">
@@ -196,7 +235,7 @@
 						</toolChain>
 					</folderInfo>
 					<sourceEntries>
-						<entry excluding="aiop_sl/arch/ppc/booke_irq.S|cw_files/start_secondary.S" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
+						<entry excluding="aiop_sl/arch/platform/ls1088a/config.c|aiop_sl/arch/ppc/booke_irq.S|cw_files/start_secondary.S" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
 					</sourceEntries>
 				</configuration>
 			</storageModule>

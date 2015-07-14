@@ -34,8 +34,8 @@
 #ifndef __AIOP_VERIFICATION_PARSER_H_
 #define __AIOP_VERIFICATION_PARSER_H_
 
-#include "dplib/fsl_ldpaa.h"
-#include "dplib/fsl_parser.h"
+#include "fsl_ldpaa.h"
+#include "fsl_parser.h"
 
 
 /**************************************************************************//**

@@ -34,7 +34,7 @@
 #ifndef __AIOP_VERIFICATION_KEYGEN_H_
 #define __AIOP_VERIFICATION_KEYGEN_H_
 
-#include "dplib/fsl_keygen.h"
+#include "fsl_keygen.h"
 
 /** \enum keygen_verif_cmd_type defines the parser verification CMDTYPE
  * field. */
