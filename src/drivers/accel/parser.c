@@ -37,7 +37,7 @@
 
 #include "parser.h"
 #include "system.h"
-#include "id_pool.h"
+#include "fsl_id_pool.h"
 
 extern uint64_t ext_prpid_pool_address;
 

@@ -25,18 +25,17 @@
  */
 
 /**************************************************************************//**
-@File		id_pool.h
+@File		fsl_id_pool.h
 
 @Description	This file contains the AIOP SW ID pool interface.
 
 *//***************************************************************************/
 
-#ifndef __ID_POOL_H_
-#define __ID_POOL_H_
+#ifndef __FSL_ID_POOL_H_
+#define __FSL_ID_POOL_H_
 
 #include "general.h"
 #include "fsl_cdma.h"
-/*#include "cdma.h"*/
 
 
 /**************************************************************************//**
@@ -169,4 +168,4 @@ void id_pool_exception_handler(enum id_pool_function_identifier func_id,
 
 /** @} */ /* end of ID_POOL */
 
-#endif /* __ID_POOL_H_ */
+#endif /* __FSL_ID_POOL_H_ */
