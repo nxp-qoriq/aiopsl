@@ -29,7 +29,7 @@
 #include "platform.h"
 #include "fsl_smp.h"
 #include "kernel/fsl_spinlock.h"
-#include "aiop_common.h"
+#include "fsl_aiop_common.h"
 
 #if defined (AIOP) && defined (LS2085A)
 #include "ls2085a_aiop/platform_aiop_spec.h"
