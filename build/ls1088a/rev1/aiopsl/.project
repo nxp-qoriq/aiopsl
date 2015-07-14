@@ -125,7 +125,7 @@
 			<locationURI>PARENT-2-PROJECT_LOC/cw_files/start_secondary.S</locationURI>
 		</link>
 		<link>
-			<name>aiop_sl/arch/ls1088a</name>
+			<name>aiop_sl/arch/platform</name>
 			<type>2</type>
 			<locationURI>virtual:/virtual</locationURI>
 		</link>
@@ -305,24 +305,24 @@
 			<locationURI>virtual:/virtual</locationURI>
 		</link>
 		<link>
-			<name>aiop_sl/arch/ls1088a/fsl_soc.h</name>
+			<name>aiop_sl/arch/platform/fsl_platform.h</name>
 			<type>1</type>
-			<locationURI>PARENT-4-PROJECT_LOC/src/arch/platform/ls1088a/fsl_soc.h</locationURI>
+			<locationURI>PARENT-4-PROJECT_LOC/src/arch/platform/fsl_platform.h</locationURI>
 		</link>
 		<link>
-			<name>aiop_sl/arch/ls1088a/init.c</name>
+			<name>aiop_sl/arch/platform/init.c</name>
 			<type>1</type>
-			<locationURI>PARENT-4-PROJECT_LOC/src/arch/platform/ls1088a/init.c</locationURI>
+			<locationURI>PARENT-4-PROJECT_LOC/src/arch/platform/init.c</locationURI>
 		</link>
 		<link>
-			<name>aiop_sl/arch/ls1088a/platform.c</name>
-			<type>1</type>
-			<locationURI>PARENT-4-PROJECT_LOC/src/arch/platform/ls1088a/platform.c</locationURI>
+			<name>aiop_sl/arch/platform/ls1088a</name>
+			<type>2</type>
+			<locationURI>virtual:/virtual</locationURI>
 		</link>
 		<link>
-			<name>aiop_sl/arch/ls1088a/platform.h</name>
+			<name>aiop_sl/arch/platform/platform.c</name>
 			<type>1</type>
-			<locationURI>PARENT-4-PROJECT_LOC/src/arch/platform/ls1088a/platform.h</locationURI>
+			<locationURI>PARENT-4-PROJECT_LOC/src/arch/platform/platform.c</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/arch/ppc/booke.S</name>
@@ -1243,6 +1243,11 @@
 			<name>aiop_sl/lib/util/memcpy.c</name>
 			<type>1</type>
 			<locationURI>PARENT-4-PROJECT_LOC/src/lib/util/memcpy.c</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/arch/platform/ls1088a/fsl_soc.h</name>
+			<type>1</type>
+			<locationURI>PARENT-4-PROJECT_LOC/src/arch/platform/ls1088a/fsl_soc.h</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/arch/ppc/include/fsl_core_booke.h</name>
