@@ -27,7 +27,7 @@
 #include "fsl_stdio.h"
 #include "fsl_cdma.h"
 #include "fsl_io.h"
-#include "aiop_common.h" /* for struct aiop_init_info */
+#include "fsl_aiop_common.h" /* for struct aiop_init_info */
 #include "fsl_malloc.h"
 
 int memory_test();

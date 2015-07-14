@@ -32,7 +32,7 @@
 #include "fsl_soc.h"
 #include "fsl_sl_dprc_drv.h"
 #include "fsl_dprc.h"
-#include "aiop_common.h"
+#include "fsl_aiop_common.h"
 
 #define CORE_ID_GET		(get_cpu_id() >> 4)
 

@@ -36,7 +36,7 @@
 #include "slab.h"
 #include "platform.h"
 #include "fsl_io.h"
-#include "aiop_common.h"
+#include "fsl_aiop_common.h"
 #include "kernel/fsl_spinlock.h"
 #include "fsl_parser.h"
 #include "fsl_osm.h"
