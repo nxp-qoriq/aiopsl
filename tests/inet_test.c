@@ -27,7 +27,7 @@
 #include "common/types.h"
 #include "common/fsl_stdio.h"
 #include "common/fsl_string.h"
-#include "platform.h"
+#include "fsl_platform.h"
 #include "fsl_inet.h"
 #include "fsl_dbg.h"
 

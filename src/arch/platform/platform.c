@@ -31,7 +31,7 @@
 #include "fsl_aiop_common.h"
 #include "fsl_duart.h"
 #include "console.h"
-#include "platform.h"
+#include "fsl_platform.h"
 #include "fsl_malloc.h"
 #include "fsl_smp.h"
 #include "fsl_io_ccsr.h"
