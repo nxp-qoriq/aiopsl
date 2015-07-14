@@ -35,7 +35,7 @@
 #define __AIOP_VERIFICATION_TMAN_H_
 
 #include "dplib/fsl_ldpaa.h"
-#include "dplib/fsl_tman.h"
+#include "fsl_tman.h"
 
 
 /**************************************************************************//**

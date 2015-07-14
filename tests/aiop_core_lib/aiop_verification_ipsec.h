@@ -46,7 +46,7 @@
 #ifndef __AIOP_VERIFICATION_IPSEC_H_
 #define __AIOP_VERIFICATION_IPSEC_H_
 
-#include "dplib/fsl_ipsec.h"
+#include "fsl_ipsec.h"
 
 /* IPSEC Commands IDs */
 #define IPSEC_INIT_CMD 						1 | (IPSEC_MODULE << 16)

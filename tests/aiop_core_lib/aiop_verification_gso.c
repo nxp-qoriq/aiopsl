@@ -31,7 +31,7 @@
 
 *//***************************************************************************/
 
-#include "dplib/fsl_gso.h"
+#include "fsl_gso.h"
 #include "aiop_verification.h"
 
 extern __TASK struct aiop_default_task_params default_task_params;

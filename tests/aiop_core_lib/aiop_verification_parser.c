@@ -31,7 +31,7 @@
 
 *//***************************************************************************/
 
-#include "dplib/fsl_parser.h"
+#include "fsl_parser.h"
 #include "system.h"
 
 #include "aiop_verification.h"
