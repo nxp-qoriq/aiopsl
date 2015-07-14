@@ -113,6 +113,18 @@ int fsl_os_get_mem(uint64_t size, int mem_partition_id, uint64_t alignment,
 *//***************************************************************************/
 void  fsl_os_put_mem(uint64_t paddr);
 
+
+/**************************************************************************//**
+@Function      fsl_mem_exists
+
+@Description   Returns  if the provided  memory partition exists
+
+@Param[in]    mem_partition_id   A memory partition id
+@Return        1                 if exists,
+               0                 if does not exist
+*//***************************************************************************/
+int fsl_mem_exists(int mem_partition_id);
+
 /** @} */ /* end of sytem_mem_management_id  group */
 
 
