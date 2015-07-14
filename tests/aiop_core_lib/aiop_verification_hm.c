@@ -31,7 +31,7 @@
 *//***************************************************************************/
 
 #include "general.h"
-#include "net/fsl_net.h"
+#include "fsl_net.h"
 #include "fsl_ip.h"
 #include "fsl_l2.h"
 #include "fsl_l4.h"

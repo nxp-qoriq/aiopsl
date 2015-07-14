@@ -30,12 +30,12 @@
 #include "fsl_rcu.h"
 #include "fsl_slab.h"
 #include "fsl_aiop_common.h"
+#include "fsl_malloc.h"
 
 #define CTSTWS_TASK0_BIT	0x80000000
 #define CTSTWS_TASKS_MASK	0xFFFF0000
 
-#define RCU_DEFAULT_COMMITTED	64
-#define RCU_DEFAULT_MAX		128
+#define RCU_DEFAULT_COMMITTED	128
 #define RCU_DEFAULT_DELAY	10
 
 #define RCU_MUTEX_R_TAKE \
@@ -61,6 +61,7 @@ struct rcu {
 	int32_t list_size;
 	struct slab *slab;
 	struct aiop_dcsr_regs *regs;
+	e_memory_partition_id mem_heap;
 	uint32_t committed;	/**< Committed number of accumulated rcu jobs */
 	uint32_t max;		/**< Maximal number of accumulated rcu jobs */
 	uint16_t delay;

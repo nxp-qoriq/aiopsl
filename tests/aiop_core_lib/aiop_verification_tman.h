@@ -34,7 +34,7 @@
 #ifndef __AIOP_VERIFICATION_TMAN_H_
 #define __AIOP_VERIFICATION_TMAN_H_
 
-#include "fsl_ldpaa.h"
+#include "dplib/fsl_ldpaa.h"
 #include "fsl_tman.h"
 
 

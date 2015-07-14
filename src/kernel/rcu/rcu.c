@@ -42,6 +42,7 @@ struct rcu g_rcu = {0,		/* list_head */
                     0,		/* list_size */
                     NULL,	/* slab */
                     NULL,	/* dcsr regs */
+                    MEM_PART_DP_DDR, /* mem_heap */
                     0,		/* committed */
                     0,		/* max */
                     0xFFFF,	/* delay */
@@ -57,17 +58,18 @@ int rcu_default_early_init();
 int rcu_early_init(uint16_t delay, uint32_t committed, uint32_t max)
 {
 	int err;
-
+	
 	/* Count extra buffers */
 	if ((max - committed) > g_rcu.max)
 		g_rcu.max = (max - committed);
+
 
 	if (g_rcu.committed >= RCU_DEFAULT_COMMITTED) {
 		err = slab_register_context_buffer_requirements(committed,
 		                                                committed + g_rcu.max,
 		                                                sizeof(struct rcu_job),
 		                                                8,
-		                                                MEM_PART_DP_DDR,
+		                                                g_rcu.mem_heap,
 		                                                0,
 		                                                0);
 		ASSERT_COND(!err);
@@ -77,13 +79,13 @@ int rcu_early_init(uint16_t delay, uint32_t committed, uint32_t max)
 		                                                (g_rcu.committed + committed) - RCU_DEFAULT_COMMITTED + g_rcu.max,
 		                                                sizeof(struct rcu_job),
 		                                                8,
-		                                                MEM_PART_DP_DDR,
+		                                                g_rcu.mem_heap,
 		                                                0,
 		                                                0);
 		ASSERT_COND(!err);
 	} else {
-		pr_info("RCU already reserved committed %d max %d buffers\n",
-		        RCU_DEFAULT_COMMITTED, RCU_DEFAULT_MAX);
+		pr_info("RCU already reserved committed %d buffers\n",
+		        RCU_DEFAULT_COMMITTED);
 	}
 
 	g_rcu.committed += committed;
@@ -98,14 +100,21 @@ int rcu_early_init(uint16_t delay, uint32_t committed, uint32_t max)
 int rcu_default_early_init()
 {
 	int err;
+	uint64_t paddr = 0;
 
-	pr_info("RCU module reserves committed %d max %d buffers\n",
-			        RCU_DEFAULT_COMMITTED, RCU_DEFAULT_MAX);
+	/* Support no dp ddr */
+	err = fsl_os_get_mem(64, MEM_PART_DP_DDR, 8, &paddr);
+	if (err || (paddr == 0))
+		g_rcu.mem_heap = MEM_PART_SYSTEM_DDR;
+	else
+		g_rcu.mem_heap = MEM_PART_DP_DDR;
+
+	pr_info("RCU module reserves committed %d \n", RCU_DEFAULT_COMMITTED);
 	err = slab_register_context_buffer_requirements(RCU_DEFAULT_COMMITTED,
-	                                                RCU_DEFAULT_MAX,
+	                                                RCU_DEFAULT_COMMITTED,
 	                                                sizeof(struct rcu_job),
 	                                                8,
-	                                                MEM_PART_DP_DDR,
+	                                                g_rcu.mem_heap,
 	                                                0,
 	                                                0);
 	ASSERT_COND(!err);
@@ -124,7 +133,7 @@ int rcu_init()
 		pr_err("Call rcu_early_init() to setup rcu \n");
 		pr_err("Setting RCU defaults.. \n");
 		g_rcu.committed = RCU_DEFAULT_COMMITTED;
-		g_rcu.max = RCU_DEFAULT_MAX;
+		g_rcu.max = RCU_DEFAULT_COMMITTED;
 		g_rcu.delay = RCU_DEFAULT_DELAY;
 	} else {
 		/* Convert extra to committed, default extra max can be reused
@@ -148,7 +157,7 @@ int rcu_init()
 	                  g_rcu.max,
 	                  sizeof(struct rcu_job),
 	                  8,
-	                  MEM_PART_DP_DDR,
+	                  g_rcu.mem_heap,
 	                  0,
 	                  NULL,
 	                  &(g_rcu.slab));
@@ -163,7 +172,7 @@ int rcu_init()
 	if (g_sl_tmi_id == 0xff) {
 		tman_addr = 0;
 		err = fsl_os_get_mem((64 * m_timers + 1),
-		                     MEM_PART_DP_DDR,
+		                     g_rcu.mem_heap,
 		                     64,
 		                     &tman_addr);
 		ASSERT_COND(!err && tman_addr);
@@ -309,7 +318,7 @@ static int done_CTSTWS()
 			mask = g_rcu.sw_ctstws[cluster][core];
 
 			if (ctstws & mask) {
-//				pr_debug("core 0x%x ctstws = 0x%x\n", (cluster * 4 + core), ctstws);
+				sl_pr_debug("core 0x%x ctstws = 0x%x\n", (cluster * 4 + core), ctstws);
 				return 0;
 			}
 		}
@@ -371,7 +380,7 @@ void rcu_tman_cb(uint64_t ubatch_size, uint16_t opaque2)
 	}
 
 	if (done_CTSTWS()) {
-//		pr_debug("############ DONE batch_size = %d\n", batch_size);
+		sl_pr_debug("############ DONE batch_size = %d\n", batch_size);
 		ASSERT_COND(batch_size > 0);
 		for (i = 0; i < batch_size; i++) {
 			size = dequeue(&cb, &param);
@@ -380,12 +389,12 @@ void rcu_tman_cb(uint64_t ubatch_size, uint16_t opaque2)
 		}
 
 		if (size != 0) {
-//			pr_debug("Do prime -1 \n");
+			sl_pr_debug("Do prime -1 \n");
 			init_one_shot_timer(-1);
 		}
 
 	} else {
-//		pr_debug("############ Keep pooling batch_size = %d\n", batch_size);
+		sl_pr_debug("############ Keep pooling batch_size = %d\n", batch_size);
 		init_one_shot_timer(batch_size);
 	}
 
@@ -408,7 +417,7 @@ int rcu_synchronize(rcu_cb_t *cb, uint64_t param)
 	}
 
 	if (size == 1) {
-//		pr_debug("Do prime -1 \n");
+		sl_pr_debug("Do prime -1 \n");
 		size = init_one_shot_timer(-1);
 		if (size) {
 			sl_pr_err("Failed timer err = %d\n", size);

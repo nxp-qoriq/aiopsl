@@ -38,7 +38,7 @@
 #include "aiop_verification.h"
 #include "system.h"
 
-#include "cmgw.h"
+#include "fsl_cmgw.h"
 
 
 /*
