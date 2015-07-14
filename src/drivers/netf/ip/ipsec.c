@@ -41,7 +41,7 @@
 #include "fsl_ste.h"
 #include "fsl_osm.h"
 #include "header_modification.h"
-#include "checksum.h"
+#include "fsl_checksum.h"
 
 /*#include "cdma.h"*/
 #include "osm_inline.h"

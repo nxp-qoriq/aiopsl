@@ -30,7 +30,7 @@
 @Description	This file contains the AIOP SW general checksum functions.
 
 *//***************************************************************************/
-#include "checksum.h"
+#include "fsl_checksum.h"
 #include "general.h"
 
 uint16_t cksum_ones_complement_sum16(uint16_t arg1, uint16_t arg2)

@@ -150,6 +150,16 @@
 			<locationURI>virtual:/virtual</locationURI>
 		</link>
 		<link>
+			<name>aiop_sl/drivers/general.c</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/general.c</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/drivers/general.h</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/general.h</locationURI>
+		</link>
+		<link>
 			<name>aiop_sl/drivers/include</name>
 			<type>2</type>
 			<locationURI>virtual:/virtual</locationURI>
@@ -508,11 +518,6 @@
 			<name>aiop_sl/drivers/dplib/mc_sys.c</name>
 			<type>1</type>
 			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/dplib/mc_sys.c</locationURI>
-		</link>
-		<link>
-			<name>aiop_sl/drivers/dplib/util</name>
-			<type>2</type>
-			<locationURI>virtual:/virtual</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/drivers/ep/ep.c</name>
@@ -1170,6 +1175,16 @@
 			<locationURI>PARENT-3-PROJECT_LOC/src/lib/evmng/evmng_common.h</locationURI>
 		</link>
 		<link>
+			<name>aiop_sl/lib/include/fsl_checksum.h</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/lib/include/fsl_checksum.h</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/lib/include/fsl_id_pool.h</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/lib/include/fsl_id_pool.h</locationURI>
+		</link>
+		<link>
 			<name>aiop_sl/lib/include/fsl_list.h</name>
 			<type>1</type>
 			<locationURI>PARENT-3-PROJECT_LOC/src/lib/include/fsl_list.h</locationURI>
@@ -1223,6 +1238,16 @@
 			<name>aiop_sl/lib/slob/slob.h</name>
 			<type>1</type>
 			<locationURI>PARENT-3-PROJECT_LOC/src/lib/slob/slob.h</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/lib/util/checksum.c</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/lib/util/checksum.c</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/lib/util/id_pool.c</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/lib/util/id_pool.c</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/lib/util/list.c</name>
@@ -1355,24 +1380,14 @@
 			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/dplib/include/virtual_pools.h</locationURI>
 		</link>
 		<link>
-			<name>aiop_sl/drivers/dplib/util/checksum.c</name>
-			<type>1</type>
-			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/dplib/util/checksum.c</locationURI>
-		</link>
-		<link>
-			<name>aiop_sl/drivers/dplib/util/general.c</name>
-			<type>1</type>
-			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/dplib/util/general.c</locationURI>
-		</link>
-		<link>
-			<name>aiop_sl/drivers/dplib/util/id_pool.c</name>
-			<type>1</type>
-			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/dplib/util/id_pool.c</locationURI>
-		</link>
-		<link>
 			<name>aiop_sl/drivers/netf/general/frame_operations.c</name>
 			<type>1</type>
 			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/netf/general/frame_operations.c</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/drivers/netf/general/header_modification.h</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/netf/general/header_modification.h</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/drivers/netf/ip/ip.c</name>

@@ -36,7 +36,7 @@
 #include "fsl_fdma.h"
 #include "fsl_cdma.h"
 #include "fsl_ldpaa.h"
-#include "checksum.h"
+#include "fsl_checksum.h"
 #include "ipf.h"
 #include "ip.h"
 #include "fsl_stdlib.h"

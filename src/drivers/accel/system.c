@@ -31,7 +31,7 @@
 
 *//***************************************************************************/
 #include "system.h"
-#include "id_pool.h"
+#include "fsl_id_pool.h"
 #include "fsl_cdma.h"
 #include "fsl_malloc.h"
 

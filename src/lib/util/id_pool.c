@@ -31,7 +31,7 @@
 
 *//***************************************************************************/
 
-#include "id_pool.h"
+#include "fsl_id_pool.h"
 
 void id_pool_init(uint16_t num_of_ids,
 			 uint16_t buffer_pool_id,

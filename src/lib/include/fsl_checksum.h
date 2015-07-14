@@ -25,7 +25,7 @@
  */
 
 /**************************************************************************//**
-@File		checksum.h
+@File		fsl_checksum.h
 
 @Description	This file contains checksum utilities
 
