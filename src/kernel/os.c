@@ -531,6 +531,10 @@ void fsl_os_put_mem(uint64_t paddr)
 	sys_put_phys_mem(paddr);
 }
 
+int fsl_mem_exists(int mem_partition_id)
+{
+    return sys_mem_exists(mem_partition_id);
+}
 
 #ifdef ARENA_LEGACY_CODE
 /*****************************************************************************/
