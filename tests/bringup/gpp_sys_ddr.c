@@ -34,7 +34,7 @@
 #include "fsl_fdma.h"
 #include "fsl_cdma.h"
 #include "fsl_io_ccsr.h"
-#include "aiop_common.h"
+#include "fsl_aiop_common.h"
 
 #define TEST_DDR_SIZE	64
 #define TEST_DDR_VAL	0xbe
