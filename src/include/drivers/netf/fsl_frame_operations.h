@@ -34,9 +34,9 @@
 #ifndef __FSL_FRAME_OPERATIONS_H
 #define __FSL_FRAME_OPERATIONS_H
 
-#include "common/types.h"
+#include "types.h"
 #include "fsl_errors.h"
-#include "dplib/fsl_ldpaa.h"
+#include "fsl_ldpaa.h"
 
 /**************************************************************************//**
  @Group		NETF NETF (Network Libraries)

@@ -35,7 +35,7 @@
 #ifndef __AIOP_VERIFICATION_IPF_H_
 #define __AIOP_VERIFICATION_IPF_H_
 
-#include "dplib/fsl_ldpaa.h"
+#include "fsl_ldpaa.h"
 #include "fsl_gen.h"
 #include "general.h"
 #include "ipf.h"

@@ -32,8 +32,8 @@
 #ifndef __FSL_GSO_H
 #define __FSL_GSO_H
 
-#include "common/types.h"
-#include "dplib/fsl_ldpaa.h"
+#include "types.h"
+#include "fsl_ldpaa.h"
 
 /**************************************************************************//**
  @Group		NETF NETF (Network Libraries)
