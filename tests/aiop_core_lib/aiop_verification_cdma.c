@@ -30,7 +30,7 @@
 @Description   This file contains the AIOP CDMA SRs SW Verification
 *//***************************************************************************/
 
-#include "dplib/fsl_cdma.h"
+#include "fsl_cdma.h"
 /*#include "cdma.h"*/
 
 #include "aiop_verification.h"

@@ -34,9 +34,9 @@
 #ifndef __AIOP_VERIFICATION_IPR_H_
 #define __AIOP_VERIFICATION_IPR_H_
 
-#include "dplib/fsl_ldpaa.h"
-#include "net/fsl_net.h"
-#include "dplib/fsl_ipr.h"
+#include "fsl_ldpaa.h"
+#include "fsl_net.h"
+#include "fsl_ipr.h"
 #include "ipr.h"
 
 
