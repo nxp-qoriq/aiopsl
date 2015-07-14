@@ -24,32 +24,27 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/**************************************************************************//**
- @File          types.h
+#ifndef __FSL_SL_DPRC_DRV_H
+#define __FSL_SL_DPRC_DRV_H
 
- @Description   TODO
- *//***************************************************************************/
-#ifndef __FSL_TYPES_H
-#define __FSL_TYPES_H
+#include "fsl_mc_sys.h"
 
-#if defined(__GNUC__) && defined(__cplusplus)
-#include "types_gpp.h"
-
-#elif defined(__GNUC__)
-#include "types_gcc.h"
-
-#elif defined(__MWERKS__)
-#include "types_mw.h"
-
-#else
-#error "missing types definition"
-#endif
+struct mc_dprc {
+	uint16_t		token;
+	struct fsl_mc_io	io;
+};
 
 
 /**************************************************************************//**
- @Description   General Handle
- *//***************************************************************************/
-typedef void * fsl_handle_t; /**< TODO: remove, do not use */
+@Function	dprc_drv_scan
 
+@Description	Function to scan for objects changes in resource
+		container.
 
-#endif /* __FSL_TYPES_H */
+@Return	OK on success; error code, otherwise.
+		For error posix refer to
+		\ref error_g
+*//***************************************************************************/
+int dprc_drv_scan(void);
+
+#endif /*__FSL_SL_DPRC_DRV_H */

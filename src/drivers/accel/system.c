@@ -40,7 +40,7 @@
 #include "ipsec.h"
 #include "fsl_sys.h"
 #include "time.h"
-#include "aiop_common.h"
+#include "fsl_aiop_common.h"
 /* #include "fsl_sl_dbg.h" */
 #include "fsl_slab.h"
 
@@ -57,7 +57,7 @@ extern void tman_timer_callback(void);
 
 #include "fsl_dbg.h"
 #include "fsl_io.h"
-#include "aiop_common.h"
+#include "fsl_aiop_common.h"
 #include "ipr.h"
 
 extern void tman_timer_callback(void);

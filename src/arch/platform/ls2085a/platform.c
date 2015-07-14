@@ -28,7 +28,7 @@
 #include "common/types.h"
 #include "fsl_malloc.h"
 #include "common/fsl_string.h"
-#include "aiop_common.h"
+#include "fsl_aiop_common.h"
 #include "fsl_duart.h"
 #include "console.h"
 #include "platform.h"

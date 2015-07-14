@@ -24,32 +24,54 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/**************************************************************************//**
- @File          types.h
+#ifndef __RCU_H
+#define __RCU_H
 
- @Description   TODO
- *//***************************************************************************/
-#ifndef __FSL_TYPES_H
-#define __FSL_TYPES_H
+#include "fsl_rcu.h"
+#include "fsl_slab.h"
+#include "fsl_aiop_common.h"
 
-#if defined(__GNUC__) && defined(__cplusplus)
-#include "types_gpp.h"
+#define CTSTWS_TASK0_BIT	0x80000000
+#define CTSTWS_TASKS_MASK	0xFFFF0000
 
-#elif defined(__GNUC__)
-#include "types_gcc.h"
+#define RCU_DEFAULT_COMMITTED	64
+#define RCU_DEFAULT_MAX		128
+#define RCU_DEFAULT_DELAY	10
 
-#elif defined(__MWERKS__)
-#include "types_mw.h"
+#define RCU_MUTEX_R_TAKE \
+	do { \
+		cdma_mutex_lock_take((uint64_t)(&g_rcu), CDMA_MUTEX_READ_LOCK); \
+	} while(0)
 
-#else
-#error "missing types definition"
-#endif
+#define RCU_MUTEX_W_TAKE \
+	do { \
+		cdma_mutex_lock_take((uint64_t)(&g_rcu), CDMA_MUTEX_WRITE_LOCK); \
+	} while(0)
+
+#define RCU_MUTEX_RELEASE \
+	do { \
+		cdma_mutex_lock_release((uint64_t)(&g_rcu)); \
+	} while(0)
 
 
-/**************************************************************************//**
- @Description   General Handle
- *//***************************************************************************/
-typedef void * fsl_handle_t; /**< TODO: remove, do not use */
+struct rcu {
+	uint64_t list_head;		/**< RCU list is palced at DP DDR */
+	uint64_t list_tail;		/**< RCU list is palced at DP DDR */
+	uint32_t sw_ctstws[AIOP_MAX_NUM_CLUSTERS][AIOP_MAX_NUM_CORES_IN_CLUSTER];
+	int32_t list_size;
+	struct slab *slab;
+	struct aiop_dcsr_regs *regs;
+	uint32_t committed;	/**< Committed number of accumulated rcu jobs */
+	uint32_t max;		/**< Maximal number of accumulated rcu jobs */
+	uint16_t delay;
+	/**< TODO : Do we need 2 different delays ? see init_one_shot_timer() */
+	uint8_t sw_ctstws_lock;
+};
 
+struct rcu_job {
+	uint64_t next;
+	uint64_t param;
+	rcu_cb_t *cb;
+};
 
-#endif /* __FSL_TYPES_H */
+#endif /* __RCU_H */

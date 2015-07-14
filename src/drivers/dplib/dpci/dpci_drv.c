@@ -43,7 +43,7 @@
 #include "fsl_icontext.h"
 #include "fsl_spinlock.h"
 #include "fsl_malloc.h"
-#include "aiop_common.h"
+#include "fsl_aiop_common.h"
 #include "fsl_ep.h"
 #include "fsl_ep_mng.h"
 #include "fsl_sl_evmng.h"

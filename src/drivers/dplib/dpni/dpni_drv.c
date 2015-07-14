@@ -40,7 +40,7 @@
 #include "fsl_bman.h"
 #include "fsl_malloc.h"
 #include "dpni_drv.h"
-#include "aiop_common.h"
+#include "fsl_aiop_common.h"
 #include "system.h"
 #include "fsl_sl_dprc_drv.h"
 #include "fsl_sl_slab.h"

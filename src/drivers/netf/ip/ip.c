@@ -33,7 +33,7 @@
 *//***************************************************************************/
 
 #include "general.h"
-#include "net/fsl_net.h"
+#include "fsl_net.h"
 #include "fsl_parser.h"
 #include "fsl_fdma.h"
 #include "fsl_ip.h"

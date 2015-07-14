@@ -23,33 +23,22 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+/******************************************************************************
+ @File          log.h
 
-/**************************************************************************//**
- @File          types.h
-
- @Description   TODO
+ @Description   LOG internal structures and definitions.
  *//***************************************************************************/
-#ifndef __FSL_TYPES_H
-#define __FSL_TYPES_H
 
-#if defined(__GNUC__) && defined(__cplusplus)
-#include "types_gpp.h"
+#ifndef __LOG_H
+#define __LOG_H
 
-#elif defined(__GNUC__)
-#include "types_gcc.h"
-
-#elif defined(__MWERKS__)
-#include "types_mw.h"
-
-#else
-#error "missing types definition"
-#endif
+#include "common/types.h"
+#include <stdio.h>
+#include "fsl_icontext.h"
+#include "fsl_aiop_common.h"
+#include "fsl_log.h"
+#include "fsl_cdma.h"
+#include "fsl_spinlock.h"
 
 
-/**************************************************************************//**
- @Description   General Handle
- *//***************************************************************************/
-typedef void * fsl_handle_t; /**< TODO: remove, do not use */
-
-
-#endif /* __FSL_TYPES_H */
+#endif /* __LOG_H */

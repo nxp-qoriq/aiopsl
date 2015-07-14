@@ -25,31 +25,19 @@
  */
 
 /**************************************************************************//**
- @File          types.h
+@File		evmng_common.h
 
- @Description   TODO
- *//***************************************************************************/
-#ifndef __FSL_TYPES_H
-#define __FSL_TYPES_H
+@Description	Event Manager common file
+*//***************************************************************************/
 
-#if defined(__GNUC__) && defined(__cplusplus)
-#include "types_gpp.h"
+#ifndef __EVMNG_COMMON_H
+#define __EVMNG_COMMON_H
 
-#elif defined(__GNUC__)
-#include "types_gcc.h"
+/**EVMNG send command id when using cmdif to notify from MC*/
+#define EVMNG_EVENT_SEND         2
 
-#elif defined(__MWERKS__)
-#include "types_mw.h"
-
-#else
-#error "missing types definition"
-#endif
+/**default buffer size in the command*/
+#define EVMNG_CMDSZ_EVENT_SEND   64
 
 
-/**************************************************************************//**
- @Description   General Handle
- *//***************************************************************************/
-typedef void * fsl_handle_t; /**< TODO: remove, do not use */
-
-
-#endif /* __FSL_TYPES_H */
+#endif /* __EVMNG_COMMON_H */

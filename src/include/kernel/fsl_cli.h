@@ -25,31 +25,37 @@
  */
 
 /**************************************************************************//**
- @File          types.h
+@File		fsl_cli.h
 
- @Description   TODO
- *//***************************************************************************/
-#ifndef __FSL_TYPES_H
-#define __FSL_TYPES_H
+@Description	This file contains macro to receive command line aruments.
 
-#if defined(__GNUC__) && defined(__cplusplus)
-#include "types_gpp.h"
-
-#elif defined(__GNUC__)
-#include "types_gcc.h"
-
-#elif defined(__MWERKS__)
-#include "types_mw.h"
-
-#else
-#error "missing types definition"
-#endif
+*//***************************************************************************/
 
 
+#ifndef __FSL_CLI_H_
+#define __FSL_CLI_H_
+
+#include "fsl_aiop_common.h"
+
+extern struct aiop_init_info g_init_data;
 /**************************************************************************//**
- @Description   General Handle
- *//***************************************************************************/
-typedef void * fsl_handle_t; /**< TODO: remove, do not use */
+@Group		fsl_cli_g FSL Command Line Interface
+
+ @Description   Macro to receive the command line arguments passed from MC
+ 	 	 when launching AIOP.
+
+ @{
+*//***************************************************************************/
+/** Get AIOP command line string and it's size
+ * _args - uint8_t * to the command line arguments string.
+ * _args_size - uint32_t for string size. */
+#define GET_AIOP_CLI_STRING(_args, _args_size)			\
+	({_args = (uint8_t *) g_init_data.sl_info.args;		\
+	_args_size = (uint32_t) g_init_data.sl_info.args_size;})
 
 
-#endif /* __FSL_TYPES_H */
+
+/** @} *//* end of fsl_cli_g FSL Command Line Interface group */
+
+
+#endif /* __FSL_CLI_H */

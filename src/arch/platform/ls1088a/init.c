@@ -28,7 +28,7 @@
 #include "fsl_malloc.h"
 #include "sys.h"
 #include "fsl_io_ccsr.h"
-#include "cmgw.h"
+#include "fsl_cmgw.h"
 #include "fsl_sl_dprc_drv.h"
 #include "fsl_mem_mng.h"
 #include "platform.h"

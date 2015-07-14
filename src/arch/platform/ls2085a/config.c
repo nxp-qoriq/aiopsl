@@ -24,7 +24,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 #include "types.h"
-#include "aiop_common.h"
+#include "fsl_aiop_common.h"
 #include "fsl_gen.h"
 #include "apps.h"
 #include "platform.h"

@@ -122,13 +122,49 @@ typedef struct t_platform_ops {
 } t_platform_ops;
 
 
-#if defined(MC)
-#include "platform_mc_spec.h"
-#elif defined(AIOP)
-#include "platform_aiop_spec.h"
-#else
-#error "Platform specific header file not defined"
-#endif /* specific platform select */
+/**************************************************************************//**
+ @Group         ls2085a_g LS2085A Application Programming Interface
+
+ @Description   LS2085A Chip functions,definitions and enums.
+
+ @{
+*//***************************************************************************/
+
+#define PLATFORM_MAX_MEM_INFO_ENTRIES   8
+
+/**************************************************************************//**
+ @Description   Platform Console Types
+*//***************************************************************************/
+typedef enum platform_console_type {
+    PLTFRM_CONSOLE_NONE,        /**< Do not use platform console */
+    PLTFRM_CONSOLE_DUART        /**< Use DUART-x as console port */
+} e_platform_console_type;
+
+
+
+/**************************************************************************//**
+ @Description   Platform configuration parameters structure
+*//***************************************************************************/
+struct platform_param {
+    struct platform_memory_info     mem_info[PLATFORM_MAX_MEM_INFO_ENTRIES];
+    enum cache_mode                 l1_cache_mode;
+    enum platform_console_type      console_type;
+    uint8_t                         console_id;
+};
+
+
+/**************************************************************************//**
+ @Description   Platform application parameters structure
+*//***************************************************************************/
+struct platform_app_params {
+	uint16_t dpni_num_buffs;	/**< number of buffers for dpni pool*/
+	uint16_t dpni_buff_size;	/**< size of buffers for dpni pool*/
+	uint16_t dpni_drv_alignment;	/**< dpni pool buffers alignment*/
+	uint16_t app_arr_size;		/**< Maximal size of app init array */
+};
+
+/** @} */ /* end of ls2085a_g group */
+
 
 
 /**************************************************************************//**
