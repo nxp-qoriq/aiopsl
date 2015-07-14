@@ -41,7 +41,7 @@
 
 #ifndef STACK_OVERFLOW_DETECTION
 #define STACK_OVERFLOW_DETECTION 1
-#endif 
+#endif
 
 #if (DEBUG_LEVEL > 0)
 #define DEBUG
@@ -57,7 +57,6 @@
 //#define SIMULATOR
 #define DEBUG_NO_MC
 
-//#define NO_DP_DDR
 
 
 #endif /* __BUILD_FLAGS_H */

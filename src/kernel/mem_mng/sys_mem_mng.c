@@ -48,7 +48,7 @@ extern int sigsetmask(int);
 
 
 
-
+extern struct aiop_init_info g_init_data;
 
 /* Put all function (execution code) into  dtext_vle section,aka __COLD_CODE */
 __START_COLD_CODE
@@ -346,6 +346,7 @@ void sys_print_mem_partition_debug_info(int partition_id, int report_leaks)
  int sys_init_memory_management(void)
 {
     t_mem_mng_param mem_mng_param;
+    uint32_t no_dp_ddr = (g_init_data.app_info.dp_ddr_size == 0);
 
 
 #ifdef AIOP
@@ -360,11 +361,11 @@ void sys_print_mem_partition_debug_info(int partition_id, int report_leaks)
     mem_mng_param.lock = &(sys.mem_part_mng_lock);
 
     /* initialize boot memory manager to use MEM_PART_DP_DDR*/
-#ifndef NO_DP_DDR
+if(!no_dp_ddr)
     boot_mem_mng_init(&sys.boot_mem_mng,MEM_PART_DP_DDR);
-#else
+else
     boot_mem_mng_init(&sys.boot_mem_mng,MEM_PART_SYSTEM_DDR);
-#endif
+
     if(mem_mng_init(&sys.boot_mem_mng,&mem_mng_param,&sys.mem_mng) != 0)
     {
         pr_err("Resource is unavailable: memory management object\n");
@@ -430,6 +431,29 @@ void  sys_put_phys_mem(uint64_t paddr)
 	mem_mng_put_phys_mem(&sys.mem_mng,paddr);
 }
 
-
+int sys_mem_exists(int mem_partition_id)
+{
+    switch(mem_partition_id)
+    {
+	case MEM_PART_DP_DDR:
+            if(g_init_data.app_info.dp_ddr_size != 0)
+		return 1;
+	    return 0;
+	case MEM_PART_SYSTEM_DDR:
+	    if(g_init_data.app_info.sys_ddr1_size != 0)
+	        return 1;
+	    return 0;
+	case MEM_PART_SH_RAM:
+	    if(SHARED_RAM_SIZE != 0)
+		    return 1;
+	    return 0;
+	case MEM_PART_PEB:
+	    if(g_init_data.app_info.peb_size != 0)
+	        return 1;
+	    return 0;
+	default:
+	    return 0;
+    }
+}
 __END_COLD_CODE
 
