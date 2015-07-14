@@ -32,7 +32,7 @@
 #include "fsl_ip.h"
 #include "fsl_cdma.h"
 #include "slab.h"
-#include "platform.h"
+#include "fsl_platform.h"
 #include "fsl_malloc.h"
 #include "fsl_io.h"
 

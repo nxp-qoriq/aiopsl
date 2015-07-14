@@ -31,7 +31,7 @@
 #include "fsl_cmgw.h"
 #include "fsl_sl_dprc_drv.h"
 #include "fsl_mem_mng.h"
-#include "platform.h"
+#include "fsl_platform.h"
 
 
 

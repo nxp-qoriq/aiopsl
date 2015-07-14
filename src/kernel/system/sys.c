@@ -30,7 +30,7 @@
 #include "common/fsl_stdarg.h"
 #include "fsl_malloc.h"
 #include "kernel/fsl_spinlock.h"
-#include "platform.h"
+#include "fsl_platform.h"
 #include "fsl_smp.h"
 #include "fsl_io_ccsr.h"
 #include "fsl_cmgw.h"

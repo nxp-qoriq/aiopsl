@@ -33,7 +33,7 @@
 #include "fsl_dpni.h"
 #include "fsl_fdma.h"
 #include "fsl_parser.h"
-#include "platform.h"
+#include "fsl_platform.h"
 #include "fsl_sys.h"
 #include "fsl_dprc.h"
 #include "fsl_dpbp.h"

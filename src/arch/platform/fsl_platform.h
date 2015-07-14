@@ -26,7 +26,7 @@
 
 /******************************************************************************
 
- @File          platform_ext.h
+ @File          platform.h
 
  @Description   Prototypes, externals and typedefs for platform routines
 ****************************************************************************/

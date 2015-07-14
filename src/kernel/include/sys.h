@@ -34,7 +34,7 @@
 #include "fsl_list.h"
 #include "fsl_dbg.h"
 #include "fsl_smp.h"
-#include "platform.h"
+#include "fsl_platform.h"
 #include "fsl_malloc.h"
 #include "fsl_sys.h"
 #include "fsl_log.h"
