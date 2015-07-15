@@ -36,7 +36,7 @@
 
 #include "keygen.h"
 #include "system.h"
-#include "id_pool.h"
+#include "fsl_id_pool.h"
 
 extern uint64_t ext_keyid_pool_address;
 

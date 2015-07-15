@@ -125,7 +125,7 @@
 			<locationURI>PARENT-2-PROJECT_LOC/cw_files/start_secondary.S</locationURI>
 		</link>
 		<link>
-			<name>aiop_sl/arch/ls1088a</name>
+			<name>aiop_sl/arch/platform</name>
 			<type>2</type>
 			<locationURI>virtual:/virtual</locationURI>
 		</link>
@@ -148,6 +148,16 @@
 			<name>aiop_sl/drivers/ep</name>
 			<type>2</type>
 			<locationURI>virtual:/virtual</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/drivers/general.c</name>
+			<type>1</type>
+			<locationURI>PARENT-4-PROJECT_LOC/src/drivers/general.c</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/drivers/general.h</name>
+			<type>1</type>
+			<locationURI>PARENT-4-PROJECT_LOC/src/drivers/general.h</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/drivers/include</name>
@@ -181,11 +191,6 @@
 		</link>
 		<link>
 			<name>aiop_sl/include/common</name>
-			<type>2</type>
-			<locationURI>virtual:/virtual</locationURI>
-		</link>
-		<link>
-			<name>aiop_sl/include/dplib</name>
 			<type>2</type>
 			<locationURI>virtual:/virtual</locationURI>
 		</link>
@@ -305,24 +310,24 @@
 			<locationURI>virtual:/virtual</locationURI>
 		</link>
 		<link>
-			<name>aiop_sl/arch/ls1088a/fsl_soc.h</name>
+			<name>aiop_sl/arch/platform/fsl_platform.h</name>
 			<type>1</type>
-			<locationURI>PARENT-4-PROJECT_LOC/src/arch/platform/ls1088a/fsl_soc.h</locationURI>
+			<locationURI>PARENT-4-PROJECT_LOC/src/arch/platform/fsl_platform.h</locationURI>
 		</link>
 		<link>
-			<name>aiop_sl/arch/ls1088a/init.c</name>
+			<name>aiop_sl/arch/platform/init.c</name>
 			<type>1</type>
-			<locationURI>PARENT-4-PROJECT_LOC/src/arch/platform/ls1088a/init.c</locationURI>
+			<locationURI>PARENT-4-PROJECT_LOC/src/arch/platform/init.c</locationURI>
 		</link>
 		<link>
-			<name>aiop_sl/arch/ls1088a/platform.c</name>
-			<type>1</type>
-			<locationURI>PARENT-4-PROJECT_LOC/src/arch/platform/ls1088a/platform.c</locationURI>
+			<name>aiop_sl/arch/platform/ls1088a</name>
+			<type>2</type>
+			<locationURI>virtual:/virtual</locationURI>
 		</link>
 		<link>
-			<name>aiop_sl/arch/ls1088a/platform.h</name>
+			<name>aiop_sl/arch/platform/platform.c</name>
 			<type>1</type>
-			<locationURI>PARENT-4-PROJECT_LOC/src/arch/platform/ls1088a/platform.h</locationURI>
+			<locationURI>PARENT-4-PROJECT_LOC/src/arch/platform/platform.c</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/arch/ppc/booke.S</name>
@@ -353,6 +358,11 @@
 			<name>aiop_sl/arch/ppc/include</name>
 			<type>2</type>
 			<locationURI>virtual:/virtual</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/arch/ppc/inline_asm.h</name>
+			<type>1</type>
+			<locationURI>PARENT-4-PROJECT_LOC/src/arch/ppc/inline_asm.h</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/drivers/accel/cdma.c</name>
@@ -485,11 +495,6 @@
 			<locationURI>PARENT-4-PROJECT_LOC/src/drivers/accel/tman_inline.h</locationURI>
 		</link>
 		<link>
-			<name>aiop_sl/drivers/accel/virtual_pools.c</name>
-			<type>1</type>
-			<locationURI>PARENT-4-PROJECT_LOC/src/drivers/accel/virtual_pools.c</locationURI>
-		</link>
-		<link>
 			<name>aiop_sl/drivers/dplib/dpbp</name>
 			<type>2</type>
 			<locationURI>virtual:/virtual</locationURI>
@@ -510,19 +515,9 @@
 			<locationURI>virtual:/virtual</locationURI>
 		</link>
 		<link>
-			<name>aiop_sl/drivers/dplib/include</name>
-			<type>2</type>
-			<locationURI>virtual:/virtual</locationURI>
-		</link>
-		<link>
 			<name>aiop_sl/drivers/dplib/mc_sys.c</name>
 			<type>1</type>
 			<locationURI>PARENT-4-PROJECT_LOC/src/drivers/dplib/mc_sys.c</locationURI>
-		</link>
-		<link>
-			<name>aiop_sl/drivers/dplib/util</name>
-			<type>2</type>
-			<locationURI>virtual:/virtual</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/drivers/ep/ep.c</name>
@@ -621,6 +616,11 @@
 		</link>
 		<link>
 			<name>aiop_sl/drivers/netf/general</name>
+			<type>2</type>
+			<locationURI>virtual:/virtual</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/drivers/netf/include</name>
 			<type>2</type>
 			<locationURI>virtual:/virtual</locationURI>
 		</link>
@@ -725,21 +725,6 @@
 			<locationURI>PARENT-4-PROJECT_LOC/src/include/common/types.h</locationURI>
 		</link>
 		<link>
-			<name>aiop_sl/include/dplib/fsl_general.h</name>
-			<type>1</type>
-			<locationURI>PARENT-4-PROJECT_LOC/src/include/dplib/fsl_general.h</locationURI>
-		</link>
-		<link>
-			<name>aiop_sl/include/dplib/fsl_ldpaa.h</name>
-			<type>1</type>
-			<locationURI>PARENT-4-PROJECT_LOC/src/include/dplib/fsl_ldpaa.h</locationURI>
-		</link>
-		<link>
-			<name>aiop_sl/include/dplib/fsl_ldpaa_aiop.h</name>
-			<type>1</type>
-			<locationURI>PARENT-4-PROJECT_LOC/src/include/dplib/fsl_ldpaa_aiop.h</locationURI>
-		</link>
-		<link>
 			<name>aiop_sl/include/drivers/accel</name>
 			<type>2</type>
 			<locationURI>virtual:/virtual</locationURI>
@@ -758,6 +743,16 @@
 			<name>aiop_sl/include/drivers/fsl_ep.h</name>
 			<type>1</type>
 			<locationURI>PARENT-4-PROJECT_LOC/src/include/drivers/fsl_ep.h</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/include/drivers/fsl_general.h</name>
+			<type>1</type>
+			<locationURI>PARENT-4-PROJECT_LOC/src/include/drivers/fsl_general.h</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/include/drivers/ldpaa</name>
+			<type>2</type>
+			<locationURI>virtual:/virtual</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/include/drivers/netf</name>
@@ -1180,6 +1175,16 @@
 			<locationURI>PARENT-4-PROJECT_LOC/src/lib/evmng/evmng_common.h</locationURI>
 		</link>
 		<link>
+			<name>aiop_sl/lib/include/fsl_checksum.h</name>
+			<type>1</type>
+			<locationURI>PARENT-4-PROJECT_LOC/src/lib/include/fsl_checksum.h</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/lib/include/fsl_id_pool.h</name>
+			<type>1</type>
+			<locationURI>PARENT-4-PROJECT_LOC/src/lib/include/fsl_id_pool.h</locationURI>
+		</link>
+		<link>
 			<name>aiop_sl/lib/include/fsl_list.h</name>
 			<type>1</type>
 			<locationURI>PARENT-4-PROJECT_LOC/src/lib/include/fsl_list.h</locationURI>
@@ -1225,6 +1230,16 @@
 			<locationURI>PARENT-4-PROJECT_LOC/src/lib/slab/slab.h</locationURI>
 		</link>
 		<link>
+			<name>aiop_sl/lib/slab/virtual_pools.c</name>
+			<type>1</type>
+			<locationURI>PARENT-4-PROJECT_LOC/src/lib/slab/virtual_pools.c</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/lib/slab/virtual_pools.h</name>
+			<type>1</type>
+			<locationURI>PARENT-4-PROJECT_LOC/src/lib/slab/virtual_pools.h</locationURI>
+		</link>
+		<link>
 			<name>aiop_sl/lib/slob/slob.c</name>
 			<type>1</type>
 			<locationURI>PARENT-4-PROJECT_LOC/src/lib/slob/slob.c</locationURI>
@@ -1235,6 +1250,16 @@
 			<locationURI>PARENT-4-PROJECT_LOC/src/lib/slob/slob.h</locationURI>
 		</link>
 		<link>
+			<name>aiop_sl/lib/util/checksum.c</name>
+			<type>1</type>
+			<locationURI>PARENT-4-PROJECT_LOC/src/lib/util/checksum.c</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/lib/util/id_pool.c</name>
+			<type>1</type>
+			<locationURI>PARENT-4-PROJECT_LOC/src/lib/util/id_pool.c</locationURI>
+		</link>
+		<link>
 			<name>aiop_sl/lib/util/list.c</name>
 			<type>1</type>
 			<locationURI>PARENT-4-PROJECT_LOC/src/lib/util/list.c</locationURI>
@@ -1243,6 +1268,11 @@
 			<name>aiop_sl/lib/util/memcpy.c</name>
 			<type>1</type>
 			<locationURI>PARENT-4-PROJECT_LOC/src/lib/util/memcpy.c</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/arch/platform/ls1088a/fsl_soc.h</name>
+			<type>1</type>
+			<locationURI>PARENT-4-PROJECT_LOC/src/arch/platform/ls1088a/fsl_soc.h</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/arch/ppc/include/fsl_core_booke.h</name>
@@ -1330,54 +1360,14 @@
 			<locationURI>PARENT-4-PROJECT_LOC/src/drivers/dplib/dprc/dprc_drv.c</locationURI>
 		</link>
 		<link>
-			<name>aiop_sl/drivers/dplib/include/checksum.h</name>
-			<type>1</type>
-			<locationURI>PARENT-4-PROJECT_LOC/src/drivers/dplib/include/checksum.h</locationURI>
-		</link>
-		<link>
-			<name>aiop_sl/drivers/dplib/include/general.h</name>
-			<type>1</type>
-			<locationURI>PARENT-4-PROJECT_LOC/src/drivers/dplib/include/general.h</locationURI>
-		</link>
-		<link>
-			<name>aiop_sl/drivers/dplib/include/header_modification.h</name>
-			<type>1</type>
-			<locationURI>PARENT-4-PROJECT_LOC/src/drivers/dplib/include/header_modification.h</locationURI>
-		</link>
-		<link>
-			<name>aiop_sl/drivers/dplib/include/id_pool.h</name>
-			<type>1</type>
-			<locationURI>PARENT-4-PROJECT_LOC/src/drivers/dplib/include/id_pool.h</locationURI>
-		</link>
-		<link>
-			<name>aiop_sl/drivers/dplib/include/inline_asm.h</name>
-			<type>1</type>
-			<locationURI>PARENT-4-PROJECT_LOC/src/drivers/dplib/include/inline_asm.h</locationURI>
-		</link>
-		<link>
-			<name>aiop_sl/drivers/dplib/include/virtual_pools.h</name>
-			<type>1</type>
-			<locationURI>PARENT-4-PROJECT_LOC/src/drivers/dplib/include/virtual_pools.h</locationURI>
-		</link>
-		<link>
-			<name>aiop_sl/drivers/dplib/util/checksum.c</name>
-			<type>1</type>
-			<locationURI>PARENT-4-PROJECT_LOC/src/drivers/dplib/util/checksum.c</locationURI>
-		</link>
-		<link>
-			<name>aiop_sl/drivers/dplib/util/general.c</name>
-			<type>1</type>
-			<locationURI>PARENT-4-PROJECT_LOC/src/drivers/dplib/util/general.c</locationURI>
-		</link>
-		<link>
-			<name>aiop_sl/drivers/dplib/util/id_pool.c</name>
-			<type>1</type>
-			<locationURI>PARENT-4-PROJECT_LOC/src/drivers/dplib/util/id_pool.c</locationURI>
-		</link>
-		<link>
 			<name>aiop_sl/drivers/netf/general/frame_operations.c</name>
 			<type>1</type>
 			<locationURI>PARENT-4-PROJECT_LOC/src/drivers/netf/general/frame_operations.c</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/drivers/netf/include/net.h</name>
+			<type>1</type>
+			<locationURI>PARENT-4-PROJECT_LOC/src/drivers/netf/include/net.h</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/drivers/netf/ip/ip.c</name>
@@ -1638,6 +1628,16 @@
 			<name>aiop_sl/include/drivers/accel/fsl_tman.h</name>
 			<type>1</type>
 			<locationURI>PARENT-4-PROJECT_LOC/src/include/drivers/accel/fsl_tman.h</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/include/drivers/ldpaa/fsl_ldpaa.h</name>
+			<type>1</type>
+			<locationURI>PARENT-4-PROJECT_LOC/src/include/drivers/ldpaa/fsl_ldpaa.h</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/include/drivers/ldpaa/fsl_ldpaa_aiop.h</name>
+			<type>1</type>
+			<locationURI>PARENT-4-PROJECT_LOC/src/include/drivers/ldpaa/fsl_ldpaa_aiop.h</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/include/drivers/netf/fsl_frame_operations.h</name>

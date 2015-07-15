@@ -27,7 +27,7 @@
 #include "fsl_aiop_common.h"
 #include "fsl_gen.h"
 #include "apps.h"
-#include "platform.h"
+#include "fsl_platform.h"
 #include "fsl_dpni_drv.h"
 
 /*

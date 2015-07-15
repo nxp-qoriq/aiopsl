@@ -31,7 +31,7 @@
 
 *//***************************************************************************/
 #include "system.h"
-#include "id_pool.h"
+#include "fsl_id_pool.h"
 #include "fsl_cdma.h"
 #include "fsl_malloc.h"
 
@@ -53,7 +53,7 @@ extern void tman_timer_callback(void);
 
 #else
 #include "fsl_sl_slab.h"
-#include "platform.h"
+#include "fsl_platform.h"
 
 #include "fsl_dbg.h"
 #include "fsl_io.h"
@@ -90,10 +90,13 @@ void sys_prpid_pool_create(void)
 {
 	int32_t status;
 	uint16_t buffer_pool_id;
+	enum memory_partition_id mem_pid = MEM_PART_SYSTEM_DDR;
 
+	if (fsl_mem_exists(MEM_PART_DP_DDR))
+		mem_pid = MEM_PART_DP_DDR;
 
 	status = slab_find_and_reserve_bpid(1, (SYS_NUM_OF_PRPIDS+3), 2,
-			MEM_PART_DP_DDR,
+			mem_pid,
 			NULL, &buffer_pool_id);
 	if (status < 0)
 		system_init_exception_handler(SYS_PRPID_POOL_CREATE,
@@ -109,10 +112,13 @@ void sys_keyid_pool_create(void)
 {
 	int32_t status;
 	uint16_t buffer_pool_id;
+	enum memory_partition_id mem_pid = MEM_PART_SYSTEM_DDR;
 
+	if (fsl_mem_exists(MEM_PART_DP_DDR))
+		mem_pid = MEM_PART_DP_DDR;
 
 	status = slab_find_and_reserve_bpid(1, (SYS_NUM_OF_KEYIDS+3), 2,
-			MEM_PART_DP_DDR,
+			mem_pid,
 			NULL, &buffer_pool_id);
 	if (status < 0)
 		system_init_exception_handler(SYS_KEYID_POOL_CREATE,
@@ -126,12 +132,17 @@ void sys_keyid_pool_create(void)
 #ifndef AIOP_VERIF
 __COLD_CODE int aiop_sl_early_init(void){
 	int err = 0;
+	enum memory_partition_id mem_pid = MEM_PART_SYSTEM_DDR;
+
+	if (fsl_mem_exists(MEM_PART_DP_DDR))
+		mem_pid = MEM_PART_DP_DDR;
+
 	/* (SYS_NUM_OF_PRPIDS+3) rounded up modulu 64 - 8 */
 	err |= slab_register_context_buffer_requirements(1, 1, 120,
-			2, MEM_PART_DP_DDR, 0, 0);
+			2, mem_pid, 0, 0);
 	/* (SYS_NUM_OF_KEYIDS+3) rounded up modulu 64 - 8 */
 	err |= slab_register_context_buffer_requirements(1, 1, 312,
-			2, MEM_PART_DP_DDR, 0, 0);
+			2, mem_pid, 0, 0);
 	err |= aiop_snic_early_init();
 
 	if(err){

@@ -25,55 +25,76 @@
  */
 
 /**************************************************************************//**
-@File		dpni_drv.h
 
-@Description	Data Path Network Interface API
+ @File          fsl_soc_arch.h
+
+ @Description   Definitions for the part (integration) module.
 *//***************************************************************************/
-#ifndef __DPNI_DRV_H
-#define __DPNI_DRV_H
 
-#include "types.h"
-#include "fsl_sl_dpni_drv.h"
+#ifndef __FSL_SOC_ARCH_H
+#define __FSL_SOC_ARCH_H
+
+#include "common/types.h"
+#include "fsl_gen.h"
+
 
 /**************************************************************************//**
-@Group		grp_dplib_aiop	DPLIB
+ @Group         ls1088a_g LS1088A Application Programming Interface
 
-@Description	Contains initialization APIs and runtime control APIs for DPNI
+ @Description   LS1088A Chip functions,definitions and enums.
 
-@{
+ @{
 *//***************************************************************************/
+
+#define CORE_E200
+#define CORE_E200_Z490
+
+#define INTG_MAX_NUM_OF_CORES   4
+#define INTG_THREADS_PER_CORE   1
+#define INTG_MAX_NUM_OF_CLUSTR  1
+
+
+/** @} */ /* end of ls1088a_g group */
+
+/* AIOP Peripherals Offset in AIOP memory map */
+#define AIOP_PERIPHERALS_OFF            0X2000000
+
+/* AIOP Profile SRAM offset */
+#define AIOP_STORAGE_PROFILE_OFF        0x30000
+/* Offsets relative to CCSR base */
+#define SOC_PERIPH_OFF_AIOP_WRKS        0x1d000
+#define SOC_PERIPH_OFF_AIOP_TILE        0x00080000
+#define SOC_PERIPH_OFF_AIOP_CMGW        0x0
+#define SOC_PERIPH_OFF_DCSR             0x0100000
+
 /**************************************************************************//**
-@Group		grp_dpni_aiop	DPNI (AIOP Data Path Network Interface API)
+ @Group         ls1088a_g LS1088A Application Programming Interface
 
-@Description	Contains initialization APIs and runtime control APIs for DPNI
+ @Description   LS1088A Chip functions,definitions and enums.
 
-@{
+ @{
 *//***************************************************************************/
 
-/* TODO - move to soc files */
-#define SOC_MAX_NUM_OF_DPNI           64
-#define DPNI_NOT_IN_USE               0xFFFF
-#define DPNI_DRV_FAST_MEMORY    MEM_PART_PEB
-#define DPNI_DRV_NUM_USED_BPIDS   BPIDS_USED_FOR_POOLS_IN_DPNI
-#define DPNI_DRV_PEB_BPID_IDX         0
-#define DPNI_DRV_DDR_BPID_IDX         1
-#define SP_MASK_BMT_AND_RSV       0xC000FFFF
-#define SP_MASK_BPID              0x3FFF
-#define ORDER_MODE_CLEAR_BIT      0xFEFFFFFF /*clear the bit for exclusive / concurrent mode*/
-#define ORDER_MODE_BIT_MASK       0x01000000
-#define ORDER_MODE_NO_ORDER_SCOPE 0xEEFCFFF8 /*clear src, ep, sel, osrm*/
-#define DPNI_DRV_CONCURRENT_MODE      0
-#define DPNI_DRV_EXCLUSIVE_MODE       1
-#define PARAMS_IOVA_BUFF_SIZE         256
-#define PARAMS_IOVA_ALIGNMENT         8
-#define DPNI_DRV_PTA_SIZE             64
+/* Offsets relative to CCSR base */
 
-/* Default DPNI requirements values */
-#define DPNI_DRV_DHR_DEF              96 /* Data Head Room */
-#define DPNI_DRV_DTR_DEF              0  /* Data Tail Room */
-#define DPNI_DRV_PTA_DEF              0  /* Pass Thru Annotation - Private Data Size */
+#define SOC_PERIPH_OFF_DUART1           0x021c0500
+#define SOC_PERIPH_OFF_DUART2           0x021c0600
+#define SOC_PERIPH_OFF_DUART3           0x021d0500
+#define SOC_PERIPH_OFF_DUART4           0x021d0600
+#define SOC_PERIPH_OFF_QBMAN            0x08180000
+#define SOC_PERIPH_OFF_EIOP             0x08b90000
+#define SOC_PERIPH_OFF_MC               0x08340000
+#define SOC_PERIPH_OFF_SEC_GEN          0x08000000
+#define SOC_PERIPH_OFF_EIOP_IFPS        0x08800000
+
+#define SHARED_RAM_SIZE (128*KILOBYTE)
+
+/* Offset of MC portals  relative to MC area base */
+#define PERIPH_OFF_MC_PORTALS_AREA  0x0000000
+#define SOC_PERIPH_MC_PORTAL_ALIGNMENT  0x10000 /* Alignment of a MC portal in SoC */
+
+/** @} */ /* end of ls1088a_g group */
 
 
+#endif /* __FSL_SOC_H */
 
-/** @} */ /* end of DPNI_DRV_STATUS group */
-#endif /* __DPNI_DRV_H */

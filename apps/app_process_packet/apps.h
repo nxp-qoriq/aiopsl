@@ -51,16 +51,16 @@
 /**************************************************************************//**
 @Group		app_mem		Memory Allocation
 
-@Description	Use the following macros to define the memory sizes required by 
+@Description	Use the following macros to define the memory sizes required by
 		the sum of all AIOP applications and Service Layer.
-		All the sizes refer to the sum of all static (LCF) and 
-		dynamic (malloc) allocations. 
+		All the sizes refer to the sum of all static (LCF) and
+		dynamic (malloc) allocations.
 		All the sizes should be aligned to a power of 2.
 @{
 *//***************************************************************************/
-#define APP_MEM_DP_DDR_SIZE	ARCH_DP_DDR_SIZE/**< DP DDR size */ 
+#define APP_MEM_DP_DDR_SIZE	ARCH_DP_DDR_SIZE/**< DP DDR size */
 #define APP_MEM_PEB_SIZE	(512 * KILOBYTE)/**< PEB size */
-#define APP_MEM_SYS_DDR1_SIZE 	(4 * MEGABYTE)	/**< System DDR size */
+#define APP_MEM_SYS_DDR1_SIZE 	(64 * MEGABYTE)	/**< System DDR size */
 
 /** @} */ /* end of app_mem */
 
@@ -72,7 +72,8 @@
 *//***************************************************************************/
 
 #define APP_CTLU_SYS_DDR_NUM_ENTRIES	2048 /**< SYS DDR number of entries */
-#define APP_CTLU_DP_DDR_NUM_ENTRIES	2048 /**< DP DDR number of entries */
+#define APP_CTLU_DP_DDR_NUM_ENTRIES	ARCH_CTLU_DP_DDR_NUM_ENTRIES
+                                         /**< DP DDR number of entries */
 #define APP_CTLU_PEB_NUM_ENTRIES	2048 /**< PEB number of entries */
 
 /** @} */ /* end of app_ctlu */
@@ -85,7 +86,8 @@
 *//***************************************************************************/
 
 #define APP_MFLU_SYS_DDR_NUM_ENTRIES	2048 /**< SYS DDR number of entries */
-#define APP_MFLU_DP_DDR_NUM_ENTRIES	2048 /**< DP DDR number of entries */
+#define APP_MFLU_DP_DDR_NUM_ENTRIES	ARCH_MFLU_DP_DDR_NUM_ENTRIES
+                                        /**< DP DDR number of entries */
 #define APP_MFLU_PEB_NUM_ENTRIES	2048 /**< PEB number of entries */
 
 /** @} */ /* end of app_mflu */
@@ -96,7 +98,7 @@
 @Description	Use the following macros to define the DPNI driver.
 		Two AIOP buffer pools are reserved for frame data buffers of all
 		AIOP DPNIs; One for frame data residing in DP-DDR and one for
-		frame data residing in PEB. The buffer amount, size and 
+		frame data residing in PEB. The buffer amount, size and
 		alignment defined below applies to both pools and to all AIOP
 		DPNIs. Each DPNI uses two Storage Profile IDs (one for DP-DDR
 		and one for PEB) and therefore APP_DPNI_SPID_COUNT must

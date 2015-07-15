@@ -39,8 +39,8 @@
 #include "fsl_nat.h"
 #include "fsl_l4.h"
 #include "fsl_cdma.h"
-#include "checksum.h"
-#include "header_modification.h"
+#include "fsl_checksum.h"
+#include "net.h"
 
 
 int nat_ipv4(uint8_t flags, uint32_t ip_src_addr,

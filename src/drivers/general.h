@@ -136,22 +136,9 @@ extern const uint8_t _ssram_addr[];
 		 definitions
 @{
 *//***************************************************************************/
-#define IPV4_HDR_LENGTH		      20   /**< IPv4 header length */
-#define IPV4_ADDR_LENGTH	      4    /**< IPv4 address length */
-#define IPV4_HDR_ADD_LENGTH	      8    /**< IPv4 header addresses length */
 
-#define IPV4_EOOL_OPTION_TYPE	      0	   /*!< End of Option List */
-#define IPV4_NOP_OPTION_TYPE	      1	   /*!< No Operation */
-#define IPV4_RECORD_ROUTE_OPTION_TYPE 7	   /*!< Record Route */
-#define IPV4_TIMESTAMP_OPTION_TYPE    68   /*!< Internet Timestamp */
-#define IPV4_SCURITY_OPTION_TYPE      130  /*!< Security option */
-#define IPV4_LSRR_OPTION_TYPE	      131  /*!< Loose Source & Record Route */
-#define IPV4_STREAM_IDENTIFIER_TYPE   136  /*!< Stream Identifier */
-#define IPV4_SSRR_OPTION_TYPE	      137  /*!< Strict Source & Record Route */
 
-#define IPV6_HDR_LENGTH		      40   /*!< IPv6 header length */
 #define IPV6_FRAGMENT_HEADER_LENGTH   8    /*!< IPv6 fragment header length */
-#define IPV6_HDR_ADD_LENGTH	      32   /*!< IPv4 header address length */
 
 /** @} */ /* end of AIOP_General_Protocols_IP_Definitions */
 

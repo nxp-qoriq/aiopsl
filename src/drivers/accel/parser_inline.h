@@ -42,7 +42,7 @@
 #include "fsl_parser.h"
 
 #include "system.h"
-#include "id_pool.h"
+#include "fsl_id_pool.h"
 
 inline int parse_result_generate(enum parser_starting_hxs_code starting_hxs,
 	uint8_t starting_offset, uint8_t flags)

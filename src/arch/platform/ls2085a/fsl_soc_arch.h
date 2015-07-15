@@ -26,13 +26,13 @@
 
 /**************************************************************************//**
 
- @File          fsl_soc.h
+ @File          fsl_soc_arch.h
 
  @Description   Definitions for the part (integration) module.
 *//***************************************************************************/
 
-#ifndef __FSL_SOC_H
-#define __FSL_SOC_H
+#ifndef __FSL_SOC_ARCH_H
+#define __FSL_SOC_ARCH_H
 
 #include "common/types.h"
 #include "fsl_gen.h"
@@ -53,33 +53,6 @@
 #define INTG_THREADS_PER_CORE   1
 #define INTG_MAX_NUM_OF_CLUSTR  4
 
-
-/**************************************************************************//**
- @Description   Module types.
-*//***************************************************************************/
-enum fsl_os_module {
-	FSL_OS_MOD_SOC = 0,
-
-	/* FSL_OS_MOD_CMDIF_SRV, */ /**< AIOP server handle */
-	FSL_OS_MOD_CMDIF_CL,  /**< AIOP client handle */
-	FSL_OS_MOD_SLAB,
-	FSL_OS_MOD_UART,
-	FSL_OS_MOD_CMGW,
-	FSL_OS_MOD_DPRC,
-	FSL_OS_MOD_DPNI,
-	FSL_OS_MOD_DPIO,
-	FSL_OS_MOD_DPSP,
-	FSL_OS_MOD_DPSW,
-
-	FSL_OS_MOD_AIOP_TILE,
-
-	FSL_OS_MOD_MC_PORTAL,
-	FSL_OS_MOD_AIOP_RC,    /**< AIOP root container from DPL */
-
-	FSL_OS_MOD_LAYOUT, /* TODO - review *//**< layout */
-
-	FSL_OS_MOD_DUMMY_LAST
-};
 
 /** @} */ /* end of ls2085a_g group */
 
@@ -102,8 +75,6 @@ enum fsl_os_module {
  @{
 *//***************************************************************************/
 
-#define FSL_OS_NUM_MODULES  FSL_OS_MOD_DUMMY_LAST
-
 /* Offsets relative to CCSR base */
 
 #define SOC_PERIPH_OFF_DUART1           0x021c0500
@@ -116,62 +87,13 @@ enum fsl_os_module {
 #define SOC_PERIPH_OFF_SEC_GEN          0x08000000
 #define SOC_PERIPH_OFF_EIOP_IFPS        0x08800000
 
-#define SHARED_RAM_SIZE (128*KILOBYTE)
-
+#define SHARED_RAM_SIZE (256*KILOBYTE)
 
 /* Offset of MC portals  relative to MC area base */
 #define PERIPH_OFF_MC_PORTALS_AREA  0x0000000
 #define SOC_PERIPH_MC_PORTAL_ALIGNMENT  0x10000 /* Alignment of a MC portal in SoC */
 
-
-
-#define SOC_PERIPH_OFF_PORTALS_MC(_prtl) \
-    (PERIPH_OFF_MC_PORTALS_AREA + SOC_PERIPH_MC_PORTAL_ALIGNMENT * (_prtl))
-
-
-
-/**************************************************************************//**
- @Group         ls2085a_init_g LS2085A Initialization Unit
-
- @Description   LS2085A initialization unit API functions, definitions and enums
-
- @{
-*//***************************************************************************/
-
-/** @} */ /* end of ls2085a_init_g group */
 /** @} */ /* end of ls2085a_g group */
-
-
-
-/*****************************************************************************
- INTEGRATION-SPECIFIC MODULE CODES
-******************************************************************************/
-#define MODULE_UNKNOWN          0x00000000
-#define MODULE_SLAB             0x00010000
-#define MODULE_SLOB             0x00020000
-#define MODULE_SOC_PLATFORM     0x00030000
-#define MODULE_PIC              0x00040000
-#define MODULE_DUART            0x00050000
-#define MODULE_DPSW             0x00060000
-#define MODULE_DPRC             0x00070000
-#define MODULE_LINKMAN          0x00080000
-#define MODULE_DPDMUX		0x00090000
-#define MODULE_DPMAC		0x000a0000
-#define MODULE_DPCI             0x000b0000
-#define MODULE_DPSECI           0x000c0000
-
-
-
-
-/**************************************************************************//**
-@Description   Part ID and revision number information
-*//***************************************************************************/
-struct fsl_soc_device_name {
-   char        name[10];        /**< Chip name */
-   uint8_t     rev_major;       /**< Major chip revision */
-   uint8_t     rev_minor;       /**< Minor chip revision */
-   int         has_sec;         /**< If the chip is with security supported */
-};
 
 
 #endif /* __FSL_SOC_H */

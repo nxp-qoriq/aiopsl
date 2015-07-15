@@ -38,8 +38,8 @@
 #include "fsl_fdma.h"
 #include "fsl_l4.h"
 #include "fsl_cdma.h"
-#include "checksum.h"
-#include "header_modification.h"
+#include "fsl_checksum.h"
+#include "net.h"
 
 extern __TASK struct aiop_default_task_params default_task_params;
 

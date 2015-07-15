@@ -38,8 +38,8 @@
 #include "fsl_fdma.h"
 #include "fsl_ip.h"
 #include "fsl_cdma.h"
-#include "checksum.h"
-#include "header_modification.h"
+#include "fsl_checksum.h"
+#include "net.h"
 #include "ip.h"
 #include "fsl_time.h"
 
@@ -75,8 +75,8 @@ int ip_header_decapsulation(uint8_t flags)
 
 		if (PARSER_IS_OUTER_IPV4_DEFAULT()) {
 #ifndef REV2
-			mpls_tmp_label = MPLS_LABEL_IPV4;
-			etype_tmp = ETYPE_IPV4;
+			mpls_tmp_label = NET_MPLS_LABEL_IPV4;
+			etype_tmp = NET_ETH_ETYPE_IPV4;
 #endif
 			/* Inner & Outer IPv4 */
 			outer_ipv4_ptr = (struct ipv4hdr *)
@@ -182,8 +182,8 @@ int ip_header_decapsulation(uint8_t flags)
 			}
 #else
 			/* Update Etype and MPLS label if needed */
-			mpls_tmp_label = MPLS_LABEL_IPV4;
-			etype_tmp = ETYPE_IPV4;
+			mpls_tmp_label = NET_MPLS_LABEL_IPV4;
+			etype_tmp = NET_ETH_ETYPE_IPV4;
 #endif //REV2
 		}
 	} else {
@@ -237,8 +237,8 @@ int ip_header_decapsulation(uint8_t flags)
 			}
 #else
 			/* Update Etype and MPLS label if needed */
-			mpls_tmp_label = MPLS_LABEL_IPV6;
-			etype_tmp = ETYPE_IPV6;
+			mpls_tmp_label = NET_MPLS_LABEL_IPV6;
+			etype_tmp = NET_ETH_ETYPE_IPV6;
 #endif // REV2
 		} else {
 			/* Inner & outer IPv6
@@ -246,8 +246,8 @@ int ip_header_decapsulation(uint8_t flags)
 			 * IPv6 as it does not contain checksum*/
 			/* Update Etype and MPLS label if needed */
 #ifndef REV2
-			mpls_tmp_label = MPLS_LABEL_IPV6;
-			etype_tmp = ETYPE_IPV6;
+			mpls_tmp_label = NET_MPLS_LABEL_IPV6;
+			etype_tmp = NET_ETH_ETYPE_IPV6;
 #endif // REV2
 			PARSER_CLEAR_RUNNING_SUM();
 			outer_ipv6_ptr = (struct ipv6hdr *)
@@ -832,7 +832,7 @@ int ipv4_header_encapsulation(uint8_t flags,
 		/* Reset IP checksum for re-calculation by FDMA */
 		ipv4_header_ptr->hdr_cksum = 0;
 
-		ipv4_header_ptr->protocol = IPV4_PROTOCOL_ID;
+		ipv4_header_ptr->protocol = NET_IPV4_PROT_IPV4;
 
 		inner_ipv4_offset =
 				(uint16_t)PARSER_GET_OUTER_IP_OFFSET_DEFAULT();
@@ -892,7 +892,7 @@ int ipv4_header_encapsulation(uint8_t flags,
 		/* Reset IP checksum for re-calculation by FDMA */
 		ipv4_header_ptr->hdr_cksum = 0;
 
-		ipv4_header_ptr->protocol = IPV6_PROTOCOL_ID;
+		ipv4_header_ptr->protocol = NET_IPV4_PROT_IPV6;
 
 		inner_ipv6_offset =
 				 (uint16_t)PARSER_GET_OUTER_IP_OFFSET_DEFAULT();
@@ -924,7 +924,7 @@ int ipv4_header_encapsulation(uint8_t flags,
 			mpls_ptr = (uint32_t *)
 					(mpls_offset + prc->seg_address);
 			*mpls_ptr = (*mpls_ptr & MPLS_LABEL_MASK) |
-							   MPLS_LABEL_IPV4;
+					NET_MPLS_LABEL_IPV4;
 			fdma_modify_default_segment_data(mpls_offset, 3);
 		} else {
 			if (PARSER_IS_ETH_MAC_DEFAULT()) {
@@ -932,7 +932,7 @@ int ipv4_header_encapsulation(uint8_t flags,
 					PARSER_GET_LAST_ETYPE_OFFSET_DEFAULT();
 				etype_ptr = (uint16_t *)
 					      (etype_offset + prc->seg_address);
-				*etype_ptr = ETYPE_IPV4;
+				*etype_ptr = NET_ETH_ETYPE_IPV4;
 				fdma_modify_default_segment_data(etype_offset,
 								 2);
 			}
@@ -1031,7 +1031,7 @@ int ipv6_header_encapsulation(uint8_t flags, void *ipv6header,
 			mpls_ptr = (uint32_t *)
 					(mpls_offset + prc->seg_address);
 			*mpls_ptr = (*mpls_ptr & MPLS_LABEL_MASK) |
-							   MPLS_LABEL_IPV6;
+							   NET_MPLS_LABEL_IPV6;
 			fdma_modify_default_segment_data(mpls_offset, 3);
 		} else {
 			if (PARSER_IS_ETH_MAC_DEFAULT()) {
@@ -1039,7 +1039,7 @@ int ipv6_header_encapsulation(uint8_t flags, void *ipv6header,
 					PARSER_GET_LAST_ETYPE_OFFSET_DEFAULT();
 				etype_ptr = (uint16_t *)
 					     (etype_offset + prc->seg_address);
-				*etype_ptr = ETYPE_IPV6;
+				*etype_ptr = NET_ETH_ETYPE_IPV6;
 				fdma_modify_default_segment_data(etype_offset,
 								 2);
 			}
@@ -1330,7 +1330,7 @@ uint32_t ipv6_last_header(struct ipv6hdr *ipv6_hdr, uint8_t flag)
 
 	/* Copy initials IPv6 header */
 	current_hdr_ptr = (uint32_t)ipv6_hdr;
-	current_hdr_size = IPV6_HDR_LENGTH;
+	current_hdr_size = sizeof(struct ipv6hdr);
 	next_hdr = ipv6_hdr->next_header;
 
 	/* Skip to next extension header until extension isn't ipv6 header
