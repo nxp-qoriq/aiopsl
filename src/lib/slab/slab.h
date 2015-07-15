@@ -91,7 +91,6 @@
 /** bpid, user required size, partition */
 
 #define SLAB_FAST_MEMORY        MEM_PART_SH_RAM
-#define SLAB_DDR_MEMORY         MEM_PART_DP_DDR
 #define SLAB_NUM_MEM_PARTITIONS MEM_PART_LAST
 #define SLAB_NUM_BPIDS_USED_FOR_DPNI BPIDS_USED_FOR_POOLS_IN_DPNI
 #define SLAB_DEFAULT_ALIGN      8
