@@ -38,7 +38,7 @@
 #include "fsl_cdma.h"
 #include "fsl_dpni_drv.h"
 #include "fsl_net.h"
-#include "header_modification.h"
+#include "net.h"
 #include "general.h"
 
 
@@ -305,7 +305,7 @@ void l2_push_and_set_mpls(uint32_t mpls_hdr, uint16_t etype)
 					(uint16_t)etype_offset,
 					ETYPE_SIZE,
 					(void *)etype_ptr,
-					ETYPE_SIZE + MPLS_SIZE,
+					ETYPE_SIZE + sizeof (struct mplshdr),
 					(void *)PRC_GET_SEGMENT_ADDRESS(),
 					PRC_GET_SEGMENT_LENGTH(),
 					FDMA_REPLACE_SA_REPRESENT_BIT);
@@ -345,7 +345,7 @@ void l2_pop_mpls()
 	/* Remove and update MPLS headers */
 	fdma_replace_default_segment_data(
 				(uint16_t)etype_offset,
-				ETYPE_SIZE + MPLS_SIZE,
+				ETYPE_SIZE + sizeof (struct mplshdr),
 				(void *)(prc->seg_address + etype_offset),
 				ETYPE_SIZE,
 				(void *)prc->seg_address,
@@ -373,7 +373,7 @@ void l2_mpls_header_remove()
 
 	etype_offset = PARSER_GET_LAST_ETYPE_OFFSET_DEFAULT();
 	first_offset = PARSER_GET_FIRST_MPLS_OFFSET_DEFAULT();
-	last_offset = PARSER_GET_LAST_MPLS_OFFSET_DEFAULT() + MPLS_SIZE;
+	last_offset = PARSER_GET_LAST_MPLS_OFFSET_DEFAULT() + sizeof(struct mplshdr);
 	size_to_be_removed = (uint16_t)(last_offset - first_offset);
 
 	/* Update EtherType */
@@ -480,7 +480,7 @@ void l2_pop_vxlan()
 
 	/* VxLAN header placed after UDP header*/ 
 	size_to_be_removed = (uint16_t)(PARSER_GET_L4_OFFSET_DEFAULT() + 
-		UDP_HDR_LENGTH + VXLAN_SIZE);
+		UDP_HDR_LENGTH + sizeof(struct vxlanhdr));
 
 	/* Remove VxLAN headers (Ethernet, IP, UDP, VxLAN) */
 	fdma_replace_default_segment_data(
@@ -536,7 +536,7 @@ void l2_arp_response()
 	arp_hdr->operation = ARP_REPLY_OP;
 
 	fdma_modify_default_segment_data(PARSER_GET_ETH_OFFSET_DEFAULT(),
-			(ARPHDR_ETH_HDR_LEN + ARP_HDR_LEN));
+			(sizeof(struct ethernethdr) + ARP_HDR_LEN));
 
 	/* Mark running sum as invalid */
 	pr->gross_running_sum = 0;
