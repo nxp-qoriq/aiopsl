@@ -82,12 +82,13 @@ uint64_t gpp_lbp;
 int32_t async_count = 0;
 int32_t dpci_add_count = 0;
 int32_t dpci_rm_count = 0;
-int32_t dpci_add_ev_count = 0;
-int32_t dpci_rm_ev_count = 0;
-int32_t dpci_up_ev_count = 0;
-int32_t dpci_down_ev_count = 0;
 int32_t rcu_sync_count = 0;
 int32_t rcu_cb_count = 0;
+
+extern int32_t dpci_add_ev_count;
+extern int32_t dpci_rm_ev_count;
+extern int32_t dpci_up_ev_count;
+extern int32_t dpci_down_ev_count;
 
 static void rcu_sync_cb(uint64_t param)
 {

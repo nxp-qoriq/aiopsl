@@ -43,10 +43,10 @@ int app_evm_register();
 
 extern struct dpci_mng_tbl g_dpci_tbl;
 extern struct icontext icontext_aiop;
-extern int32_t dpci_add_ev_count;
-extern int32_t dpci_rm_ev_count;
-extern int32_t dpci_up_ev_count;
-extern int32_t dpci_down_ev_count;
+int32_t dpci_add_ev_count = 0;
+int32_t dpci_rm_ev_count = 0;
+int32_t dpci_up_ev_count = 0;
+int32_t dpci_down_ev_count = 0;
 
 extern int app_init(void); extern void app_free(void);
 extern int app_early_init(void);
