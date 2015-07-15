@@ -1370,11 +1370,6 @@
 			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/netf/general/frame_operations.c</locationURI>
 		</link>
 		<link>
-			<name>aiop_sl/drivers/netf/general/header_modification.h</name>
-			<type>1</type>
-			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/netf/general/header_modification.h</locationURI>
-		</link>
-		<link>
 			<name>aiop_sl/drivers/netf/include/net.h</name>
 			<type>1</type>
 			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/netf/include/net.h</locationURI>
