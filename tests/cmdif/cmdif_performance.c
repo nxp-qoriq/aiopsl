@@ -26,7 +26,7 @@
 
 #include "common/types.h"
 #include "common/fsl_stdio.h"
-#include "platform.h"
+#include "fsl_platform.h"
 #include "fsl_io.h"
 #include "general.h"
 #include "fsl_dbg.h"
@@ -187,4 +187,9 @@ int app_init(void)
 void app_free(void)
 {
 	/* TODO - complete!*/
+}
+
+int app_early_init(void)
+{
+	return 0;
 }
