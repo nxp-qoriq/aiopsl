@@ -39,7 +39,7 @@
 #include "fsl_ip.h"
 #include "fsl_cdma.h"
 #include "fsl_checksum.h"
-#include "header_modification.h"
+#include "net.h"
 #include "ip.h"
 #include "fsl_time.h"
 
