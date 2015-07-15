@@ -1585,6 +1585,10 @@ __COLD_CODE static int slab_check_registration_parameters(uint32_t committed_buf
 {
 	int i;
 
+	if(!fsl_mem_exists(mem_pid)){
+		pr_err("Partition type %d not supported\n", mem_pid);
+		return -EINVAL;
+	}
 	switch(mem_pid)
 	{
 	case MEM_PART_DP_DDR:
