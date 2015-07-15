@@ -60,8 +60,6 @@
 int app_init(void);
 void app_free(void);
 int app_early_init(void);
-extern int gpp_sys_ddr_init();
-extern int gpp_ddr_check(struct icontext *ic, uint64_t iova, uint16_t size);
 extern int app_evm_register();
 extern int dprc_drv_scan(void);
 
@@ -635,9 +633,6 @@ static int ctrl_cb0(void *dev, uint16_t cmd, uint32_t size,
 
 			/* check bringup test */
 			icontext_cmd_get(&ic_cmd);
-			err = gpp_ddr_check(&ic_cmd, p_data, (uint16_t)MIN(size, 16));
-			pr_debug("gpp_ddr_check err = %d\n", err);
-
 			/* modify from presentation */
 			for (i = 0; i < MIN(size, 64); i++) {
 				((uint8_t *)data)[i] = 0xDA;
@@ -809,7 +804,6 @@ int app_init(void)
 #endif
 #endif
 
-	err = gpp_sys_ddr_init();
 	return err;
 }
 
