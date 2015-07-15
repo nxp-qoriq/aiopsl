@@ -52,7 +52,6 @@
 int dpni_drv_init(void);
 void dpni_drv_free(void);
 
-extern struct aiop_init_info g_init_data;
 extern struct platform_app_params g_app_params;
 
 /*
@@ -844,10 +843,14 @@ static int configure_bpids_for_dpni(void)
 	uint16_t buffer_size = (uint16_t)g_app_params.dpni_buff_size;
 	uint16_t num_buffs = (uint16_t)g_app_params.dpni_num_buffs;
 	uint16_t alignment;
-	uint8_t mem_pid[] = {DPNI_DRV_FAST_MEMORY, DPNI_DRV_DDR_MEMORY};
+	uint8_t mem_pid[] = {DPNI_DRV_FAST_MEMORY, 0};
 
-
-
+	if(fsl_mem_exists(MEM_PART_DP_DDR)){
+		mem_pid[1] = MEM_PART_DP_DDR;
+	}
+	else if(fsl_mem_exists(MEM_PART_SYSTEM_DDR)){
+		mem_pid[1] = MEM_PART_SYSTEM_DDR;
+	}
 
 	if(IS_POWER_VALID_ALLIGN(g_app_params.dpni_drv_alignment,buffer_size))
 		alignment = (uint16_t)g_app_params.dpni_drv_alignment;
@@ -922,7 +925,7 @@ static int configure_bpids_for_dpni(void)
 		/*!< DPBPs object id */
 		pools_params.pools[i].dpbp_id = (uint16_t)dpbp_id[i];
 		pools_params.pools[i].buffer_size = buffer_size;
-		if(mem_pid[i] == DPNI_DRV_DDR_MEMORY){
+		if(mem_pid[i] == MEM_PART_SYSTEM_DDR || mem_pid[i] == MEM_PART_DP_DDR){
 			pools_params.pools[i].backup_pool = 1;
 		}
 
