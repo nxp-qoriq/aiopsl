@@ -176,6 +176,10 @@ struct tcphdr {
 };
 #pragma pack(pop)
 
+/**************************************************************************//**
+@Description	ARP header structure.
+
+*//***************************************************************************/
 #pragma pack(push,1)
 struct arphdr
 {
@@ -675,23 +679,40 @@ enum net_prot {
 };
 
 /*****************************************************************************/
-/*                Next Protocol                                              */
+/*                          Next Protocol                                    */
 /*****************************************************************************/
-/* IPv4 next protocol */
-#define IPV4_PROTOCOL_ID	0x04
-#define IPV6_PROTOCOL_ID	0x29
 
-/* Ethernet next protocol */
-#define ETYPE_IPV4		0x0800
-#define ETYPE_IPV6		0x86DD
+/*****************************  IPv4  *********************************/
+#define NET_IPV4_PROT_IPV4	0x04
+#define NET_IPV4_PROT_IPV6	0x29
 
-/* MPLS next protocol */
-#define MPLS_LABEL_IPV4		0x00000000
-#define MPLS_LABEL_IPV6		0x00002000
+/*************************** Ethernet *********************************/
+#define NET_ETH_ETYPE_IPV4	0x0800
+#define NET_ETH_ETYPE_IPV6	0x86DD
 
-/* ARP next protocol */
+/*****************************  MPLS  *********************************/
+#define NET_MPLS_LABEL_IPV4	0x00000000
+#define NET_MPLS_LABEL_IPV6	0x00002000
+
+/*****************************  ARP ***********************************/
 #define ARPHDR_ETHER_PRO_TYPE	1
 #define ARPHDR_IPV4_PRO_TYPE	0x800
 #define ARP_ETHERTYPE			0x0806
+
+/*****************************************************************************/
+/*                             Options                                       */
+/*****************************************************************************/
+
+/*****************************  IPv4  *********************************/
+#define IPV4_EOOL_OPTION_TYPE	      0	   /*!< End of Option List */
+#define IPV4_NOP_OPTION_TYPE	      1	   /*!< No Operation */
+#define IPV4_RECORD_ROUTE_OPTION_TYPE 7	   /*!< Record Route */
+#define IPV4_TIMESTAMP_OPTION_TYPE    68   /*!< Internet Timestamp */
+#define IPV4_SCURITY_OPTION_TYPE      130  /*!< Security option */
+#define IPV4_LSRR_OPTION_TYPE	      131  /*!< Loose Source & Record Route */
+#define IPV4_STREAM_IDENTIFIER_TYPE   136  /*!< Stream Identifier */
+#define IPV4_SSRR_OPTION_TYPE	      137  /*!< Strict Source & Record Route */
+
+
 
 #endif /* __FSL_NET_H */

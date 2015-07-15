@@ -334,11 +334,11 @@ void l2_pop_mpls()
 		etype_ptr = (uint16_t *)(prc->seg_address + etype_offset);
 		
 		if (PARSER_IS_OUTER_IPV4_DEFAULT()){
-			*etype_ptr = ETYPE_IPV4;
+			*etype_ptr = NET_ETH_ETYPE_IPV4;
 		} 
 		/* PARSER_IS_OUTER_IPV6_DEFAULT() */
 		else {
-			*etype_ptr = ETYPE_IPV6;
+			*etype_ptr = NET_ETH_ETYPE_IPV6;
 		} 
 	}
 	
@@ -379,11 +379,11 @@ void l2_mpls_header_remove()
 	/* Update EtherType */
 	etype_ptr = (uint16_t *)(prc->seg_address + etype_offset);
 	if (PARSER_IS_OUTER_IPV4_DEFAULT()){
-		*etype_ptr = ETYPE_IPV4;
+		*etype_ptr = NET_ETH_ETYPE_IPV4;
 	} 
 	/* PARSER_IS_OUTER_IPV6_DEFAULT() */
 	else {
-		*etype_ptr = ETYPE_IPV6;
+		*etype_ptr = NET_ETH_ETYPE_IPV6;
 	}
 
 	/* Remove and update MPLS headers */
