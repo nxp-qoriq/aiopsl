@@ -533,7 +533,7 @@ int tcp_gro_add_seg_and_close_aggregation(
 		ipv4->total_length = ip_length;
 	} else {
 		ipv6 = (struct ipv6hdr *)PARSER_GET_OUTER_IP_POINTER_DEFAULT();
-		ipv6->payload_length = ip_length - IPV6_HDR_LENGTH;
+		ipv6->payload_length = ip_length - sizeof(struct ipv6hdr);
 	}
 
 	/* update TCP fields from last segment  */
@@ -740,7 +740,7 @@ int tcp_gro_close_aggregation_and_open_new_aggregation(
 	} else {
 		/* IPv6 */
 		ipv6 = (struct ipv6hdr *)PARSER_GET_OUTER_IP_POINTER_DEFAULT();
-		ipv6->payload_length = ip_length - IPV6_HDR_LENGTH;
+		ipv6->payload_length = ip_length - sizeof(struct ipv6hdr);
 	}
 
 	/* Zero TCP checksum before calculating new TCP checksum. */
@@ -993,7 +993,7 @@ int tcp_gro_flush_aggregation(
 		ipv4->total_length = ip_length;
 	} else {
 		ipv6 = (struct ipv6hdr *)PARSER_GET_OUTER_IP_POINTER_DEFAULT();
-		ipv6->payload_length = ip_length - IPV6_HDR_LENGTH;
+		ipv6->payload_length = ip_length - sizeof(struct ipv6hdr);
 	}
 
 	/* update TCP length + checksum */
@@ -1119,7 +1119,7 @@ void tcp_gro_timeout_callback(uint64_t tcp_gro_context_addr, uint16_t opaque2)
 		ipv4->total_length = ip_length;
 	} else {
 		ipv6 = (struct ipv6hdr *)PARSER_GET_OUTER_IP_POINTER_DEFAULT();
-		ipv6->payload_length = ip_length - IPV6_HDR_LENGTH;
+		ipv6->payload_length = ip_length - sizeof(struct ipv6hdr);
 	}
 
 	/* update TCP length + checksum */
@@ -1175,13 +1175,13 @@ void tcp_gro_calc_tcp_header_cksum()
 
 	if (PARSER_IS_OUTER_IPV4_DEFAULT()) {
 		/* calculate IP source address offset  */
-		ipsrc_offset = (uint16_t)(tcp_offset - IPV4_HDR_ADD_LENGTH);
+		ipsrc_offset = (uint16_t)(tcp_offset - sizeof(ipv4->dst_addr));
 		/* calculate TCP length for the pseudo header  */
-		pseudo_tcp_length = ipv4->total_length - IPV4_HDR_LENGTH;
+		pseudo_tcp_length = ipv4->total_length - sizeof(struct ipv4hdr);
 
 	} else {
 		/* calculate IP source address offset  */
-		ipsrc_offset = (uint16_t)(tcp_offset - IPV6_HDR_ADD_LENGTH);
+		ipsrc_offset = (uint16_t)(tcp_offset - sizeof(ipv6->src_addr));
 		/* calculate TCP length for the pseudo header  */
 		pseudo_tcp_length = ipv6->payload_length;
 	}

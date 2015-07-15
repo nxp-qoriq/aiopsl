@@ -194,7 +194,7 @@ int ipf_move_remaining_frame(struct ipf_context *ipf_ctx)
 				(ipv6_offset + PRC_GET_SEGMENT_ADDRESS());
 		ipv6_hdr->payload_length =
 		(uint16_t)LDPAA_FD_GET_LENGTH(HWC_FD_ADDRESS) - ipv6_offset -
-		ipf_ctx->prc_seg_offset - IPV6_HDR_LENGTH + 
+		ipf_ctx->prc_seg_offset - sizeof(struct ipv6hdr) + 
 		IPV6_FRAGMENT_HEADER_LENGTH;
 
 		if (!(ipf_ctx->flags & IPF_RESTORE_ORIGINAL_FRAGMENTS)){
@@ -214,7 +214,7 @@ int ipf_move_remaining_frame(struct ipf_context *ipf_ctx)
 				(ipf_ctx->ipv6_frag_hdr_offset +
 					PRC_GET_SEGMENT_ADDRESS());
 		if (ipf_ctx->ipv6_frag_hdr_offset >
-				(ipv6_offset + IPV6_HDR_LENGTH)) {
+				(ipv6_offset + sizeof(struct ipv6hdr))) {
 			/*ext headers exist */
 			last_header = (uint8_t *)
 				((uint32_t)ipv6_frag_hdr - last_ext_hdr_size);
@@ -273,7 +273,7 @@ int ipf_move_remaining_frame(struct ipf_context *ipf_ctx)
 		if (ipf_ctx->flags & IPF_RESTORE_ORIGINAL_FRAGMENTS) {
 			ipv6_hdr->payload_length =
 			(uint16_t)LDPAA_FD_GET_LENGTH(HWC_FD_ADDRESS) -
-			ipv6_offset - IPV6_HDR_LENGTH - ipf_ctx->prc_seg_offset;
+			ipv6_offset - sizeof(struct ipv6hdr) - ipf_ctx->prc_seg_offset;
 			frag_payload_length = (uint16_t)
 				LDPAA_FD_GET_LENGTH(HWC_FD_ADDRESS) -
 				(uint16_t)ipf_ctx->ipv6_frag_hdr_offset -
@@ -537,7 +537,7 @@ int ipf_split_ipv4_fragment(struct ipf_context *ipf_ctx)
 	/* Update payload length in ipv6 header */
 	ipv6_hdr->payload_length = (uint16_t)
 			LDPAA_FD_GET_LENGTH(HWC_FD_ADDRESS) -
-			ipv6_offset - IPV6_HDR_LENGTH - ipf_ctx->prc_seg_offset;
+			ipv6_offset - sizeof(struct ipv6hdr) - ipf_ctx->prc_seg_offset;
 	/* Run parser */
 	parse_result_generate_default(PARSER_NO_FLAGS);
 
@@ -699,7 +699,7 @@ int ipf_generate_frag(ipf_ctx_t ipf_context_addr)
 				/* No ext. headers */
 				ipf_ctx->ipv6_frag_hdr_offset =
 						ipf_ctx->ip_offset +
-						IPV6_HDR_LENGTH;
+						sizeof(struct ipv6hdr);
 			} else {
 				/* Ext. headers exist */
 				last_ext_length =
@@ -740,7 +740,7 @@ int ipf_generate_frag(ipf_ctx_t ipf_context_addr)
 				ipf_ctx->split_size = split_size;
 				ipf_ctx->remaining_payload_length =
 					ipv6_hdr->payload_length +
-					IPV6_HDR_LENGTH -
+					sizeof(struct ipv6hdr) -
 					((uint16_t)
 					(ipf_ctx->ipv6_frag_hdr_offset -
 						ipf_ctx->ip_offset));
