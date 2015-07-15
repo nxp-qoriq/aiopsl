@@ -625,6 +625,11 @@
 			<locationURI>virtual:/virtual</locationURI>
 		</link>
 		<link>
+			<name>aiop_sl/drivers/netf/include</name>
+			<type>2</type>
+			<locationURI>virtual:/virtual</locationURI>
+		</link>
+		<link>
 			<name>aiop_sl/drivers/netf/ip</name>
 			<type>2</type>
 			<locationURI>virtual:/virtual</locationURI>
@@ -1368,6 +1373,11 @@
 			<name>aiop_sl/drivers/netf/general/header_modification.h</name>
 			<type>1</type>
 			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/netf/general/header_modification.h</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/drivers/netf/include/net.h</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/netf/include/net.h</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/drivers/netf/ip/ip.c</name>
