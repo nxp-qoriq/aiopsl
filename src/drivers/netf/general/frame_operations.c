@@ -38,7 +38,7 @@
 #include "fsl_parser.h"
 #include "fsl_dpni_drv.h"
 #include "fsl_net.h"
-#include "header_modification.h"
+#include "net.h"
 
 #ifndef REV2  /* WA for TKT254401 */
 extern __PROFILE_SRAM struct storage_profile 
@@ -296,7 +296,7 @@ int create_arp_request(
 	uint8_t arp_data[ARP_PKT_MIN_LEN];
 	uint8_t *ethhdr = arp_data;
 	struct arphdr *arp_hdr =
-		(struct arphdr *)(arp_data + ARPHDR_ETH_HDR_LEN);
+		(struct arphdr *)(arp_data + sizeof(struct ethernethdr));
 	uint8_t local_hw_addr[NET_HDR_FLD_ETH_ADDR_SIZE];
 
 	/* get local HW address */
@@ -336,12 +336,12 @@ int create_arp_request(
 
 	/* zero additional packet data since ARP has a minimum packet length of
 	 * 64 bytes (ARP_PKT_MIN_LEN). */
-	*((uint16_t *)&arp_data[ARPHDR_ETH_HDR_LEN + ARP_HDR_LEN]) = 0;
-	*((uint32_t *)&arp_data[ARPHDR_ETH_HDR_LEN + ARP_HDR_LEN + 2]) = 0;
-	*((uint32_t *)&arp_data[ARPHDR_ETH_HDR_LEN + ARP_HDR_LEN + 6]) = 0;
-	*((uint32_t *)&arp_data[ARPHDR_ETH_HDR_LEN + ARP_HDR_LEN + 10]) = 0;
-	*((uint32_t *)&arp_data[ARPHDR_ETH_HDR_LEN + ARP_HDR_LEN + 14]) = 0;
-	*((uint32_t *)&arp_data[ARPHDR_ETH_HDR_LEN + ARP_HDR_LEN + 18]) = 0;
+	*((uint16_t *)&arp_data[sizeof(struct ethernethdr) + ARP_HDR_LEN]) = 0;
+	*((uint32_t *)&arp_data[sizeof(struct ethernethdr) + ARP_HDR_LEN + 2]) = 0;
+	*((uint32_t *)&arp_data[sizeof(struct ethernethdr) + ARP_HDR_LEN + 6]) = 0;
+	*((uint32_t *)&arp_data[sizeof(struct ethernethdr) + ARP_HDR_LEN + 10]) = 0;
+	*((uint32_t *)&arp_data[sizeof(struct ethernethdr) + ARP_HDR_LEN + 14]) = 0;
+	*((uint32_t *)&arp_data[sizeof(struct ethernethdr) + ARP_HDR_LEN + 18]) = 0;
 
 	return create_frame(
 			fd, (void *)arp_data, ARP_PKT_MIN_LEN, frame_handle);

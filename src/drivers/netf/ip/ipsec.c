@@ -40,7 +40,7 @@
 #include "fsl_tman.h"
 #include "fsl_ste.h"
 #include "fsl_osm.h"
-#include "header_modification.h"
+#include "net.h"
 #include "fsl_checksum.h"
 
 /*#include "cdma.h"*/
@@ -2875,12 +2875,12 @@ uint8_t ipsec_get_ipv6_nh_offset (struct ipv6hdr *ipv6_hdr, uint8_t *length)
 
 	/* Copy initial IPv6 header */
 	current_hdr_ptr = (uint32_t)ipv6_hdr;
-	current_hdr_size = IPV6_HDR_LENGTH;
+	current_hdr_size = sizeof(struct ipv6hdr);
 	next_hdr = ipv6_hdr->next_header;
 
 	/* IP Header Length for SEC encapsulation, including IP header and
 	 * extensions before ESP */
-	*length = IPV6_HDR_LENGTH;
+	*length = sizeof(struct ipv6hdr);
 
 	/* From RFC 2460: 4.1  Extension Header Order
 	 * IPv6 nodes must accept and attempt to process extension headers in
@@ -2896,7 +2896,7 @@ uint8_t ipsec_get_ipv6_nh_offset (struct ipv6hdr *ipv6_hdr, uint8_t *length)
 		
 		/* Increment hh_offset if this is the first extension */
 		if (!nh_offset) {
-			nh_offset += (IPV6_HDR_LENGTH>>3);
+			nh_offset += ((sizeof(struct ipv6hdr))>>3);
 		}
 
 		current_ver = next_hdr;

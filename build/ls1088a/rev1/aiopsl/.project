@@ -360,6 +360,11 @@
 			<locationURI>virtual:/virtual</locationURI>
 		</link>
 		<link>
+			<name>aiop_sl/arch/ppc/inline_asm.h</name>
+			<type>1</type>
+			<locationURI>PARENT-4-PROJECT_LOC/src/arch/ppc/inline_asm.h</locationURI>
+		</link>
+		<link>
 			<name>aiop_sl/drivers/accel/cdma.c</name>
 			<type>1</type>
 			<locationURI>PARENT-4-PROJECT_LOC/src/drivers/accel/cdma.c</locationURI>
@@ -490,11 +495,6 @@
 			<locationURI>PARENT-4-PROJECT_LOC/src/drivers/accel/tman_inline.h</locationURI>
 		</link>
 		<link>
-			<name>aiop_sl/drivers/accel/virtual_pools.c</name>
-			<type>1</type>
-			<locationURI>PARENT-4-PROJECT_LOC/src/drivers/accel/virtual_pools.c</locationURI>
-		</link>
-		<link>
 			<name>aiop_sl/drivers/dplib/dpbp</name>
 			<type>2</type>
 			<locationURI>virtual:/virtual</locationURI>
@@ -511,11 +511,6 @@
 		</link>
 		<link>
 			<name>aiop_sl/drivers/dplib/dprc</name>
-			<type>2</type>
-			<locationURI>virtual:/virtual</locationURI>
-		</link>
-		<link>
-			<name>aiop_sl/drivers/dplib/include</name>
 			<type>2</type>
 			<locationURI>virtual:/virtual</locationURI>
 		</link>
@@ -621,6 +616,11 @@
 		</link>
 		<link>
 			<name>aiop_sl/drivers/netf/general</name>
+			<type>2</type>
+			<locationURI>virtual:/virtual</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/drivers/netf/include</name>
 			<type>2</type>
 			<locationURI>virtual:/virtual</locationURI>
 		</link>
@@ -1230,6 +1230,16 @@
 			<locationURI>PARENT-4-PROJECT_LOC/src/lib/slab/slab.h</locationURI>
 		</link>
 		<link>
+			<name>aiop_sl/lib/slab/virtual_pools.c</name>
+			<type>1</type>
+			<locationURI>PARENT-4-PROJECT_LOC/src/lib/slab/virtual_pools.c</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/lib/slab/virtual_pools.h</name>
+			<type>1</type>
+			<locationURI>PARENT-4-PROJECT_LOC/src/lib/slab/virtual_pools.h</locationURI>
+		</link>
+		<link>
 			<name>aiop_sl/lib/slob/slob.c</name>
 			<type>1</type>
 			<locationURI>PARENT-4-PROJECT_LOC/src/lib/slob/slob.c</locationURI>
@@ -1350,44 +1360,14 @@
 			<locationURI>PARENT-4-PROJECT_LOC/src/drivers/dplib/dprc/dprc_drv.c</locationURI>
 		</link>
 		<link>
-			<name>aiop_sl/drivers/dplib/include/checksum.h</name>
-			<type>1</type>
-			<locationURI>PARENT-4-PROJECT_LOC/src/drivers/dplib/include/checksum.h</locationURI>
-		</link>
-		<link>
-			<name>aiop_sl/drivers/dplib/include/general.h</name>
-			<type>1</type>
-			<locationURI>PARENT-4-PROJECT_LOC/src/drivers/dplib/include/general.h</locationURI>
-		</link>
-		<link>
-			<name>aiop_sl/drivers/dplib/include/header_modification.h</name>
-			<type>1</type>
-			<locationURI>PARENT-4-PROJECT_LOC/src/drivers/dplib/include/header_modification.h</locationURI>
-		</link>
-		<link>
-			<name>aiop_sl/drivers/dplib/include/id_pool.h</name>
-			<type>1</type>
-			<locationURI>PARENT-4-PROJECT_LOC/src/drivers/dplib/include/id_pool.h</locationURI>
-		</link>
-		<link>
-			<name>aiop_sl/drivers/dplib/include/inline_asm.h</name>
-			<type>1</type>
-			<locationURI>PARENT-4-PROJECT_LOC/src/drivers/dplib/include/inline_asm.h</locationURI>
-		</link>
-		<link>
-			<name>aiop_sl/drivers/dplib/include/virtual_pools.h</name>
-			<type>1</type>
-			<locationURI>PARENT-4-PROJECT_LOC/src/drivers/dplib/include/virtual_pools.h</locationURI>
-		</link>
-		<link>
 			<name>aiop_sl/drivers/netf/general/frame_operations.c</name>
 			<type>1</type>
 			<locationURI>PARENT-4-PROJECT_LOC/src/drivers/netf/general/frame_operations.c</locationURI>
 		</link>
 		<link>
-			<name>aiop_sl/drivers/netf/general/header_modification.h</name>
+			<name>aiop_sl/drivers/netf/include/net.h</name>
 			<type>1</type>
-			<locationURI>PARENT-4-PROJECT_LOC/src/drivers/netf/general/header_modification.h</locationURI>
+			<locationURI>PARENT-4-PROJECT_LOC/src/drivers/netf/include/net.h</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/drivers/netf/ip/ip.c</name>

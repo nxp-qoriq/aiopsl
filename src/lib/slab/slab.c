@@ -47,6 +47,7 @@ struct slab_bman_pool_desc g_slab_bman_pools[SLAB_MAX_BMAN_POOLS_NUM];
 struct slab_virtual_pools_main_desc g_slab_virtual_pools;
 uint64_t g_slab_pool_pointer_ddr;
 uint64_t g_slab_last_pool_pointer_ddr;
+uint16_t g_slab_ddr_memory;
 
 struct memory_types_table *g_slab_early_init_data;
 
@@ -490,12 +491,14 @@ __COLD_CODE int slab_create(uint32_t    committed_buffs,
 	if(g_slab_virtual_pools.slab_context_address[cluster] == NULL) //goto new_buffer_allocation;
 	{
 		/*new_buffer_allocation*/
-		if(slab_find_and_reserve_bpid(SLAB_BUFFER_TO_MANAGE_IN_DDR,
-		                              (uint16_t)sizeof(slab_virtual_pool_ddr) * SLAB_MAX_NUM_VP_DDR,
-		                              SLAB_DEFAULT_ALIGN,
-		                              MEM_PART_DP_DDR,
-		                              NULL,
-		                              &bpid) !=0 )
+		if(slab_find_and_reserve_bpid(
+			SLAB_BUFFER_TO_MANAGE_IN_DDR,
+			(uint16_t)(sizeof(slab_virtual_pool_ddr) *
+				SLAB_MAX_NUM_VP_DDR),
+			SLAB_DEFAULT_ALIGN,
+			(enum memory_partition_id)g_slab_ddr_memory,
+			NULL,
+			&bpid) !=0 )
 			/*recovery if bpid not found do create management structure for 64 more pools*/
 			goto error_recovery_return;
 
@@ -1084,6 +1087,16 @@ __COLD_CODE int slab_module_early_init(void){
 		if(g_slab_early_init_data->mem_pid_buffer_request[i])
 			g_slab_early_init_data->mem_pid_buffer_request[i] = NULL;
 
+	if(fsl_mem_exists(MEM_PART_DP_DDR)){
+		g_slab_ddr_memory = MEM_PART_DP_DDR;
+	}
+	else if(fsl_mem_exists(MEM_PART_SYSTEM_DDR)){
+		g_slab_ddr_memory = MEM_PART_SYSTEM_DDR;
+	}
+	else{
+		return -ENOMEM;
+	}
+
 	return 0;
 }
 
@@ -1392,8 +1405,6 @@ __COLD_CODE int slab_module_init(void)
 		return -ENODEV;
 	}
 
-
-
 	/*Register buffers for DDR management pools*/
 	num_clusters_for_ddr_mamangement_pools = (g_slab_early_init_data->num_ddr_pools >> 6) + 1; /*divide by 64*/
 	g_slab_virtual_pools.num_clusters = num_clusters_for_ddr_mamangement_pools;
@@ -1408,7 +1419,7 @@ __COLD_CODE int slab_module_init(void)
 		num_clusters_for_ddr_mamangement_pools,
 		(uint16_t)(SLAB_MAX_NUM_VP_DDR * sizeof(struct slab_v_pool)),
 		SLAB_DEFAULT_ALIGN,
-		SLAB_DDR_MEMORY,
+		(enum memory_partition_id)g_slab_ddr_memory,
 		0,
 		0);
 	if (err) {
@@ -1447,7 +1458,7 @@ __COLD_CODE int slab_module_init(void)
 	err = fsl_os_get_mem(SLAB_MAX_NUM_VP_DDR *
 	                     num_clusters_for_ddr_mamangement_pools
 	                     * sizeof(uint32_t),
-	                     SLAB_DDR_MEMORY,
+	                     (enum memory_partition_id)g_slab_ddr_memory,
 	                     1,
 	                     &ddr_pool_addr);
 
@@ -1574,6 +1585,10 @@ __COLD_CODE static int slab_check_registration_parameters(uint32_t committed_buf
 {
 	int i;
 
+	if(!fsl_mem_exists(mem_pid)){
+		pr_err("Partition type %d not supported\n", mem_pid);
+		return -EINVAL;
+	}
 	switch(mem_pid)
 	{
 	case MEM_PART_DP_DDR:

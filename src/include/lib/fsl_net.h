@@ -43,10 +43,62 @@
 /*****************************************************************************/
 
 /**************************************************************************//**
+@Description	MPLS structure.
+
+*//***************************************************************************/
+#pragma pack(push,1)
+struct mplshdr {
+	uint32_t label:20;		/**< Label value */
+	uint32_t exp:3;			/**< Experimental use */
+	uint32_t s:1;			/**< Bottom of stack */ 
+	uint32_t ttl:8;			/**< Time to live */
+};
+#pragma pack(pop)
+
+
+/**************************************************************************//**
+@Description	VxLAN structure.
+
+*//***************************************************************************/
+#pragma pack(push,1)
+struct vxlanhdr {
+	uint8_t flags;			/**< Validation */
+	uint8_t reserved_1[3];	/**< reserved 24 bits */
+	uint8_t vnid[3];		/**< vxlan Network Identifier */ 
+	uint8_t reserved_2;		/**< reserved 8 bits */
+};
+#pragma pack(pop)
+
+/**************************************************************************//**
+@Description	VLAN structure.
+
+*//***************************************************************************/
+#pragma pack(push,1)
+struct vlanhdr {
+	uint16_t tci;			/**< Priority, CFI and ID  */
+	uint16_t ether_type;	/**< Length or Ethertype */
+};
+#pragma pack(pop)
+
+/**************************************************************************//**
+@Description	Ethernet structure.
+
+*//***************************************************************************/
+#pragma pack(push,1)
+struct ethernethdr {
+	uint8_t  dst_addr[6];		/**< MAC Destination Address */
+	uint8_t  src_addr[6];		/**< MAC Source Address */
+	uint16_t ether_type;		/**< Length or Ethertype */
+};
+#pragma pack(pop)
+
+
+/**************************************************************************//**
 @Description	IPv4 structure.
 
 		Please refer to RFC 791 for more details.
 *//***************************************************************************/
+#pragma pack(push,1)
 struct ipv4hdr {
 	uint8_t  vsn_and_ihl;		/**< IP version and header length */
 	uint8_t  tos;			/**< Type of service */
@@ -59,12 +111,14 @@ struct ipv4hdr {
 	uint32_t src_addr;		/**< Source Address */
 	uint32_t dst_addr;		/**< Destination Address */
 };
+#pragma pack(pop)
 
 /**************************************************************************//**
 @Description	IPv6 structure.
 
 		Please refer to RFC 2460 for more details.
 *//***************************************************************************/
+#pragma pack(push,1)
 struct ipv6hdr {
 	uint32_t vsn_traffic_flow;	/**< IP ver,traffic class,flow label */
 	uint16_t payload_length;
@@ -73,36 +127,42 @@ struct ipv6hdr {
 	uint32_t  src_addr[4];		/**< Source Address */
 	uint32_t  dst_addr[4];		/**< Destination Address */
 };
+#pragma pack(pop)
 
 /**************************************************************************//**
 @Description	IPv6 Fragment Header.
 
 		Please refer to RFC 2460 for more details.
 *//***************************************************************************/
+#pragma pack(push,1)
 struct ipv6fraghdr {
 	uint8_t  next_header;
 	uint8_t  reserved;
 	uint16_t offset_and_flags;
 	uint32_t id;
 };
+#pragma pack(pop)
 
 /**************************************************************************//**
 @Description	UDP structure.
 
 		Please refer to RFC 768 for more details.
 *//***************************************************************************/
+#pragma pack(push,1)
 struct udphdr {
 	uint16_t src_port;		/*!< Source port */
 	uint16_t dst_port;		/*!< Destination port */
 	uint16_t length;		/*!< Length */
 	uint16_t checksum;		/*!< Checksum */
 };
+#pragma pack(pop)
 
 /**************************************************************************//**
 @Description	TCP structure.
 
 		Please refer to RFC 793 for more details.
 *//***************************************************************************/
+#pragma pack(push,1)
 struct tcphdr {
 	uint16_t src_port;		/*!< Source port */
 	uint16_t dst_port;		/*!< Destination port */
@@ -114,7 +174,12 @@ struct tcphdr {
 	uint16_t checksum;		/*!< Checksum */
 	uint16_t urgent_pointer;	/*!< Urgent pointer */
 };
+#pragma pack(pop)
 
+/**************************************************************************//**
+@Description	ARP header structure.
+
+*//***************************************************************************/
 #pragma pack(push,1)
 struct arphdr
 {
@@ -610,8 +675,44 @@ enum net_prot {
 	NET_PROT_USER_DEFINED_SHIM6,
 	NET_PROT_USER_DEFINED_SHIM7,
 	NET_PROT_USER_DEFINED_SHIM8,
-
 	NET_PROT_DUMMY_LAST
 };
+
+/*****************************************************************************/
+/*                          Next Protocol                                    */
+/*****************************************************************************/
+
+/*****************************  IPv4  *********************************/
+#define NET_IPV4_PROT_IPV4	0x04
+#define NET_IPV4_PROT_IPV6	0x29
+
+/*************************** Ethernet *********************************/
+#define NET_ETH_ETYPE_IPV4	0x0800
+#define NET_ETH_ETYPE_IPV6	0x86DD
+
+/*****************************  MPLS  *********************************/
+#define NET_MPLS_LABEL_IPV4	0x00000000
+#define NET_MPLS_LABEL_IPV6	0x00002000
+
+/*****************************  ARP ***********************************/
+#define ARPHDR_ETHER_PRO_TYPE	1
+#define ARPHDR_IPV4_PRO_TYPE	0x800
+#define ARP_ETHERTYPE			0x0806
+
+/*****************************************************************************/
+/*                             Options                                       */
+/*****************************************************************************/
+
+/*****************************  IPv4  *********************************/
+#define IPV4_EOOL_OPTION_TYPE	      0	   /*!< End of Option List */
+#define IPV4_NOP_OPTION_TYPE	      1	   /*!< No Operation */
+#define IPV4_RECORD_ROUTE_OPTION_TYPE 7	   /*!< Record Route */
+#define IPV4_TIMESTAMP_OPTION_TYPE    68   /*!< Internet Timestamp */
+#define IPV4_SCURITY_OPTION_TYPE      130  /*!< Security option */
+#define IPV4_LSRR_OPTION_TYPE	      131  /*!< Loose Source & Record Route */
+#define IPV4_STREAM_IDENTIFIER_TYPE   136  /*!< Stream Identifier */
+#define IPV4_SSRR_OPTION_TYPE	      137  /*!< Strict Source & Record Route */
+
+
 
 #endif /* __FSL_NET_H */

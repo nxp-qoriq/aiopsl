@@ -255,7 +255,7 @@ enum rta_param_type {
 	/* After the slab change, the slab returned buffer handle is aligned */
 
 #define IPSEC_MAX_NUM_OF_TASKS 256 /* Total maximum number of tasks in AIOP */
-#define IPSEC_MEM_PARTITION_ID MEM_PART_DP_DDR
+#define IPSEC_MEM_PARTITION_ID MEM_PART_SYSTEM_DDR
 					/* Memory partition ID */
 #define IPSEC_KEY_SEGMENT_OFFSET 512 /* Offset from params start */
 /* Key Offset from FLC start */

@@ -687,7 +687,7 @@ void keygen_exception_handler(enum keygen_function_identifier func_id,
 	}
 	
 	/* Translate error ID to error name string */
-	if (status == KEYGEN_HW_STATUS_KSE) {
+	if (status & KEYGEN_HW_STATUS_KSE) {
 		err_msg = "Key composition error: Invalid KeyID or KeyID with"
 				"0 FECs or Key size error (key>124 bytes).\n";
 	} else {

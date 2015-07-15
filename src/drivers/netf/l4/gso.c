@@ -222,7 +222,8 @@ int32_t tcp_gso_split_segment(struct tcp_gso_context *gso_ctx)
 			/* IPv6 - update IP length */
 			outer_ipv6_ptr->payload_length =
 				(uint16_t)(LDPAA_FD_GET_LENGTH(HWC_FD_ADDRESS) -
-					outer_ip_offset - IPV6_HDR_LENGTH);
+						outer_ip_offset - 
+						sizeof(struct ipv6hdr));
 		}
 
 		/* update TCP header flags */
@@ -269,7 +270,7 @@ int32_t tcp_gso_split_segment(struct tcp_gso_context *gso_ctx)
 				outer_ipv6_ptr = (struct ipv6hdr *)(
 					PARSER_GET_OUTER_IP_POINTER_DEFAULT());
 				outer_ipv6_ptr->payload_length =
-					ip_header_length -IPV6_HDR_LENGTH;
+				     ip_header_length - sizeof(struct ipv6hdr);
 			}
 
 		} else {
