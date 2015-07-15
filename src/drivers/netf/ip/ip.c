@@ -38,7 +38,7 @@
 #include "fsl_fdma.h"
 #include "fsl_ip.h"
 #include "fsl_cdma.h"
-#include "checksum.h"
+#include "fsl_checksum.h"
 #include "header_modification.h"
 #include "ip.h"
 #include "fsl_time.h"
