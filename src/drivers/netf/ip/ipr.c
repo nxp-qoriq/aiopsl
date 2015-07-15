@@ -71,14 +71,18 @@ int ipr_early_init(uint32_t nbr_of_instances, uint32_t nbr_of_context_buffers)
 {
 	uint32_t nbr_of_ipr_contexts;
 	int err;
-	
+	enum memory_partition_id mem_pid = MEM_PART_SYSTEM_DDR;
+
+	if (fsl_mem_exists(MEM_PART_DP_DDR))
+		mem_pid = MEM_PART_DP_DDR;
+
 	nbr_of_ipr_contexts = nbr_of_context_buffers + 2*nbr_of_instances;
 	/* IPR 2688 rounded up modulo 64 - 8 */
 	err = slab_register_context_buffer_requirements(nbr_of_ipr_contexts,
 							nbr_of_ipr_contexts,
 							2744,
 							64,
-							MEM_PART_DP_DDR,
+							mem_pid,
 							0,
 							0);
 	if(err){
