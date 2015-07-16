@@ -360,11 +360,6 @@
 			<locationURI>virtual:/virtual</locationURI>
 		</link>
 		<link>
-			<name>aiop_sl/arch/ppc/inline_asm.h</name>
-			<type>1</type>
-			<locationURI>PARENT-4-PROJECT_LOC/src/arch/ppc/inline_asm.h</locationURI>
-		</link>
-		<link>
 			<name>aiop_sl/drivers/accel/cdma.c</name>
 			<type>1</type>
 			<locationURI>PARENT-4-PROJECT_LOC/src/drivers/accel/cdma.c</locationURI>
@@ -1288,6 +1283,11 @@
 			<name>aiop_sl/arch/ppc/include/fsl_core_ppc.h</name>
 			<type>1</type>
 			<locationURI>PARENT-4-PROJECT_LOC/src/arch/ppc/include/fsl_core_ppc.h</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/arch/ppc/include/fsl_inline_asm.h</name>
+			<type>1</type>
+			<locationURI>PARENT-4-PROJECT_LOC/src/arch/ppc/include/fsl_inline_asm.h</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/arch/ppc/include/fsl_swab.h</name>

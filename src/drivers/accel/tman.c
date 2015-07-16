@@ -38,7 +38,7 @@
 #include "fsl_fdma.h"
 #include "osm_inline.h"
 #include "fsl_ldpaa.h"
-#include "inline_asm.h"
+#include "fsl_inline_asm.h"
 #include "fsl_io_ccsr.h"
 
 #ifndef REV2
