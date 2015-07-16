@@ -114,7 +114,7 @@ aiop_sl		</project>
 		<link>
 			<name>src/arena_test.c</name>
 			<type>1</type>
-			<locationURI>PARENT-4-PROJECT_LOC/tests/arena_test/arena_test.c</locationURI>
+			<locationURI>PARENT-5-PROJECT_LOC/tests/arena_test/arena_test.c</locationURI>
 		</link>
 		<link>
 			<name>src/bringup</name>
