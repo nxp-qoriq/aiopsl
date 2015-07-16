@@ -87,14 +87,17 @@ static int check_get_mem_size_alignment(uint64_t size,uint64_t alignment)
 	uint64_t paddr = 0;
 
 	/* test get_mem() for MEM_PART_DP_DDR */
-	if((local_error = fsl_os_get_mem(size,MEM_PART_DP_DDR,alignment,&paddr)) != 0){
-		fsl_os_print("get_mem(): fsl_os_get_mem from MEM_PART_DP_DDR failed\n") ;
+	if(fsl_mem_exists(MEM_PART_DP_DDR))
+	{
+		if((local_error = fsl_os_get_mem(size,MEM_PART_DP_DDR,alignment,&paddr)) != 0){
+			fsl_os_print("get_mem(): fsl_os_get_mem from MEM_PART_DP_DDR failed\n") ;
+		}
+		rc |= local_error;
+		rc |= check_returned_get_mem_address(paddr,size,alignment,&dp_ddr_info);
+		fsl_os_put_mem(paddr);
 	}
-	rc |= local_error;
-	rc |= check_returned_get_mem_address(paddr,size,alignment,&dp_ddr_info);
-	fsl_os_put_mem(paddr);
     /* test get_mem() for MEM_PART_SYSTEM_DDR */
-    if(g_init_data.app_info.sys_ddr1_size){
+    if(fsl_mem_exists(MEM_PART_SYSTEM_DDR)){
 	    if((local_error = fsl_os_get_mem(size,MEM_PART_SYSTEM_DDR,alignment,&paddr)) != 0){
 		    fsl_os_print("get_mem(): fsl_os_get_mem from MEM_PART_SYSTEM_DDR failed\n") ;
 	    }
@@ -104,12 +107,14 @@ static int check_get_mem_size_alignment(uint64_t size,uint64_t alignment)
     }
 
 	/* test get_mem() for MEM_PART_PEB */
-	if((local_error=fsl_os_get_mem(size,MEM_PART_PEB,alignment,&paddr)) != 0){
-		fsl_os_print("get_mem(): fsl_os_get_mem from MEM_PART_PEB failed\n") ;
-	}
-	rc |= local_error;
-	rc |= check_returned_get_mem_address(paddr,size,alignment,&peb_info);
-	fsl_os_put_mem(paddr);
+    if(fsl_mem_exists(MEM_PART_PEB)){
+		if((local_error=fsl_os_get_mem(size,MEM_PART_PEB,alignment,&paddr)) != 0){
+			fsl_os_print("get_mem(): fsl_os_get_mem from MEM_PART_PEB failed\n") ;
+		}
+		rc |= local_error;
+		rc |= check_returned_get_mem_address(paddr,size,alignment,&peb_info);
+		fsl_os_put_mem(paddr);
+    }
 	return rc;
 }
 
@@ -120,53 +125,81 @@ int malloc_test()
 
 	int err = 0, local_error = 0, rc = -1;
 
-	if((rc = sys_get_phys_addr_alloc_partition_info(MEM_PART_DP_DDR,
-							&dp_ddr_info)) != 0){
-	       fsl_os_print("sys_get_phys_addr_alloc_partition_info for MEM_PART_DP_DDR failed\n");
-		return rc;
+	if(fsl_mem_exists(MEM_PART_DP_DDR)) {
+		if((rc = sys_get_phys_addr_alloc_partition_info(MEM_PART_DP_DDR,
+								&dp_ddr_info)) != 0){
+			   fsl_os_print("sys_get_phys_addr_alloc_partition_info for MEM_PART_DP_DDR failed\n");
+			return rc;
+		}
 	}
-	if((rc = sys_get_phys_addr_alloc_partition_info(MEM_PART_SYSTEM_DDR,
-							&sys_ddr_info)) != 0){
-		fsl_os_print("sys_get_phys_addr_alloc_partition_info for MEM_PART_SYSTEM_DDR failed\n");
-		return rc;
+	
+	if(fsl_mem_exists(MEM_PART_SYSTEM_DDR)) {
+		if((rc = sys_get_phys_addr_alloc_partition_info(MEM_PART_SYSTEM_DDR,
+								&sys_ddr_info)) != 0){
+			fsl_os_print("sys_get_phys_addr_alloc_partition_info for MEM_PART_SYSTEM_DDR failed\n");
+			return rc;
+		}
 	}
-	if((rc = sys_get_phys_addr_alloc_partition_info(MEM_PART_PEB,
-							&peb_info)) != 0){
-		fsl_os_print("sys_get_phys_addr_alloc_partition_info for MEM_PART_PEB failed\n");
-		return rc;
+	
+	if(fsl_mem_exists(MEM_PART_PEB)) {
+		if((rc = sys_get_phys_addr_alloc_partition_info(MEM_PART_PEB,
+								&peb_info)) != 0){
+			fsl_os_print("sys_get_phys_addr_alloc_partition_info for MEM_PART_PEB failed\n");
+			return rc;
+		}
 	}
-	if((rc = sys_get_mem_partition_info(MEM_PART_SH_RAM,
-					   &sh_ram_info)) != 0)
-	{
-		fsl_os_print("sys_get_mem_partition_info for MEM_PART_SH_RAM failed\n");
-		return rc;
+	
+	if(fsl_mem_exists(MEM_PART_SH_RAM)) {
+		if((rc = sys_get_mem_partition_info(MEM_PART_SH_RAM,
+						   &sh_ram_info)) != 0)
+		{
+			fsl_os_print("sys_get_mem_partition_info for MEM_PART_SH_RAM failed\n");
+			return rc;
+		}
 	}
+	
 	local_error = get_mem_test();
 	err |= local_error;
-	/* Check fsl_malloc() function */
-	cdma_mutex_lock_take((uint64_t)&s_shared_ram_lock,CDMA_MUTEX_WRITE_LOCK);
-	local_error = shared_ram_allocate_check_mem(num_iter,size,allocated_pointers);
-	cdma_mutex_lock_release((uint64_t)&s_shared_ram_lock);
-	if(!local_error)
-		fsl_os_print("malloc_test from  SHARED RAM succeeded\n");
 
-	err |= local_error ;
-	cdma_mutex_lock_take((uint64_t)&s_peb_lock,CDMA_MUTEX_WRITE_LOCK);
-	local_error = mem_depletion_test(MEM_PART_PEB,4*MEGABYTE,MEGABYTE);
-	cdma_mutex_lock_release((uint64_t)&s_peb_lock);
-	err |= local_error;
-	cdma_mutex_lock_take((uint64_t)&s_system_ddr_lock,CDMA_MUTEX_WRITE_LOCK);
-	local_error = mem_depletion_test(MEM_PART_SYSTEM_DDR,4*MEGABYTE,MEGABYTE);
-	cdma_mutex_lock_release((uint64_t)&s_system_ddr_lock);
-	err |= local_error;
-	cdma_mutex_lock_take((uint64_t)&s_dp_ddr_lock,CDMA_MUTEX_WRITE_LOCK);
-	local_error = mem_depletion_test(MEM_PART_DP_DDR,4*MEGABYTE,4*MEGABYTE);
-	cdma_mutex_lock_release((uint64_t)&s_dp_ddr_lock);
-	err |= local_error;
-	cdma_mutex_lock_take((uint64_t)&s_shared_ram_lock,CDMA_MUTEX_WRITE_LOCK);
-	local_error = mem_depletion_test(MEM_PART_SH_RAM,MEGABYTE,MEGABYTE);
-	cdma_mutex_lock_release((uint64_t)&s_shared_ram_lock);
-	err |= local_error;
+	
+	if(fsl_mem_exists(MEM_PART_SH_RAM)) {
+		/* Check fsl_malloc() function */
+		cdma_mutex_lock_take((uint64_t)&s_shared_ram_lock,CDMA_MUTEX_WRITE_LOCK);
+		local_error = shared_ram_allocate_check_mem(num_iter,size,allocated_pointers);
+		cdma_mutex_lock_release((uint64_t)&s_shared_ram_lock);
+		if(!local_error)
+			fsl_os_print("malloc_test from  SHARED RAM succeeded\n");
+		err |= local_error ;
+	}
+	
+	if(fsl_mem_exists(MEM_PART_PEB)) {
+		cdma_mutex_lock_take((uint64_t)&s_peb_lock,CDMA_MUTEX_WRITE_LOCK);
+		local_error = mem_depletion_test(MEM_PART_PEB,4*MEGABYTE,MEGABYTE);
+		cdma_mutex_lock_release((uint64_t)&s_peb_lock);
+		err |= local_error;
+	}
+	
+	if(fsl_mem_exists(MEM_PART_SYSTEM_DDR)) {
+		cdma_mutex_lock_take((uint64_t)&s_system_ddr_lock,CDMA_MUTEX_WRITE_LOCK);
+		local_error = mem_depletion_test(MEM_PART_SYSTEM_DDR,4*MEGABYTE,MEGABYTE);
+		cdma_mutex_lock_release((uint64_t)&s_system_ddr_lock);
+		err |= local_error;
+	}
+	
+	if(fsl_mem_exists(MEM_PART_DP_DDR)) {
+		cdma_mutex_lock_take((uint64_t)&s_dp_ddr_lock,CDMA_MUTEX_WRITE_LOCK);
+		local_error = mem_depletion_test(MEM_PART_DP_DDR,4*MEGABYTE,4*MEGABYTE);
+		cdma_mutex_lock_release((uint64_t)&s_dp_ddr_lock);
+		err |= local_error;
+	}
+	
+	if(fsl_mem_exists(MEM_PART_SH_RAM)) {
+		cdma_mutex_lock_take((uint64_t)&s_shared_ram_lock,CDMA_MUTEX_WRITE_LOCK);
+		local_error = mem_depletion_test(MEM_PART_SH_RAM,MEGABYTE,MEGABYTE);
+		cdma_mutex_lock_release((uint64_t)&s_shared_ram_lock);
+		err |= local_error;
+	}
+	
 	return err;
 }
 
