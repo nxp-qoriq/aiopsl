@@ -1,3 +1,8 @@
+sim_files/*.cfg:     Moved to misc/sim/*.cfg
+cmdif_srv_flib.c: Fix ENGR00361727 inst_alloc can't alloc all instance
+cmdif_srv.c:      Fix ENGR00361727 inst_alloc can't alloc all instance
+
+** AIOP SL Release v0.7.1.0 **
 dpni_drv.c/fsl_dpni_drv.h: Added new API to get connected object for given NI and to get NI for given object ID and type.
                            int dpni_drv_get_connected_obj(const uint16_t aiop_niid, int *id, char type[16], int *state);
                            int dpni_drv_get_connected_ni(const int id, const char type[16], uint16_t *aiop_niid, int *state);
@@ -6,15 +11,12 @@ dpni_drv.c/fsl_dpni_drv.h: Added new API to get connected object for given NI an
                            int dpni_drv_get_connected_aiop_ni_id(const uint16_t dpni_id, uint16_t *aiop_niid, int *state);
                            CQ: ENGR00362002
 
-dpni_drv.c: Fix for nested mutex calls when calling functions: dpni_drv_get_dpni_id() and dpni_drv_get_ni_id() - ENGR00361988
-dpni_drv.c: Added fix to distinguish between DPNI and NI (AIOPSL) ids in EPID table during the probe - ENGR00362157.
-
-sim_files/*.cfg:     Moved to misc/sim/*.cfg
 fsl_cmdif_flib_fd.h: Fix ENGR00361539 : CMDIF auth_id (used as ordering scope id) conflicts with FDMA WA that uses nested OrderScopeID
 cmdif_srv_flib.h:    Fix ENGR00361539 : CMDIF auth_id (used as ordering scope id) conflicts with FDMA WA that uses nested OrderScopeID
 cmdif_client.c:   Fix ENGR00361548 cmdif_cl_isr should have SET_FRAME_TYPE() 
-cmdif_srv_flib.c: Fix ENGR00361727 inst_alloc can't alloc all instance
-cmdif_srv.c:      Fix ENGR00361727 inst_alloc can't alloc all instance
+
+dpni_drv.c: Fix for nested mutex calls when calling functions: dpni_drv_get_dpni_id() and dpni_drv_get_ni_id() - ENGR00361988
+dpni_drv.c: Added fix to distinguish between DPNI and NI (AIOPSL) ids in EPID table during the probe - ENGR00362157.
 
 ** AIOP SL Release v0.7.0 **
 cmdif_srv.c:               Added error that will be returned to cmdif_open() if it is called before AIOP has finished the linkup setup of this DPCI.
