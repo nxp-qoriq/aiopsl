@@ -315,6 +315,11 @@
 			<locationURI>PARENT-4-PROJECT_LOC/src/arch/platform/fsl_platform.h</locationURI>
 		</link>
 		<link>
+			<name>aiop_sl/arch/platform/fsl_soc.h</name>
+			<type>1</type>
+			<locationURI>PARENT-4-PROJECT_LOC/src/arch/platform/fsl_soc.h</locationURI>
+		</link>
+		<link>
 			<name>aiop_sl/arch/platform/init.c</name>
 			<type>1</type>
 			<locationURI>PARENT-4-PROJECT_LOC/src/arch/platform/init.c</locationURI>
@@ -1265,9 +1270,9 @@
 			<locationURI>PARENT-4-PROJECT_LOC/src/lib/util/memcpy.c</locationURI>
 		</link>
 		<link>
-			<name>aiop_sl/arch/platform/ls1088a/fsl_soc.h</name>
+			<name>aiop_sl/arch/platform/ls1088a/fsl_soc_arch.h</name>
 			<type>1</type>
-			<locationURI>PARENT-4-PROJECT_LOC/src/arch/platform/ls1088a/fsl_soc.h</locationURI>
+			<locationURI>PARENT-4-PROJECT_LOC/src/arch/platform/ls1088a/fsl_soc_arch.h</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/arch/ppc/include/fsl_core_booke.h</name>
