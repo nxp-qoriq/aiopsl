@@ -170,8 +170,11 @@ int app_init(void)
 	fsl_os_print("Registered %s module\n", module);
 	err = fsl_os_get_mem(1024, MEM_PART_DP_DDR, 64, &tman_addr);
 	if (err || !tman_addr) {
-		pr_err("FAILED fsl_os_get_mem err = %d\n!", err);
-		return err;
+		err = fsl_os_get_mem(1024, MEM_PART_SYSTEM_DDR, 64, &tman_addr);
+		if (err || !tman_addr) {
+			pr_err("FAILED fsl_os_get_mem err = %d\n!", err);
+			return err;
+		}
 	}
 
 	fsl_os_print("Using TMAN\n");
