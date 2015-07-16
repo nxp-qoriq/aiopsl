@@ -350,6 +350,9 @@ int slab_test(void)
 				return -ENODEV;
 		}
 	}
+	else {
+		fsl_os_print("DP-DDR does not exists.\n");
+	}
 
 	/* SYSTEM DDR SLAB creation */
 	if(fsl_mem_exists(MEM_PART_SYSTEM_DDR)) {
@@ -366,6 +369,9 @@ int slab_test(void)
 				return -ENODEV;
 		}
 	}
+	else {
+		fsl_os_print("SYS-DDR does not exists.\n");
+	}
 
 	/* PEB SLAB creation */
 	if(fsl_mem_exists(MEM_PART_PEB)) {
@@ -377,6 +383,9 @@ int slab_test(void)
 			if ((slab_info.committed_buffs != slab_info.max_buffs) ||
 				(slab_info.committed_buffs == 0))
 				return -ENODEV;
+	}
+	else {
+		fsl_os_print("PEB-DDR does not exists.\n");
 	}
 	
 	if(fsl_mem_exists(MEM_PART_PEB)) {
