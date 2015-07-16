@@ -32,7 +32,7 @@ aiop_sl		</project>
 				</dictionary>
 				<dictionary>
 					<key>org.eclipse.cdt.make.core.buildLocation</key>
-					<value>${ProjDirPath}/integ_out</value>
+					<value>${ProjDirPath}/performance</value>
 				</dictionary>
 				<dictionary>
 					<key>org.eclipse.cdt.make.core.cleanBuildTarget</key>
@@ -90,6 +90,56 @@ aiop_sl		</project>
 			<name>src</name>
 			<type>2</type>
 			<locationURI>virtual:/virtual</locationURI>
+		</link>
+		<link>
+			<name>lcf/aiop_link.lcf</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/cw_files/aiop_link.lcf</locationURI>
+		</link>
+		<link>
+			<name>src/README.txt</name>
+			<type>1</type>
+			<locationURI>PARENT-5-PROJECT_LOC/tests/cmdif/README.txt</locationURI>
+		</link>
+		<link>
+			<name>src/apps.c</name>
+			<type>1</type>
+			<locationURI>PARENT-5-PROJECT_LOC/tests/cmdif/apps.c</locationURI>
+		</link>
+		<link>
+			<name>src/apps.h</name>
+			<type>1</type>
+			<locationURI>PARENT-5-PROJECT_LOC/tests/cmdif/apps.h</locationURI>
+		</link>
+		<link>
+			<name>src/cmdif_integration_test.c</name>
+			<type>1</type>
+			<locationURI>PARENT-5-PROJECT_LOC/tests/cmdif/cmdif_integration_test.c</locationURI>
+		</link>
+		<link>
+			<name>src/cmdif_performance.c</name>
+			<type>1</type>
+			<locationURI>PARENT-5-PROJECT_LOC/tests/cmdif/cmdif_performance.c</locationURI>
+		</link>
+		<link>
+			<name>src/cmdif_test_common.h</name>
+			<type>1</type>
+			<locationURI>PARENT-5-PROJECT_LOC/tests/cmdif/cmdif_test_common.h</locationURI>
+		</link>
+		<link>
+			<name>src/config.c</name>
+			<type>1</type>
+			<locationURI>PARENT-5-PROJECT_LOC/src/arch/platform/ls1088a/config.c</locationURI>
+		</link>
+		<link>
+			<name>src/ls1088a</name>
+			<type>2</type>
+			<locationURI>virtual:/virtual</locationURI>
+		</link>
+		<link>
+			<name>src/ls1088a/apps_arch.h</name>
+			<type>1</type>
+			<locationURI>PARENT-5-PROJECT_LOC/tests/cmdif/ls1088a/apps_arch.h</locationURI>
 		</link>
 	</linkedResources>
 </projectDescription>
