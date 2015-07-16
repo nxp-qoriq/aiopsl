@@ -82,6 +82,8 @@ int ipsec_early_init(
 {
 
 	int return_val;
+	int mem_id = IPSEC_PRIMARY_MEM_PARTITION_ID;
+	       
 	uint32_t dummy = flags; /* dummy assignment, to avoid warning */
 	
 	uint32_t committed_buffs;
@@ -89,12 +91,16 @@ int ipsec_early_init(
 	committed_buffs = total_instance_num + total_committed_sa_num;
 	max_buffs = total_instance_num + total_max_sa_num;
 
+    if (!(fsl_mem_exists(IPSEC_PRIMARY_MEM_PARTITION_ID))) {
+    	mem_id = IPSEC_SECONDARY_MEM_PARTITION_ID;
+    }
+    
 	return_val = slab_register_context_buffer_requirements(
 			committed_buffs,
 			max_buffs, /* uint32_t max_buffs */
 			IPSEC_SA_DESC_BUF_SIZE, /* uint16_t buff_size */
 			IPSEC_SA_DESC_BUF_ALIGN, /* uint16_t alignment */
-	        IPSEC_MEM_PARTITION_ID, /* enum memory_partition_id  mem_pid */
+			(enum memory_partition_id)mem_id, /* enum memory_partition_id  mem_pid */
 	        0, /* uint32_t flags */
 	        0 /* uint32_t num_ddr_pools */
 	        );
@@ -113,14 +119,14 @@ int ipsec_create_instance (
 		ipsec_instance_handle_t *instance_handle)
 {
 	int32_t return_val;
-	
-	/* committed_sa_num for desc BPID size 512
-	 * 1 buffer for the instance data (counters) 
-	 * committed_sa_num for IPv6 outer header (TBD) */
-	
-	
 	struct ipsec_instance_params instance; 
 
+	int mem_id = IPSEC_PRIMARY_MEM_PARTITION_ID;
+	    	
+	if (!(fsl_mem_exists(IPSEC_PRIMARY_MEM_PARTITION_ID))) {
+	    	mem_id = IPSEC_SECONDARY_MEM_PARTITION_ID;
+	}
+	
 	instance.sa_count = 0;
 	instance.committed_sa_num = committed_sa_num;
 	instance.max_sa_num = max_sa_num;
@@ -132,7 +138,7 @@ int ipsec_create_instance (
 			(committed_sa_num + 1), /* uint32_t num_buffs */
 			IPSEC_SA_DESC_BUF_SIZE, /* uint16_t buff_size */
 			IPSEC_SA_DESC_BUF_ALIGN, /* uint16_t alignment */ 
-			IPSEC_MEM_PARTITION_ID, /* TODO: TMP. uint8_t  mem_partition_id */
+			(enum memory_partition_id)mem_id, /* mem_partition_id */
             NULL, /*NULL*/
             &(instance.desc_bpid)); /* uint16_t *bpid */
 	
@@ -207,7 +213,12 @@ int ipsec_get_buffer(ipsec_instance_handle_t instance_handle,
 {
 	int return_val;
 	struct ipsec_instance_params instance; 
-
+	int mem_id = IPSEC_PRIMARY_MEM_PARTITION_ID;
+	    	
+	if (!(fsl_mem_exists(IPSEC_PRIMARY_MEM_PARTITION_ID))) {
+	    	mem_id = IPSEC_SECONDARY_MEM_PARTITION_ID;
+	}
+	
 	cdma_read_with_mutex(
 			instance_handle, /* uint64_t ext_address */
 			CDMA_PREDMA_MUTEX_WRITE_LOCK, /* uint32_t flags */
@@ -241,12 +252,12 @@ int ipsec_get_buffer(ipsec_instance_handle_t instance_handle,
 				&instance.sa_count, /* void *ws_dst */
 				sizeof(instance.sa_count) /* uint16_t size */	
 		);
-		/* Descriptor and Instance Buffers */
+		/* Descriptor Buffer */
 		return_val = slab_find_and_reserve_bpid(
 				1, /* uint32_t num_buffs */
 				IPSEC_SA_DESC_BUF_SIZE, /* uint16_t buff_size */
 				IPSEC_SA_DESC_BUF_ALIGN, /* uint16_t alignment */
-				IPSEC_MEM_PARTITION_ID, /* TODO: TMP. uint8_t  mem_partition_id */
+				(enum memory_partition_id)mem_id, /* mem_partition_id */
 	            NULL, /* NULL */
 	            &(instance.desc_bpid)); /* uint16_t *bpid */
 
