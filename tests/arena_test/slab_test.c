@@ -334,62 +334,93 @@ int slab_test(void)
 	struct slab *slab_sys_ddr = 0;
 	struct slab_debug_info slab_info;
 	uint16_t alignment = 64;
-	/* PEB DDR SLAB creation */
-	err = slab_create(5, 5, 200, alignment, MEM_PART_DP_DDR, 0,
-	                  NULL, &slab_dp_ddr);
-	if (err) return err;
 
-	err = slab_debug_info_get(slab_dp_ddr, &slab_info);
-	if (err) {
-		return err;
-	} else {
-		if ((slab_info.committed_buffs != slab_info.max_buffs) ||
-			(slab_info.committed_buffs == 0))
-			return -ENODEV;
+	/* PEB DDR SLAB creation */
+	if(fsl_mem_exists(MEM_PART_DP_DDR)) {
+		err = slab_create(5, 5, 200, alignment, MEM_PART_DP_DDR, 0,
+						  NULL, &slab_dp_ddr);
+		if (err) return err;
+
+		err = slab_debug_info_get(slab_dp_ddr, &slab_info);
+		if (err) {
+			return err;
+		} else {
+			if ((slab_info.committed_buffs != slab_info.max_buffs) ||
+				(slab_info.committed_buffs == 0))
+				return -ENODEV;
+		}
+	}
+	else {
+		fsl_os_print("DP-DDR does not exists.\n");
 	}
 
 	/* SYSTEM DDR SLAB creation */
-	err = slab_create(5, 5, 200, alignment, MEM_PART_SYSTEM_DDR, 0,
-	                  NULL, &slab_sys_ddr);
-	if (err) return err;
-
-	err = slab_debug_info_get(slab_sys_ddr, &slab_info);
-	if (err) {
-		return err;
-	} else {
-		if ((slab_info.committed_buffs != slab_info.max_buffs) ||
-			(slab_info.committed_buffs == 0))
-			return -ENODEV;
+	if(fsl_mem_exists(MEM_PART_SYSTEM_DDR)) {
+		err = slab_create(5, 5, 200, alignment, MEM_PART_SYSTEM_DDR, 0,
+						  NULL, &slab_sys_ddr);
+		if (err) return err;
+	
+		err = slab_debug_info_get(slab_sys_ddr, &slab_info);
+		if (err) {
+			return err;
+		} else {
+			if ((slab_info.committed_buffs != slab_info.max_buffs) ||
+				(slab_info.committed_buffs == 0))
+				return -ENODEV;
+		}
+	}
+	else {
+		fsl_os_print("SYS-DDR does not exists.\n");
 	}
 
 	/* PEB SLAB creation */
-	err = slab_create(5, 5, 100, alignment, MEM_PART_PEB, 0, NULL, &slab_peb);
-	if (err) return err;
-
-	err = slab_debug_info_get(slab_peb, &slab_info);
-	if(!err)
-		if ((slab_info.committed_buffs != slab_info.max_buffs) ||
-			(slab_info.committed_buffs == 0))
-			return -ENODEV;
-
-	err |= app_test_slab(slab_peb, 4, MEM_PART_PEB, alignment);
-	if (err) {
-		fsl_os_print("ERROR = %d: app_test_slab(slab_peb, 4)\n", err);
+	if(fsl_mem_exists(MEM_PART_PEB)) {
+		err = slab_create(5, 5, 100, alignment, MEM_PART_PEB, 0, NULL, &slab_peb);
+		if (err) return err;
+	
+		err = slab_debug_info_get(slab_peb, &slab_info);
+		if(!err)
+			if ((slab_info.committed_buffs != slab_info.max_buffs) ||
+				(slab_info.committed_buffs == 0))
+				return -ENODEV;
+	}
+	else {
+		fsl_os_print("PEB-DDR does not exists.\n");
+	}
+	
+	if(fsl_mem_exists(MEM_PART_PEB)) {
+		err |= app_test_slab(slab_peb, 4, MEM_PART_PEB, alignment);
+		if (err) {
+			fsl_os_print("ERROR = %d: app_test_slab(slab_peb, 4)\n", err);
+		}
+	}
+	
+	if(fsl_mem_exists(MEM_PART_DP_DDR)) {
+		err |= app_test_slab(slab_dp_ddr, 4, MEM_PART_DP_DDR, alignment);
+		if (err) {
+			fsl_os_print("ERROR = %d: app_test_slab(slab_dp_ddr, 4)\n", err);
+		}
 	}
 
-	err |= app_test_slab(slab_dp_ddr, 4, MEM_PART_DP_DDR, alignment);
-	if (err) {
-		fsl_os_print("ERROR = %d: app_test_slab(slab_dp_ddr, 4)\n", err);
+	if(fsl_mem_exists(MEM_PART_SYSTEM_DDR)) {
+		err |= app_test_slab(slab_sys_ddr, 4, MEM_PART_SYSTEM_DDR, alignment);
+		if (err) {
+			fsl_os_print("ERROR = %d: app_test_slab(slab_sys_ddr, 4)\n", err);
+		}
 	}
-
-	err |= app_test_slab(slab_sys_ddr, 4, MEM_PART_SYSTEM_DDR, alignment);
-	if (err) {
-		fsl_os_print("ERROR = %d: app_test_slab(slab_sys_ddr, 4)\n", err);
+	
+	err = 0;
+	if(fsl_mem_exists(MEM_PART_DP_DDR)) {
+		err |= slab_free(&slab_dp_ddr);
 	}
-
-	err = slab_free(&slab_dp_ddr);
-	err |= slab_free(&slab_peb);
-	err |= slab_free(&slab_sys_ddr);
+	
+	if(fsl_mem_exists(MEM_PART_PEB)) {
+		err |= slab_free(&slab_peb);
+	}
+	
+	if(fsl_mem_exists(MEM_PART_SYSTEM_DDR)) {
+		err |= slab_free(&slab_sys_ddr);
+	}
 
 	if(err)
 	{
