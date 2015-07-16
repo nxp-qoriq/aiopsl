@@ -30,6 +30,11 @@
 @Description   This file contains the AIOP SL user defined setup.
 *//***************************************************************************/
 
+#ifndef __APPS_H
+#define __APPS_H
+
+#include "apps_arch.h"
+
 /**************************************************************************//**
 @Group		app_init	General
 
@@ -53,9 +58,9 @@
 		All the sizes should be aligned to a power of 2.
 @{
 *//***************************************************************************/
-#define APP_MEM_DP_DDR_SIZE	(128 * MEGABYTE)/**< DP DDR size */ 
+#define APP_MEM_DP_DDR_SIZE	ARCH_DP_DDR_SIZE/**< DP DDR size */
 #define APP_MEM_PEB_SIZE	(512 * KILOBYTE)/**< PEB size */
-#define APP_MEM_SYS_DDR1_SIZE	(4 * MEGABYTE)/**< System DDR size */
+#define APP_MEM_SYS_DDR1_SIZE	ARCH_SYS_DDR_SIZE/**< System DDR size */
 
 /** @} */ /* end of app_mem */
 
@@ -67,7 +72,8 @@
 *//***************************************************************************/
 
 #define APP_CTLU_SYS_DDR_NUM_ENTRIES	2048 /**< SYS DDR number of entries */
-#define APP_CTLU_DP_DDR_NUM_ENTRIES	2048 /**< DP DDR number of entries */
+#define APP_CTLU_DP_DDR_NUM_ENTRIES	ARCH_CTLU_DP_DDR_NUM_ENTRIES
+                                         /**< DP DDR number of entries */
 #define APP_CTLU_PEB_NUM_ENTRIES	2048 /**< PEB number of entries */
 
 /** @} */ /* end of app_ctlu */
@@ -80,7 +86,8 @@
 *//***************************************************************************/
 
 #define APP_MFLU_SYS_DDR_NUM_ENTRIES	2048 /**< SYS DDR number of entries */
-#define APP_MFLU_DP_DDR_NUM_ENTRIES	2048 /**< DP DDR number of entries */
+#define APP_MFLU_DP_DDR_NUM_ENTRIES	ARCH_MFLU_DP_DDR_NUM_ENTRIES
+                                        /**< DP DDR number of entries */
 #define APP_MFLU_PEB_NUM_ENTRIES	2048 /**< PEB number of entries */
 
 /** @} */ /* end of app_mflu */
@@ -106,6 +113,6 @@
 
 /** @} */ /* end of app_dpni */
 
-
+#endif /* __APPS_H */
 
 
