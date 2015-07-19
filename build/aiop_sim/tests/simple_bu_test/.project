@@ -99,77 +99,77 @@ aiop_sl		</project>
 		<link>
 			<name>src/README.txt</name>
 			<type>1</type>
-			<locationURI>PROJECT_LOC/src/README.txt</locationURI>
+			<locationURI>PARENT-4-PROJECT_LOC/tests/simple_bu_test/src/README.txt</locationURI>
 		</link>
 		<link>
 			<name>src/apps.c</name>
 			<type>1</type>
-			<locationURI>PROJECT_LOC/src/apps.c</locationURI>
+			<locationURI>PARENT-4-PROJECT_LOC/tests/simple_bu_test/src/apps.c</locationURI>
 		</link>
 		<link>
 			<name>src/apps.h</name>
 			<type>1</type>
-			<locationURI>PROJECT_LOC/src/apps.h</locationURI>
+			<locationURI>PARENT-4-PROJECT_LOC/tests/simple_bu_test/src/apps.h</locationURI>
 		</link>
 		<link>
 			<name>src/config.c</name>
 			<type>1</type>
-			<locationURI>PARENT-4-PROJECT_LOC/src/arch/ppc/platform/ls2085a_aiop/config.c</locationURI>
+			<locationURI>PARENT-4-PROJECT_LOC/src/arch/platform/ls2085a/config.c</locationURI>
 		</link>
 		<link>
 			<name>src/simple_bu_test.c</name>
 			<type>1</type>
-			<locationURI>PROJECT_LOC/src/simple_bu_test.c</locationURI>
+			<locationURI>PARENT-4-PROJECT_LOC/tests/simple_bu_test/src/simple_bu_test.c</locationURI>
 		</link>
 		<link>
 			<name>src/simple_bu_test.h</name>
 			<type>1</type>
-			<locationURI>PROJECT_LOC/src/simple_bu_test.h</locationURI>
+			<locationURI>PARENT-4-PROJECT_LOC/tests/simple_bu_test/src/simple_bu_test.h</locationURI>
 		</link>
 		<link>
 			<name>src/simple_bu_test_gal.c</name>
 			<type>1</type>
-			<locationURI>PROJECT_LOC/src/simple_bu_test_gal.c</locationURI>
+			<locationURI>PARENT-4-PROJECT_LOC/tests/simple_bu_test/src/simple_bu_test_gal.c</locationURI>
 		</link>
 		<link>
 			<name>src/simple_bu_test_hagit.c</name>
 			<type>1</type>
-			<locationURI>PROJECT_LOC/src/simple_bu_test_hagit.c</locationURI>
+			<locationURI>PARENT-4-PROJECT_LOC/tests/simple_bu_test/src/simple_bu_test_hagit.c</locationURI>
 		</link>
 		<link>
 			<name>src/simple_bu_test_ilan.c</name>
 			<type>1</type>
-			<locationURI>PROJECT_LOC/src/simple_bu_test_ilan.c</locationURI>
+			<locationURI>PARENT-4-PROJECT_LOC/tests/simple_bu_test/src/simple_bu_test_ilan.c</locationURI>
 		</link>
 		<link>
 			<name>src/simple_bu_test_ipf_ipr.c</name>
 			<type>1</type>
-			<locationURI>PROJECT_LOC/src/simple_bu_test_ipf_ipr.c</locationURI>
+			<locationURI>PARENT-4-PROJECT_LOC/tests/simple_bu_test/src/simple_bu_test_ipf_ipr.c</locationURI>
 		</link>
 		<link>
 			<name>src/simple_bu_test_ipsec.c</name>
 			<type>1</type>
-			<locationURI>PROJECT_LOC/src/simple_bu_test_ipsec.c</locationURI>
+			<locationURI>PARENT-4-PROJECT_LOC/tests/simple_bu_test/src/simple_bu_test_ipsec.c</locationURI>
 		</link>
 		<link>
 			<name>src/simple_bu_test_lpm.c</name>
 			<type>1</type>
-			<locationURI>PROJECT_LOC/src/simple_bu_test_lpm.c</locationURI>
+			<locationURI>PARENT-4-PROJECT_LOC/tests/simple_bu_test/src/simple_bu_test_lpm.c</locationURI>
 		</link>
 		<link>
 			<name>src/simple_bu_test_ohad.c</name>
 			<type>1</type>
-			<locationURI>PROJECT_LOC/src/simple_bu_test_ohad.c</locationURI>
+			<locationURI>PARENT-4-PROJECT_LOC/tests/simple_bu_test/src/simple_bu_test_ohad.c</locationURI>
 		</link>
 		<link>
 			<name>src/simple_bu_test_parser.c</name>
 			<type>1</type>
-			<locationURI>PROJECT_LOC/src/simple_bu_test_parser.c</locationURI>
+			<locationURI>PARENT-4-PROJECT_LOC/tests/simple_bu_test/src/simple_bu_test_parser.c</locationURI>
 		</link>
 		<link>
 			<name>src/simple_bu_test_yariv.c</name>
 			<type>1</type>
-			<locationURI>PROJECT_LOC/src/simple_bu_test_yariv.c</locationURI>
+			<locationURI>PARENT-4-PROJECT_LOC/tests/simple_bu_test/src/simple_bu_test_yariv.c</locationURI>
 		</link>
 	</linkedResources>
 </projectDescription>
