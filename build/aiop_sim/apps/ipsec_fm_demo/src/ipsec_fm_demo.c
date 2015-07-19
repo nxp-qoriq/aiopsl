@@ -449,6 +449,7 @@ int ipsec_app_init(uint16_t ni_id)
 	uint32_t reuse_buffer_mode = 0;
 	uint32_t set_dscp = 0;
 	uint16_t esn_enable = 0;
+	uint16_t transport_ipvsn = 0;
 
 	enum key_types {
 		NULL_MD5 = 0,
@@ -476,8 +477,8 @@ int ipsec_app_init(uint16_t ni_id)
 	auth_key_id = 0; /* Keep the initial key array value */
 	//auth_key_id = 1; /* Overwrite the initial key array value */
 
-	tunnel_transport_mode = IPSEC_FLG_TUNNEL_MODE; /* Tunnel Mode */
-	//tunnel_transport_mode = 0; /* Transport Mode */
+	//tunnel_transport_mode = IPSEC_FLG_TUNNEL_MODE; /* Tunnel Mode */
+	tunnel_transport_mode = 0; /* Transport Mode */
 
 	/* DSCP setting, valid only for tunnel mode */
 	if (tunnel_transport_mode) {
@@ -491,7 +492,9 @@ int ipsec_app_init(uint16_t ni_id)
 	reuse_buffer_mode = 0; /* New Buffer Mode */
 	//reuse_buffer_mode = IPSEC_FLG_BUFFER_REUSE; /* Reuse mode */
 
-
+	//transport_ipvsn = IPSEC_OPTS_ESP_IPVSN; /* IPv6 */
+	transport_ipvsn = 0; /* IPv4 */
+	
 	/**********************************************************/
 
 	ipsec_instance_handle_t ws_instance_handle = 0;
@@ -707,6 +710,10 @@ int ipsec_app_init(uint16_t ni_id)
 		params.encparams.ip_hdr_len = 0x1c; /* outer header length is 28 bytes */
 	}
 
+	if (tunnel_transport_mode == 0) { /* Transport Mode */
+		params.encparams.ip_hdr_len = 0;
+	}
+	
 	/* Outbound (encryption) parameters */
 	params.direction = IPSEC_DIRECTION_OUTBOUND; /**< Descriptor direction */
 
@@ -724,7 +731,7 @@ int ipsec_app_init(uint16_t ni_id)
 		fsl_os_print("IPSEC: Tunnel Mode UDP Encapsulation\n");
 	}
 
-	params.encparams.options = esn_enable;
+	params.encparams.options = esn_enable | transport_ipvsn;
 
 	params.encparams.seq_num_ext_hi = 0x0;
 	params.encparams.seq_num = 0x0;
@@ -790,7 +797,7 @@ int ipsec_app_init(uint16_t ni_id)
 	//params.decparams.options = 0x0;
 	//params.decparams.options = IPSEC_DEC_OPTS_ARS32; /* Anti Replay 32 bit enabled */
 	//params.decparams.options = IPSEC_OPTS_ESP_ESN;
-	params.decparams.options = esn_enable;
+	params.decparams.options = esn_enable | transport_ipvsn;
 
 	params.decparams.seq_num_ext_hi = 0x0;
 	params.decparams.seq_num = 0x0;
