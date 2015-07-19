@@ -475,9 +475,14 @@
 			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/accel/table.h</locationURI>
 		</link>
 		<link>
-			<name>aiop_sl/drivers/accel/table_inline.h</name>
+			<name>aiop_sl/drivers/accel/table_lookup_inline.h</name>
 			<type>1</type>
-			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/accel/table_inline.h</locationURI>
+			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/accel/table_lookup_inline.h</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/drivers/accel/table_rule_inline.h</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/accel/table_rule_inline.h</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/drivers/accel/tman.c</name>
