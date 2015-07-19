@@ -25,7 +25,7 @@
  */
 
 
-#include "include/fsl_core_booke_regs.h"
+#include "fsl_core_booke_regs.h"
 #include "booke.h"
 
 

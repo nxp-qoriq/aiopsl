@@ -125,12 +125,12 @@
 			<locationURI>PARENT-1-PROJECT_LOC/cw_files/start_secondary.S</locationURI>
 		</link>
 		<link>
-			<name>aiop_sl/arch/platform</name>
+			<name>aiop_sl/arch/core</name>
 			<type>2</type>
 			<locationURI>virtual:/virtual</locationURI>
 		</link>
 		<link>
-			<name>aiop_sl/arch/ppc</name>
+			<name>aiop_sl/arch/platform</name>
 			<type>2</type>
 			<locationURI>virtual:/virtual</locationURI>
 		</link>
@@ -310,14 +310,14 @@
 			<locationURI>virtual:/virtual</locationURI>
 		</link>
 		<link>
-			<name>aiop_sl/arch/platform/fsl_platform.h</name>
-			<type>1</type>
-			<locationURI>PARENT-3-PROJECT_LOC/src/arch/platform/fsl_platform.h</locationURI>
+			<name>aiop_sl/arch/core/ppc</name>
+			<type>2</type>
+			<locationURI>virtual:/virtual</locationURI>
 		</link>
 		<link>
-			<name>aiop_sl/arch/platform/fsl_soc.h</name>
-			<type>1</type>
-			<locationURI>PARENT-3-PROJECT_LOC/src/arch/platform/fsl_soc.h</locationURI>
+			<name>aiop_sl/arch/platform/include</name>
+			<type>2</type>
+			<locationURI>virtual:/virtual</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/arch/platform/init.c</name>
@@ -333,36 +333,6 @@
 			<name>aiop_sl/arch/platform/platform.c</name>
 			<type>1</type>
 			<locationURI>PARENT-3-PROJECT_LOC/src/arch/platform/platform.c</locationURI>
-		</link>
-		<link>
-			<name>aiop_sl/arch/ppc/booke.S</name>
-			<type>1</type>
-			<locationURI>PARENT-3-PROJECT_LOC/src/arch/ppc/booke.S</locationURI>
-		</link>
-		<link>
-			<name>aiop_sl/arch/ppc/booke.c</name>
-			<type>1</type>
-			<locationURI>PARENT-3-PROJECT_LOC/src/arch/ppc/booke.c</locationURI>
-		</link>
-		<link>
-			<name>aiop_sl/arch/ppc/booke.h</name>
-			<type>1</type>
-			<locationURI>PARENT-3-PROJECT_LOC/src/arch/ppc/booke.h</locationURI>
-		</link>
-		<link>
-			<name>aiop_sl/arch/ppc/booke_irq.S</name>
-			<type>1</type>
-			<locationURI>PARENT-3-PROJECT_LOC/src/arch/ppc/booke_irq.S</locationURI>
-		</link>
-		<link>
-			<name>aiop_sl/arch/ppc/booke_irq.c</name>
-			<type>1</type>
-			<locationURI>PARENT-3-PROJECT_LOC/src/arch/ppc/booke_irq.c</locationURI>
-		</link>
-		<link>
-			<name>aiop_sl/arch/ppc/include</name>
-			<type>2</type>
-			<locationURI>virtual:/virtual</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/drivers/accel/cdma.c</name>
@@ -1265,34 +1235,49 @@
 			<locationURI>PARENT-3-PROJECT_LOC/src/lib/util/memcpy.c</locationURI>
 		</link>
 		<link>
+			<name>aiop_sl/arch/core/ppc/booke.S</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/arch/core/ppc/booke.S</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/arch/core/ppc/booke.c</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/arch/core/ppc/booke.c</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/arch/core/ppc/booke.h</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/arch/core/ppc/booke.h</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/arch/core/ppc/booke_irq.S</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/arch/core/ppc/booke_irq.S</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/arch/core/ppc/booke_irq.c</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/arch/core/ppc/booke_irq.c</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/arch/core/ppc/include</name>
+			<type>2</type>
+			<locationURI>virtual:/virtual</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/arch/platform/include/fsl_platform.h</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/arch/platform/include/fsl_platform.h</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/arch/platform/include/fsl_soc.h</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/arch/platform/include/fsl_soc.h</locationURI>
+		</link>
+		<link>
 			<name>aiop_sl/arch/platform/ls2085a/fsl_soc_arch.h</name>
 			<type>1</type>
 			<locationURI>PARENT-3-PROJECT_LOC/src/arch/platform/ls2085a/fsl_soc_arch.h</locationURI>
-		</link>
-		<link>
-			<name>aiop_sl/arch/ppc/include/fsl_core_booke.h</name>
-			<type>1</type>
-			<locationURI>PARENT-3-PROJECT_LOC/src/arch/ppc/include/fsl_core_booke.h</locationURI>
-		</link>
-		<link>
-			<name>aiop_sl/arch/ppc/include/fsl_core_booke_regs.h</name>
-			<type>1</type>
-			<locationURI>PARENT-3-PROJECT_LOC/src/arch/ppc/include/fsl_core_booke_regs.h</locationURI>
-		</link>
-		<link>
-			<name>aiop_sl/arch/ppc/include/fsl_core_ppc.h</name>
-			<type>1</type>
-			<locationURI>PARENT-3-PROJECT_LOC/src/arch/ppc/include/fsl_core_ppc.h</locationURI>
-		</link>
-		<link>
-			<name>aiop_sl/arch/ppc/include/fsl_inline_asm.h</name>
-			<type>1</type>
-			<locationURI>PARENT-3-PROJECT_LOC/src/arch/ppc/include/fsl_inline_asm.h</locationURI>
-		</link>
-		<link>
-			<name>aiop_sl/arch/ppc/include/fsl_swab.h</name>
-			<type>1</type>
-			<locationURI>PARENT-3-PROJECT_LOC/src/arch/ppc/include/fsl_swab.h</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/drivers/accel/table/01_01</name>
@@ -1723,6 +1708,31 @@
 			<name>aiop_sl/kernel/mem_mng/no_dp_ddr/apps.h</name>
 			<type>1</type>
 			<locationURI>PARENT-3-PROJECT_LOC/src/kernel/mem_mng/no_dp_ddr/apps.h</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/arch/core/ppc/include/fsl_core_booke.h</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/arch/core/ppc/include/fsl_core_booke.h</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/arch/core/ppc/include/fsl_core_booke_regs.h</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/arch/core/ppc/include/fsl_core_booke_regs.h</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/arch/core/ppc/include/fsl_core_ppc.h</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/arch/core/ppc/include/fsl_core_ppc.h</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/arch/core/ppc/include/fsl_inline_asm.h</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/arch/core/ppc/include/fsl_inline_asm.h</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/arch/core/ppc/include/fsl_swab.h</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/arch/core/ppc/include/fsl_swab.h</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/drivers/accel/table/01_01/table.c</name>
