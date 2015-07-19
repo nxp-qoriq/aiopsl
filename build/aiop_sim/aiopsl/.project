@@ -465,24 +465,9 @@
 			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/accel/system.h</locationURI>
 		</link>
 		<link>
-			<name>aiop_sl/drivers/accel/table.c</name>
-			<type>1</type>
-			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/accel/table.c</locationURI>
-		</link>
-		<link>
-			<name>aiop_sl/drivers/accel/table.h</name>
-			<type>1</type>
-			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/accel/table.h</locationURI>
-		</link>
-		<link>
-			<name>aiop_sl/drivers/accel/table_lookup_inline.h</name>
-			<type>1</type>
-			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/accel/table_lookup_inline.h</locationURI>
-		</link>
-		<link>
-			<name>aiop_sl/drivers/accel/table_rule_inline.h</name>
-			<type>1</type>
-			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/accel/table_rule_inline.h</locationURI>
+			<name>aiop_sl/drivers/accel/table</name>
+			<type>2</type>
+			<locationURI>virtual:/virtual</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/drivers/accel/tman.c</name>
@@ -1310,6 +1295,21 @@
 			<locationURI>PARENT-3-PROJECT_LOC/src/arch/ppc/include/fsl_swab.h</locationURI>
 		</link>
 		<link>
+			<name>aiop_sl/drivers/accel/table/01_01</name>
+			<type>2</type>
+			<locationURI>virtual:/virtual</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/drivers/accel/table/table.h</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/accel/table/table.h</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/drivers/accel/table/table_lookup_inline.h</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/accel/table/table_lookup_inline.h</locationURI>
+		</link>
+		<link>
 			<name>aiop_sl/drivers/dplib/dpbp/dpbp.c</name>
 			<type>1</type>
 			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/dplib/dpbp/dpbp.c</locationURI>
@@ -1723,6 +1723,16 @@
 			<name>aiop_sl/kernel/mem_mng/no_dp_ddr/apps.h</name>
 			<type>1</type>
 			<locationURI>PARENT-3-PROJECT_LOC/src/kernel/mem_mng/no_dp_ddr/apps.h</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/drivers/accel/table/01_01/table.c</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/accel/table/01_01/table.c</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/drivers/accel/table/01_01/table_rule_inline.h</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/accel/table/01_01/table_rule_inline.h</locationURI>
 		</link>
 	</linkedResources>
 </projectDescription>
