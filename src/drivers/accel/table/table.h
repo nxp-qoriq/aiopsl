@@ -37,7 +37,6 @@
 #define __TABLE_H
 
 #include "general.h"
-#include "fsl_table.h"
 
 /**************************************************************************//**
 @Group	TABLE Table (Internal)
@@ -914,6 +913,71 @@ int table_hw_accel_acquire_lock(enum table_hw_accel_id acc_id);
 *//***************************************************************************/
 void table_hw_accel_release_lock(enum table_hw_accel_id acc_id);
 
+
+/**************************************************************************//**
+@Function	table_inline_exception_handler
+
+@Description	Wrapper for the handler of the error status returned from the
+		Table API functions.
+		This wrapper adds the file path in which the error occurred. It
+		should be implemented inside a special compiler pragma which
+		tells the compiler to store data (e.g. strings) in a dedicated
+		location, so there will be good memory usage.
+		This wrapper eases the process of relocation functions if
+		needed (they can call another wrapper instead (i.e. wrapper is
+		per file but the exception handling function of table API is
+		located in one place and should not be changed over time.
+
+@Param[in]	func_id The function in which the error occurred.
+@Param[in]	line The line in which the error occurred.
+@Param[in]	status Status to be handled in this function.
+@Param[in]	entity Distinguishes between entities that initiate the
+		exception request.
+
+@Return		None.
+
+@Cautions	This is a non return function.
+*//***************************************************************************/
+inline void table_rule_inline_exception_handler(
+				 enum table_function_identifier func_id,
+				 uint32_t line,
+				 int32_t status,
+				 enum table_entity entity)
+					__attribute__ ((noreturn));
+
+
+/**************************************************************************//**
+@Function	table_lookup_inline_exception_handler
+
+@Description	Wrapper for the handler of the error status returned from the
+		Table API functions.
+		This wrapper adds the file path in which the error occurred. It
+		should be implemented inside a special compiler pragma which
+		tells the compiler to store data (e.g. strings) in a dedicated
+		location, so there will be good memory usage.
+		This wrapper eases the process of relocation functions if
+		needed (they can call another wrapper instead (i.e. wrapper is
+		per file but the exception handling function of table API is
+		located in one place and should not be changed over time.
+
+@Param[in]	func_id The function in which the error occurred.
+@Param[in]	line The line in which the error occurred.
+@Param[in]	status Status to be handled in this function.
+@Param[in]	entity Distinguishes between entities that initiate the
+		exception request.
+
+@Return		None.
+
+@Cautions	This is a non return function.
+*//***************************************************************************/
+inline void table_lookup_inline_exception_handler(
+				 enum table_function_identifier func_id,
+				 uint32_t line,
+				 int32_t status,
+				 enum table_entity entity)
+					__attribute__ ((noreturn));
+
+
 /**************************************************************************//**
 @Function	table_c_exception_handler
 
@@ -944,36 +1008,6 @@ void table_c_exception_handler(enum table_function_identifier func_id,
 			       enum table_entity entity)
 					__attribute__ ((noreturn));
 
-/**************************************************************************//**
-@Function	table_inline_exception_handler
-
-@Description	Wrapper for the handler of the error status returned from the
-		Table API functions.
-		This wrapper adds the file path in which the error occurred. It
-		should be implemented inside a special compiler pragma which
-		tells the compiler to store data (e.g. strings) in a dedicated
-		location, so there will be good memory usage.
-		This wrapper eases the process of relocation functions if
-		needed (they can call another wrapper instead (i.e. wrapper is
-		per file but the exception handling function of table API is
-		located in one place and should not be changed over time.
-
-@Param[in]	func_id The function in which the error occurred.
-@Param[in]	line The line in which the error occurred.
-@Param[in]	status Status to be handled in this function.
-@Param[in]	entity Distinguishes between entities that initiate the
-		exception request.
-
-@Return		None.
-
-@Cautions	This is a non return function.
-*//***************************************************************************/
-inline void table_inline_exception_handler(
-				 enum table_function_identifier func_id,
-				 uint32_t line,
-				 int32_t status,
-				 enum table_entity entity)
-					__attribute__ ((noreturn));
 
 /**************************************************************************//**
 @Function	table_exception_handler

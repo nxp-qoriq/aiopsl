@@ -51,7 +51,6 @@
 
 /* For wrapper functions */
 #include "cdma.h"
-#include "table.h"
 #include "tman.h"
 
 #ifdef AIOP_VERIF
