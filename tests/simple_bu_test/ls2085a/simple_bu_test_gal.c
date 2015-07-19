@@ -28,16 +28,15 @@
 #include "common/fsl_stdio.h"
 #include "fsl_dpni_drv.h"
 #include "fsl_ip.h"
-#include "platform.h"
 #include "fsl_io.h"
 #include "fsl_parser.h"
 #include "general.h"
 #include "fsl_dbg.h"
 /*#include "fsl_cmdif_server.h"*/
-#include "dplib/fsl_cdma.h"
-#include "dplib/fsl_fdma.h"
-#include "dplib/fsl_ip.h"
-#include "dplib/fsl_l4.h"
+#include "fsl_cdma.h"
+#include "fsl_fdma.h"
+#include "fsl_ip.h"
+#include "fsl_l4.h"
 #include "fsl_malloc.h"
 #include "fsl_tman.h"
 #include "fsl_slab.h"
@@ -52,7 +51,7 @@
 #include "simple_bu_test.h"
 #include "fsl_io_ccsr.h"
 //#include "tman.h"
-#include "aiop_common.h"
+#include "fsl_aiop_common.h"
 
 
 int test_fdma();
