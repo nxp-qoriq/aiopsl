@@ -1280,19 +1280,24 @@
 			<locationURI>PARENT-4-PROJECT_LOC/src/drivers/accel/fdma/02_01/fdma_inline.h</locationURI>
 		</link>
 		<link>
-			<name>aiop_sl/drivers/accel/table/02_01</name>
-			<type>2</type>
-			<locationURI>virtual:/virtual</locationURI>
+			<name>aiop_sl/drivers/accel/table/table.c</name>
+			<type>1</type>
+			<locationURI>PARENT-4-PROJECT_LOC/src/drivers/accel/table/02_01/table.c</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/drivers/accel/table/table.h</name>
 			<type>1</type>
-			<locationURI>PARENT-4-PROJECT_LOC/src/drivers/accel/table/table.h</locationURI>
+			<locationURI>PARENT-4-PROJECT_LOC/src/drivers/accel/table/02_01/table.h</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/drivers/accel/table/table_lookup_inline.h</name>
 			<type>1</type>
-			<locationURI>PARENT-4-PROJECT_LOC/src/drivers/accel/table/table_lookup_inline.h</locationURI>
+			<locationURI>PARENT-4-PROJECT_LOC/src/drivers/accel/table/02_01/table_lookup_inline.h</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/drivers/accel/table/table_rule_inline.h</name>
+			<type>1</type>
+			<locationURI>PARENT-4-PROJECT_LOC/src/drivers/accel/table/02_01/table_rule_inline.h</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/drivers/dplib/dpbp/dpbp.c</name>
@@ -1728,16 +1733,6 @@
 			<name>aiop_sl/arch/core/ppc/include/fsl_swab.h</name>
 			<type>1</type>
 			<locationURI>PARENT-4-PROJECT_LOC/src/arch/core/ppc/include/fsl_swab.h</locationURI>
-		</link>
-		<link>
-			<name>aiop_sl/drivers/accel/table/02_01/table.c</name>
-			<type>1</type>
-			<locationURI>PARENT-4-PROJECT_LOC/src/drivers/accel/table/02_01/table.c</locationURI>
-		</link>
-		<link>
-			<name>aiop_sl/drivers/accel/table/02_01/table_rule_inline.h</name>
-			<type>1</type>
-			<locationURI>PARENT-4-PROJECT_LOC/src/drivers/accel/table/02_01/table_rule_inline.h</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/drivers/netf/general/frame_operations/frame_operations.c</name>
