@@ -146,8 +146,6 @@ void stack_estimation(void)
 	dpni_drv_get_spid_ddr(ni, &spid);
 	/*This function supported in boot mode only*/
 	/*dpni_drv_set_order_scope(ni, &key_cfg);*/
-	dpni_drv_get_connected_dpni_id(ni, &dpni_id, &state);
-	dpni_drv_get_connected_aiop_ni_id(ni, &dpni_id, &state);
 	dpni_drv_get_rx_buffer_layout(ni, &layout);
 	dpni_drv_set_rx_buffer_layout(ni, &layout);
 	dpni_drv_get_counter(ni, DPNI_DRV_CNT_ING_FRAME ,&ctr_value);
