@@ -421,7 +421,7 @@ int keygen_kcr_builder_add_generic_extract_fec(uint8_t offset,
 	return 0;
 }
 
-#ifdef REV2
+#if 0
 int keygen_kcr_builder_add_lookup_result_field_fec(
 	enum kcr_builder_ext_lookup_res_field extract_field,
 	uint8_t offset_in_opaque, uint8_t extract_size_in_opaque,
@@ -520,7 +520,7 @@ int keygen_kcr_builder_add_lookup_result_field_fec(
 
 	return 0;
 }
-#endif /*REV2*/
+#endif
 
 
 int keygen_kcr_builder_add_valid_field_fec(uint8_t mask,
