@@ -234,15 +234,6 @@
 	/** Table Release Semaphore */
 #define TABLE_RELEASE_SEMAPHORE_MTYPE				0x00B1
 
-#ifdef REV2_RULEID
-	//** Table Rule Replace by Rule ID */
-#define	TABLE_GET_NEXT_RULEID_MTYPE				0x004F
-#define TABLE_GET_KEY_DESC_MTYPE				0x005F
-#define TABLE_RULE_REPLACE_BY_RULEID_MTYPE			0x0075
-#define	TABLE_RULE_DELETE_BY_RULEID_MTYPE			0x0071
-#define TABLE_RULE_QUERY_BY_RULEID_MTYPE			0x0073
-#endif
-
 /** @} */ /* end of TABLE_MTYPE */
 
 /**************************************************************************//**
@@ -322,12 +313,6 @@
  * or #TABLE_HW_STATUS_BIT_KSE are set.*/
 #define TABLE_HW_STATUS_BIT_EOFH	0x00000200
 
-/** Maximum Number Of Chained Lookups Is Reached.
- * This bit is set if the number of table lookups performed by the CTLU
- * reached the threshold. Not supported in Rev1 
- * This bit is N/A if #TABLE_HW_STATUS_BIT_TIDE, #TABLE_HW_STATUS_BIT_NORSC,
- * #TABLE_HW_STATUS_BIT_KSE or #TABLE_HW_STATUS_BIT_EOFH are set.*/
-#define TABLE_HW_STATUS_BIT_MNLE	0x00000100
 
 /** Policer Initialization Entry Error.
  * Might be used in CTLU/MFLU to indicate other stuff.
@@ -371,7 +356,6 @@
 @Group	TABLE_TKT226361 Defines for TABLE_TKT226361 WA
 @{
 *//***************************************************************************/
-/* TODO remove section for non Rev1 */
 
 /** Number of rules to be created in each table */
 #define TABLE_TKT226361_RULES_NUM	2
@@ -408,13 +392,6 @@ enum table_function_identifier {
 	TABLE_RULE_REPLACE_FUNC_ID,
 	TABLE_RULE_QUERY_FUNC_ID,
 	TABLE_RULE_DELETE_FUNC_ID,
-#ifdef REV2_RULEID
-	TABLE_GET_NEXT_RULEID_FUNC_ID,
-	TABLE_GET_KEY_DESC_FUNC_ID,
-	TABLE_RULE_REPLACE_BY_RULEID_FUNC_ID,
-	TABLE_RULE_DELETE_BY_RULEID_FUNC_ID,
-	TABLE_RULE_QUERY_BY_RULEID_FUNC_ID,
-#endif
 	TABLE_LOOKUP_BY_KEY_FUNC_ID,
 	TABLE_LOOKUP_BY_KEYID_DEFAULT_FRAME_FUNC_ID,
 	TABLE_LOOKUP_BY_KEYID_FUNC_ID,
@@ -883,36 +860,6 @@ int table_query_debug(enum table_hw_accel_id acc_id,
 		      uint16_t table_id,
 		      struct table_params_query_output_message *output);
 
-/**************************************************************************//**
-@Function	table_hw_accel_acquire_lock
-
-@Description	Tries to acquire the binary lock of the given table hardware
-		accelerator.
-
-@Param[in]	acc_id Table Accelerator ID.
-
-@Return		If the lock is already in use \ref CTLU_STATUS_MISS or
-		\ref MFLU_STATUS_MISS are set.
-
-@Cautions	This function performs a task switch.
-*//***************************************************************************/
-int table_hw_accel_acquire_lock(enum table_hw_accel_id acc_id);
-
-
-/**************************************************************************//**
-@Function	table_hw_accel_release_lock
-
-@Description	Releases the binary lock of the given table hardware
-		accelerator.
-
-@Param[in]	acc_id Table Accelerator ID.
-
-@Return		None.
-
-@Cautions	This function performs a task switch.
-*//***************************************************************************/
-void table_hw_accel_release_lock(enum table_hw_accel_id acc_id);
-
 
 /**************************************************************************//**
 @Function	table_inline_exception_handler
@@ -1148,12 +1095,7 @@ int table_lookup_by_keyid_default_frame_wrp(
 int table_rule_create_wrp(enum table_hw_accel_id acc_id,
 		      uint16_t table_id,
 		      struct table_rule *rule,
-#ifdef REV2_RULEID
-		      uint8_t key_size,
-		      uint64_t *rule_id);
-#else
 			  uint8_t key_size);
-#endif
 
 /**************************************************************************//**
 @Function	table_rule_delete_wrp
