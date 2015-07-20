@@ -642,17 +642,17 @@
 		<link>
 			<name>aiop_sl/drivers/snic/fsl_snic_cmd.h</name>
 			<type>1</type>
-			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/snic/fsl_snic_cmd.h</locationURI>
+			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/snic/00_01/fsl_snic_cmd.h</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/drivers/snic/snic.c</name>
 			<type>1</type>
-			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/snic/snic.c</locationURI>
+			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/snic/00_01/snic.c</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/drivers/snic/snic.h</name>
 			<type>1</type>
-			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/snic/snic.h</locationURI>
+			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/snic/00_01/snic.h</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/include/common/fsl_stdarg.h</name>
