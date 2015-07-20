@@ -160,7 +160,6 @@
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../src/drivers/&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../src/drivers/accel&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../src/drivers/accel/fdma/01_01&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../src/drivers/accel/table&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../src/drivers/accel/table/01_01&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../src/drivers/dplib/dpni&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../src/drivers/dplib/dprc&quot;"/>
