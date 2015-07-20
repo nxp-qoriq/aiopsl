@@ -22,7 +22,7 @@
 				</dictionary>
 				<dictionary>
 					<key>org.eclipse.cdt.make.core.buildArguments</key>
-					<value></value>
+					<value>-j8</value>
 				</dictionary>
 				<dictionary>
 					<key>org.eclipse.cdt.make.core.buildCommand</key>
@@ -1622,7 +1622,7 @@
 		<link>
 			<name>aiop_sl/include/drivers/accel/fsl_table.h</name>
 			<type>1</type>
-			<locationURI>PARENT-4-PROJECT_LOC/src/include/drivers/accel/fsl_table.h</locationURI>
+			<locationURI>PARENT-4-PROJECT_LOC/src/include/drivers/accel/table/02_01/fsl_table.h</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/include/drivers/accel/fsl_tman.h</name>

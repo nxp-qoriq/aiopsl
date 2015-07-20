@@ -1627,7 +1627,7 @@
 		<link>
 			<name>aiop_sl/include/drivers/accel/fsl_table.h</name>
 			<type>1</type>
-			<locationURI>PARENT-3-PROJECT_LOC/src/include/drivers/accel/fsl_table.h</locationURI>
+			<locationURI>PARENT-3-PROJECT_LOC/src/include/drivers/accel/table/01_01/fsl_table.h</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/include/drivers/accel/fsl_tman.h</name>
