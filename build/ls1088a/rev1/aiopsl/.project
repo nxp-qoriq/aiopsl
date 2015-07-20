@@ -22,7 +22,7 @@
 				</dictionary>
 				<dictionary>
 					<key>org.eclipse.cdt.make.core.buildArguments</key>
-					<value>-j8</value>
+					<value></value>
 				</dictionary>
 				<dictionary>
 					<key>org.eclipse.cdt.make.core.buildCommand</key>
@@ -350,19 +350,9 @@
 			<locationURI>PARENT-4-PROJECT_LOC/src/drivers/accel/cdma_inline.h</locationURI>
 		</link>
 		<link>
-			<name>aiop_sl/drivers/accel/fdma.c</name>
-			<type>1</type>
-			<locationURI>PARENT-4-PROJECT_LOC/src/drivers/accel/fdma.c</locationURI>
-		</link>
-		<link>
-			<name>aiop_sl/drivers/accel/fdma.h</name>
-			<type>1</type>
-			<locationURI>PARENT-4-PROJECT_LOC/src/drivers/accel/fdma.h</locationURI>
-		</link>
-		<link>
-			<name>aiop_sl/drivers/accel/fdma_inline.h</name>
-			<type>1</type>
-			<locationURI>PARENT-4-PROJECT_LOC/src/drivers/accel/fdma_inline.h</locationURI>
+			<name>aiop_sl/drivers/accel/fdma</name>
+			<type>2</type>
+			<locationURI>virtual:/virtual</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/drivers/accel/keygen.c</name>
@@ -1275,6 +1265,11 @@
 			<locationURI>PARENT-4-PROJECT_LOC/src/arch/platform/ls1088a/fsl_soc_arch.h</locationURI>
 		</link>
 		<link>
+			<name>aiop_sl/drivers/accel/fdma/02_01</name>
+			<type>2</type>
+			<locationURI>virtual:/virtual</locationURI>
+		</link>
+		<link>
 			<name>aiop_sl/drivers/accel/table/02_01</name>
 			<type>2</type>
 			<locationURI>virtual:/virtual</locationURI>
@@ -1355,9 +1350,9 @@
 			<locationURI>PARENT-4-PROJECT_LOC/src/drivers/dplib/dprc/dprc_drv.c</locationURI>
 		</link>
 		<link>
-			<name>aiop_sl/drivers/netf/general/frame_operations.c</name>
-			<type>1</type>
-			<locationURI>PARENT-4-PROJECT_LOC/src/drivers/netf/general/frame_operations.c</locationURI>
+			<name>aiop_sl/drivers/netf/general/frame_operations</name>
+			<type>2</type>
+			<locationURI>virtual:/virtual</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/drivers/netf/include/net.h</name>
@@ -1410,14 +1405,9 @@
 			<locationURI>PARENT-4-PROJECT_LOC/src/drivers/netf/l2/l2.c</locationURI>
 		</link>
 		<link>
-			<name>aiop_sl/drivers/netf/l4/gro.c</name>
-			<type>1</type>
-			<locationURI>PARENT-4-PROJECT_LOC/src/drivers/netf/l4/gro.c</locationURI>
-		</link>
-		<link>
-			<name>aiop_sl/drivers/netf/l4/gro.h</name>
-			<type>1</type>
-			<locationURI>PARENT-4-PROJECT_LOC/src/drivers/netf/l4/gro.h</locationURI>
+			<name>aiop_sl/drivers/netf/l4/gro</name>
+			<type>2</type>
+			<locationURI>virtual:/virtual</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/drivers/netf/l4/gso.c</name>
@@ -1592,7 +1582,7 @@
 		<link>
 			<name>aiop_sl/include/drivers/accel/fsl_fdma.h</name>
 			<type>1</type>
-			<locationURI>PARENT-4-PROJECT_LOC/src/include/drivers/accel/fsl_fdma.h</locationURI>
+			<locationURI>PARENT-4-PROJECT_LOC/src/include/drivers/accel/fdma/02_01/fsl_fdma.h</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/include/drivers/accel/fsl_keygen.h</name>
@@ -1637,12 +1627,12 @@
 		<link>
 			<name>aiop_sl/include/drivers/netf/fsl_frame_operations.h</name>
 			<type>1</type>
-			<locationURI>PARENT-4-PROJECT_LOC/src/include/drivers/netf/fsl_frame_operations.h</locationURI>
+			<locationURI>PARENT-4-PROJECT_LOC/src/include/drivers/netf/general/frame_operations/01_01/fsl_frame_operations.h</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/include/drivers/netf/fsl_gro.h</name>
 			<type>1</type>
-			<locationURI>PARENT-4-PROJECT_LOC/src/include/drivers/netf/fsl_gro.h</locationURI>
+			<locationURI>PARENT-4-PROJECT_LOC/src/include/drivers/netf/gro/00_01/fsl_gro.h</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/include/drivers/netf/fsl_gso.h</name>
@@ -1730,6 +1720,21 @@
 			<locationURI>PARENT-4-PROJECT_LOC/src/arch/core/ppc/include/fsl_swab.h</locationURI>
 		</link>
 		<link>
+			<name>aiop_sl/drivers/accel/fdma/02_01/fdma.c</name>
+			<type>1</type>
+			<locationURI>PARENT-4-PROJECT_LOC/src/drivers/accel/fdma/02_01/fdma.c</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/drivers/accel/fdma/02_01/fdma.h</name>
+			<type>1</type>
+			<locationURI>PARENT-4-PROJECT_LOC/src/drivers/accel/fdma/02_01/fdma.h</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/drivers/accel/fdma/02_01/fdma_inline.h</name>
+			<type>1</type>
+			<locationURI>PARENT-4-PROJECT_LOC/src/drivers/accel/fdma/02_01/fdma_inline.h</locationURI>
+		</link>
+		<link>
 			<name>aiop_sl/drivers/accel/table/02_01/table.c</name>
 			<type>1</type>
 			<locationURI>PARENT-4-PROJECT_LOC/src/drivers/accel/table/02_01/table.c</locationURI>
@@ -1738,6 +1743,31 @@
 			<name>aiop_sl/drivers/accel/table/02_01/table_rule_inline.h</name>
 			<type>1</type>
 			<locationURI>PARENT-4-PROJECT_LOC/src/drivers/accel/table/02_01/table_rule_inline.h</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/drivers/netf/general/frame_operations/02_01</name>
+			<type>2</type>
+			<locationURI>virtual:/virtual</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/drivers/netf/l4/gro/00_02</name>
+			<type>2</type>
+			<locationURI>virtual:/virtual</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/drivers/netf/general/frame_operations/02_01/frame_operations.c</name>
+			<type>1</type>
+			<locationURI>PARENT-4-PROJECT_LOC/src/drivers/netf/general/frame_operations/02_01/frame_operations.c</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/drivers/netf/l4/gro/00_02/gro.c</name>
+			<type>1</type>
+			<locationURI>PARENT-4-PROJECT_LOC/src/drivers/netf/l4/gro/00_02/gro.c</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/drivers/netf/l4/gro/00_02/gro.h</name>
+			<type>1</type>
+			<locationURI>PARENT-4-PROJECT_LOC/src/drivers/netf/l4/gro/00_02/gro.h</locationURI>
 		</link>
 	</linkedResources>
 </projectDescription>
