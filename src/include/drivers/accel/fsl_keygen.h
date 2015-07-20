@@ -431,6 +431,12 @@ int keygen_kcr_builder_add_constant_fec(uint8_t constant, uint8_t num,
 @Retval		0 - Success
 @Retval		EINVAL - KCR exceeds maximum KCR size (64 bytes).
 *//***************************************************************************/
+int keygen_kcr_builder_add_input_value_fec(uint8_t offset,
+					   uint8_t extract_size,
+					   struct kcr_builder_fec_mask *mask,
+					   struct kcr_builder *kb);
+
+
 /**************************************************************************//**
 @Function	keygen_kcr_builder_add_protocol_specific_field
 
