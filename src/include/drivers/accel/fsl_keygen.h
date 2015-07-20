@@ -97,30 +97,6 @@ enum kcr_builder_gec_source {
 
 /** @} */ /* end of kcr_builder_gec_source */
 
-#ifdef REV2
-/**************************************************************************//**
-@enum	kcr_builder_ext_lookup_res_field (OBSOLETE)
-
-@Description	Key Composition Rule Builder Lookup Result Field Extract
-		Not available for Rev1.
-@{
-*//***************************************************************************/
-enum kcr_builder_ext_lookup_res_field {
-	/** Extract Opaque0 Field from Lookup Result */
-	KEYGEN_KCR_EXT_OPAQUE0 = 0x00,
-	/** Extract Opaque1 Field from Lookup Result */
-	KEYGEN_KCR_EXT_OPAQUE1 = 0x01,
-	/** Extract Opaque2 Field from Lookup Result */
-	KEYGEN_KCR_EXT_OPAQUE2 = 0x02,
-	/** Extract UniqueID Field from Lookup Result */
-	KEYGEN_KCR_EXT_UNIQUE_ID = 0x03,
-	/** Extract Timestamp Field from Lookup Result */
-	KEYGEN_KCR_EXT_TIMESTAMP = 0x04
-};
-/** @} */ /* end of kcr_builder_ext_lookup_res_field */
-#endif /*REV2*/
-
-
 /**************************************************************************//**
 @enum	kcr_builder_parse_result_offset
 
@@ -455,12 +431,6 @@ int keygen_kcr_builder_add_constant_fec(uint8_t constant, uint8_t num,
 @Retval		0 - Success
 @Retval		EINVAL - KCR exceeds maximum KCR size (64 bytes).
 *//***************************************************************************/
-int keygen_kcr_builder_add_input_value_fec(uint8_t offset,
-					uint8_t extract_size,
-					struct kcr_builder_fec_mask *mask,
-					struct kcr_builder *kb);
-
-
 /**************************************************************************//**
 @Function	keygen_kcr_builder_add_protocol_specific_field
 
@@ -565,40 +535,6 @@ int keygen_kcr_builder_add_generic_extract_fec(uint8_t offset,
 	uint8_t extract_size, enum kcr_builder_gec_source gec_source,
 	struct kcr_builder_fec_mask *mask, struct kcr_builder *kb);
 
-
-/**************************************************************************//**
-@Function	keygen_kcr_builder_add_lookup_result_field_fec (OBSOLETE)
-
-@Description	This function adds extracted lookup result field
-		Field Extract Command (FEC) for key composition rule (kcr).
-
-@Param[in]	extract_field - Please refer to
-		\ref kcr_builder_ext_lookup_res_field.
-@Param[in]	offset_in_opaque - Offset in Opaque0 or Opaque1 in lookup
-		result.
-@Param[in]	extract_size_in_opaque - size of extraction in case of Opaque0
-		or Opaque1. Please note that (offset + extract_size) must not
-		exceed 8.
-		In case of Opaque2 - 1 byte will be extracted.
-		In case of Unique ID or Timestamp - 4 bytes will be extracted.
-@Param[in]	mask - a structure of up to 4 bitwise masks from defined
-		offsets. If user is not interested in mask for this FEC,
-		this parameter should be NULL.
-@Param[in,out]	kb - kcr builder pointer (located in the workspace).
-
-@Return		0 on Success, or negative value on error.
-
-@Retval		0 - Success
-@Retval		EINVAL - KCR exceeds maximum KCR size (64 bytes).
-
-@Cautions	This function is not available for rev1.
-*//***************************************************************************/
-/*
-int keygen_kcr_builder_add_lookup_result_field_fec(
-	enum kcr_builder_ext_lookup_res_field extract_field,
-	uint8_t offset_in_opaque, uint8_t extract_size_in_opaque,
-	struct kcr_builder_fec_mask *mask, struct kcr_builder *kb);
-*/
 
 
 /**************************************************************************//**
