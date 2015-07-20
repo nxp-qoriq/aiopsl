@@ -189,7 +189,7 @@ int ipr_create_instance(struct ipr_params *ipr_params_ptr,
 		tbl_params.key_size = 11;
 		table_location = ipr_params_ptr->flags & 0x0C000000;
 		if (table_location == IPR_MODE_TABLE_LOCATION_INT)
-			table_location_attr = TABLE_ATTRIBUTE_LOCATION_INT;
+			table_location_attr = 0x0200;
 		else if (table_location == IPR_MODE_TABLE_LOCATION_PEB)
 			table_location_attr = TABLE_ATTRIBUTE_LOCATION_PEB;
 		else if (table_location == IPR_MODE_TABLE_LOCATION_EXT1)
@@ -220,7 +220,7 @@ int ipr_create_instance(struct ipr_params *ipr_params_ptr,
 		tbl_params.key_size = 36;
 		table_location = ipr_params_ptr->flags & 0x0C000000;
 		if (table_location == IPR_MODE_TABLE_LOCATION_INT)
-			table_location_attr = TABLE_ATTRIBUTE_LOCATION_INT;
+			table_location_attr = 0x0200;
 		else if (table_location == IPR_MODE_TABLE_LOCATION_PEB)
 			table_location_attr = TABLE_ATTRIBUTE_LOCATION_PEB;
 		else if (table_location == IPR_MODE_TABLE_LOCATION_EXT1)

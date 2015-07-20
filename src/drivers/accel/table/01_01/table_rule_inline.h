@@ -41,12 +41,7 @@
 inline int table_rule_create(enum table_hw_accel_id acc_id,
 			     uint16_t table_id,
 			     struct table_rule *rule,
-#ifdef REV2_RULEID
-			     uint8_t key_size,
-			     uint64_t *rule_id)
-#else
 			     uint8_t key_size)
-#endif
 {
 
 #ifdef CHECK_ALIGNMENT
@@ -65,14 +60,6 @@ inline int table_rule_create(enum table_hw_accel_id acc_id,
 	/* Clear byte in offset 2*/
 	*((uint8_t *)&(rule->result) + 2) = 0;
 
-	/* TODO - Rev2
-	if (rule->result.type == TABLE_RULE_RESULT_TYPE_CHAINING) {
-		rule->result.op_rptr_clp.chain_parameters.reserved1 = 0;
-		rule->result.op_rptr_clp.chain_parameters.reserved0 =
-			TABLE_TLUR_TKIDV_BIT_MASK;
-	}
-	*/
-
 	/* Prepare ACC context for CTLU accelerator call */
 	arg2 = __e_rlwimi(arg2, (uint32_t)rule, 16, 0, 15);
 	arg3 = __e_rlwimi(arg3, (uint32_t)key_size, 16, 0, 15);
@@ -88,9 +75,6 @@ inline int table_rule_create(enum table_hw_accel_id acc_id,
 		/* A rule with the same match description is not found in the
 		 * table. New rule is created. */
 		status = TABLE_STATUS_SUCCESS;
-#ifdef REV2_RULEID
-		*rule_id = aged_res.rule_id;
-#endif
 	}
 	else if (status == TABLE_HW_STATUS_SUCCESS)
 		/* A rule with the same match description (and not aged) is
@@ -145,14 +129,6 @@ inline int table_rule_replace(enum table_hw_accel_id acc_id,
 
 	/* Clear byte in offset 2*/
 	*((uint8_t *)&(rule->result) + 2) = 0;
-
-	/* TODO Rev2
-	if (rule->result.type == TABLE_RULE_RESULT_TYPE_CHAINING) {
-		rule->result.op_rptr_clp.chain_parameters.reserved1 = 0;
-		rule->result.op_rptr_clp.chain_parameters.reserved0 =
-			CTLU_TLUR_TKIDV_BIT_MASK;
-	}
-	*/
 
 	/* Prepare ACC context for CTLU accelerator call */
 	arg2 = __e_rlwimi(arg2, (uint32_t)rule, 16, 0, 15);
