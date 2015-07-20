@@ -81,7 +81,7 @@ extern struct aiop_cmgw_regs *time_cmgw_regs;
 __PROFILE_SRAM struct storage_profile storage_profile[SP_NUM_OF_STORAGE_PROFILES];
 
 /* Global Parameters for TKT226361 (MFLU) WA - TODO remove for non Rev1 */
-#include "table_inline.h"
+#include "fsl_table.h"
 #ifndef AIOP_VERIF
 extern struct aiop_init_info g_init_data;
 #endif

@@ -828,7 +828,6 @@ struct table_ruleid_and_result_desc {
 
 /** @} */ /* end of FSL_TABLE_STRUCTS */
 
-#include "table_inline.h"
 
 /**************************************************************************//**
 @Group		FSL_TABLE_Functions TABLE Functions
@@ -862,7 +861,7 @@ struct table_ruleid_and_result_desc {
 @Cautions	In this function the task yields.
 @Cautions	This function may result in a fatal error.
 *//***************************************************************************/
-inline int table_create(enum table_hw_accel_id acc_id,
+int table_create(enum table_hw_accel_id acc_id,
 		 struct table_create_params *tbl_params,
 		 uint16_t *table_id);
 
@@ -890,7 +889,7 @@ inline int table_create(enum table_hw_accel_id acc_id,
 @Cautions	In this function the task yields.
 @Cautions	This function may result in a fatal error.
 *//***************************************************************************/
-inline void table_replace_miss_result(enum table_hw_accel_id acc_id,
+void table_replace_miss_result(enum table_hw_accel_id acc_id,
 			       uint16_t table_id,
 			       struct table_result *new_miss_result,
 			       struct table_result *old_miss_result);
@@ -972,7 +971,7 @@ void table_get_miss_result(enum table_hw_accel_id acc_id,
 		the miss result pointer after the table delete operation.
 @Cautions	This function may result in a fatal error.
 *//***************************************************************************/
-inline void table_delete(enum table_hw_accel_id acc_id,
+void table_delete(enum table_hw_accel_id acc_id,
 		  uint16_t table_id);
 
 
@@ -1428,7 +1427,7 @@ inline int table_lookup_by_keyid_default_frame(enum table_hw_accel_id acc_id,
 @Cautions	Presented header address in the workspace must be aligned to
 			16 bytes.
 *//***************************************************************************/
-int table_lookup_by_keyid(enum table_hw_accel_id acc_id,
+inline int table_lookup_by_keyid(enum table_hw_accel_id acc_id,
 			  uint16_t table_id,
 			  uint8_t keyid,
 			  uint32_t flags,
@@ -1617,6 +1616,8 @@ int table_rule_query_by_ruleid(enum table_hw_accel_id acc_id,
 
 #endif //REV2_RULEID
 
+#include "table_rule_inline.h"
+#include "table_lookup_inline.h"
 
 /** @} */ /* end of FSL_TABLE_Functions */
 /** @} */ /* end of FSL_TABLE */

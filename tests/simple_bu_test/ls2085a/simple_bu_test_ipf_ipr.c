@@ -28,16 +28,15 @@
 #include "common/fsl_stdio.h"
 #include "fsl_dpni_drv.h"
 #include "fsl_ip.h"
-#include "platform.h"
 #include "fsl_io.h"
 #include "fsl_parser.h"
 #include "general.h"
 #include "fsl_dbg.h"
 /*#include "fsl_cmdif_server.h"*/
-#include "dplib/fsl_cdma.h"
-#include "dplib/fsl_fdma.h"
-#include "dplib/fsl_ip.h"
-#include "dplib/fsl_l4.h"
+#include "fsl_cdma.h"
+#include "fsl_fdma.h"
+#include "fsl_ip.h"
+#include "fsl_l4.h"
 #include "fsl_malloc.h"
 #include "fsl_tman.h"
 #include "fsl_slab.h"
@@ -50,8 +49,10 @@
 #include "fsl_l2.h"
 #include "fsl_table.h"
 #include "fsl_keygen.h"
-
+#include "fsl_platform.h"
 #include "simple_bu_test.h"
+
+#include "fsl_aiop_common.h"
 
 extern struct  ipr_global_parameters ipr_global_parameters1;
 extern __PROFILE_SRAM struct storage_profile storage_profile[SP_NUM_OF_STORAGE_PROFILES];

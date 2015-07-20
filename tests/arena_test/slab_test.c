@@ -72,7 +72,7 @@ int slab_init(void)
 		fsl_os_print("ERROR = %d: app_test_slab_overload_test()\n", err);
 		return err;
 	}
-*/
+	 */
 	return err;
 }
 
@@ -83,37 +83,44 @@ int app_test_slab_overload_test()
 	int 	i;
 	uint64_t buff = 0;
 
-	for (i = 0; i < 2000 ; i++)
-	{
-		err = slab_create(1, 1, 248, 4, MEM_PART_DP_DDR, SLAB_DDR_MANAGEMENT_FLAG,
-				  &slab_callback_test, &(my_slab[i]));
-		if (err) return err;
+	/* DP DDR SLAB creation */
+	if(fsl_mem_exists(MEM_PART_DP_DDR)) {
 
-		else
-			fsl_os_print("Slab cluster and pool id are: cluster %d, pool ID %d\n",
-			             SLAB_CLUSTER_ID_GET(SLAB_VP_POOL_GET(my_slab[i])),
-			             SLAB_POOL_ID_GET(SLAB_VP_POOL_GET(my_slab[i])));
-
-	}
-
-	for (i = 1999; i >= 0 ; i--)
-	{
-		err = slab_acquire(my_slab[i], &buff);
-		if (err) return err;
-
-		if (slab_refcount_decr(buff) == SLAB_CDMA_REFCOUNT_DECREMENT_TO_ZERO){
-			err = slab_release(my_slab[i], buff);
+		for (i = 0; i < 2000 ; i++)
+		{
+			err = slab_create(1, 1, 248, 4, MEM_PART_DP_DDR, SLAB_DDR_MANAGEMENT_FLAG,
+			                  &slab_callback_test, &(my_slab[i]));
 			if (err) return err;
+
+			else
+				fsl_os_print("Slab cluster and pool id are: cluster %d, pool ID %d\n",
+				             SLAB_CLUSTER_ID_GET(SLAB_VP_POOL_GET(my_slab[i])),
+				             SLAB_POOL_ID_GET(SLAB_VP_POOL_GET(my_slab[i])));
+
 		}
-		else
-			return -ENODEV;
 
-		err = slab_free(&(my_slab[i]));
-		if (err) return err;
+		for (i = 1999; i >= 0 ; i--)
+		{
+			err = slab_acquire(my_slab[i], &buff);
+			if (err) return err;
 
-		/* Must fail because my_slab was freed  */
-		err = slab_acquire(my_slab[i], &buff);
-		if (!err) return -EEXIST;
+			if (slab_refcount_decr(buff) == SLAB_CDMA_REFCOUNT_DECREMENT_TO_ZERO){
+				err = slab_release(my_slab[i], buff);
+				if (err) return err;
+			}
+			else
+				return -ENODEV;
+
+			err = slab_free(&(my_slab[i]));
+			if (err) return err;
+
+			/* Must fail because my_slab was freed  */
+			err = slab_acquire(my_slab[i], &buff);
+			if (!err) return -EEXIST;
+		}
+	}
+	else {
+		fsl_os_print("DP-DDR does not exists.\n");
 	}
 
 	return 0;
@@ -127,92 +134,98 @@ int app_test_slab_init(void)
 	struct slab *my_slab;
 	struct slab_debug_info slab_info;
 
+	/* DP DDR SLAB creation */
+	if(fsl_mem_exists(MEM_PART_DP_DDR)) {
 
-	err = slab_create(2, 4, 248, 16, MEM_PART_DP_DDR, 0,
-	                  &slab_callback_test, &my_slab);
-	if (err) return err;
+		err = slab_create(2, 4, 248, 16, MEM_PART_DP_DDR, 0,
+		                  &slab_callback_test, &my_slab);
+		if (err) return err;
 
-	err = slab_acquire(my_slab, &buff[0]);
-	if (err) return err;
+		err = slab_acquire(my_slab, &buff[0]);
+		if (err) return err;
 
-	err = slab_acquire(my_slab, &buff[1]);
-	if (err) return err;
+		err = slab_acquire(my_slab, &buff[1]);
+		if (err) return err;
 
-	err = slab_acquire(my_slab, &buff[2]);
-	if (err) return err;
+		err = slab_acquire(my_slab, &buff[2]);
+		if (err) return err;
 
-	err = slab_acquire(my_slab, &buff[3]);
-	if (err) return err;
+		err = slab_acquire(my_slab, &buff[3]);
+		if (err) return err;
 
-	err = slab_acquire(my_slab, &buff[4]);
-	if (!err) return err;
-	else
-		fsl_os_print("PASSED - Acquire more buffers than MAX failed\n");
+		err = slab_acquire(my_slab, &buff[4]);
+		if (!err) return err;
+		else
+			fsl_os_print("PASSED - Acquire more buffers than MAX failed\n");
 
-	fsl_os_print("Slab: check if buffers aligned to 16: ");
-	for(i = 0; i < 4; i++)
-	{
-		if((buff[i] & (16 - 1)) != 0)
+		fsl_os_print("Slab: check if buffers aligned to 16: ");
+		for(i = 0; i < 4; i++)
 		{
-			fsl_os_print("Error, buffers are not aligned\n");
-			return -EFAULT;
+			if((buff[i] & (16 - 1)) != 0)
+			{
+				fsl_os_print("Error, buffers are not aligned\n");
+				return -EFAULT;
+			}
 		}
-	}
-	fsl_os_print("Done\n");
+		fsl_os_print("Done\n");
 
-	if (slab_refcount_decr(buff[0]) == SLAB_CDMA_REFCOUNT_DECREMENT_TO_ZERO){
-		err = slab_release(my_slab, buff[0]);
-		if (err) return err;
-	}
+		if (slab_refcount_decr(buff[0]) == SLAB_CDMA_REFCOUNT_DECREMENT_TO_ZERO){
+			err = slab_release(my_slab, buff[0]);
+			if (err) return err;
+		}
 
-	else
-		return -ENODEV;
-
-	if (slab_refcount_decr(buff[1]) == SLAB_CDMA_REFCOUNT_DECREMENT_TO_ZERO){
-		err = slab_release(my_slab, buff[1]);
-		if (err) return err;
-	}
-	else
-		return -ENODEV;
-	if (slab_refcount_decr(buff[2]) == SLAB_CDMA_REFCOUNT_DECREMENT_TO_ZERO){
-		err = slab_release(my_slab, buff[2]);
-		if (err) return err;
-	}
-	else
-		return -ENODEV;
-	if (slab_refcount_decr(buff[3]) == SLAB_CDMA_REFCOUNT_DECREMENT_TO_ZERO){
-		err = slab_release(my_slab, buff[3]);
-		if (err) return err;
-	}
-	else
-		return -ENODEV;
-
-	err = slab_debug_info_get(my_slab, &slab_info);
-	if (err) {
-		return err;
-	} else {
-		if ((slab_info.committed_buffs >= slab_info.max_buffs) ||
-			(slab_info.committed_buffs == 0))
+		else
 			return -ENODEV;
-	}
 
-	err = slab_free(&my_slab);
-	if (err) return err;
+		if (slab_refcount_decr(buff[1]) == SLAB_CDMA_REFCOUNT_DECREMENT_TO_ZERO){
+			err = slab_release(my_slab, buff[1]);
+			if (err) return err;
+		}
+		else
+			return -ENODEV;
+		if (slab_refcount_decr(buff[2]) == SLAB_CDMA_REFCOUNT_DECREMENT_TO_ZERO){
+			err = slab_release(my_slab, buff[2]);
+			if (err) return err;
+		}
+		else
+			return -ENODEV;
+		if (slab_refcount_decr(buff[3]) == SLAB_CDMA_REFCOUNT_DECREMENT_TO_ZERO){
+			err = slab_release(my_slab, buff[3]);
+			if (err) return err;
+		}
+		else
+			return -ENODEV;
+
+		err = slab_debug_info_get(my_slab, &slab_info);
+		if (err) {
+			return err;
+		} else {
+			if ((slab_info.committed_buffs >= slab_info.max_buffs) ||
+				(slab_info.committed_buffs == 0))
+				return -ENODEV;
+		}
+
+		err = slab_free(&my_slab);
+		if (err) return err;
 #ifdef DEBUG
-	/* Must fail because my_slab was freed  */
-	err = slab_acquire(my_slab, &buff[0]);
-	if (!err) return -EEXIST;
+/* Must fail because my_slab was freed  */
+		err = slab_acquire(my_slab, &buff[0]);
+		if (!err) return -EEXIST;
 #endif
 
 
-	/* Reuse slab handle test  */
-	err = slab_create(1, 1, 248, 64, MEM_PART_DP_DDR, 0,
-	                  NULL, &my_slab);
-	if (err) return err;
+		/* Reuse slab handle test  */
+		err = slab_create(1, 1, 248, 64, MEM_PART_DP_DDR, 0,
+		                  NULL, &my_slab);
+		if (err) return err;
 
-	err = slab_free(&my_slab);
-	if (err) return err;
+		err = slab_free(&my_slab);
+		if (err) return err;
 
+	}
+	else {
+		fsl_os_print("DP-DDR does not exists.\n");
+	}
 	return 0;
 }
 
@@ -338,7 +351,7 @@ int slab_test(void)
 	/* PEB DDR SLAB creation */
 	if(fsl_mem_exists(MEM_PART_DP_DDR)) {
 		err = slab_create(5, 5, 200, alignment, MEM_PART_DP_DDR, 0,
-						  NULL, &slab_dp_ddr);
+		                  NULL, &slab_dp_ddr);
 		if (err) return err;
 
 		err = slab_debug_info_get(slab_dp_ddr, &slab_info);
@@ -357,9 +370,9 @@ int slab_test(void)
 	/* SYSTEM DDR SLAB creation */
 	if(fsl_mem_exists(MEM_PART_SYSTEM_DDR)) {
 		err = slab_create(5, 5, 200, alignment, MEM_PART_SYSTEM_DDR, 0,
-						  NULL, &slab_sys_ddr);
+		                  NULL, &slab_sys_ddr);
 		if (err) return err;
-	
+
 		err = slab_debug_info_get(slab_sys_ddr, &slab_info);
 		if (err) {
 			return err;
@@ -377,7 +390,7 @@ int slab_test(void)
 	if(fsl_mem_exists(MEM_PART_PEB)) {
 		err = slab_create(5, 5, 100, alignment, MEM_PART_PEB, 0, NULL, &slab_peb);
 		if (err) return err;
-	
+
 		err = slab_debug_info_get(slab_peb, &slab_info);
 		if(!err)
 			if ((slab_info.committed_buffs != slab_info.max_buffs) ||
@@ -387,14 +400,14 @@ int slab_test(void)
 	else {
 		fsl_os_print("PEB-DDR does not exists.\n");
 	}
-	
+
 	if(fsl_mem_exists(MEM_PART_PEB)) {
 		err |= app_test_slab(slab_peb, 4, MEM_PART_PEB, alignment);
 		if (err) {
 			fsl_os_print("ERROR = %d: app_test_slab(slab_peb, 4)\n", err);
 		}
 	}
-	
+
 	if(fsl_mem_exists(MEM_PART_DP_DDR)) {
 		err |= app_test_slab(slab_dp_ddr, 4, MEM_PART_DP_DDR, alignment);
 		if (err) {
@@ -408,16 +421,16 @@ int slab_test(void)
 			fsl_os_print("ERROR = %d: app_test_slab(slab_sys_ddr, 4)\n", err);
 		}
 	}
-	
+
 	err = 0;
 	if(fsl_mem_exists(MEM_PART_DP_DDR)) {
 		err |= slab_free(&slab_dp_ddr);
 	}
-	
+
 	if(fsl_mem_exists(MEM_PART_PEB)) {
 		err |= slab_free(&slab_peb);
 	}
-	
+
 	if(fsl_mem_exists(MEM_PART_SYSTEM_DDR)) {
 		err |= slab_free(&slab_sys_ddr);
 	}

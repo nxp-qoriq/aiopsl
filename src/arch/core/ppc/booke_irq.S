@@ -38,7 +38,7 @@
     Length of each handler here cannot exceed 256 bytes (64 instructions)
 */
 
-#include "ppc/include/fsl_core_booke_regs.h"
+#include "fsl_core_booke_regs.h"
 #include "booke.h"
 
 

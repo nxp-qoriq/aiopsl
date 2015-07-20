@@ -500,12 +500,6 @@ static int app_dpni_event_added_cb(
 		fsl_os_print("dpni_drv_add_mac_addr succeeded in boot\n");
 		fsl_os_print("MAC 02:00:C0:A8:0B:FE added for ni %d\n",ni);
 	}
-	err = dpni_drv_get_connected_dpni_id(ni, &ni2, &state);
-	fsl_os_print("Given NI: %d, Connected NI: %d, Status: %d\n",ni,ni2,state);
-	if(err){
-		fsl_os_print("Error: dpni_drv_get_connected_dpni_id: error %d\n",err);
-		test_error |= 0x01;
-	}
 
 	err = dpni_drv_get_connected_obj(ni, &id, type, &state);
 	fsl_os_print("Given NI: %d, Con. obj. ID: %d, Type %s, Stat: %d\n",(int)ni,(int)id,type,(int)state);

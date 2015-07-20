@@ -155,12 +155,14 @@
 								<option id="com.freescale.ppc.toolchain.compiler.base.general.enableC99.204780793" name="Enable C99 Extensions" superClass="com.freescale.ppc.toolchain.compiler.base.general.enableC99" value="true" valueType="boolean"/>
 								<option id="com.freescale.ppc.toolchain.compiler.base.input.include.210104601" name="User Path (-i)" superClass="com.freescale.ppc.toolchain.compiler.base.input.include" valueType="includePath">
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../build_flags&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/arch/platform&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/arch/platform/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/arch/platform/ls1088a&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/arch/ppc&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/arch/ppc/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/arch/core/ppc&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/arch/core/ppc/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/drivers/&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/drivers/accel&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/drivers/accel/table&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/drivers/accel/table/02_01&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/drivers/dplib/dpni&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/drivers/dplib/dprc&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/drivers/include&quot;"/>
@@ -226,7 +228,8 @@
 							<tool command="&quot;${AIOPToolsDir}/asmaiop&quot;" commandLinePattern="${COMMAND} ${FLAGS} ${OUTPUT_FLAG} ${OUTPUT_PREFIX}${OUTPUT} ${INPUTS}" errorParsers="" id="com.freescale.ppc.toolchain.assembler.1023235475" name="Assembler" superClass="com.freescale.ppc.toolchain.assembler">
 								<option id="com.freescale.ppc.toolchain.assembler.base.input.include.172138660" name="User Path (-i)" superClass="com.freescale.ppc.toolchain.assembler.base.input.include" valueType="includePath">
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/include&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/arch/ppc&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/arch/core/ppc&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/arch/core/ppc/include&quot;"/>
 								</option>
 								<option id="com.freescale.ppc.toolchain.assembler.base.general.gnuCompatible.355640920" name="GNU Compatible Syntax" superClass="com.freescale.ppc.toolchain.assembler.base.general.gnuCompatible" value="true" valueType="boolean"/>
 								<option id="com.freescale.ppc.toolchain.assembler.base.general.otherflags.1180182815" name="Other Flags" superClass="com.freescale.ppc.toolchain.assembler.base.general.otherflags" value="-ppc_asm_to_vle" valueType="string"/>
