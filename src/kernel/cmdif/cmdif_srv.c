@@ -637,11 +637,8 @@ __HOT_CODE void cmdif_srv_isr(void) __attribute__ ((noreturn))
 
 	ASSERT_COND_LIGHT(cmdif_aiop_srv.srv != NULL);
 
-	
-#ifdef FDMA_OSM_LIMIT
 	SET_FRAME_TYPE(PRC_GET_FRAME_HANDLE(), HWC_FD_ADDRESS);
-#endif
-	
+
 #ifdef DEBUG
 	dump_memory();
 #endif
