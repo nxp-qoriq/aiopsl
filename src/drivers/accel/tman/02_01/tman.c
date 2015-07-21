@@ -27,7 +27,7 @@
 /**************************************************************************//**
 @File		tman.c
 
-@Description	This file contains the AIOP SW TMAN API	implementation.
+@Description	This file contains the AIOP SW TMAN API	implementation (02_01).
 
 *//***************************************************************************/
 
@@ -40,12 +40,6 @@
 #include "fsl_ldpaa.h"
 #include "fsl_inline_asm.h"
 #include "fsl_io_ccsr.h"
-
-#ifndef REV2
-	/* The next code is due to Errata ERR008205 */
-	uint32_t tman_tmi_max_num_of_timers[256];
-	/* End of Errata ERR008205 related code */
-#endif
 
 int tman_create_tmi(uint64_t tmi_mem_base_addr,
 			uint32_t max_num_of_timers, uint8_t *tmi_id)
@@ -99,16 +93,12 @@ int tman_create_tmi(uint64_t tmi_mem_base_addr,
 		/* YIELD. May not be optimized due to CTS behavior*/
 		sys_yield();
 	}
-#ifndef REV2
-	/* Reading TMEV register value is due to Errata ERR008234 */
-	if ((*tmi_state_ptr == TMAN_TMI_BUS_ERR) ||
-		(*((uint32_t *) TMAN_TMEV_ADDRESS) & TMAN_TMEV_BUS_ERR_MASK))
+
+	if (*tmi_state_ptr == TMAN_TMI_BUS_ERR)
 		tman_exception_handler(TMAN_TMI_CREATE_FUNC_ID,
 				__LINE__,
 				(int)(TMAN_TMR_TMI_STATE_ERR+TMAN_TMI_BUS_ERR));
-	/* The next code line is due to Errata ERR008205 */
-	tman_tmi_max_num_of_timers[*tmi_id] = max_num_of_timers;
-#endif
+
 	return (int)(TMAN_TMI_CREATE_SUCCESS);
 }
 
@@ -121,52 +111,6 @@ void tman_delete_tmi(tman_cb_t tman_confirm_cb, uint32_t flags,
 	/* command parameters and results */
 	uint32_t res1, epid = EPID_TIMER_EVENT_IDX;
 
-#ifndef REV2
-	/* The next code is due to Errata ERR008205 */
-	uint32_t i, timer_handle, *tmi_statsntc_ptr, *tmi_statsnccp_ptr;
-	int status;
-
-	status = tman_query_tmi_sw(tmi_id);
-	if (status != 0)
-	{
-		if (status == -ENAVAIL) {
-			tman_exception_handler(TMAN_TMI_DELETE_FUNC_ID,
-				__LINE__,
-				(int)TMAN_TMR_TMI_STATE_ERR+
-				TMAN_TMI_NOT_ACTIVE);
-		}
-		else {
-			if (status == -ENOMEM)
-			{
-				tman_exception_handler(TMAN_TMI_DELETE_FUNC_ID,
-				__LINE__,
-				(int)TMAN_TMR_TMI_STATE_ERR+TMAN_TMI_PURGED);
-			}
-			else {
-				tman_exception_handler(TMAN_TMI_DELETE_FUNC_ID,
-				__LINE__,
-				(int)TMAN_TMR_TMI_STATE_ERR+TMAN_TMI_BUS_ERR);
-			}
-		}
-	}
-	for (i = 1; i <= tman_tmi_max_num_of_timers[tmi_id]; i++)
-	{
-		timer_handle = (i << 8) | tmi_id;
-		/* As in Rev1 only force expiration is supported */
-		tman_delete_timer(timer_handle,
-				TMAN_TIMER_DELETE_MODE_FORCE_EXP);
-	}
-	tmi_statsntc_ptr = (uint32_t*)((uint32_t)TMAN_TMSTATNAT_ADDRESS
-			+ (tmi_id<<5));
-	tmi_statsnccp_ptr = (uint32_t*)((uint32_t)TMAN_TMSTATNCCP_ADDRESS
-			+ (tmi_id<<5));
-	while ((*tmi_statsntc_ptr != 0) && (*tmi_statsnccp_ptr != 0))
-	{
-		/* YIELD. May not be optimized due to CTS behavior*/
-		sys_yield();
-	}
-	/* End of Errata ERR008205 related code */
-#endif
 	/* extention_params.conf_opaque_data1 = conf_opaque_data1;
 	Optimization: remove 1 cycle of store word (this rely on EABI) */
 	__st64dw_b(conf_opaque_data1,
@@ -198,27 +142,8 @@ void tman_delete_tmi(tman_cb_t tman_confirm_cb, uint32_t flags,
 			tman_exception_handler(TMAN_TMI_DELETE_FUNC_ID,
 					__LINE__, (int)res1);
 	} while (res1 & TMAN_FAIL_BIT_MASK);
-
 }
 
-#ifndef REV2
-	/* The next code is due to Errata ERR008205 */
-int tman_query_tmi_sw(uint8_t tmi_id){
-	unsigned int *tmi_state_ptr;
-	tmi_state_ptr = (unsigned int*)((unsigned int)TMAN_CCSR_TMSTATE_ADDRESS
-			+ (tmi_id<<5));
-	if((*tmi_state_ptr & TMAN_TMI_STATE_MASK) == TMAN_TMI_ACTIVE)
-		return (int)(SUCCESS);
-	if((*tmi_state_ptr & TMAN_TMI_STATE_MASK) == TMAN_TMI_NOT_ACTIVE)
-		return (int)(-ENAVAIL);
-	if((*tmi_state_ptr & TMAN_TMI_STATE_MASK) == TMAN_TMI_BUS_ERR)
-		return (int)(-ENOMEM);
-	return (int)(-EACCES);
-}
-/* End of Errata ERR008205 related code */
-#endif
-
-#ifdef REV2
 int tman_query_tmi(uint8_t tmi_id,
 			struct tman_tmi_params *output_ptr)
 {
@@ -247,57 +172,55 @@ int tman_query_tmi(uint8_t tmi_id,
 	/* In case TMI is being deleted or being created */
 	return (int)(-EACCES);
 }
-#endif
 
 
-#ifdef REV2
-int tman_increase_timer_duration(uint32_t timer_handle, uint16_t duration)
+int tman_modify_timer(uint32_t timer_handle, 
+		enum e_tman_granularity granularity, uint16_t duration)
 {
 	uint32_t cmd_type = TMAN_CMDTYPE_TIMER_MODIFY, res1;
-#ifdef SL_DEBUG
-	uint32_t cnt = 0;
-#endif
-
+	uint32_t flags;
 	/* Store first two command parameters */
 	/* Optimization: remove 1 cycle using EABI */
 	__stdw(cmd_type, timer_handle, HWC_ACC_IN_ADDRESS, 0);
-	/* Store third command parameters */
-	/* Optimization: remove 1 cycle of clearing duration upper bits */
-	*(uint16_t *)(HWC_ACC_IN_ADDRESS + 0x8) = duration;
+	/* Store third and fourth command parameters */
+	__or(flags, granularity, duration);
+	*(uint32_t *)(HWC_ACC_IN_ADDRESS + 0xC) = flags;
+	
+	/* call TMAN. */
+	if ((__e_hwacceli_(TMAN_ACCEL_ID)) == TMAN_TMR_CREATE_SUCCESS) {
+		return (int)(TMAN_TMR_CREATE_SUCCESS);
+	}
+	/* Load command results */
+	res1 = *((uint32_t *) (HWC_ACC_OUT_ADDRESS));
+	
+	/* To check if A=0 && CCP=1 */
+	/* One shot - TO occurred.
+	 * Periodic - Timer was deleted */
+	if((res1 & TMAN_TMR_DEL_STATE_D_MASK) == TMAN_MOD_CCP_WAIT_ERR)
+		return (int)(-EACCES);
 
-	do {
-		/* call TMAN. */
-		__e_hwacceli(TMAN_ACCEL_ID);
-		/* Load command results */
-		res1 = *((uint32_t *) HWC_ACC_OUT_ADDRESS);
-#ifdef SL_DEBUG
-		cnt++;
-		ASSERT_COND(cnt >= TMAN_MAX_RETRIES);
-#endif
-	} while ((res1 == TMAN_TMR_TMP_ERR1) || (res1 == TMAN_TMR_TMP_ERR2));
-	return (int)(res1);
+	/* A=1 && CCP=1 */
+	/* Periodic- TO occurred */
+	if(res1 == TMAN_MOD_PERIODIC_CCP_WAIT_ERR)
+		return (int)(-ETIMEDOUT);
+	
+	/* In case TMI State errors, illegal duration value and 
+	 * TMAN_MOD_TMR_NOT_ACTIVE_ERR, TMAN_DEL_TMR_DEL_ISSUED_ERR, 
+	 * TMAN_MOD_TMR_DEL_ISSUED_CONF_ERR */
+	tman_exception_handler(TMAN_TMI_TIMER_MODIFY_FUNC_ID, __LINE__, (int)res1);
+	return (int)(TMAN_TMR_CREATE_SUCCESS);
 }
-#endif
 
-#ifdef REV2
 int tman_recharge_timer(uint32_t timer_handle)
-#else
-void tman_recharge_timer(uint32_t timer_handle)
-#endif
 {
 	uint32_t cmd_type = TMAN_CMDTYPE_TIMER_RECHARGE;
-#ifdef REV2
 	uint32_t res1;
-#endif
 	
 	/* Store first two command parameters */
 	__stdw(cmd_type, timer_handle, HWC_ACC_IN_ADDRESS, 0);
 
 	/* call TMAN. and check if passed.
 	 * Optimization using compiler pattern*/
-#ifndef REV2
-	__e_hwacceli_(TMAN_ACCEL_ID);
-#else
 	if(__e_hwacceli_(TMAN_ACCEL_ID) == 0)
 		return (int)(TMAN_REC_TMR_SUCCESS);
 
@@ -311,7 +234,6 @@ void tman_recharge_timer(uint32_t timer_handle)
 		tman_exception_handler(TMAN_TMI_TIMER_RECHARGE_FUNC_ID,
 			__LINE__, (int)res1);
 	return (int)(-ETIMEDOUT);
-#endif
 }
 
 void tman_query_timer(uint32_t timer_handle,
@@ -399,7 +321,7 @@ void tman_exception_handler(enum tman_function_identifier func_id,
 		func_name = "tman_delete_timer";
 		break;
 	case TMAN_TMI_TIMER_MODIFY_FUNC_ID:
-		func_name = "tman_increase_timer_duration";
+		func_name = "tman_modify_timer";
 		break;
 	case TMAN_TMI_TIMER_RECHARGE_FUNC_ID:
 		func_name = "tman_recharge_timer";
@@ -459,11 +381,16 @@ void tman_exception_handler(enum tman_function_identifier func_id,
 
 	case TMAN_DEL_TMR_NOT_ACTIVE_ERR:
 	case TMAN_REC_TMR_NOT_ACTIVE_ERR:
+		/* Case of N/A bit field */
+	case TMAN_DEL_TMR_NOT_ACTIVE_ERR + 0x2:
+	case TMAN_REC_TMR_NOT_ACTIVE_ERR + 0x2:
 		exception_handler(__FILE__, func_name, line,
 				"A non active timer was provided as an"
 				" input.\n");
 		break;
 	case TMAN_DEL_CCP_WAIT_ERR:
+		/* Case of N/A bit field */
+	case TMAN_DEL_CCP_WAIT_ERR + 2:
 		exception_handler(__FILE__, func_name, line,
 				"The one shot timer has expired but it is "
 				"pending a completion confirmation (done by "
@@ -494,13 +421,16 @@ void tman_exception_handler(enum tman_function_identifier func_id,
 				" This timer will elapse one more time "
 				" before being deleted\n");
 		break;
-#ifdef REV2
 	case TMAN_MOD_TMR_NOT_ACTIVE_ERR:
+		/* Case of N/A bit field */
+	case TMAN_MOD_TMR_NOT_ACTIVE_ERR + 2:
 		exception_handler(__FILE__, func_name, line,
 				"A non active timer was provided as an"
 				" input.\n");
 		break;
 	case TMAN_MOD_CCP_WAIT_ERR:
+		/* Case of N/A bit field */
+	case TMAN_MOD_CCP_WAIT_ERR + 2:
 		exception_handler(__FILE__, func_name, line,
 				"The one shot timer has expired but it is "
 				"pending a completion confirmation (done by "
@@ -530,7 +460,6 @@ void tman_exception_handler(enum tman_function_identifier func_id,
 				"tman_timer_completion_confirmation"
 				" function)\n");
 		break;
-#endif
 
 	default:
 		exception_handler(__FILE__, func_name, line,

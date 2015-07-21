@@ -28,7 +28,7 @@
 @File		ste.c
 
 @Description	This file contains the AIOP SW Statistics API implementation.
-
+				(common)
 *//***************************************************************************/
 
 #include "general.h"
