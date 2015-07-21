@@ -37,71 +37,11 @@
 
 #include "general.h"
 
-/* Add workaround to TKT260685 */
-#ifdef FDMA_OSM_LIMIT
 
-#include "osm.h"
-
-#define MAX_FRAMES_PER_TASK	6
-
-extern __TASK uint8_t frame_types[MAX_FRAMES_PER_TASK];
-
-/**************************************************************************//**
- @enum frame_type
-
- @Description	AIOP FDMA frame formats (FMT).
-
- @{
-*//***************************************************************************/
-enum fdma_frame_formats {
-		/** Single Buffer Frame */
-	SINGLE_BUFFER_FRAME =	0,
-		/** Frame List */
-	FRAME_LIST =		1,
-		/** Scatter/Gather Frame */
-	SCATTER_GATHER_FRAME =	2,
-		/** reserve */
-	RESERVED =		3
-};
-
-
-/* Get the task number */
-inline uint32_t get_taskno(void);
-
-inline uint32_t get_taskno(void)
-{
-	register uint32_t task,tmp;
-	asm
-	{
-		mfdcr	tmp,dcr476	// TASKCSR0
-		e_clrlwi task,tmp,24	// clear top 24 bits
-	}
-	return task;
-}
-
-	/** Macro to save the FD FMT field.
+	/** Macro to save the FD FMT field - empty implementation.
 	 * _frame_handle - working frame handle.
 	 * _fd - the FD address in workspace. */
-#define SET_FRAME_TYPE(_frame_handle, _fd)				\
-	frame_types[_frame_handle] = 					\
-	      (*((uint8_t *)(((char *)_fd) + FD_SL_FMT_OFFSET))) & FD_FMT_MASK;\
-
-	/** Macro to use OSM to fix TKT260685.
-	 * _FDMA_ACCEL_ID - FDMA accelerator ID.
-	 * _frame_handle - working frame handle. */
-#define FDMA_OSM_LIMIT_CALL(_FDMA_ACCEL_ID, _frame_handle)		\
-	({								\
-	if ((_FDMA_ACCEL_ID == FODMA_ACCEL_ID) &&			\
-			(frame_types[_frame_handle] == SINGLE_BUFFER_FRAME)){ \
-		__e_hwacceli_(_FDMA_ACCEL_ID);				\
-	} else {							\
-		/* enter exclusive, new ID */				\
-		__e_ordhwacceli_(_FDMA_ACCEL_ID, 			\
-			OSM_SCOPE_ENTER_EXCL_CALL_ACCEL_REL_SON_AFTER_ACCEL_OP,\
-			(((get_taskno() % 3)+1) << 6));			\
-		__e_osmcmd(OSM_SCOPE_EXIT_OP, 0);			\
-	}})
-#endif
+#define SET_FRAME_TYPE(_frame_handle, _fd)
 
 
 /** \addtogroup FSL_AIOP_FDMA
@@ -892,7 +832,7 @@ enum fdma_function_identifier {
 
 @Cautions	In case the presented segment will be used by 
 		PARSER/CTLU/KEYGEN, it should be presented in a 16 byte aligned 
-		workspace address (due to TKT254635).
+		workspace address (due to HW limitations).
 @Cautions	This command may be invoked only for Data segments.
 @Cautions	This function may result in a fatal error.
 @Cautions	In this Service Routine the task yields.
