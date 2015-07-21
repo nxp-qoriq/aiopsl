@@ -56,31 +56,27 @@ inline int fdma_replace_default_segment_data(
 	int8_t res1;
 	
 	/* prepare command parameters */
-#ifndef REV2 /* WA for TKT237377 */
+	/* WA for TKT237377 */
 	uint32_t flags_wa;
 	
 	flags_wa = flags & ~FDMA_REPLACE_SA_REPRESENT_BIT;
 	flags_wa |= FDMA_REPLACE_SA_CLOSE_BIT;
 	arg1 = FDMA_REPLACE_CMD_ARG1(prc->handles, flags_wa);
 	arg4 = 0;
-#else
-	arg1 = FDMA_REPLACE_CMD_ARG1(prc->handles, flags);
-	arg4 = FDMA_REPLACE_CMD_ARG4(ws_dst_rs, size_rs);
-#endif
+	/* end of WA for TKT237377 */
+	
 	arg2 = FDMA_REPLACE_CMD_ARG2(to_offset, to_size);
 	arg3 = FDMA_REPLACE_CMD_ARG3(from_ws_src, from_size);
 	/* store command parameters */
 	__stqw(arg1, arg2, arg3, arg4, HWC_ACC_IN_ADDRESS, 0);
 	/* call FDMA Accelerator */
-#ifndef FDMA_OSM_LIMIT
-	__e_hwacceli_(FODMA_ACCEL_ID);
-#else
+	
 	FDMA_OSM_LIMIT_CALL(FODMA_ACCEL_ID, PRC_GET_FRAME_HANDLE());
-#endif	
+
 	/* load command results */
 	res1 = *((int8_t *)(FDMA_STATUS_ADDR));
 
-#ifndef REV2 /* WA for TKT237377 */
+	/* WA for TKT237377 */
 	if (!(flags & FDMA_REPLACE_SA_CLOSE_BIT)) {
 		if (!(flags & FDMA_REPLACE_SA_REPRESENT_BIT)) {
 			ws_dst_rs = (void *)PRC_GET_SEGMENT_ADDRESS();
@@ -94,7 +90,7 @@ inline int fdma_replace_default_segment_data(
 			size_rs);
 		res1 = *((int8_t *)(FDMA_STATUS_ADDR)); 
 	}
-#endif
+	/* end of WA for TKT237377 */
 	
 	/* Update Task Defaults */
 	if ((int32_t)res1 >= FDMA_SUCCESS) {
@@ -216,11 +212,11 @@ inline int fdma_present_default_frame(void)
 	/* call FDMA Accelerator */
 	__e_hwacceli_(FPDMA_ACCEL_ID);
 
-#ifdef FDMA_OSM_LIMIT
+	/* workaround to TKT260685 */
 	SET_FRAME_TYPE(*((uint8_t *)
 			(HWC_ACC_OUT_ADDRESS2 + FDMA_FRAME_HANDLE_OFFSET)), 
 			HWC_FD_ADDRESS);
-#endif
+	/* end of workaround to TKT260685 */
 	
 	/* load command results */
 	res1 = *((int8_t *) (FDMA_STATUS_ADDR));
@@ -281,15 +277,14 @@ inline int fdma_insert_default_segment_data(
 	int8_t res1;
 
 	/* prepare command parameters */
-#ifndef REV2 /* WA for TKT237377 */
+	/* WA for TKT237377 */
 	uint32_t flags_wa;
 	
 	flags_wa = flags & ~FDMA_REPLACE_SA_REPRESENT_BIT;
 	flags_wa |= FDMA_REPLACE_SA_CLOSE_BIT;
 	arg1 = FDMA_REPLACE_CMD_ARG1(prc->handles, flags_wa);
-#else
-	arg1 = FDMA_REPLACE_CMD_ARG1(prc->handles, flags);
-#endif
+	/* end of WA for TKT237377 */
+	
 	arg2 = FDMA_REPLACE_CMD_ARG2(to_offset, 0);
 	arg3 = FDMA_REPLACE_CMD_ARG3(from_ws_src, insert_size);
 	if (flags & FDMA_REPLACE_SA_REPRESENT_BIT) {
@@ -304,7 +299,7 @@ inline int fdma_insert_default_segment_data(
 	/* load command results */
 	res1 = *((int8_t *)(FDMA_STATUS_ADDR));
 
-#ifndef REV2 /* WA for TKT237377 */
+	/* WA for TKT237377 */
 	if (!(flags & FDMA_REPLACE_SA_CLOSE_BIT)) {
 		if (!(flags & FDMA_REPLACE_SA_REPRESENT_BIT)) {
 			ws_address_rs = (void *)PRC_GET_SEGMENT_ADDRESS();
@@ -318,7 +313,7 @@ inline int fdma_insert_default_segment_data(
 			seg_size_rs);
 		res1 = *((int8_t *)(FDMA_STATUS_ADDR));
 	}
-#endif
+	/* end of WA for TKT237377 */
 	
 	/* Update Task Defaults */
 	if ((int32_t)res1 >= FDMA_SUCCESS) {
@@ -364,11 +359,7 @@ inline int fdma_present_default_frame_segment(
 	*((uint32_t *)(HWC_ACC_IN_ADDRESS3)) = arg3;
 
 	/* call FDMA Accelerator */
-#ifndef FDMA_OSM_LIMIT
-       __e_hwacceli_(FPDMA_ACCEL_ID);
-#else
 	FDMA_OSM_LIMIT_CALL(FPDMA_ACCEL_ID, PRC_GET_FRAME_HANDLE());
-#endif	
 	
 	/* load command results */
 	res1 = *((int8_t *) (FDMA_STATUS_ADDR));
@@ -406,24 +397,19 @@ inline void fdma_modify_default_segment_data(
 	int8_t res1;
 
 	/* prepare command parameters */
-#ifndef REV2 /* WA for TKT237377 */
+	/* WA for TKT237377 */
 	arg1 = FDMA_REPLACE_CMD_ARG1(
 			PRC_GET_HANDLES(), FDMA_REPLACE_SA_CLOSE_BIT);
-#else
-	arg1 = FDMA_REPLACE_CMD_ARG1(
-			PRC_GET_HANDLES(), FDMA_REPLACE_NO_FLAGS);
-#endif
+	/* end of WA for TKT237377 */
+	
 	arg2 = FDMA_REPLACE_CMD_ARG2(offset, size);
 	arg3 = FDMA_REPLACE_CMD_ARG3(
 			(PRC_GET_SEGMENT_ADDRESS() + offset), size);
 	/* store command parameters */
 	__stqw(arg1, arg2, arg3, 0, HWC_ACC_IN_ADDRESS, 0);
 	/* call FDMA Accelerator */
-#ifndef FDMA_OSM_LIMIT
-       __e_hwacceli_(FODMA_ACCEL_ID);
-#else
 	FDMA_OSM_LIMIT_CALL(FODMA_ACCEL_ID, PRC_GET_FRAME_HANDLE());
-#endif
+
 	/* load command results */
 	res1 = *((int8_t *)(FDMA_STATUS_ADDR));
 
@@ -431,14 +417,14 @@ inline void fdma_modify_default_segment_data(
 		fdma_exception_handler(FDMA_MODIFY_DEFAULT_SEGMENT_DATA, 
 				__LINE__, (int32_t)res1);
 	
-#ifndef REV2 /* WA for TKT237377 */
+	/* WA for TKT237377 */
 	//fdma_close_default_segment();
 	fdma_present_default_frame_segment(
 		(PRC_GET_SR_BIT())? FDMA_PRES_SR_BIT : 0, 
 		(void *)PRC_GET_SEGMENT_ADDRESS(), 
 		PRC_GET_SEGMENT_OFFSET(), 
 		PRC_GET_SEGMENT_LENGTH());
-#endif
+	/* end of WA for TKT237377 */
 }
 
 inline void fdma_modify_default_segment_full_data()
@@ -456,11 +442,8 @@ inline void fdma_modify_default_segment_full_data()
 	/* store command parameters */
 	__stqw(arg1, arg2, arg3, 0, HWC_ACC_IN_ADDRESS, 0);
 	/* call FDMA Accelerator */
-#ifndef FDMA_OSM_LIMIT
-	__e_hwacceli_(FODMA_ACCEL_ID);
-#else
 	FDMA_OSM_LIMIT_CALL(FODMA_ACCEL_ID, PRC_GET_FRAME_HANDLE());
-#endif
+
 	/* load command results */
 	res1 = *((int8_t *)(FDMA_STATUS_ADDR));
 
@@ -500,11 +483,7 @@ inline void fdma_close_default_segment(void)
 	__stdw(arg1, 0, HWC_ACC_IN_ADDRESS, 0);
 	*((uint32_t *) HWC_ACC_IN_ADDRESS3) = 0;
 	/* call FDMA Accelerator */
-#ifndef FDMA_OSM_LIMIT
-       __e_hwacceli_(FODMA_ACCEL_ID);
-#else
 	FDMA_OSM_LIMIT_CALL(FODMA_ACCEL_ID, PRC_GET_FRAME_HANDLE());
-#endif
 
 	/* load command results */
 	res1 = *((int8_t *)(FDMA_STATUS_ADDR));
@@ -531,15 +510,14 @@ inline int fdma_delete_default_segment_data(
 	int8_t res1;
 
 	/* prepare command parameters */
-#ifndef REV2 /* WA for TKT237377 */
+	/* WA for TKT237377 */
 	uint32_t flags_wa;
 	
 	flags_wa = flags & ~FDMA_REPLACE_SA_REPRESENT_BIT;
 	flags_wa |= FDMA_REPLACE_SA_CLOSE_BIT;
 	arg1 = FDMA_REPLACE_CMD_ARG1(prc->handles, flags_wa);
-#else
-	arg1 = FDMA_REPLACE_CMD_ARG1(prc->handles, flags);
-#endif
+	/* end of WA for TKT237377 */
+	
 	arg2 = FDMA_REPLACE_CMD_ARG2(to_offset, delete_target_size);
 	arg3 = FDMA_REPLACE_CMD_ARG3(0, 0);
 	if (flags & FDMA_REPLACE_SA_REPRESENT_BIT) {
@@ -551,15 +529,12 @@ inline int fdma_delete_default_segment_data(
 	/* store command parameters */
 	__stqw(arg1, arg2, arg3, arg4, HWC_ACC_IN_ADDRESS, 0);
 	/* call FDMA Accelerator */
-#ifndef FDMA_OSM_LIMIT
-	__e_hwacceli_(FODMA_ACCEL_ID);
-#else
 	FDMA_OSM_LIMIT_CALL(FODMA_ACCEL_ID, PRC_GET_FRAME_HANDLE());
-#endif
+
 	/* load command results */
 	res1 = *((int8_t *)(FDMA_STATUS_ADDR));
 	
-#ifndef REV2 /* WA for TKT237377 */
+	/* WA for TKT237377 */
 	if (!(flags & FDMA_REPLACE_SA_CLOSE_BIT)) {
 		if (!(flags & FDMA_REPLACE_SA_REPRESENT_BIT)) {
 			ws_address_rs = (void *)PRC_GET_SEGMENT_ADDRESS();
@@ -573,7 +548,7 @@ inline int fdma_delete_default_segment_data(
 			size_rs);
 		res1 = *((int8_t *)(FDMA_STATUS_ADDR));
 	}
-#endif
+	/* end of WA for TKT237377 */
 
 	/* Update Task Defaults */
 	if ((int32_t)res1 >= FDMA_SUCCESS) {

@@ -37,14 +37,14 @@
 
 #include "general.h"
 
-/* Add workaround to TKT260685 */
-#ifdef FDMA_OSM_LIMIT
+/* workaround to TKT260685 */
 
 #include "osm.h"
 
 #define MAX_FRAMES_PER_TASK	6
 
 extern __TASK uint8_t frame_types[MAX_FRAMES_PER_TASK];
+
 
 /**************************************************************************//**
  @enum frame_type
@@ -86,7 +86,7 @@ inline uint32_t get_taskno(void)
 	frame_types[_frame_handle] = 					\
 	      (*((uint8_t *)(((char *)_fd) + FD_SL_FMT_OFFSET))) & FD_FMT_MASK;\
 
-	/** Macro to use OSM to fix TKT260685.
+	/** Macro using OSM to fix TKT260685.
 	 * _FDMA_ACCEL_ID - FDMA accelerator ID.
 	 * _frame_handle - working frame handle. */
 #define FDMA_OSM_LIMIT_CALL(_FDMA_ACCEL_ID, _frame_handle)		\
@@ -101,7 +101,7 @@ inline uint32_t get_taskno(void)
 			(((get_taskno() % 3)+1) << 6));			\
 		__e_osmcmd(OSM_SCOPE_EXIT_OP, 0);			\
 	}})
-#endif
+/* end of workaround to TKT260685 */
 
 
 /** \addtogroup FSL_AIOP_FDMA
@@ -892,7 +892,7 @@ enum fdma_function_identifier {
 
 @Cautions	In case the presented segment will be used by 
 		PARSER/CTLU/KEYGEN, it should be presented in a 16 byte aligned 
-		workspace address (due to TKT254635).
+		workspace address (due to HW limitations).
 @Cautions	This command may be invoked only for Data segments.
 @Cautions	This function may result in a fatal error.
 @Cautions	In this Service Routine the task yields.
