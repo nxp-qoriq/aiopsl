@@ -35,7 +35,6 @@
 /*#include "fsl_cmdif_server.h"*/
 #include "fsl_cdma.h"
 #include "fsl_fdma.h"
-#include "fsl_ip.h"
 #include "fsl_l4.h"
 #include "fsl_malloc.h"
 #include "fsl_tman.h"
@@ -49,7 +48,7 @@
 #include "fsl_keygen.h"
 #include "simple_bu_test.h"
 
-extern struct  ipr_global_parameters ipr_global_parameters1;
+//extern struct  ipr_global_parameters ipr_global_parameters1;
 extern __PROFILE_SRAM struct storage_profile storage_profile[SP_NUM_OF_STORAGE_PROFILES];
 
 int app_early_init(void);
@@ -74,7 +73,8 @@ int app_init(void)
 	int err;
 	fsl_os_print("\n\n***  Starting app_init ***\n\n");
 
-	err = simple_bu_lpm_test();
+//	err = simple_bu_lpm_test();
+	err = simple_bu_ipf_ipr_test();
 	//err = simple_bu_parser_test();
 	//err = simple_bu_hagit_test();
 	//err = simple_bu_gal_test();

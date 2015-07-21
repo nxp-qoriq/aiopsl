@@ -28,6 +28,7 @@
 #include "common/fsl_stdio.h"
 #include "fsl_dpni_drv.h"
 #include "fsl_ip.h"
+#include "fsl_ipr.h"
 #include "fsl_platform.h"
 #include "fsl_io.h"
 #include "fsl_parser.h"
@@ -36,7 +37,6 @@
 /*#include "fsl_cmdif_server.h"*/
 #include "fsl_cdma.h"
 #include "fsl_fdma.h"
-#include "fsl_ip.h"
 #include "fsl_l4.h"
 #include "fsl_malloc.h"
 #include "fsl_tman.h"

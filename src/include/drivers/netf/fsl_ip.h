@@ -38,8 +38,6 @@
 #define __FSL_IP_H
 
 #include "types.h"
-#include "fsl_ipf.h"
-#include "fsl_ipr.h"
 #include "fsl_net.h"
 
 

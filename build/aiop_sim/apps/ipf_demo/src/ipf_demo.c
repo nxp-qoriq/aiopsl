@@ -27,7 +27,7 @@
 #include "common/types.h"
 #include "common/fsl_stdio.h"
 #include "fsl_dpni_drv.h"
-#include "fsl_ip.h"
+#include "fsl_ipf.h"
 #include "fsl_platform.h"
 #include "fsl_io.h"
 #include "fsl_parser.h"
