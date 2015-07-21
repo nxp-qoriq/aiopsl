@@ -38,7 +38,7 @@
 #include "fsl_malloc.h"
 #include "fsl_sl_dpni_drv.h"
 #include "drv.h"
-#include "aiop_common.h"
+#include "fsl_aiop_common.h"
 #include "fsl_dpci_mng.h"
 #include "fsl_dpci_event.h"
 

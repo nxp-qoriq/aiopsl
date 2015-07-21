@@ -36,11 +36,8 @@
 #include "common/fsl_string.h"
 #include "kernel/fsl_spinlock.h"
 #include "fsl_slob.h"
-#include "platform.h"
-#ifdef AIOP
-#include "platform_aiop_spec.h"
-#include "aiop_common.h"
-#endif /* AIOP */
+#include "fsl_platform.h"
+#include "fsl_aiop_common.h"
 #include "mem_mng.h"
 #include "fsl_sl_dbg.h"
 #include "fsl_malloc.h"
@@ -778,12 +775,6 @@ int mem_mng_get_phys_mem(void*  h_mem_mng, int  partition_id,
         sl_pr_err("Mem. manager invalid value: allocation size must be positive\n");
     }
 
-
-#ifdef NO_DP_DDR
-    /* Replace dp_ddr memory partition to system ddr */
-    if(partition_id == MEM_PART_DP_DDR)
-	    partition_id = MEM_PART_SYSTEM_DDR;
-#endif
     /* Not early allocation - allocate from registered partitions */
     p_partition = &p_mem_mng->phys_allocation_mem_partitions_array[partition_id];
     if (p_partition->was_initialized)

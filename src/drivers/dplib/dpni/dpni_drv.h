@@ -54,7 +54,6 @@
 #define SOC_MAX_NUM_OF_DPNI           64
 #define DPNI_NOT_IN_USE               0xFFFF
 #define DPNI_DRV_FAST_MEMORY    MEM_PART_PEB
-#define DPNI_DRV_DDR_MEMORY     MEM_PART_DP_DDR
 #define DPNI_DRV_NUM_USED_BPIDS   BPIDS_USED_FOR_POOLS_IN_DPNI
 #define DPNI_DRV_PEB_BPID_IDX         0
 #define DPNI_DRV_DDR_BPID_IDX         1

@@ -31,10 +31,10 @@
 #include "common/fsl_string.h"
 #include "fsl_soc.h"
 #include "fsl_dbg.h"
-#include "inline_asm.h"
+#include "fsl_inline_asm.h"
 #include "fsl_io_ccsr.h"
-#include "cmgw.h"
-#include "aiop_common.h"
+#include "fsl_cmgw.h"
+#include "fsl_aiop_common.h"
 #include "fsl_core_booke_regs.h"
 
 

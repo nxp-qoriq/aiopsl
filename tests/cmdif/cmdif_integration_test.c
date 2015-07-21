@@ -26,7 +26,7 @@
 
 #include "common/types.h"
 #include "common/fsl_stdio.h"
-#include "platform.h"
+#include "fsl_platform.h"
 #include "fsl_io.h"
 #include "general.h"
 #include "fsl_dbg.h"
@@ -60,8 +60,6 @@
 int app_init(void);
 void app_free(void);
 int app_early_init(void);
-extern int gpp_sys_ddr_init();
-extern int gpp_ddr_check(struct icontext *ic, uint64_t iova, uint16_t size);
 extern int app_evm_register();
 extern int dprc_drv_scan(void);
 
@@ -84,12 +82,13 @@ uint64_t gpp_lbp;
 int32_t async_count = 0;
 int32_t dpci_add_count = 0;
 int32_t dpci_rm_count = 0;
-int32_t dpci_add_ev_count = 0;
-int32_t dpci_rm_ev_count = 0;
-int32_t dpci_up_ev_count = 0;
-int32_t dpci_down_ev_count = 0;
 int32_t rcu_sync_count = 0;
 int32_t rcu_cb_count = 0;
+
+extern int32_t dpci_add_ev_count;
+extern int32_t dpci_rm_ev_count;
+extern int32_t dpci_up_ev_count;
+extern int32_t dpci_down_ev_count;
 
 static void rcu_sync_cb(uint64_t param)
 {
@@ -635,9 +634,6 @@ static int ctrl_cb0(void *dev, uint16_t cmd, uint32_t size,
 
 			/* check bringup test */
 			icontext_cmd_get(&ic_cmd);
-			err = gpp_ddr_check(&ic_cmd, p_data, (uint16_t)MIN(size, 16));
-			pr_debug("gpp_ddr_check err = %d\n", err);
-
 			/* modify from presentation */
 			for (i = 0; i < MIN(size, 64); i++) {
 				((uint8_t *)data)[i] = 0xDA;
@@ -788,7 +784,10 @@ int app_init(void)
 	}
 
 	err = fsl_os_get_mem(1024, MEM_PART_DP_DDR, 64, &tman_addr);
-	ASSERT_COND(!err && tman_addr);
+	if (err || (tman_addr == 0)) {
+		err = fsl_os_get_mem(1024, MEM_PART_SYSTEM_DDR, 64, &tman_addr);
+		ASSERT_COND(!err && tman_addr);
+	}
 
 	/* 
 	 * Remove it because it is no longer part of DPCI testing
@@ -809,7 +808,6 @@ int app_init(void)
 #endif
 #endif
 
-	err = gpp_sys_ddr_init();
 	return err;
 }
 

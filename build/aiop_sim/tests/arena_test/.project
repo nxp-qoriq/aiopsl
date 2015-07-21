@@ -84,7 +84,7 @@ aiop_sl		</project>
 		<link>
 			<name>README.txt</name>
 			<type>1</type>
-			<locationURI>PROJECT_LOC/src/README.txt</locationURI>
+			<locationURI>PARENT-4-PROJECT_LOC/tests/arena_test/README.txt</locationURI>
 		</link>
 		<link>
 			<name>lcf</name>
@@ -104,17 +104,17 @@ aiop_sl		</project>
 		<link>
 			<name>src/apps.c</name>
 			<type>1</type>
-			<locationURI>PROJECT_LOC/src/apps.c</locationURI>
+			<locationURI>PARENT-4-PROJECT_LOC/tests/arena_test/apps.c</locationURI>
 		</link>
 		<link>
 			<name>src/apps.h</name>
 			<type>1</type>
-			<locationURI>PROJECT_LOC/src/apps.h</locationURI>
+			<locationURI>PARENT-4-PROJECT_LOC/tests/arena_test/apps.h</locationURI>
 		</link>
 		<link>
 			<name>src/arena_test.c</name>
 			<type>1</type>
-			<locationURI>PARENT-4-PROJECT_LOC/tests/arena_test.c</locationURI>
+			<locationURI>PARENT-4-PROJECT_LOC/tests/arena_test/arena_test.c</locationURI>
 		</link>
 		<link>
 			<name>src/bringup</name>
@@ -129,37 +129,37 @@ aiop_sl		</project>
 		<link>
 			<name>src/dpni_drv_test.c</name>
 			<type>1</type>
-			<locationURI>PARENT-4-PROJECT_LOC/tests/dpni_drv_test.c</locationURI>
+			<locationURI>PARENT-4-PROJECT_LOC/tests/arena_test/dpni_drv_test.c</locationURI>
 		</link>
 		<link>
 			<name>src/dprc_drv_test.c</name>
 			<type>1</type>
-			<locationURI>PARENT-4-PROJECT_LOC/tests/dprc_drv_test.c</locationURI>
+			<locationURI>PARENT-4-PROJECT_LOC/tests/arena_test/dprc_drv_test.c</locationURI>
 		</link>
 		<link>
 			<name>src/inet_test.c</name>
 			<type>1</type>
-			<locationURI>PARENT-4-PROJECT_LOC/tests/inet_test.c</locationURI>
+			<locationURI>PARENT-4-PROJECT_LOC/tests/arena_test/inet_test.c</locationURI>
 		</link>
 		<link>
 			<name>src/malloc_test.c</name>
 			<type>1</type>
-			<locationURI>PARENT-4-PROJECT_LOC/tests/malloc_test.c</locationURI>
+			<locationURI>PARENT-4-PROJECT_LOC/tests/arena_test/malloc_test.c</locationURI>
 		</link>
 		<link>
 			<name>src/memory_test.c</name>
 			<type>1</type>
-			<locationURI>PARENT-4-PROJECT_LOC/tests/memory_test.c</locationURI>
+			<locationURI>PARENT-4-PROJECT_LOC/tests/arena_test/memory_test.c</locationURI>
 		</link>
 		<link>
 			<name>src/random_test.c</name>
 			<type>1</type>
-			<locationURI>PARENT-4-PROJECT_LOC/tests/random_test.c</locationURI>
+			<locationURI>PARENT-4-PROJECT_LOC/tests/arena_test/random_test.c</locationURI>
 		</link>
 		<link>
 			<name>src/slab_test.c</name>
 			<type>1</type>
-			<locationURI>PARENT-4-PROJECT_LOC/tests/slab_test.c</locationURI>
+			<locationURI>PARENT-4-PROJECT_LOC/tests/arena_test/slab_test.c</locationURI>
 		</link>
 		<link>
 			<name>src/bringup/aiop_to_mc_cmd.c</name>

@@ -33,13 +33,13 @@
 #define __FSL_TYPES_H
 
 #if defined(__GNUC__) && defined(__cplusplus)
-#include "kernel/types_gpp.h"
+#include "types_gpp.h"
 
 #elif defined(__GNUC__)
-#include "kernel/types_gcc.h"
+#include "types_gcc.h"
 
 #elif defined(__MWERKS__)
-#include "kernel/types_mw.h"
+#include "types_mw.h"
 
 #else
 #error "missing types definition"

@@ -31,16 +31,16 @@
 #include "fsl_malloc.h"
 #include "fsl_io_ccsr.h"
 #include "fsl_dpni.h"
-#include "dplib/fsl_fdma.h"
-#include "dplib/fsl_parser.h"
-#include "platform.h"
+#include "fsl_fdma.h"
+#include "fsl_parser.h"
+#include "fsl_platform.h"
 #include "fsl_sys.h"
 #include "fsl_dprc.h"
 #include "fsl_dpbp.h"
 #include "fsl_bman.h"
 #include "fsl_malloc.h"
 #include "dpni_drv.h"
-#include "aiop_common.h"
+#include "fsl_aiop_common.h"
 #include "system.h"
 #include "fsl_sl_dprc_drv.h"
 #include "fsl_sl_slab.h"
@@ -52,7 +52,6 @@
 int dpni_drv_init(void);
 void dpni_drv_free(void);
 
-extern struct aiop_init_info g_init_data;
 extern struct platform_app_params g_app_params;
 
 /*
@@ -844,10 +843,14 @@ static int configure_bpids_for_dpni(void)
 	uint16_t buffer_size = (uint16_t)g_app_params.dpni_buff_size;
 	uint16_t num_buffs = (uint16_t)g_app_params.dpni_num_buffs;
 	uint16_t alignment;
-	uint8_t mem_pid[] = {DPNI_DRV_FAST_MEMORY, DPNI_DRV_DDR_MEMORY};
+	uint8_t mem_pid[] = {DPNI_DRV_FAST_MEMORY, 0};
 
-
-
+	if(fsl_mem_exists(MEM_PART_DP_DDR)){
+		mem_pid[1] = MEM_PART_DP_DDR;
+	}
+	else if(fsl_mem_exists(MEM_PART_SYSTEM_DDR)){
+		mem_pid[1] = MEM_PART_SYSTEM_DDR;
+	}
 
 	if(IS_POWER_VALID_ALLIGN(g_app_params.dpni_drv_alignment,buffer_size))
 		alignment = (uint16_t)g_app_params.dpni_drv_alignment;
@@ -922,7 +925,7 @@ static int configure_bpids_for_dpni(void)
 		/*!< DPBPs object id */
 		pools_params.pools[i].dpbp_id = (uint16_t)dpbp_id[i];
 		pools_params.pools[i].buffer_size = buffer_size;
-		if(mem_pid[i] == DPNI_DRV_DDR_MEMORY){
+		if(mem_pid[i] == MEM_PART_SYSTEM_DDR || mem_pid[i] == MEM_PART_DP_DDR){
 			pools_params.pools[i].backup_pool = 1;
 		}
 
@@ -1352,42 +1355,6 @@ __COLD_CODE int dpni_drv_set_order_scope(uint16_t ni_id, struct dpkg_profile_cfg
 	return 0;
 }
 
-int dpni_drv_get_connected_aiop_ni_id(const uint16_t dpni_id, uint16_t *aiop_niid, int *state){
-	struct mc_dprc *dprc = sys_get_unique_handle(FSL_OS_MOD_AIOP_RC);
-	struct dprc_endpoint endpoint1 = {0};
-	struct dprc_endpoint endpoint2 = {0};
-	int err;
-	uint16_t i;
-
-	if(dprc == NULL)
-		return -EINVAL;
-
-	endpoint1.id = dpni_id;
-	endpoint1.if_id = 0;
-	strcpy(&endpoint1.type[0], "dpni");
-
-	err = dprc_get_connection(&dprc->io, 0, dprc->token, &endpoint1, &endpoint2,
-	                          state);
-	if(err){
-		sl_pr_err("dprc_get_connection failed\n");
-		return err;
-	}
-
-	cdma_mutex_lock_take((uint64_t)nis, CDMA_MUTEX_READ_LOCK); /*Lock dpni table*/
-	for(i = 0; i < (uint16_t) num_of_nis; i++){
-		if(endpoint2.id == nis[i].dpni_id){
-			*aiop_niid = i;
-			break;
-		}
-	}
-	if(i == (uint16_t) num_of_nis){
-		sl_pr_err("connected AIOP NI to DPNI %d not found\n", endpoint2.id);
-		err = -ENAVAIL;
-	}
-	cdma_mutex_lock_release((uint64_t)nis); /*Unlock dpni table*/
-	return err;
-}
-
 int dpni_drv_get_connected_ni(const int id, const char type[16], uint16_t *aiop_niid, int *state)
 {
 	struct mc_dprc *dprc = sys_get_unique_handle(FSL_OS_MOD_AIOP_RC);
@@ -1427,31 +1394,6 @@ int dpni_drv_get_connected_ni(const int id, const char type[16], uint16_t *aiop_
 	}
 	cdma_mutex_lock_release((uint64_t)nis); /*Unlock dpni table*/
 	return err;
-}
-
-int dpni_drv_get_connected_dpni_id(const uint16_t aiop_niid, uint16_t *dpni_id, int *state){
-	struct mc_dprc *dprc = sys_get_unique_handle(FSL_OS_MOD_AIOP_RC);
-	struct dprc_endpoint endpoint1 = {0};
-	struct dprc_endpoint endpoint2 = {0};
-	int err;
-
-	if(dprc == NULL)
-		return -EINVAL;
-
-	cdma_mutex_lock_take((uint64_t)nis, CDMA_MUTEX_READ_LOCK); /*Lock dpni table*/
-	endpoint1.id = nis[aiop_niid].dpni_id;
-	cdma_mutex_lock_release((uint64_t)nis); /*Unlock dpni table*/
-	endpoint1.if_id = 0;
-	strcpy(&endpoint1.type[0], "dpni");
-
-	err = dprc_get_connection(&dprc->io, 0, dprc->token, &endpoint1, &endpoint2,
-	                          state);
-	if(err){
-		sl_pr_err("dprc_get_connection failed\n");
-		return err;
-	}
-	*dpni_id = (uint16_t)endpoint2.id;
-	return 0;
 }
 
 int dpni_drv_get_connected_obj(const uint16_t aiop_niid, int *id, char type[16], int *state)

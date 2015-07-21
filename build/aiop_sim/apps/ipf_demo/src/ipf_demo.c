@@ -28,14 +28,14 @@
 #include "common/fsl_stdio.h"
 #include "fsl_dpni_drv.h"
 #include "fsl_ip.h"
-#include "platform.h"
+#include "fsl_platform.h"
 #include "fsl_io.h"
 #include "fsl_parser.h"
 #include "general.h"
 #include "fsl_dbg.h"
 /*#include "fsl_cmdif_server.h"*/
-#include "dplib/fsl_cdma.h"
-#include "dplib/fsl_l2.h"
+#include "fsl_cdma.h"
+#include "fsl_l2.h"
 #include "fsl_evmng.h"
 
 int app_init(void);

@@ -82,11 +82,6 @@ aiop_sl		</project>
 	</natures>
 	<linkedResources>
 		<link>
-			<name>README.txt</name>
-			<type>1</type>
-			<locationURI>PROJECT_LOC/src/README.txt</locationURI>
-		</link>
-		<link>
 			<name>lcf</name>
 			<type>2</type>
 			<locationURI>virtual:/virtual</locationURI>
@@ -102,24 +97,14 @@ aiop_sl		</project>
 			<locationURI>PARENT-2-PROJECT_LOC/cw_files/aiop_link.lcf</locationURI>
 		</link>
 		<link>
-			<name>src/README.txt</name>
-			<type>1</type>
-			<locationURI>PARENT-4-PROJECT_LOC/tests/cmdif/README.txt</locationURI>
-		</link>
-		<link>
 			<name>src/apps.c</name>
 			<type>1</type>
-			<locationURI>PROJECT_LOC/src/apps.c</locationURI>
+			<locationURI>PARENT-4-PROJECT_LOC/tests/cmdif/apps.c</locationURI>
 		</link>
 		<link>
 			<name>src/apps.h</name>
 			<type>1</type>
-			<locationURI>PROJECT_LOC/src/apps.h</locationURI>
-		</link>
-		<link>
-			<name>src/bringup</name>
-			<type>2</type>
-			<locationURI>virtual:/virtual</locationURI>
+			<locationURI>PARENT-4-PROJECT_LOC/tests/cmdif/apps.h</locationURI>
 		</link>
 		<link>
 			<name>src/cmdif_integration_test.c</name>
@@ -132,24 +117,19 @@ aiop_sl		</project>
 			<locationURI>PARENT-4-PROJECT_LOC/tests/cmdif/cmdif_performance.c</locationURI>
 		</link>
 		<link>
-			<name>src/cmdif_test.c</name>
-			<type>1</type>
-			<locationURI>PROJECT_LOC/src/cmdif_test.c</locationURI>
-		</link>
-		<link>
-			<name>src/cmdif_test_common.h</name>
-			<type>1</type>
-			<locationURI>PROJECT_LOC/src/cmdif_test_common.h</locationURI>
-		</link>
-		<link>
 			<name>src/config.c</name>
 			<type>1</type>
 			<locationURI>PARENT-4-PROJECT_LOC/src/arch/platform/ls2085a/config.c</locationURI>
 		</link>
 		<link>
-			<name>src/bringup/gpp_sys_ddr.c</name>
+			<name>src/ls2085a</name>
+			<type>2</type>
+			<locationURI>virtual:/virtual</locationURI>
+		</link>
+		<link>
+			<name>src/ls2085a/apps_arch.h</name>
 			<type>1</type>
-			<locationURI>PARENT-4-PROJECT_LOC/tests/bringup/gpp_sys_ddr.c</locationURI>
+			<locationURI>PARENT-4-PROJECT_LOC/tests/cmdif/ls2085a/apps_arch.h</locationURI>
 		</link>
 	</linkedResources>
 </projectDescription>
