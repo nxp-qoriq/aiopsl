@@ -36,7 +36,15 @@
 
 
 #include "general.h"
+#include "fsl_sl_rcu.h"
 
+/* Remove task from readers list before task termination */
+#define FDMA_ENQUEUE_RCU_CHECK_UNLOCK_CANCEL(_flags)			\
+	({								\
+		if (_flags & FDMA_EN_TC_TERM_BITS)			\
+			RCU_CHECK_UNLOCK_CANCEL;			\
+	})
+	
 /* workaround to TKT260685 */
 
 #include "osm.h"
