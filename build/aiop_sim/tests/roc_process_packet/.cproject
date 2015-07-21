@@ -243,27 +243,27 @@
 								<option id="com.freescale.ppc.toolchain.linker.base.generateBinaryFile.1658377833" name="Generate Binary File:" superClass="com.freescale.ppc.toolchain.linker.base.generateBinaryFile" value="com.freescale.ppc.toolchain.linker.base.generateBinaryFile.none" valueType="enumerated"/>
 								<option id="com.freescale.ppc.toolchain.linker.base.input.linkorder.620609468" name="Link Order" superClass="com.freescale.ppc.toolchain.linker.base.input.linkorder" valueType="stringList">
 									<listOptionValue builtIn="false" value="src/apps.c"/>
-									<listOptionValue builtIn="false" value="Verification/aiop_verification_cdma.c"/>
-									<listOptionValue builtIn="false" value="Verification/aiop_verification_data.c"/>
-									<listOptionValue builtIn="false" value="Verification/aiop_verification_fdma.c"/>
-									<listOptionValue builtIn="false" value="Verification/aiop_verification_fm.c"/>
-									<listOptionValue builtIn="false" value="Verification/aiop_verification_gro.c"/>
-									<listOptionValue builtIn="false" value="Verification/aiop_verification_gso.c"/>
-									<listOptionValue builtIn="false" value="Verification/aiop_verification_hm.c"/>
-									<listOptionValue builtIn="false" value="Verification/aiop_verification_ipf.c"/>
-									<listOptionValue builtIn="false" value="Verification/aiop_verification_ipr.c"/>
-									<listOptionValue builtIn="false" value="Verification/aiop_verification_ipsec.c"/>
-									<listOptionValue builtIn="false" value="Verification/aiop_verification_keygen.c"/>
-									<listOptionValue builtIn="false" value="Verification/aiop_verification_osm.c"/>
-									<listOptionValue builtIn="false" value="Verification/aiop_verification_parser.c"/>
-									<listOptionValue builtIn="false" value="Verification/aiop_verification_ste.c"/>
-									<listOptionValue builtIn="false" value="Verification/aiop_verification_table.c"/>
-									<listOptionValue builtIn="false" value="Verification/aiop_verification_tman.c"/>
 									<listOptionValue builtIn="false" value="src/app_process_packet.c"/>
 									<listOptionValue builtIn="false" value="src/config.c"/>
 									<listOptionValue builtIn="false" value="&quot;${AIOPToolsBaseDir}/AIOP_Support/ewl/lib/librt_z4201_VLE_Soft.a&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${AIOPToolsBaseDir}/AIOP_Support/ewl/lib/libc_z4201_VLE_Soft.a&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../build/aiop_sim/aiopsl/out/aiopsl.a&quot;"/>
+									<listOptionValue builtIn="false" value="src/aiop_verification_cdma.c"/>
+									<listOptionValue builtIn="false" value="src/aiop_verification_data.c"/>
+									<listOptionValue builtIn="false" value="src/aiop_verification_fdma.c"/>
+									<listOptionValue builtIn="false" value="src/aiop_verification_fm.c"/>
+									<listOptionValue builtIn="false" value="src/aiop_verification_gro.c"/>
+									<listOptionValue builtIn="false" value="src/aiop_verification_gso.c"/>
+									<listOptionValue builtIn="false" value="src/aiop_verification_hm.c"/>
+									<listOptionValue builtIn="false" value="src/aiop_verification_ipf.c"/>
+									<listOptionValue builtIn="false" value="src/aiop_verification_ipr.c"/>
+									<listOptionValue builtIn="false" value="src/aiop_verification_ipsec.c"/>
+									<listOptionValue builtIn="false" value="src/aiop_verification_keygen.c"/>
+									<listOptionValue builtIn="false" value="src/aiop_verification_osm.c"/>
+									<listOptionValue builtIn="false" value="src/aiop_verification_parser.c"/>
+									<listOptionValue builtIn="false" value="src/aiop_verification_ste.c"/>
+									<listOptionValue builtIn="false" value="src/aiop_verification_table.c"/>
+									<listOptionValue builtIn="false" value="src/aiop_verification_tman.c"/>
 								</option>
 								<option id="com.freescale.ppc.toolchain.linker.base.generateSrec.eol.1018456178" name="EOL Character:" superClass="com.freescale.ppc.toolchain.linker.base.generateSrec.eol" value="com.freescale.ppc.toolchain.linker.base.generateSrec.unix" valueType="enumerated"/>
 								<option id="com.freescale.ppc.toolchain.linker.base.output.stackAddress.160755096" name="Stack Address" superClass="com.freescale.ppc.toolchain.linker.base.output.stackAddress" value="" valueType="string"/>
@@ -291,44 +291,49 @@
 								<option id="com.freescale.ppc.toolchain.compiler.base.general.otherflags.prototype.302256929" name="Require Prototypes" superClass="com.freescale.ppc.toolchain.compiler.base.general.otherflags.prototype" value="true" valueType="boolean"/>
 								<option id="com.freescale.ppc.toolchain.compiler.base.general.cpp.exceptions.1311611662" name="Enable C++ Exceptions" superClass="com.freescale.ppc.toolchain.compiler.base.general.cpp.exceptions" value="false" valueType="boolean"/>
 								<option id="com.freescale.ppc.toolchain.compiler.base.preprocessor.include.prefixfile.165924799" name="Prefix Files" superClass="com.freescale.ppc.toolchain.compiler.base.preprocessor.include.prefixfile" valueType="symbolFiles">
-									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../build/aiop_sim/build_flags/dflags_dbg.h&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../build/build_flags/dflags_dbg.h&quot;"/>
 								</option>
 								<option id="com.freescale.ppc.toolchain.compiler.base.general.rtti.261400801" name="Enable RTTI" superClass="com.freescale.ppc.toolchain.compiler.base.general.rtti" value="false" valueType="boolean"/>
 								<option id="com.freescale.ppc.toolchain.compiler.base.general.otherflags.bool.335123600" name="Enable C++ 'bool' type, 'true' and 'false' Constants" superClass="com.freescale.ppc.toolchain.compiler.base.general.otherflags.bool" value="false" valueType="boolean"/>
 								<option id="com.freescale.ppc.toolchain.compiler.base.general.wchar.off.1830244545" name="Enable wchar_t Support" superClass="com.freescale.ppc.toolchain.compiler.base.general.wchar.off" value="false" valueType="boolean"/>
 								<option id="com.freescale.ppc.toolchain.compiler.base.general.enableC99.1706897944" name="Enable C99 Extensions" superClass="com.freescale.ppc.toolchain.compiler.base.general.enableC99" value="true" valueType="boolean"/>
 								<option id="com.freescale.ppc.toolchain.compiler.base.input.include.1533507831" name="User Path (-i)" superClass="com.freescale.ppc.toolchain.compiler.base.input.include" valueType="includePath">
-									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/include&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/lib&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/arch/core/ppc/platform/ls2085a_aiop&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/lib&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/drivers/dplib/netf/ip&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../tests/aiop_core_lib&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/include/kernel&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/arch/core/ppc/platform&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/arch/core/ppc/include&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/arch/core/ppc/platform/ls2085a_aiop&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/arch/soc_db&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../build/build_flags&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/arch&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/kernel&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/kernel/inc&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/arch/platform/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/arch/platform/ls2085a&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/arch/core/ppc/&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/arch/core/ppc/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/drivers/&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/drivers/accel&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/drivers/accel/fdma/01_01&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/drivers/accel/table/01_01&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/drivers/dplib&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/drivers/dplib/arch/accel&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../build/aiop_sim/build_flags&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/include/common&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/include/dplib&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/include/net&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/include/arch&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/drivers/dplib/dpni&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/drivers/mc/include&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/drivers/dplib/netf/l4&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/drivers/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/drivers/netf&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/drivers/netf/general/frame_operations/01_01&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/drivers/netf/ip&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/drivers/netf/l4&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/drivers/netf/l4/gro/00_01&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/drivers/sec&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/include/common&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/include/drivers&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/include/drivers/accel&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/include/drivers/accel/fdma/01_01&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/include/drivers/accel/table/01_01&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/include/drivers/ldpaa&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/include/drivers/netf&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/include/drivers/netf/gro/00_01&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/include/drivers/netf/general/frame_operations/01_01&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/include/kernel&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/include/lib&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/include/arch/ls2085_aiop&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/drivers/dplib/arch/flib&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/drivers/dplib/arch&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/drivers/dpmng/controllers/aiop&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/drivers/dplib/include&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/kernel&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/kernel/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/lib&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/lib/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../tests/roc_process_packet&quot;"/>
 								</option>
 								<option id="com.freescale.ppc.toolchain.compiler.base.debugging.c.1930038633" name="Compile Only, Do Not Link" superClass="com.freescale.ppc.toolchain.compiler.base.debugging.c" value="true" valueType="boolean"/>
 								<option id="com.freescale.ppc.toolchain.compiler.base.warnings.extended.1206171520" name="Extended Error Checking" superClass="com.freescale.ppc.toolchain.compiler.base.warnings.extended" value="true" valueType="boolean"/>
