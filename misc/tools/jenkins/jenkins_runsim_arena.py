@@ -62,7 +62,7 @@ if __name__ == "__main__":
 	g_order_packets_flag = False
 	finished_successfully = False
 	pcap = 'NULL'
-
+	device =''
 	sim_init_params = ''
 	sys_test = ''
 
@@ -74,11 +74,19 @@ if __name__ == "__main__":
 		sim_init_params = str(sys.argv[1])
 		sys_test = str(sys.argv[2])
 
+	if "ls2085a" in str(sim_init_params):
+		device = "ls2085aiss"
+	elif "ls1088a" in str(sim_init_params):
+		device = "ls1088aiss"
+	else:
+		print "device is not supported"
+		exit_script(runsim,1)
+
 	print "Run sim with the following cfg files:"
 	print sys_test
 	print sim_init_params
 
-	runsim = Popen(["./runsim","-t","-d","ls2085aiss","-nc","0","-pnc","00000000_00000000_00000000__10__00000000_00000000","-imodel","ls_sim_init_file="+str(sim_init_params), "-smodel","ls_sim_config_file="+str(sys_test),"-noprog"], stdout=PIPE, bufsize=1, close_fds=ON_POSIX)
+	runsim = Popen(["./runsim","-t","-d",str(device),"-nc","0","-pnc","00000000_00000000_00000000__10__00000000_00000000","-imodel","ls_sim_init_file="+str(sim_init_params), "-smodel","ls_sim_config_file="+str(sys_test),"-noprog"], stdout=PIPE, bufsize=1, close_fds=ON_POSIX)
 	q = Queue()
 	t = Thread(target=enqueue_output, args=(runsim.stdout, q))
 	t.daemon = True # thread dies with the program
