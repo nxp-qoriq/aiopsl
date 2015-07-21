@@ -70,9 +70,9 @@ if __name__ == "__main__":
 		print "Using old configurations for ls2085a"
 		sim_init_params = "jenkins_ls2085a_sim_init_params.cfg"
 		sys_test = "jenkins_ls2085a_sys_test.cfg"
-
-	sim_init_params = str(sys.argv[1])
-	sys_test = str(sys.argv[2])
+	else:
+		sim_init_params = str(sys.argv[1])
+		sys_test = str(sys.argv[2])
 
 	print "Run sim with the following cfg files:"
 	print sys_test
