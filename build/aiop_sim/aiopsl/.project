@@ -355,19 +355,9 @@
 			<locationURI>virtual:/virtual</locationURI>
 		</link>
 		<link>
-			<name>aiop_sl/drivers/accel/keygen.c</name>
-			<type>1</type>
-			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/accel/keygen.c</locationURI>
-		</link>
-		<link>
-			<name>aiop_sl/drivers/accel/keygen.h</name>
-			<type>1</type>
-			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/accel/keygen.h</locationURI>
-		</link>
-		<link>
-			<name>aiop_sl/drivers/accel/keygen_inline.h</name>
-			<type>1</type>
-			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/accel/keygen_inline.h</locationURI>
+			<name>aiop_sl/drivers/accel/keygen</name>
+			<type>2</type>
+			<locationURI>virtual:/virtual</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/drivers/accel/osm.c</name>
@@ -385,19 +375,9 @@
 			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/accel/osm_inline.h</locationURI>
 		</link>
 		<link>
-			<name>aiop_sl/drivers/accel/parser.c</name>
-			<type>1</type>
-			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/accel/parser.c</locationURI>
-		</link>
-		<link>
-			<name>aiop_sl/drivers/accel/parser.h</name>
-			<type>1</type>
-			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/accel/parser.h</locationURI>
-		</link>
-		<link>
-			<name>aiop_sl/drivers/accel/parser_inline.h</name>
-			<type>1</type>
-			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/accel/parser_inline.h</locationURI>
+			<name>aiop_sl/drivers/accel/parser</name>
+			<type>2</type>
+			<locationURI>virtual:/virtual</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/drivers/accel/ste.c</name>
@@ -1285,6 +1265,36 @@
 			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/accel/fdma/01_01/fdma_inline.h</locationURI>
 		</link>
 		<link>
+			<name>aiop_sl/drivers/accel/keygen/keygen.c</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/accel/keygen/01_01/keygen.c</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/drivers/accel/keygen/keygen.h</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/accel/keygen/01_01/keygen.h</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/drivers/accel/keygen/keygen_inline.h</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/accel/keygen/01_01/keygen_inline.h</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/drivers/accel/parser/parser.c</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/accel/parser/01_01/parser.c</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/drivers/accel/parser/parser.h</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/accel/parser/01_01/parser.h</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/drivers/accel/parser/parser_inline.h</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/accel/parser/01_01/parser_inline.h</locationURI>
+		</link>
+		<link>
 			<name>aiop_sl/drivers/accel/table/table.c</name>
 			<type>1</type>
 			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/accel/table/01_01/table.c</locationURI>
@@ -1390,14 +1400,9 @@
 			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/netf/ip/ip.h</locationURI>
 		</link>
 		<link>
-			<name>aiop_sl/drivers/netf/ip/ipf.c</name>
-			<type>1</type>
-			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/netf/ip/ipf.c</locationURI>
-		</link>
-		<link>
-			<name>aiop_sl/drivers/netf/ip/ipf.h</name>
-			<type>1</type>
-			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/netf/ip/ipf.h</locationURI>
+			<name>aiop_sl/drivers/netf/ip/ipf</name>
+			<type>2</type>
+			<locationURI>virtual:/virtual</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/drivers/netf/ip/ipr.c</name>
@@ -1607,7 +1612,7 @@
 		<link>
 			<name>aiop_sl/include/drivers/accel/fsl_keygen.h</name>
 			<type>1</type>
-			<locationURI>PARENT-3-PROJECT_LOC/src/include/drivers/accel/fsl_keygen.h</locationURI>
+			<locationURI>PARENT-3-PROJECT_LOC/src/include/drivers/accel/keygen/01_01/fsl_keygen.h</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/include/drivers/accel/fsl_osm.h</name>
@@ -1617,7 +1622,7 @@
 		<link>
 			<name>aiop_sl/include/drivers/accel/fsl_parser.h</name>
 			<type>1</type>
-			<locationURI>PARENT-3-PROJECT_LOC/src/include/drivers/accel/fsl_parser.h</locationURI>
+			<locationURI>PARENT-3-PROJECT_LOC/src/include/drivers/accel/parser/01_01/fsl_parser.h</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/include/drivers/accel/fsl_ste.h</name>
@@ -1667,7 +1672,7 @@
 		<link>
 			<name>aiop_sl/include/drivers/netf/fsl_ipf.h</name>
 			<type>1</type>
-			<locationURI>PARENT-3-PROJECT_LOC/src/include/drivers/netf/fsl_ipf.h</locationURI>
+			<locationURI>PARENT-3-PROJECT_LOC/src/include/drivers/netf/ipf/00_01/fsl_ipf.h</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/include/drivers/netf/fsl_ipr.h</name>
@@ -1743,6 +1748,16 @@
 			<name>aiop_sl/drivers/netf/general/frame_operations/frame_operations.c</name>
 			<type>1</type>
 			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/netf/general/frame_operations/01_01/frame_operations.c</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/drivers/netf/ip/ipf/ipf.c</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/netf/ip/ipf/00_01/ipf.c</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/drivers/netf/ip/ipf/ipf.h</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/netf/ip/ipf/00_01/ipf.h</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/drivers/netf/l4/gro/gro.c</name>

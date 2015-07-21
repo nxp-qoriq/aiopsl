@@ -160,6 +160,8 @@
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../src/drivers/&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../src/drivers/accel&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../src/drivers/accel/fdma/01_01&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../src/drivers/accel/keygen/01_01&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../src/drivers/accel/parser/01_01&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../src/drivers/accel/table/01_01&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../src/drivers/dplib/dpni&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../src/drivers/dplib/dprc&quot;"/>
@@ -169,6 +171,7 @@
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../src/drivers/netf/ip&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../src/drivers/netf/l4&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../src/drivers/netf/l4/gro/00_01&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../src/drivers/netf/ip/ipf/00_01&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../src/drivers/sec&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../src/drivers/sec/rta&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../src/drivers/sec/desc&quot;"/>
@@ -179,10 +182,13 @@
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../src/include/drivers&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../src/include/drivers/accel&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../src/include/drivers/accel/fdma/01_01&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../src/include/drivers/accel/keygen/01_01&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../src/include/drivers/accel/parser/01_01&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../src/include/drivers/accel/table/01_01&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../src/include/drivers/ldpaa&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../src/include/drivers/netf&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../src/include/drivers/netf/gro/00_01&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../src/include/drivers/netf/ipf/00_01&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../src/include/drivers/netf/general/frame_operations/01_01&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../src/include/kernel&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../src/include/lib&quot;"/>
@@ -242,7 +248,9 @@
 						</toolChain>
 					</folderInfo>
 					<fileInfo id="com.freescale.ppc.debug.toolchain.configuration.508235731.1652679350" name="table.c" rcbsApplicability="disable" resourcePath="aiop_sl/drivers/accel/table/table.c" toolsToInvoke="com.freescale.ppc.toolchain.compiler.1602312255.811845972">
-						<tool id="com.freescale.ppc.toolchain.compiler.1602312255.811845972" name="Compiler" superClass="com.freescale.ppc.toolchain.compiler.1602312255"/>
+						<tool id="com.freescale.ppc.toolchain.compiler.1602312255.811845972" name="Compiler" superClass="com.freescale.ppc.toolchain.compiler.1602312255">
+							<inputType id="com.freescale.ppc.toolchain.compiler.base.input.1029885171" name="com.freescale.ppc.toolchain.cf Compiler Input" superClass="com.freescale.ppc.toolchain.compiler.base.input"/>
+						</tool>
 						<tool customBuildStep="true" id="org.eclipse.cdt.managedbuilder.ui.rcbs.597940637" name="Resource Custom Build Step">
 							<inputType id="org.eclipse.cdt.managedbuilder.ui.rcbs.inputtype.811708774" name="Resource Custom Build Step Input Type">
 								<additionalInput kind="additionalinputdependency" paths=""/>
