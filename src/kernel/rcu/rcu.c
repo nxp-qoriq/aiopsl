@@ -104,11 +104,16 @@ int rcu_default_early_init()
 	int err;
 
 	/* Support no dp ddr */
-	err = fsl_mem_exists(MEM_PART_SYSTEM_DDR);
-	if (err == 0)
-		g_rcu.mem_heap = MEM_PART_SYSTEM_DDR;
-	else
+	if (fsl_mem_exists(MEM_PART_DP_DDR)){
 		g_rcu.mem_heap = MEM_PART_DP_DDR;
+	}
+	else if(fsl_mem_exists(MEM_PART_SYSTEM_DDR)){
+		g_rcu.mem_heap = MEM_PART_SYSTEM_DDR;
+	}
+	else{
+		pr_err("DDR memory not found\n");
+		return -ENOMEM;
+	}
 
 	pr_info("RCU module reserves committed %d \n", RCU_DEFAULT_COMMITTED);
 	err = slab_register_context_buffer_requirements(RCU_DEFAULT_COMMITTED,
