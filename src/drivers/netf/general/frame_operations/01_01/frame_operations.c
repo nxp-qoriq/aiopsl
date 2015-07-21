@@ -40,7 +40,7 @@
 #include "fsl_net.h"
 #include "net.h"
 
-#ifndef REV2  /* WA for TKT254401 */
+	/* WA for TKT254401 */
 extern __PROFILE_SRAM struct storage_profile 
 		storage_profile[SP_NUM_OF_STORAGE_PROFILES];
 
@@ -48,7 +48,7 @@ extern __PROFILE_SRAM struct storage_profile
 #define SP_BP_ID_MASK		0x3FFF
 #define SP_PBS_MASK		0xFFC0
 #define FRAME_INITIAL_SIZE	1
-#endif
+	/* end of WA for TKT254401 */
 
 int create_frame(
 		struct ldpaa_fd *fd,
@@ -60,13 +60,9 @@ int create_frame(
 #ifdef CHECK_ALIGNMENT 	
 	DEBUG_ALIGN("frame_operations.c",(uint32_t)fd, ALIGNMENT_32B);
 #endif
-#ifdef REV2 /* WA for TKT254401 */	
-	struct fdma_present_frame_params present_frame_params;
-	struct fdma_insert_segment_data_params insert_params;
-#endif
 	struct parse_result *pr = (struct parse_result *)HWC_PARSE_RES_ADDRESS;
 	int32_t status;
-#ifndef REV2 /* WA for TKT254401 */
+	/* WA for TKT254401 */
 	uint64_t fd_addr;
 	uint16_t icid, bpid, offset;
 	uint32_t flags;
@@ -81,8 +77,8 @@ int create_frame(
 	status = fdma_acquire_buffer(icid, flags, bpid, &fd_addr);
 	if (status)
 		return status;
+	/* end of WA for TKT254401 */
 	
-#endif	
 	/* *fd = {0};*/
 	fd->addr = 0;
 	fd->control = 0;
@@ -90,22 +86,21 @@ int create_frame(
 	fd->frc = 0;
 	fd->length = 0;
 	fd->offset = 0;
-#ifndef REV2  /* WA for TKT254401 */	
+	/* WA for TKT254401 */	
 	LDPAA_FD_SET_ADDR(fd, fd_addr);
 	LDPAA_FD_SET_LENGTH(fd, FRAME_INITIAL_SIZE);
 	LDPAA_FD_SET_BPID(fd, bpid);
 	offset = (LH_SWAP(0, &(sp->pbs1)) & SP_PBS_MASK) - FRAME_INITIAL_SIZE;
 	LDPAA_FD_SET_OFFSET(fd, offset);
-#endif	
+	/* end of WA for TKT254401 */
 
 	if ((uint32_t)fd == HWC_FD_ADDRESS) {
 		PRC_SET_ASA_SIZE(0);
 		PRC_SET_PTA_ADDRESS(PRC_PTA_NOT_LOADED_ADDRESS);
-#ifdef REV2  /* WA for TKT254401 */		
-		PRC_SET_SEGMENT_LENGTH(0);
-#else
+		/* WA for TKT254401 */
 		PRC_SET_SEGMENT_LENGTH(FRAME_INITIAL_SIZE);
-#endif
+		/* end of WA for TKT254401 */
+		
 		PRC_SET_SEGMENT_OFFSET(0);
 		PRC_SET_SEGMENT_ADDRESS((uint32_t)TLS_SECTION_END_ADDR +
 						DEFAULT_SEGMENT_HEADROOM_SIZE);
@@ -120,16 +115,14 @@ int create_frame(
 			PRC_SET_SEGMENT_LENGTH(DEFAULT_SEGMENT_SIZE);
 		else
 			PRC_SET_SEGMENT_LENGTH(size);
-#ifdef REV2  /* WA for TKT254401 */
-		fdma_insert_default_segment_data(0, data, size,
-				FDMA_REPLACE_SA_REPRESENT_BIT);
-#else		
+		/* WA for TKT254401 */
 		ws_address_rs = (void *) PRC_GET_SEGMENT_ADDRESS();
 		seg_size_rs = PRC_GET_SEGMENT_LENGTH();
 		fdma_replace_default_segment_data(0, FRAME_INITIAL_SIZE, data, size, 
 				ws_address_rs, seg_size_rs, 
 				FDMA_REPLACE_SA_REPRESENT_BIT);
-#endif
+		/* end of WA for TKT254401 */
+		
 		/* Re-run parser */
 		status = parse_result_generate_default(0);
 		/* Mark running sum as invalid */
@@ -137,30 +130,9 @@ int create_frame(
 		*frame_handle = PRC_GET_FRAME_HANDLE();
 		return status;
 	} else {
-#ifdef REV2  /* WA for TKT254401 */
-		present_frame_params.fd_src = (void *)fd;
-		present_frame_params.asa_size = 0;
-		present_frame_params.flags = FDMA_INIT_NO_FLAGS;
-		present_frame_params.pta_dst = (void *)
-				PRC_PTA_NOT_LOADED_ADDRESS;
-		present_frame_params.present_size = 0;
-		present_frame_params.seg_offset = 0;
-
-		fdma_present_frame(&present_frame_params);
-
-		insert_params.flags = FDMA_REPLACE_SA_CLOSE_BIT;
-		insert_params.frame_handle = present_frame_params.frame_handle;
-		insert_params.from_ws_src = data;
-		insert_params.insert_size = size;
-		insert_params.seg_handle = present_frame_params.seg_handle;
-		insert_params.to_offset = 0;
-
-		fdma_insert_segment_data(&insert_params);
-
-		*frame_handle = present_frame_params.frame_handle;
-
-#endif
+		/* WA for TKT254401 */
 		return SUCCESS;
+		/* end of WA for TKT254401 */
 	}
 }
 
@@ -170,16 +142,11 @@ int create_fd(
 		uint16_t size,
 		uint8_t spid)
 {
-#ifdef REV2 /* WA for TKT254401 */	
-	struct fdma_present_frame_params present_frame_params;
-	struct fdma_insert_segment_data_params insert_params;
-	struct fdma_amq amq;
-#endif
 #ifdef CHECK_ALIGNMENT 	
 	DEBUG_ALIGN("frame_operations.c",(uint32_t)fd, ALIGNMENT_32B);
 #endif
 	
-#ifndef REV2 /* WA for TKT254401 */
+	/* WA for TKT254401 */
 	int32_t status;
 	uint64_t fd_addr;
 	uint16_t icid, bpid, offset;
@@ -194,8 +161,7 @@ int create_fd(
 	status = fdma_acquire_buffer(icid, flags, bpid, &fd_addr);
 	if (status)
 		return status;
-	
-#endif	
+	/* end of WA for TKT254401 */
 
 	/* *fd = {0};*/
 	fd->addr = 0;
@@ -204,61 +170,34 @@ int create_fd(
 	fd->frc = 0;
 	fd->length = 0;
 	fd->offset = 0;
-#ifndef REV2  /* WA for TKT254401 */	
+	/* WA for TKT254401 */	
 	LDPAA_FD_SET_ADDR(fd, fd_addr);
 	LDPAA_FD_SET_LENGTH(fd, FRAME_INITIAL_SIZE);
 	LDPAA_FD_SET_BPID(fd, bpid);
 	offset = (LH_SWAP(0, &(sp->pbs1)) & SP_PBS_MASK) - FRAME_INITIAL_SIZE;
 	LDPAA_FD_SET_OFFSET(fd, offset);
-#endif	
+	/* end of WA for TKT254401 */
 
 	if ((uint32_t)fd == HWC_FD_ADDRESS) {
 		PRC_SET_ASA_SIZE(0);
 		PRC_SET_PTA_ADDRESS(PRC_PTA_NOT_LOADED_ADDRESS);
-#ifdef REV2  /* WA for TKT254401 */		
-		PRC_SET_SEGMENT_LENGTH(0);
-#else
+		/* WA for TKT254401 */
 		PRC_SET_SEGMENT_LENGTH(FRAME_INITIAL_SIZE);
-#endif
+		/* end of WA for TKT254401 */
 		PRC_SET_SEGMENT_OFFSET(0);
 		PRC_RESET_NDS_BIT();
 		fdma_present_default_frame();
 
-#ifdef REV2  /* WA for TKT254401 */
-		fdma_insert_default_segment_data(0, data, size,
-				FDMA_REPLACE_SA_CLOSE_BIT);
-#else		
+		/* WA for TKT254401 */	
 		fdma_replace_default_segment_data(0, FRAME_INITIAL_SIZE, data, 
 				size, 0, 0, FDMA_REPLACE_SA_CLOSE_BIT);
-#endif
+		/* end of WA for TKT254401 */
 
 		return fdma_store_default_frame_data();
 	} else {
-#ifdef REV2  /* WA for TKT254401 */
-		present_frame_params.fd_src = (void *)fd;
-		present_frame_params.asa_size = 0;
-		present_frame_params.flags = FDMA_INIT_NO_FLAGS;
-		present_frame_params.pta_dst = (void *)
-				PRC_PTA_NOT_LOADED_ADDRESS;
-		present_frame_params.present_size = 0;
-		present_frame_params.seg_offset = 0;
-
-		fdma_present_frame(&present_frame_params);
-
-		insert_params.flags = FDMA_REPLACE_SA_CLOSE_BIT;
-		insert_params.frame_handle = present_frame_params.frame_handle;
-		insert_params.from_ws_src = data;
-		insert_params.insert_size = size;
-		insert_params.seg_handle = present_frame_params.seg_handle;
-		insert_params.to_offset = 0;
-
-		fdma_insert_segment_data(&insert_params);
-
-		return fdma_store_frame_data(present_frame_params.frame_handle,
-				spid, &amq);
-#else
+		/* WA for TKT254401 */
 		return SUCCESS;
-#endif
+		/* end of WA for TKT254401 */
 	}
 }
 
