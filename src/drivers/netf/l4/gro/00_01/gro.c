@@ -332,7 +332,7 @@ int tcp_gro_add_seg_to_aggregation(
 	/* Report to the user that due to a concatenation failure (due to buffer
 	 * pool depletion) the aggregation was discarded. */
 	if (sr_status != SUCCESS) {
-#ifndef REV2	/* WA for TKT240996 */
+		/* WA for TKT240996 */
 		fdma_discard_frame(concat_params.frame1, FDMA_DIS_NO_FLAGS);
 		/* update statistics */
 		ste_inc_counter(gro_ctx->stats_addr +
@@ -345,49 +345,9 @@ int tcp_gro_add_seg_to_aggregation(
 		gro_ctx->timestamp = 0;
 		/* Clear gross running sum in parse results */
 		pr->gross_running_sum = 0;
-		return TCP_GRO_AGG_DISCARDED;
-#else
-		struct fdma_split_frame_params split_params;
-		split_params.flags = FDMA_SPLIT_NO_FLAGS;
-		split_params.fd_dst = (struct ldpaa_fd *)HWC_FD_ADDRESS;
-		/* since concatenate does not update the FD's length, the
-		 * following size is the aggregation size before the
-		 * concatenation. */
-		split_params.split_size_sf =
-			(uint16_t)(LDPAA_FD_GET_LENGTH(&(gro_ctx->agg_fd)));
-		split_params.source_frame_handle =
-				(uint8_t)(concat_params.frame1);
-		fdma_split_frame(&split_params);
-		/* discard the single frame, which is the second part of the
-		 * split. */
-		fdma_discard_frame(concat_params.frame1, FDMA_DIS_NO_FLAGS);
-		sr_status = fdma_store_default_frame_data();
-		if (sr_status != SUCCESS) {
-			/* discard the aggregation, which is the first part of
-			 * the split. The reason of discarding in this case is
-			 * since the frame cannot be stored and therefore cannot
-			 * be further processed by upper SW. */
-			fdma_discard_default_frame(FDMA_DIS_NO_FLAGS);
-			/* update statistics */
-			ste_inc_counter(gro_ctx->stats_addr +
-				GRO_STAT_AGG_DISCARDED_SEG_NUM_CNTR_OFFSET,
-				(uint32_t)(gro_ctx->metadata.seg_num + 1),
-				STE_MODE_SATURATE | STE_MODE_32_BIT_CNTR_SIZE);
-			/* zero gro context fields */
-			gro_ctx->metadata.seg_num = 0;
-			gro_ctx->internal_flags = 0;
-			gro_ctx->timestamp = 0;
-			/* Clear gross running sum in parse results */
-			pr->gross_running_sum = 0;
-			return TCP_GRO_AGG_DISCARDED;
-		} else {
-			ste_inc_counter(gro_ctx->stats_addr +
-				GRO_STAT_AGG_DISCARDED_SEG_NUM_CNTR_OFFSET, 1,
-				STE_MODE_SATURATE | STE_MODE_32_BIT_CNTR_SIZE);
-			gro_ctx->agg_fd = *((struct ldpaa_fd *)HWC_FD_ADDRESS);
-			return TCP_GRO_FLUSH_REQUIRED | TCP_GRO_SEG_DISCARDED;
-		}
-#endif
+		return TCP_GRO_AGG_DISCARDED;	
+		/* end of WA for TKT240996 */
+		
 	}
 	/* update gro context fields */
 	gro_ctx->next_seq = gro_ctx->next_seq + seg_size - headers_size;
@@ -461,7 +421,7 @@ int tcp_gro_add_seg_and_close_aggregation(
 	 * pool depletion) the aggregation was discarded. */
 	status = SUCCESS;
 	if (sr_status != SUCCESS) {
-#ifndef REV2	/* WA for TKT240996 */
+		/* WA for TKT240996 */
 		fdma_discard_frame(concat_params.frame1, FDMA_DIS_NO_FLAGS);
 		/* update statistics */
 		ste_inc_counter(gro_ctx->stats_addr +
@@ -475,32 +435,7 @@ int tcp_gro_add_seg_and_close_aggregation(
 		/* Clear gross running sum in parse results */
 		pr->gross_running_sum = 0;
 		return TCP_GRO_AGG_DISCARDED;
-#else
-		struct fdma_split_frame_params split_params;
-		split_params.flags =
-			FDMA_SPLIT_PSA_PRESENT_BIT | FDMA_CFA_COPY_BIT;
-		split_params.fd_dst = (struct ldpaa_fd *)HWC_FD_ADDRESS;
-		/* since concatenate does not update the FD's length, the
-		 * following size is the aggregation size before the
-		 * concatenation. */
-		split_params.split_size_sf =
-			(uint16_t)(LDPAA_FD_GET_LENGTH(&(gro_ctx->agg_fd)));
-		split_params.source_frame_handle =
-				(uint8_t)(concat_params.frame1);
-		split_params.seg_dst = (void *)PRC_GET_SEGMENT_ADDRESS();
-		split_params.seg_offset = PRC_GET_SEGMENT_OFFSET();
-		split_params.present_size = PRC_GET_SEGMENT_LENGTH();
-		fdma_split_frame(&split_params);
-		/* discard the single frame, which is the second part of the
-		 * split. */
-		fdma_discard_frame(concat_params.frame1, FDMA_DIS_NO_FLAGS);
-		ste_inc_counter(gro_ctx->stats_addr +
-			GRO_STAT_AGG_DISCARDED_SEG_NUM_CNTR_OFFSET, 1,
-			STE_MODE_SATURATE | STE_MODE_32_BIT_CNTR_SIZE);
-		gro_ctx->metadata.seg_num--;
-		status = TCP_GRO_SEG_DISCARDED;
-		/* aggregation continue without the single segment. */
-#endif
+		/* end of WA for TKT240996 */
 	}
 	/* store aggregated frame*/
 	/*sr_status = fdma_store_frame_data((uint8_t)(concat_params.frame1),
