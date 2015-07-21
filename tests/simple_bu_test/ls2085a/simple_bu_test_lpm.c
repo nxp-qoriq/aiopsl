@@ -79,7 +79,6 @@ int simple_bu_lpm_test(void)
 {
 	int        err  = 0;
 	uint8_t prpid;
-	int i;
 
 
 	fsl_os_print("Running simple bring-up test\n");
@@ -118,7 +117,6 @@ int simple_bu_lpm_test(void)
 		uint16_t icid, flags = 0;
 		uint8_t tmp;
 
-		struct kcr_builder kb __attribute__((aligned(16)));
 		uint8_t constant = 0x12;
 		uint8_t num = 1;
 		uint8_t keyid;
@@ -147,11 +145,11 @@ int simple_bu_lpm_test(void)
 		table_params.key_size = TABLE_KEY_LPM_IPV4_SIZE;
 		
 		/* Table Creation */
-		//err = table_create(TABLE_ACCEL_ID_CTLU, &table_params,&table_id);
-		/*if (err)
+		err = table_create(TABLE_ACCEL_ID_CTLU, &table_params,&table_id);
+		if (err)
 			fsl_os_print("ERROR: table_create failed with err = %x!\n", err);
 
-		fsl_os_print("table_create Done with table_id %d!\n", table_id);*/
+		fsl_os_print("table_create Done with table_id %d!\n", table_id);
 
 		/* Initialize a new table rule */
 		rule1.key_desc.lpm_ipv4.exact_match = 0x00004d03;

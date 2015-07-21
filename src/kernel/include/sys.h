@@ -53,7 +53,6 @@ typedef struct t_system {
 	struct initial_mem_mng	    boot_mem_mng;
 	struct t_mem_mng            mem_mng;
 	uint8_t                     mem_part_mng_lock;
-	uint8_t                     mem_mng_lock;
 
 	/* Console variables */
 	fsl_handle_t                console;
