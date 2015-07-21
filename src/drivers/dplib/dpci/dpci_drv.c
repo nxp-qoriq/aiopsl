@@ -118,7 +118,7 @@ struct dpci_mng_tbl g_dpci_tbl = {0};
 
 __COLD_CODE static void dpci_tbl_dump()
 {
-#ifdef DEBUG
+#ifdef SL_DEBUG
 	int i;
 	int num_entries = (((g_dpci_tbl.max - g_dpci_tbl.count) >= 2) ? \
 		(g_dpci_tbl.count + 2) : \
