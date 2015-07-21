@@ -50,6 +50,8 @@ struct rcu g_rcu = {0,		/* list_head */
 
 uint8_t g_sl_tmi_id = 0xff;
 
+__TASK uint8_t g_rcu_unlock = 0; 
+
 int rcu_init();
 void rcu_free();
 void rcu_tman_cb(uint64_t opaque1, uint16_t opaque2);
@@ -100,11 +102,10 @@ int rcu_early_init(uint16_t delay, uint32_t committed, uint32_t max)
 int rcu_default_early_init()
 {
 	int err;
-	uint64_t paddr = 0;
 
 	/* Support no dp ddr */
-	err = fsl_os_get_mem(64, MEM_PART_DP_DDR, 8, &paddr);
-	if (err || (paddr == 0))
+	err = fsl_mem_exists(MEM_PART_SYSTEM_DDR);
+	if (err == 0)
 		g_rcu.mem_heap = MEM_PART_SYSTEM_DDR;
 	else
 		g_rcu.mem_heap = MEM_PART_DP_DDR;

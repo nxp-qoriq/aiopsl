@@ -79,7 +79,6 @@ int simple_bu_hagit_test(void)
 {
 	int        err  = 0;
 	uint8_t prpid;
-	int i;
 
 
 	fsl_os_print("Running simple bring-up test\n");

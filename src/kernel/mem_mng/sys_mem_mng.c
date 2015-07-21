@@ -350,10 +350,8 @@ void sys_print_mem_partition_debug_info(int partition_id, int report_leaks)
 
 
 #ifdef AIOP
-    sys.mem_mng_lock = 0;
     sys.mem_part_mng_lock = 0;
 #else /* not AIOP */
-    spin_lock_init(&(sys.mem_mng_lock));
     spin_lock_init(&(sys.mem_part_mng_lock));
 #endif /* AIOP */
 

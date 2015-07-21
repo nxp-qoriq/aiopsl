@@ -1,3 +1,0 @@
-// memory config file for LS2085AFM_AIOP
-reservedchar 0x21	// display '!' for invalid reads
-
