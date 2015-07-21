@@ -70,28 +70,25 @@ Simulator Execution flow
 1. Import the MC and AIOP projects into CodeWarrior:
    mc/build/mc_sim/mc_app/.project
    aiopsl/build/aiop_sim/apps/app_process_packet/.project
-2. Add "#define SIMULATOR" inside build_flags.h and build both projects in CW:
-   aiopsl/build/aiop_sim/build_flags/build_flags.h
-   mc/build/aiop_sim/build_flags/build_flags.h 
-3. Copy the resulting ELF file from the build project folder(aiop_app.elf)
+2. Copy the resulting ELF file from the build project folder(aiop_app.elf)
    to the simulator folder (same location as cfg files).
-4. Run the simulator:
+3. Run the simulator:
    ./ccssim2 -port 42333 -imodel "ls_sim_init_file=ls2085a_sim_init_params.cfg" -smodel "ls_sim_config_file=ls2085a_sys_test.cfg"   
-5. Launch mc_app using AFM connection.
+4. Launch mc_app using AFM connection.
    Don't forget to update simulator server IP and port in debug configuration - 42333.
-6. Attach app_process_packet (make sure to un-mark initialization files).
-7. After MC reaches main(), run tio console:
+5. Attach app_process_packet (make sure to un-mark initialization files).
+6. After MC reaches main(), run tio console:
    ./bin/tio_console -hub localhost:42975 -ser duart2_1 duart2_0
-8. Run mc_app.
-9. Run “tio capture”:
+7. Run mc_app.
+8. Run “tio capture”:
    ./fm_tio_capture -hub localhost:42975 -ser w0_m1 -verbose_level 2
    Here you'll be able to capture sent and received packets.
-10. Run “tio inject”:
+9 Run “tio inject”:
    ./fm_tio_inject -hub localhost:42975 -ser w0_m1 -file eth_ipv4_udp.pcap -verbose_level 2
    This will send packets to the AIOP.
-11. Set break point inside app_process_packet_flow0() and push "Resume / Multi core Resume" button to run and see that
+10 Set break point inside app_process_packet() and push "Resume / Multi core Resume" button to run and see that
     it's activated on each packet.
-12. The packet will also be captured by the tio_capture
+11 The packet will also be captured by the tio_capture
 
 ===========================================
 Possible modifications:
