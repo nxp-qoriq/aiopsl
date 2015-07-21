@@ -643,6 +643,8 @@ inline int fdma_store_and_enqueue_default_frame_qd(
 	*((uint32_t *)(HWC_ACC_IN_ADDRESS3)) = arg3;
 	/*__stqw(arg1, arg2, arg3, 0, HWC_ACC_IN_ADDRESS, 0);*/
 
+	FDMA_ENQUEUE_RCU_CHECK_UNLOCK_CANCEL(flags);	
+	
 	/* call FDMA Accelerator */
 	if ((__e_hwacceli_(FODMA_ACCEL_ID)) == FDMA_SUCCESS)
 		return SUCCESS;
@@ -667,6 +669,8 @@ inline void fdma_terminate_task(void)
 	/* prepare command parameters */
 	arg1 = FDMA_TERM_TASK_CMD_ARG1();
 	*((uint32_t *)(HWC_ACC_IN_ADDRESS)) = arg1;
+	
+	RCU_CHECK_UNLOCK_CANCEL;
 	/* call FDMA Accelerator */
 	__e_hwacceli_(FODMA_ACCEL_ID);
 }

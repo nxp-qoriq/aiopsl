@@ -554,6 +554,8 @@ int fdma_store_and_enqueue_default_frame_fqid(
 	arg1 = FDMA_ENQUEUE_WF_ARG1(spid, PRC_GET_HANDLES(), flags);
 	/* store command parameters */
 	__stdw(arg1, fqid, HWC_ACC_IN_ADDRESS, 0);
+	
+	FDMA_ENQUEUE_RCU_CHECK_UNLOCK_CANCEL(flags);
 	/* call FDMA Accelerator */
 	if ((__e_hwacceli_(FODMA_ACCEL_ID)) == FDMA_SUCCESS)
 		return SUCCESS;
@@ -587,6 +589,8 @@ int fdma_store_and_enqueue_frame_fqid(
 	arg1 = FDMA_ENQUEUE_WF_EXP_ARG1(spid, frame_handle, flags);
 	/* store command parameters */
 	__stdw(arg1, fqid, HWC_ACC_IN_ADDRESS, 0);
+	
+	FDMA_ENQUEUE_RCU_CHECK_UNLOCK_CANCEL(flags);
 	/* call FDMA Accelerator */
 	if ((__e_hwacceli_(FODMA_ACCEL_ID)) == FDMA_SUCCESS)
 		return SUCCESS;
@@ -623,7 +627,7 @@ int fdma_store_and_enqueue_frame_qd(
 	__stdw(arg1, arg2, HWC_ACC_IN_ADDRESS, 0);
 	*((uint32_t *)(HWC_ACC_IN_ADDRESS3)) = arg3;
 	/*__stqw(arg1, arg2, arg3, 0, HWC_ACC_IN_ADDRESS, 0);*/
-
+	FDMA_ENQUEUE_RCU_CHECK_UNLOCK_CANCEL(flags);
 	/* call FDMA Accelerator */
 	if ((__e_hwacceli_(FODMA_ACCEL_ID)) == FDMA_SUCCESS)
 		return SUCCESS;
@@ -657,6 +661,8 @@ int fdma_enqueue_default_fd_fqid(
 	/* store command parameters */
 	__stdw(arg1, fqid, HWC_ACC_IN_ADDRESS, 0);
 	*((uint32_t *) HWC_ACC_IN_ADDRESS3) = arg3;
+	
+	FDMA_ENQUEUE_RCU_CHECK_UNLOCK_CANCEL(flags);
 	/* call FDMA Accelerator */
 	if ((__e_hwacceli_(FODMA_ACCEL_ID)) == FDMA_SUCCESS)
 		return SUCCESS;
@@ -689,6 +695,8 @@ int fdma_enqueue_fd_fqid(
 	/* store command parameters */
 	__stdw(arg1, fqid, HWC_ACC_IN_ADDRESS, 0);
 	*((uint32_t *) HWC_ACC_IN_ADDRESS3) = arg3;
+	
+	FDMA_ENQUEUE_RCU_CHECK_UNLOCK_CANCEL(flags);
 	/* call FDMA Accelerator */
 	if ((__e_hwacceli_(FODMA_ACCEL_ID)) == FDMA_SUCCESS)
 		return SUCCESS;
@@ -723,6 +731,8 @@ int fdma_enqueue_default_fd_qd(
 	/* store command parameters */
 	__stdw(arg1, arg2, HWC_ACC_IN_ADDRESS, 0);
 	*((uint32_t *) HWC_ACC_IN_ADDRESS3) = arg3;
+	
+	FDMA_ENQUEUE_RCU_CHECK_UNLOCK_CANCEL(flags);
 	/* call FDMA Accelerator */
 	if ((__e_hwacceli_(FODMA_ACCEL_ID)) == FDMA_SUCCESS)
 		return SUCCESS;
@@ -758,6 +768,8 @@ int fdma_enqueue_fd_qd(
 	/* store command parameters */
 	__stdw(arg1, arg2, HWC_ACC_IN_ADDRESS, 0);
 	*((uint32_t *) HWC_ACC_IN_ADDRESS3) = arg3;
+	
+	FDMA_ENQUEUE_RCU_CHECK_UNLOCK_CANCEL(flags);
 	/* call FDMA Accelerator */
 	if ((__e_hwacceli_(FODMA_ACCEL_ID)) == FDMA_SUCCESS)
 		return SUCCESS;
