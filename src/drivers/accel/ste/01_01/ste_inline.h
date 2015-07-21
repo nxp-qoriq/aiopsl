@@ -28,7 +28,7 @@
 @File		ste_inline.h
 
 @Description	This file contains the AIOP SW Statistics inline API 
-		implementation.
+		implementation (01_01).
 
 *//***************************************************************************/
 

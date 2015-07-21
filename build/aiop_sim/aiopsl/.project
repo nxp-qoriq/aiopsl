@@ -380,19 +380,9 @@
 			<locationURI>virtual:/virtual</locationURI>
 		</link>
 		<link>
-			<name>aiop_sl/drivers/accel/ste.c</name>
-			<type>1</type>
-			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/accel/ste.c</locationURI>
-		</link>
-		<link>
-			<name>aiop_sl/drivers/accel/ste.h</name>
-			<type>1</type>
-			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/accel/ste.h</locationURI>
-		</link>
-		<link>
-			<name>aiop_sl/drivers/accel/ste_inline.h</name>
-			<type>1</type>
-			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/accel/ste_inline.h</locationURI>
+			<name>aiop_sl/drivers/accel/ste</name>
+			<type>2</type>
+			<locationURI>virtual:/virtual</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/drivers/accel/system.c</name>
@@ -410,19 +400,9 @@
 			<locationURI>virtual:/virtual</locationURI>
 		</link>
 		<link>
-			<name>aiop_sl/drivers/accel/tman.c</name>
-			<type>1</type>
-			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/accel/tman.c</locationURI>
-		</link>
-		<link>
-			<name>aiop_sl/drivers/accel/tman.h</name>
-			<type>1</type>
-			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/accel/tman.h</locationURI>
-		</link>
-		<link>
-			<name>aiop_sl/drivers/accel/tman_inline.h</name>
-			<type>1</type>
-			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/accel/tman_inline.h</locationURI>
+			<name>aiop_sl/drivers/accel/tman</name>
+			<type>2</type>
+			<locationURI>virtual:/virtual</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/drivers/dplib/dpbp</name>
@@ -1295,6 +1275,21 @@
 			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/accel/parser/01_01/parser_inline.h</locationURI>
 		</link>
 		<link>
+			<name>aiop_sl/drivers/accel/ste/ste.c</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/accel/ste/ste.c</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/drivers/accel/ste/ste.h</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/accel/ste/01_01/ste.h</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/drivers/accel/ste/ste_inline.h</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/accel/ste/01_01/ste_inline.h</locationURI>
+		</link>
+		<link>
 			<name>aiop_sl/drivers/accel/table/table.c</name>
 			<type>1</type>
 			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/accel/table/01_01/table.c</locationURI>
@@ -1313,6 +1308,21 @@
 			<name>aiop_sl/drivers/accel/table/table_rule_inline.h</name>
 			<type>1</type>
 			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/accel/table/01_01/table_rule_inline.h</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/drivers/accel/tman/tman.c</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/accel/tman/01_01/tman.c</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/drivers/accel/tman/tman.h</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/accel/tman/01_01/tman.h</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/drivers/accel/tman/tman_inline.h</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/accel/tman/01_01/tman_inline.h</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/drivers/dplib/dpbp/dpbp.c</name>
@@ -1622,7 +1632,7 @@
 		<link>
 			<name>aiop_sl/include/drivers/accel/fsl_ste.h</name>
 			<type>1</type>
-			<locationURI>PARENT-3-PROJECT_LOC/src/include/drivers/accel/fsl_ste.h</locationURI>
+			<locationURI>PARENT-3-PROJECT_LOC/src/include/drivers/accel/ste/01_01/fsl_ste.h</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/include/drivers/accel/fsl_table.h</name>
@@ -1632,7 +1642,7 @@
 		<link>
 			<name>aiop_sl/include/drivers/accel/fsl_tman.h</name>
 			<type>1</type>
-			<locationURI>PARENT-3-PROJECT_LOC/src/include/drivers/accel/fsl_tman.h</locationURI>
+			<locationURI>PARENT-3-PROJECT_LOC/src/include/drivers/accel/tman/01_01/fsl_tman.h</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/include/drivers/ldpaa/fsl_ldpaa.h</name>

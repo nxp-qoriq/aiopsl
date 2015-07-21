@@ -27,7 +27,7 @@
 /**************************************************************************//**
 @File          fsl_tman.h
 
-@Description   This file contains the AIOP SW TMAN API
+@Description   This file contains the AIOP SW TMAN API (02_01)
 *//***************************************************************************/
 
 #ifndef __FSL_TMAN_H
@@ -102,6 +102,7 @@ typedef void /*__noreturn*/ (*tman_cb_t) (
 
 /** @} end of group TMANReturnStatus */
 
+#include "tman_inline.h"
 
 /**************************************************************************//**
 @Group		TMANDataStructures TMAN Data Structures
@@ -142,11 +143,9 @@ struct tman_tmi_params {
 @{
 *//***************************************************************************/
 
-#ifdef REV2
-/** If set, TMI active timers will be deleted without creating new
+	/** If set, TMI active timers will be deleted without creating new
 	     expiration tasks. */
 #define TMAN_INS_DELETE_MODE_WO_EXPIRATION 0x1011
-#endif
 	/** If set, TMI active timers should be forced into the expiration
 	     queue although their expiration time was not reached yet. */
 #define TMAN_INS_DELETE_MODE_FORCE_EXP 0x1012
@@ -167,12 +166,10 @@ struct tman_tmi_params {
 	/** If set, the timer will be forced into the expiration
 	     queue although its expiration time was not reached yet. */
 #define TMAN_TIMER_DELETE_MODE_FORCE_EXP 0x2002
-#ifdef REV2 /* Errata ERR009228 */
 	/** If set, the timer will be deleted after its next expiration.
 	     Timer Id will be returned to free pool after callback
 	     completion confirmation. */
 #define TMAN_TIMER_DELETE_MODE_WAIT_EXP 0x2003
-#endif
 
 /** @} end of group TMANTimerDeleteModeBits */
 
@@ -200,14 +197,12 @@ struct tman_tmi_params {
 #define TMAN_CREATE_TIMER_MODE_10_MSEC_GRANULARITY	0x00040000
 	/** 1 Sec timer ticks*/
 #define TMAN_CREATE_TIMER_MODE_SEC_GRANULARITY		0x00060000
-#ifdef REV2
 	/** 10 uSec timer ticks*/
 #define TMAN_CREATE_TIMER_MODE_10_USEC_GRANULARITY	0x00010000
 	/** 1 mSec timer ticks*/
 #define TMAN_CREATE_TIMER_MODE_MSEC_GRANULARITY		0x00030000
 	/** 100 mSec timer ticks*/
 #define TMAN_CREATE_TIMER_MODE_100_MSEC_GRANULARITY	0x00050000
-#endif
 
 	/** TMAN Priority. If set, the timer would be treated with higher
 	     accuracy and delivered quicker to the expiration queue at the
@@ -248,8 +243,25 @@ enum e_tman_query_timer {
 
 /** @} end of group TMAN_Flags */
 
+/** \enum e_tman_granularity Defines the TMAN granularity.*/
+enum e_tman_granularity {
+	/** 1 uSec timer ticks*/
+	TMAN_GRANULARITY_USEC = 	0x00000000,
+	/** 10 uSec timer ticks*/
+	TMAN_GRANULARITY_10_USEC = 	0x00010000,
+	/** 100 uSec timer ticks*/
+	TMAN_GRANULARITY_100_USEC =	0x00020000,
+	/** 1 mSec timer ticks*/
+	TMAN_GRANULARITY_MSEC = 	0x00030000,
+	/** 10 mSec timer ticks*/
+	TMAN_GRANULARITY_10_MSEC = 	0x00040000,
+	/** 100 mSec timer ticks*/
+	TMAN_GRANULARITY_100_MSEC =	0x00050000,
+	/** 1 Sec timer ticks*/
+	TMAN_GRANULARITY_SEC = 		0x00060000
+};
 
-#include "tman_inline.h"
+/** @} end of group TMAN_Flags */
 
 /**************************************************************************//**
 @Group		TMAN_Functions TMAN functions
@@ -317,14 +329,13 @@ int tman_create_tmi(uint64_t tmi_mem_base_addr,
 
 
 @Return		None.
-
-@Cautions	This function performs a task switch.
+	
+@Cautions This function performs a task switch.
 *//***************************************************************************/
 void tman_delete_tmi(tman_cb_t tman_confirm_cb, uint32_t flags,
 			uint8_t tmi_id, tman_arg_8B_t conf_opaque_data1,
 			tman_arg_2B_t conf_opaque_data2);
 
-#ifdef REV2
 /**************************************************************************//**
 @Function	tman_query_tmi
 
@@ -347,7 +358,6 @@ void tman_delete_tmi(tman_cb_t tman_confirm_cb, uint32_t flags,
 *//***************************************************************************/
 int tman_query_tmi(uint8_t tmi_id,
 			struct tman_tmi_params *output_ptr);
-#endif
 
 /**************************************************************************//**
 @Function	tman_create_timer
@@ -414,7 +424,7 @@ inline int tman_create_timer(uint8_t tmi_id, uint32_t flags,
 
 @Cautions	This function performs a task switch. 
 		In case of periodic timer the tman_delete_timer should be
-		called at the expiration routine. In Rev 1, for one-shot
+		called at the expiration routine. For one-shot
 		timers, this function should be called after calling the
 		tman_recharge_timer function for the one-shot timer (this in
 		order to workaround errata ERR009310).
@@ -422,32 +432,34 @@ inline int tman_create_timer(uint8_t tmi_id, uint32_t flags,
 *//***************************************************************************/
 inline int tman_delete_timer(uint32_t timer_handle, uint32_t flags);
 
-#ifdef REV2
 /**************************************************************************//**
-@Function	tman_increase_timer_duration
+@Function	tman_modify_timer
 
-@Description	Increase TMAN timer duration time.
+@Description	Modify TMAN timer duration time.
 
 @Param[in]	timer_handle - The handle of the timer to be modified.
+@Param[in]	granularity - new timer granularity \ref e_tman_granularity.
 @Param[in]	duration - new timer duration time (the number of timer ticks).
 
 @Return		Success or Failure(tmi/timer is not existing or
 		expired one-shot timer).
-
-@Cautions	The new duration can only be a bigger number than the original
-		one.
-		The granularity value for the timer remains the same.
-		In case where a granularity change is also needed,
-		the timer should be deleted and re-created with the new
-		granularity factor.
-
+@Retval		ETIMEDOUT - The timer cannot be modified as it deals with TO.
+@Retval		EACCES - The timer cannot be modified.
+		For one shot timer this error should be treated as an ETIMEDOUT
+		error.
+		For a periodic timer this error should be treated as a fatal
+		error (a delete command was already issued for this periodic
+		timer). 
+@Cautions	The value of duration must be: (10 < duration < 2^16 - 10).
+			In periodic timer, when the command failed it may or may not 
+			change the duration of the timer.
+			
 @Cautions	This function performs a task switch.
 
 *//***************************************************************************/
-int tman_increase_timer_duration(uint32_t timer_handle, uint16_t duration);
-#endif
+int tman_modify_timer(uint32_t timer_handle, 
+		enum e_tman_granularity granularity, uint16_t duration);
 
-#ifdef REV2
 /**************************************************************************//**
 @Function	tman_recharge_timer
 
@@ -464,26 +476,6 @@ int tman_increase_timer_duration(uint32_t timer_handle, uint16_t duration);
 *//***************************************************************************/
 int tman_recharge_timer(uint32_t timer_handle);
 
-#else
-/**************************************************************************//**
-@Function	tman_recharge_timer
-
-@Description	Re-start TMAN one-shot timer to the initial value.
-
-@Param[in]	timer_handle - The handle of the timer to be re-started.
-
-@Return		None
-
-@Cautions	This function performs a task switch. This is a best effort
-		function. It is not guaranteed that the timer will be recharged
-		after calling this function.
-		E.g. The recharge can fail if the timer already elapsed or
-		going to elapse in the near future.
-
-*//***************************************************************************/
-void tman_recharge_timer(uint32_t timer_handle);
-
-#endif
 /**************************************************************************//**
 @Function	tman_query_timer
 

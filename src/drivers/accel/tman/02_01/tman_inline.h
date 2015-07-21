@@ -28,7 +28,7 @@
 @File		tman_inline.h
 
 @Description	This file contains the AIOP SW TMAN Inline API implementation.
-
+				(02_01)
 *//***************************************************************************/
 
 #ifndef __FSL_TMAN_INLINE_H
@@ -122,12 +122,6 @@ inline int tman_delete_timer(uint32_t timer_handle, uint32_t flags)
 	if (res1 & TMAN_TMR_DEL_TMP_TYPE_MASK)
 		return (int)(-ETIMEDOUT);
 
-#ifndef REV2 /* In rev2 this error is considered fatal error */
-	/* The next code is due to Errata ERR008205 */
-	if(res1 == TMAN_DEL_TMR_NOT_ACTIVE_ERR)
-		return (int)(-ENAVAIL);
-	/* End of Errata ERR008205 related code */
-#endif
 	
 	/* In case TMI State errors and TMAN_DEL_TMR_NOT_ACTIVE_ERR,
 	 * TMAN_DEL_TMR_DEL_ISSUED_ERR, TMAN_DEL_TMR_DEL_ISSUED_CONF_ERR */

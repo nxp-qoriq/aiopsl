@@ -27,7 +27,7 @@
 /**************************************************************************//**
 @File          tman.h
 
-@Description   This file contains the AIOP SW TMAN definitions
+@Description   This file contains the AIOP SW TMAN definitions (01_01)
 *//***************************************************************************/
 
 #ifndef __AIOP_TMAN_H
@@ -153,42 +153,6 @@ enum tman_timer_delete_status {
 
 /** @} end of enum tman_timer_delete_status */
 
-#ifdef REV2
-/**************************************************************************//**
- @enum tman_timer_mod_status
-
- @Description	AIOP TMAN increase timer duration command status codes.
-
- @{
-*//***************************************************************************/
-enum tman_timer_mod_status {
-	/** Success. */
-	TMAN_MOD_TMR_SUCCESS = 0,
-	/** illegal Timer Create Fields Description[DURATION] */
-	TMAN_MOD_ILLEGAL_DURATION_VAL_ERR = 0x81400010,
-	/** A non active timer was provided as an input */
-	TMAN_MOD_TMR_NOT_ACTIVE_ERR = 0x81400060,
-	/** The one shot timer has expired but it is pending a completion
-	 * confirmation (done by calling the tman_timer_completion_confirmation
-	 * function) */
-	TMAN_MOD_CCP_WAIT_ERR = 0x81400061,
-	/** The periodic timer has expired but it is pending a completion
-	 * confirmation (done by calling the tman_timer_completion_confirmation
-	 * function) */
-	TMAN_MOD_PERIODIC_CCP_WAIT_ERR = 0x81400065,
-	/** A delete command was already issued for this timer and the TMAN is
-	 * in the process of deleting the timer. The timer will elapse in the
-	 * future. */
-	TMAN_MOD_TMR_DEL_ISSUED_ERR = 0x81400066,
-	/** A delete command was already issued. The timer has already elapsed
-	 * for the last time and it is pending a completion confirmation
-	 * (done by calling the tman_timer_completion_confirmation function) */
-	TMAN_MOD_TMR_DEL_ISSUED_CONF_ERR = 0x81400067,
-};
-
-/** @} end of enum tman_timer_mod_status */
-#endif
-
 /**************************************************************************//**
  @enum tman_timer_recharge_status
 
@@ -274,12 +238,8 @@ enum tman_function_identifier {
 #define TMAN_TMCBCC_ADDRESS	(TMAN_BASE_ADDRESS+0x014)
 /** TMTSTMP- TMan TMAN Timestamp register address */
 #define TMAN_TMTSTMP_ADDRESS	(TMAN_BASE_ADDRESS+0x020)
-#ifdef REV2 /* Errata ERR009305 */
 /** TMEV- TMan Error Event register base address */
-#define TMAN_TMEV_ADDRESS	(TMAN_BASE_ADDRESS+0x38)
-#else
 #define TMAN_TMEV_ADDRESS	0x020a0038 /* CCSR Address */
-#endif
 /** TMSTATNAT- TMan TMAN Stats Num of Active Timers register base address */
 #define TMAN_TMSTATNAT_ADDRESS	(TMAN_BASE_ADDRESS+0x2008)
 /** TMSTATNCCP- TMan TMAN Stats Number of Callback Confirmation Pending
@@ -452,8 +412,7 @@ void tman_exception_handler(enum tman_function_identifier func_id,
 		uint32_t line,
 		int32_t status);
 
-#ifndef REV2
-	/* The next code is due to Errata ERR008205 */
+/* The next code is due to Errata ERR008205 */
 /**************************************************************************//**
 @Function	tman_query_tmi_sw
 
@@ -472,6 +431,5 @@ void tman_exception_handler(enum tman_function_identifier func_id,
 *//***************************************************************************/
 int tman_query_tmi_sw(uint8_t tmi_id);
 /* End of Errata ERR008205 related code */
-#endif
 
 #endif /* __AIOP_TMAN_H */

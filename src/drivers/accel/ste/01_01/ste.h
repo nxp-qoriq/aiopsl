@@ -27,7 +27,7 @@
 /**************************************************************************//**
 @File		ste.h
 
-@Description	This file contains the AIOP statistics API.
+@Description	This file contains the AIOP statistics API (01_01).
 
 @note		This file is intended for internal use only (it may not be 
 		included elsewhere).
