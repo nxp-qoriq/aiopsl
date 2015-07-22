@@ -765,12 +765,12 @@
 			<locationURI>PARENT-3-PROJECT_LOC/src/include/lib/fsl_slab.h</locationURI>
 		</link>
 		<link>
-			<name>aiop_sl/kernel/cmdif/01_01</name>
+			<name>aiop_sl/kernel/cmdif/00_01</name>
 			<type>2</type>
 			<locationURI>virtual:/virtual</locationURI>
 		</link>
 		<link>
-			<name>aiop_sl/kernel/cmdif/01_02</name>
+			<name>aiop_sl/kernel/cmdif/00_02</name>
 			<type>2</type>
 			<locationURI>virtual:/virtual</locationURI>
 		</link>
@@ -1705,14 +1705,14 @@
 			<locationURI>PARENT-3-PROJECT_LOC/src/include/drivers/netf/fsl_nat.h</locationURI>
 		</link>
 		<link>
-			<name>aiop_sl/kernel/cmdif/01_01/cmdif_rev.h</name>
+			<name>aiop_sl/kernel/cmdif/00_01/cmdif_rev.h</name>
 			<type>1</type>
-			<locationURI>PARENT-3-PROJECT_LOC/src/kernel/cmdif/01_01/cmdif_rev.h</locationURI>
+			<locationURI>PARENT-3-PROJECT_LOC/src/kernel/cmdif/00_01/cmdif_rev.h</locationURI>
 		</link>
 		<link>
-			<name>aiop_sl/kernel/cmdif/01_02/cmdif_rev.h</name>
+			<name>aiop_sl/kernel/cmdif/00_02/cmdif_rev.h</name>
 			<type>1</type>
-			<locationURI>PARENT-3-PROJECT_LOC/src/kernel/cmdif/01_02/cmdif_rev.h</locationURI>
+			<locationURI>PARENT-3-PROJECT_LOC/src/kernel/cmdif/00_02/cmdif_rev.h</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/kernel/mem_mng/no_dp_ddr/aiop_link_no_dp_ddr.lcf</name>
