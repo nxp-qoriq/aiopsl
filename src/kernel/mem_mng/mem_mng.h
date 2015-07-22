@@ -110,11 +110,6 @@ struct t_mem_mng
     uint32_t    mem_partitions_initialized;
     fsl_handle_t h_boot_mem_mng;
     struct buffer_pool slob_bf_pool;
-#ifdef AIOP
-    uint8_t *   lock;
-#else /* not AIOP */
-    fsl_handle_t    lock;
-#endif
 
 };
 
