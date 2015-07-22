@@ -1437,7 +1437,7 @@
 		<link>
 			<name>aiop_sl/drivers/netf/ip/ipsec.c</name>
 			<type>1</type>
-			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/netf/ip/ipsec.c</locationURI>
+			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/netf/ip/ipsec/00_01/ipsec.c</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/drivers/netf/ip/ipsec.h</name>
@@ -1697,7 +1697,7 @@
 		<link>
 			<name>aiop_sl/include/drivers/netf/fsl_ipsec.h</name>
 			<type>1</type>
-			<locationURI>PARENT-3-PROJECT_LOC/src/include/drivers/netf/fsl_ipsec.h</locationURI>
+			<locationURI>PARENT-3-PROJECT_LOC/src/include/drivers/netf/ipsec/00_01/fsl_ipsec.h</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/include/drivers/netf/fsl_l2.h</name>
