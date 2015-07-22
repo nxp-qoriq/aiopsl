@@ -42,6 +42,7 @@
 #include "fsl_evmng.h"
 #include "fsl_dpci_drv.h"
 #include "fsl_dpci_event.h"
+#include "fsl_rcu.h"
 
 int app_early_init(void);
 int app_init(void);
@@ -189,6 +190,11 @@ void stack_estimation(void)
 	/* dpci_event_update(0); called only by SL in cmdif open command t
 	 * the stack is not important */
 
+	/* RCU 2085 */
+	rcu_synchronize(NULL, 9);
+	rcu_read_lock();
+	rcu_read_unlock();
+	
 	/*After packet processing is done, fdma_terminate_task must be called.*/
 	fdma_terminate_task();
 

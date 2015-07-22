@@ -24,23 +24,26 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/**************************************************************************//**
- @File          fsl_sl_rcu.h
 
- @Description   SL Internal RCu API.
+#include "fsl_sl_dbg.h"
 
-*//***************************************************************************/
+int rcu_init();
+void rcu_free();
+int rcu_default_early_init();
 
-#ifndef __FSL_SL_RCU_H
-#define __FSL_SL_RCU_H
 
-#include "fsl_rcu.h"
+int rcu_default_early_init()
+{
+	return 0;
+}
 
-extern __TASK uint8_t g_rcu_unlock;
+int rcu_init()
+{
+	return 0;
+}
 
-#define RCU_CHECK_UNLOCK_CANCEL \
-	do { \
-		if (g_rcu_unlock) rcu_read_lock(); \
-	} while (0)
 
-#endif /* __FSL_SL_RCU_H */
+void rcu_free()
+{
+	return;
+}
