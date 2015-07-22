@@ -695,11 +695,6 @@
 			<locationURI>PARENT-4-PROJECT_LOC/src/include/kernel/fsl_malloc.h</locationURI>
 		</link>
 		<link>
-			<name>aiop_sl/include/kernel/fsl_rcu.h</name>
-			<type>1</type>
-			<locationURI>PARENT-4-PROJECT_LOC/src/include/kernel/fsl_rcu.h</locationURI>
-		</link>
-		<link>
 			<name>aiop_sl/include/kernel/fsl_spinlock.h</name>
 			<type>1</type>
 			<locationURI>PARENT-4-PROJECT_LOC/src/include/kernel/fsl_spinlock.h</locationURI>
@@ -740,12 +735,12 @@
 			<locationURI>PARENT-4-PROJECT_LOC/src/include/lib/fsl_slab.h</locationURI>
 		</link>
 		<link>
-			<name>aiop_sl/kernel/cmdif/01_01</name>
+			<name>aiop_sl/kernel/cmdif/00_01</name>
 			<type>2</type>
 			<locationURI>virtual:/virtual</locationURI>
 		</link>
 		<link>
-			<name>aiop_sl/kernel/cmdif/01_02</name>
+			<name>aiop_sl/kernel/cmdif/00_02</name>
 			<type>2</type>
 			<locationURI>virtual:/virtual</locationURI>
 		</link>
@@ -1015,14 +1010,14 @@
 			<locationURI>PARENT-4-PROJECT_LOC/src/kernel/mem_mng/sys_mem_mng.c</locationURI>
 		</link>
 		<link>
-			<name>aiop_sl/kernel/rcu/rcu.c</name>
-			<type>1</type>
-			<locationURI>PARENT-4-PROJECT_LOC/src/kernel/rcu/rcu.c</locationURI>
-		</link>
-		<link>
 			<name>aiop_sl/kernel/rcu/rcu.h</name>
 			<type>1</type>
 			<locationURI>PARENT-4-PROJECT_LOC/src/kernel/rcu/rcu.h</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/kernel/rcu/rcu_stub.c</name>
+			<type>1</type>
+			<locationURI>PARENT-4-PROJECT_LOC/src/kernel/rcu/rcu_stub.c</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/kernel/system/os.c</name>
@@ -1038,11 +1033,6 @@
 			<name>aiop_sl/kernel/system/sys.c</name>
 			<type>1</type>
 			<locationURI>PARENT-4-PROJECT_LOC/src/kernel/system/sys.c</locationURI>
-		</link>
-		<link>
-			<name>aiop_sl/kernel/system/sys.h</name>
-			<type>1</type>
-			<locationURI>PARENT-4-PROJECT_LOC/src/kernel/system/sys.h</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/kernel/time/time.c</name>
@@ -1710,14 +1700,14 @@
 			<locationURI>PARENT-4-PROJECT_LOC/src/include/drivers/netf/fsl_nat.h</locationURI>
 		</link>
 		<link>
-			<name>aiop_sl/kernel/cmdif/01_01/cmdif_rev.h</name>
+			<name>aiop_sl/kernel/cmdif/00_01/cmdif_rev.h</name>
 			<type>1</type>
-			<locationURI>PARENT-4-PROJECT_LOC/src/kernel/cmdif/01_01/cmdif_rev.h</locationURI>
+			<locationURI>PARENT-4-PROJECT_LOC/src/kernel/cmdif/00_01/cmdif_rev.h</locationURI>
 		</link>
 		<link>
-			<name>aiop_sl/kernel/cmdif/01_02/cmdif_rev.h</name>
+			<name>aiop_sl/kernel/cmdif/00_02/cmdif_rev.h</name>
 			<type>1</type>
-			<locationURI>PARENT-4-PROJECT_LOC/src/kernel/cmdif/01_02/cmdif_rev.h</locationURI>
+			<locationURI>PARENT-4-PROJECT_LOC/src/kernel/cmdif/00_02/cmdif_rev.h</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/kernel/mem_mng/no_dp_ddr/aiop_link_no_dp_ddr.lcf</name>

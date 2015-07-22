@@ -457,7 +457,7 @@ int tcp_gro_aggregate_seg(
 
 @Param[in]	tcp_gro_context_addr - Address (in HW buffers) of the TCP GRO
 		internal context. The user should allocate \ref tcp_gro_ctx_t in
-		this address.
+		this address. 
 
 @Return		GRO Status - please refer to \ref TCP_GRO_FLUSH_STATUS.
 
