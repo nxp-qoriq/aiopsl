@@ -58,8 +58,8 @@ int app_early_init(void);
 int rcu_test_check();
 
 extern struct rcu g_rcu;
-extern int32_t rcu_sync_count = 0;
-extern int32_t rcu_cb_count = 0;
+extern int32_t rcu_sync_count;
+extern int32_t rcu_cb_count;
 
 
 static void rcu_sync_cb(uint64_t param)
@@ -69,7 +69,7 @@ static void rcu_sync_cb(uint64_t param)
 	         (uint32_t)param, rcu_cb_count);
 }
 
-static void rcu_test()
+void rcu_test()
 {
 	int err;
 	int i;
@@ -83,7 +83,7 @@ static void rcu_test()
 	}
 }
 
-static int rcu_test_check()
+int rcu_test_check()
 {
 	/* I can't have a good check here because it depends on timer */
 	pr_debug("####### RCU test results = count %d == %d #######\n",
