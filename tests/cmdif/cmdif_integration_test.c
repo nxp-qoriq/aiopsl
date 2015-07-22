@@ -286,6 +286,14 @@ static int dpci_dynamic_add_test()
 	ASSERT_COND(err >= 0);
 	ASSERT_COND(g_dpci_tbl.tx_queue[err][0] != DPCI_FQID_NOT_VALID);
 
+	do {
+		pr_debug("waiting for link up add_count = %d"
+			"link_up_count = %d\n",
+			dpci_add_count, dpci_up_ev_count);
+
+	} while ((volatile int32_t)dpci_up_ev_count < \
+		(volatile int32_t)(dpci_add_count * 2));
+
 	return 0;
 }
 
