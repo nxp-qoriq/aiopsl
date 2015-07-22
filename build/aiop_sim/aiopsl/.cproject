@@ -178,9 +178,10 @@
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../src/drivers/netf/l4/gro/00_01&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../src/drivers/netf/ip/ipf/00_01&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../src/drivers/netf/ip/ipr/00_01&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../src/drivers/sec&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../src/drivers/sec/rta&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../src/drivers/sec/desc&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../src/drivers/netf/ip/ipsec/00_01&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../src/drivers/sec/01_01&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../src/drivers/sec/01_01/rta&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../src/drivers/sec/01_01/desc&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../src/drivers/serial/duart&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../src/drivers/snic/00_01&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../src/include&quot;"/>
@@ -201,6 +202,7 @@
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../src/include/drivers/netf/gro/00_01&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../src/include/drivers/netf/ipf/00_01&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../src/include/drivers/netf/ipr/00_01&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../src/include/drivers/netf/ipsec/00_01&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../src/include/drivers/netf/general/frame_operations/01_01&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../src/include/kernel&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../src/include/lib&quot;"/>
