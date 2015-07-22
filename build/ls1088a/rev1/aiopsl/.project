@@ -22,7 +22,7 @@
 				</dictionary>
 				<dictionary>
 					<key>org.eclipse.cdt.make.core.buildArguments</key>
-					<value>-j8</value>
+					<value></value>
 				</dictionary>
 				<dictionary>
 					<key>org.eclipse.cdt.make.core.buildCommand</key>
@@ -1662,7 +1662,7 @@
 		<link>
 			<name>aiop_sl/include/drivers/netf/fsl_gro.h</name>
 			<type>1</type>
-			<locationURI>PARENT-4-PROJECT_LOC/src/include/drivers/netf/gro/00_01/fsl_gro.h</locationURI>
+			<locationURI>PARENT-4-PROJECT_LOC/src/include/drivers/netf/gro/00_02/fsl_gro.h</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/include/drivers/netf/fsl_gso.h</name>
