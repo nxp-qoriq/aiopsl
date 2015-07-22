@@ -395,7 +395,6 @@ int ipf_split_ipv4_fragment(struct ipf_context *ipf_ctx)
 {
 	int32_t	status, split_status;
 	struct fdma_split_frame_params split_frame_params;
-	struct fdma_amq isolation_attributes;
 
 	split_frame_params.fd_dst = (void *)HWC_FD_ADDRESS;
 	split_frame_params.seg_dst = (void *)PRC_GET_SEGMENT_ADDRESS();
@@ -416,13 +415,6 @@ int ipf_split_ipv4_fragment(struct ipf_context *ipf_ctx)
 				FDMA_SPLIT_PSA_CLOSE_FRAME_BIT |
 					FDMA_SPLIT_SM_BIT;
 		split_status = fdma_split_frame(&split_frame_params);
-#else
-		split_frame_params.flags = FDMA_CFA_COPY_BIT |
-				FDMA_SPLIT_PSA_NO_PRESENT_BIT |
-					FDMA_SPLIT_SM_BIT;
-		split_status = fdma_split_frame(&split_frame_params);
-		status = fdma_store_default_frame_data();
-#endif
 		
 		if (split_status == (-EINVAL)) {
 			/* last fragment, no split happened */
@@ -432,6 +424,22 @@ int ipf_split_ipv4_fragment(struct ipf_context *ipf_ctx)
 			/* Present frame */
 			fdma_present_default_frame();
 
+#else
+		split_frame_params.flags = FDMA_CFA_COPY_BIT |
+				FDMA_SPLIT_PSA_NO_PRESENT_BIT |
+					FDMA_SPLIT_SM_BIT;
+		split_status = fdma_split_frame(&split_frame_params);
+	
+		if (split_status == (-EINVAL)) {
+			/* last fragment, no split happened */
+			status = ipf_ipv4_last_frag(ipf_ctx);
+			return status;
+		} else {
+			/* Close (for update frame length) and Present frame */
+			status = fdma_store_default_frame_data();
+			status = fdma_present_default_frame();
+#endif
+		
 			ipf_after_split_ipv4_fragment(ipf_ctx);
 				
 			return IPF_GEN_FRAG_STATUS_IN_PROCESS;
@@ -523,7 +531,6 @@ int ipf_split_ipv6_fragment(struct ipf_context *ipf_ctx,
 {
 	int32_t	status, split_status;
 	struct fdma_split_frame_params split_frame_params;
-	struct fdma_amq isolation_attributes;
 
 	split_frame_params.fd_dst = (void *)HWC_FD_ADDRESS;
 	split_frame_params.seg_dst = (void *)PRC_GET_SEGMENT_ADDRESS();
