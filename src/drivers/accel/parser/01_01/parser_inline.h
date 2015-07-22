@@ -69,8 +69,7 @@ inline int parse_result_generate(enum parser_starting_hxs_code starting_hxs,
 	if (pr->gross_running_sum) {
 		input_struct.gross_running_sum = pr->gross_running_sum;
 		
-		arg2 = ((uint32_t)(&input_struct) << 16) |
-				(uint32_t)HWC_PARSE_RES_ADDRESS;
+		arg2 = ((uint32_t)(&input_struct) << 16);
 		
 		__stqw((PARSER_GRSV_MASK | PARSER_GEN_PARSE_RES_MTYPE),
 			arg2, 0, arg1, HWC_ACC_IN_ADDRESS, 0);
@@ -148,8 +147,7 @@ inline int parse_result_generate_default(uint8_t flags)
 	if (pr->gross_running_sum) {
 		input_struct.gross_running_sum = pr->gross_running_sum;
 
-		arg2 = ((uint32_t)(&input_struct) << 16) |
-				(uint32_t)HWC_PARSE_RES_ADDRESS;
+		arg2 = ((uint32_t)(&input_struct) << 16);
 
 		__stqw((PARSER_GRSV_MASK | PARSER_GEN_PARSE_RES_MTYPE),
 				arg2, 0, arg1, HWC_ACC_IN_ADDRESS, 0);
@@ -222,8 +220,8 @@ inline int parse_result_generate_basic(void)
 	
 	input_struct.gross_running_sum = pr->gross_running_sum;
 
-	arg2 = ((uint32_t)(&input_struct) << 16) |
-		(uint32_t)HWC_PARSE_RES_ADDRESS;
+	arg2 = ((uint32_t)(&input_struct) << 16);
+	
 	__stqw((PARSER_GRSV_MASK | PARSER_GEN_PARSE_RES_MTYPE),
 		arg2, 0, 0, HWC_ACC_IN_ADDRESS, 0);
 

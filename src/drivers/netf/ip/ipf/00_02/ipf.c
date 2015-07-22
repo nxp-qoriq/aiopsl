@@ -410,35 +410,20 @@ int ipf_split_ipv4_fragment(struct ipf_context *ipf_ctx)
 
 		/* Split remaining frame, put split frame in default FD
 		 * location*/
-#ifndef REV2
-/* Due to HW ticket TKT240996 */
-
-		status = fdma_store_frame_data(
-				split_frame_params.source_frame_handle,
-				split_frame_params.spid,
-				&isolation_attributes);
-		status = fdma_present_frame_without_segments(
-				&(ipf_ctx->rem_fd),
-				FDMA_INIT_NO_FLAGS, 0,
-				&(ipf_ctx->rem_frame_handle));
-		split_frame_params.flags = FDMA_CFA_COPY_BIT |
-					FDMA_SPLIT_SM_BIT|
-					FDMA_SPLIT_PSA_NO_PRESENT_BIT;
-		split_status = fdma_split_frame(&split_frame_params); /* TODO FDMA ERROR */
-		if (split_status == (-EINVAL)) {
-			/* last fragment, no split happened */
-			status = ipf_ipv4_last_frag(ipf_ctx);
-			return status;
-		} else {
-			status = fdma_store_default_frame_data();
-			status = fdma_present_default_frame();
-#else
 		/* Must close the frame so the frame length will be updated */
+#ifdef REV2
 		split_frame_params.flags = FDMA_CFA_COPY_BIT |
 				FDMA_SPLIT_PSA_CLOSE_FRAME_BIT |
 					FDMA_SPLIT_SM_BIT;
 		split_status = fdma_split_frame(&split_frame_params);
-
+#else
+		split_frame_params.flags = FDMA_CFA_COPY_BIT |
+				FDMA_SPLIT_PSA_NO_PRESENT_BIT |
+					FDMA_SPLIT_SM_BIT;
+		split_status = fdma_split_frame(&split_frame_params);
+		status = fdma_store_default_frame_data();
+#endif
+		
 		if (split_status == (-EINVAL)) {
 			/* last fragment, no split happened */
 			status = ipf_ipv4_last_frag(ipf_ctx);
@@ -446,7 +431,7 @@ int ipf_split_ipv4_fragment(struct ipf_context *ipf_ctx)
 		} else {
 			/* Present frame */
 			fdma_present_default_frame();
-#endif
+
 			ipf_after_split_ipv4_fragment(ipf_ctx);
 				
 			return IPF_GEN_FRAG_STATUS_IN_PROCESS;
@@ -463,27 +448,11 @@ int ipf_split_ipv4_fragment(struct ipf_context *ipf_ctx)
 
 			/* Split remaining frame, put split frame in default FD
 			 * location*/
-#ifndef REV2
-/* Due to HW ticket TKT240996 */
-			status = fdma_store_frame_data(
-					split_frame_params.source_frame_handle,
-					split_frame_params.spid,
-					&isolation_attributes);
-			status = fdma_present_frame_without_segments(
-					&(ipf_ctx->rem_fd),
-					FDMA_INIT_NO_FLAGS, 0,
-					&(ipf_ctx->rem_frame_handle));
-			split_frame_params.flags = FDMA_CFA_COPY_BIT |
-						FDMA_SPLIT_PSA_NO_PRESENT_BIT;
-			split_status = fdma_split_frame(&split_frame_params); /* TODO FDMA ERROR */
-			status = fdma_store_default_frame_data();
-			status = fdma_present_default_frame();
-#else
 			split_frame_params.flags = FDMA_CFA_COPY_BIT |
 					FDMA_SPLIT_PSA_PRESENT_BIT;
 			
 			fdma_split_frame(&split_frame_params);
-#endif
+
 			ipf_after_split_ipv4_fragment(ipf_ctx);
 
 			return IPF_GEN_FRAG_STATUS_IN_PROCESS;
@@ -569,33 +538,19 @@ int ipf_split_ipv6_fragment(struct ipf_context *ipf_ctx,
 	if (ipf_ctx->flags & IPF_RESTORE_ORIGINAL_FRAGMENTS) {
 		split_frame_params.split_size_sf = 0;
 
-#ifndef REV2
-/* Due to HW ticket TKT240996 */
-		status = fdma_store_frame_data(
-				split_frame_params.source_frame_handle,
-				split_frame_params.spid,
-				&isolation_attributes);
-		status = fdma_present_frame_without_segments(
-				&(ipf_ctx->rem_fd),
-				FDMA_INIT_NO_FLAGS, 0,
-				&(ipf_ctx->rem_frame_handle));
-		split_frame_params.flags = FDMA_CFA_COPY_BIT |
-					FDMA_SPLIT_SM_BIT|
-					FDMA_SPLIT_PSA_NO_PRESENT_BIT;
-		split_status = fdma_split_frame(&split_frame_params); /* TODO FDMA ERROR */
-		if (split_status == (-EINVAL)) {
-			/* last fragment, no split happened */
-			status = ipf_ipv6_last_frag(ipf_ctx);
-			return status;
-		} else {
-			status = fdma_store_default_frame_data();
-			status = fdma_present_default_frame();
-#else
 		/* Must close the frame so the frame length will be updated */
+#ifdef REV2
 		split_frame_params.flags = FDMA_CFA_COPY_BIT |
 				FDMA_SPLIT_PSA_CLOSE_FRAME_BIT |
 					FDMA_SPLIT_SM_BIT;
 		split_status = fdma_split_frame(&split_frame_params);
+#else
+		split_frame_params.flags = FDMA_CFA_COPY_BIT |
+				FDMA_SPLIT_PSA_NO_PRESENT_BIT |
+					FDMA_SPLIT_SM_BIT;
+		split_status = fdma_split_frame(&split_frame_params);
+		status = fdma_store_default_frame_data();
+#endif
 
 		if (split_status == (-EINVAL)) {
 			/* last fragment, no split happened */
@@ -604,7 +559,6 @@ int ipf_split_ipv6_fragment(struct ipf_context *ipf_ctx,
 		} else {
 			/* Present frame */
 			fdma_present_default_frame();
-#endif
 
 			ipf_after_split_ipv6_fragment(ipf_ctx,
 							last_ext_hdr_size);
@@ -623,28 +577,10 @@ int ipf_split_ipv6_fragment(struct ipf_context *ipf_ctx,
 
 			/* Split remaining frame, put split frame in default FD
 			 * location*/
-#ifndef REV2
-/* Due to HW ticket TKT240996 */
-
-			status = fdma_store_frame_data(
-					split_frame_params.source_frame_handle,
-					split_frame_params.spid,
-					&isolation_attributes);
-			status = fdma_present_frame_without_segments(
-					&(ipf_ctx->rem_fd),
-					FDMA_INIT_NO_FLAGS, 0,
-					&(ipf_ctx->rem_frame_handle));
-			split_frame_params.flags = FDMA_CFA_COPY_BIT |
-						FDMA_SPLIT_PSA_NO_PRESENT_BIT;
-			split_status = fdma_split_frame(&split_frame_params); /* TODO FDMA ERROR */
-			status = fdma_store_default_frame_data();
-			status = fdma_present_default_frame();
-#else
 			split_frame_params.flags = FDMA_CFA_COPY_BIT |
 					FDMA_SPLIT_PSA_PRESENT_BIT;
 			
 			fdma_split_frame(&split_frame_params);
-#endif
 
 			ipf_after_split_ipv6_fragment(ipf_ctx,
 							last_ext_hdr_size);
