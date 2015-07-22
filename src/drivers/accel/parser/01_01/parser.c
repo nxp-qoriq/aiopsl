@@ -173,8 +173,7 @@ int parse_result_generate_checksum(
 	arg1 = __e_rlwimi(arg1, (uint32_t)starting_hxs, 13, 8, 18);
 	arg1 = __e_rlwimi(arg1, (uint32_t)starting_offset, 24, 0, 7);
 
-	arg2 = ((uint32_t)(&input_struct) << 16) |
-				(uint32_t)HWC_PARSE_RES_ADDRESS;
+	arg2 = ((uint32_t)(&input_struct) << 16);
 
 	__stqw((PARSER_GRSV_MASK | PARSER_GEN_PARSE_RES_MTYPE), arg2, 0, arg1,
 						HWC_ACC_IN_ADDRESS, 0);

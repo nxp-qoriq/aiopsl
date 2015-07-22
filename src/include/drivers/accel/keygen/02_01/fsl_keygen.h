@@ -105,23 +105,15 @@ enum kcr_builder_gec_source {
 @{
 *//***************************************************************************/
 enum kcr_builder_parse_result_offset {
-	/** Next header field's offset in parser result */
-	NXT_HDR_OFFSET_IN_PR = offsetof(struct parse_result, nxt_hdr),
-	/** Frame Attribute Flags Extension field's offset in parser result */
-	FRAME_ATTRIBUTE_FLAGS_EXTENSION_OFFSET_IN_PR =
-		offsetof(struct parse_result, frame_attribute_flags_extension),
-	/** Frame Attribute Flags field's offset in parser result */
-	FRAME_ATTRIBUTE_FLAGS_OFFSET_IN_PR =
-			offsetof(struct parse_result, frame_attribute_flags_1),
 	/** Shim Offset 1 field's offset in parser result */
 	SHIM_OFFSET_1_OFFSET_IN_PR =
 			offsetof(struct parse_result, shim_offset_1),
 	/** Shim Offset 2 field's offset in parser result */
 	SHIM_OFFSET_2_OFFSET_IN_PR =
 			offsetof(struct parse_result, shim_offset_2),
-	/** IP NH/protocol offset field's offset in parser result */
-	IP_PID_OFFSET_OFFSET_IN_PR =
-			offsetof(struct parse_result, ip_pid_offset),
+	/** First IP NH/protocol offset field's offset in parser result */
+	IP_1_PID_OFFSET_OFFSET_IN_PR =
+			offsetof(struct parse_result, ip_1_pid_offset),
 	/** Ethernet offset field's offset in parser result */
 	ETH_OFFSET_OFFSET_IN_PR =
 			offsetof(struct parse_result, eth_offset),
@@ -147,8 +139,8 @@ enum kcr_builder_parse_result_offset {
 	MPLS_OFFSET_N_OFFSET_IN_PR =
 			offsetof(struct parse_result, mpls_offset_n),
 	/** First IP or ARP offset field's offset in parser result */
-	IP1_OR_ARP_OFFSET_OFFSET_IN_PR =
-			offsetof(struct parse_result, ip1_or_arp_offset),
+	L3_OFFSET_OFFSET_IN_PR =
+			offsetof(struct parse_result, l3_offset),
 	/** Last IP or MinEncap offset field's offset in parser result */
 	IPN_OR_MINENCAP0_OFFSET_OFFSET_IN_PR =
 			offsetof(struct parse_result, ipn_or_minencapO_offset),
@@ -159,8 +151,8 @@ enum kcr_builder_parse_result_offset {
 	L4_OFFSET_OFFSET_IN_PR =
 			offsetof(struct parse_result, l4_offset),
 	/** GTP/ESP/IPsec offset field's offset in parser result */
-	GTP_ESP_IPSEC_OFFSET_OFFSET_IN_PR =
-			offsetof(struct parse_result, gtp_esp_ipsec_offset),
+	L5_OFFSET_OFFSET_IN_PR =
+			offsetof(struct parse_result, l5_offset),
 	/** Routing header offset of 1st frame field's offset in parser result*/
 	ROUTING_HDR_OFFSET_1_OFFSET_IN_PR =
 			offsetof(struct parse_result, routing_hdr_offset1),
@@ -173,6 +165,12 @@ enum kcr_builder_parse_result_offset {
 	/** IPv6 fragmentable part offset field's offset in parser result */
 	IPV6_FRAG_OFFSET_OFFSET_IN_PR =
 			offsetof(struct parse_result, ipv6_frag_offset),
+	/** IPv6 fragmentable part offset field's offset in parser result */
+	NXT_HDR_BEFORE_IPV6_FRAG_OFFSET_OFFSET_IN_PR =
+			offsetof(struct parse_result, nxt_hdr_before_ipv6_frag_ext),
+	/** Last IP NH/protocol offset field's offset in parser result */
+	IP_N_PID_OFFSET_OFFSET_IN_PR =
+			offsetof(struct parse_result, ip_n_pid_offset),
 	/** Soft parsing context */
 	SOFT_PARSING_CONTEXT =
 			offsetof(struct parse_result, soft_parsing_context[0])
@@ -271,12 +269,10 @@ enum kcr_builder_protocol_fecid {
 	KEYGEN_KCR_IPSECNH_FECID = 0x23,
 	/** FECID of GPRS Tunnel endpoint Identification */
 	KEYGEN_KCR_GTP_TEID_FECID = 0x24,
-#ifdef REV2
 	/** FECID of ICMP type */
 	KEYGEN_KCR_ICMP_TYPE_FECID = 0x25,
 	/** FECID of ICMP code */
 	KEYGEN_KCR_ICMP_CODE_FECID = 0x26,
-#endif /*REV2*/
 	/** FECID of Next Header */
 	KEYGEN_KCR_NXT_HDR_FECID = 0x27
 	/* TODO check spec  for updates */
