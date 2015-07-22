@@ -955,6 +955,11 @@
 			<locationURI>PARENT-3-PROJECT_LOC/src/kernel/include/fsl_sl_evmng.h</locationURI>
 		</link>
 		<link>
+			<name>aiop_sl/kernel/include/fsl_sl_rcu.h</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/kernel/include/fsl_sl_rcu.h</locationURI>
+		</link>
+		<link>
 			<name>aiop_sl/kernel/include/fsl_sl_slab.h</name>
 			<type>1</type>
 			<locationURI>PARENT-3-PROJECT_LOC/src/kernel/include/fsl_sl_slab.h</locationURI>
