@@ -1672,7 +1672,7 @@
 		<link>
 			<name>aiop_sl/include/drivers/netf/fsl_ipr.h</name>
 			<type>1</type>
-			<locationURI>PARENT-4-PROJECT_LOC/src/include/drivers/netf/ipr/00_01/fsl_ipr.h</locationURI>
+			<locationURI>PARENT-4-PROJECT_LOC/src/include/drivers/netf/ipr/00_02/fsl_ipr.h</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/include/drivers/netf/fsl_ipsec.h</name>
