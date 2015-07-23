@@ -461,8 +461,6 @@ int ipr_delete_instance(ipr_instance_handle_t ipr_instance_ptr,
 		EIO - L4 checksum not valid.	  
 
 @Cautions	This function may result in a fatal error.
-@Cautions       As part of a workaround to ticket TKT260685 in REV1 this 
-                function requires one of the four nested scope levels.
 @Cautions	It is forbidden to call this function when the task
 		isn't found in any ordering scope (null scope_id).\n
 		If this function is called in concurrent mode, the scope_id is
