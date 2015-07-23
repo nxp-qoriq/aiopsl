@@ -32,7 +32,7 @@
 #ifndef __FSL_GSO_H
 #define __FSL_GSO_H
 
-#include "types.h"
+#include "fsl_types.h"
 #include "fsl_ldpaa.h"
 
 /**************************************************************************//**

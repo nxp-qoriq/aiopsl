@@ -31,7 +31,7 @@
 @Description   Command Gateway
  *//***************************************************************************/
 
-#include "common/types.h"
+#include "fsl_types.h"
 #include "fsl_aiop_common.h"
 #include "fsl_io_ccsr.h"
 #include "fsl_spinlock.h"

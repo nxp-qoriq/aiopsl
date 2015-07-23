@@ -35,7 +35,7 @@
 #ifndef __AIOP_IPSEC_H
 #define __AIOP_IPSEC_H
 
-#include "common/types.h"
+#include "fsl_types.h"
 #include "fsl_net.h"
 
 /**************************************************************************//**

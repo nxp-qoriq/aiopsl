@@ -37,7 +37,7 @@
 #ifndef __FSL_NAT_H
 #define __FSL_NAT_H
 
-#include "common/types.h"
+#include "fsl_types.h"
 
 
 /**************************************************************************//**

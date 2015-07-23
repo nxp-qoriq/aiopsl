@@ -36,7 +36,7 @@
 #ifndef __FSL_CORE_H
 #define __FSL_CORE_H
 
-#include "common/types.h"
+#include "fsl_types.h"
 
 #ifdef SOC_PPC_CORE
 #include "fsl_core_ppc.h"

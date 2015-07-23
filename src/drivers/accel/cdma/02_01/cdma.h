@@ -37,7 +37,7 @@
 #ifndef __CDMA_H_
 #define __CDMA_H_
 
-#include "common/types.h"
+#include "fsl_types.h"
 #include "fsl_cdma.h"
 
 

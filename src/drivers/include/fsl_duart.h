@@ -33,7 +33,7 @@
 #ifndef __FSL_DUART_H
 #define __FSL_DUART_H
 
-#include "common/types.h"
+#include "fsl_types.h"
 
 /**************************************************************************//**
  @Group         duart_g DUART Application Programming Interface

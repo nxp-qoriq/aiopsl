@@ -33,7 +33,7 @@
 #ifndef __FSL_LIB_SPINLOCK_H
 #define __FSL_LIB_SPINLOCK_H
 
-#include "types.h"
+#include "fsl_types.h"
 
 /**************************************************************************//**
  @Group			Synchronization_g_id Synchronization

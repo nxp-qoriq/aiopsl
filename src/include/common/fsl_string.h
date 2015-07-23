@@ -33,7 +33,7 @@
 #ifndef __FSL_STRING_H
 #define __FSL_STRING_H
 
-#include "common/types.h"
+#include "fsl_types.h"
 #include <string.h>
 
 /**************************************************************************//**

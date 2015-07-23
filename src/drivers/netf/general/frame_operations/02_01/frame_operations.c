@@ -31,7 +31,7 @@
 
 *//***************************************************************************/
 
-#include "common/types.h"
+#include "fsl_types.h"
 #include "fsl_errors.h"
 #include "fsl_frame_operations.h"
 #include "fsl_fdma.h"

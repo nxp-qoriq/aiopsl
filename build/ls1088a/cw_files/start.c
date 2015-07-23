@@ -28,7 +28,7 @@
 
 #include <__mem.h>
 #include <__ppc_eabi_linker.h>		/* linker-generated symbol declarations */
-#include "types.h"
+#include "fsl_types.h"
 //#include <__ppc_eabi_init.h>		/* board- and user-level initialization */
 
 /***************************************************************************/

@@ -37,7 +37,7 @@
 
 #include "parser.h"
 #include "general.h"
-#include "common/types.h"
+#include "fsl_types.h"
 #include "fsl_fdma.h"
 #include "fsl_parser.h"
 

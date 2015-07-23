@@ -31,7 +31,7 @@
 #ifndef __BUFFER_POOL_TEST_H
 #define __BUFFER_POOL_TEST_H
 
-#include "common/types.h"
+#include "fsl_types.h"
 /*function to test increment/ decrement/ acquire / release buffer*/
 int test_buffer(uint16_t dpbp_id);
 

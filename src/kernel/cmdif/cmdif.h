@@ -28,7 +28,7 @@
 #define __CMDIF_H
 
 #include <fsl_errors.h>
-#include <types.h>
+#include <fsl_types.h>
 #include <fsl_string.h>
 #include <fsl_stdlib.h>
 #include <fsl_endian.h>

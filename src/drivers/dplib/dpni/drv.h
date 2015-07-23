@@ -33,7 +33,7 @@
 #ifndef __DRV_H
 #define __DRV_H
 
-#include "types.h"
+#include "fsl_types.h"
 #include "fsl_dpni_drv.h"
 #include "fsl_net.h"
 #include "fsl_dprc.h"

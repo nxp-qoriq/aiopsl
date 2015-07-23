@@ -24,7 +24,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "common/types.h"
+#include "fsl_types.h"
 #include "fsl_sl_dbg.h"
 #include "common/fsl_string.h"
 #include "kernel/fsl_spinlock.h"

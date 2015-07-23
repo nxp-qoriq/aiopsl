@@ -37,7 +37,7 @@
 #ifndef __FSL_LIB_L4_H
 #define __FSL_LIB_L4_H
 
-#include "common/types.h"
+#include "fsl_types.h"
 #include "fsl_gso.h"
 #include "fsl_gro.h"
 

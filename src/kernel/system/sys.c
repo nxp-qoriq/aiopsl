@@ -25,7 +25,7 @@
  */
 
 #include "general.h"
-#include "common/types.h"
+#include "fsl_types.h"
 #include "common/fsl_string.h"
 #include "common/fsl_stdarg.h"
 #include "fsl_malloc.h"

@@ -32,7 +32,7 @@
 #ifndef __FSL_SL_DPNI_DRV_H
 #define __FSL_SL_DPNI_DRV_H
 
-#include "types.h"
+#include "fsl_types.h"
 #include "fsl_dpni.h"
 #include "fsl_ldpaa.h"
 #include "fsl_malloc.h"

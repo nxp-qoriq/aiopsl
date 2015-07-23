@@ -31,7 +31,7 @@
 		
 *//***************************************************************************/
 
-#include "common/types.h"
+#include "fsl_types.h"
 #include "kernel/fsl_spinlock.h"
 #include "fsl_cdma.h"
 #include "fsl_parser.h"
