@@ -38,7 +38,7 @@
 #define __FSL_CORE_BOOKE_H
 
 
-#include "common/types.h"
+#include "fsl_types.h"
 
 #ifndef CORE_E200_Z490
 #define core_dcache_enable      booke_dcache_enable

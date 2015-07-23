@@ -34,7 +34,7 @@
 #ifndef __AIOP_IPR_H
 #define __AIOP_IPR_H
 
-#include "common/types.h"
+#include "fsl_types.h"
 #include "fsl_ipr.h"
 #include "fsl_osm.h"
 #include "fsl_tman.h"

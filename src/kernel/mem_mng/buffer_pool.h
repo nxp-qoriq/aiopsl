@@ -26,7 +26,7 @@
 #ifndef __BUFFER_POOL_H
 #define __BUFFER_POOL_H
 
-#include "common/types.h"
+#include "fsl_types.h"
 #include "fsl_smp.h"
 #include "fsl_icontext.h"
 

@@ -37,7 +37,7 @@
 #ifndef __FSL_L2_H
 #define __FSL_L2_H
 
-#include "common/types.h"
+#include "fsl_types.h"
 
 /**************************************************************************//**
  @Group		NETF NETF (Network Libraries)

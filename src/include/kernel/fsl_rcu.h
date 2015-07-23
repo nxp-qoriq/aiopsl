@@ -35,7 +35,7 @@
 #ifndef __FSL_RCU_H
 #define __FSL_RCU_H
 
-#include "types.h"
+#include "fsl_types.h"
 
 /**************************************************************************//**
 @Group		rcu_g RCU

@@ -31,7 +31,7 @@
 *//***************************************************************************/
 
 #include "general.h"
-#include "common/types.h"
+#include "fsl_types.h"
 
 #include "fsl_cdma.h"
 

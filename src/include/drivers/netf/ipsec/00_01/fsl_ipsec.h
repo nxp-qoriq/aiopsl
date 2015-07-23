@@ -33,7 +33,7 @@
 #ifndef __FSL_IPSEC_H
 #define __FSL_IPSEC_H
 
-#include "common/types.h"
+#include "fsl_types.h"
 
 /**************************************************************************//**
 @Group		NETF NETF (Network Libraries)

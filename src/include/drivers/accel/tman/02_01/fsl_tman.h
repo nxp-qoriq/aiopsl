@@ -33,7 +33,7 @@
 #ifndef __FSL_TMAN_H
 #define __FSL_TMAN_H
 
-#include "common/types.h"
+#include "fsl_types.h"
 #include "fsl_errors.h"
 
 

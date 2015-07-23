@@ -34,7 +34,7 @@
 #ifndef __SNIC_H
 #define __SNIC_H
 
-#include "common/types.h"
+#include "fsl_types.h"
 #include "fsl_ipr.h"
 #include "fsl_ipsec.h"
 #include "ipsec.h"

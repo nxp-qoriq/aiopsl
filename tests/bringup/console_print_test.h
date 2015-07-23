@@ -31,7 +31,7 @@
 #ifndef __CONSOLE_PRINT_TEST_H
 #define __CONSOLE_PRINT_TEST_H
 
-#include "common/types.h"
+#include "fsl_types.h"
 #include "fsl_errors.h"
 #include "../../../drivers/serial/include/fsl_duart.h"
 

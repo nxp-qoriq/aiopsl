@@ -38,7 +38,7 @@
 #ifndef __FSL_SYS_H
 #define __FSL_SYS_H
 
-#include "common/types.h"
+#include "fsl_types.h"
 #include "fsl_errors.h"
 #include "fsl_soc.h"
 

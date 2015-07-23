@@ -32,7 +32,7 @@
 
 *//***************************************************************************/
 
-#include "common/types.h"
+#include "fsl_types.h"
 
 #ifndef __AIOP_VERIFICATION_DATA_H_
 #define __AIOP_VERIFICATION_DATA_H_

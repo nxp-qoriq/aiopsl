@@ -25,7 +25,7 @@
  */
 
 #include "fsl_dbg.h"
-#include "common/types.h"
+#include "fsl_types.h"
 #include "fsl_malloc.h"
 #include "common/fsl_string.h"
 #include "fsl_aiop_common.h"

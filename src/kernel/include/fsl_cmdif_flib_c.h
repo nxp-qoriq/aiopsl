@@ -32,7 +32,7 @@
 #ifndef __FSL_CMDIF_FLIB_C_H
 #define __FSL_CMDIF_FLIB_C_H
 
-#include <types.h>
+#include <fsl_types.h>
 #include <fsl_cmdif_client.h>
 #include <fsl_cmdif_flib_fd.h>
 

@@ -34,7 +34,7 @@
 #ifndef __CHECKSUM_H
 #define __CHECKSUM_H
 
-#include "common/types.h"
+#include "fsl_types.h"
 
 /**************************************************************************//**
 @Group	CKSUM Checksum (Internal)

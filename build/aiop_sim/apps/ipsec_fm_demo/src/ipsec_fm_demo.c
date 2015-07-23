@@ -24,7 +24,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "common/types.h"
+#include "fsl_types.h"
 #include "common/fsl_stdio.h"
 #include "fsl_dpni_drv.h"
 #include "fsl_platform.h"

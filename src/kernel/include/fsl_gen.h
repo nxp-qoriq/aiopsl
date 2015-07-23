@@ -33,7 +33,7 @@
 #ifndef __FSL_SYS_GEN_H
 #define __FSL_SYS_GEN_H
 
-#include "common/types.h"
+#include "fsl_types.h"
 
 
 #define PTR_TO_UINT(_ptr)       ((uintptr_t)(_ptr))

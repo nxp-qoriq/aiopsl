@@ -37,7 +37,7 @@
 #ifndef __FSL_IP_H
 #define __FSL_IP_H
 
-#include "types.h"
+#include "fsl_types.h"
 #include "fsl_net.h"
 
 

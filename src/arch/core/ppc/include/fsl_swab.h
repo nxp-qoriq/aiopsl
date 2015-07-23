@@ -43,7 +43,7 @@
 *//***************************************************************************/
 #ifndef __FSL_SWAB_H_
 #define __FSL_SWAB_H_
-#include "common/types.h"
+#include "fsl_types.h"
 #include "fsl_core.h"
 
 /**

@@ -35,7 +35,7 @@
 #ifndef __FSL_SHBP_H
 #define __FSL_SHBP_H
 
-#include <types.h>
+#include <fsl_types.h>
 #include <fsl_icontext.h>
 
 /*!

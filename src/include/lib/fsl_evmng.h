@@ -33,7 +33,7 @@
 #ifndef __FSL_EVMNG_H
 #define __FSL_EVMNG_H
 
-#include "types.h"
+#include "fsl_types.h"
 
 /**************************************************************************//**
 @Group		evmng_g Event Manager
