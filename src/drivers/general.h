@@ -37,7 +37,7 @@
 
 
 #include "fsl_general.h"
-
+#include "fsl_stdio.h"
 
 #pragma section RW ".exception_data" ".exception_data_bss"
 

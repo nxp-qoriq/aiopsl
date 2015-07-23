@@ -510,6 +510,11 @@
 			<locationURI>virtual:/virtual</locationURI>
 		</link>
 		<link>
+			<name>aiop_sl/drivers/netf/hm</name>
+			<type>2</type>
+			<locationURI>virtual:/virtual</locationURI>
+		</link>
+		<link>
 			<name>aiop_sl/drivers/netf/include</name>
 			<type>2</type>
 			<locationURI>virtual:/virtual</locationURI>
@@ -520,17 +525,7 @@
 			<locationURI>virtual:/virtual</locationURI>
 		</link>
 		<link>
-			<name>aiop_sl/drivers/netf/l2</name>
-			<type>2</type>
-			<locationURI>virtual:/virtual</locationURI>
-		</link>
-		<link>
 			<name>aiop_sl/drivers/netf/l4</name>
-			<type>2</type>
-			<locationURI>virtual:/virtual</locationURI>
-		</link>
-		<link>
-			<name>aiop_sl/drivers/netf/nat</name>
 			<type>2</type>
 			<locationURI>virtual:/virtual</locationURI>
 		</link>
@@ -1390,19 +1385,29 @@
 			<locationURI>virtual:/virtual</locationURI>
 		</link>
 		<link>
+			<name>aiop_sl/drivers/netf/hm/ip.c</name>
+			<type>1</type>
+			<locationURI>PARENT-4-PROJECT_LOC/src/drivers/netf/hm/00_01/ip.c</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/drivers/netf/hm/l2.c</name>
+			<type>1</type>
+			<locationURI>PARENT-4-PROJECT_LOC/src/drivers/netf/hm/00_01/l2.c</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/drivers/netf/hm/l4.c</name>
+			<type>1</type>
+			<locationURI>PARENT-4-PROJECT_LOC/src/drivers/netf/hm/00_01/l4.c</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/drivers/netf/hm/nat.c</name>
+			<type>1</type>
+			<locationURI>PARENT-4-PROJECT_LOC/src/drivers/netf/hm/00_01/nat.c</locationURI>
+		</link>
+		<link>
 			<name>aiop_sl/drivers/netf/include/net.h</name>
 			<type>1</type>
 			<locationURI>PARENT-4-PROJECT_LOC/src/drivers/netf/include/net.h</locationURI>
-		</link>
-		<link>
-			<name>aiop_sl/drivers/netf/ip/ip.c</name>
-			<type>1</type>
-			<locationURI>PARENT-4-PROJECT_LOC/src/drivers/netf/ip/ip.c</locationURI>
-		</link>
-		<link>
-			<name>aiop_sl/drivers/netf/ip/ip.h</name>
-			<type>1</type>
-			<locationURI>PARENT-4-PROJECT_LOC/src/drivers/netf/ip/ip.h</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/drivers/netf/ip/ipf</name>
@@ -1420,11 +1425,6 @@
 			<locationURI>virtual:/virtual</locationURI>
 		</link>
 		<link>
-			<name>aiop_sl/drivers/netf/l2/l2.c</name>
-			<type>1</type>
-			<locationURI>PARENT-4-PROJECT_LOC/src/drivers/netf/l2/l2.c</locationURI>
-		</link>
-		<link>
 			<name>aiop_sl/drivers/netf/l4/gro</name>
 			<type>2</type>
 			<locationURI>virtual:/virtual</locationURI>
@@ -1433,16 +1433,6 @@
 			<name>aiop_sl/drivers/netf/l4/gso</name>
 			<type>2</type>
 			<locationURI>virtual:/virtual</locationURI>
-		</link>
-		<link>
-			<name>aiop_sl/drivers/netf/l4/l4.c</name>
-			<type>1</type>
-			<locationURI>PARENT-4-PROJECT_LOC/src/drivers/netf/l4/l4.c</locationURI>
-		</link>
-		<link>
-			<name>aiop_sl/drivers/netf/nat/nat.c</name>
-			<type>1</type>
-			<locationURI>PARENT-4-PROJECT_LOC/src/drivers/netf/nat/nat.c</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/drivers/sec/desc/algo.h</name>
@@ -1657,7 +1647,7 @@
 		<link>
 			<name>aiop_sl/include/drivers/netf/fsl_ip.h</name>
 			<type>1</type>
-			<locationURI>PARENT-4-PROJECT_LOC/src/include/drivers/netf/fsl_ip.h</locationURI>
+			<locationURI>PARENT-4-PROJECT_LOC/src/include/drivers/netf/hm/00_01/fsl_ip.h</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/include/drivers/netf/fsl_ipf.h</name>
@@ -1677,17 +1667,17 @@
 		<link>
 			<name>aiop_sl/include/drivers/netf/fsl_l2.h</name>
 			<type>1</type>
-			<locationURI>PARENT-4-PROJECT_LOC/src/include/drivers/netf/fsl_l2.h</locationURI>
+			<locationURI>PARENT-4-PROJECT_LOC/src/include/drivers/netf/hm/00_01/fsl_l2.h</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/include/drivers/netf/fsl_l4.h</name>
 			<type>1</type>
-			<locationURI>PARENT-4-PROJECT_LOC/src/include/drivers/netf/fsl_l4.h</locationURI>
+			<locationURI>PARENT-4-PROJECT_LOC/src/include/drivers/netf/hm/00_01/fsl_l4.h</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/include/drivers/netf/fsl_nat.h</name>
 			<type>1</type>
-			<locationURI>PARENT-4-PROJECT_LOC/src/include/drivers/netf/fsl_nat.h</locationURI>
+			<locationURI>PARENT-4-PROJECT_LOC/src/include/drivers/netf/hm/00_01/fsl_nat.h</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/kernel/cmdif/00_01/cmdif_rev.h</name>

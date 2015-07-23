@@ -33,7 +33,6 @@
 *//***************************************************************************/
 
 #include "general.h"
-#include "fsl_net.h"
 #include "fsl_parser.h"
 #include "fsl_fdma.h"
 #include "fsl_nat.h"
@@ -347,20 +346,10 @@ int nat_ipv6(uint8_t flags, uint32_t *ip_src_addr,
 	}
 	/*from the IPv6 SRC addr */
 	modify_offset = ipv6_offset + 8;
-	
-	/* Because of fdma PDM TKT237377 */  
-#ifdef REV2	
-	/* Modify the IPv6 header */
-	fdma_modify_default_segment_data(modify_offset, IPV6_ADDR_SIZE);
 
-	/* Modify the segment TCP/UDP header */
-	fdma_modify_default_segment_data(l4_offset, TCP_NO_OPTION_SIZE);
-#else
 	/* Modify the IPv6 header and TCP/UDP header */
 	fdma_modify_default_segment_data(modify_offset,
-			(uint16_t)(IPV6_ADDR_SIZE+
-				(l4_offset-modify_offset)+TCP_NO_OPTION_SIZE));	
-#endif // REV2
+			(uint16_t)((l4_offset-modify_offset)+TCP_NO_OPTION_SIZE));
 	return SUCCESS;
 
 }
