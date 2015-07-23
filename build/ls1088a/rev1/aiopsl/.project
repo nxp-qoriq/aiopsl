@@ -610,7 +610,7 @@
 			<locationURI>PARENT-4-PROJECT_LOC/src/include/common/fsl_string.h</locationURI>
 		</link>
 		<link>
-			<name>aiop_sl/include/common/types.h</name>
+			<name>aiop_sl/include/common/fsl_types.h</name>
 			<type>1</type>
 			<locationURI>PARENT-4-PROJECT_LOC/src/include/common/fsl_types.h</locationURI>
 		</link>
