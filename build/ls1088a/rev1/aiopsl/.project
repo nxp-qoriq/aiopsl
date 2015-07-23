@@ -1420,14 +1420,9 @@
 			<locationURI>virtual:/virtual</locationURI>
 		</link>
 		<link>
-			<name>aiop_sl/drivers/netf/ip/ipsec.c</name>
-			<type>1</type>
-			<locationURI>PARENT-4-PROJECT_LOC/src/drivers/netf/ip/ipsec.c</locationURI>
-		</link>
-		<link>
-			<name>aiop_sl/drivers/netf/ip/ipsec.h</name>
-			<type>1</type>
-			<locationURI>PARENT-4-PROJECT_LOC/src/drivers/netf/ip/ipsec.h</locationURI>
+			<name>aiop_sl/drivers/netf/ip/ipsec</name>
+			<type>2</type>
+			<locationURI>virtual:/virtual</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/drivers/netf/l2/l2.c</name>
@@ -1768,6 +1763,16 @@
 			<name>aiop_sl/drivers/netf/ip/ipr/ipr.h</name>
 			<type>1</type>
 			<locationURI>PARENT-4-PROJECT_LOC/src/drivers/netf/ip/ipr/00_02/ipr.h</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/drivers/netf/ip/ipsec/ipsec.c</name>
+			<type>1</type>
+			<locationURI>PARENT-4-PROJECT_LOC/src/drivers/netf/ip/ipsec/00_01/ipsec.c</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/drivers/netf/ip/ipsec/ipsec.h</name>
+			<type>1</type>
+			<locationURI>PARENT-4-PROJECT_LOC/src/drivers/netf/ip/ipsec/00_01/ipsec.h</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/drivers/netf/l4/gro/gro.c</name>
