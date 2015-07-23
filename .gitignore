@@ -1,0 +1,15 @@
+docs/doxygen/
+makefile
+*~
+*.a
+*.args
+*.d
+*.elf
+*.local
+*.MAP
+*.mot
+*.mk
+*.obj
+*.swp
+**/Referenced Systems/
+**/.settings/
