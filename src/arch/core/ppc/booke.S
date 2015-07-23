@@ -856,11 +856,6 @@ asm_prefix(booke_set_spr_PIR):
     mtspr   PIR,3           /* 286 */   /* Processor ID register */
     blr
 
-.global    asm_prefix(booke_get_spr_PVR)
-asm_prefix(booke_get_spr_PVR):
-    mfspr   3,PVR           /* 287 */   /* Processor version register */
-    blr
-
 .global    asm_prefix(booke_get_spr_SPRG0)
 asm_prefix(booke_get_spr_SPRG0):
     mfspr   3,SPRG0         /* 272 */   /* SPR general 0 */
