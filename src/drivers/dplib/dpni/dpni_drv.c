@@ -789,7 +789,7 @@ __COLD_CODE static int parser_profile_init(uint8_t *prpid)
 	struct parse_profile_input parse_profile1 __attribute__((aligned(16)));
 
 	/* Init basic parse profile */
-	memset(&(parse_profile1), 0, sizeof(struct parse_profile_input));
+	memset(&(parse_profile1.parse_profile), 0, sizeof(struct parse_profile_record));
 
 	/* Frame Parsing advances to MPLS Default Next Parse (IP HXS) */
 	parse_profile1.parse_profile.mpls_hxs_config.lie_dnp = PARSER_PRP_MPLS_HXS_CONFIG_LIE;
