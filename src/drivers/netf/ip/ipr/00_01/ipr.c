@@ -40,12 +40,11 @@
 #include "fsl_table.h"
 #include "fsl_keygen.h"
 #include "fsl_ste.h"
-#include "fsl_net.h"
 #include "fsl_spinlock.h"
 #include "fsl_checksum.h"
 #include "ipr.h"
 #include "fsl_cdma.h"
-#include "ip.h"
+#include "net.h"
 #include "fsl_malloc.h"
 #include "fsl_sl_dpni_drv.h"
 

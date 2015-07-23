@@ -33,16 +33,13 @@
 *//***************************************************************************/
 
 #include "general.h"
-#include "fsl_net.h"
 #include "fsl_parser.h"
 #include "fsl_fdma.h"
 #include "fsl_ip.h"
 #include "fsl_cdma.h"
 #include "fsl_checksum.h"
 #include "net.h"
-#include "ip.h"
 #include "fsl_time.h"
-
 
 int ip_header_decapsulation(uint8_t flags)
 {
@@ -54,11 +51,6 @@ int ip_header_decapsulation(uint8_t flags)
 	struct ipv6hdr *inner_ipv6_ptr, *outer_ipv6_ptr;
 	void *inner_ip_ptr;
 	uint32_t old_field;
-#ifndef REV2
-	/* Because of fdma PDM TKT237377 */
-	uint32_t mpls_tmp_label;
-	uint16_t etype_tmp;
-#endif
 	struct presentation_context *prc =
 			(struct presentation_context *) HWC_PRC_ADDRESS;
 	inner_ip_offset = (uint8_t)(PARSER_GET_INNER_IP_OFFSET_DEFAULT());
@@ -74,10 +66,6 @@ int ip_header_decapsulation(uint8_t flags)
 		old_field = *((uint32_t *)inner_ipv4_ptr);
 
 		if (PARSER_IS_OUTER_IPV4_DEFAULT()) {
-#ifndef REV2
-			mpls_tmp_label = NET_MPLS_LABEL_IPV4;
-			etype_tmp = NET_ETH_ETYPE_IPV4;
-#endif
 			/* Inner & Outer IPv4 */
 			outer_ipv4_ptr = (struct ipv4hdr *)
 			(outer_ip_offset + PRC_GET_SEGMENT_ADDRESS());
@@ -157,7 +145,6 @@ int ip_header_decapsulation(uint8_t flags)
 					old_field,
 					*((uint32_t *)inner_ipv4_ptr+2));
 			}
-#ifdef REV2
 			/* Update Etype or MPLS label if needed */
 			if (PARSER_IS_ONE_MPLS_DEFAULT()) {
 				mpls_offset =
@@ -165,7 +152,7 @@ int ip_header_decapsulation(uint8_t flags)
 				mpls_ptr =
 				  (uint32_t *) (mpls_offset + prc->seg_address);
 				*mpls_ptr = (*mpls_ptr & MPLS_LABEL_MASK) |
-							   MPLS_LABEL_IPV4;
+							   NET_MPLS_LABEL_IPV4;
 				fdma_modify_default_segment_data(mpls_offset,
 								 3);
 			} else {
@@ -174,17 +161,12 @@ int ip_header_decapsulation(uint8_t flags)
 					 PARSER_GET_LAST_ETYPE_OFFSET_DEFAULT();
 					etype_ptr = (uint16_t *)
 					      (etype_offset + prc->seg_address);
-					*etype_ptr = ETYPE_IPV4;
+					*etype_ptr = NET_ETH_ETYPE_IPV4;
 					fdma_modify_default_segment_data(
 								   etype_offset,
 								   2);
 				}
 			}
-#else
-			/* Update Etype and MPLS label if needed */
-			mpls_tmp_label = NET_MPLS_LABEL_IPV4;
-			etype_tmp = NET_ETH_ETYPE_IPV4;
-#endif //REV2
 		}
 	} else {
 		inner_ipv6_ptr = (struct ipv6hdr *)
@@ -212,7 +194,6 @@ int ip_header_decapsulation(uint8_t flags)
 			if (flags & IP_DECAP_MODE_TTL_HL)
 				inner_ipv6_ptr->hop_limit =
 						outer_ipv4_ptr->ttl;
-#ifdef REV2
 			/* Update Etype or MPLS label if needed */
 			if (PARSER_IS_ONE_MPLS_DEFAULT()) {
 				mpls_offset =
@@ -220,7 +201,7 @@ int ip_header_decapsulation(uint8_t flags)
 				mpls_ptr = (uint32_t *)
 					       (mpls_offset + prc->seg_address);
 				*mpls_ptr = (*mpls_ptr & MPLS_LABEL_MASK) |
-							   MPLS_LABEL_IPV6;
+							   NET_MPLS_LABEL_IPV6;
 				fdma_modify_default_segment_data(mpls_offset,
 								 3);
 			} else {
@@ -229,26 +210,17 @@ int ip_header_decapsulation(uint8_t flags)
 					 PARSER_GET_LAST_ETYPE_OFFSET_DEFAULT();
 					etype_ptr = (uint16_t *)
 					      (etype_offset + prc->seg_address);
-					*etype_ptr = ETYPE_IPV6;
+					*etype_ptr = NET_ETH_ETYPE_IPV6;
 					fdma_modify_default_segment_data(
 								   etype_offset,
 								   2);
 				}
 			}
-#else
-			/* Update Etype and MPLS label if needed */
-			mpls_tmp_label = NET_MPLS_LABEL_IPV6;
-			etype_tmp = NET_ETH_ETYPE_IPV6;
-#endif // REV2
 		} else {
 			/* Inner & outer IPv6
 			 * Reset parser running sum in case of outer
 			 * IPv6 as it does not contain checksum*/
 			/* Update Etype and MPLS label if needed */
-#ifndef REV2
-			mpls_tmp_label = NET_MPLS_LABEL_IPV6;
-			etype_tmp = NET_ETH_ETYPE_IPV6;
-#endif // REV2
 			PARSER_CLEAR_RUNNING_SUM();
 			outer_ipv6_ptr = (struct ipv6hdr *)
 			(outer_ip_offset + PRC_GET_SEGMENT_ADDRESS());
@@ -285,31 +257,6 @@ int ip_header_decapsulation(uint8_t flags)
 			(void *)prc->seg_address, /*ws_dst_rs*/
 			prc->seg_length, /*size_rs*/
 			FDMA_REPLACE_SA_REPRESENT_BIT);
-
-#ifndef REV2
-	/* Update Etype or MPLS label if needed */
-	if (PARSER_IS_ONE_MPLS_DEFAULT()) {
-		mpls_offset =
-			PARSER_GET_LAST_MPLS_OFFSET_DEFAULT();
-		mpls_ptr =
-		  (uint32_t *) (mpls_offset + prc->seg_address);
-		*mpls_ptr = (*mpls_ptr & MPLS_LABEL_MASK) |
-					   mpls_tmp_label;
-		fdma_modify_default_segment_data(mpls_offset,
-						 3);
-	} else {
-		if (PARSER_IS_ETH_MAC_DEFAULT()) {
-			etype_offset =
-			 PARSER_GET_LAST_ETYPE_OFFSET_DEFAULT();
-			etype_ptr = (uint16_t *)
-			      (etype_offset + prc->seg_address);
-			*etype_ptr = etype_tmp;
-			fdma_modify_default_segment_data(
-						   etype_offset,
-						   2);
-		}
-	}
-#endif
 
 	/* generate new parse information */
 	parse_result_generate_default(0);
@@ -1259,6 +1206,7 @@ int ip_set_nw_dst(uint32_t dst_addr)
 		return NO_IP_HDR_ERROR; }
 
 }
+
 
 
 void ip_cksum_calculate(struct ipv4hdr *ipv4header, uint8_t flags)

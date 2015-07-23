@@ -37,7 +37,6 @@
 #include "fsl_l2.h"
 #include "fsl_cdma.h"
 #include "fsl_dpni_drv.h"
-#include "fsl_net.h"
 #include "net.h"
 #include "general.h"
 

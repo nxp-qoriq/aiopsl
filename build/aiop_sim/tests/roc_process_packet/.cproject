@@ -153,6 +153,7 @@
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/include/drivers/netf/gso/00_01&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/include/drivers/netf/gro/00_01&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/include/drivers/netf/general/frame_operations/01_01&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/include/drivers/netf/hm/00_01&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/include/drivers/netf/ipf/00_01&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/include/drivers/netf/ipr/00_01&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/include/drivers/netf/ipsec/00_01&quot;"/>
