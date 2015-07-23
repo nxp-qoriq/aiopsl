@@ -562,7 +562,6 @@ void booke_set_spr_PID2(uint32_t newvalue);   /* [634]        Process ID registe
 uint32_t booke_get_spr_SPEFSCR(void);         /* [512]        Signal processing and embedded floating-point status and control register 1 */
 void booke_set_spr_SPEFSCR(uint32_t newvalue);/* [512]        Signal processing and embedded floating-point status and control register 1 */
 uint32_t booke_get_spr_SVR(void);             /* [1023]       System version register */
-void booke_set_spr_SVR(uint32_t newvalue);    /* [1023]       System version register */
 uint32_t booke_get_spr_ILLEGAL(void);         /* [999]        System version register */
 void booke_set_spr_ILLEGAL(uint32_t newvalue);/* [999]        System version register */
 

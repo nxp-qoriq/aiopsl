@@ -1281,10 +1281,6 @@ asm_prefix(booke_set_spr_SPEFSCR):
 asm_prefix(booke_get_spr_SVR):
     mfspr   3,SVR           /* 1023 */  /* System version register */
     blr
-.global    asm_prefix(booke_set_spr_SVR)
-asm_prefix(booke_set_spr_SVR):
-    mtspr   SVR,3           /* 1023 */  /* System version register */
-    blr
 
 .global    asm_prefix(booke_get_spr_HDBCR0)
 asm_prefix(booke_get_spr_HDBCR0):
