@@ -404,7 +404,7 @@ void rcu_tman_cb(uint64_t ubatch_size, uint16_t opaque2)
 		init_one_shot_timer(batch_size);
 	}
 
-	rcu_read_unlock_cancel();
+	/* rcu_read_lock happens automatically inside terminate */
 	fdma_terminate_task();
 }
 
@@ -444,6 +444,10 @@ void rcu_read_unlock()
 	my_core		= my_core & (AIOP_MAX_NUM_CORES_IN_CLUSTER - 1);
 	my_task_id	= (booke_get_TASKSCR0() & 0xF);
 
+	/* Need automatic lock upon task termination 
+	 * see RCU_CHECK_UNLOCK_CANCEL */
+	g_rcu_unlock = 1;
+
 	lock_spinlock(&g_rcu.sw_ctstws_lock);
 
 	/* 1 - need to wait for task
@@ -456,7 +460,7 @@ void rcu_read_unlock()
 	unlock_spinlock(&g_rcu.sw_ctstws_lock);
 }
 
-void rcu_read_unlock_cancel()
+void rcu_read_lock()
 {
 	uint32_t temp;
 	uint32_t my_cluster, my_core;

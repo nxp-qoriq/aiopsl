@@ -100,28 +100,19 @@ int rcu_synchronize(rcu_cb_t *cb, uint64_t param);
 
 		Every AIOP task that is created automatically holds an
 		RCU read lock.
-
-		Must call rcu_read_unlock_cancel() after rcu_read_unlock().
-		Otherwise the next task with the same task id will
-		be considered as a task that does not hold any resource.
 *//***************************************************************************/
 void rcu_read_unlock();
 
 
 /**************************************************************************//**
-@Function	rcu_read_unlock_cancel
+@Function	rcu_read_lock
 
 @Description	Add the task back to the readers list;
-		It reverts the rcu_read_unlock().
 
 @Cautions	Every AIOP task that is created automatically holds an
-		RCU read lock.
-
-		Must call rcu_read_unlock_cancel() after rcu_read_unlock().
-		Otherwise the next task with the same task id will
-		be considered as a task that does not hold any resource.
+		RCU read lock. This function reverts the rcu_read_unlock().
 *//***************************************************************************/
-void rcu_read_unlock_cancel();
+void rcu_read_lock();
 
 /** @} */ /* end of rcu_g */
 

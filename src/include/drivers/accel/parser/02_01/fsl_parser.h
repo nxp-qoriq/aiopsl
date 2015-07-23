@@ -63,26 +63,12 @@ extern __TASK struct aiop_default_task_params default_task_params;
 *//***************************************************************************/
 
 /**************************************************************************//**
-@Group	FSL_PARSER_FRAME_ATTRIBUTES_EXTENSION_MASKS Frame Attributes Extension Masks
-
-@Description	Frame Attributes Extension Masks
-		Used with \ref parse_result frame_attribute_flags_extension
-@{
-*//***************************************************************************/
-#ifndef REV2
-	/** Routing header present in 2nd IPv6 header */
-#define PARSER_ATT_IPV6_ROUTING_HDR_2               0x8000
-#endif
-/** @} *//* end of FSL_PARSER_FRAME_ATTRIBUTES_EXTENSION_MASKS */
-
-/**************************************************************************//**
 @Group	FSL_PARSER_FRAME_ATTRIBUTES_PART_1_MASKS Frame Attributes Masks 1
 
 @Description	Frame Attributes Part 1 Masks
 		Used with \ref parse_result frame_attribute_flags_1 field
 @{
 *//***************************************************************************/
-#ifdef REV2
 	/** "Routing header in 2nd IPv6 header" mask 
 	 * for frame_attribute_flags_1 */
 #define PARSER_ATT_IPV6_ROUTING_HDR_2_MASK          0x80000000
@@ -98,7 +84,6 @@ extern __TASK struct aiop_default_task_params default_task_params;
 #define PARSER_ATT_ETH_SLOW_PROTOCOL_MASK     	    0x02000000
 	/** "IKE over UDP" mask for frame_attribute_flags_1 */
 #define PARSER_ATT_IKE_MASK              	    	0x01000000
-#endif
 	/** "Ethernet MAC" mask for frame_attribute_flags_1 */
 #define PARSER_ATT_ETH_MAC_MASK                     0x00200000
 	/** "Ethernet MAC Unicast DA" mask for frame_attribute_flags_1 */
@@ -142,10 +127,8 @@ extern __TASK struct aiop_default_task_params default_task_params;
 @{
 *//***************************************************************************/
 
-#ifdef REV2
 	/** "VXLAN Parsing error" mask for frame_attribute_flags_1 */
 #define PARSER_ATT_VXLAN_PARSING_ERROR_MASK         0x04000000
-#endif
 	/** "Soft parsing error in shim" mask for frame_attribute_flags_1 */
 #define PARSER_ATT_SHIM_SOFT_PARSING_ERROR_MASK     0x00800000
 	/** "Parsing error" mask for frame_attribute_flags_1 */
@@ -294,12 +277,8 @@ extern __TASK struct aiop_default_task_params default_task_params;
 #define PARSER_ATT_L4_UNKOWN_PROTOCOL_MASK          0x00000400
 	/** "GTP" mask for frame_attribute_flags_3 */
 #define PARSER_ATT_GTP_MASK                         0x00000100
-#ifndef REV2
 	/** "ESP or IKE over UDP" mask for frame_attribute_flags_3 */
-#define PARSER_ATT_ESP_OR_IKE_OVER_UDP_MASK         0x00000040
-#else
 #define PARSER_ATT_ESP_OVER_UDP_MASK         	    0x00000040
-#endif
 	/** "iSCSI" mask for frame_attribute_flags_3 */
 #define PARSER_ATT_ISCSI_MASK                       0x00000010
 	/** "Capwap control" mask for frame_attribute_flags_3 */
@@ -355,10 +334,6 @@ extern __TASK struct aiop_default_task_params default_task_params;
 		error is found first the more severe is reported.
 @{
 *//***************************************************************************/
-#ifndef REV2
-	/** Parsing attempted to exceed presentation_length */
-#define PARSER_EXCEED_BLOCK_LIMIT                       0x01
-#endif
 	/** Frame Truncation: Frame Parsing reached end of frame while parsing
 	 * a header that expects more data */
 #define PARSER_FRAME_TRUNCATION                         0x02
@@ -446,13 +421,10 @@ extern __TASK struct aiop_default_task_params default_task_params;
 @{
 *//***************************************************************************/
 
-#ifdef REV2
 /** Returns a non-zero value in case of VXLAN parsing error */
 #define PARSER_IS_VXLAN_PARSING_ERROR_DEFAULT()\
 	(((struct parse_result *)HWC_PARSE_RES_ADDRESS)-> \
 	frame_attribute_flags_1 & PARSER_ATT_VXLAN_PARSING_ERROR_MASK)
-#endif
-
 /** Returns a non-zero value in case Soft parsing error in shim is found.
  * This general flag may be used for reporting an error in case of soft HXS */
 #define PARSER_IS_SHIM_SOFT_PARSING_ERROR_DEFAULT()\
@@ -570,7 +542,6 @@ extern __TASK struct aiop_default_task_params default_task_params;
 		parse result.
 @{
 *//***************************************************************************/
-#ifdef REV2
 /** Returns a non-zero value in case Routing hdr in 2nd IPv6 header is found */
 #define PARSER_IS_ROUTING_HDR_IN_2ND_IPV6_HDR_DEFAULT() \
 		(((struct parse_result *)HWC_PARSE_RES_ADDRESS)-> \
@@ -594,7 +565,6 @@ extern __TASK struct aiop_default_task_params default_task_params;
 #define PARSER_IS_ETH_SLOW_PROTOCOL_DEFAULT() \
 	(((struct parse_result *)HWC_PARSE_RES_ADDRESS)-> \
 	frame_attribute_flags_1 & PARSER_ATT_ETH_SLOW_PROTOCOL_MASK)
-#endif
 /** Returns a non-zero value in case Ethernet MAC is found */
 #define PARSER_IS_ETH_MAC_DEFAULT() \
 	(((struct parse_result *)HWC_PARSE_RES_ADDRESS)-> \
@@ -878,22 +848,6 @@ extern __TASK struct aiop_default_task_params default_task_params;
 #define PARSER_IS_GTP_DEFAULT() \
 	(((struct parse_result *)HWC_PARSE_RES_ADDRESS)-> \
 	frame_attribute_flags_3 & PARSER_ATT_GTP_MASK)
-#ifndef REV2
-/** Returns a non-zero value in case ESP or IKE over UDP is found */
-#define PARSER_IS_ESP_OR_IKE_OVER_UDP_DEFAULT() \
-	(((struct parse_result *)HWC_PARSE_RES_ADDRESS)-> \
-	frame_attribute_flags_3 & PARSER_ATT_ESP_OR_IKE_OVER_UDP_MASK)
-/** Returns a non-zero value in case IKE over UDP is found */
-#define PARSER_IS_IKE_OVER_UDP_DEFAULT() \
-	((PARSER_IS_ESP_OR_IKE_OVER_UDP_DEFAULT() && \
-	(*((uint32_t *)(PARSER_GET_L5_POINTER_DEFAULT())) == 0)) \
-	? (1) : (0))
-/** Returns a non-zero value in case ESP over UDP is found */
-#define PARSER_IS_ESP_OVER_UDP_DEFAULT() \
-	((PARSER_IS_ESP_OR_IKE_OVER_UDP_DEFAULT() && \
-	(*((uint32_t *)(PARSER_GET_L5_POINTER_DEFAULT())) != 0)) \
-	? (1) : (0))
-#else
 /** Returns a non-zero value in case IKE over UDP is found */
 #define PARSER_IS_IKE_OVER_UDP_DEFAULT() \
 	(((struct parse_result *)HWC_PARSE_RES_ADDRESS)-> \
@@ -902,7 +856,6 @@ extern __TASK struct aiop_default_task_params default_task_params;
 #define PARSER_IS_ESP_OVER_UDP_DEFAULT() \
 	(((struct parse_result *)HWC_PARSE_RES_ADDRESS)-> \
 	frame_attribute_flags_3 & PARSER_ATT_ESP_OVER_UDP_MASK)
-#endif
 /** Returns a non-zero value in case iSCSI is found */
 #define PARSER_IS_ISCSI_DEFAULT() \
 	(((struct parse_result *)HWC_PARSE_RES_ADDRESS)-> \
@@ -920,15 +873,6 @@ extern __TASK struct aiop_default_task_params default_task_params;
 	(((struct parse_result *)HWC_PARSE_RES_ADDRESS)-> \
 	frame_attribute_flags_3 & PARSER_ATT_IPV6_ROUTING_HDR_1)
 /** Returns a non-zero value in case Routing hdr in 2nd IPv6 header is found */
-#ifndef REV2
-#define PARSER_IS_ROUTING_HDR_IN_2ND_IPV6_HDR_DEFAULT() \
-	(((struct parse_result *)HWC_PARSE_RES_ADDRESS)-> \
-	frame_attribute_flags_extension & PARSER_ATT_IPV6_ROUTING_HDR_2)
-/** Returns a non-zero value in case VxLAN is found */
-#define PARSER_IS_VXLAN_DEFAULT() (PARSER_IS_UDP_DEFAULT() && \
-	((*((uint16_t *)((uint32_t)PARSER_GET_L4_POINTER_DEFAULT() + 2)) == 4789)) \
-	? (1) : (0))
-#endif
 /** @} */ /* end of FSL_PARSER_PR_QUERIES */
 
 
@@ -953,13 +897,8 @@ extern __TASK struct aiop_default_task_params default_task_params;
 #define PARSER_GET_SHIM2_OFFSET_DEFAULT() \
 	(((struct parse_result *)HWC_PARSE_RES_ADDRESS)->shim_offset_2)
 /** Get the IP Protocol Identifier offset of the first IP */
-#ifndef REV2
-#define PARSER_GET_IP_PID_OFFSET_DEFAULT() \
-	(((struct parse_result *)HWC_PARSE_RES_ADDRESS)->ip_pid_offset)
-#else
 #define PARSER_GET_OUTER_IP_PID_OFFSET_DEFAULT() \
 	(((struct parse_result *)HWC_PARSE_RES_ADDRESS)->ip_1_pid_offset)
-#endif
 /** Get the ETHERNET header offset */
 #define PARSER_GET_ETH_OFFSET_DEFAULT() \
 	(((struct parse_result *)HWC_PARSE_RES_ADDRESS)->eth_offset)
@@ -984,14 +923,6 @@ extern __TASK struct aiop_default_task_params default_task_params;
 /** Get the last MPLS offset */
 #define PARSER_GET_LAST_MPLS_OFFSET_DEFAULT() \
 	(((struct parse_result *)HWC_PARSE_RES_ADDRESS)->mpls_offset_n)
-#ifndef REV2
-/** Get the outer IP header offset*/
-#define PARSER_GET_OUTER_IP_OFFSET_DEFAULT() \
-	(((struct parse_result *)HWC_PARSE_RES_ADDRESS)->ip1_or_arp_offset)
-/** Get the ARP header offset*/
-#define PARSER_GET_ARP_OFFSET_DEFAULT() \
-	(((struct parse_result *)HWC_PARSE_RES_ADDRESS)->ip1_or_arp_offset)
-#else
 /** Get the outer IP header offset*/
 #define PARSER_GET_OUTER_IP_OFFSET_DEFAULT() \
 	(((struct parse_result *)HWC_PARSE_RES_ADDRESS)->l3_offset)
@@ -1004,7 +935,6 @@ extern __TASK struct aiop_default_task_params default_task_params;
 /** Get the FIP header offset*/
 #define PARSER_GET_FIP_OFFSET_DEFAULT() \
 	(((struct parse_result *)HWC_PARSE_RES_ADDRESS)->l3_offset)
-#endif
 /** Get the inner IP header offset*/
 #define PARSER_GET_INNER_IP_OFFSET_DEFAULT() \
 	(((struct parse_result *)HWC_PARSE_RES_ADDRESS)-> \
@@ -1021,7 +951,7 @@ extern __TASK struct aiop_default_task_params default_task_params;
 	(((struct parse_result *)HWC_PARSE_RES_ADDRESS)->l4_offset)
 /** Get L5 (GTP/ESP/IPsec/iSCSI/CapWap/PTP(not in REV1) header offset */
 #define PARSER_GET_L5_OFFSET_DEFAULT() \
-	(((struct parse_result *)HWC_PARSE_RES_ADDRESS)->gtp_esp_ipsec_offset)
+	(((struct parse_result *)HWC_PARSE_RES_ADDRESS)->l5_offset)
 /** Get Routing Header offset in 1st IPv6 header */
 #define PARSER_GET_1ST_IPV6_ROUTING_HDR_OFFSET_DEFAULT() \
 	(((struct parse_result *)HWC_PARSE_RES_ADDRESS)->routing_hdr_offset1)
@@ -1044,7 +974,6 @@ extern __TASK struct aiop_default_task_params default_task_params;
 /** Get Parse Error Code */
 #define PARSER_GET_PARSE_ERROR_CODE_DEFAULT() \
 	(((struct parse_result *)HWC_PARSE_RES_ADDRESS)->parse_error_code)
-#ifdef REV2
 /** Get offset to the next header field before IPv6 fragment extension */
 #define PARSER_GET_NXT_HDR_BEFORE_IPV6_FRAG_EXT_OFFSET_DEFAULT() \
 	(((struct parse_result *)HWC_PARSE_RES_ADDRESS)->)\
@@ -1052,7 +981,6 @@ extern __TASK struct aiop_default_task_params default_task_params;
 /** Get the IP Protocol Identifier offset of the Inner IP */
 #define PARSER_GET_IP_N_PID_OFFSET_DEFAULT() \
 	(((struct parse_result *)HWC_PARSE_RES_ADDRESS)->ip_n_pid_offset)
-#endif
 /** @} */ /* end of FSL_PARSER_PR_GETTERS */
 
 /**************************************************************************//**
@@ -1077,15 +1005,9 @@ extern __TASK struct aiop_default_task_params default_task_params;
 		+ PRC_GET_SEGMENT_ADDRESS())
 /** Get the pointer to IP Protocol Identifier of the first IP
  in the default frame presented in the workspace */
-#ifndef REV2
-#define PARSER_GET_IP_PID_POINTER_DEFAULT() \
-	(void *)((uint16_t)PARSER_GET_IP_PID_OFFSET_DEFAULT() \
-		+ PRC_GET_SEGMENT_ADDRESS())
-#else
 #define PARSER_GET_OUTER_IP_PID_POINTER_DEFAULT() \
 	(void *)((uint16_t)PARSER_GET_OUTER_IP_PID_OFFSET_DEFAULT() \
 		+ PRC_GET_SEGMENT_ADDRESS())
-#endif
 /** Get the pointer to ETHERNET
  in the default frame presented in the workspace */
 #define PARSER_GET_ETH_POINTER_DEFAULT() \
@@ -1136,7 +1058,6 @@ extern __TASK struct aiop_default_task_params default_task_params;
 #define PARSER_GET_ARP_POINTER_DEFAULT() \
 	(void *)((uint16_t)PARSER_GET_ARP_OFFSET_DEFAULT() \
 		+ PRC_GET_SEGMENT_ADDRESS())
-#ifdef REV2
 /** Get the pointer to FCoE header
  in the default frame presented in the workspace */
 #define PARSER_GET_FCOE_POINTER_DEFAULT() \
@@ -1147,7 +1068,6 @@ extern __TASK struct aiop_default_task_params default_task_params;
 #define PARSER_GET_FIP_POINTER_DEFAULT() \
 	(void *)((uint16_t)PARSER_GET_FIP_OFFSET_DEFAULT() \
 		+ PRC_GET_SEGMENT_ADDRESS())
-#endif
 /** Get the pointer to inner IP header
  in the default frame presented in the workspace */
 #define PARSER_GET_INNER_IP_POINTER_DEFAULT() \
@@ -1191,7 +1111,6 @@ extern __TASK struct aiop_default_task_params default_task_params;
 #define PARSER_GET_IPV6_FRAG_HEADER_POINTER_DEFAULT() \
 	(void *)((uint16_t)PARSER_GET_IPV6_FRAG_HEADER_OFFSET_DEFAULT() \
 		+ PRC_GET_SEGMENT_ADDRESS())
-#ifdef REV2
 /** Get the pointer to the next header field before IPv6 fragment extension */
 #define PARSER_GET_NXT_HDR_BEFORE_IPV6_FRAG_EXT_POINTER_DEFAULT() \
 (void *)((uint16_t)PARSER_GET_NXT_HDR_BEFORE_IPV6_FRAG_EXT_OFFSET_DEFAULT() \
@@ -1200,7 +1119,6 @@ extern __TASK struct aiop_default_task_params default_task_params;
 #define PARSER_GET_IP_N_PID_POINTER_DEFAULT() \
 	(void *)((uint16_t)PARSER_GET_IP_N_PID_OFFSET_DEFAULT() \
 		+ PRC_GET_SEGMENT_ADDRESS())
-#endif
 
 /** @} */ /* end of FSL_PARSER_POINTER_IN_FRMAE_GETTERS */
 
@@ -1328,10 +1246,8 @@ enum parser_starting_hxs_code {
 	 PARSER_GTP_STARTING_HXS = 0x0012,
 	/** ESP Starting HXS coding */
 	 PARSER_ESP_STARTING_HXS = 0x0013,
-#ifdef REV2
 	 /** VXLAN Starting HXS coding */
 	PARSER_VXLAN_STARTING_HXS = 0x0014,
-#endif
 	/** L5 (and above) Shell Starting HXS coding */
 	 PARSER_L5_SHELL_STARTING_HXS = 0x001E,
 	/** Final Shell Starting HXS coding */
@@ -1359,71 +1275,6 @@ enum parser_starting_hxs_code {
 		Please refer to the parser specification for more details.
 *//***************************************************************************/
 
-#ifndef REV2
-#pragma pack(push, 1)
-struct parse_result {
-	/** Next header */
-	volatile uint16_t	nxt_hdr;
-	/** Frame Attribute Flags Extension */
-	volatile uint16_t	frame_attribute_flags_extension;
-	/** Frame Attribute Flags (part 1) */
-	volatile uint32_t	frame_attribute_flags_1;
-	/** Frame Attribute Flags (part 2) */
-	volatile uint32_t	frame_attribute_flags_2;
-	/** Frame Attribute Flags (part 3) */
-	volatile uint32_t	frame_attribute_flags_3;
-	/** Shim Offset 1 */
-	volatile uint8_t	shim_offset_1;
-	/** Shim Offset 2 */
-	volatile uint8_t	shim_offset_2;
-	/** IP protocol field offset */
-	volatile uint8_t	ip_pid_offset;
-	/** Ethernet offset */
-	volatile uint8_t	eth_offset;
-	/** LLC+SNAP offset */
-	volatile uint8_t	llc_snap_offset;
-	/** First VLAN's TCI field offset*/
-	volatile uint8_t	vlan_tci1_offset;
-	/** Last VLAN's TCI field offset*/
-	volatile uint8_t	vlan_tcin_offset;
-	/** Last Ethertype offset*/
-	volatile uint8_t	last_etype_offset;
-	/** PPPoE offset */
-	volatile uint8_t	pppoe_offset;
-	/** First MPLS offset */
-	volatile uint8_t	mpls_offset_1;
-	/** Last MPLS offset */
-	volatile uint8_t	mpls_offset_n;
-	/** Outer IP or ARP offset */
-	volatile uint8_t	ip1_or_arp_offset;
-	/** Inner IP or MinEncap offset*/
-	volatile uint8_t	ipn_or_minencapO_offset;
-	/** GRE offset */
-	volatile uint8_t	gre_offset;
-	/** Layer 4 offset*/
-	volatile uint8_t	l4_offset;
-	/** GTP/ESP/IPsec offset */
-	volatile uint8_t	gtp_esp_ipsec_offset;
-	/** Routing header offset of 1st IPv6 header */
-	volatile uint8_t	routing_hdr_offset1;
-	/** Routing header offset of 2nd IPv6 header */
-	volatile uint8_t	routing_hdr_offset2;
-	/** Next header offset */
-	volatile uint8_t	nxt_hdr_offset;
-	/** IPv6 fragmentable part offset */
-	volatile uint8_t	ipv6_frag_offset;
-	/** Frame's untouched running sum, input to parser */
-	volatile uint16_t	gross_running_sum;
-	/** Running Sum */
-	volatile uint16_t	running_sum;
-	/** Parse Error code.
-	 * Please refer to \ref FSL_PARSER_ERROR_CODES*/
-	volatile uint8_t	parse_error_code;
-	/** Reserved for Soft parsing context*/
-	volatile uint8_t	soft_parsing_context[23];
-};
-#pragma pack(pop)
-#else
 #pragma pack(push, 1)
 struct parse_result {
 	/** Next header */
@@ -1491,7 +1342,6 @@ struct parse_result {
 	volatile uint8_t	soft_parsing_context[21];
 };
 #pragma pack(pop)
-#endif
 
 /**************************************************************************//**
 @Description	Vlan HXS Configuration in Parser Profile Record structure
@@ -1554,18 +1404,12 @@ struct	mpls_hxs_configuration {
 *//***************************************************************************/
 #pragma pack(push, 1)
 struct parse_profile_record {
-#ifndef REV2
-	/** Reserved for compliance with HW format. User should not access
-	 * this field. */
-	uint32_t  reserved1;
-#else
 	/** One configured distinct UDP DA value to indicate a VXLAN tag
 	 * (in addition to the common DA value 0x12B5). */
 	uint16_t  vxlan_da1;
 	/** Second configured distinct UDP DA value to indicate a VXLAN tag
 	 * (in addition to the common DA value 0x12B5). */
 	uint16_t  vxlan_da2;
-#endif
 	/** Eth HXS configuration. Includes bits EN, ERM
 	 * (refer to \ref FSL_PARSER_HXS_CONFIG) and 11-bit index (16-bit words)
 	 * for soft sequence start address. Reserved bits must be clear. */
@@ -1654,16 +1498,10 @@ struct parse_profile_record {
 	 * (refer to \ref FSL_PARSER_HXS_CONFIG) and 11-bit index (16-bit words)
 	 * for soft sequence start address. Reserved bits must be clear. */
 	uint16_t  esp_hxs_config;
-#ifndef REV2
-	/** Reserved for compliance with HW format. User should not access this
-	 * field */
-	uint16_t  reserved2;
-#else
 	/** VXLAN HXS configuration. Includes bits EN, ERM
 	 * (refer to \ref FSL_PARSER_HXS_CONFIG) and 11-bit index (16-bit words)
 	 * for soft sequence start address. Reserved bits must be clear. */
 	uint16_t  vxlan_hxs_config;
-#endif
 	/** L5 Shell (and above) HXS config. Includes bits EN, ERM
 	 * (refer to \ref FSL_PARSER_HXS_CONFIG) and 11-bit index (16-bit words)
 	 * for soft sequence start address.

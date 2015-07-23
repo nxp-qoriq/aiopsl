@@ -105,14 +105,6 @@ enum kcr_builder_gec_source {
 @{
 *//***************************************************************************/
 enum kcr_builder_parse_result_offset {
-	/** Next header field's offset in parser result */
-	NXT_HDR_OFFSET_IN_PR = offsetof(struct parse_result, nxt_hdr),
-	/** Frame Attribute Flags Extension field's offset in parser result */
-	FRAME_ATTRIBUTE_FLAGS_EXTENSION_OFFSET_IN_PR =
-		offsetof(struct parse_result, frame_attribute_flags_extension),
-	/** Frame Attribute Flags field's offset in parser result */
-	FRAME_ATTRIBUTE_FLAGS_OFFSET_IN_PR =
-			offsetof(struct parse_result, frame_attribute_flags_1),
 	/** Shim Offset 1 field's offset in parser result */
 	SHIM_OFFSET_1_OFFSET_IN_PR =
 			offsetof(struct parse_result, shim_offset_1),
@@ -271,12 +263,12 @@ enum kcr_builder_protocol_fecid {
 	KEYGEN_KCR_IPSECNH_FECID = 0x23,
 	/** FECID of GPRS Tunnel endpoint Identification */
 	KEYGEN_KCR_GTP_TEID_FECID = 0x24,
-#ifdef REV2
-	/** FECID of ICMP type */
+/*  Following 2 FECIDs are not supported in REV1 due to TKT241788
+	 * FECID of ICMP type 
 	KEYGEN_KCR_ICMP_TYPE_FECID = 0x25,
-	/** FECID of ICMP code */
+	* FECID of ICMP code 
 	KEYGEN_KCR_ICMP_CODE_FECID = 0x26,
-#endif /*REV2*/
+*/
 	/** FECID of Next Header */
 	KEYGEN_KCR_NXT_HDR_FECID = 0x27
 	/* TODO check spec  for updates */

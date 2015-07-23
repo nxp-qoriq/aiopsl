@@ -335,19 +335,9 @@
 			<locationURI>PARENT-3-PROJECT_LOC/src/arch/platform/platform.c</locationURI>
 		</link>
 		<link>
-			<name>aiop_sl/drivers/accel/cdma.c</name>
-			<type>1</type>
-			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/accel/cdma.c</locationURI>
-		</link>
-		<link>
-			<name>aiop_sl/drivers/accel/cdma.h</name>
-			<type>1</type>
-			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/accel/cdma.h</locationURI>
-		</link>
-		<link>
-			<name>aiop_sl/drivers/accel/cdma_inline.h</name>
-			<type>1</type>
-			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/accel/cdma_inline.h</locationURI>
+			<name>aiop_sl/drivers/accel/cdma</name>
+			<type>2</type>
+			<locationURI>virtual:/virtual</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/drivers/accel/fdma</name>
@@ -360,19 +350,9 @@
 			<locationURI>virtual:/virtual</locationURI>
 		</link>
 		<link>
-			<name>aiop_sl/drivers/accel/osm.c</name>
-			<type>1</type>
-			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/accel/osm.c</locationURI>
-		</link>
-		<link>
-			<name>aiop_sl/drivers/accel/osm.h</name>
-			<type>1</type>
-			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/accel/osm.h</locationURI>
-		</link>
-		<link>
-			<name>aiop_sl/drivers/accel/osm_inline.h</name>
-			<type>1</type>
-			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/accel/osm_inline.h</locationURI>
+			<name>aiop_sl/drivers/accel/osm</name>
+			<type>2</type>
+			<locationURI>virtual:/virtual</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/drivers/accel/parser</name>
@@ -765,12 +745,12 @@
 			<locationURI>PARENT-3-PROJECT_LOC/src/include/lib/fsl_slab.h</locationURI>
 		</link>
 		<link>
-			<name>aiop_sl/kernel/cmdif/01_01</name>
+			<name>aiop_sl/kernel/cmdif/00_01</name>
 			<type>2</type>
 			<locationURI>virtual:/virtual</locationURI>
 		</link>
 		<link>
-			<name>aiop_sl/kernel/cmdif/01_02</name>
+			<name>aiop_sl/kernel/cmdif/00_02</name>
 			<type>2</type>
 			<locationURI>virtual:/virtual</locationURI>
 		</link>
@@ -973,6 +953,11 @@
 			<name>aiop_sl/kernel/include/fsl_sl_evmng.h</name>
 			<type>1</type>
 			<locationURI>PARENT-3-PROJECT_LOC/src/kernel/include/fsl_sl_evmng.h</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/kernel/include/fsl_sl_rcu.h</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/kernel/include/fsl_sl_rcu.h</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/kernel/include/fsl_sl_slab.h</name>
@@ -1230,6 +1215,21 @@
 			<locationURI>PARENT-3-PROJECT_LOC/src/arch/platform/ls2085a/fsl_soc_arch.h</locationURI>
 		</link>
 		<link>
+			<name>aiop_sl/drivers/accel/cdma/cdma.c</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/accel/cdma/01_01/cdma.c</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/drivers/accel/cdma/cdma.h</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/accel/cdma/01_01/cdma.h</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/drivers/accel/cdma/cdma_inline.h</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/accel/cdma/01_01/cdma_inline.h</locationURI>
+		</link>
+		<link>
 			<name>aiop_sl/drivers/accel/fdma/fdma.c</name>
 			<type>1</type>
 			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/accel/fdma/01_01/fdma.c</locationURI>
@@ -1258,6 +1258,21 @@
 			<name>aiop_sl/drivers/accel/keygen/keygen_inline.h</name>
 			<type>1</type>
 			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/accel/keygen/01_01/keygen_inline.h</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/drivers/accel/osm/osm.c</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/accel/osm/01_01/osm.c</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/drivers/accel/osm/osm.h</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/accel/osm/01_01/osm.h</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/drivers/accel/osm/osm_inline.h</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/accel/osm/01_01/osm_inline.h</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/drivers/accel/parser/parser.c</name>
@@ -1422,7 +1437,7 @@
 		<link>
 			<name>aiop_sl/drivers/netf/ip/ipsec.c</name>
 			<type>1</type>
-			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/netf/ip/ipsec.c</locationURI>
+			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/netf/ip/ipsec/00_01/ipsec.c</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/drivers/netf/ip/ipsec.h</name>
@@ -1440,14 +1455,9 @@
 			<locationURI>virtual:/virtual</locationURI>
 		</link>
 		<link>
-			<name>aiop_sl/drivers/netf/l4/gso.c</name>
-			<type>1</type>
-			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/netf/l4/gso.c</locationURI>
-		</link>
-		<link>
-			<name>aiop_sl/drivers/netf/l4/gso.h</name>
-			<type>1</type>
-			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/netf/l4/gso.h</locationURI>
+			<name>aiop_sl/drivers/netf/l4/gso</name>
+			<type>2</type>
+			<locationURI>virtual:/virtual</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/drivers/netf/l4/l4.c</name>
@@ -1607,7 +1617,7 @@
 		<link>
 			<name>aiop_sl/include/drivers/accel/fsl_cdma.h</name>
 			<type>1</type>
-			<locationURI>PARENT-3-PROJECT_LOC/src/include/drivers/accel/fsl_cdma.h</locationURI>
+			<locationURI>PARENT-3-PROJECT_LOC/src/include/drivers/accel/cdma/01_01/fsl_cdma.h</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/include/drivers/accel/fsl_fdma.h</name>
@@ -1622,7 +1632,7 @@
 		<link>
 			<name>aiop_sl/include/drivers/accel/fsl_osm.h</name>
 			<type>1</type>
-			<locationURI>PARENT-3-PROJECT_LOC/src/include/drivers/accel/fsl_osm.h</locationURI>
+			<locationURI>PARENT-3-PROJECT_LOC/src/include/drivers/accel/osm/01_01/fsl_osm.h</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/include/drivers/accel/fsl_parser.h</name>
@@ -1667,7 +1677,7 @@
 		<link>
 			<name>aiop_sl/include/drivers/netf/fsl_gso.h</name>
 			<type>1</type>
-			<locationURI>PARENT-3-PROJECT_LOC/src/include/drivers/netf/fsl_gso.h</locationURI>
+			<locationURI>PARENT-3-PROJECT_LOC/src/include/drivers/netf/gso/00_01/fsl_gso.h</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/include/drivers/netf/fsl_ip.h</name>
@@ -1687,7 +1697,7 @@
 		<link>
 			<name>aiop_sl/include/drivers/netf/fsl_ipsec.h</name>
 			<type>1</type>
-			<locationURI>PARENT-3-PROJECT_LOC/src/include/drivers/netf/fsl_ipsec.h</locationURI>
+			<locationURI>PARENT-3-PROJECT_LOC/src/include/drivers/netf/ipsec/00_01/fsl_ipsec.h</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/include/drivers/netf/fsl_l2.h</name>
@@ -1705,14 +1715,14 @@
 			<locationURI>PARENT-3-PROJECT_LOC/src/include/drivers/netf/fsl_nat.h</locationURI>
 		</link>
 		<link>
-			<name>aiop_sl/kernel/cmdif/01_01/cmdif_rev.h</name>
+			<name>aiop_sl/kernel/cmdif/00_01/cmdif_rev.h</name>
 			<type>1</type>
-			<locationURI>PARENT-3-PROJECT_LOC/src/kernel/cmdif/01_01/cmdif_rev.h</locationURI>
+			<locationURI>PARENT-3-PROJECT_LOC/src/kernel/cmdif/00_01/cmdif_rev.h</locationURI>
 		</link>
 		<link>
-			<name>aiop_sl/kernel/cmdif/01_02/cmdif_rev.h</name>
+			<name>aiop_sl/kernel/cmdif/00_02/cmdif_rev.h</name>
 			<type>1</type>
-			<locationURI>PARENT-3-PROJECT_LOC/src/kernel/cmdif/01_02/cmdif_rev.h</locationURI>
+			<locationURI>PARENT-3-PROJECT_LOC/src/kernel/cmdif/00_02/cmdif_rev.h</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/kernel/mem_mng/no_dp_ddr/aiop_link_no_dp_ddr.lcf</name>
@@ -1783,6 +1793,16 @@
 			<name>aiop_sl/drivers/netf/l4/gro/gro.h</name>
 			<type>1</type>
 			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/netf/l4/gro/00_01/gro.h</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/drivers/netf/l4/gso/gso.c</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/netf/l4/gso/00_01/gso.c</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/drivers/netf/l4/gso/gso.h</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/drivers/netf/l4/gso/00_01/gso.h</locationURI>
 		</link>
 	</linkedResources>
 </projectDescription>

@@ -40,7 +40,7 @@ extern __TASK uint8_t g_rcu_unlock;
 
 #define RCU_CHECK_UNLOCK_CANCEL \
 	do { \
-		if (g_rcu_unlock) rcu_read_unlock_cancel(); \
+		if (g_rcu_unlock) rcu_read_lock(); \
 	} while (0)
 
 #endif /* __FSL_SL_RCU_H */
