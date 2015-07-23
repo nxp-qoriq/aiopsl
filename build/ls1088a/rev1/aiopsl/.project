@@ -705,11 +705,6 @@
 			<locationURI>PARENT-4-PROJECT_LOC/src/include/kernel/fsl_time.h</locationURI>
 		</link>
 		<link>
-			<name>aiop_sl/include/kernel/types_mw.h</name>
-			<type>1</type>
-			<locationURI>PARENT-4-PROJECT_LOC/src/include/kernel/types_mw.h</locationURI>
-		</link>
-		<link>
 			<name>aiop_sl/include/lib/fsl_evmng.h</name>
 			<type>1</type>
 			<locationURI>PARENT-4-PROJECT_LOC/src/include/lib/fsl_evmng.h</locationURI>
