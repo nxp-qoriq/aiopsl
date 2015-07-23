@@ -285,7 +285,7 @@ enum e_tman_granularity {
 		bytes. The allocated memory should be 64 byte aligned.\n
 @Param[in]	max_num_of_timers - maximum number of timers associated
 		to this instance. This number must be bigger than 4 and smaller
-		than (2^22)-1.
+		than (2^24)-1.
 		This variable should be 3 timers larger than the actual maximum
 		number of timers needed in this TMI.
 @Param[out]	tmi_id - TMAN instance ID (TMI ID).
@@ -385,6 +385,8 @@ int tman_query_tmi(uint8_t tmi_id,
 		load.
 
 @Cautions	This function performs a task switch.
+@Cautions	If TMRL!=0 (TMAN Debug field) the value of duration
+			must meet the following - 10 < duration < (2^TMRL - 10).
 
 *//***************************************************************************/
 inline int tman_create_timer(uint8_t tmi_id, uint32_t flags,
@@ -403,9 +405,7 @@ inline int tman_create_timer(uint8_t tmi_id, uint32_t flags,
 		delete flags \endlink.
 
 @Return		0 on success, or negative value on error.
-@Retval		ETIMEDOUT - The timer cannot be deleted. The timer aimed to be
-		deleted expiration date is currently being processed by the
-		TMAN. The timer will elapse shortly. 
+@Retval		ETIMEDOUT - The timer cannot be deleted.
 		In case of periodic timer the tman_delete_timer should be
 		called at the expiration routine to avoid this error. If this
 		error do happen for a periodic timer than it is consider as
@@ -417,10 +417,6 @@ inline int tman_create_timer(uint8_t tmi_id, uint32_t flags,
 		For a periodic timer this error should be treated as a fatal
 		error (a delete command was already issued for this periodic
 		timer). 
-@Retval		ENAVAIL - The timer cannot be deleted. The timer is not an
-		active one. This should be treated as a fatal error.
-		On REV 2 this error will automatically generate a fatal error 
-		(Errata ERR008205). 
 
 @Cautions	This function performs a task switch. 
 		In case of periodic timer the tman_delete_timer should be
@@ -443,6 +439,7 @@ inline int tman_delete_timer(uint32_t timer_handle, uint32_t flags);
 
 @Return		Success or Failure(tmi/timer is not existing or
 		expired one-shot timer).
+
 @Retval		ETIMEDOUT - The timer cannot be modified as it deals with TO.
 @Retval		EACCES - The timer cannot be modified.
 		For one shot timer this error should be treated as an ETIMEDOUT
@@ -450,6 +447,7 @@ inline int tman_delete_timer(uint32_t timer_handle, uint32_t flags);
 		For a periodic timer this error should be treated as a fatal
 		error (a delete command was already issued for this periodic
 		timer). 
+
 @Cautions	The value of duration must be: (10 < duration < 2^16 - 10).
 			In periodic timer, when the command failed it may or may not 
 			change the duration of the timer.
@@ -468,9 +466,15 @@ int tman_modify_timer(uint32_t timer_handle,
 @Param[in]	timer_handle - The handle of the timer to be re-started.
 
 @Return		0 on success, or negative value on error.
-@Retval		ETIMEDOUT - The timer has already elapsed or is going to elapse
-		in this timer tick therefore it cannot be recharged.
 
+@Retval		ETIMEDOUT - The timer cannot be modified as it deals with TO.
+@Retval		EACCES - The timer cannot be modified.
+		For one shot timer this error should be treated as an ETIMEDOUT
+		error.
+		For a periodic timer this error should be treated as a fatal
+		error (a delete command was already issued for this periodic
+		timer). 
+		
 @Cautions	This function performs a task switch.
 
 *//***************************************************************************/
