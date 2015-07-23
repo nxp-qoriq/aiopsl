@@ -44,6 +44,7 @@ Author: Donio Ron
 #include "fsl_core_booke.h"
 #include "booke.h"
 #include "fsl_dbg.h"
+#include "fsl_soc_arch.h"
 
 /*----------------------------------*/
 /*  Is Instruction Cache Enabled    */
@@ -210,3 +211,20 @@ uint32_t booke_get_id(void)
 
     return cpu_id;
 }
+
+uint32_t booke_get_spr_PVR(void) 
+{
+	register uint32_t pvr_val;
+	
+	asm {mfspr pvr_val,PVR}
+	
+#ifdef ENGR00346193
+	{
+		uint32_t is_sim_bits = 0x0c000000;
+		pvr_val = 0x81c00000 | (is_sim_bits & pvr_val);
+	}
+#endif
+
+	return pvr_val;
+}
+
