@@ -82,8 +82,6 @@ inline int tman_create_timer(uint8_t tmi_id, uint32_t flags,
 	/* Load command results */
 	res1 = *((uint32_t *) (HWC_ACC_OUT_ADDRESS));
 	
-	if(res1 == TMAN_TMR_TMP_ERR1)
-		return (int)(-EBUSY);
 	if ((res1 == TMAN_TMR_CONF_WAIT_ERR) ||
 			(res1 == TMAN_TMR_DEPLETION_ERR))
 				return (int)(-ENOSPC);
@@ -115,13 +113,9 @@ inline int tman_delete_timer(uint32_t timer_handle, uint32_t flags)
 		return (int)(-EACCES);
 
 	/* A=1 && CCP=1 */
-	/* Periodic- cannot be deleted as it deals with TO */
+	/* Periodic - cannot be deleted as it deals with TO */
 	if(res1 == TMAN_DEL_PERIODIC_CCP_WAIT_ERR)
 		return (int)(-ETIMEDOUT);
-	/* To check if its a TMAN temporary error */
-	if (res1 & TMAN_TMR_DEL_TMP_TYPE_MASK)
-		return (int)(-ETIMEDOUT);
-
 	
 	/* In case TMI State errors and TMAN_DEL_TMR_NOT_ACTIVE_ERR,
 	 * TMAN_DEL_TMR_DEL_ISSUED_ERR, TMAN_DEL_TMR_DEL_ISSUED_CONF_ERR */

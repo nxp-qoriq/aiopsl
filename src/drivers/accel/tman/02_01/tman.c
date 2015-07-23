@@ -51,9 +51,12 @@ int tman_create_tmi(uint64_t tmi_mem_base_addr,
 
 	/* command parameters and results */
 	uint32_t arg1, arg2, cdma_cfg;
+#if 0
+	unsigned int res1, res2;
+	uint8_t *tmi_state_ptr;
+#else
 	unsigned int res1, res2, *tmi_state_ptr;
-
-
+#endif
 	/*Reading the ICID and AMQ from the CDMA to avoid configuring GPP ICID
 	 * when calling the create TMI from host command interface */
 	/* TODO - need to replace the below code to a similar to
@@ -78,6 +81,16 @@ int tman_create_tmi(uint64_t tmi_mem_base_addr,
 		__e_hwacceli(TMAN_ACCEL_ID);
 		/* Load command results */
 		__ldw(&res1, &res2, HWC_ACC_OUT_ADDRESS, 0);
+#if 0 /* Rev2 changes */
+	} while ((res1 & TMAN_TMI_CREATE_BUSY) == TMAN_TMI_CREATE_BUSY);
+	/* Store tmi_id */
+	*tmi_id = (uint8_t)res2;
+	if ((res1 & TMAN_TMIID_DEPLETION_ERR) == TMAN_TMIID_DEPLETION_ERR)
+		return (int)(-ENOSPC);
+
+	tmi_state_ptr = (uint8_t *)((unsigned int)TMAN_CCSR_TMSTATE_ADDRESS
+			+ ((*tmi_id)<<5) + 3);
+#else
 	} while (res1 == TMAN_TMI_CREATE_BUSY);
 	/* Store tmi_id */
 	*tmi_id = (uint8_t)res2;
@@ -86,7 +99,7 @@ int tman_create_tmi(uint64_t tmi_mem_base_addr,
 
 	tmi_state_ptr = (unsigned int*)((unsigned int)TMAN_CCSR_TMSTATE_ADDRESS
 			+ ((*tmi_id)<<5));
-
+#endif
 	while ((*tmi_state_ptr != TMAN_TMI_BUS_ERR) &&
 			(*tmi_state_ptr != TMAN_TMI_ACTIVE))
 	{
@@ -159,7 +172,7 @@ int tman_query_tmi(uint8_t tmi_id,
 	/* Load command results */
 	res1 = *((uint32_t *) HWC_ACC_OUT_ADDRESS);
 	/* Optimization: remove one cycle compared to and statement */
-	/* Erase PL and BDI from output_ptr */
+	/* Erase PL and BDI from output_ptr. MAX_NT does not affected*/
 	*(uint8_t *)(&output_ptr->max_num_of_timers) = 0;
 	if (!((res1) & TMAN_FAIL_BIT_MASK))
 			return (int)(TMAN_TMI_QUERY_SUCCESS);
@@ -168,7 +181,7 @@ int tman_query_tmi(uint8_t tmi_id,
 	if ((res1 & TMAN_TMI_STATE_MASK) == TMAN_TMI_BUS_ERR)
 		tman_exception_handler(TMAN_TMI_TMI_QUERY_FUNC_ID,
 			__LINE__,
-			(int)(TMAN_TMR_TMI_STATE_ERR+TMAN_TMI_BUS_ERR));
+			(int)(TMAN_TMI_CMD_ERR+TMAN_TMI_BUS_ERR));
 	/* In case TMI is being deleted or being created */
 	return (int)(-EACCES);
 }
@@ -208,32 +221,44 @@ int tman_modify_timer(uint32_t timer_handle,
 	 * TMAN_MOD_TMR_NOT_ACTIVE_ERR, TMAN_DEL_TMR_DEL_ISSUED_ERR, 
 	 * TMAN_MOD_TMR_DEL_ISSUED_CONF_ERR */
 	tman_exception_handler(TMAN_TMI_TIMER_MODIFY_FUNC_ID, __LINE__, (int)res1);
-	return (int)(TMAN_TMR_CREATE_SUCCESS);
+	
+	/* Add return in order to avoid compilation warning */
+	return 0;
 }
 
 int tman_recharge_timer(uint32_t timer_handle)
 {
 	uint32_t cmd_type = TMAN_CMDTYPE_TIMER_RECHARGE;
 	uint32_t res1;
-	
+
 	/* Store first two command parameters */
 	__stdw(cmd_type, timer_handle, HWC_ACC_IN_ADDRESS, 0);
 
 	/* call TMAN. and check if passed.
 	 * Optimization using compiler pattern*/
-	if(__e_hwacceli_(TMAN_ACCEL_ID) == 0)
+	if(__e_hwacceli_(TMAN_ACCEL_ID) == TMAN_TMR_CREATE_SUCCESS)
 		return (int)(TMAN_REC_TMR_SUCCESS);
 
 	/* Load command results */
 	res1 = *((uint32_t *) HWC_ACC_OUT_ADDRESS);
 
-	/* optimization: all the errors except TMI state errors starts with
-	 *  0x08_00XX */
-	if ((res1 & TMAN_TMR_REC_STATE_MASK) ||
-			(res1 == TMAN_REC_TMR_NOT_ACTIVE_ERR))
-		tman_exception_handler(TMAN_TMI_TIMER_RECHARGE_FUNC_ID,
-			__LINE__, (int)res1);
-	return (int)(-ETIMEDOUT);
+	/* To check if A=0 && CCP=1 */
+	/* One shot - TO occurred.
+	 * Periodic - Timer was deleted */
+	if((res1 & TMAN_TMR_DEL_STATE_D_MASK) == TMAN_REC_CCP_WAIT_ERR)
+		return (int)(-EACCES);
+
+	/* A=1 && CCP=1 */
+	/* Periodic- TO occurred */
+	if(res1 == TMAN_REC_PERIODIC_CCP_WAIT_ERR)
+		return (int)(-ETIMEDOUT);
+
+	/* In case TMI State errors and , TMAN_REC_TMR_DEL_ISSUED_ERR,
+	 * TMAN_REC_TMR_DEL_ISSUED_CONF_ERR	*/
+	tman_exception_handler(TMAN_TMI_TIMER_RECHARGE_FUNC_ID,__LINE__, (int)res1);
+	
+	/* Add return in order to avoid compilation warning */
+	return 0;
 }
 
 void tman_query_timer(uint32_t timer_handle,
@@ -248,7 +273,12 @@ void tman_query_timer(uint32_t timer_handle,
 	__e_hwacceli(TMAN_ACCEL_ID);
 	/* Load command results */
 	res1 = *((uint32_t *) HWC_ACC_OUT_ADDRESS);
-
+#if 0 /* Rev2 changes*/
+	/* In case TMI State errors and , TMAN_REC_TMR_DEL_ISSUED_ERR,
+	 * TMAN_REC_TMR_DEL_ISSUED_CONF_ERR	*/
+	if ((res1 & TMAN_TMR_TMI_STATE_ERR) == TMAN_TMR_TMI_STATE_ERR)
+		tman_exception_handler(TMAN_TIMER_QUERY_FUNC_ID,__LINE__, (int)res1);
+#endif
 	if ((res1 & 0x4) == 0)
 		res1 &= 0x1;
 	else
