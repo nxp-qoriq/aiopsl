@@ -64,11 +64,9 @@ void osm_scope_transition_to_exclusive_with_new_scope_id(
 		break;
 		}
 	}
-	
-#ifdef FDMA_OSM_LIMIT
+
+	/* Due to HW ticket TKT260685 in REV1 */
 	scope_id = (scope_id & ~OSM_SCOPE_ID_FDMA_OSM_LIMIT_MASK);
-#endif			
-			
 
 	/* call OSM */
 	if (__e_osmcmd_(OSM_SCOPE_TRANSITION_TO_EXCL_WITH_NEW_SCOPEID_OP,
@@ -128,10 +126,9 @@ void osm_scope_transition_to_concurrent_with_new_scope_id(
 		break;
 		}
 	}
-	
-#ifdef FDMA_OSM_LIMIT
+
+	/* Due to HW ticket TKT260685 in REV1 */
 	scope_id = (scope_id & ~OSM_SCOPE_ID_FDMA_OSM_LIMIT_MASK);
-#endif		
 
 	/* call OSM */
 	if (__e_osmcmd_(OSM_SCOPE_TRANSITION_TO_CONCUR_WITH_NEW_SCOPEID_OP,
@@ -219,10 +216,9 @@ void osm_scope_enter_to_exclusive_with_new_scope_id(
 		break;
 		}
 	}
-	
-#ifdef FDMA_OSM_LIMIT
+
+	/* Due to HW ticket TKT260685 in REV1 */
 	child_scope_id = (child_scope_id & ~OSM_SCOPE_ID_FDMA_OSM_LIMIT_MASK);
-#endif		
 
 	/* call OSM */
 	if (__e_osmcmd_(OSM_SCOPE_ENTER_EXCL_REL_PARENT_OP, child_scope_id)) {
@@ -285,10 +281,9 @@ void osm_scope_enter(
 			break;
 			}
 		}
-		
-#ifdef FDMA_OSM_LIMIT
+
+	/* Due to HW ticket TKT260685 in REV1 */
 	child_scope_id = (child_scope_id & ~OSM_SCOPE_ID_FDMA_OSM_LIMIT_MASK);
-#endif			
 
 		/* call OSM */
 		if (__e_osmcmd_(OSM_SCOPE_ENTER_CONC_OP,
@@ -353,10 +348,9 @@ void osm_scope_enter(
 			break;
 			}
 		}
-		
-#ifdef FDMA_OSM_LIMIT
+
+	/* Due to HW ticket TKT260685 in REV1 */
 	child_scope_id = (child_scope_id & ~OSM_SCOPE_ID_FDMA_OSM_LIMIT_MASK);
-#endif	
 
 		/* call OSM */
 		if (__e_osmcmd_(OSM_SCOPE_ENTER_CONC_REL_PARENT_OP,
@@ -431,10 +425,9 @@ void osm_scope_enter(
 			break;
 			}
 		}
-		
-#ifdef FDMA_OSM_LIMIT
+
+	/* Due to HW ticket TKT260685 in REV1 */
 	child_scope_id = (child_scope_id & ~OSM_SCOPE_ID_FDMA_OSM_LIMIT_MASK);
-#endif	
 
 		/* call OSM */
 		if (__e_osmcmd_(
@@ -499,10 +492,9 @@ void osm_scope_enter(
 			break;
 			}
 		}
-		
-#ifdef FDMA_OSM_LIMIT
+
+	/* Due to HW ticket TKT260685 in REV1 */
 	child_scope_id = (child_scope_id & ~OSM_SCOPE_ID_FDMA_OSM_LIMIT_MASK);
-#endif	
 
 		/* call OSM */
 		if (__e_osmcmd_(OSM_SCOPE_ENTER_EXCL_REL_PARENT_OP,

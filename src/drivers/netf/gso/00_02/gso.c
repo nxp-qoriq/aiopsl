@@ -169,21 +169,7 @@ int32_t tcp_gso_split_segment(struct tcp_gso_context *gso_ctx)
 	split_frame_params.spid = *((uint8_t *) HWC_SPID_ADDRESS);
 
 	/* Split remaining frame, put split frame in default FD location*/
-#ifndef REV2
-	sr_status = fdma_store_frame_data(split_frame_params.source_frame_handle,
-			split_frame_params.spid, &isolation_attributes);
-	sr_status = fdma_present_frame_without_segments(&(gso_ctx->rem_fd),
-			FDMA_INIT_NO_FLAGS, 0, &(gso_ctx->rem_frame_handle));
-	split_frame_params.flags = FDMA_CFA_COPY_BIT |
-					FDMA_SPLIT_PSA_NO_PRESENT_BIT;
 	split_sr_status = fdma_split_frame(&split_frame_params); /* TODO FDMA ERROR */
-	if (split_sr_status != (-EINVAL)) {
-		sr_status = fdma_store_default_frame_data();
-		sr_status = fdma_present_default_frame();
-	}
-#else
-	split_sr_status = fdma_split_frame(&split_frame_params); /* TODO FDMA ERROR */
-#endif
 	if (split_sr_status == (-EINVAL)) {
 		/* last segment */
 		spid = *((uint8_t *)HWC_SPID_ADDRESS);

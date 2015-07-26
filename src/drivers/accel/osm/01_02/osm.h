@@ -116,9 +116,6 @@ extern __TASK struct aiop_default_task_params default_task_params;
 	 * request_exclusivity=true, relinquish_son=once accel is done */
 #define OSM_SCOPE_ENTER_EXCL_CALL_ACCEL_REL_SON_AFTER_ACCEL_OP	0x19
 
-#ifdef FDMA_OSM_LIMIT
-	#define OSM_SCOPE_ID_FDMA_OSM_LIMIT_MASK	0x000000c0
-#endif
 
 /**************************************************************************//**
  @enum osm_functions
