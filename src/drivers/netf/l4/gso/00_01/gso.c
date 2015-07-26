@@ -169,7 +169,8 @@ int32_t tcp_gso_split_segment(struct tcp_gso_context *gso_ctx)
 	split_frame_params.spid = *((uint8_t *) HWC_SPID_ADDRESS);
 
 	/* Split remaining frame, put split frame in default FD location*/
-#ifndef REV2
+
+	/* Due to HW ticket TKT240996 */
 	sr_status = fdma_store_frame_data(split_frame_params.source_frame_handle,
 			split_frame_params.spid, &isolation_attributes);
 	sr_status = fdma_present_frame_without_segments(&(gso_ctx->rem_fd),
@@ -181,9 +182,7 @@ int32_t tcp_gso_split_segment(struct tcp_gso_context *gso_ctx)
 		sr_status = fdma_store_default_frame_data();
 		sr_status = fdma_present_default_frame();
 	}
-#else
-	split_sr_status = fdma_split_frame(&split_frame_params); /* TODO FDMA ERROR */
-#endif
+
 	if (split_sr_status == (-EINVAL)) {
 		/* last segment */
 		spid = *((uint8_t *)HWC_SPID_ADDRESS);
