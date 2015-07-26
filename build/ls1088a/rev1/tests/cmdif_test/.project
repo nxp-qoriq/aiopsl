@@ -5,6 +5,8 @@
 	<projects>
 		<project location="PARENT-2-PROJECT_LOC/aiopsl">
 aiop_sl		</project>
+		<project location="PARENT-1-PROJECT_LOC/dynamic_dpni_gpp_test">
+dynamic_dpni_gpp_test		</project>
 	</projects>
 	<buildSpec>
 		<buildCommand>

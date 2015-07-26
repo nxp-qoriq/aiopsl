@@ -119,15 +119,8 @@ available table locations. \n User should select one of the following defines
 (excluding mask and offset defines):
 @{
 *//***************************************************************************/
-	/** Internal table (located in dedicated RAM), Not available for
-	 * MFLU Table HW Accelerator. Not available for Rev1. */
-#define TABLE_ATTRIBUTE_LOCATION_INT	0x0200
-
 	/** Packet Express Buffer table */
 #define TABLE_ATTRIBUTE_LOCATION_PEB		0x0300
-
-	/** Data Path DDR */
-#define TABLE_ATTRIBUTE_LOCATION_DP_DDR		0x0400
 
 	/** System DDR */
 #define TABLE_ATTRIBUTE_LOCATION_SYS_DDR	0x0500

@@ -196,7 +196,7 @@ int ipr_create_instance(struct ipr_params *ipr_params_ptr,
 		else if (table_location == IPR_MODE_TABLE_LOCATION_PEB)
 			table_location_attr = TABLE_ATTRIBUTE_LOCATION_PEB;
 		else if (table_location == IPR_MODE_TABLE_LOCATION_EXT1)
-			table_location_attr = TABLE_ATTRIBUTE_LOCATION_DP_DDR;
+			table_location_attr = 0x0400;
 		else if (table_location == IPR_MODE_TABLE_LOCATION_EXT2)
 			table_location_attr = TABLE_ATTRIBUTE_LOCATION_SYS_DDR;
 		tbl_params.attributes = TABLE_ATTRIBUTE_TYPE_EM | \
@@ -227,7 +227,7 @@ int ipr_create_instance(struct ipr_params *ipr_params_ptr,
 		else if (table_location == IPR_MODE_TABLE_LOCATION_PEB)
 			table_location_attr = TABLE_ATTRIBUTE_LOCATION_PEB;
 		else if (table_location == IPR_MODE_TABLE_LOCATION_EXT1)
-			table_location_attr = TABLE_ATTRIBUTE_LOCATION_DP_DDR;
+			table_location_attr = 0x0400;
 		else if (table_location == IPR_MODE_TABLE_LOCATION_EXT2)
 			table_location_attr = TABLE_ATTRIBUTE_LOCATION_SYS_DDR;
 		tbl_params.attributes = TABLE_ATTRIBUTE_TYPE_EM | \
