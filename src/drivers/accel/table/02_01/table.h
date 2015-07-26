@@ -324,7 +324,7 @@
 
 /** Maximum Number Of Chained Lookups Is Reached.
  * This bit is set if the number of table lookups performed by the CTLU
- * reached the threshold. Not supported in Rev1 
+ * reached the threshold.
  * This bit is N/A if #TABLE_HW_STATUS_BIT_TIDE, #TABLE_HW_STATUS_BIT_NORSC,
  * #TABLE_HW_STATUS_BIT_KSE or #TABLE_HW_STATUS_BIT_EOFH are set.*/
 #define TABLE_HW_STATUS_BIT_MNLE	0x00000100
@@ -366,19 +366,6 @@
 #define TABLE_SW_STATUS_TKT226361_ERR		0xFF000006
 
 /** @} */ /* end of TABLE_STATUS */
-
-/**************************************************************************//**
-@Group	TABLE_TKT226361 Defines for TABLE_TKT226361 WA
-@{
-*//***************************************************************************/
-/* TODO remove section for non Rev1 */
-
-/** Number of rules to be created in each table */
-#define TABLE_TKT226361_RULES_NUM	2
-/** Sufficient key size for each table */
-#define TABLE_TKT226361_KEY_SIZE	1
-
-/** @} */ /* end of TABLE_TKT226361 */
 
 /** @} */ /* end of TABLE_MACROS */
 
@@ -882,37 +869,6 @@ struct table_acc_context {
 int table_query_debug(enum table_hw_accel_id acc_id,
 		      uint16_t table_id,
 		      struct table_params_query_output_message *output);
-
-/**************************************************************************//**
-@Function	table_hw_accel_acquire_lock
-
-@Description	Tries to acquire the binary lock of the given table hardware
-		accelerator.
-
-@Param[in]	acc_id Table Accelerator ID.
-
-@Return		If the lock is already in use \ref CTLU_STATUS_MISS or
-		\ref MFLU_STATUS_MISS are set.
-
-@Cautions	This function performs a task switch.
-*//***************************************************************************/
-int table_hw_accel_acquire_lock(enum table_hw_accel_id acc_id);
-
-
-/**************************************************************************//**
-@Function	table_hw_accel_release_lock
-
-@Description	Releases the binary lock of the given table hardware
-		accelerator.
-
-@Param[in]	acc_id Table Accelerator ID.
-
-@Return		None.
-
-@Cautions	This function performs a task switch.
-*//***************************************************************************/
-void table_hw_accel_release_lock(enum table_hw_accel_id acc_id);
-
 
 /**************************************************************************//**
 @Function	table_inline_exception_handler

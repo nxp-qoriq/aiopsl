@@ -104,9 +104,8 @@ int table_create(enum table_hw_accel_id acc_id,
 	/* It's OK not to check TIDE here... */
 	else if (crt_status & TABLE_HW_STATUS_BIT_NORSC)
 		crt_status = -ENOMEM;
-	/* TODO Rev2 - consider to check TEMPNOR for EAGAIN. it is
-	 * now ENOMEM since in Rev1 it may take a very long  time until rules
-	 * are released. */
+	/* consider to check TEMPNOR for EAGAIN. it is now ENOMEM since it may
+	 * take a very long  time until rules are released. */
 	else
 		table_c_exception_handler(TABLE_CREATE_FUNC_ID,
 					  __LINE__,
@@ -334,9 +333,8 @@ int table_rule_create_or_replace(enum table_hw_accel_id acc_id,
 	}
 	else if (status & TABLE_HW_STATUS_BIT_NORSC) {
 		status = -ENOMEM;
-	/* TODO Rev2 - consider to check TEMPNOR for EAGAIN. it is
-	 * now ENOMEM since in Rev1 it may take a very long  time until rules
-	 * are released. */
+	/* consider to check TEMPNOR for EAGAIN. it is now ENOMEM since it may
+	 * take a very long  time until rules are released. */
 	}
 	else {
 		/* Call fatal error handler */
@@ -635,27 +633,6 @@ int table_query_debug(enum table_hw_accel_id acc_id,
 
 	/* Return status */
 	return *((int32_t *)HWC_ACC_OUT_ADDRESS);
-}
-
-/* TODO may not work in Rev1 due to HW issue - need to check with HW*/
-int table_hw_accel_acquire_lock(enum table_hw_accel_id acc_id)
-{
-	__stqw(TABLE_ACQUIRE_SEMAPHORE_MTYPE, 0, 0, 0, HWC_ACC_IN_ADDRESS, 0);
-
-	/* Call Table accelerator */
-	__e_hwaccel(acc_id);
-
-	/* Return status */
-	return *((int32_t *)HWC_ACC_OUT_ADDRESS);
-}
-
-
-void table_hw_accel_release_lock(enum table_hw_accel_id acc_id)
-{
-	__stqw(TABLE_RELEASE_SEMAPHORE_MTYPE, 0, 0, 0, HWC_ACC_IN_ADDRESS, 0);
-
-	/* Call Table accelerator */
-	__e_hwaccel(acc_id);
 }
 
 #pragma push
