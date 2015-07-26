@@ -112,6 +112,11 @@ aiop_sl		</project>
 			<locationURI>PARENT-4-PROJECT_LOC/apps/ipsec_fm_demo/apps.h</locationURI>
 		</link>
 		<link>
+			<name>src/apps_arch.h</name>
+			<type>1</type>
+			<locationURI>PARENT-4-PROJECT_LOC/apps/ipsec_fm_demo/ls2085a/apps_arch.h</locationURI>
+		</link>
+		<link>
 			<name>src/config.c</name>
 			<type>1</type>
 			<locationURI>PARENT-4-PROJECT_LOC/src/arch/platform/ls2085a/config.c</locationURI>

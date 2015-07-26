@@ -39,6 +39,7 @@
 #include "lib/fsl_slab.h"
 #include "system.h" // TMP
 #include "fsl_evmng.h"
+#include "apps.h"
 
 int app_early_init(void);
 int app_init(void);
@@ -323,7 +324,7 @@ int app_early_init(void){
 			10, /* uint32_t max_buffs */
 			512, /* uint16_t buff_size */
 			8, /* uint16_t alignment */
-			MEM_PART_DP_DDR, /* enum memory_partition_id  mem_pid */
+			IPSEC_DEMO_MEM_ID, /* enum memory_partition_id  mem_pid */
 	        0, /* uint32_t flags */
 	        0 /* uint32_t num_ddr_pools */
 	        );
@@ -556,7 +557,7 @@ int ipsec_app_init(uint16_t ni_id)
 			10, /* uint32_t    max_buffs */
 			512, /* uint16_t    buff_size */
 			8, /*uint16_t    alignment */
-			MEM_PART_DP_DDR, /* uint8_t     mem_partition_id */
+			IPSEC_DEMO_MEM_ID, /* enum memory_partition_id  mem_pid */
 			0, /* uint32_t    flags */
 			NULL, /* slab_release_cb_t release_cb */
 			&slab_handle /* struct slab **slab */
