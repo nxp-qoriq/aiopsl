@@ -1113,18 +1113,10 @@ int snic_create_table_key_id(uint8_t fec_no, uint8_t fec_array[8],
 	if (err)
 	{
 		tbl_params.attributes = TABLE_ATTRIBUTE_TYPE_EM | \
-				TABLE_ATTRIBUTE_LOCATION_DP_DDR | \
+				TABLE_ATTRIBUTE_LOCATION_SYS_DDR | \
 				TABLE_ATTRIBUTE_MR_NO_MISS;
 		err = table_create(TABLE_ACCEL_ID_CTLU, &tbl_params,
 				table_id);
-		if (err)
-		{
-			tbl_params.attributes = TABLE_ATTRIBUTE_TYPE_EM | \
-					TABLE_ATTRIBUTE_LOCATION_SYS_DDR | \
-					TABLE_ATTRIBUTE_MR_NO_MISS;
-			err = table_create(TABLE_ACCEL_ID_CTLU, &tbl_params,
-					table_id);
-		}
 	}
 	return err;
 }

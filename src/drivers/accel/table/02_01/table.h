@@ -1051,26 +1051,6 @@ void table_exception_handler(char *file_path,
 *//***************************************************************************/
 int table_calc_num_entries_per_rule(uint16_t type, uint8_t key_size);
 
-/**************************************************************************//**
-@Function	table_workaround_tkt226361
-
-@Description	Work around for tkt226361. Create a table in each memory region
-		with 2 rules and then deletes the table.
-
-@Param[in]	mflu_peb_num_entries number of entries that was defined for
-		PEB memory region.
-@Param[in]	mflu_dp_ddr_num_entries number of entries that was defined
-		for DPDDR memory region.
-@Param[in]	mflu_sys_ddr_num_entries number of entries that was defined
-		for System DDR memory region.
-
-@Cautions	This function calls the exception handler if the work around
-		failed.
-		This function performs a task switch.
-*//***************************************************************************/
-void table_workaround_tkt226361(uint32_t mflu_peb_num_entries,
-				uint32_t mflu_dp_ddr_num_entries,
-				uint32_t mflu_sys_ddr_num_entries);
 
 /**************************************************************************//**
 @Function	table_lookup_by_keyid_default_frame_wrp
