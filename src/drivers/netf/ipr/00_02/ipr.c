@@ -147,6 +147,7 @@ int ipr_create_instance(struct ipr_params *ipr_params_ptr,
 	uint16_t bpid;
 	int table_ipv4_valid = 0;
 	int sr_status;
+	enum memory_partition_id mem_pid = MEM_PART_SYSTEM_DDR;
 
 	/* Reservation is done for 2 extra buffers: 1 one instance_params and
 	 * the other in case of reaching the maximum of open reassembly */
@@ -154,6 +155,9 @@ int ipr_create_instance(struct ipr_params *ipr_params_ptr,
 				ipr_params_ptr->max_open_frames_ipv6 + 2;
 	/* call ARENA function for allocating buffers needed to IPR
 	 * processing (create_slab ) */
+	if (fsl_mem_exists(MEM_PART_DP_DDR))
+		mem_pid = MEM_PART_DP_DDR;
+
 	sr_status = slab_find_and_reserve_bpid(aggregate_open_frames,
 					IPR_CONTEXT_SIZE,
 					8,
