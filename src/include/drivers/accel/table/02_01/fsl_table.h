@@ -250,18 +250,18 @@ User should select one of the following:
 @{
 *//***************************************************************************/
 	/** Segment Address and Size Non Default - If set, the Segment given in
-	the lookup function parameters is used instead of the default segment.
-	Not available for Rev1  */
+	the lookup function parameters is used instead of the default
+	segment. */
 #define TABLE_LOOKUP_FLAG_SEG_NON_DEFAULT		0x80000000
 
 	/** Parse Result Address Non Default - If set, the Parse Result Address
 	given in the lookup function parameters is used instead of the default
-	address. Not available for Rev1 */
+	address. */
 #define TABLE_LOOKUP_FLAG_PRA_NON_DEFAULT		0x40000000
 
 	/** Frame Descriptor Address Non Default - If set, the Frame Descriptor
 	Address given in the lookup function parameters is used instead of the
-	default address. Not available for Rev1 */
+	default address. */
 #define TABLE_LOOKUP_FLAG_FD_NON_DEFAULT		0x20000000
 
 	/** Metadata Non Default - If set, the metadata given in the lookup
