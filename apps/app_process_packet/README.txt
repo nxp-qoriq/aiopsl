@@ -55,9 +55,12 @@ Simultor Setup
 ===========================================
 1. Install Code Warrior (see Release Note for the compatible CW version).
 2. Download the linux version of the simulator (see Release Note for the compatible LS_SIM version).
-3. Copy the files ls2085a_sim_init_params.cfg and ls2085a_sys_test.cfg
-   from the source tree at: aiopsl/misc/sim/.
-   into the simulator folder at: dtsim_release/linux64/
+3. 1. For LS2085a simulator, copy the files ls2085a_sim_init_params.cfg and ls2085a_sys_test.cfg
+      from the source tree at: aiopsl/misc/sim/.
+      into the simulator folder at: dtsim_release/linux64/
+3. 2. For LS1088a, copy the files ls1088a_sim_init_params.cfg and ls1088a_sys_test.cfg
+      from the source tree at: aiopsl/misc/sim/.
+      into the simulator folder at: dtsim_release/linux64/
 4. Update the “LD_LIBRARY_PATH” variable to point to the simulator folder.
    setenv LD_LIBRARY_PATH {$LD_LIBRARY_PATH}:/home/user/LS_SIM_<version>/dtsim_release/linux64
 5. Copy the layout file (dpl.dtb) from aiopsl/misc/setup/ to the simulator folder.
@@ -72,8 +75,12 @@ Simulator Execution flow
    aiopsl/build/aiop_sim/apps/app_process_packet/.project
 2. Copy the resulting ELF file from the build project folder(aiop_app.elf)
    to the simulator folder (same location as cfg files).
-3. Run the simulator:
-   ./ccssim2 -port 42333 -imodel "ls_sim_init_file=ls2085a_sim_init_params.cfg" -smodel "ls_sim_config_file=ls2085a_sys_test.cfg"   
+3. 1. For LS2085a:
+      Run the simulator:
+      ./ccssim2 -port 42333 -imodel "ls_sim_init_file=ls2085a_sim_init_params.cfg" -smodel "ls_sim_config_file=ls2085a_sys_test.cfg"   
+3. 2. For LS1088a:
+      Run the simulator:
+      ./ccssim2 -port 42333 -imodel "ls_sim_init_file=ls1088a_sim_init_params.cfg" -smodel "ls_sim_config_file=ls1088a_sys_test.cfg"  
 4. Launch mc_app using AFM connection.
    Don't forget to update simulator server IP and port in debug configuration - 42333.
 5. Attach app_process_packet (make sure to un-mark initialization files).
