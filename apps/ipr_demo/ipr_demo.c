@@ -44,7 +44,6 @@
 #include "fsl_malloc.h"
 #include "fsl_evmng.h"
 
-int app_early_init(void);
 int app_init(void);
 void app_free(void);
 void ipr_timout_cb(ipr_timeout_arg_t arg,
@@ -276,6 +275,12 @@ int app_init(void)
 	uint64_t tmi_mem_base_addr;
 
 	struct ipr_params ipr_demo_params;
+	
+	enum memory_partition_id mem_pid = MEM_PART_SYSTEM_DDR;
+
+	if (fsl_mem_exists(MEM_PART_DP_DDR))
+		mem_pid = MEM_PART_DP_DDR;
+
 	ipr_instance_handle_t ipr_instance = 0;
 	ipr_instance_handle_t *ipr_instance_ptr = &ipr_instance;
 
@@ -293,7 +298,7 @@ int app_init(void)
 	ipr_demo_params.cb_timeout_ipv4_arg = 0;
 	ipr_demo_params.cb_timeout_ipv6_arg = 0;
 	ipr_demo_params.flags = IPR_MODE_TABLE_LOCATION_PEB;
-	fsl_os_get_mem( 0x20*64, MEM_PART_DP_DDR, 64, &tmi_mem_base_addr);
+	fsl_os_get_mem( 0x20*64, mem_pid, 64, &tmi_mem_base_addr);
 
 	tman_create_tmi(tmi_mem_base_addr , 0x20, &ipr_demo_params.tmi_id);
 
