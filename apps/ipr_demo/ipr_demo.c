@@ -25,7 +25,7 @@
  */
 
 #include "fsl_types.h"
-#include "common/fsl_stdio.h"
+#include "fsl_stdio.h"
 #include "fsl_dpni_drv.h"
 #include "fsl_ip.h"
 #include "fsl_ipr.h"
