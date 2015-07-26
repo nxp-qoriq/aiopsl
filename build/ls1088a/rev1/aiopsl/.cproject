@@ -166,10 +166,11 @@
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/drivers/accel/keygen/01_01&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/drivers/accel/osm/01_02&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/drivers/accel/parser/01_01&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/drivers/accel/ste/01_01&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/drivers/accel/system/01_02&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/drivers/accel/table&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/drivers/accel/table/02_01&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/drivers/accel/tman/02_01&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/drivers/accel/ste/01_01&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/drivers/dplib/dpni&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/drivers/dplib/dprc&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/drivers/include&quot;"/>
@@ -266,6 +267,92 @@
 							<tool command="&quot;${AIOPToolsDir}/ccaiop&quot;" commandLinePattern="${COMMAND} ${FLAGS} ${OUTPUT_FLAG} ${INPUTS}" errorParsers="" id="com.freescale.ppc.toolchain.preprocessor.1334668711" name="Preprocessor" superClass="com.freescale.ppc.toolchain.preprocessor"/>
 						</toolChain>
 					</folderInfo>
+					<fileInfo id="com.freescale.ppc.debug.toolchain.configuration.508235731.1586768628" name="system.c" rcbsApplicability="disable" resourcePath="aiop_sl/drivers/accel/system/system.c" toolsToInvoke="com.freescale.ppc.toolchain.compiler.1602312255.1269448796">
+						<tool id="com.freescale.ppc.toolchain.compiler.1602312255.1269448796" name="Compiler" superClass="com.freescale.ppc.toolchain.compiler.1602312255">
+							<option id="com.freescale.ppc.toolchain.compiler.base.input.include.705968954" name="User Path (-i)" superClass="com.freescale.ppc.toolchain.compiler.base.input.include" valueType="includePath">
+								<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../build_flags&quot;"/>
+								<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/arch/platform/include&quot;"/>
+								<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/arch/platform/ls1088a&quot;"/>
+								<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/arch/core/ppc&quot;"/>
+								<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/arch/core/ppc/include&quot;"/>
+								<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/drivers/&quot;"/>
+								<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/drivers/accel&quot;"/>
+								<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/drivers/accel/cdma/02_01&quot;"/>
+								<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/drivers/accel/fdma/02_01&quot;"/>
+								<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/drivers/accel/keygen/01_01&quot;"/>
+								<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/drivers/accel/osm/01_02&quot;"/>
+								<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/drivers/accel/parser/01_01&quot;"/>
+								<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/drivers/accel/table&quot;"/>
+								<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/drivers/accel/table/02_01&quot;"/>
+								<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/drivers/accel/tman/02_01&quot;"/>
+								<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/drivers/accel/ste/01_01&quot;"/>
+								<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/drivers/accel/system/01_02&quot;"/>
+								<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/drivers/dplib/dpni&quot;"/>
+								<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/drivers/dplib/dprc&quot;"/>
+								<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/drivers/include&quot;"/>
+								<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/drivers/serial/duart&quot;"/>
+								<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/drivers/netf/general&quot;"/>
+								<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/drivers/netf/general/frame_operations/02_01&quot;"/>
+								<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/drivers/netf/hm/00_01&quot;"/>
+								<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/drivers/netf/include&quot;"/>
+								<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/drivers/netf/ipf/00_02&quot;"/>
+								<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/drivers/netf/ipr/00_02&quot;"/>
+								<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/drivers/netf/ipsec/00_01&quot;"/>
+								<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/drivers/netf/gro/00_02&quot;"/>
+								<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/drivers/netf/gso/00_02&quot;"/>
+								<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/drivers/sec/01_01&quot;"/>
+								<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/drivers/sec/01_01/desc&quot;"/>
+								<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/drivers/sec/01_01/rta&quot;"/>
+								<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/drivers/snic/00_02&quot;"/>
+								<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/include&quot;"/>
+								<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/include/common&quot;"/>
+								<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/include/drivers/ldpaa&quot;"/>
+								<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/include/drivers&quot;"/>
+								<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/include/drivers/accel&quot;"/>
+								<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/include/drivers/accel/cdma/02_01&quot;"/>
+								<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/include/drivers/accel/fdma/02_01&quot;"/>
+								<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/include/drivers/accel/keygen/02_01&quot;"/>
+								<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/include/drivers/accel/osm/01_01&quot;"/>
+								<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/include/drivers/accel/parser/02_01&quot;"/>
+								<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/include/drivers/accel/table/02_01&quot;"/>
+								<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/include/drivers/accel/tman/02_01&quot;"/>
+								<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/include/drivers/accel/ste/02_01&quot;"/>
+								<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/include/drivers/netf&quot;"/>
+								<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/include/drivers/netf/general/frame_operations/01_01&quot;"/>
+								<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/include/drivers/netf/gro/00_02&quot;"/>
+								<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/include/drivers/netf/gso/00_02&quot;"/>
+								<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/include/drivers/netf/hm/00_01&quot;"/>
+								<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/include/drivers/netf/ipf/00_02&quot;"/>
+								<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/include/drivers/netf/ipr/00_02&quot;"/>
+								<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/include/drivers/netf/ipsec/00_01&quot;"/>
+								<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/include/kernel&quot;"/>
+								<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/include/lib&quot;"/>
+								<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/kernel&quot;"/>
+								<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/kernel/cmdif&quot;"/>
+								<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/kernel/cmdif/00_01&quot;"/>
+								<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/kernel/dpl&quot;"/>
+								<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/kernel/icontext&quot;"/>
+								<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/kernel/include&quot;"/>
+								<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/kernel/log&quot;"/>
+								<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/kernel/mem_mng&quot;"/>
+								<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/kernel/rcu&quot;"/>
+								<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/kernel/time&quot;"/>
+								<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/lib&quot;"/>
+								<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/lib/evmng&quot;"/>
+								<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/lib/include&quot;"/>
+								<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/lib/shbp&quot;"/>
+								<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/lib/slab&quot;"/>
+								<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/lib/slob&quot;"/>
+							</option>
+							<inputType id="com.freescale.ppc.toolchain.compiler.base.input.567555949" name="com.freescale.ppc.toolchain.cf Compiler Input" superClass="com.freescale.ppc.toolchain.compiler.base.input"/>
+						</tool>
+						<tool customBuildStep="true" id="org.eclipse.cdt.managedbuilder.ui.rcbs.1607247167" name="Resource Custom Build Step">
+							<inputType id="org.eclipse.cdt.managedbuilder.ui.rcbs.inputtype.1997982028" name="Resource Custom Build Step Input Type">
+								<additionalInput kind="additionalinputdependency" paths=""/>
+							</inputType>
+							<outputType id="org.eclipse.cdt.managedbuilder.ui.rcbs.outputtype.566007556" name="Resource Custom Build Step Output Type"/>
+						</tool>
+					</fileInfo>
 					<sourceEntries>
 						<entry excluding="aiop_sl/lib/slab/virtual_pools.c|aiop_sl/arch/platform/ls1088a/config.c|aiop_sl/arch/ppc/booke_irq.S|cw_files/start_secondary.S" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
 					</sourceEntries>
