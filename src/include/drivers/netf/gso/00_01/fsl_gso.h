@@ -172,6 +172,9 @@ typedef uint8_t tcp_gso_ctx_t[TCP_GSO_CONTEXT_SIZE]
 		frame.
 		The packet was not segmented.
 
+@Cautions	As part of a workaround to ticket TKT260685 in REV1 this
+		function requires one of the four nested scope levels.
+
 @Cautions	None.
 *//***************************************************************************/
 int tcp_gso_generate_seg(
