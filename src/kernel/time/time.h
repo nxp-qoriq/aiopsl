@@ -36,7 +36,7 @@
 #ifndef __TIME_H
 #define __TIME_H
 
-#include "common/types.h"
+#include "fsl_types.h"
 #include "fsl_errors.h"
 #include "fsl_time.h"
 

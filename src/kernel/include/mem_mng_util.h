@@ -32,7 +32,7 @@
 #ifndef __MEM_MNG_UTIL_H
 #define __MEM_MNG_UTIL_H
 
-#include "common/types.h"
+#include "fsl_types.h"
 #include "fsl_errors.h"
 
 

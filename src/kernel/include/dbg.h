@@ -33,7 +33,7 @@
 #ifndef __DBG_H
 #define __DBG_H
 
-#include "common/types.h"
+#include "fsl_types.h"
 #include "fsl_io.h"
 #include "common/fsl_stdio.h"
 

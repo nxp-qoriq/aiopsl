@@ -36,7 +36,7 @@
 #ifndef __PARSER_H
 #define __PARSER_H
 
-#include "types.h"
+#include "fsl_types.h"
 #include "fsl_parser.h"
 
 /**************************************************************************//**

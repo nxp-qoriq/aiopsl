@@ -34,7 +34,7 @@
 #ifndef __FSL_SOC_H
 #define __FSL_SOC_H
 
-#include "common/types.h"
+#include "fsl_types.h"
 #include "fsl_gen.h"
 #include "fsl_soc_arch.h"
 

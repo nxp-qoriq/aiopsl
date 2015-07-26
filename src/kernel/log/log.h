@@ -32,7 +32,7 @@
 #ifndef __LOG_H
 #define __LOG_H
 
-#include "common/types.h"
+#include "fsl_types.h"
 #include <stdio.h>
 #include "fsl_icontext.h"
 #include "fsl_aiop_common.h"

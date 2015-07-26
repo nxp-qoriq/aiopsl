@@ -38,7 +38,7 @@
 #include "cdma.h"
 #include "fsl_cdma.h"
 #include "general.h"
-#include "common/types.h"
+#include "fsl_types.h"
 
 
 inline void cdma_refcount_increment(

@@ -42,7 +42,7 @@
 #ifndef __FSL_STE_H
 #define __FSL_STE_H
 
-#include "types.h"
+#include "fsl_types.h"
 
 /**************************************************************************//**
  @Group		ACCEL Accelerators APIs

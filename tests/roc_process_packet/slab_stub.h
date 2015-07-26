@@ -34,7 +34,7 @@
 #ifndef __SLAB_STUB_H
 #define __SLAB_STUB_H
 
-#include "common/types.h"
+#include "fsl_types.h"
 #include "fsl_errors.h"
 #include "dplib/fsl_ldpaa.h"
 #include "platform.h"

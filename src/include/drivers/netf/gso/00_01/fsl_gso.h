@@ -32,7 +32,7 @@
 #ifndef __FSL_GSO_H
 #define __FSL_GSO_H
 
-#include "types.h"
+#include "fsl_types.h"
 #include "fsl_ldpaa.h"
 
 /**************************************************************************//**
@@ -171,6 +171,9 @@ typedef uint8_t tcp_gso_ctx_t[TCP_GSO_CONTEXT_SIZE]
 		(by calling \ref fdma_force_discard_fd) or enqueue the default
 		frame.
 		The packet was not segmented.
+
+@Cautions	As part of a workaround to ticket TKT260685 in REV1 this
+		function requires one of the four nested scope levels.
 
 @Cautions	None.
 *//***************************************************************************/

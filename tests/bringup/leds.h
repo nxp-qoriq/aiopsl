@@ -32,7 +32,7 @@
 #ifndef __LED_H
 #define __LED_H
 
-#include "common/types.h"
+#include "fsl_types.h"
 
 #define FPGA_VIRT_ADDRESS     0x8010000
 #define LED_CTL_OFFSET        0x04 /*led ctl is in offset 05*/

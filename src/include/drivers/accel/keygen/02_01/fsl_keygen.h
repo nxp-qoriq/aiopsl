@@ -34,7 +34,7 @@
 #ifndef __FSL_KEYGEN_H
 #define __FSL_KEYGEN_H
 
-#include "types.h"
+#include "fsl_types.h"
 #include "general.h"
 #include "fsl_parser.h"
 

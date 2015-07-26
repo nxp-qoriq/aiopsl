@@ -29,7 +29,7 @@
 
 #include "general.h"
 #include "fsl_aiop_common.h"
-#include "common/types.h"
+#include "fsl_types.h"
 #include "fsl_errors.h"
 #include "fsl_list.h"
 #include "fsl_dbg.h"

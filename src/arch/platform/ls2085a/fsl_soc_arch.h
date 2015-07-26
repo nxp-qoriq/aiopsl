@@ -34,7 +34,7 @@
 #ifndef __FSL_SOC_ARCH_H
 #define __FSL_SOC_ARCH_H
 
-#include "common/types.h"
+#include "fsl_types.h"
 #include "fsl_gen.h"
 
 
@@ -66,6 +66,8 @@
 #define SOC_PERIPH_OFF_AIOP_TILE        0x00080000
 #define SOC_PERIPH_OFF_AIOP_CMGW        0x0
 #define SOC_PERIPH_OFF_DCSR             0x0100000
+
+#define ENGR00346193 /* A-008681: AIOP e200 PVR is wrong */
 
 /**************************************************************************//**
  @Group         ls2085a_g LS2085A Application Programming Interface

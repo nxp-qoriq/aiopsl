@@ -27,7 +27,7 @@
 #ifndef __FSL_SYS_MEM_MNG_H
 #define __FSL_SYS_MEM_MNG_H
 
-#include "common/types.h"
+#include "fsl_types.h"
 #include "fsl_errors.h"
 #include "mem_mng_util.h"
 

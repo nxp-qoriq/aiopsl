@@ -35,7 +35,7 @@
 #ifndef __FSL_SYS_MP_H
 #define __FSL_SYS_MP_H
 
-#include "common/types.h"
+#include "fsl_types.h"
 #include "fsl_core.h"
 
 

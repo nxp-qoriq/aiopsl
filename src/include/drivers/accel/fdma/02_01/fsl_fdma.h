@@ -34,7 +34,7 @@
 #ifndef __FSL_FDMA_H
 #define __FSL_FDMA_H
 
-#include "types.h"
+#include "fsl_types.h"
 #include "fsl_errors.h"
 #include "fsl_ldpaa.h"
 

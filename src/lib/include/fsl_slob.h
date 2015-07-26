@@ -32,7 +32,7 @@
 #ifndef __FSL_SLOB_H
 #define __FSL_SLOB_H
 
-#include "common/types.h"
+#include "fsl_types.h"
 
 
 #define MM_MAX_ALIGNMENT    20  /**< Alignments from 2 to 128 are available

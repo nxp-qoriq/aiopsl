@@ -24,7 +24,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "common/types.h"
+#include "fsl_types.h"
 #include "fsl_sl_dbg.h"
 #include "common/fsl_string.h"
 #include "kernel/fsl_spinlock.h"
@@ -787,43 +787,21 @@ int dpni_drv_get_max_frame_length(uint16_t ni_id,
 __COLD_CODE static int parser_profile_init(uint8_t *prpid)
 {
 	struct parse_profile_input parse_profile1 __attribute__((aligned(16)));
-	int i;
 
 	/* Init basic parse profile */
-	parse_profile1.parse_profile.eth_hxs_config = 0x0;
-	parse_profile1.parse_profile.llc_snap_hxs_config = 0x0;
-	parse_profile1.parse_profile.vlan_hxs_config.en_erm_soft_seq_start = 0x0;
-	parse_profile1.parse_profile.vlan_hxs_config.configured_tpid_1 = 0x0;
-	parse_profile1.parse_profile.vlan_hxs_config.configured_tpid_2 = 0x0;
-	/* No MTU checking */
-	parse_profile1.parse_profile.pppoe_ppp_hxs_config = 0x0;
-	parse_profile1.parse_profile.mpls_hxs_config.en_erm_soft_seq_start= 0x0;
+	memset(&(parse_profile1.parse_profile), 0, sizeof(struct parse_profile_record));
+
 	/* Frame Parsing advances to MPLS Default Next Parse (IP HXS) */
 	parse_profile1.parse_profile.mpls_hxs_config.lie_dnp = PARSER_PRP_MPLS_HXS_CONFIG_LIE;
-	parse_profile1.parse_profile.arp_hxs_config = 0x0;
-	parse_profile1.parse_profile.ip_hxs_config = 0x0;
-	parse_profile1.parse_profile.ipv4_hxs_config = 0x0;
+
 	/* Routing header is ignored and the destination address from
 	 * main header is used instead */
 	parse_profile1.parse_profile.ipv6_hxs_config = PARSER_PRP_IPV6_HXS_CONFIG_RHE;
-	parse_profile1.parse_profile.gre_hxs_config = 0x0;
-	parse_profile1.parse_profile.minenc_hxs_config = 0x0;
-	parse_profile1.parse_profile.other_l3_shell_hxs_config= 0x0;
+
 	/* In short Packet, padding is removed from Checksum calculation */
 	parse_profile1.parse_profile.tcp_hxs_config = PARSER_PRP_TCP_UDP_HXS_CONFIG_SPPR;
 	/* In short Packet, padding is removed from Checksum calculation */
 	parse_profile1.parse_profile.udp_hxs_config = PARSER_PRP_TCP_UDP_HXS_CONFIG_SPPR;
-	parse_profile1.parse_profile.ipsec_hxs_config = 0x0;
-	parse_profile1.parse_profile.sctp_hxs_config = 0x0;
-	parse_profile1.parse_profile.dccp_hxs_config = 0x0;
-	parse_profile1.parse_profile.other_l4_shell_hxs_config = 0x0;
-	parse_profile1.parse_profile.gtp_hxs_config = 0x0;
-	parse_profile1.parse_profile.esp_hxs_config = 0x0;
-	parse_profile1.parse_profile.l5_shell_hxs_config = 0x0;
-	parse_profile1.parse_profile.final_shell_hxs_config = 0x0;
-	/* Assuming no soft examination parameters */
-	for(i=0; i < 16; i++)
-		parse_profile1.parse_profile.soft_examination_param_array[i] = 0x0;
 
 	return parser_profile_create(&(parse_profile1), prpid);
 }

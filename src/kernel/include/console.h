@@ -27,7 +27,7 @@
 #ifndef __SYS_CONSOLE_H
 #define __SYS_CONSOLE_H
 
-#include "common/types.h"
+#include "fsl_types.h"
 
 
 /**************************************************************************//**

@@ -23,7 +23,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-#include "common/types.h"
+#include "fsl_types.h"
 #include "sys.h"
 #include "platform.h"
 #include "fsl_malloc.h"

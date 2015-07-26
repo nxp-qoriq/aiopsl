@@ -31,13 +31,12 @@
 
 *//***************************************************************************/
 
-#include "common/types.h"
+#include "fsl_types.h"
 #include "fsl_errors.h"
 #include "fsl_frame_operations.h"
 #include "fsl_fdma.h"
 #include "fsl_parser.h"
 #include "fsl_dpni_drv.h"
-#include "fsl_net.h"
 #include "net.h"
 
 	/* WA for TKT254401 */

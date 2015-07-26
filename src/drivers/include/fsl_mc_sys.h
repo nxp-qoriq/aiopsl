@@ -33,7 +33,7 @@
 
 #define __iomem
 
-#include "common/types.h"
+#include "fsl_types.h"
 #include "fsl_errors.h"
 #include "fsl_io.h"
 #include <fsl_mc_cmd.h>

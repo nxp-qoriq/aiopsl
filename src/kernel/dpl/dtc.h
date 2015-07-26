@@ -29,7 +29,7 @@
 #define DTC_H_
 
 
-#include "common/types.h"
+#include "fsl_types.h"
 
 #include "dpl/fdt.h"
 #include "dpl/util.h"

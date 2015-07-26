@@ -25,7 +25,7 @@
  */
 
 #ifdef ARENA_LEGACY_CODE
-#include "common/types.h"
+#include "fsl_types.h"
 #include "fsl_malloc.h"
 
 #include "dpl/fdt.h"

@@ -31,7 +31,7 @@
 
 *//***************************************************************************/
 #include "general.h"
-#include "types.h"
+#include "fsl_types.h"
 #include "fsl_fdma.h"
 #include "fsl_parser.h"
 

@@ -28,7 +28,7 @@
 #ifndef FDT_H_
 #define FDT_H_
 
-#include "common/types.h"
+#include "fsl_types.h"
 
 
 typedef uint32_t fdt32_t;

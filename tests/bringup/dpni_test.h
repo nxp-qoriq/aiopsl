@@ -31,7 +31,7 @@
 #ifndef __DPNI_TEST_H
 #define __DPNI_TEST_H
 
-#include "common/types.h"
+#include "fsl_types.h"
 #include "fsl_mc_init.h"
 int test_dpni_drv_probe(struct mc_dprc *dprc,
         uint16_t mc_niid,

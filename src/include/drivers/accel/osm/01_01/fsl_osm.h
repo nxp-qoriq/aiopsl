@@ -33,7 +33,7 @@
 #ifndef __FSL_LIB_OSM_H
 #define __FSL_LIB_OSM_H
 
-#include "common/types.h"
+#include "fsl_types.h"
 
 
 /**************************************************************************//**
