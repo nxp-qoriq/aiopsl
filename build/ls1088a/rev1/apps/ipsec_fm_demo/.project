@@ -104,17 +104,17 @@ aiop_sl		</project>
 		<link>
 			<name>src/apps.c</name>
 			<type>1</type>
-			<locationURI>PARENT-5-PROJECT_LOC/apps/app_process_packet/apps.c</locationURI>
+			<locationURI>PARENT-5-PROJECT_LOC/apps/ipsec_fm_demo/apps.c</locationURI>
 		</link>
 		<link>
 			<name>src/apps.h</name>
 			<type>1</type>
-			<locationURI>PARENT-5-PROJECT_LOC/apps/app_process_packet/apps.h</locationURI>
+			<locationURI>PARENT-5-PROJECT_LOC/apps/ipsec_fm_demo/apps.h</locationURI>
 		</link>
 		<link>
 			<name>src/apps_arch.h</name>
 			<type>1</type>
-			<locationURI>PARENT-5-PROJECT_LOC/apps/app_process_packet/ls1088a/apps_arch.h</locationURI>
+			<locationURI>PARENT-5-PROJECT_LOC/apps/ipsec_fm_demo/ls1088a/apps_arch.h</locationURI>
 		</link>
 		<link>
 			<name>src/config.c</name>
@@ -124,7 +124,7 @@ aiop_sl		</project>
 		<link>
 			<name>src/ipsec_fm_demo.c</name>
 			<type>1</type>
-			<locationURI>PARENT-5-PROJECT_LOC/tests/ipsec/ipsec_fm_demo/ipsec_fm_demo.c</locationURI>
+			<locationURI>PARENT-5-PROJECT_LOC/apps/ipsec_fm_demo/ipsec_fm_demo.c</locationURI>
 		</link>
 	</linkedResources>
 </projectDescription>
