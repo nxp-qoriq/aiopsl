@@ -44,6 +44,7 @@
 #include "fsl_malloc.h"
 #include "fsl_evmng.h"
 
+int app_early_init(void);
 int app_init(void);
 void app_free(void);
 void ipr_timout_cb(ipr_timeout_arg_t arg,
