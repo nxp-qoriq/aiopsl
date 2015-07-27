@@ -128,6 +128,27 @@
 
 /** @} end of group FDMA_Int_Init_ModeBits */
 
+/**************************************************************************//**
+@Group		FDMA_Replace_Int_Flags
+
+@Description	FDMA internal Replace Segment flags.
+
+@{
+*//***************************************************************************/
+
+	/** Trim Anchor Mode. Applicable only to data segment replace commands.
+	 * If set: Anchored mode. The segment's start and end boundaries remain
+	 * anchored with respect to the working frame's start and end. The 
+	 * subset of the open segment specified by LEADING_OFFSET and
+	 * REPLACE_TARGET_SIZE is replaced with SEGMENT_SIZE bytes of the
+	 * replacement data.
+	 * If reset: Trimmed Mode. Trim the segment boundaries according to
+	 * LEADING_OFFSET and REPLACE_TARGET_SIZE prior to performing the 
+	 * replacement. */
+#define FDMA_REPLACE_TAM_FLAG	0x00001000
+
+/** @} end of group FDMA_Replace_Int_Flags */
+
 
 /**************************************************************************//**
 @Group		FDMA_Commands_IDs
