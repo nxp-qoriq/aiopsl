@@ -477,8 +477,8 @@ int ipsec_app_init(uint16_t ni_id)
 	auth_key_id = 0; /* Keep the initial key array value */
 	//auth_key_id = 1; /* Overwrite the initial key array value */
 
-	//tunnel_transport_mode = IPSEC_FLG_TUNNEL_MODE; /* Tunnel Mode */
-	tunnel_transport_mode = 0; /* Transport Mode */
+	tunnel_transport_mode = IPSEC_FLG_TUNNEL_MODE; /* Tunnel Mode */
+	//tunnel_transport_mode = 0; /* Transport Mode */
 
 	/* DSCP setting, valid only for tunnel mode */
 	if (tunnel_transport_mode) {
