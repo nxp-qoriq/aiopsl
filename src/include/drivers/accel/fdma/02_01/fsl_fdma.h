@@ -488,16 +488,6 @@ enum fdma_pta_size_type {
 	 * 	2. Segment length attribute in the Presentation Context will not
 	 * 	be consistent with the actual FDMA segment length. */
 #define FDMA_REPLACE_NO_FLAGS	0x00000000
-	/** Trim Anchor Mode. Applicable only to data segment replace commands.
-	 * If set: Anchored mode. The segment's start and end boundaries remain
-	 * anchored with respect to the working frame's start and end. The 
-	 * subset of the open segment specified by LEADING_OFFSET and
-	 * REPLACE_TARGET_SIZE is replaced with SEGMENT_SIZE bytes of the
-	 * replacement data.
-	 * If reset: Trimmed Mode. Trim the segment boundaries according to
-	 * LEADING_OFFSET and REPLACE_TARGET_SIZE prior to performing the 
-	 * replacement. */
-#define FDMA_REPLACE_TAM_FLAG	0x00001000
 	/** Segment action options. Only one option may be
 	 * choose from \ref fdma_replace_sa_options. */
 #define FDMA_REPLACE_SA		fdma_replace_sa_options
