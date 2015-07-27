@@ -1415,7 +1415,7 @@ int dpni_drv_get_connected_obj(const uint16_t aiop_niid, int *id, char type[16],
 		return err;
 	}
 	*id = endpoint2.id;
-	strncpy(&type[0], &endpoint2.type[0], sizeof(type));
+	strncpy(&type[0], &endpoint2.type[0], sizeof(char) * 16);
 	return 0;
 }
 
