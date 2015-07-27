@@ -77,7 +77,7 @@ Simulator Execution flow
    to the simulator folder (same location as cfg files).
 3. 1. For LS2085a:
       Run the simulator:
-      ./ccssim2 -port 42333 -imodel "ls_sim_init_file=ls2085a_sim_init_params.cfg" -smodel "ls_sim_config_file=ls2085a_sys_test.cfg"   
+      ./ccssim2 -d ls1088aiss -port 42333 -imodel "ls_sim_init_file=ls2085a_sim_init_params.cfg" -smodel "ls_sim_config_file=ls2085a_sys_test.cfg"   
 3. 2. For LS1088a:
       Run the simulator:
       ./ccssim2 -port 42333 -imodel "ls_sim_init_file=ls1088a_sim_init_params.cfg" -smodel "ls_sim_config_file=ls1088a_sys_test.cfg"  
