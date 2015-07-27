@@ -980,11 +980,6 @@
 			<locationURI>PARENT-3-PROJECT_LOC/src/kernel/include/fsl_sys.h</locationURI>
 		</link>
 		<link>
-			<name>aiop_sl/kernel/include/mem_mng_util.h</name>
-			<type>1</type>
-			<locationURI>PARENT-3-PROJECT_LOC/src/kernel/include/mem_mng_util.h</locationURI>
-		</link>
-		<link>
 			<name>aiop_sl/kernel/include/sys.h</name>
 			<type>1</type>
 			<locationURI>PARENT-3-PROJECT_LOC/src/kernel/include/sys.h</locationURI>

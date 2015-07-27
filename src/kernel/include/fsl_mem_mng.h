@@ -29,7 +29,10 @@
 
 #include "fsl_types.h"
 #include "fsl_errors.h"
-#include "mem_mng_util.h"
+#include "fsl_list.h"
+#include "buffer_pool.h"
+#include "fsl_platform.h"
+
 
 
 /**************************************************************************//**
@@ -70,12 +73,111 @@
 /**< Memory partition for physical address allocation  through fsl_os_get_mem() */
 #define MEMORY_ATTR_PHYS_ALLOCATION	0x00000008
 
+#define MEM_MNG_MAX_PARTITION_NAME_LEN      32
+
 
 /* @} */
 /* Put all function (execution code) into  dtext_vle section,aka __COLD_CODE */
 __START_COLD_CODE
 
+/**************************************************************************//**
+ @Description   Initial Memory management, used for allocations during boot.
+ *//***************************************************************************/
+struct initial_mem_mng
+{
+    uint64_t base_paddress;
+    uint32_t base_vaddress;
+    uint64_t size;
+    uint64_t curr_ptr;
+#ifdef AIOP
+    uint8_t    lock;
+#else /* not AIOP */
+    fsl_handle_t    lock;
+#endif
 
+};
+
+/**************************************************************************//**
+ @Description   Memory partition information for physical address allocation
+ *//***************************************************************************/
+typedef struct t_mem_mng_phys_addr_alloc_info
+{
+    char        name[MEM_MNG_MAX_PARTITION_NAME_LEN];
+    uint64_t    base_paddress;
+    uint64_t    size;
+    uint32_t    attributes;
+} t_mem_mng_phys_addr_alloc_info;
+
+/**************************************************************************//**
+ @Description   Memory partition information
+ *//***************************************************************************/
+typedef struct t_mem_mng_partition_info
+{
+    char        name[MEM_MNG_MAX_PARTITION_NAME_LEN];
+    uint64_t    base_address;
+    uint64_t    size;
+    uint32_t    attributes;
+#if ENABLE_DEBUG_ENTRIES
+    uint32_t    current_usage;
+    uint32_t    maximum_usage;
+    uint32_t    total_allocations;
+    uint32_t    total_deallocations;
+#endif
+
+} t_mem_mng_partition_info;
+
+/**************************************************************************//**
+ @Description   Memory management partition control structure
+ *//***************************************************************************/
+typedef struct t_mem_mng_phys_addr_alloc_partition
+{
+    int                              id;             /**< Partition ID */
+    uint64_t                         h_mem_manager;   /**< Memory manager handle */
+    t_mem_mng_phys_addr_alloc_info   info;           /**< Partition information */
+#ifdef AIOP
+    uint8_t *                        lock;
+#else
+    fsl_handle_t                     lock;
+#endif
+    int                              was_initialized;
+} t_mem_mng_phys_addr_alloc_partition;
+
+/**************************************************************************//**
+ @Description   Memory management partition control structure
+ *//***************************************************************************/
+typedef struct t_mem_mng_partition
+{
+    int                     id;             /**< Partition ID */
+    uint64_t                h_mem_manager;    /**< Memory manager handle */
+    int                     enable_debug;    /**< '1' to track malloc/free operations */
+    int                     was_initialized;
+    list_t                  mem_debug_list;   /**< List of allocation entries (for debug) */
+    list_t                  node;
+    t_mem_mng_partition_info   info;           /**< Partition information */
+#ifdef AIOP
+    uint8_t *               lock;
+#else
+    fsl_handle_t                lock;
+#endif
+} t_mem_mng_partition;
+
+/**************************************************************************//**
+ @Description   Memory management module internal parameters
+ *//***************************************************************************/
+struct t_mem_mng
+{
+    t_mem_mng_partition mem_partitions_array[PLATFORM_MAX_MEM_INFO_ENTRIES];
+                /**< List of partition control structures */
+    t_mem_mng_phys_addr_alloc_partition
+           phys_allocation_mem_partitions_array[PLATFORM_MAX_MEM_INFO_ENTRIES];
+                /**< List of partition for fsl_os_get_mem function() control structures */
+    uint32_t    mem_partitions_initialized;
+    fsl_handle_t h_boot_mem_mng;
+    struct buffer_pool slob_bf_pool;
+
+};
+
+#define SYS_DEFAULT_HEAP_PARTITION  0   /**< Partition ID for default heap */
 
 /**************************************************************************//**
  @Function      SYS_VirtToPhys
@@ -87,7 +189,7 @@ __START_COLD_CODE
 *//***************************************************************************/
 uint64_t sys_virt_to_phys(void *addr);
 
-#define SYS_DEFAULT_HEAP_PARTITION  0   /**< Partition ID for default heap */
+
 
 
 
@@ -123,17 +225,6 @@ void * sys_shram_alloc(uint32_t    size,
 *//***************************************************************************/
 void sys_shram_free(void *mem);
 
-/**************************************************************************//**
- @Function      SYS_GetAvailableMemPartition
-
- @Description   Returns an available memory partition ID.
-
-                The returned ID may be used for registration of a new memory
-                partition.
-
- @Return        An available memory partition ID.
-*//***************************************************************************/
-int sys_get_available_mem_partition(void);
 
 /**************************************************************************//**
  @Function      sys_register_phys_addr_alloc_partition
@@ -321,6 +412,7 @@ void  sys_mem_partitions_init_complete();
 
 
 extern const  uint32_t g_boot_mem_mng_size;
+#define MEM_PART_SYSTEM_DDR1_BOOT_MEM_MNG MEM_PART_LAST+1
 #define MEMORY_PARTITIONS\
 {   /* Memory partition ID                  Phys. Addr.  Virt. Addr.  Size , Attributes */\
 	{MEM_PART_SYSTEM_DDR1_BOOT_MEM_MNG,  0xFFFFFFFF,  0xFFFFFFFF, g_boot_mem_mng_size,\
@@ -338,6 +430,14 @@ extern const  uint32_t g_boot_mem_mng_size;
 	{MEM_PART_SYSTEM_DDR,                 0xFFFFFFFF,  0xFFFFFFFF,0xFFFFFFFF,\
 		MEMORY_ATTR_PHYS_ALLOCATION,"SYSTEM_DDR"},\
 }
+
+/*****************************************************************************/
+int boot_get_mem(struct initial_mem_mng* boot_mem_mng,
+                 const uint64_t size,uint64_t* paddr);
+/*****************************************************************************/
+int boot_get_mem_virt(struct initial_mem_mng* boot_mem_mng,
+                      const uint64_t size,uint32_t* vaddr);
+
 /** @} */ /* end of sys_mem_grp */
 /** @} */ /* end of sys_grp */
 __END_COLD_CODE

@@ -32,13 +32,10 @@
 #ifndef __MEM_MNG_H
 #define __MEM_MNG_H
 
-#include "mem_mng_util.h"
+#include "fsl_mem_mng.h"
 #include "fsl_list.h"
 #include "buffer_pool.h"
-
-
-#define __ERR_MODULE__  MODULE_UNKNOWN
-
+#include "fsl_platform.h"
 
 typedef struct t_mem_mng_debug_entry
 {
@@ -55,68 +52,135 @@ typedef struct t_mem_mng_debug_entry
     LIST_OBJECT(p_list, t_mem_mng_debug_entry, node)
 
 
-/**************************************************************************//**
- @Description   Memory management partition control structure
- *//***************************************************************************/
-typedef struct t_mem_mng_partition
-{
-    int                     id;             /**< Partition ID */
-    uint64_t                h_mem_manager;    /**< Memory manager handle */
-    int                     enable_debug;    /**< '1' to track malloc/free operations */
-    int                     was_initialized;
-    list_t                  mem_debug_list;   /**< List of allocation entries (for debug) */
-    list_t                  node;
-    t_mem_mng_partition_info   info;           /**< Partition information */
-#ifdef AIOP
-    uint8_t *               lock;
-#else
-    fsl_handle_t                lock;
-#endif
-} t_mem_mng_partition;
-
-
-/**************************************************************************//**
- @Description   Memory management partition control structure
- *//***************************************************************************/
-typedef struct t_mem_mng_phys_addr_alloc_partition
-{
-    int                              id;             /**< Partition ID */
-    uint64_t                         h_mem_manager;   /**< Memory manager handle */
-    t_mem_mng_phys_addr_alloc_info   info;           /**< Partition information */
-#ifdef AIOP
-    uint8_t *                        lock;
-#else
-    fsl_handle_t                     lock;
-#endif
-    int                              was_initialized;
-} t_mem_mng_phys_addr_alloc_partition;
-
-
 #define MEM_MNG_PARTITION_OBJECT(p_list)  \
     LIST_OBJECT(p_list, t_mem_mng_partition, node)
 
 #define MEM_MNG_PHYS_ADDR_ALLOC_PARTITION_OBJECT(p_list)  \
     LIST_OBJECT(p_list, t_mem_mng_phys_addr_alloc_partition, node)
-/**************************************************************************//**
- @Description   Memory management module internal parameters
- *//***************************************************************************/
-struct t_mem_mng
-{
-    t_mem_mng_partition mem_partitions_array[PLATFORM_MAX_MEM_INFO_ENTRIES];
-                /**< List of partition control structures */
-    t_mem_mng_phys_addr_alloc_partition
-           phys_allocation_mem_partitions_array[PLATFORM_MAX_MEM_INFO_ENTRIES];
-                /**< List of partition for fsl_os_get_mem function() control structures */
-    uint32_t    mem_partitions_initialized;
-    fsl_handle_t h_boot_mem_mng;
-    struct buffer_pool slob_bf_pool;
-
-};
 
 typedef enum buffer_pool_type{
 	E_BFT_SLOB_BLOCK = 0,
 	E_BFT_DEBUG_BLOCK
 } e_buffer_pool_type;
+
+/**************************************************************************//**
+ @Function      mem_mng_init
+
+ @Description   Initialize the memory allocation management module.
+
+ @Param[in]     p_mem_mng_param - MEM_MNG initialization parameters.
+
+ @Param[in]     h_boot_mem_mng - Handle to boot memory manage.
+
+ @Return        Handle to initialized MEM_MNG object, or NULL on error.
+*//***************************************************************************/
+int mem_mng_init(fsl_handle_t h_boot_mem_mng,
+                 struct t_mem_mng    *p_mem_mng);
+
+/**************************************************************************//**
+ @Function      mem_mng_get_partition_info
+
+ @Description   Get information and usage statistics of a selected partition.
+*//***************************************************************************/
+int mem_mng_get_partition_info(fsl_handle_t               h_mem_mng,
+                                 int                    partition_id,
+                                 t_mem_mng_partition_info  *p_partition_info);
+
+/**************************************************************************//**
+ @Function      mem_mng_get_phys_addr_alloc_info
+
+ @Description   Get information and usage statistics of a selected partition.
+*//***************************************************************************/
+int mem_mng_get_phys_addr_alloc_info(fsl_handle_t               h_mem_mng,
+                                 int                    partition_id,
+                                 t_mem_mng_phys_addr_alloc_info  *p_partition_info);
+
+/**************************************************************************//**
+ @Function      mem_mng_free
+
+ @Description   Free the memory allocation management module.
+
+ @Param[in]     h_mem_mng - Handle to MEM_MNG object.
+
+@Param[in]     h_boot_mem_mng - Handle to boot memory manage.
+
+ @Return        None.
+*//***************************************************************************/
+void mem_mng_free(fsl_handle_t h_mem_mng, fsl_handle_t h_boot_mem_mng);
+
+
+/**************************************************************************//**/
+int mem_mng_get_phys_mem(fsl_handle_t    h_mem_mng,
+                        int         partition_id,
+                        uint64_t    size,
+                        uint64_t    alignment,
+                        uint64_t*  paddr);
+/**************************************************************************//**/
+void mem_mng_put_phys_mem(fsl_handle_t h_mem_mng, uint64_t p_memory);
+
+/**************************************************************************//**/
+void * mem_mng_alloc_mem(fsl_handle_t    h_mem_mng,
+                        int         partition_id,
+                        uint32_t    size,
+                        uint32_t    alignment,
+                        char        *info,
+                        char        *filename,
+                        int         line);
+/**************************************************************************//**/
+void mem_mng_free_mem(fsl_handle_t h_mem_mng, void *p_memory);
+
+/**************************************************************************//**/
+int mem_mng_register_partition(fsl_handle_t  h_mem_mng,
+                                  int       partition_id,
+                                  uintptr_t base_address,
+                                  uint64_t  size,
+                                  uint32_t  attributes,
+                                  char      name[],
+                                  int       enable_debug);
+
+int mem_mng_unregister_partition(fsl_handle_t h_mem_mng, int partition_id);
+/**************************************************************************//**/
+int mem_mng_register_phys_addr_alloc_partition(fsl_handle_t  h_mem_mng,
+                                  int       partition_id,
+                                  uint64_t base_paddress,
+                                  uint64_t  size,
+                                  uint32_t  attributes,
+                                  char      name[]);
+/**************************************************************************//**/
+typedef void (t_mem_mng_leak_report_func)(void      *p_memory,
+                                      uint32_t  size,
+                                      char      *info,
+                                      char      *filename,
+                                      int       line);
+
+uint32_t mem_mng_check_leaks(fsl_handle_t                h_mem_mng,
+                            int                     partition_id,
+                            t_mem_mng_leak_report_func  *f_report_leak);
+/**************************************************************************//**/
+int mem_mng_mem_partitions_init_completed(fsl_handle_t h_mem_mng);
+/**************************************************************************//**
+ *
+ @Function      boot_mem_mng_init
+
+ @Description   Initialize the memory allocation management module.
+
+ @Param[in]     boot_mem_mng - MEM_MNG initialization parameters.
+
+ @Return        Handle to initialized MEM_MNG object, or NULL on error.
+*//***************************************************************************/
+int boot_mem_mng_init(struct initial_mem_mng* boot_mem_mng,const int mem_partition_id);
+
+/**************************************************************************//**
+ @Function      boot_mem_mng_free
+
+ @Description   Free the memory allocation management module.
+
+ @Param[in]     boot_mem_mng - initial_mem_mng
+
+ @Return        None.
+*//***************************************************************************/
+int boot_mem_mng_free(struct initial_mem_mng* boot_mem_mng);
+
 
 #endif /* __MEM_MNG_H */
 

@@ -32,7 +32,6 @@
 #include "fsl_malloc.h"
 #include "fsl_slab.h"
 #include "fsl_aiop_common.h" /* for struct aiop_init_info */
-#include "mem_mng_util.h"
 #include "fsl_mem_mng.h"
 
 

@@ -29,8 +29,8 @@
 #include "fsl_spinlock.h"
 #include "fsl_dbg.h"
 #include "fsl_stdlib.h"
-#include "mem_mng_util.h"
 #include "fsl_mem_mng.h"
+#include "mem_mng.h"
 #include "sys.h"
 #include "fsl_string.h"
 
@@ -345,18 +345,8 @@ void sys_print_mem_partition_debug_info(int partition_id, int report_leaks)
 /*****************************************************************************/
  int sys_init_memory_management(void)
 {
-    t_mem_mng_param mem_mng_param;
     uint32_t no_dp_ddr = (g_init_data.app_info.dp_ddr_size == 0);
 
-
-#ifdef AIOP
-    sys.mem_part_mng_lock = 0;
-#else /* not AIOP */
-    spin_lock_init(&(sys.mem_part_mng_lock));
-#endif /* AIOP */
-
-
-    mem_mng_param.lock = &(sys.mem_part_mng_lock);
 
     /* initialize boot memory manager to use MEM_PART_DP_DDR*/
 if(!no_dp_ddr)
@@ -364,7 +354,7 @@ if(!no_dp_ddr)
 else
     boot_mem_mng_init(&sys.boot_mem_mng,MEM_PART_SYSTEM_DDR);
 
-    if(mem_mng_init(&sys.boot_mem_mng,&mem_mng_param,&sys.mem_mng) != 0)
+    if(mem_mng_init(&sys.boot_mem_mng,&sys.mem_mng) != 0)
     {
         pr_err("Resource is unavailable: memory management object\n");
         return -EAGAIN;
@@ -381,14 +371,14 @@ else
 
 
 
-    leaks_count = mem_mng_check_leaks(&sys.mem_mng, MEM_MNG_EARLY_PARTITION_ID, NULL);
+    leaks_count = mem_mng_check_leaks(&sys.mem_mng, SYS_DEFAULT_HEAP_PARTITION, NULL);
 
     if (leaks_count)
     {
         /* Print memory leaks of early allocations */
         pr_info("\r\n_memory leaks report - early allocations:\r\n");
         pr_info("------------------------------------------------------------\r\n");
-        mem_mng_check_leaks(&sys.mem_mng, MEM_MNG_EARLY_PARTITION_ID, sys_print_mem_leak);
+        mem_mng_check_leaks(&sys.mem_mng, SYS_DEFAULT_HEAP_PARTITION, sys_print_mem_leak);
         pr_info("------------------------------------------------------------\r\n");
     }
 
