@@ -161,7 +161,7 @@ int ipr_create_instance(struct ipr_params *ipr_params_ptr,
 	sr_status = slab_find_and_reserve_bpid(aggregate_open_frames,
 					IPR_CONTEXT_SIZE,
 					8,
-					MEM_PART_DP_DDR,
+					mem_pid,
 					NULL,
 					&bpid);
 
@@ -455,7 +455,9 @@ int ipr_reassemble(ipr_instance_handle_t instance_handle)
 			     osm_scope_enter(OSM_SCOPE_ENTER_CHILD_TO_EXCLUSIVE,
 					     (uint32_t)rfdc_ext_addr);
 			}				
-			
+			/* Add increment reference cnt since CTLU doesn't
+			 * do it anymore */
+			cdma_refcount_increment(rfdc_ext_addr);
 			/* read RFDC */
 			cdma_read_wrp(&rfdc,
 				      rfdc_ext_addr,
