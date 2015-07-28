@@ -81,7 +81,7 @@ int simple_bu_hagit_test(void)
 	uint8_t prpid;
 
 
-	fsl_os_print("Running simple bring-up test\n");
+	fsl_print("Running simple bring-up test\n");
 	
 	parser_init(&prpid);
 
@@ -190,28 +190,28 @@ int simple_bu_hagit_test(void)
 		*(uint32_t *)(&storage_profile[0].pbs2) = *(uint32_t *)(&storage_profile[0].pbs1);
 
 		for (i=0; i<8 ; i++)
-			fsl_os_print("storage profile arg %d: 0x%x \n", i, *((uint32_t *)(&(storage_profile[0]))+i));
+			fsl_print("storage profile arg %d: 0x%x \n", i, *((uint32_t *)(&(storage_profile[0]))+i));
 		
 		
 		err = create_frame(fd, frame_data, FRAME_SIZE, &frame_handle);
 		if (err)
-			fsl_os_print("ERROR: create frame failed with err = %x!\n", err);
+			fsl_print("ERROR: create frame failed with err = %x!\n", err);
 
-		fsl_os_print("parse result before create frame - \n");
+		fsl_print("parse result before create frame - \n");
 		
-		fsl_os_print("ethernet offset %d %x\n", 
+		fsl_print("ethernet offset %d %x\n", 
 					PARSER_IS_ETH_MAC_DEFAULT(), PARSER_GET_ETH_OFFSET_DEFAULT());
 				
-		fsl_os_print("ipv4 offset %d %x\n", 
+		fsl_print("ipv4 offset %d %x\n", 
 					PARSER_IS_IP_DEFAULT(), PARSER_GET_OUTER_IP_OFFSET_DEFAULT());
 			
 /*
-		fsl_os_print("udp offset %d %x\n", 
+		fsl_print("udp offset %d %x\n", 
 					PARSER_IS_UDP_DEFAULT(), PARSER_GET_L4_OFFSET_DEFAULT());
 */
 
 		for (i=0; i<16 ; i++)
-			fsl_os_print("parse results arg %d: 0x%x \n", i, *((uint32_t *)(0x80)+i));
+			fsl_print("parse results arg %d: 0x%x \n", i, *((uint32_t *)(0x80)+i));
 
 		/* My Test */
 
@@ -221,47 +221,47 @@ int simple_bu_hagit_test(void)
 						0,
 						&kb);
 		if (err) 
-			fsl_os_print("ERROR: keygen_kcr_builder_add_protocol_specific_field failed!\n");
+			fsl_print("ERROR: keygen_kcr_builder_add_protocol_specific_field failed!\n");
 
 		err = keygen_kcr_builder_add_protocol_specific_field
 				(KEYGEN_KCR_IPSRC_1_FECID,
 						0,
 						&kb);
 		if (err) 
-			fsl_os_print("ERROR: keygen_kcr_builder_add_protocol_specific_field failed!\n");
+			fsl_print("ERROR: keygen_kcr_builder_add_protocol_specific_field failed!\n");
 
 		err = keygen_kcr_builder_add_protocol_specific_field
 				(KEYGEN_KCR_IPDST_1_FECID,
 						0,
 						&kb);
 		if (err) 
-			fsl_os_print("ERROR: keygen_kcr_builder_add_protocol_specific_field failed!\n");
+			fsl_print("ERROR: keygen_kcr_builder_add_protocol_specific_field failed!\n");
 
 		err = keygen_kcr_builder_add_valid_field_fec
 				(0,
 				&kb);
 		if (err) 
-			fsl_os_print("ERROR: keygen_kcr_builder_add_valid_field_fec failed!\n");
+			fsl_print("ERROR: keygen_kcr_builder_add_valid_field_fec failed!\n");
 
 		err = keygen_kcr_create(KEYGEN_ACCEL_ID_CTLU,
 					kb.kcr,
 					&keyid);
 		if (err) 
-			fsl_os_print("ERROR: keygen_kcr_create failed!\n");
+			fsl_print("ERROR: keygen_kcr_create failed!\n");
 		else
-			fsl_os_print("keyid = %d\n",keyid);
+			fsl_print("keyid = %d\n",keyid);
 		err = keygen_gen_key(KEYGEN_ACCEL_ID_CTLU,
 				     keyid,
 				     0,
 				     &key,
 				     &key_size);
 		if (err) 
-			fsl_os_print("ERROR: keygen_gen_key failed!\n");
+			fsl_print("ERROR: keygen_gen_key failed!\n");
 		else
 		{
 			for (i=0;i<128;i=i+4)
-				fsl_os_print("key word %d = 0x%x\n",i, *(uint32_t *)(key+i));
-			fsl_os_print("key size = %d\n", key_size);
+				fsl_print("key word %d = 0x%x\n",i, *(uint32_t *)(key+i));
+			fsl_print("key size = %d\n", key_size);
 		}
 
 		
@@ -270,7 +270,7 @@ int simple_bu_hagit_test(void)
 	}
 	
 	if (!err) {
-		fsl_os_print("Simple bring-up test completed successfully\n");
+		fsl_print("Simple bring-up test completed successfully\n");
 	}
 	
 	return err;

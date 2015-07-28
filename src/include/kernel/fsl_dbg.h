@@ -90,7 +90,7 @@
 #define ASSERT_COND(_cond) \
     do { \
         if (!(_cond)) { \
-            fsl_os_print("*** ASSERT_COND failed " PRINT_FORMAT "\r\n", \
+            fsl_print("*** ASSERT_COND failed " PRINT_FORMAT "\r\n", \
                     PRINT_FMT_PARAMS); \
             DEBUG_HALT; \
         } \

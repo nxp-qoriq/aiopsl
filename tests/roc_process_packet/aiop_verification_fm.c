@@ -69,9 +69,9 @@ __declspec(entry_point) void aiop_verification_fm()
         uint8_t tmp, spid;
 	uint32_t *pData = (uint32_t *)HWC_FD_ADDRESS;
 
-	fsl_os_print("\n**************************\n");
-	fsl_os_print("*** Start Verification ***\n");
-	fsl_os_print("**************************\n");
+	fsl_print("\n**************************\n");
+	fsl_print("*** Start Verification ***\n");
+	fsl_print("**************************\n");
 	/* Read last 8 bytes from frame PTA/ last 8 bytes of payload
 	 * This is the external buffer address */
 	if (LDPAA_FD_GET_PTA(HWC_FD_ADDRESS)) {
@@ -125,14 +125,14 @@ __declspec(entry_point) void aiop_verification_fm()
         amq.flags = flags;
         set_default_amq_attributes(&amq);
         
-        //fsl_os_print("Storage Profile ASAR 0x%x\n", storage_profile[spid].mode_bits1 & 0xF);
-        //fsl_os_print("Storage Profile PTAR 0x%x\n", (storage_profile[spid].mode_bits1 & 0x80)>>7);
+        //fsl_print("Storage Profile ASAR 0x%x\n", storage_profile[spid].mode_bits1 & 0xF);
+        //fsl_print("Storage Profile PTAR 0x%x\n", (storage_profile[spid].mode_bits1 & 0x80)>>7);
         /*set storage profile ASAR to 15 */
         storage_profile[spid].mode_bits1 |= 0xF;
         /*set storage profile PTAR to 1 */
         storage_profile[spid].mode_bits1 |= 0x80;
-        fsl_os_print("Storage Profile ASAR %d\n", storage_profile[spid].mode_bits1 & 0xF);
-        fsl_os_print("Storage Profile PTAR %d\n", (storage_profile[spid].mode_bits1 & 0x80)>>7);
+        fsl_print("Storage Profile ASAR %d\n", storage_profile[spid].mode_bits1 & 0xF);
+        fsl_print("Storage Profile PTAR %d\n", (storage_profile[spid].mode_bits1 & 0x80)>>7);
         
 	
 	cdma_read((void *)data_addr, ext_address, (uint16_t)DATA_SIZE);
@@ -144,7 +144,7 @@ __declspec(entry_point) void aiop_verification_fm()
 
 		
 		opcode  = *((uint32_t *) data_addr);
-		fsl_os_print("opcode received: 0x%x\n", opcode);
+		fsl_print("opcode received: 0x%x\n", opcode);
 		opcode = (opcode & ACCEL_ID_CMD_MASK) >> 16;
 		
 

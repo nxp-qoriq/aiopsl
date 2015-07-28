@@ -118,10 +118,10 @@ int spinlock_test ()
 			}
 		}
 		
-//		fsl_os_print("%d spinlocks taken by core #%d\n", num_taken[0], 0);
-//		fsl_os_print("%d spinlocks taken by core #%d\n", num_taken[1], 1);
+//		fsl_print("%d spinlocks taken by core #%d\n", num_taken[0], 0);
+//		fsl_print("%d spinlocks taken by core #%d\n", num_taken[1], 1);
 //
-//		fsl_os_print("Spinlocks validation... (PASSED)\n");
+//		fsl_print("Spinlocks validation... (PASSED)\n");
 	}
 	
 	sys_barrier();

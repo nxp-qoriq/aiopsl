@@ -105,10 +105,10 @@ int simple_bu_gal_test(void)
 	
 	
 	ipr_reassemble(0);
-	fsl_os_print("****************************\n");
-	fsl_os_print("Running simple bring-up test\n");
-	fsl_os_print("****************************\n");
-	fsl_os_print("****************************\n");
+	fsl_print("****************************\n");
+	fsl_print("Running simple bring-up test\n");
+	fsl_print("****************************\n");
+	fsl_print("****************************\n");
 	
 	//parser_init(&prpid);
 
@@ -126,7 +126,7 @@ int simple_bu_gal_test(void)
 	//test_ste();
 	
 	
-	fsl_os_print("Simple bring-up test completed successfully\n");
+	fsl_print("Simple bring-up test completed successfully\n");
 	return 0;
 }
 
@@ -196,96 +196,96 @@ int test_fdma()
 	*(uint32_t *)(&storage_profile[0].pbs2) = *(uint32_t *)(&storage_profile[0].pbs1);
 
 	for (i=0; i<8 ; i++)
-		fsl_os_print("storage profile arg %d: 0x%x \n", i, *((uint32_t *)(&(storage_profile[0]))+i));
+		fsl_print("storage profile arg %d: 0x%x \n", i, *((uint32_t *)(&(storage_profile[0]))+i));
 	
 	
 	err = create_frame(fd, frame_data, 0/*FRAME_SIZE*/, &frame_handle);
 	if (err)
-		fsl_os_print("ERROR: create frame failed!\n");
+		fsl_print("ERROR: create frame failed!\n");
 	else
-		fsl_os_print("ERROR: create frame PASSED!\n");
+		fsl_print("ERROR: create frame PASSED!\n");
 
 	
-	/*fsl_os_print("parse result before create frame - \n");
+	/*fsl_print("parse result before create frame - \n");
 	
-	fsl_os_print("ethernet offset %d %x\n", 
+	fsl_print("ethernet offset %d %x\n", 
 				PARSER_IS_ETH_MAC_DEFAULT(), PARSER_GET_ETH_OFFSET_DEFAULT());
 	
-	fsl_os_print("vlan offset %d %x\n",
+	fsl_print("vlan offset %d %x\n",
 				PARSER_IS_ONE_VLAN_DEFAULT(), PARSER_GET_FIRST_VLAN_TCI_OFFSET_DEFAULT());
 	
-	fsl_os_print("ipv4 offset %d %x\n", 
+	fsl_print("ipv4 offset %d %x\n", 
 				PARSER_IS_IP_DEFAULT(), PARSER_GET_OUTER_IP_OFFSET_DEFAULT());
 	
-	fsl_os_print("udp offset %d %x\n", 
+	fsl_print("udp offset %d %x\n", 
 				PARSER_IS_UDP_DEFAULT(), PARSER_GET_L4_OFFSET_DEFAULT());
 
 	for (i=0; i<16 ; i++)
-		fsl_os_print("parse results arg %d: 0x%x \n", i, *((uint32_t *)(0x80)+i));*/
+		fsl_print("parse results arg %d: 0x%x \n", i, *((uint32_t *)(0x80)+i));*/
 	
 	//test_fdma_modify_default_segment_data();
 	
 	fdma_close_default_segment();
 	err = fdma_present_default_frame_segment(FDMA_PRES_NO_FLAGS, (void *)0x180, 0, 256);
 	if (err)
-		fsl_os_print("STATUS: fdma present default segment returned status is %d\n", err);
+		fsl_print("STATUS: fdma present default segment returned status is %d\n", err);
 	//l2_push_and_set_vlan(vlan);
 	
 	frame_length = PRC_GET_SEGMENT_LENGTH();
 	seg_addr = (uint8_t *)PRC_GET_SEGMENT_ADDRESS();
 	
-	/*fsl_os_print("frame length is 0x%x\n", frame_length);
+	/*fsl_print("frame length is 0x%x\n", frame_length);
 	for (i=0; i<frame_length ; i++)
-		fsl_os_print("frame read byte %d is %x\n", i, seg_addr[i]);*/
+		fsl_print("frame read byte %d is %x\n", i, seg_addr[i]);*/
 
 	parse_result_generate(PARSER_ETH_STARTING_HXS, 0, PARSER_NO_FLAGS);
 	
-	fsl_os_print("parse result after create frame - \n");
+	fsl_print("parse result after create frame - \n");
 	
-	fsl_os_print("ethernet offset %d %x\n", 
+	fsl_print("ethernet offset %d %x\n", 
 				PARSER_IS_ETH_MAC_DEFAULT(), PARSER_GET_ETH_OFFSET_DEFAULT());
 	
-	fsl_os_print("vlan offset %d %x\n",
+	fsl_print("vlan offset %d %x\n",
 				PARSER_IS_ONE_VLAN_DEFAULT(), PARSER_GET_FIRST_VLAN_TCI_OFFSET_DEFAULT());
 	
-	fsl_os_print("ipv4 offset %d %x\n", 
+	fsl_print("ipv4 offset %d %x\n", 
 				PARSER_IS_IP_DEFAULT(), PARSER_GET_OUTER_IP_OFFSET_DEFAULT());
 	
-	fsl_os_print("udp offset %d %x\n", 
+	fsl_print("udp offset %d %x\n", 
 				PARSER_IS_UDP_DEFAULT(), PARSER_GET_L4_OFFSET_DEFAULT());
-	fsl_os_print(" FD length (by SW) is : 0x%x \n", LDPAA_FD_GET_LENGTH(HWC_FD_ADDRESS));
+	fsl_print(" FD length (by SW) is : 0x%x \n", LDPAA_FD_GET_LENGTH(HWC_FD_ADDRESS));
 
 	LDPAA_FD_SET_LENGTH(HWC_FD_ADDRESS, 0);
-	fsl_os_print(" FD length (after SW zeroing it) is : 0x%x \n", LDPAA_FD_GET_LENGTH(HWC_FD_ADDRESS));
+	fsl_print(" FD length (after SW zeroing it) is : 0x%x \n", LDPAA_FD_GET_LENGTH(HWC_FD_ADDRESS));
 	err = fdma_store_default_frame_data();
 	if (err){
-		fsl_os_print("ERROR: fdma store default frame returned error is %d\n", err);
+		fsl_print("ERROR: fdma store default frame returned error is %d\n", err);
 		return err;
 	}
 	
 	//test_fdma_discard_fd();
 	
-	//fsl_os_print(" ***************************************** \n");
+	//fsl_print(" ***************************************** \n");
 	//test_tmi_create();
-	//fsl_os_print(" ***************************************** \n");
+	//fsl_print(" ***************************************** \n");
 
 	for (i=0; i<8 ; i++)
-		fsl_os_print("*** FD content arg %d is %x\n", i, *((uint32_t *)(0x60 + i*4)));
+		fsl_print("*** FD content arg %d is %x\n", i, *((uint32_t *)(0x60 + i*4)));
 	
-	fsl_os_print(" FD length is : 0x%x \n", LDPAA_FD_GET_LENGTH(HWC_FD_ADDRESS));
-	fsl_os_print(" FD address LSB is : 0x%x \n", LDPAA_FD_GET_ADDR(HWC_FD_ADDRESS));
-	fsl_os_print(" FD address MSB is : 0x%x \n", ((uint64_t)LDPAA_FD_GET_ADDR(HWC_FD_ADDRESS)) >> 32);
+	fsl_print(" FD length is : 0x%x \n", LDPAA_FD_GET_LENGTH(HWC_FD_ADDRESS));
+	fsl_print(" FD address LSB is : 0x%x \n", LDPAA_FD_GET_ADDR(HWC_FD_ADDRESS));
+	fsl_print(" FD address MSB is : 0x%x \n", ((uint64_t)LDPAA_FD_GET_ADDR(HWC_FD_ADDRESS)) >> 32);
 
 	err = fdma_present_default_frame();
 	if (err < 0)
-		fsl_os_print("ERROR: fdma present default frame returned error is %d\n", err);
+		fsl_print("ERROR: fdma present default frame returned error is %d\n", err);
 	else
 		if (err)
-			fsl_os_print("STATUS: fdma present default frame returned status is %d\n", err);
+			fsl_print("STATUS: fdma present default frame returned status is %d\n", err);
 	parse_status = parse_result_generate_default(PARSER_NO_FLAGS);
 	if (parse_status)
 	{
-		fsl_os_print("ERROR: parser result for simple BU test: FAILED!\n");
+		fsl_print("ERROR: parser result for simple BU test: FAILED!\n");
 		//fdma_discard_default_frame(FDMA_DIS_NO_FLAGS);
 	}
 	/* check frame presented */
@@ -293,8 +293,8 @@ int test_fdma()
 	frame_length = LDPAA_FD_GET_LENGTH(HWC_FD_ADDRESS);
 	fdma_close_default_segment();
 	err = fdma_present_default_frame_segment(FDMA_PRES_NO_FLAGS, (void *)0x180, 0, 256);
-	fsl_os_print("Frame length is: \n", frame_length);
-	fsl_os_print("Segment length is: \n", PRC_GET_SEGMENT_LENGTH());
+	fsl_print("Frame length is: \n", frame_length);
+	fsl_print("Segment length is: \n", PRC_GET_SEGMENT_LENGTH());
 	
 	err = 0;
 	for (i=0; i<(FRAME_SIZE+4); i++)
@@ -302,20 +302,20 @@ int test_fdma()
 			err = -EINVAL;
 	if (err)
 	{
-		fsl_os_print("Simple BU ERROR: frame data after HM is not correct\n");
-		fsl_os_print("frame length is 0x%x\n", frame_length);
+		fsl_print("Simple BU ERROR: frame data after HM is not correct\n");
+		fsl_print("frame length is 0x%x\n", frame_length);
 		//for (i=0; i<frame_length ; i++)
-		//	fsl_os_print("frame read byte %d is %x\n", i, frame_data_read[i]);
-		fsl_os_print("actual frame length is 0x%x\n", frame_length);
+		//	fsl_print("frame read byte %d is %x\n", i, frame_data_read[i]);
+		fsl_print("actual frame length is 0x%x\n", frame_length);
 		//for (i=0; i<frame_length ; i++)
-		//	fsl_os_print("actual frame read byte %d is %x\n", i, frame_presented[i]);
+		//	fsl_print("actual frame read byte %d is %x\n", i, frame_presented[i]);
 		//fdma_discard_default_frame(FDMA_DIS_NO_FLAGS);
 		//return err;
 	}
 	else {
-		fsl_os_print("**************************************************\n");
-		fsl_os_print("Simple BU Test: fdma frame after HM is correct !!!\n");
-		fsl_os_print("**************************************************\n");
+		fsl_print("**************************************************\n");
+		fsl_print("Simple BU Test: fdma frame after HM is correct !!!\n");
+		fsl_print("**************************************************\n");
 	}
 	
 	test_replicate_frame();	
@@ -343,25 +343,25 @@ void test_replicate_frame()
 	err = fdma_replicate_frame_fqid(PRC_GET_FRAME_HANDLE(), *(uint8_t *)HWC_SPID_ADDRESS, 
 			0, &replic_fd, FDMA_CFA_COPY_BIT, &frame_handle2);
 	if (err)
-		fsl_os_print("Simple BU ERROR: fdma_replicate_frame_fqid FAILED!!\n");
+		fsl_print("Simple BU ERROR: fdma_replicate_frame_fqid FAILED!!\n");
 	else
-		fsl_os_print("Simple BU: fdma_replicate_frame_fqid PASSED!!\n");
+		fsl_print("Simple BU: fdma_replicate_frame_fqid PASSED!!\n");
 #if 1	
 	err = fdma_store_frame_data(frame_handle2, *(uint8_t *)HWC_SPID_ADDRESS, &amq);
 	if (err)
-		fsl_os_print("Simple BU ERROR: fdma_store_frame_data FAILED!!\n");
+		fsl_print("Simple BU ERROR: fdma_store_frame_data FAILED!!\n");
 	else
-		fsl_os_print("Simple BU: fdma_store_frame_data PASSED!! frame size is: 0x%x\n", replic_fd.length);
+		fsl_print("Simple BU: fdma_store_frame_data PASSED!! frame size is: 0x%x\n", replic_fd.length);
 	
 	
 	for (i=0; i<8 ; i++)
-		fsl_os_print("Replicated FD content arg %d is %x\n", i, *((uint32_t *)(((uint8_t *)&replic_fd) + i*4)));
+		fsl_print("Replicated FD content arg %d is %x\n", i, *((uint32_t *)(((uint8_t *)&replic_fd) + i*4)));
 	
 	err = fdma_present_frame_without_segments(&replic_fd, 0, 0, &frame_handle2);
 	if (err)
-		fsl_os_print("Simple BU ERROR: fdma_present_frame_without_segments FAILED!!\n");
+		fsl_print("Simple BU ERROR: fdma_present_frame_without_segments FAILED!!\n");
 	else
-		fsl_os_print("Simple BU: fdma_present_frame_without_segments PASSED!!\n");
+		fsl_print("Simple BU: fdma_present_frame_without_segments PASSED!!\n");
 #endif	
 	params.flags = 0;
 	params.offset = 0;
@@ -370,9 +370,9 @@ void test_replicate_frame()
 	params.frame_handle = frame_handle2;
 	err = fdma_present_frame_segment(&params);
 	if (err && (err != 0x8))
-		fsl_os_print("Simple BU ERROR: fdma_present_frame_segment FAILED!!\n");
+		fsl_print("Simple BU ERROR: fdma_present_frame_segment FAILED!!\n");
 	else
-		fsl_os_print("Simple BU: fdma_present_frame_segment PASSED!!\n");
+		fsl_print("Simple BU: fdma_present_frame_segment PASSED!!\n");
 	
 	insert_params.frame_handle = frame_handle2;
 	insert_params.from_ws_src = data_arr;
@@ -383,26 +383,26 @@ void test_replicate_frame()
 	
 	err = fdma_insert_segment_data(&insert_params);
 	if (err)
-		fsl_os_print("Simple BU ERROR: fdma_insert_segment_data FAILED!!\n");
+		fsl_print("Simple BU ERROR: fdma_insert_segment_data FAILED!!\n");
 	else
-		fsl_os_print("Simple BU: fdma_insert_segment_data PASSED!!\n");
+		fsl_print("Simple BU: fdma_insert_segment_data PASSED!!\n");
 	
 	err = fdma_store_frame_data(frame_handle2, *(uint8_t *)HWC_SPID_ADDRESS, &amq);
 	if (err)
-		fsl_os_print("Simple BU ERROR: fdma_store_frame_data FAILED!!\n");
+		fsl_print("Simple BU ERROR: fdma_store_frame_data FAILED!!\n");
 	else
-		fsl_os_print("Simple BU: fdma_store_frame_data PASSED!! frame size is: 0x%x\n", LDPAA_FD_GET_LENGTH(&replic_fd));
+		fsl_print("Simple BU: fdma_store_frame_data PASSED!! frame size is: 0x%x\n", LDPAA_FD_GET_LENGTH(&replic_fd));
 	
 	for (i=0; i<8 ; i++)
-		fsl_os_print("Replicated FD content arg %d is %x\n", i, *((uint32_t *)(((uint8_t *)&replic_fd) + i*4)));
+		fsl_print("Replicated FD content arg %d is %x\n", i, *((uint32_t *)(((uint8_t *)&replic_fd) + i*4)));
 	
 	err = fdma_present_frame_without_segments(&replic_fd, 0, 0, &frame_handle2);
 	if (err)
-		fsl_os_print("Simple BU ERROR: fdma_present_frame_without_segments FAILED!!\n");
+		fsl_print("Simple BU ERROR: fdma_present_frame_without_segments FAILED!!\n");
 	else
-		fsl_os_print("Simple BU: fdma_present_frame_without_segments PASSED!!\n");
+		fsl_print("Simple BU: fdma_present_frame_without_segments PASSED!!\n");
 	
-	fsl_os_print("Replicated frame size is: 0x%x\n", LDPAA_FD_GET_LENGTH(&replic_fd));
+	fsl_print("Replicated frame size is: 0x%x\n", LDPAA_FD_GET_LENGTH(&replic_fd));
 	
 	params.flags = 0;
 	params.offset = 0;
@@ -411,9 +411,9 @@ void test_replicate_frame()
 	params.frame_handle = frame_handle2;
 	err = fdma_present_frame_segment(&params);
 	if (err && (err != 0x8))
-		fsl_os_print("Simple BU ERROR: fdma_present_frame_segment FAILED!!\n");
+		fsl_print("Simple BU ERROR: fdma_present_frame_segment FAILED!!\n");
 	else
-		fsl_os_print("Simple BU: fdma_present_frame_segment PASSED!!\n");
+		fsl_print("Simple BU: fdma_present_frame_segment PASSED!!\n");
 	
 	
 	err = 0;
@@ -421,9 +421,9 @@ void test_replicate_frame()
 			if (*((uint8_t *)(params.ws_dst)+i) != data_arr[i])
 				err = -EINVAL;
 	if (err)
-		fsl_os_print("Simple BU ERROR: frame check after replicate FAILED!!\n");
+		fsl_print("Simple BU ERROR: frame check after replicate FAILED!!\n");
 	else
-		fsl_os_print("Simple BU: frame check after replicate PASSED!!\n");
+		fsl_print("Simple BU: frame check after replicate PASSED!!\n");
 
 	fdma_discard_frame(frame_handle2, FDMA_DIS_NO_FLAGS);
 }
@@ -451,28 +451,28 @@ void test_fdma_copy_data()
 		
 		case (0):	
 			 /*ws->ws */
-			fsl_os_print("FDMA Copy WS->WS \n");
+			fsl_print("FDMA Copy WS->WS \n");
 			src_addr = (void *)(ws_data);
 			dst_addr = (void *)0x180;
 			flags = 0;
 			break;
 		case (1):	
 			 /*ws->sram*/ 
-			fsl_os_print("FDMA Copy WS->SRAM \n");
+			fsl_print("FDMA Copy WS->SRAM \n");
 			src_addr = (void *)ws_data;
 			dst_addr = (void *)sram;
 			flags = FDMA_COPY_DM_BIT;
 			break;
 		case (2):	
 			 /*sram->ws*/ 
-			fsl_os_print("FDMA Copy SRAM->WS \n");
+			fsl_print("FDMA Copy SRAM->WS \n");
 			src_addr = (void *)sram;
 			dst_addr = (void *)0x180;
 			flags = FDMA_COPY_SM_BIT;
 			break;
 		case (3):	
 			 /*sram->sram*/ 
-			fsl_os_print("FDMA Copy SRAM->SRAM \n");
+			fsl_print("FDMA Copy SRAM->SRAM \n");
 			src_addr = (void *)sram;
 			dst_addr = (void *)(sram+COPY_SIZE);
 			flags = FDMA_COPY_SM_BIT | FDMA_COPY_DM_BIT;
@@ -493,33 +493,33 @@ void test_fdma_copy_data()
 		else
 			fdma_copy_data(copy_size, flags, src_addr, dst_addr);
 		
-		fsl_os_print("Simple BU: fdma_copy_data params:\n size = %d, flags = %d, "
+		fsl_print("Simple BU: fdma_copy_data params:\n size = %d, flags = %d, "
 				"src_address = 0x%x, dst_address = 0x%x \n",
 				sizeof(struct storage_profile), FDMA_COPY_SM_BIT, src_addr, dst_addr);
-		fsl_os_print("copy command HW arg1 = 0x%x\n", *(uint32_t *) 0x20);
-		fsl_os_print("copy command HW arg2 = 0x%x\n", *(uint32_t *) 0x24);
-		fsl_os_print("copy command HW arg3 = 0x%x\n", *(uint32_t *) 0x28);
-		fsl_os_print("copy command HW arg4 = 0x%x\n", *(uint32_t *) 0x2C);
+		fsl_print("copy command HW arg1 = 0x%x\n", *(uint32_t *) 0x20);
+		fsl_print("copy command HW arg2 = 0x%x\n", *(uint32_t *) 0x24);
+		fsl_print("copy command HW arg3 = 0x%x\n", *(uint32_t *) 0x28);
+		fsl_print("copy command HW arg4 = 0x%x\n", *(uint32_t *) 0x2C);
 		err = 0;
 		for (i=0; i<copy_size; i+=4)
 			if (*((uint32_t *)((uint32_t)src_addr+i)) != *((uint32_t *)((uint32_t)dst_addr+i))) {
 				err = -EINVAL;
-				fsl_os_print("arg %d: 0x%x != 0x%x\n", i, *((uint32_t *)((uint32_t)src_addr+i)),
+				fsl_print("arg %d: 0x%x != 0x%x\n", i, *((uint32_t *)((uint32_t)src_addr+i)),
 						*((uint32_t *)((uint32_t)dst_addr+i)));
 			}
 		if (err)
 		{
-			fsl_os_print("Simple BU ERROR: fdma_copy_data FAILED\n");
+			fsl_print("Simple BU ERROR: fdma_copy_data FAILED\n");
 			for (i=0; i<copy_size; i+=4) {
-				fsl_os_print("Copy src arg %d = 0x%x\n", i/4, *((uint32_t *)((uint32_t)src_addr+i)));
-				fsl_os_print("Copy dst arg %d = 0x%x\n", i/4, *((uint32_t *)((uint32_t)dst_addr+i)));
+				fsl_print("Copy src arg %d = 0x%x\n", i/4, *((uint32_t *)((uint32_t)src_addr+i)));
+				fsl_print("Copy dst arg %d = 0x%x\n", i/4, *((uint32_t *)((uint32_t)dst_addr+i)));
 			}
 		}
 		else{
-			fsl_os_print("Simple BU ERROR: fdma_copy_data PASSED\n");
+			fsl_print("Simple BU ERROR: fdma_copy_data PASSED\n");
 			for (i=0; i<copy_size; i+=4) {
-				fsl_os_print("Copy src arg %d = 0x%x\n", i/4, *((uint32_t *)((uint32_t)src_addr+i)));
-				fsl_os_print("Copy dst arg %d = 0x%x\n", i/4, *((uint32_t *)((uint32_t)dst_addr+i)));
+				fsl_print("Copy src arg %d = 0x%x\n", i/4, *((uint32_t *)((uint32_t)src_addr+i)));
+				fsl_print("Copy dst arg %d = 0x%x\n", i/4, *((uint32_t *)((uint32_t)dst_addr+i)));
 			}
 		}
 	}
@@ -531,9 +531,9 @@ void test_fdma_discard_fd()
 	
 	err = fdma_discard_fd((struct ldpaa_fd *)HWC_FD_ADDRESS, FDMA_DIS_NO_FLAGS);
 	if (err)
-		fsl_os_print("*** ERROR: fdma_discard_fd FAILED! ***\n");
+		fsl_print("*** ERROR: fdma_discard_fd FAILED! ***\n");
 	else
-		fsl_os_print("\n*** fdma_discard_fd PASSED! ***\n\n");
+		fsl_print("\n*** fdma_discard_fd PASSED! ***\n\n");
 }
 
 void test_fdma_modify_default_segment_data()
@@ -551,24 +551,24 @@ void test_fdma_modify_default_segment_data()
 	fdma_close_default_segment();
 	for (i=0; i<MODIFY_SIZE; i++) {
 		seg_addr[i] = 0;
-		fsl_os_print("0 data byte %d: %d \n", i, seg_addr[i]);
+		fsl_print("0 data byte %d: %d \n", i, seg_addr[i]);
 	}
 	err = fdma_present_default_frame_segment(FDMA_PRES_NO_FLAGS, (void *)seg_addr, 0, 256);
 	if (err)
-		fsl_os_print("STATUS: fdma present default segment returned status is %d\n", err);
+		fsl_print("STATUS: fdma present default segment returned status is %d\n", err);
 	err = 0;
 	for (i=0; i<MODIFY_SIZE; i++)
 		if (seg_addr[i] != modify_data[i]){
 			err = -EIO;
-			fsl_os_print("byte %d: 0x%x != 0x%x\n", i, seg_addr[i], modify_data[i]);
+			fsl_print("byte %d: 0x%x != 0x%x\n", i, seg_addr[i], modify_data[i]);
 		}
 	
 	if (err)
-		fsl_os_print("*** ERROR: fdma_modify_default_segment_data FAILED !!! \n");
+		fsl_print("*** ERROR: fdma_modify_default_segment_data FAILED !!! \n");
 	else{
-		fsl_os_print("*** fdma_modify_default_segment_data PASSED !!! \n\n");
+		fsl_print("*** fdma_modify_default_segment_data PASSED !!! \n\n");
 		for (i=0; i<MODIFY_SIZE; i++) {
-			fsl_os_print("Good data byte %d: %d \n", i, seg_addr[i]);
+			fsl_print("Good data byte %d: %d \n", i, seg_addr[i]);
 		};
 	}
 }
@@ -579,15 +579,15 @@ void test_tmi_create()
 	fsl_os_get_mem( 4*64, MEM_PART_DP_DDR, 64, 
 			&snic_tmi_mem_base_addr_gal);
 	tman_get_timestamp(&time);
-	fsl_os_print("Timestamp = 0x%x%x\n", time >> 32, time);
+	fsl_print("Timestamp = 0x%x%x\n", time >> 32, time);
 	tman_get_timestamp(&time);
-	fsl_os_print("Timestamp = 0x%x%x\n", time >> 32, time);
+	fsl_print("Timestamp = 0x%x%x\n", time >> 32, time);
 	tman_get_timestamp(&time);
-	fsl_os_print("Timestamp = 0x%x%x\n", time >> 32, time);
+	fsl_print("Timestamp = 0x%x%x\n", time >> 32, time);
 	tman_get_timestamp(&time);
-	fsl_os_print("Timestamp = 0x%x%x\n", time >> 32, time);
+	fsl_print("Timestamp = 0x%x%x\n", time >> 32, time);
 	tman_get_timestamp(&time);
-	fsl_os_print("Timestamp = 0x%x%x\n", time >> 32, time);
+	fsl_print("Timestamp = 0x%x%x\n", time >> 32, time);
 	/* todo tmi delete in snic_free */
 	tman_create_tmi(snic_tmi_mem_base_addr_gal , 4, 
 			&snic_tmi_id_gal);
@@ -628,13 +628,13 @@ void test_ste()
 	//}
 	
 	if (err)
-		fsl_os_print("ERROR: slab_create() failed\n");	
+		fsl_print("ERROR: slab_create() failed\n");	
 	else
-		fsl_os_print("slab_create() completed successfully\n");	
+		fsl_print("slab_create() completed successfully\n");	
 	
-	fsl_os_print("Before fsl_os_get_mem\n");	
+	fsl_print("Before fsl_os_get_mem\n");	
 	fsl_os_get_mem(256, MEM_PART_SYSTEM_DDR, 8, &ext_addr);
-	fsl_os_print("After fsl_os_get_mem\n");	
+	fsl_print("After fsl_os_get_mem\n");	
 	
 	//ext_addr = 0x80120000;
 	ext_addr = 0x6000000000;
@@ -644,9 +644,9 @@ void test_ste()
 			&ext_addr /* uint64_t *buff */
 			);
 	if (err)
-		fsl_os_print("ERROR: slab_create() failed\n");	
+		fsl_print("ERROR: slab_create() failed\n");	
 	else
-		fsl_os_print("slab_acquire() completed successfully\n");
+		fsl_print("slab_acquire() completed successfully\n");
 
 	//ext_addr = /*mem_alloc*/sys_mem_alloc( sizeof(struct soft_tlu_statistics), MEM_PART_SYSTEM_DDR );
 	ext_addr = STE_ALIGN_64(ext_addr, 64);
@@ -657,18 +657,18 @@ void test_ste()
 			);
 	
 	if (err)
-		fsl_os_print("ERROR: slab_create() failed\n");	
+		fsl_print("ERROR: slab_create() failed\n");	
 	else
-		fsl_os_print("slab_acquire() completed successfully\n");
+		fsl_print("slab_acquire() completed successfully\n");
 	
 	ext_addr_tman = STE_ALIGN_64(ext_addr_tman, 64);
 	
 	//ext_addr = 0x80120000;
 	
-	fsl_os_print("external_address = 0x%x%08x\n", *((uint32_t *)&ext_addr), *(((uint32_t *)&ext_addr)+1));
+	fsl_print("external_address = 0x%x%08x\n", *((uint32_t *)&ext_addr), *(((uint32_t *)&ext_addr)+1));
 	//ext_addr = ext_addr - 8;
-	//fsl_os_print("external_address after alignment high = 0x%x\n", *((uint32_t *)&ext_addr));
-	//fsl_os_print("external_address after alignment low = 0x%x\n", *(((uint32_t *)&ext_addr)+1));
+	//fsl_print("external_address after alignment high = 0x%x\n", *((uint32_t *)&ext_addr));
+	//fsl_print("external_address after alignment low = 0x%x\n", *(((uint32_t *)&ext_addr)+1));
 	/* zero external address */
 	cdma_write(ext_addr, (void *)data, COPY_SIZE*sizeof(uint32_t));
 	/* read external address - make sure its zeroed */
@@ -676,10 +676,10 @@ void test_ste()
 	for (i=0; i<COPY_SIZE; i++)
 		if (data[i] != read_data[i]){
 			err = -EIO;
-			fsl_os_print("byte %d: 0x%x != 0x%x\n", i, data[i], read_data[i]);
+			fsl_print("byte %d: 0x%x != 0x%x\n", i, data[i], read_data[i]);
 		}
 	if (err)
-		fsl_os_print("*** ERROR: cdma_read FAILED !!! \n");
+		fsl_print("*** ERROR: cdma_read FAILED !!! \n");
 	
 	
 	err = tman_create_tmi(
@@ -687,9 +687,9 @@ void test_ste()
 		5, /* uint32_t max_num_of_timers */
 		&tmi_id); /* uint8_t *tmi_id */
 	if (err)
-		fsl_os_print("ERROR: tman_create_tmi() failed\n");
+		fsl_print("ERROR: tman_create_tmi() failed\n");
 	else
-		fsl_os_print("tman_create_tmi() PASSED :-)\n");
+		fsl_print("tman_create_tmi() PASSED :-)\n");
 	
 	err = tman_create_timer(
 		tmi_id, /* uint8_t tmi_id */
@@ -703,9 +703,9 @@ void test_ste()
 		&timer_handle1); /*	uint32_t *timer_handle */
 	
 	if (err)
-		fsl_os_print("ERROR: tman_create_timer() failed\n");
+		fsl_print("ERROR: tman_create_timer() failed\n");
 	else
-		fsl_os_print("tman_create_timer() PASSED :-)\n");
+		fsl_print("tman_create_timer() PASSED :-)\n");
 	
 	global_timer_handle1_g = timer_handle1;	
 }
@@ -718,70 +718,70 @@ void test_ste_functions(uint64_t ext_addr)
 	uint32_t acc = 0;
 	//struct slab *slab_handle = NULL;
 	
-	fsl_os_print("*** STE TEST STARTS *** \n"); 
+	fsl_print("*** STE TEST STARTS *** \n"); 
 	
 	err = 0;
-	fsl_os_print("ste_inc_counter to address = 0x%x%08x\n", *((uint32_t *)&ext_addr), *(((uint32_t *)&ext_addr)+1));
+	fsl_print("ste_inc_counter to address = 0x%x%08x\n", *((uint32_t *)&ext_addr), *(((uint32_t *)&ext_addr)+1));
 	ste_inc_counter(ext_addr, INC_VAL, STE_MODE_32_BIT_CNTR_SIZE);
-	fsl_os_print("*** ste_inc_counter is called  \n");
+	fsl_print("*** ste_inc_counter is called  \n");
 	ste_barrier();
-	fsl_os_print("*** ste_barrier is called  \n");
-	fsl_os_print("cdma_read from address = 0x%x%08x\n", *((uint32_t *)&ext_addr), *(((uint32_t *)&ext_addr)+1));
+	fsl_print("*** ste_barrier is called  \n");
+	fsl_print("cdma_read from address = 0x%x%08x\n", *((uint32_t *)&ext_addr), *(((uint32_t *)&ext_addr)+1));
 	cdma_read(&counter, ext_addr, sizeof(uint32_t));
-	fsl_os_print("*** compare counter after ste_inc_counter  \n");
+	fsl_print("*** compare counter after ste_inc_counter  \n");
 	if (counter != INC_VAL){
-		fsl_os_print("*** ERROR: ste_inc_counter FAILED !!! \n");
-		fsl_os_print("*** ERROR: counter =  %d != %d \n", counter, INC_VAL);
-		/*fsl_os_print("*** ERROR: STE_GET_STATUS_REGISTER %d \n", counter, STE_GET_STATUS_REGISTER());
-		fsl_os_print("*** ERROR: STE_GET_STATUS_REGISTER %d \n", counter, STE_GET_ERR_CAP_ATTRIBUTES());
-		fsl_os_print("*** ERROR: STE_GET_AMQR at address 0x%x = 0x%x \n", STE_BASE_ADDRESS + 0x40, (uint32_t)(ioread32_ccsr((uint32_t *)(STE_BASE_ADDRESS + 0x40))));*/
-		fsl_os_print("*** ERROR: STE_GET_CDMA_ICID at address 0x%x = 0x%x \n", CDMA_BASE_ADDRESS, (uint32_t)(ioread32_ccsr((uint32_t *)CDMA_BASE_ADDRESS)));
+		fsl_print("*** ERROR: ste_inc_counter FAILED !!! \n");
+		fsl_print("*** ERROR: counter =  %d != %d \n", counter, INC_VAL);
+		/*fsl_print("*** ERROR: STE_GET_STATUS_REGISTER %d \n", counter, STE_GET_STATUS_REGISTER());
+		fsl_print("*** ERROR: STE_GET_STATUS_REGISTER %d \n", counter, STE_GET_ERR_CAP_ATTRIBUTES());
+		fsl_print("*** ERROR: STE_GET_AMQR at address 0x%x = 0x%x \n", STE_BASE_ADDRESS + 0x40, (uint32_t)(ioread32_ccsr((uint32_t *)(STE_BASE_ADDRESS + 0x40))));*/
+		fsl_print("*** ERROR: STE_GET_CDMA_ICID at address 0x%x = 0x%x \n", CDMA_BASE_ADDRESS, (uint32_t)(ioread32_ccsr((uint32_t *)CDMA_BASE_ADDRESS)));
 		return;
 	}
 	else{
-		fsl_os_print("*** ste_inc_counter PASSED !!! \n");
-		fsl_os_print("*** counter =  %d \n", counter);
+		fsl_print("*** ste_inc_counter PASSED !!! \n");
+		fsl_print("*** counter =  %d \n", counter);
 	}
 	ste_dec_counter(ext_addr, DEC_VAL, STE_MODE_32_BIT_CNTR_SIZE);
 	ste_dec_counter(ext_addr, DEC_VAL, STE_MODE_32_BIT_CNTR_SIZE);
-	fsl_os_print("*** ste_dec_counter is called twice  \n");
+	fsl_print("*** ste_dec_counter is called twice  \n");
 	ste_barrier();
-	fsl_os_print("*** ste_barrier is called  \n");
+	fsl_print("*** ste_barrier is called  \n");
 	cdma_read(&counter, ext_addr, sizeof(uint32_t));
-	fsl_os_print("*** compare counter after ste_dec_counter  \n");
+	fsl_print("*** compare counter after ste_dec_counter  \n");
 	if (counter != (INC_VAL-DEC_VAL-DEC_VAL)){
-		fsl_os_print("*** ERROR: ste_dec_counter FAILED !!! \n");
-		fsl_os_print("*** ERROR: counter =  %d != %d  \n", counter, INC_VAL-DEC_VAL);
-		/*fsl_os_print("*** ERROR: STE_GET_STATUS_REGISTER %d \n", counter, STE_GET_STATUS_REGISTER());
-		fsl_os_print("*** ERROR: STE_GET_STATUS_REGISTER %d \n", counter, STE_GET_ERR_CAP_ATTRIBUTES());
-		fsl_os_print("*** ERROR: STE_GET_AMQR at address 0x%x = 0x%x \n", STE_BASE_ADDRESS + 0x40, (uint32_t)(ioread32_ccsr((uint32_t *)(STE_BASE_ADDRESS + 0x40))));*/
-		fsl_os_print("*** ERROR: STE_GET_CDMA_ICID at address 0x%x = 0x%x \n", CDMA_BASE_ADDRESS, (uint32_t)(ioread32_ccsr((uint32_t *)CDMA_BASE_ADDRESS)));
+		fsl_print("*** ERROR: ste_dec_counter FAILED !!! \n");
+		fsl_print("*** ERROR: counter =  %d != %d  \n", counter, INC_VAL-DEC_VAL);
+		/*fsl_print("*** ERROR: STE_GET_STATUS_REGISTER %d \n", counter, STE_GET_STATUS_REGISTER());
+		fsl_print("*** ERROR: STE_GET_STATUS_REGISTER %d \n", counter, STE_GET_ERR_CAP_ATTRIBUTES());
+		fsl_print("*** ERROR: STE_GET_AMQR at address 0x%x = 0x%x \n", STE_BASE_ADDRESS + 0x40, (uint32_t)(ioread32_ccsr((uint32_t *)(STE_BASE_ADDRESS + 0x40))));*/
+		fsl_print("*** ERROR: STE_GET_CDMA_ICID at address 0x%x = 0x%x \n", CDMA_BASE_ADDRESS, (uint32_t)(ioread32_ccsr((uint32_t *)CDMA_BASE_ADDRESS)));
 		return;
 	}
 	else{
-		//fsl_os_print("*** ERROR: STE_GET_AMQR at address 0x%x = 0x%x \n", STE_BASE_ADDRESS + 0x40, (uint32_t)(ioread32_ccsr((uint32_t *)(STE_BASE_ADDRESS + 0x40))));
-		fsl_os_print("*** ERROR: STE_GET_CDMA_ICID at address 0x%x = 0x%x \n", CDMA_BASE_ADDRESS, (uint32_t)(ioread32_ccsr((uint32_t *)CDMA_BASE_ADDRESS)));
-		fsl_os_print("*** ste_dec_counter PASSED !!! \n");
-		fsl_os_print("*** counter =  %d \n", counter);
+		//fsl_print("*** ERROR: STE_GET_AMQR at address 0x%x = 0x%x \n", STE_BASE_ADDRESS + 0x40, (uint32_t)(ioread32_ccsr((uint32_t *)(STE_BASE_ADDRESS + 0x40))));
+		fsl_print("*** ERROR: STE_GET_CDMA_ICID at address 0x%x = 0x%x \n", CDMA_BASE_ADDRESS, (uint32_t)(ioread32_ccsr((uint32_t *)CDMA_BASE_ADDRESS)));
+		fsl_print("*** ste_dec_counter PASSED !!! \n");
+		fsl_print("*** counter =  %d \n", counter);
 	}
 	
 	ste_inc_and_acc_counters(ext_addr, ACC_VAL, 
 			STE_MODE_COMPOUND_32_BIT_CNTR_SIZE |
 			STE_MODE_COMPOUND_32_BIT_ACC_SIZE);
-	fsl_os_print("*** ste_inc_and_acc_counters is called  \n");
+	fsl_print("*** ste_inc_and_acc_counters is called  \n");
 	ste_barrier();
-	fsl_os_print("*** ste_barrier is called  \n");
+	fsl_print("*** ste_barrier is called  \n");
 	cdma_read(&counter, ext_addr, sizeof(uint32_t));
 	cdma_read(&acc, ext_addr+4, sizeof(uint32_t));
 	if ((counter != (INC_VAL-DEC_VAL-DEC_VAL+1)) || (acc != ACC_VAL)){
-		fsl_os_print("*** ERROR: ste_inc_and_acc_counters FAILED !!! \n");
-		fsl_os_print("*** ERROR: counter =  %d != %d  \n", counter, INC_VAL-DEC_VAL+1);
-		fsl_os_print("*** ERROR: acc =  %d != %d  \n", acc, ACC_VAL);
+		fsl_print("*** ERROR: ste_inc_and_acc_counters FAILED !!! \n");
+		fsl_print("*** ERROR: counter =  %d != %d  \n", counter, INC_VAL-DEC_VAL+1);
+		fsl_print("*** ERROR: acc =  %d != %d  \n", acc, ACC_VAL);
 		return;
 	} else {
-		fsl_os_print("*** ste_inc_and_acc_counters PASSED !!! \n");
-		fsl_os_print("*** counter =  %d \n", counter);
-		fsl_os_print("*** acc =  %d \n", acc);
+		fsl_print("*** ste_inc_and_acc_counters PASSED !!! \n");
+		fsl_print("*** counter =  %d \n", counter);
+		fsl_print("*** acc =  %d \n", acc);
 	}
 }
 
@@ -789,14 +789,14 @@ void bu_tman_callback_g(uint64_t opaque1, uint16_t opaque2)
 {
 	UNUSED(opaque2);
 	
-	fsl_os_print("\nbu_tman_callback_g is reached\n");
+	fsl_print("\nbu_tman_callback_g is reached\n");
 	
-	fsl_os_print("Doing tman_timer_completion_confirmation() in bu_tman_callback_g\n");
+	fsl_print("Doing tman_timer_completion_confirmation() in bu_tman_callback_g\n");
 
 	test_ste_functions(opaque1);
 	tman_timer_completion_confirmation(global_timer_handle1_g);
 	
-	fsl_os_print("bu_tman_callback_g() completed\n");
+	fsl_print("bu_tman_callback_g() completed\n");
 }
 
 void test_keygen()
@@ -810,9 +810,9 @@ void test_keygen()
 	fdma_close_default_segment();
 	err = fdma_present_default_frame_segment(FDMA_PRES_NO_FLAGS, (void *)0x190, 0, 256);
 	if (err)
-		fsl_os_print("Simple BU ERROR: fdma_present_default_frame_segment FAILED!!\n");
+		fsl_print("Simple BU ERROR: fdma_present_default_frame_segment FAILED!!\n");
 	else
-		fsl_os_print("Simple BU : fdma_present_default_frame_segment Passed!!\n");
+		fsl_print("Simple BU : fdma_present_default_frame_segment Passed!!\n");
 	
 	*((uint32_t *)0x180) = 0xBAADBAAD;
 	*((uint32_t *)0x184) = 0x600D600D;
@@ -820,13 +820,13 @@ void test_keygen()
 	for (i=0; i<128; i++) 
 		key[i] = 0;
 	
-	fsl_os_print("Simple BU Keygen: key array address = 0x%x\n", key);
+	fsl_print("Simple BU Keygen: key array address = 0x%x\n", key);
 	
 	for (i=0; i<128; i+=4) 
-		fsl_os_print("Key byte %d: 0x%x \n", i, *(uint32_t *)(&(key[i])));
+		fsl_print("Key byte %d: 0x%x \n", i, *(uint32_t *)(&(key[i])));
 	
-	fsl_os_print("Simple BU Keygen: segment address = 0x%x\n", PRC_GET_SEGMENT_ADDRESS());
-	fsl_os_print("Simple BU Keygen: 0x180 content = 0x%x\n", *((uint32_t *)0x180));
+	fsl_print("Simple BU Keygen: segment address = 0x%x\n", PRC_GET_SEGMENT_ADDRESS());
+	fsl_print("Simple BU Keygen: 0x180 content = 0x%x\n", *((uint32_t *)0x180));
 	
 	keygen_kcr_builder_init(&kb);
 	
@@ -837,19 +837,19 @@ void test_keygen()
 			NULL, 
 			&kb);
 	if (err)
-		fsl_os_print("Simple BU ERROR: keygen_kcr_builder_add_generic_extract_fec FAILED!!\n");
+		fsl_print("Simple BU ERROR: keygen_kcr_builder_add_generic_extract_fec FAILED!!\n");
 	else
-		fsl_os_print("Simple BU : keygen_kcr_builder_add_generic_extract_fec Passed!!\n");
+		fsl_print("Simple BU : keygen_kcr_builder_add_generic_extract_fec Passed!!\n");
 	
 	err = keygen_kcr_create(KEYGEN_ACCEL_ID_CTLU,
 				(uint8_t *)(kb.kcr),
 				&keyid);
 	
 	if (err)
-		fsl_os_print("Simple BU ERROR: keygen_kcr_create FAILED!!\n");
+		fsl_print("Simple BU ERROR: keygen_kcr_create FAILED!!\n");
 	else{
-		fsl_os_print("Simple BU : keygen_kcr_create Passed!!\n");
-		fsl_os_print("Simple BU : keygen_kcr_create - keyid = %d !!\n", keyid);
+		fsl_print("Simple BU : keygen_kcr_create Passed!!\n");
+		fsl_print("Simple BU : keygen_kcr_create - keyid = %d !!\n", keyid);
 	}
 	
 
@@ -860,19 +860,19 @@ void test_keygen()
 			key,
 			&key_size);
 	if (err)
-		fsl_os_print("Simple BU ERROR: keygen_gen_key FAILED!!\n");
+		fsl_print("Simple BU ERROR: keygen_gen_key FAILED!!\n");
 	else
-		fsl_os_print("Simple BU : keygen_gen_key Passed!!\n");
+		fsl_print("Simple BU : keygen_gen_key Passed!!\n");
 	
 	for (i=0; i<PRC_GET_SEGMENT_LENGTH(); i+=4) {
-		fsl_os_print("Segment data byte %d: 0x%x \n", i, 
+		fsl_print("Segment data byte %d: 0x%x \n", i, 
 				*(uint32_t *)(PRC_GET_SEGMENT_ADDRESS() + i));
 	}
 	
 	for (i=0; i<128; i+=4) 
-		fsl_os_print("Key byte %d: 0x%x \n", i, *(uint32_t *)(&(key[i])));
+		fsl_print("Key byte %d: 0x%x \n", i, *(uint32_t *)(&(key[i])));
 	
-	fsl_os_print("Key size : %d \n",key_size);		
+	fsl_print("Key size : %d \n",key_size);		
 }
 
 

@@ -89,8 +89,8 @@ int dprc_drv_test_init(void)
 {
 	int err;
 	struct mc_dprc *dprc = sys_get_unique_handle(FSL_OS_MOD_AIOP_RC);
-	fsl_os_print("Running AIOP dprc_drv_test_init()\n");
-	fsl_os_print("Update IRQ mask to support OBJ CREATED & DESTROYED to simulate Add/Remove event\n");
+	fsl_print("Running AIOP dprc_drv_test_init()\n");
+	fsl_print("Update IRQ mask to support OBJ CREATED & DESTROYED to simulate Add/Remove event\n");
 
 	err = dprc_set_irq_mask(&dprc->io, 0, dprc->token, 0,
 	                        DPRC_IRQ_EVENT_OBJ_ADDED |

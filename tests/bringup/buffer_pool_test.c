@@ -135,7 +135,7 @@ int test_buffer(uint16_t dpbp_id)
 	}
 	else
 	{
-		fsl_os_print("Acquired memory from bpid: %d\n",dpbp_id);
+		fsl_print("Acquired memory from bpid: %d\n",dpbp_id);
 	}
 	cdma_refcount_increment(buff);
 	cdma_refcount_decrement(buff);
