@@ -183,40 +183,38 @@ struct dpni_drv_tx_checksum {
 /* Set to discard frame with RED color */
 #define DPNI_DRV_POLICER_OPT_DISCARD_RED         0x00000002
 
-/**
- *  enum dpni_policer_mode - selecting the policer mode
- *  @DPNI_POLICER_MODE_NONE: Policer is disabled
- *  @DPNI_POLICER_MODE_PASS_THROUGH: Policer pass through
- *  @DPNI_POLICER_MODE_RFC_2698: Policer algorithm RFC 2698
- *  @DPNI_POLICER_MODE_RFC_4115: Policer algorithm RFC 4115
- */
+/**************************************************************************//**
+@Description	 enum dpni_drv_policer_mode - selecting the policer mode
+
+*//***************************************************************************/
 enum dpni_drv_policer_mode {
-	DPNI_POLICER_MODE_NONE = 0,
-	DPNI_POLICER_MODE_PASS_THROUGH,
-	DPNI_POLICER_MODE_RFC_2698,
-	DPNI_POLICER_MODE_RFC_4115
+	/* Policer is disabled */
+	DPNI_DRV_POLICER_MODE_NONE = 0,
+	/* Policer pass through */
+	DPNI_DRV_POLICER_MODE_PASS_THROUGH,
+	/* Policer algorithm RFC 2698 */
+	DPNI_DRV_POLICER_MODE_RFC_2698,
+	/* Policer algorithm RFC 4115 */
+	DPNI_DRV_POLICER_MODE_RFC_4115
 };
 
-/**
- *  enum dpni_policer_unit - DPNI policer units
- *  @DPNI_POLICER_UNIT_BYTES: bytes units
- *  @DPNI_POLICER_UNIT_PACKETS: packets units
- */
+/**************************************************************************//**
+@Description	 enum dpni_drv_policer_unit - DPNI policer units (bytes/packets)
+
+*//***************************************************************************/
 enum dpni_drv_policer_unit {
-	DPNI_POLICER_UNIT_BYTES = 0,
-	DPNI_POLICER_UNIT_PACKETS
+	DPNI_DRV_POLICER_UNIT_BYTES = 0,
+	DPNI_DRV_POLICER_UNIT_PACKETS
 };
 
-/**
- *  enum dpni_policer_color - selecting the policer color
- *  @DPNI_POLICER_COLOR_GREEN: Green color
- *  @DPNI_POLICER_COLOR_YELLOW: Yellow color
- *  @DPNI_POLICER_COLOR_RED: Red color
- */
+/**************************************************************************//**
+@Description	 enum dpni_drv_policer_color - selecting the policer color
+
+*//***************************************************************************/
 enum dpni_drv_policer_color {
-	DPNI_POLICER_COLOR_GREEN = 0,
-	DPNI_POLICER_COLOR_YELLOW,
-	DPNI_POLICER_COLOR_RED
+	DPNI_DRV_POLICER_COLOR_GREEN = 0,
+	DPNI_DRV_POLICER_COLOR_YELLOW,
+	DPNI_DRV_POLICER_COLOR_RED
 };
 
 /**************************************************************************//**
@@ -229,7 +227,7 @@ struct dpni_drv_rx_tc_policing_cfg{
 	/* Policer mode */
 	enum dpni_drv_policer_mode	mode;
 	/* Bytes or Packets */
-	enum dpni_drv_policer_unit	units;
+	enum dpni_drv_policer_unit	unit;
 	/* For pass-through mode the policer re-colors with this
 	 * color any incoming packets. For Color aware non-pass-through mode:
 	 * policer re-colors with this color all packets with FD[DROPP]>2. */
@@ -954,5 +952,22 @@ int dpni_drv_set_tx_checksum(uint16_t ni_id,
 *//***************************************************************************/
 int dpni_drv_get_tx_checksum(uint16_t ni_id,
                             struct dpni_drv_tx_checksum * const tx_checksum);
+
+/**************************************************************************//**
+@Function	dpni_drv_set_rx_tc_policing
+
+@Description	Function to set RX TC policing for given NI.
+
+@Param[in]	ni_id The AIOP Network Interface ID.
+
+@Param[in]	tc_id Traffic class selection (0-7)
+
+@Param[in]	cfg Traffic class policing configuration
+
+@Return	0 on success;
+	error code, otherwise. For error posix refer to \ref error_g
+*//***************************************************************************/
+int dpni_drv_set_rx_tc_policing(uint16_t ni_id, uint8_t tc_id,
+			    const struct dpni_drv_rx_tc_policing_cfg *cfg);
 /** @} */ /* end of dpni_drv_g DPNI DRV group */
 #endif /* __FSL_DPNI_DRV_H */
