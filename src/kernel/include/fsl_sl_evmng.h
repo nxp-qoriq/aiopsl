@@ -35,7 +35,7 @@
 
 #include "fsl_evmng.h"
 #include "fsl_sl_dbg.h"
-#include "types.h"
+#include "fsl_types.h"
 
 
 enum evm_irq_event_types {

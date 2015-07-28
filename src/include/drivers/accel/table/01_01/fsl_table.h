@@ -34,7 +34,7 @@
 #ifndef __FSL_TABLE_H
 #define __FSL_TABLE_H
 
-#include "common/types.h"
+#include "fsl_types.h"
 
 
 /**************************************************************************//**

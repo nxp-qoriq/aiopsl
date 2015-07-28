@@ -24,7 +24,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "common/types.h"
+#include "fsl_types.h"
 #include "common/fsl_stdio.h"
 #include "fsl_platform.h"
 #include "fsl_io.h"
@@ -49,8 +49,6 @@
 #include "fsl_sl_evmng.h"
 #include "fsl_dprc.h"
 #include "fsl_string.h"
-#include "fsl_rcu.h"
-#include "rcu.h"
 
 #ifndef CMDIF_TEST_WITH_MC_SRV
 #warning "If you test with MC define CMDIF_TEST_WITH_MC_SRV inside cmdif.h\n"
@@ -59,9 +57,11 @@
 
 int app_init(void);
 void app_free(void);
-int app_early_init(void);
 extern int app_evm_register();
 extern int dprc_drv_scan(void);
+extern void rcu_test();
+extern int app_early_init(void);
+extern int rcu_test_check();
 
 #ifdef CMDIF_TEST_WITH_MC_SRV
 #define TEST_DPCI_ID    (0) /* For MC use 0 */
@@ -70,7 +70,6 @@ extern int dprc_drv_scan(void);
 #endif
 
 extern struct dpci_mng_tbl g_dpci_tbl;
-extern struct rcu g_rcu;
 
 struct cmdif_desc cidesc;
 struct cmdif_desc cidesc_arr[AIOP_CL_REGISTER_NUM];
@@ -90,6 +89,7 @@ extern int32_t dpci_rm_ev_count;
 extern int32_t dpci_up_ev_count;
 extern int32_t dpci_down_ev_count;
 
+#if 0
 static void rcu_sync_cb(uint64_t param)
 {
 	atomic_incr32(&rcu_cb_count, 1);
@@ -123,7 +123,6 @@ static int rcu_test_check()
 	return -1;
 }
 
-#if 0
 static void mc_intr_set(uint32_t dpci_id)
 {
 	struct dpci_irq_cfg irq_cfg;
@@ -286,6 +285,14 @@ static int dpci_dynamic_add_test()
 	err = dpci_mng_find((uint32_t)endpoint1.id);
 	ASSERT_COND(err >= 0);
 	ASSERT_COND(g_dpci_tbl.tx_queue[err][0] != DPCI_FQID_NOT_VALID);
+
+	do {
+		pr_debug("waiting for link up add_count = %d"
+			"link_up_count = %d\n",
+			dpci_add_count, dpci_up_ev_count);
+
+	} while ((volatile int32_t)dpci_up_ev_count < \
+		(volatile int32_t)(dpci_add_count * 2));
 
 	return 0;
 }
@@ -734,6 +741,7 @@ static int app_dpci_test()
 	return err;
 }
 
+#if 0
 int app_early_init(void)
 {
 	int err = 0;
@@ -752,6 +760,7 @@ int app_early_init(void)
 	return 0;
 
 }
+#endif
 
 int app_init(void)
 {

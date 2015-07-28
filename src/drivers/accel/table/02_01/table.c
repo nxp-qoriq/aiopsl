@@ -104,9 +104,8 @@ int table_create(enum table_hw_accel_id acc_id,
 	/* It's OK not to check TIDE here... */
 	else if (crt_status & TABLE_HW_STATUS_BIT_NORSC)
 		crt_status = -ENOMEM;
-	/* TODO Rev2 - consider to check TEMPNOR for EAGAIN. it is
-	 * now ENOMEM since in Rev1 it may take a very long  time until rules
-	 * are released. */
+	/* consider to check TEMPNOR for EAGAIN. it is now ENOMEM since it may
+	 * take a very long  time until rules are released. */
 	else
 		table_c_exception_handler(TABLE_CREATE_FUNC_ID,
 					  __LINE__,
@@ -334,9 +333,8 @@ int table_rule_create_or_replace(enum table_hw_accel_id acc_id,
 	}
 	else if (status & TABLE_HW_STATUS_BIT_NORSC) {
 		status = -ENOMEM;
-	/* TODO Rev2 - consider to check TEMPNOR for EAGAIN. it is
-	 * now ENOMEM since in Rev1 it may take a very long  time until rules
-	 * are released. */
+	/* consider to check TEMPNOR for EAGAIN. it is now ENOMEM since it may
+	 * take a very long  time until rules are released. */
 	}
 	else {
 		/* Call fatal error handler */
@@ -637,27 +635,6 @@ int table_query_debug(enum table_hw_accel_id acc_id,
 	return *((int32_t *)HWC_ACC_OUT_ADDRESS);
 }
 
-/* TODO may not work in Rev1 due to HW issue - need to check with HW*/
-int table_hw_accel_acquire_lock(enum table_hw_accel_id acc_id)
-{
-	__stqw(TABLE_ACQUIRE_SEMAPHORE_MTYPE, 0, 0, 0, HWC_ACC_IN_ADDRESS, 0);
-
-	/* Call Table accelerator */
-	__e_hwaccel(acc_id);
-
-	/* Return status */
-	return *((int32_t *)HWC_ACC_OUT_ADDRESS);
-}
-
-
-void table_hw_accel_release_lock(enum table_hw_accel_id acc_id)
-{
-	__stqw(TABLE_RELEASE_SEMAPHORE_MTYPE, 0, 0, 0, HWC_ACC_IN_ADDRESS, 0);
-
-	/* Call Table accelerator */
-	__e_hwaccel(acc_id);
-}
-
 #pragma push
 	/* make all following data go into .exception_data */
 #pragma section data_type ".exception_data"
@@ -760,8 +737,6 @@ void table_exception_handler(char *file_path,
 	case TABLE_CALC_NUM_ENTRIES_PER_RULE_FUNC_ID:
 		func_name = "table_calc_num_entries_per_rule";
 		break;
-	case TABLE_WORKAROUND_TKT226361_FUNC_ID:
-		func_name = "table_workaround_tkt226361";
 	default:
 		/* create own exception */
 		exception_handler(__FILE__,
@@ -873,115 +848,6 @@ int table_calc_num_entries_per_rule(uint16_t type, uint8_t key_size){
 	return num_entries_per_rule;
 }
 
-/* TODO remove for Rev2 */
-void table_workaround_tkt226361(uint32_t mflu_peb_num_entries,
-				uint32_t mflu_dp_ddr_num_entries,
-				uint32_t mflu_sys_ddr_num_entries){
-
-	uint16_t                   table_id;
-	uint16_t                   table_loc = TABLE_ATTRIBUTE_LOCATION_PEB;
-	struct table_create_params tbl_crt_prm;
-	struct table_rule          rule1 __attribute__((aligned(16)));
-	struct table_rule          rule2 __attribute__((aligned(16)));
-	uint32_t                   i;
-	uint32_t                   num_of_entries = mflu_peb_num_entries;
-#ifdef REV2_RULEID
-	uint64_t                   rule_id;
-#endif
-	/* Iterate for each memory region */
-	for(i = 0; i < 3; i++){
-		switch (i) {
-		/* case 0 is already assigned at function init */
-		case 1:
-			table_loc = TABLE_ATTRIBUTE_LOCATION_DP_DDR;
-			num_of_entries = mflu_dp_ddr_num_entries;
-			break;
-		case 2:
-			table_loc = TABLE_ATTRIBUTE_LOCATION_SYS_DDR;
-			num_of_entries = mflu_sys_ddr_num_entries;
-			break;
-		default:
-			break;
-		}
-
-		/* At least 3 entries are needed for 2 rules creation, the
-		 * number of entries is always a power of 2 */ 
-		if (num_of_entries >= 4){
-
-			/* Create table */
-			tbl_crt_prm.attributes = TABLE_ATTRIBUTE_TYPE_MFLU |
-						 table_loc |
-						 TABLE_ATTRIBUTE_MR_NO_MISS;
-			tbl_crt_prm.committed_rules = TABLE_TKT226361_RULES_NUM;
-			tbl_crt_prm.max_rules = TABLE_TKT226361_RULES_NUM;
-			tbl_crt_prm.key_size = TABLE_TKT226361_KEY_SIZE;
-			
-			if(table_create(TABLE_ACCEL_ID_MFLU,&tbl_crt_prm,
-					&table_id)) {
-				table_c_exception_handler(
-					TABLE_WORKAROUND_TKT226361_FUNC_ID,
-					__LINE__,
-					TABLE_SW_STATUS_TKT226361_ERR,
-					TABLE_ENTITY_SW);
-			}
-
-			/* Create 2 rules */
-			*((uint32_t *)(&rule1.key_desc.mflu.key[0])) =
-					0x12345678;
-			*((uint32_t *)(&rule1.key_desc.mflu.
-				key[TABLE_TKT226361_KEY_SIZE])) =
-					0x00000000; // priority
-			*((uint32_t *)(&rule1.key_desc.mflu.mask[0])) =
-					0xFFFFFFFF;
-			rule1.options = TABLE_RULE_TIMESTAMP_NONE;
-			rule1.result.type = TABLE_RESULT_TYPE_OPAQUES;
-			if (table_rule_create(TABLE_ACCEL_ID_MFLU,
-					table_id,
-					&rule1,
-					TABLE_TKT226361_KEY_SIZE +
-#ifdef REV2_RULEID
-					TABLE_KEY_MFLU_PRIORITY_FIELD_SIZE,
-					&rule_id)){
-#else
-					TABLE_KEY_MFLU_PRIORITY_FIELD_SIZE)){
-#endif
-				table_c_exception_handler(
-					TABLE_WORKAROUND_TKT226361_FUNC_ID,
-					__LINE__,
-					TABLE_SW_STATUS_TKT226361_ERR,
-					TABLE_ENTITY_SW);
-			}
-
-			*((uint32_t *)(&rule2.key_desc.mflu.key[0])) =
-					0x87654321;
-			*((uint32_t *)(&rule2.key_desc.mflu.key
-					[TABLE_TKT226361_KEY_SIZE])) =
-							0x00000000; // priority
-			*((uint32_t *)(&rule2.key_desc.mflu.mask[0])) =
-					0xFFFFFFFF;
-			rule2.options = TABLE_RULE_TIMESTAMP_NONE;
-			rule2.result.type = TABLE_RESULT_TYPE_OPAQUES;
-			if (table_rule_create(TABLE_ACCEL_ID_MFLU,
-					table_id,
-					&rule2,
-					TABLE_TKT226361_KEY_SIZE +
-#ifdef REV2_RULEID
-					TABLE_KEY_MFLU_PRIORITY_FIELD_SIZE,&rule_id)){
-#else
-					TABLE_KEY_MFLU_PRIORITY_FIELD_SIZE)){
-#endif
-				table_c_exception_handler(
-					TABLE_WORKAROUND_TKT226361_FUNC_ID,
-					__LINE__,
-					TABLE_SW_STATUS_TKT226361_ERR,
-					TABLE_ENTITY_SW);
-			}
-
-			/* Delete the table */
-			table_delete(TABLE_ACCEL_ID_MFLU, table_id);
-		}
-	}
-}
 
 int table_lookup_by_keyid_default_frame_wrp(enum table_hw_accel_id acc_id,
 					uint16_t table_id,

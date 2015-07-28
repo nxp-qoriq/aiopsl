@@ -34,7 +34,7 @@
 #ifndef __FSL_FDMA_H
 #define __FSL_FDMA_H
 
-#include "types.h"
+#include "fsl_types.h"
 #include "fsl_errors.h"
 #include "fsl_ldpaa.h"
 
@@ -920,8 +920,9 @@ struct fdma_delete_segment_data_params {
 		frame from scratch (without a presented frame). In this case
 		the fd address parameter must point to a null FD (all 0x0) in
 		the workspace, and an empty segment must be allocated (of size
-		0). Due to PDM TKT254401 this option can work only on the 
-		default frame.
+		0). Due to PDM TKT254401 It is recommended to call 
+		\ref create_frame function in this case instead of using this 
+		function.
 
 		Implicitly updated values in Task Defaults:  frame handle,
 		segment handle.
@@ -946,7 +947,7 @@ struct fdma_delete_segment_data_params {
 
 @Cautions	In case the presented segment will be used by 
 		PARSER/CTLU/KEYGEN, it should be presented in a 16 byte aligned 
-		workspace address (due to TKT254635).
+		workspace address (due to HW limitations).
 @Cautions	This function may result in a fatal error.
 @Cautions	In this Service Routine the task yields.
 *//***************************************************************************/
@@ -962,8 +963,9 @@ inline int fdma_present_default_frame(void);
 		frame from scratch (without a presented frame). In this case
 		the fd address parameter must point to a null FD (all 0x0) in
 		the workspace, and an empty segment must be allocated (of size
-		0). Due to PDM TKT254401 this option can work only on the 
-		default frame.
+		0). Due to PDM TKT254401 It is recommended to call 
+		\ref create_frame function in this case instead of using this 
+		function.
 
 		In case the fd destination parameter points to the default FD
 		address, the service routine will update Task defaults variables
@@ -992,7 +994,7 @@ inline int fdma_present_default_frame(void);
 
 @Cautions	In case the presented segment will be used by 
 		PARSER/CTLU/KEYGEN, it should be presented in a 16 byte aligned 
-		workspace address (due to TKT254635).
+		workspace address (due to HW limitations).
 @Cautions	This function may result in a fatal error.
 @Cautions	In this Service Routine the task yields.
 *//***************************************************************************/
@@ -1091,7 +1093,7 @@ int fdma_present_frame_without_segments(
 
 @Cautions	In case the presented segment will be used by 
 		PARSER/CTLU/KEYGEN, it should be presented in a 16 byte aligned 
-		workspace address (due to TKT254635).
+		workspace address (due to HW limitations).
 @Cautions	This command may be invoked only for a default Data segments.
 @Cautions	This function may result in a fatal error.
 @Cautions	In this Service Routine the task yields.
@@ -1122,7 +1124,7 @@ inline int fdma_present_default_frame_segment(
 
 @Cautions	In case the presented segment will be used by 
 		PARSER/CTLU/KEYGEN, it should be presented in a 16 byte aligned 
-		workspace address (due to TKT254635).
+		workspace address (due to HW limitations).
 @Cautions	This command may be invoked only for Data segments.
 @Cautions	This command may not be invoked on the default Data segments.
 @Cautions	This function may result in a fatal error.
@@ -1972,7 +1974,7 @@ int fdma_concatenate_frames(
 
 @Cautions	In case the presented segment will be used by 
 		PARSER/CTLU/KEYGEN, it should be presented in a 16 byte aligned 
-		workspace address (due to TKT254635).
+		workspace address (due to HW limitations).
 @Cautions	This function may result in a fatal error.
 @Cautions	In this Service Routine the task yields.
 @Cautions	Due to ticket TKT240996 the following FDMA functions should be 

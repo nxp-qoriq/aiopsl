@@ -40,7 +40,7 @@
  */
 
 #include "fsl_core_booke_regs.h"
-#include "types.h"
+#include "fsl_types.h"
 #include "fsl_dbg.h"
 
 #pragma push

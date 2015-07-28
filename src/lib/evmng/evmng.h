@@ -35,7 +35,7 @@
 
 #include "fsl_sl_evmng.h"
 #include "fsl_sl_dbg.h"
-#include "types.h"
+#include "fsl_types.h"
 
 /** Number of average registrations allowed per event*/
 #define EVMNG_NUM_OF_REGISTRATIONS_PER_EVENT                1

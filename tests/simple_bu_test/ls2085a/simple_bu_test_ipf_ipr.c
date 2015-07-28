@@ -24,7 +24,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "common/types.h"
+#include "fsl_types.h"
 #include "common/fsl_stdio.h"
 #include "fsl_dpni_drv.h"
 #include "fsl_ip.h"
@@ -35,7 +35,6 @@
 /*#include "fsl_cmdif_server.h"*/
 #include "fsl_cdma.h"
 #include "fsl_fdma.h"
-#include "fsl_ip.h"
 #include "fsl_l4.h"
 #include "fsl_malloc.h"
 #include "fsl_tman.h"

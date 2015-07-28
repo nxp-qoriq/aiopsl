@@ -3,7 +3,7 @@
 	<name>roc_process_packet</name>
 	<comment></comment>
 	<projects>
-		<project location="PARENT-2-PROJECT_LOC/build/aiop_sim/aiopsl">
+		<project location="PARENT-4-PROJECT_LOC/build/aiop_sim/aiopsl">
 aiop_sl		</project>
 	</projects>
 	<buildSpec>

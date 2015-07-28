@@ -55,9 +55,12 @@ Simultor Setup
 ===========================================
 1. Install Code Warrior (see Release Note for the compatible CW version).
 2. Download the linux version of the simulator (see Release Note for the compatible LS_SIM version).
-3. Copy the files ls2085a_sim_init_params.cfg and ls2085a_sys_test.cfg
-   from the source tree at: aiopsl/misc/sim/.
-   into the simulator folder at: dtsim_release/linux64/
+3. 1. For LS2085a simulator, copy the files ls2085a_sim_init_params.cfg and ls2085a_sys_test.cfg
+      from the source tree at: aiopsl/misc/sim/.
+      into the simulator folder at: dtsim_release/linux64/
+3. 2. For LS1088a, copy the files ls1088a_sim_init_params.cfg and ls1088a_sys_test.cfg
+      from the source tree at: aiopsl/misc/sim/.
+      into the simulator folder at: dtsim_release/linux64/
 4. Update the “LD_LIBRARY_PATH” variable to point to the simulator folder.
    setenv LD_LIBRARY_PATH {$LD_LIBRARY_PATH}:/home/user/LS_SIM_<version>/dtsim_release/linux64
 5. Copy the layout file (dpl.dtb) from aiopsl/misc/setup/ to the simulator folder.
@@ -70,28 +73,29 @@ Simulator Execution flow
 1. Import the MC and AIOP projects into CodeWarrior:
    mc/build/mc_sim/mc_app/.project
    aiopsl/build/aiop_sim/apps/app_process_packet/.project
-2. Add "#define SIMULATOR" inside build_flags.h and build both projects in CW:
-   aiopsl/build/aiop_sim/build_flags/build_flags.h
-   mc/build/aiop_sim/build_flags/build_flags.h 
-3. Copy the resulting ELF file from the build project folder(aiop_app.elf)
+2. Copy the resulting ELF file from the build project folder(aiop_app.elf)
    to the simulator folder (same location as cfg files).
-4. Run the simulator:
-   ./ccssim2 -port 42333 -imodel "ls_sim_init_file=ls2085a_sim_init_params.cfg" -smodel "ls_sim_config_file=ls2085a_sys_test.cfg"   
-5. Launch mc_app using AFM connection.
+3. 1. For LS2085a:
+      Run the simulator:
+      ./ccssim2 -port 42333 -imodel "ls_sim_init_file=ls2085a_sim_init_params.cfg" -smodel "ls_sim_config_file=ls2085a_sys_test.cfg"   
+3. 2. For LS1088a:
+      Run the simulator:
+      ./ccssim2 -d ls1088aiss -port 42333 -imodel "ls_sim_init_file=ls1088a_sim_init_params.cfg" -smodel "ls_sim_config_file=ls1088a_sys_test.cfg"  
+4. Launch mc_app using AFM connection.
    Don't forget to update simulator server IP and port in debug configuration - 42333.
-6. Attach app_process_packet (make sure to un-mark initialization files).
-7. After MC reaches main(), run tio console:
+5. Attach app_process_packet (make sure to un-mark initialization files).
+6. After MC reaches main(), run tio console:
    ./bin/tio_console -hub localhost:42975 -ser duart2_1 duart2_0
-8. Run mc_app.
-9. Run “tio capture”:
+7. Run mc_app.
+8. Run “tio capture”:
    ./fm_tio_capture -hub localhost:42975 -ser w0_m1 -verbose_level 2
    Here you'll be able to capture sent and received packets.
-10. Run “tio inject”:
+9 Run “tio inject”:
    ./fm_tio_inject -hub localhost:42975 -ser w0_m1 -file eth_ipv4_udp.pcap -verbose_level 2
    This will send packets to the AIOP.
-11. Set break point inside app_process_packet_flow0() and push "Resume / Multi core Resume" button to run and see that
+10 Set break point inside app_process_packet() and push "Resume / Multi core Resume" button to run and see that
     it's activated on each packet.
-12. The packet will also be captured by the tio_capture
+11 The packet will also be captured by the tio_capture
 
 ===========================================
 Possible modifications:

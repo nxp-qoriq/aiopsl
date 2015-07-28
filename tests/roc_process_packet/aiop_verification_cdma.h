@@ -34,7 +34,7 @@
 #ifndef __AIOP_VERIFICATION_CDMA_H_
 #define __AIOP_VERIFICATION_CDMA_H_
 
-#include "common/types.h"
+#include "fsl_types.h"
 
 
 /* CDMA Command IDs (from CDMA section in ArchDef) */

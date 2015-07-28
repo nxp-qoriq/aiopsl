@@ -34,10 +34,9 @@
 #ifndef __FSL_FDMA_H
 #define __FSL_FDMA_H
 
-#include "types.h"
+#include "fsl_types.h"
 #include "fsl_errors.h"
 #include "fsl_ldpaa.h"
-
 
 /* extern uint8_t HWC_PRC_ADDR[]; */
 
@@ -920,8 +919,7 @@ struct fdma_delete_segment_data_params {
 		frame from scratch (without a presented frame). In this case
 		the fd address parameter must point to a null FD (all 0x0) in
 		the workspace, and an empty segment must be allocated (of size
-		0). Due to PDM TKT254401 this option can work only on the 
-		default frame.
+		0).
 
 		Implicitly updated values in Task Defaults:  frame handle,
 		segment handle.
@@ -946,7 +944,7 @@ struct fdma_delete_segment_data_params {
 
 @Cautions	In case the presented segment will be used by 
 		PARSER/CTLU/KEYGEN, it should be presented in a 16 byte aligned 
-		workspace address (due to TKT254635).
+		workspace address (due to HW limitations).
 @Cautions	This function may result in a fatal error.
 @Cautions	In this Service Routine the task yields.
 *//***************************************************************************/
@@ -962,8 +960,7 @@ inline int fdma_present_default_frame(void);
 		frame from scratch (without a presented frame). In this case
 		the fd address parameter must point to a null FD (all 0x0) in
 		the workspace, and an empty segment must be allocated (of size
-		0). Due to PDM TKT254401 this option can work only on the 
-		default frame.
+		0).
 
 		In case the fd destination parameter points to the default FD
 		address, the service routine will update Task defaults variables
@@ -992,7 +989,7 @@ inline int fdma_present_default_frame(void);
 
 @Cautions	In case the presented segment will be used by 
 		PARSER/CTLU/KEYGEN, it should be presented in a 16 byte aligned 
-		workspace address (due to TKT254635).
+		workspace address (due to HW limitations).
 @Cautions	This function may result in a fatal error.
 @Cautions	In this Service Routine the task yields.
 *//***************************************************************************/
@@ -1091,7 +1088,7 @@ int fdma_present_frame_without_segments(
 
 @Cautions	In case the presented segment will be used by 
 		PARSER/CTLU/KEYGEN, it should be presented in a 16 byte aligned 
-		workspace address (due to TKT254635).
+		workspace address (due to HW limitations).
 @Cautions	This command may be invoked only for a default Data segments.
 @Cautions	This function may result in a fatal error.
 @Cautions	In this Service Routine the task yields.
@@ -1122,7 +1119,7 @@ inline int fdma_present_default_frame_segment(
 
 @Cautions	In case the presented segment will be used by 
 		PARSER/CTLU/KEYGEN, it should be presented in a 16 byte aligned 
-		workspace address (due to TKT254635).
+		workspace address (due to HW limitations).
 @Cautions	This command may be invoked only for Data segments.
 @Cautions	This command may not be invoked on the default Data segments.
 @Cautions	This function may result in a fatal error.
@@ -1820,8 +1817,6 @@ inline void fdma_terminate_task(void);
 @Retval		EBUSY - Enqueue failed due to congestion in QMAN.
 @Retval		ENOMEM - Failed due to buffer pool depletion.
 
-@Cautions	Due to TKT258499 this service routine can be called only in 
-		order to replicate non-empty frames.
 @Cautions	This function may result in a fatal error.
 @Cautions	In this Service Routine the task yields.
 *//***************************************************************************/
@@ -1871,8 +1866,6 @@ int fdma_replicate_frame_fqid(
 @Retval		EBUSY - Enqueue failed due to congestion in QMAN.
 @Retval		ENOMEM - Failed due to buffer pool depletion.
 
-@Cautions	Due to TKT258499 this service routine can be called only in 
-		order to replicate non-empty frames.
 @Cautions	This function may result in a fatal error.
 @Cautions	In this Service Routine the task yields.
 *//***************************************************************************/
@@ -1972,17 +1965,9 @@ int fdma_concatenate_frames(
 
 @Cautions	In case the presented segment will be used by 
 		PARSER/CTLU/KEYGEN, it should be presented in a 16 byte aligned 
-		workspace address (due to TKT254635).
+		workspace address (due to HW limitations).
 @Cautions	This function may result in a fatal error.
 @Cautions	In this Service Routine the task yields.
-@Cautions	Due to ticket TKT240996 the following FDMA functions should be 
-		called before and after the split command:
-		1. Store/Close source frame
-		2. Present/Open source frame
-		3. Split frame command with PSA flag: 
-		FDMA_SPLIT_PSA_NO_PRESENT_BIT
-		4. Store/Close new split frame
-		5. Present/Open new split frame
 *//***************************************************************************/
 int fdma_split_frame(
 		struct fdma_split_frame_params *params);
@@ -2057,10 +2042,6 @@ void fdma_trim_default_segment_presentation(
 			- offset - 11 (relative to the presented segment)
 			- size - 14
 
-@Cautions	As part of a workaround to ticket TKT237377 this command closes
-		and reopens the segment. (meaning that all segment modifications
-		done in workspace but not included in the range of this command
-		are lost).
 @Cautions	This command may be invoked only on the default Data segment.
 @Cautions	This function may result in a fatal error.
 @Cautions	In this Service Routine the task yields.
@@ -2091,7 +2072,7 @@ inline void fdma_modify_default_segment_data(
 *//***************************************************************************/
 inline void fdma_modify_default_segment_full_data();
 
-#ifdef REV2
+#if 0
 /*
 @Function	fdma_modify_segment_data
 
@@ -2137,7 +2118,7 @@ void fdma_modify_segment_data(
 		uint16_t offset,
 		uint16_t size,
 		void	 *from_ws_src);
-#endif /*REV2*/
+#endif
 
 /**************************************************************************//**
 @Function	fdma_insert_default_segment_data
@@ -2189,10 +2170,6 @@ void fdma_modify_segment_data(
 		segment and the number of frame bytes to represent remains the 
 		same due to .
 
-@Cautions	As part of a workaround to ticket TKT237377 this command closes
-		and reopens the segment. (meaning that all segment modifications
-		done in workspace but not included in the range of this command
-		are lost).
 @Cautions	In case \ref FDMA_REPLACE_SA_REPRESENT_BIT flag is set, The
 		Service Routine checks whether there is enough headroom in the
 		Workspace before the default segment address to present the
@@ -2251,8 +2228,6 @@ inline int fdma_insert_default_segment_data(
 @Cautions	This command may be invoked only on the Data segment.
 @Cautions	This function may result in a fatal error.
 @Cautions	In this Service Routine the task yields.
-@Cautions	Due to Ticket TKT237377 this function must be called with SA 
-		flag \ref FDMA_REPLACE_SA_CLOSE_BIT.
 *//***************************************************************************/
 int fdma_insert_segment_data(
 		struct fdma_insert_segment_data_params *params);
@@ -2306,10 +2281,6 @@ int fdma_insert_segment_data(
 		segment and the number of frame bytes to represent remains the 
 		same.
 
-@Cautions	As part of a workaround to ticket TKT237377 this command closes
-		and reopens the segment. (meaning that all segment modifications
-		done in workspace but not included in the range of this command
-		are lost).
 @Cautions	This command may be invoked only on the default Data segment.
 @Cautions	This function may result in a fatal error.
 @Cautions	In this Service Routine the task yields.
@@ -2355,8 +2326,6 @@ inline int fdma_delete_default_segment_data(
 @Cautions	This command may be invoked only on Data segment.
 @Cautions	This function may result in a fatal error.
 @Cautions	In this Service Routine the task yields.
-@Cautions	Due to Ticket TKT237377 this function must be called with SA 
-		flag \ref FDMA_REPLACE_SA_CLOSE_BIT.
 *//***************************************************************************/
 int fdma_delete_segment_data(
 		struct fdma_delete_segment_data_params *params);
@@ -2449,8 +2418,6 @@ void fdma_close_segment(uint8_t frame_handle, uint8_t seg_handle);
 
 @Cautions	This function may result in a fatal error.
 @Cautions	In this Service Routine the task yields.
-@Cautions	Due to Ticket TKT237377 this function must be called with SA 
-		flag \ref FDMA_REPLACE_SA_CLOSE_BIT.
 *//***************************************************************************/
 int fdma_replace_default_asa_segment_data(
 		uint16_t to_offset,
@@ -2626,10 +2593,6 @@ void set_default_amq_attributes(
 			- from_ws_address - <workspace address of the 16 bytes>
 			- from_size - 16
 
-@Cautions	As part of a workaround to ticket TKT237377 this command closes
-		and reopens the segment. (meaning that all segment modifications
-		done in workspace but not included in the range of this command
-		are lost).
 @Cautions	This command may be invoked only on the default Data segment.
 @Cautions	This function may result in a fatal error.
 @Cautions	In this Service Routine the task yields.

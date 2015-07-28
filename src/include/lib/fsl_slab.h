@@ -33,7 +33,7 @@
 #ifndef __FSL_SLAB_H
 #define __FSL_SLAB_H
 
-#include "common/types.h"
+#include "fsl_types.h"
 #include "fsl_cdma.h"
 #include "fsl_malloc.h"
 

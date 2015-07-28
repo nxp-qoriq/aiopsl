@@ -99,17 +99,22 @@ aiop_sl		</project>
 		<link>
 			<name>src/app_process_packet.c</name>
 			<type>1</type>
-			<locationURI>PROJECT_LOC/src/app_process_packet.c</locationURI>
+			<locationURI>PARENT-4-PROJECT_LOC/tests/dynamic_dpni_gpp_test/app_process_packet.c</locationURI>
 		</link>
 		<link>
 			<name>src/apps.c</name>
 			<type>1</type>
-			<locationURI>PROJECT_LOC/src/apps.c</locationURI>
+			<locationURI>PARENT-4-PROJECT_LOC/tests/dynamic_dpni_gpp_test/apps.c</locationURI>
 		</link>
 		<link>
 			<name>src/apps.h</name>
 			<type>1</type>
-			<locationURI>PROJECT_LOC/src/apps.h</locationURI>
+			<locationURI>PARENT-4-PROJECT_LOC/tests/dynamic_dpni_gpp_test/apps.h</locationURI>
+		</link>
+		<link>
+			<name>src/apps_arch.h</name>
+			<type>1</type>
+			<locationURI>PARENT-4-PROJECT_LOC/tests/dynamic_dpni_gpp_test/ls2085a/apps_arch.h</locationURI>
 		</link>
 		<link>
 			<name>src/config.c</name>

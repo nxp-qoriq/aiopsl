@@ -32,7 +32,7 @@
 #ifndef __DPNI_DRV_H
 #define __DPNI_DRV_H
 
-#include "types.h"
+#include "fsl_types.h"
 #include "fsl_sl_dpni_drv.h"
 
 /**************************************************************************//**

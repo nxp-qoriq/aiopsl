@@ -99,17 +99,22 @@ aiop_sl		</project>
 		<link>
 			<name>src/README.txt</name>
 			<type>1</type>
-			<locationURI>PROJECT_LOC/src/README.txt</locationURI>
+			<locationURI>PARENT-4-PROJECT_LOC/apps/ipr_demo/README.txt</locationURI>
 		</link>
 		<link>
 			<name>src/apps.c</name>
 			<type>1</type>
-			<locationURI>PROJECT_LOC/src/apps.c</locationURI>
+			<locationURI>PARENT-4-PROJECT_LOC/apps/ipr_demo/apps.c</locationURI>
 		</link>
 		<link>
 			<name>src/apps.h</name>
 			<type>1</type>
-			<locationURI>PROJECT_LOC/src/apps.h</locationURI>
+			<locationURI>PARENT-4-PROJECT_LOC/apps/ipr_demo/apps.h</locationURI>
+		</link>
+		<link>
+			<name>src/apps_arch.h</name>
+			<type>1</type>
+			<locationURI>PARENT-4-PROJECT_LOC/apps/ipr_demo/ls2085a/apps_arch.h</locationURI>
 		</link>
 		<link>
 			<name>src/config.c</name>
@@ -119,7 +124,7 @@ aiop_sl		</project>
 		<link>
 			<name>src/ipr_demo.c</name>
 			<type>1</type>
-			<locationURI>PROJECT_LOC/src/ipr_demo.c</locationURI>
+			<locationURI>PARENT-4-PROJECT_LOC/apps/ipr_demo/ipr_demo.c</locationURI>
 		</link>
 	</linkedResources>
 </projectDescription>

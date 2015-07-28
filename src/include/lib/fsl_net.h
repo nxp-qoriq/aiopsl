@@ -32,7 +32,7 @@
 #ifndef __FSL_NET_H
 #define __FSL_NET_H
 
-#include "common/types.h"
+#include "fsl_types.h"
 
 
 #define LAST_HDR_INDEX 0xFFFFFFFF

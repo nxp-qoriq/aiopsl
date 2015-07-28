@@ -50,6 +50,8 @@ struct rcu g_rcu = {0,		/* list_head */
 
 uint8_t g_sl_tmi_id = 0xff;
 
+__TASK uint8_t g_rcu_unlock = 0; 
+
 int rcu_init();
 void rcu_free();
 void rcu_tman_cb(uint64_t opaque1, uint16_t opaque2);
@@ -100,14 +102,18 @@ int rcu_early_init(uint16_t delay, uint32_t committed, uint32_t max)
 int rcu_default_early_init()
 {
 	int err;
-	uint64_t paddr = 0;
 
 	/* Support no dp ddr */
-	err = fsl_os_get_mem(64, MEM_PART_DP_DDR, 8, &paddr);
-	if (err || (paddr == 0))
-		g_rcu.mem_heap = MEM_PART_SYSTEM_DDR;
-	else
+	if (fsl_mem_exists(MEM_PART_DP_DDR)){
 		g_rcu.mem_heap = MEM_PART_DP_DDR;
+	}
+	else if(fsl_mem_exists(MEM_PART_SYSTEM_DDR)){
+		g_rcu.mem_heap = MEM_PART_SYSTEM_DDR;
+	}
+	else{
+		pr_err("DDR memory not found\n");
+		return -ENOMEM;
+	}
 
 	pr_info("RCU module reserves committed %d \n", RCU_DEFAULT_COMMITTED);
 	err = slab_register_context_buffer_requirements(RCU_DEFAULT_COMMITTED,
@@ -398,7 +404,7 @@ void rcu_tman_cb(uint64_t ubatch_size, uint16_t opaque2)
 		init_one_shot_timer(batch_size);
 	}
 
-	rcu_read_unlock_cancel();
+	/* rcu_read_lock happens automatically inside terminate */
 	fdma_terminate_task();
 }
 
@@ -438,6 +444,10 @@ void rcu_read_unlock()
 	my_core		= my_core & (AIOP_MAX_NUM_CORES_IN_CLUSTER - 1);
 	my_task_id	= (booke_get_TASKSCR0() & 0xF);
 
+	/* Need automatic lock upon task termination 
+	 * see RCU_CHECK_UNLOCK_CANCEL */
+	g_rcu_unlock = 1;
+
 	lock_spinlock(&g_rcu.sw_ctstws_lock);
 
 	/* 1 - need to wait for task
@@ -450,7 +460,7 @@ void rcu_read_unlock()
 	unlock_spinlock(&g_rcu.sw_ctstws_lock);
 }
 
-void rcu_read_unlock_cancel()
+void rcu_read_lock()
 {
 	uint32_t temp;
 	uint32_t my_cluster, my_core;

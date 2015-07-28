@@ -32,7 +32,7 @@
 #ifndef __CMGW_H
 #define __CMGW_H
 
-#include "common/types.h"
+#include "fsl_types.h"
 #include "fsl_errors.h"
 
 #define CMGW_ACGPR_BOOT_FAIL 0

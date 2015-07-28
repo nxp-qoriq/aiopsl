@@ -24,7 +24,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "common/types.h"
+#include "fsl_types.h"
 #include "fsl_errors.h"
 #include "common/fsl_string.h"
 #include "fsl_malloc.h"
@@ -339,7 +339,7 @@ __COLD_CODE static void free_slab_module_memory(struct slab_module_info *slab_m)
 }
 /*****************************************************************************/
 #ifdef DEBUG
-static inline int sanity_check_slab_create(uint16_t    buff_size,
+static int sanity_check_slab_create(uint16_t    buff_size,
                                            uint16_t    alignment,
                                            enum memory_partition_id  mem_pid,
                                            uint32_t    flags)
@@ -379,7 +379,6 @@ __COLD_CODE int slab_create(uint32_t    committed_buffs,
 	uint64_t context_address = 0;
 
 	if(slab_m == NULL){
-		sl_pr_err("slab_m is NULL\n");
 		return -ENAVAIL;
 	}
 #ifdef DEBUG
@@ -543,7 +542,7 @@ __COLD_CODE int slab_create(uint32_t    committed_buffs,
 	return 0;
 
 
-	error_recovery_return:
+error_recovery_return:
 
 	atomic_incr32(&g_slab_bman_pools[bman_array_index].remaining,
 	              (int32_t)committed_buffs); /*return hardware pools*/
@@ -1008,7 +1007,6 @@ __COLD_CODE static int slab_alocate_memory(int num_bpids, struct slab_module_inf
 {
 	int i = 0, j = 0;
 	int err = 0;
-	uint64_t addr = 0;
 	uint16_t buff_size;
 	uint16_t alignment_extension;
 	/* Set BPIDs */

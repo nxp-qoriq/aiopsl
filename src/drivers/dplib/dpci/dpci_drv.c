@@ -24,7 +24,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "common/types.h"
+#include "fsl_types.h"
 #include "sys.h"
 #include "fsl_gen.h"
 #include "fsl_errors.h"
@@ -118,7 +118,7 @@ struct dpci_mng_tbl g_dpci_tbl = {0};
 
 __COLD_CODE static void dpci_tbl_dump()
 {
-#ifdef DEBUG
+#ifdef SL_DEBUG
 	int i;
 	int num_entries = (((g_dpci_tbl.max - g_dpci_tbl.count) >= 2) ? \
 		(g_dpci_tbl.count + 2) : \

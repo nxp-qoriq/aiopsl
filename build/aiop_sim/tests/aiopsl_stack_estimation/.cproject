@@ -102,8 +102,11 @@
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/arch/platform/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/arch/platform/ls2085a&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/drivers&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/drivers/accel&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/drivers/accel/cdma/01_01&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/drivers/accel/fdma/01_01&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/drivers/accel/osm/01_01&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/drivers/accel/parser/01_01&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/drivers/accel/system/01_01&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/drivers/dplib/dpni&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/drivers/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/include&quot;"/>
@@ -111,9 +114,13 @@
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/include/common&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/include/drivers&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/include/drivers/accel&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/include/drivers/accel/cdma/01_01&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/include/drivers/accel/fdma/01_01&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/include/drivers/accel/osm/01_01&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/include/drivers/accel/parser/01_01&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/include/drivers/ldpaa&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/include/drivers/netf&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/include/drivers/netf/hm/00_01&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/include/lib&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/kernel/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/lib&quot;"/>

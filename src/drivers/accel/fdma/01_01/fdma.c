@@ -34,10 +34,10 @@
 
 #include "fsl_fdma.h"
 
+/* workaround to TKT260685 */
 /** Frames Format (FMT) */
-#ifdef FDMA_OSM_LIMIT
 __TASK uint8_t frame_types[MAX_FRAMES_PER_TASK];
-#endif
+/* end of workaround to TKT260685 */
 
 int fdma_present_frame(
 		struct fdma_present_frame_params *params)
@@ -92,11 +92,12 @@ int fdma_present_frame(
 	/* call FDMA Accelerator */
 	__e_hwacceli_(FPDMA_ACCEL_ID);
 
-#ifdef FDMA_OSM_LIMIT
+	/* workaround to TKT260685 */
 	SET_FRAME_TYPE(*((uint8_t *)
 			(HWC_ACC_OUT_ADDRESS2 + FDMA_FRAME_HANDLE_OFFSET)), 
 			params->fd_src);
-#endif
+	/* end of workaround to TKT260685 */
+	
 	/* load command results */
 	res1 = *((int8_t *) (FDMA_STATUS_ADDR));
 
@@ -191,11 +192,11 @@ int fdma_present_default_frame_without_segments(void)
 	__e_hwacceli_(FPDMA_ACCEL_ID);
 	/* load command results */
 
-#ifdef FDMA_OSM_LIMIT
+	/* workaround to TKT260685 */
 	SET_FRAME_TYPE(*((uint8_t *)
 			(HWC_ACC_OUT_ADDRESS2 + FDMA_FRAME_HANDLE_OFFSET)), 
 			HWC_FD_ADDRESS);
-#endif
+	/* end of workaround to TKT260685 */
 
 	res1 = *((int8_t *) (FDMA_STATUS_ADDR));
 	if (res1 == FDMA_SUCCESS) {
@@ -253,11 +254,11 @@ int fdma_present_frame_without_segments(
 	/* call FDMA Accelerator */
 	__e_hwacceli_(FPDMA_ACCEL_ID);
 	
-#ifdef FDMA_OSM_LIMIT
+	/* workaround to TKT260685 */
 	SET_FRAME_TYPE(*((uint8_t *)
 			(HWC_ACC_OUT_ADDRESS2 + FDMA_FRAME_HANDLE_OFFSET)), 
 			fd);
-#endif
+	/* end of workaround to TKT260685 */
 	
 	/* load command results */
 	res1 = *((int8_t *) (FDMA_STATUS_ADDR));
@@ -303,11 +304,7 @@ int fdma_present_default_frame_default_segment()
 	*((uint32_t *)(HWC_ACC_IN_ADDRESS3)) = arg3;
 
 	/* call FDMA Accelerator */
-#ifndef FDMA_OSM_LIMIT
-	__e_hwacceli_(FPDMA_ACCEL_ID);
-#else
 	FDMA_OSM_LIMIT_CALL(FPDMA_ACCEL_ID, PRC_GET_FRAME_HANDLE());
-#endif
 	
 	/* load command results */
 	res1 = *((int8_t *) (FDMA_STATUS_ADDR));
@@ -345,11 +342,8 @@ int fdma_present_frame_segment(
 	*((uint32_t *)(HWC_ACC_IN_ADDRESS3)) = arg3;
 
 	/* call FDMA Accelerator */
-#ifndef FDMA_OSM_LIMIT
-	__e_hwacceli_(FPDMA_ACCEL_ID);
-#else
 	FDMA_OSM_LIMIT_CALL(FPDMA_ACCEL_ID, params->frame_handle);
-#endif
+
 	/* load command results */
 	params->seg_length = *((uint16_t *)(HWC_ACC_OUT_ADDRESS2));
 	params->seg_handle = *((uint8_t *)(HWC_ACC_OUT_ADDRESS2 +
@@ -481,11 +475,8 @@ int fdma_extend_default_segment_presentation(
 	/* store command parameters */
 	__stdw(arg1, arg2, HWC_ACC_IN_ADDRESS, 0);
 	/* call FDMA Accelerator */
-#ifndef FDMA_OSM_LIMIT
-	__e_hwacceli_(FPDMA_ACCEL_ID);
-#else
 	FDMA_OSM_LIMIT_CALL(FPDMA_ACCEL_ID, PRC_GET_FRAME_HANDLE());
-#endif
+
 	/* load command results */
 	res1 = *((int8_t *) (FDMA_STATUS_ADDR));
 	/* Update Task Defaults */
@@ -563,6 +554,8 @@ int fdma_store_and_enqueue_default_frame_fqid(
 	arg1 = FDMA_ENQUEUE_WF_ARG1(spid, PRC_GET_HANDLES(), flags);
 	/* store command parameters */
 	__stdw(arg1, fqid, HWC_ACC_IN_ADDRESS, 0);
+	
+	FDMA_ENQUEUE_RCU_CHECK_UNLOCK_CANCEL(flags);
 	/* call FDMA Accelerator */
 	if ((__e_hwacceli_(FODMA_ACCEL_ID)) == FDMA_SUCCESS)
 		return SUCCESS;
@@ -596,6 +589,8 @@ int fdma_store_and_enqueue_frame_fqid(
 	arg1 = FDMA_ENQUEUE_WF_EXP_ARG1(spid, frame_handle, flags);
 	/* store command parameters */
 	__stdw(arg1, fqid, HWC_ACC_IN_ADDRESS, 0);
+	
+	FDMA_ENQUEUE_RCU_CHECK_UNLOCK_CANCEL(flags);
 	/* call FDMA Accelerator */
 	if ((__e_hwacceli_(FODMA_ACCEL_ID)) == FDMA_SUCCESS)
 		return SUCCESS;
@@ -632,7 +627,7 @@ int fdma_store_and_enqueue_frame_qd(
 	__stdw(arg1, arg2, HWC_ACC_IN_ADDRESS, 0);
 	*((uint32_t *)(HWC_ACC_IN_ADDRESS3)) = arg3;
 	/*__stqw(arg1, arg2, arg3, 0, HWC_ACC_IN_ADDRESS, 0);*/
-
+	FDMA_ENQUEUE_RCU_CHECK_UNLOCK_CANCEL(flags);
 	/* call FDMA Accelerator */
 	if ((__e_hwacceli_(FODMA_ACCEL_ID)) == FDMA_SUCCESS)
 		return SUCCESS;
@@ -666,6 +661,8 @@ int fdma_enqueue_default_fd_fqid(
 	/* store command parameters */
 	__stdw(arg1, fqid, HWC_ACC_IN_ADDRESS, 0);
 	*((uint32_t *) HWC_ACC_IN_ADDRESS3) = arg3;
+	
+	FDMA_ENQUEUE_RCU_CHECK_UNLOCK_CANCEL(flags);
 	/* call FDMA Accelerator */
 	if ((__e_hwacceli_(FODMA_ACCEL_ID)) == FDMA_SUCCESS)
 		return SUCCESS;
@@ -698,6 +695,8 @@ int fdma_enqueue_fd_fqid(
 	/* store command parameters */
 	__stdw(arg1, fqid, HWC_ACC_IN_ADDRESS, 0);
 	*((uint32_t *) HWC_ACC_IN_ADDRESS3) = arg3;
+	
+	FDMA_ENQUEUE_RCU_CHECK_UNLOCK_CANCEL(flags);
 	/* call FDMA Accelerator */
 	if ((__e_hwacceli_(FODMA_ACCEL_ID)) == FDMA_SUCCESS)
 		return SUCCESS;
@@ -732,6 +731,8 @@ int fdma_enqueue_default_fd_qd(
 	/* store command parameters */
 	__stdw(arg1, arg2, HWC_ACC_IN_ADDRESS, 0);
 	*((uint32_t *) HWC_ACC_IN_ADDRESS3) = arg3;
+	
+	FDMA_ENQUEUE_RCU_CHECK_UNLOCK_CANCEL(flags);
 	/* call FDMA Accelerator */
 	if ((__e_hwacceli_(FODMA_ACCEL_ID)) == FDMA_SUCCESS)
 		return SUCCESS;
@@ -767,6 +768,8 @@ int fdma_enqueue_fd_qd(
 	/* store command parameters */
 	__stdw(arg1, arg2, HWC_ACC_IN_ADDRESS, 0);
 	*((uint32_t *) HWC_ACC_IN_ADDRESS3) = arg3;
+	
+	FDMA_ENQUEUE_RCU_CHECK_UNLOCK_CANCEL(flags);
 	/* call FDMA Accelerator */
 	if ((__e_hwacceli_(FODMA_ACCEL_ID)) == FDMA_SUCCESS)
 		return SUCCESS;
@@ -917,9 +920,9 @@ int fdma_concatenate_frames(
 	/* call FDMA Accelerator */
 	__e_hwacceli_(FODMA_ACCEL_ID);
 
-#ifdef FDMA_OSM_LIMIT
+	/* workaround to TKT260685 */
 	frame_types[params->frame1] = SCATTER_GATHER_FRAME;
-#endif
+	/* end of workaround to TKT260685 */
 	
 	/* load command results */
 	res1 = *((int8_t *) (FDMA_STATUS_ADDR));
@@ -1196,11 +1199,8 @@ int fdma_delete_segment_data(
 	/* store command parameters */
 	__stqw(arg1, arg2, arg3, arg4, HWC_ACC_IN_ADDRESS, 0);
 	/* call FDMA Accelerator */
-#ifndef FDMA_OSM_LIMIT
-	__e_hwacceli_(FODMA_ACCEL_ID);
-#else
 	FDMA_OSM_LIMIT_CALL(FODMA_ACCEL_ID, params->frame_handle);
-#endif
+
 	/* load command results */
 	res1 = *((int8_t *)(FDMA_STATUS_ADDR));
 
@@ -1251,12 +1251,8 @@ void fdma_close_segment(uint8_t frame_handle, uint8_t seg_handle)
 	__stdw(arg1, 0, HWC_ACC_IN_ADDRESS, 0);
 	*((uint32_t *) HWC_ACC_IN_ADDRESS3) = 0;
 	/* call FDMA Accelerator */
-	
-#ifndef FDMA_OSM_LIMIT
-	__e_hwacceli_(FODMA_ACCEL_ID);
-#else
 	FDMA_OSM_LIMIT_CALL(FODMA_ACCEL_ID, frame_handle);
-#endif
+
 	/* load command results */
 	res1 = *((int8_t *)(FDMA_STATUS_ADDR));
 

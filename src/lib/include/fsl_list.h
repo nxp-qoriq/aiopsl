@@ -33,7 +33,7 @@
 #ifndef __FSL_LIST_H
 #define __FSL_LIST_H
 
-#include "common/types.h"
+#include "fsl_types.h"
 
 
 /**************************************************************************//**

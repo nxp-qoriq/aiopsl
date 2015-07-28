@@ -24,7 +24,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "common/types.h"
+#include "fsl_types.h"
 #include "common/fsl_stdio.h"
 #include "fsl_dpni_drv.h"
 #include "fsl_ip.h"
@@ -79,7 +79,6 @@ int simple_bu_hagit_test(void)
 {
 	int        err  = 0;
 	uint8_t prpid;
-	int i;
 
 
 	fsl_os_print("Running simple bring-up test\n");

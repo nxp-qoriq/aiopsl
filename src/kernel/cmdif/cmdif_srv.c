@@ -24,7 +24,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "common/types.h"
+#include "fsl_types.h"
 #include "fsl_gen.h"
 #include "fsl_errors.h"
 #include "common/fsl_string.h"
@@ -637,11 +637,8 @@ __HOT_CODE void cmdif_srv_isr(void) __attribute__ ((noreturn))
 
 	ASSERT_COND_LIGHT(cmdif_aiop_srv.srv != NULL);
 
-	
-#ifdef FDMA_OSM_LIMIT
 	SET_FRAME_TYPE(PRC_GET_FRAME_HANDLE(), HWC_FD_ADDRESS);
-#endif
-	
+
 #ifdef DEBUG
 	dump_memory();
 #endif

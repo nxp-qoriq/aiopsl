@@ -28,7 +28,7 @@
 #ifndef LIBFDT_H_
 #define LIBFDT_H_
 
-#include "common/types.h"
+#include "fsl_types.h"
 #include "common/fsl_string.h"
 #include "dpl/fdt.h"
 

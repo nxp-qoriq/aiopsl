@@ -141,5 +141,10 @@ aiop_sl		</project>
 			<type>1</type>
 			<locationURI>PARENT-5-PROJECT_LOC/tests/cmdif/ls1088a/apps_arch.h</locationURI>
 		</link>
+		<link>
+			<name>src/ls1088a/cmdif_test_arch.c</name>
+			<type>1</type>
+			<locationURI>PARENT-5-PROJECT_LOC/tests/cmdif/ls1088a/cmdif_test_arch.c</locationURI>
+		</link>
 	</linkedResources>
 </projectDescription>
