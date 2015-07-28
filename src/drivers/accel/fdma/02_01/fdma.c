@@ -1088,7 +1088,7 @@ int fdma_insert_segment_data(
 	int8_t res1;
 
 	/* prepare command parameters */
-	params->flags = (params->flags) & FDMA_REPLACE_TAM_FLAG;
+	params->flags = (params->flags) | FDMA_REPLACE_TAM_FLAG;
 	arg1 = FDMA_REPLACE_EXP_CMD_ARG1(params->seg_handle,
 			params->frame_handle, params->flags);
 	arg2 = FDMA_REPLACE_CMD_ARG2(params->to_offset, 0);
@@ -1148,7 +1148,7 @@ int fdma_delete_segment_data(
 	int8_t res1;
 
 	/* prepare command parameters */
-	params->flags = (params->flags) & FDMA_REPLACE_TAM_FLAG;
+	params->flags = (params->flags) | FDMA_REPLACE_TAM_FLAG;
 	arg1 = FDMA_DELETE_CMD_ARG1(params->seg_handle, params->frame_handle,
 			params->flags);
 	arg2 = FDMA_REPLACE_CMD_ARG2(params->to_offset,
@@ -1246,7 +1246,7 @@ int fdma_replace_default_asa_segment_data(
 	int8_t res1;
 
 	/* prepare command parameters */
-	flags = flags & FDMA_REPLACE_TAM_FLAG;
+	flags = flags | FDMA_REPLACE_TAM_FLAG;
 	arg1 = FDMA_REPLACE_PTA_ASA_CMD_ARG1(
 			FDMA_ASA_SEG_HANDLE, prc->handles, flags);
 	arg2 = FDMA_REPLACE_CMD_ARG2(to_offset, to_size);
@@ -1305,7 +1305,7 @@ int fdma_replace_default_pta_segment_data(
 		fdma_exception_handler(FDMA_REPLACE_DEFAULT_PTA_SEGMENT_DATA, 
 				__LINE__, (int32_t)FDMA_INVALID_PTA_ADDRESS);
 
-	flags = flags & FDMA_REPLACE_TAM_FLAG;
+	flags = flags | FDMA_REPLACE_TAM_FLAG;
 	arg1 = FDMA_REPLACE_PTA_ASA_CMD_ARG1(
 			FDMA_PTA_SEG_HANDLE, PRC_GET_HANDLES(), flags);
 	arg3 = FDMA_REPLACE_CMD_ARG3(from_ws_src, size_type);

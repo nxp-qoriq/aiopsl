@@ -56,7 +56,7 @@ inline int fdma_replace_default_segment_data(
 	int8_t res1;
 	
 	/* prepare command parameters */
-	flags = flags & FDMA_REPLACE_TAM_FLAG;
+	flags = flags | FDMA_REPLACE_TAM_FLAG;
 	arg1 = FDMA_REPLACE_CMD_ARG1(prc->handles, flags);
 	arg4 = FDMA_REPLACE_CMD_ARG4(ws_dst_rs, size_rs);
 
@@ -248,7 +248,7 @@ inline int fdma_insert_default_segment_data(
 	int8_t res1;
 
 	/* prepare command parameters */
-	flags = flags & FDMA_REPLACE_TAM_FLAG;
+	flags = flags | FDMA_REPLACE_TAM_FLAG;
 	arg1 = FDMA_REPLACE_CMD_ARG1(prc->handles, flags);
 	arg2 = FDMA_REPLACE_CMD_ARG2(to_offset, 0);
 	arg3 = FDMA_REPLACE_CMD_ARG3(from_ws_src, insert_size);
@@ -449,7 +449,7 @@ inline int fdma_delete_default_segment_data(
 	int8_t res1;
 
 	/* prepare command parameters */
-	flags = flags & FDMA_REPLACE_TAM_FLAG;
+	flags = flags | FDMA_REPLACE_TAM_FLAG;
 	arg1 = FDMA_REPLACE_CMD_ARG1(prc->handles, flags);
 	arg2 = FDMA_REPLACE_CMD_ARG2(to_offset, delete_target_size);
 	arg3 = FDMA_REPLACE_CMD_ARG3(0, 0);
