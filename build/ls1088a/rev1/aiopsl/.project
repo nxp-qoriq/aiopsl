@@ -1115,16 +1115,6 @@
 			<locationURI>PARENT-4-PROJECT_LOC/src/lib/slab/slab.h</locationURI>
 		</link>
 		<link>
-			<name>aiop_sl/lib/slab/virtual_pools.c</name>
-			<type>1</type>
-			<locationURI>PARENT-4-PROJECT_LOC/src/lib/slab/virtual_pools.c</locationURI>
-		</link>
-		<link>
-			<name>aiop_sl/lib/slab/virtual_pools.h</name>
-			<type>1</type>
-			<locationURI>PARENT-4-PROJECT_LOC/src/lib/slab/virtual_pools.h</locationURI>
-		</link>
-		<link>
 			<name>aiop_sl/lib/slob/slob.c</name>
 			<type>1</type>
 			<locationURI>PARENT-4-PROJECT_LOC/src/lib/slob/slob.c</locationURI>
