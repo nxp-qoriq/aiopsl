@@ -285,7 +285,7 @@ int platform_disable_console(fsl_handle_t h_platform);
  @Return        0 on success; Error code otherwise.
 *//***************************************************************************/
 int platform_set_serdes_loopback (fsl_handle_t    h_platform,
-                                    enum fsl_os_module module,
+                                    enum fsl_module module,
                                     uint32_t id);
 
 /**************************************************************************//**
@@ -300,7 +300,7 @@ int platform_set_serdes_loopback (fsl_handle_t    h_platform,
  @Return        0 on success; Error code otherwise.
 *//***************************************************************************/
 int platform_clear_serdes_loopback(fsl_handle_t    h_platform,
-                                     enum fsl_os_module module,
+                                     enum fsl_module module,
                                      uint32_t    id);
 
 /** @} */ /* end of platform_grp */

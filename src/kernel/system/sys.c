@@ -54,7 +54,7 @@ t_sys_forced_object_desc  sys_handle[FSL_OS_NUM_MODULES];
 
 
 /*****************************************************************************/
-fsl_handle_t sys_get_handle(enum fsl_os_module module, int num_of_ids, ...)
+fsl_handle_t sys_get_handle(enum fsl_module module, int num_of_ids, ...)
 {
 	UNUSED(num_of_ids);
 	if ((module >= FSL_OS_NUM_MODULES) || (module < 0))
@@ -65,7 +65,7 @@ fsl_handle_t sys_get_handle(enum fsl_os_module module, int num_of_ids, ...)
 }
 
 /*****************************************************************************/
-int sys_add_handle(fsl_handle_t h_module, enum fsl_os_module module,
+int sys_add_handle(fsl_handle_t h_module, enum fsl_module module,
 				int num_of_ids, ...)
 {
 	if ((module >= FSL_OS_NUM_MODULES) || (module < 0) || (num_of_ids > 1))
@@ -77,7 +77,7 @@ int sys_add_handle(fsl_handle_t h_module, enum fsl_os_module module,
 }
 
 /*****************************************************************************/
-int sys_remove_handle(enum fsl_os_module module, int num_of_ids, ...)
+int sys_remove_handle(enum fsl_module module, int num_of_ids, ...)
 {
 	UNUSED(num_of_ids);
 	if ((module >= FSL_OS_NUM_MODULES) || (module < 0))
