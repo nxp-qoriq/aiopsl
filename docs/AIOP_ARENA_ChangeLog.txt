@@ -1,3 +1,4 @@
+** AIOP SL Release v1088_ENG_0.1 **
 fsl_malloc.h: 				Added fsl_mem_exists() function that returns if particular memory exists for this platform.
 fsl_dpni_drv.h/dpni_drv.c : Remove deprecated API:
                             int dpni_drv_get_connected_dpni_id(const uint16_t aiop_niid, uint16_t *dpni_id, int *state);
