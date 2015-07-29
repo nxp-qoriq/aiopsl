@@ -1,4 +1,5 @@
-fsl_malloc.h: 				Added fsl_mem_exists() function that returns if particular memory exists for this platform.
+aiopsl .project:            Removed RCU API from ls1088a aiopsl project, rcu_synchronize() implementation is not yet finalized for ls1088a.
+fsl_malloc.h:               Added fsl_mem_exists() function that returns if particular memory exists for this platform.
 fsl_dpni_drv.h/dpni_drv.c : Remove deprecated API:
                             int dpni_drv_get_connected_dpni_id(const uint16_t aiop_niid, uint16_t *dpni_id, int *state);
                             int dpni_drv_get_connected_aiop_ni_id(const uint16_t dpni_id, uint16_t *aiop_niid, int *state);
