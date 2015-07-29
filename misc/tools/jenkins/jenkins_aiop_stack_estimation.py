@@ -76,8 +76,8 @@ def stack():
 
 #define() is used to add defines before the compilation of stack estimation and the aiopsl
 def defines():
-	orig_file = "build/aiop_sim/build_flags/build_flags.h"
-	new_file = "build/aiop_sim/build_flags/build_flags_new.h"
+	orig_file = "build/build_flags/build_flags.h"
+	new_file = "build/build_flags/build_flags_new.h"
 	if check_if_file_exists(orig_file) == False:
 		exit(1)
 
