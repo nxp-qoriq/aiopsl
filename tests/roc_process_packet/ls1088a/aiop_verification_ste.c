@@ -27,7 +27,7 @@
 /**************************************************************************//**
 @File          aiop_verification_ste.c
 
-@Description   This file contains the AIOP STE SRs SW Verification
+@Description   This file contains the AIOP STE SRs SW Verification 02_01
 *//***************************************************************************/
 
 #include "fsl_ste.h"
@@ -144,7 +144,6 @@ uint16_t aiop_verification_ste(uint32_t asa_seg_addr)
 		break;
 	}
 
-#if REV2	
 	/* STE Read Errors Command Verification */
 	case STE_READ_ERRORS_CMD_STR:
 	{
@@ -166,7 +165,6 @@ uint16_t aiop_verification_ste(uint32_t asa_seg_addr)
 		str_size = sizeof(struct ste_clear_error_command);
 		break;
 	}
-#endif
 	
 	default:
 	{

@@ -59,7 +59,7 @@ enum e_tman_verif_cmd_type {
 	TMAN_CMDTYPE_TMI_QUERY_VERIF,
 	TMAN_CMDTYPE_TIMER_CREATE_VERIF,
 	TMAN_CMDTYPE_TIMER_DELETE_VERIF,
-	TMAN_CMDTYPE_TIMER_INC_DURATION_VERIF,
+	TMAN_CMDTYPE_TIMER_MODIFY_VERIF,
 	TMAN_CMDTYPE_TIMER_RECHARGE_VERIF,
 	TMAN_CMDTYPE_TIMER_QUERY_VERIF,
 	TMAN_CMDTYPE_COMPLETION_CONF_VERIF,
@@ -73,25 +73,18 @@ enum e_tman_verif_cmd_type {
 #define TMAN_TMI_DELETE_CMD_STR	((TMAN_MODULE << 16) | \
 		(uint32_t)TMAN_CMDTYPE_TMI_DELETE_VERIF)
 
-#ifndef REV2
-#define TMAN_TMI_QUERY_SW_CMD_STR	((TMAN_MODULE << 16) | \
-		(uint32_t)TMAN_CMDTYPE_TMI_QUERY_SW_VERIF)
-#endif
-
 #define TMAN_TIMER_CREATE_CMD_STR	((TMAN_MODULE << 16) | \
 		(uint32_t)TMAN_CMDTYPE_TIMER_CREATE_VERIF)
 
 #define TMAN_TIMER_DELETE_CMD_STR	((TMAN_MODULE << 16) | \
 		(uint32_t)TMAN_CMDTYPE_TIMER_DELETE_VERIF)
 
-#ifdef REV2
 #define TMAN_TMI_QUERY_CMD_STR	((TMAN_MODULE << 16) | \
 		(uint32_t)TMAN_CMDTYPE_TMI_QUERY_VERIF)
 
-#define TMAN_TIMER_INC_DURATION_CMD_STR	((TMAN_MODULE << 16) | \
-		(uint32_t)TMAN_CMDTYPE_TIMER_INC_DURATION_VERIF)
+#define TMAN_TIMER_MODIFY_CMD_STR	((TMAN_MODULE << 16) | \
+		(uint32_t)TMAN_CMDTYPE_TIMER_MODIFY_VERIF)
 
-#endif
 #define TMAN_TIMER_RECHARGE_CMD_STR	((TMAN_MODULE << 16) | \
 		(uint32_t)TMAN_CMDTYPE_TIMER_RECHARGE_VERIF)
 
@@ -130,16 +123,12 @@ struct tman_tmi_delete_command {
 		/**< Command structure identifier. */
 	uint32_t	mode_bits;
 	tman_arg_8B_t	conf_opaque_data1;
-#ifndef REV2
-	uint32_t	max_num_of_timers;
-#endif
 	tman_cb_t	tman_confirm_cb;
 	tman_arg_2B_t	conf_opaque_data2;
 	uint8_t		tmi_id;
 	uint8_t		cb_with_confirmation;
 };
 
-#ifdef REV2
 /**************************************************************************//**
 @Description	TMAN TMI query Command structure.
 
@@ -154,22 +143,6 @@ struct tman_tmi_query_command {
 	uint8_t		tmi_id;
 	uint8_t		pad2[3];
 };
-#endif
-
-#ifndef REV2
-/**************************************************************************//**
-@Description	TMAN TMI query Command structure.
-
-		Includes information needed for TMAN Command verification.
-*//***************************************************************************/
-struct tman_tmi_query_sw_command {
-	uint32_t	opcode;
-		/**< Command structure identifier. */
-	int32_t		status;
-	uint8_t		tmi_id;
-	uint8_t		pad2[3];
-};
-#endif
 
 /**************************************************************************//**
 @Description	TMAN timer create Command structure.
@@ -205,41 +178,32 @@ struct tman_timer_delete_command {
 };
 
 
-#ifdef REV2
 /**************************************************************************//**
 @Description	TMAN timer increase duration Command structure.
 
 		Includes information needed for TMAN Command verification.
 *//***************************************************************************/
-struct tman_timer_increase_duration_command {
+struct tman_timer_modify_command {
 	uint32_t	opcode;
 		/**< Command structure identifier. */
 	int32_t		status;
 	uint32_t	timer_handle;
+	enum e_tman_granularity granularity;
 	uint16_t	duration;
 	uint8_t		pad[2];
 };
-#endif
 
 /**************************************************************************//**
 @Description	TMAN timer recharge Command structure.
 
 		Includes information needed for TMAN Command verification.
 *//***************************************************************************/
-#ifdef REV2
 struct tman_timer_recharge_command {
 	uint32_t	opcode;
 		/**< Command structure identifier. */
 	int32_t		status;
 	uint32_t	timer_handle;
 };
-#else
-struct tman_timer_recharge_command {
-	uint32_t	opcode;
-		/**< Command structure identifier. */
-	uint32_t	timer_handle;
-};
-#endif
 
 /**************************************************************************//**
 @Description	TMAN timer query Command structure.

@@ -27,7 +27,7 @@
 /**************************************************************************//**
 @File          aiop_verification_tman.c
 
-@Description   This file contains the AIOP TMAN SRs SW Verification
+@Description   This file contains the AIOP TMAN SRs SW Verification 01_01
 *//***************************************************************************/
 
 #include "fsl_tman.h"
@@ -41,9 +41,7 @@ extern __VERIF_GLOBAL uint8_t tmi_id;
 __VERIF_GLOBAL uint8_t tman_spid;
 __VERIF_GLOBAL struct fdma_amq tman_amq;
 
-#ifndef REV2
 extern uint32_t tman_tmi_max_num_of_timers[256];
-#endif
 
 uint16_t aiop_verification_tman(uint32_t asa_seg_addr)
 {
@@ -88,27 +86,11 @@ uint16_t aiop_verification_tman(uint32_t asa_seg_addr)
 				str->tmi_id,
 				str->conf_opaque_data1,
 				str->conf_opaque_data2);
-#ifndef REV2
 		str->max_num_of_timers = 
 				tman_tmi_max_num_of_timers[str->tmi_id];
-#endif
 		str_size = sizeof(struct tman_tmi_delete_command);
 		break;
 	}
-	/* TMAN TMI query Command Verification */
-#ifdef REV2
-	case TMAN_TMI_QUERY_CMD_STR:
-	{
-		struct tman_tmi_query_command *str =
-			(struct tman_tmi_query_command *) asa_seg_addr;
-		str->status = tman_query_tmi(
-				str->tmi_id,
-				&(str->tmi_params));
-		str_size = sizeof(struct tman_tmi_query_command);
-		break;
-	}
-#endif
-#ifndef REV2
 	case TMAN_TMI_QUERY_SW_CMD_STR:
 	{
 		struct tman_tmi_query_sw_command *str =
@@ -117,7 +99,6 @@ uint16_t aiop_verification_tman(uint32_t asa_seg_addr)
 		str_size = sizeof(struct tman_tmi_query_sw_command);
 		break;
 	}
-#endif
 	/* TMAN timer create Command Verification */
 	case TMAN_TIMER_CREATE_CMD_STR:
 	{
@@ -155,30 +136,6 @@ uint16_t aiop_verification_tman(uint32_t asa_seg_addr)
 		str_size = sizeof(struct tman_timer_delete_command);
 		break;
 	}
-#ifdef REV2
-	/* TMAN timer increase duration Command Verification */
-	case TMAN_TIMER_INC_DURATION_CMD_STR:
-	{
-		struct tman_timer_increase_duration_command *str =
-		(struct tman_timer_increase_duration_command *) asa_seg_addr;
-		str->status = tman_increase_timer_duration(
-				str->timer_handle,
-				str->duration);
-		str_size = sizeof(struct tman_timer_increase_duration_command);
-		break;
-	}
-#endif
-#ifdef REV2
-	/* TMAN timer recharge Command Verification */
-	case TMAN_TIMER_RECHARGE_CMD_STR:
-	{
-		struct tman_timer_recharge_command *str =
-		(struct tman_timer_recharge_command *) asa_seg_addr;
-		str->status = tman_recharge_timer(str->timer_handle);
-		str_size = sizeof(struct tman_timer_recharge_command);
-		break;
-	}
-#else
 	/* TMAN timer recharge Command Verification */
 	case TMAN_TIMER_RECHARGE_CMD_STR:
 	{
@@ -188,7 +145,6 @@ uint16_t aiop_verification_tman(uint32_t asa_seg_addr)
 		str_size = sizeof(struct tman_timer_recharge_command);
 		break;
 	}
-#endif
 	/* TMAN timer query Command Verification */
 	case TMAN_TIMER_QUERY_CMD_STR:
 	{

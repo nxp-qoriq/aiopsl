@@ -224,12 +224,12 @@ aiop_sl		</project>
 		<link>
 			<name>src/aiop_verification_ste.c</name>
 			<type>1</type>
-			<locationURI>PARENT-5-PROJECT_LOC/tests/roc_process_packet/aiop_verification_ste.c</locationURI>
+			<locationURI>PARENT-5-PROJECT_LOC/tests/roc_process_packet/ls1088a/aiop_verification_ste.c</locationURI>
 		</link>
 		<link>
 			<name>src/aiop_verification_ste.h</name>
 			<type>1</type>
-			<locationURI>PARENT-5-PROJECT_LOC/tests/roc_process_packet/aiop_verification_ste.h</locationURI>
+			<locationURI>PARENT-5-PROJECT_LOC/tests/roc_process_packet/ls1088a/aiop_verification_ste.h</locationURI>
 		</link>
 		<link>
 			<name>src/aiop_verification_table.c</name>

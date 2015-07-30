@@ -420,11 +420,7 @@ inline int tman_create_timer(uint8_t tmi_id, uint32_t flags,
 
 @Cautions	This function performs a task switch. 
 		In case of periodic timer the tman_delete_timer should be
-		called at the expiration routine. For one-shot
-		timers, this function should be called after calling the
-		tman_recharge_timer function for the one-shot timer (this in
-		order to workaround errata ERR009310).
-
+		called at the expiration routine.
 *//***************************************************************************/
 inline int tman_delete_timer(uint32_t timer_handle, uint32_t flags);
 
