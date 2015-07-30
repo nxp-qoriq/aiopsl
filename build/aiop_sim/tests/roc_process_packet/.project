@@ -214,12 +214,12 @@ aiop_sl		</project>
 		<link>
 			<name>src/aiop_verification_parser.c</name>
 			<type>1</type>
-			<locationURI>PARENT-4-PROJECT_LOC/tests/roc_process_packet/aiop_verification_parser.c</locationURI>
+			<locationURI>PARENT-4-PROJECT_LOC/tests/roc_process_packet/ls2085a/aiop_verification_parser.c</locationURI>
 		</link>
 		<link>
 			<name>src/aiop_verification_parser.h</name>
 			<type>1</type>
-			<locationURI>PARENT-4-PROJECT_LOC/tests/roc_process_packet/aiop_verification_parser.h</locationURI>
+			<locationURI>PARENT-4-PROJECT_LOC/tests/roc_process_packet/ls2085a/aiop_verification_parser.h</locationURI>
 		</link>
 		<link>
 			<name>src/aiop_verification_ste.c</name>
@@ -244,12 +244,12 @@ aiop_sl		</project>
 		<link>
 			<name>src/aiop_verification_tman.c</name>
 			<type>1</type>
-			<locationURI>PARENT-4-PROJECT_LOC/tests/roc_process_packet/aiop_verification_tman.c</locationURI>
+			<locationURI>PARENT-4-PROJECT_LOC/tests/roc_process_packet/ls2085a/aiop_verification_tman.c</locationURI>
 		</link>
 		<link>
 			<name>src/aiop_verification_tman.h</name>
 			<type>1</type>
-			<locationURI>PARENT-4-PROJECT_LOC/tests/roc_process_packet/aiop_verification_tman.h</locationURI>
+			<locationURI>PARENT-4-PROJECT_LOC/tests/roc_process_packet/ls2085a/aiop_verification_tman.h</locationURI>
 		</link>
 		<link>
 			<name>src/app_process_packet.c</name>
