@@ -7,7 +7,7 @@ Table:
 	* table_hw_accel_acquire_lock & table_hw_accel_release_lock were removed
 	
 	
-Changes made for ls1088a rev1 (based on 2085 0.7.0 release):
+Changes made for ls1088a rev1 (based on 2085 0.7.1.0 release):
 
 FDMA:
 	* Remove workaround for TKT237377 (replacing a segment) - Add TAM flag to all replace commands in order to keep original segment boundaries instead of the workaround 
@@ -31,6 +31,7 @@ IPR:
 Keygen:
 	* Added FECID 0x25 (KEYGEN_KCR_ICMP_TYPE_FECID) and FECID 0x26 (KEYGEN_KCR_ICMP_CODE_FECID) which were not supported in REV1 due to TKT241788.
 	* Changes/additions in enum kcr_builder_parse_result_offset due to new parse results.
+	* Fixed ENGR362440
 
 OSM:
 	* Removed OSM workarounds for TKT260685 (FDMA lockup)
@@ -64,14 +65,6 @@ TMAN:
 	* Add implementation of tman_modify_timer (TKT255188).
 	* Change return value and implementation of tman_recharge_timer (TKT258245).
 	* Add exception error cases (TKT226701).
-
-
-	
-
-
-Keygen: Fixed ENGR362440 (To check!!)
-
-
 
 LDPAA AIOP SERVICE LAYER LDPAA-AIOP-SL-v0.7.0 Change Log
 =============================================================
