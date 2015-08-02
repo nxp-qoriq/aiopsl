@@ -218,6 +218,29 @@ int dpni_drv_update_obj(struct mc_dprc *dprc, uint16_t mc_niid)
 	int err;
 	uint16_t aiop_niid;
 	int index;
+	uint16_t dpni;
+
+	err = dpni_open(&dprc->io, 0, mc_niid, &dpni);
+	if(err){
+		sl_pr_err("Failed to open DP-NI before reset%d\n.", mc_niid);
+		/* if open failed, no need to close*/
+		return err;
+	}
+
+	err = dpni_reset(&dprc->io, 0, dpni);
+	if(err){
+		sl_pr_err("Failed to reset DP-NI%d\n.", mc_niid);
+		dpni_close(&dprc->io, 0, dpni);
+		return err;
+	}
+
+	err = dpni_close(&dprc->io, 0, dpni);
+	if(err){
+		sl_pr_err("Failed to close DP-NI after reset%d\n.", mc_niid);
+		/* if open failed, no need to close*/
+		return err;
+	}
+
 	cdma_mutex_lock_take((uint64_t)nis, CDMA_MUTEX_WRITE_LOCK);
 	index = dpni_drv_is_dpni_exist(mc_niid);
 	if(index == -1){
@@ -458,7 +481,9 @@ static int initialize_dpni(struct mc_dprc *dprc, uint16_t mc_niid, uint16_t aiop
 	int err;
 	uint16_t dpni;
 	uint16_t qdid;
+	uint16_t flow_id = DPNI_NEW_FLOW_ID;
 	uint8_t mac_addr[NET_HDR_FLD_ETH_ADDR_SIZE];
+	struct dpni_tx_flow_cfg tx_flow_cfg = {0};
 
 
 	err = dpni_open(&dprc->io, 0, mc_niid, &dpni);
@@ -492,6 +517,19 @@ static int initialize_dpni(struct mc_dprc *dprc, uint16_t mc_niid, uint16_t aiop
 		return err;
 	}
 	nis[aiop_niid].dpni_drv_tx_params_var.qdid = qdid;
+
+	err = dpni_set_tx_flow(&dprc->io, 0, dpni, &flow_id, &tx_flow_cfg);
+	if(err || flow_id != 0){
+		sl_pr_err("dpni_set_tx_flow failed for DP-NI%d\n",
+		          mc_niid);
+		dpni_close(&dprc->io, 0, dpni);
+		if(err == 0 && flow_id != 0){
+			sl_pr_err("Wrong or not supported flow ID %d for DP-NI%d\n",
+					flow_id, mc_niid);
+			return -ENOTSUP;
+		}
+		return err;
+	}
 
 	if(configure_dpni_params(dprc, aiop_niid, dpni)){
 		sl_pr_err("configure_dpni_params failed for DP-NI%d\n",
@@ -854,7 +892,7 @@ static int configure_bpids_for_dpni(void)
 	if(err){
 		return err;
 	}
-	
+
 	if (dprc == NULL)
 	{
 		return -ENODEV;
@@ -1292,12 +1330,14 @@ __COLD_CODE int dpni_drv_set_order_scope(uint16_t ni_id, struct dpkg_profile_cfg
 {
 	struct mc_dprc *dprc = sys_get_unique_handle(FSL_OS_MOD_AIOP_RC);
 	struct dpni_rx_tc_dist_cfg cfg = {0};
+	struct dpni_attr attr = {0};
 	struct aiop_tile_regs *tile_regs = (struct aiop_tile_regs *)
 						sys_get_handle(FSL_OS_MOD_AIOP_TILE, 1);
 	struct aiop_ws_regs *wrks_addr = &tile_regs->ws_regs;
 	int err;
 	uint32_t ep_osc;
 	uint16_t dpni;
+	uint8_t i;
 
 	/*Mutex will be needed if the function will be supported in run time*/
 	cdma_mutex_lock_take((uint64_t)nis, CDMA_MUTEX_WRITE_LOCK); /*Lock dpni table*/
@@ -1337,12 +1377,24 @@ __COLD_CODE int dpni_drv_set_order_scope(uint16_t ni_id, struct dpkg_profile_cfg
 
 	cfg.key_cfg_iova = (uint64_t)order_scope_buffer;
 	cdma_mutex_lock_release((uint64_t)nis); /*Unlock dpni table*/
-	err = dpni_set_rx_tc_dist(&dprc->io, 0, dpni, 0,  &cfg);
+
+	err = dpni_get_attributes(&dprc->io, 0, dpni, &attr);
 	if(err){
-		sl_pr_err("dpni_set_rx_tc_dist failed\n");
+		sl_pr_err("dpni_get_attributes failed\n");
 		dpni_close(&dprc->io, 0, dpni);
 		return err;
 	}
+
+	for(i = 0; i < attr.max_tcs; i++)
+	{
+		err = dpni_set_rx_tc_dist(&dprc->io, 0, dpni, i,  &cfg);
+		if(err){
+			sl_pr_err("dpni_set_rx_tc_dist failed\n");
+			dpni_close(&dprc->io, 0, dpni);
+			return err;
+		}
+	}
+
 	err = dpni_close(&dprc->io, 0, dpni);
 	if(err){
 		sl_pr_err("Close DPNI failed\n");
@@ -1867,38 +1919,35 @@ int dpni_drv_set_tx_checksum(uint16_t ni_id,
 	struct mc_dprc *dprc = sys_get_unique_handle(FSL_OS_MOD_AIOP_RC);
 	int err;
 	uint16_t dpni;
-	uint16_t flow_id = 0;
 	struct dpni_tx_flow_cfg dpni_cfg = { 0 };
 
+	dpni_cfg.options |= DPNI_TX_FLOW_OPT_L3_CHKSUM_GEN;
+	dpni_cfg.options |= DPNI_TX_FLOW_OPT_L4_CHKSUM_GEN;
 	if(tx_checksum->l3_checksum_gen == 1){
-		dpni_cfg.options |= DPNI_TX_FLOW_OPT_L3_CHKSUM_GEN;
 		dpni_cfg.l3_chksum_gen = 1;
 	}
 	if(tx_checksum->l4_checksum_gen == 1){
-		dpni_cfg.options |= DPNI_TX_FLOW_OPT_L4_CHKSUM_GEN;
 		dpni_cfg.l4_chksum_gen = 1;
 	}
 
-	if(dpni_cfg.options){
-		/*Lock dpni table*/
-		cdma_mutex_lock_take((uint64_t)nis, CDMA_MUTEX_READ_LOCK);
-		err = dpni_open(&dprc->io, 0, (int)nis[ni_id].dpni_id, &dpni);
-		cdma_mutex_lock_release((uint64_t)nis); /*Unlock dpni table*/
-		if(err){
-			sl_pr_err("Open DPNI failed\n");
-			return err;
-		}
-		err = dpni_set_tx_flow(&dprc->io, 0, dpni, &flow_id, &dpni_cfg);
-		if(err){
-			sl_pr_err("dpni_set_tx_flow failed\n");
-			dpni_close(&dprc->io, 0, dpni);
-			return err;
-		}
-		err = dpni_close(&dprc->io, 0, dpni);
-		if(err){
-			sl_pr_err("Close DPNI failed\n");
-			return err;
-		}
+	/*Lock dpni table*/
+	cdma_mutex_lock_take((uint64_t)nis, CDMA_MUTEX_READ_LOCK);
+	err = dpni_open(&dprc->io, 0, (int)nis[ni_id].dpni_id, &dpni);
+	cdma_mutex_lock_release((uint64_t)nis); /*Unlock dpni table*/
+	if(err){
+		sl_pr_err("Open DPNI failed\n");
+		return err;
+	}
+	err = dpni_set_tx_flow(&dprc->io, 0, dpni, 0, &dpni_cfg);
+	if(err){
+		sl_pr_err("dpni_set_tx_flow failed\n");
+		dpni_close(&dprc->io, 0, dpni);
+		return err;
+	}
+	err = dpni_close(&dprc->io, 0, dpni);
+	if(err){
+		sl_pr_err("Close DPNI failed\n");
+		return err;
 	}
 	return 0;
 }
@@ -1943,4 +1992,41 @@ int dpni_drv_set_rx_tc_policing(uint16_t ni_id, uint8_t tc_id,
 
 
 
+}
+
+int dpni_drv_set_tx_selection(uint16_t ni_id,
+                          const struct dpni_drv_tx_selection *cfg)
+{
+	struct mc_dprc *dprc = sys_get_unique_handle(FSL_OS_MOD_AIOP_RC);
+	int err, i;
+	uint16_t dpni;
+	struct dpni_tx_selection_cfg tx_sel = {0};
+
+	for(i = 0; i < DPNI_MAX_TC; i++)
+	{
+		tx_sel.tc_sched[i].mode = cfg->tc_sched[i].mode;
+		tx_sel.tc_sched[i].delta_bandwidth = cfg->tc_sched[i].delta_bandwidth;
+	}
+	/*Lock dpni table*/
+	cdma_mutex_lock_take((uint64_t)nis, CDMA_MUTEX_READ_LOCK);
+	err = dpni_open(&dprc->io, 0, (int)nis[ni_id].dpni_id, &dpni);
+	cdma_mutex_lock_release((uint64_t)nis); /*Unlock dpni table*/
+	if(err){
+		sl_pr_err("Open DPNI failed\n");
+		return err;
+	}
+
+	err = dpni_set_tx_selection(&dprc->io, 0, dpni, &tx_sel);
+	if(err){
+		sl_pr_err("dpni_set_tx_selection failed\n");
+		dpni_close(&dprc->io, 0, dpni);
+		return err;
+	}
+
+	err = dpni_close(&dprc->io, 0, dpni);
+	if(err){
+		sl_pr_err("Close DPNI failed\n");
+		return err;
+	}
+	return 0;
 }
