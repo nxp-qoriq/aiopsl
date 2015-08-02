@@ -976,8 +976,8 @@ extern __TASK struct aiop_default_task_params default_task_params;
 	(((struct parse_result *)HWC_PARSE_RES_ADDRESS)->parse_error_code)
 /** Get offset to the next header field before IPv6 fragment extension */
 #define PARSER_GET_NXT_HDR_BEFORE_IPV6_FRAG_EXT_OFFSET_DEFAULT() \
-	(((struct parse_result *)HWC_PARSE_RES_ADDRESS)->)\
-	nxt_hdr_before_ipv6_frag_ext
+	(((struct parse_result *)HWC_PARSE_RES_ADDRESS)-> \
+			nxt_hdr_before_ipv6_frag_ext)
 /** Get the IP Protocol Identifier offset of the Inner IP */
 #define PARSER_GET_IP_N_PID_OFFSET_DEFAULT() \
 	(((struct parse_result *)HWC_PARSE_RES_ADDRESS)->ip_n_pid_offset)

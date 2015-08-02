@@ -45,6 +45,8 @@ void aiop_init_parser(uint8_t *prpid)
 	struct parse_profile_input verif_parse_profile1 __attribute__((aligned(16)));
 
 	/* Init basic parse profile */
+	verif_parse_profile1.parse_profile.vxlan_da1 = 0x0;
+	verif_parse_profile1.parse_profile.vxlan_da2 = 0x0;
 	verif_parse_profile1.parse_profile.eth_hxs_config = 0x0;
 	verif_parse_profile1.parse_profile.llc_snap_hxs_config = 0x0;
 	verif_parse_profile1.parse_profile.vlan_hxs_config.en_erm_soft_seq_start = 0x0;
@@ -75,11 +77,13 @@ void aiop_init_parser(uint8_t *prpid)
 	verif_parse_profile1.parse_profile.other_l4_shell_hxs_config = 0x0;
 	verif_parse_profile1.parse_profile.gtp_hxs_config = 0x0;
 	verif_parse_profile1.parse_profile.esp_hxs_config = 0x0;
+	verif_parse_profile1.parse_profile.vxlan_hxs_config = 0x0;
 	verif_parse_profile1.parse_profile.l5_shell_hxs_config = 0x0;
 	verif_parse_profile1.parse_profile.final_shell_hxs_config = 0x0;
 	/* Assuming no soft examination parameters */
 	for(i=0; i<16; i++)
 		verif_parse_profile1.parse_profile.soft_examination_param_array[i] = 0x0;
+
 	sys_prpid_pool_create();
 	/* Create the parse_profile and get an id */
 	parser_profile_create(&verif_parse_profile1, prpid);
@@ -276,28 +280,11 @@ uint16_t aiop_verification_parser(uint32_t asa_seg_addr)
 	{
 		struct parser_macros_command *str =
 		(struct parser_macros_command *) asa_seg_addr;
-		
-#ifndef REV2
-		/* SW parse results */
-		if (PARSER_IS_VXLAN_DEFAULT())
-			str->sw_parse_res.vxlan = (uint8_t)PARSER_IS_VXLAN_DEFAULT();
-		if (PARSER_IS_IKE_OVER_UDP_DEFAULT())
-			str->sw_parse_res.ike= PARSER_IS_IKE_OVER_UDP_DEFAULT() ;
-		if(PARSER_IS_ESP_OVER_UDP_DEFAULT())
-			str->sw_parse_res.esp = PARSER_IS_ESP_OVER_UDP_DEFAULT() ;
-#endif
-		
+				
 		/* Next header offset */
 		str->macros_struct.nxt_hdr = PARSER_GET_NEXT_HEADER_DEFAULT();
-
-#ifndef REV2
-		/* Frame Attribute Flags Extension */
-		if (PARSER_IS_ROUTING_HDR_IN_2ND_IPV6_HDR_DEFAULT())
-			str->macros_struct.frame_attribute_flags_extension = PARSER_IS_ROUTING_HDR_IN_2ND_IPV6_HDR_DEFAULT();
-#endif
 		
 		/* Frame Attribute Flags 1 */ 
-#ifdef REV2
 		if (PARSER_IS_ROUTING_HDR_IN_2ND_IPV6_HDR_DEFAULT())
 			str->macros_struct.frame_attribute_flags_1 |= PARSER_IS_ROUTING_HDR_IN_2ND_IPV6_HDR_DEFAULT();
 		if (PARSER_IS_GTP_PRIMED_DEFAULT())
@@ -311,9 +298,7 @@ uint16_t aiop_verification_parser(uint32_t asa_seg_addr)
 		if (PARSER_IS_ETH_SLOW_PROTOCOL_DEFAULT())
 			str->macros_struct.frame_attribute_flags_1 |= PARSER_IS_ETH_SLOW_PROTOCOL_DEFAULT();
 		if (PARSER_IS_IKE_OVER_UDP_DEFAULT())
-			str->macros_struct.frame_attribute_flags_1 |= PARSER_IS_IKE_OVER_UDP_DEFAULT();
-#endif
-		
+			str->macros_struct.frame_attribute_flags_1 |= PARSER_IS_IKE_OVER_UDP_DEFAULT();		
 		if (PARSER_IS_SHIM_SOFT_PARSING_ERROR_DEFAULT())
 			str->macros_struct.frame_attribute_flags_1 |= PARSER_IS_SHIM_SOFT_PARSING_ERROR_DEFAULT();
 		if (PARSER_IS_PARSING_ERROR_DEFAULT())
@@ -480,15 +465,8 @@ uint16_t aiop_verification_parser(uint32_t asa_seg_addr)
 			str->macros_struct.frame_attribute_flags_3 |= PARSER_IS_GTP_DEFAULT() ;
 		if (PARSER_IS_GTP_PARSING_ERROR_DEFAULT())
 			str->macros_struct.frame_attribute_flags_3 |= PARSER_IS_GTP_PARSING_ERROR_DEFAULT() ;
-#ifndef REV2
-#if 0
-		if (PARSER_IS_ESP_OR_IKE_OVER_UDP_DEFAULT())
-			str->macros_struct.frame_attribute_flags_3 |= PARSER_IS_ESP_OR_IKE_OVER_UDP_DEFAULT() ;
-#endif
-#else
 		if (PARSER_IS_ESP_OVER_UDP_DEFAULT())
 			str->macros_struct.frame_attribute_flags_3 |= PARSER_IS_ESP_OVER_UDP_DEFAULT() ;
-#endif
 		if (PARSER_IS_ESP_OR_IKE_OVER_UDP_PARSING_ERROR_DEFAULT())
 			str->macros_struct.frame_attribute_flags_3 |= PARSER_IS_ESP_OR_IKE_OVER_UDP_PARSING_ERROR_DEFAULT() ;
 		if (PARSER_IS_ISCSI_DEFAULT())
@@ -503,34 +481,6 @@ uint16_t aiop_verification_parser(uint32_t asa_seg_addr)
 			str->macros_struct.frame_attribute_flags_3 |= PARSER_IS_ROUTING_HDR_IN_1ST_IPV6_HDR_DEFAULT();
 
 		/* Offsets */			
-#ifndef REV2	
-		str->macros_struct.shim_offset_1 = PARSER_GET_SHIM1_OFFSET_DEFAULT();
-		str->macros_struct.shim_offset_2 = PARSER_GET_SHIM2_OFFSET_DEFAULT();
-#if 0
-		str->macros_struct.ip_pid_offset = PARSER_GET_IP_PID_OFFSET_DEFAULT();
-		str->macros_struct.eth_offset = PARSER_GET_ETH_OFFSET_DEFAULT();
-		str->macros_struct.llc_snap_offset = PARSER_GET_LLC_SNAP_OFFSET_DEFAULT();
-		str->macros_struct.vlan_tci1_offset = PARSER_GET_FIRST_VLAN_TCI_OFFSET_DEFAULT();
-		str->macros_struct.vlan_tcin_offset = PARSER_GET_LAST_VLAN_TCI_OFFSET_DEFAULT();
-		str->macros_struct.last_etype_offset = PARSER_GET_LAST_ETYPE_OFFSET_DEFAULT();
-		str->macros_struct.pppoe_offset = PARSER_GET_PPPOE_OFFSET_DEFAULT();
-		str->macros_struct.mpls_offset_1 = PARSER_GET_FIRST_MPLS_OFFSET_DEFAULT();
-		str->macros_struct.mpls_offset_n = PARSER_GET_LAST_MPLS_OFFSET_DEFAULT();
-		str->macros_struct.ip1_or_arp_offset = PARSER_GET_OUTER_IP_OFFSET_DEFAULT();
-		str->macros_struct.ip1_or_arp_offset = PARSER_GET_ARP_OFFSET_DEFAULT();
-		str->macros_struct.ipn_or_minencapO_offset = PARSER_GET_INNER_IP_OFFSET_DEFAULT();
-		str->macros_struct.ipn_or_minencapO_offset = PARSER_GET_MINENCAP_OFFSET_DEFAULT();
-		str->macros_struct.gre_offset = PARSER_GET_GRE_OFFSET_DEFAULT();
-		str->macros_struct.l4_offset = PARSER_GET_L4_OFFSET_DEFAULT();
-		str->macros_struct.gtp_esp_ipsec_offset = PARSER_GET_L5_OFFSET_DEFAULT();
-#endif
-		str->macros_struct.routing_hdr_offset1 = PARSER_GET_1ST_IPV6_ROUTING_HDR_OFFSET_DEFAULT();
-		str->macros_struct.routing_hdr_offset2 = PARSER_GET_2ND_IPV6_ROUTING_HDR_OFFSET_DEFAULT();
-		str->macros_struct.nxt_hdr_offset = PARSER_GET_NEXT_HEADER_OFFSET_DEFAULT();
-		str->macros_struct.ipv6_frag_offset = PARSER_GET_IPV6_FRAG_HEADER_OFFSET_DEFAULT();
-		str->macros_struct.gross_running_sum = PARSER_GET_GROSS_RUNNING_SUM_CODE_DEFAULT();
-		str->macros_struct.running_sum = PARSER_GET_RUNNING_SUM_DEFAULT();
-#else
 		str->macros_struct.shim_offset_1 = PARSER_GET_SHIM1_OFFSET_DEFAULT();
 		str->macros_struct.shim_offset_2 = PARSER_GET_SHIM2_OFFSET_DEFAULT();
 		str->macros_struct.ip_1_pid_offset = PARSER_GET_OUTER_IP_PID_OFFSET_DEFAULT();
@@ -550,27 +500,19 @@ uint16_t aiop_verification_parser(uint32_t asa_seg_addr)
 		str->macros_struct.ipn_or_minencapO_offset = PARSER_GET_MINENCAP_OFFSET_DEFAULT();
 		str->macros_struct.gre_offset = PARSER_GET_GRE_OFFSET_DEFAULT();
 		str->macros_struct.l4_offset = PARSER_GET_L4_OFFSET_DEFAULT();
-		str->macros_struct.gtp_esp_ipsec_offset = PARSER_GET_L5_OFFSET_DEFAULT();
+		str->macros_struct.l5_offset = PARSER_GET_L5_OFFSET_DEFAULT();
 		str->macros_struct.routing_hdr_offset1 = PARSER_GET_1ST_IPV6_ROUTING_HDR_OFFSET_DEFAULT();
 		str->macros_struct.routing_hdr_offset2 = PARSER_GET_2ND_IPV6_ROUTING_HDR_OFFSET_DEFAULT();
 		str->macros_struct.nxt_hdr_offset = PARSER_GET_NEXT_HEADER_OFFSET_DEFAULT();
 		str->macros_struct.ipv6_frag_offset = PARSER_GET_IPV6_FRAG_HEADER_OFFSET_DEFAULT();
 		str->macros_struct.gross_running_sum = PARSER_GET_GROSS_RUNNING_SUM_CODE_DEFAULT();
 		str->macros_struct.running_sum = PARSER_GET_RUNNING_SUM_DEFAULT();
-		str->nxt_hdr_before_ipv6_frag_ext = PARSER_GET_NXT_HDR_BEFORE_IPV6_FRAG_EXT_OFFSET_DEFAULT();
-		str->ip_n_pid_offset = PARSER_GET_IP_N_PID_OFFSET_DEFAULT();
-#endif
+		str->macros_struct.nxt_hdr_before_ipv6_frag_ext = PARSER_GET_NXT_HDR_BEFORE_IPV6_FRAG_EXT_OFFSET_DEFAULT();
+		str->macros_struct.ip_n_pid_offset = PARSER_GET_IP_N_PID_OFFSET_DEFAULT();
 
 		
 		/* FSL_PARSER_ERROR_CODES */
 		switch (PARSER_GET_PARSE_ERROR_CODE_DEFAULT()){	
-#ifndef REV2
-#if 0
-		case PARSER_EXCEED_BLOCK_LIMIT: 
-			str->macros_struct.parse_error_code = PARSER_EXCEED_BLOCK_LIMIT;
-			break;
-#endif
-#endif
 		case PARSER_FRAME_TRUNCATION: 
 			str->macros_struct.parse_error_code = PARSER_FRAME_TRUNCATION;
 			break;

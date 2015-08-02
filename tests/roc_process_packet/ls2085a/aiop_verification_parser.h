@@ -282,18 +282,11 @@ struct parser_prp_id_pool_create_verif_command {
 
 		Includes information needed for Parser Commands verification.
 *//***************************************************************************/
-#ifndef REV2
 struct parser_macros_command {
 	uint32_t             opcode;
 	struct parse_result  macros_struct;
 	struct sw_parse_result sw_parse_res;
 };
-#else
-struct parser_macros_command {
-	uint32_t             opcode;
-	struct parse_result  macros_struct;
-};
-#endif
 
 /**************************************************************************//**
 @Description	Parser Set prpid & hxs Command structure.
