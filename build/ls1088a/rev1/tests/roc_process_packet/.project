@@ -212,11 +212,6 @@ aiop_sl		</project>
 			<locationURI>PARENT-5-PROJECT_LOC/tests/roc_process_packet/aiop_verification_osm.h</locationURI>
 		</link>
 		<link>
-			<name>src/aiop_verification_parser.c</name>
-			<type>1</type>
-			<locationURI>PARENT-5-PROJECT_LOC/tests/roc_process_packet/ls1088a/aiop_verification_parser.c</locationURI>
-		</link>
-		<link>
 			<name>src/aiop_verification_parser.h</name>
 			<type>1</type>
 			<locationURI>PARENT-5-PROJECT_LOC/tests/roc_process_packet/ls1088a/aiop_verification_parser.h</locationURI>
