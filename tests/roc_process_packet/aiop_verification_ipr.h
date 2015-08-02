@@ -113,9 +113,6 @@ enum e_ipr_verif_cmd_type {
 #define IPR_GET_REASS_FRM_CNTR_CMD_STR	((IPR_MODULE << 16)  | \
 		(uint32_t)IPR_CMDTYPE_GET_REASS_FRM_CNTR)
 
-#pragma pack(push, 1)
-
-
 /**************************************************************************//**
 @Description	IPR verification init Command structure.
 
@@ -289,8 +286,6 @@ struct ipr_get_reass_frm_cntr_command {
 	uint8_t					res[7];
 #endif		
 };
-
-#pragma pack(pop)
 
 /**************************************************************************//**
 @Description	IPR FDMA Enqueue Working Frame Command structure.
