@@ -467,9 +467,6 @@ int ipr_delete_instance(ipr_instance_handle_t ipr_instance_ptr,
 		incremented.\n
 		If this function is called while the task is currently
 		in exclusive mode, the scope_id is preserved.\n
-		This function requires 1 CDMA mutex
-		(out of 4 available per task).\n
-		In this function, the task yields.
 
 *//***************************************************************************/
 int ipr_reassemble(ipr_instance_handle_t ipr_instance);
