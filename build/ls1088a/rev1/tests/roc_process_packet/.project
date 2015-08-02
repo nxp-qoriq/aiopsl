@@ -244,7 +244,7 @@ aiop_sl		</project>
 		<link>
 			<name>src/aiop_verification_tman.c</name>
 			<type>1</type>
-			<locationURI>PARENT-5-PROJECT_LOC/tests/roc_process_packet/aiop_verification_tman.c</locationURI>
+			<locationURI>PARENT-5-PROJECT_LOC/tests/roc_process_packet/ls1088a/aiop_verification_tman.c</locationURI>
 		</link>
 		<link>
 			<name>src/aiop_verification_tman.h</name>
