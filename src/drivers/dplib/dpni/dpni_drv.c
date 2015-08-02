@@ -1987,11 +1987,50 @@ int dpni_drv_get_tx_checksum(uint16_t ni_id,
 }
 
 int dpni_drv_set_rx_tc_policing(uint16_t ni_id, uint8_t tc_id,
-			    const struct dpni_drv_rx_tc_policing_cfg *cfg)
+                                const struct dpni_drv_rx_tc_policing_cfg *cfg)
 {
+	struct mc_dprc *dprc = sys_get_unique_handle(FSL_OS_MOD_AIOP_RC);
+	int err;
+	uint16_t dpni;
+	struct dpni_rx_tc_policing_cfg tc_policing = {0};
 
+	if(cfg->options | DPNI_DRV_POLICER_OPT_COLOR_AWARE){
+		tc_policing.options |= DPNI_POLICER_OPT_COLOR_AWARE;
+	}
+	if(cfg->options | DPNI_DRV_POLICER_OPT_DISCARD_RED){
+		tc_policing.options |= DPNI_POLICER_OPT_DISCARD_RED;
+	}
 
+	tc_policing.mode = (enum dpni_policer_mode)(cfg->mode);
+	tc_policing.units = (enum dpni_policer_unit)(cfg->unit);
+	tc_policing.default_color = (enum dpni_policer_color)(cfg->default_color);
+	tc_policing.cir = cfg->cir;
+	tc_policing.cbs = cfg->cbs;
+	tc_policing.eir = cfg->eir;
+	tc_policing.ebs = cfg->ebs;
 
+	/*Lock dpni table*/
+	cdma_mutex_lock_take((uint64_t)nis, CDMA_MUTEX_READ_LOCK);
+	err = dpni_open(&dprc->io, 0, (int)nis[ni_id].dpni_id, &dpni);
+	cdma_mutex_lock_release((uint64_t)nis); /*Unlock dpni table*/
+	if(err){
+		sl_pr_err("Open DPNI failed\n");
+		return err;
+	}
+
+	err = dpni_set_rx_tc_policing(&dprc->io, 0, dpni, tc_id, &tc_policing);
+	if(err){
+		sl_pr_err("dpni_set_rx_tc_policing failed\n");
+		dpni_close(&dprc->io, 0, dpni);
+		return err;
+	}
+
+	err = dpni_close(&dprc->io, 0, dpni);
+	if(err){
+		sl_pr_err("Close DPNI failed\n");
+		return err;
+	}
+	return 0;
 }
 
 int dpni_drv_set_tx_selection(uint16_t ni_id,
@@ -2000,11 +2039,13 @@ int dpni_drv_set_tx_selection(uint16_t ni_id,
 	struct mc_dprc *dprc = sys_get_unique_handle(FSL_OS_MOD_AIOP_RC);
 	int err, i;
 	uint16_t dpni;
-	struct dpni_tx_selection_cfg tx_sel = {0};
+	struct dpni_tx_selection_cfg tx_sel;
+
+	memset(&tx_sel, 0, sizeof(struct dpni_tx_selection_cfg));
 
 	for(i = 0; i < DPNI_MAX_TC; i++)
 	{
-		tx_sel.tc_sched[i].mode = cfg->tc_sched[i].mode;
+		tx_sel.tc_sched[i].mode = (enum dpni_tx_schedule_mode)(cfg->tc_sched[i].mode);
 		tx_sel.tc_sched[i].delta_bandwidth = cfg->tc_sched[i].delta_bandwidth;
 	}
 	/*Lock dpni table*/
@@ -2019,6 +2060,41 @@ int dpni_drv_set_tx_selection(uint16_t ni_id,
 	err = dpni_set_tx_selection(&dprc->io, 0, dpni, &tx_sel);
 	if(err){
 		sl_pr_err("dpni_set_tx_selection failed\n");
+		dpni_close(&dprc->io, 0, dpni);
+		return err;
+	}
+
+	err = dpni_close(&dprc->io, 0, dpni);
+	if(err){
+		sl_pr_err("Close DPNI failed\n");
+		return err;
+	}
+	return 0;
+}
+
+int dpni_drv_set_tx_shaping(uint16_t ni_id,
+                          const struct dpni_drv_tx_shaping *cfg)
+{
+	struct mc_dprc *dprc = sys_get_unique_handle(FSL_OS_MOD_AIOP_RC);
+	int err;
+	uint16_t dpni;
+	struct dpni_tx_shaping_cfg tx_shaper = {0};
+
+	tx_shaper.rate_limit = cfg->rate_limit;
+	tx_shaper.max_burst_size = cfg->max_burst_size;
+
+	/*Lock dpni table*/
+	cdma_mutex_lock_take((uint64_t)nis, CDMA_MUTEX_READ_LOCK);
+	err = dpni_open(&dprc->io, 0, (int)nis[ni_id].dpni_id, &dpni);
+	cdma_mutex_lock_release((uint64_t)nis); /*Unlock dpni table*/
+	if(err){
+		sl_pr_err("Open DPNI failed\n");
+		return err;
+	}
+
+	err = dpni_set_tx_shaping(&dprc->io, 0, dpni, &tx_shaper);
+	if(err){
+		sl_pr_err("dpni_set_tx_shaping failed\n");
 		dpni_close(&dprc->io, 0, dpni);
 		return err;
 	}

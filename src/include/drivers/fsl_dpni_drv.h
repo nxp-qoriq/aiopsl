@@ -223,26 +223,74 @@ enum dpni_drv_policer_color {
 *//***************************************************************************/
 struct dpni_drv_rx_tc_policing_cfg{
 	/* Mask of available options; use 'DPNI_DRV_POLICER_OPT_<X>' values */
-	uint32_t			options;
+	uint32_t options;
 	/* Policer mode */
-	enum dpni_drv_policer_mode	mode;
+	enum dpni_drv_policer_mode mode;
 	/* Bytes or Packets */
-	enum dpni_drv_policer_unit	unit;
+	enum dpni_drv_policer_unit unit;
 	/* For pass-through mode the policer re-colors with this
 	 * color any incoming packets. For Color aware non-pass-through mode:
 	 * policer re-colors with this color all packets with FD[DROPP]>2. */
-	enum dpni_drv_policer_color	default_color;
+	enum dpni_drv_policer_color default_color;
 	/* Committed information rate (CIR) in Kbps or packets/second */
-	uint32_t			cir;
+	uint32_t cir;
 	/* Committed burst size (CBS) in bytes or packets */
-	uint32_t			cbs;
+	uint32_t cbs;
 	/* Peak information rate (PIR, rfc2698) in Kbps or packets/second */
-	uint32_t			eir;
+	uint32_t eir;
 	/* Peak burst size (PBS, rfc2698) in bytes or packets
 	 * Excess burst size (EBS, rfc4115) in bytes or packets */
-	uint32_t			ebs;
+	uint32_t ebs;
 };
 
+/* Maximum number of traffic classes */
+#define DPNI_DRV_MAX_TC                     8
+
+/**************************************************************************//**
+@Description	 enum dpni_drv_tx_schedule_mode - DPNI Tx scheduling mode
+
+*//***************************************************************************/
+enum dpni_drv_tx_schedule_mode {
+	/* strict priority */
+	DPNI_DRV_TX_SCHED_STRICT_PRIORITY,
+	/*  weighted based scheduling */
+	DPNI_DRV_TX_SCHED_WEIGHTED,
+};
+
+/**************************************************************************//**
+@Description	struct dpni_drv_tx_schedule - Structure representing Tx
+		scheduling configuration.
+
+*//***************************************************************************/
+struct dpni_drv_tx_schedule {
+	/* scheduling mode */
+	enum dpni_drv_tx_schedule_mode mode;
+	/* Bandwidth represented in weights from 100 to 10000.
+	 * Not applicable for 'strict-priority' mode*/
+	uint16_t delta_bandwidth;
+};
+
+/**************************************************************************//**
+@Description	struct dpni_drv_tx_selection - Structure representing
+		transmission selection configuration.
+
+*//***************************************************************************/
+struct dpni_drv_tx_selection {
+	/* An array of traffic-classes */
+	struct dpni_drv_tx_schedule tc_sched[DPNI_DRV_MAX_TC];
+};
+
+/**************************************************************************//**
+@Description	struct dpni_drv_tx_shaping - Structure representing
+		DPNI tx shaping configuration.
+
+*//***************************************************************************/
+struct dpni_drv_tx_shaping {
+	/* rate in Mbps */
+	uint32_t rate_limit;
+	/* burst size in bytes (up to 64KB) */
+	uint16_t max_burst_size;
+};
 
 /**************************************************************************//**
 @Description	Application Receive callback
@@ -969,5 +1017,37 @@ int dpni_drv_get_tx_checksum(uint16_t ni_id,
 *//***************************************************************************/
 int dpni_drv_set_rx_tc_policing(uint16_t ni_id, uint8_t tc_id,
 			    const struct dpni_drv_rx_tc_policing_cfg *cfg);
+
+/**************************************************************************//**
+@Function	dpni_drv_set_tx_selection
+
+@Description	Function to set transmission selection configuration for given NI.
+
+@Param[in]	ni_id The AIOP Network Interface ID.
+
+@Param[in]	cfg Transmission selection configurations.
+
+@Cautions	Allowed only when DPNI is disabled.
+
+@Return	0 on success;
+	error code, otherwise. For error posix refer to \ref error_g
+*//***************************************************************************/
+int dpni_drv_set_tx_selection(uint16_t ni_id,
+                          const struct dpni_drv_tx_selection *cfg);
+
+/**************************************************************************//**
+@Function	dpni_drv_set_tx_shaping
+
+@Description	Function to set the transmit shaping configuration for given NI.
+
+@Param[in]	ni_id The AIOP Network Interface ID.
+
+@Param[in]	cfg TX shaping configuration.
+
+@Return	0 on success;
+	error code, otherwise. For error posix refer to \ref error_g
+*//***************************************************************************/
+int dpni_drv_set_tx_shaping(uint16_t ni_id,
+                          const struct dpni_drv_tx_shaping *cfg);
 /** @} */ /* end of dpni_drv_g DPNI DRV group */
 #endif /* __FSL_DPNI_DRV_H */
