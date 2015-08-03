@@ -340,7 +340,7 @@ int evmng_raise_irq_event_cb(void *dev, uint16_t cmd, uint32_t size, void *event
 
 	for(i = 0; i < size; i += 4)
 	{
-		fsl_os_print("0x%08x\n", *mem_dump_ptr);
+		fsl_print("0x%08x\n", *mem_dump_ptr);
 		mem_dump_ptr ++;
 	}
 #endif

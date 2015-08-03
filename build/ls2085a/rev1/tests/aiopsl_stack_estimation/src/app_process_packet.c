@@ -103,7 +103,7 @@ void stack_estimation(void)
 	slab_acquire(*my_slab, &buff);
 	slab_release(*my_slab, buff);
 	slab_free(my_slab);
-	fsl_os_print("Test\n");
+	fsl_print("Test\n");
 	fsl_os_rand();
 	fsl_get_time_since_epoch_ms(&time_since_epoch);
 	fsl_get_time_ms(&time);
@@ -204,7 +204,7 @@ void stack_estimation(void)
 
 int app_init(void)
 {
-	fsl_os_print("Running app_init()\n");
+	fsl_print("Running app_init()\n");
 	return 0;
 }
 

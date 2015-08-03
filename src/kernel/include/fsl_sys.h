@@ -127,7 +127,7 @@ void sys_free(void);
 @Cautions      This routine must not be used in normal flow - it serves only
 		rare and special cases in platform initialization.
 *//***************************************************************************/
-int sys_add_handle(fsl_handle_t h_module, enum fsl_os_module module,
+int sys_add_handle(fsl_handle_t h_module, enum fsl_module module,
 			int num_of_ids, ...);
 
 /**************************************************************************//**
@@ -148,7 +148,7 @@ int sys_add_handle(fsl_handle_t h_module, enum fsl_os_module module,
 @Cautions      This routine must not be used in normal flow - it serves only
 		rare and special cases in platform initialization.
 *//***************************************************************************/
-int sys_remove_handle(enum fsl_os_module module, int num_of_ids, ...);
+int sys_remove_handle(enum fsl_module module, int num_of_ids, ...);
 
 /**************************************************************************//**
 @Function      sys_get_handle
@@ -171,7 +171,7 @@ int sys_remove_handle(enum fsl_os_module module, int num_of_ids, ...);
 @Return        The handle of the specified object if exists;
 		NULL if the object is not known or is not initialized.
 *//***************************************************************************/
-fsl_handle_t sys_get_handle(enum fsl_os_module module, int num_of_ids, ...);
+fsl_handle_t sys_get_handle(enum fsl_module module, int num_of_ids, ...);
 
 /**************************************************************************//**
 @Function      sys_get_unique_handle
@@ -189,7 +189,7 @@ fsl_handle_t sys_get_handle(enum fsl_os_module module, int num_of_ids, ...);
 @Return        The handle of the specified object if exists;
 		NULL if the object is not known or is not initialized.
 *//***************************************************************************/
-static __inline__ fsl_handle_t sys_get_unique_handle(enum fsl_os_module module)
+static __inline__ fsl_handle_t sys_get_unique_handle(enum fsl_module module)
 {
 return sys_get_handle(module, 1, 0);
 }

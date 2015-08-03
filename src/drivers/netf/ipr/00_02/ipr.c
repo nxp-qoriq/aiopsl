@@ -1762,7 +1762,7 @@ void ipr_time_out(uint64_t rfdc_ext_addr, uint16_t opaque_not_used)
 	/* Recover OSM scope */
 	enter_number = (uint8_t)((rfdc.status & SCOPE_LEVEL) >> 4) -
 					default_task_params.current_scope_level ;
-	fsl_os_print("TIME OUT enter number %d\n", enter_number);
+	fsl_print("TIME OUT enter number %d\n", enter_number);
 	while(enter_number != 0) {
 		/* Intentionally doesn't relinquish parent automatically */ 
 		osm_scope_enter(OSM_SCOPE_ENTER_CHILD_TO_EXCLUSIVE,

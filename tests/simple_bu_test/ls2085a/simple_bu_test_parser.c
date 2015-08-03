@@ -119,7 +119,7 @@ int simple_bu_parser_test(void)
 				(struct presentation_context *) HWC_PRC_ADDRESS;
 
 	
-	fsl_os_print("Running simple bring-up test\n");
+	fsl_print("Running simple bring-up test\n");
 	
 	parser_init(&prpid);
 
@@ -174,52 +174,52 @@ int simple_bu_parser_test(void)
 		*(uint32_t *)(&storage_profile[0].pbs2) = *(uint32_t *)(&storage_profile[0].pbs1);
 
 		for (i=0; i<8 ; i++)
-			fsl_os_print("storage profile arg %d: 0x%x \n", i, *((uint32_t *)(&(storage_profile[0]))+i));
+			fsl_print("storage profile arg %d: 0x%x \n", i, *((uint32_t *)(&(storage_profile[0]))+i));
 		
 		
 		err = create_frame(fd, frame_data, FRAME_SIZE, &frame_handle);
 		if (err)
-			fsl_os_print("ERROR: create frame failed with err = %x!\n", err);
+			fsl_print("ERROR: create frame failed with err = %x!\n", err);
 
-		fsl_os_print("parse result after create frame - \n");
+		fsl_print("parse result after create frame - \n");
 		
-		fsl_os_print("ethernet offset %d %x\n", 
+		fsl_print("ethernet offset %d %x\n", 
 					PARSER_IS_ETH_MAC_DEFAULT(), PARSER_GET_ETH_OFFSET_DEFAULT());
 				
-		fsl_os_print("ipv4 offset %d %x\n", 
+		fsl_print("ipv4 offset %d %x\n", 
 					PARSER_IS_IP_DEFAULT(), PARSER_GET_OUTER_IP_OFFSET_DEFAULT());
 			
 
-		fsl_os_print("tcp offset %d %x\n", 
+		fsl_print("tcp offset %d %x\n", 
 					PARSER_IS_TCP_DEFAULT(), PARSER_GET_L4_OFFSET_DEFAULT());
 
 		for (i=0; i<16 ; i++)
-			fsl_os_print("parse results arg %d: 0x%x \n", i, *((uint32_t *)(0x80)+i));
+			fsl_print("parse results arg %d: 0x%x \n", i, *((uint32_t *)(0x80)+i));
 
 		fdma_close_default_segment();
 
 		err = fdma_present_default_frame_segment(FDMA_PRES_NO_FLAGS, (void *)0x180, 0, PRESENTATION_SIZE);
 		if (err)
-			fsl_os_print("STATUS: fdma present default segment returned status is %d\n", err);
+			fsl_print("STATUS: fdma present default segment returned status is %d\n", err);
 
 		err = parse_result_generate_basic();
 		if (err)
-			fsl_os_print("STATUS: parser returned status is %d\n", err);
+			fsl_print("STATUS: parser returned status is %d\n", err);
 
-		fsl_os_print("parse result after new presentation - \n");
+		fsl_print("parse result after new presentation - \n");
 		
-		fsl_os_print("ethernet offset %d %x\n", 
+		fsl_print("ethernet offset %d %x\n", 
 					PARSER_IS_ETH_MAC_DEFAULT(), PARSER_GET_ETH_OFFSET_DEFAULT());
 				
-		fsl_os_print("ipv4 offset %d %x\n", 
+		fsl_print("ipv4 offset %d %x\n", 
 					PARSER_IS_IP_DEFAULT(), PARSER_GET_OUTER_IP_OFFSET_DEFAULT());
 			
 
-		fsl_os_print("tcp offset %d %x\n", 
+		fsl_print("tcp offset %d %x\n", 
 					PARSER_IS_TCP_DEFAULT(), PARSER_GET_L4_OFFSET_DEFAULT());
 
 		for (i=0; i<16 ; i++)
-			fsl_os_print("parse results arg %d: 0x%x \n", i, *((uint32_t *)(0x80)+i));
+			fsl_print("parse results arg %d: 0x%x \n", i, *((uint32_t *)(0x80)+i));
 	
 	
 #ifdef POP_VLAN
@@ -250,13 +250,13 @@ int simple_bu_parser_test(void)
 							4,
 							FDMA_REPLACE_SA_REPRESENT_BIT);
 			
-			fsl_os_print("parse result after push/pop vlan - \n");
+			fsl_print("parse result after push/pop vlan - \n");
 
 
 /*
 			err = parse_result_generate_basic();
 			if (err)
-				fsl_os_print("STATUS: parser returned status is %d\n", err);
+				fsl_print("STATUS: parser returned status is %d\n", err);
 */
 
 			// Update parse results manually
@@ -291,7 +291,7 @@ int simple_bu_parser_test(void)
 #endif
 
 			for (i=0; i<16 ; i++)
-				fsl_os_print("parse results arg %d: 0x%x \n", i, *((uint32_t *)(0x80)+i));
+				fsl_print("parse results arg %d: 0x%x \n", i, *((uint32_t *)(0x80)+i));
 
 			
 			
@@ -299,22 +299,22 @@ int simple_bu_parser_test(void)
 /*
 		err = l2_pop_vlan();
 		if (err)
-				fsl_os_print("ERROR: pop vlan failed with err = %x!\n", err);
+				fsl_print("ERROR: pop vlan failed with err = %x!\n", err);
 
-		fsl_os_print("parse result after push/pop vlan - \n");
+		fsl_print("parse result after push/pop vlan - \n");
 		
-		fsl_os_print("ethernet offset %d %x\n", 
+		fsl_print("ethernet offset %d %x\n", 
 					PARSER_IS_ETH_MAC_DEFAULT(), PARSER_GET_ETH_OFFSET_DEFAULT());
 				
-		fsl_os_print("ipv4 offset %d %x\n", 
+		fsl_print("ipv4 offset %d %x\n", 
 					PARSER_IS_IP_DEFAULT(), PARSER_GET_OUTER_IP_OFFSET_DEFAULT());
 			
 
-		fsl_os_print("tcp offset %d %x\n", 
+		fsl_print("tcp offset %d %x\n", 
 					PARSER_IS_TCP_DEFAULT(), PARSER_GET_L4_OFFSET_DEFAULT());
 
 		for (i=0; i<16 ; i++)
-			fsl_os_print("parse results arg %d: 0x%x \n", i, *((uint32_t *)(0x80)+i));
+			fsl_print("parse results arg %d: 0x%x \n", i, *((uint32_t *)(0x80)+i));
 */
 
 		
@@ -323,7 +323,7 @@ int simple_bu_parser_test(void)
 	}
 	
 	if (!err) {
-		fsl_os_print("Simple bring-up test completed successfully\n");
+		fsl_print("Simple bring-up test completed successfully\n");
 	}
 	
 	return err;

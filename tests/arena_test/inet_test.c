@@ -45,9 +45,9 @@ int ntop_test(void);
 #define PRINT_TEST_RESULT(PASS, MODULE, TEST) \
 	do { \
 		if (PASS) { \
-			fsl_os_print("%s test %s PASSED\n",MODULE, TEST); \
+			fsl_print("%s test %s PASSED\n",MODULE, TEST); \
 		} else { \
-			fsl_os_print("%s test %s ************* FAILED **************\n",MODULE, TEST); \
+			fsl_print("%s test %s ************* FAILED **************\n",MODULE, TEST); \
 			return TEST_FAILED; \
 		} \
 	} while (0)

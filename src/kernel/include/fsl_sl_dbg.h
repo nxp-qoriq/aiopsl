@@ -61,7 +61,7 @@
 
 #define SL_PRINT(...)                                                    \
 	do {                                                             \
-		fsl_os_print(__VA_ARGS__);                               \
+		fsl_print(__VA_ARGS__);                               \
 	} while (0)
 
 #endif /* !defined(SL_DEBUG) */
@@ -98,7 +98,7 @@
 /**************************************************************************//**
  @Function      sl_os_print(...)
 
- @Description   Same as fsl_os_print() but only for service layer developers
+ @Description   Same as fsl_print() but only for service layer developers
  	 	The users will not see those prints. In order to enable them
  	 	recompile the service layer library with SL_DEBUG.
  	 	The print recovers Accelerator Hardware Context and restore

@@ -81,7 +81,7 @@ int simple_bu_lpm_test(void)
 	uint8_t prpid;
 
 
-	fsl_os_print("Running simple bring-up test\n");
+	fsl_print("Running simple bring-up test\n");
 	
 	parser_init(&prpid);
 
@@ -147,9 +147,9 @@ int simple_bu_lpm_test(void)
 		/* Table Creation */
 		err = table_create(TABLE_ACCEL_ID_CTLU, &table_params,&table_id);
 		if (err)
-			fsl_os_print("ERROR: table_create failed with err = %x!\n", err);
+			fsl_print("ERROR: table_create failed with err = %x!\n", err);
 
-		fsl_os_print("table_create Done with table_id %d!\n", table_id);
+		fsl_print("table_create Done with table_id %d!\n", table_id);
 
 		/* Initialize a new table rule */
 		rule1.key_desc.lpm_ipv4.exact_match = 0x00004d03;
@@ -167,9 +167,9 @@ int simple_bu_lpm_test(void)
 		&rule1,
 		TABLE_KEY_LPM_IPV4_SIZE);
 		if (err)
-			fsl_os_print("ERROR: table_rule_create failed with err = %x!\n", err);
+			fsl_print("ERROR: table_rule_create failed with err = %x!\n", err);
 
-		fsl_os_print("table_rule_create Done!\n");
+		fsl_print("table_rule_create Done!\n");
 
 		/* Initialize a new table rule */
 		rule1.key_desc.lpm_ipv4.exact_match = 0x00004d02;
@@ -187,9 +187,9 @@ int simple_bu_lpm_test(void)
 		&rule1,
 		TABLE_KEY_LPM_IPV4_SIZE);
 		if (err)
-			fsl_os_print("ERROR: table_rule_create failed with err = %x!\n", err);
+			fsl_print("ERROR: table_rule_create failed with err = %x!\n", err);
 
-		fsl_os_print("table_rule_create Done!\n");
+		fsl_print("table_rule_create Done!\n");
 
 		/* Initialize a new table rule */
 		rule1.key_desc.lpm_ipv4.exact_match = 0x00004d02;
@@ -207,9 +207,9 @@ int simple_bu_lpm_test(void)
 		&rule1,
 		TABLE_KEY_LPM_IPV4_SIZE);
 		if (err)
-			fsl_os_print("ERROR: table_rule_create failed with err = %x!\n", err);
+			fsl_print("ERROR: table_rule_create failed with err = %x!\n", err);
 
-		fsl_os_print("table_rule_create Done!\n");
+		fsl_print("table_rule_create Done!\n");
 
 		
 		/* KCR building */
@@ -239,9 +239,9 @@ int simple_bu_lpm_test(void)
 		
 		err = keygen_kcr_create(KEYGEN_ACCEL_ID_CTLU, kcr, &keyid);
 		if (err)
-			fsl_os_print("ERROR: keygen_kcr_create failed with err = %x!\n", err);
+			fsl_print("ERROR: keygen_kcr_create failed with err = %x!\n", err);
 
-		fsl_os_print("keygen_kcr_create Done!\n", err);
+		fsl_print("keygen_kcr_create Done!\n", err);
 
 		//uint32_t frame_length;
 		/* setting SPID = 0 */
@@ -261,35 +261,35 @@ int simple_bu_lpm_test(void)
 		*(uint32_t *)(&storage_profile[0].pbs2) = *(uint32_t *)(&storage_profile[0].pbs1);
 
 		for (i=0; i<8 ; i++)
-			fsl_os_print("storage profile arg %d: 0x%x \n", i, *((uint32_t *)(&(storage_profile[0]))+i));
+			fsl_print("storage profile arg %d: 0x%x \n", i, *((uint32_t *)(&(storage_profile[0]))+i));
 		
 		
 		err = create_frame(fd, frame_data, FRAME_SIZE, &frame_handle);
 		if (err)
-			fsl_os_print("ERROR: create frame failed with err = %x!\n", err);
+			fsl_print("ERROR: create frame failed with err = %x!\n", err);
 
-		fsl_os_print("parse result before create frame - \n");
+		fsl_print("parse result before create frame - \n");
 		
-		fsl_os_print("ethernet offset %d %x\n", 
+		fsl_print("ethernet offset %d %x\n", 
 					PARSER_IS_ETH_MAC_DEFAULT(), PARSER_GET_ETH_OFFSET_DEFAULT());
 				
-		fsl_os_print("ipv4 offset %d %x\n", 
+		fsl_print("ipv4 offset %d %x\n", 
 					PARSER_IS_IP_DEFAULT(), PARSER_GET_OUTER_IP_OFFSET_DEFAULT());
 			
 /*
-		fsl_os_print("udp offset %d %x\n", 
+		fsl_print("udp offset %d %x\n", 
 					PARSER_IS_UDP_DEFAULT(), PARSER_GET_L4_OFFSET_DEFAULT());
 */
 
 		for (i=0; i<16 ; i++)
-			fsl_os_print("parse results arg %d: 0x%x \n", i, *((uint32_t *)(0x80)+i));
+			fsl_print("parse results arg %d: 0x%x \n", i, *((uint32_t *)(0x80)+i));
 
 		/* My Test */
 
 		keygen_gen_key(KEYGEN_ACCEL_ID_CTLU, keyid, NULL, &key, &key_size);
-		fsl_os_print("Key_size is %d\n", key_size);
+		fsl_print("Key_size is %d\n", key_size);
 		for (i=0; i<9 ; i++)
-			fsl_os_print("key[i] = 0x%x \n", key[i]);
+			fsl_print("key[i] = 0x%x \n", key[i]);
 		
 		
 		err = table_lookup_by_keyid(TABLE_ACCEL_ID_CTLU,
@@ -298,9 +298,9 @@ int simple_bu_lpm_test(void)
 		TABLE_LOOKUP_FLAG_NONE,
 		NULL,
 		&lookup_res);
-		fsl_os_print("table_lookup_by_keyid returned with status = %x!\n", err);
+		fsl_print("table_lookup_by_keyid returned with status = %x!\n", err);
 		if (!err){
-			fsl_os_print("lookup_res opaque2 = 0x%x\n", lookup_res.opaque2);
+			fsl_print("lookup_res opaque2 = 0x%x\n", lookup_res.opaque2);
 		}
 		
 		fdma_discard_default_frame(FDMA_DIS_NO_FLAGS);
@@ -308,7 +308,7 @@ int simple_bu_lpm_test(void)
 	}
 	
 	if (!err) {
-		fsl_os_print("Simple bring-up test completed successfully\n");
+		fsl_print("Simple bring-up test completed successfully\n");
 	}
 	
 	return err;
