@@ -37,11 +37,11 @@ def stack():
 	error_stack_too_big = False
 	print "Start script to check stack estimation in AIOP"
 
-	if check_if_file_exists("build/aiop_sim/tests/aiopsl_stack_estimation/out/aiop_app.MAP") == False:
+	if check_if_file_exists("build/ls2085a/rev1/tests/aiopsl_stack_estimation/out/aiop_app.MAP") == False:
 		exit(1)
 
 
-	ins = open( "build/aiop_sim/tests/aiopsl_stack_estimation/out/aiop_app.MAP", "r" )
+	ins = open( "build/ls2085a/rev1/tests/aiopsl_stack_estimation/out/aiop_app.MAP", "r" )
 
 	append_line = False
 	counter = 0
