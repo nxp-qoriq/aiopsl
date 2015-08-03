@@ -63,11 +63,11 @@ int dpni_drv_test(void){
 				/*Just to test functionality, because of promiscuous mode enabled - the packets will continue to receive*/
 				err = dpni_drv_remove_mac_addr((uint16_t)ni,((uint8_t []){0x02,0x00,0xC0,0xA8,0x0B,0xFE}));
 				if(err != 0) {
-					fsl_os_print("dpni_drv_remove_mac_addr error 02:00:C0:A8:0B:FE for ni %d\n",ni);
+					fsl_print("dpni_drv_remove_mac_addr error 02:00:C0:A8:0B:FE for ni %d\n",ni);
 					local_test_error |= err;
 				}
 				else {
-					fsl_os_print("dpni_drv_remove_mac_addr 02:00:C0:A8:0B:FE for ni %d succeeded\n",ni);
+					fsl_print("dpni_drv_remove_mac_addr 02:00:C0:A8:0B:FE for ni %d succeeded\n",ni);
 				}
 			}
 			dpni_ctr ++; /*increase counter so the function will be called only once*/
@@ -89,13 +89,13 @@ int dpni_drv_test(void){
 		ipv4header = (struct ipv4hdr *)ip_ptr;
 
 		ip_ptr = (char *)&(ipv4header->dst_addr);
-		fsl_os_print("DST IP: ");
+		fsl_print("DST IP: ");
 		for( int i = 0; i < NET_HDR_FLD_IPv4_ADDR_SIZE; i++)
 		{
-			fsl_os_print("%d.",*ip_ptr);
+			fsl_print("%d.",*ip_ptr);
 			ip_ptr ++;
 		}
-		fsl_os_print("\n");
+		fsl_print("\n");
 
 	}
 
@@ -125,11 +125,11 @@ int dpni_drv_test(void){
 
 	if(dpni_ctr == 3){
 		if(dpni_broadcast_flag == 0) {
-			fsl_os_print("dpni error - broadcast packets didn't received\n");
+			fsl_print("dpni error - broadcast packets didn't received\n");
 			local_test_error |= 0x01;
 		}
 		else {
-			fsl_os_print("dpni success - broadcast packets received during the test\n");
+			fsl_print("dpni success - broadcast packets received during the test\n");
 		}
 	}
 
@@ -179,10 +179,10 @@ int dpni_drv_test_create(void)
 	uint16_t token;
 	err = dpni_drv_create(&token);
 	if(err){
-		fsl_os_print("Creating dpni failed %d\n",err);
+		fsl_print("Creating dpni failed %d\n",err);
 	}
 	else{
-		fsl_os_print("DPNI created successfully with token %d\n",token);
+		fsl_print("DPNI created successfully with token %d\n",token);
 	}
 	return err;
 }
@@ -192,9 +192,9 @@ int dpni_drv_test_destroy(uint16_t ni)
 	int err;
 	err = dpni_drv_destroy(ni);
 	if (err) {
-		fsl_os_print("ERROR = %d: dpni_drv_destroy failed\n", err);
+		fsl_print("ERROR = %d: dpni_drv_destroy failed\n", err);
 	} else {
-		fsl_os_print("dpni_drv_destroy passed for NI %d\n", ni);
+		fsl_print("dpni_drv_destroy passed for NI %d\n", ni);
 	}
 	return err;
 }

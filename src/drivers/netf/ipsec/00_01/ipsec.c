@@ -1082,12 +1082,12 @@ void ipsec_generate_flc(
 	
 #if(0)
 	{
-		fsl_os_print("IPSEC: Flow Context Storage Profile\n");
+		fsl_print("IPSEC: Flow Context Storage Profile\n");
 		uint32_t j;
 		uint32_t val;
 		for(j=0;j<8;j++) {
 			val = *(uint32_t *)((uint32_t)flow_context.storage_profile + j*4);
-			fsl_os_print("Word %d = 0x%x\n", j, val);
+			fsl_print("Word %d = 0x%x\n", j, val);
 		}
 	}
 #endif	
@@ -1453,25 +1453,25 @@ __IPSEC_HOT_CODE int ipsec_frame_encrypt(
 #if(0)
 	// Debug //
 	{
-		fsl_os_print("IPSEC: Reading FD and FRC before SEC\n");
+		fsl_print("IPSEC: Reading FD and FRC before SEC\n");
 		uint32_t j;
 		uint32_t val;
 		for(j=0;j<8;j++) {
 			val = *(uint32_t *)((uint32_t)0x60 + j*4);
-			fsl_os_print("Word %d = 0x%x\n", j, val);
+			fsl_print("Word %d = 0x%x\n", j, val);
 		}
 		//val = LDPAA_FD_GET_FRC(HWC_FD_ADDRESS);
-		//fsl_os_print("FRC = 0x%x\n", val);
+		//fsl_print("FRC = 0x%x\n", val);
 		
 		//val = LDPAA_FD_GET_BPID(HWC_FD_ADDRESS);
 		val = *(uint8_t *)((uint32_t)0x60 + 12);
-		fsl_os_print("FD[BPID] = 0x%x\n", val);
+		fsl_print("FD[BPID] = 0x%x\n", val);
 
 		// Offset
 		//val = *(uint32_t *)((uint32_t)0x60 + 3*4);
 		//val = LDPAA_FD_GET_OFFSET(HWC_FD_ADDRESS);
-		//fsl_os_print("FD[OFFSET] = 0x%x %x\n", (val & 0xFF), (val & 0xFF00));
-		//fsl_os_print("FD[OFFSET] = 0x%x%x\n", (val & 0x0F), (val & 0xFF00)>>8);
+		//fsl_print("FD[OFFSET] = 0x%x %x\n", (val & 0xFF), (val & 0xFF00));
+		//fsl_print("FD[OFFSET] = 0x%x%x\n", (val & 0x0F), (val & 0xFF00)>>8);
 	}
 	// Debug End //
 #endif
@@ -1570,7 +1570,7 @@ __IPSEC_HOT_CODE int ipsec_frame_encrypt(
 		//dpovrd.tunnel_encap.word |= (16<<8); // including Ethernet   
 		// 27-16 Outer IP Header Material Length 
 		//dpovrd.tunnel_encap.word |= (14<<16); // including Ethernet   
-		//fsl_os_print("dpovrd.tunnel_encap.word 0x%x\n", dpovrd.tunnel_encap.word);
+		//fsl_print("dpovrd.tunnel_encap.word 0x%x\n", dpovrd.tunnel_encap.word);
 
 	} else {
 		/* For Transport mode set DPOVRD */
@@ -1743,29 +1743,29 @@ __IPSEC_HOT_CODE int ipsec_frame_encrypt(
 #if(0)
 	// Debug //
 	{
-		fsl_os_print("IPSEC: Reading FD and FRC after SEC (before FDMA)\n");
+		fsl_print("IPSEC: Reading FD and FRC after SEC (before FDMA)\n");
 		uint32_t j;
 		uint32_t val;
 		for(j=0;j<8;j++) {
 			val = *(uint32_t *)((uint32_t)0x60 + j*4);
-			fsl_os_print("Word %d = 0x%x\n", j, val);
+			fsl_print("Word %d = 0x%x\n", j, val);
 		}
 		
 		//val = *(uint8_t *)((uint32_t)0x60 + 12);
-		//fsl_os_print("FD[BPID] = 0x%x\n", val);
+		//fsl_print("FD[BPID] = 0x%x\n", val);
 		
 		val = LDPAA_FD_GET_FRC(HWC_FD_ADDRESS);
-		fsl_os_print("FRC = 0x%x\n", val);
+		fsl_print("FRC = 0x%x\n", val);
 		
 		val = (uint32_t)LDPAA_FD_GET_FMT(HWC_FD_ADDRESS);
-		fsl_os_print("FMT = 0x%x\n", val);
+		fsl_print("FMT = 0x%x\n", val);
 
 		// Offset
 		//val = *(uint32_t *)((uint32_t)0x60 + 3*4);
-		//fsl_os_print("FD[OFFSET] = 0x%x%x\n", (val & 0x0F), (val & 0xFF00)>>8);
+		//fsl_print("FD[OFFSET] = 0x%x%x\n", (val & 0x0F), (val & 0xFF00)>>8);
 		
 		//val = LDPAA_FD_GET_LENGTH(HWC_FD_ADDRESS);
-		//fsl_os_print("FD[LENGTH] = 0x%x\n", val);
+		//fsl_print("FD[LENGTH] = 0x%x\n", val);
 	}
 	// Debug End //
 #endif	
@@ -1796,21 +1796,21 @@ __IPSEC_HOT_CODE int ipsec_frame_encrypt(
 #if(0)
 	// Debug //
 	{
-		fsl_os_print("IPSEC: Reading FD and FRC after SEC\n");
+		fsl_print("IPSEC: Reading FD and FRC after SEC\n");
 		uint32_t j;
 		uint32_t val;
 		for(j=0;j<8;j++) {
 			val = *(uint32_t *)((uint32_t)0x60 + j*4);
-			fsl_os_print("Word %d = 0x%x\n", j, val);
+			fsl_print("Word %d = 0x%x\n", j, val);
 		}
 		val = LDPAA_FD_GET_FRC(HWC_FD_ADDRESS);
-		fsl_os_print("FRC = 0x%x\n", val);
+		fsl_print("FRC = 0x%x\n", val);
 		// Offset
 		val = *(uint32_t *)((uint32_t)0x60 + 3*4);
-		fsl_os_print("FD[OFFSET] = 0x%x%x\n", (val & 0x0F), (val & 0xFF00)>>8);
+		fsl_print("FD[OFFSET] = 0x%x%x\n", (val & 0x0F), (val & 0xFF00)>>8);
 		
 		val = LDPAA_FD_GET_LENGTH(HWC_FD_ADDRESS);
-		fsl_os_print("FD[LENGTH] = 0x%x\n", val);
+		fsl_print("FD[LENGTH] = 0x%x\n", val);
 	}
 	// Debug End //
 #endif	
@@ -1936,20 +1936,20 @@ __IPSEC_HOT_CODE int ipsec_frame_encrypt(
 					/* uint32_t flags */
 				);
 		
-//		fsl_os_print("SEC Checksum = 0x%x\n", checksum);
+//		fsl_print("SEC Checksum = 0x%x\n", checksum);
 //
 //		for (i=0;i<(eth_length>>1);i++) {
-//			fsl_os_print("Ethernet HW #%d = 0x%x\n",i, (*((uint16_t *)eth_header + i)));
+//			fsl_print("Ethernet HW #%d = 0x%x\n",i, (*((uint16_t *)eth_header + i)));
 //
 //			checksum = (*((uint16_t *)eth_header + i)) + checksum;
-//			fsl_os_print("Ethernet HW #%d checksum = 0x%x\n",i, checksum);
+//			fsl_print("Ethernet HW #%d checksum = 0x%x\n",i, checksum);
 //
 //			checksum = (uint16_t)(checksum + (checksum >> 16));
-//			fsl_os_print("Ethernet HW #%d checksum add carry = 0x%x\n",i, checksum);
+//			fsl_print("Ethernet HW #%d checksum add carry = 0x%x\n",i, checksum);
 //
 //		}
 //			
-//		fsl_os_print("Gross running sum = 0x%x\n", checksum);
+//		fsl_print("Gross running sum = 0x%x\n", checksum);
 //
 //			/* Update gross running sum */
 //			//pr->gross_running_sum = 0; // Invalidate
@@ -1971,21 +1971,21 @@ __IPSEC_HOT_CODE int ipsec_frame_encrypt(
 #if(0)
 	// Debug //
 	{
-		fsl_os_print("IPSEC: Reading FD before the parser\n");
+		fsl_print("IPSEC: Reading FD before the parser\n");
 		uint32_t j;
 		uint32_t val;
 		for(j=0;j<8;j++) {
 			val = *(uint32_t *)((uint32_t)0x60 + j*4);
-			fsl_os_print("Word %d = 0x%x\n", j, val);
+			fsl_print("Word %d = 0x%x\n", j, val);
 		}
 		val = LDPAA_FD_GET_FRC(HWC_FD_ADDRESS);
-		fsl_os_print("FRC = 0x%x\n", val);
+		fsl_print("FRC = 0x%x\n", val);
 		// Offset
 		val = *(uint32_t *)((uint32_t)0x60 + 3*4);
-		fsl_os_print("FD[OFFSET] = 0x%x%x\n", (val & 0x0F), (val & 0xFF00)>>8);
+		fsl_print("FD[OFFSET] = 0x%x%x\n", (val & 0x0F), (val & 0xFF00)>>8);
 		
 		val = LDPAA_FD_GET_LENGTH(HWC_FD_ADDRESS);
-		fsl_os_print("FD[LENGTH] = 0x%x\n", val);
+		fsl_print("FD[LENGTH] = 0x%x\n", val);
 	}
 	// Debug End //
 #endif	
@@ -2001,17 +2001,17 @@ __IPSEC_HOT_CODE int ipsec_frame_encrypt(
 #if(0)
 	// Debug //
 	{
-		fsl_os_print("IPSEC: Reading Parser results after encryption\n");
+		fsl_print("IPSEC: Reading Parser results after encryption\n");
 		uint32_t j;
 		uint32_t val;
 		for(j=0;j<12;j++) {
 			val = *(uint32_t *)((uint32_t)0x80 + j*4);
-			fsl_os_print("Word %d = 0x%x\n", j, val);
+			fsl_print("Word %d = 0x%x\n", j, val);
 		}
 		val = (uint32_t)((uint8_t *)PARSER_GET_L5_OFFSET_DEFAULT());
-		fsl_os_print("PARSER_GET_L5_OFFSET_DEFAULT = 0x%x\n", val);
+		fsl_print("PARSER_GET_L5_OFFSET_DEFAULT = 0x%x\n", val);
 		val = (uint32_t)((uint8_t *)PARSER_GET_OUTER_IP_OFFSET_DEFAULT());	
-		fsl_os_print("PARSER_GET_OUTER_IP_OFFSET_DEFAULT = 0x%x\n", val);
+		fsl_print("PARSER_GET_OUTER_IP_OFFSET_DEFAULT = 0x%x\n", val);
 		
 	}
 	// Debug End //
@@ -2285,22 +2285,22 @@ __IPSEC_HOT_CODE int ipsec_frame_decrypt(
 #if(0)
 	// Debug //
 	{
-		fsl_os_print("IPSEC: Reading FD and FRC before SEC\n");
+		fsl_print("IPSEC: Reading FD and FRC before SEC\n");
 		uint32_t j;
 		uint32_t val;
 		for(j=0;j<8;j++) {
 			val = *(uint32_t *)((uint32_t)0x60 + j*4);
-			fsl_os_print("Word %d = 0x%x\n", j, val);
+			fsl_print("Word %d = 0x%x\n", j, val);
 		}
 		val = LDPAA_FD_GET_FRC(HWC_FD_ADDRESS);
-		fsl_os_print("FRC = 0x%x\n", val);
+		fsl_print("FRC = 0x%x\n", val);
 		
 		// Offset
 		val = *(uint32_t *)((uint32_t)0x60 + 3*4);
 		//val = LDPAA_FD_GET_OFFSET(HWC_FD_ADDRESS);
-		//fsl_os_print("FD[OFFSET] = 0x%x %x\n", (val & 0xFF), (val & 0xFF00));
-		fsl_os_print("FD[OFFSET] = 0x%x%x\n", (val & 0x0F), (val & 0xFF00)>>8);
-		fsl_os_print("DPOVRD = 0x%x\n", *((uint32_t *)(&dpovrd)));
+		//fsl_print("FD[OFFSET] = 0x%x %x\n", (val & 0xFF), (val & 0xFF00));
+		fsl_print("FD[OFFSET] = 0x%x%x\n", (val & 0x0F), (val & 0xFF00)>>8);
+		fsl_print("DPOVRD = 0x%x\n", *((uint32_t *)(&dpovrd)));
 
 	}
 	// Debug End //
@@ -2407,18 +2407,18 @@ __IPSEC_HOT_CODE int ipsec_frame_decrypt(
 #if(0)
 	// Debug //
 	{
-		fsl_os_print("IPSEC: Reading FD and FRC after SEC\n");
+		fsl_print("IPSEC: Reading FD and FRC after SEC\n");
 		uint32_t j;
 		uint32_t val;
 		for(j=0;j<8;j++) {
 			val = *(uint32_t *)((uint32_t)0x60 + j*4);
-			fsl_os_print("Word %d = 0x%x\n", j, val);
+			fsl_print("Word %d = 0x%x\n", j, val);
 		}
 		val= LDPAA_FD_GET_FRC(HWC_FD_ADDRESS);
-		fsl_os_print("FRC = 0x%x\n", val);
+		fsl_print("FRC = 0x%x\n", val);
 		// Offset
 		//val = *(uint32_t *)((uint32_t)0x60 + 3*4);
-		//fsl_os_print("FD[OFFSET] = 0x%x%x\n", (val & 0x0F), (val & 0xFF00)>>8);
+		//fsl_print("FD[OFFSET] = 0x%x%x\n", (val & 0x0F), (val & 0xFF00)>>8);
 	}
 	// Debug End //
 #endif
@@ -2530,16 +2530,16 @@ __IPSEC_HOT_CODE int ipsec_frame_decrypt(
 		
 		/* Update the SEC checksum if adding L2 header*/
 		/*
-		fsl_os_print("SEC Checksum = 0x%x\n", checksum);
+		fsl_print("SEC Checksum = 0x%x\n", checksum);
 
 		for (i=0;i<(eth_length>>1);i++) {
-			fsl_os_print("Ethernet HW #%d = 0x%x\n",i, (*((uint16_t *)eth_header + i)));
+			fsl_print("Ethernet HW #%d = 0x%x\n",i, (*((uint16_t *)eth_header + i)));
 
 			checksum = (*((uint16_t *)eth_header + i)) + checksum;
-			fsl_os_print("Ethernet HW #%d checksum = 0x%x\n",i, checksum);
+			fsl_print("Ethernet HW #%d checksum = 0x%x\n",i, checksum);
 
 			checksum = (uint16_t)(checksum + (checksum >> 16));
-			fsl_os_print("Ethernet HW #%d checksum add carry = 0x%x\n",i, checksum);
+			fsl_print("Ethernet HW #%d checksum add carry = 0x%x\n",i, checksum);
 
 		}
 		*/	
@@ -2549,7 +2549,7 @@ __IPSEC_HOT_CODE int ipsec_frame_decrypt(
 			/* ipsec_frame_decrypt */
 			/*---------------------*/
 	
-	//fsl_os_print("Gross running sum = 0x%x\n", checksum);
+	//fsl_print("Gross running sum = 0x%x\n", checksum);
 	//pr->gross_running_sum = (uint16_t)checksum;
 
 	/* 	17.	Run parser and check for errors. */
@@ -2557,10 +2557,10 @@ __IPSEC_HOT_CODE int ipsec_frame_decrypt(
 	return_val = parse_result_generate_default(PARSER_NO_FLAGS);
 
 	//if (return_val) {
-	//	fsl_os_print("\nIPSEC: ERROR parser validation failed\n\n");
+	//	fsl_print("\nIPSEC: ERROR parser validation failed\n\n");
 	//} 
 	//else {
-	//	fsl_os_print("IPSEC: parser validation passed\n");
+	//	fsl_print("IPSEC: parser validation passed\n");
 	//}
 		
 	/////////////  Debug - FDMA checksum /////////////////////////////////////
@@ -2571,16 +2571,16 @@ __IPSEC_HOT_CODE int ipsec_frame_decrypt(
 	//
 	//checksum = (uint32_t)i;
 			
-	//fsl_os_print("FDMA gross running sum = 0x%x\n", checksum);
+	//fsl_print("FDMA gross running sum = 0x%x\n", checksum);
 	//pr->gross_running_sum = (uint16_t)checksum;
 	//return_val = parse_result_generate_default(PARSER_VALIDATE_L3_L4_CHECKSUM);
 	//return_val = parse_result_generate_default(PARSER_NO_FLAGS);
 
 	//if (return_val) {
-	//	fsl_os_print("\nIPSEC: ERROR parser validation failed\n\n");
+	//	fsl_print("\nIPSEC: ERROR parser validation failed\n\n");
 	//} 
 	//else {
-	//	fsl_os_print("IPSEC: parser validation passed\n");
+	//	fsl_print("IPSEC: parser validation passed\n");
 	//}
 
 	///////////////////// End Debu //////////////////////////////////////

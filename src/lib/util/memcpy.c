@@ -262,34 +262,34 @@ void mem_disp(uint8_t *p, int size)
     {
         p_limit = (p - space + 4);
 
-        fsl_os_print("0x%08X: ", (p - space));
+        fsl_print("0x%08X: ", (p - space));
 
         while (space--)
         {
-            fsl_os_print("--");
+            fsl_print("--");
         }
         while (size  && (p < p_limit))
         {
-            fsl_os_print("%02x", *(uint8_t*)p);
+            fsl_print("%02x", *(uint8_t*)p);
             size--;
             p++;
         }
 
-        fsl_os_print(" ");
+        fsl_print(" ");
         p_limit += 12;
 
         while ((size > 3) && (p < p_limit))
         {
-            fsl_os_print("%08x ", *(uint32_t*)p);
+            fsl_print("%08x ", *(uint32_t*)p);
             size -= 4;
             p += 4;
         }
-        fsl_os_print("\r\n");
+        fsl_print("\r\n");
     }
 
     while (size > 15)
     {
-        fsl_os_print("0x%08X: %08x %08x %08x %08x\r\n",
+        fsl_print("0x%08X: %08x %08x %08x %08x\r\n",
                  p, *(uint32_t *)p, *(uint32_t *)(p + 4),
                  *(uint32_t *)(p + 8), *(uint32_t *)(p + 12));
         size -= 16;
@@ -298,21 +298,21 @@ void mem_disp(uint8_t *p, int size)
 
     if (size)
     {
-        fsl_os_print("0x%08X: ", p);
+        fsl_print("0x%08X: ", p);
 
         while (size > 3)
         {
-            fsl_os_print("%08x ", *(uint32_t *)p);
+            fsl_print("%08x ", *(uint32_t *)p);
             size -= 4;
             p += 4;
         }
         while (size)
         {
-            fsl_os_print("%02x", *(uint8_t *)p);
+            fsl_print("%02x", *(uint8_t *)p);
             size--;
             p++;
         }
 
-        fsl_os_print("\r\n");
+        fsl_print("\r\n");
     }
 }

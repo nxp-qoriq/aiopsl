@@ -1079,7 +1079,7 @@ int duart_dump_regs(fsl_handle_t duart)
 
 
 	DUMP_TITLE(p_uart->p_mem_map, ("DUART registers"));
-	fsl_os_print("\r\n");
+	fsl_print("\r\n");
 
 	DUMP_VAR((p_uart->p_mem_map), urbr_uthr_udlb);
 	DUMP_VAR((p_uart->p_mem_map), uier_udmb);

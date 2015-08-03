@@ -131,65 +131,65 @@ __HOT_CODE ENTRY_POINT static void app_process_packet(void)
 
 	core_id = (int)core_get_id();
 	ni_id = (uint16_t)dpni_get_receive_niid();
-	fsl_os_print("Arena test for packet number %d, on core %d\n", local_packet_number, core_id);
+	fsl_print("Arena test for packet number %d, on core %d\n", local_packet_number, core_id);
 	err = dpni_drv_get_spid_ddr(ni_id, &spid_ddr);
 	if (err) {
-		fsl_os_print("ERROR = %d: get spid_ddr failed in runtime phase()\n", err);
+		fsl_print("ERROR = %d: get spid_ddr failed in runtime phase()\n", err);
 		local_test_error |= err;
 	} else {
-		fsl_os_print("spid_ddr is %d for packet %d\n",spid_ddr, local_packet_number);
+		fsl_print("spid_ddr is %d for packet %d\n",spid_ddr, local_packet_number);
 
 	}
 	err = dpni_drv_get_spid(ni_id, &spid_ddr);
 	if (err) {
-		fsl_os_print("ERROR = %d: get spid failed in runtime phase()\n", err);
+		fsl_print("ERROR = %d: get spid failed in runtime phase()\n", err);
 		local_test_error |= err;
 	} else {
-		fsl_os_print("spid is %d for packet %d\n",spid_ddr, local_packet_number);
+		fsl_print("spid is %d for packet %d\n",spid_ddr, local_packet_number);
 	}
 
 
 	err = aiop_mc_cmd_test();
 	if (err) {
-		fsl_os_print("ERROR = %d: aiop_mc_cmd_test failed in runtime phase()\n", err);
+		fsl_print("ERROR = %d: aiop_mc_cmd_test failed in runtime phase()\n", err);
 		local_test_error |= err;
 	} else {
-		fsl_os_print("aiop_mc_cmd_test passed in runtime phase()\n");
+		fsl_print("aiop_mc_cmd_test passed in runtime phase()\n");
 	}
 
 	err = pton_test();
 	if (err) {
-		fsl_os_print("ERROR = %d: pton_test failed in runtime phase()\n", err);
+		fsl_print("ERROR = %d: pton_test failed in runtime phase()\n", err);
 		local_test_error |= err;
 	} else {
-		fsl_os_print("pton_test passed in runtime phase()\n");
+		fsl_print("pton_test passed in runtime phase()\n");
 	}
 
 	err = ntop_test();
 	if (err) {
-		fsl_os_print("ERROR = %d: ntop_test failed in runtime phase()\n", err);
+		fsl_print("ERROR = %d: ntop_test failed in runtime phase()\n", err);
 		local_test_error |= err;
 	} else {
-		fsl_os_print("ntop_test passed in runtime phase()\n");
+		fsl_print("ntop_test passed in runtime phase()\n");
 	}
 
 	err = slab_test();
 	if (err) {
-		fsl_os_print("ERROR = %d: slab_test failed  in runtime phase \n", err);
+		fsl_print("ERROR = %d: slab_test failed  in runtime phase \n", err);
 		local_test_error |= err;
 	} else {
-		fsl_os_print("Slab test passed for packet number %d, on core %d\n", local_packet_number, core_id);
+		fsl_print("Slab test passed for packet number %d, on core %d\n", local_packet_number, core_id);
 		ORDER_SCOPE_CHECK(local_packet_number);
 	}
 
 	err = malloc_test();
 
 	if (err) {
-		fsl_os_print("ERROR = %d: Malloc test failed in runtime phase for\
+		fsl_print("ERROR = %d: Malloc test failed in runtime phase for\
                 packet number %d,on core %d \n", err,local_packet_number, core_id);
 		local_test_error |= err;
 	} else {
-		fsl_os_print("Malloc test passed for packet number %d, on core %d\n", local_packet_number, core_id);
+		fsl_print("Malloc test passed for packet number %d, on core %d\n", local_packet_number, core_id);
 		ORDER_SCOPE_CHECK(local_packet_number);
 	}
 
@@ -197,13 +197,13 @@ __HOT_CODE ENTRY_POINT static void app_process_packet(void)
 
 	err = random_test();
 	if (err) {
-		fsl_os_print("ERROR = %d: random_test failed in runtime phase \n", err);
+		fsl_print("ERROR = %d: random_test failed in runtime phase \n", err);
 		local_test_error |= err;
-		fsl_os_print("seed %x\n",seed_32bit);
+		fsl_print("seed %x\n",seed_32bit);
 	}
 	else{
-		fsl_os_print("seed %x\n",seed_32bit);
-		fsl_os_print("Random test passed for packet number %d, on core %d\n", local_packet_number, core_id);
+		fsl_print("seed %x\n",seed_32bit);
+		fsl_print("Random test passed for packet number %d, on core %d\n", local_packet_number, core_id);
 		ORDER_SCOPE_CHECK(local_packet_number);
 	}
 
@@ -212,40 +212,40 @@ __HOT_CODE ENTRY_POINT static void app_process_packet(void)
 
 	err = dpni_drv_test();
 	if (err) {
-		fsl_os_print("ERROR = %d: dpni_drv_test failed in runtime phase()\n", err);
+		fsl_print("ERROR = %d: dpni_drv_test failed in runtime phase()\n", err);
 		local_test_error |= err;
 	} else {
-		fsl_os_print("dpni_drv_test passed in runtime phase()\n");
+		fsl_print("dpni_drv_test passed in runtime phase()\n");
 	}
 
 	flc = LDPAA_FD_GET_FLC(HWC_FD_ADDRESS);
-	fsl_os_print("FLC: 0x%llx\n",flc);
+	fsl_print("FLC: 0x%llx\n",flc);
 
 	lock_spinlock(&time_lock);
 	err = fsl_get_time_ms(&time_ms);
 	err |= fsl_get_time_since_epoch_ms(&time_ms_since_epoch);
 
 	if(err){
-		fsl_os_print("ERROR = %d: fsl_os_gettimeofday failed  in runtime phase \n", err);
+		fsl_print("ERROR = %d: fsl_os_gettimeofday failed  in runtime phase \n", err);
 		local_test_error |= err;
 		unlock_spinlock(&time_lock);
 	}else {
 
-		fsl_os_print("time ms is: %d milliseconds \n",time_ms);
-		fsl_os_print("time since epoch is: %ll milliseconds\n",time_ms_since_epoch);
+		fsl_print("time ms is: %d milliseconds \n",time_ms);
+		fsl_print("time since epoch is: %ll milliseconds\n",time_ms_since_epoch);
 
 
 		local_time = time_ms_since_epoch;
 
 		if(local_time >= global_time)
 		{
-			fsl_os_print("time test passed for packet number %d, on core %d\n", local_packet_number, core_id);
+			fsl_print("time test passed for packet number %d, on core %d\n", local_packet_number, core_id);
 			global_time = local_time;
 			ORDER_SCOPE_CHECK(local_packet_number);
 		}
 		else
 		{
-			fsl_os_print("ERROR = %d: time test failed in runtime phase \n", err);
+			fsl_print("ERROR = %d: time test failed in runtime phase \n", err);
 			local_test_error |= 0x01;
 		}
 		unlock_spinlock(&time_lock);
@@ -258,7 +258,7 @@ __HOT_CODE ENTRY_POINT static void app_process_packet(void)
 
 	err = dpni_drv_send(ni_id);
 	if (err){
-		fsl_os_print("ERROR = %d: dpni_drv_send(ni_id)\n",err);
+		fsl_print("ERROR = %d: dpni_drv_send(ni_id)\n",err);
 		local_test_error |= err;
 		if(err == -ENOMEM)
 			fdma_discard_default_frame(FDMA_DIS_NO_FLAGS);
@@ -275,11 +275,11 @@ __HOT_CODE ENTRY_POINT static void app_process_packet(void)
 		{
 			err = dpni_drv_get_counter((uint16_t)ni_id,(enum dpni_drv_counter)i ,&ctr_value);
 			if(err != 0) {
-				fsl_os_print("dpni_drv_get_counter failed: CTR %d, error %d\n", i, err);
+				fsl_print("dpni_drv_get_counter failed: CTR %d, error %d\n", i, err);
 				local_test_error |= err;
 			}
 			else {
-				fsl_os_print("dpni_drv_get_counter: CTR: %d = %ll\n",i,ctr_value);
+				fsl_print("dpni_drv_get_counter: CTR: %d = %ll\n",i,ctr_value);
 			}
 		}
 
@@ -287,14 +287,14 @@ __HOT_CODE ENTRY_POINT static void app_process_packet(void)
 		if(err){
 			pr_err("dpni_drv_disable for ni %d failed: %d\n", ni_id, err);
 			pr_err("Generating link change event should fail\n");
-			fsl_os_print("ARENA Test Finished with ERRORS\n");
+			fsl_print("ARENA Test Finished with ERRORS\n");
 			fdma_terminate_task();
 		}
 
 
 	}
 	if(local_test_error == 0){
-		fsl_os_print("Packet Processed SUCCESSFULLY\n");
+		fsl_print("Packet Processed SUCCESSFULLY\n");
 	}
 	/*MUST call fdma_terminate task in the end of cb function*/
 	fdma_terminate_task();
@@ -317,18 +317,18 @@ int app_early_init(void){
 static void arena_test_finished(void)
 {
 	if(order_scope_ordering_err > 0){
-		fsl_os_print("Ordering test failed for 40 packets (no order by src ip)\n");
+		fsl_print("Ordering test failed for 40 packets (no order by src ip)\n");
 		test_error |= 1;
 	}
 	else{
-		fsl_os_print("Ordering by src ip test PASSED (always pass for exclusive mode)\n");
+		fsl_print("Ordering by src ip test PASSED (always pass for exclusive mode)\n");
 	}
 	if(order_scope_conc == 0){
-		fsl_os_print("Ordering test failed for 40 packets (not concurrent)\n");
+		fsl_print("Ordering test failed for 40 packets (not concurrent)\n");
 		test_error |= 1;
 	}
 	else{
-		fsl_os_print("Concurrent test PASSED\n");
+		fsl_print("Concurrent test PASSED\n");
 	}
 
 
@@ -336,21 +336,21 @@ static void arena_test_finished(void)
 	{
 		int i, j;
 		int not_active_task = 0;
-		fsl_os_print("No errors were found during injection of 40 packets\n");
-		fsl_os_print("1 packet was sent with removed MAC address\n");
-		fsl_os_print("Only 39 (0-38) packets should be received\n");
-		fsl_os_print("Test executed with %d cores and %d tasks per core\n", num_of_cores, num_of_tasks);
-		fsl_os_print("Cores/Tasks processed packets during the test:\n");
-		fsl_os_print("CORE/TASK ");
+		fsl_print("No errors were found during injection of 40 packets\n");
+		fsl_print("1 packet was sent with removed MAC address\n");
+		fsl_print("Only 39 (0-38) packets should be received\n");
+		fsl_print("Test executed with %d cores and %d tasks per core\n", num_of_cores, num_of_tasks);
+		fsl_print("Cores/Tasks processed packets during the test:\n");
+		fsl_print("CORE/TASK ");
 		for(i = 0; i < num_of_tasks; i++)
-			fsl_os_print("  %d ",i);
+			fsl_print("  %d ",i);
 
 		for(i = 0; i < num_of_cores; i++)
 		{
 			if(i < 10)
-				fsl_os_print("\nCore  %d:  ", i);
+				fsl_print("\nCore  %d:  ", i);
 			else
-				fsl_os_print("\nCore %d:  ", i);
+				fsl_print("\nCore %d:  ", i);
 			for(j = 0; j < num_of_tasks; j++)
 			{
 				if(rnd_seed[i][j] == 0)
@@ -358,37 +358,37 @@ static void arena_test_finished(void)
 					not_active_task ++;
 
 					if(j < 10)
-						fsl_os_print("  X ");
+						fsl_print("  X ");
 					else
-						fsl_os_print("   X ");
+						fsl_print("   X ");
 				}
 				else
 				{
 					if(j <10)
-						fsl_os_print("  V ");
+						fsl_print("  V ");
 					else
-						fsl_os_print("   V ");
+						fsl_print("   V ");
 				}
 			}
 		}
 
 		if(not_active_task > 0){
-			fsl_os_print("\nWARNING: Not all the tasks were active during the test!\n");
+			fsl_print("\nWARNING: Not all the tasks were active during the test!\n");
 
 		}
 
 
-		fsl_os_print("\nARENA Test Finished SUCCESSFULLY\n");
+		fsl_print("\nARENA Test Finished SUCCESSFULLY\n");
 		for(i = 0; i < SLAB_MAX_BMAN_POOLS_NUM; i++){
 
-			fsl_os_print("Slab bman pools status:\n");
-			fsl_os_print("bman pool id: %d, remaining: %d\n",g_slab_bman_pools[i].bman_pool_id, g_slab_bman_pools[i].remaining);
+			fsl_print("Slab bman pools status:\n");
+			fsl_print("bman pool id: %d, remaining: %d\n",g_slab_bman_pools[i].bman_pool_id, g_slab_bman_pools[i].remaining);
 
 		}
 
 	}
 	else {
-		fsl_os_print("ARENA Test Finished with ERRORS\n");
+		fsl_print("ARENA Test Finished with ERRORS\n");
 	}
 }
 
@@ -403,8 +403,8 @@ static int app_dpni_event_removed_cb(
 	UNUSED(event_id);
 	UNUSED(app_ctx);
 
-	fsl_os_print("AIOP ni %d was removed\n", ni);
-	fsl_os_print("All the supported events for DPNI and DPRC passed\n");
+	fsl_print("AIOP ni %d was removed\n", ni);
+	fsl_print("All the supported events for DPNI and DPRC passed\n");
 	arena_test_finished();
 	return 0;
 }
@@ -445,19 +445,19 @@ static int app_dpni_event_added_cb(
 	err = dpni_drv_add_mac_addr(ni, ((uint8_t []){0x02, 0x00 ,0xc0 ,0x0a8 ,0x0b ,0xfe }));
 
 	if (err){
-		fsl_os_print("dpni_drv_add_mac_addr failed %d\n", err);
+		fsl_print("dpni_drv_add_mac_addr failed %d\n", err);
 		test_error |= 0x01;
 	}
 	else{
-		fsl_os_print("dpni_drv_add_mac_addr succeeded in boot\n");
-		fsl_os_print("MAC 02:00:C0:A8:0B:FE added for ni %d\n",ni);
+		fsl_print("dpni_drv_add_mac_addr succeeded in boot\n");
+		fsl_print("MAC 02:00:C0:A8:0B:FE added for ni %d\n",ni);
 	}
 	dpni_drv_set_exclusive(ni);
 	if(!sys.runtime_flag){
 		num_of_nis_arena ++;
 		err = dpni_drv_set_order_scope(ni,&dist_key_cfg);
 		if (err){
-			fsl_os_print("dpni_drv_set_order_scope failed %d\n", err);
+			fsl_print("dpni_drv_set_order_scope failed %d\n", err);
 			return err;
 		}
 	}
@@ -465,58 +465,58 @@ static int app_dpni_event_added_cb(
 								  (rx_cb_t *)app_ctx);
 
 	if (err){
-		fsl_os_print("ERROR: dpni_drv_register_rx_cb Failed: %d\n ",err);
+		fsl_print("ERROR: dpni_drv_register_rx_cb Failed: %d\n ",err);
 		return err;
 	}
 	ep = dpni_drv_get_ordering_mode(ni);
-	fsl_os_print("initial order scope execution phase for tasks %d\n",ep);
+	fsl_print("initial order scope execution phase for tasks %d\n",ep);
 
 	err = dpni_drv_get_link_state( ni, &link_state);
 	if(err){
-		fsl_os_print("dpni_drv_get_link_state failed %d\n", err);
+		fsl_print("dpni_drv_get_link_state failed %d\n", err);
 		test_error |= 0x01;
 	}
 	else{
-		fsl_os_print("dpni_drv_get_link_state succeeded in boot\n");
-		fsl_os_print("link state: %d for ni %d\n", link_state.up, ni);
+		fsl_print("dpni_drv_get_link_state succeeded in boot\n");
+		fsl_print("link state: %d for ni %d\n", link_state.up, ni);
 	}
 
 	err = dpni_drv_clear_mac_filters( ni, 1, 1);
 	if(err){
-		fsl_os_print("dpni_drv_clear_mac_filters failed %d\n", err);
+		fsl_print("dpni_drv_clear_mac_filters failed %d\n", err);
 		test_error |= 0x01;
 	}
 	else{
-		fsl_os_print("dpni_drv_clear_mac_filters succeeded in boot\n");
+		fsl_print("dpni_drv_clear_mac_filters succeeded in boot\n");
 	}
 
 	err = dpni_drv_add_mac_addr(ni, ((uint8_t []){0x02, 0x00 ,0xc0 ,0x0a8 ,0x0b ,0xfe }));
 
 	if (err){
-		fsl_os_print("dpni_drv_add_mac_addr failed %d\n", err);
+		fsl_print("dpni_drv_add_mac_addr failed %d\n", err);
 		test_error |= 0x01;
 	}
 	else{
-		fsl_os_print("dpni_drv_add_mac_addr succeeded in boot\n");
-		fsl_os_print("MAC 02:00:C0:A8:0B:FE added for ni %d\n",ni);
+		fsl_print("dpni_drv_add_mac_addr succeeded in boot\n");
+		fsl_print("MAC 02:00:C0:A8:0B:FE added for ni %d\n",ni);
 	}
 
 	err = dpni_drv_get_connected_obj(ni, &id, type, &state);
-	fsl_os_print("Given NI: %d, Con. obj. ID: %d, Type %s, Stat: %d\n",(int)ni,(int)id,type,(int)state);
+	fsl_print("Given NI: %d, Con. obj. ID: %d, Type %s, Stat: %d\n",(int)ni,(int)id,type,(int)state);
 	if(err){
-		fsl_os_print("Error: dpni_drv_get_connected_obj: error %d\n",err);
+		fsl_print("Error: dpni_drv_get_connected_obj: error %d\n",err);
 		test_error |= 0x01;
 	}
 
 	err = dpni_drv_get_connected_ni(id, type, &ni2, &state);
-	fsl_os_print("Given OBJ ID: %d, Type %s, Con. NI: %d, Stat: %d\n",(int)id,type,(int)ni2,(int)state);
+	fsl_print("Given OBJ ID: %d, Type %s, Con. NI: %d, Stat: %d\n",(int)id,type,(int)ni2,(int)state);
 	if(!sys.runtime_flag){ /*In runtime we create a dpni which is not connected to any object*/
 		if(err){
-			fsl_os_print("Error: dpni_drv_get_connected_obj: error %d\n",err);
+			fsl_print("Error: dpni_drv_get_connected_obj: error %d\n",err);
 			test_error |= 0x01;
 		}
 		if(ni != ni2){
-			fsl_os_print("NI's are not the same %d,%d\n",(int)ni,(int)ni2);
+			fsl_print("NI's are not the same %d,%d\n",(int)ni,(int)ni2);
 			test_error |= 0x01;
 		}
 	}
@@ -527,7 +527,7 @@ static int app_dpni_event_added_cb(
 	layout.data_tail_room = 0x50;
 	err = dpni_drv_set_rx_buffer_layout(ni,&layout );
 	if(err){
-		fsl_os_print("Error: dpni_drv_get_rx_buffer_layout: error %d\n",err);
+		fsl_print("Error: dpni_drv_get_rx_buffer_layout: error %d\n",err);
 		test_error |= 0x01;
 	}
 
@@ -536,12 +536,12 @@ static int app_dpni_event_added_cb(
 	err = dpni_drv_get_initial_presentation((uint16_t)ni,
 			&init_orig_pres);
 	if (err){
-		fsl_os_print("dpni_drv_get_initial_presentation failed %d\n", err);
+		fsl_print("dpni_drv_get_initial_presentation failed %d\n", err);
 		test_error |= 0x01;
 	}
 	else{
-		fsl_os_print("Initial_presentation ORIGINAL params:\n");
-		fsl_os_print("fdpa: %x\n"
+		fsl_print("Initial_presentation ORIGINAL params:\n");
+		fsl_print("fdpa: %x\n"
 			"adpca:%x\n"
 			"ptapa:%x\n"
 			"asapa:%x\n"
@@ -580,24 +580,24 @@ static int app_dpni_event_added_cb(
 	err = dpni_drv_set_initial_presentation((uint16_t)ni,
 											&init_pres);
 	if (err){
-		fsl_os_print("dpni_drv_set_initial_presentation failed %d\n", err);
+		fsl_print("dpni_drv_set_initial_presentation failed %d\n", err);
 		test_error |= 0x01;
 	}
 	else{
-		fsl_os_print("dpni_drv_set_initial_presentation succeeded in boot\n");
+		fsl_print("dpni_drv_set_initial_presentation succeeded in boot\n");
 	}
 	memset(&init_pres, 0, sizeof(struct ep_init_presentation));
 
 	err = dpni_drv_get_initial_presentation((uint16_t)ni,
 											&init_pres);
 	if (err){
-		fsl_os_print("dpni_drv_get_initial_presentation failed %d\n", err);
+		fsl_print("dpni_drv_get_initial_presentation failed %d\n", err);
 		test_error |= 0x01;
 	}
 	else{
-		fsl_os_print("dpni_drv_get_initial_presentation succeeded in boot\n");
-		fsl_os_print("Initial_presentation params:\n");
-		fsl_os_print("fdpa: %x\n"
+		fsl_print("dpni_drv_get_initial_presentation succeeded in boot\n");
+		fsl_print("Initial_presentation params:\n");
+		fsl_print("fdpa: %x\n"
 			"adpca:%x\n"
 			"ptapa:%x\n"
 			"asapa:%x\n"
@@ -627,7 +627,7 @@ static int app_dpni_event_added_cb(
 		init_pres.nds != 1){
 
 		test_error |= 0x01;
-		fsl_os_print("Error: dpni_drv_get_initial_presentation values are incorrect\n");
+		fsl_print("Error: dpni_drv_get_initial_presentation values are incorrect\n");
 
 	}
 
@@ -639,15 +639,15 @@ static int app_dpni_event_added_cb(
 	err = dpni_drv_set_initial_presentation((uint16_t)ni,
 	                                        &init_orig_pres);
 	if (err){
-		fsl_os_print("dpni_drv_set_initial_presentation back to origin failed %d\n", err);
+		fsl_print("dpni_drv_set_initial_presentation back to origin failed %d\n", err);
 		test_error |= 0x01;
 	}
 	else{
-		fsl_os_print("dpni_drv_set_initial_presentation back to origin succeeded in boot\n");
+		fsl_print("dpni_drv_set_initial_presentation back to origin succeeded in boot\n");
 	}
 	err = dpni_drv_enable(ni);
 	if(err){
-		fsl_os_print("Error: dpni_drv_enable: error %d\n",err);
+		fsl_print("Error: dpni_drv_enable: error %d\n",err);
 		test_error |= 0x01;
 	}
 	err = dpni_drv_disable(ni);
@@ -663,16 +663,16 @@ static int app_dpni_event_added_cb(
 
 	err = dpni_drv_get_rx_buffer_layout(ni,&layout );
 	if(err){
-		fsl_os_print("Error: dpni_drv_get_rx_buffer_layout: error %d\n",err);
+		fsl_print("Error: dpni_drv_get_rx_buffer_layout: error %d\n",err);
 		test_error |= 0x01;
 	}
-	fsl_os_print("Buffer Layout:\n");
-	fsl_os_print("Options: 0x%x\n",layout.options);
-	fsl_os_print("data_head_room: 0x%x\n", layout.data_head_room);
-	fsl_os_print("data_tail_room: 0x%x\n", layout.data_tail_room);
+	fsl_print("Buffer Layout:\n");
+	fsl_print("Options: 0x%x\n",layout.options);
+	fsl_print("data_head_room: 0x%x\n", layout.data_head_room);
+	fsl_print("data_tail_room: 0x%x\n", layout.data_tail_room);
 
 	if(layout.data_head_room != 0x40 || layout.data_tail_room != 0x50){
-		fsl_os_print("Error: dpni_drv_get/set_rx_buffer_layout finished with incorrect values\n");
+		fsl_print("Error: dpni_drv_get/set_rx_buffer_layout finished with incorrect values\n");
 		test_error |= 0x01;
 	}
 
@@ -682,15 +682,15 @@ static int app_dpni_event_added_cb(
 		(AIOP_PERIPHERALS_OFF + AIOP_STORAGE_PROFILE_OFF);
 	err = dpni_drv_get_spid(ni, &spid);
 	if (err) {
-		fsl_os_print("ERROR = %d: dpni_drv_get_spid failed\n", err);
+		fsl_print("ERROR = %d: dpni_drv_get_spid failed\n", err);
 		test_error |= err;
 	} else {
-		fsl_os_print("NI %d - spid is %d\n", ni, spid);
+		fsl_print("NI %d - spid is %d\n", ni, spid);
 	}
 
 	sp_addr += spid;
 	if(sp_addr->bp1 == 0){
-		fsl_os_print("Error: spid bp1 is 0\n");
+		fsl_print("Error: spid bp1 is 0\n");
 		test_error |= 0x01;
 	}
 
@@ -698,35 +698,35 @@ static int app_dpni_event_added_cb(
 		(AIOP_PERIPHERALS_OFF + AIOP_STORAGE_PROFILE_OFF);
 	err = dpni_drv_get_spid_ddr(ni, &spid);
 	if (err) {
-		fsl_os_print("ERROR = %d: dpni_drv_get_spid_ddr failed\n", err);
+		fsl_print("ERROR = %d: dpni_drv_get_spid_ddr failed\n", err);
 		test_error |= err;
 	} else {
-		fsl_os_print("NI %d - spid DDR is %d\n", ni, spid);
+		fsl_print("NI %d - spid DDR is %d\n", ni, spid);
 	}
 
 	sp_addr += spid;
 	if(sp_addr->bp1 == 0){
-		fsl_os_print("Error: spid ddr bp1 is 0\n");
+		fsl_print("Error: spid ddr bp1 is 0\n");
 		test_error |= 0x01;
 	}
 
 	err = dpni_drv_set_multicast_promisc(ni, 1);
 	if(err != 0) {
-		fsl_os_print("dpni_drv_set_multicast_promisc error for ni %d\n",ni);
+		fsl_print("dpni_drv_set_multicast_promisc error for ni %d\n",ni);
 		test_error |= err;
 	}
 	else {
-		fsl_os_print("dpni_drv_set_multicast_promisc for ni %d succeeded\n",ni);
+		fsl_print("dpni_drv_set_multicast_promisc for ni %d succeeded\n",ni);
 	}
 
 
 	err = dpni_drv_get_multicast_promisc(ni, &promisc);
 	if(err != 0 || promisc != 1) {
-		fsl_os_print("dpni_drv_get_multicast_promisc error for ni %d\n",ni);
+		fsl_print("dpni_drv_get_multicast_promisc error for ni %d\n",ni);
 		test_error |= err;
 	}
 	else {
-		fsl_os_print("dpni_drv_get_multicast_promisc for ni %d succeeded\n",ni);
+		fsl_print("dpni_drv_get_multicast_promisc for ni %d succeeded\n",ni);
 	}
 
 
@@ -742,38 +742,38 @@ static int app_dpni_event_added_cb(
 	err |= dpni_drv_reset_counter(ni, DPNI_DRV_CNT_EGR_BYTE);
 	err |= dpni_drv_reset_counter(ni, DPNI_DRV_CNT_EGR_FRAME_DISCARD);
 	if(err != 0) {
-		fsl_os_print("dpni_drv_reset_counter error for ni %d\n",ni);
+		fsl_print("dpni_drv_reset_counter error for ni %d\n",ni);
 		test_error |= err;
 	}
 	else {
-		fsl_os_print("dpni_drv_reset_counter for ni %d succeeded\n",ni);
+		fsl_print("dpni_drv_reset_counter for ni %d succeeded\n",ni);
 	}
 
 	err = dpni_drv_get_dpni_id(ni, &dpni);
 	if(err != 0) {
-		fsl_os_print("dpni_drv_get_dpni_id error for ni %d\n",ni);
+		fsl_print("dpni_drv_get_dpni_id error for ni %d\n",ni);
 		test_error |= err;
 	}
 	else {
-		fsl_os_print("dpni_drv_get_dpni_id for ni %d succeeded - DPNI %d\n",(int)ni,(int)dpni);
+		fsl_print("dpni_drv_get_dpni_id for ni %d succeeded - DPNI %d\n",(int)ni,(int)dpni);
 
 		err = dpni_drv_get_ni_id(dpni, &ni2);
 		if(err != 0) {
-			fsl_os_print("dpni_drv_get_ni_id error for ni %d\n",ni);
+			fsl_print("dpni_drv_get_ni_id error for ni %d\n",ni);
 			test_error |= err;
 		}
 		else if(ni == ni2) {
-			fsl_os_print("dpni_drv_get_ni_id for ni %d succeeded, NI's are the same\n",ni);
+			fsl_print("dpni_drv_get_ni_id for ni %d succeeded, NI's are the same\n",ni);
 		}
 		else{
-			fsl_os_print("dpni_drv_get_ni_id error, ni's not match %d, %d\n",(int)ni, (int)ni2);
+			fsl_print("dpni_drv_get_ni_id error, ni's not match %d, %d\n",(int)ni, (int)ni2);
 			test_error |= 0x1;
 		}
 	}
 
 	err = dpni_drv_enable(ni);
 	if(err){
-		fsl_os_print("Error: dpni_drv_enable: error %d\n",err);
+		fsl_print("Error: dpni_drv_enable: error %d\n",err);
 		test_error |= 0x01;
 	}
 	if(sys.runtime_flag){
@@ -796,24 +796,24 @@ static int app_dpni_link_change_cb(
 	UNUSED(event_id);
 
 	if(event_id == DPNI_EVENT_LINK_DOWN){
-		fsl_os_print("DPNI link down NI %d\n",ni);
+		fsl_print("DPNI link down NI %d\n",ni);
 		if(app_ctx != 0x1234){
-			fsl_os_print("app_ctx 0x%x for link down must be 0x1234\n", app_ctx);
+			fsl_print("app_ctx 0x%x for link down must be 0x1234\n", app_ctx);
 			test_error |= 1;
 		}
 		err = dpni_drv_enable(ni);
 		if(err){
-			fsl_os_print("dpni_drv_enable for ni %d failed: %d\n", ni, err);
+			fsl_print("dpni_drv_enable for ni %d failed: %d\n", ni, err);
 			return err;
 		}
 		else{
-			fsl_os_print("DPNI enabled for AIOP ni %d\n",ni);
+			fsl_print("DPNI enabled for AIOP ni %d\n",ni);
 		}
 	}
 	else if(event_id == DPNI_EVENT_LINK_UP){
-		fsl_os_print("DPNI link up NI %d\n",ni);
+		fsl_print("DPNI link up NI %d\n",ni);
 		if(app_ctx != 0x4321){
-			fsl_os_print("app_ctx 0x%x for link up must be 0x4321\n", app_ctx);
+			fsl_print("app_ctx 0x%x for link up must be 0x4321\n", app_ctx);
 			test_error |= 1;
 		}
 
@@ -824,7 +824,7 @@ static int app_dpni_link_change_cb(
 		}
 	}
 	else{
-		fsl_os_print("Event not supported %d\n", event_id);
+		fsl_print("Event not supported %d\n", event_id);
 	}
 
 	return 0;
@@ -867,56 +867,56 @@ int app_init(void)
 	err = single_cluster_test();
 	err |= multi_cluster_test();
 	if (err) {
-		fsl_os_print("ERROR = %d: cluster_test failed in init phase()\n", err);
+		fsl_print("ERROR = %d: cluster_test failed in init phase()\n", err);
 		test_error |= err;
 	}
 
 	err = aiop_mc_cmd_test();
 	if (err) {
-		fsl_os_print("ERROR = %d: aiop_mc_cmd_test failed in init phase()\n", err);
+		fsl_print("ERROR = %d: aiop_mc_cmd_test failed in init phase()\n", err);
 		test_error |= err;
 	}
 
 	err = slab_init();
 	if (err) {
-		fsl_os_print("ERROR = %d: slab_init failed  in init phase()\n", err);
+		fsl_print("ERROR = %d: slab_init failed  in init phase()\n", err);
 		test_error |= err;
 	}
 	else
-		fsl_os_print("slab_init  succeeded  in init phase()\n", err);
+		fsl_print("slab_init  succeeded  in init phase()\n", err);
 
 	err = malloc_test();
 	if (err) {
-		fsl_os_print("ERROR = %d: malloc_test failed in init phase()\n", err);
+		fsl_print("ERROR = %d: malloc_test failed in init phase()\n", err);
 		test_error |= err;
 	}
 	else
-		fsl_os_print("malloc_test succeeded  in init phase()\n", err);
+		fsl_print("malloc_test succeeded  in init phase()\n", err);
 	err = random_init();
 	if (err) {
-		fsl_os_print("ERROR = %d: random_test failed in init phase()\n", err);
+		fsl_print("ERROR = %d: random_test failed in init phase()\n", err);
 		test_error |= err;
 	} else {
-		fsl_os_print("random_test passed in init phase()\n");
+		fsl_print("random_test passed in init phase()\n");
 	}
 
 	err = pton_test();
 	if (err) {
-		fsl_os_print("ERROR = %d: pton_test failed in init phase()\n", err);
+		fsl_print("ERROR = %d: pton_test failed in init phase()\n", err);
 		test_error |= err;
 	} else {
-		fsl_os_print("pton_test passed in init phase()\n");
+		fsl_print("pton_test passed in init phase()\n");
 	}
 
 	err = ntop_test();
 	if (err) {
-		fsl_os_print("ERROR = %d: ntop_test failed in init phase()\n", err);
+		fsl_print("ERROR = %d: ntop_test failed in init phase()\n", err);
 		test_error |= err;
 	} else {
-		fsl_os_print("ntop_test passed in init phase()\n");
+		fsl_print("ntop_test passed in init phase()\n");
 	}
 
-	fsl_os_print("To start test inject packets: \"arena_test_40.pcap\" after AIOP boot complete.\n");
+	fsl_print("To start test inject packets: \"arena_test_40.pcap\" after AIOP boot complete.\n");
 	return 0;
 }
 

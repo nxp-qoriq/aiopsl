@@ -127,7 +127,7 @@ __COLD_CODE static void dpci_tbl_dump()
 	pr_debug("----------DPCI table: count = %d max = %d printing = %d----------\n", 
 	             g_dpci_tbl.count, g_dpci_tbl.max, num_entries);
 	for (i = 0; i < num_entries; i++) {
-		fsl_os_print("ID = 0x%x\t PEER ID = 0x%x\t IC = 0x%x\t flags = 0x%x\t\n",
+		fsl_print("ID = 0x%x\t PEER ID = 0x%x\t IC = 0x%x\t flags = 0x%x\t\n",
 		             g_dpci_tbl.dpci_id[i], g_dpci_tbl.dpci_id_peer[i], 
 		             g_dpci_tbl.ic[i], g_dpci_tbl.flags[i]);
 	}
