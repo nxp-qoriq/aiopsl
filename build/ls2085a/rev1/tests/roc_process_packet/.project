@@ -3,7 +3,7 @@
 	<name>roc_process_packet</name>
 	<comment></comment>
 	<projects>
-		<project location="PARENT-3-PROJECT_LOC/aiopsl">
+		<project location="PARENT-2-PROJECT_LOC/aiopsl">
 aiop_sl		</project>
 	</projects>
 	<buildSpec>
@@ -24,7 +24,7 @@ aiop_sl		</project>
 				</dictionary>
 				<dictionary>
 					<key>org.eclipse.cdt.make.core.buildArguments</key>
-					<value>-j8</value>
+					<value></value>
 				</dictionary>
 				<dictionary>
 					<key>org.eclipse.cdt.make.core.buildCommand</key>
