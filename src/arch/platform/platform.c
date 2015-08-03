@@ -69,7 +69,7 @@ typedef struct t_platform {
 static struct t_platform  s_pltfrm = {0};
 
 typedef struct t_sys_to_part_offset_map {
-	enum fsl_os_module  module;
+	enum fsl_module  module;
 	uint32_t            id;
 	e_mapped_mem_type   mapped_mem_type;
 	uint32_t            offset;

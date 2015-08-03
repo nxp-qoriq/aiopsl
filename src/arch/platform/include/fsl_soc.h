@@ -49,7 +49,7 @@
 /**************************************************************************//**
  @Description   Module types.
 *//***************************************************************************/
-enum fsl_os_module {
+enum fsl_module {
 	FSL_OS_MOD_SOC = 0,
 
 	/* FSL_OS_MOD_CMDIF_SRV, */ /**< AIOP server handle */
