@@ -44,7 +44,9 @@
 		if (_flags & FDMA_EN_TC_TERM_BITS)			\
 			RCU_CHECK_UNLOCK_CANCEL;			\
 	})
-	
+
+#define SET_PRC_VALUES()
+
 /* workaround to TKT260685 */
 
 #include "osm.h"
