@@ -3,7 +3,7 @@
 	<name>aiopsl_stack_estimation</name>
 	<comment></comment>
 	<projects>
-		<project location="PARENT-2-PROJECT_LOC/aiopsl">
+		<project location="PARENT-3-PROJECT_LOC/aiopsl">
 aiop_sl		</project>
 	</projects>
 	<buildSpec>
@@ -99,7 +99,7 @@ aiop_sl		</project>
 		<link>
 			<name>lcf/aiop_link.lcf</name>
 			<type>1</type>
-			<locationURI>PARENT-2-PROJECT_LOC/cw_files/aiop_link.lcf</locationURI>
+			<locationURI>PARENT-3-PROJECT_LOC/cw_files/aiop_link.lcf</locationURI>
 		</link>
 		<link>
 			<name>src/app_process_packet.c</name>
@@ -119,7 +119,7 @@ aiop_sl		</project>
 		<link>
 			<name>src/config.c</name>
 			<type>1</type>
-			<locationURI>PARENT-4-PROJECT_LOC/src/arch/platform/ls2085a/config.c</locationURI>
+			<locationURI>PARENT-5-PROJECT_LOC/src/arch/platform/ls2085a/config.c</locationURI>
 		</link>
 	</linkedResources>
 </projectDescription>

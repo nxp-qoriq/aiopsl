@@ -3,7 +3,7 @@
 	<name>arena_test</name>
 	<comment></comment>
 	<projects>
-		<project location="PARENT-2-PROJECT_LOC/aiopsl">
+		<project location="PARENT-3-PROJECT_LOC/aiopsl">
 aiop_sl		</project>
 	</projects>
 	<buildSpec>
@@ -84,7 +84,7 @@ aiop_sl		</project>
 		<link>
 			<name>README.txt</name>
 			<type>1</type>
-			<locationURI>PARENT-4-PROJECT_LOC/tests/arena_test/README.txt</locationURI>
+			<locationURI>PARENT-5-PROJECT_LOC/tests/arena_test/README.txt</locationURI>
 		</link>
 		<link>
 			<name>lcf</name>
@@ -99,22 +99,22 @@ aiop_sl		</project>
 		<link>
 			<name>lcf/aiop_link.lcf</name>
 			<type>1</type>
-			<locationURI>PARENT-2-PROJECT_LOC/cw_files/aiop_link.lcf</locationURI>
+			<locationURI>PARENT-3-PROJECT_LOC/cw_files/aiop_link.lcf</locationURI>
 		</link>
 		<link>
 			<name>src/apps.c</name>
 			<type>1</type>
-			<locationURI>PARENT-4-PROJECT_LOC/tests/arena_test/apps.c</locationURI>
+			<locationURI>PARENT-5-PROJECT_LOC/tests/arena_test/apps.c</locationURI>
 		</link>
 		<link>
 			<name>src/apps.h</name>
 			<type>1</type>
-			<locationURI>PARENT-4-PROJECT_LOC/tests/arena_test/apps.h</locationURI>
+			<locationURI>PARENT-5-PROJECT_LOC/tests/arena_test/apps.h</locationURI>
 		</link>
 		<link>
 			<name>src/arena_test.c</name>
 			<type>1</type>
-			<locationURI>PARENT-4-PROJECT_LOC/tests/arena_test/arena_test.c</locationURI>
+			<locationURI>PARENT-5-PROJECT_LOC/tests/arena_test/arena_test.c</locationURI>
 		</link>
 		<link>
 			<name>src/bringup</name>
@@ -124,57 +124,57 @@ aiop_sl		</project>
 		<link>
 			<name>src/config.c</name>
 			<type>1</type>
-			<locationURI>PARENT-4-PROJECT_LOC/src/arch/platform/ls2085a/config.c</locationURI>
+			<locationURI>PARENT-5-PROJECT_LOC/src/arch/platform/ls2085a/config.c</locationURI>
 		</link>
 		<link>
 			<name>src/dpni_drv_test.c</name>
 			<type>1</type>
-			<locationURI>PARENT-4-PROJECT_LOC/tests/arena_test/dpni_drv_test.c</locationURI>
+			<locationURI>PARENT-5-PROJECT_LOC/tests/arena_test/dpni_drv_test.c</locationURI>
 		</link>
 		<link>
 			<name>src/dprc_drv_test.c</name>
 			<type>1</type>
-			<locationURI>PARENT-4-PROJECT_LOC/tests/arena_test/dprc_drv_test.c</locationURI>
+			<locationURI>PARENT-5-PROJECT_LOC/tests/arena_test/dprc_drv_test.c</locationURI>
 		</link>
 		<link>
 			<name>src/inet_test.c</name>
 			<type>1</type>
-			<locationURI>PARENT-4-PROJECT_LOC/tests/arena_test/inet_test.c</locationURI>
+			<locationURI>PARENT-5-PROJECT_LOC/tests/arena_test/inet_test.c</locationURI>
 		</link>
 		<link>
 			<name>src/malloc_test.c</name>
 			<type>1</type>
-			<locationURI>PARENT-4-PROJECT_LOC/tests/arena_test/malloc_test.c</locationURI>
+			<locationURI>PARENT-5-PROJECT_LOC/tests/arena_test/malloc_test.c</locationURI>
 		</link>
 		<link>
 			<name>src/memory_test.c</name>
 			<type>1</type>
-			<locationURI>PARENT-4-PROJECT_LOC/tests/arena_test/memory_test.c</locationURI>
+			<locationURI>PARENT-5-PROJECT_LOC/tests/arena_test/memory_test.c</locationURI>
 		</link>
 		<link>
 			<name>src/random_test.c</name>
 			<type>1</type>
-			<locationURI>PARENT-4-PROJECT_LOC/tests/arena_test/random_test.c</locationURI>
+			<locationURI>PARENT-5-PROJECT_LOC/tests/arena_test/random_test.c</locationURI>
 		</link>
 		<link>
 			<name>src/slab_test.c</name>
 			<type>1</type>
-			<locationURI>PARENT-4-PROJECT_LOC/tests/arena_test/slab_test.c</locationURI>
+			<locationURI>PARENT-5-PROJECT_LOC/tests/arena_test/slab_test.c</locationURI>
 		</link>
 		<link>
 			<name>src/bringup/aiop_to_mc_cmd.c</name>
 			<type>1</type>
-			<locationURI>PARENT-4-PROJECT_LOC/tests/bringup/aiop_to_mc_cmd.c</locationURI>
+			<locationURI>PARENT-5-PROJECT_LOC/tests/bringup/aiop_to_mc_cmd.c</locationURI>
 		</link>
 		<link>
 			<name>src/bringup/exceptions.c</name>
 			<type>1</type>
-			<locationURI>PARENT-4-PROJECT_LOC/tests/bringup/exceptions.c</locationURI>
+			<locationURI>PARENT-5-PROJECT_LOC/tests/bringup/exceptions.c</locationURI>
 		</link>
 		<link>
 			<name>src/bringup/single_cluster.c</name>
 			<type>1</type>
-			<locationURI>PARENT-4-PROJECT_LOC/tests/bringup/single_cluster.c</locationURI>
+			<locationURI>PARENT-5-PROJECT_LOC/tests/bringup/single_cluster.c</locationURI>
 		</link>
 	</linkedResources>
 </projectDescription>

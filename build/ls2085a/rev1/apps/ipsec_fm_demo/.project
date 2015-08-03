@@ -3,7 +3,7 @@
 	<name>ipsec_fm_demo</name>
 	<comment></comment>
 	<projects>
-		<project location="PARENT-2-PROJECT_LOC/aiopsl">
+		<project location="PARENT-3-PROJECT_LOC/aiopsl">
 aiop_sl		</project>
 	</projects>
 	<buildSpec>
@@ -94,32 +94,32 @@ aiop_sl		</project>
 		<link>
 			<name>lcf/aiop_link.lcf</name>
 			<type>1</type>
-			<locationURI>PARENT-2-PROJECT_LOC/cw_files/aiop_link.lcf</locationURI>
+			<locationURI>PARENT-3-PROJECT_LOC/cw_files/aiop_link.lcf</locationURI>
 		</link>
 		<link>
 			<name>src/apps.c</name>
 			<type>1</type>
-			<locationURI>PARENT-4-PROJECT_LOC/apps/ipsec_fm_demo/apps.c</locationURI>
+			<locationURI>PARENT-5-PROJECT_LOC/apps/ipsec_fm_demo/apps.c</locationURI>
 		</link>
 		<link>
 			<name>src/apps.h</name>
 			<type>1</type>
-			<locationURI>PARENT-4-PROJECT_LOC/apps/ipsec_fm_demo/apps.h</locationURI>
+			<locationURI>PARENT-5-PROJECT_LOC/apps/ipsec_fm_demo/apps.h</locationURI>
 		</link>
 		<link>
 			<name>src/apps_arch.h</name>
 			<type>1</type>
-			<locationURI>PARENT-4-PROJECT_LOC/apps/ipsec_fm_demo/ls2085a/apps_arch.h</locationURI>
+			<locationURI>PARENT-5-PROJECT_LOC/apps/ipsec_fm_demo/ls2085a/apps_arch.h</locationURI>
 		</link>
 		<link>
 			<name>src/config.c</name>
 			<type>1</type>
-			<locationURI>PARENT-4-PROJECT_LOC/src/arch/platform/ls2085a/config.c</locationURI>
+			<locationURI>PARENT-5-PROJECT_LOC/src/arch/platform/ls2085a/config.c</locationURI>
 		</link>
 		<link>
 			<name>src/ipsec_fm_demo.c</name>
 			<type>1</type>
-			<locationURI>PARENT-4-PROJECT_LOC/apps/ipsec_fm_demo/ipsec_fm_demo.c</locationURI>
+			<locationURI>PARENT-5-PROJECT_LOC/apps/ipsec_fm_demo/ipsec_fm_demo.c</locationURI>
 		</link>
 	</linkedResources>
 </projectDescription>
