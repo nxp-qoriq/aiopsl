@@ -129,7 +129,7 @@ aiop_sl		</project>
 		<link>
 			<name>src/aiop_verification_fm.c</name>
 			<type>1</type>
-			<locationURI>PARENT-5-PROJECT_LOC/tests/roc_process_packet/aiop_verification_fm.c</locationURI>
+			<locationURI>PARENT-5-PROJECT_LOC/tests/roc_process_packet/ls2085a/aiop_verification_fm.c</locationURI>
 		</link>
 		<link>
 			<name>src/aiop_verification_gro.c</name>
