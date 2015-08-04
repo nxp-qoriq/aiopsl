@@ -1,3 +1,7 @@
+build/aiop_sim/ : Moved build/aiop_sim/ projects to build/ls2085a/rev1/.
+ls1088a/config.c: Deleted deprecated macros. In case of build error reper to appa.h of app_process_packet.
+ls1088a/config.c: Deleted deprecated macros. In case of build error reper to appa.h of app_process_packet.
+
 ** AIOP SL Release v1088_ENG_0.1 **
 ls1088a_sim_init_params.cfg: Added flag to fix simulator issue with ipsec (only for 1088): caam.ENGR00356656_fix=true
 ls1088/2085a_sim_init_params.cfg: Added flag due to a simulator bug: aiop.fdma.concat_sl_flg=false
