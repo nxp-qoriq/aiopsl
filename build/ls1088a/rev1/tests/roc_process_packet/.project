@@ -24,7 +24,7 @@ aiop_sl		</project>
 				</dictionary>
 				<dictionary>
 					<key>org.eclipse.cdt.make.core.buildArguments</key>
-					<value></value>
+					<value>-j8</value>
 				</dictionary>
 				<dictionary>
 					<key>org.eclipse.cdt.make.core.buildCommand</key>
@@ -87,9 +87,19 @@ aiop_sl		</project>
 			<locationURI>PARENT-5-PROJECT_LOC/tests/roc_process_packet/README.txt</locationURI>
 		</link>
 		<link>
+			<name>lcf</name>
+			<type>2</type>
+			<locationURI>virtual:/virtual</locationURI>
+		</link>
+		<link>
 			<name>src</name>
 			<type>2</type>
 			<locationURI>virtual:/virtual</locationURI>
+		</link>
+		<link>
+			<name>lcf/aiop_core_lib_verif_arena.lcf</name>
+			<type>1</type>
+			<locationURI>PARENT-5-PROJECT_LOC/tests/roc_process_packet/ls1088a/lcf/aiop_core_lib_verif_arena.lcf</locationURI>
 		</link>
 		<link>
 			<name>src/aiop_verification.h</name>
