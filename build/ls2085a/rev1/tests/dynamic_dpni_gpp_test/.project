@@ -3,7 +3,7 @@
 	<name>dynamic_dpni_gpp_test</name>
 	<comment></comment>
 	<projects>
-		<project location="PARENT-3-PROJECT_LOC/aiopsl">
+		<project location="PARENT-2-PROJECT_LOC/aiopsl">
 aiop_sl		</project>
 	</projects>
 	<buildSpec>
