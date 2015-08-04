@@ -72,7 +72,7 @@ __declspec(entry_point) void aiop_verification_fm()
 	fsl_print("\n**************************\n");
 	fsl_print("*** Start Verification ***\n");
 	fsl_print("**************************\n");
-	/* Read last 8 bytes from frame PTA/ last 8 bytes of payload
+	/* Read 8 bytes from frame PTA/ last 8 bytes of payload
 	 * This is the external buffer address */
 	if (LDPAA_FD_GET_PTA(HWC_FD_ADDRESS)) {
 			/* PTA was already loaded */
