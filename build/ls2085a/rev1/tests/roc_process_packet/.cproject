@@ -35,7 +35,7 @@
 							<option id="com.freescale.ppc.toolchain.sharedoption.smallData.1128260385" name="Small Data" superClass="com.freescale.ppc.toolchain.sharedoption.smallData" value="8" valueType="string"/>
 							<option id="com.freescale.ppc.toolchain.sharedoption.smallData2.1801889095" name="Small Data2" superClass="com.freescale.ppc.toolchain.sharedoption.smallData2" value="8" valueType="string"/>
 							<targetPlatform archList="all" binaryParser="org.eclipse.cdt.core.ELF" id="com.freescale.ppc.toolchain.platform.2126422044" name="AIOP Target Platform" superClass="com.freescale.ppc.toolchain.platform"/>
-							<builder autoBuildTarget="" buildPath="${ProjDirPath}/Debug" cleanBuildTarget="" enableAutoBuild="true" enableCleanBuild="true" enabledIncrementalBuild="true" errorParsers="org.eclipse.cdt.core.GmakeErrorParser;com.freescale.core.ide.cdt.errorParsers.MwErrorParser;com.freescale.core.ide.cdt.errorParsers.MPWErrorParser" id="com.freescale.ppc.toolchain.builder.459361658" incrementalBuildTarget="" keepEnvironmentInBuildfile="false" managedBuildOn="true" name="Make Builder" parallelBuildWorkspaceOn="true" parallelizationNumber="1" superClass="com.freescale.ppc.toolchain.builder"/>
+							<builder autoBuildTarget="" buildPath="${ProjDirPath}/Debug" cleanBuildTarget="" enableAutoBuild="true" enableCleanBuild="true" enabledIncrementalBuild="true" errorParsers="org.eclipse.cdt.core.GmakeErrorParser;com.freescale.core.ide.cdt.errorParsers.MwErrorParser;com.freescale.core.ide.cdt.errorParsers.MPWErrorParser" id="com.freescale.ppc.toolchain.builder.459361658" incrementalBuildTarget="" keepEnvironmentInBuildfile="false" managedBuildOn="true" name="Make Builder" parallelBuildWorkspaceOn="true" parallelizationNumber="-1" superClass="com.freescale.ppc.toolchain.builder"/>
 							<tool command="&quot;${AIOPToolsDir}/ldaiop&quot;" commandLinePattern="${COMMAND} ${FLAGS} ${OUTPUT_FLAG} ${OUTPUT_PREFIX}${OUTPUT} ${INPUTS}" errorParsers="" id="com.freescale.ppc.toolchain.linker.1985844452" name="Linker" superClass="com.freescale.ppc.toolchain.linker">
 								<option id="com.freescale.ppc.toolchain.linker.base.input.dataAddress.1272859047" name="Data Address" superClass="com.freescale.ppc.toolchain.linker.base.input.dataAddress" value="0x0" valueType="string"/>
 								<option id="com.freescale.ppc.toolchain.linker.base.input.smallDataAddress.620798255" name="Small Data Address" superClass="com.freescale.ppc.toolchain.linker.base.input.smallDataAddress" value="0x0" valueType="string"/>
@@ -49,31 +49,31 @@
 									<listOptionValue builtIn="false" value="&quot;${AIOPToolsBaseDir}/AIOP_Support/ewl/lib/libc_z4201_VLE_Soft.a&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../aiopsl/out/aiopsl.a&quot;"/>
 								</option>
-								<option id="com.freescale.ppc.toolchain.linker.base.input.lcf_file.1241371429" name="Link Command File (.lcf)" superClass="com.freescale.ppc.toolchain.linker.base.input.lcf_file" value="${ProjDirPath}/lcf/aiop_core_lib_verif_arena.lcf" valueType="string"/>
+								<option id="com.freescale.ppc.toolchain.linker.base.input.lcf_file.1241371429" name="Link Command File (.lcf)" superClass="com.freescale.ppc.toolchain.linker.base.input.lcf_file" value="${ProjDirPath}/../../../../../tests/roc_process_packet/ls2085a/lcf/aiop_core_lib_verif_arena.lcf" valueType="string"/>
 								<option id="com.freescale.ppc.toolchain.linker.base.generateBinaryFile.145510427" name="Generate Binary File:" superClass="com.freescale.ppc.toolchain.linker.base.generateBinaryFile" value="com.freescale.ppc.toolchain.linker.base.generateBinaryFile.none" valueType="enumerated"/>
 								<option id="com.freescale.ppc.toolchain.linker.base.input.linkorder.456617233" name="Link Order" superClass="com.freescale.ppc.toolchain.linker.base.input.linkorder" valueType="stringList">
 									<listOptionValue builtIn="false" value="src/apps.c"/>
-									<listOptionValue builtIn="false" value="Verification/aiop_verification_cdma.c"/>
-									<listOptionValue builtIn="false" value="Verification/aiop_verification_data.c"/>
-									<listOptionValue builtIn="false" value="Verification/aiop_verification_fdma.c"/>
-									<listOptionValue builtIn="false" value="Verification/aiop_verification_fm.c"/>
-									<listOptionValue builtIn="false" value="Verification/aiop_verification_gro.c"/>
-									<listOptionValue builtIn="false" value="Verification/aiop_verification_gso.c"/>
-									<listOptionValue builtIn="false" value="Verification/aiop_verification_hm.c"/>
-									<listOptionValue builtIn="false" value="Verification/aiop_verification_ipf.c"/>
-									<listOptionValue builtIn="false" value="Verification/aiop_verification_ipr.c"/>
-									<listOptionValue builtIn="false" value="Verification/aiop_verification_ipsec.c"/>
-									<listOptionValue builtIn="false" value="Verification/aiop_verification_keygen.c"/>
-									<listOptionValue builtIn="false" value="Verification/aiop_verification_osm.c"/>
-									<listOptionValue builtIn="false" value="Verification/aiop_verification_parser.c"/>
-									<listOptionValue builtIn="false" value="Verification/aiop_verification_ste.c"/>
-									<listOptionValue builtIn="false" value="Verification/aiop_verification_table.c"/>
-									<listOptionValue builtIn="false" value="Verification/aiop_verification_tman.c"/>
 									<listOptionValue builtIn="false" value="src/app_process_packet.c"/>
 									<listOptionValue builtIn="false" value="src/config.c"/>
 									<listOptionValue builtIn="false" value="&quot;${AIOPToolsBaseDir}/AIOP_Support/ewl/lib/librt_z4201_VLE_Soft.a&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${AIOPToolsBaseDir}/AIOP_Support/ewl/lib/libc_z4201_VLE_Soft.a&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../aiopsl/out/aiopsl.a&quot;"/>
+									<listOptionValue builtIn="false" value="src/aiop_verification_cdma.c"/>
+									<listOptionValue builtIn="false" value="src/aiop_verification_data.c"/>
+									<listOptionValue builtIn="false" value="src/aiop_verification_fdma.c"/>
+									<listOptionValue builtIn="false" value="src/aiop_verification_fm.c"/>
+									<listOptionValue builtIn="false" value="src/aiop_verification_gro.c"/>
+									<listOptionValue builtIn="false" value="src/aiop_verification_gso.c"/>
+									<listOptionValue builtIn="false" value="src/aiop_verification_hm.c"/>
+									<listOptionValue builtIn="false" value="src/aiop_verification_ipf.c"/>
+									<listOptionValue builtIn="false" value="src/aiop_verification_ipr.c"/>
+									<listOptionValue builtIn="false" value="src/aiop_verification_ipsec.c"/>
+									<listOptionValue builtIn="false" value="src/aiop_verification_keygen.c"/>
+									<listOptionValue builtIn="false" value="src/aiop_verification_osm.c"/>
+									<listOptionValue builtIn="false" value="src/aiop_verification_parser.c"/>
+									<listOptionValue builtIn="false" value="src/aiop_verification_ste.c"/>
+									<listOptionValue builtIn="false" value="src/aiop_verification_table.c"/>
+									<listOptionValue builtIn="false" value="src/aiop_verification_tman.c"/>
 								</option>
 								<option id="com.freescale.ppc.toolchain.linker.base.generateSrec.eol.565596894" name="EOL Character:" superClass="com.freescale.ppc.toolchain.linker.base.generateSrec.eol" value="com.freescale.ppc.toolchain.linker.base.generateSrec.unix" valueType="enumerated"/>
 								<option id="com.freescale.ppc.toolchain.linker.base.output.stackAddress.1100043625" name="Stack Address" superClass="com.freescale.ppc.toolchain.linker.base.output.stackAddress" value="" valueType="string"/>
