@@ -39,10 +39,10 @@
 
 
 inline int table_lookup_by_keyid_default_frame(enum table_hw_accel_id acc_id,
-					       uint16_t table_id,
+					       t_tbl_id table_id,
 					       uint8_t keyid,
 					       struct table_lookup_result
-					              *lookup_result)
+							*lookup_result)
 {
 
 #ifdef CHECK_ALIGNMENT 	
@@ -90,12 +90,12 @@ inline int table_lookup_by_keyid_default_frame(enum table_hw_accel_id acc_id,
 
 
 inline int table_lookup_by_keyid(enum table_hw_accel_id acc_id,
-			  uint16_t table_id,
-			  uint8_t keyid,
-			  uint32_t flags,
-			  struct table_lookup_non_default_params
-				 *ndf_params,
-			  struct table_lookup_result *lookup_result)
+				 t_tbl_id table_id,
+				 uint8_t keyid,
+				 uint32_t flags,
+				 struct table_lookup_non_default_params
+					*ndf_params,
+				 struct table_lookup_result *lookup_result)
 {
 	
 #ifdef CHECK_ALIGNMENT
@@ -152,10 +152,10 @@ inline int table_lookup_by_keyid(enum table_hw_accel_id acc_id,
 
 
 inline int table_lookup_by_key(enum table_hw_accel_id acc_id,
-			uint16_t table_id,
-			union table_lookup_key_desc key_desc,
-			uint8_t key_size,
-			struct table_lookup_result *lookup_result)
+			       t_tbl_id table_id,
+			       union table_lookup_key_desc key_desc,
+			       uint8_t key_size,
+			       struct table_lookup_result *lookup_result)
 {
 
 #ifdef CHECK_ALIGNMENT 	

@@ -234,14 +234,13 @@
 	/** Table Release Semaphore */
 #define TABLE_RELEASE_SEMAPHORE_MTYPE				0x00B1
 
-#ifdef REV2_RULEID
+/* todo Remove un-needed defines and re-order*
 	//** Table Rule Replace by Rule ID */
 #define	TABLE_GET_NEXT_RULEID_MTYPE				0x004F
 #define TABLE_GET_KEY_DESC_MTYPE				0x005F
 #define TABLE_RULE_REPLACE_BY_RULEID_MTYPE			0x0075
 #define	TABLE_RULE_DELETE_BY_RULEID_MTYPE			0x0071
 #define TABLE_RULE_QUERY_BY_RULEID_MTYPE			0x0073
-#endif
 
 /** @} */ /* end of TABLE_MTYPE */
 
@@ -384,6 +383,7 @@
 
 @{
 *//***************************************************************************/
+/* TODO FIX AFTER REMOVING FUNCTIONS */
 enum table_function_identifier {
 	TABLE_CREATE_FUNC_ID,
 	TABLE_REPLACE_MISS_RESULT_FUNC_ID,
@@ -395,13 +395,11 @@ enum table_function_identifier {
 	TABLE_RULE_REPLACE_FUNC_ID,
 	TABLE_RULE_QUERY_FUNC_ID,
 	TABLE_RULE_DELETE_FUNC_ID,
-#ifdef REV2_RULEID
 	TABLE_GET_NEXT_RULEID_FUNC_ID,
 	TABLE_GET_KEY_DESC_FUNC_ID,
 	TABLE_RULE_REPLACE_BY_RULEID_FUNC_ID,
 	TABLE_RULE_DELETE_BY_RULEID_FUNC_ID,
 	TABLE_RULE_QUERY_BY_RULEID_FUNC_ID,
-#endif
 	TABLE_LOOKUP_BY_KEY_FUNC_ID,
 	TABLE_LOOKUP_BY_KEYID_DEFAULT_FRAME_FUNC_ID,
 	TABLE_LOOKUP_BY_KEYID_FUNC_ID,
@@ -1082,14 +1080,10 @@ int table_lookup_by_keyid_default_frame_wrp(
 @Cautions	This function may result in a fatal error.
 *//***************************************************************************/
 int table_rule_create_wrp(enum table_hw_accel_id acc_id,
-		      uint16_t table_id,
-		      struct table_rule *rule,
-#ifdef REV2_RULEID
-		      uint8_t key_size,
-		      uint64_t *rule_id);
-#else
-			  uint8_t key_size);
-#endif
+			  uint16_t table_id,
+			  struct table_rule *rule,
+			  uint8_t key_size,
+			  uint64_t *rule_id);
 
 /**************************************************************************//**
 @Function	table_rule_delete_wrp
@@ -1124,10 +1118,10 @@ int table_rule_create_wrp(enum table_hw_accel_id acc_id,
 @Cautions	This function may result in a fatal error.
 *//***************************************************************************/
 int table_rule_delete_wrp(enum table_hw_accel_id acc_id,
-		      uint16_t table_id,
-		      union table_key_desc *key_desc,
-		      uint8_t key_size,
-		      struct table_result *result);
+			  uint16_t table_id,
+			  union table_key_desc *key_desc,
+			  uint8_t key_size,
+			  struct table_result *result);
 
 
 /** @} */ /* end of TABLE_Functions */

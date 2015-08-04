@@ -571,9 +571,8 @@ int snic_ipsec_add_sa(struct snic_cmd_data *cmd_data)
 	struct ipsec_descriptor_params *ipsec_cfg = &ipsec_params;
 	uint8_t sa_id;
 	uint16_t snic_id;
-#ifdef REV2_RULEID
 	uint64_t rule_id;
-#endif
+
 	int i, k, err;
 	uint16_t outer_hdr_size;
 	/* Max: SPI, IPv6 src + dest is 36 bytes */
@@ -762,11 +761,8 @@ int snic_ipsec_add_sa(struct snic_cmd_data *cmd_data)
 	rule.result.op0_rptr_clp.reference_pointer = ipsec_handle;
 	rule.key_desc.em.key[0] = sa_id;
 	err = table_rule_create(TABLE_ACCEL_ID_CTLU,
-#ifdef REV2_RULEID
 	(uint16_t)snic_params[snic_id].ipsec_table_id, &rule, 1, &rule_id);
-#else
-	(uint16_t)snic_params[snic_id].ipsec_table_id, &rule, 1);
-#endif
+
 	if (err)
 		return err;
 	/* create rule to bind between dec key and ipsec handle */
@@ -796,12 +792,11 @@ int snic_ipsec_add_sa(struct snic_cmd_data *cmd_data)
 			for (i = 0; i < snic_params[snic_id].ipsec_ipv6_key_size; i++ )
 				rule.key_desc.em.key[i] = ipsec_dec_key[i];
 			err = table_rule_create(TABLE_ACCEL_ID_CTLU,
-					(uint16_t)snic_params[snic_id].dec_ipsec_ipv6_table_id,
-#ifdef REV2_RULEID
-					&rule, snic_params[snic_id].ipsec_ipv6_key_size, &rule_id);
-#else
-					&rule, snic_params[snic_id].ipsec_ipv6_key_size);
-#endif
+					(uint16_t)snic_params[snic_id].
+							dec_ipsec_ipv6_table_id,
+					&rule, snic_params[snic_id].
+							ipsec_ipv6_key_size,
+					&rule_id);
 		}
 		else
 		{
@@ -825,12 +820,12 @@ int snic_ipsec_add_sa(struct snic_cmd_data *cmd_data)
 			for (i = 0; i < snic_params[snic_id].ipsec_ipv4_key_size; i++)
 				rule.key_desc.em.key[i] = ipsec_dec_key[i];
 			err = table_rule_create(TABLE_ACCEL_ID_CTLU,
-					(uint16_t)snic_params[snic_id].dec_ipsec_ipv4_table_id,
-#ifdef REV2_RULEID
-					&rule, snic_params[snic_id].ipsec_ipv4_key_size, &rule_id);
-#else
-					&rule, snic_params[snic_id].ipsec_ipv4_key_size);
-#endif
+						(uint16_t)snic_params[snic_id].
+							dec_ipsec_ipv4_table_id,
+						&rule,
+						snic_params[snic_id].
+							ipsec_ipv4_key_size,
+						&rule_id);
 		}
 
 		if (err)
