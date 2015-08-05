@@ -164,22 +164,12 @@ mask and offset defines):
 /**************************************************************************//**
 @Group		FSL_TABLE_RESULT_TYPES TABLE Results Types
 
-@Description	Table Results Types
-
-User should select one of the following defines:
+@Description	Table Results Types Defines
 
 @{
 *//***************************************************************************/
-/** Result is used for chaining of lookups, Contains 9B Opaque fields
- * Not available for Rev1 */
-#define TABLE_RESULT_TYPE_CHAINING		0x81
-
-/** Result is 9B of opaque data fields and 8B Slab/CDMA buffer pointer (which
- * has reference counter) */
-#define TABLE_RESULT_TYPE_REFERENCE		0x91
-
 /** Result is 17B of opaque data fields */
-#define TABLE_RESULT_TYPE_OPAQUES		0xB1
+#define TABLE_RESULT_TYPE_OPAQUE	0xB1
 
 /** @} *//* end of FSL_TABLE_RESULT_TYPES */
 
@@ -346,61 +336,6 @@ enum table_hw_accel_id {
 *//***************************************************************************/
 
 /**************************************************************************//**
-@Description	Table Rule Result Chaining Parameters
-*//***************************************************************************/
-#pragma pack(push, 1)
-struct table_result_chain_parameters {
-	/** Reserved for compliance with HW format.
-	User should not access this field. */
-	uint32_t reserved0;
-
-	/** Table ID */
-	uint16_t table_id;
-
-	/** Key ID */
-	uint8_t  keyid;
-
-	/** Reserved for compliance with HW format.
-	User should not access this field. */
-	uint8_t  reserved1;
-};
-#pragma pack(pop)
-
-
-/**************************************************************************//**
-@Description	\ref table_result structure ctlu_op0_refptr_clp field.
-
-This field can be used either:
-- As an opaque field of 8 bytes. \ref table_result type field should be set to
-#TABLE_RESULT_TYPE_OPAQUES.\n Returned as part of lookup result.
-- As a pointer to Slab/CDMA acquired buffer (which has reference counter).
-\ref table_result type field should be set to #TABLE_RESULT_TYPE_REFERENCE.\n
-Returned as part of lookup result.
-- As a structure containing table ID and Key ID parameters for a chained
-lookup. \ref table_result type field should be set to
-#TABLE_RESULT_TYPE_CHAINING.
-*//***************************************************************************/
-#pragma pack(push, 1)
-union table_result_op0_refptr_clp {
-	/** Opaque Data - Returned as part of lookup result */
-	uint64_t opaque0;
-
-	/** Reference Pointer
-	A pointer to Slab/CDMA acquired buffer (which has reference counter).
-	The Table Hardware can increment the reference counter of the
-	Slab/CDMA buffer on certain operations (please refer to \link
-	FSL_TABLE_Functions Table functions documentation\endlink).\n
-	Returned as part of lookup result. */
-	uint64_t reference_pointer;
-
-	/** A structure that contains table ID and key composition ID
-	parameters for the chained lookups. Not available for Rev1 */
-	struct table_result_chain_parameters chain_parameters;
-};
-#pragma pack(pop)
-
-
-/**************************************************************************//**
 @Description	Table Result
 
 This structure represents the table result. Some of the fields defined here are
@@ -408,27 +343,21 @@ returned after lookup, see fields specification for more details.
 *//***************************************************************************/
 #pragma pack(push, 1)
 struct table_result {
-	/** Result Type - Should be set to one of the types specified in
-	\ref FSL_TABLE_RESULT_TYPES macros. */
-	uint8_t  type;
+	/** Result Type - Must be set to #TABLE_RESULT_TYPE_OPAQUES */
+	uint8_t type;
 
 	/** Reserved for compliance with HW format.
 	User should not access this field. */
 	uint16_t reserved;
 
-	/** Opaque data - Returned as part of lookup result.
-	Not valid when type is set to #TABLE_RESULT_TYPE_CHAINING */
-	uint8_t  opaque2;
+	/** Data field #2 - Returned as part of lookup result. */
+	uint8_t  data2;
 
-	/** Opaque0 or Reference Pointer or Chained Lookup Parameters.
-	Chained Lookup is not available in Rev1.\n
-	For more details please refer to \link table_result_op0_refptr_clp
-	structure documentation\endlink. */
-	union table_result_op0_refptr_clp op0_rptr_clp;
+	/** Data field #0 - Returned as part of lookup result. */
+	uint64_t data0;
 
-	/** Opaque data - Returned as part of lookup result.
-	Not valid when type is set to #TABLE_RESULT_TYPE_CHAINING */
-	uint64_t opaque1;
+	/** Data field #1 - Returned as part of lookup result. */
+	uint64_t data1;
 };
 #pragma pack(pop)
 

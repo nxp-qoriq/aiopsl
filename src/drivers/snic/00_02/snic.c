@@ -757,8 +757,8 @@ int snic_ipsec_add_sa(struct snic_cmd_data *cmd_data)
 
 	/* create rule to bind between sa_id and ipsec_handle */
 	rule.options = 0;
-	rule.result.type = TABLE_RESULT_TYPE_REFERENCE;
-	rule.result.op0_rptr_clp.reference_pointer = ipsec_handle;
+	rule.result.type = TABLE_RESULT_TYPE_OPAQUE;
+	rule.result.data0 = ipsec_handle;
 	rule.key_desc.em.key[0] = sa_id;
 	err = table_rule_create(TABLE_ACCEL_ID_CTLU,
 	(uint16_t)snic_params[snic_id].ipsec_table_id, &rule, 1, &rule_id);
@@ -768,7 +768,7 @@ int snic_ipsec_add_sa(struct snic_cmd_data *cmd_data)
 	/* create rule to bind between dec key and ipsec handle */
 	if (cfg->direction == SNIC_IPSEC_SA_IN)
 	{
-		rule.result.op0_rptr_clp.reference_pointer = 
+		rule.result.data0 =
 				ipsec_handle;
 		if (cfg->options & SNIC_IPSEC_SA_OPT_IPV6)
 		{

@@ -845,8 +845,8 @@ int ipr_miss_handling(struct ipr_instance *instance_params_ptr,
 	/* Add entry to TLU table */
 	/* Generate key */
 	rule.options = 0;
-	rule.result.type = TABLE_RESULT_TYPE_REFERENCE;
-	rule.result.op0_rptr_clp.reference_pointer = *rfdc_ext_addr_ptr;
+	rule.result.type = TABLE_RESULT_TYPE_OPAQUE;
+	rule.result.data0 = *rfdc_ext_addr_ptr;
 	
 	if (frame_is_ipv4) {
 		/* Error is not checked since it is assumed that
