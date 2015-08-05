@@ -401,10 +401,22 @@ int ipr_reassemble(ipr_instance_handle_t instance_handle)
 			return IPR_REASSEMBLY_REGULAR;
 		}
 	} else {
-	    /* move to exclusive */
-	    osm_scope_transition_to_exclusive_with_increment_scope_id_wrp();
+//	    /* move to exclusive */
+//	    osm_scope_transition_to_exclusive_with_increment_scope_id_wrp();
 	    if (PARSER_IS_OUTER_IP_FRAGMENT_DEFAULT()) {
 		/* Fragment */
+		    if (PARSER_IS_OUTER_IPV4_DEFAULT())
+		    		frame_is_ipv4 = 1;
+		    else {
+		    	/* todo check if setting following function to be inline
+		    	 *  increases the stack */ 
+		    	if(is_atomic_fragment())
+		    		return IPR_ATOMIC_FRAG;
+		    	frame_is_ipv4 = 0;
+		    }
+		    /* move to exclusive */
+		osm_scope_transition_to_exclusive_with_increment_scope_id_wrp();
+
 		    if (scope_status.scope_level <= 2) {			    
 			    osm_status = NO_BYPASS_OSM;
 			/* create nested exclusive for the fragments of
@@ -416,7 +428,9 @@ int ipr_reassemble(ipr_instance_handle_t instance_handle)
 			}
 		} else {
 			/* regular frame */
-			osm_scope_relinquish_exclusivity();
+			/* transition in order to have the same scope id
+			 * as closing fragment */
+		   osm_scope_transition_to_concurrent_with_increment_scope_id();
 			return IPR_REASSEMBLY_REGULAR;
 		}
 	}
