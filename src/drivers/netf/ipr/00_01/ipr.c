@@ -401,14 +401,24 @@ int ipr_reassemble(ipr_instance_handle_t instance_handle)
 			return IPR_REASSEMBLY_REGULAR;
 		}
 	} else {
-	    /* move to exclusive */
-	    osm_scope_transition_to_exclusive_with_increment_scope_id_wrp();
 	    if (PARSER_IS_OUTER_IP_FRAGMENT_DEFAULT()) {
 		/* Fragment */
+	    	if (PARSER_IS_OUTER_IPV4_DEFAULT())
+	    		frame_is_ipv4 = 1;
+	    	else {
+	    		/* todo check if setting following function to be inline
+	    		 *  increases the stack */ 
+	    		if(is_atomic_fragment())
+	    			return IPR_ATOMIC_FRAG;
+	    		frame_is_ipv4 = 0;
+	    	}
+		/* move to exclusive */
+		osm_scope_transition_to_exclusive_with_increment_scope_id_wrp();
+
 		    /* scope level should be bigger than 1 and not than 2
 		     * because of TKT260685 that requires an additional
 		     * scope level */
-		    if (scope_status.scope_level <= 1) {
+		if (scope_status.scope_level <= 1) {
 			    osm_status = NO_BYPASS_OSM;
 			/* create nested exclusive for the fragments of
 			 * the same flow*/
@@ -419,7 +429,9 @@ int ipr_reassemble(ipr_instance_handle_t instance_handle)
 			}
 		} else {
 			/* regular frame */
-			osm_scope_relinquish_exclusivity();
+			/* transition in order to have the same scope id
+			 * as closing fragment */
+		   osm_scope_transition_to_concurrent_with_increment_scope_id();
 			return IPR_REASSEMBLY_REGULAR;
 		}
 	}
@@ -428,11 +440,6 @@ int ipr_reassemble(ipr_instance_handle_t instance_handle)
 	cdma_read_wrp(&instance_params,
 		  instance_handle,
 		  IPR_INSTANCE_SIZE);
-
-	if (PARSER_IS_OUTER_IPV4_DEFAULT())
-		frame_is_ipv4 = 1;
-	else
-		frame_is_ipv4 = 0;
 
 	if (check_for_frag_error(&instance_params,frame_is_ipv4, iphdr_ptr) ==
 								NO_ERROR) {
@@ -2298,6 +2305,25 @@ void ipr_stats_update(struct ipr_instance *instance_params_ptr,
 	}
 }
 
+
+uint32_t is_atomic_fragment()
+{
+	struct ipv6fraghdr * ipv6fraghdr_ptr;
+	uint16_t	     ipv6frag_offset;
+	
+	if (PARSER_IS_OUTER_IP_INIT_FRAGMENT_DEFAULT())
+	{
+		/* Get More Flag bit to check if last fragment */
+		ipv6frag_offset = PARSER_GET_IPV6_FRAG_HEADER_OFFSET_DEFAULT();
+		ipv6fraghdr_ptr = (struct ipv6fraghdr *)
+				(PRC_GET_SEGMENT_ADDRESS() + ipv6frag_offset);
+		if (ipv6fraghdr_ptr->offset_and_flags & IPV6_HDR_M_FLAG_MASK)
+			return 0;
+		else 
+			return 1;
+	}
+	return 0;
+}
 
 void ipr_modify_max_reass_frm_size(ipr_instance_handle_t ipr_instance,
 					  uint16_t max_reass_frm_size)

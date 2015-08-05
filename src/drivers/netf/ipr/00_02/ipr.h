@@ -355,6 +355,8 @@ void ipr_exception_handler(enum ipr_function_identifier func_id,
 		     	   uint32_t line,
 		     	   int32_t status);
 
+uint32_t is_atomic_fragment();
+
 /**************************************************************************//**
 @Description	IPR Global parameters
 *//***************************************************************************/
