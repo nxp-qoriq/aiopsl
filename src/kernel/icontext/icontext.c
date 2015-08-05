@@ -55,6 +55,21 @@ extern void dpci_rx_ctx_get(uint32_t *id, uint32_t *fqid);
 struct icontext icontext_aiop = {0};
 extern struct dpci_mng_tbl g_dpci_tbl;
 
+void icontext_ws_set(struct icontext *ic)
+{
+	struct fdma_amq amq = {0};
+
+	amq.icid = ic->icid;
+	if (ic->bdi_flags & FDMA_ENF_BDI_BIT)
+		amq.flags |= FDMA_ICID_CONTEXT_BDI;
+	if (ic->dma_flags & FDMA_DMA_PL_BIT)
+		amq.flags |= FDMA_ICID_CONTEXT_PL;
+	if (ic->dma_flags & FDMA_DMA_eVA_BIT)
+		amq.flags |= FDMA_ICID_CONTEXT_eVA;
+
+	set_default_amq_attributes(&amq);
+}
+
 void icontext_aiop_get(struct icontext *ic)
 {
 	ASSERT_COND_LIGHT(ic != NULL);

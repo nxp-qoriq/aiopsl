@@ -507,7 +507,7 @@ inline int table_rule_query(enum table_hw_accel_id acc_id,
 			    uint32_t *timestamp)
 {
 
-#ifdef CHECK_ALIGNMENT 	
+#ifdef CHECK_ALIGNMENT
 	DEBUG_ALIGN("table_inline.h",(uint32_t)key_desc, ALIGNMENT_16B);
 #endif
 

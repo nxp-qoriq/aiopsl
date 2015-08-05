@@ -374,7 +374,7 @@ union table_result_op0_refptr_clp {
 	uint64_t reference_pointer;
 
 	/** A structure that contains table ID and key composition ID
-	parameters for the chained lookups. Not available for Rev1 */
+	parameters for the chained lookups. Not available for LS2085A */
 	struct table_result_chain_parameters chain_parameters;
 };
 #pragma pack(pop)
