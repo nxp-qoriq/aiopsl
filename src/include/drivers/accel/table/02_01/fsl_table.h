@@ -38,11 +38,11 @@
 
 
 /**************************************************************************//**
- @Group		ACCEL Accelerators APIs
+@Group		ACCEL Accelerators APIs
 
- @Description	AIOP Accelerator APIs
+@Description	AIOP Accelerator APIs
 
- @{
+@{
 *//***************************************************************************/
 /**************************************************************************//**
 @Group	FSL_TABLE TABLE
@@ -298,6 +298,26 @@ User should select one of the following:
 
 @{
 *//***************************************************************************/
+
+/**************************************************************************//**
+@Group		FSL_TABLE_Typedef TABLE Typedefs
+
+@Description	Table Typedefs
+
+@{
+*//***************************************************************************/
+
+/**
+@typedef uint16_t tbl_id
+*/
+typedef uint16_t t_tbl_id;
+
+/**
+@typedef uint64_t t_rule_id
+*/
+typedef uint64_t t_rule_id;
+
+/** @} */ /* end of FSL_TABLE_Typedef */
 
 /**************************************************************************//**
 @enum	table_hw_accel_id
@@ -778,7 +798,7 @@ struct table_lookup_non_default_params {
 };
 #pragma pack(pop)
 
-#ifdef REV2_RULEID
+
 /**************************************************************************//**
 @Description	Table Rule ID Descriptor Structure
 *//***************************************************************************/
@@ -817,7 +837,7 @@ struct table_ruleid_and_result_desc {
 	struct table_result result;
 };
 #pragma pack(pop)
-#endif //REV2_RULEID
+
 
 /** @} */ /* end of FSL_TABLE_STRUCTS */
 
@@ -856,7 +876,7 @@ struct table_ruleid_and_result_desc {
 *//***************************************************************************/
 int table_create(enum table_hw_accel_id acc_id,
 		 struct table_create_params *tbl_params,
-		 uint16_t *table_id);
+		 t_tbl_id *table_id);
 
 
 /**************************************************************************//**
@@ -883,7 +903,7 @@ int table_create(enum table_hw_accel_id acc_id,
 @Cautions	This function may result in a fatal error.
 *//***************************************************************************/
 void table_replace_miss_result(enum table_hw_accel_id acc_id,
-			       uint16_t table_id,
+			       t_tbl_id table_id,
 			       struct table_result *new_miss_result,
 			       struct table_result *old_miss_result);
 
@@ -906,7 +926,7 @@ void table_replace_miss_result(enum table_hw_accel_id acc_id,
 @Cautions	This function may result in a fatal error.
 *//***************************************************************************/
 void table_get_params(enum table_hw_accel_id acc_id,
-		      uint16_t table_id,
+		      t_tbl_id table_id,
 		      struct table_get_params_output *tbl_params);
 
 
@@ -936,7 +956,7 @@ void table_get_params(enum table_hw_accel_id acc_id,
 @Cautions	This function may result in a fatal error.
 *//***************************************************************************/
 void table_get_miss_result(enum table_hw_accel_id acc_id,
-			   uint16_t table_id,
+			   t_tbl_id table_id,
 			   struct table_result *miss_result);
 
 
@@ -965,13 +985,13 @@ void table_get_miss_result(enum table_hw_accel_id acc_id,
 @Cautions	This function may result in a fatal error.
 *//***************************************************************************/
 void table_delete(enum table_hw_accel_id acc_id,
-		  uint16_t table_id);
+		  t_tbl_id table_id);
 
 
 /* ######################################################################### */
 /* ######################## Table Rule Operations ########################## */
 /* ######################################################################### */
-#ifdef REV2_RULEID
+
 /**************************************************************************//**
 @Function	table_rule_create
 
@@ -1003,46 +1023,12 @@ void table_delete(enum table_hw_accel_id acc_id,
 @Cautions	This function may result in a fatal error.
 *//***************************************************************************/
 inline int table_rule_create(enum table_hw_accel_id acc_id,
-		      uint16_t table_id,
-		      struct table_rule *rule,
-		      uint8_t key_size,
-		      uint64_t *rule_id);
-#else
-/**************************************************************************//**
-@Function	table_rule_create
-
-@Description	Adds a rule to a specified table.
-		\n \n If the rule key already exists, the rule will not be
-		added and a status will be returned.
-
-@Param[in]	acc_id ID of the Hardware Table Accelerator that contains
-		the table on which the operation will be performed.
-@Param[in]	table_id Table ID.
-@Param[in]	rule The rule to be added. The structure pointed by this
-		pointer must be in the task's workspace and must be aligned to
-		16B boundary.
-@Param[in]	key_size Key size in bytes. Should be equal to the key size the
-		table was created with except for the following remark:
-		 - the key size should be added priority field size (4 Bytes)
-		for MFLU tables.
-
-@Return		0 on success, or negative value on error.
-
-@Retval		0 Success.
-@Retval		ENOMEM Error, Not enough memory is available.
-@Retval		EIO Error, A valid rule with the same key descriptor is found
-		in the table. No change was made to the table.
-
-@Cautions	In this function the task yields.
-@Cautions	This function may result in a fatal error.
-*//***************************************************************************/
-inline int table_rule_create(enum table_hw_accel_id acc_id,
-			     uint16_t table_id,
+			     t_tbl_id table_id,
 			     struct table_rule *rule,
-			     uint8_t key_size);
-#endif
+			     uint8_t key_size,
+			     t_rule_id *rule_id);
 
-#ifdef REV2_RULEID
+
 /**************************************************************************//**
 @Function	table_rule_create_or_replace
 
@@ -1079,53 +1065,14 @@ inline int table_rule_create(enum table_hw_accel_id acc_id,
 @Cautions	In this function the task yields.
 @Cautions	This function may result in a fatal error.
 *//***************************************************************************/
-int table_rule_create_or_replace(enum table_hw_accel_id acc_id,
-				 uint16_t table_id,
-				 struct table_rule *rule,
-				 uint8_t key_size,
-				 struct table_result *old_res,
-				 uint64_t *rule_id);
-#else
-/**************************************************************************//**
-@Function	table_rule_create_or_replace
-
-@Description	Adds/replaces a rule to a specified table.
-		\n \n If the rule key already exists, the rule will be replaced
-		by the one specified in the function's parameters. Else, a new
-		rule will be created in the table.
-
-@Param[in]	acc_id ID of the Hardware Table Accelerator that contains
-		the table on which the operation will be performed.
-@Param[in]	table_id Table ID.
-@Param[in]	rule The rule to be added. The structure pointed by this
-		pointer must be in the task's workspace and must be aligned to
-		16B boundary.
-@Param[in]	key_size Key size in bytes.Should be equal to the key size the
-		table was created with except for the following remark:
-		 - the key size should be added priority field size (4 Bytes)
-		for MFLU tables.
-@Param[in, out]	old_res The result of the replaced rule. Valid only if
-		replace took place. If set to null the replaced rule's result
-		will not be returned. If not null, structure should be
-		allocated by the caller to this function.
-
-@Return		0 or positive value on success. Negative value on error.
-
-@Retval		0 Success.  A rule with the same key descriptor was found in
-		the table. The rule was replaced.
-@Retval		#TABLE_STATUS_MISS Success, A rule with the same key descriptor
-		was not found in the table. A new rule is created.
-@Retval		ENOMEM Error, Not enough memory is available.
-
-@Cautions	In this function the task yields.
-@Cautions	This function may result in a fatal error.
-*//***************************************************************************/
-int table_rule_create_or_replace(enum table_hw_accel_id acc_id,
-				 uint16_t table_id,
-				 struct table_rule *rule,
-				 uint8_t key_size,
-				 struct table_result *old_res);
-#endif
+/* TODO FIX!!!!!!!!*/
+inline int table_rule_create_or_replace(enum table_hw_accel_id acc_id,
+					t_tbl_id table_id,
+					struct table_rule *rule,
+					uint8_t key_size,
+					struct table_result *old_res,
+					t_rule_id *rule_id);
+/* TODO FIX!!!!!!!!*/
 
 
 /**************************************************************************//**
@@ -1164,10 +1111,10 @@ int table_rule_create_or_replace(enum table_hw_accel_id acc_id,
 @Cautions	This function may result in a fatal error.
 *//***************************************************************************/
 inline int table_rule_replace(enum table_hw_accel_id acc_id,
-		       uint16_t table_id,
-		       struct table_rule *rule,
-		       uint8_t key_size,
-		       struct table_result *old_res);
+			      t_tbl_id table_id,
+			      struct table_rule *rule,
+			      uint8_t key_size,
+			      struct table_result *old_res);
 
 
 /**************************************************************************//**
@@ -1208,11 +1155,11 @@ inline int table_rule_replace(enum table_hw_accel_id acc_id,
 @Cautions	This function may result in a fatal error.
 *//***************************************************************************/
 inline int table_rule_query(enum table_hw_accel_id acc_id,
-		     uint16_t table_id,
-		     union table_key_desc *key_desc,
-		     uint8_t key_size,
-		     struct table_result *result,
-		     uint32_t *timestamp);
+			    t_tbl_id table_id,
+			    union table_key_desc *key_desc,
+			    uint8_t key_size,
+			    struct table_result *result,
+			    uint32_t *timestamp);
 
 
 /**************************************************************************//**
@@ -1354,10 +1301,10 @@ inline int table_lookup_by_key(enum table_hw_accel_id acc_id,
 
 *//***************************************************************************/
 inline int table_lookup_by_keyid_default_frame(enum table_hw_accel_id acc_id,
-					uint16_t table_id,
-					uint8_t keyid,
-					struct table_lookup_result
-					       *lookup_result);
+					       t_tbl_id table_id,
+					       uint8_t keyid,
+					       struct table_lookup_result
+							*lookup_result);
 
 
 /**************************************************************************//**
@@ -1421,12 +1368,12 @@ inline int table_lookup_by_keyid_default_frame(enum table_hw_accel_id acc_id,
 			16 bytes.
 *//***************************************************************************/
 inline int table_lookup_by_keyid(enum table_hw_accel_id acc_id,
-			  uint16_t table_id,
-			  uint8_t keyid,
-			  uint32_t flags,
-			  struct table_lookup_non_default_params
+				 t_tbl_id table_id,
+				 uint8_t keyid,
+				 uint32_t flags,
+				 struct table_lookup_non_default_params
 				 *ndf_params,
-			  struct table_lookup_result *lookup_result);
+				 struct table_lookup_result *lookup_result);
 
 #ifdef REV2_RULEID
 /**************************************************************************//**
@@ -1504,9 +1451,9 @@ int table_get_next_ruleid(enum table_hw_accel_id acc_id,
 @Cautions	This function may result in a fatal error.
 *//***************************************************************************/
 int table_get_key_desc(enum table_hw_accel_id acc_id,
-			  uint16_t table_id,
-			  struct table_rule_id_desc *rule_id_desc,
-			  union table_key_desc *key_desc);
+		       t_tbl_id table_id,
+		       struct table_rule_id_desc *rule_id_desc,
+		       union table_key_desc *key_desc);
 
 
 /**************************************************************************//**
@@ -1536,9 +1483,9 @@ int table_get_key_desc(enum table_hw_accel_id acc_id,
 @Cautions	This function may result in a fatal error.
 *//***************************************************************************/
 int table_rule_replace_by_ruleid(enum table_hw_accel_id acc_id,
-			  uint16_t table_id,
-			  struct table_ruleid_and_result_desc *rule,
-			  struct table_result *old_res);
+				 t_tbl_id table_id,
+				 struct table_ruleid_and_result_desc *rule,
+				 struct table_result *old_res);
 
 
 /**************************************************************************//**
@@ -1567,9 +1514,9 @@ int table_rule_replace_by_ruleid(enum table_hw_accel_id acc_id,
 @Cautions	This function may result in a fatal error.
 *//***************************************************************************/
 int table_rule_delete_by_ruleid(enum table_hw_accel_id acc_id,
-		      uint16_t table_id,
-		      struct table_rule_id_desc *rule_id_desc,
-		      struct table_result *result);
+				t_tbl_id table_id,
+				struct table_rule_id_desc *rule_id_desc,
+				struct table_result *result);
 
 
 /**************************************************************************//**
@@ -1602,10 +1549,10 @@ int table_rule_delete_by_ruleid(enum table_hw_accel_id acc_id,
 @Cautions	This function may result in a fatal error.
 *//***************************************************************************/
 int table_rule_query_by_ruleid(enum table_hw_accel_id acc_id,
-		     uint16_t table_id,
-		     struct table_rule_id_desc *rule_id_desc,
-		     struct table_result *result,
-		     uint32_t *timestamp);
+			       t_tbl_id table_id,
+			       struct table_rule_id_desc *rule_id_desc,
+			       struct table_result *result,
+			       uint32_t *timestamp);
 
 #endif //REV2_RULEID
 

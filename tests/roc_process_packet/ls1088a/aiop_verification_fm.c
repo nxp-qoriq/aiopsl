@@ -66,31 +66,28 @@ __declspec(entry_point) void aiop_verification_fm()
 	uint32_t opcode;
         struct fdma_amq amq;
         uint16_t icid, flags = 0;
+        uint16_t segment_offset;
         uint8_t tmp, spid;
 	uint32_t *pData = (uint32_t *)HWC_FD_ADDRESS;
 
 	fsl_print("\n**************************\n");
 	fsl_print("*** Start Verification ***\n");
 	fsl_print("**************************\n");
-	/* Read last 8 bytes from frame PTA/ last 8 bytes of payload
+	/* Read 8 bytes from frame PTA/ last 8 bytes of payload
 	 * This is the external buffer address */
 	if (LDPAA_FD_GET_PTA(HWC_FD_ADDRESS)) {
-			/* PTA was already loaded */
-		if (PRC_GET_PTA_ADDRESS() != PRC_PTA_NOT_LOADED_ADDRESS) {
-			ext_address = *((uint64_t *)PRC_GET_PTA_ADDRESS());
-			slab_parser_error = 
-				*((uint8_t *)PRC_GET_PTA_ADDRESS() + 8);
-			slab_keygen_error = 
-				*((uint8_t *)PRC_GET_PTA_ADDRESS() + 9);
-		} else { /* PTA was not loaded */
-			if (fdma_read_default_frame_pta((void *)data_addr) !=
-					FDMA_SUCCESS)
-				return;
-			ext_address = *((uint64_t *)data_addr);
-			slab_parser_error = *((uint8_t *)data_addr + 8);
-			slab_keygen_error = *((uint8_t *)data_addr + 9);
-			PRC_SET_PTA_ADDRESS(PRC_PTA_NOT_LOADED_ADDRESS);
-		}
+		/* fix CR:ENGR00364084 */
+		segment_offset = *((uint16_t *)(HWC_PRC_ADDRESS + 0x8));
+		/* load PTA */
+		if (fdma_read_default_frame_pta((void *)data_addr) !=
+				FDMA_SUCCESS)
+			return;
+		ext_address = *((uint64_t *)data_addr);
+		slab_parser_error = *((uint8_t *)data_addr + 8);
+		slab_keygen_error = *((uint8_t *)data_addr + 9);
+		PRC_SET_PTA_ADDRESS(PRC_PTA_NOT_LOADED_ADDRESS);
+		/* fix CR:ENGR00364084 */
+		*((uint16_t *)(HWC_PRC_ADDRESS + 0x8)) = segment_offset;
 	} else {
 		present_params.flags = FDMA_PRES_SR_BIT;
 		present_params.frame_handle = PRC_GET_FRAME_HANDLE();

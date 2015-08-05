@@ -87,9 +87,19 @@ aiop_sl		</project>
 			<locationURI>PARENT-5-PROJECT_LOC/tests/roc_process_packet/README.txt</locationURI>
 		</link>
 		<link>
+			<name>lcf</name>
+			<type>2</type>
+			<locationURI>virtual:/virtual</locationURI>
+		</link>
+		<link>
 			<name>src</name>
 			<type>2</type>
 			<locationURI>virtual:/virtual</locationURI>
+		</link>
+		<link>
+			<name>lcf/aiop_core_lib_verif_arena.lcf</name>
+			<type>1</type>
+			<locationURI>PARENT-5-PROJECT_LOC/tests/roc_process_packet/ls1088a/lcf/aiop_core_lib_verif_arena.lcf</locationURI>
 		</link>
 		<link>
 			<name>src/aiop_verification.h</name>
@@ -129,7 +139,7 @@ aiop_sl		</project>
 		<link>
 			<name>src/aiop_verification_fm.c</name>
 			<type>1</type>
-			<locationURI>PARENT-5-PROJECT_LOC/tests/roc_process_packet/aiop_verification_fm.c</locationURI>
+			<locationURI>PARENT-5-PROJECT_LOC/tests/roc_process_packet/ls1088a/aiop_verification_fm.c</locationURI>
 		</link>
 		<link>
 			<name>src/aiop_verification_gro.c</name>
@@ -234,12 +244,12 @@ aiop_sl		</project>
 		<link>
 			<name>src/aiop_verification_table.c</name>
 			<type>1</type>
-			<locationURI>PARENT-5-PROJECT_LOC/tests/roc_process_packet/aiop_verification_table.c</locationURI>
+			<locationURI>PARENT-5-PROJECT_LOC/tests/roc_process_packet/ls1088a/aiop_verification_table.c</locationURI>
 		</link>
 		<link>
 			<name>src/aiop_verification_table.h</name>
 			<type>1</type>
-			<locationURI>PARENT-5-PROJECT_LOC/tests/roc_process_packet/aiop_verification_table.h</locationURI>
+			<locationURI>PARENT-5-PROJECT_LOC/tests/roc_process_packet/ls1088a/aiop_verification_table.h</locationURI>
 		</link>
 		<link>
 			<name>src/aiop_verification_tman.c</name>

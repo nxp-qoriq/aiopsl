@@ -49,7 +49,7 @@
 									<listOptionValue builtIn="false" value="&quot;${AIOPToolsBaseDir}/AIOP_Support/ewl/lib/libc_z4201_VLE_Soft.a&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../../build/ls1088a/rev1/aiopsl/out/aiopsl.a&quot;"/>
 								</option>
-								<option id="com.freescale.ppc.toolchain.linker.base.input.lcf_file.1241371429" name="Link Command File (.lcf)" superClass="com.freescale.ppc.toolchain.linker.base.input.lcf_file" value="${ProjDirPath}/lcf/aiop_core_lib_verif_arena.lcf" valueType="string"/>
+								<option id="com.freescale.ppc.toolchain.linker.base.input.lcf_file.1241371429" name="Link Command File (.lcf)" superClass="com.freescale.ppc.toolchain.linker.base.input.lcf_file" value="${ProjDirPath}/../../../../../tests/roc_process_packet/ls1088a/lcf/aiop_core_lib_verif_arena.lcf" valueType="string"/>
 								<option id="com.freescale.ppc.toolchain.linker.base.generateBinaryFile.145510427" name="Generate Binary File:" superClass="com.freescale.ppc.toolchain.linker.base.generateBinaryFile" value="com.freescale.ppc.toolchain.linker.base.generateBinaryFile.none" valueType="enumerated"/>
 								<option id="com.freescale.ppc.toolchain.linker.base.input.linkorder.456617233" name="Link Order" superClass="com.freescale.ppc.toolchain.linker.base.input.linkorder" valueType="stringList">
 									<listOptionValue builtIn="false" value="src/apps.c"/>
@@ -69,14 +69,11 @@
 									<listOptionValue builtIn="false" value="src/aiop_verification_keygen.c"/>
 									<listOptionValue builtIn="false" value="src/aiop_verification_osm.c"/>
 									<listOptionValue builtIn="false" value="src/aiop_verification_parser.c"/>
-									<listOptionValue builtIn="false" value="src/aiop_verification_sr.c"/>
 									<listOptionValue builtIn="false" value="src/aiop_verification_ste.c"/>
 									<listOptionValue builtIn="false" value="src/aiop_verification_table.c"/>
 									<listOptionValue builtIn="false" value="src/aiop_verification_tman.c"/>
-									<listOptionValue builtIn="false" value="src/main.c"/>
-									<listOptionValue builtIn="false" value="src/slab_stub.c"/>
-									<listOptionValue builtIn="false" value="src/verification_virtual_pools.c"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../../build/ls1088a/rev1/aiopsl/out/aiopsl.a&quot;"/>
+									<listOptionValue builtIn="false" value="src/config.c"/>
 								</option>
 								<option id="com.freescale.ppc.toolchain.linker.base.generateSrec.eol.565596894" name="EOL Character:" superClass="com.freescale.ppc.toolchain.linker.base.generateSrec.eol" value="com.freescale.ppc.toolchain.linker.base.generateSrec.unix" valueType="enumerated"/>
 								<option id="com.freescale.ppc.toolchain.linker.base.output.stackAddress.1100043625" name="Stack Address" superClass="com.freescale.ppc.toolchain.linker.base.output.stackAddress" value="" valueType="string"/>
@@ -185,12 +182,12 @@
 								<option id="com.freescale.ppc.toolchain.compiler.base.warnings.sysfilecaps.1610808780" name="Check System Includes" superClass="com.freescale.ppc.toolchain.compiler.base.warnings.sysfilecaps" value="true" valueType="boolean"/>
 								<option id="com.freescale.ppc.toolchain.compiler.base.warnings.padding.865256440" name="Pad Bytes Added" superClass="com.freescale.ppc.toolchain.compiler.base.warnings.padding" value="false" valueType="boolean"/>
 								<option id="com.freescale.ppc.toolchain.compiler.base.warnings.notinlined.1689515352" name="Non-Inlined Functions" superClass="com.freescale.ppc.toolchain.compiler.base.warnings.notinlined" value="true" valueType="boolean"/>
-								<option id="com.freescale.ppc.toolchain.compiler.base.options.optLevel.1236462988" name="Optimization Level" superClass="com.freescale.ppc.toolchain.compiler.base.options.optLevel" value="com.freescale.ppc.toolchain.compiler.base.optionCategory.optimization.optlevel.0" valueType="enumerated"/>
-								<option id="com.freescale.ppc.toolchain.compiler.base.optionCategory.processor.instructionScheduling.516812387" name="Instruction Scheduling" superClass="com.freescale.ppc.toolchain.compiler.base.optionCategory.processor.instructionScheduling" value="false" valueType="boolean"/>
-								<option id="com.freescale.ppc.toolchain.compiler.base.optionCategory.processor.peepHoleOptimization.89973508" name="Peephole Optimization" superClass="com.freescale.ppc.toolchain.compiler.base.optionCategory.processor.peepHoleOptimization" value="false" valueType="boolean"/>
+								<option id="com.freescale.ppc.toolchain.compiler.base.options.optLevel.1236462988" name="Optimization Level" superClass="com.freescale.ppc.toolchain.compiler.base.options.optLevel" value="com.freescale.ppc.toolchain.compiler.base.optionCategory.optimization.optlevel.4" valueType="enumerated"/>
+								<option id="com.freescale.ppc.toolchain.compiler.base.optionCategory.processor.instructionScheduling.516812387" name="Instruction Scheduling" superClass="com.freescale.ppc.toolchain.compiler.base.optionCategory.processor.instructionScheduling" value="true" valueType="boolean"/>
+								<option id="com.freescale.ppc.toolchain.compiler.base.optionCategory.processor.peepHoleOptimization.89973508" name="Peephole Optimization" superClass="com.freescale.ppc.toolchain.compiler.base.optionCategory.processor.peepHoleOptimization" value="true" valueType="boolean"/>
 								<option id="com.freescale.ppc.toolchain.compiler.base.optionCategory.processor.aiop.1784961265" name="Generate AIOP code extensions" superClass="com.freescale.ppc.toolchain.compiler.base.optionCategory.processor.aiop" value="true" valueType="boolean"/>
-								<option id="com.freescale.ppc.toolchain.compiler.base.optionCategory.processor.nogen.613623552" name="Disable AIOP e_ldw/e_stdw code generation" superClass="com.freescale.ppc.toolchain.compiler.base.optionCategory.processor.nogen" value="true" valueType="boolean"/>
-								<option id="com.freescale.ppc.toolchain.compiler.base.options.inlining.1037107702" name="Inlining" superClass="com.freescale.ppc.toolchain.compiler.base.options.inlining" value="com.freescale.ppc.toolchain.compiler.base.options.inline.off" valueType="enumerated"/>
+								<option id="com.freescale.ppc.toolchain.compiler.base.optionCategory.processor.nogen.613623552" name="Disable AIOP e_ldw/e_stdw code generation" superClass="com.freescale.ppc.toolchain.compiler.base.optionCategory.processor.nogen" value="false" valueType="boolean"/>
+								<option id="com.freescale.ppc.toolchain.compiler.base.options.inlining.1037107702" name="Inlining" superClass="com.freescale.ppc.toolchain.compiler.base.options.inlining" value="com.freescale.ppc.toolchain.compiler.base.options.inlining.smart" valueType="enumerated"/>
 								<inputType id="com.freescale.ppc.toolchain.compiler.base.input.1059220879" name="com.freescale.ppc.toolchain.cf Compiler Input" superClass="com.freescale.ppc.toolchain.compiler.base.input"/>
 							</tool>
 							<tool command="&quot;${AIOPToolsDir}/asmaiop&quot;" commandLinePattern="${COMMAND} ${FLAGS} ${OUTPUT_FLAG} ${OUTPUT_PREFIX}${OUTPUT} ${INPUTS}" errorParsers="" id="com.freescale.ppc.toolchain.assembler.1023235475" name="Assembler" superClass="com.freescale.ppc.toolchain.assembler">
