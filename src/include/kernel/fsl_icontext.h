@@ -159,6 +159,13 @@ int icontext_release(struct icontext *ic, uint16_t bpid, uint64_t addr);
 @Description	Update the Additional Dequeue Context that has been copied to 
 		the workspace with the new isolation context.
 
+		It is useful if you must close the command default frame and
+		reopen it again:
+		- icontext_ws_set(&cmd_ic);
+		- fdma_present_default_frame();
+		- icontext_ws_set(&aiop_ic);
+		- continue working with command as usual 
+		
 @Param[in]	ic	- Isolation context to be set in the workspace.
 
 *//***************************************************************************/
