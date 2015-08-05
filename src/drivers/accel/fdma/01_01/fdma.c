@@ -439,7 +439,7 @@ int fdma_read_default_frame_pta(
 	__stdw(arg1, arg2, HWC_ACC_IN_ADDRESS, 0);
 
 	/* call FDMA Accelerator */
-	if ((__e_hwacceli_(FODMA_ACCEL_ID)) == FDMA_SUCCESS) {
+	if ((__e_hwacceli_(FPDMA_ACCEL_ID)) == FDMA_SUCCESS) {
 		PRC_SET_PTA_ADDRESS((uint16_t)((uint32_t)ws_dst));
 		#if NAS_NPS_ENABLE
 			PRC_RESET_NPS_BIT();
@@ -1403,7 +1403,7 @@ void fdma_dma_data(
 	__stdw(arg1, arg2, HWC_ACC_IN_ADDRESS, 0);
 	__llstdw(sys_addr, HWC_ACC_IN_ADDRESS3, 0);
 	/* call FDMA Accelerator */
-	if ((__e_hwacceli_(FODMA_ACCEL_ID)) == FDMA_SUCCESS)
+	if ((__e_hwacceli_(FPDMA_ACCEL_ID)) == FDMA_SUCCESS)
 		return;
 
 	/* load command results */
@@ -1429,7 +1429,7 @@ int fdma_acquire_buffer(
 	__stdw(arg1, arg2, HWC_ACC_IN_ADDRESS, 0);
 
 	/* call FDMA Accelerator */
-	if ((__e_hwacceli_(FODMA_ACCEL_ID)) == FDMA_SUCCESS)
+	if ((__e_hwacceli_(FPDMA_ACCEL_ID)) == FDMA_SUCCESS)
 		return SUCCESS;
 
 	/* load command results */
@@ -1460,7 +1460,7 @@ void fdma_release_buffer(
 	__llstdw(addr, HWC_ACC_IN_ADDRESS3, 0);
 
 	/* call FDMA Accelerator */
-	if ((__e_hwacceli_(FODMA_ACCEL_ID)) == FDMA_SUCCESS)
+	if ((__e_hwacceli_(FPDMA_ACCEL_ID)) == FDMA_SUCCESS)
 		return;
 
 	/* load command results */
