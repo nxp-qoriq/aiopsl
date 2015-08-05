@@ -87,7 +87,7 @@
 								<option id="com.freescale.ppc.toolchain.linker.base.optionCategory.heapSize.1933273482" name="Heap Size (k)" superClass="com.freescale.ppc.toolchain.linker.base.optionCategory.heapSize" value="32" valueType="string"/>
 								<option id="com.freescale.ppc.toolchain.linker.base.optionCategory.stackSize.605094551" name="Stack Size (k)" superClass="com.freescale.ppc.toolchain.linker.base.optionCategory.stackSize" value="32" valueType="string"/>
 								<option id="com.freescale.ppc.toolchain.linker.base.generateSrec.length.2089232184" name="Max S-Record Length" superClass="com.freescale.ppc.toolchain.linker.base.generateSrec.length" value="26" valueType="string"/>
-								<option id="com.freescale.ppc.toolchain.linker.base.generateLinkMap.listUnusedObjects.743728675" superClass="com.freescale.ppc.toolchain.linker.base.generateLinkMap.listUnusedObjects" value="true" valueType="boolean"/>
+								<option id="com.freescale.ppc.toolchain.linker.base.generateLinkMap.listUnusedObjects.743728675" name="List Unused Objects" superClass="com.freescale.ppc.toolchain.linker.base.generateLinkMap.listUnusedObjects" value="true" valueType="boolean"/>
 								<inputType id="com.freescale.ppc.toolchain.linker.base.input.228127347" name="Linker Input" superClass="com.freescale.ppc.toolchain.linker.base.input">
 									<additionalInput kind="additionalinputdependency" paths="$(USER_OBJS)"/>
 									<additionalInput kind="additionalinput" paths="$(LIBS)"/>
@@ -190,7 +190,6 @@
 								<option id="com.freescale.ppc.toolchain.compiler.base.options.inlining.1393283048" name="Inlining" superClass="com.freescale.ppc.toolchain.compiler.base.options.inlining" value="com.freescale.ppc.toolchain.compiler.base.options.inlining.smart" valueType="enumerated"/>
 								<option id="com.freescale.ppc.toolchain.compiler.base.optionCategory.processor.functionAlign.1142997165" name="Function Alignment" superClass="com.freescale.ppc.toolchain.compiler.base.optionCategory.processor.functionAlign" value="com.freescale.ppc.toolchain.compiler.base.optionCategory.processor.functionAlign.4" valueType="enumerated"/>
 								<option id="com.freescale.ppc.toolchain.compiler.base.optionCategory.processor.structAlign.1875115158" name="Struct Alignment" superClass="com.freescale.ppc.toolchain.compiler.base.optionCategory.processor.structAlign" value="com.freescale.ppc.toolchain.compiler.base.optionCategory.processor.structAlign.cf" valueType="enumerated"/>
-								<option id="com.freescale.ppc.toolchain.compiler.base.optionCategory.processor.coverage.532351301" name="Generate Code Coverage Files" superClass="com.freescale.ppc.toolchain.compiler.base.optionCategory.processor.coverage" value="false" valueType="boolean"/>
 								<option id="com.freescale.ppc.toolchain.compiler.base.general.strconst.reuse.338055068" name="Reuse" superClass="com.freescale.ppc.toolchain.compiler.base.general.strconst.reuse" value="true" valueType="boolean"/>
 								<option id="com.freescale.ppc.toolchain.compiler.base.general.ipa.976613175" name="IPA" superClass="com.freescale.ppc.toolchain.compiler.base.general.ipa" value="com.freescale.ppc.toolchain.compiler.base.general.ipa.off" valueType="enumerated"/>
 								<inputType id="com.freescale.ppc.toolchain.compiler.base.input.1059220879" name="com.freescale.ppc.toolchain.cf Compiler Input" superClass="com.freescale.ppc.toolchain.compiler.base.input"/>
@@ -214,6 +213,8 @@
 								<option id="com.freescale.ppc.toolchain.disassembler.base.settings.name.2146975096" name="Show Symbol and String Tables" superClass="com.freescale.ppc.toolchain.disassembler.base.settings.name" value="true" valueType="boolean"/>
 								<option id="com.freescale.ppc.toolchain.disassembler.base.settings.code.168271126" name="Show Core Modules" superClass="com.freescale.ppc.toolchain.disassembler.base.settings.code" value="true" valueType="boolean"/>
 								<option id="com.freescale.ppc.toolchain.disassembler.base.settings.data.2097434414" name="Show Data Modules" superClass="com.freescale.ppc.toolchain.disassembler.base.settings.data" value="true" valueType="boolean"/>
+								<option id="com.freescale.ppc.toolchain.disassembler.base.settings.extm.567524236" name="Show Extended Mnemonics" superClass="com.freescale.ppc.toolchain.disassembler.base.settings.extm" value="true" valueType="boolean"/>
+								<option id="com.freescale.ppc.toolchain.disassembler.base.settings.src.1057594763" name="Show Source Code" superClass="com.freescale.ppc.toolchain.disassembler.base.settings.src" value="true" valueType="boolean"/>
 							</tool>
 							<tool command="&quot;${AIOPToolsDir}/ccaiop&quot;" commandLinePattern="${COMMAND} ${FLAGS} ${OUTPUT_FLAG} ${INPUTS}" errorParsers="" id="com.freescale.ppc.toolchain.preprocessor.1334668711" name="Preprocessor" superClass="com.freescale.ppc.toolchain.preprocessor">
 								<option id="com.freescale.ppc.toolchain.compiler.base.preprocessor.break.1873836190" name="Emit file change" superClass="com.freescale.ppc.toolchain.compiler.base.preprocessor.break" value="true" valueType="boolean"/>
