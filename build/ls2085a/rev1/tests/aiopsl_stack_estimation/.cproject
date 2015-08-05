@@ -79,6 +79,8 @@
 								<option id="com.freescale.ppc.toolchain.linker.base.generateSrec.length.1413001780" name="Max S-Record Length" superClass="com.freescale.ppc.toolchain.linker.base.generateSrec.length" value="26" valueType="string"/>
 								<option id="com.freescale.ppc.toolchain.linker.base.optionCategory.stackSize.277791093" name="Stack Size (k)" superClass="com.freescale.ppc.toolchain.linker.base.optionCategory.stackSize" value="32" valueType="string"/>
 								<option id="com.freescale.ppc.toolchain.linker.base.optionCategory.heapSize.1948926572" name="Heap Size (k)" superClass="com.freescale.ppc.toolchain.linker.base.optionCategory.heapSize" value="32" valueType="string"/>
+								<option id="com.freescale.ppc.toolchain.linker.base.generateLinkMap.closure.91245322" superClass="com.freescale.ppc.toolchain.linker.base.generateLinkMap.closure" value="true" valueType="boolean"/>
+								<option id="com.freescale.ppc.toolchain.linker.base.generateLinkMap.listUnusedObjects.995610657" superClass="com.freescale.ppc.toolchain.linker.base.generateLinkMap.listUnusedObjects" value="true" valueType="boolean"/>
 								<inputType id="com.freescale.ppc.toolchain.linker.base.input.228127347" name="Linker Input" superClass="com.freescale.ppc.toolchain.linker.base.input">
 									<additionalInput kind="additionalinputdependency" paths="$(USER_OBJS)"/>
 									<additionalInput kind="additionalinput" paths="$(LIBS)"/>

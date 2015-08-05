@@ -77,8 +77,8 @@
 								<option id="com.freescale.ppc.toolchain.linker.base.optionCategory.heapSize.1573824451" name="Heap Size (k)" superClass="com.freescale.ppc.toolchain.linker.base.optionCategory.heapSize" value="32" valueType="string"/>
 								<option id="com.freescale.ppc.toolchain.linker.base.optionCategory.stackSize.678570157" name="Stack Size (k)" superClass="com.freescale.ppc.toolchain.linker.base.optionCategory.stackSize" value="32" valueType="string"/>
 								<option id="com.freescale.ppc.toolchain.linker.base.generateSrec.length.264463669" name="Max S-Record Length" superClass="com.freescale.ppc.toolchain.linker.base.generateSrec.length" value="26" valueType="string"/>
-								<option id="com.freescale.ppc.toolchain.linker.base.generateLinkMap.closure.671189293" superClass="com.freescale.ppc.toolchain.linker.base.generateLinkMap.closure" value="true" valueType="boolean"/>
-								<option id="com.freescale.ppc.toolchain.linker.base.generateLinkMap.listUnusedObjects.1551397374" superClass="com.freescale.ppc.toolchain.linker.base.generateLinkMap.listUnusedObjects" value="true" valueType="boolean"/>
+								<option id="com.freescale.ppc.toolchain.linker.base.generateLinkMap.closure.671189293" name="List Closure" superClass="com.freescale.ppc.toolchain.linker.base.generateLinkMap.closure" value="true" valueType="boolean"/>
+								<option id="com.freescale.ppc.toolchain.linker.base.generateLinkMap.listUnusedObjects.1551397374" name="List Unused Objects" superClass="com.freescale.ppc.toolchain.linker.base.generateLinkMap.listUnusedObjects" value="true" valueType="boolean"/>
 								<inputType id="com.freescale.ppc.toolchain.linker.base.input.487710762" name="Linker Input" superClass="com.freescale.ppc.toolchain.linker.base.input">
 									<additionalInput kind="additionalinputdependency" paths="$(USER_OBJS)"/>
 									<additionalInput kind="additionalinput" paths="$(LIBS)"/>
