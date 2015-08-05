@@ -200,6 +200,7 @@
 								<option id="com.freescale.ppc.toolchain.assembler.base.general.period.692475259" name="Directives Begin With '.'" superClass="com.freescale.ppc.toolchain.assembler.base.general.period" value="true" valueType="boolean"/>
 								<option id="com.freescale.ppc.toolchain.assembler.base.general.case.1102906508" name="Case Sensitive Identifier" superClass="com.freescale.ppc.toolchain.assembler.base.general.case" value="true" valueType="boolean"/>
 								<option id="com.freescale.ppc.toolchain.assembler.base.general.space.611581369" name="Allow Space In Operand Field" superClass="com.freescale.ppc.toolchain.assembler.base.general.space" value="true" valueType="boolean"/>
+								<option id="com.freescale.ppc.toolchain.assembler.base.debugging.nosyspath.547350379" superClass="com.freescale.ppc.toolchain.assembler.base.debugging.nosyspath" value="true" valueType="boolean"/>
 								<inputType id="com.freescale.ppc.toolchain.assembler.base.input.650708582" name="AIOP Assembler Input" superClass="com.freescale.ppc.toolchain.assembler.base.input"/>
 							</tool>
 							<tool command="&quot;${AIOPToolsDir}/ldaiop&quot;" commandLinePattern="${COMMAND} -dis ${FLAGS} ${INPUTS}" errorParsers="" id="com.freescale.ppc.toolchain.disassembler.236001321" name="Disassembler" superClass="com.freescale.ppc.toolchain.disassembler">
