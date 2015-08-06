@@ -190,6 +190,31 @@ struct aiop_cmgw_regs {
 
 	/* Shared Doorbell Unit Configuration
 	 * Available only on LS2085’s Rev 2 and LS1080 */
+	struct {
+		struct {
+			uint32_t dpcr[3];
+			/**< General or Management Doorbell Priority x Configuration Register y */
+			OS_MEM_RESERVED(0x80c, 0x810);
+		}pr[2];
+		/**< 0 or 1 priority */
+		OS_MEM_RESERVED(0x820, 0x880);
+	}init_g_m[2];
+	/**< 0 - General or 1 - Management Doorbell */
+
+	/* Shared Doorbell Clear Registers
+	 * Available only on LS2085’s Rev 2 and LS1080 */
+	struct {
+		struct {
+			uint32_t dpclrr;
+			/**< General or Management Doorbell Priority x Clear Register */
+			OS_MEM_RESERVED(0x904, 0x910);
+		}pr[2];
+		/**< 0 or 1 priority */
+		OS_MEM_RESERVED(0x920, 0x980);
+	}clear_g_m[2];
+	/**< 0 - General or 1 - Management Doorbell */
+
+#if 0
 	uint32_t gdp0cr1; /* General Doorbell Priority 0 Configuration Register 1 */
 	uint32_t gdp0cr2; /* General Doorbell Priority 0 Configuration Register 2 */
 	uint32_t gdp0cr3; /* General Doorbell Priority 0 Configuration Register 3 */
@@ -216,6 +241,7 @@ struct aiop_cmgw_regs {
 	OS_MEM_RESERVED(0x984, 0x990);
 	uint32_t mdp1clrr; /* Management Doorbell Priority 1 Clear Register */
 	OS_MEM_RESERVED(0x994, 0x1000);
+#endif
 };
 
 struct aiop_fdma_regs {
@@ -448,6 +474,18 @@ struct aiop_dcsr_regs {
  * Use SOC_PERIPH_OFF_PORTAL_MAP + AIOP_PERIPHERALS_OFF to access it
  */
 struct aiop_portal_map_regs {
+	struct {
+		struct {
+			uint32_t dprr;
+			/**< General or Management Doorbell Priority x Request Register */
+			OS_MEM_RESERVED(0x00004, 0x10000);
+		}pr[2];
+		/**< 0 or 1 priority */
+		OS_MEM_RESERVED(0x20000, 0x80000);
+	}req_g_m[2];
+	/**< 0 - General or 1 - Management Doorbell */
+
+#if 0
 	uint32_t gdp0rr;	/**< General Doorbell Priority 0 Request Register */
 	OS_MEM_RESERVED(0x00004, 0x10000);
 	uint32_t gdp1rr;	/**< General Doorbell Priority 1 Request Register */
@@ -456,6 +494,7 @@ struct aiop_portal_map_regs {
 	OS_MEM_RESERVED(0x80004, 0x90000);
 	uint32_t mdp1rr;	/**< Management Doorbell Priority 1 Request Register */
 	OS_MEM_RESERVED(0x90004, 0x100000);
+#endif
 };
 
 #endif /* __AIOP_COMMON_H */
