@@ -1435,9 +1435,6 @@ __IPSEC_HOT_CODE int ipsec_frame_encrypt(
 	ipsec_handle_t desc_addr;
 	//uint16_t offset;
 	uint32_t original_val, new_val;
-	uint16_t fd_offset;
-	uint32_t fd_len;
-	uint8_t fd_frame_format; /* FD[FMT] */ 
 
 	struct ipsec_sa_params_part1 sap1; /* Parameters to read from ext buffer */
 	struct scope_status_params scope_status;
@@ -1611,9 +1608,6 @@ __IPSEC_HOT_CODE int ipsec_frame_encrypt(
 	 * before the (optional) L2 header removal */
 	orig_seg_addr = PRC_GET_SEGMENT_ADDRESS();
 
-	/* Get the frame format */
-	fd_frame_format = LDPAA_FD_GET_FMT(HWC_FD_ADDRESS);
-	
 	/* 	4.	Identify if L2 header exist in the frame: */
 	/* Check if Ethernet/802.3 MAC header exist and remove it */
 	if (PARSER_IS_ETH_MAC_DEFAULT()) { /* Check if Ethernet header exist */
@@ -1647,10 +1641,7 @@ __IPSEC_HOT_CODE int ipsec_frame_encrypt(
 		memcpy(eth_header, eth_pointer_default, eth_length);
 		
 		/* Remove L2 Header */	
-		/* If this is a not a single buffer frame (i.e. scatter-gather),
-		 * remove the L2 Header with FDMA */
-		if (fd_frame_format != IPSEC_FMT_SINGLE_BUFFER) {
-			fdma_replace_default_segment_data(
+		fdma_replace_default_segment_data(
 				(uint16_t)PARSER_GET_ETH_OFFSET_DEFAULT(),
 				eth_length,
 				NULL,
@@ -1658,7 +1649,6 @@ __IPSEC_HOT_CODE int ipsec_frame_encrypt(
 				(void *)prc->seg_address,
 				128,
 				(uint32_t)(FDMA_REPLACE_SA_CLOSE_BIT));
-		}
 	}
 			/*---------------------*/
 			/* ipsec_frame_encrypt */
@@ -1680,24 +1670,6 @@ __IPSEC_HOT_CODE int ipsec_frame_encrypt(
 	return_val = fdma_store_default_frame_data();
 	// TODO: check FDMA return status
 
-	/* Update the FD such that the SEC "thinks" the frame starts after the
-	 * L2 header, right from the IP. 
-	 * The L2 header becomes part of the headroom  */
-	
-	/* If this is a single buffer frame, remove the L2 Header by FD change */
-	if (fd_frame_format == IPSEC_FMT_SINGLE_BUFFER) {
-	/* Update the 12 bit FD offset. Do it on all 16 bits, 
-	 * since the result is the same */
-		fd_offset = LH_SWAP(14, HWC_FD_ADDRESS);
-		fd_offset += eth_length;
-		STH_SWAP(fd_offset, 14, HWC_FD_ADDRESS);
-	
-		/* Update the FD length */
-		fd_len = LW_SWAP(8, HWC_FD_ADDRESS);
-		fd_len -= eth_length;
-		STW_SWAP(fd_len, 8, HWC_FD_ADDRESS);
-	}
-	
 	/* 	8.	Prepare AAP parameters in the Workspace memory. */
 	/* 	8.1.	Use accelerator macros for storing parameters */
 	/* 
@@ -2074,11 +2046,6 @@ __IPSEC_HOT_CODE int ipsec_frame_decrypt(
 	uint32_t checksum;
 	uint8_t dont_decrypt = 0;
 	ipsec_handle_t desc_addr;
-	//uint16_t offset;
-	uint16_t fd_offset;
-	uint32_t fd_len;
-	//uint16_t i;
-	uint8_t fd_frame_format; /* FD[FMT] */ 
 
 	struct ipsec_sa_params_part1 sap1; /* Parameters to read from ext buffer */
 	struct scope_status_params scope_status;
@@ -2247,9 +2214,6 @@ __IPSEC_HOT_CODE int ipsec_frame_decrypt(
 		
 		dpovrd.transport_decap.reserved = 0;
 
-		/* Get the frame format */
-		fd_frame_format = LDPAA_FD_GET_FMT(HWC_FD_ADDRESS);
-		
 		/* 	If L2 header exist in the frame, save it and remove from frame */
 		if (eth_length) {
 		/* Save Ethernet header. Note: no swap */
@@ -2260,10 +2224,7 @@ __IPSEC_HOT_CODE int ipsec_frame_decrypt(
 			memcpy(eth_header, eth_pointer_default, eth_length);
 
 			/* Remove L2 Header */	
-			/* If this is a not a single buffer frame (i.e. scatter-gather),
-			 * remove the L2 Header with FDMA */
-			if (fd_frame_format != IPSEC_FMT_SINGLE_BUFFER) {
-				fdma_replace_default_segment_data(
+			fdma_replace_default_segment_data(
 					(uint16_t)PARSER_GET_ETH_OFFSET_DEFAULT(),
 					eth_length,
 					NULL,
@@ -2271,7 +2232,6 @@ __IPSEC_HOT_CODE int ipsec_frame_decrypt(
 					(void *)prc->seg_address,
 					128,
 					(uint32_t)(FDMA_REPLACE_SA_CLOSE_BIT));
-			}
 			
 			/* This is done here because L2 is removed only in Transport */
 			PRC_RESET_NDS_BIT(); 
@@ -2323,26 +2283,6 @@ __IPSEC_HOT_CODE int ipsec_frame_decrypt(
 	/* 	8.	FDMA store default frame command 
 	 * (for closing the frame, updating the other FD fields) */
 	return_val = fdma_store_default_frame_data();
-	
-	if (!(sap1.flags & IPSEC_FLG_TUNNEL_MODE)) {
-		/* In transport mode, single buffer frame, update the FD 
-		 * such that the SEC "thinks" the frame starts after the
-		 * L2 header, right from the IP. 
-		 * The L2 header becomes part of the headroom  */
-		if (fd_frame_format == IPSEC_FMT_SINGLE_BUFFER) {
-
-			/* Update the 12 bit FD offset. Do it on all 16 bits, 
-			 * since the result is the same */
-			fd_offset = LH_SWAP(14, HWC_FD_ADDRESS);
-			fd_offset += eth_length;
-			STH_SWAP(fd_offset, 14, HWC_FD_ADDRESS);
-		
-			/* Update the FD length */
-			fd_len = LW_SWAP(8, HWC_FD_ADDRESS);
-			fd_len -= eth_length;
-			STW_SWAP(fd_len, 8, HWC_FD_ADDRESS);
-		}	
-	}
 	
 	/* 	9.	Prepare AAP parameters in the Workspace memory. */
 	/* 3 USE_FLC_SP Use Flow Context Storage Profile = 1 */ 
