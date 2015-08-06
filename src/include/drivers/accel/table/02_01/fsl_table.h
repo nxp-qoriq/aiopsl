@@ -727,47 +727,6 @@ struct table_lookup_non_default_params {
 };
 #pragma pack(pop)
 
-
-/**************************************************************************//**
-@Description	Table Rule ID Descriptor Structure
-*//***************************************************************************/
-#pragma pack(push, 1)
-struct table_rule_id_desc {
-	/** Reserved for compliance with HW format.
-	User should not access this field. */
-	uint64_t reserved;
-	
-	/** Rule ID */
-	uint64_t rule_id;
-};
-#pragma pack(pop)
-
-/**************************************************************************//**
-@Description	Table Rule ID and Result Descriptor Structure
-*//***************************************************************************/
-#pragma pack(push, 1)
-struct table_ruleid_and_result_desc {
-	/** Rule ID Descriptor */
-	struct table_rule_id_desc rule_id_desc;
-
-	/** Reserved for compliance with HW format.
-	User should not access this field. */
-	uint64_t reserved0[3];
-
-	/** Table Rule Options - Please refer to \ref FSL_TABLE_RULE_OPTIONS
-	for more details.*/
-	uint8_t  options;
-
-	/** Reserved for compliance with HW format.
-	User should not access this field. */
-	uint8_t  reserved1[3];
-
-	/** Table Rule Result */
-	struct table_result result;
-};
-#pragma pack(pop)
-
-
 /** @} */ /* end of FSL_TABLE_STRUCTS */
 
 
@@ -1092,6 +1051,35 @@ inline int table_rule_query(enum table_hw_accel_id acc_id,
 
 
 /**************************************************************************//**
+@Function	table_rule_delete_by_ruleid
+
+@Description	Deletes a specified rule in the table.
+
+@Param[in]	acc_id ID of the Hardware Table Accelerator that contains
+		the table on which the operation will be performed.
+@Param[in]	table_id Table ID.
+@Param[in]	rule_id Rule ID of the rule to be deleted.
+@Param[in, out]	result The result of the deleted rule. If null the deleted
+		rule's result will not be returned. If not null, structure
+		should be allocated by the caller to this function.
+
+@Return		0 on success or negative value on error.
+
+@Retval		0 Success.
+@Retval		EIO Error, a rule with the same Rule ID is not found
+		in the table.
+
+
+@Cautions	In this function the task yields.
+@Cautions	This function may result in a fatal error.
+*//***************************************************************************/
+int table_rule_delete_by_ruleid(enum table_hw_accel_id acc_id,
+				t_tbl_id table_id,
+				t_rule_id rule_id,
+				struct table_result *result);
+
+
+/**************************************************************************//**
 @Function	table_rule_delete
 
 @Description	Deletes a specified rule in the table.
@@ -1123,10 +1111,10 @@ inline int table_rule_query(enum table_hw_accel_id acc_id,
 @Cautions	This function may result in a fatal error.
 *//***************************************************************************/
 inline int table_rule_delete(enum table_hw_accel_id acc_id,
-		      uint16_t table_id,
-		      union table_key_desc *key_desc,
-		      uint8_t key_size,
-		      struct table_result *result);
+			     uint16_t table_id,
+			     union table_key_desc *key_desc,
+			     uint8_t key_size,
+			     struct table_result *result);
 
 
 /* ######################################################################### */
@@ -1417,35 +1405,7 @@ int table_rule_replace_by_ruleid(enum table_hw_accel_id acc_id,
 				 struct table_result *old_res);
 
 
-/**************************************************************************//**
-@Function	table_rule_delete_by_ruleid
 
-@Description	Deletes a specified rule in the table.
-
-@Param[in]	acc_id ID of the Hardware Table Accelerator that contains
-		the table on which the operation will be performed.
-@Param[in]	table_id Table ID.
-@Param[in]	rule_id_desc Rule ID of the rule to be deleted. The
-		structure pointed by this pointer must be in the task's
-		workspace and must be aligned to 16B boundary.
-@Param[in, out]	result The result of the deleted rule. If null the deleted
-		rule's result will not be returned. If not null, structure
-		should be allocated by the caller to this function.
-
-@Return		0 on success or negative value on error.
-
-@Retval		0 Success.
-@Retval		EIO Error, a rule with the same Rule ID is not found
-		in the table.
-
-
-@Cautions	In this function the task yields.
-@Cautions	This function may result in a fatal error.
-*//***************************************************************************/
-int table_rule_delete_by_ruleid(enum table_hw_accel_id acc_id,
-				t_tbl_id table_id,
-				struct table_rule_id_desc *rule_id_desc,
-				struct table_result *result);
 
 
 /**************************************************************************//**

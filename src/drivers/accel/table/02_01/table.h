@@ -266,6 +266,15 @@
 /** @} */ /* end of TABLE_QUERY */
 
 /**************************************************************************//**
+@Group	TABLE_RULE_DELETE Table Rule Delete specific constants
+@{
+*//***************************************************************************/
+	/** Table query output message reserved space */
+#define TABLE_RULE_DELETE_RULEID_KEYSIZE		0x20
+
+/** @} */ /* end of TABLE_RULE_DELETE */
+
+/**************************************************************************//**
 @Group	TABLE_PARAMS_REPLACE Table Parameters Replace specific constants
 @{
 *//***************************************************************************/
@@ -803,6 +812,47 @@ struct table_old_result {
 	uint8_t reserved2[TABLE_OLD_RESULT_RESERVED2_SPACE];
 
 	/** The body of the entry (varies per type) */
+	struct table_result result;
+};
+#pragma pack(pop)
+
+
+/**************************************************************************//**
+@Description	Table Rule ID Descriptor Structure
+*//***************************************************************************/
+#pragma pack(push, 1)
+struct table_rule_id_desc {
+	/** Reserved for compliance with HW format.
+	User should not access this field. */
+	uint64_t reserved;
+
+	/** Rule ID */
+	uint64_t rule_id;
+};
+#pragma pack(pop)
+
+
+/**************************************************************************//**
+@Description	Table Rule ID and Result Descriptor Structure
+*//***************************************************************************/
+#pragma pack(push, 1)
+struct table_ruleid_and_result_desc {
+	/** Rule ID Descriptor */
+	struct table_rule_id_desc rule_id_desc;
+
+	/** Reserved for compliance with HW format.
+	User should not access this field. */
+	uint64_t reserved0[3];
+
+	/** Table Rule Options - Please refer to \ref FSL_TABLE_RULE_OPTIONS
+	for more details.*/
+	uint8_t  options;
+
+	/** Reserved for compliance with HW format.
+	User should not access this field. */
+	uint8_t  reserved1[3];
+
+	/** Table Rule Result */
 	struct table_result result;
 };
 #pragma pack(pop)

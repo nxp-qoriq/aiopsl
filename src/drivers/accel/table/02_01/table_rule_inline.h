@@ -313,7 +313,7 @@ inline int table_rule_replace(enum table_hw_accel_id acc_id,
 
 inline int table_rule_delete_by_ruleid(enum table_hw_accel_id acc_id,
 				       t_tbl_id table_id,
-				       struct table_rule_id_desc *rule_id_desc,
+				       t_rule_id rule_id,
 				       struct table_result *result)
 {
 #ifdef CHECK_ALIGNMENT 	
@@ -323,12 +323,16 @@ inline int table_rule_delete_by_ruleid(enum table_hw_accel_id acc_id,
 	int32_t status;
 
 	struct table_old_result old_res __attribute__((aligned(16)));
+	struct table_rule_id_desc rule_id_desc __attribute__((aligned(16)));
+
 	/* Prepare HW context for TLU accelerator call */
+	rule_id_desc.rule_id = rule_id;
 	uint32_t arg2 = (uint32_t)&old_res;
 	uint32_t arg3 = table_id;
-	arg2 = __e_rlwimi(arg2, (uint32_t)rule_id_desc, 16, 0, 15);
-	arg3 = __e_rlwimi(arg3, 0x20, 16, 0, 15);
-	__stqw(TABLE_RULE_DELETE_BY_RULEID_MTYPE, arg2, arg3, 0, HWC_ACC_IN_ADDRESS, 0);
+	arg2 = __e_rlwimi(arg2, ((uint32_t) &rule_id_desc), 16, 0, 15);
+	arg3 = __e_rlwimi(arg3, TABLE_RULE_DELETE_RULEID_KEYSIZE, 16, 0, 15);
+	__stqw(TABLE_RULE_DELETE_BY_RULEID_MTYPE, arg2, arg3, 0,
+	       HWC_ACC_IN_ADDRESS, 0);
 
 	/* Accelerator call */
 	__e_hwaccel(acc_id);
