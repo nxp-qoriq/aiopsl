@@ -1,3 +1,12 @@
+Changes made for ls2085a rev1:
+Table:
+	* Added support for DISABLE_REF_CNT.
+	* Moved rule_create_or_replace to be an inline functions.
+	
+Changes made for ls1088a rev1:
+Table:
+	* Moved rule_create_or_replace to be an inline functions.
+
 LDPAA AIOP SERVICE LAYER LDPAA-AIOP-SL-v1088_ENG_0.1 Change Log
 =============================================================
 Changes made for ls2085a rev1:
