@@ -52,9 +52,6 @@
 								<option id="com.freescale.ppc.toolchain.linker.base.input.lcf_file.1241371429" name="Link Command File (.lcf)" superClass="com.freescale.ppc.toolchain.linker.base.input.lcf_file" value="" valueType="string"/>
 								<option id="com.freescale.ppc.toolchain.linker.base.generateBinaryFile.145510427" name="Generate Binary File:" superClass="com.freescale.ppc.toolchain.linker.base.generateBinaryFile" value="com.freescale.ppc.toolchain.linker.base.generateBinaryFile.none" valueType="enumerated"/>
 								<option id="com.freescale.ppc.toolchain.linker.base.input.linkorder.456617233" name="Link Order" superClass="com.freescale.ppc.toolchain.linker.base.input.linkorder" valueType="stringList">
-									<listOptionValue builtIn="false" value="aiop_sl/arch/ppc/booke.S"/>
-									<listOptionValue builtIn="false" value="aiop_sl/arch/ppc/booke.c"/>
-									<listOptionValue builtIn="false" value="aiop_sl/arch/ppc/booke_irq.c"/>
 									<listOptionValue builtIn="false" value="aiop_sl/drivers/dplib/dpni/dpni.c"/>
 									<listOptionValue builtIn="false" value="aiop_sl/drivers/dplib/dpni/dpni_drv.c"/>
 									<listOptionValue builtIn="false" value="aiop_sl/kernel/main.c"/>
@@ -64,15 +61,6 @@
 									<listOptionValue builtIn="false" value="aiop_sl/drivers/dplib/dprc/dprc.c"/>
 									<listOptionValue builtIn="false" value="aiop_sl/arch/platform/init.c"/>
 									<listOptionValue builtIn="false" value="aiop_sl/arch/platform/platform.c"/>
-									<listOptionValue builtIn="false" value="aiop_sl/drivers/accel/cdma.c"/>
-									<listOptionValue builtIn="false" value="aiop_sl/drivers/accel/fdma.c"/>
-									<listOptionValue builtIn="false" value="aiop_sl/drivers/accel/keygen.c"/>
-									<listOptionValue builtIn="false" value="aiop_sl/drivers/accel/osm.c"/>
-									<listOptionValue builtIn="false" value="aiop_sl/drivers/accel/parser.c"/>
-									<listOptionValue builtIn="false" value="aiop_sl/drivers/accel/ste.c"/>
-									<listOptionValue builtIn="false" value="aiop_sl/drivers/accel/system.c"/>
-									<listOptionValue builtIn="false" value="aiop_sl/drivers/accel/table/01_01/table.c"/>
-									<listOptionValue builtIn="false" value="aiop_sl/drivers/accel/tman.c"/>
 									<listOptionValue builtIn="false" value="aiop_sl/drivers/dplib/dpbp/dpbp.c"/>
 									<listOptionValue builtIn="false" value="aiop_sl/drivers/dplib/dpci/dpci.c"/>
 									<listOptionValue builtIn="false" value="aiop_sl/drivers/dplib/dpci/dpci_drv.c"/>
@@ -80,16 +68,6 @@
 									<listOptionValue builtIn="false" value="aiop_sl/drivers/dplib/mc_sys.c"/>
 									<listOptionValue builtIn="false" value="aiop_sl/drivers/ep/ep.c"/>
 									<listOptionValue builtIn="false" value="aiop_sl/drivers/general.c"/>
-									<listOptionValue builtIn="false" value="aiop_sl/drivers/netf/general/frame_operations.c"/>
-									<listOptionValue builtIn="false" value="aiop_sl/drivers/netf/ip/ip.c"/>
-									<listOptionValue builtIn="false" value="aiop_sl/drivers/netf/ip/ipf.c"/>
-									<listOptionValue builtIn="false" value="aiop_sl/drivers/netf/ip/ipr.c"/>
-									<listOptionValue builtIn="false" value="aiop_sl/drivers/netf/ip/ipsec.c"/>
-									<listOptionValue builtIn="false" value="aiop_sl/drivers/netf/l2/l2.c"/>
-									<listOptionValue builtIn="false" value="aiop_sl/drivers/netf/l4/gro.c"/>
-									<listOptionValue builtIn="false" value="aiop_sl/drivers/netf/l4/gso.c"/>
-									<listOptionValue builtIn="false" value="aiop_sl/drivers/netf/l4/l4.c"/>
-									<listOptionValue builtIn="false" value="aiop_sl/drivers/netf/nat/nat.c"/>
 									<listOptionValue builtIn="false" value="aiop_sl/drivers/qbman/bman.c"/>
 									<listOptionValue builtIn="false" value="aiop_sl/drivers/serial/duart/duart.c"/>
 									<listOptionValue builtIn="false" value="aiop_sl/drivers/snic/snic.c"/>
@@ -126,6 +104,29 @@
 									<listOptionValue builtIn="false" value="aiop_sl/lib/util/id_pool.c"/>
 									<listOptionValue builtIn="false" value="aiop_sl/lib/util/list.c"/>
 									<listOptionValue builtIn="false" value="aiop_sl/lib/util/memcpy.c"/>
+									<listOptionValue builtIn="false" value="aiop_sl/arch/core/ppc/booke.S"/>
+									<listOptionValue builtIn="false" value="aiop_sl/arch/core/ppc/booke.c"/>
+									<listOptionValue builtIn="false" value="aiop_sl/arch/core/ppc/booke_irq.S"/>
+									<listOptionValue builtIn="false" value="aiop_sl/arch/core/ppc/booke_irq.c"/>
+									<listOptionValue builtIn="false" value="aiop_sl/drivers/accel/cdma/cdma.c"/>
+									<listOptionValue builtIn="false" value="aiop_sl/drivers/accel/fdma/fdma.c"/>
+									<listOptionValue builtIn="false" value="aiop_sl/drivers/accel/keygen/keygen.c"/>
+									<listOptionValue builtIn="false" value="aiop_sl/drivers/accel/osm/osm.c"/>
+									<listOptionValue builtIn="false" value="aiop_sl/drivers/accel/parser/parser.c"/>
+									<listOptionValue builtIn="false" value="aiop_sl/drivers/accel/ste/ste.c"/>
+									<listOptionValue builtIn="false" value="aiop_sl/drivers/accel/system/system.c"/>
+									<listOptionValue builtIn="false" value="aiop_sl/drivers/accel/table/table.c"/>
+									<listOptionValue builtIn="false" value="aiop_sl/drivers/accel/tman/tman.c"/>
+									<listOptionValue builtIn="false" value="aiop_sl/drivers/netf/general/frame_operations/frame_operations.c"/>
+									<listOptionValue builtIn="false" value="aiop_sl/drivers/netf/gro/gro.c"/>
+									<listOptionValue builtIn="false" value="aiop_sl/drivers/netf/gso/gso.c"/>
+									<listOptionValue builtIn="false" value="aiop_sl/drivers/netf/hm/ip.c"/>
+									<listOptionValue builtIn="false" value="aiop_sl/drivers/netf/hm/l2.c"/>
+									<listOptionValue builtIn="false" value="aiop_sl/drivers/netf/hm/l4.c"/>
+									<listOptionValue builtIn="false" value="aiop_sl/drivers/netf/hm/nat.c"/>
+									<listOptionValue builtIn="false" value="aiop_sl/drivers/netf/ipf/ipf.c"/>
+									<listOptionValue builtIn="false" value="aiop_sl/drivers/netf/ipr/ipr.c"/>
+									<listOptionValue builtIn="false" value="aiop_sl/drivers/netf/ipsec/ipsec.c"/>
 								</option>
 								<option id="com.freescale.ppc.toolchain.linker.base.optionCategory.projectOption.454800088" name="Output Type" superClass="com.freescale.ppc.toolchain.linker.base.optionCategory.projectOption" value="com.freescale.ppc.toolchain.linker.base.optionCategory.projectOption.library" valueType="enumerated"/>
 								<option id="com.freescale.ppc.toolchain.linker.base.generateSrec.eol.1362915637" name="EOL Character:" superClass="com.freescale.ppc.toolchain.linker.base.generateSrec.eol" value="com.freescale.ppc.toolchain.linker.base.generateSrec.unix" valueType="enumerated"/>
@@ -276,7 +277,7 @@
 								<option id="com.freescale.ppc.toolchain.compiler.base.optionCategory.processor.functionAlign.1602210298" name="Function Alignment" superClass="com.freescale.ppc.toolchain.compiler.base.optionCategory.processor.functionAlign" value="com.freescale.ppc.toolchain.compiler.base.optionCategory.processor.functionAlign.4" valueType="enumerated"/>
 								<option id="com.freescale.ppc.toolchain.compiler.base.general.strconst.reuse.636032339" name="Reuse" superClass="com.freescale.ppc.toolchain.compiler.base.general.strconst.reuse" value="true" valueType="boolean"/>
 								<option id="com.freescale.ppc.toolchain.compiler.base.general.ipa.37523361" name="IPA" superClass="com.freescale.ppc.toolchain.compiler.base.general.ipa" value="com.freescale.ppc.toolchain.compiler.base.general.ipa.off" valueType="enumerated"/>
-								<option id="com.freescale.ppc.toolchain.compiler.base.preprocessor.encoding.1693668381" superClass="com.freescale.ppc.toolchain.compiler.base.preprocessor.encoding" value="com.freescale.ppc.toolchain.compiler.base.preprocessor.encoding.ascii" valueType="enumerated"/>
+								<option id="com.freescale.ppc.toolchain.compiler.base.preprocessor.encoding.1693668381" name="Source encoding" superClass="com.freescale.ppc.toolchain.compiler.base.preprocessor.encoding" value="com.freescale.ppc.toolchain.compiler.base.preprocessor.encoding.ascii" valueType="enumerated"/>
 								<inputType id="com.freescale.ppc.toolchain.compiler.base.input.1059220879" name="com.freescale.ppc.toolchain.cf Compiler Input" superClass="com.freescale.ppc.toolchain.compiler.base.input"/>
 							</tool>
 							<tool command="&quot;${AIOPToolsDir}/asmaiop&quot;" commandLinePattern="${COMMAND} ${FLAGS} ${OUTPUT_FLAG} ${OUTPUT_PREFIX}${OUTPUT} ${INPUTS}" errorParsers="" id="com.freescale.ppc.toolchain.assembler.1023235475" name="Assembler" superClass="com.freescale.ppc.toolchain.assembler">
@@ -299,6 +300,8 @@
 								<option id="com.freescale.ppc.toolchain.disassembler.base.settings.name.2124007158" name="Show Symbol and String Tables" superClass="com.freescale.ppc.toolchain.disassembler.base.settings.name" value="true" valueType="boolean"/>
 								<option id="com.freescale.ppc.toolchain.disassembler.base.settings.code.1009961429" name="Show Core Modules" superClass="com.freescale.ppc.toolchain.disassembler.base.settings.code" value="true" valueType="boolean"/>
 								<option id="com.freescale.ppc.toolchain.disassembler.base.settings.data.1366066851" name="Show Data Modules" superClass="com.freescale.ppc.toolchain.disassembler.base.settings.data" value="true" valueType="boolean"/>
+								<option id="com.freescale.ppc.toolchain.disassembler.base.settings.src.1295250426" superClass="com.freescale.ppc.toolchain.disassembler.base.settings.src" value="true" valueType="boolean"/>
+								<option id="com.freescale.ppc.toolchain.disassembler.base.settings.extm.343807235" superClass="com.freescale.ppc.toolchain.disassembler.base.settings.extm" value="true" valueType="boolean"/>
 							</tool>
 							<tool command="&quot;${AIOPToolsDir}/ccaiop&quot;" commandLinePattern="${COMMAND} ${FLAGS} ${OUTPUT_FLAG} ${INPUTS}" errorParsers="" id="com.freescale.ppc.toolchain.preprocessor.1334668711" name="Preprocessor" superClass="com.freescale.ppc.toolchain.preprocessor">
 								<option id="com.freescale.ppc.toolchain.compiler.base.preprocessor.break.1032622349" name="Emit file change" superClass="com.freescale.ppc.toolchain.compiler.base.preprocessor.break" value="true" valueType="boolean"/>
