@@ -35,7 +35,7 @@ def check_if_flags_different(app_process_packet, cproject_file):
 	# the comparison for .cprojects starts from here:
 	different_flag = False
 
-	if 'Null' not in ignore_flags and 'aiopsl' in cproject_file:
+	if 'Null' not in ignore_flags and 'apps' not in cproject_file:
 		ignore_flags_exist = True
 
 	print "Checking project: " + cproject_file + " for identical flags with app process packet."
