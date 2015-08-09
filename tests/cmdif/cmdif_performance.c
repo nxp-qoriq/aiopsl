@@ -76,14 +76,14 @@ void app_free(void);
 static int open_cb(uint8_t instance_id, void **dev)
 {
 	UNUSED(dev);
-	fsl_os_print("open_cb inst_id = 0x%x\n", instance_id);
+	fsl_print("open_cb inst_id = 0x%x\n", instance_id);
 	return 0;
 }
 
 static int close_cb(void *dev)
 {
 	UNUSED(dev);
-	fsl_os_print("close_cb\n");
+	fsl_print("close_cb\n");
 	return 0;
 }
 
@@ -93,7 +93,7 @@ __HOT_CODE static void tman_cb(uint64_t opaque1, uint16_t opaque2)
 	UNUSED(opaque2);
 
 	timer_on = 0;
-	fsl_os_print("TIMEOUT %d seconds, cmd_count = 0x%x \n", 
+	fsl_print("TIMEOUT %d seconds, cmd_count = 0x%x \n", 
 	        TIMEOUT_IN_SECONDS, cmd_count);	
 	/* Confirmation for running the timer again */
 	tman_timer_completion_confirmation(timer_handle);
@@ -121,7 +121,7 @@ __HOT_CODE static int ctrl_cb0(void *dev, uint16_t cmd,
 		do {} while(!timer_deleted);
 		timer_deleted = 0;
 		cmd_count     = 0;
-		fsl_os_print("Starting TMAN timer ..\n");
+		fsl_print("Starting TMAN timer ..\n");
 		err = tman_create_timer(tmi_id/* tmi_id */,
 		                        TMAN_CREATE_TIMER_MODE_SEC_GRANULARITY | TMAN_CREATE_TIMER_ONE_SHOT /* flags */,
 		                        TIMEOUT_IN_SECONDS/* duration */,
@@ -167,7 +167,7 @@ int app_init(void)
 		       module, err);
 		return err;
 	}
-	fsl_os_print("Registered %s module\n", module);
+	fsl_print("Registered %s module\n", module);
 	err = fsl_os_get_mem(1024, MEM_PART_DP_DDR, 64, &tman_addr);
 	if (err || !tman_addr) {
 		err = fsl_os_get_mem(1024, MEM_PART_SYSTEM_DDR, 64, &tman_addr);
@@ -177,7 +177,7 @@ int app_init(void)
 		}
 	}
 
-	fsl_os_print("Using TMAN\n");
+	fsl_print("Using TMAN\n");
 	err = tman_create_tmi(tman_addr, 10, &tmi_id);
 	if (err) {
 		pr_err("TMAN tmi create err = %d\n", err);

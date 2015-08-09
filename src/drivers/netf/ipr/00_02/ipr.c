@@ -147,6 +147,7 @@ int ipr_create_instance(struct ipr_params *ipr_params_ptr,
 	uint16_t bpid;
 	int table_ipv4_valid = 0;
 	int sr_status;
+	enum memory_partition_id mem_pid = MEM_PART_SYSTEM_DDR;
 
 	/* Reservation is done for 2 extra buffers: 1 one instance_params and
 	 * the other in case of reaching the maximum of open reassembly */
@@ -154,10 +155,13 @@ int ipr_create_instance(struct ipr_params *ipr_params_ptr,
 				ipr_params_ptr->max_open_frames_ipv6 + 2;
 	/* call ARENA function for allocating buffers needed to IPR
 	 * processing (create_slab ) */
+	if (fsl_mem_exists(MEM_PART_DP_DDR))
+		mem_pid = MEM_PART_DP_DDR;
+
 	sr_status = slab_find_and_reserve_bpid(aggregate_open_frames,
 					IPR_CONTEXT_SIZE,
 					8,
-					MEM_PART_DP_DDR,
+					mem_pid,
 					NULL,
 					&bpid);
 
@@ -192,7 +196,7 @@ int ipr_create_instance(struct ipr_params *ipr_params_ptr,
 		else if (table_location == IPR_MODE_TABLE_LOCATION_PEB)
 			table_location_attr = TABLE_ATTRIBUTE_LOCATION_PEB;
 		else if (table_location == IPR_MODE_TABLE_LOCATION_EXT1)
-			table_location_attr = TABLE_ATTRIBUTE_LOCATION_DP_DDR;
+			table_location_attr = 0x0400;
 		else if (table_location == IPR_MODE_TABLE_LOCATION_EXT2)
 			table_location_attr = TABLE_ATTRIBUTE_LOCATION_SYS_DDR;
 		tbl_params.attributes = TABLE_ATTRIBUTE_TYPE_EM | \
@@ -223,7 +227,7 @@ int ipr_create_instance(struct ipr_params *ipr_params_ptr,
 		else if (table_location == IPR_MODE_TABLE_LOCATION_PEB)
 			table_location_attr = TABLE_ATTRIBUTE_LOCATION_PEB;
 		else if (table_location == IPR_MODE_TABLE_LOCATION_EXT1)
-			table_location_attr = TABLE_ATTRIBUTE_LOCATION_DP_DDR;
+			table_location_attr = 0x0400;
 		else if (table_location == IPR_MODE_TABLE_LOCATION_EXT2)
 			table_location_attr = TABLE_ATTRIBUTE_LOCATION_SYS_DDR;
 		tbl_params.attributes = TABLE_ATTRIBUTE_TYPE_EM | \
@@ -397,10 +401,20 @@ int ipr_reassemble(ipr_instance_handle_t instance_handle)
 			return IPR_REASSEMBLY_REGULAR;
 		}
 	} else {
-	    /* move to exclusive */
-	    osm_scope_transition_to_exclusive_with_increment_scope_id_wrp();
 	    if (PARSER_IS_OUTER_IP_FRAGMENT_DEFAULT()) {
 		/* Fragment */
+		    if (PARSER_IS_OUTER_IPV4_DEFAULT())
+		    		frame_is_ipv4 = 1;
+		    else {
+		    	/* todo check if setting following function to be inline
+		    	 *  increases the stack */ 
+		    	if(is_atomic_fragment())
+		    		return IPR_ATOMIC_FRAG;
+		    	frame_is_ipv4 = 0;
+		    }
+		    /* move to exclusive */
+		osm_scope_transition_to_exclusive_with_increment_scope_id_wrp();
+
 		    if (scope_status.scope_level <= 2) {			    
 			    osm_status = NO_BYPASS_OSM;
 			/* create nested exclusive for the fragments of
@@ -412,7 +426,9 @@ int ipr_reassemble(ipr_instance_handle_t instance_handle)
 			}
 		} else {
 			/* regular frame */
-			osm_scope_relinquish_exclusivity();
+			/* transition in order to have the same scope id
+			 * as closing fragment */
+		   osm_scope_transition_to_concurrent_with_increment_scope_id();
 			return IPR_REASSEMBLY_REGULAR;
 		}
 	}
@@ -421,11 +437,6 @@ int ipr_reassemble(ipr_instance_handle_t instance_handle)
 	cdma_read_wrp(&instance_params,
 		  instance_handle,
 		  IPR_INSTANCE_SIZE);
-
-	if (PARSER_IS_OUTER_IPV4_DEFAULT())
-		frame_is_ipv4 = 1;
-	else
-		frame_is_ipv4 = 0;
 
 	if (check_for_frag_error(&instance_params,frame_is_ipv4, iphdr_ptr) ==
 								NO_ERROR) {
@@ -451,7 +462,9 @@ int ipr_reassemble(ipr_instance_handle_t instance_handle)
 			     osm_scope_enter(OSM_SCOPE_ENTER_CHILD_TO_EXCLUSIVE,
 					     (uint32_t)rfdc_ext_addr);
 			}				
-			
+			/* Add increment reference cnt since CTLU doesn't
+			 * do it anymore */
+			cdma_refcount_increment(rfdc_ext_addr);
 			/* read RFDC */
 			cdma_read_wrp(&rfdc,
 				      rfdc_ext_addr,
@@ -807,9 +820,7 @@ int ipr_miss_handling(struct ipr_instance *instance_params_ptr,
 	int sr_status;
 	uint16_t timeout_value;
 	uint8_t	 keysize;
-#ifdef REV2_RULEID
-	uint64_t rule_id;
-#endif
+	t_rule_id rule_id;
 	
 	/* Miss */
 	sr_status = cdma_acquire_context_memory(
@@ -834,8 +845,8 @@ int ipr_miss_handling(struct ipr_instance *instance_params_ptr,
 	/* Add entry to TLU table */
 	/* Generate key */
 	rule.options = 0;
-	rule.result.type = TABLE_RESULT_TYPE_REFERENCE;
-	rule.result.op0_rptr_clp.reference_pointer = *rfdc_ext_addr_ptr;
+	rule.result.type = TABLE_RESULT_TYPE_OPAQUE;
+	rule.result.data0 = *rfdc_ext_addr_ptr;
 	
 	if (frame_is_ipv4) {
 		/* Error is not checked since it is assumed that
@@ -850,11 +861,9 @@ int ipr_miss_handling(struct ipr_instance *instance_params_ptr,
 				TABLE_ACCEL_ID_CTLU,
 				instance_params_ptr->table_id_ipv4,
 				&rule,
-#ifdef REV2_RULEID
-				keysize,&rule_id);
-#else
-				keysize);
-#endif
+				keysize,
+				&rule_id);
+
 		if (sr_status == -ENOMEM) {
 			/* Maximum open reassembly is reached */
 			ipr_stats_update(
@@ -902,11 +911,9 @@ int ipr_miss_handling(struct ipr_instance *instance_params_ptr,
 			      TABLE_ACCEL_ID_CTLU,
 			      instance_params_ptr->table_id_ipv6,
 			      &rule,
-#ifdef REV2_RULEID
-				keysize,&rule_id);
-#else
-				keysize);
-#endif
+			      keysize,
+			      &rule_id);
+
 	    if (sr_status == -ENOMEM) {
 		    /* Maximum open reassembly is reached */
 		    ipr_stats_update(
@@ -1756,7 +1763,7 @@ void ipr_time_out(uint64_t rfdc_ext_addr, uint16_t opaque_not_used)
 	/* Recover OSM scope */
 	enter_number = (uint8_t)((rfdc.status & SCOPE_LEVEL) >> 4) -
 					default_task_params.current_scope_level ;
-	fsl_os_print("TIME OUT enter number %d\n", enter_number);
+	fsl_print("TIME OUT enter number %d\n", enter_number);
 	while(enter_number != 0) {
 		/* Intentionally doesn't relinquish parent automatically */ 
 		osm_scope_enter(OSM_SCOPE_ENTER_CHILD_TO_EXCLUSIVE,
@@ -2289,6 +2296,25 @@ void ipr_stats_update(struct ipr_instance *instance_params_ptr,
 
 	return;
 	}
+}
+
+uint32_t is_atomic_fragment()
+{
+	struct ipv6fraghdr * ipv6fraghdr_ptr;
+	uint16_t	     ipv6frag_offset;
+	
+	if (PARSER_IS_OUTER_IP_INIT_FRAGMENT_DEFAULT())
+	{
+		/* Get More Flag bit to check if last fragment */
+		ipv6frag_offset = PARSER_GET_IPV6_FRAG_HEADER_OFFSET_DEFAULT();
+		ipv6fraghdr_ptr = (struct ipv6fraghdr *)
+				(PRC_GET_SEGMENT_ADDRESS() + ipv6frag_offset);
+		if (ipv6fraghdr_ptr->offset_and_flags & IPV6_HDR_M_FLAG_MASK)
+			return 0;
+		else 
+			return 1;
+	}
+	return 0;
 }
 
 

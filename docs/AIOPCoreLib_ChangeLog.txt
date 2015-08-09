@@ -1,4 +1,79 @@
-Keygen: Fixed ENGR362440 
+Changes made for ls2085a rev1:
+Table:
+	* Added support for DISABLE_REF_CNT.
+	* Moved rule_create_or_replace to be an inline functions.
+	
+Changes made for ls1088a rev1:
+Table:
+	* Moved rule_create_or_replace to be an inline functions.
+
+LDPAA AIOP SERVICE LAYER LDPAA-AIOP-SL-v1088_ENG_0.1 Change Log
+=============================================================
+Changes made for ls2085a rev1:
+Table:
+	* API: Moved table_create, table_delete and table_replace_miss_result to be non-inline functions.
+	* API: Changed table_lookup_by_keyid to inline.
+	* table_hw_accel_acquire_lock & table_hw_accel_release_lock were removed
+	
+	
+Changes made for ls1088a rev1 (based on 2085 0.7.1.0 release):
+
+FDMA:
+	* Remove workaround for TKT237377 (replacing a segment) - Add TAM flag to all replace commands in order to keep original segment boundaries instead of the workaround 
+	* Remove notes regarding TKT258499 (frame replication)
+	* Remove notes regarding TKT240996 (frame split)
+	* Remove workaround for TKT260685 (FDMA lockup)
+
+Frame Operations:
+	* Remove workaround for TKT254401 (frame creation)
+
+GRO:
+	* Remove FDMA split workaround for TKT240996
+
+GSO:
+	* Removed FDMA split workaround for TKT240996
+
+IPR:
+	* Remove following requirement:
+		"As part of a workaround to ticket TKT260685 in REV1 this function requires one of the four nested scope levels."
+
+Keygen:
+	* Added FECID 0x25 (KEYGEN_KCR_ICMP_TYPE_FECID) and FECID 0x26 (KEYGEN_KCR_ICMP_CODE_FECID) which were not supported in REV1 due to TKT241788.
+	* Changes/additions in enum kcr_builder_parse_result_offset due to new parse results.
+	* Fixed ENGR362440
+
+OSM:
+	* Removed OSM workarounds for TKT260685 (FDMA lockup)
+
+Parser:
+	* Updates in struct parse_result:
+		* Some fields renaming.
+		* Addition of: 
+			* nxt_hdr_before_ipv6_frag_ext
+			* ip_n_pid_offset
+	* Changes and additions in MACROS due to new parse results.
+	* Removed PARSER_EXCEED_BLOCK_LIMIT from FSL_PARSER_ERROR_CODES (reflects HW change).
+	* Added PARSER_VXLAN_STARTING_HXS to enum parser_starting_hxs_code.
+	* Added VXLAN to Parser Profile
+
+STE:
+	* API: Add STE registers macros (TKT224651).
+
+Table:
+	* API: removed internal memory location and DP-DDR memory locations for tables.
+	* API: Moved table_create, table_delete and table_replace_miss_result to be non-inline functions.
+	* API: Changed table_lookup_by_keyid to inline.
+	* table_hw_accel_acquire_lock & table_hw_accel_release_lock were removed
+	* Implementation: TABLE_WORKAROUND_TKT226361_FUNC_ID was removed.
+
+TMAN:
+	* Remove workaround for TKT226418 (tman_delete_tmi).
+	* Remove workaround for TKT254640 (tman_create_tmi).
+	* Remove shared memory array for TKT226418 (max number of timers).
+	* Add implementation of  tman_query_tmi (TKT226418) 
+	* Add implementation of tman_modify_timer (TKT255188).
+	* Change return value and implementation of tman_recharge_timer (TKT258245).
+	* Add exception error cases (TKT226701).
 
 LDPAA AIOP SERVICE LAYER LDPAA-AIOP-SL-v0.7.0 Change Log
 =============================================================

@@ -46,7 +46,6 @@
 #include "aiop_verification_table.h"
 #include "aiop_verification_parser.h"
 #include "aiop_verification_hm.h"
-#include "verification_virtual_pools.h"
 #include "aiop_verification_gso.h"
 #include "aiop_verification_gro.h"
 #include "aiop_verification_osm.h"

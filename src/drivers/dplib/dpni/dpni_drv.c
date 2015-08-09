@@ -806,6 +806,33 @@ __COLD_CODE static int parser_profile_init(uint8_t *prpid)
 	return parser_profile_create(&(parse_profile1), prpid);
 }
 
+static int get_existing_ddr_memory(void)
+{
+	if(fsl_mem_exists(MEM_PART_DP_DDR)){
+		return MEM_PART_DP_DDR;
+	}
+	else if(fsl_mem_exists(MEM_PART_SYSTEM_DDR)){
+		return MEM_PART_SYSTEM_DDR;
+	}
+	else{
+		return 0;
+	}
+}
+
+static int get_valid_alignment(uint16_t *alignment, uint16_t buffer_size)
+{
+	if(IS_POWER_VALID_ALLIGN(g_app_params.dpni_drv_alignment,buffer_size))
+	{
+		*alignment = (uint16_t)g_app_params.dpni_drv_alignment;
+		return 0;
+	}
+	else
+	{
+		pr_err("Given alignment is not valid (not power of 2 or <= buffer size)\n");
+		return -EINVAL;
+	}
+}
+
 /* Used to configure DPBP's for dpni's during dpni driver initialization */
 static int configure_bpids_for_dpni(void)
 {
@@ -821,24 +848,15 @@ static int configure_bpids_for_dpni(void)
 	uint16_t buffer_size = (uint16_t)g_app_params.dpni_buff_size;
 	uint16_t num_buffs = (uint16_t)g_app_params.dpni_num_buffs;
 	uint16_t alignment;
-	uint8_t mem_pid[] = {DPNI_DRV_FAST_MEMORY, 0};
+	uint8_t mem_pid[] = {DPNI_DRV_FAST_MEMORY, (uint8_t)get_existing_ddr_memory()};
 
-	if(fsl_mem_exists(MEM_PART_DP_DDR)){
-		mem_pid[1] = MEM_PART_DP_DDR;
+	err = get_valid_alignment(&alignment, buffer_size);
+	if(err){
+		return err;
 	}
-	else if(fsl_mem_exists(MEM_PART_SYSTEM_DDR)){
-		mem_pid[1] = MEM_PART_SYSTEM_DDR;
-	}
-
-	if(IS_POWER_VALID_ALLIGN(g_app_params.dpni_drv_alignment,buffer_size))
-		alignment = (uint16_t)g_app_params.dpni_drv_alignment;
-	else
-	{
-		pr_err("Given alignment is not valid (not power of 2 or <= buffer size)\n");
-	}
+	
 	if (dprc == NULL)
 	{
-		pr_err("Don't find AIOP root container \n");
 		return -ENODEV;
 	}
 	/* TODO: replace the following dpbp_open&init with dpbp_create when available */
@@ -1397,7 +1415,7 @@ int dpni_drv_get_connected_obj(const uint16_t aiop_niid, int *id, char type[16],
 		return err;
 	}
 	*id = endpoint2.id;
-	strcpy(type, &endpoint2.type[0]);
+	strncpy(&type[0], &endpoint2.type[0], sizeof(char) * 16);
 	return 0;
 }
 

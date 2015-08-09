@@ -433,6 +433,7 @@ static int ctrl_cb0(void *dev, uint16_t cmd, uint32_t size,
 	struct shbp_test *shbp_test;
 	uint64_t temp64;
 	char     module[10];
+	struct fdma_amq amq;
 
 	UNUSED(dev);
 	pr_debug("ctrl_cb0 cmd = 0x%x, size = %d, data  0x%x\n",
@@ -635,6 +636,11 @@ static int ctrl_cb0(void *dev, uint16_t cmd, uint32_t size,
 		         ic.bdi_flags);
 		pr_debug("AIOP ICID = 0x%x dma flags = 0x%x\n", ic.icid, \
 		         ic.dma_flags);
+		
+		icontext_ws_set(&ic);
+		get_default_amq_attributes(&amq);
+		ASSERT_COND(ic.icid == amq.icid);
+
 		break;
 	default:
 		if ((size > 0) && (data != NULL)) {

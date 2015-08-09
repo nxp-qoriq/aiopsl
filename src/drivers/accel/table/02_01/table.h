@@ -234,14 +234,13 @@
 	/** Table Release Semaphore */
 #define TABLE_RELEASE_SEMAPHORE_MTYPE				0x00B1
 
-#ifdef REV2_RULEID
+/* todo Remove un-needed defines and re-order*
 	//** Table Rule Replace by Rule ID */
 #define	TABLE_GET_NEXT_RULEID_MTYPE				0x004F
 #define TABLE_GET_KEY_DESC_MTYPE				0x005F
 #define TABLE_RULE_REPLACE_BY_RULEID_MTYPE			0x0075
 #define	TABLE_RULE_DELETE_BY_RULEID_MTYPE			0x0071
 #define TABLE_RULE_QUERY_BY_RULEID_MTYPE			0x0073
-#endif
 
 /** @} */ /* end of TABLE_MTYPE */
 
@@ -265,6 +264,15 @@
 #define TABLE_QUERY_OUTPUT_MESSAGE_RESERVED_SPACE	20
 
 /** @} */ /* end of TABLE_QUERY */
+
+/**************************************************************************//**
+@Group	TABLE_RULE_DELETE Table Rule Delete specific constants
+@{
+*//***************************************************************************/
+	/** Table query output message reserved space */
+#define TABLE_RULE_DELETE_RULEID_KEYSIZE		0x20
+
+/** @} */ /* end of TABLE_RULE_DELETE */
 
 /**************************************************************************//**
 @Group	TABLE_PARAMS_REPLACE Table Parameters Replace specific constants
@@ -324,7 +332,7 @@
 
 /** Maximum Number Of Chained Lookups Is Reached.
  * This bit is set if the number of table lookups performed by the CTLU
- * reached the threshold. Not supported in Rev1 
+ * reached the threshold.
  * This bit is N/A if #TABLE_HW_STATUS_BIT_TIDE, #TABLE_HW_STATUS_BIT_NORSC,
  * #TABLE_HW_STATUS_BIT_KSE or #TABLE_HW_STATUS_BIT_EOFH are set.*/
 #define TABLE_HW_STATUS_BIT_MNLE	0x00000100
@@ -367,19 +375,6 @@
 
 /** @} */ /* end of TABLE_STATUS */
 
-/**************************************************************************//**
-@Group	TABLE_TKT226361 Defines for TABLE_TKT226361 WA
-@{
-*//***************************************************************************/
-/* TODO remove section for non Rev1 */
-
-/** Number of rules to be created in each table */
-#define TABLE_TKT226361_RULES_NUM	2
-/** Sufficient key size for each table */
-#define TABLE_TKT226361_KEY_SIZE	1
-
-/** @} */ /* end of TABLE_TKT226361 */
-
 /** @} */ /* end of TABLE_MACROS */
 
 /**************************************************************************//**
@@ -397,6 +392,7 @@
 
 @{
 *//***************************************************************************/
+/* TODO FIX AFTER REMOVING FUNCTIONS */
 enum table_function_identifier {
 	TABLE_CREATE_FUNC_ID,
 	TABLE_REPLACE_MISS_RESULT_FUNC_ID,
@@ -408,13 +404,11 @@ enum table_function_identifier {
 	TABLE_RULE_REPLACE_FUNC_ID,
 	TABLE_RULE_QUERY_FUNC_ID,
 	TABLE_RULE_DELETE_FUNC_ID,
-#ifdef REV2_RULEID
 	TABLE_GET_NEXT_RULEID_FUNC_ID,
 	TABLE_GET_KEY_DESC_FUNC_ID,
 	TABLE_RULE_REPLACE_BY_RULEID_FUNC_ID,
 	TABLE_RULE_DELETE_BY_RULEID_FUNC_ID,
 	TABLE_RULE_QUERY_BY_RULEID_FUNC_ID,
-#endif
 	TABLE_LOOKUP_BY_KEY_FUNC_ID,
 	TABLE_LOOKUP_BY_KEYID_DEFAULT_FRAME_FUNC_ID,
 	TABLE_LOOKUP_BY_KEYID_FUNC_ID,
@@ -824,6 +818,47 @@ struct table_old_result {
 
 
 /**************************************************************************//**
+@Description	Table Rule ID Descriptor Structure
+*//***************************************************************************/
+#pragma pack(push, 1)
+struct table_rule_id_desc {
+	/** Reserved for compliance with HW format.
+	User should not access this field. */
+	uint64_t reserved;
+
+	/** Rule ID */
+	uint64_t rule_id;
+};
+#pragma pack(pop)
+
+
+/**************************************************************************//**
+@Description	Table Rule ID and Result Descriptor Structure
+*//***************************************************************************/
+#pragma pack(push, 1)
+struct table_ruleid_and_result_desc {
+	/** Rule ID Descriptor */
+	struct table_rule_id_desc rule_id_desc;
+
+	/** Reserved for compliance with HW format.
+	User should not access this field. */
+	uint64_t reserved0[3];
+
+	/** Table Rule Options - Please refer to \ref FSL_TABLE_RULE_OPTIONS
+	for more details.*/
+	uint8_t  options;
+
+	/** Reserved for compliance with HW format.
+	User should not access this field. */
+	uint8_t  reserved1[3];
+
+	/** Table Rule Result */
+	struct table_result result;
+};
+#pragma pack(pop)
+
+
+/**************************************************************************//**
 @Description	Table Accelerator Context Structure
 *//***************************************************************************/
 #pragma pack(push, 1)
@@ -882,37 +917,6 @@ struct table_acc_context {
 int table_query_debug(enum table_hw_accel_id acc_id,
 		      uint16_t table_id,
 		      struct table_params_query_output_message *output);
-
-/**************************************************************************//**
-@Function	table_hw_accel_acquire_lock
-
-@Description	Tries to acquire the binary lock of the given table hardware
-		accelerator.
-
-@Param[in]	acc_id Table Accelerator ID.
-
-@Return		If the lock is already in use \ref CTLU_STATUS_MISS or
-		\ref MFLU_STATUS_MISS are set.
-
-@Cautions	This function performs a task switch.
-*//***************************************************************************/
-int table_hw_accel_acquire_lock(enum table_hw_accel_id acc_id);
-
-
-/**************************************************************************//**
-@Function	table_hw_accel_release_lock
-
-@Description	Releases the binary lock of the given table hardware
-		accelerator.
-
-@Param[in]	acc_id Table Accelerator ID.
-
-@Return		None.
-
-@Cautions	This function performs a task switch.
-*//***************************************************************************/
-void table_hw_accel_release_lock(enum table_hw_accel_id acc_id);
-
 
 /**************************************************************************//**
 @Function	table_inline_exception_handler
@@ -1051,26 +1055,6 @@ void table_exception_handler(char *file_path,
 *//***************************************************************************/
 int table_calc_num_entries_per_rule(uint16_t type, uint8_t key_size);
 
-/**************************************************************************//**
-@Function	table_workaround_tkt226361
-
-@Description	Work around for tkt226361. Create a table in each memory region
-		with 2 rules and then deletes the table.
-
-@Param[in]	mflu_peb_num_entries number of entries that was defined for
-		PEB memory region.
-@Param[in]	mflu_dp_ddr_num_entries number of entries that was defined
-		for DPDDR memory region.
-@Param[in]	mflu_sys_ddr_num_entries number of entries that was defined
-		for System DDR memory region.
-
-@Cautions	This function calls the exception handler if the work around
-		failed.
-		This function performs a task switch.
-*//***************************************************************************/
-void table_workaround_tkt226361(uint32_t mflu_peb_num_entries,
-				uint32_t mflu_dp_ddr_num_entries,
-				uint32_t mflu_sys_ddr_num_entries);
 
 /**************************************************************************//**
 @Function	table_lookup_by_keyid_default_frame_wrp
@@ -1146,14 +1130,10 @@ int table_lookup_by_keyid_default_frame_wrp(
 @Cautions	This function may result in a fatal error.
 *//***************************************************************************/
 int table_rule_create_wrp(enum table_hw_accel_id acc_id,
-		      uint16_t table_id,
-		      struct table_rule *rule,
-#ifdef REV2_RULEID
-		      uint8_t key_size,
-		      uint64_t *rule_id);
-#else
-			  uint8_t key_size);
-#endif
+			  uint16_t table_id,
+			  struct table_rule *rule,
+			  uint8_t key_size,
+			  uint64_t *rule_id);
 
 /**************************************************************************//**
 @Function	table_rule_delete_wrp
@@ -1188,10 +1168,10 @@ int table_rule_create_wrp(enum table_hw_accel_id acc_id,
 @Cautions	This function may result in a fatal error.
 *//***************************************************************************/
 int table_rule_delete_wrp(enum table_hw_accel_id acc_id,
-		      uint16_t table_id,
-		      union table_key_desc *key_desc,
-		      uint8_t key_size,
-		      struct table_result *result);
+			  uint16_t table_id,
+			  union table_key_desc *key_desc,
+			  uint8_t key_size,
+			  struct table_result *result);
 
 
 /** @} */ /* end of TABLE_Functions */

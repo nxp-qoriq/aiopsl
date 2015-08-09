@@ -78,11 +78,11 @@ __HOT_CODE ENTRY_POINT static void app_process_packet(void)
 
 	err = sl_prolog();
 	if (err)
-		fsl_os_print("ERROR = %d: sl_prolog()\n",err);
+		fsl_print("ERROR = %d: sl_prolog()\n",err);
 
 	if (PARSER_IS_OUTER_IPV4_DEFAULT())
 	{
-		fsl_os_print
+		fsl_print
 		("ipr_demo: Core %d received fragment with ipv4 header:\n",
 					core_get_id());
 
@@ -90,9 +90,9 @@ __HOT_CODE ENTRY_POINT static void app_process_packet(void)
 		p_ipv4hdr = UINT_TO_PTR((ipv4hdr_offset + PRC_GET_SEGMENT_ADDRESS()));
 		for( int i = 0; i < ipv4hdr_length ;i ++)
 		{
-			fsl_os_print(" %x",p_ipv4hdr[i]);
+			fsl_print(" %x",p_ipv4hdr[i]);
 		}
-		fsl_os_print("\n");
+		fsl_print("\n");
 	}
 
 	if (ipr_demo_flags == IPR_DEMO_WITH_HM)
@@ -100,11 +100,11 @@ __HOT_CODE ENTRY_POINT static void app_process_packet(void)
 		hm_status = ip_set_nw_dst(ip_dst_addr);
 		if (hm_status)
 		{
-			fsl_os_print("ERROR = %d: ip_set_nw_src\n", hm_status);
+			fsl_print("ERROR = %d: ip_set_nw_src\n", hm_status);
 			local_test_error |= 1;
 		}
 		else
-			fsl_os_print
+			fsl_print
 			("ipr_demo: Core %d modified fragment's IP dest to 0x%x\n",
 				core_get_id(), ip_dst_addr);
 	}
@@ -120,77 +120,77 @@ __HOT_CODE ENTRY_POINT static void app_process_packet(void)
 				0, udp_dst_port);
 			if (hm_status)
 			{
-				fsl_os_print("ERROR = %d: l4_udp_header_modification\n", hm_status);
+				fsl_print("ERROR = %d: l4_udp_header_modification\n", hm_status);
 				local_test_error |= 1;
 			}
 			else
-				fsl_os_print
+				fsl_print
 				("ipr_demo: Core %d modified reassembled frame udp dest to 0x%x\n",
 					core_get_id(), udp_dst_port);
 		}
 
-		fsl_os_print
+		fsl_print
 		("ipr_demo: Core %d will send a reassembled frame with ipv4 header:\n"
 					, core_get_id());
 
 
 		for( int i = 0; i < ipv4hdr_length ;i ++)
 		{
-			fsl_os_print(" %x",p_ipv4hdr[i]);
+			fsl_print(" %x",p_ipv4hdr[i]);
 		}
-		fsl_os_print("\n");
+		fsl_print("\n");
 
 		ipv4_hdr = (struct ipv4hdr *)p_ipv4hdr;
 		if (ipv4_hdr->total_length != 0x118b)
 		{
-			fsl_os_print("ERROR = %x: reassembled frame total length is incorrect\n", ipv4_hdr->total_length);
+			fsl_print("ERROR = %x: reassembled frame total length is incorrect\n", ipv4_hdr->total_length);
 			local_test_error |= 1;
 		}
 		if (ipv4_hdr->id != 1)
 		{
-			fsl_os_print("ERROR = %d: reassembled frame id is incorrect\n", ipv4_hdr->id);
+			fsl_print("ERROR = %d: reassembled frame id is incorrect\n", ipv4_hdr->id);
 			local_test_error |= 1;
 		}
 		if (ipv4_hdr->flags_and_offset != 0)
 		{
-			fsl_os_print("ERROR = %d: reassembled frame flags and offset are incorrect\n", ipv4_hdr->flags_and_offset);
+			fsl_print("ERROR = %d: reassembled frame flags and offset are incorrect\n", ipv4_hdr->flags_and_offset);
 			local_test_error |= 1;
 		}
 		if (ipv4_hdr->protocol != 17)
 		{
-			fsl_os_print("ERROR = %d: reassembled frame protocol is incorrect\n", ipv4_hdr->protocol);
+			fsl_print("ERROR = %d: reassembled frame protocol is incorrect\n", ipv4_hdr->protocol);
 			local_test_error |= 1;
 		}
 		if (ipv4_hdr->src_addr != 0xad793f9f)
 		{
-			fsl_os_print("ERROR = %x: reassembled frame src address is incorrect\n", ipv4_hdr->src_addr);
+			fsl_print("ERROR = %x: reassembled frame src address is incorrect\n", ipv4_hdr->src_addr);
 			local_test_error |= 1;
 		}
 		if (ipv4_hdr->dst_addr != 0x73bcdc90)
 		{
-			fsl_os_print("ERROR = %x: reassembled frame dst address is incorrect\n", ipv4_hdr->dst_addr);
+			fsl_print("ERROR = %x: reassembled frame dst address is incorrect\n", ipv4_hdr->dst_addr);
 			local_test_error |= 1;
 		}
 		fd_length = LDPAA_FD_GET_LENGTH(HWC_FD_ADDRESS);
 		if (fd_length != 4505)
 		{
-			fsl_os_print("ERROR = %x: reassembled frame length error!\n", fd_length);
+			fsl_print("ERROR = %x: reassembled frame length error!\n", fd_length);
 			local_test_error |= 1;
 		}
 
 
 /*
-		fsl_os_print("LDPAA_FD_GET_ADDRL = %x\n", (uint32_t)(LDPAA_FD_GET_ADDR(HWC_FD_ADDRESS)));
-		fsl_os_print("LDPAA_FD_GET_ADDRH = %x\n", (uint32_t)(LDPAA_FD_GET_ADDR(HWC_FD_ADDRESS)>>32));
-		fsl_os_print("LDPAA_FD_GET_LENGTH = %x\n", LDPAA_FD_GET_LENGTH(HWC_FD_ADDRESS));
-		fsl_os_print("LDPAA_FD_GET_BPID = %x\n", LDPAA_FD_GET_BPID(HWC_FD_ADDRESS));
-		fsl_os_print("LDPAA_FD_GET_OFFSET = %x\n", LDPAA_FD_GET_OFFSET(HWC_FD_ADDRESS));
+		fsl_print("LDPAA_FD_GET_ADDRL = %x\n", (uint32_t)(LDPAA_FD_GET_ADDR(HWC_FD_ADDRESS)));
+		fsl_print("LDPAA_FD_GET_ADDRH = %x\n", (uint32_t)(LDPAA_FD_GET_ADDR(HWC_FD_ADDRESS)>>32));
+		fsl_print("LDPAA_FD_GET_LENGTH = %x\n", LDPAA_FD_GET_LENGTH(HWC_FD_ADDRESS));
+		fsl_print("LDPAA_FD_GET_BPID = %x\n", LDPAA_FD_GET_BPID(HWC_FD_ADDRESS));
+		fsl_print("LDPAA_FD_GET_OFFSET = %x\n", LDPAA_FD_GET_OFFSET(HWC_FD_ADDRESS));
 */
 
 		err = dpni_drv_send(dpni_get_receive_niid());
 
 		if (err){
-			fsl_os_print("ERROR = %d: dpni_drv_send()\n",err);
+			fsl_print("ERROR = %d: dpni_drv_send()\n",err);
 			local_test_error |= err;
 			if(err == -ENOMEM)
 				fdma_discard_default_frame(FDMA_DIS_NO_FLAGS);
@@ -199,9 +199,9 @@ __HOT_CODE ENTRY_POINT static void app_process_packet(void)
 		}
 
 		if(!local_test_error) /*No error found during injection of packets*/
-			fsl_os_print("Finished SUCCESSFULLY\n");
+			fsl_print("Finished SUCCESSFULLY\n");
 		else
-			fsl_os_print("Finished with ERRORS\n");
+			fsl_print("Finished with ERRORS\n");
 	}
 	/*MUST call fdma_terminate task in the end of cb function*/
 	fdma_terminate_task();
@@ -276,10 +276,16 @@ int app_init(void)
 	uint64_t tmi_mem_base_addr;
 
 	struct ipr_params ipr_demo_params;
+	
+	enum memory_partition_id mem_pid = MEM_PART_SYSTEM_DDR;
+
+	if (fsl_mem_exists(MEM_PART_DP_DDR))
+		mem_pid = MEM_PART_DP_DDR;
+
 	ipr_instance_handle_t ipr_instance = 0;
 	ipr_instance_handle_t *ipr_instance_ptr = &ipr_instance;
 
-	fsl_os_print("Running app_init()\n");
+	fsl_print("Running app_init()\n");
 
 	ipr_demo_params.max_open_frames_ipv4 = 0x10;
 	ipr_demo_params.max_open_frames_ipv6 = 0x10;
@@ -293,15 +299,15 @@ int app_init(void)
 	ipr_demo_params.cb_timeout_ipv4_arg = 0;
 	ipr_demo_params.cb_timeout_ipv6_arg = 0;
 	ipr_demo_params.flags = IPR_MODE_TABLE_LOCATION_PEB;
-	fsl_os_get_mem( 0x20*64, MEM_PART_DP_DDR, 64, &tmi_mem_base_addr);
+	fsl_os_get_mem( 0x20*64, mem_pid, 64, &tmi_mem_base_addr);
 
 	tman_create_tmi(tmi_mem_base_addr , 0x20, &ipr_demo_params.tmi_id);
 
-	fsl_os_print("ipr_demo: Creating IPR instance\n");
+	fsl_print("ipr_demo: Creating IPR instance\n");
 	err = ipr_create_instance(&ipr_demo_params, ipr_instance_ptr);
 	if (err)
 	{
-		fsl_os_print("ERROR: ipr_create_instance() failed %d\n",err);
+		fsl_print("ERROR: ipr_create_instance() failed %d\n",err);
 		return err;
 	}
 
@@ -319,7 +325,7 @@ int app_init(void)
 	}
 
 	/* inject frag1.pcap till frag4.pcap */
-	fsl_os_print("To start test inject packets: \"frag.pcap\" after AIOP boot complete.\n");
+	fsl_print("To start test inject packets: \"frag.pcap\" after AIOP boot complete.\n");
 
 	return 0;
 }

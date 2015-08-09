@@ -84,28 +84,28 @@ __HOT_CODE ENTRY_POINT static void app_process_packet(void)
 
 	if (PARSER_IS_OUTER_IPV4_DEFAULT())
 	{
-		fsl_os_print
+		fsl_print
 		("ipf_demo:Core %d received packet with ipv4 header:\n",
 	    core_get_id());
 		ipv4hdr_offset = (uint16_t)PARSER_GET_OUTER_IP_OFFSET_DEFAULT();
 		p_ipv4hdr = UINT_TO_PTR((ipv4hdr_offset + PRC_GET_SEGMENT_ADDRESS()));
 		for( int i = 0; i < ipv4hdr_length ;i ++)
 		{
-			fsl_os_print(" %x",p_ipv4hdr[i]);
+			fsl_print(" %x",p_ipv4hdr[i]);
 		}
-		fsl_os_print("\n");
+		fsl_print("\n");
 	}
 
 	if (ipf_demo_flags == IPF_DEMO_WITH_HM)
 	{
 		l2_push_and_set_vlan(vlan_tag1);
-		fsl_os_print
+		fsl_print
 			("ipr_demo: Core %d inserted vlan 0x%x to frame\n",
 				core_get_id(), vlan_tag1);
 	}
 
 	ipf_context_init(0, mtu, ipf_context_addr);
-	fsl_os_print("ipf_demo: ipf_context_init done, MTU = %d\n", mtu);
+	fsl_print("ipf_demo: ipf_context_init done, MTU = %d\n", mtu);
 
 	do {
 		ipf_status = ipf_generate_frag(ipf_context_addr);
@@ -113,13 +113,13 @@ __HOT_CODE ENTRY_POINT static void app_process_packet(void)
 		if (ipf_demo_flags == IPF_DEMO_WITH_HM)
 		{
 			l2_push_and_set_vlan(vlan_tag2);
-			fsl_os_print
+			fsl_print
 				("ipf_demo: Core %d inserted vlan 0x%x to fragment\n",
 				core_get_id(), vlan_tag2);
 		}
 
 		if (ipf_status > 0){
-			fsl_os_print
+			fsl_print
 			("ipf_demo: Core %d will send a fragment with ipv4 header:\n"
 				, core_get_id());
 
@@ -128,37 +128,37 @@ __HOT_CODE ENTRY_POINT static void app_process_packet(void)
 
 			for( int i = 0; i < ipv4hdr_length ;i ++)
 			{
-				fsl_os_print(" %x",p_ipv4hdr[i]);
+				fsl_print(" %x",p_ipv4hdr[i]);
 			}
-			fsl_os_print("\n");
+			fsl_print("\n");
 			fd_length = LDPAA_FD_GET_LENGTH(HWC_FD_ADDRESS);
 			if (fd_length != 1522)
 			{
-				fsl_os_print("fragment length error!\n");
+				fsl_print("fragment length error!\n");
 				local_test_error |= 1;
 			}
 			ipv4_hdr = (struct ipv4hdr *)p_ipv4hdr;
 			if (ipv4_hdr->id != 1)
 			{
-				fsl_os_print("fragment ID error!\n");
+				fsl_print("fragment ID error!\n");
 				local_test_error |= 1;
 			}
 			if (!(ipv4_hdr->flags_and_offset & 0x2000))
 			{
-				fsl_os_print("fragment flags error!\n");
+				fsl_print("fragment flags error!\n");
 				local_test_error |= 1;
 			}
 			offset = (ipv4_hdr->flags_and_offset) & ~0x2000;
 			offset *= 8;
 			if ((offset % 1480) != 0)
 			{
-				fsl_os_print("fragment offset error!\n");
+				fsl_print("fragment offset error!\n");
 				local_test_error |= 1;
 			}
 		}
 		err = dpni_drv_send(dpni_get_receive_niid());
 		if (err){
-			fsl_os_print("ERROR = %d: dpni_drv_send()\n",err);
+			fsl_print("ERROR = %d: dpni_drv_send()\n",err);
 			local_test_error |= err;
 			if(err == -ENOMEM)
 			{
@@ -174,44 +174,44 @@ __HOT_CODE ENTRY_POINT static void app_process_packet(void)
 		}
 	} while (ipf_status != IPF_GEN_FRAG_STATUS_DONE);
 
-	fsl_os_print
+	fsl_print
 		("ipf_demo: Core %d will send last fragment with ipv4 header:\n"
 			, core_get_id());
 	for( int i = 0; i < ipv4hdr_length ;i ++)
 	{
-		fsl_os_print(" %x",p_ipv4hdr[i]);
+		fsl_print(" %x",p_ipv4hdr[i]);
 	}
-		fsl_os_print("\n");
+		fsl_print("\n");
 
 	fd_length = LDPAA_FD_GET_LENGTH(HWC_FD_ADDRESS);
 	if (fd_length != 73)
 	{
-		fsl_os_print("last fragment length error!\n");
+		fsl_print("last fragment length error!\n");
 		local_test_error |= 1;
 	}
 	ipv4_hdr = (struct ipv4hdr *)p_ipv4hdr;
 	if (ipv4_hdr->id != 1)
 	{
-		fsl_os_print("fragment ID error!\n");
+		fsl_print("fragment ID error!\n");
 		local_test_error |= 1;
 	}
 	if (ipv4_hdr->flags_and_offset & 0x2000)
 	{
-		fsl_os_print("last fragment flags error!\n");
+		fsl_print("last fragment flags error!\n");
 		local_test_error |= 1;
 	}
 	offset = (ipv4_hdr->flags_and_offset) & ~0x2000;
 	offset *= 8;
 	if ((offset % 1480) != 0)
 	{
-		fsl_os_print("last fragment offset error!\n");
+		fsl_print("last fragment offset error!\n");
 		local_test_error |= 1;
 	}
 
 	if(!local_test_error) /*No error found during injection of packets*/
-		fsl_os_print("Finished SUCCESSFULLY\n");
+		fsl_print("Finished SUCCESSFULLY\n");
 	else
-		fsl_os_print("Finished with ERRORS\n");
+		fsl_print("Finished with ERRORS\n");
 	/*MUST call fdma_terminate task in the end of cb function*/
 	fdma_terminate_task();
 }
@@ -237,14 +237,14 @@ static void epid_setup()
 /*static int open_cb(uint8_t instance_id, void **dev)
 {
 	UNUSED(dev);
-	fsl_os_print("open_cb inst_id = 0x%x\n", instance_id);
+	fsl_print("open_cb inst_id = 0x%x\n", instance_id);
 	return 0;
 }
 
 static int close_cb(void *dev)
 {
 	UNUSED(dev);
-	fsl_os_print("close_cb\n");
+	fsl_print("close_cb\n");
 	return 0;
 }
 
@@ -253,7 +253,7 @@ static int ctrl_cb(void *dev, uint16_t cmd, uint32_t size, uint64_t data)
 	UNUSED(dev);
 	UNUSED(size);
 	UNUSED(data);
-	fsl_os_print("ctrl_cb cmd = 0x%x, size = %d, data high= 0x%x data low= 0x%x\n",
+	fsl_print("ctrl_cb cmd = 0x%x, size = %d, data high= 0x%x data low= 0x%x\n",
 	             cmd,
 	             size,
 	             (uint32_t)((data & 0xFF00000000) >> 32),
@@ -306,7 +306,7 @@ int app_init(void)
 {
 	int        err  = 0;
 
-	fsl_os_print("Running app_init()\n");
+	fsl_print("Running app_init()\n");
 #ifdef AIOP_STANDALONE
 	/* This is temporal WA for stand alone demo only */
 	epid_setup();
@@ -321,9 +321,9 @@ int app_init(void)
 /*
 	err = cmdif_register_module("TEST0", &ops);
 	if (err)
-		fsl_os_print("FAILED cmdif_register_module\n!");
+		fsl_print("FAILED cmdif_register_module\n!");
 */
-	fsl_os_print("To start test inject packets: \"reassembled_frame.pcap\" after AIOP boot complete.\n");
+	fsl_print("To start test inject packets: \"reassembled_frame.pcap\" after AIOP boot complete.\n");
 	return 0;
 }
 

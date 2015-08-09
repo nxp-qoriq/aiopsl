@@ -571,9 +571,8 @@ int snic_ipsec_add_sa(struct snic_cmd_data *cmd_data)
 	struct ipsec_descriptor_params *ipsec_cfg = &ipsec_params;
 	uint8_t sa_id;
 	uint16_t snic_id;
-#ifdef REV2_RULEID
 	uint64_t rule_id;
-#endif
+
 	int i, k, err;
 	uint16_t outer_hdr_size;
 	/* Max: SPI, IPv6 src + dest is 36 bytes */
@@ -758,21 +757,18 @@ int snic_ipsec_add_sa(struct snic_cmd_data *cmd_data)
 
 	/* create rule to bind between sa_id and ipsec_handle */
 	rule.options = 0;
-	rule.result.type = TABLE_RESULT_TYPE_REFERENCE;
-	rule.result.op0_rptr_clp.reference_pointer = ipsec_handle;
+	rule.result.type = TABLE_RESULT_TYPE_OPAQUE;
+	rule.result.data0 = ipsec_handle;
 	rule.key_desc.em.key[0] = sa_id;
 	err = table_rule_create(TABLE_ACCEL_ID_CTLU,
-#ifdef REV2_RULEID
 	(uint16_t)snic_params[snic_id].ipsec_table_id, &rule, 1, &rule_id);
-#else
-	(uint16_t)snic_params[snic_id].ipsec_table_id, &rule, 1);
-#endif
+
 	if (err)
 		return err;
 	/* create rule to bind between dec key and ipsec handle */
 	if (cfg->direction == SNIC_IPSEC_SA_IN)
 	{
-		rule.result.op0_rptr_clp.reference_pointer = 
+		rule.result.data0 =
 				ipsec_handle;
 		if (cfg->options & SNIC_IPSEC_SA_OPT_IPV6)
 		{
@@ -796,12 +792,11 @@ int snic_ipsec_add_sa(struct snic_cmd_data *cmd_data)
 			for (i = 0; i < snic_params[snic_id].ipsec_ipv6_key_size; i++ )
 				rule.key_desc.em.key[i] = ipsec_dec_key[i];
 			err = table_rule_create(TABLE_ACCEL_ID_CTLU,
-					(uint16_t)snic_params[snic_id].dec_ipsec_ipv6_table_id,
-#ifdef REV2_RULEID
-					&rule, snic_params[snic_id].ipsec_ipv6_key_size, &rule_id);
-#else
-					&rule, snic_params[snic_id].ipsec_ipv6_key_size);
-#endif
+					(uint16_t)snic_params[snic_id].
+							dec_ipsec_ipv6_table_id,
+					&rule, snic_params[snic_id].
+							ipsec_ipv6_key_size,
+					&rule_id);
 		}
 		else
 		{
@@ -825,12 +820,12 @@ int snic_ipsec_add_sa(struct snic_cmd_data *cmd_data)
 			for (i = 0; i < snic_params[snic_id].ipsec_ipv4_key_size; i++)
 				rule.key_desc.em.key[i] = ipsec_dec_key[i];
 			err = table_rule_create(TABLE_ACCEL_ID_CTLU,
-					(uint16_t)snic_params[snic_id].dec_ipsec_ipv4_table_id,
-#ifdef REV2_RULEID
-					&rule, snic_params[snic_id].ipsec_ipv4_key_size, &rule_id);
-#else
-					&rule, snic_params[snic_id].ipsec_ipv4_key_size);
-#endif
+						(uint16_t)snic_params[snic_id].
+							dec_ipsec_ipv4_table_id,
+						&rule,
+						snic_params[snic_id].
+							ipsec_ipv4_key_size,
+						&rule_id);
 		}
 
 		if (err)
@@ -1113,18 +1108,10 @@ int snic_create_table_key_id(uint8_t fec_no, uint8_t fec_array[8],
 	if (err)
 	{
 		tbl_params.attributes = TABLE_ATTRIBUTE_TYPE_EM | \
-				TABLE_ATTRIBUTE_LOCATION_DP_DDR | \
+				TABLE_ATTRIBUTE_LOCATION_SYS_DDR | \
 				TABLE_ATTRIBUTE_MR_NO_MISS;
 		err = table_create(TABLE_ACCEL_ID_CTLU, &tbl_params,
 				table_id);
-		if (err)
-		{
-			tbl_params.attributes = TABLE_ATTRIBUTE_TYPE_EM | \
-					TABLE_ATTRIBUTE_LOCATION_SYS_DDR | \
-					TABLE_ATTRIBUTE_MR_NO_MISS;
-			err = table_create(TABLE_ACCEL_ID_CTLU, &tbl_params,
-					table_id);
-		}
 	}
 	return err;
 }

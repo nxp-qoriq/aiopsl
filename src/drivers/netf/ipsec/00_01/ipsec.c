@@ -1082,12 +1082,12 @@ void ipsec_generate_flc(
 	
 #if(0)
 	{
-		fsl_os_print("IPSEC: Flow Context Storage Profile\n");
+		fsl_print("IPSEC: Flow Context Storage Profile\n");
 		uint32_t j;
 		uint32_t val;
 		for(j=0;j<8;j++) {
 			val = *(uint32_t *)((uint32_t)flow_context.storage_profile + j*4);
-			fsl_os_print("Word %d = 0x%x\n", j, val);
+			fsl_print("Word %d = 0x%x\n", j, val);
 		}
 	}
 #endif	
@@ -1435,9 +1435,6 @@ __IPSEC_HOT_CODE int ipsec_frame_encrypt(
 	ipsec_handle_t desc_addr;
 	//uint16_t offset;
 	uint32_t original_val, new_val;
-	uint16_t fd_offset;
-	uint32_t fd_len;
-	uint8_t fd_frame_format; /* FD[FMT] */ 
 
 	struct ipsec_sa_params_part1 sap1; /* Parameters to read from ext buffer */
 	struct scope_status_params scope_status;
@@ -1453,25 +1450,25 @@ __IPSEC_HOT_CODE int ipsec_frame_encrypt(
 #if(0)
 	// Debug //
 	{
-		fsl_os_print("IPSEC: Reading FD and FRC before SEC\n");
+		fsl_print("IPSEC: Reading FD and FRC before SEC\n");
 		uint32_t j;
 		uint32_t val;
 		for(j=0;j<8;j++) {
 			val = *(uint32_t *)((uint32_t)0x60 + j*4);
-			fsl_os_print("Word %d = 0x%x\n", j, val);
+			fsl_print("Word %d = 0x%x\n", j, val);
 		}
 		//val = LDPAA_FD_GET_FRC(HWC_FD_ADDRESS);
-		//fsl_os_print("FRC = 0x%x\n", val);
+		//fsl_print("FRC = 0x%x\n", val);
 		
 		//val = LDPAA_FD_GET_BPID(HWC_FD_ADDRESS);
 		val = *(uint8_t *)((uint32_t)0x60 + 12);
-		fsl_os_print("FD[BPID] = 0x%x\n", val);
+		fsl_print("FD[BPID] = 0x%x\n", val);
 
 		// Offset
 		//val = *(uint32_t *)((uint32_t)0x60 + 3*4);
 		//val = LDPAA_FD_GET_OFFSET(HWC_FD_ADDRESS);
-		//fsl_os_print("FD[OFFSET] = 0x%x %x\n", (val & 0xFF), (val & 0xFF00));
-		//fsl_os_print("FD[OFFSET] = 0x%x%x\n", (val & 0x0F), (val & 0xFF00)>>8);
+		//fsl_print("FD[OFFSET] = 0x%x %x\n", (val & 0xFF), (val & 0xFF00));
+		//fsl_print("FD[OFFSET] = 0x%x%x\n", (val & 0x0F), (val & 0xFF00)>>8);
 	}
 	// Debug End //
 #endif
@@ -1570,7 +1567,7 @@ __IPSEC_HOT_CODE int ipsec_frame_encrypt(
 		//dpovrd.tunnel_encap.word |= (16<<8); // including Ethernet   
 		// 27-16 Outer IP Header Material Length 
 		//dpovrd.tunnel_encap.word |= (14<<16); // including Ethernet   
-		//fsl_os_print("dpovrd.tunnel_encap.word 0x%x\n", dpovrd.tunnel_encap.word);
+		//fsl_print("dpovrd.tunnel_encap.word 0x%x\n", dpovrd.tunnel_encap.word);
 
 	} else {
 		/* For Transport mode set DPOVRD */
@@ -1611,9 +1608,6 @@ __IPSEC_HOT_CODE int ipsec_frame_encrypt(
 	 * before the (optional) L2 header removal */
 	orig_seg_addr = PRC_GET_SEGMENT_ADDRESS();
 
-	/* Get the frame format */
-	fd_frame_format = LDPAA_FD_GET_FMT(HWC_FD_ADDRESS);
-	
 	/* 	4.	Identify if L2 header exist in the frame: */
 	/* Check if Ethernet/802.3 MAC header exist and remove it */
 	if (PARSER_IS_ETH_MAC_DEFAULT()) { /* Check if Ethernet header exist */
@@ -1647,10 +1641,7 @@ __IPSEC_HOT_CODE int ipsec_frame_encrypt(
 		memcpy(eth_header, eth_pointer_default, eth_length);
 		
 		/* Remove L2 Header */	
-		/* If this is a not a single buffer frame (i.e. scatter-gather),
-		 * remove the L2 Header with FDMA */
-		if (fd_frame_format != IPSEC_FMT_SINGLE_BUFFER) {
-			fdma_replace_default_segment_data(
+		fdma_replace_default_segment_data(
 				(uint16_t)PARSER_GET_ETH_OFFSET_DEFAULT(),
 				eth_length,
 				NULL,
@@ -1658,7 +1649,6 @@ __IPSEC_HOT_CODE int ipsec_frame_encrypt(
 				(void *)prc->seg_address,
 				128,
 				(uint32_t)(FDMA_REPLACE_SA_CLOSE_BIT));
-		}
 	}
 			/*---------------------*/
 			/* ipsec_frame_encrypt */
@@ -1680,24 +1670,6 @@ __IPSEC_HOT_CODE int ipsec_frame_encrypt(
 	return_val = fdma_store_default_frame_data();
 	// TODO: check FDMA return status
 
-	/* Update the FD such that the SEC "thinks" the frame starts after the
-	 * L2 header, right from the IP. 
-	 * The L2 header becomes part of the headroom  */
-	
-	/* If this is a single buffer frame, remove the L2 Header by FD change */
-	if (fd_frame_format == IPSEC_FMT_SINGLE_BUFFER) {
-	/* Update the 12 bit FD offset. Do it on all 16 bits, 
-	 * since the result is the same */
-		fd_offset = LH_SWAP(14, HWC_FD_ADDRESS);
-		fd_offset += eth_length;
-		STH_SWAP(fd_offset, 14, HWC_FD_ADDRESS);
-	
-		/* Update the FD length */
-		fd_len = LW_SWAP(8, HWC_FD_ADDRESS);
-		fd_len -= eth_length;
-		STW_SWAP(fd_len, 8, HWC_FD_ADDRESS);
-	}
-	
 	/* 	8.	Prepare AAP parameters in the Workspace memory. */
 	/* 	8.1.	Use accelerator macros for storing parameters */
 	/* 
@@ -1743,29 +1715,29 @@ __IPSEC_HOT_CODE int ipsec_frame_encrypt(
 #if(0)
 	// Debug //
 	{
-		fsl_os_print("IPSEC: Reading FD and FRC after SEC (before FDMA)\n");
+		fsl_print("IPSEC: Reading FD and FRC after SEC (before FDMA)\n");
 		uint32_t j;
 		uint32_t val;
 		for(j=0;j<8;j++) {
 			val = *(uint32_t *)((uint32_t)0x60 + j*4);
-			fsl_os_print("Word %d = 0x%x\n", j, val);
+			fsl_print("Word %d = 0x%x\n", j, val);
 		}
 		
 		//val = *(uint8_t *)((uint32_t)0x60 + 12);
-		//fsl_os_print("FD[BPID] = 0x%x\n", val);
+		//fsl_print("FD[BPID] = 0x%x\n", val);
 		
 		val = LDPAA_FD_GET_FRC(HWC_FD_ADDRESS);
-		fsl_os_print("FRC = 0x%x\n", val);
+		fsl_print("FRC = 0x%x\n", val);
 		
 		val = (uint32_t)LDPAA_FD_GET_FMT(HWC_FD_ADDRESS);
-		fsl_os_print("FMT = 0x%x\n", val);
+		fsl_print("FMT = 0x%x\n", val);
 
 		// Offset
 		//val = *(uint32_t *)((uint32_t)0x60 + 3*4);
-		//fsl_os_print("FD[OFFSET] = 0x%x%x\n", (val & 0x0F), (val & 0xFF00)>>8);
+		//fsl_print("FD[OFFSET] = 0x%x%x\n", (val & 0x0F), (val & 0xFF00)>>8);
 		
 		//val = LDPAA_FD_GET_LENGTH(HWC_FD_ADDRESS);
-		//fsl_os_print("FD[LENGTH] = 0x%x\n", val);
+		//fsl_print("FD[LENGTH] = 0x%x\n", val);
 	}
 	// Debug End //
 #endif	
@@ -1796,21 +1768,21 @@ __IPSEC_HOT_CODE int ipsec_frame_encrypt(
 #if(0)
 	// Debug //
 	{
-		fsl_os_print("IPSEC: Reading FD and FRC after SEC\n");
+		fsl_print("IPSEC: Reading FD and FRC after SEC\n");
 		uint32_t j;
 		uint32_t val;
 		for(j=0;j<8;j++) {
 			val = *(uint32_t *)((uint32_t)0x60 + j*4);
-			fsl_os_print("Word %d = 0x%x\n", j, val);
+			fsl_print("Word %d = 0x%x\n", j, val);
 		}
 		val = LDPAA_FD_GET_FRC(HWC_FD_ADDRESS);
-		fsl_os_print("FRC = 0x%x\n", val);
+		fsl_print("FRC = 0x%x\n", val);
 		// Offset
 		val = *(uint32_t *)((uint32_t)0x60 + 3*4);
-		fsl_os_print("FD[OFFSET] = 0x%x%x\n", (val & 0x0F), (val & 0xFF00)>>8);
+		fsl_print("FD[OFFSET] = 0x%x%x\n", (val & 0x0F), (val & 0xFF00)>>8);
 		
 		val = LDPAA_FD_GET_LENGTH(HWC_FD_ADDRESS);
-		fsl_os_print("FD[LENGTH] = 0x%x\n", val);
+		fsl_print("FD[LENGTH] = 0x%x\n", val);
 	}
 	// Debug End //
 #endif	
@@ -1936,20 +1908,20 @@ __IPSEC_HOT_CODE int ipsec_frame_encrypt(
 					/* uint32_t flags */
 				);
 		
-//		fsl_os_print("SEC Checksum = 0x%x\n", checksum);
+//		fsl_print("SEC Checksum = 0x%x\n", checksum);
 //
 //		for (i=0;i<(eth_length>>1);i++) {
-//			fsl_os_print("Ethernet HW #%d = 0x%x\n",i, (*((uint16_t *)eth_header + i)));
+//			fsl_print("Ethernet HW #%d = 0x%x\n",i, (*((uint16_t *)eth_header + i)));
 //
 //			checksum = (*((uint16_t *)eth_header + i)) + checksum;
-//			fsl_os_print("Ethernet HW #%d checksum = 0x%x\n",i, checksum);
+//			fsl_print("Ethernet HW #%d checksum = 0x%x\n",i, checksum);
 //
 //			checksum = (uint16_t)(checksum + (checksum >> 16));
-//			fsl_os_print("Ethernet HW #%d checksum add carry = 0x%x\n",i, checksum);
+//			fsl_print("Ethernet HW #%d checksum add carry = 0x%x\n",i, checksum);
 //
 //		}
 //			
-//		fsl_os_print("Gross running sum = 0x%x\n", checksum);
+//		fsl_print("Gross running sum = 0x%x\n", checksum);
 //
 //			/* Update gross running sum */
 //			//pr->gross_running_sum = 0; // Invalidate
@@ -1971,21 +1943,21 @@ __IPSEC_HOT_CODE int ipsec_frame_encrypt(
 #if(0)
 	// Debug //
 	{
-		fsl_os_print("IPSEC: Reading FD before the parser\n");
+		fsl_print("IPSEC: Reading FD before the parser\n");
 		uint32_t j;
 		uint32_t val;
 		for(j=0;j<8;j++) {
 			val = *(uint32_t *)((uint32_t)0x60 + j*4);
-			fsl_os_print("Word %d = 0x%x\n", j, val);
+			fsl_print("Word %d = 0x%x\n", j, val);
 		}
 		val = LDPAA_FD_GET_FRC(HWC_FD_ADDRESS);
-		fsl_os_print("FRC = 0x%x\n", val);
+		fsl_print("FRC = 0x%x\n", val);
 		// Offset
 		val = *(uint32_t *)((uint32_t)0x60 + 3*4);
-		fsl_os_print("FD[OFFSET] = 0x%x%x\n", (val & 0x0F), (val & 0xFF00)>>8);
+		fsl_print("FD[OFFSET] = 0x%x%x\n", (val & 0x0F), (val & 0xFF00)>>8);
 		
 		val = LDPAA_FD_GET_LENGTH(HWC_FD_ADDRESS);
-		fsl_os_print("FD[LENGTH] = 0x%x\n", val);
+		fsl_print("FD[LENGTH] = 0x%x\n", val);
 	}
 	// Debug End //
 #endif	
@@ -2001,17 +1973,17 @@ __IPSEC_HOT_CODE int ipsec_frame_encrypt(
 #if(0)
 	// Debug //
 	{
-		fsl_os_print("IPSEC: Reading Parser results after encryption\n");
+		fsl_print("IPSEC: Reading Parser results after encryption\n");
 		uint32_t j;
 		uint32_t val;
 		for(j=0;j<12;j++) {
 			val = *(uint32_t *)((uint32_t)0x80 + j*4);
-			fsl_os_print("Word %d = 0x%x\n", j, val);
+			fsl_print("Word %d = 0x%x\n", j, val);
 		}
 		val = (uint32_t)((uint8_t *)PARSER_GET_L5_OFFSET_DEFAULT());
-		fsl_os_print("PARSER_GET_L5_OFFSET_DEFAULT = 0x%x\n", val);
+		fsl_print("PARSER_GET_L5_OFFSET_DEFAULT = 0x%x\n", val);
 		val = (uint32_t)((uint8_t *)PARSER_GET_OUTER_IP_OFFSET_DEFAULT());	
-		fsl_os_print("PARSER_GET_OUTER_IP_OFFSET_DEFAULT = 0x%x\n", val);
+		fsl_print("PARSER_GET_OUTER_IP_OFFSET_DEFAULT = 0x%x\n", val);
 		
 	}
 	// Debug End //
@@ -2074,11 +2046,6 @@ __IPSEC_HOT_CODE int ipsec_frame_decrypt(
 	uint32_t checksum;
 	uint8_t dont_decrypt = 0;
 	ipsec_handle_t desc_addr;
-	//uint16_t offset;
-	uint16_t fd_offset;
-	uint32_t fd_len;
-	//uint16_t i;
-	uint8_t fd_frame_format; /* FD[FMT] */ 
 
 	struct ipsec_sa_params_part1 sap1; /* Parameters to read from ext buffer */
 	struct scope_status_params scope_status;
@@ -2247,9 +2214,6 @@ __IPSEC_HOT_CODE int ipsec_frame_decrypt(
 		
 		dpovrd.transport_decap.reserved = 0;
 
-		/* Get the frame format */
-		fd_frame_format = LDPAA_FD_GET_FMT(HWC_FD_ADDRESS);
-		
 		/* 	If L2 header exist in the frame, save it and remove from frame */
 		if (eth_length) {
 		/* Save Ethernet header. Note: no swap */
@@ -2260,10 +2224,7 @@ __IPSEC_HOT_CODE int ipsec_frame_decrypt(
 			memcpy(eth_header, eth_pointer_default, eth_length);
 
 			/* Remove L2 Header */	
-			/* If this is a not a single buffer frame (i.e. scatter-gather),
-			 * remove the L2 Header with FDMA */
-			if (fd_frame_format != IPSEC_FMT_SINGLE_BUFFER) {
-				fdma_replace_default_segment_data(
+			fdma_replace_default_segment_data(
 					(uint16_t)PARSER_GET_ETH_OFFSET_DEFAULT(),
 					eth_length,
 					NULL,
@@ -2271,7 +2232,6 @@ __IPSEC_HOT_CODE int ipsec_frame_decrypt(
 					(void *)prc->seg_address,
 					128,
 					(uint32_t)(FDMA_REPLACE_SA_CLOSE_BIT));
-			}
 			
 			/* This is done here because L2 is removed only in Transport */
 			PRC_RESET_NDS_BIT(); 
@@ -2285,22 +2245,22 @@ __IPSEC_HOT_CODE int ipsec_frame_decrypt(
 #if(0)
 	// Debug //
 	{
-		fsl_os_print("IPSEC: Reading FD and FRC before SEC\n");
+		fsl_print("IPSEC: Reading FD and FRC before SEC\n");
 		uint32_t j;
 		uint32_t val;
 		for(j=0;j<8;j++) {
 			val = *(uint32_t *)((uint32_t)0x60 + j*4);
-			fsl_os_print("Word %d = 0x%x\n", j, val);
+			fsl_print("Word %d = 0x%x\n", j, val);
 		}
 		val = LDPAA_FD_GET_FRC(HWC_FD_ADDRESS);
-		fsl_os_print("FRC = 0x%x\n", val);
+		fsl_print("FRC = 0x%x\n", val);
 		
 		// Offset
 		val = *(uint32_t *)((uint32_t)0x60 + 3*4);
 		//val = LDPAA_FD_GET_OFFSET(HWC_FD_ADDRESS);
-		//fsl_os_print("FD[OFFSET] = 0x%x %x\n", (val & 0xFF), (val & 0xFF00));
-		fsl_os_print("FD[OFFSET] = 0x%x%x\n", (val & 0x0F), (val & 0xFF00)>>8);
-		fsl_os_print("DPOVRD = 0x%x\n", *((uint32_t *)(&dpovrd)));
+		//fsl_print("FD[OFFSET] = 0x%x %x\n", (val & 0xFF), (val & 0xFF00));
+		fsl_print("FD[OFFSET] = 0x%x%x\n", (val & 0x0F), (val & 0xFF00)>>8);
+		fsl_print("DPOVRD = 0x%x\n", *((uint32_t *)(&dpovrd)));
 
 	}
 	// Debug End //
@@ -2323,26 +2283,6 @@ __IPSEC_HOT_CODE int ipsec_frame_decrypt(
 	/* 	8.	FDMA store default frame command 
 	 * (for closing the frame, updating the other FD fields) */
 	return_val = fdma_store_default_frame_data();
-	
-	if (!(sap1.flags & IPSEC_FLG_TUNNEL_MODE)) {
-		/* In transport mode, single buffer frame, update the FD 
-		 * such that the SEC "thinks" the frame starts after the
-		 * L2 header, right from the IP. 
-		 * The L2 header becomes part of the headroom  */
-		if (fd_frame_format == IPSEC_FMT_SINGLE_BUFFER) {
-
-			/* Update the 12 bit FD offset. Do it on all 16 bits, 
-			 * since the result is the same */
-			fd_offset = LH_SWAP(14, HWC_FD_ADDRESS);
-			fd_offset += eth_length;
-			STH_SWAP(fd_offset, 14, HWC_FD_ADDRESS);
-		
-			/* Update the FD length */
-			fd_len = LW_SWAP(8, HWC_FD_ADDRESS);
-			fd_len -= eth_length;
-			STW_SWAP(fd_len, 8, HWC_FD_ADDRESS);
-		}	
-	}
 	
 	/* 	9.	Prepare AAP parameters in the Workspace memory. */
 	/* 3 USE_FLC_SP Use Flow Context Storage Profile = 1 */ 
@@ -2407,18 +2347,18 @@ __IPSEC_HOT_CODE int ipsec_frame_decrypt(
 #if(0)
 	// Debug //
 	{
-		fsl_os_print("IPSEC: Reading FD and FRC after SEC\n");
+		fsl_print("IPSEC: Reading FD and FRC after SEC\n");
 		uint32_t j;
 		uint32_t val;
 		for(j=0;j<8;j++) {
 			val = *(uint32_t *)((uint32_t)0x60 + j*4);
-			fsl_os_print("Word %d = 0x%x\n", j, val);
+			fsl_print("Word %d = 0x%x\n", j, val);
 		}
 		val= LDPAA_FD_GET_FRC(HWC_FD_ADDRESS);
-		fsl_os_print("FRC = 0x%x\n", val);
+		fsl_print("FRC = 0x%x\n", val);
 		// Offset
 		//val = *(uint32_t *)((uint32_t)0x60 + 3*4);
-		//fsl_os_print("FD[OFFSET] = 0x%x%x\n", (val & 0x0F), (val & 0xFF00)>>8);
+		//fsl_print("FD[OFFSET] = 0x%x%x\n", (val & 0x0F), (val & 0xFF00)>>8);
 	}
 	// Debug End //
 #endif
@@ -2530,16 +2470,16 @@ __IPSEC_HOT_CODE int ipsec_frame_decrypt(
 		
 		/* Update the SEC checksum if adding L2 header*/
 		/*
-		fsl_os_print("SEC Checksum = 0x%x\n", checksum);
+		fsl_print("SEC Checksum = 0x%x\n", checksum);
 
 		for (i=0;i<(eth_length>>1);i++) {
-			fsl_os_print("Ethernet HW #%d = 0x%x\n",i, (*((uint16_t *)eth_header + i)));
+			fsl_print("Ethernet HW #%d = 0x%x\n",i, (*((uint16_t *)eth_header + i)));
 
 			checksum = (*((uint16_t *)eth_header + i)) + checksum;
-			fsl_os_print("Ethernet HW #%d checksum = 0x%x\n",i, checksum);
+			fsl_print("Ethernet HW #%d checksum = 0x%x\n",i, checksum);
 
 			checksum = (uint16_t)(checksum + (checksum >> 16));
-			fsl_os_print("Ethernet HW #%d checksum add carry = 0x%x\n",i, checksum);
+			fsl_print("Ethernet HW #%d checksum add carry = 0x%x\n",i, checksum);
 
 		}
 		*/	
@@ -2549,7 +2489,7 @@ __IPSEC_HOT_CODE int ipsec_frame_decrypt(
 			/* ipsec_frame_decrypt */
 			/*---------------------*/
 	
-	//fsl_os_print("Gross running sum = 0x%x\n", checksum);
+	//fsl_print("Gross running sum = 0x%x\n", checksum);
 	//pr->gross_running_sum = (uint16_t)checksum;
 
 	/* 	17.	Run parser and check for errors. */
@@ -2557,10 +2497,10 @@ __IPSEC_HOT_CODE int ipsec_frame_decrypt(
 	return_val = parse_result_generate_default(PARSER_NO_FLAGS);
 
 	//if (return_val) {
-	//	fsl_os_print("\nIPSEC: ERROR parser validation failed\n\n");
+	//	fsl_print("\nIPSEC: ERROR parser validation failed\n\n");
 	//} 
 	//else {
-	//	fsl_os_print("IPSEC: parser validation passed\n");
+	//	fsl_print("IPSEC: parser validation passed\n");
 	//}
 		
 	/////////////  Debug - FDMA checksum /////////////////////////////////////
@@ -2571,16 +2511,16 @@ __IPSEC_HOT_CODE int ipsec_frame_decrypt(
 	//
 	//checksum = (uint32_t)i;
 			
-	//fsl_os_print("FDMA gross running sum = 0x%x\n", checksum);
+	//fsl_print("FDMA gross running sum = 0x%x\n", checksum);
 	//pr->gross_running_sum = (uint16_t)checksum;
 	//return_val = parse_result_generate_default(PARSER_VALIDATE_L3_L4_CHECKSUM);
 	//return_val = parse_result_generate_default(PARSER_NO_FLAGS);
 
 	//if (return_val) {
-	//	fsl_os_print("\nIPSEC: ERROR parser validation failed\n\n");
+	//	fsl_print("\nIPSEC: ERROR parser validation failed\n\n");
 	//} 
 	//else {
-	//	fsl_os_print("IPSEC: parser validation passed\n");
+	//	fsl_print("IPSEC: parser validation passed\n");
 	//}
 
 	///////////////////// End Debu //////////////////////////////////////

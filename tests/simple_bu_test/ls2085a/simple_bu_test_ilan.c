@@ -79,7 +79,7 @@ int simple_bu_ilan_test(void)
 	uint8_t cipher_key_read[16];
 	int i;
 	
-	fsl_os_print("Running simple bring-up test\n");
+	fsl_print("Running simple bring-up test\n");
 	
 	
 	parser_init(&prpid);
@@ -103,11 +103,11 @@ int simple_bu_ilan_test(void)
 
 	//tman_create_tmi(tmi_mem_base_addr , 0x20, &ipr_demo_params.tmi_id);
 
-	fsl_os_print("bring-up test: Creating IPR instance\n");
+	fsl_print("bring-up test: Creating IPR instance\n");
 	err = ipr_create_instance(&ipr_demo_params, ipr_instance_ptr);
 	if (err)
 	{
-		fsl_os_print("ERROR: ipr_create_instance() failed %d\n",err);
+		fsl_print("ERROR: ipr_create_instance() failed %d\n",err);
 		return err;
 	}
 	
@@ -139,11 +139,11 @@ int simple_bu_ilan_test(void)
 
 	if (err)
 	{
-		fsl_os_print("ERROR:ipr instance was not read successfully\n");
+		fsl_print("ERROR:ipr instance was not read successfully\n");
 		return err;
 	}
 	else
-		fsl_os_print("Simple BU Test: ipr instance was  read successfully\n");
+		fsl_print("Simple BU Test: ipr instance was  read successfully\n");
 	
 	/* Allocate buffers for the Keys */
 	err = slab_create(
@@ -158,9 +158,9 @@ int simple_bu_ilan_test(void)
 			);
 
 	if (err)
-		fsl_os_print("ERROR: slab_create() failed\n");	
+		fsl_print("ERROR: slab_create() failed\n");	
 	else
-		fsl_os_print("slab_create() completed successfully\n");	
+		fsl_print("slab_create() completed successfully\n");	
 	
 	/* Acquire the Cipher key buffer */
 	err = slab_acquire(
@@ -180,11 +180,11 @@ int simple_bu_ilan_test(void)
 			err = -EINVAL;
 	if (err)
 	{
-		fsl_os_print("ERROR: key info was not read successfully\n");
+		fsl_print("ERROR: key info was not read successfully\n");
 		return err;
 	}
 	else
-		fsl_os_print("Simple BU Test: IPsec key was  read successfully\n");
+		fsl_print("Simple BU Test: IPsec key was  read successfully\n");
 
 	// run create_frame on default frame
 	{
@@ -247,128 +247,128 @@ int simple_bu_ilan_test(void)
 		*(uint32_t */
 
 		for (i=0; i<8 ; i++)
-			fsl_os_print("storage profile arg %d: 0x%x \n", i, *((uint32_t *)(&(storage_profile[0]))+i));
+			fsl_print("storage profile arg %d: 0x%x \n", i, *((uint32_t *)(&(storage_profile[0]))+i));
 		
 		
 		err = create_frame(fd, frame_data, FRAME_SIZE, &frame_handle);
 		if (err)
-			fsl_os_print("ERROR: create frame failed!\n");
+			fsl_print("ERROR: create frame failed!\n");
 
 		
-		fsl_os_print("parse result before create frame - \n");
+		fsl_print("parse result before create frame - \n");
 		
-		fsl_os_print("ethernet offset %d %x\n", 
+		fsl_print("ethernet offset %d %x\n", 
 					PARSER_IS_ETH_MAC_DEFAULT(), PARSER_GET_ETH_OFFSET_DEFAULT());
 		
-		fsl_os_print("vlan offset %d %x\n",
+		fsl_print("vlan offset %d %x\n",
 					PARSER_IS_ONE_VLAN_DEFAULT(), PARSER_GET_FIRST_VLAN_TCI_OFFSET_DEFAULT());
 		
-		fsl_os_print("ipv4 offset %d %x\n", 
+		fsl_print("ipv4 offset %d %x\n", 
 					PARSER_IS_IP_DEFAULT(), PARSER_GET_OUTER_IP_OFFSET_DEFAULT());
 		
-		fsl_os_print("udp offset %d %x\n", 
+		fsl_print("udp offset %d %x\n", 
 					PARSER_IS_UDP_DEFAULT(), PARSER_GET_L4_OFFSET_DEFAULT());
 
 		for (i=0; i<16 ; i++)
-			fsl_os_print("parse results arg %d: 0x%x \n", i, *((uint32_t *)(0x80)+i));
+			fsl_print("parse results arg %d: 0x%x \n", i, *((uint32_t *)(0x80)+i));
 		
 		
 		fdma_close_default_segment();
 		err = fdma_present_default_frame_segment(FDMA_PRES_NO_FLAGS, (void *)0x180, 0, 256);
-		fsl_os_print("STATUS: fdma present default segment returned status is %d\n", err);
+		fsl_print("STATUS: fdma present default segment returned status is %d\n", err);
 		l2_push_and_set_vlan(vlan);
 		
 		/* due to parser not aligned segment WA need to represent again*/
 		fdma_close_default_segment();
 		err = fdma_present_default_frame_segment(FDMA_PRES_NO_FLAGS, (void *)0x180, 0, 256);
-		fsl_os_print("STATUS: fdma present default segment returned status is %d\n", err);
+		fsl_print("STATUS: fdma present default segment returned status is %d\n", err);
 		
 		frame_length = PRC_GET_SEGMENT_LENGTH();
 		seg_addr = (uint8_t *)PRC_GET_SEGMENT_ADDRESS();
 		
-		fsl_os_print("frame length is 0x%x\n", frame_length);
+		fsl_print("frame length is 0x%x\n", frame_length);
 		for (i=0; i<frame_length ; i++)
-			fsl_os_print("frame read byte %d is %x\n", i, seg_addr[i]);
+			fsl_print("frame read byte %d is %x\n", i, seg_addr[i]);
 
 		parse_result_generate_default(0);
 		
-		fsl_os_print("parse result after create frame - \n");
+		fsl_print("parse result after create frame - \n");
 		
-		fsl_os_print("ethernet offset %d %x\n", 
+		fsl_print("ethernet offset %d %x\n", 
 					PARSER_IS_ETH_MAC_DEFAULT(), PARSER_GET_ETH_OFFSET_DEFAULT());
 		
-		fsl_os_print("vlan offset %d %x\n",
+		fsl_print("vlan offset %d %x\n",
 					PARSER_IS_ONE_VLAN_DEFAULT(), PARSER_GET_FIRST_VLAN_TCI_OFFSET_DEFAULT());
 		
-		fsl_os_print("ipv4 offset %d %x\n", 
+		fsl_print("ipv4 offset %d %x\n", 
 					PARSER_IS_IP_DEFAULT(), PARSER_GET_OUTER_IP_OFFSET_DEFAULT());
 		
-		fsl_os_print("udp offset %d %x\n", 
+		fsl_print("udp offset %d %x\n", 
 					PARSER_IS_UDP_DEFAULT(), PARSER_GET_L4_OFFSET_DEFAULT());
-		fsl_os_print(" FD length (by SW) is : 0x%x \n", LDPAA_FD_GET_LENGTH(HWC_FD_ADDRESS));
+		fsl_print(" FD length (by SW) is : 0x%x \n", LDPAA_FD_GET_LENGTH(HWC_FD_ADDRESS));
 
 		LDPAA_FD_SET_LENGTH(HWC_FD_ADDRESS, 0);
-		fsl_os_print(" FD length (after SW zeroing it) is : 0x%x \n", LDPAA_FD_GET_LENGTH(HWC_FD_ADDRESS));
+		fsl_print(" FD length (after SW zeroing it) is : 0x%x \n", LDPAA_FD_GET_LENGTH(HWC_FD_ADDRESS));
 		err = fdma_store_default_frame_data();
 		if (err)
-			fsl_os_print("ERROR: fdma store default frame returned error is %d\n", err);
+			fsl_print("ERROR: fdma store default frame returned error is %d\n", err);
 		
 		for (i=0; i<8 ; i++)
-			fsl_os_print("FD content arg %d is %x\n", i, *((uint32_t *)(0x60 + i*4)));
+			fsl_print("FD content arg %d is %x\n", i, *((uint32_t *)(0x60 + i*4)));
 		
-		fsl_os_print(" FD length is : 0x%x \n", LDPAA_FD_GET_LENGTH(HWC_FD_ADDRESS));
-		fsl_os_print(" FD address LSB is : 0x%x \n", LDPAA_FD_GET_ADDR(HWC_FD_ADDRESS));
-		fsl_os_print(" FD address MSB is : 0x%x \n", ((uint64_t)LDPAA_FD_GET_ADDR(HWC_FD_ADDRESS)) >> 32);
+		fsl_print(" FD length is : 0x%x \n", LDPAA_FD_GET_LENGTH(HWC_FD_ADDRESS));
+		fsl_print(" FD address LSB is : 0x%x \n", LDPAA_FD_GET_ADDR(HWC_FD_ADDRESS));
+		fsl_print(" FD address MSB is : 0x%x \n", ((uint64_t)LDPAA_FD_GET_ADDR(HWC_FD_ADDRESS)) >> 32);
 
 		err = fdma_present_default_frame();
 		if (err < 0)
-			fsl_os_print("ERROR: fdma present default frame returned error is %d\n", err);
+			fsl_print("ERROR: fdma present default frame returned error is %d\n", err);
 		else
 			if (err)
-				fsl_os_print("STATUS: fdma present default frame returned status is %d\n", err);
+				fsl_print("STATUS: fdma present default frame returned status is %d\n", err);
 		parse_status = parse_result_generate_default(PARSER_NO_FLAGS);
 		if (parse_status)
 		{
-			fsl_os_print("ERROR: parser failed for simple BU test!\n");
+			fsl_print("ERROR: parser failed for simple BU test!\n");
 			fdma_discard_default_frame(FDMA_DIS_NO_FLAGS);
 		}
 		/* check frame presented */
 		frame_presented = (uint8_t *)PRC_GET_SEGMENT_ADDRESS();
 		frame_length = LDPAA_FD_GET_LENGTH(HWC_FD_ADDRESS);
-		fsl_os_print("actual frame length is 0x%x\n", frame_length);
+		fsl_print("actual frame length is 0x%x\n", frame_length);
 		for (i=0; i<frame_length ; i++)
-			fsl_os_print("actual frame read byte %d is %x\n", i, frame_presented[i]);
+			fsl_print("actual frame read byte %d is %x\n", i, frame_presented[i]);
 		
 		for (i=0; i<(FRAME_SIZE+4); i++)
 			if (*(frame_presented+i) != frame_data_read[i])
 				err = -EINVAL;
 		if (err)
 		{
-			fsl_os_print("Simple BU ERROR: frame data after HM vlan add is not correct\n");
+			fsl_print("Simple BU ERROR: frame data after HM vlan add is not correct\n");
 			fdma_discard_default_frame(FDMA_DIS_NO_FLAGS);
 			return err;
 		}
 		else {
-			fsl_os_print("**************************************************\n");
-			fsl_os_print("Simple BU Test: fdma frame after HM vlan add is correct !!!\n");
-			fsl_os_print("**************************************************\n");
+			fsl_print("**************************************************\n");
+			fsl_print("Simple BU Test: fdma frame after HM vlan add is correct !!!\n");
+			fsl_print("**************************************************\n");
 		}
 		
 		/* Add vlan remove feature here! */
 		err = fdma_store_default_frame_data();
 		if (err)
-			fsl_os_print("ERROR: fdma store default frame returned error is %d\n", err);
+			fsl_print("ERROR: fdma store default frame returned error is %d\n", err);
 		
 		err = fdma_present_default_frame();
 		if (err < 0)
-			fsl_os_print("ERROR: fdma present default frame returned error is %d\n", err);
+			fsl_print("ERROR: fdma present default frame returned error is %d\n", err);
 		else
 			if (err)
-				fsl_os_print("STATUS: fdma present default frame returned status is %d\n", err);
+				fsl_print("STATUS: fdma present default frame returned status is %d\n", err);
 		parse_status = parse_result_generate_default(PARSER_NO_FLAGS);
 		if (parse_status)
 		{
-			fsl_os_print("ERROR: parser failed for simple BU test!\n");
+			fsl_print("ERROR: parser failed for simple BU test!\n");
 			fdma_discard_default_frame(FDMA_DIS_NO_FLAGS);
 		}
 		l2_pop_vlan();
@@ -376,12 +376,12 @@ int simple_bu_ilan_test(void)
 		/* due to parser not aligned segment WA need to represent again*/
 		fdma_close_default_segment();
 		err = fdma_present_default_frame_segment(FDMA_PRES_NO_FLAGS, (void *)0x180, 0, 256);
-		fsl_os_print("STATUS: fdma present default segment returned status is %d\n", err);	
+		fsl_print("STATUS: fdma present default segment returned status is %d\n", err);	
 		err = 0;
 		parse_status = parse_result_generate_default(PARSER_NO_FLAGS);
 		if (parse_status)
 		{
-			fsl_os_print("ERROR: parser failed for simple BU test!\n");
+			fsl_print("ERROR: parser failed for simple BU test!\n");
 			fdma_discard_default_frame(FDMA_DIS_NO_FLAGS);
 		}
 		
@@ -389,26 +389,26 @@ int simple_bu_ilan_test(void)
 		/* check frame presented */
 		frame_presented = (uint8_t *)PRC_GET_SEGMENT_ADDRESS();
 		frame_length = LDPAA_FD_GET_LENGTH(HWC_FD_ADDRESS);
-		fsl_os_print("actual frame length after vlan removed is 0x%x\n", frame_length);
+		fsl_print("actual frame length after vlan removed is 0x%x\n", frame_length);
 		for (i=0; i<frame_length ; i++)
-			fsl_os_print("actual frame read byte after vlan remove %d is %x\n", i, frame_presented[i]);
+			fsl_print("actual frame read byte after vlan remove %d is %x\n", i, frame_presented[i]);
 		
 		for (i=0; i<FRAME_SIZE; i++)
 			if (*(frame_presented+i) != frame_data[i])
 			{
-				fsl_os_print("***************** index %d\n", i);
+				fsl_print("***************** index %d\n", i);
 				err = -EINVAL;
 			}
 		if (err)
 		{
-			fsl_os_print("Simple BU ERROR: frame data after HM vlan remove is not correct\n");
+			fsl_print("Simple BU ERROR: frame data after HM vlan remove is not correct\n");
 			fdma_discard_default_frame(FDMA_DIS_NO_FLAGS);
 			return err;
 		}
 		else {
-			fsl_os_print("**************************************************\n");
-			fsl_os_print("Simple BU Test: fdma frame after HM vlan remove is correct !!!\n");
-			fsl_os_print("**************************************************\n");
+			fsl_print("**************************************************\n");
+			fsl_print("Simple BU Test: fdma frame after HM vlan remove is correct !!!\n");
+			fsl_print("**************************************************\n");
 		}
 		
 		/* CTLU */
@@ -430,10 +430,10 @@ int simple_bu_ilan_test(void)
 				&rule.key_desc,
 				&keysize);
 			if (sr_status)
-				fsl_os_print("Simple BU ERROR: keygen_gen_key failed!\n");
+				fsl_print("Simple BU ERROR: keygen_gen_key failed!\n");
 			
 			for (i=0; i<keysize; i++)
-				fsl_os_print("Generated Key of size %d byte %d 0x%x\n", keysize, i, rule.key_desc.em.key[i]);
+				fsl_print("Generated Key of size %d byte %d 0x%x\n", keysize, i, rule.key_desc.em.key[i]);
 			
 			sr_status = table_rule_create(
 					TABLE_ACCEL_ID_CTLU,
@@ -442,7 +442,7 @@ int simple_bu_ilan_test(void)
 					keysize);
 			
 			if (sr_status)
-				fsl_os_print("Simple BU ERROR: rule create failed!\n");
+				fsl_print("Simple BU ERROR: rule create failed!\n");
 
 			sr_status = table_lookup_by_keyid_default_frame(
 				TABLE_ACCEL_ID_CTLU,
@@ -451,12 +451,12 @@ int simple_bu_ilan_test(void)
 				&lookup_result);
 			
 			if (sr_status)
-				fsl_os_print("Simple BU ERROR: table_lookup_by_keyid_default_frame failed!\n");
+				fsl_print("Simple BU ERROR: table_lookup_by_keyid_default_frame failed!\n");
 			
 			if (lookup_result.opaque0_or_reference != 0x12345678)
-				fsl_os_print("Simple BU ERROR: table LU failed!\n");
+				fsl_print("Simple BU ERROR: table LU failed!\n");
 			else
-				fsl_os_print("Simple BU table LU success!!!\n");
+				fsl_print("Simple BU table LU success!!!\n");
 		}
 		
 		/* look-up by key */
@@ -511,7 +511,7 @@ int simple_bu_ilan_test(void)
 					  &key_id);
 			if (err < 0)
 			{
-				fsl_os_print("key id kcr create failed!");
+				fsl_print("key id kcr create failed!");
 				return err;
 			}
 			*/
@@ -537,7 +537,7 @@ int simple_bu_ilan_test(void)
 					&table_id);
 			if (err != TABLE_STATUS_SUCCESS)
 			{
-				fsl_os_print("table create failed for key-id!");
+				fsl_print("table create failed for key-id!");
 				return err;
 			}
 			/* create rule */
@@ -552,7 +552,7 @@ int simple_bu_ilan_test(void)
 			err = table_rule_create(TABLE_ACCEL_ID_CTLU, table_id, &rule, 2);
 			if (err)
 			{
-				fsl_os_print("table rule create by key  failed");
+				fsl_print("table rule create by key  failed");
 				return err;
 			}
 			rule.result.op0_rptr_clp.reference_pointer = 0x55667788;
@@ -561,7 +561,7 @@ int simple_bu_ilan_test(void)
 			err = table_rule_create(TABLE_ACCEL_ID_CTLU, table_id, &rule, 2);
 			if (err)
 			{
-				fsl_os_print("table rule create by key  failed");
+				fsl_print("table rule create by key  failed");
 				return err;
 			}
 
@@ -570,11 +570,11 @@ int simple_bu_ilan_test(void)
 			err = table_rule_query(TABLE_ACCEL_ID_CTLU, table_id, &rule.key_desc, 2, &table_result, &timestamp);
 			if (table_result.op0_rptr_clp.reference_pointer != 0x55667788)
 			{
-				fsl_os_print("Simple BU ERROR: table_rule_query failed!\n");
+				fsl_print("Simple BU ERROR: table_rule_query failed!\n");
 				return -EIO;
 			}
 			else
-				fsl_os_print("Simple BU: table_rule_query succeeded!\n");
+				fsl_print("Simple BU: table_rule_query succeeded!\n");
 			/*********************************/
 			
 			
@@ -586,18 +586,18 @@ int simple_bu_ilan_test(void)
 			err = table_rule_create(TABLE_ACCEL_ID_CTLU, table_id, &rule, 2);
 			if (err)
 			{
-				fsl_os_print("table rule create by key  failed");
+				fsl_print("table rule create by key  failed");
 				return err;
 			}
 			
 			err = table_rule_delete(TABLE_ACCEL_ID_CTLU, table_id, &rule.key_desc, 2 , &rule.result);
 			if (err)
 			{
-				fsl_os_print("Simple BU ERROR: table_rule_delete failed!\n");
+				fsl_print("Simple BU ERROR: table_rule_delete failed!\n");
 				return -EIO;
 			}
 			else
-				fsl_os_print("Simple BU: table_rule_delete succeeded!\n");
+				fsl_print("Simple BU: table_rule_delete succeeded!\n");
 			/*********************************/
 			
 	
@@ -606,69 +606,69 @@ int simple_bu_ilan_test(void)
 			sr_status = table_lookup_by_key(TABLE_ACCEL_ID_CTLU, table_id, key_desc, 2, &lookup_result);
 			if (sr_status)
 			{
-				fsl_os_print("Simple BU ERROR: table_lookup_by_key failed!\n");
+				fsl_print("Simple BU ERROR: table_lookup_by_key failed!\n");
 				return -EIO;
 			}
 							
 			if (lookup_result.opaque0_or_reference != 0x55667788)
 			{
-					fsl_os_print("Simple BU ERROR: table LU by key1 failed!\n");
+					fsl_print("Simple BU ERROR: table LU by key1 failed!\n");
 					return -EIO;
 			}
 			else
-					fsl_os_print("Simple BU table LU by Key1 success!!!\n");
+					fsl_print("Simple BU table LU by Key1 success!!!\n");
 			
 			key_desc.em_key = &key2;
 			sr_status = table_lookup_by_key(TABLE_ACCEL_ID_CTLU, table_id, key_desc, 2, &lookup_result);
 			if (sr_status)
 			{
-				fsl_os_print("Simple BU ERROR: table_lookup_by_key failed!\n");
+				fsl_print("Simple BU ERROR: table_lookup_by_key failed!\n");
 				return -EIO;
 			}
 							
 			if (lookup_result.opaque0_or_reference != 0x11223344)
 			{
-					fsl_os_print("Simple BU ERROR: table LU by key2 failed!\n");
+					fsl_print("Simple BU ERROR: table LU by key2 failed!\n");
 					return -EIO;
 			}
 			else
-					fsl_os_print("Simple BU table LU by Key2 success!!!\n");
+					fsl_print("Simple BU table LU by Key2 success!!!\n");
 			
 			/* table_rule_replace for key 0xdead */
 			
 			err = table_rule_replace(TABLE_ACCEL_ID_CTLU, table_id, &rule_replace, 2, NULL);
 			if (err)
 			{
-				fsl_os_print("Simple BU ERROR: table rule replace command failed!\n");
+				fsl_print("Simple BU ERROR: table rule replace command failed!\n");
 				return err;
 			}
 			else
-				fsl_os_print("Simple BU: table rule replace command success!\n");
+				fsl_print("Simple BU: table rule replace command success!\n");
 			
 			key_desc.em_key = &key2;
 			sr_status = table_lookup_by_key(TABLE_ACCEL_ID_CTLU, table_id, key_desc, 2, &lookup_result);
 			if (sr_status)
 			{
-				fsl_os_print("Simple BU ERROR: table_lookup_by_key failed!\n");
+				fsl_print("Simple BU ERROR: table_lookup_by_key failed!\n");
 				return -EIO;
 			}
 							
 			if (lookup_result.opaque0_or_reference != 0xaabbccdd)
 			{
-					fsl_os_print("Simple BU ERROR: table LU by key2 failed after replace!\n");
+					fsl_print("Simple BU ERROR: table LU by key2 failed after replace!\n");
 					return -EIO;
 			}
 			else
-					fsl_os_print("Simple BU table LU by Key2 after replace success!!!\n");
+					fsl_print("Simple BU table LU by Key2 after replace success!!!\n");
 
 			op0 = (uint32_t)lookup_result.opaque0_or_reference;
 			op1 = (uint32_t)lookup_result.opaque1;
 			op2 = (uint32_t)lookup_result.opaque2;
-			fsl_os_print("\n");
-			fsl_os_print("lookup_result.opaque0_or_reference = 0x%x\n", op0);
-			fsl_os_print("lookup_result.opaque1 = 0x%x\n", op1);
-			fsl_os_print("lookup_result.opaque2 = 0x%x\n", op2);
-			fsl_os_print("\n");
+			fsl_print("\n");
+			fsl_print("lookup_result.opaque0_or_reference = 0x%x\n", op0);
+			fsl_print("lookup_result.opaque1 = 0x%x\n", op1);
+			fsl_print("lookup_result.opaque2 = 0x%x\n", op2);
+			fsl_print("\n");
 			
 			/**************************************/
 			
@@ -676,19 +676,19 @@ int simple_bu_ilan_test(void)
 			sr_status = table_lookup_by_key(TABLE_ACCEL_ID_CTLU, table_id, key_desc, 2, &lookup_result);
 			if (!sr_status)
 			{
-				fsl_os_print("Simple BU ERROR: table_lookup_by_key failed since it should be miss!\n");
+				fsl_print("Simple BU ERROR: table_lookup_by_key failed since it should be miss!\n");
 				return -EIO;
 			}
 			
 			op0 = (uint32_t)lookup_result.opaque0_or_reference;
 			op1 = (uint32_t)lookup_result.opaque1;
 			op2 = (uint32_t)lookup_result.opaque2;
-			fsl_os_print("\n");
-			fsl_os_print("Original Miss Results:\n");
-			fsl_os_print("lookup_result.opaque0_or_reference = 0x%x\n", op0);
-			fsl_os_print("lookup_result.opaque1 = 0x%x\n", op1);
-			fsl_os_print("lookup_result.opaque2 = 0x%x\n", op2);
-			fsl_os_print("\n");
+			fsl_print("\n");
+			fsl_print("Original Miss Results:\n");
+			fsl_print("lookup_result.opaque0_or_reference = 0x%x\n", op0);
+			fsl_print("lookup_result.opaque1 = 0x%x\n", op1);
+			fsl_print("lookup_result.opaque2 = 0x%x\n", op2);
+			fsl_print("\n");
 			
 			/* table_replace_miss_result() */
 			new_miss_result.type = TABLE_RESULT_TYPE_REFERENCE;
@@ -707,24 +707,24 @@ int simple_bu_ilan_test(void)
 			sr_status = table_lookup_by_key(TABLE_ACCEL_ID_CTLU, table_id, key_desc, 2, &lookup_result);
 			if (!sr_status)
 			{
-				fsl_os_print("Simple BU ERROR: table_lookup_by_key failed since it should be miss!\n");
+				fsl_print("Simple BU ERROR: table_lookup_by_key failed since it should be miss!\n");
 				return -EIO;
 			}
 					
 			op0 = (uint32_t)lookup_result.opaque0_or_reference;
 			op1 = (uint32_t)lookup_result.opaque1;
 			op2 = (uint32_t)lookup_result.opaque2;
-			fsl_os_print("\n");
-			fsl_os_print("New Miss Results:\n");
-			fsl_os_print("lookup_result.opaque0_or_reference = 0x%x\n", op0);
-			fsl_os_print("lookup_result.opaque1 = 0x%x\n", op1);
-			fsl_os_print("lookup_result.opaque2 = 0x%x\n", op2);
-			fsl_os_print("\n");
+			fsl_print("\n");
+			fsl_print("New Miss Results:\n");
+			fsl_print("lookup_result.opaque0_or_reference = 0x%x\n", op0);
+			fsl_print("lookup_result.opaque1 = 0x%x\n", op1);
+			fsl_print("lookup_result.opaque2 = 0x%x\n", op2);
+			fsl_print("\n");
 			
 			if ((op0 == 0xaabb) && (op1 == 0x9966) && (op2 == 0xee)) {
-				fsl_os_print("table_replace_miss_result() PASSED\n");
+				fsl_print("table_replace_miss_result() PASSED\n");
 			} else {
-				fsl_os_print("Simple BU ERROR: table_replace_miss_result() failed\n");
+				fsl_print("Simple BU ERROR: table_replace_miss_result() failed\n");
 				return -EIO;
 			}
 				
@@ -735,7 +735,7 @@ int simple_bu_ilan_test(void)
 		
 		fdma_discard_default_frame(FDMA_DIS_NO_FLAGS);
 	}
-	fsl_os_print("Simple bring-up test completed successfully\n");
+	fsl_print("Simple bring-up test completed successfully\n");
 	return 0;
 }
 

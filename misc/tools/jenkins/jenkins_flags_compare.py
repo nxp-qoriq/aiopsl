@@ -35,7 +35,7 @@ def check_if_flags_different(app_process_packet, cproject_file):
 	# the comparison for .cprojects starts from here:
 	different_flag = False
 
-	if 'Null' not in ignore_flags and 'aiopsl' in cproject_file:
+	if 'Null' not in ignore_flags and 'apps' not in cproject_file:
 		ignore_flags_exist = True
 
 	print "Checking project: " + cproject_file + " for identical flags with app process packet."
@@ -111,7 +111,7 @@ if __name__ == "__main__":
 	different_flags_in_some_projects = False
 	print "Start script to compare all .cproject files for applications and tests in AIOP"
 
-	if check_if_file_exists("build/aiop_sim/apps/app_process_packet/.cproject") == False:
+	if check_if_file_exists("build/ls2085a/rev1/apps/app_process_packet/.cproject") == False:
 		exit(1)
 
 	#Check if there flags to ignore for compare with aiopsl
@@ -132,7 +132,7 @@ if __name__ == "__main__":
 	else:
 		ignore_flags = 'Null'
 
-	ins = open( "build/aiop_sim/apps/app_process_packet/.cproject", "r" )
+	ins = open( "build/ls2085a/rev1/apps/app_process_packet/.cproject", "r" )
 
 
 	app_process_packet = []
@@ -156,7 +156,7 @@ if __name__ == "__main__":
 	total_cprojects_checked = 0
 	different_cprojects_found = 0
 
-	for root, dirnames, filenames in os.walk('build/aiop_sim'):
+	for root, dirnames, filenames in os.walk('build/ls2085a/rev1'):
 		for filename in fnmatch.filter(filenames, '*.cproject'):
 			matches.append(os.path.join(root, filename))
 

@@ -43,6 +43,14 @@
 	 * _fd - the FD address in workspace. */
 #define SET_FRAME_TYPE(_frame_handle, _fd)
 
+/* fix CR:ENGR00364084 
+ * relocate PRC values according to 2085 PRC formation */
+#define SET_PRC_VALUES()						\
+	({PRC_SET_SEGMENT_OFFSET(*((uint16_t *)(HWC_PRC_ADDRESS + 0x8)));\
+	  PRC_SET_FRAME_HANDLE(*((uint8_t *)(HWC_PRC_ADDRESS + 0xD)));	\
+	  PRC_SET_SEGMENT_HANDLE(*((uint8_t *)(HWC_PRC_ADDRESS + 0xB)));\
+	  *((uint16_t *)(HWC_PRC_ADDRESS + 0xA)) = 			\
+		(*((uint16_t *)(HWC_PRC_ADDRESS + 0xA)) >> 4); })
 
 /** \addtogroup FSL_AIOP_FDMA
  *  @{
@@ -127,6 +135,27 @@
 #define FDMA_INIT_NAS_BIT		0x00000400
 
 /** @} end of group FDMA_Int_Init_ModeBits */
+
+/**************************************************************************//**
+@Group		FDMA_Replace_Int_Flags
+
+@Description	FDMA internal Replace Segment flags.
+
+@{
+*//***************************************************************************/
+
+	/** Trim Anchor Mode. Applicable only to data segment replace commands.
+	 * If set: Anchored mode. The segment's start and end boundaries remain
+	 * anchored with respect to the working frame's start and end. The 
+	 * subset of the open segment specified by LEADING_OFFSET and
+	 * REPLACE_TARGET_SIZE is replaced with SEGMENT_SIZE bytes of the
+	 * replacement data.
+	 * If reset: Trimmed Mode. Trim the segment boundaries according to
+	 * LEADING_OFFSET and REPLACE_TARGET_SIZE prior to performing the 
+	 * replacement. */
+#define FDMA_REPLACE_TAM_FLAG	0x00001000
+
+/** @} end of group FDMA_Replace_Int_Flags */
 
 
 /**************************************************************************//**

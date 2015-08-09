@@ -58,7 +58,7 @@ static void app_process_packet_flow0 (void)
 
 	if (PARSER_IS_OUTER_IPV4_DEFAULT())
 	{
-		fsl_os_print
+		fsl_print
 		("app_process_packet: Received packet with ipv4 header:\n");
 		ipv4hdr_offset = (uint16_t)PARSER_GET_OUTER_IP_OFFSET_DEFAULT();
 		p_ipv4hdr = (uint8_t *) PRC_GET_SEGMENT_ADDRESS() + ipv4hdr_offset ;
@@ -67,20 +67,20 @@ static void app_process_packet_flow0 (void)
 		ipv4hdr_length = (uint16_t)((ipv4header->vsn_and_ihl & 0x0F) << 2);
 		for( int i = 0; i < ipv4hdr_length; i++)
 		{
-			fsl_os_print(" %x",p_ipv4hdr[i]);
+			fsl_print(" %x",p_ipv4hdr[i]);
 		}
-		fsl_os_print("\n");
+		fsl_print("\n");
 
 		dst_addr = ipv4header->dst_addr;
 		/*for reflection when switching between src and dst IP the checksum remains the same*/
 		err = ip_set_nw_dst(ipv4header->src_addr);
 		if (err) {
-			fsl_os_print("ERROR = %d: ip_set_nw_dst(src_addr)\n", err);
+			fsl_print("ERROR = %d: ip_set_nw_dst(src_addr)\n", err);
 			local_test_error |= err;
 	}
 		err = ip_set_nw_src(dst_addr);
 	if (err) {
-			fsl_os_print("ERROR = %d: ip_set_nw_src(dst_addr)\n", err);
+			fsl_print("ERROR = %d: ip_set_nw_src(dst_addr)\n", err);
 		local_test_error |= err;
 	}
 	}
@@ -95,25 +95,25 @@ static void app_process_packet_flow0 (void)
 
 	if (!local_test_error && PARSER_IS_OUTER_IPV4_DEFAULT())
 	{
-		fsl_os_print
+		fsl_print
 		("app_process_packet: Will send a modified packet with ipv4 header:\n");
 		for( int i = 0; i < ipv4hdr_length; i++)
 		{
-			fsl_os_print(" %x",p_ipv4hdr[i]);
+			fsl_print(" %x",p_ipv4hdr[i]);
 		}
-		fsl_os_print("\n");
+		fsl_print("\n");
 	}
 
 	err = dpni_drv_send(ni_id);
 	if (err){
-		fsl_os_print("ERROR = %d: dpni_drv_send(ni_id)\n",err);
+		fsl_print("ERROR = %d: dpni_drv_send(ni_id)\n",err);
 		local_test_error |= err;
 	}
 
 	if(!local_test_error) /*No error found during injection of packets*/
-		fsl_os_print("Finished SUCCESSFULLY\n");
+		fsl_print("Finished SUCCESSFULLY\n");
 	else
-		fsl_os_print("Finished with ERRORS\n");
+		fsl_print("Finished with ERRORS\n");
 
 	fdma_terminate_task();
 }
@@ -191,7 +191,7 @@ int app_init(void)
 {
 	int        err  = 0;
 
-	fsl_os_print("Running app_init()\n");
+	fsl_print("Running app_init()\n");
 
 	err = evmng_register(EVMNG_GENERATOR_AIOPSL, DPNI_EVENT_ADDED, 1,(uint64_t) aiop_verification_fm, app_dpni_event_added_cb);
 	if (err){
@@ -200,7 +200,7 @@ int app_init(void)
 	}
 
 
-	fsl_os_print("To start test inject packets: \"eth_ipv4_udp.pcap\"\n");
+	fsl_print("To start test inject packets: \"eth_ipv4_udp.pcap\"\n");
 
 	return 0;
 }

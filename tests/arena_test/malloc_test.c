@@ -99,7 +99,7 @@ static int check_get_mem_size_alignment(uint64_t size,uint64_t alignment)
 	if((local_error !=0 && s_dp_ddr_mem_exists) ||
 		(local_error == 0 && !s_dp_ddr_mem_exists)	)
 	{
-		fsl_os_print("get_mem(): fsl_os_get_mem from MEM_PART_DP_DDR failed\n") ;
+		fsl_print("get_mem(): fsl_os_get_mem from MEM_PART_DP_DDR failed\n") ;
 		rc |= local_error;
 	}
 	else
@@ -113,7 +113,7 @@ static int check_get_mem_size_alignment(uint64_t size,uint64_t alignment)
    if((local_error !=0 && s_system_ddr_mem_exists) ||
 	 (local_error == 0 && !s_system_ddr_mem_exists))
    {
-		fsl_os_print("get_mem(): fsl_os_get_mem from MEM_PART_SYSTEM_DDR failed\n") ;
+		fsl_print("get_mem(): fsl_os_get_mem from MEM_PART_SYSTEM_DDR failed\n") ;
 		rc |= local_error;
    }
    else
@@ -128,7 +128,7 @@ static int check_get_mem_size_alignment(uint64_t size,uint64_t alignment)
 	if((local_error !=0 && s_peb_mem_exists) ||
 	   (local_error == 0 && !s_peb_mem_exists))
 	{
-		fsl_os_print("get_mem(): fsl_os_get_mem from MEM_PART_PEB failed\n") ;
+		fsl_print("get_mem(): fsl_os_get_mem from MEM_PART_PEB failed\n") ;
 		rc |= local_error;
 	}
 	else
@@ -156,7 +156,7 @@ int malloc_test()
 	if((rc != 0 && s_dp_ddr_mem_exists) ||
 	   (rc == 0 && !s_dp_ddr_mem_exists))
 	{
-		fsl_os_print("sys_get_phys_addr_alloc_partition_info for MEM_PART_DP_DDR failed\n");
+		fsl_print("sys_get_phys_addr_alloc_partition_info for MEM_PART_DP_DDR failed\n");
 		return rc;
 	}
 
@@ -164,7 +164,7 @@ int malloc_test()
 	if((rc != 0 && s_system_ddr_mem_exists) ||
 	   (rc == 0 && !s_system_ddr_mem_exists))
 	{
-		fsl_os_print("sys_get_phys_addr_alloc_partition_info for MEM_PART_SYSTEM_DDR failed\n");
+		fsl_print("sys_get_phys_addr_alloc_partition_info for MEM_PART_SYSTEM_DDR failed\n");
 		return rc;
 	}
 
@@ -174,7 +174,7 @@ int malloc_test()
 	if((rc != 0 && s_peb_mem_exists) ||
 	   (rc == 0 && !s_peb_mem_exists))
 	{
-		fsl_os_print("sys_get_phys_addr_alloc_partition_info for MEM_PART_PEB failed\n");
+		fsl_print("sys_get_phys_addr_alloc_partition_info for MEM_PART_PEB failed\n");
 		return rc;
 	}
 
@@ -182,7 +182,7 @@ int malloc_test()
 	if((rc != 0 && s_shared_ram_eixsts) ||
 	   (rc == 0 && !s_shared_ram_eixsts))
 	{
-		fsl_os_print("sys_get_mem_partition_info for MEM_PART_SH_RAM failed\n");
+		fsl_print("sys_get_mem_partition_info for MEM_PART_SH_RAM failed\n");
 		return rc;
 	}
 
@@ -197,11 +197,11 @@ int malloc_test()
 	if((local_error != 0 && s_shared_ram_eixsts) ||
 	   (local_error == 0 && !s_shared_ram_eixsts))
 	{
-		fsl_os_print("shared_ram_allocate_check_mem from  SHARED RAM failed\n");
+		fsl_print("shared_ram_allocate_check_mem from  SHARED RAM failed\n");
 		err |= local_error ;
 	}
 	else
-		fsl_os_print("shared_ram_allocate_check_mem from  SHARED RAM succeeded\n");
+		fsl_print("shared_ram_allocate_check_mem from  SHARED RAM succeeded\n");
 
 
 
@@ -211,11 +211,11 @@ int malloc_test()
 	if((local_error != 0 && s_peb_mem_exists) ||
 	   (local_error == 0 && !s_peb_mem_exists))
 	{
-		fsl_os_print("mem_depletion_test from  PEB failed\n");
+		fsl_print("mem_depletion_test from  PEB failed\n");
 		err |= local_error;
 	}
 	else
-		fsl_os_print("mem_depletion_test from  PEB succeeded\n");
+		fsl_print("mem_depletion_test from  PEB succeeded\n");
 
 
 
@@ -225,11 +225,11 @@ int malloc_test()
 	if((local_error != 0 && s_system_ddr_mem_exists) ||
 	   (local_error == 0 && !s_system_ddr_mem_exists))
 	{
-		fsl_os_print("mem_depletion_test from  SYSTEM_DDR  failed\n");
+		fsl_print("mem_depletion_test from  SYSTEM_DDR  failed\n");
 		err |= local_error;
 	}
 	else
-		fsl_os_print("mem_depletion_test from  SYSTEM_DDR succeeded\n");
+		fsl_print("mem_depletion_test from  SYSTEM_DDR succeeded\n");
 
 
 
@@ -239,11 +239,11 @@ int malloc_test()
 	if((local_error != 0 && s_dp_ddr_mem_exists) ||
 	   (local_error == 0 && !s_dp_ddr_mem_exists))
 	{
-		fsl_os_print("mem_depletion_test from  DP_DDR  failed\n");
+		fsl_print("mem_depletion_test from  DP_DDR  failed\n");
 		err |= local_error;
 	}
 	else
-		fsl_os_print("mem_depletion_test from  DP_DDR succeeded\n");
+		fsl_print("mem_depletion_test from  DP_DDR succeeded\n");
 
 	cdma_mutex_lock_take((uint64_t)&s_shared_ram_lock,CDMA_MUTEX_WRITE_LOCK);
 	local_error = mem_depletion_test(MEM_PART_SH_RAM,MEGABYTE,MEGABYTE);
@@ -251,11 +251,11 @@ int malloc_test()
 	if((local_error != 0 && s_shared_ram_eixsts) ||
 	   (local_error == 0 && !s_shared_ram_eixsts))
 	{
-		fsl_os_print("mem_depletion_test from  SHARED RAM  failed\n");
+		fsl_print("mem_depletion_test from  SHARED RAM  failed\n");
 		err |= local_error;
 	}
 	else
-		fsl_os_print("mem_depletion_test from  SHARED RAM succeeded\n");
+		fsl_print("mem_depletion_test from  SHARED RAM succeeded\n");
 
 
 	return err;
@@ -272,21 +272,21 @@ static int shared_ram_allocate_check_mem(uint32_t num_iter, uint32_t size,
 		allocated_pointers[i] = fsl_malloc(size,alignment);
 		if(NULL == allocated_pointers[i])
 		{
-		    /*fsl_os_print("fsl_malloc() from shared ram  failed\n");*/
+		    /*fsl_print("fsl_malloc() from shared ram  failed\n");*/
 		    return -ENOMEM;
 		}
 		if(check_returned_malloc_address((uint32_t)allocated_pointers[i],
 		                                 size,
 		                                 alignment,
 		                                 &sh_ram_info)){
-		   /*fsl_os_print("fsl_malloc from  shared ram failed, address %x\n",
+		   /*fsl_print("fsl_malloc from  shared ram failed, address %x\n",
                                  PTR_TO_UINT(allocated_pointers[i]));*/
 		   return -EFAULT;
 		}
 		iowrite32(value,allocated_pointers[i]);
 		value = ioread32(allocated_pointers[i]);
 		if(value != expected_value) {
-			/*fsl_os_print("fsl_malloc from  shared ram failed, address %x\n",
+			/*fsl_print("fsl_malloc from  shared ram failed, address %x\n",
 					    PTR_TO_UINT(allocated_pointers[i]));*/
 		    return -ENOMEM;
 		}
@@ -308,28 +308,28 @@ static int get_mem_test()
 	/* Check for validity of mem_partition
 	For non-valid partitions get_mem() should fail.*/
 	if((local_error = check_non_valid_get_mem_partitions()) != 0){
-	    fsl_os_print("get_mem(): check_non_valid_get_mem_partitions  failed\n") ;
+	    fsl_print("get_mem(): check_non_valid_get_mem_partitions  failed\n") ;
 	}
 	else
-	    fsl_os_print("get_mem(): check_non_valid_get_mem_partitions succeeded\n") ;
+	    fsl_print("get_mem(): check_non_valid_get_mem_partitions succeeded\n") ;
 	error |= local_error;
 	if((local_error = check_get_mem_size_alignment(1*KILOBYTE,1*KILOBYTE)) != 0){
-		fsl_os_print("get_mem(): check_get_mem_size_alignment failed\n") ;
+		fsl_print("get_mem(): check_get_mem_size_alignment failed\n") ;
 	}
 	else
-		fsl_os_print("get_mem(): check_get_mem_size_alignment succeeded\n") ;
+		fsl_print("get_mem(): check_get_mem_size_alignment succeeded\n") ;
 	/*
 	if((local_error = check_get_mem_size_alignment(0,1*KILOBYTE)) != 0){
-		fsl_os_print("get_mem(): check_get_mem_size_alignment failed\n") ;
+		fsl_print("get_mem(): check_get_mem_size_alignment failed\n") ;
 	}
 	else
-		fsl_os_print("get_mem(): check_get_mem_size_alignment succeeded\n") ;
+		fsl_print("get_mem(): check_get_mem_size_alignment succeeded\n") ;
 	*/
 	if((local_error = check_get_mem_size_alignment(1*KILOBYTE,0)) != 0){
-	    fsl_os_print("get_mem(): check_get_mem_size_alignment failed\n") ;
+	    fsl_print("get_mem(): check_get_mem_size_alignment failed\n") ;
 	}
 	else
-	    fsl_os_print("get_mem(): check_get_mem_size_alignment succeeded\n") ;
+	    fsl_print("get_mem(): check_get_mem_size_alignment succeeded\n") ;
 	error |= local_error;
 	return error;
 }
@@ -413,7 +413,7 @@ static int mem_depletion_test(e_memory_partition_id mem_partition,
 		fsl_free(prev_addr);
 		if((curr_addr = fsl_malloc(prev_size,prev_alignment)) == NULL)
 		{
-			/*fsl_os_print("mem_depletion_test from  SHARED RAM failed\n");*/
+			/*fsl_print("mem_depletion_test from  SHARED RAM failed\n");*/
 			return -ENAVAIL;
 		}
 		if(check_returned_address((uint64_t)curr_addr,prev_size,prev_alignment,mem_partition) != 0)
@@ -423,7 +423,7 @@ static int mem_depletion_test(e_memory_partition_id mem_partition,
 		{
 			fsl_free(shram_addresses[i]);
 		}
-		/*fsl_os_print("mem_depletion_test from  SHARED RAM succeeded \n");*/
+		/*fsl_print("mem_depletion_test from  SHARED RAM succeeded \n");*/
 		return 0;
 	}
 	else
@@ -444,7 +444,7 @@ static int mem_depletion_test(e_memory_partition_id mem_partition,
 		fsl_os_put_mem(prev_addr_64);
 		if(fsl_os_get_mem(prev_size,mem_partition,prev_alignment,&curr_addr_64) != 0)
 		{
-			/*fsl_os_print("mem_depletion_test from %d failed\n",mem_partition);*/
+			/*fsl_print("mem_depletion_test from %d failed\n",mem_partition);*/
 			return -ENAVAIL;
 		}
 		if(check_returned_address(curr_addr_64,prev_size,prev_alignment,mem_partition) != 0)
@@ -454,7 +454,7 @@ static int mem_depletion_test(e_memory_partition_id mem_partition,
 		{
 			fsl_os_put_mem(adresses[i]);
 		}
-		/*fsl_os_print("mem_depletion_test from %d succeeded\n",mem_partition);*/
+		/*fsl_print("mem_depletion_test from %d succeeded\n",mem_partition);*/
 		return 0;
 	}
 	return 0;
@@ -470,21 +470,21 @@ static  int check_returned_address(uint64_t paddr,
         case MEM_PART_PEB:
 	    if(check_returned_get_mem_address(paddr,size,alignment,&peb_info))
 	    {
-                fsl_os_print("check_returned_address failed for MEM_PART_PEB\n") ;
+                fsl_print("check_returned_address failed for MEM_PART_PEB\n") ;
 		return -1;
 	    }
 	    break;
        case MEM_PART_SYSTEM_DDR:
 	    if(check_returned_get_mem_address(paddr,size,alignment,&sys_ddr_info))
 	    {
-                fsl_os_print("check_returned_address failed for MEM_PART_SYSTEM_DDR\n") ;
+                fsl_print("check_returned_address failed for MEM_PART_SYSTEM_DDR\n") ;
 		return -1;
 	    }
 	    break;
 	case MEM_PART_DP_DDR:
 	    if(check_returned_get_mem_address(paddr,size,alignment,&dp_ddr_info))
 	    {
-		fsl_os_print("check_returned_address failed for MEM_PART_SYSTEM_DDR\n");
+		fsl_print("check_returned_address failed for MEM_PART_SYSTEM_DDR\n");
 		return -1;
 	    }
 	    break;
@@ -492,7 +492,7 @@ static  int check_returned_address(uint64_t paddr,
             if(check_returned_malloc_address((uint32_t)paddr,(uint32_t)size,
                                              (uint32_t)alignment,&sh_ram_info))
             {
-	        fsl_os_print("check_returned_address failed for MEM_PART_SH_RAM\n");
+	        fsl_print("check_returned_address failed for MEM_PART_SH_RAM\n");
 	        return -1;
             }
 	    break;
