@@ -214,34 +214,7 @@ struct aiop_cmgw_regs {
 	}clear_g_m[2];
 	/**< 0 - General or 1 - Management Doorbell */
 
-#if 0
-	uint32_t gdp0cr1; /* General Doorbell Priority 0 Configuration Register 1 */
-	uint32_t gdp0cr2; /* General Doorbell Priority 0 Configuration Register 2 */
-	uint32_t gdp0cr3; /* General Doorbell Priority 0 Configuration Register 3 */
-	OS_MEM_RESERVED(0x80c, 0x810);
-	uint32_t gdp1cr1; /* General Doorbell Priority 1 Configuration Register 1 */
-	uint32_t gdp1cr2; /* General Doorbell Priority 1 Configuration Register 2 */
-	uint32_t gdp1cr3; /* General Doorbell Priority 1 Configuration Register 3 */
-	OS_MEM_RESERVED(0x81c, 0x880);
-	uint32_t mdp0cr1; /* Management Doorbell Priority 0 Configuration Register 1 */
-	uint32_t mdp0cr2; /* Management Doorbell Priority 0 Configuration Register 2 */
-	uint32_t mdp0cr3; /* Management Doorbell Priority 0 Configuration Register 3 */
-	OS_MEM_RESERVED(0x88c, 0x890);
-	uint32_t mdp1cr1; /* Management Doorbell Priority 1 Configuration Register 1 */
-	uint32_t mdp1cr2; /* Management Doorbell Priority 1 Configuration Register 2 */
-	uint32_t mdp1cr3; /* Management Doorbell Priority 1 Configuration Register 3 */
-	OS_MEM_RESERVED(0x89c, 0x900);
-	/* Shared Doorbell Clear Registers
-	 * Available only on LS2085’s Rev 2 and LS1080 */
-	uint32_t gdp0clrr; /* General Doorbell Priority 0 Clear Register */
-	OS_MEM_RESERVED(0x904, 0x910);
-	uint32_t gdp1clrr; /* General Doorbell Priority 1 Clear Register */
-	OS_MEM_RESERVED(0x914, 0x980);
-	uint32_t mdp0clrr; /* Management Doorbell Priority 0 Clear Register */
-	OS_MEM_RESERVED(0x984, 0x990);
-	uint32_t mdp1clrr; /* Management Doorbell Priority 1 Clear Register */
-	OS_MEM_RESERVED(0x994, 0x1000);
-#endif
+	OS_MEM_RESERVED(0xa00, 0x1000);
 };
 
 struct aiop_fdma_regs {
@@ -484,17 +457,6 @@ struct aiop_portal_map_regs {
 		OS_MEM_RESERVED(0x20000, 0x80000);
 	}req_g_m[2];
 	/**< 0 - General or 1 - Management Doorbell */
-
-#if 0
-	uint32_t gdp0rr;	/**< General Doorbell Priority 0 Request Register */
-	OS_MEM_RESERVED(0x00004, 0x10000);
-	uint32_t gdp1rr;	/**< General Doorbell Priority 1 Request Register */
-	OS_MEM_RESERVED(0x10004, 0x80000);
-	uint32_t mdp0rr;	/**< Management Doorbell Priority 0 Request Register */
-	OS_MEM_RESERVED(0x80004, 0x90000);
-	uint32_t mdp1rr;	/**< Management Doorbell Priority 1 Request Register */
-	OS_MEM_RESERVED(0x90004, 0x100000);
-#endif
 };
 
 #endif /* __AIOP_COMMON_H */
