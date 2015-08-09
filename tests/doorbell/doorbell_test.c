@@ -24,31 +24,57 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/**************************************************************************//**
-@File          fsl_doorbell.h
-
-@Description   AIOP Doorbell API
-
-@Cautions      None.
-*//***************************************************************************/
-
-#ifndef __FSL_DOORBELL_H
-#define __FSL_DOORBELL_H
-
 #include "fsl_types.h"
-#include "fsl_errors.h"
-#include "fsl_icontext.h"
+#include "fsl_stdio.h"
+#include "fsl_general.h"
+#include "fsl_dbg.h"
+#include "fsl_doorbell.h"
+#include "fsl_aiop_common.h"
 
-enum doorbell_reg {
-	DOORBELL_SRC_GENERAL,
-	DOORBELL_SRC_MANAGEMENT,
-	DOORBELL_SRC_LAST
-};
+int app_early_init(void);
+int app_init(void);
+void app_free(void);
 
-void doorbell_clear(int priority, enum doorbell_reg g_m, uint32_t mask);
-void doorbell_ring(int priority, enum doorbell_reg g_m, uint32_t mask);
-int doorbell_setup(int priority, enum doorbell_reg g_m, uint16_t epid,
-                   void (*isr_cb)(void), uint32_t scope_id);
+__HOT_CODE ENTRY_POINT static void doorbell_cb(void)
+{
+	pr_debug(" doorbell_cb \n");
+	
+	doorbell_clear(0, DOORBELL_SRC_GENERAL, 0xffffffff);
+	doorbell_clear(0, DOORBELL_SRC_MANAGEMENT, 0xffffffff);
+	doorbell_clear(1, DOORBELL_SRC_GENERAL, 0xffffffff);
+	doorbell_clear(1, DOORBELL_SRC_MANAGEMENT, 0xffffffff);
+}
 
+int app_init(void)
+{
+	int i;
+	int pr;
+	
+	pr_info("Running app_init()\n");
 
-#endif /* __FSL_DOORBELL_H */
+	for (i = 0; i < DOORBELL_SRC_LAST; i++) {
+		for (pr = 0; pr < 2; pr++) {
+			doorbell_setup(pr,
+			               (enum doorbell_reg)i, 
+			               (uint16_t)(AIOP_EPID_TABLE_SIZE - 1 - pr),
+			               doorbell_cb,
+			               (uint32_t)(pr + 1));
+			doorbell_ring(pr, 
+			              (enum doorbell_reg)i,
+			              (uint32_t)(pr + 1));
+		}
+	}
+	
+	return 0;
+}
+
+int app_early_init(void)
+{
+	/* Early initialization */
+	return 0;
+}
+
+void app_free(void)
+{
+	/* free application resources*/
+}

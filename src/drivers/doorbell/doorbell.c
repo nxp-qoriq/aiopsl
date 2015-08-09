@@ -112,6 +112,8 @@ int doorbell_setup(int pr, enum doorbell_reg g_m, uint16_t epid,
 	/* Set the EP entry */
 	ep_set(epid, isr_cb);
 	
+	doorbell_clear(pr, g_m, 0xffffffff);
+
 	return 0;
 }
 

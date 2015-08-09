@@ -24,31 +24,29 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/**************************************************************************//**
-@File          fsl_doorbell.h
+#include "common/fsl_string.h"
+#include "fsl_sys.h"
+#include "fsl_dbg.h"
+#include "apps.h"
 
-@Description   AIOP Doorbell API
-
-@Cautions      None.
-*//***************************************************************************/
-
-#ifndef __FSL_DOORBELL_H
-#define __FSL_DOORBELL_H
-
-#include "fsl_types.h"
-#include "fsl_errors.h"
-#include "fsl_icontext.h"
-
-enum doorbell_reg {
-	DOORBELL_SRC_GENERAL,
-	DOORBELL_SRC_MANAGEMENT,
-	DOORBELL_SRC_LAST
-};
-
-void doorbell_clear(int priority, enum doorbell_reg g_m, uint32_t mask);
-void doorbell_ring(int priority, enum doorbell_reg g_m, uint32_t mask);
-int doorbell_setup(int priority, enum doorbell_reg g_m, uint16_t epid,
-                   void (*isr_cb)(void), uint32_t scope_id);
+extern int app_early_init(void);
+extern int app_init(void); extern void app_free(void);
 
 
-#endif /* __FSL_DOORBELL_H */
+#define APPS                            	\
+{                                       	\
+	{app_early_init, app_init, app_free},	\
+	{NULL, NULL, NULL} /* never remove! */    	\
+}
+
+void build_apps_array(struct sys_module_desc *apps);
+void build_apps_early_init_array(int (*early_init[])(void));
+
+void build_apps_array(struct sys_module_desc *apps)
+{
+	struct sys_module_desc apps_tmp[] = APPS;
+	
+	ASSERT_COND(ARRAY_SIZE(apps_tmp) <= APP_INIT_APP_MAX_NUM);
+	memcpy(apps, apps_tmp, sizeof(apps_tmp));
+}
+
