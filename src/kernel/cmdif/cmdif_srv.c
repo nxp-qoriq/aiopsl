@@ -627,7 +627,7 @@ __COLD_CODE int session_open(uint16_t *new_auth)
 	}
 }
 
-__HOT_CODE void cmdif_srv_isr(void) __attribute__ ((noreturn))
+__HOT_CODE ENTRY_POINT void cmdif_srv_isr(void) __attribute__ ((noreturn))
 {
 	uint16_t gpp_icid;
 	uint32_t gpp_dma;

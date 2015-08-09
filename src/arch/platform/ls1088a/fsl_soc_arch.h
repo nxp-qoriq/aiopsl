@@ -62,10 +62,11 @@
 /* AIOP Profile SRAM offset */
 #define AIOP_STORAGE_PROFILE_OFF        0x30000
 /* Offsets relative to CCSR base */
-#define SOC_PERIPH_OFF_AIOP_WRKS        0x1d000
+#define SOC_PERIPH_OFF_AIOP_CMGW        0x00000000
+#define SOC_PERIPH_OFF_AIOP_WRKS        0x0001d000
 #define SOC_PERIPH_OFF_AIOP_TILE        0x00080000
-#define SOC_PERIPH_OFF_AIOP_CMGW        0x0
-#define SOC_PERIPH_OFF_DCSR             0x0100000
+#define SOC_PERIPH_OFF_PORTAL_MAP       0x000f0000
+#define SOC_PERIPH_OFF_DCSR             0x00100000
 
 /**************************************************************************//**
  @Group         ls1088a_g LS1088A Application Programming Interface
