@@ -186,7 +186,6 @@ struct aiop_cmgw_regs {
 	uint8_t reserved11[0xE0];
 	/* AIOP Discovery Registers */
 	uint32_t tile_disc[4]; /* Tile discovery registers 1-4 */
-#if 0
 	OS_MEM_RESERVED(0x310, 0x800);
 
 	/* Shared Doorbell Unit Configuration
@@ -216,9 +215,6 @@ struct aiop_cmgw_regs {
 	/**< 0 - General or 1 - Management Doorbell */
 
 	OS_MEM_RESERVED(0xa00, 0x1000);
-#else
-	OS_MEM_RESERVED(0x310, 0x1000);
-#endif
 };
 
 struct aiop_fdma_regs {
