@@ -37,35 +37,17 @@
 
 #include "fsl_types.h"
 #include "fsl_errors.h"
+#include "fsl_icontext.h"
 
+enum doorbell_reg {
+	DOORBELL_GENERAL,
+	DOORBELL_MANAGEMENT
+};
 
-/**************************************************************************//**
-@Function      bman_fill_bpid
-
-@Description   fill the HW pool with buffers.
-
-
-@Param[in]     num_buffs         Number of buffers to fill in HW pool.
-@Param[in]     buff_size         Size of buffers in pool.
-@Param[in]     alignment         Requested alignment for data field (in bytes).
-@Param[in]     mem_partition_id  Memory partition ID for buffer type.
-				 AIOP: HW pool supports only PEB and DDR.
-@Param[in]     bpid              Id of pool to fill with buffers.
-@Param[in]     alignment_extension Used to shift first buffer if 8 bytes of HW
-				metadata exist and make user field aligned.
-				(Default 0 must be entered if not used for slab)
-
-
-@Return        0       - on success,
-               -EINVAL - slab module handle is null
-               -ENOMEM - not enough memory for mem_partition_id
- *//***************************************************************************/
-int bman_fill_bpid(uint32_t num_buffs,
-                     uint16_t buff_size,
-                     uint16_t alignment,
-                     enum memory_partition_id  mem_partition_id,
-                     uint16_t bpid,
-                     uint16_t alignment_extension);
+void doorbell_clear(int priority, enum doorbell_reg g_m, uint32_t mask);
+void doorbell_ring(int priority, enum doorbell_reg g_m, uint32_t mask);
+int doorbell_setup(int priority, enum doorbell_reg g_m, uint16_t epid,
+                   void (*isr_cb)(void), uint32_t scope_id);
 
 
 #endif /* __FSL_DOORBELL_H */
