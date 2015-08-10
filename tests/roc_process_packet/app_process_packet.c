@@ -146,7 +146,7 @@ int app_early_init(void){
 			10, /* uint32_t max_buffs */
 			512, /* uint16_t buff_size */
 			8, /* uint16_t alignment */
-			MEM_PART_DP_DDR, /* enum memory_partition_id  mem_pid */
+			MEM_PART_SYSTEM_DDR, /* enum memory_partition_id  mem_pid */
 	        0, /* uint32_t flags */
 	        0 /* uint32_t num_ddr_pools */
 	        );
