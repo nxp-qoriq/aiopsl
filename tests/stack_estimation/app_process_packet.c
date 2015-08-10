@@ -190,10 +190,13 @@ void stack_estimation(void)
 	/* dpci_event_update(0); called only by SL in cmdif open command t
 	 * the stack is not important */
 
-	/* RCU 2085 */
+	
+	/* RCU does not exists in 1088*/
+	/*
 	rcu_synchronize(NULL, 9);
 	rcu_read_lock();
 	rcu_read_unlock();
+        */
 	
 	/*After packet processing is done, fdma_terminate_task must be called.*/
 	fdma_terminate_task();
