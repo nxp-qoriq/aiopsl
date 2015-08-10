@@ -30,7 +30,7 @@
 #include "common/fsl_string.h"
 #include "fsl_aiop_common.h"
 #include "fsl_duart.h"
-#include "console.h"
+#include "fsl_console.h"
 #include "fsl_platform.h"
 #include "fsl_malloc.h"
 #include "fsl_smp.h"

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <projectDescription>
-	<name>aiopsl_stack_estimation</name>
+	<name>doorbell_test</name>
 	<comment></comment>
 	<projects>
 		<project location="PARENT-2-PROJECT_LOC/aiopsl">
@@ -97,29 +97,34 @@ aiop_sl		</project>
 			<locationURI>PARENT-3-PROJECT_LOC/cw_files/aiop_link.lcf</locationURI>
 		</link>
 		<link>
-			<name>src/README.txt</name>
-			<type>1</type>
-			<locationURI>PARENT-5-PROJECT_LOC/tests/aiopsl_stack_estimation/README.txt</locationURI>
-		</link>
-		<link>
-			<name>src/app_process_packet.c</name>
-			<type>1</type>
-			<locationURI>PARENT-5-PROJECT_LOC/tests/aiopsl_stack_estimation/app_process_packet.c</locationURI>
-		</link>
-		<link>
 			<name>src/apps.c</name>
 			<type>1</type>
-			<locationURI>PARENT-5-PROJECT_LOC/tests/aiopsl_stack_estimation/apps.c</locationURI>
+			<locationURI>PARENT-5-PROJECT_LOC/tests/doorbell/apps.c</locationURI>
 		</link>
 		<link>
 			<name>src/apps.h</name>
 			<type>1</type>
-			<locationURI>PARENT-5-PROJECT_LOC/tests/aiopsl_stack_estimation/apps.h</locationURI>
+			<locationURI>PARENT-5-PROJECT_LOC/tests/doorbell/apps.h</locationURI>
 		</link>
 		<link>
 			<name>src/config.c</name>
 			<type>1</type>
-			<locationURI>PARENT-5-PROJECT_LOC/src/arch/platform/ls2085a/config.c</locationURI>
+			<locationURI>PARENT-5-PROJECT_LOC/src/arch/platform/ls1088a/config.c</locationURI>
+		</link>
+		<link>
+			<name>src/doorbell_test.c</name>
+			<type>1</type>
+			<locationURI>PARENT-5-PROJECT_LOC/tests/doorbell/doorbell_test.c</locationURI>
+		</link>
+		<link>
+			<name>src/ls1088a</name>
+			<type>2</type>
+			<locationURI>virtual:/virtual</locationURI>
+		</link>
+		<link>
+			<name>src/ls1088a/apps_arch.h</name>
+			<type>1</type>
+			<locationURI>PARENT-5-PROJECT_LOC/tests/doorbell/ls1088a/apps_arch.h</locationURI>
 		</link>
 	</linkedResources>
 </projectDescription>

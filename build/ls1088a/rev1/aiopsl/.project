@@ -140,6 +140,11 @@
 			<locationURI>virtual:/virtual</locationURI>
 		</link>
 		<link>
+			<name>aiop_sl/drivers/doorbell</name>
+			<type>2</type>
+			<locationURI>virtual:/virtual</locationURI>
+		</link>
+		<link>
 			<name>aiop_sl/drivers/dplib</name>
 			<type>2</type>
 			<locationURI>virtual:/virtual</locationURI>
@@ -380,6 +385,11 @@
 			<locationURI>virtual:/virtual</locationURI>
 		</link>
 		<link>
+			<name>aiop_sl/drivers/doorbell/doorbell.c</name>
+			<type>1</type>
+			<locationURI>PARENT-4-PROJECT_LOC/src/drivers/doorbell/doorbell.c</locationURI>
+		</link>
+		<link>
 			<name>aiop_sl/drivers/dplib/dpbp</name>
 			<type>2</type>
 			<locationURI>virtual:/virtual</locationURI>
@@ -418,6 +428,11 @@
 			<name>aiop_sl/drivers/include/fsl_bman.h</name>
 			<type>1</type>
 			<locationURI>PARENT-4-PROJECT_LOC/src/drivers/include/fsl_bman.h</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/drivers/include/fsl_doorbell.h</name>
+			<type>1</type>
+			<locationURI>PARENT-4-PROJECT_LOC/src/drivers/include/fsl_doorbell.h</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/drivers/include/fsl_dpbp.h</name>
@@ -875,11 +890,6 @@
 			<locationURI>PARENT-4-PROJECT_LOC/src/kernel/icontext/icontext.h</locationURI>
 		</link>
 		<link>
-			<name>aiop_sl/kernel/include/console.h</name>
-			<type>1</type>
-			<locationURI>PARENT-4-PROJECT_LOC/src/kernel/include/console.h</locationURI>
-		</link>
-		<link>
 			<name>aiop_sl/kernel/include/dbg.h</name>
 			<type>1</type>
 			<locationURI>PARENT-4-PROJECT_LOC/src/kernel/include/dbg.h</locationURI>
@@ -898,6 +908,11 @@
 			<name>aiop_sl/kernel/include/fsl_cmdif_flib_s.h</name>
 			<type>1</type>
 			<locationURI>PARENT-4-PROJECT_LOC/src/kernel/include/fsl_cmdif_flib_s.h</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/kernel/include/fsl_console.h</name>
+			<type>1</type>
+			<locationURI>PARENT-4-PROJECT_LOC/src/kernel/include/fsl_console.h</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/kernel/include/fsl_core.h</name>

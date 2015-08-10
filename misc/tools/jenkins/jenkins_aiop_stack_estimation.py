@@ -34,14 +34,16 @@ def check_stack(aiopsl_stack_estimation):
 
 def stack():
 	global error_stack_too_big
+	global ls_arch
 	error_stack_too_big = False
 	print "Start script to check stack estimation in AIOP"
 
-	if check_if_file_exists("build/ls2085a/rev1/tests/aiopsl_stack_estimation/out/aiop_app.MAP") == False:
+	if check_if_file_exists("build/"+str(ls_arch)+"/rev1/tests/stack_estimation/out/aiop_app.MAP") == False:
+		print "aiop_app.MAP is missing in build/"+str(ls_arch)+"/rev1/tests/stack_estimation/out/"
 		exit(1)
 
 
-	ins = open( "build/ls2085a/rev1/tests/aiopsl_stack_estimation/out/aiop_app.MAP", "r" )
+	ins = open( "build/"+str(ls_arch)+"/rev1/tests/stack_estimation/out/aiop_app.MAP", "r" )
 
 	append_line = False
 	counter = 0
@@ -102,21 +104,29 @@ def defines():
 
 
 if __name__ == "__main__":
-
-	if len(sys.argv) < 1:
+	global ls_arch
+	control_param = ""
+	if len(sys.argv) <= 1:
 		print "Incorrect number of arguments"
 		exit(1)
 
-	arg1 = str(sys.argv[1:])
+	if len(sys.argv) <= 2:
+			print "Using old configurations for ls2085a"
+			control_param = str(sys.argv[1])
+			ls_arch = "ls2085a"
+	else:
+		control_param = str(sys.argv[1])
+		ls_arch = str(sys.argv[2])
 
-	if arg1 == "['stack_check']":
+
+	if control_param == "stack_check":
 		stack() #jump to stack checking part
-	elif arg1 == "['add_defines']":
+	elif control_param == "add_defines":
 		defines() #jump to add defines
-	elif arg1 == "['-h']":
-		print "python jenkins_aiop_stack_estimation.py [stack_check|add_defines]"
+	elif control_param == "['-h']":
+		print "python jenkins_aiop_stack_estimation.py [stack_check|add_defines] [ls2085a|ls1088a]"
 		exit(2)
 	else:
-		print "Wrong parameter " + arg1
-		print "python jenkins_aiop_stack_estimation.py [-h|stack_check|add_defines]"
+		print "Wrong parameter " + control_param
+		print "python jenkins_aiop_stack_estimation.py [-h|stack_check|add_defines] [ls2085a|ls1088a]"
 		exit(1)
