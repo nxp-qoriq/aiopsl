@@ -206,7 +206,6 @@ int boot_get_mem_virt(struct initial_mem_mng* boot_mem_mng,
 }
 /*****************************************************************************/
 int  mem_mng_init(void *  h_boot_mem_mng,
-                    const t_mem_mng_param *p_mem_mng_param,
                     struct t_mem_mng    *p_mem_mng)
 {
     uint32_t      mem_mng_addr = 0;
@@ -215,7 +214,6 @@ int  mem_mng_init(void *  h_boot_mem_mng,
     uint16_t alignment = 0;
 
 
-    UNUSED(p_mem_mng_param);
     ASSERT_COND_LIGHT(h_boot_mem_mng);
     if(NULL == h_boot_mem_mng)
         return NULL;

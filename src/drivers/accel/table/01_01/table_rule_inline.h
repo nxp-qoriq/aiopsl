@@ -53,6 +53,10 @@ inline int table_rule_create(enum table_hw_accel_id acc_id,
 	uint32_t arg2 = (uint32_t)&aged_res;
 	uint32_t arg3 = table_id;
 
+#ifdef DISABLE_REF_CNT
+	rule->result.type = TABLE_RESULT_TYPE_OPAQUES;
+#endif
+
 	/* Set Opaque1, Opaque2 valid bits*/
 	*(uint16_t *)(&(rule->result.type)) |=
 			TABLE_TLUR_OPAQUE_VALID_BITS_MASK;
@@ -107,6 +111,73 @@ inline int table_rule_create(enum table_hw_accel_id acc_id,
 }
 
 
+
+inline int table_rule_create_or_replace(enum table_hw_accel_id acc_id,
+					uint16_t table_id,
+					struct table_rule *rule,
+					uint8_t key_size,
+					struct table_result *old_res)
+{
+#ifdef CHECK_ALIGNMENT
+	DEBUG_ALIGN("table.c", (uint32_t)rule, ALIGNMENT_16B);
+#endif
+	
+	int32_t status;
+
+	struct table_old_result hw_old_res __attribute__((aligned(16)));
+	uint32_t arg2 = (uint32_t)&hw_old_res;
+	uint32_t arg3 = table_id;
+
+#ifdef DISABLE_REF_CNT
+	rule->result.type = TABLE_RESULT_TYPE_OPAQUES;
+#endif
+
+	/* Set Opaque1, Opaque2 valid bits*/
+	*(uint16_t *)(&(rule->result.type)) |=
+			TABLE_TLUR_OPAQUE_VALID_BITS_MASK;
+
+	/* Clear byte in offset 2*/
+	*((uint8_t *)&(rule->result) + 2) = 0;
+
+	/* Prepare ACC context for CTLU accelerator call */
+	arg2 = __e_rlwimi(arg2, (uint32_t)rule, 16, 0, 15);
+	arg3 = __e_rlwimi(arg3, (uint32_t)key_size, 16, 0, 15);
+	__stqw(TABLE_RULE_CREATE_OR_REPLACE_MTYPE, arg2, arg3, 0,
+	       HWC_ACC_IN_ADDRESS, 0);
+
+	/* Accelerator call*/
+	__e_hwaccel(acc_id);
+
+	/* Status Handling*/
+	status = *((int32_t *)HWC_ACC_OUT_ADDRESS);
+	if (status == TABLE_HW_STATUS_SUCCESS) {
+		/* Replace occurred */
+		if (old_res)
+			/* STQW optimization is not done here so we do not
+			 * force alignment */
+			*old_res = hw_old_res.result;
+	}
+	else if (status == TABLE_HW_STATUS_BIT_MISS){}
+	else if (status & TABLE_HW_STATUS_BIT_TIDE) {
+		table_rule_inline_exception_handler(TABLE_RULE_CREATE_OR_REPLACE_FUNC_ID,
+					  __LINE__,
+					  status,
+					  TABLE_ENTITY_HW);
+	}
+	else if (status & TABLE_HW_STATUS_BIT_NORSC) {
+		status = -ENOMEM;
+	}
+	else {
+		/* Call fatal error handler */
+		table_rule_inline_exception_handler(TABLE_RULE_CREATE_OR_REPLACE_FUNC_ID,
+					  __LINE__,
+					  status,
+					  TABLE_ENTITY_HW);
+	}
+	return status;
+}
+
+
 inline int table_rule_replace(enum table_hw_accel_id acc_id,
 		       uint16_t table_id,
 		       struct table_rule *rule,
@@ -122,6 +193,10 @@ inline int table_rule_replace(enum table_hw_accel_id acc_id,
 	struct table_old_result hw_old_res __attribute__((aligned(16)));
 	uint32_t arg2 = (uint32_t)&hw_old_res;
 	uint32_t arg3 = table_id;
+
+#ifdef DISABLE_REF_CNT
+	rule->result.type = TABLE_RESULT_TYPE_OPAQUES;
+#endif
 
 	/* Set Opaque1, Opaque2 valid bits*/
 	*(uint16_t *)(&(rule->result.type)) |=

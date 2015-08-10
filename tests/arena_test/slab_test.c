@@ -46,8 +46,8 @@ int app_test_slab(struct slab *slab, int num_times, enum memory_partition_id mem
 
 static void slab_callback_test(uint64_t context_address){
 
-	fsl_os_print("slab_release: callback function\n");
-	fsl_os_print("CB context address - 0x%x,%x\n", (uint32_t)( context_address >> 32),(uint32_t)context_address);
+	fsl_print("slab_release: callback function\n");
+	fsl_print("CB context address - 0x%x,%x\n", (uint32_t)( context_address >> 32),(uint32_t)context_address);
 }
 
 int slab_init(void)
@@ -57,19 +57,19 @@ int slab_init(void)
 
 	for(i = 0; i < SLAB_MAX_BMAN_POOLS_NUM; i++)
 	{
-		fsl_os_print("Slab bman pools status:\n");
-		fsl_os_print("bman pool id: %d, remaining: %d\n",g_slab_bman_pools[i].bman_pool_id, g_slab_bman_pools[i].remaining);
+		fsl_print("Slab bman pools status:\n");
+		fsl_print("bman pool id: %d, remaining: %d\n",g_slab_bman_pools[i].bman_pool_id, g_slab_bman_pools[i].remaining);
 
 	}
 	err = app_test_slab_init();
 	if (err) {
-		fsl_os_print("ERROR = %d: app_test_slab_init()\n", err);
+		fsl_print("ERROR = %d: app_test_slab_init()\n", err);
 		return err;
 	}
 
 	/*err = app_test_slab_overload_test();
 	if (err) {
-		fsl_os_print("ERROR = %d: app_test_slab_overload_test()\n", err);
+		fsl_print("ERROR = %d: app_test_slab_overload_test()\n", err);
 		return err;
 	}
 	 */
@@ -93,7 +93,7 @@ int app_test_slab_overload_test()
 			if (err) return err;
 
 			else
-				fsl_os_print("Slab cluster and pool id are: cluster %d, pool ID %d\n",
+				fsl_print("Slab cluster and pool id are: cluster %d, pool ID %d\n",
 				             SLAB_CLUSTER_ID_GET(SLAB_VP_POOL_GET(my_slab[i])),
 				             SLAB_POOL_ID_GET(SLAB_VP_POOL_GET(my_slab[i])));
 
@@ -120,7 +120,7 @@ int app_test_slab_overload_test()
 		}
 	}
 	else {
-		fsl_os_print("DP-DDR does not exists.\n");
+		fsl_print("DP-DDR does not exists.\n");
 	}
 
 	return 0;
@@ -156,18 +156,18 @@ int app_test_slab_init(void)
 		err = slab_acquire(my_slab, &buff[4]);
 		if (!err) return err;
 		else
-			fsl_os_print("PASSED - Acquire more buffers than MAX failed\n");
+			fsl_print("PASSED - Acquire more buffers than MAX failed\n");
 
-		fsl_os_print("Slab: check if buffers aligned to 16: ");
+		fsl_print("Slab: check if buffers aligned to 16: ");
 		for(i = 0; i < 4; i++)
 		{
 			if((buff[i] & (16 - 1)) != 0)
 			{
-				fsl_os_print("Error, buffers are not aligned\n");
+				fsl_print("Error, buffers are not aligned\n");
 				return -EFAULT;
 			}
 		}
-		fsl_os_print("Done\n");
+		fsl_print("Done\n");
 
 		if (slab_refcount_decr(buff[0]) == SLAB_CDMA_REFCOUNT_DECREMENT_TO_ZERO){
 			err = slab_release(my_slab, buff[0]);
@@ -224,7 +224,7 @@ int app_test_slab_init(void)
 
 	}
 	else {
-		fsl_os_print("DP-DDR does not exists.\n");
+		fsl_print("DP-DDR does not exists.\n");
 	}
 	return 0;
 }
@@ -264,7 +264,7 @@ int app_test_slab(struct slab *slab, int num_times, enum memory_partition_id mem
 	err = slab_create(5, 5, 100, alignment, mem_pid, SLAB_DDR_MANAGEMENT_FLAG,
 	                  NULL, &my_slab);
 	if (err){
-		fsl_os_print("error in slab create \n");
+		fsl_print("error in slab create \n");
 		return err;
 	}
 
@@ -292,7 +292,7 @@ int app_test_slab(struct slab *slab, int num_times, enum memory_partition_id mem
 		{
 			if((buff[j] & (alignment - 1)) != 0)
 			{
-				fsl_os_print("Error, buffers are not aligned\n");
+				fsl_print("Error, buffers are not aligned\n");
 				return -EFAULT;
 			}
 		}
@@ -364,7 +364,7 @@ int slab_test(void)
 		}
 	}
 	else {
-		fsl_os_print("DP-DDR does not exists.\n");
+		fsl_print("DP-DDR does not exists.\n");
 	}
 
 	/* SYSTEM DDR SLAB creation */
@@ -383,7 +383,7 @@ int slab_test(void)
 		}
 	}
 	else {
-		fsl_os_print("SYS-DDR does not exists.\n");
+		fsl_print("SYS-DDR does not exists.\n");
 	}
 
 	/* PEB SLAB creation */
@@ -398,27 +398,27 @@ int slab_test(void)
 				return -ENODEV;
 	}
 	else {
-		fsl_os_print("PEB-DDR does not exists.\n");
+		fsl_print("PEB-DDR does not exists.\n");
 	}
 
 	if(fsl_mem_exists(MEM_PART_PEB)) {
 		err |= app_test_slab(slab_peb, 4, MEM_PART_PEB, alignment);
 		if (err) {
-			fsl_os_print("ERROR = %d: app_test_slab(slab_peb, 4)\n", err);
+			fsl_print("ERROR = %d: app_test_slab(slab_peb, 4)\n", err);
 		}
 	}
 
 	if(fsl_mem_exists(MEM_PART_DP_DDR)) {
 		err |= app_test_slab(slab_dp_ddr, 4, MEM_PART_DP_DDR, alignment);
 		if (err) {
-			fsl_os_print("ERROR = %d: app_test_slab(slab_dp_ddr, 4)\n", err);
+			fsl_print("ERROR = %d: app_test_slab(slab_dp_ddr, 4)\n", err);
 		}
 	}
 
 	if(fsl_mem_exists(MEM_PART_SYSTEM_DDR)) {
 		err |= app_test_slab(slab_sys_ddr, 4, MEM_PART_SYSTEM_DDR, alignment);
 		if (err) {
-			fsl_os_print("ERROR = %d: app_test_slab(slab_sys_ddr, 4)\n", err);
+			fsl_print("ERROR = %d: app_test_slab(slab_sys_ddr, 4)\n", err);
 		}
 	}
 
@@ -437,7 +437,7 @@ int slab_test(void)
 
 	if(err)
 	{
-		fsl_os_print("Error while freeing slab's used for test\n");
+		fsl_print("Error while freeing slab's used for test\n");
 	}
 	return err;
 }

@@ -82,7 +82,7 @@ __COLD_CODE void enable_print_protection()
 	 * in case we will get exception during the print
 	 * */
 	exception_flag += 1;
-	cdma_mutex_lock_take((uint64_t)fsl_os_print, CDMA_MUTEX_WRITE_LOCK);
+	cdma_mutex_lock_take((uint64_t)fsl_print, CDMA_MUTEX_WRITE_LOCK);
 	/*g_hwc already locked by mutex*/
 	memcpy((void *) g_hwc, (const void *) hwc, SIZE_OF_HWC_TO_RESERVE);
 }
@@ -96,7 +96,7 @@ __COLD_CODE void disable_print_protection()
 	 * because the call for mutex will overwrite those parameters.
 	 * After the mutex is disabled, the content can be restored.*/
 	memcpy((void *)hwc, (const void *)g_hwc, SIZE_OF_HWC_TO_RESERVE);
-	cdma_mutex_lock_release((uint64_t)fsl_os_print);
+	cdma_mutex_lock_release((uint64_t)fsl_print);
 	/* decrement exception counter */
 	exception_flag -= 1;
 	/*Restore Accelerator Hardware Context*/
@@ -112,7 +112,7 @@ static inline void fsl_os_print_runtime(const char *format, va_list args)
 	sys_print(buf);
 }
 
-__COLD_CODE void fsl_os_print(char *format, ...)
+__COLD_CODE void fsl_print(char *format, ...)
 {
 	va_list args;
 	va_start(args, format);

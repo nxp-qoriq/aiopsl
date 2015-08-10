@@ -47,7 +47,7 @@
 *//***************************************************************************/
 
 /**************************************************************************//**
-@Function      fsl_os_print
+@Function      fsl_print
 
 @Description   Print formatted string with arguments received with it.
                The print function is limited to 1024 bytes of the formatted string length
@@ -78,7 +78,7 @@
 @Return       none
 *//***************************************************************************/
 
-void fsl_os_print(char *str, ...);
+void fsl_print(char *str, ...);
 
 /** @} *//* end of fsl_os_g FSL OS Interface (System call hooks) group */
 

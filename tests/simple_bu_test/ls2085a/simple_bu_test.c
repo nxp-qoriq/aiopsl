@@ -71,7 +71,7 @@ int app_early_init(void){
 int app_init(void)
 {
 	int err;
-	fsl_os_print("\n\n***  Starting app_init ***\n\n");
+	fsl_print("\n\n***  Starting app_init ***\n\n");
 
 //	err = simple_bu_lpm_test();
 	err = simple_bu_ipf_ipr_test();
@@ -84,7 +84,7 @@ int app_init(void)
 	//err = simple_bu_test_ipsec();
 
 	if (!err) {
-		fsl_os_print("app_init completed successfully\n");
+		fsl_print("app_init completed successfully\n");
 	}	
 	return 0;
 }

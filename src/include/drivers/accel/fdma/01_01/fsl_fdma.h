@@ -1744,7 +1744,7 @@ void fdma_discard_frame(uint16_t frame, uint32_t flags);
 inline int fdma_discard_fd(struct ldpaa_fd *fd, uint32_t flags);
 
 /**************************************************************************//**
-@Function	fdma_force_discard_frame
+@Function	fdma_force_discard_fd
 
 @Description	Force frame discard. This function first zero FD.err field and
 		than discard the frame.

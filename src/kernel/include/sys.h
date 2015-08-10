@@ -38,7 +38,7 @@
 #include "fsl_malloc.h"
 #include "fsl_sys.h"
 #include "fsl_log.h"
-#include "mem_mng.h"
+#include "fsl_mem_mng.h"
 
 #define PRE_CONSOLE_BUF_SIZE    (4 * 1024)
 
@@ -52,7 +52,6 @@ typedef struct t_system {
 	/* Memory management variables */
 	struct initial_mem_mng	    boot_mem_mng;
 	struct t_mem_mng            mem_mng;
-	uint8_t                     mem_part_mng_lock;
 
 	/* Console variables */
 	fsl_handle_t                console;

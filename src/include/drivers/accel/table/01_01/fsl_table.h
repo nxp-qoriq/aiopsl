@@ -374,7 +374,7 @@ union table_result_op0_refptr_clp {
 	uint64_t reference_pointer;
 
 	/** A structure that contains table ID and key composition ID
-	parameters for the chained lookups. Not available for Rev1 */
+	parameters for the chained lookups. Not available for LS2085A */
 	struct table_result_chain_parameters chain_parameters;
 };
 #pragma pack(pop)
@@ -998,11 +998,11 @@ inline int table_rule_create(enum table_hw_accel_id acc_id,
 @Cautions	In this function the task yields.
 @Cautions	This function may result in a fatal error.
 *//***************************************************************************/
-int table_rule_create_or_replace(enum table_hw_accel_id acc_id,
-				 uint16_t table_id,
-				 struct table_rule *rule,
-				 uint8_t key_size,
-				 struct table_result *old_res);
+inline int table_rule_create_or_replace(enum table_hw_accel_id acc_id,
+					uint16_t table_id,
+					struct table_rule *rule,
+					uint8_t key_size,
+					struct table_result *old_res);
 
 
 /**************************************************************************//**

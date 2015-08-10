@@ -25,12 +25,12 @@
  */
 
 #include "buffer_pool.h"
-#include "mem_mng_util.h"
 #include "fsl_spinlock.h"
 #include "buffer_pool.h"
 #include "fsl_dbg.h"
 #include "fsl_sl_dbg.h"
 #include "fsl_cdma.h"
+#include "fsl_mem_mng.h"
 
 
 /* Put all function (execution code) into  dtext_vle section , aka __COLD_CODE */

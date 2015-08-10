@@ -134,7 +134,7 @@ inline void fdma_copy_data(
 	__stdw(arg1, (uint32_t)src, HWC_ACC_IN_ADDRESS, 0);
 	*((uint32_t *) HWC_ACC_IN_ADDRESS3) = (uint32_t)dst;
 	/* call FDMA Accelerator */
-	if ((__e_hwacceli_(FODMA_ACCEL_ID)) == FDMA_SUCCESS)
+	if ((__e_hwacceli_(FPDMA_ACCEL_ID)) == FDMA_SUCCESS)
 		return;
 	
 	/* load command results */

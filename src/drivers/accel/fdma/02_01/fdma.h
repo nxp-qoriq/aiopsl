@@ -43,6 +43,14 @@
 	 * _fd - the FD address in workspace. */
 #define SET_FRAME_TYPE(_frame_handle, _fd)
 
+/* fix CR:ENGR00364084 
+ * relocate PRC values according to 2085 PRC formation */
+#define SET_PRC_VALUES()						\
+	({PRC_SET_SEGMENT_OFFSET(*((uint16_t *)(HWC_PRC_ADDRESS + 0x8)));\
+	  PRC_SET_FRAME_HANDLE(*((uint8_t *)(HWC_PRC_ADDRESS + 0xD)));	\
+	  PRC_SET_SEGMENT_HANDLE(*((uint8_t *)(HWC_PRC_ADDRESS + 0xB)));\
+	  *((uint16_t *)(HWC_PRC_ADDRESS + 0xA)) = 			\
+		(*((uint16_t *)(HWC_PRC_ADDRESS + 0xA)) >> 4); })
 
 /** \addtogroup FSL_AIOP_FDMA
  *  @{

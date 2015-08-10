@@ -130,7 +130,8 @@ inline int table_lookup_by_keyid(enum table_hw_accel_id acc_id,
 		  TABLE_HW_STATUS_BIT_NORSC |
 		  TABLE_HW_STATUS_BIT_KSE))
 	{
-		table_c_exception_handler(TABLE_LOOKUP_BY_KEYID_FUNC_ID,
+		table_lookup_inline_exception_handler(
+					  TABLE_LOOKUP_BY_KEYID_FUNC_ID,
 					  __LINE__,
 					  status,
 					  TABLE_ENTITY_HW);
@@ -140,7 +141,8 @@ inline int table_lookup_by_keyid(enum table_hw_accel_id acc_id,
 	}
 	else {
 		/* Call fatal error handler */
-		table_c_exception_handler(TABLE_LOOKUP_BY_KEYID_FUNC_ID,
+		table_lookup_inline_exception_handler(
+					  TABLE_LOOKUP_BY_KEYID_FUNC_ID,
 					  __LINE__,
 					  status,
 					  TABLE_ENTITY_HW);

@@ -48,22 +48,22 @@ int memory_test()
 	int local_error = 0,error = 0;
 	local_error = cdma_peb_test();
 	if(!local_error)
-		fsl_os_print("cdma_peb_test succeeded\n"); 
+		fsl_print("cdma_peb_test succeeded\n"); 
 	else
-		fsl_os_print("cdma_peb_test failed\n");	
+		fsl_print("cdma_peb_test failed\n");	
 	error |= local_error;
 	local_error = cdma_dpddr_test();
 	if(!local_error)
-		fsl_os_print("cdma_dpddr_test succeeded\n"); 
+		fsl_print("cdma_dpddr_test succeeded\n"); 
 	else
-		fsl_os_print("cdma_dpddr_test failed\n");
+		fsl_print("cdma_dpddr_test failed\n");
 	error |= local_error;
 	if(g_init_data.app_info.sys_ddr1_size){
 	    local_error = cdma_systemddr_test();
 	    if(!local_error)
-	        fsl_os_print("cdma_systemddr_test succeeded\n"); 
+	        fsl_print("cdma_systemddr_test succeeded\n"); 
 	    else
-		    fsl_os_print("cdma_systemddr_test failed\n");
+		    fsl_print("cdma_systemddr_test failed\n");
 	}
 	error |= local_error;
 	return error;
@@ -78,7 +78,7 @@ static int cdma_peb_test()
 	uint64_t paddr = 0;
 	int error = 0;
 	if(fsl_os_get_mem(8,MEM_PART_PEB,4,&paddr)){
-		 fsl_os_print("cdma_peb_test: fsl_os_get_mem from MEM_PART_PEB  failed\n"); 
+		 fsl_print("cdma_peb_test: fsl_os_get_mem from MEM_PART_PEB  failed\n"); 
 		return EIO;	
 	}		 
 	error = cdma_test(paddr);
@@ -91,7 +91,7 @@ static int cdma_dpddr_test()
 	uint64_t paddr = 0;
 	int error = 0;
 	if(fsl_os_get_mem(8,MEM_PART_DP_DDR,4,&paddr)){
-		 fsl_os_print("cdma_peb_test: fsl_os_get_mem from MEM_PART_DP_DDR  failed\n"); 
+		 fsl_print("cdma_peb_test: fsl_os_get_mem from MEM_PART_DP_DDR  failed\n"); 
 		return EIO;	
 	}		 
 	error = cdma_test(paddr);
@@ -104,7 +104,7 @@ static int cdma_systemddr_test()
 	uint64_t paddr = 0;
 	int error = 0;
 	if(fsl_os_get_mem(8,MEM_PART_SYSTEM_DDR,4,&paddr)){
-		 fsl_os_print("cdma_peb_test: fsl_os_get_mem from MEM_PART_SYSTEM_DDR  failed\n"); 
+		 fsl_print("cdma_peb_test: fsl_os_get_mem from MEM_PART_SYSTEM_DDR  failed\n"); 
 		return EIO;
 	}		 
 	error = cdma_test(paddr);

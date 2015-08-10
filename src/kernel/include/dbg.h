@@ -118,7 +118,7 @@
 
 #if (DEBUG_ERRORS > 0)
 /* Internally used macros */
-#define dump_print          fsl_os_print
+#define dump_print          fsl_print
 #define DUMP_MAX_LEVELS     6
 #define DUMP_MAX_STR        64
 

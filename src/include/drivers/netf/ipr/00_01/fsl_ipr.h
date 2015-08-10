@@ -324,9 +324,12 @@ struct extended_stats_cntrs {
 /** Reassembly isn't completed yet but fragment was successfully added to the
    partially reassembled frame*/
 #define IPR_REASSEMBLY_NOT_COMPLETED	(IPR_MODULE_STATUS_ID + 0x0200)
+/** Frame is recognized as an IPv6 atomic fragment and remains unchanged */
+#define IPR_ATOMIC_FRAG			(IPR_MODULE_STATUS_ID + 0x0300)
 /** Fragment has been recognized as malformed (overlap, duplicate,
  *  not multiple of 8,...) and wasn't added to the partially reassembled frame*/
 #define IPR_MALFORMED_FRAG		(IPR_MODULE_STATUS_ID + 0x0400)
+
 
 /** @} */ /* end of group FSL_IPRReassReturnStatus */
 
@@ -469,8 +472,6 @@ int ipr_delete_instance(ipr_instance_handle_t ipr_instance_ptr,
 		incremented.\n
 		If this function is called while the task is currently
 		in exclusive mode, the scope_id is preserved.\n
-		This function requires 1 CDMA mutex
-		(out of 4 available per task).\n
 		In this function, the task yields.
 
 *//***************************************************************************/

@@ -82,9 +82,9 @@ int simple_bu_ohad_test(void)
 	int i;
 	uint32_t ref_cnt_val = 0xFF;
 
-	fsl_os_print("********************************\n");
-	fsl_os_print("**Running simple bring-up test**\n");
-	fsl_os_print("********************************\n");
+	fsl_print("********************************\n");
+	fsl_print("**Running simple bring-up test**\n");
+	fsl_print("********************************\n");
 
 	
 	parser_init(&prpid);
@@ -106,9 +106,9 @@ int simple_bu_ohad_test(void)
 			);
 
 	if (err)
-		fsl_os_print("ERROR: slab_create() failed\n");	
+		fsl_print("ERROR: slab_create() failed\n");	
 	else
-		fsl_os_print("slab_create() completed successfully\n");	
+		fsl_print("slab_create() completed successfully\n");	
 	
 	/* Acquire the Cipher key buffer */
 	err = slab_acquire(
@@ -128,11 +128,11 @@ int simple_bu_ohad_test(void)
 			err = -EINVAL;
 	if (err)
 	{
-		fsl_os_print("ERROR: CDMA read mismatch\n");
+		fsl_print("ERROR: CDMA read mismatch\n");
 		return err;
 	}
 	else
-		fsl_os_print("Simple BU Test: CDMA read successfully\n");
+		fsl_print("Simple BU Test: CDMA read successfully\n");
 
 	// run create_frame on default frame
 	{
@@ -193,9 +193,9 @@ int simple_bu_ohad_test(void)
 		
 		err = create_frame(fd, frame_data, FRAME_SIZE, &frame_handle);
 		if (err)
-			fsl_os_print("ERROR: create frame failed!\n");
+			fsl_print("ERROR: create frame failed!\n");
 		
-		fsl_os_print("*** PARSE RESULT *** \n \
+		fsl_print("*** PARSE RESULT *** \n \
                      \n ethernet offset %x %x \
                      \n ipv4 offset %x %x \
                      \n udp offset %x %x", 
@@ -206,27 +206,27 @@ int simple_bu_ohad_test(void)
 		
 		/* Header Modification ipv4_header_modification set test*/ 
 		if (ipv4_header_modification_test()) {
-			fsl_os_print("ERROR: IPv4 Header Modification test failed \n");
+			fsl_print("ERROR: IPv4 Header Modification test failed \n");
 		} else {
-			fsl_os_print("IPv4 Header Modification set test PASSED\n");
+			fsl_print("IPv4 Header Modification set test PASSED\n");
 		}
 
 		
 		
 		/* Header Modification ipv4_dec_ttl_modification set test*/ 
 		if (ipv4_dec_ttl_modification_test()) {
-			fsl_os_print("ERROR: IPv4 Decrement TTL Modification test failed \n");
+			fsl_print("ERROR: IPv4 Decrement TTL Modification test failed \n");
 		} else {
-			fsl_os_print("IPv4 Decrement TTL Modification set test PASSED\n");
+			fsl_print("IPv4 Decrement TTL Modification set test PASSED\n");
 		}
 
 
 #if 0
 		/* Header Modification L2 DST/SRC set Test */ 
 		if (hm_l2_set_dst_src_test()) {
-			fsl_os_print("ERROR:  Header Modification L2 DST/SRC set test failed \n");
+			fsl_print("ERROR:  Header Modification L2 DST/SRC set test failed \n");
 		} else {
-			fsl_os_print("Header Modification L2 DST/SRC set test PASSED\n");
+			fsl_print("Header Modification L2 DST/SRC set test PASSED\n");
 		}
 #endif	
 		/* End of Header Modification L2 DST/SRC set Test */ 
@@ -236,7 +236,7 @@ int simple_bu_ohad_test(void)
 	}
 	
 	if (!err) {
-		fsl_os_print("Simple bring-up test completed successfully\n");
+		fsl_print("Simple bring-up test completed successfully\n");
 	}
 	
 	return 0;
@@ -264,38 +264,38 @@ int ipv4_header_modification_test()
 	uint32_t ip_src_addr=0x12345678;
 	uint32_t ip_dst_addr=0x87654321;
 	
-	fsl_os_print("\nTesting ipv4_header_modification_test\n");
+	fsl_print("\nTesting ipv4_header_modification_test\n");
 
 	ipv4hdr_offset = (uint16_t)PARSER_GET_OUTER_IP_OFFSET_DEFAULT();
 	ipv4hdr_ptr = (struct ipv4hdr *)
 			(ipv4hdr_offset + PRC_GET_SEGMENT_ADDRESS());
 
 	old_ttl = ipv4hdr_ptr->ttl;
-	fsl_os_print("IPv4 Header BEFORE HM = \n");
+	fsl_print("IPv4 Header BEFORE HM = \n");
 	for (i=0; i<5 ; i++){
-		fsl_os_print("ipv4 header arg %d: 0x%x \n", i, *((uint32_t *)(ipv4hdr_ptr)+i));
+		fsl_print("ipv4 header arg %d: 0x%x \n", i, *((uint32_t *)(ipv4hdr_ptr)+i));
 		old_ipv4[i] = *((uint32_t *)(ipv4hdr_ptr)+i);
 	}
-	fsl_os_print("\n");
+	fsl_print("\n");
 	
-	fsl_os_print("PARSE RESULT BEFORE HM = \n");
+	fsl_print("PARSE RESULT BEFORE HM = \n");
 	for (i=0; i<16 ; i++)
-		fsl_os_print("parse results arg %d: 0x%x \n", i, *((uint32_t *)(0x80)+i));
-	fsl_os_print("\n");
+		fsl_print("parse results arg %d: 0x%x \n", i, *((uint32_t *)(0x80)+i));
+	fsl_print("\n");
 
 	ipv4_header_modification(flags, tos, id, ip_src_addr,ip_dst_addr);
 	
-	fsl_os_print("IPv4 Header AFTER HM = \n");
+	fsl_print("IPv4 Header AFTER HM = \n");
 	for (i=0; i<5 ; i++){
-		fsl_os_print("ipv4 header arg %d: 0x%x \n", i, *((uint32_t *)(ipv4hdr_ptr)+i));
+		fsl_print("ipv4 header arg %d: 0x%x \n", i, *((uint32_t *)(ipv4hdr_ptr)+i));
 		new_ipv4[i] = *((uint32_t *)(ipv4hdr_ptr)+i);
 	}
-	fsl_os_print("\n");
+	fsl_print("\n");
 
-	fsl_os_print("PARSE RESULT AFTER HM = \n");
+	fsl_print("PARSE RESULT AFTER HM = \n");
 	for (i=0; i<16 ; i++)
-		fsl_os_print("parse results arg %d: 0x%x \n", i, *((uint32_t *)(0x80)+i));
-	fsl_os_print("\n");
+		fsl_print("parse results arg %d: 0x%x \n", i, *((uint32_t *)(0x80)+i));
+	fsl_print("\n");
 
 	if ((old_ttl != ipv4hdr_ptr->ttl + 1)||(tos!=ipv4hdr_ptr->tos)|| (id!=ipv4hdr_ptr->id)||
 			(ip_src_addr!=ipv4hdr_ptr->src_addr)|| (ip_dst_addr!=ipv4hdr_ptr->dst_addr))
@@ -318,29 +318,29 @@ int ipv4_dec_ttl_modification_test()
 
 	old_ttl = ipv4hdr_ptr->ttl;
 
-	fsl_os_print("\nTesting ipv4_dec_ttl_modification\n");
-	fsl_os_print("Original TTL = %x \n",old_ttl);
+	fsl_print("\nTesting ipv4_dec_ttl_modification\n");
+	fsl_print("Original TTL = %x \n",old_ttl);
 	
-	fsl_os_print("PARSE RESULT before HM = \n");
+	fsl_print("PARSE RESULT before HM = \n");
 	for (i=0; i<16 ; i++)
-		fsl_os_print("parse results arg %d: 0x%x \n", i, *((uint32_t *)(0x80)+i));
-	fsl_os_print("\n");
+		fsl_print("parse results arg %d: 0x%x \n", i, *((uint32_t *)(0x80)+i));
+	fsl_print("\n");
 	
 	ipv4_dec_ttl_modification();
 	
 	parse_result_generate_default(0);
 
 	new_ttl = ipv4hdr_ptr->ttl;
-	fsl_os_print("New TTL = %x \n",new_ttl);
+	fsl_print("New TTL = %x \n",new_ttl);
 	
 	
-	fsl_os_print("PARSE RESULT after HM = \n");
+	fsl_print("PARSE RESULT after HM = \n");
 	for (i=0; i<16 ; i++)
-		fsl_os_print("parse results arg %d: 0x%x \n", i, *((uint32_t *)(0x80)+i));
-	fsl_os_print("\n");
+		fsl_print("parse results arg %d: 0x%x \n", i, *((uint32_t *)(0x80)+i));
+	fsl_print("\n");
 	
 	if (new_ttl+1 != old_ttl){
-		fsl_os_print("\nERROR: TTL  \n");
+		fsl_print("\nERROR: TTL  \n");
 		return 1;
 	}
 	
@@ -355,44 +355,44 @@ int hm_l2_set_dst_src_test()
 	uint8_t new_l2_src[6] = {0x1a,0x1b,0x1c,0x1d,0x1e,0x1f};
 
 	int err, i;
-	fsl_os_print("\nTesting l2_set_dl_dst\n");
+	fsl_print("\nTesting l2_set_dl_dst\n");
 	
 	err = 0;
-	fsl_os_print("Original L2 dest = ");
+	fsl_print("Original L2 dest = ");
 	for (i=0; i<6 ; i++) {
-		fsl_os_print("0x%x", *((uint8_t *)PARSER_GET_ETH_POINTER_DEFAULT() + (uint8_t)i));
+		fsl_print("0x%x", *((uint8_t *)PARSER_GET_ETH_POINTER_DEFAULT() + (uint8_t)i));
 	}
-	fsl_os_print("\n");
+	fsl_print("\n");
 	
 	l2_set_dl_dst(new_l2_dst); /* (uint8_t *dst_addr) */
 	
-	fsl_os_print("New L2 dest = ");
+	fsl_print("New L2 dest = ");
 	for (i=0; i<6 ; i++) {
-		fsl_os_print("0x%x", *((uint8_t *)PARSER_GET_ETH_POINTER_DEFAULT() + (uint8_t)i));
+		fsl_print("0x%x", *((uint8_t *)PARSER_GET_ETH_POINTER_DEFAULT() + (uint8_t)i));
 		if (*((uint8_t *)PARSER_GET_ETH_POINTER_DEFAULT() + (uint8_t)i) != new_l2_dst[i]) {
 			err = 1;
-			fsl_os_print("\nERROR: L2 DST mismatch = 0x%x\n");
+			fsl_print("\nERROR: L2 DST mismatch = 0x%x\n");
 		}
 	}
-	fsl_os_print("\n");
+	fsl_print("\n");
 	
-	fsl_os_print("\nTesting l2_set_dl_src\n");
-	fsl_os_print("Original L2 src = ");
+	fsl_print("\nTesting l2_set_dl_src\n");
+	fsl_print("Original L2 src = ");
 	for (i=0; i<6 ; i++) {
-		fsl_os_print("0x%x", *((uint8_t *)PARSER_GET_ETH_POINTER_DEFAULT() + (uint8_t)i + 6));
+		fsl_print("0x%x", *((uint8_t *)PARSER_GET_ETH_POINTER_DEFAULT() + (uint8_t)i + 6));
 	}
-	fsl_os_print("\n");
+	fsl_print("\n");
 	
 	l2_set_dl_src(new_l2_src); /* uint8_t *src_addr */
 
-	fsl_os_print("New L2 src = ");
+	fsl_print("New L2 src = ");
 	for (i=0; i<6 ; i++) {
-		fsl_os_print("0x%x", *((uint8_t *)PARSER_GET_ETH_POINTER_DEFAULT() + (uint8_t)i + 6));
+		fsl_print("0x%x", *((uint8_t *)PARSER_GET_ETH_POINTER_DEFAULT() + (uint8_t)i + 6));
 		if (*((uint8_t *)PARSER_GET_ETH_POINTER_DEFAULT() + (uint8_t)i + 6) != new_l2_src[i]) {
 			err = 1;
-			fsl_os_print("\nERROR: L2 SRC mismatch = 0x%x\n");
+			fsl_print("\nERROR: L2 SRC mismatch = 0x%x\n");
 		}
 	}
-	fsl_os_print("\n");
+	fsl_print("\n");
 	return err;
 }

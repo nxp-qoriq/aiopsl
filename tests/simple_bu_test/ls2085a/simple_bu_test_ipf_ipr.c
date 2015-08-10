@@ -113,7 +113,7 @@ int simple_bu_ipf_ipr_test(void)
 	uint8_t tmp;
 	
 	
-	fsl_os_print("Running simple bring-up test\n");
+	fsl_print("Running simple bring-up test\n");
 	
 	
 	parser_init(&prpid);
@@ -140,11 +140,11 @@ int simple_bu_ipf_ipr_test(void)
 
 	tman_create_tmi(tmi_mem_base_addr , 0x20, &ipr_demo_params.tmi_id);
 
-	fsl_os_print("bring-up test: Creating IPR instance\n");
+	fsl_print("bring-up test: Creating IPR instance\n");
 	err = ipr_create_instance(&ipr_demo_params, ipr_instance_ptr);
 	if (err)
 	{
-		fsl_os_print("ERROR: ipr_create_instance() failed %d\n",err);
+		fsl_print("ERROR: ipr_create_instance() failed %d\n",err);
 		return err;
 	}
 	
@@ -176,11 +176,11 @@ int simple_bu_ipf_ipr_test(void)
 
 	if (err)
 	{
-		fsl_os_print("ERROR:ipr instance was not read successfully\n");
+		fsl_print("ERROR:ipr instance was not read successfully\n");
 		return err;
 	}
 	else
-		fsl_os_print("Simple BU Test: ipr instance was  read successfully\n");
+		fsl_print("Simple BU Test: ipr instance was  read successfully\n");
 
 	/* setting SPID = 0 */
 	*((uint8_t *)HWC_SPID_ADDRESS) = 0;
@@ -199,67 +199,67 @@ int simple_bu_ipf_ipr_test(void)
 	*(uint32_t *)(&storage_profile[0].pbs2) = *(uint32_t *)(&storage_profile[0].pbs1);
 
 	for (i=0; i<8 ; i++)
-		fsl_os_print("storage profile arg %d: 0x%x \n", i, *((uint32_t *)(&(storage_profile[0]))+i));
+		fsl_print("storage profile arg %d: 0x%x \n", i, *((uint32_t *)(&(storage_profile[0]))+i));
 	
 	
 	err = create_frame(fd, frame_data, FRAME_SIZE, &frame_handle);
 	if (err)
-		fsl_os_print("ERROR: create frame failed!\n");
+		fsl_print("ERROR: create frame failed!\n");
 
 	
-	fsl_os_print("parse result before create frame - \n");
+	fsl_print("parse result before create frame - \n");
 	
-	fsl_os_print("ethernet offset %d %x\n", 
+	fsl_print("ethernet offset %d %x\n", 
 				PARSER_IS_ETH_MAC_DEFAULT(), PARSER_GET_ETH_OFFSET_DEFAULT());
 	
-	fsl_os_print("vlan offset %d %x\n",
+	fsl_print("vlan offset %d %x\n",
 				PARSER_IS_ONE_VLAN_DEFAULT(), PARSER_GET_FIRST_VLAN_TCI_OFFSET_DEFAULT());
 	
-	fsl_os_print("ipv4 offset %d %x\n", 
+	fsl_print("ipv4 offset %d %x\n", 
 				PARSER_IS_IP_DEFAULT(), PARSER_GET_OUTER_IP_OFFSET_DEFAULT());
 	
-	fsl_os_print("udp offset %d %x\n", 
+	fsl_print("udp offset %d %x\n", 
 				PARSER_IS_UDP_DEFAULT(), PARSER_GET_L4_OFFSET_DEFAULT());
 
 	for (i=0; i<16 ; i++)
-		fsl_os_print("parse results arg %d: 0x%x \n", i, *((uint32_t *)(0x80)+i));
+		fsl_print("parse results arg %d: 0x%x \n", i, *((uint32_t *)(0x80)+i));
 	
 	
 	fdma_close_default_segment();
 	err = fdma_present_default_frame_segment(FDMA_PRES_NO_FLAGS, (void *)0x180, 0, 256);
-	fsl_os_print("STATUS: fdma present default segment returned status is %d\n", err);
+	fsl_print("STATUS: fdma present default segment returned status is %d\n", err);
 
 	ipf_context_init(0, mtu, ipf_context_addr);
-	fsl_os_print("ipf_demo: ipf_context_init done, MTU = %d\n", mtu);
+	fsl_print("ipf_demo: ipf_context_init done, MTU = %d\n", mtu);
 	
 	ipf_status = ipf_generate_frag(ipf_context_addr);
 	if (ipf_status < 0)
 	{
-		fsl_os_print("ipf_demo: error returned from ipf\n");
+		fsl_print("ipf_demo: error returned from ipf\n");
 		return ipf_status;
 	}
 	
 	if (ipf_status == IPF_GEN_FRAG_STATUS_IN_PROCESS)
-		fsl_os_print("ipf_demo: first fragment in process\n");
+		fsl_print("ipf_demo: first fragment in process\n");
 	else
 	{
-		fsl_os_print("ipf_demo: should be first fragment why completed - failed!\n");
+		fsl_print("ipf_demo: should be first fragment why completed - failed!\n");
 		return ipf_status;
 	}
 	
 	reassemble_status = ipr_reassemble(ipr_instance);
 	/*ste_status = STE_GET_STATUS_REGISTER();
-	fsl_os_print("ste status: STE_GET_STATUS_REGISTER = %x \n", ste_status);
+	fsl_print("ste status: STE_GET_STATUS_REGISTER = %x \n", ste_status);
 	ste_status = STE_GET_ERR_CAP_ATTRIBUTES();
-	fsl_os_print("ste status: STE_GET_ERR_CAP_ATTRIBUTES = %x \n", ste_status);*/
+	fsl_print("ste status: STE_GET_ERR_CAP_ATTRIBUTES = %x \n", ste_status);*/
 	
 	if (reassemble_status == IPR_REASSEMBLY_NOT_COMPLETED)
 	{
-		fsl_os_print("ipr_demo: first fragment for IPR\n");
+		fsl_print("ipr_demo: first fragment for IPR\n");
 	}
 	else
 	{
-		fsl_os_print("ipr_demo: should be first fragment for IPR instead of status %x - failed\n", reassemble_status);
+		fsl_print("ipr_demo: should be first fragment for IPR instead of status %x - failed\n", reassemble_status);
 		return  reassemble_status;
 	}
 	
@@ -267,49 +267,49 @@ int simple_bu_ipf_ipr_test(void)
 	ipf_status = ipf_generate_frag(ipf_context_addr);
 	if (ipf_status < 0)
 	{
-		fsl_os_print("ipf_demo: error returned from ipf\n");
+		fsl_print("ipf_demo: error returned from ipf\n");
 		return ipf_status;
 	}
 	
 	if (ipf_status == IPF_GEN_FRAG_STATUS_DONE)
-		fsl_os_print("ipf_demo: second and last fragment in process\n");
+		fsl_print("ipf_demo: second and last fragment in process\n");
 	else
 	{
-		fsl_os_print("ipf_demo: should be last fragment and status returned is %x - failed!\n", ipf_status);
+		fsl_print("ipf_demo: should be last fragment and status returned is %x - failed!\n", ipf_status);
 		return ipf_status;
 	}
 	
 	reassemble_status = ipr_reassemble(ipr_instance);
 	if (reassemble_status == IPR_REASSEMBLY_SUCCESS)
 	{
-		fsl_os_print("ipr_demo: last fragment for IPR\n");
+		fsl_print("ipr_demo: last fragment for IPR\n");
 	}
 	else
 	{
-		fsl_os_print("ipr_demo: should be last fragment for IPR instead of status %x - failed\n", reassemble_status);
+		fsl_print("ipr_demo: should be last fragment for IPR instead of status %x - failed\n", reassemble_status);
 		return  reassemble_status;
 	}
 	
 	/* check frame presented */
 	frame_presented = (uint8_t *)PRC_GET_SEGMENT_ADDRESS();
 	frame_length = LDPAA_FD_GET_LENGTH(HWC_FD_ADDRESS);
-	fsl_os_print("actual frame length is 0x%x\n", frame_length);
+	fsl_print("actual frame length is 0x%x\n", frame_length);
 	if (frame_length != FRAME_SIZE)
 	{	
-		fsl_os_print("actual frame length after reassemble is wrong 0x%x\n", frame_length);
+		fsl_print("actual frame length after reassemble is wrong 0x%x\n", frame_length);
 		return -EINVAL;
 	}
 	
 	for (i=0; i<frame_length; i++)
 		if (*(frame_presented+i) != frame_data[i])
 		{
-			fsl_os_print("Error in frame after reassembly:  index %d\n", i);
+			fsl_print("Error in frame after reassembly:  index %d\n", i);
 			err = -EINVAL;
 		}
 	
 	fdma_discard_default_frame(FDMA_DIS_NO_FLAGS);
 	
-	fsl_os_print("Simple bring-up test completed successfully\n");
+	fsl_print("Simple bring-up test completed successfully\n");
 	return 0;
 }
 
