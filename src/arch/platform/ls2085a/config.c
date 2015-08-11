@@ -28,7 +28,6 @@
 #include "fsl_gen.h"
 #include "apps.h"
 #include "fsl_platform.h"
-#include "fsl_dpni_drv.h"
 
 /*
  * AIOP SL users should not modify this file.
