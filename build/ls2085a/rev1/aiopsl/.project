@@ -1020,11 +1020,6 @@
 			<locationURI>PARENT-4-PROJECT_LOC/src/kernel/rcu/rcu.h</locationURI>
 		</link>
 		<link>
-			<name>aiop_sl/kernel/system/dbg.h</name>
-			<type>1</type>
-			<locationURI>PARENT-4-PROJECT_LOC/src/kernel/system/dbg.h</locationURI>
-		</link>
-		<link>
 			<name>aiop_sl/kernel/system/os.c</name>
 			<type>1</type>
 			<locationURI>PARENT-4-PROJECT_LOC/src/kernel/system/os.c</locationURI>
