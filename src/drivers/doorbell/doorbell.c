@@ -87,7 +87,7 @@ int doorbell_setup(int pr, enum doorbell_reg g_m, uint16_t epid,
 		pm_reg = (struct aiop_portal_map_regs *)\
 			(SOC_PERIPH_OFF_PORTAL_MAP + AIOP_PERIPHERALS_OFF);
 	}
-	
+
 	icontext_aiop_get(&ic);
 	ASSERT_COND(ic.bdi_flags || ic.dma_flags || ic.icid);
 
@@ -117,13 +117,18 @@ int doorbell_setup(int pr, enum doorbell_reg g_m, uint16_t epid,
 	return 0;
 }
 
-void doorbell_clear(int priority, enum doorbell_reg g_m, uint32_t mask)
+void doorbell_clear(int pr, enum doorbell_reg g_m, uint32_t mask)
 {
-	iowrite32_ccsr(mask, &reg->clear_g_m[g_m].pr[priority].dpclrr);
+	iowrite32_ccsr(mask, &reg->clear_g_m[g_m].pr[pr].dpclrr);
 }
 
-void doorbell_ring(int priority, enum doorbell_reg g_m, uint32_t mask)
+void doorbell_status(int pr, enum doorbell_reg g_m, uint32_t *status)
 {
-	iowrite32_ccsr(mask, &pm_reg->req_g_m[g_m].pr[priority].dprr);
+	*status = ioread32_ccsr(&reg->clear_g_m[g_m].pr[pr].dpclrr);
+}
+
+void doorbell_ring(int pr, enum doorbell_reg g_m, uint32_t mask)
+{
+	iowrite32_ccsr(mask, &pm_reg->req_g_m[g_m].pr[pr].dprr);
 }
 
