@@ -880,11 +880,6 @@
 			<locationURI>PARENT-4-PROJECT_LOC/src/kernel/icontext/icontext.h</locationURI>
 		</link>
 		<link>
-			<name>aiop_sl/kernel/include/dbg.h</name>
-			<type>1</type>
-			<locationURI>PARENT-4-PROJECT_LOC/src/kernel/include/dbg.h</locationURI>
-		</link>
-		<link>
 			<name>aiop_sl/kernel/include/fsl_cmdif_flib_c.h</name>
 			<type>1</type>
 			<locationURI>PARENT-4-PROJECT_LOC/src/kernel/include/fsl_cmdif_flib_c.h</locationURI>
@@ -1023,6 +1018,11 @@
 			<name>aiop_sl/kernel/rcu/rcu.h</name>
 			<type>1</type>
 			<locationURI>PARENT-4-PROJECT_LOC/src/kernel/rcu/rcu.h</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/kernel/system/dbg.h</name>
+			<type>1</type>
+			<locationURI>PARENT-4-PROJECT_LOC/src/kernel/system/dbg.h</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/kernel/system/os.c</name>
