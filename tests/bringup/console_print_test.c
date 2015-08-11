@@ -27,7 +27,7 @@
 #include "sys.h"
 #include "platform.h"
 #include "fsl_malloc.h"
-#include "console.h"
+#include "fsl_console.h"
 #include "../../../tests/bringup/console_print_test.h"
 #include "fsl_string.h"
 

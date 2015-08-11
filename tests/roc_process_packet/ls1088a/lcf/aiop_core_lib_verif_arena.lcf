@@ -7,18 +7,18 @@ MEMORY
 {
     /* hw_context:             org = 0x00000000,   len = 0x000000C0 --> Reserved for Hardware Context */
     /* presentation:           org = 0x00000140,   len = 0x000002C0 --> Reserved for Frame presentation area  */
-    /* shared_ram_heap:        org = 0x01010400,   len = 0x0002fc00 --> Reserved for Shared-RAM heap */
-    /* dp_ddr:                 org = 0x40000000,   len = 0x00B10000 --> Reserved for DP-DDR  heap */
+    /* shared_ram_heap:        org = _ssram_heap_start,  len = 256*KB - sizeof(shared_ram)--> Reserved for Shared-RAM heap */
+    /* dp_ddr:                 org = 0x40000000,   len = 0x00B10000 --> Reserved for DP-DDR - N/A */
+    /* sys_ddr:                org = 0x20000000,   len = 0x00400000 --> Reserved for System DDR*/
     tls:                    org = 0x000000C0,   len = 0x00000100 /* TLS - Task Local Storage */
     stack :                 org = 0x00000480,   len = 0x00007B80 /* Start location for Stack, Big stack for init task */
     i_ram:                  org = 0x00fe0000,   len = 0x00020000 /* I-RAM  */
-    memory_data:            org = 0x01000000,   len = 0x400      /* Structure for memory related data exchange, reused after boot  */
-    shared_ram:             org = 0x01000400,   len = 0x00020000 /* Shared-RAM */
+    shared_ram:             org = 0x01000000,   len = 0x00020400 /* Shared-RAM */
     profile_sram:           org = 0x02030000,   len = 0x0000FFFC /* Profile SRAM */
-    exception_handlers:     org = 0x40000000,   len = 0x00010000
-    pseudo_rom:             org = 0x40010000,   len = 0x00100000
-    init:                   org = 0x40110000,   len = 0x00100000
-    heap  :                 org = 0x40210000,   len = 0x00800000
+    exception_handlers:     org = 0x20000000,   len = 0x00010000
+    pseudo_rom:             org = 0x20010000,   len = 0x00100000
+    init:                   org = 0x20110000,   len = 0x00100000
+    heap  :                 org = 0x20210000,   len = 0x00800000
 }
 
 SECTIONS
@@ -74,10 +74,13 @@ SECTIONS
    } > tls
 
     GROUP : {
-        .verif_data   : {}
-        .verif_bss   : {}
-        .stext (TEXT) ALIGN(0x1000): {}
-        .stext_vle (VLECODE) ALIGN(0x1000): {
+    __SHARED_RAM_START = . ;
+        .aiop_init_data (DATA) : {}
+        .aiop_init_data_bss (BSS) NO_INIT_BSS : {}
+       .verif_data   : {}
+       .verif_bss   : {}
+        .stext (TEXT) ALIGN(0x100): {}
+        .stext_vle (VLECODE) ALIGN(0x100): {
          *(.stext)
          *(.stext_vle)
          }
@@ -89,12 +92,10 @@ SECTIONS
        .sdata2 : {}
        .sbss2  : {}
        .bss    : {}
+  __SHARED_RAM_END = .;
    } > shared_ram
 
-   GROUP : {
-      .aiop_init_data (DATA) : {}
-      .aiop_init_data_bss (BSS) NO_INIT_BSS : {}
-    } > memory_data
+
 
    GROUP : {
        .psram_data   : {}
@@ -107,18 +108,17 @@ _stack_addr  = ADDR(stack)+SIZEOF(stack);
 _stack_end   = ADDR(stack);
 _heap_addr   = ADDR(heap);
 _heap_end    = ADDR(heap)+SIZEOF(heap);
-_memory_data_addr = ADDR(memory_data); 
-_ssram_addr  = ADDR(shared_ram);
-_ssram_end   = ADDR(shared_ram)+SIZEOF(shared_ram);
+_ssram_addr  = ADDR(__SHARED_RAM_START);
+_ssram_end   = ADDR(__SHARED_RAM_END);
 _ssram_heap_start = _ssram_end;
 
 /* Exceptions Handlers Location (used in Exceptions.c for IVPR initialization) */
 
-AIOP_INIT_DATA       = ADDR(memory_data);
+AIOP_INIT_DATA       = ADDR(shared_ram);
 EXCEPTION_HANDLERS   = ADDR(exception_handlers);
 TLS_SECTION_END_ADDR = ADDR(tls)+SIZEOF(tls);
 
 /* Definitions for required space of AIOP image in DDR */
-/* Used for initialization of aiop_app_init_info dp_ddr size */
+/* Used for initialization of aiop_app_init_info ddr size */
 AIOP_DDR_START       = ADDR(exception_handlers);
 AIOP_DDR_END         = _heap_end;

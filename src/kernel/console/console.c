@@ -29,7 +29,7 @@
 #include "kernel/fsl_spinlock.h"
 #include "common/fsl_string.h"
 #include "fsl_malloc.h"
-#include "console.h"
+#include "fsl_console.h"
 #include "fsl_log.h"
 #include "sys.h"
 
