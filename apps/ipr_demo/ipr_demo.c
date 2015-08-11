@@ -210,7 +210,7 @@ __HOT_CODE ENTRY_POINT static void app_process_packet(void)
 #ifdef AIOP_STANDALONE
 /* This is temporal WA for stand alone demo only */
 #define WRKS_REGS_GET \
-	(sys_get_memory_mapped_module_base(FSL_OS_MOD_CMGW,            \
+	(sys_get_memory_mapped_module_base(FSL_MOD_CMGW,            \
 	                                   0,                          \
 	                                   E_MAPPED_MEM_TYPE_GEN_REGS) \
 	                                   + SOC_PERIPH_OFF_AIOP_WRKS);

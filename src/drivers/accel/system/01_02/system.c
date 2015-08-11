@@ -161,7 +161,7 @@ int aiop_sl_init(void)
 	uint32_t *addr;
 	struct aiop_tile_regs *aiop_regs =
 			(struct aiop_tile_regs *)
-			sys_get_handle(FSL_OS_MOD_AIOP_TILE, 1);
+			sys_get_handle(FSL_MOD_AIOP_TILE, 1);
 #endif
 
 
