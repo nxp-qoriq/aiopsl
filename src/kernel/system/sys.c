@@ -216,19 +216,19 @@ __COLD_CODE static int global_sys_init(void)
 	if (err != 0) return err;
 
 	err = sys_add_handle(sys.platform_ops.h_platform,
-		FSL_OS_MOD_SOC, 1, 0);
+		FSL_MOD_SOC, 1, 0);
 	if (err != 0) return err;
 
 	aiop_base_addr = AIOP_PERIPHERALS_OFF + SOC_PERIPH_OFF_AIOP_TILE;
 	err = sys_add_handle( (fsl_handle_t)aiop_base_addr,
-	                                      FSL_OS_MOD_AIOP_TILE, 1, 0);
+	                                      FSL_MOD_AIOP_TILE, 1, 0);
 	if (err != 0) return err;
 
 	tile_regs = (struct aiop_tile_regs *)aiop_base_addr;
 	cmgw_init((void *)&tile_regs->cmgw_regs);
 
 	err = sys_add_handle( (fsl_handle_t)&tile_regs->cmgw_regs,
-	                                      FSL_OS_MOD_CMGW, 1, 0);
+	                                      FSL_MOD_CMGW, 1, 0);
 	if (err != 0) return err;
 
 	return 0;

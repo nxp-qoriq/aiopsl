@@ -126,7 +126,7 @@ __COLD_CODE void fill_platform_parameters(struct platform_param *platform_param)
 __COLD_CODE int tile_init(void)
 {
 	struct aiop_tile_regs * aiop_regs = (struct aiop_tile_regs *)
-				      sys_get_handle(FSL_OS_MOD_AIOP_TILE, 1);
+				      sys_get_handle(FSL_MOD_AIOP_TILE, 1);
 	uint32_t val;
 
 	if(aiop_regs) {

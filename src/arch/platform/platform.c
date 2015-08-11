@@ -250,7 +250,7 @@ __COLD_CODE static int pltfrm_init_core_cb(fsl_handle_t h_platform)
 	int     err = 0;
 	uint32_t WSCR_tasks_bit = 0;
 	struct aiop_tile_regs *aiop_regs = (struct aiop_tile_regs *)
-	                        	       sys_get_handle(FSL_OS_MOD_AIOP_TILE, 1);
+	                        	       sys_get_handle(FSL_MOD_AIOP_TILE, 1);
 
 	if (pltfrm == NULL) {
 		return -EINVAL;
@@ -364,10 +364,10 @@ __COLD_CODE static int pltfrm_init_mem_partitions_cb(fsl_handle_t h_platform)
 
 	build_mem_partitions_table(pltfrm);
 
-	err = sys_add_handle( (fsl_handle_t)pltfrm->mc_portals_base, FSL_OS_MOD_MC_PORTAL, 1, 0);
+	err = sys_add_handle( (fsl_handle_t)pltfrm->mc_portals_base, FSL_MOD_MC_PORTAL, 1, 0);
 	if (err != 0)
 	{
-		pr_err("Couldn't add FSL_OS_MOD_MC_PORTAL using sys_add_handle()\n");
+		pr_err("Couldn't add FSL_MOD_MC_PORTAL using sys_add_handle()\n");
 		return err;
 	}
 
@@ -745,9 +745,9 @@ __COLD_CODE int platform_enable_console(fsl_handle_t h_platform)
 
 	/* Lock DUART handle in system */
 	/*TODO: sys_get_handle in aiop does not support num_of_id > 0
-	 * change FSL_OS_MOD_UART to FSL_OS_MOD_UART_0 */
+	 * change FSL_MOD_UART to FSL_MOD_UART_0 */
 
-	err = sys_add_handle(uart, FSL_OS_MOD_UART, 1, pltfrm->param.console_id);
+	err = sys_add_handle(uart, FSL_MOD_UART, 1, pltfrm->param.console_id);
 	if (err != 0) {
 		pr_err("add handle failed\n");
 		return err;
@@ -784,8 +784,8 @@ __COLD_CODE int platform_disable_console(fsl_handle_t h_platform)
 	{
 		/* Unlock DUART handle in system */
 		/*TODO: sys_get_handle in aiop does not support num_of_id > 0
-		 * change FSL_OS_MOD_UART to FSL_OS_MOD_UART_0 */
-		sys_remove_handle(FSL_OS_MOD_UART, 1, pltfrm->duart_id);
+		 * change FSL_MOD_UART to FSL_MOD_UART_0 */
+		sys_remove_handle(FSL_MOD_UART, 1, pltfrm->duart_id);
 
 		/* Free DUART driver */
 		duart_free(pltfrm->uart);

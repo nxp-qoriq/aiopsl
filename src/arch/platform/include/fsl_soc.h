@@ -50,27 +50,27 @@
  @Description   Module types.
 *//***************************************************************************/
 enum fsl_module {
-	FSL_OS_MOD_SOC = 0,
+	FSL_MOD_SOC = 0,
 
-	/* FSL_OS_MOD_CMDIF_SRV, */ /**< AIOP server handle */
-	FSL_OS_MOD_CMDIF_CL,  /**< AIOP client handle */
-	FSL_OS_MOD_SLAB,
-	FSL_OS_MOD_UART,
-	FSL_OS_MOD_CMGW,
-	FSL_OS_MOD_DPRC,
-	FSL_OS_MOD_DPNI,
-	FSL_OS_MOD_DPIO,
-	FSL_OS_MOD_DPSP,
-	FSL_OS_MOD_DPSW,
+	/* FSL_MOD_CMDIF_SRV, */ /**< AIOP server handle */
+	FSL_MOD_CMDIF_CL,  /**< AIOP client handle */
+	FSL_MOD_SLAB,
+	FSL_MOD_UART,
+	FSL_MOD_CMGW,
+	FSL_MOD_DPRC,
+	FSL_MOD_DPNI,
+	FSL_MOD_DPIO,
+	FSL_MOD_DPSP,
+	FSL_MOD_DPSW,
 
-	FSL_OS_MOD_AIOP_TILE,
+	FSL_MOD_AIOP_TILE,
 
-	FSL_OS_MOD_MC_PORTAL,
-	FSL_OS_MOD_AIOP_RC,    /**< AIOP root container from DPL */
+	FSL_MOD_MC_PORTAL,
+	FSL_MOD_AIOP_RC,    /**< AIOP root container from DPL */
 
-	FSL_OS_MOD_LAYOUT, /* TODO - review *//**< layout */
+	FSL_MOD_LAYOUT, /* TODO - review *//**< layout */
 
-	FSL_OS_MOD_DUMMY_LAST
+	FSL_MOD_DUMMY_LAST
 };
 
 /** @} */ /* end of ls2085a_g group */
@@ -84,7 +84,7 @@ enum fsl_module {
  @{
 *//***************************************************************************/
 
-#define FSL_OS_NUM_MODULES  FSL_OS_MOD_DUMMY_LAST
+#define FSL_OS_NUM_MODULES  FSL_MOD_DUMMY_LAST
 
 #define SOC_PERIPH_OFF_PORTALS_MC(_prtl) \
     (PERIPH_OFF_MC_PORTALS_AREA + SOC_PERIPH_MC_PORTAL_ALIGNMENT * (_prtl))
