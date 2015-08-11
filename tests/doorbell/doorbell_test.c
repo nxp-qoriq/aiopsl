@@ -30,19 +30,26 @@
 #include "fsl_dbg.h"
 #include "fsl_doorbell.h"
 #include "fsl_aiop_common.h"
+#include "fsl_fdma.h"
+#include "fsl_spinlock.h"
 
 int app_early_init(void);
 int app_init(void);
 void app_free(void);
 
+int32_t doorbell_cb_count = 0;
+
 __HOT_CODE ENTRY_POINT static void doorbell_cb(void)
 {
-	pr_debug(" doorbell_cb \n");
-	
 	doorbell_clear(0, DOORBELL_SRC_GENERAL, 0xffffffff);
 	doorbell_clear(0, DOORBELL_SRC_MANAGEMENT, 0xffffffff);
 	doorbell_clear(1, DOORBELL_SRC_GENERAL, 0xffffffff);
 	doorbell_clear(1, DOORBELL_SRC_MANAGEMENT, 0xffffffff);
+
+	atomic_incr32(&doorbell_cb_count, 1);
+	pr_debug(" doorbell_cb %d\n", doorbell_cb_count);
+
+	fdma_terminate_task();
 }
 
 int app_init(void)
@@ -64,7 +71,7 @@ int app_init(void)
 			              (uint32_t)(pr + 1));
 		}
 	}
-	
+
 	return 0;
 }
 
