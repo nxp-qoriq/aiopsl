@@ -50,14 +50,14 @@ typedef struct t_sys_forced_object {
 	fsl_handle_t        h_module;
 } t_sys_forced_object_desc;
 
-t_sys_forced_object_desc  sys_handle[FSL_OS_NUM_MODULES];
+t_sys_forced_object_desc  sys_handle[FSL_NUM_MODULES];
 
 
 /*****************************************************************************/
 fsl_handle_t sys_get_handle(enum fsl_module module, int num_of_ids, ...)
 {
 	UNUSED(num_of_ids);
-	if ((module >= FSL_OS_NUM_MODULES) || (module < 0))
+	if ((module >= FSL_NUM_MODULES) || (module < 0))
 		return NULL;
 
 	return sys_handle[module].h_module;
@@ -68,7 +68,7 @@ fsl_handle_t sys_get_handle(enum fsl_module module, int num_of_ids, ...)
 int sys_add_handle(fsl_handle_t h_module, enum fsl_module module,
 				int num_of_ids, ...)
 {
-	if ((module >= FSL_OS_NUM_MODULES) || (module < 0) || (num_of_ids > 1))
+	if ((module >= FSL_NUM_MODULES) || (module < 0) || (num_of_ids > 1))
 		return -EINVAL;
 
 	sys_handle[module].h_module = h_module;
@@ -80,7 +80,7 @@ int sys_add_handle(fsl_handle_t h_module, enum fsl_module module,
 int sys_remove_handle(enum fsl_module module, int num_of_ids, ...)
 {
 	UNUSED(num_of_ids);
-	if ((module >= FSL_OS_NUM_MODULES) || (module < 0))
+	if ((module >= FSL_NUM_MODULES) || (module < 0))
 		return -EINVAL;
 
 

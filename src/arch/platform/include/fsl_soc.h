@@ -84,7 +84,7 @@ enum fsl_module {
  @{
 *//***************************************************************************/
 
-#define FSL_OS_NUM_MODULES  FSL_MOD_DUMMY_LAST
+#define FSL_NUM_MODULES  FSL_MOD_DUMMY_LAST
 
 #define SOC_PERIPH_OFF_PORTALS_MC(_prtl) \
     (PERIPH_OFF_MC_PORTALS_AREA + SOC_PERIPH_MC_PORTAL_ALIGNMENT * (_prtl))
