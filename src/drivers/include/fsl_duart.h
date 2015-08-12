@@ -580,18 +580,6 @@ int duart_set_break_signal (fsl_handle_t duart, int break_signal);
 *//***************************************************************************/
 int duart_set_baud_rate (fsl_handle_t duart, uint32_t baud_rate);
 
-#if (DEBUG_ERRORS > 0)
-/**************************************************************************//**
- @Function      duart_dump_regs
-
- @Description   Dumps the memory of DUART module
-
- @Param[in]     duart - DUART channel descriptor returned by duart_config().
-
- @Return        0 on success; Error code otherwise.
-*//***************************************************************************/
-int duart_dump_regs(fsl_handle_t duart);
-#endif /* (DEBUG_ERRORS > 0) */
 __END_COLD_CODE
 /** @} */ /* end of Control group */
 /** @} */ /* end of duart_g Programming Interface group */

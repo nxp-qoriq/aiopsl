@@ -33,11 +33,106 @@
 #ifndef __FSL_DBG_H
 #define __FSL_DBG_H
 
-#include "dbg.h"
 #include "fsl_core.h"
 #include "fsl_smp.h"
 #include "fsl_stdio.h"
+#include "fsl_errors.h"
 
+/* Internal - Only for service layer use */
+
+#ifdef __KLOCWORK__
+#undef DEBUG_ERRORS
+#endif
+
+#ifndef DEBUG_GLOBAL_LEVEL
+#define DEBUG_GLOBAL_LEVEL  REPORT_LEVEL_WARNING
+#endif /* DEBUG_GLOBAL_LEVEL */
+
+#ifndef ERROR_GLOBAL_LEVEL
+#define ERROR_GLOBAL_LEVEL  DEBUG_GLOBAL_LEVEL
+#endif /* ERROR_GLOBAL_LEVEL */
+
+
+#ifndef DEBUG_DYNAMIC_LEVEL
+#define DEBUG_USING_STATIC_LEVEL
+
+#ifdef DEBUG_STATIC_LEVEL
+#define DEBUG_DYNAMIC_LEVEL DEBUG_STATIC_LEVEL
+#else
+#define DEBUG_DYNAMIC_LEVEL DEBUG_GLOBAL_LEVEL
+#endif /* DEBUG_STATIC_LEVEL */
+
+#else /* DEBUG_DYNAMIC_LEVEL */
+#ifdef DEBUG_STATIC_LEVEL
+#error "please use either DEBUG_STATIC_LEVEL or DEBUG_DYNAMIC_LEVEL (not both)"
+#else
+#define DEBUG_DYNAMIC_LEVEL DEBUG_GLOBAL_LEVEL
+#endif /* DEBUG_STATIC_LEVEL */
+#endif /* !DEBUG_DYNAMIC_LEVEL */
+
+
+#ifndef ERROR_DYNAMIC_LEVEL
+
+#ifdef ERROR_STATIC_LEVEL
+#define ERROR_DYNAMIC_LEVEL ERROR_STATIC_LEVEL
+#else
+#define ERROR_DYNAMIC_LEVEL ERROR_GLOBAL_LEVEL
+#endif /* ERROR_STATIC_LEVEL */
+
+#else /* ERROR_DYNAMIC_LEVEL */
+#ifdef ERROR_STATIC_LEVEL
+#error "please use either ERROR_STATIC_LEVEL or ERROR_DYNAMIC_LEVEL (not both)"
+#else
+#define ERROR_DYNAMIC_LEVEL ERROR_GLOBAL_LEVEL
+#endif /* ERROR_STATIC_LEVEL */
+#endif /* !ERROR_DYNAMIC_LEVEL */
+/**************************************************************************//**
+ @Description   Declaration of Halting the core in debug mode.
+
+                se_dnh - Debug Notify Halt
+                Acts as 'se_illegal' if EDBCR0[DNH_EN] is not set.
+ *//***************************************************************************/
+#if (!defined(DEBUG_ERRORS) || (DEBUG_ERRORS == 0))
+#define DEBUG_HALT
+#else
+#ifdef __KLOCWORK__
+#define DEBUG_HALT do { } while (1)
+#else
+#define DEBUG_HALT asm { se_dnh }
+#endif /* __KLOCWORK__ */
+#endif /* DEBUG_ERRORS */
+
+
+#if (!defined(DEBUG_ERRORS) || (DEBUG_ERRORS == 0))
+/* No debug/error/event messages at all */
+#define DBG(_level, ...)
+
+#else /* DEBUG_ERRORS > 0 */
+
+#if ((defined(DEBUG_USING_STATIC_LEVEL)) && (DEBUG_DYNAMIC_LEVEL < REPORT_LEVEL_WARNING))
+/* No need for DBG macro - debug level is higher anyway */
+#define DBG(_level, ...)
+#else
+void enable_print_protection();
+void disable_print_protection();
+/*call to print but without mutex*/
+extern const char *dbg_level_strings[];
+void dbg_print(char *format, ...);
+#define DBG(_level, ...)                                                \
+		do {                                                            \
+			if (_level <= DEBUG_DYNAMIC_LEVEL) {                    \
+				enable_print_protection();                      \
+				dbg_print("> %s " PRINT_FORMAT ": ",            \
+						dbg_level_strings[_level - 1],        \
+						PRINT_FMT_PARAMS);                    \
+						dbg_print(__VA_ARGS__);                         \
+						disable_print_protection();                     \
+			}                                                       \
+		} while (0)
+#endif /* (defined(DEBUG_USING_STATIC_LEVEL) && (DEBUG_DYNAMIC_LEVEL < WARNING)) */
+#endif /* (!defined(DEBUG_ERRORS) || (DEBUG_ERRORS == 0)) */
+
+/* End of internal - Only for service layer use */
 /**************************************************************************//**
  @Group			FSL_DEBUG_GROUP Debug Utilities
 
