@@ -6,6 +6,9 @@ Table:
 Changes made for ls1088a rev1:
 Table:
 	* Moved rule_create_or_replace to be an inline functions.
+	* Added table_hw_get_time_unit() functions
+	* Added timestamp accuracy parameter per table
+
 
 LDPAA AIOP SERVICE LAYER LDPAA-AIOP-SL-v1088_ENG_0.1 Change Log
 =============================================================
