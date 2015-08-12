@@ -106,7 +106,7 @@ static int session_get(const char *m_name,
                                   uint32_t dpci_id,
                                   struct cmdif_desc *cidesc)
 {
-	struct cmdif_cl *cl = sys_get_unique_handle(FSL_OS_MOD_CMDIF_CL);
+	struct cmdif_cl *cl = sys_get_unique_handle(FSL_MOD_CMDIF_CL);
 	int i = 0;
 
 	/* TODO if sync mode is supported
@@ -140,7 +140,7 @@ __COLD_CODE int cmdif_client_init()
 	int i   = 0;
 	struct cmdif_cl *cl = NULL;
 
-	if (sys_get_unique_handle(FSL_OS_MOD_CMDIF_CL)) {
+	if (sys_get_unique_handle(FSL_MOD_CMDIF_CL)) {
 		pr_err("Client had been already setup\n");
 		return -ENODEV;
 	}
@@ -180,7 +180,7 @@ __COLD_CODE int cmdif_client_init()
 	}
 
 
-	err = sys_add_handle(cl, FSL_OS_MOD_CMDIF_CL, 1, 0);
+	err = sys_add_handle(cl, FSL_MOD_CMDIF_CL, 1, 0);
 	if (err != 0) {
 		pr_err("Can't add client handle\n");
 		return err;
@@ -190,7 +190,7 @@ __COLD_CODE int cmdif_client_init()
 
 __COLD_CODE void cmdif_client_free()
 {
-	struct cmdif_cl *cl = sys_get_unique_handle(FSL_OS_MOD_CMDIF_CL);
+	struct cmdif_cl *cl = sys_get_unique_handle(FSL_MOD_CMDIF_CL);
 	int i = 0;
 
 	if (cl != NULL) {

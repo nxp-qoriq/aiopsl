@@ -139,7 +139,7 @@ int dpni_drv_test(void){
 static int dpni_drv_create(uint16_t *token)
 {
 	int err;
-	struct mc_dprc *dprc = sys_get_unique_handle(FSL_OS_MOD_AIOP_RC);
+	struct mc_dprc *dprc = sys_get_unique_handle(FSL_MOD_AIOP_RC);
 	struct dpni_cfg cfg = {0};
 	cfg.adv.options = DPNI_OPT_MULTICAST_FILTER | DPNI_OPT_UNICAST_FILTER | DPNI_OPT_DIST_HASH;
 
@@ -155,7 +155,7 @@ static int dpni_drv_destroy(uint16_t ni_id)
 {
 	uint16_t dpni;
 	int err;
-	struct mc_dprc *dprc = sys_get_unique_handle(FSL_OS_MOD_AIOP_RC);
+	struct mc_dprc *dprc = sys_get_unique_handle(FSL_MOD_AIOP_RC);
 
 	cdma_mutex_lock_take((uint64_t)nis, CDMA_MUTEX_READ_LOCK); /*Lock dpni table*/
 	err = dpni_open(&dprc->io, 0, (int)nis[ni_id].dpni_id, &dpni);

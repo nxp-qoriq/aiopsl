@@ -128,7 +128,7 @@ static void mc_intr_set(uint32_t dpci_id)
 	struct dpci_irq_cfg irq_cfg;
 	int err;
 	uint32_t mask = DPCI_IRQ_EVENT_LINK_CHANGED;
-	struct mc_dprc *dprc = sys_get_unique_handle(FSL_OS_MOD_AIOP_RC);
+	struct mc_dprc *dprc = sys_get_unique_handle(FSL_MOD_AIOP_RC);
 	uint16_t token;
 	
 	ASSERT_COND(dprc);
@@ -162,7 +162,7 @@ static void mc_intr_set(uint32_t dpci_id)
 
 static int dpci_dynamic_rm_test()
 {
-	struct mc_dprc *dprc = sys_get_unique_handle(FSL_OS_MOD_AIOP_RC);
+	struct mc_dprc *dprc = sys_get_unique_handle(FSL_MOD_AIOP_RC);
 	uint16_t token;
 	int err;
 
@@ -220,7 +220,7 @@ static int dpci_dynamic_add_test()
 	uint8_t p = 0;
 	int     err = 0;
 	int     link_up = 0;
-	struct mc_dprc *dprc = sys_get_unique_handle(FSL_OS_MOD_AIOP_RC);
+	struct mc_dprc *dprc = sys_get_unique_handle(FSL_MOD_AIOP_RC);
 
 	pr_debug("Enter\n");
 

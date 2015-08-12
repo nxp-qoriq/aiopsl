@@ -119,7 +119,6 @@
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../../src/drivers/accel/fdma/01_01&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../../src/drivers/accel/osm/01_01&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../../src/drivers/accel/parser/01_01&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../../src/drivers/accel/tman/01_01&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../../src/drivers/accel/system/01_01&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../../src/drivers/dplib&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../../src/drivers/dplib/dpni&quot;"/>
@@ -146,6 +145,7 @@
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../../src/lib/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../../tests/cmdif&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../../tests/cmdif/ls2085a&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../../src/drivers/accel/tman/01_01&quot;"/>
 								</option>
 								<option id="com.freescale.ppc.toolchain.compiler.base.debugging.c.1761431171" name="Compile Only, Do Not Link" superClass="com.freescale.ppc.toolchain.compiler.base.debugging.c" value="true" valueType="boolean"/>
 								<option id="com.freescale.ppc.toolchain.compiler.base.warnings.extended.1986555542" name="Extended Error Checking" superClass="com.freescale.ppc.toolchain.compiler.base.warnings.extended" value="true" valueType="boolean"/>
@@ -206,7 +206,7 @@
 								<option id="com.freescale.ppc.toolchain.disassembler.base.settings.code.131743274" name="Show Core Modules" superClass="com.freescale.ppc.toolchain.disassembler.base.settings.code" value="true" valueType="boolean"/>
 								<option id="com.freescale.ppc.toolchain.disassembler.base.settings.data.800828184" name="Show Data Modules" superClass="com.freescale.ppc.toolchain.disassembler.base.settings.data" value="true" valueType="boolean"/>
 								<option id="com.freescale.ppc.toolchain.disassembler.base.settings.extm.1957941263" name="Show Extended Mnemonics" superClass="com.freescale.ppc.toolchain.disassembler.base.settings.extm" value="true" valueType="boolean"/>
-								<option id="com.freescale.ppc.toolchain.disassembler.base.settings.src.946045609" superClass="com.freescale.ppc.toolchain.disassembler.base.settings.src" value="true" valueType="boolean"/>
+								<option id="com.freescale.ppc.toolchain.disassembler.base.settings.src.946045609" name="Show Source Code" superClass="com.freescale.ppc.toolchain.disassembler.base.settings.src" value="true" valueType="boolean"/>
 							</tool>
 							<tool command="&quot;${AIOPToolsDir}/ccaiop&quot;" commandLinePattern="${COMMAND} ${FLAGS} ${OUTPUT_FLAG} ${INPUTS}" errorParsers="" id="com.freescale.ppc.toolchain.preprocessor.431497642" name="Preprocessor" superClass="com.freescale.ppc.toolchain.preprocessor">
 								<option id="com.freescale.ppc.toolchain.compiler.base.preprocessor.break.600636252" name="Emit file change" superClass="com.freescale.ppc.toolchain.compiler.base.preprocessor.break" value="true" valueType="boolean"/>
@@ -345,6 +345,17 @@
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../../src/drivers/accel&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../../src/arch/core/ppc&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../../src/lib/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../../src/drivers/accel/fdma/01_01&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../../src/drivers/accel/tman/01_01&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../../src/include/drivers/accel/fdma/01_01&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../../src/include/drivers/accel/tman/01_01&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../../src/drivers/accel/osm/01_01&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../../src/drivers/accel/parser/01_01&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../../src/include/drivers/accel/osm/01_01&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../../src/include/drivers/accel/parser/01_01&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../../src/drivers/accel/system/01_01&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../../src/drivers/accel/cdma/01_01&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../../src/include/drivers/accel/cdma/01_01&quot;"/>
 								</option>
 								<option id="com.freescale.ppc.toolchain.compiler.base.debugging.c.978835568" name="Compile Only, Do Not Link" superClass="com.freescale.ppc.toolchain.compiler.base.debugging.c" value="true" valueType="boolean"/>
 								<option id="com.freescale.ppc.toolchain.compiler.base.warnings.extended.842702878" name="Extended Error Checking" superClass="com.freescale.ppc.toolchain.compiler.base.warnings.extended" value="true" valueType="boolean"/>

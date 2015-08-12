@@ -406,7 +406,7 @@ __COLD_CODE int notify_open()
 
 	struct cmdif_session_data *data = \
 		(struct cmdif_session_data *)PRC_GET_SEGMENT_ADDRESS();
-	struct cmdif_cl *cl = sys_get_unique_handle(FSL_OS_MOD_CMDIF_CL);
+	struct cmdif_cl *cl = sys_get_unique_handle(FSL_MOD_CMDIF_CL);
 	int ind = 0;
 	int link_up = 1;
 	int err = 0;
@@ -490,7 +490,7 @@ __COLD_CODE int notify_close()
 
 	struct cmdif_session_data *data = \
 		(struct cmdif_session_data *)PRC_GET_SEGMENT_ADDRESS();
-	struct cmdif_cl *cl = sys_get_unique_handle(FSL_OS_MOD_CMDIF_CL);
+	struct cmdif_cl *cl = sys_get_unique_handle(FSL_MOD_CMDIF_CL);
 	int i = 0;
 
 	ASSERT_COND_LIGHT(cl != NULL);

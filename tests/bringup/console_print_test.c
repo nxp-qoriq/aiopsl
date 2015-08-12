@@ -414,7 +414,7 @@ static int platform_en_console(fsl_handle_t h_platform)
 	if (err != 0) return -EINVAL;
 
 	/* Lock DUART handle in system */
-/*err = sys_add_handle(uart, FSL_OS_MOD_UART, 1, pltfrm->param.console_id);
+/*err = sys_add_handle(uart, FSL_MOD_UART, 1, pltfrm->param.console_id);
 	if (err != 0) return -EINVAL;
 */
 	pltfrm->uart = uart;

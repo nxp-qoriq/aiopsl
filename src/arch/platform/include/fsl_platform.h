@@ -323,7 +323,7 @@ int platform_clear_serdes_loopback(fsl_handle_t    h_platform,
 *//***************************************************************************/
 static inline uint32_t sys_get_platform_clk()
 {
-    return platform_get_clk(sys_get_unique_handle(FSL_OS_MOD_SOC));
+    return platform_get_clk(sys_get_unique_handle(FSL_MOD_SOC));
 }
 
 /**************************************************************************//**
@@ -340,7 +340,7 @@ static __inline__ uint32_t sys_get_sys_clk(void)
 	/*
 	 * AIOP gets clock of (platform clk / 1)
 	*/
-    return platform_get_clk(sys_get_unique_handle(FSL_OS_MOD_SOC));
+    return platform_get_clk(sys_get_unique_handle(FSL_MOD_SOC));
 }
 
 #if 0
@@ -355,7 +355,7 @@ static __inline__ uint32_t sys_get_sys_clk(void)
 *//***************************************************************************/
 static __inline__ fsl_err_t sys_get_chip_rev_info(t_chip_rev_info *p_chip_rev_info)
 {
-    return platform_get_chip_rev_info(sys_get_unique_handle(FSL_OS_MOD_SOC),
+    return platform_get_chip_rev_info(sys_get_unique_handle(FSL_MOD_SOC),
                                    p_chip_rev_info);
 }
 #endif /* 0 */

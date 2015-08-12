@@ -99,7 +99,7 @@ int random_init(void)
 		uint64_t cores_mask = sys_get_cores_mask();
 
 		 struct aiop_tile_regs *aiop_regs = (struct aiop_tile_regs *)
-			                               sys_get_handle(FSL_OS_MOD_AIOP_TILE, 1);
+			                               sys_get_handle(FSL_MOD_AIOP_TILE, 1);
 
 		for(i = 0; i < MAX_NUM_OF_CORES; i++ ){
 			if(cores_mask & 0x1){
