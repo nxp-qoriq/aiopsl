@@ -92,10 +92,6 @@ available table types. \n User should select one of the following defines
 	 * Not available for MFLU Table HW Accelerator */
 #define TABLE_ATTRIBUTE_TYPE_LPM	0x1000
 
-/*
-	 Ternary match Table for ACL
-#define TABLE_ATTRIBUTE_TYPE_TCAM_ACL	0x2000
-*/
 	/** MFLU (Previously called Algorithmic ACL table)
 	 * Not available for CTLU Table HW Accelerator */
 #define TABLE_ATTRIBUTE_TYPE_MFLU	0x4000
@@ -190,13 +186,16 @@ User should select one of the following:
 *//***************************************************************************/
 
 	/** Timestamp is disabled for this rule.
-	Rule's timestamp field is cleared. */
+	Rule's timestamp field is invalid. */
 #define	TABLE_RULE_TIMESTAMP_NONE	0x00
 
 	/** Enables timestamp update per rule.
 	Initial value of Rule's timestamp field is set when the rule is created
 	or replaced. The rule's timestamp field is updated to the current
-	timestamp when the rule is matched during lookup command.*/
+	timestamp, depending on the table's timestamp accuracy settings, when
+	the rule is matched during lookup command. 
+	The time unit used for timestamp on a specific Table Lookup Hardware
+	Accelerator can be queried using table_hw_get_time_unit(). */
 #define	TABLE_RULE_TIMESTAMP_ENABLE	0x80
 
 /** @} *//* end of FSL_TABLE_RULE_OPTIONS_TIMESTAMP */
@@ -290,6 +289,99 @@ User should select one of the following:
 *//***************************************************************************/
 
 /**************************************************************************//**
+@enum	table_hw_accel_id
+
+@Description	IDs of hardware table lookup accelerator
+
+@{
+*//***************************************************************************/
+enum table_hw_accel_id {
+	/** MFLU accelerator ID */
+	TABLE_ACCEL_ID_MFLU = 0x02,
+	/** CTLU accelerator ID */
+	TABLE_ACCEL_ID_CTLU = 0x05
+};
+
+/** @} */ /* end of table_hw_accel_id */
+
+/**************************************************************************//**
+@enum	table_hw_timestamp_accuracy
+
+@Description	Possible values for timestamp accuracy in time units.  
+
+@{
+*//***************************************************************************/
+enum table_hw_timestamp_accuracy {
+	/** Timestamp accuracy of 1 time unit           */
+	TABLE_TS_ACCURACY_1_TU          = 0x0800,
+	/** Timestamp accuracy of 2 time units          */
+	TABLE_TS_ACCURACY_2_TU          = 0x0801,
+	/** Timestamp accuracy of 4 time units          */
+	TABLE_TS_ACCURACY_4_TU          = 0x0802,
+	/** Timestamp accuracy of 8 time units          */
+	TABLE_TS_ACCURACY_8_TU          = 0x0803,
+	/** Timestamp accuracy of 16 time units         */
+	TABLE_TS_ACCURACY_16_TU         = 0x0804,
+	/** Timestamp accuracy of 32 time units         */
+	TABLE_TS_ACCURACY_32_TU         = 0x0805,
+	/** Timestamp accuracy of 64 time units         */
+	TABLE_TS_ACCURACY_64_TU         = 0x0806,
+	/** Timestamp accuracy of 128 time units        */
+	TABLE_TS_ACCURACY_128_TU        = 0x0807,
+	/** Timestamp accuracy of 256 time units        */
+	TABLE_TS_ACCURACY_256_TU        = 0x0808,
+	/** Timestamp accuracy of 512 time units        */
+	TABLE_TS_ACCURACY_512_TU        = 0x0809,
+	/** Timestamp accuracy of 1024 time units       */
+	TABLE_TS_ACCURACY_1024_TU       = 0x080A,
+	/** Timestamp accuracy of 2048 time units       */
+	TABLE_TS_ACCURACY_2048_TU       = 0x080B,
+	/** Timestamp accuracy of 4096 time units       */
+	TABLE_TS_ACCURACY_4096_TU       = 0x080C,
+	/** Timestamp accuracy of 8192 time units       */
+	TABLE_TS_ACCURACY_8192_TU       = 0x080D,
+	/** Timestamp accuracy of 16384 time units      */
+	TABLE_TS_ACCURACY_16384_TU      = 0x080E,
+	/** Timestamp accuracy of 32768 time units      */
+	TABLE_TS_ACCURACY_32768_TU      = 0x080F,
+	/** Timestamp accuracy of 65536 time units      */
+	TABLE_TS_ACCURACY_65536_TU      = 0x0810,
+	/** Timestamp accuracy of 131072 time units     */
+	TABLE_TS_ACCURACY_131072_TU     = 0x0811,
+	/** Timestamp accuracy of 262144 time units     */
+	TABLE_TS_ACCURACY_262144_TU     = 0x0812,
+	/** Timestamp accuracy of 524288 time units     */
+	TABLE_TS_ACCURACY_524288_TU     = 0x0813,
+	/** Timestamp accuracy of 1048576 time units    */
+	TABLE_TS_ACCURACY_1048576_TU    = 0x0814,
+	/** Timestamp accuracy of 2097152 time units    */
+	TABLE_TS_ACCURACY_2097152_TU    = 0x0815,
+	/** Timestamp accuracy of 4194304 time units    */
+	TABLE_TS_ACCURACY_4194304_TU    = 0x0816,
+	/** Timestamp accuracy of 8388608 time units    */
+	TABLE_TS_ACCURACY_8388608_TU    = 0x0817,
+	/** Timestamp accuracy of 16777216 time units   */
+	TABLE_TS_ACCURACY_16777216_TU   = 0x0818,
+	/** Timestamp accuracy of 33554432 time units   */
+	TABLE_TS_ACCURACY_33554432_TU   = 0x0819,
+	/** Timestamp accuracy of 67108864 time units   */
+	TABLE_TS_ACCURACY_67108864_TU   = 0x081A,
+	/** Timestamp accuracy of 134217728 time units  */
+	TABLE_TS_ACCURACY_134217728_TU  = 0x081B,
+	/** Timestamp accuracy of 268435456 time units  */
+	TABLE_TS_ACCURACY_268435456_TU  = 0x081C,
+	/** Timestamp accuracy of 536870912 time units  */
+	TABLE_TS_ACCURACY_536870912_TU  = 0x081D,
+	/** Timestamp accuracy of 1073741824 time units */
+	TABLE_TS_ACCURACY_1073741824_TU = 0x081E,
+	/** Timestamp accuracy of 2147483648 time units */
+	TABLE_TS_ACCURACY_2147483648_TU = 0x081F
+};
+/** @} */ /* end of table_hw_timestamp_accuracy */
+
+/** @} */ /* end of FSL_TABLE_Enumerations */
+
+/**************************************************************************//**
 @Group		FSL_TABLE_Typedef TABLE Typedefs
 
 @Description	Table Typedefs
@@ -308,24 +400,6 @@ typedef uint16_t t_tbl_id;
 typedef uint64_t t_rule_id;
 
 /** @} */ /* end of FSL_TABLE_Typedef */
-
-/**************************************************************************//**
-@enum	table_hw_accel_id
-
-@Description	IDs of hardware table lookup accelerator
-
-@{
-*//***************************************************************************/
-enum table_hw_accel_id {
-	/** MFLU accelerator ID */
-	TABLE_ACCEL_ID_MFLU = 0x02,
-	/** CTLU accelerator ID */
-	TABLE_ACCEL_ID_CTLU = 0x05
-};
-
-/** @} */ /* end of table_hw_accel_id */
-
-/** @} */ /* end of FSL_TABLE_Enumerations */
 
 /**************************************************************************//**
 @Group		FSL_TABLE_STRUCTS TABLE Structures
@@ -546,7 +620,7 @@ struct table_lookup_result {
 
 	/** Timestamp of the rule that was matched in the lookup process.
 	For this timestamp to be valid, suitable option should be set in
-	\ref table_rule option field. */
+	\ref table_rule options field. */
 	volatile uint32_t timestamp;
 };
 #pragma pack(pop)
@@ -655,6 +729,16 @@ struct table_create_params {
 	/** Table Attributes - Please refer to \ref FSL_TABLE_ATTRIBUTES Table
 	for more details. */
 	uint16_t attributes;
+
+	/** Timestamp Accuracy in time units for the table rules.
+	A rule's timestamp will be updated if:
+	 - Rule timestamp is enabled in the rule's options field.
+	 - The system current timestamp difference from the rule timestamp in
+	   time units is greater than the timestamp accuracy.
+	The time unit used on a specific Table Lookup Hardware Accelerator can
+	be queried using table_hw_get_time_unit().
+	*/
+	enum table_hw_timestamp_accuracy timestamp_accur;
 
 	/** Table Key Size in bytes (fixed per table).
 	In a case of EM table key size is limited to 1-124 Bytes
@@ -897,8 +981,8 @@ void table_delete(enum table_hw_accel_id acc_id,
 		table was created with except for the following remark:
 		 - the key size should be added priority field size (4 Bytes)
 		for MFLU tables.
-@Param[out]	rule_id. Rule ID of the rule that was created. This ID can be used
-		as a reference to this rule by other functions.
+@Param[out]	rule_id Rule ID of the rule that was created. This ID can be
+		used as a reference to this rule by other functions.
 
 @Return		0 on success, or negative value on error.
 
@@ -1291,6 +1375,25 @@ inline int table_lookup_by_keyid(enum table_hw_accel_id acc_id,
 				 struct table_lookup_non_default_params
 				 *ndf_params,
 				 struct table_lookup_result *lookup_result);
+
+
+/**************************************************************************//**
+@Function	table_hw_get_time_unit
+
+@Description	Returns the Table Lookup Hardware Accelerator time unit in
+		microseconds. I.e. if the returned value is x then the Table
+		Lookup Hardware Accelerator time unit is x microseconds.
+
+@Param[in]	acc_id ID of the Hardware Table Lookup Accelerator to be
+		queried.
+@Param[out]	time_unit The time unit of Hardware Table Lookup Accelerator in
+		microseconds.
+
+@Return		None.
+*//***************************************************************************/
+void table_hw_get_time_unit(enum table_hw_accel_id acc_id,
+			    uint32_t *time_unit);
+
 
 #ifdef REV2_RULEID
 /**************************************************************************//**

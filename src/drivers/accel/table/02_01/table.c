@@ -60,7 +60,8 @@ int table_create(enum table_hw_accel_id acc_id,
 
 	/* Load frequent parameters into registers */
 	uint8_t                           key_size = tbl_params->key_size;
-	uint16_t                          attr = tbl_params->attributes;
+	uint16_t                          attr = tbl_params->attributes |
+						 tbl_params->timestamp_accur;
 	uint32_t                          max_rules = tbl_params->max_rules;
 	uint32_t                          committed_rules =
 		tbl_params->committed_rules;
@@ -257,6 +258,26 @@ void table_delete(enum table_hw_accel_id acc_id,
 					  TABLE_ENTITY_HW);
 
 	return;
+}
+
+
+void table_hw_get_time_unit(enum table_hw_accel_id acc_id,
+			    uint32_t *time_unit)
+{
+	uint32_t *reg_addr;
+	if (acc_id == TABLE_ACCEL_ID_CTLU) {
+		reg_addr = ((uint32_t *) 
+				(TABLE_MEMMAP_CTLU_BASE_ADDR
+				 |TABLE_MEMMAP_TIMESTAMP_WINDOW_BASE_OFFSET)
+			   );
+	} else {
+		reg_addr = ((uint32_t *) 
+				(TABLE_MEMMAP_MFLU_BASE_ADDR
+				 |TABLE_MEMMAP_TIMESTAMP_WINDOW_BASE_OFFSET)
+			   );
+	}
+	*time_unit = 1 <<  ((*reg_addr) &
+			    TABLE_MEMMAP_TIMESTAMP_WINDOW_FIELD_MASK);
 }
 
 

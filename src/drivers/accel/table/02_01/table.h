@@ -55,6 +55,25 @@
 *//***************************************************************************/
 
 /**************************************************************************//**
+@Group	TABLE_MEMORY_MAP Table Memory Map Defines
+@{
+*//***************************************************************************/
+/** CTLU Memory Map Base Address */
+#define TABLE_MEMMAP_CTLU_BASE_ADDR			0x020B8000
+
+/** MFLU Memory Map Base Address */
+#define TABLE_MEMMAP_MFLU_BASE_ADDR			0x020B0000
+
+/** IOP_CTIMESTAMP_WINDOW offset from base address */
+#define TABLE_MEMMAP_TIMESTAMP_WINDOW_BASE_OFFSET	0x00001004
+
+/** IOP_CTIMESTAMP_WINDOW TWINDOW field mask */
+#define TABLE_MEMMAP_TIMESTAMP_WINDOW_FIELD_MASK	0x0000001F
+
+/** @} */ /* end of TABLE_MEMORY_MAP */
+
+
+/**************************************************************************//**
 @Group	TABLE_RULE_RESULT_CONSTANTS Table Rule Result Constants
 @{
 *//***************************************************************************/
@@ -69,6 +88,7 @@
 #define TABLE_OLD_RESULT_RESERVED2_SPACE	28
 
 /** @} */ /* end of TABLE_RULE_RESULT_CONSTANTS */
+
 
 /**************************************************************************//**
 @Group	TABLE_ENTRY_MACROS Table Entry Macros
