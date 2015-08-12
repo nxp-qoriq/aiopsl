@@ -74,6 +74,21 @@ TMAN:
 	* Add implementation of tman_modify_timer (TKT255188).
 	* Change return value and implementation of tman_recharge_timer (TKT258245).
 	* Add exception error cases (TKT226701).
+	
+	
+LDPAA AIOP SERVICE LAYER LDPAA-AIOP-SL-v0.7.1.1 Change Log
+=============================================================
+Table: 
+	* Added Support in DISABLE_REF_CNT for Table Module.
+IPsec: 
+	* Fixed ENGR363745 to avoid FD and frame corruption.
+FDMA:
+	* modify FDMA accelerator IDs according to HW recommendation to improve performance.
+
+	
+LDPAA AIOP SERVICE LAYER LDPAA-AIOP-SL-v0.7.1.0 Change Log
+=============================================================
+No changes
 
 LDPAA AIOP SERVICE LAYER LDPAA-AIOP-SL-v0.7.0 Change Log
 =============================================================

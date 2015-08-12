@@ -186,6 +186,7 @@ struct aiop_cmgw_regs {
 	uint8_t reserved11[0xE0];
 	/* AIOP Discovery Registers */
 	uint32_t tile_disc[4]; /* Tile discovery registers 1-4 */
+
 	OS_MEM_RESERVED(0x310, 0x800);
 
 	/* Shared Doorbell Unit Configuration
@@ -445,16 +446,26 @@ struct aiop_dcsr_regs {
  * AIOP Tile's Portal Map Space
  * Available only on LS2085’s Rev 2 and LS1080
  * Use SOC_PERIPH_OFF_PORTAL_MAP + AIOP_PERIPHERALS_OFF to access it
+ * This space is allocated as follows:
+	• AIOP Core accesses to 0x00F_0000 correspond to
+	offset 0x0000_0000 in the Tile’s Portal map
+	• AIOP Core accesses to 0x00F_0100 correspond to
+	offset 0x0001_0000 in the Tile’s Portal map
+	• ...
+	• AIOP Core accesses to 0x00F_0800 correspond to
+	offset 0x0008_0000 in the Tile’s Portal map
+	• AIOP Core accesses to 0x00F_0900 correspond to
+	offset 0x0009_0000 in the Tile’s Portal map
  */
 struct aiop_portal_map_regs {
 	struct {
 		struct {
 			uint32_t dprr;
 			/**< General or Management Doorbell Priority x Request Register */
-			OS_MEM_RESERVED(0x00004, 0x10000);
+			OS_MEM_RESERVED(0x00004, 0x100);
 		}pr[2];
 		/**< 0 or 1 priority */
-		OS_MEM_RESERVED(0x20000, 0x80000);
+		OS_MEM_RESERVED(0x200, 0x800);
 	}req_g_m[2];
 	/**< 0 - General or 1 - Management Doorbell */
 };

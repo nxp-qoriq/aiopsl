@@ -50,14 +50,14 @@ typedef struct t_sys_forced_object {
 	fsl_handle_t        h_module;
 } t_sys_forced_object_desc;
 
-t_sys_forced_object_desc  sys_handle[FSL_OS_NUM_MODULES];
+t_sys_forced_object_desc  sys_handle[FSL_NUM_MODULES];
 
 
 /*****************************************************************************/
 fsl_handle_t sys_get_handle(enum fsl_module module, int num_of_ids, ...)
 {
 	UNUSED(num_of_ids);
-	if ((module >= FSL_OS_NUM_MODULES) || (module < 0))
+	if ((module >= FSL_NUM_MODULES) || (module < 0))
 		return NULL;
 
 	return sys_handle[module].h_module;
@@ -68,7 +68,7 @@ fsl_handle_t sys_get_handle(enum fsl_module module, int num_of_ids, ...)
 int sys_add_handle(fsl_handle_t h_module, enum fsl_module module,
 				int num_of_ids, ...)
 {
-	if ((module >= FSL_OS_NUM_MODULES) || (module < 0) || (num_of_ids > 1))
+	if ((module >= FSL_NUM_MODULES) || (module < 0) || (num_of_ids > 1))
 		return -EINVAL;
 
 	sys_handle[module].h_module = h_module;
@@ -80,7 +80,7 @@ int sys_add_handle(fsl_handle_t h_module, enum fsl_module module,
 int sys_remove_handle(enum fsl_module module, int num_of_ids, ...)
 {
 	UNUSED(num_of_ids);
-	if ((module >= FSL_OS_NUM_MODULES) || (module < 0))
+	if ((module >= FSL_NUM_MODULES) || (module < 0))
 		return -EINVAL;
 
 
@@ -216,19 +216,19 @@ __COLD_CODE static int global_sys_init(void)
 	if (err != 0) return err;
 
 	err = sys_add_handle(sys.platform_ops.h_platform,
-		FSL_OS_MOD_SOC, 1, 0);
+		FSL_MOD_SOC, 1, 0);
 	if (err != 0) return err;
 
 	aiop_base_addr = AIOP_PERIPHERALS_OFF + SOC_PERIPH_OFF_AIOP_TILE;
 	err = sys_add_handle( (fsl_handle_t)aiop_base_addr,
-	                                      FSL_OS_MOD_AIOP_TILE, 1, 0);
+	                                      FSL_MOD_AIOP_TILE, 1, 0);
 	if (err != 0) return err;
 
 	tile_regs = (struct aiop_tile_regs *)aiop_base_addr;
 	cmgw_init((void *)&tile_regs->cmgw_regs);
 
 	err = sys_add_handle( (fsl_handle_t)&tile_regs->cmgw_regs,
-	                                      FSL_OS_MOD_CMGW, 1, 0);
+	                                      FSL_MOD_CMGW, 1, 0);
 	if (err != 0) return err;
 
 	return 0;

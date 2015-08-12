@@ -30,19 +30,62 @@
 #include "fsl_dbg.h"
 #include "fsl_doorbell.h"
 #include "fsl_aiop_common.h"
+#include "fsl_fdma.h"
+#include "fsl_spinlock.h"
+#include "fsl_icontext.h"
 
 int app_early_init(void);
 int app_init(void);
 void app_free(void);
 
+static int32_t doorbell_cb_count = 0;
+static int32_t doorbell_clear_count = 0;
+
+static uint16_t epid[] = {AIOP_EPID_TABLE_SIZE - 1, /* G Priority 0*/
+                          AIOP_EPID_TABLE_SIZE - 2, /* G Priority 1*/
+                          AIOP_EPID_TABLE_SIZE - 3, /* M Priority 0*/
+                          AIOP_EPID_TABLE_SIZE - 4};/* M Priority 1*/
+
 __HOT_CODE ENTRY_POINT static void doorbell_cb(void)
 {
-	pr_debug(" doorbell_cb \n");
+	uint32_t mask;
+	struct fdma_amq amq;
+	struct icontext ic;
+	uint8_t src = ((((struct additional_dequeue_context *)HWC_ADC_ADDRESS)->fdsrc_va_fca_bdi) & 0xf);
+	int i;
+	int pr;
+
+	get_default_amq_attributes(&amq);
+	icontext_aiop_get(&ic);
+	ASSERT_COND(ic.icid == amq.icid);
+
+	for (i = 0; i < DOORBELL_SRC_LAST; i++) {
+		for (pr = 0; pr < 2; pr++) {
+			doorbell_status(pr, (enum doorbell_reg)i, &mask);
+			pr_debug("Read status pr %d g_m %d mask 0x%x\n", pr, i, mask);
+			mask = (0x1 << pr); /* WA for sim bug */
+			//if (mask != 0) {
+				doorbell_clear(pr, (enum doorbell_reg)i, mask);
+				pr_debug("Cleared pr %d g_m %d mask 0x%x\n", pr, i, mask);
+				atomic_incr32(&doorbell_clear_count, 1);
+				doorbell_status(pr, (enum doorbell_reg)i, &mask);
+				ASSERT_COND(mask == 0);
+			//}
+		}
+	}
 	
-	doorbell_clear(0, DOORBELL_SRC_GENERAL, 0xffffffff);
-	doorbell_clear(0, DOORBELL_SRC_MANAGEMENT, 0xffffffff);
-	doorbell_clear(1, DOORBELL_SRC_GENERAL, 0xffffffff);
-	doorbell_clear(1, DOORBELL_SRC_MANAGEMENT, 0xffffffff);
+	atomic_incr32(&doorbell_cb_count, 1);
+	pr_debug(" doorbell_cb %d src 0x%x\n", doorbell_cb_count, src);
+	
+	if ((doorbell_cb_count == 4) && (doorbell_clear_count >= 4)) {
+		fsl_print("Test Finished SUCCESSFULLY\n");
+	} /*else {
+		fsl_print("Check if  can ring after clear \n");
+		doorbell_ring(0, DOORBELL_SRC_GENERAL, 0x1);
+		doorbell_ring(1, DOORBELL_SRC_GENERAL, 0x2);
+	}*/
+
+	fdma_terminate_task();
 }
 
 int app_init(void)
@@ -56,15 +99,15 @@ int app_init(void)
 		for (pr = 0; pr < 2; pr++) {
 			doorbell_setup(pr,
 			               (enum doorbell_reg)i, 
-			               (uint16_t)(AIOP_EPID_TABLE_SIZE - 1 - pr),
+			               epid[i*2 + pr],
 			               doorbell_cb,
 			               (uint32_t)(pr + 1));
 			doorbell_ring(pr, 
 			              (enum doorbell_reg)i,
-			              (uint32_t)(pr + 1));
+			              (uint32_t)(0x1 << pr));
 		}
 	}
-	
+
 	return 0;
 }
 

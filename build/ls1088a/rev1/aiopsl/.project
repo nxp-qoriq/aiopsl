@@ -890,16 +890,6 @@
 			<locationURI>PARENT-4-PROJECT_LOC/src/kernel/icontext/icontext.h</locationURI>
 		</link>
 		<link>
-			<name>aiop_sl/kernel/include/console.h</name>
-			<type>1</type>
-			<locationURI>PARENT-4-PROJECT_LOC/src/kernel/include/console.h</locationURI>
-		</link>
-		<link>
-			<name>aiop_sl/kernel/include/dbg.h</name>
-			<type>1</type>
-			<locationURI>PARENT-4-PROJECT_LOC/src/kernel/include/dbg.h</locationURI>
-		</link>
-		<link>
 			<name>aiop_sl/kernel/include/fsl_cmdif_flib_c.h</name>
 			<type>1</type>
 			<locationURI>PARENT-4-PROJECT_LOC/src/kernel/include/fsl_cmdif_flib_c.h</locationURI>
@@ -913,6 +903,11 @@
 			<name>aiop_sl/kernel/include/fsl_cmdif_flib_s.h</name>
 			<type>1</type>
 			<locationURI>PARENT-4-PROJECT_LOC/src/kernel/include/fsl_cmdif_flib_s.h</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/kernel/include/fsl_console.h</name>
+			<type>1</type>
+			<locationURI>PARENT-4-PROJECT_LOC/src/kernel/include/fsl_console.h</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/kernel/include/fsl_core.h</name>

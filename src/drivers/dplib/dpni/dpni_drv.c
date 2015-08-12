@@ -115,7 +115,7 @@ static void discard_rx_app_cb(void)
 int dpni_drv_register_rx_cb (uint16_t ni_id, rx_cb_t *cb)
 {
 	struct aiop_tile_regs *tile_regs = (struct aiop_tile_regs *)
-					sys_get_handle(FSL_OS_MOD_AIOP_TILE, 1);
+					sys_get_handle(FSL_MOD_AIOP_TILE, 1);
 	struct aiop_ws_regs *wrks_addr = &tile_regs->ws_regs;
 
 	/*Mutex lock to avoid race condition while writing to EPID table*/
@@ -131,7 +131,7 @@ int dpni_drv_register_rx_cb (uint16_t ni_id, rx_cb_t *cb)
 int dpni_drv_unregister_rx_cb (uint16_t ni_id)
 {
 	struct aiop_tile_regs *tile_regs = (struct aiop_tile_regs *)
-					sys_get_handle(FSL_OS_MOD_AIOP_TILE, 1);
+					sys_get_handle(FSL_MOD_AIOP_TILE, 1);
 	struct aiop_ws_regs *wrks_addr = &tile_regs->ws_regs;
 
 	/*Mutex lock to avoid race condition while writing to EPID table*/
@@ -148,7 +148,7 @@ int dpni_drv_enable (uint16_t ni_id)
 {
 	uint16_t dpni;
 	int err;
-	struct mc_dprc *dprc = sys_get_unique_handle(FSL_OS_MOD_AIOP_RC);
+	struct mc_dprc *dprc = sys_get_unique_handle(FSL_MOD_AIOP_RC);
 
 	cdma_mutex_lock_take((uint64_t)nis, CDMA_MUTEX_READ_LOCK); /*Lock dpni table*/
 	err = dpni_open(&dprc->io, 0, (int)nis[ni_id].dpni_id, &dpni);
@@ -176,7 +176,7 @@ int dpni_drv_disable (uint16_t ni_id)
 {
 	uint16_t dpni;
 	int err;
-	struct mc_dprc *dprc = sys_get_unique_handle(FSL_OS_MOD_AIOP_RC);
+	struct mc_dprc *dprc = sys_get_unique_handle(FSL_MOD_AIOP_RC);
 
 	cdma_mutex_lock_take((uint64_t)nis, CDMA_MUTEX_READ_LOCK); /*Lock dpni table*/
 	err = dpni_open(&dprc->io, 0, (int)nis[ni_id].dpni_id, &dpni);
@@ -304,7 +304,7 @@ void dpni_drv_handle_removed_objects(void)
 void dpni_drv_unprobe(uint16_t aiop_niid)
 {
 	struct aiop_tile_regs *tile_regs = (struct aiop_tile_regs *)
-						sys_get_handle(FSL_OS_MOD_AIOP_TILE, 1);
+						sys_get_handle(FSL_MOD_AIOP_TILE, 1);
 	struct aiop_ws_regs *wrks_addr = &tile_regs->ws_regs;
 
 
@@ -566,7 +566,7 @@ int dpni_drv_probe(struct mc_dprc *dprc,
 	int err = 0;
 
 	struct aiop_tile_regs *tile_regs = (struct aiop_tile_regs *)
-					sys_get_handle(FSL_OS_MOD_AIOP_TILE, 1);
+					sys_get_handle(FSL_MOD_AIOP_TILE, 1);
 	struct aiop_ws_regs *wrks_addr = &tile_regs->ws_regs;
 
 	/* Check if dpni with same ID already exists and find first entry to use*/
@@ -680,7 +680,7 @@ int dpni_drv_get_primary_mac_addr(uint16_t ni_id,
 int dpni_drv_set_primary_mac_addr(uint16_t ni_id,
                                   uint8_t mac_addr[NET_HDR_FLD_ETH_ADDR_SIZE])
 {
-	struct mc_dprc *dprc = sys_get_unique_handle(FSL_OS_MOD_AIOP_RC);
+	struct mc_dprc *dprc = sys_get_unique_handle(FSL_MOD_AIOP_RC);
 	int err;
 	uint16_t dpni;
 
@@ -713,7 +713,7 @@ int dpni_drv_set_primary_mac_addr(uint16_t ni_id,
 int dpni_drv_add_mac_addr(uint16_t ni_id,
                           const uint8_t mac_addr[NET_HDR_FLD_ETH_ADDR_SIZE])
 {
-	struct mc_dprc *dprc = sys_get_unique_handle(FSL_OS_MOD_AIOP_RC);
+	struct mc_dprc *dprc = sys_get_unique_handle(FSL_MOD_AIOP_RC);
 	int err;
 	uint16_t dpni;
 
@@ -741,7 +741,7 @@ int dpni_drv_add_mac_addr(uint16_t ni_id,
 int dpni_drv_remove_mac_addr(uint16_t ni_id,
                              const uint8_t mac_addr[NET_HDR_FLD_ETH_ADDR_SIZE])
 {
-	struct mc_dprc *dprc = sys_get_unique_handle(FSL_OS_MOD_AIOP_RC);
+	struct mc_dprc *dprc = sys_get_unique_handle(FSL_MOD_AIOP_RC);
 	int err;
 	uint16_t dpni;
 
@@ -769,7 +769,7 @@ int dpni_drv_remove_mac_addr(uint16_t ni_id,
 int dpni_drv_set_max_frame_length(uint16_t ni_id,
                                   const uint16_t mfl)
 {
-	struct mc_dprc *dprc = sys_get_unique_handle(FSL_OS_MOD_AIOP_RC);
+	struct mc_dprc *dprc = sys_get_unique_handle(FSL_MOD_AIOP_RC);
 	int err;
 	uint16_t dpni;
 
@@ -797,7 +797,7 @@ int dpni_drv_set_max_frame_length(uint16_t ni_id,
 int dpni_drv_get_max_frame_length(uint16_t ni_id,
                                   uint16_t *mfl)
 {
-	struct mc_dprc *dprc = sys_get_unique_handle(FSL_OS_MOD_AIOP_RC);
+	struct mc_dprc *dprc = sys_get_unique_handle(FSL_MOD_AIOP_RC);
 	int err;
 	uint16_t dpni;
 
@@ -874,7 +874,7 @@ static int get_valid_alignment(uint16_t *alignment, uint16_t buffer_size)
 /* Used to configure DPBP's for dpni's during dpni driver initialization */
 static int configure_bpids_for_dpni(void)
 {
-	struct mc_dprc *dprc = sys_get_unique_handle(FSL_OS_MOD_AIOP_RC);
+	struct mc_dprc *dprc = sys_get_unique_handle(FSL_MOD_AIOP_RC);
 	int dev_count;
 	int i, err;
 	int num_bpids = 0;
@@ -1094,7 +1094,7 @@ static void dpni_drv_raise_linkchange_event(int up, int ni_id)
 static int dpni_drv_evmng_cb(uint8_t generator_id, uint8_t event_id, uint64_t app_ctx, void *event_data)
 {
 	/*Container was updated*/
-	struct mc_dprc *dprc = sys_get_unique_handle(FSL_OS_MOD_AIOP_RC);
+	struct mc_dprc *dprc = sys_get_unique_handle(FSL_MOD_AIOP_RC);
 	struct dpni_link_state link_state;
 	int err;
 	int ni_id;
@@ -1167,7 +1167,7 @@ __COLD_CODE void dpni_drv_free(void)
 
 int dpni_drv_set_multicast_promisc(uint16_t ni_id, int en)
 {
-	struct mc_dprc *dprc = sys_get_unique_handle(FSL_OS_MOD_AIOP_RC);
+	struct mc_dprc *dprc = sys_get_unique_handle(FSL_MOD_AIOP_RC);
 	int err;
 	uint16_t dpni;
 
@@ -1195,7 +1195,7 @@ int dpni_drv_set_multicast_promisc(uint16_t ni_id, int en)
 
 int dpni_drv_get_multicast_promisc(uint16_t ni_id, int *en)
 {
-	struct mc_dprc *dprc = sys_get_unique_handle(FSL_OS_MOD_AIOP_RC);
+	struct mc_dprc *dprc = sys_get_unique_handle(FSL_MOD_AIOP_RC);
 	int err;
 	uint16_t dpni;
 
@@ -1223,7 +1223,7 @@ int dpni_drv_get_multicast_promisc(uint16_t ni_id, int *en)
 
 int dpni_drv_set_unicast_promisc(uint16_t ni_id, int en)
 {
-	struct mc_dprc *dprc = sys_get_unique_handle(FSL_OS_MOD_AIOP_RC);
+	struct mc_dprc *dprc = sys_get_unique_handle(FSL_MOD_AIOP_RC);
 	int err;
 	uint16_t dpni;
 
@@ -1251,7 +1251,7 @@ int dpni_drv_set_unicast_promisc(uint16_t ni_id, int en)
 
 int dpni_drv_get_unicast_promisc(uint16_t ni_id, int *en)
 {
-	struct mc_dprc *dprc = sys_get_unique_handle(FSL_OS_MOD_AIOP_RC);
+	struct mc_dprc *dprc = sys_get_unique_handle(FSL_MOD_AIOP_RC);
 	int err;
 	uint16_t dpni;
 
@@ -1279,7 +1279,7 @@ int dpni_drv_get_unicast_promisc(uint16_t ni_id, int *en)
 int dpni_drv_get_ordering_mode(uint16_t ni_id){
 	uint32_t ep_osc;
 	struct aiop_tile_regs *tile_regs = (struct aiop_tile_regs *)
-					sys_get_handle(FSL_OS_MOD_AIOP_TILE, 1);
+					sys_get_handle(FSL_MOD_AIOP_TILE, 1);
 	struct aiop_ws_regs *wrks_addr = &tile_regs->ws_regs;
 
 
@@ -1299,7 +1299,7 @@ int dpni_drv_get_ordering_mode(uint16_t ni_id){
 static int dpni_drv_set_ordering_mode(uint16_t ni_id, int ep_mode){
 	uint32_t ep_osc;
 	struct aiop_tile_regs *tile_regs = (struct aiop_tile_regs *)
-					sys_get_handle(FSL_OS_MOD_AIOP_TILE, 1);
+					sys_get_handle(FSL_MOD_AIOP_TILE, 1);
 	struct aiop_ws_regs *wrks_addr = &tile_regs->ws_regs;
 
 	/*Mutex lock to avoid race condition while writing to EPID table*/
@@ -1328,11 +1328,11 @@ int dpni_drv_set_exclusive(uint16_t ni_id){
 
 __COLD_CODE int dpni_drv_set_order_scope(uint16_t ni_id, struct dpkg_profile_cfg *key_cfg)
 {
-	struct mc_dprc *dprc = sys_get_unique_handle(FSL_OS_MOD_AIOP_RC);
+	struct mc_dprc *dprc = sys_get_unique_handle(FSL_MOD_AIOP_RC);
 	struct dpni_rx_tc_dist_cfg cfg = {0};
 	struct dpni_attr attr = {0};
 	struct aiop_tile_regs *tile_regs = (struct aiop_tile_regs *)
-						sys_get_handle(FSL_OS_MOD_AIOP_TILE, 1);
+						sys_get_handle(FSL_MOD_AIOP_TILE, 1);
 	struct aiop_ws_regs *wrks_addr = &tile_regs->ws_regs;
 	int err;
 	uint32_t ep_osc;
@@ -1405,7 +1405,7 @@ __COLD_CODE int dpni_drv_set_order_scope(uint16_t ni_id, struct dpkg_profile_cfg
 
 int dpni_drv_get_connected_ni(const int id, const char type[16], uint16_t *aiop_niid, int *state)
 {
-	struct mc_dprc *dprc = sys_get_unique_handle(FSL_OS_MOD_AIOP_RC);
+	struct mc_dprc *dprc = sys_get_unique_handle(FSL_MOD_AIOP_RC);
 	struct dprc_endpoint endpoint1 = {0};
 	struct dprc_endpoint endpoint2 = {0};
 	int err;
@@ -1446,7 +1446,7 @@ int dpni_drv_get_connected_ni(const int id, const char type[16], uint16_t *aiop_
 
 int dpni_drv_get_connected_obj(const uint16_t aiop_niid, int *id, char type[16], int *state)
 {
-	struct mc_dprc *dprc = sys_get_unique_handle(FSL_OS_MOD_AIOP_RC);
+	struct mc_dprc *dprc = sys_get_unique_handle(FSL_MOD_AIOP_RC);
 	struct dprc_endpoint endpoint1 = {0};
 	struct dprc_endpoint endpoint2 = {0};
 	int err;
@@ -1473,7 +1473,7 @@ int dpni_drv_get_connected_obj(const uint16_t aiop_niid, int *id, char type[16],
 
 int dpni_drv_set_rx_buffer_layout(uint16_t ni_id, const struct dpni_drv_buf_layout *layout)
 {
-	struct mc_dprc *dprc = sys_get_unique_handle(FSL_OS_MOD_AIOP_RC);
+	struct mc_dprc *dprc = sys_get_unique_handle(FSL_MOD_AIOP_RC);
 	struct dpni_buffer_layout dpni_layout;
 	int err;
 	uint16_t dpni;
@@ -1511,7 +1511,7 @@ int dpni_drv_set_rx_buffer_layout(uint16_t ni_id, const struct dpni_drv_buf_layo
 
 int dpni_drv_get_rx_buffer_layout(uint16_t ni_id, struct dpni_drv_buf_layout *layout)
 {
-	struct mc_dprc *dprc = sys_get_unique_handle(FSL_OS_MOD_AIOP_RC);
+	struct mc_dprc *dprc = sys_get_unique_handle(FSL_MOD_AIOP_RC);
 	struct dpni_buffer_layout dpni_layout = {0};
 	int err;
 	uint16_t dpni;
@@ -1561,7 +1561,7 @@ int dpni_drv_register_rx_buffer_layout_requirements(uint16_t head_room, uint16_t
 
 int dpni_drv_get_counter(uint16_t ni_id, enum dpni_drv_counter counter, uint64_t *value)
 {
-	struct mc_dprc *dprc = sys_get_unique_handle(FSL_OS_MOD_AIOP_RC);
+	struct mc_dprc *dprc = sys_get_unique_handle(FSL_MOD_AIOP_RC);
 	int err;
 	uint16_t dpni;
 
@@ -1589,7 +1589,7 @@ int dpni_drv_get_counter(uint16_t ni_id, enum dpni_drv_counter counter, uint64_t
 
 int dpni_drv_reset_counter(uint16_t ni_id, enum dpni_drv_counter counter)
 {
-	struct mc_dprc *dprc = sys_get_unique_handle(FSL_OS_MOD_AIOP_RC);
+	struct mc_dprc *dprc = sys_get_unique_handle(FSL_MOD_AIOP_RC);
 	int err;
 	uint16_t dpni;
 
@@ -1656,7 +1656,7 @@ int dpni_drv_get_ni_id(uint16_t dpni_id, uint16_t *ni_id)
 
 int dpni_drv_get_link_state(uint16_t ni_id, struct dpni_drv_link_state *state)
 {
-	struct mc_dprc *dprc = sys_get_unique_handle(FSL_OS_MOD_AIOP_RC);
+	struct mc_dprc *dprc = sys_get_unique_handle(FSL_MOD_AIOP_RC);
 	struct dpni_link_state link_state;
 	int err;
 	uint16_t dpni;
@@ -1687,7 +1687,7 @@ int dpni_drv_get_link_state(uint16_t ni_id, struct dpni_drv_link_state *state)
 
 int dpni_drv_clear_mac_filters(uint16_t ni_id, uint8_t unicast, uint8_t multicast)
 {
-	struct mc_dprc *dprc = sys_get_unique_handle(FSL_OS_MOD_AIOP_RC);
+	struct mc_dprc *dprc = sys_get_unique_handle(FSL_MOD_AIOP_RC);
 	int err;
 	uint16_t dpni;
 
@@ -1716,7 +1716,7 @@ int dpni_drv_clear_mac_filters(uint16_t ni_id, uint8_t unicast, uint8_t multicas
 
 int dpni_drv_clear_vlan_filters(uint16_t ni_id)
 {
-	struct mc_dprc *dprc = sys_get_unique_handle(FSL_OS_MOD_AIOP_RC);
+	struct mc_dprc *dprc = sys_get_unique_handle(FSL_MOD_AIOP_RC);
 	int err;
 	uint16_t dpni;
 
@@ -1743,7 +1743,7 @@ int dpni_drv_clear_vlan_filters(uint16_t ni_id)
 
 int dpni_drv_set_vlan_filters(uint16_t ni_id, int en)
 {
-	struct mc_dprc *dprc = sys_get_unique_handle(FSL_OS_MOD_AIOP_RC);
+	struct mc_dprc *dprc = sys_get_unique_handle(FSL_MOD_AIOP_RC);
 	int err;
 	uint16_t dpni;
 
@@ -1770,7 +1770,7 @@ int dpni_drv_set_vlan_filters(uint16_t ni_id, int en)
 
 int dpni_drv_add_vlan_id(uint16_t ni_id, uint16_t vlan_id)
 {
-	struct mc_dprc *dprc = sys_get_unique_handle(FSL_OS_MOD_AIOP_RC);
+	struct mc_dprc *dprc = sys_get_unique_handle(FSL_MOD_AIOP_RC);
 	int err;
 	uint16_t dpni;
 
@@ -1797,7 +1797,7 @@ int dpni_drv_add_vlan_id(uint16_t ni_id, uint16_t vlan_id)
 
 int dpni_drv_remove_vlan_id(uint16_t ni_id, uint16_t vlan_id)
 {
-	struct mc_dprc *dprc = sys_get_unique_handle(FSL_OS_MOD_AIOP_RC);
+	struct mc_dprc *dprc = sys_get_unique_handle(FSL_MOD_AIOP_RC);
 	int err;
 	uint16_t dpni;
 
@@ -1849,7 +1849,7 @@ int dpni_drv_set_initial_presentation(
 /* This function is not exposed to users */
 int dpni_drv_set_irq_enable(uint16_t ni_id, uint8_t en)
 {
-	struct mc_dprc *dprc = sys_get_unique_handle(FSL_OS_MOD_AIOP_RC);
+	struct mc_dprc *dprc = sys_get_unique_handle(FSL_MOD_AIOP_RC);
 	int err;
 	uint16_t mc_niid;
 	uint16_t dpni;
@@ -1916,7 +1916,7 @@ int dpni_drv_set_irq_enable(uint16_t ni_id, uint8_t en)
 int dpni_drv_set_tx_checksum(uint16_t ni_id,
                              const struct dpni_drv_tx_checksum * const tx_checksum)
 {
-	struct mc_dprc *dprc = sys_get_unique_handle(FSL_OS_MOD_AIOP_RC);
+	struct mc_dprc *dprc = sys_get_unique_handle(FSL_MOD_AIOP_RC);
 	int err;
 	uint16_t dpni;
 	struct dpni_tx_flow_cfg dpni_cfg = { 0 };
@@ -1955,7 +1955,7 @@ int dpni_drv_set_tx_checksum(uint16_t ni_id,
 int dpni_drv_get_tx_checksum(uint16_t ni_id,
                             struct dpni_drv_tx_checksum * const tx_checksum)
 {
-	struct mc_dprc *dprc = sys_get_unique_handle(FSL_OS_MOD_AIOP_RC);
+	struct mc_dprc *dprc = sys_get_unique_handle(FSL_MOD_AIOP_RC);
 	int err;
 	uint16_t dpni;
 	struct dpni_tx_flow_attr dpni_attr = { 0 };

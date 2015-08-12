@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <projectDescription>
-	<name>cmdif_test</name>
+	<name>aiopsl_stack_estimation</name>
 	<comment></comment>
 	<projects>
 		<project location="PARENT-2-PROJECT_LOC/aiopsl">
@@ -32,7 +32,7 @@ aiop_sl		</project>
 				</dictionary>
 				<dictionary>
 					<key>org.eclipse.cdt.make.core.buildLocation</key>
-					<value>${ProjDirPath}/performance</value>
+					<value>${ProjDirPath}/out</value>
 				</dictionary>
 				<dictionary>
 					<key>org.eclipse.cdt.make.core.cleanBuildTarget</key>
@@ -99,47 +99,32 @@ aiop_sl		</project>
 		<link>
 			<name>src/README.txt</name>
 			<type>1</type>
-			<locationURI>PARENT-5-PROJECT_LOC/tests/cmdif/README.txt</locationURI>
+			<locationURI>PARENT-5-PROJECT_LOC/tests/stack_estimation/README.txt</locationURI>
+		</link>
+		<link>
+			<name>src/app_process_packet.c</name>
+			<type>1</type>
+			<locationURI>PARENT-5-PROJECT_LOC/tests/stack_estimation/app_process_packet.c</locationURI>
 		</link>
 		<link>
 			<name>src/apps.c</name>
 			<type>1</type>
-			<locationURI>PARENT-5-PROJECT_LOC/tests/cmdif/apps.c</locationURI>
+			<locationURI>PARENT-5-PROJECT_LOC/tests/stack_estimation/apps.c</locationURI>
 		</link>
 		<link>
 			<name>src/apps.h</name>
 			<type>1</type>
-			<locationURI>PARENT-5-PROJECT_LOC/tests/cmdif/apps.h</locationURI>
+			<locationURI>PARENT-5-PROJECT_LOC/tests/stack_estimation/apps.h</locationURI>
 		</link>
 		<link>
-			<name>src/cmdif_integration_test.c</name>
+			<name>src/apps.h.bak</name>
 			<type>1</type>
-			<locationURI>PARENT-5-PROJECT_LOC/tests/cmdif/cmdif_integration_test.c</locationURI>
-		</link>
-		<link>
-			<name>src/cmdif_test_common.h</name>
-			<type>1</type>
-			<locationURI>PARENT-5-PROJECT_LOC/tests/cmdif/cmdif_test_common.h</locationURI>
+			<locationURI>PARENT-5-PROJECT_LOC/tests/stack_estimation/apps.h.bak</locationURI>
 		</link>
 		<link>
 			<name>src/config.c</name>
 			<type>1</type>
 			<locationURI>PARENT-5-PROJECT_LOC/src/arch/platform/ls1088a/config.c</locationURI>
-		</link>
-		<link>
-			<name>src/ls1088a</name>
-			<type>2</type>
-			<locationURI>virtual:/virtual</locationURI>
-		</link>
-		<link>
-			<name>src/ls1088a/apps_arch.h</name>
-			<type>1</type>
-			<locationURI>PARENT-5-PROJECT_LOC/tests/cmdif/ls1088a/apps_arch.h</locationURI>
-		</link>
-		<link>
-			<name>src/ls1088a/cmdif_test_arch.c</name>
-			<type>1</type>
-			<locationURI>PARENT-5-PROJECT_LOC/tests/cmdif/ls1088a/cmdif_test_arch.c</locationURI>
 		</link>
 	</linkedResources>
 </projectDescription>

@@ -39,7 +39,7 @@ static int dprc_drv_test_evmng_cb(uint8_t generator_id, uint8_t event_id, uint64
 	/*Container was updated*/
 	int err;
 	uint32_t status;
-	struct mc_dprc *dprc = sys_get_unique_handle(FSL_OS_MOD_AIOP_RC);
+	struct mc_dprc *dprc = sys_get_unique_handle(FSL_MOD_AIOP_RC);
 	UNUSED(app_ctx);
 	UNUSED(event_data);
 
@@ -88,7 +88,7 @@ static int dprc_drv_test_evmng_cb(uint8_t generator_id, uint8_t event_id, uint64
 int dprc_drv_test_init(void)
 {
 	int err;
-	struct mc_dprc *dprc = sys_get_unique_handle(FSL_OS_MOD_AIOP_RC);
+	struct mc_dprc *dprc = sys_get_unique_handle(FSL_MOD_AIOP_RC);
 	fsl_print("Running AIOP dprc_drv_test_init()\n");
 	fsl_print("Update IRQ mask to support OBJ CREATED & DESTROYED to simulate Add/Remove event\n");
 
