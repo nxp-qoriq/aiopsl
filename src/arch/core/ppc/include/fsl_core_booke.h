@@ -38,10 +38,9 @@
 #define __FSL_CORE_BOOKE_H
 
 #include "fsl_types.h"
+#include "fsl_core_spec.h"
 
-#define core_dcache_enable
 #define core_icache_enable      booke_icache_enable
-#define core_dcache_disable     
 #define core_icache_disable     booke_icache_disable
 #define core_get_id             booke_get_id
 #define core_test_and_set       booke_test_and_set
@@ -511,7 +510,6 @@ void booke_set_spr_HDBCR2(uint32_t newvalue);
 uint32_t booke_get_spr_HDBCR7(void);
 void booke_set_spr_HDBCR7(uint32_t newvalue);
 
-#ifdef CORE_E200
 /* E200-AIOP special regs */
 // Number of tasks as they defined by CTSCSR register.
 #define CTSCSR_ENABLE 		(0x80000000)
@@ -520,15 +518,11 @@ void booke_set_spr_HDBCR7(uint32_t newvalue);
 #define CTSCSR_4_TASKS 		(0x02000000)
 #define CTSCSR_8_TASKS 		(0x03000000)
 #define CTSCSR_16_TASKS 	(0x04000000)
-#define CTSCSR_TASKS_MASK 	(0x0f000000)
+#define CTSCSR_TASKS_MASK (CTSCSR_2_TASKS | CTSCSR_4_TASKS | CTSCSR_8_TASKS | CTSCSR_16_TASKS)
 
 uint32_t booke_get_CTSCSR0(void);           /* [464]  CTS gen control and status reg 0. */
 void booke_set_CTSCSR0(uint32_t newvalue);  /* [464]  CTS gen control and status reg 0. */
-uint32_t booke_get_CTSTWS(void);            /* [467]  CTS Task Watchdog Status Register. */
-void booke_set_CTSTWS(uint32_t newvalue);   /* [467]  CTS Task Watchdog Status Register. */
-uint32_t booke_get_TASKSCR0(void);          /* [476]  Task Control and Status Register 0 */
 
-#endif /* CORE_E200 */
 
 /** @} */ /* end of booke_init_grp group */
 /** @} */ /* end of booke_grp group */
