@@ -8,6 +8,8 @@ Table:
 	* Moved rule_create_or_replace to be an inline functions.
 	* Added table_hw_get_time_unit() functions
 	* Added timestamp accuracy parameter per table
+	* Changed result fields to data instead of opaque, reference pointer and chaining.
+	* Added t_tbl_id and t_rule_id
 
 
 LDPAA AIOP SERVICE LAYER LDPAA-AIOP-SL-v1088_ENG_0.1 Change Log

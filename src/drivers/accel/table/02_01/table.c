@@ -592,7 +592,7 @@ int table_calc_num_entries_per_rule(uint16_t type, uint8_t key_size){
 
 
 int table_lookup_by_keyid_default_frame_wrp(enum table_hw_accel_id acc_id,
-					    uint16_t table_id,
+					    t_tbl_id table_id,
 					    uint8_t keyid,
 					    struct table_lookup_result
 						*lookup_result)
@@ -607,7 +607,7 @@ int table_rule_create_wrp(enum table_hw_accel_id acc_id,
 			  t_tbl_id table_id,
 			  struct table_rule *rule,
 			  uint8_t key_size,
-			  uint64_t *rule_id)
+			  t_rule_id *rule_id)
 
 {
 
