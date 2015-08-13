@@ -48,4 +48,18 @@ void booke_set_CTSTWS(uint32_t newvalue);   /* [467]  CTS Task Watchdog Status R
 uint32_t booke_get_TASKSCR0(void);          /* [476]  Task Control and Status Register 0 */
 
 
+uint32_t booke_get_CTSCSR0(void);           /* [464]  CTS gen control and status reg 0. */
+void booke_set_CTSCSR0(uint32_t newvalue);  /* [464]  CTS gen control and status reg 0. */
+
+
+/* E200-AIOP special regs */
+// Number of tasks as they defined by CTSCSR register.
+#define CTSCSR_ENABLE 		(0x80000000)
+#define CTSCSR_1_TASKS 		(0x00000000)  
+#define CTSCSR_2_TASKS 		(0x01000000)
+#define CTSCSR_4_TASKS 		(0x02000000)
+#define CTSCSR_8_TASKS 		(0x03000000)
+#define CTSCSR_16_TASKS 	(0x04000000)
+#define CTSCSR_TASKS_MASK (CTSCSR_2_TASKS | CTSCSR_4_TASKS | CTSCSR_8_TASKS | CTSCSR_16_TASKS)
+
 #endif /* __FSL_CORE_SPEC_H */
