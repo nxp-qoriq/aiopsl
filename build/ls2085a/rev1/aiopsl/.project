@@ -1180,6 +1180,11 @@
 			<locationURI>PARENT-4-PROJECT_LOC/src/arch/core/ppc/booke_irq.c</locationURI>
 		</link>
 		<link>
+			<name>aiop_sl/arch/core/ppc/e200_z490</name>
+			<type>2</type>
+			<locationURI>virtual:/virtual</locationURI>
+		</link>
+		<link>
 			<name>aiop_sl/arch/core/ppc/include</name>
 			<type>2</type>
 			<locationURI>virtual:/virtual</locationURI>
@@ -1733,6 +1738,21 @@
 			<name>aiop_sl/kernel/mem_mng/no_dp_ddr/apps.h</name>
 			<type>1</type>
 			<locationURI>PARENT-4-PROJECT_LOC/src/kernel/mem_mng/no_dp_ddr/apps.h</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/arch/core/ppc/e200_z490/booke_core_arch.c</name>
+			<type>1</type>
+			<locationURI>PARENT-4-PROJECT_LOC/src/arch/core/ppc/e200_z490/booke_core_arch.c</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/arch/core/ppc/e200_z490/fsl_core_arch.h</name>
+			<type>1</type>
+			<locationURI>PARENT-4-PROJECT_LOC/src/arch/core/ppc/e200_z490/fsl_core_arch.h</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/arch/core/ppc/e200_z490/fsl_core_regs_arch.h</name>
+			<type>1</type>
+			<locationURI>PARENT-4-PROJECT_LOC/src/arch/core/ppc/e200_z490/fsl_core_regs_arch.h</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/arch/core/ppc/include/fsl_core_booke.h</name>
