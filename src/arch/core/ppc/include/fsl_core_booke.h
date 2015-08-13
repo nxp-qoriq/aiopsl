@@ -38,7 +38,7 @@
 #define __FSL_CORE_BOOKE_H
 
 #include "fsl_types.h"
-#include "fsl_core_spec.h"
+#include "fsl_core_arch.h"
 
 #define core_icache_enable      booke_icache_enable
 #define core_icache_disable     booke_icache_disable

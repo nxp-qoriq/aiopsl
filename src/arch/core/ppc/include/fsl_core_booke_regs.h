@@ -37,7 +37,7 @@
 #ifndef __FSL_CORE_BOOKE_REGS_H
 #define __FSL_CORE_BOOKE_REGS_H
 
-#include "fsl_core_spec_regs.h"
+#include "fsl_core_regs_arch.h"
 
 /**************************************************************************//**
  @Group         booke_id BOOKE Application Programming Interface

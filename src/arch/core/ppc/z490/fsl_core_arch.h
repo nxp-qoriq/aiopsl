@@ -25,7 +25,7 @@
  */
 
 /**************************************************************************//**
- @File          fsl_core_spec.h
+ @File          fsl_core_arch.h
 
  @Description   BOOKE external definitions prototypes
                 This file is not included by the BOOKE
@@ -35,8 +35,8 @@
                 Specific for E200 z490 core
 *//***************************************************************************/
 
-#ifndef __FSL_CORE_SPEC_H
-#define __FSL_CORE_SPEC_H
+#ifndef __FSL_CORE_ARCH_H
+#define __FSL_CORE_ARCH_H
 
 #include "fsl_types.h"
 
@@ -62,4 +62,4 @@ void booke_set_CTSCSR0(uint32_t newvalue);  /* [464]  CTS gen control and status
 #define CTSCSR_16_TASKS 	(0x04000000)
 #define CTSCSR_TASKS_MASK (CTSCSR_2_TASKS | CTSCSR_4_TASKS | CTSCSR_8_TASKS | CTSCSR_16_TASKS)
 
-#endif /* __FSL_CORE_SPEC_H */
+#endif /* __FSL_CORE_ARCH_H */

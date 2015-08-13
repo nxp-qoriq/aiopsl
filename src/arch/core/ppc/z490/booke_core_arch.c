@@ -1,6 +1,6 @@
 /***************************************************************************//*
 
- @File          booke_core_spec.c
+ @File          booke_core_arch.c
 
  @Description   Upper Level ionterfaces to the ASM functions
                 Specific for E200 z490 core

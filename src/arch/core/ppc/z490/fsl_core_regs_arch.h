@@ -25,7 +25,7 @@
  */
 
 /**************************************************************************//**
- @File          fsl_core_spec_regs.h
+ @File          fsl_core_regs_arch.h
 
  @Description   BOOKE external definitions prototypes
                 This file is not included by the BOOKE
@@ -34,8 +34,8 @@
                 by user and other modules.
 *//***************************************************************************/
 
-#ifndef __FSL_CORE_SPEC_REGS_H
-#define __FSL_CORE_SPEC_REGS_H
+#ifndef __FSL_CORE_REGS_ARCH_H
+#define __FSL_CORE_REGS_ARCH_H
 
 /*******************************************************
 * interrupt vector
@@ -68,4 +68,4 @@
 #define TASKSCR0    476     /* Task Control and Status Register 0 */
 
 
-#endif /* __FSL_CORE_SPEC_REGS_H */
+#endif /* __FSL_CORE_REGS_ARCH_H */
