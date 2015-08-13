@@ -41,13 +41,7 @@
 
 #define CORE_IS_BIG_ENDIAN
 
-#if defined(CORE_E200)
 #include "fsl_core_booke.h"
 #define CORE_CACHELINE_SIZE     32
-#else
-#error "core not defined"
-#endif /* defined(CORE_E300) || ... */
-
-
 
 #endif /* __FSL_CORE_PPC_H */
