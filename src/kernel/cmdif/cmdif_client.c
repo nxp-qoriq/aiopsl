@@ -30,7 +30,7 @@
 #include "common/fsl_string.h"
 #include "fsl_malloc.h"
 #include "general.h"
-#include "sys.h"
+#include "fsl_sys.h"
 #include "fsl_dbg.h"
 #include "cmdif_client.h"
 #include "cmdif.h"

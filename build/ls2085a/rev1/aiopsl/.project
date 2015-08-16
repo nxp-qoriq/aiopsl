@@ -715,6 +715,11 @@
 			<locationURI>PARENT-4-PROJECT_LOC/src/include/kernel/fsl_spinlock.h</locationURI>
 		</link>
 		<link>
+			<name>aiop_sl/include/kernel/fsl_system.h</name>
+			<type>1</type>
+			<locationURI>PARENT-4-PROJECT_LOC/src/kernel/include/fsl_system.h</locationURI>
+		</link>
+		<link>
 			<name>aiop_sl/include/kernel/fsl_time.h</name>
 			<type>1</type>
 			<locationURI>PARENT-4-PROJECT_LOC/src/include/kernel/fsl_time.h</locationURI>
@@ -963,11 +968,6 @@
 			<name>aiop_sl/kernel/include/fsl_sys.h</name>
 			<type>1</type>
 			<locationURI>PARENT-4-PROJECT_LOC/src/kernel/include/fsl_sys.h</locationURI>
-		</link>
-		<link>
-			<name>aiop_sl/kernel/include/sys.h</name>
-			<type>1</type>
-			<locationURI>PARENT-4-PROJECT_LOC/src/kernel/include/sys.h</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/kernel/log/log.c</name>

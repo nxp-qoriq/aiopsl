@@ -25,7 +25,7 @@
  */
 
 #include "fsl_types.h"
-#include "sys.h"
+#include "fsl_sys.h"
 #include "fsl_gen.h"
 #include "fsl_errors.h"
 #include "fsl_sys.h"

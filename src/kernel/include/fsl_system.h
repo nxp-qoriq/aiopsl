@@ -24,29 +24,27 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef __SYS_H
-#define __SYS_H
+/*
+ * This file can't be merged into fsl_sys.h because fsl_system.h needs 
+ * fsl_platform.h and fsl_platform.h needs fsl_sys.h
+ */
 
-#include "general.h"
-#include "fsl_aiop_common.h"
-#include "fsl_types.h"
-#include "fsl_errors.h"
-#include "fsl_list.h"
-#include "fsl_dbg.h"
-#include "fsl_smp.h"
-#include "fsl_platform.h"
-#include "fsl_malloc.h"
-#include "fsl_sys.h"
-#include "fsl_log.h"
-#include "fsl_mem_mng.h"
+#ifndef __FSL_SYSTEM_H
+#define __FSL_SYSTEM_H
 
-#define PRE_CONSOLE_BUF_SIZE    (4 * 1024)
+ #include "general.h"
+ #include "fsl_aiop_common.h"
+ #include "fsl_types.h"
+ #include "fsl_errors.h"
+ #include "fsl_list.h"
+ #include "fsl_dbg.h"
+ #include "fsl_smp.h"
+ #include "fsl_platform.h"
+ #include "fsl_malloc.h"
+ #include "fsl_sys.h"
+ #include "fsl_log.h"
+ #include "fsl_mem_mng.h"
 
-#define __ERR_MODULE__  MODULE_UNKNOWN
-
-#define SYS_TILE_MASTERS_MASK (0x00000001)
-#define SYS_CLUSTER_MASTER_MASK (0x00001111)
-#define SYS_BOOT_SYNC_FLAG_DONE (1)
 
 typedef struct t_system {
 	/* Memory management variables */
@@ -81,15 +79,7 @@ typedef struct t_system {
 
 extern t_system sys;
 
-void fill_platform_parameters(struct platform_param *platform_param);
-
-/* Internal system routines */
-int     sys_init_memory_management(void);
-int     sys_free_memory_management(void);
-int     sys_init_multi_processing(void);
-void    sys_free_multi_processing(void);
-
-inline void	sys_yield(void)
+inline void system_yield(void)
 {
 	extern t_system sys;
 
@@ -97,5 +87,4 @@ inline void	sys_yield(void)
 		__e_hwacceli(YIELD_ACCEL_ID); /* Yield */
 	}
 }
-
-#endif /* __SYS_H */
+#endif /* __FSL_SYSTEM_H */

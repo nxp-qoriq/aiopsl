@@ -32,7 +32,7 @@
 #include "fsl_smp.h"
 #include "fsl_console.h"
 #include "fsl_mem_mng.h"
-#include "sys.h"
+#include "fsl_system.h"
 #include "fsl_log.h"
 #include "fsl_stdlib.h"
 #include "fsl_string.h"

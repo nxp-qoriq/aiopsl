@@ -32,7 +32,7 @@
 #include "fsl_ldpaa.h"
 #include "fsl_io.h"
 #include "fsl_fdma.h"
-#include "sys.h"
+#include "fsl_sys.h"
 #include "fsl_malloc.h"
 #include "fsl_dbg.h"
 #include "fsl_cdma.h"

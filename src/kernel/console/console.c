@@ -31,7 +31,7 @@
 #include "fsl_malloc.h"
 #include "fsl_console.h"
 #include "fsl_log.h"
-#include "sys.h"
+#include "fsl_system.h"
 
 /*****************************************************************************/
 __COLD_CODE int sys_register_console(fsl_handle_t h_console_dev,

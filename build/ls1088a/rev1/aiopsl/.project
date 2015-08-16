@@ -970,9 +970,9 @@
 			<locationURI>PARENT-4-PROJECT_LOC/src/kernel/include/fsl_sys.h</locationURI>
 		</link>
 		<link>
-			<name>aiop_sl/kernel/include/mem_mng_util.h</name>
+			<name>aiop_sl/kernel/include/fsl_system.h</name>
 			<type>1</type>
-			<locationURI>PARENT-4-PROJECT_LOC/src/kernel/include/mem_mng_util.h</locationURI>
+			<locationURI>PARENT-4-PROJECT_LOC/src/kernel/include/fsl_system.h</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/kernel/log/log.c</name>

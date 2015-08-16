@@ -26,7 +26,7 @@
 
 #include "common/fsl_string.h"
 #include "fsl_malloc.h"
-#include "sys.h"
+#include "fsl_system.h"
 #include "fsl_io_ccsr.h"
 #include "fsl_cmgw.h"
 #include "fsl_sl_dprc_drv.h"
@@ -39,6 +39,7 @@
 extern const uint8_t AIOP_INIT_DATA[];
 extern struct platform_app_params g_app_params;
 extern struct aiop_init_info g_init_data;
+
 /*********************************************************************/
 extern int ep_mng_init(void);             extern void ep_mng_free(void);
 extern int time_init();                   extern void time_free();
