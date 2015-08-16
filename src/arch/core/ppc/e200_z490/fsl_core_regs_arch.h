@@ -25,23 +25,47 @@
  */
 
 /**************************************************************************//**
+ @File          fsl_core_regs_arch.h
 
- @File          fsl_core_ppc.h
-
- @Description   Core API for PowerPC cores
-
-                These routines must be implemented by each specific PowerPC
-                core driver.
+ @Description   BOOKE external definitions prototypes
+                This file is not included by the BOOKE
+                source file as it is an assembly file. It is used
+                only for prototypes exposure, for inclusion
+                by user and other modules.
 *//***************************************************************************/
-#ifndef __FSL_CORE_PPC_H
-#define __FSL_CORE_PPC_H
 
-#include "fsl_soc.h"
+#ifndef __FSL_CORE_REGS_ARCH_H
+#define __FSL_CORE_REGS_ARCH_H
+
+/*******************************************************
+* interrupt vector
+*
+* The handler is fixed to this address.
+********************************************************/
+#define CRITICAL_INTR               0x00
+#define MACHINE_CHECK_INTR          0x10
+#define DATA_STORAGE_INTR           0x20
+#define INSTRUCTION_STORAGE_INTR    0x30
+#define EXTERNAL_INTR               0x40
+#define ALIGNMENT_INTR              0x50
+#define PROGRAM_INTR                0x60
+#define PERF_MONITOR_INTR           0x70
+#define SYSTEM_CALL_INTR            0x80
+#define DEBUG_INTR                  0x90
+#define EFPU_DATA_INTR              0xa0
+#define EFPU_ROUND_INTR             0xb0
+#define EFPU_NA_INTR                0xc0
+#define CTS_WD_INTR                 0xf0
+
+/*
+ *
+ * Implementation-Specific SPRs (by SPR Abbreviation)
+ *
+ */
+#define CTSCSR0     464     /* CTS General Control and Status Registers 0 */
+#define CTSTWS      467     /* CTS Task Watchdog Status Register */
+
+#define TASKSCR0    476     /* Task Control and Status Register 0 */
 
 
-#define CORE_IS_BIG_ENDIAN
-
-#include "fsl_core_booke.h"
-#define CORE_CACHELINE_SIZE     32
-
-#endif /* __FSL_CORE_PPC_H */
+#endif /* __FSL_CORE_REGS_ARCH_H */

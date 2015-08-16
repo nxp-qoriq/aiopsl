@@ -37,6 +37,7 @@
 #ifndef __FSL_CORE_BOOKE_REGS_H
 #define __FSL_CORE_BOOKE_REGS_H
 
+#include "fsl_core_regs_arch.h"
 
 /**************************************************************************//**
  @Group         booke_id BOOKE Application Programming Interface
@@ -213,25 +214,6 @@
 #define BOOKE_PAGESZ_512GB      29
 #define BOOKE_PAGESZ_1TB        30
 
-/*******************************************************
-* interrupt vector
-*
-* The handler is fixed to this address.
-********************************************************/
-#define CRITICAL_INTR               0x00
-#define MACHINE_CHECK_INTR          0x10
-#define DATA_STORAGE_INTR           0x20
-#define INSTRUCTION_STORAGE_INTR    0x30
-#define EXTERNAL_INTR               0x40
-#define ALIGNMENT_INTR              0x50
-#define PROGRAM_INTR                0x60
-#define PERF_MONITOR_INTR           0x70
-#define SYSTEM_CALL_INTR            0x80
-#define DEBUG_INTR                  0x90
-#define EFPU_DATA_INTR              0xa0
-#define EFPU_ROUND_INTR             0xb0
-#define EFPU_NA_INTR                0xc0
-#define CTS_WD_INTR                 0xf0
 
 /*
  *
@@ -313,14 +295,11 @@
 #define MCSRR1      571     /* Machine check save/restore register 1 */
 #define MMUCFG      1015    /* MMU configuration register */
 #define MMUCSR0     1012    /* MMU control and status register 0 1 */
-#define CTSCSR0     464     /* CTS General Control and Status Registers 0 */
-#define CTSTWS      467     /* CTS Task Watchdog Status Register */
 
 #define TLB0CFG     688     /* TLB0CFG register 0. */
 #define TLB1CFG     689     /* TLB1CFG register 1. */
 #define TLB0PS      344     /* TLB0PS register 0. */
 #define TLB1PS      345     /* TLB1PS register 1. */
-#define TASKSCR0    476     /* Task Control and Status Register 0 */
 #define PID0        48      /* Process ID register 0. */
 #define PID1        633     /* Process ID register 1 1 */
 #define PID2        634     /* Process ID register 2 1 */

@@ -46,9 +46,6 @@
  @{
 *//***************************************************************************/
 
-#define CORE_E200
-#define CORE_E200_Z490
-
 #define INTG_MAX_NUM_OF_CORES   4
 #define INTG_MAX_NUM_OF_CLUSTR  1
 
