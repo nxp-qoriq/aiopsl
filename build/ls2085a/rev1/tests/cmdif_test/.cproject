@@ -113,6 +113,7 @@
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../../src/arch/platform/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../../src/arch/platform/ls2085a&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../../src/arch/core/ppc&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../../src/arch/core/ppc/e200_z490&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../../src/arch/core/ppc/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../../src/drivers/&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../../src/drivers/accel/cdma/01_01&quot;"/>
@@ -324,6 +325,7 @@
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../../src/arch&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../../src/arch/core/ppc/platform&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../../src/arch/core/ppc/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../../src/arch/core/ppc/e200_z490&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../../src/include/kernel&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../../src/drivers/mc/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../../src/include&quot;"/>
@@ -384,6 +386,7 @@
 								<option id="com.freescale.ppc.toolchain.assembler.base.input.include.1721356996" name="User Path (-i)" superClass="com.freescale.ppc.toolchain.assembler.base.input.include" valueType="includePath">
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../../src/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../../src/arch/core/ppc&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../../src/arch/core/ppc/e200_z490&quot;"/>
 								</option>
 								<option id="com.freescale.ppc.toolchain.assembler.base.general.gnuCompatible.1256308091" name="GNU Compatible Syntax" superClass="com.freescale.ppc.toolchain.assembler.base.general.gnuCompatible" value="true" valueType="boolean"/>
 								<option id="com.freescale.ppc.toolchain.assembler.base.general.otherflags.1559327920" name="Other Flags" superClass="com.freescale.ppc.toolchain.assembler.base.general.otherflags" value="-ppc_asm_to_vle" valueType="string"/>

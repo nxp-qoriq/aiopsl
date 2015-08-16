@@ -135,6 +135,7 @@
 								<option id="com.freescale.ppc.toolchain.compiler.base.options.speedSpace.352722340" name="Speed vs. Size" superClass="com.freescale.ppc.toolchain.compiler.base.options.speedSpace" value="com.freescale.ppc.toolchain.compiler.base.optionCategory.optimization.speedspace.speed" valueType="enumerated"/>
 								<option id="com.freescale.ppc.toolchain.compiler.base.input.include.system.1031676032" name="System Path (-I- -I)" superClass="com.freescale.ppc.toolchain.compiler.base.input.include.system" valueType="includePath">
 									<listOptionValue builtIn="false" value="&quot;${AIOPToolsBaseDir}/AIOP_Support/ewl/EWL_C/include/aiop&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/arch/core/ppc/e200_z490&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${AIOPToolsBaseDir}/AIOP_Support/ewl/EWL_C/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${AIOPToolsBaseDir}/AIOP_Support/ewl/EWL_Runtime/Runtime_AIOP/Include&quot;"/>
 								</option>
@@ -258,12 +259,16 @@
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/arch/core/ppc&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/arch/core/ppc/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/arch/core/ppc/e200_z490&quot;"/>
 								</option>
 								<option id="com.freescale.ppc.toolchain.assembler.base.general.gnuCompatible.355640920" name="GNU Compatible Syntax" superClass="com.freescale.ppc.toolchain.assembler.base.general.gnuCompatible" value="true" valueType="boolean"/>
 								<option id="com.freescale.ppc.toolchain.assembler.base.general.otherflags.1180182815" name="Other Flags" superClass="com.freescale.ppc.toolchain.assembler.base.general.otherflags" value="-ppc_asm_to_vle" valueType="string"/>
 								<inputType id="com.freescale.ppc.toolchain.assembler.base.input.650708582" name="AIOP Assembler Input" superClass="com.freescale.ppc.toolchain.assembler.base.input"/>
 							</tool>
-							<tool command="&quot;${AIOPToolsDir}/ldaiop&quot;" commandLinePattern="${COMMAND} -dis ${FLAGS} ${INPUTS}" errorParsers="" id="com.freescale.ppc.toolchain.disassembler.236001321" name="Disassembler" superClass="com.freescale.ppc.toolchain.disassembler"/>
+							<tool command="&quot;${AIOPToolsDir}/ldaiop&quot;" commandLinePattern="${COMMAND} -dis ${FLAGS} ${INPUTS}" errorParsers="" id="com.freescale.ppc.toolchain.disassembler.236001321" name="Disassembler" superClass="com.freescale.ppc.toolchain.disassembler">
+								<option id="com.freescale.ppc.toolchain.disassembler.base.settings.src.1370029930" name="Show Source Code" superClass="com.freescale.ppc.toolchain.disassembler.base.settings.src" value="true" valueType="boolean"/>
+								<option id="com.freescale.ppc.toolchain.disassembler.base.settings.extm.1539681466" name="Show Extended Mnemonics" superClass="com.freescale.ppc.toolchain.disassembler.base.settings.extm" value="true" valueType="boolean"/>
+							</tool>
 							<tool command="&quot;${AIOPToolsDir}/ccaiop&quot;" commandLinePattern="${COMMAND} ${FLAGS} ${OUTPUT_FLAG} ${INPUTS}" errorParsers="" id="com.freescale.ppc.toolchain.preprocessor.1334668711" name="Preprocessor" superClass="com.freescale.ppc.toolchain.preprocessor"/>
 						</toolChain>
 					</folderInfo>
