@@ -55,6 +55,25 @@
 *//***************************************************************************/
 
 /**************************************************************************//**
+@Group	TABLE_MEMORY_MAP Table Memory Map Defines
+@{
+*//***************************************************************************/
+/** CTLU Memory Map Base Address */
+#define TABLE_MEMMAP_CTLU_BASE_ADDR			0x020B8000
+
+/** MFLU Memory Map Base Address */
+#define TABLE_MEMMAP_MFLU_BASE_ADDR			0x020B0000
+
+/** IOP_CTIMESTAMP_WINDOW offset from base address */
+#define TABLE_MEMMAP_TIMESTAMP_WINDOW_BASE_OFFSET	0x00001004
+
+/** IOP_CTIMESTAMP_WINDOW TWINDOW field mask */
+#define TABLE_MEMMAP_TIMESTAMP_WINDOW_FIELD_MASK	0x0000001F
+
+/** @} */ /* end of TABLE_MEMORY_MAP */
+
+
+/**************************************************************************//**
 @Group	TABLE_RULE_RESULT_CONSTANTS Table Rule Result Constants
 @{
 *//***************************************************************************/
@@ -69,6 +88,7 @@
 #define TABLE_OLD_RESULT_RESERVED2_SPACE	28
 
 /** @} */ /* end of TABLE_RULE_RESULT_CONSTANTS */
+
 
 /**************************************************************************//**
 @Group	TABLE_ENTRY_MACROS Table Entry Macros
@@ -915,7 +935,7 @@ struct table_acc_context {
 		miss result returned.
 *//***************************************************************************/
 int table_query_debug(enum table_hw_accel_id acc_id,
-		      uint16_t table_id,
+		      t_tbl_id table_id,
 		      struct table_params_query_output_message *output);
 
 /**************************************************************************//**
@@ -1097,7 +1117,7 @@ int table_calc_num_entries_per_rule(uint16_t type, uint8_t key_size);
 *//***************************************************************************/
 int table_lookup_by_keyid_default_frame_wrp(
 				        enum table_hw_accel_id acc_id,
-					uint16_t table_id,
+					t_tbl_id table_id,
 					uint8_t keyid,
 					struct table_lookup_result
 					       *lookup_result);
@@ -1130,10 +1150,10 @@ int table_lookup_by_keyid_default_frame_wrp(
 @Cautions	This function may result in a fatal error.
 *//***************************************************************************/
 int table_rule_create_wrp(enum table_hw_accel_id acc_id,
-			  uint16_t table_id,
+			  t_tbl_id table_id,
 			  struct table_rule *rule,
 			  uint8_t key_size,
-			  uint64_t *rule_id);
+			  t_rule_id *rule_id);
 
 /**************************************************************************//**
 @Function	table_rule_delete_wrp
@@ -1168,7 +1188,7 @@ int table_rule_create_wrp(enum table_hw_accel_id acc_id,
 @Cautions	This function may result in a fatal error.
 *//***************************************************************************/
 int table_rule_delete_wrp(enum table_hw_accel_id acc_id,
-			  uint16_t table_id,
+			  t_tbl_id table_id,
 			  union table_key_desc *key_desc,
 			  uint8_t key_size,
 			  struct table_result *result);

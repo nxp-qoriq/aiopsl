@@ -191,7 +191,6 @@ int table_rule_create_or_replace(enum table_hw_accel_id acc_id,
 }
 
 
-
 inline int table_rule_replace_by_ruleid(enum table_hw_accel_id acc_id,
 					t_tbl_id table_id,
 					struct table_ruleid_and_result_desc *rule,
@@ -308,7 +307,6 @@ inline int table_rule_replace(enum table_hw_accel_id acc_id,
 
 	return status;
 }
-
 
 
 inline int table_rule_delete_by_ruleid(enum table_hw_accel_id acc_id,
@@ -500,7 +498,6 @@ inline int table_rule_query_by_ruleid(enum table_hw_accel_id acc_id,
 
 	return status;
 }
-
 
 
 inline int table_rule_query(enum table_hw_accel_id acc_id,
