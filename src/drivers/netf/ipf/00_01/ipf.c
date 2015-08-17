@@ -47,12 +47,12 @@ int ipf_move_remaining_frame(struct ipf_context *ipf_ctx)
 {
 	int32_t	status;
 	struct fdma_amq amq;
-	
+
 	status = fdma_store_default_frame_data();
 	if (status < 0)
 		return status; /* Received packet cannot be stored due to
 				buffer pool depletion (status = (-ENOMEM)).*/
-	
+
 	/* Copy default FD to remaining_FD in IPF ctx */
 	ipf_ctx->rem_fd = *((struct ldpaa_fd *)HWC_FD_ADDRESS);
 
@@ -60,7 +60,7 @@ int ipf_move_remaining_frame(struct ipf_context *ipf_ctx)
 	status = fdma_present_frame_without_segments(&(ipf_ctx->rem_fd),
 						FDMA_PRES_NO_FLAGS, 0,
 						&(ipf_ctx->rem_frame_handle));
-	
+
 	/* Try to store the frame*/
 	if (status == (-EIO)){
 		if (fdma_store_frame_data(ipf_ctx->rem_frame_handle,
@@ -73,7 +73,7 @@ int ipf_move_remaining_frame(struct ipf_context *ipf_ctx)
 	} else {
 		return status;
 	}
-	
+
 	return SUCCESS;
 }
 
@@ -193,7 +193,7 @@ int ipf_move_remaining_frame(struct ipf_context *ipf_ctx)
 				(ipv6_offset + PRC_GET_SEGMENT_ADDRESS());
 		ipv6_hdr->payload_length =
 		(uint16_t)LDPAA_FD_GET_LENGTH(HWC_FD_ADDRESS) - ipv6_offset -
-		ipf_ctx->prc_seg_offset - sizeof(struct ipv6hdr) + 
+		ipf_ctx->prc_seg_offset - sizeof(struct ipv6hdr) +
 		IPV6_FRAGMENT_HEADER_LENGTH;
 
 		if (!(ipf_ctx->flags & IPF_RESTORE_ORIGINAL_FRAGMENTS)){
@@ -228,7 +228,7 @@ int ipf_move_remaining_frame(struct ipf_context *ipf_ctx)
 			ipv6_frag_hdr->next_header = orig_next_header;
 			ipv6_frag_hdr->reserved = 0;
 			ipv6_frag_hdr->offset_and_flags = IPV6_HDR_M_FLAG_MASK;
-			ipv6_frag_hdr->id = (uint16_t)fsl_os_rand();
+			ipv6_frag_hdr->id = (uint16_t)fsl_rand();
 
 			/* replace ip payload length, replace next header,
 			 * insert IPv6 fragment header
@@ -237,7 +237,7 @@ int ipf_move_remaining_frame(struct ipf_context *ipf_ctx)
 			ws_dst_rs = (void *)PRC_GET_SEGMENT_ADDRESS();
 			seg_size_rs = PRC_GET_SEGMENT_LENGTH();
 
-/* Due to the CTLU HW requirement for alignment, presentation address should not 
+/* Due to the CTLU HW requirement for alignment, presentation address should not
  * change */
 /*
 			if ((PRC_GET_SEGMENT_ADDRESS() -
@@ -249,7 +249,7 @@ int ipf_move_remaining_frame(struct ipf_context *ipf_ctx)
 						IPV6_FRAGMENT_HEADER_LENGTH;
 			}
 */
-			
+
 			fdma_replace_default_segment_data(
 				ipv6_offset,
 				(uint16_t)
@@ -261,7 +261,7 @@ int ipf_move_remaining_frame(struct ipf_context *ipf_ctx)
 				ws_dst_rs,
 				seg_size_rs,
 				FDMA_REPLACE_SA_REPRESENT_BIT);
-		
+
 		ipf_ctx->first_frag = 0;
 	} else {
 	/* Not first fragment */
@@ -347,7 +347,7 @@ int ipf_move_remaining_frame(struct ipf_context *ipf_ctx)
 	if (status < 0)
 		return status;/* Last fragment cannot be stored due to
 				buffer pool depletion (status = (-ENOMEM)).*/
-	
+
 	/* Copy remaining_FD to default FD */
 	*((struct ldpaa_fd *)HWC_FD_ADDRESS) = ipf_ctx->rem_fd;
 	/* present fragment + header segment */
@@ -409,7 +409,7 @@ int ipf_split_ipv4_fragment(struct ipf_context *ipf_ctx)
 
 		/* Split remaining frame, put split frame in default FD
 		 * location*/
-		
+
 		/* Due to HW ticket TKT240996 */
 
 		status = fdma_store_frame_data(
@@ -433,7 +433,7 @@ int ipf_split_ipv4_fragment(struct ipf_context *ipf_ctx)
 			status = fdma_present_default_frame();
 
 			ipf_after_split_ipv4_fragment(ipf_ctx);
-				
+
 			return IPF_GEN_FRAG_STATUS_IN_PROCESS;
 		}
 	} else { /* Split according to MTU */
@@ -448,7 +448,7 @@ int ipf_split_ipv4_fragment(struct ipf_context *ipf_ctx)
 
 			/* Split remaining frame, put split frame in default FD
 			 * location*/
-			
+
 			/* Due to HW ticket TKT240996 */
 			status = fdma_store_frame_data(
 					split_frame_params.source_frame_handle,
@@ -492,7 +492,7 @@ int ipf_split_ipv4_fragment(struct ipf_context *ipf_ctx)
 	if (status < 0)
 		return status;/* Last fragment cannot be stored due to
 				buffer pool depletion (status = (-ENOMEM)).*/
-	
+
 	/* Copy remaining_FD to default FD */
 	*((struct ldpaa_fd *)HWC_FD_ADDRESS) = ipf_ctx->rem_fd;
 	/* present fragment + header segment */
@@ -572,7 +572,7 @@ int ipf_split_ipv6_fragment(struct ipf_context *ipf_ctx,
 
 			ipf_after_split_ipv6_fragment(ipf_ctx,
 							last_ext_hdr_size);
-			
+
 			return IPF_GEN_FRAG_STATUS_IN_PROCESS;
 		}
 	} else { /* Split according to MTU */
@@ -733,7 +733,7 @@ int ipf_generate_frag(ipf_ctx_t ipf_context_addr)
 				if (ipv4_hdr->flags_and_offset &
 						IPV4_HDR_D_FLAG_MASK)
 					return IPF_GEN_FRAG_STATUS_DF_SET;
-			/* Check if this is fragmentation of a fragment */	
+			/* Check if this is fragmentation of a fragment */
 				if (ipv4_hdr->flags_and_offset &
 						IPV4_HDR_M_FLAG_MASK)
 					ipf_ctx->flags |= FRAGMENTATION_OF_FRAG;
@@ -796,11 +796,11 @@ int ipf_discard_frame_remainder(ipf_ctx_t ipf_context_addr)
 
 void ipf_context_init(uint32_t flags, uint16_t mtu, ipf_ctx_t ipf_context_addr)
 {
-	
-#ifdef CHECK_ALIGNMENT 	
+
+#ifdef CHECK_ALIGNMENT
 	DEBUG_ALIGN("ipf.c",(uint32_t *)ipf_context_addr, ALIGNMENT_32B);
 #endif
-	
+
 	struct ipf_context *ipf_ctx = (struct ipf_context *)ipf_context_addr;
 
 	ipf_ctx->first_frag = 1;

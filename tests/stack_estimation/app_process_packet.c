@@ -104,7 +104,7 @@ void stack_estimation(void)
 	slab_release(*my_slab, buff);
 	slab_free(my_slab);
 	fsl_print("Test\n");
-	fsl_os_rand();
+	fsl_rand();
 	fsl_get_time_since_epoch_ms(&time_since_epoch);
 	fsl_get_time_ms(&time);
 
