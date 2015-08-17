@@ -1046,7 +1046,8 @@ inline int table_rule_create_or_replace(enum table_hw_accel_id acc_id,
 					t_rule_id *rule_id);
 /* TODO FIX!!!!!!!!*/
 
-
+/* TODO link this documentation to std rule replace documentation for LKP
+ * change */
 /**************************************************************************//**
 @Function	table_rule_replace_by_ruleid
 
@@ -1069,9 +1070,13 @@ inline int table_rule_create_or_replace(enum table_hw_accel_id acc_id,
 @Param[in, out] old_options The replaced rule's options. If null the replaced
 		rule's options will not be returned. If not null, structure
 		should be allocated by the caller to this function.
+		(Please refer to \ref FSL_TABLE_RULE_OPTIONS for more
+		details).
 @Param[in, out] old_timestamp The replaced rule's timestamp. If null the
 		replaced rule's timestamp will not be returned. If not null,
 		structure should be allocated by the caller to this function.
+		Timestamp is not valid unless the rule replaced was created
+		with suitable options. Available through old_options parameter.
 
 @Return		0 on success or negative value on error.
 
@@ -1134,11 +1139,51 @@ inline int table_rule_replace(enum table_hw_accel_id acc_id,
 
 
 /**************************************************************************//**
+@Function	table_rule_query_by_ruleid
+
+@Description	Queries a rule in the table.
+		\n \n This function does not update the matched rule timestamp.
+
+@Param[in]	acc_id ID of the Hardware Table Accelerator that contains
+		the table on which the query will be performed.
+@Param[in]	table_id Table ID.
+@Param[in]	rule_id Rule ID of the rule to be queried.
+@Param[in, out]	result The result of the query. If null the queried
+		rule's result will not be returned. If not null, structure
+		should be allocated by the caller to this function.
+@Param[in, out] options The queried rule's options. If null the queried
+		rule's options will not be returned. If not null, structure
+		should be allocated by the caller to this function.
+		(Please refer to \ref FSL_TABLE_RULE_OPTIONS for more
+		details).
+@Param[in, out]	timestamp Timestamp of the result. If null the queried
+		timestamp result will not be returned. If not null, structure
+		should be allocated by the caller to this function.
+		Timestamp is not valid unless the rule queried for was created
+		with suitable options. Available through options parameter.
+
+
+@Return		0 on success, #TABLE_STATUS_MISS on miss.
+
+@Retval		0 Success.
+@Retval		#TABLE_STATUS_MISS A rule with the same Rule ID is not
+		found in the table.
+
+@Cautions	In this function the task yields.
+*//***************************************************************************/
+inline int table_rule_query_by_ruleid(enum table_hw_accel_id acc_id,
+				      t_tbl_id table_id,
+				      t_rule_id rule_id,
+				      struct table_result *result,
+				      uint8_t *options,
+				      uint32_t *timestamp);
+
+
+/**************************************************************************//**
 @Function	table_rule_query
 
 @Description	Queries a rule in the table.
-		\n \n This function does not update the matched result
-		timestamp.
+		\n \n This function does not update the matched rule timestamp.
 
 @Param[in]	acc_id ID of the Hardware Table Accelerator that contains
 		the table on which the query will be performed.
@@ -1201,10 +1246,10 @@ inline int table_rule_query(enum table_hw_accel_id acc_id,
 @Cautions	In this function the task yields.
 @Cautions	This function may result in a fatal error.
 *//***************************************************************************/
-int table_rule_delete_by_ruleid(enum table_hw_accel_id acc_id,
-				t_tbl_id table_id,
-				t_rule_id rule_id,
-				struct table_result *result);
+inline int table_rule_delete_by_ruleid(enum table_hw_accel_id acc_id,
+				       t_tbl_id table_id,
+				       t_rule_id rule_id,
+				       struct table_result *result);
 
 
 /**************************************************************************//**
@@ -1518,42 +1563,6 @@ int table_get_key_desc(enum table_hw_accel_id acc_id,
 		       t_tbl_id table_id,
 		       struct table_rule_id_desc *rule_id_desc,
 		       union table_key_desc *key_desc);
-
-
-/**************************************************************************//**
-@Function	table_rule_query_by_ruleid
-
-@Description	Queries a rule in the table.
-		\n \n This function does not update the matched result
-		timestamp.
-
-@Param[in]	acc_id ID of the Hardware Table Accelerator that contains
-		the table on which the query will be performed.
-@Param[in]	table_id Table ID.
-@Param[in]	rule_id_desc Rule ID of the rule to be queried. The
-		structure pointed by this pointer must be in the task's
-		workspace and must be aligned to 16B boundary.
-@Param[out]	result The result of the query. Structure should be allocated
-		by the caller to this function.
-@Param[out]	timestamp Timestamp of the result. Timestamp is not valid
-		unless the rule queried for was created with suitable options
-		(Please refer to \ref FSL_TABLE_RULE_OPTIONS for more
-		details). Must be allocated by the caller to this function.
-
-@Return		0 on success, #TABLE_STATUS_MISS on miss.
-
-@Retval		0 Success.
-@Retval		#TABLE_STATUS_MISS A rule with the same Rule ID is not
-		found in the table.
-
-@Cautions	In this function the task yields.
-@Cautions	This function may result in a fatal error.
-*//***************************************************************************/
-int table_rule_query_by_ruleid(enum table_hw_accel_id acc_id,
-			       t_tbl_id table_id,
-			       struct table_rule_id_desc *rule_id_desc,
-			       struct table_result *result,
-			       uint32_t *timestamp);
 
 #endif //REV2_RULEID
 

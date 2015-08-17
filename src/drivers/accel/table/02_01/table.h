@@ -73,15 +73,6 @@
 /** @} */ /* end of TABLE_MEMORY_MAP */
 
 /**************************************************************************//**
-@Group	TABLE_RULE_CONSTANTS Table Rule Constants
-@{
-*//***************************************************************************/
-/** Uses for masking of opaque1 & opaque2 valid bits*/
-#define TABLE_RULE_STDY_MASK			0xC0
-
-/** @} */ /* end of TABLE_RULE_CONSTANTS */
-
-/**************************************************************************//**
 @Group	TABLE_RULE_RESULT_CONSTANTS Table Rule Result Constants
 @{
 *//***************************************************************************/
@@ -326,6 +317,16 @@
 #define TABLE_RULE_DELETE_RULEID_KEYSIZE		0x20
 
 /** @} */ /* end of TABLE_RULE_DELETE */
+
+
+/**************************************************************************//**
+@Group	TABLE_RULE_QUERY Table Rule Query specific constants
+@{
+*//***************************************************************************/
+	/** Table rule query by rule ID key size */
+#define TABLE_RULE_QUERY_RULEID_KEYSIZE		0x20
+
+/** @} */ /* end of TABLE_RULE_QUERY */
 
 /**************************************************************************//**
 @Group	TABLE_STATUS Status returned to calling function

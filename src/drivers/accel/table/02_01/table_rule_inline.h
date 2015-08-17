@@ -248,7 +248,8 @@ inline int table_rule_replace_by_ruleid(enum table_hw_accel_id acc_id,
 
 		if(old_options)
 			*old_options =
-			    out_msg.stdy_and_reserved & TABLE_RULE_STDY_MASK;
+			    out_msg.stdy_and_reserved & 
+			    TABLE_ENTRY_STDY_FIELD_MASK;
 		if(old_timestamp)
 			*old_timestamp = out_msg.timestamp;
 	}
@@ -420,11 +421,12 @@ inline int table_rule_delete(enum table_hw_accel_id acc_id,
 	return status;
 }
 
-/* TODO IMPLEMENT / API*/
+
 inline int table_rule_query_by_ruleid(enum table_hw_accel_id acc_id,
 				      t_tbl_id table_id,
-				      struct table_rule_id_desc *rule_id_desc,
+				      t_rule_id rule_id,
 				      struct table_result *result,
+				      uint8_t *options,
 				      uint32_t *timestamp)
 {
 #ifdef CHECK_ALIGNMENT 	
@@ -432,14 +434,22 @@ inline int table_rule_query_by_ruleid(enum table_hw_accel_id acc_id,
 #endif
 
 	int32_t status;
+	struct table_rule_id_desc rule_id_desc __attribute__((aligned(16)));
 	struct table_entry entry __attribute__((aligned(16)));
+
+	rule_id_desc.rule_id = rule_id;
 	/* Prepare HW context for TLU accelerator call */
 	uint32_t arg3 = table_id;
 	uint32_t arg2 = (uint32_t)&entry;
 	uint8_t entry_type;
-	arg3 = __e_rlwimi(arg3, 0x20, 16, 0, 15);
-	arg2 = __e_rlwimi(arg2, (uint32_t)rule_id_desc, 16, 0, 15);
-	__stqw(TABLE_RULE_QUERY_BY_RULEID_MTYPE, arg2, arg3, 0, HWC_ACC_IN_ADDRESS, 0);
+	arg3 = __e_rlwimi(arg3, TABLE_RULE_QUERY_RULEID_KEYSIZE, 16, 0, 15);
+	arg2 = __e_rlwimi(arg2, ((uint32_t)(&rule_id_desc)), 16, 0, 15);
+	__stqw(TABLE_RULE_QUERY_BY_RULEID_MTYPE,
+	       arg2,
+	       arg3,
+	       0,
+	       HWC_ACC_IN_ADDRESS,
+	       0);
 
 	/* Call Table accelerator */
 	__e_hwaccel(acc_id);
@@ -447,32 +457,45 @@ inline int table_rule_query_by_ruleid(enum table_hw_accel_id acc_id,
 	/* get HW status */
 	status = *((int32_t *)HWC_ACC_OUT_ADDRESS);
 
+	/* Status Handling */
 	if (status == TABLE_HW_STATUS_SUCCESS) {
+		/* Copy options if needed */
+		if (options) {
+			*options = entry.type & TABLE_ENTRY_STDY_FIELD_MASK;
+		}
+
+		/* Optimization */
+		if (!result & !timsestamp)
+			return status;
+
 		/* Copy result and timestamp */
 		entry_type = entry.type & TABLE_ENTRY_ENTYPE_FIELD_MASK;
 		if (entry_type == TABLE_ENTRY_ENTYPE_EME16) {
-			*timestamp = entry.body.eme16.timestamp;
 			/* STQW optimization is not done here so we do not force
 			   alignment */
-			*result = entry.body.eme16.result;
+			if (result) *result = entry.body.eme16.result;
+			if (timsestamp) *timestamp = entry.body.eme16.timestamp;
 		}
 		else if (entry_type == TABLE_ENTRY_ENTYPE_EME24) {
-			*timestamp = entry.body.eme24.timestamp;
 			/* STQW optimization is not done here so we do not force
 			   alignment */
-			*result = entry.body.eme24.result;
+			if (result) *result = entry.body.eme24.result;
+			if (timsestamp) *timestamp = entry.body.eme24.timestamp;
 		}
 		else if (entry_type == TABLE_ENTRY_ENTYPE_LPM_RES) {
-			*timestamp = entry.body.lpm_res.timestamp;
 			/* STQW optimization is not done here so we do not force
 			   alignment */
-			*result = entry.body.lpm_res.result;
+			if (result) *result = entry.body.lpm_res.result;
+			if (timestamp)
+				*timestamp = entry.body.lpm_res.timestamp;
+
 		}
 		else if (entry_type == TABLE_ENTRY_ENTYPE_MFLU_RES) {
-			*timestamp = entry.body.mflu_result.timestamp;
 			/* STQW optimization is not done here so we do not force
 			   alignment */
-			*result = entry.body.mflu_result.result;
+			if (result) *result = entry.body.mflu_result.result;
+			if (timestamp)
+				*timestamp = entry.body.mflu_result.timestamp;
 		}
 		else
 			/* Call fatal error handler */
@@ -482,27 +505,10 @@ inline int table_rule_query_by_ruleid(enum table_hw_accel_id acc_id,
 					TABLE_SW_STATUS_QUERY_INVAL_ENTYPE,
 					TABLE_ENTITY_SW);
 	} else {
-		/* Status Handling*/
+
 		if (status == TABLE_HW_STATUS_BIT_MISS){}
 			/* A rule with the same match description is not found
 			 * in the table. */
-
-		/* Redirected to exception handler since aging is removed
-		else if (status == CTLU_HW_STATUS_TEMPNOR)
-			* A rule with the same match description is found and
-			 * rule is aged. *
-			status = TABLE_STATUS_MISS;
-		*/
-
-		/* Redirected to exception handler since aging is removed - If
-		aging is enabled once again, please check that it is indeed
-		supported for MFLU, elsewhere it still needs to go to exception
-		path.
-		else if (status == MFLU_HW_STATUS_TEMPNOR)
-			/* A rule with the same match description is found and
-			 * rule is aged. *
-			status = TABLE_STATUS_MISS;
-		*/
 
 		else
 			/* Call fatal error handler */
