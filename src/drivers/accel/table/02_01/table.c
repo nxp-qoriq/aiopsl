@@ -433,7 +433,6 @@ void table_exception_handler(char *file_path,
 	case TABLE_RULE_DELETE_FUNC_ID:
 		func_name = "table_rule_delete";
 		break;
-#ifdef REV2_RULEID
 	case TABLE_GET_NEXT_RULEID_FUNC_ID:
 		func_name = "table_get_next_ruleid";
 		break;
@@ -449,7 +448,6 @@ void table_exception_handler(char *file_path,
 	case TABLE_RULE_QUERY_BY_RULEID_FUNC_ID:
 		func_name = "table_rule_query_by_ruleid";
 		break;
-#endif //REV2_RULEID
 	case TABLE_LOOKUP_BY_KEY_FUNC_ID:
 		func_name = "table_rule_lookup_by_key";
 		break;

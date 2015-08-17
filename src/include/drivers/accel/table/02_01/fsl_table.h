@@ -1048,6 +1048,50 @@ inline int table_rule_create_or_replace(enum table_hw_accel_id acc_id,
 
 
 /**************************************************************************//**
+@Function	table_rule_replace_by_ruleid
+
+@Description	Replaces a specified rule's result and options, and updates the
+		rule's timestamp.
+		\n \n Optionally, return the replaced result, options and the
+		old timestamp. The rule's key is not modifiable. Caller to this
+		function supplies the Rule ID of the rule to be replaced.
+
+@Param[in]	acc_id ID of the Hardware Table Accelerator that contains
+		the table on which the operation will be performed.
+@Param[in]	table_id Table ID.
+@Param[in]	rule_id Rule ID of the rule to be replaced.
+@Param[in]	new_result Pointer to the rule new result. Must not be null.
+@Param[in]	new_options The rule's new options (Please refer to
+		\ref FSL_TABLE_RULE_OPTIONS for more details).
+@Param[in, out]	old_result The replaced rule's result. If null the replaced
+		rule's result will not be returned. If not null, structure
+		should be allocated by the caller to this function.
+@Param[in, out] old_options The replaced rule's options. If null the replaced
+		rule's options will not be returned. If not null, structure
+		should be allocated by the caller to this function.
+@Param[in, out] old_timestamp The replaced rule's timestamp. If null the
+		replaced rule's timestamp will not be returned. If not null,
+		structure should be allocated by the caller to this function.
+
+@Return		0 on success or negative value on error.
+
+@Retval		0 Success.
+@Retval		EIO Error, a rule with the same Rule ID is not found in the
+		table.
+
+@Cautions	In this function the task yields.
+*//***************************************************************************/
+inline int table_rule_replace_by_ruleid(enum table_hw_accel_id acc_id,
+					t_tbl_id table_id,
+					t_rule_id rule_id,
+					struct table_result *new_res,
+					uint8_t new_options,
+					struct table_result *old_result,
+					uint8_t *old_options,
+					uint32_t *old_timestamp);
+
+
+/**************************************************************************//**
 @Function	table_replace_rule
 
 @Description	Replaces a specified rule in the table.
@@ -1474,41 +1518,6 @@ int table_get_key_desc(enum table_hw_accel_id acc_id,
 		       t_tbl_id table_id,
 		       struct table_rule_id_desc *rule_id_desc,
 		       union table_key_desc *key_desc);
-
-
-/**************************************************************************//**
-@Function	table_rule_replace_by_ruleid
-
-@Description	Replaces a specified rule in the table.
-		\n \n The rule's key is not modifiable. Caller to this function
-		supplies the Rule ID of the rule to be replaced.
-
-@Param[in]	acc_id ID of the Hardware Table Accelerator that contains
-		the table on which the operation will be performed.
-@Param[in]	table_id Table ID.
-@Param[in]	rule Table rule, contains Rule ID and rule result to be
-		replaced. The structure pointed by this pointer must be in the task's 
-		workspace and must be aligned to 16B boundary.
-@Param[in, out]	old_res The result of the replaced rule. If null the replaced
-		rule's result will not be returned. If not null, structure
-		should be allocated by the caller to this function.
-
-@Return		0 on success or negative value on error.
-
-@Retval		0 Success.
-@Retval		EIO Error, a rule with the same Rule ID is not found
-		in the table.
-
-@Cautions	In this function the task yields.
-@Cautions	This function may result in a fatal error.
-*//***************************************************************************/
-int table_rule_replace_by_ruleid(enum table_hw_accel_id acc_id,
-				 t_tbl_id table_id,
-				 struct table_ruleid_and_result_desc *rule,
-				 struct table_result *old_res);
-
-
-
 
 
 /**************************************************************************//**

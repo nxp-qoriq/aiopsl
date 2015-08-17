@@ -72,6 +72,14 @@
 
 /** @} */ /* end of TABLE_MEMORY_MAP */
 
+/**************************************************************************//**
+@Group	TABLE_RULE_CONSTANTS Table Rule Constants
+@{
+*//***************************************************************************/
+/** Uses for masking of opaque1 & opaque2 valid bits*/
+#define TABLE_RULE_STDY_MASK			0xC0
+
+/** @} */ /* end of TABLE_RULE_CONSTANTS */
 
 /**************************************************************************//**
 @Group	TABLE_RULE_RESULT_CONSTANTS Table Rule Result Constants
@@ -82,13 +90,20 @@
 
 /** Uses for masking of Table ID, Key ID valid bit*/
 #define TABLE_TLUR_TKIDV_BIT_MASK		0x02000000
-
-/** Table old result reserved space */
-#define TABLE_OLD_RESULT_RESERVED1_SPACE	8
-#define TABLE_OLD_RESULT_RESERVED2_SPACE	28
-
 /** @} */ /* end of TABLE_RULE_RESULT_CONSTANTS */
 
+/**************************************************************************//**
+@Group	TABLE_RULE_OUTPUT_MSG Table Output Message Constants
+@{
+*//***************************************************************************/
+
+/** table_rule_output_message reserved0 space */
+#define TABLE_RULE_OUT_MSG_RESERVED0_SPACE	3
+
+/** table_rule_output_message reserved2 space */
+#define TABLE_RULE_OUT_MSG_RESERVED2_SPACE	12
+
+/** @} */ /* end of TABLE_RULE_OUTPUT_MSG */
 
 /**************************************************************************//**
 @Group	TABLE_ENTRY_MACROS Table Entry Macros
@@ -286,15 +301,6 @@
 /** @} */ /* end of TABLE_QUERY */
 
 /**************************************************************************//**
-@Group	TABLE_RULE_DELETE Table Rule Delete specific constants
-@{
-*//***************************************************************************/
-	/** Table query output message reserved space */
-#define TABLE_RULE_DELETE_RULEID_KEYSIZE		0x20
-
-/** @} */ /* end of TABLE_RULE_DELETE */
-
-/**************************************************************************//**
 @Group	TABLE_PARAMS_REPLACE Table Parameters Replace specific constants
 @{
 *//***************************************************************************/
@@ -303,6 +309,23 @@
 
 /** @} */ /* end of TABLE_PARAMS_REPLACE */
 
+/**************************************************************************//**
+@Group	TABLE_RULE_REPLACE Table Rule Replace specific constants
+@{
+*//***************************************************************************/
+	/** Table rule replace by rule ID key size */
+#define TABLE_RULE_REPLACE_RULEID_KEYSIZE		0x40
+
+/** @} */ /* end of TABLE_RULE_REPLACE */
+
+/**************************************************************************//**
+@Group	TABLE_RULE_DELETE Table Rule Delete specific constants
+@{
+*//***************************************************************************/
+	/** Table rule delete by rule ID key size */
+#define TABLE_RULE_DELETE_RULEID_KEYSIZE		0x20
+
+/** @} */ /* end of TABLE_RULE_DELETE */
 
 /**************************************************************************//**
 @Group	TABLE_STATUS Status returned to calling function
@@ -818,20 +841,36 @@ struct table_entry {
 
 
 /**************************************************************************//**
-@Description	Table Old Result
+@Description	Table Rule Commands Output Message
 *//***************************************************************************/
 #pragma pack(push, 1)
-struct table_old_result {
-	/* Reserved */
-	uint8_t reserved1[TABLE_OLD_RESULT_RESERVED1_SPACE];
-	
-	/* Rule ID */
-	uint64_t rule_id;
-	
-	/* Reserved */
-	uint8_t reserved2[TABLE_OLD_RESULT_RESERVED2_SPACE];
+struct table_rule_output_message {
 
-	/** The body of the entry (varies per type) */
+	/** STDY and reserved */
+	uint8_t  stdy_and_reserved;
+
+	/** Reserved */
+	uint8_t  reserved0[TABLE_RULE_OUT_MSG_RESERVED0_SPACE];
+
+	/** LKP */
+	uint32_t lkp;
+
+	/** Rule ID */
+	uint64_t rule_id;
+
+	/** Timestamp */
+	uint32_t timestamp;
+
+	/** Reserved */
+	uint32_t reserved1;
+
+	/** New rule ID */
+	uint64_t rule_id_new;
+
+	/** Reserved */
+	uint8_t  reserved2[TABLE_RULE_OUT_MSG_RESERVED2_SPACE];
+
+	/** Table result */
 	struct table_result result;
 };
 #pragma pack(pop)
