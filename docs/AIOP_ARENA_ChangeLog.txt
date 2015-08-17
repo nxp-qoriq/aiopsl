@@ -1,3 +1,4 @@
+fsl_dpni_drv.h: Add API to retrieve dpni ordering mode.
 fsl_dpkg.h: Moved to include/drivers
 
 os.c, fsl_stdlib.h: Remove "_os_" from fsl_os_rand() to be fsl_rand()

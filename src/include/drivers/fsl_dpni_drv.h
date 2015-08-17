@@ -688,6 +688,19 @@ int dpni_drv_set_concurrent(uint16_t ni_id);
 int dpni_drv_set_exclusive(uint16_t ni_id);
 
 /**************************************************************************//**
+@Function	dpni_drv_get_ordering_mode
+
+@Description	Returns the configuration in epid table for ordering mode.
+
+@Param[in]	ni_id - Network Interface ID
+
+@Return	Ordering mode for given NI
+		0 - Concurrent
+		1 - Exclusive
+*//***************************************************************************/
+int dpni_drv_get_ordering_mode(uint16_t ni_id);
+
+/**************************************************************************//**
 @Function	dpni_drv_set_order_scope
 
 @Description	Function to set order scope source for the specified NI.
