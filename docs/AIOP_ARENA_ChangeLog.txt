@@ -1,3 +1,5 @@
+os.c, fsl_stdlib.h: Remove "_os_" from fsl_os_rand() to be fsl_rand()
+
 fsl_rcu.h       : ls2085a rev1. Resolved ENGR363207. Removed rcu_read_unlock_cancel(), it is handled internally by SL upon task termination.
                   Added rcu_read_lock() API. 
 fsl_icontext.h  : Added new API icontext_ws_set() to be use to set the new isalation context in the workspace.

@@ -34,17 +34,31 @@
 #include "fsl_smp.h"
 #include "fsl_io_ccsr.h"
 #include "fsl_cmgw.h"
-
-#include "sys.h"
+#include "fsl_console.h"
+#include "fsl_system.h"
 #include "fsl_dbg.h"
+#include "fsl_aiop_common.h"
+
+#define __ERR_MODULE__  MODULE_UNKNOWN
+
+#define SYS_TILE_MASTERS_MASK (0x00000001)
+#define SYS_CLUSTER_MASTER_MASK (0x00001111)
+#define SYS_BOOT_SYNC_FLAG_DONE (1)
 
 /* Global System Object */
 t_system sys = {0};
+
 extern struct aiop_init_info g_init_data;
 
 extern void     __sys_start(register int argc, register char **argv,
 				register char **envp);
 extern int icontext_init();
+
+extern int sys_init_memory_management(void);
+extern int sys_free_memory_management(void);
+extern int sys_init_multi_processing(void);
+extern void sys_free_multi_processing(void);
+extern void fill_platform_parameters(struct platform_param *platform_param);
 
 typedef struct t_sys_forced_object {
 	fsl_handle_t        h_module;
@@ -52,6 +66,9 @@ typedef struct t_sys_forced_object {
 
 t_sys_forced_object_desc  sys_handle[FSL_NUM_MODULES];
 
+
+int sys_init(void);
+void sys_free(void);
 
 /*****************************************************************************/
 fsl_handle_t sys_get_handle(enum fsl_module module, int num_of_ids, ...)

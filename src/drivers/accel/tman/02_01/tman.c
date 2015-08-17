@@ -33,7 +33,7 @@
 
 #include "general.h"
 #include "tman.h"
-#include "sys.h"
+#include "fsl_system.h"
 #include "fsl_tman.h"
 #include "fsl_fdma.h"
 #include "osm_inline.h"
@@ -104,7 +104,7 @@ int tman_create_tmi(uint64_t tmi_mem_base_addr,
 			(*tmi_state_ptr != TMAN_TMI_ACTIVE))
 	{
 		/* YIELD. May not be optimized due to CTS behavior*/
-		sys_yield();
+		system_yield();
 	}
 
 	if (*tmi_state_ptr == TMAN_TMI_BUS_ERR)

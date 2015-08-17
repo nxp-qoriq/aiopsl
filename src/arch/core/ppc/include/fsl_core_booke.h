@@ -37,16 +37,10 @@
 #ifndef __FSL_CORE_BOOKE_H
 #define __FSL_CORE_BOOKE_H
 
-
 #include "fsl_types.h"
+#include "fsl_core_arch.h"
 
-#ifndef CORE_E200_Z490
-#define core_dcache_enable      booke_dcache_enable
-#endif /* CORE_E200_Z490 */
 #define core_icache_enable      booke_icache_enable
-#ifndef CORE_E200_Z490
-#define core_dcache_disable     booke_dcache_disable
-#endif /* CORE_E200_Z490 */
 #define core_icache_disable     booke_icache_disable
 #define core_get_id             booke_get_id
 #define core_test_and_set       booke_test_and_set
@@ -73,27 +67,6 @@
  @{
 *//***************************************************************************/
 
-#ifndef CORE_E200_Z490
-/**************************************************************************//**
- @Function      booke_dcache_enable
-
- @Description   Enables the data cache for memory pages that are
-                not cache inhibited.
-
- @Return        None.
-*//***************************************************************************/
-void booke_dcache_enable(void);
-
-/**************************************************************************//**
- @Function      booke_is_dcache_enabled
-
- @Description   Checks if data cache is enabled
-
- @Return        '1'(Enabled)/'0'(Disabled)
-*//***************************************************************************/
-int booke_is_dcache_enabled(void);
-#endif /* CORE_E200_Z490 */
-
 /**************************************************************************//**
  @Function      booke_is_icache_enabled
 
@@ -112,17 +85,6 @@ int booke_is_icache_enabled(void);
  @Return        None.
 *//***************************************************************************/
 void booke_icache_enable(void);
-
-#ifndef CORE_E200_Z490
-/**************************************************************************//**
- @Function      booke_dcache_disable
-
- @Description   Disables the data cache.
-
- @Return        None.
-*//***************************************************************************/
-void booke_dcache_disable(void);
-#endif /* CORE_E200_Z490 */ 
 
 /**************************************************************************//**
  @Function      booke_icache_disable
@@ -150,30 +112,6 @@ void booke_dcache_flush(void);
  @Return        None.
 *//***************************************************************************/
 void booke_icache_flush(void);
-
-#ifndef CORE_E200_Z490
-/**************************************************************************//**
- @Function      booke_dcache_set_stash_id
-
- @Description   Set Stash Id for data cache
-
- @Param[in]     stashId     the stash id to be set.
-
- @Return        None.
-*//***************************************************************************/
-void booke_dcache_set_stash_id(uint8_t stash_id);
-
-/**************************************************************************//**
- @Function      booke_dcache_get_stash_id
-
- @Description   Get Stash Id for data cache
-
- @Param[in]     none.
-
- @Return        Stash ID.
-*//***************************************************************************/
-uint8_t booke_dcache_get_stash_id(void);
-#endif /* CORE_E200_Z490 */
 
 /**************************************************************************//**
  @Function      booke_address_bus_streaming_enable
@@ -571,25 +509,6 @@ uint32_t booke_get_spr_HDBCR2(void);
 void booke_set_spr_HDBCR2(uint32_t newvalue);
 uint32_t booke_get_spr_HDBCR7(void);
 void booke_set_spr_HDBCR7(uint32_t newvalue);
-
-#ifdef CORE_E200
-/* E200-AIOP special regs */
-// Number of tasks as they defined by CTSCSR register.
-#define CTSCSR_ENABLE 		(0x80000000)
-#define CTSCSR_1_TASKS 		(0x00000000)  
-#define CTSCSR_2_TASKS 		(0x01000000)
-#define CTSCSR_4_TASKS 		(0x02000000)
-#define CTSCSR_8_TASKS 		(0x03000000)
-#define CTSCSR_16_TASKS 	(0x04000000)
-#define CTSCSR_TASKS_MASK 	(0x0f000000)
-
-uint32_t booke_get_CTSCSR0(void);           /* [464]  CTS gen control and status reg 0. */
-void booke_set_CTSCSR0(uint32_t newvalue);  /* [464]  CTS gen control and status reg 0. */
-uint32_t booke_get_CTSTWS(void);            /* [467]  CTS Task Watchdog Status Register. */
-void booke_set_CTSTWS(uint32_t newvalue);   /* [467]  CTS Task Watchdog Status Register. */
-uint32_t booke_get_TASKSCR0(void);          /* [476]  Task Control and Status Register 0 */
-
-#endif /* CORE_E200 */
 
 /** @} */ /* end of booke_init_grp group */
 /** @} */ /* end of booke_grp group */

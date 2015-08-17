@@ -32,7 +32,7 @@
 #include "fsl_smp.h"
 #include "fsl_console.h"
 #include "fsl_mem_mng.h"
-#include "sys.h"
+#include "fsl_system.h"
 #include "fsl_log.h"
 #include "fsl_stdlib.h"
 #include "fsl_string.h"
@@ -321,7 +321,7 @@ __COLD_CODE static char *number(char *str, uint64_t num, uint8_t base, uint8_t t
 }
 
 /*****************************************************************************/
-uint32_t fsl_os_rand(void)
+uint32_t fsl_rand(void)
 {
 	seed_32bit = (seed_32bit>>1) ^ (-(seed_32bit & 1LL) &
 		0xFBE16801);

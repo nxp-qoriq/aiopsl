@@ -105,25 +105,6 @@ int core_test_and_set(volatile int *p);
 void core_instruction_sync(void);
 
 /**************************************************************************//**
- @Function      core_dcache_enable
-
- @Description   Enables the data cache for memory pages that are
-                not cache inhibited.
-
- @Return        None.
-*//***************************************************************************/
-void core_dcache_enable(void);
-
-/**************************************************************************//**
- @Function      core_dcache_disable
-
- @Description   Disables the data cache.
-
- @Return        None.
-*//***************************************************************************/
-void core_dcache_disable(void);
-
-/**************************************************************************//**
  @Function      core_icache_enable
 
  @Description   Enables the instruction cache for memory pages that are

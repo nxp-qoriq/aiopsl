@@ -221,7 +221,7 @@ int32_t tcp_gso_split_segment(struct tcp_gso_context *gso_ctx)
 			/* IPv6 - update IP length */
 			outer_ipv6_ptr->payload_length =
 				(uint16_t)(LDPAA_FD_GET_LENGTH(HWC_FD_ADDRESS) -
-						outer_ip_offset - 
+						outer_ip_offset -
 						sizeof(struct ipv6hdr));
 		}
 
@@ -325,7 +325,7 @@ int32_t tcp_gso_split_segment(struct tcp_gso_context *gso_ctx)
 
 		/* IPv4 - ID generation */
 		if (gso_ctx->ipv4)
-			outer_ipv4_ptr->id = (uint16_t)fsl_os_rand();
+			outer_ipv4_ptr->id = (uint16_t)fsl_rand();
 		}
 
 	/* Modify default segment */
@@ -341,7 +341,7 @@ int32_t tcp_gso_split_segment(struct tcp_gso_context *gso_ctx)
 	fdma_calculate_default_frame_checksum(
 			0, 0xFFFF, &tmp_gross);
 	pr->gross_running_sum = tmp_gross;
-	
+
 	/* Run parser */
 	/* Update TCP checksum + Calculate IPv4 checksum */
 	parse_result_generate_checksum(
@@ -389,11 +389,11 @@ void tcp_gso_context_init(
 		uint16_t mss,
 		tcp_gso_ctx_t tcp_gso_context_addr)
 {
-	
-#ifdef CHECK_ALIGNMENT 	
+
+#ifdef CHECK_ALIGNMENT
 	DEBUG_ALIGN("gso.c",(uint32_t *)tcp_gso_context_addr, ALIGNMENT_32B);
 #endif
-	
+
 	struct tcp_gso_context *gso_ctx =
 			(struct tcp_gso_context *)tcp_gso_context_addr;
 	gso_ctx->first_seg = 1;

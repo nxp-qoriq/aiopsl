@@ -42,30 +42,11 @@
 #include "fsl_errors.h"
 #include "fsl_soc.h"
 
-
 /**************************************************************************//**
 @Description   Platform Configuration Parameters Structure.
 
 		This structure must be specifically defined by each platform.
 *//***************************************************************************/
-
-
-/**************************************************************************//**
-@Collection    Object Identifier Macros
-@{
-*//***************************************************************************/
-#define SYS_NULL_OBJECT_ID          0xffffffff
-				    /**< Object ID representing no object */
-#define SYS_MAX_NUM_OF_MODULE_IDS   3
-
-#define CAST_ID_TO_HANDLE(_id)      (UINT_TO_PTR(_id))
-			/**< Macro for casting an object ID to a handle */
-#define CAST_HANDLE_TO_ID(_h)       (PTR_TO_UINT(_h))
-			/**< Macro for casting a handle to an object ID */
-/* @} */
-
-
-struct platform_param;
 
 /*!
  * @ingroup aiopapp_init
@@ -79,31 +60,6 @@ int     (*early_init) (void);
 int     (*init) (void);
 void    (*free) (void);
 };
-
-/**************************************************************************//**
-@Function      sys_init
-
-@Description   System initialization routine.
-
-		This routine initializes the internal system structures and
-		services, such as memory management, objects repository and
-		more, as well as the platform object.
-
-@Return        Zero for success; Non-zero value on error.
-*//***************************************************************************/
-int sys_init(void);
-
-/**************************************************************************//**
-@Function      sys_free
-
-@Description   System termination routine.
-
-		This routine releases all internal structures that were
-		initialized by the sys_init() routine.
-
-@Return        None.
-*//***************************************************************************/
-void sys_free(void);
 
 /**************************************************************************//**
 @Function      sys_add_handle
@@ -191,8 +147,7 @@ fsl_handle_t sys_get_handle(enum fsl_module module, int num_of_ids, ...);
 *//***************************************************************************/
 static __inline__ fsl_handle_t sys_get_unique_handle(enum fsl_module module)
 {
-return sys_get_handle(module, 1, 0);
+	return sys_get_handle(module, 1, 0);
 }
-
 
 #endif /* __FSL_SYS_H */

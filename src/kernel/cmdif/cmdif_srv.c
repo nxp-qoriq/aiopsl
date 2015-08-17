@@ -32,7 +32,7 @@
 #include "fsl_ldpaa.h"
 #include "fsl_io.h"
 #include "fsl_fdma.h"
-#include "sys.h"
+#include "fsl_sys.h"
 #include "fsl_malloc.h"
 #include "fsl_dbg.h"
 #include "fsl_cdma.h"
@@ -141,10 +141,10 @@ static inline int inst_alloc(uint8_t m_id)
 	CMDIF_SRV_LOCK_W_TAKE;
 
 	/* randomly pick instance/authentication id*/
-	r = MODULU_POWER_OF_TWO(fsl_os_rand(), M_NUM_OF_INSTANCES);
+	r = MODULU_POWER_OF_TWO(fsl_rand(), M_NUM_OF_INSTANCES);
 	while ((cmdif_aiop_srv.srv->m_id[r] != FREE_INSTANCE) &&
 		(count < M_NUM_OF_INSTANCES)) {
-		r = MODULU_POWER_OF_TWO(fsl_os_rand(), M_NUM_OF_INSTANCES);
+		r = MODULU_POWER_OF_TWO(fsl_rand(), M_NUM_OF_INSTANCES);
 		count++;
 	}
 	/* didn't find empty space yet */
@@ -411,7 +411,7 @@ __COLD_CODE int notify_open()
 	int link_up = 1;
 	int err = 0;
 	int i = 0;
-	
+
 	/* Create descriptor for client session */
 	ASSERT_COND_LIGHT(cl != NULL);
 
@@ -435,9 +435,9 @@ __COLD_CODE int notify_open()
 			DPCI_DT_LOCK_RELEASE;
 			return -ENAVAIL;
 		}
-		/* Assuming that 2 DPCIs must be connected before 
-		 * it gets to AIOP 
-		 * TODO it may send GPP DPCI that is not yet connected and 
+		/* Assuming that 2 DPCIs must be connected before
+		 * it gets to AIOP
+		 * TODO it may send GPP DPCI that is not yet connected and
 		 * I need to ad an entry for it and update the amq bits */
 	}
 
@@ -478,7 +478,7 @@ __COLD_CODE int notify_open()
 	pr_debug("Added session for %s at ind %d\n", data->m_name, link_up);
 
 #endif /* STACK_CHECK */
-	
+
 	return 0;
 }
 
@@ -667,7 +667,7 @@ __HOT_CODE ENTRY_POINT void cmdif_srv_isr(void) __attribute__ ((noreturn))
 			goto term_task;
 		} else {
 			CMDIF_STORE_DATA; /* Close FDMA */
-			no_stack_pr_err("Invalid authentication id 0x%x\n", 
+			no_stack_pr_err("Invalid authentication id 0x%x\n",
 			                auth_id);
 			goto term_task;
 		}
@@ -683,7 +683,7 @@ __HOT_CODE ENTRY_POINT void cmdif_srv_isr(void) __attribute__ ((noreturn))
 			goto term_task;
 		} else {
 			CMDIF_STORE_DATA; /* Close FDMA */
-			no_stack_pr_err("Invalid authentication id 0x%x\n", 
+			no_stack_pr_err("Invalid authentication id 0x%x\n",
 			                auth_id);
 			goto term_task;
 		}
@@ -738,7 +738,7 @@ __HOT_CODE ENTRY_POINT void cmdif_srv_isr(void) __attribute__ ((noreturn))
 			 * it might be intentional attack
 			 * */
 			CMDIF_STORE_DATA; /* Close FDMA */
-			no_stack_pr_err("Invalid authentication id 0x%x\n", 
+			no_stack_pr_err("Invalid authentication id 0x%x\n",
 			                auth_id);
 			goto term_task;
 		}
@@ -760,7 +760,7 @@ __HOT_CODE ENTRY_POINT void cmdif_srv_isr(void) __attribute__ ((noreturn))
 			 * it might be intentional attack
 			 * */
 			CMDIF_STORE_DATA; /* Close FDMA */
-			no_stack_pr_err("Invalid authentication id 0x%x\n", 
+			no_stack_pr_err("Invalid authentication id 0x%x\n",
 			                auth_id);
 			goto term_task;
 		}

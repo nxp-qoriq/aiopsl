@@ -312,7 +312,7 @@ int32_t tcp_gso_split_segment(struct tcp_gso_context *gso_ctx)
 
 		/* IPv4 - ID generation */
 		if (gso_ctx->ipv4)
-			outer_ipv4_ptr->id = (uint16_t)fsl_os_rand();
+			outer_ipv4_ptr->id = (uint16_t)fsl_rand();
 		}
 
 	/* Modify default segment */

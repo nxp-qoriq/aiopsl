@@ -113,6 +113,7 @@
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../../build/build_flags&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../../src/arch&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../../src/arch/core/ppc/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../../src/arch/core/ppc/e200_z490&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../../src/arch/platform/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../../src/arch/platform/ls2085a&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../../src/drivers&quot;"/>
@@ -178,13 +179,14 @@
 								<option id="com.freescale.ppc.toolchain.compiler.base.optionCategory.processor.functionAlign.2125290265" name="Function Alignment" superClass="com.freescale.ppc.toolchain.compiler.base.optionCategory.processor.functionAlign" value="com.freescale.ppc.toolchain.compiler.base.optionCategory.processor.functionAlign.4" valueType="enumerated"/>
 								<option id="com.freescale.ppc.toolchain.compiler.base.general.strconst.reuse.1510426210" name="Reuse" superClass="com.freescale.ppc.toolchain.compiler.base.general.strconst.reuse" value="true" valueType="boolean"/>
 								<option id="com.freescale.ppc.toolchain.compiler.base.general.ipa.1191826003" name="IPA" superClass="com.freescale.ppc.toolchain.compiler.base.general.ipa" value="com.freescale.ppc.toolchain.compiler.base.general.ipa.off" valueType="enumerated"/>
-								<option id="com.freescale.ppc.toolchain.compiler.base.preprocessor.encoding.1070404806" superClass="com.freescale.ppc.toolchain.compiler.base.preprocessor.encoding" value="com.freescale.ppc.toolchain.compiler.base.preprocessor.encoding.ascii" valueType="enumerated"/>
+								<option id="com.freescale.ppc.toolchain.compiler.base.preprocessor.encoding.1070404806" name="Source encoding" superClass="com.freescale.ppc.toolchain.compiler.base.preprocessor.encoding" value="com.freescale.ppc.toolchain.compiler.base.preprocessor.encoding.ascii" valueType="enumerated"/>
 								<inputType id="com.freescale.ppc.toolchain.compiler.base.input.1059220879" name="com.freescale.ppc.toolchain.cf Compiler Input" superClass="com.freescale.ppc.toolchain.compiler.base.input"/>
 							</tool>
 							<tool command="&quot;${AIOPToolsDir}/asmaiop&quot;" commandLinePattern="${COMMAND} ${FLAGS} ${OUTPUT_FLAG} ${OUTPUT_PREFIX}${OUTPUT} ${INPUTS}" errorParsers="" id="com.freescale.ppc.toolchain.assembler.1023235475" name="Assembler" superClass="com.freescale.ppc.toolchain.assembler">
 								<option id="com.freescale.ppc.toolchain.assembler.base.input.include.172138660" name="User Path (-i)" superClass="com.freescale.ppc.toolchain.assembler.base.input.include" valueType="includePath">
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../../src/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../../src/arch/core/ppc&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../../src/arch/core/ppc/e200_z490&quot;"/>
 								</option>
 								<option id="com.freescale.ppc.toolchain.assembler.base.general.gnuCompatible.355640920" name="GNU Compatible Syntax" superClass="com.freescale.ppc.toolchain.assembler.base.general.gnuCompatible" value="true" valueType="boolean"/>
 								<option id="com.freescale.ppc.toolchain.assembler.base.general.otherflags.1180182815" name="Other Flags" superClass="com.freescale.ppc.toolchain.assembler.base.general.otherflags" value="-ppc_asm_to_vle" valueType="string"/>
