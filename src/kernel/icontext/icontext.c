@@ -31,7 +31,7 @@
 #include "fsl_ldpaa.h"
 #include "fsl_fdma.h"
 #include "fsl_cdma.h"
-#include "sys.h"
+#include "fsl_system.h"
 #include "fsl_dbg.h"
 #include "fsl_icontext.h"
 #include "fsl_sl_dprc_drv.h"

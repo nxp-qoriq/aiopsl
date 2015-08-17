@@ -34,30 +34,47 @@
 #include "fsl_smp.h"
 #include "fsl_io_ccsr.h"
 #include "fsl_cmgw.h"
-
-#include "sys.h"
+#include "fsl_console.h"
+#include "fsl_system.h"
 #include "fsl_dbg.h"
+#include "fsl_aiop_common.h"
+
+#define __ERR_MODULE__  MODULE_UNKNOWN
+
+#define SYS_TILE_MASTERS_MASK (0x00000001)
+#define SYS_CLUSTER_MASTER_MASK (0x00001111)
+#define SYS_BOOT_SYNC_FLAG_DONE (1)
 
 /* Global System Object */
 t_system sys = {0};
+
 extern struct aiop_init_info g_init_data;
 
 extern void     __sys_start(register int argc, register char **argv,
 				register char **envp);
 extern int icontext_init();
 
+extern int sys_init_memory_management(void);
+extern int sys_free_memory_management(void);
+extern int sys_init_multi_processing(void);
+extern void sys_free_multi_processing(void);
+extern void fill_platform_parameters(struct platform_param *platform_param);
+
 typedef struct t_sys_forced_object {
 	fsl_handle_t        h_module;
 } t_sys_forced_object_desc;
 
-t_sys_forced_object_desc  sys_handle[FSL_OS_NUM_MODULES];
+t_sys_forced_object_desc  sys_handle[FSL_NUM_MODULES];
 
+
+int sys_init(void);
+void sys_free(void);
 
 /*****************************************************************************/
 fsl_handle_t sys_get_handle(enum fsl_module module, int num_of_ids, ...)
 {
 	UNUSED(num_of_ids);
-	if ((module >= FSL_OS_NUM_MODULES) || (module < 0))
+	if ((module >= FSL_NUM_MODULES) || (module < 0))
 		return NULL;
 
 	return sys_handle[module].h_module;
@@ -68,7 +85,7 @@ fsl_handle_t sys_get_handle(enum fsl_module module, int num_of_ids, ...)
 int sys_add_handle(fsl_handle_t h_module, enum fsl_module module,
 				int num_of_ids, ...)
 {
-	if ((module >= FSL_OS_NUM_MODULES) || (module < 0) || (num_of_ids > 1))
+	if ((module >= FSL_NUM_MODULES) || (module < 0) || (num_of_ids > 1))
 		return -EINVAL;
 
 	sys_handle[module].h_module = h_module;
@@ -80,7 +97,7 @@ int sys_add_handle(fsl_handle_t h_module, enum fsl_module module,
 int sys_remove_handle(enum fsl_module module, int num_of_ids, ...)
 {
 	UNUSED(num_of_ids);
-	if ((module >= FSL_OS_NUM_MODULES) || (module < 0))
+	if ((module >= FSL_NUM_MODULES) || (module < 0))
 		return -EINVAL;
 
 
@@ -216,19 +233,19 @@ __COLD_CODE static int global_sys_init(void)
 	if (err != 0) return err;
 
 	err = sys_add_handle(sys.platform_ops.h_platform,
-		FSL_OS_MOD_SOC, 1, 0);
+		FSL_MOD_SOC, 1, 0);
 	if (err != 0) return err;
 
 	aiop_base_addr = AIOP_PERIPHERALS_OFF + SOC_PERIPH_OFF_AIOP_TILE;
 	err = sys_add_handle( (fsl_handle_t)aiop_base_addr,
-	                                      FSL_OS_MOD_AIOP_TILE, 1, 0);
+	                                      FSL_MOD_AIOP_TILE, 1, 0);
 	if (err != 0) return err;
 
 	tile_regs = (struct aiop_tile_regs *)aiop_base_addr;
 	cmgw_init((void *)&tile_regs->cmgw_regs);
 
 	err = sys_add_handle( (fsl_handle_t)&tile_regs->cmgw_regs,
-	                                      FSL_OS_MOD_CMGW, 1, 0);
+	                                      FSL_MOD_CMGW, 1, 0);
 	if (err != 0) return err;
 
 	return 0;

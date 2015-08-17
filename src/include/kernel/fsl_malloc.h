@@ -66,8 +66,9 @@ typedef enum memory_partition_id {
 
  @Description   Allocates contiguous block of memory from shared ram.
 
- @Param[in]     size    Number of bytes to allocate.
- @Param[in]     alignment           Required memory alignment (in bytes).
+ @Param[in]     size        Number of bytes to allocate.
+ @Param[in]     alignment   Required memory alignment (in bytes). Should be a
+                            power of 2 ( 4, 8, 16 etc.)
 
  @Return        A 32 bit  address of the newly allocated block on success, NULL on failure.
 *//***************************************************************************/
@@ -92,6 +93,7 @@ void fsl_free(void *mem);
 @Param[in]     mem_partition_id    Memory partition ID,
                Valid values: MEM_PART_DP_DDR,MEM_PART_PEB,MEM_PART_SYSTEM_DDR
 @Param[in]     alignment           Required memory alignment (in bytes).
+                                   Should be a power of 2 ( 4, 8, 16 etc.)
 @Param[out]    paddr               A valid allocated physical address(64 bit) if success,
                                    in case of failure (non_zero return value), this
                                    value is undefined and should not be used.

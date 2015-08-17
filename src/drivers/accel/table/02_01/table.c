@@ -60,7 +60,8 @@ int table_create(enum table_hw_accel_id acc_id,
 
 	/* Load frequent parameters into registers */
 	uint8_t                           key_size = tbl_params->key_size;
-	uint16_t                          attr = tbl_params->attributes;
+	uint16_t                          attr = tbl_params->attributes |
+						 tbl_params->timestamp_accur;
 	uint32_t                          max_rules = tbl_params->max_rules;
 	uint32_t                          committed_rules =
 		tbl_params->committed_rules;
@@ -260,6 +261,26 @@ void table_delete(enum table_hw_accel_id acc_id,
 }
 
 
+void table_hw_get_time_unit(enum table_hw_accel_id acc_id,
+			    uint32_t *time_unit)
+{
+	uint32_t *reg_addr;
+	if (acc_id == TABLE_ACCEL_ID_CTLU) {
+		reg_addr = ((uint32_t *) 
+				(TABLE_MEMMAP_CTLU_BASE_ADDR
+				 |TABLE_MEMMAP_TIMESTAMP_WINDOW_BASE_OFFSET)
+			   );
+	} else {
+		reg_addr = ((uint32_t *) 
+				(TABLE_MEMMAP_MFLU_BASE_ADDR
+				 |TABLE_MEMMAP_TIMESTAMP_WINDOW_BASE_OFFSET)
+			   );
+	}
+	*time_unit = 1 <<  ((*reg_addr) &
+			    TABLE_MEMMAP_TIMESTAMP_WINDOW_FIELD_MASK);
+}
+
+
 #ifdef REV2_RULEID
 int table_get_next_ruleid(enum table_hw_accel_id acc_id,
 			  t_tbl_id table_id,
@@ -412,7 +433,6 @@ void table_exception_handler(char *file_path,
 	case TABLE_RULE_DELETE_FUNC_ID:
 		func_name = "table_rule_delete";
 		break;
-#ifdef REV2_RULEID
 	case TABLE_GET_NEXT_RULEID_FUNC_ID:
 		func_name = "table_get_next_ruleid";
 		break;
@@ -428,7 +448,6 @@ void table_exception_handler(char *file_path,
 	case TABLE_RULE_QUERY_BY_RULEID_FUNC_ID:
 		func_name = "table_rule_query_by_ruleid";
 		break;
-#endif //REV2_RULEID
 	case TABLE_LOOKUP_BY_KEY_FUNC_ID:
 		func_name = "table_rule_lookup_by_key";
 		break;
@@ -571,7 +590,7 @@ int table_calc_num_entries_per_rule(uint16_t type, uint8_t key_size){
 
 
 int table_lookup_by_keyid_default_frame_wrp(enum table_hw_accel_id acc_id,
-					    uint16_t table_id,
+					    t_tbl_id table_id,
 					    uint8_t keyid,
 					    struct table_lookup_result
 						*lookup_result)
@@ -586,7 +605,7 @@ int table_rule_create_wrp(enum table_hw_accel_id acc_id,
 			  t_tbl_id table_id,
 			  struct table_rule *rule,
 			  uint8_t key_size,
-			  uint64_t *rule_id)
+			  t_rule_id *rule_id)
 
 {
 

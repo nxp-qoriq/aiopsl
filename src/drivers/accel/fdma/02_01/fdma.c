@@ -353,13 +353,7 @@ int fdma_read_default_frame_asa(
 	/* prepare command parameters */
 	arg1 = FDMA_PRESENT_CMD_ARG1(PRC_GET_HANDLES(),
 			FDMA_ST_ASA_SEGMENT_BIT);
-	/* Due to HW bug which expects the workspace address to be in 64bytes 
-	 * units */
-#ifndef REV2
-	arg2 = FDMA_PRESENT_CMD_ARG2(((uint32_t)ws_dst)>>6, offset);
-#else
 	arg2 = FDMA_PRESENT_CMD_ARG2((uint32_t)ws_dst, offset);
-#endif
 	arg3 = FDMA_PRESENT_CMD_ARG3(present_size);
 	/* store command parameters */
 	__stqw(arg1, arg2, arg3, 0, HWC_ACC_IN_ADDRESS, 0);
@@ -405,13 +399,8 @@ int fdma_read_default_frame_pta(
 	/* prepare command parameters */
 	arg1 = FDMA_PRESENT_CMD_ARG1(PRC_GET_HANDLES(),
 			FDMA_ST_PTA_SEGMENT_BIT);
-	/* Due to HW bug which expects the workspace address to be in 64bytes 
-	 * units */
-#ifndef REV2
-	arg2 = FDMA_PRESENT_CMD_ARG2(((uint16_t)((uint32_t)ws_dst)>>6), 0);
-#else
 	arg2 = FDMA_PRESENT_CMD_ARG2((uint16_t)((uint32_t)ws_dst), 0);
-#endif
+
 	/* store command parameters */
 	__stdw(arg1, arg2, HWC_ACC_IN_ADDRESS, 0);
 

@@ -54,7 +54,7 @@ static int dprc_drv_evmng_cb(uint8_t generator_id, uint8_t event_id, uint64_t ap
 	/*Container was updated*/
 	int err;
 	uint32_t status;
-	struct mc_dprc *dprc = sys_get_unique_handle(FSL_OS_MOD_AIOP_RC);
+	struct mc_dprc *dprc = sys_get_unique_handle(FSL_MOD_AIOP_RC);
 	UNUSED(app_ctx);
 	UNUSED(event_data);
 
@@ -119,7 +119,7 @@ int dprc_drv_scan(void)
 {
 	int i, err, dev_count = 0;
 	struct dprc_obj_desc dev_desc;
-	struct mc_dprc *dprc = sys_get_unique_handle(FSL_OS_MOD_AIOP_RC);
+	struct mc_dprc *dprc = sys_get_unique_handle(FSL_MOD_AIOP_RC);
 
 	err = dprc_get_obj_count(&dprc->io, 0, dprc->token, &dev_count);
 	if (err) {
@@ -176,7 +176,7 @@ __COLD_CODE static int aiop_container_init(void)
 
 	/* TODO : in this call, can 3rd argument be zero? */
 	/* Get virtual address of MC portal */
-	p_vaddr = UINT_TO_PTR(((uintptr_t)sys_get_handle(FSL_OS_MOD_MC_PORTAL, 0))
+	p_vaddr = UINT_TO_PTR(((uintptr_t)sys_get_handle(FSL_MOD_MC_PORTAL, 0))
 	                      + SOC_PERIPH_OFF_PORTALS_MC(g_init_data.sl_info.mc_portal_id));
 
 	pr_debug("MC portal ID[%d] addr = 0x%x\n", g_init_data.sl_info.mc_portal_id, (uint32_t)p_vaddr);
@@ -234,15 +234,15 @@ __COLD_CODE static int aiop_container_init(void)
 		return -ENAVAIL;
 	}
 
-	err = sys_add_handle(dprc, FSL_OS_MOD_AIOP_RC, 1, 0);
+	err = sys_add_handle(dprc, FSL_MOD_AIOP_RC, 1, 0);
 	return err;
 }
 
 __COLD_CODE static void aiop_container_free(void)
 {
-	void *dprc = sys_get_unique_handle(FSL_OS_MOD_AIOP_RC);
+	void *dprc = sys_get_unique_handle(FSL_MOD_AIOP_RC);
 
-	sys_remove_handle(FSL_OS_MOD_AIOP_RC, 0);
+	sys_remove_handle(FSL_MOD_AIOP_RC, 0);
 
 	if (dprc != NULL)
 		fsl_free(dprc);

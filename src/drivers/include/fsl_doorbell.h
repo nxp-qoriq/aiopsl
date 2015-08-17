@@ -45,10 +45,10 @@ enum doorbell_reg {
 	DOORBELL_SRC_LAST
 };
 
+void doorbell_status(int pr, enum doorbell_reg g_m, uint32_t *status);
 void doorbell_clear(int priority, enum doorbell_reg g_m, uint32_t mask);
 void doorbell_ring(int priority, enum doorbell_reg g_m, uint32_t mask);
 int doorbell_setup(int priority, enum doorbell_reg g_m, uint16_t epid,
                    void (*isr_cb)(void), uint32_t scope_id);
-
 
 #endif /* __FSL_DOORBELL_H */

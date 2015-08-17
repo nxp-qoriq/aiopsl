@@ -55,6 +55,33 @@
 *//***************************************************************************/
 
 /**************************************************************************//**
+@Group	TABLE_MEMORY_MAP Table Memory Map Defines
+@{
+*//***************************************************************************/
+/** CTLU Memory Map Base Address */
+#define TABLE_MEMMAP_CTLU_BASE_ADDR			0x020B8000
+
+/** MFLU Memory Map Base Address */
+#define TABLE_MEMMAP_MFLU_BASE_ADDR			0x020B0000
+
+/** IOP_CTIMESTAMP_WINDOW offset from base address */
+#define TABLE_MEMMAP_TIMESTAMP_WINDOW_BASE_OFFSET	0x00001004
+
+/** IOP_CTIMESTAMP_WINDOW TWINDOW field mask */
+#define TABLE_MEMMAP_TIMESTAMP_WINDOW_FIELD_MASK	0x0000001F
+
+/** @} */ /* end of TABLE_MEMORY_MAP */
+
+/**************************************************************************//**
+@Group	TABLE_RULE_CONSTANTS Table Rule Constants
+@{
+*//***************************************************************************/
+/** Uses for masking of opaque1 & opaque2 valid bits*/
+#define TABLE_RULE_STDY_MASK			0xC0
+
+/** @} */ /* end of TABLE_RULE_CONSTANTS */
+
+/**************************************************************************//**
 @Group	TABLE_RULE_RESULT_CONSTANTS Table Rule Result Constants
 @{
 *//***************************************************************************/
@@ -63,12 +90,20 @@
 
 /** Uses for masking of Table ID, Key ID valid bit*/
 #define TABLE_TLUR_TKIDV_BIT_MASK		0x02000000
-
-/** Table old result reserved space */
-#define TABLE_OLD_RESULT_RESERVED1_SPACE	8
-#define TABLE_OLD_RESULT_RESERVED2_SPACE	28
-
 /** @} */ /* end of TABLE_RULE_RESULT_CONSTANTS */
+
+/**************************************************************************//**
+@Group	TABLE_RULE_OUTPUT_MSG Table Output Message Constants
+@{
+*//***************************************************************************/
+
+/** table_rule_output_message reserved0 space */
+#define TABLE_RULE_OUT_MSG_RESERVED0_SPACE	3
+
+/** table_rule_output_message reserved2 space */
+#define TABLE_RULE_OUT_MSG_RESERVED2_SPACE	12
+
+/** @} */ /* end of TABLE_RULE_OUTPUT_MSG */
 
 /**************************************************************************//**
 @Group	TABLE_ENTRY_MACROS Table Entry Macros
@@ -266,15 +301,6 @@
 /** @} */ /* end of TABLE_QUERY */
 
 /**************************************************************************//**
-@Group	TABLE_RULE_DELETE Table Rule Delete specific constants
-@{
-*//***************************************************************************/
-	/** Table query output message reserved space */
-#define TABLE_RULE_DELETE_RULEID_KEYSIZE		0x20
-
-/** @} */ /* end of TABLE_RULE_DELETE */
-
-/**************************************************************************//**
 @Group	TABLE_PARAMS_REPLACE Table Parameters Replace specific constants
 @{
 *//***************************************************************************/
@@ -283,6 +309,23 @@
 
 /** @} */ /* end of TABLE_PARAMS_REPLACE */
 
+/**************************************************************************//**
+@Group	TABLE_RULE_REPLACE Table Rule Replace specific constants
+@{
+*//***************************************************************************/
+	/** Table rule replace by rule ID key size */
+#define TABLE_RULE_REPLACE_RULEID_KEYSIZE		0x40
+
+/** @} */ /* end of TABLE_RULE_REPLACE */
+
+/**************************************************************************//**
+@Group	TABLE_RULE_DELETE Table Rule Delete specific constants
+@{
+*//***************************************************************************/
+	/** Table rule delete by rule ID key size */
+#define TABLE_RULE_DELETE_RULEID_KEYSIZE		0x20
+
+/** @} */ /* end of TABLE_RULE_DELETE */
 
 /**************************************************************************//**
 @Group	TABLE_STATUS Status returned to calling function
@@ -798,20 +841,36 @@ struct table_entry {
 
 
 /**************************************************************************//**
-@Description	Table Old Result
+@Description	Table Rule Commands Output Message
 *//***************************************************************************/
 #pragma pack(push, 1)
-struct table_old_result {
-	/* Reserved */
-	uint8_t reserved1[TABLE_OLD_RESULT_RESERVED1_SPACE];
-	
-	/* Rule ID */
-	uint64_t rule_id;
-	
-	/* Reserved */
-	uint8_t reserved2[TABLE_OLD_RESULT_RESERVED2_SPACE];
+struct table_rule_output_message {
 
-	/** The body of the entry (varies per type) */
+	/** STDY and reserved */
+	uint8_t  stdy_and_reserved;
+
+	/** Reserved */
+	uint8_t  reserved0[TABLE_RULE_OUT_MSG_RESERVED0_SPACE];
+
+	/** LKP */
+	uint32_t lkp;
+
+	/** Rule ID */
+	uint64_t rule_id;
+
+	/** Timestamp */
+	uint32_t timestamp;
+
+	/** Reserved */
+	uint32_t reserved1;
+
+	/** New rule ID */
+	uint64_t rule_id_new;
+
+	/** Reserved */
+	uint8_t  reserved2[TABLE_RULE_OUT_MSG_RESERVED2_SPACE];
+
+	/** Table result */
 	struct table_result result;
 };
 #pragma pack(pop)
@@ -915,7 +974,7 @@ struct table_acc_context {
 		miss result returned.
 *//***************************************************************************/
 int table_query_debug(enum table_hw_accel_id acc_id,
-		      uint16_t table_id,
+		      t_tbl_id table_id,
 		      struct table_params_query_output_message *output);
 
 /**************************************************************************//**
@@ -1097,7 +1156,7 @@ int table_calc_num_entries_per_rule(uint16_t type, uint8_t key_size);
 *//***************************************************************************/
 int table_lookup_by_keyid_default_frame_wrp(
 				        enum table_hw_accel_id acc_id,
-					uint16_t table_id,
+					t_tbl_id table_id,
 					uint8_t keyid,
 					struct table_lookup_result
 					       *lookup_result);
@@ -1130,10 +1189,10 @@ int table_lookup_by_keyid_default_frame_wrp(
 @Cautions	This function may result in a fatal error.
 *//***************************************************************************/
 int table_rule_create_wrp(enum table_hw_accel_id acc_id,
-			  uint16_t table_id,
+			  t_tbl_id table_id,
 			  struct table_rule *rule,
 			  uint8_t key_size,
-			  uint64_t *rule_id);
+			  t_rule_id *rule_id);
 
 /**************************************************************************//**
 @Function	table_rule_delete_wrp
@@ -1168,7 +1227,7 @@ int table_rule_create_wrp(enum table_hw_accel_id acc_id,
 @Cautions	This function may result in a fatal error.
 *//***************************************************************************/
 int table_rule_delete_wrp(enum table_hw_accel_id acc_id,
-			  uint16_t table_id,
+			  t_tbl_id table_id,
 			  union table_key_desc *key_desc,
 			  uint8_t key_size,
 			  struct table_result *result);

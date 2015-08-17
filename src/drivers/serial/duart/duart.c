@@ -1069,30 +1069,4 @@ int duart_set_baud_rate(fsl_handle_t duart, uint32_t baud_rate)
 	return 0;
 }
 
-#if (DEBUG_ERRORS > 0)
-/************************************************************************/
-int duart_dump_regs(fsl_handle_t duart)
-{
-	t_duart_uart *p_uart = (t_duart_uart *)duart;
-
-	DECLARE_DUMP;
-
-
-	DUMP_TITLE(p_uart->p_mem_map, ("DUART registers"));
-	fsl_print("\r\n");
-
-	DUMP_VAR((p_uart->p_mem_map), urbr_uthr_udlb);
-	DUMP_VAR((p_uart->p_mem_map), uier_udmb);
-	DUMP_VAR((p_uart->p_mem_map), uiir_ufcr_uafr);
-	DUMP_VAR((p_uart->p_mem_map), ulcr);
-	DUMP_VAR((p_uart->p_mem_map), umcr);
-	DUMP_VAR((p_uart->p_mem_map), ulsr);
-	DUMP_VAR((p_uart->p_mem_map), umsr);
-	DUMP_VAR((p_uart->p_mem_map), uscr);
-	DUMP_VAR((p_uart->p_mem_map), udsr);
-
-	return 0;
-}
-#endif /* (DEBUG_ERRORS > 0) */
-
 __END_COLD_CODE

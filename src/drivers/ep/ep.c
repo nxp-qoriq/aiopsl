@@ -84,7 +84,7 @@ int ep_mng_get_initial_presentation(
 	uint32_t ep_spa;
 	uint32_t ep_spo;
 	struct aiop_tile_regs *tile_regs = (struct aiop_tile_regs *)
-		sys_get_handle(FSL_OS_MOD_AIOP_TILE, 1);
+		sys_get_handle(FSL_MOD_AIOP_TILE, 1);
 	struct aiop_ws_regs *wrks_addr = &tile_regs->ws_regs;
 
 #ifdef DEBUG
@@ -158,7 +158,7 @@ int ep_mng_set_initial_presentation(
 	uint32_t ep_spo = 0;
 	uint32_t ep_temp;
 	struct aiop_tile_regs *tile_regs = (struct aiop_tile_regs *)
-		sys_get_handle(FSL_OS_MOD_AIOP_TILE, 1);
+		sys_get_handle(FSL_MOD_AIOP_TILE, 1);
 	struct aiop_ws_regs *wrks_addr = &tile_regs->ws_regs;
 
 #ifdef DEBUG
@@ -371,7 +371,7 @@ int ep_mng_init(void)
 	int i = 0;
 	int err = 0;
 	struct aiop_tile_regs *tile_regs = (struct aiop_tile_regs *)
-			sys_get_handle(FSL_OS_MOD_AIOP_TILE, 1);
+			sys_get_handle(FSL_MOD_AIOP_TILE, 1);
 	struct aiop_ws_regs *wrks_addr = &tile_regs->ws_regs;
 
 	/* CMDIF server epid initialization here*/

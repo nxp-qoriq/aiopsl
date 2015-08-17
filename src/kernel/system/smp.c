@@ -29,10 +29,10 @@
 #include "fsl_errors.h"
 #include "kernel/fsl_spinlock.h"
 #include "fsl_smp.h"
+#include "fsl_system.h"
 
-#include "sys.h"
-
-
+int sys_init_multi_processing(void);
+void sys_free_multi_processing(void);
 
 /*****************************************************************************/
 int sys_init_multi_processing(void)

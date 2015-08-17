@@ -228,7 +228,7 @@ int ipf_move_remaining_frame(struct ipf_context *ipf_ctx)
 			ipv6_frag_hdr->next_header = orig_next_header;
 			ipv6_frag_hdr->reserved = 0;
 			ipv6_frag_hdr->offset_and_flags = IPV6_HDR_M_FLAG_MASK;
-			ipv6_frag_hdr->id = (uint16_t)fsl_os_rand();
+			ipv6_frag_hdr->id = (uint16_t)fsl_rand();
 
 			/* replace ip payload length, replace next header,
 			 * insert IPv6 fragment header

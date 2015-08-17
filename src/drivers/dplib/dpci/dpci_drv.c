@@ -25,7 +25,7 @@
  */
 
 #include "fsl_types.h"
-#include "sys.h"
+#include "fsl_sys.h"
 #include "fsl_gen.h"
 #include "fsl_errors.h"
 #include "fsl_sys.h"
@@ -241,7 +241,7 @@ static inline void amq_bits_update(uint32_t id)
 __COLD_CODE static int tx_peer_set(uint32_t ind, uint16_t token)
 {
 
-	struct mc_dprc *dprc = sys_get_unique_handle(FSL_OS_MOD_AIOP_RC);
+	struct mc_dprc *dprc = sys_get_unique_handle(FSL_MOD_AIOP_RC);
 	int err;
 	struct dpci_tx_queue_attr tx_attr;
 	struct dpci_peer_attr peer_attr;
@@ -424,7 +424,7 @@ __COLD_CODE int dpci_event_update_obj(uint32_t dpci_id)
 	ind = dpci_mng_find(dpci_id);
 	if (ind < 0) {
 
-		dprc = sys_get_unique_handle(FSL_OS_MOD_AIOP_RC);
+		dprc = sys_get_unique_handle(FSL_MOD_AIOP_RC);
 		ASSERT_COND(dprc);
 		err = dpci_open(&dprc->io, 0, (int)dpci_id, &token);
 		if (err) {
@@ -544,7 +544,7 @@ __COLD_CODE int dpci_event_link_change(uint32_t dpci_id)
 	uint32_t status = 0;
 	uint16_t token = 0xffff;
 	uint8_t event_id;
-	struct mc_dprc *dprc = sys_get_unique_handle(FSL_OS_MOD_AIOP_RC);
+	struct mc_dprc *dprc = sys_get_unique_handle(FSL_MOD_AIOP_RC);
 
 	err = dpci_open(&dprc->io, 0, (int)dpci_id, &token);
 	if (err) {
@@ -636,7 +636,7 @@ __HOT_CODE void dpci_mng_tx_get(uint32_t ind, int pr, uint32_t *fqid)
 //#pragma inline_depth(0)
 __COLD_CODE int dpci_drv_enable(uint32_t dpci_id)
 {
-	struct mc_dprc *dprc = sys_get_unique_handle(FSL_OS_MOD_AIOP_RC);
+	struct mc_dprc *dprc = sys_get_unique_handle(FSL_MOD_AIOP_RC);
 	int err;
 	int ind;
 	uint16_t token = 0xffff;
@@ -675,7 +675,7 @@ __COLD_CODE int dpci_drv_enable(uint32_t dpci_id)
 
 __COLD_CODE int dpci_drv_disable(uint32_t dpci_id)
 {
-	struct mc_dprc *dprc = sys_get_unique_handle(FSL_OS_MOD_AIOP_RC);
+	struct mc_dprc *dprc = sys_get_unique_handle(FSL_MOD_AIOP_RC);
 	int err = 0;
 	uint16_t token = 0xffff;
 
@@ -706,7 +706,7 @@ __COLD_CODE int dpci_drv_disable(uint32_t dpci_id)
 
 __COLD_CODE int dpci_drv_linkup(uint32_t dpci_id, int *up)
 {
-	struct mc_dprc *dprc = sys_get_unique_handle(FSL_OS_MOD_AIOP_RC);
+	struct mc_dprc *dprc = sys_get_unique_handle(FSL_MOD_AIOP_RC);
 	int err = 0;
 	uint16_t token = 0xffff;
 
@@ -842,7 +842,7 @@ __COLD_CODE static int dpci_event_cb(uint8_t generator_id, uint8_t event_id,
 __COLD_CODE int dpci_drv_init()
 {
 	struct dprc_obj_desc dev_desc;
-	struct mc_dprc *dprc = sys_get_unique_handle(FSL_OS_MOD_AIOP_RC);
+	struct mc_dprc *dprc = sys_get_unique_handle(FSL_MOD_AIOP_RC);
 	struct dpci_mng_tbl *dpci_tbl = NULL;
 	int dev_count  = 0;
 	int dpci_count = 0;

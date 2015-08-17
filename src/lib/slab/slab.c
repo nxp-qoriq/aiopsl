@@ -268,7 +268,7 @@ __COLD_CODE int slab_find_and_reserve_bpid(uint32_t num_buffs,
 	uint16_t bman_array_index;
 
 	struct slab_module_info *slab_m = \
-		sys_get_unique_handle(FSL_OS_MOD_SLAB);
+		sys_get_unique_handle(FSL_MOD_SLAB);
 
 	if (slab_m == NULL)
 		return -EINVAL;
@@ -374,7 +374,7 @@ __COLD_CODE int slab_create(uint32_t    committed_buffs,
 
 	int found = FALSE;
 	struct slab_v_pool *slab_virtual_pool;
-	struct slab_module_info *slab_m = sys_get_unique_handle(FSL_OS_MOD_SLAB);
+	struct slab_module_info *slab_m = sys_get_unique_handle(FSL_MOD_SLAB);
 	struct slab_v_pool slab_virtual_pool_ddr;
 	uint64_t context_address = 0;
 
@@ -563,7 +563,7 @@ __COLD_CODE int slab_free(struct slab **slab)
 	struct slab_v_pool *slab_virtual_pool;
 	struct slab_v_pool slab_virtual_pool_ddr;
 	uint64_t pool_data_address;
-	struct slab_module_info *slab_m = sys_get_unique_handle(FSL_OS_MOD_SLAB);
+	struct slab_module_info *slab_m = sys_get_unique_handle(FSL_MOD_SLAB);
 
 	if (slab_m == NULL)
 		return -ENAVAIL;
@@ -788,7 +788,7 @@ __COLD_CODE static int slab_check_bpid(struct slab *slab, uint64_t buff)
 	uint16_t cluster;
 	uint32_t meta_bpid = 0;
 	int      err = -EFAULT;
-	struct slab_module_info *slab_m=sys_get_unique_handle(FSL_OS_MOD_SLAB);
+	struct slab_module_info *slab_m=sys_get_unique_handle(FSL_MOD_SLAB);
 	meta_bpid = SLAB_POOL_ID_GET(SLAB_VP_POOL_GET(slab));
 	struct slab_v_pool slab_virtual_pool_ddr;
 	cluster = SLAB_CLUSTER_ID_GET(SLAB_VP_POOL_GET(slab));
@@ -936,7 +936,7 @@ __COLD_CODE static int dpbp_discovery(struct slab_bpid_info *bpids_arr,
 	int num_bpids = 0;
 	int err = 0;
 	int i = 0;
-	struct mc_dprc *dprc = sys_get_unique_handle(FSL_OS_MOD_AIOP_RC);
+	struct mc_dprc *dprc = sys_get_unique_handle(FSL_MOD_AIOP_RC);
 
 
 	/*Calling MC to get bpid's*/
@@ -1515,7 +1515,7 @@ __COLD_CODE int slab_module_init(void)
 	}
 
 	/* Add to all system handles */
-	err = sys_add_handle(slab_m, FSL_OS_MOD_SLAB, 1, 0);
+	err = sys_add_handle(slab_m, FSL_MOD_SLAB, 1, 0);
 	return err;
 }
 
@@ -1524,9 +1524,9 @@ __COLD_CODE void slab_module_free(void)
 {
 	int i;
 	struct slab_module_info *slab_m = \
-		sys_get_unique_handle(FSL_OS_MOD_SLAB);
+		sys_get_unique_handle(FSL_MOD_SLAB);
 
-	sys_remove_handle(FSL_OS_MOD_SLAB, 0);
+	sys_remove_handle(FSL_MOD_SLAB, 0);
 
 	if (slab_m != NULL){
 		for(i = 0; i < slab_m->num_hw_pools; i++)
@@ -1548,7 +1548,7 @@ __COLD_CODE int slab_debug_info_get(struct slab *slab, struct slab_debug_info *s
 	int     i;
 	slab_release_cb_t *release_cb = NULL;
 	struct slab_module_info *slab_m = \
-		sys_get_unique_handle(FSL_OS_MOD_SLAB);
+		sys_get_unique_handle(FSL_MOD_SLAB);
 
 	if ((slab_info != NULL) && (slab_m != NULL) && SLAB_IS_HW_POOL(slab)) {
 		if (slab_read_pool(SLAB_VP_POOL_GET(slab),

@@ -395,6 +395,16 @@ int ipr_reassemble(ipr_instance_handle_t instance_handle)
 
 	if (scope_status.scope_mode == EXCLUSIVE) {
 		if (PARSER_IS_OUTER_IP_FRAGMENT_DEFAULT()) {
+			/* Fragment */
+		    	if (PARSER_IS_OUTER_IPV4_DEFAULT())
+		    		frame_is_ipv4 = 1;
+		    	else {
+		    		/* todo check if setting following function 
+		    		 * to be inline increases the stack */ 
+		    		if(is_atomic_fragment())
+		    			return IPR_ATOMIC_FRAG;
+		    		frame_is_ipv4 = 0;
+		    	}
 			osm_status = BYPASS_OSM;
 		} else {
 			/* regular frame */
