@@ -43,7 +43,8 @@ extern void core_ready_for_tasks(void);
 
 
 #if (STACK_OVERFLOW_DETECTION == 1)
-extern char _stack_end[]; /* Address after end byte of stack */
+extern char _stack_addr[]; /* Starting address for stack */
+extern char _stack_end[];  /* Address after end byte of stack */
 
 __COLD_CODE static inline int configure_stack_overflow_detection(void)
 {
@@ -66,7 +67,9 @@ __COLD_CODE static inline int configure_stack_overflow_detection(void)
 
 	/* initiate DAC registers */
 	booke_set_spr_DAC1((uint32_t)_stack_end);
-	booke_set_spr_DAC2(0x8000);
+	booke_set_spr_DAC2((uint32_t)_stack_addr);
+	
+	return 0;
 }
 #endif
 
