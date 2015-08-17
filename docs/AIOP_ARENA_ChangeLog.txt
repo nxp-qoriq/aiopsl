@@ -1,3 +1,5 @@
+dpni_drv.c/fsl_dpni_drv.h: Added API to set/get_tx_checksum (l3/l4) 
+
 fsl_dpni_drv.h: Add API to retrieve dpni ordering mode.
 fsl_dpkg.h: Moved to include/drivers
 
