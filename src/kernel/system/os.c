@@ -321,7 +321,7 @@ __COLD_CODE static char *number(char *str, uint64_t num, uint8_t base, uint8_t t
 }
 
 /*****************************************************************************/
-uint32_t fsl_os_rand(void)
+uint32_t fsl_rand(void)
 {
 	seed_32bit = (seed_32bit>>1) ^ (-(seed_32bit & 1LL) &
 		0xFBE16801);

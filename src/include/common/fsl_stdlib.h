@@ -48,13 +48,13 @@
 *//***************************************************************************/
 
 /**************************************************************************//**
-@Function      fsl_os_rand
+@Function      fsl_rand
 
 @Description   returns random number
 
 @Return        pseudo random number (uint32)
 *//***************************************************************************/
-uint32_t fsl_os_rand(void);
+uint32_t fsl_rand(void);
 
 /** @} *//* end of fsl_os_g FSL OS Interface (System call hooks) group */
 
