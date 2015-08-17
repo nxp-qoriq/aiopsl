@@ -46,7 +46,7 @@ extern void core_ready_for_tasks(void);
 extern char _stack_addr[]; /* Starting address for stack */
 extern char _stack_end[];  /* Address after end byte of stack */
 
-__COLD_CODE static inline int configure_stack_overflow_detection(void)
+__COLD_CODE static int configure_stack_overflow_detection(void)
 {
 	if(((uint32_t)_stack_end) > 0x400)
 	{
