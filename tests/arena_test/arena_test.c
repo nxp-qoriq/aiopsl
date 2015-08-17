@@ -41,7 +41,7 @@
 #include "fsl_osm.h"
 #include "fsl_dbg.h"
 #include "fsl_evmng.h"
-#include "sys.h"
+#include "fsl_system.h"
 
 int app_early_init(void);
 int app_init(void);
@@ -420,7 +420,6 @@ static int app_dpni_event_added_cb(
 	int promisc;
 	uint16_t spid = 0;
 	uint16_t dpni;
-	extern t_system sys;
 	uint64_t buff = 0;
 	int ep, state = -1;
 	struct dpkg_profile_cfg dist_key_cfg = {0};

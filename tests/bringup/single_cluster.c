@@ -36,7 +36,7 @@
 #ifndef BRINGUP_TEST
 #include "fsl_dbg.h"
 #endif
-#include "sys.h"
+#include "fsl_system.h"
 
 /* For bringup tests compile with BRINGUP_TEST */
 
@@ -46,7 +46,6 @@
 uint32_t core_arr[INTG_MAX_NUM_OF_CORES] = {0};
 int8_t  counter = 0;
 int     err[INTG_MAX_NUM_OF_CORES] = {0};
-extern t_system sys; /* Global System Object */
 
 static void _sys_barrier(void)
 {
