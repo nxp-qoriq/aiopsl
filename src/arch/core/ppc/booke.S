@@ -732,30 +732,59 @@ asm_prefix(booke_set_spr_DAC2):
 
 .global    asm_prefix(booke_get_spr_DBCR0)
 asm_prefix(booke_get_spr_DBCR0):
-    mfspr   3,DBCR0         /* 308 */   /* Debug control register 0 1 */
+    mfspr   3,DBCR0         /* 308 */   /* Debug control register 0 */
     blr
 .global    asm_prefix(booke_set_spr_DBCR0)
 asm_prefix(booke_set_spr_DBCR0):
-    mtspr   DBCR0,3         /* 308 */   /* Debug control register 0 1 */
+    mtspr   DBCR0,3         /* 308 */   /* Debug control register 0 */
     blr
 
 .global    asm_prefix(booke_get_spr_DBCR1)
 asm_prefix(booke_get_spr_DBCR1):
-    mfspr   3,DBCR1         /* 309 */   /* Debug control register 1 1 */
+    mfspr   3,DBCR1         /* 309 */   /* Debug control register 1 */
     blr
 .global    asm_prefix(booke_set_spr_DBCR1)
 asm_prefix(booke_set_spr_DBCR1):
-    mtspr   DBCR1,3         /* 309 */   /* Debug control register 1 1 */
+    mtspr   DBCR1,3         /* 309 */   /* Debug control register 1 */
     blr
 
 .global    asm_prefix(booke_get_spr_DBCR2)
 asm_prefix(booke_get_spr_DBCR2):
-    mfspr   3,DBCR2         /* 310 */   /* Debug control register 2 1 */
+    mfspr   3,DBCR2         /* 310 */   /* Debug control register 2 */
     blr
 .global    asm_prefix(booke_set_spr_DBCR2)
 asm_prefix(booke_set_spr_DBCR2):
-    mtspr   DBCR2,3         /* 310 */   /* Debug control register 2 1 */
+    mtspr   DBCR2,3         /* 310 */   /* Debug control register 2 */
     blr
+
+//XXX
+.global    asm_prefix(booke_get_spr_DBCR3)
+asm_prefix(booke_get_spr_DBCR3):
+    mfspr   3,DBCR3         /* 561 */   /* Debug control register 3 */
+    blr
+.global    asm_prefix(booke_set_spr_DBCR3)
+asm_prefix(booke_set_spr_DBCR3):
+    mtspr   DBCR3,3         /* 561 */   /* Debug control register 3 */
+    blr
+    
+.global    asm_prefix(booke_get_spr_DBCR4)
+asm_prefix(booke_get_spr_DBCR4):
+    mfspr   3,DBCR4         /* 310 */   /* Debug control register 4 */
+    blr
+.global    asm_prefix(booke_set_spr_DBCR4)
+asm_prefix(booke_set_spr_DBCR4):
+    mtspr   DBCR4,3         /* 310 */   /* Debug control register 4 */
+    blr
+    
+.global    asm_prefix(booke_get_spr_DBCR5)
+asm_prefix(booke_get_spr_DBCR5):
+    mfspr   3,DBCR5         /* 310 */   /* Debug control register 5 */
+    blr
+.global    asm_prefix(booke_set_spr_DBCR5)
+asm_prefix(booke_set_spr_DBCR5):
+    mtspr   DBCR5,3         /* 310 */   /* Debug control register 5 */
+    blr
+//XXX
 
 .global    asm_prefix(booke_get_spr_DBSR)
 asm_prefix(booke_get_spr_DBSR):

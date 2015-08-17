@@ -368,12 +368,18 @@ uint32_t booke_get_spr_DAC1(void);            /* [316]        Data address compa
 void booke_set_spr_DAC1(uint32_t newvalue);   /* [316]        Data address compare 1 */
 uint32_t booke_get_spr_DAC2(void);            /* [317]        Data address compare 2 */
 void booke_set_spr_DAC2(uint32_t newvalue);   /* [317]        Data address compare 2 */
-uint32_t booke_get_spr_DBCR0(void);           /* [308]        Debug control register 0 1 */
-void booke_set_spr_DBCR0(uint32_t newvalue);  /* [308]        Debug control register 0 1 */
-uint32_t booke_get_spr_DBCR1(void);           /* [309]        Debug control register 1 1 */
-void booke_set_spr_DBCR1(uint32_t newvalue);  /* [309]        Debug control register 1 1 */
-uint32_t booke_get_spr_DBCR2(void);           /* [310]        Debug control register 2 1 */
-void booke_set_spr_DBCR2(uint32_t newvalue);  /* [310]        Debug control register 2 1 */
+uint32_t booke_get_spr_DBCR0(void);           /* [308]        Debug control register 0 */
+void booke_set_spr_DBCR0(uint32_t newvalue);  /* [308]        Debug control register 0 */
+uint32_t booke_get_spr_DBCR1(void);           /* [309]        Debug control register 1 */
+void booke_set_spr_DBCR1(uint32_t newvalue);  /* [309]        Debug control register 1 */
+uint32_t booke_get_spr_DBCR2(void);           /* [310]        Debug control register 2 */
+void booke_set_spr_DBCR2(uint32_t newvalue);  /* [310]        Debug control register 2 */
+uint32_t booke_get_spr_DBCR3(void);           /* [310]        Debug control register 3 */
+void booke_set_spr_DBCR3(uint32_t newvalue);  /* [310]        Debug control register 3 */
+uint32_t booke_get_spr_DBCR4(void);           /* [310]        Debug control register 4 */
+void booke_set_spr_DBCR4(uint32_t newvalue);  /* [310]        Debug control register 4 */
+uint32_t booke_get_spr_DBCR5(void);           /* [310]        Debug control register 5 */
+void booke_set_spr_DBCR5(uint32_t newvalue);  /* [310]        Debug control register 5 */
 uint32_t booke_get_spr_DBSR(void);            /* [304]        Debug status register */
 void booke_set_spr_DBSR(uint32_t newvalue);   /* [304]        Debug status register */
 uint32_t booke_get_spr_DEAR(void);            /* [61]         Data exception address register */
