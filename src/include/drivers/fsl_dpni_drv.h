@@ -293,6 +293,37 @@ struct dpni_drv_tx_shaping {
 };
 
 /**************************************************************************//**
+@Description	struct dpni_drv_qos_tbl - Structure representing
+		QOS table configuration.
+
+*//***************************************************************************/
+struct dpni_drv_qos_tbl {
+	/* I/O virtual address of 256 bytes DMA-able memory filled with
+	 * key extractions to be used as the QoS criteria by calling
+	 * dpni_prepare_key_cfg() */
+	uint64_t key_cfg_iova;
+	/* Set to '1' to discard frames in case of no match (miss);
+	 * '0' to use the 'default_tc' in such cases. */
+	uint8_t discard_on_miss;
+	/* Used in case of no-match and 'discard_on_miss'= 0 */
+	uint8_t default_tc;
+};
+
+/**************************************************************************//**
+@Description	struct dpni_drv_qos_tbl - Structure representing
+		Rule configuration for table lookup.
+
+*//***************************************************************************/
+struct dpni_drv_qos_rule {
+	/* I/O virtual address of the key (must be in DMA-able memory) */
+	uint64_t key_iova;
+	/* I/O virtual address of the mask (must be in DMA-able memory) */
+	uint64_t mask_iova;
+	/* key and mask size (in bytes) */
+	uint8_t key_size;
+};
+
+/**************************************************************************//**
 @Description	Application Receive callback
 
 		User provides this function. Driver invokes it when it gets a
@@ -543,7 +574,7 @@ inline void sl_tman_expiration_task_prolog(uint16_t spid);
 	It is recommended that for any error value user should discard
 	the frame and terminate the task.
 @Retval		EBUSY - Enqueue failed due to congestion in QMAN or due to
-	DPNI link down. It is recommended calling fdma_discard_fd() 
+	DPNI link down. It is recommended calling fdma_discard_fd()
 	afterwards and then terminate task.
 @Retval		ENOMEM - Failed due to buffer pool depletion. It is recommended
 	calling fdma_discard_default_frame() afterwards and then terminate task.
@@ -567,7 +598,7 @@ inline int dpni_drv_send(uint16_t ni_id);
 	It is recommended that for any error value user should discard
 	the frame and terminate the task.
 @Retval		EBUSY - Enqueue failed due to congestion in QMAN or due to
-	DPNI link down. It is recommended calling fdma_discard_fd() 
+	DPNI link down. It is recommended calling fdma_discard_fd()
 	afterwards and then terminate task.
 
 @Cautions	The frame to be enqueued must be closed (stored) when calling
@@ -1064,5 +1095,85 @@ int dpni_drv_set_tx_selection(uint16_t ni_id,
 *//***************************************************************************/
 int dpni_drv_set_tx_shaping(uint16_t ni_id,
                           const struct dpni_drv_tx_shaping *cfg);
+
+/**************************************************************************//**
+@Function	dpni_drv_set_qos_table
+
+@Description	Function to set QoS mapping table for given NI.
+
+@Param[in]	ni_id The AIOP Network Interface ID.
+
+@Param[in]	cfg QoS table configuration.
+
+@Cautions	This function and all QoS-related functions require that
+		'max_tcs > 1' was set at DPNI creation.
+		Before calling this function, call dpni_drv_prepare_key_cfg() to
+		prepare the key_cfg_iova parameter
+
+@Return	0 on success;
+	error code, otherwise. For error posix refer to \ref error_g
+*//***************************************************************************/
+int dpni_drv_set_qos_table(uint16_t ni_id,
+                          const struct dpni_drv_qos_tbl *cfg);
+
+/**************************************************************************//**
+@Function	dpni_drv_add_qos_entry
+
+@Description	Function to add QoS mapping entry for given NI and TC.
+
+@Param[in]	ni_id The AIOP Network Interface ID.
+
+@Param[in]	cfg Rule configuration for table lookup.
+
+@Param[in]	tc_id Traffic class selection (0-7)
+
+@Return	0 on success;
+	error code, otherwise. For error posix refer to \ref error_g
+*//***************************************************************************/
+int dpni_drv_add_qos_entry(uint16_t ni_id,
+                           const struct dpni_drv_qos_rule *cfg,
+                           uint8_t tc_id);
+
+/**************************************************************************//**
+@Function	dpni_drv_remove_qos_entry
+
+@Description	Function to remove QoS mapping entry for given NI.
+
+@Param[in]	ni_id The AIOP Network Interface ID.
+
+@Param[in]	cfg Rule configuration for table lookup.
+
+@Return	0 on success;
+	error code, otherwise. For error posix refer to \ref error_g
+*//***************************************************************************/
+int dpni_drv_remove_qos_entry(uint16_t ni_id,
+                              const struct dpni_drv_qos_rule *cfg);
+
+/**************************************************************************//**
+@Function	dpni_drv_clear_qos_table
+
+@Description	Function to clear all QoS mapping entries for given NI.
+
+@Param[in]	ni_id The AIOP Network Interface ID.
+
+@Cautions	Following this function call, all frames are directed to
+		the default traffic class (0)
+
+@Return	0 on success;
+	error code, otherwise. For error posix refer to \ref error_g
+*//***************************************************************************/
+int dpni_drv_clear_qos_table(uint16_t ni_id);
+
+/**
+ * dpni_prepare_key_cfg() - function prepare extract parameters
+ * @cfg: defining a full Key Generation profile (rule)
+ * @key_cfg_buf: Zeroed 256 bytes of memory before mapping it to DMA
+ *
+ * This function has to be called before the following functions:
+ *	- dpni_set_rx_tc_dist()
+ *		- dpni_set_qos_table()
+ */
+int dpni_drv_prepare_key_cfg(struct dpkg_profile_cfg *cfg,
+                             uint8_t *key_cfg_buf);
 /** @} */ /* end of dpni_drv_g DPNI DRV group */
 #endif /* __FSL_DPNI_DRV_H */

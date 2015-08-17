@@ -1,3 +1,12 @@
+dpni_drv.c/fsl_dpni_drv.h: Added API to support Egress/Ingress traffic shaping:
+            dpni_drv_set_rx_tc_policing,
+            dpni_drv_set_tx_selection,
+            dpni_drv_set_tx_shaping,
+            dpni_drv_set_qos_table,
+            dpni_drv_add_qos_entry,
+            dpni_drv_remove_qos_entry,
+            dpni_drv_clear_qos_table,
+            dpni_drv_prepare_key_cfg.
 dpni_drv.c/fsl_dpni_drv.h: Added API to set/get_tx_checksum (l3/l4) 
 
 fsl_dpni_drv.h: Add API to retrieve dpni ordering mode.
