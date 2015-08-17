@@ -40,29 +40,36 @@ extern int global_post_init(void);
 extern int apps_early_init(void);
 extern int apps_init(void);
 extern void core_ready_for_tasks(void);
+
+
 #if (STACK_OVERFLOW_DETECTION == 1)
-__COLD_CODE static inline void configure_stack_overflow_detection(void)
+extern char _stack_addr[]; /* Starting address for stack */
+extern char _stack_end[];  /* Address after end byte of stack */
+
+__COLD_CODE static int configure_stack_overflow_detection(void)
 {
+	if(((uint32_t)_stack_end) > 0x400)
+	{
+		/* Stack end address cannot be larger than 1K Bytes */
+		return -ENOMEM;
+	}
+	
 	/* DBCR2 */
 	booke_set_spr_DBCR2(booke_get_spr_DBCR2() | 0x00c00000);
 
 	/* DBCR4 */
-	asm {
-		mfspr   r6,DBCR4
-		ori r6, r6, 0x0080 /* DAC1CFG */
-		mtspr   DBCR4,r6
-		isync
-	}
-	//  booke_set_spr_DBCR4(booke_get_spr_DBCR4() | 0x00000080);
-	//  booke_instruction_sync();
+	booke_set_spr_DBCR4(booke_get_spr_DBCR4() | 0x00000080); /* DAC1CFG */
+	booke_instruction_sync();
 
 	/* DBCR0 */
 	booke_set_spr_DBCR0(booke_get_spr_DBCR0() | 0x400f0000);
 	booke_instruction_sync();
 
 	/* initiate DAC registers */
-	booke_set_spr_DAC1(0x400);
-	booke_set_spr_DAC2(0x8000);
+	booke_set_spr_DAC1((uint32_t)_stack_end);
+	booke_set_spr_DAC2((uint32_t)_stack_addr);
+	
+	return 0;
 }
 #endif
 
@@ -80,7 +87,11 @@ int main(int argc, char *argv[])
 	}
 
 #if (STACK_OVERFLOW_DETECTION == 1)
-	configure_stack_overflow_detection();
+	err = configure_stack_overflow_detection();
+	if(err) {
+		cmgw_report_boot_failure();
+		return err;
+	}
 #endif
 
 	/* Initialize system */
