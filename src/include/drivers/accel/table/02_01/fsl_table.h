@@ -1208,12 +1208,7 @@ inline int table_rule_query_by_ruleid(enum table_hw_accel_id acc_id,
 @Retval		#TABLE_STATUS_MISS A rule with the same key descriptor is not
 		found in the table.
 
-@Cautions	NOTE: If the result is of type that contains pointer to
-		Slab/CDMA buffer (refer to struct table_rule_result
-		documentation) this function will not increment the reference
-		counter of the buffer.
 @Cautions	In this function the task yields.
-@Cautions	This function may result in a fatal error.
 *//***************************************************************************/
 inline int table_rule_query(enum table_hw_accel_id acc_id,
 			    t_tbl_id table_id,
@@ -1235,6 +1230,16 @@ inline int table_rule_query(enum table_hw_accel_id acc_id,
 @Param[in, out]	result The result of the deleted rule. If null the deleted
 		rule's result will not be returned. If not null, structure
 		should be allocated by the caller to this function.
+@Param[in, out]	options The deleted rule's options. If null the deleted
+		rule's options will not be returned. If not null, structure
+		should be allocated by the caller to this function.
+		(Please refer to \ref FSL_TABLE_RULE_OPTIONS for more
+		details).
+@Param[in, out]	timestamp Timestamp of the result. If null the queried
+		timestamp result will not be returned. If not null, structure
+		should be allocated by the caller to this function.
+		Timestamp is not valid unless the rule deleted was created
+		with suitable options. Available through options parameter. 
 
 @Return		0 on success or negative value on error.
 
@@ -1244,12 +1249,13 @@ inline int table_rule_query(enum table_hw_accel_id acc_id,
 
 
 @Cautions	In this function the task yields.
-@Cautions	This function may result in a fatal error.
 *//***************************************************************************/
 inline int table_rule_delete_by_ruleid(enum table_hw_accel_id acc_id,
 				       t_tbl_id table_id,
 				       t_rule_id rule_id,
-				       struct table_result *result);
+				       struct table_result *result,
+				       uint8_t *options,
+				       uint32_t *timestamp);
 
 
 /**************************************************************************//**

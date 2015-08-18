@@ -330,7 +330,9 @@ inline int table_rule_replace(enum table_hw_accel_id acc_id,
 inline int table_rule_delete_by_ruleid(enum table_hw_accel_id acc_id,
 				       t_tbl_id table_id,
 				       t_rule_id rule_id,
-				       struct table_result *result)
+				       struct table_result *result,
+				       uint8_t *options,
+				       uint32_t *timestamp)
 {
 	int32_t status;
 
@@ -356,6 +358,11 @@ inline int table_rule_delete_by_ruleid(enum table_hw_accel_id acc_id,
 			/* STQW optimization is not done here so we do not
 			 * force alignment */
 			*result = out_msg.result;
+		if (options)
+			*options = out_msg.stdy_and_reserved & 
+				   TABLE_ENTRY_STDY_FIELD_MASK;
+		if (timestamp)
+			*timestamp = out_msg.timestamp;
 	}
 	else if (status == TABLE_HW_STATUS_BIT_MISS)
 		/* Rule was not found */
