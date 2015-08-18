@@ -61,7 +61,7 @@ extern void sys_free_multi_processing(void);
 extern void fill_platform_parameters(struct platform_param *platform_param);
 
 typedef struct t_sys_forced_object {
-	fsl_handle_t        h_module;
+	void *        h_module;
 } t_sys_forced_object_desc;
 
 t_sys_forced_object_desc  sys_handle[FSL_NUM_MODULES];
@@ -71,7 +71,7 @@ int sys_init(void);
 void sys_free(void);
 
 /*****************************************************************************/
-fsl_handle_t sys_get_handle(enum fsl_module module, int num_of_ids, ...)
+void * sys_get_handle(enum fsl_module module, int num_of_ids, ...)
 {
 	UNUSED(num_of_ids);
 	if ((module >= FSL_NUM_MODULES) || (module < 0))
@@ -82,7 +82,7 @@ fsl_handle_t sys_get_handle(enum fsl_module module, int num_of_ids, ...)
 }
 
 /*****************************************************************************/
-int sys_add_handle(fsl_handle_t h_module, enum fsl_module module,
+int sys_add_handle(void * h_module, enum fsl_module module,
 				int num_of_ids, ...)
 {
 	if ((module >= FSL_NUM_MODULES) || (module < 0) || (num_of_ids > 1))
@@ -237,14 +237,14 @@ __COLD_CODE static int global_sys_init(void)
 	if (err != 0) return err;
 
 	aiop_base_addr = AIOP_PERIPHERALS_OFF + SOC_PERIPH_OFF_AIOP_TILE;
-	err = sys_add_handle( (fsl_handle_t)aiop_base_addr,
+	err = sys_add_handle( (void *)aiop_base_addr,
 	                                      FSL_MOD_AIOP_TILE, 1, 0);
 	if (err != 0) return err;
 
 	tile_regs = (struct aiop_tile_regs *)aiop_base_addr;
 	cmgw_init((void *)&tile_regs->cmgw_regs);
 
-	err = sys_add_handle( (fsl_handle_t)&tile_regs->cmgw_regs,
+	err = sys_add_handle( (void *)&tile_regs->cmgw_regs,
 	                                      FSL_MOD_CMGW, 1, 0);
 	if (err != 0) return err;
 

@@ -65,7 +65,7 @@ static void check_if_finished_transmission(t_duart_uart     *p_uart)
 			                  p_uart->p_tx_buffer);
 	}
 }
-static void intr_handler_empty_threi(uint8_t intr_status, fsl_handle_t duart)
+static void intr_handler_empty_threi(uint8_t intr_status, void * duart)
 {
 	t_duart_uart     *p_uart = duart;
 
@@ -154,7 +154,7 @@ static void intr_handler_empty_threi(uint8_t intr_status, fsl_handle_t duart)
 	}
 }
 
-static void intr_handler(fsl_handle_t duart)
+static void intr_handler(void * duart)
 {
 	t_duart_uart     *p_uart = duart;
 	uint8_t         intr_status, umcr, ulsr, data;
@@ -270,7 +270,7 @@ static int check_driver_init_parameters(t_duart_driver_param *p_driver_param)
 }
 
 /************************************************************************/
-static int check_init_parameters(t_duart_uart *p_uart, fsl_handle_t params)
+static int check_init_parameters(t_duart_uart *p_uart, void * params)
 {
 	t_duart_driver_param  *p_driver_param = p_uart->p_driver_param;
 	int err;
@@ -323,7 +323,7 @@ static void set_default_param(t_duart_driver_param *p_driver_param)
 /************************************************************************/
 
 /************************************************************************/
-static int duart_poll_tx(fsl_handle_t duart, uint8_t *data, uint32_t size)
+static int duart_poll_tx(void * duart, uint8_t *data, uint32_t size)
 {
 	t_duart_uart *p_uart = duart;
 	uint8_t     status;
@@ -378,7 +378,7 @@ static int duart_poll_tx(fsl_handle_t duart, uint8_t *data, uint32_t size)
 
 /************************************************************************/
 static uint32_t duart_poll_rx(
-	fsl_handle_t duart,
+	void * duart,
 	uint8_t *buffer,
 	uint32_t size)
 {
@@ -443,7 +443,7 @@ static uint32_t duart_poll_rx(
 }
 
 /************************************************************************/
-static void duart_free_local(fsl_handle_t duart)
+static void duart_free_local(void * duart)
 {
 	t_duart_uart *p_uart = duart;
 
@@ -480,7 +480,7 @@ static void duart_free_local(fsl_handle_t duart)
 /************************************************************************/
 
 /************************************************************************/
-fsl_handle_t duart_config(t_duart_uart_param *p_duart_param)
+void * duart_config(t_duart_uart_param *p_duart_param)
 {
 	t_duart_uart         *p_uart;
 	t_duart_driver_param  *p_driver_param;
@@ -561,7 +561,7 @@ fsl_handle_t duart_config(t_duart_uart_param *p_duart_param)
 }
 
 /************************************************************************/
-int duart_config_rx_buffer_size(fsl_handle_t duart, uint32_t new_val)
+int duart_config_rx_buffer_size(void * duart, uint32_t new_val)
 {
 	t_duart_uart *p_uart = (t_duart_uart *)duart;
 	p_uart->p_driver_param->rx_buffer_size = new_val;
@@ -570,7 +570,7 @@ int duart_config_rx_buffer_size(fsl_handle_t duart, uint32_t new_val)
 }
 
 /************************************************************************/
-int duart_config_en_modem_stat_intr(fsl_handle_t duart, int new_val)
+int duart_config_en_modem_stat_intr(void * duart, int new_val)
 {
 	t_duart_uart *p_uart = (t_duart_uart *)duart;
 	p_uart->p_driver_param->en_modem_stat_intr = new_val;
@@ -579,7 +579,7 @@ int duart_config_en_modem_stat_intr(fsl_handle_t duart, int new_val)
 }
 
 /************************************************************************/
-int duart_config_en_rec_line_stat_intr(fsl_handle_t duart, int new_val)
+int duart_config_en_rec_line_stat_intr(void * duart, int new_val)
 {
 	t_duart_uart *p_uart = (t_duart_uart *)duart;
 	p_uart->p_driver_param->en_rec_line_stat_intr = new_val;
@@ -588,7 +588,7 @@ int duart_config_en_rec_line_stat_intr(fsl_handle_t duart, int new_val)
 }
 
 /************************************************************************/
-int duart_config_en_trans_hold_reg_empty_intr(fsl_handle_t duart, int new_val)
+int duart_config_en_trans_hold_reg_empty_intr(void * duart, int new_val)
 {
 	t_duart_uart *p_uart = (t_duart_uart *)duart;
 	p_uart->p_driver_param->en_trans_hold_reg_empty_intr = new_val;
@@ -597,7 +597,7 @@ int duart_config_en_trans_hold_reg_empty_intr(fsl_handle_t duart, int new_val)
 }
 
 /************************************************************************/
-int duart_config_en_rec_data_avail_intr(fsl_handle_t duart, int new_val)
+int duart_config_en_rec_data_avail_intr(void * duart, int new_val)
 {
 	t_duart_uart *p_uart = (t_duart_uart *)duart;
 	p_uart->p_driver_param->en_rec_data_avail_intr = new_val;
@@ -607,7 +607,7 @@ int duart_config_en_rec_data_avail_intr(fsl_handle_t duart, int new_val)
 
 /************************************************************************/
 int duart_config_rec_trigger_level(
-	fsl_handle_t duart,
+	void * duart,
 	e_duart_uart_fifo_size new_val)
 {
 	t_duart_uart *p_uart = (t_duart_uart *)duart;
@@ -617,7 +617,7 @@ int duart_config_rec_trigger_level(
 }
 
 /************************************************************************/
-int duart_config_rx_timeout(fsl_handle_t duart, int32_t new_val)
+int duart_config_rx_timeout(void * duart, int32_t new_val)
 {
 	t_duart_uart *p_uart = (t_duart_uart *)duart;
 	p_uart->p_driver_param->rx_timeout = new_val;
@@ -626,7 +626,7 @@ int duart_config_rx_timeout(fsl_handle_t duart, int32_t new_val)
 }
 
 /************************************************************************/
-int duart_config_dma_mode_select(fsl_handle_t duart, int new_val)
+int duart_config_dma_mode_select(void * duart, int new_val)
 {
 	t_duart_uart *p_uart = (t_duart_uart *)duart;
 	p_uart->p_driver_param->dma_mode_select = new_val;
@@ -635,7 +635,7 @@ int duart_config_dma_mode_select(fsl_handle_t duart, int new_val)
 }
 
 /************************************************************************/
-int duart_config_enable_fifo(fsl_handle_t duart, int new_val)
+int duart_config_enable_fifo(void * duart, int new_val)
 {
 	t_duart_uart *p_uart = (t_duart_uart *)duart;
 	p_uart->p_driver_param->enable_fifo = new_val;
@@ -644,7 +644,7 @@ int duart_config_enable_fifo(fsl_handle_t duart, int new_val)
 }
 
 /************************************************************************/
-int duart_config_loop_back_mode(fsl_handle_t duart, int new_val)
+int duart_config_loop_back_mode(void * duart, int new_val)
 {
 	t_duart_uart *p_uart = (t_duart_uart *)duart;
 	p_uart->p_driver_param->loop_back_mode = new_val;
@@ -654,7 +654,7 @@ int duart_config_loop_back_mode(fsl_handle_t duart, int new_val)
 
 /************************************************************************/
 int duart_config_control_char(
-	fsl_handle_t   duart,
+	void *   duart,
 	char *p_control_char,
 	int *p_control_char_reject,
 	uint8_t numcc_entries)
@@ -677,7 +677,7 @@ int duart_config_control_char(
 
 
 /************************************************************************/
-int duart_config_poll_mode(fsl_handle_t duart, int new_val)
+int duart_config_poll_mode(void * duart, int new_val)
 {
 	t_duart_uart *p_uart = (t_duart_uart *)duart;
 
@@ -687,7 +687,7 @@ int duart_config_poll_mode(fsl_handle_t duart, int new_val)
 }
 
 /************************************************************************/
-int duart_config_poll_lf2crlf(fsl_handle_t duart, int new_val)
+int duart_config_poll_lf2crlf(void * duart, int new_val)
 {
 	t_duart_uart *p_uart = (t_duart_uart *)duart;
 
@@ -701,7 +701,7 @@ int duart_config_poll_lf2crlf(fsl_handle_t duart, int new_val)
 /************************************************************************/
 
 /************************************************************************/
-int duart_init(fsl_handle_t duart)
+int duart_init(void * duart)
 {
 	t_duart_uart         *p_uart = (t_duart_uart *)duart;
 	t_duart_driver_param  *p_driver_param;
@@ -864,14 +864,14 @@ int duart_init(fsl_handle_t duart)
 /************************************************************************/
 
 /************************************************************************/
-void duart_free(fsl_handle_t h_duart)
+void duart_free(void * h_duart)
 {
 	duart_free_local(h_duart);
 }
 
 
 /************************************************************************/
-int duart_tx(fsl_handle_t duart, uint8_t *data, uint32_t size)
+int duart_tx(void * duart, uint8_t *data, uint32_t size)
 {
 	t_duart_uart     *p_uart = duart;
 	uint32_t        tries = 0;
@@ -919,7 +919,7 @@ int duart_tx(fsl_handle_t duart, uint8_t *data, uint32_t size)
 }
 
 /************************************************************************/
-uint32_t duart_rx(fsl_handle_t duart, uint8_t *buffer, uint32_t size)
+uint32_t duart_rx(void * duart, uint8_t *buffer, uint32_t size)
 {
 	t_duart_uart   *p_uart = duart;
 	uint32_t      actual_bytes = 0;
@@ -993,7 +993,7 @@ DONE:
 /************************************************************************/
 
 /************************************************************************/
-uint32_t duart_get_num_of_rx_char_in_buffer(fsl_handle_t duart)
+uint32_t duart_get_num_of_rx_char_in_buffer(void * duart)
 {
 	t_duart_uart   *p_uart = duart;
 	uint8_t       status;
@@ -1009,7 +1009,7 @@ uint32_t duart_get_num_of_rx_char_in_buffer(fsl_handle_t duart)
 }
 
 /************************************************************************/
-int duart_set_low_space_alert(fsl_handle_t duart, uint32_t new_val)
+int duart_set_low_space_alert(void * duart, uint32_t new_val)
 {
 	t_duart_uart *p_uart = (t_duart_uart *)duart;
 	p_uart->low_space_alert = new_val;
@@ -1019,7 +1019,7 @@ int duart_set_low_space_alert(fsl_handle_t duart, uint32_t new_val)
 
 
 /************************************************************************/
-int duart_set_break_signal(fsl_handle_t duart, int break_signal)
+int duart_set_break_signal(void * duart, int break_signal)
 {
 	t_duart_uart     *p_uart = (t_duart_uart *)duart;
 	uint8_t         ulcr_val;
@@ -1037,7 +1037,7 @@ int duart_set_break_signal(fsl_handle_t duart, int break_signal)
 }
 
 /************************************************************************/
-int duart_set_baud_rate(fsl_handle_t duart, uint32_t baud_rate)
+int duart_set_baud_rate(void * duart, uint32_t baud_rate)
 {
 	t_duart_uart     *p_uart = (t_duart_uart *)duart;
 	t_duart_mem_map   *p_mem_map;

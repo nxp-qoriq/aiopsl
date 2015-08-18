@@ -62,10 +62,10 @@
  @Cautions      Only a single console is supported. The existing console must
                 be unregistered before a new one is registered.
 *//***************************************************************************/
-int sys_register_console(fsl_handle_t    h_console_dev,
-                         int (*f_console_print)(fsl_handle_t h_console_dev,
+int sys_register_console(void *    h_console_dev,
+                         int (*f_console_print)(void * h_console_dev,
                         	 uint8_t *p_data, uint32_t size),
-                         int (*f_console_get)(fsl_handle_t h_console_dev,
+                         int (*f_console_get)(void * h_console_dev,
                         	 uint8_t *p_data, uint32_t size));
 
 /**************************************************************************//**
