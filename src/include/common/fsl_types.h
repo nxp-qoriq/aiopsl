@@ -76,10 +76,5 @@ typedef int32_t intptr_t;
 #define __START_HOT_CODE START_CODE_IN_SECTION(".itext_vle")
 #define __END_HOT_CODE POP
 
-/**************************************************************************//**
- @Description   General Handle
- *//***************************************************************************/
-typedef void * fsl_handle_t; /**< TODO: remove, do not use */
-
 
 #endif /* __FSL_TYPES_H */

@@ -1,3 +1,4 @@
+fsl_types.h       : Removed fsl_handle_t ENGR00355319
 os.c, fsl_stdlib.h: Remove "_os_" from fsl_os_rand() to be fsl_rand()
 
 fsl_rcu.h       : ls2085a rev1. Resolved ENGR363207. Removed rcu_read_unlock_cancel(), it is handled internally by SL upon task termination.

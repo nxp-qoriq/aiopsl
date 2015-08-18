@@ -52,10 +52,10 @@ typedef struct t_system {
 	struct t_mem_mng            mem_mng;
 
 	/* Console variables */
-	fsl_handle_t                console;
-	int                         (*f_console_print)(fsl_handle_t console,
+	void *                console;
+	int                         (*f_console_print)(void * console,
 		uint8_t *p_data, uint32_t size);
-	int                         (*f_console_get)(fsl_handle_t console,
+	int                         (*f_console_get)(void * console,
 		uint8_t *p_data, uint32_t size);
 	char                        *p_pre_console_buf;
 	uint32_t                    pre_console_buf_pos;

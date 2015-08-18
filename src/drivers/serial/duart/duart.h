@@ -229,7 +229,7 @@ typedef struct t_duart_driver_param {
 @Description   DUART UART unit descriptor structure
  *//***************************************************************************/
 typedef struct t_duart_uart {
-	fsl_handle_t                h_app;       /**< Handle to the upper
+	void *                h_app;       /**< Handle to the upper
 						layer handle    */
 	int                     irq;             /**< DUART interrupt ID
 						(system-specific number) */
