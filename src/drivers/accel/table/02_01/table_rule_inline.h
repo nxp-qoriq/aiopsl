@@ -332,10 +332,6 @@ inline int table_rule_delete_by_ruleid(enum table_hw_accel_id acc_id,
 				       t_rule_id rule_id,
 				       struct table_result *result)
 {
-#ifdef CHECK_ALIGNMENT 	
-	DEBUG_ALIGN("table_inline.h",(uint32_t)rule_id_desc, ALIGNMENT_16B);
-#endif
-
 	int32_t status;
 
 	struct table_rule_output_message out_msg __attribute__((aligned(16)));
@@ -429,7 +425,7 @@ inline int table_rule_query_by_ruleid(enum table_hw_accel_id acc_id,
 				      uint8_t *options,
 				      uint32_t *timestamp)
 {
-#ifdef CHECK_ALIGNMENT 	
+#ifdef CHECK_ALIGNMENT
 	DEBUG_ALIGN("table_inline.h",(uint32_t)rule_id_desc, ALIGNMENT_16B);
 #endif
 
@@ -488,7 +484,6 @@ inline int table_rule_query_by_ruleid(enum table_hw_accel_id acc_id,
 			if (result) *result = entry.body.lpm_res.result;
 			if (timestamp)
 				*timestamp = entry.body.lpm_res.timestamp;
-
 		}
 		else if (entry_type == TABLE_ENTRY_ENTYPE_MFLU_RES) {
 			/* STQW optimization is not done here so we do not force
