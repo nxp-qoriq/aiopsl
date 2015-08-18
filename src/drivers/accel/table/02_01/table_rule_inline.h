@@ -425,9 +425,6 @@ inline int table_rule_query_by_ruleid(enum table_hw_accel_id acc_id,
 				      uint8_t *options,
 				      uint32_t *timestamp)
 {
-#ifdef CHECK_ALIGNMENT
-	DEBUG_ALIGN("table_inline.h",(uint32_t)rule_id_desc, ALIGNMENT_16B);
-#endif
 
 	int32_t status;
 	struct table_rule_id_desc rule_id_desc __attribute__((aligned(16)));
@@ -461,7 +458,7 @@ inline int table_rule_query_by_ruleid(enum table_hw_accel_id acc_id,
 		}
 
 		/* Optimization */
-		if (!result & !timsestamp)
+		if (!result & !timestamp)
 			return status;
 
 		/* Copy result and timestamp */
@@ -470,13 +467,13 @@ inline int table_rule_query_by_ruleid(enum table_hw_accel_id acc_id,
 			/* STQW optimization is not done here so we do not force
 			   alignment */
 			if (result) *result = entry.body.eme16.result;
-			if (timsestamp) *timestamp = entry.body.eme16.timestamp;
+			if (timestamp) *timestamp = entry.body.eme16.timestamp;
 		}
 		else if (entry_type == TABLE_ENTRY_ENTYPE_EME24) {
 			/* STQW optimization is not done here so we do not force
 			   alignment */
 			if (result) *result = entry.body.eme24.result;
-			if (timsestamp) *timestamp = entry.body.eme24.timestamp;
+			if (timestamp) *timestamp = entry.body.eme24.timestamp;
 		}
 		else if (entry_type == TABLE_ENTRY_ENTYPE_LPM_RES) {
 			/* STQW optimization is not done here so we do not force
