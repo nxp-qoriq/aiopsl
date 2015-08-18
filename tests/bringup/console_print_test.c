@@ -48,7 +48,7 @@ t_duart_uart p_uart;
 t_duart_driver_param  p_driver_param;
 
 /*****************************************************************************/
-static int console_print_cb(fsl_handle_t h_console_dev,
+static int console_print_cb(void * h_console_dev,
 				uint8_t *p_data, uint32_t size)
 {
 	int err;
@@ -61,7 +61,7 @@ static int console_print_cb(fsl_handle_t h_console_dev,
 }
 
 /*****************************************************************************/
-static int console_get_line_cb(fsl_handle_t h_console_dev,
+static int console_get_line_cb(void * h_console_dev,
 				uint8_t *p_data, uint32_t size)
 {
 	uint32_t count;
@@ -90,7 +90,7 @@ static void set_default_param(t_duart_driver_param *p_driver_param)
 
 
 /************************************************************************/
-static fsl_handle_t static_duart_config(t_duart_uart_param *p_duart_param)
+static void * static_duart_config(t_duart_uart_param *p_duart_param)
 {
 	int                 i;
 
@@ -181,7 +181,7 @@ static int check_driver_init_parameters(t_duart_driver_param *p_driver_param)
 }
 
 /************************************************************************/
-static int check_init_parameters(t_duart_uart *p_uart, fsl_handle_t params)
+static int check_init_parameters(t_duart_uart *p_uart, void * params)
 {
 	t_duart_driver_param  *p_driver_param = p_uart->p_driver_param;
 	int err;
@@ -208,7 +208,7 @@ static int check_init_parameters(t_duart_uart *p_uart, fsl_handle_t params)
 
 
 
-static int static_duart_init(fsl_handle_t duart)
+static int static_duart_init(void * duart)
 {
 	t_duart_uart         *p_uart = (t_duart_uart *)duart;
 	t_duart_driver_param  *p_driver_param;
@@ -353,11 +353,11 @@ static int static_duart_init(fsl_handle_t duart)
 }
 
 
-static int platform_en_console(fsl_handle_t h_platform)
+static int platform_en_console(void * h_platform)
 {
 	t_platform          *pltfrm = (t_platform *)h_platform;
 	t_duart_uart_param  duart_uart_param;
-	fsl_handle_t        uart;
+	void *        uart;
 	int           err = 0;
 
 	extern struct aiop_init_info g_init_data;
@@ -424,7 +424,7 @@ static int platform_en_console(fsl_handle_t h_platform)
 }
 
 /*****************************************************************************/
-static int pltfrm_init_console_cb(fsl_handle_t h_platform)
+static int pltfrm_init_console_cb(void * h_platform)
 {
 	t_platform  *pltfrm = (t_platform *)h_platform;
 	int     err;
