@@ -48,9 +48,9 @@ extern char _stack_end[];  /* Address after end byte of stack */
 
 __COLD_CODE static int configure_stack_overflow_detection(void)
 {
-	if(((uint32_t)_stack_end) > 0x400)
+	if(((uint32_t)_stack_end) >= ((uint32_t)_stack_addr))
 	{
-		/* Stack end address cannot be larger than 1K Bytes */
+		/* Stack end address cannot be larger than stack start address */
 		return -ENOMEM;
 	}
 	
