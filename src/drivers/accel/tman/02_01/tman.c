@@ -51,12 +51,8 @@ int tman_create_tmi(uint64_t tmi_mem_base_addr,
 
 	/* command parameters and results */
 	uint32_t arg1, arg2, cdma_cfg;
-#if 0
-	unsigned int res1, res2;
-	uint8_t *tmi_state_ptr;
-#else
 	unsigned int res1, res2, *tmi_state_ptr;
-#endif
+	
 	/*Reading the ICID and AMQ from the CDMA to avoid configuring GPP ICID
 	 * when calling the create TMI from host command interface */
 	/* TODO - need to replace the below code to a similar to
@@ -81,25 +77,16 @@ int tman_create_tmi(uint64_t tmi_mem_base_addr,
 		__e_hwacceli(TMAN_ACCEL_ID);
 		/* Load command results */
 		__ldw(&res1, &res2, HWC_ACC_OUT_ADDRESS, 0);
-#if 0 /* Rev2 changes */
+
 	} while ((res1 & TMAN_TMI_CREATE_BUSY) == TMAN_TMI_CREATE_BUSY);
 	/* Store tmi_id */
 	*tmi_id = (uint8_t)res2;
 	if ((res1 & TMAN_TMIID_DEPLETION_ERR) == TMAN_TMIID_DEPLETION_ERR)
 		return (int)(-ENOSPC);
 
-	tmi_state_ptr = (uint8_t *)((unsigned int)TMAN_CCSR_TMSTATE_ADDRESS
-			+ ((*tmi_id)<<5) + 3);
-#else
-	} while (res1 == TMAN_TMI_CREATE_BUSY);
-	/* Store tmi_id */
-	*tmi_id = (uint8_t)res2;
-	if (res1 == TMAN_TMIID_DEPLETION_ERR)
-		return (int)(-ENOSPC);
-
 	tmi_state_ptr = (unsigned int*)((unsigned int)TMAN_CCSR_TMSTATE_ADDRESS
 			+ ((*tmi_id)<<5));
-#endif
+
 	while ((*tmi_state_ptr != TMAN_TMI_BUS_ERR) &&
 			(*tmi_state_ptr != TMAN_TMI_ACTIVE))
 	{
@@ -273,12 +260,12 @@ void tman_query_timer(uint32_t timer_handle,
 	__e_hwacceli(TMAN_ACCEL_ID);
 	/* Load command results */
 	res1 = *((uint32_t *) HWC_ACC_OUT_ADDRESS);
-#if 0 /* Rev2 changes*/
+
 	/* In case TMI State errors and , TMAN_REC_TMR_DEL_ISSUED_ERR,
 	 * TMAN_REC_TMR_DEL_ISSUED_CONF_ERR	*/
 	if ((res1 & TMAN_TMR_TMI_STATE_ERR) == TMAN_TMR_TMI_STATE_ERR)
 		tman_exception_handler(TMAN_TIMER_QUERY_FUNC_ID,__LINE__, (int)res1);
-#endif
+
 	if ((res1 & 0x4) == 0)
 		res1 &= 0x1;
 	else
