@@ -32,9 +32,6 @@
 #ifndef __FSL_CMDIF_FLIB_FD_H
 #define __FSL_CMDIF_FLIB_FD_H
 
-
-#include <fsl_types.h>
-
 /*!
  * @Group	cmdif_flib_g  Command Interface - FLIB
  *
