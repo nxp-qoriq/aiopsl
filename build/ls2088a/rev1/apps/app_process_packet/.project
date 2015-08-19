@@ -124,7 +124,7 @@ aiop_sl		</project>
 		<link>
 			<name>src/config.c</name>
 			<type>1</type>
-			<locationURI>PARENT-5-PROJECT_LOC/src/arch/platform/ls2085a/config.c</locationURI>
+			<locationURI>PARENT-5-PROJECT_LOC/src/arch/platform/ls2088a/config.c</locationURI>
 		</link>
 	</linkedResources>
 </projectDescription>

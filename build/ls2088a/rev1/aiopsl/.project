@@ -325,7 +325,7 @@
 			<locationURI>PARENT-4-PROJECT_LOC/src/arch/platform/init.c</locationURI>
 		</link>
 		<link>
-			<name>aiop_sl/arch/platform/ls2085a</name>
+			<name>aiop_sl/arch/platform/ls2088a</name>
 			<type>2</type>
 			<locationURI>virtual:/virtual</locationURI>
 		</link>
@@ -1200,9 +1200,9 @@
 			<locationURI>PARENT-4-PROJECT_LOC/src/arch/platform/include/fsl_soc.h</locationURI>
 		</link>
 		<link>
-			<name>aiop_sl/arch/platform/ls2085a/fsl_soc_arch.h</name>
+			<name>aiop_sl/arch/platform/ls2088a/fsl_soc_arch.h</name>
 			<type>1</type>
-			<locationURI>PARENT-4-PROJECT_LOC/src/arch/platform/ls2085a/fsl_soc_arch.h</locationURI>
+			<locationURI>PARENT-4-PROJECT_LOC/src/arch/platform/ls2088a/fsl_soc_arch.h</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/drivers/accel/cdma/cdma.c</name>
