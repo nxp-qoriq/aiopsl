@@ -1017,6 +1017,10 @@ int aiop_snic_init(void)
 {
 	int status;
 	struct cmdif_module_ops snic_cmd_ops;
+	enum memory_partition_id mem_pid = MEM_PART_SYSTEM_DDR;
+
+	if (fsl_mem_exists(MEM_PART_DP_DDR))
+		mem_pid = MEM_PART_DP_DDR;
 
 	snic_cmd_ops.open_cb = (open_cb_t *)snic_open_cb;
 	snic_cmd_ops.close_cb = (close_cb_t *)snic_close_cb;
@@ -1028,12 +1032,12 @@ int aiop_snic_init(void)
 		return status;
 	}
 	memset(snic_params, 0, sizeof(snic_params));
-	fsl_os_get_mem(SNIC_MAX_NO_OF_TIMERS*64, MEM_PART_DP_DDR, 64, 
+	fsl_os_get_mem(SNIC_MAX_NO_OF_TIMERS*64, mem_pid, 64, 
 			&snic_tmi_mem_base_addr);
 	/* tmi delete is in snic_free */
-	tman_create_tmi(snic_tmi_mem_base_addr , SNIC_MAX_NO_OF_TIMERS, 
+	status = tman_create_tmi(snic_tmi_mem_base_addr , SNIC_MAX_NO_OF_TIMERS, 
 			&snic_tmi_id);
-	return 0;
+	return status;
 }
 
 void aiop_snic_free(void)
