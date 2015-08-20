@@ -224,9 +224,12 @@
 #define CTR         9       /* Count register */
 #define DAC1        316     /* Data address compare 1 */
 #define DAC2        317     /* Data address compare 2 */
-#define DBCR0       308     /* Debug control register 0 1 */
-#define DBCR1       309     /* Debug control register 1 1 */
-#define DBCR2       310     /* Debug control register 2 1 */
+#define DBCR0       308     /* Debug control register 0 */
+#define DBCR1       309     /* Debug control register 1 */
+#define DBCR2       310     /* Debug control register 2 */
+#define DBCR3       561     /* Debug control register 3 */
+#define DBCR4       563     /* Debug control register 4 */
+#define DBCR5       564     /* Debug control register 5 */
 #define DBSR        304     /* Debug status register */
 #define DEAR        61      /* Data exception address register */
 #define DEC         22      /* Decrementer */

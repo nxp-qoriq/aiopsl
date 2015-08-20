@@ -41,52 +41,86 @@ void app_free(void);
 static int32_t doorbell_cb_count = 0;
 static int32_t doorbell_clear_count = 0;
 
+#define RING_MASK 0x7
+
 static uint16_t epid[] = {AIOP_EPID_TABLE_SIZE - 1, /* G Priority 0*/
                           AIOP_EPID_TABLE_SIZE - 2, /* G Priority 1*/
                           AIOP_EPID_TABLE_SIZE - 3, /* M Priority 0*/
                           AIOP_EPID_TABLE_SIZE - 4};/* M Priority 1*/
 
-__HOT_CODE ENTRY_POINT static void doorbell_cb(void)
+__HOT_CODE static void doorbell_ring_test(int pr, enum doorbell_reg g_m)
 {
 	uint32_t mask;
 	struct fdma_amq amq;
 	struct icontext ic;
 	uint8_t src = ((((struct additional_dequeue_context *)HWC_ADC_ADDRESS)->fdsrc_va_fca_bdi) & 0xf);
-	int i;
-	int pr;
 
 	get_default_amq_attributes(&amq);
 	icontext_aiop_get(&ic);
 	ASSERT_COND(ic.icid == amq.icid);
-
-	for (i = 0; i < DOORBELL_SRC_LAST; i++) {
-		for (pr = 0; pr < 2; pr++) {
-			doorbell_status(pr, (enum doorbell_reg)i, &mask);
-			pr_debug("Read status pr %d g_m %d mask 0x%x\n", pr, i, mask);
-			mask = (0x1 << pr); /* WA for sim bug */
-			//if (mask != 0) {
-				doorbell_clear(pr, (enum doorbell_reg)i, mask);
-				pr_debug("Cleared pr %d g_m %d mask 0x%x\n", pr, i, mask);
-				atomic_incr32(&doorbell_clear_count, 1);
-				doorbell_status(pr, (enum doorbell_reg)i, &mask);
-				ASSERT_COND(mask == 0);
-			//}
-		}
+	if (ic.bdi_flags & FDMA_ENF_BDI_BIT) {
+		if (!(amq.flags & FDMA_ICID_CONTEXT_BDI))
+			pr_err("No BDI in WS\n");
 	}
-	
+	if (ic.dma_flags & FDMA_DMA_PL_BIT) {
+		if (!(amq.flags & FDMA_ICID_CONTEXT_PL))
+			pr_err("No PL in WS\n");
+	}
+	if (ic.dma_flags & FDMA_DMA_eVA_BIT) {
+		if (!(amq.flags & FDMA_ICID_CONTEXT_eVA))
+			pr_err("No VA in WS\n");
+	}
+
+	doorbell_status(pr, g_m, &mask);
+	pr_debug("Read status pr %d g_m %d mask 0x%x\n", pr, g_m, mask);
+	mask = RING_MASK; /* WA for sim bug */
+	//if (mask != 0) {
+	doorbell_clear(pr, g_m, mask);
+	pr_debug("Cleared pr %d g_m %d mask 0x%x\n", pr, g_m, mask);
+	atomic_incr32(&doorbell_clear_count, 1);
+	doorbell_status(pr, g_m, &mask);
+	ASSERT_COND(mask == 0);
+	//}
+
 	atomic_incr32(&doorbell_cb_count, 1);
-	pr_debug(" doorbell_cb %d src 0x%x\n", doorbell_cb_count, src);
-	
-	if ((doorbell_cb_count == 4) && (doorbell_clear_count >= 4)) {
+
+	pr_debug(" doorbell_cb%d total cb_count = %d src 0x%x\n",
+	         (((int)g_m)*2 + pr + 1), doorbell_cb_count, src);
+	if ((doorbell_cb_count == 10) && (doorbell_clear_count == 10)) {
 		fsl_print("Test Finished SUCCESSFULLY\n");
-	} /*else {
-		fsl_print("Check if  can ring after clear \n");
-		doorbell_ring(0, DOORBELL_SRC_GENERAL, 0x1);
-		doorbell_ring(1, DOORBELL_SRC_GENERAL, 0x2);
-	}*/
+		fdma_terminate_task(); /* Terminate here to stop ringing */
+	}
+}
+
+__HOT_CODE ENTRY_POINT static void doorbell_cb4(void)
+{
+	doorbell_ring_test(1, DOORBELL_SRC_MANAGEMENT);
+	fdma_terminate_task();
+}
+
+__HOT_CODE ENTRY_POINT static void doorbell_cb3(void)
+{
+	doorbell_ring_test(0, DOORBELL_SRC_MANAGEMENT);
+	fdma_terminate_task();
+}
+
+__HOT_CODE ENTRY_POINT static void doorbell_cb2(void)
+{
+	doorbell_ring_test(1, DOORBELL_SRC_GENERAL);
+	fdma_terminate_task();
+}
+
+__HOT_CODE ENTRY_POINT static void doorbell_cb1(void)
+{
+	doorbell_ring_test(0, DOORBELL_SRC_GENERAL);
+		
+	fsl_print("Check if  can ring after clear \n");
+	doorbell_ring(0, DOORBELL_SRC_GENERAL, 0x1);
 
 	fdma_terminate_task();
 }
+
+void (*doorbell_cb[])(void) = {doorbell_cb1, doorbell_cb2, doorbell_cb3, doorbell_cb4};
 
 int app_init(void)
 {
@@ -100,11 +134,11 @@ int app_init(void)
 			doorbell_setup(pr,
 			               (enum doorbell_reg)i, 
 			               epid[i*2 + pr],
-			               doorbell_cb,
+			               doorbell_cb[i*2 + pr],
 			               (uint32_t)(pr + 1));
 			doorbell_ring(pr, 
 			              (enum doorbell_reg)i,
-			              (uint32_t)(0x1 << pr));
+			              RING_MASK);
 		}
 	}
 

@@ -925,7 +925,7 @@ extern __TASK struct aiop_default_task_params default_task_params;
 /** Get the GRE header offset */
 #define PARSER_GET_GRE_OFFSET_DEFAULT() \
 	(((struct parse_result *)HWC_PARSE_RES_ADDRESS)->gre_offset)
-/** Get the L4 (UDP/TCP/SCTP/DCCP/ICMP/IGMP/ICMPv6/UDP Lite) header offset */
+/** Get the L4 (UDP/TCP/SCTP/DCCP/IGMP/UDP Lite) header offset */
 #define PARSER_GET_L4_OFFSET_DEFAULT() \
 	(((struct parse_result *)HWC_PARSE_RES_ADDRESS)->l4_offset)
 /** Get L5 (GTP/ESP/IPsec/iSCSI/CapWap/PTP(not in REV1) header offset */

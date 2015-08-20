@@ -660,7 +660,7 @@ static uint64_t slob_get_greater_alignment(t_MM *p_MM,
 /*****************************************************************************/
 
 int slob_init(uint64_t*slob, const uint64_t base, const uint64_t size,
-		      fsl_handle_t h_mem_mng,void* h_slob_bf_pool)
+		      void * h_mem_mng,void* h_slob_bf_pool)
 {
     t_MM        MM =  {0};
     int         i;

@@ -420,6 +420,10 @@ int ipf_split_ipv4_fragment(struct ipf_context *ipf_ctx)
 				&(ipf_ctx->rem_fd),
 				FDMA_INIT_NO_FLAGS, 0,
 				&(ipf_ctx->rem_frame_handle));
+				
+		split_frame_params.source_frame_handle =
+					ipf_ctx->rem_frame_handle;
+
 		split_frame_params.flags = FDMA_CFA_COPY_BIT |
 					FDMA_SPLIT_SM_BIT|
 					FDMA_SPLIT_PSA_NO_PRESENT_BIT;
@@ -458,6 +462,10 @@ int ipf_split_ipv4_fragment(struct ipf_context *ipf_ctx)
 					&(ipf_ctx->rem_fd),
 					FDMA_INIT_NO_FLAGS, 0,
 					&(ipf_ctx->rem_frame_handle));
+					
+			split_frame_params.source_frame_handle =
+					ipf_ctx->rem_frame_handle;
+
 			split_frame_params.flags = FDMA_CFA_COPY_BIT |
 						FDMA_SPLIT_PSA_NO_PRESENT_BIT;
 			split_status = fdma_split_frame(&split_frame_params); /* TODO FDMA ERROR */
@@ -558,6 +566,10 @@ int ipf_split_ipv6_fragment(struct ipf_context *ipf_ctx,
 				&(ipf_ctx->rem_fd),
 				FDMA_INIT_NO_FLAGS, 0,
 				&(ipf_ctx->rem_frame_handle));
+			
+		split_frame_params.source_frame_handle =
+					ipf_ctx->rem_frame_handle;
+
 		split_frame_params.flags = FDMA_CFA_COPY_BIT |
 					FDMA_SPLIT_SM_BIT|
 					FDMA_SPLIT_PSA_NO_PRESENT_BIT;
@@ -598,6 +610,10 @@ int ipf_split_ipv6_fragment(struct ipf_context *ipf_ctx,
 					&(ipf_ctx->rem_fd),
 					FDMA_INIT_NO_FLAGS, 0,
 					&(ipf_ctx->rem_frame_handle));
+					
+			split_frame_params.source_frame_handle =
+					ipf_ctx->rem_frame_handle;
+
 			split_frame_params.flags = FDMA_CFA_COPY_BIT |
 						FDMA_SPLIT_PSA_NO_PRESENT_BIT;
 			split_status = fdma_split_frame(&split_frame_params); /* TODO FDMA ERROR */

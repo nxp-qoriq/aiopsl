@@ -99,8 +99,8 @@ typedef struct t_chip_rev_info {
  @Description   Platform initialization module description
 *//***************************************************************************/
 struct pltform_module_desc {
-	int (*init) (fsl_handle_t h_platform);
-	int (*free) (fsl_handle_t h_platform);
+	int (*init) (void * h_platform);
+	int (*free) (void * h_platform);
 	int is_single_core;
 };
 
@@ -117,7 +117,7 @@ typedef struct platform_memory_info {
 } t_platform_memory_info;
 
 typedef struct t_platform_ops {
-    fsl_handle_t h_platform;
+    void * h_platform;
     struct pltform_module_desc modules[PLTFORM_NUM_OF_INIT_MODULES];
 } t_platform_ops;
 
@@ -203,7 +203,7 @@ int platform_init(struct platform_param    *p_platform_param,
 
  @Return        0 on success; Error code otherwise.
 *//***************************************************************************/
-int platform_free(fsl_handle_t h_platform);
+int platform_free(void * h_platform);
 
 /**************************************************************************//**
  @Function      platform_get_chip_rev_info
@@ -215,7 +215,7 @@ int platform_free(fsl_handle_t h_platform);
 
  @Return        0 on success; Error code otherwise.
 *//***************************************************************************/
-int platform_get_chip_rev_info(fsl_handle_t h_platform, t_chip_rev_info *p_chip_rev_info);
+int platform_get_chip_rev_info(void * h_platform, t_chip_rev_info *p_chip_rev_info);
 
 /**************************************************************************//**
  @Function      platform_get_clk
@@ -226,7 +226,7 @@ int platform_get_chip_rev_info(fsl_handle_t h_platform, t_chip_rev_info *p_chip_
 
  @Return        The clock in KHz.
 *//***************************************************************************/
-uint32_t platform_get_clk(fsl_handle_t h_platform);
+uint32_t platform_get_clk(void * h_platform);
 
 /**************************************************************************//**
  @Function      platform_init_mac_for_mii_access
@@ -237,7 +237,7 @@ uint32_t platform_get_clk(fsl_handle_t h_platform);
 
  @Return        0 on success; Error code otherwise.
 *//***************************************************************************/
-int platform_init_mac_for_mii_access(fsl_handle_t h_platform);
+int platform_init_mac_for_mii_access(void * h_platform);
 
 /**************************************************************************//**
  @Function      platform_free_mac_for_mii_access
@@ -249,7 +249,7 @@ int platform_init_mac_for_mii_access(fsl_handle_t h_platform);
 
  @Return        0 on success; Error code otherwise.
 *//***************************************************************************/
-int platform_free_mac_for_mii_access(fsl_handle_t h_platform);
+int platform_free_mac_for_mii_access(void * h_platform);
 
 /**************************************************************************//**
  @Function      platform_enable_console
@@ -260,7 +260,7 @@ int platform_free_mac_for_mii_access(fsl_handle_t h_platform);
 
  @Return        0 on success; Error code otherwise.
 *//***************************************************************************/
-int platform_enable_console(fsl_handle_t h_platform);
+int platform_enable_console(void * h_platform);
 
 /**************************************************************************//**
  @Function      platform_disable_console
@@ -271,7 +271,7 @@ int platform_enable_console(fsl_handle_t h_platform);
 
  @Return        0 on success; Error code otherwise.
 *//***************************************************************************/
-int platform_disable_console(fsl_handle_t h_platform);
+int platform_disable_console(void * h_platform);
 
 /**************************************************************************//**
  @Function      platform_set_serdes_loopback
@@ -284,7 +284,7 @@ int platform_disable_console(fsl_handle_t h_platform);
 
  @Return        0 on success; Error code otherwise.
 *//***************************************************************************/
-int platform_set_serdes_loopback (fsl_handle_t    h_platform,
+int platform_set_serdes_loopback (void *    h_platform,
                                     enum fsl_module module,
                                     uint32_t id);
 
@@ -299,7 +299,7 @@ int platform_set_serdes_loopback (fsl_handle_t    h_platform,
 
  @Return        0 on success; Error code otherwise.
 *//***************************************************************************/
-int platform_clear_serdes_loopback(fsl_handle_t    h_platform,
+int platform_clear_serdes_loopback(void *    h_platform,
                                      enum fsl_module module,
                                      uint32_t    id);
 

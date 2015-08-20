@@ -57,7 +57,7 @@ typedef struct t_platform {
 	uint32_t                platform_clk;
 
 	/* Console-related variables */
-	fsl_handle_t            uart;
+	void *            uart;
 	uint32_t                duart_id;
 
 	uintptr_t               aiop_base;
@@ -160,13 +160,13 @@ __COLD_CODE static int disable_l1_cache(t_platform *pltfrm)
 
 
 /*****************************************************************************/
-static int console_print_cb(fsl_handle_t h_console_dev, uint8_t *p_data, uint32_t size)
+static int console_print_cb(void * h_console_dev, uint8_t *p_data, uint32_t size)
 {
 	return duart_tx(h_console_dev, p_data, size);
 }
 
 /*****************************************************************************/
-static int console_print_cb_uart_disabled(fsl_handle_t h_console_dev, uint8_t *p_data, uint32_t size)
+static int console_print_cb_uart_disabled(void * h_console_dev, uint8_t *p_data, uint32_t size)
 {
 	UNUSED(h_console_dev);
 	UNUSED(p_data);
@@ -175,7 +175,7 @@ static int console_print_cb_uart_disabled(fsl_handle_t h_console_dev, uint8_t *p
 }
 
 /*****************************************************************************/
-static int console_get_line_cb(fsl_handle_t h_console_dev, uint8_t *p_data, uint32_t size)
+static int console_get_line_cb(void * h_console_dev, uint8_t *p_data, uint32_t size)
 {
 	uint32_t count;
 
@@ -244,7 +244,7 @@ __COLD_CODE static int init_random_seed(uint32_t num_of_tasks)
 	return 0;
 }
 /*****************************************************************************/
-__COLD_CODE static int pltfrm_init_core_cb(fsl_handle_t h_platform)
+__COLD_CODE static int pltfrm_init_core_cb(void * h_platform)
 {
 	t_platform  *pltfrm = (t_platform *)h_platform;
 	int     err = 0;
@@ -293,7 +293,7 @@ __COLD_CODE static int pltfrm_init_core_cb(fsl_handle_t h_platform)
 	return 0;
 }
 /*****************************************************************************/
-__COLD_CODE static int pltfrm_free_core_cb(fsl_handle_t h_platform)
+__COLD_CODE static int pltfrm_free_core_cb(void * h_platform)
 {
 	t_platform  *pltfrm = (t_platform *)h_platform;
 
@@ -307,7 +307,7 @@ __COLD_CODE static int pltfrm_free_core_cb(fsl_handle_t h_platform)
 
 
 /*****************************************************************************/
-__COLD_CODE static int pltfrm_init_console_cb(fsl_handle_t h_platform)
+__COLD_CODE static int pltfrm_init_console_cb(void * h_platform)
 {
 	t_platform  *pltfrm = (t_platform *)h_platform;
 	int     err;
@@ -318,7 +318,7 @@ __COLD_CODE static int pltfrm_init_console_cb(fsl_handle_t h_platform)
 		/* Master partition - register DUART console */
 		err = platform_enable_console(pltfrm);
 		if (err != 0){
-			err = sys_register_console((fsl_handle_t) -1, console_print_cb_uart_disabled, NULL);
+			err = sys_register_console((void *) -1, console_print_cb_uart_disabled, NULL);
 
 			/*Uart failed. the print will go only to buffer*/
 			pr_warn("UART print failed, all debug data will be printed to buffer.\n");
@@ -335,7 +335,7 @@ __COLD_CODE static int pltfrm_init_console_cb(fsl_handle_t h_platform)
 }
 
 /*****************************************************************************/
-__COLD_CODE static int pltfrm_free_console_cb(fsl_handle_t h_platform)
+__COLD_CODE static int pltfrm_free_console_cb(void * h_platform)
 {
 	t_platform  *pltfrm = (t_platform *)h_platform;
 
@@ -350,7 +350,7 @@ __COLD_CODE static int pltfrm_free_console_cb(fsl_handle_t h_platform)
 }
 
 /*****************************************************************************/
-__COLD_CODE static int pltfrm_init_mem_partitions_cb(fsl_handle_t h_platform)
+__COLD_CODE static int pltfrm_init_mem_partitions_cb(void * h_platform)
 {
 	t_platform              *pltfrm = (t_platform *)h_platform;
 	t_platform_memory_info  *p_mem_info;
@@ -364,7 +364,7 @@ __COLD_CODE static int pltfrm_init_mem_partitions_cb(fsl_handle_t h_platform)
 
 	build_mem_partitions_table(pltfrm);
 
-	err = sys_add_handle( (fsl_handle_t)pltfrm->mc_portals_base, FSL_MOD_MC_PORTAL, 1, 0);
+	err = sys_add_handle( (void *)pltfrm->mc_portals_base, FSL_MOD_MC_PORTAL, 1, 0);
 	if (err != 0)
 	{
 		pr_err("Couldn't add FSL_MOD_MC_PORTAL using sys_add_handle()\n");
@@ -518,7 +518,7 @@ __COLD_CODE static int build_mem_partitions_table(t_platform  *pltfrm)
 }
 
 /*****************************************************************************/
-__COLD_CODE static int pltfrm_free_mem_partitions_cb(fsl_handle_t h_platform)
+__COLD_CODE static int pltfrm_free_mem_partitions_cb(void * h_platform)
 {
 	t_platform  *pltfrm = (t_platform *)h_platform;
 	int         index;
@@ -539,7 +539,7 @@ __COLD_CODE static int pltfrm_free_mem_partitions_cb(fsl_handle_t h_platform)
 
 #ifdef ARENA_LEGACY_CODE
 /*****************************************************************************/
-static int pltfrm_init_private_cb(fsl_handle_t h_platform)
+static int pltfrm_init_private_cb(void * h_platform)
 {
 	t_platform  *pltfrm = (t_platform *)h_platform;
 
@@ -560,7 +560,7 @@ static int pltfrm_init_private_cb(fsl_handle_t h_platform)
 }
 
 /*****************************************************************************/
-static int pltfrm_free_private_cb(fsl_handle_t h_platform)
+static int pltfrm_free_private_cb(void * h_platform)
 {
 	t_platform  *pltfrm = (t_platform *)h_platform;
 
@@ -642,14 +642,14 @@ return 0;
 }
 
 /*****************************************************************************/
-__COLD_CODE int platform_free(fsl_handle_t h_platform)
+__COLD_CODE int platform_free(void * h_platform)
 {
 	UNUSED(h_platform);
 	return 0;
 }
 
 /*****************************************************************************/
-uint32_t platform_get_clk(fsl_handle_t h_platform)
+uint32_t platform_get_clk(void * h_platform)
 {
 	t_platform  *pltfrm = (t_platform *)h_platform;
 	if(!pltfrm) {
@@ -662,11 +662,11 @@ uint32_t platform_get_clk(fsl_handle_t h_platform)
 
 
 /*****************************************************************************/
-__COLD_CODE int platform_enable_console(fsl_handle_t h_platform)
+__COLD_CODE int platform_enable_console(void * h_platform)
 {
 	t_platform          *pltfrm = (t_platform *)h_platform;
 	t_duart_uart_param  duart_uart_param;
-	fsl_handle_t        uart;
+	void *        uart;
 	int           err = 0;
 	uint32_t uart_port_offset[] = {
 	                               0,
@@ -766,7 +766,7 @@ __COLD_CODE int platform_enable_console(fsl_handle_t h_platform)
 }
 
 /*****************************************************************************/
-__COLD_CODE int platform_disable_console(fsl_handle_t h_platform)
+__COLD_CODE int platform_disable_console(void * h_platform)
 {
 	t_platform  *pltfrm = (t_platform *)h_platform;
 

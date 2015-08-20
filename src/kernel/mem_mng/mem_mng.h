@@ -74,7 +74,7 @@ typedef enum buffer_pool_type{
 
  @Return        Handle to initialized MEM_MNG object, or NULL on error.
 *//***************************************************************************/
-int mem_mng_init(fsl_handle_t h_boot_mem_mng,
+int mem_mng_init(void * h_boot_mem_mng,
                  struct t_mem_mng    *p_mem_mng);
 
 /**************************************************************************//**
@@ -82,7 +82,7 @@ int mem_mng_init(fsl_handle_t h_boot_mem_mng,
 
  @Description   Get information and usage statistics of a selected partition.
 *//***************************************************************************/
-int mem_mng_get_partition_info(fsl_handle_t               h_mem_mng,
+int mem_mng_get_partition_info(void *               h_mem_mng,
                                  int                    partition_id,
                                  t_mem_mng_partition_info  *p_partition_info);
 
@@ -91,7 +91,7 @@ int mem_mng_get_partition_info(fsl_handle_t               h_mem_mng,
 
  @Description   Get information and usage statistics of a selected partition.
 *//***************************************************************************/
-int mem_mng_get_phys_addr_alloc_info(fsl_handle_t               h_mem_mng,
+int mem_mng_get_phys_addr_alloc_info(void *               h_mem_mng,
                                  int                    partition_id,
                                  t_mem_mng_phys_addr_alloc_info  *p_partition_info);
 
@@ -106,20 +106,20 @@ int mem_mng_get_phys_addr_alloc_info(fsl_handle_t               h_mem_mng,
 
  @Return        None.
 *//***************************************************************************/
-void mem_mng_free(fsl_handle_t h_mem_mng, fsl_handle_t h_boot_mem_mng);
+void mem_mng_free(void * h_mem_mng, void * h_boot_mem_mng);
 
 
 /**************************************************************************//**/
-int mem_mng_get_phys_mem(fsl_handle_t    h_mem_mng,
+int mem_mng_get_phys_mem(void *    h_mem_mng,
                         int         partition_id,
                         uint64_t    size,
                         uint64_t    alignment,
                         uint64_t*  paddr);
 /**************************************************************************//**/
-void mem_mng_put_phys_mem(fsl_handle_t h_mem_mng, uint64_t p_memory);
+void mem_mng_put_phys_mem(void * h_mem_mng, uint64_t p_memory);
 
 /**************************************************************************//**/
-void * mem_mng_alloc_mem(fsl_handle_t    h_mem_mng,
+void * mem_mng_alloc_mem(void *    h_mem_mng,
                         int         partition_id,
                         uint32_t    size,
                         uint32_t    alignment,
@@ -127,10 +127,10 @@ void * mem_mng_alloc_mem(fsl_handle_t    h_mem_mng,
                         char        *filename,
                         int         line);
 /**************************************************************************//**/
-void mem_mng_free_mem(fsl_handle_t h_mem_mng, void *p_memory);
+void mem_mng_free_mem(void * h_mem_mng, void *p_memory);
 
 /**************************************************************************//**/
-int mem_mng_register_partition(fsl_handle_t  h_mem_mng,
+int mem_mng_register_partition(void *  h_mem_mng,
                                   int       partition_id,
                                   uintptr_t base_address,
                                   uint64_t  size,
@@ -138,9 +138,9 @@ int mem_mng_register_partition(fsl_handle_t  h_mem_mng,
                                   char      name[],
                                   int       enable_debug);
 
-int mem_mng_unregister_partition(fsl_handle_t h_mem_mng, int partition_id);
+int mem_mng_unregister_partition(void * h_mem_mng, int partition_id);
 /**************************************************************************//**/
-int mem_mng_register_phys_addr_alloc_partition(fsl_handle_t  h_mem_mng,
+int mem_mng_register_phys_addr_alloc_partition(void *  h_mem_mng,
                                   int       partition_id,
                                   uint64_t base_paddress,
                                   uint64_t  size,
@@ -153,11 +153,11 @@ typedef void (t_mem_mng_leak_report_func)(void      *p_memory,
                                       char      *filename,
                                       int       line);
 
-uint32_t mem_mng_check_leaks(fsl_handle_t                h_mem_mng,
+uint32_t mem_mng_check_leaks(void *                h_mem_mng,
                             int                     partition_id,
                             t_mem_mng_leak_report_func  *f_report_leak);
 /**************************************************************************//**/
-int mem_mng_mem_partitions_init_completed(fsl_handle_t h_mem_mng);
+int mem_mng_mem_partitions_init_completed(void * h_mem_mng);
 /**************************************************************************//**
  *
  @Function      boot_mem_mng_init

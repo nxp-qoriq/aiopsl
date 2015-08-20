@@ -547,23 +547,23 @@ uint32_t fsl_os_current_time(void)
 	return 0;
 }
 
-fsl_handle_t fsl_os_create_timer(void)
+void * fsl_os_create_timer(void)
 {
 	pr_warn("Timer!");
 	return NULL;
 }
 
-void fsl_os_free_timer(fsl_handle_t tmr)
+void fsl_os_free_timer(void * tmr)
 {
 	UNUSED (tmr);
 	pr_warn("Timer!");
 }
 
-int fsl_os_start_timer(fsl_handle_t   tmr,
+int fsl_os_start_timer(void *   tmr,
                        uint32_t       msecs,
                        int            periodic,
-                       void           (*expired_cb)(fsl_handle_t),
-                       fsl_handle_t   arg)
+                       void           (*expired_cb)(void *),
+                       void *   arg)
 {
 	UNUSED (arg);
 	UNUSED (expired_cb);
@@ -574,13 +574,13 @@ int fsl_os_start_timer(fsl_handle_t   tmr,
 	return 0;
 }
 
-void fsl_os_stop_timer(fsl_handle_t tmr)
+void fsl_os_stop_timer(void * tmr)
 {
 	UNUSED (tmr);
 	pr_warn("Timer!");
 }
 
-void fsl_os_mod_timer(fsl_handle_t tmr, uint32_t msecs)
+void fsl_os_mod_timer(void * tmr, uint32_t msecs)
 {
 	UNUSED (tmr);
 	UNUSED (msecs);

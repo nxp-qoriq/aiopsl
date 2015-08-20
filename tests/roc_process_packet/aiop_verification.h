@@ -210,7 +210,9 @@ enum verif_modules_ids {
 	UPDATE_ASA_VARIABLE, 	// 18
 	OSM_MODULE, 	// 19
 	EXCEPTION_MODULE, 	// 20
-	UPDATE_EXT_VARIABLE 	// 21
+	UPDATE_EXT_VARIABLE, 	// 21
+	UPDATE_DEFAULT_SP_ASAR,
+	UPDATE_DEFAULT_SP_PTAR
 };
 
 /**************************************************************************//**
@@ -398,6 +400,30 @@ struct write_data_to_workspace_command {
 	int8_t	status;
 		/** 64-bit alignment. */
 	uint8_t	pad[5];
+};
+
+/**************************************************************************//**
+@Description	Update default SP ASAR Command structure.
+
+*//***************************************************************************/
+struct update_default_sp_asar_command {
+		/** Update default SP ASAR command structure identifier. */
+	uint32_t opcode;
+		/** ASAR value to update (in 64 bytes units)
+		 * valid values: 0x0 - 0xF */
+	uint32_t asar_val;
+};
+
+/**************************************************************************//**
+@Description	Update default SP PTAR Command structure.
+
+*//***************************************************************************/
+struct update_default_sp_ptar_command {
+		/** Update default SP PTAR command structure identifier. */
+	uint32_t opcode;
+		/** PTAR value to update 
+		 * valid values: 0, 1 */
+	uint32_t ptar_val;
 };
 
 /**************************************************************************//**

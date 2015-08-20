@@ -57,7 +57,7 @@
 
  @Param[in]     h_App - Application handle given by the user at driver configuration.
  *//***************************************************************************/
-typedef void (t_duart_buffer_call_back)(fsl_handle_t h_app);
+typedef void (t_duart_buffer_call_back)(void * h_app);
 
 /**************************************************************************//**
  @Description   User callback function, called after all bytes are transferred.
@@ -69,7 +69,7 @@ typedef void (t_duart_buffer_call_back)(fsl_handle_t h_app);
                               configuration.
  @Param[in]     p_Buffer    - Pointer to the UART internal Tx buffer.
 *//***************************************************************************/
-typedef void (t_duart_tx_conf)(fsl_handle_t h_app, uint8_t *p_buffer);
+typedef void (t_duart_tx_conf)(void * h_app, uint8_t *p_buffer);
 
 /**************************************************************************//**
  @Description   User callback function, called by driver for event handling.
@@ -82,7 +82,7 @@ typedef void (t_duart_tx_conf)(fsl_handle_t h_app, uint8_t *p_buffer);
  @Param[in]     flags   - Protocol dependant indicator (unused).
 
  *//***************************************************************************/
-typedef void (t_duart_exception)(fsl_handle_t h_app, uint32_t errors, uint32_t flags);
+typedef void (t_duart_exception)(void * h_app, uint32_t errors, uint32_t flags);
 
 /**************************************************************************//**
  @Collection   Baud rate bounds values
@@ -174,7 +174,7 @@ typedef struct t_duart_uart_param {
     uint32_t                system_clock_mhz;     /**< System clock frequency */
 
     /* Application interface */
-    fsl_handle_t                h_app;              /**< Handle to the upper layer handle */
+    void *                h_app;              /**< Handle to the upper layer handle */
     t_duart_buffer_call_back   *f_low_space_alert;   /**< Overflow alert user callback function */
     t_duart_tx_conf           *f_tx_conf;          /**< Transmit finished user callback function */
     t_duart_exception        *f_exceptions;      /**< Callback invoked by driver on exception events;
@@ -208,7 +208,7 @@ struct uart_desc {
 
  @Return        DUART channel descriptor. NULL if failed.
 *//***************************************************************************/
-fsl_handle_t duart_config(t_duart_uart_param *p_duart_uart_param);
+void * duart_config(t_duart_uart_param *p_duart_uart_param);
 
 __START_COLD_CODE
 /**************************************************************************//**
@@ -220,7 +220,7 @@ __START_COLD_CODE
 
  @Return        0 on success; Error code otherwise.
 *//***************************************************************************/
-int duart_init(fsl_handle_t duart);
+int duart_init(void * duart);
 
 /**************************************************************************//**
  @Function      duart_free
@@ -233,7 +233,7 @@ int duart_init(fsl_handle_t duart);
 
  @Cautions      Does not disable DUART.
 *//***************************************************************************/
-void duart_free(fsl_handle_t duart);
+void duart_free(void * duart);
 
 
 /**************************************************************************//**
@@ -258,7 +258,7 @@ void duart_free(fsl_handle_t duart);
 
  @Return        0 on success; Error code otherwise.
 *//***************************************************************************/
-int duart_config_rx_buffer_size(fsl_handle_t duart, uint32_t new_val);
+int duart_config_rx_buffer_size(void * duart, uint32_t new_val);
 
 /**************************************************************************//**
  @Function      duart_config_rx_timeout
@@ -280,7 +280,7 @@ int duart_config_rx_buffer_size(fsl_handle_t duart, uint32_t new_val);
 
  @Return        0 on success; Error code otherwise.
 *//***************************************************************************/
-int duart_config_rx_timeout(fsl_handle_t duart, int32_t new_val);
+int duart_config_rx_timeout(void * duart, int32_t new_val);
 
 /**************************************************************************//**
  @Function      duart_config_en_modem_stat_intr
@@ -295,7 +295,7 @@ int duart_config_rx_timeout(fsl_handle_t duart, int32_t new_val);
 
  @Return        0 on success; Error code otherwise.
 *//***************************************************************************/
-int duart_config_en_modem_stat_intr(fsl_handle_t duart, int new_val);
+int duart_config_en_modem_stat_intr(void * duart, int new_val);
 
 /**************************************************************************//**
  @Function      duart_config_en_rec_line_stat_intr
@@ -310,7 +310,7 @@ int duart_config_en_modem_stat_intr(fsl_handle_t duart, int new_val);
 
  @Return        0 on success; Error code otherwise.
 *//***************************************************************************/
-int duart_config_en_rec_line_stat_intr(fsl_handle_t duart, int new_val);
+int duart_config_en_rec_line_stat_intr(void * duart, int new_val);
 
 /**************************************************************************//**
  @Function      duart_config_en_trans_hold_reg_empty_intr
@@ -325,7 +325,7 @@ int duart_config_en_rec_line_stat_intr(fsl_handle_t duart, int new_val);
 
  @Return        0 on success; Error code otherwise.
 *//***************************************************************************/
-int duart_config_en_trans_hold_reg_empty_intr(fsl_handle_t duart, int new_val);
+int duart_config_en_trans_hold_reg_empty_intr(void * duart, int new_val);
 
 /**************************************************************************//**
  @Function      duart_config_en_rec_data_avail_intr
@@ -340,7 +340,7 @@ int duart_config_en_trans_hold_reg_empty_intr(fsl_handle_t duart, int new_val);
 
  @Return        0 on success; Error code otherwise.
 *//***************************************************************************/
-int duart_config_en_rec_data_avail_intr(fsl_handle_t duart, int new_val);
+int duart_config_en_rec_data_avail_intr(void * duart, int new_val);
 
 /**************************************************************************//**
  @Function      duart_config_rec_trigger_level
@@ -355,7 +355,7 @@ int duart_config_en_rec_data_avail_intr(fsl_handle_t duart, int new_val);
 
  @Return        0 on success; Error code otherwise.
 *//***************************************************************************/
-int duart_config_rec_trigger_level(fsl_handle_t duart, e_duart_uart_fifo_size new_val);
+int duart_config_rec_trigger_level(void * duart, e_duart_uart_fifo_size new_val);
 
 /**************************************************************************//**
  @Function      duart_config_dma_mode_select
@@ -373,7 +373,7 @@ int duart_config_rec_trigger_level(fsl_handle_t duart, e_duart_uart_fifo_size ne
 
  @Return        0 on success; Error code otherwise.
 *//***************************************************************************/
-int duart_config_dma_mode_select(fsl_handle_t duart, int new_val);
+int duart_config_dma_mode_select(void * duart, int new_val);
 
 /**************************************************************************//**
  @Function      duart_config_enable_fifo
@@ -388,7 +388,7 @@ int duart_config_dma_mode_select(fsl_handle_t duart, int new_val);
 
  @Return        0 on success; Error code otherwise.
 *//***************************************************************************/
-int duart_config_enable_fifo(fsl_handle_t duart, int new_val);
+int duart_config_enable_fifo(void * duart, int new_val);
 
 /**************************************************************************//**
  @Function      duart_config_loop_back_mode
@@ -406,7 +406,7 @@ int duart_config_enable_fifo(fsl_handle_t duart, int new_val);
 
  @Return        0 on success; Error code otherwise.
 *//***************************************************************************/
-int duart_config_loop_back_mode(fsl_handle_t duart, int new_val);
+int duart_config_loop_back_mode(void * duart, int new_val);
 
 /**************************************************************************//**
  @Function      duart_config_poll_mode
@@ -422,7 +422,7 @@ int duart_config_loop_back_mode(fsl_handle_t duart, int new_val);
 
  @Return        0 on success; Error code otherwise.
 *//***************************************************************************/
-int duart_config_poll_mode(fsl_handle_t duart, int new_val);
+int duart_config_poll_mode(void * duart, int new_val);
 
 /**************************************************************************//**
  @Function      duart_config_poll_lf2crlf
@@ -438,7 +438,7 @@ int duart_config_poll_mode(fsl_handle_t duart, int new_val);
 
  @Return        0 on success; Error code otherwise.
 *//***************************************************************************/
-int duart_config_poll_lf2crlf(fsl_handle_t duart, int new_val);
+int duart_config_poll_lf2crlf(void * duart, int new_val);
 
 /**************************************************************************//**
  @Function      duart_config_control_char
@@ -462,7 +462,7 @@ int duart_config_poll_lf2crlf(fsl_handle_t duart, int new_val);
 
  @Return        0 on success; Error code otherwise.
 *//***************************************************************************/
-int duart_config_control_char(fsl_handle_t duart, char *control_char, int *control_char_reject, uint8_t numcc_entries);
+int duart_config_control_char(void * duart, char *control_char, int *control_char_reject, uint8_t numcc_entries);
 
 /** @} */ /* end of duart_advanced_init_grp group */
 /** @} */ /* end of duart_init_g group */
@@ -489,7 +489,7 @@ int duart_config_control_char(fsl_handle_t duart, char *control_char, int *contr
 
  @Return        0 on success; Error code otherwise.
 *//***************************************************************************/
-int duart_tx(fsl_handle_t duart, uint8_t *p_data, uint32_t size);
+int duart_tx(void * duart, uint8_t *p_data, uint32_t size);
 
 /**************************************************************************//**
  @Function      duart_rx
@@ -510,7 +510,7 @@ int duart_tx(fsl_handle_t duart, uint8_t *p_data, uint32_t size);
 
  @Return        Size of received buffer.
 *//***************************************************************************/
-uint32_t duart_rx(fsl_handle_t duart, uint8_t *p_buffer, uint32_t size);
+uint32_t duart_rx(void * duart, uint8_t *p_buffer, uint32_t size);
 
 /** @} */ /* end of duart Runtime group */
 
@@ -535,7 +535,7 @@ uint32_t duart_rx(fsl_handle_t duart, uint8_t *p_buffer, uint32_t size);
 
  @Return        Number of chars in the received buffer.
 *//***************************************************************************/
-uint32_t duart_get_num_of_rx_char_in_buffer(fsl_handle_t duart);
+uint32_t duart_get_num_of_rx_char_in_buffer(void * duart);
 
 /**************************************************************************//**
  @Function      duart_set_low_space_alert
@@ -551,7 +551,7 @@ uint32_t duart_get_num_of_rx_char_in_buffer(fsl_handle_t duart);
 
  @Return        0 on success; Error code otherwise.
 *//***************************************************************************/
-int duart_set_low_space_alert(fsl_handle_t duart, uint32_t new_val);
+int duart_set_low_space_alert(void * duart, uint32_t new_val);
 
 /**************************************************************************//**
  @Function      duart_set_break_signal
@@ -563,7 +563,7 @@ int duart_set_low_space_alert(fsl_handle_t duart, uint32_t new_val);
 
  @Return        0 on success; Error code otherwise.
 *//***************************************************************************/
-int duart_set_break_signal (fsl_handle_t duart, int break_signal);
+int duart_set_break_signal (void * duart, int break_signal);
 
 /**************************************************************************//**
  @Function      duart_set_baud_rate
@@ -578,7 +578,7 @@ int duart_set_break_signal (fsl_handle_t duart, int break_signal);
  @Cautions      To ensure proper operation, the baud rate can only be modified
                 when no data transfer or data reception are in progress.
 *//***************************************************************************/
-int duart_set_baud_rate (fsl_handle_t duart, uint32_t baud_rate);
+int duart_set_baud_rate (void * duart, uint32_t baud_rate);
 
 __END_COLD_CODE
 /** @} */ /* end of Control group */

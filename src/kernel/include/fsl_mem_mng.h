@@ -92,7 +92,7 @@ struct initial_mem_mng
 #ifdef AIOP
     uint8_t    lock;
 #else /* not AIOP */
-    fsl_handle_t    lock;
+    void *    lock;
 #endif
 
 };
@@ -137,7 +137,7 @@ typedef struct t_mem_mng_phys_addr_alloc_partition
 #ifdef AIOP
     uint8_t *                        lock;
 #else
-    fsl_handle_t                     lock;
+    void *                     lock;
 #endif
     int                              was_initialized;
 } t_mem_mng_phys_addr_alloc_partition;
@@ -157,7 +157,7 @@ typedef struct t_mem_mng_partition
 #ifdef AIOP
     uint8_t *               lock;
 #else
-    fsl_handle_t                lock;
+    void *                lock;
 #endif
 } t_mem_mng_partition;
 
@@ -172,7 +172,7 @@ struct t_mem_mng
            phys_allocation_mem_partitions_array[PLATFORM_MAX_MEM_INFO_ENTRIES];
                 /**< List of partition for fsl_os_get_mem function() control structures */
     uint32_t    mem_partitions_initialized;
-    fsl_handle_t h_boot_mem_mng;
+    void * h_boot_mem_mng;
     struct buffer_pool slob_bf_pool;
 
 };
