@@ -324,6 +324,69 @@ struct dpni_drv_qos_rule {
 };
 
 /**************************************************************************//**
+@Description	 enum dpni_drv_early_drop_mode - DPNI early drop mode.
+
+*//***************************************************************************/
+enum dpni_drv_early_drop_mode {
+	/* early drop is disabled */
+	DPNI_DRV_EARLY_DROP_MODE_NONE = 0,
+	/* early drop in taildrop mode */
+	DPNI_DRV_EARLY_DROP_MODE_TAIL,
+	/* early drop in WRED mode */
+	DPNI_DRV_EARLY_DROP_MODE_WRED
+};
+
+/**************************************************************************//**
+@Description	 enum dpni_drv_early_drop_unit - DPNI early drop units.
+
+*//***************************************************************************/
+enum dpni_drv_early_drop_unit {
+	/* bytes units */
+	DPNI_DRV_EARLY_DROP_UNIT_BYTES = 0,
+	/* frames units */
+	DPNI_DRV_EARLY_DROP_UNIT_FRAMES
+};
+
+/**************************************************************************//**
+@Description	struct dpni_drv_wred - Structure representing
+		WRED configuration.
+
+*//***************************************************************************/
+struct dpni_drv_wred {
+	/* maximum threshold that packets may be discarded. Above this
+	 * threshold all packets are discarded. The maximum threshold must be
+	 * less than 2^39.
+	 * Approximate to be expressed as (x+256)*2^(y-1) due to HW
+	 * implementation. */
+	uint64_t max_threshold;
+	/* minimum threshold that packets may be discarded at. */
+	uint64_t min_threshold;
+	/* probability that a packet will be discarded (1-100, associated with
+	 * the max_threshold). */
+	uint8_t drop_probability;
+};
+
+/**************************************************************************//**
+@Description	struct dpni_drv_rx_tc_early_drop - Structure representing
+		early-drop configuration.
+
+*//***************************************************************************/
+struct dpni_drv_rx_tc_early_drop {
+	/* drop mode */
+	enum dpni_drv_early_drop_mode mode;
+	/* units type */
+	enum dpni_drv_early_drop_unit units;
+	/* WRED - 'green' configuration */
+	struct dpni_drv_wred green;
+	/* WRED - 'yellow' configuration */
+	struct dpni_drv_wred yellow;
+	/* WRED - 'red' configuration */
+	struct dpni_drv_wred red;
+	/* tail drop threshold */
+	uint32_t tail_drop_threshold;
+};
+
+/**************************************************************************//**
 @Description	Application Receive callback
 
 		User provides this function. Driver invokes it when it gets a
@@ -1163,6 +1226,47 @@ int dpni_drv_remove_qos_entry(uint16_t ni_id,
 	error code, otherwise. For error posix refer to \ref error_g
 *//***************************************************************************/
 int dpni_drv_clear_qos_table(uint16_t ni_id);
+
+/**************************************************************************//**
+@Function	dpni_drv_prepare_rx_tc_early_drop
+
+@Description	Function to prepare an early drop.
+
+@Param[in]	cfg Early-drop configuration.
+
+@Param[out]	early_drop_buf Zeroed 256 bytes of memory before mapping it to
+		DMA.
+
+@Cautions	This function has to be called before
+		dpni_drv_set_rx_tc_early_drop
+
+*//***************************************************************************/
+void dpni_drv_prepare_rx_tc_early_drop(
+	const struct dpni_drv_rx_tc_early_drop *cfg,
+	uint8_t *early_drop_buf);
+
+/**************************************************************************//**
+@Function	dpni_drv_set_rx_tc_early_drop
+
+@Description	Function to set Rx traffic class early-drop configuration for
+		given NI.
+
+@Param[in]	ni_id The AIOP Network Interface ID.
+
+@Param[in]	tc_id Traffic class selection (0-7)
+
+@Param[in]	early_drop_iova I/O virtual address of 64 bytes;
+
+@Cautions	Before calling this function, call
+		dpni_drv_prepare_rx_tc_early_drop() to prepare the
+		early_drop_iova parameter.
+
+@Return	0 on success;
+	error code, otherwise. For error posix refer to \ref error_g
+*//***************************************************************************/
+int dpni_drv_set_rx_tc_early_drop(uint16_t ni_id,
+                                  uint8_t tc_id,
+                                  uint64_t early_drop_iova);
 
 /**
  * dpni_prepare_key_cfg() - function prepare extract parameters

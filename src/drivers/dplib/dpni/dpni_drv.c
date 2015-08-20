@@ -2246,6 +2246,63 @@ int dpni_drv_clear_qos_table(uint16_t ni_id)
 	return 0;
 }
 
+void dpni_drv_prepare_rx_tc_early_drop(
+	const struct dpni_drv_rx_tc_early_drop *cfg,
+	uint8_t *early_drop_buf)
+{
+	struct dpni_rx_tc_early_drop_cfg early_drop_cfg;
+	memset(&early_drop_cfg, 0, sizeof(struct dpni_rx_tc_early_drop_cfg));
+
+	early_drop_cfg.mode = (enum dpni_early_drop_mode) cfg->mode;
+	early_drop_cfg.units = (enum dpni_early_drop_unit) cfg->units;
+	early_drop_cfg.green.max_threshold = cfg->green.max_threshold;
+	early_drop_cfg.green.min_threshold = cfg->green.min_threshold;
+	early_drop_cfg.green.drop_probability = cfg->green.drop_probability;
+	early_drop_cfg.yellow.max_threshold = cfg->yellow.max_threshold;
+	early_drop_cfg.yellow.min_threshold = cfg->yellow.min_threshold;
+	early_drop_cfg.yellow.drop_probability = cfg->yellow.drop_probability;
+	early_drop_cfg.red.max_threshold = cfg->red.max_threshold;
+	early_drop_cfg.red.min_threshold = cfg->red.min_threshold;
+	early_drop_cfg.red.drop_probability = cfg->red.drop_probability;
+	early_drop_cfg.tail_drop_threshold = cfg->tail_drop_threshold;
+
+	dpni_prepare_rx_tc_early_drop(&early_drop_cfg, early_drop_buf);
+}
+
+int dpni_drv_set_rx_tc_early_drop(uint16_t ni_id,
+                                  uint8_t tc_id,
+                                  uint64_t early_drop_iova)
+{
+	struct mc_dprc *dprc = sys_get_unique_handle(FSL_MOD_AIOP_RC);
+	int err;
+	uint16_t dpni;
+
+	/*Lock dpni table*/
+	cdma_mutex_lock_take((uint64_t)nis, CDMA_MUTEX_READ_LOCK);
+	err = dpni_open(&dprc->io, 0, (int)nis[ni_id].dpni_id, &dpni);
+	cdma_mutex_lock_release((uint64_t)nis); /*Unlock dpni table*/
+	if(err){
+		sl_pr_err("Open DPNI failed\n");
+		return err;
+	}
+
+	err = dpni_set_rx_tc_early_drop(&dprc->io, 0, dpni, tc_id,
+	                                early_drop_iova);
+	if(err){
+		sl_pr_err("dpni_set_rx_tc_early_drop failed\n");
+		dpni_close(&dprc->io, 0, dpni);
+		return err;
+	}
+
+	err = dpni_close(&dprc->io, 0, dpni);
+	if(err){
+		sl_pr_err("Close DPNI failed\n");
+		return err;
+	}
+	return 0;
+}
+
+
 int dpni_drv_prepare_key_cfg(struct dpkg_profile_cfg *cfg,
                              uint8_t *key_cfg_buf)
 {
