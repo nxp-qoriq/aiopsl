@@ -100,16 +100,7 @@ enum fsl_module {
 #define MODULE_SLAB             0x00010000
 #define MODULE_SLOB             0x00020000
 #define MODULE_SOC_PLATFORM     0x00030000
-#define MODULE_PIC              0x00040000
 #define MODULE_DUART            0x00050000
-#define MODULE_DPSW             0x00060000
-#define MODULE_DPRC             0x00070000
-#define MODULE_LINKMAN          0x00080000
-#define MODULE_DPDMUX		0x00090000
-#define MODULE_DPMAC		0x000a0000
-#define MODULE_DPCI             0x000b0000
-#define MODULE_DPSECI           0x000c0000
-
 
 
 
