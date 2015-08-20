@@ -1,3 +1,7 @@
+dpni_drv.c/fsl_dpni_drv.h: Added API to support tc early drop:
+            dpni_drv_prepare_rx_tc_early_drop,
+            dpni_drv_set_rx_tc_early_drop.
+
 fsl_types.h       : Removed fsl_handle_t ENGR00355319
 dpni_drv.c/fsl_dpni_drv.h: Added API to support Egress/Ingress traffic shaping:
             dpni_drv_set_rx_tc_policing,
