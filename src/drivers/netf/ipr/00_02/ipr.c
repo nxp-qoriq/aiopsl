@@ -202,6 +202,7 @@ int ipr_create_instance(struct ipr_params *ipr_params_ptr,
 		tbl_params.attributes = TABLE_ATTRIBUTE_TYPE_EM | \
 				table_location_attr | \
 				TABLE_ATTRIBUTE_MR_NO_MISS;
+		tbl_params.timestamp_accur = TABLE_TS_ACCURACY_1_TU;
 		sr_status = table_create(TABLE_ACCEL_ID_CTLU, &tbl_params,
 				&ipr_instance.table_id_ipv4);
 		if (sr_status != TABLE_STATUS_SUCCESS) {
@@ -233,6 +234,7 @@ int ipr_create_instance(struct ipr_params *ipr_params_ptr,
 		tbl_params.attributes = TABLE_ATTRIBUTE_TYPE_EM | \
 				table_location_attr | \
 				TABLE_ATTRIBUTE_MR_NO_MISS;
+		tbl_params.timestamp_accur = TABLE_TS_ACCURACY_1_TU;
 		sr_status = table_create(TABLE_ACCEL_ID_CTLU, &tbl_params,
 				&ipr_instance.table_id_ipv6);
 		if (sr_status != TABLE_STATUS_SUCCESS) {
