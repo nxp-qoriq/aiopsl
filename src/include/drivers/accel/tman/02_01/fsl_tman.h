@@ -83,11 +83,7 @@ typedef void /*__noreturn*/ (*tman_cb_t) (
 
 /** Macro to get the number of missed expiration for periodic timers.
  * This macro may be called on the periodic timer expiration task. 
- * On REV 1 due to errata ERR009100 this macro will return the accumulated 
- * value of the missed expiration for the elapsed timer. On REV 1, in order to
- * know how many missed expiration happened between the previous expiration and
- * the current expiration the new value need to be subtracted from the old
- * value of the missed expiration. */
+ */
 #define TMAN_GET_MISSED_EXPIRATION(_fd)					\
 	(uint8_t)(uint32_t)({register uint8_t *__rR = 0;		\
 	uint8_t err = *((uint8_t *) (((char *)_fd) + FD_BPID_OFFSET));\

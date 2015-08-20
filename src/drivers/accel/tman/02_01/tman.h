@@ -62,11 +62,8 @@ enum tman_tmi_create_status {
 	TMAN_TMI_CREATE_BUSY = 0x81400040,
 	/** All TMIs are used. A TMI must be deleted before a new one can
 		be created. */
-#if 0
 	TMAN_TMIID_DEPLETION_ERR = 0x814000C0,
-#else
-	TMAN_TMIID_DEPLETION_ERR = 0x814000FF,
-#endif
+
 	/** Bus error occurred when initializing the TMI timers memory*/
 	TMAN_TMI_CREATE_BUS_ERR = 0x81400FFF
 };
@@ -322,17 +319,12 @@ enum tman_function_identifier {
 #define TMAN_TMR_DEL_STATE_CCP_MASK	0x00000001
 /** Timer delete command state Deleted bit mask */
 #define TMAN_TMR_DEL_STATE_D_MASK	0xFFFFFFFD
-#if 0
 /** Timer recharge command TMI state errors bit mask */
 #define TMAN_TMR_REC_STATE_MASK		0x00800000
 /** Timer query command state bits mask */
 #define TMAN_TMR_QUERY_TMI_STATE_MASK	0x80C00100
-#else
-/** Timer recharge command TMI state errors bit mask */
-#define TMAN_TMR_REC_STATE_MASK		0x00400000
 /** Timer query command state bits mask */
 #define TMAN_TMR_QUERY_STATE_MASK	0x7
-#endif
 /** Alignment that the TMAN requires for the input/output extension params */
 #define TMAN_EXT_PARAM_ALIGNMENT	16
 /** Mask to filter the System Bus error event in the TMEV register */
