@@ -18,7 +18,6 @@ MEMORY
     exception_handlers:     org = 0x20000000,   len = 0x00010000
     pseudo_rom:             org = 0x20010000,   len = 0x00100000
     init:                   org = 0x20110000,   len = 0x00100000
-    heap  :                 org = 0x20210000,   len = 0x00800000
 }
 
 SECTIONS
@@ -102,8 +101,6 @@ SECTIONS
 
 _stack_addr  = ADDR(stack)+SIZEOF(stack);
 _stack_end   = ADDR(stack);
-_heap_addr   = ADDR(heap);
-_heap_end    = ADDR(heap)+SIZEOF(heap);
 _ssram_addr  = ADDR(__SHARED_RAM_START);
 _ssram_end   = ADDR(__SHARED_RAM_END);
 _ssram_heap_start = _ssram_end;
@@ -117,4 +114,4 @@ TLS_SECTION_END_ADDR = ADDR(tls)+SIZEOF(tls);
 /* Definitions for required space of AIOP image in DDR */
 /* Used for initialization of aiop_app_init_info ddr size */
 AIOP_DDR_START       = ADDR(exception_handlers);
-AIOP_DDR_END         = _heap_end;
+AIOP_DDR_END         = ADDR(init) + SIZEOF(init);

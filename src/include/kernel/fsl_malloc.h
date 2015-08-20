@@ -52,7 +52,7 @@
                 to support.
 *//***************************************************************************/
 typedef enum memory_partition_id {
-    MEM_PART_DP_DDR = 2,/**< Primary DDR  memory partition */
+    MEM_PART_DP_DDR = 1,/**< Primary DDR  memory partition */
     MEM_PART_SYSTEM_DDR,    /**< Secondary DDR  memory partition */
     MEM_PART_SH_RAM,                   /**< Shared-SRAM memory */
     MEM_PART_PEB,                      /**< Packet-Express-Buffer memory partition */
