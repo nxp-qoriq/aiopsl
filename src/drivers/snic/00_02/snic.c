@@ -1107,6 +1107,7 @@ int snic_create_table_key_id(uint8_t fec_no, uint8_t fec_array[8],
 	tbl_params.attributes = TABLE_ATTRIBUTE_TYPE_EM | \
 			TABLE_ATTRIBUTE_LOCATION_PEB | \
 			TABLE_ATTRIBUTE_MR_NO_MISS;
+	tbl_params.timestamp_accur = TABLE_TS_ACCURACY_1_TU;
 	err = table_create(TABLE_ACCEL_ID_CTLU, &tbl_params,
 			table_id);
 	if (err)
