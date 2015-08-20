@@ -50,7 +50,7 @@ typedef struct t_platform {
 	struct platform_param   param;
 
 	/* Memory-related variables */
-	int                     num_of_mem_parts;
+	uint32_t                num_of_mem_parts;
 	int                     registered_partitions[PLATFORM_MAX_MEM_INFO_ENTRIES];
 
 	/* Platform clock in KHz */
@@ -105,27 +105,6 @@ const char *module_strings[] = {
 };
 
 static int build_mem_partitions_table(t_platform  *pltfrm);
-
-/*****************************************************************************/
-__COLD_CODE static int find_mem_partition_index(t_platform_memory_info  *mem_info,
-                                                int32_t   mem_partition)
-{
-	int i;
-
-	ASSERT_COND(mem_info);
-
-	for (i = 0; i < PLATFORM_MAX_MEM_INFO_ENTRIES; i++) {
-		if (mem_info[i].size == 0)
-			break;
-
-		if ((mem_info[i].mem_partition_id == mem_partition))
-			/* Found requested memory region */
-			return i;
-	}
-
-	/* Not found */
-	return -1;
-}
 /*****************************************************************************/
 __COLD_CODE static int init_l1_cache(t_platform *pltfrm)
 {
@@ -528,8 +507,6 @@ __COLD_CODE static int pltfrm_free_mem_partitions_cb(void * h_platform)
 	index = (int)pltfrm->num_of_mem_parts;
 
 	while ((--index) >= 0) {
-		/*sys_unregister_virt_mem_mapping(pltfrm->param.mem_info[index].virt_base_addr);*/
-
 		if (pltfrm->registered_partitions[index])
 			sys_unregister_mem_partition(pltfrm->registered_partitions[index]);
 	}
@@ -601,17 +578,8 @@ __COLD_CODE int platform_init(struct platform_param    *pltfrm_param,
 	/* Store configuration parameters */
 	memcpy(&(s_pltfrm.param), pltfrm_param, sizeof(struct platform_param));
 
-	/* Count number of valid memory partitions and check that
-       user's partition definition is within actual physical
-       addresses range. */
-	for (i=0; i<PLATFORM_MAX_MEM_INFO_ENTRIES; i++) {
-		t_platform_memory_info      *mem_info;
 
-		mem_info = s_pltfrm.param.mem_info + i;
-		if (!mem_info->size)
-			break;
-	}
-	s_pltfrm.num_of_mem_parts = i;
+	s_pltfrm.num_of_mem_parts = pltfrm_param->num_of_mem_parts;
 
 	/* Read clocks :
 	 * s_pltfrm.platform_clk == 0 will not happen on SIMULATOR

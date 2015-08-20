@@ -120,6 +120,7 @@ __COLD_CODE void fill_platform_parameters(struct platform_param *platform_param)
 	             ARRAY_SIZE(mem_info));
 	memcpy(platform_param->mem_info, mem_info,
 	       sizeof(struct platform_memory_info) * ARRAY_SIZE(mem_info));
+	platform_param->num_of_mem_parts = ARRAY_SIZE(mem_info);
 	ASSERT_COND(err == 0);
 
 }
