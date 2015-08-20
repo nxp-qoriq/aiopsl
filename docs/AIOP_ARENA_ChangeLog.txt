@@ -1,3 +1,5 @@
+fsl_malloc.h      : Changed numeric values for enum memory_partition_id (MEM_PART_DP_DDR = 1 etc.)
+aiop_link.lcf     : Removed heap section from lcf file as CodeWarrior malloc()/free() should not be used in the code.
 fsl_types.h       : Removed fsl_handle_t ENGR00355319
 os.c, fsl_stdlib.h: Remove "_os_" from fsl_os_rand() to be fsl_rand()
 
