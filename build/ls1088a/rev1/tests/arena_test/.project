@@ -99,7 +99,7 @@ aiop_sl		</project>
 		<link>
 			<name>lcf/aiop_link.lcf</name>
 			<type>1</type>
-			<locationURI>PARENT-2-PROJECT_LOC/cw_files/aiop_link.lcf</locationURI>
+			<locationURI>PARENT-3-PROJECT_LOC/cw_files/aiop_link.lcf</locationURI>
 		</link>
 		<link>
 			<name>src/apps.c</name>
