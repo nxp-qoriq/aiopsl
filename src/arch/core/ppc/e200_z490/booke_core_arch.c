@@ -26,10 +26,10 @@ uint32_t booke_get_id(void)
     cpu_id = get_cpu_id();
     cpu_id >>= 4;
 
-    if (cpu_id >= INTG_MAX_NUM_OF_CORES) {
+    if (cpu_id >= INTG_ACTUAL_MAX_NUM_OF_CORES) {
       pr_err("Core ID 0x%x is out of range, max = %d \n",
              cpu_id,
-             INTG_MAX_NUM_OF_CORES);
+             INTG_ACTUAL_MAX_NUM_OF_CORES);
     }
 
     return cpu_id;
