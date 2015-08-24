@@ -60,8 +60,8 @@ int table_create(enum table_hw_accel_id acc_id,
 
 	/* Load frequent parameters into registers */
 	uint8_t                           key_size = tbl_params->key_size;
-	uint16_t                          attr = tbl_params->attributes |
-						 tbl_params->timestamp_accur;
+	uint16_t                          attr =
+		tbl_params->attributes|((uint16_t)tbl_params->timestamp_accur);
 	uint32_t                          max_rules = tbl_params->max_rules;
 	uint32_t                          committed_rules =
 		tbl_params->committed_rules;
@@ -208,8 +208,11 @@ void table_replace_miss_result(enum table_hw_accel_id acc_id,
 	*((uint32_t *)(&(new_miss_rule.result))) =
 			*((uint32_t *)new_miss_result);
 
-	status = table_rule_replace(acc_id, table_id, &new_miss_rule, 0,
-				       old_miss_result);
+	status = table_rule_replace_by_key_desc(acc_id,
+						table_id,
+						&new_miss_rule,
+						0,
+						old_miss_result);
 	if (status)
 		table_c_exception_handler(
 			TABLE_REPLACE_MISS_RESULT_FUNC_ID,

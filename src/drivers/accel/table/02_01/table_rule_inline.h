@@ -267,11 +267,11 @@ inline int table_rule_replace_by_ruleid(enum table_hw_accel_id acc_id,
 }
 
 
-inline int table_rule_replace(enum table_hw_accel_id acc_id,
-			      t_tbl_id table_id,
-			      struct table_rule *rule,
-			      uint8_t key_size,
-			      struct table_result *old_res)
+inline int table_rule_replace_by_key_desc(enum table_hw_accel_id acc_id,
+					  t_tbl_id table_id,
+					  struct table_rule *rule,
+					  uint8_t key_size,
+					  struct table_result *old_res)
 {
 #ifdef CHECK_ALIGNMENT 	
 	DEBUG_ALIGN("table_inline.h",(uint32_t)rule, ALIGNMENT_16B);
