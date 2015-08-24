@@ -229,8 +229,12 @@ void table_get_miss_result(enum table_hw_accel_id acc_id,
 {
 	int32_t status;
 	uint32_t invalid_timestamp;
-	status = table_rule_query(acc_id, table_id, 0, 0, miss_result,
-				  &invalid_timestamp);
+	status = table_rule_query_by_key_desc(acc_id,
+					      table_id,
+					      0,
+					      0,
+					      miss_result,
+					      &invalid_timestamp);
 
 	if (status)
 		table_c_exception_handler(TABLE_GET_MISS_RESULT_FUNC_ID,

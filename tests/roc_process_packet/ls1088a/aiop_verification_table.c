@@ -263,7 +263,7 @@ uint16_t aiop_verification_table(uint32_t asa_seg_addr)
 		struct table_result result __attribute__((aligned(16)));
 		cdma_ws_memory_init((void *)&result, sizeof(result), 0);
 
-		str->status = table_rule_query
+		str->status = table_rule_query_by_key_desc
 			(str->acc_id,
 			 str->table_id,
 			 (union table_key_desc *)str->key_desc_ptr,

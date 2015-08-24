@@ -523,12 +523,12 @@ inline int table_rule_query_by_ruleid(enum table_hw_accel_id acc_id,
 
 
 /* TODO CHECK IMPLEMENTATION*/
-inline int table_rule_query(enum table_hw_accel_id acc_id,
-			    t_tbl_id table_id,
-			    union table_key_desc *key_desc,
-			    uint8_t key_size,
-			    struct table_result *result,
-			    uint32_t *timestamp)
+inline int table_rule_query_by_key_desc(enum table_hw_accel_id acc_id,
+					t_tbl_id table_id,
+					union table_key_desc *key_desc,
+					uint8_t key_size,
+					struct table_result *result,
+					uint32_t *timestamp)
 {
 
 #ifdef CHECK_ALIGNMENT
