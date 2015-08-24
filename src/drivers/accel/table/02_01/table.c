@@ -629,5 +629,9 @@ int table_rule_delete_wrp(enum table_hw_accel_id acc_id,
 			  uint8_t key_size,
 			  struct table_result *result)
 {
-	return table_rule_delete(acc_id, table_id, key_desc, key_size, result);
+	return table_rule_delete_by_key_desc(acc_id,
+					     table_id,
+					     key_desc,
+					     key_size,
+					     result);
 }

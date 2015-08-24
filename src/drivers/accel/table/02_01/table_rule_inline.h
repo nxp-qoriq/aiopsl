@@ -380,11 +380,11 @@ inline int table_rule_delete_by_ruleid(enum table_hw_accel_id acc_id,
 
 
 /* TODO CHECK IMPLEMENTATION*/
-inline int table_rule_delete(enum table_hw_accel_id acc_id,
-			     t_tbl_id table_id,
-			     union table_key_desc *key_desc,
-			     uint8_t key_size,
-			     struct table_result *result)
+inline int table_rule_delete_by_key_desc(enum table_hw_accel_id acc_id,
+					 t_tbl_id table_id,
+					 union table_key_desc *key_desc,
+					 uint8_t key_size,
+					 struct table_result *result)
 {
 #ifdef CHECK_ALIGNMENT
 	DEBUG_ALIGN("table_inline.h",(uint32_t)key_desc, ALIGNMENT_16B);

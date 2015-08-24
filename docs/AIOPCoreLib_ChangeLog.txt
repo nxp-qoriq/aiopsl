@@ -11,6 +11,8 @@ Table:
 	* Changed result fields to data instead of opaque, reference pointer and chaining.
 	* Added t_tbl_id and t_rule_id
 	* Changed table_rule_replace to table_rule_replace_by_key_desc
+	* Changed table_rule_query to table_rule_replace_by_key_desc
+	* Changed table_rule_delete to table_rule_delete_by_key_desc
 	* Documentation fixes
 
 

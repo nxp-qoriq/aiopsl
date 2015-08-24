@@ -1265,7 +1265,7 @@ inline int table_rule_query_by_key_desc(enum table_hw_accel_id acc_id,
 
 
 /**************************************************************************//**
-@Function	table_rule_delete
+@Function	table_rule_delete_by_key_desc
 
 @Description	Deletes a specified rule in the table.
 
@@ -1295,11 +1295,11 @@ inline int table_rule_query_by_key_desc(enum table_hw_accel_id acc_id,
 @Cautions	In this function the task yields.
 @Cautions	This function may result in a fatal error.
 *//***************************************************************************/
-inline int table_rule_delete(enum table_hw_accel_id acc_id,
-			     uint16_t table_id,
-			     union table_key_desc *key_desc,
-			     uint8_t key_size,
-			     struct table_result *result);
+inline int table_rule_delete_by_key_desc(enum table_hw_accel_id acc_id,
+					 uint16_t table_id,
+					 union table_key_desc *key_desc,
+					 uint8_t key_size,
+					 struct table_result *result);
 
 
 /* ######################################################################### */

@@ -858,7 +858,7 @@ int snic_ipsec_del_sa(struct snic_cmd_data *cmd_data)
 		ipsec_handle = lookup_result.opaque0_or_reference;
 		/* need to delete rules from the 2 tables (or one for enc.) */
 		key_desc.em.key[0] = sa_id;
-		err = table_rule_delete(TABLE_ACCEL_ID_CTLU,
+		err = table_rule_delete_by_key_desc(TABLE_ACCEL_ID_CTLU,
 				(uint16_t)snic_params[snic_id].ipsec_table_id,
 				&key_desc,
 				1,
@@ -890,7 +890,7 @@ int snic_ipsec_del_sa(struct snic_cmd_data *cmd_data)
 				ipsec_dec_key[k] = (uint8_t)spi;
 				for (i = 0; i < snic_params[snic_id].ipsec_ipv6_key_size; i++ )
 					key_desc.em.key[i] = ipsec_dec_key[i];
-				err = table_rule_delete(TABLE_ACCEL_ID_CTLU,
+				err = table_rule_delete_by_key_desc(TABLE_ACCEL_ID_CTLU,
 					(uint16_t)snic_params[snic_id].dec_ipsec_ipv6_table_id,
 					&key_desc,
 					snic_params[snic_id].ipsec_ipv6_key_size,
@@ -918,7 +918,7 @@ int snic_ipsec_del_sa(struct snic_cmd_data *cmd_data)
 				ipsec_dec_key[k] = (uint8_t)spi;
 				for (i = 0; i < snic_params[snic_id].ipsec_ipv4_key_size; i++ )
 					key_desc.em.key[i] = ipsec_dec_key[i];
-				err = table_rule_delete(TABLE_ACCEL_ID_CTLU,
+				err = table_rule_delete_by_key_desc(TABLE_ACCEL_ID_CTLU,
 					(uint16_t)snic_params[snic_id].dec_ipsec_ipv4_table_id,
 					&key_desc,
 					snic_params[snic_id].ipsec_ipv4_key_size,

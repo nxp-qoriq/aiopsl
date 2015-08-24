@@ -235,14 +235,14 @@ uint16_t aiop_verification_table(uint32_t asa_seg_addr)
 		(struct table_rule_delete_command *) asa_seg_addr;
 
 		if (str->flags & TABLE_VERIF_FLAG_OLD_RESULT_NULL) {
-			str->status = table_rule_delete
+			str->status = table_rule_delete_by_key_desc
 				(str->acc_id,
 				 str->table_id,
 				 (union table_key_desc *)str->key_desc_ptr,
 				 str->key_size,
 				 (void *) 0);
 		} else {
-			str->status = table_rule_delete
+			str->status = table_rule_delete_by_key_desc
 				(str->acc_id,
 				 str->table_id,
 				 (union table_key_desc *)str->key_desc_ptr,

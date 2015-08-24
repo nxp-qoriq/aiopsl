@@ -1800,7 +1800,7 @@ void ipr_time_out(uint64_t rfdc_ext_addr, uint16_t opaque_not_used)
 		ipv6_rule_delete(rfdc_ext_addr,&instance_params);
 	} else {
 		/* IPV4 */
-		table_rule_delete(TABLE_ACCEL_ID_CTLU,
+		table_rule_delete_by_key_desc(TABLE_ACCEL_ID_CTLU,
 				  instance_params.table_id_ipv4,
 				  (union table_key_desc *)&rfdc.ipv4_key,
 				  IPV4_KEY_SIZE,
