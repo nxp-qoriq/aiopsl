@@ -124,16 +124,6 @@ __declspec(entry_point) void aiop_verification_fm()
         amq.icid = icid;
         amq.flags = flags;
         set_default_amq_attributes(&amq);
-        
-        //fsl_print("Storage Profile ASAR 0x%x\n", storage_profile[spid].mode_bits1 & 0xF);
-        //fsl_print("Storage Profile PTAR 0x%x\n", (storage_profile[spid].mode_bits1 & 0x80)>>7);
-        /*set storage profile ASAR to 15 */
-        storage_profile[spid].mode_bits1 |= 0xF;
-        /*set storage profile PTAR to 1 */
-        storage_profile[spid].mode_bits1 |= 0x80;
-        fsl_print("Storage Profile ASAR %d\n", storage_profile[spid].mode_bits1 & 0xF);
-        fsl_print("Storage Profile PTAR %d\n", (storage_profile[spid].mode_bits1 & 0x80)>>7);
-        
 	
 	cdma_read((void *)data_addr, ext_address, (uint16_t)DATA_SIZE);
 
@@ -322,6 +312,37 @@ __declspec(entry_point) void aiop_verification_fm()
 		{
 			str_size = (uint16_t)
 			  sizeof(struct fatal_error_command);
+			break;
+		}
+		case UPDATE_DEFAULT_SP_ASAR:
+		{
+			struct update_default_sp_asar_command *str =
+				(struct update_default_sp_asar_command *)
+							((uint32_t)data_addr);
+
+	        /*set storage profile ASAR */
+	        storage_profile[spid].mode_bits1 &= 0xF0;
+	        storage_profile[spid].mode_bits1 |= str->asar_val;
+
+			str_size = (uint16_t)
+			  sizeof(struct update_default_sp_asar_command);
+			break;
+		}
+		case UPDATE_DEFAULT_SP_PTAR:
+		{
+			struct update_default_sp_ptar_command *str =
+				(struct update_default_sp_ptar_command *)
+							((uint32_t)data_addr);
+
+	        /*set storage profile PTAR to 1 */
+	        if (str->ptar_val)
+	        	storage_profile[spid].mode_bits1 |= 0x80;
+	        /*set storage profile PTAR to 0 */
+	        else
+	        	storage_profile[spid].mode_bits1 &= 0x7F;
+			
+			str_size = (uint16_t)
+			  sizeof(struct update_default_sp_ptar_command);
 			break;
 		}
 		case TERMINATE_FLOW_MODULE:
