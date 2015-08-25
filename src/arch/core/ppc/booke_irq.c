@@ -95,11 +95,11 @@ static inline void booke_exception_machine_check_isr()
 	}
 
 	if(mcsr & 0x8000 /* LD */) {
-		fsl_print("core #%d: An error occurred during the attempt to execute the load type instruction located at 0x%x.\n", core_id, mcsrr0);
+		fsl_print("core #%d: Error on load type instruction at address 0x%x.\n", core_id, mcsrr0);
 	}
 
 	if(mcsr & 0x4000 /* ST */) {
-		fsl_print("core #%d: An error occurred during the attempt to execute the store type instruction located at 0x%x.\n", core_id, mcsrr0);
+		fsl_print("core #%d: Error on store type instruction at address 0x%x.\n", core_id, mcsrr0);
 	}
 }
 
