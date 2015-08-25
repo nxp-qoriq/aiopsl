@@ -436,7 +436,7 @@
 
 @{
 *//***************************************************************************/
-/* TODO FIX AFTER REMOVING FUNCTIONS */
+/* TODO FIX AFTER REMOVING AND RENAMING FUNCTIONS */
 enum table_function_identifier {
 	TABLE_CREATE_FUNC_ID,
 	TABLE_REPLACE_MISS_RESULT_FUNC_ID,
@@ -1155,12 +1155,12 @@ int table_calc_num_entries_per_rule(uint16_t type, uint8_t key_size);
 			16 bytes.
 
 *//***************************************************************************/
-int table_lookup_by_keyid_default_frame_wrp(
-				        enum table_hw_accel_id acc_id,
-					t_tbl_id table_id,
-					uint8_t keyid,
-					struct table_lookup_result
-					       *lookup_result);
+int table_lookup_by_keyid_default_frame_wrp(enum table_hw_accel_id acc_id,
+					    t_tbl_id table_id,
+					    uint8_t keyid,
+					    uint32_t flags,
+					    struct table_lookup_result
+						   *lookup_result);
 
 /**************************************************************************//**
 @Function	table_rule_create_wrp

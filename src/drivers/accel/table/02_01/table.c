@@ -189,7 +189,7 @@ void table_get_params(enum table_hw_accel_id acc_id,
 void table_replace_miss_result(enum table_hw_accel_id acc_id,
 			       t_tbl_id table_id,
 			       struct table_result *new_miss_result,
-			       struct table_result *old_miss_result)
+			       struct table_result *replaced_miss_result)
 {
 	int32_t status;
 
@@ -212,7 +212,7 @@ void table_replace_miss_result(enum table_hw_accel_id acc_id,
 						table_id,
 						&new_miss_rule,
 						0,
-						old_miss_result);
+						replaced_miss_result);
 	if (status)
 		table_c_exception_handler(
 			TABLE_REPLACE_MISS_RESULT_FUNC_ID,
@@ -323,41 +323,6 @@ int table_get_next_ruleid(enum table_hw_accel_id acc_id,
 					    __LINE__,
 					    status);
 
-	return status;
-}
-
-int table_get_key_desc(enum table_hw_accel_id acc_id,
-		       t_tbl_id table_id,
-		       struct table_rule_id_desc *rule_id_desc,
-		       union table_key_desc *key_desc)
-{
-#ifdef CHECK_ALIGNMENT 	
-	DEBUG_ALIGN("table_inline.h",(uint32_t)rule_id_desc, ALIGNMENT_16B);
-	DEBUG_ALIGN("table_inline.h",(uint32_t)key_desc, ALIGNMENT_16B);
-#endif
-	int32_t status;
-
-	uint32_t arg2 = (uint32_t)key_desc;
-	uint32_t arg3 = table_id;
-
-	/* Prepare ACC context for CTLU accelerator call */
-	arg2 = __e_rlwimi(arg2, (uint32_t)rule_id_desc, 16, 0, 15);
-	arg3 = __e_rlwimi(arg3, 0x20, 16, 0, 15);
-	__stqw(TABLE_GET_KEY_DESC_MTYPE, arg2, arg3, 0, HWC_ACC_IN_ADDRESS, 0);
-
-	/* Accelerator call */
-	__e_hwaccel(acc_id);
-
-	/* Status Handling*/
-	status = *((int32_t *)HWC_ACC_OUT_ADDRESS);
-	if (status == TABLE_HW_STATUS_SUCCESS) {}
-	else if (status == TABLE_HW_STATUS_MISS)
-		status = -EIO;
-	else
-		/* Call fatal error handler */
-		table_exception_handler_wrp(TABLE_GET_KEY_DESC_FUNC_ID,
-					    __LINE__,
-					    status);
 	return status;
 }
 
@@ -599,12 +564,14 @@ int table_calc_num_entries_per_rule(uint16_t type, uint8_t key_size){
 int table_lookup_by_keyid_default_frame_wrp(enum table_hw_accel_id acc_id,
 					    t_tbl_id table_id,
 					    uint8_t keyid,
+					    uint32_t flags,
 					    struct table_lookup_result
 						*lookup_result)
 {
 	return table_lookup_by_keyid_default_frame(acc_id,
 						   table_id,
 						   keyid,
+						   flags,
 						   lookup_result);
 }
 

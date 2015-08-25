@@ -186,7 +186,7 @@ uint16_t aiop_verification_table(uint32_t asa_seg_addr)
 		if (!(str->flags & TABLE_VERIF_FLAG_OLD_RESULT_NULL)) {
 			//TODO result_ptr = 
 		}
-		str->status = table_rule_query_by_ruleid
+		str->status = table_rule_query_get_result
 			(str->acc_id,
 			 str->table_id,
 			 rule_id_array[str->rule_id_index],
@@ -290,6 +290,7 @@ uint16_t aiop_verification_table(uint32_t asa_seg_addr)
 						  str->table_id,
 						  key_desc,
 						  str->key_size,
+						  str->flags,
 						  &lookup_result);	
 		str->lookup_result = lookup_result;
 		
@@ -310,7 +311,8 @@ uint16_t aiop_verification_table(uint32_t asa_seg_addr)
 
 		str->status = table_lookup_by_keyid_default_frame(str->acc_id,
 			str->table_id,
-			str->key_id, 
+			str->key_id,
+			str->flags,
 			&(lookup_result));
 		
 		str->lookup_result = lookup_result;

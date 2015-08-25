@@ -808,6 +808,7 @@ int ipr_lookup(uint32_t frame_is_ipv4, struct ipr_instance *instance_params_ptr,
 				TABLE_ACCEL_ID_CTLU,
 				instance_params_ptr->table_id_ipv4,
 				ipr_global_parameters1.ipr_key_id_ipv4,
+				TABLE_LOOKUP_FLAG_EPHEMERAL_TAKE_CMD,
 				&lookup_result);
 	} else {
 		/* Error is not checked since it is assumed that
@@ -816,10 +817,11 @@ int ipr_lookup(uint32_t frame_is_ipv4, struct ipr_instance *instance_params_ptr,
 				TABLE_ACCEL_ID_CTLU,
 				instance_params_ptr->table_id_ipv6,
 				ipr_global_parameters1.ipr_key_id_ipv6,
+				TABLE_LOOKUP_FLAG_EPHEMERAL_TAKE_CMD,
 				&lookup_result);
 	}
 	/* Next line is relevant only in case of Hit */
-	*rfdc_ext_addr_ptr = lookup_result.opaque0_or_reference;
+	*rfdc_ext_addr_ptr = lookup_result.data0;
 	
 	return sr_status;
 }
