@@ -396,7 +396,7 @@ enum table_hw_timestamp_accuracy {
 *//***************************************************************************/
 
 /**
-@typedef uint16_t tbl_id
+@typedef uint16_t t_tbl_id
 */
 typedef uint16_t t_tbl_id;
 
