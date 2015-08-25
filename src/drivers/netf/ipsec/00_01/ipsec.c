@@ -1176,6 +1176,11 @@ void ipsec_generate_sa_params(
 			}
 		}
 		
+		/* Length in bytes of the encap frame IP+ESP header, 
+		 * to be used for segment length presentation */
+		sap.sap1.encap_header_length = 
+				params->encparams.ip_hdr_len + 8;
+		
 	} else {
 		/* Inbound (decryption) */
 
@@ -1747,10 +1752,16 @@ __IPSEC_HOT_CODE int ipsec_frame_encrypt(
 	 * (for performance optimization it is done in any case) */
 	PRC_SET_SEGMENT_ADDRESS(orig_seg_addr); 
 			
-	/* Update the default segment length for the new frame  in 
-	 * the presentation context */
-	//PRC_SET_SEGMENT_LENGTH(DEFAULT_SEGMENT_SIZE);
-	
+	/* Update the segment length for the new frame in the presentation context,
+	 * for a case where the encap frame header is larger than the original
+	 * presentation size (this may happen for relatively short frames
+	 * and large outer header in tunnel mode).
+	 * Otherwise there will be a parser error later. */
+		
+	if (PRC_GET_SEGMENT_LENGTH() < (sap1.encap_header_length + eth_length)) {
+		PRC_SET_SEGMENT_LENGTH((sap1.encap_header_length + eth_length));
+	}
+
 	/* In new output buffer mode, clear the PRC ASA Size, 
 	 * since the SEC does not preserve the ASA */
 	if (sap1.sec_buffer_mode == IPSEC_SEC_NEW_BUFFER_MODE) { 
