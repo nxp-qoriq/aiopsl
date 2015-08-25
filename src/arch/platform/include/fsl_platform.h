@@ -147,6 +147,7 @@ typedef enum platform_console_type {
 *//***************************************************************************/
 struct platform_param {
     struct platform_memory_info     mem_info[PLATFORM_MAX_MEM_INFO_ENTRIES];
+    uint32_t                        num_of_mem_parts;
     enum cache_mode                 l1_cache_mode;
     enum platform_console_type      console_type;
     uint8_t                         console_id;

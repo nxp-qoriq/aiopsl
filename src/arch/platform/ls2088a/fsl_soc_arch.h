@@ -46,7 +46,19 @@
  @{
 *//***************************************************************************/
 
+/*
+ * INTG_MAX_NUM_OF_CORES:
+ * This defines The maximum number of cores across all devices/archs/Revs
+ * Not the actual number of cores available on the chip 
+ */
 #define INTG_MAX_NUM_OF_CORES   16
+
+/*
+ * INTG_ACTUAL_MAX_NUM_OF_CORES:
+ * This defines The actual maximum number of cores available on the chip
+ */
+#define INTG_ACTUAL_MAX_NUM_OF_CORES   16
+
 #define INTG_MAX_NUM_OF_CLUSTR  4
 
 

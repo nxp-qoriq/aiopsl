@@ -1,3 +1,5 @@
+fsl_malloc.h      : Changed numeric values for enum memory_partition_id (MEM_PART_DP_DDR = 1 etc.)
+aiop_link.lcf     : Removed heap section from lcf file as CodeWarrior malloc()/free() should not be used in the code.
 dpni_drv.c/fsl_dpni_drv.h: Added API to support tc early drop:
             dpni_drv_prepare_rx_tc_early_drop,
             dpni_drv_set_rx_tc_early_drop.
