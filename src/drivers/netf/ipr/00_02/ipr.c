@@ -808,6 +808,7 @@ int ipr_lookup(uint32_t frame_is_ipv4, struct ipr_instance *instance_params_ptr,
 				TABLE_ACCEL_ID_CTLU,
 				instance_params_ptr->table_id_ipv4,
 				ipr_global_parameters1.ipr_key_id_ipv4,
+				TABLE_LOOKUP_FLAG_EPHEMERAL_TAKE_CMD,
 				&lookup_result);
 	} else {
 		/* Error is not checked since it is assumed that
@@ -816,10 +817,11 @@ int ipr_lookup(uint32_t frame_is_ipv4, struct ipr_instance *instance_params_ptr,
 				TABLE_ACCEL_ID_CTLU,
 				instance_params_ptr->table_id_ipv6,
 				ipr_global_parameters1.ipr_key_id_ipv6,
+				TABLE_LOOKUP_FLAG_EPHEMERAL_TAKE_CMD,
 				&lookup_result);
 	}
 	/* Next line is relevant only in case of Hit */
-	*rfdc_ext_addr_ptr = lookup_result.opaque0_or_reference;
+	*rfdc_ext_addr_ptr = lookup_result.data0;
 	
 	return sr_status;
 }
@@ -1800,7 +1802,7 @@ void ipr_time_out(uint64_t rfdc_ext_addr, uint16_t opaque_not_used)
 		ipv6_rule_delete(rfdc_ext_addr,&instance_params);
 	} else {
 		/* IPV4 */
-		table_rule_delete(TABLE_ACCEL_ID_CTLU,
+		table_rule_delete_by_key_desc(TABLE_ACCEL_ID_CTLU,
 				  instance_params.table_id_ipv4,
 				  (union table_key_desc *)&rfdc.ipv4_key,
 				  IPV4_KEY_SIZE,

@@ -10,6 +10,18 @@ Table:
 	* Added timestamp accuracy parameter per table
 	* Changed result fields to data instead of opaque, reference pointer and chaining.
 	* Added t_tbl_id and t_rule_id
+	* Changed table_rule_replace to table_rule_replace_by_key_desc
+	* Changed table_rule_query to table_rule_replace_by_key_desc
+	* Changed table_rule_delete to table_rule_delete_by_key_desc
+	* Changed table_rule_query_by_rule_id to table_rule_query_get_result
+	* Changed table_rule_replace_by_rule_id to table_rule_replace
+	* Changed table_rule_delete_by_rule_id to table_rule_delete
+	* Added table_rule_query_get_key_desc API & Implementation
+	* Added table_rule_priority_replace API & Implementation
+	* Removed reference pointer support
+	* Updated table_lookup_result fields.
+	* Documentation fixes
+	* Moved table_rule_XXXXX_by_key_desc functions to obsolete section.
 
 
 LDPAA AIOP SERVICE LAYER LDPAA-AIOP-SL-v1088_ENG_0.1 Change Log
