@@ -42,11 +42,11 @@
 
 extern __TASK struct aiop_default_task_params default_task_params;
 extern struct dpni_drv *nis;
-extern __PROFILE_SRAM 
+extern __PROFILE_SRAM
 	struct storage_profile storage_profile[SP_NUM_OF_STORAGE_PROFILES];
 
 inline int sl_prolog(void)
-{	
+{
 	struct dpni_drv *dpni_drv;
 #ifndef AIOP_VERIF
 #ifndef DISABLE_ASSERTIONS
@@ -58,7 +58,7 @@ inline int sl_prolog(void)
 	int err;
 
 	SET_PRC_VALUES();
-	
+
 	dpni_drv = nis + PRC_GET_PARAMETER(); /* calculate pointer
 						* to the send NI structure   */
 	pr = (struct parse_result *)HWC_PARSE_RES_ADDRESS;
@@ -87,9 +87,9 @@ inline int sl_prolog(void)
 	default_task_params.parser_starting_hxs = 0;
 	default_task_params.qd_priority = ((*((uint8_t *)(HWC_ADC_ADDRESS + \
 			ADC_WQID_PRI_OFFSET)) & ADC_WQID_MASK) >> 4);
-	
+
 	err = parse_result_generate_basic();
-	
+
 	SET_FRAME_TYPE(PRC_GET_FRAME_HANDLE(), HWC_FD_ADDRESS);
 
 	return err;
@@ -140,7 +140,7 @@ inline void sl_tman_expiration_task_prolog(uint16_t spid)
 	uint16_t icid, flags = 0;
 	uint8_t tmp;
 	struct storage_profile *sp_addr = &storage_profile[0];
-	
+
 	sp_addr += spid;
 	*((uint8_t *)HWC_SPID_ADDRESS) = (uint8_t)spid;
 	default_task_params.parser_profile_id = 0;
@@ -164,6 +164,14 @@ inline uint16_t dpni_get_receive_niid(void)
 	return (uint16_t)PRC_GET_PARAMETER();
 }
 
+inline void set_task_tx_tc(uint8_t tc)
+{
+	default_task_params.qd_priority = tc;
+}
 
+inline uint8_t get_task_tx_tc(void)
+{
+	return default_task_params.qd_priority;
+}
 
 #endif /* __DPNI_DRV_RXTX_INLINE_H */

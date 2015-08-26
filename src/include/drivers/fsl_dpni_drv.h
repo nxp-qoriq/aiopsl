@@ -1268,6 +1268,24 @@ int dpni_drv_set_rx_tc_early_drop(uint16_t ni_id,
                                   uint8_t tc_id,
                                   uint64_t early_drop_iova);
 
+/**************************************************************************//**
+@Function	set_task_tx_tc
+
+@Description	Set task TX traffic class.
+
+@Param[in]	tc Traffic class.
+*//***************************************************************************/
+inline void set_task_tx_tc(uint8_t tc);
+
+/**************************************************************************//**
+@Function	get_task_tx_tc
+
+@Description	Get task TX traffic class.
+
+@Return	TX traffic class.
+*//***************************************************************************/
+inline uint8_t get_task_tx_tc(void);
+
 /**
  * dpni_prepare_key_cfg() - function prepare extract parameters
  * @cfg: defining a full Key Generation profile (rule)
