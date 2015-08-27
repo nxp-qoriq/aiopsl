@@ -209,7 +209,7 @@ int ipsec_delete_instance(ipsec_instance_handle_t instance_handle)
 *	ipsec_get_buffer
 *//****************************************************************************/
 int ipsec_get_buffer(ipsec_instance_handle_t instance_handle,
-		ipsec_handle_t *ipsec_handle)
+		ipsec_handle_t *ipsec_handle, uint8_t *tmi_id)
 {
 	int return_val;
 	struct ipsec_instance_params instance; 
@@ -276,6 +276,8 @@ int ipsec_get_buffer(ipsec_instance_handle_t instance_handle,
 		cdma_mutex_lock_release(instance_handle);
 		return -ENOMEM;
 	}
+	
+	*tmi_id = instance.tmi_id;
 	
 	return IPSEC_SUCCESS; 
 
@@ -1135,10 +1137,12 @@ void ipsec_create_key_copy(
 void ipsec_generate_sa_params(
 		struct ipsec_descriptor_params *params, 
 		ipsec_handle_t desc_addr, /* Parameters area */
-		ipsec_instance_handle_t instance_handle)
+		ipsec_instance_handle_t instance_handle,
+		uint8_t tmi_id)
 {
-	
+	int return_val;
 	struct ipsec_sa_params sap;
+	uint16_t tmr_duration;
 	
 	sap.sap1.instance_handle = instance_handle; 
 	
@@ -1234,15 +1238,70 @@ void ipsec_generate_sa_params(
 	sap.sap1.valid = 1; /* descriptor valid. */
 
 	/* Descriptor Part #2 */
-	sap.sap2.sec_callback_func = (uint32_t)params->lifetime_callback;
+	//sap.sap2.sec_callback_func = (uint32_t)params->lifetime_callback;
+	sap.sap2.sec_callback_func = params->lifetime_callback;
 	sap.sap2.sec_callback_arg = params->callback_arg;
 		
-	// TODO: init one-shot timers according to:
-	// soft_seconds_limit; 
-	// hard_seconds_limit; 
-	sap.sap2.soft_tmr_handle = NULL; /* Soft seconds timer handle, TMP */
-	sap.sap2.hard_tmr_handle = NULL; /* Hard seconds timer handle, TMP */
-
+	/* init one-shot timers according to:
+	 * soft_seconds_limit and hard_seconds_limit */ 
+	if (params->flags & IPSEC_FLG_LIFETIME_SEC_CNTR_EN) {
+		
+		/* Soft seconds lifetime timer */
+		
+		/* If the lifetime is larger than the TMAN max,
+		 * it is required to invoke the timer multiple times */
+		if (params->soft_seconds_limit > IPSEC_MAX_TIMER_DURATION) {
+			tmr_duration = IPSEC_MAX_TIMER_DURATION;
+			sap.sap2.soft_seconds_limit = params->soft_seconds_limit - 
+					IPSEC_MAX_TIMER_DURATION;
+		} else {
+			tmr_duration = (uint16_t)params->soft_seconds_limit;
+			sap.sap2.soft_seconds_limit = 0;
+		}
+		
+		/* Create soft seconds lifetime timer */
+		return_val = tman_create_timer(
+				tmi_id, /* uint8_t tmi_id */
+				TMAN_CREATE_TIMER_MODE_SEC_GRANULARITY, /* uint32_t flags */
+					/* 1 Sec timer ticks*/
+				tmr_duration, /* uint16_t duration; */
+				desc_addr, /* tman_arg_8B_t opaque_data1 */
+				IPSEC_SOFT_SEC_LIFETIME_EXPIRED, /* tman_arg_2B_t opaque_data2 */ 
+				&ipsec_tman_callback,
+				&sap.sap2.soft_tmr_handle); /* uint32_t *timer_handle */
+	
+		/* Hard seconds lifetime timer */
+		
+		/* If the lifetime is larger than the TMAN max,
+		 * it is required to invoke the timer multiple times */
+		if (params->hard_seconds_limit > IPSEC_MAX_TIMER_DURATION) {
+			tmr_duration = IPSEC_MAX_TIMER_DURATION;
+			sap.sap2.hard_seconds_limit = params->hard_seconds_limit - 
+					IPSEC_MAX_TIMER_DURATION;
+		} else {
+			tmr_duration = (uint16_t)params->hard_seconds_limit;
+			sap.sap2.hard_seconds_limit = 0;
+		}
+		
+		/* Create hard seconds lifetime timer */
+		return_val = tman_create_timer(
+				tmi_id, /* uint8_t tmi_id */
+				TMAN_CREATE_TIMER_MODE_SEC_GRANULARITY, /* uint32_t flags */
+					/* 1 Sec timer ticks*/
+				tmr_duration, /* uint16_t duration; */
+				desc_addr, /* tman_arg_8B_t opaque_data1 */
+				IPSEC_HARD_SEC_LIFETIME_EXPIRED, /* tman_arg_2B_t opaque_data2 */ 
+				&ipsec_tman_callback,
+				&sap.sap2.hard_tmr_handle); /* uint32_t *timer_handle */
+		
+		sap.sap2.tmi_id = tmi_id; /* save the TMI ID */
+		
+	} else {
+		/* No secnds lifetime timers */
+		sap.sap2.soft_tmr_handle = NULL; 
+		sap.sap2.hard_tmr_handle = NULL; 
+	}
+	
 	/* Get timestamp from TMAN */
 	tman_get_timestamp(&(sap.sap1.timestamp));
 	
@@ -1297,11 +1356,12 @@ int ipsec_add_sa_descriptor(
 	int return_val;
 	int sd_size; /* shared descriptor size, set by the RTA */
 	ipsec_handle_t desc_addr;
-	
+	uint8_t tmi_id; /* TMAN Instance ID  */
+
 	/* Create a shared descriptor */
 
 	return_val = ipsec_get_buffer(instance_handle,
-			ipsec_handle);
+			ipsec_handle, &tmi_id);
 	
 	/* Check for allocation error */
 	if (return_val) {
@@ -1355,7 +1415,8 @@ int ipsec_add_sa_descriptor(
 	ipsec_generate_sa_params(
 			params,
 			desc_addr, /* Parameters area (start of buffer) */
-			instance_handle);
+			instance_handle,
+			tmi_id);
 	
 	/* Create one-shot TMAN timers for the soft and hard seconds lifetime 
 	 * limits, with callback to internal function 
@@ -1474,6 +1535,13 @@ __IPSEC_HOT_CODE int ipsec_frame_encrypt(
 		//val = LDPAA_FD_GET_OFFSET(HWC_FD_ADDRESS);
 		//fsl_print("FD[OFFSET] = 0x%x %x\n", (val & 0xFF), (val & 0xFF00));
 		//fsl_print("FD[OFFSET] = 0x%x%x\n", (val & 0x0F), (val & 0xFF00)>>8);
+		
+		fsl_print("IPSEC: Reading Additional Dequeue Context (0x40):\n");
+		for(j=0;j<4;j++) {
+			val = *(uint32_t *)((uint32_t)0x40 + j*4);
+			fsl_print("Word %d = 0x%x\n", j, val);
+		}
+
 	}
 	// Debug End //
 #endif
@@ -2944,6 +3012,115 @@ uint8_t ipsec_get_ipv6_nh_offset (struct ipv6hdr *ipv6_hdr, uint8_t *length)
 } /* End of ipsec_get_ipv6_nh_offset */
 
 /**************************************************************************/
+
+void ipsec_tman_callback(uint64_t desc_addr, uint16_t indicator)
+{
+	uint16_t tmr_duration;
+	struct ipsec_sa_params_part2 sap2; /* Parameters to read from ext buffer */
+
+	
+	/* 	Read relevant descriptor fields with CDMA. */
+	cdma_read(
+			&sap2, /* void *ws_dst */
+			desc_addr, /* uint64_t ext_address */
+			sizeof(sap2) /* uint16_t size */
+			);
+
+	
+#if(0)	
+	fsl_print("\nIn ipsec_tman_callback \n");
+	fsl_print("opaque1 = %x,  opaque2 = %x\n", opaque1_32bit, opaque2_32bit);
+
+	fsl_print("Doing tman_timer_completion_confirmation() in ipsec_tman_callback\n");
+	
+	//tman_timer_completion_confirmation(global_timer_handle2);
+#endif
+	
+	if(indicator == IPSEC_SOFT_SEC_LIFETIME_EXPIRED) {
+		/* Soft seconds timer */
+
+		/* If the lifetime is larger than the TMAN max,
+		 * it is required to invoke the timer multiple times */
+		if (sap2.soft_seconds_limit > IPSEC_MAX_TIMER_DURATION) {
+			tmr_duration = IPSEC_MAX_TIMER_DURATION;
+			sap2.soft_seconds_limit -= IPSEC_MAX_TIMER_DURATION;
+		} else if (sap2.soft_seconds_limit > 0) {
+			tmr_duration = (uint16_t)sap2.soft_seconds_limit;
+			sap2.soft_seconds_limit = 0;
+		} else {
+			tmr_duration = 0;
+		}
+		
+		/* Check if a new timer needs to be invoked */
+		if(tmr_duration) {
+			/* Create soft seconds lifetime timer */
+			tman_create_timer(
+				sap2.tmi_id, /* uint8_t tmi_id */
+				TMAN_CREATE_TIMER_MODE_SEC_GRANULARITY, /* uint32_t flags */
+					/* 1 Sec timer ticks*/
+				tmr_duration, /* uint16_t duration; */
+				desc_addr, /* tman_arg_8B_t opaque_data1 */
+				IPSEC_SOFT_SEC_LIFETIME_EXPIRED, /* tman_arg_2B_t opaque_data2 */ 
+				&ipsec_tman_callback,
+				&sap2.soft_tmr_handle); /* uint32_t *timer_handle */
+			
+			/* Update the limit and timer handle in the params descriptor*/
+			// TODO: there is a potential race here between TMAN and CDMA
+			cdma_write(
+					IPSEC_SOFT_SEC_LIMIT_ADDR(desc_addr), /* ext_address */
+					&sap2.soft_seconds_limit, /* ws_src */
+					8); /* size */
+			
+		} else {
+			/* If the timer fully expired, call the user callback */	
+			sap2.sec_callback_func(sap2.sec_callback_arg, 
+					IPSEC_SOFT_SEC_LIFETIME_EXPIRED);
+		}
+	} else {
+		/* Hard seconds timer */
+
+		/* If the lifetime is larger than the TMAN max,
+		 * it is required to invoke the timer multiple times */
+		if (sap2.hard_seconds_limit > IPSEC_MAX_TIMER_DURATION) {
+			tmr_duration = IPSEC_MAX_TIMER_DURATION;
+			sap2.hard_seconds_limit -= IPSEC_MAX_TIMER_DURATION;
+		} else if (sap2.hard_seconds_limit > 0) {
+			tmr_duration = (uint16_t)sap2.hard_seconds_limit;
+			sap2.hard_seconds_limit = 0;
+		} else {
+			tmr_duration = 0;
+		}
+		
+		/* Check if a new timer needs to be invoked */
+		if(tmr_duration) {
+						
+			/* Create hard seconds lifetime timer */
+			tman_create_timer(
+				sap2.tmi_id, /* uint8_t tmi_id */
+				TMAN_CREATE_TIMER_MODE_SEC_GRANULARITY, /* uint32_t flags */
+					/* 1 Sec timer ticks*/
+				tmr_duration, /* uint16_t duration; */
+				desc_addr, /* tman_arg_8B_t opaque_data1 */
+				IPSEC_HARD_SEC_LIFETIME_EXPIRED, /* tman_arg_2B_t opaque_data2 */ 
+				&ipsec_tman_callback,
+				&sap2.soft_tmr_handle); /* uint32_t *timer_handle */
+			
+			/* Update the limit and timer handle in the params descriptor*/
+			// TODO: there is a potential race here between TMAN and CDMA
+			cdma_write(
+					IPSEC_HARD_SEC_LIMIT_ADDR(desc_addr), /* ext_address */
+					&sap2.hard_seconds_limit, /* ws_src */
+					8); /* size */
+		} else {
+			/* If the timer fully expired, call the user callback */	
+			sap2.sec_callback_func(sap2.sec_callback_arg, 
+					IPSEC_HARD_SEC_LIFETIME_EXPIRED);
+		}
+	}
+	
+	
+}
+
 
 #pragma pop 
 
