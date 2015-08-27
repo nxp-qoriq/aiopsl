@@ -1286,15 +1286,20 @@ inline void set_task_tx_tc(uint8_t tc);
 *//***************************************************************************/
 inline uint8_t get_task_tx_tc(void);
 
-/**
- * dpni_prepare_key_cfg() - function prepare extract parameters
- * @cfg: defining a full Key Generation profile (rule)
- * @key_cfg_buf: Zeroed 256 bytes of memory before mapping it to DMA
- *
- * This function has to be called before the following functions:
- *	- dpni_set_rx_tc_dist()
- *		- dpni_set_qos_table()
- */
+/**************************************************************************//**
+@Function	dpni_drv_prepare_key_cfg
+
+@Description	Function to prepare extract parameters.
+
+@Param[in]	cfg defining a full Key Generation profile (rule)
+
+@Param[out]	key_cfg_buf Zeroed 256 bytes of memory before mapping it to DMA
+
+@Cautions	This function has to be called before the following functions:
+		- dpni_drv_set_qos_table()
+@Return	0 on success;
+	error code, otherwise. For error posix refer to \ref error_g
+*//***************************************************************************/
 int dpni_drv_prepare_key_cfg(struct dpkg_profile_cfg *cfg,
                              uint8_t *key_cfg_buf);
 /** @} */ /* end of dpni_drv_g DPNI DRV group */
