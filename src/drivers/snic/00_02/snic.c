@@ -301,7 +301,6 @@ int snic_ipsec_decrypt(struct snic_params *snic)
 				TABLE_ACCEL_ID_CTLU,
 				(uint16_t)snic->dec_ipsec_ipv4_table_id,
 				snic->dec_ipsec_ipv4_key_id,
-				TABLE_LOOKUP_FLAG_EPHEMERAL_TAKE_CMD,
 				&lookup_result);
 		}
 		else
@@ -310,7 +309,6 @@ int snic_ipsec_decrypt(struct snic_params *snic)
 				TABLE_ACCEL_ID_CTLU,
 				(uint16_t)snic->dec_ipsec_ipv6_table_id,
 				snic->dec_ipsec_ipv6_key_id,
-				TABLE_LOOKUP_FLAG_EPHEMERAL_TAKE_CMD,
 				&lookup_result);
 		}
 
@@ -349,7 +347,6 @@ int snic_ipsec_encrypt(struct snic_params *snic)
 				        (uint16_t)snic->ipsec_table_id,
 				        key_desc,
 				        1,
-				        TABLE_LOOKUP_FLAG_EPHEMERAL_TAKE_CMD,
 				        &lookup_result);
 
 	if (sr_status == TABLE_STATUS_SUCCESS) 
@@ -863,7 +860,6 @@ int snic_ipsec_del_sa(struct snic_cmd_data *cmd_data)
 				  (uint16_t)snic_params[snic_id].ipsec_table_id,
 				  table_lookup_key_desc,
 				  1,
-				  TABLE_LOOKUP_FLAG_EPHEMERAL_TAKE_CMD,
 				  &lookup_result);
 	if (err == TABLE_STATUS_SUCCESS) {
 		/* Hit */
@@ -1000,7 +996,6 @@ int snic_ipsec_sa_get_stats(struct snic_cmd_data *cmd_data)
 				  (uint16_t)snic->ipsec_table_id,
 				  key_desc,
 				  1,
-				  TABLE_LOOKUP_FLAG_EPHEMERAL_TAKE_CMD,
 				  &lookup_result);
 
 	if (err == TABLE_STATUS_SUCCESS) 
@@ -1124,7 +1119,7 @@ int snic_create_table_key_id(uint8_t fec_no, uint8_t fec_array[8],
 	tbl_params.attributes = TABLE_ATTRIBUTE_TYPE_EM | \
 			TABLE_ATTRIBUTE_LOCATION_PEB | \
 			TABLE_ATTRIBUTE_MR_NO_MISS;
-	tbl_params.timestamp_accur = TABLE_TS_ACCURACY_1_TU;
+	tbl_params.timestamp_accuracy = 1;
 	err = table_create(TABLE_ACCEL_ID_CTLU, &tbl_params,
 			table_id);
 	if (err)

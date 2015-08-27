@@ -202,7 +202,7 @@ int ipr_create_instance(struct ipr_params *ipr_params_ptr,
 		tbl_params.attributes = TABLE_ATTRIBUTE_TYPE_EM | \
 				table_location_attr | \
 				TABLE_ATTRIBUTE_MR_NO_MISS;
-		tbl_params.timestamp_accur = TABLE_TS_ACCURACY_1_TU;
+		tbl_params.timestamp_accuracy = 1;
 		sr_status = table_create(TABLE_ACCEL_ID_CTLU, &tbl_params,
 				&ipr_instance.table_id_ipv4);
 		if (sr_status != TABLE_STATUS_SUCCESS) {
@@ -234,7 +234,7 @@ int ipr_create_instance(struct ipr_params *ipr_params_ptr,
 		tbl_params.attributes = TABLE_ATTRIBUTE_TYPE_EM | \
 				table_location_attr | \
 				TABLE_ATTRIBUTE_MR_NO_MISS;
-		tbl_params.timestamp_accur = TABLE_TS_ACCURACY_1_TU;
+		tbl_params.timestamp_accuracy = 1;
 		sr_status = table_create(TABLE_ACCEL_ID_CTLU, &tbl_params,
 				&ipr_instance.table_id_ipv6);
 		if (sr_status != TABLE_STATUS_SUCCESS) {
@@ -808,7 +808,6 @@ int ipr_lookup(uint32_t frame_is_ipv4, struct ipr_instance *instance_params_ptr,
 				TABLE_ACCEL_ID_CTLU,
 				instance_params_ptr->table_id_ipv4,
 				ipr_global_parameters1.ipr_key_id_ipv4,
-				TABLE_LOOKUP_FLAG_EPHEMERAL_TAKE_CMD,
 				&lookup_result);
 	} else {
 		/* Error is not checked since it is assumed that
@@ -817,7 +816,6 @@ int ipr_lookup(uint32_t frame_is_ipv4, struct ipr_instance *instance_params_ptr,
 				TABLE_ACCEL_ID_CTLU,
 				instance_params_ptr->table_id_ipv6,
 				ipr_global_parameters1.ipr_key_id_ipv6,
-				TABLE_LOOKUP_FLAG_EPHEMERAL_TAKE_CMD,
 				&lookup_result);
 	}
 	/* Next line is relevant only in case of Hit */

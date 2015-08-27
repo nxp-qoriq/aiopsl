@@ -504,9 +504,6 @@ struct table_lookup_by_key_command{
 	/** Command returned status */
 	int32_t  status;
 
-	/** Flags to this command */
-	uint32_t flags;
-
 	/** Table ID */
 	uint16_t table_id;
 
@@ -533,9 +530,6 @@ struct table_lookup_by_keyid_default_frame_command{
 
 	/** Command returned status */
 	int32_t  status;
-
-	/** Flags to this command */
-	uint32_t flags;
 
 	/** Table ID */
 	uint16_t table_id;

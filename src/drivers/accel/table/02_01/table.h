@@ -199,6 +199,16 @@
 /** @} */ /* end of TABLE_RULE_ENTRY_MACROS */
 
 /**************************************************************************//**
+@Group	TABLE_HWC_FLAGS HW Table Accelerator Hardware Context Flags
+@{
+*//***************************************************************************/
+/* Most flags are in fsl_table */
+
+/** Set ephemeral take command */
+#define TABLE_HWC_FLAG_EPHS				0x1000
+/** @} */ /* end of TABLE_HWC_FLAGS */
+
+/**************************************************************************//**
 @Group	TABLE_MTYPE HW Table Accelerator Message Types
 @{
 *//***************************************************************************/
@@ -211,62 +221,53 @@
 	/** Table Parameters replace message type */
 #define TABLE_PARAMETERS_REPLACE_MTYPE			0x0046
 
-	/** Table rule create with reference counter decrement (for aged entry)
-	 * */
-#define TABLE_RULE_CREATE_RPTR_DEC_MTYPE		0x006C
+
 	/** Table rule create */
 #define TABLE_RULE_CREATE_MTYPE				0x007C
 	/** Table rule create or replace with reference counter decrement (for
 	 * the old entry) */
-#define TABLE_RULE_CREATE_OR_REPLACE_RPTR_DEC_MTYPE	0x006D
-	/** Table rule create or replace */
 #define TABLE_RULE_CREATE_OR_REPLACE_MTYPE		0x007D
-	/** Table rule replace with reference counter decrement (for the old
-	 * entry) */
-#define TABLE_RULE_REPLACE_MTYPE_RPTR_DEC_MTYPE		0x0066
-	/** Table rule replace */
-#define TABLE_RULE_REPLACE_MTYPE			0x0076
-	/** Table rule delete with reference counter decrement. */
-#define TABLE_RULE_DELETE_MTYPE_RPTR_DEC_MTYPE		0x0062
-	/** Table rule delete */
-#define TABLE_RULE_DELETE_MTYPE				0x0072
-
-	/** Table rule query
-	Without timestamp update, without reference counter update */
-#define TABLE_RULE_QUERY_MTYPE				0x0077
-
+	/** Table rule replace by key descriptor */
+#define TABLE_RULE_REPLACE_BY_KEY_DESC_MTYPE		0x0076
+	/** Table rule delete by key descriptor */
+#define TABLE_RULE_DELETE_BY_KEY_DESC_MTYPE		0x0072
+	/** Table rule query by key descriptor */
+#define TABLE_RULE_QUERY_BY_KEY_DESC_MTYPE		0x0077
 	/** Table lookup with keyID and explicit parse result.
 	With timestamp and reference counter update */
-#define TABLE_LOOKUP_KEYID_EPRS_TMSTMP_RPTR_MTYPE	0x0160
-	/** Table lookup with explicit key
-	With timestamp and reference counter update. Single search only. */
-#define TABLE_LOOKUP_KEY_TMSTMP_RPTR_MTYPE		0x0069
 
-	/** Table Entry create or replace */
-#define TABLE_ENTRY_CREATE_OR_REPLACE_MTYPE			0x005C
-	/** Table Entry create or replace UniqueID */
-#define TABLE_ENTRY_CREATE_OR_REPLACE_UNIQUEID_MTYPE		0x005D
-	/** Table Entry delete always */
-#define TABLE_ENTRY_DELETE_ALWAYS_MTYPE				0x0052
-	/** Table Entry delete if aged */
-#define TABLE_ENTRY_DELETE_IF_AGED_MTYPE			0x005A
-	/** Table Entry query */
-#define TABLE_ENTRY_QUERY_MTYPE					0x0053
-	/** Table Entry query hash + uniqueID */
-#define TABLE_ENTRY_QUERY_HASH_UNIQUEID_MTYPE			0x005B
-
-	/** Table Acquire Semaphore */
-#define TABLE_ACQUIRE_SEMAPHORE_MTYPE				0x00B0
-	/** Table Release Semaphore */
-#define TABLE_RELEASE_SEMAPHORE_MTYPE				0x00B1
 
 /* todo Remove un-needed defines and re-order*
 	//** Table Rule Replace by Rule ID */
-#define	TABLE_GET_NEXT_RULEID_MTYPE				0x004F
-#define TABLE_GET_KEY_DESC_MTYPE				0x005F
-#define TABLE_RULE_REPLACE_BY_RULEID_MTYPE			0x0075
-#define	TABLE_RULE_DELETE_BY_RULEID_MTYPE			0x0071
-#define TABLE_RULE_QUERY_BY_RULEID_MTYPE			0x0073
+	/** Table get next rule ID*/
+#define	TABLE_GET_NEXT_RULEID_MTYPE			0x004F
+	/** Table get key descriptor */
+#define TABLE_GET_KEY_DESC_MTYPE			0x005F
+	/** Table rule replace by rule ID */
+#define TABLE_RULE_REPLACE_BY_RULEID_MTYPE		0x0075
+	/** Table rule delete by rule ID */
+#define	TABLE_RULE_DELETE_BY_RULEID_MTYPE		0x0071
+	/** Table rule query by rule ID */
+#define TABLE_RULE_QUERY_BY_RULEID_MTYPE		0x0073
+
+	/** Lookup by Key ID */
+#define TABLE_LOOKUP_KEYID_MTYPE			0x0160
+	/** Lookup by key*/
+#define TABLE_LOOKUP_KEY_MTYPE				0x0069
+
+
+	/** Table Entry create or replace */
+#define TABLE_ENTRY_CREATE_OR_REPLACE_MTYPE		0x005C
+	/** Table Entry create or replace UniqueID */
+#define TABLE_ENTRY_CREATE_OR_REPLACE_UNIQUEID_MTYPE	0x005D
+	/** Table Entry delete always */
+#define TABLE_ENTRY_DELETE_ALWAYS_MTYPE			0x0052
+	/** Table Entry delete if aged */
+#define TABLE_ENTRY_DELETE_IF_AGED_MTYPE		0x005A
+	/** Table Entry query */
+#define TABLE_ENTRY_QUERY_MTYPE				0x0053
+	/** Table Entry query hash + uniqueID */
+#define TABLE_ENTRY_QUERY_HASH_UNIQUEID_MTYPE		0x005B
 
 /** @} */ /* end of TABLE_MTYPE */
 
@@ -279,6 +280,9 @@
 
 	/** BDI mask in table create ICID field */
 #define TABLE_CREATE_INPUT_MESSAGE_ICID_BDI_MASK	0x8000
+
+	/** AGTM mask in table create attribute field */
+#define TABLE_CREATE_INPUT_MESSAGE_ATTE_AGTM_FLAG	0x0800
 
 /** @} */ /* end of TABLE_CREATE */
 
@@ -1158,7 +1162,6 @@ int table_calc_num_entries_per_rule(uint16_t type, uint8_t key_size);
 int table_lookup_by_keyid_default_frame_wrp(enum table_hw_accel_id acc_id,
 					    t_tbl_id table_id,
 					    uint8_t keyid,
-					    uint32_t flags,
 					    struct table_lookup_result
 						   *lookup_result);
 
