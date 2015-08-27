@@ -1,3 +1,6 @@
+fsl_dpni_drv.h:   Added API to prepare extract parameters
+                  int dpni_drv_prepare_key_cfg(struct dpkg_profile_cfg *cfg, uint8_t *key_cfg_buf)
+
 fsl_dpni_drv.h:   Added API to get/set task TX traffic class
                   inline void set_task_tx_tc(uint8_t tc)
                   inline uint8_t get_task_tx_tc(void)
