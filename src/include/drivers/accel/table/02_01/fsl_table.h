@@ -190,12 +190,11 @@ User should select one of the following:
 #define	TABLE_RULE_TIMESTAMP_NONE	0x00
 
 	/** Enables timestamp update per rule.
-	Initial value of Rule's timestamp field is set when the rule is created
-	or replaced. The rule's timestamp field is updated to the current
-	timestamp, depending on the table's timestamp accuracy settings, when
-	the rule is matched during lookup command. 
-	The time unit used for timestamp on a specific Table Lookup Hardware
-	Accelerator can be queried using table_hw_get_time_unit(). */
+	Initial value in microseconds of Rule's timestamp field is set when the
+	rule is created or replaced. The rule's timestamp field is updated to
+	the current timestamp in microseconds, depending on the table's
+	timestamp accuracy settings, when the rule is matched during lookup
+	command. */
 #define	TABLE_RULE_TIMESTAMP_ENABLE	0x80
 
 /** @} *//* end of FSL_TABLE_RULE_OPTIONS_TIMESTAMP */
@@ -239,29 +238,24 @@ User should select one of the following:
 @{
 *//***************************************************************************/
 
-	/** Performs Ephemeral Reference Take Command together with the lookup.
-	TODO Reference to Ephemeral documentation + discussion for rule
-	management commands.*/
-#define TABLE_LOOKUP_FLAG_EPHEMERAL_TAKE_CMD		0x01000000
-
 	/** Segment Address and Size Non Default - If set, the Segment given in
 	the lookup function parameters is used instead of the default
-	segment. Only available for table_lookup_by_keyid(). */
+	segment. */
 #define TABLE_LOOKUP_FLAG_SEG_NON_DEFAULT		0x80000000
 
 	/** Parse Result Address Non Default - If set, the Parse Result Address
 	given in the lookup function parameters is used instead of the default
-	address. Only available for table_lookup_by_keyid(). */
+	address. */
 #define TABLE_LOOKUP_FLAG_PRA_NON_DEFAULT		0x40000000
 
 	/** Frame Descriptor Address Non Default - If set, the Frame Descriptor
 	Address given in the lookup function parameters is used instead of the
-	default address. Only available for table_lookup_by_keyid(). */
+	default address. */
 #define TABLE_LOOKUP_FLAG_FD_NON_DEFAULT		0x20000000
 
 	/** Metadata Non Default - If set, the metadata given in the lookup
 	function parameters is used instead of the default metadata which is
-	zeroes. Only available for table_lookup_by_keyid(). */
+	zeroes. */
 #define TABLE_LOOKUP_FLAG_MTDT_NON_DEFAULT		0x10000000
 
 	/** No Lookup Flags */
@@ -309,81 +303,6 @@ enum table_hw_accel_id {
 };
 
 /** @} */ /* end of table_hw_accel_id */
-
-/**************************************************************************//**
-@enum	table_hw_timestamp_accuracy
-
-@Description	Possible values for timestamp accuracy in time units.  
-
-@{
-*//***************************************************************************/
-enum table_hw_timestamp_accuracy {
-	/** Timestamp accuracy of 1 time unit           */
-	TABLE_TS_ACCURACY_1_TU          = 0x0800,
-	/** Timestamp accuracy of 2 time units          */
-	TABLE_TS_ACCURACY_2_TU          = 0x0801,
-	/** Timestamp accuracy of 4 time units          */
-	TABLE_TS_ACCURACY_4_TU          = 0x0802,
-	/** Timestamp accuracy of 8 time units          */
-	TABLE_TS_ACCURACY_8_TU          = 0x0803,
-	/** Timestamp accuracy of 16 time units         */
-	TABLE_TS_ACCURACY_16_TU         = 0x0804,
-	/** Timestamp accuracy of 32 time units         */
-	TABLE_TS_ACCURACY_32_TU         = 0x0805,
-	/** Timestamp accuracy of 64 time units         */
-	TABLE_TS_ACCURACY_64_TU         = 0x0806,
-	/** Timestamp accuracy of 128 time units        */
-	TABLE_TS_ACCURACY_128_TU        = 0x0807,
-	/** Timestamp accuracy of 256 time units        */
-	TABLE_TS_ACCURACY_256_TU        = 0x0808,
-	/** Timestamp accuracy of 512 time units        */
-	TABLE_TS_ACCURACY_512_TU        = 0x0809,
-	/** Timestamp accuracy of 1024 time units       */
-	TABLE_TS_ACCURACY_1024_TU       = 0x080A,
-	/** Timestamp accuracy of 2048 time units       */
-	TABLE_TS_ACCURACY_2048_TU       = 0x080B,
-	/** Timestamp accuracy of 4096 time units       */
-	TABLE_TS_ACCURACY_4096_TU       = 0x080C,
-	/** Timestamp accuracy of 8192 time units       */
-	TABLE_TS_ACCURACY_8192_TU       = 0x080D,
-	/** Timestamp accuracy of 16384 time units      */
-	TABLE_TS_ACCURACY_16384_TU      = 0x080E,
-	/** Timestamp accuracy of 32768 time units      */
-	TABLE_TS_ACCURACY_32768_TU      = 0x080F,
-	/** Timestamp accuracy of 65536 time units      */
-	TABLE_TS_ACCURACY_65536_TU      = 0x0810,
-	/** Timestamp accuracy of 131072 time units     */
-	TABLE_TS_ACCURACY_131072_TU     = 0x0811,
-	/** Timestamp accuracy of 262144 time units     */
-	TABLE_TS_ACCURACY_262144_TU     = 0x0812,
-	/** Timestamp accuracy of 524288 time units     */
-	TABLE_TS_ACCURACY_524288_TU     = 0x0813,
-	/** Timestamp accuracy of 1048576 time units    */
-	TABLE_TS_ACCURACY_1048576_TU    = 0x0814,
-	/** Timestamp accuracy of 2097152 time units    */
-	TABLE_TS_ACCURACY_2097152_TU    = 0x0815,
-	/** Timestamp accuracy of 4194304 time units    */
-	TABLE_TS_ACCURACY_4194304_TU    = 0x0816,
-	/** Timestamp accuracy of 8388608 time units    */
-	TABLE_TS_ACCURACY_8388608_TU    = 0x0817,
-	/** Timestamp accuracy of 16777216 time units   */
-	TABLE_TS_ACCURACY_16777216_TU   = 0x0818,
-	/** Timestamp accuracy of 33554432 time units   */
-	TABLE_TS_ACCURACY_33554432_TU   = 0x0819,
-	/** Timestamp accuracy of 67108864 time units   */
-	TABLE_TS_ACCURACY_67108864_TU   = 0x081A,
-	/** Timestamp accuracy of 134217728 time units  */
-	TABLE_TS_ACCURACY_134217728_TU  = 0x081B,
-	/** Timestamp accuracy of 268435456 time units  */
-	TABLE_TS_ACCURACY_268435456_TU  = 0x081C,
-	/** Timestamp accuracy of 536870912 time units  */
-	TABLE_TS_ACCURACY_536870912_TU  = 0x081D,
-	/** Timestamp accuracy of 1073741824 time units */
-	TABLE_TS_ACCURACY_1073741824_TU = 0x081E,
-	/** Timestamp accuracy of 2147483648 time units */
-	TABLE_TS_ACCURACY_2147483648_TU = 0x081F
-};
-/** @} */ /* end of table_hw_timestamp_accuracy */
 
 /** @} */ /* end of FSL_TABLE_Enumerations */
 
@@ -620,9 +539,9 @@ struct table_lookup_result {
 	User should not access this field. */
 	uint64_t reserved2;
 
-	/** Timestamp of the rule that was matched in the lookup process.
-	For this timestamp to be valid, suitable option should be set in
-	\ref table_rule options field. */
+	/** Timestamp in microseconds of the rule that was matched in the
+	lookup process. For this timestamp to be valid, suitable option should
+	be set in \ref table_rule options field. */
 	volatile uint32_t timestamp;
 };
 #pragma pack(pop)
@@ -732,15 +651,16 @@ struct table_create_params {
 	for more details. */
 	uint16_t attributes;
 
-	/** Timestamp Accuracy in time units for the table rules.
+	/** Timestamp Accuracy in microseconds for the table rules.
 	A rule's timestamp will be updated if:
 	 - Rule timestamp is enabled in the rule's options field.
 	 - The system current timestamp difference from the rule timestamp in
-	   time units is greater than the timestamp accuracy.
-	The time unit used on a specific Table Lookup Hardware Accelerator can
-	be queried using table_hw_get_time_unit().
+	   microseconds is greater than the timestamp accuracy.
+	Please note that timestamp_accurcy value will be round down to the
+	closest power of 2.
+	This field must be greater than zero. 
 	*/
-	enum table_hw_timestamp_accuracy timestamp_accur;
+	uint32_t timestamp_accuracy;
 
 	/** Table Key Size in bytes (fixed per table).
 	In a case of EM table key size is limited to 1-124 Bytes
@@ -857,6 +777,9 @@ int table_create(enum table_hw_accel_id acc_id,
 
 @Description	Replaces specific table miss result.
 
+		This function issues an ephemeral reference take command. TODO
+		Reference.
+
 @Param[in]	acc_id ID of the Hardware Table Accelerator that contains
 		the table on which the operation will be performed.
 @Param[in]	table_id Table ID.
@@ -906,6 +829,9 @@ void table_get_params(enum table_hw_accel_id acc_id,
 @Function	table_get_miss_result
 
 @Description	A getter for the table miss result.
+
+		This function issues an ephemeral reference take command. TODO
+		Reference.
 
 @Param[in]	acc_id ID of the Hardware Table Accelerator that contains
 		the table on which the query will be performed.
@@ -959,6 +885,9 @@ void table_delete(enum table_hw_accel_id acc_id,
 		\n \n If the rule key descriptor already exists, the rule will
 		not be added and a status will be returned.
 
+		This function issues an ephemeral reference take command. TODO
+		Reference.
+
 @Param[in]	acc_id ID of the Hardware Table Accelerator that contains
 		the table on which the operation will be performed.
 @Param[in]	table_id Table ID.
@@ -983,7 +912,7 @@ void table_delete(enum table_hw_accel_id acc_id,
 @Cautions	In this function the task yields.
 @Cautions	If TABLE_ACCEL_ID_MFLU is used and the rule key descriptor
 		already exists in the table with different priority the rule
-		will be replaced. TODO Discuss this.
+		will be replaced. TODO Adress this.
 *//***************************************************************************/
 inline int table_rule_create(enum table_hw_accel_id acc_id,
 			     t_tbl_id table_id,
@@ -999,6 +928,9 @@ inline int table_rule_create(enum table_hw_accel_id acc_id,
 		\n \n If the rule key already exists, the rule will be replaced
 		by the one specified in the function's parameters. Else, a new
 		rule will be created in the table.
+
+		This function issues an ephemeral reference take command. TODO
+		Reference.
 
 @Param[in]	acc_id ID of the Hardware Table Accelerator that contains
 		the table on which the operation will be performed.
@@ -1045,7 +977,10 @@ inline int table_rule_create_or_replace(enum table_hw_accel_id acc_id,
 		old timestamp. The rule's key is not modifiable.
 
 		To replace MFLU rule priority please use
-		\ref table_rule_priority_replace().
+		\ref table_rule_modify_priority().
+
+		This function issues an ephemeral reference take command. TODO
+		Reference.
 
 @Param[in]	acc_id ID of the Hardware Table Accelerator that contains
 		the table on which the operation will be performed.
@@ -1063,9 +998,10 @@ inline int table_rule_create_or_replace(enum table_hw_accel_id acc_id,
 		structure should be allocated by the caller to this function.
 		(Please refer to \ref FSL_TABLE_RULE_OPTIONS for more details).
 		Output is valid only on success.
-@Param[in, out] timestamp The replaced rule's timestamp. If null the
-		replaced rule's timestamp will not be returned. If not null,
-		structure should be allocated by the caller to this function.
+@Param[in, out] timestamp The replaced rule's timestamp in microseconds. If
+		null the replaced rule's timestamp will not be returned. If not
+		null, structure should be allocated by the caller to this
+		function.
 		Timestamp is not valid unless the rule replaced was created
 		with suitable options. Available through replaced_options
 		parameter. Output is valid only on success.
@@ -1089,26 +1025,20 @@ inline int table_rule_replace(enum table_hw_accel_id acc_id,
 
 
 /**************************************************************************//**
-@Function	table_rule_priority_replace
+@Function	table_rule_modify_priority
 
-@Description	Replaces a specified rule priority in a table.
+@Description	Modifies a specified MFLU rule priority in a table.
 
 @Param[in]	acc_id ID of the Hardware Table Accelerator that contains
 		the table on which the operation will be performed. This must
 		be set to #TABLE_ACCEL_ID_MFLU.
 @Param[in]	table_id Table ID.
-@Param[in]	rule Table rule, contains the rule's key descriptor of the rule
-		to be replaced. The key descriptor that must be used is 
-		\ref table_key_desc_mflu and it must be equivalent on both key
-		and mask and priority. The key descriptor can be obtained using
-		\ref table_rule_query_get_key_desc() function.
-		Rule's result is not being used in this function.
-		The structure pointed by this pointer must be in the task's
-		workspace and must be aligned to 16B boundary.
+@Param[in]	key_desc Contains the rule's MFLU key descriptor of the rule
+		to be modified. The key descriptor that must be equivalent on
+		both key and mask and priority. The key descriptor can be
+		obtained using \ref table_rule_query_get_key_desc() function.
 @Param[in]	key_size Key size in bytes. Should be equal to the key size the
-		table was created with except for the following remark:
-		 - the key size should be added priority field size (4 Bytes)
-		for MFLU tables.
+		table was created plus priority field size (4 Bytes).
 @Param[in]	new_prioiry The new priority to be assigned to the rule.
 
 @Return		0 on success or negative value on error.
@@ -1119,13 +1049,12 @@ inline int table_rule_replace(enum table_hw_accel_id acc_id,
 
 @Cautions	In this function the task yields.
 *//***************************************************************************/
-inline int table_rule_priority_replace(enum table_hw_accel_id acc_id,
-				       t_tbl_id table_id,
-				       struct table_rule *rule,
-				       uint8_t key_size,
-				       uint32_t new_prioiry);
-/* TODO discuss if key_desc is to be used instead of rule, 136-160B penalty is
- * expected or alternation of key_desc structure.*/
+inline int table_rule_modify_priority(enum table_hw_accel_id acc_id,
+				      t_tbl_id table_id,
+				      struct table_key_desc_mflu *key_desc,
+				      uint8_t key_size,
+				      uint32_t new_prioiry);
+
 
 /**************************************************************************//**
 @Function	table_rule_query_get_result
@@ -1149,9 +1078,9 @@ inline int table_rule_priority_replace(enum table_hw_accel_id acc_id,
 		(Please refer to \ref FSL_TABLE_RULE_OPTIONS for more
 		details).
 		Output is valid only on success.
-@Param[in, out]	timestamp Timestamp of the result. If null the queried
-		timestamp result will not be returned. If not null, structure
-		should be allocated by the caller to this function.
+@Param[in, out]	timestamp Timestamp of the result in microseconds. If null the
+		queried timestamp result will not be returned. If not null,
+		structure should be allocated by the caller to this function.
 		Timestamp is not valid unless the rule queried for was created
 		with suitable options. Available through options parameter.
 		Output is valid only on success.
@@ -1223,9 +1152,9 @@ inline int table_rule_query_get_key_desc(enum table_hw_accel_id acc_id,
 		should be allocated by the caller to this function.
 		(Please refer to \ref FSL_TABLE_RULE_OPTIONS for more
 		details).Output is valid only on success.
-@Param[in, out]	timestamp Timestamp of the result. If null the queried
-		timestamp result will not be returned. If not null, structure
-		should be allocated by the caller to this function.
+@Param[in, out]	timestamp Timestamp of the result in microseconds. If null the
+		queried timestamp result will not be returned. If not null,
+		structure should be allocated by the caller to this function.
 		Timestamp is not valid unless the rule deleted was created
 		with suitable options. Available through options parameter.
 		Output is valid only on success.
@@ -1269,8 +1198,6 @@ inline int table_rule_delete(enum table_hw_accel_id acc_id,
 		table was created with except for the following remark:
 		 - the key size should be added priority field size (4 Bytes)
 		for MFLU tables.
-@Param[in]	flags Specifies options to this function, please refer to
-		\ref FSL_TABLE_LOOKUP_FLAG_DEFINES.
 @Param[out]	lookup_result Points to a user preallocated memory to which
 		the table lookup result will be written. The structure pointed
 		by this pointer must be in the task's workspace and must be
@@ -1288,7 +1215,6 @@ inline int table_lookup_by_key(enum table_hw_accel_id acc_id,
 			       uint16_t table_id,
 			       union table_lookup_key_desc key_desc,
 			       uint8_t key_size,
-			       uint32_t flags,
 			       struct table_lookup_result *lookup_result);
 
 
@@ -1319,8 +1245,6 @@ inline int table_lookup_by_key(enum table_hw_accel_id acc_id,
 		created with except for the following remark:
 		 - the key size should be added priority field size (4 Bytes)
 		for MFLU tables.
-@Param[in]	flags Specifies options to this function, please refer to
-		\ref FSL_TABLE_LOOKUP_FLAG_DEFINES.
 @Param[out]	lookup_result Points to a user preallocated memory to which
 		the table lookup result will be written. The structure pointed
 		by this pointer must be in the task's workspace and must be
@@ -1344,7 +1268,6 @@ inline int table_lookup_by_key(enum table_hw_accel_id acc_id,
 inline int table_lookup_by_keyid_default_frame(enum table_hw_accel_id acc_id,
 					       t_tbl_id table_id,
 					       uint8_t keyid,
-					       uint32_t flags,
 					       struct table_lookup_result
 							*lookup_result);
 
@@ -1497,10 +1420,11 @@ inline int table_rule_replace_by_key_desc(enum table_hw_accel_id acc_id,
 		for MFLU tables.
 @Param[out]	result The result of the query. Structure should be allocated
 		by the caller to this function. Output is valid only on success.
-@Param[out]	timestamp Timestamp of the result. Timestamp is not valid
-		unless the rule queried for was created with suitable options
-		(Please refer to \ref FSL_TABLE_RULE_OPTIONS for more
-		details). Must be allocated by the caller to this function.
+@Param[out]	timestamp Timestamp of the result in microseconds. Timestamp
+		is not valid unless the rule queried for was created with
+		suitable options (Please refer to \ref FSL_TABLE_RULE_OPTIONS
+		for more details). Must be allocated by the caller to this
+		function.
 		Output is valid only on success.
 
 @Return		0 on success, #TABLE_STATUS_MISS on miss.

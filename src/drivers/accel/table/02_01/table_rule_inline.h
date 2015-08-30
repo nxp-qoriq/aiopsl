@@ -37,6 +37,8 @@
 #include "general.h"
 #include "table.h"
 #include "fsl_errors.h"
+#include <string.h>
+
 
 /* TODO CHECK IMPLEMENTATION*/
 inline int table_rule_create(enum table_hw_accel_id acc_id,
@@ -73,8 +75,10 @@ inline int table_rule_create(enum table_hw_accel_id acc_id,
 	/* Prepare ACC context for CTLU accelerator call */
 	arg2 = __e_rlwimi(arg2, (uint32_t)rule, 16, 0, 15);
 	arg3 = __e_rlwimi(arg3, (uint32_t)key_size, 16, 0, 15);
-	/* Not using RPTR DEC because aging is disabled */
-	__stqw(TABLE_RULE_CREATE_MTYPE, arg2, arg3, 0, HWC_ACC_IN_ADDRESS, 0);
+
+	/* Call Accelerator and set ephemeral */
+	__stqw(TABLE_HWC_FLAG_EPHS | TABLE_RULE_CREATE_MTYPE,
+	       arg2, arg3, 0, HWC_ACC_IN_ADDRESS, 0);
 
 	/* Call Table accelerator */
 	__e_hwaccel(acc_id);
@@ -153,8 +157,10 @@ int table_rule_create_or_replace(enum table_hw_accel_id acc_id,
 	/* Prepare ACC context for CTLU accelerator call */
 	arg2 = __e_rlwimi(arg2, (uint32_t)rule, 16, 0, 15);
 	arg3 = __e_rlwimi(arg3, (uint32_t)key_size, 16, 0, 15);
-	__stqw(TABLE_RULE_CREATE_OR_REPLACE_MTYPE, arg2, arg3, 0,
-	       HWC_ACC_IN_ADDRESS, 0);
+
+	/* Call Accelerator and set ephemeral TABLE_HWC_FLAG_EPHS*/
+	__stqw(TABLE_RULE_CREATE_OR_REPLACE_MTYPE | TABLE_HWC_FLAG_EPHS,
+	       arg2, arg3, 0, HWC_ACC_IN_ADDRESS, 0);
 
 	/* Accelerator call*/
 	__e_hwaccel(acc_id);
@@ -171,10 +177,11 @@ int table_rule_create_or_replace(enum table_hw_accel_id acc_id,
 	}
 	else if (status == TABLE_HW_STATUS_BIT_MISS){}
 	else if (status & TABLE_HW_STATUS_BIT_TIDE) {
-		table_c_exception_handler(TABLE_RULE_CREATE_OR_REPLACE_FUNC_ID,
-					  __LINE__,
-					  status,
-					  TABLE_ENTITY_HW);
+		table_rule_inline_exception_handler
+				(TABLE_RULE_CREATE_OR_REPLACE_FUNC_ID,
+				 __LINE__,
+				 status,
+				 TABLE_ENTITY_HW);
 	}
 	else if (status & TABLE_HW_STATUS_BIT_NORSC) {
 		status = -ENOMEM;
@@ -183,10 +190,11 @@ int table_rule_create_or_replace(enum table_hw_accel_id acc_id,
 	}
 	else {
 		/* Call fatal error handler */
-		table_c_exception_handler(TABLE_RULE_CREATE_OR_REPLACE_FUNC_ID,
-					  __LINE__,
-					  status,
-					  TABLE_ENTITY_HW);
+		table_rule_inline_exception_handler
+				(TABLE_RULE_CREATE_OR_REPLACE_FUNC_ID,
+				 __LINE__,
+				 status,
+				 TABLE_ENTITY_HW);
 	}
 	return status;
 }
@@ -228,7 +236,8 @@ inline int table_rule_replace(enum table_hw_accel_id acc_id,
 	arg2 = __e_rlwimi(arg2, ((uint32_t) (&desc)), 16, 0, 15);
 	arg3 = __e_rlwimi(arg3, TABLE_RULE_REPLACE_RULEID_KEYSIZE, 16, 0, 15);
 
-	__stqw(TABLE_RULE_REPLACE_BY_RULEID_MTYPE,
+	/* Call Accelerator and set ephemeral */
+	__stqw(TABLE_HWC_FLAG_EPHS | TABLE_RULE_REPLACE_BY_RULEID_MTYPE,
 	       arg2,
 	       arg3,
 	       0,
@@ -286,7 +295,9 @@ inline int table_rule_query_get_result(enum table_hw_accel_id acc_id,
 	uint8_t entry_type;
 	arg3 = __e_rlwimi(arg3, TABLE_RULE_QUERY_RULEID_KEYSIZE, 16, 0, 15);
 	arg2 = __e_rlwimi(arg2, ((uint32_t)(&rule_id_desc)), 16, 0, 15);
-	__stqw(TABLE_RULE_QUERY_BY_RULEID_MTYPE,
+
+	/* Call Accelerator and set ephemeral */
+	__stqw(TABLE_HWC_FLAG_EPHS | TABLE_RULE_QUERY_BY_RULEID_MTYPE,
 	       arg2,
 	       arg3,
 	       0,
@@ -382,8 +393,10 @@ inline int table_rule_delete(enum table_hw_accel_id acc_id,
 	uint32_t arg3 = table_id;
 	arg2 = __e_rlwimi(arg2, ((uint32_t) &rule_id_desc), 16, 0, 15);
 	arg3 = __e_rlwimi(arg3, TABLE_RULE_DELETE_RULEID_KEYSIZE, 16, 0, 15);
-	__stqw(TABLE_RULE_DELETE_BY_RULEID_MTYPE, arg2, arg3, 0,
-	       HWC_ACC_IN_ADDRESS, 0);
+
+	/* Call Accelerator and set ephemeral */
+	__stqw(TABLE_HWC_FLAG_EPHS | TABLE_RULE_DELETE_BY_RULEID_MTYPE,
+	       arg2, arg3, 0, HWC_ACC_IN_ADDRESS, 0);
 
 	/* Accelerator call */
 	__e_hwaccel(acc_id);
@@ -434,7 +447,10 @@ inline int table_rule_query_get_key_desc(enum table_hw_accel_id acc_id,
 	/* Prepare ACC context for CTLU accelerator call */
 	arg2 = __e_rlwimi(arg2, ((uint32_t)(&rule_id_desc)), 16, 0, 15);
 	arg3 = __e_rlwimi(arg3, TABLE_RULE_QUERY_RULEID_KEYSIZE, 16, 0, 15);
-	__stqw(TABLE_GET_KEY_DESC_MTYPE, arg2, arg3, 0, HWC_ACC_IN_ADDRESS, 0);
+
+	/* Call Accelerator and set ephemeral */
+	__stqw(TABLE_HWC_FLAG_EPHS | TABLE_GET_KEY_DESC_MTYPE,
+	       arg2, arg3, 0, HWC_ACC_IN_ADDRESS, 0);
 
 	/* Accelerator call */
 	__e_hwaccel(acc_id);
@@ -491,7 +507,14 @@ inline int table_rule_replace_by_key_desc(enum table_hw_accel_id acc_id,
 	/* Prepare ACC context for CTLU accelerator call */
 	arg2 = __e_rlwimi(arg2, (uint32_t)rule, 16, 0, 15);
 	arg3 = __e_rlwimi(arg3, (uint32_t)key_size, 16, 0, 15);
-	__stqw(TABLE_RULE_REPLACE_MTYPE, arg2, arg3, 0, HWC_ACC_IN_ADDRESS, 0);
+
+	/* Call Accelerator and set ephemeral */
+	__stqw(TABLE_HWC_FLAG_EPHS | TABLE_RULE_REPLACE_BY_KEY_DESC_MTYPE,
+	       arg2,
+	       arg3,
+	       0,
+	       HWC_ACC_IN_ADDRESS,
+	       0);
 
 	/* Accelerator call */
 	__e_hwaccel(acc_id);
@@ -516,35 +539,46 @@ inline int table_rule_replace_by_key_desc(enum table_hw_accel_id acc_id,
 	return status;
 }
 
+/*TODO Check alignment everywhere*/
 
-/* TODO Implement */
-/* TODO fatal error if priorities are equal */
-inline int table_rule_priority_replace(enum table_hw_accel_id acc_id,
+inline int table_rule_modify_priority(enum table_hw_accel_id acc_id,
 				       t_tbl_id table_id,
-				       struct table_rule *rule,
+				       struct table_key_desc_mflu *key_desc,
 				       uint8_t key_size,
-				       uint32_t new_prioiry){
-#ifdef CHECK_ALIGNMENT 	
-	DEBUG_ALIGN("table_inline.h",(uint32_t)rule, ALIGNMENT_16B);
-#endif
-
+				       uint32_t new_prioiry)
+{
 	int32_t status;
-
-	struct table_rule_output_message hw_old_res __attribute__((aligned(16)));
-	uint32_t arg2 = (uint32_t)&hw_old_res;
+	struct table_rule_output_message replaced_res 
+					 __attribute__((aligned(16)));
+	uint32_t arg2 = (uint32_t)&replaced_res;
 	uint32_t arg3 = table_id;
 
-	/* Set the new priority */
-	rule->reserved0 = new_prioiry;
+	/* HW structure that contains both key descriptor and priority */
+	uint8_t key_desc_and_priority[sizeof(struct table_key_desc_mflu) +
+	                         sizeof(((struct table_rule *)0)->reserved0)]
+	                         __attribute__((aligned(16)));
+
+	/* Copy key and replaced priority */
+	memcpy(key_desc_and_priority + offsetof(struct table_key_desc_mflu,key),
+	       &key_desc->key,
+	       key_size);
+	/* Copy mask */
+	memcpy(key_desc_and_priority +offsetof(struct table_key_desc_mflu,mask),
+	       &key_desc->mask,
+	       ((uint32_t)(key_size - TABLE_KEY_MFLU_PRIORITY_FIELD_SIZE)));
+	/* Copy the new priority */
+	((struct table_rule *)key_desc_and_priority)->reserved0 = new_prioiry;
 
 	/* Prepare ACC context for CTLU accelerator call */
-	arg2 = __e_rlwimi(arg2, (uint32_t)rule, 16, 0, 15);
+	arg2 = __e_rlwimi(arg2, (uint32_t)key_desc_and_priority, 16, 0, 15);
 	arg3 = __e_rlwimi(arg3, (uint32_t)key_size, 16, 0, 15);
-	__stqw(TABLE_RULE_REPLACE_MTYPE, arg2, arg3, 0, HWC_ACC_IN_ADDRESS, 0);
+	__stqw(TABLE_RULE_REPLACE_BY_KEY_DESC_MTYPE,
+		arg2, arg3, 0, HWC_ACC_IN_ADDRESS, 0);
 
 	/* Accelerator call */
 	__e_hwaccel(acc_id);
 
+	/* TODO fatal error if priorities are equal */
 	/* Status Handling*/ /*TODO handle this with MISS and PIEE*/
 	status = *((int32_t *)HWC_ACC_OUT_ADDRESS);
 	if (status == TABLE_HW_STATUS_PIEE) {
@@ -586,7 +620,9 @@ inline int table_rule_query_by_key_desc(enum table_hw_accel_id acc_id,
 	uint8_t entry_type;
 	arg3 = __e_rlwimi(arg3, (uint32_t)key_size, 16, 0, 15);
 	arg2 = __e_rlwimi(arg2, (uint32_t)key_desc, 16, 0, 15);
-	__stqw(TABLE_RULE_QUERY_MTYPE, arg2, arg3, 0, HWC_ACC_IN_ADDRESS, 0);
+
+	__stqw(TABLE_HWC_FLAG_EPHS | TABLE_RULE_QUERY_BY_KEY_DESC_MTYPE,
+	       arg2, arg3, 0, HWC_ACC_IN_ADDRESS, 0);
 
 	/* Call Table accelerator */
 	__e_hwaccel(acc_id);
@@ -683,7 +719,9 @@ inline int table_rule_delete_by_key_desc(enum table_hw_accel_id acc_id,
 	uint32_t arg3 = table_id;
 	arg2 = __e_rlwimi(arg2, (uint32_t)key_desc, 16, 0, 15);
 	arg3 = __e_rlwimi(arg3, (uint32_t)key_size, 16, 0, 15);
-	__stqw(TABLE_RULE_DELETE_MTYPE, arg2, arg3, 0, HWC_ACC_IN_ADDRESS, 0);
+
+	__stqw(TABLE_HWC_FLAG_EPHS | TABLE_RULE_DELETE_BY_KEY_DESC_MTYPE,
+	       arg2, arg3, 0, HWC_ACC_IN_ADDRESS, 0);
 
 	/* Accelerator call */
 	__e_hwaccel(acc_id);

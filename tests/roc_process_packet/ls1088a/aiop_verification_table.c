@@ -290,7 +290,6 @@ uint16_t aiop_verification_table(uint32_t asa_seg_addr)
 						  str->table_id,
 						  key_desc,
 						  str->key_size,
-						  str->flags,
 						  &lookup_result);	
 		str->lookup_result = lookup_result;
 		
@@ -312,7 +311,6 @@ uint16_t aiop_verification_table(uint32_t asa_seg_addr)
 		str->status = table_lookup_by_keyid_default_frame(str->acc_id,
 			str->table_id,
 			str->key_id,
-			str->flags,
 			&(lookup_result));
 		
 		str->lookup_result = lookup_result;

@@ -44,6 +44,10 @@ int table_create(enum table_hw_accel_id acc_id,
 	struct table_rule *miss_rule;
 	int               num_entries_per_rule;
 
+	/* Table create input message AGT field */
+	register uint16_t          agt;
+	register uint32_t          timestamp_accuracy;
+
 	/* 16 Byte aligned for stqw optimization + HW requirements */
 	struct table_create_input_message  tbl_crt_in_msg
 		__attribute__((aligned(16)));
@@ -57,23 +61,38 @@ int table_create(enum table_hw_accel_id acc_id,
 	uint32_t arg2 = (uint32_t)&tbl_crt_out_msg; /* To be used in
 						    Accelerator context __stqw
 						    */
-
 	/* Load frequent parameters into registers */
 	uint8_t                           key_size = tbl_params->key_size;
-	uint16_t                          attr =
-		tbl_params->attributes|((uint16_t)tbl_params->timestamp_accur);
+	uint16_t                          attr = tbl_params->attributes;
 	uint32_t                          max_rules = tbl_params->max_rules;
 	uint32_t                          committed_rules =
 		tbl_params->committed_rules;
-	uint64_t rule_id;
+	t_rule_id rule_id;
 
 	/* Calculate the number of entries each rule occupies */
 	num_entries_per_rule = table_calc_num_entries_per_rule(
 					attr & TABLE_ATTRIBUTE_TYPE_MASK,
 					key_size);
 
+	/*************************/
 	/* Prepare input message */
-	tbl_crt_in_msg.attributes = attr;
+	/*************************/
+	/* Count leading zeroes (semi log of 2 operation)*/
+	timestamp_accuracy = tbl_params->timestamp_accuracy;
+	asm { cntlzw agt, timestamp_accuracy }
+
+	/* Enable timestamp accuracy if needed*/
+	if(agt < 30) {
+		/* Calculate the correct power of 2 */
+		agt = 31 - agt;
+		tbl_crt_in_msg.attributes =
+			(TABLE_CREATE_INPUT_MESSAGE_ATTE_AGTM_FLAG |
+			 agt |
+			 attr);
+	}
+	else
+		tbl_crt_in_msg.attributes = attr;
+
 	tbl_crt_in_msg.icid = TABLE_CREATE_INPUT_MESSAGE_ICID_BDI_MASK;
 	tbl_crt_in_msg.max_rules = max_rules;
 	tbl_crt_in_msg.max_entries =
@@ -564,14 +583,12 @@ int table_calc_num_entries_per_rule(uint16_t type, uint8_t key_size){
 int table_lookup_by_keyid_default_frame_wrp(enum table_hw_accel_id acc_id,
 					    t_tbl_id table_id,
 					    uint8_t keyid,
-					    uint32_t flags,
 					    struct table_lookup_result
 						*lookup_result)
 {
 	return table_lookup_by_keyid_default_frame(acc_id,
 						   table_id,
 						   keyid,
-						   flags,
 						   lookup_result);
 }
 
