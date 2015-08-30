@@ -42,11 +42,22 @@
  * @{
  */
 
+#define CMDIF_BD_DATA_SIZE	64	/*!< In bytes */
+
 struct cmdif_bd {
+	uint64_t async_cb;
+	uint64_t async_ctx;
+	uint64_t cmd_addr;	/*!< Pointer to command data */
+	uint64_t resp_addr;	/*!< Pointer to response data */
+	uint32_t cmd_size;	/*!< Size of cmd_addr */
+	uint32_t resp_size;	/*!< Size of resp_addr */
 	uint32_t flags;		/*!< Interrupt, */
-	uint32_t data[16];	/*!< 64 bytes data to be used for the command */
 	uint16_t session_id;
 	uint16_t cmdi_id;
+	uint8_t cmd_data[CMDIF_BD_DATA_SIZE];
+	/*!< 64 bytes data to be used for the command */
+	uint8_t resp_data[CMDIF_BD_DATA_SIZE];
+	/*!< 64 bytes data to be used for the response */
 };
 
 /** @} */ /* end of cmdif_bd_flib_g group */
