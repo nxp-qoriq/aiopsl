@@ -220,31 +220,34 @@ int dpni_drv_update_obj(struct mc_dprc *dprc, uint16_t mc_niid)
 	int index;
 	uint16_t dpni;
 
-	err = dpni_open(&dprc->io, 0, mc_niid, &dpni);
-	if(err){
-		sl_pr_err("Failed to open DP-NI before reset%d\n.", mc_niid);
-		/* if open failed, no need to close*/
-		return err;
-	}
-
-	err = dpni_reset(&dprc->io, 0, dpni);
-	if(err){
-		sl_pr_err("Failed to reset DP-NI%d\n.", mc_niid);
-		dpni_close(&dprc->io, 0, dpni);
-		return err;
-	}
-
-	err = dpni_close(&dprc->io, 0, dpni);
-	if(err){
-		sl_pr_err("Failed to close DP-NI after reset%d\n.", mc_niid);
-		/* if open failed, no need to close*/
-		return err;
-	}
-
 	cdma_mutex_lock_take((uint64_t)nis, CDMA_MUTEX_WRITE_LOCK);
 	index = dpni_drv_is_dpni_exist(mc_niid);
 	if(index == -1){
 		sl_pr_debug("DPNI %d not exist nis table\n",mc_niid);
+		err = dpni_open(&dprc->io, 0, mc_niid, &dpni);
+		if(err){
+			cdma_mutex_lock_release((uint64_t)nis);
+			sl_pr_err("Failed to open DP-NI before reset%d\n.", mc_niid);
+			/* if open failed, no need to close*/
+			return err;
+		}
+
+		err = dpni_reset(&dprc->io, 0, dpni);
+		if(err){
+			cdma_mutex_lock_release((uint64_t)nis);
+			sl_pr_err("Failed to reset DP-NI%d\n.", mc_niid);
+			dpni_close(&dprc->io, 0, dpni);
+			return err;
+		}
+
+		err = dpni_close(&dprc->io, 0, dpni);
+		if(err){
+			cdma_mutex_lock_release((uint64_t)nis);
+			sl_pr_err("Failed to close DP-NI after reset%d\n.", mc_niid);
+			/* if open failed, no need to close*/
+			return err;
+		}
+
 		err = dpni_drv_probe(dprc, mc_niid, &aiop_niid);
 		if(err){
 			cdma_mutex_lock_release((uint64_t)nis);
