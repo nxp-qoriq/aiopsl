@@ -1062,6 +1062,7 @@ __COLD_CODE int dpni_drv_init(void)
 		pr_info("Registered to: dpni_drv_evmng_cb\n");
 	}
 
+#ifdef DEBUG
 	err = check_if_drv_and_flib_structs_identical();
 	if(err){
 		pr_err("check_if_drv_and_flib_structs_identical %d\n",err);
@@ -1070,7 +1071,7 @@ __COLD_CODE int dpni_drv_init(void)
 	else{
 		pr_info("flib and driver structs are identical.\n");
 	}
-
+#endif
 	return err;
 }
 
