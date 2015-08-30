@@ -628,6 +628,8 @@ do { \
 	MC_CMD_OP(cmd, 2, 0,  32, uint32_t, cfg->options);\
 	MC_CMD_OP(cmd, 2, 32,  32, uint32_t, \
 		cfg->conf_err_cfg.queue_cfg.options);\
+	MC_CMD_OP(cmd, 3, 0, 32, uint32_t, \
+		cfg->conf_err_cfg.queue_cfg.tail_drop_threshold);\
 } while (0)
 
 /*                cmd, param, offset, width, type, arg_name */
@@ -656,6 +658,7 @@ do { \
 			attr->conf_err_attr.queue_attr.order_preservation_en);\
 	MC_RSP_OP(cmd, 1, 0,  64, uint64_t, \
 			attr->conf_err_attr.queue_attr.user_ctx);\
+	MC_RSP_OP(cmd, 2, 0,  32, uint32_t, attr->tail_drop_threshold); \
 	MC_RSP_OP(cmd, 2, 32, 32, uint32_t, \
 			attr->conf_err_attr.queue_attr.fqid);\
 } while (0)
@@ -678,6 +681,7 @@ do { \
 		cfg->flc_cfg.flow_context_size);\
 	MC_CMD_OP(cmd, 3, 32, 32, uint32_t, cfg->flc_cfg.options);\
 	MC_CMD_OP(cmd, 4, 0,  64, uint64_t, cfg->flc_cfg.flow_context);\
+	MC_CMD_OP(cmd, 5, 0,  32, uint32_t, cfg->tail_drop_threshold); \
 } while (0)
 
 /*                cmd, param, offset, width, type, arg_name */
@@ -695,6 +699,7 @@ do { \
 	MC_RSP_OP(cmd, 0, 40, 2,  enum dpni_dest, attr->dest_cfg.dest_type); \
 	MC_RSP_OP(cmd, 0, 42, 1,  int,      attr->order_preservation_en);\
 	MC_RSP_OP(cmd, 1, 0,  64, uint64_t, attr->user_ctx); \
+	MC_RSP_OP(cmd, 2, 0,  32, uint32_t, attr->tail_drop_threshold); \
 	MC_RSP_OP(cmd, 2, 32, 32, uint32_t, attr->fqid); \
 	MC_RSP_OP(cmd, 3, 0,  4,  enum dpni_flc_type, attr->flc_cfg.flc_type); \
 	MC_RSP_OP(cmd, 3, 4,  4,  enum dpni_stash_size, \
@@ -714,6 +719,7 @@ do { \
 	MC_CMD_OP(cmd, 0, 42, 1,  int,      cfg->order_preservation_en);\
 	MC_CMD_OP(cmd, 1, 0,  64, uint64_t, cfg->user_ctx); \
 	MC_CMD_OP(cmd, 2, 0,  32, uint32_t, cfg->options); \
+	MC_CMD_OP(cmd, 2, 32, 32, uint32_t, cfg->tail_drop_threshold); \
 	MC_CMD_OP(cmd, 3, 0,  4,  enum dpni_flc_type, cfg->flc_cfg.flc_type); \
 	MC_CMD_OP(cmd, 3, 4,  4,  enum dpni_stash_size, \
 		cfg->flc_cfg.frame_data_size);\
@@ -731,6 +737,7 @@ do { \
 	MC_RSP_OP(cmd, 0, 40, 2,  enum dpni_dest, attr->dest_cfg.dest_type);\
 	MC_RSP_OP(cmd, 0, 42, 1,  int,      attr->order_preservation_en);\
 	MC_RSP_OP(cmd, 1, 0,  64, uint64_t, attr->user_ctx); \
+	MC_RSP_OP(cmd, 2, 0,  32, uint32_t, attr->tail_drop_threshold); \
 	MC_RSP_OP(cmd, 2, 32, 32, uint32_t, attr->fqid); \
 	MC_RSP_OP(cmd, 3, 0,  4,  enum dpni_flc_type, attr->flc_cfg.flc_type); \
 	MC_RSP_OP(cmd, 3, 4,  4,  enum dpni_stash_size, \
@@ -750,6 +757,7 @@ do { \
 	MC_CMD_OP(cmd, 0, 42, 1,  int,      cfg->order_preservation_en);\
 	MC_CMD_OP(cmd, 1, 0,  64, uint64_t, cfg->user_ctx); \
 	MC_CMD_OP(cmd, 2, 0,  32, uint32_t, cfg->options); \
+	MC_CMD_OP(cmd, 2, 32, 32, uint32_t, cfg->tail_drop_threshold); \
 } while (0)
 
 /*                cmd, param, offset, width, type, arg_name */
@@ -760,6 +768,7 @@ do { \
 	MC_RSP_OP(cmd, 0, 40, 2,  enum dpni_dest, attr->dest_cfg.dest_type);\
 	MC_RSP_OP(cmd, 0, 42, 1,  int,      attr->order_preservation_en);\
 	MC_RSP_OP(cmd, 1, 0,  64, uint64_t, attr->user_ctx); \
+	MC_RSP_OP(cmd, 2, 0,  32, uint32_t, attr->tail_drop_threshold); \
 	MC_RSP_OP(cmd, 2, 32, 32, uint32_t, attr->fqid); \
 } while (0)
 
