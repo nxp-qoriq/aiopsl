@@ -85,7 +85,7 @@ static void app_process_packet_flow0 (void)
 	}
 	}
 
-	ni_id = (uint16_t)dpni_get_receive_niid();
+	ni_id = (uint16_t)task_get_receive_niid();
 	/*switch between src and dst MAC addresses*/
 	p_eth_hdr = PARSER_GET_ETH_POINTER_DEFAULT();
 	p_eth_hdr += NET_HDR_FLD_ETH_ADDR_SIZE;

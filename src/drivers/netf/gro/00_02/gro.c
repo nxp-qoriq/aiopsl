@@ -181,7 +181,7 @@ int tcp_gro_aggregate_seg(
 	sr_status = fdma_store_frame_data(PRC_GET_FRAME_HANDLE(),
 			*(uint8_t *)HWC_SPID_ADDRESS, 
 			&amq);
-	gro_ctx.niid = dpni_get_receive_niid();
+	gro_ctx.niid = task_get_receive_niid();
 	gro_ctx.qd_priority = default_task_params.qd_priority;
 
 	if (sr_status == -ENOMEM) {
