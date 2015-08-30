@@ -209,7 +209,7 @@ inline int table_rule_replace(enum table_hw_accel_id acc_id,
 			      uint8_t *replaced_options,
 			      uint32_t *timestamp)
 {
-#ifdef CHECK_ALIGNMENT	
+#ifdef CHECK_ALIGNMENT
 	DEBUG_ALIGN("table_inline.h",(uint32_t)rule, ALIGNMENT_16B);
 #endif
 	int32_t status;
@@ -257,7 +257,7 @@ inline int table_rule_replace(enum table_hw_accel_id acc_id,
 
 		if(replaced_options)
 			*replaced_options =
-			    out_msg.stdy_and_reserved & 
+			    out_msg.stdy_and_reserved &
 			    TABLE_ENTRY_STDY_FIELD_MASK;
 		if(timestamp)
 			*timestamp = out_msg.timestamp;

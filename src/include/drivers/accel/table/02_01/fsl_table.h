@@ -1336,28 +1336,6 @@ inline int table_lookup_by_keyid(enum table_hw_accel_id acc_id,
 
 
 /* ######################################################################### */
-/* ############################# Time Units ################################ */
-/* ######################################################################### */
-
-/**************************************************************************//**
-@Function	table_hw_get_time_unit
-
-@Description	Returns the Table Lookup Hardware Accelerator time unit in
-		microseconds. I.e. if the returned value is x then the Table
-		Lookup Hardware Accelerator time unit is x microseconds.
-
-@Param[in]	acc_id ID of the Hardware Table Lookup Accelerator to be
-		queried.
-@Param[out]	time_unit The time unit of Hardware Table Lookup Accelerator in
-		microseconds.
-
-@Return		None.
-*//***************************************************************************/
-void table_hw_get_time_unit(enum table_hw_accel_id acc_id,
-			    uint32_t *time_unit);
-
-
-/* ######################################################################### */
 /* ################################ Obsolete ############################### */
 /* ######################################################################### */
 
