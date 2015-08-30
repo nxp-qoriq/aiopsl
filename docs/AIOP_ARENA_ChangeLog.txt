@@ -1,9 +1,14 @@
+fsl_dpni_drv.h:   Function name was changed for:
+                  dpni_get_receive_niid ->  task_get_receive_niid
+				  dpni_set_send_niid    ->  task_set_send_niid
+                  dpni_get_send_niid    ->  task_get_send_niid
+
 fsl_dpni_drv.h:   Added API to prepare extract parameters
                   int dpni_drv_prepare_key_cfg(struct dpkg_profile_cfg *cfg, uint8_t *key_cfg_buf)
 
 fsl_dpni_drv.h:   Added API to get/set task TX traffic class
-                  inline void set_task_tx_tc(uint8_t tc)
-                  inline uint8_t get_task_tx_tc(void)
+                  inline void task_set_tx_tc(uint8_t tc)
+                  inline uint8_t task_get_tx_tc(void)
 
 fsl_malloc.h      : Changed numeric values for enum memory_partition_id (MEM_PART_DP_DDR = 1 etc.)
 aiop_link.lcf     : Removed heap section from lcf file as CodeWarrior malloc()/free() should not be used in the code.
