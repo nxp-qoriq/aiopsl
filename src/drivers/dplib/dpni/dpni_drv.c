@@ -972,6 +972,26 @@ static int configure_bpids_for_dpni(void)
 	return 0;
 }
 
+static int check_if_drv_and_flib_structs_identical(void)
+{
+	struct dpni_drv_tx_selection dpni_drv_tx_sel;
+	struct dpni_tx_selection_cfg dpni_tx_sel;
+
+	if((sizeof(dpni_tx_sel) !=
+		sizeof(dpni_drv_tx_sel))
+	|| ( sizeof(dpni_tx_sel.tc_sched[0].delta_bandwidth) !=
+		sizeof(dpni_drv_tx_sel.tc_sched[0].delta_bandwidth))
+	/* The enum values cant't change */
+	|| ( sizeof(dpni_tx_sel.tc_sched[0].mode) !=
+		sizeof(dpni_drv_tx_sel.tc_sched[0].mode))
+	|| (DPNI_MAX_TC != DPNI_DRV_MAX_TC))
+	{
+		sl_pr_err("Structs for driver and flib are not identical\n");
+		return -EINVAL;
+	}
+	return 0;
+}
+
 __COLD_CODE int dpni_drv_init(void)
 {
 	int i;
@@ -1040,6 +1060,15 @@ __COLD_CODE int dpni_drv_init(void)
 	}
 	else{
 		pr_info("Registered to: dpni_drv_evmng_cb\n");
+	}
+
+	err = check_if_drv_and_flib_structs_identical();
+	if(err){
+		pr_err("check_if_drv_and_flib_structs_identical %d\n",err);
+		return -ENAVAIL;
+	}
+	else{
+		pr_info("flib and driver structs are identical.\n");
 	}
 
 	return err;
