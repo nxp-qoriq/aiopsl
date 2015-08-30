@@ -450,11 +450,6 @@
 			<locationURI>PARENT-4-PROJECT_LOC/src/drivers/include/fsl_dpci_mng.h</locationURI>
 		</link>
 		<link>
-			<name>aiop_sl/drivers/include/fsl_dpkg.h</name>
-			<type>1</type>
-			<locationURI>PARENT-4-PROJECT_LOC/src/drivers/include/fsl_dpkg.h</locationURI>
-		</link>
-		<link>
 			<name>aiop_sl/drivers/include/fsl_dpni.h</name>
 			<type>1</type>
 			<locationURI>PARENT-4-PROJECT_LOC/src/drivers/include/fsl_dpni.h</locationURI>
@@ -633,6 +628,11 @@
 			<name>aiop_sl/include/drivers/fsl_dpci_drv.h</name>
 			<type>1</type>
 			<locationURI>PARENT-4-PROJECT_LOC/src/include/drivers/fsl_dpci_drv.h</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/include/drivers/fsl_dpkg.h</name>
+			<type>1</type>
+			<locationURI>PARENT-4-PROJECT_LOC/src/include/drivers/fsl_dpkg.h</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/include/drivers/fsl_dpni_drv.h</name>

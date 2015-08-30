@@ -177,6 +177,215 @@ struct dpni_drv_tx_checksum {
 	uint16_t l4_checksum_gen;
 };
 
+
+/* Set to select color aware mode (otherwise - color blind) */
+#define DPNI_DRV_POLICER_OPT_COLOR_AWARE         0x00000001
+/* Set to discard frame with RED color */
+#define DPNI_DRV_POLICER_OPT_DISCARD_RED         0x00000002
+
+/**************************************************************************//**
+@Description	 enum dpni_drv_policer_mode - selecting the policer mode
+
+*//***************************************************************************/
+enum dpni_drv_policer_mode {
+	/* Policer is disabled */
+	DPNI_DRV_POLICER_MODE_NONE = 0,
+	/* Policer pass through */
+	DPNI_DRV_POLICER_MODE_PASS_THROUGH,
+	/* Policer algorithm RFC 2698 */
+	DPNI_DRV_POLICER_MODE_RFC_2698,
+	/* Policer algorithm RFC 4115 */
+	DPNI_DRV_POLICER_MODE_RFC_4115
+};
+
+/**************************************************************************//**
+@Description	 enum dpni_drv_policer_unit - DPNI policer units (bytes/packets)
+
+*//***************************************************************************/
+enum dpni_drv_policer_unit {
+	DPNI_DRV_POLICER_UNIT_BYTES = 0,
+	DPNI_DRV_POLICER_UNIT_PACKETS
+};
+
+/**************************************************************************//**
+@Description	 enum dpni_drv_policer_color - selecting the policer color
+
+*//***************************************************************************/
+enum dpni_drv_policer_color {
+	DPNI_DRV_POLICER_COLOR_GREEN = 0,
+	DPNI_DRV_POLICER_COLOR_YELLOW,
+	DPNI_DRV_POLICER_COLOR_RED
+};
+
+/**************************************************************************//**
+@Description	Structure representing DPNI policer configuration.
+
+*//***************************************************************************/
+struct dpni_drv_rx_tc_policing_cfg{
+	/* Mask of available options; use 'DPNI_DRV_POLICER_OPT_<X>' values */
+	uint32_t options;
+	/* Policer mode */
+	enum dpni_drv_policer_mode mode;
+	/* Bytes or Packets */
+	enum dpni_drv_policer_unit unit;
+	/* For pass-through mode the policer re-colors with this
+	 * color any incoming packets. For Color aware non-pass-through mode:
+	 * policer re-colors with this color all packets with FD[DROPP]>2. */
+	enum dpni_drv_policer_color default_color;
+	/* Committed information rate (CIR) in Kbps or packets/second */
+	uint32_t cir;
+	/* Committed burst size (CBS) in bytes or packets */
+	uint32_t cbs;
+	/* Peak information rate (PIR, rfc2698) in Kbps or packets/second */
+	uint32_t eir;
+	/* Peak burst size (PBS, rfc2698) in bytes or packets
+	 * Excess burst size (EBS, rfc4115) in bytes or packets */
+	uint32_t ebs;
+};
+
+/* Maximum number of traffic classes */
+#define DPNI_DRV_MAX_TC                     8
+
+/**************************************************************************//**
+@Description	 enum dpni_drv_tx_schedule_mode - DPNI Tx scheduling mode
+
+*//***************************************************************************/
+enum dpni_drv_tx_schedule_mode {
+	/* strict priority */
+	DPNI_DRV_TX_SCHED_STRICT_PRIORITY,
+	/*  weighted based scheduling */
+	DPNI_DRV_TX_SCHED_WEIGHTED,
+};
+
+/**************************************************************************//**
+@Description	struct dpni_drv_tx_schedule - Structure representing Tx
+		scheduling configuration.
+
+*//***************************************************************************/
+struct dpni_drv_tx_schedule {
+	/* scheduling mode */
+	enum dpni_drv_tx_schedule_mode mode;
+	/* Bandwidth represented in weights from 100 to 10000.
+	 * Not applicable for 'strict-priority' mode*/
+	uint16_t delta_bandwidth;
+};
+
+/**************************************************************************//**
+@Description	struct dpni_drv_tx_selection - Structure representing
+		transmission selection configuration.
+
+*//***************************************************************************/
+struct dpni_drv_tx_selection {
+	/* An array of traffic-classes */
+	struct dpni_drv_tx_schedule tc_sched[DPNI_DRV_MAX_TC];
+};
+
+/**************************************************************************//**
+@Description	struct dpni_drv_tx_shaping - Structure representing
+		DPNI tx shaping configuration.
+
+*//***************************************************************************/
+struct dpni_drv_tx_shaping {
+	/* rate in Mbps */
+	uint32_t rate_limit;
+	/* burst size in bytes (up to 64KB) */
+	uint16_t max_burst_size;
+};
+
+/**************************************************************************//**
+@Description	struct dpni_drv_qos_tbl - Structure representing
+		QOS table configuration.
+
+*//***************************************************************************/
+struct dpni_drv_qos_tbl {
+	/* I/O virtual address of 256 bytes DMA-able memory filled with
+	 * key extractions to be used as the QoS criteria by calling
+	 * dpni_prepare_key_cfg() */
+	uint64_t key_cfg_iova;
+	/* Set to '1' to discard frames in case of no match (miss);
+	 * '0' to use the 'default_tc' in such cases. */
+	uint8_t discard_on_miss;
+	/* Used in case of no-match and 'discard_on_miss'= 0 */
+	uint8_t default_tc;
+};
+
+/**************************************************************************//**
+@Description	struct dpni_drv_qos_tbl - Structure representing
+		Rule configuration for table lookup.
+
+*//***************************************************************************/
+struct dpni_drv_qos_rule {
+	/* I/O virtual address of the key (must be in DMA-able memory) */
+	uint64_t key_iova;
+	/* I/O virtual address of the mask (must be in DMA-able memory) */
+	uint64_t mask_iova;
+	/* key and mask size (in bytes) */
+	uint8_t key_size;
+};
+
+/**************************************************************************//**
+@Description	 enum dpni_drv_early_drop_mode - DPNI early drop mode.
+
+*//***************************************************************************/
+enum dpni_drv_early_drop_mode {
+	/* early drop is disabled */
+	DPNI_DRV_EARLY_DROP_MODE_NONE = 0,
+	/* early drop in taildrop mode */
+	DPNI_DRV_EARLY_DROP_MODE_TAIL,
+	/* early drop in WRED mode */
+	DPNI_DRV_EARLY_DROP_MODE_WRED
+};
+
+/**************************************************************************//**
+@Description	 enum dpni_drv_early_drop_unit - DPNI early drop units.
+
+*//***************************************************************************/
+enum dpni_drv_early_drop_unit {
+	/* bytes units */
+	DPNI_DRV_EARLY_DROP_UNIT_BYTES = 0,
+	/* frames units */
+	DPNI_DRV_EARLY_DROP_UNIT_FRAMES
+};
+
+/**************************************************************************//**
+@Description	struct dpni_drv_wred - Structure representing
+		WRED configuration.
+
+*//***************************************************************************/
+struct dpni_drv_wred {
+	/* maximum threshold that packets may be discarded. Above this
+	 * threshold all packets are discarded. The maximum threshold must be
+	 * less than 2^39.
+	 * Approximate to be expressed as (x+256)*2^(y-1) due to HW
+	 * implementation. */
+	uint64_t max_threshold;
+	/* minimum threshold that packets may be discarded at. */
+	uint64_t min_threshold;
+	/* probability that a packet will be discarded (1-100, associated with
+	 * the max_threshold). */
+	uint8_t drop_probability;
+};
+
+/**************************************************************************//**
+@Description	struct dpni_drv_rx_tc_early_drop - Structure representing
+		early-drop configuration.
+
+*//***************************************************************************/
+struct dpni_drv_rx_tc_early_drop {
+	/* drop mode */
+	enum dpni_drv_early_drop_mode mode;
+	/* units type */
+	enum dpni_drv_early_drop_unit units;
+	/* WRED - 'green' configuration */
+	struct dpni_drv_wred green;
+	/* WRED - 'yellow' configuration */
+	struct dpni_drv_wred yellow;
+	/* WRED - 'red' configuration */
+	struct dpni_drv_wred red;
+	/* tail drop threshold */
+	uint32_t tail_drop_threshold;
+};
+
 /**************************************************************************//**
 @Description	Application Receive callback
 
@@ -246,17 +455,17 @@ int dpni_drv_enable(uint16_t ni_id);
 int dpni_drv_disable(uint16_t ni_id);
 
 /**************************************************************************//**
-@Function	dpni_get_receive_niid
+@Function	task_get_receive_niid
 
 @Description	Get ID of NI on which the default packet arrived.
 
 @Return	NI_IDs on which the default packet arrived.
 *//***************************************************************************/
 /* TODO : replace by macros/inline funcs */
-inline uint16_t dpni_get_receive_niid(void);
+inline uint16_t task_get_receive_niid(void);
 
 /**************************************************************************//**
-@Function	dpni_set_send_niid
+@Function	task_set_send_niid
 
 @Description	Set the NI ID on which the packet should be sent.
 
@@ -267,10 +476,10 @@ inline uint16_t dpni_get_receive_niid(void);
 		\ref error_g
 *//***************************************************************************/
 /* TODO : replace by macros/inline funcs */
-int dpni_set_send_niid(uint16_t niid);
+int task_set_send_niid(uint16_t niid);
 
 /**************************************************************************//**
-@Function	dpni_get_send_niid
+@Function	task_get_send_niid
 
 @Description	Get ID of NI on which the default packet should be sent.
 
@@ -279,7 +488,7 @@ int dpni_set_send_niid(uint16_t niid);
 		\ref error_g
 *//***************************************************************************/
 /* TODO : replace by macros/inline funcs */
-int dpni_get_send_niid(void);
+int task_get_send_niid(void);
 
 
 /**************************************************************************//**
@@ -428,7 +637,7 @@ inline void sl_tman_expiration_task_prolog(uint16_t spid);
 	It is recommended that for any error value user should discard
 	the frame and terminate the task.
 @Retval		EBUSY - Enqueue failed due to congestion in QMAN or due to
-	DPNI link down. It is recommended calling fdma_discard_fd() 
+	DPNI link down. It is recommended calling fdma_discard_fd()
 	afterwards and then terminate task.
 @Retval		ENOMEM - Failed due to buffer pool depletion. It is recommended
 	calling fdma_discard_default_frame() afterwards and then terminate task.
@@ -452,7 +661,7 @@ inline int dpni_drv_send(uint16_t ni_id);
 	It is recommended that for any error value user should discard
 	the frame and terminate the task.
 @Retval		EBUSY - Enqueue failed due to congestion in QMAN or due to
-	DPNI link down. It is recommended calling fdma_discard_fd() 
+	DPNI link down. It is recommended calling fdma_discard_fd()
 	afterwards and then terminate task.
 
 @Cautions	The frame to be enqueued must be closed (stored) when calling
@@ -571,6 +780,19 @@ int dpni_drv_set_concurrent(uint16_t ni_id);
 
 *//***************************************************************************/
 int dpni_drv_set_exclusive(uint16_t ni_id);
+
+/**************************************************************************//**
+@Function	dpni_drv_get_ordering_mode
+
+@Description	Returns the configuration in epid table for ordering mode.
+
+@Param[in]	ni_id - Network Interface ID
+
+@Return	Ordering mode for given NI
+		0 - Concurrent
+		1 - Exclusive
+*//***************************************************************************/
+int dpni_drv_get_ordering_mode(uint16_t ni_id);
 
 /**************************************************************************//**
 @Function	dpni_drv_set_order_scope
@@ -887,5 +1109,198 @@ int dpni_drv_set_tx_checksum(uint16_t ni_id,
 *//***************************************************************************/
 int dpni_drv_get_tx_checksum(uint16_t ni_id,
                             struct dpni_drv_tx_checksum * const tx_checksum);
+
+/**************************************************************************//**
+@Function	dpni_drv_set_rx_tc_policing
+
+@Description	Function to set RX TC policing for given NI.
+
+@Param[in]	ni_id The AIOP Network Interface ID.
+
+@Param[in]	tc_id Traffic class selection (0-7)
+
+@Param[in]	cfg Traffic class policing configuration
+
+@Return	0 on success;
+	error code, otherwise. For error posix refer to \ref error_g
+*//***************************************************************************/
+int dpni_drv_set_rx_tc_policing(uint16_t ni_id, uint8_t tc_id,
+			    const struct dpni_drv_rx_tc_policing_cfg *cfg);
+
+/**************************************************************************//**
+@Function	dpni_drv_set_tx_selection
+
+@Description	Function to set transmission selection configuration for given NI.
+
+@Param[in]	ni_id The AIOP Network Interface ID.
+
+@Param[in]	cfg Transmission selection configurations.
+
+@Cautions	Allowed only when DPNI is disabled.
+
+@Return	0 on success;
+	error code, otherwise. For error posix refer to \ref error_g
+*//***************************************************************************/
+int dpni_drv_set_tx_selection(uint16_t ni_id,
+                          const struct dpni_drv_tx_selection *cfg);
+
+/**************************************************************************//**
+@Function	dpni_drv_set_tx_shaping
+
+@Description	Function to set the transmit shaping configuration for given NI.
+
+@Param[in]	ni_id The AIOP Network Interface ID.
+
+@Param[in]	cfg TX shaping configuration.
+
+@Return	0 on success;
+	error code, otherwise. For error posix refer to \ref error_g
+*//***************************************************************************/
+int dpni_drv_set_tx_shaping(uint16_t ni_id,
+                          const struct dpni_drv_tx_shaping *cfg);
+
+/**************************************************************************//**
+@Function	dpni_drv_set_qos_table
+
+@Description	Function to set QoS mapping table for given NI.
+
+@Param[in]	ni_id The AIOP Network Interface ID.
+
+@Param[in]	cfg QoS table configuration.
+
+@Cautions	This function and all QoS-related functions require that
+		'max_tcs > 1' was set at DPNI creation.
+		Before calling this function, call dpni_drv_prepare_key_cfg() to
+		prepare the key_cfg_iova parameter
+
+@Return	0 on success;
+	error code, otherwise. For error posix refer to \ref error_g
+*//***************************************************************************/
+int dpni_drv_set_qos_table(uint16_t ni_id,
+                          const struct dpni_drv_qos_tbl *cfg);
+
+/**************************************************************************//**
+@Function	dpni_drv_add_qos_entry
+
+@Description	Function to add QoS mapping entry for given NI and TC.
+
+@Param[in]	ni_id The AIOP Network Interface ID.
+
+@Param[in]	cfg Rule configuration for table lookup.
+
+@Param[in]	tc_id Traffic class selection (0-7)
+
+@Return	0 on success;
+	error code, otherwise. For error posix refer to \ref error_g
+*//***************************************************************************/
+int dpni_drv_add_qos_entry(uint16_t ni_id,
+                           const struct dpni_drv_qos_rule *cfg,
+                           uint8_t tc_id);
+
+/**************************************************************************//**
+@Function	dpni_drv_remove_qos_entry
+
+@Description	Function to remove QoS mapping entry for given NI.
+
+@Param[in]	ni_id The AIOP Network Interface ID.
+
+@Param[in]	cfg Rule configuration for table lookup.
+
+@Return	0 on success;
+	error code, otherwise. For error posix refer to \ref error_g
+*//***************************************************************************/
+int dpni_drv_remove_qos_entry(uint16_t ni_id,
+                              const struct dpni_drv_qos_rule *cfg);
+
+/**************************************************************************//**
+@Function	dpni_drv_clear_qos_table
+
+@Description	Function to clear all QoS mapping entries for given NI.
+
+@Param[in]	ni_id The AIOP Network Interface ID.
+
+@Cautions	Following this function call, all frames are directed to
+		the default traffic class (0)
+
+@Return	0 on success;
+	error code, otherwise. For error posix refer to \ref error_g
+*//***************************************************************************/
+int dpni_drv_clear_qos_table(uint16_t ni_id);
+
+/**************************************************************************//**
+@Function	dpni_drv_prepare_rx_tc_early_drop
+
+@Description	Function to prepare an early drop.
+
+@Param[in]	cfg Early-drop configuration.
+
+@Param[out]	early_drop_buf Zeroed 256 bytes of memory before mapping it to
+		DMA.
+
+@Cautions	This function has to be called before
+		dpni_drv_set_rx_tc_early_drop
+
+*//***************************************************************************/
+void dpni_drv_prepare_rx_tc_early_drop(
+	const struct dpni_drv_rx_tc_early_drop *cfg,
+	uint8_t *early_drop_buf);
+
+/**************************************************************************//**
+@Function	dpni_drv_set_rx_tc_early_drop
+
+@Description	Function to set Rx traffic class early-drop configuration for
+		given NI.
+
+@Param[in]	ni_id The AIOP Network Interface ID.
+
+@Param[in]	tc_id Traffic class selection (0-7)
+
+@Param[in]	early_drop_iova I/O virtual address of 64 bytes;
+
+@Cautions	Before calling this function, call
+		dpni_drv_prepare_rx_tc_early_drop() to prepare the
+		early_drop_iova parameter.
+
+@Return	0 on success;
+	error code, otherwise. For error posix refer to \ref error_g
+*//***************************************************************************/
+int dpni_drv_set_rx_tc_early_drop(uint16_t ni_id,
+                                  uint8_t tc_id,
+                                  uint64_t early_drop_iova);
+
+/**************************************************************************//**
+@Function	task_set_tx_tc
+
+@Description	Set task TX traffic class.
+
+@Param[in]	tc Traffic class.
+*//***************************************************************************/
+inline void task_set_tx_tc(uint8_t tc);
+
+/**************************************************************************//**
+@Function	task_get_tx_tc
+
+@Description	Get task TX traffic class.
+
+@Return	TX traffic class.
+*//***************************************************************************/
+inline uint8_t task_get_tx_tc(void);
+
+/**************************************************************************//**
+@Function	dpni_drv_prepare_key_cfg
+
+@Description	Function to prepare extract parameters.
+
+@Param[in]	cfg defining a full Key Generation profile (rule)
+
+@Param[out]	key_cfg_buf Zeroed 256 bytes of memory before mapping it to DMA
+
+@Cautions	This function has to be called before the following functions:
+		- dpni_drv_set_qos_table()
+@Return	0 on success;
+	error code, otherwise. For error posix refer to \ref error_g
+*//***************************************************************************/
+int dpni_drv_prepare_key_cfg(struct dpkg_profile_cfg *cfg,
+                             uint8_t *key_cfg_buf);
 /** @} */ /* end of dpni_drv_g DPNI DRV group */
 #endif /* __FSL_DPNI_DRV_H */

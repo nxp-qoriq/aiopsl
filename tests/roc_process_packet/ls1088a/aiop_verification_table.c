@@ -34,6 +34,8 @@
 #include "aiop_verification_table.h"
 #include "system.h"
 
+__VERIF_GLOBAL t_rule_id rule_id_array[TABLE_VERIF_RULE_ID_ARRAY_SIZE];
+
 uint16_t aiop_verification_table(uint32_t asa_seg_addr)
 {
 	uint16_t str_size = STR_SIZE_ERR;
@@ -131,7 +133,8 @@ uint16_t aiop_verification_table(uint32_t asa_seg_addr)
 						str->table_id,
 						(struct table_rule*)&rule,
 						str->key_size,
-						str->rule_id_ptr);
+						rule_id_array +
+						    str->rule_id_index);
 		str_size =
 			sizeof(struct table_rule_create_command);
 		break;
@@ -153,7 +156,8 @@ uint16_t aiop_verification_table(uint32_t asa_seg_addr)
 						 &rule_ptr,
 						 str->key_size,
 						 (void *)0,
-						 str->rule_id_ptr);
+						 rule_id_array +
+						     str->rule_id_index);
 		} else {
 			str->status = table_rule_create_or_replace
 						(str->acc_id,
@@ -161,12 +165,40 @@ uint16_t aiop_verification_table(uint32_t asa_seg_addr)
 						 &rule_ptr,
 						 str->key_size,
 						 &str->old_res,
-						 str->rule_id_ptr);
+						 rule_id_array +
+						     str->rule_id_index);
 		}
 		str_size =
 			sizeof(struct table_rule_create_replace_command);
 		break;
 	}
+
+	/* Table Rule Query By Rule ID Command Verification */
+	case TABLE_RULE_QUERY_BY_RULE_ID_CMD_STR:
+	{
+		struct table_rule_query_by_ruleid_command *str =
+		(struct table_rule_query_by_ruleid_command *) asa_seg_addr;
+
+		struct table_result *result_ptr = NULL;
+		uint8_t             *options_ptr = NULL;
+		uint32_t            *timestamp_ptr = NULL;
+
+		if (!(str->flags & TABLE_VERIF_FLAG_OLD_RESULT_NULL)) {
+			//TODO result_ptr = 
+		}
+		str->status = table_rule_query_get_result
+			(str->acc_id,
+			 str->table_id,
+			 rule_id_array[str->rule_id_index],
+			 result_ptr,
+			 options_ptr,
+			 timestamp_ptr);
+
+		str_size =
+			sizeof(struct table_rule_query_command);
+		break;
+	}
+
 
 	/* Table Rule Replace Command Verification */
 	case TABLE_RULE_REPLACE_CMD_STR:
@@ -176,14 +208,14 @@ uint16_t aiop_verification_table(uint32_t asa_seg_addr)
 		  asa_seg_addr;
 
 		if (str->flags & TABLE_VERIF_FLAG_OLD_RESULT_NULL) {
-			str->status = table_rule_replace
+			str->status = table_rule_replace_by_key_desc
 				(str->acc_id,
 				str->table_id,
 				(struct table_rule*)str->rule_ptr,
 				str->key_size,
 				(void *)0);
 		} else {
-			str->status = table_rule_replace
+			str->status = table_rule_replace_by_key_desc
 				(str->acc_id,
 				str->table_id,
 				(struct table_rule*)str->rule_ptr,
@@ -203,14 +235,14 @@ uint16_t aiop_verification_table(uint32_t asa_seg_addr)
 		(struct table_rule_delete_command *) asa_seg_addr;
 
 		if (str->flags & TABLE_VERIF_FLAG_OLD_RESULT_NULL) {
-			str->status = table_rule_delete
+			str->status = table_rule_delete_by_key_desc
 				(str->acc_id,
 				 str->table_id,
 				 (union table_key_desc *)str->key_desc_ptr,
 				 str->key_size,
 				 (void *) 0);
 		} else {
-			str->status = table_rule_delete
+			str->status = table_rule_delete_by_key_desc
 				(str->acc_id,
 				 str->table_id,
 				 (union table_key_desc *)str->key_desc_ptr,
@@ -223,7 +255,7 @@ uint16_t aiop_verification_table(uint32_t asa_seg_addr)
 		break;
 	}
 
-	/* Table Rule Delete Command Verification */
+	/* Table Rule Query Command Verification */
 	case TABLE_RULE_QUERY_CMD_STR:
 	{
 		struct table_rule_query_command *str =
@@ -231,7 +263,7 @@ uint16_t aiop_verification_table(uint32_t asa_seg_addr)
 		struct table_result result __attribute__((aligned(16)));
 		cdma_ws_memory_init((void *)&result, sizeof(result), 0);
 
-		str->status = table_rule_query
+		str->status = table_rule_query_by_key_desc
 			(str->acc_id,
 			 str->table_id,
 			 (union table_key_desc *)str->key_desc_ptr,
@@ -244,6 +276,7 @@ uint16_t aiop_verification_table(uint32_t asa_seg_addr)
 			sizeof(struct table_rule_query_command);
 		break;
 	}
+
 	/* Table Lookup with explicit Key Command Verification */
 	case TABLE_LOOKUP_BY_KEY_CMD_STR:
 	{
@@ -277,7 +310,7 @@ uint16_t aiop_verification_table(uint32_t asa_seg_addr)
 
 		str->status = table_lookup_by_keyid_default_frame(str->acc_id,
 			str->table_id,
-			str->key_id, 
+			str->key_id,
 			&(lookup_result));
 		
 		str->lookup_result = lookup_result;
@@ -292,9 +325,9 @@ uint16_t aiop_verification_table(uint32_t asa_seg_addr)
 	case TABLE_LOOKUP_BY_KEYID_CMD_STR:
 	{
 		struct table_lookup_non_default_params ndf_params 
-												__attribute__((aligned(16)));
+				__attribute__((aligned(16)));
 		struct table_lookup_result lookup_result 
-												__attribute__((aligned(16)));
+				__attribute__((aligned(16)));
 		struct table_lookup_by_keyid_command *str =
 		(struct table_lookup_by_keyid_command *) asa_seg_addr;
 		ndf_params = str->ndf_params;

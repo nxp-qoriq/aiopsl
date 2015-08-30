@@ -553,7 +553,8 @@ int cdma_write_release_lock_and_decrement(
 		used to read/write data access and/or mutex lock take/release.
 @Param[in]	flags - \link CDMA_AccessCM_ModeBits CDMA Access Context Memory
 		flags \endlink.
-@Param[in]	offset - An offset (in bytes) from the context_address.
+@Param[in]	offset - An offset (in bytes) from the context_address. The maximum
+		legal offset size (in bytes) is 0x3FFF.
 @Param[in]	ws_address - A pointer to the Workspace.
 @Param[in]	dma_param - \link CDMA_AccessCM_DMA CDMA Access Context Memory
 		DMA Parameters \endlink.
@@ -601,7 +602,8 @@ inline int cdma_access_context_memory(
 		used to read/write data access and/or mutex lock take/release.
 @Param[in]	flags - \link CDMA_AccessCM_ModeBits CDMA Access Context Memory
 		flags \endlink.
-@Param[in]	offset - An offset (in bytes) from the context_address.
+@Param[in]	offset - An offset (in bytes) from the context_address. The maximum
+		legal offset size (in bytes) is 0x3FFF.
 @Param[in]	ws_address - A pointer to the Workspace.
 @Param[in]	dma_param - \link CDMA_AccessCM_DMA CDMA Access Context Memory
 		DMA Parameters \endlink.

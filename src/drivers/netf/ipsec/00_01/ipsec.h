@@ -539,6 +539,12 @@ struct ipsec_instance_params {
 #define IPSEC_INSTANCE_HANDLE_ADDR(ADDRESS) \
 	(ADDRESS + (offsetof(struct ipsec_sa_params_part1, instance_handle)))
 
+#define IPSEC_SOFT_SEC_LIMIT_ADDR(ADDRESS) \
+	(ADDRESS + (offsetof(struct ipsec_sa_params, sap2.soft_seconds_limit)))
+
+#define IPSEC_HARD_SEC_LIMIT_ADDR(ADDRESS) \
+	(ADDRESS + (offsetof(struct ipsec_sa_params, sap2.hard_seconds_limit)))
+
 
 /* Shared descriptor address */
 #define IPSEC_SHARED_DESC_ADDR(ADDRESS) (ADDRESS + \
@@ -548,6 +554,14 @@ struct ipsec_instance_params {
 #define IPSEC_PDB_ADDR(ADDRESS) (IPSEC_SHARED_DESC_ADDR(ADDRESS) + 4) 
 	
 #define IPSEC_MAX_TIMESTAMP 0xFFFFFFFFFFFFFFFF
+
+/* duration - Timer duration time (the number of timer ticks).
+ * The duration must have a value larger than 10 ticks and smaller
+ * than 2^16-10 ticks. */
+#define IPSEC_MAX_TIMER_DURATION ((2^16)-10)
+/* Soft/hard indicator for the callback */
+#define IPSEC_SOFT_SEC_LIFETIME_EXPIRED 0
+#define IPSEC_HARD_SEC_LIFETIME_EXPIRED 1
 
 /* SA Descriptor Parameter for Internal Usage */ 
 /* Part 1 */
@@ -562,10 +576,8 @@ struct ipsec_sa_params_part1 {
 	uint64_t soft_packet_limit; /* soft packet limit, 8B */
 	uint64_t hard_byte_limit; /* hard byte count limit, 8B */
 	uint64_t hard_packet_limit; /* hard packet limit, 8B */
-
 	
 	/* Always required, except timer callback */
-	/* 2x4 + 2x2 + 4x1 = 8 + 4 + 4 = 16 bytes */
 	uint32_t flags; /* 	transport mode, UDP encap, pad check, counters enable, 
 					outer IP version, etc. 4B */
 	uint32_t status; /* lifetime expire, semaphores	4-8B */
@@ -573,22 +585,19 @@ struct ipsec_sa_params_part1 {
 	ipsec_instance_handle_t instance_handle; /* Instance handle 8B */
 
 	uint32_t outer_hdr_dscp; /* Outer Header DSCP, for set mode */
-
 	
 	uint16_t udp_src_port; /* UDP source for transport mode. 2B */
 	uint16_t udp_dst_port; /* UDP destination for transport mode. 2B */
-	
 	uint16_t bpid; /* BPID of output frame in new buffer mode */
+	uint16_t encap_header_length; /* Encapsulated IP+ESP header length */
 
 	uint8_t valid; /* descriptor valid. 1B */
-	
 	uint8_t sec_buffer_mode; /* new/reuse. 1B */
-
 	uint8_t output_spid; /* SEC output buffer SPID */
-	
 
 	/* Total size = */
-	/* 8*8 (64) + 2*4 (8) + 2*2 (4) + 5*1 (5) = 81 bytes */
+	/* 8*8 (64) + 3*4 (12) + 4*2 (8) + 3*1 (3) = 87 bytes */
+	/* Aligned size = 88 bytes */
 };
 /* Part 2 */
 struct ipsec_sa_params_part2 {
@@ -597,17 +606,25 @@ struct ipsec_sa_params_part2 {
 	/* 2x8 + 3x4 = 16+12 = 28 bytes */
 	uint64_t sec_callback_arg; /* SA handle used as argument for the 
 								application callback function. 8B */
-	uint32_t sec_callback_func; /* Application callback function, 
+	ipsec_lifetime_callback_t *sec_callback_func; /* Application callback function, 
 	 	 	 	 	to call upon a seconds lifetime expiry. 4B */
-	
+	//uint32_t sec_callback_func; /* Application callback function, 
+
+	uint32_t soft_seconds_limit; 
 	uint32_t soft_tmr_handle; /* Soft seconds timer handle, 4B */
+
+	uint32_t hard_seconds_limit; 
 	uint32_t hard_tmr_handle; /* Hard seconds timer handle, 4B */
 	
-	/* Total size = 8 + 3*4 (12) = 20 bytes */
+	 
+	uint8_t tmi_id;
+	
+	/* Total size = 8 + 5*4 (20) + 1 = 29 bytes */
+	/* Aligned size = 32 bytes */
 };
 
-/* Total size for part 1 + part 2 = 64+28 = 92 bytes */
-/* Remaining = 128 - 92 = 36 bytes */
+/* Total aligned size for part 1 + part 2 = 88 + 32 = 120 bytes */
+/* Remaining = 128 - 120 = 8 bytes */
 struct ipsec_sa_params {
 		struct ipsec_sa_params_part1 sap1;
 		struct ipsec_sa_params_part2 sap2;
@@ -797,7 +814,8 @@ int ipsec_generate_decap_sd(
 void ipsec_generate_sa_params(
 		struct ipsec_descriptor_params *params,
 		ipsec_handle_t ipsec_handle, /* Parameters area (start of buffer) */
-		ipsec_instance_handle_t instance_handle);
+		ipsec_instance_handle_t instance_handle,
+		uint8_t tmi_id);
 
 /**************************************************************************//**
 *	ipsec_get_buffer
@@ -807,7 +825,8 @@ void ipsec_generate_sa_params(
 *	
 *//****************************************************************************/
 int ipsec_get_buffer(ipsec_instance_handle_t instance_handle,
-		ipsec_handle_t *ipsec_handle
+		ipsec_handle_t *ipsec_handle,
+		uint8_t *tmi_id
 	);
 
 /**************************************************************************//**
@@ -826,6 +845,12 @@ int ipsec_release_buffer(ipsec_instance_handle_t instance_handle,
 *//****************************************************************************/
 uint8_t ipsec_get_ipv6_nh_offset(struct ipv6hdr *ipv6_hdr, uint8_t *length);
 
+/**************************************************************************//**
+*	ipsec_tman_callback
+*	
+*	@Description	Generic TMAN callback function 
+*//****************************************************************************/
+void ipsec_tman_callback(uint64_t ipsec_handle, uint16_t indicator);
 
 /**************************************************************************//**
 ******************************************************************************/

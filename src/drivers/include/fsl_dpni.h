@@ -1698,6 +1698,8 @@ struct dpni_flc_cfg {
 #define DPNI_QUEUE_OPT_FLC		0x00000004
 /* Select to modify the queue's order preservation */
 #define DPNI_QUEUE_OPT_ORDER_PRESERVATION 0x00000008
+/* Select to modify the queue's tail-drop threshold */
+#define DPNI_QUEUE_OPT_TAILDROP_THRESHOLD 0x00000010
 
 
 /**
@@ -1717,6 +1719,10 @@ struct dpni_flc_cfg {
  * @order_preservation_en: enable/disable order preservation;
  *		valid only if 'DPNI_QUEUE_OPT_ORDER_PRESERVATION' is contained
  *		in 'options'
+ * @tail_drop_threshold: set the queue's tail drop threshold in bytes;
+ * 		'0' value disable the threshold; maximum value is 0xE000000;
+ * 		valid only if 'DPNI_QUEUE_OPT_TAILDROP_THRESHOLD' is contained
+ *		in 'options'
  */
 struct dpni_queue_cfg {
 	uint32_t		options;
@@ -1724,6 +1730,7 @@ struct dpni_queue_cfg {
 	struct dpni_dest_cfg	dest_cfg;
 	struct dpni_flc_cfg	flc_cfg;
 	int			order_preservation_en;
+	uint32_t		tail_drop_threshold;
 };
 
 /**
@@ -1733,6 +1740,7 @@ struct dpni_queue_cfg {
  * @dest_cfg: Queue destination configuration
  * @flc_cfg: Flow context configuration
  * @order_preservation_en: enable/disable order preservation
+ * @tail_drop_threshold: queue's tail drop threshold in bytes;
  * @fqid: Virtual fqid value to be used for dequeue operations
  */
 struct dpni_queue_attr {
@@ -1740,6 +1748,7 @@ struct dpni_queue_attr {
 	struct dpni_dest_cfg	dest_cfg;
 	struct dpni_flc_cfg	flc_cfg;
 	int			order_preservation_en;
+	uint32_t		tail_drop_threshold;
 
 	uint32_t		fqid;
 };

@@ -97,7 +97,7 @@ int dpni_drv_explicit_send(uint16_t ni_id, struct ldpaa_fd *fd)
 
 
 /* TODO : replace by macros/inline funcs */
-int dpni_set_send_niid(uint16_t niid)
+int task_set_send_niid(uint16_t niid)
 {
 	default_task_params.send_niid = niid;
 	return 0;
@@ -105,7 +105,7 @@ int dpni_set_send_niid(uint16_t niid)
 
 
 /* TODO : replace by macros/inline funcs */
-int dpni_get_send_niid(void)
+int task_get_send_niid(void)
 {
 	return (int)default_task_params.send_niid;
 }

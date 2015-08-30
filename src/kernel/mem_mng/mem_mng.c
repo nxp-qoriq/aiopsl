@@ -243,12 +243,8 @@ int  mem_mng_init(void *  h_boot_mem_mng,
 	    pr_err("MAJOR mem.manager memory allocation failed slob free blocks\n");
 	    return -ENOMEM;
     }
-
-    p_mem_mng->mem_partitions_initialized = 0;
     /* Initialize internal partitions array */
     array_size = ARRAY_SIZE(p_mem_mng->mem_partitions_array);
-    // Check that memory partition array size greater than MEM_PART_LAST
-    ASSERT_COND_LIGHT(array_size>= MEM_PART_LAST);
     for(i = 0 ; i < array_size;i++ ){
         p_mem_mng->mem_partitions_array[i].was_initialized = 0;
     }
@@ -318,7 +314,7 @@ int mem_mng_register_partition(void*   h_mem_mng,
                     partition_id);
             return -EEXIST;
     }
-   
+    ASSERT_COND(partition_id < ARRAY_SIZE(p_mem_mng->mem_partitions_array));
     p_new_partition = &p_mem_mng->mem_partitions_array[partition_id];
 
     memset(p_new_partition, 0, sizeof(t_mem_mng_partition));
@@ -397,7 +393,7 @@ int mem_mng_register_phys_addr_alloc_partition(void*   h_mem_mng,
 	struct t_mem_mng            *p_mem_mng = (struct t_mem_mng *)h_mem_mng;
 	t_mem_mng_phys_addr_alloc_partition   *p_partition = NULL, *p_new_partition;
 	uint32_t i = 0, array_size = 0;
-
+	ASSERT_COND(partition_id < ARRAY_SIZE(p_mem_mng->phys_allocation_mem_partitions_array));
     if(p_mem_mng->phys_allocation_mem_partitions_array[partition_id].was_initialized){
 
             pr_err("Mem. manager resource already exists: partition ID %d\n",

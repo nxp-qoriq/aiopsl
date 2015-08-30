@@ -148,6 +148,12 @@ static int dpni_drv_create(uint16_t *token)
 		sl_pr_err("dpni_create failed\n");
 		return err;
 	}
+	
+	err = dpni_close(&dprc->io, 0, *token);
+	if(err){
+		sl_pr_err("dpni_close failed\n");
+		return err;
+	}
 
 	return 0;
 }

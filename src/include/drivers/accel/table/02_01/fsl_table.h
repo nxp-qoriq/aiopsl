@@ -190,12 +190,11 @@ User should select one of the following:
 #define	TABLE_RULE_TIMESTAMP_NONE	0x00
 
 	/** Enables timestamp update per rule.
-	Initial value of Rule's timestamp field is set when the rule is created
-	or replaced. The rule's timestamp field is updated to the current
-	timestamp, depending on the table's timestamp accuracy settings, when
-	the rule is matched during lookup command. 
-	The time unit used for timestamp on a specific Table Lookup Hardware
-	Accelerator can be queried using table_hw_get_time_unit(). */
+	Initial value in microseconds of Rule's timestamp field is set when the
+	rule is created or replaced. The rule's timestamp field is updated to
+	the current timestamp in microseconds, depending on the table's
+	timestamp accuracy settings, when the rule is matched during lookup
+	command. */
 #define	TABLE_RULE_TIMESTAMP_ENABLE	0x80
 
 /** @} *//* end of FSL_TABLE_RULE_OPTIONS_TIMESTAMP */
@@ -238,6 +237,7 @@ User should select one of the following:
 @Group	FSL_TABLE_LOOKUP_FLAG_DEFINES TABLE Lookup Flags
 @{
 *//***************************************************************************/
+
 	/** Segment Address and Size Non Default - If set, the Segment given in
 	the lookup function parameters is used instead of the default
 	segment. */
@@ -304,81 +304,6 @@ enum table_hw_accel_id {
 
 /** @} */ /* end of table_hw_accel_id */
 
-/**************************************************************************//**
-@enum	table_hw_timestamp_accuracy
-
-@Description	Possible values for timestamp accuracy in time units.  
-
-@{
-*//***************************************************************************/
-enum table_hw_timestamp_accuracy {
-	/** Timestamp accuracy of 1 time unit           */
-	TABLE_TS_ACCURACY_1_TU          = 0x0800,
-	/** Timestamp accuracy of 2 time units          */
-	TABLE_TS_ACCURACY_2_TU          = 0x0801,
-	/** Timestamp accuracy of 4 time units          */
-	TABLE_TS_ACCURACY_4_TU          = 0x0802,
-	/** Timestamp accuracy of 8 time units          */
-	TABLE_TS_ACCURACY_8_TU          = 0x0803,
-	/** Timestamp accuracy of 16 time units         */
-	TABLE_TS_ACCURACY_16_TU         = 0x0804,
-	/** Timestamp accuracy of 32 time units         */
-	TABLE_TS_ACCURACY_32_TU         = 0x0805,
-	/** Timestamp accuracy of 64 time units         */
-	TABLE_TS_ACCURACY_64_TU         = 0x0806,
-	/** Timestamp accuracy of 128 time units        */
-	TABLE_TS_ACCURACY_128_TU        = 0x0807,
-	/** Timestamp accuracy of 256 time units        */
-	TABLE_TS_ACCURACY_256_TU        = 0x0808,
-	/** Timestamp accuracy of 512 time units        */
-	TABLE_TS_ACCURACY_512_TU        = 0x0809,
-	/** Timestamp accuracy of 1024 time units       */
-	TABLE_TS_ACCURACY_1024_TU       = 0x080A,
-	/** Timestamp accuracy of 2048 time units       */
-	TABLE_TS_ACCURACY_2048_TU       = 0x080B,
-	/** Timestamp accuracy of 4096 time units       */
-	TABLE_TS_ACCURACY_4096_TU       = 0x080C,
-	/** Timestamp accuracy of 8192 time units       */
-	TABLE_TS_ACCURACY_8192_TU       = 0x080D,
-	/** Timestamp accuracy of 16384 time units      */
-	TABLE_TS_ACCURACY_16384_TU      = 0x080E,
-	/** Timestamp accuracy of 32768 time units      */
-	TABLE_TS_ACCURACY_32768_TU      = 0x080F,
-	/** Timestamp accuracy of 65536 time units      */
-	TABLE_TS_ACCURACY_65536_TU      = 0x0810,
-	/** Timestamp accuracy of 131072 time units     */
-	TABLE_TS_ACCURACY_131072_TU     = 0x0811,
-	/** Timestamp accuracy of 262144 time units     */
-	TABLE_TS_ACCURACY_262144_TU     = 0x0812,
-	/** Timestamp accuracy of 524288 time units     */
-	TABLE_TS_ACCURACY_524288_TU     = 0x0813,
-	/** Timestamp accuracy of 1048576 time units    */
-	TABLE_TS_ACCURACY_1048576_TU    = 0x0814,
-	/** Timestamp accuracy of 2097152 time units    */
-	TABLE_TS_ACCURACY_2097152_TU    = 0x0815,
-	/** Timestamp accuracy of 4194304 time units    */
-	TABLE_TS_ACCURACY_4194304_TU    = 0x0816,
-	/** Timestamp accuracy of 8388608 time units    */
-	TABLE_TS_ACCURACY_8388608_TU    = 0x0817,
-	/** Timestamp accuracy of 16777216 time units   */
-	TABLE_TS_ACCURACY_16777216_TU   = 0x0818,
-	/** Timestamp accuracy of 33554432 time units   */
-	TABLE_TS_ACCURACY_33554432_TU   = 0x0819,
-	/** Timestamp accuracy of 67108864 time units   */
-	TABLE_TS_ACCURACY_67108864_TU   = 0x081A,
-	/** Timestamp accuracy of 134217728 time units  */
-	TABLE_TS_ACCURACY_134217728_TU  = 0x081B,
-	/** Timestamp accuracy of 268435456 time units  */
-	TABLE_TS_ACCURACY_268435456_TU  = 0x081C,
-	/** Timestamp accuracy of 536870912 time units  */
-	TABLE_TS_ACCURACY_536870912_TU  = 0x081D,
-	/** Timestamp accuracy of 1073741824 time units */
-	TABLE_TS_ACCURACY_1073741824_TU = 0x081E,
-	/** Timestamp accuracy of 2147483648 time units */
-	TABLE_TS_ACCURACY_2147483648_TU = 0x081F
-};
-/** @} */ /* end of table_hw_timestamp_accuracy */
-
 /** @} */ /* end of FSL_TABLE_Enumerations */
 
 /**************************************************************************//**
@@ -390,7 +315,7 @@ enum table_hw_timestamp_accuracy {
 *//***************************************************************************/
 
 /**
-@typedef uint16_t tbl_id
+@typedef uint16_t t_tbl_id
 */
 typedef uint16_t t_tbl_id;
 
@@ -417,7 +342,7 @@ returned after lookup, see fields specification for more details.
 *//***************************************************************************/
 #pragma pack(push, 1)
 struct table_result {
-	/** Result Type - Must be set to #TABLE_RESULT_TYPE_OPAQUES */
+	/** Result Type - Must be set to #TABLE_RESULT_TYPE_OPAQUE */
 	uint8_t type;
 
 	/** Reserved for compliance with HW format.
@@ -454,7 +379,7 @@ struct table_key_desc_em {
 /**************************************************************************//**
 @Description	LPM IPv4 Key Descriptor Structure
 
-The CTLU searches for the LPM of the concatenation of
+The Table HW Accelerator searches for the LPM of the concatenation of
 {exact_match, full_ipv4_address}.
 *//***************************************************************************/
 #pragma pack(push, 1)
@@ -479,7 +404,7 @@ struct table_key_desc_lpm_ipv4 {
 /**************************************************************************//**
 @Description	LPM IPv6 Key Descriptor Structure
 
-The CTLU searches for the LPM of the concatenation of
+The Table HW Accelerator searches for the LPM of the concatenation of
 {exact_match, full_ipv6_address}.
 *//***************************************************************************/
 #pragma pack(push, 1)
@@ -509,8 +434,8 @@ struct table_key_desc_lpm_ipv6 {
 *//***************************************************************************/
 #pragma pack(push, 1)
 struct table_key_desc_mflu {
-	/** MFLU Lookup Key & Priority - This should point on a memory location
-	containing concatenation of the	following fields (by the same order):
+	/** MFLU Lookup Key & Priority - This should contain concatenation of
+	the following fields (by the same order):
 	 - Lookup Key - Size of this field must be within 1-56 byte.
 	 - Priority - Priority determines the selection between two rule that
 	match in the MFLU lookup. 0x00000000 is the highest priority. This
@@ -593,15 +518,11 @@ This structure returned from the table accelerator upon a successful lookup.
 *//***************************************************************************/
 #pragma pack(push, 1)
 struct table_lookup_result {
-	/** Opaque0 or Reference Pointer - This field can be either:
-	- 8 bytes of opaque data.
-	- A pointer to Slab/CDMA acquired buffer (which has a reference counter)
+	/** Data0 as been set in the table_result structure */
+	volatile uint64_t data0;
 
-	Depends on the matching rule result type. */
-	volatile uint64_t opaque0_or_reference;
-
-	/** Opaque data */
-	volatile uint64_t opaque1;
+	/** Data1 as been set in the table_result structure */
+	volatile uint64_t data1;
 
 	/** Reserved for compliance with HW format.
 	User should not access this field. */
@@ -611,16 +532,16 @@ struct table_lookup_result {
 	User should not access this field. */
 	uint8_t  reserved1;
 
-	/** Opaque data */
-	volatile uint8_t  opaque2;
+	/** Data2 as been set in the table_result structure */
+	volatile uint8_t  data2;
 
 	/** Reserved for compliance with HW format.
 	User should not access this field. */
 	uint64_t reserved2;
 
-	/** Timestamp of the rule that was matched in the lookup process.
-	For this timestamp to be valid, suitable option should be set in
-	\ref table_rule options field. */
+	/** Timestamp in microseconds of the rule that was matched in the
+	lookup process. For this timestamp to be valid, suitable option should
+	be set in \ref table_rule options field. */
 	volatile uint32_t timestamp;
 };
 #pragma pack(pop)
@@ -730,15 +651,16 @@ struct table_create_params {
 	for more details. */
 	uint16_t attributes;
 
-	/** Timestamp Accuracy in time units for the table rules.
+	/** Timestamp Accuracy in microseconds for the table rules.
 	A rule's timestamp will be updated if:
 	 - Rule timestamp is enabled in the rule's options field.
 	 - The system current timestamp difference from the rule timestamp in
-	   time units is greater than the timestamp accuracy.
-	The time unit used on a specific Table Lookup Hardware Accelerator can
-	be queried using table_hw_get_time_unit().
+	   microseconds is greater than the timestamp accuracy.
+	Please note that timestamp_accurcy value will be round down to the
+	closest power of 2.
+	This field must be greater than zero. 
 	*/
-	enum table_hw_timestamp_accuracy timestamp_accur;
+	uint32_t timestamp_accuracy;
 
 	/** Table Key Size in bytes (fixed per table).
 	In a case of EM table key size is limited to 1-124 Bytes
@@ -836,7 +758,7 @@ struct table_lookup_non_default_params {
 @Param[in]	tbl_params The table parameters.
 @Param[out]	table_id Table ID. A unique (per Hardware Table Accelerator)
 		table identification number to be used for future table
-		references.
+		references. Output is valid only on was success.
 
 @Return		0 on success, or negative value on error.
 
@@ -844,7 +766,6 @@ struct table_lookup_non_default_params {
 @Retval		ENOMEM Error, Not enough memory is available.
 
 @Cautions	In this function the task yields.
-@Cautions	This function may result in a fatal error.
 *//***************************************************************************/
 int table_create(enum table_hw_accel_id acc_id,
 		 struct table_create_params *tbl_params,
@@ -856,14 +777,18 @@ int table_create(enum table_hw_accel_id acc_id,
 
 @Description	Replaces specific table miss result.
 
+		This function issues an ephemeral reference take command. TODO
+		Reference.
+
 @Param[in]	acc_id ID of the Hardware Table Accelerator that contains
 		the table on which the operation will be performed.
 @Param[in]	table_id Table ID.
 @Param[in]	new_miss_result A default result that is chosen when no match
 		is found.
-@Param[in, out]	old_miss_result The replaced miss result. If null the old
-		miss result will not be returned. If not null, structure should
-		be allocated by the caller to this function.
+@Param[in, out]	replaced_miss_result The replaced miss result. If null the
+		replaced miss result will not be returned. If not null,
+		structure should be allocated by the caller to this function.
+		Output is valid only on success.
 
 @Return		None.
 
@@ -872,12 +797,11 @@ int table_create(enum table_hw_accel_id acc_id,
 		with a miss result (i.e. #TABLE_ATTRIBUTE_MR_MISS was set in
 		table attributes).
 @Cautions	In this function the task yields.
-@Cautions	This function may result in a fatal error.
 *//***************************************************************************/
 void table_replace_miss_result(enum table_hw_accel_id acc_id,
 			       t_tbl_id table_id,
 			       struct table_result *new_miss_result,
-			       struct table_result *old_miss_result);
+			       struct table_result *replaced_miss_result);
 
 
 /**************************************************************************//**
@@ -895,7 +819,6 @@ void table_replace_miss_result(enum table_hw_accel_id acc_id,
 @Return		None.
 
 @Cautions	In this function the task yields.
-@Cautions	This function may result in a fatal error.
 *//***************************************************************************/
 void table_get_params(enum table_hw_accel_id acc_id,
 		      t_tbl_id table_id,
@@ -906,6 +829,9 @@ void table_get_params(enum table_hw_accel_id acc_id,
 @Function	table_get_miss_result
 
 @Description	A getter for the table miss result.
+
+		This function issues an ephemeral reference take command. TODO
+		Reference.
 
 @Param[in]	acc_id ID of the Hardware Table Accelerator that contains
 		the table on which the query will be performed.
@@ -920,12 +846,7 @@ void table_get_params(enum table_hw_accel_id acc_id,
 @Cautions	This function should only be called if the table was defined
 		with a miss result (i.e. #TABLE_ATTRIBUTE_MR_MISS was set in
 		table attributes).
-@Cautions	NOTE: If the result is of type that contains pointer to
-		Slab/CDMA buffer (refer to struct table_rule_result
-		documentation) this function will not increment the reference
-		counter of the buffer.
 @Cautions	In this function the task yields.
-@Cautions	This function may result in a fatal error.
 *//***************************************************************************/
 void table_get_miss_result(enum table_hw_accel_id acc_id,
 			   t_tbl_id table_id,
@@ -948,13 +869,6 @@ void table_get_miss_result(enum table_hw_accel_id acc_id,
 @Return		None.
 
 @Cautions	In this function the task yields.
-@Cautions	If the table contains table_result of type \ref
-		TABLE_RESULT_TYPE_REFERENCE the table should be empty when this
-		function is called. In a case which the deleted table miss
-		result is of type \ref TABLE_RESULT_TYPE_REFERENCE the user
-		should decrement the reference counter of the buffer pointed by
-		the miss result pointer after the table delete operation.
-@Cautions	This function may result in a fatal error.
 *//***************************************************************************/
 void table_delete(enum table_hw_accel_id acc_id,
 		  t_tbl_id table_id);
@@ -968,8 +882,11 @@ void table_delete(enum table_hw_accel_id acc_id,
 @Function	table_rule_create
 
 @Description	Adds a rule to a specified table.
-		\n \n If the rule key already exists, the rule will not be
-		added and a status will be returned.
+		\n \n If the rule key descriptor already exists, the rule will
+		not be added and a status will be returned.
+
+		This function issues an ephemeral reference take command. TODO
+		Reference.
 
 @Param[in]	acc_id ID of the Hardware Table Accelerator that contains
 		the table on which the operation will be performed.
@@ -982,7 +899,8 @@ void table_delete(enum table_hw_accel_id acc_id,
 		 - the key size should be added priority field size (4 Bytes)
 		for MFLU tables.
 @Param[out]	rule_id Rule ID of the rule that was created. This ID can be
-		used as a reference to this rule by other functions.
+		used as a reference to this rule by other functions. Output is
+		valid only on success.
 
 @Return		0 on success, or negative value on error.
 
@@ -992,7 +910,9 @@ void table_delete(enum table_hw_accel_id acc_id,
 		in the table. No change was made to the table.
 
 @Cautions	In this function the task yields.
-@Cautions	This function may result in a fatal error.
+@Cautions	If TABLE_ACCEL_ID_MFLU is used and the rule key descriptor
+		already exists in the table with different priority the rule
+		will be replaced. TODO Adress this.
 *//***************************************************************************/
 inline int table_rule_create(enum table_hw_accel_id acc_id,
 			     t_tbl_id table_id,
@@ -1004,10 +924,13 @@ inline int table_rule_create(enum table_hw_accel_id acc_id,
 /**************************************************************************//**
 @Function	table_rule_create_or_replace
 
-@Description	Adds/replaces a rule to a specified table.
+@Description	Adds/replaces a rule to/in a specified table.
 		\n \n If the rule key already exists, the rule will be replaced
 		by the one specified in the function's parameters. Else, a new
 		rule will be created in the table.
+
+		This function issues an ephemeral reference take command. TODO
+		Reference.
 
 @Param[in]	acc_id ID of the Hardware Table Accelerator that contains
 		the table on which the operation will be performed.
@@ -1019,12 +942,13 @@ inline int table_rule_create(enum table_hw_accel_id acc_id,
 		table was created with except for the following remark:
 		 - the key size should be added priority field size (4 Bytes)
 		for MFLU tables.
-@Param[in, out]	old_res The result of the replaced rule. Valid only if
+@Param[in, out]	replaced_result The result of the replaced rule. Valid only if
 		replace took place. If set to null the replaced rule's result
 		will not be returned. If not null, structure should be
 		allocated by the caller to this function.
-@Param[out]	rule_id. Rule ID of the rule that was created or replaced. This
-		ID can be used as a reference to this rule by other functions.
+@Param[out]	rule_id Rule ID of the rule that was created or replaced.
+		This ID can be used as a reference to this rule by
+		other functions. Output is valid only on success.
 
 @Return		0 or positive value on success. Negative value on error.
 
@@ -1035,27 +959,28 @@ inline int table_rule_create(enum table_hw_accel_id acc_id,
 @Retval		ENOMEM Error, Not enough memory is available.
 
 @Cautions	In this function the task yields.
-@Cautions	This function may result in a fatal error.
 *//***************************************************************************/
-/* TODO FIX!!!!!!!!*/
 inline int table_rule_create_or_replace(enum table_hw_accel_id acc_id,
 					t_tbl_id table_id,
 					struct table_rule *rule,
 					uint8_t key_size,
-					struct table_result *old_res,
+					struct table_result *replaced_result,
 					t_rule_id *rule_id);
-/* TODO FIX!!!!!!!!*/
 
-/* TODO link this documentation to std rule replace documentation for LKP
- * change */
+
 /**************************************************************************//**
-@Function	table_rule_replace_by_ruleid
+@Function	table_rule_replace
 
 @Description	Replaces a specified rule's result and options, and updates the
 		rule's timestamp.
 		\n \n Optionally, return the replaced result, options and the
-		old timestamp. The rule's key is not modifiable. Caller to this
-		function supplies the Rule ID of the rule to be replaced.
+		old timestamp. The rule's key is not modifiable.
+
+		To replace MFLU rule priority please use
+		\ref table_rule_modify_priority().
+
+		This function issues an ephemeral reference take command. TODO
+		Reference.
 
 @Param[in]	acc_id ID of the Hardware Table Accelerator that contains
 		the table on which the operation will be performed.
@@ -1064,19 +989,22 @@ inline int table_rule_create_or_replace(enum table_hw_accel_id acc_id,
 @Param[in]	new_result Pointer to the rule new result. Must not be null.
 @Param[in]	new_options The rule's new options (Please refer to
 		\ref FSL_TABLE_RULE_OPTIONS for more details).
-@Param[in, out]	old_result The replaced rule's result. If null the replaced
+@Param[in, out]	replaced_result The replaced rule's result. If null the replaced
 		rule's result will not be returned. If not null, structure
 		should be allocated by the caller to this function.
-@Param[in, out] old_options The replaced rule's options. If null the replaced
-		rule's options will not be returned. If not null, structure
-		should be allocated by the caller to this function.
-		(Please refer to \ref FSL_TABLE_RULE_OPTIONS for more
-		details).
-@Param[in, out] old_timestamp The replaced rule's timestamp. If null the
-		replaced rule's timestamp will not be returned. If not null,
+		Output is valid only on success.
+@Param[in, out] replaced_options The replaced rule's options. If null the
+		replaced rule's options will not be returned. If not null,
 		structure should be allocated by the caller to this function.
+		(Please refer to \ref FSL_TABLE_RULE_OPTIONS for more details).
+		Output is valid only on success.
+@Param[in, out] timestamp The replaced rule's timestamp in microseconds. If
+		null the replaced rule's timestamp will not be returned. If not
+		null, structure should be allocated by the caller to this
+		function.
 		Timestamp is not valid unless the rule replaced was created
-		with suitable options. Available through old_options parameter.
+		with suitable options. Available through replaced_options
+		parameter. Output is valid only on success.
 
 @Return		0 on success or negative value on error.
 
@@ -1086,38 +1014,32 @@ inline int table_rule_create_or_replace(enum table_hw_accel_id acc_id,
 
 @Cautions	In this function the task yields.
 *//***************************************************************************/
-inline int table_rule_replace_by_ruleid(enum table_hw_accel_id acc_id,
-					t_tbl_id table_id,
-					t_rule_id rule_id,
-					struct table_result *new_res,
-					uint8_t new_options,
-					struct table_result *old_result,
-					uint8_t *old_options,
-					uint32_t *old_timestamp);
+inline int table_rule_replace(enum table_hw_accel_id acc_id,
+			      t_tbl_id table_id,
+			      t_rule_id rule_id,
+			      struct table_result *new_result,
+			      uint8_t new_options,
+			      struct table_result *replaced_result,
+			      uint8_t *replaced_options,
+			      uint32_t *timestamp);
 
 
 /**************************************************************************//**
-@Function	table_replace_rule
+@Function	table_rule_modify_priority
 
-@Description	Replaces a specified rule in the table.
-		\n \n The rule's key is not modifiable. Caller to this function
-		supplies the key of the rule to be replaced.
+@Description	Modifies a specified MFLU rule priority in a table.
 
 @Param[in]	acc_id ID of the Hardware Table Accelerator that contains
-		the table on which the operation will be performed.
+		the table on which the operation will be performed. This must
+		be set to #TABLE_ACCEL_ID_MFLU.
 @Param[in]	table_id Table ID.
-@Param[in]	rule Table rule, contains the rule's key descriptor, with
-		which the rule to be replaced will be found and contain the
-		rule result to be replaced. The structure pointed by this
-		pointer must be in the task's workspace and must be aligned to
-		16B boundary.
+@Param[in]	key_desc Contains the rule's MFLU key descriptor of the rule
+		to be modified. The key descriptor that must be equivalent on
+		both key and mask and priority. The key descriptor can be
+		obtained using \ref table_rule_query_get_key_desc() function.
 @Param[in]	key_size Key size in bytes. Should be equal to the key size the
-		table was created with except for the following remark:
-		 - the key size should be added priority field size (4 Bytes)
-		for MFLU tables.
-@Param[in, out]	old_res The result of the replaced rule. If null the replaced
-		rule's result will not be returned. If not null, structure
-		should be allocated by the caller to this function.
+		table was created plus priority field size (4 Bytes).
+@Param[in]	new_prioiry The new priority to be assigned to the rule.
 
 @Return		0 on success or negative value on error.
 
@@ -1125,24 +1047,22 @@ inline int table_rule_replace_by_ruleid(enum table_hw_accel_id acc_id,
 @Retval		EIO Error, a rule with the same key descriptor is not found
 		in the table.
 
-@Cautions	The key descriptor must be the exact same key descriptor that
-		was used for the rule creation (not including
-		reserved/priority fields).
 @Cautions	In this function the task yields.
-@Cautions	This function may result in a fatal error.
 *//***************************************************************************/
-inline int table_rule_replace(enum table_hw_accel_id acc_id,
-			      t_tbl_id table_id,
-			      struct table_rule *rule,
-			      uint8_t key_size,
-			      struct table_result *old_res);
+inline int table_rule_modify_priority(enum table_hw_accel_id acc_id,
+				      t_tbl_id table_id,
+				      struct table_key_desc_mflu *key_desc,
+				      uint8_t key_size,
+				      uint32_t new_prioiry);
 
 
 /**************************************************************************//**
-@Function	table_rule_query_by_ruleid
+@Function	table_rule_query_get_result
 
-@Description	Queries a rule in the table.
-		\n \n This function does not update the matched rule timestamp.
+@Description	Queries a rule in the table by its rule ID.
+		\n \n Optionally, return the queried rule result, options and
+		its timestamp value.
+		This function does not update the matched rule timestamp.
 
 @Param[in]	acc_id ID of the Hardware Table Accelerator that contains
 		the table on which the query will be performed.
@@ -1151,16 +1071,19 @@ inline int table_rule_replace(enum table_hw_accel_id acc_id,
 @Param[in, out]	result The result of the query. If null the queried
 		rule's result will not be returned. If not null, structure
 		should be allocated by the caller to this function.
+		Output is valid only on was success.
 @Param[in, out] options The queried rule's options. If null the queried
 		rule's options will not be returned. If not null, structure
 		should be allocated by the caller to this function.
 		(Please refer to \ref FSL_TABLE_RULE_OPTIONS for more
 		details).
-@Param[in, out]	timestamp Timestamp of the result. If null the queried
-		timestamp result will not be returned. If not null, structure
-		should be allocated by the caller to this function.
+		Output is valid only on success.
+@Param[in, out]	timestamp Timestamp of the result in microseconds. If null the
+		queried timestamp result will not be returned. If not null,
+		structure should be allocated by the caller to this function.
 		Timestamp is not valid unless the rule queried for was created
 		with suitable options. Available through options parameter.
+		Output is valid only on success.
 
 
 @Return		0 on success, #TABLE_STATUS_MISS on miss.
@@ -1171,91 +1094,43 @@ inline int table_rule_replace(enum table_hw_accel_id acc_id,
 
 @Cautions	In this function the task yields.
 *//***************************************************************************/
-inline int table_rule_query_by_ruleid(enum table_hw_accel_id acc_id,
-				      t_tbl_id table_id,
-				      t_rule_id rule_id,
-				      struct table_result *result,
-				      uint8_t *options,
-				      uint32_t *timestamp);
-
-
-/**************************************************************************//**
-@Function	table_rule_query
-
-@Description	Queries a rule in the table.
-		\n \n This function does not update the matched rule timestamp.
-
-@Param[in]	acc_id ID of the Hardware Table Accelerator that contains
-		the table on which the query will be performed.
-@Param[in]	table_id Table ID.
-@Param[in]	key_desc Key Descriptor of the rule to be queried. The
-		structure pointed by this pointer must be in the task's
-		workspace and must be aligned to 16B boundary.
-@Param[in]	key_size Key size in bytes. Should be equal to the key size the
-		table was created with except for the following remark:
-		 - the key size should be added priority field size (4 Bytes)
-		for MFLU tables.
-@Param[out]	result The result of the query. Structure should be allocated
-		by the caller to this function.
-@Param[out]	timestamp Timestamp of the result. Timestamp is not valid
-		unless the rule queried for was created with suitable options
-		(Please refer to \ref FSL_TABLE_RULE_OPTIONS for more
-		details). Must be allocated by the caller to this function.
-
-@Return		0 on success, #TABLE_STATUS_MISS on miss.
-
-@Retval		0 Success.
-@Retval		#TABLE_STATUS_MISS A rule with the same key descriptor is not
-		found in the table.
-
-@Cautions	In this function the task yields.
-*//***************************************************************************/
-inline int table_rule_query(enum table_hw_accel_id acc_id,
-			    t_tbl_id table_id,
-			    union table_key_desc *key_desc,
-			    uint8_t key_size,
-			    struct table_result *result,
-			    uint32_t *timestamp);
-
-
-/**************************************************************************//**
-@Function	table_rule_delete_by_ruleid
-
-@Description	Deletes a specified rule in the table.
-
-@Param[in]	acc_id ID of the Hardware Table Accelerator that contains
-		the table on which the operation will be performed.
-@Param[in]	table_id Table ID.
-@Param[in]	rule_id Rule ID of the rule to be deleted.
-@Param[in, out]	result The result of the deleted rule. If null the deleted
-		rule's result will not be returned. If not null, structure
-		should be allocated by the caller to this function.
-@Param[in, out]	options The deleted rule's options. If null the deleted
-		rule's options will not be returned. If not null, structure
-		should be allocated by the caller to this function.
-		(Please refer to \ref FSL_TABLE_RULE_OPTIONS for more
-		details).
-@Param[in, out]	timestamp Timestamp of the result. If null the queried
-		timestamp result will not be returned. If not null, structure
-		should be allocated by the caller to this function.
-		Timestamp is not valid unless the rule deleted was created
-		with suitable options. Available through options parameter. 
-
-@Return		0 on success or negative value on error.
-
-@Retval		0 Success.
-@Retval		EIO Error, a rule with the same Rule ID is not found
-		in the table.
-
-
-@Cautions	In this function the task yields.
-*//***************************************************************************/
-inline int table_rule_delete_by_ruleid(enum table_hw_accel_id acc_id,
+inline int table_rule_query_get_result(enum table_hw_accel_id acc_id,
 				       t_tbl_id table_id,
 				       t_rule_id rule_id,
 				       struct table_result *result,
 				       uint8_t *options,
 				       uint32_t *timestamp);
+
+
+/**************************************************************************//**
+@Function	table_rule_query_get_key_desc
+
+@Description	Retrieves the key descriptor for a given Rule ID and Table ID
+
+		This functions gets a Rule ID and returns the corresponding
+		Key descriptor. 
+
+@Param[in]	acc_id ID of the Hardware Table Accelerator that contains
+		the table on which the operation will be performed.
+@Param[in]	table_id Table ID.
+@Param[in]	rule_id Rule ID of the key descriptor to be retrieved.
+@Param[out]	key_desc Key descriptor that corresponds to the input 
+		Rule ID. The structure pointed by this pointer must be in the
+		task's workspace and must be aligned to 16B boundary.
+		Output is valid only on success.
+
+@Return		0 on success, #TABLE_STATUS_MISS on miss.
+
+@Retval		0 Success.
+@Retval		#TABLE_STATUS_MISS A rule with the same Rule ID is not
+		found in the table.
+
+@Cautions	In this function the task yields.
+*//***************************************************************************/
+inline int table_rule_query_get_key_desc(enum table_hw_accel_id acc_id,
+					 t_tbl_id table_id,
+					 t_rule_id rule_id,
+					 union table_key_desc *key_desc);
 
 
 /**************************************************************************//**
@@ -1266,34 +1141,38 @@ inline int table_rule_delete_by_ruleid(enum table_hw_accel_id acc_id,
 @Param[in]	acc_id ID of the Hardware Table Accelerator that contains
 		the table on which the operation will be performed.
 @Param[in]	table_id Table ID.
-@Param[in]	key_desc Key Descriptor of the rule to be deleted. The
-		structure pointed by this pointer must be in the task's
-		workspace and must be aligned to 16B boundary.
-@Param[in]	key_size Key size in bytes. Should be equal to the key size the
-		table was created with except for the following remark:
-		 - the key size should be added priority field size (4 Bytes)
-		for MFLU tables.
+@Param[in]	rule_id Rule ID of the rule to be deleted.
 @Param[in, out]	result The result of the deleted rule. If null the deleted
 		rule's result will not be returned. If not null, structure
+		should be allocated by the caller to this function. Output is
+		valid only on success.
+		if delete was successful.
+@Param[in, out]	options The deleted rule's options. If null the deleted
+		rule's options will not be returned. If not null, structure
 		should be allocated by the caller to this function.
+		(Please refer to \ref FSL_TABLE_RULE_OPTIONS for more
+		details).Output is valid only on success.
+@Param[in, out]	timestamp Timestamp of the result in microseconds. If null the
+		queried timestamp result will not be returned. If not null,
+		structure should be allocated by the caller to this function.
+		Timestamp is not valid unless the rule deleted was created
+		with suitable options. Available through options parameter.
+		Output is valid only on success.
 
 @Return		0 on success or negative value on error.
 
 @Retval		0 Success.
-@Retval		EIO Error, a rule with the same key descriptor is not found
+@Retval		EIO Error, a rule with the same Rule ID is not found
 		in the table.
 
-@Cautions	The key descriptor must be the exact same key descriptor that
-		was used for the rule creation (not including reserved/priority
-		fields).
 @Cautions	In this function the task yields.
-@Cautions	This function may result in a fatal error.
 *//***************************************************************************/
 inline int table_rule_delete(enum table_hw_accel_id acc_id,
-			     uint16_t table_id,
-			     union table_key_desc *key_desc,
-			     uint8_t key_size,
-			     struct table_result *result);
+			     t_tbl_id table_id,
+			     t_rule_id rule_id,
+			     struct table_result *result,
+			     uint8_t *options,
+			     uint32_t *timestamp);
 
 
 /* ######################################################################### */
@@ -1305,18 +1184,16 @@ inline int table_rule_delete(enum table_hw_accel_id acc_id,
 @Function	table_lookup_by_key
 
 @Description	Performs a lookup with a key built by the user.
-		\n \n If opaque0_or_reference result field is a reference
-		pointer, its reference counter will be incremented during this
-		operation.
 
-		This function updates the matched result timestamp.
+		This function updates the matched rule timestamp.
 
 @Param[in]	acc_id ID of the Hardware Table Accelerator that contains
 		the table on which the operation will be performed.
 @Param[in]	table_id Table ID.
 @Param[in]	key_desc Lookup Key Descriptor of the rule to be queried. This 
-		parameter is a union of pointers. The memory address pointed by this
-		pointer must be in the task's workspace and must be aligned to 16B boundary.
+		parameter is a union of pointers. The memory address pointed by
+		this pointer must be in the task's workspace and must be
+		aligned to 16B boundary.
 @Param[in]	key_size Key size in bytes. Should be equal to the key size the
 		table was created with except for the following remark:
 		 - the key size should be added priority field size (4 Bytes)
@@ -1324,7 +1201,7 @@ inline int table_rule_delete(enum table_hw_accel_id acc_id,
 @Param[out]	lookup_result Points to a user preallocated memory to which
 		the table lookup result will be written. The structure pointed
 		by this pointer must be in the task's workspace and must be
-		aligned to 16B boundary.
+		aligned to 16B boundary. Output is valid only on success.
 
 @Return		0 on success, TABLE_STATUS_MISS on miss.
 
@@ -1333,14 +1210,12 @@ inline int table_rule_delete(enum table_hw_accel_id acc_id,
 		operation.
 
 @Cautions	In this function the task yields.
-@Cautions	This lookup cannot be used for chaining of lookups.
-@Cautions	This function may result in a fatal error.
 *//***************************************************************************/
 inline int table_lookup_by_key(enum table_hw_accel_id acc_id,
-			uint16_t table_id,
-			union table_lookup_key_desc key_desc,
-			uint8_t key_size,
-			struct table_lookup_result *lookup_result);
+			       uint16_t table_id,
+			       union table_lookup_key_desc key_desc,
+			       uint8_t key_size,
+			       struct table_lookup_result *lookup_result);
 
 
 /**************************************************************************//**
@@ -1349,17 +1224,13 @@ inline int table_lookup_by_key(enum table_hw_accel_id acc_id,
 @Description	Performs a lookup with a predefined key and the default frame.
 		\n \n In this lookup process a lookup key will be built
 		according to the Key Composition Rule associated with the Key
-		ID supplied as a parameter to this functions. The fields order in the
-		key is according to the FECs order in the Key Composition Rule that is
-		related to the keyid. Default frame header (segment), Parse Result
-		address, and FD address parameters are used in the key creation process
+		ID supplied as a parameter to this functions. The fields order
+		in the key is according to the FECs order in the Key
+		Composition Rule that is related to the keyid. Default
+		frame header (segment), Parse Result address, and FD address
+		parameters are used in the key creation process
 
-		This function updates the matched result timestamp.
-
-		If the lookup result contains a pointer to Slab/CDMA buffer
-		(which has a reference counter) and the lookup result type
-		\ref TABLE_RESULT_TYPE_REFERENCE, the pointer reference counter
-		will be incremented during this operation.
+		This function updates the matched rule timestamp.
 
 		Implicit input parameters in Task Defaults: Segment Address,
 		Segment Size, Frame Descriptor Address and Parse Results.
@@ -1377,7 +1248,7 @@ inline int table_lookup_by_key(enum table_hw_accel_id acc_id,
 @Param[out]	lookup_result Points to a user preallocated memory to which
 		the table lookup result will be written. The structure pointed
 		by this pointer must be in the task's workspace and must be
-		aligned to 16B boundary.
+		aligned to 16B boundary. Output is valid only on success.
 
 @Return		0 on success, TABLE_STATUS_MISS on miss or negative value if an
 		error occurred.
@@ -1391,10 +1262,8 @@ inline int table_lookup_by_key(enum table_hw_accel_id acc_id,
 		shorter than the index evaluated for the extraction.
 
 @Cautions	In this function the task yields.
-@Cautions	This function may result in a fatal error.
 @Cautions	Presented header address in the workspace must be aligned to
-			16 bytes.
-
+		16 bytes.
 *//***************************************************************************/
 inline int table_lookup_by_keyid_default_frame(enum table_hw_accel_id acc_id,
 					       t_tbl_id table_id,
@@ -1414,15 +1283,10 @@ inline int table_lookup_by_keyid_default_frame(enum table_hw_accel_id acc_id,
 		a parameter to this functions. The fields order in the key is
 		according to the FECs order in the Key Composition Rule that is 
 		related to the keyid. Frame header (Segment), Parse result,
-		FD address and Metadata can explicitly be passed to this function
-		for the key creation process.
+		FD address and Metadata can explicitly be passed to this
+		function for the key creation process.
 
 		This function updates the matched result timestamp.
-
-		If the lookup result contains a pointer to Slab/CDMA buffer
-		(which has a reference counter) and the lookup result type
-		#TABLE_RESULT_TYPE_REFERENCE, the pointer reference counter
-		will be incremented during this operation.
 
 @Param[in]	acc_id ID of the Hardware Table Accelerator that contains
 		the table on which the operation will be performed.
@@ -1459,9 +1323,8 @@ inline int table_lookup_by_keyid_default_frame(enum table_hw_accel_id acc_id,
 		shorter than the index evaluated for the extraction.
 
 @Cautions	In this function the task yields.
-@Cautions	This function may result in a fatal error.
 @Cautions	Presented header address in the workspace must be aligned to
-			16 bytes.
+		16 bytes.
 *//***************************************************************************/
 inline int table_lookup_by_keyid(enum table_hw_accel_id acc_id,
 				 t_tbl_id table_id,
@@ -1471,6 +1334,10 @@ inline int table_lookup_by_keyid(enum table_hw_accel_id acc_id,
 				 *ndf_params,
 				 struct table_lookup_result *lookup_result);
 
+
+/* ######################################################################### */
+/* ############################# Time Units ################################ */
+/* ######################################################################### */
 
 /**************************************************************************//**
 @Function	table_hw_get_time_unit
@@ -1490,7 +1357,131 @@ void table_hw_get_time_unit(enum table_hw_accel_id acc_id,
 			    uint32_t *time_unit);
 
 
-#ifdef REV2_RULEID
+/* ######################################################################### */
+/* ################################ Obsolete ############################### */
+/* ######################################################################### */
+
+/**************************************************************************//**
+@Function	table_rule_replace_by_key_desc
+
+@Description	Replaces a specified rule in the table.
+		\n \n The rule's key is not modifiable. Caller to this function
+		supplies the key of the rule to be replaced.
+
+@Param[in]	acc_id ID of the Hardware Table Accelerator that contains
+		the table on which the operation will be performed.
+@Param[in]	table_id Table ID.
+@Param[in]	rule Table rule, contains the rule's key descriptor, with
+		which the rule to be replaced will be found and contain the
+		rule result to be replaced. The structure pointed by this
+		pointer must be in the task's workspace and must be aligned to
+		16B boundary.
+@Param[in]	key_size Key size in bytes. Should be equal to the key size the
+		table was created with except for the following remark:
+		 - the key size should be added priority field size (4 Bytes)
+		for MFLU tables.
+@Param[in, out]	replaced_result The result of the replaced rule. If null the
+		replaced rule's result will not be returned. If not null,
+		structure should be allocated by the caller to this function.
+		Output is valid only on success.
+
+@Return		0 on success or negative value on error.
+
+@Retval		0 Success.
+@Retval		EIO Error, a rule with the same key descriptor is not found
+		in the table.
+
+@Cautions	The key descriptor must be the exact same key descriptor that
+		was used for the rule creation (not including reserved fields).
+@Cautions	In this function the task yields.
+*//***************************************************************************/
+inline int table_rule_replace_by_key_desc(enum table_hw_accel_id acc_id,
+					  t_tbl_id table_id,
+					  struct table_rule *rule,
+					  uint8_t key_size,
+					  struct table_result *replaced_result);
+
+
+/**************************************************************************//**
+@Function	table_rule_query_by_key_desc
+
+@Description	Queries a rule in the table.
+		\n \n This function does not update the matched rule timestamp.
+
+@Param[in]	acc_id ID of the Hardware Table Accelerator that contains
+		the table on which the query will be performed.
+@Param[in]	table_id Table ID.
+@Param[in]	key_desc Key Descriptor of the rule to be queried. The
+		structure pointed by this pointer must be in the task's
+		workspace and must be aligned to 16B boundary.
+@Param[in]	key_size Key size in bytes. Should be equal to the key size the
+		table was created with except for the following remark:
+		 - the key size should be added priority field size (4 Bytes)
+		for MFLU tables.
+@Param[out]	result The result of the query. Structure should be allocated
+		by the caller to this function. Output is valid only on success.
+@Param[out]	timestamp Timestamp of the result in microseconds. Timestamp
+		is not valid unless the rule queried for was created with
+		suitable options (Please refer to \ref FSL_TABLE_RULE_OPTIONS
+		for more details). Must be allocated by the caller to this
+		function.
+		Output is valid only on success.
+
+@Return		0 on success, #TABLE_STATUS_MISS on miss.
+
+@Retval		0 Success.
+@Retval		#TABLE_STATUS_MISS A rule with the same key descriptor is not
+		found in the table.
+
+@Cautions	In this function the task yields.
+*//***************************************************************************/
+inline int table_rule_query_by_key_desc(enum table_hw_accel_id acc_id,
+					t_tbl_id table_id,
+					union table_key_desc *key_desc,
+					uint8_t key_size,
+					struct table_result *result,
+					uint32_t *timestamp);
+
+
+/**************************************************************************//**
+@Function	table_rule_delete_by_key_desc
+
+@Description	Deletes a specified rule in the table.
+
+@Param[in]	acc_id ID of the Hardware Table Accelerator that contains
+		the table on which the operation will be performed.
+@Param[in]	table_id Table ID.
+@Param[in]	key_desc Key Descriptor of the rule to be deleted. The
+		structure pointed by this pointer must be in the task's
+		workspace and must be aligned to 16B boundary.
+@Param[in]	key_size Key size in bytes. Should be equal to the key size the
+		table was created with except for the following remark:
+		 - the key size should be added priority field size (4 Bytes)
+		for MFLU tables.
+@Param[in, out]	result The result of the deleted rule. If null the deleted
+		rule's result will not be returned. If not null, structure
+		should be allocated by the caller to this function.
+		Output is valid only on success.
+
+@Return		0 on success or negative value on error.
+
+@Retval		0 Success.
+@Retval		EIO Error, a rule with the same key descriptor is not found
+		in the table.
+
+@Cautions	The key descriptor must be the exact same key descriptor that
+		was used for the rule creation (not including reserved/priority
+		fields).
+@Cautions	In this function the task yields.
+*//***************************************************************************/
+inline int table_rule_delete_by_key_desc(enum table_hw_accel_id acc_id,
+					 uint16_t table_id,
+					 union table_key_desc *key_desc,
+					 uint8_t key_size,
+					 struct table_result *result);
+
+
+#if 0
 /**************************************************************************//**
 @Function	table_get_next_ruleid
 
@@ -1537,40 +1528,7 @@ int table_get_next_ruleid(enum table_hw_accel_id acc_id,
 			  struct table_rule_id_desc *rule_id_desc,
 			  struct table_rule_id_desc *next_rule_id_desc);
 
-
-/**************************************************************************//**
-@Function	table_get_key_desc
-
-@Description	Retrieves the key descriptor for a given Rule ID and Table ID
-
-		This functions gets a Rule ID and returns the corresponding
-		Key descriptor. 
-
-@Param[in]	acc_id ID of the Hardware Table Accelerator that contains
-		the table on which the operation will be performed.
-@Param[in]	table_id Table ID.
-@Param[in]	rule_id_desc Rule ID descriptor. The structure pointed by this
-		pointer must be in the task's workspace and must be aligned
-		to 16B boundary.
-@Param[out]	table_key_desc Key descriptor that corresponds to the input 
-		Rule ID. The structure pointed by this pointer must be in the task's 
-		workspace and must be aligned to 16B boundary.
-
-@Return		0 on success or negative value on error.
-
-@Retval		0 Success.
-@Retval		EIO Error, a rule with the same Rule ID is not found
-		in the table.
-
-@Cautions	In this function the task yields.
-@Cautions	This function may result in a fatal error.
-*//***************************************************************************/
-int table_get_key_desc(enum table_hw_accel_id acc_id,
-		       t_tbl_id table_id,
-		       struct table_rule_id_desc *rule_id_desc,
-		       union table_key_desc *key_desc);
-
-#endif //REV2_RULEID
+#endif
 
 #include "table_rule_inline.h"
 #include "table_lookup_inline.h"
