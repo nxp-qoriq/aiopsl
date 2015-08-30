@@ -137,9 +137,9 @@ void stack_estimation(void)
 	{
 		dpni_drv_register_rx_cb(ni, cb);
 		dpni_drv_unregister_rx_cb(ni);
-		dpni_get_receive_niid();
-		dpni_set_send_niid(ni);
-		dpni_get_send_niid();
+		task_get_receive_niid();
+		task_set_send_niid(ni);
+		task_get_send_niid();
 		dpni_drv_get_primary_mac_addr(ni, mac_addr);
 		dpni_drv_set_primary_mac_addr(ni, ((uint8_t []){0x02, 0x00 ,0xc0 ,0x0a8 ,0x0b ,0xfe }));
 		dpni_drv_add_mac_addr(ni, mac_addr);

@@ -130,7 +130,7 @@ __HOT_CODE ENTRY_POINT static void app_process_packet(void)
 	unlock_spinlock(&packet_lock);
 
 	core_id = (int)core_get_id();
-	ni_id = (uint16_t)dpni_get_receive_niid();
+	ni_id = (uint16_t)task_get_receive_niid();
 	fsl_print("Arena test for packet number %d, on core %d\n", local_packet_number, core_id);
 	err = dpni_drv_get_spid_ddr(ni_id, &spid_ddr);
 	if (err) {

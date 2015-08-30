@@ -455,17 +455,17 @@ int dpni_drv_enable(uint16_t ni_id);
 int dpni_drv_disable(uint16_t ni_id);
 
 /**************************************************************************//**
-@Function	dpni_get_receive_niid
+@Function	task_get_receive_niid
 
 @Description	Get ID of NI on which the default packet arrived.
 
 @Return	NI_IDs on which the default packet arrived.
 *//***************************************************************************/
 /* TODO : replace by macros/inline funcs */
-inline uint16_t dpni_get_receive_niid(void);
+inline uint16_t task_get_receive_niid(void);
 
 /**************************************************************************//**
-@Function	dpni_set_send_niid
+@Function	task_set_send_niid
 
 @Description	Set the NI ID on which the packet should be sent.
 
@@ -476,10 +476,10 @@ inline uint16_t dpni_get_receive_niid(void);
 		\ref error_g
 *//***************************************************************************/
 /* TODO : replace by macros/inline funcs */
-int dpni_set_send_niid(uint16_t niid);
+int task_set_send_niid(uint16_t niid);
 
 /**************************************************************************//**
-@Function	dpni_get_send_niid
+@Function	task_get_send_niid
 
 @Description	Get ID of NI on which the default packet should be sent.
 
@@ -488,7 +488,7 @@ int dpni_set_send_niid(uint16_t niid);
 		\ref error_g
 *//***************************************************************************/
 /* TODO : replace by macros/inline funcs */
-int dpni_get_send_niid(void);
+int task_get_send_niid(void);
 
 
 /**************************************************************************//**
@@ -1269,22 +1269,22 @@ int dpni_drv_set_rx_tc_early_drop(uint16_t ni_id,
                                   uint64_t early_drop_iova);
 
 /**************************************************************************//**
-@Function	set_task_tx_tc
+@Function	task_set_tx_tc
 
 @Description	Set task TX traffic class.
 
 @Param[in]	tc Traffic class.
 *//***************************************************************************/
-inline void set_task_tx_tc(uint8_t tc);
+inline void task_set_tx_tc(uint8_t tc);
 
 /**************************************************************************//**
-@Function	get_task_tx_tc
+@Function	task_get_tx_tc
 
 @Description	Get task TX traffic class.
 
 @Return	TX traffic class.
 *//***************************************************************************/
-inline uint8_t get_task_tx_tc(void);
+inline uint8_t task_get_tx_tc(void);
 
 /**************************************************************************//**
 @Function	dpni_drv_prepare_key_cfg

@@ -159,17 +159,17 @@ inline void sl_tman_expiration_task_prolog(uint16_t spid)
 	set_default_amq_attributes(&amq);
 }
 
-inline uint16_t dpni_get_receive_niid(void)
+inline uint16_t task_get_receive_niid(void)
 {
 	return (uint16_t)PRC_GET_PARAMETER();
 }
 
-inline void set_task_tx_tc(uint8_t tc)
+inline void task_set_tx_tc(uint8_t tc)
 {
 	default_task_params.qd_priority = tc;
 }
 
-inline uint8_t get_task_tx_tc(void)
+inline uint8_t task_get_tx_tc(void)
 {
 	return default_task_params.qd_priority;
 }

@@ -156,7 +156,7 @@ __HOT_CODE ENTRY_POINT static void app_process_packet(void)
 				local_test_error |= 1;
 			}
 		}
-		err = dpni_drv_send(dpni_get_receive_niid());
+		err = dpni_drv_send(task_get_receive_niid());
 		if (err){
 			fsl_print("ERROR = %d: dpni_drv_send()\n",err);
 			local_test_error |= err;
