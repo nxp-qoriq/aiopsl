@@ -521,6 +521,7 @@ static int initialize_dpni(struct mc_dprc *dprc, uint16_t mc_niid, uint16_t aiop
 	}
 	nis[aiop_niid].dpni_drv_tx_params_var.qdid = qdid;
 
+	/* Create flow ID 0 for every probed NI*/
 	err = dpni_set_tx_flow(&dprc->io, 0, dpni, &flow_id, &tx_flow_cfg);
 	if(err || flow_id != 0){
 		sl_pr_err("dpni_set_tx_flow failed for DP-NI%d\n",
@@ -2040,17 +2041,9 @@ int dpni_drv_set_tx_selection(uint16_t ni_id,
                           const struct dpni_drv_tx_selection *cfg)
 {
 	struct mc_dprc *dprc = sys_get_unique_handle(FSL_MOD_AIOP_RC);
-	int err, i;
+	int err;
 	uint16_t dpni;
-	struct dpni_tx_selection_cfg tx_sel;
 
-	memset(&tx_sel, 0, sizeof(struct dpni_tx_selection_cfg));
-
-	for(i = 0; i < DPNI_MAX_TC; i++)
-	{
-		tx_sel.tc_sched[i].mode = (enum dpni_tx_schedule_mode)(cfg->tc_sched[i].mode);
-		tx_sel.tc_sched[i].delta_bandwidth = cfg->tc_sched[i].delta_bandwidth;
-	}
 	/*Lock dpni table*/
 	cdma_mutex_lock_take((uint64_t)nis, CDMA_MUTEX_READ_LOCK);
 	err = dpni_open(&dprc->io, 0, (int)nis[ni_id].dpni_id, &dpni);
@@ -2060,7 +2053,8 @@ int dpni_drv_set_tx_selection(uint16_t ni_id,
 		return err;
 	}
 
-	err = dpni_set_tx_selection(&dprc->io, 0, dpni, &tx_sel);
+	err = dpni_set_tx_selection(&dprc->io, 0, dpni,
+	                            (struct dpni_tx_selection_cfg *) &cfg);
 	if(err){
 		sl_pr_err("dpni_set_tx_selection failed\n");
 		dpni_close(&dprc->io, 0, dpni);
