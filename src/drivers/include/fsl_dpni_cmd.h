@@ -658,7 +658,8 @@ do { \
 			attr->conf_err_attr.queue_attr.order_preservation_en);\
 	MC_RSP_OP(cmd, 1, 0,  64, uint64_t, \
 			attr->conf_err_attr.queue_attr.user_ctx);\
-	MC_RSP_OP(cmd, 2, 0,  32, uint32_t, attr->tail_drop_threshold); \
+	MC_RSP_OP(cmd, 2, 0,  32, uint32_t, \
+			attr->conf_err_attr.queue_attr.tail_drop_threshold); \
 	MC_RSP_OP(cmd, 2, 32, 32, uint32_t, \
 			attr->conf_err_attr.queue_attr.fqid);\
 } while (0)
