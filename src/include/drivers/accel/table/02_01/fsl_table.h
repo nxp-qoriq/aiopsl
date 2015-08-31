@@ -959,6 +959,9 @@ inline int table_rule_create(enum table_hw_accel_id acc_id,
 @Retval		ENOMEM Error, Not enough memory is available.
 
 @Cautions	In this function the task yields.
+@Cautions	If TABLE_ACCEL_ID_MFLU is used and the rule key descriptor
+		already exists in the table with different priority the rule
+		will be replaced. TODO Address this.
 *//***************************************************************************/
 inline int table_rule_create_or_replace(enum table_hw_accel_id acc_id,
 					t_tbl_id table_id,
@@ -1346,6 +1349,9 @@ inline int table_lookup_by_keyid(enum table_hw_accel_id acc_id,
 		\n \n The rule's key is not modifiable. Caller to this function
 		supplies the key of the rule to be replaced.
 
+		To replace MFLU rule priority please use
+		\ref table_rule_modify_priority().
+
 @Param[in]	acc_id ID of the Hardware Table Accelerator that contains
 		the table on which the operation will be performed.
 @Param[in]	table_id Table ID.
@@ -1411,6 +1417,9 @@ inline int table_rule_replace_by_key_desc(enum table_hw_accel_id acc_id,
 @Retval		#TABLE_STATUS_MISS A rule with the same key descriptor is not
 		found in the table.
 
+@Cautions	The key descriptor must be the exact same key descriptor that
+		was used for the rule creation (not including reserved/priority
+		fields).
 @Cautions	In this function the task yields.
 *//***************************************************************************/
 inline int table_rule_query_by_key_desc(enum table_hw_accel_id acc_id,

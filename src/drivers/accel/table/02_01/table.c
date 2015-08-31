@@ -287,26 +287,6 @@ void table_delete(enum table_hw_accel_id acc_id,
 }
 
 
-void table_hw_get_time_unit(enum table_hw_accel_id acc_id,
-			    uint32_t *time_unit)
-{
-	uint32_t *reg_addr;
-	if (acc_id == TABLE_ACCEL_ID_CTLU) {
-		reg_addr = ((uint32_t *) 
-				(TABLE_MEMMAP_CTLU_BASE_ADDR
-				 |TABLE_MEMMAP_TIMESTAMP_WINDOW_BASE_OFFSET)
-			   );
-	} else {
-		reg_addr = ((uint32_t *) 
-				(TABLE_MEMMAP_MFLU_BASE_ADDR
-				 |TABLE_MEMMAP_TIMESTAMP_WINDOW_BASE_OFFSET)
-			   );
-	}
-	*time_unit = 1 <<  ((*reg_addr) &
-			    TABLE_MEMMAP_TIMESTAMP_WINDOW_FIELD_MASK);
-}
-
-
 #ifdef REV2_RULEID
 int table_get_next_ruleid(enum table_hw_accel_id acc_id,
 			  t_tbl_id table_id,
@@ -366,6 +346,27 @@ int table_query_debug(enum table_hw_accel_id acc_id,
 	return *((int32_t *)HWC_ACC_OUT_ADDRESS);
 }
 
+
+void table_hw_get_time_unit(enum table_hw_accel_id acc_id,
+			    uint32_t *time_unit)
+{
+	uint32_t *reg_addr;
+	if (acc_id == TABLE_ACCEL_ID_CTLU) {
+		reg_addr = ((uint32_t *) 
+				(TABLE_MEMMAP_CTLU_BASE_ADDR
+				 |TABLE_MEMMAP_TIMESTAMP_WINDOW_BASE_OFFSET)
+			   );
+	} else {
+		reg_addr = ((uint32_t *) 
+				(TABLE_MEMMAP_MFLU_BASE_ADDR
+				 |TABLE_MEMMAP_TIMESTAMP_WINDOW_BASE_OFFSET)
+			   );
+	}
+	*time_unit = 1 <<  ((*reg_addr) &
+			    TABLE_MEMMAP_TIMESTAMP_WINDOW_FIELD_MASK);
+}
+
+
 #pragma push
 	/* make all following data go into .exception_data */
 #pragma section data_type ".exception_data"
@@ -416,26 +417,26 @@ void table_exception_handler(char *file_path,
 	case TABLE_RULE_REPLACE_FUNC_ID:
 		func_name = "table_rule_replace";
 		break;
-	case TABLE_RULE_QUERY_FUNC_ID:
-		func_name = "table_rule_query";
+	case TABLE_RULE_MODIFY_PRIORITY_FUNC_ID:
+		func_name: "table_rule_modify_priority";
+		break;
+	case TABLE_RULE_QUERY_GET_RESULT_FUNC_ID:
+		func_name = "table_rule_query_get_result";
+		break;
+	case TABLE_RULE_QUERY_GET_KEY_DESC_FUNC_ID:
+		func_name = "table_rule_query_get_key_desc";
 		break;
 	case TABLE_RULE_DELETE_FUNC_ID:
 		func_name = "table_rule_delete";
 		break;
-	case TABLE_GET_NEXT_RULEID_FUNC_ID:
-		func_name = "table_get_next_ruleid";
+	case TABLE_RULE_REPLACE_BY_KEY_DESC_FUNC_ID:
+		func_name = "table_rule_replace_by_key_desc";
 		break;
-	case TABLE_GET_KEY_DESC_FUNC_ID:
-		func_name = "table_get_key_desc";
+	case TABLE_RULE_DELETE_BY_KEY_DESC_FUNC_ID:
+		func_name = "table_rule_delete_by_key_desc";
 		break;
-	case TABLE_RULE_REPLACE_BY_RULEID_FUNC_ID:
-		func_name = "table_rule_replace_by_ruleid";
-		break;
-	case TABLE_RULE_DELETE_BY_RULEID_FUNC_ID:
-		func_name = "table_rule_delete_by_ruleid";
-		break;
-	case TABLE_RULE_QUERY_BY_RULEID_FUNC_ID:
-		func_name = "table_rule_query_by_ruleid";
+	case TABLE_RULE_QUERY_BY_KEY_DESC_FUNC_ID:
+		func_name = "table_rule_query_by_key_desc";
 		break;
 	case TABLE_LOOKUP_BY_KEY_FUNC_ID:
 		func_name = "table_rule_lookup_by_key";
@@ -449,20 +450,6 @@ void table_exception_handler(char *file_path,
 	case TABLE_QUERY_DEBUG_FUNC_ID:
 		func_name = "table_query_debug";
 		break;
-	case TABLE_HW_ACCEL_ACQUIRE_LOCK_FUNC_ID:
-		func_name = "table_hw_accel_acquire_lock";
-		break;
-	case TABLE_HW_ACCEL_RELEASE_LOCK_FUNC_ID:
-		func_name = "table_hw_accel_release_lock";
-		break;
-	case TABLE_EXCEPTION_HANDLER_WRP_FUNC_ID:
-		func_name = "table_exception_handler_wrp";
-		break;
-	/* this function should not be recursive and can go to the exception
-	 * handler directly */
-	/* case TABLE_EXCEPTION_HANDLER_FUNC_ID:
-		func_name = "table_exception_handler";
-		break; */
 	case TABLE_CALC_NUM_ENTRIES_PER_RULE_FUNC_ID:
 		func_name = "table_calc_num_entries_per_rule";
 		break;
@@ -508,8 +495,9 @@ void table_exception_handler(char *file_path,
 		case(TABLE_SW_STATUS_UNKNOWN_TBL_TYPE):
 			status = "Unknown table type.\n";
 			break;
-		case(TABLE_SW_STATUS_TKT226361_ERR):
-			status = "PDM TKT226361 Workaround failed.\n";
+		case(TABLE_SW_STATUS_SAME_PRIORITY):
+			status = "Rule modify failed. New priority is the same"
+				 " as the current.";
 			break;
 		default:
 			status = "Unknown or Invalid SW status.\n";

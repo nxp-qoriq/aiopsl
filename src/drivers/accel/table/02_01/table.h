@@ -417,9 +417,9 @@
 #define TABLE_SW_STATUS_UNKNOWN_TBL_TYPE	0xFF000005
 
 /**
- * Work around for TKT226361 error.
+ * Modify priority failed due to equality between new and current priority.
  */
-#define TABLE_SW_STATUS_TKT226361_ERR		0xFF000006
+#define TABLE_SW_STATUS_SAME_PRIORITY		0xFF000006
 
 /** @} */ /* end of TABLE_STATUS */
 
@@ -440,7 +440,6 @@
 
 @{
 *//***************************************************************************/
-/* TODO FIX AFTER REMOVING AND RENAMING FUNCTIONS */
 enum table_function_identifier {
 	TABLE_CREATE_FUNC_ID,
 	TABLE_REPLACE_MISS_RESULT_FUNC_ID,
@@ -450,23 +449,18 @@ enum table_function_identifier {
 	TABLE_RULE_CREATE_FUNC_ID,
 	TABLE_RULE_CREATE_OR_REPLACE_FUNC_ID,
 	TABLE_RULE_REPLACE_FUNC_ID,
-	TABLE_RULE_QUERY_FUNC_ID,
+	TABLE_RULE_QUERY_GET_RESULT_FUNC_ID,
+	TABLE_RULE_QUERY_GET_KEY_DESC_FUNC_ID,
 	TABLE_RULE_DELETE_FUNC_ID,
-	TABLE_GET_NEXT_RULEID_FUNC_ID,
-	TABLE_GET_KEY_DESC_FUNC_ID,
-	TABLE_RULE_REPLACE_BY_RULEID_FUNC_ID,
-	TABLE_RULE_DELETE_BY_RULEID_FUNC_ID,
-	TABLE_RULE_QUERY_BY_RULEID_FUNC_ID,
+	TABLE_RULE_REPLACE_BY_KEY_DESC_FUNC_ID,
+	TABLE_RULE_MODIFY_PRIORITY_FUNC_ID,
+	TABLE_RULE_DELETE_BY_KEY_DESC_FUNC_ID,
+	TABLE_RULE_QUERY_BY_KEY_DESC_FUNC_ID,
 	TABLE_LOOKUP_BY_KEY_FUNC_ID,
 	TABLE_LOOKUP_BY_KEYID_DEFAULT_FRAME_FUNC_ID,
 	TABLE_LOOKUP_BY_KEYID_FUNC_ID,
 	TABLE_QUERY_DEBUG_FUNC_ID,
-	TABLE_HW_ACCEL_ACQUIRE_LOCK_FUNC_ID,
-	TABLE_HW_ACCEL_RELEASE_LOCK_FUNC_ID,
-	TABLE_EXCEPTION_HANDLER_WRP_FUNC_ID,
-	TABLE_EXCEPTION_HANDLER_FUNC_ID,
 	TABLE_CALC_NUM_ENTRIES_PER_RULE_FUNC_ID,
-	TABLE_WORKAROUND_TKT226361_FUNC_ID
 };
 /** @} */ /* end of table_function_identifier */
 
@@ -981,6 +975,10 @@ struct table_acc_context {
 int table_query_debug(enum table_hw_accel_id acc_id,
 		      t_tbl_id table_id,
 		      struct table_params_query_output_message *output);
+
+
+/* TODO documentation */
+void table_hw_get_time_unit(enum table_hw_accel_id acc_id, uint32_t *time_unit);
 
 /**************************************************************************//**
 @Function	table_inline_exception_handler
