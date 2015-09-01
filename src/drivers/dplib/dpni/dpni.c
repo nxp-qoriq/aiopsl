@@ -50,8 +50,8 @@ int dpni_prepare_key_cfg(struct dpkg_profile_cfg *cfg,
 	
 	for (i = 0; i < DPKG_MAX_NUM_OF_EXTRACTS; i++) {
 		if (i < cfg->num_extracts) {
-		switch (cfg->extracts[i].type) {
-		case DPKG_EXTRACT_FROM_HDR:
+			switch (cfg->extracts[i].type) {
+			case DPKG_EXTRACT_FROM_HDR:
 				params[param] |= mc_enc(0, 8, cfg->extracts[i].extract.from_hdr.prot);
 				params[param] |= mc_enc(8, 4, cfg->extracts[i].extract.from_hdr.type);
 				params[param] |= mc_enc(16, 8, cfg->extracts[i].extract.from_hdr.size);
@@ -60,38 +60,38 @@ int dpni_prepare_key_cfg(struct dpkg_profile_cfg *cfg,
 				params[param] = cpu_to_le64(params[param]);
 				param++;
 				params[param] |= mc_enc(0, 8, cfg->extracts[i].extract.from_hdr.hdr_index);
-			break;
-		case DPKG_EXTRACT_FROM_DATA:
+				break;
+			case DPKG_EXTRACT_FROM_DATA:
 				params[param] |= mc_enc(16, 8, cfg->extracts[i].extract.from_data.size);
 				params[param] |= mc_enc(24, 8, cfg->extracts[i].extract.from_data.offset);
 				params[param] = cpu_to_le64(params[param]);
 				param++;
-			break;
-		case DPKG_EXTRACT_CONSTANT:
+				break;
+			case DPKG_EXTRACT_CONSTANT:
 				params[param] = cpu_to_le64(0);
 				param++;
 				params[param] |= mc_enc(8, 8, cfg->extracts[i].extract.constant.constant);
 				params[param] |= mc_enc(16, 8, cfg->extracts[i].extract.constant.num_of_repeats);
-			break;
-		default:
-			return -EINVAL;
-		}
+				break;
+			default:
+				return -EINVAL;
+			}
 
-		params[param] |= mc_enc(
-			24, 8, cfg->extracts[i].num_of_byte_masks);
-		params[param] |= mc_enc(32, 4, cfg->extracts[i].type);
-		params[param] = cpu_to_le64(params[param]);
-		param++;
-		for (j = 0; j < 4; j++) {
 			params[param] |= mc_enc(
-				(offset), 8, cfg->extracts[i].masks[j].mask);
-			params[param] |= mc_enc(
-				(offset + 8), 8,
-				cfg->extracts[i].masks[j].offset);
-			offset += 16;
-		}
-		params[param] = cpu_to_le64(params[param]);
-		param++;
+				24, 8, cfg->extracts[i].num_of_byte_masks);
+			params[param] |= mc_enc(32, 4, cfg->extracts[i].type);
+			params[param] = cpu_to_le64(params[param]);
+			param++;
+			for (j = 0; j < 4; j++) {
+				params[param] |= mc_enc(
+					(offset), 8, cfg->extracts[i].masks[j].mask);
+				params[param] |= mc_enc(
+					(offset + 8), 8,
+					cfg->extracts[i].masks[j].offset);
+				offset += 16;
+			}
+			params[param] = cpu_to_le64(params[param]);
+			param++;
 		}
 		else {
 			params[param] = cpu_to_le64(0);
