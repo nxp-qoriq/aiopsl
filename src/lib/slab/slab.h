@@ -80,6 +80,10 @@
 /**< Real buffer size used by user */
 #define SLAB_SIZE_SET(SIZE)     (uint16_t)((SIZE) + SLAB_HW_META_OFFSET)
 /**< Buffer size that needs to be set for CDMA, including metadata */
+#define SLAB_MINIMUM_ALIGNMENT_FOR_CACHE_LINE      128
+/**< Minimum alignment should be used in bpids for cache line read if memory
+ * optimization flag is not set
+ */
 
 #define SLAB_HW_POOL_CREATE(VP) \
 ((((VP) & (SLAB_VP_POOL_MASK >> SLAB_VP_POOL_SHIFT)) << SLAB_VP_POOL_SHIFT) \
@@ -115,6 +119,8 @@ struct slab_bpid_info {
 	/**< Buffer alignment */
 	uint32_t num_buffers;
 	/**< Number of MAX requested buffers per pool */
+	uint32_t flags;
+	/**< flags to use when processing the requests */
 };
 
 /**************************************************************************//**
@@ -228,6 +234,8 @@ struct request_table_info{
 	/**< Number of requested committed buffers */
 	uint16_t alignment;
 	/**< Buffer alignment */
+	uint32_t flags;
+	/**< flags to use when processing the requests */
 };
 
 struct early_init_request_table{
