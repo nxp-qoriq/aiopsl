@@ -270,7 +270,7 @@ __HOT_CODE ENTRY_POINT static void app_process_packet(void)
 	unlock_spinlock(&test_error_lock);
 
 	if(local_packet_number == 38 )
-	{ /*40 packets (0 - 39) with one broadcast after the broadcast is dissabled */
+	{ /*40 packets (0 - 39) with one broadcast after the broadcast is disabled */
 		for(i = 0; i < 11; i++)
 		{
 			err = dpni_drv_get_counter((uint16_t)ni_id,(enum dpni_drv_counter)i ,&ctr_value);
@@ -301,7 +301,9 @@ __HOT_CODE ENTRY_POINT static void app_process_packet(void)
 }
 int app_early_init(void){
 	int err = 0;
+	err |= slab_register_context_buffer_requirements(10,15,56,32,MEM_PART_SYSTEM_DDR, 0, 0);
 	err |= slab_register_context_buffer_requirements(200,250,248,64,MEM_PART_SYSTEM_DDR,0, 0);
+	err |= slab_register_context_buffer_requirements(10,15,56,32,MEM_PART_PEB, SLAB_OPTIMIZE_MEM_UTILIZATION_FLAG, 0);
 	err |= slab_register_context_buffer_requirements(200,250,248,64,MEM_PART_PEB,0, 0);
 	err |= slab_register_context_buffer_requirements(200,250,504,64,MEM_PART_DP_DDR,0, 120);
 	if(err)
