@@ -123,7 +123,6 @@ do {\
 		STH_SWAP(pl_icid, 0, &(adc->pl_icid));			\
 	} while (0)
 
-
 /** Delete FDMA handle and store user modified data */
 #if 0
 #define CMDIF_STORE_DATA \
@@ -139,6 +138,7 @@ do {\
 #else
 #define CMDIF_STORE_DATA \
 	do {\
+		*((uint8_t *)HWC_SPID_ADDRESS) = 0; \
 		if (LDPAA_FD_GET_LENGTH(HWC_FD_ADDRESS) > 0) \
 			fdma_store_default_frame_data(); \
 	} while(0)
