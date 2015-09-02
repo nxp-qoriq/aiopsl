@@ -118,8 +118,10 @@ int table_rule_create_or_replace(enum table_hw_accel_id acc_id,
 				 t_tbl_id table_id,
 				 struct table_rule *rule,
 				 uint8_t key_size,
+				 t_rule_id *rule_id,
 				 struct table_result *replaced_result,
-				 t_rule_id *rule_id)
+				 uint8_t *replaced_options,
+				 uint32_t *timestamp)
 {
 #ifdef CHECK_ALIGNMENT
 	DEBUG_ALIGN("table.c", (uint32_t)rule, ALIGNMENT_16B);

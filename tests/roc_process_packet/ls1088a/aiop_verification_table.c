@@ -147,28 +147,30 @@ uint16_t aiop_verification_table(uint32_t asa_seg_addr)
 		struct table_rule_create_replace_command *str =
 		  (struct table_rule_create_replace_command *)
 		  asa_seg_addr;
+
+		struct table_result *result_ptr = NULL;
+		uint8_t             *options_ptr = NULL;
+		uint32_t            *timestamp_ptr = NULL;
+
+		if (!(str->flags & TABLE_VERIF_FLAG_OLD_RESULT_NULL))
+			result_ptr = &str->replaced_result;
+		if (!(str->flags & TABLE_VERIF_FLAG_OLD_OPTIONS_NULL))
+			options_ptr = &str->replaced_options;
+		if (!(str->flags & TABLE_VERIF_FLAG_OLD_TIMESTAMP_NULL))
+			timestamp_ptr = &str->timestamp;
+
 		struct table_rule rule_ptr __attribute__((aligned(16)));
 
 		rule_ptr = *(struct table_rule*)str->rule_ptr;
-		if (str->flags & TABLE_VERIF_FLAG_OLD_RESULT_NULL) {
-			str->status = table_rule_create_or_replace
-						(str->acc_id,
-						 str->table_id,
-						 &rule_ptr,
-						 str->key_size,
-						 (void *)0,
-						 rule_id_array +
-						     str->rule_id_index);
-		} else {
-			str->status = table_rule_create_or_replace
-						(str->acc_id,
-						 str->table_id,
-						 &rule_ptr,
-						 str->key_size,
-						 &str->old_res,
-						 rule_id_array +
-						     str->rule_id_index);
-		}
+		str->status = table_rule_create_or_replace(str->acc_id,
+							   str->table_id,
+							   &rule_ptr,
+							   str->key_size,
+							   rule_id_array +
+							    str->rule_id_index,
+							    result_ptr,
+							    options_ptr,
+							    timestamp_ptr);
 		str_size =
 			sizeof(struct table_rule_create_replace_command);
 		break;
@@ -403,7 +405,7 @@ uint16_t aiop_verification_table(uint32_t asa_seg_addr)
 				str->table_id,
 				(struct table_rule*)str->rule_ptr,
 				str->key_size,
-				&str->old_res);
+				&str->replaced_result);
 		}
 
 		str_size =

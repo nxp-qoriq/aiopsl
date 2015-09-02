@@ -942,14 +942,22 @@ inline int table_rule_create(enum table_hw_accel_id acc_id,
 		table was created with except for the following remark:
 		 - the key size should be added priority field size (4 Bytes)
 		for MFLU tables.
+@Param[out]	rule_id Rule ID of the rule that was created or replaced.
+		This ID can be used as a reference to this rule by
+		other functions. Output is valid only on success.
 @Param[in, out]	replaced_result The result of the replaced rule. Valid only if
 		replace took place. If set to null the replaced rule's result
 		will not be returned. If not null, structure should be
 		allocated by the caller to this function.
-@Param[out]	rule_id Rule ID of the rule that was created or replaced.
-		This ID can be used as a reference to this rule by
-		other functions. Output is valid only on success.
-
+@Param[in, out] replaced_options The replaced rule's options. Valid only if
+		replace took place. If null the replaced rule's options will
+		not be returned. If not null, structure should be allocated by
+		the caller to this function. (Please refer to \ref
+		FSL_TABLE_RULE_OPTIONS for more details).
+@Param[in, out] timestamp The replaced rule's timestamp in microseconds. Valid
+		only if replace took place. If null the replaced rule's
+		timestamp will not be returned. If not null, structure should
+		be allocated by the caller to this function.
 @Return		0 or positive value on success. Negative value on error.
 
 @Retval		0 Success.  A rule with the same key descriptor was found in
@@ -967,8 +975,10 @@ inline int table_rule_create_or_replace(enum table_hw_accel_id acc_id,
 					t_tbl_id table_id,
 					struct table_rule *rule,
 					uint8_t key_size,
+					t_rule_id *rule_id,
 					struct table_result *replaced_result,
-					t_rule_id *rule_id);
+					uint8_t *replaced_options,
+					uint32_t *timestamp);
 
 
 /**************************************************************************//**

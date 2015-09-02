@@ -350,14 +350,21 @@ struct table_rule_create_replace_command{
 	 table_rule_create_or_replace rule ID output. */
 	int rule_id_index;
 
-	/** Rule's old result - valid only if replace occurred */
-	struct table_result old_res;
-
 	/** A pointer to the rule to be added (workspace pointer)*/
 	uint32_t rule_ptr;
 
 	/** Command returned status */
 	int32_t  status;
+
+	/** Rule's replaced result - valid only if replace occurred */
+	struct table_result replaced_result;
+
+	/** Rule's replaced options - valid only if replace occurred and
+	 * correct flag was set */
+	uint8_t replaced_options;
+
+	/** Rule's old timstamp */
+	uint32_t timestamp;
 
 	/** Table ID */
 	uint16_t table_id;
@@ -408,9 +415,6 @@ struct table_rule_replace_command{
 
 	/** Table ID */
 	uint16_t table_id;
-
-	/** Key size */
-	uint8_t key_size;
 
 	/** Table Accelerator ID */
 	enum table_hw_accel_id acc_id;
