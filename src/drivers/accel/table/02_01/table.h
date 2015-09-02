@@ -205,7 +205,7 @@
 /* Most flags are in fsl_table */
 
 /** Set ephemeral take command */
-#define TABLE_HWC_FLAG_EPHS				0x1000
+#define TABLE_HWC_FLAG_EPHS				0x01000000
 /** @} */ /* end of TABLE_HWC_FLAGS */
 
 /**************************************************************************//**
