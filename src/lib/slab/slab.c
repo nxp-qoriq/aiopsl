@@ -1378,7 +1378,7 @@ __COLD_CODE static int slab_proccess_registered_requests(int *num_bpids, struct 
 		return -ENOMEM;
 
 
-	for(i = 0; i < SLAB_NUM_MEM_PARTITIONS; i++)/*i used as array index*/
+	for(i = 0; i < SLAB_NUM_MEM_PARTITIONS; i++)
 	{
 		if(available_bpids_per_partition[i] > 0)
 		{
