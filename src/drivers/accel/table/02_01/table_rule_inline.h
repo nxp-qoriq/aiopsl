@@ -155,11 +155,16 @@ int table_rule_create_or_replace(enum table_hw_accel_id acc_id,
 	status = *((int32_t *)HWC_ACC_OUT_ADDRESS);
 	if (status == TABLE_HW_STATUS_SUCCESS) {
 		/* Replace occurred */
+		*rule_id = out_msg.rule_id;
 		if (replaced_result)
 			/* STQW optimization is not done here so we do not
 			 * force alignment */
 			*replaced_result = out_msg.result;
-			*rule_id = out_msg.rule_id;
+		if (replaced_options)
+			*replaced_options = out_msg.stdy_and_reserved &
+					    TABLE_ENTRY_STDY_FIELD_MASK;
+		if(timestamp)
+			*timestamp = out_msg.timestamp;
 	}
 	else if (status == TABLE_HW_STATUS_BIT_MISS){
 		/* Create occurred */
