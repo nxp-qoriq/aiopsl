@@ -74,7 +74,7 @@ if __name__ == "__main__":
 		sim_init_params = str(sys.argv[1])
 		sys_test = str(sys.argv[2])
 
-	if "ls2085a" in str(sim_init_params):
+	if "ls2085a" in str(sim_init_params) or "ls2088a" in str(sim_init_params):
 		device = "ls2085aiss"
 	elif "ls1088a" in str(sim_init_params):
 		device = "ls1088aiss"
