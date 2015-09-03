@@ -213,7 +213,6 @@ int app_test_slab_init(void)
 		if (!err) return -EEXIST;
 #endif
 
-
 		/* Reuse slab handle test  */
 		err = slab_create(1, 1, 248, 64, MEM_PART_DP_DDR, 0,
 		                  NULL, &my_slab);
@@ -222,10 +221,80 @@ int app_test_slab_init(void)
 		err = slab_free(&my_slab);
 		if (err) return err;
 
+		fsl_print("Check cache line optimization - DPDDR\n");
+		/* Reuse slab handle test  */
+		err = slab_create(10, 10, 56, 32, MEM_PART_DP_DDR, 0,
+		                  NULL, &my_slab);
+		if (err) return err;
+
+		err = slab_acquire(my_slab, &buff[0]);
+		if (err) return err;
+		err = slab_acquire(my_slab, &buff[1]);
+		if (err) return err;
+
+		if(buff[0] % 128 != 0){
+			fsl_print("Error, cache line optimization failed 0 DPDDR\n");
+			return -EINVAL;
+		}
+		if(buff[1] % 128 != 0){
+			fsl_print("Error, cache line optimization failed 1 DPDDR\n");
+			return -EINVAL;
+		}
+		if (slab_refcount_decr(buff[0]) == SLAB_CDMA_REFCOUNT_DECREMENT_TO_ZERO){
+			err = slab_release(my_slab, buff[0]);
+			if (err) return err;
+		}
+		else
+			return -ENODEV;
+		if (slab_refcount_decr(buff[1]) == SLAB_CDMA_REFCOUNT_DECREMENT_TO_ZERO){
+			err = slab_release(my_slab, buff[1]);
+			if (err) return err;
+		}
+		else
+			return -ENODEV;
+		err = slab_free(&my_slab);
+		if (err) return err;
+
+		fsl_print("Done checking cache line optimization - DPDDR\n");
+
 	}
 	else {
 		fsl_print("DP-DDR does not exists.\n");
 	}
+
+
+	fsl_print("Check cache line optimization - PEB\n");
+	/* Reuse slab handle test  */
+	err = slab_create(10, 10, 56, 32, MEM_PART_PEB, 0,
+	                  NULL, &my_slab);
+	if (err) return err;
+
+	err = slab_acquire(my_slab, &buff[0]);
+	if (err) return err;
+	err = slab_acquire(my_slab, &buff[1]);
+	if (err) return err;
+
+	if((buff[0] % 128 == 0) && (buff[1] % 128 == 0)){
+		fsl_print("Error, cache line optimization failed - PEB\n");
+		return -EINVAL;
+	}
+
+	if (slab_refcount_decr(buff[0]) == SLAB_CDMA_REFCOUNT_DECREMENT_TO_ZERO){
+		err = slab_release(my_slab, buff[0]);
+		if (err) return err;
+	}
+	else
+		return -ENODEV;
+	if (slab_refcount_decr(buff[1]) == SLAB_CDMA_REFCOUNT_DECREMENT_TO_ZERO){
+		err = slab_release(my_slab, buff[1]);
+		if (err) return err;
+	}
+	else
+		return -ENODEV;
+	err = slab_free(&my_slab);
+	if (err) return err;
+	fsl_print("Done checking cache line optimization - PEB\n");
+
 	return 0;
 }
 
