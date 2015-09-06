@@ -809,6 +809,16 @@ uint16_t aiop_verification_fdma(uint32_t asa_seg_addr)
 		str_size = (uint16_t)sizeof(struct fdma_checksum_command);
 		break;
 	}
+	/* FDMA Get Working frame length Command Verification */
+	case FDMA_GWFL_CMD:
+	{
+		struct fdma_get_wf_length_command *str =
+			(struct fdma_get_wf_length_command *) asa_seg_addr;
+		get_frame_length(str->frame_handle, &(str->length));
+		str->status = SUCCESS;
+		str_size = (uint16_t)sizeof(struct fdma_get_wf_length_command);
+		break;
+	}
 	/* FDMA Copy Command Verification */
 	case FDMA_COPY_CMD_STR:
 	{

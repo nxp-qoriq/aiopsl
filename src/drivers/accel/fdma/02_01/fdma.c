@@ -1339,6 +1339,29 @@ int fdma_replace_default_pta_segment_data(
 	return (int32_t)(res1);
 }
 
+void get_frame_length(uint8_t frame_handle, uint32_t *length)
+{
+	/* command parameters and results */
+	int8_t res1;
+	
+	/* prepare + store command parameters */
+	*((uint32_t *)(HWC_ACC_IN_ADDRESS)) = 
+			FDMA_GET_FRAME_LENGTH_CMD_ARG1(frame_handle);
+
+	/* call FDMA Accelerator */
+	if ((__e_hwacceli_(FODMA_ACCEL_ID)) == FDMA_SUCCESS)
+	{
+		*length = *((uint16_t *)HWC_ACC_OUT_ADDRESS2);
+		return;
+	}
+
+	/* load command results */
+	res1 = *((int8_t *)(FDMA_STATUS_ADDR));
+	
+	fdma_exception_handler(FDMA_GET_FRAME_LENGTH, 
+			__LINE__, (int32_t)res1);
+}
+
 void fdma_dma_data(
 		uint16_t copy_size,
 		uint16_t icid,
@@ -1623,6 +1646,9 @@ void fdma_exception_handler(enum fdma_function_identifier func_id,
 		break;
 	case FDMA_CALCULATE_DEFAULT_FRAME_CHECKSUM:
 		func_name = "fdma_calculate_default_frame_checksum";
+		break;
+	case FDMA_GET_FRAME_LENGTH:
+		func_name = "get_frame_length";
 		break;
 	case FDMA_COPY_DATA:
 		func_name = "fdma_copy_data";

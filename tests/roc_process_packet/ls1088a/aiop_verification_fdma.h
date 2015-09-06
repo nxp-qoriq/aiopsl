@@ -1630,6 +1630,27 @@ struct fdma_checksum_command {
 };
 
 /**************************************************************************//**
+@Description	FDMA Get Working Frame Length Command structure.
+
+		Includes information needed for FDMA Working Frame Length
+		command verification.
+
+*//***************************************************************************/
+struct fdma_get_wf_length_command {
+		/** FDMA Get Working Frame length command structure
+		 * identifier. */
+	uint32_t opcode;
+		/** Command returned working frame length. */
+	uint32_t length;
+		/** Working frame handle. */
+	uint8_t frame_handle;
+		/** Command returned status. */
+	int8_t  status;
+		/** 64-bit alignment. */
+	uint8_t	pad[6];
+};
+
+/**************************************************************************//**
 @Description	FDMA Copy Data Command structure.
 
 		Includes information needed for FDMA Copy data command

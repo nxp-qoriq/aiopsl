@@ -2560,6 +2560,23 @@ inline void fdma_calculate_default_frame_checksum(
 		uint16_t *checksum);
 
 /**************************************************************************//**
+@Function	get_frame_length
+
+@Description	Get a Working Frame current length.
+
+@Param[in]	frame_handle - working frame whose length is required.
+@Param[out]	length - working frame current length.
+
+@Return		None.
+
+@Cautions	The h/w must have previously opened the frame with an
+		initial presentation or initial presentation command.
+@Cautions	This function may result in a fatal error.
+@Cautions	In this Service Routine the task yields.
+*//***************************************************************************/
+void get_frame_length(uint8_t frame_handle, uint32_t *length);
+
+/**************************************************************************//**
 @Function	get_default_amq_attributes
 
 @Description	Getter for AMQ (ICID, PL, VA, BDI) default attributes. The 

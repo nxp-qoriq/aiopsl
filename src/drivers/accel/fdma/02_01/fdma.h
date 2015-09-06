@@ -194,6 +194,8 @@
 #define FDMA_REPLACE_CMD		0x00000019
 	/** FDMA Checksum working frame command code */
 #define FDMA_CKS_CMD			0x0000001A
+	/** FDMA get working frame length command code */
+#define FDMA_GWFL_CMD			0x0000001B
 	/** FDMA Copy data command code */
 #define FDMA_COPY_CMD			0x00000040
 /** FDMA DMA data command code */
@@ -452,6 +454,9 @@
 	/**< FDMA Checksum  working frame segment command arg2 */
 #define FDMA_CKS_CMD_ARG2(_offset, _size)				\
 	(uint32_t)((_offset << 16) | _size)
+
+#define FDMA_GET_FRAME_LENGTH_CMD_ARG1(_frame_handle)				\
+	(uint32_t)((((uint32_t)_frame_handle) << 16) | FDMA_GWFL_CMD)
 
 	/** FDMA Copy data command arg1 */
 #define FDMA_COPY_CMD_ARG1(_copy_size, _flags)				\
@@ -829,6 +834,7 @@ enum fdma_function_identifier {
 	FDMA_REPLACE_DEFAULT_ASA_SEGMENT_DATA,
 	FDMA_REPLACE_DEFAULT_PTA_SEGMENT_DATA,
 	FDMA_CALCULATE_DEFAULT_FRAME_CHECKSUM,
+	FDMA_GET_FRAME_LENGTH,
 	FDMA_COPY_DATA,
 	FDMA_DMA_DATA,
 	FDMA_ACQUIRE_BUFFER,
