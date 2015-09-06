@@ -49,6 +49,7 @@ int dpni_prepare_key_cfg(struct dpkg_profile_cfg *cfg,
 	params[0] = cpu_to_le64(params[0]);
 	
 	for (i = 0; i < DPKG_MAX_NUM_OF_EXTRACTS; i++) {
+
 		if (i < cfg->num_extracts) {
 			switch (cfg->extracts[i].type) {
 			case DPKG_EXTRACT_FROM_HDR:
@@ -76,7 +77,6 @@ int dpni_prepare_key_cfg(struct dpkg_profile_cfg *cfg,
 			default:
 				return -EINVAL;
 			}
-
 			params[param] |= mc_enc(
 				24, 8, cfg->extracts[i].num_of_byte_masks);
 			params[param] |= mc_enc(32, 4, cfg->extracts[i].type);
