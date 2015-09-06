@@ -1687,6 +1687,25 @@ inline int parse_result_generate(enum parser_starting_hxs_code starting_hxs,
 *//***************************************************************************/
 inline int parse_result_generate_basic(void);
 
+/**************************************************************************//**
+@Function	parser_pop_vlan_update
+
+@Description	Updates parser result table. This function should be in use 
+			after pop_vlan and replace a parser call.
+
+@Return		None
+*//***************************************************************************/
+inline void parser_pop_vlan_update();
+
+/**************************************************************************//**
+@Function	parser_push_vlan_update
+
+@Description	Updates parser result table. This function should be in use 
+			after push_vlan and replace a parser call.
+
+@Return		None
+*//***************************************************************************/
+inline void parser_push_vlan_update();
 
 /** @} */ /* end of FSL_PARSER_Functions */
 /** @} */ /* end of FSL_PARSER */
