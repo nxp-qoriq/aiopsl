@@ -1262,8 +1262,9 @@ void ipsec_generate_sa_params(
 		/* Create soft seconds lifetime timer */
 		return_val = tman_create_timer(
 				tmi_id, /* uint8_t tmi_id */
-				TMAN_CREATE_TIMER_MODE_SEC_GRANULARITY, /* uint32_t flags */
-					/* 1 Sec timer ticks*/
+				TMAN_CREATE_TIMER_MODE_SEC_GRANULARITY |
+					TMAN_CREATE_TIMER_ONE_SHOT, /* uint32_t flags */
+					/* 1 Sec timer ticks, one shot */
 				tmr_duration, /* uint16_t duration; */
 				desc_addr, /* tman_arg_8B_t opaque_data1 */
 				IPSEC_SOFT_SEC_LIFETIME_EXPIRED, /* tman_arg_2B_t opaque_data2 */ 
@@ -1286,8 +1287,9 @@ void ipsec_generate_sa_params(
 		/* Create hard seconds lifetime timer */
 		return_val = tman_create_timer(
 				tmi_id, /* uint8_t tmi_id */
-				TMAN_CREATE_TIMER_MODE_SEC_GRANULARITY, /* uint32_t flags */
-					/* 1 Sec timer ticks*/
+				TMAN_CREATE_TIMER_MODE_SEC_GRANULARITY |
+					TMAN_CREATE_TIMER_ONE_SHOT, /* uint32_t flags */
+					/* 1 Sec timer ticks, one shot */
 				tmr_duration, /* uint16_t duration; */
 				desc_addr, /* tman_arg_8B_t opaque_data1 */
 				IPSEC_HARD_SEC_LIFETIME_EXPIRED, /* tman_arg_2B_t opaque_data2 */ 
@@ -3028,7 +3030,7 @@ void ipsec_tman_callback(uint64_t desc_addr, uint16_t indicator)
 			sizeof(sap2) /* uint16_t size */
 			);
 
-#if(1)
+#if(0)
 {
 	uint32_t handle_high, handle_low;
 	handle_high =
@@ -3040,9 +3042,9 @@ void ipsec_tman_callback(uint64_t desc_addr, uint16_t indicator)
 	fsl_print("desc_addr = 0x%x_%x\n", handle_high, handle_low);
 
 	fsl_print("indicator = %x\n", indicator);
-	fsl_print("sap2.tmi_id = %x\n", sap2.tmi_id);
-	fsl_print("sap2.soft_seconds_limit = %x\n", sap2.soft_seconds_limit);
-	fsl_print("IPSEC_MAX_TIMER_DURATION = %d\n", IPSEC_MAX_TIMER_DURATION);
+	//fsl_print("sap2.tmi_id = %x\n", sap2.tmi_id);
+	fsl_print("sap2.soft_seconds_limit = %d\n", sap2.soft_seconds_limit);
+	fsl_print("sap2.hard_seconds_limit = %d\n", sap2.hard_seconds_limit);
 
 }
 #endif
@@ -3065,13 +3067,19 @@ void ipsec_tman_callback(uint64_t desc_addr, uint16_t indicator)
 			tmr_duration = 0; /* lifetime fully expiered */
 		}
 		
+		//fsl_print("Soft, tmr_duration = %d\n", tmr_duration);
+
 		/* Check if a new timer needs to be invoked */
 		if(tmr_duration) {
+			
+			//fsl_print("Creating new timer with duration %d\n", tmr_duration);
+
 			/* Create soft seconds lifetime timer */
 			tman_create_timer(
 				sap2.tmi_id, /* uint8_t tmi_id */
-				TMAN_CREATE_TIMER_MODE_SEC_GRANULARITY, /* uint32_t flags */
-					/* 1 Sec timer ticks*/
+				TMAN_CREATE_TIMER_MODE_SEC_GRANULARITY |
+					TMAN_CREATE_TIMER_ONE_SHOT, /* uint32_t flags */
+					/* 1 Sec timer ticks, one shot*/
 				tmr_duration, /* uint16_t duration; */
 				desc_addr, /* tman_arg_8B_t opaque_data1 */
 				IPSEC_SOFT_SEC_LIFETIME_EXPIRED, /* tman_arg_2B_t opaque_data2 */ 
@@ -3109,13 +3117,19 @@ void ipsec_tman_callback(uint64_t desc_addr, uint16_t indicator)
 			tmr_duration = 0;
 		}
 		
+		//fsl_print("Hard, tmr_duration = %d\n", tmr_duration);
+
 		/* Check if a new timer needs to be invoked */
 		if(tmr_duration) {
+			
+			//fsl_print("Creating new timer with duration %d\n", tmr_duration);
+
 			/* Create hard seconds lifetime timer */
 			tman_create_timer(
 				sap2.tmi_id, /* uint8_t tmi_id */
-				TMAN_CREATE_TIMER_MODE_SEC_GRANULARITY, /* uint32_t flags */
-					/* 1 Sec timer ticks*/
+				TMAN_CREATE_TIMER_MODE_SEC_GRANULARITY | 
+					TMAN_CREATE_TIMER_ONE_SHOT, /* uint32_t flags */
+					/* 1 Sec timer ticks, one shot*/
 				tmr_duration, /* uint16_t duration; */
 				desc_addr, /* tman_arg_8B_t opaque_data1 */
 				IPSEC_HARD_SEC_LIFETIME_EXPIRED, /* tman_arg_2B_t opaque_data2 */ 

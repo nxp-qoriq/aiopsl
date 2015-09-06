@@ -505,10 +505,14 @@ int ipsec_app_init(uint16_t ni_id)
 	//transport_ipvsn = IPSEC_OPTS_ESP_IPVSN; /* IPv6 */
 	transport_ipvsn = 0; /* IPv4 */
 	
-	encap_soft_seconds = 0x5;
-	encap_hard_seconds = 0x6;
-	decap_soft_seconds = 0x7;
-	decap_hard_seconds = 0x8;
+	/* Secondes lifetime duration
+	 * 0 = disabled, Other value = enabled
+	 * A non-zero value must be larger than 10 
+	 * Soft and hard pairs must have valid values */
+	encap_soft_seconds = 15;
+	encap_hard_seconds = 16;
+	decap_soft_seconds = 17;
+	decap_hard_seconds = 18;
 	
 	/**********************************************************/
 
@@ -806,7 +810,7 @@ int ipsec_app_init(uint16_t ni_id)
 	params.hard_seconds_limit = encap_hard_seconds;
 
 	params.lifetime_callback = &user_lifetime_callback;
-	params.callback_arg = 0xabcd;
+	params.callback_arg = 0xe;
 
 	params.spid = ni_spid;
 
@@ -872,8 +876,8 @@ int ipsec_app_init(uint16_t ni_id)
 	params.soft_seconds_limit = decap_soft_seconds;
 	params.hard_seconds_limit = decap_hard_seconds;
 	
-	params.lifetime_callback = NULL;
-	params.callback_arg = NULL;
+	params.lifetime_callback = &user_lifetime_callback;
+	params.callback_arg = 0xd;
 
 	params.spid = ni_spid;
 
@@ -1006,12 +1010,18 @@ void ipsec_print_sp (uint16_t ni_spid) {
 //ipsec_lifetime_callback_t user_lifetime_callback(uint64_t opaque1, uint8_t opaque2)
 void user_lifetime_callback(uint64_t opaque1, uint8_t opaque2)
 {
-	uint32_t opaque1_32bit = (uint32_t)opaque1;
-	uint32_t opaque2_32bit = (uint32_t)opaque2;
-	
+
 	fsl_print("\nIn user_lifetime_callback()\n");
-	fsl_print("opaque1 = %x,  opaque2 = %x\n", opaque1_32bit, opaque2_32bit);
-	fsl_print("user_lifetime_callback() completed\n");
+	
+	if (opaque1 == 0xe)
+		fsl_print("Encryption, ");
+	else 
+		fsl_print("Decryption, ");
+
+	if (opaque2 == 0)
+		fsl_print("Soft lifetime expired\n");
+	else 
+		fsl_print("Hard lifetime expired\n");
 }
 
 
