@@ -418,7 +418,7 @@ void table_exception_handler(char *file_path,
 		func_name = "table_rule_replace";
 		break;
 	case TABLE_RULE_MODIFY_PRIORITY_FUNC_ID:
-		func_name: "table_rule_modify_priority";
+		func_name = "table_rule_modify_priority";
 		break;
 	case TABLE_RULE_QUERY_GET_RESULT_FUNC_ID:
 		func_name = "table_rule_query_get_result";
