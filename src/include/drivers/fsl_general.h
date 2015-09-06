@@ -153,6 +153,47 @@
 *//***************************************************************************/
 
 /**************************************************************************//**
+@Description	Frame Queue Context structure
+
+		8 byte opaque Frame Queue Context delivered from the QMAN in the
+		dequeue responses from this FQ.
+		At DCP portals, if FF = 0 this carries the return or output FQID
+		for an accelerator, and possibly one or two extra sets of access
+		management qualifiers (AMQ).
+		Optionally, if FF = 1, this field may carry other data specific
+		to the accelerator.
+
+*//***************************************************************************/
+struct frame_queue_context {
+		/** 
+		 * - bits<0>: VA_3. Valid if AUC = 3.
+		 * - bits<1>: VA_2. Valid if AUC is non-zero.
+		 * - bits<6-7>: AUC - AMQ usage control:
+		 * 	00 = AMQ_2 and AMQ_3 are not valid. 
+		 * 	     AMQ_1 is used for all needed authorization (input,
+		 * 	     output, and control).
+		 *	01 = AMQ_2 is valid. AMQ_1 used for input and control, 
+		 *	     AMQ_2 used for output.
+		 *	10 = AMQ_2 is valid. AMQ_1 used for input, AMQ_2 used 
+		 *	     for control and output.
+		 *	11 = AMQ_2 and AMQ_3 are valid. AMQ_1 used for input, 
+		 *	AMQ_2 used for control, AMQ_3 used for output.
+		 * - bits<8-31>: fqid - Return/Output FQID for an accelerator.
+		 * */
+	volatile uint32_t fqid_auc_va_2_3;
+		/** 
+		 * - bits<0>: PL_3. Valid if AUC = 3.
+		 * - bits<1-15>: ICID_3. Valid if AUC = 3.
+		 * */
+	volatile uint16_t pl_3_icid_3;
+		/** 
+		 * - bits<0>: PL_2. Valid if AUC is non-zero.
+		 * - bits<1-15>: ICID_2. Valid if AUC is non-zero.
+		 * */
+	volatile uint16_t pl_2_icid_2;
+};
+
+/**************************************************************************//**
 @Description	Additional Dequeue Context (ADC) structure.
 
 *//***************************************************************************/
@@ -160,7 +201,7 @@ struct additional_dequeue_context {
 
 		/** Frame Queue Context as received from QMan
 		 * via the AIOP DCP. */
-	volatile uint64_t fqd_ctx;
+	volatile struct frame_queue_context fqd_ctx;
 		/**
 		- bits<0-7>: AIOP Channel that this FD arrived on.
 		- bits<8-31>: The QMan Frame Queue ID that
@@ -186,10 +227,10 @@ struct additional_dequeue_context {
 		 *	- 4 BPSCN Message\n
 		 *	- 5-7 Reserved.
 		 *	.
-		 * - bits<5>  : Virtual Address (configured in Frame Queue).
-		 * - bits<6>  : FQD_CTX_FMT or Dequeue Response FQD Context
+		 * - bits<5> : VA- Virtual Address (configured in Frame Queue).
+		 * - bits<6> : FCF- FQD_CTX_FMT or Dequeue Response FQD Context.
 		 * Format. Indicates the format of the received FQD_CTX field.
-		 * - bits<7>  : Bypass DPAA Resource Isolation
+		 * - bits<7>  : BDI- Bypass DPAA Resource Isolation.
 		 * .
 		 * */
 	volatile uint8_t fdsrc_va_fca_bdi;

@@ -935,9 +935,9 @@ struct fdma_delete_segment_data_params {
 
 		This command can also be used to initiate construction of a
 		frame from scratch (without a presented frame). In this case
-		the fd address parameter must point to a null FD (all 0x0) in
-		the workspace, and an empty segment must be allocated (of size
-		0).
+		the fd address parameter must point to a null FD (all 0x0, 
+		IVP=1) in the workspace, and an empty segment must be allocated
+		(of size 0).
 
 		Implicitly updated values in Task Defaults:  frame handle,
 		segment handle.
@@ -981,9 +981,9 @@ inline int fdma_present_default_frame(void);
 
 		This command can also be used to initiate construction of a
 		frame from scratch (without a presented frame). In this case
-		the fd address parameter must point to a null FD (all 0x0) in
-		the workspace, and an empty segment must be allocated (of size
-		0).
+		the fd address parameter must point to a null FD (all 0x0, 
+		IVP=1) in the workspace, and an empty segment must be allocated
+		(of size 0).
 
 		In case the fd destination parameter points to the default FD
 		address, the service routine will update Task defaults variables
