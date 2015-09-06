@@ -539,6 +539,12 @@ struct ipsec_instance_params {
 #define IPSEC_INSTANCE_HANDLE_ADDR(ADDRESS) \
 	(ADDRESS + (offsetof(struct ipsec_sa_params_part1, instance_handle)))
 
+#define IPSEC_SOFT_SEC_EXPIRED_ADDR(ADDRESS) \
+	(ADDRESS + (offsetof(struct ipsec_sa_params_part1, soft_sec_expired)))
+
+#define IPSEC_HARD_SEC_EXPIRED_ADDR(ADDRESS) \
+	(ADDRESS + (offsetof(struct ipsec_sa_params_part1, hard_sec_expired)))
+
 #define IPSEC_SOFT_SEC_LIMIT_ADDR(ADDRESS) \
 	(ADDRESS + (offsetof(struct ipsec_sa_params, sap2.soft_seconds_limit)))
 
@@ -563,10 +569,6 @@ struct ipsec_instance_params {
 #define IPSEC_MAX_TIMER_DURATION (0x10000-10)
 #define IPSEC_MIN_TIMER_DURATION 10
 
-/* Soft/hard indicator for the callback */
-#define IPSEC_SOFT_SEC_LIFETIME_EXPIRED 0
-#define IPSEC_HARD_SEC_LIFETIME_EXPIRED 1
-
 /* SA Descriptor Parameter for Internal Usage */ 
 /* Part 1 */
 struct ipsec_sa_params_part1 {
@@ -582,11 +584,12 @@ struct ipsec_sa_params_part1 {
 	uint64_t hard_packet_limit; /* hard packet limit, 8B */
 	
 	/* Always required, except timer callback */
+	ipsec_instance_handle_t instance_handle; /* Instance handle 8B */
+
 	uint32_t flags; /* 	transport mode, UDP encap, pad check, counters enable, 
 					outer IP version, etc. 4B */
-	uint32_t status; /* lifetime expire, semaphores	4-8B */
+	//uint32_t status; /* lifetime expire, semaphores	4-8B */
 
-	ipsec_instance_handle_t instance_handle; /* Instance handle 8B */
 
 	uint32_t outer_hdr_dscp; /* Outer Header DSCP, for set mode */
 	
@@ -598,6 +601,9 @@ struct ipsec_sa_params_part1 {
 	uint8_t valid; /* descriptor valid. 1B */
 	uint8_t sec_buffer_mode; /* new/reuse. 1B */
 	uint8_t output_spid; /* SEC output buffer SPID */
+	
+	uint8_t soft_sec_expired; /* soft seconds lifetime expired */
+	uint8_t hard_sec_expired; /* hard seconds lifetime expired */
 
 	/* Total size = */
 	/* 8*8 (64) + 3*4 (12) + 4*2 (8) + 3*1 (3) = 87 bytes */
