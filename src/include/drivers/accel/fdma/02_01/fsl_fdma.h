@@ -332,6 +332,12 @@ enum fdma_pta_size_type {
 	 * WQID field from ADC). Otherwise - use QD_PRI provided with DMA
 	 * Command. */
 #define FDMA_ENWF_PS_BIT	0x00001000
+	/** Enqueue Relinquish option:
+	 * Relevant for Queuing Destination Selection.
+	 * If set - relinquish OSM exclusivity in current scope right after the
+	 * enqueue to QMan is issued. 
+	 * Otherwise - no relinquish. */
+#define FDMA_ENWF_RL_BIT	0x00008000
 
 /** @} end of group FDMA_ENWF_Flags */
 
@@ -360,6 +366,12 @@ enum fdma_pta_size_type {
 	 * enabled for this command (the FQID ID specified is virtual within the
 	 * specified ICID). */
 #define FDMA_ENF_BDI_BIT	0x80000000
+	/** Enqueue Relinquish option:
+	 * Relevant for Queuing Destination Selection.
+	 * If set - relinquish OSM exclusivity in current scope right after the
+	 * enqueue to QMan is issued. 
+	 * Otherwise - no relinquish. */
+#define FDMA_ENF_RL_BIT		0x00008000
 
 /** @} end of group FDMA_ENF_Flags */
 
@@ -419,6 +431,12 @@ enum fdma_pta_size_type {
 	/** AIOP FDMA copy frame annotations options. Only one option may be
 	 * choose from \ref fdma_cfa_options. */
 #define FDMA_REPLICATE_CFA	fdma_cfa_options
+	/** Enqueue Relinquish option:
+	 * Relevant for Queuing Destination Selection.
+	 * If set - relinquish OSM exclusivity in current scope right after the
+	 * enqueue to QMan is issued (only relevant when ENQ is set). 
+	 * Otherwise - no relinquish. */
+#define FDMA_REPLIC_RL_BIT	0x00008000
 
 /** @} end of group FDMA_Replicate_Flags */
 
@@ -933,14 +951,19 @@ struct fdma_delete_segment_data_params {
 		in the presentation context is 0).
 		This return value is caused since the requested presentation 
 		exceeded frame data end.
+		The segment handle is valid when returning with this error, 
+		but is shorter than requested.
 @Retval		::FDMA_STATUS_UNABLE_PRES_ASA_SEG - Unable to fulfill 
 		specified ASA segment presentation size (not relevant if the ASA
 		size in the presentation context is 0).
 		This return value is caused since the requested presentation 
 		exceeded frame ASA end.
+		The ASA segment is valid when returning with this error, but is
+		shorter than requested.	
 @Retval		EIO - Received frame with non-zero FD[err] field. In such a case 
 		the returned frame handle is valid, but no presentations 
 		occurred.
+		The segment handle is not valid when returning with this error.
 
 @Cautions	In case the presented segment will be used by 
 		PARSER/CTLU/KEYGEN, it should be presented in a 16 byte aligned 
@@ -978,14 +1001,19 @@ inline int fdma_present_default_frame(void);
 		size in the function parameters is 0).
 		This return value is caused since the requested presentation 
 		exceeded frame data end.
+		The segment handle is valid when returning with this error, 
+		but is shorter than requested.
 @Retval		::FDMA_STATUS_UNABLE_PRES_ASA_SEG - Unable to fulfill 
 		specified ASA segment presentation size (not relevant if the ASA
 		size in the function parameters is 0).
 		This return value is caused since the requested presentation 
 		exceeded frame ASA end.
+		The ASA segment is valid when returning with this error, but is
+		shorter than requested.	
 @Retval		EIO - Received frame with non-zero FD[err] field. In such a case 
 		the returned frame handle is valid, but no presentations 
 		occurred.
+		The segment handle is not valid when returning with this error.
 
 @Cautions	In case the presented segment will be used by 
 		PARSER/CTLU/KEYGEN, it should be presented in a 16 byte aligned 
@@ -1085,6 +1113,8 @@ int fdma_present_frame_without_segments(
 		present_size in the function parameters is 0).
 		This return value is caused since the requested presentation 
 		exceeded frame data end.
+		The segment handle is valid when returning with this error, 
+		but is shorter than requested.
 
 @Cautions	In case the presented segment will be used by 
 		PARSER/CTLU/KEYGEN, it should be presented in a 16 byte aligned 
@@ -1116,6 +1146,8 @@ inline int fdma_present_default_frame_segment(
 		present_size in the function parameters is 0).
 		This return value is caused since the requested presentation 
 		exceeded frame data end.
+		The segment handle is valid when returning with this error, 
+		but is shorter than requested.
 
 @Cautions	In case the presented segment will be used by 
 		PARSER/CTLU/KEYGEN, it should be presented in a 16 byte aligned 
@@ -1159,6 +1191,8 @@ int fdma_present_frame_segment(
 		present_size in the function parameters is 0).
 		This return value is caused since the requested presentation 
 		exceeded frame ASA end.
+		The ASA segment is valid when returning with this error, but is
+		shorter than requested.	
 
 @remark		The ASA segment handle value is fixed \ref FDMA_ASA_SEG_HANDLE.
 
@@ -1231,10 +1265,14 @@ int fdma_read_default_frame_pta(void *ws_dst);
 		specified data segment extend size.
 		This return value is caused since the requested presentation 
 		exceeded frame data end.
+		The segment handle is valid when returning with this error, 
+		but is shorter than requested.
 @Retval		::FDMA_STATUS_UNABLE_PRES_ASA_SEG - Unable to fulfill 
 		specified ASA segment extend size.
 		This return value is caused since the requested presentation 
 		exceeded frame ASA end.
+		The ASA segment is valid when returning with this error, but is
+		shorter than requested.	
 
 @remark		The extended data to be presented does not have to be
 		sequential relative to the current presented segment.
@@ -1793,6 +1831,9 @@ inline void fdma_terminate_task(void);
 		The source frame is replicated based on its last known state by
 		the FDMA.
 		
+		The replication process will not preserve SF bit or SGE 
+		boundaries when the SF bit is set.
+		
 		The replicated working frame DD, DROPP and eVA are inherited 
 		from the source frame, its ICID, BDI, PL and SL are taken from 
 		the Storage Profile.
@@ -1841,6 +1882,9 @@ int fdma_replicate_frame_fqid(
 		The source frame is replicated based on its last known state by
 		the FDMA.
 		
+		The replication process will not preserve SF bit or SGE 
+		boundaries when the SF bit is set.
+		
 		The replicated working frame DD, DROPP and eVA are inherited 
 		from the source frame, its ICID, BDI, PL and SL are taken from 
 		the Storage Profile.
@@ -1885,7 +1929,10 @@ int fdma_replicate_frame_qd(
 		concatenated frame.
 
 		The two frames may be modified but all the segments must be
-		closed.
+		closed (open segments on working frame 1 and working frame 2 
+		will be automatically closed by the command and the associated 
+		segment handles will be released).
+		
 
 		The command also support the option to trim a number of
 		bytes from the beginning of the 2nd frame before it is
@@ -2153,6 +2200,8 @@ void fdma_modify_segment_data(
 		 \ref FDMA_REPLACE_SA_REPRESENT_BIT flag is set).
 		This return value is caused since the requested presentation 
 		exceeded frame data end.
+		The segment handle is valid when returning with this error, 
+		but is shorter than requested.
 
 @remark		This is basically a replace command with
 		to_size = 0 (0 bytes are replaced, 'size' bytes are inserted).
@@ -2213,6 +2262,8 @@ inline int fdma_insert_default_segment_data(
 		\ref FDMA_REPLACE_SA_REPRESENT_BIT flag is set).
 		This return value is caused since the requested presentation 
 		exceeded frame data end.
+		The segment handle is valid when returning with this error, 
+		but is shorter than requested.
 
 @remark		This is basically a replace command with
 		to_size = 0 (0 bytes are replaced, 'size' bytes are inserted).
@@ -2264,6 +2315,8 @@ int fdma_insert_segment_data(
 		\ref FDMA_REPLACE_SA_REPRESENT_BIT flag is set).
 		This return value is caused since the requested presentation 
 		exceeded frame data end.
+		The segment handle is valid when returning with this error, 
+		but is shorter than requested.
 
 @remark		This is basically a replace command with
 		to_size = delete_target_size, ws_address = irrelevant (0),
@@ -2311,6 +2364,8 @@ inline int fdma_delete_default_segment_data(
 		\ref FDMA_REPLACE_SA_REPRESENT_BIT flag is set).
 		This return value is caused since the requested presentation 
 		exceeded frame data end.
+		The segment handle is valid when returning with this error, 
+		but is shorter than requested.
 
 @remark		This is basically a replace command with
 		to_size = delete_target_size, ws_address = irrelevant (0),
@@ -2404,8 +2459,6 @@ void fdma_close_segment(uint8_t frame_handle, uint8_t seg_handle);
 		Relevant if \ref FDMA_REPLACE_SA_REPRESENT_BIT flag is set.
 @Param[in]	flags - \link FDMA_Replace_Flags replace working frame
 		segment flags. \endlink
-		In REV1 \ref FDMA_REPLACE_SA_REPRESENT_BIT flag is not supported
-		due to ERR008620.
 
 @Return		0 or positive value on success. Negative value on error.
 
@@ -2415,6 +2468,8 @@ void fdma_close_segment(uint8_t frame_handle, uint8_t seg_handle);
 		\ref FDMA_REPLACE_SA_REPRESENT_BIT flag is set).
 		This return value is caused since the requested presentation 
 		exceeded frame ASA end.
+		The ASA segment is valid when returning with this error, but is
+		shorter than requested.
 
 @Cautions	This function may result in a fatal error.
 @Cautions	In this Service Routine the task yields.
@@ -2441,9 +2496,6 @@ int fdma_replace_default_asa_segment_data(
 		The entire PTA annotation (32 or 64 bytes) is replaced when this
 		command is invoked.
 
-		Usage examples:
-		- Passing GRO information to GPP.
-
 		Implicit input parameters in Task Defaults: frame handle,
 		PTA segment handle, PTA segment address.
 
@@ -2453,8 +2505,6 @@ int fdma_replace_default_asa_segment_data(
 
 @Param[in]	flags - \link FDMA_Replace_Flags replace working frame
 		segment flags. \endlink
-		In REV1 \ref FDMA_REPLACE_SA_REPRESENT_BIT flag is not supported
-		due to ERR008620.
 @Param[in]	from_ws_src - a pointer to the workspace location from which
 		the replacement segment data starts.
 @Param[in]	ws_dst_rs - A pointer to the location in workspace 
@@ -2473,6 +2523,7 @@ int fdma_replace_default_asa_segment_data(
 
 @remark		The length of the represented PTA can be read directly from the
 		FD.
+@remark		Reducing PTA to 0B preserve PTA value.
 
 @Cautions	This function may result in a fatal error.
 @Cautions	In this Service Routine the task yields.
@@ -2582,6 +2633,8 @@ void set_default_amq_attributes(
 		 \ref FDMA_REPLACE_SA_REPRESENT_BIT flag is set).
 		This return value is caused since the requested presentation 
 		exceeded frame data end.
+		The segment handle is valid when returning with this error, 
+		but is shorter than requested.
 
 @remark		Example: Modify 14 bytes + insert 2 bytes. The default Data
 		segment represents a 100 bytes at offset 0 in the frame (0-99)
