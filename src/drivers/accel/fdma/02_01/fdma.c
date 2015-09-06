@@ -1648,10 +1648,12 @@ void fdma_exception_handler(enum fdma_function_identifier func_id,
 				"larger than frame size.\n";
 		break;
 	case FDMA_FRAME_STORE_ERR:
-		err_msg = "Frame Store failed, single buffer frame full and "
-				"Storage Profile FF is set to 10. "
-				"This error can occur also in case of storage "
-				"profile fields mismatch (ASAR/PTAR/SGHR/DHR)n";
+		err_msg ="Frame Store failed from one of the following reasons:"
+				"- single buffer frame full and Storage Profile"
+				" FF is set to 10.\n "
+				"- storage profile fields mismatch "
+				"(offset (ASAR+PTAR+SGHR/DHR) > buffer size, or"
+				"ASAL > ASAR, or PTA > PTAR, or PTA != PTAR)\n";
 		break;
 	case FDMA_UNABLE_TO_PRESENT_FULL_SEGMENT_ERR:
 		err_msg = "Unable to fulfill specified segment presentation "
@@ -1689,7 +1691,10 @@ void fdma_exception_handler(enum fdma_function_identifier func_id,
 		err_msg = "Invalid Segment Handle.\n";
 		break;
 	case FDMA_INVALID_DMA_COMMAND_ARGS_ERR:
-		err_msg = "Invalid DMA command arguments.\n";
+		err_msg = "Invalid DMA command arguments."
+			  "In Concatenate command: invalid concatenation: "
+			  "FRAME_HANDLE_1 equal FRAME_HANDLE_2, or FD_ADDRESS_1"
+			  "equal FD_ADDRESS_2, can not concatenate with itself\n";
 		break;
 	case FDMA_INVALID_DMA_COMMAND_ERR:
 		err_msg = "Invalid DMA command.\n";
