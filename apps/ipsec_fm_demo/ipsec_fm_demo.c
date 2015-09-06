@@ -40,6 +40,8 @@
 #include "system.h" // TMP
 #include "fsl_evmng.h"
 #include "apps.h"
+#include "fsl_tman.h"
+//"${ProjDirPath}/../../../../src/include/drivers/accel/tman/01_01"
 
 int app_early_init(void);
 int app_init(void);
@@ -48,6 +50,8 @@ int ipsec_app_init(uint16_t ni_id);
 void ipsec_print_frame(void);
 void ipsec_print_stats (ipsec_handle_t desc_handle);
 void ipsec_print_sp (uint16_t ni_spid);
+//ipsec_lifetime_callback_t user_lifetime_callback(uint64_t opaque1, uint8_t opaque2);
+void user_lifetime_callback(uint64_t opaque1, uint8_t opaque2);
 
 #define APP_NI_GET(ARG)   ((uint16_t)((ARG) & 0x0000FFFF))
 /**< Get NI from callback argument, it's demo specific macro */
@@ -450,6 +454,12 @@ int ipsec_app_init(uint16_t ni_id)
 	uint32_t set_dscp = 0;
 	uint16_t esn_enable = 0;
 	uint16_t transport_ipvsn = 0;
+	uint32_t encap_soft_seconds = 0x0;
+	uint32_t encap_hard_seconds = 0x0;
+	uint32_t decap_soft_seconds = 0x0;
+	uint32_t decap_hard_seconds = 0x0;
+	uint64_t tmi_buffer_handle, tmi_timer_addr;
+	uint8_t tmi_id;
 
 	enum key_types {
 		NULL_MD5 = 0,
@@ -495,6 +505,15 @@ int ipsec_app_init(uint16_t ni_id)
 	//transport_ipvsn = IPSEC_OPTS_ESP_IPVSN; /* IPv6 */
 	transport_ipvsn = 0; /* IPv4 */
 	
+	/* Secondes lifetime duration
+	 * 0 = disabled, Other value = enabled
+	 * A non-zero value must be larger than 10 
+	 * Soft and hard pairs must have valid values */
+	encap_soft_seconds = 15;
+	encap_hard_seconds = 16;
+	decap_soft_seconds = 17;
+	decap_hard_seconds = 18;
+	
 	/**********************************************************/
 
 	ipsec_instance_handle_t ws_instance_handle = 0;
@@ -535,21 +554,7 @@ int ipsec_app_init(uint16_t ni_id)
 	ipsec_print_sp (ni_spid);
 #endif
 
-	err = ipsec_create_instance(
-			10, /* committed sa num */
-			20, /* max sa num */
-			0, /* instance flags */
-			0, /* tmi id */
-			&ws_instance_handle);
-	if (err) {
-		fsl_print("ERROR: ipsec_create_instance() failed\n");
-		fsl_print("ipsec_create_instance return status = %d (0x%x)\n",
-				err, err);
-	} else {
-		fsl_print("ipsec_create_instance() completed successfully\n");
-	}
 
-	ipsec_instance_handle = ws_instance_handle;
 
 	/* Allocate buffers for the Keys */
 	err = slab_create(
@@ -599,6 +604,45 @@ int ipsec_app_init(uint16_t ni_id)
 		fsl_print("Auth key addr = 0x%x_%x\n", handle_high, handle_low);
 	}
 
+	/* Acquire the TMan buffer */
+	err = 0;
+	err = slab_acquire(
+			slab_handle, /* struct slab *slab */
+			&tmi_buffer_handle /* uint64_t *buff */
+			);
+	
+	// Todo
+	/**< Align a given address - equivalent to ceil(ADDRESS,ALIGNMENT) */
+	#define IPSEC_ALIGN_64(ADDRESS, ALIGNMENT)           \
+	        ((((uint64_t)(ADDRESS)) + ((uint64_t)(ALIGNMENT)) - 1) & \
+	        								(~(((uint64_t)(ALIGNMENT)) - 1)))
+	
+	tmi_timer_addr = IPSEC_ALIGN_64(tmi_buffer_handle,64); /* Align to 64 bytes */
+	
+	err = tman_create_tmi(
+			tmi_timer_addr, /* uint64_t tmi_mem_base_addr */
+			8, /* uint32_t max_num_of_timers */
+			&tmi_id); /* uint8_t *tmi_id */
+	
+	fsl_print("\nIPsec: tmi_id = 0x%x\n\n",tmi_id);
+
+
+	err = ipsec_create_instance(
+			10, /* committed sa num */
+			20, /* max sa num */
+			0, /* instance flags */
+			tmi_id, /* tmi id */
+			&ws_instance_handle);
+	if (err) {
+		fsl_print("ERROR: ipsec_create_instance() failed\n");
+		fsl_print("ipsec_create_instance return status = %d (0x%x)\n",
+				err, err);
+	} else {
+		fsl_print("ipsec_create_instance() completed successfully\n");
+	}
+
+	ipsec_instance_handle = ws_instance_handle;
+	
 	switch (algs) {
 		case NULL_MD5:
 			fsl_print("Cipher Algorithm: IPSEC_CIPHER_NULL\n");
@@ -722,7 +766,12 @@ int ipsec_app_init(uint16_t ni_id)
 			IPSEC_FLG_LIFETIME_KB_CNTR_EN | IPSEC_FLG_LIFETIME_PKT_CNTR_EN |
 				set_dscp | reuse_buffer_mode;
 
-
+	if (encap_soft_seconds | encap_hard_seconds) {
+		params.flags |= IPSEC_FLG_LIFETIME_SEC_CNTR_EN;
+		fsl_print("IPSEC: Encap seconds lifetime enabled, soft = %d, hard =%d\n", 
+				encap_soft_seconds, encap_hard_seconds);
+	}
+	
 	/* UDP ENCAP (tunnel mode)*/
 	if ((outer_header_ip_version == 17) &&
 			(tunnel_transport_mode == IPSEC_FLG_TUNNEL_MODE)) {
@@ -756,11 +805,12 @@ int ipsec_app_init(uint16_t ni_id)
 	params.hard_kilobytes_limit = 0xffffffffffffffff;
 	params.soft_packet_limit = 0xffffffffffffffff;
 	params.hard_packet_limit = 0xffffffffffffffff;
-	params.soft_seconds_limit = 0x0;
-	params.hard_seconds_limit = 0x0;
+	
+	params.soft_seconds_limit = encap_soft_seconds;
+	params.hard_seconds_limit = encap_hard_seconds;
 
-	params.lifetime_callback = NULL;
-	params.callback_arg = NULL;
+	params.lifetime_callback = &user_lifetime_callback;
+	params.callback_arg = 0xe;
 
 	params.spid = ni_spid;
 
@@ -794,6 +844,12 @@ int ipsec_app_init(uint16_t ni_id)
 				IPSEC_FLG_LIFETIME_KB_CNTR_EN | IPSEC_FLG_LIFETIME_PKT_CNTR_EN |
 				reuse_buffer_mode;
 
+	if (decap_soft_seconds | decap_hard_seconds) {
+		params.flags |= IPSEC_FLG_LIFETIME_SEC_CNTR_EN;
+		fsl_print("IPSEC: Decap seconds lifetime enabled, soft = %d, hard =%d\n", 
+				decap_soft_seconds, decap_hard_seconds);
+	}
+	
 	//params.decparams.options = 0x0;
 	//params.decparams.options = IPSEC_DEC_OPTS_ARS32; /* Anti Replay 32 bit enabled */
 	//params.decparams.options = IPSEC_OPTS_ESP_ESN;
@@ -816,11 +872,12 @@ int ipsec_app_init(uint16_t ni_id)
 	params.hard_kilobytes_limit = 0xffffffffffffffff;
 	params.soft_packet_limit = 0xffffffffffffffff;
 	params.hard_packet_limit = 0xffffffffffffffff;
-	params.soft_seconds_limit = 0x0;
-	params.hard_seconds_limit = 0x0;
-
-	params.lifetime_callback = NULL;
-	params.callback_arg = NULL;
+	
+	params.soft_seconds_limit = decap_soft_seconds;
+	params.hard_seconds_limit = decap_hard_seconds;
+	
+	params.lifetime_callback = &user_lifetime_callback;
+	params.callback_arg = 0xd;
 
 	params.spid = ni_spid;
 
@@ -949,4 +1006,23 @@ void ipsec_print_sp (uint16_t ni_spid) {
 	fsl_print("*** Debug: storage_profile (6): 0x%x\n", *((uint32_t *)sp_addr + 6));
 	fsl_print("*** Debug: storage_profile (7): 0x%x\n", *((uint32_t *)sp_addr + 7));
 } /* End of ipsec_print_sp */
+
+//ipsec_lifetime_callback_t user_lifetime_callback(uint64_t opaque1, uint8_t opaque2)
+void user_lifetime_callback(uint64_t opaque1, uint8_t opaque2)
+{
+
+	fsl_print("\nIn user_lifetime_callback()\n");
+	
+	if (opaque1 == 0xe)
+		fsl_print("Encryption, ");
+	else 
+		fsl_print("Decryption, ");
+
+	if (opaque2 == 0)
+		fsl_print("Soft lifetime expired\n");
+	else 
+		fsl_print("Hard lifetime expired\n");
+}
+
+
 

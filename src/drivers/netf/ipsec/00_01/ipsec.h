@@ -545,6 +545,8 @@ struct ipsec_instance_params {
 #define IPSEC_HARD_SEC_LIMIT_ADDR(ADDRESS) \
 	(ADDRESS + (offsetof(struct ipsec_sa_params, sap2.hard_seconds_limit)))
 
+#define IPSEC_SA_PARAMS_2_ADDR(ADDRESS) \
+	(ADDRESS + (offsetof(struct ipsec_sa_params, sap2)))
 
 /* Shared descriptor address */
 #define IPSEC_SHARED_DESC_ADDR(ADDRESS) (ADDRESS + \
@@ -558,7 +560,9 @@ struct ipsec_instance_params {
 /* duration - Timer duration time (the number of timer ticks).
  * The duration must have a value larger than 10 ticks and smaller
  * than 2^16-10 ticks. */
-#define IPSEC_MAX_TIMER_DURATION ((2^16)-10)
+#define IPSEC_MAX_TIMER_DURATION (0x10000-10)
+#define IPSEC_MIN_TIMER_DURATION 10
+
 /* Soft/hard indicator for the callback */
 #define IPSEC_SOFT_SEC_LIFETIME_EXPIRED 0
 #define IPSEC_HARD_SEC_LIFETIME_EXPIRED 1
