@@ -36,7 +36,7 @@ void app_free(void);
 
 int app_init(void)
 {
-	pr_info("app_init: hello world\n");
+	pr_info("hello world\n");
 
 	return 0;
 }
@@ -44,7 +44,7 @@ int app_init(void)
 int app_early_init(void)
 {
 	/* Early initialization */
-	pr_info("app_early_init: hello world\n");
+	pr_info("hello world\n");
 	
 	return 0;
 }
@@ -52,5 +52,5 @@ int app_early_init(void)
 void app_free(void)
 {
 	/* free application resources*/
-	pr_info("app_free: hello world\n");
+	pr_info("hello world\n");
 }
