@@ -1197,8 +1197,11 @@ void ipsec_generate_sa_params(
 		}
 	}
 	
-	sap.sap1.status = 0; /* 	lifetime expiry, semaphores	*/
+	//sap.sap1.status = 0; /* 	lifetime expiry, semaphores	*/
+	sap.sap1.soft_sec_expired = 0; /* soft seconds lifetime expired */
+	sap.sap1.hard_sec_expired = 0; /* hard seconds lifetime expired */
 
+	
 	/* UDP Encap for transport mode */
 	sap.sap1.udp_src_port = 0; /* UDP source for transport mode. TMP */
 	sap.sap1.udp_dst_port = 0; /* UDP destination for transport mode. TMP */
@@ -1583,12 +1586,12 @@ __IPSEC_HOT_CODE int ipsec_frame_encrypt(
 	 * This is done to avoid doing mutex lock for kilobyte/packet status */
 	
 	/* Seconds Lifetime */
-	if (sap1.status & IPSEC_STATUS_SOFT_SEC_EXPIRED) {
+	if (sap1.soft_sec_expired) {
 		if (sap1.flags & IPSEC_FLG_LIFETIME_SEC_CNTR_EN) {
-			if (sap1.status & IPSEC_STATUS_SOFT_SEC_EXPIRED) {
+			if (sap1.soft_sec_expired) {
 				*enc_status |= IPSEC_STATUS_SOFT_SEC_EXPIRED;
 			}
-			if (sap1.status & IPSEC_STATUS_HARD_SEC_EXPIRED) {
+			if (sap1.hard_sec_expired) {
 				*enc_status |= IPSEC_STATUS_HARD_SEC_EXPIRED;
 				return_val = IPSEC_ERROR; // TODO: TMP
 				goto encrypt_end;
@@ -2176,11 +2179,11 @@ __IPSEC_HOT_CODE int ipsec_frame_decrypt(
 	 * and the kilobyte/packet status is checked from the params[counters].
 	 * This is done to avoid doing mutex lock for kilobyte/packet status */
 	/* Seconds Lifetime */
-	if (sap1.status & IPSEC_STATUS_SOFT_SEC_EXPIRED) {
+	if (sap1.soft_sec_expired) {
 		if (sap1.flags & IPSEC_FLG_LIFETIME_SEC_CNTR_EN) {
-			if (sap1.status & IPSEC_STATUS_SOFT_SEC_EXPIRED) {
+			if (sap1.soft_sec_expired) {
 				*dec_status |= IPSEC_STATUS_SOFT_SEC_EXPIRED;
-				if (sap1.status & IPSEC_STATUS_HARD_SEC_EXPIRED) {
+				if (sap1.hard_sec_expired) {
 					*dec_status |= IPSEC_STATUS_HARD_SEC_EXPIRED;
 					return_val = IPSEC_ERROR; // TODO: TMP
 					goto decrypt_end;
@@ -3017,11 +3020,10 @@ uint8_t ipsec_get_ipv6_nh_offset (struct ipv6hdr *ipv6_hdr, uint8_t *length)
 
 void ipsec_tman_callback(uint64_t desc_addr, uint16_t indicator)
 {
+	uint8_t expired_indicator = 1;
 	uint16_t tmr_duration;
 	struct ipsec_sa_params_part2 sap2; /* Parameters to read from ext buffer */
 
-
-	
 	/* 	Read relevant descriptor fields with CDMA. */
 	cdma_read(
 			&sap2, /* void *ws_dst */
@@ -3095,9 +3097,18 @@ void ipsec_tman_callback(uint64_t desc_addr, uint16_t indicator)
 					8); /* size */
 			
 		} else {
-			/* If the timer fully expired, call the user callback */	
-			sap2.sec_callback_func(sap2.sec_callback_arg, 
-					IPSEC_SOFT_SEC_LIFETIME_EXPIRED);
+			/* If the timer fully expired -
+			 * Indicate in the params */
+			cdma_write(
+					IPSEC_SOFT_SEC_EXPIRED_ADDR(desc_addr), /* ext_address */
+					&expired_indicator, /* ws_src */
+					1); /* size */
+			
+			/* Optionally call call the user callback */
+			if (sap2.sec_callback_func != NULL) {
+				sap2.sec_callback_func(sap2.sec_callback_arg, 
+						IPSEC_SOFT_SEC_LIFETIME_EXPIRED);
+			}
 		}
 	} else {
 		/* Hard seconds timer */
@@ -3144,9 +3155,18 @@ void ipsec_tman_callback(uint64_t desc_addr, uint16_t indicator)
 					&sap2.hard_seconds_limit, /* ws_src */
 					8); /* size */
 		} else {
-			/* If the timer fully expired, call the user callback */	
-			sap2.sec_callback_func(sap2.sec_callback_arg, 
+			/* If the timer fully expired -
+			 * Indicate in the params */
+			cdma_write(
+					IPSEC_HARD_SEC_EXPIRED_ADDR(desc_addr), /* ext_address */
+					&expired_indicator, /* ws_src */
+					1); /* size */
+			
+			/* Optionally call call the user callback */
+			if (sap2.sec_callback_func != NULL) {
+				sap2.sec_callback_func(sap2.sec_callback_arg, 
 					IPSEC_HARD_SEC_LIFETIME_EXPIRED);
+			}
 		}
 	}
 } /* End of ipsec_tman_callback */

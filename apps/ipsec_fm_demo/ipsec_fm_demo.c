@@ -509,10 +509,16 @@ int ipsec_app_init(uint16_t ni_id)
 	 * 0 = disabled, Other value = enabled
 	 * A non-zero value must be larger than 10 
 	 * Soft and hard pairs must have valid values */
+	/*
 	encap_soft_seconds = 15;
 	encap_hard_seconds = 16;
 	decap_soft_seconds = 17;
 	decap_hard_seconds = 18;
+	*/
+	encap_soft_seconds = 0;
+	encap_hard_seconds = 0;
+	decap_soft_seconds = 0;
+	decap_hard_seconds = 0;
 	
 	/**********************************************************/
 
