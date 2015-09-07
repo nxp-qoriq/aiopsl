@@ -272,7 +272,7 @@ int simple_bu_parser_test(uint8_t generator_id,
 	if (err)
 		fsl_print("STATUS: fdma present default segment returned status is %d\n", err);
 
-	uint16_t vlan_offset = (uint16_t)(PARSER_GET_FIRST_VLAN_TCI_OFFSET_DEFAULT()) - PARSER_TCI_DIST_FROM_START_OF_VLAN;
+	uint16_t vlan_offset = (uint16_t)(PARSER_GET_FIRST_VLAN_TCI_OFFSET_DEFAULT()) -  offsetof(struct vlanhdr, tci);
 	
 	/* POP VLAN */
 	if (parser_action == POP_VLAN_UPDATE) {

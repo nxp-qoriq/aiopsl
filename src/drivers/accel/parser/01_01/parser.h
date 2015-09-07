@@ -120,7 +120,6 @@
 	/** Uninitialized parser field of two bytes */
 #define PARSER_UNINITILIZED_FIELD_OF_HALF_WORD	0xFFFF
 	/** Distance of tci from start of vlan */
-#define PARSER_TCI_DIST_FROM_START_OF_VLAN	2
 
 /** @} */ /* end of AIOP_PARSE_OTHER */
 

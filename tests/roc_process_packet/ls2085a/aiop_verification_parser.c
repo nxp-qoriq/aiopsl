@@ -607,49 +607,26 @@ uint16_t aiop_verification_parser(uint32_t asa_seg_addr)
 	}
 	case PARSER_PARSE_AFTER_POP_VLAN_STR: 
 	{
-		uint16_t vlan_offset;
-		uint32_t fdma_flags;
 		struct parser_parse_after_pop_vlan_verif_command *pv =
 			(struct parser_parse_after_pop_vlan_verif_command *)
 			asa_seg_addr;
 
-		if (PARSER_IS_ONE_VLAN_DEFAULT()) {
-			vlan_offset = (uint16_t)(PARSER_GET_FIRST_VLAN_TCI_OFFSET_DEFAULT()) - 
-					PARSER_TCI_DIST_FROM_START_OF_VLAN; //-2 for TCI offset
-			fdma_flags = FDMA_REPLACE_SA_REPRESENT_BIT;
+		/* Update parse result table */
+		parser_pop_vlan_update();
 
-			/* Remove first VLAN header */
-			fdma_delete_default_segment_data(vlan_offset,
-							sizeof(struct vlanhdr),
-							fdma_flags);
-			/* Update parse result table */
-			parser_pop_vlan_update();
-		}
 		str_size =
 			sizeof(struct parser_parse_after_pop_vlan_verif_command);
 		break;
 	}
 	case PARSER_PARSE_AFTER_PUSH_VLAN_STR:
 	{
-		uint16_t to_offset;
-		uint32_t fdma_flags;
 		struct parser_parse_after_push_vlan_verif_command *pv =
 			(struct parser_parse_after_push_vlan_verif_command *)
 			asa_seg_addr;
-		struct parse_result *pr = (struct parse_result *)HWC_PARSE_RES_ADDRESS;
-		
-		/* Add a VLAN header */
-		to_offset = (uint16_t)pr->eth_offset + 2*NET_HDR_FLD_ETH_ADDR_SIZE;
-		fdma_flags = FDMA_REPLACE_SA_REPRESENT_BIT;
-		
-		fdma_insert_default_segment_data(to_offset, 
-				&(pv->vlan),
-				sizeof(struct vlanhdr), 
-				fdma_flags);
-		
+
 		/* Update parse result table */
 		parser_push_vlan_update();
-		
+
 		str_size =
 			sizeof(struct parser_parse_after_push_vlan_verif_command);
 		break;

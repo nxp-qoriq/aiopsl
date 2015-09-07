@@ -483,7 +483,7 @@ inline void parser_push_vlan_update()
 	/* check if there is no VLAN in the frame */
 	temp_32b = pr->frame_attribute_flags_1;
 	if (!(temp_32b & PARSER_ATT_VLAN_1_MASK)) {
-		pr->vlan_tci1_offset = pr->eth_offset + 2*NET_HDR_FLD_ETH_ADDR_SIZE + PARSER_TCI_DIST_FROM_START_OF_VLAN;
+		pr->vlan_tci1_offset = pr->eth_offset + 2*NET_HDR_FLD_ETH_ADDR_SIZE + offsetof(struct vlanhdr, tci);
 		pr->vlan_tcin_offset = pr->vlan_tci1_offset;
 		pr->frame_attribute_flags_1 = temp_32b | PARSER_ATT_VLAN_1_MASK;
 	}
