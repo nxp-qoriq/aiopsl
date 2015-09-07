@@ -458,6 +458,7 @@ int ipsec_app_init(uint16_t ni_id)
 	uint32_t encap_hard_seconds = 0x0;
 	uint32_t decap_soft_seconds = 0x0;
 	uint32_t decap_hard_seconds = 0x0;
+	uint32_t seconds_lifetime_enabled = 0;
 	uint64_t tmi_buffer_handle, tmi_timer_addr;
 	uint8_t tmi_id;
 
@@ -508,17 +509,15 @@ int ipsec_app_init(uint16_t ni_id)
 	/* Secondes lifetime duration
 	 * 0 = disabled, Other value = enabled
 	 * A non-zero value must be larger than 10 
-	 * Soft and hard pairs must have valid values */
-	/*
-	encap_soft_seconds = 15;
-	encap_hard_seconds = 16;
-	decap_soft_seconds = 17;
-	decap_hard_seconds = 18;
-	*/
-	encap_soft_seconds = 0;
-	encap_hard_seconds = 0;
-	decap_soft_seconds = 0;
-	decap_hard_seconds = 0;
+	 * Soft and hard pairs must have valid values 
+	 * (hard_seconds >= soft_seconds) */
+	seconds_lifetime_enabled = 0; /* 0 - disabled, 1- enabled */
+	if(seconds_lifetime_enabled) {
+		encap_soft_seconds = 15;
+		encap_hard_seconds = 16;
+		decap_soft_seconds = 17;
+		decap_hard_seconds = 18;
+	}
 	
 	/**********************************************************/
 
@@ -534,6 +533,7 @@ int ipsec_app_init(uint16_t ni_id)
 
 	frame_number = 0;
 
+	
 	fsl_print("\n++++\n  IPsec Demo: Doing IPsec Initialization\n++++\n");
 
 	if (tunnel_transport_mode == IPSEC_FLG_TUNNEL_MODE) {
@@ -630,7 +630,7 @@ int ipsec_app_init(uint16_t ni_id)
 			8, /* uint32_t max_num_of_timers */
 			&tmi_id); /* uint8_t *tmi_id */
 	
-	fsl_print("\nIPsec: tmi_id = 0x%x\n\n",tmi_id);
+	fsl_print("IPsec: tmi_id = 0x%x\n",tmi_id);
 
 
 	err = ipsec_create_instance(
