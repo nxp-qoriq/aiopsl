@@ -41,7 +41,6 @@
 #include "fsl_evmng.h"
 #include "apps.h"
 #include "fsl_tman.h"
-//"${ProjDirPath}/../../../../src/include/drivers/accel/tman/01_01"
 
 int app_early_init(void);
 int app_init(void);
