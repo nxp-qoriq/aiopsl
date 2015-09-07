@@ -242,7 +242,7 @@ __HOT_CODE ENTRY_POINT static void app_process_packet(void)
 			if(err == -ENOMEM)
 				fdma_discard_default_frame(FDMA_DIS_NO_FLAGS);
 			else /* (err == -EBUSY) */
-				fdma_discard_fd((struct ldpaa_fd *)HWC_FD_ADDRESS, FDMA_DIS_NO_FLAGS);
+				fdma_discard_fd((struct ldpaa_fd *)HWC_FD_ADDRESS, 0, FDMA_DIS_AS_BIT);
 		}
 	} 
 	
