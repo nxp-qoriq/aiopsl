@@ -476,6 +476,8 @@ int tcp_gro_add_seg_and_close_aggregation(
 				&(gro_ctx->agg_fd_isolation_attributes));
 */
 	else { /* relocate aggregation in default location */
+		/* save gro_ctx->agg_fd_isolation_attributes */
+		
 		/* copy aggregated FD to default FD */
 		*((struct ldpaa_fd *)HWC_FD_ADDRESS) = gro_ctx->agg_fd;
 

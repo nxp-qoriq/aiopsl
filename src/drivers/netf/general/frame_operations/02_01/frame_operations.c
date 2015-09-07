@@ -64,6 +64,8 @@ int create_frame(
 	fd->length = 0;
 	fd->offset = 0;
 
+	LDPAA_FD_SET_IVP(fd, 1);	
+	
 	if ((uint32_t)fd == HWC_FD_ADDRESS) {
 		PRC_SET_ASA_SIZE(0);
 		PRC_SET_PTA_ADDRESS(PRC_PTA_NOT_LOADED_ADDRESS);	
@@ -138,6 +140,8 @@ int create_fd(
 	fd->frc = 0;
 	fd->length = 0;
 	fd->offset = 0;
+	
+	LDPAA_FD_SET_IVP(fd, 1);
 
 	if ((uint32_t)fd == HWC_FD_ADDRESS) {
 		PRC_SET_ASA_SIZE(0);
