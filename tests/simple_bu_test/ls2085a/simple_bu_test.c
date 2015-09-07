@@ -47,6 +47,7 @@
 #include "fsl_table.h"
 #include "fsl_keygen.h"
 #include "simple_bu_test.h"
+#include "fsl_evmng.h"
 
 //extern struct  ipr_global_parameters ipr_global_parameters1;
 extern __PROFILE_SRAM struct storage_profile storage_profile[SP_NUM_OF_STORAGE_PROFILES];
@@ -73,8 +74,15 @@ int app_init(void)
 	int err;
 	fsl_print("\n\n***  Starting app_init ***\n\n");
 
-//	err = simple_bu_lpm_test();
-	err = simple_bu_ipf_ipr_test();
+	/* for parser test */
+	err = evmng_register(EVMNG_GENERATOR_AIOPSL, DPNI_EVENT_ADDED, 1, NULL, simple_bu_parser_test);
+	if (err){
+		pr_err("EVM registration for DPNI_EVENT_ADDED failed: %d\n", err);
+		return err;
+	}
+	
+	//err = simple_bu_lpm_test();
+	//err = simple_bu_ipf_ipr_test();
 	//err = simple_bu_parser_test();
 	//err = simple_bu_hagit_test();
 	//err = simple_bu_gal_test();

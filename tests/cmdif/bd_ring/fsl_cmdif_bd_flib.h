@@ -60,6 +60,19 @@ struct cmdif_bd {
 	/*!< 64 bytes data to be used for the response */
 };
 
+struct cmdif_bd_ring {
+	uint32_t flags;
+	uint32_t enq;
+	uint32_t deq;
+	uint8_t num_bds; /*!< Max number of BDs = 2^num_bds, must be 1 byte */ 
+	uint64_t bd_addr;
+};
+
+int cmdif_flib_send(struct cmdif_bd_ring *bd_ring, const struct cmdif_bd *bd);
+int cmdif_flib_receive(struct cmdif_bd_ring *bd_ring, struct cmdif_bd *bd);
+int cmdif_flib_open_bd(uint64_t handle, const char *module_name, struct cmdif_bd *bd);
+int cmdif_flib_close_bd(uint64_t handle, struct cmdif_bd *bd);
+
 /** @} */ /* end of cmdif_bd_flib_g group */
 
 

@@ -40,6 +40,7 @@
 #include "fsl_types.h"
 #include "fsl_fdma.h"
 #include "fsl_parser.h"
+#include "fsl_net.h"
 
 #include "system.h"
 #include "fsl_id_pool.h"
@@ -245,5 +246,257 @@ inline int parse_result_generate_basic(void)
        }
 }
 
+inline void parser_pop_vlan_update()
+{
+	uint8_t temp_8b;
+	uint32_t temp_32b;
+	struct parse_result *pr =(struct parse_result *)HWC_PARSE_RES_ADDRESS;
+	struct presentation_context *prc= (struct presentation_context *)HWC_PRC_ADDRESS;
+	uint16_t seg_address = prc->seg_address;
+
+	temp_8b = pr->last_etype_offset - sizeof(struct vlanhdr);
+	pr->last_etype_offset = temp_8b;
+	uint16_t l3_protocol = *(uint16_t *)((uint16_t)temp_8b + seg_address);
+	void *next_header = (void *)((uint16_t)pr->ip1_or_arp_offset - sizeof(struct vlanhdr) + seg_address);
+	
+	/* Common Stack: ETHERNET-IPV4/IPV6-TCP/UDP */
+	/* IPV4 */
+	if (l3_protocol == NET_ETH_ETYPE_IPV4) {
+		if ((((struct ipv4hdr *)next_header)->protocol == TCP_PROTOCOL) ||
+				(((struct ipv4hdr *)next_header)->protocol == UDP_PROTOCOL)) {
+			pr->ip_pid_offset = pr->ip_pid_offset - sizeof(struct vlanhdr);
+			pr->ip1_or_arp_offset = pr->ip1_or_arp_offset - sizeof(struct vlanhdr);
+			pr->ipn_or_minencapO_offset = pr->ip1_or_arp_offset;
+			pr->l4_offset = pr->l4_offset - sizeof(struct vlanhdr);
+			temp_8b = pr->gtp_esp_ipsec_offset;
+			if (temp_8b != PARSER_UNINITILIZED_FIELD_OF_BYTE)
+				pr->gtp_esp_ipsec_offset = temp_8b - sizeof(struct vlanhdr);
+			pr->nxt_hdr_offset = pr->nxt_hdr_offset - sizeof(struct vlanhdr);
+			pr->gross_running_sum = 0;
+		}
+	}
+	/* IPV6 */
+	else {
+		if (l3_protocol == NET_ETH_ETYPE_IPV6) {
+			if ((((struct ipv6hdr *)next_header)->next_header == TCP_PROTOCOL) ||
+				(((struct ipv6hdr *)next_header)->next_header == UDP_PROTOCOL)) {
+				pr->ip_pid_offset = pr->ip_pid_offset - sizeof(struct vlanhdr);
+				pr->ip1_or_arp_offset = pr->ip1_or_arp_offset - sizeof(struct vlanhdr);
+				pr->ipn_or_minencapO_offset = pr->ip1_or_arp_offset;
+				pr->l4_offset = pr->l4_offset - sizeof(struct vlanhdr);
+				temp_8b = pr->gtp_esp_ipsec_offset;
+				if (temp_8b != PARSER_UNINITILIZED_FIELD_OF_BYTE)
+					pr->gtp_esp_ipsec_offset = temp_8b - sizeof(struct vlanhdr);
+				pr->nxt_hdr_offset = pr->nxt_hdr_offset - sizeof(struct vlanhdr);
+				pr->gross_running_sum = 0;
+				temp_8b = pr->routing_hdr_offset1;
+				if (temp_8b != PARSER_UNINITILIZED_FIELD_OF_BYTE) {
+					pr->routing_hdr_offset1 = temp_8b - sizeof(struct vlanhdr);
+					temp_8b = pr->routing_hdr_offset2;
+					if (temp_8b != PARSER_UNINITILIZED_FIELD_OF_BYTE)
+						pr->routing_hdr_offset2 = temp_8b - sizeof(struct vlanhdr);
+				}
+				temp_8b = pr->ipv6_frag_offset;
+				if (temp_8b != PARSER_UNINITILIZED_FIELD_OF_BYTE)
+					pr->ipv6_frag_offset = temp_8b - sizeof(struct vlanhdr);
+			}	
+		}
+		/* not a common stack */
+		else {
+			temp_8b = pr->llc_snap_offset;
+			if (temp_8b != PARSER_UNINITILIZED_FIELD_OF_BYTE)
+				pr->llc_snap_offset = temp_8b - sizeof(struct vlanhdr);
+			temp_8b = pr->pppoe_offset;
+			if (temp_8b != PARSER_UNINITILIZED_FIELD_OF_BYTE)
+				pr->pppoe_offset = temp_8b - sizeof(struct vlanhdr);
+			temp_8b = pr->mpls_offset_1;
+			if (temp_8b != PARSER_UNINITILIZED_FIELD_OF_BYTE) {
+				pr->mpls_offset_1 = temp_8b - sizeof(struct vlanhdr);
+				temp_8b = pr->mpls_offset_n;
+				if (temp_8b != PARSER_UNINITILIZED_FIELD_OF_BYTE)
+					pr->mpls_offset_n = temp_8b - sizeof(struct vlanhdr);
+			}
+			temp_8b = pr->ip_pid_offset;
+			if (temp_8b != PARSER_UNINITILIZED_FIELD_OF_BYTE)
+				pr->ip_pid_offset = temp_8b - sizeof(struct vlanhdr);
+			temp_8b = pr->ip1_or_arp_offset;
+			if (temp_8b != PARSER_UNINITILIZED_FIELD_OF_BYTE)
+				pr->ip1_or_arp_offset = temp_8b - sizeof(struct vlanhdr);
+			temp_8b = pr->ipn_or_minencapO_offset;
+			if (temp_8b != PARSER_UNINITILIZED_FIELD_OF_BYTE)
+				pr->ipn_or_minencapO_offset = temp_8b - sizeof(struct vlanhdr);
+			else
+				pr->ipn_or_minencapO_offset = pr->ip1_or_arp_offset;
+			temp_8b = pr->gre_offset;
+			if (temp_8b != PARSER_UNINITILIZED_FIELD_OF_BYTE)
+				pr->gre_offset = temp_8b - sizeof(struct vlanhdr);
+			temp_8b = pr->l4_offset;
+			if (temp_8b != PARSER_UNINITILIZED_FIELD_OF_BYTE)
+				pr->l4_offset = temp_8b - sizeof(struct vlanhdr);
+			temp_8b = pr->gtp_esp_ipsec_offset;
+			if (temp_8b != PARSER_UNINITILIZED_FIELD_OF_BYTE)
+				pr->gtp_esp_ipsec_offset = temp_8b - sizeof(struct vlanhdr);
+			temp_8b = pr->routing_hdr_offset1;
+			if (temp_8b != PARSER_UNINITILIZED_FIELD_OF_BYTE) {
+				pr->routing_hdr_offset1 = temp_8b - sizeof(struct vlanhdr);
+				temp_8b = pr->routing_hdr_offset2;
+				if (temp_8b != PARSER_UNINITILIZED_FIELD_OF_BYTE)
+					pr->routing_hdr_offset2 = temp_8b - sizeof(struct vlanhdr);
+			}
+		
+			pr->nxt_hdr_offset = pr->nxt_hdr_offset - sizeof(struct vlanhdr);
+			temp_8b = pr->ipv6_frag_offset;
+			if (temp_8b != PARSER_UNINITILIZED_FIELD_OF_BYTE)
+				pr->ipv6_frag_offset = temp_8b - sizeof(struct vlanhdr);
+			pr->gross_running_sum = 0;	//reset gross_running_sum
+		}
+	}
+
+	/* check if this is the only VLAN (no VLAN left in the frame)
+	 * assume that PARSER_IS_ONE_VLAN_DEFAULT() is true since user applied pop_vlan earlier */
+	temp_32b = pr->frame_attribute_flags_1;
+	if (!(temp_32b & PARSER_ATT_VLAN_N_MASK)) {
+		temp_32b &= ~(PARSER_ATT_CFI_IN_VLAN_MASK | PARSER_ATT_VLAN_1_MASK);
+		pr->frame_attribute_flags_1 = temp_32b;
+		/* reset VLANTCIOffset_1, VLANTCIOffset_n */
+		*((uint16_t *) &(pr->vlan_tci1_offset)) = 
+				PARSER_UNINITILIZED_FIELD_OF_HALF_WORD; 
+	}
+
+	/* check if there is only 1 VLAN left in the frame */
+	else {
+		temp_8b = pr->vlan_tci1_offset;
+		if (PARSER_GET_LAST_VLAN_TCI_OFFSET_DEFAULT() - temp_8b == sizeof(struct vlanhdr)) {
+			pr->frame_attribute_flags_1 = temp_32b & ~PARSER_ATT_VLAN_N_MASK; 		//reset VLAN n Present (bit 22)
+			pr->vlan_tcin_offset = temp_8b;				//VLANTCIOffset_n = VLANTCIOffset_1
+		}
+		/* there is more than 1 VLAN left in the frame */
+		else
+			pr->vlan_tcin_offset = pr->vlan_tcin_offset - sizeof(struct vlanhdr);
+	}
+}
+
+inline void parser_push_vlan_update()
+{
+	uint8_t temp_8b;
+	uint32_t temp_32b;
+	struct parse_result *pr =(struct parse_result *)HWC_PARSE_RES_ADDRESS;
+	struct presentation_context *prc= (struct presentation_context *)HWC_PRC_ADDRESS;
+	uint16_t seg_address = prc->seg_address;
+	
+	temp_8b = pr->last_etype_offset + sizeof(struct vlanhdr);
+	pr->last_etype_offset = temp_8b;
+	uint16_t l3_protocol = *(uint16_t *)((uint16_t)temp_8b + seg_address);
+	void *next_header = (void *)((uint16_t)pr->ip1_or_arp_offset + sizeof(struct vlanhdr) + seg_address);
+
+	/* Common Stack: ETHERNET-IPV4/IPV6-TCP/UDP */
+	/* IPV4 */
+	if (l3_protocol == NET_ETH_ETYPE_IPV4) {
+		if ((((struct ipv4hdr *)next_header)->protocol == TCP_PROTOCOL) ||
+				(((struct ipv4hdr *)next_header)->protocol == UDP_PROTOCOL)) {
+			pr->ip_pid_offset = pr->ip_pid_offset + sizeof(struct vlanhdr);
+			pr->ip1_or_arp_offset = pr->ip1_or_arp_offset + sizeof(struct vlanhdr);
+			pr->ipn_or_minencapO_offset = pr->ip1_or_arp_offset;
+			pr->l4_offset = pr->l4_offset + sizeof(struct vlanhdr);
+			temp_8b = pr->gtp_esp_ipsec_offset;
+			if (temp_8b != PARSER_UNINITILIZED_FIELD_OF_BYTE)
+				pr->gtp_esp_ipsec_offset = temp_8b + sizeof(struct vlanhdr);
+			pr->nxt_hdr_offset = pr->nxt_hdr_offset + sizeof(struct vlanhdr);
+			pr->gross_running_sum = 0;
+		}
+	}
+	else {
+		if (l3_protocol == NET_ETH_ETYPE_IPV6) {
+			if ((((struct ipv6hdr *)next_header)->next_header == TCP_PROTOCOL) ||
+				(((struct ipv6hdr *)next_header)->next_header == UDP_PROTOCOL)) {
+				pr->ip_pid_offset = pr->ip_pid_offset + sizeof(struct vlanhdr);
+				pr->ip1_or_arp_offset = pr->ip1_or_arp_offset + sizeof(struct vlanhdr);
+				pr->ipn_or_minencapO_offset = pr->ip1_or_arp_offset;
+				pr->l4_offset = pr->l4_offset + sizeof(struct vlanhdr);
+				temp_8b = pr->gtp_esp_ipsec_offset;
+				if (temp_8b != PARSER_UNINITILIZED_FIELD_OF_BYTE)
+					pr->gtp_esp_ipsec_offset = temp_8b + sizeof(struct vlanhdr);
+				pr->nxt_hdr_offset = pr->nxt_hdr_offset + sizeof(struct vlanhdr);
+				pr->gross_running_sum = 0;
+				temp_8b = pr->routing_hdr_offset1;
+				if (temp_8b != PARSER_UNINITILIZED_FIELD_OF_BYTE) {
+					pr->routing_hdr_offset1 = temp_8b + sizeof(struct vlanhdr);
+					temp_8b = pr->routing_hdr_offset2;
+					if (temp_8b != PARSER_UNINITILIZED_FIELD_OF_BYTE)
+						pr->routing_hdr_offset2 = temp_8b + sizeof(struct vlanhdr);
+				}
+				temp_8b = pr->ipv6_frag_offset;
+				if (temp_8b != PARSER_UNINITILIZED_FIELD_OF_BYTE)
+					pr->ipv6_frag_offset = temp_8b + sizeof(struct vlanhdr);
+			}
+		}
+		/* not a common stack */
+		else {
+			temp_8b = pr->llc_snap_offset;
+			if (temp_8b != PARSER_UNINITILIZED_FIELD_OF_BYTE)
+				pr->llc_snap_offset = temp_8b + sizeof(struct vlanhdr);
+			temp_8b = pr->pppoe_offset;
+			if (temp_8b != PARSER_UNINITILIZED_FIELD_OF_BYTE)
+				pr->pppoe_offset = temp_8b + sizeof(struct vlanhdr);
+			temp_8b = pr->mpls_offset_1;
+			if (temp_8b != PARSER_UNINITILIZED_FIELD_OF_BYTE) {
+				pr->mpls_offset_1 = temp_8b + sizeof(struct vlanhdr);
+				temp_8b = pr->mpls_offset_n;
+				if (temp_8b != PARSER_UNINITILIZED_FIELD_OF_BYTE)
+					pr->mpls_offset_n = temp_8b + sizeof(struct vlanhdr);
+			}
+			temp_8b = pr->ip_pid_offset;
+			if (temp_8b != PARSER_UNINITILIZED_FIELD_OF_BYTE)
+				pr->ip_pid_offset = temp_8b + sizeof(struct vlanhdr);
+			temp_8b = pr->ip1_or_arp_offset;
+			if (temp_8b != PARSER_UNINITILIZED_FIELD_OF_BYTE)
+				pr->ip1_or_arp_offset = temp_8b + sizeof(struct vlanhdr);
+			temp_8b = pr->ipn_or_minencapO_offset;
+			if (temp_8b != PARSER_UNINITILIZED_FIELD_OF_BYTE)
+				pr->ipn_or_minencapO_offset = temp_8b + sizeof(struct vlanhdr);
+			else
+				pr->ipn_or_minencapO_offset = pr->ip1_or_arp_offset;
+			temp_8b = pr->gre_offset;
+			if (temp_8b != PARSER_UNINITILIZED_FIELD_OF_BYTE)
+				pr->gre_offset = temp_8b + sizeof(struct vlanhdr);
+			temp_8b = pr->l4_offset;
+			if (temp_8b != PARSER_UNINITILIZED_FIELD_OF_BYTE)
+				pr->l4_offset = temp_8b + sizeof(struct vlanhdr);
+			temp_8b = pr->gtp_esp_ipsec_offset;
+			if (temp_8b != PARSER_UNINITILIZED_FIELD_OF_BYTE)
+				pr->gtp_esp_ipsec_offset = temp_8b + sizeof(struct vlanhdr);
+			temp_8b = pr->routing_hdr_offset1;
+			if (temp_8b != PARSER_UNINITILIZED_FIELD_OF_BYTE) {
+				pr->routing_hdr_offset1 = temp_8b + sizeof(struct vlanhdr);
+				temp_8b = pr->routing_hdr_offset2;
+				if (temp_8b != PARSER_UNINITILIZED_FIELD_OF_BYTE)
+					pr->routing_hdr_offset2 = temp_8b + sizeof(struct vlanhdr);
+			}	
+			pr->nxt_hdr_offset = pr->nxt_hdr_offset + sizeof(struct vlanhdr);
+			temp_8b = pr->ipv6_frag_offset;
+			if (temp_8b != PARSER_UNINITILIZED_FIELD_OF_BYTE)
+				pr->ipv6_frag_offset = temp_8b + sizeof(struct vlanhdr);
+			pr->gross_running_sum = 0;	//reset gross_running_sum
+		}
+	}
+
+	/* check if there is no VLAN in the frame */
+	temp_32b = pr->frame_attribute_flags_1;
+	if (!(temp_32b & PARSER_ATT_VLAN_1_MASK)) {
+		pr->vlan_tci1_offset = pr->eth_offset + 2*NET_HDR_FLD_ETH_ADDR_SIZE + offsetof(struct vlanhdr, tci);
+		pr->vlan_tcin_offset = pr->vlan_tci1_offset;
+		pr->frame_attribute_flags_1 = temp_32b | PARSER_ATT_VLAN_1_MASK;
+	}
+
+	/* check if there is only 1 VLAN in the frame */
+	else {
+		if (!(temp_32b & PARSER_ATT_VLAN_N_MASK)) {
+			pr->vlan_tcin_offset = pr->vlan_tci1_offset + sizeof(struct vlanhdr);
+			pr->frame_attribute_flags_1 = temp_32b | PARSER_ATT_VLAN_N_MASK;
+		}
+		else
+			pr->vlan_tcin_offset = pr->vlan_tcin_offset + sizeof(struct vlanhdr);
+	}
+}
 
 #endif /* __PARSER_INLINE_H */
