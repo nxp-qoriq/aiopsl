@@ -43,6 +43,7 @@
 #include "fsl_dpci_drv.h"
 #include "fsl_dpci_event.h"
 #include "fsl_rcu.h"
+#include "fsl_malloc.h"
 
 int app_early_init(void);
 int app_init(void);
@@ -52,6 +53,12 @@ extern void cmdif_srv_isr(void);
 extern void cmdif_cl_isr(void);
 extern void receive_cb(void);
 extern int evmng_raise_irq_event_cb(void *dev, uint16_t cmd, uint32_t size, void *event_data);
+
+#ifdef CHECK_MEM_MNG_STACK
+void* fsl_malloc(size_t size,uint32_t alignment);
+void fsl_free(void *mem);
+#endif
+
 
 __HOT_CODE ENTRY_POINT static void app_process_packet(void)
 {
@@ -225,6 +232,10 @@ void stack_estimation(void)
 	*/
 
 	/*After packet processing is done, fdma_terminate_task must be called.*/
+#ifdef CHECK_MEM_MNG_STACK
+	void* p = fsl_malloc(64,16);
+	fsl_free(p);
+#endif
 	fdma_terminate_task();
 
 
