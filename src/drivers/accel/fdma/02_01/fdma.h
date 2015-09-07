@@ -347,8 +347,13 @@
 	_flags | FDMA_DISCARD_FRAME_CMD)
 
 	/** FDMA Discard frame command arg1 */
-#define FDMA_DISCARD_ARG1_FRAME(_frame, _flags)			\
-	(uint32_t)((_frame << 16) | _flags | FDMA_DISCARD_FRAME_CMD)
+#define FDMA_DISCARD_ARG1_FRAME(_frame, _flags)				\
+	(uint32_t)((_frame << 16) | 					\
+	(_flags & ~FDMA_DIS_BDI_BIT) | FDMA_DISCARD_FRAME_CMD)
+	/** FDMA Discard frame command arg3 */
+#define FDMA_DISCARD_ARG3_FRAME(_flags, _icid)				\
+	(uint32_t)(((_icid << 16) & ~FDMA_DIS_BDI_BIT) |		\
+	(_flags & FDMA_DIS_BDI_BIT))
 
 	/** FDMA Terminate task command arg1 */
 #define FDMA_TERM_TASK_CMD_ARG1()					\
@@ -654,6 +659,20 @@
 /** \addtogroup FDMA_Commands_Flags
  *  @{
  */
+
+/**************************************************************************//**
+@Group		FDMA_DISCARD_FLAGS
+
+@Description	FDMA Discard flags
+
+@{
+*//***************************************************************************/
+/** Frame Source: Discard working frame (using frame handle).*/
+#define FDMA_DIS_FS_HANDLE_BIT	0x0000
+	/** Frame Source: Discard Frame (using frame FD).*/
+#define FDMA_DIS_FS_FD_BIT	0x0200
+
+/** @} end of group FDMA_DISCARD_FLAGS */
 
 /**************************************************************************//**
 @Group		FDMA_DMA_Flags
@@ -969,6 +988,7 @@ void fdma_release_buffer(
 
 @Param[in]	fd - A pointer to the location in the workspace of the FD to be
 		discarded \ref ldpaa_fd.
+@Param[in]	icid - ICID of the FD to discard.
 @Param[in]	flags - \link FDMA_Discard_WF_Flags discard working frame
 		frame flags. \endlink
 
@@ -980,7 +1000,7 @@ void fdma_release_buffer(
 @Cautions	This function may result in a fatal error.
 @Cautions	In this Service Routine the task yields.
 *//***************************************************************************/
-int fdma_discard_fd_wrp(struct ldpaa_fd *fd, uint32_t flags);
+int fdma_discard_fd_wrp(struct ldpaa_fd *fd, uint16_t icid, uint32_t flags);
 
 /**************************************************************************//**
 @Function	fdma_calculate_default_frame_checksum_wrp

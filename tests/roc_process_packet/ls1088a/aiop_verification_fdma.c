@@ -345,6 +345,7 @@ uint16_t aiop_verification_fdma(uint32_t asa_seg_addr)
 		flags |= ((str->PS) ? FDMA_ENF_PS_BIT : 0x0);
 		flags |= ((str->BDI) ? FDMA_ENF_BDI_BIT : 0x0);
 		flags |= ((str->RL == 1) ? (FDMA_ENF_RL_BIT) : 0x0);
+		flags |= ((str->AS == 1) ? (FDMA_ENF_AS_BIT) : 0x0);
 
 		if (str->EIS) {
 			str->status = (int8_t)
@@ -376,6 +377,7 @@ uint16_t aiop_verification_fdma(uint32_t asa_seg_addr)
 		flags |= ((str->PS) ? FDMA_ENF_PS_BIT : 0x0);
 		flags |= ((str->BDI) ? FDMA_ENF_BDI_BIT : 0x0);
 		flags |= ((str->RL == 1) ? (FDMA_ENF_RL_BIT) : 0x0);
+		flags |= ((str->AS == 1) ? (FDMA_ENF_AS_BIT) : 0x0);
 
 		if (str->EIS) {
 			str->status = (int8_t)
@@ -403,10 +405,7 @@ uint16_t aiop_verification_fdma(uint32_t asa_seg_addr)
 	{
 		struct fdma_discard_default_wf_command *str =
 			(struct fdma_discard_default_wf_command *) asa_seg_addr;
-		/*flags |= ((str->FS == 1) ? FDMA_DIS_FS_FD_BIT :
-				FDMA_DIS_FS_HANDLE_BIT);*/
-		/*flags |= FDMA_DIS_FS_HANDLE_BIT;*/
-		/*flags |= (str->TC == 1) ? FDMA_DIS_WF_TC_BIT : 0 ;*/
+		flags |= (str->TC == 1) ? FDMA_DIS_WF_TC_BIT : 0 ;
 		fdma_discard_default_frame(flags);
 		str->status = SUCCESS;
 		str_size = (uint16_t)
@@ -418,10 +417,7 @@ uint16_t aiop_verification_fdma(uint32_t asa_seg_addr)
 	{
 		struct fdma_discard_wf_command *str =
 			(struct fdma_discard_wf_command *) asa_seg_addr;
-		/*flags |= ((str->FS == 1) ? FDMA_DIS_FS_FD_BIT :
-				FDMA_DIS_FS_HANDLE_BIT);*/
-		/*flags |= FDMA_DIS_FS_HANDLE_BIT;*/
-		/*flags |= (str->TC == 1) ? FDMA_DIS_WF_TC_BIT : 0 ;*/
+		flags |= (str->TC == 1) ? FDMA_DIS_WF_TC_BIT : 0 ;
 		fdma_discard_frame(str->frame, flags);
 		str->status = SUCCESS;
 		str_size = (uint16_t)sizeof(struct fdma_discard_wf_command);
@@ -433,9 +429,13 @@ uint16_t aiop_verification_fdma(uint32_t asa_seg_addr)
 		struct fdma_discard_fd_command *str =
 			(struct fdma_discard_fd_command *) asa_seg_addr;
 
-		/*flags |= (str->TC == 1) ? FDMA_DIS_WF_TC_BIT : 0 ;*/
+		flags |= (str->TC == 1) ? FDMA_DIS_FRAME_TC_BIT : 0 ;
+		flags |= ((str->AS == 1) ? (FDMA_ENF_AS_BIT) : 0x0);
+		flags |= ((str->BDI == 1) ? (FDMA_DIS_BDI_BIT) : 0x0);
+		flags |= ((str->PL == 1) ? (FDMA_DIS_PL_BIT) : 0x0);
+		flags |= ((str->VA == 1) ? (FDMA_DIS_VA_BIT) : 0x0);
 		str->status = (int8_t)fdma_discard_fd(
-				(struct ldpaa_fd *)(str->fd_dst), flags);
+			(struct ldpaa_fd *)(str->fd_dst), str->icid, flags);
 		str_size = (uint16_t)sizeof(struct fdma_discard_fd_command);
 		break;
 	}
@@ -445,9 +445,13 @@ uint16_t aiop_verification_fdma(uint32_t asa_seg_addr)
 		struct fdma_force_discard_fd_command *str =
 			(struct fdma_force_discard_fd_command *) asa_seg_addr;
 
-		/*flags |= (str->TC == 1) ? FDMA_DIS_WF_TC_BIT : 0 ;*/
-		fdma_force_discard_fd((struct ldpaa_fd *)(str->fd_dst));
-		str->status = SUCCESS;
+		flags |= (str->TC == 1) ? FDMA_DIS_FRAME_TC_BIT : 0 ;
+		flags |= ((str->AS == 1) ? (FDMA_ENF_AS_BIT) : 0x0);
+		flags |= ((str->BDI == 1) ? (FDMA_DIS_BDI_BIT) : 0x0);
+		flags |= ((str->PL == 1) ? (FDMA_DIS_PL_BIT) : 0x0);
+		flags |= ((str->VA == 1) ? (FDMA_DIS_VA_BIT) : 0x0);
+		str->status = (int8_t)fdma_force_discard_fd(
+				(struct ldpaa_fd *)(str->fd_dst), str->icid, flags);
 		str_size = (uint16_t)
 				sizeof(struct fdma_force_discard_fd_command);
 		break;

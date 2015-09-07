@@ -798,6 +798,11 @@ struct fdma_enqueue_frame_command {
 		* - 1 = relinquish OSM exclusivity in current scope right after
 		* the enqueue to QMan is issued. */
 	uint8_t	RL;
+		/** AMQ attributes (PL, VA, BDI, ICID) Source.
+		 * If reset - supplied AMQ attributes are used.
+		 * If set - task default AMQ attributes (From Additional Dequeue
+		 * Context) are used. */
+	uint8_t	AS;
 		/** Command returned status. */
 	int8_t  status;
 		/** Use implicit Queueing destination parameters. 
@@ -805,7 +810,7 @@ struct fdma_enqueue_frame_command {
 		* - 1: Use implicit Queueing destination parameters. */
 	int8_t	implicit_qd_params;	
 		/** 64-bit alignment. */
-	uint8_t	pad[4];
+	uint8_t	pad[3];
 };
 
 /**************************************************************************//**
@@ -863,12 +868,19 @@ struct fdma_enqueue_frame_exp_command {
 		* - 1 = relinquish OSM exclusivity in current scope right after
 		* the enqueue to QMan is issued. */
 	uint8_t	RL;
+		/** AMQ attributes (PL, VA, BDI, ICID) Source.
+		 * If reset - supplied AMQ attributes are used.
+		 * If set - task default AMQ attributes (From Additional Dequeue
+		 * Context) are used. */
+	uint8_t	AS;
 		/** Command returned status. */
 	int8_t  status;
 		/** Use implicit Queueing destination parameters. 
 		* - 0: Use supplied Queueing destination parameters
 		* - 1: Use implicit Queueing destination parameters.*/
 	int8_t	implicit_qd_params;
+		/** 64-bit alignment. */
+	uint8_t	pad[7];
 };
 
 /**************************************************************************//**
@@ -882,16 +894,11 @@ struct fdma_discard_default_wf_command {
 		/** FDMA Discard Default Working Frame command structure
 		* identifier. */
 	uint32_t opcode;
-		/* Frame Source. Currently not supported since only FS = 0 is
-		* supported in rev1.
-		* - 0: discard working frame (using FRAME_HANDLE)
-		* - 1: discard Frame (using FD at FD_ADDRESS).
-	uint8_t	 FS; */
 		/** Control:
 		* - 0: Return after discard
 		* - 1: Trigger the Terminate task command right after
 		* the discard. */
-	/*uint8_t	 TC;*/
+	uint8_t	 TC;
 		/** Command returned status. */
 	int8_t	status;
 		/** 64-bit alignment. */
@@ -911,20 +918,13 @@ struct fdma_discard_wf_command {
 	uint32_t opcode;
 		/** Frame handle to discard. */
 	uint16_t frame;
-		/* Frame Source. Currently not supported since only FS = 0 is
-		* supported in rev1.
-		* - 0: discard working frame (using FRAME_HANDLE)
-		* - 1: discard Frame (using FD at FD_ADDRESS).
-	uint8_t	 FS; */
 		/** Control:
 		* - 0: Return after discard
-		* - 1: Trigger the Terminate task command right after
+		* - 1: Trigger the Terminate task command right after 
 		* the discard. */
-	/*uint8_t	 TC;*/
+	uint8_t	 TC;
 		/** Command returned status. */
 	int8_t	status;
-		/** 64-bit alignment. */
-	uint8_t	pad[1];
 };
 
 /**************************************************************************//**
@@ -944,11 +944,28 @@ struct fdma_discard_fd_command {
 		* - 0: Return after discard
 		* - 1: Trigger the Terminate task command right after
 		* the discard. */
-	/*uint8_t	 TC;*/
+	uint8_t	 TC;
+		/** ICID of the FD to enqueue. */
+	uint16_t icid;
+		/** Bypass DPAA resource Isolation:
+		* - 0: Isolation is enabled for this command. The FQID ID
+		* specified is virtual within the specified ICID.
+		* - 1: Isolation is not enabled for this command. The FQID ID
+		* specified is a real (not virtual) pool ID. */
+	uint8_t	BDI;
+		/** Virtual Address. Frame AMQ attribute.
+		 * The DMA uses this memory attribute to make the access. */
+	uint8_t VA;
+		/** Privilege Level. Frame AMQ attribute.
+		 * The DMA uses this memory attribute to make the access. */
+	uint8_t PL;
+		/** AMQ attributes (PL, VA, BDI, ICID) Source.
+		 * If reset - supplied AMQ attributes are used.
+		 * If set - task default AMQ attributes (From Additional Dequeue
+		 * Context) are used. */
+	uint8_t	AS;
 		/** Command returned status. */
 	int8_t	status;
-		/** 64-bit alignment. */
-	uint8_t	pad[7];
 };
 
 /**************************************************************************//**
@@ -968,11 +985,30 @@ struct fdma_force_discard_fd_command {
 		* - 0: Return after discard
 		* - 1: Trigger the Terminate task command right after
 		* the discard. */
-	/*uint8_t	 TC;*/
+	uint8_t	 TC;
+		/** ICID of the FD to enqueue. */
+	uint16_t icid;
+		/** Bypass DPAA resource Isolation:
+		* - 0: Isolation is enabled for this command. The FQID ID
+		* specified is virtual within the specified ICID.
+		* - 1: Isolation is not enabled for this command. The FQID ID
+		* specified is a real (not virtual) pool ID. */
+	uint8_t	BDI;
+		/** Virtual Address. Frame AMQ attribute.
+		 * The DMA uses this memory attribute to make the access. */
+	uint8_t VA;
+		/** Privilege Level. Frame AMQ attribute.
+		 * The DMA uses this memory attribute to make the access. */
+	uint8_t PL;
+		/** AMQ attributes (PL, VA, BDI, ICID) Source.
+		 * If reset - supplied AMQ attributes are used.
+		 * If set - task default AMQ attributes (From Additional Dequeue
+		 * Context) are used. */
+	uint8_t	AS;
 		/** Command returned status. */
 	int8_t	status;
 		/** 64-bit alignment. */
-	uint8_t	pad[7];
+	uint8_t	pad[6];
 };
 
 /**************************************************************************//**

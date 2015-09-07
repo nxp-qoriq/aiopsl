@@ -499,7 +499,8 @@ int ipr_reassemble(ipr_instance_handle_t instance_handle)
 
 				fdma_discard_fd_wrp(
 					     (struct ldpaa_fd *)HWC_FD_ADDRESS,
-					     FDMA_DIS_NO_FLAGS);
+					     0,
+					     FDMA_DIS_AS_BIT);
 				/* Early Time out */
 				return ETIMEDOUT;
 			}
@@ -1872,8 +1873,8 @@ void ipr_time_out(uint64_t rfdc_ext_addr, uint16_t opaque_not_used)
 			cdma_read((void *) HWC_FD_ADDRESS,
 				  rfdc_ext_addr+START_OF_FDS_LIST+index*32,
 				  FD_SIZE);
-			fdma_discard_fd((struct ldpaa_fd *)HWC_FD_ADDRESS,
-					FDMA_DIS_NO_FLAGS);
+			fdma_discard_fd((struct ldpaa_fd *)HWC_FD_ADDRESS, 0,
+					FDMA_DIS_AS_BIT);
 		}
 		num_of_frags --;
 		index++;
