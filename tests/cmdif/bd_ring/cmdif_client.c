@@ -24,60 +24,42 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/*!
- * @file    fsl_cmdif_bd_flib.h
- * @brief   BD ring FLIB
- *
- *
- */
+#include <cmdif.h>
+#include <bd_ring/fsl_cmdif_bd_flib.h>
+#include <bd_ring/fsl_cmdif_client.h>
+#include <bd_ring/fsl_cmdif_client_flib.h>
 
-#ifndef __FSL_CMDIF_BD_FLIB_H
-#define __FSL_CMDIF_BD_FLIB_H
+static void bd_ring_get(void *device, struct cmdif_bd_ring **bd_ring, int pr)
+{
+	bd_ring = NULL; /* TODO */
+}
 
-/*!
- * @Group	cmdif_bd_flib_g  CMDIF BD ring API
- *
- * @brief	API to be used for accessing CMDIF BD ring.
- *
- * @{
- */
-#define CMDIF_CMD_OPEN		0x8000
-#define CMDIF_CMD_CLOSE		0x4000
-#define CMDIF_OPEN_SESSION	0xFFFF
-
-#define CMDIF_BD_DATA_SIZE	64	/*!< In bytes */
-
-struct cmdif_bd {
-	uint64_t async_cb;
-	uint64_t async_ctx;
-	uint64_t cmd_addr;	/*!< Pointer to command data */
-	uint64_t resp_addr;	/*!< Pointer to response data */
-	uint32_t cmd_size;	/*!< Size of cmd_addr */
-	uint32_t resp_size;	/*!< Size of resp_addr */
-	uint32_t flags;		/*!< Interrupt, */
+int cmdif_open(void *device, const char *m_name, void *handle)
+{
+	struct cmdif_bd bd;
+	int err;
+	struct cmdif_bd_ring *bd_ring;
 	uint16_t session_id;
-	uint16_t cmdi_id;
-	uint8_t cmd_data[CMDIF_BD_DATA_SIZE];
-	/*!< 64 bytes data to be used for the command */
-	uint8_t resp_data[CMDIF_BD_DATA_SIZE];
-	/*!< 64 bytes data to be used for the response */
-};
+	
+	err = cmdif_flib_open_bd(handle, m_name, &bd);
 
-struct cmdif_bd_ring {
-	uint32_t flags;
-	uint32_t enq;
-	uint32_t deq;
-	uint8_t num_bds; /*!< Max number of BDs = 2^num_bds, must be 1 byte */ 
-	uint64_t bd_addr;
-};
+	/* Get bd_ring from device */
+	bd_ring_get(device, &bd_ring, CMDIF_PRI_LOW);
+	
+	err = cmdif_flib_send(bd_ring, &bd);
 
-int cmdif_flib_send(struct cmdif_bd_ring *bd_ring, const struct cmdif_bd *bd);
-int cmdif_flib_receive(struct cmdif_bd_ring *bd_ring, struct cmdif_bd *bd);
-int cmdif_flib_open_bd(void *handle, const char *module_name, struct cmdif_bd *bd);
-int cmdif_flib_open_done(struct cmdif_bd_ring *bd_ring, uint16_t *session_id);
-int cmdif_flib_close_bd(void *handle, struct cmdif_bd *bd);
+	err = cmdif_flib_open_done(bd_ring, &session_id);
+	while(err) {
+		err = cmdif_flib_open_done(bd_ring, &session_id);
+	}
 
-/** @} */ /* end of cmdif_bd_flib_g group */
+	/* Update handle with session_id and etc. */
+	cmdif_flib_handle_init(handle, session_id, device);
+}
 
-
-#endif /* __FSL_CMDIF_BD_FLIB_H */
+static int cmdif_sync_send(uint64_t handle, uint16_t cmd_id, uint32_t size,
+                           uint64_t data, int priority, uint32_t flags,
+                           uint32_t response_size, uint64_t response_data)
+{
+	
+}
