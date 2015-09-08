@@ -120,6 +120,11 @@ enum rta_param_type {
 #define IPSEC_ETHERTYPE_IPV6 0x86DD 
 #define IPSEC_ETHERTYPE_IPV4 0x0800 
 
+/* IPv4 header checksum is in bytes 10-11, lower 32-bit word #2 */
+#define IPSEC_OUTER_HEADER_IPV_MASK 0xF0000000
+#define IPSEC_OUTER_HEADER_IPV4     0x40000000
+#define IPSEC_OUTER_HEADER_CHECKSUM_MASK 0xFFFF0000
+
 /* IPv4 DSCP, bits 8-13 */
 #define IPSEC_DSCP_MASK_IPV4 0x00FC0000
 /* IPv6 DSCP, bits 4-9 */

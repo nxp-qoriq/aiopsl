@@ -46,7 +46,7 @@
 
 /**************************************************************************//**
  @Description   Memory Partition Identifiers.
-                Used as a parameter for fsl_os_get_mem().
+                Used as a parameter for fsl_get_mem().
                 Note that not all memory partitions are supported by all
                 platforms. Every platform may select which memory partitions
                 to support.
@@ -85,7 +85,7 @@ void * fsl_malloc(size_t size, uint32_t alignment);
 void fsl_free(void *mem);
 
 /**************************************************************************//**
-@Function      fsl_os_get_mem
+@Function      fsl_get_mem
 
 @Description   Allocates contiguous block of memory with the specified
                 alignment and from the specified  memory partition.
@@ -101,19 +101,19 @@ void fsl_free(void *mem);
                -ENOMEM (not enough memory to allocate)or
                -EINVAL ( invalid memory partition ) on failure.
 *//***************************************************************************/
-int fsl_os_get_mem(uint64_t size, int mem_partition_id, uint64_t alignment,
+int fsl_get_mem(uint64_t size, int mem_partition_id, uint64_t alignment,
                    uint64_t* paddr);
 
 /**************************************************************************//**
-@Function      fsl_os_put_mem
+@Function      fsl_put_mem
 
 @Description   Frees the memory block pointed to by "paddr".
-               paddr should be allocated by fsl_os_get_mem()
+               paddr should be allocated by fsl_get_mem()
 
 @Param[in]    paddr  An address to be freed.
 
 *//***************************************************************************/
-void  fsl_os_put_mem(uint64_t paddr);
+void  fsl_put_mem(uint64_t paddr);
 
 
 /**************************************************************************//**

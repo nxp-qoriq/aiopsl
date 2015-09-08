@@ -239,7 +239,7 @@ const struct fdt_property *fdt_get_property_by_name(const void *fdt, char *path,
 struct devices_list *fdt_devices(const void *fdt, char *path)
 {
     int nodeoffset = fdt_path_offset(fdt,path);
-    struct devices_list *dlist = fsl_os_malloc(sizeof(*dlist));
+    struct devices_list *dlist = fsl_malloc(sizeof(*dlist));
     struct devices_list *head;
     int offset;
     int *lenp;
@@ -248,7 +248,7 @@ struct devices_list *fdt_devices(const void *fdt, char *path)
          (offset >= 0);
          (offset = fdt_next_subnode(fdt, offset))) {
         dlist->name = fdt_get_name(fdt,offset,lenp);
-        dlist->next = fsl_os_malloc(sizeof(dlist->next));
+        dlist->next = fsl_malloc(sizeof(dlist->next));
         dlist = dlist->next;
         
     }

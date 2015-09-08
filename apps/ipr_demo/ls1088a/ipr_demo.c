@@ -299,7 +299,7 @@ int app_init(void)
 	ipr_demo_params.cb_timeout_ipv4_arg = 0;
 	ipr_demo_params.cb_timeout_ipv6_arg = 0;
 	ipr_demo_params.flags = IPR_MODE_TABLE_LOCATION_PEB;
-	fsl_os_get_mem( 0x20*64, mem_pid, 64, &tmi_mem_base_addr);
+	fsl_get_mem( 0x20*64, mem_pid, 64, &tmi_mem_base_addr);
 
 	tman_create_tmi(tmi_mem_base_addr , 0x20, &ipr_demo_params.tmi_id);
 

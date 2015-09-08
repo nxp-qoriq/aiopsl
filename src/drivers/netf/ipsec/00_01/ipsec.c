@@ -369,7 +369,7 @@ int ipsec_generate_encap_sd(
 	uint8_t split_key = 0;
 
 	/* Temporary Workspace Shared Descriptor */
-	uint32_t ws_shared_desc[IPSEC_MAX_SD_SIZE_WORDS]; 
+	uint32_t ws_shared_desc[IPSEC_MAX_SD_SIZE_WORDS] = {0}; 
 
 	uint32_t inl_mask = 0;
 	unsigned data_len[3];
@@ -379,6 +379,42 @@ int ipsec_generate_encap_sd(
 	struct alginfo rta_auth_alginfo;
 	struct alginfo rta_cipher_alginfo;
 
+	/* For tunnel mode IPv4, calculate the outer header checksum */
+	/* ip_hdr_len = IP header length in bytes.
+	 * includes additional 8 bytes if UDP encapsulation is enabled */
+	if (params->flags & IPSEC_FLG_TUNNEL_MODE) {
+		if((*params->encparams.outer_hdr & IPSEC_OUTER_HEADER_IPV_MASK) ==
+					IPSEC_OUTER_HEADER_IPV4) {
+			
+			/* Clear the input checksum */
+			params->encparams.outer_hdr[2] &= IPSEC_OUTER_HEADER_CHECKSUM_MASK;
+
+			/* calculate the length in 16-bit words */
+			if (!(params->flags & IPSEC_ENC_OPTS_NAT_EN)) {
+				data_len[0] = (unsigned)(params->encparams.ip_hdr_len)>>1;
+			} else {
+				data_len[0] = (unsigned)(params->encparams.ip_hdr_len - 8)>>1;
+			}
+			
+			/* data_len[0]: length, data_len[1]: index, data_len[2]: checksum */
+			data_len[2] = (uint16_t)*((uint16_t *)params->encparams.outer_hdr);
+			for (data_len[1] = 1; data_len[1] < data_len[0]; data_len[1]++) {
+				data_len[2] = (uint16_t)cksum_ones_complement_sum16(
+						(uint16_t)data_len[2],
+						(uint16_t)*((uint16_t *)
+								params->encparams.outer_hdr+data_len[1])
+						);
+			}
+			
+			/* Invert and update the outer header */
+			params->encparams.outer_hdr[2] |= (~data_len[2] & (~0xFFFF0000));
+
+			data_len[0] = 0;
+			data_len[1] = 0;
+			data_len[2] = 0;
+		}
+	}
+	
 	/* Build PDB fields for the RTA */
 	
 	data_len[1] = 1; /* Flag for split key calculation. 

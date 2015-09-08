@@ -261,9 +261,10 @@ inline void parser_pop_vlan_update()
 	
 	/* Common Stack: ETHERNET-IPV4/IPV6-TCP/UDP */
 	/* IPV4 */
-	if (l3_protocol == NET_ETH_ETYPE_IPV4) {
-		if ((((struct ipv4hdr *)next_header)->protocol == TCP_PROTOCOL) ||
-				(((struct ipv4hdr *)next_header)->protocol == UDP_PROTOCOL)) {
+	
+	if ((l3_protocol == NET_ETH_ETYPE_IPV4) && 
+		((((struct ipv4hdr *)next_header)->protocol == TCP_PROTOCOL) || 
+		(((struct ipv4hdr *)next_header)->protocol == UDP_PROTOCOL))) {
 			pr->ip_pid_offset = pr->ip_pid_offset - sizeof(struct vlanhdr);
 			pr->ip1_or_arp_offset = pr->ip1_or_arp_offset - sizeof(struct vlanhdr);
 			pr->ipn_or_minencapO_offset = pr->ip1_or_arp_offset;
@@ -273,13 +274,12 @@ inline void parser_pop_vlan_update()
 				pr->gtp_esp_ipsec_offset = temp_8b - sizeof(struct vlanhdr);
 			pr->nxt_hdr_offset = pr->nxt_hdr_offset - sizeof(struct vlanhdr);
 			pr->gross_running_sum = 0;
-		}
 	}
 	/* IPV6 */
 	else {
-		if (l3_protocol == NET_ETH_ETYPE_IPV6) {
-			if ((((struct ipv6hdr *)next_header)->next_header == TCP_PROTOCOL) ||
-				(((struct ipv6hdr *)next_header)->next_header == UDP_PROTOCOL)) {
+		if ((l3_protocol == NET_ETH_ETYPE_IPV6) && 
+			((((struct ipv6hdr *)next_header)->next_header == TCP_PROTOCOL) || 
+			(((struct ipv6hdr *)next_header)->next_header == UDP_PROTOCOL))) {
 				pr->ip_pid_offset = pr->ip_pid_offset - sizeof(struct vlanhdr);
 				pr->ip1_or_arp_offset = pr->ip1_or_arp_offset - sizeof(struct vlanhdr);
 				pr->ipn_or_minencapO_offset = pr->ip1_or_arp_offset;
@@ -299,7 +299,6 @@ inline void parser_pop_vlan_update()
 				temp_8b = pr->ipv6_frag_offset;
 				if (temp_8b != PARSER_UNINITILIZED_FIELD_OF_BYTE)
 					pr->ipv6_frag_offset = temp_8b - sizeof(struct vlanhdr);
-			}	
 		}
 		/* not a common stack */
 		else {
@@ -391,9 +390,9 @@ inline void parser_push_vlan_update()
 
 	/* Common Stack: ETHERNET-IPV4/IPV6-TCP/UDP */
 	/* IPV4 */
-	if (l3_protocol == NET_ETH_ETYPE_IPV4) {
-		if ((((struct ipv4hdr *)next_header)->protocol == TCP_PROTOCOL) ||
-				(((struct ipv4hdr *)next_header)->protocol == UDP_PROTOCOL)) {
+	if ((l3_protocol == NET_ETH_ETYPE_IPV4) && 
+		((((struct ipv4hdr *)next_header)->protocol == TCP_PROTOCOL) || 
+		(((struct ipv4hdr *)next_header)->protocol == UDP_PROTOCOL))) {
 			pr->ip_pid_offset = pr->ip_pid_offset + sizeof(struct vlanhdr);
 			pr->ip1_or_arp_offset = pr->ip1_or_arp_offset + sizeof(struct vlanhdr);
 			pr->ipn_or_minencapO_offset = pr->ip1_or_arp_offset;
@@ -403,12 +402,11 @@ inline void parser_push_vlan_update()
 				pr->gtp_esp_ipsec_offset = temp_8b + sizeof(struct vlanhdr);
 			pr->nxt_hdr_offset = pr->nxt_hdr_offset + sizeof(struct vlanhdr);
 			pr->gross_running_sum = 0;
-		}
 	}
 	else {
-		if (l3_protocol == NET_ETH_ETYPE_IPV6) {
-			if ((((struct ipv6hdr *)next_header)->next_header == TCP_PROTOCOL) ||
-				(((struct ipv6hdr *)next_header)->next_header == UDP_PROTOCOL)) {
+		if ((l3_protocol == NET_ETH_ETYPE_IPV6) && 
+			((((struct ipv6hdr *)next_header)->next_header == TCP_PROTOCOL) || 
+			(((struct ipv6hdr *)next_header)->next_header == UDP_PROTOCOL))) {
 				pr->ip_pid_offset = pr->ip_pid_offset + sizeof(struct vlanhdr);
 				pr->ip1_or_arp_offset = pr->ip1_or_arp_offset + sizeof(struct vlanhdr);
 				pr->ipn_or_minencapO_offset = pr->ip1_or_arp_offset;
@@ -428,7 +426,6 @@ inline void parser_push_vlan_update()
 				temp_8b = pr->ipv6_frag_offset;
 				if (temp_8b != PARSER_UNINITILIZED_FIELD_OF_BYTE)
 					pr->ipv6_frag_offset = temp_8b + sizeof(struct vlanhdr);
-			}
 		}
 		/* not a common stack */
 		else {

@@ -768,7 +768,7 @@ void slob_free(uint64_t* slob)
         {
             cdma_read(&busy_block,busy_block_addr,sizeof(busy_block_addr));
         }
-        //fsl_os_free(p_block);
+        //fsl_free(p_block);
         buff_pool_put(slob_bf_pool,block_adr);
     }
 
@@ -887,7 +887,7 @@ uint64_t slob_get(uint64_t* slob, const uint64_t size, uint32_t alignment)
     /* calls Update routine to update a lists of free blocks */
     if ( cut_free (&MM, hold_base, hold_end ) != 0 )
     {
-        //fsl_os_free(p_new_busy_b);
+        //fsl_free(p_new_busy_b);
         buff_pool_put(slob_bf_pool,new_busy_b_addr);
         cdma_mutex_lock_release(slob_addr);
         return 0LL;
@@ -969,7 +969,7 @@ uint64_t slob_put(uint64_t* slob, const uint64_t base)
 
     /* Adding the deallocated memory size to free memory size */
     MM.free_mem_size += size;
-    //fsl_os_free(p_busy_b);
+    //fsl_free(p_busy_b);
     buff_pool_put(slob_bf_pool,busy_b_addr);
     cdma_write(slob_addr,&MM,sizeof(MM));
     cdma_mutex_lock_release(slob_addr);
