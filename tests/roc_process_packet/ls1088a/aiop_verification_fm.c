@@ -64,10 +64,9 @@ __declspec(entry_point) void aiop_verification_fm()
 	uint64_t ext_address;	/* External Data Address */
 	uint16_t str_size = 0;	/* Command struct Size */
 	uint32_t opcode;
-        struct fdma_amq amq;
-        uint16_t icid, flags = 0;
-        uint16_t segment_offset;
-        uint8_t tmp, spid;
+	uint16_t flags = 0;
+	uint16_t segment_offset;
+	uint8_t spid;
 	uint32_t *pData = (uint32_t *)HWC_FD_ADDRESS;
 
 	fsl_print("\n**************************\n");
@@ -108,19 +107,19 @@ __declspec(entry_point) void aiop_verification_fm()
 	
 	spid = *((uint8_t *)HWC_SPID_ADDRESS);
 
-	//Patch for ICID check (Hagit)
-	icid = (uint16_t)(storage_profile[spid].ip_secific_sp_info >> 48);
-	icid = ((icid << 8) & 0xff00) | ((icid >> 8) & 0xff);
-	tmp = (uint8_t)(storage_profile[spid].ip_secific_sp_info >> 40);
-	if (tmp & 0x08)
-		   flags |= FDMA_ICID_CONTEXT_BDI;
-	if (tmp & 0x04)
-		   flags |= FDMA_ICID_CONTEXT_PL;
-	if (storage_profile[spid].mode_bits2 & sp1_mode_bits2_VA_MASK)
-		   flags |= FDMA_ICID_CONTEXT_VA;
-	amq.icid = icid;
-	amq.flags = flags;
-	set_default_amq_attributes(&amq);
+	if (LDPAA_FD_GET_ASAL(HWC_FD_ADDRESS) > 
+							(storage_profile[spid].mode_bits1 & 0x0F))
+	{
+		/*set storage profile ASAR */
+		storage_profile[spid].mode_bits1 &= 0xF0;
+		storage_profile[spid].mode_bits1 |= LDPAA_FD_GET_ASAL(HWC_FD_ADDRESS);    
+	}
+	/*set storage profile PTAR to 1 */
+	if (LDPAA_FD_GET_PTA(HWC_FD_ADDRESS))
+		storage_profile[spid].mode_bits1 |= 0x80;
+	/*set storage profile PTAR to 0 */
+	else
+		storage_profile[spid].mode_bits1 &= 0x7F;
 
 	cdma_read((void *)data_addr, ext_address, (uint16_t)DATA_SIZE);
 
