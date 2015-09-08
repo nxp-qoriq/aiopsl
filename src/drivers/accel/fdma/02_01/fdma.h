@@ -780,7 +780,9 @@ enum fdma_hw_errors {
 		/** Profile SRAM memory read Error. */
 	FDMA_PROFILE_SRAM_MEMORY_READ_ERR = 0xAA,
 		/** Frames to concatenate ICIDs does not match error. */
-	FDMA_CONCATENATE_ICID_NOT_MATCH_ERR = 0xAB
+	FDMA_CONCATENATE_ICID_NOT_MATCH_ERR = 0xAB,
+		/** Shared SRAM memory write Error. */
+	FDMA_SHARED_SRAM_MEMORY_WRITE_ERROR = 0xAC
 
 };
 
