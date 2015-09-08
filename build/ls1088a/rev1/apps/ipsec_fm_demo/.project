@@ -119,7 +119,7 @@ aiop_sl		</project>
 		<link>
 			<name>src/ipsec_fm_demo.c</name>
 			<type>1</type>
-			<locationURI>PARENT-5-PROJECT_LOC/apps/ipsec_fm_demo/ipsec_fm_demo.c</locationURI>
+			<locationURI>PARENT-5-PROJECT_LOC/apps/ipsec_fm_demo/ls1088a/ipsec_fm_demo.c</locationURI>
 		</link>
 	</linkedResources>
 </projectDescription>
