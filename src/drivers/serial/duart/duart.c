@@ -454,7 +454,7 @@ static void duart_free_local(void * duart)
 #ifdef AIOP
 		fsl_free(p_uart->p_rx_buffer);
 #else
-		fsl_os_free(p_uart->p_rx_buffer);
+		fsl_free(p_uart->p_rx_buffer);
 #endif
 		p_uart->p_rx_buffer = NULL;
 	}
@@ -463,14 +463,14 @@ static void duart_free_local(void * duart)
 #ifdef AIOP
 		fsl_free(p_uart->p_tx_buffer);
 #else
-		fsl_os_free(p_uart->p_tx_buffer);
+		fsl_free(p_uart->p_tx_buffer);
 #endif
 		p_uart->p_tx_buffer = NULL;
 	}
 #ifdef AIOP
 	fsl_free(duart);
 #else
-	fsl_os_free(duart);
+	fsl_free(duart);
 #endif
 }
 
@@ -490,7 +490,7 @@ void * duart_config(t_duart_uart_param *p_duart_param)
 #ifdef AIOP
 	p_uart = (t_duart_uart *)fsl_malloc(sizeof(t_duart_uart),0);
 #else
-	p_uart = (t_duart_uart *)fsl_os_malloc(sizeof(t_duart_uart));
+	p_uart = (t_duart_uart *)fsl_malloc(sizeof(t_duart_uart));
 #endif
 	if (!p_uart) {
 		pr_err("DUART driver structure");
@@ -503,7 +503,7 @@ void * duart_config(t_duart_uart_param *p_duart_param)
 	p_driver_param = (t_duart_driver_param *)fsl_malloc(
 			sizeof(t_duart_driver_param),0);
 #else
-	p_driver_param = (t_duart_driver_param *)fsl_os_malloc(
+	p_driver_param = (t_duart_driver_param *)fsl_malloc(
 			sizeof(t_duart_driver_param));
 #endif
 	if (!p_driver_param) {
@@ -511,7 +511,7 @@ void * duart_config(t_duart_uart_param *p_duart_param)
 #ifdef AIOP
 	fsl_free(p_uart);
 #else
-	fsl_os_free(p_uart);
+	fsl_free(p_uart);
 #endif
 		return NULL;
 	}
@@ -727,7 +727,7 @@ int duart_init(void * duart)
 #ifdef AIOP
 	p_uart->p_rx_buffer = fsl_malloc(p_uart->rx_buffer_size,0);
 #else
-	p_uart->p_rx_buffer = fsl_os_malloc(p_uart->rx_buffer_size);
+	p_uart->p_rx_buffer = fsl_malloc(p_uart->rx_buffer_size);
 #endif
 	if (!p_uart->p_rx_buffer) {
 		duart_free_local(p_uart);
@@ -739,7 +739,7 @@ int duart_init(void * duart)
 #ifdef AIOP
 	p_uart->p_tx_buffer = fsl_malloc(p_uart->tx_buffer_size,0);
 #else
-	p_uart->p_tx_buffer = fsl_os_malloc(p_uart->tx_buffer_size);
+	p_uart->p_tx_buffer = fsl_malloc(p_uart->tx_buffer_size);
 #endif
 	if (p_uart->p_tx_buffer == 0) {
 		duart_free_local(p_uart);
@@ -850,7 +850,7 @@ int duart_init(void * duart)
 #ifdef AIOP
 	fsl_free(p_uart->p_driver_param);
 #else
-	fsl_os_free(p_uart->p_driver_param);
+	fsl_free(p_uart->p_driver_param);
 #endif
 	p_uart->p_driver_param = NULL;
 

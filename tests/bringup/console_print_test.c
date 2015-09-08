@@ -453,7 +453,7 @@ int console_print_init()
 	extern struct aiop_init_info g_init_data;
 	//t_platform *pltfrm;
 	sys.p_pre_console_buf = &pre_console_buf[0];
-//	pltfrm = fsl_os_malloc(sizeof(t_platform));
+//	pltfrm = fsl_malloc(sizeof(t_platform));
 //	if(!pltfrm) return -ENOMEM;
 	pltfrm.param.clock_in_freq_khz = g_init_data.sl_info.sys_clk; //TODO check value
 	if(pltfrm.param.clock_in_freq_khz == 0)
