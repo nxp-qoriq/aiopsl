@@ -1687,6 +1687,45 @@ inline int parse_result_generate(enum parser_starting_hxs_code starting_hxs,
 *//***************************************************************************/
 inline int parse_result_generate_basic(void);
 
+/**************************************************************************//**
+@Function	parser_pop_vlan_update
+
+@Description	Updates parse result table. This function should be used
+		after performing a VLAN header removal. This is an optimized
+		function especially for the pop_vlan action.
+
+		Implicit input parameters:
+		Parse result address, Presentation context address.
+
+		Implicitly updated values in Parse result table in the HWC:
+		Parser Result.
+
+@Cautions	An update of parse result table should be performed only after
+		a VLAN header removal was executed and done.
+
+@Return		None
+*//***************************************************************************/
+inline void parser_pop_vlan_update();
+
+/**************************************************************************//**
+@Function	parser_push_vlan_update
+
+@Description	Updates parse result table. This function should be used
+		after performing a VLAN header removal. This is an optimized
+		function especially for the push_vlan action.
+
+		Implicit input parameters:
+		Parse result address, Presentation context address.
+
+		Implicitly updated values in Parse result table in the HWC:
+		Parser Result.
+
+@Cautions	An update of parse result table should be performed only after
+ 		a VLAN header insertion was executed and done.
+
+@Return		None
+*//***************************************************************************/
+inline void parser_push_vlan_update();
 
 /** @} */ /* end of FSL_PARSER_Functions */
 /** @} */ /* end of FSL_PARSER */

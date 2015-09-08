@@ -198,7 +198,7 @@
 	 * _fd - the FD address in workspace. */
 #define LDPAA_FD_GET_IVP(_fd)						\
 	(uint8_t)(uint32_t)({register uint8_t *__rR = 0;		\
-	uint8_t ivp = *((uint8_t *) (((char *)_fd) + FD_BMP_IVP_OFFSET));\
+	uint8_t ivp = *((uint8_t *) (((char *)_fd) + FD_BMT_IVP_OFFSET));\
 	ivp &= FD_IVP_MASK;						\
 	ivp >>= FD_IVP_SHIFT;						\
 	__rR = (uint8_t *) ivp; })
@@ -206,7 +206,7 @@
 	 * _fd - the FD address in workspace. */
 #define LDPAA_FD_GET_BMT(_fd)						\
 	(uint8_t)(uint32_t)({register uint8_t *__rR = 0;		\
-	uint8_t bmt = *((uint8_t *) (((char *)_fd) + FD_BMP_IVP_OFFSET));\
+	uint8_t bmt = *((uint8_t *) (((char *)_fd) + FD_BMT_IVP_OFFSET));\
 	bmt &= FD_BMT_MASK;						\
 	bmt >>= FD_BMT_SHIFT;						\
 	__rR = (uint8_t *) bmt; })
@@ -393,12 +393,18 @@
 	})
 	/* Macro to set FD IVP field.
 	 * _fd - the FD address in workspace.\n
-	 * _val - value to be set. */
-//#define LDPAA_FD_SET_IVP(_fd, _val)
+	 * _val - value to be set (0/1). */
+#define LDPAA_FD_SET_IVP(_fd, _val)					\
+	((*((uint8_t *)(((char *)_fd) + FD_BMT_IVP_OFFSET))) =		\
+	((*((uint8_t *)(((char *)_fd) + FD_BMT_IVP_OFFSET)) &		\
+		~FD_IVP_MASK) | (_val << FD_IVP_SHIFT)))
 	/* Macro to set FD BMT field.
 	 * _fd - the FD address in workspace.\n
 	 * _val - value to be set. */
-//#define LDPAA_FD_SET_BMT(_fd, _val)
+#define LDPAA_FD_SET_BMT(_fd, _val)					\
+	((*((uint8_t *)(((char *)_fd) + FD_BMT_IVP_OFFSET))) =		\
+	((*((uint8_t *)(((char *)_fd) + FD_BMT_IVP_OFFSET)) &		\
+		~FD_BMT_MASK) | (_val << FD_BMT_SHIFT)))
 	/** Macro to set FD OFFSET field.
 	 * _fd - the FD address in workspace.\n
 	 * _val - value to be set. */
@@ -415,7 +421,10 @@
 	/* Macro to set FD FMT field.
 	 * _fd - the FD address in workspace.\n
 	 * _val - value to be set. */
-//#define LDPAA_FD_SET_FMT(_fd, _val)
+#define LDPAA_FD_SET_FMT(_fd, _val)					\
+	((*((uint8_t *)(((char *)_fd) + FD_SL_FMT_OFFSET))) =		\
+	((*((uint8_t *)(((char *)_fd) + FD_SL_FMT_OFFSET)) &		\
+		~FD_FMT_MASK) | (_val << FD_FMT_SHIFT)))
 	/* Macro to set FD SL field.
 	 * _fd - the FD address in workspace.\n
 	 * _val - value to be set. */
@@ -444,7 +453,10 @@
 	/** Macro to set FD CBMT field.
 	 * _fd - the FD address in workspace.\n
 	 * _val - value to be set. */
-//#define LDPAA_FD_SET_CBMT(_fd, _val)
+#define LDPAA_FD_SET_CBMT(_fd, _val)					\
+	((*((uint8_t *)(((char *)_fd) + FD_CBMT_VA_OFFSET))) =		\
+	((*((uint8_t *)(((char *)_fd) + FD_CBMT_VA_OFFSET)) &		\
+		~FD_CBMT_MASK) | (_val << FD_CBMT_SHIFT)))
 	/** Macro to set FD PTV2 field.
 	 * _fd - the FD address in workspace.\n
 	 * _val - value to be set. */
