@@ -80,6 +80,15 @@
 #define CDMA_WRITE_LOCK_DMA_READ_AND_INC_CMD_FLAGS  0x00001200
 /** CDMA_ACCESS_CONTEXT_MEM_FLAGS[AA,MO,TL,MT,UR,RM]=[0,0,0,00,11,1] */
 #define CDMA_WRITE_REL_LOCK_AND_DEC_CMD_FLAGS  0x00000700
+/** CDMA_ACCESS_CONTEXT_MEM_FLAGS[ERT,ERR,OFFSET,AA,MO,TL,MT,UR,RM]=
+ * [1,0,00000000000000,0,0,0,00,00,0] */
+#define CDMA_TAKE_CMD_FLAGS  0x80000000
+/** CDMA_ACCESS_CONTEXT_MEM_FLAGS[ERT,ERR,OFFSET,AA,MO,TL,MT,UR,RM]=
+ * [0,1,00000000000000,0,0,0,00,00,0] */
+#define CDMA_RELEASE_ALL_CMD_FLAGS  0x40000000
+/** CDMA_ACCESS_CONTEXT_MEM_FLAGS[ERT,ERR,OFFSET,AA,MO,TL,MT,UR,RM]=
+ * [0,0,00000000000000,0,0,0,11,00,0] */
+#define CDMA_SYNC_CMD_FLAGS  0x00000018
 
 
 /* CDMA Command Arguments */
@@ -133,6 +142,12 @@
 	((_ext_offset << 16) | _flags | CDMA_ACCESS_CONTEXT_MEM_CMD);
 #define CDMA_ACCESS_CONTEXT_MEM_CMD_ARG2(_dma_param, _ws_address) \
 	(uint32_t)((_dma_param << 16) | (_ws_address & 0x0000FFFF))
+#define CDMA_TAKE_CMD_ARG1()	\
+	(CDMA_TAKE_CMD_FLAGS | CDMA_ACCESS_CONTEXT_MEM_CMD);
+#define CDMA_RELEASE_ALL_CMD_ARG1()	\
+	(CDMA_RELEASE_ALL_CMD_FLAGS | CDMA_ACCESS_CONTEXT_MEM_CMD);
+#define CDMA_SYNC_CMD_ARG1()	\
+	(CDMA_SYNC_CMD_FLAGS | CDMA_ACCESS_CONTEXT_MEM_CMD);
 
 /* CDMA CFG register bits */
 #define CDMA_BDI_BIT		0x00080000
@@ -216,6 +231,9 @@ enum cdma_function_identifier {
 	CDMA_REFCOUNT_DECREMENT,
 	CDMA_WRITE_LOCK_DMA_READ_AND_INCREMENT,
 	CDMA_WRITE_RELEASE_LOCK_AND_DECREMENT,
+	CDMA_TAKE,
+	CDMA_RELEASE_ALL,
+	CDMA_SYNC,
 	CDMA_ACCESS_CONTEXT_MEMORY
 };
 
@@ -531,6 +549,64 @@ int cdma_write_release_lock_and_decrement(
 		uint64_t context_address,
 		void *ws_src,
 		uint16_t size);
+
+
+/**************************************************************************//**
+@Function	cdma_take
+
+@Description	This routine is used to indicate that the task use one or more
+		resource(s) (but does NOT indicate the specific reference) and can be
+		called multiple times related to different references.
+		This Indication may come via this API or from CTLU.
+
+@Return		None.
+
+@Cautions	In this function the task yields.
+@Cautions	This function may result in a fatal error.
+
+*//***************************************************************************/
+inline void cdma_take();
+
+
+/**************************************************************************//**
+@Function	cdma_release_all
+
+@Description	This routine is used to indicate that the task no longer
+		intends to use ANY resource that was declared by rcu_read_unlock().
+
+@Return		None.
+
+@remark 	When task terminates cdma_release_all() automatically initiates.
+
+@Cautions	In this function the task yields.
+@Cautions	This function may result in a fatal error.	
+
+*//***************************************************************************/
+inline void cdma_release_all();
+
+
+/**************************************************************************//**
+@Function	cdma_synchronize
+
+@Description	This routine is used to ensure that a task can safely
+		de-allocate its resource(s). The de-allocate must not start until
+		readers no longer hold references to these resources. Only at this
+		point, the resource(s) can safely be de-allocated.
+		When a task needs to de-allocate its resource(s), the following steps
+		must be taken:
+			1. Removed all related CTLU entries (for any de-allocate resources)
+			from the tables / disconnect any routing to the resource.
+			2. Call this API
+
+@Return		None.
+
+@Cautions	When this sync operation is called, cdma_release_all() automatically
+ 	 	 initiates on this task.
+@Cautions	In this function the task yields.
+@Cautions	This function may result in a fatal error.
+
+*//***************************************************************************/
+inline void cdma_synchronize();
 
 
 /*************************************************************************//**
