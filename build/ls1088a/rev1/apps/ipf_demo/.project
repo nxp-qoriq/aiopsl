@@ -24,7 +24,7 @@ aiop_sl		</project>
 				</dictionary>
 				<dictionary>
 					<key>org.eclipse.cdt.make.core.buildArguments</key>
-					<value>-j8</value>
+					<value></value>
 				</dictionary>
 				<dictionary>
 					<key>org.eclipse.cdt.make.core.buildCommand</key>
@@ -124,7 +124,7 @@ aiop_sl		</project>
 		<link>
 			<name>src/ipf_demo.c</name>
 			<type>1</type>
-			<locationURI>PARENT-5-PROJECT_LOC/apps/ipf_demo/ipf_demo.c</locationURI>
+			<locationURI>PARENT-5-PROJECT_LOC/apps/ipf_demo/ls1088a/ipf_demo.c</locationURI>
 		</link>
 	</linkedResources>
 	<variableList>

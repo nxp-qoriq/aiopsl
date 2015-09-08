@@ -155,7 +155,9 @@ enum fdma_enqueue_tc_options {
 	FDMA_EN_TC_RET_BITS =	0x0000,
 		/** Terminate: this command will trigger the Terminate task
 		 * command right after the enqueue. If the enqueue failed, the
-		 * frame will be discarded.	*/
+		 * frame will be discarded. If a frame structural error is found
+		 * with the frame to be discarded, the frame is not discarded 
+		 * and the command returns with an error code. */
 	FDMA_EN_TC_TERM_BITS = 0x0400
 #ifdef REV2
 		/** Conditional Terminate : trigger the Terminate task command
@@ -1752,6 +1754,9 @@ int fdma_enqueue_fd_qd(
 @remark		Release frame handle and release segment handle(s) are implicit
 		in this function.
 
+@Cautions	If the frame is built with buffers not managed by BMan, then 
+		this command should not be used. If used, then buffers with 
+		IVP=1 will be skipped which may lead to memory leak.
 @Cautions	This function may result in a fatal error.
 @Cautions	In this Service Routine the task yields.
 *//***************************************************************************/
@@ -1771,6 +1776,9 @@ inline void fdma_discard_default_frame(uint32_t flags);
 @remark		Release frame handle and release segment handle(s) are implicit
 		in this function.
 
+@Cautions	If the frame is built with buffers not managed by BMan, then 
+		this command should not be used. If used, then buffers with 
+		IVP=1 will be skipped which may lead to memory leak.
 @Cautions	This function may result in a fatal error.
 @Cautions	In this Service Routine the task yields.
 *//***************************************************************************/
@@ -1796,6 +1804,9 @@ void fdma_discard_frame(uint16_t frame, uint32_t flags);
 @Retval		0 - Success.
 @Retval		EIO - Received frame with non-zero FD[err] field.
 
+@Cautions	If the frame is built with buffers not managed by BMan, then 
+		this command should not be used. If used, then buffers with 
+		IVP=1 will be skipped which may lead to memory leak.
 @Cautions	The frame associated with the FD must not be presented (closed).
 @Cautions	This function may result in a fatal error.
 @Cautions	In this Service Routine the task yields.
@@ -1825,6 +1836,9 @@ inline int fdma_discard_fd(struct ldpaa_fd *fd, uint16_t icid, uint32_t flags);
 @Retval		0 - Success.
 @Retval		EIO - Received frame with non-zero FD[err] field.
 
+@Cautions	If the frame is built with buffers not managed by BMan, then 
+		this command should not be used. If used, then buffers with 
+		IVP=1 will be skipped which may lead to memory leak.
 @Cautions	The frame associated with the FD must not be presented (closed).
 @Cautions	This function may result in a fatal error.
 @Cautions	In this Service Routine the task yields.

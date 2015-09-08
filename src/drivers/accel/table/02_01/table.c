@@ -77,7 +77,7 @@ int table_create(enum table_hw_accel_id acc_id,
 	/*************************/
 	/* Prepare input message */
 	/*************************/
-	/* Count leading zeroes (semi log of 2 operation)*/
+	/* Count leading zeroes */
 	timestamp_accuracy = tbl_params->timestamp_accuracy;
 	asm { cntlzw agt, timestamp_accuracy }
 
