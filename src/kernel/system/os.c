@@ -553,7 +553,7 @@ void * fsl_os_create_timer(void)
 	return NULL;
 }
 
-void fsl_os_free_timer(void * tmr)
+void fsl_free_timer(void * tmr)
 {
 	UNUSED (tmr);
 	pr_warn("Timer!");
