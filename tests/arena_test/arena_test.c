@@ -226,7 +226,7 @@ __HOT_CODE ENTRY_POINT static void app_process_packet(void)
 	err |= fsl_get_time_since_epoch_ms(&time_ms_since_epoch);
 
 	if(err){
-		fsl_print("ERROR = %d: fsl_os_gettimeofday failed  in runtime phase \n", err);
+		fsl_print("ERROR = %d: fsl_gettimeofday failed  in runtime phase \n", err);
 		local_test_error |= err;
 		unlock_spinlock(&time_lock);
 	}else {

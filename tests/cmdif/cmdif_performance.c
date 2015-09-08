@@ -168,11 +168,11 @@ int app_init(void)
 		return err;
 	}
 	fsl_print("Registered %s module\n", module);
-	err = fsl_os_get_mem(1024, MEM_PART_DP_DDR, 64, &tman_addr);
+	err = fsl_get_mem(1024, MEM_PART_DP_DDR, 64, &tman_addr);
 	if (err || !tman_addr) {
-		err = fsl_os_get_mem(1024, MEM_PART_SYSTEM_DDR, 64, &tman_addr);
+		err = fsl_get_mem(1024, MEM_PART_SYSTEM_DDR, 64, &tman_addr);
 		if (err || !tman_addr) {
-			pr_err("FAILED fsl_os_get_mem err = %d\n!", err);
+			pr_err("FAILED fsl_get_mem err = %d\n!", err);
 			return err;
 		}
 	}

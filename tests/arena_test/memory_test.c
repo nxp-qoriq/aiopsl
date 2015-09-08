@@ -77,12 +77,12 @@ static int cdma_peb_test()
 {
 	uint64_t paddr = 0;
 	int error = 0;
-	if(fsl_os_get_mem(8,MEM_PART_PEB,4,&paddr)){
-		 fsl_print("cdma_peb_test: fsl_os_get_mem from MEM_PART_PEB  failed\n"); 
+	if(fsl_get_mem(8,MEM_PART_PEB,4,&paddr)){
+		 fsl_print("cdma_peb_test: fsl_get_mem from MEM_PART_PEB  failed\n"); 
 		return EIO;	
 	}		 
 	error = cdma_test(paddr);
-	fsl_os_put_mem(paddr);
+	fsl_put_mem(paddr);
 	return error;
 }
 
@@ -90,12 +90,12 @@ static int cdma_dpddr_test()
 {	
 	uint64_t paddr = 0;
 	int error = 0;
-	if(fsl_os_get_mem(8,MEM_PART_DP_DDR,4,&paddr)){
-		 fsl_print("cdma_peb_test: fsl_os_get_mem from MEM_PART_DP_DDR  failed\n"); 
+	if(fsl_get_mem(8,MEM_PART_DP_DDR,4,&paddr)){
+		 fsl_print("cdma_peb_test: fsl_get_mem from MEM_PART_DP_DDR  failed\n"); 
 		return EIO;	
 	}		 
 	error = cdma_test(paddr);
-	fsl_os_put_mem(paddr);
+	fsl_put_mem(paddr);
 	return error;		
 }
 
@@ -103,12 +103,12 @@ static int cdma_systemddr_test()
 {
 	uint64_t paddr = 0;
 	int error = 0;
-	if(fsl_os_get_mem(8,MEM_PART_SYSTEM_DDR,4,&paddr)){
-		 fsl_print("cdma_peb_test: fsl_os_get_mem from MEM_PART_SYSTEM_DDR  failed\n"); 
+	if(fsl_get_mem(8,MEM_PART_SYSTEM_DDR,4,&paddr)){
+		 fsl_print("cdma_peb_test: fsl_get_mem from MEM_PART_SYSTEM_DDR  failed\n"); 
 		return EIO;
 	}		 
 	error = cdma_test(paddr);
-	fsl_os_put_mem(paddr);
+	fsl_put_mem(paddr);
 	return error;		
 }
 
@@ -118,7 +118,7 @@ static int cdma_test(uint64_t paddr)
 	uint32_t variable_on_stack = 0,old_value = 0,old_value_off_4 = 0;
 	uint32_t addr = 0,addr_offs_4 = 0;
 	
-	addr = PTR_TO_UINT(fsl_os_phys_to_virt(paddr));
+	addr = PTR_TO_UINT(fsl_phys_to_virt(paddr));
 	addr_offs_4 = addr + 4;
 	 
 	/* store old values to be restored later */

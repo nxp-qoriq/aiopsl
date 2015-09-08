@@ -63,7 +63,7 @@ void disable_print_protection();
 void dbg_print(char *format, ...);
 static int vsnprintf_lite(char *buf, size_t size, const char *fmt, va_list args);
 static char *number(char *str, uint64_t num, uint8_t base, uint8_t type, size_t *max_size, uint8_t fix_size);
-static void fsl_os_print_boot(const char *format, va_list args);
+static void fsl_print_boot(const char *format, va_list args);
 
 
 __COLD_CODE void enable_print_protection()
@@ -104,7 +104,7 @@ __COLD_CODE void disable_print_protection()
 	memcpy((void *) HWC_ACC_IN_ADDRESS, (const void *) hwc,  SIZE_OF_HWC_TO_RESERVE);
 }
 
-static inline void fsl_os_print_runtime(const char *format, va_list args)
+static inline void fsl_print_runtime(const char *format, va_list args)
 {
 	char    buf[RUNTIME_BUF_SIZE + LOG_END_SIGN_LENGTH];
 	vsnprintf_lite(buf, RUNTIME_BUF_SIZE, format, args);
@@ -121,10 +121,10 @@ __COLD_CODE void fsl_print(char *format, ...)
 	 * to restore the previous state*/
 	enable_print_protection();
 	if(sys.runtime_flag){
-		fsl_os_print_runtime(format, args);
+		fsl_print_runtime(format, args);
 	}
 	else{
-		fsl_os_print_boot(format, args);
+		fsl_print_boot(format, args);
 	}
 	disable_print_protection();
 }
@@ -135,16 +135,16 @@ __COLD_CODE void dbg_print(char *format, ...)
 	va_list args;
 	va_start(args, format);
 	if(sys.runtime_flag){
-		fsl_os_print_runtime(format, args);
+		fsl_print_runtime(format, args);
 	}
 	else{
-		fsl_os_print_boot(format, args);
+		fsl_print_boot(format, args);
 	}
 }
 
 /*pragma used to ignore stack check for the function below*/
 #pragma stackinfo_ignore on
-__COLD_CODE static void fsl_os_print_boot(const char *format, va_list args)
+__COLD_CODE static void fsl_print_boot(const char *format, va_list args)
 {
 	char    buf[BUF_SIZE + LOG_END_SIGN_LENGTH];
 	vsnprintf(buf, BUF_SIZE, format, args);
@@ -508,7 +508,7 @@ void atomic_decr32(register int32_t *var, register int32_t value)
 /*****************************************************************************/
 void * fsl_malloc(size_t size,uint32_t alignment)
 {
-#ifdef DEBUG_FSL_OS_MALLOC
+#ifdef DEBUG_FSL_MALLOC
 	return  sys_shram_alloc(size,alignment,"",__FILE__, __LINE__);
 #else
 	return sys_shram_alloc(size,alignment,"","", 0);
@@ -520,13 +520,13 @@ void fsl_free(void *mem)
 	sys_shram_free(mem);
 }
 /*****************************************************************************/
-int fsl_os_get_mem(uint64_t size, int mem_partition_id, uint64_t alignment,
+int fsl_get_mem(uint64_t size, int mem_partition_id, uint64_t alignment,
                    uint64_t* paddr)
 {
 	return sys_get_phys_mem(size, mem_partition_id, alignment,paddr);
 }
 /*****************************************************************************/
-void fsl_os_put_mem(uint64_t paddr)
+void fsl_put_mem(uint64_t paddr)
 {
 	sys_put_phys_mem(paddr);
 }

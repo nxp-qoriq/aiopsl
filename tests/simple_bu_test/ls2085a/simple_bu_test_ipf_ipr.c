@@ -136,7 +136,7 @@ int simple_bu_ipf_ipr_test(void)
 	ipr_demo_params.cb_timeout_ipv4_arg = 0x66;
 	ipr_demo_params.cb_timeout_ipv6_arg = 0x66;
 	ipr_demo_params.flags = IPR_MODE_TABLE_LOCATION_EXT1;
-	fsl_os_get_mem( 0x20*64, MEM_PART_DP_DDR, 64, &tmi_mem_base_addr);
+	fsl_get_mem( 0x20*64, MEM_PART_DP_DDR, 64, &tmi_mem_base_addr);
 
 	tman_create_tmi(tmi_mem_base_addr , 0x20, &ipr_demo_params.tmi_id);
 
