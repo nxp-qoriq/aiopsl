@@ -42,6 +42,7 @@
 #include "fsl_dbg.h"
 #include "fsl_evmng.h"
 #include "fsl_system.h"
+#include "apps_arch.h"
 
 int app_early_init(void);
 int app_init(void);
@@ -226,7 +227,7 @@ __HOT_CODE ENTRY_POINT static void app_process_packet(void)
 	err |= fsl_get_time_since_epoch_ms(&time_ms_since_epoch);
 
 	if(err){
-		fsl_print("ERROR = %d: fsl_os_gettimeofday failed  in runtime phase \n", err);
+		fsl_print("ERROR = %d: fsl_gettimeofday failed  in runtime phase \n", err);
 		local_test_error |= err;
 		unlock_spinlock(&time_lock);
 	}else {
@@ -263,7 +264,7 @@ __HOT_CODE ENTRY_POINT static void app_process_packet(void)
 		if(err == -ENOMEM)
 			fdma_discard_default_frame(FDMA_DIS_NO_FLAGS);
 		else /* (err == -EBUSY) */
-			fdma_discard_fd((struct ldpaa_fd *)HWC_FD_ADDRESS, FDMA_DIS_NO_FLAGS);
+			ARCH_FDMA_DISCARD_FD();
 	}
 	lock_spinlock(&test_error_lock);
 	test_error |= local_test_error; /*mark if error occured during one of the tests*/

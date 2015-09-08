@@ -352,7 +352,7 @@ struct boot_info *dtc_from_blob(const unsigned int *dt_blob)
     if (totalsize < FDT_V1_SIZE)
         die("DT blob size (%d) is too small\n", totalsize);
 
-    blob = fsl_os_malloc(totalsize);
+    blob = fsl_malloc(totalsize);
 #endif
     fdt = (struct fdt_header *)dt_blob;
 
@@ -432,7 +432,7 @@ struct boot_info *dtc_from_blob(const unsigned int *dt_blob)
 //    if (val != FDT_END)
 //        die("Device tree blob doesn't end with FDT_END\n");
 
-//    fsl_os_free(blob);
+//    fsl_free(blob);
 //    fclose(f);
     return build_boot_info(reservelist, tree, boot_cpuid_phys);
 }

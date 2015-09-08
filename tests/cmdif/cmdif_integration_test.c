@@ -798,9 +798,9 @@ int app_init(void)
 		}
 	}
 
-	err = fsl_os_get_mem(1024, MEM_PART_DP_DDR, 64, &tman_addr);
+	err = fsl_get_mem(1024, MEM_PART_DP_DDR, 64, &tman_addr);
 	if (err || (tman_addr == 0)) {
-		err = fsl_os_get_mem(1024, MEM_PART_SYSTEM_DDR, 64, &tman_addr);
+		err = fsl_get_mem(1024, MEM_PART_SYSTEM_DDR, 64, &tman_addr);
 		ASSERT_COND(!err && tman_addr);
 	}
 

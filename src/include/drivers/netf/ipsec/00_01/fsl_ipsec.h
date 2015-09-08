@@ -301,6 +301,13 @@ typedef void (ipsec_lifetime_callback_t) (
 /** General decryption error */
 #define IPSEC_GEN_DECR_ERR	 				0x00002000
 
+/**************************************************************************//**
+ @Description	AIOP IPsec Seconds Lifetime Callback codes.
+*//***************************************************************************/
+/** Soft/hard indicator returned by the seconds lifetime callback */
+#define IPSEC_SOFT_SEC_LIFETIME_EXPIRED 0
+#define IPSEC_HARD_SEC_LIFETIME_EXPIRED 1
+
 /** @} */ /* end of FSL_IPSEC_MACROS */
 
 /**************************************************************************//**
@@ -432,12 +439,19 @@ struct ipsec_descriptor_params {
 	uint64_t hard_kilobytes_limit; 	/**< Hard Kilobytes limit, in bytes. */
 	uint64_t soft_packet_limit; 	/**< Soft Packet count limit. */
 	uint64_t hard_packet_limit;		/**< Hard Packet count limit. */
+
+	/** The seconds limit value must be larger than 10 seconds and smaller
+	 * than 2^16-10 seconds */
+	/** Caution: hard limit value must be equal or greater than 
+	 * soft limit value */
 	uint32_t soft_seconds_limit;	/**< Soft Seconds limit. */
 	uint32_t hard_seconds_limit; 	/**< Hard Second limit. */
 
 	/** Callback function.
 	 * Invoked when the Soft or Hard Seconds timer reaches the limit value
-	 * Set to NULL to disable this option */
+	 * The function returns IPSEC_SOFT/HARD_SEC_LIFETIME_EXPIRED
+	 * Set to NULL to when not available */
+
         ipsec_lifetime_callback_t *lifetime_callback;
 
         uint64_t  callback_arg; /**< argument for callback function
@@ -719,6 +733,24 @@ int ipsec_frame_encrypt(
 		ipsec_handle_t ipsec_handle,
 		uint32_t *enc_status
 		);
+
+/**************************************************************************//**
+@Function	ipsec_force_seconds_lifetime_expiry
+
+@Description	This function forces expiry of the soft and hard 
+				seconds lifetime timers, and if a user callback function
+				is available invokes a function call.
+
+@Param[in]	ipsec_handle - IPsec handle.
+
+@Return		General status
+
+@Cautions	User should note the following:
+		- In this function the task yields.
+*//****************************************************************************/
+int ipsec_force_seconds_lifetime_expiry(
+		ipsec_handle_t ipsec_handle);
+
 
 /** @} */ /* end of FSL_IPSEC_Functions */
 /** @} */ /* end of FSL_IPSEC */

@@ -321,7 +321,7 @@ int mem_mng_register_partition(void*   h_mem_mng,
     
 #ifdef AIOP
     /*
-    p_new_partition->lock = (uint8_t *)fsl_os_malloc(sizeof(uint8_t));
+    p_new_partition->lock = (uint8_t *)fsl_malloc(sizeof(uint8_t));
     Fix for bug ENGR00337904. Memory address that is used for spinlock
      should reside in shared ram
     */
@@ -408,7 +408,7 @@ int mem_mng_register_phys_addr_alloc_partition(void*   h_mem_mng,
     /*
      * Fix for bug ENGR00337904. Memory address that is used for spinlock
      * should reside in shared ram
-    p_new_partition->lock = (uint8_t *)fsl_os_malloc(sizeof(uint8_t));
+    p_new_partition->lock = (uint8_t *)fsl_malloc(sizeof(uint8_t));
     */
     p_new_partition->lock = &g_phys_mem_part_spinlock[partition_id];
     *(p_new_partition->lock) = 0;

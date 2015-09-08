@@ -576,7 +576,7 @@ void test_fdma_modify_default_segment_data()
 void test_tmi_create()
 {
 	uint64_t time;
-	fsl_os_get_mem( 4*64, MEM_PART_DP_DDR, 64, 
+	fsl_get_mem( 4*64, MEM_PART_DP_DDR, 64, 
 			&snic_tmi_mem_base_addr_gal);
 	tman_get_timestamp(&time);
 	fsl_print("Timestamp = 0x%x%x\n", time >> 32, time);
@@ -632,9 +632,9 @@ void test_ste()
 	else
 		fsl_print("slab_create() completed successfully\n");	
 	
-	fsl_print("Before fsl_os_get_mem\n");	
-	fsl_os_get_mem(256, MEM_PART_SYSTEM_DDR, 8, &ext_addr);
-	fsl_print("After fsl_os_get_mem\n");	
+	fsl_print("Before fsl_get_mem\n");	
+	fsl_get_mem(256, MEM_PART_SYSTEM_DDR, 8, &ext_addr);
+	fsl_print("After fsl_get_mem\n");	
 	
 	//ext_addr = 0x80120000;
 	ext_addr = 0x6000000000;

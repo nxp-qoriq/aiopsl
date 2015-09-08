@@ -163,7 +163,7 @@ __COLD_CODE static int aiop_container_init(void)
 	int err = 0;
 	int container_id;
 	struct dprc_irq_cfg irq_cfg;
-	/*struct mc_dprc *dprc = fsl_os_xmalloc(sizeof(struct mc_dprc),
+	/*struct mc_dprc *dprc = fsl_xmalloc(sizeof(struct mc_dprc),
 					MEM_PART_SH_RAM,
 					1);*/
 	struct mc_dprc *dprc = fsl_malloc(sizeof(struct mc_dprc),

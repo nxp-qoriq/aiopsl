@@ -113,7 +113,7 @@
 	/** FD bpid offset */
 #define FD_BPID_OFFSET		0xC
 	/** FD bmp_ivp offset */
-#define FD_BMP_IVP_OFFSET	0xD
+#define FD_BMT_IVP_OFFSET	0xD
 	/** FD offset offset */
 #define FD_OFFSET_OFFSET	0xE
 	/** FD sl_fmt offset */

@@ -111,6 +111,17 @@
 
 /** @} */ /* end of AIOP_PARSE_RESULT_GEN_HW_STATUS */
 
+/**************************************************************************//**
+@Group AIOP_PARSE_OTHER Parse Result Other Defines
+@{
+*//***************************************************************************/
+	/** Uninitialized parser field of byte */
+#define PARSER_UNINITILIZED_FIELD_OF_BYTE	0xFF
+	/** Uninitialized parser field of two bytes */
+#define PARSER_UNINITILIZED_FIELD_OF_HALF_WORD	0xFFFF
+
+/** @} */ /* end of AIOP_PARSE_OTHER */
+
 /** @} */ /* end of PARSER_DEFINES */
 
 /** @} */ /* end of PARSER_MACROS */
