@@ -779,8 +779,7 @@ int slab_acquire(struct slab *slab, uint64_t *buff)
 }
 
 /*****************************************************************************/
-/* Must be used only in DEBUG
- * Accessing DDR in runtime also fsl_phys_to_virt() is not optimized */
+/* Must be used only in DEBUG */
 #ifdef DEBUG
 __COLD_CODE static int slab_check_bpid(struct slab *slab, uint64_t buff)
 {
