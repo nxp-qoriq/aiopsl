@@ -39,9 +39,9 @@
 
 
 /**************************************************************************//**
- @Group         ls2085a_g LS2085A Application Programming Interface
+ @Group         ls2088a_g LS2088A Application Programming Interface
 
- @Description   LS2085A Chip functions,definitions and enums.
+ @Description   LS2088A Chip functions,definitions and enums.
 
  @{
 *//***************************************************************************/
@@ -62,7 +62,7 @@
 #define INTG_MAX_NUM_OF_CLUSTR  4
 
 
-/** @} */ /* end of ls2085a_g group */
+/** @} */ /* end of ls2088a_g group */
 
 /* AIOP Peripherals Offset in AIOP memory map */
 #define AIOP_PERIPHERALS_OFF            0X2000000
@@ -72,15 +72,14 @@
 /* Offsets relative to CCSR base */
 #define SOC_PERIPH_OFF_AIOP_WRKS        0x1d000
 #define SOC_PERIPH_OFF_AIOP_TILE        0x00080000
+#define SOC_PERIPH_OFF_PORTAL_MAP       0x000f0000
 #define SOC_PERIPH_OFF_AIOP_CMGW        0x0
 #define SOC_PERIPH_OFF_DCSR             0x0100000
 
-#define ENGR00346193 /* A-008681: AIOP e200 PVR is wrong */
-
 /**************************************************************************//**
- @Group         ls2085a_g LS2085A Application Programming Interface
+ @Group         ls2088a_g LS2088A Application Programming Interface
 
- @Description   LS2085A Chip functions,definitions and enums.
+ @Description   LS2088A Chip functions,definitions and enums.
 
  @{
 *//***************************************************************************/
@@ -103,7 +102,7 @@
 #define PERIPH_OFF_MC_PORTALS_AREA  0x0000000
 #define SOC_PERIPH_MC_PORTAL_ALIGNMENT  0x10000 /* Alignment of a MC portal in SoC */
 
-/** @} */ /* end of ls2085a_g group */
+/** @} */ /* end of ls2088a_g group */
 
 
 #endif /* __FSL_SOC_H */

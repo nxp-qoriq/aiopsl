@@ -37,8 +37,9 @@
 #include "general.h"
 #include "table.h"
 #include "fsl_errors.h"
+#include <string.h>
 
-/* TODO CHECK IMPLEMENTATION*/
+
 inline int table_rule_create(enum table_hw_accel_id acc_id,
 			     t_tbl_id table_id,
 			     struct table_rule *rule,
@@ -51,8 +52,8 @@ inline int table_rule_create(enum table_hw_accel_id acc_id,
 #endif
 
 	int32_t status;
-	struct table_rule_output_message aged_res __attribute__((aligned(16)));
-	uint32_t arg2 = (uint32_t)&aged_res;
+	struct table_rule_output_message out_msg __attribute__((aligned(16)));
+	uint32_t arg2 = (uint32_t)&out_msg;
 	uint32_t arg3 = table_id;
 
 	/* Set Opaque1, Opaque2 valid bits*/
@@ -62,30 +63,25 @@ inline int table_rule_create(enum table_hw_accel_id acc_id,
 	/* Clear byte in offset 2*/
 	*((uint8_t *)&(rule->result) + 2) = 0;
 
-	/* TODO - Rev2
-	if (rule->result.type == TABLE_RULE_RESULT_TYPE_CHAINING) {
-		rule->result.op_rptr_clp.chain_parameters.reserved1 = 0;
-		rule->result.op_rptr_clp.chain_parameters.reserved0 =
-			TABLE_TLUR_TKIDV_BIT_MASK;
-	}
-	*/
 
 	/* Prepare ACC context for CTLU accelerator call */
 	arg2 = __e_rlwimi(arg2, (uint32_t)rule, 16, 0, 15);
 	arg3 = __e_rlwimi(arg3, (uint32_t)key_size, 16, 0, 15);
-	/* Not using RPTR DEC because aging is disabled */
-	__stqw(TABLE_RULE_CREATE_MTYPE, arg2, arg3, 0, HWC_ACC_IN_ADDRESS, 0);
+
+	/* Call Accelerator and set ephemeral */
+	__stqw(TABLE_HWC_FLAG_EPHS | TABLE_RULE_CREATE_MTYPE,
+	       arg2, arg3, 0, HWC_ACC_IN_ADDRESS, 0);
 
 	/* Call Table accelerator */
 	__e_hwaccel(acc_id);
 
-	/* Status Handling */
+	/* Status Handling TODO Handle status of PIEE and MISS (replace LKP)*/
 	status = *((int32_t *)HWC_ACC_OUT_ADDRESS);
 	if (status == TABLE_HW_STATUS_BIT_MISS) {
 		/* A rule with the same match description is not found in the
 		 * table. New rule is created. */
 		status = TABLE_STATUS_SUCCESS;
-		*rule_id = aged_res.rule_id;
+		*rule_id = out_msg.rule_id;
 	}
 	else if (status == TABLE_HW_STATUS_SUCCESS)
 		/* A rule with the same match description (and not aged) is
@@ -117,13 +113,15 @@ inline int table_rule_create(enum table_hw_accel_id acc_id,
 	return status;
 }
 
-/* TODO CHECK IMPLEMENTATION*/
+
 int table_rule_create_or_replace(enum table_hw_accel_id acc_id,
 				 t_tbl_id table_id,
 				 struct table_rule *rule,
 				 uint8_t key_size,
-				 struct table_result *old_res,
-				 t_rule_id *rule_id)
+				 t_rule_id *rule_id,
+				 struct table_result *replaced_result,
+				 uint8_t *replaced_options,
+				 uint32_t *timestamp)
 {
 #ifdef CHECK_ALIGNMENT
 	DEBUG_ALIGN("table.c", (uint32_t)rule, ALIGNMENT_16B);
@@ -131,8 +129,8 @@ int table_rule_create_or_replace(enum table_hw_accel_id acc_id,
 	
 	int32_t status;
 
-	struct table_rule_output_message hw_old_res __attribute__((aligned(16)));
-	uint32_t arg2 = (uint32_t)&hw_old_res;
+	struct table_rule_output_message out_msg __attribute__((aligned(16)));
+	uint32_t arg2 = (uint32_t)&out_msg;
 	uint32_t arg3 = table_id;
 
 	/* Set Opaque1, Opaque2 valid bits*/
@@ -142,39 +140,42 @@ int table_rule_create_or_replace(enum table_hw_accel_id acc_id,
 	/* Clear byte in offset 2*/
 	*((uint8_t *)&(rule->result) + 2) = 0;
 
-	/* TODO - Rev2
-	if (rule->result.type == TABLE_RULE_RESULT_TYPE_CHAINING) {
-		rule->result.op_rptr_clp.chain_parameters.reserved1 = 0;
-		rule->result.op_rptr_clp.chain_parameters.reserved0 =
-			TABLE_TLUR_TKIDV_BIT_MASK;
-	}
-	*/
-
 	/* Prepare ACC context for CTLU accelerator call */
 	arg2 = __e_rlwimi(arg2, (uint32_t)rule, 16, 0, 15);
 	arg3 = __e_rlwimi(arg3, (uint32_t)key_size, 16, 0, 15);
-	__stqw(TABLE_RULE_CREATE_OR_REPLACE_MTYPE, arg2, arg3, 0,
-	       HWC_ACC_IN_ADDRESS, 0);
+
+	/* Call Accelerator and set ephemeral TABLE_HWC_FLAG_EPHS*/
+	__stqw(TABLE_RULE_CREATE_OR_REPLACE_MTYPE | TABLE_HWC_FLAG_EPHS,
+	       arg2, arg3, 0, HWC_ACC_IN_ADDRESS, 0);
 
 	/* Accelerator call*/
 	__e_hwaccel(acc_id);
 
-	/* Status Handling*/
+	/* Status Handling TODO Handle status of PIEE and MISS (replace LKP)*/
 	status = *((int32_t *)HWC_ACC_OUT_ADDRESS);
 	if (status == TABLE_HW_STATUS_SUCCESS) {
 		/* Replace occurred */
-		if (old_res)
+		*rule_id = out_msg.rule_id;
+		if (replaced_result)
 			/* STQW optimization is not done here so we do not
 			 * force alignment */
-			*old_res = hw_old_res.result;
-			*rule_id = hw_old_res.rule_id;
+			*replaced_result = out_msg.result;
+		if (replaced_options)
+			*replaced_options = out_msg.stdy_and_reserved &
+					    TABLE_ENTRY_STDY_FIELD_MASK;
+		if(timestamp)
+			*timestamp = out_msg.timestamp;
 	}
-	else if (status == TABLE_HW_STATUS_BIT_MISS){}
+	else if (status == TABLE_HW_STATUS_BIT_MISS){
+		/* Create occurred */
+		*rule_id = out_msg.rule_id;
+	}
 	else if (status & TABLE_HW_STATUS_BIT_TIDE) {
-		table_c_exception_handler(TABLE_RULE_CREATE_OR_REPLACE_FUNC_ID,
-					  __LINE__,
-					  status,
-					  TABLE_ENTITY_HW);
+		table_rule_inline_exception_handler
+				(TABLE_RULE_CREATE_OR_REPLACE_FUNC_ID,
+				 __LINE__,
+				 status,
+				 TABLE_ENTITY_HW);
 	}
 	else if (status & TABLE_HW_STATUS_BIT_NORSC) {
 		status = -ENOMEM;
@@ -183,27 +184,25 @@ int table_rule_create_or_replace(enum table_hw_accel_id acc_id,
 	}
 	else {
 		/* Call fatal error handler */
-		table_c_exception_handler(TABLE_RULE_CREATE_OR_REPLACE_FUNC_ID,
-					  __LINE__,
-					  status,
-					  TABLE_ENTITY_HW);
+		table_rule_inline_exception_handler
+				(TABLE_RULE_CREATE_OR_REPLACE_FUNC_ID,
+				 __LINE__,
+				 status,
+				 TABLE_ENTITY_HW);
 	}
 	return status;
 }
 
 
-inline int table_rule_replace_by_ruleid(enum table_hw_accel_id acc_id,
-					t_tbl_id table_id,
-					t_rule_id rule_id,
-					struct table_result *new_result,
-					uint8_t new_options,
-					struct table_result *old_res,
-					uint8_t *old_options,
-					uint32_t *old_timestamp)
+inline int table_rule_replace(enum table_hw_accel_id acc_id,
+			      t_tbl_id table_id,
+			      t_rule_id rule_id,
+			      struct table_result *new_result,
+			      uint8_t new_options,
+			      struct table_result *replaced_result,
+			      uint8_t *replaced_options,
+			      uint32_t *timestamp)
 {
-#ifdef CHECK_ALIGNMENT	
-	DEBUG_ALIGN("table_inline.h",(uint32_t)rule, ALIGNMENT_16B);
-#endif
 	int32_t status;
 
 	struct table_ruleid_and_result_desc desc __attribute__((aligned(16)));
@@ -228,7 +227,8 @@ inline int table_rule_replace_by_ruleid(enum table_hw_accel_id acc_id,
 	arg2 = __e_rlwimi(arg2, ((uint32_t) (&desc)), 16, 0, 15);
 	arg3 = __e_rlwimi(arg3, TABLE_RULE_REPLACE_RULEID_KEYSIZE, 16, 0, 15);
 
-	__stqw(TABLE_RULE_REPLACE_BY_RULEID_MTYPE,
+	/* Call Accelerator and set ephemeral */
+	__stqw(TABLE_HWC_FLAG_EPHS | TABLE_RULE_REPLACE_BY_RULEID_MTYPE,
 	       arg2,
 	       arg3,
 	       0,
@@ -241,24 +241,24 @@ inline int table_rule_replace_by_ruleid(enum table_hw_accel_id acc_id,
 	/* Status Handling*/
 	status = *((int32_t *)HWC_ACC_OUT_ADDRESS);
 	if (status == TABLE_HW_STATUS_SUCCESS) {
-		if (old_res)
+		if (replaced_result)
 			/* STQW optimization is not done here so we do not
 			 * force alignment */
-			*old_res = out_msg.result;
+			*replaced_result = out_msg.result;
 
-		if(old_options)
-			*old_options =
-			    out_msg.stdy_and_reserved & 
+		if(replaced_options)
+			*replaced_options =
+			    out_msg.stdy_and_reserved &
 			    TABLE_ENTRY_STDY_FIELD_MASK;
-		if(old_timestamp)
-			*old_timestamp = out_msg.timestamp;
+		if(timestamp)
+			*timestamp = out_msg.timestamp;
 	}
 	else if (status == TABLE_HW_STATUS_BIT_MISS)
 		status = -EIO;
 	else
 		/* Call fatal error handler */
 		table_rule_inline_exception_handler(
-					TABLE_RULE_REPLACE_BY_RULEID_FUNC_ID,
+					TABLE_RULE_REPLACE_FUNC_ID,
 					__LINE__,
 					status,
 					TABLE_ENTITY_HW);
@@ -267,170 +267,81 @@ inline int table_rule_replace_by_ruleid(enum table_hw_accel_id acc_id,
 }
 
 
-inline int table_rule_replace(enum table_hw_accel_id acc_id,
-			      t_tbl_id table_id,
-			      struct table_rule *rule,
-			      uint8_t key_size,
-			      struct table_result *old_res)
+inline int table_rule_modify_priority(enum table_hw_accel_id acc_id,
+				       t_tbl_id table_id,
+				       struct table_key_desc_mflu *key_desc,
+				       uint8_t key_size,
+				       uint32_t new_prioiry)
 {
-#ifdef CHECK_ALIGNMENT 	
-	DEBUG_ALIGN("table_inline.h",(uint32_t)rule, ALIGNMENT_16B);
-#endif
-
 	int32_t status;
-
-	struct table_rule_output_message hw_old_res __attribute__((aligned(16)));
-	uint32_t arg2 = (uint32_t)&hw_old_res;
+	struct table_rule_output_message replaced_res 
+					 __attribute__((aligned(16)));
+	uint32_t arg2 = (uint32_t)&replaced_res;
 	uint32_t arg3 = table_id;
 
-	/* Set Opaque1, Opaque2 valid bits*/
-	*(uint16_t *)(&(rule->result.type)) |=
-			TABLE_TLUR_OPAQUE_VALID_BITS_MASK;
+	/* HW structure that contains both key descriptor and priority */
+	uint8_t key_desc_and_priority[sizeof(struct table_key_desc_mflu) +
+	                         sizeof(((struct table_rule *)0)->reserved0)]
+	                         __attribute__((aligned(16)));
 
-	/* Clear byte in offset 2*/
-	*((uint8_t *)&(rule->result) + 2) = 0;
-
-	/* TODO Rev2
-	if (rule->result.type == TABLE_RULE_RESULT_TYPE_CHAINING) {
-		rule->result.op_rptr_clp.chain_parameters.reserved1 = 0;
-		rule->result.op_rptr_clp.chain_parameters.reserved0 =
-			CTLU_TLUR_TKIDV_BIT_MASK;
-	}
-	*/
+	/* Copy key and replaced priority */
+	memcpy(key_desc_and_priority + offsetof(struct table_key_desc_mflu,key),
+	       &key_desc->key,
+	       key_size);
+	/* Copy mask */
+	memcpy(key_desc_and_priority +offsetof(struct table_key_desc_mflu,mask),
+	       &key_desc->mask,
+	       ((uint32_t)(key_size - TABLE_KEY_MFLU_PRIORITY_FIELD_SIZE)));
+	/* Copy the new priority */
+	((struct table_rule *)key_desc_and_priority)->reserved0 = new_prioiry;
 
 	/* Prepare ACC context for CTLU accelerator call */
-	arg2 = __e_rlwimi(arg2, (uint32_t)rule, 16, 0, 15);
+	arg2 = __e_rlwimi(arg2, (uint32_t)key_desc_and_priority, 16, 0, 15);
 	arg3 = __e_rlwimi(arg3, (uint32_t)key_size, 16, 0, 15);
-	__stqw(TABLE_RULE_REPLACE_MTYPE, arg2, arg3, 0, HWC_ACC_IN_ADDRESS, 0);
+	__stqw(TABLE_RULE_REPLACE_BY_KEY_DESC_MTYPE,
+	       arg2, arg3, 0, HWC_ACC_IN_ADDRESS, 0);
 
 	/* Accelerator call */
 	__e_hwaccel(acc_id);
 
 	/* Status Handling*/
 	status = *((int32_t *)HWC_ACC_OUT_ADDRESS);
-	if (status == TABLE_HW_STATUS_SUCCESS) {
-		if (old_res)
-			/* STQW optimization is not done here so we do not
-			 * force alignment */
-			*old_res = hw_old_res.result;
+	if (status == TABLE_HW_STATUS_PIEE) {
+		status = TABLE_HW_STATUS_SUCCESS;
 	}
-	else if (status == TABLE_HW_STATUS_BIT_MISS)
+	/* Key descriptor and mask were found but priority is different or
+	 * Key descriptor was not found. */
+	else if ((status == TABLE_HW_STATUS_BIT_MISS) ||
+		 (status == (TABLE_HW_STATUS_BIT_MISS | TABLE_HW_STATUS_PIEE)))
+	{
 		status = -EIO;
-	else
+	}
+	/* Replace result occurred --> go to fatal */
+	else if (status == TABLE_HW_STATUS_SUCCESS){
+		table_rule_inline_exception_handler(
+				TABLE_RULE_MODIFY_PRIORITY_FUNC_ID,
+				__LINE__,
+				TABLE_SW_STATUS_SAME_PRIORITY,
+				TABLE_ENTITY_SW);
+	}
+	else {
 		/* Call fatal error handler */
-		table_rule_inline_exception_handler(TABLE_RULE_REPLACE_FUNC_ID,
-						    __LINE__,
-						    status,
-						    TABLE_ENTITY_HW);
-
+		table_rule_inline_exception_handler(
+				TABLE_RULE_MODIFY_PRIORITY_FUNC_ID,
+				__LINE__,
+				status,
+				TABLE_ENTITY_HW);
+	}
 	return status;
 }
 
 
-inline int table_rule_delete_by_ruleid(enum table_hw_accel_id acc_id,
+inline int table_rule_query_get_result(enum table_hw_accel_id acc_id,
 				       t_tbl_id table_id,
 				       t_rule_id rule_id,
 				       struct table_result *result,
 				       uint8_t *options,
 				       uint32_t *timestamp)
-{
-	int32_t status;
-
-	struct table_rule_output_message out_msg __attribute__((aligned(16)));
-	struct table_rule_id_desc rule_id_desc __attribute__((aligned(16)));
-
-	/* Prepare HW context for TLU accelerator call */
-	rule_id_desc.rule_id = rule_id;
-	uint32_t arg2 = (uint32_t)&out_msg;
-	uint32_t arg3 = table_id;
-	arg2 = __e_rlwimi(arg2, ((uint32_t) &rule_id_desc), 16, 0, 15);
-	arg3 = __e_rlwimi(arg3, TABLE_RULE_DELETE_RULEID_KEYSIZE, 16, 0, 15);
-	__stqw(TABLE_RULE_DELETE_BY_RULEID_MTYPE, arg2, arg3, 0,
-	       HWC_ACC_IN_ADDRESS, 0);
-
-	/* Accelerator call */
-	__e_hwaccel(acc_id);
-
-	/* Status Handling*/
-	status = *((int32_t *)HWC_ACC_OUT_ADDRESS);
-	if (status == TABLE_HW_STATUS_SUCCESS) {
-		if (result)
-			/* STQW optimization is not done here so we do not
-			 * force alignment */
-			*result = out_msg.result;
-		if (options)
-			*options = out_msg.stdy_and_reserved & 
-				   TABLE_ENTRY_STDY_FIELD_MASK;
-		if (timestamp)
-			*timestamp = out_msg.timestamp;
-	}
-	else if (status == TABLE_HW_STATUS_BIT_MISS)
-		/* Rule was not found */
-		status = -EIO;
-	else
-		/* Call fatal error handler */
-		table_rule_inline_exception_handler(
-				TABLE_RULE_DELETE_BY_RULEID_FUNC_ID,
-				__LINE__,
-				status,
-				TABLE_ENTITY_HW);
-
-	return status;
-}
-
-
-/* TODO CHECK IMPLEMENTATION*/
-inline int table_rule_delete(enum table_hw_accel_id acc_id,
-			     t_tbl_id table_id,
-			     union table_key_desc *key_desc,
-			     uint8_t key_size,
-			     struct table_result *result)
-{
-#ifdef CHECK_ALIGNMENT
-	DEBUG_ALIGN("table_inline.h",(uint32_t)key_desc, ALIGNMENT_16B);
-#endif
-
-	int32_t status;
-
-	struct table_rule_output_message old_res __attribute__((aligned(16)));
-	/* Prepare HW context for TLU accelerator call */
-	uint32_t arg2 = (uint32_t)&old_res;
-	uint32_t arg3 = table_id;
-	arg2 = __e_rlwimi(arg2, (uint32_t)key_desc, 16, 0, 15);
-	arg3 = __e_rlwimi(arg3, (uint32_t)key_size, 16, 0, 15);
-	__stqw(TABLE_RULE_DELETE_MTYPE, arg2, arg3, 0, HWC_ACC_IN_ADDRESS, 0);
-
-	/* Accelerator call */
-	__e_hwaccel(acc_id);
-
-	/* Status Handling*/
-	status = *((int32_t *)HWC_ACC_OUT_ADDRESS);
-	if (status == TABLE_HW_STATUS_SUCCESS) {
-		if (result)
-			/* STQW optimization is not done here so we do not
-			 * force alignment */
-			*result = old_res.result;
-	}
-	else if (status == TABLE_HW_STATUS_BIT_MISS)
-		/* Rule was not found */
-		status = -EIO;
-	else
-		/* Call fatal error handler */
-		table_rule_inline_exception_handler(TABLE_RULE_DELETE_FUNC_ID,
-						    __LINE__,
-						    status,
-						    TABLE_ENTITY_HW);
-
-	return status;
-}
-
-
-inline int table_rule_query_by_ruleid(enum table_hw_accel_id acc_id,
-				      t_tbl_id table_id,
-				      t_rule_id rule_id,
-				      struct table_result *result,
-				      uint8_t *options,
-				      uint32_t *timestamp)
 {
 
 	int32_t status;
@@ -444,7 +355,9 @@ inline int table_rule_query_by_ruleid(enum table_hw_accel_id acc_id,
 	uint8_t entry_type;
 	arg3 = __e_rlwimi(arg3, TABLE_RULE_QUERY_RULEID_KEYSIZE, 16, 0, 15);
 	arg2 = __e_rlwimi(arg2, ((uint32_t)(&rule_id_desc)), 16, 0, 15);
-	__stqw(TABLE_RULE_QUERY_BY_RULEID_MTYPE,
+
+	/* Call Accelerator and set ephemeral */
+	__stqw(TABLE_HWC_FLAG_EPHS | TABLE_RULE_QUERY_BY_RULEID_MTYPE,
 	       arg2,
 	       arg3,
 	       0,
@@ -499,7 +412,7 @@ inline int table_rule_query_by_ruleid(enum table_hw_accel_id acc_id,
 		else
 			/* Call fatal error handler */
 			table_rule_inline_exception_handler(
-					TABLE_RULE_QUERY_BY_RULEID_FUNC_ID,
+					TABLE_RULE_QUERY_GET_RESULT_FUNC_ID,
 					__LINE__,
 					TABLE_SW_STATUS_QUERY_INVAL_ENTYPE,
 					TABLE_ENTITY_SW);
@@ -511,8 +424,8 @@ inline int table_rule_query_by_ruleid(enum table_hw_accel_id acc_id,
 
 		else
 			/* Call fatal error handler */
-			table_c_exception_handler(
-					TABLE_RULE_QUERY_BY_RULEID_FUNC_ID,
+			table_rule_inline_exception_handler(
+					TABLE_RULE_QUERY_GET_RESULT_FUNC_ID,
 					__LINE__,
 					status,
 					TABLE_ENTITY_HW);
@@ -522,13 +435,179 @@ inline int table_rule_query_by_ruleid(enum table_hw_accel_id acc_id,
 }
 
 
-/* TODO CHECK IMPLEMENTATION*/
-inline int table_rule_query(enum table_hw_accel_id acc_id,
-			    t_tbl_id table_id,
-			    union table_key_desc *key_desc,
-			    uint8_t key_size,
-			    struct table_result *result,
-			    uint32_t *timestamp)
+inline int table_rule_query_get_key_desc(enum table_hw_accel_id acc_id,
+					 t_tbl_id table_id,
+					 t_rule_id rule_id,
+					 union table_key_desc *key_desc)
+{
+#ifdef CHECK_ALIGNMENT 	
+	DEBUG_ALIGN("table_inline.h",(uint32_t)key_desc, ALIGNMENT_16B);
+#endif
+	int32_t status;
+
+	struct table_rule_id_desc rule_id_desc __attribute__((aligned(16)));
+	uint32_t arg2 = (uint32_t)key_desc;
+	uint32_t arg3 = table_id;
+
+	rule_id_desc.rule_id = rule_id;
+	/* Prepare ACC context for CTLU accelerator call */
+	arg2 = __e_rlwimi(arg2, ((uint32_t)(&rule_id_desc)), 16, 0, 15);
+	arg3 = __e_rlwimi(arg3, TABLE_RULE_QUERY_RULEID_KEYSIZE, 16, 0, 15);
+
+	/* Call Accelerator and set ephemeral */
+	__stqw(TABLE_HWC_FLAG_EPHS | TABLE_GET_KEY_DESC_MTYPE,
+	       arg2, arg3, 0, HWC_ACC_IN_ADDRESS, 0);
+
+	/* Accelerator call */
+	__e_hwaccel(acc_id);
+
+	/* Status Handling*/
+	status = *((int32_t *)HWC_ACC_OUT_ADDRESS);
+	if (status == TABLE_HW_STATUS_SUCCESS) {}
+
+	/* TEMPNOR is not checked here because aging is disabled */
+	else if (status == TABLE_HW_STATUS_BIT_MISS) {}
+	else
+		/* Call fatal error handler */
+		table_rule_inline_exception_handler(
+				TABLE_RULE_QUERY_GET_KEY_DESC_FUNC_ID,
+				__LINE__,
+				status,
+				TABLE_ENTITY_HW);
+	return status;
+}
+
+
+inline int table_rule_delete(enum table_hw_accel_id acc_id,
+			     t_tbl_id table_id,
+			     t_rule_id rule_id,
+			     struct table_result *result,
+			     uint8_t *options,
+			     uint32_t *timestamp)
+{
+	int32_t status;
+
+	struct table_rule_output_message out_msg __attribute__((aligned(16)));
+	struct table_rule_id_desc rule_id_desc __attribute__((aligned(16)));
+
+	/* Prepare HW context for TLU accelerator call */
+	rule_id_desc.rule_id = rule_id;
+	uint32_t arg2 = (uint32_t)&out_msg;
+	uint32_t arg3 = table_id;
+	arg2 = __e_rlwimi(arg2, ((uint32_t) &rule_id_desc), 16, 0, 15);
+	arg3 = __e_rlwimi(arg3, TABLE_RULE_DELETE_RULEID_KEYSIZE, 16, 0, 15);
+
+	/* Call Accelerator and set ephemeral */
+	__stqw(TABLE_HWC_FLAG_EPHS | TABLE_RULE_DELETE_BY_RULEID_MTYPE,
+	       arg2, arg3, 0, HWC_ACC_IN_ADDRESS, 0);
+
+	/* Accelerator call */
+	__e_hwaccel(acc_id);
+
+	/* Status Handling*/
+	status = *((int32_t *)HWC_ACC_OUT_ADDRESS);
+	if (status == TABLE_HW_STATUS_SUCCESS) {
+		if (result)
+			/* STQW optimization is not done here so we do not
+			 * force alignment */
+			*result = out_msg.result;
+		if (options)
+			*options = out_msg.stdy_and_reserved & 
+				   TABLE_ENTRY_STDY_FIELD_MASK;
+		if (timestamp)
+			*timestamp = out_msg.timestamp;
+	}
+	else if (status == TABLE_HW_STATUS_BIT_MISS)
+		/* Rule was not found */
+		status = -EIO;
+	else
+		/* Call fatal error handler */
+		table_rule_inline_exception_handler(
+				TABLE_RULE_DELETE_FUNC_ID,
+				__LINE__,
+				status,
+				TABLE_ENTITY_HW);
+
+	return status;
+}
+
+
+inline int table_rule_replace_by_key_desc(enum table_hw_accel_id acc_id,
+					  t_tbl_id table_id,
+					  struct table_rule *rule,
+					  uint8_t key_size,
+					  struct table_result *replaced_result)
+{
+#ifdef CHECK_ALIGNMENT 	
+	DEBUG_ALIGN("table_inline.h",(uint32_t)rule, ALIGNMENT_16B);
+#endif
+
+	int32_t status;
+
+	struct table_rule_output_message hw_old_res __attribute__((aligned(16)));
+	uint32_t arg2 = (uint32_t)&hw_old_res;
+	uint32_t arg3 = table_id;
+
+	/* Set Opaque1, Opaque2 valid bits*/
+	*(uint16_t *)(&(rule->result.type)) |=
+			TABLE_TLUR_OPAQUE_VALID_BITS_MASK;
+
+	/* Clear byte in offset 2*/
+	*((uint8_t *)&(rule->result) + 2) = 0;
+
+	/* Avoid priority replacement if needed by writing same priority */
+	if (acc_id == TABLE_ACCEL_ID_MFLU){
+		rule->reserved0 =
+			*((uint32_t *)&(rule->key_desc.mflu.key[key_size]));
+	}
+
+	/* Prepare ACC context for CTLU accelerator call */
+	arg2 = __e_rlwimi(arg2, (uint32_t)rule, 16, 0, 15);
+	arg3 = __e_rlwimi(arg3, (uint32_t)key_size, 16, 0, 15);
+
+	/* Call Accelerator and set ephemeral */
+	__stqw(TABLE_HWC_FLAG_EPHS | TABLE_RULE_REPLACE_BY_KEY_DESC_MTYPE,
+	       arg2,
+	       arg3,
+	       0,
+	       HWC_ACC_IN_ADDRESS,
+	       0);
+
+	/* Accelerator call */
+	__e_hwaccel(acc_id);
+
+	/* Status Handling*/
+	status = *((int32_t *)HWC_ACC_OUT_ADDRESS);
+	if (status == TABLE_HW_STATUS_SUCCESS) {
+		if (replaced_result)
+			/* STQW optimization is not done here so we do not
+			 * force alignment */
+			*replaced_result = hw_old_res.result;
+	}
+	/* MFLU Key descriptor and mask were found but priority is different or
+	 * Key descriptor was not found. */
+	else if ((status == TABLE_HW_STATUS_BIT_MISS) ||
+		 (status == (TABLE_HW_STATUS_BIT_MISS | TABLE_HW_STATUS_PIEE)))
+	{
+		status = -EIO;
+	}
+	else
+		/* Call fatal error handler */
+		table_rule_inline_exception_handler(
+				TABLE_RULE_REPLACE_BY_KEY_DESC_FUNC_ID,
+				__LINE__,
+				status,
+				TABLE_ENTITY_HW);
+	return status;
+}
+
+
+inline int table_rule_query_by_key_desc(enum table_hw_accel_id acc_id,
+					t_tbl_id table_id,
+					union table_key_desc *key_desc,
+					uint8_t key_size,
+					struct table_result *result,
+					uint32_t *timestamp)
 {
 
 #ifdef CHECK_ALIGNMENT
@@ -543,7 +622,9 @@ inline int table_rule_query(enum table_hw_accel_id acc_id,
 	uint8_t entry_type;
 	arg3 = __e_rlwimi(arg3, (uint32_t)key_size, 16, 0, 15);
 	arg2 = __e_rlwimi(arg2, (uint32_t)key_desc, 16, 0, 15);
-	__stqw(TABLE_RULE_QUERY_MTYPE, arg2, arg3, 0, HWC_ACC_IN_ADDRESS, 0);
+
+	__stqw(TABLE_HWC_FLAG_EPHS | TABLE_RULE_QUERY_BY_KEY_DESC_MTYPE,
+	       arg2, arg3, 0, HWC_ACC_IN_ADDRESS, 0);
 
 	/* Call Table accelerator */
 	__e_hwaccel(acc_id);
@@ -581,15 +662,21 @@ inline int table_rule_query(enum table_hw_accel_id acc_id,
 		else
 			/* Call fatal error handler */
 			table_rule_inline_exception_handler(
-					TABLE_RULE_QUERY_FUNC_ID,
+					TABLE_RULE_QUERY_BY_KEY_DESC_FUNC_ID,
 					__LINE__,
 					TABLE_SW_STATUS_QUERY_INVAL_ENTYPE,
 					TABLE_ENTITY_SW);
 	} else {
 		/* Status Handling*/
+		/* A rule with the same match description is not found in the
+		 * table. */
 		if (status == TABLE_HW_STATUS_BIT_MISS){}
-			/* A rule with the same match description is not found
-			 * in the table. */
+			
+		else if (status ==
+			  (TABLE_HW_STATUS_BIT_MISS | TABLE_HW_STATUS_PIEE))
+		{
+			status = TABLE_HW_STATUS_BIT_MISS;
+		}
 
 		/* Redirected to exception handler since aging is removed
 		else if (status == CTLU_HW_STATUS_TEMPNOR)
@@ -611,7 +698,7 @@ inline int table_rule_query(enum table_hw_accel_id acc_id,
 		else
 			/* Call fatal error handler */
 			table_rule_inline_exception_handler(
-					TABLE_RULE_QUERY_FUNC_ID,
+					TABLE_RULE_QUERY_BY_KEY_DESC_FUNC_ID,
 					__LINE__,
 					status,
 					TABLE_ENTITY_HW);
@@ -621,6 +708,55 @@ inline int table_rule_query(enum table_hw_accel_id acc_id,
 }
 
 
+inline int table_rule_delete_by_key_desc(enum table_hw_accel_id acc_id,
+					 t_tbl_id table_id,
+					 union table_key_desc *key_desc,
+					 uint8_t key_size,
+					 struct table_result *result)
+{
+#ifdef CHECK_ALIGNMENT
+	DEBUG_ALIGN("table_inline.h",(uint32_t)key_desc, ALIGNMENT_16B);
+#endif
+
+	int32_t status;
+
+	struct table_rule_output_message old_res __attribute__((aligned(16)));
+	/* Prepare HW context for TLU accelerator call */
+	uint32_t arg2 = (uint32_t)&old_res;
+	uint32_t arg3 = table_id;
+	arg2 = __e_rlwimi(arg2, (uint32_t)key_desc, 16, 0, 15);
+	arg3 = __e_rlwimi(arg3, (uint32_t)key_size, 16, 0, 15);
+
+	__stqw(TABLE_HWC_FLAG_EPHS | TABLE_RULE_DELETE_BY_KEY_DESC_MTYPE,
+	       arg2, arg3, 0, HWC_ACC_IN_ADDRESS, 0);
+
+	/* Accelerator call */
+	__e_hwaccel(acc_id);
+
+	/* Status Handling*/
+	status = *((int32_t *)HWC_ACC_OUT_ADDRESS);
+	if (status == TABLE_HW_STATUS_SUCCESS) {
+		if (result)
+			/* STQW optimization is not done here so we do not
+			 * force alignment */
+			*result = old_res.result;
+	}
+	/* Rule was not found. */
+	else if ((status == TABLE_HW_STATUS_BIT_MISS) ||
+		 (status == (TABLE_HW_STATUS_BIT_MISS | TABLE_HW_STATUS_PIEE)))
+	{
+		status = -EIO;
+	}
+	else
+		/* Call fatal error handler */
+		table_rule_inline_exception_handler(
+				TABLE_RULE_DELETE_BY_KEY_DESC_FUNC_ID,
+				__LINE__,
+				status,
+				TABLE_ENTITY_HW);
+
+	return status;
+}
 /*****************************************************************************/
 /*				Internal API				     */
 /*****************************************************************************/

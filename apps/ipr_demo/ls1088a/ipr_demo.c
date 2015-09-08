@@ -187,7 +187,7 @@ __HOT_CODE ENTRY_POINT static void app_process_packet(void)
 		fsl_print("LDPAA_FD_GET_OFFSET = %x\n", LDPAA_FD_GET_OFFSET(HWC_FD_ADDRESS));
 */
 
-		err = dpni_drv_send(dpni_get_receive_niid());
+		err = dpni_drv_send(task_get_receive_niid());
 
 		if (err){
 			fsl_print("ERROR = %d: dpni_drv_send()\n",err);
@@ -195,7 +195,7 @@ __HOT_CODE ENTRY_POINT static void app_process_packet(void)
 			if(err == -ENOMEM)
 				fdma_discard_default_frame(FDMA_DIS_NO_FLAGS);
 			else /* (err == -EBUSY) */
-				fdma_discard_fd((struct ldpaa_fd *)HWC_FD_ADDRESS, FDMA_DIS_NO_FLAGS);
+				fdma_discard_fd((struct ldpaa_fd *)HWC_FD_ADDRESS, 0, FDMA_DIS_AS_BIT);
 		}
 
 		if(!local_test_error) /*No error found during injection of packets*/

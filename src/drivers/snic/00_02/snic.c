@@ -178,7 +178,7 @@ void snic_process_packet(void)
 		if(err == -ENOMEM)
 			fdma_discard_default_frame(FDMA_DIS_NO_FLAGS);
 		else /* (err == -EBUSY) */
-			fdma_discard_fd((struct ldpaa_fd *)HWC_FD_ADDRESS, FDMA_DIS_NO_FLAGS);
+			fdma_discard_fd((struct ldpaa_fd *)HWC_FD_ADDRESS, 0, FDMA_DIS_AS_BIT);
 	}
 
 	fdma_terminate_task();
@@ -237,7 +237,7 @@ int snic_ipf(struct snic_params *snic)
 				if(err == -ENOMEM)
 					fdma_discard_default_frame(FDMA_DIS_NO_FLAGS);
 				else /* (err == -EBUSY) */
-					fdma_discard_fd((struct ldpaa_fd *)HWC_FD_ADDRESS, FDMA_DIS_NO_FLAGS);
+					fdma_discard_fd((struct ldpaa_fd *)HWC_FD_ADDRESS, 0, FDMA_DIS_AS_BIT);
 				if (ipf_status == IPF_GEN_FRAG_STATUS_IN_PROCESS)
 					ipf_discard_frame_remainder(ipf_context_addr);
 				break;
@@ -315,7 +315,7 @@ int snic_ipsec_decrypt(struct snic_params *snic)
 		if (sr_status == TABLE_STATUS_SUCCESS) 
 		{
 			/* Hit */
-			ipsec_handle = lookup_result.opaque0_or_reference;
+			ipsec_handle = lookup_result.data0;
 			ipsec_frame_decrypt(ipsec_handle,
 					&dec_status);
 			/*todo what happens in case decrypt is not successful*/
@@ -343,12 +343,16 @@ int snic_ipsec_encrypt(struct snic_params *snic)
 	sa_id = *((uint8_t *)(PTR_MOVE(asa_seg_addr, 0x54)));
 	
 	key_desc.em_key = &sa_id;
-	sr_status = table_lookup_by_key(TABLE_ACCEL_ID_CTLU, (uint16_t)snic->ipsec_table_id, key_desc, 1, &lookup_result);
+	sr_status = table_lookup_by_key(TABLE_ACCEL_ID_CTLU,
+				        (uint16_t)snic->ipsec_table_id,
+				        key_desc,
+				        1,
+				        &lookup_result);
 
 	if (sr_status == TABLE_STATUS_SUCCESS) 
 	{
 		/* Hit */
-		ipsec_handle = lookup_result.opaque0_or_reference;
+		ipsec_handle = lookup_result.data0;
 		ipsec_frame_encrypt(ipsec_handle,
 				&enc_status);
 		/*todo what happens in case encrypt is not successful*/
@@ -852,13 +856,17 @@ int snic_ipsec_del_sa(struct snic_cmd_data *cmd_data)
 
 	SNIC_IPSEC_DEL_SA_CMD(SNIC_CMD_READ, SNIC_CMD_READ_BYTE_ARRAY);
 	table_lookup_key_desc.em_key = &sa_id;
-	err = table_lookup_by_key(TABLE_ACCEL_ID_CTLU, (uint16_t)snic_params[snic_id].ipsec_table_id, table_lookup_key_desc, 1, &lookup_result);
+	err = table_lookup_by_key(TABLE_ACCEL_ID_CTLU,
+				  (uint16_t)snic_params[snic_id].ipsec_table_id,
+				  table_lookup_key_desc,
+				  1,
+				  &lookup_result);
 	if (err == TABLE_STATUS_SUCCESS) {
 		/* Hit */
-		ipsec_handle = lookup_result.opaque0_or_reference;
+		ipsec_handle = lookup_result.data0;
 		/* need to delete rules from the 2 tables (or one for enc.) */
 		key_desc.em.key[0] = sa_id;
-		err = table_rule_delete(TABLE_ACCEL_ID_CTLU,
+		err = table_rule_delete_by_key_desc(TABLE_ACCEL_ID_CTLU,
 				(uint16_t)snic_params[snic_id].ipsec_table_id,
 				&key_desc,
 				1,
@@ -890,7 +898,7 @@ int snic_ipsec_del_sa(struct snic_cmd_data *cmd_data)
 				ipsec_dec_key[k] = (uint8_t)spi;
 				for (i = 0; i < snic_params[snic_id].ipsec_ipv6_key_size; i++ )
 					key_desc.em.key[i] = ipsec_dec_key[i];
-				err = table_rule_delete(TABLE_ACCEL_ID_CTLU,
+				err = table_rule_delete_by_key_desc(TABLE_ACCEL_ID_CTLU,
 					(uint16_t)snic_params[snic_id].dec_ipsec_ipv6_table_id,
 					&key_desc,
 					snic_params[snic_id].ipsec_ipv6_key_size,
@@ -918,7 +926,7 @@ int snic_ipsec_del_sa(struct snic_cmd_data *cmd_data)
 				ipsec_dec_key[k] = (uint8_t)spi;
 				for (i = 0; i < snic_params[snic_id].ipsec_ipv4_key_size; i++ )
 					key_desc.em.key[i] = ipsec_dec_key[i];
-				err = table_rule_delete(TABLE_ACCEL_ID_CTLU,
+				err = table_rule_delete_by_key_desc(TABLE_ACCEL_ID_CTLU,
 					(uint16_t)snic_params[snic_id].dec_ipsec_ipv4_table_id,
 					&key_desc,
 					snic_params[snic_id].ipsec_ipv4_key_size,
@@ -984,12 +992,16 @@ int snic_ipsec_sa_get_stats(struct snic_cmd_data *cmd_data)
 	SNIC_IPSEC_SA_GET_STATS_CMD(SNIC_CMD_READ);
 	snic = snic_params + snic_id;
 	key_desc.em_key = &sa_id;
-	err = table_lookup_by_key(TABLE_ACCEL_ID_CTLU, (uint16_t)snic->ipsec_table_id, key_desc, 1, &lookup_result);
+	err = table_lookup_by_key(TABLE_ACCEL_ID_CTLU,
+				  (uint16_t)snic->ipsec_table_id,
+				  key_desc,
+				  1,
+				  &lookup_result);
 
 	if (err == TABLE_STATUS_SUCCESS) 
 	{
 		/* Hit */
-		ipsec_handle = lookup_result.opaque0_or_reference;
+		ipsec_handle = lookup_result.data0;
 		err = ipsec_get_lifetime_stats(ipsec_handle, &kbytes, &packets, &secs);
 		if (err)
 			return err;
@@ -1107,7 +1119,7 @@ int snic_create_table_key_id(uint8_t fec_no, uint8_t fec_array[8],
 	tbl_params.attributes = TABLE_ATTRIBUTE_TYPE_EM | \
 			TABLE_ATTRIBUTE_LOCATION_PEB | \
 			TABLE_ATTRIBUTE_MR_NO_MISS;
-	tbl_params.timestamp_accur = TABLE_TS_ACCURACY_1_TU;
+	tbl_params.timestamp_accuracy = 1;
 	err = table_create(TABLE_ACCEL_ID_CTLU, &tbl_params,
 			table_id);
 	if (err)

@@ -61,11 +61,12 @@
 struct slab;
 
 /**Flag to use for requesting slab managed in DDR (lower performance)*/
-#define SLAB_DDR_MANAGEMENT_FLAG    0x01
-
+#define SLAB_DDR_MANAGEMENT_FLAG               0x01
+/**Flag to disable default alignment set of 128 for buffer size*/
+#define SLAB_OPTIMIZE_MEM_UTILIZATION_FLAG     0x02
 /** Decrement reference count caused the reference count to
 	go to zero. (not an error) */
-#define SLAB_CDMA_REFCOUNT_DECREMENT_TO_ZERO 0x3
+#define SLAB_CDMA_REFCOUNT_DECREMENT_TO_ZERO   0x03
 
 
 /**************************************************************************//**

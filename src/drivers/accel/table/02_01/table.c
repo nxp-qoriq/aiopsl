@@ -44,6 +44,10 @@ int table_create(enum table_hw_accel_id acc_id,
 	struct table_rule *miss_rule;
 	int               num_entries_per_rule;
 
+	/* Table create input message AGT field */
+	register uint16_t          agt;
+	register uint32_t          timestamp_accuracy;
+
 	/* 16 Byte aligned for stqw optimization + HW requirements */
 	struct table_create_input_message  tbl_crt_in_msg
 		__attribute__((aligned(16)));
@@ -57,23 +61,38 @@ int table_create(enum table_hw_accel_id acc_id,
 	uint32_t arg2 = (uint32_t)&tbl_crt_out_msg; /* To be used in
 						    Accelerator context __stqw
 						    */
-
 	/* Load frequent parameters into registers */
 	uint8_t                           key_size = tbl_params->key_size;
-	uint16_t                          attr = tbl_params->attributes |
-						 tbl_params->timestamp_accur;
+	uint16_t                          attr = tbl_params->attributes;
 	uint32_t                          max_rules = tbl_params->max_rules;
 	uint32_t                          committed_rules =
 		tbl_params->committed_rules;
-	uint64_t rule_id;
+	t_rule_id rule_id;
 
 	/* Calculate the number of entries each rule occupies */
 	num_entries_per_rule = table_calc_num_entries_per_rule(
 					attr & TABLE_ATTRIBUTE_TYPE_MASK,
 					key_size);
 
+	/*************************/
 	/* Prepare input message */
-	tbl_crt_in_msg.attributes = attr;
+	/*************************/
+	/* Count leading zeroes */
+	timestamp_accuracy = tbl_params->timestamp_accuracy;
+	asm { cntlzw agt, timestamp_accuracy }
+
+	/* Enable timestamp accuracy if needed*/
+	if(agt < 30) {
+		/* Calculate the correct power of 2 */
+		agt = 31 - agt;
+		tbl_crt_in_msg.attributes =
+			(TABLE_CREATE_INPUT_MESSAGE_ATTE_AGTM_FLAG |
+			 agt |
+			 attr);
+	}
+	else
+		tbl_crt_in_msg.attributes = attr;
+
 	tbl_crt_in_msg.icid = TABLE_CREATE_INPUT_MESSAGE_ICID_BDI_MASK;
 	tbl_crt_in_msg.max_rules = max_rules;
 	tbl_crt_in_msg.max_entries =
@@ -189,7 +208,7 @@ void table_get_params(enum table_hw_accel_id acc_id,
 void table_replace_miss_result(enum table_hw_accel_id acc_id,
 			       t_tbl_id table_id,
 			       struct table_result *new_miss_result,
-			       struct table_result *old_miss_result)
+			       struct table_result *replaced_miss_result)
 {
 	int32_t status;
 
@@ -208,8 +227,11 @@ void table_replace_miss_result(enum table_hw_accel_id acc_id,
 	*((uint32_t *)(&(new_miss_rule.result))) =
 			*((uint32_t *)new_miss_result);
 
-	status = table_rule_replace(acc_id, table_id, &new_miss_rule, 0,
-				       old_miss_result);
+	status = table_rule_replace_by_key_desc(acc_id,
+						table_id,
+						&new_miss_rule,
+						0,
+						replaced_miss_result);
 	if (status)
 		table_c_exception_handler(
 			TABLE_REPLACE_MISS_RESULT_FUNC_ID,
@@ -226,8 +248,12 @@ void table_get_miss_result(enum table_hw_accel_id acc_id,
 {
 	int32_t status;
 	uint32_t invalid_timestamp;
-	status = table_rule_query(acc_id, table_id, 0, 0, miss_result,
-				  &invalid_timestamp);
+	status = table_rule_query_by_key_desc(acc_id,
+					      table_id,
+					      0,
+					      0,
+					      miss_result,
+					      &invalid_timestamp);
 
 	if (status)
 		table_c_exception_handler(TABLE_GET_MISS_RESULT_FUNC_ID,
@@ -258,26 +284,6 @@ void table_delete(enum table_hw_accel_id acc_id,
 					  TABLE_ENTITY_HW);
 
 	return;
-}
-
-
-void table_hw_get_time_unit(enum table_hw_accel_id acc_id,
-			    uint32_t *time_unit)
-{
-	uint32_t *reg_addr;
-	if (acc_id == TABLE_ACCEL_ID_CTLU) {
-		reg_addr = ((uint32_t *) 
-				(TABLE_MEMMAP_CTLU_BASE_ADDR
-				 |TABLE_MEMMAP_TIMESTAMP_WINDOW_BASE_OFFSET)
-			   );
-	} else {
-		reg_addr = ((uint32_t *) 
-				(TABLE_MEMMAP_MFLU_BASE_ADDR
-				 |TABLE_MEMMAP_TIMESTAMP_WINDOW_BASE_OFFSET)
-			   );
-	}
-	*time_unit = 1 <<  ((*reg_addr) &
-			    TABLE_MEMMAP_TIMESTAMP_WINDOW_FIELD_MASK);
 }
 
 
@@ -319,44 +325,7 @@ int table_get_next_ruleid(enum table_hw_accel_id acc_id,
 	return status;
 }
 
-int table_get_key_desc(enum table_hw_accel_id acc_id,
-		       t_tbl_id table_id,
-		       struct table_rule_id_desc *rule_id_desc,
-		       union table_key_desc *key_desc)
-{
-#ifdef CHECK_ALIGNMENT 	
-	DEBUG_ALIGN("table_inline.h",(uint32_t)rule_id_desc, ALIGNMENT_16B);
-	DEBUG_ALIGN("table_inline.h",(uint32_t)key_desc, ALIGNMENT_16B);
-#endif
-	int32_t status;
-
-	uint32_t arg2 = (uint32_t)key_desc;
-	uint32_t arg3 = table_id;
-
-	/* Prepare ACC context for CTLU accelerator call */
-	arg2 = __e_rlwimi(arg2, (uint32_t)rule_id_desc, 16, 0, 15);
-	arg3 = __e_rlwimi(arg3, 0x20, 16, 0, 15);
-	__stqw(TABLE_GET_KEY_DESC_MTYPE, arg2, arg3, 0, HWC_ACC_IN_ADDRESS, 0);
-
-	/* Accelerator call */
-	__e_hwaccel(acc_id);
-
-	/* Status Handling*/
-	status = *((int32_t *)HWC_ACC_OUT_ADDRESS);
-	if (status == TABLE_HW_STATUS_SUCCESS) {}
-	else if (status == TABLE_HW_STATUS_MISS)
-		status = -EIO;
-	else
-		/* Call fatal error handler */
-		table_exception_handler_wrp(TABLE_GET_KEY_DESC_FUNC_ID,
-					    __LINE__,
-					    status);
-	return status;
-}
-
 #endif //REV2_RULEID
-
-
 
 
 /*****************************************************************************/
@@ -376,6 +345,27 @@ int table_query_debug(enum table_hw_accel_id acc_id,
 	/* Return status */
 	return *((int32_t *)HWC_ACC_OUT_ADDRESS);
 }
+
+
+void table_hw_get_time_unit(enum table_hw_accel_id acc_id,
+			    uint32_t *time_unit)
+{
+	uint32_t *reg_addr;
+	if (acc_id == TABLE_ACCEL_ID_CTLU) {
+		reg_addr = ((uint32_t *) 
+				(TABLE_MEMMAP_CTLU_BASE_ADDR
+				 |TABLE_MEMMAP_TIMESTAMP_WINDOW_BASE_OFFSET)
+			   );
+	} else {
+		reg_addr = ((uint32_t *) 
+				(TABLE_MEMMAP_MFLU_BASE_ADDR
+				 |TABLE_MEMMAP_TIMESTAMP_WINDOW_BASE_OFFSET)
+			   );
+	}
+	*time_unit = 1 <<  ((*reg_addr) &
+			    TABLE_MEMMAP_TIMESTAMP_WINDOW_FIELD_MASK);
+}
+
 
 #pragma push
 	/* make all following data go into .exception_data */
@@ -427,26 +417,26 @@ void table_exception_handler(char *file_path,
 	case TABLE_RULE_REPLACE_FUNC_ID:
 		func_name = "table_rule_replace";
 		break;
-	case TABLE_RULE_QUERY_FUNC_ID:
-		func_name = "table_rule_query";
+	case TABLE_RULE_MODIFY_PRIORITY_FUNC_ID:
+		func_name = "table_rule_modify_priority";
+		break;
+	case TABLE_RULE_QUERY_GET_RESULT_FUNC_ID:
+		func_name = "table_rule_query_get_result";
+		break;
+	case TABLE_RULE_QUERY_GET_KEY_DESC_FUNC_ID:
+		func_name = "table_rule_query_get_key_desc";
 		break;
 	case TABLE_RULE_DELETE_FUNC_ID:
 		func_name = "table_rule_delete";
 		break;
-	case TABLE_GET_NEXT_RULEID_FUNC_ID:
-		func_name = "table_get_next_ruleid";
+	case TABLE_RULE_REPLACE_BY_KEY_DESC_FUNC_ID:
+		func_name = "table_rule_replace_by_key_desc";
 		break;
-	case TABLE_GET_KEY_DESC_FUNC_ID:
-		func_name = "table_get_key_desc";
+	case TABLE_RULE_DELETE_BY_KEY_DESC_FUNC_ID:
+		func_name = "table_rule_delete_by_key_desc";
 		break;
-	case TABLE_RULE_REPLACE_BY_RULEID_FUNC_ID:
-		func_name = "table_rule_replace_by_ruleid";
-		break;
-	case TABLE_RULE_DELETE_BY_RULEID_FUNC_ID:
-		func_name = "table_rule_delete_by_ruleid";
-		break;
-	case TABLE_RULE_QUERY_BY_RULEID_FUNC_ID:
-		func_name = "table_rule_query_by_ruleid";
+	case TABLE_RULE_QUERY_BY_KEY_DESC_FUNC_ID:
+		func_name = "table_rule_query_by_key_desc";
 		break;
 	case TABLE_LOOKUP_BY_KEY_FUNC_ID:
 		func_name = "table_rule_lookup_by_key";
@@ -460,20 +450,6 @@ void table_exception_handler(char *file_path,
 	case TABLE_QUERY_DEBUG_FUNC_ID:
 		func_name = "table_query_debug";
 		break;
-	case TABLE_HW_ACCEL_ACQUIRE_LOCK_FUNC_ID:
-		func_name = "table_hw_accel_acquire_lock";
-		break;
-	case TABLE_HW_ACCEL_RELEASE_LOCK_FUNC_ID:
-		func_name = "table_hw_accel_release_lock";
-		break;
-	case TABLE_EXCEPTION_HANDLER_WRP_FUNC_ID:
-		func_name = "table_exception_handler_wrp";
-		break;
-	/* this function should not be recursive and can go to the exception
-	 * handler directly */
-	/* case TABLE_EXCEPTION_HANDLER_FUNC_ID:
-		func_name = "table_exception_handler";
-		break; */
 	case TABLE_CALC_NUM_ENTRIES_PER_RULE_FUNC_ID:
 		func_name = "table_calc_num_entries_per_rule";
 		break;
@@ -519,8 +495,9 @@ void table_exception_handler(char *file_path,
 		case(TABLE_SW_STATUS_UNKNOWN_TBL_TYPE):
 			status = "Unknown table type.\n";
 			break;
-		case(TABLE_SW_STATUS_TKT226361_ERR):
-			status = "PDM TKT226361 Workaround failed.\n";
+		case(TABLE_SW_STATUS_SAME_PRIORITY):
+			status = "Rule modify failed. New priority is the same"
+				 " as the current.";
 			break;
 		default:
 			status = "Unknown or Invalid SW status.\n";
@@ -622,5 +599,9 @@ int table_rule_delete_wrp(enum table_hw_accel_id acc_id,
 			  uint8_t key_size,
 			  struct table_result *result)
 {
-	return table_rule_delete(acc_id, table_id, key_desc, key_size, result);
+	return table_rule_delete_by_key_desc(acc_id,
+					     table_id,
+					     key_desc,
+					     key_size,
+					     result);
 }

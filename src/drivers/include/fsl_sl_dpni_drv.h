@@ -127,19 +127,6 @@ int dpni_drv_probe(struct mc_dprc *dprc,
 void discard_rx_cb(void);
 
 /**************************************************************************//**
-@Function	dpni_drv_get_ordering_mode
-
-@Description	Returns the configuration in epid table for ordering mode.
-
-@Param[in]	ni_id - Network Interface ID
-
-@Return	Ordering mode for given NI
-		0 - Concurrent
-		1 - Exclusive
-*//***************************************************************************/
-int dpni_drv_get_ordering_mode(uint16_t ni_id);
-
-/**************************************************************************//**
 @Function	dpni_drv_is_dpni_exist
 
 @Description	Returns TRUE if mc_niid already exist or FALSE otherwise.

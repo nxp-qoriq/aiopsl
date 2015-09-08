@@ -86,7 +86,7 @@ __HOT_CODE ENTRY_POINT static void app_process_packet(void)
 		}
 	}
 
-	ni_id = (uint16_t)dpni_get_receive_niid();
+	ni_id = (uint16_t)task_get_receive_niid();
 	/*switch between src and dst MAC addresses*/
 	p_eth_hdr = PARSER_GET_ETH_POINTER_DEFAULT();
 	p_eth_hdr += NET_HDR_FLD_ETH_ADDR_SIZE;
@@ -113,7 +113,7 @@ __HOT_CODE ENTRY_POINT static void app_process_packet(void)
 		if(err == -ENOMEM)
 			fdma_discard_default_frame(FDMA_DIS_NO_FLAGS);
 		else /* (err == -EBUSY) */
-			fdma_discard_fd((struct ldpaa_fd *)HWC_FD_ADDRESS, FDMA_DIS_NO_FLAGS);
+			fdma_discard_fd((struct ldpaa_fd *)HWC_FD_ADDRESS, 0, FDMA_DIS_AS_BIT);
 	}
 
 	if(!local_test_error) /*No error found during injection of packets*/

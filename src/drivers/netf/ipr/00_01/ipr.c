@@ -971,7 +971,7 @@ int ipr_miss_handling(struct ipr_instance *instance_params_ptr,
 	rfdc_ptr->last_frag_index		= 0;
 	rfdc_ptr->total_in_order_payload	= 0;
 	//			get_default_amq_attributes(&rfdc.isolation_bits);
-	rfdc_ptr->niid = dpni_get_receive_niid();
+	rfdc_ptr->niid = task_get_receive_niid();
 	
 	/* create Timer in TMAN */
 	

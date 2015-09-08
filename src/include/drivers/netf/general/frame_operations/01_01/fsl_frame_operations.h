@@ -98,7 +98,6 @@
 @Param[in]	fd - Pointer to the workspace location of the frame descriptor
 		of the created frame \ref ldpaa_fd.
 		On a success return this pointer will point to a valid FD.
-		The FD address in workspace must be aligned to 32 bytes.
 @Param[in]	data - A pointer to the workspace data to be inserted to the
 		frame.
 @Param[in]	size - data size. Must be greater than 0.
@@ -116,7 +115,6 @@
 @Retval		ENOMEM - Failed due to buffer pool depletion.
 
 @Cautions	In this Service Routine the task yields.
-@Cautions	The FD address in workspace must be aligned to 32 bytes.
 @Cautions	The frame FD is overwritten in this function.
 @Cautions	This function may result in a fatal error.
 *//***************************************************************************/
@@ -157,7 +155,6 @@ int create_frame(
 @Param[in]	fd - Pointer to the workspace location of the frame descriptor
 		of the created frame \ref ldpaa_fd.
 		On a success return this pointer will point to a valid FD.
-		The FD address in workspace must be aligned to 32 bytes.
 @Param[in]	data - A pointer to the workspace data to be inserted to the
 		frame.
 @Param[in]	size - data size. Must be greater than 0.
@@ -172,7 +169,6 @@ int create_frame(
 @remark		FD is updated.
 
 @Cautions	In this Service Routine the task yields.
-@Cautions	The FD address in workspace must be aligned to 32 bytes.
 @Cautions	The frame FD is overwritten in this function.
 @Cautions	This function may result in a fatal error.
 *//***************************************************************************/
@@ -208,7 +204,6 @@ int create_fd(
 @Param[in]	fd - Pointer to the workspace location of the frame descriptor
 		of the created frame \ref ldpaa_fd.
 		On a success return this pointer will point to a valid FD.
-		The FD address in workspace must be aligned to 32 bytes.
 @Param[in]	local_ip - local IPv4 address.
 @Param[in]	target_ip - destination IPv4 address.
 @Param[out]	frame_handle - Pointer to the opened working frame handle.
@@ -224,7 +219,6 @@ int create_fd(
 		Recommendation is to discard the frame.
 
 @Cautions	In this Service Routine the task yields.
-@Cautions	The FD address in workspace must be aligned to 32 bytes.
 @Cautions	The frame FD is overwritten in this function.
 @Cautions	This function may result in a fatal error.
 *//***************************************************************************/
@@ -261,7 +255,6 @@ int create_arp_request_broadcast(
 @Param[in]	fd - Pointer to the workspace location of the frame descriptor
 		of the created frame \ref ldpaa_fd.
 		On a success return this pointer will point to a valid FD.
-		The FD address in workspace must be aligned to 32 bytes.
 @Param[in]	local_ip - local IPv4 address.
 @Param[in]	target_ip - destination IPv4 address.
 @Param[in]	target_eth - target MAC address.
@@ -278,7 +271,6 @@ int create_arp_request_broadcast(
 		Recommendation is to discard the frame.
 
 @Cautions	In this Service Routine the task yields.
-@Cautions	The FD address in workspace must be aligned to 32 bytes.
 @Cautions	The frame FD is overwritten in this function.
 @Cautions	This function may result in a fatal error.
 *//***************************************************************************/

@@ -38,6 +38,48 @@
 #include "fsl_errors.h"
 
 
+inline int table_lookup_by_key(enum table_hw_accel_id acc_id,
+			       t_tbl_id table_id,
+			       union table_lookup_key_desc key_desc,
+			       uint8_t key_size,
+			       struct table_lookup_result *lookup_result)
+{
+
+#ifdef CHECK_ALIGNMENT 	
+	DEBUG_ALIGN("table_inline.h",(uint32_t)key_desc.em_key, ALIGNMENT_16B);
+	DEBUG_ALIGN("table_inline.h",(uint32_t)lookup_result, ALIGNMENT_16B);
+#endif
+
+	int32_t status;
+	/* optimization 1 clock */
+	uint32_t arg2 = (uint32_t)lookup_result;
+	arg2 = __e_rlwimi(arg2, *((uint32_t *)(&key_desc)), 16, 0, 15);
+
+	/* Prepare HW context for TLU accelerator call */
+	__stqw(TABLE_HWC_FLAG_EPHS | TABLE_LOOKUP_KEY_MTYPE,
+	       arg2,
+	       table_id | (((uint32_t)key_size) << 16),
+	       0,
+	       HWC_ACC_IN_ADDRESS,
+	       0);
+
+	/* Call Table accelerator */
+	__e_hwaccel(acc_id);
+
+	/* Status Handling*/
+	status = *((int32_t *)HWC_ACC_OUT_ADDRESS);
+	if (status == TABLE_HW_STATUS_SUCCESS){}
+	else if (status == TABLE_HW_STATUS_BIT_MISS){}
+	else
+		table_lookup_inline_exception_handler(
+				TABLE_LOOKUP_BY_KEY_FUNC_ID,
+				__LINE__,
+				status,
+				TABLE_ENTITY_HW);
+	return status;
+}
+
+
 inline int table_lookup_by_keyid_default_frame(enum table_hw_accel_id acc_id,
 					       t_tbl_id table_id,
 					       uint8_t keyid,
@@ -53,9 +95,12 @@ inline int table_lookup_by_keyid_default_frame(enum table_hw_accel_id acc_id,
 	int32_t status;
 
 	/* Prepare HW context for TLU accelerator call */
-	__stqw(TABLE_LOOKUP_KEYID_EPRS_TMSTMP_RPTR_MTYPE,
-	       (uint32_t)lookup_result, table_id | (((uint32_t)keyid) << 16),
-	       0, HWC_ACC_IN_ADDRESS, 0);
+	__stqw(TABLE_HWC_FLAG_EPHS | TABLE_LOOKUP_KEYID_MTYPE,
+	       (uint32_t)lookup_result,
+	       table_id | (((uint32_t)keyid) << 16),
+	       0,
+	       HWC_ACC_IN_ADDRESS,
+	       0);
 
 	/* Call Table accelerator */
 	__e_hwaccel(acc_id);
@@ -115,8 +160,12 @@ inline int table_lookup_by_keyid(enum table_hw_accel_id acc_id,
 	ndf_params->reserved2 = 0;
 
 	/* Prepare HW context for TLU accelerator call */
-	__stqw(flags | TABLE_LOOKUP_KEYID_EPRS_TMSTMP_RPTR_MTYPE, arg2,
-	       table_id | (((uint32_t)keyid) << 16), 0, HWC_ACC_IN_ADDRESS, 0);
+	__stqw(flags | TABLE_HWC_FLAG_EPHS | TABLE_LOOKUP_KEYID_MTYPE,
+	       arg2,
+	       table_id | (((uint32_t)keyid) << 16),
+	       0,
+	       HWC_ACC_IN_ADDRESS,
+	       0);
 
 	/* Call Table accelerator */
 	__e_hwaccel(acc_id);
@@ -147,45 +196,6 @@ inline int table_lookup_by_keyid(enum table_hw_accel_id acc_id,
 					  status,
 					  TABLE_ENTITY_HW);
 	}
-	return status;
-}
-
-
-inline int table_lookup_by_key(enum table_hw_accel_id acc_id,
-			       t_tbl_id table_id,
-			       union table_lookup_key_desc key_desc,
-			       uint8_t key_size,
-			       struct table_lookup_result *lookup_result)
-{
-
-#ifdef CHECK_ALIGNMENT 	
-	DEBUG_ALIGN("table_inline.h",(uint32_t)key_desc.em_key, ALIGNMENT_16B);
-	DEBUG_ALIGN("table_inline.h",(uint32_t)lookup_result, ALIGNMENT_16B);
-#endif
-
-	int32_t status;
-	/* optimization 1 clock */
-	uint32_t arg2 = (uint32_t)lookup_result;
-	arg2 = __e_rlwimi(arg2, *((uint32_t *)(&key_desc)), 16, 0, 15);
-
-	/* Prepare HW context for TLU accelerator call */
-	__stqw(TABLE_LOOKUP_KEY_TMSTMP_RPTR_MTYPE, arg2,
-	       table_id | (((uint32_t)key_size) << 16), 0, HWC_ACC_IN_ADDRESS,
-	       0);
-
-	/* Call Table accelerator */
-	__e_hwaccel(acc_id);
-
-	/* Status Handling*/
-	status = *((int32_t *)HWC_ACC_OUT_ADDRESS);
-	if (status == TABLE_HW_STATUS_SUCCESS){}
-	else if (status == TABLE_HW_STATUS_BIT_MISS){}
-	else
-		table_lookup_inline_exception_handler(
-				TABLE_LOOKUP_BY_KEY_FUNC_ID,
-				__LINE__,
-				status,
-				TABLE_ENTITY_HW);
 	return status;
 }
 

@@ -43,6 +43,7 @@
 #include "fsl_dpci_drv.h"
 #include "fsl_dpci_event.h"
 #include "fsl_rcu.h"
+#include "fsl_malloc.h"
 
 int app_early_init(void);
 int app_init(void);
@@ -52,6 +53,12 @@ extern void cmdif_srv_isr(void);
 extern void cmdif_cl_isr(void);
 extern void receive_cb(void);
 extern int evmng_raise_irq_event_cb(void *dev, uint16_t cmd, uint32_t size, void *event_data);
+
+#ifdef CHECK_MEM_MNG_STACK
+void* fsl_malloc(size_t size,uint32_t alignment);
+void fsl_free(void *mem);
+#endif
+
 
 __HOT_CODE ENTRY_POINT static void app_process_packet(void)
 {
@@ -90,12 +97,20 @@ void stack_estimation(void)
 	struct ldpaa_fd fd = {0};
 	struct dpni_drv_link_state link_state = {0};
 	struct ep_init_presentation ep_init = {0};
-	uint16_t ni = 0, dpni_id, spid, mfl = 0;
+	struct dpni_drv_tx_checksum tx_checksum = {0};
+	struct dpni_drv_rx_tc_policing_cfg tc_pol = {0};
+	struct dpni_drv_tx_selection tx_sel = {0};
+	struct dpni_drv_tx_shaping tx_shaping = {0};
+	struct dpni_drv_qos_tbl qos_tbl = {0};
+	struct dpni_drv_qos_rule qos_rule = {0};
+	struct dpni_drv_rx_tc_early_drop early_drop = {0};
+ 	uint16_t ni = 0, dpni_id, spid, mfl = 0;
 	uint8_t mac_addr[NET_HDR_FLD_ETH_ADDR_SIZE] = {0};
 	int state = 0;
 	rx_cb_t *cb = 0;
 	uint64_t shbp = 0;
-
+	uint8_t *key_cfg_buf;
+	uint8_t tc_id = 0;
 	/*sl_prolog must be called first when packet arrives*/
 	sl_prolog();
 
@@ -126,46 +141,64 @@ void stack_estimation(void)
 	icontext_dma_write(&ic, 4, &time, buff);
 
 	/* DPNI runtime functions */
-	dpni_drv_register_rx_cb(ni, cb);
-	dpni_drv_unregister_rx_cb(ni);
-	dpni_get_receive_niid();
-	dpni_set_send_niid(ni);
-	dpni_get_send_niid();
-	dpni_drv_get_primary_mac_addr(ni, mac_addr);
-	dpni_drv_set_primary_mac_addr(ni, ((uint8_t []){0x02, 0x00 ,0xc0 ,0x0a8 ,0x0b ,0xfe }));
-	dpni_drv_add_mac_addr(ni, mac_addr);
-	dpni_drv_remove_mac_addr(ni, mac_addr);
-	dpni_drv_set_max_frame_length(ni, mfl);
-	dpni_drv_get_max_frame_length(ni, &mfl);
-	dpni_drv_send(ni);
-	dpni_drv_explicit_send(ni, &fd);
-	dpni_drv_set_multicast_promisc(ni, state);
-	dpni_drv_get_multicast_promisc(ni, &state);
-	dpni_drv_set_unicast_promisc(ni, state);
-	dpni_drv_get_unicast_promisc(ni, &state);
-	dpni_drv_get_spid(ni, &spid);
-	dpni_drv_get_spid_ddr(ni, &spid);
-	/*This function supported in boot mode only*/
-	/*dpni_drv_set_order_scope(ni, &key_cfg);*/
-	dpni_drv_get_rx_buffer_layout(ni, &layout);
-	dpni_drv_set_rx_buffer_layout(ni, &layout);
-	dpni_drv_get_counter(ni, DPNI_DRV_CNT_ING_FRAME ,&ctr_value);
-	dpni_drv_reset_counter(ni, DPNI_DRV_CNT_ING_FRAME);
-	dpni_drv_get_dpni_id(ni, &dpni_id);
-	dpni_drv_get_ni_id(dpni_id, &ni);
-	dpni_drv_get_link_state(ni, &link_state);
-	dpni_drv_clear_mac_filters(ni, 1, 1);
-	dpni_drv_clear_vlan_filters(ni);
-	dpni_drv_set_vlan_filters(ni, 1);
-	dpni_drv_add_vlan_id(ni, (uint16_t)1515);
-	dpni_drv_remove_vlan_id(ni, (uint16_t)1515);
-	dpni_drv_enable(ni);
-	dpni_drv_disable(ni);
-	dpni_drv_set_initial_presentation(ni, &ep_init);
-	dpni_drv_get_initial_presentation(ni, &ep_init);
-	evmng_raise_event(1, 1, (void *) &time);
-	evmng_register(1, 1, 1, (uint64_t)app_process_packet, app_dpni_event_added_cb);
-	evmng_unregister(1, 1, 1, (uint64_t)app_process_packet, app_dpni_event_added_cb);
+	{
+		dpni_drv_register_rx_cb(ni, cb);
+		dpni_drv_unregister_rx_cb(ni);
+		task_get_receive_niid();
+		task_set_send_niid(ni);
+		task_get_send_niid();
+		dpni_drv_get_primary_mac_addr(ni, mac_addr);
+		dpni_drv_set_primary_mac_addr(ni, ((uint8_t []){0x02, 0x00 ,0xc0 ,0x0a8 ,0x0b ,0xfe }));
+		dpni_drv_add_mac_addr(ni, mac_addr);
+		dpni_drv_remove_mac_addr(ni, mac_addr);
+		dpni_drv_set_max_frame_length(ni, mfl);
+		dpni_drv_get_max_frame_length(ni, &mfl);
+		dpni_drv_send(ni);
+		dpni_drv_explicit_send(ni, &fd);
+		dpni_drv_set_multicast_promisc(ni, state);
+		dpni_drv_get_multicast_promisc(ni, &state);
+		dpni_drv_set_unicast_promisc(ni, state);
+		dpni_drv_get_unicast_promisc(ni, &state);
+		dpni_drv_get_spid(ni, &spid);
+		dpni_drv_get_spid_ddr(ni, &spid);
+		/*This function supported in boot mode only*/
+		dpni_drv_set_order_scope(ni, &key_cfg);
+		dpni_drv_get_rx_buffer_layout(ni, &layout);
+		dpni_drv_set_rx_buffer_layout(ni, &layout);
+		dpni_drv_get_counter(ni, DPNI_DRV_CNT_ING_FRAME ,&ctr_value);
+		dpni_drv_reset_counter(ni, DPNI_DRV_CNT_ING_FRAME);
+		dpni_drv_get_dpni_id(ni, &dpni_id);
+		dpni_drv_get_ni_id(dpni_id, &ni);
+		dpni_drv_get_link_state(ni, &link_state);
+		dpni_drv_clear_mac_filters(ni, 1, 1);
+		dpni_drv_clear_vlan_filters(ni);
+		dpni_drv_set_vlan_filters(ni, 1);
+		dpni_drv_add_vlan_id(ni, (uint16_t)1515);
+		dpni_drv_remove_vlan_id(ni, (uint16_t)1515);
+		dpni_drv_enable(ni);
+		dpni_drv_disable(ni);
+		dpni_drv_set_initial_presentation(ni, &ep_init);
+		dpni_drv_get_initial_presentation(ni, &ep_init);
+		dpni_drv_set_tx_checksum(ni, &tx_checksum);
+		dpni_drv_get_tx_checksum(ni, &tx_checksum);
+		dpni_drv_set_rx_tc_policing(ni, tc_id, &tc_pol);
+		dpni_drv_set_tx_selection(ni, &tx_sel);
+		dpni_drv_set_tx_shaping(ni, &tx_shaping);
+		dpni_drv_set_qos_table(ni, &qos_tbl);
+		dpni_drv_add_qos_entry(ni, &qos_rule, tc_id);
+		dpni_drv_remove_qos_entry(ni, &qos_rule);
+		dpni_drv_clear_qos_table(ni);
+		dpni_drv_prepare_rx_tc_early_drop(&early_drop, key_cfg_buf);
+		dpni_drv_set_rx_tc_early_drop(ni, tc_id,(uint64_t) &key_cfg_buf);
+		dpni_drv_prepare_key_cfg(&key_cfg, key_cfg_buf);
+	}
+
+	/* EVMNG runtime functions */
+	{
+		evmng_raise_event(1, 1, (void *) &time);
+		evmng_register(1, 1, 1, (uint64_t)app_process_packet, app_dpni_event_added_cb);
+		evmng_unregister(1, 1, 1, (uint64_t)app_process_packet, app_dpni_event_added_cb);
+	}
 //	void *dev = NULL;
 //	evmng_raise_irq_event_cb(dev,1,64,dev);
 	/* SHBP Shared buffer pool */
@@ -190,17 +223,20 @@ void stack_estimation(void)
 	/* dpci_event_update(0); called only by SL in cmdif open command t
 	 * the stack is not important */
 
-	
+
 	/* RCU does not exists in 1088*/
 	/*
 	rcu_synchronize(NULL, 9);
 	rcu_read_lock();
 	rcu_read_unlock();
-        */
-	
-	/*After packet processing is done, fdma_terminate_task must be called.*/
-	fdma_terminate_task();
+	*/
 
+	/*After packet processing is done, fdma_terminate_task must be called.*/
+#ifdef CHECK_MEM_MNG_STACK
+	void* p = fsl_malloc(64,16);
+	fsl_free(p);
+#endif
+	fdma_terminate_task();
 
 
 }

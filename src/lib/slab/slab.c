@@ -1008,17 +1008,36 @@ __COLD_CODE static int slab_alocate_memory(int num_bpids, struct slab_module_inf
 	int i = 0, j = 0;
 	int err = 0;
 	uint16_t buff_size;
+	uint16_t alignment;
 	uint16_t alignment_extension;
 	/* Set BPIDs */
 	for(i = 0; i < num_bpids; i++)
 	{
+		slab_m->hw_pools[i].flags = (*bpids_arr)->flags;
 		slab_m->hw_pools[i].alignment = (*bpids_arr)->alignment;
-		slab_m->hw_pools[i].flags = 0;
 		slab_m->hw_pools[i].mem_pid = (*bpids_arr)->mem_pid;
 		slab_m->hw_pools[i].buff_size = SLAB_SIZE_SET((*bpids_arr)->size);
 		slab_m->hw_pools[i].total_num_buffs = (*bpids_arr)->num_buffers;
 		slab_m->hw_pools[i].pool_id = (*bpids_arr)->bpid;
 		buff_size = slab_m->hw_pools[i].buff_size;
+		alignment = slab_m->hw_pools[i].alignment;
+
+		if(!(slab_m->hw_pools[i].flags & SLAB_OPTIMIZE_MEM_UTILIZATION_FLAG))
+		{
+			if(alignment < SLAB_MINIMUM_ALIGNMENT_FOR_CACHE_LINE){
+				alignment = SLAB_MINIMUM_ALIGNMENT_FOR_CACHE_LINE;
+			}
+			sl_pr_debug("No memory optimization flag was entered. "
+				"Using alignment of 128 bytes for cache line"
+				"performance\n");
+			/* buff_size can be: 32, 64, 128, 256 ... 32768 */
+			/* Hide info from user about allocating more memory */
+			if(buff_size < SLAB_MINIMUM_ALIGNMENT_FOR_CACHE_LINE){
+				/* buf_size includes the meta data */
+				buff_size = SLAB_MINIMUM_ALIGNMENT_FOR_CACHE_LINE;
+			}
+		}
+
 		for (j = 0; j< SLAB_MAX_BMAN_POOLS_NUM; j++) {
 			/* check if virtual_bman_pools[i] is empty */
 			if (g_slab_bman_pools[j].remaining == -1) {
@@ -1039,9 +1058,9 @@ __COLD_CODE static int slab_alocate_memory(int num_bpids, struct slab_module_inf
 		(*bpids_arr) ++; /*move array pointer after saving the bpid*/
 
 		/*This is to make user data to be align*/
-		if(slab_m->hw_pools[i].alignment > SLAB_HW_META_OFFSET){
-			alignment_extension = slab_m->hw_pools[i].alignment -
-				SLAB_HW_META_OFFSET;
+		/* Must be used if optimization memory flag is not set.*/
+		if(alignment > SLAB_HW_META_OFFSET){
+			alignment_extension = alignment - SLAB_HW_META_OFFSET;
 		}
 		else{
 			alignment_extension = 0;
@@ -1049,7 +1068,7 @@ __COLD_CODE static int slab_alocate_memory(int num_bpids, struct slab_module_inf
 		/*Big malloc allocation for all buffers in bpid*/
 		err = bman_fill_bpid((size_t)slab_m->hw_pools[i].total_num_buffs,
 		                     buff_size,
-		                     slab_m->hw_pools[i].alignment,
+		                     alignment,
 		                     (enum memory_partition_id)slab_m->hw_pools[i].mem_pid,
 		                     slab_m->hw_pools[i].pool_id,
 		                     alignment_extension);
@@ -1124,6 +1143,8 @@ __COLD_CODE static int slab_divide_memory_for_bpids(int available_bpids,
 				(*bpids_arr)->mem_pid = mem_pid;
 				(*bpids_arr)->size = g_slab_early_init_data->mem_pid_buffer_request[mem_pid]->table_info[j].buff_size;
 				(*bpids_arr)->num_buffers = g_slab_early_init_data->mem_pid_buffer_request[mem_pid]->table_info[j].max;
+				/* Caution: the flag may affect other requests in the same bpid */
+				(*bpids_arr)->flags = g_slab_early_init_data->mem_pid_buffer_request[mem_pid]->table_info[j].flags;
 				(*bpids_arr) ++;
 				available_bpids --;
 				if(available_bpids == 1){
@@ -1142,6 +1163,8 @@ __COLD_CODE static int slab_divide_memory_for_bpids(int available_bpids,
 			(*bpids_arr)->mem_pid = mem_pid;
 			(*bpids_arr)->size = g_slab_early_init_data->mem_pid_buffer_request[mem_pid]->table_info[j].buff_size;
 			(*bpids_arr)->num_buffers = g_slab_early_init_data->mem_pid_buffer_request[mem_pid]->table_info[j].max;
+			/* Caution: the flag may affect other requests in the same bpid */
+			(*bpids_arr)->flags = g_slab_early_init_data->mem_pid_buffer_request[mem_pid]->table_info[j].flags;
 			first_found_flag = TRUE;
 			continue;
 		}
@@ -1151,6 +1174,8 @@ __COLD_CODE static int slab_divide_memory_for_bpids(int available_bpids,
 			(*bpids_arr)->num_buffers += g_slab_early_init_data->mem_pid_buffer_request[mem_pid]->table_info[j].max;
 			if((*bpids_arr)->alignment < g_slab_early_init_data->mem_pid_buffer_request[mem_pid]->table_info[j].alignment)
 				(*bpids_arr)->alignment = g_slab_early_init_data->mem_pid_buffer_request[mem_pid]->table_info[j].alignment;
+			/* Caution: the flag may affect other requests in the same bpid */
+			(*bpids_arr)->flags |= g_slab_early_init_data->mem_pid_buffer_request[mem_pid]->table_info[j].flags;
 		}
 	}
 	(*bpids_arr) ++;
@@ -1353,7 +1378,7 @@ __COLD_CODE static int slab_proccess_registered_requests(int *num_bpids, struct 
 		return -ENOMEM;
 
 
-	for(i = 0; i < SLAB_NUM_MEM_PARTITIONS; i++)/*j used as array index*/
+	for(i = 0; i < SLAB_NUM_MEM_PARTITIONS; i++)
 	{
 		if(available_bpids_per_partition[i] > 0)
 		{
@@ -1689,7 +1714,8 @@ __COLD_CODE int slab_register_context_buffer_requirements(
 	g_slab_early_init_data->mem_pid_buffer_request[mem_pid]->table_info[index].max =
 		g_slab_early_init_data->mem_pid_buffer_request[mem_pid]->table_info[index].committed_bufs +
 		g_slab_early_init_data->mem_pid_buffer_request[mem_pid]->table_info[index].extra;
-
+	/* Update flags in case the request was processed with a flag */
+	g_slab_early_init_data->mem_pid_buffer_request[mem_pid]->table_info[index].flags |= flags;
 
 	if(alignment > g_slab_early_init_data->mem_pid_buffer_request[mem_pid]->table_info[index].alignment)
 		g_slab_early_init_data->mem_pid_buffer_request[mem_pid]->table_info[index].alignment = (uint16_t) alignment;

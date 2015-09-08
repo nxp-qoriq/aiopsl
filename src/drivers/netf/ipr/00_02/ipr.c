@@ -202,7 +202,7 @@ int ipr_create_instance(struct ipr_params *ipr_params_ptr,
 		tbl_params.attributes = TABLE_ATTRIBUTE_TYPE_EM | \
 				table_location_attr | \
 				TABLE_ATTRIBUTE_MR_NO_MISS;
-		tbl_params.timestamp_accur = TABLE_TS_ACCURACY_1_TU;
+		tbl_params.timestamp_accuracy = 1;
 		sr_status = table_create(TABLE_ACCEL_ID_CTLU, &tbl_params,
 				&ipr_instance.table_id_ipv4);
 		if (sr_status != TABLE_STATUS_SUCCESS) {
@@ -234,7 +234,7 @@ int ipr_create_instance(struct ipr_params *ipr_params_ptr,
 		tbl_params.attributes = TABLE_ATTRIBUTE_TYPE_EM | \
 				table_location_attr | \
 				TABLE_ATTRIBUTE_MR_NO_MISS;
-		tbl_params.timestamp_accur = TABLE_TS_ACCURACY_1_TU;
+		tbl_params.timestamp_accuracy = 1;
 		sr_status = table_create(TABLE_ACCEL_ID_CTLU, &tbl_params,
 				&ipr_instance.table_id_ipv6);
 		if (sr_status != TABLE_STATUS_SUCCESS) {
@@ -499,7 +499,8 @@ int ipr_reassemble(ipr_instance_handle_t instance_handle)
 
 				fdma_discard_fd_wrp(
 					     (struct ldpaa_fd *)HWC_FD_ADDRESS,
-					     FDMA_DIS_NO_FLAGS);
+					     0,
+					     FDMA_DIS_AS_BIT);
 				/* Early Time out */
 				return ETIMEDOUT;
 			}
@@ -819,7 +820,7 @@ int ipr_lookup(uint32_t frame_is_ipv4, struct ipr_instance *instance_params_ptr,
 				&lookup_result);
 	}
 	/* Next line is relevant only in case of Hit */
-	*rfdc_ext_addr_ptr = lookup_result.opaque0_or_reference;
+	*rfdc_ext_addr_ptr = lookup_result.data0;
 	
 	return sr_status;
 }
@@ -975,7 +976,7 @@ int ipr_miss_handling(struct ipr_instance *instance_params_ptr,
 	rfdc_ptr->last_frag_index		= 0;
 	rfdc_ptr->total_in_order_payload	= 0;
 	//			get_default_amq_attributes(&rfdc.isolation_bits);
-	rfdc_ptr->niid = dpni_get_receive_niid();
+	rfdc_ptr->niid = task_get_receive_niid();
 	
 	/* create Timer in TMAN */
 	
@@ -1800,7 +1801,7 @@ void ipr_time_out(uint64_t rfdc_ext_addr, uint16_t opaque_not_used)
 		ipv6_rule_delete(rfdc_ext_addr,&instance_params);
 	} else {
 		/* IPV4 */
-		table_rule_delete(TABLE_ACCEL_ID_CTLU,
+		table_rule_delete_by_key_desc(TABLE_ACCEL_ID_CTLU,
 				  instance_params.table_id_ipv4,
 				  (union table_key_desc *)&rfdc.ipv4_key,
 				  IPV4_KEY_SIZE,
@@ -1872,8 +1873,8 @@ void ipr_time_out(uint64_t rfdc_ext_addr, uint16_t opaque_not_used)
 			cdma_read((void *) HWC_FD_ADDRESS,
 				  rfdc_ext_addr+START_OF_FDS_LIST+index*32,
 				  FD_SIZE);
-			fdma_discard_fd((struct ldpaa_fd *)HWC_FD_ADDRESS,
-					FDMA_DIS_NO_FLAGS);
+			fdma_discard_fd((struct ldpaa_fd *)HWC_FD_ADDRESS, 0,
+					FDMA_DIS_AS_BIT);
 		}
 		num_of_frags --;
 		index++;

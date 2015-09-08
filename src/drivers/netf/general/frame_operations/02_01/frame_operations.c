@@ -64,6 +64,8 @@ int create_frame(
 	fd->length = 0;
 	fd->offset = 0;
 
+	LDPAA_FD_SET_IVP(fd, 1);	
+	
 	if ((uint32_t)fd == HWC_FD_ADDRESS) {
 		PRC_SET_ASA_SIZE(0);
 		PRC_SET_PTA_ADDRESS(PRC_PTA_NOT_LOADED_ADDRESS);	
@@ -138,6 +140,8 @@ int create_fd(
 	fd->frc = 0;
 	fd->length = 0;
 	fd->offset = 0;
+	
+	LDPAA_FD_SET_IVP(fd, 1);
 
 	if ((uint32_t)fd == HWC_FD_ADDRESS) {
 		PRC_SET_ASA_SIZE(0);
@@ -214,7 +218,7 @@ int create_arp_request(
 
 	/* get local HW address */
 	dpni_drv_get_primary_mac_addr(
-			(uint16_t)dpni_get_receive_niid(), local_hw_addr);
+			(uint16_t)task_get_receive_niid(), local_hw_addr);
 
 	/* set ETH destination address */
 	*((uint32_t *)(&ethhdr[0])) = *((uint32_t *)target_eth);

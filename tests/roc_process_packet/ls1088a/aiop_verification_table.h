@@ -47,82 +47,93 @@ enum table_verif_cmd_type {
 	TABLE_RULE_CREATE_VERIF_CMDTYPE,
 	TABLE_RULE_CREATE_OR_REPLACE_VERIF_CMDTYPE,
 	TABLE_RULE_REPLACE_VERIF_CMDTYPE,
+	TABLE_RULE_MODIFY_PRIORITY_VERIF_CMDTYPE,
+	TABLE_RULE_QUERY_GET_RESULT_VERIF_CMDTYPE,
+	TABLE_RULE_QUERY_GET_KEY_DESC_VERIF_CMDTYPE,
 	TABLE_RULE_DELETE_VERIF_CMDTYPE,
-	TABLE_RULE_QUERY_VERIF_CMDTYPE,
-	TABLE_LOOKUP_BY_KEYID_DEFAULT_FRAME_VERIF_CMDTYPE,
 	TABLE_LOOKUP_BY_KEY_VERIF_CMDTYPE,
-	TABLE_QUERY_DEBUG_VERIF_CMDTYPE,
-	TABLE_HW_ACCEL_ACQUIRE_LOCK_CMDTYPE,
-	TABLE_HW_ACCEL_RELEASE_LOCK_CMDTYPE,
-	TABLE_LOOKUP_BY_KEYID_VERIF_CMDTYPE
+	TABLE_LOOKUP_BY_KEYID_DEFAULT_FRAME_VERIF_CMDTYPE,
+	TABLE_LOOKUP_BY_KEYID_VERIF_CMDTYPE,
+	TABLE_RULE_REPLACE_BY_KEY_DESC_VERIF_CMDTYPE,
+	TABLE_RULE_QUERY_BY_KEY_DESC_VERIF_CMDTYPE,
+	TABLE_RULE_DELETE_BY_KEY_DESC_VERIF_CMDTYPE,
+	TABLE_QUERY_DEBUG_VERIF_CMDTYPE
 };
 
 /* CTLU Commands Structure identifiers */
 
 /** Table Create Command Structure identifier */
-#define TABLE_CREATE_CMD_STR	((TABLE_MODULE << 16) | \
-				  TABLE_CREATE_VERIF_CMDTYPE)
+#define TABLE_CREATE_CMD_STR		((TABLE_MODULE << 16) | \
+					 TABLE_CREATE_VERIF_CMDTYPE)
 
 /** Table Replace Miss Rule Command Structure identifier */
-#define TABLE_REPLACE_MISS_RESULT_CMD_STR	((TABLE_MODULE << 16) | \
-				TABLE_REPLACE_MISS_RESULT_VERIF_CMDTYPE)
+#define TABLE_REPLACE_MISS_RESULT_CMD_STR \
+	((TABLE_MODULE << 16) | TABLE_REPLACE_MISS_RESULT_VERIF_CMDTYPE)
 
 /** Table get params Command Structure identifier */
 #define TABLE_GET_PARAMS_CMD_STR	((TABLE_MODULE << 16) | \
-					TABLE_GET_PARAMS_VERIF_CMDTYPE)
+					 TABLE_GET_PARAMS_VERIF_CMDTYPE)
 
 /** Table get miss result Command Structure identifier */
 #define TABLE_GET_MISS_RESULT_CMD_STR	((TABLE_MODULE << 16) | \
-					TABLE_GET_MISS_RESULT_VERIF_CMDTYPE)
+					 TABLE_GET_MISS_RESULT_VERIF_CMDTYPE)
 
 /** Table delete Command Structure identifier */
-#define TABLE_DELETE_CMD_STR	((TABLE_MODULE << 16) | \
-				  TABLE_DELETE_VERIF_CMDTYPE)
+#define TABLE_DELETE_CMD_STR		((TABLE_MODULE << 16) | \
+					 TABLE_DELETE_VERIF_CMDTYPE)
 
 /** Table rule create Command Structure identifier */
 #define TABLE_RULE_CREATE_CMD_STR	((TABLE_MODULE << 16) | \
-					  TABLE_RULE_CREATE_VERIF_CMDTYPE)
+					 TABLE_RULE_CREATE_VERIF_CMDTYPE)
 
 /** Table rule create or replace Command Structure identifier */
-#define TABLE_RULE_CREATE_OR_REPLACE_CMD_STR	((TABLE_MODULE << 16) | \
-				TABLE_RULE_CREATE_OR_REPLACE_VERIF_CMDTYPE)
+#define TABLE_RULE_CREATE_OR_REPLACE_CMD_STR \
+	((TABLE_MODULE << 16) | TABLE_RULE_CREATE_OR_REPLACE_VERIF_CMDTYPE)
 
 /** Table rule replace Command Structure identifier */
 #define TABLE_RULE_REPLACE_CMD_STR	((TABLE_MODULE << 16) | \
-					TABLE_RULE_REPLACE_VERIF_CMDTYPE)
+					 TABLE_RULE_REPLACE_VERIF_CMDTYPE)
+
+/** Table rule query get result Command Structure identifier */
+#define TABLE_RULE_QUERY_GET_RESULT_CMD_STR \
+	((TABLE_MODULE << 16) | TABLE_RULE_QUERY_GET_RESULT_VERIF_CMDTYPE)
+
+/** Table rule query get key descriptor Command Structure identifier */
+#define TABLE_RULE_QUERY_GET_KEY_DESC_CMD_STR \
+	((TABLE_MODULE << 16) | TABLE_RULE_QUERY_GET_KEY_DESC_VERIF_CMDTYPE)
 
 /** Table rule delete Command Structure identifier */
 #define TABLE_RULE_DELETE_CMD_STR	((TABLE_MODULE << 16) | \
-					TABLE_RULE_DELETE_VERIF_CMDTYPE)
+					 TABLE_RULE_DELETE_VERIF_CMDTYPE)
 
-/** Table rule query Command Structure identifier */
-#define TABLE_RULE_QUERY_CMD_STR	((TABLE_MODULE << 16) | \
-					TABLE_RULE_QUERY_VERIF_CMDTYPE)
+/** Table lookup by explicit key Command Structure identifier */
+#define TABLE_LOOKUP_BY_KEY_CMD_STR \
+	((TABLE_MODULE << 16) | TABLE_LOOKUP_BY_KEY_VERIF_CMDTYPE)
 
-/** Table lookup by keyID and default frame */
+/** Table lookup by keyID and default frame Command Structure identifier */
 #define TABLE_LOOKUP_BY_KEYID_DEFAULT_FRAME_CMD_STR	\
 	((TABLE_MODULE << 16) | \
 	 TABLE_LOOKUP_BY_KEYID_DEFAULT_FRAME_VERIF_CMDTYPE)
 
-/** Table lookup by keyID and default frame */
+/** Table lookup by keyID Command Structure identifier */
 #define TABLE_LOOKUP_BY_KEYID_CMD_STR	((TABLE_MODULE << 16) | \
-					TABLE_LOOKUP_BY_KEYID_VERIF_CMDTYPE)
+					 TABLE_LOOKUP_BY_KEYID_VERIF_CMDTYPE)
 
-/** Table lookup by explicit key */
-#define TABLE_LOOKUP_BY_KEY_CMD_STR		((TABLE_MODULE << 16) | \
-					TABLE_LOOKUP_BY_KEY_VERIF_CMDTYPE)
+/** Table rule replace Command Structure identifier */
+#define TABLE_RULE_REPLACE_BY_KEY_DESC_CMD_STR \
+	((TABLE_MODULE << 16) | TABLE_RULE_REPLACE_BY_KEY_DESC_VERIF_CMDTYPE)
+
+/** Table rule query Command Structure identifier */
+#define TABLE_RULE_QUERY_BY_KEY_DESC_CMD_STR \
+	((TABLE_MODULE << 16) | TABLE_RULE_QUERY_BY_KEY_DESC_VERIF_CMDTYPE)
+
+/** Table rule delete Command Structure identifier */
+#define TABLE_RULE_DELETE_BY_KEY_DESC_CMD_STR \
+	((TABLE_MODULE << 16) | TABLE_RULE_DELETE_BY_KEY_DESC_VERIF_CMDTYPE)
 
 /** Table Query Debug Command Structure identifier */
 #define TABLE_QUERY_DEBUG_CMD_STR	((TABLE_MODULE << 16) | \
 				TABLE_QUERY_DEBUG_VERIF_CMDTYPE)
-
-/** Table Acquire Lock Debug Command Structure identifier */
-#define TABLE_HW_ACCEL_ACQUIRE_LOCK_CMD_STR	((TABLE_MODULE << 16) | \
-				TABLE_HW_ACCEL_ACQUIRE_LOCK_CMDTYPE)
-
-/** Table Release Lock Debug Command Structure identifier */
-#define TABLE_HW_ACCEL_RELEASE_LOCK_CMD_STR	((TABLE_MODULE << 16) | \
-				TABLE_HW_ACCEL_RELEASE_LOCK_CMDTYPE)
 
 /** \addtogroup AIOP_Service_Routines_Verification
  *  @{
@@ -140,8 +151,26 @@ enum table_verif_cmd_type {
 #define TABLE_VERIF_FLAG_NO_FLAGS		0x00000000
 
 /** when set, the verification will pass NULL as a pointer to the verified
- * function instead of old/replaced/deleted result*/
+ * function instead of queried/replaced/deleted result*/
 #define TABLE_VERIF_FLAG_OLD_RESULT_NULL	0x00000001
+
+/** when set, the verification will pass NULL as a pointer to the verified
+ * function instead of queried/replaced/deleted options*/
+#define TABLE_VERIF_FLAG_OLD_OPTIONS_NULL	0x00000003
+
+/** when set, the verification will pass NULL as a pointer to the verified
+ * function instead of queried/replaced/deleted timestamp*/
+#define TABLE_VERIF_FLAG_OLD_TIMESTAMP_NULL	0x00000004
+
+/** When set, the verification wrapper will pass 0xFFFF_FFFF_FFFF_FFFF ruleID
+* to the called function. To be used only with suitable functions.*/
+#define TABLE_VERIF_FLAG_RULE_ID_ALL_ONE 	0x00000002
+
+/** Number of rule_ids to be supported for the verification process */
+#define TABLE_VERIF_RULE_ID_ARRAY_SIZE		32
+
+/** Non-existing rule ID */
+#define TABLE_VERIF_RULE_ID_ALL_ONE		0xFFFFFFFFFFFFFFFF
 
 /** @} */ /* end of AIOP_Table_SRs_Verification_MACROS */
 
@@ -284,8 +313,9 @@ struct table_rule_create_command{
 	/** A pointer to the rule to be added (workspace pointer)*/
 	uint32_t  rule_ptr;
 
-	/** A pointer to the output rule ID*/
-	t_rule_id *rule_id_ptr;
+	/** Index in the rule ID array to be used as an address input for the
+	 table_rule_create rule ID output. */
+	int rule_id_index;
 
 	/** Command returned status */
 	int32_t   status;
@@ -302,10 +332,12 @@ struct table_rule_create_command{
 
 
 /**************************************************************************//**
-@Description	CTLU Table Rule Create or Replace/Replace Command struct.
+@Description	CTLU Table Rule Create or Replace/Replace by key descriptor
+		Command struct.
 
 		Includes information needed for CTLU Table Rule
-		Create or Replace/ Replace command verification.
+		Create or Replace/ Replace by key descriptor command
+		verification.
 *//***************************************************************************/
 struct table_rule_create_replace_command{
 	/** CTLU Table Rule Create identifier */
@@ -314,11 +346,9 @@ struct table_rule_create_replace_command{
 	/* Flags for this operation */
 	uint32_t flags;
 
-	/** A pointer to the output rule ID*/
-	t_rule_id *rule_id_ptr;
-
-	/** Rule's old result - valid only if replace occurred */
-	struct table_result old_res;
+	/** Index in the rule ID array to be used as an address input for the
+	 table_rule_create_or_replace rule ID output. */
+	int rule_id_index;
 
 	/** A pointer to the rule to be added (workspace pointer)*/
 	uint32_t rule_ptr;
@@ -326,11 +356,135 @@ struct table_rule_create_replace_command{
 	/** Command returned status */
 	int32_t  status;
 
+	/** Rule's replaced result - valid only if replace occurred */
+	struct table_result replaced_result;
+
+	/** Rule's replaced options - valid only if replace occurred and
+	 * correct flag was set */
+	uint8_t replaced_options;
+
+	/** Rule's old timstamp */
+	uint32_t timestamp;
+
 	/** Table ID */
 	uint16_t table_id;
 
 	/** Key size */
 	uint8_t key_size;
+
+	/** Table Accelerator ID */
+	enum table_hw_accel_id acc_id;
+};
+
+
+/**************************************************************************//**
+@Description	CTLU Table Rule Replace Command struct.
+
+		Includes information needed for CTLU Table Rule
+		Create or Replace/ Replace command verification.
+*//***************************************************************************/
+struct table_rule_replace_command{
+	/** CTLU Table Rule Create identifier */
+	uint32_t opcode;
+
+	/* Flags for this operation */
+	uint32_t flags;
+
+	/** Index in the rule ID array to be used as an address input for the
+	 table_rule_create_or_replace rule ID output. */
+	int rule_id_index;
+
+	/** Rule's new result */
+	struct table_result new_result;
+
+	/** Rule's new options */
+	uint8_t new_options;
+
+	/** Rule's replaced result - valid only if replace occurred */
+	struct table_result replaced_result;
+
+	/** Rule's replaced options - valid only if replace occurred and
+	 * correct flag was set */
+	uint8_t replaced_options;
+
+	/** Rule's old timstamp */
+	uint32_t timestamp;
+
+	/** Command returned status */
+	int32_t  status;
+
+	/** Table ID */
+	uint16_t table_id;
+
+	/** Table Accelerator ID */
+	enum table_hw_accel_id acc_id;
+};
+
+
+/**************************************************************************//**
+@Description	CTLU Table Rule Query Get result Command structure.
+
+		Includes information needed for CTLU Table Rule Query Get
+		Result command verification.
+*//***************************************************************************/
+struct table_rule_query_get_result_command{
+	/** CTLU Table Rule Delete identifier */
+	uint32_t opcode;
+
+	/** Index in the rule ID array of the rule ID to be used as an input for
+	 this command */
+	int rule_id_index;
+
+	/* Flags for this operation */
+	uint32_t flags;
+
+	/** Rule's queried result - valid only if query successful and
+	 * correct flag was set */
+	struct table_result queried_result;
+
+	/** Rule's queried options - valid only if query successful and
+	 * correct flag was set */
+	uint8_t queried_options;
+
+	/** Rule's current timstamp */
+	uint32_t timestamp;
+
+	/** Command returned status */
+	int status;
+
+	/** Table ID */
+	uint16_t table_id;
+
+	/** Table Accelerator ID */
+	enum table_hw_accel_id acc_id;
+};
+
+
+/**************************************************************************//**
+@Description	CTLU Table Rule Query Get Key Descriptor Command structure.
+
+		Includes information needed for CTLU Table Rule Query Get
+		Key Descriptor command verification.
+*//***************************************************************************/
+struct table_rule_query_get_key_desc_command{
+	/** CTLU Table Rule Delete identifier */
+	uint32_t opcode;
+
+	/** Index in the rule ID array of the rule ID to be used as an input for
+	 this command */
+	int rule_id_index;
+
+	/* Flags for this operation */
+	uint32_t flags;
+
+	/** Command returned status */
+	int status;
+
+	/* MFLU Key descriptor */
+	union table_key_desc key_desc;
+
+	/** Table ID */
+	uint16_t table_id;
 
 	/** Table Accelerator ID */
 	enum table_hw_accel_id acc_id;
@@ -347,60 +501,35 @@ struct table_rule_delete_command{
 	/** CTLU Table Rule Delete identifier */
 	uint32_t opcode;
 
+	/** Index in the rule ID array of the rule ID to be used as an input for
+	 this command */
+	int rule_id_index;
+
 	/* Flags for this operation */
 	uint32_t flags;
 
-	/** Rule's old result */
-	struct table_result old_res;
+	/** Rule's deleted result - valid only if delete occurred and
+	 * correct flag was set */
+	struct table_result deleted_result;
 
-	/** Input Key Descriptor pointer to the workspace */
-	uint32_t key_desc_ptr;
+	/** Rule's deleted options - valid only if delete occurred and
+	 * correct flag was set */
+	uint8_t deleted_options;
 
-	/** Command returned status */
-	int32_t  status;
-
-	/** Table ID */
-	uint16_t table_id;
-
-	/** Input key size*/
-	uint8_t key_size;
-
-	/** Table Accelerator ID */
-	enum table_hw_accel_id acc_id;
-};
-
-
-/**************************************************************************//**
-@Description	CTLU Table Rule Query Command structure.
-
-		Includes information needed for CTLU Table Rule Query
-		command verification.
-*//***************************************************************************/
-struct table_rule_query_command{
-	/** CTLU Table Rule Delete identifier */
-	uint32_t opcode;
-
-	/** The structure returned to the caller upon a successful Query */
-	struct table_result result;
-
-	/** Input Key Descriptor pointer to the workspace */
-	uint32_t key_desc_ptr;
-
-	/** Command returned status */
-	int32_t  status;
-
-	/* Timestamp of the matched rule*/
+	/** Rule's old timstamp */
 	uint32_t timestamp;
+	
+	/** Command returned status */
+	int32_t  status;
 
 	/** Table ID */
 	uint16_t table_id;
 
-	/** Input key size*/
-	uint8_t key_size;
 
 	/** Table Accelerator ID */
 	enum table_hw_accel_id acc_id;
 };
+
 
 /**************************************************************************//**
 @Description	CTLU Table Lookup by Explicit Key Command structure.
@@ -492,6 +621,71 @@ struct table_lookup_by_keyid_command{
 
 
 /**************************************************************************//**
+@Description	CTLU Table Rule Query by Key Descriptor Command structure.
+
+		Includes information needed for CTLU Table Rule Query
+		by Key Descriptor command verification.
+*//***************************************************************************/
+struct table_rule_query_by_key_desc_command{
+	/** CTLU Table Rule Delete identifier */
+	uint32_t opcode;
+
+	/** The structure returned to the caller upon a successful Query */
+	struct table_result result;
+
+	/** Input Key Descriptor pointer to the workspace */
+	uint32_t key_desc_ptr;
+
+	/** Command returned status */
+	int32_t  status;
+
+	/* Timestamp of the matched rule*/
+	uint32_t timestamp;
+
+	/** Table ID */
+	uint16_t table_id;
+
+	/** Input key size*/
+	uint8_t key_size;
+
+	/** Table Accelerator ID */
+	enum table_hw_accel_id acc_id;
+};
+
+/**************************************************************************//**
+@Description	CTLU Table Rule Delete Command structure.
+
+		Includes information needed for CTLU Table Rule Delete
+		command verification.
+*//***************************************************************************/
+struct table_rule_delete_by_key_desc_command{
+	/** CTLU Table Rule Delete identifier */
+	uint32_t opcode;
+
+	/* Flags for this operation */
+	uint32_t flags;
+
+	/** Rule's old result */
+	struct table_result old_res;
+
+	/** Input Key Descriptor pointer to the workspace */
+	uint32_t key_desc_ptr;
+
+	/** Command returned status */
+	int32_t  status;
+
+	/** Table ID */
+	uint16_t table_id;
+
+	/** Input key size*/
+	uint8_t key_size;
+
+	/** Table Accelerator ID */
+	enum table_hw_accel_id acc_id;
+};
+
+
+/**************************************************************************//**
 @Description	Table Query Debug Command structure.
 
 		Includes information needed for Table Query Debug command 
@@ -510,36 +704,6 @@ struct table_query_debug_command{
 
 	/** Table ID */
 	uint16_t table_id;
-
-	/** Table Accelerator ID */
-	enum table_hw_accel_id acc_id;
-};
-
-
-/**************************************************************************//**
-@Description	Table HW Accelerator Acquire Lock Command structure.
-*//***************************************************************************/
-struct table_hw_accel_acquire_lock_command{
-	/** CTLU Generate Hash identifier */
-	uint32_t opcode;
-
-	/** Command returned status */
-	int32_t  status;
-
-	/** Table Accelerator ID */
-	enum table_hw_accel_id acc_id;
-};
-
-
-/**************************************************************************//**
-@Description	Table HW Accelerator Release Lock Command structure.
-*//***************************************************************************/
-struct table_hw_accel_release_lock_command{
-	/** CTLU Generate Hash identifier */
-	uint32_t opcode;
-
-	/** Command returned status */
-	int32_t  status;
 
 	/** Table Accelerator ID */
 	enum table_hw_accel_id acc_id;

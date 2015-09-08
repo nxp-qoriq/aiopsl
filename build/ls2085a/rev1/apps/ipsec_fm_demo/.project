@@ -24,7 +24,7 @@ aiop_sl		</project>
 				</dictionary>
 				<dictionary>
 					<key>org.eclipse.cdt.make.core.buildArguments</key>
-					<value>-j8</value>
+					<value></value>
 				</dictionary>
 				<dictionary>
 					<key>org.eclipse.cdt.make.core.buildCommand</key>
@@ -119,7 +119,7 @@ aiop_sl		</project>
 		<link>
 			<name>src/ipsec_fm_demo.c</name>
 			<type>1</type>
-			<locationURI>PARENT-5-PROJECT_LOC/apps/ipsec_fm_demo/ipsec_fm_demo.c</locationURI>
+			<locationURI>PARENT-5-PROJECT_LOC/apps/ipsec_fm_demo/ls2085a/ipsec_fm_demo.c</locationURI>
 		</link>
 	</linkedResources>
 </projectDescription>
