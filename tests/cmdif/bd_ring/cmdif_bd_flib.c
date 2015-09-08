@@ -43,14 +43,17 @@
 #define CMDIF_BD_SIZE (sizeof(struct cmdif_bd))
 
 #define CMDIF_BD_WRITE(BASE_ADDR, IND, BD) \
-	*((struct cmdif_bd *)(BASE_ADDR + CMDIF_BD_SIZE * (IND))) = *(BD)
+do { \
+	*bd_ptr = (struct cmdif_bd *)(BASE_ADDR + CMDIF_BD_SIZE * (IND));\
+	**bd_ptr = *(BD); \
+}while(0)
 
 #define CMDIF_BD_READ(BASE_ADDR, IND, BD) \
 	*(BD) = *((struct cmdif_bd *)(BASE_ADDR + CMDIF_BD_SIZE * (IND)))
 
 #define CMDIF_M_NAME_CHARS	16	/*!< Including null terminator */
 
-int cmdif_flib_send(struct cmdif_bd_ring *bd_ring, const struct cmdif_bd *bd) 
+int cmdif_flib_send(struct cmdif_bd_ring *bd_ring, const struct cmdif_bd *bd, struct cmdif_bd **bd_ptr) 
 {
 	uint32_t enq;
 	uint32_t deq;
@@ -115,12 +118,18 @@ int cmdif_flib_open_bd(void *handle, const char *m_name,
 	bd->cmd_data[CMDIF_M_NAME_CHARS - 1] = '\0';
 	bd->session_id = CMDIF_OPEN_SESSION;
 	memcpy(&bd->cmd_data[CMDIF_M_NAME_CHARS], &handle, sizeof(handle));
+	bd->cmdi_id = CMDIF_CMD_OPEN;
 
 	return 0;
 }
 
-int cmdif_flib_open_done(struct cmdif_bd_ring *bd_ring, uint16_t *session_id)
+int cmdif_flib_open_done(struct cmdif_bd *bd_in_ring, uint16_t *session_id)
 {
-	*session_id = 0;
+	if (bd_in_ring->cmdi_id != CMDIF_CMD_OPEN)
+		return -EINVAL;
+	if (!bd_in_ring->sync_done)
+		return -EBUSY;
+
+	*session_id = bd_in_ring->session_id;
 	return 0;
 }
