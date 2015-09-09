@@ -49,6 +49,7 @@
 #include "fsl_sl_evmng.h"
 #include "fsl_dprc.h"
 #include "fsl_string.h"
+#include "system.h"
 
 #ifndef CMDIF_TEST_WITH_MC_SRV
 #warning "If you test with MC define CMDIF_TEST_WITH_MC_SRV inside cmdif.h\n"
@@ -88,6 +89,8 @@ extern int32_t dpci_add_ev_count;
 extern int32_t dpci_rm_ev_count;
 extern int32_t dpci_up_ev_count;
 extern int32_t dpci_down_ev_count;
+extern __PROFILE_SRAM struct storage_profile 
+			storage_profile[SP_NUM_OF_STORAGE_PROFILES];
 
 #if 0
 static void rcu_sync_cb(uint64_t param)
@@ -640,6 +643,9 @@ static int ctrl_cb0(void *dev, uint16_t cmd, uint32_t size,
 		icontext_ws_set(&ic);
 		get_default_amq_attributes(&amq);
 		ASSERT_COND(ic.icid == amq.icid);
+
+		fsl_print("Storage profile dump\n");
+		mem_disp((uint8_t *)&storage_profile[0], sizeof(storage_profile));
 
 		break;
 	default:
