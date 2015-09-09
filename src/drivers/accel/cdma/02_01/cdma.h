@@ -82,13 +82,13 @@
 #define CDMA_WRITE_REL_LOCK_AND_DEC_CMD_FLAGS  0x00000700
 /** CDMA_ACCESS_CONTEXT_MEM_FLAGS[ERT,ERR,OFFSET,AA,MO,TL,MT,UR,RM]=
  * [1,0,00000000000000,0,0,0,00,00,0] */
-#define CDMA_TAKE_CMD_FLAGS  0x80000000
+#define CDMA_EPHEMERAL_REF_TAKE_CMD_FLAGS  0x80000000
 /** CDMA_ACCESS_CONTEXT_MEM_FLAGS[ERT,ERR,OFFSET,AA,MO,TL,MT,UR,RM]=
  * [0,1,00000000000000,0,0,0,00,00,0] */
-#define CDMA_RELEASE_ALL_CMD_FLAGS  0x40000000
+#define CDMA_EPHEMERAL_REF_RELEASE_ALL_CMD_FLAGS  0x40000000
 /** CDMA_ACCESS_CONTEXT_MEM_FLAGS[ERT,ERR,OFFSET,AA,MO,TL,MT,UR,RM]=
  * [0,0,00000000000000,0,0,0,11,00,0] */
-#define CDMA_SYNC_CMD_FLAGS  0x00000018
+#define CDMA_EPHEMERAL_REF_SYNC_CMD_FLAGS  0x00000018
 
 
 /* CDMA Command Arguments */
@@ -142,12 +142,12 @@
 	((_ext_offset << 16) | _flags | CDMA_ACCESS_CONTEXT_MEM_CMD);
 #define CDMA_ACCESS_CONTEXT_MEM_CMD_ARG2(_dma_param, _ws_address) \
 	(uint32_t)((_dma_param << 16) | (_ws_address & 0x0000FFFF))
-#define CDMA_TAKE_CMD_ARG1()	\
-	(CDMA_TAKE_CMD_FLAGS | CDMA_ACCESS_CONTEXT_MEM_CMD);
-#define CDMA_RELEASE_ALL_CMD_ARG1()	\
-	(CDMA_RELEASE_ALL_CMD_FLAGS | CDMA_ACCESS_CONTEXT_MEM_CMD);
-#define CDMA_SYNC_CMD_ARG1()	\
-	(CDMA_SYNC_CMD_FLAGS | CDMA_ACCESS_CONTEXT_MEM_CMD);
+#define CDMA_EPHEMERAL_REF_TAKE_CMD_ARG1()	\
+	(CDMA_EPHEMERAL_REF_TAKE_CMD_FLAGS | CDMA_ACCESS_CONTEXT_MEM_CMD);
+#define CDMA_EPHEMERAL_REF_RELEASE_ALL_CMD_ARG1()	\
+	(CDMA_EPHEMERAL_REF_RELEASE_ALL_CMD_FLAGS | CDMA_ACCESS_CONTEXT_MEM_CMD);
+#define CDMA_EPHEMERAL_REF_SYNC_CMD_ARG1()	\
+	(CDMA_EPHEMERAL_REF_SYNC_CMD_FLAGS | CDMA_ACCESS_CONTEXT_MEM_CMD);
 
 /* CDMA CFG register bits */
 #define CDMA_BDI_BIT		0x00080000
@@ -231,9 +231,9 @@ enum cdma_function_identifier {
 	CDMA_REFCOUNT_DECREMENT,
 	CDMA_WRITE_LOCK_DMA_READ_AND_INCREMENT,
 	CDMA_WRITE_RELEASE_LOCK_AND_DECREMENT,
-	CDMA_TAKE,
-	CDMA_RELEASE_ALL,
-	CDMA_SYNC,
+	CDMA_EPHEMERAL_REFERENCE_TAKE,
+	CDMA_EPHEMERAL_REFERENCE_RELEASE_ALL,
+	CDMA_EPHEMERAL_REFERENCE_SYNC,
 	CDMA_ACCESS_CONTEXT_MEMORY
 };
 
@@ -561,7 +561,7 @@ int cdma_write_release_lock_and_decrement(
 
 
 /**************************************************************************//**
-@Function	cdma_take
+@Function	cdma_ephemeral_reference_take
 
 @Description	This routine is used to indicate that the task use one or more
 		resource(s) (but does NOT indicate the specific reference) and can be
@@ -574,11 +574,11 @@ int cdma_write_release_lock_and_decrement(
 @Cautions	This function may result in a fatal error.
 
 *//***************************************************************************/
-inline void cdma_take();
+inline void cdma_ephemeral_reference_take();
 
 
 /**************************************************************************//**
-@Function	cdma_release_all
+@Function	cdma_ephemeral_reference_release_all
 
 @Description	This routine is used to indicate that the task no longer
 		intends to use ANY resource that was declared by rcu_read_unlock().
@@ -591,11 +591,11 @@ inline void cdma_take();
 @Cautions	This function may result in a fatal error.	
 
 *//***************************************************************************/
-inline void cdma_release_all();
+inline void cdma_ephemeral_reference_release_all();
 
 
 /**************************************************************************//**
-@Function	cdma_synchronize
+@Function	cdma_ephemeral_reference_sync
 
 @Description	This routine is used to ensure that a task can safely
 		de-allocate its resource(s). The de-allocate must not start until
@@ -615,7 +615,7 @@ inline void cdma_release_all();
 @Cautions	This function may result in a fatal error.
 
 *//***************************************************************************/
-inline void cdma_synchronize();
+inline void cdma_ephemeral_reference_sync();
 
 
 /*************************************************************************//**
