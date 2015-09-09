@@ -124,7 +124,7 @@ void doorbell_clear(int pr, enum doorbell_reg g_m, uint32_t mask)
 
 void doorbell_status(int pr, enum doorbell_reg g_m, uint32_t *status)
 {
-	*status = ioread32_ccsr(&reg->clear_g_m[g_m].pr[pr].dpclrr);
+	*status = ioread32_ccsr(&pm_reg->req_g_m[g_m].pr[pr].dprr);
 }
 
 void doorbell_ring(int pr, enum doorbell_reg g_m, uint32_t mask)
