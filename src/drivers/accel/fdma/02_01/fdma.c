@@ -912,14 +912,7 @@ int fdma_split_frame(
 	int8_t  res1;
 
 	/* prepare command parameters */
-#ifdef REV2
-	if (((uint32_t)params->fd_dst) == HWC_FD_ADDRESS)
-		arg1 = FDMA_SPLIT_CMD_ARG1(*((uint8_t *)HWC_SPID_ADDRESS),
-				params->source_frame_handle, params->flags);
-	else
-		arg1 = FDMA_SPLIT_CMD_ARG1(params->spid,
-				params->source_frame_handle, params->flags);
-#endif /* REV2 */
+
 	arg1 = FDMA_SPLIT_CMD_ARG1(params->spid,
 				params->source_frame_handle, params->flags);
 
@@ -1672,10 +1665,11 @@ void fdma_exception_handler(enum fdma_function_identifier func_id,
 				"larger than frame size.\n";
 		break;
 	case FDMA_FRAME_STORE_ERR:
-		err_msg ="Frame Store failed from one of the following reasons:"
+		err_msg ="Frame Store failed due to one of the following "
+				"reasons:\n"
 				"- single buffer frame full and Storage Profile"
 				" FF is set to 10.\n "
-				"- storage profile fields mismatch "
+				"- storage profile fields mismatch: "
 				"(offset (ASAR+PTAR+SGHR/DHR) > buffer size, or"
 				"ASAL > ASAR, or PTA > PTAR, or PTA != PTAR)\n";
 		break;
@@ -1749,8 +1743,8 @@ void fdma_exception_handler(enum fdma_function_identifier func_id,
 		err_msg = "FDMA Internal error, SRU depletion.\n";
 		break;
 	case FDMA_SPID_ICID_ERR:
-		err_msg = "Storage Profile ICID does not match frame ICID "
-				"Error.\n";
+		err_msg = "Storage Profile ICID/VA does not match frame "
+				"ICID/VA Error.\n";
 		break;
 	case FDMA_SRAM_MEMORY_READ_ERR:
 		err_msg = "Shared SRAM memory read Error.\n";
@@ -1763,6 +1757,9 @@ void fdma_exception_handler(enum fdma_function_identifier func_id,
 		break;	
 	case FDMA_INVALID_PTA_ADDRESS:
 		err_msg = "Invalid PTA address Error.\n";
+		break;
+	case FDMA_SHARED_SRAM_MEMORY_WRITE_ERROR:
+		err_msg = "Shared SRAM memory write Error.\n";
 		break;
 	default:
 		err_msg = "Unknown or Invalid status Error.\n";

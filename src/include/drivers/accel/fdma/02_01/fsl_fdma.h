@@ -134,11 +134,10 @@ enum fdma_split_psa_options {
 	FDMA_SPLIT_PSA_NO_PRESENT_BIT =	0x00000000,
 		/** Present segment from the split frame,
 		 * keep split working frame open. */
-	FDMA_SPLIT_PSA_PRESENT_BIT =	0x00000400
-#ifdef REV2
-		/** Do not present, store and close split working frame. */
+	FDMA_SPLIT_PSA_PRESENT_BIT =	0x00000400,
+		/** Do not present, close split working frame using the provided
+		 * storage profile, update split FD. */
 	FDMA_SPLIT_PSA_CLOSE_FRAME_BIT = 0x00000800
-#endif /* REV2 */
 };
 
 /* @} end of enum fdma_split_psa_options */
@@ -158,14 +157,12 @@ enum fdma_enqueue_tc_options {
 		 * frame will be discarded. If a frame structural error is found
 		 * with the frame to be discarded, the frame is not discarded 
 		 * and the command returns with an error code. */
-	FDMA_EN_TC_TERM_BITS = 0x0400
-#ifdef REV2
+	FDMA_EN_TC_TERM_BITS = 0x0400,
 		/** Conditional Terminate : trigger the Terminate task command
 		 * only if the enqueue succeeded. If the enqueue failed, the
 		 * frame handle is not released and the command returns with an
 		 * error code.	*/
-	FDMA_EN_TC_CONDTERM_BITS =	0x0800
-#endif /* REV2 */
+	FDMA_EN_TC_CONDTERM_BITS = 0x0800
 };
 
 /* @} end of enum fdma_enqueue_tc_options */
@@ -331,8 +328,8 @@ enum fdma_pta_size_type {
 	/** Enqueue Priority source.
 	 * Relevant for Queuing Destination Selection.
 	 * If set - use QD_PRI from h/w context (this is the value found in the
-	 * WQID field from ADC). Otherwise - use QD_PRI provided with DMA
-	 * Command. */
+	 * WQID field from the Additional Dequeue Context). 
+	 * Otherwise - use QD_PRI provided with DMA Command. */
 #define FDMA_ENWF_PS_BIT	0x00001000
 	/** Enqueue Relinquish option:
 	 * Relevant for Queuing Destination Selection.
@@ -359,8 +356,8 @@ enum fdma_pta_size_type {
 	/** Enqueue Priority source.
 	 * Relevant for Queuing Destination Selection.
 	 * If set - use QD_PRI from h/w context (this is the value found in the
-	 * WQID field from ADC). Otherwise - use QD_PRI provided with DMA
-	 * Command. */
+	 * WQID field from the Additional Dequeue Context). 
+	 * Otherwise - use QD_PRI provided with DMA Command. */
 #define FDMA_ENF_PS_BIT		0x00001000
 	/** Bypass DPAA resource Isolation.
 	 * If set - Isolation is not enabled for this command (the FQID ID
@@ -445,7 +442,6 @@ enum fdma_pta_size_type {
 
 	/** Default command configuration. */
 #define FDMA_REPLIC_NO_FLAGS	0x00000000
-#ifdef REV2
 	/** Enqueue the replicated frame to the provided Queueing Destination.
 	 * Release destination frame handle is implicit when enqueueing.
 	 * If set - replicate and enqueue. Otherwise - replicate only. */
@@ -457,10 +453,10 @@ enum fdma_pta_size_type {
 #define FDMA_REPLIC_DSF_BIT	0x00000800
 	/** Enqueue Priority source.
 	 * Relevant for Queuing Destination Selection.
-	 * If set - use QD_PRI from h/w context.
+	 * If set - use QD_PRI from h/w context (this is the value found in the
+	 * WQID field from the Additional Dequeue Context).
 	 * Otherwise - use QD_PRI provided with DMA Command. */
 #define FDMA_REPLIC_PS_BIT	0x00001000
-#endif /* REV2 */
 	/** AIOP FDMA copy frame annotations options. Only one option may be
 	 * choose from \ref fdma_cfa_options. */
 #define FDMA_REPLICATE_CFA	fdma_cfa_options
@@ -809,7 +805,10 @@ struct fdma_split_frame_params {
 		/** \link FDMA_Split_Flags split frames flags
 		 * \endlink */
 	uint32_t flags;
-		/** A pointer to the location in workspace for the split FD. */
+		/** A pointer to the location in workspace for the split FD.
+		 * The FD is updated (in place). Most of the FD is cloned from 
+		 * the source FD. The ADDR, LENGTH, MEM, BPID, IVP, BMT, OFFSET,
+		 * FMT, SL, ASAL, PTA, PTV1, PTV2 are not updated. */
 	struct ldpaa_fd *fd_dst;
 		/** A pointer to the location in workspace for the presented
 		 * split frame segment. */
@@ -831,7 +830,11 @@ struct fdma_split_frame_params {
 		/** The handle of the source working frame. */
 	uint8_t  source_frame_handle;
 		/** Returned parameter:
-		 * A pointer to the handle of the split working frame. */
+		 * A pointer to the handle of the split working frame. 
+		 * Only valid when \ref FDMA_SPLIT_PSA flag is 
+		 * \ref FDMA_SPLIT_PSA_NO_PRESENT_BIT or
+		 * \ref FDMA_SPLIT_PSA_PRESENT_BIT, or
+		 * \ref FDMA_SPLIT_PSA_CLOSE_FRAME_BIT with a store error */
 	uint8_t  split_frame_handle;
 		/** Returned parameter:
 		 * A pointer to the handle of the presented segment (in the
@@ -1438,6 +1441,9 @@ int fdma_store_frame_data(
 		will be closed and the segment handles will be implicitly
 		released.
 @remark		Release frame handle is implicit in this function.
+@remark		If a fatal error is detected prior to the enqueue, the enqueue 
+		is not performed, the command returns with the error code and 
+		the FD is still in workspace.
 
 @Cautions	Function may not return.
 @Cautions	All modified segments (which are to be stored) must be
@@ -1488,6 +1494,9 @@ int fdma_store_and_enqueue_default_frame_fqid(
 		will be closed and the segment handles will be implicitly
 		released.
 @remark		Release frame handle is implicit in this function.
+@remark		If a fatal error is detected prior to the enqueue, the enqueue 
+		is not performed, the command returns with the error code and 
+		the FD is still in workspace.
 
 @Cautions	Function may not return.
 @Cautions	All modified segments (which are to be stored) must be
@@ -1542,6 +1551,9 @@ int fdma_store_and_enqueue_frame_fqid(
 		will be closed and the segment handles will be implicitly
 		released.
 @remark		Release frame handle is implicit in this function.
+@remark		If a fatal error is detected prior to the enqueue, the enqueue 
+		is not performed, the command returns with the error code and 
+		the FD is still in workspace.
 
 @Cautions	Function may not return.
 @Cautions	All modified segments (which are to be stored) must be
@@ -1596,6 +1608,9 @@ inline int fdma_store_and_enqueue_default_frame_qd(
 		will be closed and the segment handles will be implicitly
 		released.
 @remark		Release frame handle is implicit in this function.
+@remark		If a fatal error is detected prior to the enqueue, the enqueue 
+		is not performed, the command returns with the error code and 
+		the FD is still in workspace.
 
 @Cautions	Function may not return.
 @Cautions	All modified segments (which are to be stored) must be
@@ -1627,6 +1642,10 @@ int fdma_store_and_enqueue_frame_qd(
 
 
 @Return		0 on Success, or negative value on error.
+
+@remark		If a fatal error is detected prior to the enqueue, the enqueue 
+		is not performed, the command returns with the error code and 
+		the FD is still in workspace.
 
 @Retval		0 - Success.
 @Retval		EBUSY - Enqueue failed due to congestion in QMAN.
@@ -1662,6 +1681,10 @@ int fdma_enqueue_default_fd_fqid(
 @Retval		0 - Success.
 @Retval		EBUSY - Enqueue failed due to congestion in QMAN.
 
+@remark		If a fatal error is detected prior to the enqueue, the enqueue 
+		is not performed, the command returns with the error code and 
+		the FD is still in workspace.
+
 @Cautions	The frame associated with the FD must not be presented (closed).
 @Cautions	Function may not return.
 @Cautions	This function may result in a fatal error.
@@ -1695,6 +1718,10 @@ int fdma_enqueue_fd_fqid(
 @Retval		0 - Success.
 @Retval		EBUSY - Enqueue failed due to congestion in QMAN.
 
+@remark		If a fatal error is detected prior to the enqueue, the enqueue 
+		is not performed, the command returns with the error code and 
+		the FD is still in workspace.
+
 @Cautions	The frame associated with the FD must not be presented (closed).
 @Cautions	Function may not return.
 @Cautions	This function may result in a fatal error.
@@ -1726,6 +1753,10 @@ int fdma_enqueue_default_fd_qd(
 
 @Retval		0 - Success.
 @Retval		EBUSY - Enqueue failed due to congestion in QMAN.
+
+@remark		If a fatal error is detected prior to the enqueue, the enqueue 
+		is not performed, the command returns with the error code and 
+		the FD is still in workspace.
 
 @Cautions	The frame associated with the FD must not be presented (closed).
 @Cautions	Function may not return.
@@ -1896,13 +1927,17 @@ inline void fdma_terminate_task(void);
 @Param[in]	flags - \link FDMA_Replicate_Flags replicate working frame
 		flags \endlink.
 @Param[out]	frame_handle2 - Handle of the replicated frame (when no enqueue
-		selected).
+		selected or enqueue selected and store failed).
 
 @Return		0 on Success, or negative value on error.
 
 @Retval		0 - Success.
 @Retval		EBUSY - Enqueue failed due to congestion in QMAN.
 @Retval		ENOMEM - Failed due to buffer pool depletion.
+
+@remark		If a fatal error is detected prior to the enqueue, the enqueue 
+		is not performed, the command returns with the error code and 
+		the FD is still in workspace.
 
 @Cautions	This function may result in a fatal error.
 @Cautions	In this Service Routine the task yields.
@@ -1956,6 +1991,10 @@ int fdma_replicate_frame_fqid(
 @Retval		EBUSY - Enqueue failed due to congestion in QMAN.
 @Retval		ENOMEM - Failed due to buffer pool depletion.
 
+@remark		If a fatal error is detected prior to the enqueue, the enqueue 
+		is not performed, the command returns with the error code and 
+		the FD is still in workspace.
+
 @Cautions	This function may result in a fatal error.
 @Cautions	In this Service Routine the task yields.
 *//***************************************************************************/
@@ -1993,7 +2032,8 @@ int fdma_replicate_frame_qd(
 
 @Retval		0 - Success.
 @Retval		ENOMEM - Failed due to buffer pool depletion (relevant only if
-		\ref FDMA_CONCAT_PCA_BIT flag is set).
+		\ref FDMA_CONCAT_PCA_BIT flag is set). In this case the 
+		concatenated frame handle remains valid.
 
 @remark		Frame annotation of the first frame becomes the frame annotation
 		of the concatenated frame.

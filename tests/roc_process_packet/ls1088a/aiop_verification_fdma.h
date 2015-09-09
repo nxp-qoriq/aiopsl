@@ -668,6 +668,10 @@ struct fdma_enqueue_wf_command {
 		* - 1: Terminate: this command will trigger the Terminate task
 		* command right after the enqueue. If the enqueue failed, the
 		* frame will be discarded.
+		* - 2: Conditional Terminate : trigger the Terminate task 
+		* command only if the enqueue succeeded. If the enqueue failed,
+		* the frame handle is not released and the command returns with
+		* an error code.
 		* - 3: reserved */
 	uint8_t	TC;
 		/** Enqueue ID selection:
@@ -724,6 +728,10 @@ struct fdma_enqueue_wf_exp_command {
 		* - 1: Terminate: this command will trigger the Terminate task
 		* command right after the enqueue. If the enqueue failed, the
 		* frame will be discarded.
+		* - 2: Conditional Terminate : trigger the Terminate task 
+		* command only if the enqueue succeeded. If the enqueue failed,
+		* the frame handle is not released and the command returns with
+		* an error code.
 		* - 3: reserved */
 	uint8_t	TC;
 		/** Enqueue ID selection:
@@ -777,10 +785,10 @@ struct fdma_enqueue_frame_command {
 		* - 1: Terminate: this command will trigger the Terminate task
 		* command right after the enqueue. If the enqueue failed, the
 		* frame will be discarded.
-		* - 2: Conditional Terminate: trigger the Terminate task
-		* command only if the enqueue succeeded. If the enqueue
-		* failed, the frame handle is not released and the command
-		* returns with an error code.
+		* - 2: Conditional Terminate : trigger the Terminate task 
+		* command only if the enqueue succeeded. If the enqueue failed,
+		* the frame handle is not released and the command returns with
+		* an error code.
 		* - 3: reserved */
 	uint8_t	TC;
 		/** Enqueue ID selection:
@@ -847,10 +855,10 @@ struct fdma_enqueue_frame_exp_command {
 		* - 1: Terminate: this command will trigger the Terminate task
 		* command right after the enqueue. If the enqueue failed, the
 		* frame will be discarded.
-		* - 2: Conditional Terminate: trigger the Terminate task
-		* command only if the enqueue succeeded. If the enqueue
-		* failed, the frame handle is not released and the command
-		* returns with an error code.
+		* - 2: Conditional Terminate : trigger the Terminate task 
+		* command only if the enqueue succeeded. If the enqueue failed,
+		* the frame handle is not released and the command returns with
+		* an error code.
 		* - 3: reserved */
 	uint8_t	TC;
 		/** Enqueue ID selection:
@@ -1067,13 +1075,13 @@ struct fdma_replicate_frames_command {
 		 * Release destination frame handle is implicit when enqueueing.
 		 * - 0: replicate only
 		 * - 1: replicate and enqueue */
-	/*uint8_t	ENQ;*/
+	uint8_t	ENQ;
 		/** The source frame resources are released after the
 		 * replication.
 		 * Release source frame handle is implicit when discarding.
 		 * - 0: keep source frame
 		 * - 1: discard source frame and release frame handle */
-	/*uint8_t	DSF;*/
+	uint8_t	DSF;
 		/** Frame annotation copy option:
 		 * - 0: do not copy annotations.
 		 * - 1: copy ASA.
@@ -1190,7 +1198,9 @@ struct fdma_split_frame_command {
 		 * - 0: do not present segment from the split frame, keep split
 		 * working frame open.
 		 * - 1: present segment from the split frame, keep split working
-		 * frame open. */
+		 * frame open. 
+		 * - 2: do not present, close split working frame using the 
+		 * provided storage profile, update split FD.*/
 	uint8_t PSA;
 		/** Frame split mode:
 		 * - 0: Split is performed at the split_size_sf value.
