@@ -1665,10 +1665,11 @@ void fdma_exception_handler(enum fdma_function_identifier func_id,
 				"larger than frame size.\n";
 		break;
 	case FDMA_FRAME_STORE_ERR:
-		err_msg ="Frame Store failed from one of the following reasons:"
+		err_msg ="Frame Store failed due to one of the following "
+				"reasons:\n"
 				"- single buffer frame full and Storage Profile"
 				" FF is set to 10.\n "
-				"- storage profile fields mismatch "
+				"- storage profile fields mismatch: "
 				"(offset (ASAR+PTAR+SGHR/DHR) > buffer size, or"
 				"ASAL > ASAR, or PTA > PTAR, or PTA != PTAR)\n";
 		break;

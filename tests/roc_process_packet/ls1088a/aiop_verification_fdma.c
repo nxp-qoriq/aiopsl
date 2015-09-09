@@ -280,7 +280,9 @@ uint16_t aiop_verification_fdma(uint32_t asa_seg_addr)
 #ifdef AIOP_VERIF
 		*(uint8_t *) HWC_SPID_ADDRESS = str->spid;
 #endif
-		flags |= ((str->TC == 1) ? (FDMA_EN_TC_TERM_BITS) : 0x0);
+		flags |= (str->TC == 2) ?
+			FDMA_EN_TC_CONDTERM_BITS : 
+			((str->TC == 1) ? (FDMA_EN_TC_TERM_BITS) : 0x0);
 		flags |= ((str->RL == 1) ? (FDMA_ENWF_RL_BIT) : 0x0);
 		flags |= ((str->PS) ? FDMA_ENWF_PS_BIT : 0x0);
 
@@ -310,7 +312,9 @@ uint16_t aiop_verification_fdma(uint32_t asa_seg_addr)
 		struct fdma_enqueue_wf_exp_command *str =
 			(struct fdma_enqueue_wf_exp_command *)asa_seg_addr;
 		struct fdma_queueing_destination_params qdp;
-		flags |= ((str->TC == 1) ? (FDMA_EN_TC_TERM_BITS) : 0x0);
+		flags |= (str->TC == 2) ?
+			FDMA_EN_TC_CONDTERM_BITS : 
+			((str->TC == 1) ? (FDMA_EN_TC_TERM_BITS) : 0x0);
 		flags |= ((str->PS) ? FDMA_ENWF_PS_BIT : 0x0);
 		flags |= ((str->RL == 1) ? (FDMA_ENWF_RL_BIT) : 0x0);
 		if (str->EIS) {
@@ -341,7 +345,9 @@ uint16_t aiop_verification_fdma(uint32_t asa_seg_addr)
 		struct fdma_enqueue_frame_command *str =
 			(struct fdma_enqueue_frame_command *)asa_seg_addr;
 		struct fdma_queueing_destination_params qdp;
-		flags |= ((str->TC == 1) ? (FDMA_EN_TC_TERM_BITS) : 0x0);
+		flags |= (str->TC == 2) ?
+			FDMA_EN_TC_CONDTERM_BITS : 
+			((str->TC == 1) ? (FDMA_EN_TC_TERM_BITS) : 0x0);
 		flags |= ((str->PS) ? FDMA_ENF_PS_BIT : 0x0);
 		flags |= ((str->BDI) ? FDMA_ENF_BDI_BIT : 0x0);
 		flags |= ((str->RL == 1) ? (FDMA_ENF_RL_BIT) : 0x0);
@@ -373,7 +379,9 @@ uint16_t aiop_verification_fdma(uint32_t asa_seg_addr)
 		struct fdma_enqueue_frame_exp_command *str =
 			(struct fdma_enqueue_frame_exp_command *)asa_seg_addr;
 		struct fdma_queueing_destination_params qdp;
-		flags |= ((str->TC == 1) ? (FDMA_EN_TC_TERM_BITS) : 0x0);
+		flags |= (str->TC == 2) ?
+			FDMA_EN_TC_CONDTERM_BITS : 
+			((str->TC == 1) ? (FDMA_EN_TC_TERM_BITS) : 0x0);
 		flags |= ((str->PS) ? FDMA_ENF_PS_BIT : 0x0);
 		flags |= ((str->BDI) ? FDMA_ENF_BDI_BIT : 0x0);
 		flags |= ((str->RL == 1) ? (FDMA_ENF_RL_BIT) : 0x0);
@@ -471,9 +479,9 @@ uint16_t aiop_verification_fdma(uint32_t asa_seg_addr)
 				asa_seg_addr;
 		struct fdma_queueing_destination_params qdp;
 
-		/*flags |= ((str->DSF) ? FDMA_REPLIC_DSF_BIT : 0x0);*/
-		/*flags |= ((str->ENQ) ? FDMA_REPLIC_ENQ_BIT : 0x0);*/
-		/*flags |= ((str->PS) ? FDMA_REPLIC_PS_BIT : 0x0);*/
+		flags |= ((str->DSF) ? FDMA_REPLIC_DSF_BIT : 0x0);
+		flags |= ((str->ENQ) ? FDMA_REPLIC_ENQ_BIT : 0x0);
+		flags |= ((str->PS) ? FDMA_REPLIC_PS_BIT : 0x0);
 		flags |= ((str->RL == 1) ? FDMA_REPLIC_RL_BIT : 0x0);
 		flags |= (str->CFA == 3) ?
 			FDMA_CFA_COPY_BIT :
@@ -536,7 +544,9 @@ uint16_t aiop_verification_fdma(uint32_t asa_seg_addr)
 				((str->CFA == 1) ?
 					FDMA_CFA_ASA_COPY_BIT :
 					FDMA_CFA_NO_COPY_BIT));
-		flags |= ((str->PSA == 1) ?
+		flags |= (str->PSA == 2) ?
+			FDMA_SPLIT_PSA_CLOSE_FRAME_BIT : 
+			((str->PSA == 1) ?
 				FDMA_SPLIT_PSA_PRESENT_BIT :
 				FDMA_SPLIT_PSA_NO_PRESENT_BIT);
 		flags |= ((str->SM) ? FDMA_SPLIT_SM_BIT : 0x0);
