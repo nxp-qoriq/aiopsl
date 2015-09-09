@@ -65,7 +65,7 @@ int tcp_gro_aggregate_seg(
 	if (LDPAA_FD_GET_ERR(HWC_FD_ADDRESS))
 		return -EIO;
 
-	seg_size = (uint16_t)LDPAA_FD_GET_LENGTH(HWC_FD_ADDRESS);
+	get_frame_length(PRC_GET_FRAME_HANDLE(), (uint32_t *)&seg_size);
 
 	/* read GRO context*/
 	cdma_read_with_mutex(tcp_gro_context_addr,
@@ -278,7 +278,7 @@ int tcp_gro_add_seg_to_aggregation(
 	/* calculate data offset */
 	headers_size = (uint16_t)(PARSER_GET_L4_OFFSET_DEFAULT() + data_offset);
 
-	seg_size = (uint16_t)LDPAA_FD_GET_LENGTH(HWC_FD_ADDRESS);
+	get_frame_length(PRC_GET_FRAME_HANDLE(), (uint32_t *)&seg_size);
 	aggregated_size = (uint16_t)(LDPAA_FD_GET_LENGTH(&(gro_ctx->agg_fd))) +
 			seg_size - headers_size;
 	/* check whether aggregation limits are met */
@@ -338,8 +338,8 @@ int tcp_gro_add_seg_to_aggregation(
 		/* since concatenate does not update the FD's length, the
 		 * following size is the aggregation size before the
 		 * concatenation. */
-		split_params.split_size_sf =
-			(uint16_t)(LDPAA_FD_GET_LENGTH(&(gro_ctx->agg_fd)));
+		get_frame_length((uint8_t)(concat_params.frame1), 
+				(uint32_t *)&(split_params.split_size_sf));
 		split_params.source_frame_handle =
 				(uint8_t)(concat_params.frame1);
 		fdma_split_frame(&split_params);
@@ -414,7 +414,7 @@ int tcp_gro_add_seg_and_close_aggregation(
 			TMAN_TIMER_DELETE_MODE_WO_EXPIRATION);
 
 	tcp = (struct tcphdr *)PARSER_GET_L4_POINTER_DEFAULT();
-	seg_size = (uint16_t)LDPAA_FD_GET_LENGTH(HWC_FD_ADDRESS);
+	get_frame_length(PRC_GET_FRAME_HANDLE(), (uint32_t *)&seg_size);
 
 	/* update gro context fields */
 	gro_ctx->last_seg_fields = *((struct tcp_gro_last_seg_header_fields *)
@@ -452,8 +452,8 @@ int tcp_gro_add_seg_and_close_aggregation(
 		/* since concatenate does not update the FD's length, the
 		 * following size is the aggregation size before the
 		 * concatenation. */
-		split_params.split_size_sf =
-			(uint16_t)(LDPAA_FD_GET_LENGTH(&(gro_ctx->agg_fd)));
+		get_frame_length((uint8_t)(concat_params.frame1), 
+				(uint32_t *)&split_params.split_size_sf);
 		split_params.source_frame_handle =
 				(uint8_t)(concat_params.frame1);
 		split_params.seg_dst = (void *)PRC_GET_SEGMENT_ADDRESS();
@@ -493,8 +493,8 @@ int tcp_gro_add_seg_and_close_aggregation(
 
 	/* update IP length + checksum */
 	outer_ip_offset = (uint16_t)PARSER_GET_OUTER_IP_OFFSET_DEFAULT();
-	ip_length = (uint16_t)LDPAA_FD_GET_LENGTH(HWC_FD_ADDRESS) -
-			outer_ip_offset;
+	get_frame_length(PRC_GET_FRAME_HANDLE(), (uint32_t *)&ip_length);
+	ip_length = ip_length - outer_ip_offset;
 	if (PARSER_IS_OUTER_IPV4_DEFAULT()) {
 		ipv4 = (struct ipv4hdr *)PARSER_GET_OUTER_IP_POINTER_DEFAULT();
 		if (gro_ctx->flags & TCP_GRO_CALCULATE_IP_CHECKSUM)
@@ -592,7 +592,7 @@ int tcp_gro_close_aggregation_and_open_new_aggregation(
 	int sr_status, status;
 	uint32_t /*old_agg_timestamp,*/ ack_number;
 
-	seg_size = (uint16_t)LDPAA_FD_GET_LENGTH(HWC_FD_ADDRESS);
+	get_frame_length(PRC_GET_FRAME_HANDLE(), (uint32_t *)&seg_size);
 	tcp = (struct tcphdr *)(PARSER_GET_L4_POINTER_DEFAULT());
 
 	/* We save the prc segment length for future use. The size may be
@@ -617,8 +617,9 @@ int tcp_gro_close_aggregation_and_open_new_aggregation(
 		gro_ctx->internal_flags |= GRO_FLUSH_AGG_SET;
 	} else {
 		ack_number = tcp->acknowledgment_number;
+		get_frame_length(PRC_GET_FRAME_HANDLE(), &(gro_ctx->next_seq));
 		gro_ctx->next_seq = tcp->sequence_number +
-				(uint16_t)LDPAA_FD_GET_LENGTH(HWC_FD_ADDRESS) -
+				gro_ctx->next_seq -
 				headers_size;
 		/* save timestamp if exist */
 		if (data_offset > TCP_HDR_LENGTH) {
@@ -698,8 +699,8 @@ int tcp_gro_close_aggregation_and_open_new_aggregation(
 
 	/* update IP length + checksum */
 	outer_ip_offset = (uint16_t)PARSER_GET_OUTER_IP_OFFSET_DEFAULT();
-	ip_length = (uint16_t)LDPAA_FD_GET_LENGTH(HWC_FD_ADDRESS) -
-			outer_ip_offset;
+	get_frame_length(PRC_GET_FRAME_HANDLE(), (uint32_t *)&ip_length);
+	ip_length = ip_length - outer_ip_offset;
 	if (PARSER_IS_OUTER_IPV4_DEFAULT()) {
 		/* IPv4 */
 		ipv4 = (struct ipv4hdr *)PARSER_GET_OUTER_IP_POINTER_DEFAULT();
@@ -953,8 +954,8 @@ int tcp_gro_flush_aggregation(
 
 	/* update IP length + checksum */
 	outer_ip_offset = (uint16_t)PARSER_GET_OUTER_IP_OFFSET_DEFAULT();
-	ip_length = (uint16_t)LDPAA_FD_GET_LENGTH(HWC_FD_ADDRESS) -
-			outer_ip_offset;
+	get_frame_length(PRC_GET_FRAME_HANDLE(), (uint32_t *)&ip_length);
+	ip_length = ip_length - outer_ip_offset;
 	if (PARSER_IS_OUTER_IPV4_DEFAULT()) {
 		ipv4 = (struct ipv4hdr *)PARSER_GET_OUTER_IP_POINTER_DEFAULT();
 		if (gro_ctx.flags & TCP_GRO_CALCULATE_IP_CHECKSUM)
@@ -1079,8 +1080,8 @@ void tcp_gro_timeout_callback(uint64_t tcp_gro_context_addr, uint16_t opaque2)
 
 	/* update IP length + checksum */
 	outer_ip_offset = (uint16_t)PARSER_GET_OUTER_IP_OFFSET_DEFAULT();
-	ip_length = (uint16_t)LDPAA_FD_GET_LENGTH(HWC_FD_ADDRESS) -
-			outer_ip_offset;
+	get_frame_length(PRC_GET_FRAME_HANDLE(), (uint32_t *)&ip_length);
+	ip_length = ip_length - outer_ip_offset;
 	if (PARSER_IS_OUTER_IPV4_DEFAULT()) {
 		ipv4 = (struct ipv4hdr *)PARSER_GET_OUTER_IP_POINTER_DEFAULT();
 		if (gro_ctx.flags & TCP_GRO_CALCULATE_IP_CHECKSUM)

@@ -857,19 +857,34 @@ int fdma_concatenate_frames(
 		struct fdma_concatenate_frames_params *params)
 {
 	/* command parameters and results */
-	uint32_t arg1, arg2;
+	uint32_t arg1, arg2, arg3, arg4;
 	int8_t  res1;
 	uint16_t bdi_icid;
 
 	/* prepare command parameters */
-#ifdef REV2
-	/* Todo - Add ICID + flags + FDs support */
-#endif /*REV2*/
 	arg1 = FDMA_CONCAT_CMD_ARG1(params->spid, params->trim, params->flags);
 	arg2 = FDMA_CONCAT_CMD_ARG2(params->frame2, params->frame1);
+	arg3 = 0;
+	arg4 = 0;
+	if (params->flags | FDMA_CONCAT_FS1_BIT)
+	{
+		arg3 = (uint32_t)(params->icid1 | 
+		    (uint16_t)((params->amq_flags & FDMA_CONCAT_AMQ_BDI1) ? 
+				    FDMA_CONCAT_BDI_BIT : 0));
+		arg4 = (uint16_t)
+			(params->amq_flags & FDMA_CONCAT_FS1_PL_VA_MASK);	
+	}
+	if (params->flags | FDMA_CONCAT_FS2_BIT)
+	{
+		arg3 |= ((params->icid2 | 
+		    (uint16_t)((params->amq_flags & FDMA_CONCAT_AMQ_BDI2) ? 
+				    FDMA_CONCAT_BDI_BIT : 0)) << 16);
+		arg4 |= (uint16_t)
+			(params->amq_flags & FDMA_CONCAT_FS2_PL_VA_MASK);	
+	}
 
 	/* store command parameters */
-	__stdw(arg1, arg2, HWC_ACC_IN_ADDRESS, 0);
+	__stqw(arg1, arg2, arg3, arg4, HWC_ACC_IN_ADDRESS, 0);
 
 	/* call FDMA Accelerator */
 	__e_hwacceli_(FODMA_ACCEL_ID);
@@ -956,11 +971,6 @@ int fdma_split_frame(
 				prc->asapa_asaps =
 					(params->flags & FDMA_SPLIT_SR_BIT) ?
 							PRC_SR_MASK : 0;
-				if (!(params->flags & FDMA_SPLIT_SM_BIT)) {
-					//LDPAA_FD_SET_SL(HWC_FD_ADDRESS, 0);
-					LDPAA_FD_SET_LENGTH(HWC_FD_ADDRESS,
-							params->split_size_sf);
-				}
 			}
 		}
 		/* Update Task Defaults */
@@ -971,18 +981,7 @@ int fdma_split_frame(
 					PRC_FRAME_HANDLE_MASK);
 				prc->ptapa_asapo = PRC_PTA_NOT_LOADED_ADDRESS;
 				prc->asapa_asaps = 0;
-				if (!(params->flags & FDMA_SPLIT_SM_BIT)) {
-					//LDPAA_FD_SET_SL(HWC_FD_ADDRESS, 0);
-					LDPAA_FD_SET_LENGTH(HWC_FD_ADDRESS,
-						params->split_size_sf);
-				}
 		}
-
-		if ((((uint32_t)params->fd_dst) != HWC_FD_ADDRESS) &&
-		    (params->source_frame_handle == PRC_GET_FRAME_HANDLE()) &&
-		    !(params->flags & FDMA_SPLIT_SM_BIT))
-			LDPAA_FD_UPDATE_LENGTH((uint32_t)params->fd_dst, 0,
-					params->split_size_sf);
 
 		if ((res1 == FDMA_SUCCESS))
 			return SUCCESS;
@@ -1098,11 +1097,6 @@ int fdma_insert_segment_data(
 			}
 		}
 
-		if (params->frame_handle == PRC_GET_FRAME_HANDLE())
-			/* FD fields should be updated with a swap load/store */
-			LDPAA_FD_UPDATE_LENGTH(HWC_FD_ADDRESS,
-					params->insert_size, 0);
-
 		if ((params->seg_handle == PRC_GET_SEGMENT_HANDLE()) &&
 			(params->flags & FDMA_REPLACE_SA_CLOSE_BIT))
 			PRC_SET_NDS_BIT();
@@ -1163,10 +1157,6 @@ int fdma_delete_segment_data(
 		}
 
 		if (params->frame_handle == PRC_GET_FRAME_HANDLE()) {
-			/* FD fields should be updated with a swap load/store */
-			LDPAA_FD_UPDATE_LENGTH(HWC_FD_ADDRESS, 0,
-					params->delete_target_size);
-
 			if ((params->seg_handle == PRC_GET_SEGMENT_HANDLE()) &&
 				(params->flags & FDMA_REPLACE_SA_CLOSE_BIT))
 				PRC_SET_NDS_BIT();

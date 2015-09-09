@@ -177,10 +177,8 @@ enum fdma_enqueue_tc_options {
  @{
 *//***************************************************************************/
 enum fdma_replace_sa_options {
-#ifdef REV2
 		/** Keep the segment open */
 	FDMA_REPLACE_SA_OPEN_BIT =	0x0000,
-#endif /* REV2 */
 		/** Re-present the segment in workspace */
 	FDMA_REPLACE_SA_REPRESENT_BIT =	0x0100,
 		/** Close the replaced segment to free the workspace memory
@@ -484,6 +482,14 @@ enum fdma_pta_size_type {
 	 * usage of SG format on the concatenated frame.
 	 * If set - Set SF bit. Otherwise - Do not set SF bit. */
 #define FDMA_CONCAT_SF_BIT	0x00000100
+	/** Frame Source 1:
+	 * 0: concatenate working frame 1 using FRAME_HANDLE_1
+	 * 1: concatenate Frame 1 using FD at FD_ADDRESS_1 */
+#define FDMA_CONCAT_FS1_BIT	0x00000200
+	/** Frame Source 2:
+	 * 0: concatenate working frame 2 using FRAME_HANDLE_1
+	 * 1: concatenate Frame 2 using FD at FD_ADDRESS_1 */
+#define FDMA_CONCAT_FS2_BIT	0x00000400
 	/** Post Concatenate Action.
 	 * If set - close resulting working frame 1 using provided storage
 	 * profile, update FD1.
@@ -491,6 +497,39 @@ enum fdma_pta_size_type {
 #define FDMA_CONCAT_PCA_BIT	0x00000800
 
 /** @} end of group FDMA_Concatenate_Flags */
+
+/**************************************************************************//**
+@Group		FDMA_Concatenate_AMQ_Flags  FDMA Concatenate AMQ Flags
+
+@Description	FDMA Concatenate Frames AMQ flags
+
+@{
+*//***************************************************************************/
+
+	/** Configured Virtual Address of FD1.
+	 * Relevant only if \ref FDMA_CONCAT_FS1_BIT is set */
+#define FDMA_CONCAT_AMQ_VA1	0x00002000
+	/** Privilege Level of FD1.
+	 * Relevant only if \ref FDMA_CONCAT_FS1_BIT is set */
+#define FDMA_CONCAT_AMQ_PL1	0x00008000
+	/** Bypass DPAA resource Isolation of FD1
+	 * 0: Isolation is enabled for FD1 in this command.
+	 * 1: Isolation is not enabled for FD1 in this command.
+	 * Relevant only if \ref FDMA_CONCAT_FS1_BIT is set */
+#define FDMA_CONCAT_AMQ_BDI1	0x00000001
+	/** Configured Virtual Address of FD2.
+	 * Relevant only if \ref FDMA_CONCAT_FS2_BIT is set */
+#define FDMA_CONCAT_AMQ_VA2	0x20000000
+	/** Privilege Level of FD2.
+	 * Relevant only if \ref FDMA_CONCAT_FS2_BIT is set */
+#define FDMA_CONCAT_AMQ_PL2	0x80000000
+	/** Configured Virtual Address of FD2.
+	 * Relevant only if \ref FDMA_CONCAT_FS2_BIT is set */
+#define FDMA_CONCAT_AMQ_BDI2	0x00010000
+
+	
+
+/** @} end of group FDMA_Concatenate_AMQ_Flags */
 
 /**************************************************************************//**
 @Group		FDMA_Split_Flags  FDMA Split Flags
@@ -781,13 +820,22 @@ struct fdma_concatenate_frames_params {
 		/** \link FDMA_Concatenate_Flags concatenate frames
 		 * flags \endlink */
 	uint32_t  flags;
+		/** \link FDMA_Concatenate_AMQ_Flags concatenate frames
+		 * flags \endlink */
+	uint32_t  amq_flags;
 		/** Returned parameter:
 		 * AMQ attributes (the VA is the effective VA) */
 	struct fdma_amq amq;
-		/** The handle of working frame 1. */
+		/** The handle of working frame 1, or FD1 address. */
 	uint16_t frame1;
-		/** The handle of working frame 2. */
+		/** The handle of working frame 2, or FD2 address. */
 	uint16_t frame2;
+		/** Bits<1-15> : Isolation Context ID. Frame AMQ attribute.
+		* Used only in case \ref FDMA_CONCAT_FS1_BIT is set. */
+	uint16_t icid1;
+		/** Bits<1-15> : Isolation Context ID. Frame AMQ attribute.
+		* Used only in case \ref FDMA_CONCAT_FS2_BIT is set. */
+	uint16_t icid2;
 		/** Storage Profile used to store frame data if additional
 		 * buffers are required when optionally closing the concatenated
 		 *  working frame (\ref FDMA_CONCAT_PCA_BIT is set) */
@@ -2034,6 +2082,7 @@ int fdma_replicate_frame_qd(
 @Retval		ENOMEM - Failed due to buffer pool depletion (relevant only if
 		\ref FDMA_CONCAT_PCA_BIT flag is set). In this case the 
 		concatenated frame handle remains valid.
+@Retval		EIO - Received frame with non-zero FD[err] field.
 
 @remark		Frame annotation of the first frame becomes the frame annotation
 		of the concatenated frame.

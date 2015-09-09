@@ -1119,6 +1119,12 @@ struct fdma_concatenate_frames_command {
 	uint16_t frame1;
 		/** The handle of working frame 2. */
 	uint16_t frame2;
+		/** Bits<1-15> : Isolation Context ID. Frame AMQ attribute.
+		* Used only in case \ref FDMA_CONCAT_FS1_BIT is set. */
+	uint16_t icid1;
+		/** Bits<1-15> : Isolation Context ID. Frame AMQ attribute.
+		* Used only in case \ref FDMA_CONCAT_FS2_BIT is set. */
+	uint16_t icid2;
 		/** Storage Profile used to store frame data if additional
 		 * buffers are required when optionally closing the concatenated
 		 *  working frame (PCA is set) */
@@ -1136,10 +1142,36 @@ struct fdma_concatenate_frames_command {
 		 * - 1: close resulting working frame 1 using provided storage
 		 * profile, update FD1 */
 	uint8_t PCA;
+		/** Frame Source 1:
+		 * 0: concatenate working frame 1 using FRAME_HANDLE_1
+		 * 1: concatenate Frame 1 using FD at FD_ADDRESS_1 */
+	uint8_t FS1;
+		/** Frame Source 2:
+		* 0: concatenate working frame 2 using FRAME_HANDLE_2
+		* 1: concatenate Frame 2 using FD at FD_ADDRESS_2 */
+	uint8_t FS2;
+		/** Privilege Level of FD1. */
+	uint8_t PL1;
+		/** Configured Virtual Address of FD1. */
+	uint8_t VA1;
+		/** Bypass DPAA resource Isolation of FD1
+		 * 0: Isolation is enabled for FD1 in this command.
+		 * 1: Isolation is not enabled for FD1 in this command.
+		 * Relevant only if \ref FDMA_CONCAT_FS1_BIT is set */
+	uint8_t BDI1;	
+		/** Privilege Level of FD2. */
+	uint8_t PL2;
+		/** Configured Virtual Address of FD2. */
+	uint8_t VA2;
+		/** Bypass DPAA resource Isolation of FD2
+		 * 0: Isolation is enabled for FD1 in this command.
+		 * 1: Isolation is not enabled for FD1 in this command.
+		 * Relevant only if \ref FDMA_CONCAT_FS1_BIT is set */
+	uint8_t BDI2;
 		/** Command returned status. */
 	int8_t	status;
 		/** 64-bit alignment. */
-	uint8_t	pad[7];
+	uint8_t	pad[3];
 };
 
 /**************************************************************************//**
@@ -1353,12 +1385,13 @@ struct fdma_replace_command {
 		/** Replacing segment size. */
 	uint16_t from_size;
 		/** Number of frame bytes to represent. Must be greater than 0.
-		 *  Relevant if SA field is set. */
+		 *  Relevant if SA field is 1. */
 	uint16_t size_rs;
 		/** Command returned segment length. (relevant if
 		(flags == \ref FDMA_REPLACE_SA_REPRESENT_BIT))*/
 	uint16_t seg_length_rs;
 		/** Segment Action.
+		* - 0: keep the segment open
 		* - 1: represent segment
 		* - 2: close segment */
 	uint8_t	SA;
@@ -1392,6 +1425,7 @@ struct fdma_insert_segment_data_command {
 		 * (flags == \ref FDMA_REPLACE_SA_REPRESENT_BIT))*/
 	uint16_t seg_length_rs;
 		/** Segment Action.
+		* - 0: keep the segment open
 		* - 1: represent segment
 		* - 2: close segment */
 	uint8_t	SA;
@@ -1423,7 +1457,7 @@ struct fdma_insert_segment_data_exp_command {
 		/** Inserted segment data size. */
 	uint16_t insert_size;
 	/**< Number of frame bytes to represent. Must be greater than 0.
-	 * Relevant if SA field is set. */
+	 * Relevant if SA field is 1. */
 	uint16_t size_rs;
 		/** Command returned segment length.
 		 * Relevant if SA_REPRESENT_BIT))*/
@@ -1434,6 +1468,7 @@ struct fdma_insert_segment_data_exp_command {
 		 * from which the data is being inserted. */
 	uint8_t  seg_handle;
 		/** Segment Action.
+		* - 0: keep the segment open
 		* - 1: represent segment
 		* - 2: close segment */
 	uint8_t	SA;
@@ -1461,9 +1496,10 @@ struct fdma_delete_segment_data_command {
 		 * Represent the modified segment parameters. */
 	struct presentation_context prc;
 		/** Command returned segment length.
-		 * Relevant if SA field is set. */
+		 * Relevant if SA field is 1. */
 	uint16_t seg_length_rs;
 		/** Segment Action.
+		 * - 0: keep the segment open
 		 * - 1: represent segment
 		 * - 2: close segment */
 	uint8_t	SA;
@@ -1485,7 +1521,7 @@ struct fdma_delete_segment_data_exp_command {
 		 * structure identifier. */
 	uint32_t opcode;
 		/**< pointer to the location in workspace for the represented
-		 * frame segment (relevant if SA field is set). */
+		 * frame segment (relevant if SA field is 1). */
 	uint32_t ws_dst_rs;
 		/** Offset from the previously presented segment representing
 		* the start point of the deletion. */
@@ -1494,12 +1530,13 @@ struct fdma_delete_segment_data_exp_command {
 	uint16_t delete_target_size;
 		/** Number of frame bytes to represent in the segment. Must be
 		 * greater than 0.
-		 * Relevant if SA field is set.*/
+		 * Relevant if SA field is 1.*/
 	uint16_t size_rs;
 		/** Command returned segment length.
-		 * Relevant if SA field is set. */
+		 * Relevant if SA field is 1. */
 	uint16_t seg_length_rs;
 		/** Segment Action.
+		 * - 0: keep the segment open
 		 * - 1: represent segment
 		 * - 2: close segment */
 	uint8_t	SA;

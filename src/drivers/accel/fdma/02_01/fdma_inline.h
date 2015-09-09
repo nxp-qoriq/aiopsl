@@ -76,10 +76,6 @@ inline int fdma_replace_default_segment_data(
 			prc->seg_length = *((uint16_t *)HWC_ACC_OUT_ADDRESS2);
 		}
 		/* FD fields should be updated with a swap load/store */
-		if (from_size != to_size)
-			LDPAA_FD_UPDATE_LENGTH(HWC_FD_ADDRESS,
-					from_size, to_size);
-
 		if (flags & FDMA_REPLACE_SA_CLOSE_BIT)
 			PRC_SET_NDS_BIT();
 
@@ -271,8 +267,6 @@ inline int fdma_insert_default_segment_data(
 			prc->seg_length = *((uint16_t *)HWC_ACC_OUT_ADDRESS2);
 		}
 		/* FD fields should be updated with a swap load/store */
-		LDPAA_FD_UPDATE_LENGTH(HWC_FD_ADDRESS, insert_size, 0);
-
 		if (flags & FDMA_REPLACE_SA_CLOSE_BIT)
 			PRC_SET_NDS_BIT();
 
@@ -487,9 +481,6 @@ inline int fdma_delete_default_segment_data(
 			prc->seg_length = *((uint16_t *)HWC_ACC_OUT_ADDRESS2);
 		}
 		/* FD fields should be updated with a swap load/store */
-		LDPAA_FD_UPDATE_LENGTH(HWC_FD_ADDRESS, 0,
-				delete_target_size);
-
 		if (flags & FDMA_REPLACE_SA_CLOSE_BIT)
 			PRC_SET_NDS_BIT();
 

@@ -661,6 +661,27 @@
  */
 
 /**************************************************************************//**
+@Group		FDMA_CONCAT_FLAGS
+
+@Description	FDMA Concatenate flags
+
+@{
+*//***************************************************************************/
+	/** FD1 PL+VA flags mask.
+	 * Relevant only if \ref FDMA_CONCAT_FS1_BIT is set */
+#define FDMA_CONCAT_FS1_PL_VA_MASK   (FDMA_CONCAT_AMQ_PL1 | FDMA_CONCAT_AMQ_VA1) 
+	/** FD2 PL+VA flags mask.
+	 * Relevant only if \ref FDMA_CONCAT_FS2_BIT is set*/
+#define FDMA_CONCAT_FS2_PL_VA_MASK (FDMA_CONCAT_AMQ_PL2 | FDMA_CONCAT_AMQ_VA2)
+	/** FD1 BDI flag.
+	 * Relevant only if 
+	 * \ref FDMA_CONCAT_FS1_BIT or \ref FDMA_CONCAT_FS2_BIT are set */
+#define FDMA_CONCAT_BDI_BIT		0x00008000
+
+
+/** @} end of group FDMA_DISCARD_FLAGS */
+
+/**************************************************************************//**
 @Group		FDMA_DISCARD_FLAGS
 
 @Description	FDMA Discard flags
