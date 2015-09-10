@@ -156,7 +156,7 @@ __HOT_CODE ENTRY_POINT static void app_process_packet(void)
 		fdma_close_default_segment();
 		fdma_present_default_frame_segment(
 				0, (void *)PRC_GET_SEGMENT_ADDRESS(), 0, seg_len);
-	
+
 		fsl_print("IPSEC: frame header after encryption\n");
 		/* Print header */
 		ipsec_print_frame();
@@ -482,13 +482,14 @@ int ipsec_app_init(uint16_t ni_id)
 
 	/* Set the outer IP header type here */
 	outer_header_ip_version = 4; /* 4 or 6 */
-	//outer_header_ip_version = 17; /* UDP encap (Tunnel mode only) */
-
+	//outer_header_ip_version = 17; /* UDP encap - Tunnel mode */
+	//outer_header_ip_version = 18; /* UDP encap - Transport mode */
+	
 	auth_key_id = 0; /* Keep the initial key array value */
 	//auth_key_id = 1; /* Overwrite the initial key array value */
 
-	tunnel_transport_mode = IPSEC_FLG_TUNNEL_MODE; /* Tunnel Mode */
-	//tunnel_transport_mode = 0; /* Transport Mode */
+	//tunnel_transport_mode = IPSEC_FLG_TUNNEL_MODE; /* Tunnel Mode */
+	tunnel_transport_mode = 0; /* Transport Mode */
 
 	/* DSCP setting, valid only for tunnel mode */
 	if (tunnel_transport_mode) {
@@ -759,6 +760,13 @@ int ipsec_app_init(uint16_t ni_id)
 		params.encparams.ip_hdr_len = 0x1c; /* outer header length is 28 bytes */
 	}
 
+	/* UDP transport mode encap */
+	else if (outer_header_ip_version == 18) {
+		outer_ip_header[0] = 0x11941194;
+		outer_ip_header[1] = 0x00000000;
+	}
+
+	
 	if (tunnel_transport_mode == 0) { /* Transport Mode */
 		params.encparams.ip_hdr_len = 0;
 	}
@@ -771,6 +779,11 @@ int ipsec_app_init(uint16_t ni_id)
 			IPSEC_FLG_LIFETIME_KB_CNTR_EN | IPSEC_FLG_LIFETIME_PKT_CNTR_EN |
 				set_dscp | reuse_buffer_mode;
 
+	if (outer_header_ip_version == 18) {
+		params.flags |= IPSEC_ENC_OPTS_NAT_EN;
+	}
+
+	
 	if (encap_soft_seconds | encap_hard_seconds) {
 		params.flags |= IPSEC_FLG_LIFETIME_SEC_CNTR_EN;
 		fsl_print("IPSEC: Encap seconds lifetime enabled, soft = %d, hard =%d\n", 
@@ -788,8 +801,8 @@ int ipsec_app_init(uint16_t ni_id)
 	params.encparams.options = esn_enable | transport_ipvsn;
 
 	params.encparams.seq_num_ext_hi = 0x0;
-	params.encparams.seq_num = 0x0;
-	params.encparams.spi = 0x0;
+	params.encparams.seq_num = 0x1;
+	params.encparams.spi = 0x1234;
 	params.encparams.outer_hdr = (uint32_t *)&outer_ip_header;
 
 	for (i=0; i<sizeof(params.encparams.cbc.iv); i++) {
@@ -861,7 +874,7 @@ int ipsec_app_init(uint16_t ni_id)
 	params.decparams.options = esn_enable | transport_ipvsn;
 
 	params.decparams.seq_num_ext_hi = 0x0;
-	params.decparams.seq_num = 0x0;
+	params.decparams.seq_num = 0x1;
 
 	params.cipherdata.algtype = cipher_alg;
 	params.cipherdata.key = cipher_key_addr;

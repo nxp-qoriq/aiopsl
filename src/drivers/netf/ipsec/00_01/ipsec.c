@@ -1187,6 +1187,11 @@ void ipsec_generate_sa_params(
 		/* 	transport mode, UDP encap, pad check, counters enable, 
 					outer IP version, etc. 4B */
 	
+	/* UDP Encap for transport mode */
+	sap.sap1.udp_src_port = 0; /* UDP source for transport mode. */
+	sap.sap1.udp_dst_port = 0; /* UDP destination for transport mode. */
+
+	
 	if (params->direction == IPSEC_DIRECTION_OUTBOUND) {
 		/* Outbound (encryption) */
 		
@@ -1209,10 +1214,23 @@ void ipsec_generate_sa_params(
 			}
 			
 		} else {
+			/* Encap, Transport mode */
+			
 			/* Add IPv6/IPv4 indication to the flags field in transport mode */
 			if ((params->encparams.options) & IPSEC_PDB_OPTIONS_MASK & 
 					IPSEC_OPTS_ESP_IPVSN) {
 				sap.sap1.flags |= IPSEC_FLG_IPV6;
+			}
+			
+			/* If UDP Encap enabled for transport mode */
+			if (params->flags & IPSEC_ENC_OPTS_NAT_EN) {
+				/* Save the UDP source and destination ports */
+				sap.sap1.udp_src_port = 
+						*(uint16_t *)params->encparams.outer_hdr; 
+					/* UDP source for transport mode. TMP */
+				sap.sap1.udp_dst_port = 
+					*((uint16_t *)params->encparams.outer_hdr + 1); 
+					/* UDP destination for transport mode. TMP */
 			}
 		}
 		
@@ -1236,11 +1254,6 @@ void ipsec_generate_sa_params(
 	//sap.sap1.status = 0; /* 	lifetime expiry, semaphores	*/
 	sap.sap1.soft_sec_expired = 0; /* soft seconds lifetime expired */
 	sap.sap1.hard_sec_expired = 0; /* hard seconds lifetime expired */
-
-	
-	/* UDP Encap for transport mode */
-	sap.sap1.udp_src_port = 0; /* UDP source for transport mode. TMP */
-	sap.sap1.udp_dst_port = 0; /* UDP destination for transport mode. TMP */
 		
 	/* new/reuse mode */
 	if (sap.sap1.flags & IPSEC_FLG_BUFFER_REUSE) {
@@ -1535,7 +1548,7 @@ __IPSEC_HOT_CODE int ipsec_frame_encrypt(
 	uint64_t orig_flc;
 	uint32_t orig_frc;
 	uint16_t orig_seg_addr;
-	uint8_t *eth_pointer_default;
+	uint8_t *segment_pointer;
 	uint32_t byte_count;
 	//uint32_t checksum;
 	uint8_t dont_encrypt = 0;
@@ -1748,11 +1761,11 @@ __IPSEC_HOT_CODE int ipsec_frame_encrypt(
 						(uint8_t *)PARSER_GET_OUTER_IP_OFFSET_DEFAULT() - 
 								(uint8_t *)PARSER_GET_ETH_OFFSET_DEFAULT()); 
 
-		eth_pointer_default = (uint8_t *)PARSER_GET_ETH_POINTER_DEFAULT();
+		segment_pointer = (uint8_t *)PARSER_GET_ETH_POINTER_DEFAULT();
 	
 		//fdma_copy_data(eth_length, 0 ,eth_pointer_default,eth_header);
 		/* Copy the input frame Ethernet header to workspace */
-		memcpy(eth_header, eth_pointer_default, eth_length);
+		memcpy(eth_header, segment_pointer, eth_length);
 		
 		/* Remove L2 Header */	
 		fdma_replace_default_segment_data(
@@ -2027,26 +2040,6 @@ __IPSEC_HOT_CODE int ipsec_frame_encrypt(
 				FDMA_REPLACE_SA_REPRESENT_BIT 
 					/* uint32_t flags */
 				);
-		
-//		fsl_print("SEC Checksum = 0x%x\n", checksum);
-//
-//		for (i=0;i<(eth_length>>1);i++) {
-//			fsl_print("Ethernet HW #%d = 0x%x\n",i, (*((uint16_t *)eth_header + i)));
-//
-//			checksum = (*((uint16_t *)eth_header + i)) + checksum;
-//			fsl_print("Ethernet HW #%d checksum = 0x%x\n",i, checksum);
-//
-//			checksum = (uint16_t)(checksum + (checksum >> 16));
-//			fsl_print("Ethernet HW #%d checksum add carry = 0x%x\n",i, checksum);
-//
-//		}
-//			
-//		fsl_print("Gross running sum = 0x%x\n", checksum);
-//
-//			/* Update gross running sum */
-//			//pr->gross_running_sum = 0; // Invalidate
-//		pr->gross_running_sum = (uint16_t)checksum;
-
 	}
 
 		/*---------------------*/
@@ -2054,12 +2047,83 @@ __IPSEC_HOT_CODE int ipsec_frame_encrypt(
 		/*---------------------*/
 	
 	/* In transport mode, optionally add UDP encapsulation */
+	
+	/* UDP-Encapsulated ESP Header Format
+	    0                   1                   2                   3
+	    0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+	   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+	   |        Source Port            |      Destination Port         |
+	   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+	   |           Length              |           Checksum            |
+	   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+	   |                      ESP header [RFC2406]                     |
+	   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+	*/
+
 	if ((!(sap1.flags & IPSEC_FLG_TUNNEL_MODE)) &&
 			(sap1.flags & IPSEC_ENC_OPTS_NAT_EN)) {
-		// TODO, including checksum updates
-		// TODO: it may be necessary to re-run the parser at this stage
+	
+		/* Get the pointer to the start of the ESP header */
+		segment_pointer = (uint8_t *)PARSER_GET_OUTER_IP_POINTER_DEFAULT() +
+				dpovrd.transport_encap.ip_hdr_len;
+		
+		*(uint16_t *)segment_pointer = sap1.udp_src_port;
+		*((uint16_t *)segment_pointer + 1) = sap1.udp_dst_port;
+		/* UDP length =  
+		 * IP total length - IP header length + UDP header length (8) */
+		*((uint16_t *)segment_pointer + 2) = (uint16_t)
+				(*((uint16_t *)PARSER_GET_OUTER_IP_POINTER_DEFAULT() + 1)) -
+				(uint16_t)dpovrd.transport_encap.ip_hdr_len + 8; /* length */
+		*((uint16_t *)segment_pointer + 3) = 0; /* Checksum */
+		
+		/* Change pointer to the IP header */
+		segment_pointer = (uint8_t *)PARSER_GET_OUTER_IP_POINTER_DEFAULT();
+		
+		/* Add the UDP header length (8) to the total IP length */
+		*(uint32_t *)segment_pointer += 8;
+		
+		/* Change the protocol */
+		//*((uint32_t *)segment_pointer + 2) =
+		//		(*((uint32_t *)segment_pointer + 2) & 0xFF00FFFF) |
+		//			0x00110000;
+				
+		*((uint8_t *)segment_pointer + 9) = 0x11; /* Protocol, byte 9 */
+				
+		/* Update the IP header checksum (for length and protocol change) */
+		/* Change from protocol = ESP (0x32) to UDP (0x11) and increase the 
+		 * total length by 8 bytes. Total length is a 16 bit word and 
+		 * Protocol is the lower part of a 16 bit word in the IPv4 header. So: 
+		 * length + protocol delta = 0x8 + 0x11 */		
+		cksum_update_uint32(
+				(uint16_t *)segment_pointer + 5, 
+				//(uint16_t *)PARSER_GET_OUTER_IP_POINTER_DEFAULT() + 5, 
+					/* uint16_t *cs_ptr */ 
+				0x32, /* uint32_t old_val (ESP protocol)*/
+				(0x8 + 0x11)); /* new_val (delta length + UDP protocol)*/
+		
+		/* Check if the presentation legnth is too small for the header
+		 * after adding the 8 UDP bytes */
+		new_val = (uint32_t)dpovrd.transport_encap.ip_hdr_len + 
+				(uint32_t)eth_length + 8 + 8;
+		if (PRC_GET_SEGMENT_LENGTH() < new_val) {
+			PRC_SET_SEGMENT_LENGTH(new_val);
+		}
+		
+		/* Insert the UDP and change the IP length */	
+		return_val = fdma_replace_default_segment_data(
+				(uint16_t)PARSER_GET_OUTER_IP_OFFSET_DEFAULT(), /* to_offset */
+				(uint16_t)(dpovrd.transport_encap.ip_hdr_len), /* to_size (original IP size) */
+				//PARSER_GET_OUTER_IP_POINTER_DEFAULT(), /* void *from_ws_src */
+				(void *)segment_pointer, /* void *from_ws_src */
+				(uint16_t)(dpovrd.transport_encap.ip_hdr_len + 8), /* from_size (new size)*/
+				(void *)prc->seg_address, /* void *ws_dst_rs */
+				(uint16_t)PRC_GET_SEGMENT_LENGTH(), /* uint16_t size_rs */
+				FDMA_REPLACE_SA_REPRESENT_BIT); /* flags */
+		
+		// TODO, optionally calculate UDP checksum
 	} 
 
+	
 #if(0)
 	// Debug //
 	{
@@ -2161,7 +2225,7 @@ __IPSEC_HOT_CODE int ipsec_frame_decrypt(
 	uint32_t orig_frc;
 	uint16_t orig_seg_addr;
 	uint16_t outer_material_length;
-	uint8_t *eth_pointer_default;
+	uint8_t *segment_pointer;
 	uint32_t byte_count;
 	uint32_t checksum;
 	uint8_t dont_decrypt = 0;
@@ -2188,21 +2252,6 @@ __IPSEC_HOT_CODE int ipsec_frame_decrypt(
 			desc_addr, /* uint64_t ext_address */
 			sizeof(sap1) /* uint16_t size */
 			);
-	
-	/* Performance Improvement */
-	/* CDMA read and reference counter increment with a single command */
-	// TODO: optionally use cdma_access_context_memory_no_refcount_get()
-	// when this function is available
-	//offset = (uint16_t)(desc_addr-ipsec_handle);
-	//cdma_access_context_memory(
-	//		ipsec_handle,
-	//		CDMA_ACCESS_CONTEXT_MEM_INC_REFCOUNT,
-	//		offset,
-	//		&sap1,
-	//		CDMA_ACCESS_CONTEXT_MEM_DMA_READ | sizeof(sap1),
-	//		(uint32_t *)(HWC_ACC_OUT_ADDRESS+CDMA_REF_CNT_OFFSET)
-	//			/* REF_COUNT_ADDR_DUMMY */
-	//		);
 	
 	/*---------------------*/
 	/* ipsec_frame_decrypt */
@@ -2329,7 +2378,48 @@ __IPSEC_HOT_CODE int ipsec_frame_decrypt(
 			dpovrd.transport_decap.ip_hdr_len = (uint8_t)
 				((uint32_t)((uint8_t *)PARSER_GET_L5_OFFSET_DEFAULT()) - 
 					(uint32_t)
-						((uint8_t *)PARSER_GET_OUTER_IP_OFFSET_DEFAULT())); 
+						((uint8_t *)PARSER_GET_OUTER_IP_OFFSET_DEFAULT()));
+			
+			/* In transport mode, if the packet is UDP encapsulated,
+			 * remove the UDP header. IPv4[protocol] = byte #9 */
+			/* Get the pointer to the start of the ESP header */
+			segment_pointer = 
+					(uint8_t *)PARSER_GET_OUTER_IP_POINTER_DEFAULT();
+			if (*(segment_pointer + 9) == 0x11) { /* If UDP */
+
+				/* Remove the UDP length */
+				dpovrd.transport_decap.ip_hdr_len -= 8; 
+				
+				/* Reduce the UDP header length (8) from the total IP length */
+				*(uint32_t *)segment_pointer -= 8;
+				
+				/* Change the protocol to ESP */
+				*(segment_pointer + 9) = 0x32; 
+						
+				/* Update the IP header checksum (for length/protocol change) */
+				/* Change from protocol = UDP (0x11) to ESP (0x32) and decrease 
+				 * the total length by 8 bytes. Total length is a 16 bit word 
+				 * and Protocol is the lower part of a 16 bit word in the 
+				 * IPv4 header. So: length + protocol delta = 0x32 - 0x8 */		
+				cksum_update_uint32(
+						(uint16_t *)PARSER_GET_OUTER_IP_POINTER_DEFAULT() + 5, 
+							/* uint16_t *cs_ptr */ 
+						0x11, /* uint32_t old_val (UDP protocol)*/
+						(0x32 - 0x8)); /* new_val (ESP protocol - length)*/
+				
+				/* Insert the UDP and change the IP length */	
+				return_val = fdma_replace_default_segment_data(
+					(uint16_t)PARSER_GET_OUTER_IP_OFFSET_DEFAULT(), 
+						/* to_offset (IP header)*/
+					(uint16_t)(dpovrd.transport_decap.ip_hdr_len + 8), 
+						/* to_size (original IP+UDP size) */
+					(void *)segment_pointer, /* void *from_ws_src */
+					(uint16_t)(dpovrd.transport_decap.ip_hdr_len), 
+						/* from_size (new size)*/
+					(void *)prc->seg_address, /* void *ws_dst_rs */
+					(uint16_t)(PRC_GET_SEGMENT_LENGTH()), /* uint16_t size_rs */
+					FDMA_REPLACE_SA_REPRESENT_BIT); /* flags */
+			}
 		}
 		
 		dpovrd.transport_decap.reserved = 0;
@@ -2338,10 +2428,9 @@ __IPSEC_HOT_CODE int ipsec_frame_decrypt(
 		if (eth_length) {
 		/* Save Ethernet header. Note: no swap */
 		/* up to 6 VLANs x 4 bytes + 14 regular bytes */
-			eth_pointer_default = (uint8_t *)PARSER_GET_ETH_POINTER_DEFAULT();
-			//fdma_copy_data(eth_length, 0 ,eth_pointer_default,eth_header);
+			segment_pointer = (uint8_t *)PARSER_GET_ETH_POINTER_DEFAULT();
 			/* Copy the input frame Ethernet header to workspace */
-			memcpy(eth_header, eth_pointer_default, eth_length);
+			memcpy(eth_header, segment_pointer, eth_length);
 
 			/* Remove L2 Header */	
 			fdma_replace_default_segment_data(
