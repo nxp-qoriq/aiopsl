@@ -511,6 +511,22 @@
 		_val, 0, (uint32_t)(((char *)_fd) + FD_FLC_DS_AS_CS_OFFSET));\
 	})
 
+/* Additional FD Macros */
+	/** Macro to update FD Length.
+	 * _fd - the FD address in workspace.
+	 * _from_size = new size.
+	 * _to_size = old size.
+	 */
+#define LDPAA_FD_UPDATE_LENGTH(_fd, _from_size, _to_size)		\
+	({uint32_t length;						\
+	length = LW_SWAP(0, (uint32_t)(((char *)_fd) + FD_MEM_LENGTH_OFFSET));\
+	/* inserting data */						\
+	if (_from_size >= _to_size)					\
+		length += (_from_size - _to_size);			\
+	else /* deleting data */					\
+		length -= (_to_size - _from_size);			\
+	STW_SWAP(length, 0, (uint32_t)(((char *)_fd) + FD_MEM_LENGTH_OFFSET));})
+
 /** @} */ /* end of LDPAA_FD_GETTERS_SETTERS */
 
 /** @} *//* end of ldpaa_g group */
