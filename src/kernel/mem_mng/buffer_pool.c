@@ -126,15 +126,12 @@ int buff_pool_create(struct buffer_pool *p_bf_pool,
 	}
 	return 0;
 }
-
 int buff_pool_get(struct buffer_pool *bf_pool, uint64_t* buffer_addr)
 {
-	struct icontext ic = {0};
 #ifdef DEBUG
 	uint64_t zero_value = 0;
 #endif
 	ASSERT_COND(bf_pool);
-	icontext_aiop_get(&ic);
 	cdma_mutex_lock_take(bf_pool->p_buffers_addr, CDMA_MUTEX_WRITE_LOCK);
 	/* check if there is an available block */
 	if (bf_pool->current == bf_pool->num_buffs)
@@ -146,18 +143,15 @@ int buff_pool_get(struct buffer_pool *bf_pool, uint64_t* buffer_addr)
 		return -ENAVAIL;
 	}
 	/* get the  address of a buffer */
-	icontext_dma_read(&ic,
-	                  STACK_ENTRY_BYTE_SIZE,
-	                  bf_pool->buffers_stack_addr +
-		               STACK_ENTRY_BYTE_SIZE*bf_pool->current,
-		          buffer_addr);
+	cdma_read(buffer_addr,bf_pool->buffers_stack_addr +
+	               STACK_ENTRY_BYTE_SIZE*bf_pool->current,
+	               STACK_ENTRY_BYTE_SIZE);
 #ifdef DEBUG
 	/* bf_pool->p_buffers_stack[bf_pool->current] = 0; */
-	icontext_dma_write(&ic,
-	                   STACK_ENTRY_BYTE_SIZE,
-	                   &zero_value,
-	                   bf_pool->buffers_stack_addr +
-		                STACK_ENTRY_BYTE_SIZE*bf_pool->current);
+	cdma_write(bf_pool->buffers_stack_addr +
+	                STACK_ENTRY_BYTE_SIZE*bf_pool->current,
+	                &zero_value,
+	                STACK_ENTRY_BYTE_SIZE);
 #endif /* DEBUG */
 	/* advance current index */
 	bf_pool->current++;
@@ -167,9 +161,7 @@ int buff_pool_get(struct buffer_pool *bf_pool, uint64_t* buffer_addr)
 
 int buff_pool_put(struct buffer_pool  *bf_pool, uint64_t buffer_addr)
 {
-	struct icontext ic = {0};
 	ASSERT_COND(bf_pool);
-	icontext_aiop_get(&ic);
 	cdma_mutex_lock_take(bf_pool->p_buffers_addr, CDMA_MUTEX_WRITE_LOCK);
 	/* check if blocks stack is full */
 	if (bf_pool->current > 0)
@@ -178,11 +170,10 @@ int buff_pool_put(struct buffer_pool  *bf_pool, uint64_t buffer_addr)
 		bf_pool->current--;
 		/* put the block */
 		/*bf_pool->p_buffers_stack[bf_pool->current] = PTR_TO_UINT(p_block);*/
-		icontext_dma_write(&ic,
-		                   STACK_ENTRY_BYTE_SIZE,
-		                   &buffer_addr,
-		                   bf_pool->buffers_stack_addr+
-		                      +STACK_ENTRY_BYTE_SIZE*bf_pool->current);
+		cdma_write(bf_pool->buffers_stack_addr+
+	                      +STACK_ENTRY_BYTE_SIZE*bf_pool->current,
+	                      &buffer_addr,
+	                      STACK_ENTRY_BYTE_SIZE);
 		cdma_mutex_lock_release(bf_pool->p_buffers_addr);
 		return 0;
 	}
