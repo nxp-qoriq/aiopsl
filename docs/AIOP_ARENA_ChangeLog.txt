@@ -1,3 +1,4 @@
+all files:        Removed all "os" suffixes from all API's
 fsl_slab.h: Added flag to avoid cache line positioning optimization to optimize memory utilization:
                   SLAB_OPTIMIZE_MEM_UTILIZATION_FLAG
 

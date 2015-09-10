@@ -177,7 +177,7 @@ int rcu_init()
 	 */
 	if (g_sl_tmi_id == 0xff) {
 		tman_addr = 0;
-		err = fsl_os_get_mem((64 * m_timers + 1),
+		err = fsl_get_mem((64 * m_timers + 1),
 		                     g_rcu.mem_heap,
 		                     64,
 		                     &tman_addr);

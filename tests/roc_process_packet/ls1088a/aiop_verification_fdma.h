@@ -668,6 +668,10 @@ struct fdma_enqueue_wf_command {
 		* - 1: Terminate: this command will trigger the Terminate task
 		* command right after the enqueue. If the enqueue failed, the
 		* frame will be discarded.
+		* - 2: Conditional Terminate : trigger the Terminate task 
+		* command only if the enqueue succeeded. If the enqueue failed,
+		* the frame handle is not released and the command returns with
+		* an error code.
 		* - 3: reserved */
 	uint8_t	TC;
 		/** Enqueue ID selection:
@@ -724,6 +728,10 @@ struct fdma_enqueue_wf_exp_command {
 		* - 1: Terminate: this command will trigger the Terminate task
 		* command right after the enqueue. If the enqueue failed, the
 		* frame will be discarded.
+		* - 2: Conditional Terminate : trigger the Terminate task 
+		* command only if the enqueue succeeded. If the enqueue failed,
+		* the frame handle is not released and the command returns with
+		* an error code.
 		* - 3: reserved */
 	uint8_t	TC;
 		/** Enqueue ID selection:
@@ -777,10 +785,10 @@ struct fdma_enqueue_frame_command {
 		* - 1: Terminate: this command will trigger the Terminate task
 		* command right after the enqueue. If the enqueue failed, the
 		* frame will be discarded.
-		* - 2: Conditional Terminate: trigger the Terminate task
-		* command only if the enqueue succeeded. If the enqueue
-		* failed, the frame handle is not released and the command
-		* returns with an error code.
+		* - 2: Conditional Terminate : trigger the Terminate task 
+		* command only if the enqueue succeeded. If the enqueue failed,
+		* the frame handle is not released and the command returns with
+		* an error code.
 		* - 3: reserved */
 	uint8_t	TC;
 		/** Enqueue ID selection:
@@ -798,6 +806,11 @@ struct fdma_enqueue_frame_command {
 		* - 1 = relinquish OSM exclusivity in current scope right after
 		* the enqueue to QMan is issued. */
 	uint8_t	RL;
+		/** AMQ attributes (PL, VA, BDI, ICID) Source.
+		 * If reset - supplied AMQ attributes are used.
+		 * If set - task default AMQ attributes (From Additional Dequeue
+		 * Context) are used. */
+	uint8_t	AS;
 		/** Command returned status. */
 	int8_t  status;
 		/** Use implicit Queueing destination parameters. 
@@ -805,7 +818,7 @@ struct fdma_enqueue_frame_command {
 		* - 1: Use implicit Queueing destination parameters. */
 	int8_t	implicit_qd_params;	
 		/** 64-bit alignment. */
-	uint8_t	pad[4];
+	uint8_t	pad[3];
 };
 
 /**************************************************************************//**
@@ -842,10 +855,10 @@ struct fdma_enqueue_frame_exp_command {
 		* - 1: Terminate: this command will trigger the Terminate task
 		* command right after the enqueue. If the enqueue failed, the
 		* frame will be discarded.
-		* - 2: Conditional Terminate: trigger the Terminate task
-		* command only if the enqueue succeeded. If the enqueue
-		* failed, the frame handle is not released and the command
-		* returns with an error code.
+		* - 2: Conditional Terminate : trigger the Terminate task 
+		* command only if the enqueue succeeded. If the enqueue failed,
+		* the frame handle is not released and the command returns with
+		* an error code.
 		* - 3: reserved */
 	uint8_t	TC;
 		/** Enqueue ID selection:
@@ -863,12 +876,19 @@ struct fdma_enqueue_frame_exp_command {
 		* - 1 = relinquish OSM exclusivity in current scope right after
 		* the enqueue to QMan is issued. */
 	uint8_t	RL;
+		/** AMQ attributes (PL, VA, BDI, ICID) Source.
+		 * If reset - supplied AMQ attributes are used.
+		 * If set - task default AMQ attributes (From Additional Dequeue
+		 * Context) are used. */
+	uint8_t	AS;
 		/** Command returned status. */
 	int8_t  status;
 		/** Use implicit Queueing destination parameters. 
 		* - 0: Use supplied Queueing destination parameters
 		* - 1: Use implicit Queueing destination parameters.*/
 	int8_t	implicit_qd_params;
+		/** 64-bit alignment. */
+	uint8_t	pad[7];
 };
 
 /**************************************************************************//**
@@ -882,16 +902,11 @@ struct fdma_discard_default_wf_command {
 		/** FDMA Discard Default Working Frame command structure
 		* identifier. */
 	uint32_t opcode;
-		/* Frame Source. Currently not supported since only FS = 0 is
-		* supported in rev1.
-		* - 0: discard working frame (using FRAME_HANDLE)
-		* - 1: discard Frame (using FD at FD_ADDRESS).
-	uint8_t	 FS; */
 		/** Control:
 		* - 0: Return after discard
 		* - 1: Trigger the Terminate task command right after
 		* the discard. */
-	/*uint8_t	 TC;*/
+	uint8_t	 TC;
 		/** Command returned status. */
 	int8_t	status;
 		/** 64-bit alignment. */
@@ -911,20 +926,13 @@ struct fdma_discard_wf_command {
 	uint32_t opcode;
 		/** Frame handle to discard. */
 	uint16_t frame;
-		/* Frame Source. Currently not supported since only FS = 0 is
-		* supported in rev1.
-		* - 0: discard working frame (using FRAME_HANDLE)
-		* - 1: discard Frame (using FD at FD_ADDRESS).
-	uint8_t	 FS; */
 		/** Control:
 		* - 0: Return after discard
-		* - 1: Trigger the Terminate task command right after
+		* - 1: Trigger the Terminate task command right after 
 		* the discard. */
-	/*uint8_t	 TC;*/
+	uint8_t	 TC;
 		/** Command returned status. */
 	int8_t	status;
-		/** 64-bit alignment. */
-	uint8_t	pad[1];
 };
 
 /**************************************************************************//**
@@ -944,11 +952,28 @@ struct fdma_discard_fd_command {
 		* - 0: Return after discard
 		* - 1: Trigger the Terminate task command right after
 		* the discard. */
-	/*uint8_t	 TC;*/
+	uint8_t	 TC;
+		/** ICID of the FD to enqueue. */
+	uint16_t icid;
+		/** Bypass DPAA resource Isolation:
+		* - 0: Isolation is enabled for this command. The FQID ID
+		* specified is virtual within the specified ICID.
+		* - 1: Isolation is not enabled for this command. The FQID ID
+		* specified is a real (not virtual) pool ID. */
+	uint8_t	BDI;
+		/** Virtual Address. Frame AMQ attribute.
+		 * The DMA uses this memory attribute to make the access. */
+	uint8_t VA;
+		/** Privilege Level. Frame AMQ attribute.
+		 * The DMA uses this memory attribute to make the access. */
+	uint8_t PL;
+		/** AMQ attributes (PL, VA, BDI, ICID) Source.
+		 * If reset - supplied AMQ attributes are used.
+		 * If set - task default AMQ attributes (From Additional Dequeue
+		 * Context) are used. */
+	uint8_t	AS;
 		/** Command returned status. */
 	int8_t	status;
-		/** 64-bit alignment. */
-	uint8_t	pad[7];
 };
 
 /**************************************************************************//**
@@ -968,11 +993,30 @@ struct fdma_force_discard_fd_command {
 		* - 0: Return after discard
 		* - 1: Trigger the Terminate task command right after
 		* the discard. */
-	/*uint8_t	 TC;*/
+	uint8_t	 TC;
+		/** ICID of the FD to enqueue. */
+	uint16_t icid;
+		/** Bypass DPAA resource Isolation:
+		* - 0: Isolation is enabled for this command. The FQID ID
+		* specified is virtual within the specified ICID.
+		* - 1: Isolation is not enabled for this command. The FQID ID
+		* specified is a real (not virtual) pool ID. */
+	uint8_t	BDI;
+		/** Virtual Address. Frame AMQ attribute.
+		 * The DMA uses this memory attribute to make the access. */
+	uint8_t VA;
+		/** Privilege Level. Frame AMQ attribute.
+		 * The DMA uses this memory attribute to make the access. */
+	uint8_t PL;
+		/** AMQ attributes (PL, VA, BDI, ICID) Source.
+		 * If reset - supplied AMQ attributes are used.
+		 * If set - task default AMQ attributes (From Additional Dequeue
+		 * Context) are used. */
+	uint8_t	AS;
 		/** Command returned status. */
 	int8_t	status;
 		/** 64-bit alignment. */
-	uint8_t	pad[7];
+	uint8_t	pad[6];
 };
 
 /**************************************************************************//**
@@ -1031,13 +1075,13 @@ struct fdma_replicate_frames_command {
 		 * Release destination frame handle is implicit when enqueueing.
 		 * - 0: replicate only
 		 * - 1: replicate and enqueue */
-	/*uint8_t	ENQ;*/
+	uint8_t	ENQ;
 		/** The source frame resources are released after the
 		 * replication.
 		 * Release source frame handle is implicit when discarding.
 		 * - 0: keep source frame
 		 * - 1: discard source frame and release frame handle */
-	/*uint8_t	DSF;*/
+	uint8_t	DSF;
 		/** Frame annotation copy option:
 		 * - 0: do not copy annotations.
 		 * - 1: copy ASA.
@@ -1075,6 +1119,12 @@ struct fdma_concatenate_frames_command {
 	uint16_t frame1;
 		/** The handle of working frame 2. */
 	uint16_t frame2;
+		/** Bits<1-15> : Isolation Context ID. Frame AMQ attribute.
+		* Used only in case \ref FDMA_CONCAT_FS1_BIT is set. */
+	uint16_t icid1;
+		/** Bits<1-15> : Isolation Context ID. Frame AMQ attribute.
+		* Used only in case \ref FDMA_CONCAT_FS2_BIT is set. */
+	uint16_t icid2;
 		/** Storage Profile used to store frame data if additional
 		 * buffers are required when optionally closing the concatenated
 		 *  working frame (PCA is set) */
@@ -1092,10 +1142,36 @@ struct fdma_concatenate_frames_command {
 		 * - 1: close resulting working frame 1 using provided storage
 		 * profile, update FD1 */
 	uint8_t PCA;
+		/** Frame Source 1:
+		 * 0: concatenate working frame 1 using FRAME_HANDLE_1
+		 * 1: concatenate Frame 1 using FD at FD_ADDRESS_1 */
+	uint8_t FS1;
+		/** Frame Source 2:
+		* 0: concatenate working frame 2 using FRAME_HANDLE_2
+		* 1: concatenate Frame 2 using FD at FD_ADDRESS_2 */
+	uint8_t FS2;
+		/** Privilege Level of FD1. */
+	uint8_t PL1;
+		/** Configured Virtual Address of FD1. */
+	uint8_t VA1;
+		/** Bypass DPAA resource Isolation of FD1
+		 * 0: Isolation is enabled for FD1 in this command.
+		 * 1: Isolation is not enabled for FD1 in this command.
+		 * Relevant only if \ref FDMA_CONCAT_FS1_BIT is set */
+	uint8_t BDI1;	
+		/** Privilege Level of FD2. */
+	uint8_t PL2;
+		/** Configured Virtual Address of FD2. */
+	uint8_t VA2;
+		/** Bypass DPAA resource Isolation of FD2
+		 * 0: Isolation is enabled for FD1 in this command.
+		 * 1: Isolation is not enabled for FD1 in this command.
+		 * Relevant only if \ref FDMA_CONCAT_FS1_BIT is set */
+	uint8_t BDI2;
 		/** Command returned status. */
 	int8_t	status;
 		/** 64-bit alignment. */
-	uint8_t	pad[7];
+	uint8_t	pad[3];
 };
 
 /**************************************************************************//**
@@ -1154,7 +1230,9 @@ struct fdma_split_frame_command {
 		 * - 0: do not present segment from the split frame, keep split
 		 * working frame open.
 		 * - 1: present segment from the split frame, keep split working
-		 * frame open. */
+		 * frame open. 
+		 * - 2: do not present, close split working frame using the 
+		 * provided storage profile, update split FD.*/
 	uint8_t PSA;
 		/** Frame split mode:
 		 * - 0: Split is performed at the split_size_sf value.
@@ -1307,12 +1385,13 @@ struct fdma_replace_command {
 		/** Replacing segment size. */
 	uint16_t from_size;
 		/** Number of frame bytes to represent. Must be greater than 0.
-		 *  Relevant if SA field is set. */
+		 *  Relevant if SA field is 1. */
 	uint16_t size_rs;
 		/** Command returned segment length. (relevant if
 		(flags == \ref FDMA_REPLACE_SA_REPRESENT_BIT))*/
 	uint16_t seg_length_rs;
 		/** Segment Action.
+		* - 0: keep the segment open
 		* - 1: represent segment
 		* - 2: close segment */
 	uint8_t	SA;
@@ -1346,6 +1425,7 @@ struct fdma_insert_segment_data_command {
 		 * (flags == \ref FDMA_REPLACE_SA_REPRESENT_BIT))*/
 	uint16_t seg_length_rs;
 		/** Segment Action.
+		* - 0: keep the segment open
 		* - 1: represent segment
 		* - 2: close segment */
 	uint8_t	SA;
@@ -1377,7 +1457,7 @@ struct fdma_insert_segment_data_exp_command {
 		/** Inserted segment data size. */
 	uint16_t insert_size;
 	/**< Number of frame bytes to represent. Must be greater than 0.
-	 * Relevant if SA field is set. */
+	 * Relevant if SA field is 1. */
 	uint16_t size_rs;
 		/** Command returned segment length.
 		 * Relevant if SA_REPRESENT_BIT))*/
@@ -1388,6 +1468,7 @@ struct fdma_insert_segment_data_exp_command {
 		 * from which the data is being inserted. */
 	uint8_t  seg_handle;
 		/** Segment Action.
+		* - 0: keep the segment open
 		* - 1: represent segment
 		* - 2: close segment */
 	uint8_t	SA;
@@ -1415,9 +1496,10 @@ struct fdma_delete_segment_data_command {
 		 * Represent the modified segment parameters. */
 	struct presentation_context prc;
 		/** Command returned segment length.
-		 * Relevant if SA field is set. */
+		 * Relevant if SA field is 1. */
 	uint16_t seg_length_rs;
 		/** Segment Action.
+		 * - 0: keep the segment open
 		 * - 1: represent segment
 		 * - 2: close segment */
 	uint8_t	SA;
@@ -1439,7 +1521,7 @@ struct fdma_delete_segment_data_exp_command {
 		 * structure identifier. */
 	uint32_t opcode;
 		/**< pointer to the location in workspace for the represented
-		 * frame segment (relevant if SA field is set). */
+		 * frame segment (relevant if SA field is 1). */
 	uint32_t ws_dst_rs;
 		/** Offset from the previously presented segment representing
 		* the start point of the deletion. */
@@ -1448,12 +1530,13 @@ struct fdma_delete_segment_data_exp_command {
 	uint16_t delete_target_size;
 		/** Number of frame bytes to represent in the segment. Must be
 		 * greater than 0.
-		 * Relevant if SA field is set.*/
+		 * Relevant if SA field is 1.*/
 	uint16_t size_rs;
 		/** Command returned segment length.
-		 * Relevant if SA field is set. */
+		 * Relevant if SA field is 1. */
 	uint16_t seg_length_rs;
 		/** Segment Action.
+		 * - 0: keep the segment open
 		 * - 1: represent segment
 		 * - 2: close segment */
 	uint8_t	SA;
@@ -1627,6 +1710,27 @@ struct fdma_checksum_command {
 	int8_t  status;
 		/** 64-bit alignment. */
 	uint8_t	pad[5];
+};
+
+/**************************************************************************//**
+@Description	FDMA Get Working Frame Length Command structure.
+
+		Includes information needed for FDMA Working Frame Length
+		command verification.
+
+*//***************************************************************************/
+struct fdma_get_wf_length_command {
+		/** FDMA Get Working Frame length command structure
+		 * identifier. */
+	uint32_t opcode;
+		/** Command returned working frame length. */
+	uint32_t length;
+		/** Working frame handle. */
+	uint8_t frame_handle;
+		/** Command returned status. */
+	int8_t  status;
+		/** 64-bit alignment. */
+	uint8_t	pad[6];
 };
 
 /**************************************************************************//**

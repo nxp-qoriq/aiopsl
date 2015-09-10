@@ -75,8 +75,8 @@ struct vxlanhdr {
 *//***************************************************************************/
 #pragma pack(push,1)
 struct vlanhdr {
-	uint16_t tci;			/**< Priority, CFI and ID  */
-	uint16_t ether_type;	/**< Length or Ethertype */
+	uint16_t tpid;			/**< Tag Protocol Identifier */
+	uint16_t tci;			/**< Tag Control Information */
 };
 #pragma pack(pop)
 

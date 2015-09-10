@@ -569,35 +569,38 @@ static int cut_free(t_MM *p_MM, const uint64_t hold_base, const uint64_t hold_en
  *      None.
  *
  ****************************************************************/
-static void add_busy(t_MM *p_MM, uint64_t new_busy_addr)
+/*static void add_busy(t_MM *p_MM, uint64_t new_busy_addr)*/
+static void add_busy(t_MM *p_MM, t_slob_block* busy_b,uint64_t new_busy_addr)
+
 {
-    t_slob_block busy_b = {0};
+    //t_slob_block busy_b = {0};
     uint64_t  new_busy_b_base = 0;
     uint64_t curr_busy_b_addr = 0, prev_busy_b_addr = 0;
 
-    cdma_read(&new_busy_b_base,new_busy_addr+offsetof(t_slob_block,base),sizeof(new_busy_b_base));
+    //cdma_read(&new_busy_b_base,new_busy_addr+offsetof(t_slob_block,base),sizeof(new_busy_b_base));
+    new_busy_b_base = busy_b->base;
     /* finds a place of a new busy block in the list of busy blocks */
     curr_busy_b_addr = p_MM->head_busy_blocks_addr;
     if(0 != curr_busy_b_addr)
     {
-        cdma_read(&busy_b,curr_busy_b_addr,sizeof(busy_b));
+        cdma_read(busy_b,curr_busy_b_addr,sizeof(*busy_b));
     }
 
-    while ( curr_busy_b_addr && new_busy_b_base > busy_b.base )
+    while ( curr_busy_b_addr && new_busy_b_base > busy_b->base )
     {
 	prev_busy_b_addr = curr_busy_b_addr;
-	curr_busy_b_addr = busy_b.next_addr;
+	curr_busy_b_addr = busy_b->next_addr;
         if(0 != curr_busy_b_addr)
         {
-            cdma_read(&busy_b,curr_busy_b_addr,sizeof(busy_b));
+            cdma_read(busy_b,curr_busy_b_addr,sizeof(*busy_b));
         }
     }
     /* insert the new busy block into the list of busy blocks */
-    cdma_read(&busy_b,new_busy_addr,sizeof(busy_b));
+    cdma_read(busy_b,new_busy_addr,sizeof(*busy_b));
     if ( curr_busy_b_addr )
     {
-	busy_b.next_addr =  curr_busy_b_addr;
-        cdma_write(new_busy_addr,&busy_b,sizeof(busy_b));
+	busy_b->next_addr =  curr_busy_b_addr;
+        cdma_write(new_busy_addr,busy_b,sizeof(*busy_b));
     }
     if ( prev_busy_b_addr )
     {
@@ -675,7 +678,7 @@ static uint64_t slob_get_greater_alignment(t_MM *p_MM,
                                            const uint64_t size,
                                            const uint32_t alignment)
 {
-    t_slob_block free_b = {0};
+    t_slob_block block = {0};
     uint64_t new_busy_addr = 0;
     uint64_t  free_addr = 0;
     uint64_t    hold_base = 0, hold_end = 0, align_base = 0;
@@ -688,23 +691,23 @@ static uint64_t slob_get_greater_alignment(t_MM *p_MM,
               sizeof(free_addr));
     if(0 != free_addr )
     {
-        cdma_read(&free_b,free_addr,sizeof(free_b));
+        cdma_read(&block,free_addr,sizeof(block));
     }
 
     while(free_addr)
     {
-	  align_base = ALIGN_UP_64(free_b.base, alignment);
+	  align_base = ALIGN_UP_64(block.base, alignment);
 
         /* the block is found if the aligned base inside the block
          * and has the enough size. */
-	  if ( align_base >= free_b.base &&
-	       align_base < free_b.end &&
-	       size <= (free_b.end - align_base) )
+	  if ( align_base >= block.base &&
+	       align_base < block.end &&
+	       size <= (block.end - align_base) )
 	      break;
 	  else
 	  {
-	      free_addr = free_b.next_addr;
-	      cdma_read(&free_b,free_addr,sizeof(free_b));
+	      free_addr = block.next_addr;
+	      cdma_read(&block,free_addr,sizeof(block));
 	  }
     }
 
@@ -730,7 +733,8 @@ static uint64_t slob_get_greater_alignment(t_MM *p_MM,
     }
 
     /* insert the new busy block into the list of busy blocks */
-    add_busy ( p_MM,new_busy_addr);
+    cdma_read(&block,new_busy_addr,sizeof(block));
+    add_busy ( p_MM,&block,new_busy_addr);
     return (hold_base);
 }
 #ifdef OPTIMIZE_STACK_SIZE
@@ -852,7 +856,7 @@ void slob_free(uint64_t* slob)
         {
             cdma_read(&busy_block,busy_block_addr,sizeof(busy_block_addr));
         }
-        //fsl_os_free(p_block);
+        //fsl_free(p_block);
         buff_pool_put(slob_bf_pool,block_adr);
     }
 
@@ -883,7 +887,7 @@ static uint64_t slob_get_normal_alignment(t_MM *p_MM,
                                    const uint32_t alignment)
 {
      uint64_t addr = 0;
-     t_slob_block free_b = {0};
+     t_slob_block block = {0};
      uint64_t    hold_base,hold_end;//,new_busy_b_addr = 0;
      uint32_t i;
      LOG2(alignment,i);
@@ -892,14 +896,14 @@ static uint64_t slob_get_normal_alignment(t_MM *p_MM,
               sizeof(addr));
     if(0 != addr)
     {
-        cdma_read(&free_b,addr,sizeof(free_b));
+        cdma_read(&block,addr,sizeof(block));
     }
-    while ( addr && (free_b.end - free_b.base) < size )
+    while ( addr && (block.end - block.base) < size )
     {
-        addr = free_b.next_addr;
+        addr = block.next_addr;
         if(0 != addr)
         {
-            cdma_read(&free_b,addr,sizeof(free_b));
+            cdma_read(&block,addr,sizeof(block));
         }
     }
 
@@ -909,7 +913,7 @@ static uint64_t slob_get_normal_alignment(t_MM *p_MM,
         return 0LL;
     }
 
-    hold_base =  free_b.base;
+    hold_base =  block.base;
     hold_end = hold_base + size;
 
     /* init a new busy block */
@@ -929,7 +933,8 @@ static uint64_t slob_get_normal_alignment(t_MM *p_MM,
     /* Decreasing the allocated memory size from free memory size */
     p_MM->free_mem_size -= size;
     /* insert the new busy block into the list of busy blocks */
-    add_busy (p_MM,addr);
+    cdma_read(&block,addr,sizeof(block));
+    add_busy (p_MM,&block,addr);
     return (hold_base);
 }
 /*****************************************************************************/

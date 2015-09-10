@@ -266,6 +266,85 @@ inline void cdma_mutex_lock_release(
 	cdma_exception_handler(CDMA_MUTEX_LOCK_RELEASE, __LINE__, (int32_t)res1);	
 }
 
+
+inline void cdma_ephemeral_reference_take() 
+{
+
+	/* command parameters and results */
+	uint32_t arg1, arg2, arg3, arg4;
+	uint8_t res1;
+
+	/* prepare command parameters */
+	arg1 = CDMA_EPHEMERAL_REF_TAKE_CMD_ARG1();
+	arg2 = 0;
+	arg3 = 0;
+	arg4 = 0;
+
+	/* store command parameters */
+	__stqw(arg1, arg2, arg3, arg4, HWC_ACC_IN_ADDRESS, 0);
+
+	/* call CDMA */
+	if ((__e_hwacceli_(CDMA_ACCEL_ID)) == CDMA_SUCCESS)
+		return;
+
+	/* load command results */
+	res1 = *((uint8_t *)(HWC_ACC_OUT_ADDRESS+CDMA_STATUS_OFFSET));
+	cdma_exception_handler(CDMA_EPHEMERAL_REFERENCE_TAKE, __LINE__, (int32_t)res1);	
+}
+
+
+inline void cdma_ephemeral_reference_release_all() 
+{
+
+	/* command parameters and results */
+	uint32_t arg1, arg2, arg3, arg4;
+	uint8_t res1;
+
+	/* prepare command parameters */
+	arg1 = CDMA_EPHEMERAL_REF_RELEASE_ALL_CMD_ARG1();
+	arg2 = 0;
+	arg3 = 0;
+	arg4 = 0;
+
+	/* store command parameters */
+	__stqw(arg1, arg2, arg3, arg4, HWC_ACC_IN_ADDRESS, 0);
+
+	/* call CDMA */
+	if ((__e_hwacceli_(CDMA_ACCEL_ID)) == CDMA_SUCCESS)
+		return;
+
+	/* load command results */
+	res1 = *((uint8_t *)(HWC_ACC_OUT_ADDRESS+CDMA_STATUS_OFFSET));
+	cdma_exception_handler(CDMA_EPHEMERAL_REFERENCE_RELEASE_ALL, __LINE__, (int32_t)res1);	
+}
+
+
+inline void cdma_ephemeral_reference_sync() 
+{
+
+	/* command parameters and results */
+	uint32_t arg1, arg2, arg3, arg4;
+	uint8_t res1;
+
+	/* prepare command parameters */
+	arg1 = CDMA_EPHEMERAL_REF_SYNC_CMD_ARG1();
+	arg2 = 0;
+	arg3 = 0;
+	arg4 = 0;
+
+	/* store command parameters */
+	__stqw(arg1, arg2, arg3, arg4, HWC_ACC_IN_ADDRESS, 0);
+
+	/* call CDMA */
+	if ((__e_hwacceli_(CDMA_ACCEL_ID)) == CDMA_SUCCESS)
+		return;
+
+	/* load command results */
+	res1 = *((uint8_t *)(HWC_ACC_OUT_ADDRESS+CDMA_STATUS_OFFSET));
+	cdma_exception_handler(CDMA_EPHEMERAL_REFERENCE_SYNC, __LINE__, (int32_t)res1);	
+}
+
+
 inline int cdma_access_context_memory(
 		uint64_t context_address,
 		uint32_t flags,

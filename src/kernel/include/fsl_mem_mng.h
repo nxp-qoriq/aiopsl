@@ -70,7 +70,7 @@
 /**< It is possible to make dynamic memory allocation */
 #define MEMORY_ATTR_MALLOCABLE      0x00000004
 
-/**< Memory partition for physical address allocation  through fsl_os_get_mem() */
+/**< Memory partition for physical address allocation  through fsl_get_mem() */
 #define MEMORY_ATTR_PHYS_ALLOCATION	0x00000008
 
 #define MEM_MNG_MAX_PARTITION_NAME_LEN      32
@@ -170,7 +170,7 @@ struct t_mem_mng
                 /**< List of partition control structures */
     t_mem_mng_phys_addr_alloc_partition
            phys_allocation_mem_partitions_array[PLATFORM_MAX_MEM_INFO_ENTRIES];
-                /**< List of partition for fsl_os_get_mem function() control structures */
+                /**< List of partition for fsl_get_mem function() control structures */
     uint32_t    mem_partitions_initialized;
     void * h_boot_mem_mng;
     struct buffer_pool slob_bf_pool;
@@ -390,7 +390,7 @@ int sys_get_phys_mem(uint64_t size, int mem_partition_id,  uint64_t alignment,
 @Function     sys_put_phys_mem
 
 @Description   Frees the memory block pointed to by "paddr".
-               paddr should be allocated by fsl_os_get_mem()
+               paddr should be allocated by fsl_get_mem()
 
 @Param[in]    paddr  An address to be freed.
 

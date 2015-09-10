@@ -6,4 +6,8 @@
 #define ARCH_MFLU_DP_DDR_NUM_ENTRIES (2048)
 
 
+/* fdma_discard_fd API is different for rev1 and rev2 */
+#define ARCH_FDMA_DISCARD_FD() \
+	fdma_discard_fd((struct ldpaa_fd *)HWC_FD_ADDRESS, FDMA_DIS_NO_FLAGS);
+
 #endif /* __APPS_ARCH_H */

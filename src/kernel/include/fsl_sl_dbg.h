@@ -96,7 +96,7 @@
 #define sl_pr_err(...) 	SL_DBG(REPORT_LEVEL_MAJOR, __VA_ARGS__)
 
 /**************************************************************************//**
- @Function      sl_os_print(...)
+ @Function      sl_print(...)
 
  @Description   Same as fsl_print() but only for service layer developers
  	 	The users will not see those prints. In order to enable them
@@ -106,7 +106,7 @@
 
  @Param[in]     ... string with arguments to print.
 *//***************************************************************************/
-#define sl_os_print(...)    SL_PRINT(__VA_ARGS__)
+#define sl_print(...)    SL_PRINT(__VA_ARGS__)
 
 /**************************************************************************//**
  @Function      no_stack_pr_debug(...)

@@ -1022,7 +1022,7 @@ int aiop_snic_init(void)
 		return status;
 	}
 	memset(snic_params, 0, sizeof(snic_params));
-	fsl_os_get_mem(SNIC_MAX_NO_OF_TIMERS*64, mem_pid, 64, 
+	fsl_get_mem(SNIC_MAX_NO_OF_TIMERS*64, mem_pid, 64, 
 			&snic_tmi_mem_base_addr);
 	/* tmi delete is in snic_free */
 	status = tman_create_tmi(snic_tmi_mem_base_addr , SNIC_MAX_NO_OF_TIMERS, 
@@ -1043,7 +1043,7 @@ void snic_tman_confirm_cb(tman_arg_8B_t arg1, tman_arg_2B_t arg2)
 	UNUSED(arg2);
 	tman_timer_completion_confirmation(
 			TMAN_GET_TIMER_HANDLE(HWC_FD_ADDRESS));
-	fsl_os_put_mem(snic_tmi_mem_base_addr);
+	fsl_put_mem(snic_tmi_mem_base_addr);
 	fdma_terminate_task();
 }
 void snic_ipr_timout_cb(ipr_timeout_arg_t arg,

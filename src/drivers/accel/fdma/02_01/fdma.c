@@ -619,10 +619,13 @@ int fdma_enqueue_default_fd_fqid(
 	/* prepare command parameters */
 	flags |= FDMA_EN_EIS_BIT;
 	arg1 = FDMA_ENQUEUE_FRAME_ARG1(flags);
-	arg3 = FDMA_ENQUEUE_FRAME_ARG3(flags, icid);
+	if (!(flags & FDMA_ENF_AS_BIT))
+	{
+		arg3 = FDMA_ENQUEUE_FRAME_ARG3(flags, icid);
+		*((uint32_t *) HWC_ACC_IN_ADDRESS3) = arg3;
+	}
 	/* store command parameters */
 	__stdw(arg1, fqid, HWC_ACC_IN_ADDRESS, 0);
-	*((uint32_t *) HWC_ACC_IN_ADDRESS3) = arg3;
 	/* call FDMA Accelerator */
 	if ((__e_hwacceli_(FODMA_ACCEL_ID)) == FDMA_SUCCESS)
 		return SUCCESS;
@@ -651,10 +654,13 @@ int fdma_enqueue_fd_fqid(
 	/* prepare command parameters */
 	flags |= FDMA_EN_EIS_BIT;
 	arg1 = FDMA_ENQUEUE_FRAME_EXP_ARG1(flags, fd);
-	arg3 = FDMA_ENQUEUE_FRAME_ARG3(flags, icid);
+	if (!(flags & FDMA_ENF_AS_BIT))
+	{
+		arg3 = FDMA_ENQUEUE_FRAME_ARG3(flags, icid);
+		*((uint32_t *) HWC_ACC_IN_ADDRESS3) = arg3;
+	}
 	/* store command parameters */
 	__stdw(arg1, fqid, HWC_ACC_IN_ADDRESS, 0);
-	*((uint32_t *) HWC_ACC_IN_ADDRESS3) = arg3;
 	/* call FDMA Accelerator */
 	if ((__e_hwacceli_(FODMA_ACCEL_ID)) == FDMA_SUCCESS)
 		return SUCCESS;
@@ -688,7 +694,7 @@ int fdma_enqueue_default_fd_qd(
 			enqueue_params->qdbin);
 	/* store command parameters */
 	__stdw(arg1, arg2, HWC_ACC_IN_ADDRESS, 0);
-	*((uint32_t *) HWC_ACC_IN_ADDRESS3) = arg3;
+		*((uint32_t *) HWC_ACC_IN_ADDRESS3) = arg3;
 	/* call FDMA Accelerator */
 	if ((__e_hwacceli_(FODMA_ACCEL_ID)) == FDMA_SUCCESS)
 		return SUCCESS;
@@ -745,13 +751,7 @@ void fdma_discard_frame(uint16_t frame, uint32_t flags)
 	uint32_t arg1;
 	int8_t res1;
 	/* prepare command parameters */
-#ifdef REV2
-	/* Todo - Add ICID + flags support */
-#endif /*REV2*/
-	/*if (flags & FDMA_DIS_FS_HANDLE_BIT)*/
-		arg1 = FDMA_DISCARD_ARG1_FRAME(frame, flags);
-	/*else
-		arg1 = FDMA_DISCARD_ARG1_FD(HWC_FD_ADDRESS, flags);*/
+	arg1 = FDMA_DISCARD_ARG1_FRAME(frame, flags);
 	*((uint32_t *)(HWC_ACC_IN_ADDRESS)) = arg1;
 	/* call FDMA Accelerator */
 	if ((__e_hwacceli_(FODMA_ACCEL_ID)) == FDMA_SUCCESS)
@@ -762,10 +762,10 @@ void fdma_discard_frame(uint16_t frame, uint32_t flags)
 	fdma_exception_handler(FDMA_DISCARD_FRAME, __LINE__, (int32_t)res1);
 }
 
-void fdma_force_discard_fd(struct ldpaa_fd *fd)
+int fdma_force_discard_fd(struct ldpaa_fd *fd, uint16_t icid, uint32_t flags)
 {
 	LDPAA_FD_SET_ERR(fd, 0);
-	fdma_discard_fd(fd, FDMA_DIS_NO_FLAGS);
+	return fdma_discard_fd(fd, icid, flags);
 }
 
 int fdma_replicate_frame_fqid(
@@ -857,19 +857,34 @@ int fdma_concatenate_frames(
 		struct fdma_concatenate_frames_params *params)
 {
 	/* command parameters and results */
-	uint32_t arg1, arg2;
+	uint32_t arg1, arg2, arg3, arg4;
 	int8_t  res1;
 	uint16_t bdi_icid;
 
 	/* prepare command parameters */
-#ifdef REV2
-	/* Todo - Add ICID + flags + FDs support */
-#endif /*REV2*/
 	arg1 = FDMA_CONCAT_CMD_ARG1(params->spid, params->trim, params->flags);
 	arg2 = FDMA_CONCAT_CMD_ARG2(params->frame2, params->frame1);
+	arg3 = 0;
+	arg4 = 0;
+	if (params->flags | FDMA_CONCAT_FS1_BIT)
+	{
+		arg3 = (uint32_t)(params->icid1 | 
+		    (uint16_t)((params->amq_flags & FDMA_CONCAT_AMQ_BDI1) ? 
+				    FDMA_CONCAT_BDI_BIT : 0));
+		arg4 = (uint16_t)
+			(params->amq_flags & FDMA_CONCAT_FS1_PL_VA_MASK);	
+	}
+	if (params->flags | FDMA_CONCAT_FS2_BIT)
+	{
+		arg3 |= ((params->icid2 | 
+		    (uint16_t)((params->amq_flags & FDMA_CONCAT_AMQ_BDI2) ? 
+				    FDMA_CONCAT_BDI_BIT : 0)) << 16);
+		arg4 |= (uint16_t)
+			(params->amq_flags & FDMA_CONCAT_FS2_PL_VA_MASK);	
+	}
 
 	/* store command parameters */
-	__stdw(arg1, arg2, HWC_ACC_IN_ADDRESS, 0);
+	__stqw(arg1, arg2, arg3, arg4, HWC_ACC_IN_ADDRESS, 0);
 
 	/* call FDMA Accelerator */
 	__e_hwacceli_(FODMA_ACCEL_ID);
@@ -912,14 +927,7 @@ int fdma_split_frame(
 	int8_t  res1;
 
 	/* prepare command parameters */
-#ifdef REV2
-	if (((uint32_t)params->fd_dst) == HWC_FD_ADDRESS)
-		arg1 = FDMA_SPLIT_CMD_ARG1(*((uint8_t *)HWC_SPID_ADDRESS),
-				params->source_frame_handle, params->flags);
-	else
-		arg1 = FDMA_SPLIT_CMD_ARG1(params->spid,
-				params->source_frame_handle, params->flags);
-#endif /* REV2 */
+
 	arg1 = FDMA_SPLIT_CMD_ARG1(params->spid,
 				params->source_frame_handle, params->flags);
 
@@ -963,11 +971,6 @@ int fdma_split_frame(
 				prc->asapa_asaps =
 					(params->flags & FDMA_SPLIT_SR_BIT) ?
 							PRC_SR_MASK : 0;
-				if (!(params->flags & FDMA_SPLIT_SM_BIT)) {
-					//LDPAA_FD_SET_SL(HWC_FD_ADDRESS, 0);
-					LDPAA_FD_SET_LENGTH(HWC_FD_ADDRESS,
-							params->split_size_sf);
-				}
 			}
 		}
 		/* Update Task Defaults */
@@ -978,18 +981,7 @@ int fdma_split_frame(
 					PRC_FRAME_HANDLE_MASK);
 				prc->ptapa_asapo = PRC_PTA_NOT_LOADED_ADDRESS;
 				prc->asapa_asaps = 0;
-				if (!(params->flags & FDMA_SPLIT_SM_BIT)) {
-					//LDPAA_FD_SET_SL(HWC_FD_ADDRESS, 0);
-					LDPAA_FD_SET_LENGTH(HWC_FD_ADDRESS,
-						params->split_size_sf);
-				}
 		}
-
-		if ((((uint32_t)params->fd_dst) != HWC_FD_ADDRESS) &&
-		    (params->source_frame_handle == PRC_GET_FRAME_HANDLE()) &&
-		    !(params->flags & FDMA_SPLIT_SM_BIT))
-			LDPAA_FD_UPDATE_LENGTH((uint32_t)params->fd_dst, 0,
-					params->split_size_sf);
 
 		if ((res1 == FDMA_SUCCESS))
 			return SUCCESS;
@@ -1105,11 +1097,6 @@ int fdma_insert_segment_data(
 			}
 		}
 
-		if (params->frame_handle == PRC_GET_FRAME_HANDLE())
-			/* FD fields should be updated with a swap load/store */
-			LDPAA_FD_UPDATE_LENGTH(HWC_FD_ADDRESS,
-					params->insert_size, 0);
-
 		if ((params->seg_handle == PRC_GET_SEGMENT_HANDLE()) &&
 			(params->flags & FDMA_REPLACE_SA_CLOSE_BIT))
 			PRC_SET_NDS_BIT();
@@ -1170,10 +1157,6 @@ int fdma_delete_segment_data(
 		}
 
 		if (params->frame_handle == PRC_GET_FRAME_HANDLE()) {
-			/* FD fields should be updated with a swap load/store */
-			LDPAA_FD_UPDATE_LENGTH(HWC_FD_ADDRESS, 0,
-					params->delete_target_size);
-
 			if ((params->seg_handle == PRC_GET_SEGMENT_HANDLE()) &&
 				(params->flags & FDMA_REPLACE_SA_CLOSE_BIT))
 				PRC_SET_NDS_BIT();
@@ -1235,7 +1218,6 @@ int fdma_replace_default_asa_segment_data(
 	int8_t res1;
 
 	/* prepare command parameters */
-	flags = flags | FDMA_REPLACE_TAM_FLAG;
 	arg1 = FDMA_REPLACE_PTA_ASA_CMD_ARG1(
 			FDMA_ASA_SEG_HANDLE, prc->handles, flags);
 	arg2 = FDMA_REPLACE_CMD_ARG2(to_offset, to_size);
@@ -1294,7 +1276,6 @@ int fdma_replace_default_pta_segment_data(
 		fdma_exception_handler(FDMA_REPLACE_DEFAULT_PTA_SEGMENT_DATA, 
 				__LINE__, (int32_t)FDMA_INVALID_PTA_ADDRESS);
 
-	flags = flags | FDMA_REPLACE_TAM_FLAG;
 	arg1 = FDMA_REPLACE_PTA_ASA_CMD_ARG1(
 			FDMA_PTA_SEG_HANDLE, PRC_GET_HANDLES(), flags);
 	arg3 = FDMA_REPLACE_CMD_ARG3(from_ws_src, size_type);
@@ -1337,6 +1318,29 @@ int fdma_replace_default_pta_segment_data(
 					__LINE__, (int32_t)res1);
 
 	return (int32_t)(res1);
+}
+
+void get_frame_length(uint8_t frame_handle, uint32_t *length)
+{
+	/* command parameters and results */
+	int8_t res1;
+	
+	/* prepare + store command parameters */
+	*((uint32_t *)(HWC_ACC_IN_ADDRESS)) = 
+			FDMA_GET_FRAME_LENGTH_CMD_ARG1(frame_handle);
+
+	/* call FDMA Accelerator */
+	if ((__e_hwacceli_(FODMA_ACCEL_ID)) == FDMA_SUCCESS)
+	{
+		*length = *((uint16_t *)HWC_ACC_OUT_ADDRESS2);
+		return;
+	}
+
+	/* load command results */
+	res1 = *((int8_t *)(FDMA_STATUS_ADDR));
+	
+	fdma_exception_handler(FDMA_GET_FRAME_LENGTH, 
+			__LINE__, (int32_t)res1);
 }
 
 void fdma_dma_data(
@@ -1461,9 +1465,9 @@ void fdma_release_buffer(
 		(adc->fdsrc_va_fca_bdi & ~(ADC_BDI_MASK | ADC_VA_MASK)) | flags;
 }
 
-int fdma_discard_fd_wrp(struct ldpaa_fd *fd, uint32_t flags)
+int fdma_discard_fd_wrp(struct ldpaa_fd *fd, uint16_t icid, uint32_t flags)
 {
-	return fdma_discard_fd(fd, flags);
+	return fdma_discard_fd(fd, icid, flags);
 }
 
 void fdma_calculate_default_frame_checksum_wrp( uint16_t offset,
@@ -1624,6 +1628,9 @@ void fdma_exception_handler(enum fdma_function_identifier func_id,
 	case FDMA_CALCULATE_DEFAULT_FRAME_CHECKSUM:
 		func_name = "fdma_calculate_default_frame_checksum";
 		break;
+	case FDMA_GET_FRAME_LENGTH:
+		func_name = "get_frame_length";
+		break;
 	case FDMA_COPY_DATA:
 		func_name = "fdma_copy_data";
 		break;
@@ -1648,10 +1655,11 @@ void fdma_exception_handler(enum fdma_function_identifier func_id,
 				"larger than frame size.\n";
 		break;
 	case FDMA_FRAME_STORE_ERR:
-		err_msg ="Frame Store failed from one of the following reasons:"
+		err_msg ="Frame Store failed due to one of the following "
+				"reasons:\n"
 				"- single buffer frame full and Storage Profile"
 				" FF is set to 10.\n "
-				"- storage profile fields mismatch "
+				"- storage profile fields mismatch: "
 				"(offset (ASAR+PTAR+SGHR/DHR) > buffer size, or"
 				"ASAL > ASAR, or PTA > PTAR, or PTA != PTAR)\n";
 		break;
@@ -1725,8 +1733,8 @@ void fdma_exception_handler(enum fdma_function_identifier func_id,
 		err_msg = "FDMA Internal error, SRU depletion.\n";
 		break;
 	case FDMA_SPID_ICID_ERR:
-		err_msg = "Storage Profile ICID does not match frame ICID "
-				"Error.\n";
+		err_msg = "Storage Profile ICID/VA does not match frame "
+				"ICID/VA Error.\n";
 		break;
 	case FDMA_SRAM_MEMORY_READ_ERR:
 		err_msg = "Shared SRAM memory read Error.\n";
@@ -1739,6 +1747,9 @@ void fdma_exception_handler(enum fdma_function_identifier func_id,
 		break;	
 	case FDMA_INVALID_PTA_ADDRESS:
 		err_msg = "Invalid PTA address Error.\n";
+		break;
+	case FDMA_SHARED_SRAM_MEMORY_WRITE_ERROR:
+		err_msg = "Shared SRAM memory write Error.\n";
 		break;
 	default:
 		err_msg = "Unknown or Invalid status Error.\n";

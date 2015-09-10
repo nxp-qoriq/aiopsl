@@ -734,6 +734,24 @@ int ipsec_frame_encrypt(
 		uint32_t *enc_status
 		);
 
+/**************************************************************************//**
+@Function	ipsec_force_seconds_lifetime_expiry
+
+@Description	This function forces expiry of the soft and hard 
+				seconds lifetime timers, and if a user callback function
+				is available invokes a function call.
+
+@Param[in]	ipsec_handle - IPsec handle.
+
+@Return		General status
+
+@Cautions	User should note the following:
+		- In this function the task yields.
+*//****************************************************************************/
+int ipsec_force_seconds_lifetime_expiry(
+		ipsec_handle_t ipsec_handle);
+
+
 /** @} */ /* end of FSL_IPSEC_Functions */
 /** @} */ /* end of FSL_IPSEC */
 /** @} */ /* end of NETF */

@@ -26,7 +26,7 @@
 
 
 /*!
- *  @file    cmdif_client.h
+ *  @file    cmdif_client_flib.h
  *  @brief   Cmdif client AIOP<->GPP internal header file
  */
 

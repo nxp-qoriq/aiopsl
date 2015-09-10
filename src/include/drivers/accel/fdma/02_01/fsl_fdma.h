@@ -134,11 +134,10 @@ enum fdma_split_psa_options {
 	FDMA_SPLIT_PSA_NO_PRESENT_BIT =	0x00000000,
 		/** Present segment from the split frame,
 		 * keep split working frame open. */
-	FDMA_SPLIT_PSA_PRESENT_BIT =	0x00000400
-#ifdef REV2
-		/** Do not present, store and close split working frame. */
+	FDMA_SPLIT_PSA_PRESENT_BIT =	0x00000400,
+		/** Do not present, close split working frame using the provided
+		 * storage profile, update split FD. */
 	FDMA_SPLIT_PSA_CLOSE_FRAME_BIT = 0x00000800
-#endif /* REV2 */
 };
 
 /* @} end of enum fdma_split_psa_options */
@@ -155,15 +154,15 @@ enum fdma_enqueue_tc_options {
 	FDMA_EN_TC_RET_BITS =	0x0000,
 		/** Terminate: this command will trigger the Terminate task
 		 * command right after the enqueue. If the enqueue failed, the
-		 * frame will be discarded.	*/
-	FDMA_EN_TC_TERM_BITS = 0x0400
-#ifdef REV2
+		 * frame will be discarded. If a frame structural error is found
+		 * with the frame to be discarded, the frame is not discarded 
+		 * and the command returns with an error code. */
+	FDMA_EN_TC_TERM_BITS = 0x0400,
 		/** Conditional Terminate : trigger the Terminate task command
 		 * only if the enqueue succeeded. If the enqueue failed, the
 		 * frame handle is not released and the command returns with an
 		 * error code.	*/
-	FDMA_EN_TC_CONDTERM_BITS =	0x0800
-#endif /* REV2 */
+	FDMA_EN_TC_CONDTERM_BITS = 0x0800
 };
 
 /* @} end of enum fdma_enqueue_tc_options */
@@ -178,10 +177,8 @@ enum fdma_enqueue_tc_options {
  @{
 *//***************************************************************************/
 enum fdma_replace_sa_options {
-#ifdef REV2
 		/** Keep the segment open */
 	FDMA_REPLACE_SA_OPEN_BIT =	0x0000,
-#endif /* REV2 */
 		/** Re-present the segment in workspace */
 	FDMA_REPLACE_SA_REPRESENT_BIT =	0x0100,
 		/** Close the replaced segment to free the workspace memory
@@ -329,8 +326,8 @@ enum fdma_pta_size_type {
 	/** Enqueue Priority source.
 	 * Relevant for Queuing Destination Selection.
 	 * If set - use QD_PRI from h/w context (this is the value found in the
-	 * WQID field from ADC). Otherwise - use QD_PRI provided with DMA
-	 * Command. */
+	 * WQID field from the Additional Dequeue Context). 
+	 * Otherwise - use QD_PRI provided with DMA Command. */
 #define FDMA_ENWF_PS_BIT	0x00001000
 	/** Enqueue Relinquish option:
 	 * Relevant for Queuing Destination Selection.
@@ -357,8 +354,8 @@ enum fdma_pta_size_type {
 	/** Enqueue Priority source.
 	 * Relevant for Queuing Destination Selection.
 	 * If set - use QD_PRI from h/w context (this is the value found in the
-	 * WQID field from ADC). Otherwise - use QD_PRI provided with DMA
-	 * Command. */
+	 * WQID field from the Additional Dequeue Context). 
+	 * Otherwise - use QD_PRI provided with DMA Command. */
 #define FDMA_ENF_PS_BIT		0x00001000
 	/** Bypass DPAA resource Isolation.
 	 * If set - Isolation is not enabled for this command (the FQID ID
@@ -366,6 +363,11 @@ enum fdma_pta_size_type {
 	 * enabled for this command (the FQID ID specified is virtual within the
 	 * specified ICID). */
 #define FDMA_ENF_BDI_BIT	0x80000000
+	/** AMQ attributes (PL, VA, BDI, ICID) Source.
+	 * If reset - supplied AMQ attributes are used.
+	 * If set - task default AMQ attributes (From Additional Dequeue
+	 * Context) are used. */
+#define FDMA_ENF_AS_BIT		0x00004000
 	/** Enqueue Relinquish option:
 	 * Relevant for Queuing Destination Selection.
 	 * If set - relinquish OSM exclusivity in current scope right after the
@@ -386,21 +388,47 @@ enum fdma_pta_size_type {
 
 	/** Default command configuration. */
 #define FDMA_DIS_NO_FLAGS	0x00000000
-#ifdef REV2
 	/** Terminate Control.
 	 * If set - Trigger the Terminate task command right after the discard.
 	 * Otherwise - Return after discard.*/
 #define FDMA_DIS_WF_TC_BIT	0x00000100
-	/** Frame Source: Discard working frame (using frame handle).*/
-#define FDMA_DIS_FS_HANDLE_BIT	0x0000
-	/** Frame Source: Discard Frame (using frame FD).*/
-#define FDMA_DIS_FS_FD_BIT	0x0200
 
-#endif /* REV2 */
 
 
 /** @} end of group FDMA_Discard_WF_Flags */
 
+/**************************************************************************//**
+@Group		FDMA_Discard_Frame_Flags  FDMA Discard Frame Flags
+
+@Description	FDMA Discard frame flags
+
+@{
+*//***************************************************************************/
+
+	/** Default command configuration. */
+#define FDMA_DIS_FRAME_NO_FLAGS	0x00000000
+	/** Virtual Address. Frame AMQ attribute.
+	 * Used only in case \ref FDMA_DIS_AS_BIT is set. */
+#define FDMA_DIS_VA_BIT		0x00002000
+	/** AMQ attributes (PL, VA, BDI, ICID) Source.
+	 * If reset - supplied AMQ attributes are used.
+	 * If set - task default AMQ attributes (From Additional Dequeue
+	 * Context) are used. */
+#define FDMA_DIS_AS_BIT		0x00004000
+	/** Privilege Level. Frame AMQ attribute.
+	 * Used only in case \ref FDMA_DIS_AS_BIT is reset. */
+#define FDMA_DIS_PL_BIT		0x00008000
+	/** Bypass DPAA resource Isolation.
+	 * If set - Bypass DPAA resource Isolation of the FD to discard. 
+	 * Used only in case \ref FDMA_DIS_AS_BIT is reset.*/
+#define FDMA_DIS_BDI_BIT	0x80000000
+	/** Terminate Control.
+	 * If set - Trigger the Terminate task command right after the discard.
+	 * Otherwise - Return after discard.*/
+#define FDMA_DIS_FRAME_TC_BIT	0x00000100
+
+
+/** @} end of group FDMA_Discard_Frame_Flags */
 
 /**************************************************************************//**
 @Group		FDMA_Replicate_Flags  FDMA Replicate Flags
@@ -412,7 +440,6 @@ enum fdma_pta_size_type {
 
 	/** Default command configuration. */
 #define FDMA_REPLIC_NO_FLAGS	0x00000000
-#ifdef REV2
 	/** Enqueue the replicated frame to the provided Queueing Destination.
 	 * Release destination frame handle is implicit when enqueueing.
 	 * If set - replicate and enqueue. Otherwise - replicate only. */
@@ -424,10 +451,10 @@ enum fdma_pta_size_type {
 #define FDMA_REPLIC_DSF_BIT	0x00000800
 	/** Enqueue Priority source.
 	 * Relevant for Queuing Destination Selection.
-	 * If set - use QD_PRI from h/w context.
+	 * If set - use QD_PRI from h/w context (this is the value found in the
+	 * WQID field from the Additional Dequeue Context).
 	 * Otherwise - use QD_PRI provided with DMA Command. */
 #define FDMA_REPLIC_PS_BIT	0x00001000
-#endif /* REV2 */
 	/** AIOP FDMA copy frame annotations options. Only one option may be
 	 * choose from \ref fdma_cfa_options. */
 #define FDMA_REPLICATE_CFA	fdma_cfa_options
@@ -455,6 +482,14 @@ enum fdma_pta_size_type {
 	 * usage of SG format on the concatenated frame.
 	 * If set - Set SF bit. Otherwise - Do not set SF bit. */
 #define FDMA_CONCAT_SF_BIT	0x00000100
+	/** Frame Source 1:
+	 * 0: concatenate working frame 1 using FRAME_HANDLE_1
+	 * 1: concatenate Frame 1 using FD at FD_ADDRESS_1 */
+#define FDMA_CONCAT_FS1_BIT	0x00000200
+	/** Frame Source 2:
+	 * 0: concatenate working frame 2 using FRAME_HANDLE_1
+	 * 1: concatenate Frame 2 using FD at FD_ADDRESS_1 */
+#define FDMA_CONCAT_FS2_BIT	0x00000400
 	/** Post Concatenate Action.
 	 * If set - close resulting working frame 1 using provided storage
 	 * profile, update FD1.
@@ -462,6 +497,39 @@ enum fdma_pta_size_type {
 #define FDMA_CONCAT_PCA_BIT	0x00000800
 
 /** @} end of group FDMA_Concatenate_Flags */
+
+/**************************************************************************//**
+@Group		FDMA_Concatenate_AMQ_Flags  FDMA Concatenate AMQ Flags
+
+@Description	FDMA Concatenate Frames AMQ flags
+
+@{
+*//***************************************************************************/
+
+	/** Configured Virtual Address of FD1.
+	 * Relevant only if \ref FDMA_CONCAT_FS1_BIT is set */
+#define FDMA_CONCAT_AMQ_VA1	0x00002000
+	/** Privilege Level of FD1.
+	 * Relevant only if \ref FDMA_CONCAT_FS1_BIT is set */
+#define FDMA_CONCAT_AMQ_PL1	0x00008000
+	/** Bypass DPAA resource Isolation of FD1
+	 * 0: Isolation is enabled for FD1 in this command.
+	 * 1: Isolation is not enabled for FD1 in this command.
+	 * Relevant only if \ref FDMA_CONCAT_FS1_BIT is set */
+#define FDMA_CONCAT_AMQ_BDI1	0x00000001
+	/** Configured Virtual Address of FD2.
+	 * Relevant only if \ref FDMA_CONCAT_FS2_BIT is set */
+#define FDMA_CONCAT_AMQ_VA2	0x20000000
+	/** Privilege Level of FD2.
+	 * Relevant only if \ref FDMA_CONCAT_FS2_BIT is set */
+#define FDMA_CONCAT_AMQ_PL2	0x80000000
+	/** Configured Virtual Address of FD2.
+	 * Relevant only if \ref FDMA_CONCAT_FS2_BIT is set */
+#define FDMA_CONCAT_AMQ_BDI2	0x00010000
+
+	
+
+/** @} end of group FDMA_Concatenate_AMQ_Flags */
 
 /**************************************************************************//**
 @Group		FDMA_Split_Flags  FDMA Split Flags
@@ -613,7 +681,6 @@ enum fdma_pta_size_type {
 *************************************************************************
 struct working_frame {
 		* A pointer to Frame descriptor in workspace.
-		 * The FD address in workspace must be aligned to 32 bytes.
 	struct ldpaa_fd *fd;
 		* Handle to the HW working frame
 	uint8_t frame_handle;
@@ -677,8 +744,7 @@ struct fdma_present_frame_params {
 		 * store the ASA. */
 	void *asa_dst;
 		/** A pointer to the location in workspace of the FD that is to
-		* be presented.
-		* The FD address in workspace must be aligned to 32 bytes.*/
+		* be presented.*/
 	struct ldpaa_fd *fd_src;
 		/** location within the presented frame to start presenting
 		 * the segment from. */
@@ -754,13 +820,22 @@ struct fdma_concatenate_frames_params {
 		/** \link FDMA_Concatenate_Flags concatenate frames
 		 * flags \endlink */
 	uint32_t  flags;
+		/** \link FDMA_Concatenate_AMQ_Flags concatenate frames
+		 * flags \endlink */
+	uint32_t  amq_flags;
 		/** Returned parameter:
 		 * AMQ attributes (the VA is the effective VA) */
 	struct fdma_amq amq;
-		/** The handle of working frame 1. */
+		/** The handle of working frame 1, or FD1 address. */
 	uint16_t frame1;
-		/** The handle of working frame 2. */
+		/** The handle of working frame 2, or FD2 address. */
 	uint16_t frame2;
+		/** Bits<1-15> : Isolation Context ID. Frame AMQ attribute.
+		* Used only in case \ref FDMA_CONCAT_FS1_BIT is set. */
+	uint16_t icid1;
+		/** Bits<1-15> : Isolation Context ID. Frame AMQ attribute.
+		* Used only in case \ref FDMA_CONCAT_FS2_BIT is set. */
+	uint16_t icid2;
 		/** Storage Profile used to store frame data if additional
 		 * buffers are required when optionally closing the concatenated
 		 *  working frame (\ref FDMA_CONCAT_PCA_BIT is set) */
@@ -778,7 +853,10 @@ struct fdma_split_frame_params {
 		/** \link FDMA_Split_Flags split frames flags
 		 * \endlink */
 	uint32_t flags;
-		/** A pointer to the location in workspace for the split FD. */
+		/** A pointer to the location in workspace for the split FD.
+		 * The FD is updated (in place). Most of the FD is cloned from 
+		 * the source FD. The ADDR, LENGTH, MEM, BPID, IVP, BMT, OFFSET,
+		 * FMT, SL, ASAL, PTA, PTV1, PTV2 are not updated. */
 	struct ldpaa_fd *fd_dst;
 		/** A pointer to the location in workspace for the presented
 		 * split frame segment. */
@@ -800,7 +878,11 @@ struct fdma_split_frame_params {
 		/** The handle of the source working frame. */
 	uint8_t  source_frame_handle;
 		/** Returned parameter:
-		 * A pointer to the handle of the split working frame. */
+		 * A pointer to the handle of the split working frame. 
+		 * Only valid when \ref FDMA_SPLIT_PSA flag is 
+		 * \ref FDMA_SPLIT_PSA_NO_PRESENT_BIT or
+		 * \ref FDMA_SPLIT_PSA_PRESENT_BIT, or
+		 * \ref FDMA_SPLIT_PSA_CLOSE_FRAME_BIT with a store error */
 	uint8_t  split_frame_handle;
 		/** Returned parameter:
 		 * A pointer to the handle of the presented segment (in the
@@ -935,9 +1017,9 @@ struct fdma_delete_segment_data_params {
 
 		This command can also be used to initiate construction of a
 		frame from scratch (without a presented frame). In this case
-		the fd address parameter must point to a null FD (all 0x0) in
-		the workspace, and an empty segment must be allocated (of size
-		0).
+		the fd address parameter must point to a null FD (all 0x0, 
+		IVP=1) in the workspace, and an empty segment must be allocated
+		(of size 0).
 
 		Implicitly updated values in Task Defaults:  frame handle,
 		segment handle.
@@ -981,9 +1063,9 @@ inline int fdma_present_default_frame(void);
 
 		This command can also be used to initiate construction of a
 		frame from scratch (without a presented frame). In this case
-		the fd address parameter must point to a null FD (all 0x0) in
-		the workspace, and an empty segment must be allocated (of size
-		0).
+		the fd address parameter must point to a null FD (all 0x0, 
+		IVP=1) in the workspace, and an empty segment must be allocated
+		(of size 0).
 
 		In case the fd destination parameter points to the default FD
 		address, the service routine will update Task defaults variables
@@ -1407,6 +1489,9 @@ int fdma_store_frame_data(
 		will be closed and the segment handles will be implicitly
 		released.
 @remark		Release frame handle is implicit in this function.
+@remark		If a fatal error is detected prior to the enqueue, the enqueue 
+		is not performed, the command returns with the error code and 
+		the FD is still in workspace.
 
 @Cautions	Function may not return.
 @Cautions	All modified segments (which are to be stored) must be
@@ -1457,6 +1542,9 @@ int fdma_store_and_enqueue_default_frame_fqid(
 		will be closed and the segment handles will be implicitly
 		released.
 @remark		Release frame handle is implicit in this function.
+@remark		If a fatal error is detected prior to the enqueue, the enqueue 
+		is not performed, the command returns with the error code and 
+		the FD is still in workspace.
 
 @Cautions	Function may not return.
 @Cautions	All modified segments (which are to be stored) must be
@@ -1511,6 +1599,9 @@ int fdma_store_and_enqueue_frame_fqid(
 		will be closed and the segment handles will be implicitly
 		released.
 @remark		Release frame handle is implicit in this function.
+@remark		If a fatal error is detected prior to the enqueue, the enqueue 
+		is not performed, the command returns with the error code and 
+		the FD is still in workspace.
 
 @Cautions	Function may not return.
 @Cautions	All modified segments (which are to be stored) must be
@@ -1565,6 +1656,9 @@ inline int fdma_store_and_enqueue_default_frame_qd(
 		will be closed and the segment handles will be implicitly
 		released.
 @remark		Release frame handle is implicit in this function.
+@remark		If a fatal error is detected prior to the enqueue, the enqueue 
+		is not performed, the command returns with the error code and 
+		the FD is still in workspace.
 
 @Cautions	Function may not return.
 @Cautions	All modified segments (which are to be stored) must be
@@ -1596,6 +1690,10 @@ int fdma_store_and_enqueue_frame_qd(
 
 
 @Return		0 on Success, or negative value on error.
+
+@remark		If a fatal error is detected prior to the enqueue, the enqueue 
+		is not performed, the command returns with the error code and 
+		the FD is still in workspace.
 
 @Retval		0 - Success.
 @Retval		EBUSY - Enqueue failed due to congestion in QMAN.
@@ -1631,6 +1729,10 @@ int fdma_enqueue_default_fd_fqid(
 @Retval		0 - Success.
 @Retval		EBUSY - Enqueue failed due to congestion in QMAN.
 
+@remark		If a fatal error is detected prior to the enqueue, the enqueue 
+		is not performed, the command returns with the error code and 
+		the FD is still in workspace.
+
 @Cautions	The frame associated with the FD must not be presented (closed).
 @Cautions	Function may not return.
 @Cautions	This function may result in a fatal error.
@@ -1664,6 +1766,10 @@ int fdma_enqueue_fd_fqid(
 @Retval		0 - Success.
 @Retval		EBUSY - Enqueue failed due to congestion in QMAN.
 
+@remark		If a fatal error is detected prior to the enqueue, the enqueue 
+		is not performed, the command returns with the error code and 
+		the FD is still in workspace.
+
 @Cautions	The frame associated with the FD must not be presented (closed).
 @Cautions	Function may not return.
 @Cautions	This function may result in a fatal error.
@@ -1696,6 +1802,10 @@ int fdma_enqueue_default_fd_qd(
 @Retval		0 - Success.
 @Retval		EBUSY - Enqueue failed due to congestion in QMAN.
 
+@remark		If a fatal error is detected prior to the enqueue, the enqueue 
+		is not performed, the command returns with the error code and 
+		the FD is still in workspace.
+
 @Cautions	The frame associated with the FD must not be presented (closed).
 @Cautions	Function may not return.
 @Cautions	This function may result in a fatal error.
@@ -1723,6 +1833,9 @@ int fdma_enqueue_fd_qd(
 @remark		Release frame handle and release segment handle(s) are implicit
 		in this function.
 
+@Cautions	If the frame is built with buffers not managed by BMan, then 
+		this command should not be used. If used, then buffers with 
+		IVP=1 will be skipped which may lead to memory leak.
 @Cautions	This function may result in a fatal error.
 @Cautions	In this Service Routine the task yields.
 *//***************************************************************************/
@@ -1742,6 +1855,9 @@ inline void fdma_discard_default_frame(uint32_t flags);
 @remark		Release frame handle and release segment handle(s) are implicit
 		in this function.
 
+@Cautions	If the frame is built with buffers not managed by BMan, then 
+		this command should not be used. If used, then buffers with 
+		IVP=1 will be skipped which may lead to memory leak.
 @Cautions	This function may result in a fatal error.
 @Cautions	In this Service Routine the task yields.
 *//***************************************************************************/
@@ -1753,28 +1869,28 @@ void fdma_discard_frame(uint16_t frame, uint32_t flags);
 @Description	Release the resources associated with a frame
 		descriptor.
 
-		Implicit input parameters in Task Defaults: AMQ attributes (PL,
-		VA, BDI, ICID).
-
-		Implicitly updated values in Task Defaults in case the FD points
-		to the default FD location: frame handle, NDS bit, ASA size (0),
-		PTA address (\ref PRC_PTA_NOT_LOADED_ADDRESS).
+		Implicit input parameters in Task Defaults in case 
+		\ref FDMA_DIS_AS_BIT is set: AMQ attributes (PL, VA, BDI, ICID).
 
 @Param[in]	fd - A pointer to the location in the workspace of the FD to be
 		discarded \ref ldpaa_fd.
-@Param[in]	flags - \link FDMA_Discard_WF_Flags discard working frame
-		frame flags. \endlink
+@Param[in]	icid - ICID of the FD to discard.
+@Param[in]	flags - \link FDMA_Discard_Frame_Flags discard frame 
+		flags. \endlink
 
 @Return		0 on Success, or negative value on error.
 
 @Retval		0 - Success.
 @Retval		EIO - Received frame with non-zero FD[err] field.
 
+@Cautions	If the frame is built with buffers not managed by BMan, then 
+		this command should not be used. If used, then buffers with 
+		IVP=1 will be skipped which may lead to memory leak.
 @Cautions	The frame associated with the FD must not be presented (closed).
 @Cautions	This function may result in a fatal error.
 @Cautions	In this Service Routine the task yields.
 *//***************************************************************************/
-inline int fdma_discard_fd(struct ldpaa_fd *fd, uint32_t flags);
+inline int fdma_discard_fd(struct ldpaa_fd *fd, uint16_t icid, uint32_t flags);
 
 /**************************************************************************//**
 @Function	fdma_force_discard_fd
@@ -1783,21 +1899,30 @@ inline int fdma_discard_fd(struct ldpaa_fd *fd, uint32_t flags);
 		than discard the frame.
 		(A frame with FD.err != 0 cannot be discarded).
 
-		Implicit input parameters in Task Defaults: AMQ attributes (PL,
-		VA, BDI, ICID).
+		Implicit input parameters in Task Defaults in case 
+		\ref FDMA_DIS_AS_BIT is set: AMQ attributes (PL, VA, BDI, ICID).
 
 		Implicitly updated values: FD.err is zeroed.
 
 @Param[in]	fd - A pointer to the location in the workspace of the FD to be
 		discarded \ref ldpaa_fd.
+@Param[in]	icid - ICID of the FD to discard.
+@Param[in]	flags - \link FDMA_Discard_Frame_Flags discard frame 
+		flags. \endlink
 
-@Return		None.
+@Return		0 on Success, or negative value on error.
 
+@Retval		0 - Success.
+@Retval		EIO - Received frame with non-zero FD[err] field.
+
+@Cautions	If the frame is built with buffers not managed by BMan, then 
+		this command should not be used. If used, then buffers with 
+		IVP=1 will be skipped which may lead to memory leak.
 @Cautions	The frame associated with the FD must not be presented (closed).
 @Cautions	This function may result in a fatal error.
 @Cautions	In this Service Routine the task yields.
 *//***************************************************************************/
-void fdma_force_discard_fd(struct ldpaa_fd *fd);
+int fdma_force_discard_fd(struct ldpaa_fd *fd, uint16_t icid, uint32_t flags);
 
 /**************************************************************************//**
 @Function	fdma_terminate_task
@@ -1850,13 +1975,17 @@ inline void fdma_terminate_task(void);
 @Param[in]	flags - \link FDMA_Replicate_Flags replicate working frame
 		flags \endlink.
 @Param[out]	frame_handle2 - Handle of the replicated frame (when no enqueue
-		selected).
+		selected or enqueue selected and store failed).
 
 @Return		0 on Success, or negative value on error.
 
 @Retval		0 - Success.
 @Retval		EBUSY - Enqueue failed due to congestion in QMAN.
 @Retval		ENOMEM - Failed due to buffer pool depletion.
+
+@remark		If a fatal error is detected prior to the enqueue, the enqueue 
+		is not performed, the command returns with the error code and 
+		the FD is still in workspace.
 
 @Cautions	This function may result in a fatal error.
 @Cautions	In this Service Routine the task yields.
@@ -1910,6 +2039,10 @@ int fdma_replicate_frame_fqid(
 @Retval		EBUSY - Enqueue failed due to congestion in QMAN.
 @Retval		ENOMEM - Failed due to buffer pool depletion.
 
+@remark		If a fatal error is detected prior to the enqueue, the enqueue 
+		is not performed, the command returns with the error code and 
+		the FD is still in workspace.
+
 @Cautions	This function may result in a fatal error.
 @Cautions	In this Service Routine the task yields.
 *//***************************************************************************/
@@ -1947,7 +2080,9 @@ int fdma_replicate_frame_qd(
 
 @Retval		0 - Success.
 @Retval		ENOMEM - Failed due to buffer pool depletion (relevant only if
-		\ref FDMA_CONCAT_PCA_BIT flag is set).
+		\ref FDMA_CONCAT_PCA_BIT flag is set). In this case the 
+		concatenated frame handle remains valid.
+@Retval		EIO - Received frame with non-zero FD[err] field.
 
 @remark		Frame annotation of the first frame becomes the frame annotation
 		of the concatenated frame.
@@ -2558,6 +2693,23 @@ inline void fdma_calculate_default_frame_checksum(
 		uint16_t offset,
 		uint16_t size,
 		uint16_t *checksum);
+
+/**************************************************************************//**
+@Function	get_frame_length
+
+@Description	Get a Working Frame current length.
+
+@Param[in]	frame_handle - working frame whose length is required.
+@Param[out]	length - working frame current length.
+
+@Return		None.
+
+@Cautions	The h/w must have previously opened the frame with an
+		initial presentation or initial presentation command.
+@Cautions	This function may result in a fatal error.
+@Cautions	In this Service Routine the task yields.
+*//***************************************************************************/
+void get_frame_length(uint8_t frame_handle, uint32_t *length);
 
 /**************************************************************************//**
 @Function	get_default_amq_attributes
