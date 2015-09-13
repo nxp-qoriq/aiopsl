@@ -94,7 +94,7 @@ enum mc_cmd_status {
 	((uint16_t)mc_dec((_hdr), MC_CMD_HDR_TOKEN_O, MC_CMD_HDR_TOKEN_S))
 
 #define MC_EXT_OP(_ext, _param, _offset, _width, _type, _arg) \
-	((_ext)[_param] |= swap_uint64(mc_enc((_offset), (_width), _arg)))
+	((_ext)[_param] |= CPU_TO_LE64(mc_enc((_offset), (_width), _arg)))
 
 #define MC_CMD_OP(_cmd, _param, _offset, _width, _type, _arg) \
 	((_cmd).params[_param] |= mc_enc((_offset), (_width), _arg))
