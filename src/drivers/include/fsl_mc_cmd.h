@@ -94,7 +94,7 @@ enum mc_cmd_status {
 	((uint16_t)mc_dec((_hdr), MC_CMD_HDR_TOKEN_O, MC_CMD_HDR_TOKEN_S))
 
 #define MC_EXT_OP(_ext, _param, _offset, _width, _type, _arg) \
-	((_ext)[_param] |= mc_enc((_offset), (_width), _arg))
+	((_ext)[_param] |= CPU_TO_LE64(mc_enc((_offset), (_width), _arg)))
 
 #define MC_CMD_OP(_cmd, _param, _offset, _width, _type, _arg) \
 	((_cmd).params[_param] |= mc_enc((_offset), (_width), _arg))
@@ -137,7 +137,7 @@ static inline void mc_write_command(struct mc_command __iomem *portal,
 	/* submit the command by writing the header */
 	word = (uint32_t)mc_dec(cmd->header, 32, 32);
 	iowrite32_wt(word, (((uint32_t *)&portal->header) + 1));
-	
+
 	word = (uint32_t)mc_dec(cmd->header, 0, 32);
 	iowrite32_wt(word, (uint32_t *)&portal->header);
 }
