@@ -29,7 +29,7 @@
 #include <bd_ring/fsl_cmdif_client.h>
 #include <bd_ring/fsl_cmdif_client_flib.h>
 
-static void bd_ring_get(void *device, struct cmdif_bd_ring **bd_ring, int pr)
+static void bd_ring_get(void *device, int pr, struct cmdif_bd_ring **bd_ring)
 {
 	bd_ring = NULL; /* TODO */
 }
@@ -45,9 +45,11 @@ int cmdif_open(void *device, const char *m_name, void *handle)
 	err = cmdif_flib_open_bd(handle, m_name, &bd);
 
 	/* Get bd_ring from device */
-	bd_ring_get(device, &bd_ring, CMDIF_PRI_LOW);
-	
+	bd_ring_get(device, CMDIF_PRI_LOW, &bd_ring);
+
 	err = cmdif_flib_send(bd_ring, &bd, &bd_in_ring);
+	if (err)
+		return err;
 
 	err = cmdif_flib_open_done(bd_in_ring, &session_id);
 	while(err) {
