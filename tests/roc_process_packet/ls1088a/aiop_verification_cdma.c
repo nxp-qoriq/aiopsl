@@ -219,6 +219,36 @@ uint16_t aiop_verification_cdma(uint32_t asa_seg_addr)
 			str_size = sizeof(struct cdma_refcount_get_command);
 			break;
 		}
+		/* CDMA ephemeral reference take Command Verification */
+		case CDMA_EPHEMERAL_REFERENCE_TAKE_CMD_STR:
+		{
+			struct cdma_ephemeral_reference_take_command *str =
+				(struct cdma_ephemeral_reference_take_command *) asa_seg_addr;
+			cdma_ephemeral_reference_take();
+			str->status = CDMA_SUCCESS;
+			str_size = sizeof(struct cdma_ephemeral_reference_take_command);
+			break;
+		}
+		/* CDMA ephemeral reference release all Command Verification */
+		case CDMA_EPHEMERAL_REFERENCE_RELEASE_ALL_CMD_STR:
+		{
+			struct cdma_ephemeral_reference_release_all_command *str =
+				(struct cdma_ephemeral_reference_release_all_command *) asa_seg_addr;
+			cdma_ephemeral_reference_release_all();
+			str->status = CDMA_SUCCESS;
+			str_size = sizeof(struct cdma_ephemeral_reference_release_all_command);
+			break;
+		}
+		/* CDMA ephemeral reference sync Command Verification */
+		case CDMA_EPHEMERAL_REFERENCE_SYNC_CMD_STR:
+		{
+			struct cdma_ephemeral_reference_sync_command *str =
+				(struct cdma_ephemeral_reference_sync_command *) asa_seg_addr;
+			cdma_ephemeral_reference_sync();
+			str->status = CDMA_SUCCESS;
+			str_size = sizeof(struct cdma_ephemeral_reference_sync_command);
+			break;
+		}
 		default:
 		{
 			return STR_SIZE_ERR;
