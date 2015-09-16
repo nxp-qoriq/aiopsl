@@ -575,6 +575,8 @@
 	(((struct presentation_context *)HWC_PRC_ADDRESS)->isv =\
 		(((struct presentation_context *)HWC_PRC_ADDRESS)->	\
 		isv & ~PRC_ISV_MASK))
+	/** Dummy Macro for IPSEC */
+#define PRC_SET_ASA_SIZE(_val)
 
 /** @} */ /* end of AIOP_PRC_Setters */
 
