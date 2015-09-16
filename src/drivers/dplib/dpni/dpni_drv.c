@@ -384,6 +384,12 @@ static int configure_dpni_params(struct mc_dprc *dprc, uint16_t aiop_niid, uint1
 		layout.private_data_size = DPNI_DRV_PTA_DEF;
 	}
 
+#ifdef ERR009354
+	layout.options |= DPNI_BUF_LAYOUT_OPT_DATA_ALIGN;
+	layout.data_align = DPNI_DRV_DATA_ALIGN_DEF;
+	sl_pr_debug("ERR009354: data-offset must be aligned to 256\n");
+#endif  /* ERR009354 */
+
 	err = dpni_set_rx_buffer_layout(&dprc->io,
 	                                0,
 	                                dpni,
@@ -414,6 +420,7 @@ static int configure_dpni_params(struct mc_dprc *dprc, uint16_t aiop_niid, uint1
 		sl_pr_err("Failed to get SPID\n");
 		return err;
 	}
+
 	/*TODO: change to uint16_t in nis table
 	 * for the next release*/
 	nis[aiop_niid].dpni_drv_params_var.spid =
@@ -535,7 +542,8 @@ static int initialize_dpni(struct mc_dprc *dprc, uint16_t mc_niid, uint16_t aiop
 		return err;
 	}
 
-	if(configure_dpni_params(dprc, aiop_niid, dpni)){
+	err = configure_dpni_params(dprc, aiop_niid, dpni);
+	if(err){
 		sl_pr_err("configure_dpni_params failed for DP-NI%d\n",
 		          mc_niid);
 		dpni_close(&dprc->io, 0, dpni);
@@ -621,8 +629,11 @@ int dpni_drv_probe(struct mc_dprc *dprc,
 			nis[aiop_niid].dpni_drv_params_var.epid_idx =
 				(uint16_t)i;
 			err = initialize_dpni(dprc, mc_niid, aiop_niid);
-			if(err)
+			if(err){
+				sl_pr_err("initialize dpni %d failed with error %d\n", (int)mc_niid, err);
 				return err;
+			}
+
 			num_of_nis ++;
 
 			nis[aiop_niid].dpni_id = mc_niid;
@@ -891,6 +902,13 @@ static int configure_bpids_for_dpni(void)
 	uint16_t num_buffs = (uint16_t)g_app_params.dpni_num_buffs;
 	uint16_t alignment;
 	uint8_t mem_pid[] = {DPNI_DRV_FAST_MEMORY, (uint8_t)get_existing_ddr_memory()};
+
+#ifdef ERR009354
+	if(buffer_size & (DPNI_DRV_DATA_ALIGN_DEF - 1)){
+		pr_err("ERR009354: data-offset must be aligned to 256\n");
+		return -EINVAL;
+	}
+#endif /* ERR009354 */
 
 	err = get_valid_alignment(&alignment, buffer_size);
 	if(err){
@@ -1528,6 +1546,12 @@ int dpni_drv_set_rx_buffer_layout(uint16_t ni_id, const struct dpni_drv_buf_layo
 	dpni_layout.data_align = layout->data_align;
 	dpni_layout.data_head_room = layout->data_head_room;
 	dpni_layout.data_tail_room = layout->data_tail_room;
+
+#ifdef ERR009354
+	dpni_layout.options |= DPNI_BUF_LAYOUT_OPT_DATA_ALIGN;
+	dpni_layout.data_align = DPNI_DRV_DATA_ALIGN_DEF;
+	sl_pr_debug("ERR009354: data-offset must be aligned to 256\n");
+#endif  /* ERR009354 */
 
 	err = dpni_set_rx_buffer_layout(&dprc->io, 0, dpni, &dpni_layout);
 	if(err){
