@@ -1884,10 +1884,8 @@ __IPSEC_HOT_CODE int ipsec_frame_encrypt(
 		PRC_SET_SEGMENT_LENGTH((sap1.encap_header_length + eth_length));
 	}
 
-	/* In new output buffer mode, clear the PRC ASA Size, 
-	 * since the SEC does not preserve the ASA */
+	/* New output buffer mode */
 	if (sap1.sec_buffer_mode == IPSEC_SEC_NEW_BUFFER_MODE) { 
-		PRC_SET_ASA_SIZE(0);
 
 		/* Update the SPID of the new frame (SEC output) in the HW Context*/
 		*((uint8_t *)HWC_SPID_ADDRESS) = sap1.output_spid;
@@ -2539,10 +2537,8 @@ __IPSEC_HOT_CODE int ipsec_frame_decrypt(
 	 * the presentation context */
 	//PRC_SET_SEGMENT_LENGTH(DEFAULT_SEGMENT_SIZE);
 	
+	/* New output buffer mode */
 	if (sap1.sec_buffer_mode == IPSEC_SEC_NEW_BUFFER_MODE) { 
-		/* In new output buffer mode, clear the PRC ASA Size, 
-		 * since the SEC does not preserve the ASA */
-		PRC_SET_ASA_SIZE(0);
 			
 		/* Update the SPID of the new frame (SEC output) in the HW Context*/
 		*((uint8_t *)HWC_SPID_ADDRESS) = sap1.output_spid;

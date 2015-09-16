@@ -61,18 +61,10 @@ uint16_t aiop_verification_fdma(uint32_t asa_seg_addr)
 	{
 		struct fdma_init_command *str =
 			(struct fdma_init_command *) asa_seg_addr;
-		prc->asapa_asaps	=
-			(((uint16_t)(uint32_t)str->asa_address) &
-					PRC_ASAPA_MASK) |
-			((uint16_t)str->asa_size & PRC_ASAPS_MASK);
 		if (str->SR)
 			PRC_SET_SR_BIT();
 		if (str->NDS)
 			PRC_SET_NDS_BIT();
-		prc->ptapa_asapo	=
-			(((uint16_t)(uint32_t)str->pta_address) &
-					PRC_PTAPA_MASK) |
-			((uint16_t)str->asa_offset & PRC_ASAPO_MASK);
 		prc->seg_length		= str->present_size;
 		prc->seg_address	= (uint16_t)(uint32_t)str->seg_address;
 		prc->seg_offset		= str->seg_offset;
@@ -182,8 +174,8 @@ uint16_t aiop_verification_fdma(uint32_t asa_seg_addr)
 			(struct fdma_read_asa_command *) asa_seg_addr;
 		str->status = (int8_t)fdma_read_default_frame_asa(
 				(void *)str->ws_dst,
-				str->offset, str->present_size);
-		str->seg_length = PRC_GET_ASA_SIZE();
+				str->offset, str->present_size, 
+				&(str->seg_length));
 		str_size = (uint16_t)sizeof(struct fdma_read_asa_command);
 		break;
 	}
@@ -771,12 +763,10 @@ uint16_t aiop_verification_fdma(uint32_t asa_seg_addr)
 		str->status = (int8_t)fdma_replace_default_asa_segment_data(
 				str->to_offset, str->to_size,
 				(void *)str->from_ws_src, str->from_size,
-				(void *)str->ws_dst_rs, str->size_rs, flags);
+				(void *)str->ws_dst_rs, str->size_rs, flags, 
+				&(str->seg_length_rs));
 
-		if (str->SA == 1)
-			str->seg_length_rs = (*((uint16_t *)
-				HWC_ACC_OUT_ADDRESS2)) & PRC_ASAPS_MASK;
-		else if (str->SA == 2)
+		if (str->SA == 2)
 			str->seg_length_rs = 0;
 		str_size = (uint16_t)
 				sizeof(struct fdma_replace_asa_command);

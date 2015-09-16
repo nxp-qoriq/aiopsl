@@ -910,8 +910,6 @@ int tcp_gro_flush_aggregation(
 	PRC_SET_SEGMENT_OFFSET(gro_ctx.prc_segment_offset);
 	PRC_RESET_SR_BIT();
 	PRC_RESET_NDS_BIT();
-	PRC_SET_ASA_SIZE(0);
-	PRC_SET_PTA_ADDRESS(PRC_PTA_NOT_LOADED_ADDRESS);
 
 	if (gro_ctx.internal_flags & GRO_FLUSH_AGG_SET) {
 		/* reset gro context fields */
@@ -1071,8 +1069,6 @@ void tcp_gro_timeout_callback(uint64_t tcp_gro_context_addr, uint16_t opaque2)
 	PRC_SET_SEGMENT_OFFSET(gro_ctx.prc_segment_offset);
 	PRC_RESET_SR_BIT();
 	PRC_RESET_NDS_BIT();
-	PRC_SET_ASA_SIZE(0);
-	PRC_SET_PTA_ADDRESS(PRC_PTA_NOT_LOADED_ADDRESS);
 	fdma_present_default_frame();
 
 	/* run parser */
