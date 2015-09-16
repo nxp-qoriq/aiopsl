@@ -91,7 +91,7 @@
 									<listOptionValue builtIn="false" value="&quot;${AIOPToolsBaseDir}/AIOP_Support/ewl/EWL_C/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${AIOPToolsBaseDir}/AIOP_Support/ewl/EWL_Runtime/Runtime_AIOP/Include&quot;"/>
 								</option>
-								<option id="com.freescale.ppc.toolchain.compiler.base.input.include.recursive.1857545294" name="User Recursive Path (-ir )" superClass="com.freescale.ppc.toolchain.compiler.base.input.include.recursive" valueType="includePath"/>
+								<option id="com.freescale.ppc.toolchain.compiler.base.input.include.recursive.1857545294" name="User Recursive Path (-ir )" superClass="com.freescale.ppc.toolchain.compiler.base.input.include.recursive"/>
 								<option id="com.freescale.ppc.toolchain.compiler.base.optionCategory.processor.generateISEL.1292050326" name="Generate ISEL Instructions" superClass="com.freescale.ppc.toolchain.compiler.base.optionCategory.processor.generateISEL" value="true" valueType="boolean"/>
 								<option id="com.freescale.ppc.toolchain.compiler.base.general.unsignedchar.730827814" name="Use Unsigned Chars" superClass="com.freescale.ppc.toolchain.compiler.base.general.unsignedchar" value="true" valueType="boolean"/>
 								<option id="com.freescale.ppc.toolchain.compiler.base.options.inlining.bottom.up.879188224" name="Bottom-up Inlining" superClass="com.freescale.ppc.toolchain.compiler.base.options.inlining.bottom.up" value="true" valueType="boolean"/>
@@ -134,6 +134,7 @@
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../../src/include/drivers/accel/parser/01_01&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../../src/include/drivers/accel/tman/01_01&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../../src/include/drivers/ldpaa&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../../src/include/drivers/ldpaa/workspace/01_01&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../../src/include/drivers/netf/ipsec/00_01&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../../src/include/kernel&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../../src/include/lib&quot;"/>

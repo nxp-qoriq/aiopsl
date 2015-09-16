@@ -117,6 +117,7 @@
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../../src/include/drivers/accel/parser/02_01&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../../src/include/drivers/accel/tman/02_01&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../../src/include/drivers/ldpaa&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../../src/include/drivers/ldpaa/workspace/02_01&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../../src/include/drivers/netf&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../../src/include/kernel&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../../src/include/lib&quot;"/>
