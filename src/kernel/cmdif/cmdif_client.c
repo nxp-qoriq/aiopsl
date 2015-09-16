@@ -334,7 +334,6 @@ void cmdif_cl_isr(void)
 	struct cmdif_fd fd;
 	struct cmdif_async async_data;
 
-	SET_PRC_VALUES();
 	SET_FRAME_TYPE(PRC_GET_FRAME_HANDLE(), HWC_FD_ADDRESS);
 
 	fd.d_size        = LDPAA_FD_GET_LENGTH(HWC_FD_ADDRESS);

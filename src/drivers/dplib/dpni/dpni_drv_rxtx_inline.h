@@ -57,8 +57,6 @@ inline int sl_prolog(void)
 	struct parse_result *pr;
 	int err;
 
-	SET_PRC_VALUES();
-
 	dpni_drv = nis + PRC_GET_PARAMETER(); /* calculate pointer
 						* to the send NI structure   */
 	pr = (struct parse_result *)HWC_PARSE_RES_ADDRESS;
