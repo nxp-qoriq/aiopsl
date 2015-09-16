@@ -253,22 +253,12 @@ struct fdma_init_command {
 		/** Pointer to the address within the workspace to present the
 		 * opened frame segment. */
 	uint32_t seg_address;
-		/** 64B-aligned location in the workspace to store the 64B
-		 * PTA field (0xFFC0 for no PTA presentation). */
-	uint32_t pta_address;
-		/** 64B-aligned location in the workspace to store the ASA. */
-	uint32_t asa_address;
 		/** location within the presented frame to start presenting
 		 * the segment from. */
 	uint16_t seg_offset;
 		/** Number of frame bytes to present and create an open
 		 * segment for. */
 	uint16_t present_size;
-		/** The first ASA 64B quantity to present. */
-	uint8_t asa_offset;
-		/** Number (maximum) of 64B ASA quantities to present (0 for no
-		 * ASA presentation). */
-	uint8_t asa_size;
 		/** No Data Segment:
 		 * - 0: Present data segment.
 		 * - 1: Don't present data segment. */
@@ -280,7 +270,7 @@ struct fdma_init_command {
 		/** Command returned status. */
 	int8_t  status;
 		/** 64-bit alignment. */
-	uint8_t	pad[7];
+	uint8_t	pad[1];
 };
 
 

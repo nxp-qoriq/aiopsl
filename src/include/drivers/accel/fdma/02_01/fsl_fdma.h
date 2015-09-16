@@ -304,8 +304,7 @@ enum fdma_pta_size_type {
 
 	/** Default command configuration. */
 #define FDMA_EXT_NO_FLAGS	0x00000000
-	/** The type of segment to present. Only one option may be choose from
-	 * \ref fdma_st_options. */
+	/** The type of segment to present (DATA / ASA segment). */
 #define FDMA_EXT_ST_BIT	fdma_st_options
 
 /** @} end of group FDMA_EXT_Flags */
@@ -1008,11 +1007,12 @@ struct fdma_delete_segment_data_params {
 @Description	Initial presentation of a default working frame into the task
 		workspace.
 
+		This command may present a default Data segment of the default 
+		working frame (depends on the task default values). 
+		
 		Implicit input parameters in Task Defaults: segment address,
-		segment offset, segment size, PTA address (\ref
-		PRC_PTA_NOT_LOADED_ADDRESS for no presentation), ASA address,
-		ASA size, ASA offset, Segment Reference bit, fd address in
-		workspace (\ref HWC_FD_ADDRESS), AMQ attributes (PL, VA, BDI,
+		segment offset, segment size, Segment Reference bit, fd address 
+		in workspace (\ref HWC_FD_ADDRESS), AMQ attributes (PL, VA, BDI,
 		ICID).
 
 		This command can also be used to initiate construction of a
@@ -1022,7 +1022,7 @@ struct fdma_delete_segment_data_params {
 		(of size 0).
 
 		Implicitly updated values in Task Defaults:  frame handle,
-		segment handle.
+		segment handle, segment length.
 
 @Return		0 or positive value on success. Negative value on error.
 
@@ -1035,13 +1035,6 @@ struct fdma_delete_segment_data_params {
 		exceeded frame data end.
 		The segment handle is valid when returning with this error, 
 		but is shorter than requested.
-@Retval		::FDMA_STATUS_UNABLE_PRES_ASA_SEG - Unable to fulfill 
-		specified ASA segment presentation size (not relevant if the ASA
-		size in the presentation context is 0).
-		This return value is caused since the requested presentation 
-		exceeded frame ASA end.
-		The ASA segment is valid when returning with this error, but is
-		shorter than requested.	
 @Retval		EIO - Received frame with non-zero FD[err] field. In such a case 
 		the returned frame handle is valid, but no presentations 
 		occurred.
@@ -1264,6 +1257,8 @@ int fdma_present_frame_segment(
 @Param[in]	present_size - Number of frame bytes to present (Must be greater
 		than 0). Contains the number of 64B quantities to present
 		because the Frame ASAL field is specified in 64B units.
+@Param[out]	seg_length - The number of bytes actually presented (the segment
+		actual size).
 
 @Return		0 or positive value on success. Negative value on error.
 
@@ -1286,7 +1281,8 @@ int fdma_present_frame_segment(
 int fdma_read_default_frame_asa(
 		void	 *ws_dst,
 		uint16_t offset,
-		uint16_t present_size);
+		uint16_t present_size,
+		uint16_t *seg_length);
 
 /**************************************************************************//**
 @Function	fdma_read_default_frame_pta
@@ -2594,6 +2590,8 @@ void fdma_close_segment(uint8_t frame_handle, uint8_t seg_handle);
 		Relevant if \ref FDMA_REPLACE_SA_REPRESENT_BIT flag is set.
 @Param[in]	flags - \link FDMA_Replace_Flags replace working frame
 		segment flags. \endlink
+@Param[out]	seg_length - The number of bytes actually presented (the segment
+		actual size).
 
 @Return		0 or positive value on success. Negative value on error.
 
@@ -2616,7 +2614,8 @@ int fdma_replace_default_asa_segment_data(
 		uint16_t from_size,
 		void	 *ws_dst_rs,
 		uint16_t size_rs,
-		uint32_t flags);
+		uint32_t flags,
+		uint16_t *seg_length);
 
 /**************************************************************************//**
 @Function	fdma_replace_default_pta_segment_data
