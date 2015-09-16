@@ -309,60 +309,33 @@ struct presentation_context {
 	volatile uint16_t seg_address;
 		/** Segment actual size. */
 	volatile uint16_t seg_length;
+		/** Segment Presentation Offset value. */
+	volatile uint16_t seg_offset;
 		/**
-		- bits<0-9>  : Pass Through Annotation(PTA) presentation
-		address value.
-		- bits<10> : No PTA segment (NPS).
-		- bits<11> : No ASA segment (NAS).
-		- bits<12-15>: Acceleration Specific Annotation(ASA)
-		presentation offset value. */
-	volatile uint16_t  ptapa_asapo;
-		/**
-		- bits<0-9>  : Accelerator Specific Annotation (ASA)
-		presentation address value.
-		- bits<10>   : Entry Point Segment Reference (SR) bit.
-		- bits<11>   : No Data segment (NDS).
-		- bits<12-15>: Acceleration Specific Annotation (ASA)
-		presentation size value. */
-	volatile uint16_t  asapa_asaps;
+		- bits<7>   : No Data segment (NDS).
+		- bits<6>   : Entry Point Segment Reference (SR) bit. */
+	volatile uint8_t  sr_nds;
+		/** Segment Handle. */
+	volatile uint8_t seg_handle;
 		/**
 		- bits<0>  : OSM Entry Point Source value.
 		- bits<1>  : OSM Entry Point Execution Phase value.
 		- bits<2-3>: OSM Entry Point Select value.
 		- bits<5-7>: OSM Entry Point Order Scope Range Mask value. */
 	volatile uint8_t osrc_oep_osel_osrm;
+		/** Working Frame Handle. */
+	volatile uint8_t frame_handle;
 		/**
-		- bits<0-3>  : Working Frame Handle.
-		- bits<4-7>  : Open Segment Handle. */
-	volatile uint8_t handles;
-		/** Segment Presentation Offset value. */
-	volatile uint16_t seg_offset;
+		- bits<15>: Initial Scope Value */
+	volatile uint16_t  isv;
 };
 
 /* Presentation Context (PRC) Macros */
-	/** PTA presentation address mask.*/
-#define PRC_PTAPA_MASK		0xFFC0
-	/** ASA presentation offset mask */
-#define PRC_ASAPO_MASK		0x000F
-	/** ASA presentation address mask */
-#define PRC_ASAPA_MASK		0xFFC0
-	/** Segment Reference (SR) bit mask.
-	 * Reference within the frame to present from:
-	 * If set - end of the frame.
-	 * Otherwise - start of the frame. */
-#define PRC_SR_MASK		0x0020
+#define PRC_SR_MASK		0x02
 	/** No Data Segment (NDS) bit mask.
 	 * If set - do not present Data segment.
 	 * Otherwise - present data segment */
-#define PRC_NDS_MASK		0x0010
-#if NAS_NPS_ENABLE
-	/** No PTA Segment (NPS) bit mask */
-#define PRC_NPS_MASK		0x0020
-	/** No ASA Segment (NAS) bit mask */
-#define PRC_NAS_MASK		0x0010
-#endif /*NAS_NPS_ENABLE*/
-	/** ASA presentation size mask */
-#define PRC_ASAPS_MASK		0x000F
+#define PRC_NDS_MASK		0x01
 	/** OSM Entry point source value mask*/
 #define PRC_OSRC_MASK		0x80
 	/** OSM Entry Point Execution Phase value mask */
@@ -371,40 +344,24 @@ struct presentation_context {
 #define PRC_OSEL_MASK		0x30
 	/** OSM Entry Point Order Scope Range value mask */
 #define PRC_OSRM_MASK		0x07
-	/** Frame handle mask */
-#define PRC_FRAME_HANDLE_MASK	0xF0
-	/** Segment handle mask */
-#define PRC_SEGMENT_HANDLE_MASK	0x0F
+	/** Initial Scope Value mask*/
+#define PRC_ISV_MASK		0x8000
 	/** PRC Frame handle offset */
-#define PRC_FRAME_HANDLE_BIT_OFFSET	0x4
-	/** Segment Reference bit offset */
-#define PRC_SR_BIT_OFFSET	0x5
+#define PRC_SR_BIT_OFFSET	0x1
 	/** No Data Segment bit offset */
-#define PRC_NDS_BIT_OFFSET	0x4
-	/** No Data Segment byte offset */
-#define PRC_NDS_ADDR		0xB
-
-#if NAS_NPS_ENABLE
-	/** No PTA Segment bit offset */
-#define PRC_NPS_BIT_OFFSET	0x5
-	/** No ASA Segment bit offset */
-#define PRC_NAS_BIT_OFFSET	0x4
-#endif /*NAS_NPS_ENABLE*/
+#define PRC_NDS_BIT_OFFSET	0x0
 	/** OSM Entry Point source value offset */
 #define PRC_OSRC_BIT_OFFSET	0x7
 	/** OSM Entry Point Execution Phase value offset */
 #define PRC_OEP_BIT_OFFSET	0x6
 	/** OSM Entry Point Select value offset */
 #define PRC_OSEL_BIT_OFFSET	0x4
-	/** PTA size */
-#define PRC_PTA_SIZE		0x40
+	/** Initial Scope Value offset */
+#define PRC_ISV_BIT_OFFSET	0xF
+
 	/** PTA address when PTA is not loaded/not intended to be loaded to the
 	 * working frame */
-#define PRC_PTA_NOT_LOADED_ADDRESS	0xFFC0
-	/** ASA address offset */
-#define PRC_ASA_ADDRESS_OFFSET	0x6
-	/** PTA address offset */
-#define PRC_PTA_ADDRESS_OFFSET	0x6
+#define PTA_NOT_LOADED_ADDRESS	0xFFC0
 
 /**************************************************************************//**
  @Group		AIOP_PRC_Getters  AIOP PRC Getters
@@ -432,62 +389,26 @@ struct presentation_context {
 #define PRC_GET_SEGMENT_OFFSET()					\
 	((uint16_t)(((struct presentation_context *)HWC_PRC_ADDRESS)->	\
 		seg_offset))
-	/** Macro to get the default frame PTA address in workspace from the
-	 * presentation context */
-#define PRC_GET_PTA_ADDRESS()						\
-	((uint16_t)((((struct presentation_context *)HWC_PRC_ADDRESS)->\
-		ptapa_asapo) & PRC_PTAPA_MASK))
-	/** Macro to get the default frame ASA offset from the presentation
-	 * context */
-#define PRC_GET_ASA_OFFSET()						\
-	((uint16_t)(((struct presentation_context *)HWC_PRC_ADDRESS)->	\
-		ptapa_asapo) & PRC_ASAPO_MASK)
-	/** Macro to get the default frame ASA address in workspace from the
-	 * presentation context */
-#define PRC_GET_ASA_ADDRESS()						\
-	((uint16_t)((((struct presentation_context *)HWC_PRC_ADDRESS)->\
-		asapa_asaps) & PRC_ASAPA_MASK))
 	/** Macro to get the Segment Reference bit from the presentation
 	 * context */
 #define PRC_GET_SR_BIT()						\
-	(((uint16_t)(((struct presentation_context *)HWC_PRC_ADDRESS)->	\
-		asapa_asaps) & PRC_SR_MASK) >> PRC_SR_BIT_OFFSET)
+	(((uint8_t)(((struct presentation_context *)HWC_PRC_ADDRESS)->	\
+		sr_nds) & PRC_SR_MASK) >> PRC_SR_BIT_OFFSET)
 	/** Macro to get the No-Data-Segment bit from the presentation
 	 * context */
 #define PRC_GET_NDS_BIT()						\
-	(((uint16_t)(((struct presentation_context *)HWC_PRC_ADDRESS)->	\
-		asapa_asaps) & PRC_NDS_MASK) >> PRC_NDS_BIT_OFFSET)
-#if NAS_NPS_ENABLE
-	/** Macro to get the No-ASA-Segment bit from the presentation
-	 * context */
-#define PRC_GET_NAS_BIT()						\
-	(((uint16_t)(((struct presentation_context *)HWC_PRC_ADDRESS)->	\
-		ptapa_asapo) & PRC_NAS_MASK) >> PRC_NAS_BIT_OFFSET)
-	/** Macro to get the No-PTA-Segment bit from the presentation
-	 * context */
-#define PRC_GET_NPS_BIT()						\
-	(((uint16_t)(((struct presentation_context *)HWC_PRC_ADDRESS)->	\
-		ptapa_asapo) & PRC_NPS_MASK) >> PRC_NPS_BIT_OFFSET)
-#endif /*NAS_NPS_ENABLE*/
-	/** Macro to get the default frame ASA size in workspace from the
-	 * presentation context */
-#define PRC_GET_ASA_SIZE()						\
-	((uint16_t)(((struct presentation_context *)HWC_PRC_ADDRESS)->	\
-		asapa_asaps) & PRC_ASAPS_MASK)
-	/** Macro to get the default frame handle + default segment handles
-	 * from the presentation context */
-#define PRC_GET_HANDLES()						\
-	((uint8_t)(((struct presentation_context *)HWC_PRC_ADDRESS)->handles))
+	(((uint8_t)(((struct presentation_context *)HWC_PRC_ADDRESS)->	\
+		sr_nds) & PRC_NDS_MASK) >> PRC_NDS_BIT_OFFSET)
 	/** Macro to get the default frame handle from the presentation
 	 * context */
 #define PRC_GET_FRAME_HANDLE()						\
-	((uint8_t)(((struct presentation_context *)HWC_PRC_ADDRESS)->handles) \
-		>> PRC_FRAME_HANDLE_BIT_OFFSET)
+	((uint8_t)(((struct presentation_context *)HWC_PRC_ADDRESS)->	\
+		frame_handle))
 	/** Macro to get the default segment handle from the presentation
 	 * context */
 #define PRC_GET_SEGMENT_HANDLE()					\
-	((uint8_t)(((struct presentation_context *)HWC_PRC_ADDRESS)->handles) \
-		& PRC_SEGMENT_HANDLE_MASK)
+	((uint8_t)							\
+		(((struct presentation_context *)HWC_PRC_ADDRESS)->seg_handle))
 	/** Macro to get the OSM Entry Point Source value from the presentation
 	 * context */
 #define PRC_GET_OSM_SOURCE_VALUE()					\
@@ -508,6 +429,10 @@ struct presentation_context {
 #define PRC_GET_OSM_ORDER_SCOPE_RANGE_MASK_VALUE()			\
 	(((uint8_t)(((struct presentation_context *)HWC_PRC_ADDRESS)	\
 		->osrc_oep_osel_osrm)) & PRC_OSRM_MASK)
+	/** Macro to get the Initial Scope Value */
+#define PRC_GET_ISV_VALUE()						\
+	(((uint8_t)(((struct presentation_context *)HWC_PRC_ADDRESS)	\
+		->isv) & PRC_ISV_MASK) >> PRC_ISV_BIT_OFFSET)
 
 /** @} */ /* end of AIOP_PRC_Getters */
 

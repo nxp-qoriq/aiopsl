@@ -84,7 +84,6 @@ __declspec(entry_point) void aiop_verification_fm()
 		ext_address = *((uint64_t *)data_addr);
 		slab_parser_error = *((uint8_t *)data_addr + 8);
 		slab_keygen_error = *((uint8_t *)data_addr + 9);
-		PRC_SET_PTA_ADDRESS(PRC_PTA_NOT_LOADED_ADDRESS);
 		/* fix CR:ENGR00364084 */
 		*((uint16_t *)(HWC_PRC_ADDRESS + 0x8)) = segment_offset;
 	} else {

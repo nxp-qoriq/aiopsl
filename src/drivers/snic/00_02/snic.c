@@ -104,6 +104,7 @@ void snic_process_packet(void)
 	int32_t parse_status;
 	uint16_t snic_id;
 	int err;
+	uint16_t asa_length;
 
 	/* get sNIC ID */
 	snic_id = SNIC_ID_GET;
@@ -151,7 +152,7 @@ void snic_process_packet(void)
 			(snic->snic_enable_flags & SNIC_IPSEC_EN))
 		{
 			fdma_read_default_frame_asa((void*)SNIC_ASA_LOCATION, 0,
-					SNIC_ASA_SIZE);
+					SNIC_ASA_SIZE, &asa_length);
 		}
 		/* Check if ipsec transport mode is required */
 		if (snic->snic_enable_flags & SNIC_IPSEC_EN)
@@ -278,8 +279,7 @@ int snic_add_vlan(void)
 	/* Get ASA pointer */
 	presentation_context =
 		(struct presentation_context *) HWC_PRC_ADDRESS;
-	asa_seg_addr = (uint32_t)(presentation_context->
-			asapa_asaps & PRC_ASAPA_MASK);
+	asa_seg_addr = (uint32_t)SNIC_ASA_LOCATION;
 	vlan = *((uint32_t *)(PTR_MOVE(asa_seg_addr, 0x50)));
 	l2_push_and_set_vlan(vlan);
 	return 0;
@@ -338,8 +338,7 @@ int snic_ipsec_encrypt(struct snic_params *snic)
 	/* Get ASA pointer */
 	presentation_context =
 		(struct presentation_context *) HWC_PRC_ADDRESS;
-	asa_seg_addr = (uint32_t)(presentation_context->
-			asapa_asaps & PRC_ASAPA_MASK);
+	asa_seg_addr = (uint32_t)SNIC_ASA_LOCATION;
 	sa_id = *((uint8_t *)(PTR_MOVE(asa_seg_addr, 0x54)));
 	
 	key_desc.em_key = &sa_id;
