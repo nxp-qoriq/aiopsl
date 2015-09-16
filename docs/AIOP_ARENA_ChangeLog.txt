@@ -1,3 +1,5 @@
+all *.cproject    Build flag: "warning not inlined" set to true.
+
 all *.cfg:        MCFBALR.write:0xe0000001
 all files:        Removed all "os" suffixes from all API's
 fsl_slab.h: Added flag to avoid cache line positioning optimization to optimize memory utilization:
