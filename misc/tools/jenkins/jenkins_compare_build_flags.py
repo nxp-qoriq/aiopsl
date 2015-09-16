@@ -6,7 +6,9 @@ import re
 import sys, getopt
 
 global DEBUG
+global BUILD
 DEBUG = False
+BUILD = False
 DIFFERENT_FLAGS_FILE = "different_flags_found.properties"
 TOTAL_CPROJETCTS_FILE = "cprojects_found.properties"
 
@@ -17,15 +19,20 @@ def check_if_file_exists(filename):
 def compile_projects(matches):
 	global g_arch
 	global g_cw
-
+	flags = ''
 	cw_path = 'c:\\Freescale\\' + str(g_cw) + '\\eclipse\\ecd.exe'
 	workspace = os.getcwd()
-	flags = ' -build -cleanAll -data '
-	if DEBUG:
-		flags = ' -build -verbose -cleanAll -data '
 
+	if BUILD:
+		flags = ' -build -cleanAll -cleanBuild'
+	else:
+		flags = ' -generateMakefiles '
+	
+	if DEBUG:
+		flags = flags + ' -verbose '
+	
 	for line in matches:
-		command = cw_path + flags + '\"'+ workspace + '\"' + ' -project ' + line + ' -cleanBuild'
+		command = cw_path + flags + '-data \"'+ workspace + '\"' + ' -project ' + line
 		if DEBUG:
 			print "compilation command:\n" + command
 		error = os.system(command)
@@ -203,6 +210,7 @@ def compare_flags(matches):
 
 def main(argv):
 	global DEBUG
+	global BUILD
 	global g_arch
 	global g_cw
 	global g_rev
@@ -222,13 +230,13 @@ def main(argv):
 	g_ignore = ''
 
 	try:
-		opts, args = getopt.getopt(argv,"hvd:c:r:i:",["device=, codewarrior=, revision=, ignore=, verbose="])
+		opts, args = getopt.getopt(argv,"hvbd:c:r:i:",["device=, codewarrior=, revision=, ignore=, verbose=, build="])
 	except getopt.GetoptError:
-		print 'jenkins_flags_compare.py -d <device> -c <codewarrior version> -r <revision>'
+		print 'jenkins_flags_compare.py -d [device] -c [codewarrior version] -r [revision]'
 		exit(2)
 	for opt, arg in opts:
 		if opt == '-h':
-			print 'jenkins_flags_compare.py -d <device> -c <codewarrior version> -r <revision> -i <ignore flags file> -v <debug enabled>'
+			print 'jenkins_flags_compare.py -d [device] -c [codewarrior version] -r [revision] -i [ignore flags file] -v <debug enabled> -b <build> '
 			exit()
 		elif opt in ("-d", "--device"):
 			g_arch = arg
@@ -238,9 +246,12 @@ def main(argv):
 			g_rev = arg
 		elif opt in ("-i", "--ignore"):
 			g_ignore = arg
-		elif opt == "-v":
+		elif opt in ("-v", "--verbose"):
 			DEBUG = True
-			print "Python: Debug mode enabled"
+			print "Debug mode enabled"
+		elif opt in ("-b", " --build"):
+			BUILD = True
+			print "Build projects"
 
 
 	if g_arch == '':
@@ -259,6 +270,8 @@ def main(argv):
 		else:
 			print "Ignore flags file: " + str(g_ignore) + " exists."
 
+	if BUILD == False and DEBUG:
+		print "Only make files will be generated."
 
 	if check_if_file_exists("build\\"+str(g_arch)+"\\"+str(g_rev)+"\\aiopsl\\.cproject") == False:
 		exit(1)
