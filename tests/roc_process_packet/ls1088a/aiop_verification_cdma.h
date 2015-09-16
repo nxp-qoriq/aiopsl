@@ -72,7 +72,12 @@
 	/**< CDMA write release lock and decrement command */
 #define	CDMA_REFCOUNT_GET_CMD 			0x00000c81
 	/**< CDMA reference count getter command */
-
+#define	CDMA_EPHEMERAL_REFERENCE_TAKE_CMD 	0x00000d81
+	/**< CDMA ephemeral reference take command */
+#define	CDMA_EPHEMERAL_REFERENCE_RELEASE_ALL_CMD 	0x00000e81
+	/**< CDMA ephemeral reference release all command */
+#define	CDMA_EPHEMERAL_REFERENCE_SYNC_CMD 	0x00000f81
+	/**< CDMA ephemeral reference sync command */
 
 
 /* CDMA Commands Structure identifiers */
@@ -109,6 +114,12 @@
 	/**< CDMA write release lock and decrement command Structure identifier*/
 #define	CDMA_REFCOUNT_GET_CMD_STR ((CDMA_MODULE << 16) | CDMA_REFCOUNT_GET_CMD)
 	/**< CDMA reference count getter command Structure identifier*/
+#define	CDMA_EPHEMERAL_REFERENCE_TAKE_CMD_STR	((CDMA_MODULE << 16) | CDMA_EPHEMERAL_REFERENCE_TAKE_CMD)
+	/**< CDMA ephemeral reference take command Structure identifier */
+#define	CDMA_EPHEMERAL_REFERENCE_RELEASE_ALL_CMD_STR	((CDMA_MODULE << 16) | CDMA_EPHEMERAL_REFERENCE_RELEASE_ALL_CMD)
+	/**< CDMA ephemeral reference release all command Structure identifier */
+#define	CDMA_EPHEMERAL_REFERENCE_SYNC_CMD_STR	((CDMA_MODULE << 16) | CDMA_EPHEMERAL_REFERENCE_SYNC_CMD)
+	/**< CDMA ephemeral reference sync command Structure identifier */
 
 
 /** \addtogroup AIOP_Service_Routines_Verification
@@ -487,6 +498,55 @@ struct cdma_refcount_get_command {
 	uint8_t		pad[3];
 		/**< 64-bit alignment. */
 };
+
+/**************************************************************************//**
+@Description	CDMA ephemeral reference take Command Structure.
+
+		Includes information needed for CDMA ephemeral reference take command
+		verification.
+
+*//***************************************************************************/
+struct cdma_ephemeral_reference_take_command  {
+	uint32_t 	opcode;
+		/**< CDMA cdma_ephemeral_reference_take Command Structure identifier. */
+	int8_t  	status;
+		/**< Command returned status. */
+	uint8_t		pad2[3];
+		/**< 64-bit alignment. */
+};
+
+/**************************************************************************//**
+@Description	CDMA ephemeral reference release all Command Structure.
+
+		Includes information needed for CDMA ephemeral reference release all command
+		verification.
+
+*//***************************************************************************/
+struct cdma_ephemeral_reference_release_all_command  {
+	uint32_t 	opcode;
+		/**< CDMA cdma_ephemeral_reference_release_all Command Structure identifier. */
+	int8_t  	status;
+		/**< Command returned status. */
+	uint8_t		pad2[3];
+		/**< 64-bit alignment. */
+};
+
+/**************************************************************************//**
+@Description	CDMA ephemeral reference sync Command Structure.
+
+		Includes information needed for CDMA ephemeral reference sync command
+		verification.
+
+*//***************************************************************************/
+struct cdma_ephemeral_reference_sync_command  {
+	uint32_t 	opcode;
+		/**< CDMA cdma_ephemeral_reference_sync Command Structure identifier. */
+	int8_t  	status;
+		/**< Command returned status. */
+	uint8_t		pad2[3];
+		/**< 64-bit alignment. */
+};
+
 
 /** @} */ /* end of AIOP_CDMA_SRs_Verification */
 
