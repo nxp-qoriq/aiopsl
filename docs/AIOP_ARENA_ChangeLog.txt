@@ -1,3 +1,10 @@
+dpni_drv.c/h:     Update dpni driver to support ERR009354 and set alignment to 256 for
+                  rx buffer layout data alignment. (only for ls2085a)
+                  Buffer pool size must be a multiple of 256. (only for ls2085a)  
+
+all *.cproject    Build flag: "warning not inlined" set to true.
+
+all *.cfg:        MCFBALR.write:0xe0000001
 all files:        Removed all "os" suffixes from all API's
 fsl_slab.h: Added flag to avoid cache line positioning optimization to optimize memory utilization:
                   SLAB_OPTIMIZE_MEM_UTILIZATION_FLAG

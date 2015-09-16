@@ -238,9 +238,9 @@ def main(argv):
 			g_rev = arg
 		elif opt in ("-i", "--ignore"):
 			g_ignore = arg
-		elif opt in ("-v", "--verbose"):
+		elif opt == "-v":
 			DEBUG = True
-			print "Debug mode enabled"
+			print "Python: Debug mode enabled"
 
 
 	if g_arch == '':
