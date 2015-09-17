@@ -2097,10 +2097,6 @@ __IPSEC_HOT_CODE int ipsec_frame_encrypt(
 		*(uint32_t *)segment_pointer += 8;
 		
 		/* Change the protocol */
-		//*((uint32_t *)segment_pointer + 2) =
-		//		(*((uint32_t *)segment_pointer + 2) & 0xFF00FFFF) |
-		//			0x00110000;
-				
 		*((uint8_t *)segment_pointer + 9) = 0x11; /* Protocol, byte 9 */
 				
 		/* Update the IP header checksum (for length and protocol change) */
@@ -2115,7 +2111,7 @@ __IPSEC_HOT_CODE int ipsec_frame_encrypt(
 				0x32, /* uint32_t old_val (ESP protocol)*/
 				(0x8 + 0x11)); /* new_val (delta length + UDP protocol)*/
 		
-		/* Check if the presentation legnth is too small for the header
+		/* Check if the presentation length is too small for the header
 		 * after adding the 8 UDP bytes */
 		new_val = (uint32_t)dpovrd.transport_encap.ip_hdr_len + 
 				(uint32_t)eth_length + 8 + 8;
@@ -2127,7 +2123,6 @@ __IPSEC_HOT_CODE int ipsec_frame_encrypt(
 		return_val = fdma_replace_default_segment_data(
 				(uint16_t)PARSER_GET_OUTER_IP_OFFSET_DEFAULT(), /* to_offset */
 				(uint16_t)(dpovrd.transport_encap.ip_hdr_len), /* to_size (original IP size) */
-				//PARSER_GET_OUTER_IP_POINTER_DEFAULT(), /* void *from_ws_src */
 				(void *)segment_pointer, /* void *from_ws_src */
 				(uint16_t)(dpovrd.transport_encap.ip_hdr_len + 8), /* from_size (new size)*/
 				(void *)prc->seg_address, /* void *ws_dst_rs */
@@ -2401,7 +2396,7 @@ __IPSEC_HOT_CODE int ipsec_frame_decrypt(
 					(uint8_t *)PARSER_GET_OUTER_IP_POINTER_DEFAULT();
 			if (*(segment_pointer + 9) == 0x11) { /* If UDP */
 
-				/* Remove the UDP length */
+				/* Remove the UDP length (according to the parser result) */
 				dpovrd.transport_decap.ip_hdr_len -= 8; 
 				
 				/* Reduce the UDP header length (8) from the total IP length */
@@ -2421,7 +2416,7 @@ __IPSEC_HOT_CODE int ipsec_frame_decrypt(
 						0x11, /* uint32_t old_val (UDP protocol)*/
 						(0x32 - 0x8)); /* new_val (ESP protocol - length)*/
 				
-				/* Insert the UDP and change the IP length */	
+				/* Remove the UDP header and change the IP length */	
 				return_val = fdma_replace_default_segment_data(
 					(uint16_t)PARSER_GET_OUTER_IP_OFFSET_DEFAULT(), 
 						/* to_offset (IP header)*/
@@ -2433,6 +2428,9 @@ __IPSEC_HOT_CODE int ipsec_frame_decrypt(
 					(void *)prc->seg_address, /* void *ws_dst_rs */
 					(uint16_t)(PRC_GET_SEGMENT_LENGTH()), /* uint16_t size_rs */
 					FDMA_REPLACE_SA_REPRESENT_BIT); /* flags */
+				
+				/* TODO: possibly unify FDMA replace for both UDP and L2
+				 * headers removal */
 			}
 		}
 		
@@ -2459,9 +2457,6 @@ __IPSEC_HOT_CODE int ipsec_frame_decrypt(
 			/* This is done here because L2 is removed only in Transport */
 			PRC_RESET_NDS_BIT(); 
 			
-			// TODO: 
-			/* For decryption in transport mode it is required to update 
-			  * the running sum. */
 		}
 	}
 
