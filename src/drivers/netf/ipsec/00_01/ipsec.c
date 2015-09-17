@@ -1897,6 +1897,11 @@ __IPSEC_HOT_CODE int ipsec_frame_encrypt(
 
 	/* New output buffer mode */
 	if (sap1.sec_buffer_mode == IPSEC_SEC_NEW_BUFFER_MODE) { 
+		/* In new output buffer mode, clear the PRC ASA Size, 
+		 * since the SEC does not preserve the ASA
+		 * This is relevant for LS2085 Rev1 only. On Rev2 this macro is
+		 * empty. */
+		PRC_SET_ASA_SIZE(0);
 
 		/* Update the SPID of the new frame (SEC output) in the HW Context*/
 		*((uint8_t *)HWC_SPID_ADDRESS) = sap1.output_spid;
@@ -2550,6 +2555,11 @@ __IPSEC_HOT_CODE int ipsec_frame_decrypt(
 	
 	/* New output buffer mode */
 	if (sap1.sec_buffer_mode == IPSEC_SEC_NEW_BUFFER_MODE) { 
+		/* In new output buffer mode, clear the PRC ASA Size, 
+		 * since the SEC does not preserve the ASA
+		 * This is relevant for LS2085 Rev1 only. On Rev2 this macro is
+		 * empty. */
+		PRC_SET_ASA_SIZE(0);
 			
 		/* Update the SPID of the new frame (SEC output) in the HW Context*/
 		*((uint8_t *)HWC_SPID_ADDRESS) = sap1.output_spid;
