@@ -140,6 +140,8 @@ enum rta_param_type {
 #define IPSEC_INTERNAL_PARMS_SIZE 128 /* 128 bytes */
 #define IPSEC_FLOW_CONTEXT_SIZE 64 /* 64 bytes */
 #define IPSEC_KEY_SEGMENT_SIZE 128 /* Key Copy segment, 128 bytes */
+#define IPSEC_CIPHER_KEY_SIZE 32 /* Cipher Key Copy, 32 bytes */
+
 #define IPSEC_SP_ASAR_MASK 0x000F0000 /* Storage profile ASAR field mask */
 #define IPSEC_SP_DHR_MASK 0x00000FFF
 #define IPSEC_SP_REUSE_BS_FF 0xA0000000
@@ -236,8 +238,11 @@ enum rta_param_type {
  * ------------------------------------------------------
  * | Replacement Job Descriptor (TBD) | Up to 64 (TBD)  | + 448
  * ------------------------------------------------------
- * | Key Copy                         | 128 bytes       | + 512 
+ * | Authentication Key Copy          | 128 bytes       | + 512 
  * ------------------------------------------------------
+ * | Cipher Key Copy                  | 32 bytes        | + 640 
+ * ------------------------------------------------------
+ * 
  *  
  * ipsec_sa_params - Parameters used by the IPsec functional module	128 bytes
  * sec_flow_context	- SEC Flow Context. 64 bytes
@@ -245,9 +250,9 @@ enum rta_param_type {
  * sec_shared_descriptor - Shared descriptor. Up to 256 bytes
  * Replacement Job Descriptor (RJD) for Peer Gateway Adaptation 
  * (Outer IP change)	TBD 
- * Key Copy area, for CAAM DKP
+ * Key Copy area, for CAAM DKP and upon HF-NIC requirement
  * 
- * Buffer size = 128 + 64 + 256 + 64 + 128 + 63 (alignment) = 703
+ * Aligned Buffer size = 128 + 64 + 256 + 64 + 128 + 32 = 672
  * Requested buffer size = 12*64 = 768 bytes
 */
 
@@ -261,6 +266,7 @@ enum rta_param_type {
 
 #define IPSEC_MAX_NUM_OF_TASKS 256 /* Total maximum number of tasks in AIOP */
 
+/* Memory partition ID */
 #ifndef IPSEC_PRIMARY_MEM_PARTITION_ID
 	#define IPSEC_PRIMARY_MEM_PARTITION_ID MEM_PART_DP_DDR
 #endif
@@ -269,8 +275,11 @@ enum rta_param_type {
 	#define IPSEC_SECONDARY_MEM_PARTITION_ID MEM_PART_SYSTEM_DDR
 #endif
 
-					/* Memory partition ID */
+/* Keys Copy Offsets */
 #define IPSEC_KEY_SEGMENT_OFFSET 512 /* Offset from params start */
+#define IPSEC_CIPHER_KEY_OFFSET\
+		IPSEC_KEY_SEGMENT_OFFSET + IPSEC_KEY_SEGMENT_SIZE
+
 /* Key Offset from FLC start */
 #define IPSEC_KEY_OFFSET_FROM_FLC IPSEC_KEY_SEGMENT_OFFSET -\
 											IPSEC_INTERNAL_PARMS_SIZE
@@ -311,6 +320,9 @@ enum rta_param_type {
 #define IPSEC_KEY_SEGMENT_ADDR(ADDRESS) ((ADDRESS) + IPSEC_KEY_SEGMENT_OFFSET)
 #define IPSEC_KEY_ADDR_FROM_FLC(ADDRESS) ((ADDRESS) + IPSEC_KEY_OFFSET_FROM_FLC)
 #define IPSEC_KEY_ADDR_FROM_SD(ADDRESS) ((ADDRESS) + IPSEC_KEY_OFFSET_FROM_SD)
+
+#define IPSEC_CIPHER_KEY_ADDR(ADDRESS) ((ADDRESS) + IPSEC_CIPHER_KEY_OFFSET)
+
 
 #define IPSEC_GET_SEGMENT_ADDRESS(prc_addr) \
 	((struct presentation_context *)prc_addr)->seg_address

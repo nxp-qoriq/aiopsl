@@ -370,7 +370,6 @@ int ipsec_generate_encap_sd(
 	
 	uint8_t cipher_type = 0;
 	uint8_t pdb_options = 0;
-	uint8_t split_key = 0;
 
 	/* Temporary Workspace Shared Descriptor */
 	uint32_t ws_shared_desc[IPSEC_MAX_SD_SIZE_WORDS] = {0}; 
@@ -545,9 +544,6 @@ int ipsec_generate_encap_sd(
 			(((params->encparams.options) & IPSEC_ENC_PDB_HMO_MASK))
 			<<IPSEC_ENC_PDB_HMO_SHIFT);
 
-	// Debug
-	//pdb.options |= 0x00320100;
-	
 	pdb.seq_num_ext_hi = params->encparams.seq_num_ext_hi;
 	pdb.seq_num = params->encparams.seq_num;
 	
@@ -593,22 +589,18 @@ int ipsec_generate_encap_sd(
 			case IPSEC_AUTH_HMAC_MD5_96:
 			case IPSEC_AUTH_HMAC_MD5_128:
 				data_len[1] = 2*16;
-				split_key = 1;
 				break;
 			case IPSEC_AUTH_HMAC_SHA1_96:
 			case IPSEC_AUTH_HMAC_SHA1_160:	
 				data_len[1] = 2*20;
-				split_key = 1;
 				break;
 			case IPSEC_AUTH_HMAC_SHA2_256_128:
 				data_len[1] = 2*32;
-				split_key = 1;
 				break;
 			default:
 				/* IPSEC_AUTH_HMAC_SHA2_384_192 */
 				/* IPSEC_AUTH_HMAC_SHA2_512_256 */
 				data_len[1] = 2*64;
-				split_key = 1;
 		}	
 	} 
 
@@ -622,25 +614,9 @@ int ipsec_generate_encap_sd(
 	
 	if (inl_mask & (1 << 1))
 		rta_auth_alginfo.key_type = (enum rta_data_type)RTA_PARAM_IMM_DMA;
-
 	else {
 		rta_auth_alginfo.key_type = (enum rta_data_type)RTA_PARAM_PTR;
-		
-		/* If a referenced split key is required, and it is not null auth,
-		 * create a copy of the authentication key in the local buffer */
-		if (split_key) {
-			//rta_auth_alginfo.key = IPSEC_KEY_ADDR_FROM_FLC(sd_addr);
-			rta_auth_alginfo.key = IPSEC_KEY_ADDR_FROM_SD(sd_addr);
-			ipsec_create_key_copy(
-				params->authdata.key, /* Source Key Address */
-				rta_auth_alginfo.key, /* Destination Key Address */
-				(uint16_t)rta_auth_alginfo.keylen); /* Key length in bytes */
-		}	
 	}	
-	
-	// TODO: test, remove
-	//rta_auth_alginfo.key_type = (enum rta_data_type)RTA_PARAM_PTR;
-
 	
 	if (inl_mask & (1 << 2))
 		rta_cipher_alginfo.key_type = (enum rta_data_type)RTA_PARAM_IMM_DMA;
@@ -699,7 +675,6 @@ int ipsec_generate_decap_sd(
 {
 	
 	uint8_t cipher_type = 0;
-	uint8_t split_key = 0;
 	
 	/* Temporary Workspace Shared Descriptor */
 	uint32_t ws_shared_desc[IPSEC_MAX_SD_SIZE_WORDS]; 
@@ -893,22 +868,18 @@ int ipsec_generate_decap_sd(
 			case IPSEC_AUTH_HMAC_MD5_96:
 			case IPSEC_AUTH_HMAC_MD5_128:
 				data_len[0] = 2*16;
-				split_key = 1;
 				break;
 			case IPSEC_AUTH_HMAC_SHA1_96:
 			case IPSEC_AUTH_HMAC_SHA1_160:	
 				data_len[0] = 2*20;
-				split_key = 1;
 				break;
 			case IPSEC_AUTH_HMAC_SHA2_256_128:
 				data_len[0] = 2*32;
-				split_key = 1;
 				break;
 			default:
 				/* IPSEC_AUTH_HMAC_SHA2_384_192 */
 				/* IPSEC_AUTH_HMAC_SHA2_512_256 */
 				data_len[0] = 2*64;
-				split_key = 1;
 		}	
 	} 
 
@@ -922,25 +893,10 @@ int ipsec_generate_decap_sd(
 	
 	if (inl_mask & (1 << 0))
 		rta_auth_alginfo.key_type = (enum rta_data_type)RTA_PARAM_IMM_DMA;
-
 	else {
 		rta_auth_alginfo.key_type = (enum rta_data_type)RTA_PARAM_PTR;
-		
-		/* If a referenced split key is required, and it is not null auth,
-		 * create a copy of the authentication key in the local buffer */
-		if (split_key) {
-			//rta_auth_alginfo.key = IPSEC_KEY_ADDR_FROM_FLC(sd_addr);
-			rta_auth_alginfo.key = IPSEC_KEY_ADDR_FROM_SD(sd_addr);
-			ipsec_create_key_copy(
-				params->authdata.key, /* Source Key Address */
-				rta_auth_alginfo.key, /* Destination Key Address */
-				(uint16_t)rta_auth_alginfo.keylen); /* Key length in bytes */
-		}
 	}
 		
-	// TODO: test, remove
-	//rta_auth_alginfo.key_type = (enum rta_data_type)RTA_PARAM_PTR;
-	
 	if (inl_mask & (1 << 1))
 		rta_cipher_alginfo.key_type = (enum rta_data_type)RTA_PARAM_IMM_DMA;
 
@@ -1437,16 +1393,29 @@ int ipsec_add_sa_descriptor(
 	desc_addr = IPSEC_DESC_ADDR(*ipsec_handle);
 	
 	/* If the authentication key length is not 0, 
-	 * create a copy of the authentication key in the local buffer 
-	 * (this is a hot fix to ENGR347826, later versions are optimized)*/
+	 * create a copy of the authentication key in the local buffer */
 	if (params->authdata.keylen) {
 		ipsec_create_key_copy(
 			params->authdata.key, /* Source Key Address */
 			IPSEC_KEY_SEGMENT_ADDR(desc_addr), /* Destination Key Address */
-			(uint16_t)params->authdata.keylen);   /* Length of the provided key, in bytes */
+			(uint16_t)params->authdata.keylen);  
+								/* Length of the provided key, in bytes */
 	
 		/* Now switch the original key address with the copy address */
 		params->authdata.key = IPSEC_KEY_SEGMENT_ADDR(desc_addr);
+	}
+
+	/* If the cipher key length is not 0, 
+	 * create a copy of the cipher key in the local buffer */
+	if (params->cipherdata.keylen) {
+		ipsec_create_key_copy(
+			params->cipherdata.key, /* Source Key Address */
+			IPSEC_CIPHER_KEY_ADDR(desc_addr), /* Destination Key Address */
+			(uint16_t)params->cipherdata.keylen);  
+								/* Length of the provided key, in bytes */
+	
+		/* Now switch the original key address with the copy address */
+		params->cipherdata.key = IPSEC_CIPHER_KEY_ADDR(desc_addr);
 	}
 	
 	/* Build a shared descriptor with the RTA library */
