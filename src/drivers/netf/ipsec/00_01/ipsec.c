@@ -54,8 +54,6 @@
 #include "fsl_sl_slab.h"
 #endif /* AIOP_VERIF */
 
-#pragma push
-
 #include "fsl_ipsec.h"
 #include "ipsec.h"
 
@@ -358,6 +356,12 @@ int ipsec_release_buffer(ipsec_instance_handle_t instance_handle,
 
 @Description	Generate SEC Shared Descriptor for Encapsulation
 *//***************************************************************************/
+/* The inline_max_size inline_max_total_size pragmas are here to eliminate
+ * non-inlined build and warnings of the RTA */
+#pragma push
+#pragma inline_max_size (5000)
+#pragma inline_max_total_size(10000)
+
 int ipsec_generate_encap_sd(
 		uint64_t sd_addr, /* Shared Descriptor Address in external memory */
 		struct ipsec_descriptor_params *params,
@@ -676,12 +680,18 @@ int ipsec_generate_encap_sd(
 	return IPSEC_SUCCESS;
 
 } /* End of ipsec_generate_encap_sd */
-
+#pragma pop
 /**************************************************************************//**
 @Function		ipsec_generate_decap_sd 
 
 @Description	Generate SEC Shared Descriptor for Encapsulation
 *//***************************************************************************/
+/* The inline_max_size inline_max_total_size pragmas are here to eliminate
+ * non-inlined build and warnings of the RTA */
+#pragma push
+#pragma inline_max_size (5000)
+#pragma inline_max_total_size(10000)
+
 int ipsec_generate_decap_sd(
 		uint64_t sd_addr, /* Shared Descriptor Address in external memory */
 		struct ipsec_descriptor_params *params,
@@ -968,6 +978,7 @@ int ipsec_generate_decap_sd(
 
 	return IPSEC_SUCCESS;
 } /* End of ipsec_generate_decap_sd */
+#pragma pop
 
 /**************************************************************************//**
 @Function		ipsec_generate_flc 
@@ -1886,6 +1897,11 @@ __IPSEC_HOT_CODE int ipsec_frame_encrypt(
 
 	/* New output buffer mode */
 	if (sap1.sec_buffer_mode == IPSEC_SEC_NEW_BUFFER_MODE) { 
+		/* In new output buffer mode, clear the PRC ASA Size, 
+		 * since the SEC does not preserve the ASA
+		 * This is relevant for LS2085 Rev1 only. On Rev2 this macro is
+		 * empty. */
+		PRC_SET_ASA_SIZE(0);
 
 		/* Update the SPID of the new frame (SEC output) in the HW Context*/
 		*((uint8_t *)HWC_SPID_ADDRESS) = sap1.output_spid;
@@ -2539,6 +2555,11 @@ __IPSEC_HOT_CODE int ipsec_frame_decrypt(
 	
 	/* New output buffer mode */
 	if (sap1.sec_buffer_mode == IPSEC_SEC_NEW_BUFFER_MODE) { 
+		/* In new output buffer mode, clear the PRC ASA Size, 
+		 * since the SEC does not preserve the ASA
+		 * This is relevant for LS2085 Rev1 only. On Rev2 this macro is
+		 * empty. */
+		PRC_SET_ASA_SIZE(0);
 			
 		/* Update the SPID of the new frame (SEC output) in the HW Context*/
 		*((uint8_t *)HWC_SPID_ADDRESS) = sap1.output_spid;
@@ -3461,8 +3482,6 @@ int ipsec_force_seconds_lifetime_expiry(
 	return IPSEC_SUCCESS;
 	
 } /* End of ipsec_force_seconds_lifetime_expiry */
-
-#pragma pop 
 
 /** @} */ /* end of FSL_IPSEC_Functions */
 
