@@ -54,8 +54,6 @@
 #include "fsl_sl_slab.h"
 #endif /* AIOP_VERIF */
 
-#pragma push
-
 #include "fsl_ipsec.h"
 #include "ipsec.h"
 
@@ -358,6 +356,12 @@ int ipsec_release_buffer(ipsec_instance_handle_t instance_handle,
 
 @Description	Generate SEC Shared Descriptor for Encapsulation
 *//***************************************************************************/
+/* The inline_max_size inline_max_total_size pragmas are here to eliminate
+ * non-inlined build and warnings of the RTA */
+#pragma push
+#pragma inline_max_size (5000)
+#pragma inline_max_total_size(10000)
+
 int ipsec_generate_encap_sd(
 		uint64_t sd_addr, /* Shared Descriptor Address in external memory */
 		struct ipsec_descriptor_params *params,
@@ -676,12 +680,18 @@ int ipsec_generate_encap_sd(
 	return IPSEC_SUCCESS;
 
 } /* End of ipsec_generate_encap_sd */
-
+#pragma pop
 /**************************************************************************//**
 @Function		ipsec_generate_decap_sd 
 
 @Description	Generate SEC Shared Descriptor for Encapsulation
 *//***************************************************************************/
+/* The inline_max_size inline_max_total_size pragmas are here to eliminate
+ * non-inlined build and warnings of the RTA */
+#pragma push
+#pragma inline_max_size (5000)
+#pragma inline_max_total_size(10000)
+
 int ipsec_generate_decap_sd(
 		uint64_t sd_addr, /* Shared Descriptor Address in external memory */
 		struct ipsec_descriptor_params *params,
@@ -968,6 +978,7 @@ int ipsec_generate_decap_sd(
 
 	return IPSEC_SUCCESS;
 } /* End of ipsec_generate_decap_sd */
+#pragma pop
 
 /**************************************************************************//**
 @Function		ipsec_generate_flc 
@@ -3461,8 +3472,6 @@ int ipsec_force_seconds_lifetime_expiry(
 	return IPSEC_SUCCESS;
 	
 } /* End of ipsec_force_seconds_lifetime_expiry */
-
-#pragma pop 
 
 /** @} */ /* end of FSL_IPSEC_Functions */
 
