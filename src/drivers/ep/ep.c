@@ -46,15 +46,12 @@
 
 /* Initial Presentation settings, masks, shift */
 #define FDPA_MASK                 0xFFE00000
-#define FDPA_SHIFT                21
+#define FDPA_SHIFT                16
 #define ADPCA_MASK                0x0000FFE0
-#define ADPCA_SHIFT               5
 #define PTAPA_MASK                0x0000FFC0
-#define PTAPA_SHIFT               6
 #define ASAPS_MASK                0x000F0000
 #define ASAPS_SHIFT               16
 #define ASAPA_MASK                0x0000FFC0
-#define ASAPA_SHIFT               6
 #define ASAPO_MASK                0x0000000F
 #define SPA_MASK                  0x0000FFFF
 #define SPS_MASK                  0xFFFF0000
@@ -120,13 +117,11 @@ int ep_mng_get_initial_presentation(
 			((ep_fdpa & FDPA_MASK) >> FDPA_SHIFT);
 
 	init_presentation->adpca = (uint16_t)
-			((ep_fdpa & ADPCA_MASK) >> ADPCA_SHIFT);
+			(ep_fdpa & ADPCA_MASK);
 
-	init_presentation->ptapa = (uint16_t)
-			((ep_ptapa & PTAPA_MASK) >> PTAPA_SHIFT);
+	init_presentation->ptapa = (uint16_t) (ep_ptapa & PTAPA_MASK);
 
-	init_presentation->asapa = (uint16_t)
-			((ep_asapa & ASAPA_MASK) >> ASAPA_SHIFT);
+	init_presentation->asapa = (uint16_t) (ep_asapa & ASAPA_MASK);
 
 	init_presentation->asapo = (uint8_t) (ep_asapa & ASAPO_MASK);
 
@@ -173,13 +168,11 @@ int ep_mng_set_initial_presentation(
 
 	if(init_presentation->options & EP_INIT_PRESENTATION_OPT_PTA)
 	{
-		ep_ptapa |= (((uint32_t)(init_presentation->ptapa)
-			<< PTAPA_SHIFT) & PTAPA_MASK);
+		ep_ptapa = (uint32_t)(init_presentation->ptapa);
 	}
 	if(init_presentation->options & EP_INIT_PRESENTATION_OPT_ASAPA)
 	{
-		ep_asapa |= (((uint32_t)(init_presentation->asapa)
-			<< ASAPA_SHIFT) & ASAPA_MASK);
+		ep_asapa |= (uint32_t)(init_presentation->asapa);
 	}
 	if(init_presentation->options & EP_INIT_PRESENTATION_OPT_ASAPO)
 	{
@@ -222,16 +215,9 @@ int ep_mng_set_initial_presentation(
 
 	if(init_presentation->options & EP_INIT_PRESENTATION_OPT_PTA)
 	{
-		/* read ep_ptapa - to get Entry Point Pass Through
-		 * Annotation Presentation Address */
-		ep_temp = ioread32_ccsr(&wrks_addr->ep_ptapa);
-		/* Clear PTAAPA field */
-		ep_temp &= ~PTAPA_MASK;
-
-		ep_temp |= ep_ptapa;
 		/* write ep_ptapa - to set Entry Point Pass Through
 		 * Annotation Presentation Address */
-		iowrite32_ccsr(ep_temp, &wrks_addr->ep_ptapa);
+		iowrite32_ccsr(ep_ptapa, &wrks_addr->ep_ptapa);
 	}
 
 	if(init_presentation->options & (EP_INIT_PRESENTATION_OPT_ASAPA |
@@ -334,15 +320,15 @@ static int cmdif_epid_setup(struct aiop_ws_regs *wrks_addr,
 	iowrite32_ccsr(0x0000ffc0, &wrks_addr->ep_ptapa);
 	/* set epid ASA presentation size to 0 */
 	iowrite32_ccsr(0x00000000, &wrks_addr->ep_asapa);
-	/* Set mask for hash to 16 low bits 
+	/* Set mask for hash to 16 low bits
 	 * OSRM = 2
-	 * mask for auth_id 0xFFFF_0000 
-	 * SRC = 1 
-	 * Scope ID taken from the specified slice of the received 
+	 * mask for auth_id 0xFFFF_0000
+	 * SRC = 1
+	 * Scope ID taken from the specified slice of the received
 	 * frame’s FD[FLC]. Slice is specified in the SEL field.
 	 * EP = 1
 	 * Executing exclusively
-	 * SEL = 0 
+	 * SEL = 0
 	 * Order Scope ID is taken from FLC[63:32]
 	 * */
 	iowrite32_ccsr(0x11000002, &wrks_addr->ep_osc);
