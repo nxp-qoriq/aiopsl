@@ -295,8 +295,8 @@ __COLD_CODE static uint8_t num_priorities_get(struct fsl_mc_io *mc_io,
 
 /* Stack size issue */
 //#pragma optimization_level 2
-#pragma push
-#pragma inline_depth(0)
+//#pragma push
+//#pragma inline_depth(0)
 __COLD_CODE static void tx_user_context_set(struct mc_dprc *dprc, int ind,
                                             uint16_t token, uint8_t num_pr)
 {
@@ -319,7 +319,7 @@ __COLD_CODE static void tx_user_context_set(struct mc_dprc *dprc, int ind,
 		dpci_set_rx_queue(&dprc->io, 0, token, i, &queue_cfg);
 	}
 }
-#pragma pop
+//#pragma pop
 //#pragma inline_depth(smart)
 //#pragma optimization_level reset
 
