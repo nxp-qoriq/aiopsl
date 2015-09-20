@@ -97,14 +97,10 @@
 #define PARSER_HW_STATUS_PARSING_ERROR				0x00200000
 	/** Parser SR failed due to block limit exceeded */
 #define PARSER_HW_STATUS_BLOCK_LIMIT_EXCCEEDED			0x00100000
-	/** L3 checksum generation success */
-#define PARSER_HW_STATUS_L3_CHECKSUM_GENERATION_SUCCEEDED	0x00080000
 	/** L3 checksum validation success */
 #define PARSER_HW_STATUS_L3_CHECKSUM_VALIDATION_SUCCEEDED	0x00080000
 	/** L3 checksum validation failure */
 #define PARSER_HW_STATUS_FAIL_L3_CHECKSUM_VALIDATION_ERROR	0x000C0000
-	/** L4 checksum generation success */
-#define PARSER_HW_STATUS_L4_CHECKSUM_GENERATION_SUCCEEDED	0x00020000
 	/** L4 checksum validation success */
 #define PARSER_HW_STATUS_L4_CHECKSUM_VALIDATION_SUCCEEDED	0x00020000
 	/** L4 checksum validation failure */
