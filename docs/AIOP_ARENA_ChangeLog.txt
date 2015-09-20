@@ -1,3 +1,5 @@
+aiopsl ls2088a & ls1088a: Replaced src/kernel/cmdif/00_01 with src/kernel/cmdif/00_02.
+                          This should have no effect on applications, this path should not exist there.
 dpni_drv.c/h:     Update dpni driver to support ERR009354 and set alignment to 256 for
                   rx buffer layout data alignment. (only for ls2085a)
                   Buffer pool size must be a multiple of 256. (only for ls2085a)  
