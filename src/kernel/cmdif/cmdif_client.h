@@ -138,10 +138,8 @@ do {\
 #else
 #define CMDIF_STORE_DATA \
 	do {\
-		uint32_t len; \
-		get_frame_length(PRC_GET_FRAME_HANDLE(), &len); \
 		*((uint8_t *)HWC_SPID_ADDRESS) = 0; \
-		if (len > 0) \
+		if (LDPAA_FD_GET_LENGTH(HWC_FD_ADDRESS) > 0) \
 			fdma_store_default_frame_data(); \
 	} while(0)
 #endif

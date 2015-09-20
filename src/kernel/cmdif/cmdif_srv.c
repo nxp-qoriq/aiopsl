@@ -185,11 +185,7 @@ static inline uint16_t cmd_id_get()
 
 static inline uint32_t cmd_size_get()
 {
-	uint32_t len;
-
-	get_frame_length(PRC_GET_FRAME_HANDLE(), &len);
-
-	return len;
+	return LDPAA_FD_GET_LENGTH(HWC_FD_ADDRESS);
 }
 
 static inline void *cmd_data_get()
@@ -521,7 +517,8 @@ __COLD_CODE int notify_close()
 __COLD_CODE void dump_param_get(uint32_t *len, uint8_t **p, uint64_t *iova);
 __COLD_CODE void dump_param_get(uint32_t *len, uint8_t **p, uint64_t *iova)
 {
-	*len = MIN(cmd_size_get(), PRC_GET_SEGMENT_LENGTH());
+	*len = MIN(LDPAA_FD_GET_LENGTH(HWC_FD_ADDRESS),\
+	                   PRC_GET_SEGMENT_LENGTH());
 	*p = (uint8_t  *)PRC_GET_SEGMENT_ADDRESS();
 	*iova = LDPAA_FD_GET_ADDR(HWC_FD_ADDRESS);
 }
