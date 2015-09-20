@@ -768,6 +768,7 @@ __HOT_CODE ENTRY_POINT void cmdif_srv_isr(void) __attribute__ ((noreturn))
 
 	if (SEND_RESP(cmd_id)) {
 		no_stack_pr_debug("PASSED Asynchronous Command\n");
+		/* In Rev2 can terminate task here */
 		cmdif_fd_send(err);
 	} else {
 		/* CMDIF_NORESP_CMD store user modified data but don't send */
