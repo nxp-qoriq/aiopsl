@@ -800,7 +800,16 @@ int ipsec_generate_decap_sd(
 		if (!(params->flags & IPSEC_FLG_TRANSPORT_PAD_CHECK)) {
 			pdb.options |= (IPSEC_DEC_PDB_OPTIONS_AOFL | 
 					IPSEC_DEC_PDB_OPTIONS_OUTFMT);
+			fsl_print("\n\nIPSEC: IPSEC_FLG_TRANSPORT_PAD_CHECK is NOT set!!!\n"); 
+
+		} else {
+			/* Transport mode pad checking */
+			//pdb.options |= IPSEC_DEC_PDB_OPTIONS_AOFL; 
+			pdb.options |= IPSEC_DEC_PDB_OPTIONS_OUTFMT;
+			fsl_print("\n\nIPSEC: IPSEC_FLG_TRANSPORT_PAD_CHECK is set\n");
+
 		}
+		
 		/*  IPv4, checksum update (in IPv6 there is no checksum) */
 		if (!((params->encparams.options) & IPSEC_PDB_OPTIONS_MASK & 
 				IPSEC_OPTS_ESP_IPVSN)) {
@@ -2610,9 +2619,119 @@ __IPSEC_HOT_CODE int ipsec_frame_decrypt(
 		goto decrypt_end;
 	}
 	
-	/* 	FDMA present default frame command */ 
-	return_val = fdma_present_default_frame();
-	
+	if (sap1.flags & IPSEC_FLG_TRANSPORT_PAD_CHECK) {
+	//if (1) {
+		/*
+		 * Esp trailer length = FD[len] - IP len
+		 * Find pad length
+		 * Present frame padding + pad length
+		 * Check it
+		 * 
+		 * Flow:
+		 * Save PRC offset and length
+		 * Update PRC new offset and length from the end of the frame
+		 * Use FDMA_PRES_SR_BIT, preset from the end of the frame
+		 * fdma_present_default_frame();
+		 * !!!!!!!!!!  Remove the trailer !!!!!!!!!!!!!!!!!!!!!!!!
+		 * fdma_close_default_frame_segment()
+		 * Revert PRC offset and length
+		 * Use FDMA_PRES_NO_FLAGS (instead of FDMA_PRES_SR_BIT)
+		 * fdma_present_default_frame_segment(), use original PRC values
+		 * 
+		 * PRC_GET_SEGMENT_LENGTH()					\
+		 * PRC_GET_SEGMENT_OFFSET()		
+		 * 
+		 */
+		{
+			/* Save original length and offset */
+			uint16_t orig_seg_length = PRC_GET_SEGMENT_LENGTH();
+			uint16_t orig_seg_offset = PRC_GET_SEGMENT_OFFSET();
+			int i;
+			uint8_t pad_length;
+			uint8_t end_seg_len = 32;
+
+			fsl_print("\n Starting Transport Pad Check \n");
+			fsl_print("orig_seg_length = 0x%x\n", orig_seg_length);
+			fsl_print("orig_seg_offset = 0x%x\n", orig_seg_offset);
+
+			
+			/* Save length and offset to present at the end of the frame */
+			//PRC_SET_SEGMENT_LENGTH(32);
+			//PRC_SET_SEGMENT_OFFSET(32);		
+			//PRC_SET_SEGMENT_OFFSET(orig_seg_length);		
+			PRC_SET_SEGMENT_LENGTH(end_seg_len);
+			PRC_SET_SEGMENT_OFFSET(end_seg_len);		
+			
+			/* Present from the end */
+			PRC_SET_SR_BIT();
+			
+			return_val = fdma_present_default_frame();
+
+			/* Use the old parser result for the segment pointer */
+			segment_pointer = (uint8_t *)PARSER_GET_ETH_POINTER_DEFAULT();
+
+			pad_length = *(segment_pointer + end_seg_len - 1);
+			fsl_print("ESP trailer NH = 0x%x\n", pad_length);
+
+			pad_length = *(segment_pointer + end_seg_len - 2);
+			fsl_print("ESP trailer pad length = 0x%x\n", pad_length);
+
+			///////////////////////////////////////////////////////
+			/* Print the content */
+			fsl_print("\n Frame Tail \n");
+			for(i = 0; i<end_seg_len; i++)
+			{
+				if ((i%16) == 0) {
+					fsl_print("00");
+					if (i<16)
+						fsl_print("0");
+					fsl_print("%x  ",(i));
+				}
+				if ((*segment_pointer) < 16)
+					fsl_print("0");
+				fsl_print("%x ", *segment_pointer);
+				if ((i%8) == 7)
+					fsl_print(" ");
+				if ((i%16) == 15)
+					fsl_print("\n");
+				segment_pointer++;
+			}
+			if ((i%16) != 0)
+				fsl_print("\n");
+			
+			fsl_print("\n");
+			///////////////////////////////////////////////////////
+			
+			/* Remove the ESP trailer */	
+			fdma_replace_default_segment_data(
+					(uint16_t)PARSER_GET_ETH_OFFSET_DEFAULT(),/* to_offset */
+					end_seg_len, /* to_size (original size) */
+					(void *)PARSER_GET_ETH_POINTER_DEFAULT(), /* void *from_ws_src */
+					((uint16_t)end_seg_len - (uint16_t)pad_length -2), /* from_size (new size), remove 2 bytes of pad length and NH*/
+					(void *)prc->seg_address,
+					(uint16_t)PRC_GET_SEGMENT_LENGTH(),
+					(uint32_t)(FDMA_REPLACE_SA_CLOSE_BIT));
+			
+			//fdma_close_default_segment();
+			
+			/* Present from the beginning */
+			PRC_RESET_SR_BIT();		
+			//PRC_SET_SEGMENT_LENGTH(orig_seg_length);
+			PRC_SET_SEGMENT_OFFSET(orig_seg_offset);		
+			
+			return_val = fdma_present_default_frame_segment(
+					FDMA_PRES_NO_FLAGS, /* uint32_t flags */
+					(void *)orig_seg_addr, /* void	 *ws_dst, */
+					orig_seg_offset, /* uint16_t offset */
+					128 /* uint16_t present_size */
+					);
+		}
+		/* End of TRANSPORT PAD CHECK section */
+	} else {
+		
+		/* 	FDMA present default frame command */ 
+		return_val = fdma_present_default_frame();
+	}
 	/* 	15.	Get new running sum and byte count (encrypted/encapsulated frame) 
 	 * from the FD[FLC] */
 	
