@@ -772,7 +772,7 @@
 		<link>
 			<name>aiop_sl/kernel/cmdif/cmdif_rev.h</name>
 			<type>1</type>
-			<locationURI>PARENT-4-PROJECT_LOC/src/kernel/cmdif/00_01/cmdif_rev.h</locationURI>
+			<locationURI>PARENT-4-PROJECT_LOC/src/kernel/cmdif/00_02/cmdif_rev.h</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/kernel/cmdif/cmdif_srv.c</name>
