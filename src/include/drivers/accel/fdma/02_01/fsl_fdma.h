@@ -2738,6 +2738,27 @@ void get_default_amq_attributes(
 void set_default_amq_attributes(
 	struct fdma_amq *amq);
 
+
+/**************************************************************************//**
+@Function	get_concatenate_amq_attributes
+
+@Description	setter for AMQ (ICID, PL, VA, BDI) concatenate attributes. The 
+		concatenate attributes are taken from the Additional Dequeue 
+		Context.
+		
+		This function sets the same AMQ attributes for both frames. 
+
+@Param[out]	icid1 - ICID to be used in concatenate command for FD1.
+@Param[out]	icid2 - ICID to be used in concatenate command for FD2.
+@Param[out]	amq_flags -  AMQ attributes to be used in concatenate command. 
+
+@Return		None.
+*//***************************************************************************/
+void get_concatenate_amq_attributes(
+		uint16_t *icid1, 
+		uint16_t *icid2, 
+		uint32_t *amq_flags);
+
 #include "fdma_inline.h"
 
 /**************************************************************************//**

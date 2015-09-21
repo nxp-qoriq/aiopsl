@@ -1379,6 +1379,26 @@ void fdma_release_buffer(
 		amq->flags |= FDMA_ICID_CONTEXT_PL;
 }
 
+void get_concatenate_amq_attributes(
+		uint16_t *icid1, 
+		uint16_t *icid2, 
+		uint32_t *amq_flags)
+{
+	struct additional_dequeue_context *adc =
+		(struct additional_dequeue_context *)HWC_ADC_ADDRESS;
+	uint16_t adc_pl_icid = LH_SWAP(0, &(adc->pl_icid));
+
+	*amq_flags = 0;
+	*icid1 = adc_pl_icid & ADC_ICID_MASK;
+	*icid2 = adc_pl_icid & ADC_ICID_MASK;
+	if (adc->fdsrc_va_fca_bdi & ADC_BDI_MASK)
+		*amq_flags |= (FDMA_CONCAT_AMQ_BDI1 | FDMA_CONCAT_AMQ_BDI2);
+	if (adc->fdsrc_va_fca_bdi & ADC_VA_MASK)
+		*amq_flags |= (FDMA_CONCAT_AMQ_VA1 | FDMA_CONCAT_AMQ_VA2);
+	if (adc_pl_icid & ADC_PL_MASK)
+		*amq_flags |= (FDMA_CONCAT_AMQ_PL1 | FDMA_CONCAT_AMQ_PL2);
+}
+
 /* Todo - enable inline when inline works correctly+move definition to .h file*/
 /*inline*/ void set_default_amq_attributes(
 		struct fdma_amq *amq)

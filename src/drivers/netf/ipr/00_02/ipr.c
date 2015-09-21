@@ -1258,8 +1258,7 @@ uint32_t ipr_insert_to_link_list(struct ipr_rfdc *rfdc_ptr,
 
 uint32_t closing_in_order(uint64_t rfdc_ext_addr, uint8_t num_of_frags)
 {
-	struct		ldpaa_fd fds_to_concatenate[2] \
-			     __attribute__((aligned(sizeof(struct ldpaa_fd))));
+	struct		ldpaa_fd fds_to_concatenate[2];
 	uint64_t	fds_to_fetch_addr;
 	struct		fdma_concatenate_frames_params concatenate_params;
 
@@ -1277,14 +1276,20 @@ uint32_t closing_in_order(uint64_t rfdc_ext_addr, uint8_t num_of_frags)
 	/* Open 2nd frame and get frame handle */
 	/* reset frame2 field because handle is 2 bytes in concatenate
 	   vs 1 byte in present*/
-	concatenate_params.frame2 = 0;
-	fdma_present_frame_without_segments(
+	//concatenate_params.frame2 = 0;
+	/*fdma_present_frame_without_segments(
 		   fds_to_concatenate+1,
 		   FDMA_INIT_NO_FLAGS,
 		   0,
-		   (uint8_t *)(&(concatenate_params.frame2)) + sizeof(uint8_t));
+		   (uint8_t *)(&(concatenate_params.frame2)) + sizeof(uint8_t));*/
 
-	concatenate_params.flags  = FDMA_CONCAT_SF_BIT;
+	//concatenate_params.flags  = FDMA_CONCAT_SF_BIT;
+
+	get_concatenate_amq_attributes(&(concatenate_params.icid1), 
+			&(concatenate_params.icid2),
+			&(concatenate_params.amq_flags));
+	concatenate_params.frame2 = (uint16_t)(uint32_t)(fds_to_concatenate+1);
+	concatenate_params.flags  = FDMA_CONCAT_SF_BIT | FDMA_CONCAT_FS2_BIT;
 	concatenate_params.spid   = *((uint8_t *) HWC_SPID_ADDRESS);
 	concatenate_params.frame1 = (uint16_t) PRC_GET_FRAME_HANDLE();
 	/* Take header size to be removed from 2nd FD[FRC] */
@@ -1302,27 +1307,31 @@ uint32_t closing_in_order(uint64_t rfdc_ext_addr, uint8_t num_of_frags)
 		/* Open frame and get frame handle */
 		/* reset frame2 field because handle is 2 bytes in concatenate
 		   vs 1 byte in present*/
-		concatenate_params.frame2 = 0;
-		fdma_present_frame_without_segments(
+		//concatenate_params.frame2 = 0;
+		/*fdma_present_frame_without_segments(
 				fds_to_concatenate,
 				FDMA_INIT_NO_FLAGS,
 				0,
 				(uint8_t *)(&(concatenate_params.frame2)) +
-				sizeof(uint8_t));
+				sizeof(uint8_t));*/
 
+		concatenate_params.frame2 = (uint16_t)(uint32_t)
+				(fds_to_concatenate);
 		/* Take header size to be removed from FD[FRC] */
 		concatenate_params.trim  = (uint8_t)fds_to_concatenate[0].frc;
 
 		fdma_concatenate_frames(&concatenate_params);
 
 		/* Open frame and get frame handle */
-		fdma_present_frame_without_segments(
+		/*fdma_present_frame_without_segments(
 				fds_to_concatenate+1,
 				FDMA_INIT_NO_FLAGS,
 				0,
 				(uint8_t *)(&(concatenate_params.frame2)) +
-				sizeof(uint8_t));
-
+				sizeof(uint8_t));*/
+		
+		concatenate_params.frame2 = (uint16_t)(uint32_t)
+				(fds_to_concatenate+1);
 		/* Take header size to be removed from FD[FRC] */
 		concatenate_params.trim  = (uint8_t)fds_to_concatenate[1].frc;
 
@@ -1342,13 +1351,15 @@ uint32_t closing_in_order(uint64_t rfdc_ext_addr, uint8_t num_of_frags)
 		   vs 1 byte in present*/
 		concatenate_params.frame2 = 0;
 
-		fdma_present_frame_without_segments(
+		/*fdma_present_frame_without_segments(
 				fds_to_concatenate,
 				FDMA_INIT_NO_FLAGS,
 				0,
 				(uint8_t *)(&(concatenate_params.frame2)) +
-				sizeof(uint8_t));
+				sizeof(uint8_t));*/
 
+		concatenate_params.frame2 = (uint16_t)(uint32_t)
+				(fds_to_concatenate);
 		/* Take header size to be removed from FD[FRC] */
 		concatenate_params.trim = (uint8_t)fds_to_concatenate[0].frc;
 
@@ -1522,11 +1533,16 @@ uint32_t closing_with_reordering(struct ipr_rfdc *rfdc_ptr,
 	uint8_t				octet_index;
 	uint64_t			temp_ext_addr;
 	struct link_list_element	link_list[8];
-	struct				ldpaa_fd fds_to_concatenate[2] \
-			      __attribute__((aligned(sizeof(struct ldpaa_fd))));
+	struct				ldpaa_fd fds_to_concatenate[2];
 	struct		fdma_concatenate_frames_params concatenate_params;
 
-	concatenate_params.flags = FDMA_CONCAT_SF_BIT;
+	//concatenate_params.flags = FDMA_CONCAT_SF_BIT;
+	concatenate_params.flags = FDMA_CONCAT_SF_BIT | FDMA_CONCAT_FS2_BIT;
+	
+	get_concatenate_amq_attributes(&(concatenate_params.icid1), 
+				&(concatenate_params.icid2),
+				&(concatenate_params.amq_flags));
+
 
 	if (rfdc_ptr->status & ORDER_AND_OOO) {
 		if (rfdc_ptr->index_to_out_of_order == 1) {
@@ -1552,15 +1568,17 @@ uint32_t closing_with_reordering(struct ipr_rfdc *rfdc_ptr,
 			/* Open frame and get frame handle */
 			/* reset frame2 field because handle is 2 bytes in
 			 * concatenate vs 1 byte in present*/
-			concatenate_params.frame2 = 0;
+			//concatenate_params.frame2 = 0;
 
-			fdma_present_frame_without_segments(
+			/*fdma_present_frame_without_segments(
 				    fds_to_concatenate,
 				    FDMA_INIT_NO_FLAGS,
 				    0,
 				    (uint8_t *)(&(concatenate_params.frame2)) +
-				    sizeof(uint8_t));
+				    sizeof(uint8_t));*/
 
+			concatenate_params.frame2 = (uint16_t)(uint32_t)
+					(fds_to_concatenate);
 			/* Take header size to be removed from FD[FRC] */
 			concatenate_params.trim  =
 					(uint8_t)fds_to_concatenate[0].frc;
@@ -1584,16 +1602,19 @@ uint32_t closing_with_reordering(struct ipr_rfdc *rfdc_ptr,
 		/* Open frame and get frame handle */
 		/* reset frame2 field because handle is 2 bytes in concatenate
 		   vs 1 byte in present*/
-		concatenate_params.frame2 = 0;
+		//concatenate_params.frame2 = 0;
 
 		concatenate_params.frame1 = (uint16_t) PRC_GET_FRAME_HANDLE();
 
-		fdma_present_frame_without_segments(
-				fds_to_concatenate,
-				FDMA_INIT_NO_FLAGS,
-				0,
-				(uint8_t *)(&(concatenate_params.frame2)) +
-				sizeof(uint8_t));
+//		fdma_present_frame_without_segments(
+//				fds_to_concatenate,
+//				FDMA_INIT_NO_FLAGS,
+//				0,
+//				(uint8_t *)(&(concatenate_params.frame2)) +
+//				sizeof(uint8_t));
+		
+		concatenate_params.frame2 = (uint16_t)(uint32_t)
+				(fds_to_concatenate);
 
 		/* Take header size to be removed from FD[FRC] */
 		concatenate_params.trim  = (uint8_t)fds_to_concatenate[0].frc;
@@ -1632,13 +1653,16 @@ uint32_t closing_with_reordering(struct ipr_rfdc *rfdc_ptr,
 		/* Open 2nd frame and get frame handle */
 		/* reset frame2 field because handle is 2 bytes in concatenate
 		   vs 1 byte in present*/
-		concatenate_params.frame2 = 0;
-		fdma_present_frame_without_segments(
-			   fds_to_concatenate+1,
-			   FDMA_INIT_NO_FLAGS,
-			   0,
-			   (uint8_t *)(&(concatenate_params.frame2)) +
-			   sizeof(uint8_t));
+//		concatenate_params.frame2 = 0;
+//		fdma_present_frame_without_segments(
+//			   fds_to_concatenate+1,
+//			   FDMA_INIT_NO_FLAGS,
+//			   0,
+//			   (uint8_t *)(&(concatenate_params.frame2)) +
+//			   sizeof(uint8_t));
+
+		concatenate_params.frame2 = (uint16_t)(uint32_t)
+				(fds_to_concatenate+1);
 
 		concatenate_params.spid   = *((uint8_t *) HWC_SPID_ADDRESS);
 		concatenate_params.frame1 = (uint16_t) PRC_GET_FRAME_HANDLE();
@@ -1678,13 +1702,16 @@ uint32_t closing_with_reordering(struct ipr_rfdc *rfdc_ptr,
 		   vs 1 byte in present*/
 		/* todo move this reset to be done once and not each
 		 * iteration */
-		concatenate_params.frame2 = 0;
-		fdma_present_frame_without_segments(
-				fds_to_concatenate,
-				FDMA_INIT_NO_FLAGS,
-				0,
-				(uint8_t *)(&(concatenate_params.frame2)) +
-				sizeof(uint8_t));
+//		concatenate_params.frame2 = 0;
+//		fdma_present_frame_without_segments(
+//				fds_to_concatenate,
+//				FDMA_INIT_NO_FLAGS,
+//				0,
+//				(uint8_t *)(&(concatenate_params.frame2)) +
+//				sizeof(uint8_t));
+		
+		concatenate_params.frame2 = (uint16_t)(uint32_t)
+				(fds_to_concatenate);
 
 		/* Take header size to be removed from FD[FRC] */
 		concatenate_params.trim  = (uint8_t)fds_to_concatenate[0].frc;
@@ -1709,6 +1736,7 @@ uint32_t check_for_frag_error (struct ipr_instance *instance_params,
 
 
 	length = (uint16_t) (LDPAA_FD_GET_LENGTH(HWC_FD_ADDRESS));
+	
 	if (frame_is_ipv4) {
 		if (length < instance_params->min_frag_size_ipv4)
 			return MALFORMED_FRAG;
