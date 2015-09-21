@@ -83,6 +83,10 @@
 #define SNIC_ASA_SIZE		64*2
 #define SNIC_ASA_LOCATION	0x300
 
+/* ASA fields */
+#define FASWO1 0x50
+#define FASWO2 0x54
+
 /** @} */ /* end of SNIC_MACROS */
 
 /**************************************************************************//**
