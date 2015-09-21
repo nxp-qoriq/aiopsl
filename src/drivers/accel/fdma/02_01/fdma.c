@@ -900,6 +900,13 @@ int fdma_split_frame(
 	if ((res1 == FDMA_SUCCESS) ||
 		(res1 == FDMA_UNABLE_TO_PRESENT_FULL_SEGMENT_ERR) ||
 		(res1 == FDMA_BUFFER_POOL_DEPLETION_ERR)) {
+		
+		if (!(params->flags & FDMA_SPLIT_SM_BIT) && 
+			!(params->flags & FDMA_SPLIT_PSA_CLOSE_FRAME_BIT)) {
+			//LDPAA_FD_SET_SL(HWC_FD_ADDRESS, 0);
+			LDPAA_FD_SET_LENGTH((uint32_t)params->fd_dst,
+					params->split_size_sf);
+		}
 		params->split_frame_handle = *((uint8_t *)
 			(HWC_ACC_OUT_ADDRESS2 + FDMA_SEG_HANDLE_OFFSET));
 		if (params->flags & FDMA_SPLIT_PSA_PRESENT_BIT) {
@@ -918,12 +925,19 @@ int fdma_split_frame(
 				prc->seg_handle = params->seg_handle;
 				(params->flags & FDMA_SPLIT_SR_BIT) ?
 					PRC_SET_SR_BIT() : PRC_RESET_SR_BIT();
-			}
+			}	
 		}
 		/* Update Task Defaults */
 		else if ((((uint32_t)params->fd_dst) == HWC_FD_ADDRESS) &&
 			(params->flags & FDMA_SPLIT_PSA_NO_PRESENT_BIT)) {
 				prc->frame_handle = params->split_frame_handle;
+		}
+		
+		if ((((uint32_t)params->fd_dst) != HWC_FD_ADDRESS) && 
+		    (params->source_frame_handle ==  PRC_GET_FRAME_HANDLE()) &&
+			!(params->flags & FDMA_SPLIT_SM_BIT)) {
+				LDPAA_FD_UPDATE_LENGTH(HWC_FD_ADDRESS, 0, 
+						params->split_size_sf);
 		}
 
 		if ((res1 == FDMA_SUCCESS))
@@ -1041,6 +1055,11 @@ int fdma_insert_segment_data(
 			}
 		}
 
+		if (params->frame_handle == PRC_GET_FRAME_HANDLE())
+			/* FD fields should be updated with a swap load/store */
+			LDPAA_FD_UPDATE_LENGTH(HWC_FD_ADDRESS,
+					params->insert_size, 0);
+
 		if ((params->seg_handle == PRC_GET_SEGMENT_HANDLE()) &&
 			(params->flags & FDMA_REPLACE_SA_CLOSE_BIT))
 			PRC_SET_NDS_BIT();
@@ -1101,6 +1120,10 @@ int fdma_delete_segment_data(
 		}
 
 		if (params->frame_handle == PRC_GET_FRAME_HANDLE()) {
+			/* FD fields should be updated with a swap load/store */
+			LDPAA_FD_UPDATE_LENGTH(HWC_FD_ADDRESS, 0,
+					params->delete_target_size);
+
 			if ((params->seg_handle == PRC_GET_SEGMENT_HANDLE()) &&
 				(params->flags & FDMA_REPLACE_SA_CLOSE_BIT))
 				PRC_SET_NDS_BIT();
