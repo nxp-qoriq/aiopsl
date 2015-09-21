@@ -2091,6 +2091,10 @@ int fdma_replicate_frame_qd(
 @Cautions	In case frame2 handle parameter is the default frame handle,
 		all Task default variables will not be valid after the service
 		routine.
+@Cautions	In case the concatenated frame is not closed 
+		(\ref FDMA_CONCAT_PCA_BIT is not set) the FD[length] of the 
+		concatenated frame is not valid after this command (from 
+		performance considerations).
 @Cautions	This function may result in a fatal error.
 @Cautions	In this Service Routine the task yields.
 *//***************************************************************************/
@@ -2141,6 +2145,9 @@ int fdma_concatenate_frames(
 @remark		Frame annotation of the first frame is preserved.
 @remark		If split size is >= frame size then an error will be returned.
 
+@Cautions	The split frame FD[length] is updated after this command.
+@Cautions	The source frame FD[length] is updated after this command only 
+		if the source frame is the default frame.
 @Cautions	In case the presented segment will be used by 
 		PARSER/CTLU/KEYGEN, it should be presented in a 16 byte aligned 
 		workspace address (due to HW limitations).

@@ -62,8 +62,7 @@
 	/** IPF context size definition. */
 #define IPF_CONTEXT_SIZE	64
 	/** IPF context definition. Must be aligned to 32 Bytes.*/
-typedef uint8_t ipf_ctx_t[IPF_CONTEXT_SIZE]
-			__attribute__((aligned(sizeof(struct ldpaa_fd))));
+typedef uint8_t ipf_ctx_t[IPF_CONTEXT_SIZE];
 
 
 /** @} */ /* end of TCP_IPF_GENERAL_DEFINITIONS */

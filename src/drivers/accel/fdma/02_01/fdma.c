@@ -876,6 +876,7 @@ int fdma_split_frame(
 		(struct presentation_context *) HWC_PRC_ADDRESS;
 	/* command parameters and results */
 	uint32_t arg1, arg2, arg3, arg4;
+	uint32_t split_frame_length;
 	int8_t  res1;
 
 	/* prepare command parameters */
@@ -901,14 +902,19 @@ int fdma_split_frame(
 		(res1 == FDMA_UNABLE_TO_PRESENT_FULL_SEGMENT_ERR) ||
 		(res1 == FDMA_BUFFER_POOL_DEPLETION_ERR)) {
 		
-		if (!(params->flags & FDMA_SPLIT_SM_BIT) && 
-			!(params->flags & FDMA_SPLIT_PSA_CLOSE_FRAME_BIT)) {
+		params->split_frame_handle = *((uint8_t *)
+			(HWC_ACC_OUT_ADDRESS2 + FDMA_SEG_HANDLE_OFFSET));
+		if (!(params->flags & FDMA_SPLIT_PSA_CLOSE_FRAME_BIT)) {
+			if (params->flags & FDMA_SPLIT_SM_BIT) { 
+				get_frame_length(params->split_frame_handle, 
+						&(split_frame_length));
+				params->split_size_sf = 
+						(uint16_t)split_frame_length;
+			}
 			//LDPAA_FD_SET_SL(HWC_FD_ADDRESS, 0);
 			LDPAA_FD_SET_LENGTH((uint32_t)params->fd_dst,
 					params->split_size_sf);
 		}
-		params->split_frame_handle = *((uint8_t *)
-			(HWC_ACC_OUT_ADDRESS2 + FDMA_SEG_HANDLE_OFFSET));
 		if (params->flags & FDMA_SPLIT_PSA_PRESENT_BIT) {
 			params->seg_length = *((uint16_t *)
 					(HWC_ACC_OUT_ADDRESS2));
@@ -934,10 +940,15 @@ int fdma_split_frame(
 		}
 		
 		if ((((uint32_t)params->fd_dst) != HWC_FD_ADDRESS) && 
-		    (params->source_frame_handle ==  PRC_GET_FRAME_HANDLE()) &&
-			!(params->flags & FDMA_SPLIT_SM_BIT)) {
-				LDPAA_FD_UPDATE_LENGTH(HWC_FD_ADDRESS, 0, 
-						params->split_size_sf);
+		    (params->source_frame_handle ==  PRC_GET_FRAME_HANDLE())) {
+			if (params->flags & FDMA_SPLIT_SM_BIT) {
+				get_frame_length(params->split_frame_handle, 
+						&(split_frame_length));
+				params->split_size_sf = 
+						(uint16_t)split_frame_length;
+			}
+			LDPAA_FD_UPDATE_LENGTH(HWC_FD_ADDRESS, 0, 
+				params->split_size_sf);
 		}
 
 		if ((res1 == FDMA_SUCCESS))
