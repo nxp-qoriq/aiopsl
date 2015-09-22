@@ -49,7 +49,7 @@ typedef int32_t intptr_t;
 
 #define STRINGTYPE(a) #a
 #define DEFINE_CODE_SECTION(x) section code_type x data_mode=far_abs code_mode=pc_rel
-#define DEFINE_DATA_SECTION(x) section data_type x
+#define DEFINE_DATA_SECTION(x) section data_type x data_mode=far_abs
 #define PUSH _Pragma("push")
 #define START_CODE_SECTION(s) _Pragma(STRINGTYPE(DEFINE_CODE_SECTION(s)))
 #define START_DATA_SECTION(s) _Pragma(STRINGTYPE(DEFINE_DATA_SECTION(s)))
