@@ -800,7 +800,16 @@ int ipsec_generate_decap_sd(
 		if (!(params->flags & IPSEC_FLG_TRANSPORT_PAD_CHECK)) {
 			pdb.options |= (IPSEC_DEC_PDB_OPTIONS_AOFL | 
 					IPSEC_DEC_PDB_OPTIONS_OUTFMT);
+			fsl_print("\n\nIPSEC: IPSEC_FLG_TRANSPORT_PAD_CHECK is NOT set!!!\n"); 
+
+		} else {
+			/* Transport mode pad checking */
+			//pdb.options |= IPSEC_DEC_PDB_OPTIONS_AOFL; 
+			pdb.options |= IPSEC_DEC_PDB_OPTIONS_OUTFMT;
+			fsl_print("\n\nIPSEC: IPSEC_FLG_TRANSPORT_PAD_CHECK is set\n");
+
 		}
+		
 		/*  IPv4, checksum update (in IPv6 there is no checksum) */
 		if (!((params->encparams.options) & IPSEC_PDB_OPTIONS_MASK & 
 				IPSEC_OPTS_ESP_IPVSN)) {
@@ -2208,6 +2217,10 @@ __IPSEC_HOT_CODE int ipsec_frame_decrypt(
 	uint32_t checksum;
 	uint8_t dont_decrypt = 0;
 	ipsec_handle_t desc_addr;
+	uint16_t orig_seg_length;
+	uint16_t orig_seg_offset;
+	uint8_t pad_length;
+	uint16_t end_seg_len;
 
 	struct ipsec_sa_params_part1 sap1; /* Parameters to read from ext buffer */
 	struct scope_status_params scope_status;
@@ -2552,6 +2565,9 @@ __IPSEC_HOT_CODE int ipsec_frame_decrypt(
 	}
 	// Debug End //
 #endif
+		/*---------------------*/
+		/* ipsec_frame_decrypt */
+		/*---------------------*/
 	
 	/* 	13.	Read the SEC return status from the FD[FRC]. Use swap macro. */
 	if ((LDPAA_FD_GET_FRC(HWC_FD_ADDRESS)) != 0) {
@@ -2609,14 +2625,116 @@ __IPSEC_HOT_CODE int ipsec_frame_decrypt(
 		/* If encryption/encapsulation failed do not present the frame */
 		goto decrypt_end;
 	}
-	
-	/* 	FDMA present default frame command */ 
-	return_val = fdma_present_default_frame();
+
+	/*---------------------*/
+	/* ipsec_frame_decrypt */
+	/*---------------------*/
+
+	/* Check ESP padding for Transport mode */
+	/* When IPSEC_FLG_TRANSPORT_PAD_CHECK is enabled, AOFL=0 which means
+	 * that the SEC output frame includes also the ESP trailer, 
+	 * where the last two bytes are Pad Length and Next Header.
+	 * The default padding values are is 1,2,3,..., and the last
+	 * padding byte is equal to the pad length value. 
+	+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+	|                   IP header + Payload                         |
+	~                                                               ~
+	|                                                               |
+	+               +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+	|               |     Padding (0-255 bytes)                     |
+	+-+-+-+-+-+-+-+-+               +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+	|                               |  Pad Length   | Next Header   |
+	+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+	*/
+	if (sap1.flags & IPSEC_FLG_TRANSPORT_PAD_CHECK) {
+		/* Save original presentation length and offset */
+		orig_seg_length = PRC_GET_SEGMENT_LENGTH();
+		orig_seg_offset = PRC_GET_SEGMENT_OFFSET();
+
+		/* Calculate the required presentation size from the end of the frame, 
+		 * in case the frame is shorter than the presentation size */
+		if (LDPAA_FD_GET_LENGTH(HWC_FD_ADDRESS) > orig_seg_length) {
+			end_seg_len = orig_seg_length;
+		} else {
+			end_seg_len = (uint16_t)LDPAA_FD_GET_LENGTH(HWC_FD_ADDRESS);
+		}
+
+		/* Set length and offset to present at the end of the frame */
+		PRC_SET_SEGMENT_LENGTH(end_seg_len);
+		PRC_SET_SEGMENT_OFFSET(end_seg_len);		
+		
+		/* Present from the end */
+		PRC_SET_SR_BIT();
+			
+		return_val = fdma_present_default_frame();
+
+		/* Get the pad length byte */
+		segment_pointer = (uint8_t *)orig_seg_addr + end_seg_len - 2;
+		pad_length = *segment_pointer;
+
+		/* Point to the last pad */
+		segment_pointer--;
+			
+		/* Note: only supporting pad check within a single presentation */
+		while ((pad_length > 0) && 
+			(segment_pointer >=	(uint8_t *)PARSER_GET_ETH_POINTER_DEFAULT())) {
+				if (*segment_pointer != pad_length) {
+					*dec_status |= IPSEC_GEN_DECR_ERR;
+					return_val = IPSEC_ERROR;
+					goto decrypt_end;
+				} 
+
+				segment_pointer--;
+				pad_length--;
+		}
+		
+		/* If 'pad_length' != 0, it means the presentation size was too small 
+		 * for the entire padding, and this is not supported. Return an error */
+		if(pad_length) {
+			*dec_status |= IPSEC_GEN_DECR_ERR;
+			return_val = IPSEC_ERROR;
+			goto decrypt_end;
+		}
+		
+		/* Re-read the pad length, because it was subtracted in the while loop*/
+		pad_length = *((uint8_t *)orig_seg_addr + end_seg_len - 2);
+
+		/* Remove the ESP trailer */	
+		fdma_replace_default_segment_data(
+				(uint16_t)PARSER_GET_ETH_OFFSET_DEFAULT(),/* to_offset */
+				end_seg_len, /* to_size (original size) */
+				(void *)orig_seg_addr,
+				(end_seg_len - (uint16_t)pad_length -2), 
+				/* from_size (new size), remove the ESP trailer */
+				(void *)prc->seg_address,
+				(uint16_t)PRC_GET_SEGMENT_LENGTH(),
+				(uint32_t)(FDMA_REPLACE_SA_CLOSE_BIT));
+			
+		/* Present from the beginning of the frame */
+		PRC_RESET_SR_BIT();
+		PRC_SET_SEGMENT_LENGTH(orig_seg_length);
+		PRC_SET_SEGMENT_OFFSET(orig_seg_offset);		
+			
+		return_val = fdma_present_default_frame_segment(
+				FDMA_PRES_NO_FLAGS, /* uint32_t flags */
+				(void *)orig_seg_addr, /* void	 *ws_dst */
+				orig_seg_offset, /* uint16_t offset */
+				orig_seg_length /* uint16_t present_size */
+				);
+		/* End of TRANSPORT PAD CHECK section */
+	} else {
+		/* Present for no transport pad check case */ 
+		return_val = fdma_present_default_frame();
+	}
 	
 	/* 	15.	Get new running sum and byte count (encrypted/encapsulated frame) 
 	 * from the FD[FLC] */
+		
+		/*---------------------*/
+		/* ipsec_frame_decrypt */
+		/*---------------------*/
 	
-	/* From Martin Dorr 27-Mar-2014: 
+	/* FLC structure:
 	 * A 32-bit byte count is stored in the LS portion of the FLC in LE format.
 	 * A 2-byte checksum is stored starting at offset 4 relative to the 
 	 * beginning of the FLC.
@@ -2657,31 +2775,13 @@ __IPSEC_HOT_CODE int ipsec_frame_decrypt(
 					/* uint32_t flags */
 				);
 		
-		
-		/* Update the SEC checksum if adding L2 header*/
-		/*
-		fsl_print("SEC Checksum = 0x%x\n", checksum);
-
-		for (i=0;i<(eth_length>>1);i++) {
-			fsl_print("Ethernet HW #%d = 0x%x\n",i, (*((uint16_t *)eth_header + i)));
-
-			checksum = (*((uint16_t *)eth_header + i)) + checksum;
-			fsl_print("Ethernet HW #%d checksum = 0x%x\n",i, checksum);
-
-			checksum = (uint16_t)(checksum + (checksum >> 16));
-			fsl_print("Ethernet HW #%d checksum add carry = 0x%x\n",i, checksum);
-
-		}
-		*/	
+		/* TODO: Update the gross running sum if adding L2 header */
 	}
 	
 			/*---------------------*/
 			/* ipsec_frame_decrypt */
 			/*---------------------*/
 	
-	//fsl_print("Gross running sum = 0x%x\n", checksum);
-	//pr->gross_running_sum = (uint16_t)checksum;
-
 	/* 	17.	Run parser and check for errors. */
 	//return_val = parse_result_generate_default(PARSER_VALIDATE_L3_L4_CHECKSUM);
 	return_val = parse_result_generate_default(PARSER_NO_FLAGS);
@@ -2713,7 +2813,7 @@ __IPSEC_HOT_CODE int ipsec_frame_decrypt(
 	//	fsl_print("IPSEC: parser validation passed\n");
 	//}
 
-	///////////////////// End Debu //////////////////////////////////////
+	///////////////////// End Debug //////////////////////////////////////
 	
 	/* 	18.	If validity check failed, go to END, return with error. */
 	// TODO
@@ -2743,14 +2843,6 @@ __IPSEC_HOT_CODE int ipsec_frame_decrypt(
 decrypt_end:
 	
 	/* 	21.	END */
-	/* 	21.1. Update the encryption status (enc_status) and return status. */
-	/* 	21.2. If started as Concurrent ordering scope, 
-	 *  move from Exclusive to Concurrent  
-	 *  (AAP does that, only register through OSM functions). */
-	
-	/* Decrement the reference counter */
-	//return_val = cdma_refcount_decrement(ipsec_handle);
-	// TODO: check CDMA return status
 	
 	/* Return */
 	return return_val;

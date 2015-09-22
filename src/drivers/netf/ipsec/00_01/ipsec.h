@@ -228,6 +228,20 @@ enum rta_param_type {
 #define IPSEC_SEC_REUSE_BUFFER_MODE 1
 #define IPSEC_FMT_SINGLE_BUFFER 0
 
+/**************************************************************************//**
+@Description	IPSec Key Encryption Flags (currently unsupported)
+ To be set to the alg_info.key_enc_flags field
+*//***************************************************************************/
+#define IPSEC_KEY_ENC			0x00400000
+	/**< ENC: Encrypted - Key is encrypted either with the KEK, or
+	 * 	with the TDKEK if this descriptor is trusted */
+#define IPSEC_KEY_NWB			0x00200000
+	/**< NWB: No Write Back - Do not allow key to be FIFO STOREd */
+#define IPSEC_KEY_EKT			0x00100000
+	/**< EKT: Enhanced Encryption of Key */
+#define IPSEC_KEY_TK			0x00008000
+	/**< TK: Encrypted with Trusted Key */
+
 /*                 SA Descriptor Structure
  * ------------------------------------------------------
  * | ipsec_sa_params                  | 128 bytes       | + 0
