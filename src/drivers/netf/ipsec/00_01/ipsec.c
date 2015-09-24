@@ -185,8 +185,7 @@ int ipsec_delete_instance(ipsec_instance_handle_t instance_handle)
 	if (instance.sa_count == 0) {
 	
 		/* Release the instance buffer */ 
-		return_val = cdma_refcount_decrement_and_release(instance_handle);
-		/* TODO: check for CDMA errors. Mind reference count zero status */
+		cdma_release_context_memory(instance_handle);
 		
 		/* Un-reserve "committed + 1" buffers back to the slab */
 		return_val = slab_find_and_unreserve_bpid(
@@ -201,7 +200,7 @@ int ipsec_delete_instance(ipsec_instance_handle_t instance_handle)
 		/* EPERM = 1, Operation not permitted */
 		return -EPERM; /* TODO: what is the correct error code? */
 	}
-}
+} /* End of ipsec_delete_instance */
 
 /**************************************************************************//**
 *	ipsec_get_buffer
@@ -305,7 +304,6 @@ get_buffer_alloc_err:
 int ipsec_release_buffer(ipsec_instance_handle_t instance_handle,
 		ipsec_handle_t ipsec_handle)
 {
-	int32_t return_val;
 	int32_t err;
 	struct ipsec_instance_params instance; 
 
@@ -318,9 +316,8 @@ int ipsec_release_buffer(ipsec_instance_handle_t instance_handle,
 
 	if (instance.sa_count > 0) {
 		/* Release the buffer */ 
-		return_val = cdma_refcount_decrement_and_release(ipsec_handle); 
-		/* TODO: check for CDMA errors. Mind reference count zero status */
-		
+		cdma_release_context_memory(ipsec_handle); 
+				
 		instance.sa_count--;
 		
 		/* Write (just the counter ) and release lock */
@@ -341,7 +338,7 @@ int ipsec_release_buffer(ipsec_instance_handle_t instance_handle,
 			/* TODO: check for slab error */
 		}
 		
-		return return_val;
+		return IPSEC_SUCCESS;
 	} else {
 		/* Release lock */
 		cdma_mutex_lock_release(instance_handle);
@@ -623,8 +620,9 @@ int ipsec_generate_encap_sd(
 		params->cipherdata.key_type = (enum key_types)RTA_PARAM_PTR;
 	}
 	
+	params->authdata.algmode = 0; 
 	params->cipherdata.algmode = 0; 
-		
+	
 	/* Clear reused fields */
 	ws_shared_desc[0] = 0;
 	ws_shared_desc[1] = 0;
@@ -908,7 +906,10 @@ int ipsec_generate_decap_sd(
 	} else {
 		params->cipherdata.key_type = (enum key_types)RTA_PARAM_PTR;
 	}
-	
+
+	params->authdata.algmode = 0; 
+	params->cipherdata.algmode = 0; 
+
 	/* Call RTA function to build an encap descriptor */
 	if (params->flags & IPSEC_FLG_TUNNEL_MODE) {
 		/* Tunnel mode, SEC "new thread" */	
@@ -1505,16 +1506,9 @@ int ipsec_del_sa_descriptor(
 	/* Release the buffer */ 
 	return_val = ipsec_release_buffer(instance_handle, ipsec_handle);
 	
-	// TODO: 
-	// 1. Check that all frames are closed (reference count)
-	// 2. Add timer delay for tasks that are in an interim state
-	// (called by the application but did npt enter the SL yet)
-	// If there were open frames do another ste_barrier();
-	
-	if (return_val != CDMA_REFCOUNT_DECREMENT_TO_ZERO) { /* error */
-		return IPSEC_ERROR; /* Trying to delete before all frames done */
+	if (return_val) { /* error */
+		return IPSEC_ERROR; /* */
 	} else { /* success */
-		//atomic_incr32((int32_t *)(&(global_params.sa_count)), 1);
 		return IPSEC_SUCCESS; 
 	}
 	
@@ -1595,21 +1589,6 @@ __IPSEC_HOT_CODE int ipsec_frame_encrypt(
 			sizeof(sap1) /* uint16_t size */
 			);
 
-	/* Performance Improvement */
-	/* CDMA read and reference counter increment with a single command */
-	// TODO: optionally use cdma_access_context_memory_no_refcount_get()
-	// when this function is available
-	//offset = (uint16_t)(desc_addr-ipsec_handle);
-	//cdma_access_context_memory(
-	//		ipsec_handle,
-	//		CDMA_ACCESS_CONTEXT_MEM_INC_REFCOUNT,
-	//		offset,
-	//		&sap1,
-	//		CDMA_ACCESS_CONTEXT_MEM_DMA_READ | sizeof(sap1),
-	//		(uint32_t *)(HWC_ACC_OUT_ADDRESS+CDMA_REF_CNT_OFFSET)
-	//			/* REF_COUNT_ADDR_DUMMY */
-	//		);
-	
 	/*---------------------*/
 	/* ipsec_frame_encrypt */
 	/*---------------------*/
@@ -2184,12 +2163,6 @@ encrypt_end:
 	
 	/* 	19.	END */
 		
-	/* 	19.1. Update the encryption status (enc_status) and return status. */
-
-	/* Decrement the reference counter */
-	//return_val = cdma_refcount_decrement(ipsec_handle);
-	// TODO: check CDMA return status
-	
 	/* 	19.3.	Return */
 	return return_val;
 } /* End of ipsec_frame_encrypt */
@@ -2855,7 +2828,6 @@ int ipsec_get_lifetime_stats(
 		uint32_t *sec)
 {
 	
-	int return_val;
 	uint64_t current_timestamp;
 	ipsec_handle_t desc_addr;
 
@@ -2866,10 +2838,6 @@ int ipsec_get_lifetime_stats(
 		uint64_t timestamp; /* TMAN timestamp in micro-seconds, 8 Bytes */
 	} ctrs;
 	
-	/* Increment the reference counter */
-	cdma_refcount_increment(ipsec_handle);
-	// TODO: check CDMA return status
-
 	desc_addr = IPSEC_DESC_ADDR(ipsec_handle);
 
 	/* Flush all the counter updates that are pending in the 
@@ -2899,10 +2867,6 @@ int ipsec_get_lifetime_stats(
 						(IPSEC_MAX_TIMESTAMP - ctrs.timestamp) + 1)>>20);
 	}
 
-	/* Decrement the reference counter */
-	return_val = cdma_refcount_decrement(ipsec_handle);
-	// TODO: check CDMA return status
-	
 	return IPSEC_SUCCESS;
 	
 } /* End of ipsec_get_lifetime_stats */
@@ -2918,12 +2882,8 @@ int ipsec_decr_lifetime_counters(
 {
 	/* Note: there is no check of counters enable, nor current value.
 	 * Assuming that it is only called appropriately by the upper layer */
-	int return_val;
 	ipsec_handle_t desc_addr;
 
-	/* Increment the reference counter */
-	cdma_refcount_increment(ipsec_handle);
-	
 	desc_addr = IPSEC_DESC_ADDR(ipsec_handle);
 
 	/* Flush all the counter updates that are pending in the 
@@ -2945,10 +2905,6 @@ int ipsec_decr_lifetime_counters(
 				(STE_MODE_SATURATE | STE_MODE_64_BIT_CNTR_SIZE));
 	}	
 	
-	/* Decrement the reference counter */
-	return_val = cdma_refcount_decrement(ipsec_handle);
-	// TODO: check CDMA return status
-	
 	return IPSEC_SUCCESS;	
 } /* End of ipsec_decr_lifetime_counters */
 
@@ -2962,7 +2918,6 @@ int ipsec_get_seq_num(
 		uint32_t anti_replay_bitmap[4])
 {
 	
-	int return_val;
 	ipsec_handle_t desc_addr;
 	uint32_t params_flags;
 	uint8_t pdb_options;
@@ -2971,9 +2926,6 @@ int ipsec_get_seq_num(
 		struct ipsec_encap_pdb encap_pdb;
 		struct ipsec_decap_pdb decap_pdb;
 	} pdb;
-	
-	/* Increment the reference counter */
-	cdma_refcount_increment(ipsec_handle);
 	
 	desc_addr = IPSEC_DESC_ADDR(ipsec_handle);
 
@@ -3063,10 +3015,6 @@ int ipsec_get_seq_num(
 				anti_replay_bitmap[3] = 0x0;	
 		}
 	}
-	
-	/* Derement the reference counter */
-	return_val = cdma_refcount_decrement(ipsec_handle);
-	// TODO: check CDMA return status
 	
 	return IPSEC_SUCCESS;	
 
