@@ -373,14 +373,12 @@ int ipsec_generate_encap_sd(
 
 	/* Temporary Workspace Shared Descriptor */
 	uint32_t ws_shared_desc[IPSEC_MAX_SD_SIZE_WORDS] = {0}; 
+	
+	/* ws_shared_desc[0-2] is used as data_len[0-2]; 
+	 * ws_shared_desc[3] is used as inl_mask */
 
-	uint32_t inl_mask = 0;
-	unsigned data_len[3];
 	int err;
 	struct ipsec_encap_pdb pdb;
-
-	struct alginfo rta_auth_alginfo;
-	struct alginfo rta_cipher_alginfo;
 
 	/* For tunnel mode IPv4, calculate the outer header checksum */
 	/* ip_hdr_len = IP header length in bytes.
@@ -394,33 +392,40 @@ int ipsec_generate_encap_sd(
 
 			/* calculate the length in 16-bit words */
 			if (!(params->flags & IPSEC_ENC_OPTS_NAT_EN)) {
-				data_len[0] = (unsigned)(params->encparams.ip_hdr_len)>>1;
+				ws_shared_desc[0] = 
+						(unsigned)(params->encparams.ip_hdr_len)>>1;
 			} else {
-				data_len[0] = (unsigned)(params->encparams.ip_hdr_len - 8)>>1;
+				ws_shared_desc[0] = 
+						(unsigned)(params->encparams.ip_hdr_len - 8)>>1;
 			}
 			
-			/* data_len[0]: length, data_len[1]: index, data_len[2]: checksum */
-			data_len[2] = (uint16_t)*((uint16_t *)params->encparams.outer_hdr);
-			for (data_len[1] = 1; data_len[1] < data_len[0]; data_len[1]++) {
-				data_len[2] = (uint16_t)cksum_ones_complement_sum16(
-						(uint16_t)data_len[2],
+			/* ws_shared_desc[0]: length, ws_shared_desc[1]: index, 
+			 * ws_shared_desc[2]: checksum */
+			ws_shared_desc[2] = 
+					(uint16_t)*((uint16_t *)params->encparams.outer_hdr);
+			for (ws_shared_desc[1] = 1; 
+					ws_shared_desc[1] < ws_shared_desc[0]; 
+													ws_shared_desc[1]++) {
+				ws_shared_desc[2] = (uint16_t)cksum_ones_complement_sum16(
+						(uint16_t)ws_shared_desc[2],
 						(uint16_t)*((uint16_t *)
-								params->encparams.outer_hdr+data_len[1])
+								params->encparams.outer_hdr+ws_shared_desc[1])
 						);
 			}
 			
 			/* Invert and update the outer header */
-			params->encparams.outer_hdr[2] |= (~data_len[2] & (~0xFFFF0000));
+			params->encparams.outer_hdr[2] |= 
+					(~ws_shared_desc[2] & (~0xFFFF0000));
 
-			data_len[0] = 0;
-			data_len[1] = 0;
-			data_len[2] = 0;
+			ws_shared_desc[0] = 0;
+			ws_shared_desc[1] = 0;
+			ws_shared_desc[2] = 0;
 		}
 	}
 	
 	/* Build PDB fields for the RTA */
 	
-	data_len[1] = 1; /* Flag for split key calculation. 
+	ws_shared_desc[1] = 1; /* Flag for split key calculation. 
 					 * A "1" indicates that a split key is required */ 
 	
 	/* Check which method is it according to the key */
@@ -489,7 +494,7 @@ int ipsec_generate_encap_sd(
 			memcpy(pdb.ccm.salt, params->encparams.ccm.salt,
 			       sizeof(params->encparams.ccm.salt));
 			pdb.ccm.iv = params->encparams.ccm.iv;
-			data_len[1] = 0;  /* No room required for authentication key */
+			ws_shared_desc[1] = 0;  /* No room required for authentication key */
 			break;
 		case CIPHER_TYPE_GCM:
 			/*	uint8_t salt[4]; lower 24 bits */
@@ -499,10 +504,11 @@ int ipsec_generate_encap_sd(
 			       sizeof(params->encparams.gcm.salt));
 			pdb.gcm.rsvd = 0;
 			pdb.gcm.iv = params->encparams.gcm.iv;
-			data_len[1] = 0;  /* No room required for authentication key */
+			ws_shared_desc[1] = 0;  /* No room required for authentication key */
 			break;
 		default:
-			memset(pdb.cbc.iv, 0, sizeof(pdb.cbc.iv));
+			memcpy(pdb.cbc.iv, params->encparams.cbc.iv, 
+					sizeof(params->encparams.cbc.iv));
 	}
 	
 	/* Tunnel Mode Parameters */
@@ -550,23 +556,13 @@ int ipsec_generate_encap_sd(
 	pdb.spi = params->encparams.spi;
 	pdb.ip_hdr_len = (uint32_t) params->encparams.ip_hdr_len;
 
-	rta_auth_alginfo.algtype = params->authdata.algtype;
-	rta_auth_alginfo.keylen = params->authdata.keylen;
-	rta_auth_alginfo.key = params->authdata.key;
-	rta_auth_alginfo.key_enc_flags  = params->authdata.key_enc_flags;
-
-	rta_cipher_alginfo.algtype = params->cipherdata.algtype;
-	rta_cipher_alginfo.keylen = params->cipherdata.keylen;
-	rta_cipher_alginfo.key = params->cipherdata.key;
-	rta_cipher_alginfo.key_enc_flags  = params->cipherdata.key_enc_flags;
-	
 	/* Lengths of items to be inlined in descriptor; order is important.
 	 * Note: For now we assume that inl_mask[0] = 1, i.e. that the
 	 * Outer IP Header can be inlined. 
 	 * Job descriptor maximum length is hard-coded to 7 * CAAM_CMD_SZ +
 	 * 3 * CAAM_PTR_SZ, and pointer size considered extended.
 	*/
-	data_len[0] = pdb.ip_hdr_len; /* Outer IP header length */
+	ws_shared_desc[0] = pdb.ip_hdr_len; /* Outer IP header length */
 	
 	/* Check if a split authentication key is required 
 	 * cbc(aes) OR cbc(des) OR cbc(3des) OR ctr(aes) 
@@ -575,54 +571,66 @@ int ipsec_generate_encap_sd(
 	 * all other modes -> don't need split key 
 	 *	  e.g. gcm(aes), ccm(aes), gmac(aes) - don't need split key
 	*/
-	if (data_len[1]) {
+	if (ws_shared_desc[1]) {
 		/* Sizes for MDHA pads (*not* keys): MD5, SHA1, 224, 256, 384, 512 */
 		/*                                   16,  20,   32,  32,  64,  64  */
 		switch (params->authdata.algtype) {
 			case IPSEC_AUTH_HMAC_NULL:
-				data_len[1] = 0;
+				ws_shared_desc[1] = 0;
 				break;
 			case IPSEC_AUTH_AES_XCBC_MAC_96:
 			case IPSEC_AUTH_AES_CMAC_96:
-				data_len[1] = params->authdata.keylen; /* No split */
+				ws_shared_desc[1] = params->authdata.keylen; /* No split */
 				break;
 			case IPSEC_AUTH_HMAC_MD5_96:
 			case IPSEC_AUTH_HMAC_MD5_128:
-				data_len[1] = 2*16;
+				ws_shared_desc[1] = 2*16;
 				break;
 			case IPSEC_AUTH_HMAC_SHA1_96:
 			case IPSEC_AUTH_HMAC_SHA1_160:	
-				data_len[1] = 2*20;
+				ws_shared_desc[1] = 2*20;
 				break;
 			case IPSEC_AUTH_HMAC_SHA2_256_128:
-				data_len[1] = 2*32;
+				ws_shared_desc[1] = 2*32;
 				break;
 			default:
 				/* IPSEC_AUTH_HMAC_SHA2_384_192 */
 				/* IPSEC_AUTH_HMAC_SHA2_512_256 */
-				data_len[1] = 2*64;
+				ws_shared_desc[1] = 2*64;
 		}	
 	} 
 
-	data_len[2] = params->cipherdata.keylen;
+	ws_shared_desc[2] = params->cipherdata.keylen;
 	
 	err = rta_inline_query(IPSEC_NEW_ENC_BASE_DESC_LEN, 
-			IPSEC_MAX_AI_JOB_DESC_SIZE, data_len, &inl_mask, 3);
-	
+			IPSEC_MAX_AI_JOB_DESC_SIZE, 
+			(unsigned *)ws_shared_desc, 
+			&ws_shared_desc[3], 
+			3);
+
 	if (err < 0)
 		return err;
 	
-	if (inl_mask & (1 << 1))
-		rta_auth_alginfo.key_type = (enum rta_data_type)RTA_PARAM_IMM_DMA;
-	else {
-		rta_auth_alginfo.key_type = (enum rta_data_type)RTA_PARAM_PTR;
+	if (ws_shared_desc[3] & (1 << 1)) {
+		params->authdata.key_type = (enum key_types)RTA_PARAM_IMM_DMA;
+	} else {
+		params->authdata.key_type = (enum key_types)RTA_PARAM_PTR;
 	}	
 	
-	if (inl_mask & (1 << 2))
-		rta_cipher_alginfo.key_type = (enum rta_data_type)RTA_PARAM_IMM_DMA;
-	else
-		rta_cipher_alginfo.key_type = (enum rta_data_type)RTA_PARAM_PTR;
+	if (ws_shared_desc[3] & (1 << 2)) {
+		params->cipherdata.key_type = (enum key_types)RTA_PARAM_IMM_DMA;
+	} else {
+		params->cipherdata.key_type = (enum key_types)RTA_PARAM_PTR;
+	}
 	
+	params->cipherdata.algmode = 0; 
+		
+	/* Clear reused fields */
+	ws_shared_desc[0] = 0;
+	ws_shared_desc[1] = 0;
+	ws_shared_desc[2] = 0;
+	ws_shared_desc[3] = 0;
+	               
 	/* Call RTA function to build an encap descriptor */
 	if (params->flags & IPSEC_FLG_TUNNEL_MODE) {
 		/* Tunnel mode, SEC "new thread" */	
@@ -632,8 +640,8 @@ int ipsec_generate_encap_sd(
 			TRUE, /* swap */
 			&pdb, /* PDB */
 			(uint8_t *)params->encparams.outer_hdr, /* uint8_t *opt_ip_hdr */
-			(struct alginfo *)(&rta_cipher_alginfo),
-			(struct alginfo *)(&rta_auth_alginfo)
+			(struct alginfo *)(&params->cipherdata),
+			(struct alginfo *)(&params->authdata)
 		);
 	} else {
 		/* Transport mode, SEC legacy new thread */
@@ -642,8 +650,8 @@ int ipsec_generate_encap_sd(
 			IPSEC_SEC_POINTER_SIZE, /* unsigned short ps */
 			TRUE, /* bool swap */
 			&pdb, /* PDB */
-			(struct alginfo *)(&rta_cipher_alginfo),
-			(struct alginfo *)(&rta_auth_alginfo)
+			(struct alginfo *)(&params->cipherdata),
+			(struct alginfo *)(&params->authdata)
 		);
 	}	
 	
@@ -677,20 +685,18 @@ int ipsec_generate_decap_sd(
 	uint8_t cipher_type = 0;
 	
 	/* Temporary Workspace Shared Descriptor */
-	uint32_t ws_shared_desc[IPSEC_MAX_SD_SIZE_WORDS]; 
+	uint32_t ws_shared_desc[IPSEC_MAX_SD_SIZE_WORDS] = {0}; 
 	
-	uint32_t inl_mask = 0;
-	unsigned data_len[2];
+	/* ws_shared_desc[0-1] is used as data_len[0-1]; 
+	 * ws_shared_desc[3] is used as inl_mask */
+
 	int err;
 
 	struct ipsec_decap_pdb pdb;
 
-	struct alginfo rta_auth_alginfo;
-	struct alginfo rta_cipher_alginfo;
-
 	/* Build PDB fields for the RTA */
 	
-	data_len[0] = 1; /* Flag for split key calculation. 
+	ws_shared_desc[0] = 1; /* Flag for split key calculation. 
 					 * A "1" indicates that a split key is required */ 
 	
 	/* Check which method is it according to the key */
@@ -761,7 +767,7 @@ int ipsec_generate_decap_sd(
 			/* uint32_t ccm_opt; */
 			memcpy(pdb.ccm.salt, params->decparams.ccm.salt,
 			       sizeof(params->decparams.ccm.salt));
-			data_len[0] = 0; /* No room required for authentication key */
+			ws_shared_desc[0] = 0; /* No room required for authentication key */
 			break;
 		case CIPHER_TYPE_GCM:
 			/* uint8_t salt[4]; */
@@ -769,7 +775,7 @@ int ipsec_generate_decap_sd(
 			memcpy(pdb.gcm.salt, params->decparams.gcm.salt,
 			       sizeof(params->decparams.gcm.salt));
 			pdb.gcm.rsvd = 0;
-			data_len[0] = 0; /* No room required for authentication key */
+			ws_shared_desc[0] = 0; /* No room required for authentication key */
 			break;
 		default:
 			pdb.cbc.rsvd[0] = 0;
@@ -840,16 +846,6 @@ int ipsec_generate_decap_sd(
 	pdb.anti_replay[2] = 0;
 	pdb.anti_replay[3] = 0;
 
-	rta_auth_alginfo.algtype = params->authdata.algtype;
-	rta_auth_alginfo.keylen = params->authdata.keylen;
-	rta_auth_alginfo.key = params->authdata.key;
-	rta_auth_alginfo.key_enc_flags  = params->authdata.key_enc_flags;
-
-	rta_cipher_alginfo.algtype = params->cipherdata.algtype;
-	rta_cipher_alginfo.keylen = params->cipherdata.keylen;
-	rta_cipher_alginfo.key = params->cipherdata.key;
-	rta_cipher_alginfo.key_enc_flags  = params->cipherdata.key_enc_flags;
-	
 	/*
 	 * Lengths of items to be inlined in descriptor; order is important.
 	 * Job descriptor maximum length is hard-coded to 7 * CAAM_CMD_SZ +
@@ -863,54 +859,55 @@ int ipsec_generate_decap_sd(
 	 * all other modes -> don't need split key 
 	 *	  e.g. gcm(aes), ccm(aes), gmac(aes) - don't need split key
 	*/
-	if (data_len[0]) {
+	if (ws_shared_desc[0]) {
 		/* Sizes for MDHA pads (*not* keys): MD5, SHA1, 224, 256, 384, 512 */
 		/*                                   16,  20,   32,  32,  64,  64  */
 		switch (params->authdata.algtype) {
 			case IPSEC_AUTH_HMAC_NULL:
-				data_len[0] = 0;
+				ws_shared_desc[0] = 0;
 				break;
 			case IPSEC_AUTH_AES_XCBC_MAC_96:
 			case IPSEC_AUTH_AES_CMAC_96:
-				data_len[0] = params->authdata.keylen; /* No split */
+				ws_shared_desc[0] = params->authdata.keylen; /* No split */
 				break;
 			case IPSEC_AUTH_HMAC_MD5_96:
 			case IPSEC_AUTH_HMAC_MD5_128:
-				data_len[0] = 2*16;
+				ws_shared_desc[0] = 2*16;
 				break;
 			case IPSEC_AUTH_HMAC_SHA1_96:
 			case IPSEC_AUTH_HMAC_SHA1_160:	
-				data_len[0] = 2*20;
+				ws_shared_desc[0] = 2*20;
 				break;
 			case IPSEC_AUTH_HMAC_SHA2_256_128:
-				data_len[0] = 2*32;
+				ws_shared_desc[0] = 2*32;
 				break;
 			default:
 				/* IPSEC_AUTH_HMAC_SHA2_384_192 */
 				/* IPSEC_AUTH_HMAC_SHA2_512_256 */
-				data_len[0] = 2*64;
+				ws_shared_desc[0] = 2*64;
 		}	
 	} 
 
-	data_len[1] = params->cipherdata.keylen;
+	ws_shared_desc[1] = params->cipherdata.keylen;
 	
 	err = rta_inline_query(IPSEC_NEW_DEC_BASE_DESC_LEN, 
-			IPSEC_MAX_AI_JOB_DESC_SIZE, data_len, &inl_mask, 2);
+			IPSEC_MAX_AI_JOB_DESC_SIZE,(unsigned *)ws_shared_desc, 
+			&ws_shared_desc[3], 2);
 	
 	if (err < 0)
 		return err;
 	
-	if (inl_mask & (1 << 0))
-		rta_auth_alginfo.key_type = (enum rta_data_type)RTA_PARAM_IMM_DMA;
-	else {
-		rta_auth_alginfo.key_type = (enum rta_data_type)RTA_PARAM_PTR;
+	if (ws_shared_desc[3] & (1 << 0)) {
+		params->authdata.key_type = (enum key_types)RTA_PARAM_IMM_DMA;
+	} else {
+		params->authdata.key_type = (enum key_types)RTA_PARAM_PTR;
 	}
 		
-	if (inl_mask & (1 << 1))
-		rta_cipher_alginfo.key_type = (enum rta_data_type)RTA_PARAM_IMM_DMA;
-
-	else
-		rta_cipher_alginfo.key_type = (enum rta_data_type)RTA_PARAM_PTR;
+	if (ws_shared_desc[3] & (1 << 1)) {
+		params->cipherdata.key_type = (enum key_types)RTA_PARAM_IMM_DMA;
+	} else {
+		params->cipherdata.key_type = (enum key_types)RTA_PARAM_PTR;
+	}
 	
 	/* Call RTA function to build an encap descriptor */
 	if (params->flags & IPSEC_FLG_TUNNEL_MODE) {
@@ -920,8 +917,8 @@ int ipsec_generate_decap_sd(
 			IPSEC_SEC_POINTER_SIZE, /* unsigned short ps */
 			TRUE, /* swap */
 			&pdb, /* struct ipsec_encap_pdb *pdb */
-			(struct alginfo *)(&rta_cipher_alginfo),
-			(struct alginfo *)(&rta_auth_alginfo)
+			(struct alginfo *)(&params->cipherdata),
+			(struct alginfo *)(&params->authdata)
 		);
 	} else {
 		/* Transport mode, SEC legacy new thread */
@@ -930,8 +927,8 @@ int ipsec_generate_decap_sd(
 			IPSEC_SEC_POINTER_SIZE, /* unsigned short ps */
 			TRUE, /* bool swap */
 			&pdb, /* struct ipsec_encap_pdb *pdb */
-			(struct alginfo *)(&rta_cipher_alginfo),
-			(struct alginfo *)(&rta_auth_alginfo)
+			(struct alginfo *)(&params->cipherdata),
+			(struct alginfo *)(&params->authdata)
 		);
 	}	
 	

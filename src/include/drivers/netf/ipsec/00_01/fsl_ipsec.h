@@ -84,6 +84,19 @@ enum ipsec_status_codes {
 
 /** @} */ /* End of enum ipsec_status_codes */
 
+/**************************************************************************//**
+ @enum key_types
+
+ @Description	Key types. Reserved.
+
+ @{
+*//***************************************************************************/
+enum key_types {
+	RESERVED_KEY_TYPE = 0
+};
+/** @} */ /* End of enum key_types */
+
+
 /** @} */ /* End of IPSEC_ENUM */
 
 /**************************************************************************//**
@@ -400,6 +413,8 @@ struct alg_info {
 	uint64_t key;      /**< Address where algorithm key resides
 	 	 	 No alignment requirements */
 	uint32_t key_enc_flags; /**< Reserved. Set to 0. */
+	enum key_types key_type; /**< Reserved */
+	uint16_t algmode; /**< Reserved */
 };
 
 /**************************************************************************//**
