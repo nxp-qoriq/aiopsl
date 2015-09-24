@@ -1607,8 +1607,7 @@ __IPSEC_HOT_CODE int ipsec_frame_encrypt(
 			}
 			if (sap1.hard_sec_expired) {
 				*enc_status |= IPSEC_STATUS_HARD_SEC_EXPIRED;
-				return_val = IPSEC_ERROR; // TODO: TMP
-				goto encrypt_end;
+				return IPSEC_ERROR;
 			}
 		}
 	}
@@ -1619,8 +1618,7 @@ __IPSEC_HOT_CODE int ipsec_frame_encrypt(
 			*enc_status |= IPSEC_STATUS_SOFT_KB_EXPIRED;
 			if (sap1.byte_counter >= sap1.hard_byte_limit) {
 				*enc_status |= IPSEC_STATUS_HARD_KB_EXPIRED;
-				return_val = IPSEC_ERROR; // TODO: TMP
-				goto encrypt_end;
+				return IPSEC_ERROR;
 			}
 		}
 	}
@@ -1631,8 +1629,7 @@ __IPSEC_HOT_CODE int ipsec_frame_encrypt(
 			*enc_status |= IPSEC_STATUS_SOFT_PACKET_EXPIRED;
 			if (sap1.packet_counter >= sap1.hard_packet_limit) {
 				*enc_status |= IPSEC_STATUS_HARD_PACKET_EXPIRED;
-					return_val = IPSEC_ERROR; // TODO: TMP
-					goto encrypt_end;
+				return IPSEC_ERROR;
 			}
 		}
 	}
@@ -1899,7 +1896,8 @@ __IPSEC_HOT_CODE int ipsec_frame_encrypt(
 				/* Sequence Number overflow */
 				*enc_status |= IPSEC_SEQ_NUM_OVERFLOW;
 			} else {
-				*enc_status |= IPSEC_GEN_ENCR_ERR;	
+				*enc_status |= IPSEC_GEN_ENCR_ERR;
+				return IPSEC_ERROR;
 			}
 			
 		} else {
@@ -1908,12 +1906,10 @@ __IPSEC_HOT_CODE int ipsec_frame_encrypt(
 					== SEC_SEQ_NUM_OVERFLOW) { /* Sequence Number overflow */
 				*enc_status |= IPSEC_SEQ_NUM_OVERFLOW;
 			} else {
-				*enc_status |= IPSEC_GEN_ENCR_ERR;	
+				*enc_status |= IPSEC_GEN_ENCR_ERR;
+				return IPSEC_ERROR;
 			}
 		}
-		
-		return_val = IPSEC_ERROR;
-		goto encrypt_end;
 	}
 	
 	/* 	11.	FDMA present default frame command (open frame) */
@@ -2159,8 +2155,6 @@ __IPSEC_HOT_CODE int ipsec_frame_encrypt(
 	
 	return_val = IPSEC_SUCCESS;	
 
-encrypt_end:
-	
 	/* 	19.	END */
 		
 	/* 	19.3.	Return */
@@ -2220,7 +2214,7 @@ __IPSEC_HOT_CODE int ipsec_frame_decrypt(
 	
 	/* 	3.	Check that hard kilobyte/packet/seconds lifetime limits 
 	 * have expired. If expired, return with error. go to END */
-	// TODO
+
 	/* The seconds lifetime status is checked in the params[status] 
 	 * and the kilobyte/packet status is checked from the params[counters].
 	 * This is done to avoid doing mutex lock for kilobyte/packet status */
@@ -2231,8 +2225,7 @@ __IPSEC_HOT_CODE int ipsec_frame_decrypt(
 				*dec_status |= IPSEC_STATUS_SOFT_SEC_EXPIRED;
 				if (sap1.hard_sec_expired) {
 					*dec_status |= IPSEC_STATUS_HARD_SEC_EXPIRED;
-					return_val = IPSEC_ERROR; // TODO: TMP
-					goto decrypt_end;
+					return IPSEC_ERROR;
 				}
 			}
 		}
@@ -2244,8 +2237,7 @@ __IPSEC_HOT_CODE int ipsec_frame_decrypt(
 			*dec_status |= IPSEC_STATUS_SOFT_KB_EXPIRED;
 			if (sap1.byte_counter >= sap1.hard_byte_limit) {
 				*dec_status |= IPSEC_STATUS_HARD_KB_EXPIRED;
-				return_val = IPSEC_ERROR; // TODO: TMP
-				goto decrypt_end;
+				return IPSEC_ERROR;
 			}
 		}
 	}
@@ -2256,8 +2248,7 @@ __IPSEC_HOT_CODE int ipsec_frame_decrypt(
 			*dec_status |= IPSEC_STATUS_SOFT_PACKET_EXPIRED;
 			if (sap1.packet_counter >= sap1.hard_packet_limit) {
 				*dec_status |= IPSEC_STATUS_HARD_PACKET_EXPIRED;
-				return_val = IPSEC_ERROR; // TODO: TMP
-				goto decrypt_end;
+				return IPSEC_ERROR;
 			}
 		}	 
 	}
@@ -2564,7 +2555,9 @@ __IPSEC_HOT_CODE int ipsec_frame_decrypt(
 						*dec_status |= IPSEC_AR_REPLAY_PACKET;
 						break;
 					default:
+						/* For general errors do not present the frame */
 						*dec_status |= IPSEC_GEN_DECR_ERR;
+						return IPSEC_ERROR;
 				}	
 			}	
 		} else {
@@ -2587,13 +2580,12 @@ __IPSEC_HOT_CODE int ipsec_frame_decrypt(
 						*dec_status |= IPSEC_AR_REPLAY_PACKET;
 						break;
 					default:
+						/* For general errors do not present the frame */
 						*dec_status |= IPSEC_GEN_DECR_ERR;
+						return IPSEC_ERROR;
 				}	
 			}
 		}
-		return_val = IPSEC_ERROR;
-		/* If encryption/encapsulation failed do not present the frame */
-		goto decrypt_end;
 	}
 
 	/*---------------------*/
@@ -2650,8 +2642,6 @@ __IPSEC_HOT_CODE int ipsec_frame_decrypt(
 			(segment_pointer >=	(uint8_t *)PARSER_GET_ETH_POINTER_DEFAULT())) {
 				if (*segment_pointer != pad_length) {
 					*dec_status |= IPSEC_GEN_DECR_ERR;
-					return_val = IPSEC_ERROR;
-					goto decrypt_end;
 				} 
 
 				segment_pointer--;
@@ -2662,8 +2652,7 @@ __IPSEC_HOT_CODE int ipsec_frame_decrypt(
 		 * for the entire padding, and this is not supported. Return an error */
 		if(pad_length) {
 			*dec_status |= IPSEC_GEN_DECR_ERR;
-			return_val = IPSEC_ERROR;
-			goto decrypt_end;
+			return IPSEC_ERROR;
 		}
 		
 		/* Re-read the pad length, because it was subtracted in the while loop*/
@@ -2810,8 +2799,6 @@ __IPSEC_HOT_CODE int ipsec_frame_decrypt(
 	
 	return_val = IPSEC_SUCCESS;	
 
-decrypt_end:
-	
 	/* 	21.	END */
 	
 	/* Return */
@@ -3038,7 +3025,9 @@ int ipsec_get_seq_num(
 	Destination is placed after Routing header.
 	
 *//****************************************************************************/
-uint8_t ipsec_get_ipv6_nh_offset (struct ipv6hdr *ipv6_hdr, uint8_t *length)
+__IPSEC_HOT_CODE uint8_t ipsec_get_ipv6_nh_offset(
+		struct ipv6hdr *ipv6_hdr, 
+		uint8_t *length)
 {
 	uint32_t current_hdr_ptr;
 	uint16_t current_hdr_size;

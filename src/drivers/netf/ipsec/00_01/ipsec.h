@@ -649,11 +649,12 @@ struct ipsec_sa_params_part2 {
 								application callback function. 8B */
 	ipsec_lifetime_callback_t *sec_callback_func; /* Application callback function, 
 	 	 	 	 	to call upon a seconds lifetime expiry. 4B */
-	//uint32_t sec_callback_func; /* Application callback function, 
-
+	
+	/* Do not change this order of limit followed by handle */
 	uint32_t soft_seconds_limit; 
 	uint32_t soft_tmr_handle; /* Soft seconds timer handle, 4B */
 
+	/* Do not change this order of limit followed by handle */
 	uint32_t hard_seconds_limit; 
 	uint32_t hard_tmr_handle; /* Hard seconds timer handle, 4B */
 	

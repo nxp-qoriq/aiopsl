@@ -340,6 +340,10 @@ __declspec(entry_point) void aiop_verification_fm()
 			  sizeof(struct update_default_sp_ptar_command);
 			break;
 		}
+		case INFINATE_LOOP_MODULE:
+		{
+			while(TRUE){}
+		}
 		case TERMINATE_FLOW_MODULE:
 		default:
 		{
