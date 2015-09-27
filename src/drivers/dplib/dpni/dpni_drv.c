@@ -69,6 +69,7 @@ struct dpni_early_init_request g_dpni_early_init_data = {0};
 
 static int dpni_drv_evmng_cb(uint8_t generator_id, uint8_t event_id, uint64_t size, void *event_data);
 
+__START_DDR_DATA
 __COLD_CODE static void print_dev_desc(struct dprc_obj_desc* dev_desc)
 {
 	pr_debug(" device %d\n", dev_desc->id);
@@ -2365,3 +2366,5 @@ int dpni_drv_prepare_key_cfg(struct dpkg_profile_cfg *cfg,
 	}
 	return 0;
 }
+
+__END_DDR_DATA

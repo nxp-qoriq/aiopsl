@@ -43,6 +43,7 @@ uint8_t g_evmng_b_pool_spinlock;
 
 extern int cmdif_srv_mc_evm_session_open();
 
+__START_DDR_DATA
 static int add_event_registration(
 	uint8_t priority, uint64_t app_ctx, evmng_cb cb,
 	struct evmng *evmng_ptr)
@@ -550,6 +551,7 @@ void evmng_free(void)
 	pr_info("Free memory used by EVMNG\n");
 	fsl_free(g_evmng_first_b_pool_pointer);
 }
-/*****************************************************************************/
 
+__END_DDR_DATA
+/*****************************************************************************/
 
