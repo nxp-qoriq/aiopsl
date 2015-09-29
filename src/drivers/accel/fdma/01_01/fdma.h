@@ -155,6 +155,8 @@ inline uint32_t get_taskno(void)
 	- 0: queueing destination(16bit)
 	- 1: fqid (24bit). */
 #define FDMA_EN_EIS_BIT			0x200
+	/** Dummy flag for LS2085A */
+#define FDMA_ENF_AS_BIT		0
 	/** FDMA Enqueue Queueing Destination distribution hash value mask */
 #define FDMA_ENQUEUE_QD_HASH_MASK	0x0000FFFF
 	/** Enqueue ID selection:

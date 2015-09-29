@@ -91,12 +91,7 @@ struct tcp_gro_context {
 		 * This field must remain at the beginning of the structure due
 		 * to alignment restrictions for FD in workspace (The FD adress
 		 * in Workspace must be aligned to 32 bytes). */
-#ifdef REV2
 	struct ldpaa_fd agg_fd;
-#else
-	struct ldpaa_fd agg_fd
-		__attribute__((aligned(sizeof(struct ldpaa_fd))));
-#endif
 		/** Address (in HW buffers) of the TCP GRO aggregation metadata
 		 * buffer (\ref tcp_gro_context_metadata)
 		 * Upper layer SW should always send a metadata buffer address

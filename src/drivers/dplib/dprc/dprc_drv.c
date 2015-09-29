@@ -49,6 +49,7 @@ void dprc_drv_free(void);
 static int aiop_container_init(void);
 static void aiop_container_free(void);
 
+__START_DDR_DATA
 static int dprc_drv_evmng_cb(uint8_t generator_id, uint8_t event_id, uint64_t app_ctx, void *event_data)
 {
 	/*Container was updated*/
@@ -163,7 +164,7 @@ __COLD_CODE static int aiop_container_init(void)
 	int err = 0;
 	int container_id;
 	struct dprc_irq_cfg irq_cfg;
-	/*struct mc_dprc *dprc = fsl_os_xmalloc(sizeof(struct mc_dprc),
+	/*struct mc_dprc *dprc = fsl_xmalloc(sizeof(struct mc_dprc),
 					MEM_PART_SH_RAM,
 					1);*/
 	struct mc_dprc *dprc = fsl_malloc(sizeof(struct mc_dprc),
@@ -247,5 +248,5 @@ __COLD_CODE static void aiop_container_free(void)
 	if (dprc != NULL)
 		fsl_free(dprc);
 }
-
+__END_DDR_DATA
 

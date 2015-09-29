@@ -120,6 +120,11 @@ enum rta_param_type {
 #define IPSEC_ETHERTYPE_IPV6 0x86DD 
 #define IPSEC_ETHERTYPE_IPV4 0x0800 
 
+/* IPv4 header checksum is in bytes 10-11, lower 32-bit word #2 */
+#define IPSEC_OUTER_HEADER_IPV_MASK 0xF0000000
+#define IPSEC_OUTER_HEADER_IPV4     0x40000000
+#define IPSEC_OUTER_HEADER_CHECKSUM_MASK 0xFFFF0000
+
 /* IPv4 DSCP, bits 8-13 */
 #define IPSEC_DSCP_MASK_IPV4 0x00FC0000
 /* IPv6 DSCP, bits 4-9 */
@@ -135,6 +140,8 @@ enum rta_param_type {
 #define IPSEC_INTERNAL_PARMS_SIZE 128 /* 128 bytes */
 #define IPSEC_FLOW_CONTEXT_SIZE 64 /* 64 bytes */
 #define IPSEC_KEY_SEGMENT_SIZE 128 /* Key Copy segment, 128 bytes */
+#define IPSEC_CIPHER_KEY_SIZE 32 /* Cipher Key Copy, 32 bytes */
+
 #define IPSEC_SP_ASAR_MASK 0x000F0000 /* Storage profile ASAR field mask */
 #define IPSEC_SP_DHR_MASK 0x00000FFF
 #define IPSEC_SP_REUSE_BS_FF 0xA0000000
@@ -221,6 +228,20 @@ enum rta_param_type {
 #define IPSEC_SEC_REUSE_BUFFER_MODE 1
 #define IPSEC_FMT_SINGLE_BUFFER 0
 
+/**************************************************************************//**
+@Description	IPSec Key Encryption Flags (currently unsupported)
+ To be set to the alg_info.key_enc_flags field
+*//***************************************************************************/
+#define IPSEC_KEY_ENC			0x00400000
+	/**< ENC: Encrypted - Key is encrypted either with the KEK, or
+	 * 	with the TDKEK if this descriptor is trusted */
+#define IPSEC_KEY_NWB			0x00200000
+	/**< NWB: No Write Back - Do not allow key to be FIFO STOREd */
+#define IPSEC_KEY_EKT			0x00100000
+	/**< EKT: Enhanced Encryption of Key */
+#define IPSEC_KEY_TK			0x00008000
+	/**< TK: Encrypted with Trusted Key */
+
 /*                 SA Descriptor Structure
  * ------------------------------------------------------
  * | ipsec_sa_params                  | 128 bytes       | + 0
@@ -231,8 +252,11 @@ enum rta_param_type {
  * ------------------------------------------------------
  * | Replacement Job Descriptor (TBD) | Up to 64 (TBD)  | + 448
  * ------------------------------------------------------
- * | Key Copy                         | 128 bytes       | + 512 
+ * | Authentication Key Copy          | 128 bytes       | + 512 
  * ------------------------------------------------------
+ * | Cipher Key Copy                  | 32 bytes        | + 640 
+ * ------------------------------------------------------
+ * 
  *  
  * ipsec_sa_params - Parameters used by the IPsec functional module	128 bytes
  * sec_flow_context	- SEC Flow Context. 64 bytes
@@ -240,9 +264,9 @@ enum rta_param_type {
  * sec_shared_descriptor - Shared descriptor. Up to 256 bytes
  * Replacement Job Descriptor (RJD) for Peer Gateway Adaptation 
  * (Outer IP change)	TBD 
- * Key Copy area, for CAAM DKP
+ * Key Copy area, for CAAM DKP and upon HF-NIC requirement
  * 
- * Buffer size = 128 + 64 + 256 + 64 + 128 + 63 (alignment) = 703
+ * Aligned Buffer size = 128 + 64 + 256 + 64 + 128 + 32 = 672
  * Requested buffer size = 12*64 = 768 bytes
 */
 
@@ -256,6 +280,7 @@ enum rta_param_type {
 
 #define IPSEC_MAX_NUM_OF_TASKS 256 /* Total maximum number of tasks in AIOP */
 
+/* Memory partition ID */
 #ifndef IPSEC_PRIMARY_MEM_PARTITION_ID
 	#define IPSEC_PRIMARY_MEM_PARTITION_ID MEM_PART_DP_DDR
 #endif
@@ -264,8 +289,11 @@ enum rta_param_type {
 	#define IPSEC_SECONDARY_MEM_PARTITION_ID MEM_PART_SYSTEM_DDR
 #endif
 
-					/* Memory partition ID */
+/* Keys Copy Offsets */
 #define IPSEC_KEY_SEGMENT_OFFSET 512 /* Offset from params start */
+#define IPSEC_CIPHER_KEY_OFFSET\
+		IPSEC_KEY_SEGMENT_OFFSET + IPSEC_KEY_SEGMENT_SIZE
+
 /* Key Offset from FLC start */
 #define IPSEC_KEY_OFFSET_FROM_FLC IPSEC_KEY_SEGMENT_OFFSET -\
 											IPSEC_INTERNAL_PARMS_SIZE
@@ -306,6 +334,9 @@ enum rta_param_type {
 #define IPSEC_KEY_SEGMENT_ADDR(ADDRESS) ((ADDRESS) + IPSEC_KEY_SEGMENT_OFFSET)
 #define IPSEC_KEY_ADDR_FROM_FLC(ADDRESS) ((ADDRESS) + IPSEC_KEY_OFFSET_FROM_FLC)
 #define IPSEC_KEY_ADDR_FROM_SD(ADDRESS) ((ADDRESS) + IPSEC_KEY_OFFSET_FROM_SD)
+
+#define IPSEC_CIPHER_KEY_ADDR(ADDRESS) ((ADDRESS) + IPSEC_CIPHER_KEY_OFFSET)
+
 
 #define IPSEC_GET_SEGMENT_ADDRESS(prc_addr) \
 	((struct presentation_context *)prc_addr)->seg_address
@@ -618,11 +649,12 @@ struct ipsec_sa_params_part2 {
 								application callback function. 8B */
 	ipsec_lifetime_callback_t *sec_callback_func; /* Application callback function, 
 	 	 	 	 	to call upon a seconds lifetime expiry. 4B */
-	//uint32_t sec_callback_func; /* Application callback function, 
-
+	
+	/* Do not change this order of limit followed by handle */
 	uint32_t soft_seconds_limit; 
 	uint32_t soft_tmr_handle; /* Soft seconds timer handle, 4B */
 
+	/* Do not change this order of limit followed by handle */
 	uint32_t hard_seconds_limit; 
 	uint32_t hard_tmr_handle; /* Hard seconds timer handle, 4B */
 	

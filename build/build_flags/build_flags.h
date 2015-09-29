@@ -45,7 +45,7 @@
 
 #if (DEBUG_LEVEL > 0)
 #define DEBUG
-#define DEBUG_FSL_OS_MALLOC
+#define DEBUG_FSL_MALLOC
 
 #else
 #define DISABLE_ASSERTIONS

@@ -104,6 +104,7 @@ void snic_process_packet(void)
 	int32_t parse_status;
 	uint16_t snic_id;
 	int err;
+	uint16_t asa_length;
 
 	/* get sNIC ID */
 	snic_id = SNIC_ID_GET;
@@ -123,8 +124,7 @@ void snic_process_packet(void)
 
 	parse_status = parse_result_generate_default(PARSER_NO_FLAGS);
 	if (parse_status){
-		fdma_discard_default_frame(FDMA_DIS_NO_FLAGS);
-		fdma_terminate_task();
+		fdma_discard_default_frame(FDMA_DIS_FRAME_TC_BIT);
 	}
 
 	if (SNIC_IS_INGRESS_GET) {
@@ -151,7 +151,7 @@ void snic_process_packet(void)
 			(snic->snic_enable_flags & SNIC_IPSEC_EN))
 		{
 			fdma_read_default_frame_asa((void*)SNIC_ASA_LOCATION, 0,
-					SNIC_ASA_SIZE);
+					SNIC_ASA_SIZE, &asa_length);
 		}
 		/* Check if ipsec transport mode is required */
 		if (snic->snic_enable_flags & SNIC_IPSEC_EN)
@@ -176,9 +176,10 @@ void snic_process_packet(void)
 	if (err)
 	{
 		if(err == -ENOMEM)
-			fdma_discard_default_frame(FDMA_DIS_NO_FLAGS);
+			fdma_discard_default_frame(FDMA_DIS_FRAME_TC_BIT);
 		else /* (err == -EBUSY) */
-			fdma_discard_fd((struct ldpaa_fd *)HWC_FD_ADDRESS, 0, FDMA_DIS_AS_BIT);
+			fdma_discard_fd((struct ldpaa_fd *)HWC_FD_ADDRESS, 0, 
+				(FDMA_DIS_AS_BIT | FDMA_DIS_FRAME_TC_BIT));
 	}
 
 	fdma_terminate_task();
@@ -192,8 +193,7 @@ int snic_ipf(struct snic_params *snic)
 	uint32_t total_length;
 	struct ipv4hdr *ipv4_hdr;
 	struct ipv6hdr *ipv6_hdr;
-	ipf_ctx_t ipf_context_addr
-		__attribute__((aligned(sizeof(struct ldpaa_fd))));
+	ipf_ctx_t ipf_context_addr;
 	int32_t ipf_status;
 	int err;
 	struct fdma_queueing_destination_params enqueue_params;
@@ -237,7 +237,9 @@ int snic_ipf(struct snic_params *snic)
 				if(err == -ENOMEM)
 					fdma_discard_default_frame(FDMA_DIS_NO_FLAGS);
 				else /* (err == -EBUSY) */
-					fdma_discard_fd((struct ldpaa_fd *)HWC_FD_ADDRESS, 0, FDMA_DIS_AS_BIT);
+					fdma_discard_fd(
+					      (struct ldpaa_fd *)HWC_FD_ADDRESS,
+					      0, FDMA_DIS_AS_BIT);
 				if (ipf_status == IPF_GEN_FRAG_STATUS_IN_PROCESS)
 					ipf_discard_frame_remainder(ipf_context_addr);
 				break;
@@ -278,9 +280,8 @@ int snic_add_vlan(void)
 	/* Get ASA pointer */
 	presentation_context =
 		(struct presentation_context *) HWC_PRC_ADDRESS;
-	asa_seg_addr = (uint32_t)(presentation_context->
-			asapa_asaps & PRC_ASAPA_MASK);
-	vlan = *((uint32_t *)(PTR_MOVE(asa_seg_addr, 0x50)));
+	asa_seg_addr = (uint32_t)SNIC_ASA_LOCATION;
+	vlan = *((uint32_t *)(PTR_MOVE(asa_seg_addr, FASWO1)));
 	l2_push_and_set_vlan(vlan);
 	return 0;
 }
@@ -338,9 +339,8 @@ int snic_ipsec_encrypt(struct snic_params *snic)
 	/* Get ASA pointer */
 	presentation_context =
 		(struct presentation_context *) HWC_PRC_ADDRESS;
-	asa_seg_addr = (uint32_t)(presentation_context->
-			asapa_asaps & PRC_ASAPA_MASK);
-	sa_id = *((uint8_t *)(PTR_MOVE(asa_seg_addr, 0x54)));
+	asa_seg_addr = (uint32_t)SNIC_ASA_LOCATION;
+	sa_id = *((uint8_t *)(PTR_MOVE(asa_seg_addr, FASWO2)));
 	
 	key_desc.em_key = &sa_id;
 	sr_status = table_lookup_by_key(TABLE_ACCEL_ID_CTLU,
@@ -1044,7 +1044,7 @@ int aiop_snic_init(void)
 		return status;
 	}
 	memset(snic_params, 0, sizeof(snic_params));
-	fsl_os_get_mem(SNIC_MAX_NO_OF_TIMERS*64, mem_pid, 64, 
+	fsl_get_mem(SNIC_MAX_NO_OF_TIMERS*64, mem_pid, 64, 
 			&snic_tmi_mem_base_addr);
 	/* tmi delete is in snic_free */
 	status = tman_create_tmi(snic_tmi_mem_base_addr , SNIC_MAX_NO_OF_TIMERS, 
@@ -1065,7 +1065,7 @@ void snic_tman_confirm_cb(tman_arg_8B_t arg1, tman_arg_2B_t arg2)
 	UNUSED(arg2);
 	tman_timer_completion_confirmation(
 			TMAN_GET_TIMER_HANDLE(HWC_FD_ADDRESS));
-	fsl_os_put_mem(snic_tmi_mem_base_addr);
+	fsl_put_mem(snic_tmi_mem_base_addr);
 	fdma_terminate_task();
 }
 void snic_ipr_timout_cb(ipr_timeout_arg_t arg,
@@ -1074,8 +1074,7 @@ void snic_ipr_timout_cb(ipr_timeout_arg_t arg,
 	UNUSED(arg);
 	UNUSED(flags);
 	/* Need to discard default frame */
-	fdma_discard_default_frame(FDMA_DIS_NO_FLAGS);
-	fdma_terminate_task();
+	fdma_discard_default_frame(FDMA_DIS_FRAME_TC_BIT);
 }
 
 void snic_ipr_confirm_delete_cb(ipr_del_arg_t arg)

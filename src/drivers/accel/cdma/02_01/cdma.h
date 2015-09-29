@@ -82,13 +82,13 @@
 #define CDMA_WRITE_REL_LOCK_AND_DEC_CMD_FLAGS  0x00000700
 /** CDMA_ACCESS_CONTEXT_MEM_FLAGS[ERT,ERR,OFFSET,AA,MO,TL,MT,UR,RM]=
  * [1,0,00000000000000,0,0,0,00,00,0] */
-#define CDMA_TAKE_CMD_FLAGS  0x80000000
+#define CDMA_EPHEMERAL_REF_TAKE_CMD_FLAGS  0x80000000
 /** CDMA_ACCESS_CONTEXT_MEM_FLAGS[ERT,ERR,OFFSET,AA,MO,TL,MT,UR,RM]=
  * [0,1,00000000000000,0,0,0,00,00,0] */
-#define CDMA_RELEASE_ALL_CMD_FLAGS  0x40000000
+#define CDMA_EPHEMERAL_REF_RELEASE_ALL_CMD_FLAGS  0x40000000
 /** CDMA_ACCESS_CONTEXT_MEM_FLAGS[ERT,ERR,OFFSET,AA,MO,TL,MT,UR,RM]=
  * [0,0,00000000000000,0,0,0,11,00,0] */
-#define CDMA_SYNC_CMD_FLAGS  0x00000018
+#define CDMA_EPHEMERAL_REF_SYNC_CMD_FLAGS  0x00001800
 
 
 /* CDMA Command Arguments */
@@ -142,12 +142,12 @@
 	((_ext_offset << 16) | _flags | CDMA_ACCESS_CONTEXT_MEM_CMD);
 #define CDMA_ACCESS_CONTEXT_MEM_CMD_ARG2(_dma_param, _ws_address) \
 	(uint32_t)((_dma_param << 16) | (_ws_address & 0x0000FFFF))
-#define CDMA_TAKE_CMD_ARG1()	\
-	(CDMA_TAKE_CMD_FLAGS | CDMA_ACCESS_CONTEXT_MEM_CMD);
-#define CDMA_RELEASE_ALL_CMD_ARG1()	\
-	(CDMA_RELEASE_ALL_CMD_FLAGS | CDMA_ACCESS_CONTEXT_MEM_CMD);
-#define CDMA_SYNC_CMD_ARG1()	\
-	(CDMA_SYNC_CMD_FLAGS | CDMA_ACCESS_CONTEXT_MEM_CMD);
+#define CDMA_EPHEMERAL_REF_TAKE_CMD_ARG1()	\
+	(CDMA_EPHEMERAL_REF_TAKE_CMD_FLAGS | CDMA_ACCESS_CONTEXT_MEM_CMD);
+#define CDMA_EPHEMERAL_REF_RELEASE_ALL_CMD_ARG1()	\
+	(CDMA_EPHEMERAL_REF_RELEASE_ALL_CMD_FLAGS | CDMA_ACCESS_CONTEXT_MEM_CMD);
+#define CDMA_EPHEMERAL_REF_SYNC_CMD_ARG1()	\
+	(CDMA_EPHEMERAL_REF_SYNC_CMD_FLAGS | CDMA_ACCESS_CONTEXT_MEM_CMD);
 
 /* CDMA CFG register bits */
 #define CDMA_BDI_BIT		0x00080000
@@ -231,9 +231,9 @@ enum cdma_function_identifier {
 	CDMA_REFCOUNT_DECREMENT,
 	CDMA_WRITE_LOCK_DMA_READ_AND_INCREMENT,
 	CDMA_WRITE_RELEASE_LOCK_AND_DECREMENT,
-	CDMA_TAKE,
-	CDMA_RELEASE_ALL,
-	CDMA_SYNC,
+	CDMA_EPHEMERAL_REFERENCE_TAKE,
+	CDMA_EPHEMERAL_REFERENCE_RELEASE_ALL,
+	CDMA_EPHEMERAL_REFERENCE_SYNC,
 	CDMA_ACCESS_CONTEXT_MEMORY
 };
 
@@ -252,10 +252,10 @@ enum cdma_function_identifier {
 
 @Description	CDMA Access Context Memory flags
 
-| 0 - 15  | 16 | 17 | 18 |    19 - 20   | 21 - 22 |      23      | 24 - 31 |
-|---------|----|----|----|--------------|---------|--------------|---------|
-|         | AA | MO | TL |Pre Mutex Lock|ref-count|Post Rel-Mutex|         |
-
+|  0  |  1  | 2 - 15 | 16 | 17 | 18 |    19 - 20   | 21-22 |    23   | 24 - 31 |
+|-----|-----|--------|----|----|----|--------------|-------|---------|---------|
+| ERT | ERR |        | AA | MO | TL |Pre Mutex Lock|ref-   |Post Rel-|         |
+							    	|/Eph Ref Sync |count  |Mutex    |         |
 @{
 *//***************************************************************************/
 
@@ -286,15 +286,23 @@ enum cdma_function_identifier {
 		right away. */
 #define CDMA_ACCESS_CONTEXT_MEM_TL_BIT		0x00002000
 
-/* Pre DMA Mutex Lock */
-		/* No mutex lock is requested. */
-#define CDMA_ACCESS_CONTEXT_MEM_NO_MUTEX_LOCK		0x00000000
+/* Pre DMA Mutex Lock / Ephemeral Reference */
+		/* No action. */
+#define CDMA_ACCESS_CONTEXT_MEM_NO_ACTION		    0x00000000
 		/* Mutex read lock is requested. */
 #define CDMA_ACCESS_CONTEXT_MEM_MUTEX_READ_LOCK		0x00000800
 		/* Mutex write lock is requested. */
 #define CDMA_ACCESS_CONTEXT_MEM_MUTEX_WRITE_LOCK	0x00001000
+		/* Ephemeral reference sync is requested (no mutex lock). */
+#define CDMA_ACCESS_CONTEXT_MEM_EPH_REF_SYNC		0x00001800
+		/* Ephemeral reference take (ERT) is requested. */
+#define CDMA_ACCESS_CONTEXT_MEM_EPH_REF_TAKE		0x80000000
+		/* Ephemeral reference release-all (ERR) is requested. */
+#define CDMA_ACCESS_CONTEXT_MEM_EPH_REF_REL_ALL		0x40000000
 
 /* Reference count */
+		/* No action. */
+#define CDMA_ACCESS_CONTEXT_MEM_NO_ACTION		     0x00000000
 		/* Increment reference count. */
 #define CDMA_ACCESS_CONTEXT_MEM_INC_REFCOUNT		 0x00000200
 		/* Decrement reference count. */
@@ -308,6 +316,7 @@ enum cdma_function_identifier {
 		- 0: No mutex lock to release
 		- 1: Release mutex lock */
 #define CDMA_ACCESS_CONTEXT_MEM_RM_BIT		0x00000100
+
 
 /** @} end of group CDMA_AccessCM_ModeBits */
 
@@ -552,7 +561,7 @@ int cdma_write_release_lock_and_decrement(
 
 
 /**************************************************************************//**
-@Function	cdma_take
+@Function	cdma_ephemeral_reference_take
 
 @Description	This routine is used to indicate that the task use one or more
 		resource(s) (but does NOT indicate the specific reference) and can be
@@ -565,11 +574,11 @@ int cdma_write_release_lock_and_decrement(
 @Cautions	This function may result in a fatal error.
 
 *//***************************************************************************/
-inline void cdma_take();
+inline void cdma_ephemeral_reference_take();
 
 
 /**************************************************************************//**
-@Function	cdma_release_all
+@Function	cdma_ephemeral_reference_release_all
 
 @Description	This routine is used to indicate that the task no longer
 		intends to use ANY resource that was declared by rcu_read_unlock().
@@ -582,11 +591,11 @@ inline void cdma_take();
 @Cautions	This function may result in a fatal error.	
 
 *//***************************************************************************/
-inline void cdma_release_all();
+inline void cdma_ephemeral_reference_release_all();
 
 
 /**************************************************************************//**
-@Function	cdma_synchronize
+@Function	cdma_ephemeral_reference_sync
 
 @Description	This routine is used to ensure that a task can safely
 		de-allocate its resource(s). The de-allocate must not start until
@@ -606,7 +615,7 @@ inline void cdma_release_all();
 @Cautions	This function may result in a fatal error.
 
 *//***************************************************************************/
-inline void cdma_synchronize();
+inline void cdma_ephemeral_reference_sync();
 
 
 /*************************************************************************//**
@@ -616,6 +625,8 @@ inline void cdma_synchronize();
 		It can be used as a combo command (instead of some of the
 		previous CDMA routines) or can be used to perform any of the
 		following operations as a stand-alone command:
+		- Ephemeral reference take
+		- Ephemeral reference sync
 		- Mutex lock request
 		- DMA read
 		- DMA write
@@ -623,6 +634,7 @@ inline void cdma_synchronize();
 		- Decrement reference count and optional release of the Context
 		Memory
 		- Mutex lock release
+		- Ephemeral reference release all
 
 
 @Param[in]	context_address - A pointer to Context address. This address is
@@ -671,7 +683,7 @@ inline int cdma_access_context_memory(
 @Function	cdma_access_context_memory_wrp
 
 @Description	Wrapper to the function cdma_access_context_memory.
-		See description of the function cdma_access_context_memory_wrp.
+		See description of the function cdma_access_context_memory.
 
 
 @Param[in]	context_address - A pointer to Context address. This address is

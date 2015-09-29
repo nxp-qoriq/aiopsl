@@ -39,7 +39,7 @@ struct boot_info *build_boot_info(struct reserve_info *reservelist,
 {
     struct boot_info *bi;
 
-    bi = fsl_os_malloc(sizeof(*bi));
+    bi = fsl_malloc(sizeof(*bi));
     bi->reservelist = reservelist;
     bi->dt = tree;
     bi->boot_cpuid_phys = boot_cpuid_phys;
@@ -62,7 +62,7 @@ void add_label(struct label **labels, char *label)
             new->deleted = 0;
             return;
 //        }
-    new = fsl_os_malloc(sizeof(*new));
+    new = fsl_malloc(sizeof(*new));
     memset(new, 0, sizeof(*new));
     new->label = label;
     new->next = *labels;
@@ -79,7 +79,7 @@ void delete_labels(struct label **labels)
 
 struct property *build_property(char *name, struct data val)
 {
-    struct property *new = fsl_os_malloc(sizeof(*new));
+    struct property *new = fsl_malloc(sizeof(*new));
 
     memset(new, 0, sizeof(*new));
 
@@ -91,7 +91,7 @@ struct property *build_property(char *name, struct data val)
 
 struct property *build_property_delete(char *name)
 {
-    struct property *new = fsl_os_malloc(sizeof(*new));
+    struct property *new = fsl_malloc(sizeof(*new));
 
     memset(new, 0, sizeof(*new));
 
@@ -126,7 +126,7 @@ struct property *reverse_properties(struct property *first)
 
 struct node *build_node(struct property *proplist, struct node *children)
 {
-    struct node *new = fsl_os_malloc(sizeof(*new));
+    struct node *new = fsl_malloc(sizeof(*new));
     struct node *child;
 
     memset(new, 0, sizeof(*new));
@@ -143,7 +143,7 @@ struct node *build_node(struct property *proplist, struct node *children)
 
 struct node *build_node_delete(void)
 {
-    struct node *new = fsl_os_malloc(sizeof(*new));
+    struct node *new = fsl_malloc(sizeof(*new));
 
     memset(new, 0, sizeof(*new));
 
@@ -325,7 +325,7 @@ void delete_node(struct node *node)
 #endif
 struct reserve_info *build_reserve_entry(uint64_t address, uint64_t size)
 {
-    struct reserve_info *new = fsl_os_malloc(sizeof(*new));
+    struct reserve_info *new = fsl_malloc(sizeof(*new));
 
     memset(new, 0, sizeof(*new));
 
@@ -775,16 +775,16 @@ const struct property *get_properties(struct node *tree, char *path)
 const struct devices *get_devices(struct node *tree, char *path)
 {
     struct node *node = get_node_by_path(tree,path);
-    struct devices *dlist = fsl_os_malloc(sizeof(*dlist));
+    struct devices *dlist = fsl_malloc(sizeof(*dlist));
     struct devices *head;
     struct node *child;
     head=dlist;
     for_each_child(node, child) {
         dlist->name = child->name;
-        dlist->next = fsl_os_malloc(sizeof(*dlist->next));
+        dlist->next = fsl_malloc(sizeof(*dlist->next));
         dlist = dlist->next;
     }
-    fsl_os_free(dlist);
+    fsl_free(dlist);
     return head;
 }
 

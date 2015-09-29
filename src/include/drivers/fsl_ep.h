@@ -81,15 +81,15 @@ struct ep_init_presentation {
 	 * presentation;
 	 * Use any combination of \ref EP_INIT_PRESENTATION_OPT */
 	uint16_t options;
-	/** FD Presentation Address - updating this
+	/** FD Presentation Address (32 Bytes aligned) - updating this
 	 * value is not supported*/
 	uint16_t fdpa;
-	/** Additional Dequeue and Presentation Context Address - updating this
-	 * value is not supported*/
+	/** Additional Dequeue and Presentation Context Address
+	 * (32 Bytes aligned) - updating this value is not supported*/
 	uint16_t adpca;
-	/** PTA Presentation Address */
+	/** PTA Presentation Address - Must be 64 bytes aligned */
 	uint16_t ptapa;
-	/** ASA Presentation Address */
+	/** ASA Presentation Address - Must be 64 bytes aligned */
 	uint16_t asapa;
 	/** Offset within ASA to begin presenting from */
 	uint8_t  asapo;

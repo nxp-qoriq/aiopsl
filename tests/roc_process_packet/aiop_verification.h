@@ -211,8 +211,9 @@ enum verif_modules_ids {
 	OSM_MODULE, 	// 19
 	EXCEPTION_MODULE, 	// 20
 	UPDATE_EXT_VARIABLE, 	// 21
-	UPDATE_DEFAULT_SP_ASAR,
-	UPDATE_DEFAULT_SP_PTAR
+	UPDATE_DEFAULT_SP_ASAR, // 22
+	UPDATE_DEFAULT_SP_PTAR, // 23
+	INFINATE_LOOP_MODULE //14
 };
 
 /**************************************************************************//**

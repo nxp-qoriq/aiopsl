@@ -267,7 +267,7 @@ inline void cdma_mutex_lock_release(
 }
 
 
-inline void cdma_take() 
+inline void cdma_ephemeral_reference_take() 
 {
 
 	/* command parameters and results */
@@ -275,7 +275,7 @@ inline void cdma_take()
 	uint8_t res1;
 
 	/* prepare command parameters */
-	arg1 = CDMA_TAKE_CMD_ARG1();
+	arg1 = CDMA_EPHEMERAL_REF_TAKE_CMD_ARG1();
 	arg2 = 0;
 	arg3 = 0;
 	arg4 = 0;
@@ -289,11 +289,11 @@ inline void cdma_take()
 
 	/* load command results */
 	res1 = *((uint8_t *)(HWC_ACC_OUT_ADDRESS+CDMA_STATUS_OFFSET));
-	cdma_exception_handler(CDMA_TAKE, __LINE__, (int32_t)res1);	
+	cdma_exception_handler(CDMA_EPHEMERAL_REFERENCE_TAKE, __LINE__, (int32_t)res1);	
 }
 
 
-inline void cdma_release_all() 
+inline void cdma_ephemeral_reference_release_all() 
 {
 
 	/* command parameters and results */
@@ -301,7 +301,7 @@ inline void cdma_release_all()
 	uint8_t res1;
 
 	/* prepare command parameters */
-	arg1 = CDMA_RELEASE_ALL_CMD_ARG1();
+	arg1 = CDMA_EPHEMERAL_REF_RELEASE_ALL_CMD_ARG1();
 	arg2 = 0;
 	arg3 = 0;
 	arg4 = 0;
@@ -315,11 +315,11 @@ inline void cdma_release_all()
 
 	/* load command results */
 	res1 = *((uint8_t *)(HWC_ACC_OUT_ADDRESS+CDMA_STATUS_OFFSET));
-	cdma_exception_handler(CDMA_RELEASE_ALL, __LINE__, (int32_t)res1);	
+	cdma_exception_handler(CDMA_EPHEMERAL_REFERENCE_RELEASE_ALL, __LINE__, (int32_t)res1);	
 }
 
 
-inline void cdma_sync() 
+inline void cdma_ephemeral_reference_sync() 
 {
 
 	/* command parameters and results */
@@ -327,7 +327,7 @@ inline void cdma_sync()
 	uint8_t res1;
 
 	/* prepare command parameters */
-	arg1 = CDMA_SYNC_CMD_ARG1();
+	arg1 = CDMA_EPHEMERAL_REF_SYNC_CMD_ARG1();
 	arg2 = 0;
 	arg3 = 0;
 	arg4 = 0;
@@ -341,7 +341,7 @@ inline void cdma_sync()
 
 	/* load command results */
 	res1 = *((uint8_t *)(HWC_ACC_OUT_ADDRESS+CDMA_STATUS_OFFSET));
-	cdma_exception_handler(CDMA_SYNC, __LINE__, (int32_t)res1);	
+	cdma_exception_handler(CDMA_EPHEMERAL_REFERENCE_SYNC, __LINE__, (int32_t)res1);	
 }
 
 

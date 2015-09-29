@@ -51,9 +51,13 @@ do { \
 #define CMDIF_BD_READ(BASE_ADDR, IND, BD) \
 	*(BD) = *((struct cmdif_bd *)(BASE_ADDR + CMDIF_BD_SIZE * (IND)))
 
+#define CMDIF_INT_REQ() \
+*((uint32_t *)CPU_TO_LE64(bd_ring->irq_addr)) = CPU_TO_LE32(bd_ring->irq_mask)
+
 #define CMDIF_M_NAME_CHARS	16	/*!< Including null terminator */
 
-int cmdif_flib_send(struct cmdif_bd_ring *bd_ring, const struct cmdif_bd *bd, struct cmdif_bd **bd_ptr) 
+int cmdif_flib_send(struct cmdif_bd_ring *bd_ring, const struct cmdif_bd *bd,
+                    struct cmdif_bd **bd_ptr) 
 {
 	uint32_t enq;
 	uint32_t deq;
@@ -62,6 +66,9 @@ int cmdif_flib_send(struct cmdif_bd_ring *bd_ring, const struct cmdif_bd *bd, st
 
 	if ((bd_ring == NULL) || (bd == NULL))
 		return -EINVAL;
+
+	if (bd_ring->ready != 1)
+		return - ENAVAIL;
 
 	enq = CPU_TO_LE32(bd_ring->enq);
 	deq = CPU_TO_LE32(bd_ring->deq);
@@ -72,6 +79,8 @@ int cmdif_flib_send(struct cmdif_bd_ring *bd_ring, const struct cmdif_bd *bd, st
 	ind = CMDIF_RING_IND(enq, size);
 	CMDIF_BD_WRITE(bd_ring->bd_addr, ind, bd);
 
+	if (bd->int_en)
+		CMDIF_INT_REQ();
 	enq++;
 	bd_ring->enq = CPU_TO_LE32(enq);
 	return 0;
@@ -119,6 +128,7 @@ int cmdif_flib_open_bd(void *handle, const char *m_name,
 	bd->session_id = CMDIF_OPEN_SESSION;
 	memcpy(&bd->cmd_data[CMDIF_M_NAME_CHARS], &handle, sizeof(handle));
 	bd->cmdi_id = CMDIF_CMD_OPEN;
+	bd->int_en = 1;
 
 	return 0;
 }

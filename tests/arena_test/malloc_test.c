@@ -95,46 +95,46 @@ static int check_get_mem_size_alignment(uint64_t size,uint64_t alignment)
 	uint64_t paddr = 0;
 
 	/* test get_mem() for MEM_PART_DP_DDR */
-	local_error = fsl_os_get_mem(size,MEM_PART_DP_DDR,alignment,&paddr);
+	local_error = fsl_get_mem(size,MEM_PART_DP_DDR,alignment,&paddr);
 	if((local_error !=0 && s_dp_ddr_mem_exists) ||
 		(local_error == 0 && !s_dp_ddr_mem_exists)	)
 	{
-		fsl_print("get_mem(): fsl_os_get_mem from MEM_PART_DP_DDR failed\n") ;
+		fsl_print("get_mem(): fsl_get_mem from MEM_PART_DP_DDR failed\n") ;
 		rc |= local_error;
 	}
 	else
 	{
 		rc |= check_returned_get_mem_address(paddr,size,alignment,&dp_ddr_info);
-		fsl_os_put_mem(paddr);
+		fsl_put_mem(paddr);
 	}
 
     /* test get_mem() for MEM_PART_SYSTEM_DDR */
-   local_error = fsl_os_get_mem(size,MEM_PART_SYSTEM_DDR,alignment,&paddr);
+   local_error = fsl_get_mem(size,MEM_PART_SYSTEM_DDR,alignment,&paddr);
    if((local_error !=0 && s_system_ddr_mem_exists) ||
 	 (local_error == 0 && !s_system_ddr_mem_exists))
    {
-		fsl_print("get_mem(): fsl_os_get_mem from MEM_PART_SYSTEM_DDR failed\n") ;
+		fsl_print("get_mem(): fsl_get_mem from MEM_PART_SYSTEM_DDR failed\n") ;
 		rc |= local_error;
    }
    else
    {
 	   rc |= check_returned_get_mem_address(paddr,size,alignment,&sys_ddr_info);
-	   fsl_os_put_mem(paddr);
+	   fsl_put_mem(paddr);
    }
 
 	/* test get_mem() for MEM_PART_PEB */
 
-	local_error=fsl_os_get_mem(size,MEM_PART_PEB,alignment,&paddr);
+	local_error=fsl_get_mem(size,MEM_PART_PEB,alignment,&paddr);
 	if((local_error !=0 && s_peb_mem_exists) ||
 	   (local_error == 0 && !s_peb_mem_exists))
 	{
-		fsl_print("get_mem(): fsl_os_get_mem from MEM_PART_PEB failed\n") ;
+		fsl_print("get_mem(): fsl_get_mem from MEM_PART_PEB failed\n") ;
 		rc |= local_error;
 	}
 	else
 	{
 		rc |= check_returned_get_mem_address(paddr,size,alignment,&peb_info);
-		fsl_os_put_mem(paddr);
+		fsl_put_mem(paddr);
     }
 	return rc;
 }
@@ -298,8 +298,8 @@ static int shared_ram_allocate_check_mem(uint32_t num_iter, uint32_t size,
 	return 0;
 }
 
-/* fsl_os_malloc()/fsl_os_free() is not relevant any more,
- migrated to fsl_os_get_mem()/fsl_os_free()
+/* fsl_malloc()/fsl_free() is not relevant any more,
+ migrated to fsl_get_mem()/fsl_free()
  */
 
 static int get_mem_test()
@@ -339,11 +339,11 @@ static int check_non_valid_get_mem_partitions()
     int rc = 0, local_error = 0;
     uint64_t size = 0x10, alignment = 4, paddr;
     // The following tests should fail.
-    if((rc = fsl_os_get_mem(size,MEM_PART_MC_PORTALS,alignment,&paddr)) != -EINVAL)
+    if((rc = fsl_get_mem(size,MEM_PART_MC_PORTALS,alignment,&paddr)) != -EINVAL)
 	    local_error = 1;
-    if((rc = fsl_os_get_mem(size,MEM_PART_CCSR,alignment,&paddr)) != -EINVAL)
+    if((rc = fsl_get_mem(size,MEM_PART_CCSR,alignment,&paddr)) != -EINVAL)
 	    local_error = 1;
-    if((rc = fsl_os_get_mem(size,MEM_PART_SH_RAM,alignment,&paddr)) != -EINVAL)
+    if((rc = fsl_get_mem(size,MEM_PART_SH_RAM,alignment,&paddr)) != -EINVAL)
 	    local_error = 1;
     if(local_error)
 	    return -EINVAL;
@@ -428,7 +428,7 @@ static int mem_depletion_test(e_memory_partition_id mem_partition,
 	}
 	else
 	{
-		while((fsl_os_get_mem(size,mem_partition,alignment,&curr_addr_64)) == 0)
+		while((fsl_get_mem(size,mem_partition,alignment,&curr_addr_64)) == 0)
 		{
 			adresses[count++] = curr_addr_64;
 			if(check_returned_address(curr_addr_64,size,alignment,mem_partition) != 0)
@@ -441,18 +441,18 @@ static int mem_depletion_test(e_memory_partition_id mem_partition,
 			if(0 != max_alloc_size && size > max_alloc_size)
 				break;
 		}
-		fsl_os_put_mem(prev_addr_64);
-		if(fsl_os_get_mem(prev_size,mem_partition,prev_alignment,&curr_addr_64) != 0)
+		fsl_put_mem(prev_addr_64);
+		if(fsl_get_mem(prev_size,mem_partition,prev_alignment,&curr_addr_64) != 0)
 		{
 			/*fsl_print("mem_depletion_test from %d failed\n",mem_partition);*/
 			return -ENAVAIL;
 		}
 		if(check_returned_address(curr_addr_64,prev_size,prev_alignment,mem_partition) != 0)
 						return -1;
-		fsl_os_put_mem(curr_addr_64);
+		fsl_put_mem(curr_addr_64);
 		for(int i = 0 ; i < count-1 ; i++)
 		{
-			fsl_os_put_mem(adresses[i]);
+			fsl_put_mem(adresses[i]);
 		}
 		/*fsl_print("mem_depletion_test from %d succeeded\n",mem_partition);*/
 		return 0;

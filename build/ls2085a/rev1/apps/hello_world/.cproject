@@ -122,6 +122,7 @@
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../../src/lib/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../../src/include/common&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../../src/include/drivers/ldpaa&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../../src/include/drivers/ldpaa/workspace/01_01&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../../src/include/lib&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../../src/drivers/dplib/dpni&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../../build/build_flags&quot;"/>

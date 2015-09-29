@@ -227,7 +227,7 @@ __HOT_CODE ENTRY_POINT static void app_process_packet(void)
 	err |= fsl_get_time_since_epoch_ms(&time_ms_since_epoch);
 
 	if(err){
-		fsl_print("ERROR = %d: fsl_os_gettimeofday failed  in runtime phase \n", err);
+		fsl_print("ERROR = %d: fsl_gettimeofday failed  in runtime phase \n", err);
 		local_test_error |= err;
 		unlock_spinlock(&time_lock);
 	}else {
@@ -529,7 +529,7 @@ static int app_dpni_event_added_cb(
 	layout.data_tail_room = 0x50;
 	err = dpni_drv_set_rx_buffer_layout(ni,&layout );
 	if(err){
-		fsl_print("Error: dpni_drv_get_rx_buffer_layout: error %d\n",err);
+		fsl_print("Error: dpni_drv_set_rx_buffer_layout: error %d\n",err);
 		test_error |= 0x01;
 	}
 

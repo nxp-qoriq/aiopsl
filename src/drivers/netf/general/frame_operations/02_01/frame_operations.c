@@ -66,9 +66,7 @@ int create_frame(
 
 	LDPAA_FD_SET_IVP(fd, 1);	
 	
-	if ((uint32_t)fd == HWC_FD_ADDRESS) {
-		PRC_SET_ASA_SIZE(0);
-		PRC_SET_PTA_ADDRESS(PRC_PTA_NOT_LOADED_ADDRESS);	
+	if ((uint32_t)fd == HWC_FD_ADDRESS) {	
 		PRC_SET_SEGMENT_LENGTH(0);
 		PRC_SET_SEGMENT_OFFSET(0);
 		PRC_SET_SEGMENT_ADDRESS((uint32_t)TLS_SECTION_END_ADDR +
@@ -98,7 +96,7 @@ int create_frame(
 		present_frame_params.asa_size = 0;
 		present_frame_params.flags = FDMA_INIT_NO_FLAGS;
 		present_frame_params.pta_dst = (void *)
-				PRC_PTA_NOT_LOADED_ADDRESS;
+				PTA_NOT_LOADED_ADDRESS;
 		present_frame_params.present_size = 0;
 		present_frame_params.seg_offset = 0;
 
@@ -143,9 +141,7 @@ int create_fd(
 	
 	LDPAA_FD_SET_IVP(fd, 1);
 
-	if ((uint32_t)fd == HWC_FD_ADDRESS) {
-		PRC_SET_ASA_SIZE(0);
-		PRC_SET_PTA_ADDRESS(PRC_PTA_NOT_LOADED_ADDRESS);	
+	if ((uint32_t)fd == HWC_FD_ADDRESS) {	
 		PRC_SET_SEGMENT_LENGTH(0);
 		PRC_SET_SEGMENT_OFFSET(0);
 		PRC_RESET_NDS_BIT();
@@ -159,7 +155,7 @@ int create_fd(
 		present_frame_params.asa_size = 0;
 		present_frame_params.flags = FDMA_INIT_NO_FLAGS;
 		present_frame_params.pta_dst = (void *)
-				PRC_PTA_NOT_LOADED_ADDRESS;
+				PTA_NOT_LOADED_ADDRESS;
 		present_frame_params.present_size = 0;
 		present_frame_params.seg_offset = 0;
 

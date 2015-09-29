@@ -43,7 +43,7 @@
 char *strdup(const char *s)
 {
     int len = (int)(strlen(s) + 1);
-    char *dup = fsl_os_malloc((size_t)len);
+    char *dup = fsl_malloc((size_t)len);
 
     memcpy(dup, s, (size_t)len);
 

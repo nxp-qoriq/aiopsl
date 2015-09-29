@@ -68,6 +68,8 @@ struct memory_types_table *g_slab_early_init_data;
 	}
 
 int slab_module_early_init(void);
+
+__START_DDR_DATA
 /***************************************************************************
  * slab_read_pool used by: slab_debug_info_get
  ***************************************************************************/
@@ -779,8 +781,7 @@ int slab_acquire(struct slab *slab, uint64_t *buff)
 }
 
 /*****************************************************************************/
-/* Must be used only in DEBUG
- * Accessing DDR in runtime also fsl_os_phys_to_virt() is not optimized */
+/* Must be used only in DEBUG */
 #ifdef DEBUG
 __COLD_CODE static int slab_check_bpid(struct slab *slab, uint64_t buff)
 {
@@ -1478,7 +1479,7 @@ __COLD_CODE int slab_module_init(void)
 		return -ENODEV;
 	}
 
-	err = fsl_os_get_mem(SLAB_MAX_NUM_VP_DDR *
+	err = fsl_get_mem(SLAB_MAX_NUM_VP_DDR *
 	                     num_clusters_for_ddr_mamangement_pools
 	                     * sizeof(uint32_t),
 	                     (enum memory_partition_id)g_slab_ddr_memory,
@@ -1722,4 +1723,6 @@ __COLD_CODE int slab_register_context_buffer_requirements(
 
 	return 0;
 }
+
+__END_DDR_DATA
 /*****************************************************************************/

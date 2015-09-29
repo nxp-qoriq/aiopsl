@@ -22,7 +22,7 @@
 				</dictionary>
 				<dictionary>
 					<key>org.eclipse.cdt.make.core.buildArguments</key>
-					<value>-j8</value>
+					<value></value>
 				</dictionary>
 				<dictionary>
 					<key>org.eclipse.cdt.make.core.buildCommand</key>
@@ -643,11 +643,6 @@
 			<name>aiop_sl/include/drivers/fsl_ep.h</name>
 			<type>1</type>
 			<locationURI>PARENT-4-PROJECT_LOC/src/include/drivers/fsl_ep.h</locationURI>
-		</link>
-		<link>
-			<name>aiop_sl/include/drivers/fsl_general.h</name>
-			<type>1</type>
-			<locationURI>PARENT-4-PROJECT_LOC/src/include/drivers/fsl_general.h</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/include/drivers/ldpaa</name>
@@ -1668,6 +1663,11 @@
 			<name>aiop_sl/include/drivers/accel/fsl_tman.h</name>
 			<type>1</type>
 			<locationURI>PARENT-4-PROJECT_LOC/src/include/drivers/accel/tman/01_01/fsl_tman.h</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/include/drivers/ldpaa/fsl_general.h</name>
+			<type>1</type>
+			<locationURI>PARENT-4-PROJECT_LOC/src/include/drivers/ldpaa/workspace/01_01/fsl_general.h</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/include/drivers/ldpaa/fsl_ldpaa.h</name>

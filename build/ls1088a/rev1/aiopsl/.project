@@ -655,11 +655,6 @@
 			<locationURI>PARENT-4-PROJECT_LOC/src/include/drivers/fsl_ep.h</locationURI>
 		</link>
 		<link>
-			<name>aiop_sl/include/drivers/fsl_general.h</name>
-			<type>1</type>
-			<locationURI>PARENT-4-PROJECT_LOC/src/include/drivers/fsl_general.h</locationURI>
-		</link>
-		<link>
 			<name>aiop_sl/include/drivers/ldpaa</name>
 			<type>2</type>
 			<locationURI>virtual:/virtual</locationURI>
@@ -777,7 +772,7 @@
 		<link>
 			<name>aiop_sl/kernel/cmdif/cmdif_rev.h</name>
 			<type>1</type>
-			<locationURI>PARENT-4-PROJECT_LOC/src/kernel/cmdif/00_01/cmdif_rev.h</locationURI>
+			<locationURI>PARENT-4-PROJECT_LOC/src/kernel/cmdif/00_02/cmdif_rev.h</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/kernel/cmdif/cmdif_srv.c</name>
@@ -1663,6 +1658,11 @@
 			<name>aiop_sl/include/drivers/accel/fsl_tman.h</name>
 			<type>1</type>
 			<locationURI>PARENT-4-PROJECT_LOC/src/include/drivers/accel/tman/02_01/fsl_tman.h</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/include/drivers/ldpaa/fsl_general.h</name>
+			<type>1</type>
+			<locationURI>PARENT-4-PROJECT_LOC/src/include/drivers/ldpaa/workspace/02_01/fsl_general.h</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/include/drivers/ldpaa/fsl_ldpaa.h</name>

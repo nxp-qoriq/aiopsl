@@ -199,6 +199,8 @@
 		FDMA_DELETE_DATA_EXP_CMD)
 	/** FDMA Checksum working frame command Structure identifier */
 #define FDMA_CKS_CMD_STR	((FDMA_MODULE << 16) | FDMA_CKS_CMD)
+	/** FDMA get working frame length command Structure identifier */
+#define FDMA_GWFL_CMD_STR	((FDMA_MODULE << 16) | FDMA_GWFL_CMD)
 	/** FDMA Copy data command Structure identifier */
 #define FDMA_COPY_CMD_STR	((FDMA_MODULE << 16) | FDMA_COPY_CMD)
 	/** FDMA DMA data command Structure identifier */
@@ -253,22 +255,12 @@ struct fdma_init_command {
 		/** Pointer to the address within the workspace to present the
 		 * opened frame segment. */
 	uint32_t seg_address;
-		/** 64B-aligned location in the workspace to store the 64B
-		 * PTA field (0xFFC0 for no PTA presentation). */
-	uint32_t pta_address;
-		/** 64B-aligned location in the workspace to store the ASA. */
-	uint32_t asa_address;
 		/** location within the presented frame to start presenting
 		 * the segment from. */
 	uint16_t seg_offset;
 		/** Number of frame bytes to present and create an open
 		 * segment for. */
 	uint16_t present_size;
-		/** The first ASA 64B quantity to present. */
-	uint8_t asa_offset;
-		/** Number (maximum) of 64B ASA quantities to present (0 for no
-		 * ASA presentation). */
-	uint8_t asa_size;
 		/** No Data Segment:
 		 * - 0: Present data segment.
 		 * - 1: Don't present data segment. */
@@ -280,7 +272,7 @@ struct fdma_init_command {
 		/** Command returned status. */
 	int8_t  status;
 		/** 64-bit alignment. */
-	uint8_t	pad[7];
+	uint8_t	pad[1];
 };
 
 
@@ -668,6 +660,10 @@ struct fdma_enqueue_wf_command {
 		* - 1: Terminate: this command will trigger the Terminate task
 		* command right after the enqueue. If the enqueue failed, the
 		* frame will be discarded.
+		* - 2: Conditional Terminate : trigger the Terminate task 
+		* command only if the enqueue succeeded. If the enqueue failed,
+		* the frame handle is not released and the command returns with
+		* an error code.
 		* - 3: reserved */
 	uint8_t	TC;
 		/** Enqueue ID selection:
@@ -724,6 +720,10 @@ struct fdma_enqueue_wf_exp_command {
 		* - 1: Terminate: this command will trigger the Terminate task
 		* command right after the enqueue. If the enqueue failed, the
 		* frame will be discarded.
+		* - 2: Conditional Terminate : trigger the Terminate task 
+		* command only if the enqueue succeeded. If the enqueue failed,
+		* the frame handle is not released and the command returns with
+		* an error code.
 		* - 3: reserved */
 	uint8_t	TC;
 		/** Enqueue ID selection:
@@ -777,10 +777,10 @@ struct fdma_enqueue_frame_command {
 		* - 1: Terminate: this command will trigger the Terminate task
 		* command right after the enqueue. If the enqueue failed, the
 		* frame will be discarded.
-		* - 2: Conditional Terminate: trigger the Terminate task
-		* command only if the enqueue succeeded. If the enqueue
-		* failed, the frame handle is not released and the command
-		* returns with an error code.
+		* - 2: Conditional Terminate : trigger the Terminate task 
+		* command only if the enqueue succeeded. If the enqueue failed,
+		* the frame handle is not released and the command returns with
+		* an error code.
 		* - 3: reserved */
 	uint8_t	TC;
 		/** Enqueue ID selection:
@@ -847,10 +847,10 @@ struct fdma_enqueue_frame_exp_command {
 		* - 1: Terminate: this command will trigger the Terminate task
 		* command right after the enqueue. If the enqueue failed, the
 		* frame will be discarded.
-		* - 2: Conditional Terminate: trigger the Terminate task
-		* command only if the enqueue succeeded. If the enqueue
-		* failed, the frame handle is not released and the command
-		* returns with an error code.
+		* - 2: Conditional Terminate : trigger the Terminate task 
+		* command only if the enqueue succeeded. If the enqueue failed,
+		* the frame handle is not released and the command returns with
+		* an error code.
 		* - 3: reserved */
 	uint8_t	TC;
 		/** Enqueue ID selection:
@@ -1067,13 +1067,13 @@ struct fdma_replicate_frames_command {
 		 * Release destination frame handle is implicit when enqueueing.
 		 * - 0: replicate only
 		 * - 1: replicate and enqueue */
-	/*uint8_t	ENQ;*/
+	uint8_t	ENQ;
 		/** The source frame resources are released after the
 		 * replication.
 		 * Release source frame handle is implicit when discarding.
 		 * - 0: keep source frame
 		 * - 1: discard source frame and release frame handle */
-	/*uint8_t	DSF;*/
+	uint8_t	DSF;
 		/** Frame annotation copy option:
 		 * - 0: do not copy annotations.
 		 * - 1: copy ASA.
@@ -1111,6 +1111,12 @@ struct fdma_concatenate_frames_command {
 	uint16_t frame1;
 		/** The handle of working frame 2. */
 	uint16_t frame2;
+		/** Bits<1-15> : Isolation Context ID. Frame AMQ attribute.
+		* Used only in case \ref FDMA_CONCAT_FS1_BIT is set. */
+	uint16_t icid1;
+		/** Bits<1-15> : Isolation Context ID. Frame AMQ attribute.
+		* Used only in case \ref FDMA_CONCAT_FS2_BIT is set. */
+	uint16_t icid2;
 		/** Storage Profile used to store frame data if additional
 		 * buffers are required when optionally closing the concatenated
 		 *  working frame (PCA is set) */
@@ -1128,10 +1134,36 @@ struct fdma_concatenate_frames_command {
 		 * - 1: close resulting working frame 1 using provided storage
 		 * profile, update FD1 */
 	uint8_t PCA;
+		/** Frame Source 1:
+		 * 0: concatenate working frame 1 using FRAME_HANDLE_1
+		 * 1: concatenate Frame 1 using FD at FD_ADDRESS_1 */
+	uint8_t FS1;
+		/** Frame Source 2:
+		* 0: concatenate working frame 2 using FRAME_HANDLE_2
+		* 1: concatenate Frame 2 using FD at FD_ADDRESS_2 */
+	uint8_t FS2;
+		/** Privilege Level of FD1. */
+	uint8_t PL1;
+		/** Configured Virtual Address of FD1. */
+	uint8_t VA1;
+		/** Bypass DPAA resource Isolation of FD1
+		 * 0: Isolation is enabled for FD1 in this command.
+		 * 1: Isolation is not enabled for FD1 in this command.
+		 * Relevant only if \ref FDMA_CONCAT_FS1_BIT is set */
+	uint8_t BDI1;	
+		/** Privilege Level of FD2. */
+	uint8_t PL2;
+		/** Configured Virtual Address of FD2. */
+	uint8_t VA2;
+		/** Bypass DPAA resource Isolation of FD2
+		 * 0: Isolation is enabled for FD1 in this command.
+		 * 1: Isolation is not enabled for FD1 in this command.
+		 * Relevant only if \ref FDMA_CONCAT_FS1_BIT is set */
+	uint8_t BDI2;
 		/** Command returned status. */
 	int8_t	status;
 		/** 64-bit alignment. */
-	uint8_t	pad[7];
+	uint8_t	pad[3];
 };
 
 /**************************************************************************//**
@@ -1190,7 +1222,9 @@ struct fdma_split_frame_command {
 		 * - 0: do not present segment from the split frame, keep split
 		 * working frame open.
 		 * - 1: present segment from the split frame, keep split working
-		 * frame open. */
+		 * frame open. 
+		 * - 2: do not present, close split working frame using the 
+		 * provided storage profile, update split FD.*/
 	uint8_t PSA;
 		/** Frame split mode:
 		 * - 0: Split is performed at the split_size_sf value.
@@ -1343,12 +1377,13 @@ struct fdma_replace_command {
 		/** Replacing segment size. */
 	uint16_t from_size;
 		/** Number of frame bytes to represent. Must be greater than 0.
-		 *  Relevant if SA field is set. */
+		 *  Relevant if SA field is 1. */
 	uint16_t size_rs;
 		/** Command returned segment length. (relevant if
 		(flags == \ref FDMA_REPLACE_SA_REPRESENT_BIT))*/
 	uint16_t seg_length_rs;
 		/** Segment Action.
+		* - 0: keep the segment open
 		* - 1: represent segment
 		* - 2: close segment */
 	uint8_t	SA;
@@ -1382,6 +1417,7 @@ struct fdma_insert_segment_data_command {
 		 * (flags == \ref FDMA_REPLACE_SA_REPRESENT_BIT))*/
 	uint16_t seg_length_rs;
 		/** Segment Action.
+		* - 0: keep the segment open
 		* - 1: represent segment
 		* - 2: close segment */
 	uint8_t	SA;
@@ -1413,7 +1449,7 @@ struct fdma_insert_segment_data_exp_command {
 		/** Inserted segment data size. */
 	uint16_t insert_size;
 	/**< Number of frame bytes to represent. Must be greater than 0.
-	 * Relevant if SA field is set. */
+	 * Relevant if SA field is 1. */
 	uint16_t size_rs;
 		/** Command returned segment length.
 		 * Relevant if SA_REPRESENT_BIT))*/
@@ -1424,6 +1460,7 @@ struct fdma_insert_segment_data_exp_command {
 		 * from which the data is being inserted. */
 	uint8_t  seg_handle;
 		/** Segment Action.
+		* - 0: keep the segment open
 		* - 1: represent segment
 		* - 2: close segment */
 	uint8_t	SA;
@@ -1451,9 +1488,10 @@ struct fdma_delete_segment_data_command {
 		 * Represent the modified segment parameters. */
 	struct presentation_context prc;
 		/** Command returned segment length.
-		 * Relevant if SA field is set. */
+		 * Relevant if SA field is 1. */
 	uint16_t seg_length_rs;
 		/** Segment Action.
+		 * - 0: keep the segment open
 		 * - 1: represent segment
 		 * - 2: close segment */
 	uint8_t	SA;
@@ -1475,7 +1513,7 @@ struct fdma_delete_segment_data_exp_command {
 		 * structure identifier. */
 	uint32_t opcode;
 		/**< pointer to the location in workspace for the represented
-		 * frame segment (relevant if SA field is set). */
+		 * frame segment (relevant if SA field is 1). */
 	uint32_t ws_dst_rs;
 		/** Offset from the previously presented segment representing
 		* the start point of the deletion. */
@@ -1484,12 +1522,13 @@ struct fdma_delete_segment_data_exp_command {
 	uint16_t delete_target_size;
 		/** Number of frame bytes to represent in the segment. Must be
 		 * greater than 0.
-		 * Relevant if SA field is set.*/
+		 * Relevant if SA field is 1.*/
 	uint16_t size_rs;
 		/** Command returned segment length.
-		 * Relevant if SA field is set. */
+		 * Relevant if SA field is 1. */
 	uint16_t seg_length_rs;
 		/** Segment Action.
+		 * - 0: keep the segment open
 		 * - 1: represent segment
 		 * - 2: close segment */
 	uint8_t	SA;

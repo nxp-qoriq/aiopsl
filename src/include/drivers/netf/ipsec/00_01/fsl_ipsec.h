@@ -84,6 +84,19 @@ enum ipsec_status_codes {
 
 /** @} */ /* End of enum ipsec_status_codes */
 
+/**************************************************************************//**
+ @enum key_types
+
+ @Description	Key types. Reserved.
+
+ @{
+*//***************************************************************************/
+enum key_types {
+	RESERVED_KEY_TYPE = 0
+};
+/** @} */ /* End of enum key_types */
+
+
 /** @} */ /* End of IPSEC_ENUM */
 
 /**************************************************************************//**
@@ -120,8 +133,13 @@ typedef void (ipsec_lifetime_callback_t) (
 #define IPSEC_FLG_TUNNEL_MODE		0x00000001
 
 /** Enable Transport mode ESP pad check (default = no check)
- * Valid for transport mode only.
- * In tunnel mode pad check is always done*/
+ * Valid for transport mode decapsulation only. 
+ * Should not be set for tunnel mode (in tunnel mode pad check is always done)
+ * Only the default monolithic incrementing padding values are supported 
+ * (1,2,3,...) */
+/** Caution: the presentation segment size must be large enough to accommodate 
+ * the entire ESP padding. Otherwise an error will be produced. */
+/** Caution: enabling this option has a performance degradation impact */
 #define IPSEC_FLG_TRANSPORT_PAD_CHECK	0x00000002
 
 /** Reuse the input frame buffer.
@@ -251,23 +269,6 @@ typedef void (ipsec_lifetime_callback_t) (
 #define IPSEC_AUTH_HMAC_SHA2_256_128	0x000c
 #define IPSEC_AUTH_HMAC_SHA2_384_192	0x000d
 #define IPSEC_AUTH_HMAC_SHA2_512_256	0x000e
-
-/**************************************************************************//**
-@Description	IPSec Key Encryption Flags
-
- To be set to the alg_info.key_enc_flags field
-
-*//***************************************************************************/
-
-#define IPSEC_KEY_ENC			0x00400000
-	/**< ENC: Encrypted - Key is encrypted either with the KEK, or
-	 * 	with the TDKEK if this descriptor is trusted */
-#define IPSEC_KEY_NWB			0x00200000
-	/**< NWB: No Write Back - Do not allow key to be FIFO STOREd */
-#define IPSEC_KEY_EKT			0x00100000
-	/**< EKT: Enhanced Encryption of Key */
-#define IPSEC_KEY_TK			0x00008000
-	/**< TK: Encrypted with Trusted Key */
 
 /**************************************************************************//**
  @Description	AIOP IPsec Encryption/Decryption return codes. Returned by 
@@ -411,8 +412,9 @@ struct alg_info {
 	uint32_t keylen;   /**< Length of the provided key, in bytes */
 	uint64_t key;      /**< Address where algorithm key resides
 	 	 	 No alignment requirements */
-	uint32_t key_enc_flags; /**< Key encryption flags
-				ENC, EKT, TK, NWB */
+	uint32_t key_enc_flags; /**< Reserved. Set to 0. */
+	enum key_types key_type; /**< Reserved */
+	uint16_t algmode; /**< Reserved */
 };
 
 /**************************************************************************//**

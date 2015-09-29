@@ -1048,6 +1048,12 @@ int dpni_drv_remove_vlan_id(uint16_t ni_id, uint16_t vlan_id);
 @Param[out]	init_presentation Get initial presentation parameters
  	 	 \ref EP_INIT_PRESENTATION
 
+@Cautions	PTA Presentation Address, ASA Presentation Address,
+		ASA Presentation Offset, ASA Presentation Size:
+		Those fields are not exposed in PRC on rev 2
+		(Not copied from EPID), therefore it is not recommended to
+		use them in order to present PTA, ASA.
+
 @Return	0 on success;
 	error code, otherwise. For error posix refer to \ref error_g
 *//***************************************************************************/
@@ -1066,12 +1072,17 @@ int dpni_drv_get_initial_presentation(
 @Param[in]	init_presentation Set initial presentation parameters for given
 		options and parameters \ref EP_INIT_PRESENTATION
 
-@Cautions	1) Data Segment, PTA Segment, ASA Segment must not reside
+@Cautions	1) PTA Presentation Address, ASA Presentation Address,
+		   ASA Presentation Offset, ASA Presentation Size:
+		   Those fields are not exposed in PRC on rev 2
+		   (Not copied from EPID), therefore it is not recommended to
+		   use them in order to present PTA, ASA.
+		2) Data Segment, PTA Segment, ASA Segment must not reside
 		   outside the bounds of the
 		   presentation area. i.e. They must not fall within the HWC,
 		   TLS or Stack areas.
-		2) There should not be any overlap among the Segment, PTA & ASA.
-		3) Minimum presented segment size must be configured.
+		3) There should not be any overlap among the Segment, PTA & ASA.
+		4) Minimum presented segment size must be configured.
 
 @Return	0 on success;
 	error code, otherwise. For error posix refer to \ref error_g

@@ -145,7 +145,7 @@ __COLD_CODE int cmdif_client_init()
 		return -ENODEV;
 	}
 
-	/*cl = fsl_os_xmalloc(sizeof(struct cmdif_cl),
+	/*cl = fsl_xmalloc(sizeof(struct cmdif_cl),
 	                    MEM_PART_SH_RAM,
 	                    8);
 	                    */
@@ -159,12 +159,12 @@ __COLD_CODE int cmdif_client_init()
 	memset(cl, 0, sizeof(struct cmdif_cl));
 
 	for (i = 0; i < CMDIF_MN_SESSIONS; i++) {
-		/*cl->gpp[i].regs = fsl_os_xmalloc(sizeof(struct cmdif_reg),
+		/*cl->gpp[i].regs = fsl_xmalloc(sizeof(struct cmdif_reg),
 		                                 MEM_PART_SH_RAM,
 		                                 8);*/
 		cl->gpp[i].regs = fsl_malloc(sizeof(struct cmdif_reg),
 		                                 8);
-		/*cl->gpp[i].dev = fsl_os_xmalloc(sizeof(struct cmdif_dev),
+		/*cl->gpp[i].dev = fsl_xmalloc(sizeof(struct cmdif_dev),
 		                                 MEM_PART_SH_RAM,
 		                                 8);*/
 		cl->gpp[i].dev = fsl_malloc(sizeof(struct cmdif_dev),
@@ -334,7 +334,6 @@ void cmdif_cl_isr(void)
 	struct cmdif_fd fd;
 	struct cmdif_async async_data;
 
-	SET_PRC_VALUES();
 	SET_FRAME_TYPE(PRC_GET_FRAME_HANDLE(), HWC_FD_ADDRESS);
 
 	fd.d_size        = LDPAA_FD_GET_LENGTH(HWC_FD_ADDRESS);

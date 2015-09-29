@@ -149,7 +149,7 @@ int main(int argc, char *argv[])
 
 	if(is_master_core)
 	{
-		fsl_print("Running applications\n");
+		pr_info("Running applications\n");
 
 		err = apps_init();
 		if (err) {
@@ -167,7 +167,7 @@ int main(int argc, char *argv[])
 	core_ready_for_tasks();
 
 	if (is_master_core)
-		fsl_print("complete. freeing resources and going out ...\n");
+		pr_info("complete. freeing resources and going out ...\n");
 	sys_barrier();
 
 	/* TODO - complete - free everything here!!! */
