@@ -199,6 +199,8 @@
 		FDMA_DELETE_DATA_EXP_CMD)
 	/** FDMA Checksum working frame command Structure identifier */
 #define FDMA_CKS_CMD_STR	((FDMA_MODULE << 16) | FDMA_CKS_CMD)
+	/** FDMA get working frame length command Structure identifier */
+#define FDMA_GWFL_CMD_STR	((FDMA_MODULE << 16) | FDMA_GWFL_CMD)
 	/** FDMA Copy data command Structure identifier */
 #define FDMA_COPY_CMD_STR	((FDMA_MODULE << 16) | FDMA_COPY_CMD)
 	/** FDMA DMA data command Structure identifier */

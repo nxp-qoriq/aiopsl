@@ -811,7 +811,7 @@ uint16_t aiop_verification_fdma(uint32_t asa_seg_addr)
 		break;
 	}
 	/* FDMA Get Working frame length Command Verification */
-	case FDMA_GWFL_CMD:
+	case FDMA_GWFL_CMD_STR:
 	{
 		struct fdma_get_wf_length_command *str =
 			(struct fdma_get_wf_length_command *) asa_seg_addr;
