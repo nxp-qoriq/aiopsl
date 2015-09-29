@@ -256,7 +256,7 @@ int simple_bu_parser_test(uint8_t generator_id,
 		fsl_print("storage profile arg %d: 0x%x\n", i, *((uint32_t *)(&(storage_profile[spid]))+i));
 	
 	/* create frame and parse it */
-	err = create_frame(fd, &frame_data[TWO_VLANS], FRAME_SIZE, &frame_handle);
+	err = create_frame(fd, &frame_data[ONE_VLAN], FRAME_SIZE, &frame_handle);
 	if (err)
 		fsl_print("ERROR: create frame failed with err = %x!\n", err);
 	
@@ -268,7 +268,8 @@ int simple_bu_parser_test(uint8_t generator_id,
 	fdma_close_default_segment();
 
 	/* present default frame segment again (enables to change PRESENTATION_SIZE) */
-	err = fdma_present_default_frame_segment(FDMA_PRES_NO_FLAGS, (void *)0x180, 0, PRESENTATION_SIZE);
+	uint16_t present_size = 60;
+	err = fdma_present_default_frame_segment(FDMA_PRES_NO_FLAGS, (void *)0x180, 0, present_size);
 	if (err)
 		fsl_print("STATUS: fdma present default segment returned status is %d\n", err);
 
@@ -343,8 +344,8 @@ int simple_bu_parser_test(uint8_t generator_id,
 	/* PUSH VLAN */
 	else if (parser_action == PUSH_VLAN_UPDATE) {
 		fsl_print("Starting push action\n");
-		//uint32_t vlan =0x8100a1b2;
-		uint32_t vlan =0x88a8a1b2;	/* TPID=0x88a8 */
+		uint32_t vlan =0x8100a1b2;
+		//uint32_t vlan =0x88a8a1b2;	/* TPID=0x88a8 */
 		//uint32_t vlan =0x81000000; /* VID=0 + CFI=1 */
 		//uint32_t vlan =0x81001222; /* CFI=1 */
 		

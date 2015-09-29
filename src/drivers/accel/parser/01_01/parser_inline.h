@@ -494,6 +494,283 @@ inline void parser_push_vlan_update()
 		else
 			pr->vlan_tcin_offset = pr->vlan_tcin_offset + sizeof(struct vlanhdr);
 	}
+
+	/* check for truncation error:
+	 * Frame Parsing reached the limit of the minimum between 
+	 * presentation_length and 256 bytes before completing all parsing */
+	
+	/* pointing to the payload of the last parsed header. Can also be 
+	 * defined as the offset to the last header that has not been parsed.
+	 * nextHeaderOffset is pointing to the start of the data, therefore
+	 * this is the size of all the headers */
+	temp_8b = pr->nxt_hdr_offset;
+	if ((temp_8b != PARSER_UNINITILIZED_FIELD_OF_BYTE) && (temp_8b > prc->seg_length)) {
+		pr->frame_attribute_flags_1 = pr->frame_attribute_flags_1 | PARSER_ATT_PARSING_ERROR_MASK;
+		fsl_print("BLE CASE\n");
+//		fsl_print("ip_pid_offset = %x\n", pr->ip_pid_offset);	
+//		fsl_print("eth_offset = %x\n", pr->eth_offset);	
+//		fsl_print("llc_snap_offset = %x\n", pr->llc_snap_offset);	
+//		fsl_print("vlan_tci1_offset = %x\n", pr->vlan_tci1_offset);	
+//		fsl_print("vlan_tcin_offset = %x\n", pr->vlan_tcin_offset);	
+//		fsl_print("last_etype_offset = %x\n", pr->last_etype_offset);	
+//		fsl_print("pppoe_offset = %x\n", pr->pppoe_offset);	
+//		fsl_print("mpls_offset_1 = %x\n", pr->mpls_offset_1);	
+//		fsl_print("mpls_offset_n = %x\n", pr->mpls_offset_n);
+//		fsl_print("ip1_or_arp_offset = %x\n", pr->ip1_or_arp_offset);
+//		fsl_print("ipn_or_minencapO_offset = %x\n", pr->ipn_or_minencapO_offset);
+//		fsl_print("gre_offset = %x\n", pr->gre_offset);
+//		fsl_print("l4_offset = %x\n", pr->l4_offset);
+//		fsl_print("gtp_esp_ipsec_offset = %x\n", pr->gtp_esp_ipsec_offset);
+//		fsl_print("routing_hdr_offset1 = %x\n", pr->routing_hdr_offset1);
+//		fsl_print("routing_hdr_offset2 = %x\n", pr->routing_hdr_offset2);
+//		fsl_print("ipv6_frag_offset = %x\n", pr->ipv6_frag_offset);
+		
+		/* Next Header offset update */
+		volatile uint8_t *j = 0;
+		uint8_t max_offset = pr->ip_pid_offset;
+		for (volatile uint8_t *i = &(pr->vlan_tci1_offset); i < &(pr->nxt_hdr_offset); i++)
+			if ((*i != PARSER_UNINITILIZED_FIELD_OF_BYTE) && (*i > max_offset)) {
+				max_offset = *i;
+				j = i;
+			}
+		temp_8b = pr->ipv6_frag_offset;
+		if ((temp_8b != PARSER_UNINITILIZED_FIELD_OF_BYTE) && (temp_8b > max_offset)) {
+			max_offset = temp_8b;
+			j = &(pr->ipv6_frag_offset);
+		}
+		pr->nxt_hdr_offset = max_offset;
+		*j = PARSER_UNINITILIZED_FIELD_OF_BYTE;	
+
+		/* Next Header update and FAF */
+		if (j == &(pr->llc_snap_offset)) {
+			pr->nxt_hdr = 0x05dc;
+			pr->frame_attribute_flags_1 = pr->frame_attribute_flags_1 & ~PARSER_ATT_LLC_SNAP_MASK;
+		}
+		if (j == &(pr->vlan_tci1_offset)) {
+			pr->nxt_hdr = seg_address + (uint16_t)pr->vlan_tci1_offset; /* Next Header = TPID */
+			pr->frame_attribute_flags_1 = pr->frame_attribute_flags_1 & ~PARSER_ATT_VLAN_1_MASK;
+		}
+		if (j == &(pr->vlan_tcin_offset)) {
+			/* next header should be previous vlan tpid, not the first tpid necessarily */
+			pr->nxt_hdr = seg_address + (uint16_t)pr->vlan_tci1_offset; /* Next Header = TPID */
+			pr->frame_attribute_flags_1 = pr->frame_attribute_flags_1 & ~PARSER_ATT_VLAN_N_MASK;
+		}
+		if (j == &(pr->last_etype_offset)) {
+			/* TODO:what is the next header?? */
+		}
+		if (j == &(pr->pppoe_offset)) {
+			pr->nxt_hdr = 0x8864;
+			pr->frame_attribute_flags_1 = pr->frame_attribute_flags_1 & ~PARSER_ATT_PPPOE_PPP_MASK;
+		}
+		if (j == &(pr->mpls_offset_1)) {
+			pr->nxt_hdr = 0x8847;
+			pr->frame_attribute_flags_1 = pr->frame_attribute_flags_1 & ~PARSER_ATT_MPLS_1_MASK;
+		}
+		if (j == &(pr->mpls_offset_n)) {
+			pr->nxt_hdr = 0x8848;
+			pr->frame_attribute_flags_1 = pr->frame_attribute_flags_1 & ~PARSER_ATT_MPLS_N_MASK;
+		}
+		if (j == &(pr->ip1_or_arp_offset)) { /* l3 offset */
+			if (pr->frame_attribute_flags_1 & PARSER_ATT_ARP_MASK) {
+				pr->nxt_hdr = 0x0806;
+				pr->frame_attribute_flags_1 = pr->frame_attribute_flags_1 & ~PARSER_ATT_ARP_MASK;
+			}
+			else {
+				if (pr->frame_attribute_flags_2 & PARSER_ATT_IPV4_1_MASK) {
+					pr->nxt_hdr = 0x0800;
+					pr->frame_attribute_flags_2 = pr->frame_attribute_flags_2 & ~PARSER_ATT_IPV4_1_MASK;
+					/* TODO: do I need to set off more flags? */
+				}
+				else {
+					if (pr->frame_attribute_flags_2 & PARSER_ATT_IPV6_1_MASK) {
+						pr->nxt_hdr = 0x086dd;
+						pr->frame_attribute_flags_2 = pr->frame_attribute_flags_2 & ~PARSER_ATT_IPV6_1_MASK;
+						/* TODO: do I need to set off more flags? */
+					}
+				}
+			pr->frame_attribute_flags_2 = pr->frame_attribute_flags_2 & ~PARSER_ATT_IP_1_OPTIONS_MASK;
+			/* TODO: do I need to set off more flags? */
+			}
+		}
+		if (j == &(pr->ipn_or_minencapO_offset)) {
+			if (pr->frame_attribute_flags_2 & PARSER_ATT_MIN_ENCAP_MASK) {
+				pr->nxt_hdr = 0x55;
+				pr->frame_attribute_flags_2 = pr->frame_attribute_flags_2 & ~PARSER_ATT_MIN_ENCAP_MASK;
+			}
+			if (pr->frame_attribute_flags_2 & PARSER_ATT_IP_N_OPTIONS_MASK) {
+				/*TODO:pr->nxt_hdr = ???;*/
+				pr->frame_attribute_flags_2 = pr->frame_attribute_flags_2 & ~PARSER_ATT_IP_N_OPTIONS_MASK;
+			}
+		}
+		if (j == &(pr->gre_offset)) {
+			pr->nxt_hdr = 0x47;
+			pr->frame_attribute_flags_3 = pr->frame_attribute_flags_3 & ~PARSER_ATT_GRE_MASK;
+		}
+		if (j == &(pr->l4_offset)) {
+			pr->frame_attribute_flags_3 = pr->frame_attribute_flags_3 & ~PARSER_ATT_L4_UNKOWN_PROTOCOL_MASK;
+			if (pr->frame_attribute_flags_3 & PARSER_ATT_TCP_MASK) {
+				pr->nxt_hdr = 0x6;
+				pr->frame_attribute_flags_3 = pr->frame_attribute_flags_3 & ~PARSER_ATT_TCP_MASK;
+				pr->frame_attribute_flags_3 = pr->frame_attribute_flags_3 & ~PARSER_ATT_TCP_OPTIONS_MASK;
+				pr->frame_attribute_flags_3 = pr->frame_attribute_flags_3 & ~PARSER_ATT_TCP_CONTROLS_6_11_SET_MASK;
+				pr->frame_attribute_flags_3 = pr->frame_attribute_flags_3 & ~PARSER_ATT_TCP_CONTROLS_3_5_SET_MASK;
+			}
+			if (pr->frame_attribute_flags_3 & PARSER_ATT_UDP_MASK) {
+				pr->nxt_hdr = 0x17;
+				pr->frame_attribute_flags_3 = pr->frame_attribute_flags_3 & ~PARSER_ATT_UDP_MASK;
+			}
+			if (pr->frame_attribute_flags_3 & PARSER_ATT_DCCP_MASK) {
+				pr->nxt_hdr = 0x33;
+				pr->frame_attribute_flags_3 = pr->frame_attribute_flags_3 & ~PARSER_ATT_DCCP_MASK;
+			}
+			if (pr->frame_attribute_flags_3 & PARSER_ATT_SCTP_MASK) {
+				pr->nxt_hdr = 0x132;
+				pr->frame_attribute_flags_3 = pr->frame_attribute_flags_3 & ~PARSER_ATT_SCTP_MASK;
+			}
+		}
+		if (j == &(pr->gtp_esp_ipsec_offset)) { /* l5 offset */
+			if (pr->frame_attribute_flags_3 & PARSER_ATT_IPSEC_MASK) {
+				pr->nxt_hdr = 0x50; /* TODO: 50 or 51??*/
+				pr->frame_attribute_flags_3 = pr->frame_attribute_flags_3 & ~PARSER_ATT_IPSEC_MASK;
+			}
+			if (pr->frame_attribute_flags_3 & PARSER_ATT_GTP_MASK) {
+				pr->nxt_hdr = 0x2123; /* TODO: 2123 or 2152 or 3386??*/
+				pr->frame_attribute_flags_3 = pr->frame_attribute_flags_3 & ~PARSER_ATT_GTP_MASK;
+			}
+			if (pr->frame_attribute_flags_3 & PARSER_ATT_ESP_OR_IKE_OVER_UDP_MASK) {
+				pr->nxt_hdr = 0x4500;
+				pr->frame_attribute_flags_3 = pr->frame_attribute_flags_3 & ~PARSER_ATT_ESP_OR_IKE_OVER_UDP_MASK;
+			}
+		}
+		if (j == &(pr->routing_hdr_offset1)) {
+			/*TODO:pr->nxt_hdr = ???;*/
+			pr->frame_attribute_flags_3 = pr->frame_attribute_flags_3 & ~PARSER_ATT_IPV6_ROUTING_HDR_1;
+		}
+	}
+#if 0
+	/* check for truncation error:
+	 * Frame Parsing reached the limit of the minimum between 
+	 * presentation_length and 256 bytes before completing all parsing */
+	seg_length = prc->seg_length;
+	min = MIN(PARSER_MAX_VALID_OFFSET, (int)seg_length);
+	
+	if ((pr->nxt_hdr_offset != PARSER_UNINITILIZED_FIELD_OF_BYTE) && (pr->nxt_hdr_offset > min)) {
+		fsl_print("TRUNCATION CASE\n");
+		pr->parse_error_code = pr->parse_error_code | PARSER_FRAME_TRUNCATION;
+		pr->frame_attribute_flags_1 = pr->frame_attribute_flags_1 | PARSER_ATT_PARSING_ERROR_MASK;
+		
+		/* fixing offsets backwards, every exceeding offset is set to 0xFF */
+		if ((pr->ipv6_frag_offset != PARSER_UNINITILIZED_FIELD_OF_BYTE) && (pr->ipv6_frag_offset > min))
+			pr->ipv6_frag_offset = PARSER_UNINITILIZED_FIELD_OF_BYTE;
+		if ((pr->routing_hdr_offset2 != PARSER_UNINITILIZED_FIELD_OF_BYTE) && (pr->routing_hdr_offset2 > min))
+			pr->routing_hdr_offset2 = PARSER_UNINITILIZED_FIELD_OF_BYTE;
+		if ((pr->routing_hdr_offset1 != PARSER_UNINITILIZED_FIELD_OF_BYTE) && (pr->routing_hdr_offset1 > min)) {
+			pr->routing_hdr_offset1 = PARSER_UNINITILIZED_FIELD_OF_BYTE;
+			pr->frame_attribute_flags_3 = pr->frame_attribute_flags_3 & ~PARSER_ATT_IPV6_ROUTING_HDR_1;
+		}
+		if ((pr->gtp_esp_ipsec_offset != PARSER_UNINITILIZED_FIELD_OF_BYTE) && (pr->gtp_esp_ipsec_offset > min)) {
+			pr->gtp_esp_ipsec_offset = PARSER_UNINITILIZED_FIELD_OF_BYTE;
+			pr->frame_attribute_flags_3 = pr->frame_attribute_flags_3 & ~PARSER_ATT_GTP_MASK;
+			pr->frame_attribute_flags_3 = pr->frame_attribute_flags_3 | PARSER_ATT_GTP_PARSING_ERROR_MASK;
+			pr->frame_attribute_flags_3 = pr->frame_attribute_flags_3 & ~PARSER_ATT_ESP_OR_IKE_OVER_UDP_MASK;
+			pr->frame_attribute_flags_3 = pr->frame_attribute_flags_3 | PARSER_ATT_ESP_OR_IKE_OVER_UDP_PARSING_ERROR_MASK;
+		}
+		if ((pr->l4_offset != PARSER_UNINITILIZED_FIELD_OF_BYTE) && (pr->l4_offset > min)) {
+			fsl_print("hhhhhhhhhhh\n");
+			pr->l4_offset = PARSER_UNINITILIZED_FIELD_OF_BYTE;
+			pr->frame_attribute_flags_3 = pr->frame_attribute_flags_3 & ~PARSER_ATT_L4_UNKOWN_PROTOCOL_MASK;
+			if (l3_protocol == NET_ETH_ETYPE_IPV4) {
+				pr->frame_attribute_flags_2 = pr->frame_attribute_flags_2 & ~PARSER_ATT_IPV4_1_MASK;
+				if (((struct ipv4hdr *)next_header)->protocol == TCP_PROTOCOL) {
+					pr->parse_error_code = pr->parse_error_code | PARSER_TCP_PACKET_TRUNCATION;
+					pr->frame_attribute_flags_3 = pr->frame_attribute_flags_3 & ~PARSER_ATT_TCP_MASK;
+					pr->frame_attribute_flags_3 = pr->frame_attribute_flags_3 | PARSER_ATT_TCP_PARSING_ERROR_MASK;
+				}
+				else if (((struct ipv4hdr *)next_header)->protocol == UDP_PROTOCOL) {
+					pr->frame_attribute_flags_3 = pr->frame_attribute_flags_3 & ~PARSER_ATT_UDP_MASK;
+					pr->frame_attribute_flags_3 = pr->frame_attribute_flags_3 | PARSER_ATT_UDP_PARSING_ERROR_MASK;
+				}
+			}
+			else if (l3_protocol == NET_ETH_ETYPE_IPV6) {
+				pr->frame_attribute_flags_2 = pr->frame_attribute_flags_2 & ~PARSER_ATT_IPV6_1_MASK;
+				if (((struct ipv6hdr *)next_header)->next_header == TCP_PROTOCOL) {
+					pr->parse_error_code = pr->parse_error_code | PARSER_IPV6_PACKET_TRUNCATION;
+					pr->frame_attribute_flags_3 = pr->frame_attribute_flags_3 & ~PARSER_ATT_TCP_MASK;
+					pr->frame_attribute_flags_3 = pr->frame_attribute_flags_3 | PARSER_ATT_TCP_PARSING_ERROR_MASK;
+				}
+				else if (((struct ipv6hdr *)next_header)->next_header == UDP_PROTOCOL) {
+					pr->frame_attribute_flags_3 = pr->frame_attribute_flags_3 & ~PARSER_ATT_UDP_MASK;
+					pr->frame_attribute_flags_3 = pr->frame_attribute_flags_3 | PARSER_ATT_UDP_PARSING_ERROR_MASK;
+				}
+			}
+		}
+		if ((pr->gre_offset != PARSER_UNINITILIZED_FIELD_OF_BYTE) && (pr->gre_offset > min)) {
+			pr->gre_offset = PARSER_UNINITILIZED_FIELD_OF_BYTE;
+			pr->frame_attribute_flags_3 = pr->frame_attribute_flags_3 & ~PARSER_ATT_GRE_MASK;
+			pr->frame_attribute_flags_3 = pr->frame_attribute_flags_3 | PARSER_ATT_GRE_PARSING_ERROR_MASK;
+		}
+		if ((pr->ipn_or_minencapO_offset != PARSER_UNINITILIZED_FIELD_OF_BYTE) && (pr->ipn_or_minencapO_offset > min)) {
+			pr->ipn_or_minencapO_offset = PARSER_UNINITILIZED_FIELD_OF_BYTE;
+			pr->frame_attribute_flags_2 = pr->frame_attribute_flags_2 & ~PARSER_ATT_MIN_ENCAP_MASK;
+			pr->frame_attribute_flags_3 = pr->frame_attribute_flags_3 | PARSER_ATT_MIN_ENCAP_PARSING_ERROR_MASK;
+			pr->frame_attribute_flags_2 = pr->frame_attribute_flags_2 & ~PARSER_ATT_IP_N_OPTIONS_MASK;
+			pr->frame_attribute_flags_2 = pr->frame_attribute_flags_2 | PARSER_ATT_IP_N_PARSING_ERROR_MASK;
+		}
+		if ((pr->ip1_or_arp_offset != PARSER_UNINITILIZED_FIELD_OF_BYTE) && (pr->ip1_or_arp_offset > min)) {
+			pr->ip1_or_arp_offset = PARSER_UNINITILIZED_FIELD_OF_BYTE;
+			pr->frame_attribute_flags_2 = pr->frame_attribute_flags_2 & ~PARSER_ATT_IP_1_OPTIONS_MASK;
+			pr->frame_attribute_flags_2 = pr->frame_attribute_flags_2 | PARSER_ATT_IP_1_PARSING_ERROR_MASK;
+			pr->frame_attribute_flags_1 = pr->frame_attribute_flags_1 & ~PARSER_ATT_ARP_MASK;
+			pr->frame_attribute_flags_1 = pr->frame_attribute_flags_1 | PARSER_ATT_ARP_PARSING_ERROR_MASK;
+		}
+		if ((pr->mpls_offset_n != PARSER_UNINITILIZED_FIELD_OF_BYTE) && (pr->mpls_offset_n > min)) {
+			pr->mpls_offset_n = PARSER_UNINITILIZED_FIELD_OF_BYTE;
+			pr->frame_attribute_flags_1 = pr->frame_attribute_flags_1 & ~PARSER_ATT_MPLS_N_MASK;
+			pr->frame_attribute_flags_1 = pr->frame_attribute_flags_1 | PARSER_ATT_MPLS_PARSING_ERROR_MASK;
+		}
+		if ((pr->mpls_offset_1 != PARSER_UNINITILIZED_FIELD_OF_BYTE) && (pr->mpls_offset_1 > min)) {
+			pr->mpls_offset_1 = PARSER_UNINITILIZED_FIELD_OF_BYTE;
+			pr->frame_attribute_flags_1 = pr->frame_attribute_flags_1 & ~PARSER_ATT_MPLS_1_MASK;
+			pr->frame_attribute_flags_1 = pr->frame_attribute_flags_1 | PARSER_ATT_MPLS_PARSING_ERROR_MASK;
+		}
+		if ((pr->pppoe_offset != PARSER_UNINITILIZED_FIELD_OF_BYTE) && (pr->pppoe_offset > min)) {
+			pr->pppoe_offset = PARSER_UNINITILIZED_FIELD_OF_BYTE;
+			pr->parse_error_code = pr->parse_error_code | PARSER_PPPOE_TRUNCATION;
+			pr->frame_attribute_flags_1 = pr->frame_attribute_flags_1 & ~PARSER_ATT_PPPOE_PPP_MASK;
+			pr->frame_attribute_flags_1 = pr->frame_attribute_flags_1 | PARSER_ATT_PPPOE_PPP_PARSING_ERROR_MASK;
+		}
+		if ((pr->vlan_tcin_offset != PARSER_UNINITILIZED_FIELD_OF_BYTE) && (pr->vlan_tcin_offset > min)) {
+			pr->vlan_tcin_offset = PARSER_UNINITILIZED_FIELD_OF_BYTE;
+			pr->frame_attribute_flags_1 = pr->frame_attribute_flags_1 & ~PARSER_ATT_VLAN_N_MASK;
+			pr->frame_attribute_flags_1 = pr->frame_attribute_flags_1 | PARSER_ATT_VLAN_PARSING_ERROR_MASK;
+		}
+		if ((pr->vlan_tci1_offset != PARSER_UNINITILIZED_FIELD_OF_BYTE) && (pr->vlan_tci1_offset > min)) {
+			pr->vlan_tci1_offset = PARSER_UNINITILIZED_FIELD_OF_BYTE;
+			pr->frame_attribute_flags_1 = pr->frame_attribute_flags_1 & ~PARSER_ATT_VLAN_1_MASK;
+			pr->frame_attribute_flags_1 = pr->frame_attribute_flags_1 | PARSER_ATT_VLAN_PARSING_ERROR_MASK;
+		}
+		if ((pr->llc_snap_offset != PARSER_UNINITILIZED_FIELD_OF_BYTE) && (pr->llc_snap_offset > min)) {
+			pr->llc_snap_offset = PARSER_UNINITILIZED_FIELD_OF_BYTE;
+			pr->parse_error_code = pr->parse_error_code | PARSER_ETH_802_3_TRUNCATION;
+			pr->frame_attribute_flags_1 = pr->frame_attribute_flags_1 & ~PARSER_ATT_LLC_SNAP_MASK;
+			//fsl_print("frame_attribute_flags_1:%x\n", pr->frame_attribute_flags_1);
+			pr->frame_attribute_flags_1 = pr->frame_attribute_flags_1 | PARSER_ATT_LLC_SNAP_PARSING_ERROR_MASK;
+			//fsl_print("frame_attribute_flags_1:%x\n", pr->frame_attribute_flags_1);
+		}
+		if ((pr->eth_offset != PARSER_UNINITILIZED_FIELD_OF_BYTE) && (pr->eth_offset > min)) {
+			pr->eth_offset = PARSER_UNINITILIZED_FIELD_OF_BYTE;
+			pr->frame_attribute_flags_1 = pr->frame_attribute_flags_1 & ~PARSER_ATT_ETH_MAC_MASK;
+			pr->frame_attribute_flags_1 = pr->frame_attribute_flags_1 | PARSER_ATT_ETH_PARSING_ERROR_MASK;
+		}
+		if ((pr->ip_pid_offset != PARSER_UNINITILIZED_FIELD_OF_BYTE) && (pr->ip_pid_offset > min)) {
+			pr->ip_pid_offset = PARSER_UNINITILIZED_FIELD_OF_BYTE;
+			if (l3_protocol == NET_ETH_ETYPE_IPV4)
+				pr->parse_error_code = pr->parse_error_code | PARSER_IPV4_PACKET_TRUNCATION;
+			if (l3_protocol == NET_ETH_ETYPE_IPV6)
+				pr->parse_error_code = pr->parse_error_code | PARSER_IPV6_PACKET_TRUNCATION;
+		}
+	}
+#endif
 }
 
 #endif /* __PARSER_INLINE_H */
