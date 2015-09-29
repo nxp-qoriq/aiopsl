@@ -1300,7 +1300,7 @@ void get_frame_length(uint8_t frame_handle, uint32_t *length)
 	/* call FDMA Accelerator */
 	if ((__e_hwacceli_(FODMA_ACCEL_ID)) == FDMA_SUCCESS)
 	{
-		*length = *((uint16_t *)HWC_ACC_OUT_ADDRESS2);
+		*length = *((uint32_t *)HWC_ACC_OUT_ADDRESS2);
 		return;
 	}
 
