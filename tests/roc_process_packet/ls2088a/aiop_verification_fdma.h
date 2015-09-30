@@ -199,6 +199,8 @@
 		FDMA_DELETE_DATA_EXP_CMD)
 	/** FDMA Checksum working frame command Structure identifier */
 #define FDMA_CKS_CMD_STR	((FDMA_MODULE << 16) | FDMA_CKS_CMD)
+	/** FDMA get working frame length command Structure identifier */
+#define FDMA_GWFL_CMD_STR	((FDMA_MODULE << 16) | FDMA_GWFL_CMD)
 	/** FDMA Copy data command Structure identifier */
 #define FDMA_COPY_CMD_STR	((FDMA_MODULE << 16) | FDMA_COPY_CMD)
 	/** FDMA DMA data command Structure identifier */
@@ -1873,10 +1875,14 @@ struct fdma_create_frame_command {
 	uint32_t fd_src;
 		/** Data size to be inserted to the frame. */
 	uint16_t size;
+		/** Storage profile ID to be used. */
+	uint8_t	spid;
 		/** Command returned frame handle. */
 	uint8_t frame_handle;
 		/** Command returned status. */
 	int8_t  status;
+		/** 64-bit alignment. */
+	uint8_t	pad[7];
 };
 
 /**************************************************************************//**
@@ -1900,8 +1906,7 @@ struct fdma_create_fd_command {
 	uint16_t size;
 		/** Command returned status. */
 	int8_t  status;
-		/** Storage profile ID to be used in case this is not the 
-		 * default frame. */
+		/** Storage profile ID to be used. */
 	uint8_t	spid;
 		/** Command returned Frame Descriptor for the created frame.
 		 * The command updates the FD in workspace, and when the ASA is
@@ -1928,12 +1933,14 @@ struct fdma_create_arp_request_broadcast_frame_command {
 	uint32_t local_ip;
 		/** Target IP Address. */
 	uint32_t target_ip;
+		/** Storage profile ID to be used. */
+	uint8_t	spid;
 		/** Command returned frame handle. */
 	uint8_t frame_handle;
 		/** Command returned status. */
 	int8_t  status;
 		/** 64-bit alignment. */
-	uint8_t	pad[6];
+	uint8_t	pad[5];
 };
 
 /**************************************************************************//**
@@ -1955,10 +1962,14 @@ struct fdma_create_arp_request_frame_command {
 	uint32_t target_ip;
 		/** Target MAC Address. */
 	uint8_t target_eth[6];
+		/** Storage profile ID to be used. */
+	uint8_t	spid;	
 		/** Command returned frame handle. */
 	uint8_t frame_handle;
 		/** Command returned status. */
 	int8_t  status;
+		/** 64-bit alignment. */
+	uint8_t	pad[7];
 };
 
 
