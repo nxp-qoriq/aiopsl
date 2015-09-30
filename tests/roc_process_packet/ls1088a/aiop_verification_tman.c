@@ -203,10 +203,8 @@ void verif_tman_callback_no_conf(uint64_t opaque1, uint16_t opaque2)
 	*((uint8_t *)HWC_SPID_ADDRESS) = tman_spid;
 	set_default_amq_attributes(&tman_amq);
 
-	
-	fdma_store_default_frame_data();
 	create_frame((struct ldpaa_fd *)HWC_FD_ADDRESS,&opaque1,
-				 sizeof(opaque1), GET_DEFAULT_SPID(), 
+				 sizeof(opaque1), tman_spid,
 				 &frame_handle);
 	fdma_store_and_enqueue_frame_fqid(frame_handle, FDMA_EN_TC_TERM_BITS,
 		(uint32_t)opaque2, tman_spid);
@@ -223,12 +221,9 @@ void verif_tman_callback(uint64_t opaque1, uint16_t opaque2)
 
 	tman_timer_completion_confirmation(
 			TMAN_GET_TIMER_HANDLE(HWC_FD_ADDRESS));
-	/* TODO there is an issue that the create frame overwrites the FD where
-	the TMAN parameters are saved */
 
-	fdma_store_default_frame_data();
 	create_frame((struct ldpaa_fd *)HWC_FD_ADDRESS,&opaque1,
-			     sizeof(opaque1), GET_DEFAULT_SPID(), 
+			     sizeof(opaque1), tman_spid,
 			     &frame_handle);
 	fdma_store_and_enqueue_frame_fqid(frame_handle, FDMA_EN_TC_TERM_BITS,
 			(uint32_t)opaque2, tman_spid);
