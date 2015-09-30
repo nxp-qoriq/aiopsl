@@ -55,6 +55,14 @@ enum aiop_epid_table {
        AIOP_EPID_TABLE_SIZE      = 1024   /**< MAX number of EPID's */
 };
 
+/**************************************************************************//**
+ @Description   SPID table
+*//***************************************************************************/
+enum aiop_spid_table {
+	AIOP_SPID_CMDIF           = 0,     /**< SPID for command interface */
+	AIOP_SPID_DPNI_START      = 1      /**< DPNI's first SPID */
+};
+
 /* Internal data exchanged between AIOP and MC
  * FIELDS MUST BE ALIGNED AS PACKED */
 struct aiop_app_init_info {
