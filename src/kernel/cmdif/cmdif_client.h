@@ -26,7 +26,7 @@
 
 
 /*!
- *  @file    cmdif_client_aiop.h
+ *  @file    cmdif_client.h
  *  @brief   Cmdif client AIOP<->GPP internal header file
  */
 
@@ -43,6 +43,7 @@
 #include "fsl_sl_dprc_drv.h"
 #include "fsl_general.h"
 #include "fsl_dpci_mng.h"
+#include "fsl_aiop_common.h"
 
 #pragma warning_errors on
 ASSERT_STRUCT_SIZE(CMDIF_OPEN_SIZEOF, CMDIF_OPEN_SIZE);
@@ -138,7 +139,7 @@ do {\
 #else
 #define CMDIF_STORE_DATA \
 	do {\
-		*((uint8_t *)HWC_SPID_ADDRESS) = 0; \
+		*((uint8_t *)HWC_SPID_ADDRESS) = AIOP_SPID_CMDIF; \
 		if (LDPAA_FD_GET_LENGTH(HWC_FD_ADDRESS) > 0) \
 			fdma_store_default_frame_data(); \
 	} while(0)

@@ -48,6 +48,7 @@
 #include "fsl_ep_mng.h"
 #include "fsl_sl_evmng.h"
 #include "fsl_gen.h"
+#include "system.h"
 
 /*************************************************************************/
 #define DPCI_LOW_PR		1
@@ -113,6 +114,8 @@ void dpci_drv_free();
 
 
 extern struct aiop_init_info g_init_data;
+extern __PROFILE_SRAM struct storage_profile 
+			storage_profile[SP_NUM_OF_STORAGE_PROFILES];
 
 struct dpci_mng_tbl g_dpci_tbl = {0};
 
@@ -859,6 +862,9 @@ __COLD_CODE int dpci_drv_init()
 		       dprc->token);
 		return err;
 	}
+
+	/* Set SPID = 0 to all zeros */
+	memset(&storage_profile[AIOP_SPID_CMDIF], 0, sizeof(storage_profile[AIOP_SPID_CMDIF]));
 
 	/* First count how many DPCI objects we have */
 	for (i = 0; i < dev_count; i++) {
