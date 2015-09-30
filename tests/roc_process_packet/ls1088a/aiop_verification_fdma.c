@@ -877,8 +877,8 @@ uint16_t aiop_verification_fdma(uint32_t asa_seg_addr)
 			(struct fdma_create_frame_command *) asa_seg_addr;
 		str->status = (int8_t)create_frame(
 				(struct ldpaa_fd *)(str->fd_src),
-				(void *)(str->data), str->size,
-				&(str->frame_handle));
+				(void *)(str->data), str->size, 
+				str->spid, &(str->frame_handle));
 		str_size = (uint16_t)sizeof(struct fdma_create_frame_command);
 		break;
 	}
@@ -903,7 +903,7 @@ uint16_t aiop_verification_fdma(uint32_t asa_seg_addr)
 		str->status = (int8_t)create_arp_request_broadcast(
 				(struct ldpaa_fd *)(str->fd_src),
 				str->local_ip, str->target_ip,
-				&(str->frame_handle));
+				str->spid, &(str->frame_handle));
 		str_size = (uint16_t)sizeof(
 			struct fdma_create_arp_request_broadcast_frame_command);
 		break;
@@ -917,7 +917,7 @@ uint16_t aiop_verification_fdma(uint32_t asa_seg_addr)
 		str->status = (int8_t)create_arp_request(
 				(struct ldpaa_fd *)(str->fd_src),
 				str->local_ip, str->target_ip, str->target_eth,
-				&(str->frame_handle));
+				str->spid, &(str->frame_handle));
 		str_size = (uint16_t)sizeof(
 			struct fdma_create_arp_request_frame_command);
 		break;

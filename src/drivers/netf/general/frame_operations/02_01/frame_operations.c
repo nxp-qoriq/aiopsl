@@ -39,11 +39,14 @@
 #include "fsl_dpni_drv.h"
 #include "net.h"
 
+extern __PROFILE_SRAM struct storage_profile 
+		storage_profile[SP_NUM_OF_STORAGE_PROFILES];
 
 int create_frame(
 		struct ldpaa_fd *fd,
 		void *data,
 		uint16_t size,
+		uint8_t spid,
 		uint8_t *frame_handle)
 {
 	
@@ -64,7 +67,9 @@ int create_frame(
 	fd->length = 0;
 	fd->offset = 0;
 
-	LDPAA_FD_SET_IVP(fd, 1);	
+	LDPAA_FD_SET_IVP(fd, 1);
+	if ((storage_profile[spid].mode_bits1) & 0x80)
+		LDPAA_FD_SET_PTA(fd, 1);
 	
 	if ((uint32_t)fd == HWC_FD_ADDRESS) {	
 		PRC_SET_SEGMENT_LENGTH(0);
@@ -140,6 +145,8 @@ int create_fd(
 	fd->offset = 0;
 	
 	LDPAA_FD_SET_IVP(fd, 1);
+	if ((storage_profile[spid].mode_bits1) & 0x80)
+		LDPAA_FD_SET_PTA(fd, 1);
 
 	if ((uint32_t)fd == HWC_FD_ADDRESS) {	
 		PRC_SET_SEGMENT_LENGTH(0);
@@ -149,7 +156,8 @@ int create_fd(
 		fdma_insert_default_segment_data(0, data, size,
 				FDMA_REPLACE_SA_CLOSE_BIT);
 
-		return fdma_store_default_frame_data();
+		return fdma_store_frame_data(PRC_GET_FRAME_HANDLE(),
+						spid, &amq);
 	} else {
 		present_frame_params.fd_src = (void *)fd;
 		present_frame_params.asa_size = 0;
@@ -179,6 +187,7 @@ int create_arp_request_broadcast(
 		struct ldpaa_fd *fd,
 		uint32_t local_ip,
 		uint32_t target_ip,
+		uint8_t spid,
 		uint8_t *frame_handle)
 {
 
@@ -191,7 +200,8 @@ int create_arp_request_broadcast(
 	*((uint16_t *)(target_eth+4)) = (uint16_t)BROADCAST_MAC;
 
 	return create_arp_request(
-		fd, local_ip, target_ip, (uint8_t *)target_eth, frame_handle);
+		fd, local_ip, target_ip, (uint8_t *)target_eth, 
+		spid, frame_handle);
 }
 
 int create_arp_request(
@@ -199,6 +209,7 @@ int create_arp_request(
 		uint32_t local_ip,
 		uint32_t target_ip,
 		uint8_t *target_eth,
+		uint8_t spid,
 		uint8_t *frame_handle)
 {
 	
@@ -257,5 +268,6 @@ int create_arp_request(
 	*((uint32_t *)&arp_data[sizeof(struct ethernethdr) + ARP_HDR_LEN + 18]) = 0;
 
 	return create_frame(
-			fd, (void *)arp_data, ARP_PKT_MIN_LEN, frame_handle);
+			fd, (void *)arp_data, ARP_PKT_MIN_LEN, 
+			spid, frame_handle);
 }

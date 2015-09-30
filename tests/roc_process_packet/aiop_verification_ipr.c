@@ -303,8 +303,8 @@ void ipr_delete_instance_cb_verif(uint64_t arg)
         amq.flags = (uint16_t) flags;
         set_default_amq_attributes(&amq);
 
-	create_frame((struct ldpaa_fd *)HWC_FD_ADDRESS,&dummy_data, 1,
-			&frame_handle);
+	create_frame((struct ldpaa_fd *)HWC_FD_ADDRESS,&dummy_data, 1, 
+			GET_DEFAULT_SPID(), &frame_handle);
 
 
 	flags = ((str.TC == 1) ? (FDMA_EN_TC_TERM_BITS) : 0x0);
