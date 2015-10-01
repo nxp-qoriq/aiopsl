@@ -477,8 +477,7 @@ void tcp_gro_timeout_callback(
 /**************************************************************************//**
 @Function	tcp_gro_calc_tcp_header_cksum
 
-@Description	Calculate the TCP pseudo header checksum and add it to the
-		accumulated payload checksum (which was calculated previously).
+@Description	Calculate the TCP pseudo header checksum.
 		The result checksum will be placed in the TCP->checksum field.
 
 @Return		None.

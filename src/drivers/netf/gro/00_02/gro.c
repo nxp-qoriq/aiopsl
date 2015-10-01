@@ -1141,13 +1141,15 @@ void tcp_gro_calc_tcp_header_cksum()
 
 	if (PARSER_IS_OUTER_IPV4_DEFAULT()) {
 		/* calculate IP source address offset  */
-		ipsrc_offset = (uint16_t)(tcp_offset - sizeof(ipv4->dst_addr));
+		ipsrc_offset = (uint16_t)(tcp_offset - sizeof(ipv4->dst_addr) 
+				- sizeof(ipv4->src_addr));
 		/* calculate TCP length for the pseudo header  */
 		pseudo_tcp_length = ipv4->total_length - sizeof(struct ipv4hdr);
 
 	} else {
 		/* calculate IP source address offset  */
-		ipsrc_offset = (uint16_t)(tcp_offset - sizeof(ipv6->src_addr));
+		ipsrc_offset = (uint16_t)(tcp_offset - sizeof(ipv6->dst_addr) 
+				- sizeof(ipv6->src_addr));
 		/* calculate TCP length for the pseudo header  */
 		pseudo_tcp_length = ipv6->payload_length;
 	}
