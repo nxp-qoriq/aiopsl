@@ -42,6 +42,10 @@
 extern __PROFILE_SRAM struct storage_profile 
 		storage_profile[SP_NUM_OF_STORAGE_PROFILES];
 
+#define SP_BDI_MASK		0x00080000
+#define SP_BP_ID_MASK		0x3FFF
+#define SP_PBS_MASK		0xFFC0
+
 int create_frame(
 		struct ldpaa_fd *fd,
 		void *data,
@@ -57,6 +61,9 @@ int create_frame(
 	struct fdma_insert_segment_data_params insert_params;
 
 	struct parse_result *pr = (struct parse_result *)HWC_PARSE_RES_ADDRESS;
+	uint64_t fd_addr;
+	uint32_t flags;
+	uint16_t icid, bpid, offset;
 	int32_t status;
 
 	/* *fd = {0};*/
@@ -68,8 +75,31 @@ int create_frame(
 	fd->offset = 0;
 
 	LDPAA_FD_SET_IVP(fd, 1);
-	if ((storage_profile[spid].mode_bits1) & 0x80)
+	
+	/* In case we will need PTA we cannot generate a frame with FDMA command
+	 * implicitly. We must Form the FD manually. */
+	if ((storage_profile[spid].mode_bits1) & 0x80){
+		icid = LH_SWAP(0, 
+			(uint16_t *)&(storage_profile[spid].ip_secific_sp_info))
+				& ADC_ICID_MASK;
+		flags = (LW_SWAP(0, 
+			(uint32_t *)&(storage_profile[spid].ip_secific_sp_info))
+				& SP_BDI_MASK) ? FDMA_ACQUIRE_BDI_BIT : 0;
+		/* set the offset to the end of the buffer */
+		offset = (LH_SWAP(0, 
+				&(storage_profile[spid].pbs1)) & SP_PBS_MASK);
+		bpid = LH_SWAP(0, &(storage_profile[spid].bpid1)) 
+				& SP_BP_ID_MASK;
+		status = fdma_acquire_buffer(icid, flags, bpid, &fd_addr);
+		if (status)
+			return status;
+		
+		LDPAA_FD_SET_ADDR(fd, fd_addr);
+		LDPAA_FD_SET_BPID(fd, bpid);
+		LDPAA_FD_SET_OFFSET(fd, offset);
 		LDPAA_FD_SET_PTA(fd, 1);
+	}
+	
 	
 	if ((uint32_t)fd == HWC_FD_ADDRESS) {	
 		PRC_SET_SEGMENT_LENGTH(0);
@@ -131,6 +161,10 @@ int create_fd(
 	struct fdma_present_frame_params present_frame_params;
 	struct fdma_insert_segment_data_params insert_params;
 	struct fdma_amq amq;
+	uint64_t fd_addr;
+	uint32_t flags;
+	uint16_t icid, bpid, offset;
+	int32_t status;
 
 #ifdef CHECK_ALIGNMENT 	
 	DEBUG_ALIGN("frame_operations.c",(uint32_t)fd, ALIGNMENT_32B);
@@ -145,8 +179,30 @@ int create_fd(
 	fd->offset = 0;
 	
 	LDPAA_FD_SET_IVP(fd, 1);
-	if ((storage_profile[spid].mode_bits1) & 0x80)
+	
+	/* In case we will need PTA we cannot generate a frame with FDMA command
+	 * implicitly. We must Form the FD manually. */
+	if ((storage_profile[spid].mode_bits1) & 0x80){
+		icid = LH_SWAP(0, 
+			(uint16_t *)&(storage_profile[spid].ip_secific_sp_info))
+				& ADC_ICID_MASK;
+		flags = (LW_SWAP(0, 
+			(uint32_t *)&(storage_profile[spid].ip_secific_sp_info))
+				& SP_BDI_MASK) ? FDMA_ACQUIRE_BDI_BIT : 0;
+		/* set the offset to the end of the buffer */
+		offset = (LH_SWAP(0, 
+				&(storage_profile[spid].pbs1)) & SP_PBS_MASK);
+		bpid = LH_SWAP(0, &(storage_profile[spid].bpid1)) 
+				& SP_BP_ID_MASK;
+		status = fdma_acquire_buffer(icid, flags, bpid, &fd_addr);
+		if (status)
+			return status;
+		
+		LDPAA_FD_SET_ADDR(fd, fd_addr);
+		LDPAA_FD_SET_BPID(fd, bpid);
+		LDPAA_FD_SET_OFFSET(fd, offset);
 		LDPAA_FD_SET_PTA(fd, 1);
+	}
 
 	if ((uint32_t)fd == HWC_FD_ADDRESS) {	
 		PRC_SET_SEGMENT_LENGTH(0);
