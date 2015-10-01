@@ -421,6 +421,11 @@
  */
 #define TABLE_SW_STATUS_SAME_PRIORITY		0xFF000006
 
+/**
+ * The MFLU rule was found with different priority.
+ */
+#define TABLE_SW_STATUS_MFLU_DIFF_PRIORITY	TABLE_STATUS_MFLU_DIFF_PRIORITY
+
 /** @} */ /* end of TABLE_STATUS */
 
 /** @} */ /* end of TABLE_MACROS */

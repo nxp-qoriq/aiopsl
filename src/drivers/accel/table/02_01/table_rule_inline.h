@@ -75,7 +75,6 @@ inline int table_rule_create(enum table_hw_accel_id acc_id,
 	/* Call Table accelerator */
 	__e_hwaccel(acc_id);
 
-	/* Status Handling TODO Handle status of PIEE and MISS (replace LKP)*/
 	status = *((int32_t *)HWC_ACC_OUT_ADDRESS);
 	if (status == TABLE_HW_STATUS_BIT_MISS) {
 		/* A rule with the same match description is not found in the
@@ -94,6 +93,14 @@ inline int table_rule_create(enum table_hw_accel_id acc_id,
 		 * valid if command MTYPE is w/o RPTR counter decrement.*
 		status = TABLE_STATUS_SUCCESS;
 	*/
+	/*TODO write here number of Errata */
+	else if (status == TABLE_HW_STATUS_BIT_MISS | TABLE_HW_STATUS_PIEE) {
+		table_rule_inline_exception_handler(
+				TABLE_RULE_CREATE_FUNC_ID,
+				__LINE__,
+				TABLE_SW_STATUS_MFLU_DIFF_PRIORITY,
+				TABLE_ENTITY_SW);
+	}
 	else if (status & TABLE_HW_STATUS_BIT_TIDE) {
 		table_rule_inline_exception_handler(TABLE_RULE_CREATE_FUNC_ID,
 						    __LINE__,
@@ -151,9 +158,9 @@ int table_rule_create_or_replace(enum table_hw_accel_id acc_id,
 	/* Accelerator call*/
 	__e_hwaccel(acc_id);
 
-	/* Status Handling TODO Handle status of PIEE and MISS (replace LKP)*/
 	status = *((int32_t *)HWC_ACC_OUT_ADDRESS);
-	if (status == TABLE_HW_STATUS_SUCCESS) {
+	if (status == TABLE_HW_STATUS_SUCCESS || 
+	    (status == (TABLE_HW_STATUS_BIT_MISS | TABLE_HW_STATUS_PIEE))) {
 		/* Replace occurred */
 		*rule_id = out_msg.rule_id;
 		if (replaced_result)
@@ -632,7 +639,8 @@ inline int table_rule_query_by_key_desc(enum table_hw_accel_id acc_id,
 	/* get HW status */
 	status = *((int32_t *)HWC_ACC_OUT_ADDRESS);
 
-	if (status == TABLE_HW_STATUS_SUCCESS) {
+	if (status == TABLE_HW_STATUS_SUCCESS ||
+	    (status == (TABLE_HW_STATUS_BIT_MISS | TABLE_HW_STATUS_PIEE))) {
 		/* Copy result and timestamp */
 		entry_type = entry.type & TABLE_ENTRY_ENTYPE_FIELD_MASK;
 		if (entry_type == TABLE_ENTRY_ENTYPE_EME16) {
@@ -666,17 +674,15 @@ inline int table_rule_query_by_key_desc(enum table_hw_accel_id acc_id,
 					__LINE__,
 					TABLE_SW_STATUS_QUERY_INVAL_ENTYPE,
 					TABLE_ENTITY_SW);
+		/* The MFLU rule that was found is with different priority */
+		if (status != TABLE_HW_STATUS_SUCCESS){
+			status = TABLE_STATUS_MFLU_DIFF_PRIORITY;
+		}
 	} else {
 		/* Status Handling*/
 		/* A rule with the same match description is not found in the
 		 * table. */
 		if (status == TABLE_HW_STATUS_BIT_MISS){}
-			
-		else if (status ==
-			  (TABLE_HW_STATUS_BIT_MISS | TABLE_HW_STATUS_PIEE))
-		{
-			status = TABLE_HW_STATUS_BIT_MISS;
-		}
 
 		/* Redirected to exception handler since aging is removed
 		else if (status == CTLU_HW_STATUS_TEMPNOR)

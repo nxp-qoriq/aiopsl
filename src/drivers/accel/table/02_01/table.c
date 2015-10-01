@@ -499,6 +499,9 @@ void table_exception_handler(char *file_path,
 			status = "Rule modify failed. New priority is the same"
 				 " as the current.";
 			break;
+		case(TABLE_SW_STATUS_MFLU_DIFF_PRIORITY):
+			/* TODO fill in Errata number */
+			status = "Rule create failed to Errata No. TBD";
 		default:
 			status = "Unknown or Invalid SW status.\n";
 			break;
