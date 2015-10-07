@@ -408,7 +408,7 @@ void rcu_tman_cb(uint64_t ubatch_size, uint16_t opaque2)
 	fdma_terminate_task();
 }
 
-int rcu_synchronize(rcu_cb_t *cb, uint64_t param)
+int rcu_synchronize_nb(rcu_cb_t *cb, uint64_t param)
 {
 	int size;
 
