@@ -22,7 +22,7 @@
 				</dictionary>
 				<dictionary>
 					<key>org.eclipse.cdt.make.core.buildArguments</key>
-					<value></value>
+					<value>-j8</value>
 				</dictionary>
 				<dictionary>
 					<key>org.eclipse.cdt.make.core.buildCommand</key>
@@ -710,6 +710,11 @@
 			<locationURI>PARENT-4-PROJECT_LOC/src/include/kernel/fsl_malloc.h</locationURI>
 		</link>
 		<link>
+			<name>aiop_sl/include/kernel/fsl_rcu.h</name>
+			<type>1</type>
+			<locationURI>PARENT-4-PROJECT_LOC/src/include/kernel/fsl_rcu.h</locationURI>
+		</link>
+		<link>
 			<name>aiop_sl/include/kernel/fsl_spinlock.h</name>
 			<type>1</type>
 			<locationURI>PARENT-4-PROJECT_LOC/src/include/kernel/fsl_spinlock.h</locationURI>
@@ -1010,14 +1015,9 @@
 			<locationURI>PARENT-4-PROJECT_LOC/src/kernel/mem_mng/sys_mem_mng.c</locationURI>
 		</link>
 		<link>
-			<name>aiop_sl/kernel/rcu/rcu.h</name>
+			<name>aiop_sl/kernel/rcu/rcu.c</name>
 			<type>1</type>
-			<locationURI>PARENT-4-PROJECT_LOC/src/kernel/rcu/rcu.h</locationURI>
-		</link>
-		<link>
-			<name>aiop_sl/kernel/rcu/rcu_stub.c</name>
-			<type>1</type>
-			<locationURI>PARENT-4-PROJECT_LOC/src/kernel/rcu/rcu_stub.c</locationURI>
+			<locationURI>PARENT-4-PROJECT_LOC/src/kernel/rcu/00_02/rcu.c</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/kernel/system/os.c</name>

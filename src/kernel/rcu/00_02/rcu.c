@@ -24,49 +24,45 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "fsl_dbg.h"
-#include "fsl_platform.h"
+
+#include "fsl_sl_dbg.h"
 #include "fsl_rcu.h"
-#include "fsl_spinlock.h"
+#include "fsl_cdma.h"
+#include "cdma.h"
 
-void rcu_test();
-int app_early_init(void);
-int rcu_test_check();
-
-extern int32_t rcu_sync_count;
-extern int32_t rcu_cb_count;
-
-void rcu_test()
-{
-	int err;
-	int i;
-
-	for (i = 0; i < 10; i++) {
-		pr_debug("####### rcu_synchronize = num %d #######\n",
-		         rcu_sync_count);
-		rcu_read_lock();
-		rcu_read_unlock();
-		err = rcu_synchronize();
-		atomic_incr32(&rcu_sync_count, 1);
-		ASSERT_COND(!err);
-	}
-}
-
-int rcu_test_check()
-{
-	/* I can't have a good check here because it depends on timer */
-	pr_debug("####### RCU test results = count %d #######\n",
-	         rcu_sync_count);
-
-	if (rcu_sync_count == 10)
-		return 0;
-
-	return -1;
-}
+int rcu_init();
+void rcu_free();
+int rcu_default_early_init();
 
 
-
-int app_early_init(void)
+int rcu_default_early_init()
 {
 	return 0;
+}
+
+int rcu_init()
+{
+	return 0;
+}
+
+
+void rcu_free()
+{
+	return;
+}
+
+int rcu_synchronize()
+{
+	cdma_ephemeral_reference_sync();
+	return 0;
+}
+
+void rcu_read_unlock()
+{
+	cdma_ephemeral_reference_release_all();
+}
+
+void rcu_read_lock()
+{
+	cdma_ephemeral_reference_take();
 }
