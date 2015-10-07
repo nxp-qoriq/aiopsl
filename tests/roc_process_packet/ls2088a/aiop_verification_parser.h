@@ -327,7 +327,6 @@ struct parser_gen_parser_res_basic_verif_command {
 *//***************************************************************************/
 struct parser_parse_after_pop_vlan_verif_command {
 	uint32_t	opcode;
-	int32_t		status;
 };
 
 /**************************************************************************//**
@@ -337,9 +336,6 @@ struct parser_parse_after_pop_vlan_verif_command {
 *//***************************************************************************/
 struct parser_parse_after_push_vlan_verif_command {
 	uint32_t	opcode;
-	int32_t		status;
-	uint32_t 	vlan;
-	uint8_t		pad[4];
 };
 
 void aiop_init_parser(uint8_t *prpid);
