@@ -121,14 +121,10 @@
 #define PARSER_UNINITILIZED_FIELD_OF_BYTE	0xFF
 	/** Uninitialized parser field of two bytes */
 #define PARSER_UNINITILIZED_FIELD_OF_HALF_WORD	0xFFFF
-	/** VLAN Priority (VID) mask */
-#define PARSER_VLAN_VID_MASK	0x00000FFF
 	/** Tag protocol identifier (TPID) mask */
 #define PARSER_VLAN_TPID_MASK	0xFFFF0000
 	/**  Canonical Format Indicator (CFI) mask */
 #define PARSER_CFI_IN_VLAN_MASK	0x00001000
-	/**  Amount of bytes from start of VLAN header to TCI */
-#define PARSER_TCI_DIST_FROM_START_OF_VLAN	2
 /** @} */ /* end of AIOP_PARSE_OTHER */
 /** @} */ /* end of PARSER_DEFINES */
 

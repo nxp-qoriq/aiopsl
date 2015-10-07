@@ -531,11 +531,11 @@ inline void parser_push_vlan_update()
 	}
 	
 	temp_32b = pr->frame_attribute_flags_1;
-	temp_16b = (uint16_t)pr->vlan_tci1_offset -PARSER_TCI_DIST_FROM_START_OF_VLAN + seg_address;
+	temp_16b = (uint16_t)pr->vlan_tci1_offset -offsetof(struct vlanhdr, tci) + seg_address;
 	
 	/* check if VID=0 for the added VLAN */
 	if (!(temp_32b & PARSER_ATT_VLAN_PRIORITY_MASK))
-		if (!(*((uint32_t *)temp_16b) & PARSER_VLAN_VID_MASK))
+		if (!(*((uint32_t *)temp_16b) & VLAN_VID_MASK))
 			temp_32b |= PARSER_ATT_VLAN_PRIORITY_MASK;
 	
 	/* check if CFI should be set on */
