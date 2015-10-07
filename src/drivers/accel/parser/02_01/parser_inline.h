@@ -40,7 +40,7 @@
 #include "fsl_types.h"
 #include "fsl_fdma.h"
 #include "fsl_parser.h"
-#include "fsl_net.h"
+#include "net.h"
 
 #include "system.h"
 #include "fsl_id_pool.h"
@@ -389,7 +389,7 @@ inline void parser_pop_vlan_update()
 		found_vid = FALSE, found_cfi = FALSE;
 		temp_8b = pr->vlan_tcin_offset;
 		for (i = pr->vlan_tci1_offset; i <= temp_8b; i = i+sizeof(struct vlanhdr) /* next TCI offset */) {
-			if (!(*(uint8_t *)i & PARSER_VLAN_VID_MASK))
+			if (!(*(uint8_t *)i & VLAN_VID_MASK))
 				found_vid = TRUE;
 			if ((*(uint8_t *)i & PARSER_VLAN_TPID_MASK == 0x8100) &&
 				(*(uint8_t *)i & PARSER_CFI_IN_VLAN_MASK))
