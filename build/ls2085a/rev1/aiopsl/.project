@@ -22,7 +22,7 @@
 				</dictionary>
 				<dictionary>
 					<key>org.eclipse.cdt.make.core.buildArguments</key>
-					<value></value>
+					<value>-j8</value>
 				</dictionary>
 				<dictionary>
 					<key>org.eclipse.cdt.make.core.buildCommand</key>
@@ -1007,12 +1007,12 @@
 		<link>
 			<name>aiop_sl/kernel/rcu/rcu.c</name>
 			<type>1</type>
-			<locationURI>PARENT-4-PROJECT_LOC/src/kernel/rcu/rcu.c</locationURI>
+			<locationURI>PARENT-4-PROJECT_LOC/src/kernel/rcu/00_01/rcu.c</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/kernel/rcu/rcu.h</name>
 			<type>1</type>
-			<locationURI>PARENT-4-PROJECT_LOC/src/kernel/rcu/rcu.h</locationURI>
+			<locationURI>PARENT-4-PROJECT_LOC/src/kernel/rcu/00_01/rcu.h</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/kernel/system/os.c</name>
