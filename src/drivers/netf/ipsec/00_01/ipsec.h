@@ -256,7 +256,8 @@ enum rta_param_type {
  * ------------------------------------------------------
  * | Cipher Key Copy                  | 32 bytes        | + 640 
  * ------------------------------------------------------
- * 
+ * | Debug/Error information          | 32 bytes        | + 672 
+ * ------------------------------------------------------ 
  *  
  * ipsec_sa_params - Parameters used by the IPsec functional module	128 bytes
  * sec_flow_context	- SEC Flow Context. 64 bytes
@@ -266,7 +267,7 @@ enum rta_param_type {
  * (Outer IP change)	TBD 
  * Key Copy area, for CAAM DKP and upon HF-NIC requirement
  * 
- * Aligned Buffer size = 128 + 64 + 256 + 64 + 128 + 32 = 672
+ * Aligned Buffer size = 128 + 64 + 256 + 64 + 128 + 32 + 32 = 704
  * Requested buffer size = 12*64 = 768 bytes
 */
 
@@ -293,6 +294,9 @@ enum rta_param_type {
 #define IPSEC_KEY_SEGMENT_OFFSET 512 /* Offset from params start */
 #define IPSEC_CIPHER_KEY_OFFSET\
 		IPSEC_KEY_SEGMENT_OFFSET + IPSEC_KEY_SEGMENT_SIZE
+
+#define IPSEC_DEBUG_INFO_OFFSET\
+		IPSEC_CIPHER_KEY_OFFSET + IPSEC_CIPHER_KEY_SIZE
 
 /* Key Offset from FLC start */
 #define IPSEC_KEY_OFFSET_FROM_FLC IPSEC_KEY_SEGMENT_OFFSET -\
@@ -336,6 +340,8 @@ enum rta_param_type {
 #define IPSEC_KEY_ADDR_FROM_SD(ADDRESS) ((ADDRESS) + IPSEC_KEY_OFFSET_FROM_SD)
 
 #define IPSEC_CIPHER_KEY_ADDR(ADDRESS) ((ADDRESS) + IPSEC_CIPHER_KEY_OFFSET)
+
+#define IPSEC_DEBUG_INFO_ADDR(ADDRESS) ((ADDRESS) + IPSEC_DEBUG_INFO_OFFSET)
 
 
 #define IPSEC_GET_SEGMENT_ADDRESS(prc_addr) \
@@ -893,6 +899,69 @@ uint8_t ipsec_get_ipv6_nh_offset(struct ipv6hdr *ipv6_hdr, uint8_t *length);
 *	@Description	Generic TMAN callback function 
 *//****************************************************************************/
 void ipsec_tman_callback(uint64_t ipsec_handle, uint16_t indicator);
+
+/**************************************************************************//**
+*	Debug Information and Functions
+*	
+*	@Description: 
+*//****************************************************************************/
+enum ipsec_function_identifier {
+	/* External Functions */
+	IPSEC_EARLY_INIT = 1,
+	IPSEC_CREATE_INSTANCE,
+	IPSEC_DELETE_INSTANCE,
+	IPSEC_ADD_SA_DESCRIPTOR,
+	IPSEC_DEL_SA_DESCRIPTOR,
+	IPSEC_GET_LIFETIME_STATS,
+	IPSEC_DECR_LIFETIME_COUNTERS,
+	IPSEC_GET_SEQ_NUM,
+	IPSEC_FRAME_DECRYPT,
+	IPSEC_FRAME_ENCRYPT,
+	IPSEC_FORCE_SECONDS_LIFETIME_EXPIRY,
+
+	/* Internal Functions */
+	IPSEC_GENERATE_FLC,
+	IPSEC_CREATE_KEY_COPY,
+	IPSEC_GENERATE_ENCAP_SD,
+	IPSEC_GENERATE_DECAP_SD,
+	IPSEC_GENERATE_SA_PARAMS,
+	IPSEC_GET_BUFFER,
+	IPSEC_RELEASE_BUFFER,
+	IPSEC_GET_IPV6_NH_OFFSE,
+	IPSEC_TMAN_CALLBACK,
+	IPSEC_ERROR_HANDLER
+};
+
+enum ipsec_service_identifier {
+	IPSEC_INTERNAL_SERVICE = 1,
+	IPSEC_CDMA_ACQUIRE_CONTEXT_MEMORY,
+	IPSEC_FDMA_INSERT_DEFAULT_SEGMENT_DATA,
+	IPSEC_FDMA_PRESENT_DEFAULT_FRAME,
+	IPSEC_FDMA_PRESENT_DEFAULT_FRAME_SEGMENT,
+	IPSEC_FDMA_REPLACE_DEFAULT_SEGMENT_DATA,
+	IPSEC_FDMA_STORE_DEFAULT_FRAME_DATA,
+	IPSEC_RTA_INLINE_QUERY,
+	IPSEC_SLAB_FIND_AND_RESERVE_BPID,
+	IPSEC_SLAB_FIND_AND_UNRESERVE_BPID,
+	IPSEC_SLAB_REGISTER_CONTEXT_BUFFER_REQUIREMENTS,
+	IPSEC_TMAN_CREATE_TIMER,
+	IPSEC_TMAN_DELETE_TIMER
+};
+
+/* Instance Parameters structure */
+struct ipsec_debug_info {
+	enum ipsec_function_identifier func_id;
+	enum ipsec_service_identifier service_id;  /* SR/Hardware ID */
+	uint32_t line;
+	int status; /* Error/Status value */
+};
+
+void ipsec_error_handler(
+		ipsec_handle_t ipsec_handle,
+		enum ipsec_function_identifier func_id,  /* Function ID */
+		enum ipsec_service_identifier service_id,  /* SR/Hardware ID */
+		uint32_t line,
+		int status); /* Error/Status value */
 
 /**************************************************************************//**
 ******************************************************************************/

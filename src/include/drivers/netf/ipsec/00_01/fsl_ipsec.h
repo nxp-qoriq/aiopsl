@@ -529,7 +529,9 @@ int ipsec_early_init(
 
 @Param[out]	instance_handle - instance handle 
 		
-@Return		Status
+@Return		IPSEC_SUCCESS
+	        -ENOMEM : not enough memory for partition
+	        -ENOSPC	: unable to allocate due to depletion
 
 *//****************************************************************************/
 int ipsec_create_instance(
@@ -548,7 +550,9 @@ int ipsec_create_instance(
 				
 @Param[out]	instance_handle - instance handle 
 		
-@Return		Status
+@Return		IPSEC_SUCCESS
+			-ENAVAIL : instance does not exist
+			-EPERM : trying to delete an instance before deleting all SAs
 
 *//****************************************************************************/
 int ipsec_delete_instance(ipsec_instance_handle_t instance_handle);
@@ -567,8 +571,11 @@ int ipsec_delete_instance(ipsec_instance_handle_t instance_handle);
 
 @Param[out]	ipsec_handle - IPsec handle to the descriptor database
 		
-@Return		Status
-
+@Return		IPSEC_SUCCESS
+	        -ENOSPC	: unable to allocate due to depletion
+	        -EPERM : trying to allocate more than maximum SAs for instance
+	        -ENAVAIL : unable to create SA descriptor
+	        
 *//****************************************************************************/
 int ipsec_add_sa_descriptor(
 		struct ipsec_descriptor_params *params,
@@ -584,7 +591,9 @@ int ipsec_add_sa_descriptor(
 
 @Param[in]	ipsec_handle - descriptor handle.
 
-@Return		Status
+@Return		IPSEC_SUCCESS
+			-ENAVAIL : SA/Instance not found
+			-EPERM : trying to delete SA descriptor from empty instance
 
 *//****************************************************************************/
 int ipsec_del_sa_descriptor(ipsec_handle_t ipsec_handle);
