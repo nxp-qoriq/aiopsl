@@ -391,8 +391,8 @@ inline void parser_pop_vlan_update()
 		for (i = pr->vlan_tci1_offset; i <= temp_8b; i = i+sizeof(struct vlanhdr) /* next TCI offset */) {
 			if (!(*(uint8_t *)i & VLAN_VID_MASK))
 				found_vid = TRUE;
-			if ((*(uint8_t *)i & PARSER_VLAN_TPID_MASK == 0x8100) &&
-				(*(uint8_t *)i & PARSER_CFI_IN_VLAN_MASK))
+			if ((*(uint8_t *)i & VLAN_TPID_MASK == 0x8100) &&
+				(*(uint8_t *)i & VLAN_CFI_MASK))
 				found_cfi = TRUE;
 		}
 		if (!found_vid)
@@ -539,8 +539,8 @@ inline void parser_push_vlan_update()
 			temp_32b |= PARSER_ATT_VLAN_PRIORITY_MASK;
 	
 	/* check if CFI should be set on */
-	if ((*(uint32_t *)temp_16b & PARSER_VLAN_TPID_MASK == 0x8100) &&
-			(*(uint32_t *)temp_16b & PARSER_CFI_IN_VLAN_MASK))
+	if ((*(uint32_t *)temp_16b & VLAN_TPID_MASK == 0x8100) &&
+			(*(uint32_t *)temp_16b & VLAN_CFI_MASK))
 		temp_32b |= PARSER_ATT_CFI_IN_VLAN_MASK;
 	
 	pr->frame_attribute_flags_1 = temp_32b;
