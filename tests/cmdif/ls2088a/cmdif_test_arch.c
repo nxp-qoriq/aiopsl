@@ -41,6 +41,8 @@ void rcu_test()
 	int err;
 	int i;
 
+	atomic_incr32(&rcu_cb_count, 1);
+
 	for (i = 0; i < 10; i++) {
 		pr_debug("####### rcu_synchronize = num %d #######\n",
 		         rcu_sync_count);
@@ -58,7 +60,7 @@ int rcu_test_check()
 	pr_debug("####### RCU test results = count %d #######\n",
 	         rcu_sync_count);
 
-	if (rcu_sync_count == 10)
+	if (rcu_sync_count == (10 * rcu_cb_count))
 		return 0;
 
 	return -1;
