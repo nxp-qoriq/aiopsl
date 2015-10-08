@@ -226,12 +226,13 @@ void stack_estimation(void)
 	 * the stack is not important */
 
 
-	/* RCU does not exists in 1088*/
+	/* rcu_synchronize is different */
 	/*
 	rcu_synchronize(NULL, 9);
+	*/
 	rcu_read_lock();
 	rcu_read_unlock();
-	*/
+
 
 	/*After packet processing is done, fdma_terminate_task must be called.*/
 #ifdef CHECK_MEM_MNG_STACK

@@ -1,3 +1,4 @@
+fsl_rcu.h         Renamed REV1 rcu_synchronize() to rcu_synchronize_nb(). Added rcu_synchronize() for REV2.
 apps.h:           Fixed ENGR00366911: AIOP apps.h file should have mentioned the power of 2 restriction on CTLU and MFLU num of entries 
 aiopsl ls2088a & ls1088a: Replaced src/kernel/cmdif/00_01 with src/kernel/cmdif/00_02.
                           This should have no effect on applications, this path should not exist there.
