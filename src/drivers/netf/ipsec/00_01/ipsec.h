@@ -141,6 +141,7 @@ enum rta_param_type {
 #define IPSEC_FLOW_CONTEXT_SIZE 64 /* 64 bytes */
 #define IPSEC_KEY_SEGMENT_SIZE 128 /* Key Copy segment, 128 bytes */
 #define IPSEC_CIPHER_KEY_SIZE 32 /* Cipher Key Copy, 32 bytes */
+#define IPSEC_DEBUG_SEGMENT_SIZE 32 /* Debug info, 32 bytes */
 
 #define IPSEC_SP_ASAR_MASK 0x000F0000 /* Storage profile ASAR field mask */
 #define IPSEC_SP_DHR_MASK 0x00000FFF
@@ -510,6 +511,10 @@ Big Endian
 #define	SEC_CCB_ERROR_MASK_COMPRESSED  0xFFF0000F
 #define	SEC_DECO_ERROR_MASK_COMPRESSED 0xFFF000FF
 
+/* Debug error codes */
+#define IPSEC_INT_ERR_PAD_TOO_LONG 0x00000001
+		/* Crypto padding is longer than presentation */
+
 /* OSM temporary defines */
 /* TODO: should move to general or OSM include file */
 #define IPSEC_OSM_CONCURRENT			0
@@ -859,7 +864,7 @@ int ipsec_generate_decap_sd(
 
 @Description	Generate and store the functional module internal parameter
 *//***************************************************************************/
-void ipsec_generate_sa_params(
+int ipsec_generate_sa_params(
 		struct ipsec_descriptor_params *params,
 		ipsec_handle_t ipsec_handle, /* Parameters area (start of buffer) */
 		ipsec_instance_handle_t instance_handle,
@@ -901,6 +906,13 @@ uint8_t ipsec_get_ipv6_nh_offset(struct ipv6hdr *ipv6_hdr, uint8_t *length);
 void ipsec_tman_callback(uint64_t ipsec_handle, uint16_t indicator);
 
 /**************************************************************************//**
+@Function		ipsec_init_debug_info 
+
+@Description	Initialize the debug segment of the descriptor 
+*//***************************************************************************/
+void ipsec_init_debug_info(ipsec_handle_t desc_addr);
+
+/**************************************************************************//**
 *	Debug Information and Functions
 *	
 *	@Description: 
@@ -934,6 +946,7 @@ enum ipsec_function_identifier {
 
 enum ipsec_service_identifier {
 	IPSEC_INTERNAL_SERVICE = 1,
+	IPSEC_SEC_HW,
 	IPSEC_CDMA_ACQUIRE_CONTEXT_MEMORY,
 	IPSEC_FDMA_INSERT_DEFAULT_SEGMENT_DATA,
 	IPSEC_FDMA_PRESENT_DEFAULT_FRAME,
@@ -945,7 +958,8 @@ enum ipsec_service_identifier {
 	IPSEC_SLAB_FIND_AND_UNRESERVE_BPID,
 	IPSEC_SLAB_REGISTER_CONTEXT_BUFFER_REQUIREMENTS,
 	IPSEC_TMAN_CREATE_TIMER,
-	IPSEC_TMAN_DELETE_TIMER
+	IPSEC_TMAN_DELETE_TIMER,
+	IPSEC_PARSE_RESULT_GENERATE_DEFAULT
 };
 
 /* Instance Parameters structure */
