@@ -22,7 +22,7 @@
 				</dictionary>
 				<dictionary>
 					<key>org.eclipse.cdt.make.core.buildArguments</key>
-					<value></value>
+					<value>-j8</value>
 				</dictionary>
 				<dictionary>
 					<key>org.eclipse.cdt.make.core.buildCommand</key>
@@ -1272,7 +1272,7 @@
 		<link>
 			<name>aiop_sl/drivers/accel/ste/ste.c</name>
 			<type>1</type>
-			<locationURI>PARENT-4-PROJECT_LOC/src/drivers/accel/ste/ste.c</locationURI>
+			<locationURI>PARENT-4-PROJECT_LOC/src/drivers/accel/ste/01_01/ste.c</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/drivers/accel/ste/ste.h</name>
