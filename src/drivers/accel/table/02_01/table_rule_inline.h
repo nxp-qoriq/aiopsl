@@ -94,7 +94,7 @@ inline int table_rule_create(enum table_hw_accel_id acc_id,
 		status = TABLE_STATUS_SUCCESS;
 	*/
 	/*TODO write here number of Errata */
-	else if (status == TABLE_HW_STATUS_BIT_MISS | TABLE_HW_STATUS_PIEE) {
+	else if (status == (TABLE_HW_STATUS_BIT_MISS | TABLE_HW_STATUS_PIEE)) {
 		table_rule_inline_exception_handler(
 				TABLE_RULE_CREATE_FUNC_ID,
 				__LINE__,

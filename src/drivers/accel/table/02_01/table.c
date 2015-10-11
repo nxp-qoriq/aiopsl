@@ -502,6 +502,7 @@ void table_exception_handler(char *file_path,
 		case(TABLE_SW_STATUS_MFLU_DIFF_PRIORITY):
 			/* TODO fill in Errata number */
 			status = "Rule create failed to Errata No. TBD";
+			break;
 		default:
 			status = "Unknown or Invalid SW status.\n";
 			break;
