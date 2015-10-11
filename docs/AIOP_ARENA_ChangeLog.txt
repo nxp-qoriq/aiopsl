@@ -1,3 +1,5 @@
+dpci_drv.c: MC resereves SPID=0 for CMDIF (ENGR00366149). Added initialization code for SPID=0. 
+
 log.c/h, fsl_log.h: ENGR00367164 - Update logger implementation to use logger header.
                     The header contains the start address, last written byte, buffer size and a flag if there was a wrap.
                     The flag is the msb in last_byte.
