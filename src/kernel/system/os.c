@@ -106,7 +106,7 @@ __COLD_CODE void disable_print_protection()
 
 static inline void fsl_print_runtime(const char *format, va_list args)
 {
-	char    buf[RUNTIME_BUF_SIZE + LOG_END_SIGN_LENGTH];
+	char    buf[RUNTIME_BUF_SIZE];
 	vsnprintf_lite(buf, RUNTIME_BUF_SIZE, format, args);
 	va_end(args);
 	sys_print(buf);
@@ -146,7 +146,7 @@ __COLD_CODE void dbg_print(char *format, ...)
 #pragma stackinfo_ignore on
 __COLD_CODE static void fsl_print_boot(const char *format, va_list args)
 {
-	char    buf[BUF_SIZE + LOG_END_SIGN_LENGTH];
+	char    buf[BUF_SIZE];
 	vsnprintf(buf, BUF_SIZE, format, args);
 	va_end(args);
 	sys_print(buf);
