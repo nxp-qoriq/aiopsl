@@ -141,8 +141,6 @@ int ipsec_create_instance (
             &(instance.desc_bpid)); /* uint16_t *bpid */
 	
 	if (return_val) {
-		// TODO: call future slab release function per BPID
-		// for all previously requested buffers
 		return -ENOMEM;
 	}
 	
@@ -151,9 +149,13 @@ int ipsec_create_instance (
 		instance.desc_bpid,
 		instance_handle); /* context_memory */ 
 	
+	/* Upon an error, un-reserve the buffers */
 	if (return_val) {
-		// TODO: return with correct error code 
-		return IPSEC_ERROR;
+		slab_find_and_unreserve_bpid(
+				(int32_t)(committed_sa_num + 1), /* int32_t num_buffs */
+				instance.desc_bpid); /* uint16_t bpid */
+		/* not checking for an error here since the BPID must be valid */
+		return -ENOSPC;
 	}
 		
 	/* Write the Instance to external memory */
@@ -191,14 +193,14 @@ int ipsec_delete_instance(ipsec_instance_handle_t instance_handle)
 		return_val = slab_find_and_unreserve_bpid(
 			(int32_t)(instance.committed_sa_num + 1), /* int32_t num_buffs */
 			instance.desc_bpid); /* uint16_t bpid */
-		/* TODO: check for slab error */
-
+		/* check for slab error */
+		if (return_val) {
+			return -ENAVAIL; /* Resource not available, or not found */
+		}
+		
 		return IPSEC_SUCCESS;
 	} else {
-		/* TODO: handle a case of instance delete before SAs full delete */
-		
-		/* EPERM = 1, Operation not permitted */
-		return -EPERM; /* TODO: what is the correct error code? */
+		return -EPERM; /* Operation not permitted */
 	}
 } /* End of ipsec_delete_instance */
 
@@ -271,7 +273,7 @@ int ipsec_get_buffer(ipsec_instance_handle_t instance_handle,
 	} else {
 		/* Release lock */
 		cdma_mutex_lock_release(instance_handle);
-		return -ENOMEM;
+		return -EPERM;
 	}
 	
 	*tmi_id = instance.tmi_id;
@@ -295,7 +297,7 @@ get_buffer_alloc_err:
 			sizeof(instance.sa_count) /* uint16_t size */	
 	);
 	
-	return -ENOMEM;
+	return -ENOSPC;
 } /* End of ipsec_get_buffer */
 
 /**************************************************************************//**
@@ -335,7 +337,10 @@ int ipsec_release_buffer(ipsec_instance_handle_t instance_handle,
 			err = slab_find_and_unreserve_bpid(
 					1, /* int32_t num_buffs */
 					instance.desc_bpid); /* uint16_t bpid */
-			/* TODO: check for slab error */
+			/* Check for slab error */
+			if(err) {
+				return -ENAVAIL; /* bman pool not found */
+			}
 		}
 		
 		return IPSEC_SUCCESS;
@@ -343,7 +348,7 @@ int ipsec_release_buffer(ipsec_instance_handle_t instance_handle,
 		/* Release lock */
 		cdma_mutex_lock_release(instance_handle);
 		/* EPERM = 1, Operation not permitted */
-		return -EPERM; /* TODO: what is the correct error code? */
+		return -EPERM; /* trying to delete SA from empty instance */
 	}
 } /* End of ipsec_release_buffer */	
 		
@@ -620,8 +625,8 @@ int ipsec_generate_encap_sd(
 		params->cipherdata.key_type = (enum key_types)RTA_PARAM_PTR;
 	}
 	
-	params->authdata.algmode = 0; 
-	params->cipherdata.algmode = 0; 
+	params->authdata.algmode = 0;
+	params->cipherdata.algmode = 0;
 	
 	/* Clear reused fields */
 	ws_shared_desc[0] = 0;
@@ -907,8 +912,8 @@ int ipsec_generate_decap_sd(
 		params->cipherdata.key_type = (enum key_types)RTA_PARAM_PTR;
 	}
 
-	params->authdata.algmode = 0; 
-	params->cipherdata.algmode = 0; 
+	params->authdata.algmode = 0;
+	params->cipherdata.algmode = 0;
 
 	/* Call RTA function to build an encap descriptor */
 	if (params->flags & IPSEC_FLG_TUNNEL_MODE) {
@@ -1144,7 +1149,7 @@ void ipsec_create_key_copy(
 
 @Description	Generate and store the functional module internal parameter
 *//***************************************************************************/
-void ipsec_generate_sa_params(
+int ipsec_generate_sa_params(
 		struct ipsec_descriptor_params *params, 
 		ipsec_handle_t desc_addr, /* Parameters area */
 		ipsec_instance_handle_t instance_handle,
@@ -1296,7 +1301,11 @@ void ipsec_generate_sa_params(
 				IPSEC_SOFT_SEC_LIFETIME_EXPIRED, /* tman_arg_2B_t opaque_data2 */ 
 				&ipsec_tman_callback,
 				&sap.sap2.soft_tmr_handle); /* uint32_t *timer_handle */
-	
+		/* Check for TMAN Error */
+		if (return_val) {
+			return return_val;
+		}
+			
 		/* Hard seconds lifetime timer */
 		
 		/* If the lifetime is larger than the TMAN max,
@@ -1321,6 +1330,10 @@ void ipsec_generate_sa_params(
 				IPSEC_HARD_SEC_LIFETIME_EXPIRED, /* tman_arg_2B_t opaque_data2 */ 
 				&ipsec_tman_callback,
 				&sap.sap2.hard_tmr_handle); /* uint32_t *timer_handle */
+		/* Check for TMAN Error */
+		if (return_val) {
+			return return_val;
+		}
 		
 		sap.sap2.tmi_id = tmi_id; /* save the TMI ID */
 		
@@ -1350,7 +1363,26 @@ void ipsec_generate_sa_params(
 			(uint16_t)(sizeof(sap)) /* uint16_t size */
 			);
 	
+	return IPSEC_SUCCESS;
 } /* End of ipsec_generate_sa_params */
+
+/**************************************************************************//**
+@Function		ipsec_init_debug_info 
+
+@Description	Initialize the debug segment of the descriptor 
+*//***************************************************************************/
+void ipsec_init_debug_info(
+		ipsec_handle_t desc_addr) /* Parameters area */
+{
+	uint8_t debug_segment[IPSEC_DEBUG_SEGMENT_SIZE] = {0};
+	
+	/* Clear debug area */
+	cdma_write(
+		IPSEC_DEBUG_INFO_ADDR(desc_addr), /* ext_address */
+		&debug_segment, /* ws_src */
+		IPSEC_DEBUG_SEGMENT_SIZE); /* size */
+	
+} /* End of ipsec_create_key_copy */
 
 /**************************************************************************//**
 *	ipsec_add_sa_descriptor
@@ -1358,14 +1390,20 @@ void ipsec_generate_sa_params(
 
 /*                 SA Descriptor Structure
  * ------------------------------------------------------
- * |  ipsec_sa_params                 | 128 bytes       |
+ * | ipsec_sa_params                  | 128 bytes       | + 0
  * ------------------------------------------------------
- * | sec_flow_context                 | 64 bytes        |
+ * | sec_flow_context                 | 64 bytes        | + 128
  * -----------------------------------------------------
- * | sec_shared_descriptor            | Up to 256 bytes |
+ * | sec_shared_descriptor            | Up to 256 bytes | + 192
  * ------------------------------------------------------
- * | Replacement Job Descriptor (TBD) |                 |
+ * | Replacement Job Descriptor (TBD) | Up to 64 (TBD)  | + 448
  * ------------------------------------------------------
+ * | Authentication Key Copy          | 128 bytes       | + 512 
+ * ------------------------------------------------------
+ * | Cipher Key Copy                  | 32 bytes        | + 640 
+ * ------------------------------------------------------
+ * | Debug/Error information          | 32 bytes        | + 672 
+ * ------------------------------------------------------ 
  * 
  * ipsec_sa_params - Parameters used by the IPsec functional module	128 bytes
  * sec_flow_context	- SEC Flow Context. 64 bytes
@@ -1393,7 +1431,6 @@ int ipsec_add_sa_descriptor(
 	
 	/* Check for allocation error */
 	if (return_val) {
-		// TODO: decrement SA counter
 		return return_val;
 	}
 		
@@ -1438,14 +1475,17 @@ int ipsec_add_sa_descriptor(
 	/* Check for IPsec descriptor generation error */
 	if (return_val) {
 		// TODO: free the buffer, decrement SA counter?, fix error value
-		return return_val;
+		
+		/* Release the buffer. No check for error here */ 
+		ipsec_release_buffer(instance_handle, *ipsec_handle);
+		
+		return -ENAVAIL;
 	}
 	
 	/* Generate the SEC Flow Context descriptor and write to memory with CDMA */
 	ipsec_generate_flc(
 			IPSEC_FLC_ADDR(desc_addr), 
 				/* Flow Context Address in external memory */
-			//params->spid, /* Storage Profile ID of the SEC output frame */
 			params,
 			sd_size); /* Shared descriptor size in words */
 	
@@ -1453,15 +1493,18 @@ int ipsec_add_sa_descriptor(
 	 * Kilobytes and packets lifetime limits.
 	 * Modes indicators and other flags */
 	/* Store the descriptor parameters to memory (CDMA write). */
-	ipsec_generate_sa_params(
+	return_val = ipsec_generate_sa_params(
 			params,
 			desc_addr, /* Parameters area (start of buffer) */
 			instance_handle,
 			tmi_id);
+	/* An error can occur here due to TMAN call */
+	if (return_val) {
+		return return_val;
+	}
 	
-	/* Create one-shot TMAN timers for the soft and hard seconds lifetime 
-	 * limits, with callback to internal function 
-	 * (including the descriptor handle and soft/hard indication arguments). */
+	/* Initialize the debug area */
+	ipsec_init_debug_info(desc_addr);
 	
 	/* Success, handle returned. */
 	return IPSEC_SUCCESS;
@@ -1507,7 +1550,7 @@ int ipsec_del_sa_descriptor(
 	return_val = ipsec_release_buffer(instance_handle, ipsec_handle);
 	
 	if (return_val) { /* error */
-		return IPSEC_ERROR; /* */
+		return return_val; /* */
 	} else { /* success */
 		return IPSEC_SUCCESS; 
 	}
@@ -1725,12 +1768,11 @@ __IPSEC_HOT_CODE int ipsec_frame_encrypt(
 
 		segment_pointer = (uint8_t *)PARSER_GET_ETH_POINTER_DEFAULT();
 	
-		//fdma_copy_data(eth_length, 0 ,eth_pointer_default,eth_header);
 		/* Copy the input frame Ethernet header to workspace */
 		memcpy(eth_header, segment_pointer, eth_length);
 		
 		/* Remove L2 Header */	
-		fdma_replace_default_segment_data(
+		return_val = fdma_replace_default_segment_data(
 				(uint16_t)PARSER_GET_ETH_OFFSET_DEFAULT(),
 				eth_length,
 				NULL,
@@ -1738,6 +1780,17 @@ __IPSEC_HOT_CODE int ipsec_frame_encrypt(
 				(void *)prc->seg_address,
 				128,
 				(uint32_t)(FDMA_REPLACE_SA_CLOSE_BIT));
+		/* Check FDMA return status */
+		if (return_val) {
+			ipsec_error_handler(
+					ipsec_handle, /* ipsec_handle_t ipsec_handle */
+					IPSEC_FRAME_ENCRYPT,  /* Function ID */
+					IPSEC_FDMA_REPLACE_DEFAULT_SEGMENT_DATA,  /* SR ID */
+					__LINE__,
+					return_val); /* Error/Status value */
+			*enc_status = IPSEC_INTERNAL_ERR;
+			return IPSEC_ERROR;
+		}
 	}
 			/*---------------------*/
 			/* ipsec_frame_encrypt */
@@ -1757,8 +1810,18 @@ __IPSEC_HOT_CODE int ipsec_frame_encrypt(
 	/* 	7.	FDMA store default frame command 
 	 * (for closing the frame, updating the other FD fields) */
 	return_val = fdma_store_default_frame_data();
-	// TODO: check FDMA return status
-
+	/* check FDMA return status */
+	if (return_val) {
+		ipsec_error_handler(
+				ipsec_handle, /* ipsec_handle_t ipsec_handle */
+				IPSEC_FRAME_ENCRYPT,  /* Function ID */
+				IPSEC_FDMA_STORE_DEFAULT_FRAME_DATA,  /* SR/Hardware ID */
+				__LINE__,
+				return_val); /* Error/Status value */
+		*enc_status = IPSEC_INTERNAL_ERR;
+		return IPSEC_ERROR;
+	}
+	
 	/* 	8.	Prepare AAP parameters in the Workspace memory. */
 	/* 	8.1.	Use accelerator macros for storing parameters */
 	/* 
@@ -1896,6 +1959,14 @@ __IPSEC_HOT_CODE int ipsec_frame_encrypt(
 				/* Sequence Number overflow */
 				*enc_status |= IPSEC_SEQ_NUM_OVERFLOW;
 			} else {
+				/* Write SEC status to debug area */
+				ipsec_error_handler(
+					ipsec_handle, /* ipsec_handle_t ipsec_handle */
+					IPSEC_FRAME_ENCRYPT,  /* Function ID */
+					IPSEC_SEC_HW, /* SR ID */
+					__LINE__,
+					(int)LDPAA_FD_GET_FRC(HWC_FD_ADDRESS)); /* SEC status */
+				
 				*enc_status |= IPSEC_GEN_ENCR_ERR;
 				return IPSEC_ERROR;
 			}
@@ -1906,6 +1977,14 @@ __IPSEC_HOT_CODE int ipsec_frame_encrypt(
 					== SEC_SEQ_NUM_OVERFLOW) { /* Sequence Number overflow */
 				*enc_status |= IPSEC_SEQ_NUM_OVERFLOW;
 			} else {
+				/* Write SEC status to debug area */
+				ipsec_error_handler(
+					ipsec_handle, /* ipsec_handle_t ipsec_handle */
+					IPSEC_FRAME_ENCRYPT,  /* Function ID */
+					IPSEC_SEC_HW, /* SR ID */
+					__LINE__,
+					(int)LDPAA_FD_GET_FRC(HWC_FD_ADDRESS)); /* SEC status */
+
 				*enc_status |= IPSEC_GEN_ENCR_ERR;
 				return IPSEC_ERROR;
 			}
@@ -1917,8 +1996,17 @@ __IPSEC_HOT_CODE int ipsec_frame_encrypt(
 	 * added PRC_RESET_NDS_BIT(); */
 	PRC_RESET_NDS_BIT();
 	return_val = fdma_present_default_frame();
-	// TODO: check for FDMA error
-	
+	/* check for FDMA error */
+	if (return_val) {
+		ipsec_error_handler(
+				ipsec_handle, /* ipsec_handle_t ipsec_handle */
+				IPSEC_FRAME_ENCRYPT,  /* Function ID */
+				IPSEC_FDMA_PRESENT_DEFAULT_FRAME,  /* SR/Hardware ID */
+				__LINE__,
+				return_val); /* Error/Status value */
+		*enc_status = IPSEC_INTERNAL_ERR;
+		return IPSEC_ERROR;
+	}
 		
 	/* 	14.	Get new running sum and byte count (encrypted/encapsulated frame) 
 	 * from the FD[FLC] */
@@ -2004,6 +2092,17 @@ __IPSEC_HOT_CODE int ipsec_frame_encrypt(
 				FDMA_REPLACE_SA_REPRESENT_BIT 
 					/* uint32_t flags */
 				);
+		/* Check for FDMA error */
+		if (return_val) {
+			ipsec_error_handler(
+					ipsec_handle, /* ipsec_handle_t ipsec_handle */
+					IPSEC_FRAME_ENCRYPT,  /* Function ID */
+					IPSEC_FDMA_INSERT_DEFAULT_SEGMENT_DATA, /* SR/Hardware ID */
+					__LINE__,
+					return_val); /* Error/Status value */
+			*enc_status = IPSEC_INTERNAL_ERR;
+			return IPSEC_ERROR;
+		}
 	}
 
 		/*---------------------*/
@@ -2079,6 +2178,18 @@ __IPSEC_HOT_CODE int ipsec_frame_encrypt(
 				(uint16_t)PRC_GET_SEGMENT_LENGTH(), /* uint16_t size_rs */
 				FDMA_REPLACE_SA_REPRESENT_BIT); /* flags */
 		
+		/* Check for FDMA error */
+		if (return_val) {
+			ipsec_error_handler(
+					ipsec_handle, /* ipsec_handle_t ipsec_handle */
+					IPSEC_FRAME_ENCRYPT,  /* Function ID */
+					IPSEC_FDMA_REPLACE_DEFAULT_SEGMENT_DATA,/* SR/Hardware ID */
+					__LINE__,
+					return_val); /* Error/Status value */
+			*enc_status = IPSEC_INTERNAL_ERR;
+			return IPSEC_ERROR;
+		}
+		
 		// TODO, optionally calculate UDP checksum
 	} 
 
@@ -2111,7 +2222,17 @@ __IPSEC_HOT_CODE int ipsec_frame_encrypt(
 	
 	/* 	Run parser and check for errors. */
 	return_val = parse_result_generate_default(PARSER_NO_FLAGS);
-	// TODO: check results (TBD)
+	/* Check for Parser error */
+	if (return_val) {
+		ipsec_error_handler(
+				ipsec_handle, /* ipsec_handle_t ipsec_handle */
+				IPSEC_FRAME_ENCRYPT,  /* Function ID */
+				IPSEC_PARSE_RESULT_GENERATE_DEFAULT, /* SR/Hardware ID */
+				__LINE__,
+				return_val); /* Error/Status value */
+		*enc_status = IPSEC_INTERNAL_ERR;
+		return IPSEC_ERROR;
+	}
 	
 #if(0)
 	// Debug //
@@ -2153,12 +2274,9 @@ __IPSEC_HOT_CODE int ipsec_frame_encrypt(
 			STE_MODE_COMPOUND_CNTR_SATURATE |
 			STE_MODE_COMPOUND_ACC_SATURATE));
 	
-	return_val = IPSEC_SUCCESS;	
-
 	/* 	19.	END */
-		
-	/* 	19.3.	Return */
-	return return_val;
+	return IPSEC_SUCCESS;
+
 } /* End of ipsec_frame_encrypt */
 
 /**************************************************************************//**
@@ -2372,6 +2490,18 @@ __IPSEC_HOT_CODE int ipsec_frame_decrypt(
 					(uint16_t)(PRC_GET_SEGMENT_LENGTH()), /* uint16_t size_rs */
 					FDMA_REPLACE_SA_REPRESENT_BIT); /* flags */
 				
+				/* check FDMA return status */
+				if (return_val) {
+					ipsec_error_handler(
+							ipsec_handle, /* ipsec_handle_t ipsec_handle */
+							IPSEC_FRAME_DECRYPT,  /* Function ID */
+							IPSEC_FDMA_REPLACE_DEFAULT_SEGMENT_DATA, /* SR ID */
+							__LINE__,
+							return_val); /* Error/Status value */
+					*dec_status = IPSEC_INTERNAL_ERR;
+					return IPSEC_ERROR;
+				}
+								
 				/* TODO: possibly unify FDMA replace for both UDP and L2
 				 * headers removal */
 			}
@@ -2388,7 +2518,7 @@ __IPSEC_HOT_CODE int ipsec_frame_decrypt(
 			memcpy(eth_header, segment_pointer, eth_length);
 
 			/* Remove L2 Header */	
-			fdma_replace_default_segment_data(
+			return_val = fdma_replace_default_segment_data(
 					(uint16_t)PARSER_GET_ETH_OFFSET_DEFAULT(),
 					eth_length,
 					NULL,
@@ -2396,6 +2526,17 @@ __IPSEC_HOT_CODE int ipsec_frame_decrypt(
 					(void *)prc->seg_address,
 					128,
 					(uint32_t)(FDMA_REPLACE_SA_CLOSE_BIT));
+			/* Check FDMA return status */
+			if (return_val) {
+				ipsec_error_handler(
+						ipsec_handle, /* ipsec_handle_t ipsec_handle */
+						IPSEC_FRAME_DECRYPT,  /* Function ID */
+						IPSEC_FDMA_REPLACE_DEFAULT_SEGMENT_DATA, /* SR ID */
+						__LINE__,
+						return_val); /* Error/Status value */
+				*dec_status = IPSEC_INTERNAL_ERR;
+				return IPSEC_ERROR;
+			}
 			
 			/* This is done here because L2 is removed only in Transport */
 			PRC_RESET_NDS_BIT(); 
@@ -2444,6 +2585,17 @@ __IPSEC_HOT_CODE int ipsec_frame_decrypt(
 	/* 	8.	FDMA store default frame command 
 	 * (for closing the frame, updating the other FD fields) */
 	return_val = fdma_store_default_frame_data();
+	/* check FDMA return status */
+	if (return_val) {
+		ipsec_error_handler(
+				ipsec_handle, /* ipsec_handle_t ipsec_handle */
+				IPSEC_FRAME_DECRYPT,  /* Function ID */
+				IPSEC_FDMA_STORE_DEFAULT_FRAME_DATA, /* SR ID */
+				__LINE__,
+				return_val); /* Error/Status value */
+		*dec_status = IPSEC_INTERNAL_ERR;
+		return IPSEC_ERROR;
+	}
 	
 	/* 	9.	Prepare AAP parameters in the Workspace memory. */
 	/* 3 USE_FLC_SP Use Flow Context Storage Profile = 1 */ 
@@ -2556,6 +2708,15 @@ __IPSEC_HOT_CODE int ipsec_frame_decrypt(
 						break;
 					default:
 						/* For general errors do not present the frame */
+						/* Write SEC status to debug area */
+						ipsec_error_handler(
+							ipsec_handle, /* ipsec_handle_t ipsec_handle */
+							IPSEC_FRAME_DECRYPT,  /* Function ID */
+							IPSEC_SEC_HW, /* SR ID */
+							__LINE__,
+							(int)LDPAA_FD_GET_FRC(HWC_FD_ADDRESS)); 
+														/* SEC status */
+						
 						*dec_status |= IPSEC_GEN_DECR_ERR;
 						return IPSEC_ERROR;
 				}	
@@ -2581,6 +2742,15 @@ __IPSEC_HOT_CODE int ipsec_frame_decrypt(
 						break;
 					default:
 						/* For general errors do not present the frame */
+						/* Write SEC status to debug area */
+						ipsec_error_handler(
+							ipsec_handle, /* ipsec_handle_t ipsec_handle */
+							IPSEC_FRAME_DECRYPT,  /* Function ID */
+							IPSEC_SEC_HW, /* SR ID */
+							__LINE__,
+							(int)LDPAA_FD_GET_FRC(HWC_FD_ADDRESS)); 
+														/* SEC status */
+
 						*dec_status |= IPSEC_GEN_DECR_ERR;
 						return IPSEC_ERROR;
 				}	
@@ -2629,6 +2799,17 @@ __IPSEC_HOT_CODE int ipsec_frame_decrypt(
 		PRC_SET_SR_BIT();
 			
 		return_val = fdma_present_default_frame();
+		/* Check FDMA return status */
+		if (return_val) {
+			ipsec_error_handler(
+					ipsec_handle, /* ipsec_handle_t ipsec_handle */
+					IPSEC_FRAME_DECRYPT,  /* Function ID */
+					IPSEC_FDMA_PRESENT_DEFAULT_FRAME, /* SR ID */
+					__LINE__,
+					return_val); /* Error/Status value */
+			*dec_status = IPSEC_INTERNAL_ERR;
+			return IPSEC_ERROR;
+		}
 
 		/* Get the pad length byte */
 		segment_pointer = (uint8_t *)orig_seg_addr + end_seg_len - 2;
@@ -2651,7 +2832,14 @@ __IPSEC_HOT_CODE int ipsec_frame_decrypt(
 		/* If 'pad_length' != 0, it means the presentation size was too small 
 		 * for the entire padding, and this is not supported. Return an error */
 		if(pad_length) {
-			*dec_status |= IPSEC_GEN_DECR_ERR;
+			ipsec_error_handler(
+					ipsec_handle, /* ipsec_handle_t ipsec_handle */
+					IPSEC_FRAME_DECRYPT, /* Function ID */
+					IPSEC_INTERNAL_SERVICE, /* SR ID */
+					__LINE__,
+					IPSEC_INT_ERR_PAD_TOO_LONG); /* Error/Status value */
+
+			*dec_status |= IPSEC_INTERNAL_ERR;
 			return IPSEC_ERROR;
 		}
 		
@@ -2659,7 +2847,7 @@ __IPSEC_HOT_CODE int ipsec_frame_decrypt(
 		pad_length = *((uint8_t *)orig_seg_addr + end_seg_len - 2);
 
 		/* Remove the ESP trailer */	
-		fdma_replace_default_segment_data(
+		return_val = fdma_replace_default_segment_data(
 				(uint16_t)PARSER_GET_ETH_OFFSET_DEFAULT(),/* to_offset */
 				end_seg_len, /* to_size (original size) */
 				(void *)orig_seg_addr,
@@ -2668,6 +2856,17 @@ __IPSEC_HOT_CODE int ipsec_frame_decrypt(
 				(void *)prc->seg_address,
 				(uint16_t)PRC_GET_SEGMENT_LENGTH(),
 				(uint32_t)(FDMA_REPLACE_SA_CLOSE_BIT));
+		/* Check FDMA return status */
+		if (return_val) {
+			ipsec_error_handler(
+					ipsec_handle, /* ipsec_handle_t ipsec_handle */
+					IPSEC_FRAME_DECRYPT, /* Function ID */
+					IPSEC_FDMA_REPLACE_DEFAULT_SEGMENT_DATA, /* SR ID */
+					__LINE__,
+					return_val); /* Error/Status value */
+			*dec_status = IPSEC_INTERNAL_ERR;
+			return IPSEC_ERROR;
+		}
 			
 		/* Present from the beginning of the frame */
 		PRC_RESET_SR_BIT();
@@ -2680,10 +2879,34 @@ __IPSEC_HOT_CODE int ipsec_frame_decrypt(
 				orig_seg_offset, /* uint16_t offset */
 				orig_seg_length /* uint16_t present_size */
 				);
+		
+		/* Check FDMA return status */
+		if (return_val) {
+			ipsec_error_handler(
+					ipsec_handle, /* ipsec_handle_t ipsec_handle */
+					IPSEC_FRAME_DECRYPT, /* Function ID */
+					IPSEC_FDMA_PRESENT_DEFAULT_FRAME_SEGMENT, /* SR ID */
+					__LINE__,
+					return_val); /* Error/Status value */
+			*dec_status = IPSEC_INTERNAL_ERR;
+			return IPSEC_ERROR;
+		}
+		
 		/* End of TRANSPORT PAD CHECK section */
 	} else {
 		/* Present for no transport pad check case */ 
 		return_val = fdma_present_default_frame();
+		/* Check FDMA return status */
+		if (return_val) {
+			ipsec_error_handler(
+					ipsec_handle, /* ipsec_handle_t ipsec_handle */
+					IPSEC_FRAME_DECRYPT, /* Function ID */
+					IPSEC_FDMA_PRESENT_DEFAULT_FRAME, /* SR ID */
+					__LINE__,
+					return_val); /* Error/Status value */
+			*dec_status = IPSEC_INTERNAL_ERR;
+			return IPSEC_ERROR;
+		}		
 	}
 	
 	/* 	15.	Get new running sum and byte count (encrypted/encapsulated frame) 
@@ -2734,6 +2957,18 @@ __IPSEC_HOT_CODE int ipsec_frame_decrypt(
 					/* uint32_t flags */
 				);
 		
+		/* Check FDMA return status */
+		if (return_val) {
+			ipsec_error_handler(
+					ipsec_handle, /* ipsec_handle_t ipsec_handle */
+					IPSEC_FRAME_DECRYPT,  /* Function ID */
+					IPSEC_FDMA_INSERT_DEFAULT_SEGMENT_DATA, /* SR ID */
+					__LINE__,
+					return_val); /* Error/Status value */
+			*dec_status = IPSEC_INTERNAL_ERR;
+			return IPSEC_ERROR;
+		}
+		
 		/* TODO: Update the gross running sum if adding L2 header */
 	}
 	
@@ -2744,38 +2979,27 @@ __IPSEC_HOT_CODE int ipsec_frame_decrypt(
 	/* 	17.	Run parser and check for errors. */
 	//return_val = parse_result_generate_default(PARSER_VALIDATE_L3_L4_CHECKSUM);
 	return_val = parse_result_generate_default(PARSER_NO_FLAGS);
-
-	//if (return_val) {
-	//	fsl_print("\nIPSEC: ERROR parser validation failed\n\n");
-	//} 
-	//else {
-	//	fsl_print("IPSEC: parser validation passed\n");
-	//}
-		
-	/////////////  Debug - FDMA checksum /////////////////////////////////////
-	//fdma_calculate_default_frame_checksum(
-	//		0, /* uint16_t offset, */
-	//		128, /* uint16_t size, */
-	//		&i); /* uint16_t *checksum) */
-	//
-	//checksum = (uint32_t)i;
-			
-	//fsl_print("FDMA gross running sum = 0x%x\n", checksum);
-	//pr->gross_running_sum = (uint16_t)checksum;
-	//return_val = parse_result_generate_default(PARSER_VALIDATE_L3_L4_CHECKSUM);
-	//return_val = parse_result_generate_default(PARSER_NO_FLAGS);
-
-	//if (return_val) {
-	//	fsl_print("\nIPSEC: ERROR parser validation failed\n\n");
-	//} 
-	//else {
-	//	fsl_print("IPSEC: parser validation passed\n");
-	//}
-
-	///////////////////// End Debug //////////////////////////////////////
 	
-	/* 	18.	If validity check failed, go to END, return with error. */
-	// TODO
+	/* Check the Parser return status for frame validity */
+	if (return_val) {
+		if (return_val == -EIO) { /* Frame validity fail */
+			*dec_status = IPSEC_DECR_VALIDITY_ERR;
+		} else { /* Other parser error */
+			*dec_status = IPSEC_INTERNAL_ERR;
+		}
+		
+		/* Get the detailed parser error code */
+		return_val = PARSER_GET_PARSE_ERROR_CODE_DEFAULT();
+		
+		ipsec_error_handler(
+				ipsec_handle, /* ipsec_handle_t ipsec_handle */
+				IPSEC_FRAME_DECRYPT,  /* Function ID */
+				IPSEC_PARSE_RESULT_GENERATE_DEFAULT, /* SR ID */
+				__LINE__,
+				return_val); /* Error/Status value */
+
+		return IPSEC_ERROR;
+	}
 	
 	/* 	19.	Restore the original FD[FLC], FD[FRC] (from stack) */
 	LDPAA_FD_SET_FLC(HWC_FD_ADDRESS, orig_flc);	
@@ -2797,12 +3021,8 @@ __IPSEC_HOT_CODE int ipsec_frame_decrypt(
 			STE_MODE_COMPOUND_CNTR_SATURATE |
 			STE_MODE_COMPOUND_ACC_SATURATE)); /* uint32_t flags */
 	
-	return_val = IPSEC_SUCCESS;	
-
-	/* 	21.	END */
-	
-	/* Return */
-	return return_val;
+	/* END */
+	return IPSEC_SUCCESS;
 } /* End of ipsec_frame_decrypt */
 
 /**************************************************************************//**
@@ -3472,6 +3692,62 @@ int ipsec_force_seconds_lifetime_expiry(
 	return IPSEC_SUCCESS;
 	
 } /* End of ipsec_force_seconds_lifetime_expiry */
+
+/**************************************************************************//**
+@Function	ipsec_error_handler
+
+*//****************************************************************************/
+void ipsec_error_handler(
+		ipsec_handle_t ipsec_handle,
+		enum ipsec_function_identifier func_id,  /* Function ID */
+		enum ipsec_service_identifier service_id,  /* SR/Hardware ID */
+		uint32_t line,
+		int status) /* Error/Status value */
+{
+
+	struct ipsec_debug_info info;
+	ipsec_handle_t desc_addr;
+	desc_addr = IPSEC_DESC_ADDR(ipsec_handle);
+
+	cdma_read_with_mutex(
+			IPSEC_DEBUG_INFO_ADDR(desc_addr), /* uint64_t ext_address */
+			CDMA_PREDMA_MUTEX_WRITE_LOCK, /* uint32_t flags */
+			&info, /* void *ws_dst */
+			(uint16_t)sizeof(info) /* uint16_t size */	
+	);
+
+	/* Write only if current status is clear (no previous error) */
+	if(!info.status) {
+		info.func_id = func_id;
+		info.service_id = service_id;
+		info.line = line;
+		info.status = status;
+	
+		/* Write the status to external memory */
+		cdma_write(
+			IPSEC_DEBUG_INFO_ADDR(desc_addr), /* ext_address */
+			&info, /* ws_src */
+			(uint16_t)(sizeof(info))); /* size */
+		
+	
+		/* Release lock */
+		cdma_mutex_lock_release(IPSEC_DEBUG_INFO_ADDR(desc_addr));
+	
+#pragma push
+#pragma stackinfo_ignore on
+		
+		/* Debug Print */
+		pr_debug("IPsec debug info: Fn=%d, Sr=%d, Ln=%d, St=%d (0x%x)\n",
+			info.func_id,
+			info.service_id,
+			info.line,
+			info.status, info.status);
+
+#pragma pop	
+		
+	}
+}
+
 
 /** @} */ /* end of FSL_IPSEC_Functions */
 
