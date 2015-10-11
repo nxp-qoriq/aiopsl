@@ -1,3 +1,5 @@
+fsl_rcu.h         Renamed REV1 rcu_synchronize() to rcu_synchronize_nb(). Added rcu_synchronize() for REV2.
+
 log.c/h, fsl_log.h: Update logger implementation to use logger header.
                     The header contains the start address, last written byte, buffer size and a flag if there was a wrap.
                     The flag is the msb in last_byte.
