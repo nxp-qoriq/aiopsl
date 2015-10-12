@@ -494,6 +494,14 @@ void timeout_cb_verif(uint64_t arg)
 	flags |= ((str.TC == 1) ? (FDMA_EN_TC_TERM_BITS) : 0x0);
 	flags |= ((str.PS) ? FDMA_ENWF_PS_BIT : 0x0);
 
+	/* W/A to set NI Storage Profile PTAR the same as FD PTA.
+	 * This is needed since generic GRO code uses NI spid while ROC work 
+	 * without NI while . */
+	if (LDPAA_FD_GET_PTA(HWC_SPID_ADDRESS)) /* set SP PTAR to 1*/
+		storage_profile[GET_DEFAULT_SPID()].mode_bits1 |= 0x80;
+	else /*set SP PTAR to 0 */
+		storage_profile[GET_DEFAULT_SPID()].mode_bits1 &= 0x7F;
+	
 	if (str.EIS) {
 		str.status = (int8_t)
 			fdma_store_and_enqueue_default_frame_fqid(
