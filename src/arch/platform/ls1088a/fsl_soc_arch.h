@@ -59,9 +59,6 @@
  */
 #define INTG_ACTUAL_MAX_NUM_OF_CORES   4
 
-#define INTG_MAX_NUM_OF_CLUSTR  1
-
-
 /** @} */ /* end of ls1088a_g group */
 
 /* AIOP Peripherals Offset in AIOP memory map */

@@ -68,8 +68,6 @@ struct memory_types_table *g_slab_early_init_data;
 	}
 
 int slab_module_early_init(void);
-
-__START_DDR_DATA
 /***************************************************************************
  * slab_read_pool used by: slab_debug_info_get
  ***************************************************************************/
@@ -1723,6 +1721,4 @@ __COLD_CODE int slab_register_context_buffer_requirements(
 
 	return 0;
 }
-
-__END_DDR_DATA
 /*****************************************************************************/
