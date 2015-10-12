@@ -150,7 +150,9 @@ int ipf_move_remaining_frame(struct ipf_context *ipf_ctx)
 	present_segment_params.flags = FDMA_PRES_NO_FLAGS;
 	present_segment_params.frame_handle = ipf_ctx->rem_frame_handle;
 	present_segment_params.offset = 0;
-	present_segment_params.present_size = 0;
+	//present_segment_params.present_size = 0;
+	/* Change presentation size to 1 as a w/a for TKT280408 */
+	present_segment_params.present_size = 1; 
 	/* present empty segment of the remaining frame */
 	fdma_present_frame_segment(&present_segment_params);
 
@@ -312,7 +314,9 @@ int ipf_move_remaining_frame(struct ipf_context *ipf_ctx)
 	present_segment_params.flags = FDMA_PRES_NO_FLAGS;
 	present_segment_params.frame_handle = ipf_ctx->rem_frame_handle;
 	present_segment_params.offset = 0;
-	present_segment_params.present_size = 0;
+	//present_segment_params.present_size = 0;
+	/* Change presentation size to 1 as a w/a for TKT280408 */
+	present_segment_params.present_size = 1; 
 	/* present empty segment of the remaining frame */
 	fdma_present_frame_segment(&present_segment_params);
 
