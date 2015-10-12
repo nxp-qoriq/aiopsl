@@ -97,7 +97,7 @@ inline int keygen_gen_key(enum keygen_hw_accel_id acc_id,
 	status = *((int32_t *)HWC_ACC_OUT_ADDRESS);
 	if (status == KEYGEN_HW_STATUS_SUCCESS) {
 		return 0;
-	} else if (status == KEYGEN_HW_STATUS_EOFH) {
+	} else if (status & KEYGEN_HW_STATUS_EOFH) {
 		return -EIO;
 	} else {
 		keygen_exception_handler(KEYGEN_GEN_KEY,
