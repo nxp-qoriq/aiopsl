@@ -112,13 +112,13 @@ enum parser_verif_cmd_type {
 #define PARSER_SET_FRAME_LENGTH_STR ((PARSE_MODULE << 16) | \
 		PARSER_SET_FRAME_LENGTH_VERIF_CMDTYPE)
 
-#define  PARSER_GEN_PARSE_RES_BASIC_STR ((PARSE_MODULE << 16) | \
+#define PARSER_GEN_PARSE_RES_BASIC_STR ((PARSE_MODULE << 16) | \
 		PARSER_GEN_PARSE_RES_BASIC_VERIF_CMDTYPE)
 
-#define  PARSER_PARSE_AFTER_POP_VLAN_STR ((PARSE_MODULE << 16) | \
+#define PARSER_PARSE_AFTER_POP_VLAN_STR ((PARSE_MODULE << 16) | \
 		PARSER_PARSE_AFTER_POP_VLAN_VERIF_CMDTYPE)
 
-#define  PARSER_PARSE_AFTER_PUSH_VLAN_STR ((PARSE_MODULE << 16) | \
+#define PARSER_PARSE_AFTER_PUSH_VLAN_STR ((PARSE_MODULE << 16) | \
 		PARSER_PARSE_AFTER_PUSH_VLAN_VERIF_CMDTYPE)
 
 /**************************************************************************//**
@@ -328,7 +328,6 @@ struct parser_gen_parser_res_basic_verif_command {
 *//***************************************************************************/
 struct parser_parse_after_pop_vlan_verif_command {
 	uint32_t	opcode;
-	int32_t		status;
 };
 
 /**************************************************************************//**
@@ -338,9 +337,6 @@ struct parser_parse_after_pop_vlan_verif_command {
 *//***************************************************************************/
 struct parser_parse_after_push_vlan_verif_command {
 	uint32_t	opcode;
-	int32_t		status;
-	uint32_t 	vlan;
-	uint8_t		pad[4];
 };
 
 void aiop_init_parser(uint8_t *prpid);

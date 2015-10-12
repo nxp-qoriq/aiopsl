@@ -611,6 +611,32 @@ uint16_t aiop_verification_parser(uint32_t asa_seg_addr)
 		str_size = sizeof(struct parser_macros_command);
 		break;
 	}
+	case PARSER_PARSE_AFTER_POP_VLAN_STR: 
+	{
+		struct parser_parse_after_pop_vlan_verif_command *pv =
+			(struct parser_parse_after_pop_vlan_verif_command *)
+			asa_seg_addr;
+
+		/* Update parse result table */
+		parser_pop_vlan_update();
+
+		str_size =
+			sizeof(struct parser_parse_after_pop_vlan_verif_command);
+		break;
+	}
+	case PARSER_PARSE_AFTER_PUSH_VLAN_STR:
+	{
+		struct parser_parse_after_push_vlan_verif_command *pv =
+			(struct parser_parse_after_push_vlan_verif_command *)
+			asa_seg_addr;
+
+		/* Update parse result table */
+		parser_push_vlan_update();
+
+		str_size =
+			sizeof(struct parser_parse_after_push_vlan_verif_command);
+		break;
+	}
 	default:
 	{
 		return STR_SIZE_ERR;

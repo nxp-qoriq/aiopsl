@@ -35,7 +35,7 @@
 							<option id="com.freescale.ppc.toolchain.sharedoption.smallData.1128260385" name="Small Data" superClass="com.freescale.ppc.toolchain.sharedoption.smallData" value="8" valueType="string"/>
 							<option id="com.freescale.ppc.toolchain.sharedoption.smallData2.1801889095" name="Small Data2" superClass="com.freescale.ppc.toolchain.sharedoption.smallData2" value="8" valueType="string"/>
 							<targetPlatform archList="all" binaryParser="org.eclipse.cdt.core.ELF" id="com.freescale.ppc.toolchain.platform.2126422044" name="AIOP Target Platform" superClass="com.freescale.ppc.toolchain.platform"/>
-							<builder autoBuildTarget="" buildPath="${ProjDirPath}/out" cleanBuildTarget="" enableAutoBuild="true" enableCleanBuild="true" enabledIncrementalBuild="true" errorParsers="org.eclipse.cdt.core.GmakeErrorParser;com.freescale.core.ide.cdt.errorParsers.MwErrorParser;com.freescale.core.ide.cdt.errorParsers.MPWErrorParser" id="com.freescale.ppc.toolchain.builder.459361658" incrementalBuildTarget="" keepEnvironmentInBuildfile="false" managedBuildOn="true" name="Make Builder" parallelBuildWorkspaceOn="true" parallelizationNumber="1" superClass="com.freescale.ppc.toolchain.builder"/>
+							<builder autoBuildTarget="" buildPath="${ProjDirPath}/out" cleanBuildTarget="" enableAutoBuild="true" enableCleanBuild="true" enabledIncrementalBuild="true" errorParsers="org.eclipse.cdt.core.GmakeErrorParser;com.freescale.core.ide.cdt.errorParsers.MwErrorParser;com.freescale.core.ide.cdt.errorParsers.MPWErrorParser" id="com.freescale.ppc.toolchain.builder.459361658" incrementalBuildTarget="" keepEnvironmentInBuildfile="false" managedBuildOn="true" name="Make Builder" parallelBuildWorkspaceOn="true" parallelizationNumber="-1" superClass="com.freescale.ppc.toolchain.builder"/>
 							<tool command="&quot;${AIOPToolsDir}/ldaiop&quot;" commandLinePattern="${COMMAND} ${FLAGS} ${OUTPUT_FLAG} ${OUTPUT_PREFIX}${OUTPUT} ${INPUTS}" errorParsers="" id="com.freescale.ppc.toolchain.linker.1985844452" name="Linker" superClass="com.freescale.ppc.toolchain.linker">
 								<option id="com.freescale.ppc.toolchain.linker.base.input.dataAddress.1272859047" name="Data Address" superClass="com.freescale.ppc.toolchain.linker.base.input.dataAddress" value="0x0" valueType="string"/>
 								<option id="com.freescale.ppc.toolchain.linker.base.input.smallDataAddress.620798255" name="Small Data Address" superClass="com.freescale.ppc.toolchain.linker.base.input.smallDataAddress" value="0x0" valueType="string"/>
@@ -108,6 +108,7 @@
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../../src/drivers/dplib&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../../src/drivers/dplib/dpni&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../../src/drivers/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../../src/drivers/netf/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../../src/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../../src/include/common&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../../src/include/drivers&quot;"/>

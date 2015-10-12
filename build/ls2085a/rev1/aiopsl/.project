@@ -1277,7 +1277,7 @@
 		<link>
 			<name>aiop_sl/drivers/accel/ste/ste.c</name>
 			<type>1</type>
-			<locationURI>PARENT-4-PROJECT_LOC/src/drivers/accel/ste/ste.c</locationURI>
+			<locationURI>PARENT-4-PROJECT_LOC/src/drivers/accel/ste/01_01/ste.c</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/drivers/accel/ste/ste.h</name>

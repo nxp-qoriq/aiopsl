@@ -33,10 +33,6 @@
 
 
 
-#define LOG_INIT_SIGN				"START\nEND\n"
-#define LOG_END_SIGN_LENGTH                     4
-
-
 /*******************************************************************
  External Routines
  *******************************************************************/
@@ -55,7 +51,7 @@ int log_init(void);
 
  @Description  	function to print the log to buffer..
 
- @Param[in]     str - pointer to generated string which will be printed. 
+ @Param[in]     str - pointer to generated string which will be printed.
 
  @Param[in]     str_length - length of the string given by the pointer.
 

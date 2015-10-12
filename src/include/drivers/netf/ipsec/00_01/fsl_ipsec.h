@@ -302,6 +302,14 @@ typedef void (ipsec_lifetime_callback_t) (
 /** General decryption error */
 #define IPSEC_GEN_DECR_ERR	 				0x00002000
 
+/** Decryption validity error 
+ * The frame after decyption is invalid due to checksum or other 
+ * header error */
+#define IPSEC_DECR_VALIDITY_ERR	 				0x00008000
+
+/** Internal error */
+#define IPSEC_INTERNAL_ERR	 				0x00010000
+
 /**************************************************************************//**
  @Description	AIOP IPsec Seconds Lifetime Callback codes.
 *//***************************************************************************/
@@ -529,7 +537,9 @@ int ipsec_early_init(
 
 @Param[out]	instance_handle - instance handle 
 		
-@Return		Status
+@Return		IPSEC_SUCCESS
+	        -ENOMEM : not enough memory for partition
+	        -ENOSPC	: unable to allocate due to depletion
 
 *//****************************************************************************/
 int ipsec_create_instance(
@@ -548,7 +558,9 @@ int ipsec_create_instance(
 				
 @Param[out]	instance_handle - instance handle 
 		
-@Return		Status
+@Return		IPSEC_SUCCESS
+			-ENAVAIL : instance does not exist
+			-EPERM : trying to delete an instance before deleting all SAs
 
 *//****************************************************************************/
 int ipsec_delete_instance(ipsec_instance_handle_t instance_handle);
@@ -567,8 +579,13 @@ int ipsec_delete_instance(ipsec_instance_handle_t instance_handle);
 
 @Param[out]	ipsec_handle - IPsec handle to the descriptor database
 		
-@Return		Status
-
+@Return		IPSEC_SUCCESS
+	        -ENOSPC	: unable to allocate resources due to memory depletion,
+	        		  or seconds lifetime timer resources depletion 
+	        -EPERM : trying to allocate more than maximum SAs for instance
+	        -ENAVAIL : unable to create SA descriptor
+	     	-EBUSY : Unable to allocate resources for seconds lifetime timer
+		
 *//****************************************************************************/
 int ipsec_add_sa_descriptor(
 		struct ipsec_descriptor_params *params,
@@ -584,7 +601,9 @@ int ipsec_add_sa_descriptor(
 
 @Param[in]	ipsec_handle - descriptor handle.
 
-@Return		Status
+@Return		IPSEC_SUCCESS
+			-ENAVAIL : SA/Instance not found
+			-EPERM : trying to delete SA descriptor from empty instance
 
 *//****************************************************************************/
 int ipsec_del_sa_descriptor(ipsec_handle_t ipsec_handle);

@@ -272,7 +272,10 @@ __COLD_CODE int sys_init(void)
 		sys.p_pre_console_buf = &pre_console_buf[0];
 
 		if(g_init_data.sl_info.log_buf_size){
-			log_init();
+			err = log_init();
+			if(err){
+				return err;
+			}
 			sys.print_to_buffer = TRUE;
 		}
 		err = global_sys_init();
