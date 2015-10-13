@@ -48,13 +48,10 @@ typedef int32_t intptr_t;
 #endif /* NULL */
 
 #define STRINGTYPE(a) #a
-#define DEFINE_CODE_SECTION(x) section code_type x data_mode=far_abs code_mode=pc_rel
-#define DEFINE_DATA_SECTION(x) section data_type x
+#define DEFINESECTION(x) section code_type x data_mode=far_abs code_mode=pc_rel
 #define PUSH _Pragma("push")
-#define START_CODE_SECTION(s) _Pragma(STRINGTYPE(DEFINE_CODE_SECTION(s)))
-#define START_DATA_SECTION(s) _Pragma(STRINGTYPE(DEFINE_DATA_SECTION(s)))
-#define START_CODE_IN_SECTION(s) PUSH START_CODE_SECTION(s)
-#define START_DATA_IN_SECTION(s) PUSH START_DATA_SECTION(s)
+#define STARTSECTION(s) _Pragma(STRINGTYPE(DEFINESECTION(s)))
+#define START_CODE_IN_SECTION(s) PUSH STARTSECTION(s)
 #define POP _Pragma("pop")
 /**declare function as entry point*/
 #define ENTRY_POINT   __declspec(entry_point)
@@ -79,8 +76,5 @@ typedef int32_t intptr_t;
 #define __START_HOT_CODE START_CODE_IN_SECTION(".itext_vle")
 #define __END_HOT_CODE POP
 
-/** DDR data location */
-#define __START_DDR_DATA START_DATA_IN_SECTION(".exception_data")
-#define __END_DDR_DATA POP
 
 #endif /* __FSL_TYPES_H */

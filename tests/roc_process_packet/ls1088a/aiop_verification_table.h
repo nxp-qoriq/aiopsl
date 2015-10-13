@@ -639,8 +639,14 @@ struct table_rule_query_by_key_desc_command{
 	/** Command returned status */
 	int32_t  status;
 
-	/* Timestamp of the matched rule*/
+	/** Timestamp of the matched rule*/
 	uint32_t timestamp;
+
+	/** Priority */
+	uint32_t priority;
+
+	/** Rule ID */
+	t_rule_id rule_id;
 
 	/** Table ID */
 	uint16_t table_id;
