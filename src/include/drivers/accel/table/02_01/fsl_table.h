@@ -1414,7 +1414,7 @@ inline int table_rule_replace_by_key_desc(enum table_hw_accel_id acc_id,
 		for MFLU tables.
 @Param[out]	result The result of the query. Structure should be allocated
 		by the caller to this function. Output is valid only on success
-		or status #TABLE_STATUS_MFLU_DIFF_PRIORITY.
+		status or #TABLE_STATUS_MFLU_DIFF_PRIORITY status.
 @Param[out]	timestamp Timestamp of the result in microseconds. Timestamp
 		is not valid unless the rule queried for was created with
 		suitable options (Please refer to \ref FSL_TABLE_RULE_OPTIONS
@@ -1422,6 +1422,11 @@ inline int table_rule_replace_by_key_desc(enum table_hw_accel_id acc_id,
 		function.
 		Output is valid only on success or status
 		#TABLE_STATUS_MFLU_DIFF_PRIORITY.
+@Param[out]	priority The priority of the found rule. Only valid if the
+		returned status is #TABLE_STATUS_MFLU_DIFF_PRIORITY.
+@Param[out]	rule_id Rule ID of the rule that was found. This ID can be
+		used as a reference to this rule by other functions. Valid only
+		on success status or #TABLE_STATUS_MFLU_DIFF_PRIORITY status.
 
 @Return		0 on success, #TABLE_STATUS_MISS on miss,
 		#TABLE_STATUS_MFLU_DIFF_PRIORITY on MFLU rule found with
@@ -1443,7 +1448,10 @@ inline int table_rule_query_by_key_desc(enum table_hw_accel_id acc_id,
 					union table_key_desc *key_desc,
 					uint8_t key_size,
 					struct table_result *result,
-					uint32_t *timestamp);
+					uint32_t *timestamp,
+					/*TODO documentation */
+					uint32_t *priority,
+					t_rule_id *rule_id);
 
 
 /**************************************************************************//**

@@ -247,13 +247,15 @@ void table_get_miss_result(enum table_hw_accel_id acc_id,
 			   struct table_result *miss_result)
 {
 	int32_t status;
-	uint32_t invalid_timestamp;
+	uint64_t invalid_8B;
 	status = table_rule_query_by_key_desc(acc_id,
 					      table_id,
 					      0,
 					      0,
 					      miss_result,
-					      &invalid_timestamp);
+					      ((uint32_t *)(&invalid_8B)),
+					      ((uint32_t *)(&invalid_8B)),
+					      &invalid_8B);
 
 	if (status)
 		table_c_exception_handler(TABLE_GET_MISS_RESULT_FUNC_ID,

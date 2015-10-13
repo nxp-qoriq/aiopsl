@@ -496,8 +496,8 @@ void timeout_cb_verif(uint64_t arg)
 
 	/* W/A to set NI Storage Profile PTAR the same as FD PTA.
 	 * This is needed since generic GRO code uses NI spid while ROC work 
-	 * without NI while . */
-	if (LDPAA_FD_GET_PTA(HWC_SPID_ADDRESS)) /* set SP PTAR to 1*/
+	 * without NI (results verification environment to use a fault spid). */
+	if (LDPAA_FD_GET_PTA(HWC_FD_ADDRESS)) /* set SP PTAR to 1*/
 		storage_profile[GET_DEFAULT_SPID()].mode_bits1 |= 0x80;
 	else /*set SP PTAR to 0 */
 		storage_profile[GET_DEFAULT_SPID()].mode_bits1 &= 0x7F;
