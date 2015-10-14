@@ -645,8 +645,9 @@ struct table_rule_query_by_key_desc_command{
 	/* Priority */
 	uint32_t priority;
 
-	/* Rule ID */
-	t_rule_id rule_id;
+	/** Index in the rule ID array to be used as an address input for the
+	 table_rule_create rule ID output. */
+	int rule_id_index;
 
 	/** Table ID */
 	uint16_t table_id;
