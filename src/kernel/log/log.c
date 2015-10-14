@@ -53,7 +53,10 @@ extern struct icontext icontext_aiop;
 
 int log_init()
 {
-	char magic_word[8];
+	uint8_t magic_word[8] = {
+	 (uint8_t)'A', (uint8_t)'I', (uint8_t)'O', (uint8_t)'P',
+	 (uint8_t)LOG_VERSION_MAJOR, (uint8_t)LOG_VERSION_MINOR, 0, 0
+	};
 	struct icontext ic;
 	struct log_header log_h = {0};
 
@@ -67,9 +70,6 @@ int log_init()
 	g_log_buf_phys_address = g_init_data.sl_info.log_buf_paddr;
 
 	/* offset 0x00 holds 32-bit little-endian magic word 'AIOP<version>'*/
-	sprintf(magic_word,"AIOP%01d.%02d",
-	        (int)LOG_MAJOR_VERSION,
-	        (int)LOG_MINOR_VERSION);
 
 	ASSERT_COND_LIGHT(g_log_buf_size > 1 * KILOBYTE);
 	icontext_aiop_get(&ic);
