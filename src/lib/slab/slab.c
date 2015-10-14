@@ -567,10 +567,10 @@ __COLD_CODE int slab_free(struct slab **slab)
 
 	if (slab_m == NULL)
 		return -ENAVAIL;
-#ifdef DEBUG
+
 	if (!SLAB_IS_HW_POOL(*slab))
 		return -EINVAL;
-#endif
+
 
 	pool_id = SLAB_POOL_ID_GET(pool_id); /*take only the pool id without the cluster id bits*/
 	if(cluster == 0){

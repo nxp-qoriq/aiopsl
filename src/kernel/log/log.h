@@ -51,7 +51,7 @@ struct log_header {
 
 #define LOG_HEADER_LAST_BYTE_OFFSET 16 /*size of magic word + buf start + buf length*/
 #define LOG_HEADER_FLAG_BUFFER_WRAPAROUND 0x80000000
-#define LOG_MAJOR_VERSION 1
-#define LOG_MINOR_VERSION 0
+#define LOG_VERSION_MAJOR 1
+#define LOG_VERSION_MINOR 0
 
 #endif /* __LOG_H */
