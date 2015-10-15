@@ -317,6 +317,8 @@ int mem_mng_register_partition(void*   h_mem_mng,
         return -EAGAIN;
     }
 
+    *(p_new_partition->lock) = 0;
+    
     /* Prevent allocation of address 0x00000000 (reserved to NULL) */
     if (base_address == 0)
     {
