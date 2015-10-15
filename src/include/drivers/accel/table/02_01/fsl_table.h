@@ -1399,8 +1399,21 @@ inline int table_rule_replace_by_key_desc(enum table_hw_accel_id acc_id,
 /**************************************************************************//**
 @Function	table_rule_query_by_key_desc
 
-@Description	Queries a rule in the table.
+@Description	Queries a rule in the table using key descriptor.
 		\n \n This function does not update the matched rule timestamp.
+		\n \n Note: For Exact Match tables, although functionality is
+		somewhat similar to \ref table_lookup_by_key() since \ref
+		table_key_desc are and \ref table_lookup_key_desc are similar,
+		command rate of table_lookup_by_key() is superior.
+		\n \n Note: For non Exact Match tables behavior is different
+		from \ref table_lookup_by_key(). For example, an MFLU table
+		that contains a rule in the form of Key+Mask: 0x55**5 can only
+		be queried with a similar table_key_desc, if using \ref
+		table_lookup_by_key() the rule can be matched with many keys
+		such as 0x55115, 0x55555, etc... Alternatively, none of these
+		keys can be matched to 0x55**5 using \ref table_lookup_by_key()
+		since there is already an MFLU rule in the same table in the
+		form of 0x55*** with a greater priority. 
 
 @Param[in]	acc_id ID of the Hardware Table Accelerator that contains
 		the table on which the query will be performed.

@@ -438,6 +438,9 @@ int ipr_delete_instance(ipr_instance_handle_t ipr_instance_ptr,
 		In case of reassembly not completed, no open frame is returned,
 		no segment is presented.\n
 
+		This function requires one of the four nested level scopes
+		(see Cautions).
+		
 		This functions assumes that at least 60 bytes are presented in
 		the presentation area. 
 
@@ -465,7 +468,9 @@ int ipr_delete_instance(ipr_instance_handle_t ipr_instance_ptr,
 
 @Cautions	This function may result in a fatal error.
 @Cautions       As part of a workaround to ticket TKT260685 in REV1 this 
-                function requires one of the four nested scope levels.
+                function requires an additional nested scope levels,
+                meaning that this function requires two of the four nested
+                scope levels.
 @Cautions	It is forbidden to call this function when the task
 		isn't found in any ordering scope (null scope_id).\n
 		If this function is called in concurrent mode, the scope_id is

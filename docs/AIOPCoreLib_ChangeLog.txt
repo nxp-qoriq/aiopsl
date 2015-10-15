@@ -6,7 +6,13 @@ Table:
 	* Added support for DISABLE_REF_CNT.
 	* Moved rule_create_or_replace to be an inline functions.
 	
+	
 Changes made for ls1088a rev1 and ls2088a rev1:
+CDMA:
+	* Added 3 new functions for ephemeral reference:
+		- cdma_ephemeral_reference_take()
+		- cdma_ephemeral_reference_release_all()
+		- cdma_ephemeral_reference_sync()
 Table:
 	* Moved rule_create_or_replace to be an inline functions.
 	* Added timestamp accuracy parameter per table
@@ -60,7 +66,24 @@ FDMA:
 		- create_arp_request
 		- create_fd – already had a spid parameter – now it is always used
 	
-		
+PARSER:
+	* Change in Parse Error Codes: Block Limit Exceed is no longer an error (only a status).
+	* Some macros additions due to additions in parse results
+	(e.g. PARSER_GET_NXT_HDR_BEFORE_IPV6_FRAG_EXT_OFFSET_DEFAULT, PARSER_GET_IP_N_PID_OFFSET_DEFAULT, PARSER_GET_FCOE_OFFSET_DEFAULT(),PARSER_GET_FIP_OFFSET_DEFAULT()).
+	* Some macros names changes (e.g. PARSER_GET_IP_PID_OFFSET_DEFAULT() --> PARSER_GET_OUTER_IP_PID_OFFSET_DEFAULT()).
+	* Addition of PARSER_VXLAN_STARTING_HXS to enum parser_starting_hxs_code
+	* Changes in struct parse_result
+	* Additions to parser profile record (VXLAN configuration).  Also add requirement that the reserved fields must be 0.
+
+KEYGEN:
+	* In enum kcr_builder_parse_result_offset:
+        i. Some names changes (IP_PID_OFFSET_OFFSET_IN_PR --> IP_1_PID_OFFSET_OFFSET_IN_PR,
+			IP1_OR_ARP_OFFSET_OFFSET_IN_PR --> L3_OFFSET_OFFSET_IN_PR,
+			GTP_ESP_IPSEC_OFFSET_OFFSET_IN_PR --> L5_OFFSET_OFFSET_IN_PR).
+        ii. Addition of NXT_HDR_BEFORE_IPV6_FRAG_OFFSET_OFFSET_IN_PR and IP_N_PID_OFFSET_OFFSET_IN_PR.
+	* In enum kcr_builder_protocol_fecid: additions of KEYGEN_KCR_ICMP_TYPE_FECID and KEYGEN_KCR_ICMP_CODE_FECID
+	(that were not supported in REV1 due to TKT241788).
+
 
 
 LDPAA AIOP SERVICE LAYER LDPAA-AIOP-SL-v1088_ENG_0.1 Change Log
