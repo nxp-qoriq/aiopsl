@@ -8,6 +8,11 @@ Table:
 	
 	
 Changes made for ls1088a rev1 and ls2088a rev1:
+CDMA:
+	* Added 3 new functions for ephemeral reference:
+		- cdma_ephemeral_reference_take()
+		- cdma_ephemeral_reference_release_all()
+		- cdma_ephemeral_reference_sync()
 Table:
 	* Moved rule_create_or_replace to be an inline functions.
 	* Added timestamp accuracy parameter per table

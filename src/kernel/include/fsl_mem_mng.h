@@ -89,12 +89,7 @@ struct initial_mem_mng
     uint32_t base_vaddress;
     uint64_t size;
     uint64_t curr_ptr;
-#ifdef AIOP
     uint8_t    lock;
-#else /* not AIOP */
-    void *    lock;
-#endif
-
 };
 
 /**************************************************************************//**
@@ -134,11 +129,7 @@ typedef struct t_mem_mng_phys_addr_alloc_partition
     int                              id;             /**< Partition ID */
     uint64_t                         h_mem_manager;   /**< Memory manager handle */
     t_mem_mng_phys_addr_alloc_info   info;           /**< Partition information */
-#ifdef AIOP
     uint8_t *                        lock;
-#else
-    void *                     lock;
-#endif
     int                              was_initialized;
 } t_mem_mng_phys_addr_alloc_partition;
 
@@ -154,11 +145,7 @@ typedef struct t_mem_mng_partition
     list_t                  mem_debug_list;   /**< List of allocation entries (for debug) */
     list_t                  node;
     t_mem_mng_partition_info   info;           /**< Partition information */
-#ifdef AIOP
     uint8_t *               lock;
-#else
-    void *                lock;
-#endif
 } t_mem_mng_partition;
 
 /**************************************************************************//**
