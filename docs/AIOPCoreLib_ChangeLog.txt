@@ -1,7 +1,11 @@
+LDPAA AIOP SERVICE LAYER LDPAA-AIOP-SL-v1088-v2088-v0.8 Change Log
+==================================================================
+
 Changes made for ls2085a rev1:
 Table:
 	* Added support for DISABLE_REF_CNT.
 	* Moved rule_create_or_replace to be an inline functions.
+	
 	
 Changes made for ls1088a rev1 and ls2088a rev1:
 Table:
@@ -23,6 +27,58 @@ Table:
 	* Moved table_rule_XXXXX_by_key_desc functions to obsolete section.
 	* Added timestamp and options as table_rule_create_or_replace out params.
 	* Ephemeral take command support in all reference related commands.
+	
+FDMA:
+	* Remove FD workspace address 32byte alignment restriction (there is no harm leaving the alignment except for excessive stack usage)
+	* Discard FD function API was changed – add ICID input parameter + update flags
+	* Added AS bit to discard frame and enqueue frame commands – defines where to take the ICID/AMQ from
+	* Support Discard + terminate
+	* Store working frame command SPID requires the following (in addition to former requirements): 
+		- FD[PTA] == storage_profile[PTAR].
+		- The VA of the storage profile must match the VA of the working frame (only in case additional buffers  are required)
+	* Support Split + close split frame
+	* Support Enqueue + conditional terminate (TC=2)
+	* Support Replicate + enqueue replicated frame
+	* Support Replicate + discard source frame
+	* Support Replace + keep segment open
+	* Concatenate according to FDs – API is not changed. Flags and ICID fields were added in order to support FDs concatenation (any Working frame + FD combinations are valid).
+	* Add get_frame_length Service Routine to retrieve a working frame current length. While working with a working frame, call this function to get the current frame length.
+	* Presentation Context (PRC) new formation: PRC has changed in REV2 and does not hold ASA and PTA information anymore. This means:
+		- The following macros have neen removed:
+			- PRC_SET_ASA_SIZE
+			- PRC_SET_ASA_OFFSET
+			- PRC_SET_ASA_ADDRESS
+			- PRC_SET_PTA_ADDRESS
+			- PRC_GET_PTA_ADDRESS
+			- PRC_GET_ASA_OFFSET
+			- PRC_GET_ASA_SIZE
+			- PRC_GET_ASA_ADDRESS
+		- Some of the PRC structure fields have changed. Please see struct presentation_context for more details.
+		- If a user wants to present/update (replace) PTA or ASA he should approach them through FDMA API functions. 
+	* The following functions API has changed - a new spid input parameter was added (due to a new HW restriction stating: SP.ptar must be equal to FD.pta) :
+		- create_frame
+		- create_arp_request_broadcast
+		- create_arp_request
+		- create_fd – already had a spid parameter – now it is always used
+	
+PARSER:
+	* Change in Parse Error Codes: Block Limit Exceed is no longer an error (only a status).
+	* Some macros additions due to additions in parse results
+	(e.g. PARSER_GET_NXT_HDR_BEFORE_IPV6_FRAG_EXT_OFFSET_DEFAULT, PARSER_GET_IP_N_PID_OFFSET_DEFAULT, PARSER_GET_FCOE_OFFSET_DEFAULT(),PARSER_GET_FIP_OFFSET_DEFAULT()).
+	* Some macros names changes (e.g. PARSER_GET_IP_PID_OFFSET_DEFAULT() --> PARSER_GET_OUTER_IP_PID_OFFSET_DEFAULT()).
+	* Addition of PARSER_VXLAN_STARTING_HXS to enum parser_starting_hxs_code
+	* Changes in struct parse_result
+	* Additions to parser profile record (VXLAN configuration).  Also add requirement that the reserved fields must be 0.
+
+KEYGEN:
+	* In enum kcr_builder_parse_result_offset:
+        i. Some names changes (IP_PID_OFFSET_OFFSET_IN_PR --> IP_1_PID_OFFSET_OFFSET_IN_PR,
+			IP1_OR_ARP_OFFSET_OFFSET_IN_PR --> L3_OFFSET_OFFSET_IN_PR,
+			GTP_ESP_IPSEC_OFFSET_OFFSET_IN_PR --> L5_OFFSET_OFFSET_IN_PR).
+        ii. Addition of NXT_HDR_BEFORE_IPV6_FRAG_OFFSET_OFFSET_IN_PR and IP_N_PID_OFFSET_OFFSET_IN_PR.
+	* In enum kcr_builder_protocol_fecid: additions of KEYGEN_KCR_ICMP_TYPE_FECID and KEYGEN_KCR_ICMP_CODE_FECID
+	(that were not supported in REV1 due to TKT241788).
+
 
 
 LDPAA AIOP SERVICE LAYER LDPAA-AIOP-SL-v1088_ENG_0.1 Change Log
