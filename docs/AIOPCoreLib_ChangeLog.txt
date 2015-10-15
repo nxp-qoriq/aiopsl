@@ -30,7 +30,7 @@ Table:
 FDMA:
 	* Remove FD workspace address 32byte alignment restriction (there is no harm leaving the alignment except for excessive stack usage)
 	* Discard FD function API was changed – add ICID input parameter + update flags
-	* Added AS bit to discard frame and enqueue frame commands – defines where to take the ICID/AMQ from
+	* Added AS bit to discard FD and enqueue FD commands – defines where to take the ICID/AMQ from
 	* Support Discard + terminate
 	* Store working frame command SPID requires the following (in addition to former requirements): 
 		- FD[PTA] == storage_profile[PTAR].
