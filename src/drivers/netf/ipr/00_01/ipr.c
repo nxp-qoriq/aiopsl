@@ -1114,7 +1114,11 @@ uint32_t ipr_insert_to_link_list(struct ipr_rfdc *rfdc_ptr,
 						  rfdc_ptr->current_running_sum,
 						  pr->running_sum);
 	} else {
-		rfdc_ptr->first_frag_hdr_length = ip_header_size;
+		if(frame_is_ipv4)
+			rfdc_ptr->first_frag_hdr_length = ip_header_size;
+		else
+			rfdc_ptr->first_frag_hdr_length = ip_header_size - 8;
+
 		if (pr->gross_running_sum == 0) {
 			/* current_running_sum is used as a temporary location
 			 * for stack optimization*/
