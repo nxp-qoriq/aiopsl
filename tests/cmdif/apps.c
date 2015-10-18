@@ -53,8 +53,8 @@ extern int app_early_init(void);
 
 #define APPS                            	\
 {                                       	\
-	{app_early_init, app_init, app_free},	\
-	{NULL, NULL, NULL} /* never remove! */	\
+	{app_early_init, app_init, NULL, app_free},	\
+	{NULL, NULL, NULL, NULL} /* never remove! */	\
 }
 
 void build_apps_array(struct sys_module_desc *apps);

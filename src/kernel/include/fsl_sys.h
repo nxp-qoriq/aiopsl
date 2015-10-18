@@ -58,6 +58,7 @@
 struct sys_module_desc {
 int     (*early_init) (void);
 int     (*init) (void);
+int     (*post_init) (void);
 void    (*free) (void);
 };
 

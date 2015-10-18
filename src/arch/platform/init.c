@@ -64,18 +64,18 @@ extern void build_apps_array(struct sys_module_desc *apps);
 
 #define GLOBAL_MODULES                                                           \
 	{    /* slab must be before any module with buffer request*/             \
-	{NULL, time_init,         time_free},                                    \
-	{NULL, ep_mng_init,       ep_mng_free},                                \
-	{NULL, dprc_drv_init,     dprc_drv_free},                                \
-	{NULL, dpci_drv_init,     dpci_drv_free}, /*must be before EVM */        \
-	{slab_module_early_init, slab_module_init,  slab_module_free},           \
-	{NULL, cmdif_client_init, cmdif_client_free}, /* must be before srv */   \
-	{NULL, cmdif_srv_init,    cmdif_srv_free},                               \
-	{aiop_sl_early_init, aiop_sl_init,      aiop_sl_free},                   \
-	{NULL, dpni_drv_init,     dpni_drv_free}, /*must be after aiop_sl_init*/ \
-	{evmng_early_init, evmng_init, evmng_free}, /*must be after cmdif*/            \
-	{rcu_default_early_init, rcu_init, rcu_free}, /*must be after slab*/            \
-	{NULL, NULL, NULL} /* never remove! */                                   \
+	{NULL, time_init, NULL, time_free},                                    \
+	{NULL, ep_mng_init, NULL, ep_mng_free},                                \
+	{NULL, dprc_drv_init, dprc_drv_scan, dprc_drv_free},                                \
+	{NULL, dpci_drv_init, NULL, dpci_drv_free}, /*must be before EVM */        \
+	{slab_module_early_init, slab_module_init, NULL, slab_module_free},           \
+	{NULL, cmdif_client_init, NULL, cmdif_client_free}, /* must be before srv */   \
+	{NULL, cmdif_srv_init, NULL, cmdif_srv_free},                               \
+	{aiop_sl_early_init, aiop_sl_init, NULL, aiop_sl_free},                   \
+	{NULL, dpni_drv_init, NULL, dpni_drv_free}, /*must be after aiop_sl_init*/ \
+	{evmng_early_init, evmng_init, NULL, evmng_free}, /*must be after cmdif*/            \
+	{rcu_default_early_init, rcu_init, NULL, rcu_free}, /*must be after slab*/            \
+	{NULL, NULL, NULL, NULL} /* never remove! */                                   \
 	}
 
 void fill_platform_parameters(struct platform_param *platform_param);
@@ -200,6 +200,25 @@ __COLD_CODE int global_early_init(void)
 	return 0;
 }
 
+__COLD_CODE int global_post_init(void)
+{
+	struct sys_module_desc modules[] = GLOBAL_MODULES;
+	int i, err;
+	
+	pr_info("global post init\n");
+	
+	for (i=0; i<ARRAY_SIZE(modules) ; i++)
+	{
+		if (modules[i].post_init)
+		{
+			err = modules[i].post_init();
+			if(err) return err;
+		}
+	}
+	
+	return 0;
+}
+
 __COLD_CODE int apps_early_init(void)
 {
 	int i, err;
@@ -229,12 +248,6 @@ __COLD_CODE int apps_early_init(void)
 	fsl_free(apps);
 
 	return 0;
-}
-
-__COLD_CODE int global_post_init(void)
-{
-	pr_info("global post init\n");
-	return dprc_drv_scan();
 }
 
 #if (STACK_OVERFLOW_DETECTION == 1)
@@ -323,6 +336,11 @@ __COLD_CODE int apps_init(void)
 	for (i=0; i<app_arr_size; i++) {
 		if (apps[i].init)
 			apps[i].init();
+	}
+	
+	for (i=0; i<app_arr_size; i++) {
+		if (apps[i].post_init)
+			apps[i].post_init();
 	}
 
 	fsl_free(apps);
