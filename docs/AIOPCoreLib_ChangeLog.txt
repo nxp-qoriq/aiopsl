@@ -74,6 +74,7 @@ PARSER:
 	* Addition of PARSER_VXLAN_STARTING_HXS to enum parser_starting_hxs_code
 	* Changes in struct parse_result
 	* Additions to parser profile record (VXLAN configuration).  Also add requirement that the reserved fields must be 0.
+	* Added two optimization functions for adding and removal VLAN cases: parser_pop_vlan_update, parser_push_vlan_update. 
 
 KEYGEN:
 	* In enum kcr_builder_parse_result_offset:
