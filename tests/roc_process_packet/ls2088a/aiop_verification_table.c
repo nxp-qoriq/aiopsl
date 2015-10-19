@@ -429,7 +429,7 @@ uint16_t aiop_verification_table(uint32_t asa_seg_addr)
 			/*&result*/&str->result,
 			&str->timestamp,
 			&str->priority,
-			&str->rule_id);
+			rule_id_array + str->rule_id_index);
 		/*str->result = result;*/
 		str_size =
 			sizeof(struct table_rule_query_by_key_desc_command);

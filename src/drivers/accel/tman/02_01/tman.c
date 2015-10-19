@@ -78,10 +78,10 @@ int tman_create_tmi(uint64_t tmi_mem_base_addr,
 		/* Load command results */
 		__ldw(&res1, &res2, HWC_ACC_OUT_ADDRESS, 0);
 
-	} while ((res1 & TMAN_TMI_CREATE_BUSY) == TMAN_TMI_CREATE_BUSY);
+	} while ((res1 & TMAN_TMI_CREATE_CODE_MASK) == TMAN_TMI_CREATE_BUSY);
 	/* Store tmi_id */
 	*tmi_id = (uint8_t)res2;
-	if ((res1 & TMAN_TMIID_DEPLETION_ERR) == TMAN_TMIID_DEPLETION_ERR)
+	if ((res1 & TMAN_TMI_CREATE_CODE_MASK) == TMAN_TMIID_DEPLETION_ERR)
 		return (int)(-ENOSPC);
 
 	tmi_state_ptr = (unsigned int*)((unsigned int)TMAN_CCSR_TMSTATE_ADDRESS

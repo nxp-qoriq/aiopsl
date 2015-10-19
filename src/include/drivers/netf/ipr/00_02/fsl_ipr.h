@@ -437,6 +437,8 @@ int ipr_delete_instance(ipr_instance_handle_t ipr_instance_ptr,
 		In case of reassembly not completed, no open frame is returned,
 		no segment is presented.\n
 
+		This function requires one of the four nested scope levels.
+		
 		This functions assumes that at least 60 bytes are presented in
 		the presentation area. 
 

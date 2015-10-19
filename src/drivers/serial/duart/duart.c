@@ -451,27 +451,16 @@ static void duart_free_local(void * duart)
 		return;
 
 	if (p_uart->p_rx_buffer) {
-#ifdef AIOP
 		fsl_free(p_uart->p_rx_buffer);
-#else
-		fsl_free(p_uart->p_rx_buffer);
-#endif
 		p_uart->p_rx_buffer = NULL;
 	}
 
 	if (p_uart->p_tx_buffer) {
-#ifdef AIOP
 		fsl_free(p_uart->p_tx_buffer);
-#else
-		fsl_free(p_uart->p_tx_buffer);
-#endif
 		p_uart->p_tx_buffer = NULL;
 	}
-#ifdef AIOP
+	
 	fsl_free(duart);
-#else
-	fsl_free(duart);
-#endif
 }
 
 
@@ -508,11 +497,7 @@ void * duart_config(t_duart_uart_param *p_duart_param)
 #endif
 	if (!p_driver_param) {
 		pr_err("DUART driver parameters");
-#ifdef AIOP
-	fsl_free(p_uart);
-#else
-	fsl_free(p_uart);
-#endif
+		fsl_free(p_uart);
 		return NULL;
 	}
 	memset(p_driver_param, 0, sizeof(t_duart_driver_param));
@@ -847,11 +832,8 @@ int duart_init(void * duart)
 
 	iowrite8(tmp_reg, &p_mem_map->UIER);
 
-#ifdef AIOP
 	fsl_free(p_uart->p_driver_param);
-#else
-	fsl_free(p_uart->p_driver_param);
-#endif
+
 	p_uart->p_driver_param = NULL;
 
 	p_uart->initialized = 1 ;
