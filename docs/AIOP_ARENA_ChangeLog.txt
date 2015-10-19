@@ -1,6 +1,6 @@
 apps.h:     The documentation of apps.h files has moved to app_process_packet apps.h.
             For full and updated documentatipn of all the macros, please refer to the apps.h of app_process_packet.  
-dpci_drv.c: MC resereves SPID=0 for CMDIF (ENGR00366149). Added initialization code for SPID=0. 
+dpci_drv.c: Added WA for ENGR00366149. CMDIF uses SPID=255 for store commands. 
 
 log.c/h, fsl_log.h: ENGR00367164 - Update logger implementation to use logger header.
                     The header contains the start address, last written byte, buffer size and a flag if there was a wrap.
