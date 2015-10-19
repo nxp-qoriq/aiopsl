@@ -85,6 +85,8 @@ KEYGEN:
 	* In enum kcr_builder_protocol_fecid: additions of KEYGEN_KCR_ICMP_TYPE_FECID and KEYGEN_KCR_ICMP_CODE_FECID
 	(that were not supported in REV1 due to TKT241788).
 
+TMAN:
+	* Fixed ENGR00368086 (tman_create_tmi() issue).
 
 
 LDPAA AIOP SERVICE LAYER LDPAA-AIOP-SL-v1088_ENG_0.1 Change Log
