@@ -5,8 +5,21 @@ Changes made for ls2085a rev1:
 Table:
 	* Added support for DISABLE_REF_CNT.
 	* Moved rule_create_or_replace to be an inline functions.
-	
-	
+IPsec:
+	* API chage of the 'alg_info' structure (backwards compatible).
+	* Removed key encryption options macros from the API
+	* Updated the API documentation
+	* Added transport mode padding check support.
+	* Added inline_max_size and inline_max_total_size pragmas to enable inlining of RTA functions.
+	* Added the option of UDP header encap/decap in transport mode
+	* Added IPv4 outer header checksum calculation (ENGR356567)
+	* Added ipsec_force_seconds_lifetime_expiry() function
+	* Added support for seconds lifetime
+	* Updated the error flow.
+	* Stack size optimization.
+	* Removed reference counter remains
+	* The key is always copied to a local buffer (ENGR354723)
+
 Changes made for ls1088a rev1 and ls2088a rev1:
 CDMA:
 	* Added 3 new functions for ephemeral reference:
@@ -87,6 +100,21 @@ KEYGEN:
 
 TMAN:
 	* Fixed ENGR00368086 (tman_create_tmi() issue).
+
+IPsec:
+	* API chage of the 'alg_info' structure (backwards compatible).
+	* Removed key encryption options macros from the API
+	* Updated the API documentation
+	* Added transport mode padding check support.
+	* Added inline_max_size and inline_max_total_size pragmas to enable inlining of RTA functions.
+	* Added the option of UDP header encap/decap in transport mode
+	* Added IPv4 outer header checksum calculation (ENGR356567)
+	* Added ipsec_force_seconds_lifetime_expiry() function
+	* Added support for seconds lifetime
+	* Updated the error flow.
+	* Stack size optimization.
+	* Removed reference counter remains
+	* The key is always copied to a local buffer (ENGR354723)
 
 
 LDPAA AIOP SERVICE LAYER LDPAA-AIOP-SL-v1088_ENG_0.1 Change Log
