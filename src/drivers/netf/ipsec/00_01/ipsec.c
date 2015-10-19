@@ -1989,14 +1989,17 @@ __IPSEC_HOT_CODE int ipsec_frame_encrypt(
 	return_val = fdma_present_default_frame();
 	/* check for FDMA error */
 	if (return_val) {
-		ipsec_error_handler(
+		/* No error if the frame was just shorter than the segment size */
+		if (return_val != FDMA_STATUS_UNABLE_PRES_DATA_SEG) {
+			ipsec_error_handler(
 				ipsec_handle, /* ipsec_handle_t ipsec_handle */
 				IPSEC_FRAME_ENCRYPT,  /* Function ID */
 				IPSEC_FDMA_PRESENT_DEFAULT_FRAME,  /* SR/Hardware ID */
 				__LINE__,
 				return_val); /* Error/Status value */
-		*enc_status = IPSEC_INTERNAL_ERR;
-		return IPSEC_ERROR;
+			*enc_status = IPSEC_INTERNAL_ERR;
+			return IPSEC_ERROR;
+		}
 	}
 		
 	/* 	14.	Get new running sum and byte count (encrypted/encapsulated frame) 
@@ -2780,14 +2783,17 @@ __IPSEC_HOT_CODE int ipsec_frame_decrypt(
 		return_val = fdma_present_default_frame();
 		/* Check FDMA return status */
 		if (return_val) {
-			ipsec_error_handler(
+			/* No error if the frame was just shorter than the segment size */
+			if (return_val != FDMA_STATUS_UNABLE_PRES_DATA_SEG) {
+				ipsec_error_handler(
 					ipsec_handle, /* ipsec_handle_t ipsec_handle */
 					IPSEC_FRAME_DECRYPT,  /* Function ID */
 					IPSEC_FDMA_PRESENT_DEFAULT_FRAME, /* SR ID */
 					__LINE__,
 					return_val); /* Error/Status value */
-			*dec_status = IPSEC_INTERNAL_ERR;
-			return IPSEC_ERROR;
+				*dec_status = IPSEC_INTERNAL_ERR;
+				return IPSEC_ERROR;
+			}	
 		}
 
 		/* Get the pad length byte */
@@ -2861,14 +2867,17 @@ __IPSEC_HOT_CODE int ipsec_frame_decrypt(
 		
 		/* Check FDMA return status */
 		if (return_val) {
-			ipsec_error_handler(
+			/* No error if the frame was just shorter than the segment size */
+			if (return_val != FDMA_STATUS_UNABLE_PRES_DATA_SEG) {
+				ipsec_error_handler(
 					ipsec_handle, /* ipsec_handle_t ipsec_handle */
 					IPSEC_FRAME_DECRYPT, /* Function ID */
 					IPSEC_FDMA_PRESENT_DEFAULT_FRAME_SEGMENT, /* SR ID */
 					__LINE__,
 					return_val); /* Error/Status value */
-			*dec_status = IPSEC_INTERNAL_ERR;
-			return IPSEC_ERROR;
+				*dec_status = IPSEC_INTERNAL_ERR;
+				return IPSEC_ERROR;
+			}	
 		}
 		
 		/* End of TRANSPORT PAD CHECK section */
@@ -2877,14 +2886,17 @@ __IPSEC_HOT_CODE int ipsec_frame_decrypt(
 		return_val = fdma_present_default_frame();
 		/* Check FDMA return status */
 		if (return_val) {
-			ipsec_error_handler(
+			/* No error if the frame was just shorter than the segment size */
+			if (return_val != FDMA_STATUS_UNABLE_PRES_DATA_SEG) {
+				ipsec_error_handler(
 					ipsec_handle, /* ipsec_handle_t ipsec_handle */
 					IPSEC_FRAME_DECRYPT, /* Function ID */
 					IPSEC_FDMA_PRESENT_DEFAULT_FRAME, /* SR ID */
 					__LINE__,
 					return_val); /* Error/Status value */
-			*dec_status = IPSEC_INTERNAL_ERR;
-			return IPSEC_ERROR;
+				*dec_status = IPSEC_INTERNAL_ERR;
+				return IPSEC_ERROR;
+			}	
 		}		
 	}
 	
