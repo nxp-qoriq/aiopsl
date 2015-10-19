@@ -162,16 +162,6 @@ void booke_address_broadcast_enable(void);
 *//***************************************************************************/
 void booke_address_broadcast_disable(void);
 
-/**************************************************************************//**
- @Function      booke_is_tasklet_supported
-
- @Description   Checks if tasklets are supported by the booke interrupt handler.
-
- @Retval        '1'    - Tasklets are supported.
- @Retval        '0'   - Tasklets are not supported.
-*//***************************************************************************/
-int booke_is_tasklet_supported(void);
-
 void booke_enable_time_base(void);
 void booke_disable_time_base(void);
 
