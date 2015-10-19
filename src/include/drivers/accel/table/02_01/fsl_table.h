@@ -1413,7 +1413,7 @@ inline int table_rule_replace_by_key_desc(enum table_hw_accel_id acc_id,
 		such as 0x55115, 0x55555, etc... Alternatively, none of these
 		keys can be matched to 0x55**5 using \ref table_lookup_by_key()
 		since there is already an MFLU rule in the same table in the
-		form of 0x55*** with a greater priority. 
+		form of 0x55*** with a greater priority.
 
 @Param[in]	acc_id ID of the Hardware Table Accelerator that contains
 		the table on which the query will be performed.
