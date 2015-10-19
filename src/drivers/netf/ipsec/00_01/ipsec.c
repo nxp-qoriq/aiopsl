@@ -1947,7 +1947,7 @@ __IPSEC_HOT_CODE int ipsec_frame_encrypt(
 	}
 	// Debug End //
 #endif	
-		
+
 	/* 	12.	Read the SEC return status from the FD[FRC]. Use swap macro. */
 	if ((LDPAA_FD_GET_FRC(HWC_FD_ADDRESS)) != 0) {
 		/* Compressed mode errors */		
@@ -1959,36 +1959,27 @@ __IPSEC_HOT_CODE int ipsec_frame_encrypt(
 				/* Sequence Number overflow */
 				*enc_status |= IPSEC_SEQ_NUM_OVERFLOW;
 			} else {
-				/* Write SEC status to debug area */
-				ipsec_error_handler(
-					ipsec_handle, /* ipsec_handle_t ipsec_handle */
-					IPSEC_FRAME_ENCRYPT,  /* Function ID */
-					IPSEC_SEC_HW, /* SR ID */
-					__LINE__,
-					(int)LDPAA_FD_GET_FRC(HWC_FD_ADDRESS)); /* SEC status */
-				
 				*enc_status |= IPSEC_GEN_ENCR_ERR;
-				return IPSEC_ERROR;
 			}
-			
 		} else {
 		/* Non-compressed mode errors */
 			if ((LDPAA_FD_GET_FRC(HWC_FD_ADDRESS) & SEC_DECO_ERROR_MASK)
 					== SEC_SEQ_NUM_OVERFLOW) { /* Sequence Number overflow */
 				*enc_status |= IPSEC_SEQ_NUM_OVERFLOW;
 			} else {
-				/* Write SEC status to debug area */
-				ipsec_error_handler(
-					ipsec_handle, /* ipsec_handle_t ipsec_handle */
-					IPSEC_FRAME_ENCRYPT,  /* Function ID */
-					IPSEC_SEC_HW, /* SR ID */
-					__LINE__,
-					(int)LDPAA_FD_GET_FRC(HWC_FD_ADDRESS)); /* SEC status */
-
 				*enc_status |= IPSEC_GEN_ENCR_ERR;
-				return IPSEC_ERROR;
 			}
 		}
+		
+		/* Write SEC status to debug area */
+		ipsec_error_handler(
+			ipsec_handle, /* ipsec_handle_t ipsec_handle */
+			IPSEC_FRAME_ENCRYPT,  /* Function ID */
+			IPSEC_SEC_HW, /* SR ID */
+			__LINE__,
+			(int)LDPAA_FD_GET_FRC(HWC_FD_ADDRESS)); /* SEC status */
+
+		return IPSEC_ERROR; /* Exit */
 	}
 	
 	/* 	11.	FDMA present default frame command (open frame) */
@@ -2707,18 +2698,7 @@ __IPSEC_HOT_CODE int ipsec_frame_decrypt(
 						*dec_status |= IPSEC_AR_REPLAY_PACKET;
 						break;
 					default:
-						/* For general errors do not present the frame */
-						/* Write SEC status to debug area */
-						ipsec_error_handler(
-							ipsec_handle, /* ipsec_handle_t ipsec_handle */
-							IPSEC_FRAME_DECRYPT,  /* Function ID */
-							IPSEC_SEC_HW, /* SR ID */
-							__LINE__,
-							(int)LDPAA_FD_GET_FRC(HWC_FD_ADDRESS)); 
-														/* SEC status */
-						
 						*dec_status |= IPSEC_GEN_DECR_ERR;
-						return IPSEC_ERROR;
 				}	
 			}	
 		} else {
@@ -2741,21 +2721,20 @@ __IPSEC_HOT_CODE int ipsec_frame_decrypt(
 						*dec_status |= IPSEC_AR_REPLAY_PACKET;
 						break;
 					default:
-						/* For general errors do not present the frame */
-						/* Write SEC status to debug area */
-						ipsec_error_handler(
-							ipsec_handle, /* ipsec_handle_t ipsec_handle */
-							IPSEC_FRAME_DECRYPT,  /* Function ID */
-							IPSEC_SEC_HW, /* SR ID */
-							__LINE__,
-							(int)LDPAA_FD_GET_FRC(HWC_FD_ADDRESS)); 
-														/* SEC status */
-
 						*dec_status |= IPSEC_GEN_DECR_ERR;
-						return IPSEC_ERROR;
 				}	
 			}
 		}
+		
+		/* Write SEC status to debug area */
+		ipsec_error_handler(
+			ipsec_handle, /* ipsec_handle_t ipsec_handle */
+			IPSEC_FRAME_DECRYPT,  /* Function ID */
+			IPSEC_SEC_HW, /* SR ID */
+			__LINE__,
+			(int)LDPAA_FD_GET_FRC(HWC_FD_ADDRESS)); 
+										/* SEC status */
+		return IPSEC_ERROR; /* Exit */
 	}
 
 	/*---------------------*/
@@ -3704,7 +3683,7 @@ void ipsec_error_handler(
 		uint32_t line,
 		int status) /* Error/Status value */
 {
-
+	uint32_t handle_high, handle_low;
 	struct ipsec_debug_info info;
 	ipsec_handle_t desc_addr;
 	desc_addr = IPSEC_DESC_ADDR(ipsec_handle);
@@ -3732,20 +3711,25 @@ void ipsec_error_handler(
 	
 		/* Release lock */
 		cdma_mutex_lock_release(IPSEC_DEBUG_INFO_ADDR(desc_addr));
-	
+	}
 #pragma push
 #pragma stackinfo_ignore on
 		
+	handle_high =
+			(uint32_t)((ipsec_handle & 0xffffffff00000000)>>32);
+	handle_low =
+			(uint32_t)(ipsec_handle & 0x00000000ffffffff);
+	
 		/* Debug Print */
 		pr_debug("IPsec debug info: Fn=%d, Sr=%d, Ln=%d, St=%d (0x%x)\n",
 			info.func_id,
 			info.service_id,
 			info.line,
 			info.status, info.status);
+		
+		pr_debug("\t[IPsec handle: 0x%x_%x]\n",handle_high, handle_low);
 
 #pragma pop	
-		
-	}
 }
 
 
