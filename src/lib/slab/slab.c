@@ -68,8 +68,6 @@ struct memory_types_table *g_slab_early_init_data;
 	}
 
 int slab_module_early_init(void);
-
-__START_DDR_DATA
 /***************************************************************************
  * slab_read_pool used by: slab_debug_info_get
  ***************************************************************************/
@@ -569,10 +567,10 @@ __COLD_CODE int slab_free(struct slab **slab)
 
 	if (slab_m == NULL)
 		return -ENAVAIL;
-#ifdef DEBUG
+
 	if (!SLAB_IS_HW_POOL(*slab))
 		return -EINVAL;
-#endif
+
 
 	pool_id = SLAB_POOL_ID_GET(pool_id); /*take only the pool id without the cluster id bits*/
 	if(cluster == 0){
@@ -1723,6 +1721,4 @@ __COLD_CODE int slab_register_context_buffer_requirements(
 
 	return 0;
 }
-
-__END_DDR_DATA
 /*****************************************************************************/

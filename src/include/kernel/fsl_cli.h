@@ -41,10 +41,12 @@ extern struct aiop_init_info g_init_data;
 /**************************************************************************//**
 @Group		fsl_cli_g FSL Command Line Interface
 
- @Description   Macro to receive the command line arguments passed from MC
+@Description	Macro to receive the command line arguments passed from MC
  	 	 when launching AIOP.
 
- @{
+
+@Cautions	The macro is available during AIOP boot only.
+@{
 *//***************************************************************************/
 /** Get AIOP command line string and it's size
  * _args - uint8_t * to the command line arguments string.

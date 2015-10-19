@@ -102,12 +102,14 @@ int dprc_close(struct fsl_mc_io	*mc_io,
  * and can be retrieved using dprc_get_attributes()
  */
 
-/* Spawn Policy Option allowed - Indicates that the new container is allowed
+/**
+ * Spawn Policy Option allowed - Indicates that the new container is allowed
  * to spawn and have its own child containers.
  */
 #define DPRC_CFG_OPT_SPAWN_ALLOWED		0x00000001
 
-/* General Container allocation policy - Indicates that the new container is
+/**
+ * General Container allocation policy - Indicates that the new container is
  * allowed to allocate requested resources from its parent container; if not
  * set, the container is only allowed to use resources in its own pools; Note
  * that this is a container's global policy, but the parent container may
@@ -115,26 +117,33 @@ int dprc_close(struct fsl_mc_io	*mc_io,
  */
 #define DPRC_CFG_OPT_ALLOC_ALLOWED		0x00000002
 
-/* Object initialization allowed - software context associated with this
+/**
+ * Object initialization allowed - software context associated with this
  * container is allowed to invoke object initialization operations.
  */
 #define DPRC_CFG_OPT_OBJ_CREATE_ALLOWED		0x00000004
 
-/* Topology change allowed - software context associated with this
+/**
+ * Topology change allowed - software context associated with this
  * container is allowed to invoke topology operations, such as attach/detach
  * of network objects.
  */
 #define DPRC_CFG_OPT_TOPOLOGY_CHANGES_ALLOWED	0x00000008
 
-/* IOMMU bypass - indicates whether objects of this container are permitted
+/**
+ * IOMMU bypass - indicates whether objects of this container are permitted
  * to bypass the IOMMU.
  */
 #define DPRC_CFG_OPT_IOMMU_BYPASS		0x00000010
 
-/* AIOP - Indicates that container belongs to AIOP.  */
+/**
+ * AIOP - Indicates that container belongs to AIOP.  
+ */
 #define DPRC_CFG_OPT_AIOP			0x00000020
 
-/* IRQ Config - Indicates that the container allowed to configure its IRQs.  */
+/**
+ * IRQ Config - Indicates that the container allowed to configure its IRQs. 
+ */
 #define DPRC_CFG_OPT_IRQ_CFG_ALLOWED		0x00000040
 /**
  * struct dprc_cfg - Container configuration options
@@ -225,33 +234,51 @@ int dprc_reset_container(struct fsl_mc_io	*mc_io,
 			 uint16_t		token,
 			 int			child_container_id);
 
-/* IRQ */
+/** 
+ * DPRC IRQ Index and Events 
+ */
 
-/* IRQ index */
+/**
+ * IRQ index 
+ */
 #define DPRC_IRQ_INDEX          0
 
-/* Number of dprc's IRQs */
+/**
+ * Number of dprc's IRQs 
+ */
 #define DPRC_NUM_OF_IRQS		1
 
 /* DPRC IRQ events */
 
-/* IRQ event - Indicates that a new object added to the container */
+/**
+ * IRQ event - Indicates that a new object added to the container
+ */
 #define DPRC_IRQ_EVENT_OBJ_ADDED		0x00000001
-/* IRQ event - Indicates that an object was removed from the container */
+/**
+ * IRQ event - Indicates that an object was removed from the container 
+ */
 #define DPRC_IRQ_EVENT_OBJ_REMOVED		0x00000002
-/* IRQ event - Indicates that resources added to the container */
+/**
+ * IRQ event - Indicates that resources added to the container 
+ */
 #define DPRC_IRQ_EVENT_RES_ADDED		0x00000004
-/* IRQ event - Indicates that resources removed from the container */
+/** 
+ * IRQ event - Indicates that resources removed from the container
+ */
 #define DPRC_IRQ_EVENT_RES_REMOVED		0x00000008
-/* IRQ event - Indicates that one of the descendant containers that opened by
+/**
+ * IRQ event - Indicates that one of the descendant containers that opened by
  * this container is destroyed
  */
 #define DPRC_IRQ_EVENT_CONTAINER_DESTROYED	0x00000010
-/* IRQ event - Indicates that on one of the container's opened object is
+/**
+ * IRQ event - Indicates that on one of the container's opened object is
  * destroyed
  */
 #define DPRC_IRQ_EVENT_OBJ_DESTROYED		0x00000020
-/* Irq event - Indicates that object is created at the container */
+/**
+ * Irq event - Indicates that object is created at the container 
+ */
 #define DPRC_IRQ_EVENT_OBJ_CREATED		0x00000040
 
 /**
@@ -347,7 +374,7 @@ int dprc_get_irq_enable(struct fsl_mc_io	*mc_io,
  * @mask:	event mask to trigger interrupt;
  *			each bit:
  *				0 = ignore event
- *				1 = consider event for asserting irq
+ *				1 = consider event for asserting IRQ
  *
  * Every interrupt can have up to 32 causes and the interrupt model supports
  * masking/unmasking each cause independently
@@ -510,19 +537,22 @@ int dprc_get_res_quota(struct fsl_mc_io *mc_io,
 /* Resource request options */
 
 
-/* Explicit resource ID request - The requested objects/resources
+/**
+ * Explicit resource ID request - The requested objects/resources
  * are explicit and sequential (in case of resources).
  * The base ID is given at res_req at base_align field
  */
 #define DPRC_RES_REQ_OPT_EXPLICIT		0x00000001
 
-/* Aligned resources request - Relevant only for resources
+/**
+ * Aligned resources request - Relevant only for resources
  * request (and not objects). Indicates that resources base ID should be
  * sequential and aligned to the value given at dprc_res_req base_align field
  */
 #define DPRC_RES_REQ_OPT_ALIGNED		0x00000002
 
-/* Plugged Flag - Relevant only for object assignment request.
+/**
+ * Plugged Flag - Relevant only for object assignment request.
  * Indicates that after all objects assigned. An interrupt will be invoked at
  * the relevant GPP. The assigned object will be marked as plugged.
  * plugged objects can't be assigned from their container
@@ -660,11 +690,17 @@ int dprc_get_obj_count(struct fsl_mc_io	*mc_io,
 		       uint16_t		token,
 		       int			*obj_count);
 
-/* Objects Attributes Flags */
+/** 
+ * Objects Attributes Flags 
+ */
 
-/* Opened state - Indicates that an object is open by at least one owner */
+/**
+ * Opened state - Indicates that an object is open by at least one owner
+ */
 #define DPRC_OBJ_STATE_OPEN		0x00000001
-/* Plugged state - Indicates that the object is plugged */
+/**
+ * Plugged state - Indicates that the object is plugged 
+ */
 #define DPRC_OBJ_STATE_PLUGGED		0x00000002
 
 /**
@@ -836,8 +872,12 @@ int dprc_get_res_ids(struct fsl_mc_io			*mc_io,
 		     char				*type,
 		     struct dprc_res_ids_range_desc	*range_desc);
 
-/* Region flags */
-/* Cacheable - Indicates that region should be mapped as cacheable */
+/** 
+ * Region flags 
+ */
+/**
+ * Cacheable - Indicates that region should be mapped as cacheable
+ */
 #define DPRC_REGION_CACHEABLE	0x00000001
 
 /**

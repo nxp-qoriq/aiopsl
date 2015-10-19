@@ -41,20 +41,32 @@ struct fsl_mc_io;
  * Contains initialization APIs and runtime control APIs for DPNI
  */
 
-/* General DPNI macros */
+/** General DPNI macros */
 
-/* Maximum number of traffic classes */
+/**
+ * Maximum number of traffic classes 
+ */
 #define DPNI_MAX_TC				8
-/* Maximum number of buffer pools per DPNI */
+/**
+ * Maximum number of buffer pools per DPNI
+ */
 #define DPNI_MAX_DPBP				8
-/* Maximum number of storage-profiles per DPNI */
+/**
+ * Maximum number of storage-profiles per DPNI
+ */
 #define DPNI_MAX_SP				2
 
-/* All traffic classes considered; see dpni_set_rx_flow() */
+/**
+ * All traffic classes considered; see dpni_set_rx_flow()
+ */
 #define DPNI_ALL_TCS				(uint8_t)(-1)
-/* All flows within traffic class considered; see dpni_set_rx_flow() */
+/**
+ * All flows within traffic class considered; see dpni_set_rx_flow() 
+ */
 #define DPNI_ALL_TC_FLOWS			(uint16_t)(-1)
-/* Generate new flow ID; see dpni_set_tx_flow() */
+/**
+ * Generate new flow ID; see dpni_set_tx_flow()
+ */
 #define DPNI_NEW_FLOW_ID			(uint16_t)(-1)
 
 /**
@@ -94,7 +106,9 @@ int dpni_close(struct fsl_mc_io	*mc_io,
 	       uint32_t		cmd_flags,
 	       uint16_t		token);
 
-/* DPNI configuration options */
+/** 
+ * DPNI configuration options 
+ */
 
 /**
  * Allow different distribution key profiles for different traffic classes;
@@ -108,7 +122,9 @@ int dpni_close(struct fsl_mc_io	*mc_io,
  */
 #define DPNI_OPT_TX_CONF_DISABLED		0x00000002
 
-/* Disable per-sender private Tx confirmation/error queue */
+/**
+ * Disable per-sender private Tx confirmation/error queue 
+ */
 #define DPNI_OPT_PRIVATE_TX_CONF_ERROR_DISABLED	0x00000004
 
 /**
@@ -124,21 +140,37 @@ int dpni_close(struct fsl_mc_io	*mc_io,
  */
 #define DPNI_OPT_DIST_FS			0x00000020
 
-/* Unicast filtering support */
+/**
+ * Unicast filtering support
+ */
 #define DPNI_OPT_UNICAST_FILTER			0x00000080
-/* Multicast filtering support */
+/**
+ * Multicast filtering support 
+ */
 #define DPNI_OPT_MULTICAST_FILTER		0x00000100
-/* VLAN filtering support */
+/**
+ * VLAN filtering support 
+ */
 #define DPNI_OPT_VLAN_FILTER			0x00000200
-/* Support IP reassembly on received packets */
+/**
+ * Support IP reassembly on received packets 
+ */
 #define DPNI_OPT_IPR				0x00000800
-/* Support IP fragmentation on transmitted packets */
+/**
+ * Support IP fragmentation on transmitted packets
+ */
 #define DPNI_OPT_IPF				0x00001000
-/* VLAN manipulation support */
+/**
+ * VLAN manipulation support
+ */
 #define DPNI_OPT_VLAN_MANIPULATION		0x00010000
-/* Support masking of QoS lookup keys */
+/**
+ * Support masking of QoS lookup keys
+ */
 #define DPNI_OPT_QOS_MASK_SUPPORT		0x00020000
-/* Support masking of Flow Steering lookup keys */
+/**
+ * Support masking of Flow Steering lookup keys 
+ */
 #define DPNI_OPT_FS_MASK_SUPPORT		0x00040000
 
 /**
@@ -345,11 +377,17 @@ int dpni_reset(struct fsl_mc_io	*mc_io,
 	       uint32_t		cmd_flags,
 	       uint16_t		token);
 
-/* DPNI IRQ Index and Events */
+/** 
+ * DPNI IRQ Index and Events 
+ */
 
-/* IRQ index */
+/**
+ * IRQ index 
+ */
 #define DPNI_IRQ_INDEX				0
-/* IRQ event - indicates a change in link state */
+/**
+ * IRQ event - indicates a change in link state 
+ */
 #define DPNI_IRQ_EVENT_LINK_CHANGED		0x00000001
 
 /**
@@ -576,27 +614,41 @@ int dpni_get_attributes(struct fsl_mc_io	*mc_io,
 			uint16_t		token,
 			struct dpni_attr	*attr);
 
-/* DPNI errors */
+/**
+ * DPNI errors
+ */
 
-/* Extract out of frame header error */
+/**
+ * Extract out of frame header error
+ */
 #define DPNI_ERROR_EOFHE	0x00020000
-/* Frame length error */
+/**
+ * Frame length error 
+ */
 #define DPNI_ERROR_FLE		0x00002000
-/* Frame physical error */
+/**
+ * Frame physical error 
+ */
 #define DPNI_ERROR_FPE		0x00001000
-/* Parsing header error */
+/** 
+ * Parsing header error
+ */
 #define DPNI_ERROR_PHE		0x00000020
-/* Parser L3 checksum error */
+/**
+ * Parser L3 checksum error
+ */
 #define DPNI_ERROR_L3CE		0x00000004
-/* Parser L3 checksum error */
+/** 
+ * Parser L3 checksum error 
+ */
 #define DPNI_ERROR_L4CE		0x00000001
 
 
 /**
- *  enum dpni_error_action - Defines DPNI behavior for errors
- *  @DPNI_ERROR_ACTION_DISCARD: Discard the frame
- *  @DPNI_ERROR_ACTION_CONTINUE: Continue with the normal flow
- *  @DPNI_ERROR_ACTION_SEND_TO_ERROR_QUEUE: Send the frame to the error queue
+ * enum dpni_error_action - Defines DPNI behavior for errors
+ * @DPNI_ERROR_ACTION_DISCARD: Discard the frame
+ * @DPNI_ERROR_ACTION_CONTINUE: Continue with the normal flow
+ * @DPNI_ERROR_ACTION_SEND_TO_ERROR_QUEUE: Send the frame to the error queue
  */
 enum dpni_error_action {
 	DPNI_ERROR_ACTION_DISCARD = 0,
@@ -634,21 +686,37 @@ int dpni_set_errors_behavior(struct fsl_mc_io		*mc_io,
 			     uint16_t			token,
 			     struct dpni_error_cfg	*cfg);
 
-/* DPNI buffer layout modification options */
+/** 
+ * DPNI buffer layout modification options 
+ */
 
-/* Select to modify the time-stamp setting */
+/**
+ * Select to modify the time-stamp setting 
+ */
 #define DPNI_BUF_LAYOUT_OPT_TIMESTAMP		0x00000001
-/* Select to modify the parser-result setting; not applicable for Tx */
+/** 
+ * Select to modify the parser-result setting; not applicable for Tx
+ */
 #define DPNI_BUF_LAYOUT_OPT_PARSER_RESULT	0x00000002
-/* Select to modify the frame-status setting */
+/**
+ * Select to modify the frame-status setting 
+ */
 #define DPNI_BUF_LAYOUT_OPT_FRAME_STATUS	0x00000004
-/* Select to modify the private-data-size setting */
+/**
+ * Select to modify the private-data-size setting 
+ */
 #define DPNI_BUF_LAYOUT_OPT_PRIVATE_DATA_SIZE	0x00000008
-/* Select to modify the data-alignment setting */
+/**
+ * Select to modify the data-alignment setting 
+ */
 #define DPNI_BUF_LAYOUT_OPT_DATA_ALIGN		0x00000010
-/* Select to modify the data-head-room setting */
+/**
+ * Select to modify the data-head-room setting 
+ */
 #define DPNI_BUF_LAYOUT_OPT_DATA_HEAD_ROOM	0x00000020
-/*!< Select to modify the data-tail-room setting */
+/** 
+ * Select to modify the data-tail-room setting
+ */
 #define DPNI_BUF_LAYOUT_OPT_DATA_TAIL_ROOM	0x00000040
 
 /**
@@ -939,13 +1007,21 @@ int dpni_set_counter(struct fsl_mc_io	*mc_io,
 		     enum dpni_counter	counter,
 		     uint64_t		value);
 
-/* Enable auto-negotiation */
+/** 
+ * Enable auto-negotiation 
+ */
 #define DPNI_LINK_OPT_AUTONEG		0x0000000000000001ULL
-/* Enable half-duplex mode */
+/** 
+ * Enable half-duplex mode 
+ */
 #define DPNI_LINK_OPT_HALF_DUPLEX	0x0000000000000002ULL
-/* Enable pause frames */
+/** 
+ * Enable pause frames 
+ */
 #define DPNI_LINK_OPT_PAUSE		0x0000000000000004ULL
-/* Enable a-symmetric pause frames */
+/**
+ * Enable a-symmetric pause frames 
+ */
 #define DPNI_LINK_OPT_ASYM_PAUSE	0x0000000000000008ULL
 
 /**
@@ -1429,17 +1505,21 @@ int dpni_set_rx_tc_dist(struct fsl_mc_io			*mc_io,
 			uint8_t					tc_id,
 			const struct dpni_rx_tc_dist_cfg	*cfg);
 
-/* Set to select color aware mode (otherwise - color blind) */
+/** 
+ * Set to select color aware mode (otherwise - color blind) 
+ */
 #define DPNI_POLICER_OPT_COLOR_AWARE	0x00000001
-/* Set to discard frame with RED color */
+/** 
+ * Set to discard frame with RED color 
+ */
 #define DPNI_POLICER_OPT_DISCARD_RED	0x00000002
 
 /**
- *  enum dpni_policer_mode - selecting the policer mode
- *  @DPNI_POLICER_MODE_NONE: Policer is disabled
- *  @DPNI_POLICER_MODE_PASS_THROUGH: Policer pass through
- *  @DPNI_POLICER_MODE_RFC_2698: Policer algorithm RFC 2698
- *  @DPNI_POLICER_MODE_RFC_4115: Policer algorithm RFC 4115
+ * enum dpni_policer_mode - selecting the policer mode
+ * @DPNI_POLICER_MODE_NONE: Policer is disabled
+ * @DPNI_POLICER_MODE_PASS_THROUGH: Policer pass through
+ * @DPNI_POLICER_MODE_RFC_2698: Policer algorithm RFC 2698
+ * @DPNI_POLICER_MODE_RFC_4115: Policer algorithm RFC 4115
  */
 enum dpni_policer_mode {
 	DPNI_POLICER_MODE_NONE = 0,
@@ -1449,9 +1529,9 @@ enum dpni_policer_mode {
 };
 
 /**
- *  enum dpni_policer_unit - DPNI policer units
- *  @DPNI_POLICER_UNIT_BYTES: bytes units
- *  @DPNI_POLICER_UNIT_PACKETS: packets units
+ * enum dpni_policer_unit - DPNI policer units
+ * @DPNI_POLICER_UNIT_BYTES: bytes units
+ * @DPNI_POLICER_UNIT_PACKETS: packets units
  */
 enum dpni_policer_unit {
 	DPNI_POLICER_UNIT_BYTES = 0,
@@ -1459,10 +1539,10 @@ enum dpni_policer_unit {
 };
 
 /**
- *  enum dpni_policer_color - selecting the policer color
- *  @DPNI_POLICER_COLOR_GREEN: Green color
- *  @DPNI_POLICER_COLOR_YELLOW: Yellow color
- *  @DPNI_POLICER_COLOR_RED: Red color
+ * enum dpni_policer_color - selecting the policer color
+ * @DPNI_POLICER_COLOR_GREEN: Green color
+ * @DPNI_POLICER_COLOR_YELLOW: Yellow color
+ * @DPNI_POLICER_COLOR_RED: Red color
  */
 enum dpni_policer_color {
 	DPNI_POLICER_COLOR_GREEN = 0,
@@ -1660,7 +1740,9 @@ enum dpni_stash_size {
 
 /* DPNI FLC stash options */
 
-/* stashes the whole annotation area (up to 192 bytes) */
+/** 
+ * stashes the whole annotation area (up to 192 bytes) 
+ */
 #define DPNI_FLC_STASH_FRAME_ANNOTATION	0x00000001
 
 /**
@@ -1686,17 +1768,25 @@ struct dpni_flc_cfg {
 	uint64_t		flow_context;
 };
 
-/* DPNI queue modification options */
+/** 
+ * DPNI queue modification options 
+ */
 
-/* Select to modify the user's context associated with the queue */
+/**
+ * Select to modify the user's context associated with the queue 
+ */
 #define DPNI_QUEUE_OPT_USER_CTX		0x00000001
-/* Select to modify the queue's destination */
+/** 
+ * Select to modify the queue's destination 
+ */
 #define DPNI_QUEUE_OPT_DEST		0x00000002
 /** Select to modify the flow-context parameters;
  * not applicable for Tx-conf/Err queues as the FD comes from the user
  */
 #define DPNI_QUEUE_OPT_FLC		0x00000004
-/* Select to modify the queue's order preservation */
+/**
+ * Select to modify the queue's order preservation 
+ */
 #define DPNI_QUEUE_OPT_ORDER_PRESERVATION 0x00000008
 /* Select to modify the queue's tail-drop threshold */
 #define DPNI_QUEUE_OPT_TAILDROP_THRESHOLD 0x00000010
@@ -1753,17 +1843,29 @@ struct dpni_queue_attr {
 	uint32_t		fqid;
 };
 
-/* DPNI Tx flow modification options */
+/** 
+ * DPNI Tx flow modification options 
+ */
 
-/* Select to modify the settings for dedicate Tx confirmation/error */
+/**
+ * Select to modify the settings for dedicate Tx confirmation/error
+ */
 #define DPNI_TX_FLOW_OPT_TX_CONF_ERROR	0x00000001
-/*!< Select to modify the Tx confirmation and/or error setting */
+/**
+ * Select to modify the Tx confirmation and/or error setting 
+ */
 #define DPNI_TX_FLOW_OPT_ONLY_TX_ERROR	0x00000002
-/*!< Select to modify the queue configuration */
+/**
+ * Select to modify the queue configuration 
+ */
 #define DPNI_TX_FLOW_OPT_QUEUE		0x00000004
-/*!< Select to modify the L3 checksum generation setting */
+/** 
+ * Select to modify the L3 checksum generation setting 
+ */
 #define DPNI_TX_FLOW_OPT_L3_CHKSUM_GEN	0x00000010
-/*!< Select to modify the L4 checksum generation setting */
+/**
+ * Select to modify the L4 checksum generation setting 
+ */
 #define DPNI_TX_FLOW_OPT_L4_CHKSUM_GEN	0x00000020
 
 /**

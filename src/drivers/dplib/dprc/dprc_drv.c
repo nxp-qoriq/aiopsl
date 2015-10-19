@@ -49,7 +49,6 @@ void dprc_drv_free(void);
 static int aiop_container_init(void);
 static void aiop_container_free(void);
 
-__START_DDR_DATA
 static int dprc_drv_evmng_cb(uint8_t generator_id, uint8_t event_id, uint64_t app_ctx, void *event_data)
 {
 	/*Container was updated*/
@@ -248,5 +247,5 @@ __COLD_CODE static void aiop_container_free(void)
 	if (dprc != NULL)
 		fsl_free(dprc);
 }
-__END_DDR_DATA
+
 

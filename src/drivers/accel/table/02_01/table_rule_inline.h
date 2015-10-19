@@ -94,7 +94,7 @@ inline int table_rule_create(enum table_hw_accel_id acc_id,
 		status = TABLE_STATUS_SUCCESS;
 	*/
 	/*TODO write here number of Errata */
-	else if (status == TABLE_HW_STATUS_BIT_MISS | TABLE_HW_STATUS_PIEE) {
+	else if (status == (TABLE_HW_STATUS_BIT_MISS | TABLE_HW_STATUS_PIEE)) {
 		table_rule_inline_exception_handler(
 				TABLE_RULE_CREATE_FUNC_ID,
 				__LINE__,
@@ -614,7 +614,9 @@ inline int table_rule_query_by_key_desc(enum table_hw_accel_id acc_id,
 					union table_key_desc *key_desc,
 					uint8_t key_size,
 					struct table_result *result,
-					uint32_t *timestamp)
+					uint32_t *timestamp,
+					uint32_t *priority,
+					t_rule_id *rule_id)
 {
 
 #ifdef CHECK_ALIGNMENT
@@ -641,6 +643,8 @@ inline int table_rule_query_by_key_desc(enum table_hw_accel_id acc_id,
 
 	if (status == TABLE_HW_STATUS_SUCCESS ||
 	    (status == (TABLE_HW_STATUS_BIT_MISS | TABLE_HW_STATUS_PIEE))) {
+		/* Copy RuleID */
+		*rule_id = *((t_rule_id *)(&entry.prev_index_or_rule_id));
 		/* Copy result and timestamp */
 		entry_type = entry.type & TABLE_ENTRY_ENTYPE_FIELD_MASK;
 		if (entry_type == TABLE_ENTRY_ENTYPE_EME16) {
@@ -677,6 +681,7 @@ inline int table_rule_query_by_key_desc(enum table_hw_accel_id acc_id,
 		/* The MFLU rule that was found is with different priority */
 		if (status != TABLE_HW_STATUS_SUCCESS){
 			status = TABLE_STATUS_MFLU_DIFF_PRIORITY;
+			*priority = entry.next_index_or_priority;
 		}
 	} else {
 		/* Status Handling*/

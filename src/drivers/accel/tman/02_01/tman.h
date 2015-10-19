@@ -259,6 +259,8 @@ enum tman_function_identifier {
 
 
 #define TMAN_QUERY_MAX_NT_MASK	0x00FFFFFF
+
+
 #define TMAN_STATUS_MASK	0xF8000000
 /** CDMA Peripheral base address */
 #define CDMA_BASE_ADDRESS	0x0208d000
@@ -278,6 +280,8 @@ enum tman_function_identifier {
 #define TMAN_TMI_DEL_TMP_ERR_MASK	0x00000020
 /** The TMI query command error */
 #define TMAN_TMI_CMD_ERR	0x81400000
+/** The TMI create command error mask */
+#define TMAN_TMI_CREATE_CODE_MASK 0x814000C0
 /** A mask that defines the query TMI command temporary error type */
 #define TMAN_TMI_QUERY_TMP_ERR_MASK	0x00000020
 /** If the TMI query was successful */
