@@ -57,9 +57,6 @@
 #define DPBP_CMDID_GET_IRQ_STATUS			0x016
 #define DPBP_CMDID_CLEAR_IRQ_STATUS			0x017
 
-#define DPBP_CMDID_SET_NOTIFICATIONS		0x01b0
-#define DPBP_CMDID_GET_NOTIFICATIONS		0x01b1
-
 /*                cmd, param, offset, width, type, arg_name */
 #define DPBP_CMD_OPEN(cmd, dpbp_id) \
 	MC_CMD_OP(cmd, 0, 0,  32, int,	    dpbp_id)
@@ -121,11 +118,9 @@ do { \
 	MC_RSP_OP(cmd, 0, 0,  32, uint32_t, mask)
 
 /*                cmd, param, offset, width, type, arg_name */
-#define DPBP_CMD_GET_IRQ_STATUS(cmd, irq_index, status) \
-do { \
-	MC_CMD_OP(cmd, 0, 0,  32, uint32_t, status);\
-	MC_CMD_OP(cmd, 0, 32, 8,  uint8_t,  irq_index);\
-} while (0)
+#define DPBP_CMD_GET_IRQ_STATUS(cmd, irq_index) \
+	MC_CMD_OP(cmd, 0, 32, 8,  uint8_t,  irq_index)
+
 /*                cmd, param, offset, width, type, arg_name */
 #define DPBP_RSP_GET_IRQ_STATUS(cmd, status) \
 	MC_RSP_OP(cmd, 0, 0,  32, uint32_t, status)
@@ -144,29 +139,5 @@ do { \
 	MC_RSP_OP(cmd, 0, 32, 32, int,	    attr->id);\
 	MC_RSP_OP(cmd, 1, 0,  16, uint16_t, attr->version.major);\
 	MC_RSP_OP(cmd, 1, 16, 16, uint16_t, attr->version.minor);\
-} while (0)
-
-/*                cmd, param, offset, width, type, arg_name */
-#define DPBP_CMD_SET_NOTIFICATIONS(cmd, cfg) \
-do { \
-	MC_CMD_OP(cmd, 0, 0,  32, uint32_t, cfg->depletion_entry); \
-	MC_CMD_OP(cmd, 0, 32, 32, uint32_t, cfg->depletion_exit);\
-	MC_CMD_OP(cmd, 1, 0,  32, uint32_t, cfg->surplus_entry);\
-	MC_CMD_OP(cmd, 1, 32, 32, uint32_t, cfg->surplus_exit);\
-	MC_CMD_OP(cmd, 2, 0,  16, uint16_t, cfg->options);\
-	MC_CMD_OP(cmd, 3, 0,  64, uint64_t, cfg->message_ctx);\
-	MC_CMD_OP(cmd, 4, 0,  64, uint64_t, cfg->message_iova);\
-} while (0)
-
-/*                cmd, param, offset, width, type, arg_name */
-#define DPBP_CMD_GET_NOTIFICATIONS(cmd, cfg) \
-do { \
-	MC_RSP_OP(cmd, 0, 0,  32, uint32_t, cfg->depletion_entry); \
-	MC_RSP_OP(cmd, 0, 32, 32, uint32_t, cfg->depletion_exit);\
-	MC_RSP_OP(cmd, 1, 0,  32, uint32_t, cfg->surplus_entry);\
-	MC_RSP_OP(cmd, 1, 32, 32, uint32_t, cfg->surplus_exit);\
-	MC_RSP_OP(cmd, 2, 0,  16, uint16_t, cfg->options);\
-	MC_RSP_OP(cmd, 3, 0,  64, uint64_t, cfg->message_ctx);\
-	MC_RSP_OP(cmd, 4, 0,  64, uint64_t, cfg->message_iova);\
 } while (0)
 #endif /* _FSL_DPBP_CMD_H */
