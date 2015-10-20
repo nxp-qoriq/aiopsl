@@ -55,6 +55,10 @@ __START_COLD_CODE
 #pragma optimization_level 2
 #endif
 
+static void *s_slob_bf_pool = NULL;
+static struct icontext s_ic;
+
+
 /**********************************************************************
  *                     MM internal routines set                       *
  **********************************************************************/
@@ -115,21 +119,21 @@ static int create_new_block_by_boot_mng(const uint64_t base,
 #ifdef OPTIMIZE_STACK_SIZE
 #pragma dont_inline on
 #endif
-static  int create_new_block(struct buffer_pool* slob_bf_pool,
-                          const uint64_t base,
-                          const uint64_t size,
+static  int create_new_block(const uint64_t* base,
+                          const uint64_t* size,
                           uint64_t *block_addr)
 {
     int rc = -ENAVAIL;
-    uint64_t temp = base;
-    rc = buff_pool_get(slob_bf_pool,block_addr);
+    uint64_t temp = *base;
+    /* use global slob_bf_pool instead of passing it to function */
+    rc = buff_pool_get(s_slob_bf_pool,block_addr);
     if (0 != rc)
     {
         sl_pr_err("Slob: memory allocation failed");
         return rc;
     }
-    cdma_write(*block_addr+offsetof(t_slob_block,base),&temp,sizeof(base));
-    temp = base + size;
+    cdma_write(*block_addr+offsetof(t_slob_block,base),&temp,sizeof(*base));
+    temp = *base + *size;
     cdma_write(*block_addr+offsetof(t_slob_block,end),&temp,sizeof(temp));
     temp = 0;
     cdma_write(*block_addr+offsetof(t_slob_block,next_addr),&temp,sizeof(temp));
@@ -141,31 +145,30 @@ static  int create_new_block(struct buffer_pool* slob_bf_pool,
 #pragma dont_inline reset
 #endif
 /****************************************************************/
-static int insert_free_block(uint64_t *new_b_addr,t_MM *p_MM,
-                             const uint64_t curr_b_addr,const uint64_t end,
-		             const uint32_t alignment,const uint64_t align_base,
-		             uint64_t prev_b_addr,const int     i)
+static int insert_free_block(uint64_t *new_b_addr,
+                             uint64_t *free_blocks_addr,
+                             const uint64_t* size,
+                             const uint64_t* align_base,
+		             uint64_t* prev_b_addr)
 {
 	 /* This is an old code line that assumes that size of an allocated memory is
 	 * multiply of alignment. Replaced this by a condition that a new block
 	 * is greater than the current alignment.
 	 * if ( !p_curr_b && ((((uint64_t)(end-base)) & ((uint64_t)(alignment-1))) == 0) )
 	 * */
-	if ( curr_b_addr == 0  &&  (end-align_base) >= alignment )
+	if (create_new_block(align_base,
+	                     size,
+		             new_b_addr) != 0)
+		return  -ENOMEM;
+	if (*prev_b_addr)
 	{
-		if (create_new_block(p_MM->h_slob_bf_pool,align_base, end-align_base,
-		                                  new_b_addr) != 0)
-			return  -ENOMEM;
-		if (prev_b_addr)
-		{
-			cdma_write(prev_b_addr + offsetof(t_slob_block,next_addr),new_b_addr,
-			           sizeof(*new_b_addr));
-		}
-		else
-		{
-			cdma_write(p_MM->head_free_blocks_addr + i*sizeof(uint64_t),
-			           new_b_addr,sizeof(uint64_t));
-		}
+		cdma_write(*prev_b_addr + offsetof(t_slob_block,next_addr),new_b_addr,
+			   sizeof(*new_b_addr));
+	}
+	else
+	{
+		cdma_write(*free_blocks_addr,
+			   new_b_addr,sizeof(uint64_t));
 	}
 	return 0;
 }
@@ -187,6 +190,64 @@ static void update_boundaries(const uint32_t alignment,
 			*end = curr_b.end;
 		}
 	}
+}
+
+#ifdef OPTIMIZE_STACK_SIZE
+#pragma dont_inline on
+#endif
+static void eliminate_redundant_free_blocks(t_slob_block *curr_b,
+                                            uint64_t *curr_b_addr,
+                                            uint64_t *end)
+{
+    static t_slob_block next_b = {0};
+    uint64_t next_b_addr = 0;
+
+    if(0 != curr_b->next_addr)
+    {
+	//cdma_read(&next_b,curr_b->next_addr,sizeof(next_b));
+	fdma_dma_data(sizeof(next_b),s_ic.icid,&next_b,curr_b->next_addr,
+	              FDMA_DMA_DA_SYS_TO_SRAM_BIT);
+
+    }
+    while ( 0 != curr_b->next_addr && *end > next_b.end )
+    {
+	next_b_addr = curr_b->next_addr;
+	curr_b->next_addr = next_b.next_addr;
+	//cdma_write(*curr_b_addr,curr_b,sizeof(*curr_b));
+	fdma_dma_data(sizeof(*curr_b),s_ic.icid,curr_b,*curr_b_addr,
+	              FDMA_DMA_DA_SRAM_TO_SYS_BIT);
+	buff_pool_put(s_slob_bf_pool,next_b_addr);
+	if(0 != curr_b->next_addr)
+	{
+	    //cdma_read(&next_b,curr_b->next_addr,sizeof(next_b));
+	    fdma_dma_data(sizeof(next_b),s_ic.icid,&next_b,curr_b->next_addr,
+	                  FDMA_DMA_DA_SYS_TO_SRAM_BIT);
+	}
+    }
+
+    next_b_addr = curr_b->next_addr;
+    if(0 != next_b_addr)
+    {
+	//cdma_read(&next_b,next_b_addr,sizeof(next_b));
+	fdma_dma_data(sizeof(next_b),s_ic.icid,&next_b,next_b_addr,
+	              FDMA_DMA_DA_SYS_TO_SRAM_BIT);
+    }
+    if ( next_b_addr == 0 || ( 0 != next_b_addr  && *end < next_b.base) )
+    {
+	 curr_b->end = *end;
+	 //cdma_write(*curr_b_addr,curr_b,sizeof(*curr_b));
+	 fdma_dma_data(sizeof(*curr_b),s_ic.icid,curr_b,*curr_b_addr,
+	 	              FDMA_DMA_DA_SRAM_TO_SYS_BIT);
+    }
+    else
+    {
+	curr_b->end = next_b.end;
+	curr_b->next_addr = next_b.next_addr;
+	buff_pool_put(s_slob_bf_pool,next_b_addr);
+	//cdma_write(*curr_b_addr,curr_b,sizeof(*curr_b));
+	fdma_dma_data(sizeof(*curr_b),s_ic.icid,curr_b,*curr_b_addr,
+		 	              FDMA_DMA_DA_SRAM_TO_SYS_BIT);
+    }
 }
 
 /****************************************************************
@@ -212,6 +273,8 @@ static void update_boundaries(const uint32_t alignment,
  * These  functions require 4 consecutive registers to be available  forcing compiler
  * to store more variables on the stack. All the in-lined functions inside the
  * pragma become regular functions.
+ * No need for locking over global curr_b as there is a locking over entire
+ * slob_put in mem_mng.c
  */
 #ifdef OPTIMIZE_STACK_SIZE
 #pragma dont_inline on
@@ -219,22 +282,26 @@ static void update_boundaries(const uint32_t alignment,
 static int add_free(t_MM *p_MM, uint64_t base, uint64_t end)
 {
 
-    t_slob_block curr_b = {0},next_b = {0};
-    uint64_t    prev_b_addr = 0,new_b_addr = 0 , next_b_addr = 0, curr_b_addr = 0;
-    uint64_t    align_base = 0;
+    static t_slob_block curr_b = {0};
+
+
+    uint64_t    prev_b_addr = 0,new_b_addr = 0,curr_b_addr = 0,free_blocks_addr = 0;
+    static uint64_t    align_base = 0,size = 0;
     int         i;
-    struct buffer_pool *slob_bf_pool = (struct buffer_pool *)p_MM->h_slob_bf_pool;
     uint32_t    alignment = 4;
+
 
     /* Updates free lists to include  a just released block */
     for (i=0; i <= MM_MAX_ALIGNMENT; i++)
     {
         prev_b_addr = new_b_addr = 0;
-        cdma_read(&curr_b_addr,p_MM->head_free_blocks_addr + i*sizeof(uint64_t),
+        free_blocks_addr = p_MM->head_free_blocks_addr + i*sizeof(uint64_t);
+        cdma_read(&curr_b_addr,free_blocks_addr,
                   sizeof(curr_b_addr));
         if(0 != curr_b_addr)
         {
-            cdma_read(&curr_b,curr_b_addr,sizeof(curr_b));
+            //OPTIMIZE_STACK_SIZE
+            fdma_dma_data(sizeof(curr_b),s_ic.icid,&curr_b,curr_b_addr,FDMA_DMA_DA_SYS_TO_SRAM_BIT);
         }
 
         alignment = (0x1 << i);
@@ -243,7 +310,7 @@ static int add_free(t_MM *p_MM, uint64_t base, uint64_t end)
         /* Goes to the next free list if there is no block to free */
         if (align_base >= end)
             continue;
-
+        size = end-align_base;
         /* Looks for a free block that should be updated */
         while ( 0 != curr_b_addr )
         {
@@ -251,43 +318,13 @@ static int add_free(t_MM *p_MM, uint64_t base, uint64_t end)
             {
                 if ( end > curr_b.end )
                 {
-                    if(0 != curr_b.next_addr)
-                    {
-                        cdma_read(&next_b,curr_b.next_addr,sizeof(next_b));
-                    }
-                    while ( 0 != curr_b.next_addr && end > next_b.end )
-                    {
-                        next_b_addr = curr_b.next_addr;
-                        curr_b.next_addr = next_b.next_addr;
-                        cdma_write(curr_b_addr,&curr_b,sizeof(curr_b));
-                        buff_pool_put(slob_bf_pool,next_b_addr);
-                        if(0 != curr_b.next_addr)
-                        {
-                            cdma_read(&next_b,curr_b.next_addr,sizeof(next_b));
-                        }
-                    }
-                    next_b_addr = curr_b.next_addr;
-                    if(0 != next_b_addr)
-                    {
-                        cdma_read(&next_b,next_b_addr,sizeof(next_b));
-                    }
-                    if ( next_b_addr == 0 || ( 0 != next_b_addr  && end < next_b.base) )
-                    {
-                         curr_b.end = end;
-                         cdma_write(curr_b_addr,&curr_b,sizeof(curr_b));
-                    }
-                    else
-                    {
-                        curr_b.end = next_b.end;
-                        curr_b.next_addr = next_b.next_addr;
-                        buff_pool_put(slob_bf_pool,next_b_addr);
-                        cdma_write(curr_b_addr,&curr_b,sizeof(curr_b));
-                    }
-                }
-                else if ( (end < curr_b.base) && ((end-align_base) >= alignment) )
+                    eliminate_redundant_free_blocks(&curr_b,&curr_b_addr,&end);
+                }//  if ( end > curr_b.end )
+                else if ( (end < curr_b.base) && ((size) >= alignment) )
                 {
-                    if (create_new_block(p_MM->h_slob_bf_pool,align_base, end-align_base,
-                                                     &new_b_addr) != 0)
+                    if (create_new_block(&align_base,
+                                         &size,
+                                         &new_b_addr) != 0)
                     {
                         sl_pr_err("Slob: memory allocation failed\n");
                         return -ENOMEM;
@@ -300,7 +337,7 @@ static int add_free(t_MM *p_MM, uint64_t base, uint64_t end)
 		    }
                     else
                     {
-                        cdma_write(p_MM->head_free_blocks_addr+i*sizeof(uint64_t),&new_b_addr,
+                        cdma_write(free_blocks_addr,&new_b_addr,
                                    sizeof(new_b_addr));
                     }
                     break;
@@ -308,7 +345,8 @@ static int add_free(t_MM *p_MM, uint64_t base, uint64_t end)
                 if ((align_base < curr_b.base) && (end >= curr_b.base))
                 {
                     curr_b.base = align_base;
-                    cdma_write(curr_b_addr,&curr_b,sizeof(curr_b));
+                    fdma_dma_data(sizeof(curr_b),s_ic.icid,&curr_b,curr_b_addr,
+                                  FDMA_DMA_DA_SRAM_TO_SYS_BIT);
                 }
 
                 /* if size of the free block is less then alignment
@@ -322,21 +360,22 @@ static int add_free(t_MM *p_MM, uint64_t base, uint64_t end)
 		    }
                     else
                     {
-                        cdma_write(p_MM->head_free_blocks_addr + i*sizeof(uint64_t),
+                        cdma_write(free_blocks_addr,
                                    &curr_b.next_addr,sizeof(curr_b.next_addr));
                     }
-                    buff_pool_put(slob_bf_pool,curr_b_addr);
+                    buff_pool_put(s_slob_bf_pool,curr_b_addr);
                     curr_b_addr = 0;
                 }
                 break;
-            }
+            } // if ( align_base <= curr_b.end )
             else
             {
                 prev_b_addr = curr_b_addr;
                 cdma_read(&curr_b_addr,prev_b_addr+offsetof(t_slob_block,next_addr),sizeof(curr_b_addr));
                 if(0 != curr_b_addr)
                 {
-                    cdma_read(&curr_b,curr_b_addr,sizeof(curr_b));
+                    fdma_dma_data(sizeof(curr_b),s_ic.icid,&curr_b,curr_b_addr,
+                                  FDMA_DMA_DA_SYS_TO_SRAM_BIT);
                 }
             }
         } // while
@@ -344,17 +383,23 @@ static int add_free(t_MM *p_MM, uint64_t base, uint64_t end)
         /* If no free block found to be updated, insert a new free block
          * to the end of the free list.
          */
-        if(0 != insert_free_block(&new_b_addr,p_MM,curr_b_addr,end,alignment,align_base,prev_b_addr,i))
+        if ( curr_b_addr == 0  &&  (size) >= alignment )
         {
-            sl_pr_err("Slob: memory allocation failed\n");
-            return -ENOMEM;
+            if(0 != insert_free_block(&new_b_addr,
+                                  &free_blocks_addr,
+                                  &size,
+                                  &align_base,
+                                  &prev_b_addr))
+            {
+                sl_pr_err("Slob: memory allocation failed\n");
+                return -ENOMEM;
+            }
         }
         /* Update boundaries of the new free block */
         update_boundaries(alignment,new_b_addr,curr_b_addr,&end,&base);
     }// for
     return (0);
 }
-
 /****************************************************************
  *  Routine:      CutFree
  *
@@ -380,28 +425,26 @@ static int add_free(t_MM *p_MM, uint64_t base, uint64_t end)
  * These  functions require 4 consecutive registers to be available  forcing compiler
  * to store more variables on the stack. All the in-lined functions inside the
  * pragma become regular functions.
+ * No need to lock over global curr_b as there is a locking over entire slob_get in mem_mng.c file
  */
 
 #ifdef OPTIMIZE_STACK_SIZE
 #pragma dont_inline on
 #endif
-static int cut_free(t_MM *p_MM, const uint64_t hold_base, const uint64_t hold_end)
+static int cut_free(t_MM *p_MM, const uint64_t *hold_base, const uint64_t *hold_end)
 {
-#ifdef OPTIMIZE_STACK_SIZE
     static t_slob_block curr_b = {0};
+
+    uint64_t new_b_addr = 0,curr_b_addr = 0;
+#ifdef  OPTIMIZE_STACK_SIZE
+    static uint64_t    prev_b_addr = 0, align_base = 0, base = 0, end = 0,size = 0;
 #else
-    t_slob_block curr_b = {0};
+    uint64_t    prev_b_addr, align_base = 0, base = 0, end = 0,size = 0;
 #endif
 
-    uint64_t new_b_addr = 0,prev_b_addr = 0,curr_b_addr = 0;
-    uint64_t    align_base = 0, base = 0, end = 0;
     uint32_t    alignment = 4;
     int         i;
 
-    struct buffer_pool* slob_bf_pool = (struct buffer_pool*)p_MM->h_slob_bf_pool;
-#ifdef OPTIMIZE_STACK_SIZE
-    cdma_mutex_lock_take((uint64_t)&curr_b, CDMA_MUTEX_WRITE_LOCK);
-#endif
 
     for (i=0; i <= MM_MAX_ALIGNMENT; i++)
     {
@@ -410,85 +453,69 @@ static int cut_free(t_MM *p_MM, const uint64_t hold_base, const uint64_t hold_en
                   sizeof(curr_b_addr));
         if(0 != curr_b_addr)
         {
-#ifdef OPTIMIZE_STACK_SIZE
-            fdma_dma_data(sizeof(curr_b),0,&curr_b,curr_b_addr,FDMA_DMA_DA_SYS_TO_SRAM_BIT);
-#else
-            cdma_read(&curr_b,curr_b_addr,sizeof(curr_b));
-#endif
+            //OPTIMIZE_STACK_SIZE
+            fdma_dma_data(sizeof(curr_b),s_ic.icid,&curr_b,curr_b_addr,FDMA_DMA_DA_SYS_TO_SRAM_BIT);
         }
 
         alignment = (0x1 << i);
-        align_base = ALIGN_UP_64(hold_end, alignment);
+        align_base = ALIGN_UP_64(*hold_end, alignment);
 
         while( curr_b_addr )
         {
-
             base = curr_b.base;
             end = curr_b.end;
+            size = end-align_base;
 
-            if ( (hold_base <= base) && (hold_end <= end) && (hold_end > base) )
+            if ( (*hold_base <= base) && (*hold_end <= end) && (*hold_end > base) )
             {
                 if ( align_base >= end ||
-                     (align_base < end && ((end-align_base) < alignment)) )
+                     (align_base < end && ((size) < alignment)) )
                 {
                     if (0 != prev_b_addr)
                     {
-#ifdef OPTIMIZE_STACK_SIZE
-                        fdma_dma_data(sizeof(curr_b.next_addr),0,&curr_b.next_addr,prev_b_addr+offsetof(t_slob_block,next_addr),
+                        //OPTIMIZE_STACK_SIZE
+                        fdma_dma_data(sizeof(curr_b.next_addr),s_ic.icid,&curr_b.next_addr,prev_b_addr+offsetof(t_slob_block,next_addr),
                                       FDMA_DMA_DA_SRAM_TO_SYS_BIT);
-#else
-                        cdma_write(prev_b_addr+offsetof(t_slob_block,next_addr),&curr_b.next_addr,sizeof(curr_b.next_addr));
-#endif
                     }
                     else
                     {
-#ifdef OPTIMIZE_STACK_SIZE
-                        fdma_dma_data(sizeof(curr_b.next_addr),0,&curr_b.next_addr,p_MM->head_free_blocks_addr+ i*sizeof(uint64_t),
+                        //OPTIMIZE_STACK_SIZE
+                        fdma_dma_data(sizeof(curr_b.next_addr),s_ic.icid,&curr_b.next_addr,p_MM->head_free_blocks_addr+ i*sizeof(uint64_t),
                                       FDMA_DMA_DA_SRAM_TO_SYS_BIT);
-#else
-                        cdma_write(p_MM->head_free_blocks_addr+ i*sizeof(uint64_t),
-                                    &curr_b.next_addr,sizeof(curr_b.next_addr));
-#endif
 
                     }
-                    buff_pool_put(slob_bf_pool,curr_b_addr);
+                    buff_pool_put(s_slob_bf_pool,curr_b_addr);
                 }
                 else
                 {
                     curr_b.base = align_base;
                 }
-#ifdef OPTIMIZE_STACK_SIZE
-                fdma_dma_data(sizeof(curr_b),0,&curr_b,curr_b_addr,FDMA_DMA_DA_SRAM_TO_SYS_BIT);
-#else
-                cdma_write(curr_b_addr,&curr_b,sizeof(curr_b));
-#endif
+                //OPTIMIZE_STACK_SIZE
+                fdma_dma_data(sizeof(curr_b),s_ic.icid,&curr_b,curr_b_addr,FDMA_DMA_DA_SRAM_TO_SYS_BIT);
                 break;
             }
-            else if ( (hold_base > base) && (hold_end <= end) )
+            else if ( (*hold_base > base) && (*hold_end <= end) )
             {
-                if ( (hold_base-base) >= alignment )
+                if ( (*hold_base-base) >= alignment )
                 {
-                    if ( (align_base < end) && ((end-align_base) >= alignment) )
+                    if ( (align_base < end) && ((size) >= alignment) )
                     {
-                        if (create_new_block(p_MM->h_slob_bf_pool,align_base,
-                                                         end-align_base,
-                                                         &new_b_addr) != 0)
+                        if (create_new_block(&align_base,
+                                             &size,
+                                             &new_b_addr) != 0)
                         {
                             sl_pr_err("Slob: memory allocation failed\n");
                             return -ENOMEM;
                         }
-#ifdef OPTIMIZE_STACK_SIZE
-                        fdma_dma_data(sizeof(curr_b.next_addr),0,&curr_b.next_addr,new_b_addr + offsetof(t_slob_block,next_addr),
+                        //OPTIMIZE_STACK_SIZE
+                        fdma_dma_data(sizeof(curr_b.next_addr),s_ic.icid,&curr_b.next_addr,new_b_addr + offsetof(t_slob_block,next_addr),
                                       FDMA_DMA_DA_SRAM_TO_SYS_BIT);
-#else
-                        cdma_write(new_b_addr + offsetof(t_slob_block,next_addr),&curr_b.next_addr,
-                                   sizeof(curr_b.next_addr));
-#endif
+
                         curr_b.next_addr = new_b_addr;
                     }
-                    curr_b.end = hold_base;
+                    curr_b.end = *hold_base;
                 }
-                else if ( (align_base < end) && ((end-align_base) >= alignment) )
+                else if ( (align_base < end) && ((size) >= alignment) )
                 {
                     curr_b.base = align_base;
                 }
@@ -496,58 +523,38 @@ static int cut_free(t_MM *p_MM, const uint64_t hold_base, const uint64_t hold_en
                 {
                     if (0 != prev_b_addr)
                     {
-#ifdef OPTIMIZE_STACK_SIZE
-                        fdma_dma_data(sizeof(curr_b.next_addr),0,&curr_b.next_addr,
+                       //OPTIMIZE_STACK_SIZE
+                        fdma_dma_data(sizeof(curr_b.next_addr),s_ic.icid,&curr_b.next_addr,
                                       prev_b_addr+offsetof(t_slob_block,next_addr),
                                       FDMA_DMA_DA_SRAM_TO_SYS_BIT);
-#else
-                        cdma_write(prev_b_addr+offsetof(t_slob_block,next_addr),&curr_b.next_addr,
-                                   sizeof(curr_b.next_addr));
-#endif
                     }
                     else
                     {
-#ifdef OPTIMIZE_STACK_SIZE
-                        fdma_dma_data(sizeof(curr_b.next_addr),0,&curr_b.next_addr,
+                        //OPTIMIZE_STACK_SIZE
+                        fdma_dma_data(sizeof(curr_b.next_addr),s_ic.icid,&curr_b.next_addr,
                                       p_MM->head_free_blocks_addr + i*sizeof(uint64_t),
                                       FDMA_DMA_DA_SRAM_TO_SYS_BIT);
-#else
-                        cdma_write(p_MM->head_free_blocks_addr + i*sizeof(uint64_t),
-                                   &curr_b.next_addr,sizeof(curr_b.next_addr));
-#endif
                     }
-                    buff_pool_put(slob_bf_pool,curr_b_addr);
+                    buff_pool_put(s_slob_bf_pool,curr_b_addr);
                 }
-#ifdef OPTIMIZE_STACK_SIZE
-                fdma_dma_data(sizeof(curr_b),0,&curr_b,curr_b_addr,FDMA_DMA_DA_SRAM_TO_SYS_BIT);
-#else
-                cdma_write(curr_b_addr,&curr_b,sizeof(curr_b));
-#endif
+                //OPTIMIZE_STACK_SIZE
+                fdma_dma_data(sizeof(curr_b),s_ic.icid,&curr_b,curr_b_addr,FDMA_DMA_DA_SRAM_TO_SYS_BIT);
                 break;
             }
             else
             {
                 prev_b_addr = curr_b_addr;
-#ifdef OPTIMIZE_STACK_SIZE
-                fdma_dma_data(sizeof(curr_b),0,&curr_b,curr_b_addr,FDMA_DMA_DA_SRAM_TO_SYS_BIT);
-#else
-                cdma_write(curr_b_addr,&curr_b,sizeof(curr_b));
-#endif
+                //OPTIMIZE_STACK_SIZE
+                fdma_dma_data(sizeof(curr_b),s_ic.icid,&curr_b,curr_b_addr,FDMA_DMA_DA_SRAM_TO_SYS_BIT);
                 curr_b_addr = curr_b.next_addr;
                 if(0 != curr_b_addr)
                 {
-#ifdef OPTIMIZE_STACK_SIZE
-                    fdma_dma_data(sizeof(curr_b),0,&curr_b,curr_b_addr,FDMA_DMA_DA_SYS_TO_SRAM_BIT);
-#else
-                    cdma_read(&curr_b,curr_b_addr,sizeof(curr_b));
-#endif
+                    //OPTIMIZE_STACK_SIZE
+                    fdma_dma_data(sizeof(curr_b),s_ic.icid,&curr_b,curr_b_addr,FDMA_DMA_DA_SYS_TO_SRAM_BIT);
                 }
             }
         }//while( curr_b_addr )
     }//for (i=0; i <= MM_MAX_ALIGNMENT; i++)
-#ifdef OPTIMIZE_STACK_SIZE
-    cdma_mutex_lock_release((uint64_t)&curr_b);
-#endif
     return (0);
 }
 #ifdef OPTIMIZE_STACK_SIZE
@@ -569,21 +576,20 @@ static int cut_free(t_MM *p_MM, const uint64_t hold_base, const uint64_t hold_en
  *      None.
  *
  ****************************************************************/
-/*static void add_busy(t_MM *p_MM, uint64_t new_busy_addr)*/
 static void add_busy(t_MM *p_MM, t_slob_block* busy_b,uint64_t new_busy_addr)
 
 {
-    //t_slob_block busy_b = {0};
     uint64_t  new_busy_b_base = 0;
     uint64_t curr_busy_b_addr = 0, prev_busy_b_addr = 0;
 
-    //cdma_read(&new_busy_b_base,new_busy_addr+offsetof(t_slob_block,base),sizeof(new_busy_b_base));
+
     new_busy_b_base = busy_b->base;
     /* finds a place of a new busy block in the list of busy blocks */
     curr_busy_b_addr = p_MM->head_busy_blocks_addr;
     if(0 != curr_busy_b_addr)
     {
-        cdma_read(busy_b,curr_busy_b_addr,sizeof(*busy_b));
+	fdma_dma_data(sizeof(*busy_b),s_ic.icid,busy_b,curr_busy_b_addr,
+	              FDMA_DMA_DA_SYS_TO_SRAM_BIT);
     }
 
     while ( curr_busy_b_addr && new_busy_b_base > busy_b->base )
@@ -592,15 +598,18 @@ static void add_busy(t_MM *p_MM, t_slob_block* busy_b,uint64_t new_busy_addr)
 	curr_busy_b_addr = busy_b->next_addr;
         if(0 != curr_busy_b_addr)
         {
-            cdma_read(busy_b,curr_busy_b_addr,sizeof(*busy_b));
+            fdma_dma_data(sizeof(*busy_b),s_ic.icid,busy_b,curr_busy_b_addr,
+                          FDMA_DMA_DA_SYS_TO_SRAM_BIT);
         }
     }
     /* insert the new busy block into the list of busy blocks */
-    cdma_read(busy_b,new_busy_addr,sizeof(*busy_b));
+    fdma_dma_data(sizeof(*busy_b),s_ic.icid,busy_b,new_busy_addr,
+                  FDMA_DMA_DA_SYS_TO_SRAM_BIT);
     if ( curr_busy_b_addr )
     {
 	busy_b->next_addr =  curr_busy_b_addr;
-        cdma_write(new_busy_addr,busy_b,sizeof(*busy_b));
+	fdma_dma_data(sizeof(*busy_b),s_ic.icid,busy_b,new_busy_addr,
+	              FDMA_DMA_DA_SRAM_TO_SYS_BIT);
     }
     if ( prev_busy_b_addr )
     {
@@ -678,11 +687,10 @@ static uint64_t slob_get_greater_alignment(t_MM *p_MM,
                                            const uint64_t size,
                                            const uint32_t alignment)
 {
-    t_slob_block block = {0};
+    static t_slob_block block = {0};
     uint64_t new_busy_addr = 0;
     uint64_t  free_addr = 0;
-    uint64_t    hold_base = 0, hold_end = 0, align_base = 0;
-    struct buffer_pool* slob_bf_pool = (struct buffer_pool*)p_MM->h_slob_bf_pool;
+    static uint64_t    hold_base = 0, hold_end = 0, align_base = 0;
 
     /* goes over free blocks of the 64 byte alignment list
        and look for a block of the suitable size and
@@ -691,9 +699,9 @@ static uint64_t slob_get_greater_alignment(t_MM *p_MM,
               sizeof(free_addr));
     if(0 != free_addr )
     {
-        cdma_read(&block,free_addr,sizeof(block));
+	fdma_dma_data(sizeof(block),s_ic.icid,&block,free_addr,
+	              FDMA_DMA_DA_SYS_TO_SRAM_BIT);
     }
-
     while(free_addr)
     {
 	  align_base = ALIGN_UP_64(block.base, alignment);
@@ -707,7 +715,8 @@ static uint64_t slob_get_greater_alignment(t_MM *p_MM,
 	  else
 	  {
 	      free_addr = block.next_addr;
-	      cdma_read(&block,free_addr,sizeof(block));
+	      fdma_dma_data(sizeof(block),s_ic.icid,&block,free_addr,
+	                    FDMA_DMA_DA_SYS_TO_SRAM_BIT);
 	  }
     }
 
@@ -721,19 +730,20 @@ static uint64_t slob_get_greater_alignment(t_MM *p_MM,
     hold_end = align_base + size;
 
     /* init a new busy block */
-    if (create_new_block(slob_bf_pool,hold_base, size,&new_busy_addr) != 0)
+    if (create_new_block(&hold_base, &size,&new_busy_addr) != 0)
     {
         return 0LL;
     }
 
     /* calls Update routine to update a lists of free blocks */
-    if ( cut_free ( p_MM, hold_base, hold_end ) != 0 ) {
-            buff_pool_put( slob_bf_pool,new_busy_addr);
+    if ( cut_free ( p_MM, &hold_base, &hold_end ) != 0 ) {
+            buff_pool_put( s_slob_bf_pool,new_busy_addr);
 	    return 0LL;
     }
 
     /* insert the new busy block into the list of busy blocks */
-    cdma_read(&block,new_busy_addr,sizeof(block));
+    fdma_dma_data(sizeof(block),s_ic.icid,&block,new_busy_addr,
+                  FDMA_DMA_DA_SYS_TO_SRAM_BIT);
     add_busy ( p_MM,&block,new_busy_addr);
     return (hold_base);
 }
@@ -772,7 +782,9 @@ int slob_init(uint64_t*slob, const uint64_t base, const uint64_t size,
     }
     *slob = paddr;
     MM.h_mem_mng = h_mem_mng;
-    MM.h_slob_bf_pool = h_slob_bf_pool;
+    if(NULL == s_slob_bf_pool)
+        s_slob_bf_pool = h_slob_bf_pool;
+    icontext_aiop_get(&s_ic);
 
 
     /* Initializes counter of free memory to total size */
@@ -810,9 +822,8 @@ int slob_init(uint64_t*slob, const uint64_t base, const uint64_t size,
         new_base = ALIGN_UP_64( base, (0x1 << i) );
         new_size = size - (new_base - base);
 
-        if (create_new_block(MM.h_slob_bf_pool,
-                             new_base,
-                             new_size,
+        if (create_new_block(&new_base,
+                             &new_size,
                              &free_blocks_addr) != 0) {
             cdma_write(paddr,&MM,sizeof(MM));
             slob_free(&paddr);
@@ -839,7 +850,7 @@ void slob_free(uint64_t* slob)
     ASSERT_COND(slob);
     cdma_read(&MM,*slob,sizeof(slob));
 
-    struct buffer_pool* slob_bf_pool = (struct buffer_pool* )MM.h_slob_bf_pool;
+    //struct buffer_pool* slob_bf_pool = (struct buffer_pool* )MM.h_slob_bf_pool;
 
     /* release memory allocated for busy blocks */
     busy_block_addr = MM.head_busy_blocks_addr;
@@ -856,8 +867,7 @@ void slob_free(uint64_t* slob)
         {
             cdma_read(&busy_block,busy_block_addr,sizeof(busy_block_addr));
         }
-        //fsl_free(p_block);
-        buff_pool_put(slob_bf_pool,block_adr);
+        buff_pool_put(s_slob_bf_pool,block_adr);
     }
 
     /* release memory allocated for free blocks */
@@ -877,7 +887,7 @@ void slob_free(uint64_t* slob)
             {
                 cdma_read(&free_block,free_block_addr,sizeof(free_block));
             }
-            buff_pool_put(slob_bf_pool,block_adr);
+            buff_pool_put(s_slob_bf_pool,block_adr);
         }
     }
 }
@@ -887,8 +897,8 @@ static uint64_t slob_get_normal_alignment(t_MM *p_MM,
                                    const uint32_t alignment)
 {
      uint64_t addr = 0;
-     t_slob_block block = {0};
-     uint64_t    hold_base,hold_end;//,new_busy_b_addr = 0;
+     static t_slob_block block = {0};
+     static uint64_t    hold_base,hold_end;
      uint32_t i;
      LOG2(alignment,i);
     /* look for a block of the size greater or equal to the required size. */
@@ -896,14 +906,16 @@ static uint64_t slob_get_normal_alignment(t_MM *p_MM,
               sizeof(addr));
     if(0 != addr)
     {
-        cdma_read(&block,addr,sizeof(block));
+	fdma_dma_data(sizeof(block),s_ic.icid,&block,addr,
+	              FDMA_DMA_DA_SYS_TO_SRAM_BIT);
     }
     while ( addr && (block.end - block.base) < size )
     {
         addr = block.next_addr;
         if(0 != addr)
         {
-            cdma_read(&block,addr,sizeof(block));
+            fdma_dma_data(sizeof(block),s_ic.icid,&block,addr,
+                          FDMA_DMA_DA_SYS_TO_SRAM_BIT);
         }
     }
 
@@ -917,23 +929,24 @@ static uint64_t slob_get_normal_alignment(t_MM *p_MM,
     hold_end = hold_base + size;
 
     /* init a new busy block */
-    if (create_new_block(p_MM->h_slob_bf_pool,
-		 hold_base, size,
-		 &addr) != 0)
+    if (create_new_block(&hold_base,
+                         &size,
+		         &addr) != 0)
     {
         return 0LL;
     }
     /* calls Update routine to update a lists of free blocks */
-    if ( cut_free (p_MM, hold_base, hold_end ) != 0 )
+    if ( cut_free (p_MM, &hold_base, &hold_end ) != 0 )
     {
-        buff_pool_put(p_MM->h_slob_bf_pool,addr);
+        buff_pool_put(s_slob_bf_pool,addr);
         return 0LL;
     }
 
     /* Decreasing the allocated memory size from free memory size */
     p_MM->free_mem_size -= size;
     /* insert the new busy block into the list of busy blocks */
-    cdma_read(&block,addr,sizeof(block));
+    fdma_dma_data(sizeof(block),s_ic.icid,&block,addr,
+                  FDMA_DMA_DA_SYS_TO_SRAM_BIT);
     add_busy (p_MM,&block,addr);
     return (hold_base);
 }
@@ -960,21 +973,19 @@ uint64_t slob_get(uint64_t* slob, const uint64_t size, uint32_t alignment)
     {
         alignment = 1;
     }
+    LOG2(alignment,i);
     if (i > MM_MAX_ALIGNMENT)
     {
-        cdma_mutex_lock_take(*slob, CDMA_MUTEX_WRITE_LOCK);
         cdma_read(&MM,*slob,sizeof(MM));
         hold_base = slob_get_greater_alignment(&MM, size, alignment);
         cdma_write(*slob,&MM,sizeof(MM));
-        cdma_mutex_lock_release(*slob);
+
     }
     else
     {
-	cdma_mutex_lock_take(*slob, CDMA_MUTEX_WRITE_LOCK);
 	cdma_read(&MM,*slob,sizeof(MM));
 	hold_base = slob_get_normal_alignment(&MM, size,alignment);
 	cdma_write(*slob,&MM,sizeof(MM));
-	cdma_mutex_lock_release(*slob);
     }
     return hold_base;
 }
@@ -983,29 +994,32 @@ uint64_t slob_get(uint64_t* slob, const uint64_t size, uint32_t alignment)
 #ifdef OPTIMIZE_STACK_SIZE
 #pragma dont_inline on
 #endif
+
 uint64_t slob_put(uint64_t* slob, const uint64_t base)
 {
+#ifdef OPTIMIZE_STACK_SIZE
+    static t_MM        MM = {0};
+#else
     t_MM        MM = {0};
+#endif
     t_slob_block busy_b = {0};
     uint64_t    size;
     uint64_t   busy_b_addr = 0, prev_busy_b_addr = 0;
     uint64_t slob_addr = 0;
-    struct buffer_pool *slob_bf_pool = NULL;
-
 
 
     ASSERT_COND(slob);
     slob_addr = *slob;
 
-
-
     /* Look for a busy block that have the given base value.
      * That block will be returned back to the memory.
      */
-    cdma_mutex_lock_take(slob_addr, CDMA_MUTEX_WRITE_LOCK);
 
-    cdma_read(&MM,slob_addr,sizeof(MM));
-    slob_bf_pool  = (struct buffer_pool *)MM.h_slob_bf_pool;
+
+   //OPTIMIZE_STACK_SIZE
+   fdma_dma_data(sizeof(MM),s_ic.icid,&MM,slob_addr,FDMA_DMA_DA_SYS_TO_SRAM_BIT);
+
+
 
     busy_b_addr = MM.head_busy_blocks_addr;
     if(0 != busy_b_addr)
@@ -1024,13 +1038,11 @@ uint64_t slob_put(uint64_t* slob, const uint64_t base)
 
     if ( 0 == busy_b_addr)
     {
-	cdma_mutex_lock_release(slob_addr);
         return 0LL;
     }
 
     if ( add_free(&MM, busy_b.base, busy_b.end ) != 0 )
     {
-	cdma_mutex_lock_release(slob_addr);
         return 0LL;
     }
 
@@ -1049,11 +1061,15 @@ uint64_t slob_put(uint64_t* slob, const uint64_t base)
 
     /* Adding the deallocated memory size to free memory size */
     MM.free_mem_size += size;
-    buff_pool_put(slob_bf_pool,busy_b_addr);
+    buff_pool_put(s_slob_bf_pool,busy_b_addr);
+#ifdef OPTIMIZE_STACK_SIZE
+    fdma_dma_data(sizeof(MM),s_ic.icid,&MM,slob_addr,FDMA_DMA_DA_SRAM_TO_SYS_BIT);
+#else
     cdma_write(slob_addr,&MM,sizeof(MM));
-    cdma_mutex_lock_release(slob_addr);
+#endif
     return (size);
 }
+
 #ifdef OPTIMIZE_STACK_SIZE
 #pragma dont_inline reset
 #pragma optimization_level reset

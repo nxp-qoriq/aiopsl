@@ -77,8 +77,7 @@ typedef struct t_MM
     uint64_t         head_free_blocks_addr;
                      /* Alignment lists of free blocks (Free lists) */
     uint64_t        free_mem_size;    /* Total size of free memory (in bytes) */
-    void *    h_mem_mng; // boot memory manager
-    void *    h_slob_bf_pool;
+    void *          h_mem_mng; // boot memory manager
 } t_MM;
 
 

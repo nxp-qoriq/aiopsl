@@ -126,11 +126,10 @@ int buff_pool_create(struct buffer_pool *p_bf_pool,
 	}
 	return 0;
 }
+
 int buff_pool_get(struct buffer_pool *bf_pool, uint64_t* buffer_addr)
 {
-#ifdef DEBUG
-	uint64_t zero_value = 0;
-#endif
+
 	ASSERT_COND(bf_pool);
 	cdma_mutex_lock_take(bf_pool->p_buffers_addr, CDMA_MUTEX_WRITE_LOCK);
 	/* check if there is an available block */
@@ -146,13 +145,6 @@ int buff_pool_get(struct buffer_pool *bf_pool, uint64_t* buffer_addr)
 	cdma_read(buffer_addr,bf_pool->buffers_stack_addr +
 	               STACK_ENTRY_BYTE_SIZE*bf_pool->current,
 	               STACK_ENTRY_BYTE_SIZE);
-#ifdef DEBUG
-	/* bf_pool->p_buffers_stack[bf_pool->current] = 0; */
-	cdma_write(bf_pool->buffers_stack_addr +
-	                STACK_ENTRY_BYTE_SIZE*bf_pool->current,
-	                &zero_value,
-	                STACK_ENTRY_BYTE_SIZE);
-#endif /* DEBUG */
 	/* advance current index */
 	bf_pool->current++;
 	cdma_mutex_lock_release(bf_pool->p_buffers_addr);
