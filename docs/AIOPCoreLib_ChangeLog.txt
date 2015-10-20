@@ -5,8 +5,21 @@ Changes made for ls2085a rev1:
 Table:
 	* Added support for DISABLE_REF_CNT.
 	* Moved rule_create_or_replace to be an inline functions.
-	
-	
+IPsec:
+	* API chage of the 'alg_info' structure (backwards compatible).
+	* Removed key encryption options macros from the API
+	* Updated the API documentation
+	* Added transport mode padding check support.
+	* Added inline_max_size and inline_max_total_size pragmas to enable inlining of RTA functions.
+	* Added the option of UDP header encap/decap in transport mode
+	* Added IPv4 outer header checksum calculation (ENGR356567)
+	* Added ipsec_force_seconds_lifetime_expiry() function
+	* Added support for seconds lifetime
+	* Updated the error flow.
+	* Stack size optimization.
+	* Removed reference counter remains
+	* The key is always copied to a local buffer (ENGR354723)
+
 Changes made for ls1088a rev1 and ls2088a rev1:
 CDMA:
 	* Added 3 new functions for ephemeral reference:
@@ -36,7 +49,7 @@ Table:
 FDMA:
 	* Remove FD workspace address 32byte alignment restriction (there is no harm leaving the alignment except for excessive stack usage)
 	* Discard FD function API was changed – add ICID input parameter + update flags
-	* Added AS bit to discard frame and enqueue frame commands – defines where to take the ICID/AMQ from
+	* Added AS bit to discard FD and enqueue FD commands – defines where to take the ICID/AMQ from
 	* Support Discard + terminate
 	* Store working frame command SPID requires the following (in addition to former requirements): 
 		- FD[PTA] == storage_profile[PTAR].
@@ -74,6 +87,7 @@ PARSER:
 	* Addition of PARSER_VXLAN_STARTING_HXS to enum parser_starting_hxs_code
 	* Changes in struct parse_result
 	* Additions to parser profile record (VXLAN configuration).  Also add requirement that the reserved fields must be 0.
+	* Added two optimization functions for adding and removal VLAN cases: parser_pop_vlan_update, parser_push_vlan_update. 
 
 KEYGEN:
 	* In enum kcr_builder_parse_result_offset:
@@ -84,6 +98,23 @@ KEYGEN:
 	* In enum kcr_builder_protocol_fecid: additions of KEYGEN_KCR_ICMP_TYPE_FECID and KEYGEN_KCR_ICMP_CODE_FECID
 	(that were not supported in REV1 due to TKT241788).
 
+TMAN:
+	* Fixed ENGR00368086 (tman_create_tmi() issue).
+
+IPsec:
+	* API chage of the 'alg_info' structure (backwards compatible).
+	* Removed key encryption options macros from the API
+	* Updated the API documentation
+	* Added transport mode padding check support.
+	* Added inline_max_size and inline_max_total_size pragmas to enable inlining of RTA functions.
+	* Added the option of UDP header encap/decap in transport mode
+	* Added IPv4 outer header checksum calculation (ENGR356567)
+	* Added ipsec_force_seconds_lifetime_expiry() function
+	* Added support for seconds lifetime
+	* Updated the error flow.
+	* Stack size optimization.
+	* Removed reference counter remains
+	* The key is always copied to a local buffer (ENGR354723)
 
 
 LDPAA AIOP SERVICE LAYER LDPAA-AIOP-SL-v1088_ENG_0.1 Change Log

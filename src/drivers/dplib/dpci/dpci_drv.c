@@ -851,6 +851,7 @@ __COLD_CODE int dpci_drv_init()
 	int dpci_count = 0;
 	int err        = 0;
 	int i          = 0;
+	struct storage_profile *sp_start = &storage_profile[0];
 
 	if (dprc == NULL) {
 		pr_err("No AIOP root container \n");
@@ -863,8 +864,8 @@ __COLD_CODE int dpci_drv_init()
 		return err;
 	}
 
-	/* Set SPID = 0 to all zeros */
-	memset(&storage_profile[AIOP_SPID_CMDIF], 0, sizeof(storage_profile[AIOP_SPID_CMDIF]));
+	/* Set SPID for CMDIF to all zeros */
+	memset(&sp_start[AIOP_SPID_CMDIF], 0, sizeof(sp_start[0]));
 
 	/* First count how many DPCI objects we have */
 	for (i = 0; i < dev_count; i++) {

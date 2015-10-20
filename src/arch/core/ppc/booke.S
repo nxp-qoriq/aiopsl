@@ -649,16 +649,6 @@ asm_prefix(booke_address_broadcast_disable):
     isync
     blr
 
-/* Check if tasklets are supported by the BOOKE interrupt handler */
-.global asm_prefix(booke_is_tasklet_supported)
-asm_prefix(booke_is_tasklet_supported):
-#ifndef DISABLE_TASKLETS
-    li          3, 1
-#else  /* DISABLE_TASKLETS */
-    li          3, 0
-#endif /* DISABLE_TASKLETS */
-    blr
-
 .global asm_prefix(booke_test_and_set)
 asm_prefix(booke_test_and_set):
     li      4, 1            /* prepare non-zero value */
