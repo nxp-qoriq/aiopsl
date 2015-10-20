@@ -62,17 +62,17 @@ void    (*free) (void);
 };
 
 /**************************************************************************//**
-@Description   Platform Configuration Parameters Structure.
+@Description   System Initialization Configuration Parameters Structure.
 
 		This structure must be specifically defined by each platform.
 *//***************************************************************************/
 
 /*!
  * @ingroup aiopapp_init
- * Struct defining the AIOP Platform initialization and de-initialliation
+ * Struct defining the AIOP System initialization and de-initialliation
  * functions.
  */
-struct plat_module_desc {
+struct sys_init_module_desc {
 int     (*early_init) (void);
 int     (*init) (void);
 int     (*post_init) (void);
