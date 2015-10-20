@@ -151,7 +151,7 @@ __COLD_CODE int cluster_init(void)
 
 __COLD_CODE int global_init(void)
 {
-	struct sys_module_desc modules[] = GLOBAL_MODULES;
+	struct plat_module_desc modules[] = GLOBAL_MODULES;
 	int i, err;
 
 	/* Verifying that MC saw the data at the beginning of special section
@@ -175,7 +175,7 @@ __COLD_CODE int global_init(void)
 
 __COLD_CODE void global_free(void)
 {
-	struct sys_module_desc modules[] = GLOBAL_MODULES;
+	struct plat_module_desc modules[] = GLOBAL_MODULES;
 	int i;
 
 	for (i = (ARRAY_SIZE(modules) - 1); i >= 0; i--)
@@ -185,7 +185,7 @@ __COLD_CODE void global_free(void)
 
 __COLD_CODE int global_early_init(void)
 {
-	struct sys_module_desc modules[] = GLOBAL_MODULES;
+	struct plat_module_desc modules[] = GLOBAL_MODULES;
 	int i, err;
 
 	for (i=0; i<ARRAY_SIZE(modules) ; i++)
@@ -202,7 +202,7 @@ __COLD_CODE int global_early_init(void)
 
 __COLD_CODE int global_post_init(void)
 {
-	struct sys_module_desc modules[] = GLOBAL_MODULES;
+	struct plat_module_desc modules[] = GLOBAL_MODULES;
 	int i, err;
 	
 	pr_info("global post init\n");
@@ -336,11 +336,6 @@ __COLD_CODE int apps_init(void)
 	for (i=0; i<app_arr_size; i++) {
 		if (apps[i].init)
 			apps[i].init();
-	}
-	
-	for (i=0; i<app_arr_size; i++) {
-		if (apps[i].post_init)
-			apps[i].post_init();
 	}
 
 	fsl_free(apps);
