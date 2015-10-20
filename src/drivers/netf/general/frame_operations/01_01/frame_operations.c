@@ -92,6 +92,11 @@ int create_frame(
 	offset = (LH_SWAP(0, &(sp->pbs1)) & SP_PBS_MASK) - FRAME_INITIAL_SIZE;
 	LDPAA_FD_SET_OFFSET(fd, offset);
 	/* end of WA for TKT254401 */
+	
+	/* Set PTA for later use if ptar is set (it will not be possible to 
+	 * change later) */
+	if ((sp->mode_bits1) & 0x80)
+		LDPAA_FD_SET_PTA(fd, 1);
 
 	if ((uint32_t)fd == HWC_FD_ADDRESS) {
 		PRC_SET_ASA_SIZE(0);
@@ -176,6 +181,11 @@ int create_fd(
 	offset = (LH_SWAP(0, &(sp->pbs1)) & SP_PBS_MASK) - FRAME_INITIAL_SIZE;
 	LDPAA_FD_SET_OFFSET(fd, offset);
 	/* end of WA for TKT254401 */
+	
+	/* Set PTA for later use if ptar is set (it will not be possible to 
+	 * change later) */
+	if ((sp->mode_bits1) & 0x80)
+		LDPAA_FD_SET_PTA(fd, 1);
 
 	if ((uint32_t)fd == HWC_FD_ADDRESS) {
 		PRC_SET_ASA_SIZE(0);

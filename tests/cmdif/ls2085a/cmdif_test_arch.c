@@ -76,9 +76,9 @@ void rcu_test()
 
 	for (i = 0; i < 10; i++) {
 		atomic_incr32(&rcu_sync_count, 1);
-		pr_debug("####### rcu_synchronize = num %d #######\n",
+		pr_debug("####### rcu_synchronize_nb = num %d #######\n",
 		         rcu_sync_count);
-		err = rcu_synchronize(rcu_sync_cb, 0x7);
+		err = rcu_synchronize_nb(rcu_sync_cb, 0x7);
 		ASSERT_COND(!err);
 	}
 }

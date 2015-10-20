@@ -68,6 +68,7 @@
 @Group		app_ctlu	CTLU
 
 @Description	Use the following macros to define the CTLU setup.
+		All the sizes should be aligned to a power of 2.
 @{
 *//***************************************************************************/
 
@@ -82,6 +83,8 @@
 @Group		app_mflu	MFLU
 
 @Description	Use the following macros to define the MFLU setup.
+		All the sizes should be aligned to a power of 2.
+
 @{
 *//***************************************************************************/
 

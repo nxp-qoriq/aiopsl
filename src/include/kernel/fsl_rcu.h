@@ -49,7 +49,9 @@
 @Function	rcu_early_init
 
 @Description	RCU parameters that should be passed by each application
-		at early init
+		at early init;
+		
+		Supported by REV1 only; Ignore this API for REV2
 
 @Param[in]	delay	Delay in milliseconds until the first RCU task creation.
   	  	  	The longer delay the more RCU jobs will be handled by
@@ -65,17 +67,22 @@
 int rcu_early_init(uint16_t delay, uint32_t committed, uint32_t max);
 
 /**************************************************************************//**
-@Description	Callback to be called after all the current tasks are done
+@Description	Callback to be called after all the current tasks are done;
+
+		Supported by REV1 only; Ignore this API for REV2
 
 @Param[in]	param   User parameter as passed to rcu_synchronize()
  *//***************************************************************************/
 typedef void (rcu_cb_t)(uint64_t param);
 
 /**************************************************************************//**
-@Function	rcu_synchronize
+@Function	rcu_synchronize_nb
 
 @Description	Activate the callback after all the active AIOP tasks
 		(except those that called rcu_read_unlock) are done
+		
+		This is a non blocking version supported by REV1 only;
+		Ignore this API for REV2
 
 @Param[in]	cb	Callback to be called after all the active readers
 			are done
@@ -86,7 +93,21 @@ typedef void (rcu_cb_t)(uint64_t param);
 @Cautions	Set APP_RCU_COMMITTED, APP_RCU_MAX, APP_RCU_TIMER_DURATION at
 		apps.h before using the RCU module
 *//***************************************************************************/
-int rcu_synchronize(rcu_cb_t *cb, uint64_t param);
+int rcu_synchronize_nb(rcu_cb_t *cb, uint64_t param);
+
+/**************************************************************************//**
+@Function	rcu_synchronize
+
+@Description	Wait until all the tasks that are holding resources are done;  
+		Use rcu_read_lock() to declare your task as a resource holder 
+
+		This is a blocking version for REV2
+
+@Return		0 on succees, POSIX error code otherwise  \ref error_g
+
+@Cautions	In this function the task yields
+*//***************************************************************************/
+int rcu_synchronize();
 
 /**************************************************************************//**
 @Function	rcu_read_unlock
@@ -107,10 +128,11 @@ void rcu_read_unlock();
 /**************************************************************************//**
 @Function	rcu_read_lock
 
-@Description	Add the task back to the readers list;
+@Description	Add the task back to the readers list
 
-@Cautions	Every AIOP task that is created automatically holds an
-		RCU read lock. This function reverts the rcu_read_unlock().
+@Cautions	REV1: Every AIOP task that is created automatically holds an
+		RCU read lock;
+		REV2: AIOP task needs to call rcu_read_lock() deliberately 
 *//***************************************************************************/
 void rcu_read_lock();
 

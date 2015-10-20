@@ -39,11 +39,18 @@
 #include "fsl_dpni_drv.h"
 #include "net.h"
 
+extern __PROFILE_SRAM struct storage_profile 
+		storage_profile[SP_NUM_OF_STORAGE_PROFILES];
+
+#define SP_BDI_MASK		0x00080000
+#define SP_BP_ID_MASK		0x3FFF
+#define SP_PBS_MASK		0xFFC0
 
 int create_frame(
 		struct ldpaa_fd *fd,
 		void *data,
 		uint16_t size,
+		uint8_t spid,
 		uint8_t *frame_handle)
 {
 	
@@ -54,6 +61,9 @@ int create_frame(
 	struct fdma_insert_segment_data_params insert_params;
 
 	struct parse_result *pr = (struct parse_result *)HWC_PARSE_RES_ADDRESS;
+	uint64_t fd_addr;
+	uint32_t flags;
+	uint16_t icid, bpid, offset;
 	int32_t status;
 
 	/* *fd = {0};*/
@@ -64,11 +74,34 @@ int create_frame(
 	fd->length = 0;
 	fd->offset = 0;
 
-	LDPAA_FD_SET_IVP(fd, 1);	
+	LDPAA_FD_SET_IVP(fd, 1);
 	
-	if ((uint32_t)fd == HWC_FD_ADDRESS) {
-		PRC_SET_ASA_SIZE(0);
-		PRC_SET_PTA_ADDRESS(PRC_PTA_NOT_LOADED_ADDRESS);	
+	/* In case we will need PTA we cannot generate a frame with FDMA command
+	 * implicitly. We must Form the FD manually. */
+	if ((storage_profile[spid].mode_bits1) & 0x80){
+		icid = LH_SWAP(0, 
+			(uint16_t *)&(storage_profile[spid].ip_secific_sp_info))
+				& ADC_ICID_MASK;
+		flags = (LW_SWAP(0, 
+			(uint32_t *)&(storage_profile[spid].ip_secific_sp_info))
+				& SP_BDI_MASK) ? FDMA_ACQUIRE_BDI_BIT : 0;
+		/* set the offset to the end of the buffer */
+		offset = (LH_SWAP(0, 
+				&(storage_profile[spid].pbs1)) & SP_PBS_MASK);
+		bpid = LH_SWAP(0, &(storage_profile[spid].bpid1)) 
+				& SP_BP_ID_MASK;
+		status = fdma_acquire_buffer(icid, flags, bpid, &fd_addr);
+		if (status)
+			return status;
+		
+		LDPAA_FD_SET_ADDR(fd, fd_addr);
+		LDPAA_FD_SET_BPID(fd, bpid);
+		LDPAA_FD_SET_OFFSET(fd, offset);
+		LDPAA_FD_SET_PTA(fd, 1);
+	}
+	
+	
+	if ((uint32_t)fd == HWC_FD_ADDRESS) {	
 		PRC_SET_SEGMENT_LENGTH(0);
 		PRC_SET_SEGMENT_OFFSET(0);
 		PRC_SET_SEGMENT_ADDRESS((uint32_t)TLS_SECTION_END_ADDR +
@@ -98,7 +131,7 @@ int create_frame(
 		present_frame_params.asa_size = 0;
 		present_frame_params.flags = FDMA_INIT_NO_FLAGS;
 		present_frame_params.pta_dst = (void *)
-				PRC_PTA_NOT_LOADED_ADDRESS;
+				PTA_NOT_LOADED_ADDRESS;
 		present_frame_params.present_size = 0;
 		present_frame_params.seg_offset = 0;
 
@@ -128,6 +161,10 @@ int create_fd(
 	struct fdma_present_frame_params present_frame_params;
 	struct fdma_insert_segment_data_params insert_params;
 	struct fdma_amq amq;
+	uint64_t fd_addr;
+	uint32_t flags;
+	uint16_t icid, bpid, offset;
+	int32_t status;
 
 #ifdef CHECK_ALIGNMENT 	
 	DEBUG_ALIGN("frame_operations.c",(uint32_t)fd, ALIGNMENT_32B);
@@ -142,10 +179,32 @@ int create_fd(
 	fd->offset = 0;
 	
 	LDPAA_FD_SET_IVP(fd, 1);
+	
+	/* In case we will need PTA we cannot generate a frame with FDMA command
+	 * implicitly. We must Form the FD manually. */
+	if ((storage_profile[spid].mode_bits1) & 0x80){
+		icid = LH_SWAP(0, 
+			(uint16_t *)&(storage_profile[spid].ip_secific_sp_info))
+				& ADC_ICID_MASK;
+		flags = (LW_SWAP(0, 
+			(uint32_t *)&(storage_profile[spid].ip_secific_sp_info))
+				& SP_BDI_MASK) ? FDMA_ACQUIRE_BDI_BIT : 0;
+		/* set the offset to the end of the buffer */
+		offset = (LH_SWAP(0, 
+				&(storage_profile[spid].pbs1)) & SP_PBS_MASK);
+		bpid = LH_SWAP(0, &(storage_profile[spid].bpid1)) 
+				& SP_BP_ID_MASK;
+		status = fdma_acquire_buffer(icid, flags, bpid, &fd_addr);
+		if (status)
+			return status;
+		
+		LDPAA_FD_SET_ADDR(fd, fd_addr);
+		LDPAA_FD_SET_BPID(fd, bpid);
+		LDPAA_FD_SET_OFFSET(fd, offset);
+		LDPAA_FD_SET_PTA(fd, 1);
+	}
 
-	if ((uint32_t)fd == HWC_FD_ADDRESS) {
-		PRC_SET_ASA_SIZE(0);
-		PRC_SET_PTA_ADDRESS(PRC_PTA_NOT_LOADED_ADDRESS);	
+	if ((uint32_t)fd == HWC_FD_ADDRESS) {	
 		PRC_SET_SEGMENT_LENGTH(0);
 		PRC_SET_SEGMENT_OFFSET(0);
 		PRC_RESET_NDS_BIT();
@@ -153,13 +212,14 @@ int create_fd(
 		fdma_insert_default_segment_data(0, data, size,
 				FDMA_REPLACE_SA_CLOSE_BIT);
 
-		return fdma_store_default_frame_data();
+		return fdma_store_frame_data(PRC_GET_FRAME_HANDLE(),
+						spid, &amq);
 	} else {
 		present_frame_params.fd_src = (void *)fd;
 		present_frame_params.asa_size = 0;
 		present_frame_params.flags = FDMA_INIT_NO_FLAGS;
 		present_frame_params.pta_dst = (void *)
-				PRC_PTA_NOT_LOADED_ADDRESS;
+				PTA_NOT_LOADED_ADDRESS;
 		present_frame_params.present_size = 0;
 		present_frame_params.seg_offset = 0;
 
@@ -183,6 +243,7 @@ int create_arp_request_broadcast(
 		struct ldpaa_fd *fd,
 		uint32_t local_ip,
 		uint32_t target_ip,
+		uint8_t spid,
 		uint8_t *frame_handle)
 {
 
@@ -195,7 +256,8 @@ int create_arp_request_broadcast(
 	*((uint16_t *)(target_eth+4)) = (uint16_t)BROADCAST_MAC;
 
 	return create_arp_request(
-		fd, local_ip, target_ip, (uint8_t *)target_eth, frame_handle);
+		fd, local_ip, target_ip, (uint8_t *)target_eth, 
+		spid, frame_handle);
 }
 
 int create_arp_request(
@@ -203,6 +265,7 @@ int create_arp_request(
 		uint32_t local_ip,
 		uint32_t target_ip,
 		uint8_t *target_eth,
+		uint8_t spid,
 		uint8_t *frame_handle)
 {
 	
@@ -261,5 +324,6 @@ int create_arp_request(
 	*((uint32_t *)&arp_data[sizeof(struct ethernethdr) + ARP_HDR_LEN + 18]) = 0;
 
 	return create_frame(
-			fd, (void *)arp_data, ARP_PKT_MIN_LEN, frame_handle);
+			fd, (void *)arp_data, ARP_PKT_MIN_LEN, 
+			spid, frame_handle);
 }

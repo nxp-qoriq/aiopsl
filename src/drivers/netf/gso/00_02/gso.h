@@ -62,8 +62,7 @@
 *//***************************************************************************/
 struct tcp_gso_context {
 	/** Remaining packet FD  */
-	struct ldpaa_fd rem_fd
-		__attribute__((aligned(sizeof(struct ldpaa_fd))));
+	struct ldpaa_fd rem_fd;
 	/** Flags - Please refer to \ref TCP_GSO_FLAGS */
 	uint32_t flags;
 	/** Internal TCP GSO flags - Please refer to

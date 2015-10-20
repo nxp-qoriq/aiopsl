@@ -463,21 +463,21 @@
 #define LDPAA_FD_SET_PTV2(_fd, _val)					\
 	((*((uint8_t *)(((char *)_fd) + FD_PTA_PVT_ASA_OFFSET))) =	\
 	((*((uint8_t *)(((char *)_fd) + FD_PTA_PVT_ASA_OFFSET)) &	\
-			~FD_PTV2_MASK) | (_val & FD_PTV2_MASK)))
+			~FD_PTV2_MASK) | (_val << FD_PTV2_SHIFT)))
 	/** Macro to set FD PTV1 field.
 	 * _fd - the FD address in workspace.\n
 	 * _val - value to be set. */
 #define LDPAA_FD_SET_PTV1(_fd, _val)					\
 	((*((uint8_t *)(((char *)_fd) + FD_PTA_PVT_ASA_OFFSET))) =	\
 	((*((uint8_t *)(((char *)_fd) + FD_PTA_PVT_ASA_OFFSET)) &	\
-			~FD_PTV1_MASK) | (_val & FD_PTV1_MASK)))
+			~FD_PTV1_MASK) | (_val << FD_PTV1_SHIFT)))
 	/** Macro to set FD PTA field.
 	 * _fd - the FD address in workspace.\n
 	 * _val - value to be set. */
 #define LDPAA_FD_SET_PTA(_fd, _val)					\
 	((*((uint8_t *)(((char *)_fd) + FD_PTA_PVT_ASA_OFFSET))) =	\
 	((*((uint8_t *)(((char *)_fd) + FD_PTA_PVT_ASA_OFFSET)) &	\
-			~FD_PTA_MASK) | (_val & FD_PTA_MASK)))
+			~FD_PTA_MASK) | (_val << FD_PTA_SHIFT)))
 	/* Macro to set FD DROPP field.
 	 * _fd - the FD address in workspace.\n
 	 * _val - value to be set. */

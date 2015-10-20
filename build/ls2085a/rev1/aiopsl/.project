@@ -645,11 +645,6 @@
 			<locationURI>PARENT-4-PROJECT_LOC/src/include/drivers/fsl_ep.h</locationURI>
 		</link>
 		<link>
-			<name>aiop_sl/include/drivers/fsl_general.h</name>
-			<type>1</type>
-			<locationURI>PARENT-4-PROJECT_LOC/src/include/drivers/fsl_general.h</locationURI>
-		</link>
-		<link>
 			<name>aiop_sl/include/drivers/ldpaa</name>
 			<type>2</type>
 			<locationURI>virtual:/virtual</locationURI>
@@ -1012,12 +1007,12 @@
 		<link>
 			<name>aiop_sl/kernel/rcu/rcu.c</name>
 			<type>1</type>
-			<locationURI>PARENT-4-PROJECT_LOC/src/kernel/rcu/rcu.c</locationURI>
+			<locationURI>PARENT-4-PROJECT_LOC/src/kernel/rcu/00_01/rcu.c</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/kernel/rcu/rcu.h</name>
 			<type>1</type>
-			<locationURI>PARENT-4-PROJECT_LOC/src/kernel/rcu/rcu.h</locationURI>
+			<locationURI>PARENT-4-PROJECT_LOC/src/kernel/rcu/00_01/rcu.h</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/kernel/system/os.c</name>
@@ -1282,7 +1277,7 @@
 		<link>
 			<name>aiop_sl/drivers/accel/ste/ste.c</name>
 			<type>1</type>
-			<locationURI>PARENT-4-PROJECT_LOC/src/drivers/accel/ste/ste.c</locationURI>
+			<locationURI>PARENT-4-PROJECT_LOC/src/drivers/accel/ste/01_01/ste.c</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/drivers/accel/ste/ste.h</name>
@@ -1668,6 +1663,11 @@
 			<name>aiop_sl/include/drivers/accel/fsl_tman.h</name>
 			<type>1</type>
 			<locationURI>PARENT-4-PROJECT_LOC/src/include/drivers/accel/tman/01_01/fsl_tman.h</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/include/drivers/ldpaa/fsl_general.h</name>
+			<type>1</type>
+			<locationURI>PARENT-4-PROJECT_LOC/src/include/drivers/ldpaa/workspace/01_01/fsl_general.h</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/include/drivers/ldpaa/fsl_ldpaa.h</name>

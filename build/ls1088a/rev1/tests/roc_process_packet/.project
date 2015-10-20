@@ -24,7 +24,7 @@ aiop_sl		</project>
 				</dictionary>
 				<dictionary>
 					<key>org.eclipse.cdt.make.core.buildArguments</key>
-					<value></value>
+					<value>-j8</value>
 				</dictionary>
 				<dictionary>
 					<key>org.eclipse.cdt.make.core.buildCommand</key>
@@ -109,12 +109,12 @@ aiop_sl		</project>
 		<link>
 			<name>src/aiop_verification_cdma.c</name>
 			<type>1</type>
-			<locationURI>PARENT-5-PROJECT_LOC/tests/roc_process_packet/aiop_verification_cdma.c</locationURI>
+			<locationURI>PARENT-5-PROJECT_LOC/tests/roc_process_packet/ls1088a/aiop_verification_cdma.c</locationURI>
 		</link>
 		<link>
 			<name>src/aiop_verification_cdma.h</name>
 			<type>1</type>
-			<locationURI>PARENT-5-PROJECT_LOC/tests/roc_process_packet/aiop_verification_cdma.h</locationURI>
+			<locationURI>PARENT-5-PROJECT_LOC/tests/roc_process_packet/ls1088a/aiop_verification_cdma.h</locationURI>
 		</link>
 		<link>
 			<name>src/aiop_verification_data.c</name>
@@ -184,7 +184,7 @@ aiop_sl		</project>
 		<link>
 			<name>src/aiop_verification_ipr.c</name>
 			<type>1</type>
-			<locationURI>PARENT-5-PROJECT_LOC/tests/roc_process_packet/aiop_verification_ipr.c</locationURI>
+			<locationURI>PARENT-5-PROJECT_LOC/tests/roc_process_packet/ls1088a/aiop_verification_ipr.c</locationURI>
 		</link>
 		<link>
 			<name>src/aiop_verification_ipr.h</name>

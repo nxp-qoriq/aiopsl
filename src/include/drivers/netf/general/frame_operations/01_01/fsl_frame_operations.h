@@ -158,8 +158,8 @@ int create_frame(
 @Param[in]	data - A pointer to the workspace data to be inserted to the
 		frame.
 @Param[in]	size - data size. Must be greater than 0.
-@Param[in]	spid - Storage profile ID to be used in case this is not the 
-		default frame.
+@Param[in]	spid - Storage profile ID to be used in case the created frame 
+		is not the default frame.
 
 @Return		0 on Success, or negative value on error.
 

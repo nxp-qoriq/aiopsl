@@ -303,7 +303,7 @@ void ipr_delete_instance_cb_verif(uint64_t arg)
         amq.flags = (uint16_t) flags;
         set_default_amq_attributes(&amq);
 
-	create_frame((struct ldpaa_fd *)HWC_FD_ADDRESS,&dummy_data, 1,
+	create_frame((struct ldpaa_fd *)HWC_FD_ADDRESS,&dummy_data, 1, 
 			&frame_handle);
 
 

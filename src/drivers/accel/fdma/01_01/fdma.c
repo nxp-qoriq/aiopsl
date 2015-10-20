@@ -1360,17 +1360,17 @@ int fdma_replace_default_pta_segment_data(
 				(((uint16_t)((uint32_t)ws_dst_rs))));
 		/* Update FD PTA fields only in case PTA was modified */
 		if (size_type & PTA_SIZE_PTV1) {
-			LDPAA_FD_SET_PTV1(HWC_FD_ADDRESS, FD_PTV1_MASK);
+			LDPAA_FD_SET_PTV1(HWC_FD_ADDRESS, 1);
 			LDPAA_FD_SET_PTV2(HWC_FD_ADDRESS, 0);
 		}
 		if (size_type & PTA_SIZE_PTV2) {
-			LDPAA_FD_SET_PTV2(HWC_FD_ADDRESS, FD_PTV2_MASK);
+			LDPAA_FD_SET_PTV2(HWC_FD_ADDRESS, 1);
 			LDPAA_FD_SET_PTV1(HWC_FD_ADDRESS, 0);
 		}
 		if (size_type & PTA_SIZE_PTV1_2) {
-			LDPAA_FD_SET_PTA(HWC_FD_ADDRESS, FD_PTA_MASK);
-			LDPAA_FD_SET_PTV1(HWC_FD_ADDRESS, FD_PTV1_MASK);
-			LDPAA_FD_SET_PTV2(HWC_FD_ADDRESS, FD_PTV2_MASK);
+			LDPAA_FD_SET_PTA(HWC_FD_ADDRESS, 1);
+			LDPAA_FD_SET_PTV1(HWC_FD_ADDRESS, 1);
+			LDPAA_FD_SET_PTV2(HWC_FD_ADDRESS, 1);
 		}
 
 		if (res1 == FDMA_SUCCESS)

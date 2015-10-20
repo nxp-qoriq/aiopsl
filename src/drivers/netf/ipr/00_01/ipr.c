@@ -996,7 +996,7 @@ int ipr_miss_handling(struct ipr_instance *instance_params_ptr,
 	if ((osm_status == NO_BYPASS_OSM) || (osm_status == START_CONCURRENT)) {
 		/* release parent to concurrent */
 		osm_scope_enter_to_exclusive_with_new_scope_id(
-						  	  	  	  	  	  	  (uint32_t)*rfdc_ext_addr_ptr);
+					(uint32_t)*rfdc_ext_addr_ptr);
 	}
 	else {
 		/* Next step is needed only for mutex with Timeout */
@@ -1114,7 +1114,11 @@ uint32_t ipr_insert_to_link_list(struct ipr_rfdc *rfdc_ptr,
 						  rfdc_ptr->current_running_sum,
 						  pr->running_sum);
 	} else {
-		rfdc_ptr->first_frag_hdr_length = ip_header_size;
+		if(frame_is_ipv4)
+			rfdc_ptr->first_frag_hdr_length = ip_header_size;
+		else
+			rfdc_ptr->first_frag_hdr_length = ip_header_size - 8;
+
 		if (pr->gross_running_sum == 0) {
 			/* current_running_sum is used as a temporary location
 			 * for stack optimization*/
@@ -1751,6 +1755,7 @@ void ipr_time_out(uint64_t rfdc_ext_addr, uint16_t opaque_not_used)
 	struct   dpni_drv *dpni_drv;
 	uint16_t rfdc_status;
 	uint32_t flags;
+	uint32_t i;
 	uint8_t  enter_number;
 	uint8_t  num_of_frags;
 	uint8_t  first_frag_index;
@@ -1770,13 +1775,11 @@ void ipr_time_out(uint64_t rfdc_ext_addr, uint16_t opaque_not_used)
 
 	/* Recover OSM scope */
 	enter_number = (uint8_t)((rfdc.status & SCOPE_LEVEL) >> 4) -
-					default_task_params.current_scope_level ;
-	fsl_print("TIME OUT enter number %d\n", enter_number);
-	while(enter_number != 0) {
-		/* Intentionally doesn't relinquish parent automatically */ 
+				       default_task_params.current_scope_level ;
+	for (i=0; i < enter_number; i++) {
+	/* Intentionally doesn't relinquish parent automatically */ 
 		osm_scope_enter(OSM_SCOPE_ENTER_CHILD_TO_EXCLUSIVE,
 						(uint32_t)rfdc_ext_addr);
-		enter_number--;
 	}	
 	
 	osm_scope_enter(OSM_SCOPE_ENTER_CHILD_TO_EXCLUSIVE,
@@ -1856,6 +1859,7 @@ void ipr_time_out(uint64_t rfdc_ext_addr, uint16_t opaque_not_used)
 				  CDMA_ACCESS_CONTEXT_MEM_DMA_WRITE
 				  | RFDC_SIZE,
 				  (uint32_t *)REF_COUNT_ADDR_DUMMY);
+		/* No need to handle OSM level since task will be terminated */
 		fdma_terminate_task();
 	}
 	if ((rfdc_status & OUT_OF_ORDER) && !(rfdc_status & ORDER_AND_OOO))
@@ -1886,6 +1890,10 @@ void ipr_time_out(uint64_t rfdc_ext_addr, uint16_t opaque_not_used)
 				  CDMA_ACCESS_CONTEXT_MEM_DMA_WRITE
 				  | RFDC_SIZE,
 				  (uint32_t *)REF_COUNT_ADDR_DUMMY);
+	
+	/* Return to original scope level of timer task */
+	for (i=0; i <= enter_number; i++)
+		osm_scope_exit();
 
 	if(rfdc_status & FIRST_ARRIVED) 
 		 flags = IPR_TO_CB_FIRST_FRAG;

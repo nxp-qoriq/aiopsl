@@ -43,14 +43,6 @@
 	 * _fd - the FD address in workspace. */
 #define SET_FRAME_TYPE(_frame_handle, _fd)
 
-/* fix CR:ENGR00364084 
- * relocate PRC values according to 2085 PRC formation */
-#define SET_PRC_VALUES()						\
-	({PRC_SET_SEGMENT_OFFSET(*((uint16_t *)(HWC_PRC_ADDRESS + 0x8)));\
-	  PRC_SET_FRAME_HANDLE(*((uint8_t *)(HWC_PRC_ADDRESS + 0xD)));	\
-	  PRC_SET_SEGMENT_HANDLE(*((uint8_t *)(HWC_PRC_ADDRESS + 0xB)));\
-	  *((uint16_t *)(HWC_PRC_ADDRESS + 0xA)) = 			\
-		(*((uint16_t *)(HWC_PRC_ADDRESS + 0xA)) >> 4); })
 
 /** \addtogroup FSL_AIOP_FDMA
  *  @{
@@ -109,7 +101,7 @@
 	 * context and locate it in the FDMA command correct location */
 #define PRC_GET_SR_BIT_FDMA_CMD()					\
 	(((uint16_t)(((struct presentation_context *)HWC_PRC_ADDRESS)->	\
-	 asapa_asaps) & PRC_SR_MASK) << (FDMA_SR_OFFSET-PRC_SR_BIT_OFFSET))
+	 sr_nds) & PRC_SR_MASK) << (FDMA_SR_OFFSET-PRC_SR_BIT_OFFSET))
 	/** FDMA Store command output flags mask. */
 #define FDMA_STORE_CMD_OUT_FLAGS_MASK		0x0000FF00
 	/** FDMA Store command output flags offset. */
@@ -215,14 +207,6 @@
 
 @{
 *//***************************************************************************/
-	/** Getter for PRC frame handle for FDMA commands */
-#define FDMA_GET_PRC_FRAME_HANDLE(_handles)				\
-	((_handles << (16-PRC_FRAME_HANDLE_BIT_OFFSET)) &		\
-	(PRC_FRAME_HANDLE_MASK << (16-PRC_FRAME_HANDLE_BIT_OFFSET)))
-
-	/** Getter for PRC segment handle for FDMA commands */
-#define FDMA_GET_PRC_SEGMENT_HANDLE(_handles)				\
-	((_handles & PRC_SEGMENT_HANDLE_MASK) << 24)
 
 	/** FDMA Initial presentation command arg1 */
 #define FDMA_INIT_CMD_ARG1(_fd_addr, _flags)				\
@@ -244,24 +228,20 @@
 	/** FDMA Initial presentation explicit command arg3 */
 #define FDMA_INIT_EXP_CMD_ARG3(_present_size, _pta_address, _asa_offset)\
 	(uint32_t)((_present_size << 16) |				\
-	(((uint16_t)(uint32_t)_pta_address) & PRC_PTAPA_MASK) |		\
-	(_asa_offset & PRC_ASAPO_MASK))
+	((uint16_t)(uint32_t)_pta_address) | _asa_offset)
 
 	/** FDMA Initial presentation explicit command arg4 */
 #define FDMA_INIT_EXP_CMD_ARG4(_asa_address, _asa_size)			\
-	(uint32_t)((((uint16_t)(uint32_t)_asa_address) & PRC_ASAPA_MASK) |\
-	(_asa_size & PRC_ASAPS_MASK))
+	(uint32_t)(((uint16_t)(uint32_t)_asa_address) | _asa_size)
 	/** FDMA Initial presentation explicit AMQ command arg4 */
 #define FDMA_INIT_EXP_AMQ_CMD_ARG4(_flags, _icid , _asa_address, _asa_size)\
 	(uint32_t)(((uint32_t)(((_icid & ~FDMA_ICID_CONTEXT_BDI) << 16) | \
 	(_flags & FDMA_INIT_BDI_BIT))) |				\
-	(((uint16_t)(uint32_t)_asa_address) & PRC_ASAPA_MASK) |		\
-	(_asa_size & PRC_ASAPS_MASK))
+	((uint16_t)(uint32_t)_asa_address) | _asa_size)
 
 	/** FDMA Present command arg1 */
-#define FDMA_PRESENT_CMD_ARG1(_handles, _flags)				\
-	(uint32_t)((FDMA_GET_PRC_FRAME_HANDLE(_handles)) |		\
-	_flags | FDMA_PRESENT_CMD)
+#define FDMA_PRESENT_CMD_ARG1(_frame_handle, _flags)			\
+	(uint32_t)((_frame_handle << 16) | _flags | FDMA_PRESENT_CMD)
 
 	/** FDMA explicit Present command arg1 */
 #define FDMA_PRESENT_EXP_CMD_ARG1(_frame_handle, _flags)		\
@@ -277,35 +257,31 @@
 	(uint32_t)(_present_size << 16)
 
 	/** FDMA Extend presentation command arg1 */
-#define FDMA_EXTEND_CMD_ARG1(_handles)					\
-	(uint32_t)((FDMA_GET_PRC_SEGMENT_HANDLE(_handles)) |		\
-	(FDMA_GET_PRC_FRAME_HANDLE(_handles)) |				\
-	FDMA_EXTEND_CMD)
+#define FDMA_EXTEND_CMD_ARG1(_frame_handle, _segment_handle)		\
+	(uint32_t)((_segment_handle << 24) |				\
+	(_frame_handle << 16) |	FDMA_EXTEND_CMD)
 
 	/** FDMA Extend presentation command arg1 */
-#define FDMA_EXTEND_CMD_ASA_ARG1(_handles)				\
+#define FDMA_EXTEND_CMD_ASA_ARG1(_frame_handle)				\
 	(uint32_t)((FDMA_ASA_SEG_HANDLE << 24) |			\
-	(FDMA_GET_PRC_FRAME_HANDLE(_handles)) |				\
-	FDMA_EXTEND_CMD)
+	(_frame_handle << 16) | FDMA_EXTEND_CMD)
 
 	/** FDMA Extend presentation command arg2 */
 #define FDMA_EXTEND_CMD_ARG2(_seg_addr, _extend_size)			\
 	(uint32_t)((_seg_addr << 16) | _extend_size)
 
 	/**< FDMA Store default working frame command arg1 */
-#define FDMA_STORE_DEFAULT_CMD_ARG1(_spid, _handles)			\
-	(uint32_t)((_spid << 24) |					\
-	(FDMA_GET_PRC_FRAME_HANDLE(_handles)) |				\
-	FDMA_STORE_CMD)
+#define FDMA_STORE_DEFAULT_CMD_ARG1(_spid, _frame_handle)		\
+	(uint32_t)((_spid << 24) | (_frame_handle << 16) | FDMA_STORE_CMD)
 
 	/**< FDMA Store working frame command arg1 */
 #define FDMA_STORE_CMD_ARG1(_spid, _handle)				\
 	(uint32_t)((_spid << 24) | (_handle << 16) | FDMA_STORE_CMD)
 
 	/** FDMA Enqueue working frame command arg1 */
-#define FDMA_ENQUEUE_WF_ARG1(_spid, _handles, _flags)			\
-	(uint32_t)((_spid << 24) |					\
-	(FDMA_GET_PRC_FRAME_HANDLE(_handles)) |				\
+#define FDMA_ENQUEUE_WF_ARG1(_spid, _frame_handle, _flags)		\
+	(uint32_t)((_spid << 24) | 					\
+	(_frame_handle << 16) |						\
 	_flags | FDMA_ENQUEUE_WF_CMD)
 
 	/** FDMA Enqueue working frame command arg1 */
@@ -342,9 +318,8 @@
 	(_flags & FDMA_ENF_BDI_BIT) | _hash)
 
 	/** FDMA Discard working frame command arg1 */
-#define FDMA_DISCARD_ARG1_WF(_handles, _flags)				\
-	(uint32_t)((FDMA_GET_PRC_FRAME_HANDLE(_handles)) |		\
-	_flags | FDMA_DISCARD_FRAME_CMD)
+#define FDMA_DISCARD_ARG1_WF(_frame_handle, _flags)			\
+	(uint32_t)((_frame_handle << 16) | _flags | FDMA_DISCARD_FRAME_CMD)
 
 	/** FDMA Discard frame command arg1 */
 #define FDMA_DISCARD_ARG1_FRAME(_frame, _flags)				\
@@ -399,19 +374,16 @@
 	(uint32_t)((_fd_addr << 16) | _split_size_sf)
 
 	/** FDMA Trim working frame segment command arg1 */
-#define FDMA_TRIM_CMD_ARG1(_handles)					\
-	(uint32_t)((FDMA_GET_PRC_SEGMENT_HANDLE(_handles)) |		\
-	(FDMA_GET_PRC_FRAME_HANDLE(_handles)) |				\
-	FDMA_TRIM_CMD)
+#define FDMA_TRIM_CMD_ARG1(_frame_handle, _seg_handle)			\
+	(uint32_t)((_seg_handle << 24) | (_frame_handle << 16) | FDMA_TRIM_CMD)
 
 	/** FDMA Trim working frame segment command arg2 */
 #define FDMA_TRIM_CMD_ARG2(_offset, _size)				\
 	(uint32_t)((_offset << 16) | _size)
 
 	/** FDMA Replace working frame segment command arg1 */
-#define FDMA_REPLACE_CMD_ARG1(_handles, _flags)				\
-	(uint32_t)((FDMA_GET_PRC_SEGMENT_HANDLE(_handles)) |		\
-	(FDMA_GET_PRC_FRAME_HANDLE(_handles)) |				\
+#define FDMA_REPLACE_CMD_ARG1(_frame_handle, _seg_handle, _flags)	\
+	(uint32_t)((_seg_handle << 24) | (_frame_handle << 16) |	\
 	(_flags) | FDMA_REPLACE_CMD)
 
 /** FDMA Replace working frame segment command arg1 */
@@ -448,10 +420,9 @@
 	(FDMA_REPLACE_SA_CLOSE_BIT) | FDMA_REPLACE_CMD)
 
 	/** FDMA Replace working frame segment command arg1 */
-#define FDMA_REPLACE_PTA_ASA_CMD_ARG1(_seg_handle, _handles, _flags)	\
+#define FDMA_REPLACE_PTA_ASA_CMD_ARG1(_seg_handle, _frame_handle, _flags)\
 	(uint32_t)((_seg_handle << 24) |				\
-	(FDMA_GET_PRC_FRAME_HANDLE(_handles)) |				\
-	(_flags) | FDMA_REPLACE_CMD)
+	(_frame_handle << 16) | (_flags) | FDMA_REPLACE_CMD)
 
 	/** FDMA Checksum working frame command arg1 */
 #define FDMA_CKS_CMD_ARG1(_frame_handle)				\
@@ -460,7 +431,7 @@
 #define FDMA_CKS_CMD_ARG2(_offset, _size)				\
 	(uint32_t)((_offset << 16) | _size)
 
-#define FDMA_GET_FRAME_LENGTH_CMD_ARG1(_frame_handle)				\
+#define FDMA_GET_FRAME_LENGTH_CMD_ARG1(_frame_handle)			\
 	(uint32_t)((((uint32_t)_frame_handle) << 16) | FDMA_GWFL_CMD)
 
 	/** FDMA Copy data command arg1 */
@@ -524,104 +495,38 @@
 #define PRC_SET_SEGMENT_OFFSET(_val)					\
 	(((struct presentation_context *)HWC_PRC_ADDRESS)->seg_offset = \
 		(uint16_t)_val)
-	/** Macro to set the default frame PTA address in workspace from the
-	 * presentation context */
-#define PRC_SET_PTA_ADDRESS(_val)					\
-	(((struct presentation_context *)HWC_PRC_ADDRESS)->ptapa_asapo =\
-		(((struct presentation_context *)HWC_PRC_ADDRESS)->	\
-		ptapa_asapo & ~PRC_PTAPA_MASK) |			\
-		((uint16_t)_val & PRC_PTAPA_MASK))
-	/** Macro to set the default frame ASA offset from the presentation
-	 * context */
-#define PRC_SET_ASA_OFFSET(_val)					\
-	(((struct presentation_context *)HWC_PRC_ADDRESS)->ptapa_asapo =\
-		(((struct presentation_context *)HWC_PRC_ADDRESS)->	\
-		ptapa_asapo & ~PRC_ASAPO_MASK) |			\
-		((uint16_t)_val & PRC_ASAPO_MASK))
-	/** Macro to set the default frame ASA address in workspace from the
-	 * presentation context */
-#define PRC_SET_ASA_ADDRESS(_val)					\
-	((((struct presentation_context *)HWC_PRC_ADDRESS)->asapa_asaps =\
-		(((struct presentation_context *)HWC_PRC_ADDRESS)->	\
-		asapa_asaps & ~PRC_ASAPA_MASK) |			\
-		((uint16_t)_val & PRC_ASAPA_MASK))
 	/** Macro to set Segment reference bit in workspace from the
 	 * presentation context */
 #define PRC_SET_SR_BIT()						\
-	(((struct presentation_context *)HWC_PRC_ADDRESS)->asapa_asaps =\
+	(((struct presentation_context *)HWC_PRC_ADDRESS)->sr_nds =\
 		((((struct presentation_context *)HWC_PRC_ADDRESS)->	\
-		asapa_asaps & ~PRC_SR_MASK) | PRC_SR_MASK))
+		sr_nds & ~PRC_SR_MASK) | PRC_SR_MASK))
 	/** Macro to reset Segment reference bit in workspace from the
 	 * presentation context */
 #define PRC_RESET_SR_BIT()						\
-	(((struct presentation_context *)HWC_PRC_ADDRESS)->asapa_asaps =\
+	(((struct presentation_context *)HWC_PRC_ADDRESS)->sr_nds =\
 		(((struct presentation_context *)HWC_PRC_ADDRESS)->	\
-		asapa_asaps & ~PRC_SR_MASK))
+		sr_nds & ~PRC_SR_MASK))
 	/** Macro to set No-Data-Segment bit in workspace from the
 	 * presentation context */
 #define PRC_SET_NDS_BIT()						\
-	(((struct presentation_context *)HWC_PRC_ADDRESS)->asapa_asaps =\
+	(((struct presentation_context *)HWC_PRC_ADDRESS)->sr_nds =\
 		((((struct presentation_context *)HWC_PRC_ADDRESS)->	\
-		asapa_asaps & ~PRC_NDS_MASK) | PRC_NDS_MASK))
+		sr_nds & ~PRC_NDS_MASK) | PRC_NDS_MASK))
 	/** Macro to reset No-Data-Segment bit in workspace from the
 	 * presentation context */
 #define PRC_RESET_NDS_BIT()						\
-	(((struct presentation_context *)HWC_PRC_ADDRESS)->asapa_asaps =\
+	(((struct presentation_context *)HWC_PRC_ADDRESS)->sr_nds =\
 		(((struct presentation_context *)HWC_PRC_ADDRESS)->	\
-		asapa_asaps & ~PRC_NDS_MASK))
-	/** Macro to set No-PTA-Segment bit in workspace from the
-	 * presentation context */
-#if NAS_NPS_ENABLE
-#define PRC_SET_NPS_BIT()						\
-	(((struct presentation_context *)HWC_PRC_ADDRESS)->ptapa_asapo =\
-		((((struct presentation_context *)HWC_PRC_ADDRESS)->	\
-		ptapa_asapo & ~PRC_NPS_MASK) | PRC_NPS_MASK))
-	/** Macro to reset No-PTA-Segment bit in workspace from the
-	 * presentation context */
-#define PRC_RESET_NPS_BIT()						\
-	(((struct presentation_context *)HWC_PRC_ADDRESS)->ptapa_asapo =\
-		(((struct presentation_context *)HWC_PRC_ADDRESS)->	\
-		ptapa_asapo & ~PRC_NPS_MASK))
-	/** Macro to set No-ASA-Segment bit in workspace from the
-	 * presentation context */
-#define PRC_SET_NAS_BIT()						\
-	(((struct presentation_context *)HWC_PRC_ADDRESS)->ptapa_asapo =\
-		((((struct presentation_context *)HWC_PRC_ADDRESS)->	\
-		ptapa_asapo & ~PRC_NAS_MASK) | PRC_NAS_MASK))
-	/** Macro to reset No-ASA-Segment bit in workspace from the
-	 * presentation context */
-#define PRC_RESET_NAS_BIT()						\
-	(((struct presentation_context *)HWC_PRC_ADDRESS)->ptapa_asapo =\
-		(((struct presentation_context *)HWC_PRC_ADDRESS)->	\
-		ptapa_asapo & ~PRC_NAS_MASK))
-#endif /*NAS_NPS_ENABLE*/
-	/** Macro to set the default frame ASA size in workspace from the
-	 * presentation context */
-#define PRC_SET_ASA_SIZE(_val)						\
-	(((struct presentation_context *)HWC_PRC_ADDRESS)->asapa_asaps =\
-		(((struct presentation_context *)HWC_PRC_ADDRESS)->	\
-		asapa_asaps & ~PRC_ASAPS_MASK) |			\
-		((uint16_t)_val & PRC_ASAPS_MASK))
-	/** Macro to set the default frame handle + default segment handles
-	 * from the presentation context */
-#define PRC_SET_HANDLES(_val)						\
-	(((struct presentation_context *)HWC_PRC_ADDRESS)->handles =	\
-		(uint8_t)_val)
+		sr_nds & ~PRC_NDS_MASK))
 	/** Macro to set the default frame handle from the presentation
 	 * context */
 #define PRC_SET_FRAME_HANDLE(_val)					\
-	(((struct presentation_context *)HWC_PRC_ADDRESS)->handles =	\
-		(((struct presentation_context *)HWC_PRC_ADDRESS)->	\
-		handles & ~PRC_FRAME_HANDLE_MASK) |			\
-		(((uint8_t)_val << PRC_FRAME_HANDLE_BIT_OFFSET) &	\
-			PRC_FRAME_HANDLE_MASK))
+	(((struct presentation_context *)HWC_PRC_ADDRESS)->frame_handle = _val)
 	/** Macro to set the default segment handle from the presentation
 	 * context */
 #define PRC_SET_SEGMENT_HANDLE(_val)					\
-	(((struct presentation_context *)HWC_PRC_ADDRESS)->handles =	\
-		(((struct presentation_context *)HWC_PRC_ADDRESS)->	\
-		handles & ~PRC_SEGMENT_HANDLE_MASK) |			\
-		((uint8_t)_val & PRC_SEGMENT_HANDLE_MASK))
+	(((struct presentation_context *)HWC_PRC_ADDRESS)->seg_handle = _val)
 	/** Macro to set the OSM Entry Point Source value from the presentation
 	 * context */
 #define PRC_SET_OSM_SOURCE_VALUE(_val)					\
@@ -650,7 +555,20 @@
 		(((struct presentation_context *)HWC_PRC_ADDRESS)->	\
 		osrc_oep_osel_osrm & ~PRC_OSRM_MASK) |			\
 		((uint8_t)_val & PRC_OSRM_MASK))
-
+	/** Macro to set Initial Scope Value bit in workspace from the
+	 * presentation context */
+#define PRC_SET_ISV_BIT()						\
+	(((struct presentation_context *)HWC_PRC_ADDRESS)->isv =\
+		((((struct presentation_context *)HWC_PRC_ADDRESS)->	\
+		isv & ~PRC_ISV_MASK) | PRC_ISV_MASK))
+	/** Macro to reset Initial Scope Value bit in workspace from the
+	 * presentation context */
+#define PRC_RESET_ISV_BIT()						\
+	(((struct presentation_context *)HWC_PRC_ADDRESS)->isv =\
+		(((struct presentation_context *)HWC_PRC_ADDRESS)->	\
+		isv & ~PRC_ISV_MASK))
+	/** Dummy Macro for IPSEC */
+#define PRC_SET_ASA_SIZE(_val)
 
 /** @} */ /* end of AIOP_PRC_Setters */
 

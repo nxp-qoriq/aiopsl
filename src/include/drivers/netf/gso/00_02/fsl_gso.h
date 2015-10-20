@@ -79,8 +79,7 @@
 #define TCP_GSO_CONTEXT_SIZE	64
 	/** TCP GSO context definition.
 	 * Must be aligned to 32 bytes. */
-typedef uint8_t tcp_gso_ctx_t[TCP_GSO_CONTEXT_SIZE]
-		__attribute__((aligned(sizeof(struct ldpaa_fd))));
+typedef uint8_t tcp_gso_ctx_t[TCP_GSO_CONTEXT_SIZE];
 
 
 /** @} */ /* end of TCP_GSO_GENERAL_DEFINITIONS */

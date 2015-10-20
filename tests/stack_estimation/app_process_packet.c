@@ -139,6 +139,7 @@ void stack_estimation(void)
 	icontext_release(&ic, 7, buff);
 	icontext_dma_read(&ic, 4, buff, &time);
 	icontext_dma_write(&ic, 4, &time, buff);
+	icontext_ws_set(&ic);
 
 	/* DPNI runtime functions */
 	{
@@ -208,6 +209,7 @@ void stack_estimation(void)
 	/* DPCI */
 	dpci_drv_disable(0);
 	//dpci_drv_enable(0);
+	dpci_drv_linkup(0, NULL);
 	dpci_drv_get_initial_presentation(0, NULL);
 	dpci_drv_set_initial_presentation(0, NULL);
 	/*
@@ -224,12 +226,13 @@ void stack_estimation(void)
 	 * the stack is not important */
 
 
-	/* RCU does not exists in 1088*/
+	/* rcu_synchronize is different */
 	/*
 	rcu_synchronize(NULL, 9);
+	*/
 	rcu_read_lock();
 	rcu_read_unlock();
-	*/
+
 
 	/*After packet processing is done, fdma_terminate_task must be called.*/
 #ifdef CHECK_MEM_MNG_STACK

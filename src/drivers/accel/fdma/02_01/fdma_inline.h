@@ -57,7 +57,7 @@ inline int fdma_replace_default_segment_data(
 	
 	/* prepare command parameters */
 	flags = flags | FDMA_REPLACE_TAM_FLAG;
-	arg1 = FDMA_REPLACE_CMD_ARG1(prc->handles, flags);
+	arg1 = FDMA_REPLACE_CMD_ARG1(prc->frame_handle, prc->seg_handle, flags);
 	arg4 = FDMA_REPLACE_CMD_ARG4(ws_dst_rs, size_rs);
 
 	arg2 = FDMA_REPLACE_CMD_ARG2(to_offset, to_size);
@@ -76,6 +76,10 @@ inline int fdma_replace_default_segment_data(
 			prc->seg_length = *((uint16_t *)HWC_ACC_OUT_ADDRESS2);
 		}
 		/* FD fields should be updated with a swap load/store */
+		if (from_size != to_size)
+			LDPAA_FD_UPDATE_LENGTH(HWC_FD_ADDRESS,
+					from_size, to_size);
+
 		if (flags & FDMA_REPLACE_SA_CLOSE_BIT)
 			PRC_SET_NDS_BIT();
 
@@ -125,7 +129,7 @@ inline int fdma_store_default_frame_data(void)
 	uint8_t spid = *((uint8_t *) HWC_SPID_ADDRESS);
 
 	/* prepare command parameters */
-	arg1 = FDMA_STORE_DEFAULT_CMD_ARG1(spid, PRC_GET_HANDLES());
+	arg1 = FDMA_STORE_DEFAULT_CMD_ARG1(spid, PRC_GET_FRAME_HANDLE());
 	*((uint32_t *)(HWC_ACC_IN_ADDRESS)) = arg1;
 	/* call FDMA Accelerator */
 	if ((__e_hwacceli_(FODMA_ACCEL_ID)) == FDMA_SUCCESS)
@@ -149,38 +153,26 @@ inline int fdma_present_default_frame(void)
 	struct presentation_context *prc =
 		(struct presentation_context *) HWC_PRC_ADDRESS;
 	/* command parameters and results */
-	uint32_t arg1, arg2, arg3, arg4;
+	uint32_t arg1, arg2, arg3;
 	int8_t  res1;
-	uint32_t flags = 0;
+	uint32_t flags;
 
 	/* prepare command parameters */
-	if (PRC_GET_NDS_BIT())
+	flags = FDMA_INIT_NAS_BIT | FDMA_INIT_NPS_BIT;
+	if (PRC_GET_NDS_BIT()){
 		flags |= FDMA_INIT_NDS_BIT;
-	else
+		flags |= PRC_GET_SR_BIT_FDMA_CMD();
+		arg1 = FDMA_INIT_CMD_ARG1(HWC_FD_ADDRESS, flags);
+		*((uint32_t *)(HWC_ACC_IN_ADDRESS)) = arg1;
+	} else {
+		arg1 = FDMA_INIT_CMD_ARG1(HWC_FD_ADDRESS,
+				(flags | PRC_GET_SR_BIT_FDMA_CMD()));
 		arg2 = FDMA_INIT_CMD_ARG2((uint32_t)(prc->seg_address),
 						prc->seg_offset);
-	/* Todo - when compiler fixes bug C43 enable the following code
-	 * instead of the 3 lines of code afterwards.
-	if (prc->asapa_asaps & PRC_ASAPS_MASK)
-		arg4 = FDMA_INIT_CMD_ARG4(prc->asapa_asaps & ~PRC_SR_MASK);
-	else
-		flags |= FDMA_INIT_NAS_BIT;*/
-	if (PRC_GET_ASA_SIZE() == 0)
-		flags |= FDMA_INIT_NAS_BIT;
-	arg4 = FDMA_INIT_CMD_ARG4(prc->asapa_asaps &
-			~(PRC_SR_MASK|PRC_NDS_MASK));
-
-
-	if (PRC_GET_PTA_ADDRESS() == PRC_PTA_NOT_LOADED_ADDRESS)
-		flags |= FDMA_INIT_NPS_BIT;
-
-	arg1 = FDMA_INIT_CMD_ARG1(HWC_FD_ADDRESS,
-			(flags | PRC_GET_SR_BIT_FDMA_CMD()));
-	arg3 = FDMA_INIT_CMD_ARG3(prc->seg_length, prc->ptapa_asapo);
-
-
-	/* store command parameters */
-	__stqw(arg1, arg2, arg3, arg4, HWC_ACC_IN_ADDRESS, 0);
+		arg3 = FDMA_INIT_CMD_ARG3(prc->seg_length, 0);
+		/* store command parameters */
+		__stqw(arg1, arg2, arg3, 0, HWC_ACC_IN_ADDRESS, 0);
+	}
 
 	/* call FDMA Accelerator */
 	__e_hwacceli_(FPDMA_ACCEL_ID);
@@ -188,34 +180,16 @@ inline int fdma_present_default_frame(void)
 	/* load command results */
 	res1 = *((int8_t *) (FDMA_STATUS_ADDR));
 	if ((res1 == FDMA_SUCCESS) ||
-		(res1 == FDMA_UNABLE_TO_PRESENT_FULL_SEGMENT_ERR) ||
-		(res1 == FDMA_UNABLE_TO_PRESENT_FULL_ASA_ERR)) {
+		(res1 == FDMA_UNABLE_TO_PRESENT_FULL_SEGMENT_ERR)) {
 		prc->seg_length = *((uint16_t *) (HWC_ACC_OUT_ADDRESS2));
-		prc->handles =
-			(((*((uint8_t *)
-			(HWC_ACC_OUT_ADDRESS2 + FDMA_FRAME_HANDLE_OFFSET))) <<
-			PRC_FRAME_HANDLE_BIT_OFFSET) &
-			PRC_FRAME_HANDLE_MASK) |
-			((*((uint8_t *)
-			(HWC_ACC_OUT_ADDRESS2 + FDMA_SEG_HANDLE_OFFSET))) &
-			PRC_SEGMENT_HANDLE_MASK);
-
-
-		if ((res1 == FDMA_UNABLE_TO_PRESENT_FULL_ASA_ERR))
-			prc->asapa_asaps = (prc->asapa_asaps & ~PRC_ASAPS_MASK)
-				| (uint16_t)(LDPAA_FD_GET_ASAL(HWC_FD_ADDRESS));
-
-#if NAS_NPS_ENABLE
-		(flags & FDMA_INIT_NAS_BIT) ? PRC_SET_NAS_BIT() :
-				PRC_RESET_NAS_BIT();
-		(flags & FDMA_INIT_NPS_BIT) ? PRC_SET_NPS_BIT() :
-				PRC_RESET_NPS_BIT();
-#endif /*NAS_NPS_ENABLE*/
+		prc->frame_handle = *((uint8_t *)
+			(HWC_ACC_OUT_ADDRESS2 + FDMA_FRAME_HANDLE_OFFSET));
+		prc->seg_handle = *((uint8_t *)
+			(HWC_ACC_OUT_ADDRESS2 + FDMA_SEG_HANDLE_OFFSET));
 
 		if (res1 == FDMA_SUCCESS)
 			return SUCCESS;
-		else /* FDMA_UNABLE_TO_PRESENT_FULL_SEGMENT_ERR or
-			FDMA_UNABLE_TO_PRESENT_FULL_ASA_ERR*/
+		else /* FDMA_UNABLE_TO_PRESENT_FULL_SEGMENT_ERR */
 			return (int32_t)res1;
 	}
 
@@ -245,7 +219,7 @@ inline int fdma_insert_default_segment_data(
 
 	/* prepare command parameters */
 	flags = flags | FDMA_REPLACE_TAM_FLAG;
-	arg1 = FDMA_REPLACE_CMD_ARG1(prc->handles, flags);
+	arg1 = FDMA_REPLACE_CMD_ARG1(prc->frame_handle, prc->seg_handle, flags);
 	arg2 = FDMA_REPLACE_CMD_ARG2(to_offset, 0);
 	arg3 = FDMA_REPLACE_CMD_ARG3(from_ws_src, insert_size);
 	if (flags & FDMA_REPLACE_SA_REPRESENT_BIT) {
@@ -267,6 +241,8 @@ inline int fdma_insert_default_segment_data(
 			prc->seg_length = *((uint16_t *)HWC_ACC_OUT_ADDRESS2);
 		}
 		/* FD fields should be updated with a swap load/store */
+		LDPAA_FD_UPDATE_LENGTH(HWC_FD_ADDRESS, insert_size, 0);
+
 		if (flags & FDMA_REPLACE_SA_CLOSE_BIT)
 			PRC_SET_NDS_BIT();
 
@@ -293,7 +269,7 @@ inline int fdma_present_default_frame_segment(
 	int8_t  res1;
 
 	/* prepare command parameters */
-	arg1 = FDMA_PRESENT_CMD_ARG1(PRC_GET_HANDLES(),
+	arg1 = FDMA_PRESENT_CMD_ARG1(PRC_GET_FRAME_HANDLE(), 
 			(flags | FDMA_ST_DATA_SEGMENT_BIT));
 	arg2 = FDMA_PRESENT_CMD_ARG2((uint32_t)ws_dst, offset);
 	arg3 = FDMA_PRESENT_CMD_ARG3(present_size);
@@ -341,7 +317,8 @@ inline void fdma_modify_default_segment_data(
 
 	/* prepare command parameters */
 	arg1 = FDMA_REPLACE_CMD_ARG1(
-			PRC_GET_HANDLES(), FDMA_REPLACE_TAM_FLAG);
+			PRC_GET_FRAME_HANDLE(), PRC_GET_SEGMENT_HANDLE(), 
+			FDMA_REPLACE_TAM_FLAG);
 
 	arg2 = FDMA_REPLACE_CMD_ARG2(offset, size);
 	arg3 = FDMA_REPLACE_CMD_ARG3(
@@ -368,7 +345,8 @@ inline void fdma_modify_default_segment_full_data()
 
 	/* prepare command parameters */
 	arg1 = FDMA_REPLACE_CMD_ARG1(
-			PRC_GET_HANDLES(), FDMA_REPLACE_TAM_FLAG);
+			PRC_GET_FRAME_HANDLE(), PRC_GET_SEGMENT_HANDLE(), 
+			FDMA_REPLACE_TAM_FLAG);
 	arg2 = FDMA_REPLACE_CMD_ARG2(0, PRC_GET_SEGMENT_LENGTH());
 	arg3 = FDMA_REPLACE_CMD_ARG3(
 			(PRC_GET_SEGMENT_ADDRESS()), PRC_GET_SEGMENT_LENGTH());
@@ -457,7 +435,7 @@ inline int fdma_delete_default_segment_data(
 
 	/* prepare command parameters */
 	flags = flags | FDMA_REPLACE_TAM_FLAG;
-	arg1 = FDMA_REPLACE_CMD_ARG1(prc->handles, flags);
+	arg1 = FDMA_REPLACE_CMD_ARG1(prc->frame_handle, prc->seg_handle, flags);
 	arg2 = FDMA_REPLACE_CMD_ARG2(to_offset, delete_target_size);
 	arg3 = FDMA_REPLACE_CMD_ARG3(0, 0);
 	if (flags & FDMA_REPLACE_SA_REPRESENT_BIT) {
@@ -481,6 +459,9 @@ inline int fdma_delete_default_segment_data(
 			prc->seg_length = *((uint16_t *)HWC_ACC_OUT_ADDRESS2);
 		}
 		/* FD fields should be updated with a swap load/store */
+		LDPAA_FD_UPDATE_LENGTH(HWC_FD_ADDRESS, 0,
+				delete_target_size);
+
 		if (flags & FDMA_REPLACE_SA_CLOSE_BIT)
 			PRC_SET_NDS_BIT();
 
@@ -502,7 +483,7 @@ inline void fdma_discard_default_frame(uint32_t flags)
 	uint32_t arg1;
 	int8_t res1;
 	/* prepare command parameters */
-	arg1 = FDMA_DISCARD_ARG1_WF(PRC_GET_HANDLES(), flags);
+	arg1 = FDMA_DISCARD_ARG1_WF(PRC_GET_FRAME_HANDLE(), flags);
 	*((uint32_t *)(HWC_ACC_IN_ADDRESS)) = arg1;
 	/* call FDMA Accelerator */
 	if ((__e_hwacceli_(FODMA_ACCEL_ID)) == FDMA_SUCCESS)
@@ -553,7 +534,7 @@ inline int fdma_store_and_enqueue_default_frame_qd(
 
 	/* prepare command parameters */
 	flags &= ~FDMA_EN_EIS_BIT;
-	arg1 = FDMA_ENQUEUE_WF_ARG1(spid, PRC_GET_HANDLES(), flags);
+	arg1 = FDMA_ENQUEUE_WF_ARG1(spid, PRC_GET_FRAME_HANDLE(), flags);
 	arg2 = FDMA_ENQUEUE_WF_QD_ARG2(qdp->qd_priority, qdp->qd);
 	arg3 = FDMA_ENQUEUE_WF_QD_ARG3(qdp->qdbin);
 	/* store command parameters */

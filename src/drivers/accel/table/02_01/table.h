@@ -421,6 +421,11 @@
  */
 #define TABLE_SW_STATUS_SAME_PRIORITY		0xFF000006
 
+/**
+ * The MFLU rule was found with different priority.
+ */
+#define TABLE_SW_STATUS_MFLU_DIFF_PRIORITY	TABLE_STATUS_MFLU_DIFF_PRIORITY
+
 /** @} */ /* end of TABLE_STATUS */
 
 /** @} */ /* end of TABLE_MACROS */
@@ -824,14 +829,14 @@ struct table_entry {
 	/** Table ID */
 	uint16_t table_id;
 
-	/** HW Internal use */
-	uint32_t next_index;
+	/** HW Internal for some commands and priority for rule_query */
+	uint32_t next_index_or_priority;
 
-	/** HW Internal use */
-	uint32_t prev_index;
+	/** HW Internal for some commands and rule_id part0 for rule_query */
+	uint32_t prev_index_or_rule_id;
 
-	/** Unique ID */
-	uint32_t unique_id;
+	/** HW Internal for some commands and rule_id part1 for rule_query */
+	uint32_t unique_id_or_rule_id;
 
 	/** The body of the entry (varies per type) */
 	union table_entry_body body;

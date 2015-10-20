@@ -67,11 +67,14 @@ struct cmdif_bd {
 };
 
 struct cmdif_bd_ring {
+	uint64_t bd_addr;
+	uint64_t irq_addr; /*!< Interrupt register address */
+	uint32_t irq_mask; /*!< Interrupt bit mask to be written to irq_addr */
 	uint32_t flags;
 	uint32_t enq;
 	uint32_t deq;
-	uint8_t num_bds; /*!< Max number of BDs = 2^num_bds, must be 1 byte */ 
-	uint64_t bd_addr;
+	uint8_t num_bds; /*!< Max number of BDs = 2^num_bds, must be 1 byte */
+	uint8_t ready;	 /*!< Set to 1 only after BD ring is ready for use */
 };
 
 int cmdif_flib_send(struct cmdif_bd_ring *bd_ring, const struct cmdif_bd *bd,

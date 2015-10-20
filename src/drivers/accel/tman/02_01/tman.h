@@ -259,6 +259,8 @@ enum tman_function_identifier {
 
 
 #define TMAN_QUERY_MAX_NT_MASK	0x00FFFFFF
+
+
 #define TMAN_STATUS_MASK	0xF8000000
 /** CDMA Peripheral base address */
 #define CDMA_BASE_ADDRESS	0x0208d000
@@ -266,23 +268,6 @@ enum tman_function_identifier {
 #define CDMA_BDI_MASK	0x00080000
 /** CDMA PL and VA Bits Mask */
 #define CDMA_PL_VA_MASK	0x00050000
-/** TMAN Peripheral base address */
-#define TMAN_BASE_ADDRESS	0x02020000
-/** TMCBCC- TMan Callback Completion Confirmation */
-#define TMAN_TMCBCC_ADDRESS	(TMAN_BASE_ADDRESS+0x014)
-/** TMTSTMP- TMan TMAN Timestamp register address */
-#define TMAN_TMTSTMP_ADDRESS	(TMAN_BASE_ADDRESS+0x020)
-/** TMEV- TMan Error Event register base address */
-#define TMAN_TMEV_ADDRESS	(TMAN_BASE_ADDRESS+0x38)
-/** TMSTATNAT- TMan TMAN Stats Num of Active Timers register base address */
-#define TMAN_TMSTATNAT_ADDRESS	(TMAN_BASE_ADDRESS+0x2008)
-/** TMSTATNCCP- TMan TMAN Stats Number of Callback Confirmation Pending
- * register base address */
-#define TMAN_TMSTATNCCP_ADDRESS	(TMAN_BASE_ADDRESS+0x200C)
-/** TMSTATE- TMan TMAN State register base address */
-#define TMAN_TMSTATE_ADDRESS	(TMAN_BASE_ADDRESS+0x2018)
-/** TMSTATE- TMan TMAN State register address Workaround for TKT254640 */
-#define TMAN_CCSR_TMSTATE_ADDRESS	0x020a2018
 /** TMan Dedicated EPID */
 #define EPID_TIMER_EVENT_IDX	1
 /** Offset to USER_OPAQUE1 in FD */
@@ -295,6 +280,8 @@ enum tman_function_identifier {
 #define TMAN_TMI_DEL_TMP_ERR_MASK	0x00000020
 /** The TMI query command error */
 #define TMAN_TMI_CMD_ERR	0x81400000
+/** The TMI create command error mask */
+#define TMAN_TMI_CREATE_CODE_MASK 0x814000C0
 /** A mask that defines the query TMI command temporary error type */
 #define TMAN_TMI_QUERY_TMP_ERR_MASK	0x00000020
 /** If the TMI query was successful */
@@ -329,6 +316,32 @@ enum tman_function_identifier {
 #define TMAN_EXT_PARAM_ALIGNMENT	16
 /** Mask to filter the System Bus error event in the TMEV register */
 #define TMAN_TMEV_BUS_ERR_MASK	0x80000000
+
+/** TMAN DEBUG REGISTERS - register base address */
+/** TMAN Peripheral base address */
+#define TMAN_BASE_ADDRESS	0x02020000
+/** TMCBCC- TMan Callback Completion Confirmation */
+#define TMAN_TMCBCC_ADDRESS	(TMAN_BASE_ADDRESS+0x014)
+/** TMTSTMP- TMan Timestamp */
+#define TMAN_TMTSTMP_ADDRESS	(TMAN_BASE_ADDRESS+0x020)
+/** TMEV- TMan Error Event */
+#define TMAN_TMEV_ADDRESS	(TMAN_BASE_ADDRESS+0x38)
+/** TMSTATNTC- TMan Stats Number of timers created */
+#define TMAN_TMSTATNTC_ADDRESS	(TMAN_BASE_ADDRESS+0x2000)
+/** TMSTATNTD- TMan Stats Num of timers deleted with Timer delete command */
+#define TMAN_TMSTATNTD_ADDRESS	(TMAN_BASE_ADDRESS+0x2004)
+/** TMSTATNAT- TMan Stats Number of Active Timers */
+#define TMAN_TMSTATNAT_ADDRESS	(TMAN_BASE_ADDRESS+0x2008)
+/** TMSTATNCCP- TMan Stats Number of Callback Confirmation Pending */
+#define TMAN_TMSTATNCCP_ADDRESS	(TMAN_BASE_ADDRESS+0x200C)
+/** TMSTATNTF- TMan Stats Number of Timers expirations */
+#define TMAN_TMSTATNTF_ADDRESS	(TMAN_BASE_ADDRESS+0x2010)
+/** TMSTATNTI- TMan Stats Number of tasks initiated */
+#define TMAN_TMSTATNTI_ADDRESS	(TMAN_BASE_ADDRESS+0x2014)
+/** TMSTATE- TMan State */
+#define TMAN_TMSTATE_ADDRESS	(TMAN_BASE_ADDRESS+0x2018)
+/** TMSTATE- TMan State register address Workaround for TKT254640 */
+#define TMAN_CCSR_TMSTATE_ADDRESS	0x020a2018
 
 /**************************************************************************//**
 @Description	TMI input extension params

@@ -74,32 +74,32 @@ static inline void booke_exception_machine_check_isr()
 	uint32_t mcsr = booke_get_spr_MCSR();     /* Syndrome register */
 	uint32_t core_id = core_get_id();
 
-	fsl_print("core %d int: MACHINE_CHECK\n", core_id);
+	pr_info("int: MACHINE_CHECK\n");
 	if(mcsr & 0x0400 /* STACK_ERR */) {
 		uint32_t dac1, dac2; /* Data Address Compare Registers */
 
-		fsl_print("core #%d: Stack Overflow Exception...\n", core_id);
+		pr_err("Stack Overflow Exception...\n");
 
 		dac1 = booke_get_spr_DAC1();
 		dac2 = booke_get_spr_DAC2();
-		fsl_print("core #%d: Stack size is: 0x%x Bytes\n", core_id, (dac2 - dac1));
+		pr_err("Stack size is: 0x%x Bytes\n", (dac2 - dac1));
 	}
 
 	if(mcsr & 0x80000 /* MAV */) {
 		if(mcsr & 0x40000 /* MEA */) {
-			fsl_print("core #%d: Violation effective address: 0x%x\n", core_id, mcar);
+			pr_err("Violation effective address: 0x%x\n", mcar);
 		}
 		else {
-			fsl_print("core #%d: Violation real address: 0x%x\n", core_id, mcar);
+			pr_err("Violation real address: 0x%x\n", mcar);
 		}
 	}
 
 	if(mcsr & 0x8000 /* LD */) {
-		fsl_print("core #%d: Error on load type instruction at address 0x%x.\n", core_id, mcsrr0);
+		pr_err("Error on load type instruction at address 0x%x.\n", mcsrr0);
 	}
 
 	if(mcsr & 0x4000 /* ST */) {
-		fsl_print("core #%d: Error on store type instruction at address 0x%x.\n", core_id, mcsrr0);
+		pr_err("Error on store type instruction at address 0x%x.\n", mcsrr0);
 	}
 }
 
@@ -120,49 +120,49 @@ void booke_generic_exception_isr(uint32_t intr_entry)
 	switch(intr_entry)
 	{
 	case(CRITICAL_INTR):
-		fsl_print("core %d int: CRITICAL\n", core_get_id());
+		pr_info("int: CRITICAL\n");
 		break;
 	case(MACHINE_CHECK_INTR): /* MACHINE_CHECK */
 		booke_exception_machine_check_isr();
 		break;
 	case(DATA_STORAGE_INTR):
-		fsl_print("core %d int: DATA_STORAGE\n", core_get_id());
+		pr_info("int: DATA_STORAGE\n");
 		break;
 	case(INSTRUCTION_STORAGE_INTR):
-		fsl_print("core %d int: INSTRUCTION_STORAGE\n", core_get_id());
+		pr_info("int: INSTRUCTION_STORAGE\n");
 		break;
 	case(EXTERNAL_INTR):
-		fsl_print("core %d int: EXTERNAL\n", core_get_id());
+		pr_info("int: EXTERNAL\n");
 		break;
 	case(ALIGNMENT_INTR):
-		fsl_print("core %d int: ALIGNMENT\n", core_get_id());
+		pr_info("int: ALIGNMENT\n");
 		break;
 	case(PROGRAM_INTR):
-		fsl_print("core %d int: PROGRAM\n", core_get_id());
+		pr_info("int: PROGRAM\n");
 		break;
 	case(PERF_MONITOR_INTR):
-		fsl_print("core %d int: performance monitor\n", core_get_id());
+		pr_info("int: performance monitor\n");
 		break;
 	case(SYSTEM_CALL_INTR):
-		fsl_print("core %d int: SYSTEM CALL\n", core_get_id());
+		pr_info("int: SYSTEM CALL\n");
 		break;
 	case(DEBUG_INTR):
-		fsl_print("core %d int: debug\n", core_get_id());
+		pr_info("int: debug\n");
 		break;
 	case(EFPU_DATA_INTR):
-		fsl_print("core %d int: floating point data\n", core_get_id());
+		pr_info("int: floating point data\n");
 		break;
 	case(EFPU_ROUND_INTR):
-		fsl_print("core %d int: floating point round\n", core_get_id());
+		pr_info("int: floating point round\n");
 		break;
 	case(EFPU_NA_INTR):
-		fsl_print("core %d int: floating point unavailable\n", core_get_id());
+		pr_info("int: floating point unavailable\n");
 		break;
 	case(CTS_WD_INTR):
-		fsl_print("core %d int: CTS Task Watchdog interrupt\n", core_get_id());
+		pr_info("int: CTS Task Watchdog interrupt\n");
 		break;
 	default:
-		fsl_print("undefined interrupt #%x\n", intr_entry);
+		pr_err("undefined interrupt #%x\n", intr_entry);
 		break;
 	}
 

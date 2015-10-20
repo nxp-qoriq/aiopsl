@@ -57,7 +57,9 @@ def inject_packets(pcap):
 if __name__ == "__main__":
 	global g_capture 
 	global g_order_packets_flag
+	global g_no_AIOP
 	g_capture = 0
+	g_no_AIOP = False
 	last_packet_size = 0
 	g_order_packets_flag = False
 	finished_successfully = False
@@ -78,6 +80,9 @@ if __name__ == "__main__":
 		device = "ls2085aiss"
 	elif "ls1088a" in str(sim_init_params):
 		device = "ls1088aiss"
+	elif "ls2080a" in str(sim_init_params):
+		device = "ls2085aiss"
+		g_no_AIOP = True
 	else:
 		print "device is not supported"
 		exit_script(runsim,1)

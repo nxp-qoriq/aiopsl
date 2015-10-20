@@ -105,12 +105,23 @@
 #define PARSER_HW_STATUS_L4_CHECKSUM_VALIDATION_SUCCEEDED	0x00020000
 	/** L4 checksum validation failure */
 #define PARSER_HW_STATUS_FAIL_L4_CHECKSUM_VALIDATION_ERROR	0x00030000
+	/** L3 & L4 checksum generation success */
+#define PARSER_HW_STATUS_L3_L4_CHECKSUM_GENERATION_SUCCEEDED	0x000A0000
 	/** L3 & L4 checksum validation success */
 #define PARSER_HW_STATUS_L3_L4_CHECKSUM_VALIDATION_SUCCEEDED	0x000A0000
 
 
 /** @} */ /* end of AIOP_PARSE_RESULT_GEN_HW_STATUS */
 
+/**************************************************************************//**
+@Group AIOP_PARSE_OTHER Parse Result Other Defines
+@{
+*//***************************************************************************/
+	/** Uninitialized parser field of byte */
+#define PARSER_UNINITILIZED_FIELD_OF_BYTE	0xFF
+	/** Uninitialized parser field of two bytes */
+#define PARSER_UNINITILIZED_FIELD_OF_HALF_WORD	0xFFFF
+/** @} */ /* end of AIOP_PARSE_OTHER */
 /** @} */ /* end of PARSER_DEFINES */
 
 /** @} */ /* end of PARSER_MACROS */

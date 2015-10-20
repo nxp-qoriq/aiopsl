@@ -73,6 +73,9 @@
 #define DPNI_DRV_DTR_DEF              0  /* Data Tail Room */
 #define DPNI_DRV_PTA_DEF              0  /* Pass Thru Annotation - Private Data Size */
 
+#ifdef ERR009354
+#define DPNI_DRV_DATA_ALIGN_DEF       256 /* Data alignment */
+#endif
 
 
 /** @} */ /* end of DPNI_DRV_STATUS group */

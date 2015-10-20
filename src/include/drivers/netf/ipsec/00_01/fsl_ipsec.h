@@ -84,6 +84,19 @@ enum ipsec_status_codes {
 
 /** @} */ /* End of enum ipsec_status_codes */
 
+/**************************************************************************//**
+ @enum key_types
+
+ @Description	Key types. Reserved.
+
+ @{
+*//***************************************************************************/
+enum key_types {
+	RESERVED_KEY_TYPE = 0
+};
+/** @} */ /* End of enum key_types */
+
+
 /** @} */ /* End of IPSEC_ENUM */
 
 /**************************************************************************//**
@@ -120,8 +133,13 @@ typedef void (ipsec_lifetime_callback_t) (
 #define IPSEC_FLG_TUNNEL_MODE		0x00000001
 
 /** Enable Transport mode ESP pad check (default = no check)
- * Valid for transport mode only.
- * In tunnel mode pad check is always done*/
+ * Valid for transport mode decapsulation only. 
+ * Should not be set for tunnel mode (in tunnel mode pad check is always done)
+ * Only the default monolithic incrementing padding values are supported 
+ * (1,2,3,...) */
+/** Caution: the presentation segment size must be large enough to accommodate 
+ * the entire ESP padding. Otherwise an error will be produced. */
+/** Caution: enabling this option has a performance degradation impact */
 #define IPSEC_FLG_TRANSPORT_PAD_CHECK	0x00000002
 
 /** Reuse the input frame buffer.
@@ -253,23 +271,6 @@ typedef void (ipsec_lifetime_callback_t) (
 #define IPSEC_AUTH_HMAC_SHA2_512_256	0x000e
 
 /**************************************************************************//**
-@Description	IPSec Key Encryption Flags
-
- To be set to the alg_info.key_enc_flags field
-
-*//***************************************************************************/
-
-#define IPSEC_KEY_ENC			0x00400000
-	/**< ENC: Encrypted - Key is encrypted either with the KEK, or
-	 * 	with the TDKEK if this descriptor is trusted */
-#define IPSEC_KEY_NWB			0x00200000
-	/**< NWB: No Write Back - Do not allow key to be FIFO STOREd */
-#define IPSEC_KEY_EKT			0x00100000
-	/**< EKT: Enhanced Encryption of Key */
-#define IPSEC_KEY_TK			0x00008000
-	/**< TK: Encrypted with Trusted Key */
-
-/**************************************************************************//**
  @Description	AIOP IPsec Encryption/Decryption return codes. Returned by 
  	 ipsec_frame_encrypt (*enc_status) or ipsec_frame_decrypt (*dec_status)
  	 Multiple bits can be set simultaneously.
@@ -300,6 +301,14 @@ typedef void (ipsec_lifetime_callback_t) (
 #define IPSEC_GEN_ENCR_ERR	 				0x00001000
 /** General decryption error */
 #define IPSEC_GEN_DECR_ERR	 				0x00002000
+
+/** Decryption validity error 
+ * The frame after decyption is invalid due to checksum or other 
+ * header error */
+#define IPSEC_DECR_VALIDITY_ERR	 				0x00008000
+
+/** Internal error */
+#define IPSEC_INTERNAL_ERR	 				0x00010000
 
 /**************************************************************************//**
  @Description	AIOP IPsec Seconds Lifetime Callback codes.
@@ -411,8 +420,9 @@ struct alg_info {
 	uint32_t keylen;   /**< Length of the provided key, in bytes */
 	uint64_t key;      /**< Address where algorithm key resides
 	 	 	 No alignment requirements */
-	uint32_t key_enc_flags; /**< Key encryption flags
-				ENC, EKT, TK, NWB */
+	uint32_t key_enc_flags; /**< Reserved. Set to 0. */
+	enum key_types key_type; /**< Reserved */
+	uint16_t algmode; /**< Reserved */
 };
 
 /**************************************************************************//**
@@ -527,7 +537,9 @@ int ipsec_early_init(
 
 @Param[out]	instance_handle - instance handle 
 		
-@Return		Status
+@Return		IPSEC_SUCCESS
+	        -ENOMEM : not enough memory for partition
+	        -ENOSPC	: unable to allocate due to depletion
 
 *//****************************************************************************/
 int ipsec_create_instance(
@@ -546,7 +558,9 @@ int ipsec_create_instance(
 				
 @Param[out]	instance_handle - instance handle 
 		
-@Return		Status
+@Return		IPSEC_SUCCESS
+			-ENAVAIL : instance does not exist
+			-EPERM : trying to delete an instance before deleting all SAs
 
 *//****************************************************************************/
 int ipsec_delete_instance(ipsec_instance_handle_t instance_handle);
@@ -565,8 +579,13 @@ int ipsec_delete_instance(ipsec_instance_handle_t instance_handle);
 
 @Param[out]	ipsec_handle - IPsec handle to the descriptor database
 		
-@Return		Status
-
+@Return		IPSEC_SUCCESS
+	        -ENOSPC	: unable to allocate resources due to memory depletion,
+	        		  or seconds lifetime timer resources depletion 
+	        -EPERM : trying to allocate more than maximum SAs for instance
+	        -ENAVAIL : unable to create SA descriptor
+	     	-EBUSY : Unable to allocate resources for seconds lifetime timer
+		
 *//****************************************************************************/
 int ipsec_add_sa_descriptor(
 		struct ipsec_descriptor_params *params,
@@ -582,7 +601,9 @@ int ipsec_add_sa_descriptor(
 
 @Param[in]	ipsec_handle - descriptor handle.
 
-@Return		Status
+@Return		IPSEC_SUCCESS
+			-ENAVAIL : SA/Instance not found
+			-EPERM : trying to delete SA descriptor from empty instance
 
 *//****************************************************************************/
 int ipsec_del_sa_descriptor(ipsec_handle_t ipsec_handle);

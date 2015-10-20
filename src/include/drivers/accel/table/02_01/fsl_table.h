@@ -269,12 +269,14 @@ User should select one of the following:
 @{
 *//***************************************************************************/
 /** Command successful */
-#define TABLE_STATUS_SUCCESS	0x00000000
+#define TABLE_STATUS_SUCCESS			0x00000000
 
 /** Miss Occurred.
- * This status is set when a matching rule is not found. Note that on chained
- * lookups this status is set only if the last lookup results in a miss. */
-#define TABLE_STATUS_MISS	0x00000800
+ * This status is set when a matching rule is not found */
+#define TABLE_STATUS_MISS			0x00000800
+
+/** The MFLU rule was found with different priority */
+#define TABLE_STATUS_MFLU_DIFF_PRIORITY		0x7F000007
 
 /** @} */ /* end of FSL_TABLE_STATUS */
 
@@ -911,8 +913,8 @@ void table_delete(enum table_hw_accel_id acc_id,
 
 @Cautions	In this function the task yields.
 @Cautions	If TABLE_ACCEL_ID_MFLU is used and the rule key descriptor
-		already exists in the table with different priority the rule
-		will be replaced. TODO Adress this.
+		already exists in the table with different priority the
+		exception path will be called. TODO Supply Errata number.
 *//***************************************************************************/
 inline int table_rule_create(enum table_hw_accel_id acc_id,
 			     t_tbl_id table_id,
@@ -927,7 +929,8 @@ inline int table_rule_create(enum table_hw_accel_id acc_id,
 @Description	Adds/replaces a rule to/in a specified table.
 		\n \n If the rule key already exists, the rule will be replaced
 		by the one specified in the function's parameters. Else, a new
-		rule will be created in the table.
+		rule will be created in the table. \n NOTE: For MFLU tables,
+		replace will occur also when priority is not identical.
 
 		This function issues an ephemeral reference take command. TODO
 		Reference.
@@ -967,9 +970,6 @@ inline int table_rule_create(enum table_hw_accel_id acc_id,
 @Retval		ENOMEM Error, Not enough memory is available.
 
 @Cautions	In this function the task yields.
-@Cautions	If TABLE_ACCEL_ID_MFLU is used and the rule key descriptor
-		already exists in the table with different priority the rule
-		will be replaced. TODO Address this.
 *//***************************************************************************/
 inline int table_rule_create_or_replace(enum table_hw_accel_id acc_id,
 					t_tbl_id table_id,
@@ -1399,8 +1399,21 @@ inline int table_rule_replace_by_key_desc(enum table_hw_accel_id acc_id,
 /**************************************************************************//**
 @Function	table_rule_query_by_key_desc
 
-@Description	Queries a rule in the table.
+@Description	Queries a rule in the table using key descriptor.
 		\n \n This function does not update the matched rule timestamp.
+		\n \n Note: For Exact Match tables, although functionality is
+		somewhat similar to \ref table_lookup_by_key() since \ref
+		table_key_desc are and \ref table_lookup_key_desc are similar,
+		command rate of table_lookup_by_key() is superior.
+		\n \n Note: For non Exact Match tables behavior is different
+		from \ref table_lookup_by_key(). For example, an MFLU table
+		that contains a rule in the form of Key+Mask: 0x55**5 can only
+		be queried with a similar table_key_desc, if using \ref
+		table_lookup_by_key() the rule can be matched with many keys
+		such as 0x55115, 0x55555, etc... Alternatively, none of these
+		keys can be matched to 0x55**5 using \ref table_lookup_by_key()
+		since there is already an MFLU rule in the same table in the
+		form of 0x55*** with a greater priority.
 
 @Param[in]	acc_id ID of the Hardware Table Accelerator that contains
 		the table on which the query will be performed.
@@ -1413,19 +1426,30 @@ inline int table_rule_replace_by_key_desc(enum table_hw_accel_id acc_id,
 		 - the key size should be added priority field size (4 Bytes)
 		for MFLU tables.
 @Param[out]	result The result of the query. Structure should be allocated
-		by the caller to this function. Output is valid only on success.
+		by the caller to this function. Output is valid only on success
+		status or #TABLE_STATUS_MFLU_DIFF_PRIORITY status.
 @Param[out]	timestamp Timestamp of the result in microseconds. Timestamp
 		is not valid unless the rule queried for was created with
 		suitable options (Please refer to \ref FSL_TABLE_RULE_OPTIONS
 		for more details). Must be allocated by the caller to this
 		function.
-		Output is valid only on success.
+		Output is valid only on success or status
+		#TABLE_STATUS_MFLU_DIFF_PRIORITY.
+@Param[out]	priority The priority of the found rule. Only valid if the
+		returned status is #TABLE_STATUS_MFLU_DIFF_PRIORITY.
+@Param[out]	rule_id Rule ID of the rule that was found. This ID can be
+		used as a reference to this rule by other functions. Valid only
+		on success status or #TABLE_STATUS_MFLU_DIFF_PRIORITY status.
 
-@Return		0 on success, #TABLE_STATUS_MISS on miss.
+@Return		0 on success, #TABLE_STATUS_MISS on miss,
+		#TABLE_STATUS_MFLU_DIFF_PRIORITY on MFLU rule found with
+		different priority.
 
 @Retval		0 Success.
 @Retval		#TABLE_STATUS_MISS A rule with the same key descriptor is not
 		found in the table.
+@Retval		#TABLE_STATUS_MFLU_DIFF_PRIORITY An MFLU rule was found with
+		different priority.
 
 @Cautions	The key descriptor must be the exact same key descriptor that
 		was used for the rule creation (not including reserved/priority
@@ -1437,7 +1461,10 @@ inline int table_rule_query_by_key_desc(enum table_hw_accel_id acc_id,
 					union table_key_desc *key_desc,
 					uint8_t key_size,
 					struct table_result *result,
-					uint32_t *timestamp);
+					uint32_t *timestamp,
+					/*TODO documentation */
+					uint32_t *priority,
+					t_rule_id *rule_id);
 
 
 /**************************************************************************//**

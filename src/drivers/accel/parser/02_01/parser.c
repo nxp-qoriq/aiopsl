@@ -171,7 +171,7 @@ int parse_result_generate_checksum(
 	__e_hwacceli(CTLU_PARSE_CLASSIFY_ACCEL_ID);
 
 	status = *(int32_t *)HWC_ACC_OUT_ADDRESS;
-	if (status == PARSER_HW_STATUS_SUCCESS) {
+	if (status == PARSER_HW_STATUS_L3_L4_CHECKSUM_GENERATION_SUCCEEDED) {
 		*l3_checksum = *((uint16_t *)HWC_ACC_OUT_ADDRESS2);
 		*l4_checksum = *((uint16_t *)(HWC_ACC_OUT_ADDRESS2+2));
 		return 0;

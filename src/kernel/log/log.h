@@ -39,6 +39,19 @@
 #include "fsl_log.h"
 #include "fsl_cdma.h"
 #include "fsl_spinlock.h"
+#include "fsl_malloc.h"
 
+struct log_header {
+	char magic_word[8]; /* magic word 'AIOP<version>' */
+	uint32_t buf_start; /* holds the 32-bit little-endian offset of the start of the buffer */
+	uint32_t buf_length; /* holds the 32-bit little-endian length of the buffer - not including these initial words */
+	uint32_t last_byte; /* holds the 32-bit little-endian offset of the byte after the last byte that was written */
+	char reserved[44];
+};
+
+#define LOG_HEADER_LAST_BYTE_OFFSET 16 /*size of magic word + buf start + buf length*/
+#define LOG_HEADER_FLAG_BUFFER_WRAPAROUND 0x80000000
+#define LOG_VERSION_MAJOR 1
+#define LOG_VERSION_MINOR 0
 
 #endif /* __LOG_H */

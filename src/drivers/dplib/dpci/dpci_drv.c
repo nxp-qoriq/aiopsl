@@ -48,6 +48,7 @@
 #include "fsl_ep_mng.h"
 #include "fsl_sl_evmng.h"
 #include "fsl_gen.h"
+#include "system.h"
 
 /*************************************************************************/
 #define DPCI_LOW_PR		1
@@ -113,6 +114,8 @@ void dpci_drv_free();
 
 
 extern struct aiop_init_info g_init_data;
+extern __PROFILE_SRAM struct storage_profile 
+			storage_profile[SP_NUM_OF_STORAGE_PROFILES];
 
 struct dpci_mng_tbl g_dpci_tbl = {0};
 
@@ -295,8 +298,8 @@ __COLD_CODE static uint8_t num_priorities_get(struct fsl_mc_io *mc_io,
 
 /* Stack size issue */
 //#pragma optimization_level 2
-#pragma push
-#pragma inline_depth(0)
+//#pragma push
+//#pragma inline_depth(0)
 __COLD_CODE static void tx_user_context_set(struct mc_dprc *dprc, int ind,
                                             uint16_t token, uint8_t num_pr)
 {
@@ -319,7 +322,7 @@ __COLD_CODE static void tx_user_context_set(struct mc_dprc *dprc, int ind,
 		dpci_set_rx_queue(&dprc->io, 0, token, i, &queue_cfg);
 	}
 }
-#pragma pop
+//#pragma pop
 //#pragma inline_depth(smart)
 //#pragma optimization_level reset
 
@@ -848,6 +851,7 @@ __COLD_CODE int dpci_drv_init()
 	int dpci_count = 0;
 	int err        = 0;
 	int i          = 0;
+	struct storage_profile *sp_start = &storage_profile[0];
 
 	if (dprc == NULL) {
 		pr_err("No AIOP root container \n");
@@ -859,6 +863,9 @@ __COLD_CODE int dpci_drv_init()
 		       dprc->token);
 		return err;
 	}
+
+	/* Set SPID for CMDIF to all zeros */
+	memset(&sp_start[AIOP_SPID_CMDIF], 0, sizeof(sp_start[0]));
 
 	/* First count how many DPCI objects we have */
 	for (i = 0; i < dev_count; i++) {
