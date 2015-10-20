@@ -334,7 +334,7 @@ int dpbp_get_irq_status(struct fsl_mc_io *mc_io,
 					  cmd_flags,
 					  token);
 
-	DPBP_CMD_GET_IRQ_STATUS(cmd, irq_index, *status);
+	DPBP_CMD_GET_IRQ_STATUS(cmd, irq_index);
 
 	/* send command to mc*/
 	err = mc_send_command(mc_io, &cmd);
@@ -389,47 +389,4 @@ int dpbp_get_attributes(struct fsl_mc_io *mc_io,
 	DPBP_RSP_GET_ATTRIBUTES(cmd, attr);
 
 	return 0;
-}
-
-int dpbp_set_notifications(struct fsl_mc_io	*mc_io,
-			   uint32_t		cmd_flags,
-			   uint16_t		token,
-			   struct dpbp_notification_cfg	*cfg)
-{
-	struct mc_command cmd = { 0 };
-
-	/* prepare command */
-	cmd.header = mc_encode_cmd_header(DPBP_CMDID_SET_NOTIFICATIONS,
-					  cmd_flags,
-					  token);
-
-	DPBP_CMD_SET_NOTIFICATIONS(cmd, cfg);
-
-	/* send command to mc*/
-	return mc_send_command(mc_io, &cmd);	
-}
-
-int dpbp_get_notifications(struct fsl_mc_io	*mc_io,
-			      uint32_t		cmd_flags,
-			      uint16_t		token,
-			      struct dpbp_notification_cfg	*cfg)
-{
-	struct mc_command cmd = { 0 };
-	int err;
-
-	/* prepare command */
-	cmd.header = mc_encode_cmd_header(DPBP_CMDID_GET_NOTIFICATIONS,
-					  cmd_flags,
-					  token);
-
-
-	/* send command to mc*/
-	err = mc_send_command(mc_io, &cmd);
-	if (err)
-		return err;
-
-	/* retrieve response parameters */
-	DPBP_CMD_GET_NOTIFICATIONS(cmd, cfg);
-
-	return 0;	
 }

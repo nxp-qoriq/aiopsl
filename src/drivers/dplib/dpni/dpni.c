@@ -47,51 +47,60 @@ int dpni_prepare_key_cfg(struct dpkg_profile_cfg *cfg,
 
 	params[0] |= mc_enc(0, 8, cfg->num_extracts);
 	params[0] = cpu_to_le64(params[0]);
+	
+	for (i = 0; i < DPKG_MAX_NUM_OF_EXTRACTS; i++) {
 
-	if (cfg->num_extracts >= DPKG_MAX_NUM_OF_EXTRACTS)
-		return -EINVAL;
-
-	for (i = 0; i < cfg->num_extracts; i++) {
-		switch (cfg->extracts[i].type) {
-		case DPKG_EXTRACT_FROM_HDR:
-			params[param] |= mc_enc(0, 8, cfg->extracts[i].extract.from_hdr.prot);
-			params[param] |= mc_enc(8, 4, cfg->extracts[i].extract.from_hdr.type);
-			params[param] |= mc_enc(16, 8, cfg->extracts[i].extract.from_hdr.size);
-			params[param] |= mc_enc(24, 8, cfg->extracts[i].extract.from_hdr.offset);
-			params[param] |= mc_enc(32, 32, cfg->extracts[i].extract.from_hdr.field);
-			params[param] = cpu_to_le64(params[param]);
-			param++;
-			params[param] |= mc_enc(0, 8, cfg->extracts[i].extract.from_hdr.hdr_index);
-			break;
-		case DPKG_EXTRACT_FROM_DATA:
-			params[param] |= mc_enc(16, 8, cfg->extracts[i].extract.from_data.size);
-			params[param] |= mc_enc(24, 8, cfg->extracts[i].extract.from_data.offset);
-			params[param] = cpu_to_le64(params[param]);
-			param++;
-			break;
-		case DPKG_EXTRACT_FROM_PARSE:
-			params[param] |= mc_enc(16, 8, cfg->extracts[i].extract.from_parse.size);
-			params[param] |= mc_enc(24, 8, cfg->extracts[i].extract.from_parse.offset);
-			params[param] = cpu_to_le64(params[param]);
-			param++;
-			break;
-		default:
-			return -EINVAL;
-		}
-		params[param] |= mc_enc(
-			24, 8, cfg->extracts[i].num_of_byte_masks);
-		params[param] |= mc_enc(32, 4, cfg->extracts[i].type);
-		params[param] = cpu_to_le64(params[param]);
-		param++;
-		for (offset = 0, j = 0; j < DPKG_NUM_OF_MASKS; offset += 16, j++) {
+		if (i < cfg->num_extracts) {
+			switch (cfg->extracts[i].type) {
+			case DPKG_EXTRACT_FROM_HDR:
+				params[param] |= mc_enc(0, 8, cfg->extracts[i].extract.from_hdr.prot);
+				params[param] |= mc_enc(8, 4, cfg->extracts[i].extract.from_hdr.type);
+				params[param] |= mc_enc(16, 8, cfg->extracts[i].extract.from_hdr.size);
+				params[param] |= mc_enc(24, 8, cfg->extracts[i].extract.from_hdr.offset);
+				params[param] |= mc_enc(32, 32, cfg->extracts[i].extract.from_hdr.field);
+				params[param] = cpu_to_le64(params[param]);
+				param++;
+				params[param] |= mc_enc(0, 8, cfg->extracts[i].extract.from_hdr.hdr_index);
+				break;
+			case DPKG_EXTRACT_FROM_DATA:
+				params[param] |= mc_enc(16, 8, cfg->extracts[i].extract.from_data.size);
+				params[param] |= mc_enc(24, 8, cfg->extracts[i].extract.from_data.offset);
+				params[param] = cpu_to_le64(params[param]);
+				param++;
+				break;
+			case DPKG_EXTRACT_CONSTANT:
+				params[param] = cpu_to_le64(0);
+				param++;
+				params[param] |= mc_enc(8, 8, cfg->extracts[i].extract.constant.constant);
+				params[param] |= mc_enc(16, 8, cfg->extracts[i].extract.constant.num_of_repeats);
+				break;
+			default:
+				return -EINVAL;
+			}
 			params[param] |= mc_enc(
-				(offset), 8, cfg->extracts[i].masks[j].mask);
-			params[param] |= mc_enc(
-				(offset + 8), 8,
-				cfg->extracts[i].masks[j].offset);
+				24, 8, cfg->extracts[i].num_of_byte_masks);
+			params[param] |= mc_enc(32, 4, cfg->extracts[i].type);
+			params[param] = cpu_to_le64(params[param]);
+			param++;
+			for (j = 0; j < 4; j++) {
+				params[param] |= mc_enc(
+					(offset), 8, cfg->extracts[i].masks[j].mask);
+				params[param] |= mc_enc(
+					(offset + 8), 8,
+					cfg->extracts[i].masks[j].offset);
+				offset += 16;
+			}
+			params[param] = cpu_to_le64(params[param]);
+			param++;
 		}
-		params[param] = cpu_to_le64(params[param]);
-		param++;
+		else {
+			params[param] = cpu_to_le64(0);
+			param++;
+			params[param] = cpu_to_le64(0);
+			param++;
+			params[param] = cpu_to_le64(0);
+			param++;
+		}
 	}
 	return 0;
 }
@@ -409,7 +418,7 @@ int dpni_get_irq_status(struct fsl_mc_io *mc_io,
 	cmd.header = mc_encode_cmd_header(DPNI_CMDID_GET_IRQ_STATUS,
 					  cmd_flags,
 					  token);
-	DPNI_CMD_GET_IRQ_STATUS(cmd, irq_index, *status);
+	DPNI_CMD_GET_IRQ_STATUS(cmd, irq_index);
 
 	/* send command to mc*/
 	err = mc_send_command(mc_io, &cmd);
