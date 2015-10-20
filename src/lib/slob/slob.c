@@ -149,7 +149,7 @@ static int insert_free_block(uint64_t *new_b_addr,
                              uint64_t *free_blocks_addr,
                              const uint64_t* size,
                              const uint64_t* align_base,
-		             uint64_t* prev_b_addr)
+                             uint64_t* prev_b_addr)
 {
 	 /* This is an old code line that assumes that size of an allocated memory is
 	 * multiply of alignment. Replaced this by a condition that a new block
@@ -276,9 +276,6 @@ static void eliminate_redundant_free_blocks(t_slob_block *curr_b,
  * No need for locking over global curr_b as there is a locking over entire
  * slob_put in mem_mng.c
  */
-#ifdef OPTIMIZE_STACK_SIZE
-#pragma dont_inline on
-#endif
 static int add_free(t_MM *p_MM, uint64_t base, uint64_t end)
 {
 
@@ -300,7 +297,6 @@ static int add_free(t_MM *p_MM, uint64_t base, uint64_t end)
                   sizeof(curr_b_addr));
         if(0 != curr_b_addr)
         {
-            //OPTIMIZE_STACK_SIZE
             fdma_dma_data(sizeof(curr_b),s_ic.icid,&curr_b,curr_b_addr,FDMA_DMA_DA_SYS_TO_SRAM_BIT);
         }
 
@@ -428,20 +424,12 @@ static int add_free(t_MM *p_MM, uint64_t base, uint64_t end)
  * No need to lock over global curr_b as there is a locking over entire slob_get in mem_mng.c file
  */
 
-#ifdef OPTIMIZE_STACK_SIZE
-#pragma dont_inline on
-#endif
 static int cut_free(t_MM *p_MM, const uint64_t *hold_base, const uint64_t *hold_end)
 {
     static t_slob_block curr_b = {0};
 
     uint64_t new_b_addr = 0,curr_b_addr = 0;
-#ifdef  OPTIMIZE_STACK_SIZE
     static uint64_t    prev_b_addr = 0, align_base = 0, base = 0, end = 0,size = 0;
-#else
-    uint64_t    prev_b_addr, align_base = 0, base = 0, end = 0,size = 0;
-#endif
-
     uint32_t    alignment = 4;
     int         i;
 
@@ -453,7 +441,6 @@ static int cut_free(t_MM *p_MM, const uint64_t *hold_base, const uint64_t *hold_
                   sizeof(curr_b_addr));
         if(0 != curr_b_addr)
         {
-            //OPTIMIZE_STACK_SIZE
             fdma_dma_data(sizeof(curr_b),s_ic.icid,&curr_b,curr_b_addr,FDMA_DMA_DA_SYS_TO_SRAM_BIT);
         }
 
@@ -473,13 +460,11 @@ static int cut_free(t_MM *p_MM, const uint64_t *hold_base, const uint64_t *hold_
                 {
                     if (0 != prev_b_addr)
                     {
-                        //OPTIMIZE_STACK_SIZE
                         fdma_dma_data(sizeof(curr_b.next_addr),s_ic.icid,&curr_b.next_addr,prev_b_addr+offsetof(t_slob_block,next_addr),
                                       FDMA_DMA_DA_SRAM_TO_SYS_BIT);
                     }
                     else
                     {
-                        //OPTIMIZE_STACK_SIZE
                         fdma_dma_data(sizeof(curr_b.next_addr),s_ic.icid,&curr_b.next_addr,p_MM->head_free_blocks_addr+ i*sizeof(uint64_t),
                                       FDMA_DMA_DA_SRAM_TO_SYS_BIT);
 
@@ -490,7 +475,6 @@ static int cut_free(t_MM *p_MM, const uint64_t *hold_base, const uint64_t *hold_
                 {
                     curr_b.base = align_base;
                 }
-                //OPTIMIZE_STACK_SIZE
                 fdma_dma_data(sizeof(curr_b),s_ic.icid,&curr_b,curr_b_addr,FDMA_DMA_DA_SRAM_TO_SYS_BIT);
                 break;
             }
@@ -507,7 +491,6 @@ static int cut_free(t_MM *p_MM, const uint64_t *hold_base, const uint64_t *hold_
                             sl_pr_err("Slob: memory allocation failed\n");
                             return -ENOMEM;
                         }
-                        //OPTIMIZE_STACK_SIZE
                         fdma_dma_data(sizeof(curr_b.next_addr),s_ic.icid,&curr_b.next_addr,new_b_addr + offsetof(t_slob_block,next_addr),
                                       FDMA_DMA_DA_SRAM_TO_SYS_BIT);
 
@@ -523,33 +506,28 @@ static int cut_free(t_MM *p_MM, const uint64_t *hold_base, const uint64_t *hold_
                 {
                     if (0 != prev_b_addr)
                     {
-                       //OPTIMIZE_STACK_SIZE
                         fdma_dma_data(sizeof(curr_b.next_addr),s_ic.icid,&curr_b.next_addr,
                                       prev_b_addr+offsetof(t_slob_block,next_addr),
                                       FDMA_DMA_DA_SRAM_TO_SYS_BIT);
                     }
                     else
                     {
-                        //OPTIMIZE_STACK_SIZE
                         fdma_dma_data(sizeof(curr_b.next_addr),s_ic.icid,&curr_b.next_addr,
                                       p_MM->head_free_blocks_addr + i*sizeof(uint64_t),
                                       FDMA_DMA_DA_SRAM_TO_SYS_BIT);
                     }
                     buff_pool_put(s_slob_bf_pool,curr_b_addr);
                 }
-                //OPTIMIZE_STACK_SIZE
                 fdma_dma_data(sizeof(curr_b),s_ic.icid,&curr_b,curr_b_addr,FDMA_DMA_DA_SRAM_TO_SYS_BIT);
                 break;
             }
             else
             {
                 prev_b_addr = curr_b_addr;
-                //OPTIMIZE_STACK_SIZE
                 fdma_dma_data(sizeof(curr_b),s_ic.icid,&curr_b,curr_b_addr,FDMA_DMA_DA_SRAM_TO_SYS_BIT);
                 curr_b_addr = curr_b.next_addr;
                 if(0 != curr_b_addr)
                 {
-                    //OPTIMIZE_STACK_SIZE
                     fdma_dma_data(sizeof(curr_b),s_ic.icid,&curr_b,curr_b_addr,FDMA_DMA_DA_SYS_TO_SRAM_BIT);
                 }
             }
@@ -997,11 +975,7 @@ uint64_t slob_get(uint64_t* slob, const uint64_t size, uint32_t alignment)
 
 uint64_t slob_put(uint64_t* slob, const uint64_t base)
 {
-#ifdef OPTIMIZE_STACK_SIZE
     static t_MM        MM = {0};
-#else
-    t_MM        MM = {0};
-#endif
     t_slob_block busy_b = {0};
     uint64_t    size;
     uint64_t   busy_b_addr = 0, prev_busy_b_addr = 0;
@@ -1014,9 +988,6 @@ uint64_t slob_put(uint64_t* slob, const uint64_t base)
     /* Look for a busy block that have the given base value.
      * That block will be returned back to the memory.
      */
-
-
-   //OPTIMIZE_STACK_SIZE
    fdma_dma_data(sizeof(MM),s_ic.icid,&MM,slob_addr,FDMA_DMA_DA_SYS_TO_SRAM_BIT);
 
 
@@ -1062,11 +1033,7 @@ uint64_t slob_put(uint64_t* slob, const uint64_t base)
     /* Adding the deallocated memory size to free memory size */
     MM.free_mem_size += size;
     buff_pool_put(s_slob_bf_pool,busy_b_addr);
-#ifdef OPTIMIZE_STACK_SIZE
     fdma_dma_data(sizeof(MM),s_ic.icid,&MM,slob_addr,FDMA_DMA_DA_SRAM_TO_SYS_BIT);
-#else
-    cdma_write(slob_addr,&MM,sizeof(MM));
-#endif
     return (size);
 }
 

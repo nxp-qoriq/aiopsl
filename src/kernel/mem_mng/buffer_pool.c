@@ -84,7 +84,6 @@ int buff_pool_create(struct buffer_pool *p_bf_pool,
 	uint64_t curr_buffer_addr = 0;
 	uint64_t *curr_buff_stack = NULL;
 	uint32_t aligned_buffer_size = 0;
-	struct icontext ic = {0};
 	//struct buffer_pool *p_bf_pool = NULL;
 	ASSERT_COND_LIGHT(h_boot_mem_mng);
 	struct initial_mem_mng* boot_mem_mng = (struct initial_mem_mng*)h_boot_mem_mng;
@@ -93,7 +92,6 @@ int buff_pool_create(struct buffer_pool *p_bf_pool,
 	p_bf_pool->current = 0;
 	p_bf_pool->buff_size = buff_size;
 	p_bf_pool->bf_pool_id = bf_pool_id;
-	icontext_aiop_get(&ic);
 	/* Allocate stack of pointers to blocks */
 	rc =  boot_get_mem(boot_mem_mng,num_buffs*STACK_ENTRY_BYTE_SIZE,&phys_addr);
 	if(rc){
@@ -117,10 +115,9 @@ int buff_pool_create(struct buffer_pool *p_bf_pool,
 	/* initialize pointers to buffers */
 	for (int i=0; i < num_buffs; i++)
 	{
-		icontext_dma_write(&ic,
-		                   STACK_ENTRY_BYTE_SIZE,
-				   &curr_buffer_addr,
-				   p_bf_pool->buffers_stack_addr+i*STACK_ENTRY_BYTE_SIZE);
+		cdma_write(p_bf_pool->buffers_stack_addr+i*STACK_ENTRY_BYTE_SIZE,
+		           &curr_buffer_addr,
+		           STACK_ENTRY_BYTE_SIZE);
 		/*p_bf_pool->p_buffers_stack[i] = curr_buffer_addr;*/
 		curr_buffer_addr += aligned_buffer_size;
 	}
