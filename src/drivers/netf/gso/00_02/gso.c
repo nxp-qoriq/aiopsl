@@ -156,6 +156,7 @@ int32_t tcp_gso_split_segment(struct tcp_gso_context *gso_ctx)
 	struct fdma_present_segment_params present_segment_params;
 	struct fdma_insert_segment_data_params insert_segment_data_params;
 	uint16_t tmp_gross;
+	uint8_t ws_dst_dummy;
 
 	/* params for Split remaining frame */
 	split_frame_params.flags = FDMA_CFA_COPY_BIT |
@@ -295,7 +296,8 @@ int32_t tcp_gso_split_segment(struct tcp_gso_context *gso_ctx)
 		present_segment_params.offset = 0;
 		//	present_segment_params.present_size = 0;
 		/* Change presentation size to 1 as a w/a for TKT280408 */
-		present_segment_params.present_size = 1; 
+		present_segment_params.ws_dst = &ws_dst_dummy;
+		present_segment_params.present_size = 1;
 		fdma_present_frame_segment(&present_segment_params);
 
 		/* Insert header to the remaining frame + close segment  */
