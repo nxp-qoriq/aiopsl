@@ -43,9 +43,9 @@
 #include "fsl_soc.h"
 
 /**************************************************************************//**
-@Description   Platform Configuration Parameters Structure.
+@Description   System Configuration Parameters Structure.
 
-		This structure must be specifically defined by each platform.
+		This structure must be specifically defined by each app.
 *//***************************************************************************/
 
 /*!
@@ -58,6 +58,24 @@
 struct sys_module_desc {
 int     (*early_init) (void);
 int     (*init) (void);
+void    (*free) (void);
+};
+
+/**************************************************************************//**
+@Description   System Initialization Configuration Parameters Structure.
+
+		This structure must be specifically defined by each platform.
+*//***************************************************************************/
+
+/*!
+ * @ingroup aiopapp_init
+ * Struct defining the AIOP System initialization and de-initialliation
+ * functions.
+ */
+struct sys_init_module_desc {
+int     (*early_init) (void);
+int     (*init) (void);
+int     (*post_init) (void);
 void    (*free) (void);
 };
 

@@ -44,6 +44,7 @@
 #include "fsl_mem_mng.h"
 #include "slob.h"
 #include "buffer_pool.h"
+#include "fsl_cdma.h"
 
 
 
@@ -75,6 +76,11 @@
 static uint8_t g_mem_part_spinlock[PLATFORM_MAX_MEM_INFO_ENTRIES] = {0};
 static uint8_t g_phys_mem_part_spinlock[PLATFORM_MAX_MEM_INFO_ENTRIES] = {0};
 extern struct aiop_init_info g_init_data;
+/* Mutex lock to lock calls of slob_put functions. */
+static uint8_t s_free_lock = 0;
+/* Mutex lock to lock calls of slob_get functions */
+static uint8_t s_malloc_lock = 0;
+
 
 /* Put all function (execution code) into  dtext_vle section , aka __COLD_CODE */
 __START_COLD_CODE
@@ -141,11 +147,9 @@ int boot_mem_mng_init(struct initial_mem_mng* boot_mem_mng,
 		boot_mem_mng->curr_ptr = boot_mem_mng->base_paddress;
 		break;
 	}
-#ifdef AIOP
+	
 	boot_mem_mng->lock = 0;
-#else
-	spin_lock_init(boot_mem_mng->lock);
-#endif
+
 	return 0;
 }
 
@@ -159,49 +163,34 @@ int boot_mem_mng_free(struct initial_mem_mng* boot_mem_mng)
 int boot_get_mem(struct initial_mem_mng* boot_mem_mng,
                  const uint64_t size,uint64_t* paddr)
 {
-#ifndef AIOP
-    uint32_t            int_flags;
-#endif /* AIOP */
-#ifdef AIOP
+
 	lock_spinlock(&boot_mem_mng->lock);
-#else
-	int_flags = spin_lock_irqsave(boot_mem_mng->lock);
-#endif
+
 	if(boot_mem_mng->curr_ptr + size >=
 		boot_mem_mng->base_paddress + boot_mem_mng->size)
 		return -ENOMEM;
 	*paddr = boot_mem_mng->curr_ptr;
 	boot_mem_mng->curr_ptr += size;
-#ifdef AIOP
+
 	unlock_spinlock(&boot_mem_mng->lock);
-#else
-	spin_unlock_irqrestore(boot_mem_mng->lock, int_flags);
-#endif
+
 	return  0;
 }
 /*****************************************************************************/
 int boot_get_mem_virt(struct initial_mem_mng* boot_mem_mng,
                  const uint64_t size,uint32_t* vaddr)
 {
-#ifndef AIOP
-    uint32_t            int_flags;
-#endif /* AIOP */
-#ifdef AIOP
 	lock_spinlock(&boot_mem_mng->lock);
-#else
-        int_flags = spin_lock_irqsave(boot_mem_mng->lock);
-#endif
+
 	if(boot_mem_mng->curr_ptr + size >=
 		boot_mem_mng->base_paddress + boot_mem_mng->size)
 		return -ENOMEM;
 	*vaddr = (uint32_t)(boot_mem_mng->curr_ptr-boot_mem_mng->base_paddress) +
 		boot_mem_mng->base_vaddress ;
 	boot_mem_mng->curr_ptr += size;
-#ifdef AIOP
+
 	unlock_spinlock(&boot_mem_mng->lock);
-#else
-	spin_unlock_irqrestore(boot_mem_mng->lock, int_flags);
-#endif
+
 	return  0;
 }
 /*****************************************************************************/
@@ -318,17 +307,13 @@ int mem_mng_register_partition(void*   h_mem_mng,
     p_new_partition = &p_mem_mng->mem_partitions_array[partition_id];
 
     memset(p_new_partition, 0, sizeof(t_mem_mng_partition));
-    
-#ifdef AIOP
     /*
     p_new_partition->lock = (uint8_t *)fsl_malloc(sizeof(uint8_t));
     Fix for bug ENGR00337904. Memory address that is used for spinlock
      should reside in shared ram
     */
     p_new_partition->lock = &g_mem_part_spinlock[partition_id];
-#else
-    p_new_partition->lock = spin_lock_create();
-#endif
+
     if (!p_new_partition->lock)
     {
 	p_new_partition->was_initialized = 0;
@@ -337,11 +322,8 @@ int mem_mng_register_partition(void*   h_mem_mng,
         return -EAGAIN;
     }
 
-#ifdef AIOP
     *(p_new_partition->lock) = 0;
-#endif /* AIOP */
-
-
+    
     /* Prevent allocation of address 0x00000000 (reserved to NULL) */
     if (base_address == 0)
     {
@@ -404,7 +386,6 @@ int mem_mng_register_phys_addr_alloc_partition(void*   h_mem_mng,
    p_new_partition = &p_mem_mng->phys_allocation_mem_partitions_array[partition_id];
    memset(p_new_partition, 0, sizeof(t_mem_mng_phys_addr_alloc_partition));
 
-#ifdef AIOP
     /*
      * Fix for bug ENGR00337904. Memory address that is used for spinlock
      * should reside in shared ram
@@ -412,9 +393,7 @@ int mem_mng_register_phys_addr_alloc_partition(void*   h_mem_mng,
     */
     p_new_partition->lock = &g_phys_mem_part_spinlock[partition_id];
     *(p_new_partition->lock) = 0;
-#else
-    p_new_partition->lock = spin_lock_create();
-#endif
+
     if (!p_new_partition->lock)
     {
          /*p_mem_mng->f_free(p_new_partition); */
@@ -602,11 +581,8 @@ uint32_t mem_mng_check_leaks(void*                 h_mem_mng,
 	count = (uint32_t)list_num_of_objs(&(p_partition->mem_debug_list));
 #endif
 
-#ifdef AIOP
 	unlock_spinlock(p_partition->lock);
-#else
-	spin_unlock(p_partition->lock);
-#endif
+
 	return count;
 }
 
@@ -614,6 +590,7 @@ uint32_t mem_mng_check_leaks(void*                 h_mem_mng,
 /*
  * Caution: No locks on p_mem_mng->mem_partitions_array.
  */
+
 void * mem_mng_alloc_mem(void*     h_mem_mng,
                         int         partition_id,
                         uint32_t    size,
@@ -627,6 +604,7 @@ void * mem_mng_alloc_mem(void*     h_mem_mng,
     t_mem_mng_partition   *p_partition;
     uint32_t i = 0, array_size = 0,virt_address = 0;
     void                *p_memory;
+
 
 #ifndef ENABLE_DEBUG_ENTRIES
     UNUSED(info);
@@ -647,17 +625,16 @@ void * mem_mng_alloc_mem(void*     h_mem_mng,
                   partition_id);
         return NULL;
     }
+    cdma_mutex_lock_take((uint64_t)&s_malloc_lock,CDMA_MUTEX_WRITE_LOCK);
     p_memory = UINT_TO_PTR(
     slob_get(&p_partition->h_mem_manager, size, alignment));
+    cdma_mutex_lock_release((uint64_t)&s_malloc_lock);
     if ((uintptr_t)p_memory == 0LL)
         /* Do not report error - let the allocating entity report it */
     return NULL;
 #ifdef ENABLE_DEBUG_ENTRIES
-#ifdef AIOP
+
         lock_spinlock(p_mem_mng->lock);
-#else
-        int_flags = spin_lock_irqsave(p_mem_mng->lock);
-#endif
 
         if (p_partition->enable_debug)
         {
@@ -670,11 +647,8 @@ void * mem_mng_alloc_mem(void*     h_mem_mng,
                            line);
         }
 
-#ifdef AIOP
-            unlock_spinlock(p_mem_mng->lock);
-#else
-    	    spin_unlock_irqrestore(p_mem_mng->lock, int_flags);
-#endif
+
+        unlock_spinlock(p_mem_mng->lock);
 #endif
         return p_memory;
 }
@@ -691,6 +665,7 @@ int mem_mng_get_phys_mem(void*  h_mem_mng, int  partition_id,
     t_mem_mng_phys_addr_alloc_partition   *p_partition;
     uint32_t array_size = 0, i = 0;
 
+
     if (size == 0)
     {
         sl_pr_err("Mem. manager invalid value: allocation size must be positive\n");
@@ -700,19 +675,23 @@ int mem_mng_get_phys_mem(void*  h_mem_mng, int  partition_id,
     p_partition = &p_mem_mng->phys_allocation_mem_partitions_array[partition_id];
     if (p_partition->was_initialized)
     {
+	    cdma_mutex_lock_take((uint64_t)&s_malloc_lock,CDMA_MUTEX_WRITE_LOCK);
             if((*paddr = slob_get(&p_partition->h_mem_manager,size,
                                   (uint32_t)alignment)) == 0LL)
             {
                 sl_pr_err("Mem. manager memory allocation failed: Required size 0x%x%08x exceeds "
                    "available memory for partition ID %d\n",
                    (uint32_t)(size >> 32),(uint32_t)size,partition_id);
+                cdma_mutex_lock_release((uint64_t)&s_malloc_lock);
                 return -ENOMEM;
             }
+            cdma_mutex_lock_release((uint64_t)&s_malloc_lock);
             return 0; // Success
     }
     sl_pr_err("Partition ID %d is not found\n", partition_id);
     return -EINVAL;
 }
+
 /*****************************************************************************/
 /*
  * Caution: No locks on p_mem_mng->mem_partitions_array.
@@ -731,13 +710,16 @@ void mem_mng_put_phys_mem(void*  h_mem_mng, uint64_t paddress)
         if (p_partition->was_initialized && paddress >= p_partition->info.base_paddress &&
            paddress < (p_partition->info.base_paddress + p_partition->info.size))
 	{
+            cdma_mutex_lock_take((uint64_t)&s_free_lock,CDMA_MUTEX_WRITE_LOCK);
             slob_put(&p_partition->h_mem_manager,paddress);
+            cdma_mutex_lock_release((uint64_t)&s_free_lock);
             return;
 	}
     }// for
     return;
 }
 /*****************************************************************************/
+
 void mem_mng_free_mem(void*  h_mem_mng, void *p_memory)
 {
     struct t_mem_mng            *p_mem_mng = (struct t_mem_mng *)h_mem_mng;
@@ -757,7 +739,9 @@ void mem_mng_free_mem(void*  h_mem_mng, void *p_memory)
 #endif
 	if (address_found)
 	{
+		cdma_mutex_lock_take((uint64_t)&s_free_lock,CDMA_MUTEX_WRITE_LOCK);
 		slob_put(&p_partition->h_mem_manager, PTR_TO_UINT(p_memory));
+		cdma_mutex_lock_release((uint64_t)&s_free_lock);
 	}
     }
     else
@@ -810,16 +794,9 @@ static void mem_mng_free_partition(struct t_mem_mng *p_mem_mng,
     list_t              *p_debug_iterator, *p_tmp_iterator;
 #endif
 
-#ifndef AIOP
-    uint32_t            int_flags;
-#endif /* AIOP */
     UNUSED(p_mem_mng);
 
-#ifdef AIOP
     lock_spinlock(p_partition->lock);
-#else
-    int_flags = spin_lock_irqsave(p_partition->lock);
-#endif
 
 #ifdef ENABLE_DEBUG_ENTRIES
     /* Release the debug entries list */
@@ -832,12 +809,7 @@ static void mem_mng_free_partition(struct t_mem_mng *p_mem_mng,
     }
 #endif
 
-#ifdef AIOP
     unlock_spinlock(p_partition->lock);
-#else /* not AIOP */
-    spin_unlock_irqrestore(p_partition->lock, int_flags);
-#endif /* AIOP */
-
 
     /* Release the memory manager object */
     slob_free(&p_partition->h_mem_manager);
@@ -862,9 +834,6 @@ static void mem_mng_add_entry(struct t_mem_mng             *p_mem_mng,
                            int                  line)
 {
     t_mem_mng_debug_entry  *p_mem_mng_debug_entry;
-#ifndef AIOP
-    uint32_t            int_flags;
-#endif /* AIOP */
     UNUSED(p_mem_mng);
 
     p_mem_mng_debug_entry = sys_default_malloc(sizeof(t_mem_mng_debug_entry));
@@ -879,17 +848,12 @@ static void mem_mng_add_entry(struct t_mem_mng             *p_mem_mng,
         p_mem_mng_debug_entry->info = info;
         p_mem_mng_debug_entry->line = line;
         p_mem_mng_debug_entry->size = size;
-#ifdef AIOP
+
         lock_spinlock(p_partition->lock);
-#else
-        int_flags = spin_lock_irqsave(p_partition->lock);
-#endif
+
         list_add_to_tail(&p_mem_mng_debug_entry->node, &(p_partition->mem_debug_list));
-#ifdef AIOP
+
         unlock_spinlock(p_partition->lock);
-#else /* not AIOP */
-        spin_unlock_irqrestore(p_partition->lock, int_flags);
-#endif /* AIOP */
 
         p_partition->info.current_usage += size;
         p_partition->info.total_allocations += 1;
@@ -917,12 +881,9 @@ static int mem_mng_remove_entry(struct t_mem_mng          *p_mem_mng,
 {
     t_mem_mng_debug_entry  *p_mem_mng_debug_entry;
     list_t              *p_debug_iterator, *p_tmp_iterator;
-#ifdef AIOP
+
     lock_spinlock(p_partition->lock);
-#else
-    uint32_t            int_flags;
-    int_flags = spin_lock_irqsave(p_partition->lock);
-#endif /* AIOP */
+
     UNUSED(p_mem_mng);
     LIST_FOR_EACH_SAFE(p_debug_iterator, p_tmp_iterator, &(p_partition->mem_debug_list))
     {
@@ -934,21 +895,16 @@ static int mem_mng_remove_entry(struct t_mem_mng          *p_mem_mng,
             p_partition->info.total_deallocations += 1;
 
             list_del(p_debug_iterator);
-#ifdef AIOP
+
             unlock_spinlock(p_partition->lock);
-#else /* not AIOP */
-    	    spin_unlock_irqrestore(p_partition->lock, int_flags);
-#endif /* AIOP */
+
             sys_default_free(p_mem_mng_debug_entry);
             return 1;
         }
     }
 
-#ifdef AIOP
+
     unlock_spinlock(p_partition->lock);
-#else /* not AIOP */
-    spin_unlock_irqrestore(p_partition->lock, int_flags);
-#endif /* AIOP */
 
     return 0;
 }

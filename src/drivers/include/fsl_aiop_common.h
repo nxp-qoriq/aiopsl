@@ -59,7 +59,8 @@ enum aiop_epid_table {
  @Description   SPID table
 *//***************************************************************************/
 enum aiop_spid_table {
-	AIOP_SPID_CMDIF           = 0,     /**< SPID for command interface */
+	/* After ENGR00366149 is fixed set AIOP_SPID_CMDIF to 0*/
+	AIOP_SPID_CMDIF           = 255,   /**< SPID for command interface */
 	AIOP_SPID_DPNI_START      = 1      /**< DPNI's first SPID */
 };
 
@@ -403,7 +404,7 @@ struct aiop_tman_regs {
 	uint32_t tmbah; /* TMan external memory base address high */
 	uint32_t tminit; /* TMan initialization register */
 	uint32_t tmcbcc; /* TMan callback completion confirmation */
-	uint32_t tmsmcacr;
+	uint32_t tmsmcacr; /* TMan system memory cache attributes control */ /* TODO: this register missing from rev2 spec */
 	uint8_t reserved1[0x4];
 	uint32_t tmtstmpl; /* TMan Timestamp Low */
 	uint32_t tmtstmph; /* TMan Timestamp High */
@@ -411,10 +412,18 @@ struct aiop_tman_regs {
 	uint32_t tmeal;
 	uint32_t tmeah;
 	uint32_t tmev;
-	uint8_t reserved3[0x1FC4];
+	uint8_t reserved3[0x4];
+	uint32_t tmsc;	/* TMan stop control */
+	uint32_t tmss; /* TMan stop status */
+	uint32_t tmcacr; /* TMan cache attributes control */
+	uint8_t reserved4[0x1FA4];
+	uint32_t tmprbaddr; /* TMan Probe Address */
+	uint32_t tmprbdata; /* TMan Probe Data */
+	uint32_t tmdbg; /* TMan Debug */
+	uint8_t reserved5[4];
 
 	struct aiop_tmi_regs tmi_regs[252];
-	uint8_t reserved4[0x80];
+	uint8_t reserved6[0x80];
 };
 
 struct aiop_tile_regs {
