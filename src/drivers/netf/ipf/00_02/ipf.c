@@ -86,6 +86,7 @@ int ipf_move_remaining_frame(struct ipf_context *ipf_ctx)
 	uint16_t header_length, frag_offset, ipv4_offset, payload_length;
 	uint16_t ip_total_length;
 	uint16_t flags_and_offset;
+	uint8_t ws_dst_dummy;
 
 	if (ipf_ctx->first_frag) {
 		ipv4_offset = PARSER_GET_OUTER_IP_OFFSET_DEFAULT();
@@ -153,6 +154,7 @@ int ipf_move_remaining_frame(struct ipf_context *ipf_ctx)
 	//	present_segment_params.present_size = 0;
 	/* Change presentation size to 1 as a w/a for TKT280408 */
 	present_segment_params.present_size = 1; 
+	present_segment_params.ws_dst = &ws_dst_dummy;
 	/* present empty segment of the remaining frame */
 	fdma_present_frame_segment(&present_segment_params);
 
@@ -188,6 +190,7 @@ int ipf_move_remaining_frame(struct ipf_context *ipf_ctx)
 	uint8_t *last_header;
 	uint8_t orig_next_header;
 	void *ws_dst_rs;
+	uint8_t ws_dst_dummy;
 
 	if (ipf_ctx->first_frag) {
 		ipv6_offset = PARSER_GET_OUTER_IP_OFFSET_DEFAULT();
@@ -317,6 +320,7 @@ int ipf_move_remaining_frame(struct ipf_context *ipf_ctx)
 //	present_segment_params.present_size = 0;
 	/* Change presentation size to 1 as a w/a for TKT280408 */
 	present_segment_params.present_size = 1;
+	present_segment_params.ws_dst = &ws_dst_dummy;
 	/* present empty segment of the remaining frame */
 	fdma_present_frame_segment(&present_segment_params);
 
