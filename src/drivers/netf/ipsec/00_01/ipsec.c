@@ -808,14 +808,9 @@ int ipsec_generate_decap_sd(
 		if (!(params->flags & IPSEC_FLG_TRANSPORT_PAD_CHECK)) {
 			pdb.options |= (IPSEC_DEC_PDB_OPTIONS_AOFL | 
 					IPSEC_DEC_PDB_OPTIONS_OUTFMT);
-			fsl_print("\n\nIPSEC: IPSEC_FLG_TRANSPORT_PAD_CHECK is NOT set!!!\n"); 
-
 		} else {
 			/* Transport mode pad checking */
-			//pdb.options |= IPSEC_DEC_PDB_OPTIONS_AOFL; 
 			pdb.options |= IPSEC_DEC_PDB_OPTIONS_OUTFMT;
-			fsl_print("\n\nIPSEC: IPSEC_FLG_TRANSPORT_PAD_CHECK is set\n");
-
 		}
 		
 		/*  IPv4, checksum update (in IPv6 there is no checksum) */
@@ -1698,7 +1693,6 @@ __IPSEC_HOT_CODE int ipsec_frame_encrypt(
 		//dpovrd.tunnel_encap.word |= (16<<8); // including Ethernet   
 		// 27-16 Outer IP Header Material Length 
 		//dpovrd.tunnel_encap.word |= (14<<16); // including Ethernet   
-		//fsl_print("dpovrd.tunnel_encap.word 0x%x\n", dpovrd.tunnel_encap.word);
 
 	} else {
 		/* For Transport mode set DPOVRD */
@@ -2804,9 +2798,17 @@ __IPSEC_HOT_CODE int ipsec_frame_decrypt(
 			
 		/* Note: only supporting pad check within a single presentation */
 		while ((pad_length > 0) && 
-			(segment_pointer >=	(uint8_t *)PARSER_GET_ETH_POINTER_DEFAULT())) {
+			(segment_pointer >=	(uint8_t *)orig_seg_addr)) {	
 				if (*segment_pointer != pad_length) {
+					ipsec_error_handler(
+						ipsec_handle, /* ipsec_handle_t ipsec_handle */
+						IPSEC_FRAME_DECRYPT, /* Function ID */
+						IPSEC_INTERNAL_SERVICE, /* SR ID */
+						__LINE__,
+						IPSEC_INT_TRANSPORT_PAD_CHECK_ERR); /* Error value */
+
 					*dec_status |= IPSEC_GEN_DECR_ERR;
+					return IPSEC_ERROR;
 				} 
 
 				segment_pointer--;
@@ -3366,25 +3368,6 @@ void ipsec_tman_callback(uint64_t desc_addr, uint16_t indicator)
 	uint16_t tmr_duration;
 	struct ipsec_sa_params_part2 sap2; /* Parameters to read from ext buffer */
 
-#if(0)
-{
-	uint32_t handle_high, handle_low;
-	handle_high =
-			(uint32_t)((desc_addr & 0xffffffff00000000)>>32);
-	handle_low =
-			(uint32_t)(desc_addr & 0x00000000ffffffff);
-	
-	fsl_print("\nIn ipsec_tman_callback \n");
-	fsl_print("desc_addr = 0x%x_%x\n", handle_high, handle_low);
-
-	fsl_print("indicator = %x\n", indicator);
-	//fsl_print("sap2.tmi_id = %x\n", sap2.tmi_id);
-	fsl_print("sap2.soft_seconds_limit = %d\n", sap2.soft_seconds_limit);
-	fsl_print("sap2.hard_seconds_limit = %d\n", sap2.hard_seconds_limit);
-
-}
-#endif
-
 	if(indicator == IPSEC_SOFT_SEC_LIFETIME_EXPIRED) {
 		/* Soft seconds timer */
 
@@ -3416,13 +3399,9 @@ void ipsec_tman_callback(uint64_t desc_addr, uint16_t indicator)
 			tmr_duration = 0; /* lifetime fully expiered */
 		}
 		
-		//fsl_print("Soft, tmr_duration = %d\n", tmr_duration);
-
 		/* Check if a new timer needs to be invoked */
 		if(tmr_duration) {
 			
-			//fsl_print("Creating new timer with duration %d\n", tmr_duration);
-
 			/* Create soft seconds lifetime timer */
 			tman_create_timer(
 				sap2.tmi_id, /* uint8_t tmi_id */
@@ -3431,7 +3410,7 @@ void ipsec_tman_callback(uint64_t desc_addr, uint16_t indicator)
 					/* 1 Sec timer ticks, one shot*/
 				tmr_duration, /* uint16_t duration; */
 				desc_addr, /* tman_arg_8B_t opaque_data1 */
-				IPSEC_SOFT_SEC_LIFETIME_EXPIRED, /* tman_arg_2B_t opaque_data2 */ 
+				IPSEC_SOFT_SEC_LIFETIME_EXPIRED, /* tman_arg_2B_t opaque_data2*/ 
 				&ipsec_tman_callback,
 				&sap2.soft_tmr_handle); /* uint32_t *timer_handle */
 			
@@ -3497,13 +3476,8 @@ void ipsec_tman_callback(uint64_t desc_addr, uint16_t indicator)
 			tmr_duration = 0;
 		}
 		
-		//fsl_print("Hard, tmr_duration = %d\n", tmr_duration);
-
 		/* Check if a new timer needs to be invoked */
 		if(tmr_duration) {
-			
-			//fsl_print("Creating new timer with duration %d\n", tmr_duration);
-
 			/* Create hard seconds lifetime timer */
 			tman_create_timer(
 				sap2.tmi_id, /* uint8_t tmi_id */
@@ -3512,7 +3486,7 @@ void ipsec_tman_callback(uint64_t desc_addr, uint16_t indicator)
 					/* 1 Sec timer ticks, one shot*/
 				tmr_duration, /* uint16_t duration; */
 				desc_addr, /* tman_arg_8B_t opaque_data1 */
-				IPSEC_HARD_SEC_LIFETIME_EXPIRED, /* tman_arg_2B_t opaque_data2 */ 
+				IPSEC_HARD_SEC_LIFETIME_EXPIRED, /* tman_arg_2B_t opaque_data2*/ 
 				&ipsec_tman_callback,
 				&sap2.soft_tmr_handle); /* uint32_t *timer_handle */
 			

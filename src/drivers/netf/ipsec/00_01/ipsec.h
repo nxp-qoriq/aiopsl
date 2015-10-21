@@ -514,6 +514,8 @@ Big Endian
 /* Debug error codes */
 #define IPSEC_INT_ERR_PAD_TOO_LONG 0x00000001
 		/* Crypto padding is longer than presentation */
+#define IPSEC_INT_TRANSPORT_PAD_CHECK_ERR 0x00000002
+	/* Transport mode padding check error */
 
 /* OSM temporary defines */
 /* TODO: should move to general or OSM include file */
