@@ -105,10 +105,16 @@
 #define PARSER_HW_STATUS_L4_CHECKSUM_VALIDATION_SUCCEEDED	0x00020000
 	/** L4 checksum validation failure */
 #define PARSER_HW_STATUS_FAIL_L4_CHECKSUM_VALIDATION_ERROR	0x00030000
-	/** L3 & L4 checksum generation success */
-#define PARSER_HW_STATUS_L3_L4_CHECKSUM_GENERATION_SUCCEEDED	0x000A0000
 	/** L3 & L4 checksum validation success */
 #define PARSER_HW_STATUS_L3_L4_CHECKSUM_VALIDATION_SUCCEEDED	0x000A0000
+	/** L3 & L4 checksum generation failed */
+#define PARSER_HW_STATUS_CHECKSUM_GENERATION_FAILED		0x00000000
+	/** L3 checksum generation success */
+#define PARSER_HW_STATUS_L3_CHECKSUM_GENERATION_SUCCEEDED	0x00080000
+	/** L4 checksum generation success */
+#define PARSER_HW_STATUS_L4_CHECKSUM_GENERATION_SUCCEEDED	0x00020000
+	/** L3 & L4 checksum generation success */
+#define PARSER_HW_STATUS_L3_L4_CHECKSUM_GENERATION_SUCCEEDED	0x000A0000
 
 
 /** @} */ /* end of AIOP_PARSE_RESULT_GEN_HW_STATUS */
@@ -121,6 +127,14 @@
 #define PARSER_UNINITILIZED_FIELD_OF_BYTE	0xFF
 	/** Uninitialized parser field of two bytes */
 #define PARSER_UNINITILIZED_FIELD_OF_HALF_WORD	0xFFFF
+	/** Returned Status - L3 checksum generation succeeded */
+#define PARSER_STATUS_L3_CHECKSUM_GENERATION_SUCCEEDED		0x00002000
+	/** Returned Status - L4 checksum generation succeeded */
+#define PARSER_STATUS_L4_CHECKSUM_GENERATION_SUCCEEDED		0x00004000
+	/** Returned Status - L3 & L4 checksum generation succeeded */
+#define PARSER_STATUS_L3_L4_CHECKSUM_GENERATION_SUCCEEDED	0x00006000
+
+
 /** @} */ /* end of AIOP_PARSE_OTHER */
 /** @} */ /* end of PARSER_DEFINES */
 
@@ -233,16 +247,23 @@ struct parser_input_message_params {
 @Param[out]	l4_checksum - L4 checksum calculated by the parser
 		(located in the workspace). Must not be NULL.
 
-@Return		0 on Success, or negative value on error.
+@Return		Positive values on checksum generation success, or negative
+		value on error.
 		The exact error code can be discovered by using
 		PARSER_GET_PARSE_ERROR_CODE_DEFAULT(). See error codes in
 		\ref FSL_PARSER_ERROR_CODES.
 
-@Retval		0 - Success
 @Retval		EIO - Parsing Error
 @Retval		ENOSPC - Block Limit Exceeds (Frame Parsing reached the limit
 		of the minimum between presentation_length and 256 bytes before
 		completing all parsing)
+@Retval		ENOSYS - L3 & L4 checksum were not generated
+@Retval		PARSER_STATUS_L3_L4_CHECKSUM_GENERATION_SUCCEEDED - L3 & L4
+		checksum were generated
+@Retval		PARSER_STATUS_L4_CHECKSUM_GENERATION_SUCCEEDED - L4 checksum
+		was generated
+@Retval		PARSER_STATUS_L3_CHECKSUM_GENERATION_SUCCEEDED - L3 checksum
+		was generated
 
 @Cautions	In this function the task yields.
  	  	Presented header address in the workspace must be aligned to
