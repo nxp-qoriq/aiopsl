@@ -51,7 +51,7 @@
 @Description	RCU parameters that should be passed by each application
 		at early init;
 		
-		Supported by REV1 only; Ignore this API for REV2
+		Ignore. Not yet implemented.
 
 @Param[in]	delay	Delay in milliseconds until the first RCU task creation.
   	  	  	The longer delay the more RCU jobs will be handled by
@@ -69,7 +69,7 @@ int rcu_early_init(uint16_t delay, uint32_t committed, uint32_t max);
 /**************************************************************************//**
 @Description	Callback to be called after all the current tasks are done;
 
-		Supported by REV1 only; Ignore this API for REV2
+		Ignore. Not yet implemented.
 
 @Param[in]	param   User parameter as passed to rcu_synchronize()
  *//***************************************************************************/
@@ -81,8 +81,7 @@ typedef void (rcu_cb_t)(uint64_t param);
 @Description	Activate the callback after all the active AIOP tasks
 		(except those that called rcu_read_unlock) are done
 		
-		This is a non blocking version supported by REV1 only;
-		Ignore this API for REV2
+		Ignore. Not yet implemented.
 
 @Param[in]	cb	Callback to be called after all the active readers
 			are done
@@ -99,9 +98,9 @@ int rcu_synchronize_nb(rcu_cb_t *cb, uint64_t param);
 @Function	rcu_synchronize
 
 @Description	Wait until all the tasks that are holding resources are done;  
-		Use rcu_read_lock() to declare your task as a resource holder 
+		Use rcu_read_lock() to declare your task as a resource holder; 
 
-		This is a blocking version for REV2
+		This is a blocking function.
 
 @Return		0 on succees, POSIX error code otherwise  \ref error_g
 
@@ -118,9 +117,6 @@ int rcu_synchronize();
 		does not need any resources(e.g. allocated buffers, DP objects).
 		Once this function is called, there is no guarantee that these
 		resources will remain valid.
-
-		Every AIOP task that is created automatically holds an
-		RCU read lock.
 *//***************************************************************************/
 void rcu_read_unlock();
 
@@ -130,9 +126,9 @@ void rcu_read_unlock();
 
 @Description	Add the task back to the readers list
 
-@Cautions	REV1: Every AIOP task that is created automatically holds an
-		RCU read lock;
-		REV2: AIOP task needs to call rcu_read_lock() deliberately 
+@Cautions	AIOP task needs to call rcu_read_lock() deliberately in order
+		to declare that is uses some of the resources
+		(e.g. allocated buffers, DP objects).
 *//***************************************************************************/
 void rcu_read_lock();
 
