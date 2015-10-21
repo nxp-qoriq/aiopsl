@@ -46,7 +46,6 @@
 /*#include "cdma.h"*/
 #include "osm_inline.h"
 #include "system.h"
-#include "fsl_malloc.h"
 
 #ifdef AIOP_VERIF
 #include "slab_stub.h"
