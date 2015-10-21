@@ -28,7 +28,6 @@
 #include "fsl_types.h"
 #include "common/fsl_string.h"
 #include "common/fsl_stdarg.h"
-#include "fsl_malloc.h"
 #include "kernel/fsl_spinlock.h"
 #include "fsl_platform.h"
 #include "fsl_smp.h"

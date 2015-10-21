@@ -45,7 +45,6 @@
 #include "ipr.h"
 #include "fsl_cdma.h"
 #include "net.h"
-#include "fsl_malloc.h"
 #include "fsl_sl_dpni_drv.h"
 
 /* For wrapper functions */

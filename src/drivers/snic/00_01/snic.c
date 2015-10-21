@@ -58,7 +58,6 @@
 #include "fsl_table.h"
 #include "fsl_cmdif_server.h"
 
-#include "fsl_malloc.h"
 #include "fsl_sl_slab.h"
 
 
