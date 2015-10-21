@@ -77,7 +77,7 @@ static uint8_t g_mem_part_spinlock[PLATFORM_MAX_MEM_INFO_ENTRIES] = {0};
 static uint8_t g_phys_mem_part_spinlock[PLATFORM_MAX_MEM_INFO_ENTRIES] = {0};
 extern struct aiop_init_info g_init_data;
 /* Mutex lock to lock calls of slob_put functions. */
-static uint8_t s_free_lock = 0;
+//static uint8_t s_free_lock = 0;
 /* Mutex lock to lock calls of slob_get functions */
 static uint8_t s_malloc_lock = 0;
 
@@ -147,7 +147,7 @@ int boot_mem_mng_init(struct initial_mem_mng* boot_mem_mng,
 		boot_mem_mng->curr_ptr = boot_mem_mng->base_paddress;
 		break;
 	}
-	
+
 	boot_mem_mng->lock = 0;
 
 	return 0;
@@ -323,7 +323,7 @@ int mem_mng_register_partition(void*   h_mem_mng,
     }
 
     *(p_new_partition->lock) = 0;
-    
+
     /* Prevent allocation of address 0x00000000 (reserved to NULL) */
     if (base_address == 0)
     {
@@ -710,9 +710,9 @@ void mem_mng_put_phys_mem(void*  h_mem_mng, uint64_t paddress)
         if (p_partition->was_initialized && paddress >= p_partition->info.base_paddress &&
            paddress < (p_partition->info.base_paddress + p_partition->info.size))
 	{
-            cdma_mutex_lock_take((uint64_t)&s_free_lock,CDMA_MUTEX_WRITE_LOCK);
+            cdma_mutex_lock_take((uint64_t)&s_malloc_lock,CDMA_MUTEX_WRITE_LOCK);
             slob_put(&p_partition->h_mem_manager,paddress);
-            cdma_mutex_lock_release((uint64_t)&s_free_lock);
+            cdma_mutex_lock_release((uint64_t)&s_malloc_lock);
             return;
 	}
     }// for
@@ -739,9 +739,9 @@ void mem_mng_free_mem(void*  h_mem_mng, void *p_memory)
 #endif
 	if (address_found)
 	{
-		cdma_mutex_lock_take((uint64_t)&s_free_lock,CDMA_MUTEX_WRITE_LOCK);
+		cdma_mutex_lock_take((uint64_t)&s_malloc_lock,CDMA_MUTEX_WRITE_LOCK);
 		slob_put(&p_partition->h_mem_manager, PTR_TO_UINT(p_memory));
-		cdma_mutex_lock_release((uint64_t)&s_free_lock);
+		cdma_mutex_lock_release((uint64_t)&s_malloc_lock);
 	}
     }
     else
