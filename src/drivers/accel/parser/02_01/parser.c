@@ -181,8 +181,10 @@ int parse_result_generate_checksum(
 	} else if (status == PARSER_HW_STATUS_L3_CHECKSUM_GENERATION_SUCCEEDED){
 		*l3_checksum = *((uint16_t *)HWC_ACC_OUT_ADDRESS2);
 		return PARSER_STATUS_L3_CHECKSUM_GENERATION_SUCCEEDED;
+/*
 	} else if (status == PARSER_HW_STATUS_CHECKSUM_GENERATION_FAILED){
-		return -ENOSYS;
+		return -EIO;
+*/
 	} else if (status & PARSER_HW_STATUS_CYCLE_LIMIT_EXCCEEDED) {
 		parser_exception_handler(PARSE_RESULT_GENERATE_CHECKSUM,
 			__LINE__, 

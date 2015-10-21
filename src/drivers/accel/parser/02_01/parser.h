@@ -253,11 +253,10 @@ struct parser_input_message_params {
 		PARSER_GET_PARSE_ERROR_CODE_DEFAULT(). See error codes in
 		\ref FSL_PARSER_ERROR_CODES.
 
-@Retval		EIO - Parsing Error
+@Retval		EIO - Parsing Error or no generation of L3 & L4 checksums
 @Retval		ENOSPC - Block Limit Exceeds (Frame Parsing reached the limit
 		of the minimum between presentation_length and 256 bytes before
 		completing all parsing)
-@Retval		ENOSYS - L3 & L4 checksum were not generated
 @Retval		PARSER_STATUS_L3_L4_CHECKSUM_GENERATION_SUCCEEDED - L3 & L4
 		checksum were generated
 @Retval		PARSER_STATUS_L4_CHECKSUM_GENERATION_SUCCEEDED - L4 checksum
