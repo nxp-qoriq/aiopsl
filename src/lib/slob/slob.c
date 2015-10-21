@@ -204,7 +204,6 @@ static void eliminate_redundant_free_blocks(t_slob_block *curr_b,
 
     if(0 != curr_b->next_addr)
     {
-	//cdma_read(&next_b,curr_b->next_addr,sizeof(next_b));
 	fdma_dma_data(sizeof(next_b),s_ic.icid,&next_b,curr_b->next_addr,
 	              FDMA_DMA_DA_SYS_TO_SRAM_BIT);
 
@@ -213,13 +212,11 @@ static void eliminate_redundant_free_blocks(t_slob_block *curr_b,
     {
 	next_b_addr = curr_b->next_addr;
 	curr_b->next_addr = next_b.next_addr;
-	//cdma_write(*curr_b_addr,curr_b,sizeof(*curr_b));
 	fdma_dma_data(sizeof(*curr_b),s_ic.icid,curr_b,*curr_b_addr,
 	              FDMA_DMA_DA_SRAM_TO_SYS_BIT);
 	buff_pool_put(s_slob_bf_pool,next_b_addr);
 	if(0 != curr_b->next_addr)
 	{
-	    //cdma_read(&next_b,curr_b->next_addr,sizeof(next_b));
 	    fdma_dma_data(sizeof(next_b),s_ic.icid,&next_b,curr_b->next_addr,
 	                  FDMA_DMA_DA_SYS_TO_SRAM_BIT);
 	}
@@ -228,14 +225,12 @@ static void eliminate_redundant_free_blocks(t_slob_block *curr_b,
     next_b_addr = curr_b->next_addr;
     if(0 != next_b_addr)
     {
-	//cdma_read(&next_b,next_b_addr,sizeof(next_b));
 	fdma_dma_data(sizeof(next_b),s_ic.icid,&next_b,next_b_addr,
 	              FDMA_DMA_DA_SYS_TO_SRAM_BIT);
     }
     if ( next_b_addr == 0 || ( 0 != next_b_addr  && *end < next_b.base) )
     {
 	 curr_b->end = *end;
-	 //cdma_write(*curr_b_addr,curr_b,sizeof(*curr_b));
 	 fdma_dma_data(sizeof(*curr_b),s_ic.icid,curr_b,*curr_b_addr,
 	 	              FDMA_DMA_DA_SRAM_TO_SYS_BIT);
     }
@@ -244,7 +239,6 @@ static void eliminate_redundant_free_blocks(t_slob_block *curr_b,
 	curr_b->end = next_b.end;
 	curr_b->next_addr = next_b.next_addr;
 	buff_pool_put(s_slob_bf_pool,next_b_addr);
-	//cdma_write(*curr_b_addr,curr_b,sizeof(*curr_b));
 	fdma_dma_data(sizeof(*curr_b),s_ic.icid,curr_b,*curr_b_addr,
 		 	              FDMA_DMA_DA_SRAM_TO_SYS_BIT);
     }
@@ -351,13 +345,14 @@ static int add_free(t_MM *p_MM, uint64_t base, uint64_t end)
                 {
                     if ( prev_b_addr )
 		    {
-                        cdma_write(prev_b_addr+offsetof(t_slob_block,next_addr),&curr_b.next_addr,
-                                   sizeof(curr_b.next_addr));
+                          fdma_dma_data(sizeof(curr_b.next_addr),s_ic.icid,&curr_b.next_addr,
+                                        prev_b_addr+offsetof(t_slob_block,next_addr),
+                                        FDMA_DMA_DA_SRAM_TO_SYS_BIT);
 		    }
                     else
                     {
-                        cdma_write(free_blocks_addr,
-                                   &curr_b.next_addr,sizeof(curr_b.next_addr));
+                        fdma_dma_data(sizeof(curr_b.next_addr),s_ic.icid, &curr_b.next_addr,
+                                     free_blocks_addr,FDMA_DMA_DA_SRAM_TO_SYS_BIT);
                     }
                     buff_pool_put(s_slob_bf_pool,curr_b_addr);
                     curr_b_addr = 0;
