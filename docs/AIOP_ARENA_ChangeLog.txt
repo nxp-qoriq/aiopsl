@@ -1,5 +1,5 @@
 apps.h:     The documentation of apps.h files has moved to app_process_packet apps.h.
-            For full and updated documentatipn of all the macros, please refer to the apps.h of app_process_packet.  
+            For full and updated documentation of all the macros, please refer to the apps.h of app_process_packet.  
 dpci_drv.c: Added WA for ENGR00366149. CMDIF uses SPID=255 for store commands. 
 
 log.c/h, fsl_log.h: ENGR00367164 - Update logger implementation to use logger header.
@@ -64,11 +64,11 @@ fsl_dpkg.h: Moved to include/drivers
 
 fsl_rcu.h       : ls2085a rev1. Resolved ENGR363207. Removed rcu_read_unlock_cancel(), it is handled internally by SL upon task termination.
                   Added rcu_read_lock() API. 
-fsl_icontext.h  : Added new API icontext_ws_set() to be use to set the new isalation context in the workspace.
+fsl_icontext.h  : Added new API icontext_ws_set() to be use to set the new isolation context in the workspace.
                   It is useful if you need to close the command default frame and reopen it again.
 build/aiop_sim/ : Moved build/aiop_sim/ projects to build/ls2085a/rev1/.
-ls1088a/config.c: Deleted deprecated macros. In case of build error reper to appa.h of app_process_packet.
-ls1088a/config.c: Deleted deprecated macros. In case of build error reper to appa.h of app_process_packet.
+ls1088a/config.c: Deleted deprecated macros. In case of build error refer to apps.h of app_process_packet.
+ls1088a/config.c: Deleted deprecated macros. In case of build error refer to apps.h of app_process_packet.
 
 ** AIOP SL Release v1088_ENG_0.1 **
 ls1088a_sim_init_params.cfg: Added flag to fix simulator issue with ipsec (only for 1088): caam.ENGR00356656_fix=true
