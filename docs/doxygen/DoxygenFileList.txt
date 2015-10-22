@@ -23,7 +23,7 @@ aiopsl/src/include/drivers/netf/hm/<revision>/fsl_nat.h
 aiopsl/src/include/drivers/netf/ipf/<revision>/fsl_ipf.h
 aiopsl/src/include/drivers/netf/ipr/<revision>/fsl_ipr.h
 
-aiopsl/src/include/fsl_errors.h
+aiopsl/src/include/kernel/fsl_errors.h
 aiopsl/src/include/kernel/fsl_spinlock.h
 aiopsl/src/include/common/fsl_stdlib.h
 aiopsl/src/include/dplib/fsl_dpni_drv.h
@@ -34,12 +34,12 @@ aiopsl/src/include/kernel/fsl_cmdif_client.h
 aiopsl/src/include/net/fsl_inet.h
 aiopsl/src/include/lib/fsl_slab.h
 aiopsl/src/include/lib/fsl_evmng.h
-aiopsl/src/include/fsl_io.h
+aiopsl/src/include/kernel/fsl_io.h
 aiopsl/src/include/common/fsl_stdio.h
-aiopsl/src/include/fsl_time.h
-aiopsl/src/include/fsl_endian.h
-aiopsl/src/include/fsl_malloc.h
-aiopsl/src/include/fsl_dbg.h
+aiopsl/src/include/kernel/fsl_time.h
+aiopsl/src/include/kernel/fsl_endian.h
+aiopsl/src/include/kernel/fsl_malloc.h
+aiopsl/src/include/kernel/fsl_dbg.h
 aiopsl/src/include/kernel/fsl_icontext.h
 aiopsl/src/include/kernel/fsl_rcu.h
 aiopsl/src/include/lib/fsl_shbp.h
