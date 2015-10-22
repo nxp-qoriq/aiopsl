@@ -327,7 +327,9 @@ int l4_udp_tcp_cksum_calc(uint8_t flags)
 			0,
 			&l3checksum_dummy,
 			&l4checksum);
-	if (0 != hw_status)
+	if (!((0 == hw_status) ||
+	    (/*PARSER_STATUS_L4_CHECKSUM_GENERATION_SUCCEEDED*/
+		0x4000 >= hw_status)))
 		return hw_status;
 
 	l4offset = PARSER_GET_L4_OFFSET_DEFAULT();
