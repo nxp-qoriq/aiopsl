@@ -98,9 +98,10 @@ int rcu_synchronize_nb(rcu_cb_t *cb, uint64_t param);
 @Function	rcu_synchronize
 
 @Description	Wait until all the tasks that are holding resources are done;  
-		Use rcu_read_lock() to declare your task as a resource holder; 
+		Use rcu_read_lock() to declare your task as a resource holder.
 
-		This is a blocking function.
+		This is a blocking function. When this function is called, 
+		the RCU lock is automatically released for this task.
 
 @Return		0 on succees, POSIX error code otherwise  \ref error_g
 
@@ -111,7 +112,10 @@ int rcu_synchronize();
 /**************************************************************************//**
 @Function	rcu_read_unlock
 
-@Description	Remove task from readers list
+@Description	Remove task from readers list.
+
+		When task terminates, 
+		the RCU lock is automatically released for this task.
 
 @Cautions	This function should only be called if the calling task
 		does not need any resources(e.g. allocated buffers, DP objects).
@@ -124,7 +128,7 @@ void rcu_read_unlock();
 /**************************************************************************//**
 @Function	rcu_read_lock
 
-@Description	Add the task back to the readers list
+@Description	Add the task back to the readers list.
 
 @Cautions	AIOP task needs to call rcu_read_lock() deliberately in order
 		to declare that is uses some of the resources
