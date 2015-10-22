@@ -1,8 +1,8 @@
-A simulator configuration file should contain line(s):
+A simulator configuration file should contain the line:
               for all devices(e.g. ls1088a_sys_test.cfg,ls2088a_sys_test.cfg)
               type=1000 top.mc.regs.MCFBALR.write:0xe0000001
-              For ls1088a_sys_test.cfg only :
-              type=1000 top.deviceconfigunit.regs.SVR.poke:0x87030010
+              When launching MC application via CodeWarrior debugger, standard initialization tcl file 
+			  <device>-AFM_MC_RAM.tcl should not be used as it overwrites value of MCFBALR register.
 apps.h:     The documentation of apps.h files has moved to app_process_packet apps.h.
             For full and updated documentatipn of all the macros, please refer to the apps.h of app_process_packet.  
 dpci_drv.c: Added WA for ENGR00366149. CMDIF uses SPID=255 for store commands. 
