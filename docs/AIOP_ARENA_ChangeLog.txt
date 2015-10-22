@@ -19,6 +19,13 @@ all *.cproject    Build flag: "warning not inlined" set to true.
 
 all *.cfg:        MCFBALR.write:0xe0000001
 all files:        Removed all "os" suffixes from all API's
+                      fsl_os_print() -> fsl_print()
+                      fsl_os_get_mem() -> fsl_get_mem()
+                      fsl_os_put_mem() -> fsl_put_mem()
+                      fsl_os_xmalloc() -> fsl_xmalloc()
+                      fsl_os_malloc() -> fsl_malloc()
+                      fsl_os_free() -> fsl_free()
+		      fsl_os_rand() -> fsl_rand()
 fsl_slab.h: Added flag to avoid cache line positioning optimization to optimize memory utilization:
                   SLAB_OPTIMIZE_MEM_UTILIZATION_FLAG
 
@@ -54,8 +61,6 @@ dpni_drv.c/fsl_dpni_drv.h: Added API to set/get_tx_checksum (l3/l4)
 
 fsl_dpni_drv.h: Add API to retrieve dpni ordering mode.
 fsl_dpkg.h: Moved to include/drivers
-
-os.c, fsl_stdlib.h: Remove "_os_" from fsl_os_rand() to be fsl_rand()
 
 fsl_rcu.h       : ls2085a rev1. Resolved ENGR363207. Removed rcu_read_unlock_cancel(), it is handled internally by SL upon task termination.
                   Added rcu_read_lock() API. 
