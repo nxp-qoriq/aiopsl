@@ -1778,7 +1778,9 @@ inline void parser_pop_vlan_update();
 
 @Cautions	An update of parse result table should be performed only after
  		a VLAN header insertion was executed and done.
-
+ 		Block limit event (BLE) status is not handled in this function, 
+ 		it is the user responsibility to make sure that presentation length 
+ 		can handle VLAN insertion without causing block limit exceeds.
 @Return		None
 *//***************************************************************************/
 inline void parser_push_vlan_update();
