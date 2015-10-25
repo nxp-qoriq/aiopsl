@@ -2,7 +2,7 @@ ls2085a aiopsl, fsl_rcu.h : RCU REV1 API is no longer supported. RCU is supporte
 
 ** AIOP SL Release v0.8_RC1 **
 A simulator configuration file should contain the line:
-              for all devices(e.g. ls1088a_sys_test.cfg,ls2088a_sys_test.cfg)
+              for all devices(e.g. ls1088a_sys_test.cfg,ls2088a_sys_test.cfg etc.)
               type=1000 top.mc.regs.MCFBALR.write:0xe0000001
               When launching MC application via CodeWarrior debugger, standard initialization tcl file 
 			  <device>-AFM_MC_RAM.tcl should not be used as it overwrites value of MCFBALR register.
@@ -25,7 +25,6 @@ dpni_drv.c/h:     Update dpni driver to support ERR009354 and set alignment to 2
 
 all *.cproject    Build flag: "warning not inlined" set to true.
 
-all *.cfg:        MCFBALR.write:0xe0000001
 all files:        Removed all "os" suffixes from all API's
                       fsl_os_print() -> fsl_print()
                       fsl_os_get_mem() -> fsl_get_mem()
