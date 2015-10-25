@@ -573,8 +573,8 @@ static int ctrl_cb0(void *dev, uint16_t cmd, uint32_t size,
 		get_default_amq_attributes(&amq);
 		ASSERT_COND(ic.icid == amq.icid);
 
-		fsl_print("Storage profile dump\n");
-		mem_disp((uint8_t *)&storage_profile[0], sizeof(storage_profile));
+		fsl_print("Storage profile dump, must be all zeros\n");
+		mem_disp((uint8_t *)&storage_profile[AIOP_SPID_CMDIF], sizeof(storage_profile[0]));
 
 		break;
 	default:
