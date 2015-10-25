@@ -36,11 +36,16 @@
 
 #include "fsl_rcu.h"
 
+#if 0 /* RCU is no longer supported in REV1 */
 extern __TASK uint8_t g_rcu_unlock;
 
 #define RCU_CHECK_UNLOCK_CANCEL \
 	do { \
 		if (g_rcu_unlock) rcu_read_lock(); \
 	} while (0)
+#endif
+
+#define RCU_CHECK_UNLOCK_CANCEL \
+	do { } while (0)
 
 #endif /* __FSL_SL_RCU_H */
