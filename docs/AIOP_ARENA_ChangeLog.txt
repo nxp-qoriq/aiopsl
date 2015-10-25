@@ -1,3 +1,6 @@
+ls2085a aiopsl, fsl_rcu.h : RCU REV1 API is no longer supported. RCU is supported only in REV2.
+
+** AIOP SL Release v0.8_RC1 **
 A simulator configuration file should contain the line:
               for all devices(e.g. ls1088a_sys_test.cfg,ls2088a_sys_test.cfg)
               type=1000 top.mc.regs.MCFBALR.write:0xe0000001
