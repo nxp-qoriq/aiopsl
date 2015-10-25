@@ -38,8 +38,8 @@ Table:
 	* Changed table_rule_replace_by_rule_id to table_rule_replace
 	* Changed table_rule_delete_by_rule_id to table_rule_delete
 	* Added table_rule_query_get_key_desc API & Implementation
-	* Added table_rule_priority_replace API & Implementation
-	* Removed reference pointer support
+	* Added table_rule_modify_priority API & Implementation
+	* Removed reference pointer support due to HW changes.
 	* Updated table_lookup_result fields.
 	* Documentation fixes
 	* Moved table_rule_XXXXX_by_key_desc functions to obsolete section.
