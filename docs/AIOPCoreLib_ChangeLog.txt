@@ -2,6 +2,10 @@ LDPAA AIOP SERVICE LAYER LDPAA-AIOP-SL-v1088-v2088-v0.8 Change Log
 ==================================================================
 
 Changes made for ls2085a rev1:
+IPR:
+	* Add requirement of nested due to replacement of mutex by OSM nested
+	* Fix first_frag_hdr_length calculation for IPv6 (ENGR00366465)
+	
 Table:
 	* Added support for DISABLE_REF_CNT.
 	* Moved rule_create_or_replace to be an inline functions.
@@ -25,6 +29,10 @@ GSO:
 	* Added w/a for TKT280408
 
 Changes made for ls1088a rev1 and ls2088a rev1:
+IPR:
+	* Add requirement of nested due to replacement of mutex by OSM nested
+	* Fix first_frag_hdr_length calculation for IPv6 (ENGR00366465)
+
 CDMA:
 	* Added 3 new functions for ephemeral reference:
 		- cdma_ephemeral_reference_take()
