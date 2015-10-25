@@ -91,7 +91,8 @@ struct ipf_context {
 	uint8_t ipv4;
 	/** IP offset */
 	uint8_t ip_offset;
-	/** IPv6 Fragment header offset	*/
+	/** IPv6 Fragment header offset.
+	 * Cannot exceed 256 bytes due to parser limitation. */
 	uint8_t ipv6_frag_hdr_offset;
 	/** Padding */
 	uint8_t	pad[2];
