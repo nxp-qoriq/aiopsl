@@ -84,16 +84,16 @@ available table types. \n User should select one of the following defines
 (excluding mask and offset defines):
 @{
 *//***************************************************************************/
-	/** Exact Match table,
-	 * Not available for MFLU Table HW Accelerator */
+	/** Exact Match table
+	\n Not available for MFLU Table HW Accelerator */
 #define TABLE_ATTRIBUTE_TYPE_EM		0x0000
 
-	/** Longest Prefix Match table,
-	 * Not available for MFLU Table HW Accelerator */
+	/** Longest Prefix Match table
+	\n Not available for MFLU Table HW Accelerator */
 #define TABLE_ATTRIBUTE_TYPE_LPM	0x1000
 
-	/** MFLU (Previously called Algorithmic ACL table)
-	 * Not available for CTLU Table HW Accelerator */
+	/** Multi Field Lookup (MFLU) Table
+	\n Not available for CTLU Table HW Accelerator */
 #define TABLE_ATTRIBUTE_TYPE_MFLU	0x4000
 
 	/** Table type sub field mask */
@@ -469,20 +469,20 @@ struct table_key_desc_mflu {
 @Description	Table Key Descriptor
 *//***************************************************************************/
 union table_key_desc {
-	/** Exact Match Key Descriptor,
-	Should only be used with CTLU Hardware Table Accelerator */
+	/** Exact Match Key Descriptor
+	\n Should only be used in an Exact Match table.*/
 	struct table_key_desc_em          em;
 
-	/** LPM IPv4 Key Descriptor,
-	Should only be used with CTLU Hardware Table Accelerator */
+	/** LPM IPv4 Key Descriptor
+	\n Should only be used in an IPv4 LPM table.*/
 	struct table_key_desc_lpm_ipv4    lpm_ipv4;
 
-	/** LPM IPv6 Key Descriptor,
-	Should only be used with CTLU Hardware Table Accelerator */
+	/** LPM IPv6 Key Descriptor
+	\n Should only be used in an IPv6 LPM table.*/
 	struct table_key_desc_lpm_ipv6    lpm_ipv6;
 
-	/** MFLU Key Descriptor,
-	Should only be used with MFLU Hardware Table Accelerator */
+	/** MFLU Key Descriptor
+	\n Should only be used in an MFLU table.*/
 	struct table_key_desc_mflu        mflu;
 };
 
@@ -640,9 +640,9 @@ struct table_create_params {
 	uint32_t committed_rules;
 
 	/** The max number of rules this table can contain. This number is not
-	guaranteed in contrast to committed_rules. Meaning, trying to add a
+	guaranteed in contrast to committed_rules. \n Meaning, trying to add a
 	rule to a table that already contains committed_rules might fail.
-	NOTE: This field must not be 0. */
+	\n NOTE: This field must not be 0. */
 	uint32_t max_rules;
 
 	/** A default rule that is chosen when no match is found. Available
@@ -658,9 +658,10 @@ struct table_create_params {
 	 - Rule timestamp is enabled in the rule's options field.
 	 - The system current timestamp difference from the rule timestamp in
 	   microseconds is greater than the timestamp accuracy.
+	 .
 	Please note that timestamp_accurcy value will be round down to the
 	closest power of 2.
-	This field must be greater than zero. 
+	\n This field must be greater than zero. 
 	*/
 	uint32_t timestamp_accuracy;
 
@@ -669,6 +670,7 @@ struct table_create_params {
 	In a case of LPM table:
 	 - Should be set to #TABLE_KEY_LPM_IPV4_SIZE for IPv4.
 	 - Should be set to #TABLE_KEY_LPM_IPV6_SIZE for IPv6.
+	 .
 	In a case of MFLU table, size should not include the priority field.
 
 	Please note that this value is not returned through
@@ -689,7 +691,7 @@ struct table_get_params_output {
 	uint32_t committed_rules;
 
 	/** The max number of rules this table can contain. This number is not
-	guaranteed in contrast to committed_rules. Meaning, trying to add a
+	guaranteed in contrast to committed_rules. \n Meaning, trying to add a
 	rule to a table that already contains committed_rules might fail. */
 	uint32_t max_rules;
 
@@ -704,7 +706,7 @@ struct table_get_params_output {
 *//***************************************************************************/
 #pragma pack(push, 1)
 struct table_lookup_non_default_params {
-	/** Segment Address
+	/** Segment Address.
 	This segment will usually contain the frame header. */
 	uint16_t segment_addr;
 
@@ -912,9 +914,9 @@ void table_delete(enum table_hw_accel_id acc_id,
 		in the table. No change was made to the table.
 
 @Cautions	In this function the task yields.
-@Cautions	If TABLE_ACCEL_ID_MFLU is used and the rule key descriptor
+@Cautions	If #TABLE_ACCEL_ID_MFLU is used and the rule key descriptor
 		already exists in the table with different priority the
-		exception path will be called. TODO Supply Errata number.
+		exception path will be called.
 *//***************************************************************************/
 inline int table_rule_create(enum table_hw_accel_id acc_id,
 			     t_tbl_id table_id,
@@ -1216,7 +1218,7 @@ inline int table_rule_delete(enum table_hw_accel_id acc_id,
 		by this pointer must be in the task's workspace and must be
 		aligned to 16B boundary. Output is valid only on success.
 
-@Return		0 on success, TABLE_STATUS_MISS on miss.
+@Return		0 on success, #TABLE_STATUS_MISS on miss.
 
 @Retval		0 Success.
 @Retval		#TABLE_STATUS_MISS A match was not found during the lookup
@@ -1263,8 +1265,8 @@ inline int table_lookup_by_key(enum table_hw_accel_id acc_id,
 		by this pointer must be in the task's workspace and must be
 		aligned to 16B boundary. Output is valid only on success.
 
-@Return		0 on success, TABLE_STATUS_MISS on miss or negative value if an
-		error occurred.
+@Return		0 on success, #TABLE_STATUS_MISS on miss or negative value if
+		an error occurred.
 
 @Retval		0 Success.
 @Retval		#TABLE_STATUS_MISS A match was not found during the lookup
@@ -1324,8 +1326,8 @@ inline int table_lookup_by_keyid_default_frame(enum table_hw_accel_id acc_id,
 		by this pointer must be in the task's workspace and must be
 		aligned to 16B boundary.
 
-@Return		0 on success, TABLE_STATUS_MISS on miss or negative value if an
-		error occurred.
+@Return		0 on success, #TABLE_STATUS_MISS on miss or negative value if
+		an error occurred.
 
 @Retval		0 Success.
 @Retval		#TABLE_STATUS_MISS A match was not found during the lookup
@@ -1462,7 +1464,6 @@ inline int table_rule_query_by_key_desc(enum table_hw_accel_id acc_id,
 					uint8_t key_size,
 					struct table_result *result,
 					uint32_t *timestamp,
-					/*TODO documentation */
 					uint32_t *priority,
 					t_rule_id *rule_id);
 
