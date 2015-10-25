@@ -70,5 +70,5 @@ int rcu_test_check()
 
 int app_early_init(void)
 {
-	
+	return 0;
 }
