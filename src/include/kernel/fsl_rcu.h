@@ -46,61 +46,13 @@
 *//***************************************************************************/
 
 /**************************************************************************//**
-@Function	rcu_early_init
-
-@Description	RCU parameters that should be passed by each application
-		at early init;
-		
-		Ignore. Not yet implemented.
-
-@Param[in]	delay	Delay in milliseconds until the first RCU task creation.
-  	  	  	The longer delay the more RCU jobs will be handled by
-  	  	  	one RCU task.
-
-@Param[in]	committed	Committed size of the RCU jobs list
-@Param[in]	max		RCU list can get up to max size if committed
-				is not enough
-
-@Return		0 on succees, POSIX error code otherwise  \ref error_g
-
-*//***************************************************************************/
-int rcu_early_init(uint16_t delay, uint32_t committed, uint32_t max);
-
-/**************************************************************************//**
-@Description	Callback to be called after all the current tasks are done;
-
-		Ignore. Not yet implemented.
-
-@Param[in]	param   User parameter as passed to rcu_synchronize()
- *//***************************************************************************/
-typedef void (rcu_cb_t)(uint64_t param);
-
-/**************************************************************************//**
-@Function	rcu_synchronize_nb
-
-@Description	Activate the callback after all the active AIOP tasks
-		(except those that called rcu_read_unlock) are done
-		
-		Ignore. Not yet implemented.
-
-@Param[in]	cb	Callback to be called after all the active readers
-			are done
-@Param[in]	param	Callback parameter
-
-@Return		0 on succees, POSIX error code otherwise  \ref error_g
-
-@Cautions	Set APP_RCU_COMMITTED, APP_RCU_MAX, APP_RCU_TIMER_DURATION at
-		apps.h before using the RCU module
-*//***************************************************************************/
-int rcu_synchronize_nb(rcu_cb_t *cb, uint64_t param);
-
-/**************************************************************************//**
 @Function	rcu_synchronize
 
 @Description	Wait until all the tasks that are holding resources are done;  
-		Use rcu_read_lock() to declare your task as a resource holder; 
+		Use rcu_read_lock() to declare your task as a resource holder.
 
-		This is a blocking function.
+		This is a blocking function. When this function is called, 
+		the RCU lock is automatically released for this task.
 
 @Return		0 on succees, POSIX error code otherwise  \ref error_g
 
@@ -111,7 +63,10 @@ int rcu_synchronize();
 /**************************************************************************//**
 @Function	rcu_read_unlock
 
-@Description	Remove task from readers list
+@Description	Remove task from readers list.
+
+		When task terminates, 
+		the RCU lock is automatically released for this task.
 
 @Cautions	This function should only be called if the calling task
 		does not need any resources(e.g. allocated buffers, DP objects).
@@ -124,7 +79,7 @@ void rcu_read_unlock();
 /**************************************************************************//**
 @Function	rcu_read_lock
 
-@Description	Add the task back to the readers list
+@Description	Add the task back to the readers list.
 
 @Cautions	AIOP task needs to call rcu_read_lock() deliberately in order
 		to declare that is uses some of the resources

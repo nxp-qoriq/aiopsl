@@ -736,7 +736,7 @@ struct fdma_present_frame_params {
 		 * frame segment. */
 	void *seg_dst;
 		/** A pointer to a 64B-aligned location in the workspace to
-		 * store the 64B PTA field. Set \ref PRC_PTA_NOT_LOADED_ADDRESS
+		 * store the 64B PTA field. Set \ref PTA_NOT_LOADED_ADDRESS
 		 * for no PTA presentation. */
 	void *pta_dst;
 		/** A pointer to a 64B-aligned location in the workspace to
@@ -1109,7 +1109,7 @@ int fdma_present_frame(
 		VA, BDI, ICID), FD address.
 
 		Implicitly updated values in Task Defaults: frame handle, NDS
-		bit, ASA size (0), PTA address(\ref PRC_PTA_NOT_LOADED_ADDRESS).
+		bit, ASA size (0), PTA address(\ref PTA_NOT_LOADED_ADDRESS).
 
 @Return		0 on Success, or negative value on error.
 
@@ -1134,7 +1134,7 @@ int fdma_present_default_frame_without_segments(void);
 
 		Implicitly updated values in Task Defaults in case the FD points
 		to the default FD location: frame handle, NDS bit, ASA size (0),
-		PTA address (\ref PRC_PTA_NOT_LOADED_ADDRESS).
+		PTA address (\ref PTA_NOT_LOADED_ADDRESS).
 
 @Param[in]	fd - A pointer to the workspace location of the Frame Descriptor
 		to present.

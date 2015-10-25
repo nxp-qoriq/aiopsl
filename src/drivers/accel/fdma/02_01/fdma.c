@@ -306,9 +306,6 @@ int fdma_read_default_frame_asa(
 		uint16_t present_size,
 		uint16_t *seg_length)
 {
-	/* Presentation Context Pointer */
-	struct presentation_context *prc =
-		(struct presentation_context *) HWC_PRC_ADDRESS;
 	/* command parameters and results */
 	uint32_t arg1, arg2, arg3;
 	int8_t  res1;
@@ -942,7 +939,8 @@ int fdma_split_frame(
 		}
 		/* Update Task Defaults */
 		else if ((((uint32_t)params->fd_dst) == HWC_FD_ADDRESS) &&
-			(params->flags & FDMA_SPLIT_PSA_NO_PRESENT_BIT)) {
+			!(params->flags & (FDMA_SPLIT_PSA_PRESENT_BIT | 
+					FDMA_SPLIT_PSA_CLOSE_FRAME_BIT))) {
 				prc->frame_handle = params->split_frame_handle;
 		}
 		
@@ -1201,9 +1199,6 @@ int fdma_replace_default_asa_segment_data(
 		uint32_t flags,
 		uint16_t *seg_length)
 {
-	/* Presentation Context Pointer */
-	struct presentation_context *prc =
-			(struct presentation_context *) HWC_PRC_ADDRESS;
 	/* command parameters and results */
 	uint32_t arg1, arg2, arg3, arg4;
 	/*uint16_t size_diff;*/

@@ -36,6 +36,8 @@ int rcu_test_check();
 extern int32_t rcu_sync_count;
 extern int32_t rcu_cb_count;
 
+#define TEST_ITER	10
+
 void rcu_test()
 {
 	int err;
@@ -43,11 +45,21 @@ void rcu_test()
 
 	atomic_incr32(&rcu_cb_count, 1);
 
-	for (i = 0; i < 10; i++) {
+	for (i = 0; i < TEST_ITER; i++) {
 		pr_debug("####### rcu_synchronize = num %d #######\n",
 		         rcu_sync_count);
-		rcu_read_lock();
+
+		/* Unlock can be called even if there was no lock */
 		rcu_read_unlock();
+		rcu_read_unlock();
+		rcu_read_unlock();
+		
+		/* Multi lock is the same as single lock */
+		rcu_read_lock();
+		rcu_read_lock();
+		rcu_read_lock();
+
+		/* The lock is released inside rcu_synchronize */
 		err = rcu_synchronize();
 		atomic_incr32(&rcu_sync_count, 1);
 		ASSERT_COND(!err);
@@ -60,7 +72,13 @@ int rcu_test_check()
 	pr_debug("####### RCU test results = count %d #######\n",
 	         rcu_sync_count);
 
-	if (rcu_sync_count == (10 * rcu_cb_count))
+	/* The lock is released inside rcu_synchronize */
+	rcu_synchronize();
+	rcu_synchronize();
+	rcu_synchronize();
+	rcu_synchronize();
+
+	if (rcu_sync_count == (TEST_ITER * rcu_cb_count))
 		return 0;
 
 	return -1;

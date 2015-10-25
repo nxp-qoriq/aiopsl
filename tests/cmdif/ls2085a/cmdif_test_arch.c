@@ -50,67 +50,25 @@
 #include "fsl_dprc.h"
 #include "fsl_string.h"
 #include "fsl_rcu.h"
-#include "rcu.h"
 
 
 void rcu_test();
 int app_early_init(void);
 int rcu_test_check();
 
-extern struct rcu g_rcu;
-extern int32_t rcu_sync_count;
-extern int32_t rcu_cb_count;
-
-
-static void rcu_sync_cb(uint64_t param)
-{
-	atomic_incr32(&rcu_cb_count, 1);
-	pr_debug("####### param = 0x%x count = %d #######\n",
-	         (uint32_t)param, rcu_cb_count);
-}
-
 void rcu_test()
 {
-	int err;
-	int i;
 
-	for (i = 0; i < 10; i++) {
-		atomic_incr32(&rcu_sync_count, 1);
-		pr_debug("####### rcu_synchronize_nb = num %d #######\n",
-		         rcu_sync_count);
-		err = rcu_synchronize_nb(rcu_sync_cb, 0x7);
-		ASSERT_COND(!err);
-	}
 }
 
 int rcu_test_check()
 {
-	/* I can't have a good check here because it depends on timer */
-	pr_debug("####### RCU test results = count %d == %d #######\n",
-	         rcu_sync_count, rcu_cb_count);
 
-	if (rcu_sync_count == rcu_cb_count)
-		return 0;
-
-	return -1;
+	return 0;
 }
 
 
 int app_early_init(void)
 {
-	int err = 0;
-
-	err = rcu_early_init(5, 10, 15);
-	ASSERT_COND(!err);
-	err = rcu_early_init(10, 64, 128);
-	ASSERT_COND(!err);
-	err = rcu_early_init(20, 64, 128);
-	ASSERT_COND(!err);
-
-	ASSERT_COND(g_rcu.committed >= (64 + 64 + 10));
-	ASSERT_COND(g_rcu.max >= (128 - 64));
-	ASSERT_COND(g_rcu.delay <= 5);
-
 	return 0;
-
 }
