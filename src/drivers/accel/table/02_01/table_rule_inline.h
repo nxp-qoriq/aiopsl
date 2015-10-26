@@ -641,7 +641,7 @@ inline int table_rule_query_by_key_desc(enum table_hw_accel_id acc_id,
 	/* get HW status */
 	status = *((int32_t *)HWC_ACC_OUT_ADDRESS);
 
-	if (status == TABLE_HW_STATUS_SUCCESS ||
+	if ((status == TABLE_HW_STATUS_SUCCESS) ||
 	    (status == (TABLE_HW_STATUS_BIT_MISS | TABLE_HW_STATUS_PIEE))) {
 		/* Copy RuleID */
 		*rule_id = *((t_rule_id *)(&entry.prev_index_or_rule_id));
