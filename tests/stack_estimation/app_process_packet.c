@@ -225,15 +225,6 @@ void stack_estimation(void)
 	/* dpci_event_update(0); called only by SL in cmdif open command t
 	 * the stack is not important */
 
-
-	/* rcu_synchronize is different */
-	/*
-	rcu_synchronize(NULL, 9);
-	*/
-	rcu_read_lock();
-	rcu_read_unlock();
-
-
 	/*After packet processing is done, fdma_terminate_task must be called.*/
 #ifdef CHECK_MEM_MNG_STACK
 	void* p = fsl_malloc(64,16);
