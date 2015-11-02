@@ -368,6 +368,7 @@ void tman_exception_handler(enum tman_function_identifier func_id,
 				"ticks and smaller than 2^16-10 ticks.\n");
 		break;
 	case TMAN_TMR_TMI_STATE_ERR+TMAN_TMI_NOT_ACTIVE:
+	case TMAN_TMI_CMD_ERR+TMAN_TMI_NOT_ACTIVE:
 		exception_handler(__FILE__, func_name, line,
 				"A non active TMI was provided as an input.\n");
 		break;
@@ -386,6 +387,7 @@ void tman_exception_handler(enum tman_function_identifier func_id,
 				"initialized.\n");
 		break;
 	case TMAN_TMR_TMI_STATE_ERR+TMAN_TMI_BUS_ERR:
+	case TMAN_TMI_CMD_ERR+TMAN_TMI_BUS_ERR:
 		exception_handler(__FILE__, func_name, line,
 				"Failed to initialize due to system bus "
 				"error.\n");
