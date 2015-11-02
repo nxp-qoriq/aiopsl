@@ -101,7 +101,7 @@
 @Param[in]	data - A pointer to the workspace data to be inserted to the
 		frame.
 @Param[in]	size - data size. Must be greater than 0.
-@Param[in]	spid - Storage profile ID to be used.
+@Param[in]	spid - Storage profile ID to be used (Workaround for TKT285303).
 @Param[out]	frame_handle - Pointer to the opened working frame handle.
 
 @Return		0 on Success, or negative value on error.
@@ -207,7 +207,7 @@ int create_fd(
 		On a success return this pointer will point to a valid FD.
 @Param[in]	local_ip - local IPv4 address.
 @Param[in]	target_ip - destination IPv4 address.
-@Param[in]	spid - Storage profile ID to be used.
+@Param[in]	spid - Storage profile ID to be used (Workaround for TKT285303).
 @Param[out]	frame_handle - Pointer to the opened working frame handle.
 
 @Return		0 on Success, or negative value on error.
@@ -261,7 +261,7 @@ int create_arp_request_broadcast(
 @Param[in]	local_ip - local IPv4 address.
 @Param[in]	target_ip - destination IPv4 address.
 @Param[in]	target_eth - target MAC address.
-@Param[in]	spid - Storage profile ID to be used.
+@Param[in]	spid - Storage profile ID to be used (Workaround for TKT285303).
 @Param[out]	frame_handle - Pointer to the opened working frame handle.
 
 @Return		0 on Success, or negative value on error.

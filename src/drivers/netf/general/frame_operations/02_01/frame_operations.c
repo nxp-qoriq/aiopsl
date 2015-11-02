@@ -76,7 +76,8 @@ int create_frame(
 
 	LDPAA_FD_SET_IVP(fd, 1);
 	
-	/* In case we will need PTA we cannot generate a frame with FDMA command
+	/* Workaround for TKT285303
+	 * In case we will need PTA we cannot generate a frame with FDMA command
 	 * implicitly. We must Form the FD manually. */
 	if ((storage_profile[spid].mode_bits1) & 0x80){
 		icid = LH_SWAP(0, 
@@ -180,7 +181,8 @@ int create_fd(
 	
 	LDPAA_FD_SET_IVP(fd, 1);
 	
-	/* In case we will need PTA we cannot generate a frame with FDMA command
+	/* Workaround for TKT285303
+	 * In case we will need PTA we cannot generate a frame with FDMA command
 	 * implicitly. We must Form the FD manually. */
 	if ((storage_profile[spid].mode_bits1) & 0x80){
 		icid = LH_SWAP(0, 
