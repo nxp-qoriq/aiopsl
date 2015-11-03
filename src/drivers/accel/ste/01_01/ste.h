@@ -48,6 +48,7 @@
 #define STE_CTR_UPDATE_ACC_8_BYTE	0x20000000
 
 #define STE_OSM_REQ_TYPE		0x4
+#define STE_ERROR_CMDTYPE 	  0x2
 
 
 /*! \enum e_ste_cmd_type defines the statistics engine CMDTYPE field.*/
