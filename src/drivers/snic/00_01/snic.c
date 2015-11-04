@@ -103,6 +103,8 @@ void snic_process_packet(void)
 	int32_t parse_status;
 	uint16_t snic_id;
 	int err;
+	struct scope_status_params scope_status;
+
 
 	/* get sNIC ID */
 	snic_id = SNIC_ID_GET;
@@ -169,6 +171,14 @@ void snic_process_packet(void)
 	enqueue_params.qdbin = 0;
 	enqueue_params.qd = snic->qdid;
 	enqueue_params.qd_priority = default_task_params.qd_priority;
+	/* Get OSM status (ordering scope mode and levels) */
+	osm_get_scope(&scope_status);
+
+	if (scope_status.scope_mode == CONCURRENT) 
+	{
+		/* change to exclusive ordering mode */
+		osm_scope_transition_to_exclusive_with_increment_scope_id();
+	}
 	/* error cases */
 	err = fdma_store_and_enqueue_default_frame_qd(&enqueue_params, \
 			FDMA_ENWF_NO_FLAGS);
@@ -196,6 +206,7 @@ int snic_ipf(struct snic_params *snic)
 	int32_t ipf_status;
 	int err;
 	struct fdma_queueing_destination_params enqueue_params;
+	struct scope_status_params scope_status;
 
 	ip_offset = PARSER_GET_OUTER_IP_OFFSET_DEFAULT();
 	ipv4_hdr = (struct ipv4hdr *)
@@ -228,6 +239,18 @@ int snic_ipf(struct snic_params *snic)
 			{
 				fdma_discard_default_frame(FDMA_DIS_NO_FLAGS);
 				break;
+			}
+			/* transition to exclusive just before last fragment enqueue */
+			if (ipf_status == IPF_GEN_FRAG_STATUS_DONE)
+			{
+				/* Get OSM status (ordering scope mode and levels) */
+				osm_get_scope(&scope_status);
+
+				if (scope_status.scope_mode == CONCURRENT) 
+				{
+					/* change to exclusive ordering mode */
+					osm_scope_transition_to_exclusive_with_increment_scope_id();
+				}
 			}
 			err = fdma_store_and_enqueue_default_frame_qd(&enqueue_params,
 					FDMA_ENWF_NO_FLAGS);
