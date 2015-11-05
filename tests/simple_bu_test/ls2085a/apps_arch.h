@@ -24,6 +24,12 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+/**************************************************************************//**
+@File		apps_arch.h
+
+@Description	This file contains the application dp-ddr memory sizes.
+
+*//***************************************************************************/
 #ifndef __APPS_ARCH_H
 #define __APPS_ARCH_H
 

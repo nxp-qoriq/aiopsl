@@ -23,7 +23,13 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
- 
+
+/**************************************************************************//**
+@File		simple_bu_test.h
+
+@Description	This file contains the simple bring up test functions.
+
+*//***************************************************************************/
 int parser_init(uint8_t *prpid);
 int simple_bu_lpm_test(void);
 int simple_bu_hagit_test(void);
