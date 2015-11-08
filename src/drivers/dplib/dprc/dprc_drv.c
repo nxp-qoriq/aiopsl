@@ -53,7 +53,7 @@ static int dprc_drv_evmng_cb(uint8_t generator_id, uint8_t event_id, uint64_t ap
 {
 	/*Container was updated*/
 	int err;
-	uint32_t status;
+	uint32_t status = 0;
 	struct mc_dprc *dprc = sys_get_unique_handle(FSL_MOD_AIOP_RC);
 	UNUSED(app_ctx);
 	UNUSED(event_data);

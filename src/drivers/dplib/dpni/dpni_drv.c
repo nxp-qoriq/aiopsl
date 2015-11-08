@@ -1097,7 +1097,7 @@ __COLD_CODE int dpni_drv_init(void)
 static int dpni_drv_check_irq_status(struct mc_dprc *dprc, uint16_t dpni)
 {
 	int err;
-	uint32_t status;
+	uint32_t status = 0;
 
 	err = dpni_get_irq_status(&dprc->io,
 	                          0,
