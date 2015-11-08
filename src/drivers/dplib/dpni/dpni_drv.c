@@ -448,7 +448,7 @@ static int configure_dpni_irq(struct mc_dprc *dprc, uint16_t mc_niid, uint16_t d
 
 	irq_cfg.addr = (uint64_t)DPNI_EVENT;
 	irq_cfg.val = (uint32_t)mc_niid;
-	irq_cfg.user_irq_id = 0;
+	irq_cfg.irq_num = 0;
 
 	sl_pr_debug("Register for irq with addr %d and val %d\n", (int)irq_cfg.addr, (int)irq_cfg.val);
 
@@ -1925,7 +1925,7 @@ int dpni_drv_set_irq_enable(uint16_t ni_id, uint8_t en)
 	if(en){
 		irq_cfg.addr = (uint64_t)DPNI_EVENT;
 		irq_cfg.val = (uint32_t)mc_niid;
-		irq_cfg.user_irq_id = 0;
+		irq_cfg.irq_num = 0;
 
 		sl_pr_debug("Register for irq with addr %d and val %d\n", (int)irq_cfg.addr, (int)irq_cfg.val);
 
@@ -2301,11 +2301,11 @@ void dpni_drv_prepare_rx_tc_early_drop(
 	const struct dpni_drv_rx_tc_early_drop *cfg,
 	uint8_t *early_drop_buf)
 {
-	struct dpni_rx_tc_early_drop_cfg early_drop_cfg;
-	memset(&early_drop_cfg, 0, sizeof(struct dpni_rx_tc_early_drop_cfg));
+	struct dpni_early_drop_cfg early_drop_cfg;
+	memset(&early_drop_cfg, 0, sizeof(struct dpni_early_drop_cfg));
 
 	early_drop_cfg.mode = (enum dpni_early_drop_mode) cfg->mode;
-	early_drop_cfg.units = (enum dpni_early_drop_unit) cfg->units;
+	early_drop_cfg.units = (enum dpni_congestion_unit) cfg->units;
 	early_drop_cfg.green.max_threshold = cfg->green.max_threshold;
 	early_drop_cfg.green.min_threshold = cfg->green.min_threshold;
 	early_drop_cfg.green.drop_probability = cfg->green.drop_probability;
@@ -2317,7 +2317,7 @@ void dpni_drv_prepare_rx_tc_early_drop(
 	early_drop_cfg.red.drop_probability = cfg->red.drop_probability;
 	early_drop_cfg.tail_drop_threshold = cfg->tail_drop_threshold;
 
-	dpni_prepare_rx_tc_early_drop(&early_drop_cfg, early_drop_buf);
+	dpni_prepare_early_drop(&early_drop_cfg, early_drop_buf);
 }
 
 int dpni_drv_set_rx_tc_early_drop(uint16_t ni_id,

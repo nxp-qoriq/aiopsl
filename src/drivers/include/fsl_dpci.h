@@ -38,15 +38,21 @@
 
 struct fsl_mc_io;
 
-/* General DPCI macros */
+/** General DPCI macros */
 
-/* Maximum number of Tx/Rx priorities per DPCI object */
+/**
+ * Maximum number of Tx/Rx priorities per DPCI object 
+ */
 #define DPCI_PRIO_NUM		2
 
-/* Indicates an invalid frame queue */
+/**
+ * Indicates an invalid frame queue 
+ */
 #define DPCI_FQID_NOT_VALID	(uint32_t)(-1)
 
-/* All queues considered; see dpci_set_rx_queue() */
+/**
+ * All queues considered; see dpci_set_rx_queue() 
+ */
 #define DPCI_ALL_QUEUES		(uint8_t)(-1)
 
 /**
@@ -186,28 +192,36 @@ int dpci_reset(struct fsl_mc_io *mc_io,
 	       uint32_t	cmd_flags,
 	       uint16_t	token);
 
-/* DPCI IRQ Index and Events */
+/** DPCI IRQ Index and Events */
 
-/* IRQ index */
+/** 
+ * IRQ index 
+ */
 #define DPCI_IRQ_INDEX				0
 
-/* IRQ event - indicates a change in link state */
+/**
+ * IRQ event - indicates a change in link state 
+ */
 #define DPCI_IRQ_EVENT_LINK_CHANGED		0x00000001
-/* IRQ event - indicates a connection event */
+/**
+ * IRQ event - indicates a connection event 
+ */
 #define DPCI_IRQ_EVENT_CONNECTED                0x00000002
-/* IRQ event - indicates a disconnection event */
+/**
+ * IRQ event - indicates a disconnection event 
+ */
 #define DPCI_IRQ_EVENT_DISCONNECTED             0x00000004
 
 /**
  * struct dpci_irq_cfg - IRQ configuration
  * @addr:	Address that must be written to signal a message-based interrupt
  * @val:	Value to write into irq_addr address
- * @user_irq_id: A user defined number associated with this IRQ
+ * @irq_num: A user defined number associated with this IRQ
  */
 struct dpci_irq_cfg {
 	     uint64_t		addr;
 	     uint32_t		val;
-	     int		user_irq_id;
+	     int		irq_num;
 };
 
 /**
@@ -291,7 +305,7 @@ int dpci_get_irq_enable(struct fsl_mc_io	*mc_io,
  * @mask:	event mask to trigger interrupt;
  *			each bit:
  *				0 = ignore event
- *				1 = consider event for asserting irq
+ *				1 = consider event for asserting IRQ
  *
  * Every interrupt can have up to 32 causes and the interrupt model supports
  * masking/unmasking each cause independently
@@ -471,12 +485,16 @@ struct dpci_dest_cfg {
 	uint8_t priority;
 };
 
-/* DPCI queue modification options */
+/** DPCI queue modification options */
 
-/* Select to modify the user's context associated with the queue */
+/**
+ * Select to modify the user's context associated with the queue
+ */
 #define DPCI_QUEUE_OPT_USER_CTX		0x00000001
 
-/*!< Select to modify the queue's destination */
+/** 
+ * Select to modify the queue's destination 
+ */
 #define DPCI_QUEUE_OPT_DEST		0x00000002
 
 /**

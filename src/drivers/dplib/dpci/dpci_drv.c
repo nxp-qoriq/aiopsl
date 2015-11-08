@@ -377,7 +377,7 @@ __COLD_CODE static int mc_intr_set(uint32_t dpci_id, struct mc_dprc *dprc,
 	uint32_t mask = DPCI_IRQ_EVENT_LINK_CHANGED;
 	irq_cfg.addr = DPCI_EVENT;
 	irq_cfg.val = dpci_id;
-	irq_cfg.user_irq_id = 0;
+	irq_cfg.irq_num = 0;
 
 	err = dpci_set_irq(&dprc->io, 0, token, DPCI_IRQ_INDEX, &irq_cfg);
 	if(err){

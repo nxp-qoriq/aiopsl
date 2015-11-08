@@ -81,7 +81,7 @@ do { \
 	MC_CMD_OP(cmd, 0, 0,  8,  uint8_t,  irq_index);\
 	MC_CMD_OP(cmd, 0, 32, 32, uint32_t, irq_cfg->val);\
 	MC_CMD_OP(cmd, 1, 0,  64, uint64_t, irq_cfg->addr);\
-	MC_CMD_OP(cmd, 2, 0,  32, int,	    irq_cfg->user_irq_id); \
+	MC_CMD_OP(cmd, 2, 0,  32, int,	    irq_cfg->irq_num); \
 } while (0)
 
 /*                cmd, param, offset, width, type, arg_name */
@@ -93,7 +93,7 @@ do { \
 do { \
 	MC_RSP_OP(cmd, 0, 0,  32, uint32_t, irq_cfg->val); \
 	MC_RSP_OP(cmd, 1, 0,  64, uint64_t, irq_cfg->addr);\
-	MC_RSP_OP(cmd, 2, 0,  32, int,	    irq_cfg->user_irq_id); \
+	MC_RSP_OP(cmd, 2, 0,  32, int,	    irq_cfg->irq_num); \
 	MC_RSP_OP(cmd, 2, 32, 32, int,	    type); \
 } while (0)
 
@@ -128,9 +128,11 @@ do { \
 	MC_RSP_OP(cmd, 0, 0,  32, uint32_t, mask)
 
 /*                cmd, param, offset, width, type, arg_name */
-#define DPCI_CMD_GET_IRQ_STATUS(cmd, irq_index) \
-	MC_CMD_OP(cmd, 0, 32, 8,  uint8_t,  irq_index)
-
+#define DPCI_CMD_GET_IRQ_STATUS(cmd, irq_index, status) \
+do { \
+	MC_CMD_OP(cmd, 0, 0,  32, uint32_t, status);\
+	MC_CMD_OP(cmd, 0, 32, 8,  uint8_t,  irq_index);\
+} while (0)
 /*                cmd, param, offset, width, type, arg_name */
 #define DPCI_RSP_GET_IRQ_STATUS(cmd, status) \
 	MC_RSP_OP(cmd, 0, 0,  32, uint32_t, status)

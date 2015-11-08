@@ -38,12 +38,16 @@
  * Contains initialization APIs and runtime APIs for the Key Generator
  */
 
-/* Key Generator properties */
+/** Key Generator properties */
 
-/* Number of masks per key extraction */
+/**
+ * Number of masks per key extraction
+ */
 #define DPKG_NUM_OF_MASKS		4
-/* Number of extractions per key profile */
-#define DPKG_MAX_NUM_OF_EXTRACTS	8
+/**
+ * Number of extractions per key profile
+ */
+#define DPKG_MAX_NUM_OF_EXTRACTS	10
 
 /**
  * enum dpkg_extract_from_hdr_type - Selecting extraction by header types
@@ -60,13 +64,15 @@ enum dpkg_extract_from_hdr_type {
 /**
  * enum dpkg_extract_type - Enumeration for selecting extraction type
  * @DPKG_EXTRACT_FROM_HDR: Extract from the header
- * @DPKG_EXTRACT_FROM_DATA: Extract from data not in the header
- * @DPKG_EXTRACT_CONSTANT: Extract user-selected constant values
+ * @DPKG_EXTRACT_FROM_DATA: Extract from data not in specific header
+ * @DPKG_EXTRACT_FROM_PARSE: Extract from parser-result;
+ * 	e.g. can be used to extract header existence;
+ * 	please refer to 'Parse Result definition' section in the parser BG
  */
 enum dpkg_extract_type {
 	DPKG_EXTRACT_FROM_HDR = 0,
 	DPKG_EXTRACT_FROM_DATA = 1,
-	DPKG_EXTRACT_CONSTANT = 2
+	DPKG_EXTRACT_FROM_PARSE = 3
 };
 
 /**
@@ -84,7 +90,7 @@ struct dpkg_mask {
  * @type: Determines how the union below is interpreted:
  *		DPKG_EXTRACT_FROM_HDR: selects 'from_hdr';
  *		DPKG_EXTRACT_FROM_DATA: selects 'from_data';
- *		DPKG_EXTRACT_CONSTANT: selects 'constant'
+ *		DPKG_EXTRACT_FROM_PARSE: selects 'from_parse'
  * @extract: Selects extraction method
  * @num_of_byte_masks: Defines the number of valid entries in the array below;
  *		This is	also the number of bytes to be used as masks
@@ -96,7 +102,7 @@ struct dpkg_extract {
 	 * union extract - Selects extraction method
 	 * @from_hdr - Used when 'type = DPKG_EXTRACT_FROM_HDR'
 	 * @from_data - Used when 'type = DPKG_EXTRACT_FROM_DATA'
-	 * @constant - Used when 'type = DPKG_EXTRACT_CONSTANT'
+	 * @from_parse - Used when 'type = DPKG_EXTRACT_FROM_PARSE'
 	 */
 	union {
 		/**
@@ -139,15 +145,14 @@ struct dpkg_extract {
 			uint8_t offset;
 		} from_data;
 		/**
-		 * struct constant - Used when 'type = DPKG_EXTRACT_CONSTANT'
-		 * @constant - A constant value
-		 * @num_of_repeats - Number of times the constant is to be
-		 *			entered to the key
+		 * struct from_parse - Used when 'type = DPKG_EXTRACT_FROM_PARSE'
+		 * @size: Size in bytes
+		 * @offset: Byte offset
 		 */
 		struct {
-			uint8_t constant;
-			uint8_t num_of_repeats;
-		} constant;
+			uint8_t size;
+			uint8_t offset;
+		} from_parse;
 	} extract;
 
 	uint8_t		num_of_byte_masks;

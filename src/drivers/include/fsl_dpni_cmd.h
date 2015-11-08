@@ -32,9 +32,6 @@
 #ifndef _FSL_DPNI_CMD_H
 #define _FSL_DPNI_CMD_H
 
-#define DPNI_CMD_EXTRACT_EXT_PARAMS		25
-#define DPNI_CMD_EARLY_DROP_EXT_PARAMS		13
-
 /* DPNI Version */
 #define DPNI_VER_MAJOR				5
 #define DPNI_VER_MINOR				1
@@ -101,7 +98,7 @@
 #define DPNI_CMDID_ADD_VLAN_ID			0x231
 #define DPNI_CMDID_REMOVE_VLAN_ID		0x232
 #define DPNI_CMDID_CLR_VLAN_FILTERS		0x233
-#define DPNI_CMDID_SET_TX_TC			0x234
+
 #define DPNI_CMDID_SET_RX_TC_DIST		0x235
 #define DPNI_CMDID_SET_TX_FLOW			0x236
 #define DPNI_CMDID_GET_TX_FLOW			0x237
@@ -109,8 +106,7 @@
 #define DPNI_CMDID_GET_RX_FLOW			0x239
 #define DPNI_CMDID_SET_RX_ERR_QUEUE		0x23A
 #define DPNI_CMDID_GET_RX_ERR_QUEUE		0x23B
-#define DPNI_CMDID_SET_TX_CONF_ERR_QUEUE	0x23C
-#define DPNI_CMDID_GET_TX_CONF_ERR_QUEUE	0x23D
+
 #define DPNI_CMDID_SET_RX_TC_POLICING		0x23E
 #define DPNI_CMDID_SET_RX_TC_EARLY_DROP		0x23F
 
@@ -127,11 +123,71 @@
 #define DPNI_CMDID_SET_IPF			0x24A
 
 #define DPNI_CMDID_SET_TX_SELECTION			0x250
+#define DPNI_CMDID_GET_RX_TC_POLICING		0x251
+#define DPNI_CMDID_GET_RX_TC_EARLY_DROP		0x252
+#define DPNI_CMDID_SET_RX_TC_CONGESTION_NOTIFICATION 0x253
+#define DPNI_CMDID_GET_RX_TC_CONGESTION_NOTIFICATION 0x254
+#define DPNI_CMDID_SET_TX_TC_CONGESTION_NOTIFICATION 0x255
+#define DPNI_CMDID_GET_TX_TC_CONGESTION_NOTIFICATION 0x256
+#define DPNI_CMDID_SET_TX_CONF 				0x256
+#define DPNI_CMDID_GET_TX_CONF 				0x257
+#define DPNI_CMDID_SET_TX_CONF_CONGESTION_NOTIFICATION 0x258
+#define DPNI_CMDID_GET_TX_CONF_CONGESTION_NOTIFICATION 0x259
 
 /*                cmd, param, offset, width, type, arg_name */
 #define DPNI_CMD_OPEN(cmd, dpni_id) \
 	MC_CMD_OP(cmd,	 0,	0,	32,	int,	dpni_id)
 
+#define DPNI_PREP_EXTENDED_CFG(ext, cfg) \
+do { \
+	MC_PREP_OP(ext, 0, 0,   16, uint16_t, cfg->tc_cfg[0].max_dist); \
+	MC_PREP_OP(ext, 0, 16,  8,  uint8_t,  cfg->tc_cfg[0].max_fs_entries); \
+	MC_PREP_OP(ext, 0, 32,  16, uint16_t, cfg->tc_cfg[1].max_dist); \
+	MC_PREP_OP(ext, 0, 48,  8,  uint8_t,  cfg->tc_cfg[1].max_fs_entries); \
+	MC_PREP_OP(ext, 1, 0,   16, uint16_t, cfg->tc_cfg[2].max_dist); \
+	MC_PREP_OP(ext, 1, 16,  8,  uint8_t,  cfg->tc_cfg[2].max_fs_entries); \
+	MC_PREP_OP(ext, 1, 32,  16, uint16_t, cfg->tc_cfg[3].max_dist); \
+	MC_PREP_OP(ext, 1, 48,  8,  uint8_t,  cfg->tc_cfg[3].max_fs_entries); \
+	MC_PREP_OP(ext, 2, 0,   16, uint16_t, cfg->tc_cfg[4].max_dist); \
+	MC_PREP_OP(ext, 2, 16,  8,  uint8_t,  cfg->tc_cfg[4].max_fs_entries); \
+	MC_PREP_OP(ext, 2, 32,  16, uint16_t, cfg->tc_cfg[5].max_dist); \
+	MC_PREP_OP(ext, 2, 48,  8,  uint8_t,  cfg->tc_cfg[5].max_fs_entries); \
+	MC_PREP_OP(ext, 3, 0,   16, uint16_t, cfg->tc_cfg[6].max_dist); \
+	MC_PREP_OP(ext, 3, 16,  8,  uint8_t,  cfg->tc_cfg[6].max_fs_entries); \
+	MC_PREP_OP(ext, 3, 32,  16, uint16_t, cfg->tc_cfg[7].max_dist); \
+	MC_PREP_OP(ext, 3, 48,  8,  uint8_t,  cfg->tc_cfg[7].max_fs_entries); \
+	MC_PREP_OP(ext, 4, 0,   16, uint16_t, cfg->ipr_cfg.max_open_frames_ipv4); \
+	MC_PREP_OP(ext, 4, 16,  16, uint16_t, cfg->ipr_cfg.max_open_frames_ipv6); \
+	MC_PREP_OP(ext, 4, 32,  16, uint16_t, cfg->ipr_cfg.max_reass_frm_size); \
+	MC_PREP_OP(ext, 5, 0,   16, uint16_t, cfg->ipr_cfg.min_frag_size_ipv4); \
+	MC_PREP_OP(ext, 5, 16,  16, uint16_t, cfg->ipr_cfg.min_frag_size_ipv6); \
+} while (0)
+
+#define DPNI_EXT_EXTENDED_CFG(ext, cfg) \
+do { \
+	MC_EXT_OP(ext, 0, 0,   16, uint16_t, cfg->tc_cfg[0].max_dist); \
+	MC_EXT_OP(ext, 0, 16,  8,  uint8_t,  cfg->tc_cfg[0].max_fs_entries); \
+	MC_EXT_OP(ext, 0, 32,  16, uint16_t, cfg->tc_cfg[1].max_dist); \
+	MC_EXT_OP(ext, 0, 48,  8,  uint8_t,  cfg->tc_cfg[1].max_fs_entries); \
+	MC_EXT_OP(ext, 1, 0,   16, uint16_t, cfg->tc_cfg[2].max_dist); \
+	MC_EXT_OP(ext, 1, 16,  8,  uint8_t,  cfg->tc_cfg[2].max_fs_entries); \
+	MC_EXT_OP(ext, 1, 32,  16, uint16_t, cfg->tc_cfg[3].max_dist); \
+	MC_EXT_OP(ext, 1, 48,  8,  uint8_t,  cfg->tc_cfg[3].max_fs_entries); \
+	MC_EXT_OP(ext, 2, 0,   16, uint16_t, cfg->tc_cfg[4].max_dist); \
+	MC_EXT_OP(ext, 2, 16,  8,  uint8_t,  cfg->tc_cfg[4].max_fs_entries); \
+	MC_EXT_OP(ext, 2, 32,  16, uint16_t, cfg->tc_cfg[5].max_dist); \
+	MC_EXT_OP(ext, 2, 48,  8,  uint8_t,  cfg->tc_cfg[5].max_fs_entries); \
+	MC_EXT_OP(ext, 3, 0,   16, uint16_t, cfg->tc_cfg[6].max_dist); \
+	MC_EXT_OP(ext, 3, 16,  8,  uint8_t,  cfg->tc_cfg[6].max_fs_entries); \
+	MC_EXT_OP(ext, 3, 32,  16, uint16_t, cfg->tc_cfg[7].max_dist); \
+	MC_EXT_OP(ext, 3, 48,  8,  uint8_t,  cfg->tc_cfg[7].max_fs_entries); \
+	MC_EXT_OP(ext, 4, 0,   16, uint16_t, cfg->ipr_cfg.max_open_frames_ipv4); \
+	MC_EXT_OP(ext, 4, 16,  16, uint16_t, cfg->ipr_cfg.max_open_frames_ipv6); \
+	MC_EXT_OP(ext, 4, 32,  16, uint16_t, cfg->ipr_cfg.max_reass_frm_size); \
+	MC_EXT_OP(ext, 5, 0,   16, uint16_t, cfg->ipr_cfg.min_frag_size_ipv4); \
+	MC_EXT_OP(ext, 5, 16,  16, uint16_t, cfg->ipr_cfg.min_frag_size_ipv6); \
+} while (0)
+	
 /*                cmd, param, offset, width, type, arg_name */
 #define DPNI_CMD_CREATE(cmd, cfg) \
 do { \
@@ -151,26 +207,9 @@ do { \
 	MC_CMD_OP(cmd, 2, 32,	8,  uint8_t,  cfg->adv.max_qos_key_size); \
 	MC_CMD_OP(cmd, 2, 48,	8,  uint8_t,  cfg->adv.max_dist_key_size); \
 	MC_CMD_OP(cmd, 2, 56,	8,  enum net_prot, cfg->adv.start_hdr); \
-	MC_CMD_OP(cmd, 3, 0,	8,  uint8_t,  cfg->adv.max_dist_per_tc[0]); \
-	MC_CMD_OP(cmd, 3, 8,	8,  uint8_t,  cfg->adv.max_dist_per_tc[1]); \
-	MC_CMD_OP(cmd, 3, 16,	8,  uint8_t,  cfg->adv.max_dist_per_tc[2]); \
-	MC_CMD_OP(cmd, 3, 24,	8,  uint8_t,  cfg->adv.max_dist_per_tc[3]); \
-	MC_CMD_OP(cmd, 3, 32,	8,  uint8_t,  cfg->adv.max_dist_per_tc[4]); \
-	MC_CMD_OP(cmd, 3, 40,	8,  uint8_t,  cfg->adv.max_dist_per_tc[5]); \
-	MC_CMD_OP(cmd, 3, 48,	8,  uint8_t,  cfg->adv.max_dist_per_tc[6]); \
-	MC_CMD_OP(cmd, 3, 56,	8,  uint8_t,  cfg->adv.max_dist_per_tc[7]); \
-	MC_CMD_OP(cmd, 4, 0,	16, uint16_t, \
-				    cfg->adv.ipr_cfg.max_reass_frm_size); \
-	MC_CMD_OP(cmd, 4, 16,	16, uint16_t, \
-				    cfg->adv.ipr_cfg.min_frag_size_ipv4); \
-	MC_CMD_OP(cmd, 4, 32,	16, uint16_t, \
-				    cfg->adv.ipr_cfg.min_frag_size_ipv6); \
 	MC_CMD_OP(cmd, 4, 48,	8,  uint8_t, cfg->adv.max_policers); \
 	MC_CMD_OP(cmd, 4, 56,	8,  uint8_t, cfg->adv.max_congestion_ctrl); \
-	MC_CMD_OP(cmd, 5, 0,	16, uint16_t, \
-				  cfg->adv.ipr_cfg.max_open_frames_ipv4); \
-	MC_CMD_OP(cmd, 5, 16,	16, uint16_t, \
-				  cfg->adv.ipr_cfg.max_open_frames_ipv6); \
+	MC_CMD_OP(cmd, 5, 0,	64, uint64_t, cfg->adv.ext_cfg_iova); \
 } while (0)
 
 /*                cmd, param, offset, width, type, arg_name */
@@ -213,7 +252,7 @@ do { \
 	MC_CMD_OP(cmd, 0, 0,  32, uint32_t, irq_cfg->val); \
 	MC_CMD_OP(cmd, 0, 32, 8,  uint8_t,  irq_index); \
 	MC_CMD_OP(cmd, 1, 0,  64, uint64_t, irq_cfg->addr); \
-	MC_CMD_OP(cmd, 2, 0,  32, int,	    irq_cfg->user_irq_id); \
+	MC_CMD_OP(cmd, 2, 0,  32, int,	    irq_cfg->irq_num); \
 } while (0)
 
 /*                cmd, param, offset, width, type, arg_name */
@@ -225,7 +264,7 @@ do { \
 do { \
 	MC_RSP_OP(cmd, 0, 0,  32, uint32_t, irq_cfg->val); \
 	MC_RSP_OP(cmd, 1, 0,  64, uint64_t, irq_cfg->addr); \
-	MC_RSP_OP(cmd, 2, 0,  32, int,      irq_cfg->user_irq_id); \
+	MC_RSP_OP(cmd, 2, 0,  32, int,      irq_cfg->irq_num); \
 	MC_RSP_OP(cmd, 2, 32, 32, int,	    type); \
 } while (0)
 
@@ -260,8 +299,11 @@ do { \
 	MC_RSP_OP(cmd, 0, 0,  32, uint32_t,  mask)
 
 /*                cmd, param, offset, width, type, arg_name */
-#define DPNI_CMD_GET_IRQ_STATUS(cmd, irq_index) \
-	MC_CMD_OP(cmd, 0, 32, 8,  uint8_t,  irq_index)
+#define DPNI_CMD_GET_IRQ_STATUS(cmd, irq_index, status) \
+do { \
+	MC_CMD_OP(cmd, 0, 0,  32, uint32_t, status);\
+	MC_CMD_OP(cmd, 0, 32, 8,  uint8_t,  irq_index);\
+} while (0)
 
 /*                cmd, param, offset, width, type, arg_name */
 #define DPNI_RSP_GET_IRQ_STATUS(cmd, status) \
@@ -273,6 +315,10 @@ do { \
 	MC_CMD_OP(cmd, 0, 0,  32, uint32_t, status); \
 	MC_CMD_OP(cmd, 0, 32, 8,  uint8_t,  irq_index);\
 } while (0)
+
+/*                cmd, param, offset, width, type, arg_name */
+#define DPNI_CMD_GET_ATTR(cmd, attr) \
+	MC_CMD_OP(cmd, 6, 0,  64, uint64_t, attr->ext_cfg_iova)	
 
 /*                cmd, param, offset, width, type, arg_name */
 #define DPNI_RSP_GET_ATTR(cmd, attr) \
@@ -288,26 +334,8 @@ do { \
 	MC_RSP_OP(cmd, 2, 24, 8,  uint8_t,  attr->max_qos_entries); \
 	MC_RSP_OP(cmd, 2, 32, 8,  uint8_t,  attr->max_qos_key_size); \
 	MC_RSP_OP(cmd, 2, 40, 8,  uint8_t,  attr->max_dist_key_size); \
-	MC_RSP_OP(cmd, 3, 0,  8,  uint8_t,  attr->max_dist_per_tc[0]); \
-	MC_RSP_OP(cmd, 3, 8,  8,  uint8_t,  attr->max_dist_per_tc[1]); \
-	MC_RSP_OP(cmd, 3, 16, 8,  uint8_t,  attr->max_dist_per_tc[2]); \
-	MC_RSP_OP(cmd, 3, 24, 8,  uint8_t,  attr->max_dist_per_tc[3]); \
-	MC_RSP_OP(cmd, 3, 32, 8,  uint8_t,  attr->max_dist_per_tc[4]); \
-	MC_RSP_OP(cmd, 3, 40, 8,  uint8_t,  attr->max_dist_per_tc[5]); \
-	MC_RSP_OP(cmd, 3, 48, 8,  uint8_t,  attr->max_dist_per_tc[6]); \
-	MC_RSP_OP(cmd, 3, 56, 8,  uint8_t,  attr->max_dist_per_tc[7]); \
-	MC_RSP_OP(cmd, 4, 0,	16, uint16_t, \
-				    attr->ipr_cfg.max_reass_frm_size); \
-	MC_RSP_OP(cmd, 4, 16,	16, uint16_t, \
-				    attr->ipr_cfg.min_frag_size_ipv4); \
-	MC_RSP_OP(cmd, 4, 32,	16, uint16_t, \
-				    attr->ipr_cfg.min_frag_size_ipv6);\
-	MC_RSP_OP(cmd, 4, 48,	8,  uint8_t, attr->max_policers); \
-	MC_RSP_OP(cmd, 4, 56,	8,  uint8_t, attr->max_congestion_ctrl); \
-	MC_RSP_OP(cmd, 5, 0,	16, uint16_t, \
-				  attr->ipr_cfg.max_open_frames_ipv4); \
-	MC_RSP_OP(cmd, 5, 16,	16, uint16_t, \
-				  attr->ipr_cfg.max_open_frames_ipv6); \
+	MC_RSP_OP(cmd, 4, 48, 8,  uint8_t, attr->max_policers); \
+	MC_RSP_OP(cmd, 4, 56, 8,  uint8_t, attr->max_congestion_ctrl); \
 	MC_RSP_OP(cmd, 5, 32, 16, uint16_t, attr->version.major);\
 	MC_RSP_OP(cmd, 5, 48, 16, uint16_t, attr->version.minor);\
 } while (0)
@@ -559,13 +587,6 @@ do { \
 	MC_CMD_OP(cmd, 0, 32, 16, uint16_t, vlan_id)
 
 /*                cmd, param, offset, width, type, arg_name */
-#define DPNI_CMD_SET_TX_TC(cmd, tc_id, cfg) \
-do { \
-	MC_CMD_OP(cmd, 0, 0,  16, uint16_t, cfg->depth_limit); \
-	MC_CMD_OP(cmd, 0, 16, 8,  uint8_t,  tc_id); \
-} while (0)
-
-/*                cmd, param, offset, width, type, arg_name */
 #define DPNI_CMD_SET_TX_SELECTION(cmd, cfg) \
 do { \
 	MC_CMD_OP(cmd, 0, 0,  16,  uint16_t, cfg->tc_sched[0].delta_bandwidth);\
@@ -597,7 +618,7 @@ do { \
 /*                cmd, param, offset, width, type, arg_name */
 #define DPNI_CMD_SET_RX_TC_DIST(cmd, tc_id, cfg) \
 do { \
-	MC_CMD_OP(cmd, 0, 0,  8,  uint8_t,  cfg->dist_size); \
+	MC_CMD_OP(cmd, 0, 0,  16, uint16_t,  cfg->dist_size); \
 	MC_CMD_OP(cmd, 0, 16, 8,  uint8_t,  tc_id); \
 	MC_CMD_OP(cmd, 0, 24, 4,  enum dpni_dist_mode, cfg->dist_mode); \
 	MC_CMD_OP(cmd, 0, 28, 4,  enum dpni_fs_miss_action, \
@@ -609,27 +630,11 @@ do { \
 /*                cmd, param, offset, width, type, arg_name */
 #define DPNI_CMD_SET_TX_FLOW(cmd, flow_id, cfg) \
 do { \
-	MC_CMD_OP(cmd, 0, 0,  32, int,     \
-		cfg->conf_err_cfg.queue_cfg.dest_cfg.dest_id);\
-	MC_CMD_OP(cmd, 0, 32, 8,  uint8_t, \
-		cfg->conf_err_cfg.queue_cfg.dest_cfg.priority);\
-	MC_CMD_OP(cmd, 0, 40, 2,  enum dpni_dest, \
-		cfg->conf_err_cfg.queue_cfg.dest_cfg.dest_type);\
-	MC_CMD_OP(cmd, 0, 42, 1,  int,	    cfg->conf_err_cfg.errors_only);\
 	MC_CMD_OP(cmd, 0, 43, 1,  int,	    cfg->l3_chksum_gen);\
 	MC_CMD_OP(cmd, 0, 44, 1,  int,	    cfg->l4_chksum_gen);\
-	MC_CMD_OP(cmd, 0, 45, 1,  int,	    \
-		cfg->conf_err_cfg.use_default_queue);\
-	MC_CMD_OP(cmd, 0, 46, 1,  int,      \
-			cfg->conf_err_cfg.queue_cfg.order_preservation_en);\
+	MC_CMD_OP(cmd, 0, 45, 1,  int,	    cfg->use_common_tx_conf_queue);\
 	MC_CMD_OP(cmd, 0, 48, 16, uint16_t, flow_id);\
-	MC_CMD_OP(cmd, 1, 0,  64, uint64_t, \
-		cfg->conf_err_cfg.queue_cfg.user_ctx);\
 	MC_CMD_OP(cmd, 2, 0,  32, uint32_t, cfg->options);\
-	MC_CMD_OP(cmd, 2, 32,  32, uint32_t, \
-		cfg->conf_err_cfg.queue_cfg.options);\
-	MC_CMD_OP(cmd, 3, 0, 32, uint32_t, \
-		cfg->conf_err_cfg.queue_cfg.tail_drop_threshold);\
 } while (0)
 
 /*                cmd, param, offset, width, type, arg_name */
@@ -643,25 +648,9 @@ do { \
 /*                cmd, param, offset, width, type, arg_name */
 #define DPNI_RSP_GET_TX_FLOW(cmd, attr) \
 do { \
-	MC_RSP_OP(cmd, 0, 0,  32, int,      \
-			attr->conf_err_attr.queue_attr.dest_cfg.dest_id);\
-	MC_RSP_OP(cmd, 0, 32, 8,  uint8_t,  \
-			attr->conf_err_attr.queue_attr.dest_cfg.priority);\
-	MC_RSP_OP(cmd, 0, 40, 2,  enum dpni_dest, \
-			attr->conf_err_attr.queue_attr.dest_cfg.dest_type);\
-	MC_RSP_OP(cmd, 0, 42, 1,  int,	    attr->conf_err_attr.errors_only);\
 	MC_RSP_OP(cmd, 0, 43, 1,  int,	    attr->l3_chksum_gen);\
 	MC_RSP_OP(cmd, 0, 44, 1,  int,	    attr->l4_chksum_gen);\
-	MC_RSP_OP(cmd, 0, 45, 1,  int,	    \
-			attr->conf_err_attr.use_default_queue);\
-	MC_RSP_OP(cmd, 0, 46, 1,  int,      \
-			attr->conf_err_attr.queue_attr.order_preservation_en);\
-	MC_RSP_OP(cmd, 1, 0,  64, uint64_t, \
-			attr->conf_err_attr.queue_attr.user_ctx);\
-	MC_RSP_OP(cmd, 2, 0,  32, uint32_t, \
-			attr->conf_err_attr.queue_attr.tail_drop_threshold); \
-	MC_RSP_OP(cmd, 2, 32, 32, uint32_t, \
-			attr->conf_err_attr.queue_attr.fqid);\
+	MC_RSP_OP(cmd, 0, 45, 1,  int,	    attr->use_common_tx_conf_queue);\
 } while (0)
 
 /*                cmd, param, offset, width, type, arg_name */
@@ -750,30 +739,6 @@ do { \
 } while (0)
 
 /*                cmd, param, offset, width, type, arg_name */
-#define DPNI_CMD_SET_TX_CONF_ERR_QUEUE(cmd, cfg) \
-do { \
-	MC_CMD_OP(cmd, 0, 0,  32, int,      cfg->dest_cfg.dest_id); \
-	MC_CMD_OP(cmd, 0, 32, 8,  uint8_t,  cfg->dest_cfg.priority);\
-	MC_CMD_OP(cmd, 0, 40, 2,  enum dpni_dest, cfg->dest_cfg.dest_type);\
-	MC_CMD_OP(cmd, 0, 42, 1,  int,      cfg->order_preservation_en);\
-	MC_CMD_OP(cmd, 1, 0,  64, uint64_t, cfg->user_ctx); \
-	MC_CMD_OP(cmd, 2, 0,  32, uint32_t, cfg->options); \
-	MC_CMD_OP(cmd, 2, 32, 32, uint32_t, cfg->tail_drop_threshold); \
-} while (0)
-
-/*                cmd, param, offset, width, type, arg_name */
-#define DPNI_RSP_GET_TX_CONF_ERR_QUEUE(cmd, attr) \
-do { \
-	MC_RSP_OP(cmd, 0, 0,  32, int,      attr->dest_cfg.dest_id); \
-	MC_RSP_OP(cmd, 0, 32, 8,  uint8_t,  attr->dest_cfg.priority);\
-	MC_RSP_OP(cmd, 0, 40, 2,  enum dpni_dest, attr->dest_cfg.dest_type);\
-	MC_RSP_OP(cmd, 0, 42, 1,  int,      attr->order_preservation_en);\
-	MC_RSP_OP(cmd, 1, 0,  64, uint64_t, attr->user_ctx); \
-	MC_RSP_OP(cmd, 2, 0,  32, uint32_t, attr->tail_drop_threshold); \
-	MC_RSP_OP(cmd, 2, 32, 32, uint32_t, attr->fqid); \
-} while (0)
-
-/*                cmd, param, offset, width, type, arg_name */
 #define DPNI_CMD_SET_TX_CONF_REVOKE(cmd, revoke) \
 	MC_CMD_OP(cmd, 0, 0,  1,  int,      revoke)
 
@@ -856,11 +821,46 @@ do { \
 } while (0)
 
 /*                cmd, param, offset, width, type, arg_name */
+#define DPNI_CMD_GET_RX_TC_POLICING(cmd, tc_id) \
+	MC_CMD_OP(cmd, 0, 16, 8,  uint8_t,  tc_id);
+
+/*                cmd, param, offset, width, type, arg_name */
+#define DPNI_RSP_GET_RX_TC_POLICING(cmd, cfg) \
+do { \
+	MC_RSP_OP(cmd, 0, 0,  4, enum dpni_policer_mode, cfg->mode); \
+	MC_RSP_OP(cmd, 0, 4,  4, enum dpni_policer_color, cfg->default_color); \
+	MC_RSP_OP(cmd, 0, 8,  4, enum dpni_policer_unit, cfg->units); \
+	MC_RSP_OP(cmd, 0, 32, 32, uint32_t, cfg->options); \
+	MC_RSP_OP(cmd, 1, 0,  32, uint32_t, cfg->cir); \
+	MC_RSP_OP(cmd, 1, 32, 32, uint32_t, cfg->cbs); \
+	MC_RSP_OP(cmd, 2, 0,  32, uint32_t, cfg->eir); \
+	MC_RSP_OP(cmd, 2, 32, 32, uint32_t, cfg->ebs);\
+} while (0)
+
+/*                cmd, param, offset, width, type, arg_name */
+#define DPNI_PREP_SET_RX_TC_EARLY_DROP(ext, cfg) \
+do { \
+	MC_PREP_OP(ext, 0, 0,  2, enum dpni_early_drop_mode, cfg->mode); \
+	MC_PREP_OP(ext, 0, 2,  2, \
+		  enum dpni_congestion_unit, cfg->units); \
+	MC_PREP_OP(ext, 0, 32, 32, uint32_t, cfg->tail_drop_threshold); \
+	MC_PREP_OP(ext, 1, 0,  8,  uint8_t,  cfg->green.drop_probability); \
+	MC_PREP_OP(ext, 2, 0,  64, uint64_t, cfg->green.max_threshold); \
+	MC_PREP_OP(ext, 3, 0,  64, uint64_t, cfg->green.min_threshold); \
+	MC_PREP_OP(ext, 5, 0,  8,  uint8_t,  cfg->yellow.drop_probability);\
+	MC_PREP_OP(ext, 6, 0,  64, uint64_t, cfg->yellow.max_threshold); \
+	MC_PREP_OP(ext, 7, 0,  64, uint64_t, cfg->yellow.min_threshold); \
+	MC_PREP_OP(ext, 9, 0,  8,  uint8_t,  cfg->red.drop_probability); \
+	MC_PREP_OP(ext, 10, 0,  64, uint64_t, cfg->red.max_threshold); \
+	MC_PREP_OP(ext, 11, 0,  64, uint64_t, cfg->red.min_threshold); \
+} while (0)
+
+/*                cmd, param, offset, width, type, arg_name */
 #define DPNI_EXT_SET_RX_TC_EARLY_DROP(ext, cfg) \
 do { \
 	MC_EXT_OP(ext, 0, 0,  2, enum dpni_early_drop_mode, cfg->mode); \
 	MC_EXT_OP(ext, 0, 2,  2, \
-		  enum dpni_early_drop_unit, cfg->units); \
+		  enum dpni_congestion_unit, cfg->units); \
 	MC_EXT_OP(ext, 0, 32, 32, uint32_t, cfg->tail_drop_threshold); \
 	MC_EXT_OP(ext, 1, 0,  8,  uint8_t,  cfg->green.drop_probability); \
 	MC_EXT_OP(ext, 2, 0,  64, uint64_t, cfg->green.max_threshold); \
@@ -879,4 +879,152 @@ do { \
 	MC_CMD_OP(cmd, 0, 8,  8,  uint8_t,  tc_id); \
 	MC_CMD_OP(cmd, 1, 0,  64, uint64_t, early_drop_iova); \
 } while (0)
+
+/*                cmd, param, offset, width, type, arg_name */
+#define DPNI_CMD_GET_RX_TC_EARLY_DROP(cmd, tc_id, early_drop_iova) \
+do { \
+	MC_CMD_OP(cmd, 0, 8,  8,  uint8_t,  tc_id); \
+	MC_CMD_OP(cmd, 1, 0,  64, uint64_t, early_drop_iova); \
+} while (0)
+
+#define DPNI_CMD_SET_RX_TC_CONGESTION_NOTIFICATION(cmd, tc_id, cfg) \
+do { \
+	MC_CMD_OP(cmd, 0, 0,  2,  enum dpni_congestion_unit, cfg->units); \
+	MC_CMD_OP(cmd, 0, 4,  4,  enum dpni_dest, cfg->dest_cfg.dest_type); \
+	MC_CMD_OP(cmd, 0, 8,  8,  uint8_t,  tc_id); \
+	MC_CMD_OP(cmd, 0, 16, 8,  uint8_t,  cfg->dest_cfg.priority); \
+	MC_CMD_OP(cmd, 1, 0,  32, uint32_t, cfg->threshold_entry); \
+	MC_CMD_OP(cmd, 1, 32, 32, uint32_t, cfg->threshold_exit); \
+	MC_CMD_OP(cmd, 2, 0,  16, uint16_t, cfg->options); \
+	MC_CMD_OP(cmd, 2, 32, 32, int, 	    cfg->dest_cfg.dest_id); \
+	MC_CMD_OP(cmd, 3, 0,  64, uint64_t, cfg->message_ctx); \
+	MC_CMD_OP(cmd, 4, 0,  64, uint64_t, cfg->message_iova); \
+} while (0)
+
+#define DPNI_CMD_GET_RX_TC_CONGESTION_NOTIFICATION(cmd, tc_id) \
+	MC_CMD_OP(cmd, 0, 8,  8,  uint8_t,  tc_id);
+
+#define DPNI_RSP_GET_RX_TC_CONGESTION_NOTIFICATION(cmd, cfg) \
+do { \
+	MC_RSP_OP(cmd, 0, 0,  2,  enum dpni_congestion_unit, cfg->units); \
+	MC_RSP_OP(cmd, 0, 4,  4,  enum dpni_dest, cfg->dest_cfg.dest_type); \
+	MC_RSP_OP(cmd, 0, 16, 8,  uint8_t,  cfg->dest_cfg.priority); \
+	MC_RSP_OP(cmd, 1, 0,  32, uint32_t, cfg->threshold_entry); \
+	MC_RSP_OP(cmd, 1, 32, 32, uint32_t, cfg->threshold_exit); \
+	MC_RSP_OP(cmd, 2, 0,  16, uint16_t, cfg->options); \
+	MC_RSP_OP(cmd, 2, 32, 32, int, 	    cfg->dest_cfg.dest_id); \
+	MC_RSP_OP(cmd, 3, 0,  64, uint64_t, cfg->message_ctx); \
+	MC_RSP_OP(cmd, 4, 0,  64, uint64_t, cfg->message_iova); \
+} while (0)
+
+
+#define DPNI_CMD_SET_TX_TC_CONGESTION_NOTIFICATION(cmd, tc_id, cfg) \
+do { \
+	MC_CMD_OP(cmd, 0, 0,  2,  enum dpni_congestion_unit, cfg->units); \
+	MC_CMD_OP(cmd, 0, 4,  4,  enum dpni_dest, cfg->dest_cfg.dest_type); \
+	MC_CMD_OP(cmd, 0, 8,  8,  uint8_t,  tc_id); \
+	MC_CMD_OP(cmd, 0, 16, 8,  uint8_t,  cfg->dest_cfg.priority); \
+	MC_CMD_OP(cmd, 1, 0,  32, uint32_t, cfg->threshold_entry); \
+	MC_CMD_OP(cmd, 1, 32, 32, uint32_t, cfg->threshold_exit); \
+	MC_CMD_OP(cmd, 2, 0,  16, uint16_t, cfg->options); \
+	MC_CMD_OP(cmd, 2, 32, 32, int, 	    cfg->dest_cfg.dest_id); \
+	MC_CMD_OP(cmd, 3, 0,  64, uint64_t, cfg->message_ctx); \
+	MC_CMD_OP(cmd, 4, 0,  64, uint64_t, cfg->message_iova); \
+} while (0)
+
+#define DPNI_CMD_GET_TX_TC_CONGESTION_NOTIFICATION(cmd, tc_id) \
+	MC_CMD_OP(cmd, 0, 8,  8,  uint8_t,  tc_id);
+
+#define DPNI_RSP_GET_TX_TC_CONGESTION_NOTIFICATION(cmd, cfg) \
+do { \
+	MC_RSP_OP(cmd, 0, 0,  2,  enum dpni_congestion_unit, cfg->units); \
+	MC_RSP_OP(cmd, 0, 4,  4,  enum dpni_dest, cfg->dest_cfg.dest_type); \
+	MC_RSP_OP(cmd, 0, 16, 8,  uint8_t,  cfg->dest_cfg.priority); \
+	MC_RSP_OP(cmd, 1, 0,  32, uint32_t, cfg->threshold_entry); \
+	MC_RSP_OP(cmd, 1, 32, 32, uint32_t, cfg->threshold_exit); \
+	MC_RSP_OP(cmd, 2, 0,  16, uint16_t, cfg->options); \
+	MC_RSP_OP(cmd, 2, 32, 32, int, 	    cfg->dest_cfg.dest_id); \
+	MC_RSP_OP(cmd, 3, 0,  64, uint64_t, cfg->message_ctx); \
+	MC_RSP_OP(cmd, 4, 0,  64, uint64_t, cfg->message_iova); \
+} while (0)
+
+#define DPNI_CMD_SET_TX_CONF(cmd, flow_id, cfg) \
+do { \
+	MC_CMD_OP(cmd, 0, 32, 8,  uint8_t,cfg->queue_cfg.dest_cfg.priority); \
+	MC_CMD_OP(cmd, 0, 40, 2,  enum dpni_dest, \
+		cfg->queue_cfg.dest_cfg.dest_type); \
+	MC_CMD_OP(cmd, 0, 42, 1,  int, cfg->errors_only); \
+	MC_CMD_OP(cmd, 0, 46, 1,  int, cfg->queue_cfg.order_preservation_en); \
+	MC_CMD_OP(cmd, 0, 48, 16, uint16_t, flow_id); \
+	MC_CMD_OP(cmd, 1, 0,  64, uint64_t, cfg->queue_cfg.user_ctx); \
+	MC_CMD_OP(cmd, 2, 0,  32, uint32_t, cfg->queue_cfg.options); \
+	MC_CMD_OP(cmd, 2, 32, 32, int, 	    cfg->queue_cfg.dest_cfg.dest_id); \
+	MC_CMD_OP(cmd, 3, 0,  32, uint32_t, \
+		cfg->queue_cfg.tail_drop_threshold); \
+	MC_CMD_OP(cmd, 4, 0,  4,  enum dpni_flc_type, \
+		cfg->queue_cfg.flc_cfg.flc_type); \
+	MC_CMD_OP(cmd, 4, 4,  4,  enum dpni_stash_size, \
+		cfg->queue_cfg.flc_cfg.frame_data_size); \
+	MC_CMD_OP(cmd, 4, 8,  4,  enum dpni_stash_size, \
+		cfg->queue_cfg.flc_cfg.flow_context_size); \
+	MC_CMD_OP(cmd, 4, 32, 32, uint32_t, cfg->queue_cfg.flc_cfg.options); \
+	MC_CMD_OP(cmd, 5, 0,  64, uint64_t, \
+		cfg->queue_cfg.flc_cfg.flow_context); \
+} while (0)
+
+#define DPNI_CMD_GET_TX_CONF(cmd, flow_id) \
+		MC_CMD_OP(cmd, 0, 48, 16, uint16_t,  flow_id)
+
+#define DPNI_RSP_GET_TX_CONF(cmd, attr) \
+do { \
+	MC_RSP_OP(cmd, 0, 32, 8,  uint8_t,attr->queue_attr.dest_cfg.priority); \
+	MC_RSP_OP(cmd, 0, 40, 2,  enum dpni_dest, \
+		attr->queue_attr.dest_cfg.dest_type); \
+	MC_RSP_OP(cmd, 0, 42, 1,  int, attr->errors_only); \
+	MC_RSP_OP(cmd, 0, 46, 1,  int, attr->queue_attr.order_preservation_en); \
+	MC_RSP_OP(cmd, 1, 0,  64, uint64_t, attr->queue_attr.user_ctx); \
+	MC_RSP_OP(cmd, 2, 32, 32, int, 	    attr->queue_attr.dest_cfg.dest_id); \
+	MC_RSP_OP(cmd, 3, 0,  32, uint32_t, \
+		attr->queue_attr.tail_drop_threshold); \
+	MC_RSP_OP(cmd, 4, 0,  4,  enum dpni_flc_type, \
+		attr->queue_attr.flc_cfg.flc_type); \
+	MC_RSP_OP(cmd, 4, 4,  4,  enum dpni_stash_size, \
+		attr->queue_attr.flc_cfg.frame_data_size); \
+	MC_RSP_OP(cmd, 4, 8,  4,  enum dpni_stash_size, \
+		attr->queue_attr.flc_cfg.flow_context_size); \
+	MC_RSP_OP(cmd, 4, 32, 32, uint32_t, attr->queue_attr.flc_cfg.options); \
+	MC_RSP_OP(cmd, 5, 0,  64, uint64_t, \
+		attr->queue_attr.flc_cfg.flow_context); \
+} while (0)
+
+#define DPNI_CMD_SET_TX_CONF_CONGESTION_NOTIFICATION(cmd, flow_id, cfg) \
+do { \
+	MC_CMD_OP(cmd, 0, 0,  2,  enum dpni_congestion_unit, cfg->units); \
+	MC_CMD_OP(cmd, 0, 4,  4,  enum dpni_dest, cfg->dest_cfg.dest_type); \
+	MC_CMD_OP(cmd, 0, 16, 8,  uint8_t,  cfg->dest_cfg.priority); \
+	MC_CMD_OP(cmd, 0, 48, 16, uint16_t, flow_id); \
+	MC_CMD_OP(cmd, 1, 0,  32, uint32_t, cfg->threshold_entry); \
+	MC_CMD_OP(cmd, 1, 32, 32, uint32_t, cfg->threshold_exit); \
+	MC_CMD_OP(cmd, 2, 0,  16, uint16_t, cfg->options); \
+	MC_CMD_OP(cmd, 2, 32, 32, int, 	    cfg->dest_cfg.dest_id); \
+	MC_CMD_OP(cmd, 3, 0,  64, uint64_t, cfg->message_ctx); \
+	MC_CMD_OP(cmd, 4, 0,  64, uint64_t, cfg->message_iova); \
+} while (0)
+
+#define DPNI_CMD_GET_TX_CONF_CONGESTION_NOTIFICATION(cmd, flow_id) \
+	MC_CMD_OP(cmd, 0, 48, 16, uint16_t, flow_id)
+
+#define DPNI_RSP_GET_TX_CONF_CONGESTION_NOTIFICATION(cmd, cfg) \
+do { \
+	MC_RSP_OP(cmd, 0, 0,  2,  enum dpni_congestion_unit, cfg->units); \
+	MC_RSP_OP(cmd, 0, 4,  4,  enum dpni_dest, cfg->dest_cfg.dest_type); \
+	MC_RSP_OP(cmd, 0, 16, 8,  uint8_t,  cfg->dest_cfg.priority); \
+	MC_RSP_OP(cmd, 1, 0,  32, uint32_t, cfg->threshold_entry); \
+	MC_RSP_OP(cmd, 1, 32, 32, uint32_t, cfg->threshold_exit); \
+	MC_RSP_OP(cmd, 2, 0,  16, uint16_t, cfg->options); \
+	MC_RSP_OP(cmd, 2, 32, 32, int, 	    cfg->dest_cfg.dest_id); \
+	MC_RSP_OP(cmd, 3, 0,  64, uint64_t, cfg->message_ctx); \
+	MC_RSP_OP(cmd, 4, 0,  64, uint64_t, cfg->message_iova); \
+} while (0)
+
 #endif /* _FSL_DPNI_CMD_H */

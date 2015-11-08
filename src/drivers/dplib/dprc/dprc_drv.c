@@ -197,7 +197,7 @@ __COLD_CODE static int aiop_container_init(void)
 
 	irq_cfg.addr = DPRC_EVENT;
 	irq_cfg.val = (uint32_t) container_id;
-	irq_cfg.user_irq_id = 0;
+	irq_cfg.irq_num = 0;
 
 	err = dprc_set_irq(&dprc->io, 0, dprc->token, DPRC_IRQ_INDEX, &irq_cfg);
 	if(err){
