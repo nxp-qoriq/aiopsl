@@ -986,6 +986,7 @@ do { \
 	MC_RSP_OP(cmd, 2, 32, 32, int, 	    attr->queue_attr.dest_cfg.dest_id); \
 	MC_RSP_OP(cmd, 3, 0,  32, uint32_t, \
 		attr->queue_attr.tail_drop_threshold); \
+	MC_RSP_OP(cmd, 3, 32, 32, uint32_t, attr->queue_attr.fqid); \
 	MC_RSP_OP(cmd, 4, 0,  4,  enum dpni_flc_type, \
 		attr->queue_attr.flc_cfg.flc_type); \
 	MC_RSP_OP(cmd, 4, 4,  4,  enum dpni_stash_size, \
