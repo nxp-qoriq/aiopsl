@@ -1394,7 +1394,7 @@ __COLD_CODE int dpni_drv_set_order_scope(uint16_t ni_id, struct dpkg_profile_cfg
 	/*Mutex will be needed if the function will be supported in run time*/
 	cdma_mutex_lock_take((uint64_t)nis, CDMA_MUTEX_WRITE_LOCK); /*Lock dpni table*/
 	memset(order_scope_buffer, 0, PARAMS_IOVA_BUFF_SIZE);
-	cfg.dist_size = 0;
+	cfg.dist_size = 1;
 	err = dpni_open(&dprc->io, 0, (int)nis[ni_id].dpni_id, &dpni);
 	if(err){
 		cdma_mutex_lock_release((uint64_t)nis); /*Unlock dpni table*/
