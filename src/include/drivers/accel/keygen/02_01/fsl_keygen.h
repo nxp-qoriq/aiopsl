@@ -165,9 +165,10 @@ enum kcr_builder_parse_result_offset {
 	/** IPv6 fragmentable part offset field's offset in parser result */
 	IPV6_FRAG_OFFSET_OFFSET_IN_PR =
 			offsetof(struct parse_result, ipv6_frag_offset),
-	/** IPv6 fragmentable part offset field's offset in parser result */
+	/** Next header field before IPv6 fragment extension offset field's
+	 offset in parser result */
 	NXT_HDR_BEFORE_IPV6_FRAG_OFFSET_OFFSET_IN_PR =
-			offsetof(struct parse_result, nxt_hdr_before_ipv6_frag_ext),
+		offsetof(struct parse_result, nxt_hdr_before_ipv6_frag_ext),
 	/** Last IP NH/protocol offset field's offset in parser result */
 	IP_N_PID_OFFSET_OFFSET_IN_PR =
 			offsetof(struct parse_result, ip_n_pid_offset),
