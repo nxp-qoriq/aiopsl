@@ -161,7 +161,7 @@ __COLD_CODE static int aiop_container_init(void)
 {
 	void *p_vaddr;
 	int err = 0;
-	int container_id;
+	int container_id = -1;
 	struct dprc_irq_cfg irq_cfg;
 	/*struct mc_dprc *dprc = fsl_xmalloc(sizeof(struct mc_dprc),
 					MEM_PART_SH_RAM,
@@ -184,8 +184,8 @@ __COLD_CODE static int aiop_container_init(void)
 	/* Open root container in order to create and query for devices */
 	dprc->io.regs = p_vaddr;
 	err = dprc_get_container_id(&dprc->io, 0, &container_id);
-	if(err){
-		pr_err("Failed to get AIOP root container ID.\n");
+	if (err || (container_id == -1)) {
+		pr_err("Failed to get AIOP container ID err = %d\n", err);
 		return err;
 	}
 	err = dprc_open(&dprc->io, 0, container_id, &dprc->token);
