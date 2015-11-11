@@ -48,17 +48,14 @@ int aiop_mc_cmd_test()
 	void *p_vaddr = UINT_TO_PTR(mc_portals_vaddr);
 	int container_id = -1;
 	int err = 0;
-	struct mc_dprc dprc;
+	struct mc_dprc dprc = {0};
 	int i;
 
 	/* Get container ID from MC */
 	dprc.io.regs = p_vaddr;
-	for (i = 0; i < 10; i++) {
-		err = dprc_get_container_id(&dprc.io, 0, &container_id);
-		err |= err;
-		if (container_id == -1)
-			err |= -EINVAL;
-	}
+	err = dprc_get_container_id(&dprc.io, 0, &container_id);
+	if (container_id == -1)
+		err = -ENOENT;
 
 	return err;
 }
