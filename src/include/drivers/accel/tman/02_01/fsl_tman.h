@@ -381,8 +381,6 @@ int tman_query_tmi(uint8_t tmi_id,
 		load.
 
 @Cautions	This function performs a task switch.
-@Cautions	If TMRL!=0 (TMAN Debug field) the value of duration
-			must meet the following - 10 < duration < (2^TMRL - 10).
 
 *//***************************************************************************/
 inline int tman_create_timer(uint8_t tmi_id, uint32_t flags,
