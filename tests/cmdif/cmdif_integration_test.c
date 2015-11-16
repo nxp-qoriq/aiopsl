@@ -108,7 +108,6 @@ static int dpci_dynamic_rm_test()
 	err = dpci_drv_disable((uint32_t)attr.id);
 	ASSERT_COND(!err);
 
-#if 0
 	/*
 	 * TODO get back when MC commands will be handled without polling
 	 */
@@ -119,7 +118,6 @@ static int dpci_dynamic_rm_test()
 
 	} while ((volatile int32_t)dpci_down_ev_count < \
 		(volatile int32_t)(dpci_rm_count * 2));
-#endif
 
 	err = dpci_destroy(&dprc->io, 0, token);
 	ASSERT_COND(!err);
@@ -223,7 +221,6 @@ static int dpci_dynamic_add_test()
 	ASSERT_COND(err >= 0);
 	ASSERT_COND(g_dpci_tbl.tx_queue[err][0] != DPCI_FQID_NOT_VALID);
 
-#if 0
 	/*
 	 * TODO get back when MC commands will be handled without polling
 	 */
@@ -235,7 +232,6 @@ static int dpci_dynamic_add_test()
 
 	} while ((volatile int32_t)dpci_up_ev_count < \
 		(volatile int32_t)(dpci_add_count * 2));
-#endif
 
 	return 0;
 }
@@ -315,7 +311,7 @@ static void check_counters()
 	pr_debug("dpci_rm_event_count %d\n", dpci_rm_ev_count);
 	pr_debug("dpci_up_event_count %d\n", dpci_up_ev_count);
 	pr_debug("dpci_down_event_count %d\n", dpci_down_ev_count);
-#if 0
+
 	/*
 	 * TODO get back when MC commands will be handled without polling
 	 */
@@ -325,7 +321,6 @@ static void check_counters()
 	ASSERT_COND(dpci_rm_ev_count == (dpci_rm_count * 2));
 	ASSERT_COND(dpci_up_ev_count >= (dpci_add_count * 2));
 	ASSERT_COND(dpci_down_ev_count >= (dpci_rm_count * 2));
-#endif
 }
 
 static int close_cb(void *dev)
@@ -403,10 +398,16 @@ static int ctrl_cb0(void *dev, uint16_t cmd, uint32_t size,
 		break;
 	case DPCI_ADD:
 		err = dpci_dynamic_add_test();
+		/* Done indication for MC*/
+		err |= cmdif_send(&cidesc, 0xb | CMDIF_NORESP_CMD, 0,
+		                 CMDIF_PRI_HIGH, 0, NULL, NULL);
 		break;
 	case DPCI_RM:
 		err = dpci_dynamic_rm_test();
 		check_counters();
+		/* Done indication for MC*/
+		err |= cmdif_send(&cidesc, 0xb | CMDIF_NORESP_CMD, 0,
+		                 CMDIF_PRI_HIGH, 0, NULL, NULL);
 		break;
 	case SHBP_TEST_GPP:
 		pr_debug("Testing GPP SHBP...\n");
