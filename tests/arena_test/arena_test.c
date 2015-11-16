@@ -431,6 +431,7 @@ static int app_dpni_event_added_cb(
 	struct dpni_drv_link_state link_state = {0};
 	struct ep_init_presentation init_pres = {0};
 	struct ep_init_presentation init_orig_pres = {0};
+	struct dpni_drv_rx_tc_policing_cfg tc_pol = {0};
 	char type[16];
 	int id;
 
@@ -769,6 +770,37 @@ static int app_dpni_event_added_cb(
 		}
 		else{
 			fsl_print("dpni_drv_get_ni_id error, ni's not match %d, %d\n",(int)ni, (int)ni2);
+			test_error |= 0x1;
+		}
+	}
+
+	tc_pol.mode = DPNI_DRV_POLICER_MODE_PASS_THROUGH;
+	tc_pol.unit = DPNI_DRV_POLICER_UNIT_BYTES;
+	tc_pol.default_color = DPNI_DRV_POLICER_COLOR_RED;
+	tc_pol.options = DPNI_DRV_POLICER_OPT_COLOR_AWARE;
+
+	err = dpni_drv_set_rx_tc_policing(ni, 0, &tc_pol);
+	if(err != 0) {
+		fsl_print("Error: dpni_drv_set_rx_tc_policing error for ni %d\n",ni);
+		test_error |= err;
+	}
+	else {
+		fsl_print("dpni_drv_set_rx_tc_policing for ni %d succeeded\n",(int)ni);
+
+		memset(&tc_pol, 0, sizeof(struct dpni_drv_rx_tc_policing_cfg));
+		err = dpni_drv_get_rx_tc_policing(ni, 0, &tc_pol);
+		if(err != 0) {
+			fsl_print("ERROR: dpni_drv_get_rx_tc_policing error for ni %d\n",ni);
+			test_error |= err;
+		}
+		else if(tc_pol.mode == DPNI_DRV_POLICER_MODE_PASS_THROUGH &&
+			tc_pol.unit == DPNI_DRV_POLICER_UNIT_BYTES &&
+			tc_pol.default_color == DPNI_DRV_POLICER_COLOR_RED &&
+			tc_pol.options == DPNI_DRV_POLICER_OPT_COLOR_AWARE) {
+			fsl_print("dpni_drv_get_rx_tc_policing for ni %d succeeded\n",ni);
+		}
+		else{
+			fsl_print("Error: dpni_drv_get_rx_tc_policing, parameters not match\n");
 			test_error |= 0x1;
 		}
 	}

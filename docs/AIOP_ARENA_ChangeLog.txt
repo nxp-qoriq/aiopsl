@@ -1,3 +1,14 @@
+fsl_dpni_drv.h: API changes:
+	enum dpni_drv_early_drop_unit was changed to enum dpni_drv_congestion_unit:
+		DPNI_DRV_EARLY_DROP_UNIT_BYTES changed to DPNI_DRV_CONGESTION_UNIT_BYTES
+		DPNI_DRV_EARLY_DROP_UNIT_FRAMES changed to DPNI_DRV_CONGESTION_UNIT_FRAMES
+	struct dpni_drv_rx_tc_early_drop was changed to struct dpni_drv_early_drop_cfg
+	void dpni_drv_prepare_rx_tc_early_drop(const struct dpni_drv_rx_tc_early_drop *cfg, uint8_t *early_drop_buf) changed to
+		void dpni_drv_prepare_rx_tc_early_drop(const struct dpni_drv_early_drop_cfg *cfg, uint8_t *early_drop_buf)
+
+fsl_dpni_drv.h, dpni_drv.c: Added API to support Egress/Ingress traffic shaping:
+            dpni_drv_get_rx_tc_policing.
+
 ls2085a aiopsl, fsl_rcu.h : RCU REV1 API is no longer supported. RCU is supported only in REV2.
 
 ** AIOP SL Release v0.8_RC1 **
