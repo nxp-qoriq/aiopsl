@@ -144,6 +144,7 @@ struct dpkg_extract {
 			uint8_t size;
 			uint8_t offset;
 		} from_data;
+
 		/**
 		 * struct from_parse - Used when 'type = DPKG_EXTRACT_FROM_PARSE'
 		 * @size: Size in bytes
