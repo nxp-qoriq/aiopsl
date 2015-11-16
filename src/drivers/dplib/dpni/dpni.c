@@ -1666,7 +1666,6 @@ int dpni_get_rx_tc_early_drop(struct fsl_mc_io	*mc_io,
 			      uint64_t		early_drop_iova)
 {
 	struct mc_command cmd = { 0 };
-	int err;
 
 	/* prepare command */
 	cmd.header = mc_encode_cmd_header(DPNI_CMDID_GET_RX_TC_EARLY_DROP,
