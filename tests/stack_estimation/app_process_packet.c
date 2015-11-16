@@ -103,7 +103,7 @@ void stack_estimation(void)
 	struct dpni_drv_tx_shaping tx_shaping = {0};
 	struct dpni_drv_qos_tbl qos_tbl = {0};
 	struct dpni_drv_qos_rule qos_rule = {0};
-	struct dpni_drv_rx_tc_early_drop early_drop = {0};
+	struct dpni_drv_early_drop_cfg early_drop = {0};
  	uint16_t ni = 0, dpni_id, spid, mfl = 0;
 	uint8_t mac_addr[NET_HDR_FLD_ETH_ADDR_SIZE] = {0};
 	int state = 0;
@@ -183,6 +183,7 @@ void stack_estimation(void)
 		dpni_drv_set_tx_checksum(ni, &tx_checksum);
 		dpni_drv_get_tx_checksum(ni, &tx_checksum);
 		dpni_drv_set_rx_tc_policing(ni, tc_id, &tc_pol);
+		dpni_drv_get_rx_tc_policing(ni, tc_id, &tc_pol);
 		dpni_drv_set_tx_selection(ni, &tx_sel);
 		dpni_drv_set_tx_shaping(ni, &tx_shaping);
 		dpni_drv_set_qos_table(ni, &qos_tbl);

@@ -337,14 +337,14 @@ enum dpni_drv_early_drop_mode {
 };
 
 /**************************************************************************//**
-@Description	 enum dpni_drv_early_drop_unit - DPNI early drop units.
+@Description	 enum dpni_drv_congestion_unit - DPNI congestion units.
 
 *//***************************************************************************/
-enum dpni_drv_early_drop_unit {
+enum dpni_drv_congestion_unit {
 	/* bytes units */
-	DPNI_DRV_EARLY_DROP_UNIT_BYTES = 0,
+	DPNI_DRV_CONGESTION_UNIT_BYTES = 0,
 	/* frames units */
-	DPNI_DRV_EARLY_DROP_UNIT_FRAMES
+	DPNI_DRV_CONGESTION_UNIT_FRAMES
 };
 
 /**************************************************************************//**
@@ -367,15 +367,15 @@ struct dpni_drv_wred {
 };
 
 /**************************************************************************//**
-@Description	struct dpni_drv_rx_tc_early_drop - Structure representing
+@Description	struct dpni_drv_early_drop_cfg - Structure representing
 		early-drop configuration.
 
 *//***************************************************************************/
-struct dpni_drv_rx_tc_early_drop {
+struct dpni_drv_early_drop_cfg {
 	/* drop mode */
 	enum dpni_drv_early_drop_mode mode;
 	/* units type */
-	enum dpni_drv_early_drop_unit units;
+	enum dpni_drv_congestion_unit units;
 	/* WRED - 'green' configuration */
 	struct dpni_drv_wred green;
 	/* WRED - 'yellow' configuration */
@@ -1139,6 +1139,23 @@ int dpni_drv_set_rx_tc_policing(uint16_t ni_id, uint8_t tc_id,
 			    const struct dpni_drv_rx_tc_policing_cfg *cfg);
 
 /**************************************************************************//**
+@Function	dpni_drv_get_rx_tc_policing
+
+@Description	Function to get RX TC policing for given NI.
+
+@Param[in]	ni_id The AIOP Network Interface ID.
+
+@Param[in]	tc_id Traffic class selection (0-7)
+
+@Param[in]	cfg Traffic class policing configuration
+
+@Return	0 on success;
+	error code, otherwise. For error posix refer to \ref error_g
+*//***************************************************************************/
+int dpni_drv_get_rx_tc_policing(uint16_t ni_id, uint8_t tc_id,
+			    struct dpni_drv_rx_tc_policing_cfg * const cfg);
+
+/**************************************************************************//**
 @Function	dpni_drv_set_tx_selection
 
 @Description	Function to set transmission selection configuration for given NI.
@@ -1253,7 +1270,7 @@ int dpni_drv_clear_qos_table(uint16_t ni_id);
 
 *//***************************************************************************/
 void dpni_drv_prepare_rx_tc_early_drop(
-	const struct dpni_drv_rx_tc_early_drop *cfg,
+	const struct dpni_drv_early_drop_cfg *cfg,
 	uint8_t *early_drop_buf);
 
 /**************************************************************************//**
