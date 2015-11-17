@@ -188,7 +188,8 @@ Layout is built from 3 different sections: containers, objects, connections.
 			/*mac_addr = < 0x2 0x0 0xc0 0x0a8 0xb 0xfe >;*/	/*ipfwd_b_2_64B_4Gb_t4*/
 			max_senders = <0>;
 			options = "DPNI_OPT_MULTICAST_FILTER" , "DPNI_OPT_UNICAST_FILTER" , "DPNI_OPT_TX_CONF_DISABLED" , "DPNI_OPT_DIST_HASH";
-			max_tcs = <0>;
+			max_tcs = <1>;
+			max_policers = <1>;
 			max_dist_per_tc = < 0 0 0 0 0 0 0 0 >;
 			max_unicast_filters = <0>;
 			max_multicast_filters = <0>;
@@ -203,7 +204,8 @@ Layout is built from 3 different sections: containers, objects, connections.
 			/*mac_addr = < 0x2 0x0 0xc0 0x0a8 0xb 0xfe >;*/ /*ipfwd_b_2_64B_4Gb_t4*/
 			max_senders = <0>;
 			options = "DPNI_OPT_MULTICAST_FILTER" , "DPNI_OPT_UNICAST_FILTER" , "DPNI_OPT_TX_CONF_DISABLED" , "DPNI_OPT_DIST_HASH";
-			max_tcs = <0>;
+			max_tcs = <1>;
+			max_policers = <1>;
 			max_dist_per_tc = < 0 0 0 0 0 0 0 0 >;
 			max_unicast_filters = <0>;
 			max_multicast_filters = <0>;
