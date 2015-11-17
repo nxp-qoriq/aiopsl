@@ -2052,10 +2052,12 @@ int dpni_drv_set_rx_tc_policing(uint16_t ni_id, uint8_t tc_id,
 	uint16_t dpni;
 	struct dpni_rx_tc_policing_cfg tc_policing = {0};
 
-	if(cfg->options | DPNI_DRV_POLICER_OPT_COLOR_AWARE){
+	ASSERT_COND(dprc);
+
+	if(cfg->options & DPNI_DRV_POLICER_OPT_COLOR_AWARE){
 		tc_policing.options |= DPNI_POLICER_OPT_COLOR_AWARE;
 	}
-	if(cfg->options | DPNI_DRV_POLICER_OPT_DISCARD_RED){
+	if(cfg->options & DPNI_DRV_POLICER_OPT_DISCARD_RED){
 		tc_policing.options |= DPNI_POLICER_OPT_DISCARD_RED;
 	}
 
@@ -2072,20 +2074,20 @@ int dpni_drv_set_rx_tc_policing(uint16_t ni_id, uint8_t tc_id,
 	err = dpni_open(&dprc->io, 0, (int)nis[ni_id].dpni_id, &dpni);
 	cdma_mutex_lock_release((uint64_t)nis); /*Unlock dpni table*/
 	if(err){
-		sl_pr_err("Open DPNI failed\n");
+		pr_err("Open DPNI failed err %d\n", err);
 		return err;
 	}
 
 	err = dpni_set_rx_tc_policing(&dprc->io, 0, dpni, tc_id, &tc_policing);
 	if(err){
-		sl_pr_err("dpni_set_rx_tc_policing failed\n");
+		sl_pr_err("dpni_set_rx_tc_policing failed err %d\n", err);
 		dpni_close(&dprc->io, 0, dpni);
 		return err;
 	}
 
 	err = dpni_close(&dprc->io, 0, dpni);
 	if(err){
-		sl_pr_err("Close DPNI failed\n");
+		sl_pr_err("Close DPNI failed err %d\n", err);
 		return err;
 	}
 	return 0;
@@ -2122,10 +2124,10 @@ int dpni_drv_get_rx_tc_policing(uint16_t ni_id, uint8_t tc_id,
 	}
 
 	cfg->options = 0;
-	if(tc_policing.options | DPNI_POLICER_OPT_COLOR_AWARE){
+	if(tc_policing.options & DPNI_POLICER_OPT_COLOR_AWARE){
 		cfg->options |= DPNI_DRV_POLICER_OPT_COLOR_AWARE;
 	}
-	if(tc_policing.options | DPNI_POLICER_OPT_DISCARD_RED){
+	if(tc_policing.options & DPNI_POLICER_OPT_DISCARD_RED){
 		cfg->options |= DPNI_DRV_POLICER_OPT_DISCARD_RED;
 	}
 
