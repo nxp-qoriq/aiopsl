@@ -37,6 +37,7 @@
 #define CORE_ID_GET		(get_cpu_id() >> 4)
 
 extern struct aiop_init_info g_init_data;
+static struct mc_dprc dprc = {0};
 
 int aiop_mc_cmd_test();
 
@@ -48,11 +49,14 @@ int aiop_mc_cmd_test()
 	void *p_vaddr = UINT_TO_PTR(mc_portals_vaddr);
 	int container_id = -1;
 	int err = 0;
-	struct mc_dprc dprc = {0};
 	int i;
 
+	//pr_debug("MC portal ID[%d] addr = 0x%x\n", mc_portal_id, (uint32_t)p_vaddr);
+
 	/* Get container ID from MC */
-	dprc.io.regs = p_vaddr;
+	if (!dprc.io.regs)
+		dprc.io.regs = p_vaddr;
+
 	err = dprc_get_container_id(&dprc.io, 0, &container_id);
 	if (container_id == -1)
 		err = -ENOENT;
