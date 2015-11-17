@@ -2072,7 +2072,7 @@ int dpni_drv_set_rx_tc_policing(uint16_t ni_id, uint8_t tc_id,
 	err = dpni_open(&dprc->io, 0, (int)nis[ni_id].dpni_id, &dpni);
 	cdma_mutex_lock_release((uint64_t)nis); /*Unlock dpni table*/
 	if(err){
-		pr_err("Open DPNI failed err %d\n", err);
+		sl_pr_err("Open DPNI failed err %d\n", err);
 		return err;
 	}
 
