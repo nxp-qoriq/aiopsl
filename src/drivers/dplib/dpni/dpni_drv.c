@@ -2052,8 +2052,6 @@ int dpni_drv_set_rx_tc_policing(uint16_t ni_id, uint8_t tc_id,
 	uint16_t dpni;
 	struct dpni_rx_tc_policing_cfg tc_policing = {0};
 
-	ASSERT_COND(dprc);
-
 	if(cfg->options & DPNI_DRV_POLICER_OPT_COLOR_AWARE){
 		tc_policing.options |= DPNI_POLICER_OPT_COLOR_AWARE;
 	}
