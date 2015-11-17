@@ -49,7 +49,6 @@ int aiop_mc_cmd_test()
 	void *p_vaddr = UINT_TO_PTR(mc_portals_vaddr);
 	int container_id = -1;
 	int err = 0;
-	int i;
 
 	//pr_debug("MC portal ID[%d] addr = 0x%x\n", mc_portal_id, (uint32_t)p_vaddr);
 

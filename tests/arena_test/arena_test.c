@@ -781,7 +781,7 @@ static int app_dpni_event_added_cb(
 
 	err = dpni_drv_set_rx_tc_policing(ni, 0, &tc_pol);
 	if(err != 0) {
-		fsl_print("Error: dpni_drv_set_rx_tc_policing error for ni %d\n",ni);
+		fsl_print("Error: dpni_drv_set_rx_tc_policing error %d for ni %d\n",err, ni);
 		test_error |= err;
 	}
 	else {
