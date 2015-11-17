@@ -149,15 +149,6 @@ __HOT_CODE ENTRY_POINT static void app_process_packet(void)
 		fsl_print("spid is %d for packet %d\n",spid_ddr, local_packet_number);
 	}
 
-
-	err = aiop_mc_cmd_test();
-	if (err) {
-		fsl_print("ERROR = %d: aiop_mc_cmd_test failed in runtime phase()\n", err);
-		local_test_error |= err;
-	} else {
-		fsl_print("aiop_mc_cmd_test passed in runtime phase()\n");
-	}
-
 	err = pton_test();
 	if (err) {
 		fsl_print("ERROR = %d: pton_test failed in runtime phase()\n", err);
@@ -800,6 +791,11 @@ static int app_dpni_event_added_cb(
 			fsl_print("dpni_drv_get_rx_tc_policing for ni %d succeeded\n",ni);
 		}
 		else{
+			fsl_print("tc_pol.mode = %d \n",  (int)tc_pol.mode);
+			fsl_print("tc_pol.unit = %d \n",  (int)tc_pol.unit);
+			fsl_print("tc_pol.default_color = %d \n",  (int)tc_pol.default_color);
+			fsl_print("tc_pol.options = 0x%x \n",  tc_pol.options);
+
 			fsl_print("Error: dpni_drv_get_rx_tc_policing, parameters not match\n");
 			test_error |= 0x1;
 		}
