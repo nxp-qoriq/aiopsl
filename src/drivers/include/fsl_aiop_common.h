@@ -59,8 +59,7 @@ enum aiop_epid_table {
  @Description   SPID table
 *//***************************************************************************/
 enum aiop_spid_table {
-	/* After ENGR00366149 is fixed set AIOP_SPID_CMDIF to 0*/
-	AIOP_SPID_CMDIF           = 0,   /**< SPID for command interface */
+	AIOP_SPID_CMDIF           = 0,     /**< SPID for command interface */
 	AIOP_SPID_DPNI_START      = 1      /**< DPNI's first SPID */
 };
 
