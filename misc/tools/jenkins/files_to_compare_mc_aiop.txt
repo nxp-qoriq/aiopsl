@@ -10,12 +10,12 @@ mc/src/kernel/include/fsl_cmdif_flib_c.h:aiop/src/kernel/include/fsl_cmdif_flib_
 mc/src/kernel/cmdif/cmdif_client_flib.c:aiop/src/kernel/cmdif/cmdif_client_flib.c:B17975
 mc/src/kernel/cmdif/cmdif_client_flib.h:aiop/src/kernel/cmdif/cmdif_client_flib.h:B17975
 mc/tests/cmdif/srv/fsl_cmdif_server.h:aiop/src/include/kernel/fsl_cmdif_server.h:B17975
-mc/tests/cmdif/srv/cmdif_srv_flib.h:aiop/src/kernel/cmdif_srv_flib.h:B17975
+mc/tests/cmdif/srv/cmdif_srv_flib.h:aiop/src/kernel/cmdif/cmdif_srv_flib.h:B17975
 mc/src/kernel/include/fsl_sl_dbg.h:aiop/src/kernel/include/fsl_sl_dbg.h:B17975
 mc/src/include/kernel/fsl_errors.h:aiop/src/include/kernel/fsl_errors.h:B49560
 mc/src/include/common/fsl_string.h:aiop/src/include/common/fsl_string.h:B49560
-mc/tests/cmdif/shbp/shbp_flib.c:aiop/src/lib/shbp_flib.c:B17975                   
-mc/tests/cmdif/shbp/shbp_flib.h:aiop/src/lib/shbp_flib.h:B17975
+mc/tests/cmdif/shbp/shbp_flib.c:aiop/src/lib/shbp/shbp_flib.c:B17975                   
+mc/tests/cmdif/shbp/shbp_flib.h:aiop/src/lib/shbp/shbp_flib.h:B17975
 mc/tests/cmdif/shbp/fsl_shbp_flib.h:aiop/src/lib/include/fsl_shbp_flib.h:B17975       
 mc/tests/cmdif/shbp/fsl_shbp_host.h:aiop/src/lib/include/fsl_shbp_host.h:B17975    
 mc/src/lib/util/memcpy.c:aiop/src/lib/util/memcpy.c:B42006
