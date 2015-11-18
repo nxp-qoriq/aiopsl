@@ -33,6 +33,7 @@
 #include <fsl_mc_cmd.h>
 #include <fsl_dprc.h>
 #include <fsl_dprc_cmd.h>
+#include "fsl_dbg.h"
 
 int dprc_get_container_id(struct fsl_mc_io *mc_io,
 			  uint32_t cmd_flags,
