@@ -3,7 +3,7 @@ mc/src/include/kernel/fsl_io.h:aiop/src/include/kernel/fsl_io.h:B49560
 mc/src/drivers/include/fsl_duart.h:aiop/src/drivers/include/fsl_duart.h:B49560
 mc/src/drivers/serial/duart/duart.h:aiop/src/drivers/serial/duart/duart.h:B49560
 mc/src/drivers/serial/duart/duart.c:aiop/src/drivers/serial/duart/duart.c:B49560
-mc/src/drivers/dpmng/include/fsl_aiop_common.h:aiopsl/src/drivers/include/fsl_aiop_common.h:B17975
+mc/src/drivers/dpmng/include/fsl_aiop_common.h:aiop/src/drivers/include/fsl_aiop_common.h:B17975
 mc/src/include/kernel/fsl_cmdif_client.h:aiop/src/include/kernel/fsl_cmdif_client.h:B17975
 mc/src/kernel/include/fsl_cmdif_flib_fd.h:aiop/src/kernel/include/fsl_cmdif_flib_fd.h:B17975
 mc/src/kernel/include/fsl_cmdif_flib_c.h:aiop/src/kernel/include/fsl_cmdif_flib_c.h:B17975
