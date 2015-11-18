@@ -1,3 +1,7 @@
+dpl.dts/dtb: Set max_policers per DPNI to 1. The change is required for dpni_drv_set/get_rx_tc_policing testing.
+
+fsl_aiop_cmdif.h: Following the fix of ENGR00366149 on MC. CMDIF uses SPID=0 for store commands. 
+
 fsl_dpni_drv.h: API changes:
 	enum dpni_drv_early_drop_unit was changed to enum dpni_drv_congestion_unit:
 		DPNI_DRV_EARLY_DROP_UNIT_BYTES changed to DPNI_DRV_CONGESTION_UNIT_BYTES
