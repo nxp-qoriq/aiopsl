@@ -283,8 +283,7 @@ User should select one of the following:
 #define TABLE_STATUS_SUCCESS	0x00000000
 
 /** Miss Occurred.
- * This status is set when a matching rule is not found. Note that on chained
- * lookups this status is set only if the last lookup results in a miss. */
+ * This status is set when a matching rule is not found. */
 #define TABLE_STATUS_MISS	0x00000800
 
 /** @} */ /* end of FSL_TABLE_STATUS */
@@ -356,9 +355,6 @@ This field can be used either:
 - As a pointer to Slab/CDMA acquired buffer (which has reference counter).
 \ref table_result type field should be set to #TABLE_RESULT_TYPE_REFERENCE.\n
 Returned as part of lookup result.
-- As a structure containing table ID and Key ID parameters for a chained
-lookup. \ref table_result type field should be set to
-#TABLE_RESULT_TYPE_CHAINING.
 *//***************************************************************************/
 #pragma pack(push, 1)
 union table_result_op0_refptr_clp {
@@ -396,18 +392,15 @@ struct table_result {
 	User should not access this field. */
 	uint16_t reserved;
 
-	/** Opaque data - Returned as part of lookup result.
-	Not valid when type is set to #TABLE_RESULT_TYPE_CHAINING */
+	/** Opaque data - Returned as part of lookup result. */
 	uint8_t  opaque2;
 
-	/** Opaque0 or Reference Pointer or Chained Lookup Parameters.
-	Chained Lookup is not available in Rev1.\n
+	/** Opaque0 or Reference Pointer
 	For more details please refer to \link table_result_op0_refptr_clp
 	structure documentation\endlink. */
 	union table_result_op0_refptr_clp op0_rptr_clp;
 
-	/** Opaque data - Returned as part of lookup result.
-	Not valid when type is set to #TABLE_RESULT_TYPE_CHAINING */
+	/** Opaque data - Returned as part of lookup result. */
 	uint64_t opaque1;
 };
 #pragma pack(pop)
