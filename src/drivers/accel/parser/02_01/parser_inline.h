@@ -274,8 +274,6 @@ inline void parser_pop_vlan_update()
 				pr->l5_offset = temp_8b - sizeof(struct vlanhdr);
 			pr->nxt_hdr_offset = pr->nxt_hdr_offset - sizeof(struct vlanhdr);
 			pr->gross_running_sum = 0;
-			pr->nxt_hdr_before_ipv6_frag_ext = pr->nxt_hdr_before_ipv6_frag_ext - sizeof(struct vlanhdr);
-			pr->ip_n_pid_offset = pr->ip_n_pid_offset - sizeof(struct vlanhdr);
 	}
 	/* IPV6 */
 	else {
@@ -301,8 +299,6 @@ inline void parser_pop_vlan_update()
 				temp_8b = pr->ipv6_frag_offset;
 				if (temp_8b != PARSER_UNINITILIZED_FIELD_OF_BYTE)
 					pr->ipv6_frag_offset = temp_8b - sizeof(struct vlanhdr);
-				pr->nxt_hdr_before_ipv6_frag_ext = pr->nxt_hdr_before_ipv6_frag_ext - sizeof(struct vlanhdr);
-				pr->ip_n_pid_offset = pr->ip_n_pid_offset - sizeof(struct vlanhdr);
 		}
 		/* not a common stack */
 		else {
@@ -328,8 +324,6 @@ inline void parser_pop_vlan_update()
 			temp_8b = pr->ipn_or_minencapO_offset;
 			if (temp_8b != PARSER_UNINITILIZED_FIELD_OF_BYTE)
 				pr->ipn_or_minencapO_offset = temp_8b - sizeof(struct vlanhdr);
-			else
-				pr->ipn_or_minencapO_offset = pr->l3_offset;
 			temp_8b = pr->gre_offset;
 			if (temp_8b != PARSER_UNINITILIZED_FIELD_OF_BYTE)
 				pr->gre_offset = temp_8b - sizeof(struct vlanhdr);
@@ -352,8 +346,12 @@ inline void parser_pop_vlan_update()
 			if (temp_8b != PARSER_UNINITILIZED_FIELD_OF_BYTE)
 				pr->ipv6_frag_offset = temp_8b - sizeof(struct vlanhdr);
 			pr->gross_running_sum = 0;	//reset gross_running_sum
-			pr->nxt_hdr_before_ipv6_frag_ext = pr->nxt_hdr_before_ipv6_frag_ext - sizeof(struct vlanhdr);
-			pr->ip_n_pid_offset = pr->ip_n_pid_offset - sizeof(struct vlanhdr);
+			temp_8b = pr->nxt_hdr_before_ipv6_frag_ext;
+			if (temp_8b != PARSER_UNINITILIZED_FIELD_OF_BYTE)
+				pr->nxt_hdr_before_ipv6_frag_ext = temp_8b - sizeof(struct vlanhdr);
+			temp_8b = pr->ip_n_pid_offset;
+			if (temp_8b != PARSER_UNINITILIZED_FIELD_OF_BYTE)
+				pr->ip_n_pid_offset = temp_8b - sizeof(struct vlanhdr);
 		}
 	}
 
@@ -431,8 +429,6 @@ inline void parser_push_vlan_update()
 				pr->l5_offset = temp_8b + sizeof(struct vlanhdr);
 			pr->nxt_hdr_offset = pr->nxt_hdr_offset + sizeof(struct vlanhdr);
 			pr->gross_running_sum = 0;
-			pr->nxt_hdr_before_ipv6_frag_ext = pr->nxt_hdr_before_ipv6_frag_ext + sizeof(struct vlanhdr);
-			pr->ip_n_pid_offset = pr->ip_n_pid_offset + sizeof(struct vlanhdr);
 	}
 	else {
 		if ((l3_protocol == NET_ETH_ETYPE_IPV6) && 
@@ -457,8 +453,6 @@ inline void parser_push_vlan_update()
 				temp_8b = pr->ipv6_frag_offset;
 				if (temp_8b != PARSER_UNINITILIZED_FIELD_OF_BYTE)
 					pr->ipv6_frag_offset = temp_8b + sizeof(struct vlanhdr);
-				pr->nxt_hdr_before_ipv6_frag_ext = pr->nxt_hdr_before_ipv6_frag_ext + sizeof(struct vlanhdr);
-				pr->ip_n_pid_offset = pr->ip_n_pid_offset + sizeof(struct vlanhdr);
 		}
 		/* not a common stack */
 		else {
@@ -484,8 +478,6 @@ inline void parser_push_vlan_update()
 			temp_8b = pr->ipn_or_minencapO_offset;
 			if (temp_8b != PARSER_UNINITILIZED_FIELD_OF_BYTE)
 				pr->ipn_or_minencapO_offset = temp_8b + sizeof(struct vlanhdr);
-			else
-				pr->ipn_or_minencapO_offset = pr->l3_offset;
 			temp_8b = pr->gre_offset;
 			if (temp_8b != PARSER_UNINITILIZED_FIELD_OF_BYTE)
 				pr->gre_offset = temp_8b + sizeof(struct vlanhdr);
@@ -501,14 +493,18 @@ inline void parser_push_vlan_update()
 				temp_8b = pr->routing_hdr_offset2;
 				if (temp_8b != PARSER_UNINITILIZED_FIELD_OF_BYTE)
 					pr->routing_hdr_offset2 = temp_8b + sizeof(struct vlanhdr);
-			}	
+			}
 			pr->nxt_hdr_offset = pr->nxt_hdr_offset + sizeof(struct vlanhdr);
 			temp_8b = pr->ipv6_frag_offset;
 			if (temp_8b != PARSER_UNINITILIZED_FIELD_OF_BYTE)
 				pr->ipv6_frag_offset = temp_8b + sizeof(struct vlanhdr);
 			pr->gross_running_sum = 0;	//reset gross_running_sum
-			pr->nxt_hdr_before_ipv6_frag_ext = pr->nxt_hdr_before_ipv6_frag_ext + sizeof(struct vlanhdr);
-			pr->ip_n_pid_offset = pr->ip_n_pid_offset + sizeof(struct vlanhdr);
+			temp_8b = pr->nxt_hdr_before_ipv6_frag_ext;
+			if (temp_8b != PARSER_UNINITILIZED_FIELD_OF_BYTE)
+				pr->nxt_hdr_before_ipv6_frag_ext = temp_8b + sizeof(struct vlanhdr);
+			temp_8b = pr->ip_n_pid_offset;
+			if (temp_8b != PARSER_UNINITILIZED_FIELD_OF_BYTE)
+				pr->ip_n_pid_offset = temp_8b + sizeof(struct vlanhdr);
 		}
 	}
 

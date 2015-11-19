@@ -1,3 +1,7 @@
+dpl.dts/dtb: Set max_policers per DPNI to 1. The change is required for dpni_drv_set/get_rx_tc_policing testing.
+
+fsl_aiop_cmdif.h: Following the fix of ENGR00366149 on MC. CMDIF uses SPID=0 for store commands. 
+
 fsl_dpni_drv.h: API changes:
 	enum dpni_drv_early_drop_unit was changed to enum dpni_drv_congestion_unit:
 		DPNI_DRV_EARLY_DROP_UNIT_BYTES changed to DPNI_DRV_CONGESTION_UNIT_BYTES
@@ -11,7 +15,7 @@ fsl_dpni_drv.h, dpni_drv.c: Added API to support Egress/Ingress traffic shaping:
 
 ls2085a aiopsl, fsl_rcu.h : RCU REV1 API is no longer supported. RCU is supported only in REV2.
 
-** AIOP SL Release v0.8_RC1 **
+** AIOP SL Release v0.8_RC1 ** --------- Released devices: LS1088A, LS2088A ---------
 A simulator configuration file should contain the line:
               for all devices(e.g. ls1088a_sys_test.cfg,ls2088a_sys_test.cfg etc.)
               type=1000 top.mc.regs.MCFBALR.write:0xe0000001
@@ -88,7 +92,7 @@ build/aiop_sim/ : Moved build/aiop_sim/ projects to build/ls2085a/rev1/.
 ls1088a/config.c: Deleted deprecated macros. In case of build error refer to apps.h of app_process_packet.
 ls1088a/config.c: Deleted deprecated macros. In case of build error refer to apps.h of app_process_packet.
 
-** AIOP SL Release v1088_ENG_0.1 **
+** AIOP SL Release v1088_ENG_0.1 ** --------- Released devices: LS1088A ---------
 ls1088a_sim_init_params.cfg: Added flag to fix simulator issue with ipsec (only for 1088): caam.ENGR00356656_fix=true
 ls1088/2085a_sim_init_params.cfg: Added flag due to a simulator bug: aiop.fdma.concat_sl_flg=false
 aiopsl .project:            Removed RCU API from ls1088a aiopsl project, rcu_synchronize() implementation is not yet finalized for ls1088a.
@@ -102,7 +106,7 @@ sim_files/*.cfg:     Moved to misc/sim/*.cfg
 cmdif_srv_flib.c: Fix ENGR00361727 inst_alloc can't alloc all instance
 cmdif_srv.c:      Fix ENGR00361727 inst_alloc can't alloc all instance
 
-** AIOP SL Release v0.7.1.0 **
+** AIOP SL Release v0.7.1.0 ** --------- Released devices: LS2085A ---------
 dpni_drv.c/fsl_dpni_drv.h: Added new API to get connected object for given NI and to get NI for given object ID and type.
                            int dpni_drv_get_connected_obj(const uint16_t aiop_niid, int *id, char type[16], int *state);
                            int dpni_drv_get_connected_ni(const int id, const char type[16], uint16_t *aiop_niid, int *state);
@@ -118,7 +122,7 @@ cmdif_client.c:   Fix ENGR00361548 cmdif_cl_isr should have SET_FRAME_TYPE()
 dpni_drv.c: Fix for nested mutex calls when calling functions: dpni_drv_get_dpni_id() and dpni_drv_get_ni_id() - ENGR00361988
 dpni_drv.c: Added fix to distinguish between DPNI and NI (AIOPSL) ids in EPID table during the probe - ENGR00362157.
 
-** AIOP SL Release v0.7.0 **
+** AIOP SL Release v0.7.0 ** --------- Released devices: LS2085A ---------
 cmdif_srv.c:               Added error that will be returned to cmdif_open() if it is called before AIOP has finished the linkup setup of this DPCI.
 fsl_dpci_drv.h:            Added new API for dpci_drv_linkup().
 cmdif_integration_test.c : Added registration for DPCI events in order to enable the AIOP side DPCIs.

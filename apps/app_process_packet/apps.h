@@ -60,7 +60,7 @@
 *//***************************************************************************/
 #define APP_MEM_DP_DDR_SIZE	ARCH_DP_DDR_SIZE/**< DP DDR size */
 #define APP_MEM_PEB_SIZE	(512 * KILOBYTE)/**< PEB size */
-#define APP_MEM_SYS_DDR1_SIZE 	(64 * MEGABYTE)	/**< System DDR size */
+#define APP_MEM_SYS_DDR1_SIZE 	(32 * MEGABYTE)	/**< System DDR size */
 
 /** @} */ /* end of app_mem */
 
