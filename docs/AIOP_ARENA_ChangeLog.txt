@@ -1,3 +1,12 @@
+** AIOP SL Release v0.8 ** --------- Released devices: LS1088A, LS2088A, LS2085A ---------
+
+IMPORTANT NOTE: LS2088A and LS1088A changes are relative to AIOP SL Release v0.8_RC1.
+IMPORTANT NOTE: LS2085A changes are relative to AIOP SL Release v0.7.1.1. 
+In addition to this release please look at the following releases for the full list of the changes for LS2085A.
+The changes as described under the following log tags are relevant for LS2085A though it was not part of that release.
+1. AIOP SL Release v0.8_RC1
+2. AIOP SL Release v1088_ENG_0.1
+
 dpl.dts/dtb: Set max_policers per DPNI to 1. The change is required for dpni_drv_set/get_rx_tc_policing testing.
 
 fsl_aiop_cmdif.h: Following the fix of ENGR00366149 on MC. CMDIF uses SPID=0 for store commands. 
