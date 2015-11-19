@@ -33,8 +33,8 @@
 #define _FSL_DPNI_CMD_H
 
 /* DPNI Version */
-#define DPNI_VER_MAJOR				5
-#define DPNI_VER_MINOR				1
+#define DPNI_VER_MAJOR				6
+#define DPNI_VER_MINOR				0
 
 /* Command IDs */
 #define DPNI_CMDID_OPEN				0x801
