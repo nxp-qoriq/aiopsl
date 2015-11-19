@@ -342,7 +342,7 @@ static int configure_dpni_params(struct mc_dprc *dprc, uint16_t aiop_niid, uint1
 {
 	struct dpni_buffer_layout layout = {0};
 	struct dpni_sp_info sp_info = { 0 };
-	struct dpni_attr attributes;
+	struct dpni_attr attributes = { 0 };
 	int err;
 
 	err = dpni_get_attributes(&dprc->io,
