@@ -10,7 +10,7 @@ fsl_dpni_drv.h: API changes:
 	void dpni_drv_prepare_rx_tc_early_drop(const struct dpni_drv_rx_tc_early_drop *cfg, uint8_t *early_drop_buf) changed to
 		void dpni_drv_prepare_rx_tc_early_drop(const struct dpni_drv_early_drop_cfg *cfg, uint8_t *early_drop_buf)
 
-fsl_dpni_drv.h, dpni_drv.c: Added API to support Egress/Ingress traffic shaping:
+fsl_dpni_drv.h, dpni_drv.c: Added API to support ingress traffic shaping:
             dpni_drv_get_rx_tc_policing.
 
 ls2085a aiopsl, fsl_rcu.h : RCU REV1 API is no longer supported. RCU is supported only in REV2.
