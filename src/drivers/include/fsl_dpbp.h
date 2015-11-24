@@ -371,30 +371,30 @@ int dpbp_get_attributes(struct fsl_mc_io	*mc_io,
 			struct dpbp_attr	*attr);
 
 /**
- *  DPBP notifications options 
+ *  DPBP notifications options
  */
 
-/** 
- * BPSCN write will attempt to allocate into a cache (coherent write) 
+/**
+ * BPSCN write will attempt to allocate into a cache (coherent write)
  */
 #define DPBP_NOTIF_OPT_COHERENT_WRITE	0x00000001
 
 /**
  * struct dpbp_notification_cfg - Structure representing DPBP notifications
- * 	towards software
+ *	towards software
  * @depletion_entry: below this threshold the pool is "depleted";
- * 	set it to '0' to disable it
+ *	set it to '0' to disable it
  * @depletion_exit: greater than or equal to this threshold the pool exit its
- * 	"depleted" state
+ *	"depleted" state
  * @surplus_entry: above this threshold the pool is in "surplus" state;
- * 	set it to '0' to disable it
+ *	set it to '0' to disable it
  * @surplus_exit: less than or equal to this threshold the pool exit its
- * 	"surplus" state
+ *	"surplus" state
  * @message_iova: MUST be given if either 'depletion_entry' or 'surplus_entry'
- * 	is not '0' (enable); I/O virtual address (must be in DMA-able memory),
- * 	must be 16B aligned.
+ *	is not '0' (enable); I/O virtual address (must be in DMA-able memory),
+ *	must be 16B aligned.
  * @message_ctx: The context that will be part of the BPSCN message and will
- * 	be written to 'message_iova'
+ *	be written to 'message_iova'
  * @options: Mask of available options; use 'DPBP_NOTIF_OPT_<X>' values
  */
 struct dpbp_notification_cfg {
@@ -431,7 +431,7 @@ int dpbp_set_notifications(struct fsl_mc_io	*mc_io,
  * Return:	'0' on Success; Error code otherwise.
  */
 int dpbp_get_notifications(struct fsl_mc_io	*mc_io,
-			      uint32_t		cmd_flags,
+			   uint32_t		cmd_flags,
 			      uint16_t		token,
 			      struct dpbp_notification_cfg	*cfg);
 

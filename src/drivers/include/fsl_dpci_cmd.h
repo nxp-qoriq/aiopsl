@@ -164,7 +164,6 @@ do { \
 #define DPCI_RSP_GET_LINK_STATE(cmd, up) \
 	MC_RSP_OP(cmd, 0, 0,  1,  int,	    up)
 
-
 /*                cmd, param, offset, width, type, arg_name */
 #define DPCI_CMD_SET_RX_QUEUE(cmd, priority, cfg) \
 do { \
@@ -197,6 +196,5 @@ do { \
 /*                cmd, param, offset, width, type, arg_name */
 #define DPCI_RSP_GET_TX_QUEUE(cmd, attr) \
 	MC_RSP_OP(cmd, 0, 32, 32, uint32_t,  attr->fqid)
-
 
 #endif /* _FSL_DPCI_CMD_H */
