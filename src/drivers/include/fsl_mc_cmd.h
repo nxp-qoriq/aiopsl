@@ -56,7 +56,7 @@ struct mc_command {
  * enum mc_cmd_status - indicates MC status at command response
  * @MC_CMD_STATUS_OK: Completed successfully
  * @MC_CMD_STATUS_READY: Ready to be processed
- * @MC_CMD_STATUS_AUTH_ERR: Authentication error
+ * @MC_CMD_STATUS_TOKEN_ERR: Authentication error
  * @MC_CMD_STATUS_NO_PRIVILEGE: No privilege
  * @MC_CMD_STATUS_DMA_ERR: DMA or I/O error
  * @MC_CMD_STATUS_CONFIG_ERR: Configuration error
@@ -70,7 +70,7 @@ struct mc_command {
 enum mc_cmd_status {
 	MC_CMD_STATUS_OK = 0x0,
 	MC_CMD_STATUS_READY = 0x1,
-	MC_CMD_STATUS_AUTH_ERR = 0x3,
+	MC_CMD_STATUS_TOKEN_ERR = 0x3,
 	MC_CMD_STATUS_NO_PRIVILEGE = 0x4,
 	MC_CMD_STATUS_DMA_ERR = 0x5,
 	MC_CMD_STATUS_CONFIG_ERR = 0x6,
