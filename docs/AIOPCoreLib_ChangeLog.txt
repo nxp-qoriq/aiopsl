@@ -4,10 +4,12 @@ LDPAA AIOP SERVICE LAYER LDPAA-AIOP-SL-v0.8 Change Log
 Changes made for ls2085a rev1:
 GRO - Fix GRO TCP checksum calculation (ENGR366470).
 Frame Operations: TKT285303 - Set PTA in created frames for later use if storage profile ptar is set (it will not be possible to add PTA to the frame later otherwise).
-
+HF-NIC:
+	* Change: Enter into OSM exclusive mode before enqueue, since default EPID was changed to work in concurrent mode for HF-NIC.
 
 Changes made for ls1088a rev1 and ls2088a rev1:
-
+HF-NIC:
+	* Change: Enter into OSM exclusive mode before enqueue, since default EPID was changed to work in concurrent mode for HF-NIC.
 
 
 
@@ -15,9 +17,6 @@ LDPAA AIOP SERVICE LAYER LDPAA-AIOP-SL-v0.8_RC1 Change Log
 ======================================================================
 
 Changes made for ls2085a rev1:
-
-HF-NIC:
-	* Change: Enter into OSM exclusive mode before enqueue, since default EPID was changed to work in concurrent mode for HF-NIC.
 
 IPR:
 	* Add requirement of nested due to replacement of mutex by OSM nested
@@ -46,8 +45,7 @@ GSO:
 	* Added w/a for TKT280408
 
 Changes made for ls1088a rev1 and ls2088a rev1:
-HF-NIC:
-	* Change: Enter into OSM exclusive mode before enqueue, since default EPID was changed to work in concurrent mode for HF-NIC.
+
 IPR:
 	* Add requirement of nested due to replacement of mutex by OSM nested
 	* Fix first_frag_hdr_length calculation for IPv6 (ENGR00366465)
