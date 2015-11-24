@@ -67,6 +67,8 @@
 #define PARAMS_IOVA_BUFF_SIZE         256
 #define PARAMS_IOVA_ALIGNMENT         8
 #define DPNI_DRV_PTA_SIZE             64
+/*The default flow ID for AIOP is 0 (Received in initialize_dpni())*/
+#define DPNI_DRV_AIOP_TX_FLOW_ID      0
 
 /* Default DPNI requirements values */
 #define DPNI_DRV_DHR_DEF              96 /* Data Head Room */

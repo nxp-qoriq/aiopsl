@@ -28,6 +28,7 @@
 #include "fsl_gen.h"
 #include "apps.h"
 #include "fsl_platform.h"
+#include "fsl_sys.h"
 
 /*
  * AIOP SL users should not modify this file.
@@ -57,9 +58,9 @@ struct aiop_init_info g_init_data =
 {
  /* aiop_sl_init_info */
  {
-  6,		/* aiop_rev_major     AIOP  */
-  0,		/* aiop_rev_minor     AIOP  */
-  0,		/* revision           AIOP */
+  SYS_REV_MAJOR,	/* aiop_rev_major     AIOP  */
+  SYS_REV_MINOR,	/* aiop_rev_minor     AIOP  */
+  SYS_REVISION,		/* revision           AIOP */
   0,            /* base_spid MC */
   0x6000000000,	/* dp_ddr_phys_addr      */
   0x40000000,	/* dp_ddr_virt_addr      */

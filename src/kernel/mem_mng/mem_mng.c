@@ -206,7 +206,6 @@ int  mem_mng_init(void *  h_boot_mem_mng,
     ASSERT_COND_LIGHT(h_boot_mem_mng);
     if(NULL == h_boot_mem_mng)
         return NULL;
-    struct initial_mem_mng* boot_mem_mng = (struct initial_mem_mng*)h_boot_mem_mng;
     /*rc = boot_get_mem_virt(boot_mem_mng,sizeof(t_mem_mng),&mem_mng_addr);
     if (rc)
     {
@@ -550,10 +549,9 @@ uint32_t mem_mng_check_leaks(void*                 h_mem_mng,
 #endif
 
     uint32_t            count = 0;
-    uint32_t  i = 0, array_size = 0;
+    uint32_t  i = 0;
 
 /* Search in registered partitions */
-    array_size = ARRAY_SIZE(p_mem_mng->mem_partitions_array);
     p_partition  = &p_mem_mng->mem_partitions_array[partition_id];
     if(p_partition->id != partition_id)
     {

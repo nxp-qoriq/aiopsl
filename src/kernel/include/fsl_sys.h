@@ -48,6 +48,11 @@
 		This structure must be specifically defined by each app.
 *//***************************************************************************/
 
+/* Same version for all the devices */
+#define SYS_REV_MAJOR	7
+#define SYS_REV_MINOR	0
+#define SYS_REVISION	0
+
 /*!
  * @ingroup aiopapp_init
  * Struct defining the AIOP Applicatoins initialization and de-initialliation

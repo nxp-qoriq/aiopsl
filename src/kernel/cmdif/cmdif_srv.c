@@ -409,8 +409,6 @@ __COLD_CODE int notify_open()
 	struct cmdif_cl *cl = sys_get_unique_handle(FSL_MOD_CMDIF_CL);
 	int ind = 0;
 	int link_up = 1;
-	int err = 0;
-	int i = 0;
 
 	/* Create descriptor for client session */
 	ASSERT_COND_LIGHT(cl != NULL);

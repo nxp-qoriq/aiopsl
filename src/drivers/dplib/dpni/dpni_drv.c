@@ -342,7 +342,7 @@ static int configure_dpni_params(struct mc_dprc *dprc, uint16_t aiop_niid, uint1
 {
 	struct dpni_buffer_layout layout = {0};
 	struct dpni_sp_info sp_info = { 0 };
-	struct dpni_attr attributes;
+	struct dpni_attr attributes = { 0 };
 	int err;
 
 	err = dpni_get_attributes(&dprc->io,
@@ -530,11 +530,11 @@ static int initialize_dpni(struct mc_dprc *dprc, uint16_t mc_niid, uint16_t aiop
 
 	/* Create flow ID 0 for every probed NI*/
 	err = dpni_set_tx_flow(&dprc->io, 0, dpni, &flow_id, &tx_flow_cfg);
-	if(err || flow_id != 0){
+	if(err || flow_id != DPNI_DRV_AIOP_TX_FLOW_ID){
 		sl_pr_err("dpni_set_tx_flow failed for DP-NI%d\n",
 		          mc_niid);
 		dpni_close(&dprc->io, 0, dpni);
-		if(err == 0 && flow_id != 0){
+		if(err == 0 && flow_id != DPNI_DRV_AIOP_TX_FLOW_ID){
 			sl_pr_err("Wrong or not supported flow ID %d for DP-NI%d\n",
 					flow_id, mc_niid);
 			return -ENOTSUP;
@@ -1977,6 +1977,8 @@ int dpni_drv_set_tx_checksum(uint16_t ni_id,
 	struct mc_dprc *dprc = sys_get_unique_handle(FSL_MOD_AIOP_RC);
 	int err;
 	uint16_t dpni;
+	uint16_t flow_id = DPNI_DRV_AIOP_TX_FLOW_ID;
+
 	struct dpni_tx_flow_cfg dpni_cfg = { 0 };
 
 	dpni_cfg.options |= DPNI_TX_FLOW_OPT_L3_CHKSUM_GEN;
@@ -1996,7 +1998,7 @@ int dpni_drv_set_tx_checksum(uint16_t ni_id,
 		sl_pr_err("Open DPNI failed\n");
 		return err;
 	}
-	err = dpni_set_tx_flow(&dprc->io, 0, dpni, 0, &dpni_cfg);
+	err = dpni_set_tx_flow(&dprc->io, 0, dpni, &flow_id, &dpni_cfg);
 	if(err){
 		sl_pr_err("dpni_set_tx_flow failed\n");
 		dpni_close(&dprc->io, 0, dpni);
@@ -2026,7 +2028,7 @@ int dpni_drv_get_tx_checksum(uint16_t ni_id,
 		return err;
 	}
 
-	err = dpni_get_tx_flow(&dprc->io, 0, dpni, 0, &dpni_attr);
+	err = dpni_get_tx_flow(&dprc->io, 0, dpni, DPNI_DRV_AIOP_TX_FLOW_ID, &dpni_attr);
 	if(err){
 		sl_pr_err("dpni_get_tx_flow failed\n");
 		dpni_close(&dprc->io, 0, dpni);

@@ -769,9 +769,7 @@ __COLD_CODE static int dpci_for_mc_add(struct mc_dprc *dprc)
 	struct dprc_endpoint endpoint2;
 	struct dprc_connection_cfg connection_cfg;
 	struct dpci_attr attr;
-	uint8_t p = 0;
 	int     err = 0;
-	int     link_up = 0;
 
 	memset(&queue_cfg, 0, sizeof(struct dpci_rx_queue_cfg));
 	memset(&attr, 0, sizeof(attr));
@@ -846,7 +844,6 @@ __COLD_CODE int dpci_drv_init()
 {
 	struct dprc_obj_desc dev_desc;
 	struct mc_dprc *dprc = sys_get_unique_handle(FSL_MOD_AIOP_RC);
-	struct dpci_mng_tbl *dpci_tbl = NULL;
 	int dev_count  = 0;
 	int dpci_count = 0;
 	int err        = 0;
