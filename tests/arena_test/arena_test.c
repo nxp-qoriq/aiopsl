@@ -79,6 +79,7 @@ extern int num_of_tasks;
 extern uint32_t rnd_seed[MAX_NUM_OF_CORES][MAX_NUM_OF_TASKS];
 extern __TASK uint32_t	seed_32bit;
 extern struct slab_bman_pool_desc g_slab_bman_pools[SLAB_MAX_BMAN_POOLS_NUM];
+extern struct dpni_drv *nis;
 uint8_t dpni_lock; /*lock to change dpni_ctr and dpni_broadcast_flag safely */
 uint8_t dpni_ctr; /*counts number of packets received before removing broadcast address*/
 uint8_t dpni_broadcast_flag; /*flag if packet with broadcast mac destination received during the test*/
@@ -495,30 +496,32 @@ static int app_dpni_event_added_cb(
 		fsl_print("MAC 02:00:C0:A8:0B:FE added for ni %d\n",ni);
 	}
 
-	type[0] = 0;
 	err = dpni_drv_get_connected_obj(ni, &id, type, &state);
-	fsl_print("Given NI: %d, Con. obj. ID: %d, Type %s, Stat: %d\n",(int)ni,(int)id,type,(int)state);
+	fsl_print("Given NI: %d, DPNI-%d, Con. obj. ID: %d, Type %s, Stat: %d\n",(int)ni, (int)nis[ni].dpni_id, (int)id,type,(int)state);
 	if(err){
 		fsl_print("Error: dpni_drv_get_connected_obj: error %d\n",err);
 		test_error |= 0x01;
-	} else if (type[0] == 0){
-		fsl_print("Error: dpni_drv_get_connected_obj: no type %s\n",type);
+	}else if(state == -1){
+		fsl_print("Error: dpni_drv_get_connected_obj returned no object connected\n");
 		test_error |= 0x01;
 	}
 
-	err = dpni_drv_get_connected_ni(id, type, &ni2, &state);
-	fsl_print("Given OBJ ID: %d, Type %s, Con. NI: %d, Stat: %d\n",(int)id,type,(int)ni2,(int)state);
-	if(!sys.runtime_flag){ /*In runtime we create a dpni which is not connected to any object*/
-		if(err){
-			fsl_print("Error: dpni_drv_get_connected_ni: error %d\n",err);
-			test_error |= 0x01;
-		}
-		if(ni != ni2){
-			fsl_print("NI's are not the same %d,%d\n",(int)ni,(int)ni2);
-			test_error |= 0x01;
+	if(state >= 0) {
+		/* State = -1 means no object connected, 
+		 * test it only if NI is connected*/
+		err = dpni_drv_get_connected_ni(id, type, &ni2, &state);
+		fsl_print("Given OBJ ID: %d, Type %s, Con. NI: %d, DPNI-%d, Stat: %d\n",(int)id,type,(int)ni2, (int)nis[ni2].dpni_id, (int)state);
+		if(!sys.runtime_flag){ /*In runtime we create a dpni which is not connected to any object*/
+			if(err){
+				fsl_print("Error: dpni_drv_get_connected_ni: error %d\n",err);
+				test_error |= 0x01;
+			}
+			if(ni != ni2){
+				fsl_print("NI's are not the same %d,%d\n",(int)ni,(int)ni2);
+				test_error |= 0x01;
+			}
 		}
 	}
-
 	layout.options = DPNI_DRV_BUF_LAYOUT_OPT_DATA_HEAD_ROOM |
 		DPNI_DRV_BUF_LAYOUT_OPT_DATA_TAIL_ROOM;
 	layout.data_head_room = 0x40;
