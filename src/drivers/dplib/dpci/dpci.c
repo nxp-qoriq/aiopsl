@@ -70,7 +70,6 @@ int dpci_close(struct fsl_mc_io *mc_io,
 					  cmd_flags,
 					  token);
 
-
 	/* send command to mc*/
 	return mc_send_command(mc_io, &cmd);
 }

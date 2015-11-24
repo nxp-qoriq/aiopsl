@@ -158,7 +158,6 @@ int dprc_reset_container(struct fsl_mc_io *mc_io,
 	return mc_send_command(mc_io, &cmd);
 }
 
-
 int dprc_get_irq(struct fsl_mc_io *mc_io,
 		 uint32_t cmd_flags,
 		 uint16_t token,
@@ -441,7 +440,6 @@ int dprc_unassign(struct fsl_mc_io *mc_io,
 	/* send command to mc*/
 	return mc_send_command(mc_io, &cmd);
 }
-
 
 int dprc_get_pool_count(struct fsl_mc_io *mc_io,
 			uint32_t cmd_flags,

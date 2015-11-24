@@ -124,7 +124,6 @@ do { \
 #define DPRC_CMD_RESET_CONTAINER(cmd, child_container_id) \
 	MC_CMD_OP(cmd, 0, 0,  32, int,	    child_container_id)
 
-
 /*                cmd, param, offset, width, type, arg_name */
 #define DPRC_CMD_SET_IRQ(cmd, irq_index, irq_cfg) \
 do { \
@@ -194,7 +193,6 @@ do { \
 	MC_CMD_OP(cmd, 0, 0,  32, uint32_t, status); \
 	MC_CMD_OP(cmd, 0, 32, 8,  uint8_t,  irq_index);\
 } while (0)
-
 
 /*                cmd, param, offset, width, type, arg_name */
 #define DPRC_RSP_GET_ATTRIBUTES(cmd, attr) \
@@ -641,7 +639,6 @@ do { \
 	MC_RSP_OP(cmd, 2, 32, 32, int,      type); \
 } while (0)
 
-
 /*                cmd, param, offset, width, type, arg_name */
 #define DPRC_CMD_CONNECT(cmd, endpoint1, endpoint2, cfg) \
 do { \
@@ -730,7 +727,6 @@ do { \
 	MC_CMD_OP(cmd, 2, 48, 8,  char,	    endpoint1->type[14]); \
 	MC_CMD_OP(cmd, 2, 56, 8,  char,	    endpoint1->type[15]); \
 } while (0)
-
 
 /*                cmd, param, offset, width, type, arg_name */
 #define DPRC_RSP_GET_CONNECTION(cmd, endpoint2, state) \
