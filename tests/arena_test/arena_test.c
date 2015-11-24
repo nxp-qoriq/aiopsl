@@ -502,7 +502,8 @@ static int app_dpni_event_added_cb(
 		fsl_print("Error: dpni_drv_get_connected_obj: error %d\n",err);
 		test_error |= 0x01;
 	}else if(state == -1){
-		fsl_print("Error: dpni_drv_get_connected_obj returned no object connected\n");
+		fsl_print("ERROR: dpni_drv_get_connected_obj returned no object connected \n");
+		fsl_print("Ignore this ERROR if packet injection is done by MC, check DPL\n");
 		test_error |= 0x01;
 	}
 
