@@ -415,7 +415,7 @@ static int app_dpni_event_added_cb(
 	uint16_t spid = 0;
 	uint16_t dpni;
 	uint64_t buff = 0;
-	int ep, state = -1;
+	int ep, state = -3;
 	struct dpkg_profile_cfg dist_key_cfg = {0};
 	struct aiop_psram_entry *sp_addr;
 	struct dpni_drv_buf_layout layout = {0};
@@ -495,10 +495,14 @@ static int app_dpni_event_added_cb(
 		fsl_print("MAC 02:00:C0:A8:0B:FE added for ni %d\n",ni);
 	}
 
+	type[0] = 0;
 	err = dpni_drv_get_connected_obj(ni, &id, type, &state);
 	fsl_print("Given NI: %d, Con. obj. ID: %d, Type %s, Stat: %d\n",(int)ni,(int)id,type,(int)state);
 	if(err){
 		fsl_print("Error: dpni_drv_get_connected_obj: error %d\n",err);
+		test_error |= 0x01;
+	} else if (type[0] == 0){
+		fsl_print("Error: dpni_drv_get_connected_obj: no type %s\n",type);
 		test_error |= 0x01;
 	}
 
@@ -506,7 +510,7 @@ static int app_dpni_event_added_cb(
 	fsl_print("Given OBJ ID: %d, Type %s, Con. NI: %d, Stat: %d\n",(int)id,type,(int)ni2,(int)state);
 	if(!sys.runtime_flag){ /*In runtime we create a dpni which is not connected to any object*/
 		if(err){
-			fsl_print("Error: dpni_drv_get_connected_obj: error %d\n",err);
+			fsl_print("Error: dpni_drv_get_connected_ni: error %d\n",err);
 			test_error |= 0x01;
 		}
 		if(ni != ni2){
