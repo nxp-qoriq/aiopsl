@@ -133,6 +133,8 @@
 #define DPNI_CMDID_GET_TX_CONF						0x258
 #define DPNI_CMDID_SET_TX_CONF_CONGESTION_NOTIFICATION 0x259
 #define DPNI_CMDID_GET_TX_CONF_CONGESTION_NOTIFICATION 0x25A
+#define DPNI_CMDID_SET_TX_TC_EARLY_DROP				0x25B
+#define DPNI_CMDID_GET_TX_TC_EARLY_DROP				0x25C
 
 /*                cmd, param, offset, width, type, arg_name */
 #define DPNI_CMD_OPEN(cmd, dpni_id) \
@@ -141,21 +143,21 @@
 #define DPNI_PREP_EXTENDED_CFG(ext, cfg) \
 do { \
 	MC_PREP_OP(ext, 0, 0,   16, uint16_t, cfg->tc_cfg[0].max_dist); \
-	MC_PREP_OP(ext, 0, 16,  8,  uint8_t,  cfg->tc_cfg[0].max_fs_entries); \
+	MC_PREP_OP(ext, 0, 16,  16, uint16_t, cfg->tc_cfg[0].max_fs_entries); \
 	MC_PREP_OP(ext, 0, 32,  16, uint16_t, cfg->tc_cfg[1].max_dist); \
-	MC_PREP_OP(ext, 0, 48,  8,  uint8_t,  cfg->tc_cfg[1].max_fs_entries); \
+	MC_PREP_OP(ext, 0, 48,  16, uint16_t, cfg->tc_cfg[1].max_fs_entries); \
 	MC_PREP_OP(ext, 1, 0,   16, uint16_t, cfg->tc_cfg[2].max_dist); \
-	MC_PREP_OP(ext, 1, 16,  8,  uint8_t,  cfg->tc_cfg[2].max_fs_entries); \
+	MC_PREP_OP(ext, 1, 16,  16, uint16_t, cfg->tc_cfg[2].max_fs_entries); \
 	MC_PREP_OP(ext, 1, 32,  16, uint16_t, cfg->tc_cfg[3].max_dist); \
-	MC_PREP_OP(ext, 1, 48,  8,  uint8_t,  cfg->tc_cfg[3].max_fs_entries); \
+	MC_PREP_OP(ext, 1, 48,  16, uint16_t, cfg->tc_cfg[3].max_fs_entries); \
 	MC_PREP_OP(ext, 2, 0,   16, uint16_t, cfg->tc_cfg[4].max_dist); \
-	MC_PREP_OP(ext, 2, 16,  8,  uint8_t,  cfg->tc_cfg[4].max_fs_entries); \
+	MC_PREP_OP(ext, 2, 16,  16, uint16_t, cfg->tc_cfg[4].max_fs_entries); \
 	MC_PREP_OP(ext, 2, 32,  16, uint16_t, cfg->tc_cfg[5].max_dist); \
-	MC_PREP_OP(ext, 2, 48,  8,  uint8_t,  cfg->tc_cfg[5].max_fs_entries); \
+	MC_PREP_OP(ext, 2, 48,  16, uint16_t, cfg->tc_cfg[5].max_fs_entries); \
 	MC_PREP_OP(ext, 3, 0,   16, uint16_t, cfg->tc_cfg[6].max_dist); \
-	MC_PREP_OP(ext, 3, 16,  8,  uint8_t,  cfg->tc_cfg[6].max_fs_entries); \
+	MC_PREP_OP(ext, 3, 16,  16, uint16_t, cfg->tc_cfg[6].max_fs_entries); \
 	MC_PREP_OP(ext, 3, 32,  16, uint16_t, cfg->tc_cfg[7].max_dist); \
-	MC_PREP_OP(ext, 3, 48,  8,  uint8_t,  cfg->tc_cfg[7].max_fs_entries); \
+	MC_PREP_OP(ext, 3, 48,  16, uint16_t, cfg->tc_cfg[7].max_fs_entries); \
 	MC_PREP_OP(ext, 4, 0,   16, uint16_t, \
 		   cfg->ipr_cfg.max_open_frames_ipv4); \
 	MC_PREP_OP(ext, 4, 16,  16, uint16_t, \
@@ -171,21 +173,21 @@ do { \
 #define DPNI_EXT_EXTENDED_CFG(ext, cfg) \
 do { \
 	MC_EXT_OP(ext, 0, 0,   16, uint16_t, cfg->tc_cfg[0].max_dist); \
-	MC_EXT_OP(ext, 0, 16,  8,  uint8_t,  cfg->tc_cfg[0].max_fs_entries); \
+	MC_EXT_OP(ext, 0, 16,  16, uint16_t, cfg->tc_cfg[0].max_fs_entries); \
 	MC_EXT_OP(ext, 0, 32,  16, uint16_t, cfg->tc_cfg[1].max_dist); \
-	MC_EXT_OP(ext, 0, 48,  8,  uint8_t,  cfg->tc_cfg[1].max_fs_entries); \
+	MC_EXT_OP(ext, 0, 48,  16, uint16_t, cfg->tc_cfg[1].max_fs_entries); \
 	MC_EXT_OP(ext, 1, 0,   16, uint16_t, cfg->tc_cfg[2].max_dist); \
-	MC_EXT_OP(ext, 1, 16,  8,  uint8_t,  cfg->tc_cfg[2].max_fs_entries); \
+	MC_EXT_OP(ext, 1, 16,  16, uint16_t, cfg->tc_cfg[2].max_fs_entries); \
 	MC_EXT_OP(ext, 1, 32,  16, uint16_t, cfg->tc_cfg[3].max_dist); \
-	MC_EXT_OP(ext, 1, 48,  8,  uint8_t,  cfg->tc_cfg[3].max_fs_entries); \
+	MC_EXT_OP(ext, 1, 48,  16, uint16_t, cfg->tc_cfg[3].max_fs_entries); \
 	MC_EXT_OP(ext, 2, 0,   16, uint16_t, cfg->tc_cfg[4].max_dist); \
-	MC_EXT_OP(ext, 2, 16,  8,  uint8_t,  cfg->tc_cfg[4].max_fs_entries); \
+	MC_EXT_OP(ext, 2, 16,  16, uint16_t, cfg->tc_cfg[4].max_fs_entries); \
 	MC_EXT_OP(ext, 2, 32,  16, uint16_t, cfg->tc_cfg[5].max_dist); \
-	MC_EXT_OP(ext, 2, 48,  8,  uint8_t,  cfg->tc_cfg[5].max_fs_entries); \
+	MC_EXT_OP(ext, 2, 48,  16, uint16_t, cfg->tc_cfg[5].max_fs_entries); \
 	MC_EXT_OP(ext, 3, 0,   16, uint16_t, cfg->tc_cfg[6].max_dist); \
-	MC_EXT_OP(ext, 3, 16,  8,  uint8_t,  cfg->tc_cfg[6].max_fs_entries); \
+	MC_EXT_OP(ext, 3, 16,  16, uint16_t, cfg->tc_cfg[6].max_fs_entries); \
 	MC_EXT_OP(ext, 3, 32,  16, uint16_t, cfg->tc_cfg[7].max_dist); \
-	MC_EXT_OP(ext, 3, 48,  8,  uint8_t,  cfg->tc_cfg[7].max_fs_entries); \
+	MC_EXT_OP(ext, 3, 48,  16, uint16_t, cfg->tc_cfg[7].max_fs_entries); \
 	MC_EXT_OP(ext, 4, 0,   16, uint16_t, \
 		  cfg->ipr_cfg.max_open_frames_ipv4); \
 	MC_EXT_OP(ext, 4, 16,  16, uint16_t, \
@@ -848,7 +850,7 @@ do { \
 } while (0)
 
 /*                cmd, param, offset, width, type, arg_name */
-#define DPNI_PREP_SET_RX_TC_EARLY_DROP(ext, cfg) \
+#define DPNI_PREP_EARLY_DROP(ext, cfg) \
 do { \
 	MC_PREP_OP(ext, 0, 0,  2, enum dpni_early_drop_mode, cfg->mode); \
 	MC_PREP_OP(ext, 0, 2,  2, \
@@ -866,7 +868,7 @@ do { \
 } while (0)
 
 /*                cmd, param, offset, width, type, arg_name */
-#define DPNI_EXT_SET_RX_TC_EARLY_DROP(ext, cfg) \
+#define DPNI_EXT_EARLY_DROP(ext, cfg) \
 do { \
 	MC_EXT_OP(ext, 0, 0,  2, enum dpni_early_drop_mode, cfg->mode); \
 	MC_EXT_OP(ext, 0, 2,  2, \
@@ -892,6 +894,20 @@ do { \
 
 /*                cmd, param, offset, width, type, arg_name */
 #define DPNI_CMD_GET_RX_TC_EARLY_DROP(cmd, tc_id, early_drop_iova) \
+do { \
+	MC_CMD_OP(cmd, 0, 8,  8,  uint8_t,  tc_id); \
+	MC_CMD_OP(cmd, 1, 0,  64, uint64_t, early_drop_iova); \
+} while (0)
+
+/*                cmd, param, offset, width, type, arg_name */
+#define DPNI_CMD_SET_TX_TC_EARLY_DROP(cmd, tc_id, early_drop_iova) \
+do { \
+	MC_CMD_OP(cmd, 0, 8,  8,  uint8_t,  tc_id); \
+	MC_CMD_OP(cmd, 1, 0,  64, uint64_t, early_drop_iova); \
+} while (0)
+
+/*                cmd, param, offset, width, type, arg_name */
+#define DPNI_CMD_GET_TX_TC_EARLY_DROP(cmd, tc_id, early_drop_iova) \
 do { \
 	MC_CMD_OP(cmd, 0, 8,  8,  uint8_t,  tc_id); \
 	MC_CMD_OP(cmd, 1, 0,  64, uint64_t, early_drop_iova); \

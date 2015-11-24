@@ -194,7 +194,7 @@ struct dpni_extended_cfg {
 	 */
 	struct {
 		uint16_t	max_dist;
-		uint8_t		max_fs_entries;
+		uint16_t	max_fs_entries;
 	} tc_cfg[DPNI_MAX_TC];
 	/**
 	 * struct ipr_cfg - Structure representing IP reassembly configuration
