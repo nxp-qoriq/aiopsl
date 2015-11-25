@@ -200,12 +200,12 @@ struct tman_tmi_params {
 
 /* The following defines will be used to set the AIOP task priority.*/
 
-	/** Low priority AIOP task*/
-#define TMAN_CREATE_TIMER_MODE_LOW_PRIORITY_TASK	0x00000000
+	/** High priority AIOP task*/
+#define TMAN_CREATE_TIMER_MODE_HIGH_PRIORITY_TASK	0x00000000
 	/** Middle priority AIOP task*/
 #define TMAN_CREATE_TIMER_MODE_MID_PRIORITY_TASK	0x01000000
-	/** High priority AIOP task*/
-#define TMAN_CREATE_TIMER_MODE_HIGH_PRIORITY_TASK	0x02000000
+	/** Low priority AIOP task*/
+#define TMAN_CREATE_TIMER_MODE_LOW_PRIORITY_TASK	0x02000000
 
 /** @} end of group TMANTimerCreateModeBits */
 
