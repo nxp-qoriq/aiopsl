@@ -1015,7 +1015,10 @@ int dprc_disconnect(struct fsl_mc_io		*mc_io,
 * @token:	Token of DPRC object
 * @endpoint1:	Endpoint 1 configuration parameters
 * @endpoint2:	Returned endpoint 2 configuration parameters
-* @state:	Returned link state: 1 - link is up, 0 - link is down
+* @state:	Returned link state:
+*           1 - link is up;
+*           0 - link is down;
+*           -1 - no connection (endpoint2 information is irrelevant)
 *
 * Return:     '0' on Success; -ENAVAIL if connection does not exist.
 */

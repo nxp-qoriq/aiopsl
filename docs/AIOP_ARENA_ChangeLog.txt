@@ -7,6 +7,7 @@ The changes as described under the following log tags are relevant for LS2085A t
 1. AIOP SL Release v0.8_RC1
 2. AIOP SL Release v1088_ENG_0.1
 
+dpl.dts/dtb: Removed DPRC_CFG_OPT_IOMMU_BYPASS, no longer supported by MC. AIOP container gets this automatically.
 dpl.dts/dtb: Set max_policers per DPNI to 1. The change is required for dpni_drv_set/get_rx_tc_policing testing.
 
 fsl_aiop_cmdif.h: Following the fix of ENGR00366149 on MC. CMDIF uses SPID=0 for store commands. 
