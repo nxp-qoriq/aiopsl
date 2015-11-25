@@ -18,7 +18,6 @@ Layout is built from 3 different sections: containers, objects, connections.
 							"DPRC_CFG_OPT_ALLOC_ALLOWED", 
 							"DPRC_CFG_OPT_OBJECT_CREATE_ALLOWED", 
 							"DPRC_CFG_OPT_TOPOLOGY_CHANGES_ALLOWED", 
-							"DPRC_CFG_OPT_IOMMU_BYPASS",
 							"DPRC_CFG_OPT_AIOP"
 			portal_id = <int>;
 		1.1.2 resources - all resources are defined as follows:
@@ -82,7 +81,7 @@ Layout is built from 3 different sections: containers, objects, connections.
 		dprc@2 {
 			compatible = "fsl,dprc";
 			parent = "dprc@1";
-			options = "DPRC_CFG_OPT_IRQ_CFG_ALLOWED" , "DPRC_CFG_OPT_TOPOLOGY_CHANGES_ALLOWED" , "DPRC_CFG_OPT_IOMMU_BYPASS" , "DPRC_CFG_OPT_SPAWN_ALLOWED" , "DPRC_CFG_OPT_ALLOC_ALLOWED" , "DPRC_CFG_OPT_AIOP" , "DPRC_CFG_OPT_OBJ_CREATE_ALLOWED";
+			options = "DPRC_CFG_OPT_IRQ_CFG_ALLOWED" , "DPRC_CFG_OPT_TOPOLOGY_CHANGES_ALLOWED" , "DPRC_CFG_OPT_SPAWN_ALLOWED" , "DPRC_CFG_OPT_ALLOC_ALLOWED" , "DPRC_CFG_OPT_AIOP" , "DPRC_CFG_OPT_OBJ_CREATE_ALLOWED";
 			portal_id = <3>;
 			objects {
 				obj@1{
