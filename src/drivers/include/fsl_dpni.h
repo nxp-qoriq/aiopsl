@@ -108,9 +108,7 @@ int dpni_close(struct fsl_mc_io	*mc_io,
 	       uint32_t		cmd_flags,
 	       uint16_t		token);
 
-/**
- * DPNI configuration options
- */
+/* DPNI configuration options */
 
 /**
  * Allow different distribution key profiles for different traffic classes;
@@ -136,8 +134,8 @@ int dpni_close(struct fsl_mc_io	*mc_io,
 #define DPNI_OPT_DIST_HASH			0x00000010
 
 /**
- * DEPRECATED - if this flag is selected and and all new 'max_fs_entries' are '0'
- * then backward compatibility is preserved;
+ * DEPRECATED - if this flag is selected and and all new 'max_fs_entries' are
+ * '0' then backward compatibility is preserved;
  * Support distribution based on flow steering;
  * allows explicit control of distribution over receive queues in a traffic
  * class
@@ -186,25 +184,27 @@ struct dpni_extended_cfg {
 	/**
 	 * struct tc_cfg - TC configuration
 	 * @max_dist: Maximum distribution size for Rx traffic class;
-	 * 	supported values: 1,2,3,4,6,7,8,12,14,16,24,28,32,48,56,64,96,
-	 * 	112,128,192,224,256,384,448,512,768,896,1024;
-	 * 	value '0' will be treated as '1'.
-	 * 	other unsupported values will be round down to the nearest
-	 * 	supported value.
+	 *	supported values: 1,2,3,4,6,7,8,12,14,16,24,28,32,48,56,64,96,
+	 *	112,128,192,224,256,384,448,512,768,896,1024;
+	 *	value '0' will be treated as '1'.
+	 *	other unsupported values will be round down to the nearest
+	 *	supported value.
 	 * @max_fs_entries: Maximum FS entries for Rx traffic class;
-	 * 	'0' means no support for this TC;
+	 *	'0' means no support for this TC;
 	 */
 	struct {
 		uint16_t	max_dist;
-		uint8_t		max_fs_entries;
+		uint16_t	max_fs_entries;
 	} tc_cfg[DPNI_MAX_TC];
 	/**
 	 * struct ipr_cfg - Structure representing IP reassembly configuration
 	 * @max_reass_frm_size: Maximum size of the reassembled frame
 	 * @min_frag_size_ipv4: Minimum fragment size of IPv4 fragments
 	 * @min_frag_size_ipv6: Minimum fragment size of IPv6 fragments
-	 * @max_open_frames_ipv4: Maximum concurrent IPv4 packets in reassembly process
-	 * @max_open_frames_ipv6: Maximum concurrent IPv6 packets in reassembly process
+	 * @max_open_frames_ipv4: Maximum concurrent IPv4 packets in reassembly
+	 *		process
+	 * @max_open_frames_ipv6: Maximum concurrent IPv6 packets in reassembly
+	 *		process
 	 */
 	struct {
 		uint16_t max_reass_frm_size;
@@ -261,8 +261,8 @@ struct dpni_cfg {
 	 *		(CGs); covers early drop and congestion notification
 	 *		requirements;
 	 *		should be between '0' and ('max_tcs' + 'max_senders')
-	 * @ext_cfg_iova: I/O virtual address of 256 bytes DMA-able memory filled with
-	 *		the extended configuration by calling
+	 * @ext_cfg_iova: I/O virtual address of 256 bytes DMA-able memory
+	 *		filled with the extended configuration by calling
 	 *		dpni_prepare_extended_cfg()
 	 */
 	struct {
@@ -602,7 +602,7 @@ int dpni_clear_irq_status(struct fsl_mc_io	*mc_io,
  * @max_policers: Maximum number of policers;
  * @max_congestion_ctrl: Maximum number of congestion control groups (CGs);
  * @ext_cfg_iova: I/O virtual address of 256 bytes DMA-able memory;
- * 	call dpni_extract_extended_cfg() to extract the extended configuration
+ *	call dpni_extract_extended_cfg() to extract the extended configuration
  */
 struct dpni_attr {
 	int		id;
@@ -682,7 +682,6 @@ int dpni_extract_extended_cfg(struct dpni_extended_cfg	*cfg,
  * Parser L3 checksum error
  */
 #define DPNI_ERROR_L4CE		0x00000001
-
 
 /**
  * enum dpni_error_action - Defines DPNI behavior for errors
@@ -1482,8 +1481,8 @@ int dpni_prepare_key_cfg(const struct dpkg_profile_cfg	*cfg,
 /**
  * struct dpni_rx_tc_dist_cfg - Rx traffic class distribution configuration
  * @dist_size: Set the distribution size;
- * 	supported values: 1,2,3,4,6,7,8,12,14,16,24,28,32,48,56,64,96,
- * 	112,128,192,224,256,384,448,512,768,896,1024
+ *	supported values: 1,2,3,4,6,7,8,12,14,16,24,28,32,48,56,64,96,
+ *	112,128,192,224,256,384,448,512,768,896,1024
  * @dist_mode: Distribution mode
  * @key_cfg_iova: I/O virtual address of 256 bytes DMA-able memory filled with
  *		the extractions to be used for the distribution key by calling
@@ -1710,7 +1709,7 @@ void dpni_extract_early_drop(struct dpni_early_drop_cfg *cfg,
  * @token:	Token of DPNI object
  * @tc_id:	Traffic class selection (0-7)
  * @early_drop_iova:  I/O virtual address of 256 bytes DMA-able memory filled
- * 	with the early-drop configuration by calling dpni_prepare_early_drop()
+ *	with the early-drop configuration by calling dpni_prepare_early_drop()
  *
  * warning: Before calling this function, call dpni_prepare_early_drop() to
  *			prepare the early_drop_iova parameter
@@ -1749,7 +1748,7 @@ int dpni_get_rx_tc_early_drop(struct fsl_mc_io	*mc_io,
  * @token:	Token of DPNI object
  * @tc_id:	Traffic class selection (0-7)
  * @early_drop_iova:  I/O virtual address of 256 bytes DMA-able memory filled
- * 	with the early-drop configuration by calling dpni_prepare_early_drop()
+ *	with the early-drop configuration by calling dpni_prepare_early_drop()
  *
  * warning: Before calling this function, call dpni_prepare_early_drop() to
  *			prepare the early_drop_iova parameter
@@ -1757,7 +1756,7 @@ int dpni_get_rx_tc_early_drop(struct fsl_mc_io	*mc_io,
  * Return:	'0' on Success; error code otherwise.
  */
 int dpni_set_tx_tc_early_drop(struct fsl_mc_io	*mc_io,
-		   	      uint32_t		cmd_flags,
+			      uint32_t		cmd_flags,
 			      uint16_t		token,
 			      uint8_t		tc_id,
 			      uint64_t		early_drop_iova);
@@ -1816,35 +1815,50 @@ struct dpni_dest_cfg {
 
 /* DPNI congestion options */
 
-/* CSCN message is written to message_iova once entering a
- * congestion state (see 'threshold_entry') */
+/**
+ * CSCN message is written to message_iova once entering a
+ * congestion state (see 'threshold_entry')
+ */
 #define DPNI_CONG_OPT_WRITE_MEM_ON_ENTER	0x00000001
-/* CSCN message is written to message_iova once exiting a
- * congestion state (see 'threshold_exit') */
+/**
+ * CSCN message is written to message_iova once exiting a
+ * congestion state (see 'threshold_exit')
+ */
 #define DPNI_CONG_OPT_WRITE_MEM_ON_EXIT		0x00000002
-/* CSCN write will attempt to allocate into a cache (coherent write);
- * valid only if 'DPNI_CONG_OPT_WRITE_MEM_<X>' is selected */
+/**
+ * CSCN write will attempt to allocate into a cache (coherent write);
+ * valid only if 'DPNI_CONG_OPT_WRITE_MEM_<X>' is selected
+ */
 #define DPNI_CONG_OPT_COHERENT_WRITE		0x00000004
-/* if 'dest_cfg.dest_type != DPNI_DEST_NONE' CSCN message is sent to
- * DPIO/DPCON's WQ channel once entering a congestion state (see 'threshold_entry') */
+/**
+ * if 'dest_cfg.dest_type != DPNI_DEST_NONE' CSCN message is sent to
+ * DPIO/DPCON's WQ channel once entering a congestion state
+ * (see 'threshold_entry')
+ */
 #define DPNI_CONG_OPT_NOTIFY_DEST_ON_ENTER	0x00000008
-/* if 'dest_cfg.dest_type != DPNI_DEST_NONE' CSCN message is sent to
- * DPIO/DPCON's WQ channel once exiting a congestion state (see 'threshold_exit') */
+/**
+ * if 'dest_cfg.dest_type != DPNI_DEST_NONE' CSCN message is sent to
+ * DPIO/DPCON's WQ channel once exiting a congestion state
+ * (see 'threshold_exit')
+ */
 #define DPNI_CONG_OPT_NOTIFY_DEST_ON_EXIT	0x00000010
-/* if 'dest_cfg.dest_type != DPNI_DEST_NONE' when the CSCN is written to the
- * sw-portal's DQRR, the DQRI interrupt is asserted immediately (if enabled) */
+/**
+ * if 'dest_cfg.dest_type != DPNI_DEST_NONE' when the CSCN is written to the
+ * sw-portal's DQRR, the DQRI interrupt is asserted immediately (if enabled)
+ */
 #define DPNI_CONG_OPT_INTR_COALESCING_DISABLED	0x00000020
 
 /**
- * struct dpni_congestion_notification_cfg - congestion notification configuration
+ * struct dpni_congestion_notification_cfg - congestion notification
+ *		configuration
  * @units: units type
  * @threshold_entry: above this threshold we enter a congestion state.
- * 	set it to '0' to disable it
+ *	set it to '0' to disable it
  * @threshold_exit: below this threshold we exit the congestion state.
  * @message_ctx: The context that will be part of the CSCN message
  * @message_iova: I/O virtual address (must be in DMA-able memory),
- * 	must be 16B aligned; valid only if 'DPNI_CONG_OPT_WRITE_MEM_<X>' is
- * 	contained in 'options'
+ *	must be 16B aligned; valid only if 'DPNI_CONG_OPT_WRITE_MEM_<X>' is
+ *	contained in 'options'
  * @dest_cfg: CSCN can be send to either DPIO or DPCON WQ channel
  * @options: Mask of available options; use 'DPNI_CONG_OPT_<X>' values
  */
@@ -1856,76 +1870,76 @@ struct dpni_congestion_notification_cfg {
 	uint64_t	message_ctx;
 	uint64_t	message_iova;
 	struct dpni_dest_cfg dest_cfg;
-	uint16_t 	options;
+	uint16_t	options;
 };
 
 /**
  * dpni_set_rx_tc_congestion_notification() - Set Rx traffic class congestion
- * 	notification configuration
+ *	notification configuration
  * @mc_io:	Pointer to MC portal's I/O object
  * @cmd_flags:	Command flags; one or more of 'MC_CMD_FLAG_'
  * @token:	Token of DPNI object
  * @tc_id:	Traffic class selection (0-7)
- * @cfg:  	congestion notification configuration
+ * @cfg:	congestion notification configuration
  *
  * Return:	'0' on Success; error code otherwise.
  */
 int dpni_set_rx_tc_congestion_notification(struct fsl_mc_io	*mc_io,
-		   	        	   uint32_t		cmd_flags,
+					   uint32_t		cmd_flags,
 					   uint16_t		token,
 					   uint8_t		tc_id,
-					   const struct dpni_congestion_notification_cfg *cfg);
+			const struct dpni_congestion_notification_cfg *cfg);
 
 /**
  * dpni_get_rx_tc_congestion_notification() - Get Rx traffic class congestion
- * 	notification configuration
+ *	notification configuration
  * @mc_io:	Pointer to MC portal's I/O object
  * @cmd_flags:	Command flags; one or more of 'MC_CMD_FLAG_'
  * @token:	Token of DPNI object
  * @tc_id:	Traffic class selection (0-7)
- * @cfg:  	congestion notification configuration
+ * @cfg:	congestion notification configuration
  *
  * Return:	'0' on Success; error code otherwise.
  */
 int dpni_get_rx_tc_congestion_notification(struct fsl_mc_io	*mc_io,
-		   	        	   uint32_t		cmd_flags,
+					   uint32_t		cmd_flags,
 					   uint16_t		token,
 					   uint8_t		tc_id,
-					   struct dpni_congestion_notification_cfg *cfg);
+				struct dpni_congestion_notification_cfg *cfg);
 
 /**
  * dpni_set_tx_tc_congestion_notification() - Set Tx traffic class congestion
- * 	notification configuration
+ *	notification configuration
  * @mc_io:	Pointer to MC portal's I/O object
  * @cmd_flags:	Command flags; one or more of 'MC_CMD_FLAG_'
  * @token:	Token of DPNI object
  * @tc_id:	Traffic class selection (0-7)
- * @cfg:  	congestion notification configuration
+ * @cfg:	congestion notification configuration
  *
  * Return:	'0' on Success; error code otherwise.
  */
 int dpni_set_tx_tc_congestion_notification(struct fsl_mc_io	*mc_io,
-		   	        	   uint32_t		cmd_flags,
+					   uint32_t		cmd_flags,
 					   uint16_t		token,
 					   uint8_t		tc_id,
-					   const struct dpni_congestion_notification_cfg *cfg);
+			const struct dpni_congestion_notification_cfg *cfg);
 
 /**
  * dpni_get_tx_tc_congestion_notification() - Get Tx traffic class congestion
- * 	notification configuration
+ *	notification configuration
  * @mc_io:	Pointer to MC portal's I/O object
  * @cmd_flags:	Command flags; one or more of 'MC_CMD_FLAG_'
  * @token:	Token of DPNI object
  * @tc_id:	Traffic class selection (0-7)
- * @cfg:  	congestion notification configuration
+ * @cfg:	congestion notification configuration
  *
  * Return:	'0' on Success; error code otherwise.
  */
 int dpni_get_tx_tc_congestion_notification(struct fsl_mc_io	*mc_io,
-		   	        	   uint32_t		cmd_flags,
+					   uint32_t		cmd_flags,
 					   uint16_t		token,
 					   uint8_t		tc_id,
-					   struct dpni_congestion_notification_cfg *cfg);
+				struct dpni_congestion_notification_cfg *cfg);
 
 /**
  * enum dpni_flc_type - DPNI FLC types
@@ -2004,7 +2018,6 @@ struct dpni_flc_cfg {
 /* Select to modify the queue's tail-drop threshold */
 #define DPNI_QUEUE_OPT_TAILDROP_THRESHOLD 0x00000010
 
-
 /**
  * struct dpni_queue_cfg - Structure representing queue configuration
  * @options: Flags representing the suggested modifications to the queue;
@@ -2023,8 +2036,8 @@ struct dpni_flc_cfg {
  *		valid only if 'DPNI_QUEUE_OPT_ORDER_PRESERVATION' is contained
  *		in 'options'
  * @tail_drop_threshold: set the queue's tail drop threshold in bytes;
- * 		'0' value disable the threshold; maximum value is 0xE000000;
- * 		valid only if 'DPNI_QUEUE_OPT_TAILDROP_THRESHOLD' is contained
+ *		'0' value disable the threshold; maximum value is 0xE000000;
+ *		valid only if 'DPNI_QUEUE_OPT_TAILDROP_THRESHOLD' is contained
  *		in 'options'
  */
 struct dpni_queue_cfg {
@@ -2101,7 +2114,7 @@ struct dpni_tx_flow_cfg {
  * @token:	Token of DPNI object
  * @flow_id:	Provides (or returns) the sender's flow ID;
  *	for each new sender set (*flow_id) to 'DPNI_NEW_FLOW_ID' to generate
- *	a new flow_id; 	this ID should be used as the QDBIN argument
+ *	a new flow_id;	this ID should be used as the QDBIN argument
  *	in enqueue operations
  * @cfg:	Tx flow configuration
  *
@@ -2132,7 +2145,7 @@ struct dpni_tx_flow_attr {
  * @cmd_flags:	Command flags; one or more of 'MC_CMD_FLAG_'
  * @token:	Token of DPNI object
  * @flow_id:	The sender's flow ID, as returned by the
- * 	dpni_set_tx_flow() function
+ *	dpni_set_tx_flow() function
  * @attr:	Returned Tx flow attributes
  *
  * Return:	'0' on Success; Error code otherwise.
@@ -2160,12 +2173,14 @@ struct dpni_tx_conf_cfg {
  * @cmd_flags:	Command flags; one or more of 'MC_CMD_FLAG_'
  * @token:	Token of DPNI object
  * @flow_id:	The sender's flow ID, as returned by the
- *	dpni_set_tx_flow() function; use 'DPNI_COMMON_TX_CONF' for common tx-conf
+ *	dpni_set_tx_flow() function;
+ *	use 'DPNI_COMMON_TX_CONF' for common tx-conf
  * @cfg:	Queue configuration
  *
- * If either 'DPNI_OPT_TX_CONF_DISABLED' or 'DPNI_OPT_PRIVATE_TX_CONF_ERROR_DISABLED'
- * were selected at DPNI creation, this function can ONLY be used with
- * 'flow_id == DPNI_COMMON_TX_CONF'; i.e. only serve the common tx-conf-err queue;
+ * If either 'DPNI_OPT_TX_CONF_DISABLED' or
+ * 'DPNI_OPT_PRIVATE_TX_CONF_ERROR_DISABLED' were selected at DPNI creation,
+ * this function can ONLY be used with 'flow_id == DPNI_COMMON_TX_CONF';
+ * i.e. only serve the common tx-conf-err queue;
  * if 'DPNI_OPT_TX_CONF_DISABLED' was selected, only error frames are reported
  * back - successfully transmitted frames are not confirmed. Otherwise, all
  * transmitted frames are sent for confirmation.
@@ -2173,7 +2188,7 @@ struct dpni_tx_conf_cfg {
  * Return:	'0' on Success; Error code otherwise.
  */
 int dpni_set_tx_conf(struct fsl_mc_io	*mc_io,
-	             uint32_t		cmd_flags,
+		     uint32_t		cmd_flags,
 		     uint16_t		token,
 		     uint16_t		flow_id,
 		     const struct dpni_tx_conf_cfg	*cfg);
@@ -2195,12 +2210,14 @@ struct dpni_tx_conf_attr {
  * @cmd_flags:	Command flags; one or more of 'MC_CMD_FLAG_'
  * @token:	Token of DPNI object
  * @flow_id:	The sender's flow ID, as returned by the
- *	dpni_set_tx_flow() function; use 'DPNI_COMMON_TX_CONF' for common tx-conf
+ *	dpni_set_tx_flow() function;
+ *	use 'DPNI_COMMON_TX_CONF' for common tx-conf
  * @attr:	Returned tx-conf attributes
  *
- * If either 'DPNI_OPT_TX_CONF_DISABLED' or 'DPNI_OPT_PRIVATE_TX_CONF_ERROR_DISABLED'
- * were selected at DPNI creation, this function can ONLY be used with
- * 'flow_id == DPNI_COMMON_TX_CONF'; i.e. only serve the common tx-conf-err queue;
+ * If either 'DPNI_OPT_TX_CONF_DISABLED' or
+ * 'DPNI_OPT_PRIVATE_TX_CONF_ERROR_DISABLED' were selected at DPNI creation,
+ * this function can ONLY be used with 'flow_id == DPNI_COMMON_TX_CONF';
+ * i.e. only serve the common tx-conf-err queue;
  *
  * Return:	'0' on Success; Error code otherwise.
  */
@@ -2212,47 +2229,51 @@ int dpni_get_tx_conf(struct fsl_mc_io	*mc_io,
 
 /**
  * dpni_set_tx_conf_congestion_notification() - Set Tx conf congestion
- * 	notification configuration
+ *	notification configuration
  * @mc_io:	Pointer to MC portal's I/O object
  * @cmd_flags:	Command flags; one or more of 'MC_CMD_FLAG_'
  * @token:	Token of DPNI object
  * @flow_id:	The sender's flow ID, as returned by the
- *	dpni_set_tx_flow() function; use 'DPNI_COMMON_TX_CONF' for common tx-conf
- * @cfg:  	congestion notification configuration
+ *	dpni_set_tx_flow() function;
+ *	use 'DPNI_COMMON_TX_CONF' for common tx-conf
+ * @cfg:	congestion notification configuration
  *
- * If either 'DPNI_OPT_TX_CONF_DISABLED' or 'DPNI_OPT_PRIVATE_TX_CONF_ERROR_DISABLED'
- * were selected at DPNI creation, this function can ONLY be used with
- * 'flow_id == DPNI_COMMON_TX_CONF'; i.e. only serve the common tx-conf-err queue;
+ * If either 'DPNI_OPT_TX_CONF_DISABLED' or
+ * 'DPNI_OPT_PRIVATE_TX_CONF_ERROR_DISABLED' were selected at DPNI creation,
+ * this function can ONLY be used with 'flow_id == DPNI_COMMON_TX_CONF';
+ * i.e. only serve the common tx-conf-err queue;
  *
  * Return:	'0' on Success; error code otherwise.
  */
 int dpni_set_tx_conf_congestion_notification(struct fsl_mc_io	*mc_io,
-		   	        	     uint32_t		cmd_flags,
+					     uint32_t		cmd_flags,
 					     uint16_t		token,
 					     uint16_t		flow_id,
-					     const struct dpni_congestion_notification_cfg *cfg);
+			const struct dpni_congestion_notification_cfg *cfg);
 
 /**
  * dpni_get_tx_conf_congestion_notification() - Get Tx conf congestion
- * 	notification configuration
+ *	notification configuration
  * @mc_io:	Pointer to MC portal's I/O object
  * @cmd_flags:	Command flags; one or more of 'MC_CMD_FLAG_'
  * @token:	Token of DPNI object
  * @flow_id:	The sender's flow ID, as returned by the
- *	dpni_set_tx_flow() function; use 'DPNI_COMMON_TX_CONF' for common tx-conf
- * @cfg:  	congestion notification
+ *	dpni_set_tx_flow() function;
+ *	use 'DPNI_COMMON_TX_CONF' for common tx-conf
+ * @cfg:	congestion notification
  *
- * If either 'DPNI_OPT_TX_CONF_DISABLED' or 'DPNI_OPT_PRIVATE_TX_CONF_ERROR_DISABLED'
- * were selected at DPNI creation, this function can ONLY be used with
- * 'flow_id == DPNI_COMMON_TX_CONF'; i.e. only serve the common tx-conf-err queue;
+ * If either 'DPNI_OPT_TX_CONF_DISABLED' or
+ * 'DPNI_OPT_PRIVATE_TX_CONF_ERROR_DISABLED' were selected at DPNI creation,
+ * this function can ONLY be used with 'flow_id == DPNI_COMMON_TX_CONF';
+ * i.e. only serve the common tx-conf-err queue;
  *
  * Return:	'0' on Success; error code otherwise.
  */
 int dpni_get_tx_conf_congestion_notification(struct fsl_mc_io	*mc_io,
-		   	        	     uint32_t		cmd_flags,
+					     uint32_t		cmd_flags,
 					     uint16_t		token,
 					     uint16_t		flow_id,
-					     struct dpni_congestion_notification_cfg *cfg);
+				struct dpni_congestion_notification_cfg *cfg);
 
 /**
  * dpni_set_tx_conf_revoke() - Tx confirmation revocation

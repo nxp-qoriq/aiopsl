@@ -54,24 +54,41 @@ int dpni_prepare_key_cfg(const struct dpkg_profile_cfg *cfg,
 	for (i = 0; i < cfg->num_extracts; i++) {
 		switch (cfg->extracts[i].type) {
 		case DPKG_EXTRACT_FROM_HDR:
-			params[param] |= mc_enc(0, 8, cfg->extracts[i].extract.from_hdr.prot);
-			params[param] |= mc_enc(8, 4, cfg->extracts[i].extract.from_hdr.type);
-			params[param] |= mc_enc(16, 8, cfg->extracts[i].extract.from_hdr.size);
-			params[param] |= mc_enc(24, 8, cfg->extracts[i].extract.from_hdr.offset);
-			params[param] |= mc_enc(32, 32, cfg->extracts[i].extract.from_hdr.field);
+			params[param] |= mc_enc(0, 8,
+					cfg->extracts[i].extract.from_hdr.prot);
+			params[param] |= mc_enc(8, 4,
+					cfg->extracts[i].extract.from_hdr.type);
+			params[param] |= mc_enc(16, 8,
+					cfg->extracts[i].extract.from_hdr.size);
+			params[param] |= mc_enc(24, 8,
+					cfg->extracts[i].extract.
+					from_hdr.offset);
+			params[param] |= mc_enc(32, 32,
+					cfg->extracts[i].extract.
+					from_hdr.field);
 			params[param] = cpu_to_le64(params[param]);
 			param++;
-			params[param] |= mc_enc(0, 8, cfg->extracts[i].extract.from_hdr.hdr_index);
+			params[param] |= mc_enc(0, 8,
+					cfg->extracts[i].extract.
+					from_hdr.hdr_index);
 			break;
 		case DPKG_EXTRACT_FROM_DATA:
-			params[param] |= mc_enc(16, 8, cfg->extracts[i].extract.from_data.size);
-			params[param] |= mc_enc(24, 8, cfg->extracts[i].extract.from_data.offset);
+			params[param] |= mc_enc(16, 8,
+					cfg->extracts[i].extract.
+					from_data.size);
+			params[param] |= mc_enc(24, 8,
+					cfg->extracts[i].extract.
+					from_data.offset);
 			params[param] = cpu_to_le64(params[param]);
 			param++;
 			break;
 		case DPKG_EXTRACT_FROM_PARSE:
-			params[param] |= mc_enc(16, 8, cfg->extracts[i].extract.from_parse.size);
-			params[param] |= mc_enc(24, 8, cfg->extracts[i].extract.from_parse.offset);
+			params[param] |= mc_enc(16, 8,
+					cfg->extracts[i].extract.
+					from_parse.size);
+			params[param] |= mc_enc(24, 8,
+					cfg->extracts[i].extract.
+					from_parse.offset);
 			params[param] = cpu_to_le64(params[param]);
 			param++;
 			break;
@@ -83,7 +100,9 @@ int dpni_prepare_key_cfg(const struct dpkg_profile_cfg *cfg,
 		params[param] |= mc_enc(32, 4, cfg->extracts[i].type);
 		params[param] = cpu_to_le64(params[param]);
 		param++;
-		for (offset = 0, j = 0; j < DPKG_NUM_OF_MASKS; offset += 16, j++) {
+		for (offset = 0, j = 0;
+			j < DPKG_NUM_OF_MASKS;
+			offset += 16, j++) {
 			params[param] |= mc_enc(
 				(offset), 8, cfg->extracts[i].masks[j].mask);
 			params[param] |= mc_enc(
@@ -100,9 +119,9 @@ int dpni_prepare_extended_cfg(const struct dpni_extended_cfg	*cfg,
 			      uint8_t			*ext_cfg_buf)
 {
 	uint64_t *ext_params = (uint64_t *)ext_cfg_buf;
-	
+
 	DPNI_PREP_EXTENDED_CFG(ext_params, cfg);
-	
+
 	return 0;
 }
 
@@ -112,7 +131,7 @@ int dpni_extract_extended_cfg(struct dpni_extended_cfg	*cfg,
 	uint64_t *ext_params = (uint64_t *)ext_cfg_buf;
 
 	DPNI_EXT_EXTENDED_CFG(ext_params, cfg);
-	
+
 	return 0;
 }
 
@@ -280,8 +299,6 @@ int dpni_reset(struct fsl_mc_io *mc_io,
 	return mc_send_command(mc_io, &cmd);
 }
 
-
-
 int dpni_set_irq(struct fsl_mc_io	*mc_io,
 		 uint32_t		cmd_flags,
 		 uint16_t		token,
@@ -299,7 +316,6 @@ int dpni_set_irq(struct fsl_mc_io	*mc_io,
 	/* send command to mc*/
 	return mc_send_command(mc_io, &cmd);
 }
-
 
 int dpni_get_irq(struct fsl_mc_io	*mc_io,
 		 uint32_t		cmd_flags,
@@ -473,7 +489,7 @@ int dpni_get_attributes(struct fsl_mc_io *mc_io,
 					  cmd_flags,
 					  token);
 	DPNI_CMD_GET_ATTR(cmd, attr);
-	
+
 	/* send command to mc*/
 	err = mc_send_command(mc_io, &cmd);
 	if (err)
@@ -1336,7 +1352,6 @@ int dpni_get_rx_flow(struct fsl_mc_io *mc_io,
 	return 0;
 }
 
-
 int dpni_set_rx_err_queue(struct fsl_mc_io *mc_io,
 			  uint32_t cmd_flags,
 			  uint16_t token,
@@ -1626,19 +1641,19 @@ int dpni_get_rx_tc_policing(struct fsl_mc_io			*mc_io,
 }
 
 void dpni_prepare_early_drop(const struct dpni_early_drop_cfg *cfg,
-				   uint8_t *early_drop_buf)
+			     uint8_t *early_drop_buf)
 {
 	uint64_t *ext_params = (uint64_t *)early_drop_buf;
 
-	DPNI_PREP_SET_RX_TC_EARLY_DROP(ext_params, cfg);
+	DPNI_PREP_EARLY_DROP(ext_params, cfg);
 }
 
 void dpni_extract_early_drop(struct dpni_early_drop_cfg *cfg,
-				   const uint8_t *early_drop_buf)
+			     const uint8_t *early_drop_buf)
 {
 	uint64_t *ext_params = (uint64_t *)early_drop_buf;
 
-	DPNI_EXT_SET_RX_TC_EARLY_DROP(ext_params, cfg);
+	DPNI_EXT_EARLY_DROP(ext_params, cfg);
 }
 
 int dpni_set_rx_tc_early_drop(struct fsl_mc_io	*mc_io,
@@ -1677,18 +1692,55 @@ int dpni_get_rx_tc_early_drop(struct fsl_mc_io	*mc_io,
 	return mc_send_command(mc_io, &cmd);
 }
 
-int dpni_set_rx_tc_congestion_notification(struct fsl_mc_io	*mc_io,
-		   	        	   uint32_t		cmd_flags,
-					   uint16_t		token,
-					   uint8_t		tc_id,
-					   const struct dpni_congestion_notification_cfg *cfg)
+int dpni_set_tx_tc_early_drop(struct fsl_mc_io	*mc_io,
+			      uint32_t		cmd_flags,
+			      uint16_t		token,
+			      uint8_t		tc_id,
+			      uint64_t		early_drop_iova)
 {
 	struct mc_command cmd = { 0 };
 
 	/* prepare command */
-	cmd.header = mc_encode_cmd_header(DPNI_CMDID_SET_RX_TC_CONGESTION_NOTIFICATION,
+	cmd.header = mc_encode_cmd_header(DPNI_CMDID_SET_TX_TC_EARLY_DROP,
 					  cmd_flags,
 					  token);
+	DPNI_CMD_SET_TX_TC_EARLY_DROP(cmd, tc_id, early_drop_iova);
+
+	/* send command to mc*/
+	return mc_send_command(mc_io, &cmd);
+}
+
+int dpni_get_tx_tc_early_drop(struct fsl_mc_io	*mc_io,
+			      uint32_t		cmd_flags,
+			      uint16_t		token,
+			      uint8_t		tc_id,
+			      uint64_t		early_drop_iova)
+{
+	struct mc_command cmd = { 0 };
+
+	/* prepare command */
+	cmd.header = mc_encode_cmd_header(DPNI_CMDID_GET_TX_TC_EARLY_DROP,
+					  cmd_flags,
+					  token);
+	DPNI_CMD_GET_TX_TC_EARLY_DROP(cmd, tc_id, early_drop_iova);
+
+	/* send command to mc*/
+	return mc_send_command(mc_io, &cmd);
+}
+
+int dpni_set_rx_tc_congestion_notification(struct fsl_mc_io	*mc_io,
+					   uint32_t		cmd_flags,
+					   uint16_t		token,
+					   uint8_t		tc_id,
+			const struct dpni_congestion_notification_cfg *cfg)
+{
+	struct mc_command cmd = { 0 };
+
+	/* prepare command */
+	cmd.header = mc_encode_cmd_header(
+			DPNI_CMDID_SET_RX_TC_CONGESTION_NOTIFICATION,
+			cmd_flags,
+			token);
 	DPNI_CMD_SET_RX_TC_CONGESTION_NOTIFICATION(cmd, tc_id, cfg);
 
 	/* send command to mc*/
@@ -1696,18 +1748,19 @@ int dpni_set_rx_tc_congestion_notification(struct fsl_mc_io	*mc_io,
 }
 
 int dpni_get_rx_tc_congestion_notification(struct fsl_mc_io	*mc_io,
-		   	        	   uint32_t		cmd_flags,
+					   uint32_t		cmd_flags,
 					   uint16_t		token,
 					   uint8_t		tc_id,
-					   struct dpni_congestion_notification_cfg *cfg)
+				struct dpni_congestion_notification_cfg *cfg)
 {
 	struct mc_command cmd = { 0 };
 	int err;
 
 	/* prepare command */
-	cmd.header = mc_encode_cmd_header(DPNI_CMDID_GET_RX_TC_CONGESTION_NOTIFICATION,
-					  cmd_flags,
-					  token);
+	cmd.header = mc_encode_cmd_header(
+			DPNI_CMDID_GET_RX_TC_CONGESTION_NOTIFICATION,
+			cmd_flags,
+			token);
 	DPNI_CMD_GET_RX_TC_CONGESTION_NOTIFICATION(cmd, tc_id);
 
 	/* send command to mc*/
@@ -1721,17 +1774,18 @@ int dpni_get_rx_tc_congestion_notification(struct fsl_mc_io	*mc_io,
 }
 
 int dpni_set_tx_tc_congestion_notification(struct fsl_mc_io	*mc_io,
-		   	        	   uint32_t		cmd_flags,
+					   uint32_t		cmd_flags,
 					   uint16_t		token,
 					   uint8_t		tc_id,
-					   const struct dpni_congestion_notification_cfg *cfg)
+			const struct dpni_congestion_notification_cfg *cfg)
 {
 	struct mc_command cmd = { 0 };
 
 	/* prepare command */
-	cmd.header = mc_encode_cmd_header(DPNI_CMDID_SET_TX_TC_CONGESTION_NOTIFICATION,
-					  cmd_flags,
-					  token);
+	cmd.header = mc_encode_cmd_header(
+			DPNI_CMDID_SET_TX_TC_CONGESTION_NOTIFICATION,
+			cmd_flags,
+			token);
 	DPNI_CMD_SET_TX_TC_CONGESTION_NOTIFICATION(cmd, tc_id, cfg);
 
 	/* send command to mc*/
@@ -1739,18 +1793,19 @@ int dpni_set_tx_tc_congestion_notification(struct fsl_mc_io	*mc_io,
 }
 
 int dpni_get_tx_tc_congestion_notification(struct fsl_mc_io	*mc_io,
-		   	        	   uint32_t		cmd_flags,
+					   uint32_t		cmd_flags,
 					   uint16_t		token,
 					   uint8_t		tc_id,
-					   struct dpni_congestion_notification_cfg *cfg)
+				struct dpni_congestion_notification_cfg *cfg)
 {
 	struct mc_command cmd = { 0 };
 	int err;
 
 	/* prepare command */
-	cmd.header = mc_encode_cmd_header(DPNI_CMDID_GET_TX_TC_CONGESTION_NOTIFICATION,
-					  cmd_flags,
-					  token);
+	cmd.header = mc_encode_cmd_header(
+			DPNI_CMDID_GET_TX_TC_CONGESTION_NOTIFICATION,
+			cmd_flags,
+			token);
 	DPNI_CMD_GET_TX_TC_CONGESTION_NOTIFICATION(cmd, tc_id);
 
 	/* send command to mc*/
@@ -1764,7 +1819,7 @@ int dpni_get_tx_tc_congestion_notification(struct fsl_mc_io	*mc_io,
 }
 
 int dpni_set_tx_conf(struct fsl_mc_io	*mc_io,
-	             uint32_t		cmd_flags,
+		     uint32_t		cmd_flags,
 		     uint16_t		token,
 		     uint16_t		flow_id,
 		     const struct dpni_tx_conf_cfg	*cfg)
@@ -1807,17 +1862,18 @@ int dpni_get_tx_conf(struct fsl_mc_io		*mc_io,
 }
 
 int dpni_set_tx_conf_congestion_notification(struct fsl_mc_io	*mc_io,
-		   	        	     uint32_t		cmd_flags,
+					     uint32_t		cmd_flags,
 					     uint16_t		token,
 					     uint16_t		flow_id,
-					     const struct dpni_congestion_notification_cfg *cfg)
+			 const struct dpni_congestion_notification_cfg *cfg)
 {
 	struct mc_command cmd = { 0 };
 
 	/* prepare command */
-	cmd.header = mc_encode_cmd_header(DPNI_CMDID_SET_TX_CONF_CONGESTION_NOTIFICATION,
-					  cmd_flags,
-					  token);
+	cmd.header = mc_encode_cmd_header(
+			DPNI_CMDID_SET_TX_CONF_CONGESTION_NOTIFICATION,
+			cmd_flags,
+			token);
 	DPNI_CMD_SET_TX_CONF_CONGESTION_NOTIFICATION(cmd, flow_id, cfg);
 
 	/* send command to mc*/
@@ -1825,18 +1881,19 @@ int dpni_set_tx_conf_congestion_notification(struct fsl_mc_io	*mc_io,
 }
 
 int dpni_get_tx_conf_congestion_notification(struct fsl_mc_io	*mc_io,
-		   	        	     uint32_t		cmd_flags,
+					     uint32_t		cmd_flags,
 					     uint16_t		token,
 					     uint16_t		flow_id,
-					     struct dpni_congestion_notification_cfg *cfg)
+				 struct dpni_congestion_notification_cfg *cfg)
 {
 	struct mc_command cmd = { 0 };
 	int err;
 
 	/* prepare command */
-	cmd.header = mc_encode_cmd_header(DPNI_CMDID_GET_TX_CONF_CONGESTION_NOTIFICATION,
-					  cmd_flags,
-					  token);
+	cmd.header = mc_encode_cmd_header(
+				DPNI_CMDID_GET_TX_CONF_CONGESTION_NOTIFICATION,
+				cmd_flags,
+				token);
 	DPNI_CMD_GET_TX_CONF_CONGESTION_NOTIFICATION(cmd, flow_id);
 
 	/* send command to mc*/

@@ -131,12 +131,12 @@ int dprc_close(struct fsl_mc_io	*mc_io,
 #define DPRC_CFG_OPT_TOPOLOGY_CHANGES_ALLOWED	0x00000008
 
 /**
- * AIOP - Indicates that container belongs to AIOP.  
+ * AIOP - Indicates that container belongs to AIOP.
  */
 #define DPRC_CFG_OPT_AIOP			0x00000020
 
 /**
- * IRQ Config - Indicates that the container allowed to configure its IRQs. 
+ * IRQ Config - Indicates that the container allowed to configure its IRQs.
  */
 #define DPRC_CFG_OPT_IRQ_CFG_ALLOWED		0x00000040
 
@@ -229,17 +229,17 @@ int dprc_reset_container(struct fsl_mc_io	*mc_io,
 			 uint16_t		token,
 			 int			child_container_id);
 
-/** 
- * DPRC IRQ Index and Events 
+/**
+ * DPRC IRQ Index and Events
  */
 
 /**
- * IRQ index 
+ * IRQ index
  */
 #define DPRC_IRQ_INDEX          0
 
 /**
- * Number of dprc's IRQs 
+ * Number of dprc's IRQs
  */
 #define DPRC_NUM_OF_IRQS		1
 
@@ -249,14 +249,14 @@ int dprc_reset_container(struct fsl_mc_io	*mc_io,
  */
 #define DPRC_IRQ_EVENT_OBJ_ADDED		0x00000001
 /**
- * IRQ event - Indicates that an object was removed from the container 
+ * IRQ event - Indicates that an object was removed from the container
  */
 #define DPRC_IRQ_EVENT_OBJ_REMOVED		0x00000002
 /**
- * IRQ event - Indicates that resources added to the container 
+ * IRQ event - Indicates that resources added to the container
  */
 #define DPRC_IRQ_EVENT_RES_ADDED		0x00000004
-/** 
+/**
  * IRQ event - Indicates that resources removed from the container
  */
 #define DPRC_IRQ_EVENT_RES_REMOVED		0x00000008
@@ -271,7 +271,7 @@ int dprc_reset_container(struct fsl_mc_io	*mc_io,
  */
 #define DPRC_IRQ_EVENT_OBJ_DESTROYED		0x00000020
 /**
- * Irq event - Indicates that object is created at the container 
+ * Irq event - Indicates that object is created at the container
  */
 #define DPRC_IRQ_EVENT_OBJ_CREATED		0x00000040
 
@@ -530,7 +530,6 @@ int dprc_get_res_quota(struct fsl_mc_io *mc_io,
 
 /* Resource request options */
 
-
 /**
  * Explicit resource ID request - The requested objects/resources
  * are explicit and sequential (in case of resources).
@@ -684,8 +683,8 @@ int dprc_get_obj_count(struct fsl_mc_io	*mc_io,
 		       uint16_t		token,
 		       int			*obj_count);
 
-/** 
- * Objects Attributes Flags 
+/**
+ * Objects Attributes Flags
  */
 
 /**
@@ -693,17 +692,17 @@ int dprc_get_obj_count(struct fsl_mc_io	*mc_io,
  */
 #define DPRC_OBJ_STATE_OPEN		0x00000001
 /**
- * Plugged state - Indicates that the object is plugged 
+ * Plugged state - Indicates that the object is plugged
  */
 #define DPRC_OBJ_STATE_PLUGGED		0x00000002
 
 /**
  * Shareability flag - Object flag indicating no memory shareability.
- *  the object generates memory accesses that are non coherent with other 
- *  masters; 
+ *  the object generates memory accesses that are non coherent with other
+ *  masters;
  *  user is responsible for proper memory handling through IOMMU configuration.
  */
-#define DPRC_OBJ_FLAG_NO_MEM_SHAREABILITY 		0x0001
+#define DPRC_OBJ_FLAG_NO_MEM_SHAREABILITY		0x0001
 
 /**
  * struct dprc_obj_desc - Object descriptor, returned from dprc_get_obj()
@@ -766,7 +765,7 @@ int dprc_get_obj(struct fsl_mc_io	*mc_io,
  *
  */
 int dprc_get_obj_desc(struct fsl_mc_io		*mc_io,
-			uint32_t		cmd_flags,
+		      uint32_t		cmd_flags,
 			uint16_t		token,
 			char			*obj_type,
 			int			obj_id,
@@ -876,8 +875,8 @@ int dprc_get_res_ids(struct fsl_mc_io			*mc_io,
 		     char				*type,
 		     struct dprc_res_ids_range_desc	*range_desc);
 
-/** 
- * Region flags 
+/**
+ * Region flags
  */
 /**
  * Cacheable - Indicates that region should be mapped as cacheable
@@ -1016,7 +1015,10 @@ int dprc_disconnect(struct fsl_mc_io		*mc_io,
 * @token:	Token of DPRC object
 * @endpoint1:	Endpoint 1 configuration parameters
 * @endpoint2:	Returned endpoint 2 configuration parameters
-* @state:	Returned link state: 1 - link is up, 0 - link is down
+* @state:	Returned link state:
+*           1 - link is up;
+*           0 - link is down;
+*           -1 - no connection (endpoint2 information is irrelevant)
 *
 * Return:     '0' on Success; -ENAVAIL if connection does not exist.
 */
