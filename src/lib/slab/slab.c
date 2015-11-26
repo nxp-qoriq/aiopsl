@@ -561,7 +561,7 @@ __COLD_CODE int slab_free(struct slab **slab)
 	uint16_t cluster = SLAB_CLUSTER_ID_GET(pool_id);
 
 	struct slab_v_pool *slab_virtual_pool;
-	struct slab_v_pool slab_virtual_pool_ddr;
+	struct slab_v_pool slab_virtual_pool_ddr = {0};
 	uint64_t pool_data_address;
 	struct slab_module_info *slab_m = sys_get_unique_handle(FSL_MOD_SLAB);
 
@@ -657,7 +657,7 @@ int slab_acquire(struct slab *slab, uint64_t *buff)
 	uint16_t cluster = SLAB_CLUSTER_ID_GET(slab_pool_id); /* fetch cluster ID*/
 
 	struct slab_v_pool *slab_virtual_pool;
-	struct slab_v_pool slab_virtual_pool_ddr;
+	struct slab_v_pool slab_virtual_pool_ddr = {0};
 
 
 #ifdef DEBUG
@@ -832,7 +832,7 @@ int slab_release(struct slab *slab, uint64_t buff)
 	uint16_t cluster = SLAB_CLUSTER_ID_GET(slab_pool_id);
 	uint64_t pool_data_address;
 	struct slab_v_pool *slab_virtual_pool;
-	struct slab_v_pool slab_virtual_pool_ddr;
+	struct slab_v_pool slab_virtual_pool_ddr = {0};
 
 #ifdef DEBUG
 	SLAB_ASSERT_COND_RETURN(SLAB_IS_HW_POOL(slab), -EINVAL);

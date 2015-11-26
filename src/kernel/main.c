@@ -53,7 +53,7 @@ __COLD_CODE static int configure_stack_overflow_detection(void)
 		/* Stack end address cannot be larger than stack start address */
 		return -ENOMEM;
 	}
-	
+
 	/* DBCR2 */
 	booke_set_spr_DBCR2(booke_get_spr_DBCR2() | 0x00c00000);
 
@@ -68,7 +68,7 @@ __COLD_CODE static int configure_stack_overflow_detection(void)
 	/* initiate DAC registers */
 	booke_set_spr_DAC1((uint32_t)_stack_end);
 	booke_set_spr_DAC2((uint32_t)_stack_addr);
-	
+
 	return 0;
 }
 #endif
@@ -167,7 +167,9 @@ int main(int argc, char *argv[])
 	core_ready_for_tasks();
 
 	if (is_master_core)
+	{
 		pr_info("complete. freeing resources and going out ...\n");
+	}
 	sys_barrier();
 
 	/* TODO - complete - free everything here!!! */
