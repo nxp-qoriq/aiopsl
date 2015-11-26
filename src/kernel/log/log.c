@@ -110,7 +110,7 @@ void log_print_to_buffer(char *str, uint16_t str_length)
 		g_log_last_byte += str_length;
 		log_last_byte = CPU_TO_LE32(g_log_last_byte);
 		icontext_dma_write(&icontext_aiop,
-		                   sizeof(log_last_byte),
+		                   (uint16_t)sizeof(log_last_byte),
 		                   &(log_last_byte),
 		                   g_log_buf_phys_address +
 		                   LOG_HEADER_LAST_BYTE_OFFSET);
@@ -131,7 +131,7 @@ void log_print_to_buffer(char *str, uint16_t str_length)
 		g_log_last_byte |= LOG_HEADER_FLAG_BUFFER_WRAPAROUND;
 		log_last_byte = CPU_TO_LE32(g_log_last_byte);
 		icontext_dma_write(&icontext_aiop,
-		                   sizeof(log_last_byte),
+		                   (uint16_t)sizeof(log_last_byte),
 		                   &(log_last_byte),
 		                   g_log_buf_phys_address +
 		                   LOG_HEADER_LAST_BYTE_OFFSET);
