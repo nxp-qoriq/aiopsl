@@ -45,6 +45,7 @@
 #include "system.h"
 #include "fsl_id_pool.h"
 
+
 inline int parse_result_generate(enum parser_starting_hxs_code starting_hxs,
 	uint8_t starting_offset, uint8_t flags)
 {
@@ -95,7 +96,12 @@ inline int parse_result_generate(enum parser_starting_hxs_code starting_hxs,
 	__e_hwacceli(CTLU_PARSE_CLASSIFY_ACCEL_ID);
 
 	status = *(int32_t *)HWC_ACC_OUT_ADDRESS;
-	 if ((flags == PARSER_NO_FLAGS &&
+
+#ifdef DTSIM_578
+	if (status == PARSER_HW_STATUS_SUCCESS)
+		return 0;	
+#endif
+	if ((flags == PARSER_NO_FLAGS &&
 	((status & ~PARSER_HW_STATUS_L3_L4_CHECKSUM_GENERATION_SUCCEEDED)
 			== PARSER_HW_STATUS_SUCCESS))
 	|| (flags == PARSER_VALIDATE_L3_L4_CHECKSUM && 
@@ -177,6 +183,10 @@ inline int parse_result_generate_default(uint8_t flags)
 	status = *(int32_t *)HWC_ACC_OUT_ADDRESS;
 	/* implementation of errors is priority based (if-else) since multiple
 	 * error indications may appear at the same time */
+#ifdef DTSIM_578
+	if (status == PARSER_HW_STATUS_SUCCESS)
+		return 0;	
+#endif
 	 if ((flags == PARSER_NO_FLAGS &&
 	((status & ~PARSER_HW_STATUS_L3_L4_CHECKSUM_GENERATION_SUCCEEDED)
 		== PARSER_HW_STATUS_SUCCESS))

@@ -73,6 +73,7 @@
 #define SOC_PERIPH_OFF_PORTAL_MAP       0x000f0000
 #define SOC_PERIPH_OFF_DCSR             0x00100000
 
+
 /**************************************************************************//**
  @Group         ls1088a_g LS1088A Application Programming Interface
 
@@ -100,6 +101,17 @@
 #define SOC_PERIPH_MC_PORTAL_ALIGNMENT  0x10000 /* Alignment of a MC portal in SoC */
 
 /** @} */ /* end of ls1088a_g group */
+
+
+/**************************************************************************//**
+ @Group         ls1088a_sim_wa LS1088A Workaround for Simulator Issues
+
+ @Description   LS1088A Workaround for Simulator Issues.
+
+ @{
+*//***************************************************************************/
+#define DTSIM_578 /* Parser Rev2 simulator issue */
+/** @} */ /* end of ls1088a_sim_wa group */
 
 
 #endif /* __FSL_SOC_H */

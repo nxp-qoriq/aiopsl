@@ -101,6 +101,16 @@
 
 /** @} */ /* end of ls2088a_g group */
 
+/**************************************************************************//**
+ @Group         ls2088a_sim_wa LS2088A Workaround for Simulator Issues
+
+ @Description   LS2088A Workaround for Simulator Issues.
+
+ @{
+*//***************************************************************************/
+#define DTSIM_578 /* Parser Rev2 simulator issue */
+/** @} */ /* end of ls2088a_sim_wa group */
+
 
 #endif /* __FSL_SOC_H */
 
