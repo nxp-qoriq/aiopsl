@@ -103,16 +103,5 @@
 /** @} */ /* end of ls1088a_g group */
 
 
-/**************************************************************************//**
- @Group         ls1088a_sim_wa LS1088A Workaround for Simulator Issues
-
- @Description   LS1088A Workaround for Simulator Issues.
-
- @{
-*//***************************************************************************/
-#define DTSIM_578 /* Parser Rev2 simulator issue */
-/** @} */ /* end of ls1088a_sim_wa group */
-
-
 #endif /* __FSL_SOC_H */
 
