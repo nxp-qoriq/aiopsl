@@ -1543,11 +1543,11 @@ enum dpni_policer_mode {
 /**
  * enum dpni_policer_unit - DPNI policer units
  * @DPNI_POLICER_UNIT_BYTES: bytes units
- * @DPNI_POLICER_UNIT_PACKETS: packets units
+ * @DPNI_POLICER_UNIT_FRAMES: frames units
  */
 enum dpni_policer_unit {
 	DPNI_POLICER_UNIT_BYTES = 0,
-	DPNI_POLICER_UNIT_PACKETS
+	DPNI_POLICER_UNIT_FRAMES
 };
 
 /**
