@@ -124,6 +124,7 @@ void snic_process_packet(void)
 
 	parse_status = parse_result_generate_default(PARSER_NO_FLAGS);
 	if (parse_status){
+		pr_err("HF-NIC: parser status: 0x%x\n", parse_status);
 		fdma_discard_default_frame(FDMA_DIS_NO_FLAGS);
 		fdma_terminate_task();
 	}
@@ -184,6 +185,7 @@ void snic_process_packet(void)
 			FDMA_ENWF_NO_FLAGS);
 	if (err)
 	{
+		pr_err("HF-NIC: fdma store and enqueue error: 0x%x\n", err);
 		if(err == -ENOMEM)
 			fdma_discard_default_frame(FDMA_DIS_NO_FLAGS);
 		else /* (err == -EBUSY) */
@@ -234,9 +236,11 @@ int snic_ipf(struct snic_params *snic)
 				ipf_context_addr);
 
 		do {
+			/* todo: error cases when IPF FM will support fdma errors*/
 			ipf_status = ipf_generate_frag(ipf_context_addr);
 			if (ipf_status == IPF_GEN_FRAG_STATUS_DF_SET)
 			{
+				pr_err("HF-NIC: IPF status: 0x%x\n", ipf_status);
 				fdma_discard_default_frame(FDMA_DIS_NO_FLAGS);
 				break;
 			}
@@ -256,6 +260,7 @@ int snic_ipf(struct snic_params *snic)
 					FDMA_ENWF_NO_FLAGS);
 			if(err)
 			{
+				pr_err("HF-NIC: IPF - fdma store and enqueue error: 0x%x\n", err);
 				if(err == -ENOMEM)
 					fdma_discard_default_frame(FDMA_DIS_NO_FLAGS);
 				else /* (err == -EBUSY) */
@@ -283,6 +288,8 @@ int snic_ipr(struct snic_params *snic)
 		reassemble_status != IPR_REASSEMBLY_SUCCESS)
 	{
 		/* todo: error cases*/
+		if (reassemble_status != IPR_REASSEMBLY_NOT_COMPLETED)
+			pr_err("HF-NIC: IPR status: 0x%x\n", reassemble_status);
 		fdma_terminate_task();
 		return 0;
 	}
