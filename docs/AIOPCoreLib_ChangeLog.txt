@@ -6,11 +6,13 @@ Changes made for ls2085a rev1:
 GRO - Fix GRO TCP checksum calculation (ENGR366470).
 Frame Operations: TKT285303 - Set PTA in created frames for later use if storage profile ptar is set (it will not be possible to add PTA to the frame later otherwise).
 HF-NIC:
+	* Added print for error cases.
 	* Change: Enter into OSM exclusive mode before enqueue, since default EPID was changed to work in concurrent mode for HF-NIC.
 
 Changes made for ls1088a rev1 and ls2088a rev1:
 ------------------------------------------------
 HF-NIC:
+	* Added print for error cases.
 	* Change: Enter into OSM exclusive mode before enqueue, since default EPID was changed to work in concurrent mode for HF-NIC.
 TMAN:
 	* Fix tman_exception_handler() misses one scenario when doing tmi_delete (ENGR00368764).
