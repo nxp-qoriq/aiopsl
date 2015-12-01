@@ -66,8 +66,8 @@ enum dpkg_extract_from_hdr_type {
  * @DPKG_EXTRACT_FROM_HDR: Extract from the header
  * @DPKG_EXTRACT_FROM_DATA: Extract from data not in specific header
  * @DPKG_EXTRACT_FROM_PARSE: Extract from parser-result;
- * 	e.g. can be used to extract header existence;
- * 	please refer to 'Parse Result definition' section in the parser BG
+ *	e.g. can be used to extract header existence;
+ *	please refer to 'Parse Result definition' section in the parser BG
  */
 enum dpkg_extract_type {
 	DPKG_EXTRACT_FROM_HDR = 0,
