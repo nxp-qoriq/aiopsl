@@ -610,7 +610,7 @@ struct ipsec_instance_params {
 /* duration - Timer duration time (the number of timer ticks).
  * The duration must have a value larger than 10 ticks and smaller
  * than 2^16-10 ticks. */
-#define IPSEC_MAX_TIMER_DURATION (0x10000-10)
+#define IPSEC_MAX_TIMER_DURATION (0x10000-10-2)
 #define IPSEC_MIN_TIMER_DURATION 10
 
 /* SA Descriptor Parameter for Internal Usage */ 

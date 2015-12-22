@@ -450,8 +450,7 @@ struct ipsec_descriptor_params {
 	uint64_t soft_packet_limit; 	/**< Soft Packet count limit. */
 	uint64_t hard_packet_limit;		/**< Hard Packet count limit. */
 
-	/** The seconds limit value must be larger than 10 seconds and smaller
-	 * than 2^16-10 seconds */
+	/** The seconds limit value must be larger than 10 seconds */
 	/** Caution: hard limit value must be equal or greater than 
 	 * soft limit value */
 	uint32_t soft_seconds_limit;	/**< Soft Seconds limit. */
