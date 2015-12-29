@@ -3299,6 +3299,10 @@ __IPSEC_HOT_CODE uint8_t ipsec_get_ipv6_nh_offset(
 				 * don't add to length so it is inside the encrypted
 				 * part. In both cases don't increment NH_OFFSET */
 				if(first_dest) {
+					/* Add current header size in bytes.
+					 * The +1 is because the value does not include the first
+					 * 8 bytes length of the header. i.e. 0 = 8 bytes	 */
+					current_hdr_size = ((current_hdr_size + 1) << 3);
 					*length += current_hdr_size;
 				}
 				dst_ext = 0; /* Exit from the while loop */
