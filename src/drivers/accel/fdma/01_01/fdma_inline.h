@@ -440,9 +440,19 @@ inline void fdma_modify_default_segment_full_data()
 	arg3 = FDMA_REPLACE_CMD_ARG3(
 			(PRC_GET_SEGMENT_ADDRESS()), PRC_GET_SEGMENT_LENGTH());
 	/* store command parameters */
-	__stqw(arg1, arg2, arg3, 0, HWC_ACC_IN_ADDRESS, 0);
+	__stdw(arg1, arg2, HWC_ACC_IN_ADDRESS, 0);
+	*((uint32_t *) HWC_ACC_IN_ADDRESS3) = arg3;
+	//__stqw(arg1, arg2, arg3, 0, HWC_ACC_IN_ADDRESS, 0);
+
 	/* call FDMA Accelerator */
-	FDMA_OSM_LIMIT_CALL(FODMA_ACCEL_ID, PRC_GET_FRAME_HANDLE());
+	//FDMA_OSM_LIMIT_CALL(FODMA_ACCEL_ID, PRC_GET_FRAME_HANDLE());
+	if ((FODMA_ACCEL_ID == FODMA_ACCEL_ID) &&			
+			(frame_types[PRC_GET_FRAME_HANDLE()] == SINGLE_BUFFER_FRAME)){ 
+		if ((__e_hwacceli_(FODMA_ACCEL_ID)) == FDMA_SUCCESS)	
+			return;						
+	} else {							
+		FDMA_OSM_CALL(FODMA_ACCEL_ID);		
+	}
 
 	/* load command results */
 	res1 = *((int8_t *)(FDMA_STATUS_ADDR));
