@@ -96,9 +96,18 @@ inline uint32_t get_taskno(void)
 	frame_types[_frame_handle] = 					\
 	      (*((uint8_t *)(((char *)_fd) + FD_SL_FMT_OFFSET))) & FD_FMT_MASK;\
 
-	/** Macro using OSM to fix TKT260685.
+	/** Macros using OSM to fix TKT260685.
 	 * _FDMA_ACCEL_ID - FDMA accelerator ID.
 	 * _frame_handle - working frame handle. */
+				
+#define FDMA_OSM_CALL(_FDMA_ACCEL_ID)					\
+	({								\
+	/* enter exclusive, new ID */					\
+	__e_ordhwacceli_(_FDMA_ACCEL_ID, 				\
+		OSM_SCOPE_ENTER_EXCL_CALL_ACCEL_REL_SON_AFTER_ACCEL_OP,	\
+		(((get_taskno() % 3)+1) << 6));				\
+	__e_osmcmd(OSM_SCOPE_EXIT_OP, 0);				\
+	})
 #define FDMA_OSM_LIMIT_CALL(_FDMA_ACCEL_ID, _frame_handle)		\
 	({								\
 	if ((_FDMA_ACCEL_ID == FODMA_ACCEL_ID) &&			\
