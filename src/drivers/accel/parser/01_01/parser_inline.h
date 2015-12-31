@@ -219,8 +219,12 @@ inline int parse_result_generate_basic(void)
 
 	arg2 = ((uint32_t)(&input_struct) << 16);
 	
-	__stqw((PARSER_GRSV_MASK | PARSER_GEN_PARSE_RES_MTYPE),
-		arg2, 0, 0, HWC_ACC_IN_ADDRESS, 0);
+//	__stqw((PARSER_GRSV_MASK | PARSER_GEN_PARSE_RES_MTYPE),
+//		arg2, 0, 0, HWC_ACC_IN_ADDRESS, 0);
+	
+	__stdw((PARSER_GRSV_MASK | PARSER_GEN_PARSE_RES_MTYPE),
+		arg2, HWC_ACC_IN_ADDRESS, 0);
+	__stdw(0,0, HWC_ACC_IN_ADDRESS3, 0);
 
 	__e_hwacceli(CTLU_PARSE_CLASSIFY_ACCEL_ID);
 
