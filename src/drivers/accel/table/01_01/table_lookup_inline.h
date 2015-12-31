@@ -53,9 +53,14 @@ inline int table_lookup_by_keyid_default_frame(enum table_hw_accel_id acc_id,
 	int32_t status;
 
 	/* Prepare HW context for TLU accelerator call */
-	__stqw(TABLE_LOOKUP_KEYID_EPRS_TMSTMP_RPTR_MTYPE,
-	       (uint32_t)lookup_result, table_id | (((uint32_t)keyid) << 16),
-	       0, HWC_ACC_IN_ADDRESS, 0);
+	__stdw(TABLE_LOOKUP_KEYID_EPRS_TMSTMP_RPTR_MTYPE,
+	       (uint32_t)lookup_result,
+	       HWC_ACC_IN_ADDRESS,
+	       0);
+	__stdw(table_id | (((uint32_t)keyid) << 16),
+	       0,
+	       HWC_ACC_IN_ADDRESS3,
+	       0);
 
 	/* Call Table accelerator */
 	__e_hwaccel(acc_id);
@@ -169,8 +174,14 @@ inline int table_lookup_by_key(enum table_hw_accel_id acc_id,
 	arg2 = __e_rlwimi(arg2, *((uint32_t *)(&key_desc)), 16, 0, 15);
 
 	/* Prepare HW context for TLU accelerator call */
-	__stqw(TABLE_LOOKUP_KEY_TMSTMP_RPTR_MTYPE, arg2,
-	       table_id | (((uint32_t)key_size) << 16), 0, HWC_ACC_IN_ADDRESS,
+	/* Prepare HW context for TLU accelerator call */
+	__stdw(TABLE_LOOKUP_KEY_TMSTMP_RPTR_MTYPE,
+	       arg2,
+	       HWC_ACC_IN_ADDRESS,
+	       0);
+	__stdw(table_id | (((uint32_t)key_size) << 16),
+	       0,
+	       HWC_ACC_IN_ADDRESS3,
 	       0);
 
 	/* Call Table accelerator */

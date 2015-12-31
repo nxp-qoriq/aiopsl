@@ -148,7 +148,8 @@ inline void cdma_read(
 	arg4 = (uint32_t)(ext_address);
 
 	/* store command parameters */
-	__stqw(arg1, arg2, arg3, arg4, HWC_ACC_IN_ADDRESS, 0);
+	__stdw(arg1, arg2, HWC_ACC_IN_ADDRESS, 0);
+	__stdw(arg3, arg4, HWC_ACC_IN_ADDRESS3, 0);
 
 	/* call CDMA */
 	if ((__e_hwacceli_(CDMA_ACCEL_ID)) == CDMA_SUCCESS)
