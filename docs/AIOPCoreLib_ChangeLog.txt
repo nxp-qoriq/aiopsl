@@ -1,3 +1,9 @@
+LDPAA AIOP SERVICE LAYER LDPAA-AIOP-SL-v0.8.2 Change Log
+======================================================================
+Changes made for ls2085a rev1:
+------------------------------
+- stdw and FDMA optimizations
+
 LDPAA AIOP SERVICE LAYER LDPAA-AIOP-SL-v0.8 Change Log
 ======================================================================
 
