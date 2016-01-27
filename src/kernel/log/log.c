@@ -60,8 +60,8 @@ int log_init()
 	struct icontext ic;
 	struct log_header log_h = {0};
 
-	g_log_last_byte = sizeof(struct log_header);
-	g_log_buf_start = g_log_last_byte;
+	g_log_buf_start = sizeof(struct log_header);
+	g_log_last_byte = 0;
 	if(g_init_data.sl_info.log_buf_size <= sizeof(struct log_header)){
 		return -EINVAL;
 	}
@@ -77,7 +77,7 @@ int log_init()
 
 	log_h.buf_length = CPU_TO_LE32(g_log_buf_size);
 	log_h.buf_start = CPU_TO_LE32(g_log_buf_start);
-	log_h.last_byte = CPU_TO_LE32(g_log_last_byte);
+	log_h.last_byte = 0;
 	*((uint32_t *) &log_h.magic_word[0]) = CPU_TO_LE32(*(uint32_t *)(&magic_word[0]));
 	*((uint32_t *) &log_h.magic_word[4]) = CPU_TO_LE32(*(uint32_t *)(&magic_word[4]));
 
@@ -104,7 +104,7 @@ void log_print_to_buffer(char *str, uint16_t str_length)
 
 
 	/*Fast phase*/
-	if(local_counter + str_length <= g_log_buf_size + g_log_buf_start /*last position + header length*/)
+	if(local_counter + str_length <= g_log_buf_size /*Buf size without the log header*/)
 	{
 		/* Enough buffer*/
 		g_log_last_byte += str_length;
@@ -117,17 +117,18 @@ void log_print_to_buffer(char *str, uint16_t str_length)
 		icontext_dma_write(&icontext_aiop,
 		                   str_length,
 		                   str,
-		                   g_log_buf_phys_address + local_counter);
+		                   /* Log address + size of the header + offset from the end of the header */
+		                   g_log_buf_phys_address + g_log_buf_start + local_counter);
 
 	}
 	else /*cyclic write needed*/
 	{
 		/*Two writes needed - calculate the second write*/
-		second_write_len = str_length - (uint16_t)(g_log_buf_size + g_log_buf_start - local_counter);
+		second_write_len = str_length - (uint16_t)(g_log_buf_size - local_counter);
 		str_length -= second_write_len; /*str_length is now "first_write" length*/
 
-		/*The counter will point to the end of the string from the beginning of buffer*/
-		g_log_last_byte = second_write_len + g_log_buf_start;
+		/*The counter will point to the end of the string from the end of the Log header*/
+		g_log_last_byte = second_write_len;
 		g_log_last_byte |= LOG_HEADER_FLAG_BUFFER_WRAPAROUND;
 		log_last_byte = CPU_TO_LE32(g_log_last_byte);
 		icontext_dma_write(&icontext_aiop,
@@ -139,7 +140,8 @@ void log_print_to_buffer(char *str, uint16_t str_length)
 		icontext_dma_write(&icontext_aiop,
 		                   str_length,
 		                   str,
-		                   g_log_buf_phys_address + local_counter);
+		                   /* Log address + size of the header + offset from the end of the header */
+		                   g_log_buf_phys_address + g_log_buf_start + local_counter);
 
 		icontext_dma_write(&icontext_aiop,
 		                   second_write_len,
