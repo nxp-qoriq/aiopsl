@@ -3269,7 +3269,8 @@ __IPSEC_HOT_CODE uint8_t ipsec_get_ipv6_nh_offset(
 			/* If the next header is not an extension, this should be
 			 * the starting point for ESP encapsulation  */
 			if ((next_hdr != IPV6_EXT_ROUTING) && 
-					(next_hdr != IPV6_EXT_FRAGMENT)) {
+					(next_hdr != IPV6_EXT_FRAGMENT) &&
+					(next_hdr != IPV6_EXT_DESTINATION)) {
 				/* If there is only one DST header and it is the last extension, 
 				 * it should remain out of the encrypted part, so add its length
 				 * If this DST header is the second one, and last extension
@@ -3304,8 +3305,10 @@ __IPSEC_HOT_CODE uint8_t ipsec_get_ipv6_nh_offset(
 					*((uint8_t *)(current_hdr_ptr + 
 							IPV6_FRAGMENT_HEADER_LENGTH));
 				/* Increment NH_OFFSET only if the following DEST header
-				 * is not the last extension */
-				if (header_after_dest == IPV6_EXT_ROUTING) {
+				 * is not the last extension 
+				 * or if this is the first destination header */
+				if ((header_after_dest == IPV6_EXT_ROUTING) ||
+						first_dest) {
 					nh_offset += IPV6_FRAGMENT_HEADER_LENGTH>>3; 
 				}	
 			}
@@ -3327,9 +3330,11 @@ __IPSEC_HOT_CODE uint8_t ipsec_get_ipv6_nh_offset(
 					*((uint8_t *)(current_hdr_ptr + 
 							((current_hdr_size + 1)<<3)));
 				/* Increment NH_OFFSET only if this is not the last ext. header
-				 * before Destination */
+				 * before Destination 
+				 * or if this is the first destination header */
 				if ((header_after_dest == IPV6_EXT_ROUTING) ||
-					(header_after_dest == IPV6_EXT_FRAGMENT)) {
+					(header_after_dest == IPV6_EXT_FRAGMENT) || 
+					first_dest) {
 						nh_offset += (current_hdr_size + 1); 
 				}
 			}
