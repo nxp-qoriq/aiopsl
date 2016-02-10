@@ -231,7 +231,9 @@ inline void cdma_mutex_lock_take(
 	arg4 = (uint32_t)(mutex_id);
 
 	/* store command parameters */
-	__stqw(arg1, arg2, arg3, arg4, HWC_ACC_IN_ADDRESS, 0);
+	__stdw(arg1, arg2, HWC_ACC_IN_ADDRESS, 0);
+	__stdw(arg3, arg4, HWC_ACC_IN_ADDRESS3, 0);
+	
 
 	/* call CDMA */
 	if ((__e_hwacceli_(CDMA_ACCEL_ID)) == CDMA_SUCCESS)
