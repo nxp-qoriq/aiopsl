@@ -80,7 +80,7 @@
 #define SNIC_IPSEC_IPV6_ENABLE  0x02
 
 /* ASA size and location */
-#define SNIC_ASA_SIZE		64*2
+#define SNIC_ASA_SIZE		2 /* Number of 64B blocks */
 #define SNIC_ASA_LOCATION	0x300
 
 /* ASA fields */
