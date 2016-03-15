@@ -66,6 +66,8 @@
 #define IPSEC_CREATE_DEBUG_BUFFER_CMD		17 | (IPSEC_MODULE << 16)
 #define IPSEC_EARLY_INIT_CMD				18 | (IPSEC_MODULE << 16)
 
+#define IPSEC_FORCE_SECONDS_LIFTEIME_EXP_CMD	19 | (IPSEC_MODULE << 16)
+
 #define IPSEC_PARSER_HXS_ENET 0x00
 #define IPSEC_PARSER_HXS_IP   0x06
 #define IPSEC_PARSER_HXS_IPV4 0x07
@@ -410,6 +412,21 @@ struct ipsec_create_debug_buffer_command {
 	uint32_t status_addr;
 };
 
+/* Force seconds lifetime expiry command */
+struct ipsec_force_seconds_lifetime_exp_command {
+	uint32_t opcode;
+	
+	uint32_t sa_desc_id; /* Descriptor ID, of handles array in shared RAM */
+
+	/** Returned Value: presentation context. */
+	struct presentation_context prc;
+
+	int32_t status; /* Function call return status */
+	
+	/** Workspace address of the last returned status.
+	 * Should be defined in the TLS area. */
+	uint32_t status_addr;
+};
 
 uint16_t  aiop_verification_ipsec(uint32_t data_addr);
 

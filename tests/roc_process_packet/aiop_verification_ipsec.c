@@ -344,7 +344,20 @@ uint16_t  aiop_verification_ipsec(uint32_t data_addr)
 		break;
 	}
 	
-	
+	case IPSEC_FORCE_SECONDS_LIFTEIME_EXP_CMD:
+	{
+		struct ipsec_force_seconds_lifetime_exp_command *str =
+			(struct ipsec_force_seconds_lifetime_exp_command *)data_addr;
+		
+		str->status = ipsec_force_seconds_lifetime_expiry(sa_desc_handle[str->sa_desc_id]);
+
+		*((int32_t *)(str->status_addr)) = str->status;
+		str->prc = *((struct presentation_context *) HWC_PRC_ADDRESS);
+		str_size = (uint16_t)sizeof(struct ipsec_force_seconds_lifetime_exp_command);
+		break;
+
+	}
+
 	default:
 	{
 		return STR_SIZE_ERR;
