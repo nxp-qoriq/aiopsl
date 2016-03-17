@@ -499,7 +499,7 @@ int ipr_reassemble(ipr_instance_handle_t instance_handle)
 					     (struct ldpaa_fd *)HWC_FD_ADDRESS,
 					     FDMA_DIS_NO_FLAGS);
 				/* Early Time out */
-				return ETIMEDOUT;
+				return -ETIMEDOUT;
 			}
 		} else if (sr_status == TABLE_STATUS_MISS) {
 			sr_status = ipr_miss_handling(&instance_params,
@@ -534,7 +534,7 @@ int ipr_reassemble(ipr_instance_handle_t instance_handle)
 					  more_than_64_frags_ipv4_cntr),
 				 frame_is_ipv4);
 
-		return ENOTSUP;
+		return -ENOTSUP;
 	}
 	status_insert_to_LL = ipr_insert_to_link_list(&rfdc, rfdc_ext_addr,
 						      &instance_params,
@@ -670,7 +670,7 @@ int ipr_reassemble(ipr_instance_handle_t instance_handle)
 				  (uint32_t *)REF_COUNT_ADDR_DUMMY);
 
 		move_to_correct_ordering_scope2(osm_status);
-		return ETIMEDOUT;
+		return -ETIMEDOUT;
 	}
 
 	if (frame_is_ipv4) {
@@ -759,7 +759,7 @@ int ipr_reassemble(ipr_instance_handle_t instance_handle)
 	}
 
 	/* L4 checksum is not valid */
-	return EIO;
+	return -EIO;
 
 	} else {
 		/* Error fragment */
@@ -884,7 +884,7 @@ int ipr_miss_handling(struct ipr_instance *instance_params_ptr,
 		    cdma_release_context_memory(*rfdc_ext_addr_ptr);
 		    /* Handle ordering scope */
 		    move_to_correct_ordering_scope1(osm_status);
-		    return ENOSPC;
+		    return -ENOSPC;
 		}
 		/* store key in RDFC */
 		rfdc_ptr->ipv4_key[0] =
@@ -932,7 +932,7 @@ int ipr_miss_handling(struct ipr_instance *instance_params_ptr,
 	    cdma_release_context_memory(*rfdc_ext_addr_ptr);
 	    /* Handle ordering scope */
 	    move_to_correct_ordering_scope1(osm_status);
-	    return ENOSPC;
+	    return -ENOSPC;
 	}
 	
 	    /* write key in RDFC Extension */
