@@ -109,7 +109,9 @@ enum rta_param_type {
 /* flags[30] : 1 = IPv6, 0 = IPv4 (useed for transport mode) */
 #define IPSEC_FLG_IPV6 0x40000000 
 /* flags[29] : 1 = IPv6, 0 = IPv4 (useed for tunnel mode) */
-#define IPSEC_FLG_OUTER_HEADER_IPV6 0x20000000 
+#define IPSEC_FLG_OUTER_HEADER_IPV6 0x20000000
+/* flags[28] : 1 = NULL cipher, 0 = non-NULL cipher */
+#define IPSEC_FLG_CIPHER_NULL 0x10000000
 
 /** Preserve the ASA (Accelerator Specific Annotation) */
 /* Obsolete, Not supported */

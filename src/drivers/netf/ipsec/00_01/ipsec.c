@@ -1164,7 +1164,9 @@ int ipsec_generate_sa_params(
 	sap.sap1.udp_src_port = 0; /* UDP source for transport mode. */
 	sap.sap1.udp_dst_port = 0; /* UDP destination for transport mode. */
 
-	
+	if (params->cipherdata.algtype == IPSEC_CIPHER_NULL)
+		sap.sap1.flags |= IPSEC_FLG_CIPHER_NULL;
+
 	if (params->direction == IPSEC_DIRECTION_OUTBOUND) {
 		/* Outbound (encryption) */
 		
@@ -1813,7 +1815,25 @@ __IPSEC_HOT_CODE int ipsec_frame_encrypt(
 		*enc_status = IPSEC_INTERNAL_ERR;
 		return IPSEC_ERROR;
 	}
-	
+
+	if (sap1.flags & IPSEC_FLG_CIPHER_NULL) {
+		/* Frame length + Pad length (1B) + Next header (1B) */
+		byte_count = LDPAA_FD_GET_LENGTH(HWC_FD_ADDRESS) + 2;
+
+		if (sap1.flags & IPSEC_FLG_TUNNEL_MODE)
+			/* In tunnel mode, L2 header was not stripped */
+			byte_count -= eth_length;
+		else
+			/* In transport mode, IP Header is not encrypted */
+			byte_count -= dpovrd.transport_encap.ip_hdr_len;
+
+		/*
+		 * Add padding length; data to be encrypted must be
+		 * a multiple of 4B.
+		 */
+		byte_count = (byte_count + 3) & (~3);
+	}
+
 	/* 	8.	Prepare AAP parameters in the Workspace memory. */
 	/* 	8.1.	Use accelerator macros for storing parameters */
 	/* 
@@ -2006,8 +2026,10 @@ __IPSEC_HOT_CODE int ipsec_frame_encrypt(
 	 * If 'base' is a literal 0, the base address is considered as 0. */
 	//checksum = (uint16_t)LH_SWAP(HWC_FD_ADDRESS + FD_FLC_DS_AS_CS_OFFSET + 4, 0);
 	// not using the SEC calculated checksum for encryption
-	
-	byte_count = LW_SWAP(HWC_FD_ADDRESS + FD_FLC_DS_AS_CS_OFFSET + 0, 0);
+
+	if (!(sap1.flags & IPSEC_FLG_CIPHER_NULL))
+		byte_count = LW_SWAP(HWC_FD_ADDRESS + FD_FLC_DS_AS_CS_OFFSET +
+				     0, 0);
 	
 	/* In tunnel mode, optionally set the DSCP field 
 	 * This option is not supported by the SEC Era 8 hardware */	
@@ -2902,8 +2924,10 @@ __IPSEC_HOT_CODE int ipsec_frame_decrypt(
 	
 	/* checksum and bytecount from SEC */
 	checksum = LH_SWAP(HWC_FD_ADDRESS + FD_FLC_DS_AS_CS_OFFSET + 4, 0);
-	
-	byte_count = LW_SWAP(HWC_FD_ADDRESS + FD_FLC_DS_AS_CS_OFFSET + 0, 0);	
+
+	if (!(sap1.flags & IPSEC_FLG_CIPHER_NULL))
+		byte_count = LW_SWAP(HWC_FD_ADDRESS + FD_FLC_DS_AS_CS_OFFSET +
+				     0, 0);
 	/* 	16.	Update the gross running checksum in the Workspace parser results.*/
 	//pr->gross_running_sum = 0;
 	// TODO: currently setting to 0 (invalid), so parser will call
@@ -2968,6 +2992,21 @@ __IPSEC_HOT_CODE int ipsec_frame_decrypt(
 				return_val); /* Error/Status value */
 
 		return IPSEC_ERROR;
+	}
+
+	if (sap1.flags & IPSEC_FLG_CIPHER_NULL) {
+		byte_count = LDPAA_FD_GET_LENGTH(HWC_FD_ADDRESS) - eth_length;
+
+		/* In transport mode, IP Header is not encrypted */
+		if (!(sap1.flags & IPSEC_FLG_TUNNEL_MODE))
+			byte_count -= dpovrd.transport_decap.ip_hdr_len;
+
+		/*
+		 * Padding length (1B), Next header (B) and padding (up to a 4B
+		 * boundary) are always removed from final FD; need to add their
+		 * length back.
+		 */
+		byte_count = (byte_count + 2 + 3) & (~3);
 	}
 	
 	/* 	19.	Restore the original FD[FLC], FD[FRC] (from stack) */
