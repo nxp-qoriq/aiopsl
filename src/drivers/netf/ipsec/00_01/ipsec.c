@@ -1568,7 +1568,6 @@ __IPSEC_HOT_CODE int ipsec_frame_encrypt(
 	uint8_t *segment_pointer;
 	uint32_t byte_count;
 	//uint32_t checksum;
-	uint8_t dont_encrypt = 0;
 	ipsec_handle_t desc_addr;
 	//uint16_t offset;
 	uint32_t original_val, new_val;
@@ -1980,20 +1979,10 @@ __IPSEC_HOT_CODE int ipsec_frame_encrypt(
 	 * added PRC_RESET_NDS_BIT(); */
 	PRC_RESET_NDS_BIT();
 	return_val = fdma_present_default_frame();
-	/* check for FDMA error */
-	if (return_val) {
-		/* No error if the frame was just shorter than the segment size */
-		if (return_val != FDMA_STATUS_UNABLE_PRES_DATA_SEG) {
-			ipsec_error_handler(
-				ipsec_handle, /* ipsec_handle_t ipsec_handle */
-				IPSEC_FRAME_ENCRYPT,  /* Function ID */
-				IPSEC_FDMA_PRESENT_DEFAULT_FRAME,  /* SR/Hardware ID */
-				__LINE__,
-				return_val); /* Error/Status value */
-			*enc_status = IPSEC_INTERNAL_ERR;
-			return IPSEC_ERROR;
-		}
-	}
+	
+	/* There is no need to check for FDMA error here
+	 * since if it is not fatal, it can return only SUCCESS or
+	 * FDMA_STATUS_UNABLE_PRES_DATA_SEG which is not an error in this case. */
 		
 	/* 	14.	Get new running sum and byte count (encrypted/encapsulated frame) 
 	 * from the FD[FLC] */
@@ -2284,7 +2273,6 @@ __IPSEC_HOT_CODE int ipsec_frame_decrypt(
 	uint8_t *segment_pointer;
 	uint32_t byte_count;
 	uint32_t checksum;
-	uint8_t dont_decrypt = 0;
 	ipsec_handle_t desc_addr;
 	uint16_t orig_seg_length;
 	uint16_t orig_seg_offset;
@@ -2834,7 +2822,7 @@ __IPSEC_HOT_CODE int ipsec_frame_decrypt(
 
 		/* Remove the ESP trailer */	
 		return_val = fdma_replace_default_segment_data(
-				(uint16_t)PARSER_GET_ETH_OFFSET_DEFAULT(),/* to_offset */
+				orig_seg_offset, /* to_offset */
 				end_seg_len, /* to_size (original size) */
 				(void *)orig_seg_addr,
 				(end_seg_len - (uint16_t)pad_length -2), 
@@ -2866,20 +2854,9 @@ __IPSEC_HOT_CODE int ipsec_frame_decrypt(
 				orig_seg_length /* uint16_t present_size */
 				);
 		
-		/* Check FDMA return status */
-		if (return_val) {
-			/* No error if the frame was just shorter than the segment size */
-			if (return_val != FDMA_STATUS_UNABLE_PRES_DATA_SEG) {
-				ipsec_error_handler(
-					ipsec_handle, /* ipsec_handle_t ipsec_handle */
-					IPSEC_FRAME_DECRYPT, /* Function ID */
-					IPSEC_FDMA_PRESENT_DEFAULT_FRAME_SEGMENT, /* SR ID */
-					__LINE__,
-					return_val); /* Error/Status value */
-				*dec_status = IPSEC_INTERNAL_ERR;
-				return IPSEC_ERROR;
-			}	
-		}
+		/* There is no need to check for FDMA error here since if it is not 
+		 * fatal, it can return only SUCCESS or FDMA_STATUS_UNABLE_PRES_DATA_SEG 
+		 * which is not an error in this case. */
 		
 		/* End of TRANSPORT PAD CHECK section */
 	} else {
