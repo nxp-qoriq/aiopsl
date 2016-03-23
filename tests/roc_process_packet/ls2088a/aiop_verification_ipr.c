@@ -288,17 +288,17 @@ void ipr_delete_instance_cb_verif(uint64_t arg)
 	cdma_read((void *)&str, arg,
 			(uint16_t)sizeof(struct ipr_fdma_enqueue_wf_command));
 	
-        /* setting SPID = 0 */
+	/* setting SPID */
         *((uint8_t *)HWC_SPID_ADDRESS) = str.spid;
-        icid = (uint16_t)(storage_profile[str.spid].ip_secific_sp_info >> 48);
+	icid = (uint16_t)(storage_profile[str.spid].ip_secific_sp_info >> 48);
         icid = ((icid << 8) & 0xff00) | ((icid >> 8) & 0xff);
-        tmp = (uint8_t)(storage_profile[0].ip_secific_sp_info >> 40);
-        if (tmp & 0x08)
-               flags |= FDMA_ICID_CONTEXT_BDI;
+	tmp = (uint8_t)(storage_profile[str.spid].ip_secific_sp_info >> 40);
+	if (tmp & 0x08)
+		flags |= FDMA_ICID_CONTEXT_BDI;
         if (tmp & 0x04)
                flags |= FDMA_ICID_CONTEXT_PL;
-        if (storage_profile[0].mode_bits2 & sp1_mode_bits2_VA_MASK)
-               flags |= FDMA_ICID_CONTEXT_VA;
+	if (storage_profile[str.spid].mode_bits2 & sp1_mode_bits2_VA_MASK)
+		flags |= FDMA_ICID_CONTEXT_VA;
         amq.icid = icid;
         amq.flags = (uint16_t) flags;
         set_default_amq_attributes(&amq);
