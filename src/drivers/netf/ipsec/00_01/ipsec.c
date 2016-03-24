@@ -3225,7 +3225,8 @@ __IPSEC_HOT_CODE uint8_t ipsec_get_ipv6_nh_offset(
 	uint8_t dst_ext;
 	uint8_t nh_offset = 0; /* default value for no extensions */
 	uint8_t header_after_dest;
-	
+	uint8_t first_dest = 1; /* flag for first destination header */
+
 	/* Destination extension can appear only once on fragment request */
 	dst_ext = IPV6_EXT_DESTINATION;
 
@@ -3269,14 +3270,26 @@ __IPSEC_HOT_CODE uint8_t ipsec_get_ipv6_nh_offset(
 			 * the starting point for ESP encapsulation  */
 			if ((next_hdr != IPV6_EXT_ROUTING) && 
 					(next_hdr != IPV6_EXT_FRAGMENT)) {
-				/* Don't add to NH_OFFSET/length and Exit from the while loop */
-				dst_ext = 0;
+				/* If there is only one DST header and it is the last extension, 
+				 * it should remain out of the encrypted part, so add its length
+				 * If this DST header is the second one, and last extension
+				 * don't add to length so it is inside the encrypted
+				 * part. In both cases don't increment NH_OFFSET */
+				if(first_dest) {
+					/* Add current header size in bytes.
+					 * The +1 is because the value does not include the first
+					 * 8 bytes length of the header. i.e. 0 = 8 bytes	 */
+					current_hdr_size = ((current_hdr_size + 1) << 3);
+					*length += current_hdr_size;
+				}
+				dst_ext = 0; /* Exit from the while loop */
 			} else {
 				/* Next header is an Extension */
 				nh_offset += (current_hdr_size + 1); /* in 8 bytes multiples */
 				current_hdr_size = ((current_hdr_size + 1) << 3);
 				*length += current_hdr_size;
 			}
+			first_dest = 0; /* Clear first destination header flag */
 			break;
 		}
 		case IPV6_EXT_FRAGMENT:
