@@ -162,8 +162,9 @@ void snic_process_packet(void)
 		if (snic->snic_enable_flags & SNIC_VLAN_ADD_EN)
 			snic_add_vlan();
 
-		if (snic->snic_enable_flags & SNIC_IPF_EN)
-			snic_ipf(snic);
+		if ((snic->snic_enable_flags & SNIC_IPF_EN)
+			&& PARSER_IS_IP_DEFAULT())
+				snic_ipf(snic);
 	}
 
 	/* for the enqueue set hash from TLS, an flags equal 0 meaning that \
