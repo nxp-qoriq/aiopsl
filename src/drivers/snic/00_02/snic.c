@@ -304,12 +304,9 @@ int snic_ipr(struct snic_params *snic)
 int snic_add_vlan(void)
 {
 	uint32_t vlan;
-	struct presentation_context *presentation_context;
 	uint32_t asa_seg_addr;	/* ASA Segment Address */
 
 	/* Get ASA pointer */
-	presentation_context =
-		(struct presentation_context *) HWC_PRC_ADDRESS;
 	asa_seg_addr = (uint32_t)SNIC_ASA_LOCATION;
 	vlan = *((uint32_t *)(PTR_MOVE(asa_seg_addr, FASWO1)));
 	l2_push_and_set_vlan(vlan);
@@ -358,7 +355,6 @@ int snic_ipsec_decrypt(struct snic_params *snic)
 int snic_ipsec_encrypt(struct snic_params *snic)
 {
 	uint8_t sa_id;
-	struct presentation_context *presentation_context;
 	uint32_t asa_seg_addr;	/* ASA Segment Address */
 	int sr_status;
 	struct table_lookup_result lookup_result __attribute__((aligned(16)));
@@ -367,8 +363,6 @@ int snic_ipsec_encrypt(struct snic_params *snic)
 	union table_lookup_key_desc key_desc  __attribute__((aligned(16)));
 
 	/* Get ASA pointer */
-	presentation_context =
-		(struct presentation_context *) HWC_PRC_ADDRESS;
 	asa_seg_addr = (uint32_t)SNIC_ASA_LOCATION;
 	sa_id = *((uint8_t *)(PTR_MOVE(asa_seg_addr, FASWO2)));
 	

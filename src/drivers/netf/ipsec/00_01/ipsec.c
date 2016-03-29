@@ -1624,7 +1624,7 @@ __IPSEC_HOT_CODE int ipsec_frame_encrypt(
 	cdma_read(
 			&sap1, /* void *ws_dst */
 			desc_addr, /* uint64_t ext_address */
-			sizeof(sap1) /* uint16_t size */
+			(uint16_t)sizeof(sap1) /* uint16_t size */
 			);
 
 	/*---------------------*/
@@ -1998,11 +1998,13 @@ __IPSEC_HOT_CODE int ipsec_frame_encrypt(
 	/* because earlier the segment was not presented,
 	 * added PRC_RESET_NDS_BIT(); */
 	PRC_RESET_NDS_BIT();
-	return_val = fdma_present_default_frame();
-	
-	/* There is no need to check for FDMA error here
-	 * since if it is not fatal, it can return only SUCCESS or
-	 * FDMA_STATUS_UNABLE_PRES_DATA_SEG which is not an error in this case. */
+
+	/*
+	 * There is no need to check for FDMA error here since if it is not
+	 * fatal, it can return only SUCCESS or FDMA_STATUS_UNABLE_PRES_DATA_SEG
+	 * which is not an error in this case.
+	 */
+	fdma_present_default_frame();
 		
 	/* 	14.	Get new running sum and byte count (encrypted/encapsulated frame) 
 	 * from the FD[FLC] */
@@ -2294,7 +2296,7 @@ __IPSEC_HOT_CODE int ipsec_frame_decrypt(
 	uint16_t outer_material_length;
 	uint8_t *segment_pointer;
 	uint32_t byte_count;
-	uint32_t checksum;
+	//uint32_t checksum;
 	ipsec_handle_t desc_addr;
 	uint16_t orig_seg_length;
 	uint16_t orig_seg_offset;
@@ -2320,7 +2322,7 @@ __IPSEC_HOT_CODE int ipsec_frame_decrypt(
 	cdma_read(
 			&sap1, /* void *ws_dst */
 			desc_addr, /* uint64_t ext_address */
-			sizeof(sap1) /* uint16_t size */
+			(uint16_t)sizeof(sap1) /* uint16_t size */
 			);
 	
 	/*---------------------*/
@@ -2869,16 +2871,18 @@ __IPSEC_HOT_CODE int ipsec_frame_decrypt(
 		PRC_SET_SEGMENT_LENGTH(orig_seg_length);
 		PRC_SET_SEGMENT_OFFSET(orig_seg_offset);		
 			
-		return_val = fdma_present_default_frame_segment(
-				FDMA_PRES_NO_FLAGS, /* uint32_t flags */
-				(void *)orig_seg_addr, /* void	 *ws_dst */
-				orig_seg_offset, /* uint16_t offset */
-				orig_seg_length /* uint16_t present_size */
-				);
-		
-		/* There is no need to check for FDMA error here since if it is not 
-		 * fatal, it can return only SUCCESS or FDMA_STATUS_UNABLE_PRES_DATA_SEG 
-		 * which is not an error in this case. */
+		/*
+		 * There is no need to check for FDMA error here since if it is
+		 * not fatal, it can return only SUCCESS or
+		 * FDMA_STATUS_UNABLE_PRES_DATA_SEG which is not an error
+		 * in this case.
+		 */
+		fdma_present_default_frame_segment(
+			FDMA_PRES_NO_FLAGS, /* uint32_t flags */
+			(void *)orig_seg_addr, /* void	 *ws_dst */
+			orig_seg_offset, /* uint16_t offset */
+			orig_seg_length /* uint16_t present_size */
+			);
 		
 		/* End of TRANSPORT PAD CHECK section */
 	} else {
@@ -2923,7 +2927,7 @@ __IPSEC_HOT_CODE int ipsec_frame_decrypt(
 	*/
 	
 	/* checksum and bytecount from SEC */
-	checksum = LH_SWAP(HWC_FD_ADDRESS + FD_FLC_DS_AS_CS_OFFSET + 4, 0);
+	//checksum = LH_SWAP(HWC_FD_ADDRESS + FD_FLC_DS_AS_CS_OFFSET + 4, 0);
 
 	if (!(sap1.flags & IPSEC_FLG_CIPHER_NULL))
 		byte_count = LW_SWAP(HWC_FD_ADDRESS + FD_FLC_DS_AS_CS_OFFSET +
@@ -3063,7 +3067,7 @@ int ipsec_get_lifetime_stats(
 	cdma_read(
 			&ctrs, /* void *ws_dst */
 			desc_addr, /* uint64_t ext_address */
-			sizeof(ctrs) /* uint16_t size */
+			(uint16_t)sizeof(ctrs) /* uint16_t size */
 			);
 	
 	*packets = ctrs.packet_counter;
@@ -3148,7 +3152,7 @@ int ipsec_get_seq_num(
 	cdma_read(
 			&params_flags, /* void *ws_dst */
 			IPSEC_FLAGS_ADDR(desc_addr), /* uint64_t ext_address */
-			sizeof(params_flags) /* uint16_t size */
+			(uint16_t)sizeof(params_flags) /* uint16_t size */
 	);
 	
 	/* Outbound (encapsulation) PDB format */
@@ -3271,7 +3275,7 @@ __IPSEC_HOT_CODE uint8_t ipsec_get_ipv6_nh_offset(
 
 	/* Copy initial IPv6 header */
 	current_hdr_ptr = (uint32_t)ipv6_hdr;
-	current_hdr_size = sizeof(struct ipv6hdr);
+	current_hdr_size = (uint16_t)sizeof(struct ipv6hdr);
 	next_hdr = ipv6_hdr->next_header;
 
 	/* IP Header Length for SEC encapsulation, including IP header and
@@ -3418,7 +3422,7 @@ void ipsec_tman_callback(uint64_t desc_addr, uint16_t indicator)
 		cdma_read(
 				&sap2, /* void *ws_dst */
 				IPSEC_SA_PARAMS_2_ADDR(desc_addr),
-				sizeof(sap2) /* uint16_t size */
+				(uint16_t)sizeof(sap2) /* uint16_t size */
 				);
 
 		/* If the lifetime is larger than the TMAN max,
@@ -3586,7 +3590,7 @@ int ipsec_force_seconds_lifetime_expiry(
 		cdma_read(
 				&sap2, /* void *ws_dst */
 				IPSEC_SA_PARAMS_2_ADDR(desc_addr),
-				sizeof(sap2) /* uint16_t size */
+				(uint16_t)sizeof(sap2) /* uint16_t size */
 				);
 		
 		params_valid = 1; /* indicate that the params were already read */
