@@ -19,6 +19,10 @@ IPsec:
     * Fix bytes processed count for SA statistics are not incrementing for
     NULL encryption algorithm (AIOPSL-843)
     * Added ipsec_force_seconds_lifetime_expiry() in wrapper (AIOPSL-866)
+    * IPSec: Suspected incorrect FDMA parameter for
+    fdma_replace_default_segment_data() (AIOPSL-841)
+    * IPSec: The soft_seconds_limit can not be set to larger than 65524
+    on QDS (AIOPSL-851)
 
 HF-NIC:
     * Added VLAN header error (AIOPSL-868)
