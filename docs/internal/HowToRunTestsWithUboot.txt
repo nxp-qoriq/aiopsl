@@ -1,0 +1,169 @@
+Author: Mihai Barbulescu <mihai.barbulescu@nxp.com>
+
+This REAME explains the steps to be done in order to run your tests with
+u-boot or Linux within LS2 simulator
+
+-------------------------------------------------
+Install LS Simulator
+-------------------------------------------------
+ - Announcements of releases: http://freeshare.freescale.net:2222/public/simulation-cmty-svc/Lists/Community-Announcements/AllItems.aspx
+ - Archives with releases: http://classics.ea.freescale.net/Builds/Components/Simulator/swdsp/LS_SIM_RELEASE/
+
+-------------------------------------------------
+Downloading pre-compiled images for simulator
+-------------------------------------------------
+ - Download images and scripts for simulator from: 
+		http://sw-stash.freescale.net/projects/DPAA2/repos/ls-images
+ - For LS1088 use branch: ls1088
+ - For LS2088 use branch: ls2088
+ 
+Other such locations for BSP are, for instance for 2088 BSP0.4 release: 
+http://compass.freescale.net/livelink/livelink?func=ll&objId=235140104&objAction=browse&viewType=1
+ 
+-------------------------------------------------
+Compiling u-boot
+-------------------------------------------------
+ - Repository location: http://sw-stash.freescale.net/projects/SDK/repos/u-boot-devel/browse
+ - Toolchain locations:
+     a. https://releases.linaro.org/archive/13.09/components/toolchain/binaries/
+	 b. http://compass.freescale.net/livelink/livelink/231669383/gcc-linaroaarch64-linux-gnu-4.8-2013.12_linux.tar.xz.bin?func=doc.Fetch&nodeid=231669383
+
+ - Steps for building:
+		unset ARCH
+		export ARCH=arm64
+		export CROSS_COMPILE=<path to your toolchain>/gcc-linaro-aarch64-linux-gnu-4.8-2013.12_linux/bin/aarch64-linux-gnu-
+		make mrproper
+		make ls2085ardb_config
+		make
+	--> note: other configs for different platforms would be: 
+	ls1088ardb_defconfig, ls2088ardb_defconfig, 
+	ls1088aemu_defconfig, ls2088ardb_defconfig, etc. 
+
+-------------------------------------------------
+Compiling mc.itb -> required by u-boot
+-------------------------------------------------
+MC repository: http://sw-stash.freescale.net/projects/DPAA2/repos/mc
+
+1. Import the MC projects into CodeWarrior:
+   mc\build\<platform>\apps\.project
+
+2. After you compile mc_app using CodeWarrior, locate mc_app.elf and mc_app.bin.
+They should be in the same folder. If no mc_app.bin file was created use: 
+
+	objcopy -O binary mc_app.elf mc_app.bin 
+
+Location of mc.its file is in mc git: mc/misc/rel/mc.its. 
+Copy to the directory where mc_app.bin is located the mc.its file
+
+To generate ITB run:
+
+	mkimage -f mc.its mc.itb
+	
+The mkimage utility is located in u-boot git, under folder tools, after you
+compiled u-boot. 
+
+
+-------------------------------------------------
+Running simulator with u-boot
+-------------------------------------------------
+ - Go to folder which contains the ls-images repository
+ - Locate files:
+	For LS1088: ls1088asimu/ls1088a-simu.py and ls1088asimu/ls1088a-simu.sh
+	For LS2088: ls2088asimu/ls2088a-simu.py and ls2088asimu/ls2088a-simu.sh
+
+1. Edit the bash shell script file (*-simu.sh): 
+- update paths where needed (DPL, MC, etc). E.g. Paths to newly built MC and IPSec Demo app.
+- set sim flags to: 
+	export LS_SIM_SUPPORT_S_FLAGS="\
+		-s armfm.quanta=1000000 \
+		-s sim.tio_server_name=localhost \
+		-s sim.tio_server_port=42975 \
+		-s sim.enable_smmu=true \
+		-s wriop0.ctlu.engr00363232_fix=true \
+	"
+NOTE: WRIOP flag wriop0.ctlu.engr00363232_fix=true enables the behavior of
+FCV to be overwritten to 1. Use this only if compatible rev2 MC image is
+available. Otherwise do not use it, but you will have Rev1 behavior for WRIOP.
+
+NOTE2: you may add any other simulator flags you want for your testing to 
+bash variable LS_SIM_SUPPORT_S_FLAGS
+
+2. Edit the python script file (*-simu.py):
+	- For LS2088 AIOP is loading only directly to RAM. Replace the existing line
+	regarding AIOP loading with: 
+	
+		# AIOP ELF should be placed in DDR at offset 0x07000000 from MC
+		# memory base (MCFBALR).
+		top.ccm.mem.real.write_from_file(0x80c7000000, ls_sim_aiop_elf)
+	
+	If one wants the old offset	0x1F800000, then use address 0x80df800000
+	
+	Locate in MC code the function start_aiop() or the macro 
+	DPAIOP_ELF_LOAD_ADDRESS_LPVOID, to know where AIOP is loaded, in case you
+	get in trouble
+	
+	- For LS1088 AIOP is loading to flash bank. Replace the existing line
+	regarding AIOP loading with:
+	
+	top.ifc.exts.loadImageToBank(ls_sim_aiop_elf, 0, 0x900000)
+	
+3. Start the simulator using the following parameters: 
+
+For LS2088A: 
+	./run-sim.sh -source=<path to ls2088a-simu.sh> \
+		-use_tio_console="duart1_0,duart1_1,duart2_0,duart2_1"
+For LS1088A:
+	./run-sim.sh -source=<path to ls1088a-simu.sh> \
+		-use_tio_console="duart1_0,duart1_1,duart2_0,duart2_1" \
+		-simconfig=ls1088a
+
+When simulator started an u-boot booted to prompt "=>" issue the 
+following commands in uboot (duart1_0):
+
+For LS2088A: 
+	=> fsl_mc start mc 0x580300000 0x580800000
+	=> fsl_mc apply DPL 0x580700000
+
+	If above addresses do not work, try alternatively with:
+	=> fsl_mc start mc 0x580200000 0x5806F8000
+	=> fsl_mc apply DPL 0x5806C0000
+	
+	Check the values of loadImageToBank functions from ls2088a-simu.py
+
+For LS1088A: 
+	=> fsl_mc start mc 0x580300000 0x580800000
+	=> fsl_mc start aiop 0x580900000 
+	=> fsl_mc apply DPL 0x580700000
+
+Check the following consoles:
+	* MC - duart2_0
+	* AIOP - duart2_1
+
+4. Injecting traffic
+	4.1. Direct injection using tio_inject: 
+		cd /path/to/your/simulator/linux64
+		export LD_LIBRARY_PATH=/path/to/your/simulator/linux64
+		./bin/fm_tio_inject -hub localhost:42975 -ser w0_m1 -file /path/to/your/file.pcap -verbose_level 2
+		
+	4.2. Using TUN/TAP for injecting frames with tcpreplay:
+		Go to aiopsl/misc/setup
+		Run the script:
+			./setup_wriop_nic.sh tap2 00:10:94:00:00:02 2.2.2.2
+
+		where:
+			tap2 - name of the VM interface
+			00:10:94:00:00:02 - MAC address of the VM interface
+			2.2.2.2 - IP address of the VM interface
+
+		Link the VM interface with the LS1088/LS2088 interface:
+			cd /path/to/your/simulator/linux64
+			export LD_LIBRARY_PATH=/path/to/your/simulator/linux64
+			./bin/tio_bridge -hub localhost:42975 -ser w0_m2 -dev tap2 -tap -flags send_packets_to_serials
+	
+		where:
+			w0_m2 - the corresponding LS1088A/LS2088A interface. The numbering is: w0_mX == DPMACx
+		
+		Inject traffic:
+			sudo tcpreplay -i tap2 /path/to/your/file.pcap
+	
+
