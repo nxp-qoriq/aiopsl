@@ -356,6 +356,7 @@ int ep_mng_init(void)
 {
 	int i = 0;
 	int err = 0;
+	uint32_t data = 0;
 	struct aiop_tile_regs *tile_regs = (struct aiop_tile_regs *)
 			sys_get_handle(FSL_MOD_AIOP_TILE, 1);
 	struct aiop_ws_regs *wrks_addr = &tile_regs->ws_regs;
@@ -364,10 +365,27 @@ int ep_mng_init(void)
 	err |= cmdif_epid_setup(wrks_addr, AIOP_EPID_CMDIF_SERVER, cmdif_srv_isr);
 
 	/* TMAN epid initialization */
-	iowrite32_ccsr(AIOP_EPID_TIMER_EVENT_IDX, &wrks_addr->epas); /* EPID = 1 */
+	/* EPID = 1 */
+	iowrite32_ccsr(AIOP_EPID_TIMER_EVENT_IDX, &wrks_addr->epas);
 	iowrite32_ccsr(PTR_TO_UINT(tman_timer_callback), &wrks_addr->ep_pc);
 	iowrite32_ccsr(0x02000000, &wrks_addr->ep_spo); /* SET NDS bit */
-
+	/* Hash value for TMan timers expiration tasks order scoping is on
+	 * 32 bits. It is defined upon timer creation.
+	 * Set mask for hash to 32 bits.
+	 * OSRM = 0
+	 * mask for auth_id 0xFFFF_FFFF
+	 * SRC = 1
+	 * Scope ID taken from the specified slice of the TMan timer expiration
+	 * task parameters (similar to FD). Slice is specified in the SEL field.
+	 * EP = 0
+	 * Executing concurrently
+	 * SEL = 0
+	 * Order Scope ID is taken from FLC[63:32]
+	 */
+	iowrite32_ccsr(0x10000000, &wrks_addr->ep_osc);
+	data = ioread32_ccsr(&wrks_addr->ep_osc);
+	if (data != 0x10000000)
+		err |= -EINVAL;
 	pr_info("TMAN is setting EPID = %d\n", AIOP_EPID_TIMER_EVENT_IDX);
 	pr_info("ep_pc = 0x%x\n", ioread32_ccsr(&wrks_addr->ep_pc));
 	pr_info("ep_fdpa = 0x%x\n", ioread32_ccsr(&wrks_addr->ep_fdpa));
@@ -375,7 +393,7 @@ int ep_mng_init(void)
 	pr_info("ep_asapa = 0x%x\n", ioread32_ccsr(&wrks_addr->ep_asapa));
 	pr_info("ep_spa = 0x%x\n", ioread32_ccsr(&wrks_addr->ep_spa));
 	pr_info("ep_spo = 0x%x\n", ioread32_ccsr(&wrks_addr->ep_spo));
-
+	pr_info("ep_osc = 0x%x\n", ioread32_ccsr(&wrks_addr->ep_osc));
 
 	/* CMDIF interface client epid initialization here*/
 	err |= cmdif_epid_setup(wrks_addr, AIOP_EPID_CMDIF_CLIENT, cmdif_cl_isr);
