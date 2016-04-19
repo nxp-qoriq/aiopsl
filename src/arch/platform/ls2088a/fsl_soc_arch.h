@@ -49,7 +49,7 @@
 /*
  * INTG_MAX_NUM_OF_CORES:
  * This defines The maximum number of cores across all devices/archs/Revs
- * Not the actual number of cores available on the chip 
+ * Not the actual number of cores available on the chip
  */
 #define INTG_MAX_NUM_OF_CORES   16
 
@@ -101,6 +101,26 @@
 
 /** @} */ /* end of ls2088a_g group */
 
+#if defined(LS2088A_REV1)
+    #define ACCEL_CDMA_REV2
+    #define ACCEL_FDMA_REV2
+    #define ACCEL_FRAME_OPERATIONS_REV2
+    #define ACCEL_GRO_REV2
+    #define ACCEL_GSO_REV2
+    #define ACCEL_HM_REV1
+    #define ACCEL_IPF_REV2
+    #define ACCEL_IPR_REV2
+    #define ACCEL_IPSEC_REV1
+    #define ACCEL_KEYGEN_REV2
+    #define ACCEL_OSM_REV2
+    #define ACCEL_PARSER_REV2
+    #define ACCEL_STE_REV2
+    #define ACCEL_TABLE_REV2
+    #define ACCEL_TMAN_REV2
+    #define ACCEL_SYSTEM_REV2
+    #define ACCEL_GENERAL_REV2
+    #define ACCEL_SNIC_REV2
+#endif
 
 #endif /* __FSL_SOC_H */
 

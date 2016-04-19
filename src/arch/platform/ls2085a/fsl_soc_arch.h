@@ -104,5 +104,26 @@
 
 #define ERR009354 /*ERRATA*/
 
+#if defined(LS2085A_REV1)
+    #define ACCEL_CDMA_REV1
+    #define ACCEL_FDMA_REV1
+    #define ACCEL_FRAME_OPERATIONS_REV1
+    #define ACCEL_GRO_REV1
+    #define ACCEL_GSO_REV1
+    #define ACCEL_HM_REV1
+    #define ACCEL_IPF_REV1
+    #define ACCEL_IPR_REV1
+    #define ACCEL_IPSEC_REV1
+    #define ACCEL_KEYGEN_REV1
+    #define ACCEL_OSM_REV1
+    #define ACCEL_PARSER_REV1
+    #define ACCEL_STE_REV1
+    #define ACCEL_TABLE_REV1
+    #define ACCEL_TMAN_REV1
+    #define ACCEL_SYSTEM_REV1
+    #define ACCEL_GENERAL_REV1
+    #define ACCEL_SNIC_REV1
+#endif
+
 #endif /* __FSL_SOC_H */
 

@@ -3,7 +3,7 @@
 	<name>aiopsl_stack_estimation</name>
 	<comment></comment>
 	<projects>
-		<project location="PARENT-2-PROJECT_LOC/aiopsl">
+		<project location="PARENT-4-PROJECT_LOC/generic/rev1/aiopsl">
 aiop_sl		</project>
 	</projects>
 	<buildSpec>
