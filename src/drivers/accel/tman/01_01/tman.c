@@ -170,7 +170,11 @@ void tman_delete_tmi(tman_cb_t tman_confirm_cb, uint32_t flags,
 	/* extention_params.opaque_data2_epid =
 		(uint32_t)(conf_opaque_data2 << 16) | confirmation_epid;
 	Optimization: remove 2 cycles clear and shift */
-	epid = __e_rlwimi(epid, conf_opaque_data2, 16, 0, 15);
+	/* TODO
+	 * USER_OPAQUE is on 22b, EPID is on 10b. conf_opaque_data2 must be an
+	 * uint32_t value (implies API changes) */
+	epid = __e_rlwimi(epid, (uint32_t)conf_opaque_data2, FD_EPID_SIZE,
+			  0, FD_USER_OPAQUE_SIZE - 1);
 	__stw(epid, 0, &(extention_params.opaque_data2_epid));
 	/* Store first two command parameters */
 	__stdw(flags, tmi_id, HWC_ACC_IN_ADDRESS, 0);
@@ -252,8 +256,13 @@ void tman_timer_callback(void)
 
 	tman_cb = (tman_cb_t)__lwbr(HWC_FD_ADDRESS+FD_HASH_OFFSET, 0);
 	tman_cb_arg1 = LDPAA_FD_GET_ADDR(HWC_FD_ADDRESS);
-	tman_cb_arg2 =
-		(tman_arg_2B_t)__lhbr(HWC_FD_ADDRESS+FD_OPAQUE1_OFFSET, 0);
+	/* TODO
+	 * USER_OPAQUE is on 22b, EPID is on 10b. tman_cb_arg2 must be an
+	 * uint32_t value (implies API changes). Now the returned value is
+	 * truncated to 16 bits */
+	tman_cb_arg2 = (tman_arg_2B_t)
+		LW_SWAP_MASK_SHIFT(FD_USER_OPAQUE_OFFSET, HWC_FD_ADDRESS,
+				   FD_USER_OPAQUE_MASK, FD_EPID_SIZE);
 	osm_task_init();
 	(*(tman_cb))(tman_cb_arg1, tman_cb_arg2);
 	fdma_terminate_task();
