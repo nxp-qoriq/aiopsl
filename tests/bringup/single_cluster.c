@@ -24,64 +24,39 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "fsl_errors.h"
-#include "fsl_io.h"
-#include "fsl_malloc.h"
+#define BRINGUP_TEST
+
 #include "fsl_types.h"
-#include "common/fsl_string.h"
-#include "fsl_soc.h"
-#include "fsl_core_booke.h"
-#include "kernel/fsl_spinlock.h"
+#include "fsl_errors.h"
+#include "fsl_spinlock.h"
 #include "fsl_smp.h"
 #ifndef BRINGUP_TEST
 #include "fsl_dbg.h"
 #endif
-#include "fsl_system.h"
+
 
 /* For bringup tests compile with BRINGUP_TEST */
 
 #define WAITING_TIMEOUT		0x10000000
 #define CORE_ID_GET		(get_cpu_id() >> 4)
 
-uint32_t core_arr[INTG_MAX_NUM_OF_CORES] = {0};
-int8_t  counter = 0;
-int     err[INTG_MAX_NUM_OF_CORES] = {0};
-
-static void _sys_barrier(void)
-{
-    uint64_t core_mask = (uint64_t)(1 << CORE_ID_GET);
-
-    lock_spinlock(&(sys.barrier_lock));
-    /* Mark this core's presence */
-    sys.barrier_mask &= ~(core_mask);
-
-    if (sys.barrier_mask)
-    {
-        unlock_spinlock(&(sys.barrier_lock));
-        /* Wait until barrier is reset */
-        while (!(sys.barrier_mask & core_mask)) {}
-    }
-    else
-    {
-        /* Last core to arrive - reset the barrier */
-        sys.barrier_mask = sys.active_cores_mask;
-        unlock_spinlock(&(sys.barrier_lock));
-    }
-}
+static uint32_t core_arr[INTG_MAX_NUM_OF_CORES] = {0};
+static int8_t  counter = 0;
+static int     err[INTG_MAX_NUM_OF_CORES] = {0};
 
 static void cleanup()
 {
 
 #ifdef BRINGUP_TEST
-	_sys_barrier();
+	sys_barrier();
 #endif
 
-	if (sys.is_tile_master[CORE_ID_GET]) {
+	if (sys_is_master_core()) {
 		counter = 0;
 	}
 
 #ifdef BRINGUP_TEST
-	_sys_barrier();
+	sys_barrier();
 #endif
 
 }
@@ -101,14 +76,14 @@ static int single_core_test(uint32_t test_core_id)
 	return 2;
 }
 
-static int multi_core_test(uint8_t num_cores)
+static int multi_core_test(int8_t num_cores)
 {
 	uint32_t core_id =  CORE_ID_GET;
 	int      i;
 	int      t = 0;
+	volatile int8_t* counter_ptr;
 
 	if (core_id < num_cores) {
-
 		core_arr[core_id] = 0xff;
 		err[core_id] = 0x0;
 
@@ -117,19 +92,23 @@ static int multi_core_test(uint8_t num_cores)
 			err[core_id] |= 4;
 		}
 
-		/* Check fsl_spinlock.h API */
-		atomic_incr8(&counter, 1);
-
 		/* Check smp.c API */
 		err[core_id] |= single_core_test(core_id);
 
-		do {
+		/* Check fsl_spinlock.h API */
+		atomic_incr8(&counter, 1);
+
+		counter_ptr = &counter;
+
+		while (*counter_ptr < num_cores) {
 			t++;
-		} while((counter < num_cores) && (t < WAITING_TIMEOUT));
+			if (t >= WAITING_TIMEOUT) {
+				break;
+			}
+		}
 
-		if (counter < num_cores)
+		if (*counter_ptr < num_cores)
 			err[core_id] |= 16;
-
 
 		/* Check that all cores get here use CORE_ID */
 		for (i = 0; i < num_cores; i++) {
@@ -154,7 +133,7 @@ int single_cluster_test()
 #ifndef BRINGUP_TEST
 	return multi_core_test(1);
 #else
-	return multi_core_test(4);
+	return multi_core_test(TEST__CLUSTER_CORE_NO);
 #endif
 }
 
@@ -167,6 +146,6 @@ int multi_cluster_test()
 #ifndef BRINGUP_TEST
 	return multi_core_test(1);
 #else
-	return multi_core_test(16);
+	return multi_core_test(TEST__TOTAL_CORE_NO);
 #endif
 }

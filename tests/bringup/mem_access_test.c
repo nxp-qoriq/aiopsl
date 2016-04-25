@@ -23,14 +23,14 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-#include "fsl_errors.h"
+
 #include "fsl_io.h"
-#include "platform.h"
+#include "fsl_errors.h"
 #include "fsl_malloc.h"
+#include "fsl_platform.h"
 #include "fsl_smp.h"
-#include "fsl_types.h"
-#include "common/fsl_string.h"
-#include "fsl_soc.h"
+#include "fsl_dbg.h"
+
 
 #define MEM_TEST_VAL 		(0x12345678)
 #define MEM_TEST_STUB_VAL	(0x24685791)
@@ -43,30 +43,52 @@ int mem_standalone_init();
 int mem_test();
 
 typedef struct {
+	e_memory_partition_id mem_pid;
 	volatile void *vaddr;
 	void (*memInit)(uint32_t param);	/* Init function, in case a window needs to be configured  */
 	uint32_t init_param;				/* parameter to pass to memInit() */
 	uint32_t flags;
-}mem_access_test_t;
+} mem_access_test_t;
 
-mem_access_test_t mem_tests[] = {
-		/* Addr      					memInit 	param	flags */
-		{(volatile void *)0x01000010, 	memInit,	0, 		TEST_FLG_READ | TEST_FLG_WRITE}, /* shared ram */
-		{(volatile void *)0x40210010, 	memInit,	0, 		TEST_FLG_READ | TEST_FLG_WRITE}, /* dp-ddr (heap) */
-		{NULL, 			NULL, 		0, 		0} /* Stub (end of list) */
+static mem_access_test_t mem_tests[] = {
+	/*						Addr					memInit 	param	flags */
+	{MEM_PART_DP_DDR, 		(volatile void *)NULL,	memInit,	0,		TEST_FLG_READ | TEST_FLG_WRITE},
+	{MEM_PART_SYSTEM_DDR,	(volatile void *)NULL,	memInit,	0,		TEST_FLG_READ | TEST_FLG_WRITE},
+	{MEM_PART_SH_RAM, 		(volatile void *)NULL,	memInit,	0,		TEST_FLG_READ | TEST_FLG_WRITE},
+	{MEM_PART_PEB, 			(volatile void *)NULL,	memInit,	0,		TEST_FLG_READ | TEST_FLG_WRITE},
+	{MEM_PART_LAST, 		(volatile void *)NULL,	NULL, 		0,		0} /* (end of list) */
 };
 
 /*****************************************************************************/
 static void memInit(const uint32_t param)
 {
 	UNUSED(param);
-	//TODO
+	// TODO
 }
 
 /*****************************************************************************/
+static struct platform_memory_info g_mem_info[] =
+	{{MEM_PART_DP_DDR}, {MEM_PART_SYSTEM_DDR}, {MEM_PART_SH_RAM}, {MEM_PART_PEB}};
+
+void __get_mem_partitions_addr(int size, struct platform_memory_info* mem_info);
 int mem_standalone_init()
 {
-	//XXX Not needed for this test (yet)
+	int i = 0, j = 0;
+
+	if (sys_is_master_core()) {
+		__get_mem_partitions_addr(ARRAY_SIZE(g_mem_info), g_mem_info);
+
+		for (; mem_tests[i].mem_pid != MEM_PART_LAST; i++) {
+			for (int j = 0; j < ARRAY_SIZE(g_mem_info); j++) {
+				if ((mem_tests[i].mem_pid == g_mem_info[j].mem_partition_id) &&
+					(g_mem_info[j].size > 0)) {
+					mem_tests[i].vaddr = (volatile void *)g_mem_info[j].virt_base_addr;
+					break;
+				}
+			}
+		}
+	}
+	sys_barrier();
 	return 0;
 }
 
@@ -77,45 +99,54 @@ static int test_access(const mem_access_test_t *test)
 	int read = (int)(test->flags & TEST_FLG_READ);
 	int write = (int)(test->flags & TEST_FLG_WRITE);
 	volatile uint32_t read_val = MEM_TEST_STUB_VAL;
-	
-	if(test->memInit)
+
+	if (test->memInit)
 		test->memInit(test->init_param);
-	
-	if(write)
+
+	if (write)
 		iowrite32(MEM_TEST_VAL, addr);
-	
-	if(read) {
-//		l1dcache_block_invalidate(addr);
+
+	if (read) {
 		read_val = ioread32(addr);
-		
-		if(read_val == MEM_TEST_STUB_VAL)
+
+		if (read_val == MEM_TEST_STUB_VAL)
 			return -EACCES;
 	}
 	
-	if(read && write) {
-		if(read_val == MEM_TEST_VAL) {
+	if (read && write) {
+		if (read_val == MEM_TEST_VAL) {
 			return 0;
 		} else {
 			return -EACCES;
 		}
 	}
-	
+
 	return 0;
 }
 
 /*****************************************************************************/
+static volatile uint32_t g_test_sync_flag = 0;
 int mem_test()
 {
-	int i=0;
-	int err;
-	
-	while(mem_tests[i].vaddr != NULL) {
-		err = test_access(&mem_tests[i]);
-		if(err) 
-			return err;
-		
+	int err = -EINVAL;
+	int i = 0;
+	uint32_t core_id = core_get_id();
+
+	// Busy waiting for its turn so that we can reuse the same addresses
+	while (core_id != g_test_sync_flag) {
+	}
+
+	while (mem_tests[i].mem_pid != MEM_PART_LAST) {
+		if (mem_tests[i].vaddr != NULL) {
+			err = test_access(&mem_tests[i]);
+			if (err) {
+				pr_info("Mem_test failed on step %d\n", i);
+				g_test_sync_flag++;
+				return err;
+			}
+		}
 		i++;
 	}
-	
-    return 0;
+	g_test_sync_flag++;
+	return err;
 }

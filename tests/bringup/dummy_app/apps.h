@@ -24,30 +24,39 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-int __init();
-int __dprc_drv_init();
-int __dpni_drv_init();
-int __dpni_drv_scan();
+/**************************************************************************//**
+@File          apps.h
 
-int dpni_init();
-int dpni_test();
+@Description   This file contains the AIOP SL user defined setup.
 
-int dpni_init()
-{
-	int err = 0;
+Please refer to the apps.h of app_process_packet for the full documentation
+of all the macros.
+*//***************************************************************************/
 
-	err = __init();
-	if (err) {
-		return err;
-	}
-	err = __dprc_drv_init();
-	if (err) {
-		return err;
-	}
-	return __dpni_drv_init();
-}
+#ifndef __APPS_H
+#define __APPS_H
 
-int dpni_test()
-{
-	return __dpni_drv_scan();
-}
+#include "apps_arch.h"
+
+#define APP_INIT_TASKS_PER_CORE		4
+#define APP_INIT_APP_MAX_NUM		10
+
+#define APP_MEM_DP_DDR_SIZE	ARCH_DP_DDR_SIZE
+#define APP_MEM_PEB_SIZE	(512 * KILOBYTE)
+#define APP_MEM_SYS_DDR1_SIZE 	(32 * MEGABYTE)
+
+
+#define APP_CTLU_SYS_DDR_NUM_ENTRIES	2048 
+#define APP_CTLU_DP_DDR_NUM_ENTRIES	ARCH_CTLU_DP_DDR_NUM_ENTRIES
+#define APP_CTLU_PEB_NUM_ENTRIES	2048 
+
+#define APP_MFLU_SYS_DDR_NUM_ENTRIES	2048
+#define APP_MFLU_DP_DDR_NUM_ENTRIES	ARCH_MFLU_DP_DDR_NUM_ENTRIES
+#define APP_MFLU_PEB_NUM_ENTRIES	2048
+
+#define APP_DPNI_NUM_BUFS_IN_POOL	50
+#define APP_DPNI_BUF_SIZE_IN_POOL	2048
+#define APP_DPNI_BUF_ALIGN_IN_POOL	64
+#define APP_DPNI_SPID_COUNT		8
+
+#endif /* __APPS_H */

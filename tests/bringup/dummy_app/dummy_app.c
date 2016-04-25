@@ -24,30 +24,46 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-int __init();
-int __dprc_drv_init();
-int __dpni_drv_init();
-int __dpni_drv_scan();
+#include "fsl_dbg.h"
+#include "fsl_gen.h"
+#include "fsl_sys.h"
+#include "fsl_string.h"
+#include "apps.h"
 
-int dpni_init();
-int dpni_test();
+int app_early_init(void);
+int app_init(void);
+void app_free(void);
 
-int dpni_init()
+
+int app_init(void)
 {
-	int err = 0;
-
-	err = __init();
-	if (err) {
-		return err;
-	}
-	err = __dprc_drv_init();
-	if (err) {
-		return err;
-	}
-	return __dpni_drv_init();
+	return 0;
 }
 
-int dpni_test()
+int app_early_init(void)
 {
-	return __dpni_drv_scan();
+	return 0;
+}
+
+void app_free(void)
+{
+}
+
+
+
+#define APPS                            	\
+{                                       	\
+	{app_early_init, app_init, app_free},	\
+	{NULL, NULL, NULL} /* never remove! */    	\
+}
+
+void build_apps_array(struct sys_module_desc *apps);
+void build_apps_early_init_array(int (*early_init[])(void));
+
+void build_apps_array(struct sys_module_desc *apps)
+{
+	struct sys_module_desc apps_tmp[] = APPS;
+	
+	ASSERT_COND(ARRAY_SIZE(apps_tmp) <= APP_INIT_APP_MAX_NUM);
+	memcpy(apps, apps_tmp, sizeof(apps_tmp));
 }

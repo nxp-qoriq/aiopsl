@@ -24,41 +24,11 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "fsl_errors.h"
-#include "fsl_io.h"
-#include "fsl_malloc.h"
-#include "fsl_types.h"
-#include "common/fsl_string.h"
-#include "fsl_soc.h"
-#include "fsl_sl_dprc_drv.h"
-#include "fsl_dprc.h"
-#include "fsl_aiop_common.h"
-
-#define CORE_ID_GET		(get_cpu_id() >> 4)
-
-extern struct aiop_init_info g_init_data;
-static struct mc_dprc dprc = {0};
-
+int __get_container_id(int* container_id);
 int aiop_mc_cmd_test();
 
 int aiop_mc_cmd_test()
 {
-	uint32_t mc_portal_id = g_init_data.sl_info.mc_portal_id;
-	uint64_t mc_portals_vaddr = g_init_data.sl_info.mc_portals_vaddr + \
-		SOC_PERIPH_OFF_PORTALS_MC(mc_portal_id);
-	void *p_vaddr = UINT_TO_PTR(mc_portals_vaddr);
 	int container_id = -1;
-	int err = 0;
-
-	//pr_debug("MC portal ID[%d] addr = 0x%x\n", mc_portal_id, (uint32_t)p_vaddr);
-
-	/* Get container ID from MC */
-	if (!dprc.io.regs)
-		dprc.io.regs = p_vaddr;
-
-	err = dprc_get_container_id(&dprc.io, 0, &container_id);
-	if (container_id == -1)
-		err = -ENOENT;
-
-	return err;
+	return __get_container_id(&container_id);
 }

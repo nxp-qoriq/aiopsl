@@ -25,64 +25,34 @@
  */
 
 #include "fsl_errors.h"
-#include "fsl_io.h"
-#include "fsl_malloc.h"
 #include "fsl_types.h"
-#include "common/fsl_string.h"
-#include "fsl_soc.h"
 #include "fsl_icontext.h"
-#include "fsl_fdma.h"
-#include "fsl_cdma.h"
-#include "fsl_io_ccsr.h"
-#include "fsl_aiop_common.h"
+#include "icontext.h"
 
 #define TEST_DDR_SIZE	64
 #define TEST_DDR_VAL	0xbe
 
-struct icontext ic_aiop = {0};
+extern struct icontext icontext_aiop;
 
-int gpp_ddr_check(struct icontext *ic, uint64_t iova, uint16_t size);
+static int gpp_ddr_check(struct icontext *ic, uint64_t iova, uint16_t size);
+static int gpp_sys_ddr_test_(uint64_t iova, uint16_t size);
+
 int gpp_sys_ddr_init();
-int gpp_sys_ddr_test(uint64_t iova, uint16_t size);
+int gpp_sys_ddr_test();
 
 int gpp_sys_ddr_init()
 {
-	uint32_t cdma_cfg;
-	struct aiop_tile_regs *ccsr = \
-		(struct aiop_tile_regs *)
-		(AIOP_PERIPHERALS_OFF +
-		 SOC_PERIPH_OFF_AIOP_TILE +
-		 SOC_PERIPH_OFF_AIOP_CMGW);
-
-	cdma_cfg = ioread32_ccsr(&ccsr->cdma_regs.cfg);
-
-	ic_aiop.icid = (uint16_t)(cdma_cfg & CDMA_ICID_MASK);
-
-	ic_aiop.bdi_flags = 0;
-	if (cdma_cfg & CDMA_BDI_BIT)
-		ic_aiop.bdi_flags |= FDMA_ENF_BDI_BIT;
-
-	ic_aiop.dma_flags = 0;
-	if (cdma_cfg & CDMA_BMT_BIT)
-		ic_aiop.dma_flags |= FDMA_DMA_BMT_BIT;
-	if (cdma_cfg & CDMA_PL_BIT)
-		ic_aiop.dma_flags |= FDMA_DMA_PL_BIT;
-	if (cdma_cfg & CDMA_VA_BIT)
-		ic_aiop.dma_flags |= FDMA_DMA_eVA_BIT;
-
-	if (!ic_aiop.bdi_flags) return 1;
-	if (!ic_aiop.dma_flags) return 2;
-
-	return 0;
+	// sys_init()
+	return icontext_init();
 }
 
-int gpp_ddr_check(struct icontext *ic, uint64_t iova, uint16_t size)
+static int gpp_ddr_check(struct icontext *ic, uint64_t iova, uint16_t size)
 {
 	int i = 0;
-	uint8_t  buf[TEST_DDR_SIZE];
+	uint8_t buf[TEST_DDR_SIZE];
 
 	if ((size > TEST_DDR_SIZE) || (size == 0))
-		return 4;
+		return -EINVAL;
 
 	/* Clean */
 	for (i = 0; i < size; i++) {
@@ -103,13 +73,12 @@ int gpp_ddr_check(struct icontext *ic, uint64_t iova, uint16_t size)
 	icontext_dma_read(ic, size, iova, &buf[0]);
 	for (i = 0; i < size; i++) {
 		if (buf[i] != TEST_DDR_VAL)
-			return 8;
+			return -EACCES;
 	}
-
 	return 0;
 }
 
-int gpp_sys_ddr_test(uint64_t iova, uint16_t size)
+static int gpp_sys_ddr_test_(uint64_t iova, uint16_t size)
 {
 	int err = 0;
 	struct icontext ic;
@@ -117,13 +86,51 @@ int gpp_sys_ddr_test(uint64_t iova, uint16_t size)
 	/* Each SW context has different icid:
 	 * icid 0 - goes to MC
 	 * icid 1 and up - goes to AIOP and GPP */
-	ic.icid = (ic_aiop.icid == 1 ? 2 : 1);
+	ic.icid = (icontext_aiop.icid == 1 ? 2 : 1);
 	ic.dma_flags = 0; /* Should not change */
 	ic.bdi_flags = 0; /* Should not change */
 
 	/* Virtual addr of GPP may change */
-	err |= gpp_ddr_check(&ic, iova, size);
-	err |= gpp_ddr_check(&ic, iova, size);
+	err = gpp_ddr_check(&ic, iova, size);
+	if (err) {
+		return err;
+	}
+	return gpp_ddr_check(&ic, iova, size);
+}
 
+#define SYSTEM_DDR_PHY_ADDR 0x83d3000000
+
+/* change the address if needed
+ * ICID is set inside to 1 or 2 */
+int gpp_sys_ddr_test()
+{
+	int err = 0;
+
+#ifdef EXPERIMENTAL
+	err = gpp_sys_ddr_test_(0x80000000, 16);
+	if (err) {
+		return err;
+	}
+
+	err = gpp_sys_ddr_test_(0xE0000000, 32);
+	if (err) {
+		return err;
+	}
+
+	err = gpp_sys_ddr_test_(0x2000000400, 16);
+	if (err) {
+		return err;
+	}
+
+	err = gpp_sys_ddr_test_(0x2000000300, 32);
+	if (err) {
+		return err;
+	}
+#endif
+
+	err = gpp_sys_ddr_test_(SYSTEM_DDR_PHY_ADDR, 32);
+	if (err) {
+		return err;
+	}
 	return err;
 }

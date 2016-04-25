@@ -29,80 +29,96 @@
 #define ON  1
 #define OFF 0
 
-#define TEST_MEM_ACCESS 	OFF
-#define TEST_CONSOLE_PRINT	ON
-#define TEST_EXCEPTIONS		OFF
-#define TEST_STACK_OVF		OFF
-#define TEST_DPBP			OFF
-#define TEST_AIOP_MC_CMD	OFF
-#define TEST_SINGLE_CLUSTER	OFF
-#define TEST_MULTI_CLUSTER	OFF
-#define TEST_DPNI			OFF
-#define TEST_BUFFER_POOLS	OFF
-#define TEST_GPP_DDR		OFF
-#define TEST_SPINLOCK		OFF
-
-#if (TEST_SPINLOCKS == ON)
-/* memory access test */
-int spinlock_standalone_init();
-int spinlock_test();
-#endif /* TEST_MEM_ACCESS */
-
 #if (TEST_MEM_ACCESS == ON)
 /* memory access test */
 int mem_standalone_init();
 int mem_test();
+#undef _TEST_NAME_
+#define _TEST_NAME_ "TEST_MEM_ACCESS"
 #endif /* TEST_MEM_ACCESS */
 
-#if (TEST_CONSOLE_PRINT == ON)
 int console_print_init();
+#if (TEST_CONSOLE_PRINT == ON)
 int console_print_test();
+#undef _TEST_NAME_
+#define _TEST_NAME_ "TEST_CONSOLE_PRINT"
 #endif /* TEST_CONSOLE_PRINT */
 
 /* Those 2 tests can't be tested together */
 #if (TEST_EXCEPTIONS == ON)
 int exceptions_test();
+#undef _TEST_NAME_
+#define _TEST_NAME_ "TEST_EXCEPTIONS"
 #elif (TEST_STACK_OVF == ON)
 int stack_ovf_test();
+#undef _TEST_NAME_
+#define _TEST_NAME_ "TEST_STACK_OVF"
 #endif
 
 #if (TEST_SINGLE_CLUSTER == ON)
 int single_cluster_test();
+#undef _TEST_NAME_
+#define _TEST_NAME_ "TEST_SINGLE_CLUSTER"
 #endif
 
 #if (TEST_MULTI_CLUSTER == ON)
 int multi_cluster_test();
+#undef _TEST_NAME_
+#define _TEST_NAME_ "TEST_MULTI_CLUSTER"
+#endif
+
+#if (TEST_SPINLOCKS == ON)
+int spinlock_standalone_init();
+int spinlock_test();
+#undef _TEST_NAME_
+#define _TEST_NAME_ "TEST_SPINLOCKS"
 #endif
 
 #if (TEST_AIOP_MC_CMD == ON)
 int aiop_mc_cmd_test();
+#undef _TEST_NAME_
+#define _TEST_NAME_ "TEST_AIOP_MC_CMD"
 #endif /* TEST_AIOP_MC_CMD */
 
 #if (TEST_BUFFER_POOLS == ON)
 #undef TEST_DPBP
-#undef TEST_DPNI
 #define TEST_DPBP OFF
-#define TEST_DPNI OFF
-int dpbp_init();
+#if (TEST_DPNI == ON)
+	#define buffer_pool_init() 0
+#else
 int buffer_pool_init();
+#endif
 int buffer_pool_test();
+#undef _TEST_NAME_
+#define _TEST_NAME_ "TEST_BUFFER_POOLS"
 #endif /* TEST_BUFFER_POOLS */
 
-#if (TEST_DPBP == ON)
-#undef TEST_DPNI
-#define TEST_DPNI OFF
-int dpbp_init();
-int dpbp_test();
-#endif /* TEST_DPBP */
-
 #if (TEST_DPNI == ON)
+#undef TEST_DPBP
+#define TEST_DPBP OFF
 int dpni_init();
 int dpni_test();
+#undef _TEST_NAME_
+#define _TEST_NAME_ "TEST_DPNI"
 #endif /* TEST_DPNI */
+
+#if (TEST_DPBP == ON)
+int dpbp_init();
+int dpbp_test();
+#undef _TEST_NAME_
+#define _TEST_NAME_ "TEST_DPBP"
+#endif /* TEST_DPBP */
 
 #if (TEST_GPP_DDR == ON)
 int gpp_sys_ddr_init();
-int gpp_sys_ddr_test(uint64_t iova, uint16_t size);
+int gpp_sys_ddr_test();
+#undef _TEST_NAME_
+#define _TEST_NAME_ "TEST_GPP_DDR"
+#endif
+
+#if (TEST_BIG == ON)
+#undef _TEST_NAME_
+#define _TEST_NAME_ "TEST_BIG"
 #endif
 
 #endif /* __BRINGUP_TESTS_H */

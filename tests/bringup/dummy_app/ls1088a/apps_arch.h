@@ -24,30 +24,12 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-int __init();
-int __dprc_drv_init();
-int __dpni_drv_init();
-int __dpni_drv_scan();
+#ifndef __APPS_ARCH_H
+#define __APPS_ARCH_H
 
-int dpni_init();
-int dpni_test();
+#define ARCH_DP_DDR_SIZE	     (0)
+#define ARCH_CTLU_DP_DDR_NUM_ENTRIES (0)
+#define ARCH_MFLU_DP_DDR_NUM_ENTRIES (0)
 
-int dpni_init()
-{
-	int err = 0;
 
-	err = __init();
-	if (err) {
-		return err;
-	}
-	err = __dprc_drv_init();
-	if (err) {
-		return err;
-	}
-	return __dpni_drv_init();
-}
-
-int dpni_test()
-{
-	return __dpni_drv_scan();
-}
+#endif /* __APPS_ARCH_H */
