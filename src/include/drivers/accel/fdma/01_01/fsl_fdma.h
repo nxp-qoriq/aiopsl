@@ -136,10 +136,6 @@ enum fdma_split_psa_options {
 		/** Present segment from the split frame,
 		 * keep split working frame open. */
 	FDMA_SPLIT_PSA_PRESENT_BIT =	0x00000400
-#ifdef REV2
-		/** Do not present, store and close split working frame. */
-	FDMA_SPLIT_PSA_CLOSE_FRAME_BIT = 0x00000800
-#endif /* REV2 */
 };
 
 /* @} end of enum fdma_split_psa_options */
@@ -158,13 +154,6 @@ enum fdma_enqueue_tc_options {
 		 * command right after the enqueue. If the enqueue failed, the
 		 * frame will be discarded.	*/
 	FDMA_EN_TC_TERM_BITS = 0x0400
-#ifdef REV2
-		/** Conditional Terminate : trigger the Terminate task command
-		 * only if the enqueue succeeded. If the enqueue failed, the
-		 * frame handle is not released and the command returns with an
-		 * error code.	*/
-	FDMA_EN_TC_CONDTERM_BITS =	0x0800
-#endif /* REV2 */
 };
 
 /* @} end of enum fdma_enqueue_tc_options */
@@ -179,10 +168,6 @@ enum fdma_enqueue_tc_options {
  @{
 *//***************************************************************************/
 enum fdma_replace_sa_options {
-#ifdef REV2
-		/** Keep the segment open */
-	FDMA_REPLACE_SA_OPEN_BIT =	0x0000,
-#endif /* REV2 */
 		/** Re-present the segment in workspace */
 	FDMA_REPLACE_SA_REPRESENT_BIT =	0x0100,
 		/** Close the replaced segment to free the workspace memory
@@ -375,18 +360,6 @@ enum fdma_pta_size_type {
 
 	/** Default command configuration. */
 #define FDMA_DIS_NO_FLAGS	0x00000000
-#ifdef REV2
-	/** Terminate Control.
-	 * If set - Trigger the Terminate task command right after the discard.
-	 * Otherwise - Return after discard.*/
-#define FDMA_DIS_WF_TC_BIT	0x00000100
-	/** Frame Source: Discard working frame (using frame handle).*/
-#define FDMA_DIS_FS_HANDLE_BIT	0x0000
-	/** Frame Source: Discard Frame (using frame FD).*/
-#define FDMA_DIS_FS_FD_BIT	0x0200
-
-#endif /* REV2 */
-
 
 /** @} end of group FDMA_Discard_WF_Flags */
 
@@ -401,22 +374,6 @@ enum fdma_pta_size_type {
 
 	/** Default command configuration. */
 #define FDMA_REPLIC_NO_FLAGS	0x00000000
-#ifdef REV2
-	/** Enqueue the replicated frame to the provided Queueing Destination.
-	 * Release destination frame handle is implicit when enqueueing.
-	 * If set - replicate and enqueue. Otherwise - replicate only. */
-#define FDMA_REPLIC_ENQ_BIT	0x00000400
-	/** The source frame resources are released after the replication.
-	 * Release source frame handle is implicit when discarding.
-	 * If set - discard source frame and release frame handle.
-	 * Otherwise - keep source frame. */
-#define FDMA_REPLIC_DSF_BIT	0x00000800
-	/** Enqueue Priority source.
-	 * Relevant for Queuing Destination Selection.
-	 * If set - use QD_PRI from h/w context.
-	 * Otherwise - use QD_PRI provided with DMA Command. */
-#define FDMA_REPLIC_PS_BIT	0x00001000
-#endif /* REV2 */
 	/** AIOP FDMA copy frame annotations options. Only one option may be
 	 * choose from \ref fdma_cfa_options. */
 #define FDMA_REPLICATE_CFA	fdma_cfa_options

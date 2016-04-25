@@ -378,11 +378,7 @@ int fdma_read_default_frame_asa(
 			FDMA_ST_ASA_SEGMENT_BIT);
 	/* Due to HW bug which expects the workspace address to be in 64bytes 
 	 * units */
-#ifndef REV2
 	arg2 = FDMA_PRESENT_CMD_ARG2(((uint32_t)ws_dst)>>6, offset);
-#else
-	arg2 = FDMA_PRESENT_CMD_ARG2((uint32_t)ws_dst, offset);
-#endif
 	arg3 = FDMA_PRESENT_CMD_ARG3(present_size);
 	/* store command parameters */
 	__stqw(arg1, arg2, arg3, 0, HWC_ACC_IN_ADDRESS, 0);
@@ -430,11 +426,7 @@ int fdma_read_default_frame_pta(
 			FDMA_ST_PTA_SEGMENT_BIT);
 	/* Due to HW bug which expects the workspace address to be in 64bytes 
 	 * units */
-#ifndef REV2
 	arg2 = FDMA_PRESENT_CMD_ARG2(((uint16_t)((uint32_t)ws_dst)>>6), 0);
-#else
-	arg2 = FDMA_PRESENT_CMD_ARG2((uint16_t)((uint32_t)ws_dst), 0);
-#endif
 	/* store command parameters */
 	__stdw(arg1, arg2, HWC_ACC_IN_ADDRESS, 0);
 
@@ -962,14 +954,6 @@ int fdma_split_frame(
 	int8_t  res1;
 
 	/* prepare command parameters */
-#ifdef REV2
-	if (((uint32_t)params->fd_dst) == HWC_FD_ADDRESS)
-		arg1 = FDMA_SPLIT_CMD_ARG1(*((uint8_t *)HWC_SPID_ADDRESS),
-				params->source_frame_handle, params->flags);
-	else
-		arg1 = FDMA_SPLIT_CMD_ARG1(params->spid,
-				params->source_frame_handle, params->flags);
-#endif /* REV2 */
 	arg1 = FDMA_SPLIT_CMD_ARG1(params->spid,
 				params->source_frame_handle, params->flags);
 
