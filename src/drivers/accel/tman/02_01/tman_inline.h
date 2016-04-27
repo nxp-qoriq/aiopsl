@@ -61,7 +61,11 @@ inline int tman_create_timer(uint8_t tmi_id, uint32_t flags,
 	/* extention_params.opaque_data2_epid =
 			(uint32_t)(opaque_data2 << 16) | epid;
 	Optimization: remove 2 cycles clear and shift */
-	epid = __e_rlwimi(epid, opaque_data2, 16, 0, 15);
+	/* TODO
+	 * USER_OPAQUE is on 22b, EPID is on 10b. opaque_data2 must be an
+	 * uint32_t value (implies API changes) */
+	epid = __e_rlwimi(epid, (uint32_t)opaque_data2, FD_EPID_SIZE,
+			  0, FD_USER_OPAQUE_SIZE - 1);
 	__stw(epid, 0, &(extention_params.opaque_data2_epid));
 
 	/* arg1 = (uint32_t *)(HWC_ACC_OUT_ADDRESS + 8);

@@ -251,8 +251,14 @@ enum tman_function_identifier {
 #define TMAN_CCSR_TMSTATE_ADDRESS	0x020a2018
 /** TMan Dedicated EPID */
 #define EPID_TIMER_EVENT_IDX	1
-/** Offset to USER_OPAQUE1 in FD */
-#define FD_OPAQUE1_OFFSET	0x1A
+/** Offset to USER_OPAQUE in FD */
+#define FD_USER_OPAQUE_OFFSET	0x18
+/** Mask of USER_OPAQUE field */
+#define FD_USER_OPAQUE_MASK	0xfffffc0
+/** USER_OPAQUE size (in bits)*/
+#define FD_USER_OPAQUE_SIZE	22
+/** EPID size (in bits)*/
+#define FD_EPID_SIZE		10
 /** Offset to HASH in FD */
 #define FD_HASH_OFFSET		0x1C
 /** Number of command retries - for debug purposes */
