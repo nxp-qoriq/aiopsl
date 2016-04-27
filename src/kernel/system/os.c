@@ -332,7 +332,7 @@ uint32_t fsl_rand(void)
 /*****************************************************************************/
 /*                        Spinlock Service Routines                          */
 /*****************************************************************************/
-void lock_spinlock(register uint8_t *spinlock)
+__HOT_CODE void lock_spinlock(register uint8_t *spinlock)
 {
 	register uint8_t temp1;
 	register uint8_t temp2;
@@ -364,7 +364,7 @@ spinlock_loop:
 	}
 } */
 
-void unlock_spinlock(
+__HOT_CODE void unlock_spinlock(
 	uint8_t *spinlock) {
 	*spinlock = 0;
 }
@@ -378,7 +378,7 @@ void unlock_spinlock(
 /***************************************************************************
  * atomic_incr8
  ***************************************************************************/
-void atomic_incr8(register int8_t *var, register int8_t value)
+__HOT_CODE void atomic_incr8(register int8_t *var, register int8_t value)
 {
 
 	register int8_t orig_value;
@@ -397,7 +397,7 @@ void atomic_incr8(register int8_t *var, register int8_t value)
 /***************************************************************************
  * atomic_incr16
  ***************************************************************************/
-void atomic_incr16(register int16_t *var, register int16_t value)
+__HOT_CODE void atomic_incr16(register int16_t *var, register int16_t value)
 {
 
 	register int16_t orig_value;
@@ -416,7 +416,7 @@ void atomic_incr16(register int16_t *var, register int16_t value)
 /***************************************************************************
  * atomic_incr32
  ***************************************************************************/
-void atomic_incr32(register int32_t *var, register int32_t value)
+__HOT_CODE void atomic_incr32(register int32_t *var, register int32_t value)
 {
 
 	/* Fetch and Add
@@ -449,7 +449,7 @@ void atomic_incr32(register int32_t *var, register int32_t value)
 /***************************************************************************
  * atomic_decr8
  ***************************************************************************/
-void atomic_decr8(register int8_t *var, register int8_t value)
+__HOT_CODE void atomic_decr8(register int8_t *var, register int8_t value)
 {
 
 	register int8_t orig_value;
@@ -469,7 +469,7 @@ void atomic_decr8(register int8_t *var, register int8_t value)
 /***************************************************************************
  * atomic_decr16
  ***************************************************************************/
-void atomic_decr16(register int16_t *var, register int16_t value)
+__HOT_CODE void atomic_decr16(register int16_t *var, register int16_t value)
 {
 
 	register int16_t orig_value;
@@ -489,7 +489,7 @@ void atomic_decr16(register int16_t *var, register int16_t value)
 /***************************************************************************
  * atomic_decr32
  ***************************************************************************/
-void atomic_decr32(register int32_t *var, register int32_t value)
+__HOT_CODE void atomic_decr32(register int32_t *var, register int32_t value)
 {
 
 	register int32_t orig_value;

@@ -650,7 +650,7 @@ __COLD_CODE int slab_free(struct slab **slab)
 }
 
 /*****************************************************************************/
-int slab_acquire(struct slab *slab, uint64_t *buff)
+SLAB_CODE_PLACEMENT int slab_acquire(struct slab *slab, uint64_t *buff)
 {
 	int return_val;
 	int allocate = 0;
@@ -828,7 +828,7 @@ __COLD_CODE static int slab_check_bpid(struct slab *slab, uint64_t buff)
 #endif
 
 /*****************************************************************************/
-int slab_release(struct slab *slab, uint64_t buff)
+SLAB_CODE_PLACEMENT int slab_release(struct slab *slab, uint64_t buff)
 {
 	uint32_t slab_pool_id = SLAB_VP_POOL_GET(slab);
 	uint16_t cluster = SLAB_CLUSTER_ID_GET(slab_pool_id);

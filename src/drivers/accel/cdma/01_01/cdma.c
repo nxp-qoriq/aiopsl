@@ -35,61 +35,6 @@
 
 #include "fsl_cdma.h"
 
-
-int cdma_acquire_context_memory(
-		uint16_t pool_id,
-		uint64_t *context_memory) {
-
-	/* command parameters and results */
-	uint32_t arg1, arg2, arg3 = 0, arg4 = 0;
-	uint8_t res1;
-
-	/* prepare command parameters */
-	arg1 = CDMA_ACQUIRE_CONTEXT_MEM_CMD;
-	arg2 = CDMA_ACQUIRE_CONTEXT_MEM_CMD_ARG2((uint32_t)context_memory ,
-			pool_id);
-
-	/* store command parameters */
-	__stqw(arg1, arg2, arg3, arg4, HWC_ACC_IN_ADDRESS, 0);
-
-	/* call CDMA */
-	if ((__e_hwacceli_(CDMA_ACCEL_ID)) == CDMA_SUCCESS)
-		return 0;
-
-	/* load command results */
-	res1 = *((uint8_t *)(HWC_ACC_OUT_ADDRESS+CDMA_STATUS_OFFSET));
-
-	if (((int32_t)res1) == CDMA_BUFFER_POOL_DEPLETION_ERR)
-		return -ENOSPC;
-	cdma_exception_handler(CDMA_ACQUIRE_CONTEXT_MEMORY, __LINE__,
-					(int32_t)res1);
-	return -1;
-}
-
-void cdma_release_context_memory(
-		uint64_t context_address) {
-
-	/* command parameters and results */
-	uint32_t arg1, arg2 = 0, arg3, arg4;
-	uint8_t res1;
-
-	/* prepare command parameters */
-	arg1 = CDMA_RELEASE_CONTEXT_MEM_CMD;
-	arg3 = (uint32_t)(context_address>>32);
-	arg4 = (uint32_t)(context_address);
-
-	/* store command parameters */
-	__stqw(arg1, arg2, arg3, arg4, HWC_ACC_IN_ADDRESS, 0);
-
-	/* call CDMA */
-	if ((__e_hwacceli_(CDMA_ACCEL_ID)) == CDMA_SUCCESS)
-		return;
-
-	/* load command results */
-	res1 = *((uint8_t *)(HWC_ACC_OUT_ADDRESS+CDMA_STATUS_OFFSET));
-	cdma_exception_handler(CDMA_RELEASE_CONTEXT_MEMORY, __LINE__,(int32_t)res1);
-}
-
 /*void cdma_write(
 		uint64_t ext_address,
 		void *ws_src,

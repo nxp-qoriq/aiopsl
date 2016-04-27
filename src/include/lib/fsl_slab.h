@@ -55,6 +55,21 @@
  *  Alignment padding may exist in the end of the buffer.
  */
 
+
+/**************************************************************************//**
+ @Group	SLAB_GENERAL_DEFINITIONS SLAB General Definitions
+ @{
+*//***************************************************************************/
+
+/** SLAB code placement. Must be one of __COLD_CODE, __WARM_CODE or
+ * __HOT_CODE (default). */
+#ifndef SLAB_CODE_PLACEMENT
+#define SLAB_CODE_PLACEMENT __HOT_CODE
+#endif
+
+/** @} */ /* end of SLAB_GENERAL_DEFINITIONS */
+
+
 /**************************************************************************//**
 @Description   Slab handle type
 *//***************************************************************************/
