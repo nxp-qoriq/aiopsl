@@ -59,6 +59,11 @@
  @{
 *//***************************************************************************/
 
+	/** IPF code placement. Must be one of __COLD_CODE, __WARM_CODE or
+	 * __HOT_CODE (default). */
+#ifndef IPF_CODE_PLACEMENT
+#define IPF_CODE_PLACEMENT __HOT_CODE
+#endif
 	/** IPF context size definition. */
 #define IPF_CONTEXT_SIZE	64
 	/** IPF context definition. Must be aligned to 32 Bytes.*/

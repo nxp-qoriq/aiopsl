@@ -53,7 +53,7 @@ uint16_t cksum_ones_complement_dec16(
 	return arg1;
 }
 
-void cksum_update_uint32(register uint16_t *cs_ptr,
+__HOT_CODE void cksum_update_uint32(register uint16_t *cs_ptr,
 		register uint32_t old_val,
 		register uint32_t new_val)
 {

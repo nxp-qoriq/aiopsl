@@ -1251,7 +1251,7 @@ void ip_cksum_calculate(struct ipv4hdr *ipv4header, uint8_t flags)
 	return;
 }
 
-uint32_t ipv6_last_header(struct ipv6hdr *ipv6_hdr, uint8_t flag)
+__HOT_CODE uint32_t ipv6_last_header(struct ipv6hdr *ipv6_hdr, uint8_t flag)
 {
 	uint32_t current_hdr_ptr;
 	uint16_t current_hdr_size;
