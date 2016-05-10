@@ -903,6 +903,8 @@ static int configure_bpids_for_dpni(void)
 	uint16_t alignment;
 	uint8_t mem_pid[] = {DPNI_DRV_FAST_MEMORY, (uint8_t)get_existing_ddr_memory()};
 
+	ASSERT_COND(ARRAY_SIZE(mem_pid) == DPNI_DRV_NUM_USED_BPIDS);
+
 #ifdef ERR009354
 	if(buffer_size & (DPNI_DRV_DATA_ALIGN_DEF - 1)){
 		pr_err("ERR009354: data-offset must be aligned to 256\n");
