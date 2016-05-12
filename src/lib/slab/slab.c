@@ -1643,13 +1643,15 @@ __COLD_CODE static int slab_check_registration_parameters(uint32_t committed_buf
 		pr_err("Max buffers can't be zero\n");
 		return -EINVAL;
 	}
-
+#ifdef CHECK_ALIGNMENT
 	if(!IS_POWER_VALID_ALLIGN(alignment, SLAB_SIZE_SET(local_info[i].buff_size)))
 	{
 		pr_err("Invalid alignment %d\n", alignment);
 		return -EINVAL;
 	}
-
+#else
+	UNUSED(alignment);
+#endif
 	return 0;
 }
 
