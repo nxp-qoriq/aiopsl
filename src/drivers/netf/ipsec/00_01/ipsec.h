@@ -27,9 +27,9 @@
 /**************************************************************************//**
 @File		ipsec.h
 
-@Description	This file contains the AIOP IPSec 
+@Description	This file contains the AIOP IPSec
 		internal functions and definitions.
-		
+
 *//***************************************************************************/
 
 #ifndef __AIOP_IPSEC_H
@@ -99,15 +99,15 @@ enum rta_param_type {
 #ifdef IPSEC_HOT_CODE
 	#define __IPSEC_HOT_CODE __HOT_CODE
 #else
-	#define __IPSEC_HOT_CODE 
+	#define __IPSEC_HOT_CODE
 #endif
 
 
 /* Internal Flags */
 /* flags[31] : 1 = outbound, 0 = inbound */
-#define IPSEC_FLG_DIR_OUTBOUND 0x80000000 
+#define IPSEC_FLG_DIR_OUTBOUND 0x80000000
 /* flags[30] : 1 = IPv6, 0 = IPv4 (useed for transport mode) */
-#define IPSEC_FLG_IPV6 0x40000000 
+#define IPSEC_FLG_IPV6 0x40000000
 /* flags[29] : 1 = IPv6, 0 = IPv4 (useed for tunnel mode) */
 #define IPSEC_FLG_OUTER_HEADER_IPV6 0x20000000
 /* flags[28] : 1 = NULL cipher, 0 = non-NULL cipher */
@@ -117,10 +117,10 @@ enum rta_param_type {
 /* Obsolete, Not supported */
 /* #define IPSEC_FLG_PRESERVE_ASA		0x00020000 */
 
-#define IPSEC_IP_VERSION_MASK 0xF0000000 
-#define IPSEC_IP_VERSION_IPV6 0x60000000 
-#define IPSEC_ETHERTYPE_IPV6 0x86DD 
-#define IPSEC_ETHERTYPE_IPV4 0x0800 
+#define IPSEC_IP_VERSION_MASK 0xF0000000
+#define IPSEC_IP_VERSION_IPV6 0x60000000
+#define IPSEC_ETHERTYPE_IPV6 0x86DD
+#define IPSEC_ETHERTYPE_IPV4 0x0800
 
 /* IPv4 header checksum is in bytes 10-11, lower 32-bit word #2 */
 #define IPSEC_OUTER_HEADER_IPV_MASK 0xF0000000
@@ -135,7 +135,7 @@ enum rta_param_type {
 #define IPSEC_IPV4_CHECKSUM_OFFSET 10
 
 /* PS Pointer Size. This bit determines the size of address pointers */
-#define IPSEC_SEC_POINTER_SIZE 1 /* 1 - SEC Pointers require two 32-bit words */ 
+#define IPSEC_SEC_POINTER_SIZE 1 /* 1 - SEC Pointers require two 32-bit words */
 
 #define IPSEC_PROFILE_SRAM_ADDR 0x00030000 /* hard wired address */
 #define IPSEC_STORAGE_PROFILE_SIZE_SHIFT 5 /* 32 bytes */
@@ -158,19 +158,19 @@ enum rta_param_type {
 
 #define IPSEC_DECAP_PDB_ARS_MASK 0xC0 /* PDB options[ARS], bits 7:6 */
 
-#define IPSEC_DEC_OPTS_ETU 	0x0001 /** ETU: EtherType Update 
-* If set this has two implications: 
-* - The first PDB:AOIPHO-2 bytes of the Outer IP Header Material 
-* 	are copied to the output frame.validate IP header checksum 
+#define IPSEC_DEC_OPTS_ETU 	0x0001 /** ETU: EtherType Update
+* If set this has two implications:
+* - The first PDB:AOIPHO-2 bytes of the Outer IP Header Material
+* 	are copied to the output frame.validate IP header checksum
 * - The EtherType field is updated */
 
-/* OPTIONS[3:2] - OIHI: Outer IP Header Included 
+/* OPTIONS[3:2] - OIHI: Outer IP Header Included
  * 00 : No Outer IP Header provided
  * 01 : First PDB:Opt IP Hdr Len bytes of Input frame is the
  * 		Outer IP Header Material to be included in Output Frame
  * 10 : PDB contains address to Outer IP Header Material to be
  * 		included in Output Frame (length is PDB:Opt IP Hdr Len  bytes)
- * 11 : PDB contains Outer IP Header Material to be included in Output Frame 
+ * 11 : PDB contains Outer IP Header Material to be included in Output Frame
  * 		(length is PDB:Opt IP Hdr Len bytes)
 */
 #define IPSEC_ENC_PDB_OPTIONS_OIHI_PDB 0x0C
@@ -203,7 +203,7 @@ enum rta_param_type {
 #define IPSEC_ENC_PDB_OPTIONS_NAT 0x02
 #define IPSEC_ENC_PDB_OPTIONS_NUC 0x01
 
-/* 28 (HMO 4 out of 7:0) Sequence Number Rollover control. 
+/* 28 (HMO 4 out of 7:0) Sequence Number Rollover control.
  * 0 : Sequence Number Rollover causes an error
  * 1 : Sequence Number Rollover permitted
 */
@@ -214,10 +214,10 @@ enum rta_param_type {
 	0 - All Input Frame fields copied to Output Frame
 	1 - Output Frame is just the decapsulated PDU
 2 	AOFL 	Adjust Output Frame Length
-	0 - Don't adjust output frame length 
+	0 - Don't adjust output frame length
 	-- output frame length reflects output frame actually written to memory,
 		including the padding, Pad Length, and Next Header fields.
-	1 - Adjust output frame length -- subtract the length of the padding, 
+	1 - Adjust output frame length -- subtract the length of the padding,
 		the Pad Length, and the Next Header
 		byte from the output frame length reported to the frame consumer.
 	If outFMT==0, this bit is reserved and must be zero.
@@ -255,21 +255,21 @@ enum rta_param_type {
  * ------------------------------------------------------
  * | Replacement Job Descriptor (TBD) | Up to 64 (TBD)  | + 448
  * ------------------------------------------------------
- * | Authentication Key Copy          | 128 bytes       | + 512 
+ * | Authentication Key Copy          | 128 bytes       | + 512
  * ------------------------------------------------------
- * | Cipher Key Copy                  | 32 bytes        | + 640 
+ * | Cipher Key Copy                  | 32 bytes        | + 640
  * ------------------------------------------------------
- * | Debug/Error information          | 32 bytes        | + 672 
- * ------------------------------------------------------ 
- *  
+ * | Debug/Error information          | 32 bytes        | + 672
+ * ------------------------------------------------------
+ *
  * ipsec_sa_params - Parameters used by the IPsec functional module	128 bytes
  * sec_flow_context	- SEC Flow Context. 64 bytes
- * 			Should be 64-byte aligned for optimal performance.	
+ * 			Should be 64-byte aligned for optimal performance.
  * sec_shared_descriptor - Shared descriptor. Up to 256 bytes
- * Replacement Job Descriptor (RJD) for Peer Gateway Adaptation 
- * (Outer IP change)	TBD 
+ * Replacement Job Descriptor (RJD) for Peer Gateway Adaptation
+ * (Outer IP change)	TBD
  * Key Copy area, for CAAM DKP and upon HF-NIC requirement
- * 
+ *
  * Aligned Buffer size = 128 + 64 + 256 + 64 + 128 + 32 + 32 = 704
  * Requested buffer size = 12*64 = 768 bytes
 */
@@ -353,10 +353,10 @@ enum rta_param_type {
 	((struct presentation_context *)prc_addr)->seg_offset
 
 /*
-* Big-endian systems are systems in which the most significant byte of the word 
-* is stored in the smallest address given and the least significant byte 
-* is stored in the largest. 
-* In contrast, little endian systems are those in which the 
+* Big-endian systems are systems in which the most significant byte of the word
+* is stored in the smallest address given and the least significant byte
+* is stored in the largest.
+* In contrast, little endian systems are those in which the
 * least significant byte is stored in the smallest address.
 */
 /* Little Endian
@@ -381,7 +381,7 @@ Big Endian
 */
 
 /* FLC[63:0] = { 16’b0, checksum[15:0], byte_count[31:0] } */
-/* FLC Little Endian Format 
+/* FLC Little Endian Format
 * +---------------------------------------------------------------+
 * |   x   |   x   |  CS1  |  CS0  |  BC3  |  BC2  |  BC1  |  BC0  |
 * |       |       |  MSB  |  LSB  |  MSB  |       |       |  LSB  |
@@ -390,7 +390,7 @@ Big Endian
 * |   7   |   6   |   5   |   4   |   3   |   2   |   1   |   0   |
 * +---------------------------------------------------------------+
 
-* FLC Big Endian Format 
+* FLC Big Endian Format
 * +---------------------------------------------------------------+
 * |  BC0  |  BC1  |  BC2  |  BC3  |  CS1  |  CS0  |   x   |   x   |
 * |  LSB  |       |  MSB  |  MSB  |  LSB  |  MSB  |       |       |
@@ -426,14 +426,14 @@ Big Endian
 /* DPOVRD Next Header for ESP */
 /* 4 (0x04) IP-in-IP IP in IP (encapsulation) */
 #define IPSEC_NEXT_HEADER_IPV4 0x04
-/* 41 (0x29) IPv6 IPv6 Encapsulation */ 
+/* 41 (0x29) IPv6 IPv6 Encapsulation */
 #define IPSEC_NEXT_HEADER_IPV6 0x29
 
 // TMP, removed from the external API
 /** Frames do not include a L2 Header */
 #define IPSEC_FLG_NO_L2_HEADER		0x00000010
 
-/* Output IP header source options. Use one of the following options. 
+/* Output IP header source options. Use one of the following options.
  * Relevant for tunnel mode only */
 #define IPSEC_ENC_OPTS_IPHDR_SRC_NONE	0x00 /* IP header not included */
 #define IPSEC_ENC_OPTS_IPHDR_SRC_FRAME 	0x04 /* IP header from input frame */
@@ -441,27 +441,27 @@ Big Endian
 #define IPSEC_ENC_OPTS_IPHDR_SRC_PARAM	0x0c /* IP header from parameters */
 
 /**************************************************************************//**
-@Description	IPSec ESP Encapsulation HMO field  
+@Description	IPSec ESP Encapsulation HMO field
 
 		Use for ipsec_encap_params.hmo
 *//***************************************************************************/
 
 // TMP, removed from the external API
-/* SNR: Sequence Number Rollover control 
+/* SNR: Sequence Number Rollover control
  * If not set, a Sequence Number Rollover causes an error
  * if set, Sequence Number Rollover is permitted*/
-#define IPSEC_HMO_ENCAP_SNR	0x01                             
+#define IPSEC_HMO_ENCAP_SNR	0x01
 
 
 /**************************************************************************//**
-@Description	IPSec ESP Decapsulation HMO field  
+@Description	IPSec ESP Decapsulation HMO field
 
 		Use for ipsec_decap_params.hmo
 *//***************************************************************************/
 
 // TMP, removed from the external API
-/* ODF: the DF bit in the IPv4 header in the output frame is replaced 
- * with the DFV value as shown below. 
+/* ODF: the DF bit in the IPv4 header in the output frame is replaced
+ * with the DFV value as shown below.
  * Note: * Must not be set for IPv6 */
 #define IPSEC_HMO_DECAP_ODF	0x08
 
@@ -469,14 +469,14 @@ Big Endian
 #define IPSEC_HMO_DECAP_DFV	0x04
 
 /**************************************************************************//**
-@Description	SEC Returned Status  
+@Description	SEC Returned Status
 
 		Use for ipsec_decap_params.hmo
 *//***************************************************************************/
-/* SEC Job termination status/error word 
-* bits 31-28      bits 3-0 / bits 7-0 
+/* SEC Job termination status/error word
+* bits 31-28      bits 3-0 / bits 7-0
 * (Source of      (ERRID)  / (Error Code)
-*  the status 
+*  the status
 *  code)
 * -----------     ---------
 * 2h (CCB)	    Ah - ICV check failed
@@ -526,20 +526,20 @@ Big Endian
 
 /* General Headers Parameters */
 #define IPSEC_IP_NEXT_HEADER_UDP 0x11 /* UDP = 17 */
-#define IPSEC_IP_NEXT_HEADER_ESP 0x32 /* ESP = 50 */ 
+#define IPSEC_IP_NEXT_HEADER_ESP 0x32 /* ESP = 50 */
 
 /* Max job descriptor size in bytes (13 words) */
 #define IPSEC_MAX_AI_JOB_DESC_SIZE ((7 * CAAM_CMD_SZ) + (3 * CAAM_PTR_SZ))
 
-/* The max shared descriptor size in 32 bit words when using the AI is 
+/* The max shared descriptor size in 32 bit words when using the AI is
  * 64 words - 13 words reserved for the Job descriptor */
-#define IPSEC_MAX_SD_SIZE_WORDS (64-13) 
+#define IPSEC_MAX_SD_SIZE_WORDS (64-13)
 
-/* Total max growth for encapsulation (not including outer IP/UDP header):	
+/* Total max growth for encapsulation (not including outer IP/UDP header):
  * 4-byte SPI, 4-byte Seq Num, 16-byte IV, 15-byte Padding (AES),
- * 1-byte pad length, 1-byte Next Header, 32-byte ICV (SHA 512)	
+ * 1-byte pad length, 1-byte Next Header, 32-byte ICV (SHA 512)
  * = Total: 73, rounded up to 76 */
-#define IPSEC_MAX_FRAME_GROWTH 76 
+#define IPSEC_MAX_FRAME_GROWTH 76
 
 
 // TMP, removed from the external API
@@ -566,8 +566,8 @@ struct ipsec_instance_params {
 	uint8_t tmi_id; /* TMAN Instance ID  */
 };
 
-/* Note: For ste_inc_and_acc_counters function, the accumulator memory address 
- * should be counter_addr + sizeof(counter) 
+/* Note: For ste_inc_and_acc_counters function, the accumulator memory address
+ * should be counter_addr + sizeof(counter)
  * In this case "accumulator" = byte counter, "counter" = packets counter*/
 
 #define IPSEC_PACKET_COUNTER_ADDR(ADDRESS) \
@@ -605,8 +605,8 @@ struct ipsec_instance_params {
 	IPSEC_INTERNAL_PARMS_SIZE + IPSEC_FLOW_CONTEXT_SIZE)
 
 /* PDB address */
-#define IPSEC_PDB_ADDR(ADDRESS) (IPSEC_SHARED_DESC_ADDR(ADDRESS) + 4) 
-	
+#define IPSEC_PDB_ADDR(ADDRESS) (IPSEC_SHARED_DESC_ADDR(ADDRESS) + 4)
+
 #define IPSEC_MAX_TIMESTAMP 0xFFFFFFFFFFFFFFFF
 
 /* duration - Timer duration time (the number of timer ticks).
@@ -615,7 +615,7 @@ struct ipsec_instance_params {
 #define IPSEC_MAX_TIMER_DURATION (0x10000-10-2)
 #define IPSEC_MIN_TIMER_DURATION 10
 
-/* SA Descriptor Parameter for Internal Usage */ 
+/* SA Descriptor Parameter for Internal Usage */
 /* Part 1 */
 struct ipsec_sa_params_part1 {
 	/* Required at Add descriptor and enc/dec */
@@ -628,17 +628,17 @@ struct ipsec_sa_params_part1 {
 	uint64_t soft_packet_limit; /* soft packet limit, 8B */
 	uint64_t hard_byte_limit; /* hard byte count limit, 8B */
 	uint64_t hard_packet_limit; /* hard packet limit, 8B */
-	
+
 	/* Always required, except timer callback */
 	ipsec_instance_handle_t instance_handle; /* Instance handle 8B */
 
-	uint32_t flags; /* 	transport mode, UDP encap, pad check, counters enable, 
+	uint32_t flags; /* 	transport mode, UDP encap, pad check, counters enable,
 					outer IP version, etc. 4B */
 	//uint32_t status; /* lifetime expire, semaphores	4-8B */
 
 
 	uint32_t outer_hdr_dscp; /* Outer Header DSCP, for set mode */
-	
+
 	uint16_t udp_src_port; /* UDP source for transport mode. 2B */
 	uint16_t udp_dst_port; /* UDP destination for transport mode. 2B */
 	uint16_t bpid; /* BPID of output frame in new buffer mode */
@@ -647,7 +647,7 @@ struct ipsec_sa_params_part1 {
 	uint8_t valid; /* descriptor valid. 1B */
 	uint8_t sec_buffer_mode; /* new/reuse. 1B */
 	uint8_t output_spid; /* SEC output buffer SPID */
-	
+
 	uint8_t soft_sec_expired; /* soft seconds lifetime expired */
 	uint8_t hard_sec_expired; /* hard seconds lifetime expired */
 
@@ -657,25 +657,25 @@ struct ipsec_sa_params_part1 {
 };
 /* Part 2 */
 struct ipsec_sa_params_part2 {
-	
+
 	/* Required at Add descriptor and timer callback */
 	/* 2x8 + 3x4 = 16+12 = 28 bytes */
-	uint64_t sec_callback_arg; /* SA handle used as argument for the 
+	uint64_t sec_callback_arg; /* SA handle used as argument for the
 								application callback function. 8B */
-	ipsec_lifetime_callback_t *sec_callback_func; /* Application callback function, 
+	ipsec_lifetime_callback_t *sec_callback_func; /* Application callback function,
 	 	 	 	 	to call upon a seconds lifetime expiry. 4B */
-	
+
 	/* Do not change this order of limit followed by handle */
-	uint32_t soft_seconds_limit; 
+	uint32_t soft_seconds_limit;
 	uint32_t soft_tmr_handle; /* Soft seconds timer handle, 4B */
 
 	/* Do not change this order of limit followed by handle */
-	uint32_t hard_seconds_limit; 
+	uint32_t hard_seconds_limit;
 	uint32_t hard_tmr_handle; /* Hard seconds timer handle, 4B */
-	
-	 
+
+
 	uint8_t tmi_id;
-	
+
 	/* Total size = 8 + 5*4 (20) + 1 = 29 bytes */
 	/* Aligned size = 32 bytes */
 };
@@ -687,14 +687,14 @@ struct ipsec_sa_params {
 		struct ipsec_sa_params_part2 sap2;
 };
 
-/* SEC Flow Context Descriptor */ 
+/* SEC Flow Context Descriptor */
 struct sec_flow_context {
 	/* TODO: add actual fields.
 	 * Note: little endian */
 	uint32_t flow_context_word[16];
 };
 
-/* SEC Shared Descriptor Place Holder*/ 
+/* SEC Shared Descriptor Place Holder*/
 struct sec_shared_descriptor {
 	/* TODO: add actual fields.
 	 * Note: little endian */
@@ -715,7 +715,7 @@ struct sec_shared_descriptor {
 struct dpovrd_tunnel_encap {
 	uint32_t word;
 };
-	
+
 /* DPOVRD for Tunnel Decap mode */
 struct dpovrd_tunnel_decap {
 	uint32_t word;
@@ -756,15 +756,15 @@ struct ipsec_flow_context {
 	/* word 0 */
 	uint16_t word0_sdid; /* 11-0  SDID */
 	uint16_t word0_res; /* 31-12 reserved */
-	
+
 	/* word 1 */
 	uint8_t word1_sdl; 	/* 5-0 SDL 	*/
 						/* 7-6 reserved */
-	
+
 	uint8_t word1_bits_15_8; 	/* 11-8 CRID */
 								/* 14-12 reserved */
 								/* 15 CRJD */
-	
+
 	uint8_t word1_bits23_16; /* 16	EWS */
 								/* 17 DAC */
 								/* 18,19,20 ? */
@@ -773,7 +773,7 @@ struct ipsec_flow_context {
 	uint8_t word1_bits31_24; /* 24 RSC */
 							/* 25 RBMT */
 	 	 	 	 	 	 	 /* 31-26 reserved */
-	
+
 	/* word 2  RFLC[31-0] */
 	uint32_t word2_rflc_31_0;
 
@@ -783,26 +783,26 @@ struct ipsec_flow_context {
 	/* word 4 */
 	uint16_t word4_iicid; /* 15-0  IICID */
 	uint16_t word4_oicid; /* 31-16 OICID */
-	
+
 	/* word 5 */
 	uint8_t word5_7_0; /* 23-0 OFQID */
 	uint8_t word5_15_8;
 	uint8_t word5_23_16;
-	
-	uint8_t word5_31_24; 
+
+	uint8_t word5_31_24;
 						/* 24 OSC */
 						/* 25 OBMT */
 						/* 29-26 reserved 	*/
 						/* 31-30 ICR */
-	
-	//uint32_t word5_31_0; 
-	
+
+	//uint32_t word5_31_0;
+
 	/* word 6 */
 	uint32_t word6_oflc_31_0;
 
 	/* word 7 */
 	uint32_t word7_oflc_63_32;
-	 
+
 	/* words 8-15 are a copy of the standard storage profile */
 	uint64_t storage_profile[4];
 };
@@ -820,21 +820,21 @@ struct ipsec_flow_context {
 *//***************************************************************************/
 
 /**************************************************************************//**
-@Function		ipsec_generate_flc 
+@Function		ipsec_generate_flc
 
 @Description	Generate SEC Flow Context Descriptor
 *//***************************************************************************/
 void ipsec_generate_flc(
 		uint64_t flc_address, /* Flow Context Address in external memory */
 		//uint16_t spid, /* Storage Profile ID of the SEC output frame */
-		struct ipsec_descriptor_params *params, 
+		struct ipsec_descriptor_params *params,
 		int sd_size /* Shared descriptor Length */
 );
 
 /**************************************************************************//**
-@Function		ipsec_create_key_copy 
+@Function		ipsec_create_key_copy
 
-@Description	Creates a copy of the key, used for CAAM DKP 
+@Description	Creates a copy of the key, used for CAAM DKP
 *//***************************************************************************/
 void ipsec_create_key_copy(
 		uint64_t src_key_addr, /*  Source Key Address */
@@ -842,7 +842,7 @@ void ipsec_create_key_copy(
 		uint16_t keylen);   /* Length of the provided key, in bytes */
 
 /**************************************************************************//**
-@Function		ipsec_generate_sd 
+@Function		ipsec_generate_sd
 
 @Description	Generate SEC Shared Descriptor for Encapsulation
 *//***************************************************************************/
@@ -853,7 +853,7 @@ int ipsec_generate_encap_sd(
 );
 
 /**************************************************************************//**
-@Function		ipsec_generate_sd 
+@Function		ipsec_generate_sd
 
 @Description	Generate SEC Shared Descriptor for Decapsulation
 *//***************************************************************************/
@@ -864,7 +864,7 @@ int ipsec_generate_decap_sd(
 );
 
 /**************************************************************************//**
-@Function		ipsec_generate_sa_params 
+@Function		ipsec_generate_sa_params
 
 @Description	Generate and store the functional module internal parameter
 *//***************************************************************************/
@@ -876,10 +876,10 @@ int ipsec_generate_sa_params(
 
 /**************************************************************************//**
 *	ipsec_get_buffer
-*	
-*	@Description	Allocates a buffer for the IPsec parameters	according 
-*			to the instance parameters and increments the instance counters 
-*	
+*
+*	@Description	Allocates a buffer for the IPsec parameters	according
+*			to the instance parameters and increments the instance counters
+*
 *//****************************************************************************/
 int ipsec_get_buffer(ipsec_instance_handle_t instance_handle,
 		ipsec_handle_t *ipsec_handle,
@@ -888,8 +888,8 @@ int ipsec_get_buffer(ipsec_instance_handle_t instance_handle,
 
 /**************************************************************************//**
 *	ipsec_release_buffer
-*	@Description	release a buffer and decrements the instance counters 
-*		
+*	@Description	release a buffer and decrements the instance counters
+*
 *//****************************************************************************/
 int ipsec_release_buffer(ipsec_instance_handle_t instance_handle,
 		ipsec_handle_t ipsec_handle
@@ -897,29 +897,29 @@ int ipsec_release_buffer(ipsec_instance_handle_t instance_handle,
 
 /**************************************************************************//**
 *	ipsec_get_ipv6_nh_offset
-*	
-*	@Description	calculate the nh_offset for IPv6 transport mode 
+*
+*	@Description	calculate the nh_offset for IPv6 transport mode
 *//****************************************************************************/
 uint8_t ipsec_get_ipv6_nh_offset(struct ipv6hdr *ipv6_hdr, uint8_t *length);
 
 /**************************************************************************//**
 *	ipsec_tman_callback
-*	
-*	@Description	Generic TMAN callback function 
+*
+*	@Description	Generic TMAN callback function
 *//****************************************************************************/
 void ipsec_tman_callback(uint64_t ipsec_handle, uint16_t indicator);
 
 /**************************************************************************//**
-@Function		ipsec_init_debug_info 
+@Function		ipsec_init_debug_info
 
-@Description	Initialize the debug segment of the descriptor 
+@Description	Initialize the debug segment of the descriptor
 *//***************************************************************************/
 void ipsec_init_debug_info(ipsec_handle_t desc_addr);
 
 /**************************************************************************//**
 *	Debug Information and Functions
-*	
-*	@Description: 
+*
+*	@Description:
 *//****************************************************************************/
 enum ipsec_function_identifier {
 	/* External Functions */
