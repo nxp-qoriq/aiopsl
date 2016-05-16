@@ -107,6 +107,13 @@ enum key_types {
 @{
 *//***************************************************************************/
 
+/** IPSEC code placement. Must be one of __COLD_CODE, __WARM_CODE or
+ * __HOT_CODE (default). */
+#ifndef IPSEC_CODE_PLACEMENT
+	#define IPSEC_CODE_PLACEMENT __HOT_CODE
+#endif
+
+
 /**************************************************************************//**
 @Description	IPSec handles Type definition
 

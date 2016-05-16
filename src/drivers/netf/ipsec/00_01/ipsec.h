@@ -96,13 +96,6 @@ enum rta_param_type {
 @{
 *//***************************************************************************/
 
-#ifdef IPSEC_HOT_CODE
-	#define __IPSEC_HOT_CODE __HOT_CODE
-#else
-	#define __IPSEC_HOT_CODE
-#endif
-
-
 /* Internal Flags */
 /* flags[31] : 1 = outbound, 0 = inbound */
 #define IPSEC_FLG_DIR_OUTBOUND 0x80000000

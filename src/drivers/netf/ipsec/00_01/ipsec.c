@@ -1556,7 +1556,7 @@ int ipsec_del_sa_descriptor(
 /**************************************************************************//**
 * ipsec_frame_encrypt
 *//****************************************************************************/
-__IPSEC_HOT_CODE int ipsec_frame_encrypt(
+IPSEC_CODE_PLACEMENT int ipsec_frame_encrypt(
 		ipsec_handle_t ipsec_handle,
 		uint32_t *enc_status
 		)
@@ -2279,7 +2279,7 @@ skip_l2_remove:
 /**************************************************************************//**
 * ipsec_frame_decrypt
 *//****************************************************************************/
-__IPSEC_HOT_CODE int ipsec_frame_decrypt(
+IPSEC_CODE_PLACEMENT int ipsec_frame_decrypt(
 		ipsec_handle_t ipsec_handle,
 		uint32_t *dec_status
 		)
@@ -3270,7 +3270,7 @@ int ipsec_get_seq_num(
 	Destination is placed after Routing header.
 	
 *//****************************************************************************/
-__IPSEC_HOT_CODE uint8_t ipsec_get_ipv6_nh_offset(
+IPSEC_CODE_PLACEMENT uint8_t ipsec_get_ipv6_nh_offset(
 		struct ipv6hdr *ipv6_hdr, 
 		uint8_t *length)
 {
