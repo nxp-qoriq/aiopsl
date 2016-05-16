@@ -340,6 +340,15 @@ __declspec(entry_point) void aiop_verification_fm()
 			  sizeof(struct update_default_sp_ptar_command);
 			break;
 		}
+		case INFINATE_LOOP_MODULE:
+			while (1) {
+				/* Let other tasks to be scheduled on
+				 * this core */
+				__e_hwacceli(YIELD_ACCEL_ID);
+				/* Do some dummy processing */
+				fsl_print("");
+			}
+			break;
 		case TERMINATE_FLOW_MODULE:
 		default:
 		{
@@ -491,7 +500,7 @@ void timeout_cb_verif(uint64_t arg)
 	flags |= ((str.PS) ? FDMA_ENWF_PS_BIT : 0x0);
 
 	/* W/A to set NI Storage Profile PTAR the same as FD PTA.
-	 * This is needed since generic code uses NI spid while ROC work 
+	 * This is needed since generic code uses NI spid while ROC works
 	 * without NI (results verification environment to use a fault spid). */
 	if (LDPAA_FD_GET_PTA(HWC_FD_ADDRESS)) /* set SP PTAR to 1*/
 		storage_profile[GET_DEFAULT_SPID()].mode_bits1 |= 0x80;

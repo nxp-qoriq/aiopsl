@@ -213,7 +213,7 @@ enum verif_modules_ids {
 	UPDATE_EXT_VARIABLE, 	// 21
 	UPDATE_DEFAULT_SP_ASAR, // 22
 	UPDATE_DEFAULT_SP_PTAR, // 23
-	INFINATE_LOOP_MODULE //14
+	INFINATE_LOOP_MODULE /* 24 */
 };
 
 /**************************************************************************//**

@@ -341,9 +341,14 @@ __declspec(entry_point) void aiop_verification_fm()
 			break;
 		}
 		case INFINATE_LOOP_MODULE:
-		{
-			while(TRUE){}
-		}
+			while (1) {
+				/* Let other tasks to be scheduled on
+				 * this core */
+				__e_hwacceli(YIELD_ACCEL_ID);
+				/* Do some dummy processing */
+				fsl_print("");
+			}
+			break;
 		case TERMINATE_FLOW_MODULE:
 		default:
 		{
