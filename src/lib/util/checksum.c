@@ -33,7 +33,7 @@
 #include "fsl_checksum.h"
 #include "general.h"
 
-uint16_t cksum_ones_complement_sum16(uint16_t arg1, uint16_t arg2)
+__HOT_CODE uint16_t cksum_ones_complement_sum16(uint16_t arg1, uint16_t arg2)
 {
 	int32_t tmp = arg1 + arg2;
 	return (uint16_t)(tmp + (tmp >> 16));

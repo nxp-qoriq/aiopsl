@@ -46,7 +46,7 @@
 
 
 /* New Aggregation */
-int tcp_gro_aggregate_seg(
+GRO_CODE_PLACEMENT int tcp_gro_aggregate_seg(
 		uint64_t tcp_gro_context_addr,
 		struct tcp_gro_context_params *params,
 		uint32_t flags)
@@ -207,7 +207,7 @@ int tcp_gro_aggregate_seg(
 }
 
 /* Add segment to an existing aggregation */
-int tcp_gro_add_seg_to_aggregation(
+GRO_CODE_PLACEMENT int tcp_gro_add_seg_to_aggregation(
 		uint64_t tcp_gro_context_addr,
 		struct tcp_gro_context_params *params,
 		struct tcp_gro_context *gro_ctx)
@@ -396,7 +396,7 @@ int tcp_gro_add_seg_to_aggregation(
 }
 
 /* Add segment to aggregation and close aggregation. */
-int tcp_gro_add_seg_and_close_aggregation(
+GRO_CODE_PLACEMENT int tcp_gro_add_seg_and_close_aggregation(
 		struct tcp_gro_context *gro_ctx)
 {
 	struct tcphdr *tcp;
@@ -575,7 +575,7 @@ int tcp_gro_add_seg_and_close_aggregation(
 
 /* Close an existing aggregation and start a new aggregation with the new
  * segment. */
-int tcp_gro_close_aggregation_and_open_new_aggregation(
+GRO_CODE_PLACEMENT int tcp_gro_close_aggregation_and_open_new_aggregation(
 		uint64_t tcp_gro_context_addr,
 		struct tcp_gro_context_params *params,
 		struct tcp_gro_context *gro_ctx)
@@ -848,7 +848,7 @@ int tcp_gro_close_aggregation_and_open_new_aggregation(
 	return TCP_GRO_SEG_AGG_DONE_AGG_OPEN_NEW_AGG;
 }
 
-int tcp_gro_flush_aggregation(
+GRO_CODE_PLACEMENT int tcp_gro_flush_aggregation(
 		uint64_t tcp_gro_context_addr)
 {
 	struct tcp_gro_context gro_ctx;
@@ -1124,7 +1124,7 @@ void tcp_gro_timeout_callback(uint64_t tcp_gro_context_addr, uint16_t opaque2)
 	gro_ctx.gro_timeout_cb(gro_ctx.gro_timeout_cb_arg);
 }
 
-void tcp_gro_calc_tcp_header_cksum()
+GRO_CODE_PLACEMENT void tcp_gro_calc_tcp_header_cksum()
 {
 	uint16_t tmp_checksum, tcp_offset, pseudo_tcp_length, ipsrc_offset;
 	struct tcphdr *tcp;
