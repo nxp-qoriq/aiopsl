@@ -51,18 +51,18 @@ void rcu_free()
 	return;
 }
 
-int rcu_synchronize()
+RCU_CODE_PLACEMENT int rcu_synchronize()
 {
 	cdma_ephemeral_reference_sync();
 	return 0;
 }
 
-void rcu_read_unlock()
+RCU_CODE_PLACEMENT void rcu_read_unlock()
 {
 	cdma_ephemeral_reference_release_all();
 }
 
-void rcu_read_lock()
+RCU_CODE_PLACEMENT void rcu_read_lock()
 {
 	cdma_ephemeral_reference_take();
 }

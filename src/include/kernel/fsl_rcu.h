@@ -45,6 +45,12 @@
 @{
 *//***************************************************************************/
 
+/** RCU code placement. Must be one of __COLD_CODE (default), __WARM_CODE or
+ * __HOT_CODE. */
+#ifndef RCU_CODE_PLACEMENT
+#define RCU_CODE_PLACEMENT __COLD_CODE
+#endif
+
 /**************************************************************************//**
 @Function	rcu_synchronize
 
