@@ -223,61 +223,6 @@ struct parser_input_message_params {
 
 
 /**************************************************************************//**
-@Function	parse_result_generate_checksum
-
-@Description	Runs parser and generates parse result and L3 & L4 checksums.
-		This function provides, on a per Parse Profile basis,
-		the ability to begin the examination of a frame at a different
-		offset within the frame with a different presumption of the
-		first header type.
-
-		Implicit input parameters:
-		Segment address, Segment size, Parser Profile ID.
-
-		Implicitly updated values in Task Defaults in the HWC:
-		Parser Result.
-
-@Param[in]	starting_hxs - Starting HXS for the parser.
-		Please refer to \ref parser_starting_hxs_code.
-@Param[in]	starting_offset - Offset from the presented segment where
-		parsing is to start. (Segment is presented in:
-		Presentation Context [SEGMENT ADDRESS])
-@Param[out]	l3_checksum - L3 checksum calculated by the parser
-		(located in the workspace). Must not be NULL.
-@Param[out]	l4_checksum - L4 checksum calculated by the parser
-		(located in the workspace). Must not be NULL.
-
-@Return		Positive values on checksum generation success, or negative
-		value on error.
-		The exact error code can be discovered by using
-		PARSER_GET_PARSE_ERROR_CODE_DEFAULT(). See error codes in
-		\ref FSL_PARSER_ERROR_CODES.
-
-@Retval		EIO - Parsing Error or no generation of L3 & L4 checksums
-@Retval		ENOSPC - Block Limit Exceeds (Frame Parsing reached the limit
-		of the minimum between presentation_length and 256 bytes before
-		completing all parsing)
-@Retval		PARSER_STATUS_L3_L4_CHECKSUM_GENERATION_SUCCEEDED - L3 & L4
-		checksum were generated
-@Retval		PARSER_STATUS_L4_CHECKSUM_GENERATION_SUCCEEDED - L4 checksum
-		was generated
-@Retval		PARSER_STATUS_L3_CHECKSUM_GENERATION_SUCCEEDED - L3 checksum
-		was generated
-
-@Cautions	In this function the task yields.
- 	  	Presented header address in the workspace must be aligned to
- 	  	16 bytes.
-		This function expects gross running sum field to be valid.
-		l3 & l4 checksum pointers must not be NULL.
-		This function may result in a fatal error.
-*//***************************************************************************/
-int parse_result_generate_checksum(
-		enum parser_starting_hxs_code starting_hxs,
-		uint8_t starting_offset, uint16_t *l3_checksum,
-		uint16_t *l4_checksum
-);
-
-/**************************************************************************//**
 @Function	parser_exception_handler
 
 @Description	Handler for the error status returned from the PARSER API

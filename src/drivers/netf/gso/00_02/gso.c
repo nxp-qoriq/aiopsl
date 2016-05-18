@@ -44,7 +44,7 @@
 
 extern __TASK struct aiop_default_task_params default_task_params;
 
-int tcp_gso_generate_seg(
+GSO_CODE_PLACEMENT int tcp_gso_generate_seg(
 		tcp_gso_ctx_t tcp_gso_context_addr)
 {
 	struct tcp_gso_context *gso_ctx =
@@ -142,7 +142,7 @@ int tcp_gso_generate_seg(
 	return tcp_gso_split_segment(gso_ctx);
 }
 
-int32_t tcp_gso_split_segment(struct tcp_gso_context *gso_ctx)
+GSO_CODE_PLACEMENT int32_t tcp_gso_split_segment(struct tcp_gso_context *gso_ctx)
 {
 	int32_t	status, sr_status, split_sr_status;
 	uint16_t updated_ipv4_outer_total_length, l3checksum, ip_header_length;
@@ -375,7 +375,7 @@ int tcp_gso_discard_frame_remainder(
 }
 
 
-void tcp_gso_context_init(
+GSO_CODE_PLACEMENT void tcp_gso_context_init(
 		uint32_t flags,
 		uint16_t mss,
 		tcp_gso_ctx_t tcp_gso_context_addr)
