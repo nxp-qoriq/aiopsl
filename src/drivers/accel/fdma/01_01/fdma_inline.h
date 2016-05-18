@@ -980,4 +980,90 @@ inline int fdma_insert_segment_data(
 	return (int32_t)(res1);
 }
 
+inline int fdma_present_default_frame_default_segment()
+{
+	/* command parameters and results */
+	uint32_t arg1, arg2, arg3;
+	int8_t  res1;
+
+	/* prepare command parameters */
+	arg1 = FDMA_PRESENT_CMD_ARG1(PRC_GET_HANDLES(),
+			(FDMA_ST_DATA_SEGMENT_BIT));
+	arg2 = FDMA_PRESENT_CMD_ARG2((uint32_t)PRC_GET_SEGMENT_ADDRESS(),
+			PRC_GET_SEGMENT_OFFSET());
+	arg3 = FDMA_PRESENT_CMD_ARG3(PRC_GET_SEGMENT_LENGTH());
+	/* store command parameters */
+	__stdw(arg1, arg2, HWC_ACC_IN_ADDRESS, 0);
+	*((uint32_t *)(HWC_ACC_IN_ADDRESS3)) = arg3;
+
+	/* call FDMA Accelerator */
+	FDMA_OSM_LIMIT_CALL(FPDMA_ACCEL_ID, PRC_GET_FRAME_HANDLE());
+	
+	/* load command results */
+	res1 = *((int8_t *) (FDMA_STATUS_ADDR));
+	if ((res1 == FDMA_SUCCESS) ||
+		(res1 == FDMA_UNABLE_TO_PRESENT_FULL_SEGMENT_ERR)) {
+		PRC_SET_SEGMENT_LENGTH(*((uint16_t *)(HWC_ACC_OUT_ADDRESS2)));
+		PRC_SET_SEGMENT_HANDLE(*((uint8_t *)(HWC_ACC_OUT_ADDRESS2 +
+						FDMA_SEG_HANDLE_OFFSET)));
+		if (res1 == FDMA_SUCCESS)
+			return SUCCESS;
+		else	/*FDMA_UNABLE_TO_PRESENT_FULL_SEGMENT_ERR*/
+			return FDMA_STATUS_UNABLE_PRES_DATA_SEG;
+	}
+
+	fdma_exception_handler(FDMA_PRESENT_DEFAULT_FRAME_DEFAULT_SEGMENT, 
+			__LINE__, (int32_t)res1);
+
+	return (int32_t)(res1);
+}
+
+inline int fdma_present_default_frame_without_segments(void)
+{
+	/* command parameters and results */
+	uint32_t arg1;
+	int8_t  res1;
+
+	/* prepare command parameters */
+	arg1 = FDMA_INIT_CMD_ARG1((uint32_t)HWC_FD_ADDRESS, FDMA_INIT_NDS_BIT);
+
+	/* store command parameters */
+	*((uint32_t *)(HWC_ACC_IN_ADDRESS)) = arg1;
+	__stdw(PRC_PTA_NOT_LOADED_ADDRESS, 0, HWC_ACC_IN_ADDRESS3, 0);
+
+	/* call FDMA Accelerator */
+	__e_hwacceli_(FPDMA_ACCEL_ID);
+	/* load command results */
+
+	/* workaround to TKT260685 */
+	SET_FRAME_TYPE(*((uint8_t *)
+			(HWC_ACC_OUT_ADDRESS2 + FDMA_FRAME_HANDLE_OFFSET)), 
+			HWC_FD_ADDRESS);
+	/* end of workaround to TKT260685 */
+
+	res1 = *((int8_t *) (FDMA_STATUS_ADDR));
+	if (res1 == FDMA_SUCCESS) {
+		PRC_SET_FRAME_HANDLE(*((uint8_t *)
+			(HWC_ACC_OUT_ADDRESS2 + FDMA_FRAME_HANDLE_OFFSET)));
+		PRC_SET_NDS_BIT();
+		PRC_SET_ASA_SIZE(0);
+		PRC_SET_PTA_ADDRESS(PRC_PTA_NOT_LOADED_ADDRESS);
+#if NAS_NPS_ENABLE
+		PRC_SET_NAS_BIT();
+		PRC_SET_NPS_BIT();
+#endif /*NAS_NPS_ENABLE*/
+
+		return SUCCESS;
+	}
+
+	if (res1 == FDMA_FD_ERR)
+		return -EIO;
+	else
+		fdma_exception_handler(
+				FDMA_PRESENT_DEFAULT_FRAME_WITHOUT_SEGMENTS, 
+				__LINE__, (int32_t)res1);
+
+	return (int32_t)(res1);
+}
+
 #endif /* __FSL_FDMA_INLINE_H */

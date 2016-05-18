@@ -2528,6 +2528,36 @@ void get_default_amq_attributes(
 void set_default_amq_attributes(
 	struct fdma_amq *amq);
 
+/**************************************************************************//**
+@Function	fdma_present_default_frame_default_segment
+
+@Description	Open a segment of the default working frame and copy the
+		segment data into the specified location in the workspace.
+
+		Implicit input parameters in Task Defaults: frame handle,
+		segment length, segment address, segment offset.
+
+		Implicitly updated values in Task Defaults: segment length,
+		segment handle.
+
+@Return		0 on Success, or negative value on error.
+
+@Retval		0 - Success.
+@Retval		::FDMA_STATUS_UNABLE_PRES_DATA_SEG - Unable to fulfill 
+		specified data segment presentation size (not relevant if the 
+		present_size in the function parameters is 0).
+		This error is caused since the requested presentation exceeded
+		frame data end.
+
+@Cautions	In case the presented segment will be used by 
+		PARSER/CTLU/KEYGEN, it should be presented in a 16 byte aligned 
+		workspace address (due to HW limitations).
+@Cautions	This command may be invoked only for Data segments.
+@Cautions	This function may result in a fatal error.
+@Cautions	In this Service Routine the task yields.
+*//***************************************************************************/
+int fdma_present_default_frame_default_segment();
+
 #include "fdma_inline.h"
 
 /**************************************************************************//**

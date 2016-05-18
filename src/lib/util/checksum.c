@@ -79,7 +79,7 @@ __HOT_CODE void cksum_update_uint32(register uint16_t *cs_ptr,
 	}
 }
 
-uint16_t cksum_accumulative_update_uint32(register uint16_t cksum,
+__HOT_CODE uint16_t cksum_accumulative_update_uint32(register uint16_t cksum,
 		register uint32_t old_val,
 		register uint32_t new_val)
 {

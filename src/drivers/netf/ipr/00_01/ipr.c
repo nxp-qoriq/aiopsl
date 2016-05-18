@@ -369,7 +369,7 @@ void ipr_delete_instance_after_time_out(ipr_instance_handle_t ipr_instance_ptr)
 }
 
 
-int ipr_reassemble(ipr_instance_handle_t instance_handle)
+IPR_CODE_PLACEMENT int ipr_reassemble(ipr_instance_handle_t instance_handle)
 {
 	/* Following struct should be aligned due to ctlu alignment request */
 	struct ipr_rfdc rfdc __attribute__((aligned(16)));
@@ -775,7 +775,7 @@ int ipr_reassemble(ipr_instance_handle_t instance_handle)
 	}
 }
 
-void ipv6_rule_delete(uint64_t rfdc_ext_addr,
+IPR_CODE_PLACEMENT void ipv6_rule_delete(uint64_t rfdc_ext_addr,
 		      struct ipr_instance *instance_params_ptr)
 {
 	/* Following array should be aligned due to ctlu alignment request */
@@ -791,7 +791,7 @@ void ipv6_rule_delete(uint64_t rfdc_ext_addr,
 			  NULL);
 	/* DEBUG : check EIO */
 }
-int ipr_lookup(uint32_t frame_is_ipv4, struct ipr_instance *instance_params_ptr,
+IPR_CODE_PLACEMENT int ipr_lookup(uint32_t frame_is_ipv4, struct ipr_instance *instance_params_ptr,
 		uint64_t *rfdc_ext_addr_ptr)
 {
 	/* Following struct should be aligned due to ctlu alignment request */
@@ -822,7 +822,7 @@ int ipr_lookup(uint32_t frame_is_ipv4, struct ipr_instance *instance_params_ptr,
 	return sr_status;
 }
 
-int ipr_miss_handling(struct ipr_instance *instance_params_ptr,
+IPR_CODE_PLACEMENT int ipr_miss_handling(struct ipr_instance *instance_params_ptr,
 	 uint32_t frame_is_ipv4, uint32_t osm_status, struct ipr_rfdc *rfdc_ptr,
 	 ipr_instance_handle_t instance_handle, uint64_t *rfdc_ext_addr_ptr)
 {
@@ -1007,7 +1007,7 @@ int ipr_miss_handling(struct ipr_instance *instance_params_ptr,
 	return SUCCESS;
 	
 }
-uint32_t ipr_insert_to_link_list(struct ipr_rfdc *rfdc_ptr,
+IPR_CODE_PLACEMENT uint32_t ipr_insert_to_link_list(struct ipr_rfdc *rfdc_ptr,
 				 uint64_t rfdc_ext_addr,
 				 struct ipr_instance *instance_params_ptr,
 				 void *iphdr_ptr,
@@ -1254,7 +1254,7 @@ uint32_t ipr_insert_to_link_list(struct ipr_rfdc *rfdc_ptr,
 	return return_status;
 }
 
-uint32_t closing_in_order(uint64_t rfdc_ext_addr, uint8_t num_of_frags)
+IPR_CODE_PLACEMENT uint32_t closing_in_order(uint64_t rfdc_ext_addr, uint8_t num_of_frags)
 {
 	struct		ldpaa_fd fds_to_concatenate[2] \
 			     __attribute__((aligned(sizeof(struct ldpaa_fd))));
@@ -1356,7 +1356,7 @@ uint32_t closing_in_order(uint64_t rfdc_ext_addr, uint8_t num_of_frags)
 	return SUCCESS;
 }
 
-uint32_t ipv4_header_update_and_l4_validation(struct ipr_rfdc *rfdc_ptr)
+IPR_CODE_PLACEMENT uint32_t ipv4_header_update_and_l4_validation(struct ipr_rfdc *rfdc_ptr)
 {
 	uint8_t		new_tos;
 	uint16_t	ipv4hdr_offset;
@@ -1424,7 +1424,7 @@ uint32_t ipv4_header_update_and_l4_validation(struct ipr_rfdc *rfdc_ptr)
 	return SUCCESS;
 }
 
-uint32_t ipv6_header_update_and_l4_validation(struct ipr_rfdc *rfdc_ptr)
+IPR_CODE_PLACEMENT uint32_t ipv6_header_update_and_l4_validation(struct ipr_rfdc *rfdc_ptr)
 {
 	uint16_t		ipv6hdr_offset;
 	uint16_t		ipv6fraghdr_offset;
@@ -1512,7 +1512,7 @@ uint32_t ipv6_header_update_and_l4_validation(struct ipr_rfdc *rfdc_ptr)
 }
 
 
-uint32_t closing_with_reordering(struct ipr_rfdc *rfdc_ptr,
+IPR_CODE_PLACEMENT uint32_t closing_with_reordering(struct ipr_rfdc *rfdc_ptr,
 				 uint64_t rfdc_ext_addr)
 {
 	uint8_t				num_of_frags;
@@ -1695,7 +1695,7 @@ uint32_t closing_with_reordering(struct ipr_rfdc *rfdc_ptr,
 	return SUCCESS;
 }
 
-uint32_t check_for_frag_error (struct ipr_instance *instance_params,
+IPR_CODE_PLACEMENT uint32_t check_for_frag_error (struct ipr_instance *instance_params,
 				uint32_t frame_is_ipv4, void *iphdr_ptr)
 {
 	uint16_t length, ip_header_size, current_frag_size, ipv6fraghdr_offset;
@@ -1913,7 +1913,7 @@ void ipr_time_out(uint64_t rfdc_ext_addr, uint16_t opaque_not_used)
 					 flags);
 }
 
-void move_to_correct_ordering_scope2(uint32_t osm_status)
+IPR_CODE_PLACEMENT void move_to_correct_ordering_scope2(uint32_t osm_status)
 {
 	/* return to original ordering scope that entered
 	 * the ipr_reassemble function */
@@ -1925,7 +1925,7 @@ void move_to_correct_ordering_scope2(uint32_t osm_status)
 	
 }
 
-void check_remove_padding()
+IPR_CODE_PLACEMENT void check_remove_padding()
 {
 	uint8_t			delta;
 	uint16_t		ipv4hdr_offset;
@@ -1963,7 +1963,7 @@ void check_remove_padding()
 }
 
 
-uint32_t out_of_order(struct ipr_rfdc *rfdc_ptr, uint64_t rfdc_ext_addr,
+IPR_CODE_PLACEMENT uint32_t out_of_order(struct ipr_rfdc *rfdc_ptr, uint64_t rfdc_ext_addr,
 		  uint32_t last_fragment, uint16_t current_frag_size,
 		  uint16_t frag_offset_shifted,
 		  struct ipr_instance *instance_params_ptr)
@@ -2314,7 +2314,7 @@ void ipr_stats_update(struct ipr_instance *instance_params_ptr,
 }
 
 
-uint32_t is_atomic_fragment()
+IPR_CODE_PLACEMENT uint32_t is_atomic_fragment()
 {
 	struct ipv6fraghdr * ipv6fraghdr_ptr;
 	uint16_t	     ipv6frag_offset;

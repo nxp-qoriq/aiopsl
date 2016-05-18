@@ -155,36 +155,6 @@ void cdma_write_with_mutex(
 	return -1;
 }*/
 
-int cdma_refcount_decrement_and_release(
-		uint64_t context_address) {
-
-	/* command parameters and results */
-	uint32_t arg1, arg2, arg3, arg4;
-	uint8_t res1;
-
-	/* prepare command parameters */
-	arg1 = CDMA_REFCNT_DEC_REL_CMD_ARG1();
-	arg2 = 0;
-	arg3 = (uint32_t)(context_address>>32);
-	arg4 = (uint32_t)(context_address);
-
-	/* store command parameters */
-	__stqw(arg1, arg2, arg3, arg4, HWC_ACC_IN_ADDRESS, 0);
-
-	/* call CDMA */
-	if ((__e_hwacceli_(CDMA_ACCEL_ID)) == CDMA_SUCCESS)
-		return 0;
-
-	/* load command results */
-	res1 = *((uint8_t *)(HWC_ACC_OUT_ADDRESS+CDMA_STATUS_OFFSET));
-
-	if (((int32_t)res1) == CDMA_REFCOUNT_DECREMENT_TO_ZERO)
-		return (int32_t)(res1);
-	cdma_exception_handler(CDMA_REFCOUNT_DECREMENT_AND_RELEASE, __LINE__,
-			(int32_t)res1);
-	return -1;
-}
-
 void cdma_write_lock_dma_read_and_increment(
 		void *ws_dst,
 		uint64_t context_address,

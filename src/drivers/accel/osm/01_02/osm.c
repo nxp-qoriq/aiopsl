@@ -139,15 +139,6 @@ void osm_scope_transition_to_concurrent_with_new_scope_id(
 		}
 }
 
-void osm_scope_relinquish_exclusivity(void)
-{
-
-	/* call OSM */
-	__e_osmcmd(OSM_SCOPE_RELINQUISH_EXCL_OP, 0);
-	/** 0 = Concurrent mode. */
-	REGISTER_OSM_CONCURRENT;
-}
-
 void osm_scope_enter_to_exclusive_with_increment_scope_id(void)
 {
 
@@ -159,65 +150,6 @@ void osm_scope_enter_to_exclusive_with_increment_scope_id(void)
 			, OSM_SCOPE_ID_LEVEL_INCREMENT_MASK)) {
 		osm_exception_handler(
 		OSM_SCOPE_ENTER_TO_EXCLUSIVE_WITH_INCREMENT_SCOPE_ID,
-		__LINE__);
-	} else {
-		default_task_params.current_scope_level++;
-		if (default_task_params.current_scope_level > 1)
-			/** 0 = Parent: Concurrent mode. */
-			default_task_params.scope_mode_level_arr
-			[default_task_params.current_scope_level-2] =
-					CONCURRENT;
-		/** 1 = Child: Exclusive mode. */
-		REGISTER_OSM_EXCLUSIVE;
-		return;
-	}
-}
-
-void osm_scope_enter_to_exclusive_with_new_scope_id(
-		uint32_t child_scope_id) {
-
-	if (default_task_params.current_scope_level == LEVEL4)
-		return;
-	
-	/* update the SCOPE_ID_LEVEL_INCREMENT field in the new scope_id */
-	switch (default_task_params.current_scope_level) {
-	case (LEVEL0):
-		{
-		child_scope_id = (child_scope_id &
-		~OSM_SCOPE_ID_LEVEL_INCREMENT_MASK);
-		break;
-		}
-	case (LEVEL1):
-		{
-		child_scope_id = (child_scope_id &
-		~OSM_SCOPE_ID_LEVEL_INCREMENT_MASK) |
-		(OSM_SCOPE_ID_LEVEL_2 &
-		OSM_SCOPE_ID_LEVEL_INCREMENT_MASK);
-		break;
-		}
-	case (LEVEL2):
-		{
-		child_scope_id = (child_scope_id &
-		~OSM_SCOPE_ID_LEVEL_INCREMENT_MASK) |
-		(OSM_SCOPE_ID_LEVEL_3 &
-		OSM_SCOPE_ID_LEVEL_INCREMENT_MASK);
-		break;
-		}
-	case (LEVEL3):
-		{
-		child_scope_id = (child_scope_id &
-		~OSM_SCOPE_ID_LEVEL_INCREMENT_MASK) |
-		(OSM_SCOPE_ID_LEVEL_4 &
-		OSM_SCOPE_ID_LEVEL_INCREMENT_MASK);
-		break;
-		}
-	}
-
-
-	/* call OSM */
-	if (__e_osmcmd_(OSM_SCOPE_ENTER_EXCL_REL_PARENT_OP, child_scope_id)) {
-		osm_exception_handler(
-		OSM_SCOPE_ENTER_TO_EXCLUSIVE_WITH_NEW_SCOPE_ID,
 		__LINE__);
 	} else {
 		default_task_params.current_scope_level++;
