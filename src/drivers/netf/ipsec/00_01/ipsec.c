@@ -1678,10 +1678,6 @@ __IPSEC_HOT_CODE int ipsec_frame_encrypt(
 		/*---------------------*/
 	
 	if (sap1.flags & IPSEC_FLG_TUNNEL_MODE) {
-		/* Tunnel Mode */
-		/* Clear FD[FRC], so DPOVRD takes no action */
-		//dpovrd.tunnel_encap.word = 0; 
-		
 		if (PARSER_IS_OUTER_IPV4_DEFAULT()) {
 			dpovrd.tunnel_encap.word = 
 				IPSEC_DPOVRD_OVRD | IPSEC_NEXT_HEADER_IPV4;
@@ -1689,12 +1685,6 @@ __IPSEC_HOT_CODE int ipsec_frame_encrypt(
 			dpovrd.tunnel_encap.word = 
 				IPSEC_DPOVRD_OVRD | IPSEC_NEXT_HEADER_IPV6;
 		}
-		
-		// 13-8 AOIPHO
-		//dpovrd.tunnel_encap.word |= (16<<8); // including Ethernet   
-		// 27-16 Outer IP Header Material Length 
-		//dpovrd.tunnel_encap.word |= (14<<16); // including Ethernet   
-
 	} else {
 		/* For Transport mode set DPOVRD */
 		/* 31 OVRD, 30-28 Reserved, 27-24 ECN (Not relevant for transport mode)
@@ -1737,7 +1727,10 @@ __IPSEC_HOT_CODE int ipsec_frame_encrypt(
 	/* 	4.	Identify if L2 header exist in the frame: */
 	/* Check if Ethernet/802.3 MAC header exist and remove it */
 	if (PARSER_IS_ETH_MAC_DEFAULT()) { /* Check if Ethernet header exist */
-		
+		/* Ethernet header length and indicator */
+		eth_length = (uint8_t)((uint8_t *)PARSER_GET_OUTER_IP_OFFSET_DEFAULT() -
+				       (uint8_t *)PARSER_GET_ETH_OFFSET_DEFAULT());
+
 		/* For tunnel mode, update the Ethertype field according to the 
 		 * outer header (IPv4/Ipv6), since after SEC encryption
 		 * the parser results are not valid any more */
@@ -1750,15 +1743,22 @@ __IPSEC_HOT_CODE int ipsec_frame_encrypt(
 				*((uint16_t *)PARSER_GET_LAST_ETYPE_POINTER_DEFAULT()) =
 						IPSEC_ETHERTYPE_IPV4;
 			}
+
+			/*
+			 * SEC will handle L2 header copy in tunnel mode, it's
+			 * more efficient than using the FDMA accelerator.
+			 */
+			dpovrd.tunnel_encap.word |=
+					IPSEC_N_ENCAP_DPOVRD_L2_COPY |
+					((eth_length <<
+					  IPSEC_N_ENCAP_DPOVRD_L2_LEN_SHIFT) &
+					 IPSEC_N_ENCAP_DPOVRD_L2_LEN_MASK);
+			eth_length = 0;
+			goto skip_l2_remove;
 		}
 
 		/* Save Ethernet header. Note: no swap */
 		/* up to 6 VLANs x 4 bytes + 14 regular bytes */
-		
-		/* Ethernet header length and indicator */ 
-		eth_length = (uint8_t)(
-						(uint8_t *)PARSER_GET_OUTER_IP_OFFSET_DEFAULT() - 
-								(uint8_t *)PARSER_GET_ETH_OFFSET_DEFAULT()); 
 
 		segment_pointer = (uint8_t *)PARSER_GET_ETH_POINTER_DEFAULT();
 	
@@ -1789,7 +1789,7 @@ __IPSEC_HOT_CODE int ipsec_frame_encrypt(
 			/*---------------------*/
 			/* ipsec_frame_encrypt */
 			/*---------------------*/
-	
+skip_l2_remove:
 	/* 	5.	Save original FD[FLC], FD[FRC] (to stack) */
 	orig_flc = LDPAA_FD_GET_FLC(HWC_FD_ADDRESS);
 	orig_frc = LDPAA_FD_GET_FRC(HWC_FD_ADDRESS);
