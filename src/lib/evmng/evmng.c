@@ -372,7 +372,7 @@ int evmng_raise_irq_event_cb(void *dev, uint16_t cmd, uint32_t size, void *event
 }
 /*****************************************************************************/
 
-static void raise_event(uint8_t generator_id, uint8_t event_id, void *event_data)
+EV_MNG_CODE_PLACEMENT static void raise_event(uint8_t generator_id, uint8_t event_id, void *event_data)
 {
 	struct evmng_priority_list *evmng_cb_list_ptr;
 	int i;
@@ -414,7 +414,7 @@ static void raise_event(uint8_t generator_id, uint8_t event_id, void *event_data
 }
 /*****************************************************************************/
 
-int evmng_sl_raise_event(uint8_t generator_id, uint8_t event_id, void *event_data)
+EV_MNG_CODE_PLACEMENT int evmng_sl_raise_event(uint8_t generator_id, uint8_t event_id, void *event_data)
 {
 	if(event_id >= NUM_OF_SL_DEFINED_EVENTS ||
 		generator_id != EVMNG_GENERATOR_AIOPSL)
