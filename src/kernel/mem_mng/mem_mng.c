@@ -589,7 +589,7 @@ uint32_t mem_mng_check_leaks(void*                 h_mem_mng,
  * Caution: No locks on p_mem_mng->mem_partitions_array.
  */
 
-void * mem_mng_alloc_mem(void*     h_mem_mng,
+MEM_MNG_CODE_PLACEMENT void * mem_mng_alloc_mem(void*     h_mem_mng,
                         int         partition_id,
                         uint32_t    size,
                         uint32_t    alignment,
@@ -655,7 +655,7 @@ void * mem_mng_alloc_mem(void*     h_mem_mng,
 /*
  * Caution: No locks on p_mem_mng->mem_partitions_array.
  */
-int mem_mng_get_phys_mem(void*  h_mem_mng, int  partition_id,
+MEM_MNG_CODE_PLACEMENT int mem_mng_get_phys_mem(void*  h_mem_mng, int  partition_id,
                         uint64_t size, uint64_t alignment,
                         uint64_t *paddr)
 {
@@ -694,7 +694,7 @@ int mem_mng_get_phys_mem(void*  h_mem_mng, int  partition_id,
 /*
  * Caution: No locks on p_mem_mng->mem_partitions_array.
  */
-void mem_mng_put_phys_mem(void*  h_mem_mng, uint64_t paddress)
+MEM_MNG_CODE_PLACEMENT void mem_mng_put_phys_mem(void*  h_mem_mng, uint64_t paddress)
 {
     struct t_mem_mng            *p_mem_mng = (struct t_mem_mng *)h_mem_mng;
     t_mem_mng_phys_addr_alloc_partition   *p_partition;
@@ -718,7 +718,7 @@ void mem_mng_put_phys_mem(void*  h_mem_mng, uint64_t paddress)
 }
 /*****************************************************************************/
 
-void mem_mng_free_mem(void*  h_mem_mng, void *p_memory)
+MEM_MNG_CODE_PLACEMENT void mem_mng_free_mem(void*  h_mem_mng, void *p_memory)
 {
     struct t_mem_mng            *p_mem_mng = (struct t_mem_mng *)h_mem_mng;
     t_mem_mng_partition   *p_partition;

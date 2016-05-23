@@ -74,7 +74,7 @@ uint64_t sys_virt_to_phys(void *virt_addr)
 }
 
 /*****************************************************************************/
-void * sys_shram_alloc(uint32_t    size,
+MEM_MNG_CODE_PLACEMENT void * sys_shram_alloc(uint32_t    size,
                     uint32_t    alignment,
                     char        *info,
                     char        *filename,
@@ -90,7 +90,7 @@ void * sys_shram_alloc(uint32_t    size,
 	                   line);
 }
 /*****************************************************************************/
-void sys_shram_free(void *mem)
+MEM_MNG_CODE_PLACEMENT void sys_shram_free(void *mem)
 {
     mem_mng_free_mem(&sys.mem_mng, mem);
 }
@@ -404,7 +404,7 @@ static void sys_print_mem_leak(void        *p_memory,
 }
 
 /*****************************************************************************/
-int  sys_get_phys_mem(uint64_t size, int mem_partition_id, uint64_t alignment,
+MEM_MNG_CODE_PLACEMENT int  sys_get_phys_mem(uint64_t size, int mem_partition_id, uint64_t alignment,
                  uint64_t* paddr)
 {
 	ASSERT_COND(size > 0);
@@ -416,7 +416,7 @@ int  sys_get_phys_mem(uint64_t size, int mem_partition_id, uint64_t alignment,
 }
 
 /*****************************************************************************/
-void  sys_put_phys_mem(uint64_t paddr)
+MEM_MNG_CODE_PLACEMENT void  sys_put_phys_mem(uint64_t paddr)
 {
 	mem_mng_put_phys_mem(&sys.mem_mng,paddr);
 }

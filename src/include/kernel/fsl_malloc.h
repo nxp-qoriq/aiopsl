@@ -44,6 +44,12 @@
  @{
 *//***************************************************************************/
 
+/** Memory management code placement. Must be one of __COLD_CODE (default),
+ * __WARM_CODE or __HOT_CODE. */
+#ifndef MEM_MNG_CODE_PLACEMENT
+#define MEM_MNG_CODE_PLACEMENT __COLD_CODE
+#endif
+
 /**************************************************************************//**
  @Description   Memory Partition Identifiers.
                 Used as a parameter for fsl_get_mem().

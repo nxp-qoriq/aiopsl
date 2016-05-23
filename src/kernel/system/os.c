@@ -506,7 +506,7 @@ __HOT_CODE void atomic_decr32(register int32_t *var, register int32_t value)
 	}
 }
 /*****************************************************************************/
-void * fsl_malloc(size_t size,uint32_t alignment)
+MEM_MNG_CODE_PLACEMENT void * fsl_malloc(size_t size,uint32_t alignment)
 {
 #ifdef DEBUG_FSL_MALLOC
 	return  sys_shram_alloc(size,alignment,"",__FILE__, __LINE__);
@@ -515,18 +515,18 @@ void * fsl_malloc(size_t size,uint32_t alignment)
 #endif
 }
 /*****************************************************************************/
-void fsl_free(void *mem)
+MEM_MNG_CODE_PLACEMENT void fsl_free(void *mem)
 {
 	sys_shram_free(mem);
 }
 /*****************************************************************************/
-int fsl_get_mem(uint64_t size, int mem_partition_id, uint64_t alignment,
+MEM_MNG_CODE_PLACEMENT int fsl_get_mem(uint64_t size, int mem_partition_id, uint64_t alignment,
                    uint64_t* paddr)
 {
 	return sys_get_phys_mem(size, mem_partition_id, alignment,paddr);
 }
 /*****************************************************************************/
-void fsl_put_mem(uint64_t paddr)
+MEM_MNG_CODE_PLACEMENT void fsl_put_mem(uint64_t paddr)
 {
 	sys_put_phys_mem(paddr);
 }
