@@ -93,7 +93,7 @@ inline int sl_prolog(void)
 	return err;
 }
 
-static inline int dpni_send(uint16_t ni_id, uint32_t flags)
+inline int dpni_drv_send(uint16_t ni_id, uint32_t flags)
 {
 	struct dpni_drv *dpni_drv;
 	struct fdma_queueing_destination_params    enqueue_params;
@@ -130,16 +130,6 @@ static inline int dpni_send(uint16_t ni_id, uint32_t flags)
 	err = (int)fdma_store_and_enqueue_default_frame_qd(&enqueue_params, flags);
 
 	return err;
-}
-
-inline int dpni_drv_send(uint16_t ni_id)
-{
-	return dpni_send(ni_id, FDMA_ENWF_NO_FLAGS);
-}
-
-inline int dpni_drv_send_terminate(uint16_t ni_id)
-{
-	return dpni_send(ni_id, FDMA_EN_TC_TERM_BITS);
 }
 
 inline void sl_tman_expiration_task_prolog(uint16_t spid)
