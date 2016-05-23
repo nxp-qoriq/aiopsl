@@ -42,6 +42,7 @@
 #include "fsl_icontext.h"
 #include "fsl_bman.h"
 #include "fsl_sys.h"
+#include "fsl_platform.h"
 
 struct slab_bman_pool_desc g_slab_bman_pools[SLAB_MAX_BMAN_POOLS_NUM];
 struct slab_virtual_pools_main_desc g_slab_virtual_pools;
@@ -50,6 +51,7 @@ uint64_t g_slab_last_pool_pointer_ddr;
 uint16_t g_slab_ddr_memory;
 
 struct memory_types_table *g_slab_early_init_data;
+extern struct platform_app_params g_app_params;
 
 #define SLAB_ASSERT_COND_RETURN(COND, ERR)  \
 	do { if (!(COND)) return (ERR); } while (0)
@@ -936,6 +938,7 @@ __COLD_CODE static int dpbp_discovery(struct slab_bpid_info *bpids_arr,
 	int err = 0;
 	int i = 0;
 	struct mc_dprc *dprc = sys_get_unique_handle(FSL_MOD_AIOP_RC);
+	uint8_t bkp_pool_disable = (uint8_t)g_app_params.backup_pool_disable;
 
 
 	/*Calling MC to get bpid's*/
@@ -959,12 +962,12 @@ __COLD_CODE static int dpbp_discovery(struct slab_bpid_info *bpids_arr,
 			/* TODO: print conditionally based on log level */
 			pr_info("Found DPBP ID: %d, Skipping, will be used for frame buffers\n", dev_desc.id);
 			num_bpids ++;
-			if(num_bpids == SLAB_NUM_BPIDS_USED_FOR_DPNI)
+			if(num_bpids == SLAB_NUM_BPIDS_USED_FOR_DPNI || bkp_pool_disable)
 				break;
 		}
 	}
 
-	if(num_bpids != SLAB_NUM_BPIDS_USED_FOR_DPNI) { /*Check if dpbp was found*/
+	if ((num_bpids !=1 && bkp_pool_disable) || (num_bpids != SLAB_NUM_BPIDS_USED_FOR_DPNI && !bkp_pool_disable)) { /*Check if dpbp was found*/
 		pr_err("Not enough DPBPs found in the container.\n");
 		return -ENODEV;
 	}
