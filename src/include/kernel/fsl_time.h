@@ -46,6 +46,12 @@
  @{
 *//***************************************************************************/
 
+/** Time queries code placement. Must be one of __COLD_CODE (default),
+ * __WARM_CODE or __HOT_CODE.*/
+#ifndef TIME_CODE_PLACEMENT
+#define TIME_CODE_PLACEMENT __COLD_CODE
+#endif
+
 /**************************************************************************//**
 @Function   fsl_get_time_ms
 

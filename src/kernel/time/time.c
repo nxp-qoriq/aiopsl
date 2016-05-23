@@ -41,7 +41,7 @@ int time_init(void);
 void time_free(void);
 
 /*****************************************************************************/
-int _get_time_tman(uint64_t *time)
+TIME_CODE_PLACEMENT int _get_time_tman(uint64_t *time)
 {
 	uint64_t time_base = 0;
 
@@ -62,7 +62,7 @@ int _get_time_tman(uint64_t *time)
 }
 
 /*****************************************************************************/
-int fsl_get_time_ms(uint32_t *time)
+TIME_CODE_PLACEMENT int fsl_get_time_ms(uint32_t *time)
 {
 	uint64_t time_ms;
 	uint64_t local_epoch_to_midnight;
@@ -90,7 +90,7 @@ int fsl_get_time_ms(uint32_t *time)
 }
 
 /*****************************************************************************/
-int fsl_get_time_since_epoch_ms(uint64_t *time)
+TIME_CODE_PLACEMENT int fsl_get_time_since_epoch_ms(uint64_t *time)
 {
 	return _get_time_tman(time);
 }
