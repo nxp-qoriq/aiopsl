@@ -1820,11 +1820,8 @@ __IPSEC_HOT_CODE int ipsec_frame_encrypt(
 		/* Frame length + Pad length (1B) + Next header (1B) */
 		byte_count = LDPAA_FD_GET_LENGTH(HWC_FD_ADDRESS) + 2;
 
-		if (sap1.flags & IPSEC_FLG_TUNNEL_MODE)
-			/* In tunnel mode, L2 header was not stripped */
-			byte_count -= eth_length;
-		else
-			/* In transport mode, IP Header is not encrypted */
+		/* In transport mode, IP Header is not encrypted */
+		if (!(sap1.flags & IPSEC_FLG_TUNNEL_MODE))
 			byte_count -= dpovrd.transport_encap.ip_hdr_len;
 
 		/*
