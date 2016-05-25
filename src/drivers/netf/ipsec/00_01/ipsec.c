@@ -2293,7 +2293,6 @@ __IPSEC_HOT_CODE int ipsec_frame_decrypt(
 	uint16_t outer_material_length;
 	uint8_t *segment_pointer;
 	uint32_t byte_count;
-	//uint32_t checksum;
 	ipsec_handle_t desc_addr;
 	uint16_t orig_seg_length;
 	uint16_t orig_seg_offset;
@@ -2304,7 +2303,7 @@ __IPSEC_HOT_CODE int ipsec_frame_decrypt(
 	struct scope_status_params scope_status;
 
 	struct dpovrd_general dpovrd;
-	//struct parse_result *pr = (struct parse_result *)HWC_PARSE_RES_ADDRESS;
+	struct parse_result *pr = (struct parse_result *)HWC_PARSE_RES_ADDRESS;
 	
 	struct   presentation_context *prc =
 					(struct presentation_context *) HWC_PRC_ADDRESS;
@@ -2923,9 +2922,6 @@ __IPSEC_HOT_CODE int ipsec_frame_decrypt(
 	 * Value:  0xB4 0xB3 0xB2 0xB1 0xC2 0xC1 0x00 0x00.
 	*/
 	
-	/* checksum and bytecount from SEC */
-	//checksum = LH_SWAP(HWC_FD_ADDRESS + FD_FLC_DS_AS_CS_OFFSET + 4, 0);
-
 	if (!(sap1.flags & IPSEC_FLG_CIPHER_NULL))
 		byte_count = LW_SWAP(HWC_FD_ADDRESS + FD_FLC_DS_AS_CS_OFFSET +
 				     0, 0);
@@ -2965,6 +2961,26 @@ __IPSEC_HOT_CODE int ipsec_frame_decrypt(
 		
 		/* TODO: Update the gross running sum if adding L2 header */
 	}
+
+	/* On LSx088A platforms, the checksum returned by SEC is used to
+	 * set the gross running sum of the decrypted packet in Tunnel mode.
+	 *
+	 * On LSx088A platforms in Transport mode and on LS2085A platform in
+	 * both modes the gross running sum is set to 0 (invalid). */
+#ifndef LS2085A_REV1
+	if (sap1.flags & IPSEC_FLG_TUNNEL_MODE) {
+		uint32_t	checksum;
+
+		/* Get checksum from SEC */
+		checksum = LH_SWAP(HWC_FD_ADDRESS +
+				   FD_FLC_DS_AS_CS_OFFSET + 4, 0);
+		pr->gross_running_sum = (uint16_t)(~checksum);
+	} else {
+		pr->gross_running_sum = 0;
+	}
+#else
+	pr->gross_running_sum = 0;
+#endif
 	
 			/*---------------------*/
 			/* ipsec_frame_decrypt */
