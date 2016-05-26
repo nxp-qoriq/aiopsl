@@ -65,7 +65,8 @@ typedef struct t_sys_forced_object {
 
 t_sys_forced_object_desc  sys_handle[FSL_NUM_MODULES];
 
-
+void fill_master_core_parameters();
+void fill_system_parameters();
 int sys_init(void);
 void sys_free(void);
 
@@ -191,7 +192,7 @@ __COLD_CODE static uint32_t count_cores(uint64_t cores_mask)
     return count;
 }
 
-__COLD_CODE static void fill_system_parameters()
+__COLD_CODE void fill_system_parameters()
 {
 	uintptr_t reg_base = (uintptr_t)(SOC_PERIPH_OFF_AIOP_TILE \
 		+ SOC_PERIPH_OFF_AIOP_CMGW \
@@ -251,17 +252,22 @@ __COLD_CODE static int global_sys_init(void)
 }
 
 /*****************************************************************************/
-__COLD_CODE int sys_init(void)
+__COLD_CODE void fill_master_core_parameters()
 {
-	int err = 0, is_master_core;
 	uint32_t core_id = core_get_id();
-	char pre_console_buf[PRE_CONSOLE_BUF_SIZE];
 
 	sys.is_tile_master[core_id] = (int)(SYS_TILE_MASTERS_MASK \
 						& (1ULL << core_id)) ? 1 : 0;
 	sys.is_cluster_master[core_id] = (int)(SYS_CLUSTER_MASTER_MASK \
 						& (1ULL << core_id)) ? 1 : 0;
+}
 
+__COLD_CODE int sys_init(void)
+{
+	int err = 0, is_master_core;
+	char pre_console_buf[PRE_CONSOLE_BUF_SIZE];
+
+	fill_master_core_parameters();
 	is_master_core = sys_is_master_core();
 
 	if(is_master_core) {

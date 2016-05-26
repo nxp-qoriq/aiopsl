@@ -1012,13 +1012,30 @@ static int check_if_drv_and_flib_structs_identical(void)
 	return 0;
 }
 
-__COLD_CODE int dpni_drv_init(void)
+__COLD_CODE static inline void dpni_drv_init_ni_table(uint8_t prpid)
 {
 	int i;
+
+	for (i = 0; i < SOC_MAX_NUM_OF_DPNI; i++) {
+		struct dpni_drv * dpni_drv = nis + i;
+		dpni_drv->dpni_id                          = DPNI_NOT_IN_USE;
+		dpni_drv->dpni_drv_params_var.spid         = 0;
+		dpni_drv->dpni_drv_params_var.spid_ddr     = 0;
+		dpni_drv->dpni_drv_params_var.epid_idx     = 0;
+		/*parser profile id from parser_profile_init()*/
+		dpni_drv->dpni_drv_params_var.prpid        = prpid;
+		/*ETH HXS */
+		dpni_drv->dpni_drv_params_var.starting_hxs = 0;
+		dpni_drv->dpni_drv_tx_params_var.qdid      = 0;
+		dpni_drv->dpni_drv_params_var.flags        =
+			DPNI_DRV_FLG_PARSE | DPNI_DRV_FLG_PARSER_DIS;
+	}
+}
+
+__COLD_CODE int dpni_drv_init(void)
+{
 	uint8_t prpid = 0;
 	int err = 0;
-
-
 
 	memset(&pools_params, 0, sizeof(struct dpni_pools_cfg));
 	num_of_nis = 0;
@@ -1034,20 +1051,7 @@ __COLD_CODE int dpni_drv_init(void)
 		return err;
 	}
 	/* Initialize internal AIOP NI table */
-	for (i = 0; i < SOC_MAX_NUM_OF_DPNI; i++) {
-		struct dpni_drv * dpni_drv = nis + i;
-		dpni_drv->dpni_id                          = DPNI_NOT_IN_USE;
-		dpni_drv->dpni_drv_params_var.spid         = 0;
-		dpni_drv->dpni_drv_params_var.spid_ddr     = 0;
-		dpni_drv->dpni_drv_params_var.epid_idx     = 0;
-		/*parser profile id from parser_profile_init()*/
-		dpni_drv->dpni_drv_params_var.prpid        = prpid;
-		/*ETH HXS */
-		dpni_drv->dpni_drv_params_var.starting_hxs = 0;
-		dpni_drv->dpni_drv_tx_params_var.qdid      = 0;
-		dpni_drv->dpni_drv_params_var.flags        =
-			DPNI_DRV_FLG_PARSE | DPNI_DRV_FLG_PARSER_DIS;
-	}
+	dpni_drv_init_ni_table(prpid);
 
 	/* TODO - add initialization of global default DP-IO
 	 * (i.e. call 'dpio_open', 'dpio_init');

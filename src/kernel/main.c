@@ -46,7 +46,8 @@ extern void core_ready_for_tasks(void);
 extern char _stack_addr[]; /* Starting address for stack */
 extern char _stack_end[];  /* Address after end byte of stack */
 
-__COLD_CODE static int configure_stack_overflow_detection(void)
+int configure_stack_overflow_detection(void);
+__COLD_CODE int configure_stack_overflow_detection(void)
 {
 	if(((uint32_t)_stack_end) >= ((uint32_t)_stack_addr))
 	{
@@ -74,6 +75,8 @@ __COLD_CODE static int configure_stack_overflow_detection(void)
 #endif
 
 /*****************************************************************************/
+/* Allow main() to be redefined */
+__declspec(weak) int main(int argc, char *argv[]);
 int main(int argc, char *argv[])
 {
 	int err = 0;

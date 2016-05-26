@@ -389,109 +389,113 @@ __COLD_CODE static int pltfrm_init_mem_partitions_cb(void * h_platform)
 }
 
 /*****************************************************************************/
+__COLD_CODE static void fill_mem_partition_info(t_platform *pltfrm, t_platform_memory_info *p_mem_info)
+{
+	uint32_t                aiop_lcf_ddr_size = (uint32_t)(AIOP_DDR_END) - (uint32_t)(AIOP_DDR_START);
+	uint32_t                no_dp_ddr = (g_init_data.app_info.dp_ddr_size == 0);
+
+	ASSERT_COND(p_mem_info);
+	switch (p_mem_info->mem_partition_id) {
+	case MEM_PART_DP_DDR:
+		if(!no_dp_ddr)
+		{
+		    p_mem_info->virt_base_addr = (uint32_t)g_init_data.sl_info.dp_ddr_vaddr +
+		    aiop_lcf_ddr_size + g_boot_mem_mng_size ;
+		    p_mem_info->phys_base_addr = g_init_data.sl_info.dp_ddr_paddr +
+			aiop_lcf_ddr_size + g_boot_mem_mng_size;
+		    p_mem_info->size = g_init_data.app_info.dp_ddr_size -
+			aiop_lcf_ddr_size - g_boot_mem_mng_size;
+		}
+		else
+		{
+		    p_mem_info->size = 0;
+		}
+		pr_debug("MEM_PART_DP_DDR:virt_add=0x%x,phys_add=0x%x%08x,size=0x%x\n",
+		         p_mem_info->virt_base_addr,
+		         (uint32_t)(p_mem_info->phys_base_addr >> 32),
+		         (uint32_t)(p_mem_info->phys_base_addr),
+		         (uint32_t)(p_mem_info->size));
+		break;
+	case MEM_PART_PEB:
+		p_mem_info->virt_base_addr = (uint32_t)g_init_data.sl_info.peb_vaddr;
+		p_mem_info->phys_base_addr = g_init_data.sl_info.peb_paddr;
+		p_mem_info->size = g_init_data.app_info.peb_size;
+		pr_debug("MEM_PART_PEB:virt_add=0x%x,phys_add=0x%x%08x,size=0x%x\n",
+		         p_mem_info->virt_base_addr,
+		         (uint32_t)(p_mem_info->phys_base_addr >> 32),
+		         (uint32_t)(p_mem_info->phys_base_addr),
+		         (uint32_t)(p_mem_info->size));
+		break;
+	case  MEM_PART_SYSTEM_DDR:
+
+		if(!no_dp_ddr)
+		{
+		    p_mem_info->virt_base_addr = (uint32_t)g_init_data.sl_info.sys_ddr1_vaddr;
+		    p_mem_info->phys_base_addr = g_init_data.sl_info.sys_ddr1_paddr;
+		    p_mem_info->size = g_init_data.app_info.sys_ddr1_size;
+		}
+		else // no_dp_ddr
+		{
+		    p_mem_info->virt_base_addr = (uint32_t)g_init_data.sl_info.sys_ddr1_vaddr
+			                   + aiop_lcf_ddr_size + g_boot_mem_mng_size;
+		    p_mem_info->phys_base_addr = g_init_data.sl_info.sys_ddr1_paddr
+	                            + aiop_lcf_ddr_size + g_boot_mem_mng_size;
+		    p_mem_info->size = g_init_data.app_info.sys_ddr1_size
+			           - aiop_lcf_ddr_size - g_boot_mem_mng_size;
+		}
+		pr_debug("MEM_PART_SYSTEM_DDR:virt_add=0x%x,phys_add=0x%x%08x,size=0x%x\n",
+		         p_mem_info->virt_base_addr,
+		         (uint32_t)(p_mem_info->phys_base_addr >> 32),
+		         (uint32_t)(p_mem_info->phys_base_addr),
+		         (uint32_t)(p_mem_info->size));
+		break;
+	case MEM_PART_MC_PORTALS:
+		p_mem_info->virt_base_addr =
+			(uint32_t)g_init_data.sl_info.mc_portals_vaddr;
+		p_mem_info->phys_base_addr = g_init_data.sl_info.mc_portals_paddr;
+		// TODO fill all the rest fields from g_init_data.sl_info
+		/* Store MC-Portals bases (for convenience) */
+		pltfrm->mc_portals_base =  p_mem_info->virt_base_addr;
+		pr_debug("MEM_PART_MC_PORTALS:virt_add=0x%x,phys_add=0x%x%08x\n",
+		         p_mem_info->virt_base_addr,
+		         (uint32_t)(p_mem_info->phys_base_addr >> 32),
+		         (uint32_t)(p_mem_info->phys_base_addr));
+		break;
+	case MEM_PART_CCSR:
+		p_mem_info->virt_base_addr =
+			(uint32_t)g_init_data.sl_info.ccsr_vaddr;
+		p_mem_info->phys_base_addr = g_init_data.sl_info.ccsr_paddr;
+		// TODO fill all the rest fields from g_init_data.sl_info
+		/* Store CCSR base (for convenience) */
+		pltfrm->ccsr_base =  p_mem_info->virt_base_addr;
+		pr_debug("MEM_PART_CCSR:virt_add= 0x%x,phys_add=0x%x%08x\n",
+		         p_mem_info->virt_base_addr,
+		         (uint32_t)(p_mem_info->phys_base_addr >> 32),
+		         (uint32_t)(p_mem_info->phys_base_addr));
+		break;
+	case MEM_PART_SH_RAM:
+		uint32_t shared_ram_non_heap_size = (uint32_t)_ssram_heap_start -
+						                     (uint32_t)_ssram_addr;
+		p_mem_info->virt_base_addr = (uint32_t)_ssram_heap_start;
+		p_mem_info->phys_base_addr =  p_mem_info->virt_base_addr;
+		p_mem_info->size = SHARED_RAM_SIZE - shared_ram_non_heap_size;
+		pr_debug("MEM_PART_SH_RAM:virt_add= 0x%x,phys_add=0x%x%08x,size=0x%x\n",
+					         p_mem_info->virt_base_addr,
+					         (uint32_t)(p_mem_info->phys_base_addr >> 32),
+					         (uint32_t)(p_mem_info->phys_base_addr),
+					         (uint32_t)(p_mem_info->size));
+	    break;
+	}
+}
+
 __COLD_CODE static int build_mem_partitions_table(t_platform  *pltfrm)
 {
 	t_platform_memory_info  *p_mem_info;
 	int                     i;
-	uint32_t                aiop_lcf_ddr_size;
-	uint32_t                no_dp_ddr = (g_init_data.app_info.dp_ddr_size == 0);
-	aiop_lcf_ddr_size =  (uint32_t)(AIOP_DDR_END) - (uint32_t)(AIOP_DDR_START);
-
 
 	for (i = 0; i < pltfrm->num_of_mem_parts; i++) {
 		p_mem_info = &pltfrm->param.mem_info[i];
-		ASSERT_COND(p_mem_info);
-		switch (p_mem_info->mem_partition_id) {
-		case MEM_PART_DP_DDR:
-			if(!no_dp_ddr)
-			{
-			    p_mem_info->virt_base_addr = (uint32_t)g_init_data.sl_info.dp_ddr_vaddr +
-			    aiop_lcf_ddr_size + g_boot_mem_mng_size ;
-			    p_mem_info->phys_base_addr = g_init_data.sl_info.dp_ddr_paddr +
-				aiop_lcf_ddr_size + g_boot_mem_mng_size;
-			    p_mem_info->size = g_init_data.app_info.dp_ddr_size -
-				aiop_lcf_ddr_size - g_boot_mem_mng_size;
-			}
-			else
-			{
-			    p_mem_info->size = 0;
-			}
-			pr_debug("MEM_PART_DP_DDR:virt_add=0x%x,phys_add=0x%x%08x,size=0x%x\n",
-			         p_mem_info->virt_base_addr,
-			         (uint32_t)(p_mem_info->phys_base_addr >> 32),
-			         (uint32_t)(p_mem_info->phys_base_addr),
-			         (uint32_t)(p_mem_info->size));
-			break;
-		case MEM_PART_PEB:
-			p_mem_info->virt_base_addr = (uint32_t)g_init_data.sl_info.peb_vaddr;
-			p_mem_info->phys_base_addr = g_init_data.sl_info.peb_paddr;
-			p_mem_info->size = g_init_data.app_info.peb_size;
-			pr_debug("MEM_PART_PEB:virt_add=0x%x,phys_add=0x%x%08x,size=0x%x\n",
-			         p_mem_info->virt_base_addr,
-			         (uint32_t)(p_mem_info->phys_base_addr >> 32),
-			         (uint32_t)(p_mem_info->phys_base_addr),
-			         (uint32_t)(p_mem_info->size));
-			break;
-		case  MEM_PART_SYSTEM_DDR:
-
-			if(!no_dp_ddr)
-			{
-			    p_mem_info->virt_base_addr = (uint32_t)g_init_data.sl_info.sys_ddr1_vaddr;
-			    p_mem_info->phys_base_addr = g_init_data.sl_info.sys_ddr1_paddr;
-			    p_mem_info->size = g_init_data.app_info.sys_ddr1_size;
-			}
-			else // no_dp_ddr
-			{
-			    p_mem_info->virt_base_addr = (uint32_t)g_init_data.sl_info.sys_ddr1_vaddr
-				                   + aiop_lcf_ddr_size + g_boot_mem_mng_size;
-			    p_mem_info->phys_base_addr = g_init_data.sl_info.sys_ddr1_paddr
-		                            + aiop_lcf_ddr_size + g_boot_mem_mng_size;
-			    p_mem_info->size = g_init_data.app_info.sys_ddr1_size
-				           - aiop_lcf_ddr_size - g_boot_mem_mng_size;
-			}
-			pr_debug("MEM_PART_SYSTEM_DDR:virt_add=0x%x,phys_add=0x%x%08x,size=0x%x\n",
-			         p_mem_info->virt_base_addr,
-			         (uint32_t)(p_mem_info->phys_base_addr >> 32),
-			         (uint32_t)(p_mem_info->phys_base_addr),
-			         (uint32_t)(p_mem_info->size));
-			break;
-		case MEM_PART_MC_PORTALS:
-			p_mem_info->virt_base_addr =
-				(uint32_t)g_init_data.sl_info.mc_portals_vaddr;
-			p_mem_info->phys_base_addr = g_init_data.sl_info.mc_portals_paddr;
-			// TODO fill all the rest fields from g_init_data.sl_info
-			/* Store MC-Portals bases (for convenience) */
-			pltfrm->mc_portals_base =  p_mem_info->virt_base_addr;
-			pr_debug("MEM_PART_MC_PORTALS:virt_add=0x%x,phys_add=0x%x%08x\n",
-			         p_mem_info->virt_base_addr,
-			         (uint32_t)(p_mem_info->phys_base_addr >> 32),
-			         (uint32_t)(p_mem_info->phys_base_addr));
-			break;
-		case MEM_PART_CCSR:
-			p_mem_info->virt_base_addr =
-				(uint32_t)g_init_data.sl_info.ccsr_vaddr;
-			p_mem_info->phys_base_addr = g_init_data.sl_info.ccsr_paddr;
-			// TODO fill all the rest fields from g_init_data.sl_info
-			/* Store CCSR base (for convenience) */
-			pltfrm->ccsr_base =  p_mem_info->virt_base_addr;
-			pr_debug("MEM_PART_CCSR:virt_add= 0x%x,phys_add=0x%x%08x\n",
-			         p_mem_info->virt_base_addr,
-			         (uint32_t)(p_mem_info->phys_base_addr >> 32),
-			         (uint32_t)(p_mem_info->phys_base_addr));
-			break;
-		case MEM_PART_SH_RAM:
-			uint32_t shared_ram_non_heap_size = (uint32_t)_ssram_heap_start -
-							                     (uint32_t)_ssram_addr;
-			p_mem_info->virt_base_addr = (uint32_t)_ssram_heap_start;
-			p_mem_info->phys_base_addr =  p_mem_info->virt_base_addr;
-			p_mem_info->size = SHARED_RAM_SIZE - shared_ram_non_heap_size;
-			pr_debug("MEM_PART_SH_RAM:virt_add= 0x%x,phys_add=0x%x%08x,size=0x%x\n",
-						         p_mem_info->virt_base_addr,
-						         (uint32_t)(p_mem_info->phys_base_addr >> 32),
-						         (uint32_t)(p_mem_info->phys_base_addr),
-						         (uint32_t)(p_mem_info->size));
-		    break;
-		}
+		fill_mem_partition_info(pltfrm, p_mem_info);
 	}
 	return 0;
 }
