@@ -468,7 +468,7 @@ static inline void __rta_out64(struct program *program, bool is_ext,
 		 * For the order of the 2 words to be correct, we need to
 		 * take into account the endianness of the CPU.
 		 */
-#ifdef __BIG_ENDIAN
+#if __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
 		__rta_out32(program, program->bswap ? lower_32_bits(val) :
 						      upper_32_bits(val));
 
@@ -539,8 +539,8 @@ static inline void __rta_dma_data(void *ws_dst, uint64_t ext_address,
 				  uint16_t size)
 { cdma_read(ws_dst, ext_address, size); }
 #else
-static inline void __rta_dma_data(void *ws_dst, uint64_t ext_address,
-				  uint16_t size)
+static inline void __rta_dma_data(void *ws_dst __maybe_unused,
+	uint64_t ext_address __maybe_unused, uint16_t size __maybe_unused)
 { pr_warn("RTA: DCOPY not supported, DMA will be skipped\n"); }
 #endif /* defined(__EWL__) && defined(AIOP) */
 
@@ -669,11 +669,13 @@ static inline int rta_patch_load(struct program *program, int line,
 				 unsigned new_ref)
 {
 	uint32_t opcode;
+	bool bswap = program->bswap;
 
 	if (line < 0)
 		return -EINVAL;
 
-	opcode = program->buffer[line] & (uint32_t)~LDST_OFFSET_MASK;
+	opcode = (bswap ? swab32(program->buffer[line]) :
+			 program->buffer[line]) & (uint32_t)~LDST_OFFSET_MASK;
 
 	if (opcode & (LDST_SRCDST_WORD_DESCBUF | LDST_CLASS_DECO))
 		opcode |= (new_ref << LDST_OFFSET_SHIFT) & LDST_OFFSET_MASK;
@@ -681,7 +683,7 @@ static inline int rta_patch_load(struct program *program, int line,
 		opcode |= (new_ref << (LDST_OFFSET_SHIFT + 2)) &
 			  LDST_OFFSET_MASK;
 
-	program->buffer[line] = opcode;
+	program->buffer[line] = bswap ? swab32(opcode) : opcode;
 
 	return 0;
 }
