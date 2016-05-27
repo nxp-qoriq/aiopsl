@@ -241,10 +241,10 @@ enum pdb_type_e {
  * NULL integrity).
  */
 static inline int pdcp_insert_cplane_null_op(struct program *p,
-		struct alginfo *cipherdata,
-		struct alginfo *authdata,
+		struct alginfo *cipherdata __maybe_unused ,
+		struct alginfo *authdata __maybe_unused ,
 		unsigned dir,
-		unsigned char era_2_sw_hfn_override)
+		unsigned char era_2_sw_hfn_override __maybe_unused)
 {
 	LABEL(local_offset);
 	REFERENCE(move_cmd_read_descbuf);
@@ -332,8 +332,8 @@ static inline int pdcp_insert_cplane_null_op(struct program *p,
 }
 
 static inline int insert_copy_frame_op(struct program *p,
-				       struct alginfo *cipherdata,
-				       unsigned dir)
+				struct alginfo *cipherdata __maybe_unused,
+				unsigned dir __maybe_unused)
 {
 	LABEL(local_offset);
 	REFERENCE(move_cmd_read_descbuf);
@@ -399,7 +399,7 @@ static inline int insert_copy_frame_op(struct program *p,
 }
 
 static inline int pdcp_insert_cplane_int_only_op(struct program *p,
-		struct alginfo *cipherdata,
+		struct alginfo *cipherdata __maybe_unused,
 		struct alginfo *authdata,
 		unsigned dir,
 		unsigned char era_2_sw_hfn_override)
@@ -665,9 +665,9 @@ static inline int pdcp_insert_cplane_int_only_op(struct program *p,
 
 static inline int pdcp_insert_cplane_enc_only_op(struct program *p,
 		struct alginfo *cipherdata,
-		struct alginfo *authdata,
+		struct alginfo *authdata __maybe_unused,
 		unsigned dir,
-		unsigned char era_2_sw_hfn_override)
+		unsigned char era_2_sw_hfn_override __maybe_unused)
 {
 	/* Insert Cipher Key */
 	KEY(p, KEY1, cipherdata->key_enc_flags, cipherdata->key,
@@ -781,7 +781,7 @@ static inline int pdcp_insert_cplane_acc_op(struct program *p,
 		struct alginfo *cipherdata,
 		struct alginfo *authdata,
 		unsigned dir,
-		unsigned char era_2_hfn_override)
+		unsigned char era_2_hfn_override __maybe_unused)
 {
 	/* Insert Auth Key */
 	KEY(p, KEY2, authdata->key_enc_flags, authdata->key, authdata->keylen,
@@ -1031,10 +1031,8 @@ static inline int pdcp_insert_cplane_snow_aes_op(struct program *p,
 			      ICV_CHECK_ENABLE,
 			      DIR_DEC);
 
-		if (rta_sec_era > RTA_SEC_ERA_2)
-			MATHB(p, SEQINSZ, SUB, ZERO, VSEQINSZ, 4, 0);
-		else
-			MATHB(p, VSEQOUTSZ, ADD, ONE, VSEQINSZ, 4, 0);
+		/* Read the # of bytes written in the output buffer + 1 (HDR) */
+		MATHB(p, VSEQOUTSZ, ADD, ONE, VSEQINSZ, 4, 0);
 
 		if (rta_sec_era <= RTA_SEC_ERA_3)
 			MOVE(p, MATH3, 0, IFIFOAB1, 0, 8, IMMED);
@@ -1087,7 +1085,7 @@ static inline int pdcp_insert_cplane_aes_snow_op(struct program *p,
 		struct alginfo *cipherdata,
 		struct alginfo *authdata,
 		unsigned dir,
-		unsigned char era_2_sw_hfn_override)
+		unsigned char era_2_sw_hfn_override __maybe_unused)
 {
 	KEY(p, KEY1, cipherdata->key_enc_flags, cipherdata->key,
 	    cipherdata->keylen, INLINE_KEY(cipherdata));
@@ -1169,7 +1167,7 @@ static inline int pdcp_insert_cplane_snow_zuc_op(struct program *p,
 		struct alginfo *cipherdata,
 		struct alginfo *authdata,
 		unsigned dir,
-		unsigned char era_2_sw_hfn_override)
+		unsigned char era_2_sw_hfn_override __maybe_unused)
 {
 	LABEL(keyjump);
 	REFERENCE(pkeyjump);
@@ -1249,7 +1247,7 @@ static inline int pdcp_insert_cplane_aes_zuc_op(struct program *p,
 		struct alginfo *cipherdata,
 		struct alginfo *authdata,
 		unsigned dir,
-		unsigned char era_2_sw_hfn_override)
+		unsigned char era_2_sw_hfn_override __maybe_unused)
 {
 	LABEL(keyjump);
 	REFERENCE(pkeyjump);
@@ -1333,7 +1331,7 @@ static inline int pdcp_insert_cplane_zuc_snow_op(struct program *p,
 		struct alginfo *cipherdata,
 		struct alginfo *authdata,
 		unsigned dir,
-		unsigned char era_2_sw_hfn_override)
+		unsigned char era_2_sw_hfn_override __maybe_unused)
 {
 	LABEL(keyjump);
 	REFERENCE(pkeyjump);
@@ -1428,7 +1426,7 @@ static inline int pdcp_insert_cplane_zuc_aes_op(struct program *p,
 		struct alginfo *cipherdata,
 		struct alginfo *authdata,
 		unsigned dir,
-		unsigned char era_2_sw_hfn_override)
+		unsigned char era_2_sw_hfn_override __maybe_unused)
 {
 	if (rta_sec_era < RTA_SEC_ERA_5) {
 		pr_err("Invalid era for selected algorithm\n");
@@ -1716,9 +1714,12 @@ static inline enum pdb_type_e cnstr_pdcp_c_plane_pdb(struct program *p,
 		break;
 
 	case PDCP_PDB_TYPE_REDUCED_PDB:
-		WORD(p, (hfn << PDCP_C_PLANE_PDB_HFN_SHIFT));
-		WORD(p, (uint32_t)((bearer << PDCP_C_PLANE_PDB_BEARER_SHIFT) |
-			(direction << PDCP_C_PLANE_PDB_DIR_SHIFT)));
+		__rta_out32(p, (hfn << PDCP_C_PLANE_PDB_HFN_SHIFT));
+		__rta_out32(p,
+			    (uint32_t)((bearer <<
+					PDCP_C_PLANE_PDB_BEARER_SHIFT) |
+					(direction <<
+					 PDCP_C_PLANE_PDB_DIR_SHIFT)));
 		break;
 
 	case PDCP_PDB_TYPE_FULL_PDB:
@@ -1738,7 +1739,10 @@ static inline enum pdb_type_e cnstr_pdcp_c_plane_pdb(struct program *p,
 			hfn_threshold << PDCP_C_PLANE_PDB_HFN_THR_SHIFT;
 
 		/* copy PDB in descriptor*/
-		COPY_DATA(p, (uint8_t *)&pdb, sizeof(struct pdcp_pdb));
+		__rta_out32(p, pdb.opt_res.opt);
+		__rta_out32(p, pdb.hfn_res);
+		__rta_out32(p, pdb.bearer_dir_res);
+		__rta_out32(p, pdb.hfn_thr_res);
 
 		break;
 
@@ -1749,335 +1753,16 @@ static inline enum pdb_type_e cnstr_pdcp_c_plane_pdb(struct program *p,
 	return pdb_mask[cipherdata->algtype][authdata->algtype];
 }
 
-/**
- * cnstr_shdsc_pdcp_c_plane_encap - Function for creating a PDCP Control Plane
- *                                  encapsulation descriptor.
- * @descbuf: pointer to buffer for descriptor construction
- * @ps: if 36/40bit addressing is desired, this parameter must be true
- * @hfn: starting Hyper Frame Number to be used together with the SN from the
- *       PDCP frames.
- * @bearer: radio bearer ID
- * @direction: the direction of the PDCP frame (UL/DL)
- * @hfn_threshold: HFN value that once reached triggers a warning from SEC that
- *                 keys should be renegotiated at the earliest convenience.
- * @cipherdata: pointer to block cipher transform definitions
- *              Valid algorithm values are those from cipher_type_pdcp enum.
- * @authdata: pointer to authentication transform definitions
- *            Valid algorithm values are those from auth_type_pdcp enum.
- * @era_2_sw_hfn_override: if software HFN override mechanism is desired for
- *                         this descriptor. Note: Can only be used for
- *                         SEC ERA 2.
- * Return: size of descriptor written in words or negative number on error.
- *         Once the function returns, the value of this parameter can be used
- *         for reclaiming the space that wasn't used for the descriptor.
- *
- * Note: descbuf must be large enough to contain a full 256 byte long
- * descriptor; after the function returns, by subtracting the actual number of
- * bytes used, the user can reuse the remaining buffer space for other purposes.
+/*
+ * PDCP UPlane PDB creation function
  */
-static inline int cnstr_shdsc_pdcp_c_plane_encap(uint32_t *descbuf,
-		bool ps,
-		uint32_t hfn,
-		unsigned char bearer,
-		unsigned char direction,
-		uint32_t hfn_threshold,
-		struct alginfo *cipherdata,
-		struct alginfo *authdata,
-		unsigned char era_2_sw_hfn_override)
+static inline int cnstr_pdcp_u_plane_pdb(struct program *p,
+					 enum pdcp_sn_size sn_size,
+					 uint32_t hfn, unsigned short bearer,
+					 unsigned short direction,
+					 uint32_t hfn_threshold)
 {
-	static int
-		(*pdcp_cp_fp[PDCP_CIPHER_TYPE_INVALID][PDCP_AUTH_TYPE_INVALID])
-			(struct program*, struct alginfo *,
-			 struct alginfo *, unsigned, unsigned char) = {
-		{	/* NULL */
-			pdcp_insert_cplane_null_op,	/* NULL */
-			pdcp_insert_cplane_int_only_op,	/* SNOW f9 */
-			pdcp_insert_cplane_int_only_op,	/* AES CMAC */
-			pdcp_insert_cplane_int_only_op	/* ZUC-I */
-		},
-		{	/* SNOW f8 */
-			pdcp_insert_cplane_enc_only_op,	/* NULL */
-			pdcp_insert_cplane_acc_op,	/* SNOW f9 */
-			pdcp_insert_cplane_snow_aes_op,	/* AES CMAC */
-			pdcp_insert_cplane_snow_zuc_op	/* ZUC-I */
-		},
-		{	/* AES CTR */
-			pdcp_insert_cplane_enc_only_op,	/* NULL */
-			pdcp_insert_cplane_aes_snow_op,	/* SNOW f9 */
-			pdcp_insert_cplane_acc_op,	/* AES CMAC */
-			pdcp_insert_cplane_aes_zuc_op	/* ZUC-I */
-		},
-		{	/* ZUC-E */
-			pdcp_insert_cplane_enc_only_op,	/* NULL */
-			pdcp_insert_cplane_zuc_snow_op,	/* SNOW f9 */
-			pdcp_insert_cplane_zuc_aes_op,	/* AES CMAC */
-			pdcp_insert_cplane_acc_op	/* ZUC-I */
-		},
-	};
-	static uint32_t
-		desc_share[PDCP_CIPHER_TYPE_INVALID][PDCP_AUTH_TYPE_INVALID] = {
-		{	/* NULL */
-			SHR_WAIT,	/* NULL */
-			SHR_ALWAYS,	/* SNOW f9 */
-			SHR_ALWAYS,	/* AES CMAC */
-			SHR_ALWAYS	/* ZUC-I */
-		},
-		{	/* SNOW f8 */
-			SHR_ALWAYS,	/* NULL */
-			SHR_ALWAYS,	/* SNOW f9 */
-			SHR_WAIT,	/* AES CMAC */
-			SHR_WAIT	/* ZUC-I */
-		},
-		{	/* AES CTR */
-			SHR_ALWAYS,	/* NULL */
-			SHR_ALWAYS,	/* SNOW f9 */
-			SHR_ALWAYS,	/* AES CMAC */
-			SHR_WAIT	/* ZUC-I */
-		},
-		{	/* ZUC-E */
-			SHR_ALWAYS,	/* NULL */
-			SHR_WAIT,	/* SNOW f9 */
-			SHR_WAIT,	/* AES CMAC */
-			SHR_ALWAYS	/* ZUC-I */
-		},
-	};
-	enum pdb_type_e pdb_type;
-	struct program prg;
-	struct program *p = &prg;
-	int err;
-	LABEL(pdb_end);
-
-	if (rta_sec_era != RTA_SEC_ERA_2 && era_2_sw_hfn_override) {
-		pr_err("Cannot select SW HFN override for other era than 2");
-		return -EINVAL;
-	}
-
-	PROGRAM_CNTXT_INIT(p, descbuf, 0);
-	if (ps)
-		PROGRAM_SET_36BIT_ADDR(p);
-
-	SHR_HDR(p, desc_share[cipherdata->algtype][authdata->algtype], 0, 0);
-
-	pdb_type = cnstr_pdcp_c_plane_pdb(p,
-			hfn,
-			bearer,
-			direction,
-			hfn_threshold,
-			cipherdata,
-			authdata);
-
-	SET_LABEL(p, pdb_end);
-
-	err = insert_hfn_ov_op(p, PDCP_SN_SIZE_5, pdb_type,
-			       era_2_sw_hfn_override);
-	if (err)
-		return err;
-
-	err = pdcp_cp_fp[cipherdata->algtype][authdata->algtype](p,
-		cipherdata,
-		authdata,
-		OP_TYPE_ENCAP_PROTOCOL,
-		era_2_sw_hfn_override);
-	if (err)
-		return err;
-
-	PATCH_HDR(p, 0, pdb_end);
-
-	return PROGRAM_FINALIZE(p);
-}
-
-/**
- * cnstr_shdsc_pdcp_c_plane_decap - Function for creating a PDCP Control Plane
- *                                  decapsulation descriptor.
- * @descbuf: pointer to buffer for descriptor construction
- * @ps: if 36/40bit addressing is desired, this parameter must be true
- * @hfn: starting Hyper Frame Number to be used together with the SN from the
- *       PDCP frames.
- * @bearer: radio bearer ID
- * @direction: the direction of the PDCP frame (UL/DL)
- * @hfn_threshold: HFN value that once reached triggers a warning from SEC that
- *                 keys should be renegotiated at the earliest convenience.
- * @cipherdata: pointer to block cipher transform definitions
- *              Valid algorithm values are those from cipher_type_pdcp enum.
- * @authdata: pointer to authentication transform definitions
- *            Valid algorithm values are those from auth_type_pdcp enum.
- * @era_2_sw_hfn_override: if software HFN override mechanism is desired for
- *                         this descriptor. Note: Can only be used for
- *                         SEC ERA 2.
- *
- * Return: size of descriptor written in words or negative number on error.
- *         Once the function returns, the value of this parameter can be used
- *         for reclaiming the space that wasn't used for the descriptor.
- *
- * Note: descbuf must be large enough to contain a full 256 byte long
- * descriptor; after the function returns, by subtracting the actual number of
- * bytes used, the user can reuse the remaining buffer space for other purposes.
- */
-static inline int cnstr_shdsc_pdcp_c_plane_decap(uint32_t *descbuf,
-		bool ps,
-		uint32_t hfn,
-		unsigned char bearer,
-		unsigned char direction,
-		uint32_t hfn_threshold,
-		struct alginfo *cipherdata,
-		struct alginfo *authdata,
-		unsigned char era_2_sw_hfn_override)
-{
-	static int
-		(*pdcp_cp_fp[PDCP_CIPHER_TYPE_INVALID][PDCP_AUTH_TYPE_INVALID])
-			(struct program*, struct alginfo *,
-			 struct alginfo *, unsigned, unsigned char) = {
-		{	/* NULL */
-			pdcp_insert_cplane_null_op,	/* NULL */
-			pdcp_insert_cplane_int_only_op,	/* SNOW f9 */
-			pdcp_insert_cplane_int_only_op,	/* AES CMAC */
-			pdcp_insert_cplane_int_only_op	/* ZUC-I */
-		},
-		{	/* SNOW f8 */
-			pdcp_insert_cplane_enc_only_op,	/* NULL */
-			pdcp_insert_cplane_acc_op,	/* SNOW f9 */
-			pdcp_insert_cplane_snow_aes_op,	/* AES CMAC */
-			pdcp_insert_cplane_snow_zuc_op	/* ZUC-I */
-		},
-		{	/* AES CTR */
-			pdcp_insert_cplane_enc_only_op,	/* NULL */
-			pdcp_insert_cplane_aes_snow_op,	/* SNOW f9 */
-			pdcp_insert_cplane_acc_op,	/* AES CMAC */
-			pdcp_insert_cplane_aes_zuc_op	/* ZUC-I */
-		},
-		{	/* ZUC-E */
-			pdcp_insert_cplane_enc_only_op,	/* NULL */
-			pdcp_insert_cplane_zuc_snow_op,	/* SNOW f9 */
-			pdcp_insert_cplane_zuc_aes_op,	/* AES CMAC */
-			pdcp_insert_cplane_acc_op	/* ZUC-I */
-		},
-	};
-	static uint32_t
-		desc_share[PDCP_CIPHER_TYPE_INVALID][PDCP_AUTH_TYPE_INVALID] = {
-		{	/* NULL */
-			SHR_WAIT,	/* NULL */
-			SHR_ALWAYS,	/* SNOW f9 */
-			SHR_ALWAYS,	/* AES CMAC */
-			SHR_ALWAYS	/* ZUC-I */
-		},
-		{	/* SNOW f8 */
-			SHR_ALWAYS,	/* NULL */
-			SHR_ALWAYS,	/* SNOW f9 */
-			SHR_WAIT,	/* AES CMAC */
-			SHR_WAIT	/* ZUC-I */
-		},
-		{	/* AES CTR */
-			SHR_ALWAYS,	/* NULL */
-			SHR_ALWAYS,	/* SNOW f9 */
-			SHR_ALWAYS,	/* AES CMAC */
-			SHR_WAIT	/* ZUC-I */
-		},
-		{	/* ZUC-E */
-			SHR_ALWAYS,	/* NULL */
-			SHR_WAIT,	/* SNOW f9 */
-			SHR_WAIT,	/* AES CMAC */
-			SHR_ALWAYS	/* ZUC-I */
-		},
-	};
-	enum pdb_type_e pdb_type;
-	struct program prg;
-	struct program *p = &prg;
-	int err;
-	LABEL(pdb_end);
-
-	if (rta_sec_era != RTA_SEC_ERA_2 && era_2_sw_hfn_override) {
-		pr_err("Cannot select SW HFN override for other era than 2");
-		return -EINVAL;
-	}
-
-	PROGRAM_CNTXT_INIT(p, descbuf, 0);
-	if (ps)
-		PROGRAM_SET_36BIT_ADDR(p);
-
-	SHR_HDR(p, desc_share[cipherdata->algtype][authdata->algtype], 0, 0);
-
-	pdb_type = cnstr_pdcp_c_plane_pdb(p,
-			hfn,
-			bearer,
-			direction,
-			hfn_threshold,
-			cipherdata,
-			authdata);
-
-	SET_LABEL(p, pdb_end);
-
-	err = insert_hfn_ov_op(p, PDCP_SN_SIZE_5, pdb_type,
-			       era_2_sw_hfn_override);
-	if (err)
-		return err;
-
-	err = pdcp_cp_fp[cipherdata->algtype][authdata->algtype](p,
-		cipherdata,
-		authdata,
-		OP_TYPE_DECAP_PROTOCOL,
-		era_2_sw_hfn_override);
-	if (err)
-		return err;
-
-	PATCH_HDR(p, 0, pdb_end);
-
-	return PROGRAM_FINALIZE(p);
-}
-
-/**
- * cnstr_shdsc_pdcp_u_plane_encap - Function for creating a PDCP User Plane
- *                                  encapsulation descriptor.
- * @descbuf: pointer to buffer for descriptor construction
- * @ps: if 36/40bit addressing is desired, this parameter must be true
- * @sn_size: selects Sequence Number Size: 7/12/15 bits
- * @hfn: starting Hyper Frame Number to be used together with the SN from the
- *       PDCP frames.
- * @bearer: radio bearer ID
- * @direction: the direction of the PDCP frame (UL/DL)
- * @hfn_threshold: HFN value that once reached triggers a warning from SEC that
- *                 keys should be renegotiated at the earliest convenience.
- * @cipherdata: pointer to block cipher transform definitions
- *              Valid algorithm values are those from cipher_type_pdcp enum.
- * @era_2_sw_hfn_override: if software HFN override mechanism is desired for
- *                         this descriptor. Note: Can only be used for
- *                         SEC ERA 2.
- *
- * Return: size of descriptor written in words or negative number on error.
- *         Once the function returns, the value of this parameter can be used
- *         for reclaiming the space that wasn't used for the descriptor.
- *
- * Note: descbuf must be large enough to contain a full 256 byte long
- * descriptor; after the function returns, by subtracting the actual number of
- * bytes used, the user can reuse the remaining buffer space for other purposes.
- */
-static inline int cnstr_shdsc_pdcp_u_plane_encap(uint32_t *descbuf,
-		bool ps,
-		enum pdcp_sn_size sn_size,
-		uint32_t hfn,
-		unsigned short bearer,
-		unsigned short direction,
-		uint32_t hfn_threshold,
-		struct alginfo *cipherdata,
-		unsigned char era_2_sw_hfn_override)
-{
-	struct program prg;
-	struct program *p = &prg;
 	struct pdcp_pdb pdb;
-	int err;
-	LABEL(pdb_end);
-
-	if (rta_sec_era != RTA_SEC_ERA_2 && era_2_sw_hfn_override) {
-		pr_err("Cannot select SW HFN override for other era than 2");
-		return -EINVAL;
-	}
-
-	PROGRAM_CNTXT_INIT(p, descbuf, 0);
-
-	if (ps)
-		PROGRAM_SET_36BIT_ADDR(p);
-
-	SHR_HDR(p, SHR_ALWAYS, 0, 0);
-
 	/* Read options from user */
 	/* Depending on sequence number lenght, the HFN and HFN threshold
 	 * have different lengths.
@@ -2116,8 +1801,357 @@ static inline int cnstr_shdsc_pdcp_u_plane_encap(uint32_t *descbuf,
 				 (direction << PDCP_U_PLANE_PDB_DIR_SHIFT));
 
 	/* copy PDB in descriptor*/
-	COPY_DATA(p, (uint8_t *)&pdb, sizeof(struct pdcp_pdb));
+	__rta_out32(p, pdb.opt_res.opt);
+	__rta_out32(p, pdb.hfn_res);
+	__rta_out32(p, pdb.bearer_dir_res);
+	__rta_out32(p, pdb.hfn_thr_res);
+	
+	return 0;
+}
+/**
+ * cnstr_shdsc_pdcp_c_plane_encap - Function for creating a PDCP Control Plane
+ *                                  encapsulation descriptor.
+ * @descbuf: pointer to buffer for descriptor construction
+ * @ps: if 36/40bit addressing is desired, this parameter must be true
+ * @swap: must be true when core endianness doesn't match SEC endianness
+ * @hfn: starting Hyper Frame Number to be used together with the SN from the
+ *       PDCP frames.
+ * @bearer: radio bearer ID
+ * @direction: the direction of the PDCP frame (UL/DL)
+ * @hfn_threshold: HFN value that once reached triggers a warning from SEC that
+ *                 keys should be renegotiated at the earliest convenience.
+ * @cipherdata: pointer to block cipher transform definitions
+ *              Valid algorithm values are those from cipher_type_pdcp enum.
+ * @authdata: pointer to authentication transform definitions
+ *            Valid algorithm values are those from auth_type_pdcp enum.
+ * @era_2_sw_hfn_override: if software HFN override mechanism is desired for
+ *                         this descriptor. Note: Can only be used for
+ *                         SEC ERA 2.
+ * Return: size of descriptor written in words or negative number on error.
+ *         Once the function returns, the value of this parameter can be used
+ *         for reclaiming the space that wasn't used for the descriptor.
+ *
+ * Note: descbuf must be large enough to contain a full 256 byte long
+ * descriptor; after the function returns, by subtracting the actual number of
+ * bytes used, the user can reuse the remaining buffer space for other purposes.
+ */
+static inline int cnstr_shdsc_pdcp_c_plane_encap(uint32_t *descbuf,
+		bool ps,
+		bool swap,
+		uint32_t hfn,
+		unsigned char bearer,
+		unsigned char direction,
+		uint32_t hfn_threshold,
+		struct alginfo *cipherdata,
+		struct alginfo *authdata,
+		unsigned char era_2_sw_hfn_override)
+{
+	static int
+		(*pdcp_cp_fp[PDCP_CIPHER_TYPE_INVALID][PDCP_AUTH_TYPE_INVALID])
+			(struct program*, struct alginfo *,
+			 struct alginfo *, unsigned,
+			unsigned char __maybe_unused) = {
+		{	/* NULL */
+			pdcp_insert_cplane_null_op,	/* NULL */
+			pdcp_insert_cplane_int_only_op,	/* SNOW f9 */
+			pdcp_insert_cplane_int_only_op,	/* AES CMAC */
+			pdcp_insert_cplane_int_only_op	/* ZUC-I */
+		},
+		{	/* SNOW f8 */
+			pdcp_insert_cplane_enc_only_op,	/* NULL */
+			pdcp_insert_cplane_acc_op,	/* SNOW f9 */
+			pdcp_insert_cplane_snow_aes_op,	/* AES CMAC */
+			pdcp_insert_cplane_snow_zuc_op	/* ZUC-I */
+		},
+		{	/* AES CTR */
+			pdcp_insert_cplane_enc_only_op,	/* NULL */
+			pdcp_insert_cplane_aes_snow_op,	/* SNOW f9 */
+			pdcp_insert_cplane_acc_op,	/* AES CMAC */
+			pdcp_insert_cplane_aes_zuc_op	/* ZUC-I */
+		},
+		{	/* ZUC-E */
+			pdcp_insert_cplane_enc_only_op,	/* NULL */
+			pdcp_insert_cplane_zuc_snow_op,	/* SNOW f9 */
+			pdcp_insert_cplane_zuc_aes_op,	/* AES CMAC */
+			pdcp_insert_cplane_acc_op	/* ZUC-I */
+		},
+	};
+	static enum rta_share_type
+		desc_share[PDCP_CIPHER_TYPE_INVALID][PDCP_AUTH_TYPE_INVALID] = {
+		{	/* NULL */
+			SHR_WAIT,	/* NULL */
+			SHR_ALWAYS,	/* SNOW f9 */
+			SHR_ALWAYS,	/* AES CMAC */
+			SHR_ALWAYS	/* ZUC-I */
+		},
+		{	/* SNOW f8 */
+			SHR_ALWAYS,	/* NULL */
+			SHR_ALWAYS,	/* SNOW f9 */
+			SHR_WAIT,	/* AES CMAC */
+			SHR_WAIT	/* ZUC-I */
+		},
+		{	/* AES CTR */
+			SHR_ALWAYS,	/* NULL */
+			SHR_ALWAYS,	/* SNOW f9 */
+			SHR_ALWAYS,	/* AES CMAC */
+			SHR_WAIT	/* ZUC-I */
+		},
+		{	/* ZUC-E */
+			SHR_ALWAYS,	/* NULL */
+			SHR_WAIT,	/* SNOW f9 */
+			SHR_WAIT,	/* AES CMAC */
+			SHR_ALWAYS	/* ZUC-I */
+		},
+	};
+	enum pdb_type_e pdb_type;
+	struct program prg;
+	struct program *p = &prg;
+	int err;
+	LABEL(pdb_end);
 
+	if (rta_sec_era != RTA_SEC_ERA_2 && era_2_sw_hfn_override) {
+		pr_err("Cannot select SW HFN override for other era than 2");
+		return -EINVAL;
+	}
+
+	PROGRAM_CNTXT_INIT(p, descbuf, 0);
+	if (swap)
+		PROGRAM_SET_BSWAP(p);
+	if (ps)
+		PROGRAM_SET_36BIT_ADDR(p);
+
+	SHR_HDR(p, desc_share[cipherdata->algtype][authdata->algtype], 0, 0);
+
+	pdb_type = cnstr_pdcp_c_plane_pdb(p,
+			hfn,
+			bearer,
+			direction,
+			hfn_threshold,
+			cipherdata,
+			authdata);
+
+	SET_LABEL(p, pdb_end);
+
+	err = insert_hfn_ov_op(p, PDCP_SN_SIZE_5, pdb_type,
+			       era_2_sw_hfn_override);
+	if (err)
+		return err;
+
+	err = pdcp_cp_fp[cipherdata->algtype][authdata->algtype](p,
+		cipherdata,
+		authdata,
+		OP_TYPE_ENCAP_PROTOCOL,
+		era_2_sw_hfn_override);
+	if (err)
+		return err;
+
+	PATCH_HDR(p, 0, pdb_end);
+
+	return PROGRAM_FINALIZE(p);
+}
+
+/**
+ * cnstr_shdsc_pdcp_c_plane_decap - Function for creating a PDCP Control Plane
+ *                                  decapsulation descriptor.
+ * @descbuf: pointer to buffer for descriptor construction
+ * @ps: if 36/40bit addressing is desired, this parameter must be true
+ * @swap: must be true when core endianness doesn't match SEC endianness
+ * @hfn: starting Hyper Frame Number to be used together with the SN from the
+ *       PDCP frames.
+ * @bearer: radio bearer ID
+ * @direction: the direction of the PDCP frame (UL/DL)
+ * @hfn_threshold: HFN value that once reached triggers a warning from SEC that
+ *                 keys should be renegotiated at the earliest convenience.
+ * @cipherdata: pointer to block cipher transform definitions
+ *              Valid algorithm values are those from cipher_type_pdcp enum.
+ * @authdata: pointer to authentication transform definitions
+ *            Valid algorithm values are those from auth_type_pdcp enum.
+ * @era_2_sw_hfn_override: if software HFN override mechanism is desired for
+ *                         this descriptor. Note: Can only be used for
+ *                         SEC ERA 2.
+ *
+ * Return: size of descriptor written in words or negative number on error.
+ *         Once the function returns, the value of this parameter can be used
+ *         for reclaiming the space that wasn't used for the descriptor.
+ *
+ * Note: descbuf must be large enough to contain a full 256 byte long
+ * descriptor; after the function returns, by subtracting the actual number of
+ * bytes used, the user can reuse the remaining buffer space for other purposes.
+ */
+static inline int cnstr_shdsc_pdcp_c_plane_decap(uint32_t *descbuf,
+		bool ps,
+		bool swap,
+		uint32_t hfn,
+		unsigned char bearer,
+		unsigned char direction,
+		uint32_t hfn_threshold,
+		struct alginfo *cipherdata,
+		struct alginfo *authdata,
+		unsigned char era_2_sw_hfn_override)
+{
+	static int
+		(*pdcp_cp_fp[PDCP_CIPHER_TYPE_INVALID][PDCP_AUTH_TYPE_INVALID])
+			(struct program*, struct alginfo *,
+			 struct alginfo *, unsigned, unsigned char) = {
+		{	/* NULL */
+			pdcp_insert_cplane_null_op,	/* NULL */
+			pdcp_insert_cplane_int_only_op,	/* SNOW f9 */
+			pdcp_insert_cplane_int_only_op,	/* AES CMAC */
+			pdcp_insert_cplane_int_only_op	/* ZUC-I */
+		},
+		{	/* SNOW f8 */
+			pdcp_insert_cplane_enc_only_op,	/* NULL */
+			pdcp_insert_cplane_acc_op,	/* SNOW f9 */
+			pdcp_insert_cplane_snow_aes_op,	/* AES CMAC */
+			pdcp_insert_cplane_snow_zuc_op	/* ZUC-I */
+		},
+		{	/* AES CTR */
+			pdcp_insert_cplane_enc_only_op,	/* NULL */
+			pdcp_insert_cplane_aes_snow_op,	/* SNOW f9 */
+			pdcp_insert_cplane_acc_op,	/* AES CMAC */
+			pdcp_insert_cplane_aes_zuc_op	/* ZUC-I */
+		},
+		{	/* ZUC-E */
+			pdcp_insert_cplane_enc_only_op,	/* NULL */
+			pdcp_insert_cplane_zuc_snow_op,	/* SNOW f9 */
+			pdcp_insert_cplane_zuc_aes_op,	/* AES CMAC */
+			pdcp_insert_cplane_acc_op	/* ZUC-I */
+		},
+	};
+	static enum rta_share_type
+		desc_share[PDCP_CIPHER_TYPE_INVALID][PDCP_AUTH_TYPE_INVALID] = {
+		{	/* NULL */
+			SHR_WAIT,	/* NULL */
+			SHR_ALWAYS,	/* SNOW f9 */
+			SHR_ALWAYS,	/* AES CMAC */
+			SHR_ALWAYS	/* ZUC-I */
+		},
+		{	/* SNOW f8 */
+			SHR_ALWAYS,	/* NULL */
+			SHR_ALWAYS,	/* SNOW f9 */
+			SHR_WAIT,	/* AES CMAC */
+			SHR_WAIT	/* ZUC-I */
+		},
+		{	/* AES CTR */
+			SHR_ALWAYS,	/* NULL */
+			SHR_ALWAYS,	/* SNOW f9 */
+			SHR_ALWAYS,	/* AES CMAC */
+			SHR_WAIT	/* ZUC-I */
+		},
+		{	/* ZUC-E */
+			SHR_ALWAYS,	/* NULL */
+			SHR_WAIT,	/* SNOW f9 */
+			SHR_WAIT,	/* AES CMAC */
+			SHR_ALWAYS	/* ZUC-I */
+		},
+	};
+	enum pdb_type_e pdb_type;
+	struct program prg;
+	struct program *p = &prg;
+	int err;
+	LABEL(pdb_end);
+
+	if (rta_sec_era != RTA_SEC_ERA_2 && era_2_sw_hfn_override) {
+		pr_err("Cannot select SW HFN override for other era than 2");
+		return -EINVAL;
+	}
+
+	PROGRAM_CNTXT_INIT(p, descbuf, 0);
+	if (swap)
+		PROGRAM_SET_BSWAP(p);
+	if (ps)
+		PROGRAM_SET_36BIT_ADDR(p);
+
+	SHR_HDR(p, desc_share[cipherdata->algtype][authdata->algtype], 0, 0);
+
+	pdb_type = cnstr_pdcp_c_plane_pdb(p,
+			hfn,
+			bearer,
+			direction,
+			hfn_threshold,
+			cipherdata,
+			authdata);
+
+	SET_LABEL(p, pdb_end);
+
+	err = insert_hfn_ov_op(p, PDCP_SN_SIZE_5, pdb_type,
+			       era_2_sw_hfn_override);
+	if (err)
+		return err;
+
+	err = pdcp_cp_fp[cipherdata->algtype][authdata->algtype](p,
+		cipherdata,
+		authdata,
+		OP_TYPE_DECAP_PROTOCOL,
+		era_2_sw_hfn_override);
+	if (err)
+		return err;
+
+	PATCH_HDR(p, 0, pdb_end);
+
+	return PROGRAM_FINALIZE(p);
+}
+
+/**
+ * cnstr_shdsc_pdcp_u_plane_encap - Function for creating a PDCP User Plane
+ *                                  encapsulation descriptor.
+ * @descbuf: pointer to buffer for descriptor construction
+ * @ps: if 36/40bit addressing is desired, this parameter must be true
+ * @swap: must be true when core endianness doesn't match SEC endianness
+ * @sn_size: selects Sequence Number Size: 7/12/15 bits
+ * @hfn: starting Hyper Frame Number to be used together with the SN from the
+ *       PDCP frames.
+ * @bearer: radio bearer ID
+ * @direction: the direction of the PDCP frame (UL/DL)
+ * @hfn_threshold: HFN value that once reached triggers a warning from SEC that
+ *                 keys should be renegotiated at the earliest convenience.
+ * @cipherdata: pointer to block cipher transform definitions
+ *              Valid algorithm values are those from cipher_type_pdcp enum.
+ * @era_2_sw_hfn_override: if software HFN override mechanism is desired for
+ *                         this descriptor. Note: Can only be used for
+ *                         SEC ERA 2.
+ *
+ * Return: size of descriptor written in words or negative number on error.
+ *         Once the function returns, the value of this parameter can be used
+ *         for reclaiming the space that wasn't used for the descriptor.
+ *
+ * Note: descbuf must be large enough to contain a full 256 byte long
+ * descriptor; after the function returns, by subtracting the actual number of
+ * bytes used, the user can reuse the remaining buffer space for other purposes.
+ */
+static inline int cnstr_shdsc_pdcp_u_plane_encap(uint32_t *descbuf,
+		bool ps,
+		bool swap,
+		enum pdcp_sn_size sn_size,
+		uint32_t hfn,
+		unsigned short bearer,
+		unsigned short direction,
+		uint32_t hfn_threshold,
+		struct alginfo *cipherdata,
+		unsigned char era_2_sw_hfn_override)
+{
+	struct program prg;
+	struct program *p = &prg;
+	int err;
+	LABEL(pdb_end);
+
+	if (rta_sec_era != RTA_SEC_ERA_2 && era_2_sw_hfn_override) {
+		pr_err("Cannot select SW HFN override for other era than 2");
+		return -EINVAL;
+	}
+
+	PROGRAM_CNTXT_INIT(p, descbuf, 0);
+	if (swap)
+		PROGRAM_SET_BSWAP(p);
+	if (ps)
+		PROGRAM_SET_36BIT_ADDR(p);
+
+	SHR_HDR(p, SHR_ALWAYS, 0, 0);
+	if (cnstr_pdcp_u_plane_pdb(p, sn_size, hfn, bearer, direction,
+				   hfn_threshold)) {
+		pr_err("Error creating PDCP UPlane PDB\n");
+		return -EINVAL;
+	}
 	SET_LABEL(p, pdb_end);
 
 	err = insert_hfn_ov_op(p, sn_size, PDCP_PDB_TYPE_FULL_PDB,
@@ -2173,6 +2207,11 @@ static inline int cnstr_shdsc_pdcp_u_plane_encap(uint32_t *descbuf,
 			break;
 		}
 		break;
+
+	case PDCP_SN_SIZE_5:
+	default:
+		pr_err("Invalid SN size selected\n");
+		return -ENOTSUP;
 	}
 
 	PATCH_HDR(p, 0, pdb_end);
@@ -2184,6 +2223,7 @@ static inline int cnstr_shdsc_pdcp_u_plane_encap(uint32_t *descbuf,
  *                                  decapsulation descriptor.
  * @descbuf: pointer to buffer for descriptor construction
  * @ps: if 36/40bit addressing is desired, this parameter must be true
+ * @swap: must be true when core endianness doesn't match SEC endianness
  * @sn_size: selects Sequence Number Size: 7/12/15 bits
  * @hfn: starting Hyper Frame Number to be used together with the SN from the
  *       PDCP frames.
@@ -2207,6 +2247,7 @@ static inline int cnstr_shdsc_pdcp_u_plane_encap(uint32_t *descbuf,
  */
 static inline int cnstr_shdsc_pdcp_u_plane_decap(uint32_t *descbuf,
 		bool ps,
+		bool swap,
 		enum pdcp_sn_size sn_size,
 		uint32_t hfn,
 		unsigned short bearer,
@@ -2217,7 +2258,6 @@ static inline int cnstr_shdsc_pdcp_u_plane_decap(uint32_t *descbuf,
 {
 	struct program prg;
 	struct program *p = &prg;
-	struct pdcp_pdb pdb;
 	int err;
 	LABEL(pdb_end);
 
@@ -2227,52 +2267,17 @@ static inline int cnstr_shdsc_pdcp_u_plane_decap(uint32_t *descbuf,
 	}
 
 	PROGRAM_CNTXT_INIT(p, descbuf, 0);
-
+	if (swap)
+		PROGRAM_SET_BSWAP(p);
 	if (ps)
 		PROGRAM_SET_36BIT_ADDR(p);
 
 	SHR_HDR(p, SHR_ALWAYS, 0, 0);
-
-	/* Read options from user */
-	/* Depending on Sequence Number Size, the HFN and HFN threshold
-	 * have different lengths.
-	 */
-	memset(&pdb, 0x00, sizeof(struct pdcp_pdb));
-
-	switch (sn_size) {
-	case PDCP_SN_SIZE_7:
-		pdb.opt_res.opt |= PDCP_U_PLANE_PDB_OPT_SHORT_SN;
-		pdb.hfn_res = hfn << PDCP_U_PLANE_PDB_SHORT_SN_HFN_SHIFT;
-		pdb.hfn_thr_res =
-			hfn_threshold<<PDCP_U_PLANE_PDB_SHORT_SN_HFN_THR_SHIFT;
-		break;
-
-	case PDCP_SN_SIZE_12:
-		pdb.opt_res.opt &= (uint32_t)(~PDCP_U_PLANE_PDB_OPT_SHORT_SN);
-		pdb.hfn_res = hfn << PDCP_U_PLANE_PDB_LONG_SN_HFN_SHIFT;
-		pdb.hfn_thr_res =
-			hfn_threshold<<PDCP_U_PLANE_PDB_LONG_SN_HFN_THR_SHIFT;
-		break;
-
-	case PDCP_SN_SIZE_15:
-		pdb.opt_res.opt &= (uint32_t)(~PDCP_U_PLANE_PDB_OPT_SHORT_SN);
-		pdb.hfn_res = hfn << PDCP_U_PLANE_PDB_15BIT_SN_HFN_SHIFT;
-		pdb.hfn_thr_res =
-			hfn_threshold<<PDCP_U_PLANE_PDB_15BIT_SN_HFN_THR_SHIFT;
-		break;
-
-	default:
-		pr_err("Invalid Sequence Number Size setting in PDB\n");
+	if (cnstr_pdcp_u_plane_pdb(p, sn_size, hfn, bearer, direction,
+				   hfn_threshold)) {
+		pr_err("Error creating PDCP UPlane PDB\n");
 		return -EINVAL;
 	}
-
-	pdb.bearer_dir_res = (uint32_t)
-				((bearer << PDCP_U_PLANE_PDB_BEARER_SHIFT) |
-				 (direction << PDCP_U_PLANE_PDB_DIR_SHIFT));
-
-	/* copy PDB in descriptor*/
-	COPY_DATA(p, (uint8_t *)&pdb, sizeof(struct pdcp_pdb));
-
 	SET_LABEL(p, pdb_end);
 
 	err = insert_hfn_ov_op(p, sn_size, PDCP_PDB_TYPE_FULL_PDB,
@@ -2328,6 +2333,11 @@ static inline int cnstr_shdsc_pdcp_u_plane_decap(uint32_t *descbuf,
 			break;
 		}
 		break;
+
+	case PDCP_SN_SIZE_5:
+	default:
+		pr_err("Invalid SN size selected\n");
+		return -ENOTSUP;
 	}
 
 	PATCH_HDR(p, 0, pdb_end);
@@ -2339,6 +2349,7 @@ static inline int cnstr_shdsc_pdcp_u_plane_decap(uint32_t *descbuf,
  *                              descriptor.
  * @descbuf: pointer to buffer for descriptor construction
  * @ps: if 36/40bit addressing is desired, this parameter must be true
+ * @swap: must be true when core endianness doesn't match SEC endianness
  * @authdata: pointer to authentication transform definitions
  *            Valid algorithm values are those from auth_type_pdcp enum.
  *
@@ -2352,6 +2363,7 @@ static inline int cnstr_shdsc_pdcp_u_plane_decap(uint32_t *descbuf,
  */
 static inline int cnstr_shdsc_pdcp_short_mac(uint32_t *descbuf,
 		bool ps,
+		bool swap,
 		struct alginfo *authdata)
 {
 	struct program prg;
@@ -2362,7 +2374,8 @@ static inline int cnstr_shdsc_pdcp_short_mac(uint32_t *descbuf,
 	REFERENCE(move_cmd_write_descbuf);
 
 	PROGRAM_CNTXT_INIT(p, descbuf, 0);
-
+	if (swap)
+		PROGRAM_SET_BSWAP(p);
 	if (ps)
 		PROGRAM_SET_36BIT_ADDR(p);
 
@@ -2423,8 +2436,8 @@ static inline int cnstr_shdsc_pdcp_short_mac(uint32_t *descbuf,
 
 	case PDCP_AUTH_TYPE_SNOW:
 		iv[0] = 0xFFFFFFFF;
-		iv[1] = 0x04000000;
-		iv[2] = 0xF8000000;
+		iv[1] = swap ? swab32(0x04000000) : 0x04000000;
+		iv[2] = swap ? swab32(0xF8000000) : 0xF8000000;
 
 		KEY(p, KEY2, authdata->key_enc_flags, authdata->key,
 		    authdata->keylen, INLINE_KEY(authdata));
@@ -2459,7 +2472,7 @@ static inline int cnstr_shdsc_pdcp_short_mac(uint32_t *descbuf,
 
 	case PDCP_AUTH_TYPE_AES:
 		iv[0] = 0xFFFFFFFF;
-		iv[1] = 0xFC000000;
+		iv[1] = swap ? swab32(0xFC000000) : 0xFC000000;
 		iv[2] = 0x00000000; /* unused */
 
 		KEY(p, KEY1, authdata->key_enc_flags, authdata->key,
@@ -2499,7 +2512,7 @@ static inline int cnstr_shdsc_pdcp_short_mac(uint32_t *descbuf,
 			return -ENOTSUP;
 		}
 		iv[0] = 0xFFFFFFFF;
-		iv[1] = 0xFC000000;
+		iv[1] = swap ? swab32(0xFC000000) : 0xFC000000;
 		iv[2] = 0x00000000; /* unused */
 
 		KEY(p, KEY2, authdata->key_enc_flags, authdata->key,

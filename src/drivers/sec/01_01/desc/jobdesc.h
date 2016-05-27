@@ -20,6 +20,7 @@
  * cnstr_jobdesc_mdsplitkey - Generate an MDHA split key
  * @descbuf: pointer to buffer to hold constructed descriptor
  * @ps: if 36/40bit addressing is desired, this parameter must be true
+ * @swap: must be true when core endianness doesn't match SEC endianness
  * @alg_key: pointer to HMAC key to generate ipad/opad from
  * @keylen: HMAC key length
  * @cipher: HMAC algorithm selection, one of OP_ALG_ALGSEL_*
@@ -39,15 +40,19 @@
  */
 
 static inline int cnstr_jobdesc_mdsplitkey(uint32_t *descbuf, bool ps,
-					   uint64_t alg_key, uint8_t keylen,
-					   uint32_t cipher, uint64_t padbuf)
+					   bool swap, uint64_t alg_key,
+					   uint8_t keylen, uint32_t cipher,
+					   uint64_t padbuf)
 {
 	struct program prg;
 	struct program *p = &prg;
 
 	PROGRAM_CNTXT_INIT(p, descbuf, 0);
+	if (swap)
+		PROGRAM_SET_BSWAP(p);
 	if (ps)
 		PROGRAM_SET_36BIT_ADDR(p);
+
 	JOB_HDR(p, SHR_NEVER, 1, 0, 0);
 	KEY(p, KEY2, 0, alg_key, keylen, 0);
 	ALG_OPERATION(p, cipher, OP_ALG_AAI_HMAC, OP_ALG_AS_INIT,

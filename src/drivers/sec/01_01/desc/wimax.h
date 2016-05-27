@@ -61,38 +61,142 @@
 #define WIMAX_PDB_B0            0x19    /* Initial Block B0 Flags */
 #define WIMAX_PDB_CTR           0x01    /* Counter Block Flags */
 
+#if __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
 struct wimax_encap_pdb {
-	uint8_t rsvd[3];                /* Reserved Bits */
-	uint8_t options;                /* Options Byte */
-	uint32_t nonce;                 /* Nonce Constant */
-	uint8_t b0_flags;               /* Initial Block B0 */
-	uint8_t ctr_flags;              /* Counter Block Flags */
-	uint16_t ctr_init_count;
+	union {
+		struct {
+			uint8_t rsvd[3];	/* Reserved Bits */
+			uint8_t options;	/* Options Byte */
+		};
+		uint32_t word1;
+	};
+	uint32_t nonce;				/* Nonce Constant */
+	union {
+		struct {
+			uint8_t b0_flags;	/* Initial Block B0 */
+			uint8_t ctr_flags;	/* Counter Block Flags */
+			uint16_t ctr_init_count;
+		};
+		uint32_t word2;
+	};
 	/* begin DECO writeback region */
-	uint32_t pn;                    /* Packet Number */
+	uint32_t pn;				/* Packet Number */
 	/* end DECO writeback region */
 };
-
-struct wimax_decap_pdb {
-	uint8_t rsvd[3];                /* Reserved Bits */
-	uint8_t options;                /* Options Byte */
-	uint32_t nonce;                 /* Nonce Constant */
-	uint8_t b0_flags;               /* Initial Block B0 */
-	uint8_t ctr_flags;              /* Counter Block Flags */
-	uint16_t ctr_init_count;
+#else
+struct wimax_encap_pdb {
+	union {
+		struct {
+			uint8_t options;	/* Options Byte */
+			uint8_t rsvd[3];	/* Reserved Bits */
+		};
+		uint32_t word1;
+	};
+	uint32_t nonce;				/* Nonce Constant */
+	union {
+		struct {
+			uint16_t ctr_init_count;
+			uint8_t ctr_flags;	/* Counter Block Flags */
+			uint8_t b0_flags;	/* Initial Block B0 */
+		};
+		uint32_t word2;
+	};
 	/* begin DECO writeback region */
-	uint32_t pn;                    /* Packet Number */
-	uint8_t rsvd1[2];               /* Reserved Bits */
-	uint16_t antireplay_len;
+	uint32_t pn;				/* Packet Number */
+	/* end DECO writeback region */
+};
+#endif
+
+#if __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
+struct wimax_decap_pdb {
+	union {
+		struct {
+			uint8_t rsvd[3];	/* Reserved Bits */
+			uint8_t options;	/* Options Byte */
+		};
+		uint32_t word1;
+	};
+	uint32_t nonce;				/* Nonce Constant */
+	union {
+		struct {
+			uint8_t b0_flags;	/* Initial Block B0 */
+			uint8_t ctr_flags;	/* Counter Block Flags */
+			uint16_t ctr_init_count;
+		};
+		uint32_t word2;
+	};
+	/* begin DECO writeback region */
+	uint32_t pn;				/* Packet Number */
+	union {
+		struct {
+			uint8_t rsvd1[2];	/* Reserved Bits */
+			uint16_t antireplay_len;
+		};
+		uint32_t word3;
+	};
 	uint32_t antireplay_scorecard_hi;
 	uint32_t antireplay_scorecard_lo;
 	/** end DECO writeback region */
 };
+#else
+struct wimax_decap_pdb {
+	union {
+		struct {
+			uint8_t options;	/* Options Byte */
+			uint8_t rsvd[3];	/* Reserved Bits */
+		};
+		uint32_t word1;
+	};
+	uint32_t nonce;				/* Nonce Constant */
+	union {
+		struct {
+			uint16_t ctr_init_count;
+			uint8_t ctr_flags;	/* Counter Block Flags */
+			uint8_t b0_flags;	/* Initial Block B0 */
+		};
+		uint32_t word2;
+	};
+	/* begin DECO writeback region */
+	uint32_t pn;				/* Packet Number */
+	union {
+		struct {
+			uint16_t antireplay_len;
+			uint8_t rsvd1[2];	/* Reserved Bits */
+		};
+		uint32_t word3;
+	};
+	uint32_t antireplay_scorecard_hi;
+	uint32_t antireplay_scorecard_lo;
+	/** end DECO writeback region */
+};
+#endif
+
+static inline void __rta_copy_wimax_encap_pdb(struct program *p,
+					      struct wimax_encap_pdb *encap_pdb)
+{
+	__rta_out32(p, encap_pdb->word1);
+	__rta_out32(p, encap_pdb->nonce);
+	__rta_out32(p, encap_pdb->word2);
+	__rta_out32(p, encap_pdb->pn);
+}
+
+static inline void __rta_copy_wimax_decap_pdb(struct program *p,
+					      struct wimax_decap_pdb *decap_pdb)
+{
+	__rta_out32(p, decap_pdb->word1);
+	__rta_out32(p, decap_pdb->nonce);
+	__rta_out32(p, decap_pdb->word2);
+	__rta_out32(p, decap_pdb->pn);
+	__rta_out32(p, decap_pdb->word3);
+	__rta_out32(p, decap_pdb->antireplay_scorecard_hi);
+	__rta_out32(p, decap_pdb->antireplay_scorecard_lo);
+}
 
 /**
  * cnstr_shdsc_wimax_encap_era5 - WiMAX(802.16) encapsulation descriptor for
  *                                platforms with SEC ERA >= 5.
  * @descbuf: pointer to descriptor-under-construction buffer
+ * @swap: must be true when core endianness doesn't match SEC endianness
  * @pdb_opts: PDB Options Byte
  * @pn: PDB Packet Number
  * @cipherdata: pointer to block cipher transform definitions
@@ -115,9 +219,10 @@ struct wimax_decap_pdb {
  * prefetched data, dumps that data, rewinds the input frame and just starts
  * reading from the beginning again.
  */
-static inline int cnstr_shdsc_wimax_encap_era5(uint32_t *descbuf,
-		uint8_t pdb_opts, uint32_t pn, uint16_t protinfo,
-		struct alginfo *cipherdata)
+static inline int cnstr_shdsc_wimax_encap_era5(uint32_t *descbuf, bool swap,
+					       uint8_t pdb_opts, uint32_t pn,
+					       uint16_t protinfo,
+					       struct alginfo *cipherdata)
 {
 	struct wimax_encap_pdb pdb;
 	struct program prg;
@@ -147,9 +252,11 @@ static inline int cnstr_shdsc_wimax_encap_era5(uint32_t *descbuf,
 	pdb.ctr_flags = WIMAX_PDB_CTR;
 
 	PROGRAM_CNTXT_INIT(p, descbuf, 0);
-	phdr = SHR_HDR(p, SHR_SERIAL, hdr, 0);
+	if (swap)
+		PROGRAM_SET_BSWAP(p);
 
-	COPY_DATA(p, (uint8_t *)&pdb, sizeof(struct wimax_encap_pdb));
+	phdr = SHR_HDR(p, SHR_SERIAL, hdr, 0);
+	__rta_copy_wimax_encap_pdb(p, &pdb);
 	SET_LABEL(p, hdr);
 
 	/*
@@ -286,6 +393,7 @@ static inline int cnstr_shdsc_wimax_encap_era5(uint32_t *descbuf,
 /**
  * cnstr_shdsc_wimax_encap - WiMAX(802.16) encapsulation
  * @descbuf: pointer to descriptor-under-construction buffer
+ * @swap: must be true when core endianness doesn't match SEC endianness
  * @pdb_opts: PDB Options Byte
  * @pn: PDB Packet Number
  * @cipherdata: pointer to block cipher transform definitions
@@ -297,8 +405,9 @@ static inline int cnstr_shdsc_wimax_encap_era5(uint32_t *descbuf,
  *
  * Return: size of descriptor written in words or negative number on error
  */
-static inline int cnstr_shdsc_wimax_encap(uint32_t *descbuf, uint8_t pdb_opts,
-					  uint32_t pn, uint16_t protinfo,
+static inline int cnstr_shdsc_wimax_encap(uint32_t *descbuf, bool swap,
+					  uint8_t pdb_opts, uint32_t pn,
+					  uint16_t protinfo,
 					  struct alginfo *cipherdata)
 {
 	struct wimax_encap_pdb pdb;
@@ -321,7 +430,7 @@ static inline int cnstr_shdsc_wimax_encap(uint32_t *descbuf, uint8_t pdb_opts,
 	REFERENCE(write_swapped_seqout_ptr);
 
 	if (rta_sec_era >= RTA_SEC_ERA_5)
-		return cnstr_shdsc_wimax_encap_era5(descbuf, pdb_opts, pn,
+		return cnstr_shdsc_wimax_encap_era5(descbuf, swap, pdb_opts, pn,
 						    protinfo, cipherdata);
 
 	memset(&pdb, 0x00, sizeof(struct wimax_encap_pdb));
@@ -331,9 +440,11 @@ static inline int cnstr_shdsc_wimax_encap(uint32_t *descbuf, uint8_t pdb_opts,
 	pdb.ctr_flags = WIMAX_PDB_CTR;
 
 	PROGRAM_CNTXT_INIT(p, descbuf, 0);
+	if (swap)
+		PROGRAM_SET_BSWAP(p);
 	phdr = SHR_HDR(p, SHR_SERIAL, hdr, 0);
 	{
-		COPY_DATA(p, (uint8_t *)&pdb, sizeof(struct wimax_encap_pdb));
+		__rta_copy_wimax_encap_pdb(p, &pdb);
 		SET_LABEL(p, hdr);
 		/* Save SEQOUTPTR, Output Pointer and Output Length. */
 		move_seqout_ptr = MOVE(p, DESCBUF, 0, OFIFO, 0, 16,
@@ -457,6 +568,7 @@ static inline int cnstr_shdsc_wimax_encap(uint32_t *descbuf, uint8_t pdb_opts,
 /**
  * cnstr_shdsc_wimax_decap - WiMAX(802.16) decapsulation
  * @descbuf: pointer to descriptor-under-construction buffer
+ * @swap: must be true when core endianness doesn't match SEC endianness
  * @pdb_opts: PDB Options Byte
  * @pn: PDB Packet Number
  * @cipherdata: pointer to block cipher transform definitions
@@ -467,9 +579,9 @@ static inline int cnstr_shdsc_wimax_encap(uint32_t *descbuf, uint8_t pdb_opts,
  *
  * Note: Descriptor valid on platforms with support for SEC ERA 4.
  */
-static inline int cnstr_shdsc_wimax_decap(uint32_t *descbuf, uint8_t pdb_opts,
-					  uint32_t pn, uint16_t ar_len,
-					  uint16_t protinfo,
+static inline int cnstr_shdsc_wimax_decap(uint32_t *descbuf, bool swap,
+					  uint8_t pdb_opts, uint32_t pn,
+					  uint16_t ar_len, uint16_t protinfo,
 					  struct alginfo *cipherdata)
 {
 	struct wimax_decap_pdb pdb;
@@ -492,9 +604,11 @@ static inline int cnstr_shdsc_wimax_decap(uint32_t *descbuf, uint8_t pdb_opts,
 	pdb.ctr_flags = WIMAX_PDB_CTR;
 
 	PROGRAM_CNTXT_INIT(p, descbuf, 0);
+	if (swap)
+		PROGRAM_SET_BSWAP(p);
 	phdr = SHR_HDR(p, SHR_SERIAL, hdr, 0);
 	{
-		COPY_DATA(p, (uint8_t *)&pdb, sizeof(struct wimax_decap_pdb));
+		__rta_copy_wimax_decap_pdb(p, &pdb);
 		SET_LABEL(p, hdr);
 		load_gmh = SEQLOAD(p, DESCBUF, 0, 8, 0);
 		LOAD(p, LDST_SRCDST_WORD_CLRW |
