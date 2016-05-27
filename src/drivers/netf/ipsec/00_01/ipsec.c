@@ -3581,7 +3581,7 @@ int ipsec_force_seconds_lifetime_expiry(
 		ipsec_handle_t ipsec_handle)
 {
 	uint8_t expired_indicator; /* [0] : soft, [1] : hard */
-	int return_val;
+	int ret;
 	ipsec_handle_t desc_addr;
 	struct ipsec_sa_params_part2 sap2; /* timers parameters */
 	uint8_t params_valid = 0;
@@ -3608,17 +3608,17 @@ int ipsec_force_seconds_lifetime_expiry(
 		
 		params_valid = 1; /* indicate that the params were already read */
 		
+#ifdef LS2085A_REV1
 		/* In Rev 1, for one-shot timers, tman_delete_timer()
 		 * should be called after calling the tman_recharge_timer()
 		 * as a workaround for errata ERR009310 */
 		tman_recharge_timer(sap2.soft_tmr_handle);
+#endif
+		/* delete the timer and force expiration */
+		ret = tman_delete_timer(sap2.soft_tmr_handle,
+					TMAN_TIMER_DELETE_MODE_FORCE_EXP);
 		
-		/* delete the timer and force NO expiration */
-		return_val = tman_delete_timer(
-				sap2.soft_tmr_handle, /* uint32_t timer_handle */
-				TMAN_TIMER_DELETE_MODE_WO_EXPIRATION); /* uint32_t flags */
-		
-		if (!return_val) { /* timer not already expired */
+		if (!ret) { /* timer not already expired */
 			/* Indicate in the params */
 			expired_indicator = 1;
 
@@ -3633,7 +3633,7 @@ int ipsec_force_seconds_lifetime_expiry(
 			cdma_mutex_lock_release(IPSEC_SOFT_SEC_EXPIRED_ADDR(desc_addr));
 		}
 		
-		if (!return_val) { /* timer not already expired */
+		if (!ret) { /* timer not already expired */
 			/* Optionally call call the user callback */
 			if (sap2.sec_callback_func != NULL) {
 				sap2.sec_callback_func(sap2.sec_callback_arg, 
@@ -3667,17 +3667,18 @@ int ipsec_force_seconds_lifetime_expiry(
 			);
 		}
 		
+#ifdef LS2085A_REV1
 		/* In Rev 1, for one-shot timers, tman_delete_timer()
 		 * should be called after calling the tman_recharge_timer()
 		 * as a workaround for errata ERR009310 */
 		tman_recharge_timer(sap2.hard_tmr_handle);
+#endif
 		
-		/* delete the timer and force NO expiration */
-		return_val = tman_delete_timer(
-				sap2.hard_tmr_handle, /* uint32_t timer_handle */
-				TMAN_TIMER_DELETE_MODE_WO_EXPIRATION); /* uint32_t flags */
+		/* delete the timer and force expiration */
+		ret = tman_delete_timer(sap2.soft_tmr_handle,
+					TMAN_TIMER_DELETE_MODE_FORCE_EXP);
 		
-		if (!return_val) { /* timer not already expired */
+		if (!ret) { /* timer not already expired */
 			/* Write expire indication in params and release lock */
 			expired_indicator = 1;
 			cdma_write_with_mutex(
@@ -3690,7 +3691,7 @@ int ipsec_force_seconds_lifetime_expiry(
 			cdma_mutex_lock_release(IPSEC_HARD_SEC_EXPIRED_ADDR(desc_addr));
 		}
 
-		if (!return_val) { /* timer not already expired */
+		if (!ret) { /* timer not already expired */
 			/* Optionally call call the user callback */
 			if (sap2.sec_callback_func != NULL) {
 				sap2.sec_callback_func(sap2.sec_callback_arg, 
