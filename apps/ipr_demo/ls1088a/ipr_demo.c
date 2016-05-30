@@ -187,7 +187,7 @@ __HOT_CODE ENTRY_POINT static void app_process_packet(void)
 		fsl_print("LDPAA_FD_GET_OFFSET = %x\n", LDPAA_FD_GET_OFFSET(HWC_FD_ADDRESS));
 */
 
-		err = dpni_drv_send(task_get_receive_niid());
+		err = dpni_drv_send(task_get_receive_niid(), DPNI_DRV_SEND_MODE_NONE);
 
 		if (err){
 			fsl_print("ERROR = %d: dpni_drv_send()\n",err);

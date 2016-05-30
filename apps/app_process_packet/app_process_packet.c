@@ -107,7 +107,8 @@ __HOT_CODE ENTRY_POINT static void app_process_packet(void)
 
 	}
 	osm_scope_transition_to_exclusive_with_increment_scope_id();
-	err = dpni_drv_send(ni_id);
+
+	err = dpni_drv_send(ni_id, DPNI_DRV_SEND_MODE_NONE);
 	if (err){
 		pr_warn("ERROR = %d: dpni_drv_send(ni_id)\n",err);
 		local_test_error |= err;

@@ -234,7 +234,7 @@ __HOT_CODE ENTRY_POINT static void app_process_packet(void)
 		fsl_print("IPsec Demo: Core %d Sending Frame number %d\n",
 			core_get_id(), frame_number);
 
-		err = dpni_drv_send(task_get_receive_niid());
+		err = dpni_drv_send(task_get_receive_niid(), DPNI_DRV_SEND_MODE_NONE);
 		if (err){
 			fsl_print("ERROR = %d: dpni_drv_send(ni_id)\n",err);
 			local_test_error |= err;

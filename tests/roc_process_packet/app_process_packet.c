@@ -104,7 +104,7 @@ static void app_process_packet_flow0 (void)
 		fsl_print("\n");
 	}
 
-	err = dpni_drv_send(ni_id);
+	err = dpni_drv_send(ni_id, DPNI_DRV_SEND_MODE_NONE);
 	if (err){
 		fsl_print("ERROR = %d: dpni_drv_send(ni_id)\n",err);
 		local_test_error |= err;

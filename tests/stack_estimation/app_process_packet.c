@@ -154,7 +154,7 @@ void stack_estimation(void)
 		dpni_drv_remove_mac_addr(ni, mac_addr);
 		dpni_drv_set_max_frame_length(ni, mfl);
 		dpni_drv_get_max_frame_length(ni, &mfl);
-		dpni_drv_send(ni);
+		dpni_drv_send(ni, DPNI_DRV_SEND_MODE_NONE);
 		dpni_drv_explicit_send(ni, &fd);
 		dpni_drv_set_multicast_promisc(ni, state);
 		dpni_drv_get_multicast_promisc(ni, &state);

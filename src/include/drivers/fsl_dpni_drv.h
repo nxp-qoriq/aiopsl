@@ -37,6 +37,7 @@
 #include "fsl_dpkg.h"
 #include "dpni_drv_rxtx_inline.h"
 #include "fsl_ep.h"
+#include "fsl_fdma.h"
 
 
 /**************************************************************************//**
@@ -69,6 +70,22 @@
 /** Enable half-duplex mode */
 #define DPNI_DRV_LINK_OPT_HALF_DUPLEX		0x0000000000000002ULL
 /** @} end of group DPNI_DRV_LINK_OPT */
+
+/**************************************************************************//**
+ @Group         DPNI_DRV_SEND_MODE options
+
+ @Description   Enqueue working frame modes bitmap values
+
+ @{
+*//***************************************************************************/
+#define DPNI_DRV_SEND_MODE_NONE FDMA_ENWF_NO_FLAGS
+#define DPNI_DRV_SEND_MODE_TERM FDMA_EN_TC_TERM_BITS
+#ifndef LS2085A_REV1
+#define DPNI_DRV_SEND_MODE_CONDTERM FDMA_EN_TC_CONDTERM_BITS
+#define DPNI_DRV_SEND_MODE_RL FDMA_ENWF_RL_BIT
+#endif
+/** @} end of group DPNI_DRV_SEND_MODE */
+
 
 /**************************************************************************//**
 @Description	Structure representing DPNI driver link state.
@@ -631,6 +648,7 @@ inline void sl_tman_expiration_task_prolog(uint16_t spid);
 	Store and enqueue the default Working Frame.
 
 @Param[in]	ni_id - The Network Interface ID
+		flags - Flags for working frame enqueue
 	Implicit: Queuing Destination Priority (qd_priority) in the TLS.
 
 @Retval		0 - Success.
@@ -644,30 +662,7 @@ inline void sl_tman_expiration_task_prolog(uint16_t spid);
 @Cautions      The frame to be enqueued must be open (presented)
 	when calling this function
 *//***************************************************************************/
-inline int dpni_drv_send(uint16_t ni_id);
-
-/**************************************************************************//**
-@Function       dpni_drv_send_terminate
-
-@Description    Network Interface send (AIOP store and enqueue) function.
-        Store and enqueue the default Working Frame with subsequent task
-        termination.
-
-@Param[in]      ni_id - The Network Interface ID
-        Implicit: Queuing Destination Priority (qd_priority) in the TLS.
-
-@Retval         0 - Success.
-        It is recommended that for any error value user should discard
-        the frame and terminate the task.
-@Retval         EBUSY - Enqueue failed due to congestion in QMAN or due to
-        DPNI link down. It is recommended calling fdma_discard_fd()
-        afterwards and then terminate task.
-@Retval         ENOMEM - Failed due to buffer pool depletion. It is recommended
-        calling fdma_discard_default_frame() afterwards and then terminate task.
-@Cautions       The frame to be enqueued must be open (presented)
-        when calling this function
-*//***************************************************************************/
-inline int dpni_drv_send_terminate(uint16_t ni_id);
+inline int dpni_drv_send(uint16_t ni_id, uint32_t flags);
 
 /**************************************************************************//**
 @Function	dpni_drv_explicit_send
