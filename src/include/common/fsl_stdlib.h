@@ -47,6 +47,12 @@
 @{
 *//***************************************************************************/
 
+/** Random number generator code placement. Must be one of __COLD_CODE
+ * (default), __WARM_CODE or __HOT_CODE.*/
+#ifndef RAND_CODE_PLACEMENT
+#define RAND_CODE_PLACEMENT __COLD_CODE
+#endif
+
 /**************************************************************************//**
 @Function      fsl_rand
 
