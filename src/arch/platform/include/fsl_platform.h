@@ -162,6 +162,7 @@ struct platform_app_params {
 	uint16_t dpni_buff_size;	/**< size of buffers for dpni pool*/
 	uint16_t dpni_drv_alignment;	/**< dpni pool buffers alignment*/
 	uint16_t app_arr_size;		/**< Maximal size of app init array */
+	uint8_t  backup_pool_disable;   /**< If set, disables backup buffer pool usage */
 };
 
 /** @} */ /* end of ls2085a_g group */

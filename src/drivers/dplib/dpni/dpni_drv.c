@@ -900,6 +900,7 @@ static int configure_bpids_for_dpni(void)
 	struct dpbp_attr attr;
 	uint16_t buffer_size = (uint16_t)g_app_params.dpni_buff_size;
 	uint16_t num_buffs = (uint16_t)g_app_params.dpni_num_buffs;
+	uint8_t bkp_pool_disable = (uint8_t)g_app_params.backup_pool_disable;
 	uint16_t alignment;
 	uint8_t mem_pid[] = {DPNI_DRV_FAST_MEMORY, (uint8_t)get_existing_ddr_memory()};
 
@@ -939,17 +940,17 @@ static int configure_bpids_for_dpni(void)
 			dpbp_id[num_bpids]= dev_desc.id;
 			num_bpids ++;
 
-			if(num_bpids == DPNI_DRV_NUM_USED_BPIDS)
+			if(num_bpids == DPNI_DRV_NUM_USED_BPIDS || bkp_pool_disable)
 				break;
 		}
 	}
 
-	if(num_bpids < DPNI_DRV_NUM_USED_BPIDS){
+	if ((num_bpids != 1 && bkp_pool_disable) || (num_bpids != DPNI_DRV_NUM_USED_BPIDS && !bkp_pool_disable)){
 		pr_err("Not enough DPBPs found in the container.\n");
 		return -ENAVAIL;
 	}
 
-	for(i = 0; i < DPNI_DRV_NUM_USED_BPIDS; i++)
+	for(i = 0; i < num_bpids; i++)
 	{
 		if ((err = dpbp_open(&dprc->io, 0, dpbp_id[i], &dpbp)) != 0) {
 			pr_err("Failed to open DPBP-%d.\n", dpbp_id[i]);
