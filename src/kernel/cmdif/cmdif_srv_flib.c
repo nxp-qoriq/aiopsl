@@ -186,7 +186,7 @@ __COLD_CODE static int module_id_alloc( struct cmdif_srv *srv, const char *m_nam
 	return id;
 }
 
-__HOT_CODE static int module_id_find(struct cmdif_srv *srv, const char *m_name)
+CMDIF_CODE_PLACEMENT static int module_id_find(struct cmdif_srv *srv, const char *m_name)
 {
 	int i = 0;
 
@@ -237,7 +237,7 @@ __COLD_CODE int cmdif_srv_unregister(void *srv, const char *m_name)
 	}
 }
 
-__HOT_CODE static int inst_alloc(struct cmdif_srv *srv, uint8_t m_id)
+CMDIF_CODE_PLACEMENT static int inst_alloc(struct cmdif_srv *srv, uint8_t m_id)
 {
 	int r = 0;
 	int count = 0;
@@ -275,7 +275,7 @@ __HOT_CODE static int inst_alloc(struct cmdif_srv *srv, uint8_t m_id)
 	}
 }
 
-__HOT_CODE static void inst_dealloc(int inst, struct cmdif_srv *srv)
+CMDIF_CODE_PLACEMENT static void inst_dealloc(int inst, struct cmdif_srv *srv)
 {
 	srv->m_id[inst] = FREE_INSTANCE;
 	srv->inst_count--;
@@ -365,7 +365,7 @@ __COLD_CODE int cmdif_srv_close(void *srv,
 	return 0;
 }
 
-__HOT_CODE int cmdif_srv_cmd(void *_srv,
+CMDIF_CODE_PLACEMENT int cmdif_srv_cmd(void *_srv,
 		struct cmdif_fd *cfd,
 		void   *v_addr,
 		struct cmdif_fd *cfd_out,

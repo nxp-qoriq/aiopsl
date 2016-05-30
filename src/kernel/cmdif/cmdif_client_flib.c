@@ -39,7 +39,7 @@
 	(!((CMD) & (CMDIF_NORESP_CMD | CMDIF_ASYNC_CMD)) || (CMD & SPECIAL_CMD))
 
 
-__HOT_CODE int cmdif_is_sync_cmd(uint16_t cmd_id)
+CMDIF_CODE_PLACEMENT int cmdif_is_sync_cmd(uint16_t cmd_id)
 {
 	return SYNC_CMD(cmd_id);
 }
@@ -106,7 +106,7 @@ __COLD_CODE int cmdif_open_cmd(struct cmdif_desc *cidesc,
 	return 0;
 }
 
-__HOT_CODE int cmdif_sync_ready(struct cmdif_desc *cidesc)
+CMDIF_CODE_PLACEMENT int cmdif_sync_ready(struct cmdif_desc *cidesc)
 {
 	struct cmdif_dev *dev = NULL;
 
@@ -121,7 +121,7 @@ __HOT_CODE int cmdif_sync_ready(struct cmdif_desc *cidesc)
 	return ((union  cmdif_data *)(dev->sync_done))->resp.done;
 }
 
-__HOT_CODE int cmdif_sync_cmd_done(struct cmdif_desc *cidesc)
+CMDIF_CODE_PLACEMENT int cmdif_sync_cmd_done(struct cmdif_desc *cidesc)
 {
 	struct cmdif_dev *dev = NULL;
 	int    err = 0;
@@ -213,7 +213,7 @@ static inline void async_cb_set(struct cmdif_fd *fd,
 	memcpy(async_data, &temp, sizeof(temp));
 }
 
-__HOT_CODE int cmdif_cmd(struct cmdif_desc *cidesc,
+CMDIF_CODE_PLACEMENT int cmdif_cmd(struct cmdif_desc *cidesc,
 		uint16_t cmd_id,
 		uint32_t size,
 		uint64_t data,
@@ -245,7 +245,7 @@ __HOT_CODE int cmdif_cmd(struct cmdif_desc *cidesc,
 	return 0;
 }
 
-__HOT_CODE int cmdif_async_cb(struct cmdif_fd *fd)
+CMDIF_CODE_PLACEMENT int cmdif_async_cb(struct cmdif_fd *fd)
 {
 	cmdif_cb_t *async_cb      = NULL;
 	void       *async_ctx     = NULL;

@@ -324,8 +324,8 @@ __COLD_CODE void cmdif_srv_free(void)
 	cmdif_srv_deallocate(cmdif_aiop_srv.srv, srv_free);
 }
 
-__HOT_CODE void cmdif_fd_send(int cb_err);
-__HOT_CODE void cmdif_fd_send(int cb_err)
+CMDIF_CODE_PLACEMENT void cmdif_fd_send(int cb_err);
+CMDIF_CODE_PLACEMENT void cmdif_fd_send(int cb_err)
 {
 	int err;
 	uint64_t flc = LDPAA_FD_GET_FLC(HWC_FD_ADDRESS);
@@ -352,12 +352,12 @@ __HOT_CODE void cmdif_fd_send(int cb_err)
 	}
 }
 
-__HOT_CODE void sync_cmd_done(uint64_t sync_done,
+CMDIF_CODE_PLACEMENT void sync_cmd_done(uint64_t sync_done,
 			  int err,
 			  uint16_t auth_id,
 			  uint16_t icid,
 			  uint32_t dma_flags);
-__HOT_CODE void sync_cmd_done(uint64_t sync_done,
+CMDIF_CODE_PLACEMENT void sync_cmd_done(uint64_t sync_done,
 			  int err,
 			  uint16_t auth_id,
 			  uint16_t icid,
@@ -625,7 +625,7 @@ __COLD_CODE int session_open(uint16_t *new_auth)
 	}
 }
 
-__HOT_CODE ENTRY_POINT void cmdif_srv_isr(void) __attribute__ ((noreturn))
+CMDIF_CODE_PLACEMENT ENTRY_POINT void cmdif_srv_isr(void) __attribute__ ((noreturn))
 {
 	uint16_t gpp_icid;
 	uint32_t gpp_dma;
