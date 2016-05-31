@@ -1505,8 +1505,6 @@ inline int table_rule_delete_by_key_desc(enum table_hw_accel_id acc_id,
 					 uint8_t key_size,
 					 struct table_result *result);
 
-
-#if 0
 /**************************************************************************//**
 @Function	table_get_next_ruleid
 
@@ -1528,13 +1526,9 @@ inline int table_rule_delete_by_key_desc(enum table_hw_accel_id acc_id,
 @Param[in]	acc_id ID of the Hardware Table Accelerator that contains
 		the table on which the operation will be performed.
 @Param[in]	table_id Table ID.
-@Param[in]	rule_id_desc A Rule ID descriptor. The function returns
-		a Rule ID which is equal or greater than the Rule ID within
-		this descriptor. The structure pointed by this pointer must be in
-		the task's workspace and must be aligned to 16B boundary.
-@Param[out]	next_rule_id_desc The next Rule ID descriptor. The structure 
-		pointed by this pointer must be in the task's workspace and must
-		be aligned to 16B boundary.
+@Param[in]	rule_id_desc A Rule ID. The function returns a Rule ID which is
+		equal or greater than this Rule ID.
+@Param[out]	next_rule_id_desc The next Rule ID descriptor.
 
 @Return		0 on success or TABLE_STATUS_MISS if there is no next Rule ID.
 
@@ -1549,11 +1543,9 @@ inline int table_rule_delete_by_key_desc(enum table_hw_accel_id acc_id,
 		or may not be returned by this function.
 *//***************************************************************************/
 int table_get_next_ruleid(enum table_hw_accel_id acc_id,
-			  uint16_t table_id,
-			  struct table_rule_id_desc *rule_id_desc,
-			  struct table_rule_id_desc *next_rule_id_desc);
-
-#endif
+			  t_tbl_id table_id,
+			  t_rule_id rule_id_desc,
+			  t_rule_id *next_rule_id_desc);
 
 #include "table_rule_inline.h"
 #include "table_lookup_inline.h"

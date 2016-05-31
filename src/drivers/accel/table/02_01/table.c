@@ -288,47 +288,43 @@ void table_delete(enum table_hw_accel_id acc_id,
 	return;
 }
 
-
-#ifdef REV2_RULEID
 int table_get_next_ruleid(enum table_hw_accel_id acc_id,
 			  t_tbl_id table_id,
-			  struct table_rule_id_desc *rule_id_desc,
-			  struct table_rule_id_desc *next_rule_id_desc)
+			  t_rule_id rule_id,
+			  t_rule_id *next_rule_id)
 {
-
-#ifdef CHECK_ALIGNMENT
-	DEBUG_ALIGN("table_inline.h",(uint32_t)rule_id_desc, ALIGNMENT_16B);
-	DEBUG_ALIGN("table_inline.h",(uint32_t)next_rule_id_desc, ALIGNMENT_16B);
-#endif
-
+	struct table_rule_id_desc rule_id_desc __attribute__((aligned(16)));
+	struct table_rule_id_desc
+				next_rule_id_desc __attribute__((aligned(16)));
 	int32_t status;
 
-	uint32_t arg2 = (uint32_t)next_rule_id_desc;
+	rule_id_desc.rule_id = rule_id;
+
+	uint32_t arg2 = (uint32_t)&next_rule_id_desc;
 	uint32_t arg3 = table_id;
 
 	/* Prepare ACC context for CTLU accelerator call */
-	arg2 = __e_rlwimi(arg2, (uint32_t)rule_id_desc, 16, 0, 15);
+	arg2 = __e_rlwimi(arg2, (uint32_t)&rule_id_desc, 16, 0, 15);
 	arg3 = __e_rlwimi(arg3, 0x20, 16, 0, 15);
-	__stqw(TABLE_GET_NEXT_RULEID_MTYPE, arg2, arg3, 0, HWC_ACC_IN_ADDRESS, 0);
+	__stqw(TABLE_GET_NEXT_RULEID_MTYPE, arg2, arg3, 0, HWC_ACC_IN_ADDRESS,
+	       0);
 
 	/* Accelerator call */
 	__e_hwaccel(acc_id);
-	
+
 	/* Status Handling*/
 	status = *((int32_t *)HWC_ACC_OUT_ADDRESS);
-	if (status == TABLE_HW_STATUS_SUCCESS) {}
-	else if (status == TABLE_HW_STATUS_MISS) {}
-	else
+	if ((status != TABLE_HW_STATUS_SUCCESS) &&
+	    (status != TABLE_HW_STATUS_BIT_MISS))
 		/* Call fatal error handler */
-		table_exception_handler_wrp(TABLE_GET_NEXT_RULEID_FUNC_ID,
-					    __LINE__,
-					    status);
+		table_c_exception_handler(TABLE_GET_NEXT_RULEID_FUNC_ID,
+					  __LINE__,
+					  status,
+					  TABLE_ENTITY_HW);
 
+	*next_rule_id = next_rule_id_desc.rule_id;
 	return status;
 }
-
-#endif //REV2_RULEID
-
 
 /*****************************************************************************/
 /*				Internal API				     */
@@ -454,6 +450,9 @@ void table_exception_handler(char *file_path,
 		break;
 	case TABLE_CALC_NUM_ENTRIES_PER_RULE_FUNC_ID:
 		func_name = "table_calc_num_entries_per_rule";
+		break;
+	case TABLE_GET_NEXT_RULEID_FUNC_ID:
+		func_name = "table_get_next_ruleid";
 		break;
 	default:
 		/* create own exception */
