@@ -3341,8 +3341,23 @@ __IPSEC_HOT_CODE uint8_t ipsec_get_ipv6_nh_offset(
 				}
 				dst_ext = 0; /* Exit from the while loop */
 			} else {
-				/* Next header is an Extension */
-				nh_offset += (current_hdr_size + 1); /* in 8 bytes multiples */
+				if (next_hdr == IPV6_EXT_DESTINATION) {
+					/* Next header is a DST. Increment
+					 * NH_OFFSET only if this is not the
+					 * last extension header */
+					header_after_dest =
+						*((uint8_t *)(current_hdr_ptr +
+						((current_hdr_size + 1) << 3)));
+					if (header_after_dest ==
+							IPV6_EXT_ROUTING ||
+					    header_after_dest ==
+							IPV6_EXT_FRAGMENT)
+						nh_offset +=
+							current_hdr_size + 1;
+				} else {
+					/* Next header is not a DST */
+					nh_offset += current_hdr_size + 1;
+				}
 				current_hdr_size = ((current_hdr_size + 1) << 3);
 				*length += current_hdr_size;
 			}
