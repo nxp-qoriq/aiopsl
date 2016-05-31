@@ -57,7 +57,7 @@
 	} while(0)
 
 
-__HOT_CODE uint64_t shbp_acquire(uint64_t bp, struct icontext *ic)
+SHBP_CODE_PLACEMENT uint64_t shbp_acquire(uint64_t bp, struct icontext *ic)
 {
 	struct shbp shbp;
 	uint32_t offset;
@@ -128,7 +128,7 @@ __HOT_CODE uint64_t shbp_acquire(uint64_t bp, struct icontext *ic)
 	return buf;
 }
 
-__HOT_CODE int shbp_release(uint64_t bp, uint64_t buf, struct icontext *ic)
+SHBP_CODE_PLACEMENT int shbp_release(uint64_t bp, uint64_t buf, struct icontext *ic)
 {
 	struct shbp shbp;
 	uint32_t offset;
