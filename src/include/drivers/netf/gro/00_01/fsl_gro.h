@@ -75,11 +75,6 @@
  @{
 *//***************************************************************************/
 
-	/** GRO code placement. Must be one of __COLD_CODE (default),
-	 * __WARM_CODE or __HOT_CODE. */
-#ifndef GRO_CODE_PLACEMENT
-#define GRO_CODE_PLACEMENT __COLD_CODE
-#endif
 	/** TCP GRO context size definition. */
 #define TCP_GRO_CONTEXT_SIZE	128
 	/** TCP GRO context definition. */

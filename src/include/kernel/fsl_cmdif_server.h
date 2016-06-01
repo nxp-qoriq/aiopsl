@@ -41,12 +41,6 @@
 @{
  *//***************************************************************************/
 
-	/** CMDIF code placement. Must be one of __COLD_CODE (default),
-	 *  __WARM_CODE or __HOT_CODE. */
-#ifndef CMDIF_CODE_PLACEMENT
-#define CMDIF_CODE_PLACEMENT __COLD_CODE
-#endif
-
 #define CMDIF_SESSION_OPEN_SIZE		64
 /**< cmdif_session_open() default size */
 

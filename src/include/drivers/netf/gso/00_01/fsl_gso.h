@@ -75,11 +75,6 @@
  @{
 *//***************************************************************************/
 
-	/** GSO code placement. Must be one of __COLD_CODE (default),
-	 *  __WARM_CODE or __HOT_CODE. */
-#ifndef GSO_CODE_PLACEMENT
-#define GSO_CODE_PLACEMENT __COLD_CODE
-#endif
 	/** TCP GSO context size definition. */
 #define TCP_GSO_CONTEXT_SIZE	64
 	/** TCP GSO context definition.

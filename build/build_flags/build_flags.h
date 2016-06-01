@@ -57,6 +57,89 @@
 //#define SIMULATOR
 #define DEBUG_NO_MC
 
+/*
+ * Code placement for various modules. Possible values are __COLD_CODE,
+ * __WARM_CODE or __HOT_CODE.
+ */
+/*
+ * IP Fragmentation module
+ */ 
+#ifndef IPF_CODE_PLACEMENT
+#define IPF_CODE_PLACEMENT     __COLD_CODE
+#endif
+/*
+ * IP Reassembly module
+ */ 
+#ifndef IPR_CODE_PLACEMENT
+#define IPR_CODE_PLACEMENT     __COLD_CODE
+#endif
+/*
+ * TCP Reassembly module
+ */ 
+#ifndef GRO_CODE_PLACEMENT
+#define GRO_CODE_PLACEMENT     __COLD_CODE
+#endif
+/*
+ * TCP Segmentation module
+ */ 
+#ifndef GSO_CODE_PLACEMENT
+#define GSO_CODE_PLACEMENT     __COLD_CODE
+#endif
+/*
+ * RCU synchronization module
+ */ 
+#ifndef RCU_CODE_PLACEMENT
+#define RCU_CODE_PLACEMENT     __COLD_CODE
+#endif
+/*
+ * Slab allocator module
+ */ 
+#ifndef SLAB_CODE_PLACEMENT
+#define SLAB_CODE_PLACEMENT    __COLD_CODE
+#endif
+/*
+ * IPSEC module
+ */ 
+#ifndef IPSEC_CODE_PLACEMENT
+#define IPSEC_CODE_PLACEMENT   __COLD_CODE
+#endif
+/*
+ * Memory management module
+ */ 
+#ifndef MEM_MNG_CODE_PLACEMENT
+#define MEM_MNG_CODE_PLACEMENT __COLD_CODE
+#endif
+/*
+ * Time functions module
+ */ 
+#ifndef TIME_CODE_PLACEMENT
+#define TIME_CODE_PLACEMENT    __COLD_CODE
+#endif
+/*
+ * Random number generator module
+ */ 
+#ifndef RAND_CODE_PLACEMENT
+#define RAND_CODE_PLACEMENT    __COLD_CODE
+#endif
+/*
+ * Event manager module
+ */ 
+#ifndef EV_MNG_CODE_PLACEMENT
+#define EV_MNG_CODE_PLACEMENT  __COLD_CODE
+#endif
+/*
+ * Command interface module
+ */ 
+#ifndef CMDIF_CODE_PLACEMENT
+#define CMDIF_CODE_PLACEMENT   __COLD_CODE
+#endif
+/*
+ * Shared buffer pools module
+ */ 
+#ifndef SHBP_CODE_PLACEMENT
+#define SHBP_CODE_PLACEMENT   __COLD_CODE
+#endif
+
 
 
 #endif /* __BUILD_FLAGS_H */

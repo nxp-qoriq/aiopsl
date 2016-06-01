@@ -45,13 +45,6 @@ enum evm_irq_event_types {
 	NUM_OF_IRQ_EVENTS
 };
 
-
-/** Event manager code placement. Must be one of __COLD_CODE (default),
- * __WARM_CODE or __HOT_CODE. */
-#ifndef EV_MNG_CODE_PLACEMENT
-#define EV_MNG_CODE_PLACEMENT __COLD_CODE
-#endif
-
 /**************************************************************************//**
 @Function	evmng_irq_register
 

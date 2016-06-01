@@ -46,12 +46,6 @@
  * @{
  */
 
-	/** SHBP code placement. Must be one of __COLD_CODE (default),
-	 *  __WARM_CODE or __HOT_CODE. */
-#ifndef SHBP_CODE_PLACEMENT
-#define SHBP_CODE_PLACEMENT __COLD_CODE
-#endif
-
 /**
  * @brief	Get buffer from shared pool;
  * Use icontext_dma_read(), icontext_dma_write() to access the data

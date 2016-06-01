@@ -58,19 +58,6 @@
 
 @{
 *//***************************************************************************/
-/**************************************************************************//**
- @Group	IPR_GENERAL_DEFINITIONS IPR General Definitions
- @{
-*//***************************************************************************/
-
-	/** IPR code placement. Must be one of __COLD_CODE (default),
-	 * __WARM_CODE or  __HOT_CODE.*/
-#ifndef IPR_CODE_PLACEMENT
-#define IPR_CODE_PLACEMENT __COLD_CODE
-#endif
-
-/** @} */ /* end of IPR_GENERAL_DEFINITIONS */
-
 
 /**************************************************************************//**
 @Description	IPR Instance handle Type definition
