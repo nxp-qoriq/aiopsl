@@ -50,6 +50,7 @@ enum table_verif_cmd_type {
 	TABLE_RULE_MODIFY_PRIORITY_VERIF_CMDTYPE,
 	TABLE_RULE_QUERY_GET_RESULT_VERIF_CMDTYPE,
 	TABLE_RULE_QUERY_GET_KEY_DESC_VERIF_CMDTYPE,
+	TABLE_RULE_QUERY_GET_NEXT_ID_CMDTYPE,
 	TABLE_RULE_DELETE_VERIF_CMDTYPE,
 	TABLE_LOOKUP_BY_KEY_VERIF_CMDTYPE,
 	TABLE_LOOKUP_BY_KEYID_DEFAULT_FRAME_VERIF_CMDTYPE,
@@ -101,6 +102,10 @@ enum table_verif_cmd_type {
 /** Table rule query get key descriptor Command Structure identifier */
 #define TABLE_RULE_QUERY_GET_KEY_DESC_CMD_STR \
 	((TABLE_MODULE << 16) | TABLE_RULE_QUERY_GET_KEY_DESC_VERIF_CMDTYPE)
+
+/** Table rule query get next id Command Structure identifier */
+#define TABLE_RULE_QUERY_GET_NEXT_ID_CMD_STR \
+	((TABLE_MODULE << 16) | TABLE_RULE_QUERY_GET_NEXT_ID_CMDTYPE)
 
 /** Table rule delete Command Structure identifier */
 #define TABLE_RULE_DELETE_CMD_STR	((TABLE_MODULE << 16) | \
@@ -490,6 +495,33 @@ struct table_rule_query_get_key_desc_command{
 	enum table_hw_accel_id acc_id;
 };
 
+/**************************************************************************//**
+@Description	CTLU Table Rule Query Get Key Descriptor Command structure.
+
+		Includes information needed for CTLU Table Rule Query Get
+		Next ID  command verification.
+*//***************************************************************************/
+struct table_rule_query_get_next_id_desc_command {
+	/** CTLU Table Rule Query Get Next ID identifier */
+	uint32_t opcode;
+
+	/** Index in the rule ID array of the rule ID to be used as an input for
+	 * this command */
+	uint64_t rule_id_index;
+
+	/** Command returned status */
+	int status;
+
+	/** Table ID */
+	uint16_t table_id;
+
+	/** Table Accelerator ID */
+	enum table_hw_accel_id acc_id;
+
+	/** Index in the rule ID array of the rule ID returned
+	 * by this command */
+	uint64_t next_rule_id_index;
+};
 
 /**************************************************************************//**
 @Description	CTLU Table Rule Delete Command structure.
