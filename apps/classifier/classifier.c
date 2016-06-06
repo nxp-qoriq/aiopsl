@@ -93,6 +93,9 @@ static uint16_t table_id = 0xffff;
 static void app_fill_kg_profile(struct dpkg_profile_cfg *kg_cfg);
 static int app_create_exact_match_table(void);
 static inline void l2_ip_src_dst_swap(void);
+#ifndef LS2085A_REV1
+static int app_query_table_rules(void);
+#endif
 
 #ifdef PRINT_FRAME_INFO
 /* Prints DPNI on which frame was received, together with CORE and IP & MAC
@@ -329,14 +332,24 @@ int app_init(void)
 	if (err) {
 		pr_err("%s : Cannot initialize application\n!",
 			AIOP_APP_NAME);
-		for (ni = 0; ni < dpni_drv_get_num_of_nis(); ni++)
-			dpni_drv_unregister_rx_cb(ni);
-		return err;
+		goto unregister_cbs;
 	}
 	fsl_print("%s : Successfully configured exact table match\n",
 		AIOP_APP_NAME);
-
+#ifndef LS2085A_REV1
+	err = app_query_table_rules();
+	if (err) {
+		pr_err("%s : Cannot initialize application\n!", AIOP_APP_NAME);
+		goto unregister_cbs;
+	}
+#endif
 	return 0;
+
+unregister_cbs:
+	for (ni = 0; ni < dpni_drv_get_num_of_nis(); ni++)
+		dpni_drv_unregister_rx_cb(ni);
+	return err;
+
 }
 
 /* Frees application allocated resources */
@@ -539,6 +552,53 @@ static inline void l2_ip_src_dst_swap(void)
 	pr->gross_running_sum = 0;
 }
 
+#ifndef LS2085A_REV1
+static int app_query_table_rules(void)
+{
+	t_rule_id rule_id = 0, next_rule_id;
+	union table_key_desc key_desc;
+	int i, rule_idx = 1, status;
+	uint32_t rule_id_h, rule_id_l;
+
+	fsl_print("Rule #    IP Src.     IP Dst.     Proto SPort   DPort\n");
+
+	do {
+		status = table_get_next_ruleid(TABLE_ACCEL_ID_CTLU,
+					       table_id,
+					       rule_id,
+					       &next_rule_id);
+		if (status)
+			break;
+		rule_id_h = (uint32_t)((next_rule_id >> 32) & 0xFFFFFFFF);
+		rule_id_l = (uint32_t)(next_rule_id & 0xFFFFFFFF);
+
+		status = table_rule_query_get_key_desc(TABLE_ACCEL_ID_CTLU,
+						       table_id, next_rule_id,
+						       &key_desc);
+		if (status) {
+			pr_err("Failed to query rule_id_h = 0x%08x, rule_id_l = 0x%08x\n",
+			       rule_id_h, rule_id_l);
+			return status;
+		}
+
+		fsl_print("%02d        0x", rule_idx);
+
+		for (i = 0; i < TABLE_KEY_LEN; i++) {
+			if (i == 4 || i == 8 || i == 9 || i == 11)
+				fsl_print("  0x");
+
+			fsl_print("%02x", key_desc.em.key[i]);
+		}
+
+		fsl_print("\n");
+
+		rule_idx++;
+		rule_id = next_rule_id + 1;
+	} while (1);
+
+	return 0;
+}
+#endif
 #ifdef PRINT_FRAME_INFO
 static void print_frame_info(void)
 {
