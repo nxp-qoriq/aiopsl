@@ -137,6 +137,7 @@ struct platform_app_params g_app_params =
  APP_DPNI_BUF_SIZE_IN_POOL,
  APP_DPNI_BUF_ALIGN_IN_POOL,
  APP_INIT_APP_MAX_NUM,
+ TRUE	/* disable backup pool for DPNI for better performance */
 };
 
 /* TODO set good default values */
