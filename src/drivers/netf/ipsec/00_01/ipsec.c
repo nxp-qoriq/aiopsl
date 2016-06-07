@@ -360,8 +360,8 @@ int ipsec_release_buffer(ipsec_instance_handle_t instance_handle,
 /* The inline_max_size inline_max_total_size pragmas are here to eliminate
  * non-inlined build and warnings of the RTA */
 #pragma push
-#pragma inline_max_size (5000)
-#pragma inline_max_total_size(10000)
+#pragma inline_max_size (10000)
+#pragma inline_max_total_size(50000)
 
 int ipsec_generate_encap_sd(
 		uint64_t sd_addr, /* Shared Descriptor Address in external memory */
@@ -675,8 +675,8 @@ int ipsec_generate_encap_sd(
 /* The inline_max_size inline_max_total_size pragmas are here to eliminate
  * non-inlined build and warnings of the RTA */
 #pragma push
-#pragma inline_max_size (5000)
-#pragma inline_max_total_size(10000)
+#pragma inline_max_size (10000)
+#pragma inline_max_total_size(50000)
 
 int ipsec_generate_decap_sd(
 		uint64_t sd_addr, /* Shared Descriptor Address in external memory */
