@@ -121,6 +121,7 @@
     #define ACCEL_SYSTEM_REV2
     #define ACCEL_GENERAL_REV2
     #define ACCEL_SNIC_REV2
+    #define ACCEL_CAPWAP_REASSEMBLY_REV2
 #endif
 
 
