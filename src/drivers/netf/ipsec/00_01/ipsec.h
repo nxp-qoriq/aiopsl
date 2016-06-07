@@ -278,12 +278,17 @@ enum rta_param_type {
 #define IPSEC_MAX_NUM_OF_TASKS 256 /* Total maximum number of tasks in AIOP */
 
 /* Memory partition ID */
+/* Memory partition ID */
 #ifndef IPSEC_PRIMARY_MEM_PARTITION_ID
 	#define IPSEC_PRIMARY_MEM_PARTITION_ID MEM_PART_SYSTEM_DDR
 #endif
 
 #ifndef IPSEC_SECONDARY_MEM_PARTITION_ID
-	#define IPSEC_SECONDARY_MEM_PARTITION_ID MEM_PART_DP_DDR
+	#ifndef LS1088A_REV1
+		#define IPSEC_SECONDARY_MEM_PARTITION_ID MEM_PART_DP_DDR
+	#else
+		#define IPSEC_SECONDARY_MEM_PARTITION_ID MEM_PART_SYSTEM_DDR
+	#endif
 #endif
 
 /* Keys Copy Offsets */
