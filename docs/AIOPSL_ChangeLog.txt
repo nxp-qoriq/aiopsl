@@ -1,3 +1,65 @@
+LDPAA AIOP SERVICE LAYER LDPAA-AIOP-SL-v0.8.5-RC Change Log
+======================================================================
+Changes made for ls2085a rev1, ls1088a rev1 and ls2088a rev1:
+-------------------------------------------------------------
+General:
+    * Header file reorganization and minimal impact to users based
+    on choice of SOC (AIOPSL-894)
+    * Build flags: Allow apps to control AIOPSL code placement (AIOPSL-910)
+    * Bring-up tests for Rev2 synchronization (AIOPSL-927)
+    * Update revision number for 0.8.5 (AIOPSL-967)
+    * Update changelog file for 0.8.5 (AIOPSL-968)
+    * Add ELFs for 0.8.5 RC1 (AIOPSL-976)
+
+DPNI:
+    * API: Provision to use FDMA_ENWF_RL_BIT in dpni_drv_send (AIOPSL-859)
+    * Toggle backup buffer pool enable/disable in application (AIOPSL-933)
+
+IPsec:
+    * ipr_reassemble is returning failure for UDP packets which are
+    decrypted by IPSec FM (AIOPSL-888)
+    * Inform SEC to copy the L2 header from input (plain) packet to
+    the output packet (tunnel mode) (AIOPSL-890)
+    * Invalid setting in PDB error in transport mode for IPv6 frame
+    with DST after DST extension header (AIOPSL-915)
+    * The encryption byte counter is not same as the prediction by
+    ROC for NULL encryption algorithm (AIOPSL-919)
+    * The ipsec_force_seconds_lifetime_expiry() is not working
+    properly on ls2085a QDS (AIOPSL-952)
+    * fix build warnings (AIOPSL-972)
+    * IPsec primary partition is now System DDR for increased
+    performance (AIOPSL-889)
+
+TMAN:
+    * Timer task in concurrent mode (AIOPSL-903)
+    * Wrong usage of USER_OPAQUE field (AIOPSL-905)
+
+RefApps:
+    * Performance optimization for AIOP Packet Reflector (AIOPSL-948)
+    * Performance optimization for AIOP Classifier App (AIOPSL-954)
+    * Performance optimization for AIOP Header Manipulation App (AIOPSL-969)
+    * Performance optimization for AIOP Control Flow App (AIOPSL-970)
+    * Performance optimization for AIOP Statistics App (AIOPSL-964)
+    * Test RefApps and FMs in Zebu Zebu GAW 48.02 LS2088A with development
+    version for 0.8.5-RC release (AIOPSL-928)
+    * Create performance targets for reflector app (AIOPSL-974)
+    * Bringup tests for LS2085A and LS2088A have incorrect number
+    of cores (AIOPSL-977)
+    * Move projects from aiop-refapp into aiopsl proper (AIOPSL-956)
+
+CDMA:
+    * Ephemeral references sync blocking test fails (AIOPSL-950)
+
+FDMA:
+    * Errors on Frames created in timer context (AIOPSL-750)
+
+CTLU:
+    * CTLU & MFLU Table iterate (AIOPSL-912)
+
+SLAB:
+    * Alignment check is now chosable via macro CHECK_ALIGNMENT (AIOPSL-889)
+
+
 LDPAA AIOP SERVICE LAYER LDPAA-AIOP-SL-v0.8.4 Change Log
 ======================================================================
 Changes made for ls2085a rev1, ls1088a rev1 and ls2088a rev1:
