@@ -158,9 +158,9 @@ extern const uint8_t _ssram_addr[];
 *//***************************************************************************/
 #define IPV4_HDR_VERSION_OFFSET     4 /*!< IPv4 header Version field offset*/
 #define IPV4_HDR_IHL_OFFSET	    0 /*!< IPv4 header IHL field offset*/
-#define IPV4_HDR_X_FLAG_OFFSET      13/*!< IPv4 evil bit offset */
+#define IPV4_HDR_X_FLAG_OFFSET      15/*!< IPv4 evil bit offset */
 #define IPV4_HDR_D_FLAG_OFFSET      14/*!< IPv4 don't fragment bit offset */
-#define IPV4_HDR_M_FLAG_OFFSET      15/*!< IPv4 more fragments bit offset */
+#define IPV4_HDR_M_FLAG_OFFSET      13/*!< IPv4 more fragments bit offset */
 #define IPV4_HDR_FRAG_OFFSET_OFFSET 0 /*!< IPv4 fragment offset field offset */
 
 /** @} */ /* end of AIOP_General_Protocols_IPV4_HDR_Offsets */
