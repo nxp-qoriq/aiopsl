@@ -195,6 +195,25 @@ struct arphdr
 };
 #pragma pack(pop)
 
+/**************************************************************************//**
+@Description	CAPWAP Header structure.
+
+		Please refer to RFC 5415 for more details.
+
+*//***************************************************************************/
+#pragma pack(push, 1)
+struct capwaphdr {
+	uint8_t preamble;
+	uint16_t hlen_rid_wbid_t;	/* Header Length, Radio ID, Wireless Binding ID
+								 * and Type bit */
+	uint8_t bits_flags;			/* F (Fragment) bit, L (Last) bit, W (Wireless)
+								 * bit, M (Radio MAC) bit, K (Keep-Alive) bit
+								 * and Flags field */
+	uint16_t frag_id;			/* Fragment ID */
+	uint16_t offset_rsvd;		/* Fragment Offset and Reserved bits */
+};
+#pragma pack(pop)
+
 /*****************************************************************************/
 /*                Protocol fields                                            */
 /*****************************************************************************/
@@ -510,6 +529,51 @@ typedef uint16_t net_hdr_fld_llc_snap_t;
 #define NET_HDR_FLD_ARP_TPA                        (NET_HDR_FLD_ARP_HTYPE << 8)
 #define NET_HDR_FLD_ARP_ALL_FIELDS                 ((NET_HDR_FLD_ARP_HTYPE << 9) - 1)
 
+#define NET_HDR_FLD_CAPWAP_PREAMBLE                (1)
+#define NET_HDR_FLD_CAPWAP_HLEN                    (NET_HDR_FLD_CAPWAP_PREAMBLE << 1)
+#define NET_HDR_FLD_CAPWAP_RID                     (NET_HDR_FLD_CAPWAP_PREAMBLE << 2)
+#define NET_HDR_FLD_CAPWAP_WBID                    (NET_HDR_FLD_CAPWAP_PREAMBLE << 3)
+#define NET_HDR_FLD_CAPWAP_T                       (NET_HDR_FLD_CAPWAP_PREAMBLE << 4)
+#define NET_HDR_FLD_CAPWAP_F                       (NET_HDR_FLD_CAPWAP_PREAMBLE << 5)
+#define NET_HDR_FLD_CAPWAP_L                       (NET_HDR_FLD_CAPWAP_PREAMBLE << 6)
+#define NET_HDR_FLD_CAPWAP_W                       (NET_HDR_FLD_CAPWAP_PREAMBLE << 7)
+#define NET_HDR_FLD_CAPWAP_M                       (NET_HDR_FLD_CAPWAP_PREAMBLE << 8)
+#define NET_HDR_FLD_CAPWAP_K                       (NET_HDR_FLD_CAPWAP_PREAMBLE << 9)
+#define NET_HDR_FLD_CAPWAP_FLAGS                   (NET_HDR_FLD_CAPWAP_PREAMBLE << 10)
+#define NET_HDR_FLD_CAPWAP_FRAGMENT_ID             (NET_HDR_FLD_CAPWAP_PREAMBLE << 11)
+#define NET_HDR_FLD_CAPWAP_FRAGMENT_OFFSET         (NET_HDR_FLD_CAPWAP_PREAMBLE << 12)
+#define NET_HDR_FLD_CAPWAP_RSVD                    (NET_HDR_FLD_CAPWAP_PREAMBLE << 13)
+#define NET_HDR_FLD_CAPWAP_ALL_FIELDS              ((NET_HDR_FLD_CAPWAP_PREAMBLE << 14) - 1)
+
+/* TODO remove lines that are commented out when CAPWAP implementation is
+ * complete. Uncomment defines as they are needed.
+ */
+/* #define NET_HDR_FLD_CAPWAP_HDR_HLEN_OFFSET                     11 */
+/* #define NET_HDR_FLD_CAPWAP_HDR_RID_OFFSET                      6 */
+/* #define NET_HDR_FLD_CAPWAP_HDR_WBID_OFFSET                     1 */
+/* #define NET_HDR_FLD_CAPWAP_HDR_T_OFFSET                        0 */
+/* #define NET_HDR_FLD_CAPWAP_HDR_F_OFFSET                        7 */
+/* #define NET_HDR_FLD_CAPWAP_HDR_L_OFFSET                        6 */
+/* #define NET_HDR_FLD_CAPWAP_HDR_W_OFFSET                        5 */
+/* #define NET_HDR_FLD_CAPWAP_HDR_M_OFFSET                        4 */
+/* #define NET_HDR_FLD_CAPWAP_HDR_K_OFFSET                        3 */
+/* #define NET_HDR_FLD_CAPWAP_HDR_FLAGS_OFFSET                    0 */
+/* #define NET_HDR_FLD_CAPWAP_HDR_FRAG_OFFSET_OFFSET              3 */
+/* #define NET_HDR_FLD_CAPWAP_HDR_RSVD_OFFSET                     0 */
+
+/* #define NET_HDR_FLD_CAPWAP_HDR_HLEN_MASK                       0x1F << NET_HDR_FLD_CAPWAP_HDR_HLEN_OFFSET */
+/* #define NET_HDR_FLD_CAPWAP_HDR_RID_MASK                        0x1F << NET_HDR_FLD_CAPWAP_HDR_RID_OFFSET */
+/* #define NET_HDR_FLD_CAPWAP_HDR_WBID_MASK                       0x1F << NET_HDR_FLD_CAPWAP_HDR_WBID_OFFSET */
+/* #define NET_HDR_FLD_CAPWAP_HDR_T_MASK                          0x1 << NET_HDR_FLD_CAPWAP_HDR_T_OFFSET */
+/* #define NET_HDR_FLD_CAPWAP_HDR_F_MASK                          0x1 << NET_HDR_FLD_CAPWAP_HDR_F_OFFSET */
+/* #define NET_HDR_FLD_CAPWAP_HDR_L_MASK                          0x1 << NET_HDR_FLD_CAPWAP_HDR_L_OFFSET */
+/* #define NET_HDR_FLD_CAPWAP_HDR_W_MASK                          0x1 << NET_HDR_FLD_CAPWAP_HDR_W_OFFSET */
+/* #define NET_HDR_FLD_CAPWAP_HDR_M_MASK                          0x1 << NET_HDR_FLD_CAPWAP_HDR_M_OFFSET */
+/* #define NET_HDR_FLD_CAPWAP_HDR_K_MASK                          0x1 << NET_HDR_FLD_CAPWAP_HDR_K_OFFSET */
+/* #define NET_HDR_FLD_CAPWAP_HDR_FLAGS_MASK                      0x7 << NET_HDR_FLD_CAPWAP_HDR_FLAGS_OFFSET */
+/* #define NET_HDR_FLD_CAPWAP_HDR_FRAG_OFFSET_MASK                0x1FFF << NET_HDR_FLD_CAPWAP_HDR_FRAG_OFFSET_OFFSET */
+/* #define NET_HDR_FLD_CAPWAP_HDR_RSVD_MASK                       0x7 << NET_HDR_FLD_CAPWAP_HDR_RSVD_OFFSET */
+
 #define NET_HDR_FLD_RFC2684_LLC                    (1)
 #define NET_HDR_FLD_RFC2684_NLPID                  (NET_HDR_FLD_RFC2684_LLC << 1)
 #define NET_HDR_FLD_RFC2684_OUI                    (NET_HDR_FLD_RFC2684_LLC << 2)
@@ -571,7 +635,7 @@ typedef uint16_t net_hdr_fld_gtp_t;
 #define NET_HDR_FLD_GTP_TEID                       (1)
 
 /*****************************************************************************/
-/*                Protocol optnios                                           */
+/*                Protocol options                                           */
 /*****************************************************************************/
 
 typedef uint8_t net_hdr_option_t;
