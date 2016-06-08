@@ -28,12 +28,12 @@
 #define __APPS_ARCH_H
 
 #define ARCH_DP_DDR_SIZE				(128 * MEGABYTE)
-#define ARCH_CTLU_DP_DDR_NUM_ENTRIES			(2048)
-#define ARCH_MFLU_DP_DDR_NUM_ENTRIES			(2048)
+#define ARCH_CTLU_DP_DDR_NUM_ENTRIES	(2048)
+#define ARCH_MFLU_DP_DDR_NUM_ENTRIES	(2048)
 
-#define ARCH_MEM_PEB_SIZE				(512 * KILOBYTE)
-#define ARCH_MEM_SYS_DDR1_SIZE				(64 * MEGABYTE)
-#define ARCH_DPPNI_BUF_SIZE				1024
+#define ARCH_MEM_PEB_SIZE				(2048 * KILOBYTE)
+#define ARCH_MEM_SYS_DDR1_SIZE			(64 * MEGABYTE)
+#define ARCH_DPPNI_BUF_SIZE				512
 
 #define APP_TABLE_PARAMS_ATTRIBUTES		TABLE_ATTRIBUTE_TYPE_EM | \
 					TABLE_ATTRIBUTE_LOCATION_SYS_DDR | \
@@ -48,5 +48,10 @@
 #define ARCH_TABLE_RULE_CREATE(table_id, rule, key_len, rule_id) \
 	table_rule_create(TABLE_ACCEL_ID_CTLU, \
 		table_id, &rule, key_len, &rule_id)
+
+#define GET_USER_DATA(result) result.data0
+#define SET_USER_DATA(rule, d) rule.result.data0 = d
+
+#define ADD_DPNI_DRV_SEND_RELINQUISH_MODE(flags) flags |= DPNI_DRV_SEND_MODE_RL
 
 #endif /* __APPS_ARCH_H */

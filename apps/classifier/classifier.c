@@ -41,6 +41,14 @@
 
 #define AIOP_APP_NAME		"CLASSIFIER"
 
+/*
+ * The application swaps source & destination addresses for L2 and IPv4
+ * protocols, so it needs only 64 bytes from the frame.
+ * The Segment Presentation Size (SPS) is set to 64
+ * as smaller SPS can improve performance.
+ */
+#define PRESENTATION_LENGTH 64
+
 /* IPV4: SrcIP(4), DstIP(4), Protocol(1), SrcPort(2), DstPort(2) */
 #define TABLE_KEY_LEN		13
 #define TABLE_COMMIT_RULES	10
@@ -110,12 +118,8 @@ static void print_frame_info(void);
 __HOT_CODE ENTRY_POINT static void app_classifier(void)
 {
 	struct table_lookup_result  lk_result __attribute__((aligned(16)));
-	union table_lookup_key_desc key_desc __attribute__((aligned(16)));
-	uint8_t			key[TABLE_KEY_LEN] __attribute__((aligned(16)));
-	uint16_t		l_table_id = table_id;
-	uint64_t		d_lk_result;
-	uint8_t			key_size, l_key_id = key_id;
 	int			err = 0;
+	uint32_t	flags = DPNI_DRV_SEND_MODE_TERM;
 
 	sl_prolog();
 
@@ -124,33 +128,18 @@ __HOT_CODE ENTRY_POINT static void app_classifier(void)
 		goto drop_frame;
 	}
 
-	if (keygen_gen_key(KEYGEN_ACCEL_ID_CTLU, l_key_id, 0, &key,
-			   &key_size)) {
-		/* Discard frame and terminate task */
-		pr_err("Failed to generate key from frame\n");
-		goto drop_frame;
-	}
-	memset(&key_desc, 0, sizeof(union table_lookup_key_desc));
-	memset(&lk_result, 0, sizeof(struct table_lookup_result));
-	key_desc.em_key = (union table_lookup_key_desc *)&key;
-
 	/* Perform a lookup with created key */
-	if (table_lookup_by_key(TABLE_ACCEL_ID_CTLU, l_table_id,
-		key_desc, TABLE_KEY_LEN, &lk_result) != TABLE_STATUS_SUCCESS)
+	if (table_lookup_by_keyid_default_frame(TABLE_ACCEL_ID_CTLU, table_id,
+		key_id, &lk_result) != TABLE_STATUS_SUCCESS)
 		goto drop_frame;
 
-	#ifndef LS2085A_REV1
-		d_lk_result = lk_result.data0;
-	#else
-		d_lk_result = lk_result.opaque0_or_reference;
-	#endif
-
-	if (d_lk_result == ORDER_MODE_NONE) {
+	if (GET_USER_DATA(lk_result) == ORDER_MODE_NONE) {
 		/* Transition to mode NONE */
 		osm_scope_exit();
-	} else if (d_lk_result == ORDER_MODE_EXCLUSIVE) {
+	} else if (GET_USER_DATA(lk_result) == ORDER_MODE_EXCLUSIVE) {
 		/* Transition to mode EXCLUSIVE */
 		osm_scope_transition_to_exclusive_with_increment_scope_id();
+		ADD_DPNI_DRV_SEND_RELINQUISH_MODE(flags);
 	}
 
 	/* Print frame to be processed */
@@ -162,17 +151,13 @@ __HOT_CODE ENTRY_POINT static void app_classifier(void)
 	/* Modify the data in the default Data Segment */
 	fdma_modify_default_segment_full_data();
 
-
-	if (d_lk_result == ORDER_MODE_CONCURRENT) {
+	if (GET_USER_DATA(lk_result) == ORDER_MODE_CONCURRENT) {
 		/* Transition to mode EXCLUSIVE */
 		osm_scope_transition_to_exclusive_with_increment_scope_id();
+		ADD_DPNI_DRV_SEND_RELINQUISH_MODE(flags);
 	}
 
-	err = dpni_drv_send(task_get_receive_niid(), DPNI_DRV_SEND_MODE_NONE);
-
-	if (!err)
-		fdma_terminate_task();
-
+	err = dpni_drv_send(task_get_receive_niid(), flags);
 	if (err == -ENOMEM)
 		fdma_discard_default_frame(FDMA_DIS_NO_FLAGS);
 	else /* (err == -EBUSY) */
@@ -220,6 +205,7 @@ static int app_dpni_add_cb(uint8_t generator_id, uint8_t event_id,
 	uint8_t			mac_addr[NET_HDR_FLD_ETH_ADDR_SIZE];
 	char			dpni_ep_type[16];
 	int			dpni_ep_id, err, link_state;
+	struct ep_init_presentation init_presentation;
 
 	UNUSED(generator_id);
 	UNUSED(event_id);
@@ -274,6 +260,22 @@ static int app_dpni_add_cb(uint8_t generator_id, uint8_t event_id,
 	err = dpni_drv_get_primary_mac_addr(ni, mac_addr);
 	if (err) {
 		pr_err("Cannot obtain primary MAC ADDR for NI %d\n", ni);
+		return err;
+	}
+
+	/* Set the initial segment presentation size */
+	err = dpni_drv_get_initial_presentation(ni, &init_presentation);
+	if (err) {
+		pr_err("Cannot get initial presentation for NI %d\n", ni);
+		return err;
+	}
+
+	init_presentation.options = EP_INIT_PRESENTATION_OPT_SPS;
+	init_presentation.sps = PRESENTATION_LENGTH;
+	err = dpni_drv_set_initial_presentation(ni, &init_presentation);
+	if (err) {
+		pr_err("Cannot set initial presentation for NI %d to %d\n",
+				ni, init_presentation.sps);
 		return err;
 	}
 
@@ -400,7 +402,6 @@ static int app_create_exact_match_table(void)
 	uint16_t			l_table_id;
 	uint8_t				l_key_id;
 	uint64_t			tmp_rule_id = 0;
-	uint64_t			d_rule_result;
 	int				ret;
 
 	/* Create key composition rule */
@@ -458,7 +459,6 @@ static int app_create_exact_match_table(void)
 	memset(&tbl_params, 0, sizeof(struct table_create_params));
 	
 	tbl_params.attributes = APP_TABLE_PARAMS_ATTRIBUTES;
-
 	tbl_params.key_size = TABLE_KEY_LEN;
 	tbl_params.committed_rules = TABLE_COMMIT_RULES;
 	tbl_params.max_rules = TABLE_MAX_RULES;
@@ -474,14 +474,8 @@ static int app_create_exact_match_table(void)
 		memcpy(&rule.key_desc.em.key,
 				(const void *)&conn[i].key, TABLE_KEY_LEN);
 
-		#ifndef LS2085A_REV1
-			d_rule_result = rule.result.data0;
-		#else
-			d_rule_result = rule.result.op0_rptr_clp.opaque0;
-		#endif
-		
 		rule.result.type = ARCH_TABLE_RESULT_TYPE;
-		d_rule_result = conn[i].order_mode;
+		SET_USER_DATA(rule, conn[i].order_mode);
 		rule.options = TABLE_RULE_TIMESTAMP_NONE;
 
 		ARCH_TABLE_RULE_CREATE(l_table_id, rule, TABLE_KEY_LEN, 
