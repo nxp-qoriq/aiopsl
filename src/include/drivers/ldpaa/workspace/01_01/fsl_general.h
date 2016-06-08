@@ -84,7 +84,7 @@
 /** CAPWAP Reassembly module ID */
 #define CWR_MODULE_STATUS_ID 	(BASE_SW_MODULES_STATUS_ID + 0x07000000)
 /** CAPWAP Fragmentation module ID */
-#define CWF_MODULE_STATUS_ID 	(BASE_SW_MODULES_STATUS_ID + 0x08000000)
+#define CWAPF_MODULE_STATUS_ID 	(BASE_SW_MODULES_STATUS_ID + 0x08000000)
 
 /** @} */ /* end of AIOP_Return_Status */
 

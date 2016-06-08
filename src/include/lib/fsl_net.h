@@ -532,24 +532,24 @@ typedef uint16_t net_hdr_fld_llc_snap_t;
 /* TODO remove lines that are commented out when CAPWAP implementation is
  * complete. Uncomment defines as they are needed.
  */
-/* #define NET_HDR_FLD_CAPWAP_HLEN_OFFSET                     11 */
+#define NET_HDR_FLD_CAPWAP_HLEN_OFFSET                     11
 /* #define NET_HDR_FLD_CAPWAP_RID_OFFSET                      6 */
 /* #define NET_HDR_FLD_CAPWAP_WBID_OFFSET                     1 */
 /* #define NET_HDR_FLD_CAPWAP_FLAGS_OFFSET                    0 */
-/* #define NET_HDR_FLD_CAPWAP_FRAG_OFFSET_OFFSET              3 */
+ #define NET_HDR_FLD_CAPWAP_FRAG_OFFSET_OFFSET              3
 /* #define NET_HDR_FLD_CAPWAP_RSVD_OFFSET                     0 */
 
-/* #define NET_HDR_FLD_CAPWAP_HLEN_MASK                       (0x1F << NET_HDR_FLD_CAPWAP_HLEN_OFFSET) */
+#define NET_HDR_FLD_CAPWAP_HLEN_MASK                       (0x1F << NET_HDR_FLD_CAPWAP_HLEN_OFFSET)
 /* #define NET_HDR_FLD_CAPWAP_RID_MASK                        (0x1F << NET_HDR_FLD_CAPWAP_RID_OFFSET) */
 /* #define NET_HDR_FLD_CAPWAP_WBID_MASK                       (0x1F << NET_HDR_FLD_CAPWAP_WBID_OFFSET) */
 /* #define NET_HDR_FLD_CAPWAP_T                               0x01 */
-/* #define NET_HDR_FLD_CAPWAP_F                               0x80 */
-/* #define NET_HDR_FLD_CAPWAP_L                               0x40 */
+#define NET_HDR_FLD_CAPWAP_F                               0x80
+#define NET_HDR_FLD_CAPWAP_L                               0x40
 /* #define NET_HDR_FLD_CAPWAP_W                               0x20 */
 /* #define NET_HDR_FLD_CAPWAP_M                               0x10 */
 /* #define NET_HDR_FLD_CAPWAP_K                               0x08 */
 /* #define NET_HDR_FLD_CAPWAP_FLAGS_MASK                      (0x7 << NET_HDR_FLD_CAPWAP_FLAGS_OFFSET) */
-/* #define NET_HDR_FLD_CAPWAP_FRAG_OFFSET_MASK                (0x1FFF << NET_HDR_FLD_CAPWAP_FRAG_OFFSET_OFFSET) */
+#define NET_HDR_FLD_CAPWAP_FRAG_OFFSET_MASK                (0x1FFF << NET_HDR_FLD_CAPWAP_FRAG_OFFSET_OFFSET)
 /* #define NET_HDR_FLD_CAPWAP_RSVD_MASK                       (0x7 << NET_HDR_FLD_CAPWAP_RSVD_OFFSET) */
 
 #define NET_HDR_FLD_RFC2684_LLC                    (1)
