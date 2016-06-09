@@ -10,6 +10,7 @@ General:
     * Update revision number for 0.8.5 (AIOPSL-967)
     * Update changelog file for 0.8.5 (AIOPSL-968)
     * Add ELFs for 0.8.5 RC1 (AIOPSL-976)
+    * Fix wrong LS2085A Test AIOP MC CMD Bringup build location (AIOPSL-978)
 
 DPNI:
     * API: Provision to use FDMA_ENWF_RL_BIT in dpni_drv_send (AIOPSL-859)
@@ -115,10 +116,10 @@ HF-NIC:
 	* Change: Enter into OSM exclusive mode before enqueue, since default EPID was changed to work in concurrent mode for HF-NIC.
 TMAN:
 	* Fix tman_exception_handler() misses one scenario when doing tmi_delete (ENGR00368764).
-PARSER: 
+PARSER:
 	* Fixed parser_push_vlan_update(), parser_pop_vlan_update() update wrong fields (ENGR00369449).
 	* Fixed returned status of parse_result_generate(), parse_result_generate_default(), parse_result_generate_basic (ENGR369992).
-	
+
 
 LDPAA AIOP SERVICE LAYER LDPAA-AIOP-SL-v0.8_RC1 Change Log
 ======================================================================
@@ -128,7 +129,7 @@ Changes made for ls2085a rev1:
 IPR:
 	* Add requirement of nested due to replacement of mutex by OSM nested
 	* Fix first_frag_hdr_length calculation for IPv6 (ENGR00366465)
-	
+
 Table:
 	* Added support for DISABLE_REF_CNT.
 	* Moved rule_create_or_replace to be an inline functions.
@@ -181,13 +182,13 @@ Table:
 	* Moved table_rule_XXXXX_by_key_desc functions to obsolete section.
 	* Added timestamp and options as table_rule_create_or_replace out params.
 	* Ephemeral take command support in all reference related commands.
-	
+
 FDMA:
 	* Remove FD workspace address 32byte alignment restriction (there is no harm leaving the alignment except for excessive stack usage)
 	* Discard FD function API was changed – add ICID input parameter + update flags
 	* Added AS bit to discard FD and enqueue FD commands – defines where to take the ICID/AMQ from
 	* Support Discard + terminate
-	* Store working frame command SPID requires the following (in addition to former requirements): 
+	* Store working frame command SPID requires the following (in addition to former requirements):
 		- FD[PTA] == storage_profile[PTAR].
 		- The VA of the storage profile must match the VA of the working frame (only in case additional buffers  are required)
 	* Support Split + close split frame
@@ -208,15 +209,15 @@ FDMA:
 			- PRC_GET_ASA_SIZE
 			- PRC_GET_ASA_ADDRESS
 		- Some of the PRC structure fields have changed. Please see struct presentation_context for more details.
-		- If a user wants to present/update (replace) PTA or ASA he should approach them through FDMA API functions. 
+		- If a user wants to present/update (replace) PTA or ASA he should approach them through FDMA API functions.
 	* The following functions API has changed - a new spid input parameter was added (due to a new HW restriction stating: SP.ptar must be equal to FD.pta) :
 		- create_frame
 		- create_arp_request_broadcast
 		- create_arp_request
 		- create_fd – already had a spid parameter – now it is always used
-	
+
 PARSER:
-	* Added two optimization functions for adding and removal VLAN cases: parser_pop_vlan_update, parser_push_vlan_update. 
+	* Added two optimization functions for adding and removal VLAN cases: parser_pop_vlan_update, parser_push_vlan_update.
 
 KEYGEN:
 	* Fixed ENGR367987 (issue in keygen_gen_key() with EOFH error).
@@ -249,12 +250,12 @@ Table:
 	* API: Moved table_create, table_delete and table_replace_miss_result to be non-inline functions.
 	* API: Changed table_lookup_by_keyid to inline.
 	* table_hw_accel_acquire_lock & table_hw_accel_release_lock were removed
-	
-	
+
+
 Changes made for ls1088a rev1 (based on 2085 0.7.1.0 release):
 
 FDMA:
-	* Remove workaround for TKT237377 (replacing a segment) - Add TAM flag to all replace commands in order to keep original segment boundaries instead of the workaround 
+	* Remove workaround for TKT237377 (replacing a segment) - Add TAM flag to all replace commands in order to keep original segment boundaries instead of the workaround
 	* Remove notes regarding TKT258499 (frame replication)
 	* Remove notes regarding TKT240996 (frame split)
 	* Remove workaround for TKT260685 (FDMA lockup)
@@ -283,7 +284,7 @@ OSM:
 Parser:
 	* Updates in struct parse_result:
 		* Some fields renaming.
-		* Addition of: 
+		* Addition of:
 			* nxt_hdr_before_ipv6_frag_ext
 			* ip_n_pid_offset
 	* Changes and additions in MACROS due to new parse results.
@@ -305,22 +306,22 @@ TMAN:
 	* Remove workaround for TKT226418 (tman_delete_tmi).
 	* Remove workaround for TKT254640 (tman_create_tmi).
 	* Remove shared memory array for TKT226418 (max number of timers).
-	* Add implementation of  tman_query_tmi (TKT226418) 
+	* Add implementation of  tman_query_tmi (TKT226418)
 	* Add implementation of tman_modify_timer (TKT255188).
 	* Change return value and implementation of tman_recharge_timer (TKT258245).
 	* Add exception error cases (TKT226701).
-	
-	
+
+
 LDPAA AIOP SERVICE LAYER LDPAA-AIOP-SL-v0.7.1.1 Change Log
 =============================================================
-Table: 
+Table:
 	* Added Support in DISABLE_REF_CNT for Table Module.
-IPsec: 
+IPsec:
 	* Fixed ENGR363745 to avoid FD and frame corruption.
 FDMA:
 	* modify FDMA accelerator IDs according to HW recommendation to improve performance.
 
-	
+
 LDPAA AIOP SERVICE LAYER LDPAA-AIOP-SL-v0.7.1.0 Change Log
 =============================================================
 No changes
@@ -354,11 +355,11 @@ IPR:
 	* Fix ENGR358861.
 	* Fix return status in case of L4 checksum error.
 	* Fix ENGR356636 (remove extra relinquish).
-	
+
 General:
 	* Performance improvement for accelerators return. The following blocks were improved:
-	  CDMA, FDMA, TMAN. 
-	
+	  CDMA, FDMA, TMAN.
+
 LDPAA AIOP SERVICE LAYER LDPAA-AIOP-SL-v0.6.0.3 Change Log
 =============================================================
 IPR:
@@ -368,8 +369,8 @@ FDMA:
 	  Hence, user has only 3 nested scope levels (instead of 4).
 OSM:
 	* Fix FDMA HW TKT260685 - MASK 2 bits in the scope ID.
-IPSEC: 
-	* Implemeted WA for the following HW bug: 
+IPSEC:
+	* Implemeted WA for the following HW bug:
 		IPsec HW TKT265088 - “CAAM/SEC: The FD[BPID] is not updated after an AIOP operation”.
 	* Adjust to new slab alignment.
 	* Added DSCP set support (API change, ENGR341311).
@@ -393,7 +394,7 @@ FDMA:
 	* Fdma new API suggested by Howard including a partial fix for the fdma Hw issue.
 IPR:
 	* Stack optimization.
-PARSER: 
+PARSER:
 	* New macros.
 TABLE:
 	* Fix for CQ ENGR346557 (table delete will not work on the device).
@@ -401,23 +402,23 @@ TABLE:
 	* Fix for ENGR00354623 (added ‘volatile’ to table_lookup_result fields).
 CDMA:
 	* Bypass refcount (under ifdef DISABLE_REF_CNT).
-   
 
-	
-	
+
+
+
 LDPAA AIOP SERVICE LAYER LDPAA-AIOP-SL-v0.6.0 Change Log
 =============================================================
 FDMA:
 	* FDMA replicate functions can be called in order to replicate non-empty frames only (due to TKT258499).
 	* FDMA trim - fix PRC update (ENGR353299).
-	
+
 TABLE:
 	* Resolved ENGR346557 ("Table delete will not work on the device").
 	* Performance optimization for switch case in acceleration return.
 
 KEYGEN:
 	* Fix for ENGR350116  (Valid Field takes 2 bytes in KCR instead of only 1 byte)
-	
+
 PARSER:
 	* Removed Parser WA for TKT254635 (CTLU spec - requirement of data alignment)
 
@@ -427,7 +428,7 @@ Alignment:
 	* IPF – each fragment’s segment is presented in the presentation address of the original frame, in order to keep former segment alignment.
 	* Alignment requirements were added to many SRs and FMs.
 	* Alignment check for all relevant SRs/FMs under debug define.
-	
+
 STE:
   * Added comment on the required counter alignment in the STE API
 
@@ -437,12 +438,12 @@ TMAN:
 
 IPR:
   * SRs Errors.
-  
+
 IPsec:
   * Performance optimization.
   * Removed ip_nh from ipsec_encap_params struct (API change)
-  * Removed ip_nh referencing from ipsec_fm_demo 
-  * Added slab un-reserve call to delete instance/sa 
+  * Removed ip_nh referencing from ipsec_fm_demo
+  * Added slab un-reserve call to delete instance/sa
   * Fixed ipsec_early_init
   * Fixed SEC error return codes (ENGR347888)
   * Clear the PRC ASA Size, since the SEC does not preserve the ASA (ENGR353336)
@@ -460,19 +461,19 @@ Update demo and high functional NIC:
 LDPAA AIOP SERVICE LAYER LDPAA-AIOP-SL-v0.5.3.3 Change Log
 =============================================================
 STE:
-   * Fix constant definition typo in fsl_ste.h 
+   * Fix constant definition typo in fsl_ste.h
 IPR:
    * Fix alignment of table_rule struct in case of delete rule.
    * Remove from API return status: IPR_MAXIMUM_NESTED_REACHED, IPR_ERROR.
    * Add to API return status: EIO, ENOSPC, ENOMEM, ETIMEDOUT, ENOTSUP.
    * Add ipr_early_init function.
-   
+
 IPsec:
    * Updated RTA (flib) to fsl-lssdk-v0.6.1, split key (DKP) support for legacy thread.
      (IPsec FM support for split key in Transport mode)
    * Fixed (temporary) ENGR347826, IPSec:ESP(3DES+None):Simulator crash observed while creating the SA descriptor
    * Updated the IPsec FM demo due to the Parser alignment fix
-   
+
 PARSER:
 	* Added workaround to TKT254635 (CTLU spec - requirement of data alignment for parser  is not mentioned).
 
@@ -481,7 +482,7 @@ IPF:
 FDMA:
 	* Add workaround to TKT254401 (FDMA Store of a newly created frame pass without storing the data).
 
-	
+
 LDPAA AIOP SERVICE LAYER LDPAA-AIOP-SL-v0.5.3.2 Change Log
 =============================================================
 
@@ -496,15 +497,15 @@ IPsec:
    * Updated ipsec_fm_demo to support additioal algorithms.
 
 IPR:
-  * Fix checksum calculation in case of non zero odd padding (CQ 342190)    
+  * Fix checksum calculation in case of non zero odd padding (CQ 342190)
 
 LDPAA AIOP SERVICE LAYER LDPAA-AIOP-SL-v0.5.3.1 Change Log
 =============================================================
-* The Application SW function registration is no more to the receive_cb() function. 
-Instead It is done to the EPID entry. This means HW EPID entry will first call the application software and then 
-application will call the inline function sl_prolog() in the beginning of the application. 
-The sl_prolog() functionality is the same as the former receive_cb().The application function should use declaration 
-spec called entry_point in-order the compiler would not strip off this code. The application must end with terminating 
+* The Application SW function registration is no more to the receive_cb() function.
+Instead It is done to the EPID entry. This means HW EPID entry will first call the application software and then
+application will call the inline function sl_prolog() in the beginning of the application.
+The sl_prolog() functionality is the same as the former receive_cb().The application function should use declaration
+spec called entry_point in-order the compiler would not strip off this code. The application must end with terminating
 the task by calling to fdma_terminate_task().
 
 * The HM functions l4_set_tp_dst() and l4_set_tp_src() were removed.
@@ -515,7 +516,7 @@ the task by calling to fdma_terminate_task().
 	- cdma_read
 	- cdma_mutex_lock_take
 	- cdma_mutex_lock_release
-	- table_lookup_by_keyid_default_frame 
+	- table_lookup_by_keyid_default_frame
 	- table_lookup_by_key
 	- fdma_replace_default_segment_data
 	- fdma_copy_data
@@ -562,21 +563,21 @@ struct ipsec_decap_gcm_params {
 LDPAA AIOP SERVICE LAYER LDPAA-AIOP-SL-v0.5.3.0 Change Log
 =============================================================
 
-* TMAN - Support TMAN spec version 1.0. 
+* TMAN - Support TMAN spec version 1.0.
 
 * GSO - Added a workaround for PDM ticket TKT240996 - As it's mentioned in FDMA split command.
 
 * IPF - Added a workaround for PDM ticket TKT240996 - As it's mentioned in FDMA split command.
-	
-* FDMA - add workaround for PDM ticket TKT237377 - As part of the workaround his command closes and reopens the segment. (meaning that all segment 
+
+* FDMA - add workaround for PDM ticket TKT237377 - As part of the workaround his command closes and reopens the segment. (meaning that all segment
 	modifications done in workspace but not included in the range of this command are lost).
 * FDMA - add instructions how to workaround PDM ticket TKT240996 (split command).
-	
+
 * TABLE - Added workaround for PDM ticket TKT226361 ("Table delete never completes").
 
-* IPsec 
+* IPsec
     - Fixed ENGR00343015 (segment address preservation)
-    - Fixed ipsec_get_ipv6_nh_offset, ENGR343032 
+    - Fixed ipsec_get_ipv6_nh_offset, ENGR343032
     - Removed IPSEC_CIPHER_AES_XTS, it is not a valid alg for IPsec
     - Fixed IPsec CCM B0 Flags for decap, ENGR341153
     - Fixed IPsec ipsec_get_seq_num, ENGR342270
@@ -594,19 +595,19 @@ PARSER: The following are inline functions:
 	parse_result_generate()
 	parse_result_generate_default()
 	parse_result_generate_basic()
-PARSER: non-fatal errors are supported.	
+PARSER: non-fatal errors are supported.
 PARSER: changed parser_profile_query input parameter from parse_profile_record to parse_profile_input (to adjust CTLU spec 0.7.4)
 KEYGEN: removed KEYGEN_KCR_ICMP_TYPE_FECID and KEYGEN_KCR_ICMP_CODE_FECID (not supported by HW).
-KEYGEN: non-fatal errors are supported.	
+KEYGEN: non-fatal errors are supported.
 
-TMAN: TMAN errors are supported in code but not fully verified. 
+TMAN: TMAN errors are supported in code but not fully verified.
 TMAN: Removed recharge function due to HW scope reduction.
 TMAN: Changed timer delete function and TMI delete function to support HW Errata ERR008205
 TMAN: Changed TMI create function to support HW Errata ERR008234
 STE: Added macros and definitions for STE errors (the simulator still doesnt support STE errors)
 STE: All STE functions except the barrier command were changed to be inline functions.
 
-CDMA: Added cdma_inline.h file for supporting cdma inline commands. 
+CDMA: Added cdma_inline.h file for supporting cdma inline commands.
 CDMA: The following are inline functions:
 	cdma_refcount_increment()
 	cdma_refcount_decrement()
@@ -624,7 +625,7 @@ Added some optimizations to the dpni_drv_send() and receive_cb() functions.
 
 Table SRs: API - Added a note to table_create() parameters that max rules must not be 0.
 Table SRs: API - Added notes that some of the pointer must point to structures in the workspace (e.g. not SRAM).
-Table SRs: API - Aging and auto removal of rules because of aging were removed from the API due to inputs that these are unnecessary. 
+Table SRs: API - Aging and auto removal of rules because of aging were removed from the API due to inputs that these are unnecessary.
 Table SRs: API - Removal of reference counter auto-decrement due to TKT216018 and due to that in some cases the decrement is better done outside of the function performance wise.(e.g. IPR)
 Table SRs: API - Added a comment regarding deletion of table that contains a miss result of type reference pointer.
 Table SRs: API - Added documentation regarding the key id parmaeter for both table_lookup_by_keyid() and table_lookup_be_keyid_default_frame() functions.
@@ -676,11 +677,11 @@ Added the following HM routines:
 	l2_push_and_set_vlan()
 	l2_arp_response()
 	l2_set_hw_src_dst()
-	
+
 Added snic files for supporting command interface, Vlan insert/remove, IPR and IPF.
 	snic.c
 	snic.h
-	
+
 Change in dpni_drv_send()	- setting SPID from theDPNI structure.
 
 system.c - change the setting of BPID for storage profile - now BPID=0 and no allocation is needed (Arena allocates buffers to this BPID).
@@ -688,7 +689,7 @@ system.c - change the setting of BPID for storage profile - now BPID=0 and no al
 ipr: call to function slab_find_and_fill_bpid() inside function ipr_create_instance() instead of in function ipr_init().
 
 fsl_ipr.h: API - add min_frag_size_ipv6, flags change from 2 bytes to 4 bytes.
-fsl_ipr.h: API - several functions (modify) to become void instead of int. 
+fsl_ipr.h: API - several functions (modify) to become void instead of int.
 
 Table SRs: API - Changed MFLU key descriptors structures (also for lookup) to match the new HW form.
 Table SRs: API - Exceptions handling in all functions.
@@ -710,7 +711,7 @@ Add file fsl_frame_operations:
 	Move to fsl_frame_operations.h:
 		create_frame()  (instead of fdma_create_frame())
 		create_fd() (instead of fdma_create_fd())
-	Add the following Frame operations routines:	
+	Add the following Frame operations routines:
 		create_arp_request_broadcast()
 		create_arp_request()
 
@@ -723,9 +724,9 @@ IPF:
 
 KEYGEN:
 - Changed keygen_kcr_builder_init() to void
-	
+
 PARSER:
-- Fixed ENGR315932 	
+- Fixed ENGR315932
 - Add macros:
 	PARSER_GET_GROSS_RUNNING_SUM_CODE_DEFAULT
 	PARSER_GET_RUNNING_SUM_DEFAULT
@@ -733,7 +734,7 @@ PARSER:
 Added file id_pool.c
 
 CDMA:
-fsl_cdma.h: API - several functions (modify) to become void instead of int. 		
+fsl_cdma.h: API - several functions (modify) to become void instead of int.
 
 SL Alpha v0.4  Change Log
 ===============================
@@ -810,7 +811,7 @@ ipf.c: Removed everything related to SFV bit (this bit is not needed).
 ipf.h: Some changes in ipf internal structures.
 fsl_parser.h: Changed parser_profile_replace() from void to int32_t and add status returned.
 keygen.h: Some defines updates in order to comply with CTLU spec 0.7.2
-keygen.c: Fixed ENGR310243 (In functions: keygen_kcr_builder_add_protocol_based_generic_fec() & keygen_kcr_builder_add_generic_extract_fec() 
+keygen.c: Fixed ENGR310243 (In functions: keygen_kcr_builder_add_protocol_based_generic_fec() & keygen_kcr_builder_add_generic_extract_fec()
 the extract_size that these functions pass to the CTLU hardware is mistakenly greater by 1 than the required size.)
 tman.c: Changing the tman code to support new compiler changes.
 tman.c: adding mask to the return status of the timer query function
@@ -845,7 +846,7 @@ fsl_keygen.h: Added a new function: keygen_kcr_builder_add_input_value_fec().
 fsl_keygen.h: Accelerator ID was introduced (used as an input parameter)
 fsl_parser.h: Some changes to parse result to fit new spec.
 fsl_parser.h: Added some new macros (related to routing header)
-fsl_parser.h: Added setters to PRPID and starting HXS. 
+fsl_parser.h: Added setters to PRPID and starting HXS.
 fsl_parser.h: Status modification from 0.7 CTLU/MFLU spec.
 fsl_l4_checksum.h: l4_udp_tcp_cksum_calc() polarity of the flag "update fdma" was inverted and is now "don't update fdma"
 fsl_l4_checksum.h: status values were changed.
@@ -866,38 +867,38 @@ fsl_fdma.h:
 	•	Add function: fdma_create_frame() - this function returns a frame handle for the newly created FDMA working frame.
 	•	Change struct fdma_isolation_attributes to struct fdma_amq.
 	•	Fix CQ: ENGR304324
-	
+
 
 SL Pre-Alpha v0.3.1  Change Log
 ===============================
-ipr.h + ipr.c: IP checksum fix. use new fdma function. Fix reassembly with more than 2 fragments. 
+ipr.h + ipr.c: IP checksum fix. use new fdma function. Fix reassembly with more than 2 fragments.
 dpni_drv.h: added dpni_get_receive_niid, dpni_set_send_niid, dpni_get_send_nii
 dpni_drv_rxtx.c: added dpni_get_receive_niid, dpni_set_send_niid, dpni_get_send_niid
 fsl_osm.h + osm.h: The order scope execution phase values was changed according to archdef_0.7.2 (0 = Concurrent mode, 1 = Exclusive mode).
 fsl_cdma.h + cdma.c: Added cdma_refcount_get(). This routine returns the current value of reference count.
 general.h: Added new macro (ADC_GET_ICID) to get ICID field.
 
-fsl_fdma.h: 
+fsl_fdma.h:
 	• Adjust to ArchDef 0.7.2:
 		• Add AS flag (indicates usage of default AMQ attributes) to commands which present a frame (fdma_present_default_frame(), fdma_present_frame()).
 		• Remove BMT (Bypass the Memory Translation) flag from Enqueue FD commands(fdma_enqueue_default_fd_fqid(), fdma_enqueue_fd_fqid(), fdma_enqueue_default_fd_qd(), fdma_enqueue_fd_qd()).
 		• Change fdma_isolation_attributes structure field name: bdi_icid -> icid.
 		• Remove flags parameter from fdma_read_default_frame_asa() SR.
 	• Change fdma_queueing_destination_params structure field name: hash_value -> qdbin (HW alignmnet).
-	
+
 fsl_ipsec.h: unified hmo and options fields, changed callback type to void
 
 SL Pre-Alpha v0.3  Change Log
 =============================
 spinlock.h: removed aiop_ prefix from aiop_atomic_incr8/16/32 and from aiop_atomic_decr8/16/32
-fsl_ipr.h: change API: add a different return status for regular frames 
-virtual_pools.h: 
+fsl_ipr.h: change API: add a different return status for regular frames
+virtual_pools.h:
 	• added callback function typedef
 	• added the "vpool_decr_total_bman_bufs	"function
 virtual_pools.c:
 	• updated vpool_refcount_decrement_and_release to release also in case of ref counter already at zero.
 	• added the "vpool_decr_total_bman_bufs	"function,
-fsl_cdma.h: The following CDMA functions have been moved from fsl_cdma.h to cdma.h file and replaced by new SLAB functions: 
+fsl_cdma.h: The following CDMA functions have been moved from fsl_cdma.h to cdma.h file and replaced by new SLAB functions:
 	•	cdma_acquire_context_memory
 	•	cdma_release_context_memory
 	•	cdma_refcount_decrement_and_release
@@ -914,7 +915,7 @@ gro.h: Some changes in gro internal structures.
 fsl_fdma.h: Add fdma_acquire_buffer SR.
 fsl_fdma.h: Add fdma_release_buffer SR.
 fsl_fdma.h: Update fdma_present_default_frame_segment SR API.
-		
+
 Doc & Tool compatibility:
 	AIOP Archdef 0.7.1
 	CTLU Archdef 0.6
@@ -924,7 +925,7 @@ Doc & Tool compatibility:
 	Compiler Build 268
 	CW for DPAA 10.0.5
 	Simulator	DPAA Simulator 0_5_2_0068
-	
+
 SL Pre-Alpha v0.2  Change Log
 =============================
 fsl_fdma.h: Add fdma_present_frame_segment() explicit service routine.
@@ -941,15 +942,15 @@ fsl_gso.h: finalize API.
 fsl_ipf.h: finalize API.
 fsl_ipr.h: finalize API.
 parser.h: Add internal function parse_result_generate_checksum().
-parser.c: Fix CR:ENGR00295530 
+parser.c: Fix CR:ENGR00295530
 id_pool.h: Fix CR:ENGR00292371
 id_pool.h: Fix CR:ENGR00292125
-id_pool.h: Fix CR:ENGR00291705 
+id_pool.h: Fix CR:ENGR00291705
 system.c: Fix CR:ENGR290657
-system.c: Fix CR:ENGR291260 
+system.c: Fix CR:ENGR291260
 dpni_drv.h: Introduce new DPNI driver code.
 drv.h: Introduce new DPNI driver code.
-dpni_drv_rxtx.c: Introduce new DPNI driver code.  
+dpni_drv_rxtx.c: Introduce new DPNI driver code.
 
 
 Doc & Tool compatibility:
@@ -974,7 +975,7 @@ fsl_ipf.h: Added definition of IPF_CONTEXT_SIZE and typedef ipf_ctx_t.
 fsl_ipf.h: Changed functions parameters.
 fsl_ipf.h: Changed statuses.
 fsl_ipf.h: Removed flags IPF_FIRST_FRAG, IPF_COPY_ASA and IPF_DIS_HDR_FETCH.
-fsl_ipf.h: Added FSL_IPF_SFV_MACROS. 
+fsl_ipf.h: Added FSL_IPF_SFV_MACROS.
 fsl_ipf.h: Renamed function generate_ip_frag() to ipf_generate_frag().
 fsl_ipf.h: Added functions ipf_context_init() and ipf_discard_frame_remainder().
 ipf.h: New file, contains initial internal API for IPF.
@@ -1011,7 +1012,7 @@ fsl_fdma.h: Add no_flags definition to all flag groups.
 fsl_fdma.h: Update error statuses.
 aiop_general.h: change name to general.h.
 general.h: Remove parameter qd_priority from function dpni_drv_send and add it into the TLS.
-general.h: Remove err_fqid from the DPNI structure. 
+general.h: Remove err_fqid from the DPNI structure.
 general.h: Add macros to verify a structure size does not exceed the size a user allocates for that structure.
 general.h: Removed get_number_of_cpus() and get_cpu_id() and dump_stack()
 fsl_gro.h: Add initial API for GRO.
@@ -1028,7 +1029,7 @@ aiop_osm.h: change name to osm.h.
 fsl_aiop_osm.h: change name to fsl_osm.h.
 aiop_spinlock.c: change name to spinlock.c.
 fsl_aiop_spinlock.h: change name to fsl_spinlock.h.
-aiop_spinlock.c: Add atomic increment/decrement Service Routines. 
+aiop_spinlock.c: Add atomic increment/decrement Service Routines.
 fsl_aiop_spinlock.h: Add atomic increment/decrement Service Routines.
 fsl_cdma.h: Update error statuses.
 fsl_aiop_checksum.h: was renamed to fsl_checksum.h
@@ -1103,7 +1104,7 @@ fsl_aiop_ctlu.h: added description to reserved fields
 fsl_aiop_ctlu.h: changed ctlu_table_lookup_keyid and ctlu_table_lookup_key to ctlu_table_lookup_by_keyid and ctlu_table_lookup_by_key
 fsl_aiop_ctlu.h: changed ctlu_lookup_result[opaque0] to ctlu_lookup_result[opaque_or_reference]
 fsl_aiop_ctlu.h: changed output params in ctlu_gen_key to union ctlu_key + size from struct ctlu_rule_key *key.
-fsl_aiop_ctlu.h: changed input params in ctlu_gen_hash to union ctlu_key + size from struct ctlu_rule_key *key. 
+fsl_aiop_ctlu.h: changed input params in ctlu_gen_hash to union ctlu_key + size from struct ctlu_rule_key *key.
 fsl_aiop_ctlu.h: changed input params in ctlu_table_rule_delete to union ctlu_key + size from struct ctlu_rule_key *key.
 fsl_aiop_ctlu.h: changed input params in ctlu_table_lookup_by_key to union ctlu_key + size from struct ctlu_rule_key *key.
 fsl_aiop_ctlu.h: added CTLU_KEY_LPM_IPV4_SIZE
@@ -1124,8 +1125,8 @@ Doc & Tool compatibility:
 	CTLU Archdef 0.6.9
 	AIOP_Instruction_Additions 0.60
 	Compiler Build 264
-	
-	
+
+
 AIOP Core Library V2.0 Change Log
 
 aiop_general.h: Added udp and tcp headers to general.h
@@ -1147,7 +1148,7 @@ fsl_aiop_ctlu.h: added documentation
 fsl_aiop_ctlu.h: changed context record to application context
 fsl_aiop_ctlu.h: changed ctlu_key_em to ctlu_key_exact_match
 fsl_aiop_ctlu.h: simplified lookup result & table result
-fsl_aiop_ctlu.h: changed key in ctlu_rule_key to be in the structure (instead of referenced by the structure). 
+fsl_aiop_ctlu.h: changed key in ctlu_rule_key to be in the structure (instead of referenced by the structure).
 fsl_aiop_checksum.h: validation SRs removed due to similar functionality existence in parser SRs.
 fsl_aiop_checksum.h: updated checksum calculation SRs.
 fsl_aiop_ipr.h: add IP version in ipr_get_number_of_reassembled_frames.
@@ -1173,13 +1174,13 @@ aiop_ste.c: Changed command addresses and opcode according to new archdef.
 aiop_ste.c: Added comment that external address can be also PEB and L3 cache.
 aiop_ste.c: Changed SET function to use the STE rather than the CDMA (now it returns void).
 aiop_ste.c: Fixed a bug in barrier command.
-aiop_ste.c: Changes to support compiler ver 260. 
+aiop_ste.c: Changes to support compiler ver 260.
 fsl_aiop_tman.h: Added include general.h
 fsl_aiop_tman.h: Change output parameters to be the last parameters in the function
 aiop_tman.c: Change hardware accelerator call to __e_hwacceli
 aiop_tman.c: Added new compiler instructions to the STE Barrier command
 aiop_tman.c: Clear reserve bits in the TMAN status
-aiop_tman.c: Changes to support compiler ver 260 
+aiop_tman.c: Changes to support compiler ver 260
 aiop_general.h: Add HWC Accelerator Context definitions.
 aiop_general.h: Update PRC definitions.
 aiop_general.h: Add __TASK definition (used for task global variables).
@@ -1203,7 +1204,7 @@ fsl_aiop_osm.h: All funcions were renamed. from aiop_osm_function_name to osm_fu
 fsl_aiop_parser.h: Added Parser API functions.
 fsl_aiop_parser.h: All funcions were renamed from aiop_parser_function_name to parser_function_name.
 fsl_aiop_ctlu.h: added return status
-fsl_aiop_ctlu.h: more documentation 
+fsl_aiop_ctlu.h: more documentation
 fsl_aiop_ctlu.h: added more defines
 fsl_aiop_ctlu.h: added aiop_ctlu_key_composition_create_or_update
 fsl_aiop_ctlu.h: added aiop_ctlu_key_composition_rule_query
@@ -1217,7 +1218,7 @@ Doc & Tool compatibility:
 	AIOP_Instruction_Additions 0.51
 	Compiler build 260
 	AIOP Simulator T4LS_SIM-20130904-ENGG_BUILD  (support for FDMA, STE, TLU)
-	
+
 AIOP Core Library V1.3 Change Log
 
 fsl_ldpaa.h: Added new file - Add FD structure definition and type definitions.
@@ -1284,7 +1285,7 @@ Doc & Tool compatibility:
 	CW 10.0.1
 	Compiler build 257
 	AIOP Simulator T4LS_SIM_A2_0_1
-	
+
 
 AIOP Core Library V1.2 Change Log
 
@@ -1368,7 +1369,7 @@ AIOP ARENA CHANGELOG
 ** AIOP SL Release v0.8 ** --------- Released devices: LS1088A, LS2088A, LS2085A ---------
 
 IMPORTANT NOTE: LS2088A and LS1088A changes are relative to AIOP SL Release v0.8_RC1.
-IMPORTANT NOTE: LS2085A changes are relative to AIOP SL Release v0.7.1.1. 
+IMPORTANT NOTE: LS2085A changes are relative to AIOP SL Release v0.7.1.1.
 In addition to this release please look at the following releases for the full list of the changes for LS2085A.
 The changes as described under the following log tags are relevant for LS2085A though it was not part of that release.
 1. AIOP SL Release v0.8_RC1
@@ -1377,7 +1378,7 @@ The changes as described under the following log tags are relevant for LS2085A t
 dpl.dts/dtb: Removed DPRC_CFG_OPT_IOMMU_BYPASS, no longer supported by MC. AIOP container gets this automatically.
 dpl.dts/dtb: Set max_policers per DPNI to 1. The change is required for dpni_drv_set/get_rx_tc_policing testing.
 
-fsl_aiop_cmdif.h: Following the fix of ENGR00366149 on MC. CMDIF uses SPID=0 for store commands. 
+fsl_aiop_cmdif.h: Following the fix of ENGR00366149 on MC. CMDIF uses SPID=0 for store commands.
 
 fsl_dpni_drv.h: API changes:
 	enum dpni_drv_early_drop_unit was changed to enum dpni_drv_congestion_unit:
@@ -1396,11 +1397,11 @@ ls2085a aiopsl, fsl_rcu.h : RCU REV1 API is no longer supported. RCU is supporte
 A simulator configuration file should contain the line:
               for all devices(e.g. ls1088a_sys_test.cfg,ls2088a_sys_test.cfg etc.)
               type=1000 top.mc.regs.MCFBALR.write:0xe0000001
-              When launching MC application via CodeWarrior debugger, standard initialization tcl file 
+              When launching MC application via CodeWarrior debugger, standard initialization tcl file
 			  <device>-AFM_MC_RAM.tcl should not be used as it overwrites value of MCFBALR register.
 apps.h:     The documentation of apps.h files has moved to app_process_packet apps.h.
-            For full and updated documentation of all the macros, please refer to the apps.h of app_process_packet.  
-dpci_drv.c: Added WA for ENGR00366149. CMDIF uses SPID=255 for store commands. 
+            For full and updated documentation of all the macros, please refer to the apps.h of app_process_packet.
+dpci_drv.c: Added WA for ENGR00366149. CMDIF uses SPID=255 for store commands.
 
 log.c/h, fsl_log.h: ENGR00367164 - Update logger implementation to use logger header.
                     The header contains the start address, last written byte, buffer size and a flag if there was a wrap.
@@ -1408,12 +1409,12 @@ log.c/h, fsl_log.h: ENGR00367164 - Update logger implementation to use logger he
                     Header parameters are 32 bit little endianess.
 
 fsl_rcu.h         Renamed REV1 rcu_synchronize() to rcu_synchronize_nb(). Added rcu_synchronize() for REV2.
-apps.h:           Fixed ENGR00366911: AIOP apps.h file should have mentioned the power of 2 restriction on CTLU and MFLU num of entries 
+apps.h:           Fixed ENGR00366911: AIOP apps.h file should have mentioned the power of 2 restriction on CTLU and MFLU num of entries
 aiopsl ls2088a & ls1088a: Replaced src/kernel/cmdif/00_01 with src/kernel/cmdif/00_02.
                           This should have no effect on applications, this path should not exist there.
 dpni_drv.c/h:     Update dpni driver to support ERR009354 and set alignment to 256 for
                   rx buffer layout data alignment. (only for ls2085a)
-                  Buffer pool size must be a multiple of 256. (only for ls2085a)  
+                  Buffer pool size must be a multiple of 256. (only for ls2085a)
 
 all *.cproject    Build flag: "warning not inlined" set to true.
 
@@ -1456,13 +1457,13 @@ dpni_drv.c/fsl_dpni_drv.h: Added API to support Egress/Ingress traffic shaping:
             dpni_drv_remove_qos_entry,
             dpni_drv_clear_qos_table,
             dpni_drv_prepare_key_cfg.
-dpni_drv.c/fsl_dpni_drv.h: Added API to set/get_tx_checksum (l3/l4) 
+dpni_drv.c/fsl_dpni_drv.h: Added API to set/get_tx_checksum (l3/l4)
 
 fsl_dpni_drv.h: Add API to retrieve dpni ordering mode.
 fsl_dpkg.h: Moved to include/drivers
 
 fsl_rcu.h       : ls2085a rev1. Resolved ENGR363207. Removed rcu_read_unlock_cancel(), it is handled internally by SL upon task termination.
-                  Added rcu_read_lock() API. 
+                  Added rcu_read_lock() API.
 fsl_icontext.h  : Added new API icontext_ws_set() to be use to set the new isolation context in the workspace.
                   It is useful if you need to close the command default frame and reopen it again.
 build/aiop_sim/ : Moved build/aiop_sim/ projects to build/ls2085a/rev1/.
@@ -1494,7 +1495,7 @@ dpni_drv.c/fsl_dpni_drv.h: Added new API to get connected object for given NI an
 
 fsl_cmdif_flib_fd.h: Fix ENGR00361539 : CMDIF auth_id (used as ordering scope id) conflicts with FDMA WA that uses nested OrderScopeID
 cmdif_srv_flib.h:    Fix ENGR00361539 : CMDIF auth_id (used as ordering scope id) conflicts with FDMA WA that uses nested OrderScopeID
-cmdif_client.c:   Fix ENGR00361548 cmdif_cl_isr should have SET_FRAME_TYPE() 
+cmdif_client.c:   Fix ENGR00361548 cmdif_cl_isr should have SET_FRAME_TYPE()
 
 dpni_drv.c: Fix for nested mutex calls when calling functions: dpni_drv_get_dpni_id() and dpni_drv_get_ni_id() - ENGR00361988
 dpni_drv.c: Added fix to distinguish between DPNI and NI (AIOPSL) ids in EPID table during the probe - ENGR00362157.
@@ -1503,8 +1504,8 @@ dpni_drv.c: Added fix to distinguish between DPNI and NI (AIOPSL) ids in EPID ta
 cmdif_srv.c:               Added error that will be returned to cmdif_open() if it is called before AIOP has finished the linkup setup of this DPCI.
 fsl_dpci_drv.h:            Added new API for dpci_drv_linkup().
 cmdif_integration_test.c : Added registration for DPCI events in order to enable the AIOP side DPCIs.
-                           See aiopsl\build\aiop_sim\tests\cmdif_test\src\app.c:app_evm_register() as 
-                           an example of the code that needs to be added to all AIOP applications 
+                           See aiopsl\build\aiop_sim\tests\cmdif_test\src\app.c:app_evm_register() as
+                           an example of the code that needs to be added to all AIOP applications
                            that use GPP-AIOP cmdif.
 
 dpni_drv.c: ENGR00353570 - Set tx confirmation disabled by default to each probed dpni.
@@ -1513,7 +1514,7 @@ app_process_packet.c, ipf_demo.c, ipr_demo.c, ipsec_fm_demo.c,
 build\aiop_sim\tests\aiopsl_stack_estimation\src\app_process_packet.c
 tests\aiop_core_lib\build\roc_test\src\app_process_packet.c
 tests\arena_test.c : Added callback function to be called when dpni added event raised.
-                     All calls to dpni_drv functions were moved to this CB (no more dpni_drv calls are allowed in app_init). 
+                     All calls to dpni_drv functions were moved to this CB (no more dpni_drv calls are allowed in app_init).
                      Add dpni_drv_enable at the end of processing the event.(each app must do it manually)
 
 evmng.c/h, fsl_evmng.h : Added new API for ENGR00348753 to register/unregister and raise AIOPSL/APP events.
@@ -1532,10 +1533,10 @@ ls2085a_sim_init_params.cfg: Added flags to work with simulator m0133:
                              caam.ENGR00323173_fix=false
 
 fsl_dpci_drv.h:     Added API for ENGR00357593 : Configure-able presentation parameters for AIOP CmdIF.
-fsl_ep.h:           Added new file with entry point common API that is used by DPNI and DPCI DRV. 
+fsl_ep.h:           Added new file with entry point common API that is used by DPNI and DPCI DRV.
 apps.h:             Removed  APP_TMAN_FREQUENCY, it had no effect. MC sets it.
 icontext.c:         Removed WA related to MC CQ ENGR00345218.
-fsl_ep.h:           Entry point modification API. It is exposed to users through DPCI and DPNI drivers. 
+fsl_ep.h:           Entry point modification API. It is exposed to users through DPCI and DPNI drivers.
 fsl_dpci_drv.h:     Added new API for DPCI objects as part of dynamic objects management effort.
                     dpci_drv_enable() must be called by the application for every active DPCI, this change is NOT backward compatible.
                     dpci_drv_disable()  must be called by the application when GPP SW context is going down.
