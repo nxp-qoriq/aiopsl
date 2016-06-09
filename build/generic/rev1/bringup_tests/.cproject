@@ -4652,7 +4652,7 @@
 								<option id="com.freescale.ppc.toolchain.compiler.base.preprocessor.macroDefined.1526592678" name="Defined Macros (-D)" superClass="com.freescale.ppc.toolchain.compiler.base.preprocessor.macroDefined" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="TEST_CONSOLE_PRINT=ON"/>
 									<listOptionValue builtIn="false" value="LS2088A_REV1"/>
-									<listOptionValue builtIn="false" value="TEST__TOTAL_CORE_NO=4"/>
+									<listOptionValue builtIn="false" value="TEST__TOTAL_CORE_NO=16"/>
 									<listOptionValue builtIn="false" value="TEST__CLUSTER_CORE_NO=4"/>
 								</option>
 								<option id="com.freescale.ppc.toolchain.compiler.base.warnings.sysfilecaps.1006748035" name="Check System Includes" superClass="com.freescale.ppc.toolchain.compiler.base.warnings.sysfilecaps" value="true" valueType="boolean"/>
@@ -4887,7 +4887,7 @@
 								<option id="com.freescale.ppc.toolchain.compiler.base.preprocessor.macroDefined.880161282" name="Defined Macros (-D)" superClass="com.freescale.ppc.toolchain.compiler.base.preprocessor.macroDefined" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="TEST_CONSOLE_PRINT=ON"/>
 									<listOptionValue builtIn="false" value="LS2085A_REV1"/>
-									<listOptionValue builtIn="false" value="TEST__TOTAL_CORE_NO=4"/>
+									<listOptionValue builtIn="false" value="TEST__TOTAL_CORE_NO=16"/>
 									<listOptionValue builtIn="false" value="TEST__CLUSTER_CORE_NO=4"/>
 								</option>
 								<option id="com.freescale.ppc.toolchain.compiler.base.warnings.sysfilecaps.2006189989" name="Check System Includes" superClass="com.freescale.ppc.toolchain.compiler.base.warnings.sysfilecaps" value="true" valueType="boolean"/>
@@ -5122,7 +5122,7 @@
 								<option id="com.freescale.ppc.toolchain.compiler.base.preprocessor.macroDefined.1425108453" name="Defined Macros (-D)" superClass="com.freescale.ppc.toolchain.compiler.base.preprocessor.macroDefined" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="TEST_DPBP=ON"/>
 									<listOptionValue builtIn="false" value="LS2088A_REV1"/>
-									<listOptionValue builtIn="false" value="TEST__TOTAL_CORE_NO=4"/>
+									<listOptionValue builtIn="false" value="TEST__TOTAL_CORE_NO=16"/>
 									<listOptionValue builtIn="false" value="TEST__CLUSTER_CORE_NO=4"/>
 								</option>
 								<option id="com.freescale.ppc.toolchain.compiler.base.warnings.sysfilecaps.1136544268" name="Check System Includes" superClass="com.freescale.ppc.toolchain.compiler.base.warnings.sysfilecaps" value="true" valueType="boolean"/>
@@ -5357,7 +5357,7 @@
 								<option id="com.freescale.ppc.toolchain.compiler.base.preprocessor.macroDefined.983999880" name="Defined Macros (-D)" superClass="com.freescale.ppc.toolchain.compiler.base.preprocessor.macroDefined" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="TEST_DPBP=ON"/>
 									<listOptionValue builtIn="false" value="LS2085A_REV1"/>
-									<listOptionValue builtIn="false" value="TEST__TOTAL_CORE_NO=4"/>
+									<listOptionValue builtIn="false" value="TEST__TOTAL_CORE_NO=16"/>
 									<listOptionValue builtIn="false" value="TEST__CLUSTER_CORE_NO=4"/>
 								</option>
 								<option id="com.freescale.ppc.toolchain.compiler.base.warnings.sysfilecaps.1324263224" name="Check System Includes" superClass="com.freescale.ppc.toolchain.compiler.base.warnings.sysfilecaps" value="true" valueType="boolean"/>
@@ -5592,7 +5592,7 @@
 								<option id="com.freescale.ppc.toolchain.compiler.base.preprocessor.macroDefined.1374580507" name="Defined Macros (-D)" superClass="com.freescale.ppc.toolchain.compiler.base.preprocessor.macroDefined" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="TEST_DPNI=ON"/>
 									<listOptionValue builtIn="false" value="LS2088A_REV1"/>
-									<listOptionValue builtIn="false" value="TEST__TOTAL_CORE_NO=4"/>
+									<listOptionValue builtIn="false" value="TEST__TOTAL_CORE_NO=16"/>
 									<listOptionValue builtIn="false" value="TEST__CLUSTER_CORE_NO=4"/>
 								</option>
 								<option id="com.freescale.ppc.toolchain.compiler.base.warnings.sysfilecaps.987333957" name="Check System Includes" superClass="com.freescale.ppc.toolchain.compiler.base.warnings.sysfilecaps" value="true" valueType="boolean"/>
@@ -5827,7 +5827,7 @@
 								<option id="com.freescale.ppc.toolchain.compiler.base.preprocessor.macroDefined.1890167086" name="Defined Macros (-D)" superClass="com.freescale.ppc.toolchain.compiler.base.preprocessor.macroDefined" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="TEST_DPNI=ON"/>
 									<listOptionValue builtIn="false" value="LS2085A_REV1"/>
-									<listOptionValue builtIn="false" value="TEST__TOTAL_CORE_NO=4"/>
+									<listOptionValue builtIn="false" value="TEST__TOTAL_CORE_NO=16"/>
 									<listOptionValue builtIn="false" value="TEST__CLUSTER_CORE_NO=4"/>
 								</option>
 								<option id="com.freescale.ppc.toolchain.compiler.base.warnings.sysfilecaps.1957862784" name="Check System Includes" superClass="com.freescale.ppc.toolchain.compiler.base.warnings.sysfilecaps" value="true" valueType="boolean"/>
@@ -6062,7 +6062,7 @@
 								<option id="com.freescale.ppc.toolchain.compiler.base.preprocessor.macroDefined.1755577397" name="Defined Macros (-D)" superClass="com.freescale.ppc.toolchain.compiler.base.preprocessor.macroDefined" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="TEST_EXCEPTIONS=ON"/>
 									<listOptionValue builtIn="false" value="LS2088A_REV1"/>
-									<listOptionValue builtIn="false" value="TEST__TOTAL_CORE_NO=4"/>
+									<listOptionValue builtIn="false" value="TEST__TOTAL_CORE_NO=16"/>
 									<listOptionValue builtIn="false" value="TEST__CLUSTER_CORE_NO=4"/>
 								</option>
 								<option id="com.freescale.ppc.toolchain.compiler.base.warnings.sysfilecaps.1952637598" name="Check System Includes" superClass="com.freescale.ppc.toolchain.compiler.base.warnings.sysfilecaps" value="true" valueType="boolean"/>
@@ -6297,7 +6297,7 @@
 								<option id="com.freescale.ppc.toolchain.compiler.base.preprocessor.macroDefined.737967104" name="Defined Macros (-D)" superClass="com.freescale.ppc.toolchain.compiler.base.preprocessor.macroDefined" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="TEST_EXCEPTIONS=ON"/>
 									<listOptionValue builtIn="false" value="LS2085A_REV1"/>
-									<listOptionValue builtIn="false" value="TEST__TOTAL_CORE_NO=4"/>
+									<listOptionValue builtIn="false" value="TEST__TOTAL_CORE_NO=16"/>
 									<listOptionValue builtIn="false" value="TEST__CLUSTER_CORE_NO=4"/>
 								</option>
 								<option id="com.freescale.ppc.toolchain.compiler.base.warnings.sysfilecaps.1080790899" name="Check System Includes" superClass="com.freescale.ppc.toolchain.compiler.base.warnings.sysfilecaps" value="true" valueType="boolean"/>
@@ -6532,7 +6532,7 @@
 								<option id="com.freescale.ppc.toolchain.compiler.base.preprocessor.macroDefined.1469567462" name="Defined Macros (-D)" superClass="com.freescale.ppc.toolchain.compiler.base.preprocessor.macroDefined" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="TEST_GPP_DDR=ON"/>
 									<listOptionValue builtIn="false" value="LS2088A_REV1"/>
-									<listOptionValue builtIn="false" value="TEST__TOTAL_CORE_NO=4"/>
+									<listOptionValue builtIn="false" value="TEST__TOTAL_CORE_NO=16"/>
 									<listOptionValue builtIn="false" value="TEST__CLUSTER_CORE_NO=4"/>
 								</option>
 								<option id="com.freescale.ppc.toolchain.compiler.base.warnings.sysfilecaps.1834325708" name="Check System Includes" superClass="com.freescale.ppc.toolchain.compiler.base.warnings.sysfilecaps" value="true" valueType="boolean"/>
@@ -6767,7 +6767,7 @@
 								<option id="com.freescale.ppc.toolchain.compiler.base.preprocessor.macroDefined.698887298" name="Defined Macros (-D)" superClass="com.freescale.ppc.toolchain.compiler.base.preprocessor.macroDefined" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="TEST_GPP_DDR=ON"/>
 									<listOptionValue builtIn="false" value="LS2085A_REV1"/>
-									<listOptionValue builtIn="false" value="TEST__TOTAL_CORE_NO=4"/>
+									<listOptionValue builtIn="false" value="TEST__TOTAL_CORE_NO=16"/>
 									<listOptionValue builtIn="false" value="TEST__CLUSTER_CORE_NO=4"/>
 								</option>
 								<option id="com.freescale.ppc.toolchain.compiler.base.warnings.sysfilecaps.790578642" name="Check System Includes" superClass="com.freescale.ppc.toolchain.compiler.base.warnings.sysfilecaps" value="true" valueType="boolean"/>
@@ -7002,7 +7002,7 @@
 								<option id="com.freescale.ppc.toolchain.compiler.base.preprocessor.macroDefined.737877420" name="Defined Macros (-D)" superClass="com.freescale.ppc.toolchain.compiler.base.preprocessor.macroDefined" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="TEST_MEM_ACCESS=ON"/>
 									<listOptionValue builtIn="false" value="LS2088A_REV1"/>
-									<listOptionValue builtIn="false" value="TEST__TOTAL_CORE_NO=4"/>
+									<listOptionValue builtIn="false" value="TEST__TOTAL_CORE_NO=16"/>
 									<listOptionValue builtIn="false" value="TEST__CLUSTER_CORE_NO=4"/>
 								</option>
 								<option id="com.freescale.ppc.toolchain.compiler.base.warnings.sysfilecaps.809673040" name="Check System Includes" superClass="com.freescale.ppc.toolchain.compiler.base.warnings.sysfilecaps" value="true" valueType="boolean"/>
@@ -7237,7 +7237,7 @@
 								<option id="com.freescale.ppc.toolchain.compiler.base.preprocessor.macroDefined.750038397" name="Defined Macros (-D)" superClass="com.freescale.ppc.toolchain.compiler.base.preprocessor.macroDefined" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="TEST_MEM_ACCESS=ON"/>
 									<listOptionValue builtIn="false" value="LS2085A_REV1"/>
-									<listOptionValue builtIn="false" value="TEST__TOTAL_CORE_NO=4"/>
+									<listOptionValue builtIn="false" value="TEST__TOTAL_CORE_NO=16"/>
 									<listOptionValue builtIn="false" value="TEST__CLUSTER_CORE_NO=4"/>
 								</option>
 								<option id="com.freescale.ppc.toolchain.compiler.base.warnings.sysfilecaps.944960899" name="Check System Includes" superClass="com.freescale.ppc.toolchain.compiler.base.warnings.sysfilecaps" value="true" valueType="boolean"/>
@@ -7472,7 +7472,7 @@
 								<option id="com.freescale.ppc.toolchain.compiler.base.preprocessor.macroDefined.1284417072" name="Defined Macros (-D)" superClass="com.freescale.ppc.toolchain.compiler.base.preprocessor.macroDefined" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="TEST_MULTI_CLUSTER=ON"/>
 									<listOptionValue builtIn="false" value="LS2088A_REV1"/>
-									<listOptionValue builtIn="false" value="TEST__TOTAL_CORE_NO=4"/>
+									<listOptionValue builtIn="false" value="TEST__TOTAL_CORE_NO=16"/>
 									<listOptionValue builtIn="false" value="TEST__CLUSTER_CORE_NO=4"/>
 								</option>
 								<option id="com.freescale.ppc.toolchain.compiler.base.warnings.sysfilecaps.1687582074" name="Check System Includes" superClass="com.freescale.ppc.toolchain.compiler.base.warnings.sysfilecaps" value="true" valueType="boolean"/>
@@ -7707,7 +7707,7 @@
 								<option id="com.freescale.ppc.toolchain.compiler.base.preprocessor.macroDefined.1836545553" name="Defined Macros (-D)" superClass="com.freescale.ppc.toolchain.compiler.base.preprocessor.macroDefined" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="TEST_MULTI_CLUSTER=ON"/>
 									<listOptionValue builtIn="false" value="LS2085A_REV1"/>
-									<listOptionValue builtIn="false" value="TEST__TOTAL_CORE_NO=4"/>
+									<listOptionValue builtIn="false" value="TEST__TOTAL_CORE_NO=16"/>
 									<listOptionValue builtIn="false" value="TEST__CLUSTER_CORE_NO=4"/>
 								</option>
 								<option id="com.freescale.ppc.toolchain.compiler.base.warnings.sysfilecaps.2035388254" name="Check System Includes" superClass="com.freescale.ppc.toolchain.compiler.base.warnings.sysfilecaps" value="true" valueType="boolean"/>
@@ -7942,7 +7942,7 @@
 								<option id="com.freescale.ppc.toolchain.compiler.base.preprocessor.macroDefined.1102704270" name="Defined Macros (-D)" superClass="com.freescale.ppc.toolchain.compiler.base.preprocessor.macroDefined" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="TEST_SINGLE_CLUSTER=ON"/>
 									<listOptionValue builtIn="false" value="LS2088A_REV1"/>
-									<listOptionValue builtIn="false" value="TEST__TOTAL_CORE_NO=4"/>
+									<listOptionValue builtIn="false" value="TEST__TOTAL_CORE_NO=16"/>
 									<listOptionValue builtIn="false" value="TEST__CLUSTER_CORE_NO=4"/>
 								</option>
 								<option id="com.freescale.ppc.toolchain.compiler.base.warnings.sysfilecaps.385306230" name="Check System Includes" superClass="com.freescale.ppc.toolchain.compiler.base.warnings.sysfilecaps" value="true" valueType="boolean"/>
@@ -8177,7 +8177,7 @@
 								<option id="com.freescale.ppc.toolchain.compiler.base.preprocessor.macroDefined.1134131986" name="Defined Macros (-D)" superClass="com.freescale.ppc.toolchain.compiler.base.preprocessor.macroDefined" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="TEST_SINGLE_CLUSTER=ON"/>
 									<listOptionValue builtIn="false" value="LS2085A_REV1"/>
-									<listOptionValue builtIn="false" value="TEST__TOTAL_CORE_NO=4"/>
+									<listOptionValue builtIn="false" value="TEST__TOTAL_CORE_NO=16"/>
 									<listOptionValue builtIn="false" value="TEST__CLUSTER_CORE_NO=4"/>
 								</option>
 								<option id="com.freescale.ppc.toolchain.compiler.base.warnings.sysfilecaps.1824015562" name="Check System Includes" superClass="com.freescale.ppc.toolchain.compiler.base.warnings.sysfilecaps" value="true" valueType="boolean"/>
@@ -8412,7 +8412,7 @@
 								<option id="com.freescale.ppc.toolchain.compiler.base.preprocessor.macroDefined.1556397873" name="Defined Macros (-D)" superClass="com.freescale.ppc.toolchain.compiler.base.preprocessor.macroDefined" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="TEST_SPINLOCKS=ON"/>
 									<listOptionValue builtIn="false" value="LS2088A_REV1"/>
-									<listOptionValue builtIn="false" value="TEST__TOTAL_CORE_NO=4"/>
+									<listOptionValue builtIn="false" value="TEST__TOTAL_CORE_NO=16"/>
 									<listOptionValue builtIn="false" value="TEST__CLUSTER_CORE_NO=4"/>
 								</option>
 								<option id="com.freescale.ppc.toolchain.compiler.base.warnings.sysfilecaps.683828097" name="Check System Includes" superClass="com.freescale.ppc.toolchain.compiler.base.warnings.sysfilecaps" value="true" valueType="boolean"/>
@@ -8647,7 +8647,7 @@
 								<option id="com.freescale.ppc.toolchain.compiler.base.preprocessor.macroDefined.26699501" name="Defined Macros (-D)" superClass="com.freescale.ppc.toolchain.compiler.base.preprocessor.macroDefined" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="TEST_SPINLOCKS=ON"/>
 									<listOptionValue builtIn="false" value="LS2085A_REV1"/>
-									<listOptionValue builtIn="false" value="TEST__TOTAL_CORE_NO=4"/>
+									<listOptionValue builtIn="false" value="TEST__TOTAL_CORE_NO=16"/>
 									<listOptionValue builtIn="false" value="TEST__CLUSTER_CORE_NO=4"/>
 								</option>
 								<option id="com.freescale.ppc.toolchain.compiler.base.warnings.sysfilecaps.817856263" name="Check System Includes" superClass="com.freescale.ppc.toolchain.compiler.base.warnings.sysfilecaps" value="true" valueType="boolean"/>
@@ -8882,7 +8882,7 @@
 								<option id="com.freescale.ppc.toolchain.compiler.base.preprocessor.macroDefined.1212362163" name="Defined Macros (-D)" superClass="com.freescale.ppc.toolchain.compiler.base.preprocessor.macroDefined" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="TEST_STACK_OVF=ON"/>
 									<listOptionValue builtIn="false" value="LS2088A_REV1"/>
-									<listOptionValue builtIn="false" value="TEST__TOTAL_CORE_NO=4"/>
+									<listOptionValue builtIn="false" value="TEST__TOTAL_CORE_NO=16"/>
 									<listOptionValue builtIn="false" value="TEST__CLUSTER_CORE_NO=4"/>
 								</option>
 								<option id="com.freescale.ppc.toolchain.compiler.base.warnings.sysfilecaps.1878467926" name="Check System Includes" superClass="com.freescale.ppc.toolchain.compiler.base.warnings.sysfilecaps" value="true" valueType="boolean"/>
@@ -9117,7 +9117,7 @@
 								<option id="com.freescale.ppc.toolchain.compiler.base.preprocessor.macroDefined.1762262465" name="Defined Macros (-D)" superClass="com.freescale.ppc.toolchain.compiler.base.preprocessor.macroDefined" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="TEST_STACK_OVF=ON"/>
 									<listOptionValue builtIn="false" value="LS2085A_REV1"/>
-									<listOptionValue builtIn="false" value="TEST__TOTAL_CORE_NO=4"/>
+									<listOptionValue builtIn="false" value="TEST__TOTAL_CORE_NO=16"/>
 									<listOptionValue builtIn="false" value="TEST__CLUSTER_CORE_NO=4"/>
 								</option>
 								<option id="com.freescale.ppc.toolchain.compiler.base.warnings.sysfilecaps.1743821570" name="Check System Includes" superClass="com.freescale.ppc.toolchain.compiler.base.warnings.sysfilecaps" value="true" valueType="boolean"/>
