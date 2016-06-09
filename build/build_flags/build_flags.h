@@ -74,6 +74,18 @@
 #define IPR_CODE_PLACEMENT     __COLD_CODE
 #endif
 /*
+ * CAPWAP Reassembly module
+ */
+#ifndef CWR_CODE_PLACEMENT
+#define CWR_CODE_PLACEMENT     __COLD_CODE
+#endif
+/*
+ * CAPWAP Fragmentation module
+ */
+#ifndef CWF_CODE_PLACEMENT
+#define CWF_CODE_PLACEMENT     __COLD_CODE
+#endif
+/*
  * TCP Reassembly module
  */ 
 #ifndef GRO_CODE_PLACEMENT
