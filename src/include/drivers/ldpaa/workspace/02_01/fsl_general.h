@@ -81,6 +81,10 @@
 #define TCP_GRO_MODULE_STATUS_ID (BASE_SW_MODULES_STATUS_ID + 0x05000000)
 /** DPNI driver module ID */
 #define DPNI_DRV_MODULE_STATUS_ID (BASE_SW_MODULES_STATUS_ID + 0x06000000)
+/** CAPWAP Reassembly module ID */
+#define CWR_MODULE_STATUS_ID 	(BASE_SW_MODULES_STATUS_ID + 0x07000000)
+/** CAPWAP Fragmentation module ID */
+#define CWF_MODULE_STATUS_ID 	(BASE_SW_MODULES_STATUS_ID + 0x08000000)
 
 /** @} */ /* end of AIOP_Return_Status */
 
