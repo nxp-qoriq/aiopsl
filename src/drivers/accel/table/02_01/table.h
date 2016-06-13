@@ -466,6 +466,7 @@ enum table_function_identifier {
 	TABLE_LOOKUP_BY_KEYID_FUNC_ID,
 	TABLE_QUERY_DEBUG_FUNC_ID,
 	TABLE_CALC_NUM_ENTRIES_PER_RULE_FUNC_ID,
+	TABLE_GET_NEXT_RULEID_FUNC_ID,
 };
 /** @} */ /* end of table_function_identifier */
 

@@ -360,8 +360,8 @@ int ipsec_release_buffer(ipsec_instance_handle_t instance_handle,
 /* The inline_max_size inline_max_total_size pragmas are here to eliminate
  * non-inlined build and warnings of the RTA */
 #pragma push
-#pragma inline_max_size (5000)
-#pragma inline_max_total_size(10000)
+#pragma inline_max_size (10000)
+#pragma inline_max_total_size(50000)
 
 int ipsec_generate_encap_sd(
 		uint64_t sd_addr, /* Shared Descriptor Address in external memory */
@@ -675,8 +675,8 @@ int ipsec_generate_encap_sd(
 /* The inline_max_size inline_max_total_size pragmas are here to eliminate
  * non-inlined build and warnings of the RTA */
 #pragma push
-#pragma inline_max_size (5000)
-#pragma inline_max_total_size(10000)
+#pragma inline_max_size (10000)
+#pragma inline_max_total_size(50000)
 
 int ipsec_generate_decap_sd(
 		uint64_t sd_addr, /* Shared Descriptor Address in external memory */
@@ -3293,7 +3293,7 @@ IPSEC_CODE_PLACEMENT uint8_t ipsec_get_ipv6_nh_offset(
 
 	/* IP Header Length for SEC encapsulation, including IP header and
 	 * extensions before ESP */
-	*length = sizeof(struct ipv6hdr);
+	*length = (uint8_t)sizeof(struct ipv6hdr);
 
 	/* From RFC 2460: 4.1  Extension Header Order
 	 * IPv6 nodes must accept and attempt to process extension headers in
@@ -3678,7 +3678,7 @@ int ipsec_force_seconds_lifetime_expiry(
 			cdma_read(
 				&sap2, /* void *ws_dst */
 				IPSEC_SA_PARAMS_2_ADDR(desc_addr),
-				sizeof(sap2) /* uint16_t size */
+				(uint16_t)sizeof(sap2) /* uint16_t size */
 			);
 		}
 		

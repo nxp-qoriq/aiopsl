@@ -28,9 +28,7 @@
 #include "fsl_gen.h"
 #include "apps.h"
 #include "fsl_platform.h"
-#ifndef LS2085A_REV1
-	#include "fsl_sys.h"
-#endif
+#include "fsl_sys.h"
 #include "fsl_dpni_drv.h"
 
 /*
@@ -139,6 +137,7 @@ struct platform_app_params g_app_params =
  APP_DPNI_BUF_SIZE_IN_POOL,
  APP_DPNI_BUF_ALIGN_IN_POOL,
  APP_INIT_APP_MAX_NUM,
+ TRUE	/* disable backup pool for DPNI for better performance */
 };
 
 /* TODO set good default values */
@@ -146,15 +145,9 @@ struct aiop_init_info g_init_data =
 {
  /* aiop_sl_init_info */
  {
- #ifndef LS2085A_REV1
-  5,		/* aiop_rev_major     AIOP  */
-  0,		/* aiop_rev_minor     AIOP  */
-  0,		/* revision           AIOP */
- #else
   SYS_REV_MAJOR,	/* aiop_rev_major     AIOP  */
   SYS_REV_MINOR,	/* aiop_rev_minor     AIOP  */
   SYS_REVISION,		/* revision           AIOP */
- #endif
   0,            /* base_spid MC */
   0x6000000000,	/* dp_ddr_phys_addr      */
   0x40000000,	/* dp_ddr_virt_addr      */

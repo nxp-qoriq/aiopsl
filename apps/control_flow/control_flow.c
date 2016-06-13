@@ -122,9 +122,7 @@ __HOT_CODE ENTRY_POINT static void app_dpni_rx_dpmac(void)
 	/* Print frame to be sent */
 	print_frame_info();
 
-	err = dpni_drv_send(dest_ni, DPNI_DRV_SEND_MODE_NONE);
-	if (!err)
-		fdma_terminate_task();
+	err = dpni_drv_send(dest_ni, DPNI_DRV_SEND_MODE_TERM);
 
 	if (err == -ENOMEM)
 		fdma_discard_default_frame(FDMA_DIS_NO_FLAGS);
@@ -167,9 +165,7 @@ __HOT_CODE ENTRY_POINT static void app_dpni_rx_gpp(void)
 
 	print_frame_info();
 
-	err = dpni_drv_send(aiop_ni_dpmac, DPNI_DRV_SEND_MODE_NONE);
-	if (!err)
-		fdma_terminate_task();
+	err = dpni_drv_send(aiop_ni_dpmac, DPNI_DRV_SEND_MODE_TERM);
 
 	if (err == -ENOMEM)
 		fdma_discard_default_frame(FDMA_DIS_NO_FLAGS);

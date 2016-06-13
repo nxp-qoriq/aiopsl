@@ -270,6 +270,25 @@ uint16_t aiop_verification_table(uint32_t asa_seg_addr)
 		break;
 	}
 
+	/* Table Rule Query Get Next ID Command Verification */
+	case TABLE_RULE_QUERY_GET_NEXT_ID_CMD_STR:
+	{
+		struct table_rule_query_get_next_id_desc_command *str =
+		(struct table_rule_query_get_next_id_desc_command *)
+			asa_seg_addr;
+		uint64_t next_rule_id, rule_id =
+					rule_id_array[str->rule_id_index];
+
+		str->status = table_get_next_ruleid(str->acc_id,
+						    str->table_id,
+						    str->rule_id_index,
+						    &next_rule_id);
+
+		str->next_rule_id_index = rule_id_array[next_rule_id];
+		str_size =
+		sizeof(struct table_rule_query_get_next_id_desc_command);
+		break;
+	}
 
 	/* Table Rule Delete Command Verification */
 	case TABLE_RULE_DELETE_CMD_STR:

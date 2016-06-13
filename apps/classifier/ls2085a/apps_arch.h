@@ -27,15 +27,14 @@
 #ifndef __APPS_ARCH_H
 #define __APPS_ARCH_H
 
-#include "fsl_table.h"
-
 #define ARCH_DP_DDR_SIZE				(128 * MEGABYTE)
-#define ARCH_CTLU_DP_DDR_NUM_ENTRIES			(2048)
-#define ARCH_MFLU_DP_DDR_NUM_ENTRIES			(2048)
+#define ARCH_CTLU_DP_DDR_NUM_ENTRIES	(2048)
+#define ARCH_MFLU_DP_DDR_NUM_ENTRIES	(2048)
 
 #define ARCH_MEM_PEB_SIZE				(2048 * KILOBYTE)
-#define ARCH_MEM_SYS_DDR1_SIZE				(64 * MEGABYTE)
-#define ARCH_DPPNI_BUF_SIZE				2048
+#define ARCH_MEM_SYS_DDR1_SIZE			(64 * MEGABYTE)
+#define ARCH_DPPNI_BUF_SIZE				512
+
 #define APP_TABLE_PARAMS_ATTRIBUTES		TABLE_ATTRIBUTE_TYPE_EM | \
 					TABLE_ATTRIBUTE_LOCATION_DP_DDR | \
 					TABLE_ATTRIBUTE_MR_NO_MISS
@@ -49,5 +48,10 @@
 #define ARCH_TABLE_RULE_CREATE(table_id, rule, key_len, rule_id) \
 	UNUSED(rule_id); \
 	table_rule_create(TABLE_ACCEL_ID_CTLU, table_id, &rule, key_len)
+
+#define GET_USER_DATA(result) result.opaque0_or_reference
+#define SET_USER_DATA(rule, d) rule.result.op0_rptr_clp.opaque0 = d
+
+#define ADD_DPNI_DRV_SEND_RELINQUISH_MODE(flags)
 
 #endif /* __APPS_ARCH_H */

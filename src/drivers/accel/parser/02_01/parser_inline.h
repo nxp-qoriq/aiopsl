@@ -552,7 +552,7 @@ inline void parser_push_vlan_update()
 	pr->frame_attribute_flags_1 = temp_32b;
 }
 
-int parse_result_generate_checksum(
+inline int parse_result_generate_checksum(
 		enum parser_starting_hxs_code starting_hxs,
 		uint8_t starting_offset, uint16_t *l3_checksum,
 		uint16_t *l4_checksum)

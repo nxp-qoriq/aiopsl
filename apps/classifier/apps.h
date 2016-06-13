@@ -41,7 +41,7 @@
 
 #include "apps_arch.h"
 
-#define APP_INIT_TASKS_PER_CORE		8	/**< Tasks per core in AIOP */
+#define APP_INIT_TASKS_PER_CORE		16	/**< Tasks per core in AIOP */
 #define APP_INIT_APP_MAX_NUM		10
 /**<  Maximal number of applications to be filled by build_apps_array() */
 
@@ -117,7 +117,7 @@
 @{
 *//***************************************************************************/
 
-#define APP_DPNI_NUM_BUFS_IN_POOL	512	/**< Number of buffers */
+#define APP_DPNI_NUM_BUFS_IN_POOL	4096	/**< Number of buffers */
 #define APP_DPNI_BUF_SIZE_IN_POOL	ARCH_DPPNI_BUF_SIZE	/**< Size of buffer */
 #define APP_DPNI_BUF_ALIGN_IN_POOL	64	/**< Alignment of buffer */
 #define APP_DPNI_SPID_COUNT		8	/**< Max number of SPIDs */

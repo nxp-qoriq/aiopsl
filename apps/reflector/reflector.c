@@ -42,6 +42,14 @@
 #define NH_FLD_L4_PORT_SRC	(1)
 #define NH_FLD_L4_PORT_DST	(NH_FLD_L4_PORT_SRC << 1)
 
+/*
+ * The application swaps source & destination addresses for L2 and IPv4
+ * protocols, so it needs only 64 bytes from the frame.
+ * The Segment Presentation Size (SPS) is set to 64
+ * as smaller SPS can improve performance.
+ */
+#define PRESENTATION_LENGTH 64
+
 static void app_fill_kg_profile(struct dpkg_profile_cfg *kg_cfg);
 static inline void l2_ip_src_dst_swap(void);
 
@@ -83,9 +91,7 @@ __HOT_CODE ENTRY_POINT static void app_reflector(void)
 	osm_scope_transition_to_exclusive_with_increment_scope_id();
 #endif
 
-	err = dpni_drv_send(task_get_receive_niid(), DPNI_DRV_SEND_MODE_NONE);
-	if (!err)
-		fdma_terminate_task();
+	err = dpni_drv_send(task_get_receive_niid(), DPNI_DRV_SEND_FLAGS);
 
 	if (err == -ENOMEM)
 		fdma_discard_default_frame(FDMA_DIS_NO_FLAGS);
@@ -130,6 +136,7 @@ static int app_dpni_add_cb(uint8_t generator_id, uint8_t event_id,
 	uint8_t			mac_addr[NET_HDR_FLD_ETH_ADDR_SIZE];
 	char			dpni_ep_type[16];
 	int			dpni_ep_id, err, link_state;
+	struct ep_init_presentation init_presentation;
 
 	UNUSED(generator_id);
 	UNUSED(event_id);
@@ -150,7 +157,7 @@ static int app_dpni_add_cb(uint8_t generator_id, uint8_t event_id,
 		pr_err("Cannot configure processing callback on NI %d\n", ni);
 		return err;
 	}
-	
+
 	/* Get DPNI ID for current Network Interface ID */
 	err = dpni_drv_get_dpni_id(ni, &dpni_id);
 	if (err) {
@@ -180,13 +187,29 @@ static int app_dpni_add_cb(uint8_t generator_id, uint8_t event_id,
 		return err;
 	}
 
+	/* Set the initial segment presentation size */
+	err = dpni_drv_get_initial_presentation(ni, &init_presentation);
+	if (err) {
+		pr_err("Cannot get initial presentation for NI %d\n", ni);
+		return err;
+	}
+
+	init_presentation.options = EP_INIT_PRESENTATION_OPT_SPS;
+	init_presentation.sps = PRESENTATION_LENGTH;
+	err = dpni_drv_set_initial_presentation(ni, &init_presentation);
+	if (err) {
+		pr_err("Cannot set initial presentation for NI %d to %d\n",
+				ni, init_presentation.sps);
+		return err;
+	}
+
 	/* Enable DPNI to receive frames */
 	err = dpni_drv_enable(ni);
 	if (err) {
 		pr_err("Cannot enable NI %d for Rx/Tx\n", ni);
 		return err;
 	}
-	
+
 	fsl_print("%s : Successfully configured ni%d (dpni.%d)\n",
 		  AIOP_APP_NAME, ni, dpni_id);
 	fsl_print("%s : dpni.%d <---connected---> %s.%d ",

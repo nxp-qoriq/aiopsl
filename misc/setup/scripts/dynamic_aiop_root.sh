@@ -10,7 +10,7 @@
 # This scripts takes no arguments.
 # This script performs the following operations:
 # 1. Create an AIOP DPRC
-#    AIOP DPRC contains 3 DPBPs, 2 DPNIs
+#    AIOP DPRC contains 4 DPBPs, 2 DPNIs
 # 2. Create an AIOP Tool DPRC
 #    AIOP Tool DPRC contains 1 DPAIOP and 1 DPMCP
 #
@@ -180,6 +180,9 @@ create_aiop_container()
 	log_debug "Creating DPBP3: restool dpbp create"
 	restool_cmd "dpbp create" None ac_DPRC
 
+	log_debug "Creating DPBP4: restool dpbp create"
+	restool_cmd "dpbp create" None ac_DPRC
+
 	ACTUAL_MAC="00:00:00:00:00:06"
 	MAX_SENDERS=8
 	DPNI_OPTIONS="DPNI_OPT_MULTICAST_FILTER,DPNI_OPT_UNICAST_FILTER,DPNI_OPT_TX_CONF_DISABLED,DPNI_OPT_DIST_HASH"
@@ -221,7 +224,6 @@ create_aiop_container()
 	 			--max-dist-key-size=$MAX_DIST_KEY_SIZE \
 	 			" atc_DPNI2 ac_DPRC
 	log_info "Connecting $atc_DPNI2<------->$ROOTDPNI"
-	restool_cmd "dprc disconnect dprc.1 --endpoint=$ROOTDPNI" None None
 	restool_cmd "dprc connect dprc.1 --endpoint1=$atc_DPNI2 --endpoint2=$ROOTDPNI" None None
 
 	echo "AIOP Container $ac_DPRC created"
@@ -249,6 +251,8 @@ create_aiopt_container()
 
 main()
 {
+	restool_cmd "dprc disconnect dprc.1 --endpoint=$ROOTDPNI" None None
+
 	log_info "Creating AIOP Container"
 	create_aiop_container
 	log_info "----- Contents of AIOP Container: $ac_DPRC -----"

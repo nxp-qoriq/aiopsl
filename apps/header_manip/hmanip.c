@@ -271,9 +271,7 @@ __HOT_CODE ENTRY_POINT static void app_hmanip(void)
 
 	/* Reflect back the packet on the same interface
 	 * from which it was received */
-	err = dpni_drv_send(task_get_receive_niid(), DPNI_DRV_SEND_MODE_NONE);
-	if (!err)
-		fdma_terminate_task();
+	err = dpni_drv_send(task_get_receive_niid(), DPNI_DRV_SEND_MODE_TERM);
 
 	if (err == -ENOMEM)
 		fdma_discard_default_frame(FDMA_DIS_NO_FLAGS);

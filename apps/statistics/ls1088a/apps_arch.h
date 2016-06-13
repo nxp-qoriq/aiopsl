@@ -27,16 +27,16 @@
 #ifndef __APPS_ARCH_H
 #define __APPS_ARCH_H
 
-#define ARCH_INIT_TASKS_PER_CORE_SIZE			4
+#define ARCH_INIT_TASKS_PER_CORE_SIZE	16
 
 #define ARCH_DP_DDR_SIZE				(0)
-#define ARCH_CTLU_DP_DDR_NUM_ENTRIES			(0)
-#define ARCH_MFLU_DP_DDR_NUM_ENTRIES			(0)
+#define ARCH_CTLU_DP_DDR_NUM_ENTRIES	(0)
+#define ARCH_MFLU_DP_DDR_NUM_ENTRIES	(0)
 
-#define ARCH_MEM_PEB_SIZE				(512 * KILOBYTE)
-#define ARCH_MEM_SYS_DDR1_SIZE				(64 * MEGABYTE)
-#define ARCH_DPPNI_BUF_SIZE				2048
-#define ARCH_DPNI_BUFS_IN_POOL_NUM			50
+#define ARCH_MEM_PEB_SIZE				(2048 * KILOBYTE)
+#define ARCH_MEM_SYS_DDR1_SIZE			(64 * MEGABYTE)
+#define ARCH_DPPNI_BUF_SIZE				512
+#define ARCH_DPNI_BUFS_IN_POOL_NUM		4096
 
 #define APP_TABLE_PARAMS_ATTRIBUTES		TABLE_ATTRIBUTE_TYPE_EM | \
 					TABLE_ATTRIBUTE_LOCATION_SYS_DDR | \
@@ -50,5 +50,10 @@
 #define ARCH_TABLE_RULE_CREATE(table_id, rule, key_len, rule_id) \
 	table_rule_create(TABLE_ACCEL_ID_CTLU, \
 		table_id, &rule, key_len, &rule_id)
+
+#define APP_MEM_PARTITION MEM_PART_SYSTEM_DDR
+
+#define GET_USER_DATA(result) result.data0
+#define SET_USER_DATA(rule, d) rule.result.data0 = d
 
 #endif /* __APPS_ARCH_H */
