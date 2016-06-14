@@ -66,7 +66,8 @@ enum e_ste_verif_cmd_type {
 	STE_CMDTYPE_DEC_SUB_CNT,
 	STE_CMDTYPE_BARRIER,
 	STE_CMDTYPE_READ_ERRORS,
-	STE_CMDTYPE_CLEAR_ERRORS
+	STE_CMDTYPE_CLEAR_ERRORS,
+	STE_CMDTYPE_DECODE_ERROR
 };
 
 /* STE Commands Structure identifiers */
@@ -111,6 +112,9 @@ enum e_ste_verif_cmd_type {
 
 #define STE_CLEAR_ERRORS_CMD_STR	((STE_MODULE << 16) | \
 		(uint32_t)STE_CMDTYPE_CLEAR_ERRORS)
+
+#define STE_DECODE_ERROR_CMD_STR	((STE_MODULE << 16) | \
+		(uint32_t)STE_CMDTYPE_DECODE_ERROR)
 
 /**************************************************************************//**
 @Description	STE set 4 byte counter Command structure.
@@ -204,6 +208,19 @@ struct ste_clear_error_command {
 	uint32_t	opcode;
 		/**< Command structure identifier. */
 };
+
+/**************************************************************************//**
+@Description	STE decode error Command structure.
+
+		Includes information needed for STE Command verification.
+*//***************************************************************************/
+struct ste_decode_error_command {
+	uint32_t	opcode;
+		/**< Command structure identifier. */
+	uint8_t		pad[4];
+	uint64_t	counter_addr;
+};
+
 
 uint16_t aiop_verification_ste(uint32_t asa_seg_addr);
 

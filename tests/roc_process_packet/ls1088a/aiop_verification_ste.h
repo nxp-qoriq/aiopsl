@@ -54,6 +54,8 @@
 #define STE_VERIF_ACCEL_ID	0xFF
 	/**< STE accelerator ID For verification purposes*/
 
+#define STE_CMD_TYPE_DECODE_ERR		0x30000001
+
 /*! \enum e_ste_cmd_type defines the statistics engine CMDTYPE field.*/
 enum e_ste_verif_cmd_type {
 	STE_CMDTYPE_SET_4B = 0,
