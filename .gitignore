@@ -13,3 +13,4 @@ makefile
 *.swp
 **/Referenced Systems/
 **/.settings/
+build-all.log
