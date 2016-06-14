@@ -108,7 +108,7 @@
 									<listOptionValue builtIn="false" value="aiop_sl/drivers/netf/ipf/ipf.c"/>
 									<listOptionValue builtIn="false" value="aiop_sl/drivers/netf/ipr/ipr.c"/>
 									<listOptionValue builtIn="false" value="aiop_sl/drivers/netf/ipsec/ipsec.c"/>
-									<listOptionValue builtIn="false" value="aiop_sl/drivers/netf/capwap/reassembly/cwr.c"/>
+									<listOptionValue builtIn="false" value="aiop_sl/drivers/netf/capwap/cwapr/cwapr.c"/>
 									<listOptionValue builtIn="false" value="aiop_sl/drivers/netf/capwap/fragmentation/cwf.c"/>
 									<listOptionValue builtIn="false" value="aiop_sl/lib/evmng/evmng.c"/>
 									<listOptionValue builtIn="false" value="aiop_sl/lib/net/inet.c"/>
@@ -194,7 +194,7 @@
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/drivers/netf/ipsec&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/drivers/netf/gro&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/drivers/netf/gso&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/drivers/netf/capwap/reassembly&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/drivers/netf/capwap/cwapr&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/drivers/netf/capwap/fragmentation&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/drivers/snic&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/include/drivers/accel/cdma&quot;"/>
@@ -215,7 +215,7 @@
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/include/drivers/netf/ipf&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/include/drivers/netf/ipr&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/include/drivers/netf/ipsec&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/include/drivers/netf/capwap/reassembly&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/include/drivers/netf/capwap/cwapr&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/include/drivers/netf/capwap/fragmentation&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/kernel&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/kernel/cmdif/00_02&quot;"/>
@@ -275,7 +275,7 @@
 						</toolChain>
 					</folderInfo>
 					<sourceEntries>
-						<entry excluding="aiop_sl/drivers/netf/capwap/fragmentation/00_01|aiop_sl/include/drivers/netf/capwap/fragmentation/00_01|aiop_sl/arch/platform/ls2088a|aiop_sl/drivers/netf/capwap/reassembly/00_01|aiop_sl/include/drivers/netf/capwap/reassembly/00_01|aiop_sl/arch/platform/ls2088a/config.c|aiop_sl/arch/platform/ls2085a/config.c|aiop_sl/kernel/cmdif/00_01|aiop_sl/kernel/rcu/rcu_stub.c|aiop_sl/kernel/rcu/00_01|aiop_sl/drivers/netf/ipf/00_01|aiop_sl/drivers/netf/gso/00_01|aiop_sl/drivers/accel/cdma/01_01|aiop_sl/drivers/accel/tman/01_01|aiop_sl/drivers/accel/table/01_01|aiop_sl/drivers/accel/system/01_01|aiop_sl/drivers/accel/parser/01_01|aiop_sl/drivers/accel/osm/01_01|aiop_sl/drivers/accel/fdma/01_01|aiop_sl/drivers/snic/00_01|aiop_sl/drivers/netf/ipr/00_01|aiop_sl/drivers/netf/gro/00_01|aiop_sl/drivers/netf/general/frame_operations/01_01|aiop_sl/lib/slab/virtual_pools.c|aiop_sl/arch/platform/ls1088a/config.c|aiop_sl/arch/ppc/booke_irq.S|cw_files/start_secondary.S" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
+						<entry excluding="aiop_sl/drivers/netf/capwap/fragmentation/00_01|aiop_sl/include/drivers/netf/capwap/fragmentation/00_01|aiop_sl/arch/platform/ls2088a|aiop_sl/drivers/netf/capwap/cwapr/00_01|aiop_sl/include/drivers/netf/capwap/cwapr/00_01|aiop_sl/arch/platform/ls2088a/config.c|aiop_sl/arch/platform/ls2085a/config.c|aiop_sl/kernel/cmdif/00_01|aiop_sl/kernel/rcu/rcu_stub.c|aiop_sl/kernel/rcu/00_01|aiop_sl/drivers/netf/ipf/00_01|aiop_sl/drivers/netf/gso/00_01|aiop_sl/drivers/accel/cdma/01_01|aiop_sl/drivers/accel/tman/01_01|aiop_sl/drivers/accel/table/01_01|aiop_sl/drivers/accel/system/01_01|aiop_sl/drivers/accel/parser/01_01|aiop_sl/drivers/accel/osm/01_01|aiop_sl/drivers/accel/fdma/01_01|aiop_sl/drivers/snic/00_01|aiop_sl/drivers/netf/ipr/00_01|aiop_sl/drivers/netf/gro/00_01|aiop_sl/drivers/netf/general/frame_operations/01_01|aiop_sl/lib/slab/virtual_pools.c|aiop_sl/arch/platform/ls1088a/config.c|aiop_sl/arch/ppc/booke_irq.S|cw_files/start_secondary.S" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
 					</sourceEntries>
 				</configuration>
 			</storageModule>
@@ -394,7 +394,7 @@
 									<listOptionValue builtIn="false" value="aiop_sl/drivers/netf/ipf/00_02/ipf.c"/>
 									<listOptionValue builtIn="false" value="aiop_sl/drivers/netf/ipr/00_02/ipr.c"/>
 									<listOptionValue builtIn="false" value="aiop_sl/drivers/netf/ipsec/00_01/ipsec.c"/>
-									<listOptionValue builtIn="false" value="aiop_sl/drivers/netf/capwap/reassembly/00_02/cwr.c"/>
+									<listOptionValue builtIn="false" value="aiop_sl/drivers/netf/capwap/cwapr/00_02/cwapr.c"/>
 									<listOptionValue builtIn="false" value="aiop_sl/drivers/netf/capwap/fragmentation/00_02/cwf.c"/>
 									<listOptionValue builtIn="false" value="aiop_sl/drivers/snic/00_02/snic.c"/>
 								</option>
@@ -472,7 +472,7 @@
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/drivers/netf/ipsec&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/drivers/netf/gro&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/drivers/netf/gso&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/drivers/netf/capwap/reassembly&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/drivers/netf/capwap/cwapr&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/drivers/netf/capwap/fragmentation&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/drivers/snic&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/include/drivers/accel/cdma&quot;"/>
@@ -493,7 +493,7 @@
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/include/drivers/netf/ipf&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/include/drivers/netf/ipr&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/include/drivers/netf/ipsec&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/include/drivers/netf/capwap/reassembly&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/include/drivers/netf/capwap/cwapr&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/include/drivers/netf/capwap/fragmentation&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/kernel&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/kernel/cmdif/00_02&quot;"/>
@@ -553,7 +553,7 @@
 						</toolChain>
 					</folderInfo>
 					<sourceEntries>
-						<entry excluding="aiop_sl/drivers/netf/capwap/fragmentation/00_01|aiop_sl/include/drivers/netf/capwap/fragmentation/00_01|aiop_sl/drivers/netf/capwap/reassembly/00_01|aiop_sl/include/drivers/netf/capwap/reassembly/00_01|aiop_sl/arch/platform/ls2085a/config.c|aiop_sl/kernel/cmdif/00_01|aiop_sl/kernel/rcu/rcu_stub.c|aiop_sl/kernel/rcu/00_01|aiop_sl/arch/platform/ls2088a/config.c|aiop_sl/arch/platform/ls1088a|aiop_sl/drivers/netf/ipf/00_01|aiop_sl/drivers/netf/gso/00_01|aiop_sl/drivers/accel/cdma/01_01|aiop_sl/drivers/accel/tman/01_01|aiop_sl/drivers/accel/table/01_01|aiop_sl/drivers/accel/system/01_01|aiop_sl/drivers/accel/parser/01_01|aiop_sl/drivers/accel/osm/01_01|aiop_sl/drivers/accel/fdma/01_01|aiop_sl/drivers/snic/00_01|aiop_sl/drivers/netf/ipr/00_01|aiop_sl/drivers/netf/gro/00_01|aiop_sl/drivers/netf/general/frame_operations/01_01|aiop_sl/lib/slab/virtual_pools.c|aiop_sl/arch/platform/ls1088a/config.c|aiop_sl/arch/ppc/booke_irq.S|cw_files/start_secondary.S" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
+						<entry excluding="aiop_sl/drivers/netf/capwap/fragmentation/00_01|aiop_sl/include/drivers/netf/capwap/fragmentation/00_01|aiop_sl/drivers/netf/capwap/cwapr/00_01|aiop_sl/include/drivers/netf/capwap/cwapr/00_01|aiop_sl/arch/platform/ls2085a/config.c|aiop_sl/kernel/cmdif/00_01|aiop_sl/kernel/rcu/rcu_stub.c|aiop_sl/kernel/rcu/00_01|aiop_sl/arch/platform/ls2088a/config.c|aiop_sl/arch/platform/ls1088a|aiop_sl/drivers/netf/ipf/00_01|aiop_sl/drivers/netf/gso/00_01|aiop_sl/drivers/accel/cdma/01_01|aiop_sl/drivers/accel/tman/01_01|aiop_sl/drivers/accel/table/01_01|aiop_sl/drivers/accel/system/01_01|aiop_sl/drivers/accel/parser/01_01|aiop_sl/drivers/accel/osm/01_01|aiop_sl/drivers/accel/fdma/01_01|aiop_sl/drivers/snic/00_01|aiop_sl/drivers/netf/ipr/00_01|aiop_sl/drivers/netf/gro/00_01|aiop_sl/drivers/netf/general/frame_operations/01_01|aiop_sl/lib/slab/virtual_pools.c|aiop_sl/arch/platform/ls1088a/config.c|aiop_sl/arch/ppc/booke_irq.S|cw_files/start_secondary.S" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
 					</sourceEntries>
 				</configuration>
 			</storageModule>
@@ -670,7 +670,7 @@
 									<listOptionValue builtIn="false" value="aiop_sl/drivers/netf/gso/00_01/gso.c"/>
 									<listOptionValue builtIn="false" value="aiop_sl/drivers/netf/ipf/00_01/ipf.c"/>
 									<listOptionValue builtIn="false" value="aiop_sl/drivers/netf/ipr/00_01/ipr.c"/>
-									<listOptionValue builtIn="false" value="aiop_sl/drivers/netf/capwap/reassembly/00_01/cwr.c"/>
+									<listOptionValue builtIn="false" value="aiop_sl/drivers/netf/capwap/cwapr/00_01/cwapr.c"/>
 									<listOptionValue builtIn="false" value="aiop_sl/drivers/netf/capwap/fragmentation/00_01/cwf.c"/>
 									<listOptionValue builtIn="false" value="aiop_sl/drivers/snic/00_01/snic.c"/>
 									<listOptionValue builtIn="false" value="aiop_sl/kernel/rcu/rcu_stub.c"/>
@@ -749,7 +749,7 @@
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/drivers/netf/ipsec&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/drivers/netf/gro&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/drivers/netf/gso&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/drivers/netf/capwap/reassembly&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/drivers/netf/capwap/cwapr&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/drivers/netf/capwap/fragmentation&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/drivers/snic&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/include/drivers/accel/cdma&quot;"/>
@@ -770,7 +770,7 @@
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/include/drivers/netf/ipf&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/include/drivers/netf/ipr&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/include/drivers/netf/ipsec&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/include/drivers/netf/capwap/reassembly&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/include/drivers/netf/capwap/cwapr&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/kernel&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/kernel/cmdif/00_01&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/kernel/icontext&quot;"/>
@@ -830,7 +830,7 @@
 						</toolChain>
 					</folderInfo>
 					<sourceEntries>
-						<entry excluding="aiop_sl/arch/platform/ls2088a|aiop_sl/include/drivers/netf/capwap/fragmentation/00_02|aiop_sl/drivers/netf/capwap/fragmentation/00_02|aiop_sl/include/drivers/netf/capwap/reassembly/00_02|aiop_sl/drivers/netf/capwap/reassembly/00_02|aiop_sl/arch/platform/ls2088a/config.c|aiop_sl/drivers/doorbell|aiop_sl/kernel/rcu/00_01|aiop_sl/kernel/rcu/00_02|aiop_sl/kernel/cmdif/00_02|aiop_sl/drivers/snic/00_02|aiop_sl/drivers/netf/ipr/00_02|aiop_sl/drivers/netf/ipf/00_02|aiop_sl/drivers/netf/gso/00_02|aiop_sl/drivers/netf/gro/00_02|aiop_sl/drivers/netf/general/frame_operations/02_01|aiop_sl/drivers/accel/tman/02_01|aiop_sl/drivers/accel/table/02_01|aiop_sl/drivers/accel/system/01_02|aiop_sl/drivers/accel/parser/02_01|aiop_sl/drivers/accel/osm/01_02|aiop_sl/drivers/accel/fdma/02_01|aiop_sl/drivers/accel/cdma/02_01|aiop_sl/arch/platform/ls2085a/config.c|aiop_sl/arch/platform/ls1088a|aiop_sl/lib/slab/virtual_pools.c|aiop_sl/arch/platform/ls1088a/config.c|aiop_sl/arch/ppc/booke_irq.S|cw_files/start_secondary.S" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
+						<entry excluding="aiop_sl/arch/platform/ls2088a|aiop_sl/include/drivers/netf/capwap/fragmentation/00_02|aiop_sl/drivers/netf/capwap/fragmentation/00_02|aiop_sl/include/drivers/netf/capwap/cwapr/00_02|aiop_sl/drivers/netf/capwap/cwapr/00_02|aiop_sl/arch/platform/ls2088a/config.c|aiop_sl/drivers/doorbell|aiop_sl/kernel/rcu/00_01|aiop_sl/kernel/rcu/00_02|aiop_sl/kernel/cmdif/00_02|aiop_sl/drivers/snic/00_02|aiop_sl/drivers/netf/ipr/00_02|aiop_sl/drivers/netf/ipf/00_02|aiop_sl/drivers/netf/gso/00_02|aiop_sl/drivers/netf/gro/00_02|aiop_sl/drivers/netf/general/frame_operations/02_01|aiop_sl/drivers/accel/tman/02_01|aiop_sl/drivers/accel/table/02_01|aiop_sl/drivers/accel/system/01_02|aiop_sl/drivers/accel/parser/02_01|aiop_sl/drivers/accel/osm/01_02|aiop_sl/drivers/accel/fdma/02_01|aiop_sl/drivers/accel/cdma/02_01|aiop_sl/arch/platform/ls2085a/config.c|aiop_sl/arch/platform/ls1088a|aiop_sl/lib/slab/virtual_pools.c|aiop_sl/arch/platform/ls1088a/config.c|aiop_sl/arch/ppc/booke_irq.S|cw_files/start_secondary.S" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
 					</sourceEntries>
 				</configuration>
 			</storageModule>

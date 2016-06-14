@@ -25,13 +25,13 @@
  */
 
 /**************************************************************************//**
-@File          cwr.h
+@File          cwapr.h
 
 @Description   This file contains CAPWAP Reassembly internal functions and definitions
 
 *//***************************************************************************/
 
-#ifndef __AIOP_CWR_H
-#define __AIOP_CWR_H
+#ifndef __AIOP_CWAPR_H
+#define __AIOP_CWAPR_H
 
-#endif /* __AIOP_CWR_H */
+#endif /* __AIOP_CWAPR_H */

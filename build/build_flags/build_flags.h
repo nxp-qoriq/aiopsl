@@ -76,8 +76,8 @@
 /*
  * CAPWAP Reassembly module
  */
-#ifndef CWR_CODE_PLACEMENT
-#define CWR_CODE_PLACEMENT     __COLD_CODE
+#ifndef CWAPR_CODE_PLACEMENT
+#define CWAPR_CODE_PLACEMENT   __COLD_CODE
 #endif
 /*
  * CAPWAP Fragmentation module

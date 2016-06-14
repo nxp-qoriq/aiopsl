@@ -24,12 +24,14 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "fsl_soc.h"
+/**************************************************************************//**
+@File          fsl_cwapr.h
 
-#if defined(ACCEL_CAPWAP_REASSEMBLY_REV1)
-#include "00_01/fsl_capwap_reassembly.h"
-#elif defined(ACCEL_CAPWAP_REASSEMBLY_REV2)
-#include "00_02/fsl_capwap_reassembly.h"
-#else
-#error Please specify accelerator API mode
-#endif
+@Description   This file contains the AIOP SW CAPWAP Reassembly API
+
+*//***************************************************************************/
+
+#ifndef __FSL_CWAPR_H
+#define __FSL_CWAPR_H
+
+#endif /* __FSL_CWAPR_H */

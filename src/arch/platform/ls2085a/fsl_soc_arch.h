@@ -123,7 +123,7 @@
     #define ACCEL_SYSTEM_REV1
     #define ACCEL_GENERAL_REV1
     #define ACCEL_SNIC_REV1
-    #define ACCEL_CAPWAP_REASSEMBLY_REV1
+    #define ACCEL_CWAPR_REV1
     #define ACCEL_CAPWAP_FRAGMENTATION_REV1
 #endif
 

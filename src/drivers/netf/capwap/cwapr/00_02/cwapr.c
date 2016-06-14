@@ -25,7 +25,7 @@
  */
 
 /**************************************************************************//**
-@File		cwr.c
+@File		cwapr.c
 
 @Description	This file contains the AIOP SW CAPWAP Reassembly implementation.
 
