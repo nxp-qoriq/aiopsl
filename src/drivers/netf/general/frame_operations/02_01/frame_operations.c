@@ -74,7 +74,7 @@ int create_frame(
 	fd->length = 0;
 	fd->offset = 0;
 
-	LDPAA_FD_SET_IVP(fd, 1);
+	/*LDPAA_FD_SET_IVP(fd, 1);*/
 	
 	/* Workaround for TKT285303
 	 * In case we will need PTA we cannot generate a frame with FDMA command
