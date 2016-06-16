@@ -166,6 +166,23 @@ uint16_t aiop_verification_ste(uint32_t asa_seg_addr)
 		break;
 	}
 	
+	/* STE AXI command decode error Command Verification */
+	case STE_DECODE_ERROR_CMD_STR:
+	{
+		struct ste_decode_error_command *str =
+			(struct ste_decode_error_command *) asa_seg_addr;
+		uint64_t counter_addr = str->counter_addr;
+		uint32_t mem_ptr = (uint32_t)STE_CTR_CMD_MEM_ADDR;
+		uint32_t cmd_type = (uint32_t)STE_ERROR_CMDTYPE;
+
+		__stqw(cmd_type, (uint32_t)0,
+			(uint32_t)(counter_addr>>32), (uint32_t)(counter_addr),
+			(uint32_t)0, (uint32_t *)mem_ptr);
+
+		str_size = sizeof(struct ste_decode_error_command);
+		break;
+	}
+
 	default:
 	{
 		return STR_SIZE_ERR;
