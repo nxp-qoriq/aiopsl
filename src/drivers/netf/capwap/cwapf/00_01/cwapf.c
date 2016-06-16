@@ -25,13 +25,9 @@
  */
 
 /**************************************************************************//**
-@File          cwf.h
+@File		cwapf.c
 
-@Description   This file contains CAPWAP Fragmentation internal functions and definitions
+@Description	This file contains the AIOP SW CAPWAP Fragmentation implementation.
 
 *//***************************************************************************/
 
-#ifndef __AIOP_CWF_H
-#define __AIOP_CWF_H
-
-#endif /* __AIOP_CWF_H */

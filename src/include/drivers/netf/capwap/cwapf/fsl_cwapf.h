@@ -24,14 +24,12 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/**************************************************************************//**
-@File          fsl_capwap_fragmentation.h
+#include "fsl_soc.h"
 
-@Description   This file contains the AIOP SW CAPWAP Fragmentation API
-
-*//***************************************************************************/
-
-#ifndef __FSL_CAPWAP_FRAGMENTATION_H
-#define __FSL_CAPWAP_FRAGMENTATION_H
-
-#endif /* __FSL_CAPWAP_FRAGMENTATION_H */
+#if defined(ACCEL_CWAPF_REV1)
+#include "00_01/fsl_cwapf.h"
+#elif defined(ACCEL_CWAPF_REV2)
+#include "00_02/fsl_cwapf.h"
+#else
+#error Please specify accelerator API mode
+#endif

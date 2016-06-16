@@ -25,13 +25,13 @@
  */
 
 /**************************************************************************//**
-@File          fsl_capwap_fragmentation.h
+@File          fsl_cwapf.h
 
 @Description   This file contains the AIOP SW CAPWAP Fragmentation API
 
 *//***************************************************************************/
 
-#ifndef __FSL_CAPWAP_FRAGMENTATION_H
-#define __FSL_CAPWAP_FRAGMENTATION_H
+#ifndef __FSL_CWAPF_H
+#define __FSL_CWAPF_H
 
-#endif /* __FSL_CAPWAP_FRAGMENTATION_H */
+#endif /* __FSL_CWAPF_H */

@@ -82,8 +82,8 @@
 /*
  * CAPWAP Fragmentation module
  */
-#ifndef CWF_CODE_PLACEMENT
-#define CWF_CODE_PLACEMENT     __COLD_CODE
+#ifndef CWAPF_CODE_PLACEMENT
+#define CWAPF_CODE_PLACEMENT     __COLD_CODE
 #endif
 /*
  * TCP Reassembly module

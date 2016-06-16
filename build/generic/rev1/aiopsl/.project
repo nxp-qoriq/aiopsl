@@ -1420,7 +1420,7 @@
 			<locationURI>PARENT-4-PROJECT_LOC/src/drivers/dplib/dprc/dprc_drv.c</locationURI>
 		</link>
 		<link>
-			<name>aiop_sl/drivers/netf/capwap/fragmentation</name>
+			<name>aiop_sl/drivers/netf/capwap/cwapf</name>
 			<type>2</type>
 			<locationURI>virtual:/virtual</locationURI>
 		</link>
@@ -1995,19 +1995,19 @@
 			<locationURI>PARENT-4-PROJECT_LOC/src/drivers/accel/tman/02_01/tman_inline.h</locationURI>
 		</link>
 		<link>
-			<name>aiop_sl/drivers/netf/capwap/fragmentation/00_01</name>
+			<name>aiop_sl/drivers/netf/capwap/cwapf/00_01</name>
 			<type>2</type>
 			<locationURI>virtual:/virtual</locationURI>
 		</link>
 		<link>
-			<name>aiop_sl/drivers/netf/capwap/fragmentation/00_02</name>
+			<name>aiop_sl/drivers/netf/capwap/cwapf/00_02</name>
 			<type>2</type>
 			<locationURI>virtual:/virtual</locationURI>
 		</link>
 		<link>
-			<name>aiop_sl/drivers/netf/capwap/fragmentation/cwf.h</name>
+			<name>aiop_sl/drivers/netf/capwap/cwapf/cwapf.h</name>
 			<type>1</type>
-			<locationURI>PARENT-4-PROJECT_LOC/src/drivers/netf/capwap/fragmentation/cwf.h</locationURI>
+			<locationURI>PARENT-4-PROJECT_LOC/src/drivers/netf/capwap/cwapf/cwapf.h</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/drivers/netf/capwap/cwapr/00_01</name>
@@ -2410,7 +2410,7 @@
 			<locationURI>PARENT-4-PROJECT_LOC/src/include/drivers/ldpaa/workspace/fsl_general.h</locationURI>
 		</link>
 		<link>
-			<name>aiop_sl/include/drivers/netf/capwap/fragmentation</name>
+			<name>aiop_sl/include/drivers/netf/capwap/cwapf</name>
 			<type>2</type>
 			<locationURI>virtual:/virtual</locationURI>
 		</link>
@@ -2520,24 +2520,24 @@
 			<locationURI>PARENT-4-PROJECT_LOC/src/include/drivers/netf/ipsec/fsl_ipsec.h</locationURI>
 		</link>
 		<link>
-			<name>aiop_sl/drivers/netf/capwap/fragmentation/00_01/cwf.c</name>
+			<name>aiop_sl/drivers/netf/capwap/cwapf/00_01/cwapf.c</name>
 			<type>1</type>
-			<locationURI>PARENT-4-PROJECT_LOC/src/drivers/netf/capwap/fragmentation/00_01/cwf.c</locationURI>
+			<locationURI>PARENT-4-PROJECT_LOC/src/drivers/netf/capwap/cwapf/00_01/cwapf.c</locationURI>
 		</link>
 		<link>
-			<name>aiop_sl/drivers/netf/capwap/fragmentation/00_01/cwf.h</name>
+			<name>aiop_sl/drivers/netf/capwap/cwapf/00_01/cwapf.h</name>
 			<type>1</type>
-			<locationURI>PARENT-4-PROJECT_LOC/src/drivers/netf/capwap/fragmentation/00_01/cwf.h</locationURI>
+			<locationURI>PARENT-4-PROJECT_LOC/src/drivers/netf/capwap/cwapf/00_01/cwapf.h</locationURI>
 		</link>
 		<link>
-			<name>aiop_sl/drivers/netf/capwap/fragmentation/00_02/cwf.c</name>
+			<name>aiop_sl/drivers/netf/capwap/cwapf/00_02/cwapf.c</name>
 			<type>1</type>
-			<locationURI>PARENT-4-PROJECT_LOC/src/drivers/netf/capwap/fragmentation/00_02/cwf.c</locationURI>
+			<locationURI>PARENT-4-PROJECT_LOC/src/drivers/netf/capwap/cwapf/00_02/cwapf.c</locationURI>
 		</link>
 		<link>
-			<name>aiop_sl/drivers/netf/capwap/fragmentation/00_02/cwf.h</name>
+			<name>aiop_sl/drivers/netf/capwap/cwapf/00_02/cwapf.h</name>
 			<type>1</type>
-			<locationURI>PARENT-4-PROJECT_LOC/src/drivers/netf/capwap/fragmentation/00_02/cwf.h</locationURI>
+			<locationURI>PARENT-4-PROJECT_LOC/src/drivers/netf/capwap/cwapf/00_02/cwapf.h</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/drivers/netf/capwap/cwapr/00_01/cwapr.c</name>
@@ -2655,19 +2655,19 @@
 			<locationURI>PARENT-4-PROJECT_LOC/src/include/drivers/ldpaa/workspace/02_01/fsl_general.h</locationURI>
 		</link>
 		<link>
-			<name>aiop_sl/include/drivers/netf/capwap/fragmentation/00_01</name>
+			<name>aiop_sl/include/drivers/netf/capwap/cwapf/00_01</name>
 			<type>2</type>
 			<locationURI>virtual:/virtual</locationURI>
 		</link>
 		<link>
-			<name>aiop_sl/include/drivers/netf/capwap/fragmentation/00_02</name>
+			<name>aiop_sl/include/drivers/netf/capwap/cwapf/00_02</name>
 			<type>2</type>
 			<locationURI>virtual:/virtual</locationURI>
 		</link>
 		<link>
-			<name>aiop_sl/include/drivers/netf/capwap/fragmentation/fsl_capwap_fragmentation.h</name>
+			<name>aiop_sl/include/drivers/netf/capwap/cwapf/fsl_cwapf.h</name>
 			<type>1</type>
-			<locationURI>PARENT-4-PROJECT_LOC/src/include/drivers/netf/capwap/fragmentation/fsl_capwap_fragmentation.h</locationURI>
+			<locationURI>PARENT-4-PROJECT_LOC/src/include/drivers/netf/capwap/cwapf/fsl_cwapf.h</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/include/drivers/netf/capwap/cwapr/00_01</name>
@@ -2765,14 +2765,14 @@
 			<locationURI>PARENT-4-PROJECT_LOC/src/include/drivers/netf/ipsec/00_01/fsl_ipsec.h</locationURI>
 		</link>
 		<link>
-			<name>aiop_sl/include/drivers/netf/capwap/fragmentation/00_01/fsl_capwap_fragmentation.h</name>
+			<name>aiop_sl/include/drivers/netf/capwap/cwapf/00_01/fsl_cwapf.h</name>
 			<type>1</type>
-			<locationURI>PARENT-4-PROJECT_LOC/src/include/drivers/netf/capwap/fragmentation/00_01/fsl_capwap_fragmentation.h</locationURI>
+			<locationURI>PARENT-4-PROJECT_LOC/src/include/drivers/netf/capwap/cwapf/00_01/fsl_cwapf.h</locationURI>
 		</link>
 		<link>
-			<name>aiop_sl/include/drivers/netf/capwap/fragmentation/00_02/fsl_capwap_fragmentation.h</name>
+			<name>aiop_sl/include/drivers/netf/capwap/cwapf/00_02/fsl_cwapf.h</name>
 			<type>1</type>
-			<locationURI>PARENT-4-PROJECT_LOC/src/include/drivers/netf/capwap/fragmentation/00_02/fsl_capwap_fragmentation.h</locationURI>
+			<locationURI>PARENT-4-PROJECT_LOC/src/include/drivers/netf/capwap/cwapf/00_02/fsl_cwapf.h</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/include/drivers/netf/capwap/cwapr/00_01/fsl_cwapr.h</name>
