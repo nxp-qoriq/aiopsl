@@ -97,6 +97,16 @@ aiop_sl		</project>
 			<locationURI>PARENT-4-PROJECT_LOC/tests/roc_process_packet/aiop_verification.h</locationURI>
 		</link>
 		<link>
+			<name>src/aiop_verification_cwapf.c</name>
+			<type>1</type>
+			<locationURI>PARENT-4-PROJECT_LOC/tests/roc_process_packet/aiop_verification_cwapf.c</locationURI>
+		</link>
+		<link>
+			<name>src/aiop_verification_cwapf.h</name>
+			<type>1</type>
+			<locationURI>PARENT-4-PROJECT_LOC/tests/roc_process_packet/aiop_verification_cwapf.h</locationURI>
+		</link>
+		<link>
 			<name>src/aiop_verification_data.c</name>
 			<type>1</type>
 			<locationURI>PARENT-4-PROJECT_LOC/tests/roc_process_packet/aiop_verification_data.c</locationURI>

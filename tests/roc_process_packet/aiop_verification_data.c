@@ -37,6 +37,7 @@
 #include "aiop_verification.h"
 #include "fsl_gso.h"
 #include "fsl_ipf.h"
+#include "fsl_cwapf.h"
 #include "fsl_ldpaa.h"
 #include "fsl_parser.h"
 #include "general.h"
@@ -69,6 +70,8 @@ __VERIF_TLS uint8_t  slab_keygen_error;
 __VERIF_TLS uint8_t  slab_general_error;
 __VERIF_TLS uint64_t initial_ext_address; /* Initial External Data Address */
 
+__VERIF_TLS cwapf_ctx_t cwapf_context_addr
+	__attribute__((aligned(sizeof(struct ldpaa_fd))));
 __VERIF_TLS ipf_ctx_t ipf_context_addr1
 	__attribute__((aligned(sizeof(struct ldpaa_fd))));
 __VERIF_TLS ipf_ctx_t ipf_context_addr2
@@ -77,6 +80,7 @@ __VERIF_TLS tcp_gso_ctx_t tcp_gso_context_addr1
 	__attribute__((aligned(sizeof(struct ldpaa_fd))));
 __VERIF_TLS int32_t status_gro;
 __VERIF_TLS int32_t status_gso;
+__VERIF_TLS int32_t status_cwapf;
 __VERIF_TLS int32_t status_ipf1;
 __VERIF_TLS int32_t status_ipf2;
 __VERIF_TLS int32_t status_ipr;
@@ -139,12 +143,14 @@ void init_verif()
 	
 	status_gro = 0;
 	status_gso = 0;
+	status_cwapf = 0;
 	status_ipf1 = 0;
 	status_ipf2 = 0;
 	status_ipr = 0;
 	status_ipsec_encr = 0;
 	status_ipsec_decr = 0;
 	tcp_gso_context_addr1[0] = 0;
+	cwapf_context_addr[0] = 0;
 	ipf_context_addr1[0] = 0;
 	status_keygen = 0;
 	status_parser = 0;

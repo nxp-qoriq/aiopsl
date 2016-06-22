@@ -50,6 +50,7 @@
 #include "aiop_verification_gro.h"
 #include "aiop_verification_osm.h"
 #include "aiop_verification_ipf.h"
+#include "aiop_verification_cwapf.h"
 #include "aiop_verification_ipr.h"
 #include "aiop_verification_ipsec.h"
 #include "fsl_ip.h"
@@ -213,7 +214,8 @@ enum verif_modules_ids {
 	UPDATE_EXT_VARIABLE, 	// 21
 	UPDATE_DEFAULT_SP_ASAR, // 22
 	UPDATE_DEFAULT_SP_PTAR, // 23
-	INFINATE_LOOP_MODULE /* 24 */
+	INFINATE_LOOP_MODULE, /* 24 */
+	CWAPF_MODULE /* 25 */
 };
 
 /**************************************************************************//**
@@ -246,6 +248,8 @@ enum compared_variable_ids {
 	COMPARE_IPR_STATUS,
 		/** Compare IPF last status. */
 	COMPARE_IPF_STATUS,
+		/** Compare CWAPF last status. */
+	COMPARE_CWAPF_STATUS,
 	/** Compare IPF last status. */
 	COMPARE_LAST_STATUS
 };

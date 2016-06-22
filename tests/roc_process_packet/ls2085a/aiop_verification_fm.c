@@ -35,6 +35,7 @@
 #include "fsl_cdma.h"
 #include "fsl_gso.h"
 #include "fsl_ipf.h"
+#include "fsl_cwapf.h"
 #include "aiop_verification.h"
 #include "system.h"
 
@@ -147,6 +148,11 @@ __declspec(entry_point) void aiop_verification_fm()
 		case IPF_MODULE:
 		{
 			str_size = aiop_verification_ipf((uint32_t)data_addr);
+			break;
+		}
+		case CWAPF_MODULE:
+		{
+			str_size = aiop_verification_cwapf((uint32_t)data_addr);
 			break;
 		}
 		case GSO_MODULE:
