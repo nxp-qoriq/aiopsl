@@ -67,9 +67,6 @@ extern int random_test(void);
 extern int pton_test(void);
 extern int ntop_test(void);
 extern int dpni_drv_test(void);
-extern int single_cluster_test();
-extern int multi_cluster_test();
-extern int aiop_mc_cmd_test();
 extern int dprc_drv_test_init(void);
 extern int dpni_drv_test_create(void);
 extern int dpni_drv_test_destroy(uint16_t ni);
@@ -298,7 +295,9 @@ int app_early_init(void){
 	err |= slab_register_context_buffer_requirements(200,250,248,64,MEM_PART_SYSTEM_DDR,0, 0);
 	err |= slab_register_context_buffer_requirements(10,15,56,32,MEM_PART_PEB, SLAB_OPTIMIZE_MEM_UTILIZATION_FLAG, 0);
 	err |= slab_register_context_buffer_requirements(200,250,248,64,MEM_PART_PEB,0, 0);
+#ifndef LS1088A_REV1
 	err |= slab_register_context_buffer_requirements(200,250,504,64,MEM_PART_DP_DDR,0, 120);
+#endif
 	if(err)
 		pr_err("slab_register_context_buffer_requirements failed: %d\n",err);
 
@@ -900,19 +899,6 @@ int app_init(void)
 	if (err){
 		pr_err("EVM registration for DPNI_EVENT_LINK_UP failed: %d\n", err);
 		return err;
-	}
-
-	err = single_cluster_test();
-	err |= multi_cluster_test();
-	if (err) {
-		fsl_print("ERROR = %d: cluster_test failed in init phase()\n", err);
-		test_error |= err;
-	}
-
-	err = aiop_mc_cmd_test();
-	if (err) {
-		fsl_print("ERROR = %d: aiop_mc_cmd_test failed in init phase()\n", err);
-		test_error |= err;
 	}
 
 	err = slab_init();

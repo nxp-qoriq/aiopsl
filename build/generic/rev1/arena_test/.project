@@ -127,11 +127,6 @@ aiop_sl		</project>
 			<locationURI>PARENT-4-PROJECT_LOC/tests/arena_test/arena_test.c</locationURI>
 		</link>
 		<link>
-			<name>src/bringup</name>
-			<type>2</type>
-			<locationURI>virtual:/virtual</locationURI>
-		</link>
-		<link>
 			<name>src/dpni_drv_test.c</name>
 			<type>1</type>
 			<locationURI>PARENT-4-PROJECT_LOC/tests/arena_test/dpni_drv_test.c</locationURI>
@@ -185,21 +180,6 @@ aiop_sl		</project>
 			<name>src/slab_test.c</name>
 			<type>1</type>
 			<locationURI>PARENT-4-PROJECT_LOC/tests/arena_test/slab_test.c</locationURI>
-		</link>
-		<link>
-			<name>src/bringup/aiop_to_mc_cmd.c</name>
-			<type>1</type>
-			<locationURI>PARENT-4-PROJECT_LOC/tests/bringup/aiop_to_mc_cmd.c</locationURI>
-		</link>
-		<link>
-			<name>src/bringup/exceptions.c</name>
-			<type>1</type>
-			<locationURI>PARENT-4-PROJECT_LOC/tests/bringup/exceptions.c</locationURI>
-		</link>
-		<link>
-			<name>src/bringup/single_cluster.c</name>
-			<type>1</type>
-			<locationURI>PARENT-4-PROJECT_LOC/tests/bringup/single_cluster.c</locationURI>
 		</link>
 		<link>
 			<name>src/generic/apps_arch.h</name>
