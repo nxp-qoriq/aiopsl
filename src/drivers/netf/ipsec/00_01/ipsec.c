@@ -68,9 +68,6 @@
 
 #include "fsl_mem_mng.h"
 
-/* SEC Era version for RTA */
-enum rta_sec_era rta_sec_era = RTA_SEC_ERA_8;
-
 /* Global parameters */
 uint16_t ipsec_bpid;
 
