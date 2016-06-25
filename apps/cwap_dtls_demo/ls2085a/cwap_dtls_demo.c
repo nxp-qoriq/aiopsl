@@ -25,34 +25,34 @@
  */
 
 #include "fsl_types.h"
-#include "common/fsl_stdio.h"
+#include "fsl_stdio.h"
 #include "fsl_dpni_drv.h"
 #include "fsl_platform.h"
-#include "kernel/fsl_io.h"
+#include "fsl_io.h"
 #include "fsl_parser.h"
-#include "general.h"
 #include "fsl_dbg.h"
 #include "fsl_cmdif_server.h"
 #include "fsl_cdma.h"
 #include "fsl_cwap_dtls.h"
 #include "fsl_malloc.h"
-#include "lib/fsl_slab.h"
-#include "system.h" // TMP
+#include "fsl_slab.h"
 #include "fsl_evmng.h"
 #include "apps.h"
+
+#define LOCK(_a)	cdma_mutex_lock_take(_a, CDMA_MUTEX_WRITE_LOCK)
+#define UNLOCK(_a)	cdma_mutex_lock_release(_a)
+
+#define pr_lock_info(...)			\
+	LOCK(print_lock);			\
+	DBG(REPORT_LEVEL_INFO, __VA_ARGS__);	\
+	UNLOCK(print_lock);
 
 int app_early_init(void);
 int app_init(void);
 void app_free(void);
 int cwap_dtls_app_init(uint16_t ni_id);
-void cwap_dtls_print_frame(void);
+void cwap_dtls_print_frame(const char *title);
 void cwap_dtls_print_stats(cwap_dtls_sa_handle_t sa_handle, int is_inbound);
-
-/* Get NI from callback argument, it's demo specific macro */
-#define APP_NI_GET(ARG)		((uint16_t)((ARG) & 0x0000FFFF))
-
-/* Get flow id from callback argument, it's demo specific macro */
-#define APP_FLOW_GET(ARG)	(((uint16_t)(((ARG) & 0xFFFF0000) >> 16)
 
 /* #define CWAP_DTLS_DEBUG_PRINT_SP */
 #ifdef CWAP_DTLS_DEBUG_PRINT_SP
@@ -66,9 +66,11 @@ struct storage_profile storage_profile[SP_NUM_OF_STORAGE_PROFILES];
 cwap_dtls_instance_handle_t cwap_dtls_instance_handle;
 cwap_dtls_sa_handle_t sa_outbound, sa_inbound;
 uint32_t frame_number = 0;
+uint64_t print_lock;
 
 __HOT_CODE ENTRY_POINT static void app_process_packet(void)
 {
+	cwap_dtls_sa_handle_t ws_desc_handle_outbound, ws_desc_handle_inbound;
 	uint8_t *eth_pointer_byte;
 	uint32_t handle_high, handle_low;
 	uint32_t frame_len, original_frame_len;
@@ -78,6 +80,8 @@ __HOT_CODE ENTRY_POINT static void app_process_packet(void)
 
 	sl_prolog();
 
+	pr_debug("CAPWAP/DTLS Demo: ENTERED app_process_packet\n");
+
 	eth_pointer_byte = (uint8_t *)PARSER_GET_ETH_POINTER_DEFAULT();
 	frame_len = LDPAA_FD_GET_LENGTH(HWC_FD_ADDRESS);
 	original_frame_len = frame_len;
@@ -85,20 +89,15 @@ __HOT_CODE ENTRY_POINT static void app_process_packet(void)
 	original_seg_addr = PRC_GET_SEGMENT_ADDRESS();
 
 	/* CAPWAP/DTLS initialization happens with the first frame received */
-	if (frame_number == 0) {
+	if (frame_number == 0)
 		/* Call with NI ID = 0 */
-		err = cwap_dtls_app_init(0);
-		if (err)
-			fsl_print("CAPWAP/DTLS Demo: Initialization failed\n");
-	}
+		cwap_dtls_app_init(0);
 
-	frame_number++;
-
-	cwap_dtls_sa_handle_t ws_desc_handle_outbound = sa_outbound;
-	cwap_dtls_sa_handle_t ws_desc_handle_inbound = sa_inbound;
+	ws_desc_handle_outbound = sa_outbound;
+	ws_desc_handle_inbound = sa_inbound;
 
 	fsl_print("CAPWAP/DTLS Demo: Core %d Received Frame number %d\n",
-		  core_get_id(), frame_number);
+		  core_get_id(), ++frame_number);
 
 	handle_high = (uint32_t)((ws_desc_handle_outbound &
 				  0xffffffff00000000) >> 32);
@@ -116,10 +115,7 @@ __HOT_CODE ENTRY_POINT static void app_process_packet(void)
 		eth_pointer_byte++;
 	}
 
-	fsl_print("CAPWAP/DTLS Demo: frame header before encryption\n");
-	/* Print header */
-	cwap_dtls_print_frame();
-	fsl_print("\n");
+	cwap_dtls_print_frame("CAPWAP/DTLS Demo: Full frame before encryption");
 
 	fsl_print("CAPWAP/DTLS Demo: Starting Encryption\n");
 	enc_status = cwap_dtls_frame_encrypt(ws_desc_handle_outbound);
@@ -139,10 +135,7 @@ __HOT_CODE ENTRY_POINT static void app_process_packet(void)
 		fdma_present_default_frame_segment(
 			0, (void *)PRC_GET_SEGMENT_ADDRESS(), 0, seg_len);
 
-		fsl_print("CAPWAP/DTLS Demo: frame header after encryption\n");
-		/* Print header */
-		cwap_dtls_print_frame();
-		fsl_print("\n");
+		cwap_dtls_print_frame("CAPWAP/DTLS Demo: Full frame after encryption");
 
 		fsl_print("CAPWAP/DTLS Demo: Starting Decryption\n");
 
@@ -167,10 +160,7 @@ __HOT_CODE ENTRY_POINT static void app_process_packet(void)
 
 		fsl_print("STATUS: fdma_present_default_frame_segment returned %d\n", err);
 
-		fsl_print("CAPWAP/DTLS Demo: frame header after decryption\n");
-		/* Print header */
-		cwap_dtls_print_frame();
-		fsl_print("\n");
+		cwap_dtls_print_frame("CAPWAP/DTLS Demo: Full frame after decryption");
 
 		/* Compare decrypted frame to original frame */
 		err = 0;
@@ -221,7 +211,7 @@ __HOT_CODE ENTRY_POINT static void app_process_packet(void)
 		fsl_print("Finished with ERRORS\n");
 	}
 
-	/*MUST call fdma_terminate task in the end of cb function*/
+	/* MUST call fdma_terminate task in the end of cb function */
 	fdma_terminate_task();
 }
 
@@ -317,7 +307,7 @@ static int app_dpni_event_added_cb(uint8_t generator_id, uint8_t event_id,
 		       ni, err);
 		return err;
 	}
-	
+
 	err = dpni_drv_enable(ni);
 	if (err) {
 		pr_err("dpni_drv_enable for ni %d failed: %d\n", ni, err);
@@ -331,7 +321,7 @@ int app_init(void)
 {
 	int err;
 
-	fsl_print("Running app_init()\n");
+	fsl_print("CAPWAP/DTLS Demo: running app_init()...\n");
 
 #ifdef AIOP_STANDALONE
 	/* This is temporal WA for stand alone demo only */
@@ -353,8 +343,8 @@ int app_init(void)
 		return err;
 	}
 
-	fsl_print("To start test inject packets: \"eth_ipv4_udp_cwap.pcap\"\n");
-	fsl_print("(CAPWAP/DTLS Demo initialization will occur when the first frame is received)\n");
+	fsl_print("CAPWAP/DTLS Demo: initialization will occur when the first frame is received\n");
+	fsl_print("CAPWAP/DTLS Demo: sample pcap files can be found in: \"aiopsl\\misc\\setup\\traffic_files\\capwap*\"\n");
 
 	return 0;
 }
@@ -395,6 +385,8 @@ int cwap_dtls_app_init(uint16_t ni_id)
 	uint16_t ni_spid;
 	uint32_t reuse_buffer_mode;
 
+	fsl_print("\n++++\n  CAPWPAP/DTLS Demo: Doing CAPWAP/DTLS Initialization...\n++++\n");
+
 	/**********************************************************/
 	/*                    Control Parameters                  */
 	/**********************************************************/
@@ -404,10 +396,7 @@ int cwap_dtls_app_init(uint16_t ni_id)
 	cipher_keylen = 16;
 	auth_keylen = 20;
 
-	/*
-	 * 0 - keep the initial key array value
-	 * 1 - Overwrite the initial key array value
-	 */
+	/* 0/1 - keep/overwrite the initial key array value */
 	auth_key_id = 0;
 
 	/*
@@ -416,16 +405,12 @@ int cwap_dtls_app_init(uint16_t ni_id)
 	 * CWAP_DTLS_FLG_BUFFER_REUSE - buffer reuse mode
 	 */
 	reuse_buffer_mode = 0;
-	
+
 	/**********************************************************/
 
 	if (auth_key_id)
 		for (i = 0; i < 128; i++)
 			auth_key[i] = (uint8_t)i;
-
-	frame_number = 0;
-
-	fsl_print("\n++++\n  CAPWPAP/DTLS Demo: Doing CAPWAP/DTLS Initialization\n++++\n");
 
 	if (reuse_buffer_mode == CWAP_DTLS_FLG_BUFFER_REUSE)
 		fsl_print("CAPWAP/DTLS Demo: Reuse Buffer Mode\n");
@@ -557,7 +542,7 @@ int cwap_dtls_app_init(uint16_t ni_id)
 
 	params.spid = ni_spid;
 
-	/* Create Inbound (decryption) Descriptor */
+	/* create inbound (decryption) SA descriptor */
 	err = cwap_dtls_add_sa_descriptor(&params, ws_instance_handle,
 					  &ws_desc_handle_inbound);
 	if (err) {
@@ -575,45 +560,88 @@ int cwap_dtls_app_init(uint16_t ni_id)
 
 	if (!err)
 		fsl_print("CAPWAP/DTLS Demo: CAPWAP/DTLS initialization completed\n");
+	else
+		fsl_print("CAPWAP/DTLS Demo: Initialization failed\n");
 
 	return err;
 }
 
-/* Print the frame in a Wireshark-like format */
-void cwap_dtls_print_frame(void)
+/*
+ * Prints a frame in a format that may be imported in Wireshark
+ * (FCS not included).
+ */
+static void cwap_dtls_print_frame(const char *title)
 {
-	uint8_t *eth_pointer_byte = (uint8_t *)PARSER_GET_ETH_POINTER_DEFAULT();
-	int i;
-	uint32_t frame_len = LDPAA_FD_GET_LENGTH(HWC_FD_ADDRESS);
-	uint16_t seg_len = PRC_GET_SEGMENT_LENGTH();
+/* 16 bytes on a line */
+#define DISP_LEN	16
+#define DISP_HEAD	6
+/* Segment presentation length */
+#define MAX_SEGMENT_LENGTH	64
 
-	fsl_print("Printing Frame. FD[len] = %d, Seg Len = %d\n", frame_len,
-		  seg_len);
+	struct fdma_present_segment_params present_segment_params;
+	uint32_t len, left_len, i;
+	uint16_t off, read_len;
+	uint8_t *psrc, *pdst;
+	char line[DISP_HEAD + 3 * DISP_LEN + 1];
+	uint8_t ws_dst_dummy[MAX_SEGMENT_LENGTH];
 
-	for (i = 0; ((i < frame_len) && (i < seg_len)); i++) {
-		if ((i % 16) == 0) {
-			fsl_print("00");
-			if (i < 16)
-				fsl_print("0");
-			fsl_print("%x  ", i);
-		}
+	LOCK(print_lock);
 
-		if ((*eth_pointer_byte) < 16)
-			fsl_print("0");
+	len = LDPAA_FD_GET_LENGTH(HWC_FD_ADDRESS);
 
-		fsl_print("%x ", *eth_pointer_byte);
+	sprintf(line, "%s : len = %d bytes", (title) ? title  : "Packet", len);
+	fsl_print("%s\n", line);
 
-		if ((i % 8) == 7)
-			fsl_print(" ");
-
-		if ((i % 16) == 15)
-			fsl_print("\n");
-
-		eth_pointer_byte++;
+	if (!len) {
+		fsl_print("\n");
+		UNLOCK(print_lock);
+		return;
 	}
 
-	if ((i % 16) != 0)
-		fsl_print("\n");
+	present_segment_params.flags = FDMA_PRES_NO_FLAGS;
+	present_segment_params.frame_handle = PRC_GET_FRAME_HANDLE();
+	present_segment_params.ws_dst = &ws_dst_dummy;
+	off = 0;
+	left_len = len;
+
+	do {
+		read_len = (uint16_t)MIN(left_len, MAX_SEGMENT_LENGTH);
+		present_segment_params.offset = off;
+		present_segment_params.present_size = read_len;
+		/* Present segment of the remaining frame */
+		fdma_present_frame_segment(&present_segment_params);
+		/* Point to the beginning of the current segment */
+		psrc = ws_dst_dummy;
+		line[0] = 0;
+		/* Head of line */
+		sprintf(line, "%04x: ", off);
+		pdst = (uint8_t *)line + DISP_HEAD;
+		for (i = 0; i < read_len; i++) {
+			sprintf((void *)pdst, "%02x ", *psrc++);
+			if (((i + 1) % DISP_LEN) == 0) {
+				fsl_print("%s\n", line);
+				line[0] = 0;
+				off += DISP_LEN;
+				/* Head of line */
+				sprintf(line, "%04x: ", off);
+				pdst = (uint8_t *)line + DISP_HEAD;
+			} else {
+				pdst += 3;
+			}
+		}
+
+		/* Print the remainder */
+		if (read_len % DISP_LEN)
+			fsl_print("%s\n", line);
+
+		left_len -= read_len;
+
+		/* Close the currently presented segment */
+		fdma_close_segment(present_segment_params.frame_handle,
+				   present_segment_params.seg_handle);
+	} while (left_len);
+
+	UNLOCK(print_lock);
 }
 
 void cwap_dtls_print_stats(cwap_dtls_sa_handle_t sa_handle, int is_inbound)
