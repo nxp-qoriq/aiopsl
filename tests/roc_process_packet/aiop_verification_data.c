@@ -58,6 +58,7 @@ extern __VERIF_TLS uint64_t initial_ext_address;
 #endif /*AIOP_VERIF*/
 
 __VERIF_GLOBAL uint64_t verif_ipr_instance_handle[16];
+__VERIF_GLOBAL uint64_t verif_cwapr_instance_handle[16];
 __VERIF_GLOBAL uint8_t verif_prpid_valid;
 __VERIF_GLOBAL volatile uint8_t verif_only_1_task_complete;
 __VERIF_GLOBAL uint8_t verif_spin_lock;
@@ -89,7 +90,7 @@ __VERIF_TLS int32_t status_ipsec_decr;
 __VERIF_TLS int32_t status_keygen;
 __VERIF_TLS int32_t status_parser;
 __VERIF_TLS int32_t status_cdma;
-
+__VERIF_TLS int32_t status_cwapr;
 
 extern __TASK struct aiop_default_task_params default_task_params;
 extern __TASK uint32_t seed_32bit;
@@ -155,6 +156,7 @@ void init_verif()
 	status_keygen = 0;
 	status_parser = 0;
 	status_cdma = 0;
+	status_cwapr = 0;
 }
 
 #pragma stackinfo_ignore on

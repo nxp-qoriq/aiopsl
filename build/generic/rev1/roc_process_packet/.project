@@ -107,6 +107,11 @@ aiop_sl		</project>
 			<locationURI>PARENT-4-PROJECT_LOC/tests/roc_process_packet/aiop_verification_cwapf.h</locationURI>
 		</link>
 		<link>
+			<name>src/aiop_verification_cwapr.h</name>
+			<type>1</type>
+			<locationURI>PARENT-4-PROJECT_LOC/tests/roc_process_packet/aiop_verification_cwapr.h</locationURI>
+		</link>
+		<link>
 			<name>src/aiop_verification_data.c</name>
 			<type>1</type>
 			<locationURI>PARENT-4-PROJECT_LOC/tests/roc_process_packet/aiop_verification_data.c</locationURI>
@@ -355,6 +360,11 @@ aiop_sl		</project>
 			<name>src/ls2085a/aiop_verification_cdma.h</name>
 			<type>1</type>
 			<locationURI>PARENT-4-PROJECT_LOC/tests/roc_process_packet/ls2085a/aiop_verification_cdma.h</locationURI>
+		</link>
+		<link>
+			<name>src/ls2085a/aiop_verification_cwapr.c</name>
+			<type>1</type>
+			<locationURI>PARENT-4-PROJECT_LOC/tests/roc_process_packet/ls2085a/aiop_verification_cwapr.c</locationURI>
 		</link>
 		<link>
 			<name>src/ls2085a/aiop_verification_fdma.c</name>

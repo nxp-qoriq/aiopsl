@@ -53,6 +53,7 @@
 #include "aiop_verification_cwapf.h"
 #include "aiop_verification_ipr.h"
 #include "aiop_verification_ipsec.h"
+#include "aiop_verification_cwapr.h"
 #include "fsl_ip.h"
 #include "fsl_ipsec.h"
 #include "fsl_l2.h"
@@ -215,7 +216,8 @@ enum verif_modules_ids {
 	UPDATE_DEFAULT_SP_ASAR, // 22
 	UPDATE_DEFAULT_SP_PTAR, // 23
 	INFINATE_LOOP_MODULE, /* 24 */
-	CWAPF_MODULE /* 25 */
+	CWAPF_MODULE, /* 25 */
+	CWAPR_MODULE /* 26 */	
 };
 
 /**************************************************************************//**
@@ -250,6 +252,8 @@ enum compared_variable_ids {
 	COMPARE_IPF_STATUS,
 		/** Compare CWAPF last status. */
 	COMPARE_CWAPF_STATUS,
+		/** Compare CWAPR last status. */
+	COMPARE_CWAPR_STATUS,
 	/** Compare IPF last status. */
 	COMPARE_LAST_STATUS
 };
@@ -499,7 +503,7 @@ uint32_t if_statement_result(
 		uint8_t cond);
 void timeout_cb_verif(uint64_t arg);
 void ipr_timeout_cb_verif(uint64_t arg, uint32_t flags);
-
+void cwapr_timeout_cb_verif(uint64_t arg, uint32_t flags);
 
 /** @} */ /* end of AIOP_Verification */
 

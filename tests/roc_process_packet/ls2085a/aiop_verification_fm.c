@@ -350,6 +350,11 @@ __declspec(entry_point) void aiop_verification_fm()
 			  sizeof(struct update_default_sp_ptar_command);
 			break;
 		}
+		case CWAPR_MODULE:
+		{
+			str_size = aiop_verification_cwapr((uint32_t)data_addr);
+			break;
+		}
 		case TERMINATE_FLOW_MODULE:
 		default:
 		{

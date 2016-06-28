@@ -66,6 +66,7 @@
 									<listOptionValue builtIn="false" value="src/aiop_verification_ipf.c"/>
 									<listOptionValue builtIn="false" value="src/aiop_verification_cwapf.c"/>
 									<listOptionValue builtIn="false" value="src/aiop_verification_ipr.c"/>
+									<listOptionValue builtIn="false" value="src/aiop_verification_cwapr.c"/>
 									<listOptionValue builtIn="false" value="src/aiop_verification_ipsec.c"/>
 									<listOptionValue builtIn="false" value="src/aiop_verification_keygen.c"/>
 									<listOptionValue builtIn="false" value="src/aiop_verification_osm.c"/>
@@ -138,6 +139,7 @@
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/drivers/netf/ipsec&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/drivers/netf/gso&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/drivers/netf/gro&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/drivers/netf/capwap/cwapr&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/include/common&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/include/drivers&quot;"/>
@@ -160,6 +162,7 @@
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/include/drivers/netf/capwap/cwapf&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/include/drivers/netf/ipr&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/include/drivers/netf/ipsec&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/include/drivers/netf/capwap/cwapr&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/drivers/sec/01_01&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/include/kernel&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/include/lib&quot;"/>
@@ -283,6 +286,7 @@
 									<listOptionValue builtIn="false" value="src/aiop_verification_ipf.c"/>
 									<listOptionValue builtIn="false" value="src/aiop_verification_cwapf.c"/>
 									<listOptionValue builtIn="false" value="src/aiop_verification_ipr.c"/>
+									<listOptionValue builtIn="false" value="src/aiop_verification_cwapr.c"/>
 									<listOptionValue builtIn="false" value="src/aiop_verification_ipsec.c"/>
 									<listOptionValue builtIn="false" value="src/aiop_verification_keygen.c"/>
 									<listOptionValue builtIn="false" value="src/aiop_verification_osm.c"/>
@@ -355,6 +359,7 @@
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/drivers/netf/ipsec&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/drivers/netf/gso&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/drivers/netf/gro&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/drivers/netf/capwap/cwapr&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/include/common&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/include/drivers&quot;"/>
@@ -377,6 +382,7 @@
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/include/drivers/netf/capwap/cwapf&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/include/drivers/netf/ipr&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/include/drivers/netf/ipsec&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/include/drivers/netf/capwap/cwapr&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/drivers/sec/01_01&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/include/kernel&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/include/lib&quot;"/>
@@ -500,6 +506,7 @@
 									<listOptionValue builtIn="false" value="src/aiop_verification_ipf.c"/>
 									<listOptionValue builtIn="false" value="src/aiop_verification_cwapf.c"/>
 									<listOptionValue builtIn="false" value="src/aiop_verification_ipr.c"/>
+									<listOptionValue builtIn="false" value="src/aiop_verification_cwapr.c"/>
 									<listOptionValue builtIn="false" value="src/aiop_verification_ipsec.c"/>
 									<listOptionValue builtIn="false" value="src/aiop_verification_keygen.c"/>
 									<listOptionValue builtIn="false" value="src/aiop_verification_osm.c"/>
@@ -572,6 +579,7 @@
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/drivers/netf/ipsec&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/drivers/netf/gso&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/drivers/netf/gro&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/drivers/netf/capwap/cwapr&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/include/common&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/include/drivers&quot;"/>
@@ -594,6 +602,7 @@
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/include/drivers/netf/capwap/cwapf&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/include/drivers/netf/ipr&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/include/drivers/netf/ipsec&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/include/drivers/netf/capwap/cwapr&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/drivers/sec/01_01&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/include/kernel&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../src/include/lib&quot;"/>
