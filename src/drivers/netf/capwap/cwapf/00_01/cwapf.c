@@ -115,11 +115,11 @@ CWAPF_CODE_PLACEMENT void cwapf_after_split_fragment(
 		}
 		frag_offset = 0;
 	} else {
-		frag_offset = cwapf_ctx->prev_frag_offset +
-				(cwapf_ctx->mtu_payload_length >> 3);
+		frag_offset = ( (cwapf_ctx->prev_frag_offset +
+				cwapf_ctx->mtu_payload_length) >> 3);
 	}
 
-	cwapf_ctx->prev_frag_offset = frag_offset;
+	cwapf_ctx->prev_frag_offset = frag_offset * 8;
 
 	if (PARSER_IS_UDP_DEFAULT()) {
 		udp_hdr = (struct udphdr *) ((uint16_t)(
@@ -132,7 +132,9 @@ CWAPF_CODE_PLACEMENT void cwapf_after_split_fragment(
 		udp_hdr->checksum = 0;
 	}
 
-	capwap_hdr->offset_rsvd = capwap_hdr->offset_rsvd |
+	capwap_hdr->offset_rsvd =
+		( capwap_hdr->offset_rsvd &
+			~NET_HDR_FLD_CAPWAP_FRAG_OFFSET_MASK ) |
 			(frag_offset << NET_HDR_FLD_CAPWAP_FRAG_OFFSET_OFFSET);
 	capwap_hdr->bits_flags = capwap_hdr->bits_flags |
 			NET_HDR_FLD_CAPWAP_F;
@@ -200,13 +202,15 @@ CWAPF_CODE_PLACEMENT int cwapf_last_frag(struct cwapf_context *cwapf_ctx)
 	/* present fragment + header segment */
 	fdma_present_default_frame();
 
-	frag_offset = cwapf_ctx->prev_frag_offset +
-		(cwapf_ctx->mtu_payload_length>>3);
+	frag_offset = ((cwapf_ctx->prev_frag_offset +
+		cwapf_ctx->mtu_payload_length)>>3);
 
 	capwap_hdr = (struct capwaphdr *)(
 			(uint16_t)(CWAPF_GET_CAPWAP_HDR_OFFSET() +
 			PRC_GET_SEGMENT_ADDRESS()));
-	capwap_hdr->offset_rsvd = capwap_hdr->offset_rsvd |
+	capwap_hdr->offset_rsvd =
+		( capwap_hdr->offset_rsvd &
+			~NET_HDR_FLD_CAPWAP_FRAG_OFFSET_MASK ) |
 			(frag_offset << NET_HDR_FLD_CAPWAP_FRAG_OFFSET_OFFSET);
 	capwap_hdr->bits_flags = capwap_hdr->bits_flags |
 			NET_HDR_FLD_CAPWAP_F | NET_HDR_FLD_CAPWAP_L;
@@ -359,8 +363,8 @@ CWAPF_CODE_PLACEMENT int cwapf_generate_frag(cwapf_ctx_t cwapf_context_addr)
 				PARSER_GET_L4_OFFSET_DEFAULT());
 			mtu_payload_length -= udp_header_length;
 		}
-
-		cwapf_ctx->mtu_payload_length = mtu_payload_length & ~0x7;
+		mtu_payload_length = mtu_payload_length & ~0x7;
+		cwapf_ctx->mtu_payload_length = mtu_payload_length;
 
 		cwapf_ctx->split_size = (uint16_t)(PRC_GET_SEGMENT_OFFSET() +
 				CWAPF_GET_CAPWAP_HDR_OFFSET() +
