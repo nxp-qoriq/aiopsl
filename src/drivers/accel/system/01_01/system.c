@@ -58,9 +58,11 @@ extern void tman_timer_callback(void);
 #include "fsl_io.h"
 #include "fsl_aiop_common.h"
 #include "ipr.h"
+#include "cwapr.h"
 
 extern void tman_timer_callback(void);
 extern int ipr_init(void);
+extern int cwapr_init(void);
 
 #ifdef ENABLE_SNIC
 extern int aiop_snic_init(void);
@@ -79,6 +81,7 @@ uint16_t bpid_keyid;
 #ifndef USE_IPR_SW_TABLE
 extern struct  ipr_global_parameters ipr_global_parameters1;
 #endif	/* USE_IPR_SW_TABLE */
+extern struct  cwapr_global_parameters g_cwapr_params;
 
 /* Time module globals */
 extern struct aiop_cmgw_regs *time_cmgw_regs;
@@ -295,6 +298,10 @@ int aiop_sl_init(void)
 	if (status)
 		return status; /* TODO */
 
+	status = cwapr_init();
+	if (status)
+		return status;
+
 #ifdef ENABLE_SNIC
 	status = aiop_snic_init();
 #endif	/* ENABLE_SNIC */
@@ -323,6 +330,7 @@ void aiop_sl_free(void)
 			ipr_global_parameters1.ipr_key_id_ipv6);
 #endif	/* USE_IPR_SW_TABLE */
 
+	keygen_kcr_delete(KEYGEN_ACCEL_ID_CTLU, g_cwapr_params.cwapr_key_id);
 #ifdef ENABLE_SNIC
 	aiop_snic_free();
 #endif	/* ENABLE_SNIC */
