@@ -70,7 +70,7 @@
 #define OUT_OF_ORDER		0x0001 /* in RFDC status */
 #define ORDER_AND_OOO		0x0002 /* in RFDC status */
 #define CAPWAP_FRAG_ID_LEN	2      /* 2 bytes*/
-#define CAPWAP_FRAG_ID_OFFSET	4      /* fragment ID offset relative to header start */	 
+#define CAPWAP_FRAG_ID_OFFSET	4      /* fragment ID offset relative to header start */
 #define INSTANCE_VALID		0x0001
 #define CWAPR_REF_COUNT_ADDR	(HWC_ACC_OUT_ADDRESS + CDMA_REF_CNT_OFFSET)
 #define CWAPR_INSTANCE_SIZE	sizeof(struct cwapr_instance)
@@ -128,15 +128,15 @@ struct cwapr_rfdc {
 	/* 64 bytes */
 	uint64_t	instance_handle;
 	uint32_t	timer_handle;
-	uint16_t	expected_total_length;
-	uint16_t	current_total_length; /* CAPWAP payload length */
+	uint16_t	exp_total_len; /* Expected total length */
+	uint16_t	curr_total_len; /* CAPWAP payload length */
 	uint16_t	first_frag_hdr_length;
 	uint16_t	biggest_payload;
 	uint16_t	current_running_sum;
-	uint8_t		first_frag_index;
-	uint8_t		last_frag_index;
-	uint8_t		next_index;
-	uint8_t		index_to_out_of_order;
+	uint8_t		first_frag_idx;
+	uint8_t		last_frag_idx;
+	uint8_t		next_idx;
+	uint8_t		idx_out_of_order;
 	uint8_t		num_of_frags;
 	uint8_t		res1;
 	uint16_t	status;
@@ -155,10 +155,10 @@ struct cwapr_rfdc {
 
 struct cwapr_rfdc_list_node {
 	uint16_t	frag_offset;
-	uint16_t	frag_length;
+	uint16_t	frag_len;
 	uint16_t	res;
-	uint8_t		prev_index;
-	uint8_t		next_index;
+	uint8_t		prev_idx;
+	uint8_t		next_idx;
 };
 
 /**************************************************************************//**
@@ -225,9 +225,9 @@ int cwapr_init(void);
 uint32_t insert_to_cwapr_link_list(struct cwapr_rfdc *rfdc,
 				 uint64_t rfdc_ext_addr,
 				 struct cwapr_instance *cwapr_instance,
-				 void *capwap_ptr);
+				 struct capwaphdr *capwap_hdr);
 
-int lookup_cwapr_flow(struct cwapr_instance *cwapr_instance, 
+int lookup_cwapr_flow(struct cwapr_instance *cwapr_instance,
 		uint64_t tunnel_id, uint64_t *rfdc_ext_addr);
 
 int miss_cwapr_flow(struct cwapr_instance *cwapr_instance,
@@ -247,7 +247,7 @@ uint32_t check_for_capwap_frag_error(void *iphdr_ptr);
 void timeout_cwapr_reassemble(uint64_t rfdc_ext_addr, uint16_t opaque);
 
 uint32_t out_of_order_capwap_frags(struct cwapr_rfdc *rfdc,
-		uint64_t rfdc_ext_addr, uint32_t last_frag, 
+		uint64_t rfdc_ext_addr, uint32_t last_frag,
 		uint16_t frag_size, uint16_t frag_offset,
 		struct cwapr_instance *cwapr_instance);
 

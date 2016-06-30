@@ -98,20 +98,20 @@ int cwapr_init(void)
 
 	/* CAPWAP key: tunnel ID + fragment ID */
 	keygen_kcr_builder_init(&kb);
-	
+
 	status = keygen_kcr_builder_add_input_value_fec(0, 8, NULL, &kb);
 	if (status < 0)
 		cwapr_exception_handler(CWAPR_INIT, __LINE__, (int32_t)status);
 
 	status = keygen_kcr_builder_add_protocol_based_generic_fec(
-			NXT_HDR_OFFSET_OFFSET_IN_PR, 
-			CAPWAP_FRAG_ID_OFFSET,  
-			CAPWAP_FRAG_ID_LEN, 
+			NXT_HDR_OFFSET_OFFSET_IN_PR,
+			CAPWAP_FRAG_ID_OFFSET,
+			CAPWAP_FRAG_ID_LEN,
 			NULL,
 			&kb);
 	if (status < 0)
 		cwapr_exception_handler(CWAPR_INIT, __LINE__, (int32_t)status);
-	
+
 	status = keygen_kcr_create(KEYGEN_ACCEL_ID_CTLU,
 			  kb.kcr,
 			  &cwapr_key_id);
@@ -165,7 +165,7 @@ int cwapr_create_instance(struct cwapr_params *params,
 		tbl_params.committed_rules = params->max_open_frames;
 		tbl_params.max_rules = params->max_open_frames;
 		/* Tunnel ID, CAPWAP Fragment ID */
-		tbl_params.key_size = CWAPR_KEY_SIZE; 
+		tbl_params.key_size = CWAPR_KEY_SIZE;
 		tbl_location = params->flags & 0x0C000000;
 		if (tbl_location == CWAPR_MODE_TABLE_LOCATION_PEB)
 			tbl_location_attr = TABLE_ATTRIBUTE_LOCATION_PEB;
@@ -295,7 +295,7 @@ CWAPR_CODE_PLACEMENT int cwapr_reassemble(
 	capwap_offset = (uint16_t)PARSER_GET_NEXT_HEADER_OFFSET_DEFAULT();
 	capwap_hdr = (void *)(capwap_offset + PRC_GET_SEGMENT_ADDRESS());
 	is_frag = capwap_hdr->bits_flags & NET_HDR_FLD_CAPWAP_F;
-	
+
 	/* Get OSM status (ordering scope mode and levels) */
 	osm_get_scope(&scope_status);
 
@@ -340,7 +340,7 @@ CWAPR_CODE_PLACEMENT int cwapr_reassemble(
 
 	if (check_for_capwap_frag_error(capwap_hdr) == NO_ERROR) {
 
-		sr_status = lookup_cwapr_flow(&cwapr_instance, 
+		sr_status = lookup_cwapr_flow(&cwapr_instance,
 				tunnel_id, &rfdc_ext_addr);
 		if (sr_status == TABLE_STATUS_SUCCESS) {
 			/* Hit */
@@ -370,13 +370,13 @@ CWAPR_CODE_PLACEMENT int cwapr_reassemble(
 				 * Error is not checked since no error
 				 * can't be returned*/
 				cdma_access_context_memory_wrp(
-				rfdc_ext_addr,
-				CDMA_ACCESS_CONTEXT_MEM_DEC_REFCOUNT_AND_REL,
-				NULL,
-				&rfdc,
-				CDMA_ACCESS_CONTEXT_MEM_DMA_WRITE
-				| CWAPR_RFDC_SIZE,
-				(uint32_t *)CWAPR_REF_COUNT_ADDR);
+					rfdc_ext_addr,
+					CDMA_ACCESS_CONTEXT_MEM_DEC_REFCOUNT_AND_REL,
+					NULL,
+					&rfdc,
+					CDMA_ACCESS_CONTEXT_MEM_DMA_WRITE
+					| CWAPR_RFDC_SIZE,
+					(uint32_t *)CWAPR_REF_COUNT_ADDR);
 
 				fdma_discard_fd_wrp(
 					     (struct ldpaa_fd *)HWC_FD_ADDRESS,
@@ -413,8 +413,7 @@ CWAPR_CODE_PLACEMENT int cwapr_reassemble(
 		move_to_correct_cwapr_ordering_scope(osm_status);
 
 		update_stats_cwapr(&cwapr_instance,
-				 offsetof(struct cwapr_stats_cntrs,
-					  more_than_64_frags_cntr));
+				 offsetof(struct cwapr_stats_cntrs, more_than_64_frags_cntr));
 
 		return -ENOTSUP;
 	}
@@ -568,9 +567,9 @@ CWAPR_CODE_PLACEMENT int cwapr_reassemble(
 
 	/* Decrement no of IPv4 open frames in instance data structure*/
 	ste_dec_counter_wrp(instance_handle +
-				offsetof(struct cwapr_instance, num_of_open_reass_frames),
-				1,
-				STE_MODE_32_BIT_CNTR_SIZE);
+		offsetof(struct cwapr_instance, num_of_open_reass_frames),
+		1,
+		STE_MODE_32_BIT_CNTR_SIZE);
 	if (status == SUCCESS) {
 		/* L4 checksum is valid */
 		/* Increment no of frames in instance data structure */
@@ -607,16 +606,16 @@ CWAPR_CODE_PLACEMENT int lookup_cwapr_flow(
 	union table_lookup_key_desc key_desc;
 	struct capwaphdr *capwap_hdr = NULL;
 	int status;
-	
+
 	capwap_hdr = (struct capwaphdr *)(
-		PARSER_GET_NEXT_HEADER_OFFSET_DEFAULT() + 
+		PARSER_GET_NEXT_HEADER_OFFSET_DEFAULT() +
 		PRC_GET_SEGMENT_ADDRESS());
 
 	key_desc.em_key = (union table_lookup_key_desc *)&key;
 	*(uint64_t *)key_desc.em_key = tunnel_id;
-	*(uint16_t *)((uint8_t *)key_desc.em_key + sizeof(uint64_t)) = 
+	*(uint16_t *)((uint8_t *)key_desc.em_key + sizeof(uint64_t)) =
 			capwap_hdr->frag_id;
-	
+
 	status = table_lookup_by_key(TABLE_ACCEL_ID_CTLU,
 			cwapr_instance->table_id,
 			key_desc,
@@ -624,7 +623,7 @@ CWAPR_CODE_PLACEMENT int lookup_cwapr_flow(
 		        &lookup_result);
 	if (status < 0)
 		cwapr_exception_handler(CWAPR_INIT, __LINE__, (int32_t)status);
-	
+
 	/* Next line is relevant only in case of Hit */
 	*rfdc_ext_addr = lookup_result.opaque0_or_reference;
 
@@ -671,7 +670,7 @@ CWAPR_CODE_PLACEMENT int miss_cwapr_flow(struct cwapr_instance *cwapr_instance,
 		tunnel_id,
 		&rule.key_desc,
 		&keysize);
-	
+
 	status = table_rule_create_wrp(
 			TABLE_ACCEL_ID_CTLU,
 			cwapr_instance->table_id,
@@ -681,7 +680,7 @@ CWAPR_CODE_PLACEMENT int miss_cwapr_flow(struct cwapr_instance *cwapr_instance,
 	if (status == -ENOMEM) {
 		/* Maximum open reassembly is reached */
 		update_stats_cwapr(cwapr_instance,
-				offsetof(struct cwapr_stats_cntrs, 
+				offsetof(struct cwapr_stats_cntrs,
 				open_reass_frms_exceed_cntr));
 		/* Release acquired buffer */
 		cdma_release_context_memory(*rfdc_ext_addr);
@@ -689,32 +688,32 @@ CWAPR_CODE_PLACEMENT int miss_cwapr_flow(struct cwapr_instance *cwapr_instance,
 		move_to_correct_cwapr_ordering_scope(osm_status);
 		return -ENOSPC;
 	}
-	
+
 	/* store key in RDFC */
 	rfdc->table_key[0] = *(uint64_t *)rule.key_desc.em.key;
 	rfdc->table_key[1] = *(uint64_t *)(rule.key_desc.em.key + 8);
-	
+
 	/* Increment number of open frames in instance data structure */
 	ste_inc_counter_wrp(cwapr_instance_handle +
 		 offsetof(struct cwapr_instance, num_of_open_reass_frames),
 		 1,
 		 STE_MODE_32_BIT_CNTR_SIZE);
 
-	rfdc->status = RFDC_VALID | 
-		 (uint16_t)(default_task_params.current_scope_level<<4);
+	rfdc->status = RFDC_VALID |
+		 (uint16_t)(default_task_params.current_scope_level << 4);
 
-	rfdc->instance_handle			= cwapr_instance_handle;
-	rfdc->expected_total_length		= 0;
-	rfdc->index_to_out_of_order		= 0;
-	rfdc->next_index			= 0;
-	rfdc->current_total_length		= 0;
-	rfdc->first_frag_index			= 0;
-	rfdc->num_of_frags			= 0;
+	rfdc->instance_handle	= cwapr_instance_handle;
+	rfdc->exp_total_len		= 0;
+	rfdc->idx_out_of_order	= 0;
+	rfdc->next_idx			= 0;
+	rfdc->curr_total_len	= 0;
+	rfdc->first_frag_idx 	= 0;
+	rfdc->num_of_frags		= 0;
 	/* todo check if necessary */
-	rfdc->biggest_payload			= 0;
-	rfdc->current_running_sum		= 0;
-	rfdc->last_frag_index			= 0;
-	rfdc->total_in_order_payload	= 0;
+	rfdc->biggest_payload	= 0;
+	rfdc->current_running_sum = 0;
+	rfdc->last_frag_idx		= 0;
+	rfdc->total_in_order_payload = 0;
 	//			get_default_amq_attributes(&rfdc.isolation_bits);
 	rfdc->niid = task_get_receive_niid();
 
@@ -748,13 +747,17 @@ CWAPR_CODE_PLACEMENT int miss_cwapr_flow(struct cwapr_instance *cwapr_instance,
 CWAPR_CODE_PLACEMENT uint32_t insert_to_cwapr_link_list(struct cwapr_rfdc *rfdc,
 				 uint64_t rfdc_ext_addr,
 				 struct cwapr_instance *cwapr_instance,
-				 void *capwap_ptr)
+				 struct capwaphdr *capwap_hdr)
 {
 
+	struct	parse_result	*pr =
+				  (struct parse_result *)HWC_PARSE_RES_ADDRESS;
+	struct	presentation_context *prc =
+				(struct presentation_context *) HWC_PRC_ADDRESS;
+	struct cwapr_rfdc_list_node	node;
+	/* todo reuse ext_addr for node_ext_addr */
+	uint64_t		node_ext_addr;
 	uint8_t			index;
-	struct cwapr_rfdc_list_node	element;
-	/* todo reuse ext_addr for current_element_ext_addr */
-	uint64_t		element_ext_addr;
 	uint16_t		frag_size;
 	uint16_t		frag_offset;
 	uint16_t		exp_frag_offset; /* expected fragment offset */
@@ -762,26 +765,19 @@ CWAPR_CODE_PLACEMENT uint32_t insert_to_cwapr_link_list(struct cwapr_rfdc *rfdc,
 	uint8_t			last_frag;
 	uint32_t		status;
 	uint64_t		ext_addr;
-	uint16_t		capwap_hdr_size;
-	struct capwaphdr *capwap_hdr;
-	struct	parse_result	*pr =
-				  (struct parse_result *)HWC_PARSE_RES_ADDRESS;
-	struct	presentation_context *prc =
-				(struct presentation_context *) HWC_PRC_ADDRESS;
+	uint16_t		capwap_hdr_len;
 
-	capwap_hdr = (struct capwaphdr *)capwap_ptr;
+	capwap_hdr_len = (uint16_t)
+		  (((capwap_hdr->hlen_rid_wbid_t & NET_HDR_FLD_CAPWAP_HLEN_MASK) >>
+				  NET_HDR_FLD_CAPWAP_HLEN_OFFSET) << 2);
 
 	frag_offset =
 		(((capwap_hdr->offset_rsvd & NET_HDR_FLD_CAPWAP_FRAG_OFFSET_MASK) >>
 			NET_HDR_FLD_CAPWAP_FRAG_OFFSET_OFFSET) << 3);
 
-	capwap_hdr_size = (uint16_t)
-		  (((capwap_hdr->hlen_rid_wbid_t & NET_HDR_FLD_CAPWAP_HLEN_MASK) >>
-				  NET_HDR_FLD_CAPWAP_HLEN_OFFSET) << 2);
-
 	/* Get size of CAPWAP payload for current fragment */
 	frag_size = (uint16_t)(LDPAA_FD_GET_LENGTH(HWC_FD_ADDRESS) -
-			PARSER_GET_NEXT_HEADER_OFFSET_DEFAULT() - capwap_hdr_size);
+			PARSER_GET_NEXT_HEADER_OFFSET_DEFAULT() - capwap_hdr_len);
 
 	last_frag = capwap_hdr->bits_flags & NET_HDR_FLD_CAPWAP_L;
 
@@ -790,7 +786,7 @@ CWAPR_CODE_PLACEMENT uint32_t insert_to_cwapr_link_list(struct cwapr_rfdc *rfdc,
 		/* Save header to be removed in FD[FRC] */
 		((struct ldpaa_fd *)HWC_FD_ADDRESS)->frc =
 			    (uint32_t) (PARSER_GET_NEXT_HEADER_OFFSET_DEFAULT() +
-					    capwap_hdr_size);
+					    capwap_hdr_len);
 
 		/* Add current frag's running sum for L4 checksum check */
 		if (pr->gross_running_sum == 0) {
@@ -810,7 +806,7 @@ CWAPR_CODE_PLACEMENT uint32_t insert_to_cwapr_link_list(struct cwapr_rfdc *rfdc,
 						  rfdc->current_running_sum,
 						  pr->running_sum);
 	} else {
-		rfdc->first_frag_hdr_length = capwap_hdr_size;
+		rfdc->first_frag_hdr_length = capwap_hdr_len;
 
 		if (pr->gross_running_sum == 0) {
 			/* running_sum is used as a temporary location
@@ -829,22 +825,23 @@ CWAPR_CODE_PLACEMENT uint32_t insert_to_cwapr_link_list(struct cwapr_rfdc *rfdc,
 
 	if (!(rfdc->status & OUT_OF_ORDER)) {
 		/* In order handling */
-		exp_frag_offset = rfdc->current_total_length;
+		exp_frag_offset = rfdc->curr_total_len;
 		if (frag_offset == exp_frag_offset) {
 
 			rfdc->num_of_frags++;
-			rfdc->current_total_length += frag_size;
+			rfdc->curr_total_len += frag_size;
 
 			if (last_frag) {
-				if ((rfdc->current_total_length +
+				if ((rfdc->curr_total_len +
 					rfdc->first_frag_hdr_length) <=
 					cwapr_instance->max_reass_frm_size) {
 					/* Close current frame before storing FD */
 					fdma_store_default_frame_data();
 
 					/* Write FD in external buffer */
-					ext_addr = rfdc_ext_addr + CWAPR_START_OF_FDS_LIST +
-								rfdc->next_index*FD_SIZE;
+					ext_addr = rfdc_ext_addr +
+						CWAPR_START_OF_FDS_LIST +
+						rfdc->next_idx * FD_SIZE;
 					cdma_write(ext_addr,
 						   (void *)HWC_FD_ADDRESS,
 						   FD_SIZE);
@@ -858,10 +855,12 @@ CWAPR_CODE_PLACEMENT uint32_t insert_to_cwapr_link_list(struct cwapr_rfdc *rfdc,
 				fdma_store_default_frame_data();
 
 				/* Write FD in external buffer */
-				ext_addr = rfdc_ext_addr + CWAPR_START_OF_FDS_LIST +
-							rfdc->next_index * FD_SIZE;
-				cdma_write(ext_addr, (void *)HWC_FD_ADDRESS, FD_SIZE);
-				rfdc->next_index++;
+				ext_addr = rfdc_ext_addr +
+					CWAPR_START_OF_FDS_LIST +
+					rfdc->next_idx * FD_SIZE;
+				cdma_write(ext_addr,
+					(void *)HWC_FD_ADDRESS, FD_SIZE);
+				rfdc->next_idx++;
 				status =  FRAG_OK_REASS_NOT_COMPL;
 			}
 		} else if (frag_offset < exp_frag_offset) {
@@ -869,40 +868,42 @@ CWAPR_CODE_PLACEMENT uint32_t insert_to_cwapr_link_list(struct cwapr_rfdc *rfdc,
 				return MALFORMED_FRAG;
 		} else {
 			/* New out of order */
-			index = rfdc->next_index;
+			index = rfdc->next_idx;
 			if (index != 0) {
 				rfdc->status |= OUT_OF_ORDER | ORDER_AND_OOO;
-				rfdc->index_to_out_of_order = index;
-				rfdc->first_frag_index = index;
-				rfdc->total_in_order_payload = rfdc->current_total_length;
+				rfdc->idx_out_of_order = index;
+				rfdc->first_frag_idx = index;
+				rfdc->total_in_order_payload =
+						rfdc->curr_total_len;
 			} else {
 				rfdc->status |= OUT_OF_ORDER;
 			}
-			rfdc->last_frag_index = index;
+			rfdc->last_frag_idx = index;
 			rfdc->num_of_frags++;
-			rfdc->current_total_length += frag_size;
-			rfdc->next_index = index + 1;
+			rfdc->curr_total_len += frag_size;
+			rfdc->next_idx = index + 1;
 			rfdc->biggest_payload = frag_offset + frag_size;
 
 			if (last_frag)
-				rfdc->expected_total_length = frag_offset + frag_size;
-			element.next_index  = 0;
-			element.prev_index  = 0;
-			element.frag_offset = frag_offset;
-			element.frag_length = frag_size;
-			/* Write my element of link list */
-			element_ext_addr = rfdc_ext_addr +
+				rfdc->exp_total_len = frag_offset + frag_size;
+			node.next_idx  = 0;
+			node.prev_idx  = 0;
+			node.frag_offset = frag_offset;
+			node.frag_len = frag_size;
+			/* Write my node of link list */
+			node_ext_addr = rfdc_ext_addr +
 						CWAPR_START_OF_LINK_LIST +
 						index * CWAPR_RFDC_LIST_NODE_SIZE;
-			cdma_write(element_ext_addr,
-					   (void *)&element,
-				   CWAPR_RFDC_LIST_NODE_SIZE);
+			cdma_write(node_ext_addr,
+				(void *)&node,
+				CWAPR_RFDC_LIST_NODE_SIZE);
 
 			/* Close current frame before storing FD */
 			fdma_store_default_frame_data();
 
 			/* Write FD in external buffer */
-			ext_addr = rfdc_ext_addr + CWAPR_START_OF_FDS_LIST + index * FD_SIZE;
+			ext_addr = rfdc_ext_addr +
+					CWAPR_START_OF_FDS_LIST + index * FD_SIZE;
 			cdma_write(ext_addr, (void *)HWC_FD_ADDRESS, FD_SIZE);
 
 			status = FRAG_OK_REASS_NOT_COMPL;
@@ -1040,12 +1041,11 @@ CWAPR_CODE_PLACEMENT uint32_t close_in_order_capwap_frags(
 CWAPR_CODE_PLACEMENT uint32_t l3_l4_l5_headers_update(struct cwapr_rfdc *rfdc)
 {
 	uint16_t	ipv4hdr_offset;
-	uint16_t	new_total_length;
+	uint16_t	total_len;
 	uint16_t	ip_hdr_cksum;
-	uint16_t	old_ip_checksum;
-	uint16_t	ip_header_size;
-	uint16_t	capwap_header_size;
-	struct ipv4hdr  *ipv4hdr_ptr;
+	uint16_t	ip_hdr_len;
+	uint16_t	capwap_hdr_len;
+	struct ipv4hdr  *ipv4_hdr;
 	struct udphdr	*udp_hdr;
 	struct capwaphdr *capwap_hdr;
 	struct parse_result *pr;
@@ -1053,38 +1053,35 @@ CWAPR_CODE_PLACEMENT uint32_t l3_l4_l5_headers_update(struct cwapr_rfdc *rfdc)
 				(struct presentation_context *) HWC_PRC_ADDRESS;
 
 	ipv4hdr_offset = rfdc->iphdr_offset;
-	ipv4hdr_ptr = (struct ipv4hdr *)
+	ipv4_hdr = (struct ipv4hdr *)
 			(ipv4hdr_offset + PRC_GET_SEGMENT_ADDRESS());
-	capwap_hdr = (struct capwaphdr *)(PARSER_GET_NEXT_HEADER_OFFSET_DEFAULT() +
-					PRC_GET_SEGMENT_ADDRESS());
+	capwap_hdr = (struct capwaphdr *)
+			(PARSER_GET_NEXT_HEADER_OFFSET_DEFAULT() +
+				PRC_GET_SEGMENT_ADDRESS());
 
-	ip_header_size = (uint16_t)
-			((ipv4hdr_ptr->vsn_and_ihl & IPV4_HDR_IHL_MASK)<<2);
+	ip_hdr_len = (uint16_t)((ipv4_hdr->vsn_and_ihl & IPV4_HDR_IHL_MASK)<<2);
 
-	capwap_header_size = (uint16_t)
+	capwap_hdr_len = (uint16_t)
 		  (((capwap_hdr->hlen_rid_wbid_t & NET_HDR_FLD_CAPWAP_HLEN_MASK) >>
 				  NET_HDR_FLD_CAPWAP_HLEN_OFFSET) << 2);
 
 	/* IP header length + UDP header length + CAPWAP header length + payload */
-	new_total_length = ip_header_size + sizeof(struct udphdr) +
-			capwap_header_size + rfdc->current_total_length;
+	total_len = ip_hdr_len + sizeof(struct udphdr) +
+			capwap_hdr_len + rfdc->curr_total_len;
 
 	/* update IP checksum */
-	old_ip_checksum = ipv4hdr_ptr->hdr_cksum;
-	ip_hdr_cksum = old_ip_checksum;
-	ip_hdr_cksum = cksum_accumulative_update_uint32(ip_hdr_cksum,
-					 ipv4hdr_ptr->total_length,
-					 new_total_length);
-	ipv4hdr_ptr->hdr_cksum = ip_hdr_cksum;
+	ip_hdr_cksum = cksum_accumulative_update_uint32(ipv4_hdr->hdr_cksum,
+					ipv4_hdr->total_length, total_len);
+	ipv4_hdr->hdr_cksum = ip_hdr_cksum;
 
 	/* update IP total length */
-	ipv4hdr_ptr->total_length = new_total_length;
+	ipv4_hdr->total_length = total_len;
 
 	/* update UDP length and reset checksum */
 	udp_hdr = (struct udphdr *)
 			(PARSER_GET_L4_OFFSET_DEFAULT() + PRC_GET_SEGMENT_ADDRESS());
 	udp_hdr->length = sizeof(struct udphdr) +
-				capwap_header_size + rfdc->current_total_length;
+				capwap_hdr_len + rfdc->curr_total_len;
 	udp_hdr->checksum = 0;
 
 	/* reset CAPWAP 'F' flag */
@@ -1092,10 +1089,10 @@ CWAPR_CODE_PLACEMENT uint32_t l3_l4_l5_headers_update(struct cwapr_rfdc *rfdc)
 
 	/* update FDMA with new IP header, new UDP header, new CAPWAP header */
 	fdma_modify_default_segment_data(ipv4hdr_offset,
-			ip_header_size + sizeof(struct udphdr) + capwap_header_size);
+			ip_hdr_len + sizeof(struct udphdr) + capwap_hdr_len);
 
 	/* Updated FD[length] */
-	LDPAA_FD_SET_LENGTH(HWC_FD_ADDRESS, new_total_length + ipv4hdr_offset +
+	LDPAA_FD_SET_LENGTH(HWC_FD_ADDRESS, total_len + ipv4hdr_offset +
 					   prc->seg_offset);
 
 	/* Update Gross running sum of the reassembled frame */
@@ -1123,7 +1120,7 @@ CWAPR_CODE_PLACEMENT uint32_t close_with_reorder_capwap_frags(
 	concatenate_prm.flags = FDMA_CONCAT_SF_BIT;
 
 	if (rfdc->status & ORDER_AND_OOO) {
-		if (rfdc->index_to_out_of_order == 1) {
+		if (rfdc->idx_out_of_order == 1) {
 			temp_ext_addr = rfdc_ext_addr + CWAPR_START_OF_FDS_LIST;
 			cdma_read((void *)HWC_FD_ADDRESS, temp_ext_addr, FD_SIZE);
 
@@ -1134,7 +1131,7 @@ CWAPR_CODE_PLACEMENT uint32_t close_with_reorder_capwap_frags(
 			/* Open 1rst frame and get frame handle */
 			fdma_present_default_frame_without_segments();
 			concatenate_prm.frame1 = (uint16_t) PRC_GET_FRAME_HANDLE();
-			frag_index = rfdc->first_frag_index;
+			frag_index = rfdc->first_frag_idx;
 
 			temp_ext_addr = rfdc_ext_addr + CWAPR_START_OF_FDS_LIST +
 						frag_index * FD_SIZE;
@@ -1160,10 +1157,10 @@ CWAPR_CODE_PLACEMENT uint32_t close_with_reorder_capwap_frags(
 			byte_idx = 255; /* invalid value */
 
 		} else {
-			frag_index = rfdc->index_to_out_of_order;
+			frag_index = rfdc->idx_out_of_order;
 			close_in_order_capwap_frags(rfdc_ext_addr, frag_index);
 			num_of_frags = rfdc->num_of_frags - frag_index - 1;
-			frag_index = rfdc->first_frag_index;
+			frag_index = rfdc->first_frag_idx;
 
 			temp_ext_addr = rfdc_ext_addr + CWAPR_START_OF_FDS_LIST +
 								frag_index * FD_SIZE;
@@ -1191,9 +1188,9 @@ CWAPR_CODE_PLACEMENT uint32_t close_with_reorder_capwap_frags(
 		}
 	} else {
 		num_of_frags  = rfdc->num_of_frags;
-		frag_index = rfdc->first_frag_index;
+		frag_index = rfdc->first_frag_idx;
 
-		/* Bring 8 elements of LL */
+		/* Bring 8 nodes of LL */
 		byte_idx = frag_index >> 3;
 		temp_ext_addr = rfdc_ext_addr + CWAPR_START_OF_LINK_LIST +
 				byte_idx * 8 * CWAPR_RFDC_LIST_NODE_SIZE;
@@ -1205,7 +1202,7 @@ CWAPR_CODE_PLACEMENT uint32_t close_with_reorder_capwap_frags(
 		cdma_read(fds_to_concatenate,
 				  temp_ext_addr,
 				  FD_SIZE);
-		frag_index = link_list[frag_index & BYTE_RFDC_LIST_MASK].next_index;
+		frag_index = link_list[frag_index & BYTE_RFDC_LIST_MASK].next_idx;
 		temp_ext_addr = rfdc_ext_addr + CWAPR_START_OF_FDS_LIST +
 							frag_index * FD_SIZE;
 		cdma_read(fds_to_concatenate + 1,
@@ -1240,9 +1237,9 @@ CWAPR_CODE_PLACEMENT uint32_t close_with_reorder_capwap_frags(
 	while (num_of_frags != 0) {
 		if ((frag_index >> 3) == byte_idx)
 			frag_index =
-					link_list[frag_index & BYTE_RFDC_LIST_MASK].next_index;
+					link_list[frag_index & BYTE_RFDC_LIST_MASK].next_idx;
 		else {
-			/* Bring 8 elements of LL */
+			/* Bring 8 nodes of LL */
 			byte_idx = frag_index >> 3;
 			temp_ext_addr = rfdc_ext_addr + CWAPR_START_OF_LINK_LIST +
 					byte_idx * 8 *
@@ -1252,7 +1249,7 @@ CWAPR_CODE_PLACEMENT uint32_t close_with_reorder_capwap_frags(
 				  8 * CWAPR_RFDC_LIST_NODE_SIZE);
 
 			frag_index =
-					link_list[frag_index & BYTE_RFDC_LIST_MASK].next_index;
+					link_list[frag_index & BYTE_RFDC_LIST_MASK].next_idx;
 		}
 
 		temp_ext_addr = rfdc_ext_addr + CWAPR_START_OF_FDS_LIST +
@@ -1374,7 +1371,7 @@ void timeout_cwapr_reassemble(uint64_t rfdc_ext_addr, uint16_t opaque)
 		fdma_terminate_task();
 	}
 	if ((rfdc_status & OUT_OF_ORDER) && !(rfdc_status & ORDER_AND_OOO))
-		first_frag_idx = rfdc.first_frag_index;
+		first_frag_idx = rfdc.first_frag_idx;
 	else
 		first_frag_idx = 0;
 	while (num_of_frags != 0) {
@@ -1429,7 +1426,7 @@ CWAPR_CODE_PLACEMENT void return_to_correct_ordering_scope(uint32_t osm_status)
 }
 
 CWAPR_CODE_PLACEMENT uint32_t out_of_order_capwap_frags(struct cwapr_rfdc *rfdc,
-		uint64_t rfdc_ext_addr, uint32_t last_frag, 
+		uint64_t rfdc_ext_addr, uint32_t last_frag,
 		uint16_t frag_size, uint16_t frag_offset,
 		struct cwapr_instance *cwapr_instance)
 {
@@ -1442,12 +1439,12 @@ CWAPR_CODE_PLACEMENT uint32_t out_of_order_capwap_frags(struct cwapr_rfdc *rfdc,
 	uint8_t				tmp_idx_in_byte;
 	uint8_t				new_frag_idx_in_byte;
 	uint16_t			tmp_total_payload;
-	uint64_t			curr_el_ext_addr;
-	uint64_t			tmp_el_ext_addr;
+	uint64_t			curr_node_ext_addr;
+	uint64_t			tmp_node_ext_addr;
 	uint64_t			new_frag_ext_addr;
 	uint64_t			byte_ext_addr;
-	struct cwapr_rfdc_list_node	*tmp_el;
-	struct cwapr_rfdc_list_node	*curr_el;
+	struct cwapr_rfdc_list_node	*tmp_node;
+	struct cwapr_rfdc_list_node	*curr_node;
 	struct cwapr_rfdc_list_node	link_list[8];
 
 
@@ -1455,41 +1452,41 @@ CWAPR_CODE_PLACEMENT uint32_t out_of_order_capwap_frags(struct cwapr_rfdc *rfdc,
 		/* overlap or duplicate */
 		return MALFORMED_FRAG;
 	}
-	curr_idx = rfdc->next_index;
-	curr_el_ext_addr = rfdc_ext_addr + CWAPR_START_OF_LINK_LIST +
+	curr_idx = rfdc->next_idx;
+	curr_node_ext_addr = rfdc_ext_addr + CWAPR_START_OF_LINK_LIST +
 				curr_idx * CWAPR_RFDC_LIST_NODE_SIZE;
-	first_frag_idx = rfdc->first_frag_index;
-	tmp_frag_idx = rfdc->last_frag_index;
-	tmp_el_ext_addr = rfdc_ext_addr + CWAPR_START_OF_LINK_LIST +
+	first_frag_idx = rfdc->first_frag_idx;
+	tmp_frag_idx = rfdc->last_frag_idx;
+	tmp_node_ext_addr = rfdc_ext_addr + CWAPR_START_OF_LINK_LIST +
 				CWAPR_RFDC_LIST_NODE_SIZE * tmp_frag_idx;
 	tmp_total_payload = rfdc->biggest_payload;
 	if (frag_offset >= tmp_total_payload) {
 		/* Bigger than last */
-		tmp_el = link_list;
-		cdma_read_wrp((void *)tmp_el,
-			tmp_el_ext_addr,
+		tmp_node = link_list;
+		cdma_read_wrp((void *)tmp_node,
+			tmp_node_ext_addr,
 			CWAPR_RFDC_LIST_NODE_SIZE);
-		if (rfdc->expected_total_length) {
+		if (rfdc->exp_total_len) {
 			/* Error */
 			return MALFORMED_FRAG;
 		}
 		if (last_frag)
-			rfdc->expected_total_length = frag_offset + frag_size;
+			rfdc->exp_total_len = frag_offset + frag_size;
 
 		rfdc->biggest_payload = frag_offset + frag_size;
-		curr_el = link_list + 1;
-		rfdc->last_frag_index = curr_idx;
-		tmp_el->next_index = curr_idx;
-		curr_el->prev_index  = tmp_frag_idx;
-		curr_el->frag_offset = frag_offset;
-		curr_el->frag_length = frag_size;
+		curr_node = link_list + 1;
+		rfdc->last_frag_idx = curr_idx;
+		tmp_node->next_idx = curr_idx;
+		curr_node->prev_idx  = tmp_frag_idx;
+		curr_node->frag_offset = frag_offset;
+		curr_node->frag_len = frag_size;
 		/* not required */
-		curr_el->next_index = 0;
-		cdma_write_wrp(tmp_el_ext_addr,
-				tmp_el,
+		curr_node->next_idx = 0;
+		cdma_write_wrp(tmp_node_ext_addr,
+				tmp_node,
 				CWAPR_RFDC_LIST_NODE_SIZE);
-		cdma_write_wrp(curr_el_ext_addr,
-				curr_el,
+		cdma_write_wrp(curr_node_ext_addr,
+				curr_node,
 				CWAPR_RFDC_LIST_NODE_SIZE);
 	} else {
 		/* Smaller than last */
@@ -1498,7 +1495,7 @@ CWAPR_CODE_PLACEMENT uint32_t out_of_order_capwap_frags(struct cwapr_rfdc *rfdc,
 			 * as last */
 			return MALFORMED_FRAG;
 		}
-		/* Bring 8 elements of the Link List */
+		/* Bring 8 nodes of the Link List */
 		byte_idx = tmp_frag_idx >> 3;
 		byte_ext_addr = rfdc_ext_addr + CWAPR_START_OF_LINK_LIST +
 			CWAPR_RFDC_LIST_NODE_SIZE * 8 * byte_idx;
@@ -1506,56 +1503,56 @@ CWAPR_CODE_PLACEMENT uint32_t out_of_order_capwap_frags(struct cwapr_rfdc *rfdc,
 			  byte_ext_addr,
 			  8*CWAPR_RFDC_LIST_NODE_SIZE);
 		tmp_idx_in_byte = tmp_frag_idx & BYTE_RFDC_LIST_MASK;
-		tmp_el = link_list + tmp_idx_in_byte;
-		if ((frag_offset + frag_size) > tmp_el->frag_offset) {
+		tmp_node = link_list + tmp_idx_in_byte;
+		if ((frag_offset + frag_size) > tmp_node->frag_offset) {
 			/* Overlap */
 			return MALFORMED_FRAG;
 		}
 		do {
 			if (tmp_frag_idx == first_frag_idx) {
-				rfdc->first_frag_index = curr_idx;
-				tmp_el->prev_index = curr_idx;
+				rfdc->first_frag_idx = curr_idx;
+				tmp_node->prev_idx = curr_idx;
 				curr_idx_in_byte = curr_idx & BYTE_RFDC_LIST_MASK;
 				if ((curr_idx >> 3) == byte_idx) {
-					link_list[curr_idx_in_byte].frag_length = frag_size;
+					link_list[curr_idx_in_byte].frag_len = frag_size;
 					link_list[curr_idx_in_byte].frag_offset = frag_offset;
-					link_list[curr_idx_in_byte].next_index = tmp_frag_idx;
+					link_list[curr_idx_in_byte].next_idx = tmp_frag_idx;
 						/* not required */
-					link_list[curr_idx_in_byte].prev_index = 0;
+					link_list[curr_idx_in_byte].prev_idx = 0;
 
 					cdma_write_wrp(byte_ext_addr,
 						   link_list,
 						   8*CWAPR_RFDC_LIST_NODE_SIZE);
 				} else {
 					if (tmp_idx_in_byte == 0)
-						curr_el = tmp_el + 1;
+						curr_node = tmp_node + 1;
 					else
-						curr_el = tmp_el - 1;
+						curr_node = tmp_node - 1;
 
-					curr_el->frag_length = frag_size;
-					curr_el->frag_offset = frag_offset;
-					curr_el->next_index = tmp_frag_idx;
+					curr_node->frag_len = frag_size;
+					curr_node->frag_offset = frag_offset;
+					curr_node->next_idx = tmp_frag_idx;
 					/* not required */
-					curr_el->prev_index  = 0;
+					curr_node->prev_idx  = 0;
 
-				    cdma_write_wrp(curr_el_ext_addr,
-						   curr_el,
+				    cdma_write_wrp(curr_node_ext_addr,
+						   curr_node,
 						   CWAPR_RFDC_LIST_NODE_SIZE);
-				    tmp_el_ext_addr = rfdc_ext_addr +
+				    tmp_node_ext_addr = rfdc_ext_addr +
 						    CWAPR_START_OF_LINK_LIST +
 						    CWAPR_RFDC_LIST_NODE_SIZE *
 						    tmp_frag_idx;
-				    cdma_write_wrp(tmp_el_ext_addr,
-						   tmp_el,
+				    cdma_write_wrp(tmp_node_ext_addr,
+						   tmp_node,
 						   CWAPR_RFDC_LIST_NODE_SIZE);
 				}
-				rfdc->current_total_length += frag_size;
+				rfdc->curr_total_len += frag_size;
 				rfdc->num_of_frags++;
 
-				if (rfdc->current_total_length == rfdc->expected_total_length) {
+				if (rfdc->curr_total_len == rfdc->exp_total_len) {
 					/* Reassembly is completed */
 					/* Check max reassembly size */
-					if ((rfdc->current_total_length +
+					if ((rfdc->curr_total_len +
 						rfdc->first_frag_hdr_length) <=
 						cwapr_instance->max_reass_frm_size) {
 
@@ -1563,10 +1560,10 @@ CWAPR_CODE_PLACEMENT uint32_t out_of_order_capwap_frags(struct cwapr_rfdc *rfdc,
 						fdma_store_default_frame_data_wrp();
 
 						/* Write FD in external buffer */
-						curr_el_ext_addr = rfdc_ext_addr +
+						curr_node_ext_addr = rfdc_ext_addr +
 									   CWAPR_START_OF_FDS_LIST +
 									   curr_idx * FD_SIZE;
-						cdma_write_wrp(curr_el_ext_addr,
+						cdma_write_wrp(curr_node_ext_addr,
 							       (void *)HWC_FD_ADDRESS,
 							       FD_SIZE);
 
@@ -1580,21 +1577,21 @@ CWAPR_CODE_PLACEMENT uint32_t out_of_order_capwap_frags(struct cwapr_rfdc *rfdc,
 					fdma_store_default_frame_data_wrp();
 
 					/* Write FD in external buffer */
-					curr_el_ext_addr = rfdc_ext_addr +
+					curr_node_ext_addr = rfdc_ext_addr +
 						CWAPR_START_OF_FDS_LIST +
 						curr_idx * FD_SIZE;
-					cdma_write_wrp(curr_el_ext_addr,
+					cdma_write_wrp(curr_node_ext_addr,
 						       (void *)HWC_FD_ADDRESS,
 						       FD_SIZE);
 
-					rfdc->next_index = curr_idx + 1;
-				       return FRAG_OK_REASS_NOT_COMPL;
+					rfdc->next_idx = curr_idx + 1;
+				    return FRAG_OK_REASS_NOT_COMPL;
 				}
 
 			}
-			tmp_frag_idx = tmp_el->prev_index;
+			tmp_frag_idx = tmp_node->prev_idx;
 			if ((tmp_frag_idx>>3) != byte_idx) {
-				/* Bring 8 elements of the Link List */
+				/* Bring 8 nodes of the Link List */
 				/* todo check if compiler add a clock
 				   for next line */
 				byte_idx = tmp_frag_idx >> 3;
@@ -1608,25 +1605,25 @@ CWAPR_CODE_PLACEMENT uint32_t out_of_order_capwap_frags(struct cwapr_rfdc *rfdc,
 			}
 			tmp_idx_in_byte = tmp_frag_idx &
 					      BYTE_RFDC_LIST_MASK;
-			tmp_el = link_list + tmp_idx_in_byte;
-		} while ((frag_offset + frag_size) <= tmp_el->frag_offset);
+			tmp_node = link_list + tmp_idx_in_byte;
+		} while ((frag_offset + frag_size) <= tmp_node->frag_offset);
 
-		tmp_total_payload = tmp_el->frag_offset + tmp_el->frag_length;
+		tmp_total_payload = tmp_node->frag_offset + tmp_node->frag_len;
 		if (frag_offset >= tmp_total_payload) {
-			curr_idx_in_byte = 
+			curr_idx_in_byte =
 					curr_idx & BYTE_RFDC_LIST_MASK;
 			if ((curr_idx >> 3) == byte_idx) {
-				new_frag_idx = tmp_el->next_index;
-				link_list[curr_idx_in_byte].frag_length = frag_size;
+				new_frag_idx = tmp_node->next_idx;
+				link_list[curr_idx_in_byte].frag_len = frag_size;
 				link_list[curr_idx_in_byte].frag_offset = frag_offset;
-				link_list[curr_idx_in_byte].next_index = new_frag_idx;
-				link_list[curr_idx_in_byte].prev_index = tmp_frag_idx;
+				link_list[curr_idx_in_byte].next_idx = new_frag_idx;
+				link_list[curr_idx_in_byte].prev_idx = tmp_frag_idx;
 
-				link_list[tmp_idx_in_byte].next_index = curr_idx;
+				link_list[tmp_idx_in_byte].next_idx = curr_idx;
 
 				if ((new_frag_idx >> 3) == byte_idx) {
 					new_frag_idx_in_byte = new_frag_idx & BYTE_RFDC_LIST_MASK;
-					link_list[new_frag_idx_in_byte].prev_index = curr_idx;
+					link_list[new_frag_idx_in_byte].prev_idx = curr_idx;
 					cdma_write_wrp(byte_ext_addr,
 						   link_list,
 						   8*CWAPR_RFDC_LIST_NODE_SIZE);
@@ -1641,27 +1638,27 @@ CWAPR_CODE_PLACEMENT uint32_t out_of_order_capwap_frags(struct cwapr_rfdc *rfdc,
 					cdma_read_wrp(link_list,
 						  new_frag_ext_addr,
 						  CWAPR_RFDC_LIST_NODE_SIZE);
-					link_list[0].prev_index = curr_idx;
+					link_list[0].prev_idx = curr_idx;
 					cdma_write_wrp(new_frag_ext_addr,
 						  link_list,
 						  CWAPR_RFDC_LIST_NODE_SIZE);
 				  }
 			} else {
-				new_frag_idx = tmp_el->next_index;
-				link_list[tmp_idx_in_byte].next_index =
+				new_frag_idx = tmp_node->next_idx;
+				link_list[tmp_idx_in_byte].next_idx =
 									curr_idx;
 
 				if ((new_frag_idx >> 3) == byte_idx) {
 					new_frag_idx_in_byte = new_frag_idx &
 								BYTE_RFDC_LIST_MASK;
-					link_list[new_frag_idx_in_byte].prev_index =
+					link_list[new_frag_idx_in_byte].prev_idx =
 									  curr_idx;
-					/* update temp and new_frag elements */
+					/* update temp and new_frag nodes */
 					cdma_write_wrp(byte_ext_addr,
 						   link_list,
 						   8*CWAPR_RFDC_LIST_NODE_SIZE);
 				} else {
-					/* update temp element */
+					/* update temp nodes */
 					cdma_write_wrp(byte_ext_addr,
 						   link_list,
 						   8*CWAPR_RFDC_LIST_NODE_SIZE);
@@ -1672,18 +1669,18 @@ CWAPR_CODE_PLACEMENT uint32_t out_of_order_capwap_frags(struct cwapr_rfdc *rfdc,
 					cdma_read_wrp(link_list,
 						 new_frag_ext_addr,
 						 CWAPR_RFDC_LIST_NODE_SIZE);
-					link_list[0].prev_index = curr_idx;
+					link_list[0].prev_idx = curr_idx;
 					cdma_write_wrp(new_frag_ext_addr,
 						  link_list,
 						  CWAPR_RFDC_LIST_NODE_SIZE);
 				}
 
-				link_list[0].frag_length = frag_size;
+				link_list[0].frag_len = frag_size;
 				link_list[0].frag_offset = frag_offset;
-				link_list[0].next_index  = new_frag_idx;
-				link_list[0].prev_index  = tmp_frag_idx;
+				link_list[0].next_idx  = new_frag_idx;
+				link_list[0].prev_idx  = tmp_frag_idx;
 
-				cdma_write_wrp(curr_el_ext_addr,
+				cdma_write_wrp(curr_node_ext_addr,
 						link_list,
 						CWAPR_RFDC_LIST_NODE_SIZE);
 			 }
@@ -1693,22 +1690,21 @@ CWAPR_CODE_PLACEMENT uint32_t out_of_order_capwap_frags(struct cwapr_rfdc *rfdc,
 		}
 	}
 
-	rfdc->current_total_length += frag_size;
+	rfdc->curr_total_len += frag_size;
 	rfdc->num_of_frags++;
 
-	if (rfdc->current_total_length == rfdc->expected_total_length) {
+	if (rfdc->curr_total_len == rfdc->exp_total_len) {
 		/* Reassembly is completed */
 		/* Check max reassembly size */
-		if ((rfdc->current_total_length +
-			rfdc->first_frag_hdr_length) <=
+		if ((rfdc->curr_total_len + rfdc->first_frag_hdr_length) <=
 			cwapr_instance->max_reass_frm_size) {
 			/* Close current frame before storing FD */
 			fdma_store_default_frame_data_wrp();
 
 			/* Write FD in external buffer */
-			curr_el_ext_addr = rfdc_ext_addr +
+			curr_node_ext_addr = rfdc_ext_addr +
 				CWAPR_START_OF_FDS_LIST + curr_idx * FD_SIZE;
-			cdma_write_wrp(curr_el_ext_addr,
+			cdma_write_wrp(curr_node_ext_addr,
 					(void *)HWC_FD_ADDRESS,
 					FD_SIZE);
 
@@ -1721,13 +1717,13 @@ CWAPR_CODE_PLACEMENT uint32_t out_of_order_capwap_frags(struct cwapr_rfdc *rfdc,
 		fdma_store_default_frame_data_wrp();
 
 		/* Write FD in external buffer */
-		curr_el_ext_addr = rfdc_ext_addr + CWAPR_START_OF_FDS_LIST +
+		curr_node_ext_addr = rfdc_ext_addr + CWAPR_START_OF_FDS_LIST +
 					curr_idx * FD_SIZE;
-		cdma_write_wrp(curr_el_ext_addr,
+		cdma_write_wrp(curr_node_ext_addr,
 				   (void *)HWC_FD_ADDRESS,
 				   FD_SIZE);
 
-		rfdc->next_index++;
+		rfdc->next_idx++;
 		return FRAG_OK_REASS_NOT_COMPL;
 	}
 }
