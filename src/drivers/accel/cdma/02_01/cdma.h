@@ -66,6 +66,8 @@
 #define CDMA_WRITE_CMD_FLAGS  0x00000000
 /** CDMA_ACCESS_CONTEXT_MEM_FLAGS[DA]=[01] */
 #define CDMA_READ_CMD_ENB    0x40000000
+/** CDMA_ACCESS_CONTEXT_MEM_FLAGS[DA]=[11] */
+#define CDMA_READ_CMD_ENB_NO_CACHE    0xC0000000
 /** CDMA_ACCESS_CONTEXT_MEM_FLAGS[DA]=[10] */
 #define CDMA_WRITE_CMD_ENB    0x80000000
 /** CDMA_ACCESS_CONTEXT_MEM_FLAGS[AA,MO,TL,MT,UR,RM]=[0,0,0,00,01,0] */
@@ -99,6 +101,9 @@
 #define CDMA_READ_CMD_ARG2(_size, _ws_address)	\
 	(uint32_t)((((_size << 16) | CDMA_READ_CMD_ENB) & 0xFFFF0000) \
 			| (_ws_address & 0x0000FFFF))
+#define CDMA_READ_CMD_NO_CACHE_ARG2(_size, _ws_address)	\
+	(uint32_t)((((_size << 16) | CDMA_READ_CMD_ENB_NO_CACHE) & 0xFFFF0000) \
+			| (_ws_address & 0x0000FFFF))
 #define CDMA_WRITE_CMD_ARG1()	\
 	(CDMA_WRITE_CMD_FLAGS | CDMA_ACCESS_CONTEXT_MEM_CMD);
 #define CDMA_WRITE_CMD_ARG2(_size, _ws_address)	\
@@ -110,6 +115,9 @@
 	(CDMA_EXT_MUTEX_LOCK_RELEASE_CMD_FLAGS | CDMA_ACCESS_CONTEXT_MEM_CMD);
 #define CDMA_READ_WITH_MUTEX_CMD_ARG1(_flags)	\
 	(_flags | CDMA_ACCESS_CONTEXT_MEM_CMD);
+#define CDMA_READ_WITH_MUTEX_NO_CACHE_CMD_ARG2(_size, _ws_address) \
+	(uint32_t)((((_size << 16) | CDMA_READ_CMD_ENB_NO_CACHE) & 0xFFFF0000) \
+			| (_ws_address & 0x0000FFFF))
 #define CDMA_READ_WITH_MUTEX_CMD_ARG2(_size, _ws_address) \
 	(uint32_t)((((_size << 16) | CDMA_READ_CMD_ENB) & 0xFFFF0000) \
 			| (_ws_address & 0x0000FFFF))

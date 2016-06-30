@@ -158,19 +158,17 @@ inline int cdma_refcount_decrement(
 	return -1;
 }
 
-inline void cdma_read_with_mutex(
+inline void cdma_read_with_mutex_cache_wrp(
 		uint64_t ext_address,
 		uint32_t flags,
-		void *ws_dst,
-		uint16_t size) {
+		uint32_t arg2) {
 
 	/* command parameters and results */
-	uint32_t arg1, arg2, arg3, arg4;
+	uint32_t arg1, arg3, arg4;
 	uint8_t res1;
 
 	/* prepare command parameters */
 	arg1 = CDMA_READ_WITH_MUTEX_CMD_ARG1(flags);
-	arg2 = CDMA_READ_WITH_MUTEX_CMD_ARG2(size, (uint32_t)ws_dst);
 	arg3 = (uint32_t)(ext_address>>32);
 	arg4 = (uint32_t)(ext_address);
 
@@ -186,18 +184,36 @@ inline void cdma_read_with_mutex(
 	cdma_exception_handler(CDMA_READ_WITH_MUTEX, __LINE__, (int32_t)res1);
 }
 
-inline void cdma_read(
-		void *ws_dst,
+inline void cdma_read_with_mutex(
 		uint64_t ext_address,
+		uint32_t flags,
+		void *ws_dst,
 		uint16_t size) {
 
+	uint32_t arg2;
+	arg2 = CDMA_READ_WITH_MUTEX_NO_CACHE_CMD_ARG2(size, (uint32_t)ws_dst);
+	cdma_read_with_mutex_cache_wrp(ext_address, flags, arg2);
+}
+
+inline void cdma_read_with_mutex_cache(
+		uint64_t ext_address,
+		uint32_t flags,
+		void *ws_dst,
+		uint16_t size) {
+
+	uint32_t arg2;
+	arg2 = CDMA_READ_WITH_MUTEX_CMD_ARG2(size, (uint32_t)ws_dst);
+	cdma_read_with_mutex_cache_wrp(ext_address, flags, arg2);
+}
+
+inline void cdma_read_cache_wrp(uint64_t ext_address,
+		uint32_t arg2) {
 	/* command parameters and results */
-	uint32_t arg1, arg2, arg3, arg4;
+	uint32_t arg1, arg3, arg4;
 	uint8_t res1;
 
 	/* prepare command parameters */
 	arg1 = CDMA_READ_CMD_ARG1();
-	arg2 = CDMA_READ_CMD_ARG2(size, (uint32_t)ws_dst);
 	arg3 = (uint32_t)(ext_address>>32);
 	arg4 = (uint32_t)(ext_address);
 
@@ -211,6 +227,27 @@ inline void cdma_read(
 	/* load command results */
 	res1 = *((uint8_t *)(HWC_ACC_OUT_ADDRESS+CDMA_STATUS_OFFSET));
 	cdma_exception_handler(CDMA_READ, __LINE__,(int32_t)res1);
+}
+
+
+inline void cdma_read(
+		void *ws_dst,
+		uint64_t ext_address,
+		uint16_t size) {
+
+	uint32_t arg2;
+	arg2 = CDMA_READ_CMD_NO_CACHE_ARG2(size, (uint32_t)ws_dst);
+	cdma_read_cache_wrp(ext_address, arg2);
+}
+
+inline void cdma_read_with_cache(
+		void *ws_dst,
+		uint64_t ext_address,
+		uint16_t size) {
+
+	uint32_t arg2;
+	arg2 = CDMA_READ_CMD_ARG2(size, (uint32_t)ws_dst);
+	cdma_read_cache_wrp(ext_address, arg2);
 }
 
 inline void cdma_write(
