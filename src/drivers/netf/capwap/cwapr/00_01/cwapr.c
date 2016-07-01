@@ -126,8 +126,8 @@ int cwapr_init(void)
 int cwapr_create_instance(struct cwapr_params *params,
 			    cwapr_instance_handle_t *cwapr_instance_handle)
 {
-	struct cwapr_instance	      cwapr_instance;
-	struct table_create_params	  tbl_params;
+	struct cwapr_instance	cwapr_instance;
+	struct table_create_params	tbl_params;
 	uint32_t tbl_location;
 	uint16_t tbl_location_attr;
 	uint16_t bpid;
@@ -711,7 +711,6 @@ CWAPR_CODE_PLACEMENT int miss_cwapr_flow(struct cwapr_instance *cwapr_instance,
 	rfdc->num_of_frags		= 0;
 	/* todo check if necessary */
 	rfdc->biggest_payload	= 0;
-	rfdc->current_running_sum = 0;
 	rfdc->last_frag_idx		= 0;
 	rfdc->total_in_order_payload = 0;
 	//			get_default_amq_attributes(&rfdc.isolation_bits);
@@ -761,7 +760,6 @@ CWAPR_CODE_PLACEMENT uint32_t insert_to_cwapr_link_list(struct cwapr_rfdc *rfdc,
 	uint16_t		frag_size;
 	uint16_t		frag_offset;
 	uint16_t		exp_frag_offset; /* expected fragment offset */
-	uint16_t		running_sum; /* current running sum */
 	uint8_t			last_frag;
 	uint32_t		status;
 	uint64_t		ext_addr;
@@ -787,41 +785,8 @@ CWAPR_CODE_PLACEMENT uint32_t insert_to_cwapr_link_list(struct cwapr_rfdc *rfdc,
 		((struct ldpaa_fd *)HWC_FD_ADDRESS)->frc =
 			    (uint32_t) (PARSER_GET_NEXT_HEADER_OFFSET_DEFAULT() +
 					    capwap_hdr_len);
-
-		/* Add current frag's running sum for L4 checksum check */
-		if (pr->gross_running_sum == 0) {
-			/* running_sum is used as a temporary location
-			 * for stack optimization*/
-			fdma_calculate_default_frame_checksum_wrp(
-				0,
-				0xffff,
-				&running_sum);
-
-			pr->gross_running_sum = running_sum;
-			/* Run parser in order to get valid running sum */
-			parse_result_generate_default(0);
-		}
-
-		running_sum = cksum_ones_complement_sum16(
-						  rfdc->current_running_sum,
-						  pr->running_sum);
-	} else {
+	} else
 		rfdc->first_frag_hdr_length = capwap_hdr_len;
-
-		if (pr->gross_running_sum == 0) {
-			/* running_sum is used as a temporary location
-			 * for stack optimization*/
-			fdma_calculate_default_frame_checksum_wrp(
-				0,
-				0xffff,
-				&running_sum);
-			pr->gross_running_sum = running_sum;
-		}
-		/* Set 1rst frag's running sum for L4 checksum check */
-		running_sum = cksum_ones_complement_sum16(
-							  rfdc->current_running_sum,
-							  pr->gross_running_sum);
-	}
 
 	if (!(rfdc->status & OUT_OF_ORDER)) {
 		/* In order handling */
@@ -875,9 +840,9 @@ CWAPR_CODE_PLACEMENT uint32_t insert_to_cwapr_link_list(struct cwapr_rfdc *rfdc,
 				rfdc->first_frag_idx = index;
 				rfdc->total_in_order_payload =
 						rfdc->curr_total_len;
-			} else {
+			} else
 				rfdc->status |= OUT_OF_ORDER;
-			}
+
 			rfdc->last_frag_idx = index;
 			rfdc->num_of_frags++;
 			rfdc->curr_total_len += frag_size;
@@ -907,7 +872,7 @@ CWAPR_CODE_PLACEMENT uint32_t insert_to_cwapr_link_list(struct cwapr_rfdc *rfdc,
 			cdma_write(ext_addr, (void *)HWC_FD_ADDRESS, FD_SIZE);
 
 			status = FRAG_OK_REASS_NOT_COMPL;
-			}
+		}
 	} else {
 		/* Out of order handling */
 		status = out_of_order_capwap_frags(rfdc, rfdc_ext_addr,
@@ -930,8 +895,6 @@ CWAPR_CODE_PLACEMENT uint32_t insert_to_cwapr_link_list(struct cwapr_rfdc *rfdc,
 		/* Get IP offset */
 		rfdc->iphdr_offset = PARSER_GET_OUTER_IP_OFFSET_DEFAULT();
 	}
-	rfdc->current_running_sum = running_sum;
-
 	return status;
 }
 
@@ -1095,12 +1058,12 @@ CWAPR_CODE_PLACEMENT uint32_t l3_l4_l5_headers_update(struct cwapr_rfdc *rfdc)
 	LDPAA_FD_SET_LENGTH(HWC_FD_ADDRESS, total_len + ipv4hdr_offset +
 					   prc->seg_offset);
 
-	/* Update Gross running sum of the reassembled frame */
+	/* Invalidate Gross running sum of the reassembled frame */
 	pr = (struct parse_result *)HWC_PARSE_RES_ADDRESS;
-	pr->gross_running_sum = rfdc->current_running_sum;
+	pr->gross_running_sum = 0;
 
 	/* Run Parser */
-	if (parse_result_generate_default(PARSER_NO_FLAGS))
+	if (parse_result_generate_default(PARSER_VALIDATE_L3_CHECKSUM))
 		return EIO;
 	return SUCCESS;
 }

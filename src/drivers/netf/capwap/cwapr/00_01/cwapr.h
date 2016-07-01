@@ -127,29 +127,26 @@ struct cwapr_instance {
 struct cwapr_rfdc {
 	/* 64 bytes */
 	uint64_t	instance_handle;
+	uint64_t	table_key[2]; /* this field should stay aligned to 16 */
 	uint32_t	timer_handle;
 	uint16_t	exp_total_len; /* Expected total length */
 	uint16_t	curr_total_len; /* CAPWAP payload length */
 	uint16_t	first_frag_hdr_length;
 	uint16_t	biggest_payload;
-	uint16_t	current_running_sum;
+	uint16_t	status;
+	uint16_t	total_in_order_payload;
+	/* next 2 bytes (niid) can move to extension */
+	uint16_t	niid;
+	uint16_t	iphdr_offset;
+	uint16_t	seg_addr;
+	uint16_t	seg_length;
+	uint16_t	seg_offset;
 	uint8_t		first_frag_idx;
 	uint8_t		last_frag_idx;
 	uint8_t		next_idx;
 	uint8_t		idx_out_of_order;
 	uint8_t		num_of_frags;
-	uint8_t		res1;
-	uint16_t	status;
-	uint16_t	total_in_order_payload;
-	uint64_t	table_key[2]; /* this field should stay aligned to 16 */
-	/* next 2 bytes (niid) can move to extension */
-	uint16_t	niid;
-	uint16_t	res2;
-	uint16_t	iphdr_offset;
-	uint16_t	seg_addr;
-	uint16_t	seg_length;
-	uint16_t	seg_offset;
-	uint8_t		res3[2];
+	uint8_t		res[9];
 };
 #pragma pack(pop)
 
