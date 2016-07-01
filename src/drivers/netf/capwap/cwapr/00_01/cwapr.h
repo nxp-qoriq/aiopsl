@@ -82,7 +82,6 @@
 				TMAN_CREATE_TIMER_MODE_TPRI | \
 				TMAN_CREATE_TIMER_ONE_SHOT | \
 				TMAN_CREATE_TIMER_MODE_LOW_PRIORITY_TASK)
-#define MAX_IP_SIZE		65536 /* 64K */
 #define ENOSPC_TIMER		2
 #define ENOMEM_TABLE		3
 #define CWAPR_ERROR		1
@@ -239,7 +238,7 @@ uint32_t close_with_reorder_capwap_frags(
 
 uint32_t l3_l4_l5_headers_update(struct cwapr_rfdc *rfdc);
 
-uint32_t check_for_capwap_frag_error(void *iphdr_ptr);
+uint32_t check_for_capwap_frag_error(struct capwaphdr *capwap_hdr);
 
 void timeout_cwapr_reassemble(uint64_t rfdc_ext_addr, uint16_t opaque);
 

@@ -1245,9 +1245,26 @@ CWAPR_CODE_PLACEMENT uint32_t close_with_reorder_capwap_frags(
 	return SUCCESS;
 }
 
-CWAPR_CODE_PLACEMENT uint32_t check_for_capwap_frag_error(void *capwap_hdr)
+CWAPR_CODE_PLACEMENT uint32_t check_for_capwap_frag_error(
+					struct capwaphdr *capwap_hdr)
 {
-	UNUSED(capwap_hdr);
+	uint16_t	hdr_len, frag_size;
+	uint8_t		last_frag;
+
+	hdr_len = (uint16_t)(((capwap_hdr->hlen_rid_wbid_t &
+			NET_HDR_FLD_CAPWAP_HLEN_MASK) >>
+			NET_HDR_FLD_CAPWAP_HLEN_OFFSET) << 2);
+
+	/* Get size of CAPWAP payload for current fragment */
+	frag_size = (uint16_t)(LDPAA_FD_GET_LENGTH(HWC_FD_ADDRESS) -
+			PARSER_GET_NEXT_HEADER_OFFSET_DEFAULT() - hdr_len);
+
+	last_frag = capwap_hdr->bits_flags & NET_HDR_FLD_CAPWAP_L;
+
+	/* Check CAPWAP size is multiple of 8 for First or middle fragment */
+	if (!last_frag && (frag_size % 8 != 0))
+		return MALFORMED_FRAG;
+
 	return NO_ERROR;
 }
 
