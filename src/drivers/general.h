@@ -99,6 +99,8 @@ extern const uint8_t _ssram_addr[];
 #define TMAN_ACCEL_ID			0x01
 	/** MFLU accelerator ID */
 #define MFLU_ACCEL_ID			0x02
+	/** AAP SEC accelerator ID */
+#define AAP_SEC_ACCEL_ID		0x03
 	/** PARSER & CLASSIFIER accelerator ID */
 #define CTLU_PARSE_CLASSIFY_ACCEL_ID	0x04
 	/** CTLU accelerator ID */

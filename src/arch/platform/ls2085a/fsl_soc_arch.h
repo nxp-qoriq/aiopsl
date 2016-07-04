@@ -125,6 +125,7 @@
     #define ACCEL_SNIC_REV1
     #define ACCEL_CWAPR_REV1
     #define ACCEL_CWAPF_REV1
+    #define ACCEL_CWAP_DTLS_REV1
 #endif
 
 #endif /* __FSL_SOC_H */

@@ -116,6 +116,12 @@
 #define IPSEC_CODE_PLACEMENT   __COLD_CODE
 #endif
 /*
+ * CAPWAP DTLS module
+ */
+#ifndef CWAP_DTLS_CODE_PLACEMENT
+#define CWAP_DTLS_CODE_PLACEMENT   __COLD_CODE
+#endif
+/*
  * Memory management module
  */ 
 #ifndef MEM_MNG_CODE_PLACEMENT

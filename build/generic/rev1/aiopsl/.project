@@ -30,7 +30,7 @@
 				</dictionary>
 				<dictionary>
 					<key>org.eclipse.cdt.make.core.buildLocation</key>
-					<value>${ProjDirPath}/LS1088A_aiop</value>
+					<value>${ProjDirPath}/LS2085A_aiop</value>
 				</dictionary>
 				<dictionary>
 					<key>org.eclipse.cdt.make.core.cleanBuildTarget</key>
@@ -1425,6 +1425,11 @@
 			<locationURI>PARENT-4-PROJECT_LOC/src/drivers/dplib/dprc/dprc_drv.c</locationURI>
 		</link>
 		<link>
+			<name>aiop_sl/drivers/netf/capwap/cwap_dtls</name>
+			<type>2</type>
+			<locationURI>virtual:/virtual</locationURI>
+		</link>
+		<link>
 			<name>aiop_sl/drivers/netf/capwap/cwapf</name>
 			<type>2</type>
 			<locationURI>virtual:/virtual</locationURI>
@@ -2000,6 +2005,16 @@
 			<locationURI>PARENT-4-PROJECT_LOC/src/drivers/accel/tman/02_01/tman_inline.h</locationURI>
 		</link>
 		<link>
+			<name>aiop_sl/drivers/netf/capwap/cwap_dtls/00_01</name>
+			<type>2</type>
+			<locationURI>virtual:/virtual</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/drivers/netf/capwap/cwap_dtls/cwap_dtls.h</name>
+			<type>1</type>
+			<locationURI>PARENT-4-PROJECT_LOC/src/drivers/netf/capwap/cwap_dtls/cwap_dtls.h</locationURI>
+		</link>
+		<link>
 			<name>aiop_sl/drivers/netf/capwap/cwapf/00_01</name>
 			<type>2</type>
 			<locationURI>virtual:/virtual</locationURI>
@@ -2415,6 +2430,11 @@
 			<locationURI>PARENT-4-PROJECT_LOC/src/include/drivers/ldpaa/workspace/fsl_general.h</locationURI>
 		</link>
 		<link>
+			<name>aiop_sl/include/drivers/netf/capwap/cwap_dtls</name>
+			<type>2</type>
+			<locationURI>virtual:/virtual</locationURI>
+		</link>
+		<link>
 			<name>aiop_sl/include/drivers/netf/capwap/cwapf</name>
 			<type>2</type>
 			<locationURI>virtual:/virtual</locationURI>
@@ -2523,6 +2543,16 @@
 			<name>aiop_sl/include/drivers/netf/ipsec/fsl_ipsec.h</name>
 			<type>1</type>
 			<locationURI>PARENT-4-PROJECT_LOC/src/include/drivers/netf/ipsec/fsl_ipsec.h</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/drivers/netf/capwap/cwap_dtls/00_01/cwap_dtls.c</name>
+			<type>1</type>
+			<locationURI>PARENT-4-PROJECT_LOC/src/drivers/netf/capwap/cwap_dtls/00_01/cwap_dtls.c</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/drivers/netf/capwap/cwap_dtls/00_01/cwap_dtls.h</name>
+			<type>1</type>
+			<locationURI>PARENT-4-PROJECT_LOC/src/drivers/netf/capwap/cwap_dtls/00_01/cwap_dtls.h</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/drivers/netf/capwap/cwapf/00_01/cwapf.c</name>
@@ -2660,6 +2690,16 @@
 			<locationURI>PARENT-4-PROJECT_LOC/src/include/drivers/ldpaa/workspace/02_01/fsl_general.h</locationURI>
 		</link>
 		<link>
+			<name>aiop_sl/include/drivers/netf/capwap/cwap_dtls/00_01</name>
+			<type>2</type>
+			<locationURI>virtual:/virtual</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/include/drivers/netf/capwap/cwap_dtls/fsl_cwap_dtls.h</name>
+			<type>1</type>
+			<locationURI>PARENT-4-PROJECT_LOC/src/include/drivers/netf/capwap/cwap_dtls/fsl_cwap_dtls.h</locationURI>
+		</link>
+		<link>
 			<name>aiop_sl/include/drivers/netf/capwap/cwapf/00_01</name>
 			<type>2</type>
 			<locationURI>virtual:/virtual</locationURI>
@@ -2768,6 +2808,11 @@
 			<name>aiop_sl/include/drivers/netf/ipsec/00_01/fsl_ipsec.h</name>
 			<type>1</type>
 			<locationURI>PARENT-4-PROJECT_LOC/src/include/drivers/netf/ipsec/00_01/fsl_ipsec.h</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/include/drivers/netf/capwap/cwap_dtls/00_01/fsl_cwap_dtls.h</name>
+			<type>1</type>
+			<locationURI>PARENT-4-PROJECT_LOC/src/include/drivers/netf/capwap/cwap_dtls/00_01/fsl_cwap_dtls.h</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/include/drivers/netf/capwap/cwapf/00_01/fsl_cwapf.h</name>
