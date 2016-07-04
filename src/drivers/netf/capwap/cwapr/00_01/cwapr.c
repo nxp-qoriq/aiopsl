@@ -331,7 +331,7 @@ CWAPR_CODE_PLACEMENT int cwapr_reassemble(
 			/* transition in order to have the same scope id
 			 * as closing fragment */
 		   osm_scope_transition_to_concurrent_with_increment_scope_id();
-			return CWAPR_REASSEMBLY_REGULAR;
+		   return CWAPR_REASSEMBLY_REGULAR;
 		}
 	}
 
@@ -634,9 +634,13 @@ CWAPR_CODE_PLACEMENT int miss_cwapr_flow(struct cwapr_instance *cwapr_instance,
 	 uint32_t osm_status, uint64_t tunnel_id, struct cwapr_rfdc *rfdc,
 	 cwapr_instance_handle_t cwapr_instance_handle, uint64_t *rfdc_ext_addr)
 {
+	struct capwaphdr *capwap_hdr = NULL;
 	struct table_rule rule __attribute__((aligned(16)));
 	int	status;
-	uint8_t	 keysize;
+
+	capwap_hdr = (struct capwaphdr *)(
+		PARSER_GET_NEXT_HEADER_OFFSET_DEFAULT() +
+		PRC_GET_SEGMENT_ADDRESS());
 
 	/* Miss */
 	status = cdma_acquire_context_memory(cwapr_instance->bpid, rfdc_ext_addr);
@@ -661,21 +665,15 @@ CWAPR_CODE_PLACEMENT int miss_cwapr_flow(struct cwapr_instance *cwapr_instance,
 	rule.options = 0;
 	rule.result.type = TABLE_RESULT_TYPE_REFERENCE;
 	rule.result.op0_rptr_clp.reference_pointer = *rfdc_ext_addr;
-
-	/* Error is not checked since it is assumed that
-	 * IP header exists and is presented */
-	keygen_gen_key_wrp(
-		KEYGEN_ACCEL_ID_CTLU,
-		g_cwapr_params.cwapr_key_id,
-		tunnel_id,
-		&rule.key_desc,
-		&keysize);
+	*(uint64_t *)rule.key_desc.em.key = tunnel_id;
+	*(uint16_t *)((uint8_t *)rule.key_desc.em.key + sizeof(uint64_t)) =
+			capwap_hdr->frag_id;
 
 	status = table_rule_create_wrp(
 			TABLE_ACCEL_ID_CTLU,
 			cwapr_instance->table_id,
 			&rule,
-			keysize);
+			CWAPR_KEY_SIZE);
 
 	if (status == -ENOMEM) {
 		/* Maximum open reassembly is reached */
