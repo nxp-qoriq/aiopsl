@@ -124,9 +124,8 @@ struct cwapr_instance {
 
 #pragma pack(push, 1)
 struct cwapr_rfdc {
-	/* 64 bytes */
-	uint64_t	instance_handle;
 	uint64_t	table_key[2]; /* this field should stay aligned to 16 */
+	uint64_t	instance_handle;
 	uint32_t	timer_handle;
 	uint16_t	exp_total_len; /* Expected total length */
 	uint16_t	curr_total_len; /* CAPWAP payload length */
