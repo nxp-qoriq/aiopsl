@@ -82,6 +82,11 @@ aiop_sl		</project>
 	</natures>
 	<linkedResources>
 		<link>
+			<name>README.txt</name>
+			<type>1</type>
+			<locationURI>PARENT-4-PROJECT_LOC/apps/cwap_dtls_demo/README.txt</locationURI>
+		</link>
+		<link>
 			<name>lcf</name>
 			<type>2</type>
 			<locationURI>virtual:/virtual</locationURI>
