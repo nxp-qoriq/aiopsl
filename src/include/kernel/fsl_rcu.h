@@ -84,6 +84,9 @@ void rcu_read_unlock();
 @Cautions	AIOP task needs to call rcu_read_lock() deliberately in order
 		to declare that is uses some of the resources
 		(e.g. allocated buffers, DP objects).
+@Cautions	This function may result in a fatal error. Do not call it from
+		the AIOP initialization task.
+
 *//***************************************************************************/
 void rcu_read_lock();
 

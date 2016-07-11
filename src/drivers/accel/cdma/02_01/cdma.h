@@ -497,7 +497,8 @@ int cdma_write_release_lock_and_decrement(
 @Return		None.
 
 @Cautions	In this function the task yields.
-@Cautions	This function may result in a fatal error.
+@Cautions	This function may result in a fatal error. Do not call it from
+		the AIOP initialization task.
 
 *//***************************************************************************/
 inline void cdma_ephemeral_reference_take();

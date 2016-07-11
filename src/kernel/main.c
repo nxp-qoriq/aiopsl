@@ -29,6 +29,7 @@
 #include "fsl_smp.h"
 #include "fsl_dbg.h"
 #include "fsl_cmgw.h"
+#include "fsl_rcu.h"
 
 extern int sys_init(void);
 extern void sys_free(void);
@@ -165,6 +166,11 @@ int main(int argc, char *argv[])
 			cmgw_report_boot_failure();
 			return err;
 		}
+		/* Avoid applications hang on rcu_synchronize() or
+		 * cdma_ephemeral_reference_sync() call if an unnecessary lock
+		 * was taken by applications in the call-back functions called
+		 * from apps_early_init or apps_init */
+		rcu_read_unlock();
 	}
 
 	core_ready_for_tasks();
