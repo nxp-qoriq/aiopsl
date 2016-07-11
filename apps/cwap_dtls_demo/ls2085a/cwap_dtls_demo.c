@@ -80,7 +80,7 @@ __HOT_CODE ENTRY_POINT static void app_process_packet(void)
 
 	sl_prolog();
 
-	pr_debug("CAPWAP/DTLS Demo: ENTERED app_process_packet\n");
+	fsl_print("CAPWAP/DTLS Demo: ENTERED app_process_packet\n");
 
 	eth_pointer_byte = (uint8_t *)PARSER_GET_ETH_POINTER_DEFAULT();
 	frame_len = LDPAA_FD_GET_LENGTH(HWC_FD_ADDRESS);
@@ -363,6 +363,7 @@ int cwap_dtls_app_init(uint16_t ni_id)
 	cwap_dtls_sa_handle_t ws_desc_handle_outbound = 0;
 	cwap_dtls_sa_handle_t ws_desc_handle_inbound = 0;
 	uint32_t handle_high, handle_low;
+	enum tls_cipher_mode cipher_mode;
 	int err, i;
 
 	uint64_t cipher_key_addr;
@@ -392,9 +393,9 @@ int cwap_dtls_app_init(uint16_t ni_id)
 	/**********************************************************/
 	/* Set the required algorithm parameters here */
 	params.protcmd.protid = OP_PCLID_DTLS;
-	params.protcmd.protinfo = OP_PCL_DTLS_AES_128_CBC_SHA;
+	params.protcmd.protinfo = OP_PCL_TLS_RSA_WITH_AES_256_GCM_SHA384;
 	cipher_keylen = 16;
-	auth_keylen = 20;
+	auth_keylen = 0;
 
 	/* 0/1 - keep/overwrite the initial key array value */
 	auth_key_id = 0;
@@ -407,6 +408,11 @@ int cwap_dtls_app_init(uint16_t ni_id)
 	reuse_buffer_mode = 0;
 
 	/**********************************************************/
+
+	cipher_mode = rta_tls_cipher_mode(params.protcmd.protinfo);
+	if (cipher_mode == RTA_TLS_CIPHER_INVALID)
+		fsl_print("CAPWAP/DTLS Demo: Invalid/unsupported TLS cipher suite: 0x%x\n",
+			  params.protcmd.protinfo);
 
 	if (auth_key_id)
 		for (i = 0; i < 128; i++)
@@ -472,15 +478,27 @@ int cwap_dtls_app_init(uint16_t ni_id)
 	params.flags = reuse_buffer_mode;
 
 	/* DTLS Encap PDB */
-	params.pdb.dtls_enc.type = 23;
-	params.pdb.dtls_enc.version[0] = 253;
-	params.pdb.dtls_enc.version[1] = 254;
-	params.pdb.dtls_enc.options = 0;
-	params.pdb.dtls_enc.epoch = 0x0123;
-	params.pdb.dtls_enc.seq_num_hi = 0x4567;
-	params.pdb.dtls_enc.seq_num_lo = 0x89abcdef;
-	for (i = 0; i < ARRAY_SIZE(params.pdb.iv); i++)
-		params.pdb.iv[i] = 0;
+	if (cipher_mode == RTA_TLS_CIPHER_CBC) {
+		params.pdb.cbc.dtls_enc.type = 23;
+		params.pdb.cbc.dtls_enc.version[0] = 253;
+		params.pdb.cbc.dtls_enc.version[1] = 254;
+		params.pdb.cbc.dtls_enc.options = 0;
+		params.pdb.cbc.dtls_enc.epoch = 0x0123;
+		params.pdb.cbc.dtls_enc.seq_num_hi = 0x4567;
+		params.pdb.cbc.dtls_enc.seq_num_lo = 0x89abcdef;
+		for (i = 0; i < ARRAY_SIZE(params.pdb.cbc.iv); i++)
+			params.pdb.cbc.iv[i] = (uint8_t)(255 - i);
+	} else if (cipher_mode == RTA_TLS_CIPHER_GCM) {
+		params.pdb.gcm.dtls_enc.type = 23;
+		params.pdb.gcm.dtls_enc.version[0] = 253;
+		params.pdb.gcm.dtls_enc.version[1] = 254;
+		params.pdb.gcm.dtls_enc.options = 0;
+		params.pdb.gcm.dtls_enc.epoch = 0x0123;
+		params.pdb.gcm.dtls_enc.seq_num_hi = 0x4567;
+		params.pdb.gcm.dtls_enc.seq_num_lo = 0x89abcdef;
+		for (i = 0; i < ARRAY_SIZE(params.pdb.gcm.salt); i++)
+			params.pdb.gcm.salt[i] = (uint8_t)(i + 1);
+	}
 
 	params.cipherdata.algtype = OP_ALG_ALGSEL_AES;
 	params.cipherdata.key = cipher_key_addr;
@@ -518,17 +536,31 @@ int cwap_dtls_app_init(uint16_t ni_id)
 	params.flags = reuse_buffer_mode;
 
 	/* DTLS Decap PDB */
-	params.pdb.dtls_dec.rsvd[0] = 0;
-	params.pdb.dtls_dec.rsvd[1] = 0;
-	params.pdb.dtls_dec.rsvd[2] = 0;
-	params.pdb.dtls_dec.options = DTLS_PDBOPTS_ARS128;
-	params.pdb.dtls_dec.epoch = 0x0123;
-	params.pdb.dtls_dec.seq_num_hi = 0x4567;
-	params.pdb.dtls_dec.seq_num_lo = 0x89abcdef;
-	for (i = 0; i < ARRAY_SIZE(params.pdb.iv); i++)
-		params.pdb.iv[i] = 0;
-	for (i = 0; i < ARRAY_SIZE(params.pdb.anti_replay); i++)
-		params.pdb.anti_replay[i] = 0;
+	if (cipher_mode == RTA_TLS_CIPHER_CBC) {
+		params.pdb.cbc.dtls_dec.rsvd[0] = 0;
+		params.pdb.cbc.dtls_dec.rsvd[1] = 0;
+		params.pdb.cbc.dtls_dec.rsvd[2] = 0;
+		params.pdb.cbc.dtls_dec.options = DTLS_PDBOPTS_ARS128;
+		params.pdb.cbc.dtls_dec.epoch = 0x0123;
+		params.pdb.cbc.dtls_dec.seq_num_hi = 0x4567;
+		params.pdb.cbc.dtls_dec.seq_num_lo = 0x89abcdef;
+		for (i = 0; i < ARRAY_SIZE(params.pdb.cbc.iv); i++)
+			params.pdb.cbc.iv[i] = 0;
+		for (i = 0; i < ARRAY_SIZE(params.pdb.cbc.anti_replay); i++)
+			params.pdb.cbc.anti_replay[i] = 0;
+	} else if (cipher_mode == RTA_TLS_CIPHER_GCM) {
+		params.pdb.gcm.dtls_dec.rsvd[0] = 0;
+		params.pdb.gcm.dtls_dec.rsvd[1] = 0;
+		params.pdb.gcm.dtls_dec.rsvd[2] = 0;
+		params.pdb.gcm.dtls_dec.options = DTLS_PDBOPTS_ARS128;
+		params.pdb.gcm.dtls_dec.epoch = 0x0123;
+		params.pdb.gcm.dtls_dec.seq_num_hi = 0x4567;
+		params.pdb.gcm.dtls_dec.seq_num_lo = 0x89abcdef;
+		for (i = 0; i < ARRAY_SIZE(params.pdb.gcm.salt); i++)
+			params.pdb.gcm.salt[i] = (uint8_t)(i + 1);
+		for (i = 0; i < ARRAY_SIZE(params.pdb.gcm.anti_replay); i++)
+			params.pdb.gcm.anti_replay[i] = 0;
+	}
 
 	params.cipherdata.algtype = 0; /* not used */
 	params.cipherdata.key = cipher_key_addr;

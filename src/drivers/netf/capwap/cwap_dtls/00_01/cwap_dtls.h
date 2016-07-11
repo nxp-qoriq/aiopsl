@@ -201,6 +201,8 @@ struct sec_flow_context {
 /* Internal Flags */
 /* flags[31] : 1 = outbound, 0 = inbound */
 #define CWAP_DTLS_FLG_DIR_OUTBOUND	0x80000000
+/* flags[30] : DTLS cipher mode - 1 = GCM, 0 = CBC */
+#define CWAP_DTLS_FLG_CIPHER_GCM	0x40000000
 
 /*
  * PS (Pointer Size)
@@ -511,6 +513,58 @@ void cwap_dtls_error_handler(cwap_dtls_sa_handle_t sa_handle,
 			     enum cwap_dtls_function_identifier func_id,
 			     enum cwap_dtls_service_identifier service_id,
 			     uint32_t line, int status);
+
+/**************************************************************************//**
+@Function	cwap_dtls_get_ar_info_cbc
+
+@Description	This function returns anti-replay related information for
+		DTLS SAs using CBC ciphersuites:
+		- DTLS sequence number and epoch
+		- Anti-replay bitmap (scorecard) (if applicable)
+
+@Param[in]	desc_addr - CAPWAP DTLS SEC descriptor
+@Param[in]	params_flags - value of cwap_dtls_sa_params.flags
+@Param[out]	sequence_number - 64-bit value consisting of DTLS epoch (upper
+		16 bits) and sequence number (lower 48 bits).
+@Param[out]	anti_replay_bitmap - Anti-replay bitmap (4 words):
+		* For 1-entry ARS, only the first word is valid
+		* For 2-entry ARS, only the first two words are valid
+		* For 4-entry ARS, all four words are valid
+
+@Cautions	anti_replay_bitmap is relevant for inbound (decapsulation) only,
+		and should be ignored for outbound (encapsulation).
+
+*//****************************************************************************/
+void cwap_dtls_get_ar_info_cbc(cwap_dtls_sa_handle_t desc_addr,
+			       uint32_t params_flags,
+			       uint64_t *sequence_number,
+			       uint32_t anti_replay_bitmap[4]);
+
+/**************************************************************************//**
+@Function	cwap_dtls_get_ar_info_gcm
+
+@Description	This function returns anti-replay related information for
+		DTLS SAs using GCM ciphersuites:
+		- DTLS sequence number and epoch
+		- Anti-replay bitmap (scorecard) (if applicable)
+
+@Param[in]	desc_addr - CAPWAP DTLS SEC descriptor
+@Param[in]	params_flags - value of cwap_dtls_sa_params.flags
+@Param[out]	sequence_number - 64-bit value consisting of DTLS epoch (upper
+		16 bits) and sequence number (lower 48 bits).
+@Param[out]	anti_replay_bitmap - Anti-replay bitmap (4 words):
+		* For 1-entry ARS, only the first word is valid
+		* For 2-entry ARS, only the first two words are valid
+		* For 4-entry ARS, all four words are valid
+
+@Cautions	anti_replay_bitmap is relevant for inbound (decapsulation) only,
+		and should be ignored for outbound (encapsulation).
+
+*//****************************************************************************/
+void cwap_dtls_get_ar_info_gcm(cwap_dtls_sa_handle_t desc_addr,
+			       uint32_t params_flags,
+			       uint64_t *sequence_number,
+			       uint32_t anti_replay_bitmap[4]);
 
 /** @} */ /* end of FSL_CWAP_DTLS_Functions_INT */
 /** @} */ /* end of FSL_CWAP_DTLS */

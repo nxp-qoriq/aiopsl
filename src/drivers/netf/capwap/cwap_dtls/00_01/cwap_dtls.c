@@ -236,7 +236,7 @@ int cwap_dtls_generate_encap_sd(struct cwap_dtls_sa_descriptor_params *params,
 {
 	/* Temporary Workspace SEC shared descriptor */
 	uint32_t ws_shared_desc[CWAP_DTLS_SD_MAX_LEN_WORDS] = {0};
-	int err;
+	int pdb_len, err;
 
 	/*
 	 * A split authentication key is required for HMAC-based cipher suites.
@@ -252,8 +252,13 @@ int cwap_dtls_generate_encap_sd(struct cwap_dtls_sa_descriptor_params *params,
 	 * (TrICV) and encryption algorithm (IV size).
 	 * There is no ARS for encapsulation.
 	 */
-	err = rta_inline_query(CWAP_DTLS_ENC_BASE_SD_LEN + sizeof(params->pdb) -
-			       sizeof(params->pdb.anti_replay),
+	if (params->flags & CWAP_DTLS_FLG_CIPHER_GCM)
+		pdb_len = sizeof(params->pdb.gcm) -
+			  sizeof(params->pdb.gcm.anti_replay);
+	else
+		pdb_len = sizeof(params->pdb.cbc) -
+			  sizeof(params->pdb.cbc.anti_replay);
+	err = rta_inline_query(CWAP_DTLS_ENC_BASE_SD_LEN + pdb_len,
 			       CWAP_DTLS_JD_MAX_LEN, (unsigned *)ws_shared_desc,
 			       &ws_shared_desc[2], 2);
 	if (err < 0)
@@ -289,7 +294,7 @@ int cwap_dtls_generate_decap_sd(struct cwap_dtls_sa_descriptor_params *params,
 {
 	/* Temporary Workspace SEC shared descriptor */
 	uint32_t ws_shared_desc[CWAP_DTLS_SD_MAX_LEN_WORDS] = {0};
-	int err;
+	int pdb_len, err;
 
 	/*
 	 * A split authentication key is required for HMAC-based cipher suites.
@@ -304,7 +309,13 @@ int cwap_dtls_generate_decap_sd(struct cwap_dtls_sa_descriptor_params *params,
 	 * Note: PDB length might actually be smaller, depending on PDB options
 	 * (ARS, TrICV) and encryption algorithm (IV size).
 	 */
-	err = rta_inline_query(CWAP_DTLS_DEC_BASE_SD_LEN + sizeof(params->pdb),
+	if (params->flags & CWAP_DTLS_FLG_CIPHER_GCM)
+		pdb_len = sizeof(params->pdb.gcm) -
+			  sizeof(params->pdb.gcm.anti_replay);
+	else
+		pdb_len = sizeof(params->pdb.cbc) -
+			  sizeof(params->pdb.cbc.anti_replay);
+	err = rta_inline_query(CWAP_DTLS_DEC_BASE_SD_LEN + pdb_len,
 			       CWAP_DTLS_JD_MAX_LEN, (unsigned *)ws_shared_desc,
 			       &ws_shared_desc[2], 2);
 	if (err < 0)
@@ -594,6 +605,8 @@ int cwap_dtls_add_sa_descriptor(struct cwap_dtls_sa_descriptor_params *params,
 	 * Build a SEC DTLS shared descriptor with the RTA library and
 	 * then write it to memory with CDMA.
 	 */
+	if (rta_tls_cipher_mode(params->protcmd.protinfo) == RTA_TLS_CIPHER_GCM)
+		params->flags |= CWAP_DTLS_FLG_CIPHER_GCM;
 	if (CWAP_DTLS_IS_OUTBOUND_DIR(params->protcmd.optype))
 		err = cwap_dtls_generate_encap_sd(params,
 						  CWAP_DTLS_SD_ADDR(desc_addr),
@@ -1243,17 +1256,14 @@ int cwap_dtls_frame_decrypt(cwap_dtls_sa_handle_t sa_handle)
 	return SUCCESS;
 }
 
-void cwap_dtls_get_ar_info(cwap_dtls_sa_handle_t sa_handle,
-			   uint64_t *sequence_number,
-			   uint32_t anti_replay_bitmap[4])
+void cwap_dtls_get_ar_info_cbc(cwap_dtls_sa_handle_t desc_addr,
+			       uint32_t params_flags,
+			       uint64_t *sequence_number,
+			       uint32_t anti_replay_bitmap[4])
 {
 	struct tls_block_pdb pdb;
-	cwap_dtls_sa_handle_t desc_addr = CWAP_DTLS_SA_DESC_ADDR(sa_handle);
-	uint32_t params_flags;
 	uint8_t i = 0;
 
-	cdma_read(&params_flags, CWAP_DTLS_FLAGS_ADDR(desc_addr),
-		  sizeof(params_flags));
 	/* Read the PDB from the descriptor with CDMA */
 	cdma_read(&pdb, CWAP_DTLS_PDB_ADDR(desc_addr), sizeof(pdb));
 
@@ -1270,6 +1280,50 @@ void cwap_dtls_get_ar_info(cwap_dtls_sa_handle_t sa_handle,
 
 	for (; i < 4; i++)
 		anti_replay_bitmap[i] = 0;
+}
+
+void cwap_dtls_get_ar_info_gcm(cwap_dtls_sa_handle_t desc_addr,
+			       uint32_t params_flags,
+			       uint64_t *sequence_number,
+			       uint32_t anti_replay_bitmap[4])
+{
+	struct tls_gcm_pdb pdb;
+	uint8_t i = 0;
+
+	/* Read the PDB from the descriptor with CDMA */
+	cdma_read(&pdb, CWAP_DTLS_PDB_ADDR(desc_addr), sizeof(pdb));
+
+	if (params_flags & CWAP_DTLS_FLG_DIR_OUTBOUND) {
+		*sequence_number = LDW_SWAP(0, &pdb.dtls_enc.word2);
+	} else {
+		uint8_t ars;
+
+		*sequence_number = LDW_SWAP(0, &pdb.dtls_dec.word2);
+		ars = rta_dtls_pdb_ars(LW_SWAP(0, &pdb.dtls_dec.word1));
+		for (; i < ars; i++)
+			anti_replay_bitmap[i] = LW_SWAP(0, &pdb.anti_replay[i]);
+	}
+
+	for (; i < 4; i++)
+		anti_replay_bitmap[i] = 0;
+}
+
+void cwap_dtls_get_ar_info(cwap_dtls_sa_handle_t sa_handle,
+			   uint64_t *sequence_number,
+			   uint32_t anti_replay_bitmap[4])
+{
+	cwap_dtls_sa_handle_t desc_addr = CWAP_DTLS_SA_DESC_ADDR(sa_handle);
+	uint32_t params_flags;
+
+	cdma_read(&params_flags, CWAP_DTLS_FLAGS_ADDR(desc_addr),
+		  sizeof(params_flags));
+
+	if (params_flags & CWAP_DTLS_FLG_CIPHER_GCM)
+		cwap_dtls_get_ar_info_gcm(desc_addr, params_flags,
+					  sequence_number, anti_replay_bitmap);
+	else
+		cwap_dtls_get_ar_info_cbc(desc_addr, params_flags,
+					  sequence_number, anti_replay_bitmap);
 }
 
 void cwap_dtls_error_handler(cwap_dtls_sa_handle_t sa_handle,

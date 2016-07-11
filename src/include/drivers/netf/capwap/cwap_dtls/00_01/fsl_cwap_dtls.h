@@ -163,7 +163,10 @@ struct cwap_dtls_sa_descriptor_params {
 	/** DTLS direction, cipher suite  */
 	struct protcmd protcmd;
 	/** DTLS protocol data block */
-	struct tls_block_pdb pdb;
+	union {
+		struct tls_block_pdb cbc;
+		struct tls_gcm_pdb gcm;
+	} pdb;
 	/**
 	 * cipher algorithm information; alginfo.algtype must be filled
 	 * even though protcmd.protinfo indicates the DTLS cipher suite
