@@ -962,7 +962,7 @@ int fdma_replace_default_pta_segment_data(
 void fdma_dma_data(
 		uint16_t copy_size,
 		uint16_t icid,
-		void *loc_addr,
+		void *ws_addr,
 		uint64_t sys_addr,
 		uint32_t flags)
 {
@@ -972,7 +972,7 @@ void fdma_dma_data(
 
 	/* prepare command parameters */
 	arg1 = FDMA_DMA_CMD_ARG1(icid, flags);
-	arg2 = FDMA_DMA_CMD_ARG2(copy_size, (uint32_t)loc_addr);
+	arg2 = FDMA_DMA_CMD_ARG2(copy_size, (uint32_t)ws_addr);
 	/* store command parameters */
 	__stdw(arg1, arg2, HWC_ACC_IN_ADDRESS, 0);
 	__llstdw(sys_addr, HWC_ACC_IN_ADDRESS3, 0);

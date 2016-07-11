@@ -803,36 +803,6 @@ enum fdma_function_identifier {
 
 /** @}*/ /* end of group FDMA_Enumerations */
 
-
-/**************************************************************************//**
-@Function	fdma_dma_data
-
-@Description	Provide direct access to any system memory data. Transfer system
-		memory data to/from the task workspace/AIOP shared memory.
-
-@Param[in]	copy_size - Number of bytes to copy (limited to 12 bits).
-@Param[in]	icid - Memory Access ICID. The DMA uses the provided Isolation
-		Context to make the access.
-@Param[in]	loc_addr - A pointer to the source/target location in Workspace
-		or AIOP Shared Memory for DMA data. Workspace address is
-		limited to 16 bits. AIOP Shared Memory address is limited to 20
-		bits.
-@Param[in]	sys_addr - System memory source/target address for DMA data.
-@Param[in]	flags - Please refer to \link FDMA_DMA_Flags DMA command flags
-		\endlink.
-
-@Return		None.
-
-@Cautions	This function may result in a fatal error.
-@Cautions	In this Service Routine the task yields.
-*//***************************************************************************/
-void fdma_dma_data(
-		uint16_t copy_size,
-		uint16_t icid,
-		void *loc_addr,
-		uint64_t sys_addr,
-		uint32_t flags);
-
 /**************************************************************************//**
 @Function	fdma_acquire_buffer
 
