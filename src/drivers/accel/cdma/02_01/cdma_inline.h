@@ -184,7 +184,7 @@ inline void cdma_read_with_mutex_cache_wrp(
 	cdma_exception_handler(CDMA_READ_WITH_MUTEX, __LINE__, (int32_t)res1);
 }
 
-inline void cdma_read_with_mutex(
+inline void cdma_read_with_mutex_no_cache(
 		uint64_t ext_address,
 		uint32_t flags,
 		void *ws_dst,
@@ -195,7 +195,7 @@ inline void cdma_read_with_mutex(
 	cdma_read_with_mutex_cache_wrp(ext_address, flags, arg2);
 }
 
-inline void cdma_read_with_mutex_cache(
+inline void cdma_read_with_mutex(
 		uint64_t ext_address,
 		uint32_t flags,
 		void *ws_dst,
@@ -230,7 +230,7 @@ inline void cdma_read_cache_wrp(uint64_t ext_address,
 }
 
 
-inline void cdma_read(
+inline void cdma_read_with_no_cache(
 		void *ws_dst,
 		uint64_t ext_address,
 		uint16_t size) {
@@ -240,7 +240,7 @@ inline void cdma_read(
 	cdma_read_cache_wrp(ext_address, arg2);
 }
 
-inline void cdma_read_with_cache(
+inline void cdma_read(
 		void *ws_dst,
 		uint64_t ext_address,
 		uint16_t size) {

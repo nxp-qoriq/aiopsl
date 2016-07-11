@@ -207,38 +207,6 @@ void cdma_release_context_memory(
 @Function	cdma_read
 
 @Description	This routine is used to read data from context memory to
-		workspace. It bypasses CDMA cache available in CDMA 1.1 (rev2)
-		in order to access data structures that are shared with another
-		master (such as Stats Engine) in case cache data for the
-		location provided was not invalidated
-
-		The read data access will be done regardless of any mutex lock
-		that was set by another task.
-
-@Param[in]	ws_dst - A pointer to the Workspace.
-@Param[in]	ext_address - A pointer to a context memory address in the
-		external memory (DDR/PEB).
-@Param[in]	size - Read data access size, in bytes.
-
-@Return		None.
-
-@Cautions	The maximum legal access size (in bytes) is 0x3FFF.
-@Cautions	In this function the task yields.
-@Cautions	This function may result in a fatal error.
-@Cautions	This function may cause performance penalty on bus. It should
-		not be used in datapath processing, use only on management path
-
-
-*//***************************************************************************/
-inline void cdma_read(
-		void *ws_dst,
-		uint64_t ext_address,
-		uint16_t size);
-
-/*************************************************************************//**
-@Function	cdma_read_with_cache
-
-@Description	This routine is used to read data from context memory to
 		Workspace that uses internal CDMA cache for improved performance
 		when accessing external memory
 
@@ -258,14 +226,14 @@ inline void cdma_read(
 @Cautions	Use this function only if the write to context memory
 		(ext_address) was done with CDMA or CDMA internal cache was
 		flushed. If it was done by other engine
-		(hardware accelerator or core) then cdma_read has to be used
+		(hardware accelerator or core) then data fetched might not be
+		the most recent
 
 *//***************************************************************************/
-inline void cdma_read_with_cache(
+inline void cdma_read(
 		void *ws_dst,
 		uint64_t ext_address,
 		uint16_t size);
-
 
 /*************************************************************************//**
 @Function	cdma_write
@@ -359,59 +327,6 @@ inline void cdma_mutex_lock_release(
 @Description	This routine reads data from external memory to Workspace.
 		Optional mutex lock (read or write) request before the read
 		transaction occurs and/or mutex lock release after the read
-		transaction occurred. It bypasses CDMA cache available in
-		CDMA 1.1 (rev2)
-		in order to access data structures that are shared with another
-		master (such as Stats Engine) in case cache data for the
-		location provided was not invalidated
-
-		Write lock is granted when there are no preceding locks (read
-		or write) active or pending on the same address.
-		Read locks are granted when there are no preceding write locks
-		active or pending on the same address.
-
-		Reading data access is granted only if no mutex write lock is
-		preceding the same ext_address. In this case, reading data
-		access will take place only when the write lock is released.
-		i.e. this routine returns only when the read data access is
-		done.
-
-@Param[in]	ext_address - A pointer to a context memory address in the
-		external memory (DDR/PEB). This address is used to read data
-		access and mutex lock take/release.
-@Param[in]	flags - \link CDMA_DMA_MUTEX_ModeBits CDMA Mutex flags
-		\endlink.
-@Param[in]	ws_dst - A pointer to the Workspace.
-@Param[in]	size - Read data access size, in bytes.
-
-@Return		None.
-
-@remark
-		- Each task can have a maximum of 4 simultaneous mutex locks
-		active.
-		- A mutex lock taken by a task must be released by the same
-		task.
-
-@Cautions	The maximum legal access size (in bytes) is 0x3FFF.
-@Cautions	In this function the task yields.
-@Cautions	This function may result in a fatal error.
-@Cautions	This function may cause performance penalty on bus. It should
-		not be used in datapath processing, use only on management path
-
-*//***************************************************************************/
-inline void cdma_read_with_mutex(
-		uint64_t ext_address,
-		uint32_t flags,
-		void *ws_dst,
-		uint16_t size);
-
-
-/*************************************************************************//**
-@Function	cdma_read_with_mutex_cache
-
-@Description	This routine reads data from external memory to Workspace.
-		Optional mutex lock (read or write) request before the read
-		transaction occurs and/or mutex lock release after the read
 		transaction occurred.
 
 		Write lock is granted when there are no preceding locks (read
@@ -447,20 +362,17 @@ inline void cdma_read_with_mutex(
 @Cautions	The maximum legal access size (in bytes) is 0x3FFF.
 @Cautions	In this function the task yields.
 @Cautions	This function may result in a fatal error.
-@Cautions	This function may result in a fatal error.
 @Cautions	Use this function only if the write to context memory
 		(ext_address) was done with CDMA or CDMA internal cache was
 		flushed. If it was done by other engine
-		(hardware accelerator or core) then cdma_read_with_mutex
-		has to be used
-
+		(hardware accelerator or core) then data fetched might not be
+		the most recent
 *//***************************************************************************/
-inline void cdma_read_with_mutex_cache(
+inline void cdma_read_with_mutex(
 		uint64_t ext_address,
 		uint32_t flags,
 		void *ws_dst,
 		uint16_t size);
-
 
 /*************************************************************************//**
 @Function	cdma_write_with_mutex
