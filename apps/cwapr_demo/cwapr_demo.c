@@ -24,6 +24,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+#include "common/fsl_string.h"
 #include "fsl_types.h"
 #include "fsl_stdio.h"
 #include "fsl_dpni_drv.h"
@@ -183,6 +184,7 @@ int app_init(void)
 {
 	enum memory_partition_id mem_pid = MEM_PART_SYSTEM_DDR;
 	struct cwapr_params cwapr_params;
+	struct cwapr_stats_cntrs cwapr_stats;
 	uint64_t tmi_mem_base_addr;
 	uint32_t ni   = 0;
 	uint64_t buff = 0;
@@ -201,12 +203,17 @@ int app_init(void)
 	cwapr_params.cb_timeout_arg = 0;
 	cwapr_params.flags = CWAPR_MODE_TABLE_LOCATION_PEB |
 			CWAPR_MODE_EXTENDED_STATS_EN;
-	fsl_get_mem(0x20*64, mem_pid, 64, &tmi_mem_base_addr);
+	fsl_get_mem(0x21*64, mem_pid, 64, &tmi_mem_base_addr);
 	tman_create_tmi(tmi_mem_base_addr, 0x20, &cwapr_params.tmi_id);
 
 	/* Obtain memory for statistics data structure */
 	fsl_get_mem(sizeof(struct cwapr_stats_cntrs),
 			mem_pid, 64, &stats_mem_base_addr);
+
+	memset(&cwapr_stats, 0, sizeof(struct cwapr_stats_cntrs));
+	cdma_write(stats_mem_base_addr, &cwapr_stats,
+			sizeof(struct cwapr_stats_cntrs));
+
 	cwapr_params.extended_stats_addr = stats_mem_base_addr;
 
 	fsl_print("CWAPR_DEMO:: Creating CWAPR instance\n");
