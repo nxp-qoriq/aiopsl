@@ -820,7 +820,7 @@ int cwap_dtls_frame_encrypt(cwap_dtls_sa_handle_t sa_handle)
 	fdma_present_default_frame();
 
 	/*
-	 * Update IP total length, IP checksum, UDP length
+	 * Update IP total length, IP checksum, UDP length, UDP checksum
 	 * Since L2/L3/L4 are left unchanged after SEC encap / decap, parser
 	 * results are still valid.
 	 */
@@ -835,6 +835,7 @@ int cwap_dtls_frame_encrypt(cwap_dtls_sa_handle_t sa_handle)
 	udp_hdr = (struct udphdr *)PARSER_GET_L4_POINTER_DEFAULT();
 	udp_hdr->length = (uint16_t)(LDPAA_FD_GET_LENGTH(HWC_FD_ADDRESS) -
 				     PARSER_GET_L4_OFFSET_DEFAULT());
+	udp_hdr->checksum = 0;
 	fdma_modify_default_segment_data(
 		PARSER_GET_OUTER_IP_OFFSET_DEFAULT(),
 		(uint16_t)(metadata_length - PARSER_GET_ETH_OFFSET_DEFAULT()));
@@ -1199,7 +1200,7 @@ int cwap_dtls_frame_decrypt(cwap_dtls_sa_handle_t sa_handle)
 	}
 
 	/*
-	 * Update IP total length, IP checksum, UDP length
+	 * Update IP total length, IP checksum, UDP length, UDP checksum
 	 * Since L2/L3/L4 are left unchanged after SEC encap / decap, parser
 	 * results are still valid.
 	 * FD[LEN] does not include an the CAPWAP DTLS header (4B)
@@ -1215,6 +1216,7 @@ int cwap_dtls_frame_decrypt(cwap_dtls_sa_handle_t sa_handle)
 	udp_hdr = (struct udphdr *)PARSER_GET_L4_POINTER_DEFAULT();
 	udp_hdr->length = (uint16_t)(LDPAA_FD_GET_LENGTH(HWC_FD_ADDRESS) -
 				     PARSER_GET_L4_OFFSET_DEFAULT());
+	udp_hdr->checksum = 0;
 	fdma_modify_default_segment_data(
 		PARSER_GET_OUTER_IP_OFFSET_DEFAULT(),
 		(uint16_t)(metadata_length - PARSER_GET_ETH_OFFSET_DEFAULT()));
