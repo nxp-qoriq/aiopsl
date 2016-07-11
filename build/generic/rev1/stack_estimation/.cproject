@@ -672,7 +672,7 @@
 				</configuration>
 			</storageModule>
 			<storageModule moduleId="org.eclipse.cdt.core.externalSettings">
-				<externalSettings containerId="aiop_sl;com.freescale.ppc.debug.toolchain.configuration.508235731.651312077" factoryId="org.eclipse.cdt.core.cfg.export.settings.sipplier"/>
+				<externalSettings containerId="aiop_sl;com.freescale.ppc.debug.toolchain.configuration.508235731.1046494224" factoryId="org.eclipse.cdt.core.cfg.export.settings.sipplier"/>
 			</storageModule>
 		</cconfiguration>
 	</storageModule>
