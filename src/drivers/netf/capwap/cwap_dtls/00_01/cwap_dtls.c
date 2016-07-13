@@ -1102,7 +1102,7 @@ int cwap_dtls_frame_decrypt(cwap_dtls_sa_handle_t sa_handle)
 		/* Get the pad length byte */
 		segment_pointer = (uint8_t *)orig_seg_addr + end_seg_len - 1;
 		pad_length = *segment_pointer;
-		pad_byte = pad_length - 1;
+		pad_byte = pad_length;
 
 		/* Point to the last pad */
 		segment_pointer--;
