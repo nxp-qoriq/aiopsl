@@ -541,6 +541,8 @@ int cwap_dtls_app_init(uint16_t ni_id)
 		params.pdb.cbc.dtls_dec.rsvd[1] = 0;
 		params.pdb.cbc.dtls_dec.rsvd[2] = 0;
 		params.pdb.cbc.dtls_dec.options = DTLS_PDBOPTS_ARS128;
+		if (params.flags & CWAP_DTLS_FLG_PAD_CHECK)
+			params.pdb.cbc.dtls_dec.options |= TLS_PDBOPTS_OUTFMT_FULL;
 		params.pdb.cbc.dtls_dec.epoch = 0x0123;
 		params.pdb.cbc.dtls_dec.seq_num_hi = 0x4567;
 		params.pdb.cbc.dtls_dec.seq_num_lo = 0x89abcdef;
