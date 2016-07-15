@@ -239,9 +239,11 @@ struct tcphdr_gro_opt {
 	/** Size of GRO Context. */
 #define SIZEOF_GRO_CONTEXT	(sizeof(struct tcp_gro_context))
 	/* GRO internal struct size assertion check */
+#ifndef __COVERITY__
 #pragma warning_errors on
 ASSERT_STRUCT_SIZE(SIZEOF_GRO_CONTEXT, TCP_GRO_CONTEXT_SIZE);
 #pragma warning_errors off
+#endif
 
 /** @} */ /* end of TCP_GRO_GENERAL_INT_DEFINITIONS */
 

@@ -230,10 +230,14 @@ int booke_test_and_set(volatile int *p);
 
  @Return        None.
 *//***************************************************************************/
+#if __COVERITY__
+static inline void booke_memory_barrier(void) { }
+#else
 static inline void booke_memory_barrier(void)
 {
     __asm__ ("msync");
 }
+#endif
 
 /**************************************************************************//**
  @Function      booke_instruction_sync
@@ -245,12 +249,19 @@ static inline void booke_memory_barrier(void)
 
  @Return        None.
 *//***************************************************************************/
+#if __COVERITY__
+static inline void booke_instruction_sync(void) { }
+#else
 static inline void booke_instruction_sync(void)
 {
     __asm__ ("isync");
 }
+#endif
 
 /*****************************************************************************/
+#if __COVERITY__
+static inline uint32_t booke_local_irq_save(void) { }
+#else
 static inline uint32_t booke_local_irq_save(void)
 {
     uint32_t   temp = 0 ;
@@ -260,13 +271,17 @@ static inline uint32_t booke_local_irq_save(void)
 
     return temp;
 }
+#endif
 
 /*****************************************************************************/
+#if __COVERITY__
+static inline void booke_local_irq_restore(uint32_t flags) { }
+#else
 static inline void booke_local_irq_restore(uint32_t flags)
 {
     __asm__ ("wrtee   %0" : : "r" (flags)); /* Restore external interrupt by flags */
 }
-
+#endif
 
 /* Layer 1 Cache Manipulations
  *==============================

@@ -27,7 +27,7 @@
 #include <fsl_mc_sys.h>
 #include <fsl_mc_cmd.h>
 #include <kernel/fsl_spinlock.h>
-#include <fsl_cdma.h>
+#include "fsl_cdma.h"
 
 static int mc_status_to_error(enum mc_cmd_status status)
 {

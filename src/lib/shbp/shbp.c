@@ -25,7 +25,7 @@
  */
 
 #include <fsl_shbp.h>
-#include <fsl_cdma.h>
+#include "fsl_cdma.h"
 #include <fsl_spinlock.h>
 #include <fsl_dbg.h>
 #include <fsl_sl_dbg.h>
