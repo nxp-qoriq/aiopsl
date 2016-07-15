@@ -117,7 +117,7 @@
 @{
 *//***************************************************************************/
 
-#define APP_DPNI_NUM_BUFS_IN_POOL	4096	/**< Number of buffers */
+#define APP_DPNI_NUM_BUFS_IN_POOL	ARCH_DPNI_BUFS_IN_POOL_NUM	/**< Number of buffers */
 #define APP_DPNI_BUF_SIZE_IN_POOL	ARCH_DPPNI_BUF_SIZE	/**< Size of buffer */
 #define APP_DPNI_BUF_ALIGN_IN_POOL	64	/**< Alignment of buffer */
 #define APP_DPNI_SPID_COUNT		8	/**< Max number of SPIDs */
