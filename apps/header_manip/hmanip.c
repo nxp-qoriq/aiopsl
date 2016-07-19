@@ -83,7 +83,6 @@ static inline int ipv4_gre_encapsulation(void)
 	struct grehdr	gre_hdr;
 	char		new_frame_hdr[NEW_HDR_SIZE];
 	uint16_t	outer_ip_offset, eth_hdr_len;
-	int		err;
 
 	print_frame_info();
 
@@ -168,12 +167,7 @@ static inline int ipv4_gre_encapsulation(void)
 	 * header insert, re-running parser is not necessary and performance
 	 * should increase */
 #ifdef RERUN_PARSER
-	err = parse_result_generate_default(PARSER_VALIDATE_L3_L4_CHECKSUM);
-	if (err < 0) {
-		fsl_print("%s : Cannot generate parse result\n",
-			AIOP_APP_NAME);
-		return err;
-	}
+	parse_result_generate_default(PARSER_VALIDATE_L3_L4_CHECKSUM);
 
 	/* Mark running sum as invalid */
 	PARSER_CLEAR_RUNNING_SUM();
@@ -191,7 +185,6 @@ static inline int ipv4_gre_decapsulation(void)
 	struct ipv4hdr		*p_outer_ipv4, *p_inner_ipv4;
 	uint16_t		decap_size, outer_ip_offset, inner_ip_offset;
 	uint32_t		ip_src_addr;
-	int			err;
 
 	print_frame_info();
 
@@ -230,12 +223,7 @@ static inline int ipv4_gre_decapsulation(void)
 #ifdef RERUN_PARSER
 	/* Re-run parser in case user wants post-processing of frame.
 	 * Validate L3 and L4 checksums when running parser */
-	err = parse_result_generate_default(PARSER_VALIDATE_L3_L4_CHECKSUM);
-	if (err < 0) {
-		fsl_print("%s : Cannot generate parse result\n",
-			AIOP_APP_NAME);
-		return err;
-	}
+	parse_result_generate_default(PARSER_VALIDATE_L3_L4_CHECKSUM);
 
 	/* Mark running sum as invalid */
 	PARSER_CLEAR_RUNNING_SUM();

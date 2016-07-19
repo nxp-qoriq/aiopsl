@@ -2901,6 +2901,41 @@ inline void fdma_copy_data(
 		void *src,
 		void *dst);
 
+/**************************************************************************//**
+@Function	fdma_dma_data
+
+@Description	Provide direct access to any system memory data. Transfer system
+		memory data to/from the task workspace/AIOP shared memory.
+
+@Param[in]	copy_size - Number of bytes to copy (limited to 12 bits).
+@Param[in]	icid - Memory Access ICID. The DMA uses the provided Isolation
+		Context to make the access.
+@Param[in]	ws_addr - A pointer to the source/target location in Workspace
+		or AIOP Shared Memory for DMA data. Workspace address is
+		limited to 16 bits. AIOP Shared Memory address is limited to 20
+		bits.
+@Param[in]	sys_addr - System memory source/target address for DMA data.
+@Param[in]	flags - Please refer to \link FDMA_DMA_Flags DMA command flags
+		\endlink.
+
+@Return		None.
+
+@Cautions	This function may result in a fatal error.
+@Cautions	In this Service Routine the task yields.
+@Cautions	This command is not intended to be used in a normal
+		datapath to access frames. It can be used for accessing data from
+		system memory which is written by other hardware accelerators
+		(such as Statistics Engine)
+
+*//***************************************************************************/
+void fdma_dma_data(
+		uint16_t copy_size,
+		uint16_t icid,
+		void *ws_addr,
+		uint64_t sys_addr,
+		uint32_t flags);
+
+
 /** @} */ /* end of FDMA_Functions */
 /** @} */ /* end of FSL_AIOP_FDMA */
 /** @} */ /* end of ACCEL */

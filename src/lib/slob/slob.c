@@ -58,6 +58,27 @@ __START_COLD_CODE
 static void *s_slob_bf_pool = NULL;
 static struct icontext s_ic;
 
+#define fdma_dma_data cdma_replace_fdma_dma_data
+
+static void cdma_replace_fdma_dma_data(
+		uint16_t copy_size,
+		uint16_t icid,
+		void *loc_addr,
+		uint64_t sys_addr,
+		uint32_t flags)
+{
+	UNUSED(icid);
+
+	flags = flags & 0x3FF;
+
+	if ((flags == FDMA_DMA_DA_SYS_TO_WS_BIT) ||
+		(flags == FDMA_DMA_DA_SYS_TO_SRAM_BIT))
+		cdma_read(loc_addr, sys_addr, copy_size);
+	else if ((flags == FDMA_DMA_DA_WS_TO_SYS_BIT) ||
+			(flags == FDMA_DMA_DA_SRAM_TO_SYS_BIT))
+		cdma_write(sys_addr, loc_addr, copy_size);
+}
+
 
 /**********************************************************************
  *                     MM internal routines set                       *
@@ -199,7 +220,7 @@ static void eliminate_redundant_free_blocks(t_slob_block *curr_b,
                                             uint64_t *curr_b_addr,
                                             uint64_t *end)
 {
-    static t_slob_block next_b = {0};
+    t_slob_block next_b = {0};
     uint64_t next_b_addr = 0;
 
     if(0 != curr_b->next_addr)
@@ -273,7 +294,7 @@ static void eliminate_redundant_free_blocks(t_slob_block *curr_b,
 static int add_free(t_MM *p_MM, uint64_t base, uint64_t end)
 {
 
-    static t_slob_block curr_b = {0};
+    t_slob_block curr_b = {0};
 
 
     uint64_t    prev_b_addr = 0,new_b_addr = 0,curr_b_addr = 0,free_blocks_addr = 0;
@@ -421,7 +442,7 @@ static int add_free(t_MM *p_MM, uint64_t base, uint64_t end)
 
 static int cut_free(t_MM *p_MM, const uint64_t *hold_base, const uint64_t *hold_end)
 {
-    static t_slob_block curr_b = {0};
+    t_slob_block curr_b = {0};
 
     uint64_t new_b_addr = 0,curr_b_addr = 0;
     static uint64_t    prev_b_addr = 0, align_base = 0, base = 0, end = 0,size = 0;
@@ -660,7 +681,7 @@ static uint64_t slob_get_greater_alignment(t_MM *p_MM,
                                            const uint64_t size,
                                            const uint32_t alignment)
 {
-    static t_slob_block block = {0};
+    t_slob_block block = {0};
     uint64_t new_busy_addr = 0;
     uint64_t  free_addr = 0;
     static uint64_t    hold_base = 0, hold_end = 0, align_base = 0;
@@ -870,7 +891,7 @@ static uint64_t slob_get_normal_alignment(t_MM *p_MM,
                                    const uint32_t alignment)
 {
      uint64_t addr = 0;
-     static t_slob_block block = {0};
+     t_slob_block block = {0};
      static uint64_t    hold_base,hold_end;
      uint32_t i;
      LOG2(alignment,i);
@@ -970,7 +991,7 @@ uint64_t slob_get(uint64_t* slob, const uint64_t size, uint32_t alignment)
 
 uint64_t slob_put(uint64_t* slob, const uint64_t base)
 {
-    static t_MM        MM = {0};
+    t_MM        MM = {0};
     t_slob_block busy_b = {0};
     uint64_t    size;
     uint64_t   busy_b_addr = 0, prev_busy_b_addr = 0;
@@ -983,9 +1004,7 @@ uint64_t slob_put(uint64_t* slob, const uint64_t base)
     /* Look for a busy block that have the given base value.
      * That block will be returned back to the memory.
      */
-   fdma_dma_data(sizeof(MM),s_ic.icid,&MM,slob_addr,FDMA_DMA_DA_SYS_TO_SRAM_BIT);
-
-
+    fdma_dma_data(sizeof(MM),s_ic.icid,&MM,slob_addr,FDMA_DMA_DA_SYS_TO_SRAM_BIT);
 
     busy_b_addr = MM.head_busy_blocks_addr;
     if(0 != busy_b_addr)

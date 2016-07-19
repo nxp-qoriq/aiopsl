@@ -207,7 +207,8 @@ void cdma_release_context_memory(
 @Function	cdma_read
 
 @Description	This routine is used to read data from context memory to
-		Workspace.
+		Workspace that uses internal CDMA cache for improved performance
+		when accessing external memory
 
 		The read data access will be done regardless of any mutex lock
 		that was set by another task.
@@ -222,13 +223,17 @@ void cdma_release_context_memory(
 @Cautions	The maximum legal access size (in bytes) is 0x3FFF.
 @Cautions	In this function the task yields.
 @Cautions	This function may result in a fatal error.
+@Cautions	Use this function only if the write to context memory
+		(ext_address) was done with CDMA or CDMA internal cache was
+		flushed. If it was done by other engine
+		(hardware accelerator or core) then data fetched might not be
+		the most recent
 
 *//***************************************************************************/
 inline void cdma_read(
 		void *ws_dst,
 		uint64_t ext_address,
 		uint16_t size);
-
 
 /*************************************************************************//**
 @Function	cdma_write
@@ -237,6 +242,9 @@ inline void cdma_read(
 
 		The write data access will be done regardless of any mutex
 		lock that was set by another task.
+
+		Any CDMA write will invalidate the cache for the accessed
+		external memory location.
 
 @Param[in]	ext_address - A pointer to a context memory address in the
 		external memory (DDR/PEB).
@@ -332,6 +340,9 @@ inline void cdma_mutex_lock_release(
 		i.e. this routine returns only when the read data access is
 		done.
 
+		This function reads data from CDMA internal cache for improved
+		performance
+
 @Param[in]	ext_address - A pointer to a context memory address in the
 		external memory (DDR/PEB). This address is used to read data
 		access and mutex lock take/release.
@@ -351,14 +362,17 @@ inline void cdma_mutex_lock_release(
 @Cautions	The maximum legal access size (in bytes) is 0x3FFF.
 @Cautions	In this function the task yields.
 @Cautions	This function may result in a fatal error.
-
+@Cautions	Use this function only if the write to context memory
+		(ext_address) was done with CDMA or CDMA internal cache was
+		flushed. If it was done by other engine
+		(hardware accelerator or core) then data fetched might not be
+		the most recent
 *//***************************************************************************/
 inline void cdma_read_with_mutex(
 		uint64_t ext_address,
 		uint32_t flags,
 		void *ws_dst,
 		uint16_t size);
-
 
 /*************************************************************************//**
 @Function	cdma_write_with_mutex

@@ -30,6 +30,7 @@
 int rcu_init();
 void rcu_free();
 int rcu_default_early_init();
+void rcu_read_unlock();
 
 
 int rcu_default_early_init()
@@ -44,6 +45,11 @@ int rcu_init()
 
 
 void rcu_free()
+{
+	return;
+}
+
+void rcu_read_unlock()
 {
 	return;
 }

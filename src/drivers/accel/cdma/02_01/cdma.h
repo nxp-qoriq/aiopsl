@@ -66,6 +66,8 @@
 #define CDMA_WRITE_CMD_FLAGS  0x00000000
 /** CDMA_ACCESS_CONTEXT_MEM_FLAGS[DA]=[01] */
 #define CDMA_READ_CMD_ENB    0x40000000
+/** CDMA_ACCESS_CONTEXT_MEM_FLAGS[DA]=[11] */
+#define CDMA_READ_CMD_ENB_NO_CACHE    0xC0000000
 /** CDMA_ACCESS_CONTEXT_MEM_FLAGS[DA]=[10] */
 #define CDMA_WRITE_CMD_ENB    0x80000000
 /** CDMA_ACCESS_CONTEXT_MEM_FLAGS[AA,MO,TL,MT,UR,RM]=[0,0,0,00,01,0] */
@@ -99,6 +101,9 @@
 #define CDMA_READ_CMD_ARG2(_size, _ws_address)	\
 	(uint32_t)((((_size << 16) | CDMA_READ_CMD_ENB) & 0xFFFF0000) \
 			| (_ws_address & 0x0000FFFF))
+#define CDMA_READ_CMD_NO_CACHE_ARG2(_size, _ws_address)	\
+	(uint32_t)((((_size << 16) | CDMA_READ_CMD_ENB_NO_CACHE) & 0xFFFF0000) \
+			| (_ws_address & 0x0000FFFF))
 #define CDMA_WRITE_CMD_ARG1()	\
 	(CDMA_WRITE_CMD_FLAGS | CDMA_ACCESS_CONTEXT_MEM_CMD);
 #define CDMA_WRITE_CMD_ARG2(_size, _ws_address)	\
@@ -110,6 +115,9 @@
 	(CDMA_EXT_MUTEX_LOCK_RELEASE_CMD_FLAGS | CDMA_ACCESS_CONTEXT_MEM_CMD);
 #define CDMA_READ_WITH_MUTEX_CMD_ARG1(_flags)	\
 	(_flags | CDMA_ACCESS_CONTEXT_MEM_CMD);
+#define CDMA_READ_WITH_MUTEX_NO_CACHE_CMD_ARG2(_size, _ws_address) \
+	(uint32_t)((((_size << 16) | CDMA_READ_CMD_ENB_NO_CACHE) & 0xFFFF0000) \
+			| (_ws_address & 0x0000FFFF))
 #define CDMA_READ_WITH_MUTEX_CMD_ARG2(_size, _ws_address) \
 	(uint32_t)((((_size << 16) | CDMA_READ_CMD_ENB) & 0xFFFF0000) \
 			| (_ws_address & 0x0000FFFF))
@@ -489,7 +497,8 @@ int cdma_write_release_lock_and_decrement(
 @Return		None.
 
 @Cautions	In this function the task yields.
-@Cautions	This function may result in a fatal error.
+@Cautions	This function may result in a fatal error. Do not call it from
+		the AIOP initialization task.
 
 *//***************************************************************************/
 inline void cdma_ephemeral_reference_take();
@@ -721,6 +730,95 @@ void cdma_write_wrp(uint64_t ext_address,
 			   void *ws_src,
 			   uint16_t size);
 
+
+/*************************************************************************//**
+@Function	cdma_read_with_no_cache
+
+@Description	This routine is used to read data from context memory to
+		workspace. It bypasses CDMA internal cache available in CDMA 1.1
+		(rev2) in order to access data structures that are shared with
+		another	master (such as Stats Engine or FDMA) in case cache data
+		for the location provided was not invalidated
+
+		The read data access will be done regardless of any mutex lock
+		that was set by another task.
+
+@Param[in]	ws_dst - A pointer to the Workspace.
+@Param[in]	ext_address - A pointer to a context memory address in the
+		external memory (DDR/PEB).
+@Param[in]	size - Read data access size, in bytes.
+
+@Return		None.
+
+@Cautions	The maximum legal access size (in bytes) is 0x3FFF.
+@Cautions	In this function the task yields.
+@Cautions	This function may result in a fatal error.
+@Cautions	This function may cause performance penalty on bus. It should
+		not be used in datapath processing, use only on management path
+		to fetch data structures shared with other masters
+		(Stats Engine, FDMA etc.)
+
+*//***************************************************************************/
+inline void cdma_read_with_no_cache(
+		void *ws_dst,
+		uint64_t ext_address,
+		uint16_t size);
+
+/*************************************************************************//**
+@Function	cdma_read_with_mutex_no_cache
+
+@Description	This routine reads data from external memory to Workspace.
+		Optional mutex lock (read or write) request before the read
+		transaction occurs and/or mutex lock release after the read
+		transaction occurred.
+
+		Write lock is granted when there are no preceding locks (read
+		or write) active or pending on the same address.
+		Read locks are granted when there are no preceding write locks
+		active or pending on the same address.
+
+		Reading data access is granted only if no mutex write lock is
+		preceding the same ext_address. In this case, reading data
+		access will take place only when the write lock is released.
+		i.e. this routine returns only when the read data access is
+		done.
+
+		This function bypasses CDMA cache available in CDMA 1.1 (rev2)
+		in order to access data structures that are shared with another
+		master (such as Stats Engine or FDMA) in case cache data for the
+		location provided was not invalidated
+
+@Param[in]	ext_address - A pointer to a context memory address in the
+		external memory (DDR/PEB). This address is used to read data
+		access and mutex lock take/release.
+@Param[in]	flags - \link CDMA_DMA_MUTEX_ModeBits CDMA Mutex flags
+		\endlink.
+@Param[in]	ws_dst - A pointer to the Workspace.
+@Param[in]	size - Read data access size, in bytes.
+
+@Return		None.
+
+@remark
+		- Each task can have a maximum of 4 simultaneous mutex locks
+		active.
+		- A mutex lock taken by a task must be released by the same
+		task.
+
+@Cautions	The maximum legal access size (in bytes) is 0x3FFF.
+@Cautions	In this function the task yields.
+@Cautions	This function may result in a fatal error.
+@Cautions	This function may result in a fatal error.
+@Cautions	This function may cause performance penalty on bus. It should
+		not be used in datapath processing, use only on management path
+		to fetch data structures shared with other masters
+		(Stats Engine, FDMA etc.)
+
+*//***************************************************************************/
+inline void cdma_read_with_mutex_no_cache(
+		uint64_t ext_address,
+		uint32_t flags,
+		void *ws_dst,
+		uint16_t size);
 
 /*************************************************************************//**
 @Function	cdma_handle_fatal_errors

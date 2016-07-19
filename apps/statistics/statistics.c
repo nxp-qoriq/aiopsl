@@ -50,6 +50,7 @@
 /* Required for timer */
 #include "fsl_tman.h"
 #include "fsl_gen.h"
+#include "fsl_icontext.h"
 
 #define AIOP_APP_NAME		"STATISTICS"
 
@@ -440,38 +441,45 @@ static void app_show_stats_cb(tman_arg_8B_t arg1, tman_arg_2B_t arg2)
 	UNUSED(arg1);
 	UNUSED(arg2);
 
+	struct icontext	ic;
 	uint64_t	l_stats_addr = stats_addr;
-	uint64_t	cdma_buf;
+	uint64_t	ws_buf;
 
 	/* Flush stats in request queue, so that user gets most recent
 	 * data. STE counter is updated in a fire and forget manner
 	 * and CDMA and STE modules are not synchronized */
 	ste_barrier();
 
+	/* Get isolation context ID for fetching data from system memory using
+	 * Frame DMA */
+	icontext_aiop_get(&ic);
+
 	/* Read stats from memory using CDMA, which fetches a snapshot
 	 * of the counters currently residing in memory */
-	cdma_read(&cdma_buf,
+	fdma_dma_data(sizeof(stats.received_pkts), ic.icid, &ws_buf,
 		l_stats_addr + offsetof(struct app_stats, received_pkts),
-	       sizeof(stats.received_pkts));
-	stats.received_pkts = cdma_buf;
-	cdma_read(&cdma_buf,
-		l_stats_addr + offsetof(struct app_stats, dropped_pkts),
-	       sizeof(stats.dropped_pkts));
-	stats.dropped_pkts = cdma_buf;
-	cdma_read(&cdma_buf,
-		l_stats_addr + offsetof(struct app_stats,
-				       transmitted_pkts),
-		sizeof(stats.transmitted_pkts));
-	stats.transmitted_pkts = cdma_buf;
-	cdma_read(&cdma_buf,
-		l_stats_addr + offsetof(struct app_stats, accepted_pkts),
-	       sizeof(stats.accepted_pkts));
-	stats.accepted_pkts = cdma_buf;
+		FDMA_DMA_DA_SYS_TO_WS_BIT);
+	stats.received_pkts = ws_buf;
 
-	cdma_read(&cdma_buf,
+	fdma_dma_data(sizeof(stats.dropped_pkts), ic.icid, &ws_buf,
+		l_stats_addr + offsetof(struct app_stats, dropped_pkts),
+		FDMA_DMA_DA_SYS_TO_WS_BIT);
+	stats.dropped_pkts = ws_buf;
+
+	fdma_dma_data(sizeof(stats.transmitted_pkts), ic.icid, &ws_buf,
+		l_stats_addr + offsetof(struct app_stats, transmitted_pkts),
+		FDMA_DMA_DA_SYS_TO_WS_BIT);
+	stats.transmitted_pkts = ws_buf;
+
+	fdma_dma_data(sizeof(stats.accepted_pkts), ic.icid, &ws_buf,
+		l_stats_addr + offsetof(struct app_stats, accepted_pkts),
+		FDMA_DMA_DA_SYS_TO_WS_BIT);
+	stats.accepted_pkts = ws_buf;
+
+	fdma_dma_data(sizeof(stats.total_bytes_rx), ic.icid, &ws_buf,
 		l_stats_addr + offsetof(struct app_stats, total_bytes_rx),
-	       sizeof(stats.total_bytes_rx));
-	stats.total_bytes_rx = cdma_buf;
+		FDMA_DMA_DA_SYS_TO_WS_BIT);
+	stats.total_bytes_rx = ws_buf;
 
 	fsl_print("AIOP received %ll packets (%ll bytes)\n",
 			stats.received_pkts, stats.total_bytes_rx);
@@ -481,14 +489,18 @@ static void app_show_stats_cb(tman_arg_8B_t arg1, tman_arg_2B_t arg2)
 
 	for (uint8_t i = 0; i < CONN_TABLE_SIZE; i++) {
 		fsl_print("\t * PROTO 0x%x: ", conn[i].key[0]);
-		cdma_read(&cdma_buf, conn[i].slab_ptr_stats +
+
+		fdma_dma_data(sizeof(uint64_t), ic.icid, &ws_buf,
+			conn[i].slab_ptr_stats +
 				offsetof(struct flow_stats, num_pkts),
-				sizeof(uint64_t));
-		fsl_print("%ll packets ", cdma_buf);
-		cdma_read(&cdma_buf, conn[i].slab_ptr_stats +
+			FDMA_DMA_DA_SYS_TO_WS_BIT);
+		fsl_print("%ll packets ", ws_buf);
+
+		fdma_dma_data(sizeof(uint64_t), ic.icid, &ws_buf,
+			conn[i].slab_ptr_stats +
 				offsetof(struct flow_stats, num_bytes),
-				sizeof(uint64_t));
-		fsl_print("(%ll bytes)\n", cdma_buf);
+			FDMA_DMA_DA_SYS_TO_WS_BIT);
+		fsl_print("(%ll bytes)\n", ws_buf);
 	}
 	fsl_print("\n");
 
