@@ -97,17 +97,11 @@ inline int parse_result_generate(enum parser_starting_hxs_code starting_hxs,
 
 	status = *(int32_t *)HWC_ACC_OUT_ADDRESS;
 
-	if ((flags == PARSER_NO_FLAGS &&
-	((status & ~PARSER_HW_STATUS_L3_L4_CHECKSUM_GENERATION_SUCCEEDED)
-			== PARSER_HW_STATUS_SUCCESS))
-	|| (flags == PARSER_VALIDATE_L3_L4_CHECKSUM && 
-	status == PARSER_HW_STATUS_L3_L4_CHECKSUM_VALIDATION_SUCCEEDED) 
-	|| (flags == PARSER_VALIDATE_L3_CHECKSUM && 
-	((status & ~PARSER_HW_STATUS_L4_CHECKSUM_GENERATION_SUCCEEDED) ==
-		PARSER_HW_STATUS_L3_CHECKSUM_VALIDATION_SUCCEEDED))
-	|| (flags == PARSER_VALIDATE_L4_CHECKSUM && 
-	((status & ~PARSER_HW_STATUS_L3_CHECKSUM_GENERATION_SUCCEEDED) ==
-		PARSER_HW_STATUS_L4_CHECKSUM_VALIDATION_SUCCEEDED))){
+	/* We assume that PARSER_HW_STATUS_PARSING_ERROR bit is always set
+	 * for any kind of parsing error */
+	 if ((status & ~(PARSER_HW_STATUS_FAIL_L3_CHECKSUM_VALIDATION_ERROR |
+					 PARSER_HW_STATUS_FAIL_L4_CHECKSUM_VALIDATION_ERROR))
+		 == PARSER_HW_STATUS_SUCCESS) {
 		return 0;
 	} else if (status & PARSER_HW_STATUS_CYCLE_LIMIT_EXCCEEDED) {
 		parser_exception_handler(PARSE_RESULT_GENERATE,
@@ -179,17 +173,11 @@ inline int parse_result_generate_default(uint8_t flags)
 	status = *(int32_t *)HWC_ACC_OUT_ADDRESS;
 	/* implementation of errors is priority based (if-else) since multiple
 	 * error indications may appear at the same time */
-	 if ((flags == PARSER_NO_FLAGS &&
-	((status & ~PARSER_HW_STATUS_L3_L4_CHECKSUM_GENERATION_SUCCEEDED)
-		== PARSER_HW_STATUS_SUCCESS))
-	|| (flags == PARSER_VALIDATE_L3_L4_CHECKSUM && 
-	status == PARSER_HW_STATUS_L3_L4_CHECKSUM_VALIDATION_SUCCEEDED) 
-	|| (flags == PARSER_VALIDATE_L3_CHECKSUM && 
-	((status & ~PARSER_HW_STATUS_L4_CHECKSUM_GENERATION_SUCCEEDED) ==
-		PARSER_HW_STATUS_L3_CHECKSUM_VALIDATION_SUCCEEDED))
-	|| (flags == PARSER_VALIDATE_L4_CHECKSUM && 
-	((status & ~PARSER_HW_STATUS_L3_CHECKSUM_GENERATION_SUCCEEDED) ==
-		PARSER_HW_STATUS_L4_CHECKSUM_VALIDATION_SUCCEEDED))){
+	/* We assume that PARSER_HW_STATUS_PARSING_ERROR bit is always set
+	 * for any kind of parsing error */
+	 if ((status & ~(PARSER_HW_STATUS_FAIL_L3_CHECKSUM_VALIDATION_ERROR |
+					 PARSER_HW_STATUS_FAIL_L4_CHECKSUM_VALIDATION_ERROR))
+		 == PARSER_HW_STATUS_SUCCESS) {
 		return 0;
 	} else if (status & PARSER_HW_STATUS_CYCLE_LIMIT_EXCCEEDED) {
 		parser_exception_handler(PARSE_RESULT_GENERATE_DEFAULT,
