@@ -84,13 +84,6 @@ __HOT_CODE ENTRY_POINT static void app_reflector(void)
 	/* Modify the data in the default Data Segment */
 	fdma_modify_default_segment_full_data();
 
-#ifdef EXCLUSIVE_MODE
-	/* Restore order for frames from the same flow */
-
-	/* Transition to mode EXCLUSIVE */
-	osm_scope_transition_to_exclusive_with_increment_scope_id();
-#endif
-
 	err = dpni_drv_send(task_get_receive_niid(), DPNI_DRV_SEND_FLAGS);
 
 	if (err == -ENOMEM)

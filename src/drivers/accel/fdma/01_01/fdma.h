@@ -853,6 +853,7 @@ enum fdma_function_identifier {
 	FDMA_STORE_AND_ENQUEUE_DEFAULT_FRAME_FQID,
 	FDMA_STORE_AND_ENQUEUE_FRAME_FQID,
 	FDMA_STORE_AND_ENQUEUE_DEFAULT_FRAME_QD,
+	FDMA_STORE_AND_ORDERED_ENQUEUE_DEFAULT_FRAME_QD,
 	FDMA_STORE_AND_ENQUEUE_FRAME_QD,
 	FDMA_ENQUEUE_DEFAULT_FD_FQID,
 	FDMA_ENQUEUE_FD_FQID,
@@ -1048,6 +1049,59 @@ void fdma_calculate_default_frame_checksum_wrp(
 *//***************************************************************************/
 int fdma_store_default_frame_data_wrp(void);
 
+/**************************************************************************//**
+@Function	fdma_store_and_ordered_enqueue_default_frame_qd
+
+@Description	Enqueue the default Working Frame to a given destination
+		according to a queueing destination, with accelerated OSM
+		transition to exclusive and increment scope ID.
+
+		After completion, the Enqueue Working Frame command can
+		terminate the task or return.
+
+		If the Working Frame to be enqueued is modified, the Enqueue
+		Frame command performs a Store Frame Data command on the
+		Working Frame.
+
+		If the Working Frame to be enqueued is modified, existing
+		buffers as described by the FD are used to store data.
+
+		If the modified frame no longer fits in the original structure,
+		new buffers can be added using the provided storage profile.
+
+		If the original structure can not be modified, then a new
+		structure will be assembled using the default frame storage
+		profile ID.
+
+		Implicit input parameters in Task Defaults: frame handle, spid
+		storage profile ID.
+
+@Param[in]	qdp - Pointer to the queueing destination parameters \ref
+		fdma_queueing_destination_params.
+@Param[in]	flags - \link FDMA_ENWF_Flags enqueue working frame mode
+		bits. \endlink
+
+@Return		0 on Success, or negative value on error. OSM scopie ID is
+		incremented and mode is exclusive.
+
+@Retval		0 - Success.
+@Retval		EBUSY - Enqueue failed due to congestion in QMAN.
+@Retval		ENOMEM - Failed due to buffer pool depletion.
+
+@remark		If some segments of the Working Frame are not closed, they
+		will be closed and the segment handles will be implicitly
+		released.
+@remark		Release frame handle is implicit in this function.
+
+@Cautions	Function may not return.
+@Cautions	All modified segments (which are to be stored) must be
+		replaced (by a replace command) before storing a frame.
+@Cautions	This function may result in a fatal error.
+@Cautions	In this Service Routine the task yields.
+*//***************************************************************************/
+inline int fdma_store_and_ordered_enqueue_default_frame_qd(
+		struct fdma_queueing_destination_params *qdp,
+		uint32_t flags);
 
 /**************************************************************************//**
 @Function	fdma_exception_handler

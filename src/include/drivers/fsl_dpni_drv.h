@@ -35,7 +35,7 @@
 #include "fsl_ldpaa.h"
 #include "fsl_net.h"
 #include "fsl_dpkg.h"
-#include "dpni_drv_rxtx_inline.h"
+
 #include "fsl_ep.h"
 #include "fsl_fdma.h"
 
@@ -72,6 +72,19 @@
 /** @} end of group DPNI_DRV_LINK_OPT */
 
 /**************************************************************************//**
+@Group		DPNI Attributes  DPNI Attributes
+
+@Description	DPNI Driver Send Attributes
+
+@{
+*//***************************************************************************/
+enum dpni_enqueue_attributes {
+		/** Add transition to exclusive with increment
+		 * scope ID to enqueue */
+	DPNI_DRV_SEND_MODE_ORDERED			= 0x40000000
+};
+
+/**************************************************************************//**
  @Group         DPNI_DRV_SEND_MODE options
 
  @Description   Enqueue working frame modes bitmap values
@@ -80,12 +93,15 @@
 *//***************************************************************************/
 #define DPNI_DRV_SEND_MODE_NONE FDMA_ENWF_NO_FLAGS
 #define DPNI_DRV_SEND_MODE_TERM FDMA_EN_TC_TERM_BITS
+#define DPNI_DRV_SEND_MODE_ATTRIBUTE	dpni_enqueue_attributes
 #ifndef LS2085A_REV1
 #define DPNI_DRV_SEND_MODE_CONDTERM FDMA_EN_TC_CONDTERM_BITS
 #define DPNI_DRV_SEND_MODE_RL FDMA_ENWF_RL_BIT
 #endif
 /** @} end of group DPNI_DRV_SEND_MODE */
 
+#define DPNI_DRIVER_SEND_MODE_ATTRIBUTE_MASK (DPNI_DRV_SEND_MODE_ORDERED)
+#include "dpni_drv_rxtx_inline.h"
 
 /**************************************************************************//**
 @Description	Structure representing DPNI driver link state.
@@ -648,7 +664,7 @@ inline void sl_tman_expiration_task_prolog(uint16_t spid);
 	Store and enqueue the default Working Frame.
 
 @Param[in]	ni_id - The Network Interface ID
-		flags - Flags for working frame enqueue
+		flags - Flags for working frame enqueue, see DPNI_DRV_SEND_MODE
 	Implicit: Queuing Destination Priority (qd_priority) in the TLS.
 
 @Retval		0 - Success.

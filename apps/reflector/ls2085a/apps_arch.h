@@ -41,8 +41,14 @@
 
 /* fdma_discard_fd API is different for rev1 and rev2 */
 #define ARCH_FDMA_DISCARD_FD() \
-	fdma_discard_fd((struct ldpaa_fd *)HWC_FD_ADDRESS, FDMA_DIS_NO_FLAGS)
+	fdma_discard_fd((struct ldpaa_fd *)HWC_FD_ADDRESS, \
+			FDMA_DIS_NO_FLAGS)
 
-#define DPNI_DRV_SEND_FLAGS (DPNI_DRV_SEND_MODE_TERM)
+#ifdef EXCLUSIVE_MODE
+	#define DPNI_DRV_SEND_FLAGS (DPNI_DRV_SEND_MODE_TERM \
+			| DPNI_DRV_SEND_MODE_ORDERED)
+#else
+	#define DPNI_DRV_SEND_FLAGS (DPNI_DRV_SEND_MODE_TERM)
+#endif
 
 #endif /* __APPS_ARCH_H */
