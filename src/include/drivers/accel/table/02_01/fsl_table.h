@@ -118,6 +118,10 @@ available table locations. \n User should select one of the following defines
 	/** Packet Express Buffer table */
 #define TABLE_ATTRIBUTE_LOCATION_PEB		0x0300
 
+#ifndef LS1088A_REV1
+	/** Data Path DDR. Not available on LS1088 */
+#define TABLE_ATTRIBUTE_LOCATION_DP_DDR		0x0400
+#endif
 	/** System DDR */
 #define TABLE_ATTRIBUTE_LOCATION_SYS_DDR	0x0500
 
