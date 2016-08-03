@@ -2928,7 +2928,7 @@ inline void fdma_copy_data(
 		(such as Statistics Engine)
 
 *//***************************************************************************/
-void fdma_dma_data(
+inline void fdma_dma_data(
 		uint16_t copy_size,
 		uint16_t icid,
 		void *ws_addr,

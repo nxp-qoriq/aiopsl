@@ -913,7 +913,7 @@ enum fdma_function_identifier {
 @Cautions	This function may result in a fatal error.
 @Cautions	In this Service Routine the task yields.
 *//***************************************************************************/
-void fdma_dma_data(
+inline void fdma_dma_data(
 		uint16_t copy_size,
 		uint16_t icid,
 		void *loc_addr,

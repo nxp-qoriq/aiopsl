@@ -35,6 +35,13 @@
 #define __SYSTEM_H_
 
 #include "general.h"
+#include "fsl_general.h"
+#include "fsl_cdma.h"
+#include "fsl_fdma.h"
+#include "fsl_icontext.h"
+#include "fsl_dbg.h"
+
+extern struct icontext icontext_aiop;
 
 #define __PROFILE_SRAM __declspec(section ".psram_data")
 #pragma section RW ".psram_data" ".psram_bss"
@@ -319,9 +326,25 @@ void system_init_exception_handler(enum system_function_identifier func_id,
 			     uint32_t line,
 			     int32_t status);
 
-
-
 /** @} */ /* end of SYSTEM_Functions */
+
+inline void fsl_read_external_data(void *ws_addr, uint64_t ext_address,
+				   uint16_t copy_size, uint32_t flags)
+{
+	if (flags == READ_DATA_USING_FDMA) {
+		fdma_dma_data(copy_size, icontext_aiop.icid, ws_addr,
+			      ext_address,
+			      icontext_aiop.dma_flags |
+				      FDMA_DMA_DA_SYS_TO_WS_BIT);
+		return;
+	}
+
+	if (flags == READ_DATA_USING_CDMA) {
+		cdma_read_with_no_cache(ws_addr, ext_address, copy_size);
+		return;
+	}
+}
+
 
 /** @} */ /* end of SYSTEM */
 

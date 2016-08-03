@@ -84,6 +84,22 @@
 
 /** @} */ /* end of AIOP_Return_Status */
 
+/**************************************************************************//**
+ @Group		ReadDataExt Read external data bits definitions
+
+ @Description	Bit definitions for choosing what hardware
+		engine should be used for reading data from external memory
+		READ_DATA_USING_FDMA and READ_DATA_USING_CDMA
+		cannot be used at the same time
+
+ @{
+ *//***************************************************************************/
+	/** Fetch data using FDMA DMA Data */
+#define READ_DATA_USING_FDMA		0x00000001
+	/** Fetch data using CDMA with cache disabled */
+#define READ_DATA_USING_CDMA		0x00000002
+
+/** @} end of group ReadDataExt */
 
 /**************************************************************************//**
  @Group		AIOP_HWC_Definitions AIOP HWC Definitions
@@ -577,6 +593,32 @@ struct aiop_default_task_params {
 
 
 /** @} */ /* end of AIOP_General_Definitions */
+
+/**************************************************************************//**
+@Function	fsl_read_external_data
+
+@Description	This service routine will read the data from an external
+		address in System memory using DMA to fetch in workspace memory
+
+@Param[in]	ws_addr - A pointer to the source/target location in Workspace
+		Memory for DMA Data. Workspace address is
+		limited to 16 bits.
+@Param[in]	ext_address - System memory source address, for DMA, where
+		data reside. External address can only be from PEB,
+		DP-DDR or System DDR as memory partitions
+@Param[in]	copy_size - Number of bytes to copy (limited to 12 bits in case
+		FDMA is used as engine)
+@Param[in]	flags - Please refer to \link ReadDataExt command flags
+		\endlink.
+
+@Cautions	The maximum legal access size (in bytes) is 0x3FFF in case
+		CDMA is used as engine
+@Cautions	In this function the task yields.
+@Cautions	This function may result in a fatal error.
+
+*//****************************************************************************/
+inline void fsl_read_external_data(void *ws_addr, uint64_t ext_address,
+				   uint16_t copy_size, uint32_t flags);
 
 /** @} */ /* end of AIOP_GENERAL */
 

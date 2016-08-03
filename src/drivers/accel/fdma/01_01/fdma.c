@@ -987,33 +987,6 @@ int fdma_replace_default_pta_segment_data(
 	return (int32_t)(res1);
 }
 
-void fdma_dma_data(
-		uint16_t copy_size,
-		uint16_t icid,
-		void *loc_addr,
-		uint64_t sys_addr,
-		uint32_t flags)
-{
-	/* command parameters and results */
-	uint32_t arg1, arg2;
-	int8_t res1;
-
-	/* prepare command parameters */
-	arg1 = FDMA_DMA_CMD_ARG1(icid, flags);
-	arg2 = FDMA_DMA_CMD_ARG2(copy_size, (uint32_t)loc_addr);
-	/* store command parameters */
-	__stdw(arg1, arg2, HWC_ACC_IN_ADDRESS, 0);
-	__llstdw(sys_addr, HWC_ACC_IN_ADDRESS3, 0);
-	/* call FDMA Accelerator */
-	if ((__e_hwacceli_(FPDMA_ACCEL_ID)) == FDMA_SUCCESS)
-		return;
-
-	/* load command results */
-	res1 = *((int8_t *)(FDMA_STATUS_ADDR));
-	
-	fdma_exception_handler(FDMA_DMA_DATA, __LINE__, (int32_t)res1);
-}
-
 int fdma_acquire_buffer(
 		uint16_t icid,
 		uint32_t flags,
