@@ -141,7 +141,10 @@ inline int dpni_drv_send(uint16_t ni_id, uint32_t flags)
 	if (dpni_attributes == DPNI_DRV_SEND_MODE_ORDERED)
 		return fdma_store_and_ordered_enqueue_default_frame_qd(
 				&enqueue_params, flags);
-	return fdma_store_and_enqueue_default_frame_qd(&enqueue_params, flags);
+	if (dpni_attributes == DPNI_DRV_SEND_MODE_PRESTORE_ORDERED)
+		return fdma_prestore_and_ordered_enqueue_default_fd_qd(
+				flags, &enqueue_params);
+		return fdma_store_and_enqueue_default_frame_qd(&enqueue_params, flags);
 }
 
 inline void sl_tman_expiration_task_prolog(uint16_t spid)

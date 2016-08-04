@@ -744,6 +744,68 @@ inline int fdma_store_and_ordered_enqueue_default_frame_qd(
 	return (int32_t)(res1);
 }
 
+inline int fdma_prestore_and_ordered_enqueue_default_fd_qd(
+		uint32_t flags,
+		struct fdma_queueing_destination_params *enqueue_params)
+{
+	/* command parameters and results */
+	uint32_t arg1, arg2, arg3;
+	int8_t res1;
+	uint32_t amq;
+	uint8_t spid = *((uint8_t *) HWC_SPID_ADDRESS);
+
+	/* prepare command parameters */
+	arg1 = FDMA_STORE_DEFAULT_CMD_ARG1(spid, PRC_GET_FRAME_HANDLE());
+	*((uint32_t *)(HWC_ACC_IN_ADDRESS)) = arg1;
+	/* call FDMA Accelerator */
+	if ((__e_hwacceli_(FODMA_ACCEL_ID)) != FDMA_SUCCESS) {
+
+		/* load command results */
+		res1 = *((int8_t *) (FDMA_STATUS_ADDR));
+	
+		if (res1 == FDMA_BUFFER_POOL_DEPLETION_ERR)
+			return -ENOMEM;
+		else
+			fdma_exception_handler(
+					FDMA_PRESTORE_AND_ORDERED_ENQUEUE_DEFAULT_FD_QD,
+					__LINE__, (int32_t)res1);
+	}
+	
+	/* Recover AMQ bits from store frame command and use to enqueue FD */
+	amq = *(uint32_t *)HWC_ACC_OUT_ADDRESS2;
+	
+	/* prepare command parameters */
+	flags &= ~FDMA_EN_EIS_BIT;
+	arg1 = FDMA_ENQUEUE_FRAME_ARG1(flags);
+	arg2 = FDMA_ENQUEUE_WF_QD_ARG2(enqueue_params->qd_priority,
+			enqueue_params->qd);
+	/* BDI and ICID from store cmd */
+	arg3 = (amq<<16) | (uint32_t)enqueue_params->qdbin;
+	/* store command parameters */
+	__stdw(arg1, arg2, HWC_ACC_IN_ADDRESS, 0);
+	*((uint32_t *) HWC_ACC_IN_ADDRESS3) = arg3;
+	/* call FDMA Accelerator */
+	if (__e_ordhwacceli_(FODMA_ACCEL_ID,
+			OSM_SCOPE_TRANSITION_TO_EXCL_OP,
+				OSM_SCOPE_ID_STAGE_INCREMENT_MASK) == FDMA_SUCCESS) {
+		REGISTER_OSM_EXCLUSIVE;
+		return SUCCESS;
+	}
+
+	/* load command results */
+	res1 = *((int8_t *) (FDMA_STATUS_ADDR));
+
+	if (res1 == FDMA_ENQUEUE_FAILED_ERR) {
+		REGISTER_OSM_EXCLUSIVE;
+		return -EBUSY;
+	} else
+		fdma_exception_handler(
+				FDMA_PRESTORE_AND_ORDERED_ENQUEUE_DEFAULT_FD_QD,
+				__LINE__, (int32_t)res1);
+
+	return (int32_t)(res1);
+}
+
 inline void fdma_terminate_task(void)
 {
 	/* command parameters and results */

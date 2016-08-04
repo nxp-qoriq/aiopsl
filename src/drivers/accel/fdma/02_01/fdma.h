@@ -772,6 +772,7 @@ enum fdma_function_identifier {
 	FDMA_ENQUEUE_FD_FQID,
 	FDMA_ENQUEUE_DEFAULT_FD_QD,
 	FDMA_ENQUEUE_FD_QD,
+	FDMA_PRESTORE_AND_ORDERED_ENQUEUE_DEFAULT_FD_QD,
 	FDMA_DISCARD_DEFAULT_FRAME,
 	FDMA_DISCARD_FRAME,
 	FDMA_DISCARD_FD,
@@ -993,6 +994,50 @@ int fdma_store_default_frame_data_wrp(void);
 inline int fdma_store_and_ordered_enqueue_default_frame_qd(
 		struct fdma_queueing_destination_params *qdp,
 		uint32_t flags);
+
+/**************************************************************************//**
+@Function	fdma_prestore_and_ordered_enqueue_default_fd_qd
+
+@Description	Prestore the default working frame to default FD location.
+		Enqueue the default FD, which is not presented, to a given
+		destination according to a queueing destination, with accelerated
+		OSM transition to exclusive and increment scope ID.
+
+		After completion, the Enqueue Frame command can
+		terminate the task or return.
+
+		Implicit input parameters in Task Defaults: frame handle location,
+		fd address, icid taken from return status when closing the working
+		frame.
+
+@Param[in]	flags - \link FDMA_ENF_Flags enqueue frame mode
+		bits. \endlink
+@Param[in]	qdp - Pointer to the queueing destination parameters \ref
+		fdma_queueing_destination_params.
+		
+@Return		0 on Success, or negative value on error.
+
+@Return		0 - Success. Return is in a subsequent ordering scope ID and
+		mode is either exclusive or concurrent depending on relinquish
+		flag.
+@Retval		EBUSY - Enqueue failed due to congestion in QMAN. Return is in
+		a subsequent scope ID and mode is either exclusive or concurrent
+		depending on relinquish flag.
+@Retval		ENOMEM - Failed due to buffer pool depletion. Return is in
+		callers ordering scope ID and mode.
+
+@remark		If a fatal error is detected prior to the enqueue, the enqueue
+		is not performed, the command returns with the error code and
+		the FD is still in workspace.
+
+@Cautions	The frame associated with the FD must must be open.
+@Cautions	Function may not return.
+@Cautions	This function may result in a fatal error.
+@Cautions	In this Service Routine the task yields.
+*//***************************************************************************/
+inline int fdma_prestore_and_ordered_enqueue_default_fd_qd(
+		uint32_t flags,
+		struct fdma_queueing_destination_params *enqueue_params);
 
 /**************************************************************************//**
 @Function	fdma_exception_handler

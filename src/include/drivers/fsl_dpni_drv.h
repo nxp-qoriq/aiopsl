@@ -81,7 +81,10 @@
 enum dpni_enqueue_attributes {
 		/** Add transition to exclusive with increment
 		 * scope ID to enqueue */
-	DPNI_DRV_SEND_MODE_ORDERED			= 0x40000000
+	DPNI_DRV_SEND_MODE_ORDERED			= 0x40000000,
+		/** Add prestore then transition to exclusive
+		 * with increment scope ID to FD enqueue */
+	DPNI_DRV_SEND_MODE_PRESTORE_ORDERED	= 0x20000000
 };
 
 /**************************************************************************//**
@@ -100,7 +103,8 @@ enum dpni_enqueue_attributes {
 #endif
 /** @} end of group DPNI_DRV_SEND_MODE */
 
-#define DPNI_DRIVER_SEND_MODE_ATTRIBUTE_MASK (DPNI_DRV_SEND_MODE_ORDERED)
+#define DPNI_DRIVER_SEND_MODE_ATTRIBUTE_MASK \
+	(DPNI_DRV_SEND_MODE_PRESTORE_ORDERED | DPNI_DRV_SEND_MODE_ORDERED)
 #include "dpni_drv_rxtx_inline.h"
 
 /**************************************************************************//**
