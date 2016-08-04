@@ -613,6 +613,17 @@ struct ipsec_instance_params {
 #define IPSEC_MAX_TIMER_DURATION (0x10000-10-2)
 #define IPSEC_MIN_TIMER_DURATION 10
 
+#ifdef LS2085A_REV1
+	#define READ_METHOD	READ_DATA_USING_CDMA
+#else
+	/* On Rev2 platforms CDMA read function behavior changed : it reads
+	* data using the cache. Data written by other accelerators are not
+	* correctly read. The no cache CDMA read is used if the READ_METHOD
+	* is defined as READ_DATA_USING_CDMA.
+	* Now the FDMA accelerator is used to bring that data into the WS.*/
+	#define READ_METHOD	READ_DATA_USING_FDMA
+#endif
+
 /* SA Descriptor Parameter for Internal Usage */
 /* Part 1 */
 struct ipsec_sa_params_part1 {

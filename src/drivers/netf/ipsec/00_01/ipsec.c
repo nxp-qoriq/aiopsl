@@ -1620,12 +1620,9 @@ IPSEC_CODE_PLACEMENT int ipsec_frame_encrypt(
 	
 	desc_addr = IPSEC_DESC_ADDR(ipsec_handle);
 
-	/* 	2.	Read relevant descriptor fields with CDMA. */
-	cdma_read(
-			&sap1, /* void *ws_dst */
-			desc_addr, /* uint64_t ext_address */
-			(uint16_t)sizeof(sap1) /* uint16_t size */
-			);
+	/*	2.	Read relevant descriptor fields with READ_METHOD. */
+	fsl_read_external_data(&sap1, desc_addr, (uint16_t)sizeof(sap1),
+			       READ_METHOD);
 
 	/*---------------------*/
 	/* ipsec_frame_encrypt */
@@ -2313,13 +2310,10 @@ IPSEC_CODE_PLACEMENT int ipsec_frame_decrypt(
 	
 	desc_addr = IPSEC_DESC_ADDR(ipsec_handle);
 
-	/* 	2.	Read relevant descriptor fields with CDMA. */
-	cdma_read(
-			&sap1, /* void *ws_dst */
-			desc_addr, /* uint64_t ext_address */
-			(uint16_t)sizeof(sap1) /* uint16_t size */
-			);
-	
+	/*	2.	Read relevant descriptor fields with READ_METHOD. */
+	fsl_read_external_data(&sap1, desc_addr, (uint16_t)sizeof(sap1),
+			       READ_METHOD);
+
 	/*---------------------*/
 	/* ipsec_frame_decrypt */
 	/*---------------------*/
@@ -3074,13 +3068,10 @@ int ipsec_get_lifetime_stats(
 	 * statistics engine request queue. */
 	ste_barrier();
 
-	/* 	Read relevant descriptor fields with CDMA. */
-	cdma_read(
-			&ctrs, /* void *ws_dst */
-			desc_addr, /* uint64_t ext_address */
-			(uint16_t)sizeof(ctrs) /* uint16_t size */
-			);
-	
+	/*	Read relevant descriptor fields with READ_METHOD. */
+	fsl_read_external_data(&ctrs, desc_addr, (uint16_t)sizeof(ctrs),
+			       READ_METHOD);
+
 	*packets = ctrs.packet_counter;
 	*kilobytes =  ctrs.byte_counter;
 	
@@ -3168,13 +3159,12 @@ int ipsec_get_seq_num(
 	
 	/* Outbound (encapsulation) PDB format */
 	if (params_flags & IPSEC_FLG_DIR_OUTBOUND) {
-		/* 	Read the PDB from the descriptor with CDMA. */
-		cdma_read(
-			&pdb.encap_pdb, /* void *ws_dst */
-			IPSEC_PDB_ADDR(desc_addr), /* uint64_t ext_address */
-			sizeof(pdb.encap_pdb) /* uint16_t size */
-		);
-		
+		/*	Read the PDB from the descriptor with READ_METHOD. */
+		fsl_read_external_data(&pdb.encap_pdb,
+				       IPSEC_PDB_ADDR(desc_addr),
+				       (uint16_t)sizeof(pdb.encap_pdb),
+				       READ_METHOD);
+
 		/* Return swapped values (little to big endian conversion) */
 		/* Always read from PDB, regardless of ESN enabled/disabled */
 		*extended_sequence_number = LW_SWAP(0,&(pdb.encap_pdb.seq_num_ext_hi));
@@ -3188,13 +3178,12 @@ int ipsec_get_seq_num(
 	} else {
 	/* Inbound (decapsulation) PDB format */
 				
-		/* 	Read the PDB from the descriptor with CDMA. */
-		cdma_read(
-			&(pdb.decap_pdb), /* void *ws_dst */
-			IPSEC_PDB_ADDR(desc_addr), /* uint64_t ext_address */
-			sizeof(pdb.decap_pdb) /* uint16_t size */
-		);
-	
+		/*	Read the PDB from the descriptor with READ_METHOD. */
+		fsl_read_external_data(&pdb.decap_pdb,
+				       IPSEC_PDB_ADDR(desc_addr),
+				       (uint16_t)sizeof(pdb.decap_pdb),
+				       READ_METHOD);
+
 		/* Return swapped values (little to big endian conversion) */
 		/* Always read from PDB, regardless of ESN enabled/disabled */
 		*extended_sequence_number = LW_SWAP(0,&(pdb.decap_pdb.seq_num_ext_hi));
