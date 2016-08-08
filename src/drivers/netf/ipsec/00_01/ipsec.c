@@ -539,6 +539,9 @@ int ipsec_generate_encap_sd(
 		}
 	}
 
+	/* Generate random IV */
+	pdb_options |= IPSEC_ENC_OPTS_IVSRC;
+
 	/*
 	 * Transport mode Next Header and Next Header Offset are initialized to
 	 * zero, since they come from DPOVRD.
