@@ -3416,303 +3416,209 @@ IPSEC_CODE_PLACEMENT uint8_t ipsec_get_ipv6_nh_offset(
 	}
 } /* End of ipsec_get_ipv6_nh_offset */
 
-/**************************************************************************/
+/******************************************************************************/
+static inline uint32_t get_tman_task_handle(void)
+{
+	return LW_SWAP(16, (uint32_t *)HWC_FD_ADDRESS);
+}
 
+/******************************************************************************/
 void ipsec_tman_callback(uint64_t desc_addr, uint16_t indicator)
 {
-	uint8_t expired_indicator;
-	uint16_t tmr_duration;
-	struct ipsec_sa_params_part2 sap2; /* Parameters to read from ext buffer */
+	uint8_t				expired_indicator;
+	uint16_t			tmr_duration;
+	struct ipsec_sa_params_part2	sap2 = {0};
+	uint64_t			expired_addr;
+	uint32_t			*seconds_limit_addr;
+	uint64_t			seconds_addr;
+	uint32_t			timer_handle;
+	uint64_t			timer_addr;
 
-	if(indicator == IPSEC_SOFT_SEC_LIFETIME_EXPIRED) {
-		/* Soft seconds timer */
-
-		/******************************************/
-		/* Lock the soft seconds expire indicator */
-		/******************************************/
-		cdma_read_with_mutex(
-				IPSEC_SOFT_SEC_EXPIRED_ADDR(desc_addr), /* ext_address */
-				CDMA_PREDMA_MUTEX_WRITE_LOCK, /* uint32_t flags */
-				&expired_indicator, /* void *ws_dst */
-				1); /* uint16_t size */
-		
-		/* 	Read relevant descriptor fields with CDMA. */
-		cdma_read(
-				&sap2, /* void *ws_dst */
-				IPSEC_SA_PARAMS_2_ADDR(desc_addr),
-				(uint16_t)sizeof(sap2) /* uint16_t size */
-				);
-
-		/* If the lifetime is larger than the TMAN max,
-		 * it is required to invoke the timer multiple times */
-		if (sap2.soft_seconds_limit > IPSEC_MAX_TIMER_DURATION) {
-			tmr_duration = IPSEC_MAX_TIMER_DURATION;
-			sap2.soft_seconds_limit -= IPSEC_MAX_TIMER_DURATION;
-		} else if (sap2.soft_seconds_limit > IPSEC_MIN_TIMER_DURATION) {
-			tmr_duration = (uint16_t)sap2.soft_seconds_limit;
-			sap2.soft_seconds_limit = 0;
-		} else {
-			tmr_duration = 0; /* lifetime fully expiered */
-		}
-		
-		/* Check if a new timer needs to be invoked */
-		if(tmr_duration) {
-			
-			/* Create soft seconds lifetime timer */
-			tman_create_timer(
-				sap2.tmi_id, /* uint8_t tmi_id */
-				TMAN_CREATE_TIMER_MODE_SEC_GRANULARITY |
-					TMAN_CREATE_TIMER_ONE_SHOT, /* uint32_t flags */
-					/* 1 Sec timer ticks, one shot*/
-				tmr_duration, /* uint16_t duration; */
-				desc_addr, /* tman_arg_8B_t opaque_data1 */
-				IPSEC_SOFT_SEC_LIFETIME_EXPIRED, /* tman_arg_2B_t opaque_data2*/ 
-				&ipsec_tman_callback,
-				&sap2.soft_tmr_handle); /* uint32_t *timer_handle */
-			
-			/* Update the limit and timer handle in the params descriptor*/
-			/* It is assumed the minimum timer duration is long enough so
-			 * the new timer will not expire before the CDMA write completes */
-			cdma_write(
-					IPSEC_SOFT_SEC_LIMIT_ADDR(desc_addr), /* ext_address */
-					&sap2.soft_seconds_limit, /* ws_src */
-					8); /* size */
-			
-			/* Just release lock */
-			cdma_mutex_lock_release(IPSEC_SOFT_SEC_EXPIRED_ADDR(desc_addr));
-			
-		} else {
-			/* If the timer fully expired */
-			/* Write expire indication in params and release lock */
-			expired_indicator = 1;
-			cdma_write_with_mutex(
-					IPSEC_SOFT_SEC_EXPIRED_ADDR(desc_addr), /* ext_address */
-					CDMA_POSTDMA_MUTEX_RM_BIT, /* uint32_t flags */
-					&expired_indicator, /* void *ws_src */
-					1); /* uint16_t size */	
-			
-			/* Optionally call call the user callback */
-			if (sap2.sec_callback_func != NULL) {
-				sap2.sec_callback_func(sap2.sec_callback_arg, 
-						IPSEC_SOFT_SEC_LIFETIME_EXPIRED);
-			}
-			
-			/* TMan Confirmation */
-			tman_timer_completion_confirmation(sap2.soft_tmr_handle);
-
-		}
+	/* Set the relevant pointers */
+	if (indicator == IPSEC_SOFT_SEC_LIFETIME_EXPIRED) {
+		expired_addr = IPSEC_SOFT_SEC_EXPIRED_ADDR(desc_addr);
+		timer_addr = IPSEC_SOFT_TMR_HANDLE_ADDR(desc_addr);
+		seconds_addr = IPSEC_SOFT_SEC_LIMIT_ADDR(desc_addr);
+		seconds_limit_addr = &sap2.soft_seconds_limit;
 	} else {
-		/* Hard seconds timer */
-
-		/******************************************/
-		/* Lock the hard seconds expire indicator */
-		/******************************************/
-		cdma_read_with_mutex(
-				IPSEC_HARD_SEC_EXPIRED_ADDR(desc_addr), /* uint64_t ext_address */
-				CDMA_PREDMA_MUTEX_WRITE_LOCK, /* uint32_t flags */
-				&expired_indicator, /* void *ws_dst */
-				1); /* uint16_t size */
-		
-		/* 	Read relevant descriptor fields with CDMA. */
-		cdma_read(
-				&sap2, /* void *ws_dst */
-				IPSEC_SA_PARAMS_2_ADDR(desc_addr),
-				sizeof(sap2) /* uint16_t size */
-				);
-		
-		/* If the lifetime is larger than the TMAN max,
-		 * it is required to invoke the timer multiple times */
-		if (sap2.hard_seconds_limit > IPSEC_MAX_TIMER_DURATION) {
-			tmr_duration = IPSEC_MAX_TIMER_DURATION;
-			sap2.hard_seconds_limit -= IPSEC_MAX_TIMER_DURATION;
-		} else if (sap2.hard_seconds_limit > IPSEC_MIN_TIMER_DURATION) {
-			tmr_duration = (uint16_t)sap2.hard_seconds_limit;
-			sap2.hard_seconds_limit = 0;
-		} else {
-			tmr_duration = 0;
-		}
-		
-		/* Check if a new timer needs to be invoked */
-		if(tmr_duration) {
-			/* Create hard seconds lifetime timer */
-			tman_create_timer(
-				sap2.tmi_id, /* uint8_t tmi_id */
-				TMAN_CREATE_TIMER_MODE_SEC_GRANULARITY | 
-					TMAN_CREATE_TIMER_ONE_SHOT, /* uint32_t flags */
-					/* 1 Sec timer ticks, one shot*/
-				tmr_duration, /* uint16_t duration; */
-				desc_addr, /* tman_arg_8B_t opaque_data1 */
-				IPSEC_HARD_SEC_LIFETIME_EXPIRED, /* tman_arg_2B_t opaque_data2*/ 
-				&ipsec_tman_callback,
-				&sap2.soft_tmr_handle); /* uint32_t *timer_handle */
-			
-			/* Update the limit and timer handle in the params descriptor*/
-			/* It is assumed the minimum timer duration is long enough so
-			 * the new timer will not expire before the CDMA write completes */
-			cdma_write(
-					IPSEC_HARD_SEC_LIMIT_ADDR(desc_addr), /* ext_address */
-					&sap2.hard_seconds_limit, /* ws_src */
-					8); /* size */
-			
-			/* Just release lock */
-			cdma_mutex_lock_release(IPSEC_HARD_SEC_EXPIRED_ADDR(desc_addr));
-			
-		} else {
-			/* If the timer fully expired - */
-			/* Write expire indication in params and release lock */
-			expired_indicator = 1;
-			cdma_write_with_mutex(
-					IPSEC_HARD_SEC_EXPIRED_ADDR(desc_addr), /* uint64_t ext_address */
-					CDMA_POSTDMA_MUTEX_RM_BIT, /* uint32_t flags */
-					&expired_indicator, /* void *ws_src */
-					1); /* uint16_t size */	
-			
-			/* Optionally call call the user callback */
-			if (sap2.sec_callback_func != NULL) {
-				sap2.sec_callback_func(sap2.sec_callback_arg, 
-					IPSEC_HARD_SEC_LIFETIME_EXPIRED);
-			}
-		}
-		/* TMan Confirmation */
-		tman_timer_completion_confirmation(sap2.hard_tmr_handle);
+		expired_addr = IPSEC_HARD_SEC_EXPIRED_ADDR(desc_addr);
+		timer_addr = IPSEC_HARD_TMR_HANDLE_ADDR(desc_addr);
+		seconds_addr = IPSEC_HARD_SEC_LIMIT_ADDR(desc_addr);
+		seconds_limit_addr = &sap2.hard_seconds_limit;
 	}
-} /* End of ipsec_tman_callback */
+	/* Lock the soft/hard seconds expire indicator */
+	cdma_read_with_mutex(expired_addr, CDMA_PREDMA_MUTEX_WRITE_LOCK,
+			     &expired_indicator, 1);
+	if (expired_indicator) {
+		/* TMan Confirmation */
+		tman_timer_completion_confirmation(get_tman_task_handle());
+		/* Just release the lock */
+		cdma_mutex_lock_release(expired_addr);
+		return;
+	}
+	/* Read relevant descriptor fields with CDMA */
+	cdma_read(&sap2, IPSEC_SA_PARAMS_2_ADDR(desc_addr),
+		  (uint16_t)sizeof(sap2));
+	/* If the lifetime is larger than the TMAN max, it is required to
+	 * invoke the timer multiple times */
+	if (*seconds_limit_addr > IPSEC_MAX_TIMER_DURATION) {
+		tmr_duration = IPSEC_MAX_TIMER_DURATION;
+		*seconds_limit_addr -= IPSEC_MAX_TIMER_DURATION;
+	} else if (*seconds_limit_addr > IPSEC_MIN_TIMER_DURATION) {
+		tmr_duration = (uint16_t)*seconds_limit_addr;
+		*seconds_limit_addr = 0;
+	} else {
+		/* Timer fully expired : write expire indication in parameters
+		 * and release the lock */
+		expired_indicator = 1;
+		cdma_write_with_mutex(expired_addr, CDMA_POSTDMA_MUTEX_RM_BIT,
+				      &expired_indicator, 1);
+		/* Call the user call-back */
+		if (sap2.sec_callback_func)
+			sap2.sec_callback_func(sap2.sec_callback_arg,
+					       (uint8_t)indicator);
+		/* TMan Confirmation - Issue confirmation at this point so
+		 * that the user call-back receive the correct indicator (not
+		 * the "force" one in the case of a race condition with the
+		 * force expiration task). */
+		tman_timer_completion_confirmation(get_tman_task_handle());
+		return;
+	}
+	/* Update the seconds limit in the parameters of the descriptor */
+	cdma_write(seconds_addr, seconds_limit_addr, 8);
+	/* TMan Confirmation */
+	tman_timer_completion_confirmation(get_tman_task_handle());
+	/* Create a new soft/hard seconds lifetime timer */
+	tman_create_timer(sap2.tmi_id,
+			  TMAN_CREATE_TIMER_MODE_SEC_GRANULARITY |
+			  TMAN_CREATE_TIMER_ONE_SHOT,
+			  tmr_duration, desc_addr, indicator,
+			  &ipsec_tman_callback, &timer_handle);
+	/* Time handle is written by TMan. It cannot be safe read using
+	 * cdma_read. Write it in parameters using cdma_write. */
+	cdma_write(timer_addr, &timer_handle, 4);
+	/* Release the lock */
+	cdma_mutex_lock_release(expired_addr);
+}
+
+/******************************************************************************/
+static inline void ipsec_delete_timer(uint32_t indicator,
+				      ipsec_handle_t ipsec_handle,
+				      struct ipsec_sa_params_part2 *sap2)
+{
+	uint8_t			expired_indicator;
+	ipsec_handle_t		desc_addr;
+	uint32_t		timer_handle;
+	uint64_t		timer_addr;
+	uint64_t		expired_addr;
+	enum e_tman_query_timer	state;
+
+	desc_addr = IPSEC_DESC_ADDR(ipsec_handle);
+	/* Set the relevant pointers */
+	if (indicator == IPSEC_FORCE_SOFT_SEC_LIFETIME_EXPIRED) {
+		expired_addr = IPSEC_SOFT_SEC_EXPIRED_ADDR(desc_addr);
+		timer_addr = IPSEC_SOFT_TMR_HANDLE_ADDR(desc_addr);
+	} else {
+		expired_addr = IPSEC_HARD_SEC_EXPIRED_ADDR(desc_addr);
+		timer_addr = IPSEC_HARD_TMR_HANDLE_ADDR(desc_addr);
+	}
+	do {
+		/* Read again the timer handle, because a new one may be
+		 * created, in the meantime, by the expiration task */
+		cdma_read(&timer_handle, timer_addr, 4);
+		tman_query_timer(timer_handle, &state);
+		if (state != TMAN_TIMER_RUNNING) {
+			/* Timer is not active : it may be expired in the
+			 * expiration task or the expiration confirmation
+			 * wasn't yet issued. Let the timer call-back issue
+			 * the confirmation or to expire the timer. */
+			cdma_mutex_lock_release(expired_addr);
+			__e_hwacceli(YIELD_ACCEL_ID);
+			/* Read again the expiration indicator */
+			cdma_read_with_mutex(expired_addr,
+					     CDMA_PREDMA_MUTEX_WRITE_LOCK,
+					     &expired_indicator, 1);
+			/* If expired in call-back, just release the lock */
+			if (expired_indicator) {
+				cdma_mutex_lock_release(expired_addr);
+				break;
+			}
+			continue;
+		}
+#ifdef LS2085A_REV1
+		/* In Rev 1, for one-shot timers, tman_delete_timer() should be
+		 * called after calling the tman_recharge_timer() as a
+		 * workaround for errata ERR009310 */
+		tman_recharge_timer(timer_handle);
+#endif
+		expired_indicator = 1;
+		/* Write expire indication in params and release lock */
+		cdma_write_with_mutex(expired_addr,
+				      CDMA_POSTDMA_MUTEX_RM_BIT,
+				      &expired_indicator, 1);
+		if (sap2->sec_callback_func != NULL)
+			sap2->sec_callback_func(sap2->sec_callback_arg,
+						(uint8_t)indicator);
+		/* Delete the timer and force expiration. If an exception occurs
+		 * the task performing the forced expiration is terminated at
+		 * this point. However the expiration indication is set. */
+		tman_delete_timer(timer_handle,
+				  TMAN_TIMER_DELETE_MODE_FORCE_EXP);
+	} while (!expired_indicator);
+}
 
 /**************************************************************************//**
 @Function	ipsec_force_seconds_lifetime_expiry
 
 *//****************************************************************************/
-int ipsec_force_seconds_lifetime_expiry(
-		ipsec_handle_t ipsec_handle)
+int ipsec_force_seconds_lifetime_expiry(ipsec_handle_t ipsec_handle)
 {
-	uint8_t expired_indicator; /* [0] : soft, [1] : hard */
-	int ret;
-	ipsec_handle_t desc_addr;
-	struct ipsec_sa_params_part2 sap2; /* timers parameters */
-	uint8_t params_valid = 0;
+	uint8_t				expired_indicator;
+	ipsec_handle_t			desc_addr;
+	struct ipsec_sa_params_part2	sap2;
+	uint8_t				params_valid = 0;
 	
 	desc_addr = IPSEC_DESC_ADDR(ipsec_handle);
-
-	/******************************************/
 	/* Read the soft seconds expire indicator */
-	/******************************************/
-	cdma_read_with_mutex(
-			IPSEC_SOFT_SEC_EXPIRED_ADDR(desc_addr), /* uint64_t ext_address */
-			CDMA_PREDMA_MUTEX_WRITE_LOCK, /* uint32_t flags */
-			&expired_indicator, /* void *ws_dst */
-			1); /* uint16_t size */
-	
+	cdma_read_with_mutex(IPSEC_SOFT_SEC_EXPIRED_ADDR(desc_addr),
+			     CDMA_PREDMA_MUTEX_WRITE_LOCK,
+			     &expired_indicator, 1);
 	/* Check soft seconds timer */ 
 	if (!expired_indicator) {
-		/* 	Read timers parameters from the descriptor */
-		cdma_read(
-				&sap2, /* void *ws_dst */
-				IPSEC_SA_PARAMS_2_ADDR(desc_addr),
-				(uint16_t)sizeof(sap2) /* uint16_t size */
-				);
-		
-		params_valid = 1; /* indicate that the params were already read */
-		
-#ifdef LS2085A_REV1
-		/* In Rev 1, for one-shot timers, tman_delete_timer()
-		 * should be called after calling the tman_recharge_timer()
-		 * as a workaround for errata ERR009310 */
-		tman_recharge_timer(sap2.soft_tmr_handle);
-#endif
-		/* delete the timer and force expiration */
-		ret = tman_delete_timer(sap2.soft_tmr_handle,
-					TMAN_TIMER_DELETE_MODE_FORCE_EXP);
-		
-		if (!ret) { /* timer not already expired */
-			/* Indicate in the params */
-			expired_indicator = 1;
-
-			/* Write expire indication in params and release lock */
-			cdma_write_with_mutex(
-					IPSEC_SOFT_SEC_EXPIRED_ADDR(desc_addr), /* ext_address */
-					CDMA_POSTDMA_MUTEX_RM_BIT, /* uint32_t flags */
-					&expired_indicator, /* void *ws_src */
-					1); /* uint16_t size */	
-		} else {
-			/* Just release lock */
-			cdma_mutex_lock_release(IPSEC_SOFT_SEC_EXPIRED_ADDR(desc_addr));
-		}
-		
-		if (!ret) { /* timer not already expired */
-			/* Optionally call call the user callback */
-			if (sap2.sec_callback_func != NULL) {
-				sap2.sec_callback_func(sap2.sec_callback_arg, 
-					IPSEC_SOFT_SEC_LIFETIME_EXPIRED);
-			}
-		}
-		
+		/* Read timers parameters from the descriptor */
+		cdma_read(&sap2, IPSEC_SA_PARAMS_2_ADDR(desc_addr),
+			  (uint16_t)sizeof(sap2));
+		 /* Indicate that the parameters were already read */
+		params_valid = 1;
+		/* Delete the soft timer */
+		ipsec_delete_timer(IPSEC_FORCE_SOFT_SEC_LIFETIME_EXPIRED,
+				   ipsec_handle, &sap2);
 	} else {
-		/* If the timer already expired, there is no need to do anything */ 
-		/* Release lock */
+		/* If the timer already expired, there is no need to do
+		 * anything, just release the lock */
 		cdma_mutex_lock_release(IPSEC_SOFT_SEC_EXPIRED_ADDR(desc_addr));
 	}
-
-	/******************************************/
 	/* Read the hard seconds expire indicator */
-	/******************************************/
-	cdma_read_with_mutex(
-			IPSEC_HARD_SEC_EXPIRED_ADDR(desc_addr), /* uint64_t ext_address */
-			CDMA_PREDMA_MUTEX_WRITE_LOCK, /* uint32_t flags */
-			&expired_indicator, /* void *ws_dst */
-			1); /* uint16_t size */
-	
+	cdma_read_with_mutex(IPSEC_HARD_SEC_EXPIRED_ADDR(desc_addr),
+			     CDMA_PREDMA_MUTEX_WRITE_LOCK,
+			     &expired_indicator, 1);
 	/* Check hard seconds timer */ 
 	if (!expired_indicator) {
-		if (!params_valid) {
-			/* 	Read timers parameters from the descriptor */
-			cdma_read(
-				&sap2, /* void *ws_dst */
-				IPSEC_SA_PARAMS_2_ADDR(desc_addr),
-				(uint16_t)sizeof(sap2) /* uint16_t size */
-			);
-		}
-		
-#ifdef LS2085A_REV1
-		/* In Rev 1, for one-shot timers, tman_delete_timer()
-		 * should be called after calling the tman_recharge_timer()
-		 * as a workaround for errata ERR009310 */
-		tman_recharge_timer(sap2.hard_tmr_handle);
-#endif
-		
-		/* delete the timer and force expiration */
-		ret = tman_delete_timer(sap2.soft_tmr_handle,
-					TMAN_TIMER_DELETE_MODE_FORCE_EXP);
-		
-		if (!ret) { /* timer not already expired */
-			/* Write expire indication in params and release lock */
-			expired_indicator = 1;
-			cdma_write_with_mutex(
-					IPSEC_HARD_SEC_EXPIRED_ADDR(desc_addr), /* uint64_t ext_address */
-					CDMA_POSTDMA_MUTEX_RM_BIT, /* uint32_t flags */
-					&expired_indicator, /* void *ws_src */
-					1); /* uint16_t size */	
-		} else {
-			/* Just release lock */
-			cdma_mutex_lock_release(IPSEC_HARD_SEC_EXPIRED_ADDR(desc_addr));
-		}
-
-		if (!ret) { /* timer not already expired */
-			/* Optionally call call the user callback */
-			if (sap2.sec_callback_func != NULL) {
-				sap2.sec_callback_func(sap2.sec_callback_arg, 
-					IPSEC_HARD_SEC_LIFETIME_EXPIRED);
-			}
-		}
-		
+		/* If not already read before, read timers parameters from the
+		 * descriptor */
+		if (!params_valid)
+			cdma_read(&sap2, IPSEC_SA_PARAMS_2_ADDR(desc_addr),
+				  (uint16_t)sizeof(sap2));
+		/* Delete the hard timer */
+		ipsec_delete_timer(IPSEC_FORCE_HARD_SEC_LIFETIME_EXPIRED,
+				   ipsec_handle, &sap2);
 	} else {
-		/* If the timer already expired, there is no need to do anything */ 
-		/* Release lock */
+		/* If the timer already expired, there is no need to do
+		 * anything, just release the lock */
 		cdma_mutex_lock_release(IPSEC_HARD_SEC_EXPIRED_ADDR(desc_addr));
 	}
-
 	return IPSEC_SUCCESS;
-	
-} /* End of ipsec_force_seconds_lifetime_expiry */
+}
 
 /**************************************************************************//**
 @Function	ipsec_error_handler

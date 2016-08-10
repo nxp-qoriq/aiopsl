@@ -595,6 +595,12 @@ struct ipsec_instance_params {
 #define IPSEC_HARD_SEC_LIMIT_ADDR(ADDRESS) \
 	(ADDRESS + (offsetof(struct ipsec_sa_params, sap2.hard_seconds_limit)))
 
+#define IPSEC_SOFT_TMR_HANDLE_ADDR(ADDRESS) \
+	(ADDRESS + (offsetof(struct ipsec_sa_params, sap2.soft_tmr_handle)))
+
+#define IPSEC_HARD_TMR_HANDLE_ADDR(ADDRESS) \
+	(ADDRESS + (offsetof(struct ipsec_sa_params, sap2.hard_tmr_handle)))
+
 #define IPSEC_SA_PARAMS_2_ADDR(ADDRESS) \
 	(ADDRESS + (offsetof(struct ipsec_sa_params, sap2)))
 

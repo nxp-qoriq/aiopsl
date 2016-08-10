@@ -313,10 +313,19 @@ typedef void (ipsec_lifetime_callback_t) (
 /**************************************************************************//**
  @Description	AIOP IPsec Seconds Lifetime Callback codes.
 *//***************************************************************************/
-/** Soft/hard indicator returned by the seconds lifetime callback */
-#define IPSEC_SOFT_SEC_LIFETIME_EXPIRED 0
-#define IPSEC_HARD_SEC_LIFETIME_EXPIRED 1
-
+/** Soft timer expiration indicator */
+#define IPSEC_SOFT_SEC_LIFETIME_EXPIRED				0
+/** Hard timer expiration indicator */
+#define IPSEC_HARD_SEC_LIFETIME_EXPIRED				1
+/** Forced soft timer expiration indicator */
+#define IPSEC_FORCE_SOFT_SEC_LIFETIME_EXPIRED			2
+/** Forced soft timer expiration indicator */
+#define IPSEC_FORCE_HARD_SEC_LIFETIME_EXPIRED			4
+/** Forced timer expiration indicators are returned if an application request
+ * the timers expiration by calling the ipsec_force_seconds_lifetime_expiry
+ * API function. However, if the forced expiration request, coincides with the
+ * last expiration timer task, the non forced indicator is returned.
+ */
 /** @} */ /* end of FSL_IPSEC_MACROS */
 
 /**************************************************************************//**
