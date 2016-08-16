@@ -45,7 +45,7 @@ extern struct dpni_drv *nis;
 extern __PROFILE_SRAM
 	struct storage_profile storage_profile[SP_NUM_OF_STORAGE_PROFILES];
 
-inline int sl_prolog(void)
+static inline void sl_prolog_common(void)
 {
 	struct dpni_drv *dpni_drv;
 #ifndef AIOP_VERIF
@@ -54,16 +54,9 @@ inline int sl_prolog(void)
 				__attribute__((aligned(8)));
 #endif
 #endif
-	struct parse_result *pr;
-	int err;
-
+	
 	dpni_drv = nis + PRC_GET_PARAMETER(); /* calculate pointer
 						* to the send NI structure   */
-	pr = (struct parse_result *)HWC_PARSE_RES_ADDRESS;
-
-	/* Need to save running-sum in parse-results LE-> BE */
-	pr->gross_running_sum = LH_SWAP(HWC_FD_ADDRESS + FD_FLC_RUNNING_SUM, 0);
-
 	osm_task_init();
 
 	/* Load from SHRAM to local stack */
@@ -81,15 +74,46 @@ inline int sl_prolog(void)
 
 	*((uint8_t *)HWC_SPID_ADDRESS) = dpni_drv->dpni_drv_params_var.spid;
 
+	SET_FRAME_TYPE(PRC_GET_FRAME_HANDLE(), HWC_FD_ADDRESS);
+}
+
+inline int sl_prolog(void)
+{
+	int err;
+	struct parse_result *pr;
+	pr = (struct parse_result *)HWC_PARSE_RES_ADDRESS;
+
+	/* Need to save running-sum in parse-results LE-> BE */
+	pr->gross_running_sum = LH_SWAP(HWC_FD_ADDRESS + FD_FLC_RUNNING_SUM, 0);
+	
 	default_task_params.parser_profile_id = 0;
 	default_task_params.parser_starting_hxs = 0;
 	default_task_params.qd_priority = ((*((uint8_t *)(HWC_ADC_ADDRESS + \
 			ADC_WQID_PRI_OFFSET)) & ADC_WQID_MASK) >> 4);
 
 	err = parse_result_generate_basic();
+	
+	sl_prolog_common();
+	return err;
+}
 
-	SET_FRAME_TYPE(PRC_GET_FRAME_HANDLE(), HWC_FD_ADDRESS);
+inline int sl_prolog_with_ref_take(void)
+{
+	int err;
+	struct parse_result *pr;
+	pr = (struct parse_result *)HWC_PARSE_RES_ADDRESS;
 
+	/* Need to save running-sum in parse-results LE-> BE */
+	pr->gross_running_sum = LH_SWAP(HWC_FD_ADDRESS + FD_FLC_RUNNING_SUM, 0);
+	
+	default_task_params.parser_profile_id = 0;
+	default_task_params.parser_starting_hxs = 0;
+	default_task_params.qd_priority = ((*((uint8_t *)(HWC_ADC_ADDRESS + \
+			ADC_WQID_PRI_OFFSET)) & ADC_WQID_MASK) >> 4);
+
+	err = parse_result_generate_basic_with_ref_take();
+	
+	sl_prolog_common();
 	return err;
 }
 

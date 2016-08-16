@@ -197,7 +197,7 @@ inline int parse_result_generate_default(uint8_t flags)
 	}
 }
 
-inline int parse_result_generate_basic(void)
+static inline int parse_result_generate_basic_common(uint32_t arg1)
 {
 	
 #ifdef CHECK_ALIGNMENT 	
@@ -215,7 +215,7 @@ inline int parse_result_generate_basic(void)
 
 	arg2 = ((uint32_t)(&input_struct) << 16);
 	
-	__stqw((PARSER_GRSV_MASK | PARSER_GEN_PARSE_RES_MTYPE),
+	__stqw(arg1,
 		arg2, 0, 0, HWC_ACC_IN_ADDRESS, 0);
 
 	__e_hwacceli(CTLU_PARSE_CLASSIFY_ACCEL_ID);
@@ -242,6 +242,18 @@ inline int parse_result_generate_basic(void)
        } else {
              return -EIO;
        }
+}
+
+inline int parse_result_generate_basic(void)
+{
+	return parse_result_generate_basic_common(
+			PARSER_GRSV_MASK | PARSER_GEN_PARSE_RES_MTYPE);
+}
+
+inline int parse_result_generate_basic_with_ref_take(void)
+{
+	return parse_result_generate_basic_common(PARSER_EPHS_MASK
+			| PARSER_GRSV_MASK | PARSER_GEN_PARSE_RES_MTYPE);
 }
 
 inline void parser_pop_vlan_update()

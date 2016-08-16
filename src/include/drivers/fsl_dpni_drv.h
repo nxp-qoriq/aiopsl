@@ -647,6 +647,29 @@ int dpni_drv_get_max_frame_length(uint16_t ni_id,
 inline int sl_prolog(void);
 
 /**************************************************************************//**
+@Function	sl_prolog_with_ref_take
+
+@Description	Network Interface SL prolog function. It is recommended to call
+		this function at the beginning of the upper layer entry-point
+		function, in this way it assures that HW presentation context
+		is preserved (as needed for OSM functionality and ni_id
+		resolution).
+		It is also recommended that user AIOP entry-point function is
+		declared with __declspec(entry_point) to assure it is not
+		dead-stripped by the compiler.
+		
+		Implied rcu_read_lock() on Rev2 platforms prior to accessing
+		network interface parameters.
+
+@Retval		0 - Success.
+		It is recommended that for any error value user should discard
+		the frame and terminate the task.
+@Retval		EIO - Parsing Error
+@Retval		ENOSPC - Parser Block Limit Exceeds.
+*//***************************************************************************/
+inline int sl_prolog_with_ref_take(void);
+
+/**************************************************************************//**
 @Function	sl_tman_expiration_task_prolog
 
 @Description	Network Interface SL tman expiration task prolog function.

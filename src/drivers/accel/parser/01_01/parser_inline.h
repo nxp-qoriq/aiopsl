@@ -245,6 +245,12 @@ inline int parse_result_generate_basic(void)
        }
 }
 
+inline int parse_result_generate_basic_with_ref_take(void)
+{
+	 rcu_read_lock();
+	return parse_result_generate_basic();
+}
+
 inline void parser_pop_vlan_update()
 {
 	uint8_t temp_8b;
