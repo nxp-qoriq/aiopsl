@@ -163,6 +163,7 @@ struct platform_app_params {
 	uint16_t dpni_drv_alignment;	/**< dpni pool buffers alignment*/
 	uint16_t app_arr_size;		/**< Maximal size of app init array */
 	uint8_t  backup_pool_disable;   /**< If set, disables backup buffer pool usage */
+	uint8_t  ipsec_buffer_allocate_enable;   /**< allocates new IPSec bp*/
 };
 
 /** @} */ /* end of ls2085a_g group */

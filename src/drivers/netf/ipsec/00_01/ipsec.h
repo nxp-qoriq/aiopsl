@@ -37,6 +37,15 @@
 
 #include "fsl_types.h"
 #include "fsl_net.h"
+#include "system.h"
+#include "fsl_icontext.h"
+#include "fsl_platform.h"
+
+/* Extern variable used by IPSec */
+extern __PROFILE_SRAM struct storage_profile
+			storage_profile[SP_NUM_OF_STORAGE_PROFILES];
+extern struct icontext icontext_aiop;
+extern struct platform_app_params g_app_params;
 
 /**************************************************************************//**
  @Group		NETF NETF (Network Libraries)
@@ -141,7 +150,6 @@ enum rta_param_type {
 #define IPSEC_SP_ASAR_MASK 0x000F0000 /* Storage profile ASAR field mask */
 #define IPSEC_SP_DHR_MASK 0x00000FFF
 #define IPSEC_SP_REUSE_BS_FF 0xA0000000
-
 
 #define IPSEC_ENC_PDB_HMO_MASK 0xF000
 #define IPSEC_DEC_PDB_HMO_MASK 0xF000

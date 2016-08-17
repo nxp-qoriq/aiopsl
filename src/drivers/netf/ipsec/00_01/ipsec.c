@@ -59,14 +59,98 @@
 #include "rta.h"
 #include "desc/ipsec.h"
 
+#include "fsl_dprc.h"
+#include "dpni_drv.h"
+#include "fsl_platform.h"
+#include "fsl_dpbp.h"
+#include "fsl_bman.h"
+#include "fsl_icontext.h"
+
 /* SEC Era version for RTA */
 enum rta_sec_era rta_sec_era = RTA_SEC_ERA_8;
 
 /* Global parameters */
-extern __PROFILE_SRAM struct storage_profile 
-			storage_profile[SP_NUM_OF_STORAGE_PROFILES];
+uint16_t ipsec_bpid;
 
+int ipsec_drv_init(void)
+{
+	struct mc_dprc *dprc = sys_get_unique_handle(FSL_MOD_AIOP_RC);
+	struct dpbp_attr attr;
+	struct dprc_obj_desc dev_desc;
+	int i, err;
+	int dev_count;
+	int dpbp_id;
+	uint16_t dpbp = 0;
+	int num_bpids = 0;
+	uint8_t bkp_pool_disable = g_app_params.backup_pool_disable;
 
+	/* If the new buffer is not brought by user, do nothing */
+	if (!g_app_params.ipsec_buffer_allocate_enable)
+		return 0;
+
+	if (dprc == NULL)
+		return -ENODEV;
+
+	err = dprc_get_obj_count(&dprc->io, 0, dprc->token, &dev_count);
+	if (err) {
+		pr_err("Failed to get device count for AIOP RC auth_id = %d.\n",
+			   dprc->token);
+		return err;
+	}
+
+	for (i = 0; i < dev_count; i++) {
+		dprc_get_obj(&dprc->io, 0, dprc->token, i, &dev_desc);
+		if (strcmp(dev_desc.type, "dpbp") == 0) {
+			num_bpids++;
+
+			if (num_bpids == DPNI_DRV_NUM_USED_BPIDS ||
+					bkp_pool_disable)
+				break;
+		}
+	}
+
+	/* Reserve a buffer pool for IPSec */
+	dprc_get_obj(&dprc->io, 0, dprc->token, ++i, &dev_desc);
+	if (strcmp(dev_desc.type, "dpbp") == 0) {
+		pr_info("Found DPBP ID: %d, THIS is used for IPSec\n",
+				dev_desc.id);
+		dpbp_id = dev_desc.id;
+	}
+
+	err = dpbp_open(&dprc->io, 0, dpbp_id, &dpbp);
+	if (err) {
+		pr_err("Failed to open DPBP-%d.\n", dpbp_id);
+		return err;
+	}
+
+	err = dpbp_enable(&dprc->io, 0, dpbp);
+	if (err) {
+		pr_err("Failed to enable DPBP-%d.\n", dpbp_id);
+		return err;
+	}
+
+	err = dpbp_get_attributes(&dprc->io, 0, dpbp, &attr);
+	if (err) {
+		pr_err("Failed to get attributes from DPBP-%d.\n", dpbp_id);
+		return err;
+	}
+
+	err = bman_fill_bpid(g_app_params.dpni_num_buffs,
+			     g_app_params.dpni_buff_size,
+			     g_app_params.dpni_drv_alignment, MEM_PART_PEB,
+			     attr.bpid, 0);
+	if (err) {
+		pr_err("Failed to fill DPBP-%d (BPID=%d) with buff size %d.\n",
+			   dpbp_id, attr.bpid, g_app_params.dpni_buff_size);
+		return err;
+	}
+
+	ipsec_bpid = attr.bpid;
+	pr_info("Filled DPBP-%d (BPID=%d) with buffer size %d.\n",
+		dpbp_id, attr.bpid, g_app_params.dpni_buff_size);
+
+	return 0;
+}
 
 /**************************************************************************//**
 *	ipsec_early_init
@@ -80,9 +164,8 @@ int ipsec_early_init(
 
 	int return_val;
 	int mem_id = IPSEC_PRIMARY_MEM_PARTITION_ID;
-	       
 	uint32_t dummy = flags; /* dummy assignment, to avoid warning */
-	
+
 	uint32_t committed_buffs;
 	uint32_t max_buffs;
 	committed_buffs = total_instance_num + total_committed_sa_num;
@@ -116,14 +199,14 @@ int ipsec_create_instance (
 		ipsec_instance_handle_t *instance_handle)
 {
 	int32_t return_val;
-	struct ipsec_instance_params instance; 
+	struct ipsec_instance_params instance;
 
 	int mem_id = IPSEC_PRIMARY_MEM_PARTITION_ID;
-	    	
+
 	if (!(fsl_mem_exists(IPSEC_PRIMARY_MEM_PARTITION_ID))) {
 	    	mem_id = IPSEC_SECONDARY_MEM_PARTITION_ID;
 	}
-	
+
 	instance.sa_count = 0;
 	instance.committed_sa_num = committed_sa_num;
 	instance.max_sa_num = max_sa_num;
@@ -958,14 +1041,11 @@ void ipsec_generate_flc(
 {
 	
 	struct ipsec_flow_context flow_context;
-
-	int i;
-	
 	struct storage_profile *sp_addr = &storage_profile[0];
 	uint8_t *sp_byte;
 	uint32_t sp_controls;
+	uint32_t reuse_mode = params->flags & IPSEC_FLG_BUFFER_REUSE;
 	
-	//sp_addr += spid;
 	sp_addr += params->spid; 
 
 	sp_byte = (uint8_t *)sp_addr;
@@ -1026,23 +1106,33 @@ void ipsec_generate_flc(
 	* 
 	* Only The data from offset 0x08 and 0x10 is copied to SEC flow context 
 	*/
-	/* Copy the standard Storage Profile to Flow Context words 8-15 */
-	/* No need to for the first 8 bytes, so start from 8 */
-	// TODO: optionally use for copy 	
-	//fdma_copy_data(24, 0 ,sp_byte,flow_context.storage_profile + 8);
-	for (i = 8; i < 32; i++) {
-		*((uint8_t *)((uint8_t *)flow_context.storage_profile + i - 8)) = 
-				*(sp_byte + i); 
+
+	/* If the reuse mode is active or new buffer mode is active but the
+	 * SEC engine uses the same buffer pool as DPNIs, copy the Storage
+	 * Profile to Flow Context
+	 */
+	if (reuse_mode || !(reuse_mode ||
+			g_app_params.ipsec_buffer_allocate_enable)) {
+		int i;
+
+		/* Copy the standard Storage Profile to Flow Context
+		 * words 8-15 */
+		/* No need to for the first 8 bytes, so start from 8 */
+		/* TODO: optionally use for copy
+		fdma_copy_data(24, 0 ,sp_byte,flow_context.storage_profile + 8);
+		 */
+		for (i = 8; i < 32; i++)
+			*((uint8_t *)((uint8_t *)flow_context.storage_profile +
+			  i - 8)) = *(sp_byte + i);
 	}
 	
 	/* reuse buffer mode */
-	if (params->flags & IPSEC_FLG_BUFFER_REUSE) {
-		
+	if (reuse_mode) {
 		/* In reuse buffer mode (BS=1) the DHR field is treated
-		 * as a signed value of a data headroom correction and defines by
-		 * how many bytes an existing offset should be adjusted to make room 
-		 * for additional output data or any need to move the output ‘forward’
-		 * The SEC expects that |DHR| >= frame growth  
+		 * as a signed value of a data headroom correction and defines
+		 * by how many bytes an existing offset should be adjusted to
+		 * make room for additional output data or any need to move the
+		 * output ‘forward’ The SEC expects that |DHR| >= frame growth
 		 * DL is not considered in reuse mode. */
 		
 		/* SP word at offset 0x4 */
@@ -1051,7 +1141,8 @@ void ipsec_generate_flc(
 		
 		/* For reuse mode:
 		 * BS = 1
-		 * FF = 10 - Reuse input buffers if they provide sufficient space
+		 * FF = 10 - Reuse input buffers if they provide sufficient
+		 * space
 		 * DLC = 0
 		 * PTAR = 0 (ignored)
 		 * SGHR = 0 (ignored)
@@ -1061,37 +1152,59 @@ void ipsec_generate_flc(
 		
 		/* Read-swap the storage profile word at offset 4 */
 		/* LW_SWAP(_disp, _base) */
-		sp_controls = LW_SWAP(4, ((uint32_t *)flow_context.storage_profile));
+		sp_controls = LW_SWAP(4, ((uint32_t *)
+				      flow_context.storage_profile));
 		
 		/* Clear all bits but ASAR */
 		/* set BS = 0b1, FF = 0b10 */
 		if (params->direction == IPSEC_DIRECTION_OUTBOUND) {
 
-			/* Set BS=1, FF = 01, ASAR and DHR (negative, 2's complement) */
-			sp_controls = (sp_controls & IPSEC_SP_ASAR_MASK) | 
-					IPSEC_SP_REUSE_BS_FF |
-					(IPSEC_SP_DHR_MASK & (-(IPSEC_MAX_FRAME_GROWTH + 
-							(uint32_t)params->encparams.ip_hdr_len))); 
+			/* Set BS=1, FF = 01, ASAR and DHR
+			 * (negative, 2's complement) */
+			sp_controls = (sp_controls & IPSEC_SP_ASAR_MASK) |
+				IPSEC_SP_REUSE_BS_FF | (IPSEC_SP_DHR_MASK &
+					(-(IPSEC_MAX_FRAME_GROWTH + (uint32_t)
+					params->encparams.ip_hdr_len)));
 			
 		} else {
-			sp_controls = (sp_controls & IPSEC_SP_ASAR_MASK) | 
+			sp_controls = (sp_controls & IPSEC_SP_ASAR_MASK) |
 					IPSEC_SP_REUSE_BS_FF; 
 		}
 		
-		/* Store the new storage profile word with swapping to little endian */
-		/* STW_SWAP(_val, _disp, _base)	*/
-		STW_SWAP(sp_controls, 4, (uint32_t *)flow_context.storage_profile);
+		/* Store the new storage profile word with swapping to
+		 * little endian
+		 * STW_SWAP(_val, _disp, _base)	*/
+		STW_SWAP(sp_controls, 4,
+			 (uint32_t *)flow_context.storage_profile);
 		
 	} else {
 		/* New output buffer mode */ 
-		
-		/* Set the DL (tailroom growth) */
-		if (params->direction == IPSEC_DIRECTION_OUTBOUND) {
-			sp_controls = (uint32_t)params->encparams.ip_hdr_len + 
-					IPSEC_MAX_FRAME_GROWTH;
-			STW_SWAP(sp_controls, 0, (uint32_t *)flow_context.storage_profile);
-		} 
+		if (g_app_params.ipsec_buffer_allocate_enable) {
+			/* Set BMT1 from aiop icontext and BVP1 */
+			sp_controls = (icontext_aiop.bdi_flags &
+					FDMA_ENF_BDI_BIT) | 1;
 
+			/* Set BPID1 */
+			sp_controls |= ipsec_bpid << 16;
+
+			/* Set PBS1 */
+			sp_controls |= (g_app_params.dpni_buff_size/64) << 6;
+			STW_SWAP(sp_controls, 8,
+				 (uint32_t *)flow_context.storage_profile);
+
+			/* Set DHR (data head room)*/
+			sp_controls = IPSEC_SP_DHR_MASK &
+					IPSEC_MAX_FRAME_GROWTH;
+			STW_SWAP(sp_controls, 4,
+				 (uint32_t *)flow_context.storage_profile);
+		}
+		/* Set the DL (data length)*/
+		if (params->direction == IPSEC_DIRECTION_OUTBOUND) {
+			sp_controls = (uint32_t)params->encparams.ip_hdr_len +
+					IPSEC_MAX_FRAME_GROWTH;
+			STW_SWAP(sp_controls, 0,
+				 (uint32_t *)flow_context.storage_profile);
+		}
 	}
 	
 #if(0)
@@ -1242,14 +1355,25 @@ int ipsec_generate_sa_params(
 #ifndef  TKT265088_WA_DISABLE
 		{
 			/* TKT265088: 
-			 * CAAM/SEC: The FD[BPID] is not updated after an AIOP operation */
+			 * CAAM/SEC: The FD[BPID] is not updated after an AIOP
+			 * operation */
 			struct storage_profile *sp_addr = &storage_profile[0];
-			sp_addr += params->spid; 
-		
-			/* 14 bit BPID is at offset 0x12 (18) of the storage profile */ 
-			/* Read-swap and mask the 2 MSbs */
-			sap.sap1.bpid = (LH_SWAP(0,(uint16_t *)((uint8_t *)sp_addr + 0x12)))
-					& 0x3FFF;
+			sp_addr += params->spid;
+
+			/* If the reuse buffer mode is active or new buffer mode
+			 * is active but the SEC engine use the same buffer as
+			 * network interfaces take the bpid from sp */
+			if (sap.sap1.sec_buffer_mode ||
+				!(sap.sap1.sec_buffer_mode ||
+				g_app_params.ipsec_buffer_allocate_enable))
+				/* 14 bit BPID is at offset 0x12 (18) of the
+				 * storage profile
+				 * Read-swap and mask the 2 MSbs */
+				sap.sap1.bpid = (LH_SWAP(0, (uint16_t *)
+						((uint8_t *)sp_addr + 0x12)))
+						& 0x3FFF;
+			else
+				sap.sap1.bpid = ipsec_bpid;
 		}	
 #endif		
 	}
@@ -1423,8 +1547,13 @@ int ipsec_add_sa_descriptor(
 	ipsec_handle_t desc_addr;
 	uint8_t tmi_id; /* TMAN Instance ID  */
 
-	/* Create a shared descriptor */
+	/* Verify if new buffer is enabled */
+	if (!g_app_params.ipsec_buffer_allocate_enable &&
+			(params->flags & IPSEC_FLG_BUFFER_REUSE) == 0) {
+		pr_warn("Buffer reuse without enabling dedicated IPSec BP");
+	}
 
+	/* Create a shared descriptor */
 	return_val = ipsec_get_buffer(instance_handle,
 			ipsec_handle, &tmi_id);
 	

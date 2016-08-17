@@ -527,6 +527,24 @@ int ipsec_early_init(
 		uint32_t flags);
 
 /**************************************************************************//**
+@Function	ipsec_drv_init
+
+@Description  Function fills the IPsec dedicated BP, if that is requested in
+		the application. It is called from the AIOP initialization task,
+		in the global initialization stage. Note : The application
+		requests the dedicated BP creation by setting the
+		"ipsec_buffer_allocate_enable" application configuration
+		variable.
+
+@Return		- 0 in case of success
+			- ENOMEM in case of not enough memory
+			- other error code otherwise
+
+*//****************************************************************************/
+
+int ipsec_drv_init(void);
+
+/**************************************************************************//**
 @Function	ipsec_create_instance
 
 @Description  This function creates an instance for an IPsec application.
