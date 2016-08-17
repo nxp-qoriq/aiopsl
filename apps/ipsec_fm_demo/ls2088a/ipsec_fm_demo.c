@@ -67,7 +67,6 @@ extern __PROFILE_SRAM struct storage_profile
 ipsec_instance_handle_t ipsec_instance_handle;
 ipsec_handle_t ipsec_sa_desc_outbound;
 ipsec_handle_t ipsec_sa_desc_inbound;
-uint32_t frame_number = 0;
 
 __HOT_CODE ENTRY_POINT static void app_process_packet(void)
 {
@@ -89,21 +88,10 @@ __HOT_CODE ENTRY_POINT static void app_process_packet(void)
 	uint16_t seg_len = PRC_GET_SEGMENT_LENGTH();
 	uint16_t original_seg_addr = PRC_GET_SEGMENT_ADDRESS();
 
-	/* IPsec Initialization, happens with the first frame received */
-	if (frame_number == 0) {
-		err = ipsec_app_init(0); /* Call with NI ID = 0 */
-		if (err) {
-			fsl_print("ERROR: IPsec initialization failed\n");
-		}
-	}
-
 	ipsec_handle_t ws_desc_handle_outbound = ipsec_sa_desc_outbound;
 	ipsec_handle_t ws_desc_handle_inbound = ipsec_sa_desc_inbound;
 
-	frame_number ++;
-
-	fsl_print("IPsec Demo: Core %d Received Frame number %d\n",
-			core_get_id(), frame_number);
+	fsl_print("IPsec Demo: Core %d Received Frame\n", core_get_id());
 
 	handle_high =
 			(uint32_t)((ws_desc_handle_outbound & 0xffffffff00000000)>>32);
@@ -231,8 +219,7 @@ __HOT_CODE ENTRY_POINT static void app_process_packet(void)
 		fsl_print("IPsec Demo: Decryption Statistics:\n");
 		ipsec_print_stats(ws_desc_handle_inbound);
 
-		fsl_print("IPsec Demo: Core %d Sending Frame number %d\n",
-			core_get_id(), frame_number);
+		fsl_print("IPsec Demo: Core %d Sending Frame\n", core_get_id());
 
 		err = dpni_drv_send(task_get_receive_niid(), DPNI_DRV_SEND_MODE_NONE);
 		if (err){
@@ -373,6 +360,14 @@ static int app_dpni_event_added_cb(
 		return err;
 	}
 	
+	if (!ni) {
+		/* IPsec Initialization occurs once for the first NI */
+		err = ipsec_app_init(0); /* Call with NI ID = 0 */
+		if (err) {
+			fsl_print("ERROR: IPsec initialization failed\n");
+			return err;
+		}
+	}
 	return 0;
 }
 int app_init(void)
@@ -403,16 +398,7 @@ int app_init(void)
 		return err;
 	}
 
-
-	/* IPsec Initialization */
-	//err = ipsec_app_init(0); /* Call with NI ID = 0 */
-	//if (err) {
-	//	fsl_print("ERROR: IPsec initialization failed\n");
-	//	return err;
-	//}
-
 	fsl_print("To start test inject packets: \"eth_ipv4_udp.pcap\"\n");
-	fsl_print("(IPsec initialization will occur when the first frame is received)\n");
 	return 0;
 }
 
@@ -531,9 +517,6 @@ int ipsec_app_init(uint16_t ni_id)
 		}
 	}
 
-	frame_number = 0;
-
-	
 	fsl_print("\n++++\n  IPsec Demo: Doing IPsec Initialization\n++++\n");
 
 	if (tunnel_transport_mode == IPSEC_FLG_TUNNEL_MODE) {
