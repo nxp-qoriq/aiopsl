@@ -38,7 +38,8 @@ of all the macros.
 
 #include "apps_arch.h"
 
-#define APP_INIT_TASKS_PER_CORE		4
+/* For better performances enable all core's tasks */
+#define APP_INIT_TASKS_PER_CORE		16
 #define APP_INIT_APP_MAX_NUM		10
 
 #define APP_MEM_DP_DDR_SIZE	ARCH_DP_DDR_SIZE
@@ -54,7 +55,9 @@ of all the macros.
 #define APP_MFLU_DP_DDR_NUM_ENTRIES	ARCH_MFLU_DP_DDR_NUM_ENTRIES
 #define APP_MFLU_PEB_NUM_ENTRIES	2048
 
-#define APP_DPNI_NUM_BUFS_IN_POOL	50
+/* For better performances, the number of buffer should be at least equal with
+ * the number of AIOP tasks */
+#define APP_DPNI_NUM_BUFS_IN_POOL	(16 * APP_INIT_TASKS_PER_CORE)
 #define APP_DPNI_BUF_SIZE_IN_POOL	2048
 #define APP_DPNI_BUF_ALIGN_IN_POOL	64
 #define APP_DPNI_SPID_COUNT		8
