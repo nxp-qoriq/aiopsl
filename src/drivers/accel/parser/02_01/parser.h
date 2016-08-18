@@ -77,6 +77,8 @@
 *//***************************************************************************/
 	/** Gross Running Sum Valid */
 #define PARSER_GRSV_MASK	0x04000000
+	/** Ephemeral reference notification */
+#define PARSER_EPHS_MASK	0x01000000
 	/** Failure indication */
 #define PARSER_STATUS_FAIL	0x80000000
 	/** Parser status mask */

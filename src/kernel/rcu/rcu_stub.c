@@ -53,3 +53,8 @@ void rcu_read_unlock()
 {
 	return;
 }
+
+void rcu_read_lock()
+{
+	return;
+}
