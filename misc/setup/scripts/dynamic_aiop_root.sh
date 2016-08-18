@@ -44,7 +44,6 @@ ac_DPRC=
 atc_DPRC=
 
 DPMAC1="dpmac.1"
-ROOTDPNI="dpni.0"
 
 ############################################################################
 # Logging Routines
@@ -193,7 +192,7 @@ create_aiop_container()
 	DPIO_PRIORITIES=8
 	DPCI_PRIORITIES=2
 
-	log_debug "Creating DPNI"
+	log_debug "Creating DPNI <----> DPMAC connection"
 	restool_cmd "dpni create --mac-addr=$ACTUAL_MAC \
 				--max-senders=$MAX_SENDERS \
 				--options=$DPNI_OPTIONS \
@@ -215,7 +214,7 @@ create_aiop_container()
 	DPIO_PRIORITIES=8
 	DPCI_PRIORITIES=2
 
-	log_debug "Creating DPNI"
+	log_debug "Creating DPNI in AIOP for connection to DPNI in Linux"
 	restool_cmd "dpni create --mac-addr=$ACTUAL_MAC \
 	 			--max-senders=$MAX_SENDERS \
 	 			--options=$DPNI_OPTIONS \
@@ -223,8 +222,23 @@ create_aiop_container()
 	 			--max-dist-per-tc=$MAX_DIST_PER_TC \
 	 			--max-dist-key-size=$MAX_DIST_KEY_SIZE \
 	 			" atc_DPNI2 ac_DPRC
-	log_info "Connecting $atc_DPNI2<------->$ROOTDPNI"
-	restool_cmd "dprc connect dprc.1 --endpoint1=$atc_DPNI2 --endpoint2=$ROOTDPNI" None None
+
+	ACTUAL_MAC="00:00:00:00:00:0B"
+	MAX_SENDERS=8
+	DPNI_OPTIONS="DPNI_OPT_MULTICAST_FILTER,DPNI_OPT_UNICAST_FILTER,DPNI_OPT_TX_CONF_DISABLED,DPNI_OPT_DIST_HASH"
+	MAX_TCS=1
+	MAX_DIST_PER_TC=8
+	MAX_DIST_KEY_SIZE=4
+	DPCON_PRIORITIES=8
+	DPIO_PRIORITIES=8
+	DPCI_PRIORITIES=2
+
+	log_debug "Create DPNI in Linux Container"
+	addni_cmd="ls-addni -n --mac-addr=$ACTUAL_MAC | cut -d'(' -f2 | cut -d',' -f1 | cut -d':' -f2"
+	dpni_obj=`eval $addni_cmd`
+
+	log_info "Connecting $atc_DPNI2<------->$dpni_obj"
+	restool_cmd "dprc connect dprc.1 --endpoint1=$atc_DPNI2 --endpoint2=$dpni_obj" None None
 
 	echo "AIOP Container $ac_DPRC created"
 } # AIOP Container
@@ -251,7 +265,30 @@ create_aiopt_container()
 
 main()
 {
-	restool_cmd "dprc disconnect dprc.1 --endpoint=$ROOTDPNI" None None
+
+	if [ ! "$(which restool)" ]; then
+        echo "restool is not installed. Aborting."
+        exit 1
+	fi
+
+	if [ ! "$(which ls-addni)" ]; then
+	        echo "ls-addni wrapper script is not installed. Aborting."
+	        exit 1
+	fi
+
+	echo "Disconnecting DPNIs to create AIOP connections"
+	for i in `seq 1 64`;
+	do
+		# Some commands will fail but we want to ignore those failures
+		restool dprc disconnect dprc.1 --endpoint=dpni.$i &> /dev/null || true
+	done
+
+	# Check for DPMAC 1 and 2
+	restool dpmac info $DPMAC1 &> /dev/null 
+	if [ $? -ne 0 ]
+	then
+		log_error "$DPMAC1 not found. Exiting"
+	fi
 
 	log_info "Creating AIOP Container"
 	create_aiop_container

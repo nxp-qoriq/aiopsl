@@ -43,7 +43,6 @@ atc_DPRC=
 
 DPMAC1="dpmac.1"
 DPMAC2="dpmac.2"
-ROOTDPNI="dpni.0"
 
 
 ############################################################################
@@ -252,7 +251,31 @@ create_aiopt_container()
 
 main()
 {
-	restool_cmd "dprc disconnect dprc.1 --endpoint=$ROOTDPNI" None None
+	
+	if [ ! "$(which restool)" ]; then
+        echo "restool is not installed. Aborting."
+        exit 1
+	fi
+
+	echo "Disconnecting DPNIs to create AIOP connections"
+	for i in `seq 1 64`;
+	do
+		# Some commands will fail but we want to ignore those failures
+		restool dprc disconnect dprc.1 --endpoint=dpni.$i &> /dev/null || true
+	done
+
+	# Check for DPMAC 1 and 2
+	restool dpmac info $DPMAC1 &> /dev/null 
+	if [ $? -ne 0 ]
+	then
+		log_error "$DPMAC1 not found. Exiting"
+	fi
+
+	restool dpmac info $DPMAC2 &> /dev/null 
+	if [ $? -ne 0 ]
+	then
+		log_error "$DPMAC2 not found. Exiting"
+	fi
 
 	log_info "Creating AIOP Container"
 	create_aiop_container
