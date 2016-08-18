@@ -1140,6 +1140,7 @@ inline int fdma_present_default_frame_default_segment()
 		PRC_SET_SEGMENT_LENGTH(*((uint16_t *)(HWC_ACC_OUT_ADDRESS2)));
 		PRC_SET_SEGMENT_HANDLE(*((uint8_t *)(HWC_ACC_OUT_ADDRESS2 +
 						FDMA_SEG_HANDLE_OFFSET)));
+		PRC_RESET_NDS_BIT();
 		if (res1 == FDMA_SUCCESS)
 			return SUCCESS;
 		else	/*FDMA_UNABLE_TO_PRESENT_FULL_SEGMENT_ERR*/
