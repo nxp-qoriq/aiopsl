@@ -47,9 +47,8 @@ int app_init(void);
 void app_free(void);
 int ipsec_app_init(uint16_t ni_id);
 void ipsec_print_frame(void);
-void ipsec_print_stats (ipsec_handle_t desc_handle);
+static void ipsec_print_stats(ipsec_handle_t desc_handle, uint8_t is_encap);
 void ipsec_print_sp (uint16_t ni_spid);
-//ipsec_lifetime_callback_t user_lifetime_callback(uint64_t opaque1, uint8_t opaque2);
 void user_lifetime_callback(uint64_t opaque1, uint8_t opaque2);
 
 #define APP_NI_GET(ARG)   ((uint16_t)((ARG) & 0x0000FFFF))
@@ -60,13 +59,255 @@ void user_lifetime_callback(uint64_t opaque1, uint8_t opaque2);
 //#define IPSEC_DEBUG_PRINT_SP
 #ifdef IPSEC_DEBUG_PRINT_SP
 extern __PROFILE_SRAM struct storage_profile
-			storage_profile[SP_NUM_OF_STORAGE_PROFILES];
+		storage_profile[SP_NUM_OF_STORAGE_PROFILES];
 #endif
 
-/* Global IPsec vars in Shared RAM */
+/*******************************************************************************
+/* Performance measurement case. Define PERF_MEASUREMENT in order to measure
+ * the IPsec performances
+ ******************************************************************************/
+/*#define PERF_MEASUREMENT*/
+
+/*******************************************************************************
+ * Number of created SA pairs
+ ******************************************************************************/
+#ifdef PERF_MEASUREMENT
+	#define TEST_NUM_OF_SA		64 /*1*/ /*6*/
+#else
+	/* Only 1 SA pair must be created */
+	#define TEST_NUM_OF_SA		1
+#endif
+
+/*******************************************************************************
+ * SA control parameters configuration
+ ******************************************************************************/
+/* 1 - Cipher and authentication algorithms */
+enum app_key_types {
+	NULL_MD5 = 0,
+	NULL_SHA512,
+	AES128_SHA1,
+	AES128_SHA256,
+	AES128_SHA512,
+	AES128_NULL
+};
+/* Use a value from the above enumeration */
+#define CIPHER_AUTH_ALGS	AES128_SHA1
+
+/* 2 - Tunnel/Transport mode */
+/* IPSEC_FLG_TUNNEL_MODE - Tunnel, 0 - Transport */
+#define TUNEL_TRANSPORT_MODE	IPSEC_FLG_TUNNEL_MODE
+
+/* 3 - Buffer mode */
+/* 0 - New Buffer Mode,  IPSEC_FLG_BUFFER_REUSE - Buffer Reuse Mode */
+#define BUFFER_MODE		IPSEC_FLG_BUFFER_REUSE
+
+/* 4 - IP version */
+/* 0 - IPv4,  IPSEC_OPTS_ESP_IPVSN - IPv6*/
+#define IP_VERSION	0
+/* Define IP source address offset as ETH header size plus the offset of the
+ * least significant 4 bytes of the IP source address */
+#if (IP_VERSION == 0)	/* IPv4 */
+	#define IP_SRC_OFF	(14 + 12)
+#else			/* IPv6 */
+	#define IP_SRC_OFF	(14 + 20)
+#endif
+
+/* 5 - ENC/DEC lifetime timers */
+/* 0 - Disabled, 1 - Enabled */
+#ifndef PERF_MEASUREMENT
+	#define LIFETIME_TIMERS_ENABLE	1
+#else
+	#define LIFETIME_TIMERS_ENABLE	0
+#endif
+#if (LIFETIME_TIMERS_ENABLE == 1)
+	/* Seconds lifetime duration. A non-zero value must be larger than 10.
+	Soft and hard pairs must have valid values : hard_seconds >=
+	soft_seconds. No check is done. In order to run the application with
+	this feature enabled, and without SA expiration, define the values as
+	0xffffffff */
+	#define ENCAP_SOFT_SECONDS	0xffffffff
+	#define ENCAP_HARD_SECONDS	0xffffffff
+	#define DECAP_SOFT_SECONDS	0xffffffff
+	#define DECAP_HARD_SECONDS	0xffffffff
+#ifdef TEST
+	/* Values used to test SA expiration */
+	#define ENCAP_SOFT_SECONDS	15
+	#define ENCAP_HARD_SECONDS	16
+	#define DECAP_SOFT_SECONDS	17
+	#define DECAP_HARD_SECONDS	18
+#endif
+#endif
+
+/* 6 - ENC/DEC Kilobytes limit */
+/* 0 - Disabled, 1 - Enabled */
+#ifndef PERF_MEASUREMENT
+	#define KB_LIMIT_ENABLE		1
+#else
+	#define KB_LIMIT_ENABLE		0
+#endif
+#if (KB_LIMIT_ENABLE == 1)
+	/* Soft and hard pairs must have valid values : hard_kb_limit >=
+	soft_kb_limit. No check is done. In order to run the application with
+	this feature enabled, and without SA expiration, define the values as
+	0xffffffffffffffff */
+	#define ENCAP_SOFT_KB_LIMIT	0xffffffffffffffff
+	#define ENCAP_HARD_KB_LIMIT	0xffffffffffffffff
+	#define DECAP_SOFT_KB_LIMIT	0xffffffffffffffff
+	#define DECAP_HARD_KB_LIMIT	0xffffffffffffffff
+#ifdef TEST
+	/* Values used to test SA expiration */
+	#define ENCAP_SOFT_KB_LIMIT	(64 * 1024)
+	#define ENCAP_HARD_KB_LIMIT	(65 * 1024)
+	#define DECAP_SOFT_KB_LIMIT	(66 * 1024)
+	#define DECAP_HARD_KB_LIMIT	(67 * 1024)
+#endif
+#endif
+
+/* 7 - ENC/DEC packets limit*/
+/* 0 - Disabled, 1 - Enabled */
+#ifndef PERF_MEASUREMENT
+	#define PKT_LIMIT_ENABLE	1
+#else
+	#define PKT_LIMIT_ENABLE	0
+#endif
+#if (PKT_LIMIT_ENABLE == 1)
+	/* Soft and hard pairs must have valid values : hard_pkt_limit >=
+	 * soft_pkt_limit. No check is done. In order to run the application
+	 * with this feature enabled, and without SA expiration, define the
+	 * values as 0xffffffffffffffff */
+	#define ENCAP_SOFT_PKT_LIMIT	0xffffffffffffffff
+	#define ENCAP_HARD_PKT_LIMIT	0xffffffffffffffff
+	#define DECAP_SOFT_PKT_LIMIT	0xffffffffffffffff
+	#define DECAP_HARD_PKT_LIMIT	0xffffffffffffffff
+#ifdef TEST
+	/* Values used to test SA expiration */
+	#define ENCAP_SOFT_PKT_LIMIT	(64 * 1024)
+	#define ENCAP_HARD_PKT_LIMIT	(65 * 1024)
+	#define DECAP_SOFT_PKT_LIMIT	(66 * 1024)
+	#define DECAP_HARD_PKT_LIMIT	(67 * 1024)
+#endif
+#endif
+
+/* 8 - Extended Sequence Number*/
+/* IPSEC_OPTS_ESP_ESN - Enabled, 0 - Disabled */
+#define ESN_ENABLE	0
+/* Usual values */
+#define SEQNO_L		0x1
+#define SEQNO_H		0x0
+/* For testing purposes
+#define SEQNO_L		0xfffffffe
+#define SEQNO_H		0xffffffff
+*/
+
+/* 9 - ENCAP Sequence Number Roll Over*/
+/* 0 - Disabled, IPSEC_ENC_OPTS_SNR_EN - Enabled */
+#define ENCAP_ROLL_ENABLE	0
+
+/* 10 - DECAP anti-replay window size */
+/* IPSEC_DEC_OPTS_ARSNONE - Disabled, ARS32/64/128 - Enabled */
+#define DECAP_ARW_SIZE	IPSEC_DEC_OPTS_ARS32
+
+/* 11 - DECAP padding check */
+/* 0 - Disabled,  IPSEC_FLG_TRANSPORT_PAD_CHECK - Enabled */
+#define DECAP_PAD_CHECK		0
+
+/*******************************************************************************
+ * Global IPsec variables in Shared RAM
+ ******************************************************************************/
 ipsec_instance_handle_t ipsec_instance_handle;
-ipsec_handle_t ipsec_sa_desc_outbound;
-ipsec_handle_t ipsec_sa_desc_inbound;
+
+ipsec_handle_t	ipsec_sas_desc_outbound[TEST_NUM_OF_SA];
+ipsec_handle_t	ipsec_sas_desc_inbound[TEST_NUM_OF_SA];
+
+/*******************************************************************************
+/* Performance measurement case. Define PERF_MEASUREMENT in order to enable it.
+ ******************************************************************************/
+#ifdef PERF_MEASUREMENT
+/* Better performances are obtained if counters are disabled : see
+ * KB_LIMIT_ENABLE (data path processing), PKT_LIMIT_ENABLE  (data path
+ * processing) and LIFETIME_TIMERS_ENABLE (expiration task occurs, hence
+ * less data path processing task, concurrence while accessing DDR in order
+ * to update the timers). */
+
+/* Set ENCRYPT_ONLY to 1 in order the application performs only packet
+ * encryption */
+#define ENCRYPT_ONLY		0
+
+/* Set IPSEC_DEBUG_PRINT to 1 in order have printed messages */
+#define IPSEC_DEBUG_PRINT	0
+
+/* Periodically statistics print */
+#define IPSEC_STATS_PRINT	0
+#if (IPSEC_STATS_PRINT == 1)
+	/* Statistics timer duration. Must be greater than 10 */
+	#define STATS_TIMER_PERIOD	11	/* seconds */
+
+	/* STATS_PRINT_FROM_SA < TEST_NUM_OF_SA */
+	#define STATS_PRINT_FROM_SA	0
+	/* STATS_PRINT_TO_SA <= TEST_NUM_OF_SA and
+	 * STATS_PRINT_TO_SA > STATS_PRINT_FROM_SA */
+	#define STATS_PRINT_TO_SA	1
+
+	static void app_stats_timer_cb(tman_arg_8B_t arg1, tman_arg_2B_t arg2);
+
+	uint32_t	stats_timer_handle;
+#endif
+
+__HOT_CODE ENTRY_POINT static void app_perf_process_packet(void)
+{
+	int		err;
+	uint32_t	status = 0;
+	uint8_t		*eth_pointer_byte;
+	uint32_t	sa_idx;
+	ipsec_handle_t	ws_desc_handle_outbound;
+#if (ENCRYPT_ONLY == 0)
+	ipsec_handle_t	ws_desc_handle_inbound;
+#endif
+
+	sl_prolog();
+	eth_pointer_byte = (uint8_t *)PARSER_GET_ETH_POINTER_DEFAULT();
+
+	/* IP_SRC based distribution */
+	sa_idx = (*((uint32_t *)(eth_pointer_byte + IP_SRC_OFF))) %
+							TEST_NUM_OF_SA;
+	ws_desc_handle_outbound = ipsec_sas_desc_outbound[sa_idx];
+#if (ENCRYPT_ONLY == 0)
+	ws_desc_handle_inbound = ipsec_sas_desc_inbound[sa_idx];
+#endif
+
+	err = ipsec_frame_encrypt(ws_desc_handle_outbound, &status);
+	if (err) {
+#if (IPSEC_DEBUG_PRINT == 1)
+		fsl_print("SEC Encryption Failed (status = 0x%08x)\n", status);
+#endif
+		fdma_discard_default_frame(FDMA_DIS_NO_FLAGS);
+		fdma_terminate_task();
+	}
+#if (ENCRYPT_ONLY == 0)
+	err = ipsec_frame_decrypt(ws_desc_handle_inbound, &status);
+	if (err) {
+#if (IPSEC_DEBUG_PRINT == 1)
+		fsl_print("SEC Decryption Failed (status = 0x%08x)\n", status);
+#endif
+		fdma_discard_default_frame(FDMA_DIS_NO_FLAGS);
+		fdma_terminate_task();
+	}
+#endif
+	err = dpni_drv_send(task_get_receive_niid(), DPNI_DRV_SEND_MODE_NONE);
+	if (err) {
+#if (IPSEC_DEBUG_PRINT == 1)
+		fsl_print("ERROR = %d: dpni_drv_send(ni_id)\n", err);
+#endif
+		if (err == -ENOMEM)
+			fdma_discard_default_frame(FDMA_DIS_NO_FLAGS);
+		else /* (err == -EBUSY) */
+			fdma_discard_fd((struct ldpaa_fd *)HWC_FD_ADDRESS,
+					FDMA_DIS_NO_FLAGS);
+	}
+	fdma_terminate_task();
+}
+
+#else
 
 __HOT_CODE ENTRY_POINT static void app_process_packet(void)
 {
@@ -88,8 +329,8 @@ __HOT_CODE ENTRY_POINT static void app_process_packet(void)
 	uint16_t seg_len = PRC_GET_SEGMENT_LENGTH();
 	uint16_t original_seg_addr = PRC_GET_SEGMENT_ADDRESS();
 
-	ipsec_handle_t ws_desc_handle_outbound = ipsec_sa_desc_outbound;
-	ipsec_handle_t ws_desc_handle_inbound = ipsec_sa_desc_inbound;
+	ipsec_handle_t ws_desc_handle_outbound = ipsec_sas_desc_outbound[0];
+	ipsec_handle_t ws_desc_handle_inbound = ipsec_sas_desc_inbound[0];
 
 	fsl_print("IPsec Demo: Core %d Received Frame\n", core_get_id());
 
@@ -212,12 +453,9 @@ __HOT_CODE ENTRY_POINT static void app_process_packet(void)
 			}
 		}
 	
-		/* Read statistics */
-		fsl_print("IPsec Demo: Encryption Statistics:\n");
-		ipsec_print_stats(ws_desc_handle_outbound);
-
-		fsl_print("IPsec Demo: Decryption Statistics:\n");
-		ipsec_print_stats(ws_desc_handle_inbound);
+		/* Print statistics */
+		ipsec_print_stats(ws_desc_handle_outbound, 1);
+		ipsec_print_stats(ws_desc_handle_inbound, 0);
 
 		fsl_print("IPsec Demo: Core %d Sending Frame\n", core_get_id());
 
@@ -244,6 +482,8 @@ __HOT_CODE ENTRY_POINT static void app_process_packet(void)
 	/*MUST call fdma_terminate task in the end of cb function*/
 	fdma_terminate_task();
 }
+
+#endif		/* PERF_MEASUREMENT */
 
 #ifdef AIOP_STANDALONE
 /* This is temporal WA for stand alone demo only */
@@ -294,36 +534,50 @@ static struct cmdif_module_ops ops = {
                                .ctrl_cb = ctrl_cb
 };
 
-int app_early_init(void){
-	int err;
+static uint16_t get_buffer_size(uint16_t *timers)
+{
+	uint16_t	buff_size = 0, num_timers = 3;
+
+#if (IPSEC_STATS_PRINT == 1)
+	num_timers++;
+#endif
+
+#if (LIFETIME_TIMERS_ENABLE == 1)
+/* In this case the buff_size must be computed function of number of created
+ * SAs. For each SA pair, 4 timers are created : 2 soft and 2 hard.
+ * The number of created timers should be 3 timers larger than actually needed
+ * and larger than 4.
+ *
+ * The memory region used to hold the timers must be of at least
+ * 64 * (num_of_timers + 1) bytes, and 64 bytes aligned. */
+
+	num_timers += 4 * TEST_NUM_OF_SA;
+	buff_size = 64 * (num_timers + 1);
+#endif
+	if (timers)
+		*timers = num_timers + 1;
+	return (buff_size < 512) ? 512 : buff_size;
+}
+
+int app_early_init(void)
+{
+	int		err;
+	uint16_t	num;
 
 	/* IPsec resources reservation */
-	err = ipsec_early_init(
-		10, /* uint32_t total_instance_num */
-		20, /* uint32_t total_committed_sa_num */
-		40, /* uint32_t total_max_sa_num */
-		0  /* uint32_t flags */
-	);
-
+	err = ipsec_early_init(10, 2 * TEST_NUM_OF_SA, 2 * TEST_NUM_OF_SA, 0);
 	if (err)
 		return err;
-
-	/* Reserve some general buffers for keys etc. */
-	err = slab_register_context_buffer_requirements(
-			10, /* uint32_t committed_buffs*/
-			10, /* uint32_t max_buffs */
-			512, /* uint16_t buff_size */
-			8, /* uint16_t alignment */
-			IPSEC_DEMO_MEM_ID, /* enum memory_partition_id  mem_pid */
-	        0, /* uint32_t flags */
-	        0 /* uint32_t num_ddr_pools */
-	        );
-
+	/* Reserve some general buffers for keys, timers, etc. */
+	err = slab_register_context_buffer_requirements(10, 10,
+							get_buffer_size(&num),
+							8, IPSEC_DEMO_MEM_ID,
+							0, 0);
 	if (err)
 		return err;
-
+	fsl_print("Place for %d timers was reserved\n", num - 4);
 	/* Set DHR to 256 in the default storage profile */
-	err = dpni_drv_register_rx_buffer_layout_requirements(256,0,0);
+	err = dpni_drv_register_rx_buffer_layout_requirements(256, 0, 0);
 			
 	return err;
 }
@@ -383,8 +637,15 @@ int app_init(void)
 	epid_setup();
 #endif /* AIOP_STANDALONE */
 
-
-	err = evmng_register(EVMNG_GENERATOR_AIOPSL, DPNI_EVENT_ADDED, 1,(uint64_t) app_process_packet, app_dpni_event_added_cb);
+#ifdef PERF_MEASUREMENT
+	err = evmng_register(EVMNG_GENERATOR_AIOPSL, DPNI_EVENT_ADDED, 1,
+			     (uint64_t) app_perf_process_packet,
+			     app_dpni_event_added_cb);
+#else
+	err = evmng_register(EVMNG_GENERATOR_AIOPSL, DPNI_EVENT_ADDED, 1,
+			     (uint64_t) app_process_packet,
+			     app_dpni_event_added_cb);
+#endif
 	if (err){
 		pr_err("EVM registration for DPNI_EVENT_ADDED failed: %d\n", err);
 		return err;
@@ -416,17 +677,11 @@ int ipsec_app_init(uint16_t ni_id)
 	struct slab *slab_handle = NULL;
 	uint32_t handle_high, handle_low;
 	int i;
-
 	uint64_t cipher_key_addr;
 	uint64_t auth_key_addr;
-	//uint8_t cipher_key[16] = {11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26};
 	uint8_t cipher_key[16] = "1122334455667788";
-	//uint8_t auth_key[128];
-	//uint8_t auth_key[128] = "12345678123456781234"; // 20 bytes
-	//uint8_t auth_key[128] = "12345678123456781234567812345678"; // 32 bytes
-	uint8_t auth_key[128] = "1234567812345678123456781234567812345678123456781234567812345678"; // 64 bytes
-	uint8_t auth_key_id = 0;
-
+	/* 64 bytes */
+	uint8_t auth_key[128];
 	uint32_t cipher_alg;
 	uint32_t cipher_keylen;
 	uint32_t auth_alg;
@@ -435,47 +690,44 @@ int ipsec_app_init(uint16_t ni_id)
 	uint32_t outer_header_ip_version;
 	uint16_t ni_spid;
 	uint32_t tunnel_transport_mode;
-	uint32_t reuse_buffer_mode = 0;
+	uint32_t reuse_buffer_mode;
+	uint32_t lifetime_kb_cntr_en = 0;
+	uint32_t lifetime_pkt_cntr_en = 0;
+	uint32_t pad_check;
 	uint32_t set_dscp = 0;
-	uint16_t esn_enable = 0;
-	uint16_t transport_ipvsn = 0;
+	uint16_t esn_enable;
+	uint16_t roll_over_enable;
+	uint16_t transport_ipvsn;
 	uint32_t encap_soft_seconds = 0x0;
 	uint32_t encap_hard_seconds = 0x0;
 	uint32_t decap_soft_seconds = 0x0;
 	uint32_t decap_hard_seconds = 0x0;
-	uint32_t seconds_lifetime_enabled = 0;
+	ipsec_instance_handle_t ws_instance_handle = 0;
+	ipsec_handle_t ws_desc_handle_outbound = 0;
+	ipsec_handle_t ws_desc_handle_inbound = 0;
+	int sa_index;
+#if (LIFETIME_TIMERS_ENABLE == 1 || IPSEC_STATS_PRINT == 1)
 	uint64_t tmi_buffer_handle, tmi_timer_addr;
-	uint8_t tmi_id;
-
-	enum key_types {
-		NULL_MD5 = 0,
-		NULL_SHA512,
-		AES128_SHA1,
-		AES128_SHA256,
-		AES128_SHA512,
-		AES128_NULL
-	};
+#endif
+	uint8_t		tmi_id = 0;
+	uint16_t	num_timers;
 
 	/**********************************************************/
 	/*                    Control Parameters                  */
 	/**********************************************************/
 	/* Set the required algorithms here */
-	//algs = NULL_MD5;
-	//algs = NULL_SHA512;
-	//algs = AES128_SHA256;
-	//algs = AES128_SHA512;
-	algs = AES128_SHA1;
+	algs = CIPHER_AUTH_ALGS;
 
 	/* Set the outer IP header type here */
 	outer_header_ip_version = 4; /* 4 or 6 */
 	//outer_header_ip_version = 17; /* UDP encap - Tunnel mode */
 	//outer_header_ip_version = 18; /* UDP encap - Transport mode */
 	
-	auth_key_id = 0; /* Keep the initial key array value */
-	//auth_key_id = 1; /* Overwrite the initial key array value */
+	/*"1234567812345678123456781234567812345678123456781234567812345678"*/
+	for (i = 0; i < 128; i++)
+		auth_key[i] = (uint8_t)i;
 
-	tunnel_transport_mode = IPSEC_FLG_TUNNEL_MODE; /* Tunnel Mode */
-	//tunnel_transport_mode = 0; /* Transport Mode */
+	tunnel_transport_mode = TUNEL_TRANSPORT_MODE;
 
 	/* DSCP setting, valid only for tunnel mode */
 	if (tunnel_transport_mode) {
@@ -483,39 +735,17 @@ int ipsec_app_init(uint16_t ni_id)
 		set_dscp = 0; /* Copy DSCP from inner to outer header */
 	}
 
-	esn_enable = 0; /* ESN Disabled */
-	//esn_enable = IPSEC_OPTS_ESP_ESN; /* ESN Enabled */
-
-	reuse_buffer_mode = 0; /* New Buffer Mode */
-	//reuse_buffer_mode = IPSEC_FLG_BUFFER_REUSE; /* Reuse mode */
-
-	//transport_ipvsn = IPSEC_OPTS_ESP_IPVSN; /* IPv6 */
-	transport_ipvsn = 0; /* IPv4 */
+	esn_enable = ESN_ENABLE;
+	roll_over_enable = ENCAP_ROLL_ENABLE;
+	reuse_buffer_mode = BUFFER_MODE;
+	transport_ipvsn = IP_VERSION;
 	
-	/* Secondes lifetime duration
-	 * 0 = disabled, Other value = enabled
-	 * A non-zero value must be larger than 10 
-	 * Soft and hard pairs must have valid values 
-	 * (hard_seconds >= soft_seconds) */
-	seconds_lifetime_enabled = 0; /* 0 - disabled, 1- enabled */
-	if(seconds_lifetime_enabled) {
-		encap_soft_seconds = 15;
-		encap_hard_seconds = 16;
-		decap_soft_seconds = 17;
-		decap_hard_seconds = 18;
-	}
-	
-	/**********************************************************/
-
-	ipsec_instance_handle_t ws_instance_handle = 0;
-	ipsec_handle_t ws_desc_handle_outbound = 0;
-	ipsec_handle_t ws_desc_handle_inbound = 0;
-
-	if (auth_key_id == 1) {
-		for (i=0; i<128; i++) {
-			auth_key[i] = (uint8_t)i;
-		}
-	}
+#if (LIFETIME_TIMERS_ENABLE == 1)
+	encap_soft_seconds = ENCAP_SOFT_SECONDS;
+	encap_hard_seconds = ENCAP_HARD_SECONDS;
+	decap_soft_seconds = DECAP_SOFT_SECONDS;
+	decap_hard_seconds = DECAP_HARD_SECONDS;
+#endif
 
 	fsl_print("\n++++\n  IPsec Demo: Doing IPsec Initialization\n++++\n");
 
@@ -543,92 +773,57 @@ int ipsec_app_init(uint16_t ni_id)
 	ipsec_print_sp (ni_spid);
 #endif
 
-
-
-	/* Allocate buffers for the Keys */
-	err = slab_create(
-			10, /* uint32_t    num_buffs */
-			10, /* uint32_t    max_buffs */
-			512, /* uint16_t    buff_size */
-			8, /*uint16_t    alignment */
-			IPSEC_DEMO_MEM_ID, /* enum memory_partition_id  mem_pid */
-			0, /* uint32_t    flags */
-			NULL, /* slab_release_cb_t release_cb */
-			&slab_handle /* struct slab **slab */
-			);
-
-	if (err)
-		fsl_print("ERROR: slab_create() failed\n");
-	else
-		fsl_print("slab_create() completed successfully\n");
-
-	/* Acquire the Cipher key buffer */
-	err = 0;
-	err = slab_acquire(
-			slab_handle, /* struct slab *slab */
-			&cipher_key_addr /* uint64_t *buff */
-			);
-
-	if (err)
-		fsl_print("ERROR: slab_acquire() failed\n");
-	else
-		fsl_print("slab_acquire() completed successfully\n");
-
-	/* Acquire the Authentication key buffer */
-	err = 0;
-	err = slab_acquire(
-			slab_handle, /* struct slab *slab */
-			&auth_key_addr /* uint64_t *buff */
-			);
-
-	if (err)
-		fsl_print("ERROR: slab_acquire() failed\n");
-	else {
-		fsl_print("slab_acquire() completed successfully\n");
-
-		handle_high =
-			(uint32_t)((auth_key_addr & 0xffffffff00000000)>>32);
-		handle_low =
-			(uint32_t)(auth_key_addr & 0x00000000ffffffff);
-		fsl_print("Auth key addr = 0x%x_%x\n", handle_high, handle_low);
-	}
-
-	/* Acquire the TMan buffer */
-	err = 0;
-	err = slab_acquire(
-			slab_handle, /* struct slab *slab */
-			&tmi_buffer_handle /* uint64_t *buff */
-			);
-	
-	// Todo
-	/**< Align a given address - equivalent to ceil(ADDRESS,ALIGNMENT) */
-	#define IPSEC_ALIGN_64(ADDRESS, ALIGNMENT)           \
-	        ((((uint64_t)(ADDRESS)) + ((uint64_t)(ALIGNMENT)) - 1) & \
-	        								(~(((uint64_t)(ALIGNMENT)) - 1)))
-	
-	tmi_timer_addr = IPSEC_ALIGN_64(tmi_buffer_handle,64); /* Align to 64 bytes */
-	
-	err = tman_create_tmi(
-			tmi_timer_addr, /* uint64_t tmi_mem_base_addr */
-			8, /* uint32_t max_num_of_timers */
-			&tmi_id); /* uint8_t *tmi_id */
-	
-	fsl_print("IPsec: tmi_id = 0x%x\n",tmi_id);
-
-
-	err = ipsec_create_instance(
-			10, /* committed sa num */
-			20, /* max sa num */
-			0, /* instance flags */
-			tmi_id, /* tmi id */
-			&ws_instance_handle);
+	/* Allocate buffers for the keys, timers, etc */
+	err = slab_create(10, 10, get_buffer_size(&num_timers), 8,
+			  IPSEC_DEMO_MEM_ID, 0, NULL, &slab_handle);
 	if (err) {
-		fsl_print("ERROR: ipsec_create_instance() failed\n");
-		fsl_print("ipsec_create_instance return status = %d (0x%x)\n",
-				err, err);
-	} else {
-		fsl_print("ipsec_create_instance() completed successfully\n");
+		fsl_print("ERROR: slab_create() failed\n");
+		return err;
 	}
+	fsl_print("slab_create() completed successfully\n");
+	fsl_print("Place for %d timers was created\n", num_timers - 4);
+	/* Acquire the Cipher key buffer */
+	err = slab_acquire(slab_handle, &cipher_key_addr);
+	if (err) {
+		fsl_print("ERROR: slab_acquire() failed\n");
+		return err;
+	}
+	fsl_print("slab_acquire() completed successfully\n");
+	/* Acquire the Authentication key buffer */
+	err = slab_acquire(slab_handle, &auth_key_addr);
+	if (err) {
+		fsl_print("ERROR: slab_acquire() failed\n");
+		return err;
+	}
+	fsl_print("slab_acquire() completed successfully\n");
+	handle_high = (uint32_t)((auth_key_addr & 0xffffffff00000000)>>32);
+	handle_low = (uint32_t)(auth_key_addr & 0x00000000ffffffff);
+	fsl_print("Auth key addr = 0x%x_%x\n", handle_high, handle_low);
+	/* Create a TMI instance only if it is needed */
+#if (LIFETIME_TIMERS_ENABLE == 1 || IPSEC_STATS_PRINT == 1)
+	/* Acquire the TMan buffer */
+	err = slab_acquire(slab_handle, &tmi_buffer_handle);
+	/* TODO Align a given address - equivalent to ceil(ADDRESS,ALIGNMENT) */
+	#define IPSEC_ALIGN_64(ADDRESS, ALIGNMENT) \
+		((((uint64_t)(ADDRESS)) + ((uint64_t)(ALIGNMENT)) - 1) & \
+		(~(((uint64_t)(ALIGNMENT)) - 1)))
+	/* Align to 64 bytes */
+	tmi_timer_addr = IPSEC_ALIGN_64(tmi_buffer_handle, 64);
+	err = tman_create_tmi(tmi_timer_addr, num_timers, &tmi_id);
+	if (err) {
+		fsl_print("%d ERROR: tman_create_tmi() failed\n", err);
+		return err;
+	}
+	fsl_print("IPsec: tmi_id = 0x%x created for %d timers\n",
+		  tmi_id, num_timers - 4);
+#endif
+	err = ipsec_create_instance(2 * TEST_NUM_OF_SA, 2 * TEST_NUM_OF_SA,
+				    0, tmi_id, &ws_instance_handle);
+	if (err) {
+		fsl_print("[%d] ERROR: ipsec_create_instance() failed\n", err);
+		return err;
+	}
+	fsl_print("ipsec_create_instance() completed successfully\n");
 
 	ipsec_instance_handle = ws_instance_handle;
 	
@@ -702,212 +897,216 @@ int ipsec_app_init(uint16_t ni_id)
 			&auth_key, /* ws_src */
 			(uint16_t)auth_keylen); /* uint16_t size */
 
-	/* Outer IP header */
-	if (outer_header_ip_version == 4) {
-		outer_ip_header[0] = 0x45db0014;
-		outer_ip_header[1] = 0x12340000;
-		outer_ip_header[2] = 0xff32386f;
-		outer_ip_header[3] = 0x45a4e14c;
-		outer_ip_header[4] = 0xed035c45;
-
-		params.encparams.ip_hdr_len = 0x14; /* outer header length is 20 bytes */
-	}
-	else if (outer_header_ip_version == 6) {
-
-//		outer_ip_header[0] = 0x60000000;
-		outer_ip_header[0] = 0x6db00000;
-//		outer_ip_header[1] = 0x002032ff;
-		outer_ip_header[1] = 0x000032ff;
-		outer_ip_header[2] = 0xfe800000;
-		outer_ip_header[3] = 0x00000000;
-		outer_ip_header[4] = 0x021125ff;
-		outer_ip_header[5] = 0xfe8295b5;
-		outer_ip_header[6] = 0xff020000;
-		outer_ip_header[7] = 0x00000000;
-		outer_ip_header[8] = 0x00000001;
-		outer_ip_header[9] = 0xff8295b5;
-
-		params.encparams.ip_hdr_len = 0x28; /* outer header length is 40 bytes */
-	}
-	// UDP ENCAP
-	else if (outer_header_ip_version == 17) {
-
-		outer_ip_header[0] = 0x45db001c;
-		outer_ip_header[1] = 0x12340000;
-		outer_ip_header[2] = 0xff11386f;
-		outer_ip_header[3] = 0x45a4e14c;
-		outer_ip_header[4] = 0xed035c45;
-		outer_ip_header[5] = 0x11941194;
-		outer_ip_header[6] = 0x00000000;
-
-		params.encparams.ip_hdr_len = 0x1c; /* outer header length is 28 bytes */
-	}
-
-	/* UDP transport mode encap */
-	else if (outer_header_ip_version == 18) {
-		outer_ip_header[0] = 0x11941194;
-		outer_ip_header[1] = 0x00000000;
-	}
-
-	
-	if (tunnel_transport_mode == 0) { /* Transport Mode */
-		params.encparams.ip_hdr_len = 0;
-	}
-	
-	/* Outbound (encryption) parameters */
-	params.direction = IPSEC_DIRECTION_OUTBOUND; /**< Descriptor direction */
-
-	/* Miscellaneous control flags */
-	params.flags = tunnel_transport_mode |
-			IPSEC_FLG_LIFETIME_KB_CNTR_EN | IPSEC_FLG_LIFETIME_PKT_CNTR_EN |
+	/* Create all SAs */
+	for (sa_index = 0; sa_index < TEST_NUM_OF_SA; sa_index++) {
+		/* Outbound (encryption) parameters */
+		if (outer_header_ip_version == 4) {
+			/* Outer IPv4 header */
+			outer_ip_header[0] = 0x45db0014;
+			outer_ip_header[1] = 0x12340000;
+			outer_ip_header[2] = 0xff32386f;
+			outer_ip_header[3] = 0x45a4e14c;
+			outer_ip_header[4] = 0xed035c45;
+			 /* Outer header length is 20 bytes */
+			params.encparams.ip_hdr_len = 0x14;
+		} else if (outer_header_ip_version == 6) {
+			/* Outer IPv6 header */
+			outer_ip_header[0] = 0x6db00000;
+			outer_ip_header[1] = 0x000032ff;
+			outer_ip_header[2] = 0xfe800000;
+			outer_ip_header[3] = 0x00000000;
+			outer_ip_header[4] = 0x021125ff;
+			outer_ip_header[5] = 0xfe8295b5;
+			outer_ip_header[6] = 0xff020000;
+			outer_ip_header[7] = 0x00000000;
+			outer_ip_header[8] = 0x00000001;
+			outer_ip_header[9] = 0xff8295b5;
+			 /* Outer header length is 40 bytes */
+			params.encparams.ip_hdr_len = 0x28;
+		} else if (outer_header_ip_version == 17) {
+			/* Outer UDP ENCAP header */
+			outer_ip_header[0] = 0x45db001c;
+			outer_ip_header[1] = 0x12340000;
+			outer_ip_header[2] = 0xff11386f;
+			outer_ip_header[3] = 0x45a4e14c;
+			outer_ip_header[4] = 0xed035c45;
+			outer_ip_header[5] = 0x11941194;
+			outer_ip_header[6] = 0x00000000;
+			 /* Outer header length is 28 bytes */
+			params.encparams.ip_hdr_len = 0x1c;
+		} else if (outer_header_ip_version == 18) {
+			/* UDP transport mode encap */
+			outer_ip_header[0] = 0x11941194;
+			outer_ip_header[1] = 0x00000000;
+		}
+		if (tunnel_transport_mode == 0) {
+			/* Transport Mode */
+			params.encparams.ip_hdr_len = 0;
+		}
+		params.direction = IPSEC_DIRECTION_OUTBOUND;
+		/* Miscellaneous control flags */
+		params.flags = tunnel_transport_mode |
+				IPSEC_FLG_LIFETIME_KB_CNTR_EN |
+				IPSEC_FLG_LIFETIME_PKT_CNTR_EN |
 				set_dscp | reuse_buffer_mode;
-
-	if (outer_header_ip_version == 18) {
-		params.flags |= IPSEC_ENC_OPTS_NAT_EN;
-	}
-
-	
-	if (encap_soft_seconds | encap_hard_seconds) {
-		params.flags |= IPSEC_FLG_LIFETIME_SEC_CNTR_EN;
-		fsl_print("IPSEC: Encap seconds lifetime enabled, soft = %d, hard =%d\n", 
-				encap_soft_seconds, encap_hard_seconds);
-	}
-	
-	/* UDP ENCAP (tunnel mode)*/
-	if ((outer_header_ip_version == 17) &&
-			(tunnel_transport_mode == IPSEC_FLG_TUNNEL_MODE)) {
-		params.flags |= IPSEC_ENC_OPTS_NAT_EN;
-		params.flags |= IPSEC_ENC_OPTS_NUC_EN;
-		fsl_print("IPSEC: Tunnel Mode UDP Encapsulation\n");
-	}
-
-	params.encparams.options = esn_enable | transport_ipvsn;
-
-	params.encparams.seq_num_ext_hi = 0x0;
-	params.encparams.seq_num = 0x1;
-	params.encparams.spi = 0x1234;
-	params.encparams.outer_hdr = (uint32_t *)&outer_ip_header;
-
-	for (i=0; i<sizeof(params.encparams.cbc.iv); i++) {
-		params.encparams.cbc.iv[i] = 0;
-	}
-
-	params.cipherdata.algtype = cipher_alg;
-	params.cipherdata.key = cipher_key_addr;
-	params.cipherdata.keylen = cipher_keylen;
-	params.cipherdata.key_enc_flags = 0x0;
-
-	params.authdata.algtype = auth_alg;
-	params.authdata.key = auth_key_addr;
-	params.authdata.keylen = auth_keylen;
-	params.authdata.key_enc_flags = 0x0;
-
-	params.soft_kilobytes_limit = 0xffffffffffffffff;
-	params.hard_kilobytes_limit = 0xffffffffffffffff;
-	params.soft_packet_limit = 0xffffffffffffffff;
-	params.hard_packet_limit = 0xffffffffffffffff;
-	
-	params.soft_seconds_limit = encap_soft_seconds;
-	params.hard_seconds_limit = encap_hard_seconds;
-
-	params.lifetime_callback = &user_lifetime_callback;
-	params.callback_arg = 0xe;
-
-	params.spid = ni_spid;
-
-	/* Create Outbound (encryption) Descriptor */
-	err = ipsec_add_sa_descriptor(
-			&params,
-			ws_instance_handle,
-			&ws_desc_handle_outbound);
-
-	handle_high =
-			(uint32_t)((ws_desc_handle_outbound & 0xffffffff00000000)>>32);
-	handle_low =
-			(uint32_t)(ws_desc_handle_outbound & 0x00000000ffffffff);
-
-	if (err) {
-		fsl_print("ERROR: ipsec_add_sa_descriptor(encryption) failed\n");
-		fsl_print("ipsec_add_sa_descriptor return status = %d (0x%x)\n",
-				err, err);
-	} else {
-		fsl_print("ipsec_add_sa_descriptor(encryption) succeeded\n");
-		fsl_print("Encryption handle = 0x%x_%x\n", handle_high, handle_low);
-	}
-
-	ipsec_sa_desc_outbound = ws_desc_handle_outbound;
-
-	/* Inbound (decryption) parameters */
-	params.direction = IPSEC_DIRECTION_INBOUND; /**< Descriptor direction */
-
-	/* Flags */
-	params.flags = tunnel_transport_mode |
-				IPSEC_FLG_LIFETIME_KB_CNTR_EN | IPSEC_FLG_LIFETIME_PKT_CNTR_EN |
+		if (outer_header_ip_version == 18)
+			params.flags |= IPSEC_ENC_OPTS_NAT_EN;
+		if (encap_soft_seconds | encap_hard_seconds) {
+			params.flags |= IPSEC_FLG_LIFETIME_SEC_CNTR_EN;
+			fsl_print("ENCAP lifetime : soft = %u, hard = %u\n",
+				  encap_soft_seconds, encap_hard_seconds);
+		}
+		/* UDP ENCAP (tunnel mode)*/
+		if (outer_header_ip_version == 17 &&
+		    tunnel_transport_mode == IPSEC_FLG_TUNNEL_MODE) {
+			params.flags |= IPSEC_ENC_OPTS_NAT_EN;
+			params.flags |= IPSEC_ENC_OPTS_NUC_EN;
+			fsl_print("IPSEC: Tunnel Mode UDP Encapsulation\n");
+		}
+		params.encparams.options = roll_over_enable | esn_enable |
+							transport_ipvsn;
+		/* Sequence Number */
+		params.encparams.seq_num_ext_hi = SEQNO_H;
+		params.encparams.seq_num = SEQNO_L;
+		params.encparams.spi = 0x1234;
+		params.encparams.outer_hdr = (uint32_t *)&outer_ip_header;
+		/* Clear IV */
+		for (i = 0; i < sizeof(params.encparams.cbc.iv); i++)
+			params.encparams.cbc.iv[i] = 0;
+		/* Cipher algorithm parameters */
+		params.cipherdata.algtype = cipher_alg;
+		params.cipherdata.key = cipher_key_addr;
+		params.cipherdata.keylen = cipher_keylen;
+		params.cipherdata.key_enc_flags = 0x0;
+		/* Authentication algorithm parameters */
+		params.authdata.algtype = auth_alg;
+		params.authdata.key = auth_key_addr;
+		params.authdata.keylen = auth_keylen;
+		params.authdata.key_enc_flags = 0x0;
+		/* Bytes/Packets limits */
+#if (KB_LIMIT_ENABLE == 1)
+		params.soft_kilobytes_limit = ENCAP_SOFT_KB_LIMIT;
+		params.hard_kilobytes_limit = ENCAP_HARD_KB_LIMIT;
+		lifetime_kb_cntr_en = IPSEC_FLG_LIFETIME_KB_CNTR_EN;
+#endif
+#if (PKT_LIMIT_ENABLE == 1)
+		params.soft_packet_limit = ENCAP_SOFT_PKT_LIMIT;
+		params.hard_packet_limit = ENCAP_HARD_PKT_LIMIT;
+		lifetime_pkt_cntr_en = IPSEC_FLG_LIFETIME_PKT_CNTR_EN;
+#endif
+		/* Lifetime limits */
+#if (LIFETIME_TIMERS_ENABLE == 1)
+		params.soft_seconds_limit = encap_soft_seconds;
+		params.hard_seconds_limit = encap_hard_seconds;
+		/* User call-back on lifetime timers (forced)expiration */
+		params.lifetime_callback = &user_lifetime_callback;
+		params.callback_arg = 0xe;
+#else
+		params.lifetime_callback = 0;
+#endif
+		/* Storage profile */
+		params.spid = ni_spid;
+		/* Create Outbound (encryption) Descriptor */
+		err = ipsec_add_sa_descriptor(&params, ws_instance_handle,
+					      &ws_desc_handle_outbound);
+		handle_high = (uint32_t)((ws_desc_handle_outbound &
+					  0xffffffff00000000) >> 32);
+		handle_low = (uint32_t)(ws_desc_handle_outbound &
+					0x00000000ffffffff);
+		if (err) {
+			fsl_print("Add ENCAP SA failed : err = %d\n", err);
+			break;
+		}
+		fsl_print("[%d] Add ENCAP SA succeeded : handle = 0x%x:%08x\n",
+			  sa_index, handle_high, handle_low);
+		ipsec_sas_desc_outbound[sa_index] = ws_desc_handle_outbound;
+		/* Inbound (decryption) parameters */
+		params.direction = IPSEC_DIRECTION_INBOUND;
+		/* Flags */
+		params.flags = tunnel_transport_mode |
+				IPSEC_FLG_LIFETIME_KB_CNTR_EN |
+				IPSEC_FLG_LIFETIME_PKT_CNTR_EN |
 				reuse_buffer_mode;
-
-	if (decap_soft_seconds | decap_hard_seconds) {
-		params.flags |= IPSEC_FLG_LIFETIME_SEC_CNTR_EN;
-		fsl_print("IPSEC: Decap seconds lifetime enabled, soft = %d, hard =%d\n", 
-				decap_soft_seconds, decap_hard_seconds);
+		if (decap_soft_seconds | decap_hard_seconds) {
+			params.flags |= IPSEC_FLG_LIFETIME_SEC_CNTR_EN;
+			fsl_print("DECAP lifetime : soft = %u, hard = %u\n",
+				  decap_soft_seconds, decap_hard_seconds);
+		}
+		pad_check = DECAP_PAD_CHECK;
+		params.flags |= pad_check;
+		params.decparams.options = esn_enable | transport_ipvsn |
+				DECAP_ARW_SIZE;
+		/* Sequence Number */
+		params.decparams.seq_num_ext_hi = SEQNO_H;
+		params.decparams.seq_num = SEQNO_L;
+		/* Cipher algorithm parameters */
+		params.cipherdata.algtype = cipher_alg;
+		params.cipherdata.key = cipher_key_addr;
+		params.cipherdata.keylen = cipher_keylen;
+		params.cipherdata.key_enc_flags = 0x0;
+		/* Authentication algorithm parameters */
+		params.authdata.algtype = auth_alg;
+		params.authdata.key = auth_key_addr;
+		params.authdata.keylen = auth_keylen;
+		params.authdata.key_enc_flags = 0x0;
+		/* Bytes/Packets limits */
+#if (KB_LIMIT_ENABLE == 1)
+		params.soft_kilobytes_limit = DECAP_SOFT_KB_LIMIT;
+		params.hard_kilobytes_limit = DECAP_HARD_KB_LIMIT;
+		lifetime_kb_cntr_en = IPSEC_FLG_LIFETIME_KB_CNTR_EN;
+#endif
+#if (PKT_LIMIT_ENABLE == 1)
+		params.soft_packet_limit = DECAP_SOFT_PKT_LIMIT;
+		params.hard_packet_limit = DECAP_HARD_PKT_LIMIT;
+		lifetime_pkt_cntr_en = IPSEC_FLG_LIFETIME_PKT_CNTR_EN;
+#endif
+		/* Lifetime limits */
+#if (LIFETIME_TIMERS_ENABLE == 1)
+		params.soft_seconds_limit = decap_soft_seconds;
+		params.hard_seconds_limit = decap_hard_seconds;
+		/* User call-back on lifetime timers (forced)expiration */
+		params.lifetime_callback = &user_lifetime_callback;
+		params.callback_arg = 0xd;
+#else
+		params.lifetime_callback = 0;
+#endif
+		/* Storage profile */
+		params.spid = ni_spid;
+		/* Create Inbound (decryption) Descriptor */
+		err = ipsec_add_sa_descriptor(&params, ws_instance_handle,
+					      &ws_desc_handle_inbound);
+		if (err) {
+			fsl_print("Add DECAP SA failed : err = %d\n", err);
+			break;
+		}
+		handle_high = (uint32_t)((ws_desc_handle_inbound &
+					  0xffffffff00000000) >> 32);
+		handle_low = (uint32_t)(ws_desc_handle_inbound &
+					0x00000000ffffffff);
+		fsl_print("[%d] Add DECAP SA succeeded : handle = 0x%x:%08x\n",
+			  sa_index, handle_high, handle_low);
+		ipsec_sas_desc_inbound[sa_index] = ws_desc_handle_inbound;
 	}
-	
-	//params.flags |= IPSEC_FLG_TRANSPORT_PAD_CHECK; // Debug
-
-	//params.decparams.options = 0x0;
-	//params.decparams.options = IPSEC_DEC_OPTS_ARS32; /* Anti Replay 32 bit enabled */
-	//params.decparams.options = IPSEC_OPTS_ESP_ESN;
-	params.decparams.options = esn_enable | transport_ipvsn;
-
-	params.decparams.seq_num_ext_hi = 0x0;
-	params.decparams.seq_num = 0x1;
-
-	params.cipherdata.algtype = cipher_alg;
-	params.cipherdata.key = cipher_key_addr;
-	params.cipherdata.keylen = cipher_keylen;
-	params.cipherdata.key_enc_flags = 0x0;
-
-	params.authdata.algtype = auth_alg;
-	params.authdata.key = auth_key_addr;
-	params.authdata.keylen = auth_keylen;
-	params.authdata.key_enc_flags = 0x0;
-
-	params.soft_kilobytes_limit = 0xffffffffffffffff;
-	params.hard_kilobytes_limit = 0xffffffffffffffff;
-	params.soft_packet_limit = 0xffffffffffffffff;
-	params.hard_packet_limit = 0xffffffffffffffff;
-	
-	params.soft_seconds_limit = decap_soft_seconds;
-	params.hard_seconds_limit = decap_hard_seconds;
-	
-	params.lifetime_callback = &user_lifetime_callback;
-	params.callback_arg = 0xd;
-
-	params.spid = ni_spid;
-
-	/* Create Inbound (decryption) Descriptor */
-	err = ipsec_add_sa_descriptor(
-			&params,
-			ws_instance_handle,
-			&ws_desc_handle_inbound);
-
-	handle_high = (uint32_t)((ws_desc_handle_inbound & 0xffffffff00000000)>>32);
-	handle_low = (uint32_t)(ws_desc_handle_inbound & 0x00000000ffffffff);
-
-	if (err) {
-		fsl_print("ERROR: ipsec_add_sa_descriptor(decryption) failed\n");
-		fsl_print("ipsec_add_sa_descriptor return status = %d (0x%x)\n",
-				err, err);
-	} else {
-		fsl_print("ipsec_add_sa_descriptor(decryption) succeeded\n");
-		fsl_print("Decryption handle = 0x%x_%x\n", handle_high, handle_low);
-	}
-
-	ipsec_sa_desc_inbound = ws_desc_handle_inbound;
-
 	if (!err)
 		fsl_print("IPsec Demo: IPsec Initialization completed\n");
-
-	return err;
+	else
+		return err;
+#if (IPSEC_STATS_PRINT == 1)
+	/* Create statistics print periodic timer */
+	err = tman_create_timer(tmi_id,
+				TMAN_CREATE_TIMER_MODE_TPRI |
+				TMAN_CREATE_TIMER_MODE_SEC_GRANULARITY |
+				TMAN_CREATE_TIMER_MODE_LOW_PRIORITY_TASK,
+				STATS_TIMER_PERIOD, 0, 0,
+				app_stats_timer_cb, &stats_timer_handle);
+	if (err) {
+		pr_err("%d : Cannot create Statistics print timer\n", err);
+		return err;
+	}
+	fsl_print("\t Statistics print timer created handle = 0x%08x\n",
+		  stats_timer_handle);
+#endif
+	return 0;
 } /* End of ipsec_app_init */
 
 /* Print the frame in a Wireshark-like format */
@@ -949,49 +1148,31 @@ void ipsec_print_frame(void) {
 		fsl_print("\n");
 } /* End of ipsec_print_frame */
 
-void ipsec_print_stats (ipsec_handle_t desc_handle) {
-	int err = 0;
-	uint64_t kilobytes;
-	uint64_t packets;
-	uint32_t sec;
-	uint32_t sequence_number;
-	uint32_t extended_sequence_number;
-	uint32_t anti_replay_bitmap[4];
-	uint32_t val_high, val_low;
+static void ipsec_print_stats(ipsec_handle_t desc_handle, uint8_t is_encap)
+{
+	int		err = 0;
+	uint64_t	kilobytes, packets;
+	uint32_t	sec, sequence_number, extended_sequence_number;
+	uint32_t	anti_replay_bitmap[4];
 
+	fsl_print("IPsec Demo: %s Statistics:\n", (is_encap) ?
+		  "Encryption" : "Decryption");
 	/* Read statistics */
-	err = ipsec_get_lifetime_stats(
-		desc_handle,
-		&kilobytes,
-		&packets,
-		&sec);
-	fsl_print("IPsec Demo: ipsec_get_lifetime_stats():\n");
+	err = ipsec_get_lifetime_stats(desc_handle, &kilobytes, &packets, &sec);
+	fsl_print("\t bytes     = %ll\n", kilobytes);
+	fsl_print("\t packets   = %ll\n", packets);
+	fsl_print("\t seconds   = %d\n", sec);
 
-	val_high =
-		(uint32_t)((kilobytes & 0xffffffff00000000)>>32);
-	val_low =
-		(uint32_t)(kilobytes & 0x00000000ffffffff);
-	fsl_print("kilobytes = 0x%x_0x%x,", val_high, val_low);
-
-	val_high =
-		(uint32_t)((packets & 0xffffffff00000000)>>32);
-	val_low =
-		(uint32_t)(packets & 0x00000000ffffffff);
-	fsl_print("packets = 0x%x_0x%x, seconds = %d\n",
-		val_high, val_low, sec);
-
-	err = ipsec_get_seq_num(
-		desc_handle,
-		&sequence_number,
-		&extended_sequence_number,
-		anti_replay_bitmap);
-	fsl_print("IPsec Demo: ipsec_get_seq_num():\n");
-	fsl_print("sequence_number = 0x%x, esn = 0x%x\n",
-			sequence_number, extended_sequence_number);
-	fsl_print("bitmap[0:3] = 0x%x, 0x%x, 0x%x, 0x%x\n",
-		anti_replay_bitmap[0], anti_replay_bitmap[1],
-		anti_replay_bitmap[2], anti_replay_bitmap[3]);
-} /* End of ipsec_print_stats */
+	err = ipsec_get_seq_num(desc_handle, &sequence_number,
+				&extended_sequence_number, anti_replay_bitmap);
+	fsl_print("\t sequence_number = 0x%x:%08x\n",
+			extended_sequence_number, sequence_number);
+	if (!is_encap) {
+		fsl_print("\t bitmap[0:3]     = %08x %08x %08x %08x\n",
+			anti_replay_bitmap[0], anti_replay_bitmap[1],
+			anti_replay_bitmap[2], anti_replay_bitmap[3]);
+	}
+}
 
 void ipsec_print_sp (uint16_t ni_spid) {
 
@@ -1010,22 +1191,52 @@ void ipsec_print_sp (uint16_t ni_spid) {
 	fsl_print("*** Debug: storage_profile (7): 0x%x\n", *((uint32_t *)sp_addr + 7));
 } /* End of ipsec_print_sp */
 
-//ipsec_lifetime_callback_t user_lifetime_callback(uint64_t opaque1, uint8_t opaque2)
+#if (IPSEC_STATS_PRINT == 1)
+static uint32_t get_tman_task_handle(void)
+{
+	return LW_SWAP(16, (uint32_t *)HWC_FD_ADDRESS);
+}
+
+static void app_stats_timer_cb(tman_arg_8B_t arg1, tman_arg_2B_t arg2)
+{
+	int	i;
+
+	UNUSED(arg1);
+	UNUSED(arg2);
+
+	ASSERT_COND(STATS_PRINT_FROM_SA < TEST_NUM_OF_SA);
+	ASSERT_COND(STATS_PRINT_TO_SA <= TEST_NUM_OF_SA);
+	ASSERT_COND(STATS_PRINT_FROM_SA < STATS_PRINT_TO_SA);
+
+	/* Confirm that timer callback finished execution */
+	tman_timer_completion_confirmation(get_tman_task_handle());
+
+	for (i = STATS_PRINT_FROM_SA; i < STATS_PRINT_TO_SA; i++) {
+		ipsec_print_stats(ipsec_sas_desc_outbound[i], 1);
+#if (ENCRYPT_ONLY == 0)
+		ipsec_print_stats(ipsec_sas_desc_inbound[i], 0);
+#endif
+	}
+}
+#endif	/* IPSEC_STATS_PRINT */
+
+#if (LIFETIME_TIMERS_ENABLE == 1)
 void user_lifetime_callback(uint64_t opaque1, uint8_t opaque2)
 {
-
 	fsl_print("\nIn user_lifetime_callback()\n");
 	
 	if (opaque1 == 0xe)
-		fsl_print("Encryption, ");
+		fsl_print("Encryption : ");
 	else 
-		fsl_print("Decryption, ");
+		fsl_print("Decryption : ");
 
-	if (opaque2 == 0)
+	if (opaque2 == IPSEC_SOFT_SEC_LIFETIME_EXPIRED)
 		fsl_print("Soft lifetime expired\n");
-	else 
+	else if (opaque2 == IPSEC_HARD_SEC_LIFETIME_EXPIRED)
 		fsl_print("Hard lifetime expired\n");
+	else if (opaque2 == IPSEC_FORCE_SOFT_SEC_LIFETIME_EXPIRED)
+		fsl_print("Soft lifetime forced expired\n");
+	else
+		fsl_print("Hard lifetime forced expired\n");
 }
-
-
-
+#endif
