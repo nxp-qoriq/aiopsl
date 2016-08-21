@@ -27,16 +27,17 @@
 #ifndef __APPS_ARCH_H
 #define __APPS_ARCH_H
 
-#define ARCH_INIT_TASKS_PER_CORE_SIZE				4
+#define ARCH_INIT_TASKS_PER_CORE_SIZE	4
 
-#define ARCH_DP_DDR_SIZE					(0)
-#define ARCH_CTLU_DP_DDR_NUM_ENTRIES				(0)
-#define ARCH_MFLU_DP_DDR_NUM_ENTRIES				(0)
-#define ARCH_MEM_SYS_DDR1_SIZE				(32 * MEGABYTE)
+#define ARCH_DP_DDR_SIZE				(0)
+#define ARCH_CTLU_DP_DDR_NUM_ENTRIES	(0)
+#define ARCH_MFLU_DP_DDR_NUM_ENTRIES	(0)
 
 #define ARCH_MEM_PEB_SIZE				(512 * KILOBYTE)
-#define ARCH_DPPNI_BUF_SIZE					1024
-#define ARCH_DPNI_BUFS_IN_POOL_NUM				50
+#define ARCH_MEM_SYS_DDR1_SIZE			(32 * MEGABYTE)
+
+#define ARCH_DPPNI_BUF_SIZE				512
+#define ARCH_DPNI_BUFS_IN_POOL_NUM		1024
 
 /* fdma_discard_fd API is different for rev1 and rev2 */
 #define ARCH_FDMA_DISCARD_FD() \

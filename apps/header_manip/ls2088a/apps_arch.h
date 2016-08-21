@@ -34,9 +34,9 @@
 #define ARCH_MFLU_DP_DDR_NUM_ENTRIES				(2048)
 #define ARCH_MEM_SYS_DDR1_SIZE				(32 * MEGABYTE)
 
-#define ARCH_MEM_PEB_SIZE				(512 * KILOBYTE)
-#define ARCH_DPPNI_BUF_SIZE					1024
-#define ARCH_DPNI_BUFS_IN_POOL_NUM				50
+#define ARCH_MEM_PEB_SIZE				(2048 * KILOBYTE)
+#define ARCH_DPPNI_BUF_SIZE				512
+#define ARCH_DPNI_BUFS_IN_POOL_NUM		4096
 
 /* fdma_discard_fd API is different for rev1 and rev2 */
 #define ARCH_FDMA_DISCARD_FD() \

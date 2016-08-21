@@ -61,7 +61,7 @@
 *//***************************************************************************/
 #define APP_MEM_DP_DDR_SIZE	ARCH_DP_DDR_SIZE/**< DP DDR size */
 #define APP_MEM_PEB_SIZE	ARCH_MEM_PEB_SIZE/**< PEB size */
-#define APP_MEM_SYS_DDR1_SIZE   (4 * MEGABYTE)/**< System DDR size */
+#define APP_MEM_SYS_DDR1_SIZE   ARCH_MEM_SYS_DDR1_SIZE/**< System DDR size */
 
 /** @} */ /* end of app_mem */
 
@@ -120,7 +120,7 @@
 *//***************************************************************************/
 
 #define APP_DPNI_NUM_BUFS_IN_POOL	ARCH_DPNI_BUFS_IN_POOL_NUM	/**< Number of buffers */
-#define APP_DPNI_BUF_SIZE_IN_POOL	1024	/**< Size of buffer */
+#define APP_DPNI_BUF_SIZE_IN_POOL	ARCH_DPPNI_BUF_SIZE	/**< Size of buffer */
 #define APP_DPNI_BUF_ALIGN_IN_POOL	64	/**< Alignment of buffer */
 #define APP_DPNI_SPID_COUNT		8	/**< Max number of SPIDs */
 
