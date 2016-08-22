@@ -31,7 +31,7 @@ int rcu_init();
 void rcu_free();
 int rcu_default_early_init();
 void rcu_read_unlock();
-
+void rcu_read_lock();
 
 int rcu_default_early_init()
 {
