@@ -98,7 +98,11 @@ static int gpp_sys_ddr_test_(uint64_t iova, uint16_t size)
 	return gpp_ddr_check(&ic, iova, size);
 }
 
-#define SYSTEM_DDR_PHY_ADDR 0x83d3000000
+#ifndef LS1088A_REV1
+	#define SYSTEM_DDR_PHY_ADDR 0x83d3000000
+#else
+	#define SYSTEM_DDR_PHY_ADDR 0x8190350000
+#endif
 
 /* change the address if needed
  * ICID is set inside to 1 or 2 */
