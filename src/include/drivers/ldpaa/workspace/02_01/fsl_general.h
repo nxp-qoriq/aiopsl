@@ -360,8 +360,6 @@ struct presentation_context {
 #define PRC_OSEL_MASK		0x30
 	/** OSM Entry Point Order Scope Range value mask */
 #define PRC_OSRM_MASK		0x07
-	/** Initial Scope Value mask*/
-#define PRC_ISV_MASK		0x8000
 	/** PRC Frame handle offset */
 #define PRC_SR_BIT_OFFSET	0x1
 	/** No Data Segment bit offset */
@@ -372,8 +370,6 @@ struct presentation_context {
 #define PRC_OEP_BIT_OFFSET	0x6
 	/** OSM Entry Point Select value offset */
 #define PRC_OSEL_BIT_OFFSET	0x4
-	/** Initial Scope Value offset */
-#define PRC_ISV_BIT_OFFSET	0xF
 
 	/** PTA address when PTA is not loaded/not intended to be loaded to the
 	 * working frame */
@@ -447,8 +443,7 @@ struct presentation_context {
 		->osrc_oep_osel_osrm)) & PRC_OSRM_MASK)
 	/** Macro to get the Initial Scope Value */
 #define PRC_GET_ISV_VALUE()						\
-	(((uint8_t)(((struct presentation_context *)HWC_PRC_ADDRESS)	\
-		->isv) & PRC_ISV_MASK) >> PRC_ISV_BIT_OFFSET)
+	((uint16_t)(((struct presentation_context *)HWC_PRC_ADDRESS)->isv))
 
 /** @} */ /* end of AIOP_PRC_Getters */
 

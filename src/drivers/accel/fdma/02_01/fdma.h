@@ -555,18 +555,14 @@
 		(((struct presentation_context *)HWC_PRC_ADDRESS)->	\
 		osrc_oep_osel_osrm & ~PRC_OSRM_MASK) |			\
 		((uint8_t)_val & PRC_OSRM_MASK))
-	/** Macro to set Initial Scope Value bit in workspace from the
+	/** Macro to set Initial Scope Value in workspace from the
 	 * presentation context */
-#define PRC_SET_ISV_BIT()						\
-	(((struct presentation_context *)HWC_PRC_ADDRESS)->isv =\
-		((((struct presentation_context *)HWC_PRC_ADDRESS)->	\
-		isv & ~PRC_ISV_MASK) | PRC_ISV_MASK))
-	/** Macro to reset Initial Scope Value bit in workspace from the
+#define PRC_SET_ISV(_val)						\
+	(((struct presentation_context *)HWC_PRC_ADDRESS)->isv = (uint16_t)(_val))
+	/** Macro to reset Initial Scope Value in workspace from the
 	 * presentation context */
-#define PRC_RESET_ISV_BIT()						\
-	(((struct presentation_context *)HWC_PRC_ADDRESS)->isv =\
-		(((struct presentation_context *)HWC_PRC_ADDRESS)->	\
-		isv & ~PRC_ISV_MASK))
+#define PRC_RESET_ISV()						\
+	(((struct presentation_context *)HWC_PRC_ADDRESS)->isv = 0)
 	/** Dummy Macro for IPSEC */
 #define PRC_SET_ASA_SIZE(_val)
 
