@@ -62,6 +62,8 @@ of all the macros.
 #define APP_DPNI_BUF_ALIGN_IN_POOL	64
 #define APP_DPNI_SPID_COUNT		8
 
+extern struct platform_app_params g_app_params;
+
 #endif /* __APPS_H */
 
 

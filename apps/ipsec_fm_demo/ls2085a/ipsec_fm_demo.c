@@ -68,6 +68,17 @@ extern __PROFILE_SRAM struct storage_profile
  ******************************************************************************/
 /*#define PERF_MEASUREMENT*/
 
+/* Set ENCRYPT_ONLY to 1 in order the application performs only packet
+ * encryption */
+#define ENCRYPT_ONLY		0
+
+/* Set DECRYPT_ONLY to 1 in order the application performs only packet
+ * decryption */
+#define DECRYPT_ONLY		0
+
+/* If none of above macros is defined as 1 application performs packet
+ * encryption followed by decryption */
+
 /*******************************************************************************
  * Number of created SA pairs
  ******************************************************************************/
@@ -205,7 +216,12 @@ enum app_key_types {
 
 /* 10 - DECAP anti-replay window size */
 /* IPSEC_DEC_OPTS_ARSNONE - Disabled, ARS32/64/128 - Enabled */
-#define DECAP_ARW_SIZE	IPSEC_DEC_OPTS_ARS32
+#if (DECRYPT_ONLY == 1)
+	/* Disable ARW in the Decrypt only case */
+	#define DECAP_ARW_SIZE	IPSEC_DEC_OPTS_ARSNONE
+#else
+	#define DECAP_ARW_SIZE	IPSEC_DEC_OPTS_ARS32
+#endif
 
 /* 11 - DECAP padding check */
 /* 0 - Disabled,  IPSEC_FLG_TRANSPORT_PAD_CHECK - Enabled */
@@ -228,10 +244,6 @@ ipsec_handle_t	ipsec_sas_desc_inbound[TEST_NUM_OF_SA];
  * processing) and LIFETIME_TIMERS_ENABLE (expiration task occurs, hence
  * less data path processing task, concurrence while accessing DDR in order
  * to update the timers). */
-
-/* Set ENCRYPT_ONLY to 1 in order the application performs only packet
- * encryption */
-#define ENCRYPT_ONLY		0
 
 /* Set IPSEC_DEBUG_PRINT to 1 in order have printed messages */
 #define IPSEC_DEBUG_PRINT	0
@@ -259,7 +271,9 @@ __HOT_CODE ENTRY_POINT static void app_perf_process_packet(void)
 	uint32_t	status = 0;
 	uint8_t		*eth_pointer_byte;
 	uint32_t	sa_idx;
+#if (DECRYPT_ONLY == 0)
 	ipsec_handle_t	ws_desc_handle_outbound;
+#endif
 #if (ENCRYPT_ONLY == 0)
 	ipsec_handle_t	ws_desc_handle_inbound;
 #endif
@@ -270,11 +284,14 @@ __HOT_CODE ENTRY_POINT static void app_perf_process_packet(void)
 	/* IP_SRC based distribution */
 	sa_idx = (*((uint32_t *)(eth_pointer_byte + IP_SRC_OFF))) %
 							TEST_NUM_OF_SA;
+#if (DECRYPT_ONLY == 0)
 	ws_desc_handle_outbound = ipsec_sas_desc_outbound[sa_idx];
+#endif
 #if (ENCRYPT_ONLY == 0)
 	ws_desc_handle_inbound = ipsec_sas_desc_inbound[sa_idx];
 #endif
 
+#if (DECRYPT_ONLY == 0)
 	err = ipsec_frame_encrypt(ws_desc_handle_outbound, &status);
 	if (err) {
 #if (IPSEC_DEBUG_PRINT == 1)
@@ -283,6 +300,7 @@ __HOT_CODE ENTRY_POINT static void app_perf_process_packet(void)
 		fdma_discard_default_frame(FDMA_DIS_NO_FLAGS);
 		fdma_terminate_task();
 	}
+#endif
 #if (ENCRYPT_ONLY == 0)
 	err = ipsec_frame_decrypt(ws_desc_handle_inbound, &status);
 	if (err) {
@@ -578,7 +596,30 @@ int app_early_init(void)
 	fsl_print("Place for %d timers was reserved\n", num - 4);
 	/* Set DHR to 256 in the default storage profile */
 	err = dpni_drv_register_rx_buffer_layout_requirements(256, 0, 0);
-			
+
+#if (BUFFER_MODE != IPSEC_FLG_BUFFER_REUSE)
+	if (g_app_params.ipsec_buffer_allocate_enable) {
+		/* Change the buffer size. There is no sufficient space to
+		 * allocate the default number of buffers. */
+		pr_warn("%s : Buffer size changed from %d to %d bytes !\n",
+			__func__, g_app_params.dpni_buff_size,
+			g_app_params.dpni_buff_size / 2);
+		g_app_params.dpni_buff_size /= 2;
+	} else {
+		/* If the application did not configured the creation of the
+		 * dedicated IPSec buffer pool, just print a warning messages.
+		 * Buffers will be taken from the DPNI PEB BP. BP depletion
+		 * occurs at high input traffic rates : packets are dropped by
+		 * the input port. */
+		pr_warn("%s : Buffer allocate mode not enabled !\n", __func__);
+	}
+#else
+	if (g_app_params.ipsec_buffer_allocate_enable) {
+		g_app_params.ipsec_buffer_allocate_enable = 0;
+		pr_warn("%s : Buffer allocate enabled, forced to 0 !\n",
+			__func__);
+	}
+#endif
 	return err;
 }
 
@@ -723,9 +764,9 @@ int ipsec_app_init(uint16_t ni_id)
 	//outer_header_ip_version = 17; /* UDP encap - Tunnel mode */
 	//outer_header_ip_version = 18; /* UDP encap - Transport mode */
 	
-	/*"1234567812345678123456781234567812345678123456781234567812345678"*/
+	/* "01234567..." */
 	for (i = 0; i < 128; i++)
-		auth_key[i] = (uint8_t)i;
+		auth_key[i] = (uint8_t)(0x30 + i % 8);
 
 	tunnel_transport_mode = TUNEL_TRANSPORT_MODE;
 
