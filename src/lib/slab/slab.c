@@ -1723,6 +1723,10 @@ __COLD_CODE int slab_register_context_buffer_requirements(
 		}
 	}
 
+	/* max_buffs is considered as the number of buffers needed for the app */
+	/* until there is a mechanism to dynamically allocate memory after init time */
+	committed_buffs = max_buffs;
+
 	if(num_ddr_pools > 0)
 		g_slab_early_init_data->num_ddr_pools += num_ddr_pools;
 

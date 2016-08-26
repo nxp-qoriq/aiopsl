@@ -240,6 +240,7 @@ int slab_debug_info_get(struct slab *slab, struct slab_debug_info *slab_info);
 		Max alignment supported 32768 Byte (minimum is 0).
 		0 <= Alignment <= Buffer size + Meta data.
 		The alignment starts from data field and must be a power of 2.
+		max_buffs is considered as the maximum number of buffers needed for apps.
 @Return		0        - on success,
 		-ENAVAIL - resource not available or not found,
 		-ENOMEM  - not enough memory for requested memory partition
