@@ -63,6 +63,13 @@
 
 
 /**************************************************************************//**
+ @Description   Values for app_config_flags from platform_app_params structure
+*//***************************************************************************/
+#define DPNI_BACKUP_POOL_DISABLE	0x0001	/**< If set, disables backup buffer pool usage */
+#define IPSEC_BUFFER_ALLOCATE_ENABLE	0x0002	/**< If set, dedicated IPSec buffer pool is created */
+#define IPSEC_OPTIMIZE_FEW_FLOWS	0x0004	/**< If set, IPSec will be optimized for small number of flows */
+
+/**************************************************************************//**
  @Description   Cache Operation Mode
 *//***************************************************************************/
 typedef enum cache_mode {
@@ -158,12 +165,11 @@ struct platform_param {
  @Description   Platform application parameters structure
 *//***************************************************************************/
 struct platform_app_params {
-	uint16_t dpni_num_buffs;	/**< number of buffers for dpni pool*/
-	uint16_t dpni_buff_size;	/**< size of buffers for dpni pool*/
-	uint16_t dpni_drv_alignment;	/**< dpni pool buffers alignment*/
+	uint16_t dpni_num_buffs;	/**< number of buffers for dpni pool */
+	uint16_t dpni_buff_size;	/**< size of buffers for dpni pool */
+	uint16_t dpni_drv_alignment;	/**< dpni pool buffers alignment */
 	uint16_t app_arr_size;		/**< Maximal size of app init array */
-	uint8_t  backup_pool_disable;   /**< If set, disables backup buffer pool usage */
-	uint8_t  ipsec_buffer_allocate_enable;   /**< allocates new IPSec bp*/
+	uint16_t app_config_flags;	/**< Application config flags.Values are taken from above defines */
 };
 
 /** @} */ /* end of ls2085a_g group */

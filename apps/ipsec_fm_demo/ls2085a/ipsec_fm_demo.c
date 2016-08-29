@@ -598,7 +598,7 @@ int app_early_init(void)
 	err = dpni_drv_register_rx_buffer_layout_requirements(256, 0, 0);
 
 #if (BUFFER_MODE != IPSEC_FLG_BUFFER_REUSE)
-	if (g_app_params.ipsec_buffer_allocate_enable) {
+	if (g_app_params.app_config_flags & IPSEC_BUFFER_ALLOCATE_ENABLE) {
 		/* Change the buffer size. There is no sufficient space to
 		 * allocate the default number of buffers. */
 		pr_warn("%s : Buffer size changed from %d to %d bytes !\n",
@@ -614,8 +614,8 @@ int app_early_init(void)
 		pr_warn("%s : Buffer allocate mode not enabled !\n", __func__);
 	}
 #else
-	if (g_app_params.ipsec_buffer_allocate_enable) {
-		g_app_params.ipsec_buffer_allocate_enable = 0;
+	if (g_app_params.app_config_flags & IPSEC_BUFFER_ALLOCATE_ENABLE) {
+		g_app_params.app_config_flags &= ~IPSEC_BUFFER_ALLOCATE_ENABLE;
 		pr_warn("%s : Buffer allocate enabled, forced to 0 !\n",
 			__func__);
 	}

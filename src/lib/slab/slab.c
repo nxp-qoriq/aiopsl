@@ -939,9 +939,10 @@ __COLD_CODE static int dpbp_discovery(struct slab_bpid_info *bpids_arr,
 	int i = 0;
 	int num_buf_ipsec = 0;
 	struct mc_dprc *dprc = sys_get_unique_handle(FSL_MOD_AIOP_RC);
-	uint8_t bkp_pool_disable = (uint8_t)g_app_params.backup_pool_disable;
-	uint8_t  ipsec_buffer_allocate_enable =
-			(uint8_t)g_app_params.ipsec_buffer_allocate_enable;
+	uint8_t bkp_pool_disable = g_app_params.app_config_flags &
+				DPNI_BACKUP_POOL_DISABLE ? 1 : 0;
+	uint8_t  ipsec_buffer_allocate_enable = g_app_params.app_config_flags &
+				IPSEC_BUFFER_ALLOCATE_ENABLE ? 1 : 0;
 
 	/*Calling MC to get bpid's*/
 	if (dprc == NULL)

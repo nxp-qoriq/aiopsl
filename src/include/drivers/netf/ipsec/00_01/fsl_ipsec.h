@@ -533,8 +533,8 @@ int ipsec_early_init(
 		the application. It is called from the AIOP initialization task,
 		in the global initialization stage. Note : The application
 		requests the dedicated BP creation by setting the
-		"ipsec_buffer_allocate_enable" application configuration
-		variable.
+		"IPSEC_BUFFER_ALLOCATE_ENABLE" application configuration
+		flag.
 
 @Return		- 0 in case of success
 			- ENOMEM in case of not enough memory

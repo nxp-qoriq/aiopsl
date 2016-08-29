@@ -82,10 +82,11 @@ int ipsec_drv_init(void)
 	int dpbp_id;
 	uint16_t dpbp = 0;
 	int num_bpids = 0;
-	uint8_t bkp_pool_disable = g_app_params.backup_pool_disable;
+	uint8_t bkp_pool_disable = g_app_params.app_config_flags &
+					DPNI_BACKUP_POOL_DISABLE ? 1 : 0;
 
 	/* If the new buffer is not brought by user, do nothing */
-	if (!g_app_params.ipsec_buffer_allocate_enable)
+	if (!(g_app_params.app_config_flags & IPSEC_BUFFER_ALLOCATE_ENABLE))
 		return 0;
 
 	if (dprc == NULL)
@@ -1115,7 +1116,7 @@ void ipsec_generate_flc(
 	 * Profile to Flow Context
 	 */
 	if (reuse_mode || !(reuse_mode ||
-			g_app_params.ipsec_buffer_allocate_enable)) {
+		(g_app_params.app_config_flags & IPSEC_BUFFER_ALLOCATE_ENABLE))) {
 		int i;
 
 		/* Copy the standard Storage Profile to Flow Context
@@ -1182,7 +1183,7 @@ void ipsec_generate_flc(
 		
 	} else {
 		/* New output buffer mode */ 
-		if (g_app_params.ipsec_buffer_allocate_enable) {
+		if (g_app_params.app_config_flags & IPSEC_BUFFER_ALLOCATE_ENABLE) {
 			/* Set BMT1 from aiop icontext and BVP1 */
 			sp_controls = (icontext_aiop.bdi_flags &
 					FDMA_ENF_BDI_BIT) | 1;
@@ -1368,7 +1369,8 @@ int ipsec_generate_sa_params(
 			 * network interfaces take the bpid from sp */
 			if (sap.sap1.sec_buffer_mode ||
 				!(sap.sap1.sec_buffer_mode ||
-				g_app_params.ipsec_buffer_allocate_enable))
+				(g_app_params.app_config_flags &
+				IPSEC_BUFFER_ALLOCATE_ENABLE)))
 				/* 14 bit BPID is at offset 0x12 (18) of the
 				 * storage profile
 				 * Read-swap and mask the 2 MSbs */
@@ -1551,9 +1553,9 @@ int ipsec_add_sa_descriptor(
 	uint8_t tmi_id; /* TMAN Instance ID  */
 
 	/* Verify if new buffer is enabled */
-	if (!g_app_params.ipsec_buffer_allocate_enable &&
+	if (!(g_app_params.app_config_flags & IPSEC_BUFFER_ALLOCATE_ENABLE) &&
 			(params->flags & IPSEC_FLG_BUFFER_REUSE) == 0) {
-		pr_warn("Buffer reuse without enabling dedicated IPSec BP");
+		pr_warn("Buffer allocate mode without enabling dedicated IPSec BP\n");
 	}
 
 	/* Create a shared descriptor */

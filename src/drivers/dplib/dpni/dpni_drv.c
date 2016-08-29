@@ -900,7 +900,8 @@ static int configure_bpids_for_dpni(void)
 	struct dpbp_attr attr;
 	uint16_t buffer_size = (uint16_t)g_app_params.dpni_buff_size;
 	uint16_t num_buffs = (uint16_t)g_app_params.dpni_num_buffs;
-	uint8_t bkp_pool_disable = (uint8_t)g_app_params.backup_pool_disable;
+	uint8_t bkp_pool_disable = g_app_params.app_config_flags &
+			DPNI_BACKUP_POOL_DISABLE ? 1 : 0;
 	uint16_t alignment;
 	uint8_t mem_pid[] = {DPNI_DRV_FAST_MEMORY, (uint8_t)get_existing_ddr_memory()};
 
