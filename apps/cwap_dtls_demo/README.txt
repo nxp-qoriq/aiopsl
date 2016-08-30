@@ -3,7 +3,7 @@ Introduction
 ===========================================
 The following file includes the instructions for the CAPWAP/DTLS demo
 (cwap_dtls_demo).
-Currently, the demo works only on LS2085A boards.
+Currently, the demo works only on LS2085A and LS2088A boards.
 
 For (generic) instructions on how to write the binaries in flash etc.,
 please refer to app_process_packet application README.
