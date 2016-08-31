@@ -969,23 +969,30 @@ __COLD_CODE static int dpbp_discovery(struct slab_bpid_info *bpids_arr,
 		}
 	}
 
-	/* Reserve a buffer pool for IPSec */
-	if (ipsec_buffer_allocate_enable) {
-		num_buf_ipsec += 1;
-		dprc_get_obj(&dprc->io, 0, dprc->token, ++i, &dev_desc);
-		if (strcmp(dev_desc.type, "dpbp") == 0) {
-			pr_info("Found DPBP ID: %d, Skipping, used for IPSec\n",
-					dev_desc.id);
-			num_bpids++;
-		}
-	}
-
-	/*Check if dpbp was found*/
+	/* Check if dpbp was found */
 	if ((num_bpids != 1 && bkp_pool_disable) ||
-			(num_bpids != SLAB_NUM_BPIDS_USED_FOR_DPNI +
-					num_buf_ipsec && !bkp_pool_disable)) {
+		(num_bpids != SLAB_NUM_BPIDS_USED_FOR_DPNI &&
+				!bkp_pool_disable)) {
 		pr_err("Not enough DPBPs found in the container.\n");
 		return -ENODEV;
+	}
+
+	/* Reserve a buffer pool for IPSec */
+	if (ipsec_buffer_allocate_enable) {
+		for (++i; i < dev_count; i++) {
+			dprc_get_obj(&dprc->io, 0, dprc->token, i, &dev_desc);
+			if (strcmp(dev_desc.type, "dpbp") == 0) {
+				num_buf_ipsec += 1;
+				pr_info("dpbp@%d :Skipped, used for IPSec\n",
+					dev_desc.id);
+				num_bpids++;
+				break;
+			}
+		}
+		if (!num_buf_ipsec) {
+			pr_err("Not enough DPBPs found in the container.\n");
+			return -ENODEV;
+		}
 	}
 
 	num_bpids = 0; /*for now we save the first dpbp for later use.*/

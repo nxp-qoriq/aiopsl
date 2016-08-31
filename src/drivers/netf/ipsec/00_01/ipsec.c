@@ -97,7 +97,7 @@ int ipsec_drv_init(void)
 			   dprc->token);
 		return err;
 	}
-
+	/* Skip the buffer pool used for DPNIs */
 	for (i = 0; i < dev_count; i++) {
 		dprc_get_obj(&dprc->io, 0, dprc->token, i, &dev_desc);
 		if (strcmp(dev_desc.type, "dpbp") == 0) {
@@ -110,28 +110,31 @@ int ipsec_drv_init(void)
 	}
 
 	/* Reserve a buffer pool for IPSec */
-	dprc_get_obj(&dprc->io, 0, dprc->token, ++i, &dev_desc);
-	if (strcmp(dev_desc.type, "dpbp") == 0) {
-		pr_info("Found DPBP ID: %d, THIS is used for IPSec\n",
+	for (++i; i < dev_count; i++) {
+		dprc_get_obj(&dprc->io, 0, dprc->token, i, &dev_desc);
+		if (strcmp(dev_desc.type, "dpbp") == 0) {
+			pr_info("Found dpbp@%d, THIS is used for IPSec\n",
 				dev_desc.id);
-		dpbp_id = dev_desc.id;
+			dpbp_id = dev_desc.id;
+			break;
+		}
 	}
 
 	err = dpbp_open(&dprc->io, 0, dpbp_id, &dpbp);
 	if (err) {
-		pr_err("Failed to open DPBP-%d.\n", dpbp_id);
+		pr_err("Failed to open dpbp@%d.\n", dpbp_id);
 		return err;
 	}
 
 	err = dpbp_enable(&dprc->io, 0, dpbp);
 	if (err) {
-		pr_err("Failed to enable DPBP-%d.\n", dpbp_id);
+		pr_err("Failed to enable dpbp@%d.\n", dpbp_id);
 		return err;
 	}
 
 	err = dpbp_get_attributes(&dprc->io, 0, dpbp, &attr);
 	if (err) {
-		pr_err("Failed to get attributes from DPBP-%d.\n", dpbp_id);
+		pr_err("Failed to get attributes from dpbp@%d.\n", dpbp_id);
 		return err;
 	}
 
@@ -140,13 +143,13 @@ int ipsec_drv_init(void)
 			     g_app_params.dpni_drv_alignment, MEM_PART_PEB,
 			     attr.bpid, 0);
 	if (err) {
-		pr_err("Failed to fill DPBP-%d (BPID=%d) with buff size %d.\n",
-			   dpbp_id, attr.bpid, g_app_params.dpni_buff_size);
+		pr_err("Failed to fill dpbp@%d (BPID=%d) with buff size %d.\n",
+			dpbp_id, attr.bpid, g_app_params.dpni_buff_size);
 		return err;
 	}
 
 	ipsec_bpid = attr.bpid;
-	pr_info("Filled DPBP-%d (BPID=%d) with buffer size %d.\n",
+	pr_info("Filled dpbp@%d (BPID=%d) with buffer size %d.\n",
 		dpbp_id, attr.bpid, g_app_params.dpni_buff_size);
 
 	return 0;
