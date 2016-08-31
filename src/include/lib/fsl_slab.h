@@ -36,6 +36,7 @@
 #include "fsl_types.h"
 #include "fsl_cdma.h"
 #include "fsl_malloc.h"
+#include "fsl_bman.h"
 
 /**************************************************************************//**
 @Group         slab_g   SLAB
@@ -71,7 +72,7 @@ struct slab;
 
 
 /**************************************************************************//**
-@Description   Available debug information about every slab
+@Description   Available debug information about every slab pool
 *//***************************************************************************/
 struct slab_debug_info {
 	/** Maximal buffer size */
@@ -80,12 +81,48 @@ struct slab_debug_info {
 	uint32_t committed_buffs;
 	/** Maximal number of buffers inside this pool */
 	uint32_t max_buffs;
-	/** HW pool ID */
+	/** Hardware BP (Buffer pool ID-BPID) of which this slab pool 
+	 * is part of */
 	uint16_t pool_id;
-	/** Maximal alignment */
+	/** Alignment of buffers in slab pool configured by application */
 	uint16_t alignment;
 	/** Memory partition */
 	uint16_t mem_pid;
+	/** Number of allocated buffers in the slab pool 
+	 * (buffers in use/acquired) */
+	uint32_t allocated_buffs;
+	/** Number of failures to allocate a buffer in slab pool */
+	uint32_t num_failed_allocs;
+	/** Number of free (available) buffers in slab pool. 
+	 * Is difference between max
+	 * number of buffers and number of allocated buffers */
+	uint32_t num_buff_free;
+};
+
+/**************************************************************************//**
+@Description   Available debug information about every hardware BMAN pool
+*//***************************************************************************/
+struct bman_debug_info {
+	/** Buffer Pool ID (HW pool ID) */
+	uint16_t bpid;
+	/** Number of allocated buffers in BMAN pool. This should be equal
+	 * to sum of allocated_buffs */
+	uint32_t num_buffs_alloc;
+	/** Number of free buffers in BMAN pool. This should be equal
+	 * to sum of all free buffers available in all slab pools from app */
+	uint32_t num_buffs_free;
+	/** Total number of allocated buffers in BMAN pool */
+	uint32_t total_num_buffs;
+	/** Number of failures to allocate in BMAN pool. This should be equal
+	 * to sum of all failures to allocate buffers in all slab pools 
+	 * from app */
+	uint32_t num_failed_allocs;
+	/** Buffer size excluding 8 bytes for HW metadata */
+	uint16_t size;
+	/**< Buffer alignment */
+	uint16_t alignment;
+	/**< Memory Partition Identifier */
+	e_memory_partition_id mem_pid;
 };
 
 /**************************************************************************//**
@@ -206,8 +243,8 @@ inline int slab_refcount_decr(uint64_t buff){
 /**************************************************************************//**
 @Function	slab_debug_info_get
 
-@Description	Decrement buffer reference counter if such exists
-		and return the buffer back to a pool.
+@Description	Get debug information about a SLAB memory pool
+		from a BMAN buffer pool
 
 @Param[in]	slab - Handle to memory pool.
 @Param[out]	slab_info - The pointer to place the debug information.
@@ -217,6 +254,17 @@ inline int slab_refcount_decr(uint64_t buff){
 *//***************************************************************************/
 int slab_debug_info_get(struct slab *slab, struct slab_debug_info *slab_info);
 
+/**************************************************************************//**
+@Function	slab_debug_get_pools_info
+
+@Description	Get debug information about hardware BMAN buffer pool
+
+@Param[out]	slab_info - The pointer to place the debug information.
+
+@Return		0       - on success,
+		-EINVAL - invalid parameter.
+*//***************************************************************************/
+int slab_bman_debug_info_get(uint16_t bpid, struct bman_debug_info *bman_info);
 
 /**************************************************************************//**
 @Function	slab_register_context_buffer_requirements

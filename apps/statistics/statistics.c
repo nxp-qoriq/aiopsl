@@ -600,21 +600,6 @@ int app_init(void)
 		return err;
 	}
 
-#ifdef SLAB_DEBUG
-	struct slab_debug_info	slab_info;
-	/* Print SLAB debug info, such as number of buffers or buffer size */
-	err = slab_debug_info_get(slab, &slab_info);
-	if (err) {
-		pr_err("Cannot get SLAB debug info\n");
-		return err;
-	}
-	fsl_print("%s : SLAB: buff_size=%d, commited_buffs=%d, max_buffs=%d, ",
-		  AIOP_APP_NAME, slab_info.buff_size, slab_info.committed_buffs,
-		  slab_info.max_buffs);
-	fsl_print("pool_id=%d, alignment=%d, mem_pid=%d\n",
-		     slab_info.pool_id, slab_info.alignment, slab_info.mem_pid);
-#endif
-
 	/* Get contiguous block from DP-DDR memory for global statistics */
 	err = fsl_get_mem(sizeof(struct app_stats), APP_MEM_PARTITION,
 			16, &l_stats_addr);
@@ -633,6 +618,51 @@ int app_init(void)
 		pr_err("Cannot create exact match table for per-flow stats\n");
 		return err;
 	}
+	
+#ifdef SLAB_DEBUG
+	struct slab_debug_info			slab_info;
+	struct bman_debug_info			bman_info;
+
+	/* Print SLAB debug info, such as number of buffers or buffer size */
+	err = slab_debug_info_get(slab, &slab_info);
+	if (err) {
+		pr_err("Cannot get SLAB debug info\n");
+		return err;
+	}
+
+	fsl_print("Slab pool info: Slab is from BPID=%d\n"
+			"\tallocated_buffs=%d\n"
+			"\tfailed_allocs=%d\n"
+			"\tfree_buffers=%d\n"
+			"\tcommited_buffs=%d\n"
+			"\tmax_buffs=%d\n"
+			"\talignment=%d\n"
+			"\tmem_pid=%d\n",
+	slab_info.pool_id,
+	slab_info.allocated_buffs,
+	slab_info.num_failed_allocs,
+	slab_info.num_buff_free,
+	slab_info.committed_buffs,
+	slab_info.max_buffs, 
+	slab_info.alignment,
+	slab_info.mem_pid);
+
+	slab_bman_debug_info_get(slab_info.pool_id, &bman_info);
+	fsl_print("Buffer Pool INFO: BPID=%d\n"
+			"\tallocated_buffs=%d\n"
+			"\tfailed_allocs=%d\n"
+			"\tfree_buffers=%d\n"
+			"\tmax_buffs=%d\n", 
+
+	bman_info.bpid,
+	bman_info.num_buffs_alloc,
+	bman_info.num_failed_allocs,
+	bman_info.num_buffs_free,
+	bman_info.total_num_buffs);
+
+	fsl_print("\tbuff_size=%d\n \talignment=%d\n \tmem_pid=%d\n",
+		bman_info.size, bman_info.alignment, bman_info.mem_pid);
+#endif
 
 	fsl_print("%s : Application initialized successfully\n", AIOP_APP_NAME);
 

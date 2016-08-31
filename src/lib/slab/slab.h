@@ -103,12 +103,14 @@
 #define SLAB_BUFFER_TO_MANAGE_IN_DDR  1
 
 /* Maximum number of BMAN pools used by the slab pools array */
-#define SLAB_MAX_BMAN_POOLS_NUM 16
+#define SLAB_MAX_BMAN_POOLS_NUM			16
 
 /**************************************************************************//**
 @Description   Information for every bpid
 *//***************************************************************************/
 struct slab_bpid_info {
+	int dpbp_id;
+	/**< DPBP id obtained from MC/DPL */
 	uint16_t bpid;
 	/**< Bpid - slabs bman id */
 	uint16_t size;
@@ -176,12 +178,18 @@ struct slab_v_pool {
 	/**< Index of bman pool that the buffers were taken from*/
 	slab_release_cb_t *callback_func;
 	/**< Callback function to release virtual pool  */
+	int32_t failed_allocs;
+	/**< Number of failed allocs */
 };
 
 /* BMAN Pool structure */
 struct slab_bman_pool_desc {
 	int32_t remaining;
 	/**< Number of remaining buffers in the bman pool */
+	int32_t allocated;
+	/**< Number of allocated buffers in the bman pool */
+	int32_t failed_allocs;
+	/**< Number of failures to allocate buffers in the bman pool */
 	uint8_t spinlock;
 	/**< Spinlock for locking bman pool */
 	uint8_t flags;

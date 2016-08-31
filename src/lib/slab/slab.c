@@ -78,6 +78,8 @@ __COLD_CODE static int slab_read_pool(uint32_t slab_pool_id,
                           int32_t *max_bufs,
                           int32_t *committed_bufs,
                           int32_t *allocated_bufs,
+                          int32_t *failed_allocs,
+                          int32_t *free_bufs_in_pool,
                           uint8_t *flags,
                           slab_release_cb_t **callback_func)
 {
@@ -114,6 +116,8 @@ __COLD_CODE static int slab_read_pool(uint32_t slab_pool_id,
 	*bman_pool_id =
 		g_slab_bman_pools[slab_virtual_pool->bman_array_index].bman_pool_id;
 
+	*failed_allocs = slab_virtual_pool->failed_allocs;
+	*free_bufs_in_pool = slab_virtual_pool->max_bufs - slab_virtual_pool->allocated_bufs; 
 	pr_info("max buffs %d, committed %d, allocated %d\n", *max_bufs, *committed_bufs, *allocated_bufs);
 	*flags = slab_virtual_pool->flags;
 
@@ -148,6 +152,7 @@ __COLD_CODE static void slab_pool_init(
 	for(i = 0; i < num_of_virtual_pools; i++) {
 		slab_virtual_pool->max_bufs = 0;
 		slab_virtual_pool->spinlock = 0; /* clear spinlock indicator */
+		slab_virtual_pool->failed_allocs = 0;
 		slab_virtual_pool++; /* increment the pointer */
 	}
 
@@ -671,8 +676,6 @@ SLAB_CODE_PLACEMENT int slab_acquire(struct slab *slab, uint64_t *buff)
 		slab_virtual_pool = (struct slab_v_pool *)
 							g_slab_virtual_pools.virtual_pool_struct;
 
-
-
 		slab_virtual_pool += slab_pool_id;
 
 		lock_spinlock((uint8_t *)&slab_virtual_pool->spinlock);
@@ -719,6 +722,8 @@ SLAB_CODE_PLACEMENT int slab_acquire(struct slab *slab, uint64_t *buff)
 	/* Request CDMA to allocate a buffer*/
 	if (allocate) {
 		slab_virtual_pool->allocated_bufs++;
+		atomic_incr32(&g_slab_bman_pools[slab_virtual_pool->bman_array_index].allocated, 1);
+
 		if(cluster == 0)
 			unlock_spinlock((uint8_t *)&slab_virtual_pool->spinlock);
 		else
@@ -736,9 +741,13 @@ SLAB_CODE_PLACEMENT int slab_acquire(struct slab *slab, uint64_t *buff)
 		/* If allocation failed,
 		 * undo the counters increment/decrement */
 		if (return_val) {
-			if(cluster == 0)
+			if(cluster == 0) {
 				atomic_decr32(&slab_virtual_pool->allocated_bufs, 1); /* slab_virtual_pool points to SHRAM */
+				/* Increase number of failed allocations in slab pool */
+				atomic_incr32(&slab_virtual_pool->failed_allocs, 1);
+			}
 
+	
 			if (allocate == 2) /* only if it was allocated from
 					the remaining area */
 				atomic_incr32(&g_slab_bman_pools[slab_virtual_pool->
@@ -750,25 +759,44 @@ SLAB_CODE_PLACEMENT int slab_acquire(struct slab *slab, uint64_t *buff)
 				                     &slab_virtual_pool_ddr,
 				                     (uint16_t)sizeof(slab_virtual_pool_ddr));
 				slab_virtual_pool_ddr.allocated_bufs --;
+				/* Increase number of failed allocations in slab pool */
+				atomic_incr32(&slab_virtual_pool_ddr.failed_allocs, 1);
 				cdma_write_with_mutex(pool_data_address,
 				                      CDMA_POSTDMA_MUTEX_RM_BIT,
 				                      &slab_virtual_pool_ddr,
 				                      (uint16_t)sizeof(slab_virtual_pool_ddr));
 			}
+			/* Increase number of failed allocations in slab pool */
+			atomic_incr32(&g_slab_bman_pools[slab_virtual_pool->
+			                                 bman_array_index].failed_allocs, 1);
+			atomic_decr32(&g_slab_bman_pools[slab_virtual_pool->bman_array_index].allocated, 1);
+
 			return (return_val);
 		}
+
 		return 0;
 	} else {
 		if(cluster == 0)
 		{
 			return_val = slab_virtual_pool->max_bufs; /*return value reused to store max buffers*/
+			/* Increase number of failed allocations */
+			atomic_incr32(&slab_virtual_pool->failed_allocs, 1);
 			unlock_spinlock((uint8_t *)&slab_virtual_pool->spinlock);
 		}
 		else
 		{
 			return_val = slab_virtual_pool_ddr.max_bufs;/*return value reused to store max buffers*/
-			cdma_mutex_lock_release(pool_data_address);
+			atomic_incr32(&slab_virtual_pool_ddr.failed_allocs, 1);
+			cdma_write_with_mutex(pool_data_address,
+			                      CDMA_POSTDMA_MUTEX_RM_BIT,
+			                      &slab_virtual_pool_ddr,
+			                      (uint16_t)sizeof(slab_virtual_pool_ddr));
 		}
+
+		atomic_incr32(&g_slab_bman_pools[slab_virtual_pool->
+		                                 bman_array_index].failed_allocs, 1);
+
+
 		if(return_val == 0)
 		{
 			sl_pr_err("Slab already freed\n");
@@ -892,6 +920,9 @@ SLAB_CODE_PLACEMENT int slab_release(struct slab *slab, uint64_t buff)
 		                      (uint16_t)sizeof(slab_virtual_pool_ddr));
 
 	}
+
+	atomic_decr32(&g_slab_bman_pools
+			[slab_virtual_pool->bman_array_index].allocated, 1);
 	return 0;
 }
 
@@ -921,9 +952,9 @@ __COLD_CODE static int dpbp_add(struct dprc_obj_desc *dev_desc,
 		return err;
 	}
 
-
 	pr_info("found DPBP ID: %d, with BPID %d\n",dpbp_id, attr.bpid);
 	bpids_arr->bpid = attr.bpid; /*Update found BP-ID*/
+	bpids_arr->dpbp_id = dpbp_id;
 	return 0;
 }
 
@@ -1068,6 +1099,8 @@ __COLD_CODE static int slab_alocate_memory(int num_bpids, struct slab_module_inf
 			if (g_slab_bman_pools[j].remaining == -1) {
 				g_slab_bman_pools[j].bman_pool_id = slab_m->hw_pools[i].pool_id;
 				g_slab_bman_pools[j].remaining = 0;
+				g_slab_bman_pools[j].allocated = 0;
+				g_slab_bman_pools[j].failed_allocs = 0;
 				break;
 			}
 		}
@@ -1502,6 +1535,17 @@ __COLD_CODE int slab_module_init(void)
 		pr_err("Failed DPBP add\n");
 		return -ENODEV;
 	}
+	
+	pr_debug("Number of BPIDs: %d\n", num_bpids);
+	for (i = 0; i < num_bpids; i++) {
+		pr_debug("DPBD ID %d with BPID %d (mem pid %d): "
+				"%d buffers of size %d\n",
+			bpids_arr_init[i].dpbp_id,
+			bpids_arr_init[i].bpid,
+			bpids_arr_init[i].mem_pid,
+			bpids_arr_init[i].num_buffers,
+			bpids_arr_init[i].size);
+	}
 
 	err = fsl_get_mem(SLAB_MAX_NUM_VP_DDR *
 	                     num_clusters_for_ddr_mamangement_pools
@@ -1586,14 +1630,13 @@ __COLD_CODE void slab_module_free(void)
 				slab_m->icid,
 				slab_m->fdma_flags);
 		free_slab_module_memory(slab_m);
-
 	}
 }
 
 /*****************************************************************************/
 __COLD_CODE int slab_debug_info_get(struct slab *slab, struct slab_debug_info *slab_info)
 {
-	int32_t max = 0, committed = 0, allocated = 0, temp;
+	int32_t max = 0, committed = 0, allocated = 0, free_bufs_in_pool = 0, failed_allocs = 0, temp;
 	uint8_t flags =0;
 	int     i;
 	slab_release_cb_t *release_cb = NULL;
@@ -1606,13 +1649,17 @@ __COLD_CODE int slab_debug_info_get(struct slab *slab, struct slab_debug_info *s
 		                   &max,
 		                   &committed,
 		                   &allocated,
+		                   &failed_allocs,
+		                   &free_bufs_in_pool,
 		                   &flags,
 		                   &release_cb) == 0) {
 			/* Modify num_buffs to have the number of available
 			 * buffers not allocated */
 			slab_info->committed_buffs = (uint32_t)(committed);
 			slab_info->max_buffs = (uint32_t)max;
-
+			slab_info->allocated_buffs = (uint32_t)allocated;
+			slab_info->num_buff_free = (uint32_t)free_bufs_in_pool;
+			slab_info->num_failed_allocs = (uint32_t)failed_allocs;
 			temp = slab_m->num_hw_pools;
 			for (i = 0; i < temp; i++)
 				CP_POOL_DATA(slab_m, slab_info, i);
@@ -1620,6 +1667,44 @@ __COLD_CODE int slab_debug_info_get(struct slab *slab, struct slab_debug_info *s
 	}
 
 	return -EINVAL;
+}
+
+__COLD_CODE int slab_bman_debug_info_get(uint16_t bpid, struct bman_debug_info *bman_info)
+{
+	int i, j;
+	
+	struct slab_module_info *slab_m = \
+		sys_get_unique_handle(FSL_MOD_SLAB);
+		
+	for(i = 0; i < slab_m->num_hw_pools; i++)
+		if (bpid == slab_m->hw_pools[i].pool_id)
+			break;
+	
+	if (i >= slab_m->num_hw_pools) {
+		pr_err("Invalid BPID given as argument: %d\n", bpid);
+		return -1;
+	}
+
+	for(j = 0; j < SLAB_MAX_BMAN_POOLS_NUM; j++)
+		if (bpid == g_slab_bman_pools[j].bman_pool_id)
+			break;
+
+	if (j >= SLAB_MAX_BMAN_POOLS_NUM) {
+		pr_err("Invalid BPID given as argument: %d\n", bpid);
+		return -1;
+	}
+	
+	bman_info->bpid = slab_m->hw_pools[i].pool_id;
+	bman_info->alignment = slab_m->hw_pools[i].alignment;
+	bman_info->size = SLAB_SIZE_GET(slab_m->hw_pools[i].buff_size);
+	bman_info->total_num_buffs = slab_m->hw_pools[i].total_num_buffs;
+	bman_info->mem_pid = (e_memory_partition_id)slab_m->hw_pools[i].mem_pid;
+	bman_info->num_buffs_free = slab_m->hw_pools[i].total_num_buffs - 
+			g_slab_bman_pools[j].allocated;
+	bman_info->num_failed_allocs = (uint32_t)g_slab_bman_pools[j].failed_allocs;
+	bman_info->num_buffs_alloc = (uint32_t)g_slab_bman_pools[j].allocated;
+	
+	return 0;
 }
 
 __COLD_CODE static int slab_check_registration_parameters(uint32_t committed_buffs,
