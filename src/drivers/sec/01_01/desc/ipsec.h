@@ -689,6 +689,7 @@ static inline void __gen_auth_key(struct program *program,
  * @descbuf: pointer to buffer used for descriptor construction
  * @ps: if 36/40bit addressing is desired, this parameter must be true
  * @swap: if true, perform descriptor byte swapping on a 4-byte boundary
+ * @share: sharing type of shared descriptor
  * @pdb: pointer to the PDB to be used with this descriptor
  *       This structure will be copied inline to the descriptor under
  *       construction. No error checking will be made. Refer to the
@@ -706,6 +707,7 @@ static inline void __gen_auth_key(struct program *program,
  * Return: size of descriptor written in words or negative number on error
  */
 static inline int cnstr_shdsc_ipsec_encap(uint32_t *descbuf, bool ps, bool swap,
+					  enum rta_share_type share,
 					  struct ipsec_encap_pdb *pdb,
 					  struct alginfo *cipherdata,
 					  struct alginfo *authdata)
@@ -723,7 +725,7 @@ static inline int cnstr_shdsc_ipsec_encap(uint32_t *descbuf, bool ps, bool swap,
 		PROGRAM_SET_BSWAP(p);
 	if (ps)
 		PROGRAM_SET_36BIT_ADDR(p);
-	phdr = SHR_HDR(p, SHR_SERIAL, hdr, 0);
+	phdr = SHR_HDR(p, share, hdr, 0);
 	__rta_copy_ipsec_encap_pdb(p, pdb, cipherdata->algtype);
 	COPY_DATA(p, pdb->ip_hdr, pdb->ip_hdr_len);
 	SET_LABEL(p, hdr);
@@ -754,6 +756,7 @@ static inline int cnstr_shdsc_ipsec_encap(uint32_t *descbuf, bool ps, bool swap,
  * @descbuf: pointer to buffer used for descriptor construction
  * @ps: if 36/40bit addressing is desired, this parameter must be true
  * @swap: if true, perform descriptor byte swapping on a 4-byte boundary
+ * @share: sharing type of shared descriptor
  * @pdb: pointer to the PDB to be used with this descriptor
  *       This structure will be copied inline to the descriptor under
  *       construction. No error checking will be made. Refer to the
@@ -771,6 +774,7 @@ static inline int cnstr_shdsc_ipsec_encap(uint32_t *descbuf, bool ps, bool swap,
  * Return: size of descriptor written in words or negative number on error
  */
 static inline int cnstr_shdsc_ipsec_decap(uint32_t *descbuf, bool ps, bool swap,
+					  enum rta_share_type share,
 					  struct ipsec_decap_pdb *pdb,
 					  struct alginfo *cipherdata,
 					  struct alginfo *authdata)
@@ -788,7 +792,7 @@ static inline int cnstr_shdsc_ipsec_decap(uint32_t *descbuf, bool ps, bool swap,
 		PROGRAM_SET_BSWAP(p);
 	if (ps)
 		PROGRAM_SET_36BIT_ADDR(p);
-	phdr = SHR_HDR(p, SHR_SERIAL, hdr, 0);
+	phdr = SHR_HDR(p, share, hdr, 0);
 	__rta_copy_ipsec_decap_pdb(p, pdb, cipherdata->algtype);
 	SET_LABEL(p, hdr);
 	pkeyjmp = JUMP(p, keyjmp, LOCAL_JUMP, ALL_TRUE, BOTH|SHRD);
@@ -1141,6 +1145,7 @@ static inline int cnstr_shdsc_ipsec_decap_des_aes_xcbc(uint32_t *descbuf,
  * @descbuf: pointer to buffer used for descriptor construction
  * @ps: if 36/40bit addressing is desired, this parameter must be true
  * @swap: must be true when core endianness doesn't match SEC endianness
+ * @share: sharing type of shared descriptor
  * @pdb: pointer to the PDB to be used with this descriptor
  *       This structure will be copied inline to the descriptor under
  *       construction. No error checking will be made. Refer to the
@@ -1173,6 +1178,7 @@ static inline int cnstr_shdsc_ipsec_decap_des_aes_xcbc(uint32_t *descbuf,
  */
 static inline int cnstr_shdsc_ipsec_new_encap(uint32_t *descbuf, bool ps,
 					      bool swap,
+					      enum rta_share_type share,
 					      struct ipsec_encap_pdb *pdb,
 					      uint8_t *opt_ip_hdr,
 					      struct alginfo *cipherdata,
@@ -1199,7 +1205,7 @@ static inline int cnstr_shdsc_ipsec_new_encap(uint32_t *descbuf, bool ps,
 		PROGRAM_SET_BSWAP(p);
 	if (ps)
 		PROGRAM_SET_36BIT_ADDR(p);
-	phdr = SHR_HDR(p, SHR_SERIAL, hdr, 0);
+	phdr = SHR_HDR(p, share, hdr, 0);
 
 	__rta_copy_ipsec_encap_pdb(p, pdb, cipherdata->algtype);
 
@@ -1272,6 +1278,7 @@ static inline int cnstr_shdsc_ipsec_new_encap(uint32_t *descbuf, bool ps,
  * @descbuf: pointer to buffer used for descriptor construction
  * @ps: if 36/40bit addressing is desired, this parameter must be true
  * @swap: must be true when core endianness doesn't match SEC endianness
+ * @share: sharing type of shared descriptor
  * @pdb: pointer to the PDB to be used with this descriptor
  *       This structure will be copied inline to the descriptor under
  *       construction. No error checking will be made. Refer to the
@@ -1288,6 +1295,7 @@ static inline int cnstr_shdsc_ipsec_new_encap(uint32_t *descbuf, bool ps,
  */
 static inline int cnstr_shdsc_ipsec_new_decap(uint32_t *descbuf, bool ps,
 					      bool swap,
+					      enum rta_share_type share,
 					      struct ipsec_decap_pdb *pdb,
 					      struct alginfo *cipherdata,
 					      struct alginfo *authdata)
@@ -1311,7 +1319,7 @@ static inline int cnstr_shdsc_ipsec_new_decap(uint32_t *descbuf, bool ps,
 		PROGRAM_SET_BSWAP(p);
 	if (ps)
 		PROGRAM_SET_36BIT_ADDR(p);
-	phdr = SHR_HDR(p, SHR_SERIAL, hdr, 0);
+	phdr = SHR_HDR(p, share, hdr, 0);
 	__rta_copy_ipsec_decap_pdb(p, pdb, cipherdata->algtype);
 	SET_LABEL(p, hdr);
 	pkeyjmp = JUMP(p, keyjmp, LOCAL_JUMP, ALL_TRUE, SHRD);

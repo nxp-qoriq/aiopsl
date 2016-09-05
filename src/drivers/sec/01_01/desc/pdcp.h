@@ -1236,8 +1236,7 @@ static inline int pdcp_insert_cplane_snow_zuc_op(struct program *p,
 
 	/* Reset ZUCA mode and done interrupt */
 	LOAD(p, CLRW_CLR_C2MODE, CLRW, 0, 4, IMMED);
-/* TODO: Add ICTRL definitions */
-	LOAD(p, 0x00001000, ICTRL, 0, 4, IMMED);
+	LOAD(p, CIRQ_ZADI, ICTRL, 0, 4, IMMED);
 
 	PATCH_JUMP(p, pkeyjump, keyjump);
 	return 0;
@@ -1319,8 +1318,7 @@ static inline int pdcp_insert_cplane_aes_zuc_op(struct program *p,
 
 	/* Reset ZUCA mode and done interrupt */
 	LOAD(p, CLRW_CLR_C2MODE, CLRW, 0, 4, IMMED);
-/* TODO: Add ICTRL definitions */
-	LOAD(p, 0x00001000, ICTRL, 0, 4, IMMED);
+	LOAD(p, CIRQ_ZADI, ICTRL, 0, 4, IMMED);
 
 	PATCH_JUMP(p, pkeyjump, keyjump);
 
@@ -1516,8 +1514,7 @@ static inline int pdcp_insert_cplane_zuc_aes_op(struct program *p,
 		KEY(p, KEY1, authdata->key_enc_flags, authdata->key,
 		    authdata->keylen, INLINE_KEY(authdata));
 
-/* TODO: Add support in RTA for SOP bit in SEQINPTR command */
-		WORD(p, 0xF0080000);
+		SEQINPTR(p, 0, 0, SOP);
 
 		ALG_OPERATION(p, OP_ALG_ALGSEL_AES,
 			      OP_ALG_AAI_CMAC,

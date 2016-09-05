@@ -467,6 +467,7 @@ int ipsec_generate_encap_sd(
 
 	int err;
 	struct ipsec_encap_pdb pdb;
+	enum rta_share_type share;
 
 	/* For tunnel mode IPv4, calculate the outer header checksum */
 	/* ip_hdr_len = IP header length in bytes.
@@ -722,7 +723,12 @@ int ipsec_generate_encap_sd(
 	ws_shared_desc[1] = 0;
 	ws_shared_desc[2] = 0;
 	ws_shared_desc[3] = 0;
-	               
+
+	if (g_app_params.app_config_flags & IPSEC_OPTIMIZE_FEW_FLOWS)
+		share = SHR_WAIT;
+	else
+		share = SHR_SERIAL;
+
 	/* Call RTA function to build an encap descriptor */
 	if (params->flags & IPSEC_FLG_TUNNEL_MODE) {
 		/* Tunnel mode, SEC "new thread" */	
@@ -730,6 +736,7 @@ int ipsec_generate_encap_sd(
 			(uint32_t *)(ws_shared_desc), /* uint32_t *descbuf */
 			IPSEC_SEC_POINTER_SIZE, /* unsigned short ps */
 			TRUE, /* swap */
+			share,
 			&pdb, /* PDB */
 			(uint8_t *)params->encparams.outer_hdr, /* uint8_t *opt_ip_hdr */
 			(struct alginfo *)(&params->cipherdata),
@@ -741,6 +748,7 @@ int ipsec_generate_encap_sd(
 			(uint32_t *)(ws_shared_desc), /* uint32_t *descbuf */
 			IPSEC_SEC_POINTER_SIZE, /* unsigned short ps */
 			TRUE, /* bool swap */
+			share,
 			&pdb, /* PDB */
 			(struct alginfo *)(&params->cipherdata),
 			(struct alginfo *)(&params->authdata)
@@ -785,7 +793,8 @@ int ipsec_generate_decap_sd(
 	int err;
 
 	struct ipsec_decap_pdb pdb;
-
+	enum rta_share_type share;
+	
 	/* Build PDB fields for the RTA */
 	
 	ws_shared_desc[0] = 1; /* Flag for split key calculation. 
@@ -999,6 +1008,11 @@ int ipsec_generate_decap_sd(
 	params->authdata.algmode = 0;
 	params->cipherdata.algmode = 0;
 
+	if (g_app_params.app_config_flags & IPSEC_OPTIMIZE_FEW_FLOWS)
+		share = SHR_WAIT;
+	else
+		share = SHR_SERIAL;
+
 	/* Call RTA function to build an encap descriptor */
 	if (params->flags & IPSEC_FLG_TUNNEL_MODE) {
 		/* Tunnel mode, SEC "new thread" */	
@@ -1006,6 +1020,7 @@ int ipsec_generate_decap_sd(
 			(uint32_t *)(ws_shared_desc), /* uint32_t *descbuf */
 			IPSEC_SEC_POINTER_SIZE, /* unsigned short ps */
 			TRUE, /* swap */
+			share,
 			&pdb, /* struct ipsec_encap_pdb *pdb */
 			(struct alginfo *)(&params->cipherdata),
 			(struct alginfo *)(&params->authdata)
@@ -1016,6 +1031,7 @@ int ipsec_generate_decap_sd(
 			(uint32_t *)(ws_shared_desc), /* uint32_t *descbuf */
 			IPSEC_SEC_POINTER_SIZE, /* unsigned short ps */
 			TRUE, /* bool swap */
+			share,
 			&pdb, /* struct ipsec_encap_pdb *pdb */
 			(struct alginfo *)(&params->cipherdata),
 			(struct alginfo *)(&params->authdata)

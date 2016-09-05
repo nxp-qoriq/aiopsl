@@ -20,13 +20,52 @@
  * TLS family encapsulation/decapsulation PDB definitions.
  */
 #define DTLS_PDBOPTS_ARS_MASK	0xC0
-#define DTLS_PDBOPTS_ARS32	0x40	/* DTLS only */
-#define DTLS_PDBOPTS_ARS128	0x80	/* DTLS only */
-#define DTLS_PDBOPTS_ARS64	0xc0	/* DTLS only */
-#define TLS_PDBOPTS_OUTFMT	0x08
+#define DTLS_PDBOPTS_ARS32	0x40	/* 32-entry DTLS anti-replay window */
+#define DTLS_PDBOPTS_ARS128	0x80	/* 128-entry DTLS anti-replay window */
+#define DTLS_PDBOPTS_ARS64	0xc0	/* 64-entry DTLS anti-replay window */
+#define DTLS_PDBOPTS_ARSNONE	0x00	/* DTLS anti-replay window disabled */
+
+/**
+ * TLS_PDBOPTS_OUTFMT_MASK - output frame format mask (decapsulation only)
+ */
+#define TLS_PDBOPTS_OUTFMT_MASK	0x0C
+
+/**
+ * TLS_PDBOPTS_OUTFMT_FULL - Full copy of unencrypted fields from input frame
+ *                           to output frame.
+ */
+#define TLS_PDBOPTS_OUTFMT_FULL	0x08
+/**
+ * TLS_PDBOPTS_OUTFMT_RHP - record header + payload; valid for SEC ERA >= 5
+ */
+#define TLS_PDBOPTS_OUTFMT_RHP	0x04
+
 #define TLS_PDBOPTS_IV_WRTBK	0x02	/* TLS1.1/TLS1.2/DTLS only */
 #define TLS_PDBOPTS_EXP_RND_IV	0x01	/* TLS1.1/TLS1.2/DTLS only */
 #define TLS_PDBOPTS_TR_ICV	0x10	/* Available starting with SEC ERA 5 */
+#define TLS_PDBOPTS_TR_ICV_LEN_SHIFT	24
+#define TLS_PDBOPTS_TR_ICV_LEN_MASK	(0xff << TLS_PDBOPTS_TR_ICV_LEN_SHIFT)
+
+/**
+ * TLS_DPOVRD_USE - DPOVRD will override values specified in the PDB
+ */
+#define TLS_DPOVRD_USE		BIT(31)
+
+/**
+ * DTLS_DPOVRD_METADATA_LEN_SHIFT - Metadata length
+ */
+#define DTLS_DPOVRD_METADATA_LEN_SHIFT	16
+
+/**
+ * DTLS_DPOVRD_METADATA_LEN_MASK - See DTLS_DPOVRD_METADATA_LEN_SHIFT
+ */
+#define DTLS_DPOVRD_METADATA_LEN_MASK	(0xff << DTLS_DPOVRD_METADATA_LEN_SHIFT)
+
+/**
+ * TLS_DPOVRD_TYPE_MASK - Mask for TLS / DTLS type
+ *                        Valid only for encapsulation.
+ */
+#define TLS_DPOVRD_TYPE_MASK	0xff
 
 /**
  * struct tls_block_enc - SSL3.0/TLS1.0/TLS1.1/TLS1.2 block encapsulation PDB
@@ -34,14 +73,14 @@
  * @type: protocol content type
  * @version: protocol version
  * @options: PDB options
- * @seq_num: protocol sequence number
+ * @seq_num: protocol sequence number; big endian format
  */
+#pragma pack(push, 1)
 #if __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
 struct tls_block_enc {
 	union {
 		uint32_t word1;
 		struct {
-
 			uint8_t type;
 			uint8_t version[2];
 			uint8_t options;
@@ -62,19 +101,21 @@ struct tls_block_enc {
 	uint64_t seq_num;
 };
 #endif
+#pragma pack(pop)
 
 /**
- * struct dtls_block_enc - DTLS1.0 block encapsulation PDB part
+ * struct dtls_block_enc - DTLS1.0/DTLS1.2 block encapsulation PDB part
  * @type: protocol content type
  * @version: protocol version
  * @options: PDB options
  * @epoch: protocol epoch
- * @seq_num: protocol sequence number
+ * @seq_num_hi: protocol sequence number (upper 16 bits)
+ * @seq_num_lo: protocol sequence number (lower 32 bits)
  */
 #if __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
 struct dtls_block_enc {
-	struct {
-		union {
+	union {
+		struct {
 			uint8_t type;
 			uint8_t version[2];
 			uint8_t options;
@@ -92,8 +133,8 @@ struct dtls_block_enc {
 };
 #else
 struct dtls_block_enc {
-	struct {
-		union {
+	union {
+		struct {
 			uint8_t options;
 			uint8_t version[2];
 			uint8_t type;
@@ -116,9 +157,9 @@ struct dtls_block_enc {
  *                        part.
  * @rsvd: reserved, do not use
  * @options: PDB options
- * @seq_num: protocol sequence number
+ * @seq_num: protocol sequence number; big endian format
  */
-
+#pragma pack(push, 1)
 struct tls_block_dec {
 	union {
 		struct {
@@ -134,13 +175,15 @@ struct tls_block_dec {
 	};
 	uint64_t seq_num;
 };
+#pragma pack(pop)
 
 /**
- * struct dtls_block_dec - DTLS1.0 block decapsulation PDB part
+ * struct dtls_block_dec - DTLS1.0/DTLS1.2 block decapsulation PDB part
  * @rsvd: reserved, do not use
  * @options: PDB options
  * @epoch: protocol epoch
- * @seq_num: protocol sequence number
+ * @seq_num_hi: protocol sequence number (upper 16 bits)
+ * @seq_num_lo: protocol sequence number (lower 32 bits)
  */
 #if __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
 struct dtls_block_dec {
@@ -181,15 +224,14 @@ struct dtls_block_dec {
 #endif
 
 /**
- * struct tls_block_pdb - SSL3.0/TLS1.0/TLS1.1/TLS1.2/DTLS1.0 block
+ * struct tls_block_pdb - SSL3.0/TLS1.0/TLS1.1/TLS1.2/DTLS1.0/DTLS1.2 block
  *                        encapsulation / decapsulation PDB.
- * @iv: initialization vector
- * @end_index: the zero-length array expands with one/two words for the
- *             Anti-Replay Scorecard if DTLS_PDBOPTS_ARS32/64 is set in the
- *             DTLS1.0 decapsulation PDB Options byte.
- *             If SEC ERA is equal or greater than SEC ERA 5 and
- *             TLS_PDBOPTS_TR_ICV is set in the PDB Options Byte, it expands for
- *             ICVLen.
+ * @iv: initialization vector; for CBC-mode cipher suites, the IV field is only
+ *      8 bytes if the PROTINFO field of the Operation Command selects DES/3DES.
+ * @anti_replay: Anti-replay window - valid only for DTLS decapsulation; size
+ *               depends on DTLS_PDBOPTS_ARS32/64/128 option flags; big endian
+ *               format
+ * @icv_len: ICV length; valid only if TLS_PDBOPTS_TR_ICV option flag is set
  */
 struct tls_block_pdb {
 	union {
@@ -198,8 +240,9 @@ struct tls_block_pdb {
 		struct tls_block_dec tls_dec;
 		struct dtls_block_dec dtls_dec;
 	};
-	uint32_t iv[4];
-	uint32_t end_index[0];
+	uint8_t iv[16];
+	uint32_t anti_replay[4];
+	uint8_t icv_len;
 };
 
 /**
@@ -251,26 +294,27 @@ struct tls_stream_dec {
  * struct tls_stream_pdb - SSL3.0/TLS1.0/TLS1.1/TLS1.2 stream
  *                         encapsulation / decapsulation PDB.
  * @seq_num: protocol sequence number
- * @end_index: the zero-length array expands for ICVLen if SEC ERA is equal or
- *             greater than SEC ERA 5 and TLS_PDBOPTS_TR_ICV is set in the PDB
- *             Options Byte.
+ * @icv_len: ICV length; valid only if TLS_PDBOPTS_TR_ICV option flag is set
  */
+#pragma pack(push, 1)
 struct tls_stream_pdb {
 	union {
 		struct tls_stream_enc enc;
 		struct tls_stream_dec dec;
 	};
 	uint64_t seq_num;
-	uint32_t end_index[0];
+	uint8_t icv_len;
 };
+#pragma pack(pop)
 
 /**
  * struct tls_ctr_enc - TLS1.1/TLS1.2 AES CTR encapsulation PDB part
  * @type: protocol content type
  * @version: protocol version
  * @options: PDB options
- * @seq_num: protocol sequence number
+ * @seq_num: protocol sequence number; big endian format
  */
+#pragma pack(push, 1)
 struct tls_ctr_enc {
 	union {
 		struct {
@@ -288,14 +332,16 @@ struct tls_ctr_enc {
 	};
 	uint64_t seq_num;
 };
+#pragma pack(pop)
 
 /**
  * struct tls_ctr - PDB part for TLS1.1/TLS1.2 AES CTR decapsulation and
- *                  DTLS1.0 AES CTR encapsulation/decapsulation.
+ *                  DTLS1.0/DTLS1.2 AES CTR encapsulation/decapsulation.
  * @rsvd: reserved, do not use
  * @options: PDB options
  * @epoch: protocol epoch
- * @seq_num: protocol sequence number
+ * @seq_num_hi: protocol sequence number (upper 16 bits)
+ * @seq_num_lo: protocol sequence number (lower 32 bits)
  */
 #if __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
 struct tls_ctr {
@@ -336,18 +382,17 @@ struct tls_ctr {
 #endif
 
 /**
- * struct tls_ctr_pdb - TLS1.1/TLS1.2/DTLS1.0 AES CTR
+ * struct tls_ctr_pdb - TLS1.1/TLS1.2/DTLS1.0/DTLS1.2 AES CTR
  *                      encapsulation / decapsulation PDB.
  * @write_iv: server write IV / client write IV
  * @constant: constant equal to 0x0000
- * @end_index: the zero-length array expands with one/two words for the
- *             Anti-Replay Scorecard if DTLS_PDBOPTS_ARS32/64 is set in the
- *             DTLS1.0 decapsulation PDB Options Byte.
- *             If TLS_PDBOPTS_TR_ICV is set in the PDB Option Byte, it expands
- *             for ICVLen.
+ * @anti_replay: Anti-replay window - valid only for DTLS decapsulation; size
+ *               depends on DTLS_PDBOPTS_ARS32/64/128 option flags; big endian
+ *               format
+ * @icv_len: ICV length; valid only if TLS_PDBOPTS_TR_ICV option flag is set
  *
- * TLS1.1/TLS1.2/DTLS1.0 AES CTR encryption processing is supported starting
- * with SEC ERA 5.
+ * TLS1.1/TLS1.2/DTLS1.0/DTLS1.2 AES CTR encryption processing is supported
+ * starting with SEC ERA 5.
  */
 struct tls_ctr_pdb {
 	union {
@@ -367,7 +412,8 @@ struct tls_ctr_pdb {
 		};
 		uint32_t word1;
 	};
-	uint32_t end_index[0];
+	uint32_t anti_replay[4];
+	uint8_t icv_len;
 };
 
 /**
@@ -375,8 +421,9 @@ struct tls_ctr_pdb {
  * @type: protocol content type
  * @version: protocol version
  * @options: PDB options
- * @seq_num: protocol sequence number
+ * @seq_num: protocol sequence number; big endian format
  */
+#pragma pack(push, 1)
 struct tls12_gcm_encap {
 	union {
 		struct {
@@ -394,13 +441,15 @@ struct tls12_gcm_encap {
 	};
 	uint64_t seq_num;
 };
+#pragma pack(pop)
 
 /**
  * struct tls12_gcm_decap - TLS1.2 AES GCM decapsulation PDB part
  * @rsvd: reserved, do not use
  * @options: PDB options
- * @seq_num: protocol sequence number
+ * @seq_num: protocol sequence number; big endian format
  */
+#pragma pack(push, 1)
 struct tls12_gcm_decap {
 	union {
 		struct {
@@ -416,16 +465,67 @@ struct tls12_gcm_decap {
 	};
 	uint64_t seq_num;
 };
+#pragma pack(pop)
 
 /**
- * struct dtls_gcm - DTLS1.0 AES GCM encapsulation / decapsulation PDB part
+ * struct dtls_gcm_enc - DTLS1.2 AES GCM encapsulation PDB part
+ * @type: protocol content type
+ * @version: protocol version
+ * @options: PDB options
+ * @epoch: protocol epoch
+ * @seq_num_hi: protocol sequence number (upper 16 bits)
+ * @seq_num_lo: protocol sequence number (lower 32 bits)
+ */
+#if __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
+struct dtls_gcm_enc {
+	union {
+		struct {
+			uint8_t type;
+			uint8_t version[2];
+			uint8_t options;
+		};
+		uint32_t word1;
+	};
+	union {
+		struct {
+			uint16_t epoch;
+			uint16_t seq_num_hi;
+		};
+		uint32_t word2;
+	};
+	uint32_t seq_num_lo;
+};
+#else
+struct dtls_gcm_enc {
+	union {
+		struct {
+			uint8_t options;
+			uint8_t version[2];
+			uint8_t type;
+		};
+		uint32_t word1;
+	};
+	union {
+		struct {
+			uint16_t seq_num_hi;
+			uint16_t epoch;
+		};
+		uint32_t word2;
+	};
+	uint32_t seq_num_lo;
+};
+#endif
+
+/**
+ * struct dtls_gcm_dec - DTLS1.2 AES GCM decapsulation PDB part
  * @rsvd: reserved, do not use
  * @options: PDB options
  * @epoch: protocol epoch
- * @seq_num: protocol sequence number
+ * @seq_num_hi: protocol sequence number (upper 16 bits)
+ * @seq_num_lo: protocol sequence number (lower 32 bits)
  */
 #if __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
-struct dtls_gcm {
+struct dtls_gcm_dec {
 	union {
 		struct {
 			uint8_t rsvd[3];
@@ -443,7 +543,7 @@ struct dtls_gcm {
 	uint32_t seq_num_lo;
 };
 #else
-struct dtls_gcm {
+struct dtls_gcm_dec {
 	union {
 		struct {
 			uint8_t options;
@@ -463,23 +563,23 @@ struct dtls_gcm {
 #endif
 
 /**
- * struct tls_gcm_pdb - TLS1.2/DTLS1.0 AES GCM encapsulation / decapsulation PDB
- * @salt: 4-byte salt
- * @end_index: the zero-length array expands with one/two words for the
- *             Anti-Replay Scorecard if DTLS_PDBOPTS_ARS32/64 is set in the
- *             DTLS1.0 decapsulation PDB Options byte.
- *             If SEC ERA is equal or greater than SEC ERA 5 and
- *             TLS_PDBOPTS_TR_ICV is set in the PDB Option Byte, it expands for
- *             ICVLen.
+ * struct tls_gcm_pdb - TLS1.2/DTLS1.2 AES GCM encapsulation / decapsulation PDB
+ * @salt: 4-byte array salt
+ * @anti_replay: Anti-replay window - valid only for DTLS decapsulation; size
+ *               depends on DTLS_PDBOPTS_ARS32/64/128 option flags; big endian
+ *               format
+ * @icv_len: ICV length; valid only if TLS_PDBOPTS_TR_ICV option flag is set
  */
 struct tls_gcm_pdb {
 	union {
 		struct tls12_gcm_encap tls12_enc;
 		struct tls12_gcm_decap tls12_dec;
-		struct dtls_gcm dtls;
+		struct dtls_gcm_enc dtls_enc;
+		struct dtls_gcm_dec dtls_dec;
 	};
-	uint32_t salt;
-	uint32_t end_index[0];
+	uint8_t salt[4];
+	uint32_t anti_replay[4];
+	uint8_t icv_len;
 };
 
 /**
@@ -487,8 +587,9 @@ struct tls_gcm_pdb {
  * @type: protocol content type
  * @version: protocol version
  * @options: PDB options
- * @seq_num: protocol sequence number
+ * @seq_num: protocol sequence number; big endian format
  */
+#pragma pack(push, 1)
 struct tls12_ccm_encap {
 	union {
 		struct {
@@ -506,14 +607,16 @@ struct tls12_ccm_encap {
 	};
 	uint64_t seq_num;
 };
+#pragma pack(pop)
 
 /**
  * struct tls_ccm - PDB part for TLS12 AES CCM decapsulation PDB and
- *                  DTLS1.0 AES CCM encapsulation / decapsulation.
+ *                  DTLS1.2 AES CCM encapsulation / decapsulation.
  * @rsvd: reserved, do not use
  * @options: PDB options
  * @epoch: protocol epoch
- * @seq_num: protocol sequence number
+ * @seq_num_hi: protocol sequence number (upper 16 bits)
+ * @seq_num_lo: protocol sequence number (lower 32 bits)
  */
 #if __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
 struct tls_ccm {
@@ -554,18 +657,16 @@ struct tls_ccm {
 #endif
 
 /**
- * struct tls_ccm_pdb - TLS1.2/DTLS1.0 AES CCM encapsulation / decapsulation PDB
+ * struct tls_ccm_pdb - TLS1.2/DTLS1.2 AES CCM encapsulation / decapsulation PDB
  * @write_iv: server write IV / client write IV
  * @b0_flags: use 0x5A for 8-byte ICV, 0x7A for 16-byte ICV
  * @ctr0_flags: equal to 0x2
  * @rsvd: reserved, do not use
  * @ctr0: CR0 lower 3 bytes, set to 0
- * @end_index: the zero-length array expands with one/two words for the
- *             Anti-Replay Scorecard if DTLS_PDBOPTS_ARS32/64 is set in the
- *             DTLS1.0 decapsulation PDB Options byte.
- *             If SEC ERA is equal or greater than SEC ERA 5 and
- *             TLS_PDBOPTS_TR_ICV is set in the PDB Option Byte, it expands for
- *             ICVLen.
+ * @anti_replay: Anti-replay window - valid only for DTLS decapsulation; size
+ *               depends on DTLS_PDBOPTS_ARS32/64/128 option flags; big endian
+ *               format
+ * @icv_len: ICV length; valid only if TLS_PDBOPTS_TR_ICV option flag is set
  */
 #if __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
 struct tls_ccm_pdb {
@@ -589,7 +690,8 @@ struct tls_ccm_pdb {
 		};
 		uint32_t word2;
 	};
-	uint32_t end_index[0];
+	uint32_t anti_replay[4];
+	uint8_t icv_len;
 };
 #else
 struct tls_ccm_pdb {
@@ -613,31 +715,45 @@ struct tls_ccm_pdb {
 		};
 		uint32_t word2;
 	};
-	uint32_t end_index[0];
+	uint32_t anti_replay[4];
+	uint8_t icv_len;
 };
 #endif
 
-static inline uint8_t __rta_tls_pdb_ars(uint32_t options)
-{
-	uint8_t ars = 0;
+/**
+ * enum tls_cipher_mode - (D)TLS cipher mode
+ */
+enum tls_cipher_mode {
+	RTA_TLS_CIPHER_INVALID = 0,
+	RTA_TLS_CIPHER_CBC,
+	RTA_TLS_CIPHER_GCM,
+	RTA_TLS_CIPHER_CCM,
+	RTA_TLS_CIPHER_CTR,
+	RTA_TLS_CIPHER_STREAM
+};
 
+/**
+ * rta_dtls_pdb_ars - Get DTLS anti-replay scorecard size
+ * @options: 1st word in the DTLS PDB
+ *
+ * Return: Anti-replay scorecard (ARS) size in units of 32bit entries
+ */
+static inline uint8_t rta_dtls_pdb_ars(uint32_t options)
+{
 	switch (options & DTLS_PDBOPTS_ARS_MASK) {
 	case DTLS_PDBOPTS_ARS32:
 	case DTLS_PDBOPTS_ARS64:
-		ars = 2;
-		break;
+		return 2;
 
 	case DTLS_PDBOPTS_ARS128:
-		ars = 4;
-		break;
+		return 4;
 
 	default:
 		pr_err("Invalid AntiReplay Window size in options: 0x%08x\n",
-		       options);		
-		break;
+		       options);
+	case DTLS_PDBOPTS_ARSNONE:
+		return 0;
 	}
-
-	return ars;
 }
 static inline void __rta_copy_tls_block_pdb(struct program *p, void *pdb,
 					    uint32_t protid)
@@ -653,16 +769,16 @@ static inline void __rta_copy_tls_block_pdb(struct program *p, void *pdb,
 	case OP_PCLID_TLS11:
 	case OP_PCLID_TLS12:
 		__rta_out32(p, block_pdb->tls_enc.word1);
-		__rta_out64(p, true, block_pdb->tls_enc.seq_num);
+		__rta_out_be64(p, true, block_pdb->tls_enc.seq_num);
 		break;
 
-	case OP_PCLID_DTLS10:
+	case OP_PCLID_DTLS:
 		__rta_out32(p, block_pdb->dtls_enc.word1);
 		__rta_out32(p, block_pdb->dtls_enc.word2);
 		__rta_out32(p, block_pdb->dtls_enc.seq_num_lo);
 
 		if (!encap)
-			ars = __rta_tls_pdb_ars(block_pdb->dtls_dec.options);
+			ars = rta_dtls_pdb_ars(block_pdb->dtls_dec.options);
 		break;
 
 	default:
@@ -670,22 +786,22 @@ static inline void __rta_copy_tls_block_pdb(struct program *p, void *pdb,
 		break;
 	}
 
-	rta_copy_data(p, block_pdb->iv, sizeof(block_pdb->iv));
+	rta_copy_data(p, (uint8_t *)block_pdb->iv, sizeof(block_pdb->iv));
 
-	/* Copy 0, 2 or 4 words of AR scorecard */
+	/* Copy 0, 1, 2 or 4 words of anti-replay scorecard */
 	for (i = 0; i < ars; i++)
-		__rta_out32(p, block_pdb->end_index[i]);
+		__rta_out_be32(p, block_pdb->anti_replay[i]);
 
 	/* If ICV is truncated, then another word is needed */
 	if (block_pdb->tls_enc.options & TLS_PDBOPTS_TR_ICV)
-		__rta_out32(p, block_pdb->end_index[i]);
+		__rta_out32(p, (uint32_t)(block_pdb->icv_len <<
+					  TLS_PDBOPTS_TR_ICV_LEN_SHIFT));
 }
 
 static inline void __rta_copy_tls_stream_pdb(struct program *p, void *pdb,
 					     uint32_t protid)
 {
 	struct tls_stream_pdb *stream_pdb = (struct tls_stream_pdb *)pdb;
-	int i = 0;
 
 	switch (protid & OP_PCLID_MASK) {
 	case OP_PCLID_SSL30:
@@ -700,11 +816,12 @@ static inline void __rta_copy_tls_stream_pdb(struct program *p, void *pdb,
 		break;
 	}
 
-	__rta_out64(p, true, stream_pdb->seq_num);
+	__rta_out_be64(p, true, stream_pdb->seq_num);
 
 	/* If ICV is truncated, then another word is needed */
 	if (stream_pdb->enc.options & TLS_PDBOPTS_TR_ICV)
-		__rta_out32(p, stream_pdb->end_index[i]);
+		__rta_out32(p, (uint32_t)(stream_pdb->icv_len <<
+					  TLS_PDBOPTS_TR_ICV_LEN_SHIFT));
 }
 
 static inline void __rta_copy_tls_ctr_pdb(struct program *p, void *pdb,
@@ -720,7 +837,7 @@ static inline void __rta_copy_tls_ctr_pdb(struct program *p, void *pdb,
 	case OP_PCLID_TLS12:
 		if (encap) {
 			__rta_out32(p, ctr_pdb->tls_enc.word1);
-			__rta_out64(p, true, ctr_pdb->tls_enc.seq_num);
+			__rta_out_be64(p, true, ctr_pdb->tls_enc.seq_num);
 		} else {
 			__rta_out32(p, ctr_pdb->ctr.word1);
 			__rta_out32(p, ctr_pdb->ctr.word2);
@@ -729,13 +846,13 @@ static inline void __rta_copy_tls_ctr_pdb(struct program *p, void *pdb,
 
 		break;
 
-	case OP_PCLID_DTLS10:
+	case OP_PCLID_DTLS:
 		__rta_out32(p, ctr_pdb->ctr.word1);
 		__rta_out32(p, ctr_pdb->ctr.word2);
 		__rta_out32(p, ctr_pdb->ctr.seq_num_lo);
 
 		if (!encap)
-			ars = __rta_tls_pdb_ars(ctr_pdb->ctr.options);
+			ars = rta_dtls_pdb_ars(ctr_pdb->ctr.options);
 		break;
 
 	default:
@@ -745,13 +862,14 @@ static inline void __rta_copy_tls_ctr_pdb(struct program *p, void *pdb,
 
 	__rta_out32(p, ctr_pdb->word1);
 
-	/* Copy 0, 2 or 4 words of AR scorecard */
+	/* Copy 0, 1, 2 or 4 words of anti-replay scorecard */
 	for (i = 0; i < ars; i++)
-		__rta_out32(p, ctr_pdb->end_index[i]);
+		__rta_out_be32(p, ctr_pdb->anti_replay[i]);
 
 	/* If ICV is truncated, then another word is needed */
 	if (ctr_pdb->ctr.options & TLS_PDBOPTS_TR_ICV)
-		__rta_out32(p, ctr_pdb->end_index[i]);
+		__rta_out32(p, (uint32_t)(ctr_pdb->icv_len <<
+					  TLS_PDBOPTS_TR_ICV_LEN_SHIFT));
 }
 
 static inline void __rta_copy_tls_gcm_pdb(struct program *p, void *pdb,
@@ -765,16 +883,16 @@ static inline void __rta_copy_tls_gcm_pdb(struct program *p, void *pdb,
 	switch (protid & OP_PCLID_MASK) {
 	case OP_PCLID_TLS12:
 		__rta_out32(p, gcm_pdb->tls12_enc.word1);
-		__rta_out64(p, true, gcm_pdb->tls12_enc.seq_num);
+		__rta_out_be64(p, true, gcm_pdb->tls12_enc.seq_num);
 		break;
 
-	case OP_PCLID_DTLS10:
-		__rta_out32(p, gcm_pdb->dtls.word1);
-		__rta_out32(p, gcm_pdb->dtls.word2);
-		__rta_out32(p, gcm_pdb->dtls.seq_num_lo);
+	case OP_PCLID_DTLS:
+		__rta_out32(p, gcm_pdb->dtls_enc.word1);
+		__rta_out32(p, gcm_pdb->dtls_enc.word2);
+		__rta_out32(p, gcm_pdb->dtls_enc.seq_num_lo);
 
 		if (!encap)
-			ars = __rta_tls_pdb_ars(gcm_pdb->dtls.options);
+			ars = rta_dtls_pdb_ars(gcm_pdb->dtls_enc.options);
 		break;
 
 	default:
@@ -782,15 +900,16 @@ static inline void __rta_copy_tls_gcm_pdb(struct program *p, void *pdb,
 		break;
 	}
 
-	__rta_out32(p, gcm_pdb->salt);
+	rta_copy_data(p, gcm_pdb->salt, sizeof(gcm_pdb->salt));
 
-	/* Copy 0, 2 or 4 words of AR scorecard */
+	/* Copy 0, 1, 2 or 4 words of anti-replay scorecard */
 	for (i = 0; i < ars; i++)
-		__rta_out32(p, gcm_pdb->end_index[i]);
+		__rta_out_be32(p, gcm_pdb->anti_replay[i]);
 
 	/* If ICV is truncated, then another word is needed */
 	if (gcm_pdb->tls12_enc.options & TLS_PDBOPTS_TR_ICV)
-		__rta_out32(p, gcm_pdb->end_index[i]);
+		__rta_out32(p, (uint32_t)(gcm_pdb->icv_len <<
+					  TLS_PDBOPTS_TR_ICV_LEN_SHIFT));
 }
 
 static inline void __rta_copy_tls_ccm_pdb(struct program *p, void *pdb,
@@ -805,7 +924,7 @@ static inline void __rta_copy_tls_ccm_pdb(struct program *p, void *pdb,
 	case OP_PCLID_TLS12:
 		if (encap) {
 			__rta_out32(p, ccm_pdb->tls12.word1);
-			__rta_out64(p, true, ccm_pdb->tls12.seq_num);
+			__rta_out_be64(p, true, ccm_pdb->tls12.seq_num);
 		} else {
 			__rta_out32(p, ccm_pdb->ccm.word1);
 			__rta_out32(p, ccm_pdb->ccm.word2);
@@ -813,13 +932,13 @@ static inline void __rta_copy_tls_ccm_pdb(struct program *p, void *pdb,
 		}
 		break;
 
-	case OP_PCLID_DTLS10:
+	case OP_PCLID_DTLS:
 		__rta_out32(p, ccm_pdb->ccm.word1);
 		__rta_out32(p, ccm_pdb->ccm.word2);
 		__rta_out32(p, ccm_pdb->ccm.seq_num_lo);
 
 		if (!encap)
-			ars = __rta_tls_pdb_ars(ccm_pdb->ccm.options);
+			ars = rta_dtls_pdb_ars(ccm_pdb->ccm.options);
 		break;
 
 	default:
@@ -831,165 +950,233 @@ static inline void __rta_copy_tls_ccm_pdb(struct program *p, void *pdb,
 	__rta_out32(p, ccm_pdb->word1);
 	__rta_out32(p, ccm_pdb->word2);
 
-	/* Copy 0, 2 or 4 words of AR scorecard */
+	/* Copy 0, 1, 2 or 4 words of anti-replay scorecard */
 	for (i = 0; i < ars; i++)
-		__rta_out32(p, ccm_pdb->end_index[i]);
+		__rta_out_be32(p, ccm_pdb->anti_replay[i]);
 
 	/* If ICV is truncated, then another word is needed */
 	if (ccm_pdb->ccm.options & TLS_PDBOPTS_TR_ICV)
-		__rta_out32(p, ccm_pdb->end_index[i]);
+		__rta_out32(p, (uint32_t)(ccm_pdb->icv_len <<
+					  TLS_PDBOPTS_TR_ICV_LEN_SHIFT));
 }
 
-static inline __rta_copy_tls_pdb(struct program *p, void *pdb,
-				 struct protcmd *protcmd)
+/**
+ * rta_tls_cipher_mode - Get TLS cipher mode based on IANA cipher suite value
+ * @protinfo: protocol information
+ *
+ * Return: TLS cipher mode
+ */
+static inline enum tls_cipher_mode rta_tls_cipher_mode(uint16_t protinfo)
+{
+	switch (protinfo) {
+	case OP_PCL_TLS_RSA_WITH_AES_128_GCM_SHA256:
+	case OP_PCL_TLS_RSA_WITH_AES_256_GCM_SHA384:
+	case OP_PCL_TLS_DHE_RSA_WITH_AES_128_GCM_SHA256:
+	case OP_PCL_TLS_DHE_RSA_WITH_AES_256_GCM_SHA384:
+	case OP_PCL_TLS_DH_RSA_WITH_AES_128_GCM_SHA256:
+	case OP_PCL_TLS_DH_RSA_WITH_AES_256_GCM_SHA384:
+	case OP_PCL_TLS_DHE_DSS_WITH_AES_128_GCM_SHA256:
+	case OP_PCL_TLS_DHE_DSS_WITH_AES_256_GCM_SHA384:
+	case OP_PCL_TLS_DH_DSS_WITH_AES_128_GCM_SHA256:
+	case OP_PCL_TLS_DH_DSS_WITH_AES_256_GCM_SHA384:
+	case OP_PCL_TLS_DH_anon_WITH_AES_128_GCM_SHA256:
+	case OP_PCL_TLS_DH_anon_WITH_AES_256_GCM_SHA384:
+	case OP_PCL_TLS_PSK_WITH_AES_128_GCM_SHA256:
+	case OP_PCL_TLS_PSK_WITH_AES_256_GCM_SHA384:
+	case OP_PCL_TLS_DHE_PSK_WITH_AES_128_GCM_SHA256:
+	case OP_PCL_TLS_DHE_PSK_WITH_AES_256_GCM_SHA384:
+	case OP_PCL_TLS_RSA_PSK_WITH_AES_128_GCM_SHA256:
+	case OP_PCL_TLS_RSA_PSK_WITH_AES_256_GCM_SHA384:
+	case OP_PCL_TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256:
+	case OP_PCL_TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384:
+	case OP_PCL_TLS_ECDH_ECDSA_WITH_AES_128_GCM_SHA256:
+	case OP_PCL_TLS_ECDH_ECDSA_WITH_AES_256_GCM_SHA384:
+	case OP_PCL_TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256:
+	case OP_PCL_TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384:
+	case OP_PCL_TLS_ECDH_RSA_WITH_AES_128_GCM_SHA256:
+	case OP_PCL_TLS_ECDH_RSA_WITH_AES_256_GCM_SHA384:
+		return RTA_TLS_CIPHER_GCM;
+
+	case OP_PCL_TLS_KRB5_WITH_RC4_128_MD5:
+	case OP_PCL_TLS_RSA_WITH_RC4_128_MD5:
+	case OP_PCL_TLS_DH_anon_WITH_RC4_128_MD5:
+	case OP_PCL_TLS_KRB5_EXPORT_WITH_RC4_40_MD5:
+	case OP_PCL_TLS_RSA_EXPORT_WITH_RC4_40_MD5:
+	case OP_PCL_TLS_DH_anon_EXPORT_WITH_RC4_40_MD5:
+	case OP_PCL_TLS_KRB5_WITH_RC4_128_SHA:
+	case OP_PCL_TLS_PSK_WITH_RC4_128_SHA:
+	case OP_PCL_TLS_DHE_PSK_WITH_RC4_128_SHA:
+	case OP_PCL_TLS_RSA_PSK_WITH_RC4_128_SHA:
+	case OP_PCL_TLS_RSA_WITH_RC4_128_SHA:
+	case OP_PCL_TLS_ECDH_ECDSA_WITH_RC4_128_SHA:
+	case OP_PCL_TLS_ECDHE_ECDSA_WITH_RC4_128_SHA:
+	case OP_PCL_TLS_ECDH_RSA_WITH_RC4_128_SHA:
+	case OP_PCL_TLS_ECDHE_RSA_WITH_RC4_128_SHA:
+	case OP_PCL_TLS_ECDH_anon_WITH_RC4_128_SHA:
+	case OP_PCL_TLS_ECDHE_PSK_WITH_RC4_128_SHA:
+	case OP_PCL_TLS_KRB5_EXPORT_WITH_RC4_40_SHA:
+		return RTA_TLS_CIPHER_STREAM;
+
+	case OP_PCL_TLS_RSA_WITH_AES_128_CBC_SHA:
+	case OP_PCL_TLS_DH_DSS_WITH_AES_128_CBC_SHA:
+	case OP_PCL_TLS_DH_RSA_WITH_AES_128_CBC_SHA:
+	case OP_PCL_TLS_DHE_DSS_WITH_AES_128_CBC_SHA:
+	case OP_PCL_TLS_DHE_RSA_WITH_AES_128_CBC_SHA:
+	case OP_PCL_TLS_DH_anon_WITH_AES_128_CBC_SHA:
+	case OP_PCL_TLS_PSK_WITH_AES_128_CBC_SHA:
+	case OP_PCL_TLS_DHE_PSK_WITH_AES_128_CBC_SHA:
+	case OP_PCL_TLS_RSA_PSK_WITH_AES_128_CBC_SHA:
+	case OP_PCL_TLS_ECDH_ECDSA_WITH_AES_128_CBC_SHA:
+	case OP_PCL_TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA:
+	case OP_PCL_TLS_ECDH_RSA_WITH_AES_128_CBC_SHA:
+	case OP_PCL_TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA:
+	case OP_PCL_TLS_ECDH_anon_WITH_AES_128_CBC_SHA:
+	case OP_PCL_TLS_SRP_SHA_WITH_AES_128_CBC_SHA:
+	case OP_PCL_TLS_SRP_SHA_RSA_WITH_AES_128_CBC_SHA:
+	case OP_PCL_TLS_SRP_SHA_DSS_WITH_AES_128_CBC_SHA:
+	case OP_PCL_TLS_RSA_WITH_AES_256_CBC_SHA:
+	case OP_PCL_TLS_DH_DSS_WITH_AES_256_CBC_SHA:
+	case OP_PCL_TLS_DH_RSA_WITH_AES_256_CBC_SHA:
+	case OP_PCL_TLS_DHE_DSS_WITH_AES_256_CBC_SHA:
+	case OP_PCL_TLS_DHE_RSA_WITH_AES_256_CBC_SHA:
+	case OP_PCL_TLS_DH_anon_WITH_AES_256_CBC_SHA:
+	case OP_PCL_TLS_PSK_WITH_AES_256_CBC_SHA:
+	case OP_PCL_TLS_DHE_PSK_WITH_AES_256_CBC_SHA:
+	case OP_PCL_TLS_RSA_PSK_WITH_AES_256_CBC_SHA:
+	case OP_PCL_TLS_ECDH_ECDSA_WITH_AES_256_CBC_SHA:
+	case OP_PCL_TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA:
+	case OP_PCL_TLS_ECDH_RSA_WITH_AES_256_CBC_SHA:
+	case OP_PCL_TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA:
+	case OP_PCL_TLS_ECDH_anon_WITH_AES_256_CBC_SHA:
+	case OP_PCL_TLS_SRP_SHA_WITH_AES_256_CBC_SHA:
+	case OP_PCL_TLS_SRP_SHA_RSA_WITH_AES_256_CBC_SHA:
+	case OP_PCL_TLS_SRP_SHA_DSS_WITH_AES_256_CBC_SHA:
+	case OP_PCL_TLS_PSK_WITH_AES_128_CBC_SHA256:
+	case OP_PCL_TLS_PSK_WITH_AES_256_CBC_SHA384:
+	case OP_PCL_TLS_DHE_PSK_WITH_AES_128_CBC_SHA256:
+	case OP_PCL_TLS_DHE_PSK_WITH_AES_256_CBC_SHA384:
+	case OP_PCL_TLS_RSA_PSK_WITH_AES_128_CBC_SHA256:
+	case OP_PCL_TLS_RSA_PSK_WITH_AES_256_CBC_SHA384:
+	case OP_PCL_TLS_KRB5_WITH_3DES_EDE_CBC_MD5:
+	case OP_PCL_TLS_KRB5_WITH_3DES_EDE_CBC_SHA:
+	case OP_PCL_TLS_PSK_WITH_3DES_EDE_CBC_SHA:
+	case OP_PCL_TLS_DHE_PSK_WITH_3DES_EDE_CBC_SHA:
+	case OP_PCL_TLS_RSA_PSK_WITH_3DES_EDE_CBC_SHA:
+	case OP_PCL_TLS_RSA_WITH_3DES_EDE_CBC_SHA:
+	case OP_PCL_TLS_DH_DSS_WITH_3DES_EDE_CBC_SHA:
+	case OP_PCL_TLS_DH_RSA_WITH_3DES_EDE_CBC_SHA:
+	case OP_PCL_TLS_DHE_DSS_WITH_3DES_EDE_CBC_SHA:
+	case OP_PCL_TLS_DHE_RSA_WITH_3DES_EDE_CBC_SHA:
+	case OP_PCL_TLS_DH_anon_WITH_3DES_EDE_CBC_SHA:
+	case OP_PCL_TLS_ECDH_ECDSA_WITH_3DES_EDE_CBC_SHA:
+	case OP_PCL_TLS_ECDHE_ECDSA_WITH_3DES_EDE_CBC_SHA:
+	case OP_PCL_TLS_ECDH_RSA_WITH_3DES_EDE_CBC_SHA:
+	case OP_PCL_TLS_ECDHE_RSA_WITH_3DES_EDE_CBC_SHA:
+	case OP_PCL_TLS_ECDH_anon_WITH_3DES_EDE_CBC_SHA:
+	case OP_PCL_TLS_SRP_SHA_WITH_3DES_EDE_CBC_SHA:
+	case OP_PCL_TLS_SRP_SHA_RSA_WITH_3DES_EDE_CBC_SHA:
+	case OP_PCL_TLS_SRP_SHA_DSS_WITH_3DES_EDE_CBC_SHA:
+	case OP_PCL_TLS_KRB5_EXPORT_WITH_DES_CBC_40_MD5:
+	case OP_PCL_TLS_KRB5_WITH_DES_CBC_MD5:
+	case OP_PCL_TLS_RSA_EXPORT_WITH_DES40_CBC_SHA:
+	case OP_PCL_TLS_DH_DSS_EXPORT_WITH_DES40_CBC_SHA:
+	case OP_PCL_TLS_DH_RSA_EXPORT_WITH_DES40_CBC_SHA:
+	case OP_PCL_TLS_DHE_DSS_EXPORT_WITH_DES40_CBC_SHA:
+	case OP_PCL_TLS_DHE_RSA_EXPORT_WITH_DES40_CBC_SHA:
+	case OP_PCL_TLS_DH_anon_EXPORT_WITH_DES40_CBC_SHA:
+	case OP_PCL_TLS_KRB5_EXPORT_WITH_DES_CBC_40_SHA:
+	case OP_PCL_TLS_KRB5_WITH_DES_CBC_SHA:
+	case OP_PCL_TLS_RSA_WITH_DES_CBC_SHA:
+	case OP_PCL_TLS_DH_DSS_WITH_DES_CBC_SHA:
+	case OP_PCL_TLS_DH_RSA_WITH_DES_CBC_SHA:
+	case OP_PCL_TLS_DHE_DSS_WITH_DES_CBC_SHA:
+	case OP_PCL_TLS_DHE_RSA_WITH_DES_CBC_SHA:
+	case OP_PCL_TLS_DH_anon_WITH_DES_CBC_SHA:
+	case OP_PCL_TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA256:
+	case OP_PCL_TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA384:
+	case OP_PCL_TLS_ECDH_ECDSA_WITH_AES_128_CBC_SHA256:
+	case OP_PCL_TLS_ECDH_ECDSA_WITH_AES_256_CBC_SHA384:
+	case OP_PCL_TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256:
+	case OP_PCL_TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384:
+	case OP_PCL_TLS_ECDH_RSA_WITH_AES_128_CBC_SHA256:
+	case OP_PCL_TLS_ECDH_RSA_WITH_AES_256_CBC_SHA384:
+	case OP_PCL_TLS_ECDHE_PSK_WITH_3DES_EDE_CBC_SHA:
+	case OP_PCL_TLS_ECDHE_PSK_WITH_AES_128_CBC_SHA:
+	case OP_PCL_TLS_ECDHE_PSK_WITH_AES_256_CBC_SHA:
+	case OP_PCL_TLS_ECDHE_PSK_WITH_AES_128_CBC_SHA256:
+	case OP_PCL_TLS_ECDHE_PSK_WITH_AES_256_CBC_SHA384:
+	case OP_PCL_TLS_RSA_WITH_AES_128_CBC_SHA256:
+	case OP_PCL_TLS_RSA_WITH_AES_256_CBC_SHA256:
+	case OP_PCL_TLS_DH_DSS_WITH_AES_128_CBC_SHA256:
+	case OP_PCL_TLS_DH_RSA_WITH_AES_128_CBC_SHA256:
+	case OP_PCL_TLS_DHE_DSS_WITH_AES_128_CBC_SHA256:
+	case OP_PCL_TLS_DHE_RSA_WITH_AES_128_CBC_SHA256:
+	case OP_PCL_TLS_DH_DSS_WITH_AES_256_CBC_SHA256:
+	case OP_PCL_TLS_DH_RSA_WITH_AES_256_CBC_SHA256:
+	case OP_PCL_TLS_DHE_DSS_WITH_AES_256_CBC_SHA256:
+	case OP_PCL_TLS_DHE_RSA_WITH_AES_256_CBC_SHA256:
+	case OP_PCL_TLS_DH_anon_WITH_AES_128_CBC_SHA256:
+	case OP_PCL_TLS_DH_anon_WITH_AES_256_CBC_SHA256:
+		return RTA_TLS_CIPHER_CBC;
+
+	default:
+		pr_err("Invalid protinfo 0x%08x\n", protinfo);
+		return RTA_TLS_CIPHER_INVALID;
+	}
+}
+
+static inline void __rta_copy_tls_pdb(struct program *p, void *pdb,
+				      struct protcmd *protcmd)
 {
 	uint16_t protinfo = protcmd->protinfo;
 	uint32_t protid = protcmd->protid;
 
-	switch (protinfo) {
-	case OP_PCL_SSL30_AES_128_GCM_SHA256_1:
-	case OP_PCL_SSL30_AES_256_GCM_SHA384_1:
-	case OP_PCL_SSL30_AES_128_GCM_SHA256_2:
-	case OP_PCL_SSL30_AES_256_GCM_SHA384_2:
-	case OP_PCL_SSL30_AES_128_GCM_SHA256_3:
-	case OP_PCL_SSL30_AES_256_GCM_SHA384_3:
-	case OP_PCL_SSL30_AES_128_GCM_SHA256_4:
-	case OP_PCL_SSL30_AES_256_GCM_SHA384_4:
-	case OP_PCL_SSL30_AES_128_GCM_SHA256_5:
-	case OP_PCL_SSL30_AES_256_GCM_SHA384_5:
-	case OP_PCL_SSL30_AES_128_GCM_SHA256_6:
-	case OP_PCL_TLS_DH_ANON_AES_256_GCM_SHA384:
-	case OP_PCL_TLS_PSK_AES_128_GCM_SHA256:
-	case OP_PCL_TLS_PSK_AES_256_GCM_SHA384:
-	case OP_PCL_TLS_DHE_PSK_AES_128_GCM_SHA256:
-	case OP_PCL_TLS_DHE_PSK_AES_256_GCM_SHA384:
-	case OP_PCL_TLS_RSA_PSK_AES_128_GCM_SHA256:
-	case OP_PCL_TLS_RSA_PSK_AES_256_GCM_SHA384:
-	case OP_PCL_TLS_ECDHE_ECDSA_AES_128_GCM_SHA256:
-	case OP_PCL_TLS_ECDHE_ECDSA_AES_256_GCM_SHA384:
-	case OP_PCL_TLS_ECDH_ECDSA_AES_128_GCM_SHA256:
-	case OP_PCL_TLS_ECDH_ECDSA_AES_256_GCM_SHA384:
-	case OP_PCL_TLS_ECDHE_RSA_AES_128_GCM_SHA256:
-	case OP_PCL_TLS_ECDHE_RSA_AES_256_GCM_SHA384:
-	case OP_PCL_TLS_ECDH_RSA_AES_128_GCM_SHA256:
-	case OP_PCL_TLS_ECDH_RSA_AES_256_GCM_SHA384:
+	switch (rta_tls_cipher_mode(protinfo)) {
+	case RTA_TLS_CIPHER_GCM:
 		__rta_copy_tls_gcm_pdb(p, pdb, protid);
 		break;
-
-	case OP_PCL_SSL30_RC4_128_MD5:
-	case OP_PCL_SSL30_RC4_128_MD5_2:
-	case OP_PCL_SSL30_RC4_128_MD5_3:
-	case OP_PCL_SSL30_RC4_40_MD5:
-	case OP_PCL_SSL30_RC4_40_MD5_2:
-	case OP_PCL_SSL30_RC4_40_MD5_3:
-	case OP_PCL_SSL30_RC4_128_SHA:
-	case OP_PCL_SSL30_RC4_128_SHA_2:
-	case OP_PCL_SSL30_RC4_128_SHA_3:
-	case OP_PCL_SSL30_RC4_128_SHA_4:
-	case OP_PCL_SSL30_RC4_128_SHA_5:
-	case OP_PCL_SSL30_RC4_128_SHA_6:
-	case OP_PCL_SSL30_RC4_128_SHA_7:
-	case OP_PCL_SSL30_RC4_128_SHA_8:
-	case OP_PCL_SSL30_RC4_128_SHA_9:
-	case OP_PCL_SSL30_RC4_128_SHA_10:
-	case OP_PCL_SSL30_RC4_40_SHA:
+	case RTA_TLS_CIPHER_STREAM:
 		__rta_copy_tls_stream_pdb(p, pdb, protid);
 		break;
-
-	case OP_PCL_SSL30_AES_128_CBC_SHA:
-	case OP_PCL_SSL30_AES_128_CBC_SHA_2:
-	case OP_PCL_SSL30_AES_128_CBC_SHA_3:
-	case OP_PCL_SSL30_AES_128_CBC_SHA_4:
-	case OP_PCL_SSL30_AES_128_CBC_SHA_5:
-	case OP_PCL_SSL30_AES_128_CBC_SHA_6:
-	case OP_PCL_SSL30_AES_128_CBC_SHA_7:
-	case OP_PCL_SSL30_AES_128_CBC_SHA_8:
-	case OP_PCL_SSL30_AES_128_CBC_SHA_9:
-	case OP_PCL_SSL30_AES_128_CBC_SHA_10:
-	case OP_PCL_SSL30_AES_128_CBC_SHA_11:
-	case OP_PCL_SSL30_AES_128_CBC_SHA_12:
-	case OP_PCL_SSL30_AES_128_CBC_SHA_13:
-	case OP_PCL_SSL30_AES_128_CBC_SHA_14:
-	case OP_PCL_SSL30_AES_128_CBC_SHA_15:
-	case OP_PCL_SSL30_AES_128_CBC_SHA_16:
-	case OP_PCL_SSL30_AES_128_CBC_SHA_17:
-	case OP_PCL_SSL30_AES_256_CBC_SHA:
-	case OP_PCL_SSL30_AES_256_CBC_SHA_2:
-	case OP_PCL_SSL30_AES_256_CBC_SHA_3:
-	case OP_PCL_SSL30_AES_256_CBC_SHA_4:
-	case OP_PCL_SSL30_AES_256_CBC_SHA_5:
-	case OP_PCL_SSL30_AES_256_CBC_SHA_6:
-	case OP_PCL_SSL30_AES_256_CBC_SHA_7:
-	case OP_PCL_SSL30_AES_256_CBC_SHA_8:
-	case OP_PCL_SSL30_AES_256_CBC_SHA_9:
-	case OP_PCL_SSL30_AES_256_CBC_SHA_10:
-	case OP_PCL_SSL30_AES_256_CBC_SHA_11:
-	case OP_PCL_SSL30_AES_256_CBC_SHA_12:
-	case OP_PCL_SSL30_AES_256_CBC_SHA_13:
-	case OP_PCL_SSL30_AES_256_CBC_SHA_14:
-	case OP_PCL_SSL30_AES_256_CBC_SHA_15:
-	case OP_PCL_SSL30_AES_256_CBC_SHA_16:
-	case OP_PCL_SSL30_AES_256_CBC_SHA_17:
-	case OP_PCL_TLS_PSK_AES_128_CBC_SHA256:
-	case OP_PCL_TLS_PSK_AES_256_CBC_SHA384:
-	case OP_PCL_TLS_DHE_PSK_AES_128_CBC_SHA256:
-	case OP_PCL_TLS_DHE_PSK_AES_256_CBC_SHA384:
-	case OP_PCL_TLS_RSA_PSK_AES_128_CBC_SHA256:
-	case OP_PCL_TLS_RSA_PSK_AES_256_CBC_SHA384:
-	case OP_PCL_SSL30_3DES_EDE_CBC_MD5:
-	case OP_PCL_SSL30_3DES_EDE_CBC_SHA:
-	case OP_PCL_SSL30_3DES_EDE_CBC_SHA_2:
-	case OP_PCL_SSL30_3DES_EDE_CBC_SHA_3:
-	case OP_PCL_SSL30_3DES_EDE_CBC_SHA_4:
-	case OP_PCL_SSL30_3DES_EDE_CBC_SHA_5:
-	case OP_PCL_SSL30_3DES_EDE_CBC_SHA_6:
-	case OP_PCL_SSL30_3DES_EDE_CBC_SHA_7:
-	case OP_PCL_SSL30_3DES_EDE_CBC_SHA_8:
-	case OP_PCL_SSL30_3DES_EDE_CBC_SHA_9:
-	case OP_PCL_SSL30_3DES_EDE_CBC_SHA_10:
-	case OP_PCL_SSL30_3DES_EDE_CBC_SHA_11:
-	case OP_PCL_SSL30_3DES_EDE_CBC_SHA_12:
-	case OP_PCL_SSL30_3DES_EDE_CBC_SHA_13:
-	case OP_PCL_SSL30_3DES_EDE_CBC_SHA_14:
-	case OP_PCL_SSL30_3DES_EDE_CBC_SHA_15:
-	case OP_PCL_SSL30_3DES_EDE_CBC_SHA_16:
-	case OP_PCL_SSL30_3DES_EDE_CBC_SHA_17:
-	case OP_PCL_SSL30_3DES_EDE_CBC_SHA_18:
-	case OP_PCL_SSL30_DES40_CBC_MD5:
-	case OP_PCL_SSL30_DES_CBC_MD5:
-	case OP_PCL_SSL30_DES40_CBC_SHA:
-	case OP_PCL_SSL30_DES40_CBC_SHA_2:
-	case OP_PCL_SSL30_DES40_CBC_SHA_3:
-	case OP_PCL_SSL30_DES40_CBC_SHA_4:
-	case OP_PCL_SSL30_DES40_CBC_SHA_5:
-	case OP_PCL_SSL30_DES40_CBC_SHA_6:
-	case OP_PCL_SSL30_DES40_CBC_SHA_7:
-	case OP_PCL_SSL30_DES_CBC_SHA:
-	case OP_PCL_SSL30_DES_CBC_SHA_2:
-	case OP_PCL_SSL30_DES_CBC_SHA_3:
-	case OP_PCL_SSL30_DES_CBC_SHA_4:
-	case OP_PCL_SSL30_DES_CBC_SHA_5:
-	case OP_PCL_SSL30_DES_CBC_SHA_6:
-	case OP_PCL_SSL30_DES_CBC_SHA_7:
-	case OP_PCL_TLS_ECDHE_ECDSA_AES_128_CBC_SHA256:
-	case OP_PCL_TLS_ECDHE_ECDSA_AES_256_CBC_SHA384:
-	case OP_PCL_TLS_ECDH_ECDSA_AES_128_CBC_SHA256:
-	case OP_PCL_TLS_ECDH_ECDSA_AES_256_CBC_SHA384:
-	case OP_PCL_TLS_ECDHE_RSA_AES_128_CBC_SHA256:
-	case OP_PCL_TLS_ECDHE_RSA_AES_256_CBC_SHA384:
-	case OP_PCL_TLS_ECDH_RSA_AES_128_CBC_SHA256:
-	case OP_PCL_TLS_ECDH_RSA_AES_256_CBC_SHA384:
-	case OP_PCL_TLS_ECDHE_PSK_3DES_EDE_CBC_SHA:
-	case OP_PCL_TLS_ECDHE_PSK_AES_128_CBC_SHA:
-	case OP_PCL_TLS_ECDHE_PSK_AES_256_CBC_SHA:
-	case OP_PCL_TLS_ECDHE_PSK_AES_128_CBC_SHA256:
-	case OP_PCL_TLS_ECDHE_PSK_AES_256_CBC_SHA384:
+	case RTA_TLS_CIPHER_CBC:
 		__rta_copy_tls_block_pdb(p, pdb, protid);
 		break;
-
+	case RTA_TLS_CIPHER_INVALID:
 	default:
 		pr_err("Invalid protinfo 0x%08x\n", protinfo);
 	}
+}
+
+static inline int __tls_gen_auth_key(struct program *program,
+				     struct alginfo *authdata,
+				     uint16_t protinfo)
+{
+	uint32_t dkp_protid;
+
+	switch (protinfo) {
+	case OP_PCL_TLS_RSA_WITH_AES_128_CBC_SHA:
+	case OP_PCL_TLS_RSA_WITH_AES_256_CBC_SHA:
+		dkp_protid = OP_PCLID_DKP_SHA1;
+		break;
+	case OP_PCL_TLS_RSA_WITH_AES_128_CBC_SHA256:
+	case OP_PCL_TLS_RSA_WITH_AES_256_CBC_SHA256:
+		dkp_protid = OP_PCLID_DKP_SHA256;
+		break;
+	default:
+		pr_err("Invalid protinfo 0x%08x\n", protinfo);
+		return -EINVAL;
+	}
+
+	if (authdata->key_type == RTA_DATA_PTR)
+		return DKP_PROTOCOL(program, dkp_protid, OP_PCL_DKP_SRC_PTR,
+				    OP_PCL_DKP_DST_PTR,
+				    (uint16_t)authdata->keylen, authdata->key,
+				    authdata->key_type);
+	else
+		return DKP_PROTOCOL(program, dkp_protid, OP_PCL_DKP_SRC_IMM,
+				    OP_PCL_DKP_DST_IMM,
+				    (uint16_t)authdata->keylen, authdata->key,
+				    authdata->key_type);
 }
 
 /**
@@ -1002,7 +1189,6 @@ static inline __rta_copy_tls_pdb(struct program *p, void *pdb,
  *       This structure will be copied inline to the descriptor under
  *       construction. No error checking will be made. Refer to the block guide
  *       for details of the PDB.
- * @pdb_len: the length of the Protocol Data Block in bytes
  * @protcmd: pointer to Protocol Operation Command definitions
  * @cipherdata: pointer to block cipher transform definitions
  * @authdata: pointer to authentication transform definitions
@@ -1010,11 +1196,10 @@ static inline __rta_copy_tls_pdb(struct program *p, void *pdb,
  * Return: size of descriptor written in words or negative number on error
  *
  * The following built-in protocols are supported:
- * SSL3.0 / TLS1.0 / TLS1.1 / TLS1.2 / DTLS10
+ * SSL3.0 / TLS1.0 / TLS1.1 / TLS1.2 / DTLS1.0 / DTLS1.2
  */
 static inline int cnstr_shdsc_tls(uint32_t *descbuf, bool ps, bool swap,
-				  uint8_t *pdb, unsigned pdb_len,
-				  struct protcmd *protcmd,
+				  uint8_t *pdb, struct protcmd *protcmd,
 				  struct alginfo *cipherdata,
 				  struct alginfo *authdata)
 {
@@ -1048,6 +1233,110 @@ static inline int cnstr_shdsc_tls(uint32_t *descbuf, bool ps, bool swap,
 		    authdata->keylen, INLINE_KEY(authdata));
 	KEY(p, KEY1, cipherdata->key_enc_flags, cipherdata->key,
 	    cipherdata->keylen, INLINE_KEY(cipherdata));
+	SET_LABEL(p, keyjmp);
+	PROTOCOL(p, protcmd->optype, protcmd->protid, protcmd->protinfo);
+
+	PATCH_HDR(p, phdr, pdb_end);
+	PATCH_JUMP(p, pkeyjmp, keyjmp);
+	return PROGRAM_FINALIZE(p);
+}
+
+/**
+ * CWAP_DTLS_ENC_BASE_SD_LEN - CAPWAP/DTLS encapsulation shared descriptor
+ *                             length
+ *
+ * Accounts only for the "base" commands, i.e. excludes KEY / DKP commands,
+ * immediate keys, and is intended to be used by upper layers to determine
+ * whether keys can be inlined or not.
+ * To be used as first parameter of rta_inline_query(), added with PDB length.
+ */
+#define CWAP_DTLS_ENC_BASE_SD_LEN	(11 * CAAM_CMD_SZ)
+
+/**
+ * CWAP_DTLS_DEC_BASE_SD_LEN - CAPWAP/DTLS decapsulation shared descriptor
+ *                             length
+ *
+ * Accounts only for the "base" commands, i.e. excludes KEY / DKP commands,
+ * immediate keys, and is intended to be used by upper layers to determine
+ * whether keys can be inlined or not.
+ * To be used as first parameter of rta_inline_query(), added with PDB length.
+ */
+#define CWAP_DTLS_DEC_BASE_SD_LEN	(10 * CAAM_CMD_SZ)
+
+/**
+ * cnstr_shdsc_cwap_dtls - DTLS (in CAPWAP context) block cipher encapsulation /
+ *                         decapsulation shared descriptor.
+ * @descbuf: pointer to buffer used for descriptor construction
+ * @ps: if 36/40bit addressing is desired, this parameter must be true
+ * @swap: must be true when core endianness doesn't match SEC endianness
+ * @pdb: pointer to the PDB to be used in this descriptor
+ *       This structure will be copied inline to the descriptor under
+ *       construction. No error checking will be made. Refer to the block guide
+ *       for details of the PDB.
+ * @protcmd: pointer to Protocol Operation Command definitions
+ *           The following built-in protocols are supported: DTLS1.0 / DTLS1.2
+ * @cipherdata: pointer to block cipher transform definitions
+ * @authdata: pointer to authentication transform definitions
+ *            If an authentication key is required by the protocol:
+ *            -For SEC Eras 1-5, an MDHA split key must be provided;
+ *            Note that the size of the split key itself must be specified.
+ *            -For SEC Eras 6+, a "normal" key must be provided; DKP (Derived
+ *            Key Protocol) will be used to compute MDHA on the fly in HW.
+ *
+ * Return: size of descriptor written in words or negative number on error
+ */
+static inline int cnstr_shdsc_cwap_dtls(uint32_t *descbuf, bool ps, bool swap,
+					uint8_t *pdb, struct protcmd *protcmd,
+					struct alginfo *cipherdata,
+					struct alginfo *authdata)
+{
+	struct program prg;
+	struct program *p = &prg;
+	int ret;
+	LABEL(pdb_end);
+	LABEL(keyjmp);
+	REFERENCE(phdr);
+	REFERENCE(pkeyjmp);
+
+	PROGRAM_CNTXT_INIT(p, descbuf, 0);
+	if (ps)
+		PROGRAM_SET_36BIT_ADDR(p);
+	if (swap)
+		PROGRAM_SET_BSWAP(p);
+
+	phdr = SHR_HDR(p, SHR_SERIAL, 0, 0);
+	__rta_copy_tls_pdb(p, pdb, protcmd);
+	SET_LABEL(p, pdb_end);
+
+	MATHI(p, DPOVRD, RSHIFT, DTLS_DPOVRD_METADATA_LEN_SHIFT, VSEQOUTSZ, 1,
+	      0);
+	/* invalidate DPOVRD, since it's not (currently) used in CAPWAP DTLS */
+	MATHB(p, DPOVRD, AND, ~TLS_DPOVRD_USE, DPOVRD, 4, IMMED2);
+	/* TODO: CLASS2 corresponds to AUX=2'b10; add more intuitive defines */
+	SEQFIFOSTORE(p, METADATA, 0, 0, CLASS2 | VLF);
+
+	if (protcmd->optype == OP_TYPE_ENCAP_PROTOCOL)
+		/* Add CAPWAP DTLS header */
+		SEQSTORE(p, 0x00000001, 0, 4, IMMED);
+	else
+		/* Skip over CAPWAP DTLS header */
+		SEQFIFOLOAD(p, SKIP, 4, 0);
+
+	pkeyjmp = JUMP(p, keyjmp, LOCAL_JUMP, ALL_TRUE, BOTH | SHRD | SELF);
+	if (authdata->keylen)
+		if (rta_sec_era < RTA_SEC_ERA_6) {
+			KEY(p, MDHA_SPLIT_KEY, authdata->key_enc_flags,
+			    authdata->key, authdata->keylen,
+			    INLINE_KEY(authdata));
+		} else {
+			ret = __tls_gen_auth_key(p, authdata,
+						 protcmd->protinfo);
+			if (ret < 0)
+				return ret;
+		}
+	if (cipherdata->keylen)
+		KEY(p, KEY1, cipherdata->key_enc_flags, cipherdata->key,
+		    cipherdata->keylen, INLINE_KEY(cipherdata));
 	SET_LABEL(p, keyjmp);
 	PROTOCOL(p, protcmd->optype, protcmd->protid, protcmd->protinfo);
 

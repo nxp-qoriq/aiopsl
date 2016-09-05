@@ -486,6 +486,28 @@ static inline void __rta_out64(struct program *program, bool is_ext,
 	}
 }
 
+static inline void __rta_out_be64(struct program *program, bool is_ext,
+				  uint64_t val)
+{
+	if (is_ext) {
+		__rta_out_be32(program, upper_32_bits(val));
+		__rta_out_be32(program, lower_32_bits(val));
+	} else {
+		__rta_out_be32(program, lower_32_bits(val));
+	}
+}
+
+static inline void __rta_out_le64(struct program *program, bool is_ext,
+				  uint64_t val)
+{
+	if (is_ext) {
+		__rta_out_le32(program, lower_32_bits(val));
+		__rta_out_le32(program, upper_32_bits(val));
+	} else {
+		__rta_out_le32(program, lower_32_bits(val));
+	}
+}
+
 static inline unsigned rta_word(struct program *program, uint32_t val)
 {
 	unsigned start_pc = program->current_pc;

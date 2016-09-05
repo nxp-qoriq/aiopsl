@@ -151,12 +151,30 @@ static inline __printf(1, 2) int no_printf(const char *fmt __always_unused, ...)
 			#define cpu_to_le32(x)	(x)
 		#endif
 	#endif
+	/* Define cpu_to_be64 macro if not defined in the build environment */
+	#if !defined(cpu_to_be64)
+		#if __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
+			#define cpu_to_be64(x)	(x)
+		#else
+			#define cpu_to_be64(x)	swab64(x)
+		#endif
+	#endif
+	/* Define cpu_to_le64 macro if not defined in the build environment */
+	#if !defined(cpu_to_le64)
+		#if __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
+			#define cpu_to_le64(x)	swab64(x)
+		#else
+			#define cpu_to_le64(x)	(x)
+		#endif
+	#endif
 #elif defined(__EWL__) && (defined(AIOP) || defined(MC))
 	#define swab16(x) swap_uint16(x)
 	#define swab32(x) swap_uint32(x)
 	#define swab64(x) swap_uint64(x)
 	#define cpu_to_be32(x)	CPU_TO_BE32(x)
 	#define cpu_to_le32(x)	CPU_TO_LE32(x)
+	#define cpu_to_be64(x)	CPU_TO_BE64(x)
+	#define cpu_to_le64(x)	CPU_TO_LE64(x)
 	/* Define endianness macros if not defined by the compiler */
 	#ifndef __BIG_ENDIAN
 		#define __BIG_ENDIAN 0x10e1
