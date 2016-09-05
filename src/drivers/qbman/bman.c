@@ -46,6 +46,13 @@ __COLD_CODE int bman_fill_bpid(uint32_t num_buffs,
 	struct icontext ic;
 	int err;
 
+	/* We allocate a continuous block of memory,
+	 * so alignment must be the minimum buffer size */
+	if (buff_size < alignment)
+	{
+		buff_size = alignment;
+	}
+
 	switch(mem_partition_id){
 	case MEM_PART_DP_DDR:
 	case MEM_PART_SYSTEM_DDR:

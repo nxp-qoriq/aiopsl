@@ -348,7 +348,6 @@ static int sanity_check_slab_create(uint16_t    buff_size,
 {
 	SLAB_ASSERT_COND_RETURN(buff_size > 0,   -EINVAL);
 	SLAB_ASSERT_COND_RETURN(alignment > 0,   -EINVAL);
-	SLAB_ASSERT_COND_RETURN(alignment <= buff_size,  -EINVAL);
 	SLAB_ASSERT_COND_RETURN(flags == 0 || flags == SLAB_DDR_MANAGEMENT_FLAG,
 	                        -EINVAL);
 	SLAB_ASSERT_COND_RETURN(is_power_of_2(alignment), -EINVAL);
@@ -1628,6 +1627,7 @@ __COLD_CODE static int slab_check_registration_parameters(uint32_t committed_buf
                                                    uint16_t buff_size,
                                                    uint16_t    alignment,
                                                    enum memory_partition_id  mem_pid,
+                                                   uint32_t    flags,
                                                    int array_size,
                                                    struct request_table_info *local_info,
                                                    int *index)
@@ -1649,6 +1649,17 @@ __COLD_CODE static int slab_check_registration_parameters(uint32_t committed_buf
 		return -EINVAL;
 	}
 
+	if (!(flags == 0 || flags == SLAB_DDR_MANAGEMENT_FLAG))
+	{
+		pr_err("Invalid flags 0x%x\n", flags);
+		return -EINVAL;
+	}
+
+	if (buff_size <= 0)
+	{
+		pr_err("Invalid buffer size %d\n", buff_size);
+		return -EINVAL;
+	}
 
 	for(i = 0; i< array_size; i++){
 		if(buff_size > local_info[i].buff_size)
@@ -1677,7 +1688,11 @@ __COLD_CODE static int slab_check_registration_parameters(uint32_t committed_buf
 		return -EINVAL;
 	}
 #else
-	UNUSED(alignment);
+	if ((alignment <= 0) || !is_power_of_2(alignment))
+	{
+		pr_err("Invalid alignment %d\n", alignment);
+		return -EINVAL;
+	}
 #endif
 	return 0;
 }
@@ -1699,7 +1714,7 @@ __COLD_CODE int slab_register_context_buffer_requirements(
 
 	err = slab_check_registration_parameters(committed_buffs, max_buffs,
 	                                         buff_size, alignment,
-	                                         mem_pid, array_size,
+	                                         mem_pid, flags, array_size,
 	                                         local_info, &index);
 
 	if(err)
