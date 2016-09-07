@@ -49,7 +49,7 @@ extern __PROFILE_SRAM struct storage_profile
 #define FRAME_INITIAL_SIZE	1
 	/* end of WA for TKT254401 */
 
-int create_frame(
+FRAME_OP_CODE_PLACEMENT int create_frame(
 		struct ldpaa_fd *fd,
 		void *data,
 		uint16_t size,

@@ -310,7 +310,7 @@ void l4_set_udp_dst(uint16_t dst_port)
 	pr->gross_running_sum = 0;
 }
 
-int l4_udp_tcp_cksum_calc(uint8_t flags)
+HM_CODE_PLACEMENT int l4_udp_tcp_cksum_calc(uint8_t flags)
 {
 	uint16_t	l3checksum_dummy;
 	uint16_t	l4checksum;

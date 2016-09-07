@@ -1212,7 +1212,7 @@ int ip_set_nw_dst(uint32_t dst_addr)
 
 
 
-void ip_cksum_calculate(struct ipv4hdr *ipv4header, uint8_t flags)
+HM_CODE_PLACEMENT void ip_cksum_calculate(struct ipv4hdr *ipv4header, uint8_t flags)
 {
 	uint16_t running_sum;
 	struct parse_result *pr = (struct parse_result *)HWC_PARSE_RES_ADDRESS;
@@ -1251,7 +1251,7 @@ void ip_cksum_calculate(struct ipv4hdr *ipv4header, uint8_t flags)
 	return;
 }
 
-__HOT_CODE uint32_t ipv6_last_header(struct ipv6hdr *ipv6_hdr, uint8_t flag)
+HM_CODE_PLACEMENT uint32_t ipv6_last_header(struct ipv6hdr *ipv6_hdr, uint8_t flag)
 {
 	uint32_t current_hdr_ptr;
 	uint16_t current_hdr_size;

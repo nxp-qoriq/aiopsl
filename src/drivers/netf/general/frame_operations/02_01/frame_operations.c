@@ -46,7 +46,7 @@ extern __PROFILE_SRAM struct storage_profile
 #define SP_BP_ID_MASK		0x3FFF
 #define SP_PBS_MASK		0xFFC0
 
-int create_frame(
+FRAME_OP_CODE_PLACEMENT int create_frame(
 		struct ldpaa_fd *fd,
 		void *data,
 		uint16_t size,

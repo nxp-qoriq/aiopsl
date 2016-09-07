@@ -139,7 +139,30 @@
 #ifndef SHBP_CODE_PLACEMENT
 #define SHBP_CODE_PLACEMENT   __COLD_CODE
 #endif
-
+/*
+ * TMAN module
+ */ 
+#ifndef TMAN_CODE_PLACEMENT
+#define TMAN_CODE_PLACEMENT   __COLD_CODE
+#endif
+/*
+ * Frame Operations module
+ */ 
+#ifndef FRAME_OP_CODE_PLACEMENT
+#define FRAME_OP_CODE_PLACEMENT   __COLD_CODE
+#endif
+/*
+ * HM module
+ */ 
+#ifndef HM_CODE_PLACEMENT
+#define HM_CODE_PLACEMENT   __COLD_CODE
+#endif
+/*
+ * Checksum module
+ */ 
+#ifndef CHECKSUM_CODE_PLACEMENT
+#define CHECKSUM_CODE_PLACEMENT   __COLD_CODE
+#endif
 
 
 #endif /* __BUILD_FLAGS_H */

@@ -248,7 +248,7 @@ void tman_query_timer(uint32_t timer_handle,
 
 #pragma push
 #pragma force_active on
-void tman_timer_callback(void)
+TMAN_CODE_PLACEMENT void tman_timer_callback(void)
 {
 	tman_cb_t tman_cb;
 	tman_arg_8B_t tman_cb_arg1;
