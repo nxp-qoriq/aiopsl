@@ -38,9 +38,9 @@
 #include "fsl_io.h"
 #include <fsl_mc_cmd.h>
 
+#if !defined(cpu_to_le64)
 #define cpu_to_le64 CPU_TO_LE64
-
-
+#endif
 
 struct fsl_mc_io {
 	void *regs;
