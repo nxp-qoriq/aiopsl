@@ -32,8 +32,14 @@
 #include "fsl_list.h"
 #include "buffer_pool.h"
 #include "fsl_platform.h"
+#include "fsl_aiop_common.h"
+#include "fsl_malloc.h"
 
+extern struct aiop_init_info g_init_data;
 
+#ifndef INVALID_PHY_ADDR
+	#define INVALID_PHY_ADDR (uint64_t)(-1)
+#endif /* INVALID_PHY_ADDR */
 
 /**************************************************************************//**
  @Group         sys_grp     System Interfaces
@@ -167,16 +173,89 @@ struct t_mem_mng
 #define SYS_DEFAULT_HEAP_PARTITION  0   /**< Partition ID for default heap */
 
 /**************************************************************************//**
- @Function      SYS_VirtToPhys
+ @Function      sys_virt_to_phys
 
  @Description   Translate virtual address to physical one.
 
- @Param[in]     addr    - Virtual address
+ @Param[in]     virt_addr    - Virtual address
 
+ @Return        Physical address; INVALID_PHY_ADDR on failure.
 *//***************************************************************************/
-uint64_t sys_virt_to_phys(void *addr);
+uint64_t sys_virt_to_phys(void *virt_addr);
 
 
+/**************************************************************************//**
+ @Function      sys_phys_to_virt
+
+ @Description   Translate physical address to virtual one.
+
+ @Param[in]     phy_addr    - Physical address
+
+ @Return        Virtual address; NULL on failure.
+*//***************************************************************************/
+void* sys_phys_to_virt(uint64_t phy_addr);
+
+
+/**************************************************************************//**
+ @Function      sys_fast_virt_to_phys
+
+ @Description   Fast translation of virtual address to physical one.
+                There is no error checking.
+                The assumption is that the virtual address is valid
+                for the memory partition.
+
+ @Param[in]     virt_addr    - Virtual address
+ @Param[in]     id           - Memory Partition Identifier
+
+ @Return        Physical address; INVALID_PHY_ADDR on failure.
+*//***************************************************************************/
+inline uint64_t sys_fast_virt_to_phys(void *virt_addr, e_memory_partition_id id)
+{
+	switch (id)
+	{
+	case MEM_PART_DP_DDR:
+		return (((uint64_t)virt_addr - g_init_data.sl_info.dp_ddr_vaddr)
+				+ g_init_data.sl_info.dp_ddr_paddr);
+	case MEM_PART_SYSTEM_DDR:
+		return (((uint64_t)virt_addr - g_init_data.sl_info.sys_ddr1_vaddr)
+				+ g_init_data.sl_info.sys_ddr1_paddr);
+	case MEM_PART_PEB:
+		return (((uint64_t)virt_addr - g_init_data.sl_info.peb_vaddr)
+				+ g_init_data.sl_info.peb_paddr);
+	}
+	return INVALID_PHY_ADDR;
+}
+
+
+/**************************************************************************//**
+ @Function      sys_fast_phys_to_virt
+
+ @Description   Fast translation of physical address to virtual one.
+                There is no error checking.
+                The assumption is that the physical address is valid
+                for the memory partition.
+
+ @Param[in]     phy_addr    - Physical address
+ @Param[in]     id          - Memory Partition Identifier
+
+ @Return        Virtual address; NULL on failure.
+*//***************************************************************************/
+inline void* sys_fast_phys_to_virt(uint64_t phy_addr, e_memory_partition_id id)
+{
+	switch (id)
+	{
+	case MEM_PART_DP_DDR:
+		return (void*)((phy_addr - g_init_data.sl_info.dp_ddr_paddr)
+						+ g_init_data.sl_info.dp_ddr_vaddr);
+	case MEM_PART_SYSTEM_DDR:
+		return (void*)((phy_addr - g_init_data.sl_info.sys_ddr1_paddr)
+						+ g_init_data.sl_info.sys_ddr1_vaddr);
+	case MEM_PART_PEB:
+		return (void*)((phy_addr - g_init_data.sl_info.peb_paddr)
+						+ g_init_data.sl_info.peb_vaddr);
+	}
+	return NULL;
+}
 
 
 

@@ -67,11 +67,63 @@ void sys_mem_partitions_init_complete()
 }
 
 /*****************************************************************************/
- /* Implement a trivial version of conversion, return the same value as received. */
-uint64_t sys_virt_to_phys(void *virt_addr)
+ /* Translate virtual address to physical one. */
+MEM_MNG_CODE_PLACEMENT uint64_t sys_virt_to_phys(void *virt_addr)
 {
-    return (uint64_t)virt_addr;
+	uint64_t addr = (uint64_t)virt_addr;
+
+	if ((g_init_data.app_info.peb_size > 0) &&
+		(addr >= g_init_data.sl_info.peb_vaddr) &&
+		(addr < g_init_data.sl_info.peb_vaddr +
+				g_init_data.app_info.peb_size))
+		return ((addr - g_init_data.sl_info.peb_vaddr)
+				+ g_init_data.sl_info.peb_paddr);
+
+	if ((g_init_data.app_info.dp_ddr_size > 0) &&
+		(addr >= g_init_data.sl_info.dp_ddr_vaddr) &&
+		(addr < g_init_data.sl_info.dp_ddr_vaddr +
+				g_init_data.app_info.dp_ddr_size))
+		return ((addr - g_init_data.sl_info.dp_ddr_vaddr)
+				+ g_init_data.sl_info.dp_ddr_paddr);
+
+	if ((g_init_data.app_info.sys_ddr1_size > 0) &&
+		(addr >= g_init_data.sl_info.sys_ddr1_vaddr) &&
+		(addr < g_init_data.sl_info.sys_ddr1_vaddr +
+				g_init_data.app_info.sys_ddr1_size))
+		return ((addr - g_init_data.sl_info.sys_ddr1_vaddr)
+				+ g_init_data.sl_info.sys_ddr1_paddr);
+
+	return INVALID_PHY_ADDR;
 }
+
+/*****************************************************************************/
+ /* Translate physical address to virtual one. */
+MEM_MNG_CODE_PLACEMENT void* sys_phys_to_virt(uint64_t phy_addr)
+{
+	if ((g_init_data.app_info.peb_size > 0) &&
+		(phy_addr >= g_init_data.sl_info.peb_paddr) &&
+		(phy_addr < g_init_data.sl_info.peb_paddr +
+					g_init_data.app_info.peb_size))
+		return (void*)((phy_addr - g_init_data.sl_info.peb_paddr)
+						+ g_init_data.sl_info.peb_vaddr);
+
+	if ((g_init_data.app_info.dp_ddr_size > 0) &&
+		(phy_addr >= g_init_data.sl_info.dp_ddr_paddr) &&
+		(phy_addr < g_init_data.sl_info.dp_ddr_paddr +
+					g_init_data.app_info.dp_ddr_size))
+		return (void*)((phy_addr - g_init_data.sl_info.dp_ddr_paddr)
+						+ g_init_data.sl_info.dp_ddr_vaddr);
+
+	if ((g_init_data.app_info.sys_ddr1_size > 0) &&
+		(phy_addr >= g_init_data.sl_info.sys_ddr1_paddr) &&
+		(phy_addr < g_init_data.sl_info.sys_ddr1_paddr +
+					g_init_data.app_info.sys_ddr1_size))
+		return (void*)((phy_addr - g_init_data.sl_info.sys_ddr1_paddr)
+						+ g_init_data.sl_info.sys_ddr1_vaddr);
+
+	return NULL;
+}
+
 
 /*****************************************************************************/
 MEM_MNG_CODE_PLACEMENT void * sys_shram_alloc(uint32_t    size,
