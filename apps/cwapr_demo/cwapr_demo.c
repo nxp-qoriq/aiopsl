@@ -44,6 +44,7 @@
 #include "fsl_slab.h"
 #include "fsl_malloc.h"
 #include "fsl_evmng.h"
+#include "apps_arch.h"
 
 int app_early_init(void);
 int app_init(void);
@@ -107,8 +108,7 @@ __HOT_CODE ENTRY_POINT static void app_process_packet(void)
 			if (err == -ENOMEM)
 				fdma_discard_default_frame(FDMA_DIS_NO_FLAGS);
 			else /* (err == -EBUSY) */
-				fdma_discard_fd((struct ldpaa_fd *)
-					HWC_FD_ADDRESS, FDMA_DIS_NO_FLAGS);
+				ARCH_FDMA_DISCARD_FD();
 		}
 	}
 

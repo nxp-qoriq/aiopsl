@@ -24,7 +24,7 @@ aiop_sl		</project>
 				</dictionary>
 				<dictionary>
 					<key>org.eclipse.cdt.make.core.buildArguments</key>
-					<value>-j8</value>
+					<value>-j16</value>
 				</dictionary>
 				<dictionary>
 					<key>org.eclipse.cdt.make.core.buildCommand</key>
@@ -122,14 +122,14 @@ aiop_sl		</project>
 			<locationURI>PARENT-4-PROJECT_LOC/apps/cwapr_demo/apps.h</locationURI>
 		</link>
 		<link>
-			<name>src/config.c</name>
-			<type>1</type>
-			<locationURI>PARENT-4-PROJECT_LOC/apps/cwapr_demo/config.c</locationURI>
-		</link>
-		<link>
 			<name>src/cwapr_demo.c</name>
 			<type>1</type>
 			<locationURI>PARENT-4-PROJECT_LOC/apps/cwapr_demo/cwapr_demo.c</locationURI>
+		</link>
+		<link>
+			<name>src/generic</name>
+			<type>2</type>
+			<locationURI>virtual:/virtual</locationURI>
 		</link>
 		<link>
 			<name>src/ls1088a</name>
@@ -147,6 +147,16 @@ aiop_sl		</project>
 			<locationURI>virtual:/virtual</locationURI>
 		</link>
 		<link>
+			<name>src/platform</name>
+			<type>2</type>
+			<locationURI>virtual:/virtual</locationURI>
+		</link>
+		<link>
+			<name>src/generic/apps_arch.h</name>
+			<type>1</type>
+			<locationURI>PARENT-4-PROJECT_LOC/apps/cwapr_demo/generic/apps_arch.h</locationURI>
+		</link>
+		<link>
 			<name>src/ls1088a/apps_arch.h</name>
 			<type>1</type>
 			<locationURI>PARENT-4-PROJECT_LOC/apps/cwapr_demo/ls1088a/apps_arch.h</locationURI>
@@ -160,6 +170,36 @@ aiop_sl		</project>
 			<name>src/ls2088a/apps_arch.h</name>
 			<type>1</type>
 			<locationURI>PARENT-4-PROJECT_LOC/apps/cwapr_demo/ls2088a/apps_arch.h</locationURI>
+		</link>
+		<link>
+			<name>src/platform/ls1088a</name>
+			<type>2</type>
+			<locationURI>virtual:/virtual</locationURI>
+		</link>
+		<link>
+			<name>src/platform/ls2085a</name>
+			<type>2</type>
+			<locationURI>virtual:/virtual</locationURI>
+		</link>
+		<link>
+			<name>src/platform/ls2088a</name>
+			<type>2</type>
+			<locationURI>virtual:/virtual</locationURI>
+		</link>
+		<link>
+			<name>src/platform/ls1088a/config.c</name>
+			<type>1</type>
+			<locationURI>PARENT-4-PROJECT_LOC/src/arch/platform/ls1088a/config.c</locationURI>
+		</link>
+		<link>
+			<name>src/platform/ls2085a/config.c</name>
+			<type>1</type>
+			<locationURI>PARENT-4-PROJECT_LOC/src/arch/platform/ls2085a/config.c</locationURI>
+		</link>
+		<link>
+			<name>src/platform/ls2088a/config.c</name>
+			<type>1</type>
+			<locationURI>PARENT-4-PROJECT_LOC/src/arch/platform/ls2088a/config.c</locationURI>
 		</link>
 	</linkedResources>
 </projectDescription>
