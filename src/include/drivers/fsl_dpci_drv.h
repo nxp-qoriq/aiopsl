@@ -137,6 +137,52 @@ int dpci_drv_get_initial_presentation(uint8_t flags,
 int dpci_drv_set_initial_presentation(uint8_t flags,
 	const struct ep_init_presentation* const init_presentation);
 
+/**************************************************************************//**
+@Function	dpci_drv_set_concurrent
+
+@Description	Function to set the initial ordering mode to concurrent for
+		for either command interface server or client
+
+@Param[in]	flags \link DPCI_DRV_INIT_PR_Flags
+		DPCI Entry Point flags \endlink
+
+@Cautions       This method should be called in boot mode only.
+
+@Return	'0' on Success;
+*//***************************************************************************/
+int dpci_drv_set_concurrent(uint8_t flags);
+
+
+/**************************************************************************//**
+@Function	dpci_drv_set_exclusive
+
+@Description	Function to set the initial ordering mode to exclusive for
+		for either command interface server or client
+
+@Param[in]	flags \link DPCI_DRV_INIT_PR_Flags
+		DPCI Entry Point flags \endlink
+
+@Cautions       This method should be called in boot mode only.
+
+@Return	'0' on Success;
+*//***************************************************************************/
+int dpci_drv_set_exclusive(uint8_t flags);
+
+/**************************************************************************//**
+@Function	dpci_drv_set_order_mode_none
+
+@Description	Function to set the initial ordering mode to none for
+		for either command interface server or client
+
+@Param[in]	flags \link DPCI_DRV_INIT_PR_Flags
+		DPCI Entry Point flags \endlink
+
+@Cautions       This method should be called in boot mode only.
+
+@Return	'0' on Success;
+*//***************************************************************************/
+int dpci_drv_set_order_mode_none(uint8_t flags);
+
 /** @} */ /* end of dpci_drv_g */
 
 #endif /* __FSL_DPCI_DRV_H */

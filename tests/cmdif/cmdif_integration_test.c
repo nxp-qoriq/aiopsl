@@ -732,6 +732,11 @@ int app_init(void)
 
 	pr_debug("Running app_init()\n");
 
+#ifdef CMDIF_SET_CONCURRENT_MODE
+	dpci_drv_set_concurrent(DPCI_DRV_EP_SERVER);
+	dpci_drv_set_concurrent(DPCI_DRV_EP_CLIENT);
+#endif
+
 	err = app_evm_register();
 	ASSERT_COND(!err);
 

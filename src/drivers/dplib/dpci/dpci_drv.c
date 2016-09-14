@@ -49,10 +49,25 @@
 #include "fsl_sl_evmng.h"
 #include "fsl_gen.h"
 #include "system.h"
+#include "fsl_ep_mng.h"
+#include "fsl_io_ccsr.h"
 
 /*************************************************************************/
 #define DPCI_LOW_PR		1
 #define DPCI_ID_FLG_SCANNED	1
+
+/*clear the bit for exclusive / concurrent mode*/
+#define ORDER_MODE_CLEAR_BIT      0xFEFFFFFF
+
+/*clear src, ep, sel, osrm*/
+#define ORDER_MODE_NO_ORDER_SCOPE 0xEEFCFFF8
+
+#define DPCI_DRV_CONCURRENT_MODE		0
+/**< Set command interface to concurrent mode */
+#define DPCI_DRV_EXCLUSIVE_MODE			1
+/**< Set command interface to exclusive mode */
+#define DPCI_DRV_NONE_MODE			2
+/**< Set command interface to none (no ordering scope) mode */
 
 #define CMDIF_Q_OPTIONS (DPCI_QUEUE_OPT_USER_CTX | DPCI_QUEUE_OPT_DEST)
 
@@ -937,3 +952,73 @@ int dpci_drv_set_initial_presentation(uint8_t flags,
 
 	return ep_mng_set_initial_presentation(epid, init_presentation);
 }
+
+static int dpci_drv_set_ordering_mode(uint8_t flags, int ep_mode)
+{
+	struct aiop_tile_regs *tile_regs = (struct aiop_tile_regs *)
+					sys_get_handle(FSL_MOD_AIOP_TILE, 1);
+	struct aiop_ws_regs *wrks_addr = &tile_regs->ws_regs;
+	uint16_t epid = AIOP_EPID_CMDIF_SERVER;
+	uint32_t ep_osc;
+
+	ASSERT_COND(flags == DPCI_DRV_EP_SERVER ||
+			flags == DPCI_DRV_EP_CLIENT);
+
+	ASSERT_COND(ep_mode == DPCI_DRV_CONCURRENT_MODE ||
+			ep_mode == DPCI_DRV_EXCLUSIVE_MODE ||
+			ep_mode == DPCI_DRV_NONE_MODE);
+
+	if (flags == DPCI_DRV_EP_CLIENT)
+		epid = AIOP_EPID_CMDIF_CLIENT;
+
+	/*Mutex lock to avoid race condition while writing to EPID table*/
+	EP_MNG_MUTEX_W_TAKE;
+
+	/* write epid index to epas register */
+	iowrite32_ccsr((uint32_t)epid, &wrks_addr->epas);
+
+	ep_osc = ioread32_ccsr(&wrks_addr->ep_osc);
+
+	/* read ep_osc - to get the order scope (concurrent / exclusive) */
+	if (ep_mode == DPCI_DRV_CONCURRENT_MODE ||
+		ep_mode == DPCI_DRV_EXCLUSIVE_MODE) {
+		ep_osc &= ORDER_MODE_CLEAR_BIT;
+		ep_osc |= (ep_mode & 0x01) << 24;
+	} else if (ep_mode == DPCI_DRV_NONE_MODE) {
+		/* Read ep_osc from EPID table */
+		ep_osc = ioread32_ccsr(&wrks_addr->ep_osc);
+		/* src = 0 - No order scope specified.
+		 * Task does not enter a scope,
+		 * ep = 0 - executing concurrently,
+		 * sel = 0,
+		 * osrm = 0 - all frames enter scope 0 */
+		ep_osc &= ORDER_MODE_NO_ORDER_SCOPE;
+		/*Write ep_osc to EPID table*/
+	}
+
+	/*Set mode for CMDIF server or client in epid table*/
+	iowrite32_ccsr(ep_osc, &wrks_addr->ep_osc);
+
+	pr_debug("CMDIF EPID = %d, ep_osc = 0x%x\n",
+			epid, ioread32_ccsr(&wrks_addr->ep_osc));
+
+	EP_MNG_MUTEX_RELEASE;
+
+	return 0;
+}
+
+int dpci_drv_set_concurrent(uint8_t flags)
+{
+	return dpci_drv_set_ordering_mode(flags, DPCI_DRV_CONCURRENT_MODE);
+}
+
+int dpci_drv_set_exclusive(uint8_t flags)
+{
+	return dpci_drv_set_ordering_mode(flags, DPCI_DRV_EXCLUSIVE_MODE);
+}
+
+int dpci_drv_set_order_mode_none(uint8_t flags)
+{
+	return dpci_drv_set_ordering_mode(flags, DPCI_DRV_NONE_MODE);
+}
+
