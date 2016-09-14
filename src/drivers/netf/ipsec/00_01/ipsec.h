@@ -513,6 +513,11 @@ Big Endian
 #define	SEC_SEQ_NUM_OVERFLOW 0x40000085
 #define	SEC_SEQ_NUM_OVERFLOW_COMPRESSED 0x83400085
 
+/** Buffer Pool depletion */
+#define	SEC_TABLE_BP0_DEPLETION		0x831000C0
+#define	SEC_DATA_BP0_DEPLETION_NO_OF	0x831000C2
+#define	SEC_DATA_BP0_DEPLETION_PART_OF	0x831000C4
+
 #define	SEC_CCB_ERROR_MASK 0xF000000F
 #define	SEC_DECO_ERROR_MASK 0xF00000FF
 
@@ -579,8 +584,11 @@ struct ipsec_instance_params {
 #define IPSEC_PACKET_COUNTER_ADDR(ADDRESS) \
 	(ADDRESS + (offsetof(struct ipsec_sa_params_part1, packet_counter)))
 
-#define IPSEC_KB_COUNTER_ADDR(ADDRESS) \
+#define IPSEC_BYTES_COUNTER_ADDR(ADDRESS) \
 	(ADDRESS + (offsetof(struct ipsec_sa_params_part1, byte_counter)))
+
+#define IPSEC_DROPPED_PACKETS_ADDR(ADDRESS) \
+	(ADDRESS + (offsetof(struct ipsec_sa_params_part1, dropped_pkts)))
 
 #define IPSEC_FLAGS_ADDR(ADDRESS) \
 	(ADDRESS + (offsetof(struct ipsec_sa_params_part1, flags)))
@@ -628,7 +636,7 @@ struct ipsec_instance_params {
 #define IPSEC_MIN_TIMER_DURATION 10
 
 #ifdef LS2085A_REV1
-	#define READ_METHOD	READ_DATA_USING_CDMA
+	#define READ_METHOD		READ_DATA_USING_CDMA
 #else
 	/* On Rev2 platforms CDMA read function behavior changed : it reads
 	* data using the cache. Data written by other accelerators are not
@@ -642,41 +650,38 @@ struct ipsec_instance_params {
 /* Part 1 */
 struct ipsec_sa_params_part1 {
 	/* Required at Add descriptor and enc/dec */
-	/* 6x8 = 48 bytes */
-	uint64_t packet_counter; /*	Packets counter, 8B */
-	uint64_t byte_counter; /* Encrypted/decrypted bytes counter, 8B */
-	uint64_t timestamp; /* TMAN timestamp in micro-seconds, 8 Bytes */
+	uint64_t packet_counter;	/* Packets counter */
+	uint64_t byte_counter;		/* Encrypted/decrypted bytes counter */
+	uint64_t timestamp;		/* TMAN timestamp in micro-seconds */
+	uint64_t dropped_pkts;		/* Dropped packets counter */
 
-	uint64_t soft_byte_limit; /* soft byte count limit,	8 Bytes */
-	uint64_t soft_packet_limit; /* soft packet limit, 8B */
-	uint64_t hard_byte_limit; /* hard byte count limit, 8B */
-	uint64_t hard_packet_limit; /* hard packet limit, 8B */
+	uint64_t soft_byte_limit;	/* Soft byte count limit */
+	uint64_t soft_packet_limit;	/* Soft packet limit */
+	uint64_t hard_byte_limit;	/* Hard byte count limit */
+	uint64_t hard_packet_limit;	/* Hard packet limit */
 
-	/* Always required, except timer callback */
-	ipsec_instance_handle_t instance_handle; /* Instance handle 8B */
+	ipsec_instance_handle_t instance_handle;	/* Instance handle */
 
-	uint32_t flags; /* 	transport mode, UDP encap, pad check, counters enable,
-					outer IP version, etc. 4B */
-	//uint32_t status; /* lifetime expire, semaphores	4-8B */
+	uint32_t flags;			/* Transport mode, UDP encap, pad check,
+					counters enable, outer IP version,
+					etc. */
+	uint32_t outer_hdr_dscp;	/* Outer Header DSCP, for set mode */
 
+	uint16_t udp_src_port;		/* UDP source for transport mode */
+	uint16_t udp_dst_port;		/* UDP destination for transport mode */
+	uint16_t bpid;			/* BPID of OF in new buffer mode */
+	uint16_t encap_header_length;	/* Encapsulated IP+ESP header length */
 
-	uint32_t outer_hdr_dscp; /* Outer Header DSCP, for set mode */
+	uint8_t valid;			/* Descriptor valid */
+	uint8_t sec_buffer_mode;	/* New/Reuse */
+	uint8_t output_spid;		/* SEC output buffer SPID */
 
-	uint16_t udp_src_port; /* UDP source for transport mode. 2B */
-	uint16_t udp_dst_port; /* UDP destination for transport mode. 2B */
-	uint16_t bpid; /* BPID of output frame in new buffer mode */
-	uint16_t encap_header_length; /* Encapsulated IP+ESP header length */
-
-	uint8_t valid; /* descriptor valid. 1B */
-	uint8_t sec_buffer_mode; /* new/reuse. 1B */
-	uint8_t output_spid; /* SEC output buffer SPID */
-
-	uint8_t soft_sec_expired; /* soft seconds lifetime expired */
-	uint8_t hard_sec_expired; /* hard seconds lifetime expired */
+	uint8_t soft_sec_expired;	/* Soft seconds lifetime expired */
+	uint8_t hard_sec_expired;	/* Hard seconds lifetime expired */
 
 	/* Total size = */
-	/* 8*8 (64) + 3*4 (12) + 4*2 (8) + 3*1 (3) = 87 bytes */
-	/* Aligned size = 88 bytes */
+	/* 9*8 (72) + 2*4 (8) + 4*2 (8) + 5*1 (5) = 93 bytes */
+	/* Aligned size = 96 bytes */
 };
 /* Part 2 */
 struct ipsec_sa_params_part2 {
@@ -703,8 +708,8 @@ struct ipsec_sa_params_part2 {
 	/* Aligned size = 32 bytes */
 };
 
-/* Total aligned size for part 1 + part 2 = 88 + 32 = 120 bytes */
-/* Remaining = 128 - 120 = 8 bytes */
+/* Total aligned size for part 1 + part 2 = 93 + 32 = 125 bytes */
+/* Remaining = 128 - 125 = 3 bytes */
 struct ipsec_sa_params {
 		struct ipsec_sa_params_part1 sap1;
 		struct ipsec_sa_params_part2 sap2;

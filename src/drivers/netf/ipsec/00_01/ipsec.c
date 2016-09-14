@@ -66,6 +66,8 @@
 #include "fsl_bman.h"
 #include "fsl_icontext.h"
 
+#include "fsl_mem_mng.h"
+
 /* SEC Era version for RTA */
 enum rta_sec_era rta_sec_era = RTA_SEC_ERA_8;
 
@@ -1490,15 +1492,11 @@ int ipsec_generate_sa_params(
 	/* Get timestamp from TMAN */
 	tman_get_timestamp(&(sap.sap1.timestamp));
 	
-	/* Cleasr the STE counters, since CDMA is not enough due to 
+	/* Clears the STE counters, since CDMA is not enough due to
 	 * the STE internal cache */ 
-	ste_set_64bit_counter(
-			IPSEC_PACKET_COUNTER_ADDR(desc_addr), /* uint64_t counter_addr */
-			0); /* uint64_t value */
-
-	ste_set_64bit_counter(
-			IPSEC_KB_COUNTER_ADDR(desc_addr), /* uint64_t counter_addr */
-			0); /* uint64_t value */
+	ste_set_64bit_counter(IPSEC_PACKET_COUNTER_ADDR(desc_addr), 0);
+	ste_set_64bit_counter(IPSEC_BYTES_COUNTER_ADDR(desc_addr), 0);
+	ste_set_64bit_counter(IPSEC_DROPPED_PACKETS_ADDR(desc_addr), 0);
 	
 	/* Store to external memory with CDMA */
 	cdma_write(
@@ -1679,15 +1677,11 @@ int ipsec_del_sa_descriptor(
 	 * statistics engine request queue. */
 	ste_barrier();
 
-	/* Cleasr the STE counters, due to the STE internal cache */ 
-	ste_set_64bit_counter(
-			IPSEC_PACKET_COUNTER_ADDR(desc_addr), /* uint64_t counter_addr */
-			0); /* uint64_t value */
+	/* Clears the STE counters, due to the STE internal cache */
+	ste_set_64bit_counter(IPSEC_PACKET_COUNTER_ADDR(desc_addr), 0);
+	ste_set_64bit_counter(IPSEC_BYTES_COUNTER_ADDR(desc_addr), 0);
+	ste_set_64bit_counter(IPSEC_DROPPED_PACKETS_ADDR(desc_addr), 0);
 
-	ste_set_64bit_counter(
-			IPSEC_KB_COUNTER_ADDR(desc_addr), /* uint64_t counter_addr */
-			0); /* uint64_t value */
-	
 	/* Read the instance handle from params area */
 	cdma_read(
 			&instance_handle, /* void *ws_dst */
@@ -1705,6 +1699,85 @@ int ipsec_del_sa_descriptor(
 	}
 	
 } /* End of ipsec_del_sa_descriptor */
+
+/******************************************************************************/
+static inline void buffer_pool_depleted(uint32_t sec_stat, uint32_t *op_stat,
+					ipsec_handle_t desc_addr)
+{
+	uint64_t	paddr, sge_h, sg_paddr;
+	uint32_t	ext_addr;
+	uint16_t	offset, bpid, sg_bpid;
+
+	#define FD_FMT_SCATTER_GATHER		2
+
+	#define ADDR_ON_49_BIT_MASK	0x0001ffffffffffffUL
+	#define FINAL_BIT		0x8000000000000000UL
+
+	#define BPID_ON_14_BIT		0x3FFF
+
+	#define LDPAA_GET_U64(_addr, _off)				\
+		(uint64_t)({register uint64_t __rR = 0;			\
+		uint64_t val64;						\
+		val64 = (LLLDW_SWAP(0,					\
+				(uint64_t)(((char *)_addr) + _off)));	\
+		__rR = (uint64_t) val64; })
+
+	*op_stat |= IPSEC_BUFFER_POOL_DEPLETION;
+
+	/* Increment the depletion counter */
+	ste_inc_counter(IPSEC_DROPPED_PACKETS_ADDR(desc_addr), 1,
+			(STE_MODE_SATURATE | STE_MODE_64_BIT_CNTR_SIZE));
+
+	/* Release the buffer(s) acquired by SEC. Now, only one BP #0 is
+	 * configured. If a second BP will be configured for the SEC usage add
+	 * the corresponding error codes and theirs processing */
+
+	/* No buffer acquired, because there are no buffers in the pool */
+	if (sec_stat == SEC_TABLE_BP0_DEPLETION)
+		return;
+
+	paddr = LDPAA_FD_GET_ADDR(HWC_FD_ADDRESS);
+	offset = LDPAA_FD_GET_OFFSET(HWC_FD_ADDRESS);
+	bpid = LDPAA_FD_GET_BPID(HWC_FD_ADDRESS);
+
+	if (sec_stat == SEC_DATA_BP0_DEPLETION_NO_OF) {
+		/* No buffers acquired for the output frame (OF). Only one
+		 * buffer for the SGT was acquired. */
+		fdma_release_buffer(icontext_aiop.icid,
+				    icontext_aiop.bdi_flags & FDMA_ENF_BDI_BIT,
+				    bpid, paddr);
+	} else if (sec_stat == SEC_DATA_BP0_DEPLETION_PART_OF) {
+		/* A number of buffers, not all, were acquired for the output
+		 * frame. One buffer was acquired for the SGT. */
+		if (FD_FMT_SCATTER_GATHER == LDPAA_FD_GET_FMT(HWC_FD_ADDRESS)) {
+			/* Virtual address of the first SGE in SGT */
+			ext_addr = (uint32_t)sys_phys_to_virt(paddr);
+			/* Find the first SGE having data */
+			do {
+				/* Get the second 64 bit word of the SGE */
+				sge_h = LDPAA_GET_U64((ext_addr + offset), 8);
+				sg_bpid = ((uint16_t)(sge_h >> 32)) &
+							BPID_ON_14_BIT;
+				/* Release the SGE buffer */
+				sg_paddr = LDPAA_GET_U64((ext_addr + offset),
+							  0) &
+							 ADDR_ON_49_BIT_MASK;
+				fdma_release_buffer(icontext_aiop.icid,
+						    icontext_aiop.bdi_flags &
+						    FDMA_ENF_BDI_BIT,
+						    sg_bpid, sg_paddr);
+				ext_addr += 2 * sizeof(uint64_t);
+			} while (!(sge_h & FINAL_BIT));
+		}
+		/* Release the buffer containing the SGT */
+		fdma_release_buffer(icontext_aiop.icid,
+				    icontext_aiop.bdi_flags & FDMA_ENF_BDI_BIT,
+				    bpid, paddr);
+	} else {
+		pr_warn("Unexpected depletion status code : 0x%08x\n",
+			sec_stat);
+	}
+}
 
 /**************************************************************************//**
 * ipsec_frame_encrypt
@@ -1734,6 +1807,7 @@ IPSEC_CODE_PLACEMENT int ipsec_frame_encrypt(
 	
 	struct   presentation_context *prc =
 				(struct presentation_context *) HWC_PRC_ADDRESS;
+	uint32_t	sec_status;
 
 	*enc_status = 0; /* Initialize */
 	
@@ -2106,23 +2180,31 @@ skip_l2_remove:
 	// Debug End //
 #endif	
 
-	/* 	12.	Read the SEC return status from the FD[FRC]. Use swap macro. */
-	if ((LDPAA_FD_GET_FRC(HWC_FD_ADDRESS)) != 0) {
+	/* 12. Read the SEC return status from the FD[FRC]. Use swap macro. */
+	sec_status = LDPAA_FD_GET_FRC(HWC_FD_ADDRESS);
+	if (sec_status) {
 		/* Compressed mode errors */		
-		if ((LDPAA_FD_GET_FRC(HWC_FD_ADDRESS) & SEC_COMPRESSED_ERROR_MASK)
-													== SEC_COMPRESSED_ERROR) {
-			if ((LDPAA_FD_GET_FRC(HWC_FD_ADDRESS) 
-					& SEC_DECO_ERROR_MASK_COMPRESSED)
-					== SEC_SEQ_NUM_OVERFLOW_COMPRESSED) { 
+		if ((sec_status & SEC_COMPRESSED_ERROR_MASK) ==
+		    SEC_COMPRESSED_ERROR) {
+			if ((sec_status & SEC_DECO_ERROR_MASK_COMPRESSED) ==
+			    SEC_SEQ_NUM_OVERFLOW_COMPRESSED) {
 				/* Sequence Number overflow */
 				*enc_status |= IPSEC_SEQ_NUM_OVERFLOW;
+			} else if (sec_status >= SEC_TABLE_BP0_DEPLETION &&
+				   sec_status <=
+				   SEC_DATA_BP0_DEPLETION_PART_OF) {
+					buffer_pool_depleted(sec_status,
+							     enc_status,
+							     desc_addr);
+				return IPSEC_ERROR; /* Exit */
 			} else {
 				*enc_status |= IPSEC_GEN_ENCR_ERR;
 			}
 		} else {
 		/* Non-compressed mode errors */
-			if ((LDPAA_FD_GET_FRC(HWC_FD_ADDRESS) & SEC_DECO_ERROR_MASK)
-					== SEC_SEQ_NUM_OVERFLOW) { /* Sequence Number overflow */
+			if ((sec_status & SEC_DECO_ERROR_MASK) ==
+			    SEC_SEQ_NUM_OVERFLOW) {
+				/* Sequence Number overflow */
 				*enc_status |= IPSEC_SEQ_NUM_OVERFLOW;
 			} else {
 				*enc_status |= IPSEC_GEN_ENCR_ERR;
@@ -2405,9 +2487,10 @@ skip_l2_remove:
 	LDPAA_FD_SET_FRC(HWC_FD_ADDRESS, orig_frc)	
 	
 	/* 	18.	Handle lifetime counters */
-		/* 	18.1.	Read lifetime counters (CDMA) */
-		/* 	18.2.	Add byte-count from SEC and one packet count. */
-		/* 	18.4.	Update the kilobytes and/or packets lifetime counters 
+		/* 18.1.	Read lifetime counters (CDMA) */
+		/* 18.2.	Add byte-count from SEC and one packet count. */
+		/* 18.4.	Update the bytes and/or packets lifetime
+		 *		counters
 		 * (STE increment + accumulate). */
 	
 	/* always count */
@@ -2447,7 +2530,7 @@ IPSEC_CODE_PLACEMENT int ipsec_frame_decrypt(
 	uint16_t orig_seg_offset;
 	uint8_t pad_length;
 	uint16_t end_seg_len;
-
+	uint32_t sec_status;
 	struct ipsec_sa_params_part1 sap1; /* Parameters to read from ext buffer */
 	struct scope_status_params scope_status;
 
@@ -2822,56 +2905,59 @@ IPSEC_CODE_PLACEMENT int ipsec_frame_decrypt(
 		/* ipsec_frame_decrypt */
 		/*---------------------*/
 	
-	/* 	13.	Read the SEC return status from the FD[FRC]. Use swap macro. */
-	if ((LDPAA_FD_GET_FRC(HWC_FD_ADDRESS)) != 0) {
+	/* 13. Read the SEC return status from the FD[FRC]. Use swap macro. */
+	sec_status = LDPAA_FD_GET_FRC(HWC_FD_ADDRESS);
+	if (sec_status) {
 		/* Compressed mode errors */		
-		if ((LDPAA_FD_GET_FRC(HWC_FD_ADDRESS) & SEC_COMPRESSED_ERROR_MASK)
-													== SEC_COMPRESSED_ERROR) {
-			if ((LDPAA_FD_GET_FRC(HWC_FD_ADDRESS) & 
-							SEC_CCB_ERROR_MASK_COMPRESSED) == 
-									SEC_ICV_COMPARE_FAIL_COMPRESSED) {
+		if ((sec_status & SEC_COMPRESSED_ERROR_MASK) ==
+		    SEC_COMPRESSED_ERROR) {
+			if ((sec_status & SEC_CCB_ERROR_MASK_COMPRESSED) ==
+			    SEC_ICV_COMPARE_FAIL_COMPRESSED) {
 				*dec_status |= IPSEC_ICV_COMPARE_FAIL;
-			} else {
-				switch (LDPAA_FD_GET_FRC(HWC_FD_ADDRESS) & 
-						SEC_DECO_ERROR_MASK_COMPRESSED) {
-					case SEC_SEQ_NUM_OVERFLOW_COMPRESSED: 
-						/** Sequence Number overflow */
-						*dec_status |= IPSEC_SEQ_NUM_OVERFLOW;
-						break;
-					case SEC_AR_LATE_PACKET_COMPRESSED: 
-						/* Anti Replay Check: Late packet */
-						*dec_status |= IPSEC_AR_LATE_PACKET;
-						break;
-					case SEC_AR_REPLAY_PACKET_COMPRESSED: 
-						/*Anti Replay Check: Replay packet */
-						*dec_status |= IPSEC_AR_REPLAY_PACKET;
-						break;
-					default:
-						*dec_status |= IPSEC_GEN_DECR_ERR;
-				}	
+			} else
+			switch (sec_status & SEC_DECO_ERROR_MASK_COMPRESSED) {
+			case SEC_SEQ_NUM_OVERFLOW_COMPRESSED:
+				/** Sequence Number overflow */
+				*dec_status |= IPSEC_SEQ_NUM_OVERFLOW;
+				break;
+			case SEC_AR_LATE_PACKET_COMPRESSED:
+				/* Anti Replay Check: Late packet */
+				*dec_status |= IPSEC_AR_LATE_PACKET;
+				break;
+			case SEC_AR_REPLAY_PACKET_COMPRESSED:
+				/*Anti Replay Check: Replay packet */
+				*dec_status |= IPSEC_AR_REPLAY_PACKET;
+				break;
+			case SEC_TABLE_BP0_DEPLETION:
+			case SEC_DATA_BP0_DEPLETION_NO_OF:
+			case SEC_DATA_BP0_DEPLETION_PART_OF:
+				buffer_pool_depleted(sec_status, dec_status,
+						     desc_addr);
+				return IPSEC_ERROR; /* Exit */
+			default:
+				*dec_status |= IPSEC_GEN_DECR_ERR;
 			}	
 		} else {
 		/* Non-compressed mode errors */	
-			if ((LDPAA_FD_GET_FRC(HWC_FD_ADDRESS) & SEC_CCB_ERROR_MASK)
-											== SEC_ICV_COMPARE_FAIL) {
+			if ((sec_status & SEC_CCB_ERROR_MASK) ==
+			    SEC_ICV_COMPARE_FAIL) {
 				*dec_status |= IPSEC_ICV_COMPARE_FAIL;
-			} else {
-				switch (LDPAA_FD_GET_FRC(HWC_FD_ADDRESS) & 
-													SEC_DECO_ERROR_MASK) {
-					case SEC_SEQ_NUM_OVERFLOW: /* Sequence Number overflow */
-						*dec_status |= IPSEC_SEQ_NUM_OVERFLOW;
-						break;
-					case SEC_AR_LATE_PACKET: 
-						/* Anti Replay Check: Late packet */
-						*dec_status |= IPSEC_AR_LATE_PACKET;
-						break;
-					case SEC_AR_REPLAY_PACKET: 
-						/* Anti Replay Check: Replay packet */
-						*dec_status |= IPSEC_AR_REPLAY_PACKET;
-						break;
-					default:
-						*dec_status |= IPSEC_GEN_DECR_ERR;
-				}	
+			} else
+			switch (sec_status & SEC_DECO_ERROR_MASK) {
+			case SEC_SEQ_NUM_OVERFLOW:
+				/* Sequence Number overflow */
+				*dec_status |= IPSEC_SEQ_NUM_OVERFLOW;
+				break;
+			case SEC_AR_LATE_PACKET:
+				/* Anti Replay Check: Late packet */
+				*dec_status |= IPSEC_AR_LATE_PACKET;
+				break;
+			case SEC_AR_REPLAY_PACKET:
+				/* Anti Replay Check: Replay packet */
+				*dec_status |= IPSEC_AR_REPLAY_PACKET;
+				break;
+			default:
+				*dec_status |= IPSEC_GEN_DECR_ERR;
 			}
 		}
 		
@@ -3175,12 +3261,13 @@ IPSEC_CODE_PLACEMENT int ipsec_frame_decrypt(
 	LDPAA_FD_SET_FLC(HWC_FD_ADDRESS, orig_flc);	
 	LDPAA_FD_SET_FRC(HWC_FD_ADDRESS, orig_frc)	
 
-	/* 	20.	Handle lifetime counters */
-	/* 	20.1.	Read lifetime counters (CDMA) */
-	/* 	20.2.	Add byte-count from SEC and one packet count. */
-	/* 	20.3.	Calculate locally if lifetime counters crossed the limits. 
-	 * If yes set flag in the descriptor statistics (CDMA write). */
-	/* 	20.4.	Update the kilobytes and/or packets lifetime counters 
+	/* 20.		Handle lifetime counters */
+	/* 20.1.	Read lifetime counters (CDMA) */
+	/* 20.2.	Add byte-count from SEC and one packet count. */
+	/* 20.3.	Calculate locally if lifetime counters crossed the
+	 *		limits. If yes set flag in the descriptor statistics
+	 *		(CDMA write). */
+	/* 20.4.	Update the bytes and/or packets lifetime counters
 	 * (STE increment + accumulate). */
 	/* always count */
 	ste_inc_and_acc_counters(
@@ -3200,8 +3287,9 @@ IPSEC_CODE_PLACEMENT int ipsec_frame_decrypt(
 *//****************************************************************************/
 int ipsec_get_lifetime_stats(
 		ipsec_handle_t ipsec_handle,
-		uint64_t *kilobytes,
+		uint64_t *bytes,
 		uint64_t *packets,
+		uint64_t *dropped_pkts,
 		uint32_t *sec)
 {
 	
@@ -3210,9 +3298,10 @@ int ipsec_get_lifetime_stats(
 
 	/* Note: this struct must be equal to the head of ipsec_sa_params_part1 */
 	struct counters_and_timestamp {
-		uint64_t packet_counter; /*	Packets counter, 8B */
-		uint64_t byte_counter; /* Encrypted/decrypted bytes counter, 8B */
-		uint64_t timestamp; /* TMAN timestamp in micro-seconds, 8 Bytes */
+		uint64_t packet_counter;/* Packets counter */
+		uint64_t byte_counter;	/* Encrypted/decrypted bytes counter */
+		uint64_t timestamp;	/* TMAN timestamp in micro-seconds */
+		uint64_t dropped_pkts;	/* Dropped packets counter */
 	} ctrs;
 	
 	desc_addr = IPSEC_DESC_ADDR(ipsec_handle);
@@ -3226,7 +3315,8 @@ int ipsec_get_lifetime_stats(
 			       READ_METHOD);
 
 	*packets = ctrs.packet_counter;
-	*kilobytes =  ctrs.byte_counter;
+	*bytes = ctrs.byte_counter;
+	*dropped_pkts = ctrs.dropped_pkts;
 	
 	/* Get current timestamp from TMAN (in micro-seconds)*/
 	tman_get_timestamp(&current_timestamp);
@@ -3248,11 +3338,10 @@ int ipsec_get_lifetime_stats(
 /**************************************************************************//**
 	ipsec_decr_lifetime_counters
 *//****************************************************************************/
-int ipsec_decr_lifetime_counters(
-		ipsec_handle_t ipsec_handle,
-		uint32_t kilobytes_decr_val,
-		uint32_t packets_decr_val
-		)
+int ipsec_decr_lifetime_counters(ipsec_handle_t ipsec_handle,
+				 uint32_t bytes_decr_val,
+				 uint32_t packets_decr_val,
+				 uint32_t dropped_pkts_decr_val)
 {
 	/* Note: there is no check of counters enable, nor current value.
 	 * Assuming that it is only called appropriately by the upper layer */
@@ -3264,21 +3353,22 @@ int ipsec_decr_lifetime_counters(
 	 * statistics engine request queue. */
 	ste_barrier();
 	
-	if (kilobytes_decr_val) {
-		ste_dec_counter(
-				//IPSEC_KB_COUNTER_ADDR,
-				IPSEC_KB_COUNTER_ADDR(desc_addr),
-				kilobytes_decr_val,
-				(STE_MODE_SATURATE | STE_MODE_64_BIT_CNTR_SIZE));
-	}
+	if (bytes_decr_val)
+		ste_dec_counter(IPSEC_BYTES_COUNTER_ADDR(desc_addr),
+				bytes_decr_val, (STE_MODE_SATURATE |
+						 STE_MODE_64_BIT_CNTR_SIZE));
 	
-	if (packets_decr_val) {
-		ste_dec_counter(
-				IPSEC_PACKET_COUNTER_ADDR(desc_addr),
+	if (packets_decr_val)
+		ste_dec_counter(IPSEC_PACKET_COUNTER_ADDR(desc_addr),
 				packets_decr_val,
-				(STE_MODE_SATURATE | STE_MODE_64_BIT_CNTR_SIZE));
-	}	
-	
+				(STE_MODE_SATURATE |
+				 STE_MODE_64_BIT_CNTR_SIZE));
+
+	if (dropped_pkts_decr_val)
+		ste_dec_counter(IPSEC_DROPPED_PACKETS_ADDR(desc_addr),
+				dropped_pkts_decr_val,
+				(STE_MODE_SATURATE |
+				 STE_MODE_64_BIT_CNTR_SIZE));
 	return IPSEC_SUCCESS;	
 } /* End of ipsec_decr_lifetime_counters */
 

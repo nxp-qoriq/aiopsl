@@ -287,6 +287,8 @@ typedef void (ipsec_lifetime_callback_t) (
 #define IPSEC_STATUS_SOFT_SEC_EXPIRED		0x00000010
 /** Reached Hard Lifetime Seconds Limit */
 #define IPSEC_STATUS_HARD_SEC_EXPIRED		0x00000020
+/** Buffer pool depletion */
+#define IPSEC_BUFFER_POOL_DEPLETION		0x00000040
 
 /** Sequence Number overflow */
 #define IPSEC_SEQ_NUM_OVERFLOW 				0x00000100
@@ -638,15 +640,16 @@ int ipsec_del_sa_descriptor(ipsec_handle_t ipsec_handle);
 @Function	ipsec_get_lifetime_stats
 
 @Description	This function returns the SA lifetime counters:
-		kilobyte, packets and seconds.
+		bytes, packets, dropped packets and seconds.
 		
 		Note: the counters are always enabled regardless of the 
 			IPSEC_FLG_LIFETIME_KB_CNTR_EN, IPSEC_FLG_LIFETIME_PKT_CNTR_EN
 			and IPSEC_FLG_LIFETIME_SEC_CNTR_EN flags
 		
 @Param[in]	ipsec_handle - IPsec handle.
-@Param[out]	kilobytes - number of bytes processed by this SA.
+@Param[out]	bytes - number of bytes processed by this SA.
 @Param[out]	packets - number of packets processed by this SA.
+@Param[out]	dropped_pkts - number of dropped packets by this SA.
 @Param[out]	sec - number of seconds passed since this SA was created.
 
 @Return		Status
@@ -654,30 +657,32 @@ int ipsec_del_sa_descriptor(ipsec_handle_t ipsec_handle);
 *//****************************************************************************/
 int ipsec_get_lifetime_stats(
 		ipsec_handle_t ipsec_handle,
-		uint64_t *kilobytes,
+		uint64_t *bytes,
 		uint64_t *packets,
+		uint64_t *dropped_pkts,
 		uint32_t *sec);
 
 /**************************************************************************//**
 @Function	ipsec_decr_lifetime_counters
 
 @Description	This function decrements the SA lifetime counters:
-		kilobytes and packets.
+		bytes, packets and dropped packets.
 
 @Param[in]	ipsec_handle - IPsec handle.
-@Param[in]	kilobytes_decr_val - number of bytes to decrement from
-		the kilobytes counter of this SA.
+@Param[in]	bytes_decr_val - number of bytes to decrement from
+		the bytes counter of this SA.
 @Param[in]	packets_decr_val - number of packets to decrement from
 		the packets counter of this SA.
+@Param[in]	dropped_pkts_decr_val - number of dropped packets to decrement
+		from the dropped packets counter of this SA.
 
 @Return		Status
 
 *//****************************************************************************/
-int ipsec_decr_lifetime_counters(
-		ipsec_handle_t ipsec_handle,
-		uint32_t kilobytes_decr_val,
-		uint32_t packets_decr_val
-		);
+int ipsec_decr_lifetime_counters(ipsec_handle_t ipsec_handle,
+				 uint32_t bytes_decr_val,
+				 uint32_t packets_decr_val,
+				 uint32_t dropped_pkts_decr_val);
 
 /**************************************************************************//**
 @Function	ipsec_get_seq_num

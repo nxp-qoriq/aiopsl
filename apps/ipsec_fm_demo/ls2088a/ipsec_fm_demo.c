@@ -47,7 +47,8 @@ int app_init(void);
 void app_free(void);
 int ipsec_app_init(uint16_t ni_id);
 void ipsec_print_frame(void);
-static void ipsec_print_stats(ipsec_handle_t desc_handle, uint8_t is_encap);
+static void ipsec_print_stats(ipsec_handle_t desc_handle, int sa,
+			      uint8_t is_encap);
 void ipsec_print_sp (uint16_t ni_spid);
 void user_lifetime_callback(uint64_t opaque1, uint8_t opaque2);
 
@@ -251,6 +252,7 @@ ipsec_handle_t	ipsec_sas_desc_inbound[TEST_NUM_OF_SA];
 /* Periodically statistics print */
 #define IPSEC_STATS_PRINT	0
 #if (IPSEC_STATS_PRINT == 1)
+	#include "fsl_spinlock.h"
 	/* Statistics timer duration. Must be greater than 10 */
 	#define STATS_TIMER_PERIOD	11	/* seconds */
 
@@ -262,7 +264,8 @@ ipsec_handle_t	ipsec_sas_desc_inbound[TEST_NUM_OF_SA];
 
 	static void app_stats_timer_cb(tman_arg_8B_t arg1, tman_arg_2B_t arg2);
 
-	uint32_t	stats_timer_handle;
+	static uint32_t	stats_timer_handle;
+	static int32_t	processed_pkts;
 #endif
 
 __HOT_CODE ENTRY_POINT static void app_perf_process_packet(void)
@@ -278,6 +281,9 @@ __HOT_CODE ENTRY_POINT static void app_perf_process_packet(void)
 	ipsec_handle_t	ws_desc_handle_inbound;
 #endif
 
+#if (IPSEC_STATS_PRINT == 1)
+	atomic_incr32(&processed_pkts, 1);
+#endif
 	sl_prolog();
 	eth_pointer_byte = (uint8_t *)PARSER_GET_ETH_POINTER_DEFAULT();
 
@@ -297,7 +303,8 @@ __HOT_CODE ENTRY_POINT static void app_perf_process_packet(void)
 #if (IPSEC_DEBUG_PRINT == 1)
 		fsl_print("SEC Encryption Failed (status = 0x%08x)\n", status);
 #endif
-		fdma_discard_default_frame(FDMA_DIS_NO_FLAGS);
+		if (!(status & IPSEC_BUFFER_POOL_DEPLETION))
+			fdma_discard_default_frame(FDMA_DIS_NO_FLAGS);
 		fdma_terminate_task();
 	}
 #endif
@@ -307,7 +314,8 @@ __HOT_CODE ENTRY_POINT static void app_perf_process_packet(void)
 #if (IPSEC_DEBUG_PRINT == 1)
 		fsl_print("SEC Decryption Failed (status = 0x%08x)\n", status);
 #endif
-		fdma_discard_default_frame(FDMA_DIS_NO_FLAGS);
+		if (!(status & IPSEC_BUFFER_POOL_DEPLETION))
+			fdma_discard_default_frame(FDMA_DIS_NO_FLAGS);
 		fdma_terminate_task();
 	}
 #endif
@@ -472,8 +480,8 @@ __HOT_CODE ENTRY_POINT static void app_process_packet(void)
 		}
 	
 		/* Print statistics */
-		ipsec_print_stats(ws_desc_handle_outbound, 1);
-		ipsec_print_stats(ws_desc_handle_inbound, 0);
+		ipsec_print_stats(ws_desc_handle_outbound, 0, 1);
+		ipsec_print_stats(ws_desc_handle_inbound, 0, 0);
 
 		fsl_print("IPsec Demo: Core %d Sending Frame\n", core_get_id());
 
@@ -594,8 +602,20 @@ int app_early_init(void)
 	if (err)
 		return err;
 	fsl_print("Place for %d timers was reserved\n", num - 4);
-	/* Set DHR to 256 in the default storage profile */
+
+	/* Set DHR. Performances decrease if DHR is not a 64 multiply.
+	 * The minimum value for DHR must be greater than the total maximum
+	 * growth for encapsulation (76 bytes) plus the IP header length
+	 * (20 or 40 bytes without options). The minimum value of the head-room
+	 * should be of 128 bytes.
+	 *
+	 * On LS2085 platforms, because of ERR009354 the minimum value must
+	 * be 256. Be sure MC is compiled with this errata enabled. */
+#ifndef LS2085A_REV1
 	err = dpni_drv_register_rx_buffer_layout_requirements(256, 0, 0);
+#else
+	err = dpni_drv_register_rx_buffer_layout_requirements(256, 0, 0);
+#endif
 
 #if (BUFFER_MODE != IPSEC_FLG_BUFFER_REUSE)
 	if (g_app_params.app_config_flags & IPSEC_BUFFER_ALLOCATE_ENABLE) {
@@ -1189,19 +1209,22 @@ void ipsec_print_frame(void) {
 		fsl_print("\n");
 } /* End of ipsec_print_frame */
 
-static void ipsec_print_stats(ipsec_handle_t desc_handle, uint8_t is_encap)
+static void ipsec_print_stats(ipsec_handle_t desc_handle, int sa,
+			      uint8_t is_encap)
 {
 	int		err = 0;
-	uint64_t	kilobytes, packets;
+	uint64_t	bytes, packets, dropped_pkts;
 	uint32_t	sec, sequence_number, extended_sequence_number;
 	uint32_t	anti_replay_bitmap[4];
 
-	fsl_print("IPsec Demo: %s Statistics:\n", (is_encap) ?
-		  "Encryption" : "Decryption");
+	fsl_print("IPsec Demo: %s Statistics on SA #%d:\n", (is_encap) ?
+		  "Encryption" : "Decryption", sa);
 	/* Read statistics */
-	err = ipsec_get_lifetime_stats(desc_handle, &kilobytes, &packets, &sec);
-	fsl_print("\t bytes     = %ll\n", kilobytes);
+	err = ipsec_get_lifetime_stats(desc_handle, &bytes, &packets,
+				       &dropped_pkts, &sec);
+	fsl_print("\t bytes           = %ll\n", bytes);
 	fsl_print("\t packets   = %ll\n", packets);
+	fsl_print("\t dropped packets = %ll\n", dropped_pkts);
 	fsl_print("\t seconds   = %d\n", sec);
 
 	err = ipsec_get_seq_num(desc_handle, &sequence_number,
@@ -1213,6 +1236,18 @@ static void ipsec_print_stats(ipsec_handle_t desc_handle, uint8_t is_encap)
 			anti_replay_bitmap[0], anti_replay_bitmap[1],
 			anti_replay_bitmap[2], anti_replay_bitmap[3]);
 	}
+}
+
+static void ipsec_get_processed_packets(ipsec_handle_t desc_handle,
+					uint64_t *packets,
+					uint64_t *dropped_pkts)
+{
+	uint64_t	bytes;
+	uint32_t	sec;
+
+	/* Read statistics */
+	ipsec_get_lifetime_stats(desc_handle, &bytes, packets, dropped_pkts,
+				 &sec);
 }
 
 void ipsec_print_sp (uint16_t ni_spid) {
@@ -1241,6 +1276,13 @@ static uint32_t get_tman_task_handle(void)
 static void app_stats_timer_cb(tman_arg_8B_t arg1, tman_arg_2B_t arg2)
 {
 	int	i;
+	uint64_t	packets, dropped_pkts;
+#if (DECRYPT_ONLY == 0)
+	uint64_t	encr_packets = 0, encr_dropped_pkts = 0;
+#endif
+#if (ENCRYPT_ONLY == 0)
+	uint64_t	decr_packets = 0, decr_dropped_pkts = 0;
+#endif
 
 	UNUSED(arg1);
 	UNUSED(arg2);
@@ -1253,12 +1295,61 @@ static void app_stats_timer_cb(tman_arg_8B_t arg1, tman_arg_2B_t arg2)
 	tman_timer_completion_confirmation(get_tman_task_handle());
 
 	for (i = STATS_PRINT_FROM_SA; i < STATS_PRINT_TO_SA; i++) {
-		ipsec_print_stats(ipsec_sas_desc_outbound[i], 1);
+#if (DECRYPT_ONLY == 0)
+		ipsec_print_stats(ipsec_sas_desc_outbound[i], i, 1);
+#endif
 #if (ENCRYPT_ONLY == 0)
-		ipsec_print_stats(ipsec_sas_desc_inbound[i], 0);
+		ipsec_print_stats(ipsec_sas_desc_inbound[i], i, 0);
 #endif
 	}
+
+	for (i = 0; i < TEST_NUM_OF_SA; i++) {
+#if (DECRYPT_ONLY == 0)
+		ipsec_get_processed_packets(ipsec_sas_desc_outbound[i],
+					    &packets, &dropped_pkts);
+		encr_packets += packets;
+		encr_dropped_pkts += dropped_pkts;
+#endif
+#if (ENCRYPT_ONLY == 0)
+		ipsec_get_processed_packets(ipsec_sas_desc_inbound[i],
+					    &packets, &dropped_pkts);
+		decr_packets += packets;
+		decr_dropped_pkts += dropped_pkts;
+#endif
 }
+	fsl_print("\n\t Processed packets           = %d\n", processed_pkts);
+#if (DECRYPT_ONLY == 0)
+	fsl_print("\t Total encrypted packets     = %ll\n", encr_packets);
+	fsl_print("\t Total dropped on encryption = %ll\n", encr_dropped_pkts);
+	fsl_print("\t Total encrypted and dropped = %ll\n",
+		  encr_packets + encr_dropped_pkts);
+	if (encr_packets + encr_dropped_pkts)
+		fsl_print("\t Encryption drop rate        = %ll (ppm)\n",
+			  (1000000 * encr_dropped_pkts) /
+			  (encr_packets + encr_dropped_pkts));
+	/* This print is just to verify no packet is lost. The printed result is
+	 * correct if the processed_pkts variable does not roll over */
+	/*fsl_print("\t Processed packets - Total encrypted and dropped = %d\n",
+		  processed_pkts - (uint32_t)(encr_packets +
+					      encr_dropped_pkts));*/
+#endif
+#if (ENCRYPT_ONLY == 0)
+	fsl_print("\n\t Total decrypted packets     = %ll\n", decr_packets);
+	fsl_print("\t Total dropped on decryption = %ll\n", decr_dropped_pkts);
+	fsl_print("\t Total decrypted and dropped = %ll\n",
+		  decr_packets + decr_dropped_pkts);
+	if (decr_packets + decr_dropped_pkts)
+		fsl_print("\t Decryption drop rate        = %ll (ppm)\n",
+			  (1000000 * decr_dropped_pkts) /
+			  (decr_packets + decr_dropped_pkts));
+	/* This print is just to verify no packet is lost. The printed result is
+	 * correct if the processed_pkts variable does not roll over */
+	/*fsl_print("\t Processed packets - Total decrypted and dropped = %d\n",
+		  processed_pkts - (uint32_t)(decr_packets +
+					      encr_dropped_pkts));*/
+#endif
+}
+
 #endif	/* IPSEC_STATS_PRINT */
 
 #if (LIFETIME_TIMERS_ENABLE == 1)

@@ -78,7 +78,7 @@ struct snic_cmd_data {
 #define SNIC_CMDSZ_IPSEC_ADD_SA		(19*8)
 #define SNIC_CMDSZ_IPSEC_DEL_SA     (6*8)
 #define SNIC_CMDSZ_IPSEC_DELETE_INSTANCE  8
-#define SNIC_CMDSZ_IPSEC_SA_GET_STATS_MAX (3*8)
+#define SNIC_CMDSZ_IPSEC_SA_GET_STATS_MAX (4*8)
 
 /* ipsec "options" mapping  (used as ipsec SA "nic_options") */
 #define SNIC_IPSEC_OPT_SEQ_NUM_ROLLOVER_EVENT		0x04
@@ -356,8 +356,9 @@ do { \
 #define SNIC_IPSEC_SA_GET_STATS_RSP_CMD(_OP) \
 do { \
 	_OP(0, 0,	32,	uint32_t,	secs); \
-	_OP(1, 0,	64,	uint64_t,	kbytes); \
+	_OP(1, 0,	64,	uint64_t,	bytes); \
 	_OP(2, 0,	64,	uint64_t,	packets); \
+	_OP(3, 0,	64,	uint64_t,	dropped_pkts); \
 } while (0)
 
 #endif /* _FSL_SNIC_CMD_H */

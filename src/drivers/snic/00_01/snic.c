@@ -994,7 +994,7 @@ int snic_ipsec_sa_get_stats(struct snic_cmd_data *cmd_data)
 	uint16_t snic_id;
 	uint8_t sa_id;
 	uint32_t secs;
-	uint64_t kbytes, packets;
+	uint64_t bytes, packets, dropped_pkts;
 	struct snic_params *snic;
 	struct table_lookup_result lookup_result __attribute__((aligned(16)));
 	ipsec_handle_t ipsec_handle;
@@ -1010,7 +1010,8 @@ int snic_ipsec_sa_get_stats(struct snic_cmd_data *cmd_data)
 	{
 		/* Hit */
 		ipsec_handle = lookup_result.opaque0_or_reference;
-		err = ipsec_get_lifetime_stats(ipsec_handle, &kbytes, &packets, &secs);
+		err = ipsec_get_lifetime_stats(ipsec_handle, &bytes, &packets,
+					       &dropped_pkts, &secs);
 		if (err)
 			return err;
 		SNIC_IPSEC_SA_GET_STATS_RSP_CMD(SNIC_RSP_PREP);
