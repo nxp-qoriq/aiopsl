@@ -40,4 +40,8 @@
 
 #define CWAP_DTLS_DEMO_MEM_ID		MEM_PART_DP_DDR
 
+/* API functions which are different for rev1 and rev2 */
+#define ARCH_FDMA_DISCARD_FD() \
+	fdma_discard_fd((struct ldpaa_fd *)HWC_FD_ADDRESS, 0, FDMA_DIS_AS_BIT)
+
 #endif /* __APPS_ARCH_H */

@@ -127,6 +127,11 @@ aiop_sl		</project>
 			<locationURI>PARENT-4-PROJECT_LOC/apps/cwap_dtls_demo/apps.h</locationURI>
 		</link>
 		<link>
+			<name>src/cwap_dtls_demo.c</name>
+			<type>1</type>
+			<locationURI>PARENT-4-PROJECT_LOC/apps/cwap_dtls_demo/cwap_dtls_demo.c</locationURI>
+		</link>
+		<link>
 			<name>src/generic</name>
 			<type>2</type>
 			<locationURI>virtual:/virtual</locationURI>
@@ -172,19 +177,9 @@ aiop_sl		</project>
 			<locationURI>PARENT-4-PROJECT_LOC/apps/cwap_dtls_demo/ls2085a/apps_arch.h</locationURI>
 		</link>
 		<link>
-			<name>src/ls2085a/cwap_dtls_demo.c</name>
-			<type>1</type>
-			<locationURI>PARENT-4-PROJECT_LOC/apps/cwap_dtls_demo/ls2085a/cwap_dtls_demo.c</locationURI>
-		</link>
-		<link>
 			<name>src/ls2088a/apps_arch.h</name>
 			<type>1</type>
 			<locationURI>PARENT-4-PROJECT_LOC/apps/cwap_dtls_demo/ls2088a/apps_arch.h</locationURI>
-		</link>
-		<link>
-			<name>src/ls2088a/cwap_dtls_demo.c</name>
-			<type>1</type>
-			<locationURI>PARENT-4-PROJECT_LOC/apps/cwap_dtls_demo/ls2088a/cwap_dtls_demo.c</locationURI>
 		</link>
 		<link>
 			<name>src/platform/ls1088a</name>

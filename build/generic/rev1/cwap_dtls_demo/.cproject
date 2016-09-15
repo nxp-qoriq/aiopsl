@@ -168,7 +168,7 @@
 						</toolChain>
 					</folderInfo>
 					<sourceEntries>
-						<entry excluding="src/ls2088a/cwap_dtls_demo.c|src/ls2085a/cwap_dtls_demo.c|src/platform/ls2088a/config.c|src/platform/ls2085a/config.c|tmp_src/dpni_test.c|src/arch/core/ppc/booke_irq.S|src/drivers/dpmng/controllers/ctlu/dptbl.h|src/drivers/dpmng/controllers/ctlu/dptbl.c|T4240LS_AIOP_readme.txt" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
+						<entry excluding="src/cwap_dtls_demo.c|src/platform/ls2088a/config.c|src/platform/ls2085a/config.c|tmp_src/dpni_test.c|src/arch/core/ppc/booke_irq.S|src/drivers/dpmng/controllers/ctlu/dptbl.h|src/drivers/dpmng/controllers/ctlu/dptbl.c|T4240LS_AIOP_readme.txt" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
 					</sourceEntries>
 				</configuration>
 			</storageModule>
@@ -343,7 +343,7 @@
 						</toolChain>
 					</folderInfo>
 					<sourceEntries>
-						<entry excluding="src/platform/ls1088a/config.c|src/ls1088a/cwap_dtls_demo.c|src/ls2085a/cwap_dtls_demo.c|src/platform/ls2085a/config.c|tmp_src/dpni_test.c|src/arch/core/ppc/booke_irq.S|src/drivers/dpmng/controllers/ctlu/dptbl.h|src/drivers/dpmng/controllers/ctlu/dptbl.c|T4240LS_AIOP_readme.txt" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
+						<entry excluding="src/platform/ls1088a/config.c|src/ls1088a/cwap_dtls_demo.c|src/platform/ls2085a/config.c|tmp_src/dpni_test.c|src/arch/core/ppc/booke_irq.S|src/drivers/dpmng/controllers/ctlu/dptbl.h|src/drivers/dpmng/controllers/ctlu/dptbl.c|T4240LS_AIOP_readme.txt" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
 					</sourceEntries>
 				</configuration>
 			</storageModule>
@@ -518,7 +518,7 @@
 						</toolChain>
 					</folderInfo>
 					<sourceEntries>
-						<entry excluding="src/platform/ls2088a/config.c|src/ls2088a/cwap_dtls_demo.c|src/platform/ls1088a/config.c|src/ls1088a/cwap_dtls_demo.c|tmp_src/dpni_test.c|src/arch/core/ppc/booke_irq.S|src/drivers/dpmng/controllers/ctlu/dptbl.h|src/drivers/dpmng/controllers/ctlu/dptbl.c|T4240LS_AIOP_readme.txt" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
+						<entry excluding="src/platform/ls2088a/config.c|src/platform/ls1088a/config.c|src/ls1088a/cwap_dtls_demo.c|tmp_src/dpni_test.c|src/arch/core/ppc/booke_irq.S|src/drivers/dpmng/controllers/ctlu/dptbl.h|src/drivers/dpmng/controllers/ctlu/dptbl.c|T4240LS_AIOP_readme.txt" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
 					</sourceEntries>
 				</configuration>
 			</storageModule>
