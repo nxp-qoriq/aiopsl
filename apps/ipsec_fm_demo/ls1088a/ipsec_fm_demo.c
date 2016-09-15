@@ -67,18 +67,7 @@ extern __PROFILE_SRAM struct storage_profile
 /* Performance measurement case. Define PERF_MEASUREMENT in order to measure
  * the IPsec performances
  ******************************************************************************/
-/*#define PERF_MEASUREMENT*/
-
-/* Set ENCRYPT_ONLY to 1 in order the application performs only packet
- * encryption */
-#define ENCRYPT_ONLY		0
-
-/* Set DECRYPT_ONLY to 1 in order the application performs only packet
- * decryption */
-#define DECRYPT_ONLY		0
-
-/* If none of above macros is defined as 1 application performs packet
- * encryption followed by decryption */
+#define PERF_MEASUREMENT
 
 /*******************************************************************************
  * Number of created SA pairs
@@ -182,6 +171,7 @@ enum app_key_types {
 #else
 	#define PKT_LIMIT_ENABLE	0
 #endif
+
 #if (PKT_LIMIT_ENABLE == 1)
 	/* Soft and hard pairs must have valid values : hard_pkt_limit >=
 	 * soft_pkt_limit. No check is done. In order to run the application
@@ -217,12 +207,7 @@ enum app_key_types {
 
 /* 10 - DECAP anti-replay window size */
 /* IPSEC_DEC_OPTS_ARSNONE - Disabled, ARS32/64/128 - Enabled */
-#if (DECRYPT_ONLY == 1)
-	/* Disable ARW in the Decrypt only case */
-	#define DECAP_ARW_SIZE	IPSEC_DEC_OPTS_ARSNONE
-#else
-	#define DECAP_ARW_SIZE	IPSEC_DEC_OPTS_ARS32
-#endif
+#define DECAP_ARW_SIZE	IPSEC_DEC_OPTS_ARSNONE
 
 /* 11 - DECAP padding check */
 /* 0 - Disabled,  IPSEC_FLG_TRANSPORT_PAD_CHECK - Enabled */
@@ -240,14 +225,38 @@ ipsec_handle_t	ipsec_sas_desc_inbound[TEST_NUM_OF_SA];
 /* Performance measurement case. Define PERF_MEASUREMENT in order to enable it.
  ******************************************************************************/
 #ifdef PERF_MEASUREMENT
+
+/* Set ENCRYPT_ONLY to 1 in order the application performs only packet
+ * encryption */
+#define ENCRYPT_ONLY		0
+
+/* Set DECRYPT_ONLY to 1 in order the application performs only packet
+ * decryption */
+#define DECRYPT_ONLY		0
+
+/* If none of above macros is defined as 1 application performs packet
+ * encryption followed by decryption */
+
+#define BIDIRECTIONAL		1
+/* Set BIDIRECTIONAL to 1 in order the application performs encryption on the
+ * clear text packets received on a NI and decryprion on the encrypted packets
+ * received on another NI. First NI is configured for encryption the second
+ * for decryption an so on. */
+
 /* Better performances are obtained if counters are disabled : see
  * KB_LIMIT_ENABLE (data path processing), PKT_LIMIT_ENABLE  (data path
  * processing) and LIFETIME_TIMERS_ENABLE (expiration task occurs, hence
  * less data path processing task, concurrence while accessing DDR in order
  * to update the timers). */
 
+#if (DECRYPT_ONLY == 1 || BIDIRECTIONAL == 1)
+	/* Disable ARW */
+	#undef DECAP_ARW_SIZE
+	#define DECAP_ARW_SIZE	IPSEC_DEC_OPTS_ARSNONE
+#endif
+
 /* Set IPSEC_DEBUG_PRINT to 1 in order have printed messages */
-#define IPSEC_DEBUG_PRINT	0
+#define IPSEC_DEBUG_PRINT	1
 
 /* Periodically statistics print */
 #define IPSEC_STATS_PRINT	0
@@ -268,6 +277,7 @@ ipsec_handle_t	ipsec_sas_desc_inbound[TEST_NUM_OF_SA];
 	static int32_t	processed_pkts;
 #endif
 
+#if (BIDIRECTIONAL == 0)
 __HOT_CODE ENTRY_POINT static void app_perf_process_packet(void)
 {
 	int		err;
@@ -327,13 +337,98 @@ __HOT_CODE ENTRY_POINT static void app_perf_process_packet(void)
 		if (err == -ENOMEM)
 			fdma_discard_default_frame(FDMA_DIS_NO_FLAGS);
 		else /* (err == -EBUSY) */
-			fdma_discard_fd((struct ldpaa_fd *)HWC_FD_ADDRESS,
-					0, FDMA_DIS_AS_BIT);
+			IPSEC_FDMA_DISCARD_FD();
 	}
 	fdma_terminate_task();
 }
 
-#else
+#else	/* BIDIRECTIONAL = 1 */
+
+__HOT_CODE ENTRY_POINT static void app_perf_packet_encr(void)
+{
+	int		err;
+	uint32_t	status = 0;
+	uint8_t		*eth_pointer_byte;
+	uint32_t	sa_idx;
+	ipsec_handle_t	ws_desc_handle_outbound;
+
+#if (IPSEC_STATS_PRINT == 1)
+	atomic_incr32(&processed_pkts, 1);
+#endif
+	sl_prolog();
+	eth_pointer_byte = (uint8_t *)PARSER_GET_ETH_POINTER_DEFAULT();
+
+	/* IP_SRC based distribution */
+	sa_idx = (*((uint32_t *)(eth_pointer_byte + IP_SRC_OFF))) %
+							TEST_NUM_OF_SA;
+	ws_desc_handle_outbound = ipsec_sas_desc_outbound[sa_idx];
+
+	err = ipsec_frame_encrypt(ws_desc_handle_outbound, &status);
+	if (err) {
+#if (IPSEC_DEBUG_PRINT == 1)
+		fsl_print("SEC Encryption Failed (status = 0x%08x)\n", status);
+#endif
+		if (!(status & IPSEC_BUFFER_POOL_DEPLETION))
+			fdma_discard_default_frame(FDMA_DIS_NO_FLAGS);
+		fdma_terminate_task();
+	}
+	err = dpni_drv_send(task_get_receive_niid(), DPNI_DRV_SEND_MODE_NONE);
+	if (err) {
+#if (IPSEC_DEBUG_PRINT == 1)
+		fsl_print("ERROR = %d: dpni_drv_send(ni_id)\n", err);
+#endif
+		if (err == -ENOMEM)
+			fdma_discard_default_frame(FDMA_DIS_NO_FLAGS);
+		else /* (err == -EBUSY) */
+			IPSEC_FDMA_DISCARD_FD();
+	}
+	fdma_terminate_task();
+}
+
+__HOT_CODE ENTRY_POINT static void app_perf_packet_decr(void)
+{
+	int		err;
+	uint32_t	status = 0;
+	uint8_t		*eth_pointer_byte;
+	uint32_t	sa_idx;
+	ipsec_handle_t	ws_desc_handle_inbound;
+
+#if (IPSEC_STATS_PRINT == 1)
+	atomic_incr32(&processed_pkts, 1);
+#endif
+	sl_prolog();
+	eth_pointer_byte = (uint8_t *)PARSER_GET_ETH_POINTER_DEFAULT();
+
+	/* IP_SRC based distribution */
+	sa_idx = (*((uint32_t *)(eth_pointer_byte + IP_SRC_OFF))) %
+							TEST_NUM_OF_SA;
+	ws_desc_handle_inbound = ipsec_sas_desc_inbound[sa_idx];
+
+	err = ipsec_frame_decrypt(ws_desc_handle_inbound, &status);
+	if (err) {
+#if (IPSEC_DEBUG_PRINT == 1)
+		fsl_print("SEC Decryption Failed (status = 0x%08x)\n", status);
+#endif
+		if (!(status & IPSEC_BUFFER_POOL_DEPLETION))
+			fdma_discard_default_frame(FDMA_DIS_NO_FLAGS);
+		fdma_terminate_task();
+	}
+	err = dpni_drv_send(task_get_receive_niid(), DPNI_DRV_SEND_MODE_NONE);
+	if (err) {
+#if (IPSEC_DEBUG_PRINT == 1)
+		fsl_print("ERROR = %d: dpni_drv_send(ni_id)\n", err);
+#endif
+		if (err == -ENOMEM)
+			fdma_discard_default_frame(FDMA_DIS_NO_FLAGS);
+		else /* (err == -EBUSY) */
+			IPSEC_FDMA_DISCARD_FD();
+	}
+	fdma_terminate_task();
+}
+
+#endif	/* BIDIRECTIONAL */
+
+#else	/* PERF_MEASUREMENT not defined */
 
 __HOT_CODE ENTRY_POINT static void app_process_packet(void)
 {
@@ -492,7 +587,7 @@ __HOT_CODE ENTRY_POINT static void app_process_packet(void)
 			if(err == -ENOMEM)
 				fdma_discard_default_frame(FDMA_DIS_NO_FLAGS);
 			else /* (err == -EBUSY) */
-				fdma_discard_fd((struct ldpaa_fd *)HWC_FD_ADDRESS, 0, FDMA_DIS_AS_BIT);
+				IPSEC_FDMA_DISCARD_FD();
 		}
 	} 
 	
@@ -643,34 +738,48 @@ int app_early_init(void)
 	return err;
 }
 
-static int app_dpni_event_added_cb(
-			uint8_t generator_id,
-			uint8_t event_id,
-			uint64_t app_ctx,
-			void *event_data)
+static int app_dpni_event_added_cb(uint8_t generator_id, uint8_t event_id,
+				   uint64_t app_ctx, void *event_data)
 {
-	uint16_t ni = (uint16_t)((uint32_t)event_data);
-	uint16_t    mfl = 0x2000; /* Maximum Frame Length */
-	int err;
+	uint16_t	ni = (uint16_t)((uint32_t)event_data);
+	uint16_t	mfl = 0x2000; /* Maximum Frame Length */
+	int		err;
 
 	UNUSED(generator_id);
 	UNUSED(event_id);
-	pr_info("Event received for AIOP NI ID %d\n",ni);
-	err = dpni_drv_register_rx_cb(ni/*ni_id*/,
-	                              (rx_cb_t *)app_ctx);
-	if (err){
-		pr_err("dpni_drv_register_rx_cb for ni %d failed: %d\n", ni, err);
+
+	pr_info("Event received for AIOP NI ID %d\n", ni);
+
+#ifdef PERF_MEASUREMENT
+	#if (BIDIRECTIONAL == 0)
+		err = dpni_drv_register_rx_cb(ni, (rx_cb_t *)app_ctx);
+	#else
+		UNUSED(app_ctx);
+
+		if (!(ni % 2))
+			err = dpni_drv_register_rx_cb(ni, (rx_cb_t *)
+						      app_perf_packet_encr);
+		else
+			err = dpni_drv_register_rx_cb(ni, (rx_cb_t *)
+						      app_perf_packet_decr);
+	#endif	/* BIDIRECTIONAL */
+#else	/* PERF_MEASUREMENT not defined */
+	err = dpni_drv_register_rx_cb(ni, (rx_cb_t *)app_ctx);
+#endif
+	if (err) {
+		pr_err("dpni_drv_register_rx_cb for ni %d failed: %d\n",
+		       ni, err);
 		return err;
 	}
-	err = dpni_drv_set_max_frame_length(ni/*ni_id*/,
-	                                    mfl /* Max frame length*/);
-	if (err){
-		pr_err("dpni_drv_set_max_frame_length for ni %d failed: %d\n", ni, err);
+	err = dpni_drv_set_max_frame_length(ni, mfl /* Max frame length*/);
+	if (err) {
+		pr_err("dpni_drv_set_max_frame_length for ni %d failed: %d\n",
+		       ni, err);
 		return err;
 	}
 	
 	err = dpni_drv_enable(ni);
-	if(err){
+	if (err) {
 		pr_err("dpni_drv_enable for ni %d failed: %d\n", ni, err);
 		return err;
 	}
@@ -685,11 +794,10 @@ static int app_dpni_event_added_cb(
 	}
 	return 0;
 }
+
 int app_init(void)
 {
-	int        err  = 0;
-	uint32_t   ni   = 0;
-	uint64_t buff = 0;
+	int	err;
 
 	fsl_print("Running app_init()\n");
 
@@ -699,23 +807,28 @@ int app_init(void)
 #endif /* AIOP_STANDALONE */
 
 #ifdef PERF_MEASUREMENT
+	#if (BIDIRECTIONAL == 0)
+		err = evmng_register(EVMNG_GENERATOR_AIOPSL, DPNI_EVENT_ADDED,
+				     1, (uint64_t)app_perf_process_packet,
+				     app_dpni_event_added_cb);
+	#else
+		err = evmng_register(EVMNG_GENERATOR_AIOPSL, DPNI_EVENT_ADDED,
+				     1, (uint64_t)app_perf_packet_encr,
+				     app_dpni_event_added_cb);
+	#endif	/* BIDIRECTIONAL */
+#else	/* PERF_MEASUREMENT not defined */
 	err = evmng_register(EVMNG_GENERATOR_AIOPSL, DPNI_EVENT_ADDED, 1,
-			     (uint64_t) app_perf_process_packet,
-			     app_dpni_event_added_cb);
-#else
-	err = evmng_register(EVMNG_GENERATOR_AIOPSL, DPNI_EVENT_ADDED, 1,
-			     (uint64_t) app_process_packet,
+			     (uint64_t)app_process_packet,
 			     app_dpni_event_added_cb);
 #endif
-	if (err){
-		pr_err("EVM registration for DPNI_EVENT_ADDED failed: %d\n", err);
+	if (err) {
+		pr_err("EVM registration for DPNI_EVENT_ADDED failed: %d\n",
+		       err);
 		return err;
 	}
 
-
 	err = cmdif_register_module("TEST0", &ops);
-	if (err)
-	{
+	if (err) {
 		fsl_print("FAILED cmdif_register_module\n!");
 		return err;
 	}

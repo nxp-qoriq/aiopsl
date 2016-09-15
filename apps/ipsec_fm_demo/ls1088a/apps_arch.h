@@ -40,4 +40,8 @@
 
 #define IPSEC_DEMO_MEM_ID MEM_PART_SYSTEM_DDR
 
+#define IPSEC_FDMA_DISCARD_FD()						\
+	fdma_discard_fd((struct ldpaa_fd *)HWC_FD_ADDRESS,		\
+			0, FDMA_DIS_AS_BIT)
+
 #endif /* __APPS_ARCH_H */
