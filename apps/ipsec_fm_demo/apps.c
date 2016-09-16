@@ -29,14 +29,10 @@
 #include "fsl_dbg.h"
 #include "apps.h"
 
-extern int app_early_init(void);
-extern int app_init(void); extern void app_free(void);
-
-
-#define APPS                            	\
-{                                       	\
-	{app_early_init, app_init, app_free},	\
-	{NULL, NULL, NULL} /* never remove! */    	\
+#define APPS								\
+{									\
+	{app_early_init, app_init, app_free},				\
+	{NULL, NULL, NULL} /* never remove! */				\
 }
 
 void build_apps_array(struct sys_module_desc *apps);
@@ -49,4 +45,3 @@ void build_apps_array(struct sys_module_desc *apps)
 	ASSERT_COND(ARRAY_SIZE(apps_tmp) <= APP_INIT_APP_MAX_NUM);
 	memcpy(apps, apps_tmp, sizeof(apps_tmp));
 }
-

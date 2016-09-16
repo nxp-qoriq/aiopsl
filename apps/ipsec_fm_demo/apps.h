@@ -37,15 +37,15 @@ of all the macros.
 #define __APPS_H
 
 #include "apps_arch.h"
+#include "system.h"
 
 /* For better performances enable all core's tasks */
 #define APP_INIT_TASKS_PER_CORE		16
 #define APP_INIT_APP_MAX_NUM		10
 
-#define APP_MEM_DP_DDR_SIZE	ARCH_DP_DDR_SIZE
-#define APP_MEM_PEB_SIZE	(512 * KILOBYTE)
-#define APP_MEM_SYS_DDR1_SIZE 	(32 * MEGABYTE)
-
+#define APP_MEM_DP_DDR_SIZE		ARCH_DP_DDR_SIZE
+#define APP_MEM_PEB_SIZE		(512 * KILOBYTE)
+#define APP_MEM_SYS_DDR1_SIZE		(32 * MEGABYTE)
 
 #define APP_CTLU_SYS_DDR_NUM_ENTRIES	2048 
 #define APP_CTLU_DP_DDR_NUM_ENTRIES	ARCH_CTLU_DP_DDR_NUM_ENTRIES
@@ -62,8 +62,17 @@ of all the macros.
 #define APP_DPNI_BUF_ALIGN_IN_POOL	64
 #define APP_DPNI_SPID_COUNT		8
 
+int app_early_init(void);
+int app_init(void);
+void app_free(void);
+
 extern struct platform_app_params g_app_params;
 
+/*#define IPSEC_DEBUG_PRINT_SP*/
+
+#ifdef IPSEC_DEBUG_PRINT_SP
+	extern __PROFILE_SRAM struct storage_profile
+				storage_profile[SP_NUM_OF_STORAGE_PROFILES];
+#endif
+
 #endif /* __APPS_H */
-
-

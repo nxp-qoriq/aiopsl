@@ -32,7 +32,7 @@ aiop_sl		</project>
 				</dictionary>
 				<dictionary>
 					<key>org.eclipse.cdt.make.core.buildLocation</key>
-					<value>${ProjDirPath}/LS2085A</value>
+					<value>${ProjDirPath}/LS2088A</value>
 				</dictionary>
 				<dictionary>
 					<key>org.eclipse.cdt.make.core.cleanBuildTarget</key>
@@ -127,6 +127,11 @@ aiop_sl		</project>
 			<locationURI>virtual:/virtual</locationURI>
 		</link>
 		<link>
+			<name>src/ipsec_fm_demo.c</name>
+			<type>1</type>
+			<locationURI>PARENT-4-PROJECT_LOC/apps/ipsec_fm_demo/ipsec_fm_demo.c</locationURI>
+		</link>
+		<link>
 			<name>src/ls1088a</name>
 			<type>2</type>
 			<locationURI>virtual:/virtual</locationURI>
@@ -157,29 +162,14 @@ aiop_sl		</project>
 			<locationURI>PARENT-4-PROJECT_LOC/apps/ipsec_fm_demo/ls1088a/apps_arch.h</locationURI>
 		</link>
 		<link>
-			<name>src/ls1088a/ipsec_fm_demo.c</name>
-			<type>1</type>
-			<locationURI>PARENT-4-PROJECT_LOC/apps/ipsec_fm_demo/ls1088a/ipsec_fm_demo.c</locationURI>
-		</link>
-		<link>
 			<name>src/ls2085a/apps_arch.h</name>
 			<type>1</type>
 			<locationURI>PARENT-4-PROJECT_LOC/apps/ipsec_fm_demo/ls2085a/apps_arch.h</locationURI>
 		</link>
 		<link>
-			<name>src/ls2085a/ipsec_fm_demo.c</name>
-			<type>1</type>
-			<locationURI>PARENT-4-PROJECT_LOC/apps/ipsec_fm_demo/ls2085a/ipsec_fm_demo.c</locationURI>
-		</link>
-		<link>
 			<name>src/ls2088a/apps_arch.h</name>
 			<type>1</type>
 			<locationURI>PARENT-4-PROJECT_LOC/apps/ipsec_fm_demo/ls2088a/apps_arch.h</locationURI>
-		</link>
-		<link>
-			<name>src/ls2088a/ipsec_fm_demo.c</name>
-			<type>1</type>
-			<locationURI>PARENT-4-PROJECT_LOC/apps/ipsec_fm_demo/ls2088a/ipsec_fm_demo.c</locationURI>
 		</link>
 		<link>
 			<name>src/platform/ls1088a</name>

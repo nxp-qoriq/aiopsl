@@ -34,11 +34,11 @@
 #ifndef __APPS_ARCH_H
 #define __APPS_ARCH_H
 
-#define ARCH_DP_DDR_SIZE	     (0)
-#define ARCH_CTLU_DP_DDR_NUM_ENTRIES (0)
-#define ARCH_MFLU_DP_DDR_NUM_ENTRIES (0)
+#define ARCH_DP_DDR_SIZE		(0)
+#define ARCH_CTLU_DP_DDR_NUM_ENTRIES	(0)
+#define ARCH_MFLU_DP_DDR_NUM_ENTRIES	(0)
 
-#define IPSEC_DEMO_MEM_ID MEM_PART_SYSTEM_DDR
+#define IPSEC_DEMO_MEM_ID		MEM_PART_SYSTEM_DDR
 
 #define IPSEC_FDMA_DISCARD_FD()						\
 	fdma_discard_fd((struct ldpaa_fd *)HWC_FD_ADDRESS,		\
