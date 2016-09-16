@@ -1267,7 +1267,8 @@ void cwap_dtls_get_ar_info_cbc(cwap_dtls_sa_handle_t desc_addr,
 	uint8_t i = 0;
 
 	/* Read the PDB from the descriptor with CDMA */
-	cdma_read(&pdb, CWAP_DTLS_PDB_ADDR(desc_addr), sizeof(pdb));
+	fsl_read_external_data(&pdb, CWAP_DTLS_PDB_ADDR(desc_addr), sizeof(pdb),
+			       READ_DATA_USING_CDMA);
 
 	if (params_flags & CWAP_DTLS_FLG_DIR_OUTBOUND) {
 		*sequence_number = LDW_SWAP(0, &pdb.dtls_enc.word2);
@@ -1293,7 +1294,8 @@ void cwap_dtls_get_ar_info_gcm(cwap_dtls_sa_handle_t desc_addr,
 	uint8_t i = 0;
 
 	/* Read the PDB from the descriptor with CDMA */
-	cdma_read(&pdb, CWAP_DTLS_PDB_ADDR(desc_addr), sizeof(pdb));
+	fsl_read_external_data(&pdb, CWAP_DTLS_PDB_ADDR(desc_addr), sizeof(pdb),
+			       READ_DATA_USING_CDMA);
 
 	if (params_flags & CWAP_DTLS_FLG_DIR_OUTBOUND) {
 		*sequence_number = LDW_SWAP(0, &pdb.dtls_enc.word2);
