@@ -49,6 +49,76 @@
 @{
 *//***************************************************************************/
 
+#define IPR_MEM_ALIGN 64
+
+/* IPR_SW_TABLE */
+#ifdef USE_IPR_SW_TABLE
+
+/* size of the IPR_SW_TABLE */
+#define FRAG_BINS		2048
+#define FRAGS_PER_BIN	8
+
+/*
+ * IPR module uses software hash tables instead of CTLU ones.
+ *
+ * The table lines are created on demand.
+ * With the default values a table has 128kB and a line 512 bytes.
+ * The table lines are obtained from SLAB so a new DPBP is needed for IPR.
+ *
+ * The lookup key is SW extracted. From it a hash is generated
+ * and reduced to a line number.
+ *
+ * We protect the IPR resources with OSM transitions in exclusive mode.
+ * scope_id (uint32_t) has a portion (0x3F) reserved for OSM infrastructure.
+ * We could use virtual addresses for scope_id since they are unique.
+ * But the virtual addresses must be aligned to 64 to have the reserve
+ * portion of the scope_id zero.
+ *
+ * Possible improvements:
+ * - separate line size for ipv4 and ipv6
+ * - extend the table line when it's full
+ * - compact table line
+ */
+
+#define SW_IPR_OSM_MASK		(OSM_SCOPE_ID_STAGE_INCREMENT_MASK | \
+				 OSM_SCOPE_ID_LEVEL_INCREMENT_MASK)
+
+#pragma pack(push, 1)
+struct ipv4_fragment_key {
+	uint32_t dst;
+	uint32_t src;
+	uint16_t id;
+	uint8_t protocol;
+};	/* 11 byte */
+#pragma pack(pop)
+
+#pragma pack(push, 1)
+struct ipv6_fragment_key {
+	uint32_t dst[4];
+	uint32_t src[4];
+	uint32_t id;
+};	/* 36 byte */
+#pragma pack(pop)
+
+#pragma pack(push, 1)
+union ip_fragment_key {
+	struct ipv4_fragment_key ipv4_fk;
+	struct ipv6_fragment_key ipv6_fk;
+};	/* 36 byte */
+#pragma pack(pop)
+
+#pragma pack(push, 1)
+struct sw_table_entry {
+	uint32_t virt_addr;
+	union ip_fragment_key fk;
+};	/* 40 byte */
+#pragma pack(pop)
+
+#define IPR_SW_TABLE_LINE_SIZE	(FRAGS_PER_BIN * sizeof(struct sw_table_entry))
+#endif	/* USE_IPR_SW_TABLE */
+
+/***************************************************************************/
+
 #define	MAX_NUM_OF_FRAGS 	64
 #define	FRAG_OK_REASS_NOT_COMPL	0
 #define LAST_FRAG_IN_ORDER	1
@@ -125,10 +195,17 @@ struct ipr_instance {
 	ipr_timeout_cb_t *ipv6_timeout_cb;
 	/** \link FSL_IPRInsFlags IP reassembly flags \endlink */
 	uint32_t  	flags;
+#ifdef USE_IPR_SW_TABLE
+	/* virtual address IPR_SW_TABLE for IPv4 frames */
+	uint32_t	table_id_ipv4;
+	/* virtual address IPR_SW_TABLE for IPv6 frames */
+	uint32_t	table_id_ipv6;
+#else
 	/* CTLU table ID for IPv4 frames */
 	uint16_t	table_id_ipv4;
 	/* CTLU table ID for IPv6 frames */
 	uint16_t	table_id_ipv6;
+#endif	/* USE_IPR_SW_TABLE */
 	/** maximum reassembled frame size */
 	uint16_t  	max_reass_frm_size;
 	/* BPID to fetch buffers from */
@@ -145,7 +222,13 @@ struct ipr_instance {
 	uint8_t		tmi_id;
 	/* Preserve reassembled packet fragments indicator */
 	uint8_t         preserve_fragments;
+#ifdef USE_IPR_SW_TABLE
+	/* BPID to fetch buffers for ip fragment key */
+	uint16_t	bpid_fk;
+	uint8_t		res[4];
+#else
 	uint8_t		res[10];
+#endif	/* USE_IPR_SW_TABLE */
 };
 #pragma pack(pop)
 
@@ -287,12 +370,14 @@ uint32_t ipr_insert_to_link_list(struct ipr_rfdc *rfdc_ptr,
 				 void *iphdr_ptr,
 				 uint32_t frame_is_ipv4);
 
+#ifndef USE_IPR_SW_TABLE
 void ipv6_rule_delete(uint64_t rfdc_ext_addr,
 		      struct ipr_instance *instance_params_ptr);
 
 int ipr_lookup(uint32_t frame_is_ipv4,
 	       struct ipr_instance *instance_params_ptr,
 	       uint64_t *rfdc_ext_addr_ptr);
+#endif	/* USE_IPR_SW_TABLE */
 
 int ipr_miss_handling(struct ipr_instance *instance_params_ptr,
 	 uint32_t frame_is_ipv4, uint32_t osm_status, struct ipr_rfdc *rfdc_ptr,
@@ -336,7 +421,11 @@ uint32_t ipv4_header_update_and_l4_validation(struct ipr_rfdc *rfdc_ptr);
 uint32_t ipv6_header_update_and_l4_validation(struct ipr_rfdc *rfdc_ptr);
 
 uint32_t check_for_frag_error(struct ipr_instance *instance_params_ptr,
-			      uint32_t frame_is_ipv4, void *iphdr_ptr);
+			      uint32_t frame_is_ipv4, void *iphdr_ptr
+#ifdef USE_IPR_SW_TABLE
+			      , union ip_fragment_key *fk
+#endif	/* USE_IPR_SW_TABLE */
+			      );
 
 void ipr_time_out(uint64_t rfdc_ext_addr, uint16_t dummy);
 
@@ -359,7 +448,6 @@ void ipr_exception_handler(enum ipr_function_identifier func_id,
 		     	   int32_t status);
 
 uint32_t is_atomic_fragment();
-
 
 /**************************************************************************//**
 @Description	IPR Global parameters

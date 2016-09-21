@@ -58,41 +58,342 @@
 #include "fsl_dbg.h"
 #include "fsl_sl_slab.h"
 #endif
+#include "fsl_mem_mng.h"
 
+#ifndef USE_IPR_SW_TABLE
 struct  ipr_global_parameters ipr_global_parameters1;
+#endif	/* USE_IPR_SW_TABLE */
+
 extern struct dpni_drv *nis;
 extern __TASK struct aiop_default_task_params default_task_params;
 
+static enum memory_partition_id g_mem_pid = MEM_PART_SYSTEM_DDR;
+
+#ifdef USE_IPR_SW_TABLE
+static IPR_CODE_PLACEMENT int sw_table_key_delete(uint32_t table_id,
+						  uint32_t line, uint8_t pos,
+						  uint8_t lock_with_OSM_enter)
+{
+	struct sw_table_entry keys[FRAGS_PER_BIN] __attribute__((aligned(16)));
+	uint64_t *sw_tbl;
+	int status;
+
+	sw_tbl = (uint64_t *)(table_id + line * IPR_MEM_ALIGN);
+
+	/* get exclusive access to the line in IPR_SW_TABLE.
+	   We use virtual addresses for scope_id since they are unique */
+	if (lock_with_OSM_enter)
+		osm_scope_enter(OSM_SCOPE_ENTER_CHILD_TO_EXCLUSIVE,
+				(uint32_t)sw_tbl);
+	else
+		osm_scope_transition_to_exclusive_with_new_scope_id(
+							(uint32_t)sw_tbl);
+
+	if (*sw_tbl == 0)
+		/* the line is not allocated */
+		return -EIO;
+
+	/* get the line */
+	cdma_read(keys, *sw_tbl, sizeof(keys));
+
+	if (keys[pos].virt_addr == 0)
+		/* invalid entry */
+		return -EIO;
+
+	/* clear the entry */
+	keys[pos].virt_addr = 0;
+
+	/* copy the table line into IPR_SW_TABLE and
+	   decrement the reference counter for the line */
+	status = cdma_access_context_memory(*sw_tbl,
+				CDMA_ACCESS_CONTEXT_MEM_DEC_REFCOUNT_AND_REL,
+				0, keys,
+				CDMA_ACCESS_CONTEXT_MEM_DMA_WRITE |
+				sizeof(keys),
+				(uint32_t *)REF_COUNT_ADDR_DUMMY);
+	if (status == CDMA_REFCOUNT_DECREMENT_TO_ZERO) {
+		/* it was the last entry */
+		*sw_tbl = 0;
+		return 0;
+	}
+	if (status == 0)
+		return 0;
+
+	return -EIO;
+}
+
+static IPR_CODE_PLACEMENT void sw_table_delete(uint32_t table_id)
+{
+	int id;
+	uint64_t *sw_table;
+	uint64_t paddr = sys_virt_to_phys((void *)table_id);
+
+	if (INVALID_PHY_ADDR == paddr)
+		return;
+
+	/* release all the lines */
+	for (id = 0; id < FRAG_BINS; id++) {
+		sw_table = (uint64_t *)(table_id + id * IPR_MEM_ALIGN);
+
+		if (*sw_table == 0)
+			continue;
+
+		while (cdma_refcount_decrement_and_release(*sw_table) !=
+		       CDMA_REFCOUNT_DECREMENT_TO_ZERO) {
+		}
+	}
+	/* free the table */
+	fsl_put_mem(paddr);
+}
+
+static IPR_CODE_PLACEMENT int sw_table_create(uint32_t *table_id,
+					      uint32_t table_location)
+{
+	int id, err;
+	uint64_t paddr = 0;
+	uint64_t *sw_table;
+	enum memory_partition_id mem_pid;
+
+	if (table_location == IPR_MODE_TABLE_LOCATION_PEB)
+		mem_pid = MEM_PART_PEB;
+	else if (table_location == IPR_MODE_TABLE_LOCATION_EXT1)
+		mem_pid = MEM_PART_DP_DDR;
+	else if (table_location == IPR_MODE_TABLE_LOCATION_EXT2)
+		mem_pid = MEM_PART_SYSTEM_DDR;
+	else
+		return -EINVAL;
+
+	/* IPR_SW_TABLE uses physical addresses for each line.
+	   Each line has FRAGS_PER_BIN entries. */
+	err = fsl_get_mem(FRAG_BINS * IPR_MEM_ALIGN,
+			  mem_pid, IPR_MEM_ALIGN, &paddr);
+	if (err)
+		return err;
+
+	*table_id = (uint32_t)sys_fast_phys_to_virt(paddr, mem_pid);
+	if (NULL == *table_id)
+		return -ENOMEM;
+
+	/* Clear the table */
+	for (id = 0; id < FRAG_BINS; id++) {
+		sw_table = (uint64_t *)(*table_id + id * IPR_MEM_ALIGN);
+		*sw_table = 0;
+	}
+	return 0;
+}
+
+static inline void sw_osm_scope_enter_to_exclusive(uint32_t osm_status,
+						   uint32_t scope_id)
+{
+	/* create nested per reassembled frame
+	   Also serve as mutex for Timeout */
+	if ((osm_status == NO_BYPASS_OSM) || (osm_status == START_CONCURRENT))
+		/* release parent to concurrent */
+		osm_scope_enter_to_exclusive_with_new_scope_id(scope_id);
+	else
+		/* Next step is needed only for mutex with Timeout
+		   doesn't release parent to concurrent */
+		osm_scope_enter(OSM_SCOPE_ENTER_CHILD_TO_EXCLUSIVE, scope_id);
+}
+
+static inline int sw_table_key_equal(uint8_t is_ipv4_key,
+				     union ip_fragment_key *fk1,
+				     union ip_fragment_key *fk2)
+{
+	if (is_ipv4_key)
+		return ((fk1->ipv4_fk.dst == fk2->ipv4_fk.dst) &&
+			(fk1->ipv4_fk.src == fk2->ipv4_fk.src) &&
+			(fk1->ipv4_fk.id == fk2->ipv4_fk.id) &&
+			(fk1->ipv4_fk.protocol == fk2->ipv4_fk.protocol));
+
+	return ((*((uint64_t *)&fk1->ipv6_fk.dst[0]) ==
+		 *((uint64_t *)&fk2->ipv6_fk.dst[0])) &&
+		(*((uint64_t *)&fk1->ipv6_fk.dst[2]) ==
+		 *((uint64_t *)&fk2->ipv6_fk.dst[2])) &&
+		(*((uint64_t *)&fk1->ipv6_fk.src[0]) ==
+		 *((uint64_t *)&fk2->ipv6_fk.src[0])) &&
+		(*((uint64_t *)&fk1->ipv6_fk.src[2]) ==
+		 *((uint64_t *)&fk2->ipv6_fk.src[2])) &&
+		(fk1->ipv6_fk.id == fk2->ipv6_fk.id));
+}
+
+static IPR_CODE_PLACEMENT int sw_ipr_lookup_or_insert(
+		struct ipr_instance *instance_params_ptr,
+		uint8_t frame_is_ipv4, uint32_t osm_status,
+		struct ipr_rfdc *rfdc_ptr,
+		ipr_instance_handle_t instance_handle,
+		uint64_t *rfdc_ext_addr_ptr,
+		union ip_fragment_key *fk)
+{
+	uint8_t cnt;
+	uint32_t h, t;
+	uint64_t *sw_table;
+	struct sw_table_entry keys[FRAGS_PER_BIN] __attribute__((aligned(16)));
+	uint8_t first_free = 0;
+	union ip_fragment_key *tmp_fk;
+
+	if (frame_is_ipv4) {
+		/* IPR_SW_TABLE */
+		t = instance_params_ptr->table_id_ipv4;
+
+		/* key size */
+		cnt = (uint8_t)sizeof(struct ipv4_fragment_key);
+	} else {
+		/* IPR_SW_TABLE */
+		t = instance_params_ptr->table_id_ipv6;
+
+		/* key size */
+		cnt = (uint8_t)sizeof(struct ipv6_fragment_key);
+	}
+
+	/* Generate a hash over the fragment key and reduce to a line number.
+	   Convert hash to suitable Scope ID and enter exclusive */
+	keygen_gen_hash(fk, cnt, &h);
+
+	/* pick the line table */
+	h &= (FRAG_BINS - 1);
+	sw_table = (uint64_t *)(t + h * IPR_MEM_ALIGN);
+
+	/* get exclusive access to the line table.
+	   We use virtual addresses for scope_id since they are unique */
+	sw_osm_scope_enter_to_exclusive(osm_status, (uint32_t)sw_table);
+
+	if (*sw_table == 0)
+		/* the line is not allocated. It's the first access to it. */
+		t = TRUE;
+	else {
+		/* the line was allocated */
+		cdma_read(keys, *sw_table, sizeof(keys));
+		first_free = (uint8_t)-1;
+		t = FALSE;
+	}
+
+	/* search the key */
+	for (cnt = 0; !t && (cnt < FRAGS_PER_BIN); cnt++) {
+		tmp_fk = &keys[cnt].fk;
+
+		if (keys[cnt].virt_addr == 0) {
+			if (first_free == (uint8_t)-1)
+				first_free = cnt;
+		} else if (sw_table_key_equal(frame_is_ipv4, tmp_fk, fk)) {
+			/* found the key. Get the RFDC */
+			t = keys[cnt].virt_addr;
+			*rfdc_ext_addr_ptr = sys_fast_virt_to_phys((void *)t,
+								   g_mem_pid);
+
+			/* get exclusive access to the RDFC
+			   Use virtual addresses for scope_id since
+			   they are unique */
+			osm_scope_transition_to_exclusive_with_new_scope_id(t);
+			return TABLE_STATUS_SUCCESS;
+		}
+	}
+
+	if (first_free == (uint8_t)-1) {
+		/* line table is full */
+		return -ENOSPC;
+	}
+
+	/* add a new entry */
+	if (t) {
+		/* the 2nd parameter must be in the workspace */
+		if (cdma_acquire_context_memory(instance_params_ptr->bpid_fk,
+						rfdc_ext_addr_ptr))
+			/* Can't create a new line */
+			return -ENOSPC;
+
+		*sw_table = *rfdc_ext_addr_ptr;
+	}
+
+	/* create a new RFDC */
+	ipr_miss_handling(instance_params_ptr, frame_is_ipv4, osm_status,
+			  rfdc_ptr, instance_handle, rfdc_ext_addr_ptr);
+
+	/* store key in RDFC, to know what to delete from the table */
+	rfdc_ptr->ipv4_key[0] = h;		/* line */
+	rfdc_ptr->ipv4_key[1] = first_free;	/* column */
+
+	if (t) {
+		/* init the whole table line */
+		memset(keys, 0, sizeof(keys));
+		h = 0;
+	} else
+		/* there is a new entry on the line => increment the reference
+		   counter. It should be decremented at delete */
+		h = CDMA_ACCESS_CONTEXT_MEM_INC_REFCOUNT;
+
+	/* the virtual address is also used as a scope id */
+	t = (uint32_t)sys_fast_phys_to_virt(*rfdc_ext_addr_ptr, g_mem_pid);
+
+	/* save the key and the data */
+	keys[first_free].virt_addr = t;
+	keys[first_free].fk = *fk;
+
+	/* copy the table line into IPR_SW_TABLE */
+	cdma_access_context_memory(*sw_table, h, 0, keys,
+				   CDMA_ACCESS_CONTEXT_MEM_DMA_WRITE |
+				   sizeof(keys),
+				   (uint32_t *)REF_COUNT_ADDR_DUMMY);
+
+	/* get exclusive access to the RDFC.
+	   Use virtual addresses for scope_id since they are unique */
+	osm_scope_transition_to_exclusive_with_new_scope_id(t);
+
+	/* TABLE_STATUS_MISS is expected by ipr_reassemble() */
+	return TABLE_STATUS_MISS;
+}
+#endif	/* USE_IPR_SW_TABLE */
 
 #ifndef AIOP_VERIF
 int ipr_early_init(uint32_t nbr_of_instances, uint32_t nbr_of_context_buffers)
 {
 	uint32_t nbr_of_ipr_contexts;
 	int err;
-	enum memory_partition_id mem_pid = MEM_PART_SYSTEM_DDR;
 
 	if (fsl_mem_exists(MEM_PART_DP_DDR))
-		mem_pid = MEM_PART_DP_DDR;
+		g_mem_pid = MEM_PART_DP_DDR;
 
-	nbr_of_ipr_contexts = nbr_of_context_buffers + 2*nbr_of_instances;
-	/* IPR 2688 rounded up modulo 64 - 8 */
+	nbr_of_ipr_contexts = nbr_of_context_buffers + 2 * nbr_of_instances;
+	/* IPR IPR_CONTEXT_SIZE (2688) rounded up modulo 64 - 8 */
 	err = slab_register_context_buffer_requirements(nbr_of_ipr_contexts,
 							nbr_of_ipr_contexts,
 							2744,
-							64,
-							mem_pid,
+							IPR_MEM_ALIGN,
+							g_mem_pid,
 							0,
 							0);
-	if(err){
+	if (err) {
 		pr_err("Failed to register IPR context buffers\n");
 		return err;
 	}
+
+#ifdef USE_IPR_SW_TABLE
+	/* Check that memory alignment matches the OSM_SCOPE_ID mask */
+	ASSERT_COND(SW_IPR_OSM_MASK == IPR_MEM_ALIGN - 1);
+
+	/* reserve memory for ipv4_fragment_key & ipv6_fragment_key
+	   There are FRAGS_PER_BIN keys per line in the sw hash table */
+	err = slab_register_context_buffer_requirements(
+							nbr_of_context_buffers,
+							nbr_of_context_buffers,
+							IPR_SW_TABLE_LINE_SIZE,
+							IPR_MEM_ALIGN,
+							g_mem_pid,
+							0,
+							0);
+	if (err) {
+		pr_err("Failed to register IPR_SW_TABLE context buffers\n");
+		return err;
+	}
+#endif	/* USE_IPR_SW_TABLE */
+
 	return 0;
 }
 #endif
 
 int ipr_init(void)
 {
+#ifndef USE_IPR_SW_TABLE
 	struct kcr_builder kb __attribute__((aligned(16)));
 	int    status;
 	uint8_t  ipr_key_id;
@@ -133,6 +434,7 @@ int ipr_init(void)
 		/* todo  Fatal */
 		ipr_exception_handler(IPR_INIT, __LINE__, (int32_t)status);
 	}
+#endif	/* USE_IPR_SW_TABLE */
 	return 0;
 }
 
@@ -141,27 +443,69 @@ int ipr_create_instance(struct ipr_params *ipr_params_ptr,
 {
 	struct ipr_instance	      ipr_instance;
 	struct ipr_instance_extension ipr_instance_ext;
-	struct table_create_params tbl_params;
-	uint32_t max_open_frames, aggregate_open_frames, table_location;
-	uint16_t table_location_attr;
+	uint32_t max_open_frames, aggregate_open_frames;
+	uint32_t table_location;
 	uint16_t bpid;
-	int table_ipv4_valid = 0;
 	int sr_status;
-	enum memory_partition_id mem_pid = MEM_PART_SYSTEM_DDR;
+#ifndef USE_IPR_SW_TABLE
+	struct table_create_params tbl_params;
+	uint16_t table_location_attr;
+	int table_ipv4_valid = 0;
+#endif	/* USE_IPR_SW_TABLE */
+
+	aggregate_open_frames = ipr_params_ptr->max_open_frames_ipv4 +
+					ipr_params_ptr->max_open_frames_ipv6;
+
+#ifdef USE_IPR_SW_TABLE
+	/* reservation for the ip fragment key */
+	sr_status = slab_find_and_reserve_bpid(aggregate_open_frames,
+					       IPR_SW_TABLE_LINE_SIZE,
+					       8, g_mem_pid, NULL, &bpid);
+
+	if (sr_status < 0)
+		ipr_exception_handler(IPR_CREATE_INSTANCE, __LINE__,
+				      (int32_t)sr_status);
+
+	ipr_instance.bpid_fk = bpid;
+
+	table_location = ipr_params_ptr->flags & 0x0C000000;
+	/* allocate the IPR_SW_TABLE */
+	if (ipr_params_ptr->max_open_frames_ipv4) {
+		sr_status = sw_table_create(&ipr_instance.table_id_ipv4,
+					    table_location);
+
+		if (sr_status != TABLE_STATUS_SUCCESS) {
+			ipr_exception_handler(IPR_CREATE_INSTANCE, __LINE__,
+					      ENOMEM_TABLE);
+		}
+	}
+	if (ipr_params_ptr->max_open_frames_ipv6) {
+		sr_status = sw_table_create(&ipr_instance.table_id_ipv6,
+					    table_location);
+
+		if (sr_status != TABLE_STATUS_SUCCESS) {
+			if (ipr_params_ptr->max_open_frames_ipv4)
+				sw_table_delete(ipr_instance.table_id_ipv4);
+
+			ipr_exception_handler(IPR_CREATE_INSTANCE, __LINE__,
+					      ENOMEM_TABLE);
+		}
+	}
+#else
+	ipr_instance.table_id_ipv4 = 0;
+	ipr_instance.table_id_ipv6 = 0;
+#endif	/* USE_IPR_SW_TABLE */
 
 	/* Reservation is done for 2 extra buffers: 1 one instance_params and
 	 * the other in case of reaching the maximum of open reassembly */
-	aggregate_open_frames = ipr_params_ptr->max_open_frames_ipv4 +
-				ipr_params_ptr->max_open_frames_ipv6 + 2;
+	aggregate_open_frames += 2;
 	/* call ARENA function for allocating buffers needed to IPR
 	 * processing (create_slab ) */
-	if (fsl_mem_exists(MEM_PART_DP_DDR))
-		mem_pid = MEM_PART_DP_DDR;
 
 	sr_status = slab_find_and_reserve_bpid(aggregate_open_frames,
 					IPR_CONTEXT_SIZE,
 					8,
-					mem_pid,
+					g_mem_pid,
 					NULL,
 					&bpid);
 
@@ -187,11 +531,10 @@ int ipr_create_instance(struct ipr_params *ipr_params_ptr,
 	/* For IPv4 */
 	max_open_frames = ipr_params_ptr->max_open_frames_ipv4;
 	/* Initialize instance parameters */
-	ipr_instance.table_id_ipv4 = 0;
-	ipr_instance.table_id_ipv6 = 0;
 	if (max_open_frames) {
 		ipr_instance.flags |= IPV4_VALID;
 		ipr_instance_ext.max_open_frames_ipv4 = max_open_frames;
+#ifndef USE_IPR_SW_TABLE
 		tbl_params.committed_rules = max_open_frames;
 		tbl_params.max_rules = max_open_frames;
 		/* IPv4 src, IPv4 dst, prot, ID */
@@ -218,12 +561,14 @@ int ipr_create_instance(struct ipr_params *ipr_params_ptr,
 					      ENOMEM_TABLE);
 		}
 		table_ipv4_valid = 1;
+#endif	/* USE_IPR_SW_TABLE */
 	}
 	/* For IPv6 */
 	max_open_frames = ipr_params_ptr->max_open_frames_ipv6;
 	if (max_open_frames) {
 		ipr_instance.flags |= IPV6_VALID;
 		ipr_instance_ext.max_open_frames_ipv6 = max_open_frames;
+#ifndef USE_IPR_SW_TABLE
 		tbl_params.committed_rules = max_open_frames;
 		tbl_params.max_rules = max_open_frames;
 		/* IPv6 src, IPv6 dst, ID (4 bytes) */
@@ -252,6 +597,7 @@ int ipr_create_instance(struct ipr_params *ipr_params_ptr,
 			ipr_exception_handler(IPR_CREATE_INSTANCE, __LINE__,
 					      ENOMEM_TABLE);
 		}
+#endif	/* USE_IPR_SW_TABLE */
 	}
 
 	/* Initialize instance parameters */
@@ -365,13 +711,25 @@ void ipr_delete_instance_after_time_out(ipr_instance_handle_t ipr_instance_ptr)
 		
 	/* todo SR error case */
 	cdma_release_context_memory(ipr_instance_ptr);
+
 	/* error case */
 	if (ipr_instance_and_extension.ipr_instance.flags & IPV4_VALID)
+#ifdef USE_IPR_SW_TABLE
+		sw_table_delete(
+			ipr_instance_and_extension.ipr_instance.table_id_ipv4);
+#else
 		table_delete(TABLE_ACCEL_ID_CTLU,
 			 ipr_instance_and_extension.ipr_instance.table_id_ipv4);
+#endif	/* USE_IPR_SW_TABLE */
+
 	if (ipr_instance_and_extension.ipr_instance.flags & IPV6_VALID)
+#ifdef USE_IPR_SW_TABLE
+		sw_table_delete(
+			ipr_instance_and_extension.ipr_instance.table_id_ipv6);
+#else
 		table_delete(TABLE_ACCEL_ID_CTLU,
 			ipr_instance_and_extension.ipr_instance.table_id_ipv6);
+#endif	/* USE_IPR_SW_TABLE */
 
 	ipr_instance_and_extension.ipr_instance_extension.confirm_delete_cb(
 		ipr_instance_and_extension.ipr_instance_extension.delete_arg);
@@ -394,6 +752,10 @@ IPR_CODE_PLACEMENT int ipr_reassemble(ipr_instance_handle_t instance_handle)
 	uint16_t iphdr_offset;
 	struct presentation_context *prc =
 				(struct presentation_context *) HWC_PRC_ADDRESS;
+#ifdef USE_IPR_SW_TABLE
+	/* SW extracted key, used to generate a hash */
+	union ip_fragment_key fk __attribute__((aligned(16)));
+#endif
 
 	iphdr_offset = (uint16_t)PARSER_GET_OUTER_IP_OFFSET_DEFAULT();
 	iphdr_ptr = (void *)(iphdr_offset + PRC_GET_SEGMENT_ADDRESS());
@@ -456,15 +818,26 @@ IPR_CODE_PLACEMENT int ipr_reassemble(ipr_instance_handle_t instance_handle)
 		  instance_handle,
 		  IPR_INSTANCE_SIZE);
 
-	if (check_for_frag_error(&instance_params,frame_is_ipv4, iphdr_ptr) ==
+	if (check_for_frag_error(&instance_params, frame_is_ipv4, iphdr_ptr
+#ifdef USE_IPR_SW_TABLE
+							, &fk
+#endif	/* USE_IPR_SW_TABLE */
+							) ==
 								NO_ERROR) {
-
+#ifdef USE_IPR_SW_TABLE
+		sr_status = sw_ipr_lookup_or_insert(&instance_params,
+						    (uint8_t)frame_is_ipv4,
+						    osm_status,  &rfdc,
+						    instance_handle,
+						    &rfdc_ext_addr, &fk);
+#else
 		sr_status = ipr_lookup(frame_is_ipv4, &instance_params,
 					&rfdc_ext_addr);
-		
+#endif
+
 		if (sr_status == TABLE_STATUS_SUCCESS) {
 			/* Hit */
-			
+#ifndef USE_IPR_SW_TABLE
 			/* create nested per reassembled frame 
 			 * Also serve as mutex for Timeout */
 			if ((osm_status == NO_BYPASS_OSM) ||
@@ -479,7 +852,8 @@ IPR_CODE_PLACEMENT int ipr_reassemble(ipr_instance_handle_t instance_handle)
 			       * Doesn't release parent to concurrent */
 			     osm_scope_enter(OSM_SCOPE_ENTER_CHILD_TO_EXCLUSIVE,
 					     (uint32_t)rfdc_ext_addr);
-			}				
+			}
+#endif	/* USE_IPR_SW_TABLE */
 			/* Add increment reference cnt since CTLU doesn't
 			 * do it anymore */
 			cdma_refcount_increment(rfdc_ext_addr);
@@ -511,6 +885,9 @@ IPR_CODE_PLACEMENT int ipr_reassemble(ipr_instance_handle_t instance_handle)
 				return -ETIMEDOUT;
 			}
 		} else if (sr_status == TABLE_STATUS_MISS) {
+#ifdef USE_IPR_SW_TABLE
+			/* the entry was already added into the IPR_SW_TABLE */
+#else
 			sr_status = ipr_miss_handling(&instance_params,
 						   frame_is_ipv4,
 						   osm_status,
@@ -519,10 +896,18 @@ IPR_CODE_PLACEMENT int ipr_reassemble(ipr_instance_handle_t instance_handle)
 						   &rfdc_ext_addr);
 			if (sr_status)
 				return sr_status;
-
+#endif	/* USE_IPR_SW_TABLE */
 		} else {
 		/* TLU lookup SR error */
 		pr_err("IPR Lookup failed\n");
+#ifdef USE_IPR_SW_TABLE
+		move_to_correct_ordering_scope2(osm_status);
+		ipr_stats_update(&instance_params,
+				 offsetof(struct extended_stats_cntrs,
+					  open_reass_frms_exceed_ipv4_cntr),
+				 frame_is_ipv4);
+		return -ENOSPC;
+#endif	/* USE_IPR_SW_TABLE */
 	}
 
 	if (rfdc.num_of_frags == MAX_NUM_OF_FRAGS) {
@@ -536,7 +921,7 @@ IPR_CODE_PLACEMENT int ipr_reassemble(ipr_instance_handle_t instance_handle)
 				  RFDC_SIZE,
 				  (uint32_t *)REF_COUNT_ADDR_DUMMY);
 		/* Handle ordering scope */
-		move_to_correct_ordering_scope1(osm_status);
+		move_to_correct_ordering_scope2(osm_status);
 
 		ipr_stats_update(&instance_params,
 				 offsetof(struct extended_stats_cntrs,
@@ -684,6 +1069,7 @@ IPR_CODE_PLACEMENT int ipr_reassemble(ipr_instance_handle_t instance_handle)
 		return -ETIMEDOUT;
 	}
 
+#ifndef USE_IPR_SW_TABLE
 	if (frame_is_ipv4) {
 		table_rule_delete_wrp(TABLE_ACCEL_ID_CTLU,
 				  instance_params.table_id_ipv4,
@@ -694,6 +1080,7 @@ IPR_CODE_PLACEMENT int ipr_reassemble(ipr_instance_handle_t instance_handle)
 	} else {
 		ipv6_rule_delete(rfdc_ext_addr,&instance_params);
 	}
+#endif	/* USE_IPR_SW_TABLE */
 
 	/* Open segment for reassembled frame */
 	/* Retrieve original seg length,seg addr and seg offset from RFDC */
@@ -727,6 +1114,19 @@ IPR_CODE_PLACEMENT int ipr_reassemble(ipr_instance_handle_t instance_handle)
 	
 	/* Decrement ref count of acquire */
 	cdma_refcount_decrement_and_release(rfdc_ext_addr);
+
+#ifdef USE_IPR_SW_TABLE
+	/* delete this late the key from IPR_SW_TABLE because
+	   of OSM transition */
+	if (frame_is_ipv4)
+		sw_table_key_delete(instance_params.table_id_ipv4,
+				    (uint32_t)rfdc.ipv4_key[0],
+				    (uint8_t)rfdc.ipv4_key[1], FALSE);
+	else
+		sw_table_key_delete(instance_params.table_id_ipv6,
+				    (uint32_t)rfdc.ipv4_key[0],
+				    (uint8_t)rfdc.ipv4_key[1], FALSE);
+#endif	/* USE_IPR_SW_TABLE */
 
 	move_to_correct_ordering_scope2(osm_status);
 
@@ -786,6 +1186,7 @@ IPR_CODE_PLACEMENT int ipr_reassemble(ipr_instance_handle_t instance_handle)
 	}
 }
 
+#ifndef USE_IPR_SW_TABLE
 IPR_CODE_PLACEMENT void ipv6_rule_delete(uint64_t rfdc_ext_addr,
 		      struct ipr_instance *instance_params_ptr)
 {
@@ -802,6 +1203,7 @@ IPR_CODE_PLACEMENT void ipv6_rule_delete(uint64_t rfdc_ext_addr,
 			  NULL);
 	/* DEBUG : check EIO */
 }
+
 IPR_CODE_PLACEMENT int ipr_lookup(uint32_t frame_is_ipv4, struct ipr_instance *instance_params_ptr,
 		uint64_t *rfdc_ext_addr_ptr)
 {
@@ -832,16 +1234,21 @@ IPR_CODE_PLACEMENT int ipr_lookup(uint32_t frame_is_ipv4, struct ipr_instance *i
 	
 	return sr_status;
 }
+#endif	/* USE_IPR_SW_TABLE */
 
 IPR_CODE_PLACEMENT int ipr_miss_handling(struct ipr_instance *instance_params_ptr,
 	 uint32_t frame_is_ipv4, uint32_t osm_status, struct ipr_rfdc *rfdc_ptr,
 	 ipr_instance_handle_t instance_handle, uint64_t *rfdc_ext_addr_ptr)
 {
-	struct table_rule rule __attribute__((aligned(16)));
 	int sr_status;
 	uint16_t timeout_value;
+#ifndef USE_IPR_SW_TABLE
+	struct table_rule rule __attribute__((aligned(16)));
 	uint8_t	 keysize;
 	t_rule_id rule_id;
+#else
+	UNUSED(osm_status);
+#endif	/* USE_IPR_SW_TABLE */
 	
 	/* Miss */
 	sr_status = cdma_acquire_context_memory(
@@ -858,7 +1265,8 @@ IPR_CODE_PLACEMENT int ipr_miss_handling(struct ipr_instance *instance_params_pt
 		(void *)0,
 		0,
 		(uint32_t *)REF_COUNT_ADDR_DUMMY);
-	
+
+#ifndef USE_IPR_SW_TABLE
 	/* Reset RFDC + Link List */
 	/*cdma_ws_memory_init((void *)&rfdc,
 			SIZE_TO_INIT,
@@ -868,8 +1276,10 @@ IPR_CODE_PLACEMENT int ipr_miss_handling(struct ipr_instance *instance_params_pt
 	rule.options = 0;
 	rule.result.type = TABLE_RESULT_TYPE_OPAQUE;
 	rule.result.data0 = *rfdc_ext_addr_ptr;
+#endif	/* USE_IPR_SW_TABLE */
 	
 	if (frame_is_ipv4) {
+#ifndef USE_IPR_SW_TABLE
 		/* Error is not checked since it is assumed that
 		 * IP header exists and is presented */
 		keygen_gen_key_wrp(
@@ -904,6 +1314,7 @@ IPR_CODE_PLACEMENT int ipr_miss_handling(struct ipr_instance *instance_params_pt
 			      *(uint64_t *)rule.key_desc.em.key;
 		rfdc_ptr->ipv4_key[1] =
 			  *(uint64_t *)(rule.key_desc.em.key+8);
+#endif	/* USE_IPR_SW_TABLE */
 	
 		/* Increment no of IPv4 open frames in instance
 			data structure */
@@ -919,6 +1330,7 @@ IPR_CODE_PLACEMENT int ipr_miss_handling(struct ipr_instance *instance_params_pt
 			 (uint16_t)(default_task_params.current_scope_level<<4);
 	
 	} else {
+#ifndef USE_IPR_SW_TABLE
 	    /* IPv6 */
 	    /* Error is not checked since it is assumed that
 	     * IP header exists and is presented */
@@ -955,6 +1367,7 @@ IPR_CODE_PLACEMENT int ipr_miss_handling(struct ipr_instance *instance_params_pt
 			    ipv6_key),
 			&rule.key_desc.em.key,
 			RFDC_EXTENSION_TRUNCATED_SIZE);
+#endif	/* USE_IPR_SW_TABLE */
 	
 	    /* Increment no of IPv6 open frames in instance
 	       data structure */
@@ -1003,7 +1416,8 @@ IPR_CODE_PLACEMENT int ipr_miss_handling(struct ipr_instance *instance_params_pt
 	if (sr_status)
 	    ipr_exception_handler(IPR_REASSEMBLE, __LINE__,
 				  ENOSPC_TIMER);
-	
+
+#ifndef USE_IPR_SW_TABLE
 	/* create nested per reassembled frame 
 	 * Also serve as mutex for Timeout */
 	if ((osm_status == NO_BYPASS_OSM) || (osm_status == START_CONCURRENT)) {
@@ -1017,10 +1431,11 @@ IPR_CODE_PLACEMENT int ipr_miss_handling(struct ipr_instance *instance_params_pt
 		osm_scope_enter(OSM_SCOPE_ENTER_CHILD_TO_EXCLUSIVE,
 				(uint32_t)*rfdc_ext_addr_ptr);
 	}
-	
+#endif	/* USE_IPR_SW_TABLE */
+
 	return SUCCESS;
-	
 }
+
 IPR_CODE_PLACEMENT uint32_t ipr_insert_to_link_list(struct ipr_rfdc *rfdc_ptr,
 				 uint64_t rfdc_ext_addr,
 				 struct ipr_instance *instance_params_ptr,
@@ -1748,7 +2163,11 @@ IPR_CODE_PLACEMENT uint32_t closing_with_reordering(struct ipr_rfdc *rfdc_ptr,
 }
 
 IPR_CODE_PLACEMENT uint32_t check_for_frag_error (struct ipr_instance *instance_params,
-				uint32_t frame_is_ipv4, void *iphdr_ptr)
+				uint32_t frame_is_ipv4, void *iphdr_ptr
+#ifdef USE_IPR_SW_TABLE
+				, union ip_fragment_key *fk
+#endif	/* USE_IPR_SW_TABLE */
+				)
 {
 	uint16_t length, ip_header_size, current_frag_size, ipv6fraghdr_offset;
 	uint16_t frag_offset_shifted;
@@ -1771,6 +2190,14 @@ IPR_CODE_PLACEMENT uint32_t check_for_frag_error (struct ipr_instance *instance_
 		current_frag_size = ipv4hdr_ptr->total_length - ip_header_size;
 		last_fragment = !(ipv4hdr_ptr->flags_and_offset &
 				IPV4_HDR_M_FLAG_MASK);
+
+#ifdef USE_IPR_SW_TABLE
+		/* extract the key */
+		fk->ipv4_fk.dst = ipv4hdr_ptr->dst_addr;
+		fk->ipv4_fk.src = ipv4hdr_ptr->src_addr;
+		fk->ipv4_fk.id = ipv4hdr_ptr->id;
+		fk->ipv4_fk.protocol = ipv4hdr_ptr->protocol;
+#endif	/* USE_IPR_SW_TABLE */
 	} else {
 		if (length < instance_params->min_frag_size_ipv6)
 			return MALFORMED_FRAG;
@@ -1788,6 +2215,22 @@ IPR_CODE_PLACEMENT uint32_t check_for_frag_error (struct ipr_instance *instance_
 		last_fragment = !(ipv6fraghdr_ptr->offset_and_flags &
 				IPV6_HDR_M_FLAG_MASK);
 
+#ifdef USE_IPR_SW_TABLE
+		/* extract the key */
+		*((uint64_t *)&fk->ipv6_fk.dst[0]) =
+		*((uint64_t *)&ipv6hdr_ptr->dst_addr[0]);
+
+		*((uint64_t *)&fk->ipv6_fk.dst[2]) =
+		*((uint64_t *)&ipv6hdr_ptr->dst_addr[2]);
+
+		*((uint64_t *)&fk->ipv6_fk.src[0]) =
+		*((uint64_t *)&ipv6hdr_ptr->src_addr[0]);
+
+		*((uint64_t *)&fk->ipv6_fk.src[2]) =
+		*((uint64_t *)&ipv6hdr_ptr->src_addr[2]);
+
+		fk->ipv6_fk.id = ipv6fraghdr_ptr->id;
+#endif	/* USE_IPR_SW_TABLE */
 	}
 	/* Check IP size is multiple of 8 for First or middle fragment*/
 	if (!last_fragment && (current_frag_size % 8 != 0))
@@ -1828,6 +2271,29 @@ void ipr_time_out(uint64_t rfdc_ext_addr, uint16_t opaque_not_used)
 	/* Recover OSM scope */
 	enter_number = (uint8_t)((rfdc.status & SCOPE_LEVEL) >> 4) -
 					default_task_params.current_scope_level ;
+
+#ifdef USE_IPR_SW_TABLE
+	/* get the virtual address of the RFDC
+	   Use virtual addresses for scope_id since they are unique */
+	flags = (uint32_t)sys_fast_phys_to_virt(rfdc_ext_addr, g_mem_pid);
+
+	for (i = 0; i < enter_number; i++)
+		/* Intentionally doesn't relinquish parent automatically */
+		osm_scope_enter(OSM_SCOPE_ENTER_CHILD_TO_EXCLUSIVE, flags);
+
+	/* first delete the key from IPR_SW_TABLE because of OSM */
+	if (rfdc.status & IPV6_FRAME)
+		sw_table_key_delete(instance_params.table_id_ipv6,
+				    (uint32_t)rfdc.ipv4_key[0],
+				    (uint8_t)rfdc.ipv4_key[1], TRUE);
+	else
+		sw_table_key_delete(instance_params.table_id_ipv4,
+				    (uint32_t)rfdc.ipv4_key[0],
+				    (uint8_t)rfdc.ipv4_key[1], TRUE);
+
+	/* get exclusive access to the RDFC */
+	osm_scope_transition_to_exclusive_with_new_scope_id(flags);
+#else
 	for (i=0; i < enter_number; i++) {
 		/* Intentionally doesn't relinquish parent automatically */ 
 		osm_scope_enter(OSM_SCOPE_ENTER_CHILD_TO_EXCLUSIVE,
@@ -1836,6 +2302,7 @@ void ipr_time_out(uint64_t rfdc_ext_addr, uint16_t opaque_not_used)
 	
 	osm_scope_enter(OSM_SCOPE_ENTER_CHILD_TO_EXCLUSIVE,
 			(uint32_t)rfdc_ext_addr);
+#endif	/* USE_IPR_SW_TABLE */
 
 	/* confirm timer expiration */
 	tman_timer_completion_confirmation(rfdc.timer_handle);
@@ -1846,7 +2313,8 @@ void ipr_time_out(uint64_t rfdc_ext_addr, uint16_t opaque_not_used)
 		  RFDC_SIZE);
 
 	rfdc_status = rfdc.status;
-	
+
+#ifndef USE_IPR_SW_TABLE
 	if (rfdc_status & IPV6_FRAME) {
 		ipv6_rule_delete(rfdc_ext_addr,&instance_params);
 	} else {
@@ -1858,6 +2326,7 @@ void ipr_time_out(uint64_t rfdc_ext_addr, uint16_t opaque_not_used)
 				  NULL);
 		/* DEBUG: check EIO */
 	}
+#endif	/* USE_IPR_SW_TABLE */
 
 	if (rfdc_status & IPV6_FRAME) {
 		/* Decrement no of IPv6 open frames in instance data structure*/

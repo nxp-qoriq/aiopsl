@@ -164,6 +164,16 @@
 #define CHECKSUM_CODE_PLACEMENT   __COLD_CODE
 #endif
 
+/*
+ * IP Reassembly module
+ * IPR_SW_TABLE
+ *
+ * #define USE_IPR_SW_TABLE
+ *
+ * It enables IPR to use software hash tables instead of CTLU ones.
+ * Disabled by default.
+ */
+
 
 /*
  * sNIC module

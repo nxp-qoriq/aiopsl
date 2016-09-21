@@ -75,7 +75,10 @@ uint64_t ext_prpid_pool_address;
 uint64_t ext_keyid_pool_address;
 uint16_t bpid_prpid;
 uint16_t bpid_keyid;
+
+#ifndef USE_IPR_SW_TABLE
 extern struct  ipr_global_parameters ipr_global_parameters1;
+#endif	/* USE_IPR_SW_TABLE */
 
 /* Time module globals */
 extern struct aiop_cmgw_regs *time_cmgw_regs;
@@ -311,11 +314,14 @@ void aiop_sl_free(void)
 	/*need to un-reserve bpid for kegen-id and prpid */
 	slab_find_and_unreserve_bpid(1, bpid_prpid);
 	slab_find_and_unreserve_bpid(1, bpid_keyid);
+
+#ifndef USE_IPR_SW_TABLE
 	/*need to undo to ipr_init */
 	keygen_kcr_delete(KEYGEN_ACCEL_ID_CTLU,
 			ipr_global_parameters1.ipr_key_id_ipv4);
 	keygen_kcr_delete(KEYGEN_ACCEL_ID_CTLU,
 			ipr_global_parameters1.ipr_key_id_ipv6);
+#endif	/* USE_IPR_SW_TABLE */
 
 #ifdef ENABLE_SNIC
 	aiop_snic_free();
