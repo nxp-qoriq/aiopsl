@@ -57,7 +57,7 @@ __COLD_CODE int bman_fill_bpid(uint32_t num_buffs,
 	case MEM_PART_DP_DDR:
 	case MEM_PART_SYSTEM_DDR:
 	case MEM_PART_PEB:
-		err = fsl_get_mem((uint32_t)buff_size * num_buffs +
+		err = fsl_get_mem((uint64_t)buff_size * num_buffs +
 		                     alignment_extension,
 		                     mem_partition_id,
 		                     alignment,
