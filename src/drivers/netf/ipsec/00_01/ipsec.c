@@ -81,7 +81,7 @@ int ipsec_drv_init(void)
 	struct dprc_obj_desc dev_desc;
 	int i, err;
 	int dev_count;
-	int dpbp_id;
+	int dpbp_id = -1;
 	uint16_t dpbp = 0;
 	int num_bpids = 0;
 	uint8_t bkp_pool_disable = g_app_params.app_config_flags &
@@ -121,6 +121,11 @@ int ipsec_drv_init(void)
 			dpbp_id = dev_desc.id;
 			break;
 		}
+	}
+
+	if (dpbp_id < 0) {
+		pr_err("Failed to reserve a BP for IPSec\n");
+		return -ENOENT;
 	}
 
 	err = dpbp_open(&dprc->io, 0, dpbp_id, &dpbp);
