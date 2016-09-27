@@ -653,21 +653,21 @@ int fdma_concatenate_frames(
 	arg2 = FDMA_CONCAT_CMD_ARG2(params->frame2, params->frame1);
 	arg3 = 0;
 	arg4 = 0;
-	if (params->flags | FDMA_CONCAT_FS1_BIT)
+	if (params->flags & FDMA_CONCAT_FS1_BIT)
 	{
-		arg3 = (uint32_t)(params->icid1 | 
-		    (uint16_t)((params->amq_flags & FDMA_CONCAT_AMQ_BDI1) ? 
+		arg3 = (uint32_t)(params->icid1 |
+		    (uint16_t)((params->amq_flags & FDMA_CONCAT_AMQ_BDI1) ?
 				    FDMA_CONCAT_BDI_BIT : 0));
 		arg4 = (uint16_t)
-			(params->amq_flags & FDMA_CONCAT_FS1_PL_VA_MASK);	
+			(params->amq_flags & FDMA_CONCAT_FS1_PL_VA_MASK);
 	}
-	if (params->flags | FDMA_CONCAT_FS2_BIT)
+	if (params->flags & FDMA_CONCAT_FS2_BIT)
 	{
-		arg3 |= ((params->icid2 | 
-		    (uint16_t)((params->amq_flags & FDMA_CONCAT_AMQ_BDI2) ? 
+		arg3 |= ((params->icid2 |
+		    (uint16_t)((params->amq_flags & FDMA_CONCAT_AMQ_BDI2) ?
 				    FDMA_CONCAT_BDI_BIT : 0)) << 16);
 		arg4 |= (uint16_t)
-			(params->amq_flags & FDMA_CONCAT_FS2_PL_VA_MASK);	
+			(params->amq_flags & FDMA_CONCAT_FS2_PL_VA_MASK);
 	}
 
 	/* store command parameters */
