@@ -361,6 +361,7 @@ void table_exception_handler(char *file_path,
 		break;
 	case TABLE_WORKAROUND_TKT226361_FUNC_ID:
 		func_name = "table_workaround_tkt226361";
+		break;
 	default:
 		/* create own exception */
 		exception_handler(__FILE__,
