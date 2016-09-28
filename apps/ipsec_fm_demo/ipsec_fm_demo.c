@@ -216,7 +216,7 @@ ipsec_handle_t	ipsec_sas_desc_inbound[TEST_NUM_OF_SA];
 
 /* Set ENCRYPT_ONLY to 1 in order the application performs only packet
  * encryption */
-#define ENCRYPT_ONLY		0
+#define ENCRYPT_ONLY		1
 
 /* Set DECRYPT_ONLY to 1 in order the application performs only packet
  * decryption */
@@ -225,7 +225,7 @@ ipsec_handle_t	ipsec_sas_desc_inbound[TEST_NUM_OF_SA];
 /* If none of above macros is defined as 1 application performs packet
  * encryption followed by decryption */
 
-#define BIDIRECTIONAL		1
+#define BIDIRECTIONAL		0
 /* Set BIDIRECTIONAL to 1 in order the application performs encryption on the
  * clear text packets received on a NI and decryption on the encrypted packets
  * received on another NI. First NI is configured for encryption the second
@@ -244,7 +244,7 @@ ipsec_handle_t	ipsec_sas_desc_inbound[TEST_NUM_OF_SA];
 #endif
 
 /* Set IPSEC_DEBUG_PRINT to 1 in order have printed messages */
-#define IPSEC_DEBUG_PRINT	1
+#define IPSEC_DEBUG_PRINT	0
 
 /* Periodically statistics print */
 #define IPSEC_STATS_PRINT	0
@@ -1100,8 +1100,8 @@ static int ipsec_app_init(uint16_t ni_id)
 		params.direction = IPSEC_DIRECTION_OUTBOUND;
 		/* Miscellaneous control flags */
 		params.flags = tunnel_transport_mode |
-				IPSEC_FLG_LIFETIME_KB_CNTR_EN |
-				IPSEC_FLG_LIFETIME_PKT_CNTR_EN |
+				lifetime_kb_cntr_en |
+				lifetime_pkt_cntr_en |
 				set_dscp | reuse_buffer_mode;
 		if (outer_header_ip_version == 18)
 			params.flags |= IPSEC_ENC_OPTS_NAT_EN;
@@ -1178,8 +1178,8 @@ static int ipsec_app_init(uint16_t ni_id)
 		params.direction = IPSEC_DIRECTION_INBOUND;
 		/* Flags */
 		params.flags = tunnel_transport_mode |
-				IPSEC_FLG_LIFETIME_KB_CNTR_EN |
-				IPSEC_FLG_LIFETIME_PKT_CNTR_EN |
+				lifetime_kb_cntr_en |
+				lifetime_pkt_cntr_en |
 				reuse_buffer_mode;
 		if (decap_soft_seconds | decap_hard_seconds) {
 			params.flags |= IPSEC_FLG_LIFETIME_SEC_CNTR_EN;
