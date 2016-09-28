@@ -391,10 +391,7 @@ int mem_mng_register_phys_addr_alloc_partition(void*   h_mem_mng,
     p_new_partition->lock = (uint8_t *)fsl_malloc(sizeof(uint8_t));
     */
     p_new_partition->lock = &g_phys_mem_part_spinlock[partition_id];
-    *(p_new_partition->lock) = 0;
-
-    if (!p_new_partition->lock)
-    {
+    if (!p_new_partition->lock) {
          /*p_mem_mng->f_free(p_new_partition); */
         p_new_partition->was_initialized = 0;
         pr_err("Mem. manager resource is unavailable: spinlock object for "
@@ -402,6 +399,7 @@ int mem_mng_register_phys_addr_alloc_partition(void*   h_mem_mng,
         return -EAGAIN;
     }
 
+    *(p_new_partition->lock) = 0;
 
     /* Initialize the memory manager handle for the new partition */
    if (0 != slob_init(&(p_new_partition->h_mem_manager), base_paddress, size,
