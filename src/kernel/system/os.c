@@ -192,7 +192,7 @@ __COLD_CODE static int vsnprintf_lite(char *buf, size_t size, const char *fmt, v
 		case 's':
 			s = va_arg(args,char*);
 			if(!s)
-				break;
+				continue;
 			while(*s != '\0' && size) {
 				*str++ = *s++;
 				size--;
