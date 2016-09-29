@@ -254,6 +254,7 @@ GSO_CODE_PLACEMENT int32_t tcp_gso_split_segment(struct tcp_gso_context *gso_ctx
 				outer_ipv4_ptr->total_length = ip_header_length;
 			} else {
 				/* IPv6 - update IP length*/
+				gso_ctx->ipv4 = 0;
 				outer_ipv6_ptr = (struct ipv6hdr *)(
 					PARSER_GET_OUTER_IP_POINTER_DEFAULT());
 				outer_ipv6_ptr->payload_length =
