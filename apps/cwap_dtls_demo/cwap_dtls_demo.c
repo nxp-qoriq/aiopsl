@@ -65,7 +65,6 @@ struct storage_profile storage_profile[SP_NUM_OF_STORAGE_PROFILES];
 /* Global CAPWAP/DTLS variables in Shared RAM */
 cwap_dtls_instance_handle_t cwap_dtls_instance_handle;
 cwap_dtls_sa_handle_t sa_outbound, sa_inbound;
-uint32_t frame_number = 0;
 uint64_t print_lock;
 
 __HOT_CODE ENTRY_POINT static void app_process_packet(void)
@@ -88,16 +87,10 @@ __HOT_CODE ENTRY_POINT static void app_process_packet(void)
 	seg_len = PRC_GET_SEGMENT_LENGTH();
 	original_seg_addr = PRC_GET_SEGMENT_ADDRESS();
 
-	/* CAPWAP/DTLS initialization happens with the first frame received */
-	if (frame_number == 0)
-		/* Call with NI ID = 0 */
-		cwap_dtls_app_init(0);
-
 	ws_desc_handle_outbound = sa_outbound;
 	ws_desc_handle_inbound = sa_inbound;
 
-	fsl_print("CAPWAP/DTLS Demo: Core %d Received Frame number %d\n",
-		  core_get_id(), ++frame_number);
+	fsl_print("CAPWAP/DTLS Demo: Core %d Received Frame\n", core_get_id());
 
 	handle_high = (uint32_t)((ws_desc_handle_outbound &
 				  0xffffffff00000000) >> 32);
@@ -188,8 +181,8 @@ __HOT_CODE ENTRY_POINT static void app_process_packet(void)
 		cwap_dtls_print_stats(ws_desc_handle_outbound, 0);
 		cwap_dtls_print_stats(ws_desc_handle_inbound, 1);
 
-		fsl_print("CAPWAP/DTLS Demo: Core %d Sending Frame number %d\n",
-			  core_get_id(), frame_number);
+		fsl_print("CAPWAP/DTLS Demo: Core %d Sending Frame\n",
+			  core_get_id());
 		err = dpni_drv_send(task_get_receive_niid(), DPNI_DRV_SEND_MODE_NONE);
 		if (err) {
 			fsl_print("ERROR = %d: dpni_drv_send(ni_id)\n", err);
@@ -314,7 +307,15 @@ static int app_dpni_event_added_cb(uint8_t generator_id, uint8_t event_id,
 		return err;
 	}
 
-	return 0;
+	/* CAPWAP/DTLS initialization occurs once for the first NI */
+	if (!ni) {
+		/* Call with NI ID = 0 */
+		err = cwap_dtls_app_init(0);
+		if (err)
+			fsl_print("CAPWAP/DTLS Demo: initialization failed\n");
+	}
+
+	return err;
 }
 
 int app_init(void)
@@ -343,7 +344,7 @@ int app_init(void)
 		return err;
 	}
 
-	fsl_print("CAPWAP/DTLS Demo: initialization will occur when the first frame is received\n");
+	fsl_print("CAPWAP/DTLS Demo: to start inject packets\n");
 	fsl_print("CAPWAP/DTLS Demo: sample pcap files can be found in: \"aiopsl\\misc\\setup\\traffic_files\\capwap*\"\n");
 
 	return 0;
