@@ -40,6 +40,7 @@
 #include "system.h"
 #include "fsl_icontext.h"
 #include "fsl_platform.h"
+#include "sec.h"
 
 /* Extern variable used by IPSec */
 extern __PROFILE_SRAM struct storage_profile
@@ -136,13 +137,9 @@ enum rta_param_type {
 
 #define IPSEC_IPV4_CHECKSUM_OFFSET 10
 
-/* PS Pointer Size. This bit determines the size of address pointers */
-#define IPSEC_SEC_POINTER_SIZE 1 /* 1 - SEC Pointers require two 32-bit words */
-
 #define IPSEC_PROFILE_SRAM_ADDR 0x00030000 /* hard wired address */
 #define IPSEC_STORAGE_PROFILE_SIZE_SHIFT 5 /* 32 bytes */
 #define IPSEC_INTERNAL_PARMS_SIZE 128 /* 128 bytes */
-#define IPSEC_FLOW_CONTEXT_SIZE 64 /* 64 bytes */
 #define IPSEC_KEY_SEGMENT_SIZE 128 /* Key Copy segment, 128 bytes */
 #define IPSEC_CIPHER_KEY_SIZE 32 /* Cipher Key Copy, 32 bytes */
 #define IPSEC_DEBUG_SEGMENT_SIZE 32 /* Debug info, 32 bytes */
@@ -252,7 +249,7 @@ enum rta_param_type {
  * ------------------------------------------------------
  * | sec_flow_context                 | 64 bytes        | + 128
  * -----------------------------------------------------
- * | sec_shared_descriptor            | Up to 256 bytes | + 192
+ * | SEC shared descriptor            | Up to 256 bytes | + 192
  * ------------------------------------------------------
  * | Replacement Job Descriptor (TBD) | Up to 64 (TBD)  | + 448
  * ------------------------------------------------------
@@ -266,7 +263,7 @@ enum rta_param_type {
  * ipsec_sa_params - Parameters used by the IPsec functional module	128 bytes
  * sec_flow_context	- SEC Flow Context. 64 bytes
  * 			Should be 64-byte aligned for optimal performance.
- * sec_shared_descriptor - Shared descriptor. Up to 256 bytes
+ * SEC shared descriptor - Shared descriptor. Up to 256 bytes
  * Replacement Job Descriptor (RJD) for Peer Gateway Adaptation
  * (Outer IP change)	TBD
  * Key Copy area, for CAAM DKP and upon HF-NIC requirement
@@ -312,9 +309,9 @@ enum rta_param_type {
 											IPSEC_INTERNAL_PARMS_SIZE
 
 /* Key Offset from Shared Descriptor start */
-#define IPSEC_KEY_OFFSET_FROM_SD IPSEC_KEY_SEGMENT_OFFSET -\
-											IPSEC_INTERNAL_PARMS_SIZE -\
-											IPSEC_FLOW_CONTEXT_SIZE
+#define IPSEC_KEY_OFFSET_FROM_SD (IPSEC_KEY_SEGMENT_OFFSET - \
+				  IPSEC_INTERNAL_PARMS_SIZE - \
+				  SEC_FLOW_CONTEXT_SIZE)
 
 /* Obsolete, ASA preservation not supported */
 /* #define IPSEC_MAX_ASA_SIZE 960 */ /* Maximum ASA size (960 bytes) */
@@ -341,7 +338,7 @@ enum rta_param_type {
 
 /* Shared Descriptor Address */
 #define IPSEC_SD_ADDR(ADDRESS) \
-	((ADDRESS) + IPSEC_INTERNAL_PARMS_SIZE + IPSEC_FLOW_CONTEXT_SIZE)
+	((ADDRESS) + IPSEC_INTERNAL_PARMS_SIZE + SEC_FLOW_CONTEXT_SIZE)
 
 /* Key Copy Segment */
 #define IPSEC_KEY_SEGMENT_ADDR(ADDRESS) ((ADDRESS) + IPSEC_KEY_SEGMENT_OFFSET)
@@ -474,56 +471,6 @@ Big Endian
 /* DFV -- DF bit Value */
 #define IPSEC_HMO_DECAP_DFV	0x04
 
-/**************************************************************************//**
-@Description	SEC Returned Status
-
-		Use for ipsec_decap_params.hmo
-*//***************************************************************************/
-/* SEC Job termination status/error word
-* bits 31-28      bits 3-0 / bits 7-0
-* (Source of      (ERRID)  / (Error Code)
-*  the status
-*  code)
-* -----------     ---------
-* 2h (CCB)	    Ah - ICV check failed
-* -----------     ---------
-* 4h (DECO)		83h - Anti-replay LATE error
-*				84h - Anti-replay REPLAY error
-*				85h - Sequence number overflow
-*/
-/** No Error */
-#define	SEC_NO_ERROR 0x00000000
-
-#define	SEC_COMPRESSED_ERROR 0x83000000
-#define	SEC_COMPRESSED_ERROR_MASK 0xFF000000
-
-/** ICV comparison failed */
-#define	SEC_ICV_COMPARE_FAIL 0x2000000A
-#define	SEC_ICV_COMPARE_FAIL_COMPRESSED 0x8320000A
-
-/** Anti Replay Check: Late packet */
-#define	SEC_AR_LATE_PACKET 0x40000083
-#define	SEC_AR_LATE_PACKET_COMPRESSED 0x83400083
-
-/** Anti Replay Check: Replay packet */
-#define	SEC_AR_REPLAY_PACKET 0x40000084
-#define	SEC_AR_REPLAY_PACKET_COMPRESSED 0x83400084
-
-/** Sequence Number overflow */
-#define	SEC_SEQ_NUM_OVERFLOW 0x40000085
-#define	SEC_SEQ_NUM_OVERFLOW_COMPRESSED 0x83400085
-
-/** Buffer Pool depletion */
-#define	SEC_TABLE_BP0_DEPLETION		0x831000C0
-#define	SEC_DATA_BP0_DEPLETION_NO_OF	0x831000C2
-#define	SEC_DATA_BP0_DEPLETION_PART_OF	0x831000C4
-
-#define	SEC_CCB_ERROR_MASK 0xF000000F
-#define	SEC_DECO_ERROR_MASK 0xF00000FF
-
-#define	SEC_CCB_ERROR_MASK_COMPRESSED  0xFFF0000F
-#define	SEC_DECO_ERROR_MASK_COMPRESSED 0xFFF000FF
-
 /* Debug error codes */
 #define IPSEC_INT_ERR_PAD_TOO_LONG 0x00000001
 		/* Crypto padding is longer than presentation */
@@ -622,7 +569,7 @@ struct ipsec_instance_params {
 
 /* Shared descriptor address */
 #define IPSEC_SHARED_DESC_ADDR(ADDRESS) (ADDRESS + \
-	IPSEC_INTERNAL_PARMS_SIZE + IPSEC_FLOW_CONTEXT_SIZE)
+	IPSEC_INTERNAL_PARMS_SIZE + SEC_FLOW_CONTEXT_SIZE)
 
 /* PDB address */
 #define IPSEC_PDB_ADDR(ADDRESS) (IPSEC_SHARED_DESC_ADDR(ADDRESS) + 4)
@@ -724,20 +671,6 @@ struct ipsec_sa_params {
 		struct ipsec_sa_params_part2 sap2;
 };
 
-/* SEC Flow Context Descriptor */
-struct sec_flow_context {
-	/* TODO: add actual fields.
-	 * Note: little endian */
-	uint32_t flow_context_word[16];
-};
-
-/* SEC Shared Descriptor Place Holder*/
-struct sec_shared_descriptor {
-	/* TODO: add actual fields.
-	 * Note: little endian */
-	uint8_t sd[256];
-};
-
 /* DPOVRD for Tunnel Encap mode */
 //struct dpovrd_tunnel_encap {
 //	uint8_t reserved; /* 7-0 Reserved */
@@ -787,63 +720,6 @@ struct dpovrd_general {
 		struct dpovrd_transport_decap transport_decap;
 	};
 };
-
-/* SEC Flow Context Descriptor */
-struct ipsec_flow_context {
-	/* word 0 */
-	uint16_t word0_sdid; /* 11-0  SDID */
-	uint16_t word0_res; /* 31-12 reserved */
-
-	/* word 1 */
-	uint8_t word1_sdl; 	/* 5-0 SDL 	*/
-						/* 7-6 reserved */
-
-	uint8_t word1_bits_15_8; 	/* 11-8 CRID */
-								/* 14-12 reserved */
-								/* 15 CRJD */
-
-	uint8_t word1_bits23_16; /* 16	EWS */
-								/* 17 DAC */
-								/* 18,19,20 ? */
-								/* 23-21 reserved */
-
-	uint8_t word1_bits31_24; /* 24 RSC */
-							/* 25 RBMT */
-	 	 	 	 	 	 	 /* 31-26 reserved */
-
-	/* word 2  RFLC[31-0] */
-	uint32_t word2_rflc_31_0;
-
-	/* word 3  RFLC[63-32] */
-	uint32_t word3_rflc_63_32;
-
-	/* word 4 */
-	uint16_t word4_iicid; /* 15-0  IICID */
-	uint16_t word4_oicid; /* 31-16 OICID */
-
-	/* word 5 */
-	uint8_t word5_7_0; /* 23-0 OFQID */
-	uint8_t word5_15_8;
-	uint8_t word5_23_16;
-
-	uint8_t word5_31_24;
-						/* 24 OSC */
-						/* 25 OBMT */
-						/* 29-26 reserved 	*/
-						/* 31-30 ICR */
-
-	//uint32_t word5_31_0;
-
-	/* word 6 */
-	uint32_t word6_oflc_31_0;
-
-	/* word 7 */
-	uint32_t word7_oflc_63_32;
-
-	/* words 8-15 are a copy of the standard storage profile */
-	uint64_t storage_profile[4];
-};
-
 
 /** @} */ /* end of FSL_IPSEC_STRUCTS */
 

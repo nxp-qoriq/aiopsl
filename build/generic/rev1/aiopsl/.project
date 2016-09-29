@@ -580,6 +580,11 @@
 			<locationURI>PARENT-4-PROJECT_LOC/src/drivers/sec/sec.c</locationURI>
 		</link>
 		<link>
+			<name>aiop_sl/drivers/sec/sec.h</name>
+			<type>1</type>
+			<locationURI>PARENT-4-PROJECT_LOC/src/drivers/sec/sec.h</locationURI>
+		</link>
+		<link>
 			<name>aiop_sl/drivers/serial/duart</name>
 			<type>2</type>
 			<locationURI>virtual:/virtual</locationURI>

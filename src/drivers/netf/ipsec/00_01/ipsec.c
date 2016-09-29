@@ -56,6 +56,7 @@
 #include "fsl_ipsec.h"
 #include "ipsec.h"
 
+#include "sec.h"
 #include "rta.h"
 #include "desc/ipsec.h"
 
@@ -738,7 +739,7 @@ int ipsec_generate_encap_sd(
 		/* Tunnel mode, SEC "new thread" */	
 		*sd_size = cnstr_shdsc_ipsec_new_encap(
 			(uint32_t *)(ws_shared_desc), /* uint32_t *descbuf */
-			IPSEC_SEC_POINTER_SIZE, /* unsigned short ps */
+			SEC_POINTER_SIZE, /* unsigned short ps */
 			TRUE, /* swap */
 			share,
 			&pdb, /* PDB */
@@ -750,7 +751,7 @@ int ipsec_generate_encap_sd(
 		/* Transport mode, SEC legacy new thread */
 		*sd_size = cnstr_shdsc_ipsec_encap(
 			(uint32_t *)(ws_shared_desc), /* uint32_t *descbuf */
-			IPSEC_SEC_POINTER_SIZE, /* unsigned short ps */
+			SEC_POINTER_SIZE, /* unsigned short ps */
 			TRUE, /* bool swap */
 			share,
 			&pdb, /* PDB */
@@ -1022,7 +1023,7 @@ int ipsec_generate_decap_sd(
 		/* Tunnel mode, SEC "new thread" */	
 		*sd_size = cnstr_shdsc_ipsec_new_decap(
 			(uint32_t *)(ws_shared_desc), /* uint32_t *descbuf */
-			IPSEC_SEC_POINTER_SIZE, /* unsigned short ps */
+			SEC_POINTER_SIZE, /* unsigned short ps */
 			TRUE, /* swap */
 			share,
 			&pdb, /* struct ipsec_encap_pdb *pdb */
@@ -1033,7 +1034,7 @@ int ipsec_generate_decap_sd(
 		/* Transport mode, SEC legacy new thread */
 		*sd_size = cnstr_shdsc_ipsec_decap(
 			(uint32_t *)(ws_shared_desc), /* uint32_t *descbuf */
-			IPSEC_SEC_POINTER_SIZE, /* unsigned short ps */
+			SEC_POINTER_SIZE, /* unsigned short ps */
 			TRUE, /* bool swap */
 			share,
 			&pdb, /* struct ipsec_encap_pdb *pdb */
@@ -1064,7 +1065,7 @@ void ipsec_generate_flc(
 		int sd_size) /* Shared descriptor Length  in words*/
 {
 	
-	struct ipsec_flow_context flow_context;
+	struct sec_flow_context flow_context;
 	struct storage_profile *sp_addr = &storage_profile[0];
 	uint8_t *sp_byte;
 	uint32_t sp_controls;
@@ -1075,7 +1076,7 @@ void ipsec_generate_flc(
 	sp_byte = (uint8_t *)sp_addr;
 	
 	/* Clear the Flow Context area */
-	cdma_ws_memory_init(&flow_context,sizeof(struct ipsec_flow_context),0);
+	cdma_ws_memory_init(&flow_context, sizeof(struct sec_flow_context), 0);
 
 	/* Word 0 */
 
@@ -1246,7 +1247,7 @@ void ipsec_generate_flc(
 	cdma_write(
 			flc_address, /* ext_address */
 			&flow_context, /* ws_src */
-			IPSEC_FLOW_CONTEXT_SIZE); /* uint16_t size */
+			SEC_FLOW_CONTEXT_SIZE); /* uint16_t size */
 	
 } /* End of ipsec_generate_flc */
 
@@ -1538,7 +1539,7 @@ void ipsec_init_debug_info(
  * ------------------------------------------------------
  * | sec_flow_context                 | 64 bytes        | + 128
  * -----------------------------------------------------
- * | sec_shared_descriptor            | Up to 256 bytes | + 192
+ * | SEC shared descriptor            | Up to 256 bytes | + 192
  * ------------------------------------------------------
  * | Replacement Job Descriptor (TBD) | Up to 64 (TBD)  | + 448
  * ------------------------------------------------------
@@ -1552,7 +1553,7 @@ void ipsec_init_debug_info(
  * ipsec_sa_params - Parameters used by the IPsec functional module	128 bytes
  * sec_flow_context	- SEC Flow Context. 64 bytes
  * 			Should be 64-byte aligned for optimal performance.	
- * sec_shared_descriptor - Shared descriptor. Up to 256 bytes
+ * SEC shared descriptor - Shared descriptor. Up to 256 bytes
  * Replacement Job Descriptor (RJD) for Peer Gateway Adaptation 
  * (Outer IP change)	TBD 
 */
@@ -1735,7 +1736,7 @@ static inline void buffer_pool_depleted(uint32_t sec_stat, uint32_t *op_stat,
 	 * the corresponding error codes and theirs processing */
 
 	/* No buffer acquired, because there are no buffers in the pool */
-	if (sec_stat == SEC_TABLE_BP0_DEPLETION)
+	if (sec_stat == SEC_TABLE_BP0_DEPLETION_COMPRESSED)
 		return;
 
 	paddr = LDPAA_FD_GET_ADDR(HWC_FD_ADDRESS);
@@ -2175,12 +2176,12 @@ skip_l2_remove:
 			    SEC_SEQ_NUM_OVERFLOW_COMPRESSED) {
 				/* Sequence Number overflow */
 				*enc_status |= IPSEC_SEQ_NUM_OVERFLOW;
-			} else if (sec_status >= SEC_TABLE_BP0_DEPLETION &&
+			} else if (sec_status >=
+				   SEC_TABLE_BP0_DEPLETION_COMPRESSED &&
 				   sec_status <=
-				   SEC_DATA_BP0_DEPLETION_PART_OF) {
-					buffer_pool_depleted(sec_status,
-							     enc_status,
-							     desc_addr);
+				   SEC_DATA_BP0_DEPLETION_PART_OF_COMPRESSED) {
+				buffer_pool_depleted(sec_status, enc_status,
+						     desc_addr);
 				return IPSEC_ERROR; /* Exit */
 			} else {
 				*enc_status |= IPSEC_GEN_ENCR_ERR;
@@ -2917,9 +2918,9 @@ IPSEC_CODE_PLACEMENT int ipsec_frame_decrypt(
 				/*Anti Replay Check: Replay packet */
 				*dec_status |= IPSEC_AR_REPLAY_PACKET;
 				break;
-			case SEC_TABLE_BP0_DEPLETION:
-			case SEC_DATA_BP0_DEPLETION_NO_OF:
-			case SEC_DATA_BP0_DEPLETION_PART_OF:
+			case SEC_TABLE_BP0_DEPLETION_COMPRESSED:
+			case SEC_DATA_BP0_DEPLETION_NO_OF_COMPRESSED:
+			case SEC_DATA_BP0_DEPLETION_PART_OF_COMPRESSED:
 				buffer_pool_depleted(sec_status, dec_status,
 						     desc_addr);
 				return IPSEC_ERROR; /* Exit */

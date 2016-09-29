@@ -38,6 +38,7 @@
 #include "fsl_gen.h"
 #include "fsl_net.h"
 #include "fsl_cwap_dtls.h"
+#include "sec.h"
 
 /**************************************************************************//**
  @Group		NETF NETF (Network Libraries)
@@ -142,49 +143,6 @@ struct cwap_dtls_debug_info {
 	int status;
 };
 
-/**************************************************************************//**
- @Description	SEC Flow Context (FLC) Descriptor
-*//***************************************************************************/
-struct sec_flow_context {
-	/** Word0[11-0]  SDID */
-	uint16_t word0_sdid;
-	/** Word0[31-12] reserved */
-	uint16_t word0_res;
-	/** Word1[5-0] SDL; Word1[7-6] reserved */
-	uint8_t word1_sdl;
-	/** Word1[11-8] CRID; Word1[14-12] reserved; Word1[15] CRJD */
-	uint8_t word1_bits_15_8;
-	/**
-	 * Word1[16] EWS; Word1[17] DAC; Word1[18-20] ?; Word1[23-21] reserved
-	 */
-	uint8_t word1_bits23_16;
-	/** Word1[24] RSC; Word1[25] RBMT; Word1[31-26] reserved */
-	uint8_t word1_bits31_24;
-	/** Word2 RFLC[31-0] */
-	uint32_t word2_rflc_31_0;
-	/** Word3 RFLC[63-32] */
-	uint32_t word3_rflc_63_32;
-	/** Word4[15-0] ICID */
-	uint16_t word4_iicid;
-	/** Word4[31-16] OICID */
-	uint16_t word4_oicid;
-	/** Word5[23-0] OFQID */
-	uint8_t word5_7_0;
-	uint8_t word5_15_8;
-	uint8_t word5_23_16;
-	/**
-	 * Word5[24] OSC; Word5[25] OBMT; Word5[29-26] reserved;
-	 * Word5[31-30] ICR
-	 */
-	uint8_t word5_31_24;
-	/** Word6 OFLC[31-0] */
-	uint32_t word6_oflc_31_0;
-	/** Word7 OFLC[63-32] */
-	uint32_t word7_oflc_63_32;
-	/** Words 8-15 are a copy of the standard storage profile */
-	uint64_t storage_profile[4];
-};
-
 /** @} */ /* end of FSL_CWAP_DTLS_STRUCTS_INT */
 
 /**************************************************************************//**
@@ -203,14 +161,6 @@ struct sec_flow_context {
 #define CWAP_DTLS_FLG_DIR_OUTBOUND	0x80000000
 /* flags[30] : DTLS cipher mode - 1 = GCM, 0 = CBC */
 #define CWAP_DTLS_FLG_CIPHER_GCM	0x40000000
-
-/*
- * PS (Pointer Size)
- * This bit determines the size of SEC descriptor address pointers
- * 0 - SEC descriptor pointers require one 32-bit word
- * 1 - SEC descriptor pointers require two 32-bit words
- */
-#define CWAP_DTLS_SEC_POINTER_SIZE	1
 
 /* Storage profile ASAR field mask */
 #define CWAP_DTLS_SP_ASAR_MASK		0x000F0000
@@ -248,7 +198,6 @@ struct sec_flow_context {
  */
 
 #define CWAP_DTLS_INTERNAL_PARAMS_SIZE	128
-#define SEC_FLOW_CONTEXT_SIZE		64
 #define CWAP_DTLS_AUTH_KEY_SIZE		128
 #define CWAP_DTLS_CIPHER_KEY_SIZE	32
 #define CWAP_DTLS_DEBUG_INFO_SIZE	32
@@ -321,45 +270,6 @@ struct sec_flow_context {
 /* AAP Command Fields */
 #define CWAP_DTLS_AAP_USE_FLC_SP	0x10000000
 #define CWAP_DTLS_AAP_OS_EX		0x00800000
-
-/*
- * SEC Job termination status/error word
- * bits 31-28      bits 3-0 / bits 7-0
- * (Source of      (ERRID)  / (Error Code)
- *  the status
- *  code)
- * -----------     ---------
- * 2h (CCB)	    Ah - ICV check failed
- * -----------     ---------
- * 4h (DECO)		83h - Anti-replay LATE error
- *			84h - Anti-replay REPLAY error
- *			85h - Sequence number overflow
- */
-
-#define	SEC_COMPRESSED_ERROR		0x83000000
-#define	SEC_COMPRESSED_ERROR_MASK	0xFF000000
-
-/* ICV comparison failed */
-#define	SEC_ICV_COMPARE_FAIL		0x2000000A
-#define	SEC_ICV_COMPARE_FAIL_COMPRESSED	0x8320000A
-
-/* Anti Replay Check: Late packet */
-#define	SEC_AR_LATE_PACKET		0x40000083
-#define	SEC_AR_LATE_PACKET_COMPRESSED	0x83400083
-
-/* Anti Replay Check: Replay packet */
-#define	SEC_AR_REPLAY_PACKET		0x40000084
-#define	SEC_AR_REPLAY_PACKET_COMPRESSED	0x83400084
-
-/* Sequence Number overflow */
-#define	SEC_SEQ_NUM_OVERFLOW		0x40000085
-#define	SEC_SEQ_NUM_OVERFLOW_COMPRESSED	0x83400085
-
-#define	SEC_CCB_ERROR_MASK		0xF000000F
-#define	SEC_DECO_ERROR_MASK		0xF00000FF
-
-#define	SEC_CCB_ERROR_MASK_COMPRESSED	0xFFF0000F
-#define	SEC_DECO_ERROR_MASK_COMPRESSED	0xFFF000FF
 
 /* Debug error codes */
 /* Crypto padding is longer than presentation */

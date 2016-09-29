@@ -45,6 +45,7 @@
 #else
 #include "fsl_sl_slab.h"
 #endif /* AIOP_VERIF */
+#include "sec.h"
 #include "rta.h"
 #include "desc/tls.h"
 #include "cwap_dtls.h"
@@ -270,9 +271,9 @@ int cwap_dtls_generate_encap_sd(struct cwap_dtls_sa_descriptor_params *params,
 							      RTA_DATA_PTR;
 
 	*sd_size = cnstr_shdsc_cwap_dtls((uint32_t *)ws_shared_desc,
-			CWAP_DTLS_SEC_POINTER_SIZE, TRUE,
-			(uint8_t *)&params->pdb, &params->protcmd,
-			&params->cipherdata, &params->authdata);
+			SEC_POINTER_SIZE, TRUE,	(uint8_t *)&params->pdb,
+			&params->protcmd, &params->cipherdata,
+			&params->authdata);
 
 	/* Write the descriptor to external memory */
 	cdma_write(sd_addr, ws_shared_desc, (uint16_t)((*sd_size) << 2));
@@ -327,9 +328,9 @@ int cwap_dtls_generate_decap_sd(struct cwap_dtls_sa_descriptor_params *params,
 							      RTA_DATA_PTR;
 
 	*sd_size = cnstr_shdsc_cwap_dtls((uint32_t *)ws_shared_desc,
-			CWAP_DTLS_SEC_POINTER_SIZE, TRUE,
-			(uint8_t *)&params->pdb, &params->protcmd,
-			&params->cipherdata, &params->authdata);
+			SEC_POINTER_SIZE, TRUE,	(uint8_t *)&params->pdb,
+			&params->protcmd, &params->cipherdata,
+			&params->authdata);
 
 	/* Write the descriptor to external memory */
 	cdma_write(sd_addr, ws_shared_desc, (uint16_t)((*sd_size) << 2));
