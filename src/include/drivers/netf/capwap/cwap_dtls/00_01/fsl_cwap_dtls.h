@@ -107,12 +107,9 @@ typedef uint64_t cwap_dtls_instance_handle_t;
 @Group		FSL_CWAP_DTLS_MACROS_RET_CODE CAPWAP DTLS return codes
 
 @Description	CAPWAP DTLS return codes.
-
+		Use SUCCESS in case of no error.
 @{
 *//***************************************************************************/
-
-/** CAPWAP DTLS operation finished successfully. */
-#define CWAP_DTLS_SUCCESS		(CWAP_DTLS_MODULE_STATUS_ID + 0x1000)
 
 /** Sequence Number overflow */
 #define CWAP_DTLS_SEQ_NUM_OVERFLOW	(CWAP_DTLS_MODULE_STATUS_ID + 0x0100)
