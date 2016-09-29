@@ -50,8 +50,104 @@
 #include "desc/tls.h"
 #include "cwap_dtls.h"
 
-extern __PROFILE_SRAM
-struct storage_profile storage_profile[SP_NUM_OF_STORAGE_PROFILES];
+#include "fsl_dprc.h"
+#include "dpni_drv.h"
+#include "fsl_platform.h"
+#include "fsl_dpbp.h"
+#include "fsl_bman.h"
+#include "fsl_icontext.h"
+
+uint16_t cwap_dtls_bpid;
+
+int cwap_dtls_drv_init(void)
+{
+	struct mc_dprc *dprc = sys_get_unique_handle(FSL_MOD_AIOP_RC);
+	struct dpbp_attr attr;
+	struct dprc_obj_desc dev_desc;
+	int i, err;
+	int dev_count;
+	int dpbp_id = -1;
+	uint16_t dpbp = 0;
+	int num_bpids = 0;
+	uint8_t bkp_pool_disable = (g_app_params.app_config_flags &
+				    DPNI_BACKUP_POOL_DISABLE) ? 1 : 0;
+
+	/* If the new buffer is not brought by user, do nothing */
+	if (!(g_app_params.app_config_flags & CWAP_DTLS_BUFFER_ALLOCATE_ENABLE))
+		return 0;
+
+	if (!dprc)
+		return -ENODEV;
+
+	err = dprc_get_obj_count(&dprc->io, 0, dprc->token, &dev_count);
+	if (err) {
+		pr_err("Failed to get device count for AIOP RC auth_id = %d.\n",
+		       dprc->token);
+		return err;
+	}
+
+	/* Skip the buffer pool used for DPNIs */
+	for (i = 0; i < dev_count; i++) {
+		dprc_get_obj(&dprc->io, 0, dprc->token, i, &dev_desc);
+		if (strcmp(dev_desc.type, "dpbp") == 0) {
+			num_bpids++;
+
+			if (num_bpids == DPNI_DRV_NUM_USED_BPIDS ||
+			    bkp_pool_disable)
+				break;
+		}
+	}
+
+	/* Reserve a buffer pool for CWAP/DTLS */
+	for (++i; i < dev_count; i++) {
+		dprc_get_obj(&dprc->io, 0, dprc->token, i, &dev_desc);
+		if (strcmp(dev_desc.type, "dpbp") == 0) {
+			pr_info("Found dpbp@%d, this is used for CWAP/DTLS\n",
+				dev_desc.id);
+			dpbp_id = dev_desc.id;
+			break;
+		}
+	}
+
+	if (dpbp_id < 0) {
+		pr_err("Failed to reserve a BP for CWAP/DTLS\n");
+		return -ENOENT;
+	}
+
+	err = dpbp_open(&dprc->io, 0, dpbp_id, &dpbp);
+	if (err) {
+		pr_err("Failed to open dpbp@%d.\n", dpbp_id);
+		return err;
+	}
+
+	err = dpbp_enable(&dprc->io, 0, dpbp);
+	if (err) {
+		pr_err("Failed to enable dpbp@%d.\n", dpbp_id);
+		return err;
+	}
+
+	err = dpbp_get_attributes(&dprc->io, 0, dpbp, &attr);
+	if (err) {
+		pr_err("Failed to get attributes from dpbp@%d.\n", dpbp_id);
+		return err;
+	}
+
+	err = bman_fill_bpid(g_app_params.dpni_num_buffs,
+			     g_app_params.dpni_buff_size,
+			     g_app_params.dpni_drv_alignment, MEM_PART_PEB,
+			     attr.bpid, 0);
+	if (err) {
+		pr_err("Failed to fill dpbp@%d (BPID=%d) with buff size %d.\n",
+		       dpbp_id, attr.bpid, g_app_params.dpni_buff_size);
+		return err;
+	}
+
+	cwap_dtls_bpid = attr.bpid;
+	pr_info("Filled dpbp@%d (BPID=%d) with buffer size %d.\n",
+		dpbp_id, attr.bpid, g_app_params.dpni_buff_size);
+
+	return 0;
+}
 
 int cwap_dtls_early_init(uint32_t total_instance_num,
 			 uint32_t total_committed_sa_num,
@@ -346,7 +442,7 @@ void cwap_dtls_generate_flc(struct cwap_dtls_sa_descriptor_params *params,
 	struct storage_profile *sp_addr = &storage_profile[0];
 	uint8_t *sp_byte;
 	uint32_t sp_controls;
-	int i;
+	uint32_t reuse_mode = params->flags & CWAP_DTLS_FLG_BUFFER_REUSE;
 
 	/* Clear the Flow Context area */
 	cdma_ws_memory_init(&flow_context, sizeof(flow_context), 0);
@@ -423,15 +519,30 @@ void cwap_dtls_generate_flc(struct cwap_dtls_sa_descriptor_params *params,
 	 *
 	 * Only The data from offset 0x08 and 0x10 is copied to SEC flow context
 	 */
-	/* Copy the standard Storage Profile to Flow Context words 8-15 */
-	/* No need to for the first 8 bytes, so start from 8 */
-	/* TODO: optionally use for copy */
-	/* fdma_copy_data(24, 0 ,sp_byte,flow_context.storage_profile + 8); */
-	for (i = 8; i < 32; i++)
-		*((uint8_t *)((uint8_t *)flow_context.storage_profile + i -
-			      8)) = *(sp_byte + i);
 
-	if (params->flags & CWAP_DTLS_FLG_BUFFER_REUSE) {
+	/*
+	 * If the reuse mode is active or new buffer mode is active but the
+	 * SEC engine uses the same buffer pool as DPNIs, copy the Storage
+	 * Profile to Flow Context
+	 */
+	if (reuse_mode || !(reuse_mode || (g_app_params.app_config_flags &
+					   CWAP_DTLS_BUFFER_ALLOCATE_ENABLE))) {
+		int i;
+
+		/*
+		 * Copy the standard Storage Profile to Flow Context
+		 * words 8-15
+		 * No need to for the first 8 bytes, so start from 8
+		 * TODO: optionally use for copy
+		 * fdma_copy_data(24, 0, sp_byte, flow_context.storage_profile +
+		 *		  8);
+		 */
+		for (i = 8; i < 32; i++)
+			*((uint8_t *)((uint8_t *)flow_context.storage_profile +
+				      i - 8)) = *(sp_byte + i);
+	}
+
+	if (reuse_mode) {
 		/*
 		 * In reuse buffer mode (BS=1) the DHR field is treated
 		 * as a signed value of a data headroom correction and defines
@@ -482,11 +593,34 @@ void cwap_dtls_generate_flc(struct cwap_dtls_sa_descriptor_params *params,
 		 */
 		STW_SWAP(sp_controls, 4,
 			 (uint32_t *)flow_context.storage_profile);
-	} else if (CWAP_DTLS_IS_OUTBOUND_DIR(params->protcmd.optype)) {
-		/* New output buffer mode; set the DL (tailroom growth) */
-		sp_controls = CWAP_DTLS_MAX_FRAME_GROWTH;
-		STW_SWAP(sp_controls, 0,
-			 (uint32_t *)flow_context.storage_profile);
+	} else {
+		/* New output buffer mode */
+		if (g_app_params.app_config_flags &
+		    CWAP_DTLS_BUFFER_ALLOCATE_ENABLE) {
+			/* Set BMT1 from aiop icontext and BVP1, BPID1, PBS1 */
+			sp_controls = (icontext_aiop.bdi_flags &
+				       FDMA_ENF_BDI_BIT) | 1;
+			sp_controls |= cwap_dtls_bpid << 16;
+			sp_controls |= (g_app_params.dpni_buff_size / 64) << 6;
+			STW_SWAP(sp_controls, 8,
+				 (uint32_t *)flow_context.storage_profile);
+
+			/* Set DHR (data head room) */
+			sp_controls = CWAP_DTLS_MAX_FRAME_GROWTH &
+				      CWAP_DTLS_SP_DHR_MASK;
+			STW_SWAP(sp_controls, 4,
+				 (uint32_t *)flow_context.storage_profile);
+		}
+
+		if (CWAP_DTLS_IS_OUTBOUND_DIR(params->protcmd.optype)) {
+			/*
+			 * New output buffer mode; set the DL
+			 * (tailroom growth)
+			 */
+			sp_controls = CWAP_DTLS_MAX_FRAME_GROWTH;
+			STW_SWAP(sp_controls, 0,
+				 (uint32_t *)flow_context.storage_profile);
+		}
 	}
 
 #if 0
@@ -543,11 +677,22 @@ void cwap_dtls_generate_sa_params(cwap_dtls_instance_handle_t instance_handle,
 		sp_addr += params->spid;
 
 		/*
-		 * 14-bit BPID is at offset 0x12 (18) of the storage profile
-		 * Read-swap and mask the 2 MSbs
+		 * If the reuse buffer mode is active or new buffer mode
+		 * is active but the SEC engine uses the same buffer as
+		 * network interfaces, take the bpid from sp.
 		 */
-		sap.bpid = (LH_SWAP(0, (uint16_t *)((uint8_t *)sp_addr + 0x12)))
-			   & 0x3FFF;
+		if (sap.sec_buffer_mode ||
+		    !(sap.sec_buffer_mode ||
+		      (g_app_params.app_config_flags &
+		       CWAP_DTLS_BUFFER_ALLOCATE_ENABLE)))
+			/*
+			 * 14-bit BPID is at offset 0x12 (18) of the storage
+			 * profile. Read-swap and mask the 2 MSbs
+			 */
+			sap.bpid = (LH_SWAP(0, (uint16_t *)((uint8_t *)sp_addr +
+							    0x12))) & 0x3FFF;
+		else
+			sap.bpid = cwap_dtls_bpid;
 #endif
 	}
 
@@ -571,6 +716,12 @@ int cwap_dtls_add_sa_descriptor(struct cwap_dtls_sa_descriptor_params *params,
 {
 	cwap_dtls_sa_handle_t desc_addr;
 	int err, sd_size;
+
+	/* Verify if new buffer is enabled */
+	if (!(g_app_params.app_config_flags &
+	      CWAP_DTLS_BUFFER_ALLOCATE_ENABLE) &&
+	    !(params->flags & CWAP_DTLS_FLG_BUFFER_REUSE))
+		pr_warn("Buffer allocate mode without enabling dedicated CWAP/DTLS BP\n");
 
 	err = cwap_dtls_get_buffer(instance_handle, sa_handle);
 	if (err)

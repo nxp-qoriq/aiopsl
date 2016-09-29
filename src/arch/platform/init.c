@@ -57,6 +57,7 @@ extern int aiop_sl_init(void);            extern void aiop_sl_free(void);
 extern int rcu_init();                    extern void rcu_free();
 extern int rcu_default_early_init();
 extern int ipsec_drv_init(void);
+extern int cwap_dtls_drv_init(void);
 
 
 extern void build_apps_array(struct sys_module_desc *apps);
@@ -75,6 +76,7 @@ extern void build_apps_array(struct sys_module_desc *apps);
 	{aiop_sl_early_init, aiop_sl_init, NULL, aiop_sl_free},                   \
 	{NULL, dpni_drv_init, NULL, dpni_drv_free}, /*must be after aiop_sl_init*/ \
 	{NULL, ipsec_drv_init, NULL, NULL}, /*must be after aiop_sl_init*/ \
+	{NULL, cwap_dtls_drv_init, NULL, NULL}, /*must be after aiop_sl_init*/ \
 	{evmng_early_init, evmng_init, NULL, evmng_free}, /*must be after cmdif*/            \
 	{rcu_default_early_init, rcu_init, NULL, rcu_free}, /*must be after slab*/            \
 	{NULL, NULL, NULL, NULL} /* never remove! */                                   \

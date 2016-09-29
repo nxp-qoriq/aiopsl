@@ -37,8 +37,17 @@
 #include "fsl_types.h"
 #include "fsl_gen.h"
 #include "fsl_net.h"
+#include "system.h"
+#include "fsl_platform.h"
+#include "fsl_icontext.h"
 #include "fsl_cwap_dtls.h"
 #include "sec.h"
+
+/* Extern variable used by CWAP/DTLS */
+extern __PROFILE_SRAM
+struct storage_profile storage_profile[SP_NUM_OF_STORAGE_PROFILES];
+extern struct icontext icontext_aiop;
+extern struct platform_app_params g_app_params;
 
 /**************************************************************************//**
  @Group		NETF NETF (Network Libraries)

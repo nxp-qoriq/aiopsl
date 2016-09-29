@@ -967,12 +967,13 @@ __COLD_CODE static int dpbp_discovery(struct slab_bpid_info *bpids_arr,
 	int num_bpids = 0;
 	int err = 0;
 	int i = 0;
-	int num_buf_ipsec = 0;
+	int num_buf_sec = 0;
 	struct mc_dprc *dprc = sys_get_unique_handle(FSL_MOD_AIOP_RC);
 	uint8_t bkp_pool_disable = g_app_params.app_config_flags &
 				DPNI_BACKUP_POOL_DISABLE ? 1 : 0;
-	uint8_t  ipsec_buffer_allocate_enable = g_app_params.app_config_flags &
-				IPSEC_BUFFER_ALLOCATE_ENABLE ? 1 : 0;
+	uint8_t  sec_buffer_allocate_enable = g_app_params.app_config_flags &
+				(IPSEC_BUFFER_ALLOCATE_ENABLE |
+				 CWAP_DTLS_BUFFER_ALLOCATE_ENABLE) ? 1 : 0;
 
 	/*Calling MC to get bpid's*/
 	if (dprc == NULL)
@@ -1008,19 +1009,19 @@ __COLD_CODE static int dpbp_discovery(struct slab_bpid_info *bpids_arr,
 		return -ENODEV;
 	}
 
-	/* Reserve a buffer pool for IPSec */
-	if (ipsec_buffer_allocate_enable) {
+	/* Reserve a buffer pool for SEC (IPsec *or* CWAP/DTLS) */
+	if (sec_buffer_allocate_enable) {
 		for (++i; i < dev_count; i++) {
 			dprc_get_obj(&dprc->io, 0, dprc->token, i, &dev_desc);
 			if (strcmp(dev_desc.type, "dpbp") == 0) {
-				num_buf_ipsec += 1;
-				pr_info("dpbp@%d :Skipped, used for IPSec\n",
+				num_buf_sec += 1;
+				pr_info("dpbp@%d :Skipped, used for SEC\n",
 					dev_desc.id);
 				num_bpids++;
 				break;
 			}
 		}
-		if (!num_buf_ipsec) {
+		if (!num_buf_sec) {
 			pr_err("Not enough DPBPs found in the container.\n");
 			return -ENODEV;
 		}

@@ -66,8 +66,11 @@
  @Description   Values for app_config_flags from platform_app_params structure
 *//***************************************************************************/
 #define DPNI_BACKUP_POOL_DISABLE	0x0001	/**< If set, disables backup buffer pool usage */
-#define IPSEC_BUFFER_ALLOCATE_ENABLE	0x0002	/**< If set, dedicated IPSec buffer pool is created */
+#define IPSEC_BUFFER_ALLOCATE_ENABLE	0x0002	/**< If set, dedicated IPSec buffer pool is created;
+						     must not be used together with CWAP_DTLS_BUFFER_ALLOCATE_ENABLE */
 #define IPSEC_OPTIMIZE_FEW_FLOWS	0x0004	/**< If set, IPSec will be optimized for small number of flows */
+#define CWAP_DTLS_BUFFER_ALLOCATE_ENABLE 0x0008	/**< If set, dedicated CWAP/DTLS buffer pool is created;
+						     must not be used together with IPSEC_BUFFER_ALLOCATE_ENABLE */
 
 /**************************************************************************//**
  @Description   Cache Operation Mode

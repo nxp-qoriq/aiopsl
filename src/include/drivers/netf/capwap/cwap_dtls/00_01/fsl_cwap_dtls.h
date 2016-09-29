@@ -192,6 +192,22 @@ struct cwap_dtls_sa_descriptor_params {
 *//***************************************************************************/
 
 /**************************************************************************//**
+@Function	cwap_dtls_drv_init
+
+@Description	Function fills the CWAP/DTLS dedicated BP, if that is requested
+		in the application. It is called from the AIOP initialization
+		task, in the global initialization stage.
+		Note : The application requests the dedicated BP creation by
+		setting the "CWAP_DTLS_BUFFER_ALLOCATE_ENABLE" application
+		configuration flag.
+
+@Return		0 - success
+		-ENOMEM - not enough memory
+		-other error code - otherwise
+*//****************************************************************************/
+int cwap_dtls_drv_init(void);
+
+/**************************************************************************//**
 @Function	cwap_dtls_early_init
 
 @Description	This function should be called at the AIOP "early init" stage,
