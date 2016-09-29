@@ -743,20 +743,19 @@ int cwap_dtls_frame_encrypt(cwap_dtls_sa_handle_t sa_handle)
 	 * ID).
 	 */
 	if (scope_status.scope_mode == CWAP_DTLS_OSM_CONCURRENT) {
-		/* Move to exclusive */
-		osm_scope_transition_to_exclusive_with_increment_scope_id();
 		/* Set OS_EX so AAP will do relinquish */
 		*((uint32_t *)(HWC_ACC_IN_ADDRESS)) =
 			CWAP_DTLS_AAP_USE_FLC_SP | CWAP_DTLS_AAP_OS_EX;
-		/* Register as concurrent to avoid an "if" later */
-		REGISTER_OSM_CONCURRENT;
+		/* 9. Call the AAP */
+		__e_ordhwacceli_(AAP_SEC_ACCEL_ID,
+				 OSM_SCOPE_TRANSITION_TO_EXCL_OP,
+				 OSM_SCOPE_ID_STAGE_INCREMENT_MASK);
 	} else {
 		/* Call AAP without relinquish */
 		*((uint32_t *)(HWC_ACC_IN_ADDRESS)) = CWAP_DTLS_AAP_USE_FLC_SP;
+		/* 9. Call the AAP */
+		__e_hwacceli(AAP_SEC_ACCEL_ID);
 	}
-
-	/* 9. Call the AAP */
-	__e_hwacceli(AAP_SEC_ACCEL_ID);
 
 	/* 10. SEC Doing Encryption */
 
@@ -951,20 +950,19 @@ int cwap_dtls_frame_decrypt(cwap_dtls_sa_handle_t sa_handle)
 	 * (increment scope ID).
 	 */
 	if (scope_status.scope_mode == CWAP_DTLS_OSM_CONCURRENT) {
-		/* Move to exclusive */
-		osm_scope_transition_to_exclusive_with_increment_scope_id();
 		/* Set OS_EX so AAP will do relinquish */
 		*((uint32_t *)(HWC_ACC_IN_ADDRESS)) = CWAP_DTLS_AAP_USE_FLC_SP |
 						      CWAP_DTLS_AAP_OS_EX;
-		/* Register concurrent here to save the "if" later */
-		REGISTER_OSM_CONCURRENT;
+		/* 10. Call the AAP */
+		__e_ordhwacceli_(AAP_SEC_ACCEL_ID,
+				 OSM_SCOPE_TRANSITION_TO_EXCL_OP,
+				 OSM_SCOPE_ID_STAGE_INCREMENT_MASK);
 	} else {
 		/* Call AAP without relinquish */
 		*((uint32_t *)(HWC_ACC_IN_ADDRESS)) = CWAP_DTLS_AAP_USE_FLC_SP;
+		/* 10. Call the AAP */
+		__e_hwacceli(AAP_SEC_ACCEL_ID);
 	}
-
-	/* 10. Call the AAP */
-	__e_hwacceli(AAP_SEC_ACCEL_ID);
 
 	/* 11. SEC Doing Decryption */
 
