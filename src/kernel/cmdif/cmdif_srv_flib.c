@@ -260,7 +260,7 @@ CMDIF_CODE_PLACEMENT static int inst_alloc(struct cmdif_srv *srv, uint8_t m_id)
 		count = 0;
 		while ((srv->m_id[r] != FREE_INSTANCE) &&
 			(count < M_NUM_OF_INSTANCES)) {
-			r = ++r % M_NUM_OF_INSTANCES;
+			r = (r+1) % M_NUM_OF_INSTANCES;
 			count++;
 		}
 	}
