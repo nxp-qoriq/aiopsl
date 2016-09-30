@@ -111,6 +111,9 @@ typedef uint64_t cwap_dtls_instance_handle_t;
 @{
 *//***************************************************************************/
 
+/** Buffer pool depletion */
+#define CWAP_DTLS_BUFFER_POOL_DEPLETION	(CWAP_DTLS_MODULE_STATUS_ID + 0x0040)
+
 /** Sequence Number overflow */
 #define CWAP_DTLS_SEQ_NUM_OVERFLOW	(CWAP_DTLS_MODULE_STATUS_ID + 0x0100)
 

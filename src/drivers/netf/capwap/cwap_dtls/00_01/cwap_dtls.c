@@ -57,6 +57,8 @@
 #include "fsl_bman.h"
 #include "fsl_icontext.h"
 
+#include "fsl_mem_mng.h"
+
 uint16_t cwap_dtls_bpid;
 
 int cwap_dtls_drv_init(void)
@@ -808,6 +810,79 @@ int cwap_dtls_del_sa_descriptor(cwap_dtls_sa_handle_t sa_handle)
 	return cwap_dtls_release_buffer(instance_handle, sa_handle);
 }
 
+static inline void buffer_pool_depleted(uint32_t sec_stat)
+{
+	uint64_t paddr, sge_h, sg_paddr;
+	uint32_t ext_addr;
+	uint16_t offset, bpid, sg_bpid;
+
+#define FD_FMT_SCATTER_GATHER	2
+
+#define ADDR_ON_49_BIT_MASK	0x0001ffffffffffffUL
+#define FINAL_BIT		0x8000000000000000UL
+
+#define BPID_ON_14_BIT		0x3FFF
+
+#define LDPAA_GET_U64(_addr, _off)				\
+	(uint64_t)({register uint64_t __rR = 0;			\
+	uint64_t val64;						\
+	val64 = (LLLDW_SWAP(0,					\
+			(uint64_t)(((char *)_addr) + _off)));	\
+	__rR = (uint64_t)val64; })
+
+	/*
+	 * Release the buffer(s) acquired by SEC. Now, only one BP #0 is
+	 * configured. If a second BP will be configured for the SEC usage add
+	 * the corresponding error codes and their processing
+	 */
+
+	paddr = LDPAA_FD_GET_ADDR(HWC_FD_ADDRESS);
+	offset = LDPAA_FD_GET_OFFSET(HWC_FD_ADDRESS);
+	bpid = LDPAA_FD_GET_BPID(HWC_FD_ADDRESS);
+
+	if (sec_stat == SEC_DATA_BP0_DEPLETION_NO_OF) {
+		/*
+		 * No buffers acquired for the output frame (OF). Only one
+		 * buffer for the SGT was acquired.
+		 */
+		fdma_release_buffer(icontext_aiop.icid,
+				    icontext_aiop.bdi_flags & FDMA_ENF_BDI_BIT,
+				    bpid, paddr);
+	} else if (sec_stat == SEC_DATA_BP0_DEPLETION_PART_OF) {
+		/*
+		 * A number of buffers, not all, were acquired for the output
+		 * frame. One buffer was acquired for the SGT.
+		 */
+		if (LDPAA_FD_GET_FMT(HWC_FD_ADDRESS) == FD_FMT_SCATTER_GATHER) {
+			/* Virtual address of the first SGE in SGT */
+			ext_addr = (uint32_t)sys_phys_to_virt(paddr);
+			/* Find the first SGE having data */
+			do {
+				/* Get the second 64 bit word of the SGE */
+				sge_h = LDPAA_GET_U64((ext_addr + offset), 8);
+				sg_bpid = ((uint16_t)(sge_h >> 32)) &
+						      BPID_ON_14_BIT;
+				/* Release the SGE buffer */
+				sg_paddr = LDPAA_GET_U64((ext_addr + offset),
+							 0) &
+							 ADDR_ON_49_BIT_MASK;
+				fdma_release_buffer(icontext_aiop.icid,
+						    icontext_aiop.bdi_flags &
+						    FDMA_ENF_BDI_BIT,
+						    sg_bpid, sg_paddr);
+				ext_addr += 2 * sizeof(uint64_t);
+			} while (!(sge_h & FINAL_BIT));
+		}
+		/* Release the buffer containing the SGT */
+		fdma_release_buffer(icontext_aiop.icid,
+				    icontext_aiop.bdi_flags & FDMA_ENF_BDI_BIT,
+				    bpid, paddr);
+	} else {
+		pr_warn("Unexpected depletion status code : 0x%08x\n",
+			sec_stat);
+	}
+}
+
 CWAP_DTLS_CODE_PLACEMENT
 int cwap_dtls_frame_encrypt(cwap_dtls_sa_handle_t sa_handle)
 {
@@ -932,22 +1007,38 @@ int cwap_dtls_frame_encrypt(cwap_dtls_sa_handle_t sa_handle)
 
 	/* 12. Read the SEC return status from the FD[FRC] */
 	sec_frc = LDPAA_FD_GET_FRC(HWC_FD_ADDRESS);
-	if (sec_frc != 0) {
+	if (sec_frc) {
 		if ((sec_frc & SEC_COMPRESSED_ERROR_MASK) ==
 		    SEC_COMPRESSED_ERROR) {
 			/* Compressed mode errors */
-			if ((sec_frc & SEC_DECO_ERROR_MASK_COMPRESSED) ==
-			    SEC_SEQ_NUM_OVERFLOW_COMPRESSED)
+			switch (sec_frc & SEC_DECO_ERROR_MASK_COMPRESSED) {
+			case SEC_SEQ_NUM_OVERFLOW_COMPRESSED:
 				enc_status |= CWAP_DTLS_SEQ_NUM_OVERFLOW;
-			else
+				break;
+			case SEC_DATA_BP0_DEPLETION_NO_OF_COMPRESSED:
+			case SEC_DATA_BP0_DEPLETION_PART_OF_COMPRESSED:
+				buffer_pool_depleted(sec_frc);
+			case SEC_TABLE_BP0_DEPLETION_COMPRESSED:
+				enc_status |= CWAP_DTLS_BUFFER_POOL_DEPLETION;
+				return enc_status;
+			default:
 				enc_status |= CWAP_DTLS_GEN_ENCR_ERR;
+			}
 		} else {
 			/* Non-compressed mode errors */
-			if ((sec_frc & SEC_DECO_ERROR_MASK) ==
-			    SEC_SEQ_NUM_OVERFLOW)
+			switch (sec_frc & SEC_DECO_ERROR_MASK) {
+			case SEC_SEQ_NUM_OVERFLOW:
 				enc_status |= CWAP_DTLS_SEQ_NUM_OVERFLOW;
-			else
+				break;
+			case SEC_DATA_BP0_DEPLETION_NO_OF:
+			case SEC_DATA_BP0_DEPLETION_PART_OF:
+				buffer_pool_depleted(sec_frc);
+			case SEC_TABLE_BP0_DEPLETION:
+				enc_status |= CWAP_DTLS_BUFFER_POOL_DEPLETION;
+				return enc_status;
+			default:
 				enc_status |= CWAP_DTLS_GEN_ENCR_ERR;
+			}
 		}
 
 		cwap_dtls_error_handler(sa_handle, CWAP_DTLS_FRAME_ENCRYPT,
@@ -1139,7 +1230,7 @@ int cwap_dtls_frame_decrypt(cwap_dtls_sa_handle_t sa_handle)
 
 	/* 13. Read the SEC return status from the FD[FRC] */
 	sec_frc = LDPAA_FD_GET_FRC(HWC_FD_ADDRESS);
-	if (sec_frc != 0) {
+	if (sec_frc) {
 		if ((sec_frc & SEC_COMPRESSED_ERROR_MASK) ==
 		    SEC_COMPRESSED_ERROR) {
 			/* Compressed mode errors */
@@ -1163,6 +1254,14 @@ int cwap_dtls_frame_decrypt(cwap_dtls_sa_handle_t sa_handle)
 						CWAP_DTLS_AR_REPLAY_PACKET;
 					break;
 
+				case SEC_DATA_BP0_DEPLETION_NO_OF_COMPRESSED:
+				case SEC_DATA_BP0_DEPLETION_PART_OF_COMPRESSED:
+					buffer_pool_depleted(sec_frc);
+				case SEC_TABLE_BP0_DEPLETION_COMPRESSED:
+					dec_status |=
+						CWAP_DTLS_BUFFER_POOL_DEPLETION;
+					return dec_status;
+
 				default:
 					dec_status |= CWAP_DTLS_GEN_DECR_ERR;
 				}
@@ -1182,6 +1281,14 @@ int cwap_dtls_frame_decrypt(cwap_dtls_sa_handle_t sa_handle)
 			case SEC_AR_REPLAY_PACKET:
 				dec_status |= CWAP_DTLS_AR_REPLAY_PACKET;
 				break;
+
+			case SEC_DATA_BP0_DEPLETION_NO_OF:
+			case SEC_DATA_BP0_DEPLETION_PART_OF:
+				buffer_pool_depleted(sec_frc);
+			case SEC_TABLE_BP0_DEPLETION:
+				dec_status |=
+					CWAP_DTLS_BUFFER_POOL_DEPLETION;
+				return dec_status;
 
 			default:
 				dec_status |= CWAP_DTLS_GEN_DECR_ERR;
