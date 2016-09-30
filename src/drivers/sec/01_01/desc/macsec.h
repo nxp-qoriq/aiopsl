@@ -7,7 +7,7 @@
 #ifndef __DESC_MACSEC_H__
 #define __DESC_MACSEC_H__
 
-#include "flib/rta.h"
+#include "rta.h"
 #include "common.h"
 
 /**
