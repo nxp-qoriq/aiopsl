@@ -86,22 +86,38 @@ enum app_key_types {
 /* IPSEC_FLG_TUNNEL_MODE - Tunnel, 0 - Transport */
 #define TUNEL_TRANSPORT_MODE	IPSEC_FLG_TUNNEL_MODE
 
+#if (TUNEL_TRANSPORT_MODE != IPSEC_FLG_TUNNEL_MODE)
+	/* 2.1 - IP version - Only for the Transport mode */
+	/* 0 - IPv4,  IPSEC_OPTS_ESP_IPVSN - IPv6 */
+	#define IP_VERSION	0
+
+	/* 2.2 Define IP source address offset as ETH header size plus the
+	 * offset of the least significant 4 bytes of the IP source address.
+	 *
+	 * Note : IP_SRC_OFF is used only in the performances measurement
+	 * configuration. Be sure what kind of packets you'll inject. */
+	#if (IP_VERSION == 0)	/* IPv4 packets */
+		#define IP_SRC_OFF	(14 + 12)
+	#else			/* IPv6 packets */
+		#define IP_SRC_OFF	(14 + 20)
+	#endif
+#else
+	#define IP_VERSION	0	/* Must be 0 in the tunnel mode */
+
+	/* 2.3 Define IP source address offset as ETH header size plus the
+	 * offset of the least significant 4 bytes of the IP source address.
+	 *
+	 * Note : IP_SRC_OFF is used only in the performances measurement
+	 * configuration. Be sure what kind of packets you'll inject. */
+	#define IP_SRC_OFF	(14 + 12)	/* IPv4 packets */
+	/*#define IP_SRC_OFF	(14 + 20)*/	/* IPv6 packets*/
+#endif
+
 /* 3 - Buffer mode */
 /* 0 - New Buffer Mode,  IPSEC_FLG_BUFFER_REUSE - Buffer Reuse Mode */
 #define BUFFER_MODE		IPSEC_FLG_BUFFER_REUSE
 
-/* 4 - IP version */
-/* 0 - IPv4,  IPSEC_OPTS_ESP_IPVSN - IPv6*/
-#define IP_VERSION	0
-/* Define IP source address offset as ETH header size plus the offset of the
- * least significant 4 bytes of the IP source address */
-#if (IP_VERSION == 0)	/* IPv4 */
-	#define IP_SRC_OFF	(14 + 12)
-#else			/* IPv6 */
-	#define IP_SRC_OFF	(14 + 20)
-#endif
-
-/* 5 - ENC/DEC lifetime timers */
+/* 4 - ENC/DEC lifetime timers */
 /* 0 - Disabled, 1 - Enabled */
 #ifndef PERF_MEASUREMENT
 	#define LIFETIME_TIMERS_ENABLE	1
@@ -127,7 +143,7 @@ enum app_key_types {
 #endif
 #endif
 
-/* 6 - ENC/DEC Kilobytes limit */
+/* 5 - ENC/DEC Kilobytes limit */
 /* 0 - Disabled, 1 - Enabled */
 #ifndef PERF_MEASUREMENT
 	#define KB_LIMIT_ENABLE		1
@@ -152,7 +168,7 @@ enum app_key_types {
 #endif
 #endif
 
-/* 7 - ENC/DEC packets limit*/
+/* 6 - ENC/DEC packets limit*/
 /* 0 - Disabled, 1 - Enabled */
 #ifndef PERF_MEASUREMENT
 	#define PKT_LIMIT_ENABLE	1
@@ -178,7 +194,7 @@ enum app_key_types {
 #endif
 #endif
 
-/* 8 - Extended Sequence Number*/
+/* 7 - Extended Sequence Number*/
 /* IPSEC_OPTS_ESP_ESN - Enabled, 0 - Disabled */
 #define ESN_ENABLE	0
 /* Usual values */
@@ -189,17 +205,21 @@ enum app_key_types {
 #define SEQNO_H		0xffffffff
 */
 
-/* 9 - ENCAP Sequence Number Roll Over*/
+/* 8 - ENCAP Sequence Number Roll Over */
 /* 0 - Disabled, IPSEC_ENC_OPTS_SNR_EN - Enabled */
 #define ENCAP_ROLL_ENABLE	0
 
-/* 10 - DECAP anti-replay window size */
+/* 9 - DECAP anti-replay window size */
 /* IPSEC_DEC_OPTS_ARSNONE - Disabled, ARS32/64/128 - Enabled */
 #define DECAP_ARW_SIZE	IPSEC_DEC_OPTS_ARSNONE
 
-/* 11 - DECAP padding check */
+/* 10 - DECAP padding check */
 /* 0 - Disabled,  IPSEC_FLG_TRANSPORT_PAD_CHECK - Enabled */
 #define DECAP_PAD_CHECK		0
+
+/* 11 - OUTER_IP_HEADER type */
+/* 4 - IPV4, 6 - IPV6, 17 - UDP Tunnel, 18 - UDP Transport */
+#define OUTER_IP_HEADER		4
 
 /*******************************************************************************
  * Global IPsec variables in Shared RAM
@@ -225,7 +245,7 @@ ipsec_handle_t	ipsec_sas_desc_inbound[TEST_NUM_OF_SA];
 /* If none of above macros is defined as 1 application performs packet
  * encryption followed by decryption */
 
-#define BIDIRECTIONAL		1
+#define BIDIRECTIONAL		0
 /* Set BIDIRECTIONAL to 1 in order the application performs encryption on the
  * clear text packets received on a NI and decryption on the encrypted packets
  * received on another NI. First NI is configured for encryption the second
@@ -244,7 +264,7 @@ ipsec_handle_t	ipsec_sas_desc_inbound[TEST_NUM_OF_SA];
 #endif
 
 /* Set IPSEC_DEBUG_PRINT to 1 in order have printed messages */
-#define IPSEC_DEBUG_PRINT	1
+#define IPSEC_DEBUG_PRINT	0
 
 /* Periodically statistics print */
 #define IPSEC_STATS_PRINT	0
@@ -885,9 +905,7 @@ static int ipsec_app_init(uint16_t ni_id)
 	algs = CIPHER_AUTH_ALGS;
 
 	/* Set the outer IP header type here */
-	outer_header_ip_version = 4; /* 4 or 6 */
-	/*outer_header_ip_version = 17;*/ /* UDP encap - Tunnel mode */
-	/*outer_header_ip_version = 18;*/ /* UDP encap - Transport mode */
+	outer_header_ip_version = OUTER_IP_HEADER; /* 4, 6, 17, 18 */
 
 	/* "01234567..." */
 	for (i = 0; i < 128; i++)
@@ -925,6 +943,90 @@ static int ipsec_app_init(uint16_t ni_id)
 		fsl_print("IPsec Demo: Reuse Buffer Mode\n");
 	else
 		fsl_print("IPsec Demo: New Buffer Mode\n");
+
+#ifndef PERF_MEASUREMENT
+	fsl_print("IPsec Demo: Validation\n");
+#else
+	fsl_print("IPsec Demo: Performances measurement\n");
+	#if (BIDIRECTIONAL == 1)
+		fsl_print("IPsec Demo: Simultaneous encryption/decryption\n");
+	#else
+		#if (ENCRYPT_ONLY == 1)
+			fsl_print("IPsec Demo: Only encryption\n");
+		#elif (DECRYPT_ONLY == 1)
+			fsl_print("IPsec Demo: Only Decryption\n");
+		#else
+			fsl_print("IPsec Demo: Encryption and Decryption\n");
+		#endif
+	#endif
+#endif
+
+#if (LIFETIME_TIMERS_ENABLE == 1)
+	fsl_print("IPsec Demo: Lifetime limits : enabled\n");
+#else
+	fsl_print("IPsec Demo: Lifetime limits : disabled\n");
+#endif
+
+#if (KB_LIMIT_ENABLE == 1)
+	fsl_print("IPsec Demo: Bytes counter limits : enabled\n");
+#else
+	fsl_print("IPsec Demo: Bytes counter limits : disabled\n");
+#endif
+
+#if (PKT_LIMIT_ENABLE == 1)
+	fsl_print("IPsec Demo: Packets counter limits : enabled\n");
+#else
+	fsl_print("IPsec Demo: Packets counter limits : disabled\n");
+#endif
+
+#if (ESN_ENABLE == 0)
+	fsl_print("IPsec Demo: Extended Sequence Number : disabled\n");
+#else
+	fsl_print("IPsec Demo: Extended Sequence Number : enabled\n");
+#endif
+
+#if (ENCAP_ROLL_ENABLE == 0)
+	fsl_print("IPsec Demo: ENCAP Sequence Number Roll Over : disabled\n");
+#else
+	fsl_print("IPsec Demo: ENCAP Sequence Number Roll Over : enabled\n");
+#endif
+
+#if (DECAP_ARW_SIZE == IPSEC_DEC_OPTS_ARSNONE)
+	fsl_print("IPsec Demo: DECAP anti-replay window : disabled\n");
+#else
+	fsl_print("IPsec Demo: DECAP anti-replay window : enabled\n");
+#endif
+
+#if (DECAP_PAD_CHECK == 0)
+	fsl_print("IPsec Demo: DECAP padding check : disabled\n");
+#else
+	fsl_print("IPsec Demo: DECAP padding check : enabled\n");
+#endif
+
+#if (OUTER_IP_HEADER == 4)
+	fsl_print("IPsec Demo: IPv4 outer header\n");
+#elif (OUTER_IP_HEADER == 6)
+	fsl_print("IPsec Demo: IPv6 outer header\n");
+#elif (OUTER_IP_HEADER == 17)
+	fsl_print("IPsec Demo: Tunnel mode UDP outer header\n");
+#else
+	fsl_print("IPsec Demo: Transport mode UDP outer header\n");
+#endif
+
+#if (TUNEL_TRANSPORT_MODE != IPSEC_FLG_TUNNEL_MODE && defined(PERF_MEASUREMENT))
+	#if (IP_VERSION == 0)	/* IPv4 packets */
+		fsl_print("IPsec Demo: IPv4 packets\n");
+	#else			/* IPv6 packets */
+		fsl_print("IPsec Demo: IPv6 packets\n");
+	#endif
+#endif
+#if (TUNEL_TRANSPORT_MODE == IPSEC_FLG_TUNNEL_MODE && defined(PERF_MEASUREMENT))
+	#if (IP_SRC_OFF == (14 + 12))	/* IPv4 packets */
+		fsl_print("IPsec Demo: IPv4 packets\n");
+	#else			/* IPv6 packets */
+		fsl_print("IPsec Demo: IPv6 packets\n");
+	#endif
+#endif
 
 	dpni_drv_get_spid(ni_id, &ni_spid);
 
@@ -1100,8 +1202,8 @@ static int ipsec_app_init(uint16_t ni_id)
 		params.direction = IPSEC_DIRECTION_OUTBOUND;
 		/* Miscellaneous control flags */
 		params.flags = tunnel_transport_mode |
-				IPSEC_FLG_LIFETIME_KB_CNTR_EN |
-				IPSEC_FLG_LIFETIME_PKT_CNTR_EN |
+				lifetime_kb_cntr_en |
+				lifetime_pkt_cntr_en |
 				set_dscp | reuse_buffer_mode;
 		if (outer_header_ip_version == 18)
 			params.flags |= IPSEC_ENC_OPTS_NAT_EN;
@@ -1178,8 +1280,8 @@ static int ipsec_app_init(uint16_t ni_id)
 		params.direction = IPSEC_DIRECTION_INBOUND;
 		/* Flags */
 		params.flags = tunnel_transport_mode |
-				IPSEC_FLG_LIFETIME_KB_CNTR_EN |
-				IPSEC_FLG_LIFETIME_PKT_CNTR_EN |
+				lifetime_kb_cntr_en |
+				lifetime_pkt_cntr_en |
 				reuse_buffer_mode;
 		if (decap_soft_seconds | decap_hard_seconds) {
 			params.flags |= IPSEC_FLG_LIFETIME_SEC_CNTR_EN;
