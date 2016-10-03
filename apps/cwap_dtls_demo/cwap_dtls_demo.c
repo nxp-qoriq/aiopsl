@@ -47,6 +47,28 @@
 	DBG(REPORT_LEVEL_INFO, __VA_ARGS__);	\
 	UNLOCK(print_lock);
 
+/*
+ * Define IP source address offset as ETH header size plus the offset of the
+ * least significant 4 bytes of the IP source address
+ */
+#define IP_SRC_OFF	(14 + 12)
+
+/*******************************************************************************
+ * Performance measurement case. Define PERF_MEASUREMENT in order to measure
+ * CWAP/DTLS performance.
+ ******************************************************************************/
+// #define PERF_MEASUREMENT
+
+/*******************************************************************************
+ * Number of created SA pairs
+ ******************************************************************************/
+#ifdef PERF_MEASUREMENT
+	#define TEST_NUM_OF_SA		64
+#else
+	/* Only 1 SA pair must be created */
+	#define TEST_NUM_OF_SA		1
+#endif
+
 int app_early_init(void);
 int app_init(void);
 void app_free(void);
@@ -64,8 +86,79 @@ struct storage_profile storage_profile[SP_NUM_OF_STORAGE_PROFILES];
 
 /* Global CAPWAP/DTLS variables in Shared RAM */
 cwap_dtls_instance_handle_t cwap_dtls_instance_handle;
-cwap_dtls_sa_handle_t sa_outbound, sa_inbound;
+cwap_dtls_sa_handle_t sa_outbound[TEST_NUM_OF_SA], sa_inbound[TEST_NUM_OF_SA];
 uint64_t print_lock;
+
+#ifdef PERF_MEASUREMENT
+
+__HOT_CODE ENTRY_POINT static void app_perf_packet_encr(void)
+{
+	uint8_t	*eth_pointer_byte;
+	cwap_dtls_sa_handle_t ws_desc_handle_outbound;
+	uint32_t sa_idx;
+	int err;
+
+	sl_prolog();
+	eth_pointer_byte = (uint8_t *)PARSER_GET_ETH_POINTER_DEFAULT();
+
+	/* IP_SRC based distribution */
+	sa_idx = (*((uint32_t *)(eth_pointer_byte + IP_SRC_OFF))) %
+		 TEST_NUM_OF_SA;
+	ws_desc_handle_outbound = sa_outbound[sa_idx];
+
+	err = cwap_dtls_frame_encrypt(ws_desc_handle_outbound);
+	if (err) {
+		fsl_print("SEC Encryption Failed (status = 0x%08x)\n", err);
+		if (!(err & CWAP_DTLS_BUFFER_POOL_DEPLETION))
+			fdma_discard_default_frame(FDMA_DIS_NO_FLAGS);
+		fdma_terminate_task();
+	}
+
+	err = dpni_drv_send(task_get_receive_niid(), DPNI_DRV_SEND_MODE_NONE);
+	if (err) {
+		fsl_print("ERROR = %d: dpni_drv_send(ni_id)\n", err);
+		if (err == -ENOMEM)
+			fdma_discard_default_frame(FDMA_DIS_NO_FLAGS);
+		else /* (err == -EBUSY) */
+			ARCH_FDMA_DISCARD_FD();
+	}
+	fdma_terminate_task();
+}
+
+static __HOT_CODE ENTRY_POINT void app_perf_packet_decr(void)
+{
+	uint8_t	*eth_pointer_byte;
+	cwap_dtls_sa_handle_t ws_desc_handle_inbound;
+	uint32_t sa_idx;
+	int err;
+
+	sl_prolog();
+	eth_pointer_byte = (uint8_t *)PARSER_GET_ETH_POINTER_DEFAULT();
+
+	/* IP_SRC based distribution */
+	sa_idx = (*((uint32_t *)(eth_pointer_byte + IP_SRC_OFF))) %
+		 TEST_NUM_OF_SA;
+	ws_desc_handle_inbound = sa_inbound[sa_idx];
+
+	err = cwap_dtls_frame_decrypt(ws_desc_handle_inbound);
+	if (err) {
+		fsl_print("SEC Decryption Failed (status = 0x%08x)\n", err);
+		if (!(err & CWAP_DTLS_BUFFER_POOL_DEPLETION))
+			fdma_discard_default_frame(FDMA_DIS_NO_FLAGS);
+		fdma_terminate_task();
+	}
+	err = dpni_drv_send(task_get_receive_niid(), DPNI_DRV_SEND_MODE_NONE);
+	if (err) {
+		fsl_print("ERROR = %d: dpni_drv_send(ni_id)\n", err);
+		if (err == -ENOMEM)
+			fdma_discard_default_frame(FDMA_DIS_NO_FLAGS);
+		else /* (err == -EBUSY) */
+			ARCH_FDMA_DISCARD_FD();
+	}
+	fdma_terminate_task();
+}
+
+#else /* PERF_MEASUREMENT not defined */
 
 __HOT_CODE ENTRY_POINT static void app_process_packet(void)
 {
@@ -87,8 +180,8 @@ __HOT_CODE ENTRY_POINT static void app_process_packet(void)
 	seg_len = PRC_GET_SEGMENT_LENGTH();
 	original_seg_addr = PRC_GET_SEGMENT_ADDRESS();
 
-	ws_desc_handle_outbound = sa_outbound;
-	ws_desc_handle_inbound = sa_inbound;
+	ws_desc_handle_outbound = sa_outbound[0];
+	ws_desc_handle_inbound = sa_inbound[0];
 
 	fsl_print("CAPWAP/DTLS Demo: Core %d Received Frame\n", core_get_id());
 
@@ -207,6 +300,7 @@ __HOT_CODE ENTRY_POINT static void app_process_packet(void)
 	/* MUST call fdma_terminate task in the end of cb function */
 	fdma_terminate_task();
 }
+#endif /* PERF_MEASUREMENT */
 
 #ifdef AIOP_STANDALONE
 /* This is temporal WA for stand alone demo only */
@@ -260,7 +354,7 @@ int app_early_init(void)
 	int err;
 
 	/* CWAP/DTLS resources reservation */
-	err = cwap_dtls_early_init(10, 20, 40);
+	err = cwap_dtls_early_init(10, 2 * TEST_NUM_OF_SA, 2 * TEST_NUM_OF_SA);
 	if (err)
 		return err;
 
@@ -287,7 +381,18 @@ static int app_dpni_event_added_cb(uint8_t generator_id, uint8_t event_id,
 
 	pr_info("Event received for AIOP NI ID %d\n", ni);
 
+#ifdef PERF_MEASUREMENT
+	UNUSED(app_ctx);
+
+	if (!(ni % 2))
+		err = dpni_drv_register_rx_cb(ni, (rx_cb_t *)
+					      app_perf_packet_encr);
+	else
+		err = dpni_drv_register_rx_cb(ni, (rx_cb_t *)
+					      app_perf_packet_decr);
+#else
 	err = dpni_drv_register_rx_cb(ni, (rx_cb_t *)app_ctx);
+#endif /* PERF_MEASUREMENT */
 	if (err) {
 		pr_err("dpni_drv_register_rx_cb for ni %d failed: %d\n", ni,
 		       err);
@@ -329,9 +434,15 @@ int app_init(void)
 	epid_setup();
 #endif
 
+#ifdef PERF_MEASUREMENT
+	err = evmng_register(EVMNG_GENERATOR_AIOPSL, DPNI_EVENT_ADDED, 1,
+			     (uint64_t)app_perf_packet_encr,
+			     app_dpni_event_added_cb);
+#else
 	err = evmng_register(EVMNG_GENERATOR_AIOPSL, DPNI_EVENT_ADDED, 1,
 			     (uint64_t)app_process_packet,
 			     app_dpni_event_added_cb);
+#endif /* PERF_MEASUREMENT */
 	if (err) {
 		pr_err("EVM registration for DPNI_EVENT_ADDED failed: %d\n",
 		       err);
@@ -363,7 +474,7 @@ int cwap_dtls_app_init(uint16_t ni_id)
 	cwap_dtls_instance_handle_t ws_instance_handle = 0;
 	cwap_dtls_sa_handle_t ws_desc_handle_outbound = 0;
 	cwap_dtls_sa_handle_t ws_desc_handle_inbound = 0;
-	uint32_t handle_high, handle_low;
+	uint32_t handle_high, handle_low, sa_idx;
 	enum tls_cipher_mode cipher_mode;
 	int err, i;
 
@@ -459,7 +570,8 @@ int cwap_dtls_app_init(uint16_t ni_id)
 		fsl_print("Auth key addr = 0x%x_%x\n", handle_high, handle_low);
 	}
 
-	err = cwap_dtls_create_instance(10, 20,	&ws_instance_handle);
+	err = cwap_dtls_create_instance(2 * TEST_NUM_OF_SA, 2 * TEST_NUM_OF_SA,
+					&ws_instance_handle);
 	if (err)
 		fsl_print("ERROR: cwap_dtls_create_instance() failed with status = %d (0x%x)\n",
 			  err, err);
@@ -513,22 +625,25 @@ int cwap_dtls_app_init(uint16_t ni_id)
 
 	params.spid = ni_spid;
 
-	/* Create Outbound (encryption) Descriptor */
-	err = cwap_dtls_add_sa_descriptor(&params, ws_instance_handle,
-					  &ws_desc_handle_outbound);
+	for (sa_idx = 0; sa_idx < TEST_NUM_OF_SA; sa_idx++) {
+		/* create outbound (encryption) SA descriptors */
+		err = cwap_dtls_add_sa_descriptor(&params, ws_instance_handle,
+						  &ws_desc_handle_outbound);
+		handle_high = (uint32_t)((ws_desc_handle_outbound &
+					  0xffffffff00000000) >> 32);
+		handle_low = (uint32_t)(ws_desc_handle_outbound &
+					0x00000000ffffffff);
+		if (err) {
+			fsl_print("ERROR: cwap_dtls_add_sa_descriptor(encryption) failed with status = %d (0x%x)\n",
+				  err, err);
+		} else {
+			fsl_print("cwap_dtls_add_sa_descriptor(encryption) succeeded\n");
+			fsl_print("Encryption handle = 0x%x_%x\n", handle_high,
+				  handle_low);
+		}
 
-	handle_high = (uint32_t)((ws_desc_handle_outbound &
-				  0xffffffff00000000) >> 32);
-	handle_low = (uint32_t)(ws_desc_handle_outbound & 0x00000000ffffffff);
-	if (err) {
-		fsl_print("ERROR: cwap_dtls_add_sa_descriptor(encryption) failed with status = %d (0x%x)\n",
-			  err, err);
-	} else {
-		fsl_print("cwap_dtls_add_sa_descriptor(encryption) succeeded\n");
-		fsl_print("Encryption handle = 0x%x_%x\n", handle_high, handle_low);
+		sa_outbound[sa_idx] = ws_desc_handle_outbound;
 	}
-
-	sa_outbound = ws_desc_handle_outbound;
 
 	/* Inbound (decryption) parameters */
 	params.protcmd.optype = OP_TYPE_DECAP_PROTOCOL;
@@ -577,21 +692,25 @@ int cwap_dtls_app_init(uint16_t ni_id)
 
 	params.spid = ni_spid;
 
-	/* create inbound (decryption) SA descriptor */
-	err = cwap_dtls_add_sa_descriptor(&params, ws_instance_handle,
-					  &ws_desc_handle_inbound);
-	if (err) {
-		fsl_print("ERROR: cwap_dtls_add_sa_descriptor(decryption) failed with status = %d (0x%x)\n",
-			  err, err);
-	} else {
-		handle_high = (uint32_t)((ws_desc_handle_inbound &
-					  0xffffffff00000000) >> 32);
-		handle_low = (uint32_t)(ws_desc_handle_inbound & 0x00000000ffffffff);
-		fsl_print("cwap_dtls_add_sa_descriptor(decryption) succeeded\n");
-		fsl_print("Decryption handle = 0x%x_%x\n", handle_high, handle_low);
-	}
+	for (sa_idx = 0; sa_idx < TEST_NUM_OF_SA; sa_idx++) {
+		/* create inbound (decryption) SA descriptors */
+		err = cwap_dtls_add_sa_descriptor(&params, ws_instance_handle,
+						  &ws_desc_handle_inbound);
+		if (err) {
+			fsl_print("ERROR: cwap_dtls_add_sa_descriptor(decryption) failed with status = %d (0x%x)\n",
+				  err, err);
+		} else {
+			handle_high = (uint32_t)((ws_desc_handle_inbound &
+						  0xffffffff00000000) >> 32);
+			handle_low = (uint32_t)(ws_desc_handle_inbound &
+						0x00000000ffffffff);
+			fsl_print("cwap_dtls_add_sa_descriptor(decryption) succeeded\n");
+			fsl_print("Decryption handle = 0x%x_%x\n", handle_high,
+				  handle_low);
+		}
 
-	sa_inbound = ws_desc_handle_inbound;
+		sa_inbound[sa_idx] = ws_desc_handle_inbound;
+	}
 
 	if (!err)
 		fsl_print("CAPWAP/DTLS Demo: CAPWAP/DTLS initialization completed\n");
