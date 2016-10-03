@@ -79,7 +79,7 @@
 #define FRAG_OFFSET_IPV4_MASK	0x1FFF
 #define FRAG_OFFSET_IPV6_MASK	0xFFF8
 #define INSTANCE_VALID		0x0001
-#define REF_COUNT_ADDR_DUMMY	HWC_ACC_OUT_ADDRESS+CDMA_REF_CNT_OFFSET
+#define REF_COUNT_ADDR_DUMMY	(HWC_ACC_OUT_ADDRESS + CDMA_REF_CNT_OFFSET)
 #define IPR_INSTANCE_SIZE	sizeof(struct ipr_instance)
 #define RFDC_SIZE		sizeof(struct ipr_rfdc)
 #define RFDC_EXTENSION_SIZE	sizeof(struct extended_ipr_rfdc)
