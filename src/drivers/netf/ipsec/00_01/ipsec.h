@@ -637,6 +637,15 @@ struct ipsec_instance_params {
 
 #ifdef LS2085A_REV1
 	#define READ_METHOD		READ_DATA_USING_CDMA
+
+	/* CAAM/SEC: The FD[BPID] is not updated after an AIOP operation
+	 *
+	 * When the AIOP calls the SEC through AAP/AI for encryption/decryption
+	 * in new output buffer mode, the new buffer BPID is given through the
+	 * Flow Context. Apparently the SEC is releasing the original buffer
+	 * and allocating the new buffer properly, but does not update the
+	 * BPID field of the Frame Descriptor. */
+	#define TKT265088_WA_ENABLE
 #else
 	/* On Rev2 platforms CDMA read function behavior changed : it reads
 	* data using the cache. Data written by other accelerators are not

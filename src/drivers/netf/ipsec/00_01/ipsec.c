@@ -1379,11 +1379,11 @@ int ipsec_generate_sa_params(
 	} else {
 		sap.sap1.sec_buffer_mode = IPSEC_SEC_NEW_BUFFER_MODE; 
 
-#ifndef  TKT265088_WA_DISABLE
+#ifdef TKT265088_WA_ENABLE
 		{
 			/* TKT265088: 
 			 * CAAM/SEC: The FD[BPID] is not updated after an AIOP
-			 * operation */
+			 * operation. Relevant only for LS2085 Rev1 */
 			struct storage_profile *sp_addr = &storage_profile[0];
 			sp_addr += params->spid;
 
@@ -2157,10 +2157,10 @@ skip_l2_remove:
 		/* Update the SPID of the new frame (SEC output) in the HW Context*/
 		*((uint8_t *)HWC_SPID_ADDRESS) = sap1.output_spid;
 
-#ifndef  TKT265088_WA_DISABLE
+#ifdef TKT265088_WA_ENABLE
+		/* Relevant only for LS2085 Rev1 */
 		LDPAA_FD_SET_BPID(HWC_FD_ADDRESS, sap1.bpid);
-#endif		
-	
+#endif
 	}
 	
 #if(0)
@@ -2882,10 +2882,10 @@ IPSEC_CODE_PLACEMENT int ipsec_frame_decrypt(
 		/* Update the SPID of the new frame (SEC output) in the HW Context*/
 		*((uint8_t *)HWC_SPID_ADDRESS) = sap1.output_spid;
 
-#ifndef  TKT265088_WA_DISABLE
+#ifdef TKT265088_WA_ENABLE
+		/* Relevant only for LS2085 Rev1 */
 		LDPAA_FD_SET_BPID(HWC_FD_ADDRESS, sap1.bpid);
-#endif	
-		
+#endif
 	}	
 		
 #if(0)
