@@ -170,8 +170,11 @@ int cwapr_create_instance(struct cwapr_params *params,
 		tbl_location = params->flags & 0x0C000000;
 		if (tbl_location == CWAPR_MODE_TABLE_LOCATION_PEB)
 			tbl_location_attr = TABLE_ATTRIBUTE_LOCATION_PEB;
-		else if (tbl_location == CWAPR_MODE_TABLE_LOCATION_DP_DDR)
-			tbl_location_attr = TABLE_ATTRIBUTE_LOCATION_DP_DDR;
+		#ifndef LS1088A_REV1
+		/** Data Path DDR. Not available on LS1088 */
+			else if (tbl_location == CWAPR_MODE_TABLE_LOCATION_DP_DDR)
+				tbl_location_attr = TABLE_ATTRIBUTE_LOCATION_DP_DDR;
+		#endif
 		else if (tbl_location == CWAPR_MODE_TABLE_LOCATION_SYS_DDR)
 			tbl_location_attr = TABLE_ATTRIBUTE_LOCATION_SYS_DDR;
 		tbl_params.attributes = TABLE_ATTRIBUTE_TYPE_EM |
