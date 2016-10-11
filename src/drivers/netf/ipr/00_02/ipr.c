@@ -176,6 +176,12 @@ int ipr_create_instance(struct ipr_params *ipr_params_ptr,
 				      (int32_t)sr_status);
 
 	ipr_instance.bpid = bpid;
+	if (ipr_params_ptr->flags & IPR_MODE_DO_NOT_PRESERVE_FRAGS) {
+		ipr_instance.preserve_fragments = 0;
+		ipr_params_ptr->flags &= ~IPR_MODE_DO_NOT_PRESERVE_FRAGS;
+	} else {
+		ipr_instance.preserve_fragments = 1;
+	}
 	ipr_instance.flags = ipr_params_ptr->flags;
 
 	/* For IPv4 */
@@ -613,10 +619,12 @@ IPR_CODE_PLACEMENT int ipr_reassemble(ipr_instance_handle_t instance_handle)
 
 		return IPR_REASSEMBLY_NOT_COMPLETED;
 	case LAST_FRAG_IN_ORDER:
-		closing_in_order(rfdc_ext_addr, rfdc.num_of_frags);
+		closing_in_order(rfdc_ext_addr, rfdc.num_of_frags,
+				 instance_params.preserve_fragments);
 		break;
 	case LAST_FRAG_OUT_OF_ORDER:
-		closing_with_reordering(&rfdc, rfdc_ext_addr);
+		closing_with_reordering(&rfdc, rfdc_ext_addr,
+					instance_params.preserve_fragments);
 		break;
 	case MALFORMED_FRAG:
 		/* duplicate, overlap, or non-conform fragment */
@@ -1260,7 +1268,9 @@ IPR_CODE_PLACEMENT uint32_t ipr_insert_to_link_list(struct ipr_rfdc *rfdc_ptr,
 	return return_status;
 }
 
-IPR_CODE_PLACEMENT uint32_t closing_in_order(uint64_t rfdc_ext_addr, uint8_t num_of_frags)
+IPR_CODE_PLACEMENT uint32_t closing_in_order(uint64_t rfdc_ext_addr,
+					     uint8_t num_of_frags,
+					     uint8_t preserve_fragments)
 {
 	struct		ldpaa_fd fds_to_concatenate[2];
 	uint64_t	fds_to_fetch_addr;
@@ -1293,7 +1303,11 @@ IPR_CODE_PLACEMENT uint32_t closing_in_order(uint64_t rfdc_ext_addr, uint8_t num
 			&(concatenate_params.icid2),
 			&(concatenate_params.amq_flags));
 	concatenate_params.frame2 = (uint16_t)(uint32_t)(fds_to_concatenate+1);
-	concatenate_params.flags  = FDMA_CONCAT_SF_BIT | FDMA_CONCAT_FS2_BIT;
+	if (preserve_fragments)
+		concatenate_params.flags = FDMA_CONCAT_SF_BIT |
+						FDMA_CONCAT_FS2_BIT;
+	else
+		concatenate_params.flags = FDMA_CONCAT_FS2_BIT;
 	concatenate_params.spid   = *((uint8_t *) HWC_SPID_ADDRESS);
 	concatenate_params.frame1 = (uint16_t) PRC_GET_FRAME_HANDLE();
 	/* Take header size to be removed from 2nd FD[FRC] */
@@ -1530,7 +1544,8 @@ IPR_CODE_PLACEMENT uint32_t ipv6_header_update_and_l4_validation(struct ipr_rfdc
 
 
 IPR_CODE_PLACEMENT uint32_t closing_with_reordering(struct ipr_rfdc *rfdc_ptr,
-				 uint64_t rfdc_ext_addr)
+						    uint64_t rfdc_ext_addr,
+						    uint8_t preserve_fragments)
 {
 	uint8_t				num_of_frags;
 	uint8_t				current_index;
@@ -1540,8 +1555,11 @@ IPR_CODE_PLACEMENT uint32_t closing_with_reordering(struct ipr_rfdc *rfdc_ptr,
 	struct				ldpaa_fd fds_to_concatenate[2];
 	struct		fdma_concatenate_frames_params concatenate_params;
 
-	//concatenate_params.flags = FDMA_CONCAT_SF_BIT;
-	concatenate_params.flags = FDMA_CONCAT_SF_BIT | FDMA_CONCAT_FS2_BIT;
+	if (preserve_fragments)
+		concatenate_params.flags = FDMA_CONCAT_SF_BIT |
+						FDMA_CONCAT_FS2_BIT;
+	else
+		concatenate_params.flags = FDMA_CONCAT_FS2_BIT;
 	
 	get_concatenate_amq_attributes(&(concatenate_params.icid1), 
 				&(concatenate_params.icid2),
@@ -1593,7 +1611,8 @@ IPR_CODE_PLACEMENT uint32_t closing_with_reordering(struct ipr_rfdc *rfdc_ptr,
 
 		} else {
 		current_index = rfdc_ptr->index_to_out_of_order;
-		closing_in_order(rfdc_ext_addr, current_index);
+		closing_in_order(rfdc_ext_addr, current_index,
+				 preserve_fragments);
 		num_of_frags = rfdc_ptr->num_of_frags - current_index - 1;
 		current_index = rfdc_ptr->first_frag_index;
 

@@ -239,9 +239,10 @@ struct extended_stats_cntrs {
 @Description IP reassembly flags.
 
 
-|      0      |      1     |      2     | 3 |      4-5       | 6-31 |
-|-------------|------------|------------|---|----------------|------|
-|Extended_stat|IPv4_TO_type|IPv6_TO_type|   | Table Location |      |
+|     0     |    1     |      2   | 3 |   4-5    | 6-30 |    31           |
+|-----------|----------|----------|---|----------|------|-----------------|
+| Extended  |  IPv4 TO |  IPv6 TO |   |   Table  |      | Do not preserve |
+|statistics |   type   |   type   |   | Location |      |    Fragments    |
 \n
 
 @{
@@ -267,6 +268,15 @@ struct extended_stats_cntrs {
 /** Tables are located in DDR2 */
 #define IPR_MODE_TABLE_LOCATION_EXT2	0x0C000000
 
+/** Do not preserve reassembled packet fragments.
+ *
+ * Use this flag if the reassembled packet is forwarded to the SEC engine,
+ * working in the buffer reuse mode, for encryption/decryption.
+ *
+ * Do not use this flag if the applications, in further processing, need to
+ * split the reassembled packet in the original fragments.
+ */
+#define IPR_MODE_DO_NOT_PRESERVE_FRAGS	0x00000001
 
 /** @} */ /* end of group FSL_IPRInsModeBits */
 

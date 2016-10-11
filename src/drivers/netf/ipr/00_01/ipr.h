@@ -143,7 +143,9 @@ struct ipr_instance {
 	uint16_t  	timeout_value_ipv6;
 	/* TMAN Instance ID */
 	uint8_t		tmi_id;
-	uint8_t		res[11];
+	/* Preserve reassembled packet fragments indicator */
+	uint8_t         preserve_fragments;
+	uint8_t		res[10];
 };
 #pragma pack(pop)
 
@@ -297,11 +299,12 @@ int ipr_miss_handling(struct ipr_instance *instance_params_ptr,
 	 ipr_instance_handle_t instance_handle, uint64_t *rfdc_ext_addr_ptr);
 
 
-uint32_t closing_in_order(uint64_t rfdc_ext_addr, uint8_t num_of_frags);
+uint32_t closing_in_order(uint64_t rfdc_ext_addr, uint8_t num_of_frags,
+			  uint8_t preserve_fragments);
 
 uint32_t closing_with_reordering(struct ipr_rfdc *rfdc_ptr,
-				 uint64_t rfdc_ext_addr);
-
+				 uint64_t rfdc_ext_addr,
+				 uint8_t preserve_fragments);
 
 inline void move_to_correct_ordering_scope1(uint32_t osm_status)
 {
