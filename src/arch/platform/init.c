@@ -221,6 +221,35 @@ __COLD_CODE int global_post_init(void)
 	return 0;
 }
 
+static inline apps_hcl_early_init(void)
+{
+	/*
+	 * Set the FDMA HCL register to the application level configured
+	 * value.
+	 *
+	 * Normally this is done by MC. Till the MC release, containing the
+	 * fix, is available, the fix is done here.
+	 * TODO - Remove this fix when the MC code is available.
+	 */
+	struct aiop_tile_regs	*ccsr;
+	uint32_t		hcl;
+
+	#define AIOP_FDMA_HCL_MASK          0x3ff
+#ifdef LS2085A_REV1
+	/* The hop count limit value is set to 0: disables the limit
+	 * protection on the maximum number of scatter/gather table
+	 * links that FDMA will follow. See ERR008610 */
+	hcl = 0;
+#else
+	hcl = g_init_data.app_info.hcl;
+#endif
+	ccsr = (struct aiop_tile_regs *)(AIOP_PERIPHERALS_OFF +
+					 SOC_PERIPH_OFF_AIOP_TILE +
+					 SOC_PERIPH_OFF_AIOP_CMGW);
+	ASSERT_COND_LIGHT(ccsr);
+	iowrite32_ccsr(hcl & AIOP_FDMA_HCL_MASK, &ccsr->fdma_regs.hcl);
+}
+
 __COLD_CODE int apps_early_init(void)
 {
 	int i, err;
@@ -231,6 +260,8 @@ __COLD_CODE int apps_early_init(void)
 	if(apps == NULL) {
 		return -ENOMEM;
 	}
+
+	apps_hcl_early_init();
 
 	memset(apps, 0, app_arr_size * sizeof(struct sys_module_desc));
 	build_apps_array(apps);
