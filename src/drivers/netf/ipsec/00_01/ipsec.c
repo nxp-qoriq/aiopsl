@@ -1794,7 +1794,7 @@ IPSEC_CODE_PLACEMENT int ipsec_frame_encrypt(
 {
 	int return_val;
 	uint8_t eth_header[40]; /* Ethernet header place holder, 40 bytes */ 
-	uint8_t eth_length = 0; /* Ethernet header length and indicator */ 
+	uint8_t eth_length = 0; /* Ethernet header length */
 	uint64_t orig_flc;
 	uint32_t orig_frc;
 	uint16_t orig_seg_addr;
@@ -1982,7 +1982,6 @@ IPSEC_CODE_PLACEMENT int ipsec_frame_encrypt(
 					((eth_length <<
 					  IPSEC_N_ENCAP_DPOVRD_L2_LEN_SHIFT) &
 					 IPSEC_N_ENCAP_DPOVRD_L2_LEN_MASK);
-			eth_length = 0;
 			goto skip_l2_remove;
 		}
 
@@ -2015,9 +2014,6 @@ IPSEC_CODE_PLACEMENT int ipsec_frame_encrypt(
 			return IPSEC_ERROR;
 		}
 	}
-			/*---------------------*/
-			/* ipsec_frame_encrypt */
-			/*---------------------*/
 skip_l2_remove:
 	/* 	5.	Save original FD[FLC], FD[FRC] (to stack) */
 	orig_flc = LDPAA_FD_GET_FLC(HWC_FD_ADDRESS);
@@ -2266,56 +2262,38 @@ skip_l2_remove:
 		byte_count = LW_SWAP(HWC_FD_ADDRESS + FD_FLC_DS_AS_CS_OFFSET +
 				     0, 0);
 	
-	/* In tunnel mode, optionally set the DSCP field 
-	 * This option is not supported by the SEC Era 8 hardware */	
+	/* In tunnel mode, optionally set the DSCP/TC according to the provided
+	 * outer header and update the IP checksum. This option is not supported
+	 * by the SEC Era 8 hardware. */
 	if (sap1.flags & IPSEC_FLG_ENC_DSCP_SET) {
-		/* Set the DS according to the provided outer header, 
-		 * and update the IP checksum */
-			
-		/* Note: the IP header is always at the beginning of the presented 
-		 * frame at this stage, which might have been L2 at the original 
-		 * frame. Assuming the frame is at beginning of the segment */
-		original_val = 
-				*((uint32_t *)IPSEC_GET_SEGMENT_ADDRESS(HWC_PRC_ADDRESS));
-
-		if (sap1.flags & IPSEC_FLG_OUTER_HEADER_IPV6) { /* IPv6 header */
-			/* IPv6 header: 0-3:Version, 4-11:Traffic Class (4-9: DSCP) */
-			/* New first 16 bits of the IP header, including DSCP */
+		orig_seg_addr += eth_length;
+		original_val = *(uint32_t *)orig_seg_addr;
+		if (sap1.flags & IPSEC_FLG_OUTER_HEADER_IPV6) {
+			/* IPv6 header :
+			 * 0-3:Version, 4-11:Traffic Class (4-9: DSCP) */
 			new_val = (original_val & (~IPSEC_DSCP_MASK_IPV6)) |
 					sap1.outer_hdr_dscp;
-				
-		} else { /* IPv4 */
-			/* IPv4 header: 0-3:Version, 4-7:IHL, 8-13:DSCP, 14-15:ECN */				
-			/* New first 16 bits of the IP header, including DSCP */
+		} else {
+			/* IPv4 header :
+			 * 0-3:Version, 4-7:IHL, 8-13:DSCP, 14-15:ECN */
 			new_val = (original_val & (~IPSEC_DSCP_MASK_IPV4)) |
 					sap1.outer_hdr_dscp;
-			
 			/* Update the IP header checksum */
-			cksum_update_uint32(((uint16_t *) /* uint16_t *cs_ptr */
-					((uint32_t)IPSEC_GET_SEGMENT_ADDRESS(HWC_PRC_ADDRESS) + 
-								IPSEC_IPV4_CHECKSUM_OFFSET)), 
-					original_val, /* uint32_t old_val */
-					new_val); /* int32_t new_val */
+			cksum_update_uint32(((uint16_t *)
+					     (orig_seg_addr +
+					      IPSEC_IPV4_CHECKSUM_OFFSET)),
+					    original_val, new_val);
 		}
-			
-		/*---------------------*/
-		/* ipsec_frame_encrypt */
-		/*---------------------*/
-		
-		/* Update the IP header in the segment */
-		*((uint32_t *)(IPSEC_GET_SEGMENT_ADDRESS(HWC_PRC_ADDRESS))) = 
-				new_val;
-
-		/* Call FDMA Modify */
-		fdma_modify_default_segment_data(
-				0, /* offset */
-				12);  /* uint16_t size 
-							12 bytes cover both DSCP and Checksum (IPv4)*/
-		
-	} /* End of DSCP setting */
-
-	/* 	16.	If L2 header existed in the original frame, add it back: */
-	if (eth_length) {
+		/* Update the IP header in the workspace */
+		*(uint32_t *)orig_seg_addr = new_val;
+		/* Modify 12 bytes covering the both DSCP and the
+		 * Checksum (IPv4 only) */
+		fdma_modify_default_segment_data(eth_length, 12);
+	}
+	/* 16. If L2 header existed in the original frame, add it back.
+	 * Do that onnly in the transport mode. In the tunnel mode, the L2
+	 * header, if it existed, is not removed. */
+	if (eth_length && !(sap1.flags & IPSEC_FLG_TUNNEL_MODE)) {
 		/* Note: The Ethertype was already updated before removing the 
 		 * L2 header */
 		return_val = fdma_insert_default_segment_data(
