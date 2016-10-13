@@ -110,7 +110,16 @@ enum app_key_types {
 	 * Note : IP_SRC_OFF is used only in the performances measurement
 	 * configuration. Be sure what kind of packets you'll inject. */
 	#define IP_SRC_OFF	(14 + 12)	/* IPv4 packets */
-	/*#define IP_SRC_OFF	(14 + 20)*/	/* IPv6 packets*/
+	/*#define IP_SRC_OFF	(14 + 20)*/	/* IPv6 packets */
+
+	/* 2.4 Define DSCP: In tunnel mode, if IPSEC_FLG_ENC_DSCP_SET flag is :
+	 *	- set : set the DSCP/TC according to the provided outer header
+	 *	and update the IP checksum.This option is not supported by the
+	 *	SEC Era 8 hardware.
+	 *	- cleared : SEC copies the DSCP/TC from the inner to the outer
+	 *	header. */
+	/* IPSEC_FLG_ENC_DSCP_SET - Enable, 0 - Disable */
+	#define DSCP_SET	0
 #endif
 
 /* 3 - Buffer mode */
@@ -914,11 +923,8 @@ static int ipsec_app_init(uint16_t ni_id)
 	tunnel_transport_mode = TUNEL_TRANSPORT_MODE;
 
 	/* DSCP setting, valid only for tunnel mode */
-	if (tunnel_transport_mode) {
-		/* Set DSCP in outer header */
-		/*set_dscp = IPSEC_FLG_ENC_DSCP_SET;*/
-		set_dscp = 0; /* Copy DSCP from inner to outer header */
-	}
+	if (tunnel_transport_mode)
+		set_dscp = DSCP_SET;
 
 	esn_enable = ESN_ENABLE;
 	roll_over_enable = ENCAP_ROLL_ENABLE;
@@ -990,6 +996,14 @@ static int ipsec_app_init(uint16_t ni_id)
 #else
 	fsl_print("IPsec Demo: ENCAP Sequence Number Roll Over : enabled\n");
 #endif
+
+	if (tunnel_transport_mode == IPSEC_FLG_TUNNEL_MODE) {
+#if (DSCP_SET == IPSEC_FLG_ENC_DSCP_SET)
+		fsl_print("IPsec Demo: ENCAP DSCP/TC set : enabled\n");
+#else
+		fsl_print("IPsec Demo: ENCAP DSCP/TC set : disabled\n");
+#endif
+	}
 
 #if (DECAP_ARW_SIZE == IPSEC_DEC_OPTS_ARSNONE)
 	fsl_print("IPsec Demo: DECAP anti-replay window : disabled\n");
