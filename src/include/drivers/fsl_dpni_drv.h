@@ -702,7 +702,7 @@ inline void sl_tman_expiration_task_prolog(uint16_t spid);
 	afterwards and then terminate task.
 @Retval		ENOMEM - Failed due to buffer pool depletion. It is recommended
 	calling fdma_discard_default_frame() afterwards and then terminate task.
-@Cautions      The frame to be enqueued must be open (presented)
+@Cautions	The frame to be enqueued must be open (presented)
 	when calling this function
 *//***************************************************************************/
 inline int dpni_drv_send(uint16_t ni_id, uint32_t flags);
@@ -913,7 +913,7 @@ int dpni_drv_get_connected_obj(const uint16_t aiop_niid, int *id, char type[16],
 /**************************************************************************//**
 @Function	dpni_drv_set_rx_buffer_layout
 
-@Description	Function to change SP’s attributes (specify how many headroom)
+@Description	Function to change SPs attributes (specify how many headroom)
 
 @Param[in]	ni_id   The AIOP Network Interface ID
 
@@ -929,7 +929,7 @@ int dpni_drv_set_rx_buffer_layout(uint16_t ni_id, const struct dpni_drv_buf_layo
 /**************************************************************************//**
 @Function	dpni_drv_get_rx_buffer_layout
 
-@Description	Function to receive SP’s attributes for RX buffer.
+@Description	Function to receive SPs attributes for RX buffer.
 
 @Param[in]	ni_id   The AIOP Network Interface ID
 
@@ -972,18 +972,16 @@ int dpni_drv_register_rx_buffer_layout_requirements(uint16_t head_room, uint16_t
 int dpni_drv_get_counter(uint16_t ni_id, enum dpni_drv_counter counter, uint64_t *value);
 
 /**************************************************************************//**
-@Function	dpni_drv_reset_counter
+@Function	dpni_drv_reset_statistics
 
-@Description	Function to reset DPNI counter.
+@Description	Function to clear DPNI statistics.
 
 @Param[in]	ni_id   The AIOP Network Interface ID
-
-@Param[in]	counter Type of DPNI counter.
 
 @Return	0 on success;
 	error code, otherwise. For error posix refer to \ref error_g
 *//***************************************************************************/
-int dpni_drv_reset_counter(uint16_t ni_id, enum dpni_drv_counter counter);
+int dpni_drv_reset_statistics(uint16_t ni_id);
 
 /**************************************************************************//**
 @Function	dpni_drv_get_dpni_id
@@ -1279,12 +1277,18 @@ int dpni_drv_set_qos_table(uint16_t ni_id,
 
 @Param[in]	tc_id Traffic class selection (0-7)
 
+@Param[in]	index Location in the QoS table where to insert the entry.
+	Only relevant if MASKING is enabled for QoS classification on
+	this DPNI, it is ignored for exact match. 
+	Not supported on LS1088A.
+
 @Return	0 on success;
 	error code, otherwise. For error posix refer to \ref error_g
 *//***************************************************************************/
 int dpni_drv_add_qos_entry(uint16_t ni_id,
                            const struct dpni_drv_qos_rule *cfg,
-                           uint8_t tc_id);
+                           uint8_t tc_id,
+                           uint16_t index);
 
 /**************************************************************************//**
 @Function	dpni_drv_remove_qos_entry

@@ -34,7 +34,7 @@ static int mc_status_to_error(enum mc_cmd_status status)
 	switch (status) {
 	case MC_CMD_STATUS_OK:
 		return 0;
-	case MC_CMD_STATUS_TOKEN_ERR:
+	case MC_CMD_STATUS_AUTH_ERR:
 		return -EACCES; /* Token error */
 	case MC_CMD_STATUS_NO_PRIVILEGE:
 		return -EPERM; /* Permission denied */

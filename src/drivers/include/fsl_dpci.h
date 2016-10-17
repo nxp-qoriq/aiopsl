@@ -1,4 +1,4 @@
-/* Copyright 2013-2015 Freescale Semiconductor Inc.
+/* Copyright 2013-2016 Freescale Semiconductor Inc.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -88,9 +88,9 @@ int dpci_open(struct fsl_mc_io *mc_io,
  *
  * Return:	'0' on Success; Error code otherwise.
  */
-int dpci_close(struct fsl_mc_io *mc_io,
-	       uint32_t	cmd_flags,
-	       uint16_t	token);
+int dpci_close(struct fsl_mc_io	*mc_io,
+	       uint32_t		cmd_flags,
+	       uint16_t		token);
 
 /**
  * struct dpci_cfg - Structure representing DPCI configuration
@@ -106,9 +106,10 @@ struct dpci_cfg {
 /**
  * dpci_create() - Create the DPCI object.
  * @mc_io:	Pointer to MC portal's I/O object
+ * @dprc_token:	Parent container token; '0' for default container
  * @cmd_flags:	Command flags; one or more of 'MC_CMD_FLAG_'
  * @cfg:	Configuration structure
- * @token:	Returned token; use in subsequent API calls
+ * @obj_id: returned object id
  *
  * Create the DPCI object, allocate required resources and perform required
  * initialization.
@@ -116,31 +117,39 @@ struct dpci_cfg {
  * The object can be created either by declaring it in the
  * DPL file, or by calling this function.
  *
- * This function returns a unique authentication token,
- * associated with the specific object ID and the specific MC
- * portal; this token must be used in all subsequent calls to
- * this specific object. For objects that are created using the
- * DPL file, call dpci_open() function to get an authentication
- * token first.
+ * The function accepts an authentication token of a parent
+ * container that this object should be assigned to. The token
+ * can be '0' so the object will be assigned to the default container.
+ * The newly created object can be opened with the returned
+ * object id and using the container's associated tokens and MC portals.
  *
  * Return:	'0' on Success; Error code otherwise.
  */
 int dpci_create(struct fsl_mc_io	*mc_io,
+		uint16_t		dprc_token,
 		uint32_t		cmd_flags,
 		const struct dpci_cfg	*cfg,
-		uint16_t		*token);
+		uint32_t		*obj_id);
 
 /**
  * dpci_destroy() - Destroy the DPCI object and release all its resources.
  * @mc_io:	Pointer to MC portal's I/O object
+ * @dprc_token: Parent container token; '0' for default container
  * @cmd_flags:	Command flags; one or more of 'MC_CMD_FLAG_'
- * @token:	Token of DPCI object
+ * @object_id:	The object id; it must be a valid id within the container that
+ * created this object;
+ *
+ * The function accepts the authentication token of the parent container that
+ * created the object (not the one that currently owns the object). The object
+ * is searched within parent using the provided 'object_id'.
+ * All tokens to the object must be closed before calling destroy.
  *
  * Return:	'0' on Success; error code otherwise.
  */
 int dpci_destroy(struct fsl_mc_io	*mc_io,
-		 uint32_t		cmd_flags,
-		 uint16_t		token);
+		 uint16_t		dprc_token,
+		uint32_t		cmd_flags,
+		uint32_t		object_id);
 
 /**
  * dpci_enable() - Enable the DPCI, allow sending and receiving frames.
@@ -150,9 +159,9 @@ int dpci_destroy(struct fsl_mc_io	*mc_io,
  *
  * Return:	'0' on Success; Error code otherwise.
  */
-int dpci_enable(struct fsl_mc_io *mc_io,
-		uint32_t	cmd_flags,
-		uint16_t	token);
+int dpci_enable(struct fsl_mc_io	*mc_io,
+		uint32_t		cmd_flags,
+		uint16_t		token);
 
 /**
  * dpci_disable() - Disable the DPCI, stop sending and receiving frames.
@@ -162,9 +171,9 @@ int dpci_enable(struct fsl_mc_io *mc_io,
  *
  * Return:	'0' on Success; Error code otherwise.
  */
-int dpci_disable(struct fsl_mc_io *mc_io,
-		 uint32_t	cmd_flags,
-		 uint16_t	token);
+int dpci_disable(struct fsl_mc_io	*mc_io,
+		 uint32_t		cmd_flags,
+		 uint16_t		token);
 
 /**
  * dpci_is_enabled() - Check if the DPCI is enabled.
@@ -178,7 +187,7 @@ int dpci_disable(struct fsl_mc_io *mc_io,
 int dpci_is_enabled(struct fsl_mc_io	*mc_io,
 		    uint32_t		cmd_flags,
 		    uint16_t		token,
-		    int		*en);
+		    int			*en);
 
 /**
  * dpci_reset() - Reset the DPCI, returns the object to initial state.
@@ -376,20 +385,10 @@ int dpci_clear_irq_status(struct fsl_mc_io	*mc_io,
 /**
  * struct dpci_attr - Structure representing DPCI attributes
  * @id:		DPCI object ID
- * @version:	DPCI version
  * @num_of_priorities:	Number of receive priorities
  */
 struct dpci_attr {
 	int id;
-	/**
-	 * struct version - Structure representing DPCI attributes
-	 * @major:	DPCI major version
-	 * @minor:	DPCI minor version
-	 */
-	struct {
-		uint16_t major;
-		uint16_t minor;
-	} version;
 	uint8_t num_of_priorities;
 };
 
@@ -445,10 +444,10 @@ int dpci_get_peer_attributes(struct fsl_mc_io		*mc_io,
  *
  * Return:	'0' on Success; Error code otherwise.
  */
-int dpci_get_link_state(struct fsl_mc_io *mc_io,
-			uint32_t	cmd_flags,
-			uint16_t	token,
-			int		*up);
+int dpci_get_link_state(struct fsl_mc_io	*mc_io,
+			uint32_t		cmd_flags,
+			uint16_t		token,
+			int			*up);
 
 /**
  * enum dpci_dest - DPCI destination types
@@ -590,5 +589,19 @@ int dpci_get_tx_queue(struct fsl_mc_io		*mc_io,
 		      uint16_t			token,
 		      uint8_t			priority,
 		      struct dpci_tx_queue_attr	*attr);
+
+/**
+ * dpci_get_api_version() - Get communication interface API version
+ * @mc_io:  Pointer to MC portal's I/O object
+ * @cmd_flags:	Command flags; one or more of 'MC_CMD_FLAG_'
+ * @major_ver:	Major version of data path communication interface API
+ * @minor_ver:	Minor version of data path communication interface API
+ *
+ * Return:  '0' on Success; Error code otherwise.
+ */
+int dpci_get_api_version(struct fsl_mc_io	*mc_io,
+			 uint32_t		cmd_flags,
+			 uint16_t		*major_ver,
+			 uint16_t		*minor_ver);
 
 #endif /* __FSL_DPCI_H */

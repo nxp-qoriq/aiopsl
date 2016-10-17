@@ -779,6 +779,7 @@ __COLD_CODE static int dpci_for_mc_add(struct mc_dprc *dprc)
 {
 	struct dpci_cfg dpci_cfg;
 	uint16_t dpci = 0;
+	uint32_t dpci_temp_id = 0;
 	struct dpci_rx_queue_cfg queue_cfg;
 	struct dprc_endpoint endpoint1 ;
 	struct dprc_endpoint endpoint2;
@@ -791,7 +792,9 @@ __COLD_CODE static int dpci_for_mc_add(struct mc_dprc *dprc)
 
 	dpci_cfg.num_of_priorities = 2;
 
-	err = dpci_create(&dprc->io, 0, &dpci_cfg, &dpci);
+	err = dpci_create(&dprc->io, dprc->token,0, &dpci_cfg, &dpci_temp_id);
+	ASSERT_COND(!err);
+	err = dpci_open(&dprc->io, 0, (int)dpci_temp_id, &dpci);
 	ASSERT_COND(!err);
 
 	/* Get attributes just for dpci id fqids are not there yet */
@@ -816,6 +819,7 @@ __COLD_CODE static int dpci_for_mc_add(struct mc_dprc *dprc)
 
 	err = dprc_connect(&dprc->io, 0, dprc->token, &endpoint1, 
 	                   &endpoint2, &connection_cfg);
+
 	if (err) {
 		pr_err("dprc_connect failed\n");
 	}

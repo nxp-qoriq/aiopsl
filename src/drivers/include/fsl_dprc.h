@@ -43,7 +43,7 @@ struct fsl_mc_io;
  * container, in case the ICID is not selected by the user and should be
  * allocated by the DPRC from the pool of ICIDs.
  */
-#define DPRC_GET_ICID_FROM_POOL			(uint16_t)(~(0))
+#define DPRC_GET_ICID_FROM_POOL		(uint16_t)(~(0))
 
 /**
  * Set this value as the portal_id value in dprc_cfg structure when creating a
@@ -177,9 +177,9 @@ int dprc_create_container(struct fsl_mc_io	*mc_io,
 
 /**
  * dprc_destroy_container() - Destroy child container.
- * @mc_io:	Pointer to MC portal's I/O object
- * @cmd_flags:	Command flags; one or more of 'MC_CMD_FLAG_'
- * @token:	Token of DPRC object
+ * @mc_io:		Pointer to MC portal's I/O object
+ * @cmd_flags:		Command flags; one or more of 'MC_CMD_FLAG_'
+ * @token:		Token of DPRC object
  * @child_container_id:	ID of the container to destroy
  *
  * This function terminates the child container, so following this call the
@@ -204,9 +204,9 @@ int dprc_destroy_container(struct fsl_mc_io	*mc_io,
 
 /**
  * dprc_reset_container - Reset child container.
- * @mc_io:	Pointer to MC portal's I/O object
- * @cmd_flags:	Command flags; one or more of 'MC_CMD_FLAG_'
- * @token:	Token of DPRC object
+ * @mc_io:		Pointer to MC portal's I/O object
+ * @cmd_flags:		Command flags; one or more of 'MC_CMD_FLAG_'
+ * @token:		Token of DPRC object
  * @child_container_id:	ID of the container to reset
  *
  * In case a software context crashes or becomes non-responsive, the parent
@@ -236,7 +236,7 @@ int dprc_reset_container(struct fsl_mc_io	*mc_io,
 /**
  * IRQ index
  */
-#define DPRC_IRQ_INDEX          0
+#define DPRC_IRQ_INDEX			0
 
 /**
  * Number of dprc's IRQs
@@ -365,10 +365,9 @@ int dprc_get_irq_enable(struct fsl_mc_io	*mc_io,
  * @cmd_flags:	Command flags; one or more of 'MC_CMD_FLAG_'
  * @token:	Token of DPRC object
  * @irq_index:	The interrupt index to configure
- * @mask:	event mask to trigger interrupt;
- *			each bit:
- *				0 = ignore event
- *				1 = consider event for asserting IRQ
+ * @mask:	event mask to trigger interrupt; each bit:
+ *			0 = ignore event
+ *			1 = consider event for asserting IRQ
  *
  * Every interrupt can have up to 32 causes and the interrupt model supports
  * masking/unmasking each cause independently
@@ -425,8 +424,8 @@ int dprc_get_irq_status(struct fsl_mc_io	*mc_io,
  * @token:	Token of DPRC object
  * @irq_index:	The interrupt index to configure
  * @status:	bits to clear (W1C) - one bit per cause:
- *					0 = don't change
- *					1 = clear status bit
+ *			0 = don't change
+ *			1 = clear status bit
  *
  * Return:	'0' on Success; Error code otherwise.
  */
@@ -442,22 +441,12 @@ int dprc_clear_irq_status(struct fsl_mc_io	*mc_io,
  * @icid: Container's ICID
  * @portal_id: Container's portal ID
  * @options: Container's options as set at container's creation
- * @version: DPRC version
  */
 struct dprc_attributes {
 	int		container_id;
 	uint16_t	icid;
 	int		portal_id;
 	uint64_t	options;
-	/**
-	 * struct version - DPRC version
-	 * @major: DPRC major version
-	 * @minor: DPRC minor version
-	 */
-	struct {
-		uint16_t major;
-		uint16_t minor;
-	} version;
 };
 
 /**
@@ -467,7 +456,7 @@ struct dprc_attributes {
  * @token:	Token of DPRC object
  * @attributes:	Returned container attributes
  *
- * Return:     '0' on Success; Error code otherwise.
+ * Return:	'0' on Success; Error code otherwise.
  */
 int dprc_get_attributes(struct fsl_mc_io	*mc_io,
 			uint32_t		cmd_flags,
@@ -499,8 +488,8 @@ int dprc_get_attributes(struct fsl_mc_io	*mc_io,
  *
  * @warning	Only the parent container is allowed to change a child policy.
  */
-int dprc_set_res_quota(struct fsl_mc_io *mc_io,
-		       uint32_t	cmd_flags,
+int dprc_set_res_quota(struct fsl_mc_io	*mc_io,
+		       uint32_t		cmd_flags,
 		       uint16_t		token,
 		       int		child_container_id,
 		       char		*type,
@@ -521,8 +510,8 @@ int dprc_set_res_quota(struct fsl_mc_io *mc_io,
  *
  * Return:	'0' on Success; Error code otherwise.
  */
-int dprc_get_res_quota(struct fsl_mc_io *mc_io,
-		       uint32_t	cmd_flags,
+int dprc_get_res_quota(struct fsl_mc_io	*mc_io,
+		       uint32_t		cmd_flags,
 		       uint16_t		token,
 		       int		child_container_id,
 		       char		*type,
@@ -681,7 +670,7 @@ int dprc_get_pool(struct fsl_mc_io	*mc_io,
 int dprc_get_obj_count(struct fsl_mc_io	*mc_io,
 		       uint32_t		cmd_flags,
 		       uint16_t		token,
-		       int			*obj_count);
+		       int		*obj_count);
 
 /**
  * Objects Attributes Flags
@@ -723,8 +712,8 @@ struct dprc_obj_desc {
 	uint16_t	vendor;
 	uint16_t	ver_major;
 	uint16_t	ver_minor;
-	uint8_t	irq_count;
-	uint8_t	region_count;
+	uint8_t		irq_count;
+	uint8_t		region_count;
 	uint32_t	state;
 	char		label[16];
 	uint16_t	flags;
@@ -765,11 +754,11 @@ int dprc_get_obj(struct fsl_mc_io	*mc_io,
  *
  */
 int dprc_get_obj_desc(struct fsl_mc_io		*mc_io,
-		      uint32_t		cmd_flags,
-			uint16_t		token,
-			char			*obj_type,
-			int			obj_id,
-			struct dprc_obj_desc	*obj_desc);
+		      uint32_t			cmd_flags,
+		      uint16_t			token,
+		      char			*obj_type,
+		      int			obj_id,
+		      struct dprc_obj_desc	*obj_desc);
 
 /**
  * dprc_set_obj_irq() - Set IRQ information for object to trigger an interrupt.
@@ -826,8 +815,8 @@ int dprc_get_obj_irq(struct fsl_mc_io		*mc_io,
  *
  * Return:	'0' on Success; Error code otherwise.
  */
-int dprc_get_res_count(struct fsl_mc_io *mc_io,
-		       uint32_t	cmd_flags,
+int dprc_get_res_count(struct fsl_mc_io	*mc_io,
+		       uint32_t		cmd_flags,
 		       uint16_t		token,
 		       char		*type,
 		       int		*res_count);
@@ -944,9 +933,9 @@ int dprc_get_obj_region(struct fsl_mc_io	*mc_io,
 int dprc_set_obj_label(struct fsl_mc_io	*mc_io,
 		       uint32_t		cmd_flags,
 		       uint16_t		token,
-		       char			*obj_type,
-		       int			obj_id,
-		       char			*label);
+		       char		*obj_type,
+		       int		obj_id,
+		       char		*label);
 
 /**
  * struct dprc_endpoint - Endpoint description for link connect/disconnect
@@ -1018,7 +1007,7 @@ int dprc_disconnect(struct fsl_mc_io		*mc_io,
 * @state:	Returned link state:
 *           1 - link is up;
 *           0 - link is down;
-*           -1 - no connection (endpoint2 information is irrelevant)
+*          -1 - no connection (endpoint2 information is irrelevant)
 *
 * Return:     '0' on Success; -ENAVAIL if connection does not exist.
 */
@@ -1028,5 +1017,19 @@ int dprc_get_connection(struct fsl_mc_io		*mc_io,
 			const struct dprc_endpoint	*endpoint1,
 			struct dprc_endpoint		*endpoint2,
 			int				*state);
+
+/**
+ * dprc_get_api_version() - Get Data Path Resource Container API version
+ * @mc_io:  Pointer to MC portal's I/O object
+ * @cmd_flags:	Command flags; one or more of 'MC_CMD_FLAG_'
+ * @major_ver:	Major version of data path resource container API
+ * @minor_ver:	Minor version of data path resource container API
+ *
+ * Return:  '0' on Success; Error code otherwise.
+ */
+int dprc_get_api_version(struct fsl_mc_io *mc_io,
+			 uint32_t cmd_flags,
+			 uint16_t *major_ver,
+			 uint16_t *minor_ver);
 
 #endif /* _FSL_DPRC_H */
