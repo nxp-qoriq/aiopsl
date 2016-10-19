@@ -183,45 +183,43 @@ create_aiop_container()
 	restool_cmd "dpbp create" None ac_DPRC
 
 	ACTUAL_MAC="00:00:00:00:00:06"
-	MAX_SENDERS=8
-	DPNI_OPTIONS="DPNI_OPT_MULTICAST_FILTER,DPNI_OPT_UNICAST_FILTER,DPNI_OPT_TX_CONF_DISABLED,DPNI_OPT_DIST_HASH"
-	MAX_TCS=1
-	MAX_DIST_PER_TC=8
-	MAX_DIST_KEY_SIZE=4
-	DPCON_PRIORITIES=8
-	DPIO_PRIORITIES=8
-	DPCI_PRIORITIES=2
+	NUM_QUEUES=1
+	DPNI_OPTIONS=""
+	NUM_TCS=1
+	MAC_FILTER_ENTRIES=16
+	VLAN_FILTER_ENTRIES=0
+	FS_ENTRIES=1
+	QOS_ENTRIES=1
 
 	log_debug "Creating DPNI"
-	restool_cmd "dpni create --mac-addr=$ACTUAL_MAC \
-				--max-senders=$MAX_SENDERS \
+	restool_cmd "dpni create --num-queues=$NUM_QUEUES \
 				--options=$DPNI_OPTIONS \
-				--max-tcs=$MAX_TCS \
-				--max-dist-per-tc=$MAX_DIST_PER_TC \
-				--max-dist-key-size=$MAX_DIST_KEY_SIZE \
+				--num-tcs=$NUM_TCS \
+				--fs-entries=$FS_ENTRIES \
+				--qos-entries=$QOS_ENTRIES \
 				" atc_DPNI1 ac_DPRC
+	restool_cmd "dpni update $atc_DPNI1 --mac-addr=$ACTUAL_MAC" None None
 
 	log_info "Connecting $atc_DPNI1<------->$DPMAC1"
 	restool_cmd "dprc connect dprc.1 --endpoint1=$atc_DPNI1 --endpoint2=$DPMAC1" None None
 
 	ACTUAL_MAC="00:00:00:00:00:07"
-	MAX_SENDERS=8
-	DPNI_OPTIONS="DPNI_OPT_MULTICAST_FILTER,DPNI_OPT_UNICAST_FILTER,DPNI_OPT_TX_CONF_DISABLED,DPNI_OPT_DIST_HASH"
-	MAX_TCS=1
-	MAX_DIST_PER_TC=8
-	MAX_DIST_KEY_SIZE=4
-	DPCON_PRIORITIES=8
-	DPIO_PRIORITIES=8
-	DPCI_PRIORITIES=2
+	NUM_QUEUES=1
+	DPNI_OPTIONS=""
+	NUM_TCS=1
+	MAC_FILTER_ENTRIES=16
+	VLAN_FILTER_ENTRIES=0
+	FS_ENTRIES=1
+	QOS_ENTRIES=1
 
 	log_debug "Creating DPNI"
-	restool_cmd "dpni create --mac-addr=$ACTUAL_MAC \
-				--max-senders=$MAX_SENDERS \
+	restool_cmd "dpni create --num-queues=$NUM_QUEUES \
 				--options=$DPNI_OPTIONS \
-				--max-tcs=$MAX_TCS \
-				--max-dist-per-tc=$MAX_DIST_PER_TC \
-				--max-dist-key-size=$MAX_DIST_KEY_SIZE \
+				--num-tcs=$NUM_TCS \
+				--fs-entries=$FS_ENTRIES \
+				--qos-entries=$QOS_ENTRIES \
 				" atc_DPNI2 ac_DPRC
+	restool_cmd "dpni update $atc_DPNI2 --mac-addr=$ACTUAL_MAC" None None
 
 	log_info "Connecting $atc_DPNI2<------->$DPMAC2"
 	restool_cmd "dprc connect dprc.1 --endpoint1=$atc_DPNI2 --endpoint2=$DPMAC2" None None
@@ -241,7 +239,7 @@ create_aiopt_container()
 		log_error "AIOP Container doesn't exist"
 	fi
 	log_debug "Creating DPAIOP Object"
-	restool_cmd "dpaiop create --aiop-id=0 --aiop-container=$ac_DPRC" None atc_DPRC
+	restool_cmd "dpaiop create --aiop-container=$ac_DPRC" None atc_DPRC
 
 	log_debug "Creating DPMCP Object"
 	restool_cmd "dpmcp create" None atc_DPRC
@@ -255,6 +253,8 @@ main()
 	if [ ! "$(which restool)" ]; then
         echo "restool is not installed. Aborting."
         exit 1
+        else
+        restool -v -m
 	fi
 
 	echo "Disconnecting DPNIs to create AIOP connections"
