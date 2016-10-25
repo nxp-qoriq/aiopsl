@@ -1956,23 +1956,10 @@ IPSEC_CODE_PLACEMENT int ipsec_frame_encrypt(
 	/* 	4.	Identify if L2 header exist in the frame: */
 	/* Check if Ethernet/802.3 MAC header exist and remove it */
 	if (PARSER_IS_ETH_MAC_DEFAULT()) { /* Check if Ethernet header exist */
-		/* Ethernet header length and indicator */
+		/* Ethernet header length */
 		eth_length = (uint8_t)((uint8_t *)PARSER_GET_OUTER_IP_OFFSET_DEFAULT() -
 				       (uint8_t *)PARSER_GET_ETH_OFFSET_DEFAULT());
-
-		/* For tunnel mode, update the Ethertype field according to the 
-		 * outer header (IPv4/Ipv6), since after SEC encryption
-		 * the parser results are not valid any more */
 		if (sap1.flags & IPSEC_FLG_TUNNEL_MODE) {
-			/* Update the Ethertype according to the outher IP header */
-			if (sap1.flags & IPSEC_FLG_OUTER_HEADER_IPV6) {
-				*((uint16_t *)PARSER_GET_LAST_ETYPE_POINTER_DEFAULT()) =
-						IPSEC_ETHERTYPE_IPV6;
-			} else {
-				*((uint16_t *)PARSER_GET_LAST_ETYPE_POINTER_DEFAULT()) =
-						IPSEC_ETHERTYPE_IPV4;
-			}
-
 			/*
 			 * SEC will handle L2 header copy in tunnel mode, it's
 			 * more efficient than using the FDMA accelerator.
@@ -2261,10 +2248,18 @@ skip_l2_remove:
 	if (!(sap1.flags & IPSEC_FLG_CIPHER_NULL))
 		byte_count = LW_SWAP(HWC_FD_ADDRESS + FD_FLC_DS_AS_CS_OFFSET +
 				     0, 0);
-	
-	/* In tunnel mode, optionally set the DSCP/TC according to the provided
-	 * outer header and update the IP checksum. This option is not supported
-	 * by the SEC Era 8 hardware. */
+
+	/* In tunnel mode :
+	 *	- optionally set the DSCP/TC according to the provided outer
+	 *	header and update the IP checksum. This option is not supported
+	 *	by the SEC Era 8 hardware.
+	 *	- update the ETYPE field according to the outer header
+	 *	(IPv4/Ipv6) since after SEC encryption :
+	 *		- the parser results are no more valid,
+	 *		- the shared descriptor copies ETH header of the
+	 *		original packet into the encrypted packet, resulting an
+	 *		incorrect packet if the outer header is IPv4/IPv6 and
+	 *		the packet to encrypt is IPv6/Ipv4. */
 	if (sap1.flags & IPSEC_FLG_ENC_DSCP_SET) {
 		orig_seg_addr += eth_length;
 		original_val = *(uint32_t *)orig_seg_addr;
@@ -2286,10 +2281,24 @@ skip_l2_remove:
 		}
 		/* Update the IP header in the workspace */
 		*(uint32_t *)orig_seg_addr = new_val;
-		/* Modify 12 bytes covering the both DSCP and the
+		/* Modify 14 bytes covering the ETYPE, DSCP and the
 		 * Checksum (IPv4 only) */
-		fdma_modify_default_segment_data(eth_length, 12);
+		*(uint16_t *)(orig_seg_addr - 2) =
+				(sap1.flags & IPSEC_FLG_OUTER_HEADER_IPV6) ?
+						IPSEC_ETHERTYPE_IPV6 :
+						IPSEC_ETHERTYPE_IPV4;
+		fdma_modify_default_segment_data((uint16_t)
+						 (eth_length - 2), 14);
+	} else if (sap1.flags & IPSEC_FLG_TUNNEL_MODE) {
+		/* Update the ETYPE according to the outer IP header */
+		*(uint16_t *)(orig_seg_addr + eth_length - 2) =
+				(sap1.flags & IPSEC_FLG_OUTER_HEADER_IPV6) ?
+						IPSEC_ETHERTYPE_IPV6 :
+						IPSEC_ETHERTYPE_IPV4;
+		/* Modify ETYPE bytes */
+		fdma_modify_default_segment_data((uint16_t)(eth_length - 2), 2);
 	}
+
 	/* 16. If L2 header existed in the original frame, add it back.
 	 * Do that onnly in the transport mode. In the tunnel mode, the L2
 	 * header, if it existed, is not removed. */
