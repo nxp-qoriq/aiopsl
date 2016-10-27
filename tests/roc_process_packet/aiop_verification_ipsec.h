@@ -227,18 +227,15 @@ struct ipsec_del_sa_descriptor_command {
 *//****************************************************************************/
 struct ipsec_get_lifetime_stats_command {
 	uint32_t opcode;
-	//uint32_t ipsec_handle_ptr; /* pointer of descriptor handle */
 	uint32_t sa_desc_id; /* Descriptor ID, of handles array in shared RAM */
-
 	uint64_t kilobytes;
 	uint64_t packets;
+	uint64_t dropped_pkts;
 	uint32_t sec;
 	
 	/** Returned Value: presentation context. */
 	struct presentation_context prc;
-
 	int32_t status; /* Function call return status */
-	
 	/** Workspace address of the last returned status.
 	 * Should be defined in the TLS area. */
 	uint32_t status_addr;
@@ -250,17 +247,14 @@ struct ipsec_get_lifetime_stats_command {
 *//****************************************************************************/
 struct ipsec_decr_lifetime_counters_command {
 	uint32_t opcode;
-	//uint32_t ipsec_handle_ptr; /* pointer of descriptor handle */
 	uint32_t sa_desc_id; /* Descriptor ID, of handles array in shared RAM */
-	
 	uint32_t kilobytes_decr_val;
 	uint32_t packets_decr_val;
-		
+	uint32_t dropped_pkts_decr_val;
+
 	/** Returned Value: presentation context. */
 	struct presentation_context prc;
-
 	int32_t status; /* Function call return status */
-	
 	/** Workspace address of the last returned status.
 	 * Should be defined in the TLS area. */
 	uint32_t status_addr;

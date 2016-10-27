@@ -178,36 +178,33 @@ uint16_t  aiop_verification_ipsec(uint32_t data_addr)
 		struct ipsec_get_lifetime_stats_command *str =
 			(struct ipsec_get_lifetime_stats_command *)data_addr;
 		
-		str->status = ipsec_get_lifetime_stats(
-				//*((uint64_t *)(str->ipsec_handle_ptr)),
-				sa_desc_handle[str->sa_desc_id],
-				&(str-> kilobytes),
-				&(str-> packets),
-				&(str-> sec)
-				);
-		
+		str->status = ipsec_get_lifetime_stats
+				(sa_desc_handle[str->sa_desc_id],
+				 &str->kilobytes, &str->packets,
+				 &str->dropped_pkts, &str->sec);
+
 		*((int32_t *)(str->status_addr)) = str->status;
-		str->prc = *((struct presentation_context *) HWC_PRC_ADDRESS);
-		str_size = (uint16_t)sizeof(struct ipsec_get_lifetime_stats_command);
-		
+		str->prc = *((struct presentation_context *)HWC_PRC_ADDRESS);
+		str_size = (uint16_t)
+				sizeof(struct ipsec_get_lifetime_stats_command);
 		break;
 	}
 	
 	case IPSEC_DECR_LIFETIME_COUNTERS_CMD:
 	{
 		struct ipsec_decr_lifetime_counters_command *str =
-			(struct ipsec_decr_lifetime_counters_command *)data_addr;
+		(struct ipsec_decr_lifetime_counters_command *)data_addr;
 		
-		str->status = ipsec_decr_lifetime_counters(
-				sa_desc_handle[str->sa_desc_id],
-				str->kilobytes_decr_val,
-				str->packets_decr_val
-				);
-		
+		str->status = ipsec_decr_lifetime_counters
+				(sa_desc_handle[str->sa_desc_id],
+				 str->kilobytes_decr_val,
+				 str->packets_decr_val,
+				 str->dropped_pkts_decr_val);
+
 		*((int32_t *)(str->status_addr)) = str->status;
 		str->prc = *((struct presentation_context *) HWC_PRC_ADDRESS);
-		str_size = (uint16_t)sizeof(struct ipsec_decr_lifetime_counters_command);
-		
+		str_size = (uint16_t)
+			sizeof(struct ipsec_decr_lifetime_counters_command);
 		break;
 	}
 	
