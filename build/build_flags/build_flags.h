@@ -165,4 +165,14 @@
 #endif
 
 
+/*
+ * sNIC module
+ *
+ * #define ENABLE_SNIC
+ *
+ * It enables/disables the sNIC module
+ * It initializes the IPR, IPF, IPSec modules even when it's not used.
+ * Disabled by default.
+ */
+
 #endif /* __BUILD_FLAGS_H */

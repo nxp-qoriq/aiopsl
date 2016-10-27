@@ -1022,6 +1022,7 @@ int snic_ipsec_sa_get_stats(struct snic_cmd_data *cmd_data)
 		return err;
 }
 
+#ifdef ENABLE_SNIC
 int aiop_snic_early_init(void)
 {	int err;
 
@@ -1067,6 +1068,7 @@ void aiop_snic_free(void)
 			snic_tmi_id, NULL, NULL);
 	
 }
+#endif	/* ENABLE_SNIC */
 
 void snic_tman_confirm_cb(tman_arg_8B_t arg1, tman_arg_2B_t arg2)
 {

@@ -62,9 +62,12 @@ extern void tman_timer_callback(void);
 
 extern void tman_timer_callback(void);
 extern int ipr_init(void);
+
+#ifdef ENABLE_SNIC
 extern int aiop_snic_init(void);
 extern int aiop_snic_early_init(void);
 extern void aiop_snic_free(void);
+#endif	/* ENABLE_SNIC */
 
 #endif /* AIOP_VERIF */
 
@@ -141,7 +144,10 @@ __COLD_CODE int aiop_sl_early_init(void){
 	/* (SYS_NUM_OF_KEYIDS+3) rounded up modulu 64 - 8 */
 	err |= slab_register_context_buffer_requirements(1, 1, 312,
 			2, mem_pid, 0, 0);
+
+#ifdef ENABLE_SNIC
 	err |= aiop_snic_early_init();
+#endif	/* ENABLE_SNIC */
 
 	if(err){
 		pr_err("Failed to register context buffers\n");
@@ -267,7 +273,10 @@ int aiop_sl_init(void)
 	if (status)
 		return status; /* TODO */
 
+#ifdef ENABLE_SNIC
 	status = aiop_snic_init();
+#endif	/* ENABLE_SNIC */
+
 	return status;
 #endif
 	return 0;
@@ -289,7 +298,9 @@ void aiop_sl_free(void)
 	keygen_kcr_delete(KEYGEN_ACCEL_ID_CTLU,
 			ipr_global_parameters1.ipr_key_id_ipv6);
 
+#ifdef ENABLE_SNIC
 	aiop_snic_free();
+#endif	/* ENABLE_SNIC */
 #endif
 
 	/* TODO status ? */

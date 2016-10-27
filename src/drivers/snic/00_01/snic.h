@@ -125,9 +125,13 @@ struct snic_params {
 /** @} */ /* end of SNIC_STRUCTS */
 
 void snic_process_packet(void);
+
+#ifdef ENABLE_SNIC
 int aiop_snic_init(void);
 int aiop_snic_early_init(void);
 void aiop_snic_free(void);
+#endif	/* ENABLE_SNIC */
+
 int snic_ipf(struct snic_params *snic);
 int snic_ipr(struct snic_params *snic);
 int snic_add_vlan(void);
