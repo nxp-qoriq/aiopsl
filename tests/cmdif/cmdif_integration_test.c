@@ -119,7 +119,10 @@ static int dpci_dynamic_rm_test()
 	} while ((volatile int32_t)dpci_down_ev_count < \
 		(volatile int32_t)(dpci_rm_count * 2));
 
-	err = dpci_destroy(&dprc->io, 0, token);
+	err = dpci_destroy(&dprc->io, dprc->token, 0, token);
+	ASSERT_COND(!err);
+
+	err = dpci_close(&dprc->io, 0, token);
 	ASSERT_COND(!err);
 
 	/* Take 2 last DPCIs from dpci_dynamic_add_test */
@@ -130,17 +133,20 @@ static int dpci_dynamic_rm_test()
 	err = dpci_drv_disable((uint32_t)attr_c.id);
 	ASSERT_COND(!err);
 
-	err = dpci_destroy(&dprc->io, 0, token);
+	err = dpci_destroy(&dprc->io, dprc->token, 0, token);
+	ASSERT_COND(!err);
+
+	err = dpci_close(&dprc->io, 0, token);
 	ASSERT_COND(!err);
 
 	err = dprc_drv_scan();
 	ASSERT_COND(!err);
-	
+
 	err = dpci_mng_find((uint32_t)attr_c.id);
 	ASSERT_COND(err < 0);
 	err = dpci_mng_find((uint32_t)attr.id);
 	ASSERT_COND(err < 0);
-	
+
 	return 0;
 }
 
@@ -148,7 +154,9 @@ static int dpci_dynamic_add_test()
 {
 	struct dpci_cfg dpci_cfg;
 	uint16_t dpci = 0;
+	uint32_t dpci_temp_id = 0;
 	uint16_t dpci_c = 0;
+	uint32_t dpci_temp_id_c = 0;
 	struct dprc_endpoint endpoint1 ;
 	struct dprc_endpoint endpoint2;
 	struct dprc_connection_cfg connection_cfg = { 0 };
@@ -167,7 +175,10 @@ static int dpci_dynamic_add_test()
 	/* DPCI 1 */
 	dpci_cfg.num_of_priorities = 2;
 
-	err = dpci_create(&dprc->io, 0, &dpci_cfg, &dpci);
+	err = dpci_create(&dprc->io, dprc->token, 0, &dpci_cfg, &dpci_temp_id);
+	ASSERT_COND(!err);
+
+	err = dpci_open(&dprc->io, 0, (int)dpci_temp_id, &dpci);
 	ASSERT_COND(!err);
 
 	err = dpci_get_attributes(&dprc->io, 0, dpci, &attr);
@@ -178,7 +189,10 @@ static int dpci_dynamic_add_test()
 	/* DPCI 2 */
 	dpci_cfg.num_of_priorities = 2;
 
-	err = dpci_create(&dprc->io, 0, &dpci_cfg, &dpci_c);
+	err = dpci_create(&dprc->io, dprc->token, 0, &dpci_cfg, &dpci_temp_id_c);
+	ASSERT_COND(!err);
+
+	err = dpci_open(&dprc->io, 0, (int)dpci_temp_id_c, &dpci_c);
 	ASSERT_COND(!err);
 
 	err = dpci_get_attributes(&dprc->io, 0, dpci_c, &attr_c);
@@ -198,7 +212,7 @@ static int dpci_dynamic_add_test()
 	strcpy(endpoint2.type, "dpci");
 
 	pr_debug("Connect %d to %d\n", attr.id, attr_c.id);
-	
+
 	err = dprc_connect(&dprc->io, 0, dprc->token, &endpoint1, &endpoint2, 
 	                   &connection_cfg);
 	if (err) {
@@ -586,7 +600,7 @@ static int ctrl_cb0(void *dev, uint16_t cmd, uint32_t size,
 		         ic.bdi_flags);
 		pr_debug("AIOP ICID = 0x%x dma flags = 0x%x\n", ic.icid, \
 		         ic.dma_flags);
-		
+
 		icontext_ws_set(&ic);
 		get_default_amq_attributes(&amq);
 		ASSERT_COND(ic.icid == amq.icid);
@@ -667,7 +681,7 @@ static int app_dpci_test()
 	if (err) {
 		pr_err("server get and set ep err = %d\n");
 	}
-	
+
 	flags = DPCI_DRV_EP_CLIENT;
 	err |= dpci_drv_get_initial_presentation(flags, &init_presentation2);
 	if (init_presentation1.adpca != init_presentation2.adpca)
@@ -762,7 +776,7 @@ int app_init(void)
 		ASSERT_COND(!err && tman_addr);
 	}
 
-	/* 
+	/*
 	 * Remove it because it is no longer part of DPCI testing
 	 * TODO when enabling, it cause issues in MC server cmdif test during
 	 * cmdif_open()

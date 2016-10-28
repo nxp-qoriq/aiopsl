@@ -708,6 +708,7 @@ void ipsec_print_stats_bu (ipsec_handle_t desc_handle) {
 	int err = 0;
 	uint64_t kilobytes;
 	uint64_t packets;
+	uint64_t dropped_pkts;
 	uint32_t sec;
 	uint32_t sequence_number;
 	uint32_t extended_sequence_number;
@@ -719,6 +720,7 @@ void ipsec_print_stats_bu (ipsec_handle_t desc_handle) {
 		desc_handle,
 		&kilobytes,
 		&packets,
+		&dropped_pkts,
 		&sec);
 	fsl_print("IPsec Demo: ipsec_get_lifetime_stats():\n");
 
