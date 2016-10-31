@@ -137,7 +137,8 @@ struct platform_app_params g_app_params =
  APP_DPNI_BUF_SIZE_IN_POOL,
  APP_DPNI_BUF_ALIGN_IN_POOL,
  APP_INIT_APP_MAX_NUM,
- TRUE	/* disable backup pool for DPNI for better performance */
+ DPNI_BACKUP_POOL_DISABLE	/* disable backup pool for DPNI for better
+				performance */
 };
 
 /* TODO set good default values */
@@ -184,6 +185,7 @@ struct aiop_init_info g_init_data =
   SRU_SIZE,
   APP_INIT_TASKS_PER_CORE,
   APP_DPNI_SPID_COUNT, /*SPID_COUNT*/
+  32,
   {0}/* reserved */
  }
 
