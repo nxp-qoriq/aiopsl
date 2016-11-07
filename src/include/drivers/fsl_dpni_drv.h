@@ -214,7 +214,6 @@ struct dpni_drv_tx_checksum {
 	uint16_t l4_checksum_gen;
 };
 
-
 /* Set to select color aware mode (otherwise - color blind) */
 #define DPNI_DRV_POLICER_OPT_COLOR_AWARE         0x00000001
 /* Set to discard frame with RED color */
@@ -421,6 +420,25 @@ struct dpni_drv_early_drop_cfg {
 	struct dpni_drv_wred red;
 	/* tail drop threshold */
 	uint32_t tail_drop_threshold;
+};
+
+/** Get PEB free buffers */
+#define DPNI_DRV_PEB_FREE_BUFS		0x01
+
+/** Get backup (DDR) free buffers */
+#define DPNI_DRV_BACKUP_FREE_BUFS	0x02
+
+/**************************************************************************//**
+@Description	struct dpni_drv_free_bufs - Structure representing a snapshot
+		of the current fill level (number of free buffers) of the DPNI
+		configured buffer pools.
+
+*//***************************************************************************/
+struct dpni_drv_free_bufs {
+	/* Number of free buffers in PEB pools */
+	uint32_t peb_bp_free_bufs;
+	/* Number of free buffers in DDR backup pools */
+	uint32_t backup_bp_free_bufs;
 };
 
 /**************************************************************************//**
@@ -1395,5 +1413,23 @@ inline uint8_t task_get_tx_tc(void);
 *//***************************************************************************/
 int dpni_drv_prepare_key_cfg(struct dpkg_profile_cfg *cfg,
                              uint8_t *key_cfg_buf);
+
+/**************************************************************************//**
+@Function	dpni_drv_get_num_free_bufs
+
+@Description	Get a snapshot of the current fill level (number of free
+		buffers) of the DPNI configured buffer pools.
+
+@Param[in]	flags :  OR-ed flags selecting the pool :
+		DPNI_DRV_PEB_FREE_BUFS, DPNI_DRV_BACKUP_FREE_BUFS.
+
+@Param[out]	free_bufs : Structure containing the current fill level.
+
+@Return	0 on success;
+	error code, otherwise. For error posix refer to \ref error_g
+*//***************************************************************************/
+int dpni_drv_get_num_free_bufs(uint32_t flags,
+			       struct dpni_drv_free_bufs *free_bufs);
+
 /** @} */ /* end of dpni_drv_g DPNI DRV group */
 #endif /* __FSL_DPNI_DRV_H */

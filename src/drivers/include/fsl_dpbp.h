@@ -444,4 +444,16 @@ int dpbp_get_api_version(struct fsl_mc_io *mc_io,
 			 uint16_t *major_ver,
 			 uint16_t *minor_ver);
 
+/**
+ * dpbp_get_num_free_bufs() - Get number of free buffers in the pool
+ * @mc_io: Pointer to MC portal's I/O object
+ * @cmd_flags: Command flags; one or more of 'MC_CMD_FLAG_'
+ * @token: Token of DPBP object
+ * @num_free_bufs: Number of free buffers
+ *
+ * Return:  '0' on Success; Error code otherwise.
+ */
+int dpbp_get_num_free_bufs(struct fsl_mc_io *mc_io, uint32_t cmd_flags,
+			   uint16_t token, uint32_t *num_free_bufs);
+
 #endif /* __FSL_DPBP_H */

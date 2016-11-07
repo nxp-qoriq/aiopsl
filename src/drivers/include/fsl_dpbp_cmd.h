@@ -60,6 +60,7 @@
 
 #define DPBP_CMDID_SET_NOTIFICATIONS            ((0x01b0 << 4) | (0x1))
 #define DPBP_CMDID_GET_NOTIFICATIONS            ((0x01b1 << 4) | (0x1))
+#define DPBP_CMDID_GET_NUM_FREE_BUFS		((0x01b2 << 4) | (0x1))
 
 /*                cmd, param, offset, width, type, arg_name */
 #define DPBP_CMD_OPEN(cmd, dpbp_id) \
@@ -175,5 +176,9 @@ do { \
 	MC_RSP_OP(cmd, 0, 0,  16, uint16_t, major);\
 	MC_RSP_OP(cmd, 0, 16, 16, uint16_t, minor);\
 } while (0)
+
+/*                cmd, param, offset, width, type, arg_name */
+#define DPBP_CMD_GET_NUM_FREE_BUFS(cmd, num_free_bufs) \
+	MC_RSP_OP(cmd, 0, 0, 32, uint32_t,  num_free_bufs)
 
 #endif /* _FSL_DPBP_CMD_H */

@@ -59,6 +59,7 @@ extern struct platform_app_params g_app_params;
  * This struct is set during dpni_drv_init and can not change in runtime
  */
 struct dpni_pools_cfg pools_params;
+
 /*buffer used for dpni_drv_set_order_scope*/
 uint8_t order_scope_buffer[PARAMS_IOVA_BUFF_SIZE];
 
@@ -987,8 +988,6 @@ static int configure_bpids_for_dpni(void)
 		if(mem_pid[i] == MEM_PART_SYSTEM_DDR || mem_pid[i] == MEM_PART_DP_DDR){
 			pools_params.pools[i].backup_pool = 1;
 		}
-
-		/* Enable all DPNI devices */
 	}
 	return 0;
 }
@@ -2427,6 +2426,67 @@ int dpni_drv_prepare_key_cfg(struct dpkg_profile_cfg *cfg,
 	if(err){
 		sl_pr_err("dpni_prepare_key_cfg failed\n");
 		return err;
+	}
+	return 0;
+}
+
+int dpni_drv_get_num_free_bufs(uint32_t flags,
+			       struct dpni_drv_free_bufs *free_bufs)
+{
+	struct mc_dprc		*dprc;
+	int			i, err, dp_bpid;
+	uint16_t		dpbp;
+	uint32_t		num_free_bufs;
+
+	/* Only backup counter requested but backup pool is disabled */
+	if ((flags & DPNI_DRV_BACKUP_FREE_BUFS) == DPNI_DRV_BACKUP_FREE_BUFS &&
+	    (g_app_params.app_config_flags & DPNI_BACKUP_POOL_DISABLE)) {
+			pr_warn("Backup pool not enabled\n");
+			return -EINVAL;
+	}
+	dprc = sys_get_unique_handle(FSL_MOD_AIOP_RC);
+	if (!dprc) {
+		pr_err("No AIOP container found\n");
+		return -ENODEV;
+	}
+	free_bufs->peb_bp_free_bufs = 0;
+	free_bufs->backup_bp_free_bufs = 0;
+	for (i = 0; i < pools_params.num_dpbp; i++) {
+		/* Counter not requested case */
+		if ((pools_params.pools[i].backup_pool &&
+		     !(flags & DPNI_DRV_BACKUP_FREE_BUFS)) ||
+		    (!pools_params.pools[i].backup_pool &&
+		     !(flags & DPNI_DRV_PEB_FREE_BUFS)))
+			continue;
+		dp_bpid = pools_params.pools[i].dpbp_id;
+		/* Open DPBP control session */
+		err = dpbp_open(&dprc->io, 0, dp_bpid, &dpbp);
+		if (err) {
+			pr_err("Open DPBP@%d\n", dp_bpid);
+			return err;
+		}
+		num_free_bufs = 0;
+		/* Get number of free buffers */
+		err = dpbp_get_num_free_bufs(&dprc->io, 0, dpbp,
+					     &num_free_bufs);
+		if (err) {
+			pr_err("Get number of free buffers for DPBP@%d.\n",
+			       dp_bpid);
+			/* Close DPBP control session */
+			if (dpbp_close(&dprc->io, 0, dpbp))
+				pr_err("Close DPBP@%d.\n", dp_bpid);
+			return err;
+		}
+		/* Close DPBP control session */
+		err = dpbp_close(&dprc->io, 0, dpbp);
+		if (err) {
+			pr_err("Close DPBP@%d.\n", dp_bpid);
+			return err;
+		}
+		if (pools_params.pools[i].backup_pool)
+			free_bufs->backup_bp_free_bufs += num_free_bufs;
+		else
+			free_bufs->peb_bp_free_bufs += num_free_bufs;
 	}
 	return 0;
 }

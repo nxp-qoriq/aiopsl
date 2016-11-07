@@ -454,3 +454,22 @@ int dpbp_get_api_version(struct fsl_mc_io *mc_io,
 
 	return 0;
 }
+
+int dpbp_get_num_free_bufs(struct fsl_mc_io *mc_io, uint32_t cmd_flags,
+			   uint16_t token, uint32_t *num_free_bufs)
+{
+	struct mc_command	cmd = { 0 };
+	int			err;
+
+	/* Prepare command */
+	cmd.header = mc_encode_cmd_header(DPBP_CMDID_GET_NUM_FREE_BUFS,
+					  cmd_flags, token);
+	/* Send command to mc*/
+	err = mc_send_command(mc_io, &cmd);
+	if (err)
+		return err;
+	/* Retrieve response */
+	DPBP_CMD_GET_NUM_FREE_BUFS(cmd, *num_free_bufs);
+
+	return 0;
+}
