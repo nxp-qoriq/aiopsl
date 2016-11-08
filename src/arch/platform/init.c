@@ -221,63 +221,28 @@ __COLD_CODE int global_post_init(void)
 	return 0;
 }
 
-static inline apps_hcl_early_init(void)
-{
-	/*
-	 * Set the FDMA HCL register to the application level configured
-	 * value.
-	 *
-	 * Normally this is done by MC. Till the MC release, containing the
-	 * fix, is available, the fix is done here.
-	 * TODO - Remove this fix when the MC code is available.
-	 */
-	struct aiop_tile_regs	*ccsr;
-	uint32_t		hcl;
-
-	#define AIOP_FDMA_HCL_MASK          0x3ff
-#ifdef LS2085A_REV1
-	/* The hop count limit value is set to 0: disables the limit
-	 * protection on the maximum number of scatter/gather table
-	 * links that FDMA will follow. See ERR008610 */
-	hcl = 0;
-#else
-	hcl = g_init_data.app_info.hcl;
-#endif
-	ccsr = (struct aiop_tile_regs *)(AIOP_PERIPHERALS_OFF +
-					 SOC_PERIPH_OFF_AIOP_TILE +
-					 SOC_PERIPH_OFF_AIOP_CMGW);
-	ASSERT_COND_LIGHT(ccsr);
-	iowrite32_ccsr(hcl & AIOP_FDMA_HCL_MASK, &ccsr->fdma_regs.hcl);
-}
-
 __COLD_CODE int apps_early_init(void)
 {
-	int i, err;
-	uint16_t app_arr_size = g_app_params.app_arr_size;
-	struct sys_module_desc *apps = \
-		fsl_malloc(app_arr_size * sizeof(struct sys_module_desc), 1);
+	int			i, err;
+	uint16_t		app_arr_size;
+	struct sys_module_desc	*apps;
 
-	if(apps == NULL) {
+	app_arr_size = g_app_params.app_arr_size;
+	apps = fsl_malloc(app_arr_size * sizeof(struct sys_module_desc), 1);
+	if (!apps)
 		return -ENOMEM;
-	}
-
-	apps_hcl_early_init();
 
 	memset(apps, 0, app_arr_size * sizeof(struct sys_module_desc));
 	build_apps_array(apps);
 
-	for (i=0; i<app_arr_size; i++)
-	{
-		if (apps[i].early_init)
-		{
+	for (i = 0; i < app_arr_size; i++)
+		if (apps[i].early_init) {
 			err = apps[i].early_init();
-			if(err) {
+			if (err) {
 				fsl_free(apps);
 				return err;
 			}
 		}
-	}
-
 	fsl_free(apps);
 
 	return 0;
