@@ -71,10 +71,13 @@ struct dpni_drv_stats {
 	uint8_t offset;
 };
 
-struct dpni_drv_stats dpni_statistics[17] = {
-		{ 0, 0 }, { 0, 1 }, { 2, 0 }, { 2, 1 }, { 0, 2 }, { 0, 3 }, { 0, 4 },
-		{ 0, 5 }, { 1, 0 }, { 1, 1 }, { 2, 3 }, { 1, 2 }, { 1, 3 }, { 1, 4 },
-		{ 1, 5 }, { 2, 2 }, { 2, 4 } };
+/* WARNING - Update this structure, size and content if the enumeration
+ * dpni_drv_counter changes */
+struct dpni_drv_stats dpni_statistics[DPNI_DRV_CNT_EGR_CONF_FRAME + 1] = {
+	{ 0, 0 }, { 0, 1 }, { 2, 0 }, { 2, 1 }, { 0, 2 }, { 0, 3 }, { 0, 4 },
+	{ 0, 5 }, { 1, 0 }, { 1, 1 }, { 2, 3 }, { 1, 2 }, { 1, 3 }, { 1, 4 },
+	{ 1, 5 }, { 2, 2 }, { 2, 4 }
+};
 
 struct dpni_early_init_request g_dpni_early_init_data = {0};
 
@@ -1625,31 +1628,39 @@ int dpni_drv_register_rx_buffer_layout_requirements(uint16_t head_room, uint16_t
 	return 0;
 }
 
-int dpni_drv_get_counter(uint16_t ni_id, enum dpni_drv_counter counter, uint64_t *value)
+int dpni_drv_get_counter(uint16_t ni_id, enum dpni_drv_counter counter,
+			 uint64_t *value)
 {
-	struct mc_dprc *dprc = sys_get_unique_handle(FSL_MOD_AIOP_RC);
-	int err;
-	uint16_t dpni;
-	union dpni_statistics stats;
+	struct mc_dprc		*dprc;
+	int			err;
+	uint16_t		dpni;
+	union dpni_statistics	stats;
 
-	cdma_mutex_lock_take((uint64_t)nis, CDMA_MUTEX_READ_LOCK); /*Lock dpni table*/
+	dprc = sys_get_unique_handle(FSL_MOD_AIOP_RC);
+	if (!dprc) {
+		sl_pr_err("No AIOP container found\n");
+		return -ENODEV;
+	}
+	 /* Lock dpni table */
+	cdma_mutex_lock_take((uint64_t)nis, CDMA_MUTEX_READ_LOCK);
 	err = dpni_open(&dprc->io, 0, (int)nis[ni_id].dpni_id, &dpni);
-	cdma_mutex_lock_release((uint64_t)nis); /*Unlock dpni table*/
-	if(err){
+	/* Unlock dpni table */
+	cdma_mutex_lock_release((uint64_t)nis);
+	if (err) {
 		sl_pr_err("Open DPNI failed\n");
 		return err;
 	}
-
-	err = dpni_get_statistics(&dprc->io, 0, dpni,dpni_statistics[counter].page,&stats);
-	if(err){
+	err = dpni_get_statistics(&dprc->io, 0,
+				  dpni, dpni_statistics[counter].page, &stats);
+	if (err) {
 		sl_pr_err("dpni_get_counter failed\n");
-		dpni_close(&dprc->io, 0, dpni);
+		if (dpni_close(&dprc->io, 0, dpni))
+			sl_pr_err("Close DPNI failed\n");
 		return err;
 	}
-	memcpy(value,&stats + dpni_statistics[counter].offset, sizeof(uint64_t));
-
+	*value = stats.raw.counter[dpni_statistics[counter].offset];
 	err = dpni_close(&dprc->io, 0, dpni);
-	if(err){
+	if (err) {
 		sl_pr_err("Close DPNI failed\n");
 		return err;
 	}

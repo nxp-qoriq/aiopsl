@@ -131,27 +131,39 @@ struct dpni_drv_link_state {
 
 enum dpni_drv_counter {
 	/** Counts ingress frames */
-	DPNI_DRV_CNT_ING_FRAME = 0x0,
+	DPNI_DRV_CNT_ING_FRAME,
 	/** Counts ingress bytes */
-	DPNI_DRV_CNT_ING_BYTE = 0x1,
+	DPNI_DRV_CNT_ING_BYTE,
 	/** Counts ingress frames dropped due to explicit 'drop' setting */
-	DPNI_DRV_CNT_ING_FRAME_DROP = 0x2,
+	DPNI_DRV_CNT_ING_FRAME_DROP,
 	/** Counts ingress frames discarded due to errors */
-	DPNI_DRV_CNT_ING_FRAME_DISCARD = 0x3,
+	DPNI_DRV_CNT_ING_FRAME_DISCARD,
 	/** Counts ingress multicast frames */
-	DPNI_DRV_CNT_ING_MCAST_FRAME = 0x4,
+	DPNI_DRV_CNT_ING_MCAST_FRAME,
 	/** Counts ingress multicast bytes */
-	DPNI_DRV_CNT_ING_MCAST_BYTE = 0x5,
+	DPNI_DRV_CNT_ING_MCAST_BYTE,
 	/** Counts ingress broadcast frames */
-	DPNI_DRV_CNT_ING_BCAST_FRAME = 0x6,
+	DPNI_DRV_CNT_ING_BCAST_FRAME,
 	/** Counts ingress broadcast bytes */
-	DPNI_DRV_CNT_ING_BCAST_BYTES = 0x7,
+	DPNI_DRV_CNT_ING_BCAST_BYTES,
 	/** Counts egress frames */
-	DPNI_DRV_CNT_EGR_FRAME = 0x8,
+	DPNI_DRV_CNT_EGR_FRAME,
 	/** Counts egress bytes */
-	DPNI_DRV_CNT_EGR_BYTE = 0x9,
+	DPNI_DRV_CNT_EGR_BYTE,
 	/** Counts egress frames discarded due to errors */
-	DPNI_DRV_CNT_EGR_FRAME_DISCARD = 0xa
+	DPNI_DRV_CNT_EGR_FRAME_DISCARD,
+	/** Counts egress multicast frames */
+	DPNI_DRV_CNT_EGR_MCAST_FRAME,
+	/** Counts egress multicast bytes */
+	DPNI_DRV_CNT_EGR_MCAST_BYTE,
+	/** Counts egress broadcast frames */
+	DPNI_DRV_CNT_EGR_BCAST_FRAME,
+	/** Counts egress broadcast bytes */
+	DPNI_DRV_CNT_EGR_BCAST_BYTES,
+	/** Counts ingress frames discarded due to lack of buffers */
+	DPNI_DRV_CNT_ING_FRAME_NO_BUFF_DISCARD,
+	/** Counts egress confirmed frames */
+	DPNI_DRV_CNT_EGR_CONF_FRAME
 };
 /* @} end of enum dpni_drv_counter */
 
