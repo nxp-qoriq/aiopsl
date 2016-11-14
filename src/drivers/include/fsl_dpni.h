@@ -1365,6 +1365,7 @@ enum dpni_fs_miss_action {
 struct dpni_fs_tbl_cfg {
 	enum dpni_fs_miss_action	miss_action;
 	uint16_t			default_flow_id;
+	char keep_hash_key;
 };
 
 /**

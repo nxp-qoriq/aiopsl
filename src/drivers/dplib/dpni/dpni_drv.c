@@ -61,7 +61,7 @@ extern struct platform_app_params g_app_params;
 struct dpni_pools_cfg pools_params;
 
 /*buffer used for dpni_drv_set_order_scope*/
-uint8_t order_scope_buffer[PARAMS_IOVA_BUFF_SIZE];
+uint8_t order_scope_buf[PARAMS_IOVA_BUFF_SIZE];
 
 struct dpni_drv *nis;
 int num_of_nis;
@@ -109,6 +109,63 @@ __COLD_CODE static void print_dev_desc(struct dprc_obj_desc* dev_desc)
 
 }
 
+static inline void clear_fs_table(uint16_t ni_id)
+{
+	uint8_t i;
+	struct dpni_drv *dpni_drv = nis + ni_id;
+
+	dpni_drv->fs.size = 0;
+	for (i = 0; i < FS_TABLE_SIZE; i++)
+		dpni_drv->fs.table[i].pos = FS_TABLE_SIZE;
+}
+
+static inline uint8_t get_fs_entry(uint16_t ni_id, uint16_t etype)
+{
+	uint8_t i;
+	struct dpni_drv *dpni_drv = nis + ni_id;
+
+	if (dpni_drv->fs.size == 0)
+		return FS_TABLE_SIZE;
+
+	for (i = 0; i < FS_TABLE_SIZE; i++)
+		if ((dpni_drv->fs.table[i].pos != FS_TABLE_SIZE) &&
+		    (dpni_drv->fs.table[i].etype == etype))
+			return dpni_drv->fs.table[i].pos;
+
+	return FS_TABLE_SIZE;
+}
+
+static inline uint8_t add_fs_entry(uint16_t ni_id, uint16_t etype)
+{
+	uint8_t i;
+	struct dpni_drv *dpni_drv = nis + ni_id;
+
+	for (i = 0; i < FS_TABLE_SIZE; i++)
+		if (dpni_drv->fs.table[i].pos == FS_TABLE_SIZE) {
+			dpni_drv->fs.table[i].pos = i;
+			dpni_drv->fs.table[i].etype = etype;
+			dpni_drv->fs.size++;
+			return i;
+		}
+	return FS_TABLE_SIZE;
+}
+
+static inline void remove_fs_entry(uint16_t ni_id, uint16_t etype)
+{
+	uint8_t i;
+	struct dpni_drv *dpni_drv = nis + ni_id;
+
+	if (dpni_drv->fs.size == 0)
+		return;
+
+	for (i = 0; i < FS_TABLE_SIZE; i++)
+		if ((dpni_drv->fs.table[i].pos != FS_TABLE_SIZE) &&
+		    (dpni_drv->fs.table[i].etype == etype)) {
+			dpni_drv->fs.table[i].pos = FS_TABLE_SIZE;
+			dpni_drv->fs.size--;
+		}
+}
+
 void discard_rx_cb(void)
 {
 
@@ -142,6 +199,36 @@ int dpni_drv_register_rx_cb (uint16_t ni_id, rx_cb_t *cb)
 	return 0;
 }
 
+int dpni_drv_register_rx_cb_etype(uint16_t ni_id, rx_cb_t *cb, uint16_t etype)
+{
+	int ret = 0;
+	uint8_t pos;
+	uint32_t epid;
+	struct aiop_tile_regs *tile_regs = (struct aiop_tile_regs *)
+					sys_get_handle(FSL_MOD_AIOP_TILE, 1);
+	struct aiop_ws_regs *wrks_addr = &tile_regs->ws_regs;
+
+	/*Mutex lock to avoid race condition while writing to EPID table*/
+	EP_MNG_MUTEX_W_TAKE;
+	/*Lock dpni table*/
+	cdma_mutex_lock_take((uint64_t)nis, CDMA_MUTEX_READ_LOCK);
+
+	pos = get_fs_entry(ni_id, etype);
+	if (pos != FS_TABLE_SIZE) {
+		epid = nis[ni_id].dpni_drv_params_var.epid_idx;
+		epid += (pos + 1) * (uint32_t)SOC_MAX_NUM_OF_DPNI;
+		iowrite32_ccsr(epid, &wrks_addr->epas);
+		iowrite32_ccsr(PTR_TO_UINT(cb), &wrks_addr->ep_pc);
+	} else {
+		ret = -ENOENT;
+	}
+
+	/*Unlock dpni table*/
+	cdma_mutex_lock_release((uint64_t)nis);
+	EP_MNG_MUTEX_RELEASE;
+	return ret;
+}
+
 int dpni_drv_unregister_rx_cb (uint16_t ni_id)
 {
 	struct aiop_tile_regs *tile_regs = (struct aiop_tile_regs *)
@@ -156,6 +243,36 @@ int dpni_drv_unregister_rx_cb (uint16_t ni_id)
 	cdma_mutex_lock_release((uint64_t)nis); /*Unlock dpni table*/
 	EP_MNG_MUTEX_RELEASE;
 	return 0;
+}
+
+int dpni_drv_unregister_rx_cb_etype(uint16_t ni_id, uint16_t etype)
+{
+	int ret = 0;
+	uint8_t pos;
+	uint32_t epid;
+	struct aiop_tile_regs *tile_regs = (struct aiop_tile_regs *)
+					sys_get_handle(FSL_MOD_AIOP_TILE, 1);
+	struct aiop_ws_regs *wrks_addr = &tile_regs->ws_regs;
+
+	/*Mutex lock to avoid race condition while writing to EPID table*/
+	EP_MNG_MUTEX_W_TAKE;
+	/*Lock dpni table*/
+	cdma_mutex_lock_take((uint64_t)nis, CDMA_MUTEX_READ_LOCK);
+
+	pos = get_fs_entry(ni_id, etype);
+	if (pos != FS_TABLE_SIZE) {
+		epid = nis[ni_id].dpni_drv_params_var.epid_idx;
+		epid += (pos + 1) * (uint32_t)SOC_MAX_NUM_OF_DPNI;
+		iowrite32_ccsr(epid, &wrks_addr->epas);
+		iowrite32_ccsr(PTR_TO_UINT(discard_rx_cb), &wrks_addr->ep_pc);
+	} else {
+		ret = -ENOENT;
+	}
+
+	/*Unlock dpni table*/
+	cdma_mutex_lock_release((uint64_t)nis);
+	EP_MNG_MUTEX_RELEASE;
+	return ret;
 }
 
 int dpni_drv_enable (uint16_t ni_id)
@@ -320,6 +437,8 @@ void dpni_drv_handle_removed_objects(void)
 
 void dpni_drv_unprobe(uint16_t aiop_niid)
 {
+	uint8_t i;
+	uint32_t epid;
 	struct aiop_tile_regs *tile_regs = (struct aiop_tile_regs *)
 						sys_get_handle(FSL_MOD_AIOP_TILE, 1);
 	struct aiop_ws_regs *wrks_addr = &tile_regs->ws_regs;
@@ -331,6 +450,15 @@ void dpni_drv_unprobe(uint16_t aiop_niid)
 	               &wrks_addr->epas);
 	/*clear ep_pc*/
 	iowrite32_ccsr(PTR_TO_UINT(discard_rx_cb), &wrks_addr->ep_pc);
+
+	/* FS entries */
+	epid = nis[aiop_niid].dpni_drv_params_var.epid_idx;
+	for (i = 0; i < FS_TABLE_SIZE; i++) {
+		epid += SOC_MAX_NUM_OF_DPNI;
+		iowrite32_ccsr(epid, &wrks_addr->epas);
+		iowrite32_ccsr(PTR_TO_UINT(discard_rx_cb), &wrks_addr->ep_pc);
+	}
+
 	/*Mutex unlock EPID table*/
 	EP_MNG_MUTEX_RELEASE;
 	nis[aiop_niid].dpni_id = DPNI_NOT_IN_USE;
@@ -348,6 +476,8 @@ void dpni_drv_unprobe(uint16_t aiop_niid)
 	nis[aiop_niid].dpni_drv_tx_params_var.qdid      = 0;
 	nis[aiop_niid].dpni_drv_params_var.flags        =
 		DPNI_DRV_FLG_PARSE | DPNI_DRV_FLG_PARSER_DIS;
+
+	clear_fs_table(aiop_niid);
 
 }
 
@@ -574,6 +704,8 @@ int dpni_drv_probe(struct mc_dprc *dprc,
 	uint32_t ep_osc;
 	uint16_t aiop_niid;
 	int err = 0;
+	uint32_t epid;
+	uint8_t k;
 
 	struct aiop_tile_regs *tile_regs = (struct aiop_tile_regs *)
 					sys_get_handle(FSL_MOD_AIOP_TILE, 1);
@@ -620,6 +752,18 @@ int dpni_drv_probe(struct mc_dprc *dprc,
 			ep_osc &= ORDER_MODE_CLEAR_BIT;
 			/*Set concurrent mode for NI in epid table*/
 			iowrite32_ccsr(ep_osc, &wrks_addr->ep_osc);
+
+			/* FS entries */
+			epid = (uint32_t)i;
+			for (k = 0; k < FS_TABLE_SIZE; k++) {
+				epid += SOC_MAX_NUM_OF_DPNI;
+				iowrite32_ccsr(epid, &wrks_addr->epas);
+				iowrite32_ccsr(aiop_niid, &wrks_addr->ep_pm);
+				ep_osc = ioread32_ccsr(&wrks_addr->ep_osc);
+				ep_osc &= ORDER_MODE_CLEAR_BIT;
+				/*Set concurrent mode for NI in epid table*/
+				iowrite32_ccsr(ep_osc, &wrks_addr->ep_osc);
+			}
 
 			/*Mutex unlock EPID table*/
 			EP_MNG_MUTEX_RELEASE;
@@ -1027,6 +1171,8 @@ __COLD_CODE static inline void dpni_drv_init_ni_table(uint8_t prpid)
 		dpni_drv->dpni_drv_tx_params_var.qdid      = 0;
 		dpni_drv->dpni_drv_params_var.flags        =
 			DPNI_DRV_FLG_PARSE | DPNI_DRV_FLG_PARSER_DIS;
+		/* Flow Steering */
+		clear_fs_table((uint16_t)i);
 	}
 }
 
@@ -1038,7 +1184,7 @@ __COLD_CODE int dpni_drv_init(void)
 	memset(&pools_params, 0, sizeof(struct dpni_pools_cfg));
 	num_of_nis = 0;
 	/* Allocate internal AIOP NI table */
-	nis =fsl_malloc(sizeof(struct dpni_drv)*SOC_MAX_NUM_OF_DPNI,64);
+	nis = fsl_malloc(sizeof(struct dpni_drv) * SOC_MAX_NUM_OF_DPNI, 64);
 	if (!nis) {
 		return -ENOMEM;
 	}
@@ -1352,6 +1498,38 @@ int dpni_drv_get_ordering_mode(uint16_t ni_id){
 	return (int)(ep_osc & ORDER_MODE_BIT_MASK) >> 24;
 }
 
+int dpni_drv_get_ordering_mode_etype(uint16_t ni_id, uint16_t etype)
+{
+	uint32_t ep_osc = (uint32_t)(-ENOENT);
+	uint8_t pos;
+	uint32_t epid;
+	struct aiop_tile_regs *tile_regs = (struct aiop_tile_regs *)
+					sys_get_handle(FSL_MOD_AIOP_TILE, 1);
+	struct aiop_ws_regs *wrks_addr = &tile_regs->ws_regs;
+
+	/* write epid index to epas register */
+	/*Mutex lock to avoid race condition while writing to EPID table*/
+	EP_MNG_MUTEX_W_TAKE;
+	/*Lock dpni table*/
+	cdma_mutex_lock_take((uint64_t)nis, CDMA_MUTEX_READ_LOCK);
+
+	pos = get_fs_entry(ni_id, etype);
+	if (pos != FS_TABLE_SIZE) {
+		epid = nis[ni_id].dpni_drv_params_var.epid_idx;
+		epid += (pos + 1) * (uint32_t)SOC_MAX_NUM_OF_DPNI;
+		iowrite32_ccsr(epid, &wrks_addr->epas);
+		/* read ep_osc - to get the order scope */
+		ep_osc = ioread32_ccsr(&wrks_addr->ep_osc);
+		ep_osc = (ep_osc & ORDER_MODE_BIT_MASK) >> 24;
+	}
+
+	/*Unlock dpni table*/
+	cdma_mutex_lock_release((uint64_t)nis);
+	EP_MNG_MUTEX_RELEASE;
+
+	return (int)ep_osc;
+}
+
 static int dpni_drv_set_ordering_mode(uint16_t ni_id, int ep_mode){
 	uint32_t ep_osc;
 	struct aiop_tile_regs *tile_regs = (struct aiop_tile_regs *)
@@ -1374,12 +1552,61 @@ static int dpni_drv_set_ordering_mode(uint16_t ni_id, int ep_mode){
 	return 0;
 }
 
+static int dpni_drv_set_ordering_mode_etype(uint16_t ni_id, int ep_mode,
+					    uint16_t etype) {
+	int ret = 0;
+	uint8_t pos;
+	uint32_t epid;
+	uint32_t ep_osc;
+	struct aiop_tile_regs *tile_regs = (struct aiop_tile_regs *)
+					sys_get_handle(FSL_MOD_AIOP_TILE, 1);
+	struct aiop_ws_regs *wrks_addr = &tile_regs->ws_regs;
+
+	/*Mutex lock to avoid race condition while writing to EPID table*/
+	EP_MNG_MUTEX_W_TAKE;
+	/*Lock dpni table*/
+	cdma_mutex_lock_take((uint64_t)nis, CDMA_MUTEX_READ_LOCK);
+
+	pos = get_fs_entry(ni_id, etype);
+	if (pos != FS_TABLE_SIZE) {
+		epid = nis[ni_id].dpni_drv_params_var.epid_idx;
+		epid += (pos + 1) * (uint32_t)SOC_MAX_NUM_OF_DPNI;
+		/* write epid index to epas register */
+		iowrite32_ccsr(epid, &wrks_addr->epas);
+		/* read ep_osc - to get the order scope */
+		ep_osc = ioread32_ccsr(&wrks_addr->ep_osc);
+		ep_osc &= ORDER_MODE_CLEAR_BIT;
+		ep_osc |= (ep_mode & 0x01) << 24;
+		/*Set concurrent mode for NI in epid table*/
+		iowrite32_ccsr(ep_osc, &wrks_addr->ep_osc);
+	} else {
+		ret = -ENOENT;
+	}
+
+	/*Unlock dpni table*/
+	cdma_mutex_lock_release((uint64_t)nis);
+	EP_MNG_MUTEX_RELEASE;
+	return ret;
+}
+
 int dpni_drv_set_concurrent(uint16_t ni_id){
 	return dpni_drv_set_ordering_mode(ni_id, DPNI_DRV_CONCURRENT_MODE);
 }
 
 int dpni_drv_set_exclusive(uint16_t ni_id){
 	return dpni_drv_set_ordering_mode(ni_id, DPNI_DRV_EXCLUSIVE_MODE);
+}
+
+int dpni_drv_set_concurrent_etype(uint16_t ni, uint16_t etype)
+{
+	return dpni_drv_set_ordering_mode_etype(ni, DPNI_DRV_CONCURRENT_MODE,
+						etype);
+}
+
+int dpni_drv_set_exclusive_etype(uint16_t ni, uint16_t etype)
+{
+	return dpni_drv_set_ordering_mode_etype(ni, DPNI_DRV_EXCLUSIVE_MODE,
+						etype);
 }
 
 __COLD_CODE int dpni_drv_set_order_scope(uint16_t ni_id, struct dpkg_profile_cfg *key_cfg)
@@ -1391,28 +1618,38 @@ __COLD_CODE int dpni_drv_set_order_scope(uint16_t ni_id, struct dpkg_profile_cfg
 						sys_get_handle(FSL_MOD_AIOP_TILE, 1);
 	struct aiop_ws_regs *wrks_addr = &tile_regs->ws_regs;
 	int err;
-	uint32_t ep_osc;
+	uint32_t ep_osc, epid;
 	uint16_t dpni;
 	uint8_t i;
 
 	/*Mutex will be needed if the function will be supported in run time*/
-	cdma_mutex_lock_take((uint64_t)nis, CDMA_MUTEX_WRITE_LOCK); /*Lock dpni table*/
-	memset(order_scope_buffer, 0, PARAMS_IOVA_BUFF_SIZE);
-	cfg.dist_size = 1;
+	/*Lock dpni table*/
+	cdma_mutex_lock_take((uint64_t)nis, CDMA_MUTEX_WRITE_LOCK);
+	epid = nis[ni_id].dpni_drv_params_var.epid_idx;
 	err = dpni_open(&dprc->io, 0, (int)nis[ni_id].dpni_id, &dpni);
-	if(err){
-		cdma_mutex_lock_release((uint64_t)nis); /*Unlock dpni table*/
+	cdma_mutex_lock_release((uint64_t)nis); /*Unlock dpni table*/
+	if (err) {
 		sl_pr_err("Open DPNI failed\n");
 		return err;
 	}
 
-	if(key_cfg == DPNI_DRV_NO_ORDER_SCOPE)
+	err = dpni_get_attributes(&dprc->io, 0, dpni, &attr);
+	if (err) {
+		sl_pr_err("dpni_get_attributes failed\n");
+		dpni_close(&dprc->io, 0, dpni);
+		return err;
+	}
+
+	cdma_mutex_lock_take((uint64_t)order_scope_buf, CDMA_MUTEX_WRITE_LOCK);
+	memset(order_scope_buf, 0, PARAMS_IOVA_BUFF_SIZE);
+
+	if (key_cfg == DPNI_DRV_NO_ORDER_SCOPE)
 	{
 		/*Mutex lock to avoid race condition while writing to EPID table*/
 		/*Mutex will be needed if the function will be supported in run time*/
 		EP_MNG_MUTEX_W_TAKE;
 		/* write epid index to epas register */
-		iowrite32_ccsr((uint32_t)(nis[ni_id].dpni_drv_params_var.epid_idx), &wrks_addr->epas);
+		iowrite32_ccsr(epid, &wrks_addr->epas);
 		/* Read ep_osc from EPID table */
 		ep_osc = ioread32_ccsr(&wrks_addr->ep_osc);
 		/* src = 0 - No order scope specified. Task does not enter a scope,
@@ -1422,34 +1659,139 @@ __COLD_CODE int dpni_drv_set_order_scope(uint16_t ni_id, struct dpkg_profile_cfg
 		ep_osc &= ORDER_MODE_NO_ORDER_SCOPE;
 		/*Write ep_osc to EPID table*/
 		iowrite32_ccsr(ep_osc, &wrks_addr->ep_osc);
+
+		/* FS entries */
+		for (i = 0; i < FS_TABLE_SIZE; i++) {
+			epid += SOC_MAX_NUM_OF_DPNI;
+			iowrite32_ccsr(epid, &wrks_addr->epas);
+			ep_osc = ioread32_ccsr(&wrks_addr->ep_osc);
+			ep_osc &= ORDER_MODE_NO_ORDER_SCOPE;
+			iowrite32_ccsr(ep_osc, &wrks_addr->ep_osc);
+		}
 		EP_MNG_MUTEX_RELEASE;
 		cfg.dist_mode = DPNI_DIST_MODE_NONE;
 	}
 	else
 	{
-		dpni_prepare_key_cfg(key_cfg, order_scope_buffer);
+		dpni_prepare_key_cfg(key_cfg, order_scope_buf);
 		cfg.dist_mode = DPNI_DIST_MODE_HASH;
 	}
 
-	cfg.key_cfg_iova = (uint64_t)order_scope_buffer;
-	cdma_mutex_lock_release((uint64_t)nis); /*Unlock dpni table*/
+	cfg.dist_size = 1;
+	cfg.key_cfg_iova = (uint64_t)order_scope_buf;
+	for (i = 0; i < attr.num_tcs; i++) {
+		err = dpni_set_rx_tc_dist(&dprc->io, 0, dpni, i, &cfg);
+		if (err) {
+			sl_pr_err("dpni_set_rx_tc_dist failed\n");
+			dpni_close(&dprc->io, 0, dpni);
+			cdma_mutex_lock_release((uint64_t)order_scope_buf);
+			return err;
+		}
+	}
+
+	cdma_mutex_lock_release((uint64_t)order_scope_buf);
+	err = dpni_close(&dprc->io, 0, dpni);
+	if(err){
+		sl_pr_err("Close DPNI failed\n");
+		return err;
+	}
+	return 0;
+}
+
+__COLD_CODE int dpni_drv_enable_etype_fs(uint16_t ni_id, uint16_t etype)
+{
+	struct mc_dprc *dprc = sys_get_unique_handle(FSL_MOD_AIOP_RC);
+	struct dpni_attr attr = {0};
+	int err;
+	uint16_t dpni;
+	uint8_t i;
+	struct dpni_rule_cfg cfg;
+	struct dpni_fs_action_cfg act;
+	uint16_t epid;
+	struct dpkg_profile_cfg key_cfg;
+	struct dpni_rx_tc_dist_cfg dist_cfg = {0};
+	uint8_t pos;
+
+	/* Lock dpni table */
+	cdma_mutex_lock_take((uint64_t)nis, CDMA_MUTEX_WRITE_LOCK);
+	epid = nis[ni_id].dpni_drv_params_var.epid_idx;
+
+	pos = get_fs_entry(ni_id, etype);
+	if (pos != FS_TABLE_SIZE) {
+		cdma_mutex_lock_release((uint64_t)nis);
+		return -EEXIST;
+	}
+	pos = add_fs_entry(ni_id, etype);
+	if (pos == FS_TABLE_SIZE) {
+		cdma_mutex_lock_release((uint64_t)nis);
+		return -ENOSPC;
+	}
+	epid += (pos + 1) * (uint16_t)SOC_MAX_NUM_OF_DPNI;
+
+	err = dpni_open(&dprc->io, 0, (int)nis[ni_id].dpni_id, &dpni);
+	/* Unlock dpni table */
+	cdma_mutex_lock_release((uint64_t)nis);
+	if (err) {
+		sl_pr_err("Open DPNI failed\n");
+		return err;
+	}
 
 	err = dpni_get_attributes(&dprc->io, 0, dpni, &attr);
-	if(err){
+	if (err) {
 		sl_pr_err("dpni_get_attributes failed\n");
 		dpni_close(&dprc->io, 0, dpni);
 		return err;
 	}
 
-	for(i = 0; i < attr.num_tcs; i++)
-	{
-		err = dpni_set_rx_tc_dist(&dprc->io, 0, dpni, i,  &cfg);
-		if(err){
+	cdma_mutex_lock_take((uint64_t)order_scope_buf, CDMA_MUTEX_WRITE_LOCK);
+	memset(order_scope_buf, 0, PARAMS_IOVA_BUFF_SIZE);
+
+	/* Create the key generation profile */
+	memset(&key_cfg, 0x0, sizeof(struct dpkg_profile_cfg));
+	key_cfg.num_extracts = 1;
+	key_cfg.extracts[0].type = DPKG_EXTRACT_FROM_HDR;
+	key_cfg.extracts[0].extract.from_hdr.prot = NET_PROT_ETH;
+	key_cfg.extracts[0].extract.from_hdr.type = DPKG_FULL_FIELD;
+	key_cfg.extracts[0].extract.from_hdr.field = NET_HDR_FLD_ETH_TYPE;
+	dpni_prepare_key_cfg(&key_cfg, order_scope_buf);
+
+	dist_cfg.dist_size = 1;
+	dist_cfg.dist_mode = DPNI_DIST_MODE_FS;
+	dist_cfg.fs_cfg.keep_hash_key = 1;
+	dist_cfg.fs_cfg.miss_action = DPNI_FS_MISS_HASH;
+	dist_cfg.key_cfg_iova = (uint64_t)order_scope_buf;
+
+	for (i = 0; i < attr.num_tcs; i++) {
+		err = dpni_set_rx_tc_dist(&dprc->io, 0, dpni, i, &dist_cfg);
+		if (err) {
 			sl_pr_err("dpni_set_rx_tc_dist failed\n");
 			dpni_close(&dprc->io, 0, dpni);
+			cdma_mutex_lock_release((uint64_t)order_scope_buf);
 			return err;
 		}
 	}
+
+	cfg.key_size = 2;
+	cfg.key_iova = (uint64_t)order_scope_buf;
+	cfg.mask_iova = NULL;
+
+	/* EtherType */
+	order_scope_buf[0] = (uint8_t)(etype >> 8);
+	order_scope_buf[1] = (uint8_t)(etype & 0xFF);
+
+	act.flow_id = 0;
+	act.options = DPNI_FS_OPT_SET_FLC;
+	act.flc = epid;
+	for (i = 0; i < attr.num_tcs; i++) {
+		err = dpni_add_fs_entry(&dprc->io, 0, dpni, i, 0, &cfg, &act);
+		if (err) {
+			sl_pr_err("dpni_add_fs_entry failed\n");
+			dpni_close(&dprc->io, 0, dpni);
+			cdma_mutex_lock_release((uint64_t)order_scope_buf);
+			return err;
+		}
+	}
+	cdma_mutex_lock_release((uint64_t)order_scope_buf);
 
 	err = dpni_close(&dprc->io, 0, dpni);
 	if(err){
@@ -1923,6 +2265,48 @@ int dpni_drv_set_initial_presentation(
 	epid = nis[ni_id].dpni_drv_params_var.epid_idx;
 	cdma_mutex_lock_release((uint64_t)nis); /*Unlock dpni table*/
 
+	return ep_mng_set_initial_presentation(epid, init_presentation);
+}
+
+int dpni_drv_get_initial_presentation_etype(
+	uint16_t ni_id,
+	struct ep_init_presentation * const init_presentation,
+	uint16_t etype) {
+	uint16_t epid;
+	uint8_t pos;
+
+	/*Lock dpni table*/
+	cdma_mutex_lock_take((uint64_t)nis, CDMA_MUTEX_READ_LOCK);
+	epid = nis[ni_id].dpni_drv_params_var.epid_idx;
+	pos = get_fs_entry(ni_id, etype);
+	/*Unlock dpni table*/
+	cdma_mutex_lock_release((uint64_t)nis);
+
+	if (pos == FS_TABLE_SIZE)
+		return -ENOENT;
+
+	epid += (pos + 1) * (uint32_t)SOC_MAX_NUM_OF_DPNI;
+	return ep_mng_get_initial_presentation(epid, init_presentation);
+}
+
+int dpni_drv_set_initial_presentation_etype(
+	uint16_t ni_id,
+	const struct ep_init_presentation * const init_presentation,
+	uint16_t etype) {
+	uint16_t epid;
+	uint8_t pos;
+
+	/*Lock dpni table*/
+	cdma_mutex_lock_take((uint64_t)nis, CDMA_MUTEX_READ_LOCK);
+	epid = nis[ni_id].dpni_drv_params_var.epid_idx;
+	pos = get_fs_entry(ni_id, etype);
+	/*Unlock dpni table*/
+	cdma_mutex_lock_release((uint64_t)nis);
+
+	if (pos == FS_TABLE_SIZE)
+		return -ENOENT;
+
+	epid += (pos + 1) * (uint32_t)SOC_MAX_NUM_OF_DPNI;
 	return ep_mng_set_initial_presentation(epid, init_presentation);
 }
 

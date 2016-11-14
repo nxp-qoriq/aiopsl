@@ -553,6 +553,28 @@ int dpni_drv_register_rx_cb(uint16_t        ni_id,
 			rx_cb_t		    *cb);
 
 /**************************************************************************//**
+@Function	dpni_drv_register_rx_cb_etype
+
+@Description	Attaches a pointer to a call back function to a NI ID
+		for a certain protocol defined by EtherType.
+		The callback function will be called when the NI_ID receives
+		a frame with the protocol defined by EtherType
+
+@Param[in]	ni_id  - The Network Interface ID
+@Param[in]	cb - Callback function for Network Interface specified flow_id
+@Param[in]	etype - The etherType registered
+			with dpni_drv_enable_etype_fs()
+
+@Cautions	This method should be called only after
+		dpni_drv_enable_etype_fs() for the same etherType
+
+@Return	OK on success; error code, otherwise.
+		For error posix refer to
+		\ref error_g
+*//***************************************************************************/
+int dpni_drv_register_rx_cb_etype(uint16_t ni_id, rx_cb_t *cb, uint16_t etype);
+
+/**************************************************************************//**
 @Function	dpni_drv_unregister_rx_cb
 
 @Description	Unregisters a NI callback function by replacing it with a
@@ -567,6 +589,27 @@ int dpni_drv_register_rx_cb(uint16_t        ni_id,
 		\ref error_g
 *//***************************************************************************/
 int dpni_drv_unregister_rx_cb(uint16_t		ni_id);
+
+/**************************************************************************//**
+@Function	dpni_drv_unregister_rx_cb_etype
+
+@Description	Unregisters a NI callback function by replacing it with a
+		pointer to a discard callback.
+		The discard callback function will be called when the NI_ID
+		receives a frame with a certain protocol defined by EtherType
+
+@Param[in]	ni_id - The Network Interface ID
+@Param[in]	etype - The etherType registered
+			with dpni_drv_enable_etype_fs()
+
+@Cautions	This method should be called only after
+		dpni_drv_enable_etype_fs() for the same etherType
+
+@Return	OK on success; error code, otherwise.
+		For error posix refer to
+		\ref error_g
+*//***************************************************************************/
+int dpni_drv_unregister_rx_cb_etype(uint16_t ni_id, uint16_t etype);
 
 /**************************************************************************//**
 @Function	dpni_drv_enable
@@ -944,6 +987,42 @@ int dpni_drv_set_concurrent(uint16_t ni_id);
 int dpni_drv_set_exclusive(uint16_t ni_id);
 
 /**************************************************************************//**
+@Function	dpni_drv_set_concurrent_etype
+
+@Description	Function to set the initial ordering mode to concurrent for
+		the given NI for a certain protocol defined by EtherType
+
+@Param[in]	ni_id   The Network Interface ID
+@Param[in]	etype   The etherType registered
+			with dpni_drv_enable_etype_fs()
+
+@Cautions       This method should be called in boot mode only and after
+		dpni_drv_enable_etype_fs() for the same etherType
+
+@Return	'0' on Success;
+	-ENOENT - When the EtherType was not registered
+*//***************************************************************************/
+int dpni_drv_set_concurrent_etype(uint16_t ni_id, uint16_t etype);
+
+/**************************************************************************//**
+@Function	dpni_drv_set_exclusive_etype
+
+@Description	Function to set the initial ordering mode to exclusive for
+		the given NI for a certain protocol defined by EtherType
+
+@Param[in]	ni_id   The Network Interface ID
+@Param[in]	etype   The etherType registered
+			with dpni_drv_enable_etype_fs()
+
+@Cautions       This method should be called in boot mode only and after
+		dpni_drv_enable_etype_fs() for the same etherType
+
+@Return	'0' on Success;
+	-ENOENT - When the EtherType was not registered
+*//***************************************************************************/
+int dpni_drv_set_exclusive_etype(uint16_t ni_id, uint16_t etype);
+
+/**************************************************************************//**
 @Function	dpni_drv_get_ordering_mode
 
 @Description	Returns the configuration in epid table for ordering mode.
@@ -955,6 +1034,26 @@ int dpni_drv_set_exclusive(uint16_t ni_id);
 		1 - Exclusive
 *//***************************************************************************/
 int dpni_drv_get_ordering_mode(uint16_t ni_id);
+
+/**************************************************************************//**
+@Function	dpni_drv_get_ordering_mode_etype
+
+@Description	Returns the configuration in epid table for ordering mode
+		for a certain protocol defined by EtherType
+
+@Param[in]	ni_id - Network Interface ID
+@Param[in]	etype - The etherType registered
+			with dpni_drv_enable_etype_fs()
+
+@Cautions	This method should be called only after
+		dpni_drv_enable_etype_fs() for the same etherType
+
+@Return	Ordering mode for given NI
+		0 - Concurrent
+		1 - Exclusive
+		-ENOENT - When the EtherType was not registered
+*//***************************************************************************/
+int dpni_drv_get_ordering_mode_etype(uint16_t ni_id, uint16_t etype);
 
 /**************************************************************************//**
 @Function	dpni_drv_set_order_scope
@@ -975,6 +1074,31 @@ int dpni_drv_get_ordering_mode(uint16_t ni_id);
 		\ref error_g
 *//***************************************************************************/
 int dpni_drv_set_order_scope(uint16_t ni_id, struct dpkg_profile_cfg *key_cfg);
+
+/**************************************************************************//**
+@Function	dpni_drv_enable_etype_fs
+
+@Description	Function to add a Flow Steering entry for the specified NI
+		for a certain protocol defined by EtherType.
+		For IPv4 see \ref NET_ETH_ETYPE_IPV4
+		For IPv6 see \ref NET_ETH_ETYPE_IPV6
+		For ARP see \ref ARP_ETHERTYPE
+
+@Param[in]	ni_id   The Network Interface ID
+@Param[in]	etype   EtherType is a two-octet field in an Ethernet
+			frame. It is used to indicate which protocol is
+			encapsulated in the payload of the frame
+
+@Cautions	The flow steering table must be enabled for the NI.
+		This method should be called in boot mode only.
+		In case dpni_drv_set_order_scope() is called,
+		dpni_drv_enable_etype_fs() must be called after it
+
+@Return	OK on success; error code, otherwise.
+		For error posix refer to
+		\ref error_g
+*//***************************************************************************/
+int dpni_drv_enable_etype_fs(uint16_t ni_id, uint16_t etype);
 
 /**************************************************************************//**
 @Function	dpni_drv_get_connected_ni
@@ -1259,6 +1383,69 @@ int dpni_drv_get_initial_presentation(
 int dpni_drv_set_initial_presentation(
 	uint16_t ni_id,
 	const struct ep_init_presentation* const init_presentation);
+
+/**************************************************************************//**
+@Function	dpni_drv_get_initial_presentation_etype
+
+@Description	Function to get initial presentation settings from EPID table
+		for given NI for a certain protocol defined by EtherType
+
+@Param[in]	ni_id   The AIOP Network Interface ID.
+@Param[in]	etype   The etherType registered
+			with dpni_drv_enable_etype_fs()
+
+@Param[out]	init_presentation Get initial presentation parameters
+		 \ref EP_INIT_PRESENTATION
+
+@Cautions	PTA Presentation Address, ASA Presentation Address,
+		ASA Presentation Offset, ASA Presentation Size:
+		Those fields are not exposed in PRC on rev 2
+		(Not copied from EPID), therefore it is not recommended to
+		use them in order to present PTA, ASA.
+		This method should be called only after
+		dpni_drv_enable_etype_fs() for the same etherType
+
+@Return	0 on success;
+	error code, otherwise. For error posix refer to \ref error_g
+*//***************************************************************************/
+int dpni_drv_get_initial_presentation_etype(
+	uint16_t ni_id, struct ep_init_presentation * const init_presentation,
+	uint16_t etype);
+
+/**************************************************************************//**
+@Function	dpni_drv_set_initial_presentation_etype
+
+@Description	Function to set initial presentation settings in EPID table for
+		given NI for a certain protocol defined by EtherType
+
+@Param[in]	ni_id   The AIOP Network Interface ID.
+@Param[in]	etype   The etherType registered
+			with dpni_drv_enable_etype_fs()
+
+@Param[in]	init_presentation Set initial presentation parameters for given
+		options and parameters \ref EP_INIT_PRESENTATION
+
+@Cautions	1) PTA Presentation Address, ASA Presentation Address,
+		   ASA Presentation Offset, ASA Presentation Size:
+		   Those fields are not exposed in PRC on rev 2
+		   (Not copied from EPID), therefore it is not recommended to
+		   use them in order to present PTA, ASA.
+		2) Data Segment, PTA Segment, ASA Segment must not reside
+		   outside the bounds of the
+		   presentation area. i.e. They must not fall within the HWC,
+		   TLS or Stack areas.
+		3) There should not be any overlap among the Segment, PTA & ASA.
+		4) Minimum presented segment size must be configured.
+		This method should be called only after
+		dpni_drv_enable_etype_fs() for the same etherType
+
+@Return	0 on success;
+	error code, otherwise. For error posix refer to \ref error_g
+*//***************************************************************************/
+int dpni_drv_set_initial_presentation_etype(
+	uint16_t ni_id,
+	const struct ep_init_presentation * const init_presentation,
+	uint16_t etype);
 
 /**************************************************************************//**
 @Function	dpni_drv_set_tx_checksum

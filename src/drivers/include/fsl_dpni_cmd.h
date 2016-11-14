@@ -500,6 +500,7 @@ do { \
 	MC_CMD_OP(cmd, 0, 24, 4,  enum dpni_dist_mode, cfg->dist_mode); \
 	MC_CMD_OP(cmd, 0, 28, 4,  enum dpni_fs_miss_action, \
 						  cfg->fs_cfg.miss_action); \
+	MC_CMD_OP(cmd, 0, 47,  1, char, cfg->fs_cfg.keep_hash_key); \
 	MC_CMD_OP(cmd, 0, 48, 16, uint16_t, cfg->fs_cfg.default_flow_id); \
 	MC_CMD_OP(cmd, 6, 0,  64, uint64_t, cfg->key_cfg_iova); \
 } while (0)

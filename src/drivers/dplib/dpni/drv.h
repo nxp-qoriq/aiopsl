@@ -69,6 +69,21 @@ struct dpni_drv_tx_params {
 };
 #pragma pack(pop)
 
+#pragma pack(push, 1)
+struct dpni_drv_fs_entry {
+	uint16_t etype;
+	uint8_t pos;
+};
+#pragma pack(pop)
+
+#define FS_TABLE_SIZE 5
+
+#pragma pack(push, 1)
+struct dpni_drv_fs_params {
+	uint8_t size;
+	struct dpni_drv_fs_entry table[FS_TABLE_SIZE];
+};
+#pragma pack(pop)
 
 #pragma pack(push, 1)
 struct dpni_drv {
@@ -80,6 +95,7 @@ struct dpni_drv {
 	/** MAC address of this NI */
 	uint8_t 	    mac_addr[NET_HDR_FLD_ETH_ADDR_SIZE];
 	/* lock for multi-core support */
+	struct dpni_drv_fs_params fs;
 };
 #pragma pack(pop)
 
