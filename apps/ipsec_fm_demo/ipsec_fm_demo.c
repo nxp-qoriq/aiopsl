@@ -724,9 +724,9 @@ int app_early_init(void)
 	 * On LS2085 platforms, because of ERR009354 the minimum value must
 	 * be 256. Be sure MC is compiled with this errata enabled. */
 #ifndef LS2085A_REV1
-	err = dpni_drv_register_rx_buffer_layout_requirements(256, 0, 0);
+	err = dpni_drv_register_rx_buffer_layout_requirements(256, 0, 0, 0);
 #else
-	err = dpni_drv_register_rx_buffer_layout_requirements(256, 0, 0);
+	err = dpni_drv_register_rx_buffer_layout_requirements(256, 0, 0, 0);
 #endif
 
 #if (BUFFER_MODE != IPSEC_FLG_BUFFER_REUSE)

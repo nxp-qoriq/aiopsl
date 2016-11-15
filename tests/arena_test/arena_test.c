@@ -301,7 +301,7 @@ int app_early_init(void){
 	if(err)
 		pr_err("slab_register_context_buffer_requirements failed: %d\n",err);
 
-	err = dpni_drv_register_rx_buffer_layout_requirements(96,0,0);
+	err = dpni_drv_register_rx_buffer_layout_requirements(96, 0, 0, 0);
 	if(err)
 		pr_err("dpni_drv_register_rx_buffer_layout_requirements failed: %d\n",err);
 

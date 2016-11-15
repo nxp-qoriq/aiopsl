@@ -155,7 +155,7 @@ int app_early_init(void){
 		return err;
 
 	/* Set DHR to 256 in the default storage profile, for IPsec */
-	err = dpni_drv_register_rx_buffer_layout_requirements(256,0,0);
+	err = dpni_drv_register_rx_buffer_layout_requirements(256, 0, 0, 0);
 	
 	return err;
 }

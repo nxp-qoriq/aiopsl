@@ -189,6 +189,18 @@ enum dpni_drv_counter {
 #define DPNI_DRV_BUF_LAYOUT_OPT_DATA_HEAD_ROOM          0x00000020
 /**!< Select to modify the data-tail-room setting */
 #define DPNI_DRV_BUF_LAYOUT_OPT_DATA_TAIL_ROOM          0x00000040
+
+/**************************************************************************//**
+@Description	 enum dpni_drv_request_frame_annotation - Frame annotation.
+
+*//***************************************************************************/
+enum dpni_drv_frame_annotation {
+	/* Status word and Time stamp */
+	DPNI_DRV_FA_STATUS_AND_TS = 0x01,
+	/* Parser result */
+	DPNI_DRV_FA_PARSER_RESULT = 0x02
+};
+
 /** @} end of group DPNI_DRV_BUF_LAYOUT_OPT */
 
 /**************************************************************************//**
@@ -369,6 +381,65 @@ struct dpni_drv_qos_rule {
 	uint64_t mask_iova;
 	/* key and mask size (in bytes) */
 	uint8_t key_size;
+};
+
+/**
+ * DPNI driver errors
+ */
+
+/**************************************************************************//**
+@Description	 DPNI driver errors
+
+*//***************************************************************************/
+/* Extract out of frame header error */
+#define DPNI_DRV_EXTRACT_OUT_FRAME_HEADER_ERR	0x00020000
+
+/* Frame length error */
+#define DPNI_DRV_FRAME_LENGTH_ERR		0x00002000
+
+/* Frame physical error */
+#define DPNI_DRV_ERROR_FRAME_PHYSICAL_ERR	0x00001000
+
+/* Parsing header error */
+#define DPNI_DRV_PARSING_HEADER_ERR		0x00000020
+
+/* Parser L3 checksum error */
+#define DPNI_DRV_L3_CHECKSUM_ERR		0x00000004
+
+/* Parser L4 checksum error */
+#define DPNI_DRV_L4_CHECKSUM_ERR		0x00000001
+
+/* All errors */
+#define DPNI_DRV_ALL_ERR	(DPNI_DRV_EXTRACT_OUT_FRAME_HEADER_ERR | \
+				DPNI_DRV_FRAME_LENGTH_ERR |		 \
+				DPNI_DRV_ERROR_FRAME_PHYSICAL_ERR |	 \
+				DPNI_DRV_PARSING_HEADER_ERR |		 \
+				DPNI_DRV_L3_CHECKSUM_ERR |		 \
+				DPNI_DRV_L4_CHECKSUM_ERR)
+
+/**************************************************************************//**
+@Description	 enum dpni_drv_error_action - DPNI behavior for errors.
+
+*//***************************************************************************/
+enum dpni_drv_error_action {
+	/* Discard the frame */
+	DPNI_DRV_ERR_ACTION_DISCARD = 0,
+	/* Continue with the normal flow */
+	DPNI_DRV_ERR_ACTION_CONTINUE = 1,
+	/* Send the frame to the error queue */
+	DPNI_DRV_ERR_ACTION_SEND_TO_ERR_QUEUE = 2
+};
+
+/**************************************************************************//**
+@Description	struct dpni_drv_error_cfg - Structure representing DPNI errors
+		treatment.
+
+*//***************************************************************************/
+struct dpni_drv_error_cfg {
+	/* Errors mask; use 'DPNI_DRV_ERROR_<X> */
+	uint32_t			errors;
+	/* The desired action for the errors mask */
+	enum dpni_drv_error_action	error_action;
 };
 
 /**************************************************************************//**
@@ -978,12 +1049,21 @@ int dpni_drv_get_rx_buffer_layout(uint16_t ni_id, struct dpni_drv_buf_layout *la
 @Param[in]	head_room           Requested head room.
 @Param[in]	tail_room           Requested tail room.
 @Param[in]	private_data_size   Requested private data size.
-
+@Param[in]	frame_anno          Requested frame annotation.
+		OR-ed combination of dpni_drv_request_frame_annotation
+		enumeration values. Hardware annotations are returned in the ASA
+		presentation area as it follows :
+			- Status Word at 0x00, 8 bytes,
+			- Time Stamp at 0x08, 8 bytes,
+			- Parser Result at 0x10, 48 bytes.
 @Return		0        - on success,
 		-ENAVAIL - resource not available or not found,
 		-ENOMEM  - not enough memory.
  *//***************************************************************************/
-int dpni_drv_register_rx_buffer_layout_requirements(uint16_t head_room, uint16_t tail_room, uint16_t private_data_size);
+int dpni_drv_register_rx_buffer_layout_requirements(uint16_t head_room,
+						    uint16_t tail_room,
+						    uint16_t private_data_size,
+						    uint32_t frame_anno);
 
 /**************************************************************************//**
 @Function	dpni_drv_get_counter
@@ -1442,6 +1522,21 @@ int dpni_drv_prepare_key_cfg(struct dpkg_profile_cfg *cfg,
 *//***************************************************************************/
 int dpni_drv_get_num_free_bufs(uint32_t flags,
 			       struct dpni_drv_free_bufs *free_bufs);
+
+/**************************************************************************//**
+@Function	dpni_drv_set_errors_behavior
+
+@Description	Set errors behavior.
+
+@Param[in]	ni_id The AIOP Network Interface ID.
+
+@Param[in]	cfg :  Errors configuration.
+
+@Return	0 on success;
+	error code, otherwise. For error posix refer to \ref error_g
+*//***************************************************************************/
+int dpni_drv_set_errors_behavior(uint16_t ni_id,
+				 const struct dpni_drv_error_cfg *cfg);
 
 /** @} */ /* end of dpni_drv_g DPNI DRV group */
 #endif /* __FSL_DPNI_DRV_H */

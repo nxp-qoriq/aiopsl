@@ -351,48 +351,55 @@ void dpni_drv_unprobe(uint16_t aiop_niid)
 
 }
 
-/* configure probed dpni's parameters (attributes, pools, layout, TX confirmation, SPID info*/
-static int configure_dpni_params(struct mc_dprc *dprc, uint16_t aiop_niid, uint16_t dpni)
+/* Configure probed dpni's parameters (attributes, pools, layout,
+ * TX confirmation, SPID info */
+static int configure_dpni_params(struct mc_dprc *dprc, uint16_t aiop_niid,
+				 uint16_t dpni)
 {
 	struct dpni_buffer_layout layout = {0};
 	struct dpni_sp_info sp_info = { 0 };
 	struct dpni_attr attributes = { 0 };
 	int err;
 
-	err = dpni_get_attributes(&dprc->io,
-	                          0,
-	                          dpni,
-	                          &attributes);
-	if(err){
+	err = dpni_get_attributes(&dprc->io, 0, dpni, &attributes);
+	if (err) {
 		sl_pr_err("Failed to get attributes\n");
 		return err;
 	}
-
-	/* TODO: set nis[aiop_niid].starting_hxs according to
-	 * the DPNI attributes.
-	 * Not yet implemented on MC.
-	 * Currently always set to zero, which means ETH. */
-	err = dpni_set_pools(
-		&dprc->io,
-		0,
-		dpni,
-		&pools_params);
-	if(err){
+	/* TODO: set nis[aiop_niid].starting_hxs according to the DPNI
+	 * attributes. Not yet implemented on MC. Currently always set to zero,
+	 * which means ETH. */
+	err = dpni_set_pools(&dprc->io, 0, dpni, &pools_params);
+	if (err) {
 		sl_pr_err("Failed to set the pools\n");
 		return err;
 	}
 
-	layout.options = DPNI_BUF_LAYOUT_OPT_DATA_HEAD_ROOM
-		| DPNI_BUF_LAYOUT_OPT_DATA_TAIL_ROOM;
-
-	if(g_dpni_early_init_data.count > 0) {
+	layout.options = DPNI_BUF_LAYOUT_OPT_DATA_HEAD_ROOM |
+		DPNI_BUF_LAYOUT_OPT_DATA_TAIL_ROOM;
+	if (g_dpni_early_init_data.count > 0) {
 		layout.data_head_room =
 			g_dpni_early_init_data.head_room_sum;
 		layout.data_tail_room =
 			g_dpni_early_init_data.tail_room_sum;
-		layout.private_data_size =
-			g_dpni_early_init_data.private_data_size_sum;
-	}else {
+		if (g_dpni_early_init_data.private_data_size_sum) {
+			layout.private_data_size =
+				g_dpni_early_init_data.private_data_size_sum;
+			layout.options |= DPNI_BUF_LAYOUT_OPT_PRIVATE_DATA_SIZE;
+		}
+		if (g_dpni_early_init_data.frame_anno &
+		    DPNI_DRV_FA_STATUS_AND_TS) {
+			layout.pass_frame_status = 1;
+			layout.pass_timestamp = 1;
+			layout.options |= DPNI_BUF_LAYOUT_OPT_FRAME_STATUS |
+					DPNI_BUF_LAYOUT_OPT_TIMESTAMP;
+		}
+		if (g_dpni_early_init_data.frame_anno &
+		    DPNI_DRV_FA_PARSER_RESULT) {
+			layout.pass_parser_result = 1;
+			layout.options |= DPNI_BUF_LAYOUT_OPT_PARSER_RESULT;
+		}
+	} else {
 		layout.data_head_room = DPNI_DRV_DHR_DEF;
 		layout.data_tail_room = DPNI_DRV_DTR_DEF;
 		layout.private_data_size = DPNI_DRV_PTA_DEF;
@@ -403,52 +410,40 @@ static int configure_dpni_params(struct mc_dprc *dprc, uint16_t aiop_niid, uint1
 	layout.data_align = DPNI_DRV_DATA_ALIGN_DEF;
 	sl_pr_debug("ERR009354: data-offset must be aligned to 256\n");
 #endif  /* ERR009354 */
-
-	err = dpni_set_buffer_layout(&dprc->io, 0, dpni, DPNI_QUEUE_RX, &layout);
-	if(err){
+	err = dpni_set_buffer_layout(&dprc->io, 0, dpni, DPNI_QUEUE_RX,
+				     &layout);
+	if (err) {
 		sl_pr_err("Failed to set rx buffer layout\n");
 		return err;
 	}
-
-	/*
-	 * Disable TX confirmation for DPNI's in AIOP in case
-	 * the option: 'DPNI_OPT_TX_CONF_DISABLED' was not
-	 * selected at DPNI creation.
-	 * */
-	err = dpni_set_tx_confirmation_mode(&dprc->io, 0, dpni, DPNI_CONF_DISABLE);
-	if(err){
+	/* Disable TX confirmation for DPNI's in AIOP in case the option:
+	 * 'DPNI_OPT_TX_CONF_DISABLED' was not selected at DPNI creation. */
+	err = dpni_set_tx_confirmation_mode(&dprc->io, 0, dpni,
+					    DPNI_CONF_DISABLE);
+	if (err) {
 		sl_pr_err("Failed to set tx_conf_revoke\n");
 		return err;
 	}
-
-	/* Now a Storage Profile exists and is associated
-	 * with the NI */
-
-
-	/* Register SPID in internal AIOP NI table */
-	if ((err = dpni_get_sp_info(&dprc->io, 0,
-	                            dpni, &sp_info)) != 0) {
+	/* Now a Storage Profile exists and is associated with the NI.
+	 * Register SPID in internal AIOP NI table */
+	err = dpni_get_sp_info(&dprc->io, 0, dpni, &sp_info);
+	if (err) {
 		sl_pr_err("Failed to get SPID\n");
 		return err;
 	}
-
-	/*TODO: change to uint16_t in nis table
-	 * for the next release*/
-	nis[aiop_niid].dpni_drv_params_var.spid =
-		(uint8_t)sp_info.spids[0];
-
-	/* TODO: need to initialize additional NI table fields according to DPNI attributes */
-
-	/*bpid exist to use for ddr pool*/
-	if(pools_params.num_dpbp == 2){
+	/* TODO: change to uint16_t in nis table for the next release*/
+	nis[aiop_niid].dpni_drv_params_var.spid = (uint8_t)sp_info.spids[0];
+	/* TODO: need to initialize additional NI table fields according to
+	 * DPNI attributes */
+	/* bpid exist to use for ddr pool*/
+	if (pools_params.num_dpbp == 2) {
 		nis[aiop_niid].dpni_drv_params_var.spid_ddr =
 			(uint8_t)sp_info.spids[1];
-	}
-	else{
+	} else {
 		sl_pr_err("DDR spid is not available \n");
 		nis[aiop_niid].dpni_drv_params_var.spid_ddr = 0;
 	}
-	return err;
+	return 0;
 }
 
 /* configure probed dpni's irq */
@@ -1614,17 +1609,24 @@ int dpni_drv_get_rx_buffer_layout(uint16_t ni_id, struct dpni_drv_buf_layout *la
 	return 0;
 }
 
-int dpni_drv_register_rx_buffer_layout_requirements(uint16_t head_room, uint16_t tail_room, uint16_t private_data_size)
+int dpni_drv_register_rx_buffer_layout_requirements(uint16_t head_room,
+						    uint16_t tail_room,
+						    uint16_t private_data_size,
+						    uint32_t frame_anno)
 {
 	g_dpni_early_init_data.count++;
 
 	g_dpni_early_init_data.head_room_sum += head_room;
 	g_dpni_early_init_data.tail_room_sum += tail_room;
+	if (frame_anno)
+		g_dpni_early_init_data.frame_anno = frame_anno;
 
-	if(private_data_size) {
-		g_dpni_early_init_data.private_data_size_sum = DPNI_DRV_PTA_SIZE;
+	if (private_data_size) {
+		pr_warn("Private data size is set to %d bytes\n",
+			DPNI_DRV_PTA_SIZE);
+		g_dpni_early_init_data.private_data_size_sum =
+			DPNI_DRV_PTA_SIZE;
 	}
-
 	return 0;
 }
 
@@ -2498,6 +2500,49 @@ int dpni_drv_get_num_free_bufs(uint32_t flags,
 			free_bufs->backup_bp_free_bufs += num_free_bufs;
 		else
 			free_bufs->peb_bp_free_bufs += num_free_bufs;
+	}
+	return 0;
+}
+
+int dpni_drv_set_errors_behavior(uint16_t ni_id,
+				 const struct dpni_drv_error_cfg *cfg)
+{
+	struct mc_dprc		*dprc;
+	int			err;
+	uint16_t		dpni;
+	struct dpni_error_cfg	err_cfg;
+
+	dprc = sys_get_unique_handle(FSL_MOD_AIOP_RC);
+	if (!dprc) {
+		pr_err("No AIOP container found\n");
+		return -ENODEV;
+	}
+	err_cfg.error_action = (enum dpni_error_action)cfg->error_action;
+	err_cfg.errors = cfg->errors;
+	/* Set to '1' to mark the errors in frame annotation status (FAS).
+	 * Relevant only for the non-discard action */
+	err_cfg.set_frame_annotation =
+		cfg->errors != DPNI_DRV_ERR_ACTION_DISCARD ? 1 : 0;
+	/* Lock dpni table */
+	cdma_mutex_lock_take((uint64_t)nis, CDMA_MUTEX_READ_LOCK);
+	err = dpni_open(&dprc->io, 0, (int)nis[ni_id].dpni_id, &dpni);
+	 /* Unlock dpni table */
+	cdma_mutex_lock_release((uint64_t)nis);
+	if (err) {
+		sl_pr_err("Open DPNI failed\n");
+		return err;
+	}
+	err = dpni_set_errors_behavior(&dprc->io, 0, dpni, &err_cfg);
+	if (err) {
+		sl_pr_err("dpni_set_errors_behavior failed\n");
+		if (dpni_close(&dprc->io, 0, dpni))
+			sl_pr_err("Close DPNI failed\n");
+		return err;
+	}
+	err = dpni_close(&dprc->io, 0, dpni);
+	if (err) {
+		sl_pr_err("Close DPNI failed\n");
+		return err;
 	}
 	return 0;
 }
