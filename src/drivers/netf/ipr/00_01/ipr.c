@@ -741,7 +741,7 @@ IPR_CODE_PLACEMENT int ipr_reassemble(ipr_instance_handle_t instance_handle)
 	struct ipr_instance instance_params;
 	struct scope_status_params scope_status;
 	uint64_t rfdc_ext_addr;
-	uint32_t status_insert_to_LL;
+	uint32_t fragment_status;
 	uint32_t osm_status;
 	uint32_t frame_is_ipv4;
 	uint32_t status;
@@ -819,12 +819,14 @@ IPR_CODE_PLACEMENT int ipr_reassemble(ipr_instance_handle_t instance_handle)
 		  instance_handle,
 		  IPR_INSTANCE_SIZE);
 
-	if (check_for_frag_error(&instance_params, frame_is_ipv4, iphdr_ptr
-#ifdef USE_IPR_SW_TABLE
-							, &fk
-#endif	/* USE_IPR_SW_TABLE */
-							) ==
-								NO_ERROR) {
+	fragment_status =
+		check_for_frag_error(&instance_params, frame_is_ipv4, iphdr_ptr
+	#ifdef USE_IPR_SW_TABLE
+				     , &fk
+	#endif	/* USE_IPR_SW_TABLE */
+				    );
+
+	if (fragment_status == NO_ERROR) {
 #ifdef USE_IPR_SW_TABLE
 		sr_status = sw_ipr_lookup_or_insert(&instance_params,
 						    (uint8_t)frame_is_ipv4,
@@ -927,10 +929,10 @@ IPR_CODE_PLACEMENT int ipr_reassemble(ipr_instance_handle_t instance_handle)
 
 		return -ENOTSUP;
 	}
-	status_insert_to_LL = ipr_insert_to_link_list(&rfdc, rfdc_ext_addr,
-						      &instance_params,
-						      iphdr_ptr, frame_is_ipv4);
-	switch (status_insert_to_LL) {
+	fragment_status = ipr_insert_to_link_list(&rfdc, rfdc_ext_addr,
+						  &instance_params,
+						  iphdr_ptr, frame_is_ipv4);
+	switch (fragment_status) {
 	case FRAG_OK_REASS_NOT_COMPL:
 		if (rfdc.num_of_frags != 1) {
 			/* other fragments than the opening one */
@@ -1008,7 +1010,15 @@ IPR_CODE_PLACEMENT int ipr_reassemble(ipr_instance_handle_t instance_handle)
 		closing_with_reordering(&rfdc, rfdc_ext_addr,
 					instance_params.preserve_fragments);
 		break;
-	case MALFORMED_FRAG:
+	case MALF_MIN_SIZE_IPV4:
+	case MALF_MIN_SIZE_IPV6:
+	case MALF_SIZE_M8:
+	case MALF_MAX_IP_SIZE:
+	case MALF_PAST_END:
+	case MALF_LAST_FRAG:
+	case MALF_OVERLAP_DUPLICATE:
+	case MALF_ECN:
+	case MALF_MAX_REASS_FRM_SZ:
 		/* duplicate, overlap, or non-conform fragment */
 		/* Write updated 64 first bytes of RFDC */
 		/* RFDC is written in case the opening frag is malformed */
@@ -1029,7 +1039,7 @@ IPR_CODE_PLACEMENT int ipr_reassemble(ipr_instance_handle_t instance_handle)
 				 frame_is_ipv4);
 
 
-		return IPR_MALFORMED_FRAG;
+		return GET_IPR_ERR(fragment_status);
 		break;
 	}
 	/* Only successfully reassembled frames continue
@@ -1179,7 +1189,7 @@ IPR_CODE_PLACEMENT int ipr_reassemble(ipr_instance_handle_t instance_handle)
 					  malformed_frags_cntr_ipv4),
 				 frame_is_ipv4);
 
-		return IPR_MALFORMED_FRAG;
+		return GET_IPR_ERR(fragment_status);
 	}
 }
 
@@ -1471,12 +1481,12 @@ IPR_CODE_PLACEMENT uint32_t ipr_insert_to_link_list(struct ipr_rfdc *rfdc_ptr,
 		/* Check ECN compliance */
 		if ((ipv4hdr_ptr->tos & IPV4_ECN) == NOT_ECT) {
 			if (rfdc_ptr->status & RFDC_STATUS_CE)
-				return MALFORMED_FRAG;
+				return MALF_ECN;
 			rfdc_ptr->status |= RFDC_STATUS_NOT_ECT;
 		}
 		else if ((ipv4hdr_ptr->tos & IPV4_ECN) == CE) {
 			if (rfdc_ptr->status & RFDC_STATUS_NOT_ECT)
-				return MALFORMED_FRAG;
+				return MALF_ECN;
 			rfdc_ptr->status |= RFDC_STATUS_CE;
 		}
 		check_remove_padding();
@@ -1499,14 +1509,14 @@ IPR_CODE_PLACEMENT uint32_t ipr_insert_to_link_list(struct ipr_rfdc *rfdc_ptr,
 		if ((ipv6hdr_ptr->vsn_traffic_flow & IPV6_ECN)
 				== NOT_ECT) {
 			if (rfdc_ptr->status & RFDC_STATUS_CE)
-				return MALFORMED_FRAG;
+				return MALF_ECN;
 			rfdc_ptr->status |= RFDC_STATUS_NOT_ECT;
 		}
 		else if ((ipv6hdr_ptr->vsn_traffic_flow & IPV6_ECN)
 				== IPV6_ECN) {
 			/* CE code */
 			if (rfdc_ptr->status & RFDC_STATUS_NOT_ECT)
-				return MALFORMED_FRAG;
+				return MALF_ECN;
 			rfdc_ptr->status |= RFDC_STATUS_CE;
 		}
 	}
@@ -1581,7 +1591,7 @@ IPR_CODE_PLACEMENT uint32_t ipr_insert_to_link_list(struct ipr_rfdc *rfdc_ptr,
 					return_status = LAST_FRAG_IN_ORDER;
 				}
 				else
-					return_status = MALFORMED_FRAG;
+					return_status = MALF_MAX_REASS_FRM_SZ;
 			} else {
 				/* Non closing fragment */
 				/* Close current frame before storing FD */
@@ -1599,7 +1609,7 @@ IPR_CODE_PLACEMENT uint32_t ipr_insert_to_link_list(struct ipr_rfdc *rfdc_ptr,
 				}
 		} else if (frag_offset_shifted < expected_frag_offset) {
 				/* Malformed Error */
-				return MALFORMED_FRAG;
+				return MALF_OVERLAP_DUPLICATE;
 		} else {
 			/* New out of order */
 			current_index = rfdc_ptr->next_index;
@@ -1654,8 +1664,9 @@ IPR_CODE_PLACEMENT uint32_t ipr_insert_to_link_list(struct ipr_rfdc *rfdc_ptr,
 					last_fragment, current_frag_size,
 					frag_offset_shifted,
 					instance_params_ptr);
-			if(return_status == MALFORMED_FRAG)
-				return MALFORMED_FRAG;
+			if ((return_status >= MALF_MIN_SIZE_IPV4) &&
+			    (return_status <= MALF_MAX_REASS_FRM_SZ))
+				return return_status;
 	}
 	/* Only valid fragment runs here */
 	if (frag_offset_shifted == 0) {
@@ -2142,7 +2153,7 @@ IPR_CODE_PLACEMENT uint32_t check_for_frag_error (struct ipr_instance *instance_
 	length = (uint16_t) (LDPAA_FD_GET_LENGTH(HWC_FD_ADDRESS));
 	if (frame_is_ipv4) {
 		if (length < instance_params->min_frag_size_ipv4)
-			return MALFORMED_FRAG;
+			return MALF_MIN_SIZE_IPV4;
 		ipv4hdr_ptr = (struct ipv4hdr *) iphdr_ptr;
 		frag_offset_shifted =
 		    (ipv4hdr_ptr->flags_and_offset & FRAG_OFFSET_IPV4_MASK)<<3;
@@ -2161,7 +2172,7 @@ IPR_CODE_PLACEMENT uint32_t check_for_frag_error (struct ipr_instance *instance_
 #endif	/* USE_IPR_SW_TABLE */
 	} else {
 		if (length < instance_params->min_frag_size_ipv6)
-			return MALFORMED_FRAG;
+			return MALF_MIN_SIZE_IPV6;
 		ipv6hdr_ptr = (struct ipv6hdr *) iphdr_ptr;
 		ipv6fraghdr_offset =
 				PARSER_GET_IPV6_FRAG_HEADER_OFFSET_DEFAULT();
@@ -2195,11 +2206,11 @@ IPR_CODE_PLACEMENT uint32_t check_for_frag_error (struct ipr_instance *instance_
 	}
 	/* Check IP size is multiple of 8 for First or middle fragment*/
 	if (!last_fragment && (current_frag_size % 8 != 0))
-		return MALFORMED_FRAG;
+		return MALF_SIZE_M8;
 	/* Check 64K limit */
 	/* todo check if WRIOP checks this */
-	if ((current_frag_size + frag_offset_shifted) > MAX_IP_SIZE)
-		return MALFORMED_FRAG;
+	if (((uint32_t)current_frag_size + frag_offset_shifted) > MAX_IP_SIZE)
+		return MALF_MAX_IP_SIZE;
 
 	return NO_ERROR;
 }
@@ -2470,7 +2481,7 @@ IPR_CODE_PLACEMENT uint32_t out_of_order(struct ipr_rfdc *rfdc_ptr, uint64_t rfd
 
 	if (frag_offset_shifted < rfdc_ptr->total_in_order_payload) {
 		/* overlap or duplicate */
-		return MALFORMED_FRAG;
+		return MALF_OVERLAP_DUPLICATE;
 	}
 	current_index = rfdc_ptr->next_index;
 	current_element_ext_addr =  rfdc_ext_addr + START_OF_LINK_LIST +
@@ -2488,7 +2499,7 @@ IPR_CODE_PLACEMENT uint32_t out_of_order(struct ipr_rfdc *rfdc_ptr, uint64_t rfd
 			  LINK_LIST_ELEMENT_SIZE);
 		if (LAST_FRAG_ARRIVED()) {
 			/* Error */
-			return MALFORMED_FRAG;
+			return MALF_PAST_END;
 		}
 		if(last_fragment)
 			rfdc_ptr->expected_total_length = frag_offset_shifted +
@@ -2515,7 +2526,7 @@ IPR_CODE_PLACEMENT uint32_t out_of_order(struct ipr_rfdc *rfdc_ptr, uint64_t rfd
 		if(last_fragment) {
 			/* Current fragment is smaller than last but is marked
 			 * as last */
-			return MALFORMED_FRAG;
+			return MALF_LAST_FRAG;
 		}
 		/* Bring 8 elements of the Link List */
 		octet_index = temp_frag_index >> 3;
@@ -2529,7 +2540,7 @@ IPR_CODE_PLACEMENT uint32_t out_of_order(struct ipr_rfdc *rfdc_ptr, uint64_t rfd
 		if ((frag_offset_shifted + current_frag_size) >
 					temp_element_ptr->frag_offset) {
 			/* Overlap */
-			return MALFORMED_FRAG;
+			return MALF_OVERLAP_DUPLICATE;
 		}
 		do {
 			if (temp_frag_index == first_frag_index) {
@@ -2605,7 +2616,7 @@ IPR_CODE_PLACEMENT uint32_t out_of_order(struct ipr_rfdc *rfdc_ptr, uint64_t rfd
 						return LAST_FRAG_OUT_OF_ORDER;
 					}
 					else 
-						return MALFORMED_FRAG;
+						return MALF_MAX_REASS_FRM_SZ;
 				} else {
 					/* reassembly is not completed */
 
@@ -2732,7 +2743,7 @@ IPR_CODE_PLACEMENT uint32_t out_of_order(struct ipr_rfdc *rfdc_ptr, uint64_t rfd
 			   }
 		} else {
 			/* Error */
-			return MALFORMED_FRAG;
+			return MALF_OVERLAP_DUPLICATE;
 		}
 	}
 
@@ -2758,7 +2769,7 @@ IPR_CODE_PLACEMENT uint32_t out_of_order(struct ipr_rfdc *rfdc_ptr, uint64_t rfd
 			return LAST_FRAG_OUT_OF_ORDER;
 		}
 		else
-			return MALFORMED_FRAG;
+			return MALF_MAX_REASS_FRM_SZ;
 	} else {
 		/* reassembly is not completed */
 		/* Close current frame before storing FD */

@@ -329,17 +329,47 @@ struct extended_stats_cntrs {
 
 /** Frame was a regular frame*/
 #define IPR_REASSEMBLY_REGULAR		0
+
 /** Frame was correctly reassembled */
 #define IPR_REASSEMBLY_SUCCESS		(IPR_MODULE_STATUS_ID + 0x1000)
+
 /** Reassembly isn't completed yet but fragment was successfully added to the
    partially reassembled frame*/
 #define IPR_REASSEMBLY_NOT_COMPLETED	(IPR_MODULE_STATUS_ID + 0x0200)
+
 /** Frame is recognized as an IPv6 atomic fragment and remains unchanged */
 #define IPR_ATOMIC_FRAG			(IPR_MODULE_STATUS_ID + 0x0300)
-/** Fragment has been recognized as malformed (overlap, duplicate,
- *  not multiple of 8,...) and wasn't added to the partially reassembled frame*/
-#define IPR_MALFORMED_FRAG		(IPR_MODULE_STATUS_ID + 0x0400)
 
+/** Fragment has been recognized as malformed
+    and wasn't added to the partially reassembled frame **/
+/* IPv4 fragment size is less than the minimum configured IPv4 fragment size */
+#define IPR_MALFORMED_MIN_SIZE_IPV4		(IPR_MODULE_STATUS_ID + 0x0400)
+
+/* IPv6 fragment size is less than the minimum configured IPv6 fragment size */
+#define IPR_MALFORMED_MIN_SIZE_IPV6		(IPR_MODULE_STATUS_ID + 0x0500)
+
+/* For first or middle fragment IP size is not multiple of 8 */
+#define IPR_MALFORMED_SIZE_M8			(IPR_MODULE_STATUS_ID + 0x0600)
+
+/* Fragment size + offset is bigger than maximum IP frame size (64k) */
+#define IPR_MALFORMED_MAX_IP_SIZE		(IPR_MODULE_STATUS_ID + 0x0700)
+
+/* Fragment offset is bigger than the end of the final fragment */
+#define IPR_MALFORMED_PAST_END			(IPR_MODULE_STATUS_ID + 0x0800)
+
+/* Fragment offset of the final fragment is less than the offset of the
+   last non ending fragment */
+#define IPR_MALFORMED_LAST_FRAG			(IPR_MODULE_STATUS_ID + 0x0900)
+
+/* Fragment overlaps or duplicates other received fragments */
+#define IPR_MALFORMED_OVERLAP_DUPLICATE		(IPR_MODULE_STATUS_ID + 0x0A00)
+
+/* ECN (Explicit Congestion Notification) fragment flags don't match
+   previous ECN flags */
+#define IPR_MALFORMED_ECN			(IPR_MODULE_STATUS_ID + 0x0B00)
+
+/* Fragment size + offset is bigger than maximum configured frame size */
+#define IPR_MALFORMED_MAX_REASS_FRAME_SIZE	(IPR_MODULE_STATUS_ID + 0x0C00)
 
 /** @} */ /* end of group FSL_IPRReassReturnStatus */
 

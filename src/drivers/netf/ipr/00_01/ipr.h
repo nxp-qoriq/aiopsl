@@ -123,7 +123,25 @@ struct sw_table_entry {
 #define	FRAG_OK_REASS_NOT_COMPL	0
 #define LAST_FRAG_IN_ORDER	1
 #define LAST_FRAG_OUT_OF_ORDER	2
-#define MALFORMED_FRAG		3
+
+enum ipr_invalid_frag {
+	MALF_MIN_SIZE_IPV4 = 3,
+	MALF_MIN_SIZE_IPV6,
+	MALF_SIZE_M8,
+	MALF_MAX_IP_SIZE,
+	MALF_PAST_END,
+	MALF_LAST_FRAG,
+	MALF_OVERLAP_DUPLICATE,
+	MALF_ECN,
+	MALF_MAX_REASS_FRM_SZ
+};
+
+/* returns one of the IPR_MALFORMED flags */
+static inline int GET_IPR_ERR(uint32_t stat)
+{
+	return (int)(IPR_ATOMIC_FRAG + ((stat - MALF_MIN_SIZE_IPV4 + 1) << 8));
+}
+
 #define NO_BYPASS_OSM		0x00000000 /* in osm_status */
 #define	BYPASS_OSM		0x00000001 /* in osm_status */
 #define START_CONCURRENT	0x00000002 /* in osm_status */
