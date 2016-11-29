@@ -366,7 +366,7 @@ int app_early_init(void)
 		return err;
 
 	/* Set DHR to 256 in the default storage profile */
-	return dpni_drv_register_rx_buffer_layout_requirements(256, 0, 0);
+	return dpni_drv_register_rx_buffer_layout_requirements(256, 0, 0, 0);
 }
 
 static int app_dpni_event_added_cb(uint8_t generator_id, uint8_t event_id,
