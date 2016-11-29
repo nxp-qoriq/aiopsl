@@ -1722,7 +1722,7 @@ void cwapr_modify_timeout_value(cwapr_instance_handle_t cwapr_instance_handle,
 void cwapr_get_reass_frm_cntr(cwapr_instance_handle_t cwapr_instance_handle,
 				uint32_t *reass_frm_cntr)
 {
-	cdma_read(reass_frm_cntr,
+	cdma_read_with_no_cache(reass_frm_cntr,
 		  cwapr_instance_handle +
 		  offsetof(struct cwapr_instance, reass_frm_cntr),
 		  sizeof(*reass_frm_cntr));

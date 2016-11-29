@@ -45,6 +45,7 @@
 #include "fsl_malloc.h"
 #include "fsl_evmng.h"
 #include "apps_arch.h"
+#include "fsl_ste.h"
 
 int app_early_init(void);
 int app_init(void);
@@ -259,9 +260,10 @@ static void print_cwapr_statistics(
 	struct cwapr_stats_cntrs stats;
 	uint32_t reass_frm_cntr;
 
+	ste_barrier();
 	cwapr_get_reass_frm_cntr(cwapr_instance_handle, &reass_frm_cntr);
 
-	cdma_read(&stats,
+	cdma_read_with_no_cache(&stats,
 		stats_mem_base_addr,
 		sizeof(struct cwapr_stats_cntrs));
 
