@@ -2288,13 +2288,26 @@ skip_l2_remove:
 		fdma_modify_default_segment_data((uint16_t)
 						 (eth_length - 2), 14);
 	} else if (sap1.flags & IPSEC_FLG_TUNNEL_MODE) {
-		/* Update the ETYPE according to the outer IP header */
-		*(uint16_t *)(orig_seg_addr + eth_length - 2) =
-				(sap1.flags & IPSEC_FLG_OUTER_HEADER_IPV6) ?
-						IPSEC_ETHERTYPE_IPV6 :
-						IPSEC_ETHERTYPE_IPV4;
-		/* Modify ETYPE bytes */
-		fdma_modify_default_segment_data((uint16_t)(eth_length - 2), 2);
+		/* Update the ETYPE according to the outer IP header, only if
+		 * the ETYPE in the original packet differs from the ETYPE in
+		 * the outer header */
+		if (sap1.flags & IPSEC_FLG_OUTER_HEADER_IPV6) {
+			if (*(uint16_t *)(orig_seg_addr + eth_length - 2) !=
+					IPSEC_ETHERTYPE_IPV6) {
+				*(uint16_t *)(orig_seg_addr + eth_length - 2) =
+					IPSEC_ETHERTYPE_IPV6;
+				/* Modify ETYPE bytes */
+				fdma_modify_default_segment_data
+					((uint16_t)(eth_length - 2), 2);
+			}
+		} else if (*(uint16_t *)(orig_seg_addr + eth_length - 2) !=
+					IPSEC_ETHERTYPE_IPV4) {
+				*(uint16_t *)(orig_seg_addr + eth_length - 2) =
+					IPSEC_ETHERTYPE_IPV4;
+				/* Modify ETYPE bytes */
+				fdma_modify_default_segment_data
+					((uint16_t)(eth_length - 2), 2);
+		}
 	}
 
 	/* 16. If L2 header existed in the original frame, add it back.
