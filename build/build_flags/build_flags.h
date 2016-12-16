@@ -192,7 +192,6 @@
  * Disabled by default.
  */
 
-
 /*
  * sNIC module
  *
@@ -202,5 +201,19 @@
  * It initializes the IPR, IPF, IPSec modules even when it's not used.
  * Disabled by default.
  */
+
+/*
+ * Total size of boot memory manager
+ */
+#ifndef BOOT_MEM_MNG_SIZE
+#define BOOT_MEM_MNG_SIZE (1 * MEGABYTE)
+#endif
+
+/*
+ * Total size of buffer pool for slob allocations
+ */
+#ifndef BUFFER_POOL_SIZE
+#define BUFFER_POOL_SIZE (512 * KILOBYTE)
+#endif
 
 #endif /* __BUILD_FLAGS_H */

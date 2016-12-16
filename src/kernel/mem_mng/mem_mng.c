@@ -116,9 +116,9 @@ static void mem_phys_mng_free_partition(struct t_mem_mng *p_mem_mng,
 
 extern const uint8_t AIOP_DDR_START[],AIOP_DDR_END[];
 /* Total size of boot memory manager */
-const uint32_t  g_boot_mem_mng_size = 1*MEGABYTE;
+const uint32_t  g_boot_mem_mng_size = BOOT_MEM_MNG_SIZE;
 /* Total size of buffer pool for slob allocations */
-const uint32_t g_buffer_pool_size = 512*KILOBYTE;
+const uint32_t g_buffer_pool_size = BUFFER_POOL_SIZE;
 
 
 
