@@ -190,7 +190,7 @@ Layout is built from 3 different sections: containers, objects, connections.
 			max_tcs = <1>;
 			max_policers = <1>;
 			max_dist_per_tc = < 0 0 0 0 0 0 0 0 >;
-			max_fs_entries_per_tc = < 3 3 3 3 3 3 3 3 >;
+			max_fs_entries_per_tc = < 7 7 7 7 7 7 7 7 >;
 			max_unicast_filters = <0>;
 			max_multicast_filters = <0>;
 			max_vlan_filters = <0>;
@@ -207,7 +207,7 @@ Layout is built from 3 different sections: containers, objects, connections.
 			max_tcs = <1>;
 			max_policers = <1>;
 			max_dist_per_tc = < 0 0 0 0 0 0 0 0 >;
-			max_fs_entries_per_tc = < 3 3 3 3 3 3 3 3 >;
+			max_fs_entries_per_tc = < 7 7 7 7 7 7 7 7 >;
 			max_unicast_filters = <0>;
 			max_multicast_filters = <0>;
 			max_vlan_filters = <0>;

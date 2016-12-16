@@ -76,12 +76,10 @@ struct dpni_drv_fs_entry {
 };
 #pragma pack(pop)
 
-#define FS_TABLE_SIZE 5
-
 #pragma pack(push, 1)
 struct dpni_drv_fs_params {
 	uint8_t size;
-	struct dpni_drv_fs_entry table[FS_TABLE_SIZE];
+	struct dpni_drv_fs_entry table[DPNI_FS_TABLE_SIZE];
 };
 #pragma pack(pop)
 

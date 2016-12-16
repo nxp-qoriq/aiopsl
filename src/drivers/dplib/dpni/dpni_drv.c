@@ -115,8 +115,8 @@ static inline void clear_fs_table(uint16_t ni_id)
 	struct dpni_drv *dpni_drv = nis + ni_id;
 
 	dpni_drv->fs.size = 0;
-	for (i = 0; i < FS_TABLE_SIZE; i++)
-		dpni_drv->fs.table[i].pos = FS_TABLE_SIZE;
+	for (i = 0; i < DPNI_FS_TABLE_SIZE; i++)
+		dpni_drv->fs.table[i].pos = DPNI_FS_TABLE_SIZE;
 }
 
 static inline uint8_t get_fs_entry(uint16_t ni_id, uint16_t etype)
@@ -125,14 +125,14 @@ static inline uint8_t get_fs_entry(uint16_t ni_id, uint16_t etype)
 	struct dpni_drv *dpni_drv = nis + ni_id;
 
 	if (dpni_drv->fs.size == 0)
-		return FS_TABLE_SIZE;
+		return DPNI_FS_TABLE_SIZE;
 
-	for (i = 0; i < FS_TABLE_SIZE; i++)
-		if ((dpni_drv->fs.table[i].pos != FS_TABLE_SIZE) &&
+	for (i = 0; i < DPNI_FS_TABLE_SIZE; i++)
+		if ((dpni_drv->fs.table[i].pos != DPNI_FS_TABLE_SIZE) &&
 		    (dpni_drv->fs.table[i].etype == etype))
 			return dpni_drv->fs.table[i].pos;
 
-	return FS_TABLE_SIZE;
+	return DPNI_FS_TABLE_SIZE;
 }
 
 static inline uint8_t add_fs_entry(uint16_t ni_id, uint16_t etype)
@@ -140,14 +140,14 @@ static inline uint8_t add_fs_entry(uint16_t ni_id, uint16_t etype)
 	uint8_t i;
 	struct dpni_drv *dpni_drv = nis + ni_id;
 
-	for (i = 0; i < FS_TABLE_SIZE; i++)
-		if (dpni_drv->fs.table[i].pos == FS_TABLE_SIZE) {
+	for (i = 0; i < DPNI_FS_TABLE_SIZE; i++)
+		if (dpni_drv->fs.table[i].pos == DPNI_FS_TABLE_SIZE) {
 			dpni_drv->fs.table[i].pos = i;
 			dpni_drv->fs.table[i].etype = etype;
 			dpni_drv->fs.size++;
 			return i;
 		}
-	return FS_TABLE_SIZE;
+	return DPNI_FS_TABLE_SIZE;
 }
 
 static inline void remove_fs_entry(uint16_t ni_id, uint16_t etype)
@@ -158,10 +158,10 @@ static inline void remove_fs_entry(uint16_t ni_id, uint16_t etype)
 	if (dpni_drv->fs.size == 0)
 		return;
 
-	for (i = 0; i < FS_TABLE_SIZE; i++)
-		if ((dpni_drv->fs.table[i].pos != FS_TABLE_SIZE) &&
+	for (i = 0; i < DPNI_FS_TABLE_SIZE; i++)
+		if ((dpni_drv->fs.table[i].pos != DPNI_FS_TABLE_SIZE) &&
 		    (dpni_drv->fs.table[i].etype == etype)) {
-			dpni_drv->fs.table[i].pos = FS_TABLE_SIZE;
+			dpni_drv->fs.table[i].pos = DPNI_FS_TABLE_SIZE;
 			dpni_drv->fs.size--;
 		}
 }
@@ -214,7 +214,7 @@ int dpni_drv_register_rx_cb_etype(uint16_t ni_id, rx_cb_t *cb, uint16_t etype)
 	cdma_mutex_lock_take((uint64_t)nis, CDMA_MUTEX_READ_LOCK);
 
 	pos = get_fs_entry(ni_id, etype);
-	if (pos != FS_TABLE_SIZE) {
+	if (pos != DPNI_FS_TABLE_SIZE) {
 		epid = nis[ni_id].dpni_drv_params_var.epid_idx;
 		epid += (pos + 1) * (uint32_t)SOC_MAX_NUM_OF_DPNI;
 		iowrite32_ccsr(epid, &wrks_addr->epas);
@@ -260,7 +260,7 @@ int dpni_drv_unregister_rx_cb_etype(uint16_t ni_id, uint16_t etype)
 	cdma_mutex_lock_take((uint64_t)nis, CDMA_MUTEX_READ_LOCK);
 
 	pos = get_fs_entry(ni_id, etype);
-	if (pos != FS_TABLE_SIZE) {
+	if (pos != DPNI_FS_TABLE_SIZE) {
 		epid = nis[ni_id].dpni_drv_params_var.epid_idx;
 		epid += (pos + 1) * (uint32_t)SOC_MAX_NUM_OF_DPNI;
 		iowrite32_ccsr(epid, &wrks_addr->epas);
@@ -453,7 +453,7 @@ void dpni_drv_unprobe(uint16_t aiop_niid)
 
 	/* FS entries */
 	epid = nis[aiop_niid].dpni_drv_params_var.epid_idx;
-	for (i = 0; i < FS_TABLE_SIZE; i++) {
+	for (i = 0; i < DPNI_FS_TABLE_SIZE; i++) {
 		epid += SOC_MAX_NUM_OF_DPNI;
 		iowrite32_ccsr(epid, &wrks_addr->epas);
 		iowrite32_ccsr(PTR_TO_UINT(discard_rx_cb), &wrks_addr->ep_pc);
@@ -755,7 +755,7 @@ int dpni_drv_probe(struct mc_dprc *dprc,
 
 			/* FS entries */
 			epid = (uint32_t)i;
-			for (k = 0; k < FS_TABLE_SIZE; k++) {
+			for (k = 0; k < DPNI_FS_TABLE_SIZE; k++) {
 				epid += SOC_MAX_NUM_OF_DPNI;
 				iowrite32_ccsr(epid, &wrks_addr->epas);
 				iowrite32_ccsr(aiop_niid, &wrks_addr->ep_pm);
@@ -1514,7 +1514,7 @@ int dpni_drv_get_ordering_mode_etype(uint16_t ni_id, uint16_t etype)
 	cdma_mutex_lock_take((uint64_t)nis, CDMA_MUTEX_READ_LOCK);
 
 	pos = get_fs_entry(ni_id, etype);
-	if (pos != FS_TABLE_SIZE) {
+	if (pos != DPNI_FS_TABLE_SIZE) {
 		epid = nis[ni_id].dpni_drv_params_var.epid_idx;
 		epid += (pos + 1) * (uint32_t)SOC_MAX_NUM_OF_DPNI;
 		iowrite32_ccsr(epid, &wrks_addr->epas);
@@ -1568,7 +1568,7 @@ static int dpni_drv_set_ordering_mode_etype(uint16_t ni_id, int ep_mode,
 	cdma_mutex_lock_take((uint64_t)nis, CDMA_MUTEX_READ_LOCK);
 
 	pos = get_fs_entry(ni_id, etype);
-	if (pos != FS_TABLE_SIZE) {
+	if (pos != DPNI_FS_TABLE_SIZE) {
 		epid = nis[ni_id].dpni_drv_params_var.epid_idx;
 		epid += (pos + 1) * (uint32_t)SOC_MAX_NUM_OF_DPNI;
 		/* write epid index to epas register */
@@ -1661,7 +1661,7 @@ __COLD_CODE int dpni_drv_set_order_scope(uint16_t ni_id, struct dpkg_profile_cfg
 		iowrite32_ccsr(ep_osc, &wrks_addr->ep_osc);
 
 		/* FS entries */
-		for (i = 0; i < FS_TABLE_SIZE; i++) {
+		for (i = 0; i < DPNI_FS_TABLE_SIZE; i++) {
 			epid += SOC_MAX_NUM_OF_DPNI;
 			iowrite32_ccsr(epid, &wrks_addr->epas);
 			ep_osc = ioread32_ccsr(&wrks_addr->ep_osc);
@@ -1717,12 +1717,12 @@ __COLD_CODE int dpni_drv_enable_etype_fs(uint16_t ni_id, uint16_t etype)
 	epid = nis[ni_id].dpni_drv_params_var.epid_idx;
 
 	pos = get_fs_entry(ni_id, etype);
-	if (pos != FS_TABLE_SIZE) {
+	if (pos != DPNI_FS_TABLE_SIZE) {
 		cdma_mutex_lock_release((uint64_t)nis);
 		return -EEXIST;
 	}
 	pos = add_fs_entry(ni_id, etype);
-	if (pos == FS_TABLE_SIZE) {
+	if (pos == DPNI_FS_TABLE_SIZE) {
 		cdma_mutex_lock_release((uint64_t)nis);
 		return -ENOSPC;
 	}
@@ -1762,6 +1762,9 @@ __COLD_CODE int dpni_drv_enable_etype_fs(uint16_t ni_id, uint16_t etype)
 	dist_cfg.key_cfg_iova = (uint64_t)order_scope_buf;
 
 	for (i = 0; i < attr.num_tcs; i++) {
+		/* set the key only once */
+		if (pos != 0)
+			break;
 		err = dpni_set_rx_tc_dist(&dprc->io, 0, dpni, i, &dist_cfg);
 		if (err) {
 			sl_pr_err("dpni_set_rx_tc_dist failed\n");
@@ -2282,7 +2285,7 @@ int dpni_drv_get_initial_presentation_etype(
 	/*Unlock dpni table*/
 	cdma_mutex_lock_release((uint64_t)nis);
 
-	if (pos == FS_TABLE_SIZE)
+	if (pos == DPNI_FS_TABLE_SIZE)
 		return -ENOENT;
 
 	epid += (pos + 1) * (uint32_t)SOC_MAX_NUM_OF_DPNI;
@@ -2303,7 +2306,7 @@ int dpni_drv_set_initial_presentation_etype(
 	/*Unlock dpni table*/
 	cdma_mutex_lock_release((uint64_t)nis);
 
-	if (pos == FS_TABLE_SIZE)
+	if (pos == DPNI_FS_TABLE_SIZE)
 		return -ENOENT;
 
 	epid += (pos + 1) * (uint32_t)SOC_MAX_NUM_OF_DPNI;

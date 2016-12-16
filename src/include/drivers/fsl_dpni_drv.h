@@ -59,6 +59,16 @@
 /** @} end of group DPNI_DRV_ORDER_SCOPE */
 
 /**************************************************************************//**
+ @Group		DPNI_FS_TABLE_SIZE
+
+ @Description	Number of Flow Steering entries per DPNI
+
+ @{
+*//***************************************************************************/
+#define DPNI_FS_TABLE_SIZE 7
+/** @} end of group DPNI_FS_TABLE_SIZE */
+
+/**************************************************************************//**
  @Group		DPNI_DRV_LINK_OPT Link Options
 
  @Description	Available options to determine dpni link state.
@@ -1089,10 +1099,14 @@ int dpni_drv_set_order_scope(uint16_t ni_id, struct dpkg_profile_cfg *key_cfg);
 			frame. It is used to indicate which protocol is
 			encapsulated in the payload of the frame
 
-@Cautions	The flow steering table must be enabled for the NI.
+@Cautions	The flow steering table must be enabled for the NI
+		('DPNI_OPT_DIST_FS' option was set at DPNI creation).
 		This method should be called in boot mode only.
 		In case dpni_drv_set_order_scope() is called,
-		dpni_drv_enable_etype_fs() must be called after it
+		dpni_drv_enable_etype_fs() must be called after it.
+		Maximum number of Flow Steering entries is
+		min(\ref DPNI_FS_TABLE_SIZE,
+		    \ref fs_entries set at DPNI creation)
 
 @Return	OK on success; error code, otherwise.
 		For error posix refer to
