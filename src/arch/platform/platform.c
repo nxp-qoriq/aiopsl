@@ -410,11 +410,16 @@ __COLD_CODE static void fill_mem_partition_info(t_platform *pltfrm, t_platform_m
 		{
 		    p_mem_info->size = 0;
 		}
-		pr_debug("MEM_PART_DP_DDR:virt_add=0x%x,phys_add=0x%x%08x,size=0x%x\n",
+		pr_debug("MEM_PART_DP_DDR:virt_add=0x%x,phys_add=0x%x%08x",
 		         p_mem_info->virt_base_addr,
 		         (uint32_t)(p_mem_info->phys_base_addr >> 32),
-		         (uint32_t)(p_mem_info->phys_base_addr),
-		         (uint32_t)(p_mem_info->size));
+		         (uint32_t)(p_mem_info->phys_base_addr));
+		if (p_mem_info->size < CONST_4G)
+			pr_debug("size=0x%x\n", (uint32_t)(p_mem_info->size));
+		else
+			pr_debug("size=0x%x%08x\n",
+				 (uint32_t)(p_mem_info->size >> 32),
+				 (uint32_t)(p_mem_info->size));
 		break;
 	case MEM_PART_PEB:
 		p_mem_info->virt_base_addr = (uint32_t)g_init_data.sl_info.peb_vaddr;
@@ -443,11 +448,16 @@ __COLD_CODE static void fill_mem_partition_info(t_platform *pltfrm, t_platform_m
 		    p_mem_info->size = g_init_data.app_info.sys_ddr1_size
 			           - aiop_lcf_ddr_size - g_boot_mem_mng_size;
 		}
-		pr_debug("MEM_PART_SYSTEM_DDR:virt_add=0x%x,phys_add=0x%x%08x,size=0x%x\n",
+		pr_debug("MEM_PART_SYSTEM_DDR:virt_add=0x%x,phys_add=0x%x%08x",
 		         p_mem_info->virt_base_addr,
 		         (uint32_t)(p_mem_info->phys_base_addr >> 32),
-		         (uint32_t)(p_mem_info->phys_base_addr),
-		         (uint32_t)(p_mem_info->size));
+		         (uint32_t)(p_mem_info->phys_base_addr));
+		if (p_mem_info->size < CONST_4G)
+			pr_debug("size=0x%x\n", (uint32_t)(p_mem_info->size));
+		else
+			pr_debug("size=0x%x%08x\n",
+				 (uint32_t)(p_mem_info->size >> 32),
+				 (uint32_t)(p_mem_info->size));
 		break;
 	case MEM_PART_MC_PORTALS:
 		p_mem_info->virt_base_addr =

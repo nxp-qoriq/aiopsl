@@ -67,9 +67,17 @@ enum aiop_spid_table {
  * FIELDS MUST BE ALIGNED AS PACKED */
 struct aiop_app_init_info {
 
-	uint64_t dp_ddr_size; /* initialized by AIOP APP at compile time, default provided */
-	uint64_t peb_size; /* initialized by AIOP APP at compile time, default provided */
-	uint64_t sys_ddr1_size; /* initialized by AIOP APP at compile time, default provided */
+	uint64_t dp_ddr_size;	/* initialized by AIOP APP at compile time,
+				default provided.
+				Must be multiple of 64KB */
+
+	uint64_t peb_size;	/* initialized by AIOP APP at compile time,
+				default provided.
+				Must be multiple of 64KB */
+
+	uint64_t sys_ddr1_size;	/* initialized by AIOP APP at compile time,
+				default provided.
+				Must be multiple of 64KB */
 
 	uint32_t ctlu_sys_ddr_num_entries; /* initialized by AIOP APP at compile time, default provided */
 	uint32_t ctlu_dp_ddr_num_entries; /* initialized by AIOP APP at compile time, default provided */

@@ -41,6 +41,22 @@ extern struct aiop_init_info g_init_data;
 	#define INVALID_PHY_ADDR (uint64_t)(-1)
 #endif /* INVALID_PHY_ADDR */
 
+#ifndef CONST_1G
+	#define CONST_1G ((uint64_t)1 * GIGABYTE)
+#endif /* CONST_1G */
+
+#ifndef CONST_2G
+	#define CONST_2G ((uint64_t)2 * GIGABYTE)
+#endif /* CONST_2G */
+
+#ifndef CONST_3G
+	#define CONST_3G ((uint64_t)3 * GIGABYTE)
+#endif /* CONST_3G */
+
+#ifndef CONST_4G
+	#define CONST_4G ((uint64_t)4 * GIGABYTE)
+#endif /* CONST_4G */
+
 /**************************************************************************//**
  @Group         sys_grp     System Interfaces
 
@@ -204,24 +220,24 @@ void* sys_phys_to_virt(uint64_t phy_addr);
                 The assumption is that the virtual address is valid
                 for the memory partition.
 
- @Param[in]     virt_addr    - Virtual address
- @Param[in]     id           - Memory Partition Identifier
+ @Param[in]     vaddr    - Virtual address
+ @Param[in]     id       - Memory Partition Identifier
 
  @Return        Physical address; INVALID_PHY_ADDR on failure.
 *//***************************************************************************/
-inline uint64_t sys_fast_virt_to_phys(void *virt_addr, e_memory_partition_id id)
+inline uint64_t sys_fast_virt_to_phys(void *vaddr, e_memory_partition_id id)
 {
 	switch (id)
 	{
 	case MEM_PART_DP_DDR:
-		return (((uint64_t)virt_addr - g_init_data.sl_info.dp_ddr_vaddr)
-				+ g_init_data.sl_info.dp_ddr_paddr);
+		return ((uint64_t)vaddr - g_init_data.sl_info.dp_ddr_vaddr +
+			g_init_data.sl_info.dp_ddr_paddr);
 	case MEM_PART_SYSTEM_DDR:
-		return (((uint64_t)virt_addr - g_init_data.sl_info.sys_ddr1_vaddr)
-				+ g_init_data.sl_info.sys_ddr1_paddr);
+		return ((uint64_t)vaddr - g_init_data.sl_info.sys_ddr1_vaddr +
+			g_init_data.sl_info.sys_ddr1_paddr);
 	case MEM_PART_PEB:
-		return (((uint64_t)virt_addr - g_init_data.sl_info.peb_vaddr)
-				+ g_init_data.sl_info.peb_paddr);
+		return ((uint64_t)vaddr - g_init_data.sl_info.peb_vaddr +
+			g_init_data.sl_info.peb_paddr);
 	}
 	return INVALID_PHY_ADDR;
 }
@@ -245,14 +261,14 @@ inline void* sys_fast_phys_to_virt(uint64_t phy_addr, e_memory_partition_id id)
 	switch (id)
 	{
 	case MEM_PART_DP_DDR:
-		return (void*)((phy_addr - g_init_data.sl_info.dp_ddr_paddr)
-						+ g_init_data.sl_info.dp_ddr_vaddr);
+		return (void*)(phy_addr - g_init_data.sl_info.dp_ddr_paddr +
+			       g_init_data.sl_info.dp_ddr_vaddr);
 	case MEM_PART_SYSTEM_DDR:
-		return (void*)((phy_addr - g_init_data.sl_info.sys_ddr1_paddr)
-						+ g_init_data.sl_info.sys_ddr1_vaddr);
+		return (void*)(phy_addr - g_init_data.sl_info.sys_ddr1_paddr +
+			       g_init_data.sl_info.sys_ddr1_vaddr);
 	case MEM_PART_PEB:
-		return (void*)((phy_addr - g_init_data.sl_info.peb_paddr)
-						+ g_init_data.sl_info.peb_vaddr);
+		return (void*)(phy_addr - g_init_data.sl_info.peb_paddr +
+			       g_init_data.sl_info.peb_vaddr);
 	}
 	return NULL;
 }
