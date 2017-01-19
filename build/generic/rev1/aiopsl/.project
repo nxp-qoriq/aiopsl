@@ -22,7 +22,7 @@
 				</dictionary>
 				<dictionary>
 					<key>org.eclipse.cdt.make.core.buildArguments</key>
-					<value>-j8</value>
+					<value>-j16</value>
 				</dictionary>
 				<dictionary>
 					<key>org.eclipse.cdt.make.core.buildCommand</key>
@@ -30,7 +30,7 @@
 				</dictionary>
 				<dictionary>
 					<key>org.eclipse.cdt.make.core.buildLocation</key>
-					<value>${ProjDirPath}/LS2085A_aiop</value>
+					<value>${ProjDirPath}/LS2088A_aiop</value>
 				</dictionary>
 				<dictionary>
 					<key>org.eclipse.cdt.make.core.cleanBuildTarget</key>
@@ -191,6 +191,11 @@
 		</link>
 		<link>
 			<name>aiop_sl/drivers/snic</name>
+			<type>2</type>
+			<locationURI>virtual:/virtual</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/drivers/sp</name>
 			<type>2</type>
 			<locationURI>virtual:/virtual</locationURI>
 		</link>
@@ -610,6 +615,16 @@
 			<locationURI>PARENT-4-PROJECT_LOC/src/drivers/snic/snic.h</locationURI>
 		</link>
 		<link>
+			<name>aiop_sl/drivers/sp/sp_drv.c</name>
+			<type>1</type>
+			<locationURI>PARENT-4-PROJECT_LOC/src/drivers/sp/sp_drv.c</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/drivers/sp/sp_drv.h</name>
+			<type>1</type>
+			<locationURI>PARENT-4-PROJECT_LOC/src/drivers/sp/sp_drv.h</locationURI>
+		</link>
+		<link>
 			<name>aiop_sl/include/common/fsl_stdarg.h</name>
 			<type>1</type>
 			<locationURI>PARENT-4-PROJECT_LOC/src/include/common/fsl_stdarg.h</locationURI>
@@ -658,6 +673,11 @@
 			<name>aiop_sl/include/drivers/fsl_ep.h</name>
 			<type>1</type>
 			<locationURI>PARENT-4-PROJECT_LOC/src/include/drivers/fsl_ep.h</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/include/drivers/fsl_sp_drv.h</name>
+			<type>1</type>
+			<locationURI>PARENT-4-PROJECT_LOC/src/include/drivers/fsl_sp_drv.h</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/include/drivers/ldpaa</name>

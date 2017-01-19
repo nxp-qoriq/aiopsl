@@ -32,8 +32,7 @@
 #include "fsl_sl_dprc_drv.h"
 #include "fsl_mem_mng.h"
 #include "fsl_platform.h"
-
-
+#include "sp_drv.h"
 
 /* Address of end of memory_data section */
 extern const uint8_t AIOP_INIT_DATA[];
@@ -59,28 +58,37 @@ extern int rcu_default_early_init();
 extern int ipsec_drv_init(void);
 extern int cwap_dtls_drv_init(void);
 
-
 extern void build_apps_array(struct sys_module_desc *apps);
 
-
-
-#define GLOBAL_MODULES                                                           \
-	{    /* slab must be before any module with buffer request*/             \
-	{NULL, time_init, NULL, time_free},                                    \
-	{NULL, ep_mng_init, NULL, ep_mng_free},                                \
-	{NULL, dprc_drv_init, dprc_drv_scan, dprc_drv_free},                                \
-	{NULL, dpci_drv_init, NULL, dpci_drv_free}, /*must be before EVM */        \
-	{slab_module_early_init, slab_module_init, NULL, slab_module_free},           \
-	{NULL, cmdif_client_init, NULL, cmdif_client_free}, /* must be before srv */   \
-	{NULL, cmdif_srv_init, NULL, cmdif_srv_free},                               \
-	{aiop_sl_early_init, aiop_sl_init, NULL, aiop_sl_free},                   \
-	{NULL, dpni_drv_init, NULL, dpni_drv_free}, /*must be after aiop_sl_init*/ \
-	{NULL, ipsec_drv_init, NULL, NULL}, /*must be after aiop_sl_init*/ \
-	{NULL, cwap_dtls_drv_init, NULL, NULL}, /*must be after aiop_sl_init*/ \
-	{evmng_early_init, evmng_init, NULL, evmng_free}, /*must be after cmdif*/            \
-	{rcu_default_early_init, rcu_init, NULL, rcu_free}, /*must be after slab*/            \
-	{NULL, NULL, NULL, NULL} /* never remove! */                                   \
-	}
+#define GLOBAL_MODULES							\
+{									\
+	/* Slab must be before any module with buffer request */	\
+	{NULL, time_init, NULL, time_free},				\
+	{NULL, ep_mng_init, NULL, ep_mng_free},				\
+	{NULL, dprc_drv_init, dprc_drv_scan, dprc_drv_free},		\
+	/* Must be before EVM */					\
+	{NULL, dpci_drv_init, NULL, dpci_drv_free},			\
+	{slab_module_early_init, slab_module_init, NULL,		\
+						slab_module_free},	\
+	/* Must be before srv */					\
+	{NULL, cmdif_client_init, NULL, cmdif_client_free},		\
+	{NULL, cmdif_srv_init, NULL, cmdif_srv_free},			\
+	{aiop_sl_early_init, aiop_sl_init, NULL, aiop_sl_free},		\
+	/* Must be after aiop_sl_init */				\
+	{NULL, dpni_drv_init, NULL, dpni_drv_free},			\
+	/* Must be after DPNI */					\
+	{NULL, ipsec_drv_init, NULL, NULL},				\
+	 /* Must be after IPSEC */				\
+	{NULL, cwap_dtls_drv_init, NULL, NULL},				\
+	 /* Must be after CWAP */				\
+	{sp_drv_early_init, sp_drv_init, NULL, sp_drv_free},		\
+	 /* Must be after cmdif */					\
+	{evmng_early_init, evmng_init, NULL, evmng_free},		\
+	 /* Must be after slab */					\
+	{rcu_default_early_init, rcu_init, NULL, rcu_free},		\
+	/* Never remove */						\
+	{NULL, NULL, NULL, NULL}					\
+}
 
 void fill_platform_parameters(struct platform_param *platform_param);
 int global_init(void);
