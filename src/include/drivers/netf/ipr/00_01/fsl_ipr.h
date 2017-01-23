@@ -239,10 +239,10 @@ struct extended_stats_cntrs {
 @Description IP reassembly flags.
 
 
-|     0     |    1     |      2   | 3 |   4-5    | 6-30 |    31           |
-|-----------|----------|----------|---|----------|------|-----------------|
-| Extended  |  IPv4 TO |  IPv6 TO |   |   Table  |      | Do not preserve |
-|statistics |   type   |   type   |   | Location |      |    Fragments    |
+|     0     |    1     |      2   |       3         |   4-5    |   6   | 7-31 |
+|-----------|----------|----------|-----------------|----------|-------|------|
+| Extended  |  IPv4 TO |  IPv6 TO | Do not preserve |   Table  |  TMI  |      |
+|statistics |   type   |   type   |    Fragments    | Location | mngmt |      |
 \n
 
 @{
@@ -276,7 +276,12 @@ struct extended_stats_cntrs {
  * Do not use this flag if the applications, in further processing, need to
  * split the reassembled packet in the original fragments.
  */
-#define IPR_MODE_DO_NOT_PRESERVE_FRAGS	0x00000001
+#define IPR_MODE_DO_NOT_PRESERVE_FRAGS	0x10000000
+
+/** IPR instance manages TMI creation/deletion.
+ *  In this case, there is no need to pass "tmi_id" to ipr_create_instance().
+ */
+#define IPR_MODE_TMI 0x02000000
 
 /** @} */ /* end of group FSL_IPRInsModeBits */
 

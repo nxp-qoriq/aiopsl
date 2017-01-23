@@ -238,14 +238,12 @@ struct ipr_instance {
 	uint16_t  	timeout_value_ipv6;
 	/* TMAN Instance ID */
 	uint8_t		tmi_id;
-	/* Preserve reassembled packet fragments indicator */
-	uint8_t         preserve_fragments;
 #ifdef USE_IPR_SW_TABLE
 	/* BPID to fetch buffers for ip fragment key */
 	uint16_t	bpid_fk;
-	uint8_t		res[4];
+	uint8_t		res[5];
 #else
-	uint8_t		res[10];
+	uint8_t		res[11];
 #endif	/* USE_IPR_SW_TABLE */
 };
 #pragma pack(pop)
@@ -262,9 +260,9 @@ struct ipr_instance_extension{
 	/** Number of frames that IPv6 started reassembly
 	    but didn't complete it yet */
 	uint32_t	num_of_open_reass_frames_ipv6;
-	/* todo remove 2 following parameters */
-	uint32_t	max_open_frames_ipv4;
-	uint32_t	max_open_frames_ipv6;
+	/* Address to the memory used for the timers
+	 * associated with the TMI */
+	uint64_t	tmi_mem_base_addr;
 };
 #pragma pack(pop)
 
