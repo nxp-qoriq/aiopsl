@@ -520,12 +520,6 @@ int ipr_create_instance(struct ipr_params *ipr_params_ptr,
 				      (int32_t)sr_status);
 
 	ipr_instance.bpid = bpid;
-	if (ipr_params_ptr->flags & IPR_MODE_DO_NOT_PRESERVE_FRAGS) {
-		ipr_instance.preserve_fragments = 0;
-		ipr_params_ptr->flags &= ~IPR_MODE_DO_NOT_PRESERVE_FRAGS;
-	} else {
-		ipr_instance.preserve_fragments = 1;
-	}
 	ipr_instance.flags = ipr_params_ptr->flags;
 
 	/* For IPv4 */
@@ -533,7 +527,6 @@ int ipr_create_instance(struct ipr_params *ipr_params_ptr,
 	/* Initialize instance parameters */
 	if (max_open_frames) {
 		ipr_instance.flags |= IPV4_VALID;
-		ipr_instance_ext.max_open_frames_ipv4 = max_open_frames;
 #ifndef USE_IPR_SW_TABLE
 		tbl_params.committed_rules = max_open_frames;
 		tbl_params.max_rules = max_open_frames;
@@ -566,7 +559,6 @@ int ipr_create_instance(struct ipr_params *ipr_params_ptr,
 	max_open_frames = ipr_params_ptr->max_open_frames_ipv6;
 	if (max_open_frames) {
 		ipr_instance.flags |= IPV6_VALID;
-		ipr_instance_ext.max_open_frames_ipv6 = max_open_frames;
 #ifndef USE_IPR_SW_TABLE
 		tbl_params.committed_rules = max_open_frames;
 		tbl_params.max_rules = max_open_frames;
@@ -611,6 +603,29 @@ int ipr_create_instance(struct ipr_params *ipr_params_ptr,
 	ipr_instance.cb_timeout_ipv6_arg = ipr_params_ptr->cb_timeout_ipv6_arg;
 	ipr_instance.tmi_id = ipr_params_ptr->tmi_id;
 
+	if (ipr_instance.flags & IPR_MODE_TMI) {
+		uint64_t addr;
+		/* This instance may use up to
+		 * (max_open_frames_ipv4 + max_open_frames_ipv6 + 1) timers.
+		 * This variable should be 3 timers larger than
+		 * the actual maximum number of timers needed in this TMI */
+		uint32_t cnt = ipr_params_ptr->max_open_frames_ipv4 +
+			       ipr_params_ptr->max_open_frames_ipv6 + 4;
+
+		/* The size of the allocated memory
+		 * should be 64 * (max_num_of_timers +1) */
+		sr_status = fsl_get_mem((cnt + 1) * 64, g_mem_pid, 64, &addr);
+		if (sr_status)
+			ipr_exception_handler(IPR_CREATE_INSTANCE, __LINE__,
+					      (int32_t)sr_status);
+
+		sr_status = tman_create_tmi(addr, cnt, &ipr_instance.tmi_id);
+		if (sr_status)
+			ipr_exception_handler(IPR_CREATE_INSTANCE, __LINE__,
+					      (int32_t)sr_status);
+		ipr_instance_ext.tmi_mem_base_addr = addr;
+	}
+
 	/* Write ipr instance data structure */
 	cdma_write(*ipr_instance_ptr, &ipr_instance, IPR_INSTANCE_SIZE);
 
@@ -628,6 +643,15 @@ int ipr_create_instance(struct ipr_params *ipr_params_ptr,
 		   sizeof(struct ipr_instance_extension));
 
 	return SUCCESS;
+}
+
+static void ipr_confirm_tmi_del_cb(tman_arg_8B_t arg1, tman_arg_2B_t arg2)
+{
+	UNUSED(arg2);
+	tman_timer_completion_confirmation(
+			TMAN_GET_TIMER_HANDLE(HWC_FD_ADDRESS));
+	fsl_put_mem(arg1);
+	fdma_terminate_task();
 }
 
 int ipr_delete_instance(ipr_instance_handle_t ipr_instance_ptr,
@@ -728,6 +752,13 @@ void ipr_delete_instance_after_time_out(ipr_instance_handle_t ipr_instance_ptr)
 		table_delete(TABLE_ACCEL_ID_CTLU,
 			ipr_instance_and_extension.ipr_instance.table_id_ipv6);
 #endif	/* USE_IPR_SW_TABLE */
+
+	if (ipr_instance_and_extension.ipr_instance.flags & IPR_MODE_TMI)
+		tman_delete_tmi(ipr_confirm_tmi_del_cb,
+		    TMAN_INS_DELETE_MODE_FORCE_EXP,
+		    ipr_instance_and_extension.ipr_instance.tmi_id,
+		    ipr_instance_and_extension.ipr_instance_extension.tmi_mem_base_addr,
+		    NULL);
 
 	ipr_instance_and_extension.ipr_instance_extension.confirm_delete_cb(
 		ipr_instance_and_extension.ipr_instance_extension.delete_arg);
@@ -1004,11 +1035,15 @@ IPR_CODE_PLACEMENT int ipr_reassemble(ipr_instance_handle_t instance_handle)
 		return IPR_REASSEMBLY_NOT_COMPLETED;
 	case LAST_FRAG_IN_ORDER:
 		closing_in_order(rfdc_ext_addr, rfdc.num_of_frags,
-				 instance_params.preserve_fragments);
+				 (instance_params.flags &
+				  IPR_MODE_DO_NOT_PRESERVE_FRAGS) ?
+				  FALSE : TRUE);
 		break;
 	case LAST_FRAG_OUT_OF_ORDER:
 		closing_with_reordering(&rfdc, rfdc_ext_addr,
-					instance_params.preserve_fragments);
+					(instance_params.flags &
+					  IPR_MODE_DO_NOT_PRESERVE_FRAGS) ?
+					  FALSE : TRUE);
 		break;
 	case MALF_MIN_SIZE_IPV4:
 	case MALF_MIN_SIZE_IPV6:
@@ -2959,6 +2994,8 @@ void ipr_exception_handler(enum ipr_function_identifier func_id,
 			case ENOSPC:
 			     err_msg = "Buffer Pool Depletion\n";
 			     break;
+			case ENOSPC_TIMER:
+				err_msg = "No free timer\n";
 			default:
 				err_msg = "Unknown or Invalid status Error.\n";
 		}
