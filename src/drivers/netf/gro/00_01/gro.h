@@ -42,6 +42,7 @@
  *  @{
  */
 
+#define GRO_NO_METADATA
 
 /**************************************************************************//**
 @Group		AIOP_TCP_GRO_INTERNAL AIOP TCP GRO Internal
@@ -97,6 +98,7 @@ struct tcp_gro_context {
 	struct ldpaa_fd agg_fd
 		__attribute__((aligned(sizeof(struct ldpaa_fd))));
 #endif
+#ifndef GRO_NO_METADATA
 		/** Address (in HW buffers) of the TCP GRO aggregation metadata
 		 * buffer (\ref tcp_gro_context_metadata)
 		 * Upper layer SW should always send a metadata buffer address
@@ -107,6 +109,7 @@ struct tcp_gro_context {
 		 * metadata buffer.
 		 * */
 	uint64_t metadata_addr;
+#endif
 		/** Address (in HW buffers) of the TCP GRO statistics counters
 		 *  (\ref tcp_gro_stats_cntrs).
 		 *  The user should zero the statistics once it is allocated. */
@@ -116,8 +119,13 @@ struct tcp_gro_context {
 		 * On timeout, GRO will call upper layer callback function with
 		 * this parameter. */
 	uint64_t gro_timeout_cb_arg;
+#ifndef GRO_NO_METADATA
 		/** Aggregated packet metadata  */
 	struct tcp_gro_context_metadata metadata;
+#else
+		/** Number of segments in the aggregation. */
+	uint16_t seg_num;
+#endif
 		/** Last Segment header fields which we need to update in the
 		 * aggregated packet. */
 	struct tcp_gro_last_seg_header_fields last_seg_fields;
@@ -151,8 +159,14 @@ struct tcp_gro_context {
 		/** Maximum aggregated segments per packet limit.
 		 * 0/1 are an illegal values. */
 	uint8_t	seg_num_limit;
+		/** Storage profile ID */
+	uint8_t spid;
 		/* padding*/
-	uint8_t pad[14];
+#ifndef GRO_NO_METADATA
+	uint8_t pad[13];
+#else
+	uint8_t pad[31];
+#endif
 };
 
 

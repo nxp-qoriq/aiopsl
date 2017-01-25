@@ -31,6 +31,8 @@
 
 *//***************************************************************************/
 
+#ifdef ENABLE_SNIC
+
 #include "snic.h"
 #include "system.h"
 #include "fsl_net.h"
@@ -60,6 +62,9 @@
 
 #include "fsl_malloc.h"
 #include "fsl_sl_slab.h"
+
+#include "fsl_gso.h"
+#include "fsl_gro.h"
 
 
 #define SNIC_CMD_READ(_param, _offset, _width, _type, _arg) \
@@ -95,22 +100,166 @@ struct snic_params snic_params[MAX_SNIC_NO];
 uint8_t snic_tmi_id;
 uint64_t snic_tmi_mem_base_addr;
 
-void snic_process_packet(void)
-{
+struct tcp_gro_context_params snic_tcp_gro_param[MAX_SNIC_NO];
+uint64_t snic_gro_stats_addr;
+uint64_t snic_gro_addr;
 
+__HOT_CODE static inline void snic_set_enqueue_param(uint16_t snic_id,
+			struct fdma_queueing_destination_params *enqueue_params)
+{
+	/* for the enqueue set hash from TLS, an flags equal 0 meaning that
+	 * the qd_priority is taken from the TLS and that enqueue function
+	 * always returns */
+	enqueue_params->qdbin = 0;
+	enqueue_params->qd = snic_params[snic_id].qdid;
+	enqueue_params->qd_priority = default_task_params.qd_priority;
+}
+
+__HOT_CODE static inline int snic_send(
+		struct fdma_queueing_destination_params *enqueue_params,
+		uint32_t flags)
+{
+	int err = fdma_store_and_enqueue_default_frame_qd(enqueue_params,
+							  FDMA_ENWF_NO_FLAGS);
+	if (err) {
+		if (err == -ENOMEM)
+			fdma_discard_default_frame(flags);
+		else /* (err == -EBUSY) */
+			fdma_discard_fd((struct ldpaa_fd *)HWC_FD_ADDRESS, 0,
+					(FDMA_DIS_AS_BIT | flags));
+	}
+	return err;
+
+}
+
+__HOT_CODE static void snic_tcp_gro_timeout_cb(uint64_t snic_id)
+{
+	struct fdma_queueing_destination_params enqueue_params;
+
+	*((uint8_t *)HWC_SPID_ADDRESS) = snic_params[snic_id].spid;
+
+	/* snic uses only 1 QDID so we need to have different
+	 * qd/priority for ingress than for egress */
+	default_task_params.qd_priority = 8;
+
+	snic_set_enqueue_param((uint16_t)snic_id, &enqueue_params);
+
+	snic_send(&enqueue_params, FDMA_DIS_FRAME_TC_BIT);
+	fdma_terminate_task();
+}
+
+static void snic_set_tcp_gro_param(int id, uint64_t stats_addr, uint8_t tmi_id)
+{
+	struct tcp_gro_context_params *param = &snic_tcp_gro_param[id];
+
+	param->timeout_params.gro_timeout_cb_arg = 0;	/* snic_id */
+	param->timeout_params.gro_timeout_cb = snic_tcp_gro_timeout_cb;
+	param->timeout_params.granularity =
+			TCP_GRO_CREATE_TIMER_MODE_10_MSEC_GRANULARITY;
+	param->timeout_params.tmi_id = tmi_id;
+
+	param->limits.timeout_limit = 0xffe0;
+	param->limits.packet_size_limit = 0xffff;
+	param->limits.seg_num_limit = 128;
+
+	param->metadata_addr = 0;
+	param->stats_addr = stats_addr;
+}
+
+static void snic_reset_tcp_gro_ctx(uint16_t id)
+{
+	tcp_gro_ctx_t tmp;
+
+	snic_params[id].tcp_gro_ctx = snic_gro_addr + id * TCP_GRO_CONTEXT_SIZE;
+	snic_tcp_gro_param[id].timeout_params.gro_timeout_cb_arg = id;
+
+	/* clear GRO context */
+	cdma_ws_memory_init(tmp, TCP_GRO_CONTEXT_SIZE, 0);
+	cdma_write(snic_params[id].tcp_gro_ctx, tmp, TCP_GRO_CONTEXT_SIZE);
+
+	/* clear GRO stats */
+	cdma_write(snic_tcp_gro_param[id].stats_addr, tmp,
+		   sizeof(struct tcp_gro_stats_cntrs));
+}
+
+__HOT_CODE static inline void snic_tcp_gro(uint16_t snic_id,
+			struct fdma_queueing_destination_params *enqueue_params)
+{
+	uint64_t tcp_gro_ctx = snic_params[snic_id].tcp_gro_ctx;
+	struct tcp_gro_context_params *params = &snic_tcp_gro_param[snic_id];
+
+	int status = tcp_gro_aggregate_seg(tcp_gro_ctx, params,
+					   TCP_GRO_CALCULATE_TCP_CHECKSUM |
+					   TCP_GRO_CALCULATE_IP_CHECKSUM |
+					   TCP_GRO_USE_HWC_SPID);
+	if (status < 0) {
+		fdma_discard_default_frame(FDMA_DIS_FRAME_TC_BIT);
+		fdma_terminate_task();
+	}
+
+	snic_set_enqueue_param(snic_id, enqueue_params);
+	if (status & (TCP_GRO_SEG_AGG_DONE | TCP_GRO_SEG_AGG_DONE_AGG_OPEN))
+		snic_send(enqueue_params, FDMA_DIS_NO_FLAGS);
+
+	if (status & TCP_GRO_FLUSH_REQUIRED) {
+		status = tcp_gro_flush_aggregation(tcp_gro_ctx);
+		if (status == TCP_GRO_FLUSH_AGG_DONE)
+			snic_send(enqueue_params, FDMA_DIS_NO_FLAGS);
+	}
+
+	fdma_terminate_task();
+}
+
+__HOT_CODE static inline void snic_tcp_gso(uint16_t snic_id,
+			struct fdma_queueing_destination_params *enqueue_params)
+{
+#define TCP_MSS 1220
+	uint32_t total_length = (LDPAA_FD_GET_LENGTH(HWC_FD_ADDRESS));
+	tcp_gso_ctx_t tcp_gso_ctx;
+	int status;
+	int err;
+
+	if (total_length <= TCP_MSS)
+		return;
+
+	snic_set_enqueue_param(snic_id, enqueue_params);
+	tcp_gso_context_init(0, TCP_MSS, tcp_gso_ctx);
+
+	do {
+		status = tcp_gso_generate_seg(tcp_gso_ctx);
+		if (status == TCP_GSO_GEN_SEG_STATUS_SYN_RST_SET)
+			return;
+
+		err = snic_send(enqueue_params, FDMA_DIS_NO_FLAGS);
+		if (err)
+		{
+			if (status == TCP_GSO_GEN_SEG_STATUS_IN_PROCESS)
+				tcp_gso_discard_frame_remainder(tcp_gso_ctx);
+			break;
+		}
+	} while (status == TCP_GSO_GEN_SEG_STATUS_IN_PROCESS);
+
+	fdma_terminate_task();
+	return;
+#undef TCP_MSS
+}
+
+__HOT_CODE ENTRY_POINT void snic_process_packet(void)
+{
 	struct parse_result *pr;
-	struct snic_params *snic;
 	struct fdma_queueing_destination_params enqueue_params;
 	int32_t parse_status;
 	uint16_t snic_id;
-	int err;
+#if defined(ENABLE_SNIC_IPSEC) || defined(ENABLE_SNIC_VLAN)
 	uint16_t asa_length;
+#endif
+#ifdef ENABLE_SNIC_OSM
 	struct scope_status_params scope_status;
+#endif
 
 	/* get sNIC ID */
 	snic_id = SNIC_ID_GET;
 	ASSERT_COND(snic_id < MAX_SNIC_NO);
-	snic = snic_params + snic_id;
 
 	pr = (struct parse_result *)HWC_PARSE_RES_ADDRESS;
 
@@ -119,35 +268,53 @@ void snic_process_packet(void)
 
 	osm_task_init();
 	/* todo: prpid=0?, starting HXS=0?*/
-	*((uint8_t *)HWC_SPID_ADDRESS) = snic->spid;
+	*((uint8_t *)HWC_SPID_ADDRESS) = snic_params[snic_id].spid;
 	default_task_params.parser_profile_id = SNIC_PRPID;
 	default_task_params.parser_starting_hxs = SNIC_HXS;
 
 	parse_status = parse_result_generate_default(PARSER_NO_FLAGS);
-	if (parse_status){
+	if (parse_status) {
 		pr_err("HF-NIC[%d]: parser status: 0x%x\n", snic_id, parse_status);
 		fdma_discard_default_frame(FDMA_DIS_FRAME_TC_BIT);
 	}
 
-	if (SNIC_IS_INGRESS_GET) {
+	/* Check IP & TCP */
+	if (!(PARSER_IS_IP_DEFAULT() && PARSER_IS_TCP_DEFAULT())) {
+	}
+	else if (SNIC_IS_INGRESS_GET) {
 		/* snic uses only 1 QDID so we need to have different
 		 * qd/priority for ingress than for egress */
 		default_task_params.qd_priority = 8;
+
+		snic_tcp_gro(snic_id, &enqueue_params);
+
+#ifdef ENABLE_SNIC_IPR
 		/* For ingress may need to do IPR and then Remove Vlan */
 		if (snic->snic_enable_flags & SNIC_IPR_EN)
 			snic_ipr(snic);
+#endif
+
+#ifdef ENABLE_SNIC_VLAN
 		/*reach here if re-assembly success or regular or IPR disabled*/
 		if (snic->snic_enable_flags & SNIC_VLAN_REMOVE_EN)
 			l2_pop_vlan();
+#endif
+
+#ifdef ENABLE_SNIC_IPSEC
 		/* Check if ipsec transport mode is required */
 		if (snic->snic_enable_flags & SNIC_IPSEC_EN)
 			snic_ipsec_decrypt(snic);
+#endif
 	}
 	/* Egress*/
 	else {
 		default_task_params.qd_priority = ((*((uint8_t *)
 				(HWC_ADC_ADDRESS +
 				ADC_WQID_PRI_OFFSET)) & ADC_WQID_MASK) >> 4);
+
+		snic_tcp_gso(snic_id, &enqueue_params);
+
+#if defined(ENABLE_SNIC_IPSEC) || defined(ENABLE_SNIC_VLAN)
 		/* epid defaults is not present ASA */
 		if ((snic->snic_enable_flags & SNIC_VLAN_ADD_EN) ||
 			(snic->snic_enable_flags & SNIC_IPSEC_EN))
@@ -155,24 +322,30 @@ void snic_process_packet(void)
 			fdma_read_default_frame_asa((void*)SNIC_ASA_LOCATION, 0,
 					SNIC_ASA_SIZE, &asa_length);
 		}
+#endif
+
+#ifdef ENABLE_SNIC_IPSEC
 		/* Check if ipsec transport mode is required */
 		if (snic->snic_enable_flags & SNIC_IPSEC_EN)
 			snic_ipsec_encrypt(snic);
+#endif
+
+#ifdef ENABLE_SNIC_VLAN
 		/* For Egress may need to do add Vlan and then IPF */
 		if (snic->snic_enable_flags & SNIC_VLAN_ADD_EN)
 			snic_add_vlan();
+#endif
 
+#ifdef ENABLE_SNIC_IPF
 		if ((snic->snic_enable_flags & SNIC_IPF_EN)
 			&& PARSER_IS_IP_DEFAULT())
 				snic_ipf(snic);
+#endif
 	}
 
-	/* for the enqueue set hash from TLS, an flags equal 0 meaning that \
-	 * the qd_priority is taken from the TLS and that enqueue function \
-	 * always returns*/
-	enqueue_params.qdbin = 0;
-	enqueue_params.qd = snic->qdid;
-	enqueue_params.qd_priority = default_task_params.qd_priority;
+	snic_set_enqueue_param(snic_id, &enqueue_params);
+
+#ifdef ENABLE_SNIC_OSM
 	/* Get OSM status (ordering scope mode and levels) */
 	osm_get_scope(&scope_status);
 
@@ -181,23 +354,14 @@ void snic_process_packet(void)
 		/* change to exclusive ordering mode */
 		osm_scope_transition_to_exclusive_with_increment_scope_id();
 	}
-	/* error cases */
-	err = fdma_store_and_enqueue_default_frame_qd(&enqueue_params, \
-			FDMA_ENWF_NO_FLAGS);
-	if (err)
-	{
-		pr_err("HF-NIC[%d]: fdma store and enqueue error: 0x%x\n", snic_id, err);
-		if(err == -ENOMEM)
-			fdma_discard_default_frame(FDMA_DIS_FRAME_TC_BIT);
-		else /* (err == -EBUSY) */
-			fdma_discard_fd((struct ldpaa_fd *)HWC_FD_ADDRESS, 0, 
-				(FDMA_DIS_AS_BIT | FDMA_DIS_FRAME_TC_BIT));
-	}
+#endif
 
+	/* error cases */
+	snic_send(&enqueue_params, FDMA_DIS_FRAME_TC_BIT);
 	fdma_terminate_task();
 }
 
-
+#ifdef ENABLE_SNIC_IPF
 /* Assuming IPF is the last iteration before enqueue (IPF after encryption)*/
 int snic_ipf(struct snic_params *snic)
 {
@@ -259,10 +423,10 @@ int snic_ipf(struct snic_params *snic)
 			}
 			err = fdma_store_and_enqueue_default_frame_qd(&enqueue_params,
 					FDMA_ENWF_NO_FLAGS);
-			if(err)
+			if (err)
 			{
 				pr_err("HF-NIC[%d]: IPF - fdma store and enqueue error: 0x%x\n", SNIC_ID_GET, err);
-				if(err == -ENOMEM)
+				if (err == -ENOMEM)
 					fdma_discard_default_frame(FDMA_DIS_NO_FLAGS);
 				else /* (err == -EBUSY) */
 					fdma_discard_fd(
@@ -281,7 +445,9 @@ int snic_ipf(struct snic_params *snic)
 	else
 		return 0;
 }
+#endif	/* ENABLE_SNIC_IPF */
 
+#ifdef ENABLE_SNIC_IPR
 int snic_ipr(struct snic_params *snic)
 {
 	int32_t reassemble_status;
@@ -300,7 +466,9 @@ int snic_ipr(struct snic_params *snic)
 	else
 		return 0;
 }
+#endif	/* ENABLE_SNIC_IPR */
 
+#ifdef ENABLE_SNIC_VLAN
 int snic_add_vlan(void)
 {
 	uint32_t vlan;
@@ -312,7 +480,9 @@ int snic_add_vlan(void)
 	l2_push_and_set_vlan(vlan);
 	return 0;
 }
+#endif	/* ENABLE_SNIC_VLAN */
 
+#ifdef ENABLE_SNIC_IPSEC
 int snic_ipsec_decrypt(struct snic_params *snic)
 {
 	int sr_status;
@@ -384,6 +554,7 @@ int snic_ipsec_encrypt(struct snic_params *snic)
 	
 	return 0;
 }
+#endif	/* ENABLE_SNIC_IPSEC */
 
 static int snic_open_cb(void *dev)
 {
@@ -418,6 +589,7 @@ __COLD_CODE static int snic_ctrl_cb(void *dev, uint16_t cmd, uint32_t size, void
 	switch(cmd)
 	{
 	case SNIC_IPR_CREATE_INSTANCE:
+#ifdef ENABLE_SNIC_IPR
 		SNIC_IPR_CREATE_INSTANCE_CMD(SNIC_CMD_READ);
 		ipr_params.tmi_id = snic_tmi_id;
 		ipr_params.ipv4_timeout_cb = snic_ipr_timout_cb;
@@ -428,12 +600,15 @@ __COLD_CODE static int snic_ctrl_cb(void *dev, uint16_t cmd, uint32_t size, void
 		err = ipr_create_instance(&ipr_params,
 				ipr_instance_ptr);
 		snic_params[snic_id].ipr_instance_val = ipr_instance;
+#endif
 		return err;
 	case SNIC_IPR_DELETE_INSTANCE:
+#ifdef ENABLE_SNIC_IPR
 		/* todo: parameters to ipr_delete_instance */
 		SNIC_IPR_DELETE_INSTANCE_CMD(SNIC_CMD_READ);
 		err = ipr_delete_instance(snic_params[snic_id].ipr_instance_val,
 				snic_ipr_confirm_delete_cb, NULL);
+#endif
 		return err;
 	case SNIC_SET_MTU:
 		SNIC_CMD_MTU(SNIC_CMD_READ);
@@ -459,6 +634,7 @@ __COLD_CODE static int snic_ctrl_cb(void *dev, uint16_t cmd, uint32_t size, void
 			{
 				snic_params[i].valid = TRUE;
 				snic_id = (uint16_t)i;
+				snic_reset_tcp_gro_ctx(snic_id);
 				break;
 			}
 		}
@@ -473,14 +649,19 @@ __COLD_CODE static int snic_ctrl_cb(void *dev, uint16_t cmd, uint32_t size, void
 		memset(&snic_params[snic_id], 0, sizeof(struct snic_params));
 		return 0;
 	case SNIC_IPSEC_CREATE_INSTANCE:
+#ifdef ENABLE_SNIC_IPSEC
 		err = snic_ipsec_create_instance(cmd_data);
+#endif
 		return err;
 
 		/* This command must be after setting SPID in the SNIC params*/
 	case SNIC_IPSEC_DEL_INSTANCE:
+#ifdef ENABLE_SNIC_IPSEC
 		err = snic_ipsec_del_instance(cmd_data);
+#endif
 		return err;
 	case SNIC_IPSEC_ADD_SA:
+#ifdef ENABLE_SNIC_IPSEC
 		if (PRC_GET_SEGMENT_LENGTH() < SNIC_CMDSZ_IPSEC_ADD_SA)
 		{	
 			fdma_close_default_segment();
@@ -488,14 +669,19 @@ __COLD_CODE static int snic_ctrl_cb(void *dev, uint16_t cmd, uint32_t size, void
 					PRC_GET_SEGMENT_OFFSET(), SNIC_CMDSZ_IPSEC_ADD_SA);
 		}
 		err = snic_ipsec_add_sa(cmd_data);
+#endif
 		return err;
 
 	case SNIC_IPSEC_DEL_SA:
+#ifdef ENABLE_SNIC_IPSEC
 		err = snic_ipsec_del_sa(cmd_data);
+#endif
 		return err;
 		
 	case SNIC_IPSEC_SA_GET_STATS:
+#ifdef ENABLE_SNIC_IPSEC
 		err = snic_ipsec_sa_get_stats(cmd_data);
+#endif
 		return err;
 
 	default:
@@ -504,6 +690,7 @@ __COLD_CODE static int snic_ctrl_cb(void *dev, uint16_t cmd, uint32_t size, void
 	return 0;
 }
 
+#ifdef ENABLE_SNIC_IPSEC
 int snic_ipsec_create_instance(struct snic_cmd_data *cmd_data)
 {
 	struct snic_ipsec_cfg snic_ipsec_cfg;
@@ -1037,25 +1224,35 @@ int snic_ipsec_sa_get_stats(struct snic_cmd_data *cmd_data)
 	else
 		return err;
 }
+#endif	/* ENABLE_SNIC_IPSEC */
 
-#ifdef ENABLE_SNIC
 int aiop_snic_early_init(void)
-{	int err;
+{
+#if defined(ENABLE_SNIC_IPR) || defined(ENABLE_SNIC_IPSEC)
+	int err;
+#endif
 
+#ifdef ENABLE_SNIC_IPR
 	/* reserve IPR buffers */
 	err = ipr_early_init(MAX_SNIC_NO, MAX_SNIC_NO * MAX_OPEN_IPR_FRAMES);
 	if (err)
 		return err;
+#endif
+
+#ifdef ENABLE_SNIC_IPSEC
 	/* IPsec buffers */
 	err = ipsec_early_init(MAX_SNIC_NO, MAX_SNIC_NO * MAX_SA_NO, MAX_SNIC_NO * MAX_SA_NO, 0);
 	return err;
+#endif
+	return 0;
 }
 
 int aiop_snic_init(void)
 {
-	int status;
+	int status, i;
 	struct cmdif_module_ops snic_cmd_ops;
 	enum memory_partition_id mem_pid = MEM_PART_SYSTEM_DDR;
+	uint64_t size;
 
 	if (fsl_mem_exists(MEM_PART_DP_DDR))
 		mem_pid = MEM_PART_DP_DDR;
@@ -1064,17 +1261,51 @@ int aiop_snic_init(void)
 	snic_cmd_ops.close_cb = (close_cb_t *)snic_close_cb;
 	snic_cmd_ops.ctrl_cb = (ctrl_cb_t *)snic_ctrl_cb;
 	pr_info("sNIC: register with cmdif module!\n");
+
 	status = cmdif_register_module("sNIC", &snic_cmd_ops);
-	if(status) {
+	if (status) {
 		pr_info("sNIC:Failed to register with cmdif module!\n");
 		return status;
 	}
 	memset(snic_params, 0, sizeof(snic_params));
-	fsl_get_mem(SNIC_MAX_NO_OF_TIMERS*64, mem_pid, 64, 
-			&snic_tmi_mem_base_addr);
-	/* tmi delete is in snic_free */
-	status = tman_create_tmi(snic_tmi_mem_base_addr , SNIC_MAX_NO_OF_TIMERS, 
-			&snic_tmi_id);
+
+	status = fsl_get_mem((SNIC_MAX_NO_OF_TIMERS + 4) * 64, mem_pid,
+		    SNIC_MEM_ALIGN, &snic_tmi_mem_base_addr);
+	if (status) {
+		pr_info("sNIC:Failed to allocate memory for TMI.\n");
+		return status;
+	}
+
+	/* tmi delete in in snic_free */
+	status = tman_create_tmi(snic_tmi_mem_base_addr,
+				 SNIC_MAX_NO_OF_TIMERS + 3, &snic_tmi_id);
+	if (status) {
+		pr_info("sNIC:Failed to create TMI.\n");
+		return status;
+	}
+
+	size = MAX_SNIC_NO * TCP_GRO_CONTEXT_SIZE;
+	status = fsl_get_mem(size, mem_pid, SNIC_MEM_ALIGN, &snic_gro_addr);
+	if (status) {
+		pr_info("sNIC:Failed to allocate memory for TCP GRO.\n");
+		return status;
+	}
+
+	memset(snic_tcp_gro_param, 0, sizeof(snic_tcp_gro_param));
+
+	size = sizeof(struct tcp_gro_stats_cntrs);
+	if (size < SNIC_MEM_ALIGN)
+		size = SNIC_MEM_ALIGN;
+	status = fsl_get_mem(size * MAX_SNIC_NO, mem_pid, SNIC_MEM_ALIGN,
+			     &snic_gro_stats_addr);
+	if (status) {
+		pr_info("sNIC:Failed to allocate memory for TCP GRO stats.\n");
+		return status;
+	}
+	for (i = 0; i < MAX_SNIC_NO; i++)
+		snic_set_tcp_gro_param(i, snic_gro_stats_addr + i * size,
+				       snic_tmi_id);
+
 	return status;
 }
 
@@ -1084,7 +1315,6 @@ void aiop_snic_free(void)
 			snic_tmi_id, NULL, NULL);
 	
 }
-#endif	/* ENABLE_SNIC */
 
 void snic_tman_confirm_cb(tman_arg_8B_t arg1, tman_arg_2B_t arg2)
 {
@@ -1093,8 +1323,12 @@ void snic_tman_confirm_cb(tman_arg_8B_t arg1, tman_arg_2B_t arg2)
 	tman_timer_completion_confirmation(
 			TMAN_GET_TIMER_HANDLE(HWC_FD_ADDRESS));
 	fsl_put_mem(snic_tmi_mem_base_addr);
+	fsl_put_mem(snic_gro_stats_addr);
+	fsl_put_mem(snic_gro_addr);
 	fdma_terminate_task();
 }
+
+#ifdef ENABLE_SNIC_IPR
 void snic_ipr_timout_cb(ipr_timeout_arg_t arg,
 		uint32_t flags)
 {
@@ -1109,7 +1343,9 @@ void snic_ipr_confirm_delete_cb(ipr_del_arg_t arg)
 	UNUSED(arg);
 	fdma_terminate_task();
 }
+#endif	/* ENABLE_SNIC_IPR */
 
+#ifdef ENABLE_SNIC_IPSEC
 int snic_create_table_key_id(uint8_t fec_no, uint8_t fec_array[8], 
 				uint8_t key_size,
 				uint32_t committed_sa_num, uint32_t max_sa_num,
@@ -1158,3 +1394,6 @@ int snic_create_table_key_id(uint8_t fec_no, uint8_t fec_array[8],
 	}
 	return err;
 }
+#endif	/* ENABLE_SNIC_IPSEC */
+
+#endif	/* ENABLE_SNIC */

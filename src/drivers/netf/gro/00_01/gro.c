@@ -44,6 +44,13 @@
 #include "fsl_sl_dpni_drv.h"
 /*#include "cdma.h"*/
 
+#ifdef GRO_NO_METADATA
+#define GRO_CTX__SEG_NUM gro_ctx.seg_num
+#define GRO_CTX_PTR__SEG_NUM gro_ctx->seg_num
+#else
+#define GRO_CTX__SEG_NUM gro_ctx.metadata.seg_num
+#define GRO_CTX_PTR__SEG_NUM gro_ctx->metadata.seg_num
+#endif
 
 /* New Aggregation */
 GRO_CODE_PLACEMENT int tcp_gro_aggregate_seg(
@@ -74,7 +81,7 @@ GRO_CODE_PLACEMENT int tcp_gro_aggregate_seg(
 			(uint16_t)sizeof(struct tcp_gro_context));
 
 	/* add segment to an existing aggregation */
-	if (gro_ctx.metadata.seg_num != 0) {
+	if (GRO_CTX__SEG_NUM != 0) {
 		status = tcp_gro_add_seg_to_aggregation(
 				tcp_gro_context_addr, params, &gro_ctx);
 		/* write entire gro context back to DDR + release
@@ -88,6 +95,7 @@ GRO_CODE_PLACEMENT int tcp_gro_aggregate_seg(
 		return status;
 	}
 
+#ifndef GRO_NO_METADATA
 	/* read segment sizes address */
 	if (flags & TCP_GRO_METADATA_SEGMENT_SIZES) {
 		cdma_read(&(gro_ctx.metadata.seg_sizes_addr),
@@ -97,10 +105,13 @@ GRO_CODE_PLACEMENT int tcp_gro_aggregate_seg(
 				&seg_size, (uint16_t)sizeof(seg_size));
 		gro_ctx.metadata.seg_sizes_addr += (uint16_t)sizeof(seg_size);
 	}
+#endif
 
 	/* set metadata values */
-	gro_ctx.metadata.seg_num = 1;
+	GRO_CTX__SEG_NUM = 1;
+#ifndef GRO_NO_METADATA
 	gro_ctx.metadata.max_seg_size = seg_size;
+#endif
 
 	/* New aggregation - Initialize GRO Context */
 	tcp = (struct tcphdr *)PARSER_GET_L4_POINTER_DEFAULT();
@@ -140,7 +151,9 @@ GRO_CODE_PLACEMENT int tcp_gro_aggregate_seg(
 	gro_ctx.gro_timeout_cb_arg = params->timeout_params.gro_timeout_cb_arg;
 	gro_ctx.packet_size_limit = params->limits.packet_size_limit;
 	gro_ctx.seg_num_limit = params->limits.seg_num_limit;
+#ifndef GRO_NO_METADATA
 	gro_ctx.metadata_addr = params->metadata_addr;
+#endif
 	gro_ctx.stats_addr = params->stats_addr;
 	gro_ctx.flags = flags;
 	gro_ctx.last_seg_fields.acknowledgment_number =
@@ -181,6 +194,10 @@ GRO_CODE_PLACEMENT int tcp_gro_aggregate_seg(
 	sr_status = fdma_store_frame_data(PRC_GET_FRAME_HANDLE(),
 			*(uint8_t *)HWC_SPID_ADDRESS, 
 			&amq);
+
+	if (gro_ctx.flags & TCP_GRO_USE_HWC_SPID)
+		gro_ctx.spid = *((uint8_t *)HWC_SPID_ADDRESS);
+
 	gro_ctx.niid = task_get_receive_niid();
 	gro_ctx.qd_priority = default_task_params.qd_priority;
 
@@ -299,7 +316,7 @@ GRO_CODE_PLACEMENT int tcp_gro_add_seg_to_aggregation(
 		return tcp_gro_add_seg_and_close_aggregation(gro_ctx);
 	}
 	/* 7. check segment number limit */
-	if ((gro_ctx->metadata.seg_num + 1) ==
+	if ((GRO_CTX_PTR__SEG_NUM + 1) ==
 			gro_ctx->seg_num_limit){
 		/* update statistics */
 		if (gro_ctx->flags & TCP_GRO_EXTENDED_STATS_EN)
@@ -337,10 +354,10 @@ GRO_CODE_PLACEMENT int tcp_gro_add_seg_to_aggregation(
 		/* update statistics */
 		ste_inc_counter(gro_ctx->stats_addr +
 			GRO_STAT_AGG_DISCARDED_SEG_NUM_CNTR_OFFSET,
-			(uint32_t)(gro_ctx->metadata.seg_num + 1),
+			(uint32_t)(GRO_CTX_PTR__SEG_NUM + 1),
 			STE_MODE_SATURATE | STE_MODE_32_BIT_CNTR_SIZE);
 		/* zero gro context fields */
-		gro_ctx->metadata.seg_num = 0;
+		GRO_CTX_PTR__SEG_NUM = 0;
 		gro_ctx->internal_flags = 0;
 		gro_ctx->timestamp = 0;
 		/* Clear gross running sum in parse results */
@@ -353,7 +370,9 @@ GRO_CODE_PLACEMENT int tcp_gro_add_seg_to_aggregation(
 	gro_ctx->next_seq = gro_ctx->next_seq + seg_size - headers_size;
 	gro_ctx->last_seg_fields = *((struct tcp_gro_last_seg_header_fields *)
 			(&(tcp->acknowledgment_number)));
-	gro_ctx->metadata.seg_num++;
+	GRO_CTX_PTR__SEG_NUM++;
+
+#ifndef GRO_NO_METADATA
 	if (gro_ctx->metadata.max_seg_size < seg_size)
 		gro_ctx->metadata.max_seg_size = seg_size;
 
@@ -363,6 +382,8 @@ GRO_CODE_PLACEMENT int tcp_gro_add_seg_to_aggregation(
 				&seg_size, (uint16_t)sizeof(seg_size));
 		gro_ctx->metadata.seg_sizes_addr += (uint16_t)sizeof(seg_size);
 	}
+#endif
+
 	/* update statistics */
 	ste_inc_counter(gro_ctx->stats_addr +
 			GRO_STAT_SEG_NUM_CNTR_OFFSET,
@@ -395,9 +416,12 @@ GRO_CODE_PLACEMENT int tcp_gro_add_seg_and_close_aggregation(
 	/* update gro context fields */
 	gro_ctx->last_seg_fields = *((struct tcp_gro_last_seg_header_fields *)
 				(&(tcp->acknowledgment_number)));
-	gro_ctx->metadata.seg_num++;
+	GRO_CTX_PTR__SEG_NUM++;
+
+#ifndef GRO_NO_METADATA
 	if (gro_ctx->metadata.max_seg_size < seg_size)
 		gro_ctx->metadata.max_seg_size = seg_size;
+#endif
 
 	concat_params.frame1 = 0;
 	/* present aggregated frame */
@@ -426,10 +450,10 @@ GRO_CODE_PLACEMENT int tcp_gro_add_seg_and_close_aggregation(
 		/* update statistics */
 		ste_inc_counter(gro_ctx->stats_addr +
 			GRO_STAT_AGG_DISCARDED_SEG_NUM_CNTR_OFFSET,
-			(uint32_t)(gro_ctx->metadata.seg_num),
+			(uint32_t)(GRO_CTX_PTR__SEG_NUM),
 			STE_MODE_SATURATE | STE_MODE_32_BIT_CNTR_SIZE);
 		/* zero gro context fields */
-		gro_ctx->metadata.seg_num = 0;
+		GRO_CTX_PTR__SEG_NUM = 0;
 		gro_ctx->internal_flags = 0;
 		gro_ctx->timestamp = 0;
 		/* Clear gross running sum in parse results */
@@ -485,6 +509,7 @@ GRO_CODE_PLACEMENT int tcp_gro_add_seg_and_close_aggregation(
 	if (gro_ctx->flags & TCP_GRO_CALCULATE_TCP_CHECKSUM)
 		tcp_gro_calc_tcp_header_cksum();
 
+#ifndef GRO_NO_METADATA
 	/* write metadata segment size to external memory */
 	if (gro_ctx->flags & TCP_GRO_METADATA_SEGMENT_SIZES) {
 		cdma_write(gro_ctx->metadata.seg_sizes_addr,
@@ -492,9 +517,10 @@ GRO_CODE_PLACEMENT int tcp_gro_add_seg_and_close_aggregation(
 	}
 	/* write metadata to external memory */
 	cdma_write((gro_ctx->metadata_addr + METADATA_MEMBER1_SIZE),
-			&(gro_ctx->metadata.seg_num),
+			&(GRO_CTX_PTR__SEG_NUM),
 			(uint16_t)(METADATA_MEMBER2_SIZE +
 					METADATA_MEMBER3_SIZE));
+#endif
 
 	/* Clear gross running sum in parse results */
 	pr->gross_running_sum = 0;
@@ -518,7 +544,7 @@ GRO_CODE_PLACEMENT int tcp_gro_add_seg_and_close_aggregation(
 	} else {
 		gro_ctx->timer_handle = TCP_GRO_INVALID_TMAN_HANDLE;
 		/* zero gro context fields */
-		gro_ctx->metadata.seg_num = 0;
+		GRO_CTX_PTR__SEG_NUM = 0;
 		gro_ctx->internal_flags = 0;
 		gro_ctx->timestamp = 0;
 		/* update statistics */
@@ -647,7 +673,7 @@ GRO_CODE_PLACEMENT int tcp_gro_close_aggregation_and_open_new_aggregation(
 	tcp = (struct tcphdr *)(PARSER_GET_L4_POINTER_DEFAULT());
 
 	/* update last segment header fields */
-	if (gro_ctx->metadata.seg_num > 1)
+	if (GRO_CTX_PTR__SEG_NUM > 1)
 		*((struct tcp_gro_last_seg_header_fields *)
 				(&(tcp->acknowledgment_number))) =
 						gro_ctx->last_seg_fields;
@@ -655,11 +681,13 @@ GRO_CODE_PLACEMENT int tcp_gro_close_aggregation_and_open_new_aggregation(
 	/* update new aggregation acknowledgment number */
 	gro_ctx->last_seg_fields.acknowledgment_number = ack_number;
 
+#ifndef GRO_NO_METADATA
 	/* write metadata to external memory */
 	cdma_write((gro_ctx->metadata_addr + METADATA_MEMBER1_SIZE),
-			&(gro_ctx->metadata.seg_num),
+			&(GRO_CTX_PTR__SEG_NUM),
 			(uint16_t)(METADATA_MEMBER2_SIZE +
 					METADATA_MEMBER3_SIZE));
+#endif
 
 	/* update IP length + checksum */
 	outer_ip_offset = (uint16_t)PARSER_GET_OUTER_IP_OFFSET_DEFAULT();
@@ -704,11 +732,11 @@ GRO_CODE_PLACEMENT int tcp_gro_close_aggregation_and_open_new_aggregation(
 			ste_inc_counter(gro_ctx->stats_addr +
 				GRO_STAT_AGG_DISCARDED_SEG_NUM_CNTR_OFFSET, 1,
 				STE_MODE_SATURATE | STE_MODE_32_BIT_CNTR_SIZE);
-			gro_ctx->metadata.seg_num = 0;
+			GRO_CTX_PTR__SEG_NUM = 0;
 			gro_ctx->internal_flags = 0;
 			status = TCP_GRO_SEG_DISCARDED;
 		} else { /* Report to the user a flush is required. */
-			gro_ctx->metadata.seg_num = 1;
+			GRO_CTX_PTR__SEG_NUM = 1;
 			status = TCP_GRO_FLUSH_REQUIRED;
 		}
 		/* delete the timer since the new segment will be flushed as is
@@ -768,7 +796,7 @@ GRO_CODE_PLACEMENT int tcp_gro_close_aggregation_and_open_new_aggregation(
 	if (sr_status == -ENOSPC) {
 
 		gro_ctx->timer_handle = TCP_GRO_INVALID_TMAN_HANDLE;
-		gro_ctx->metadata.seg_num = 1;
+		GRO_CTX_PTR__SEG_NUM = 1;
 		/* Clear gross running sum in parse results */
 		pr->gross_running_sum = 0;
 		return TCP_GRO_SEG_AGG_DONE | TCP_GRO_FLUSH_REQUIRED |
@@ -788,12 +816,17 @@ GRO_CODE_PLACEMENT int tcp_gro_close_aggregation_and_open_new_aggregation(
 	gro_ctx->gro_timeout_cb_arg = params->timeout_params.gro_timeout_cb_arg;
 	gro_ctx->packet_size_limit = params->limits.packet_size_limit;
 	gro_ctx->seg_num_limit = params->limits.seg_num_limit;
+#ifndef GRO_NO_METADATA
 	gro_ctx->metadata_addr = params->metadata_addr;
+#endif
 	gro_ctx->stats_addr = params->stats_addr;
-	gro_ctx->metadata.seg_num = 1;
+	GRO_CTX_PTR__SEG_NUM = 1;
+#ifndef GRO_NO_METADATA
 	gro_ctx->metadata.max_seg_size = seg_size;
+#endif
 	gro_ctx->prc_segment_length = prc_segment_length;
 
+#ifndef GRO_NO_METADATA
 	/* update seg size */
 	if (gro_ctx->flags & TCP_GRO_METADATA_SEGMENT_SIZES) {
 		cdma_read(&(gro_ctx->metadata.seg_sizes_addr),
@@ -806,6 +839,7 @@ GRO_CODE_PLACEMENT int tcp_gro_close_aggregation_and_open_new_aggregation(
 		gro_ctx->metadata.seg_sizes_addr += (uint16_t)
 				sizeof(gro_ctx->metadata.max_seg_size);
 	}
+#endif
 
 	/* Clear gross running sum in parse results */
 	pr->gross_running_sum = 0;
@@ -813,7 +847,7 @@ GRO_CODE_PLACEMENT int tcp_gro_close_aggregation_and_open_new_aggregation(
 	return TCP_GRO_SEG_AGG_DONE_AGG_OPEN_NEW_AGG;
 }
 
-int tcp_gro_flush_aggregation(
+GRO_CODE_PLACEMENT int tcp_gro_flush_aggregation(
 		uint64_t tcp_gro_context_addr)
 {
 	struct tcp_gro_context gro_ctx;
@@ -832,7 +866,7 @@ int tcp_gro_flush_aggregation(
 			(void *)(&gro_ctx),
 			(uint16_t)sizeof(struct tcp_gro_context));
 	/* no aggregation */
-	if (gro_ctx.metadata.seg_num == 0) {
+	if (GRO_CTX__SEG_NUM == 0) {
 		cdma_mutex_lock_release(tcp_gro_context_addr);
 		return TCP_GRO_FLUSH_NO_AGG;
 	}
@@ -859,14 +893,19 @@ int tcp_gro_flush_aggregation(
 	//set_default_amq_attributes(&(gro_ctx.agg_fd_isolation_attributes));
 	/* Update task default params */
 	dpni_drv = nis + gro_ctx.niid;
-	sl_tman_expiration_task_prolog(dpni_drv->dpni_drv_params_var.spid);
+
+	if (gro_ctx.flags & TCP_GRO_USE_HWC_SPID)
+		sl_tman_expiration_task_prolog(gro_ctx.spid);
+	else
+		sl_tman_expiration_task_prolog(dpni_drv->dpni_drv_params_var.spid);
+
 	default_task_params.parser_starting_hxs =
 				   dpni_drv->dpni_drv_params_var.starting_hxs;
 	default_task_params.parser_profile_id =
 				   dpni_drv->dpni_drv_params_var.prpid;
 	default_task_params.qd_priority = gro_ctx.qd_priority;
 		
-	single_seg = (gro_ctx.metadata.seg_num == 1) ? 1 : 0;
+	single_seg = (GRO_CTX__SEG_NUM == 1) ? 1 : 0;
 
 	/* prepare presentation context fields for frame presentation. */
 	PRC_SET_SEGMENT_ADDRESS(gro_ctx.prc_segment_addr);
@@ -879,7 +918,7 @@ int tcp_gro_flush_aggregation(
 
 	if (gro_ctx.internal_flags & GRO_FLUSH_AGG_SET) {
 		/* reset gro context fields */
-		gro_ctx.metadata.seg_num = 0;
+		GRO_CTX__SEG_NUM = 0;
 		gro_ctx.internal_flags = 0;
 		gro_ctx.timestamp = 0;
 		/* write gro context back to DDR + release mutex */
@@ -897,13 +936,16 @@ int tcp_gro_flush_aggregation(
 		return TCP_GRO_FLUSH_AGG_DONE;
 	}
 
+#ifndef GRO_NO_METADATA
 	/* write metadata to external memory */
 	cdma_write((gro_ctx.metadata_addr + METADATA_MEMBER1_SIZE),
-		&(gro_ctx.metadata.seg_num),
+		&(GRO_CTX__SEG_NUM),
 		(uint16_t)(METADATA_MEMBER2_SIZE +
 				METADATA_MEMBER3_SIZE));
+#endif
+
 	/* reset gro context fields */
-	gro_ctx.metadata.seg_num = 0;
+	GRO_CTX__SEG_NUM = 0;
 	gro_ctx.internal_flags = 0;
 	gro_ctx.timestamp = 0;
 
@@ -999,7 +1041,7 @@ GRO_CODE_PLACEMENT void tcp_gro_timeout_callback(uint64_t tcp_gro_context_addr, 
 	}
 
 	/* no aggregation */
-	if (gro_ctx.metadata.seg_num == 0) {
+	if (GRO_CTX__SEG_NUM == 0) {
 		cdma_mutex_lock_release(tcp_gro_context_addr);
 		return;
 	}
@@ -1007,23 +1049,30 @@ GRO_CODE_PLACEMENT void tcp_gro_timeout_callback(uint64_t tcp_gro_context_addr, 
 	//set_default_amq_attributes(&(gro_ctx.agg_fd_isolation_attributes));
 	/* Update task default params */
 	dpni_drv = nis + gro_ctx.niid;
-	sl_tman_expiration_task_prolog(dpni_drv->dpni_drv_params_var.spid);
+
+	if (gro_ctx.flags & TCP_GRO_USE_HWC_SPID)
+		sl_tman_expiration_task_prolog(gro_ctx.spid);
+	else
+		sl_tman_expiration_task_prolog(dpni_drv->dpni_drv_params_var.spid);
+
 	default_task_params.parser_starting_hxs =
 				   dpni_drv->dpni_drv_params_var.starting_hxs;
 	default_task_params.parser_profile_id =
 				   dpni_drv->dpni_drv_params_var.prpid;
 	default_task_params.qd_priority = gro_ctx.qd_priority;
 	
-	single_seg = (gro_ctx.metadata.seg_num == 1) ? 1 : 0;
+	single_seg = (GRO_CTX__SEG_NUM == 1) ? 1 : 0;
 
+#ifndef GRO_NO_METADATA
 	/* write metadata to external memory */
 	cdma_write((gro_ctx.metadata_addr + METADATA_MEMBER1_SIZE),
-			&(gro_ctx.metadata.seg_num),
+			&(GRO_CTX__SEG_NUM),
 			(uint16_t)(METADATA_MEMBER2_SIZE +
 					METADATA_MEMBER3_SIZE));
+#endif
 
 	/* reset gro context fields */
-	gro_ctx.metadata.seg_num = 0;
+	GRO_CTX__SEG_NUM = 0;
 	gro_ctx.internal_flags = 0;
 	gro_ctx.timestamp = 0;
 

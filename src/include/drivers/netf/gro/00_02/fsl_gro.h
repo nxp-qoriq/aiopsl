@@ -132,6 +132,8 @@ typedef void (gro_timeout_cb_t)(uint64_t arg);
 #define TCP_GRO_CALCULATE_TCP_CHECKSUM			0x00000004
 	/** If set, calculate IP checksum. */
 #define TCP_GRO_CALCULATE_IP_CHECKSUM			0x00000008
+	/** If set, save HWC_SPID for later use. */
+#define TCP_GRO_USE_HWC_SPID				0x00000010
 
 
 /** @} */ /* end of TCP_GRO_AGG_FLAGS */
