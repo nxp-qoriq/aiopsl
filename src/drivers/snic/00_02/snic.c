@@ -198,10 +198,11 @@ __HOT_CODE static inline void snic_tcp_gro(uint16_t snic_id,
 	}
 
 	snic_set_enqueue_param(snic_id, enqueue_params);
-	if (status & (TCP_GRO_SEG_AGG_DONE | TCP_GRO_SEG_AGG_DONE_AGG_OPEN))
+	if (((status & TCP_GRO_SEG_AGG_DONE) == TCP_GRO_SEG_AGG_DONE) ||
+	    ((status & TCP_GRO_SEG_AGG_DONE_AGG_OPEN) == TCP_GRO_SEG_AGG_DONE_AGG_OPEN))
 		snic_send(enqueue_params, FDMA_DIS_NO_FLAGS);
 
-	if (status & TCP_GRO_FLUSH_REQUIRED) {
+	if ((status & TCP_GRO_FLUSH_REQUIRED) == TCP_GRO_FLUSH_REQUIRED) {
 		status = tcp_gro_flush_aggregation(tcp_gro_ctx);
 		if (status == TCP_GRO_FLUSH_AGG_DONE)
 			snic_send(enqueue_params, FDMA_DIS_NO_FLAGS);
