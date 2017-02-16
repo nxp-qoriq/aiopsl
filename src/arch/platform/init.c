@@ -33,6 +33,7 @@
 #include "fsl_mem_mng.h"
 #include "fsl_platform.h"
 #include "sp_drv.h"
+#include "sparser_drv.h"
 
 /* Address of end of memory_data section */
 extern const uint8_t AIOP_INIT_DATA[];
@@ -74,13 +75,15 @@ extern void build_apps_array(struct sys_module_desc *apps);
 	{NULL, cmdif_client_init, NULL, cmdif_client_free},		\
 	{NULL, cmdif_srv_init, NULL, cmdif_srv_free},			\
 	{aiop_sl_early_init, aiop_sl_init, NULL, aiop_sl_free},		\
+	 /* Must be before DPNI */					\
+	{sparser_drv_early_init, sparser_drv_init, NULL, NULL},		\
 	/* Must be after aiop_sl_init */				\
 	{NULL, dpni_drv_init, NULL, dpni_drv_free},			\
 	/* Must be after DPNI */					\
 	{NULL, ipsec_drv_init, NULL, NULL},				\
-	 /* Must be after IPSEC */				\
+	 /* Must be after IPSEC */					\
 	{NULL, cwap_dtls_drv_init, NULL, NULL},				\
-	 /* Must be after CWAP */				\
+	 /* Must be after CWAP */					\
 	{sp_drv_early_init, sp_drv_init, NULL, sp_drv_free},		\
 	 /* Must be after cmdif */					\
 	{evmng_early_init, evmng_init, NULL, evmng_free},		\

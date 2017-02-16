@@ -535,6 +535,38 @@ struct dpni_drv_free_bufs {
 };
 
 /**************************************************************************//**
+@Description	enum dpni_drv_hw_parser - Hardware parser managing the
+		Soft Examination Sequence.
+
+*//***************************************************************************/
+enum dpni_drv_hw_parser {
+	/* WRIOP Parser */
+	PARSER_WRIOP = 0,
+	/* AIOP Parser */
+	PARSER_AIOP
+};
+
+/**************************************************************************//**
+@Description	struct dpni_drv_sparser_param - Structure representing the
+		information needed to activate(enable) a Soft Parser.
+
+*//***************************************************************************/
+struct dpni_drv_sparser_param {
+	/* HXS on which the SP is enabled */
+	enum parser_starting_hxs_code	link_hxs;
+	/* Soft Sequence Start PC */
+	uint16_t			start_pc;
+	/* Pointer to the Parameters Array of the SP */
+	uint8_t				*param_array;
+	/* Parameters offset */
+	uint8_t				param_offset;
+	/* Parameters size */
+	uint8_t				param_size;
+	/* Target parser */
+	enum dpni_drv_hw_parser		parser;
+};
+
+/**************************************************************************//**
 @Description	Application Receive callback
 
 		User provides this function. Driver invokes it when it gets a
@@ -1727,17 +1759,50 @@ int dpni_drv_get_num_free_bufs(uint32_t flags,
 /**************************************************************************//**
 @Function	dpni_drv_set_errors_behavior
 
-@Description	Set errors behavior.
+@Description	Get the ID of the Parse Profile configured on a DPNI. All AIOP
+		belonging DPNIs share the same Parse Profile.
 
-@Param[in]	ni_id The AIOP Network Interface ID.
+@Param[in]	ni_id : The AIOP Network Interface ID.
 
-@Param[in]	cfg :  Errors configuration.
+@Param[out]	cfg :  Errors configuration.
+
+@Return		None
+*//***************************************************************************/
+int dpni_drv_set_errors_behavior(uint16_t ni_id,
+				 const struct dpni_drv_error_cfg *cfg);
+
+/**************************************************************************//**
+@Function	dpni_drv_get_parse_profile_id
+
+@Description	Get the ID of the Parse Profile configured on a DPNI. All AIOP
+		belonging DPNIs share the same Parse Profile.
+
+@Param[in]	ni_id : The AIOP Network Interface ID.
+
+@Param[out]	prpid :  On return contains the ID of the Parse Profile.
+
+@Return		None
+*//***************************************************************************/
+void dpni_drv_get_parse_profile_id(uint16_t ni_id, uint8_t *prpid);
+
+/**************************************************************************//**
+@Function	dpni_drv_activate_soft_parser
+
+@Description	Activate a Soft Parser. Soft Parser is enabled and linked in
+		the parse tree of the AIOP/WRIOP Parser. The SP parameters (if
+		exist) are stored in the Soft Examination Parameter Array of
+		the provided Parse Profile ID. All AIOP belonging DPNIs share
+		the same Parse Profile.
+
+@Param[in]	prpid : Parse Profile ID.
+
+@Param[in]	param : Soft Parser activation parameters.
 
 @Return	0 on success;
 	error code, otherwise. For error posix refer to \ref error_g
 *//***************************************************************************/
-int dpni_drv_set_errors_behavior(uint16_t ni_id,
-				 const struct dpni_drv_error_cfg *cfg);
+int dpni_drv_activate_soft_parser(uint8_t prpid,
+				  const struct dpni_drv_sparser_param *param);
 
 /** @} */ /* end of dpni_drv_g DPNI DRV group */
 #endif /* __FSL_DPNI_DRV_H */

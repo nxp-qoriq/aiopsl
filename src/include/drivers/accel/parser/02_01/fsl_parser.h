@@ -1224,6 +1224,10 @@ enum parser_starting_hxs_code {
 	 PARSER_ARP_STARTING_HXS = 0x0005,
 	/** IP Starting HXS coding */
 	 PARSER_IP_STARTING_HXS	 = 0x0006,
+	/** IPv4 Starting HXS coding */
+	 PARSER_IPV4_STARTING_HXS = 0x0007,
+	/** IPv6 Starting HXS coding */
+	 PARSER_IPV6_STARTING_HXS = 0x0008,
 	/** GRE Starting HXS coding */
 	 PARSER_GRE_STARTING_HXS = 0x0009,
 	/** MinEncap Starting HXS coding */

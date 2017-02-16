@@ -979,26 +979,34 @@ int dpni_drv_get_max_frame_length(uint16_t ni_id,
 	return 0;
 }
 
+/******************************************************************************/
 __COLD_CODE static int parser_profile_init(uint8_t *prpid)
 {
 	struct parse_profile_input parse_profile1 __attribute__((aligned(16)));
+	int ret;
 
 	/* Init basic parse profile */
-	memset(&(parse_profile1.parse_profile), 0, sizeof(struct parse_profile_record));
-
+	memset(&parse_profile1.parse_profile, 0,
+	       sizeof(struct parse_profile_record));
 	/* Frame Parsing advances to MPLS Default Next Parse (IP HXS) */
-	parse_profile1.parse_profile.mpls_hxs_config.lie_dnp = PARSER_PRP_MPLS_HXS_CONFIG_LIE;
-
+	parse_profile1.parse_profile.mpls_hxs_config.lie_dnp =
+			PARSER_PRP_MPLS_HXS_CONFIG_LIE;
 	/* Routing header is ignored and the destination address from
 	 * main header is used instead */
-	parse_profile1.parse_profile.ipv6_hxs_config = PARSER_PRP_IPV6_HXS_CONFIG_RHE;
-
+	parse_profile1.parse_profile.ipv6_hxs_config =
+			PARSER_PRP_IPV6_HXS_CONFIG_RHE;
 	/* In short Packet, padding is removed from Checksum calculation */
-	parse_profile1.parse_profile.tcp_hxs_config = PARSER_PRP_TCP_UDP_HXS_CONFIG_SPPR;
+	parse_profile1.parse_profile.tcp_hxs_config =
+			PARSER_PRP_TCP_UDP_HXS_CONFIG_SPPR;
 	/* In short Packet, padding is removed from Checksum calculation */
-	parse_profile1.parse_profile.udp_hxs_config = PARSER_PRP_TCP_UDP_HXS_CONFIG_SPPR;
-
-	return parser_profile_create(&(parse_profile1), prpid);
+	parse_profile1.parse_profile.udp_hxs_config =
+			PARSER_PRP_TCP_UDP_HXS_CONFIG_SPPR;
+	ret = parser_profile_create(&(parse_profile1), prpid);
+	if (ret)
+		pr_err("Can't create Parse Profile\n");
+	else
+		pr_info("Parse Profile %d created\n", *prpid);
+	return ret;
 }
 
 static int get_existing_ddr_memory(void)
@@ -1587,6 +1595,15 @@ static int dpni_drv_set_ordering_mode_etype(uint16_t ni_id, int ep_mode,
 	cdma_mutex_lock_release((uint64_t)nis);
 	EP_MNG_MUTEX_RELEASE;
 	return ret;
+}
+
+/******************************************************************************/
+static __COLD_CODE
+int send_soft_parser_param(const struct dpni_drv_sparser_param *param)
+{
+	UNUSED(param);
+	/* TODO - Implement MC command */
+	return 0;
 }
 
 int dpni_drv_set_concurrent(uint16_t ni_id){
@@ -2931,5 +2948,132 @@ int dpni_drv_set_errors_behavior(uint16_t ni_id,
 		sl_pr_err("Close DPNI failed\n");
 		return err;
 	}
+	return 0;
+}
+
+/******************************************************************************/
+__COLD_CODE void dpni_drv_get_parse_profile_id(uint16_t ni_id, uint8_t *prpid)
+{
+	struct dpni_drv		*dpni_drv;
+
+	dpni_drv = nis + ni_id;
+	*prpid = dpni_drv->dpni_drv_params_var.prpid;
+}
+
+/******************************************************************************/
+__COLD_CODE
+int dpni_drv_activate_soft_parser(uint8_t prpid,
+				  const struct dpni_drv_sparser_param *param)
+{
+	int				err;
+	uint16_t			*pval;
+	uint8_t				*pb;
+	struct parse_profile_input	pp __attribute__((aligned(16)));
+
+	#define SOFT_PARSER_EN		0x8000
+	#define SOFT_PARSER_SSS_MASK	0x7FF
+
+	ASSERT_COND(param);
+	if (param->param_array && param->param_size &&
+	    param->param_offset + param->param_size > 64) {
+		pr_err("Invalid Parameters Array : off = %d, size = %d\n",
+		       param->param_offset, param->param_size);
+		return -EINVAL;
+	}
+	if (param->parser == PARSER_WRIOP) {
+		/* Send information to MC */
+		err = send_soft_parser_param(param);
+		return err;
+	}
+	memset(&pp, 0, sizeof(struct parse_profile_input));
+	parser_profile_query(prpid, &pp);
+	switch (param->link_hxs) {
+	case PARSER_ETH_STARTING_HXS:
+		 pval = &pp.parse_profile.eth_hxs_config;
+		 break;
+	case PARSER_LLC_SNAP_STARTING_HXS:
+		 pval = &pp.parse_profile.llc_snap_hxs_config;
+		 break;
+	case PARSER_VLAN_STARTING_HXS:
+		 pval = &pp.parse_profile.vlan_hxs_config.en_erm_soft_seq_start;
+		 break;
+	case PARSER_PPPOE_PPP_STARTING_HXS:
+		 pval = &pp.parse_profile.pppoe_ppp_hxs_config;
+		 break;
+	case PARSER_MPLS_STARTING_HXS:
+		 pval = &pp.parse_profile.mpls_hxs_config.en_erm_soft_seq_start;
+		 break;
+	case PARSER_ARP_STARTING_HXS:
+		 pval = &pp.parse_profile.arp_hxs_config;
+		 break;
+	case PARSER_IP_STARTING_HXS:
+		 pval = &pp.parse_profile.ip_hxs_config;
+		 break;
+#ifndef LS2085A_REV1
+	case PARSER_IPV4_STARTING_HXS:
+		 pval = &pp.parse_profile.ipv4_hxs_config;
+		 break;
+	case PARSER_IPV6_STARTING_HXS:
+		 pval = &pp.parse_profile.ipv6_hxs_config;
+		 break;
+#endif
+	case PARSER_GRE_STARTING_HXS:
+		 pval = &pp.parse_profile.gre_hxs_config;
+		 break;
+	case PARSER_MINENCAP_STARTING_HXS:
+		 pval = &pp.parse_profile.minenc_hxs_config;
+		 break;
+	case PARSER_OTHER_L3_SHELL_STARTING_HXS:
+		 pval = &pp.parse_profile.other_l3_shell_hxs_config;
+		 break;
+	case PARSER_TCP_STARTING_HXS:
+		 pval = &pp.parse_profile.tcp_hxs_config;
+		 break;
+	case PARSER_UDP_STARTING_HXS:
+		 pval = &pp.parse_profile.udp_hxs_config;
+		 break;
+	case PARSER_IPSEC_STARTING_HXS:
+		 pval = &pp.parse_profile.ipsec_hxs_config;
+		 break;
+	case PARSER_SCTP_STARTING_HXS:
+		 pval = &pp.parse_profile.sctp_hxs_config;
+		 break;
+	case PARSER_DCCP_STARTING_HXS:
+		 pval = &pp.parse_profile.dccp_hxs_config;
+		 break;
+	case PARSER_OTHER_L4_SHELL_STARTING_HXS:
+		 pval = &pp.parse_profile.other_l4_shell_hxs_config;
+		 break;
+	case PARSER_GTP_STARTING_HXS:
+		 pval = &pp.parse_profile.gtp_hxs_config;
+		 break;
+	case PARSER_ESP_STARTING_HXS:
+		 pval = &pp.parse_profile.esp_hxs_config;
+		 break;
+#ifndef LS2085A_REV1
+	case PARSER_VXLAN_STARTING_HXS:
+		 pval = &pp.parse_profile.vxlan_hxs_config;
+		 break;
+#endif
+	case PARSER_L5_SHELL_STARTING_HXS:
+		 pval = &pp.parse_profile.l5_shell_hxs_config;
+		 break;
+	default:
+	case PARSER_FINAL_SHELL_STARTING_HXS:
+		 pval = &pp.parse_profile.final_shell_hxs_config;
+		 break;
+	}
+	/* Enable SP and set the starting PC */
+	*pval &= ~SOFT_PARSER_SSS_MASK;
+	*pval |= SOFT_PARSER_EN | (param->start_pc & SOFT_PARSER_SSS_MASK);
+	/* Copy SP parameters (if exist) */
+	if (param->param_array && param->param_size) {
+		pb = (uint8_t *)
+			&pp.parse_profile.soft_examination_param_array[0];
+		pb += param->param_offset;
+		memcpy(pb, param->param_array, param->param_size);
+	}
+	parser_profile_replace(&pp, prpid);
+	pr_info("Parse Profile %d updated\n", prpid);
 	return 0;
 }

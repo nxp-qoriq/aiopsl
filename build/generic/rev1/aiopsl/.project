@@ -200,6 +200,11 @@
 			<locationURI>virtual:/virtual</locationURI>
 		</link>
 		<link>
+			<name>aiop_sl/drivers/sparser</name>
+			<type>2</type>
+			<locationURI>virtual:/virtual</locationURI>
+		</link>
+		<link>
 			<name>aiop_sl/include/common</name>
 			<type>2</type>
 			<locationURI>virtual:/virtual</locationURI>
@@ -625,6 +630,16 @@
 			<locationURI>PARENT-4-PROJECT_LOC/src/drivers/sp/sp_drv.h</locationURI>
 		</link>
 		<link>
+			<name>aiop_sl/drivers/sparser/sparser_drv.c</name>
+			<type>1</type>
+			<locationURI>PARENT-4-PROJECT_LOC/src/drivers/sparser/sparser_drv.c</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/drivers/sparser/sparser_drv.h</name>
+			<type>1</type>
+			<locationURI>PARENT-4-PROJECT_LOC/src/drivers/sparser/sparser_drv.h</locationURI>
+		</link>
+		<link>
 			<name>aiop_sl/include/common/fsl_stdarg.h</name>
 			<type>1</type>
 			<locationURI>PARENT-4-PROJECT_LOC/src/include/common/fsl_stdarg.h</locationURI>
@@ -678,6 +693,11 @@
 			<name>aiop_sl/include/drivers/fsl_sp_drv.h</name>
 			<type>1</type>
 			<locationURI>PARENT-4-PROJECT_LOC/src/include/drivers/fsl_sp_drv.h</locationURI>
+		</link>
+		<link>
+			<name>aiop_sl/include/drivers/fsl_sparser_drv.h</name>
+			<type>1</type>
+			<locationURI>PARENT-4-PROJECT_LOC/src/include/drivers/fsl_sparser_drv.h</locationURI>
 		</link>
 		<link>
 			<name>aiop_sl/include/drivers/ldpaa</name>
