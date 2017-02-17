@@ -42,6 +42,15 @@
 #endif
 
 /******************************************************************************/
+/* Macro SP_DRV_RUN_ON_SIMULATOR must be defined if code is run on Simulator.
+ * There is a bug in SIM implementation : The Parser can't be stopped.
+ *
+ * WARNING : Unexpected behavior occurs if the macro remains defined when the
+ * code is run on a board.
+ */
+/*#define SP_DRV_RUN_ON_SIMULATOR*/
+
+/******************************************************************************/
 #define SOC_PERIPH_OFF_AIOP_CTLU		0x38000
 #define CTLU_PARSER_OFFSET			0
 
