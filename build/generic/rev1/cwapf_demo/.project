@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <projectDescription>
-	<name>cwapr_demo</name>
+	<name>cwapf_demo</name>
 	<comment></comment>
 	<projects>
 		<project location="PARENT-3-PROJECT_LOC/generic/rev1/aiopsl">
@@ -109,22 +109,22 @@ aiop_sl		</project>
 		<link>
 			<name>src/README.txt</name>
 			<type>1</type>
-			<locationURI>PARENT-4-PROJECT_LOC/apps/cwapr_demo/README.txt</locationURI>
+			<locationURI>PARENT-4-PROJECT_LOC/apps/cwapf_demo/README.txt</locationURI>
 		</link>
 		<link>
 			<name>src/apps.c</name>
 			<type>1</type>
-			<locationURI>PARENT-4-PROJECT_LOC/apps/cwapr_demo/apps.c</locationURI>
+			<locationURI>PARENT-4-PROJECT_LOC/apps/cwapf_demo/apps.c</locationURI>
 		</link>
 		<link>
 			<name>src/apps.h</name>
 			<type>1</type>
-			<locationURI>PARENT-4-PROJECT_LOC/apps/cwapr_demo/apps.h</locationURI>
+			<locationURI>PARENT-4-PROJECT_LOC/apps/cwapf_demo/apps.h</locationURI>
 		</link>
 		<link>
-			<name>src/cwapr_demo.c</name>
+			<name>src/cwapf_demo.c</name>
 			<type>1</type>
-			<locationURI>PARENT-4-PROJECT_LOC/apps/cwapr_demo/cwapr_demo.c</locationURI>
+			<locationURI>PARENT-4-PROJECT_LOC/apps/cwapf_demo/cwapf_demo.c</locationURI>
 		</link>
 		<link>
 			<name>src/generic</name>
@@ -154,22 +154,22 @@ aiop_sl		</project>
 		<link>
 			<name>src/generic/apps_arch.h</name>
 			<type>1</type>
-			<locationURI>PARENT-4-PROJECT_LOC/apps/cwapr_demo/generic/apps_arch.h</locationURI>
+			<locationURI>PARENT-4-PROJECT_LOC/apps/cwapf_demo/generic/apps_arch.h</locationURI>
 		</link>
 		<link>
 			<name>src/ls1088a/apps_arch.h</name>
 			<type>1</type>
-			<locationURI>PARENT-4-PROJECT_LOC/apps/cwapr_demo/ls1088a/apps_arch.h</locationURI>
+			<locationURI>PARENT-4-PROJECT_LOC/apps/cwapf_demo/ls1088a/apps_arch.h</locationURI>
 		</link>
 		<link>
 			<name>src/ls2085a/apps_arch.h</name>
 			<type>1</type>
-			<locationURI>PARENT-4-PROJECT_LOC/apps/cwapr_demo/ls2085a/apps_arch.h</locationURI>
+			<locationURI>PARENT-4-PROJECT_LOC/apps/cwapf_demo/ls2085a/apps_arch.h</locationURI>
 		</link>
 		<link>
 			<name>src/ls2088a/apps_arch.h</name>
 			<type>1</type>
-			<locationURI>PARENT-4-PROJECT_LOC/apps/cwapr_demo/ls2088a/apps_arch.h</locationURI>
+			<locationURI>PARENT-4-PROJECT_LOC/apps/cwapf_demo/ls2088a/apps_arch.h</locationURI>
 		</link>
 		<link>
 			<name>src/platform/ls1088a</name>

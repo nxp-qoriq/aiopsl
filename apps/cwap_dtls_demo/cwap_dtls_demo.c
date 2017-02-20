@@ -174,6 +174,16 @@ __HOT_CODE ENTRY_POINT static void app_process_packet(void)
 
 	fsl_print("CAPWAP/DTLS Demo: ENTERED app_process_packet\n");
 
+	/* Remove UDP checksum  */
+	if (PARSER_IS_UDP_DEFAULT()) {
+		struct udphdr *udp_hdr;
+		udp_hdr = (struct udphdr *)PARSER_GET_L4_POINTER_DEFAULT();
+		if (udp_hdr->checksum) {
+			udp_hdr->checksum = 0;
+			fdma_modify_default_segment_full_data();
+		}
+	}
+
 	eth_pointer_byte = (uint8_t *)PARSER_GET_ETH_POINTER_DEFAULT();
 	frame_len = LDPAA_FD_GET_LENGTH(HWC_FD_ADDRESS);
 	original_frame_len = frame_len;
@@ -403,6 +413,13 @@ static int app_dpni_event_added_cb(uint8_t generator_id, uint8_t event_id,
 	if (err) {
 		pr_err("dpni_drv_set_max_frame_length for ni %d failed: %d\n",
 		       ni, err);
+		return err;
+	}
+
+	/* Enable promiscuous mode */
+	err = dpni_drv_set_unicast_promisc(ni, 1);
+	if (err) {
+		pr_err("Cannot enable promiscuous mode on NI %d\n", ni);
 		return err;
 	}
 

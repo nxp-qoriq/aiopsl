@@ -193,12 +193,14 @@ struct cwapr_stats_cntrs {
 
 /** Table is located in Packet Express Buffer memory */
 #define CWAPR_MODE_TABLE_LOCATION_PEB		0x08000000
-/** Tables is located in Data Path DDR memory */
+
+/** Table is located in Data Path DDR memory */
 #ifndef LS1088A_REV1
 	/** Data Path DDR. Not available on LS1088 */
 	/** Tables is located in Data Path DDR memory */
 	#define CWAPR_MODE_TABLE_LOCATION_DP_DDR	0x04000000
 #endif
+
 /** Tables is located in System DDR memory */
 #define CWAPR_MODE_TABLE_LOCATION_SYS_DDR	0x0C000000
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2015 Freescale Semiconductor, Inc.
+ * Copyright 2016 Freescale Semiconductor, Inc.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -34,10 +34,14 @@
 #ifndef __APPS_ARCH_H
 #define __APPS_ARCH_H
 
-#define ARCH_DP_DDR_SIZE	     (0)
-#define ARCH_CTLU_DP_DDR_NUM_ENTRIES (0)
-#define ARCH_MFLU_DP_DDR_NUM_ENTRIES (0)
+#define ARCH_DP_DDR_SIZE		0
+#define ARCH_CTLU_DP_DDR_NUM_ENTRIES	0
+#define ARCH_MFLU_DP_DDR_NUM_ENTRIES	0
 
-#define IPSEC_DEMO_MEM_ID MEM_PART_SYSTEM_DDR
+#define CWAP_DTLS_DEMO_MEM_ID		MEM_PART_SYSTEM_DDR
+
+/* API functions which are different for rev1 and rev2 */
+#define ARCH_FDMA_DISCARD_FD() \
+	fdma_discard_fd((struct ldpaa_fd *)HWC_FD_ADDRESS, 0, FDMA_DIS_AS_BIT)
 
 #endif /* __APPS_ARCH_H */

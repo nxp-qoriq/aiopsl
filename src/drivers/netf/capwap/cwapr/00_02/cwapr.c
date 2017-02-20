@@ -1143,6 +1143,7 @@ CWAPR_CODE_PLACEMENT uint32_t close_with_reorder_capwap_frags(
 					  temp_ext_addr,
 					  FD_SIZE);
 
+			concatenate_prm.frame1 = (uint16_t) PRC_GET_FRAME_HANDLE();
 			concatenate_prm.frame2 = (uint16_t)(uint32_t)
 					(fds_to_concatenate);
 			/* Take header size to be removed from FD[FRC] */

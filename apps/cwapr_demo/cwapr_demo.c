@@ -44,7 +44,7 @@
 #include "fsl_slab.h"
 #include "fsl_malloc.h"
 #include "fsl_evmng.h"
-#include "apps_arch.h"
+#include "apps.h"
 #include "fsl_ste.h"
 
 int app_early_init(void);
@@ -263,9 +263,15 @@ static void print_cwapr_statistics(
 	ste_barrier();
 	cwapr_get_reass_frm_cntr(cwapr_instance_handle, &reass_frm_cntr);
 
+#ifdef LS2085A_REV1
+	cdma_read(&stats,
+		stats_mem_base_addr,
+		sizeof(struct cwapr_stats_cntrs));
+#else
 	cdma_read_with_no_cache(&stats,
 		stats_mem_base_addr,
 		sizeof(struct cwapr_stats_cntrs));
+#endif
 
 	fsl_print("CWAPR_DEMO:: Statistics -----------------------------\n");
 	fsl_print("CWAPR_DEMO:: reass_frm_cntr = %d\n",  reass_frm_cntr);

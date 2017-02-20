@@ -61,12 +61,6 @@
 
 uint16_t cwap_dtls_bpid;
 
-#ifdef LS1088A_REV1
-int cwap_dtls_drv_init(void)
-{
-	return 0;
-}
-#else
 int cwap_dtls_drv_init(void)
 {
 	struct mc_dprc *dprc = sys_get_unique_handle(FSL_MOD_AIOP_RC);
@@ -156,7 +150,6 @@ int cwap_dtls_drv_init(void)
 
 	return 0;
 }
-#endif /* defined LS1088A_REV1 */
 
 int cwap_dtls_early_init(uint32_t total_instance_num,
 			 uint32_t total_committed_sa_num,

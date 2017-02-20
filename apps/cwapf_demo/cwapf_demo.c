@@ -36,9 +36,8 @@
 /*#include "fsl_cmdif_server.h"*/
 #include "fsl_cdma.h"
 #include "fsl_evmng.h"
-
-
 #include "fsl_osm.h"
+#include "apps.h"
 
 
 int app_init(void);
@@ -67,7 +66,7 @@ __HOT_CODE ENTRY_POINT static void app_process_packet(void)
 
 	sl_prolog();
 
-	mtu = 1416;
+	mtu = 100;
 
 	if (PARSER_IS_OUTER_IPV4_DEFAULT())
 	{
@@ -112,7 +111,7 @@ __HOT_CODE ENTRY_POINT static void app_process_packet(void)
 				fdma_discard_default_frame(FDMA_DIS_NO_FLAGS);
 			}
 			else /* (err == -EBUSY) */
-				fdma_discard_fd((struct ldpaa_fd *)HWC_FD_ADDRESS, 0, FDMA_DIS_AS_BIT);
+				ARCH_FDMA_DISCARD_FD();
 
 			if (cwapf_status == CWAPF_GEN_FRAG_STATUS_IN_PROCESS)
 				cwapf_discard_frame_remainder(cwapf_context_addr);
