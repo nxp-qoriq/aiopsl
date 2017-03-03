@@ -552,8 +552,13 @@ enum dpni_drv_hw_parser {
 
 *//***************************************************************************/
 struct dpni_drv_sparser_param {
-	/* HXS on which the SP is enabled */
-	enum parser_starting_hxs_code	link_hxs;
+	/* The "first_header" must be set if the custom header to parse is the
+	 * first header in the packet, otherwise "first_header" must be cleared.
+	 * Only Rev2 platforms support the setting of "first_header" field. */
+	uint8_t				first_header;
+	/* Hard HXS on which a soft parser is activated. This must be configured
+	 * if the header to parse is not the first header in the packet. */
+	enum parser_starting_hxs_code	link_to_hard_hxs;
 	/* Soft Sequence Start PC */
 	uint16_t			start_pc;
 	/* Pointer to the Parameters Array of the SP */
@@ -854,6 +859,35 @@ inline int sl_prolog(void);
 @Retval		ENOSPC - Parser Block Limit Exceeds.
 *//***************************************************************************/
 inline int sl_prolog_with_ref_take(void);
+
+/**************************************************************************//**
+@Function	sl_prolog_with_custom_header
+
+@Description	Network Interface SL prolog function.
+		It is mandatory to call this function if the first header in
+		the packets arriving in AIOP must be parsed by a soft parser
+		(custom header). This is supported only by the Rev2 platforms.
+		It is recommended to call this function at the beginning of the
+		upper layer entry-point function, in this way it assures that
+		HW presentation context is preserved (as needed for OSM
+		functionality and ni_id resolution).
+		It is also recommended that user AIOP entry-point function is
+		declared with __declspec(entry_point) to assure it is not
+		dead-stripped by the compiler.
+
+@Param[in]	start_hxs : The program counter of a soft parser loaded by the
+		application in the instructions memory of the AIOP Parser.
+		The program counter must be a value in the range 0x20..0x7fd.
+		No checks are performed on the provided value.
+		On Rev1 platforms the start_hxs is reset (Ethernet hard HXS).
+
+@Retval		0 - Success.
+		It is recommended that for any error value user should discard
+		the frame and terminate the task.
+@Retval		EIO - Parsing Error
+@Retval		ENOSPC - Parser Block Limit Exceeds.
+*//***************************************************************************/
+inline int sl_prolog_with_custom_header(uint16_t start_hxs);
 
 /**************************************************************************//**
 @Function	sl_tman_expiration_task_prolog

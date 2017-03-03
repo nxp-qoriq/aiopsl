@@ -46,8 +46,8 @@
 #include "fsl_id_pool.h"
 
 
-inline int parse_result_generate(enum parser_starting_hxs_code starting_hxs,
-	uint8_t starting_offset, uint8_t flags)
+inline int parse_result_generate(uint16_t starting_hxs, uint8_t starting_offset,
+				 uint8_t flags)
 {
 	
 #ifdef CHECK_ALIGNMENT 	

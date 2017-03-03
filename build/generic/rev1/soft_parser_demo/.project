@@ -24,7 +24,7 @@ aiop_sl		</project>
 				</dictionary>
 				<dictionary>
 					<key>org.eclipse.cdt.make.core.buildArguments</key>
-					<value>-j16</value>
+					<value></value>
 				</dictionary>
 				<dictionary>
 					<key>org.eclipse.cdt.make.core.buildCommand</key>
@@ -32,7 +32,7 @@ aiop_sl		</project>
 				</dictionary>
 				<dictionary>
 					<key>org.eclipse.cdt.make.core.buildLocation</key>
-					<value>${ProjDirPath}/LS2088A</value>
+					<value>${ProjDirPath}/LS1088A</value>
 				</dictionary>
 				<dictionary>
 					<key>org.eclipse.cdt.make.core.cleanBuildTarget</key>
@@ -162,11 +162,6 @@ aiop_sl		</project>
 			<locationURI>PARENT-4-PROJECT_LOC/apps/soft_parser_demo/soft_parser_demo.c</locationURI>
 		</link>
 		<link>
-			<name>sparser/include/fsl_sparser_gen.h</name>
-			<type>1</type>
-			<locationURI>PARENT-4-PROJECT_LOC/apps/sparser/include/fsl_sparser_gen.h</locationURI>
-		</link>
-		<link>
 			<name>sparser/include/fsl_sparser_disa.h</name>
 			<type>1</type>
 			<locationURI>PARENT-4-PROJECT_LOC/apps/sparser/include/fsl_sparser_disa.h</locationURI>
@@ -177,14 +172,14 @@ aiop_sl		</project>
 			<locationURI>PARENT-4-PROJECT_LOC/apps/sparser/include/fsl_sparser_dump.h</locationURI>
 		</link>
 		<link>
+			<name>sparser/include/fsl_sparser_gen.h</name>
+			<type>1</type>
+			<locationURI>PARENT-4-PROJECT_LOC/apps/sparser/include/fsl_sparser_gen.h</locationURI>
+		</link>
+		<link>
 			<name>sparser/include/sparser_build_flags.h</name>
 			<type>1</type>
 			<locationURI>PARENT-4-PROJECT_LOC/apps/sparser/include/sparser_build_flags.h</locationURI>
-		</link>
-		<link>
-			<name>sparser/src/sparser_gen.c</name>
-			<type>1</type>
-			<locationURI>PARENT-4-PROJECT_LOC/apps/sparser/src/sparser_gen.c</locationURI>
 		</link>
 		<link>
 			<name>sparser/src/sparser_disa.c</name>
@@ -195,6 +190,11 @@ aiop_sl		</project>
 			<name>sparser/src/sparser_dump.c</name>
 			<type>1</type>
 			<locationURI>PARENT-4-PROJECT_LOC/apps/sparser/src/sparser_dump.c</locationURI>
+		</link>
+		<link>
+			<name>sparser/src/sparser_gen.c</name>
+			<type>1</type>
+			<locationURI>PARENT-4-PROJECT_LOC/apps/sparser/src/sparser_gen.c</locationURI>
 		</link>
 		<link>
 			<name>src/generic/apps_arch.h</name>

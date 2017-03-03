@@ -226,6 +226,23 @@ struct sp_parse_array {
 int sparser_disa(uint16_t pc, uint8_t *byte_code, int sp_size);
 
 /**************************************************************************//**
+@Function	sparser_disa_instr
+
+@Description	Disassemble a Soft Parser instruction.
+
+@Param[in]	pc : Instruction PC
+
+@Param[in]	bytes : Instruction bytes.
+
+@Param[in]	len : Instruction length in bytes.
+
+@Return		No return on failure. Prints error messages, showing what error
+		occurred.
+
+*//***************************************************************************/
+void sparser_disa_instr(uint16_t pc, uint8_t *bytes, uint16_t len);
+
+/**************************************************************************//**
 @Function	sparser_sim_init
 
 @Description	Initialize the built-in simulator (mandatory call).

@@ -38,7 +38,7 @@
 #include "fsl_sparser_drv.h"
 #include "fsl_sparser_disa.h"
 #include "fsl_sparser_dump.h"
-
+#include "fsl_sparser_gen.h"
 #include "fsl_dbg.h"
 /* If "fsl_dbg.h" is not included ASSERT_COND and pr_err must be redefined as
  * it follows */
@@ -116,44 +116,44 @@
 */
 enum opcode_syndrom {
 #if (SP_DPAA_VERSION == 1)
-	CONFIRM_LAYER_MASK   = 0x0001,		/* 1: */
-	OR_IV_LCV            = 0x0003,		/* 3: */
-	LOAD_LCV_TO_WR       = 0x0040,		/* 12: */
-	STORE_WR_TO_LCV      = 0x0042,		/* 13: */
-	COMPARE_WR0_TO_IV    = 0x4000,		/* 31: */
+	SYN_CONFIRM_LAYER_MASK   = 0x0001,		/* 1: */
+	SYN_OR_IV_LCV            = 0x0003,		/* 3: */
+	SYN_LOAD_LCV_TO_WR       = 0x0040,		/* 12: */
+	SYN_STORE_WR_TO_LCV      = 0x0042,		/* 13: */
+	SYN_COMPARE_WR0_TO_IV    = 0x4000,		/* 31: */
 #else
-	RETURN_SUB           = 0x0007,		/* 4: */
-	SET_CLR_FAF          = 0x0300,		/* 21: */
-	JUMP_FAF             = 0x0C00,		/* 25: */
+	SYN_RETURN_SUB           = 0x0007,		/* 4: */
+	SYN_SET_CLR_FAF          = 0x0300,		/* 21: */
+	SYN_JUMP_FAF             = 0x0C00,		/* 25: */
 #endif
-	JUMP_GOSUB           = 0x1800,		/* 27: */
-	NOP                  = 0x0000,		/* 0: */
-	ADVANCE_HB_BY_WO     = 0x0002,		/* 1: */
-	ZERO_WR              = 0x0004,		/* 2: */
-	ONES_CMP_WR1_TO_WR0  = 0x0006,		/* 3: */
-	CASE1_DJ_WR_TO_WR    = 0x0008,		/* 5: */
-	CASE2_DC_WR_TO_WR    = 0x000C,		/* 6: */
-	CASE2_DJ_WR_TO_WR    = 0x0010,		/* 7: */
-	CASE3_DC_WR_TO_WR    = 0x0018,		/* 8: */
-	CASE3_DJ_WR_TO_WR    = 0x0020,		/* 9: */
-	CASE4_DC_WR_TO_WR    = 0x0030,		/* 10: */
-	JUMP_PROTOCOL        = 0x0044,		/* 11: */
-	ADD_SUB_WR_WR_TO_WR  = 0x0048,		/* 12: */
-	ADD_SUB_WR_IV_TO_WR  = 0x0050,		/* 13: */
-	BITWISE_WR_WR_TO_WR  = 0x0070,		/* 14: */
-	COMPARE_WR0_WR1      = 0x0078,		/* 15: */
-	MODIFY_WO_BY_WR      = 0x0080,		/* 16: */
-	BITWISE_WR_IV_TO_WR  = 0x00C0,		/* 17: */
-	SHIFT_LEFT_WR_BY_SV  = 0x0100,		/* 18: */
-	SHIFT_RIGHT_WR_BY_SV = 0x0180,		/* 19: */
-	LOAD_BITS_IV_TO_WR   = 0x0200,		/* 20: */
-	LOAD_SV_TO_WO        = 0x0600,		/* 22: */
-	ADD_SV_TO_WO         = 0x0700,		/* 23: */
-	STORE_IV_TO_RA       = 0x0800,		/* 24: */
-	LOAD_BYTES_PA_TO_WR  = 0x1000,		/* 26: */
-	STORE_WR_TO_RA       = 0x2800,		/* 28: */
-	LOAD_BYTES_RA_TO_WR  = 0x3000,		/* 29: */
-	LOAD_BITS_FW_TO_WR   = 0x8000,		/* 30: */
+	SYN_JUMP_GOSUB           = 0x1800,		/* 27: */
+	SYN_NOP                  = 0x0000,		/* 0: */
+	SYN_ADVANCE_HB_BY_WO     = 0x0002,		/* 1: */
+	SYN_ZERO_WR              = 0x0004,		/* 2: */
+	SYN_ONES_CMP_WR1_TO_WR0  = 0x0006,		/* 3: */
+	SYN_CASE1_DJ_WR_TO_WR    = 0x0008,		/* 5: */
+	SYN_CASE2_DC_WR_TO_WR    = 0x000C,		/* 6: */
+	SYN_CASE2_DJ_WR_TO_WR    = 0x0010,		/* 7: */
+	SYN_CASE3_DC_WR_TO_WR    = 0x0018,		/* 8: */
+	SYN_CASE3_DJ_WR_TO_WR    = 0x0020,		/* 9: */
+	SYN_CASE4_DC_WR_TO_WR    = 0x0030,		/* 10: */
+	SYN_JUMP_PROTOCOL        = 0x0044,		/* 11: */
+	SYN_ADD_SUB_WR_WR_TO_WR  = 0x0048,		/* 12: */
+	SYN_ADD_SUB_WR_IV_TO_WR  = 0x0050,		/* 13: */
+	SYN_BITWISE_WR_WR_TO_WR  = 0x0070,		/* 14: */
+	SYN_COMPARE_WR0_WR1      = 0x0078,		/* 15: */
+	SYN_MODIFY_WO_BY_WR      = 0x0080,		/* 16: */
+	SYN_BITWISE_WR_IV_TO_WR  = 0x00C0,		/* 17: */
+	SYN_SHIFT_LEFT_WR_BY_SV  = 0x0100,		/* 18: */
+	SYN_SHIFT_RIGHT_WR_BY_SV = 0x0180,		/* 19: */
+	SYN_LOAD_BITS_IV_TO_WR   = 0x0200,		/* 20: */
+	SYN_LOAD_SV_TO_WO        = 0x0600,		/* 22: */
+	SYN_ADD_SV_TO_WO         = 0x0700,		/* 23: */
+	SYN_STORE_IV_TO_RA       = 0x0800,		/* 24: */
+	SYN_LOAD_BYTES_PA_TO_WR  = 0x1000,		/* 26: */
+	SYN_STORE_WR_TO_RA       = 0x2800,		/* 28: */
+	SYN_LOAD_BYTES_RA_TO_WR  = 0x3000,		/* 29: */
+	SYN_LOAD_BITS_FW_TO_WR   = 0x8000,		/* 30: */
 };
 
 struct ps_opcodes {
@@ -163,45 +163,45 @@ struct ps_opcodes {
 
 struct ps_opcodes opcodes[] = {
 #if (SP_DPAA_VERSION == 1)
-	{CONFIRM_LAYER_MASK,   0xffff},
-	{OR_IV_LCV,            0xffff},
-	{LOAD_LCV_TO_WR,       0xfffe},
-	{STORE_WR_TO_LCV,      0xfffe},
-	{JUMP_GOSUB,           0xf800},
-	{COMPARE_WR0_TO_IV,    0xc000},
+	{SYN_CONFIRM_LAYER_MASK,   0xffff},
+	{SYN_OR_IV_LCV,            0xffff},
+	{SYN_SYN_ADD_SV_TO_WOLCV_TO_WR,       0xfffe},
+	{SYN_STORE_WR_TO_LCV,      0xfffe},
+	{SYN_JUMP_GOSUB,           0xf800},
+	{SYN_COMPARE_WR0_TO_IV,    0xc000},
 #else
-	{RETURN_SUB,           0xffff},
-	{SET_CLR_FAF,          0xff00},
-	{JUMP_FAF,             0xff00},
-	{JUMP_GOSUB,           0xfffc},
+	{SYN_RETURN_SUB,           0xffff},
+	{SYN_SET_CLR_FAF,          0xff00},
+	{SYN_JUMP_FAF,             0xff00},
+	{SYN_JUMP_GOSUB,           0xfffc},
 #endif
-	{NOP,                  0xffff},
-	{ADVANCE_HB_BY_WO,     0xffff},
-	{ZERO_WR,              0xfffe},
-	{ONES_CMP_WR1_TO_WR0,  0xffff},
-	{CASE1_DJ_WR_TO_WR,    0xfffc},
-	{CASE2_DC_WR_TO_WR,    0xfffc},
-	{CASE2_DJ_WR_TO_WR,    0xfff8},
-	{CASE3_DC_WR_TO_WR,    0xfff8},
-	{CASE3_DJ_WR_TO_WR,    0xfff0},
-	{CASE4_DC_WR_TO_WR,    0xfff0},
-	{JUMP_PROTOCOL,        0xfffc},
-	{ADD_SUB_WR_WR_TO_WR,  0xfff8},
-	{ADD_SUB_WR_IV_TO_WR,  0xfff0},
-	{BITWISE_WR_WR_TO_WR,  0xfff8},
-	{COMPARE_WR0_WR1,      0xfff8},
-	{MODIFY_WO_BY_WR,      0xfffc},
-	{BITWISE_WR_IV_TO_WR,  0xffc0},
-	{SHIFT_LEFT_WR_BY_SV,  0xff80},
-	{SHIFT_RIGHT_WR_BY_SV, 0xff80},
-	{LOAD_BITS_IV_TO_WR,   0xff00},
-	{LOAD_SV_TO_WO,        0xff00},
-	{ADD_SV_TO_WO,         0xff00},
-	{STORE_IV_TO_RA,       0xfc00},
-	{LOAD_BYTES_PA_TO_WR,  0xf800},
-	{STORE_WR_TO_RA,       0xf800},
-	{LOAD_BYTES_RA_TO_WR,  0xf000},
-	{LOAD_BITS_FW_TO_WR,   0x8000}
+	{SYN_NOP,                  0xffff},
+	{SYN_ADVANCE_HB_BY_WO,     0xffff},
+	{SYN_ZERO_WR,              0xfffe},
+	{SYN_ONES_CMP_WR1_TO_WR0,  0xffff},
+	{SYN_CASE1_DJ_WR_TO_WR,    0xfffc},
+	{SYN_CASE2_DC_WR_TO_WR,    0xfffc},
+	{SYN_CASE2_DJ_WR_TO_WR,    0xfff8},
+	{SYN_CASE3_DC_WR_TO_WR,    0xfff8},
+	{SYN_CASE3_DJ_WR_TO_WR,    0xfff0},
+	{SYN_CASE4_DC_WR_TO_WR,    0xfff0},
+	{SYN_JUMP_PROTOCOL,        0xfffc},
+	{SYN_ADD_SUB_WR_WR_TO_WR,  0xfff8},
+	{SYN_ADD_SUB_WR_IV_TO_WR,  0xfff0},
+	{SYN_BITWISE_WR_WR_TO_WR,  0xfff8},
+	{SYN_COMPARE_WR0_WR1,      0xfff8},
+	{SYN_MODIFY_WO_BY_WR,      0xfffc},
+	{SYN_BITWISE_WR_IV_TO_WR,  0xffc0},
+	{SYN_SHIFT_LEFT_WR_BY_SV,  0xff80},
+	{SYN_SHIFT_RIGHT_WR_BY_SV, 0xff80},
+	{SYN_LOAD_BITS_IV_TO_WR,   0xff00},
+	{SYN_LOAD_SV_TO_WO,        0xff00},
+	{SYN_ADD_SV_TO_WO,         0xff00},
+	{SYN_STORE_IV_TO_RA,       0xfc00},
+	{SYN_LOAD_BYTES_PA_TO_WR,  0xf800},
+	{SYN_STORE_WR_TO_RA,       0xf800},
+	{SYN_LOAD_BYTES_RA_TO_WR,  0xf000},
+	{SYN_LOAD_BITS_FW_TO_WR,   0x8000}
 };
 
 /******************************************************************************/
@@ -240,7 +240,7 @@ struct soft_parser_sim {
 static struct soft_parser_sim	sp_sim;
 
 /******************************************************************************/
-static uint16_t sp_find_opcode(uint16_t in_opcode)
+static __COLD_CODE uint16_t sp_find_opcode(uint16_t in_opcode)
 {
 	int		i;
 
@@ -252,7 +252,8 @@ static uint16_t sp_find_opcode(uint16_t in_opcode)
 }
 
 /******************************************************************************/
-static void sp_print_opcode_words(uint16_t **sp_code, uint8_t wcount)
+static __COLD_CODE void sp_print_opcode_words(uint16_t **sp_code,
+					      uint8_t wcount)
 {
 	uint8_t		i;
 
@@ -273,7 +274,437 @@ static void sp_print_opcode_words(uint16_t **sp_code, uint8_t wcount)
 }
 
 /******************************************************************************/
-static void sp_not_implemented(uint16_t **sp_code)
+static __COLD_CODE void sp_print_faf(uint8_t pos)
+{
+	enum sparser_faf_bit faf_bit;
+
+	faf_bit = (enum sparser_faf_bit)pos;
+	switch (faf_bit) {
+	/* Routing header present in IPv6 header 2 */
+	case SP_FAF_IPV6_ROUTE_HDR2_PRESENT:
+		fsl_print("IPV6_ROUTE_HDR2_PRESENT");
+		break;
+	/* GTP Primed was detected */
+	case SP_FAF_IPV6_GTP_PRIMED_DETECTED:
+		fsl_print("IPV6_GTP_PRIMED_DETECTED");
+		break;
+	/* VLAN with VID = 0 was detected */
+	case SP_FAF_VLAN_WITH_VID_0_DETECTED:
+		fsl_print("VLAN_WITH_VID_0_DETECTED");
+		break;
+	/* A PTP frame was detected */
+	case SP_FAF_PTP_DETECTED:
+		fsl_print("PTP_DETECTED");
+		break;
+	/* VXLAN was parsed */
+	case SP_FAF_VXLAN_PRESENT:
+		fsl_print("VXLAN_PRESENT");
+		break;
+	/* A VXLAN HXS parsing error was detected */
+	case SP_FAF_VXLAN_PARSE_ERR:
+		fsl_print("VXLAN_PARSE_ERR");
+		break;
+	/* Ethernet control protocol (MAC DA is
+	 * 01:80:C2:00:00:00-01:80:C2:00:00:00:FF) */
+	case SP_FAF_ETH_SLOW_PROTO_DETECTED:
+		fsl_print("ETH_SLOW_PROTO_DETECTED");
+		break;
+	/* IKE was detected at UDP port 4500 */
+	case SP_FAF_IKE_PRESENT:
+		fsl_print("IKE_PRESENT");
+		break;
+	/* Shim Shell Soft Parsing Error */
+	case SP_FAF_SHIM_SOFT_PARSE_ERR:
+		fsl_print("SHIM_SOFT_PARSE_ERR");
+		break;
+	/* Parsing Error */
+	case SP_FAF_PARSING_ERR:
+		fsl_print("PARSING_ERR");
+		break;
+	/* Ethernet MAC Present */
+	case SP_FAF_ETH_MAC_PRESENT:
+		fsl_print("ETH_MAC_PRESENT");
+		break;
+	/* Ethernet Unicast */
+	case SP_FAF_ETH_UNICAST:
+		fsl_print("ETH_UNICAST");
+		break;
+	/* Ethernet Multicast */
+	case SP_FAF_ETH_MULTICAST:
+		fsl_print("ETH_MULTICAST");
+		break;
+	/* Ethernet Broadcast */
+	case SP_FAF_ETH_BROADCAST:
+		fsl_print("ETH_BROADCAST");
+		break;
+	/* BPDU frame (MAC DA is 01:80:C2:00:00:00) */
+	case SP_FAF_BPDU_FRAME:
+		fsl_print("BPDU_FRAME");
+		break;
+	/* FCoE detected (EType is 0x8906 */
+	case SP_FAF_FCOE_DETECTED:
+		fsl_print("FCOE_DETECTED");
+		break;
+	/* FIP detected (EType is 0x8914) */
+	case SP_FAF_FIP_DETECTED:
+		fsl_print("FIP_DETECTED");
+		break;
+	/* Ethernet Parsing Error */
+	case SP_FAF_ETH_PARSING_ERR:
+		fsl_print("ETH_PARSING_ERR");
+		break;
+	/* LLC+SNAP Present */
+	case SP_FAF_LLC_SNAP_PRESENT:
+		fsl_print("LLC_SNAP_PRESENT");
+		break;
+	/* Unknown LLC/OUI */
+	case SP_FAF_UNKNOWN_LLC_OUI:
+		fsl_print("UNKNOWN_LLC_OUI");
+		break;
+	/* LLC+SNAP Error */
+	case SP_FAF_LLC_SNAP_ERR:
+		fsl_print("LLC_SNAP_ERR");
+		break;
+	/* VLAN 1 Present */
+	case SP_FAF_VLAN_1_PRESENT:
+		fsl_print("VLAN_1_PRESENT");
+		break;
+	/* VLAN 1 Present */
+	case SP_FAF_VLAN_N_PRESENT:
+		fsl_print("VLAN_N_PRESENT");
+		break;
+	/* CFI bit in a "8100" VLAN tag is set */
+	case SP_FAF_VLAN_8100_CFI_SET:
+		fsl_print("VLAN_8100_CFI_SET");
+		break;
+	/* VLAN Parsing Error */
+	case SP_FAF_VLAN_PARSING_ERR:
+		fsl_print("VLAN_PARSING_ERR");
+		break;
+	/* PPPoE+PPP Present */
+	case SP_FAF_PPOE_PPP_PRESENT:
+		fsl_print("VLAN_PARSING_ERR");
+		break;
+	/* PPPoE+PPP Parsing Error */
+	case SP_FAF_PPOE_PPP_PARSING_ERR:
+		fsl_print("PPOE_PPP_PARSING_ERR");
+		break;
+	/* MPLS 1 Present */
+	case SP_FAF_MPLS_1_PRESENT:
+		fsl_print("PPOE_PPP_PARSING_ERR");
+		break;
+	/* MPLS n Present */
+	case SP_FAF_MPLS_N_PRESENT:
+		fsl_print("MPLS_N_PRESENT");
+		break;
+	/* MPLS Parsing Error */
+	case SP_FAF_MPLS_PARSING_ERR:
+		fsl_print("MPLS_PARSING_ERR");
+		break;
+	/* ARP frame Present (Ethertype 0x0806 */
+	case SP_FAF_ARP_PRESENT:
+		fsl_print("ARP_PRESENT");
+		break;
+	/* ARP Parsing Error */
+	case SP_FAF_ARP_PARSING_ERR:
+		fsl_print("ARP_PARSING_ERR");
+		break;
+	/* L2 Unknown Protocol */
+	case SP_FAF_L2_UNKNOWN_PROTO:
+		fsl_print("L2_UNKNOWN_PROTO");
+		break;
+	/* L2 Soft Parsing Error */
+	case SP_FAF_L2_SOFT_PARSE_ERR:
+		fsl_print("L2_SOFT_PARSE_ERR");
+		break;
+	/* IPv4 1 Present */
+	case SP_FAF_IPV4_1_PRESENT:
+		fsl_print("IPV4_1_PRESENT");
+		break;
+	/* IPv4 1 Unicast */
+	case SP_FAF_IPV4_1_UNICAST:
+		fsl_print("IPV4_1_UNICAST");
+		break;
+	/* IPv4 1 Multicast */
+	case SP_FAF_IPV4_1_MULTICAST:
+		fsl_print("IPV4_1_MULTICAST");
+		break;
+	/* IPv4 1 Broadcast */
+	case SP_FAF_IPV4_1_BROADCAST:
+		fsl_print("IPV4_1_BROADCAST");
+		break;
+	/* IPv4 n Present */
+	case SP_FAF_IPV4_N_PRESENT:
+		fsl_print("IPV4_N_PRESENT");
+		break;
+	/* IPv4 n Unicast */
+	case SP_FAF_IPV4_N_UNICAST:
+		fsl_print("IPV4_N_UNICAST");
+		break;
+	/* IPv4 n Multicast */
+	case SP_FAF_IPV4_N_MULTICAST:
+		fsl_print("IPV4_N_MULTICAST");
+		break;
+	/* IPv4 n Broadcast */
+	case SP_FAF_IPV4_N_BROADCAST:
+		fsl_print("IPV4_N_BROADCAST");
+		break;
+	/* IPv6 1 Present */
+	case SP_FAF_IPV6_1_PRESENT:
+		fsl_print("IPV6_1_PRESENT");
+		break;
+	/* IPv6 1 Unicast */
+	case SP_FAF_IPV6_1_UNICAST:
+		fsl_print("IPV6_1_UNICAST");
+		break;
+	/* IPv6 1 Multicast */
+	case SP_FAF_IPV6_1_MULTICAST:
+		fsl_print("IPV6_1_MULTICAST");
+		break;
+	/* IPv6 n Present */
+	case SP_FAF_IPV6_N_PRESENT:
+		fsl_print("IPV6_N_PRESENT");
+		break;
+	/* IPv6 n Unicast */
+	case SP_FAF_IPV6_N_UNICAST:
+		fsl_print("IPV6_N_UNICAST");
+		break;
+	/* IPv6 n Multicast */
+	case SP_FAF_IPV6_N_MULTICAST:
+		fsl_print("IPV6_N_MULTICAST");
+		break;
+	/* IP 1 option present */
+	case SP_FAF_IP_OPTION_1_PRESENT:
+		fsl_print("IP_OPTION_1_PRESENT");
+		break;
+	/* IP 1 Unknown Protocol */
+	case SP_FAF_IP_1_UNKNOWN_PROTO:
+		fsl_print("IP_1_UNKNOWN_PROTO");
+		break;
+	/* IP 1 Packet is a fragment */
+	case SP_FAF_IP_1_IS_FRAGMENT:
+		fsl_print("IP_1_IS_FRAGMENT");
+		break;
+	/* IP 1 Packet is an initial fragment */
+	case SP_FAF_IP_1_IS_FIRST_FRAGMENT:
+		fsl_print("IP_1_IS_FIRST_FRAGMENT");
+		break;
+	/* IP 1 Parsing Error */
+	case SP_FAF_IP_1_PARSING_ERR:
+		fsl_print("IP_1_PARSING_ERR");
+		break;
+	/* IP n option present */
+	case SP_FAF_IP_OPTION_N_PRESENT:
+		fsl_print("IP_OPTION_N_PRESENT");
+		break;
+	/* IP n Unknown Protocol */
+	case SP_FAF_IP_N_UNKNOWN_PROTO:
+		fsl_print("IP_N_UNKNOWN_PROTO");
+		break;
+	/* IP n Packet is a fragment */
+	case SP_FAF_IP_N_IS_FRAGMENT:
+		fsl_print("IP_N_IS_FRAGMENT");
+		break;
+	/* IP n Packet is an initial fragment */
+	case SP_FAF_IP_N_IS_FIRST_FRAGMENT:
+		fsl_print("IP_N_IS_FIRST_FRAGMENT");
+		break;
+	/* ICMP detected (IP proto is 1 */
+	case SP_FAF_ICMP_DETECTED:
+		fsl_print("ICMP_DETECTED");
+		break;
+	/* IGMP detected (IP proto is 2) */
+	case SP_FAF_IGMP_DETECTED:
+		fsl_print("IGMP_DETECTED");
+		break;
+	/* ICMPv6 detected (IP proto is 3a) */
+	case SP_FAF_ICMP_V6_DETECTED:
+		fsl_print("ICMP_V6_DETECTED");
+		break;
+	/* UDP Light detected (IP proto is 136) */
+	case SP_FAF_UDP_LIGHT_DETECTED:
+		fsl_print("UDP_LIGHT_DETECTED");
+		break;
+	/* IP n Parsing Error */
+	case SP_FAF_IP_N_PARSING_ERR:
+		fsl_print("IP_N_PARSING_ERR");
+		break;
+	/* Min. Encap Present */
+	case SP_FAF_MIN_ENCAP_PRESENT:
+		fsl_print("MIN_ENCAP_PRESENT");
+		break;
+	/* Min. Encap S flag set */
+	case SP_FAF_MIN_ENCAP_S_FLAG_SET:
+		fsl_print("MIN_ENCAP_S_FLAG_SET");
+		break;
+	/* Min. Encap Parsing Error */
+	case SP_FAF_MIN_ENCAP_PARSING_ERR:
+		fsl_print("MIN_ENCAP_PARSING_ERR");
+		break;
+	/* GRE Present */
+	case SP_FAF_GRE_PRESENT:
+		fsl_print("GRE_PRESENT");
+		break;
+	/* GRE R bit set */
+	case SP_FAF_GRE_R_BIT_SET:
+		fsl_print("GRE_R_BIT_SET");
+		break;
+	/* GRE Parsing Error */
+	case SP_FAF_GRE_PARSING_ERR:
+		fsl_print("GRE_PARSING_ERR");
+		break;
+	/* L3 Unknown Protocol */
+	case SP_FAF_L3_UNKNOWN_PROTO:
+		fsl_print("L3_UNKNOWN_PROTO");
+		break;
+	/* L3 Soft Parsing Error */
+	case SP_FAF_L3_SOFT_PARSING_ERR:
+		fsl_print("L3_SOFT_PARSING_ERR");
+		break;
+	/* UDP Present */
+	case SP_FAF_UDP_PRESENT:
+		fsl_print("UDP_PRESENT");
+		break;
+	/* UDP Parsing Error */
+	case SP_FAF_UDP_PARSING_ERR:
+		fsl_print("UDP_PARSING_ERR");
+		break;
+	/* TCP Present */
+	case SP_FAF_TCP_PRESENT:
+		fsl_print("TCP_PRESENT");
+		break;
+	/* TCP options present */
+	case SP_FAF_TCP_OPTIONS_PRESENT:
+		fsl_print("TCP_OPTIONS_PRESENT");
+		break;
+	/* TCP Control bits 6-11 set */
+	case SP_FAF_TCP_CTRL_BITS_6_11_SET:
+		fsl_print("TCP_CTRL_BITS_6_11_SET");
+		break;
+	/* TCP Control bits 3-5 set */
+	case SP_FAF_TCP_CTRL_BITS_3_5_SET:
+		fsl_print("TCP_CTRL_BITS_3_5_SET");
+		break;
+	/* TCP Parsing Error */
+	case SP_FAF_TCP_PARSING_ERR:
+		fsl_print("TCP_PARSING_ERR");
+		break;
+	/* IPSec Present */
+	case SP_FAF_IPSEC_PRESENT:
+		fsl_print("IPSEC_PRESENT");
+		break;
+	/* IPSec ESP found */
+	case SP_FAF_IPSEC_ESP_FOUND:
+		fsl_print("IPSEC_ESP_FOUND");
+		break;
+	/* IPSec AH found */
+	case SP_FAF_IPSEC_AH_FOUND:
+		fsl_print("IPSEC_AH_FOUND");
+		break;
+	/* IPSec Parsing Error */
+	case SP_FAF_IPSEC_PARSING_ERR:
+		fsl_print("IPSEC_PARSING_ERR");
+		break;
+	/* SCTP Present */
+	case SP_FAF_SCTP_PRESENT:
+		fsl_print("SCTP_PRESENT");
+		break;
+	/* SCTP Parsing Error */
+	case SP_FAF_SCTP_PARSING_ERR:
+		fsl_print("SCTP_PARSING_ERR");
+		break;
+	/* DCCP Present */
+	case SP_FAF_DCCP_PRESENT:
+		fsl_print("DCCP_PRESENT");
+		break;
+	/* DCCP Parsing Error */
+	case SP_FAF_DCCP_PARSING_ERR:
+		fsl_print("DCCP_PARSING_ERR");
+		break;
+	/* L4 Unknown Protocol */
+	case SP_FAF_L4_UNKNOWN_PROTO:
+		fsl_print("L4_UNKNOWN_PROTO");
+		break;
+	/* L4 Soft Parsing Error */
+	case SP_FAF_L4_SOFT_PARSING_ERR:
+		fsl_print("L4_SOFT_PARSING_ERR");
+		break;
+	/* GTP Present */
+	case SP_FAF_GTP_PRESENT:
+		fsl_print("GTP_PRESENT");
+		break;
+	/* GTP Parsing Error */
+	case SP_FAF_GTP_PARSING_ERR:
+		fsl_print("GTP_PARSING_ERR");
+		break;
+	/* ESP Present */
+	case SP_FAF_ESP_PRESENT:
+		fsl_print("ESP_PRESENT");
+		break;
+	/* ESP Parsing Error */
+	case SP_FAF_ESP_PARSING_ERR:
+		fsl_print("ESP_PARSING_ERR");
+		break;
+	/* iSCSI detected (Port# 860) */
+	case SP_FAF_ISCSI_DETECTED:
+		fsl_print("ISCSI_DETECTED");
+		break;
+	/* Capwap-control detected (Port# 5246) */
+	case SP_FAF_CAPWAP_CTRL_DETECTED:
+		fsl_print("CAPWAP_CTRL_DETECTED");
+		break;
+	/* Capwap-data detected (Port# 5247) */
+	case SP_FAF_CAPWAP_DATA_DETECTED:
+		fsl_print("CAPWAP_DATA_DETECTED");
+		break;
+	/* L5 Soft Parsing Error */
+	case SP_FAF_L5_SOFT_PARSING_ERR:
+		fsl_print("L5_SOFT_PARSING_ERR");
+		break;
+	/* IPv6 Route hdr1 present */
+	case SP_FAF_IPV6_ROUTE_HDR1_PRESENT:
+		fsl_print("IPV6_ROUTE_HDR1_PRESENT");
+		break;
+	/* User defined soft parser bit #0 */
+	case SP_FAF_UD_SOFT_PARSER_0:
+		fsl_print("UD_SOFT_PARSER_0");
+		break;
+	/* User defined soft parser bit #1 */
+	case SP_FAF_UD_SOFT_PARSER_1:
+		fsl_print("UD_SOFT_PARSER_1");
+		break;
+	/* User defined soft parser bit #2 */
+	case SP_FAF_UD_SOFT_PARSER_2:
+		fsl_print("UD_SOFT_PARSER_2");
+		break;
+	/* User defined soft parser bit #3 */
+	case SP_FAF_UD_SOFT_PARSER_3:
+		fsl_print("UD_SOFT_PARSER_3");
+		break;
+	/* User defined soft parser bit #4 */
+	case SP_FAF_UD_SOFT_PARSER_4:
+		fsl_print("UD_SOFT_PARSER_4");
+		break;
+	/* User defined soft parser bit #5 */
+	case SP_FAF_UD_SOFT_PARSER_5:
+		fsl_print("UD_SOFT_PARSER_5");
+		break;
+	/* User defined soft parser bit #6 */
+	case SP_FAF_UD_SOFT_PARSER_6:
+		fsl_print("UD_SOFT_PARSER_6");
+		break;
+	/* User defined soft parser bit #7 */
+	case SP_FAF_UD_SOFT_PARSER_7:
+		fsl_print("UD_SOFT_PARSER_7");
+		break;
+	default:
+		fsl_print("Unknown bit");
+		break;
+	}
+}
+
+/******************************************************************************/
+static __COLD_CODE void sp_not_implemented(uint16_t **sp_code)
 {
 	sp_sim.sp_status = SP_ERR_INVAL_OPCODE;
 	sp_print_opcode_words(sp_code, 1);
@@ -281,7 +712,7 @@ static void sp_not_implemented(uint16_t **sp_code)
 }
 
 /******************************************************************************/
-static void load_iv(uint8_t *be, uint8_t n, uint16_t **sp_code)
+static __COLD_CODE void load_iv(uint8_t *be, uint8_t n, uint16_t **sp_code)
 {
 	uint8_t		*pb;
 
@@ -333,8 +764,27 @@ static void load_iv(uint8_t *be, uint8_t n, uint16_t **sp_code)
 }
 
 /******************************************************************************/
-static void sp_print_iv_operands(uint16_t **sp_code, uint8_t n)
+static __COLD_CODE uint64_t get_iv(uint8_t n, uint16_t *sp_code)
 {
+	uint64_t	iv;
+
+	ASSERT_COND(n <= 4);
+	sp_code++;
+	iv = *sp_code++;
+	if (n > 1)
+		iv |= ((uint64_t)(*sp_code++) << 16);
+	if (n > 2)
+		iv |= ((uint64_t)(*sp_code++) << 32);
+	if (n > 3)
+		iv |= ((uint64_t)(*sp_code) << 48);
+	return iv;
+}
+
+/******************************************************************************/
+static __COLD_CODE void sp_print_iv_operands(uint16_t **sp_code, uint8_t n)
+{
+	#define PRINT_IVS	0
+#if (PRINT_IVS == 1)
 	uint8_t		i;
 
 	ASSERT_COND(n <= 4);
@@ -342,10 +792,20 @@ static void sp_print_iv_operands(uint16_t **sp_code, uint8_t n)
 		fsl_print("iv%d:0x%x", 3 - i, *(*sp_code + 1 + i));
 		fsl_print((i + 1) == n ? ";\n" : ", ");
 	}
+#else
+	uint64_t	iv;
+
+	ASSERT_COND(n <= 4);
+	iv = get_iv(n, *sp_code);
+	if (n <= 2)
+		fsl_print("iv:0x%x\n", iv);
+	else
+		fsl_print("iv:0x%x-%08x\n", (uint32_t)(iv >> 32), (uint32_t)iv);
+#endif
 }
 
 /******************************************************************************/
-static void sp_print_hxs_destination(uint16_t jmp_dest)
+static __COLD_CODE void sp_print_hxs_destination(uint16_t jmp_dest)
 {
 	if (jmp_dest == 0x00)
 		fsl_print(" (%s)", "Ethernet");
@@ -402,14 +862,14 @@ static void sp_print_hxs_destination(uint16_t jmp_dest)
 }
 
 /******************************************************************************/
-static void sp_print_dest_operand(uint16_t jmp_dest, uint8_t a, uint8_t g,
-				  uint8_t l)
+static __COLD_CODE void sp_print_dest_operand(uint16_t jmp_dest, uint8_t a,
+					      uint8_t g, uint8_t l)
 {
 	uint8_t		s;
 
 	s = (jmp_dest & DEST_ADDR_SIGN_BIT) ? 1 : 0;
 	jmp_dest &= DEST_ADDR_MASK;
-	fsl_print("d:");
+	fsl_print("dst:");
 	if (g)
 		fsl_print("G|");
 	if (l)
@@ -430,46 +890,32 @@ static void sp_print_dest_operand(uint16_t jmp_dest, uint8_t a, uint8_t g,
 }
 
 /******************************************************************************/
-static void sp_print_case_dest(const char *what, uint16_t jmp_dest, uint8_t a,
-			       uint8_t g, uint8_t l)
+static __COLD_CODE void sp_print_case_dest(const char *what, uint16_t jmp_dest,
+					   uint8_t a, uint8_t g, uint8_t l)
 {
 	uint8_t		i;
 
 	jmp_dest &= DEST_ADDR_MASK;
-	fsl_print("\t           ", sp_sim.pc);
+	fsl_print("\t           ");
 	for (i = 0 ; i < MAX_INSTR_LEN + 1; i++)
 		fsl_print("     ");
 	fsl_print("%s ", what);
-#if 1
 	sp_print_dest_operand(jmp_dest, a, g, l);
-#else
-	fsl_print("%s", g ? "gosub" : "jump");
-	if (l)
-		fsl_print("_rel");
-	if (!l && (jmp_dest < SP_MIN_PC || jmp_dest == RET_TO_HARD_HXS ||
-		   jmp_dest == END_PARSING))
-		sp_print_hxs_destination(jmp_dest);
-	else
-		fsl_print(" %04x;", jmp_dest);
-	if (a)
-		fsl_print("; hb += wo;");
-	fsl_print("\n");
-#endif
 }
 
 /******************************************************************************/
-static void sp_print_case_dest_continue(void)
+static __COLD_CODE void sp_print_case_dest_continue(uint8_t len)
 {
 	uint8_t		i;
 
-	fsl_print("\t           ", sp_sim.pc);
+	fsl_print("\t           ");
 	for (i = 0 ; i < MAX_INSTR_LEN + 1; i++)
 		fsl_print("     ");
-	fsl_print("DEFAULT            : CONTINUE (DC);\n");
+	fsl_print("DEFAULT CONT (DC)  : dst:0x%x;\n", sp_sim.pc + len);
 }
 
 /******************************************************************************/
-static int sp_check_destination_address(uint16_t jmp_dest)
+static __COLD_CODE int sp_check_destination_address(uint16_t jmp_dest)
 {
 #if (SP_DPAA_VERSION == 1)
 	if (!(jmp_dest & (~DEST_ADDR_MASK)))
@@ -486,12 +932,14 @@ static int sp_check_destination_address(uint16_t jmp_dest)
 }
 
 /******************************************************************************/
-static void set_jmp_gosub_destination(uint16_t **sp_code, uint16_t imm16,
-				      uint8_t a, uint8_t g, uint8_t l,
-				      uint8_t pc_inc)
+static __COLD_CODE void set_jmp_gosub_destination(uint16_t **sp_code,
+						  uint16_t imm16, uint8_t a,
+						  uint8_t g, uint8_t l,
+						  uint8_t pc_inc)
 {
-	uint16_t	jmp_pc;
+	uint16_t	jmp_pc, pc_orig;
 
+	pc_orig = sp_sim.pc;
 	jmp_pc = imm16 & DEST_ADDR_MASK;
 	if (l) {
 		/* Relative JMP/GOSUB to the current PC (jmp_dest = 0) are not
@@ -535,12 +983,6 @@ static void set_jmp_gosub_destination(uint16_t **sp_code, uint16_t imm16,
 			sp_sim.sp_status = SP_ERR_INVAL_DST;
 			return;
 		}
-		/*if (jmp_pc < sp_sim.pc_start) {
-			fsl_print("\t\t ERROR : Jump before %03x\n",
-				  sp_sim.pc_start);
-			sp_sim.sp_status = SP_ERR_INVAL_DST;
-			return;
-		}*/
 		if (jmp_pc > sp_sim.pc) {
 			(*sp_code) += jmp_pc - sp_sim.pc;
 		} else if (jmp_pc < sp_sim.pc) {
@@ -644,14 +1086,14 @@ static void set_jmp_gosub_destination(uint16_t **sp_code, uint16_t imm16,
 			return;
 		}
 		/* Store return PC */
-		sp_sim.pc_ret = (uint16_t)(sp_sim.pc + pc_inc);
+		sp_sim.pc_ret = (uint16_t)(pc_orig + pc_inc);
 		fsl_print("\t\t Stored Return PC = 0x%x\n", sp_sim.pc_ret);
 	}
 }
 
 /******************************************************************************/
 #if (SP_DPAA_VERSION == 1)
-static void sp_dpaa1_compare_wr0_to_iv(uint16_t **sp_code)
+static __COLD_CODE void sp_dpaa1_compare_wr0_to_iv(uint16_t **sp_code)
 {
 	uint8_t		c, i;
 	uint16_t	opcode, jmp_dest;
@@ -675,25 +1117,10 @@ static void sp_dpaa1_compare_wr0_to_iv(uint16_t **sp_code)
 	 *		2 : WR0 > IV
 	 *		3 : WR0 < IV
 	 *
-	 * DPAA1_CMP_WR0_EQ_IMM16	JmpDest, #iv3
-	 * DPAA1_CMP_WR0_NE_IMM16	JmpDest, #iv3
-	 * DPAA1_CMP_WR0_GT_IMM16	JmpDest, #iv3
-	 * DPAA1_CMP_WR0_LT_IMM16	JmpDest, #iv3
-	 *
-	 * DPAA1_CMP_WR0_EQ_IMM32	JmpDest, #iv3, #iv2
-	 * DPAA1_CMP_WR0_NE_IMM32	JmpDest, #iv3, #iv2
-	 * DPAA1_CMP_WR0_GT_IMM32	JmpDest, #iv3, #iv2
-	 * DPAA1_CMP_WR0_LT_IMM32	JmpDest, #iv3, #iv2
-	 *
-	 * DPAA1_CMP_WR0_EQ_IMM48	JmpDest, #iv3, #iv2, #iv1
-	 * DPAA1_CMP_WR0_NE_IMM48	JmpDest, #iv3, #iv2, #iv1
-	 * DPAA1_CMP_WR0_GT_IMM48	JmpDest, #iv3, #iv2, #iv1
-	 * DPAA1_CMP_WR0_LT_IMM48	JmpDest, #iv3, #iv2, #iv1
-	 *
-	 * DPAA1_CMP_WR0_EQ_IMM64	JmpDest, #iv3, #iv2, #iv1, #iv0
-	 * DPAA1_CMP_WR0_NE_IMM64	JmpDest, #iv3, #iv2, #iv1, #iv0
-	 * DPAA1_CMP_WR0_GT_IMM64	JmpDest, #iv3, #iv2, #iv1, #iv0
-	 * DPAA1_CMP_WR0_LT_IMM64	JmpDest, #iv3, #iv2, #iv1, #iv0
+	 * DPAA1_CMP_WR0_EQ_IMM		JmpDest, #iv
+	 * DPAA1_CMP_WR0_NE_IMM		JmpDest, #iv
+	 * DPAA1_CMP_WR0_GT_IMM		JmpDest, #iv
+	 * DPAA1_CMP_WR0_LT_IMM		JmpDest, #iv
 	*/
 
 	opcode = **sp_code;
@@ -701,9 +1128,9 @@ static void sp_dpaa1_compare_wr0_to_iv(uint16_t **sp_code)
 	i = (uint8_t)((opcode >> 10) & 0x3);
 	c = (uint8_t)((opcode >> 12) & 0x3);
 	sp_print_opcode_words(sp_code, i + 2);
-	fsl_print("DPAA1_CMP_WR0_%s_IMM%d d:0x%x, ",
+	fsl_print("DPAA1_CMP_WR0_%s_IMM dst:0x%x, ",
 		  ((c == 0) ? "EQ" : (c == 1) ? "NE" : (c == 2) ? "GT" : "LT"),
-		  16 * (i + 1), jmp_dest);
+		  jmp_dest);
 	sp_print_iv_operands(sp_code, i + 1);
 	if (sp_sim.sim_enabled) {
 		uint64_t	val64;
@@ -712,23 +1139,6 @@ static void sp_dpaa1_compare_wr0_to_iv(uint16_t **sp_code)
 		val64 = 0;
 		load_iv((uint8_t *)&val64, i, sp_code);
 
-		switch (i) {
-		default:
-		case 0:
-			fsl_print("\t\t IMM16 = 0x%04x\n", (uint16_t)val64);
-			break;
-		case 1:
-			fsl_print("\t\t IMM32 = 0x%04x\n", (uint32_t)val64);
-			break;
-		case 2:
-			fsl_print("\t\t IMM48 = 0x%04x-%08x\n",
-				  (uint16_t)(val64 >> 32), (uint32_t)val64);
-			break;
-		case 3:
-			fsl_print("\t\t IMM64 = 0x%08x-%08x\n",
-				  (uint32_t)(val64 >> 32), (uint32_t)val64);
-			break;
-		}
 		/* Assume condition not verified */
 		cond = 0;
 		switch (c) {
@@ -776,7 +1186,7 @@ static void sp_dpaa1_compare_wr0_to_iv(uint16_t **sp_code)
 }
 
 /******************************************************************************/
-static void sp_dpaa1_confirm_layer_mask(uint16_t **sp_code)
+static __COLD_CODE void sp_dpaa1_confirm_layer_mask(uint16_t **sp_code)
 {
 	/* 1:Confirm_Layer_Mask
 	 *	0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15
@@ -806,7 +1216,7 @@ static void sp_dpaa1_confirm_layer_mask(uint16_t **sp_code)
 }
 
 /******************************************************************************/
-static void sp_dpaa1_or_iv_lcv(uint16_t **sp_code)
+static __COLD_CODE void sp_dpaa1_or_iv_lcv(uint16_t **sp_code)
 {
 	/* 3:OR_IV_LCV
 	 *	0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15	[16-31]	[32-47]
@@ -823,12 +1233,7 @@ static void sp_dpaa1_or_iv_lcv(uint16_t **sp_code)
 	fsl_print("DPAA1_OR_IV_LCV ");
 	sp_print_iv_operands(sp_code, 2);
 	if (sp_sim.sim_enabled) {
-		uint64_t	val64;
-
 		/* TODO - Simulate LCV */
-		val64 = 0;
-		load_iv((uint8_t *)&val64, 1, sp_code);
-		fsl_print("\t\t IMM32 = 0x%04x\n", (uint32_t)val64);
 		fsl_print("\t\t DPAA1 : Implemented as NOP !\n");
 	}
 	(*sp_code) += 3;
@@ -837,7 +1242,7 @@ static void sp_dpaa1_or_iv_lcv(uint16_t **sp_code)
 }
 
 /******************************************************************************/
-static void sp_dpaa1_load_lcv_to_wr(uint16_t **sp_code)
+static __COLD_CODE void sp_dpaa1_load_lcv_to_wr(uint16_t **sp_code)
 {
 	uint16_t	opcode;
 	uint8_t		w;
@@ -868,7 +1273,7 @@ static void sp_dpaa1_load_lcv_to_wr(uint16_t **sp_code)
 }
 
 /******************************************************************************/
-static void sp_dpaa1_store_wr_to_lcv(uint16_t **sp_code)
+static __COLD_CODE void sp_dpaa1_store_wr_to_lcv(uint16_t **sp_code)
 {
 	uint16_t	opcode;
 	uint8_t		w;
@@ -902,7 +1307,7 @@ static void sp_dpaa1_store_wr_to_lcv(uint16_t **sp_code)
 /******************************************************************************/
 #if (SP_DPAA_VERSION == 2)
 /******************************************************************************/
-static void sp_jump_faf(uint16_t **sp_code)
+static __COLD_CODE void sp_jump_faf(uint16_t **sp_code)
 {
 	uint16_t	opcode, jmp_dest;
 	uint8_t		a, g, l, j;
@@ -964,8 +1369,7 @@ static void sp_jump_faf(uint16_t **sp_code)
 	 *	1F: Final Shell		7FE:Return to Hard HXS
 	 *	7FF:End Parsing
 	 *
-	 * JUMP_FAF		#FAF_bit, A|L|S|JmpDest
-	 * GOSUB_FAF		#FAF_bit, A|L|S|JmpDest
+	 * JMP_FAF		#FAF_bit, A|G|L|S|JmpDest
 	*/
 
 	opcode = **sp_code;
@@ -975,7 +1379,7 @@ static void sp_jump_faf(uint16_t **sp_code)
 	l = (uint8_t)((jmp_dest >> 14) & 0x1);
 	g = (uint8_t)((jmp_dest >> 15) & 0x1);
 	sp_print_opcode_words(sp_code, 2);
-	fsl_print("%s bit:%d, ", (g) ? "GOSUB_FAF" : "JUMP_FAF", j);
+	fsl_print("JMP_FAF pos:%d, ", j);
 	sp_print_dest_operand(jmp_dest, a, g, l);
 	if (j >= 8 * (sizeof(sp_sim.ra.pr.frame_attribute_flags_extension) +
 		      sizeof(sp_sim.ra.pr.frame_attribute_flags_1) +
@@ -1007,13 +1411,21 @@ static void sp_jump_faf(uint16_t **sp_code)
 			 * instruction */
 			fsl_print("\t\t RA[%d] = %02x mask = %02x\n", byte_pos,
 				  sp_sim.ra_arr[byte_pos], mask);
-			fsl_print("\t\t FAF bit #%d is not set\n", j);
+			fsl_print("\t\t FAF bit #%d (", j);
+			sp_print_faf(j);
+			fsl_print(") is not set\n");
 			fsl_print("\t\t Continue with next PC = 0x%x\n",
 				  sp_sim.pc + 2);
 			(*sp_code) += 2;
 			sp_sim.pc += 2;
 			ASSERT_COND(sp_sim.pc <= sp_sim.pc_end);
 			return;
+		} else {
+			fsl_print("\t\t RA[%d] = %02x mask = %02x\n", byte_pos,
+				  sp_sim.ra_arr[byte_pos], mask);
+			fsl_print("\t\t FAF bit #%d (", j);
+			sp_print_faf(j);
+			fsl_print(") is set\n");
 		}
 		set_jmp_gosub_destination(sp_code, jmp_dest, a, g, l, 2);
 	} else {
@@ -1024,7 +1436,7 @@ static void sp_jump_faf(uint16_t **sp_code)
 }
 
 /******************************************************************************/
-static void sp_return_sub(uint16_t **sp_code)
+static __COLD_CODE void sp_return_sub(uint16_t **sp_code)
 {
 	/* 4:Return Sub
 	 *	0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15
@@ -1049,8 +1461,7 @@ static void sp_return_sub(uint16_t **sp_code)
 			sp_sim.sp_status = SP_ERR_INVAL_DST;
 			return;
 		}
-		ASSERT_COND(sp_sim.pc_ret - sp_sim.pc);
-		if (sp_sim.pc_ret > sp_sim.pc)
+		if (sp_sim.pc_ret >= sp_sim.pc)
 			(*sp_code) += sp_sim.pc_ret - sp_sim.pc;
 		else
 			(*sp_code) -= sp_sim.pc - sp_sim.pc_ret;
@@ -1065,7 +1476,7 @@ static void sp_return_sub(uint16_t **sp_code)
 }
 
 /******************************************************************************/
-static void sp_set_clear_faf(uint16_t **sp_code)
+static __COLD_CODE void sp_set_clear_faf(uint16_t **sp_code)
 {
 	uint8_t		c, j;
 	uint16_t	opcode;
@@ -1079,14 +1490,14 @@ static void sp_set_clear_faf(uint16_t **sp_code)
 	 * will result in an instruction error and code termination.
 	 *
 	 * SET_FAF_BIT		#FAF_bit
-	 * CLEAR_FAF_BIT	#FAF_bit
+	 * CLR_FAF_BIT		#FAF_bit
 	*/
 
 	opcode = **sp_code;
 	j = (uint8_t)(opcode & 0x7f);
 	c = (uint8_t)((opcode >> 7) & 0x1);
 	sp_print_opcode_words(sp_code, 1);
-	fsl_print("%s_FAF_BIT bit:%d;\n", ((c) ? "SET" : "CLEAR"), j);
+	fsl_print("%s_FAF_BIT bit:%d;\n", ((c) ? "SET" : "CLR"), j);
 	if (j >= 8 * (sizeof(sp_sim.ra.pr.frame_attribute_flags_extension) +
 		      sizeof(sp_sim.ra.pr.frame_attribute_flags_1) +
 		      sizeof(sp_sim.ra.pr.frame_attribute_flags_2) +
@@ -1116,6 +1527,12 @@ static void sp_set_clear_faf(uint16_t **sp_code)
 		sp_sim.ra_arr[byte_pos] = byte;
 		fsl_print("\t\t RA[%d] = %02x mask = %02x\n", byte_pos,
 			  sp_sim.ra_arr[byte_pos], mask);
+		fsl_print("\t\t FAF bit #%d (", j);
+		sp_print_faf(j);
+		if (c)
+			fsl_print(") is set\n");
+		else
+			fsl_print(") is cleared\n");
 	}
 	(*sp_code)++;
 	sp_sim.pc++;
@@ -1125,7 +1542,7 @@ static void sp_set_clear_faf(uint16_t **sp_code)
 #endif	/* SP_DPAA_VERSION == 2 */
 
 /******************************************************************************/
-static void sp_nop(uint16_t **sp_code)
+static __COLD_CODE void sp_nop(uint16_t **sp_code)
 {
 	/* 0: NOP No operation */
 	sp_print_opcode_words(sp_code, 1);
@@ -1136,7 +1553,7 @@ static void sp_nop(uint16_t **sp_code)
 }
 
 /******************************************************************************/
-static void sp_jump_gosub(uint16_t **sp_code)
+static __COLD_CODE void sp_jump_gosub(uint16_t **sp_code)
 {
 	/* 27:Jump/Gosub
 	 *	0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15
@@ -1201,8 +1618,7 @@ static void sp_jump_gosub(uint16_t **sp_code)
 	 * it will return to this captured index otherwise this instruction
 	 * just acts as an ordinary jump.
 	 *
-	 * JUMP		A|L|S|JmpDest
-	 * GOSUB	A|G|L|S|JmpDest
+	 * JMP		A|G|L|S|JmpDest
 	*/
 	/* 28:Jump
 	 *	0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15
@@ -1246,7 +1662,7 @@ static void sp_jump_gosub(uint16_t **sp_code)
 	 *	0E: DCCP Shell			0F: Other L4 Shell
 	 *	3FE:Return to Hard HXS		3FF:End Parsing
 	 *
-	 * DPAA1_JUMP	A|JmpDest
+	 * DPAA1_JMP	A|JmpDest
 	*/
 
 	uint16_t	opcode, jmp_dest;
@@ -1257,7 +1673,7 @@ static void sp_jump_gosub(uint16_t **sp_code)
 	jmp_dest = opcode & 0x3ff;
 	a = (uint8_t)((opcode >> 10) & 0x01);
 	sp_print_opcode_words(sp_code, 1);
-	fsl_print("DPAA1_JUMP ");
+	fsl_print("DPAA1_JMP ");
 	sp_print_dest_operand(jmp_dest, a, 0, 0);
 	if (sp_check_destination_address(jmp_dest))
 		return;
@@ -1277,7 +1693,7 @@ static void sp_jump_gosub(uint16_t **sp_code)
 	l = (uint8_t)((jmp_dest >> 14) & 0x1);
 	g = (uint8_t)((jmp_dest >> 15) & 0x1);
 	sp_print_opcode_words(sp_code, 2);
-	fsl_print("%s", (g) ? "GOSUB " : "JUMP ");
+	fsl_print("JMP ");
 	sp_print_dest_operand(jmp_dest, a, g, l);
 	if (sp_check_destination_address(jmp_dest))
 		return;
@@ -1293,7 +1709,7 @@ static void sp_jump_gosub(uint16_t **sp_code)
 }
 
 /******************************************************************************/
-static void sp_load_bits_fw_to_wr(uint16_t **sp_code)
+static __COLD_CODE void sp_load_bits_fw_to_wr(uint16_t **sp_code)
 {
 	uint8_t		m, n, w, s;
 	uint16_t	opcode;
@@ -1309,10 +1725,10 @@ static void sp_load_bits_fw_to_wr(uint16_t **sp_code)
 	 * the case where m and n are integer multiples of 8, this instruction
 	 * performs byte movements.
 	 *
-	 * LD_FW_TO_WR0		#from_position, #bits
-	 * LDS_FW_TO_WR0	#from_position, #bits
-	 * LD_FW_TO_WR1		#from_position, #bits
-	 * LDS_FW_TO_WR1	#from_position, #bits
+	 * LD_FW_TO_WR0		#pos, #n
+	 * LDS_FW_TO_WR0	#pos, #n
+	 * LD_FW_TO_WR1		#pos, #n
+	 * LDS_FW_TO_WR1	#pos, #n
 	*/
 	opcode = **sp_code;
 	m = (uint8_t)((opcode >> 7) & 0x7f);
@@ -1327,10 +1743,10 @@ static void sp_load_bits_fw_to_wr(uint16_t **sp_code)
 	w = (uint8_t)(opcode & 0x1);
 	sp_print_opcode_words(sp_code, 1);
 	if (s)
-		fsl_print("LDS_FW_TO_WR%d from_bit:%d, bits:%d;\n",
+		fsl_print("LDS_FW_TO_WR%d pos:%d, n:%d;\n",
 			  w, m - n, n + 1);
 	else
-		fsl_print("LD_FW_TO_WR%d from_bit:%d, bits:%d;\n",
+		fsl_print("LD_FW_TO_WR%d pos:%d, n:%d;\n",
 			  w, m - n, n + 1);
 	if (sp_sim.sim_enabled) {
 		uint8_t		*fw_first_byte;
@@ -1356,12 +1772,15 @@ static void sp_load_bits_fw_to_wr(uint16_t **sp_code)
 		}
 		mask = (uint64_t)(~0ll) >> 64 - (n + 1);
 		if (s) {
-			uint64_t	tmp;
-
-			tmp = (LLLDW_SWAP(0, sp_sim.wr[w])) << n + 1;
-			sp_sim.wr[w] = LLLDW_SWAP(0, &tmp);
-			if (n + 1 >= 64)
+			if (n + 1 >= 64) {
 				sp_sim.wr[w] = 0;
+			} else {
+				uint64_t	smask;
+
+				smask = mask << (n + 1);
+				mask |= smask;
+				sp_sim.wr[w] = sp_sim.wr[w] << (n + 1);
+			}
 			sp_sim.wr[w] |= val64 & mask;
 		} else {
 			sp_sim.wr[w] = val64 & mask;
@@ -1380,7 +1799,7 @@ static void sp_load_bits_fw_to_wr(uint16_t **sp_code)
 }
 
 /******************************************************************************/
-static void sp_load_bytes_pa_to_wr(uint16_t **sp_code)
+static __COLD_CODE void sp_load_bytes_pa_to_wr(uint16_t **sp_code)
 {
 	uint8_t		j, k, w, s;
 	uint16_t	opcode;
@@ -1399,10 +1818,10 @@ static void sp_load_bytes_pa_to_wr(uint16_t **sp_code)
 	 * loaded bytes. (Logically it appears as if the k+1 bytes have been
 	 * shifted into or concatenated with the existing value.)
 	 *
-	 * LD_PA_TO_WR0		#from_position, #bytes
-	 * LDS_PA_TO_WR0	#from_position, #bytes
-	 * LD_PA_TO_WR1		#from_position, #bytes
-	 * LDS_PA_TO_WR1	#from_position, #bytes
+	 * LD_PA_TO_WR0		#pos, #n
+	 * LDS_PA_TO_WR0	#pos, #n
+	 * LD_PA_TO_WR1		#pos, #n
+	 * LDS_PA_TO_WR1	#pos, #n
 	*/
 	opcode = **sp_code;
 	j = (uint8_t)((opcode >> 4) & 0x3f);
@@ -1417,10 +1836,10 @@ static void sp_load_bytes_pa_to_wr(uint16_t **sp_code)
 	w = (uint8_t)(opcode & 0x1);
 	sp_print_opcode_words(sp_code, 1);
 	if (s)
-		fsl_print("LDS_PA_TO_WR%d from_byte:%d, bytes:%d;\n",
+		fsl_print("LDS_PA_TO_WR%d pos:%d, n:%d;\n",
 			  w, j - k, k + 1);
 	else
-		fsl_print("LD_PA_TO_WR%d from_byte:%d, bytes:%d;\n",
+		fsl_print("LD_PA_TO_WR%d pos:%d, n:%d;\n",
 			  w, j - k, k + 1);
 	if (sp_sim.sim_enabled) {
 		uint8_t		extracted_bytes[8] = {0, 0, 0, 0, 0, 0, 0, 0};
@@ -1433,12 +1852,15 @@ static void sp_load_bytes_pa_to_wr(uint16_t **sp_code)
 		val64 = *(uint64_t *)&extracted_bytes[0];
 		mask = (uint64_t)(~0ll) >> 64 - 8 * (k + 1);
 		if (s) {
-			uint64_t	tmp;
-
-			tmp = (LLLDW_SWAP(0, sp_sim.wr[w])) << 8 * (k + 1);
-			sp_sim.wr[w] = (LLLDW_SWAP(0, &tmp)) & mask;
-			if (8 * (k + 1) >= 64)
+			if (8 * (k + 1) >= 64) {
 				sp_sim.wr[w] = 0;
+			} else {
+				uint64_t	smask;
+
+				smask = mask << 8 * (k + 1);
+				mask |= smask;
+				sp_sim.wr[w] = sp_sim.wr[w] << 8 * (k + 1);
+			}
 			sp_sim.wr[w] |= val64 & mask;
 		} else {
 			sp_sim.wr[w] = val64 & mask;
@@ -1455,7 +1877,7 @@ static void sp_load_bytes_pa_to_wr(uint16_t **sp_code)
 }
 
 /******************************************************************************/
-static void sp_cmp_wr_jump(uint16_t **sp_code)
+static __COLD_CODE void sp_cmp_wr_jump(uint16_t **sp_code)
 {
 	uint8_t		c, g, l;
 	uint16_t	opcode, jmp_dest;
@@ -1488,7 +1910,7 @@ static void sp_cmp_wr_jump(uint16_t **sp_code)
 	 * CMP_WR0_LT_WR1		G|L|S|JmpDest
 	 * CMP_WR0_GE_WR1		G|L|S|JmpDest
 	 * CMP_WR0_LE_WR1		G|L|S|JmpDest
-	 * CMP_WR0_XX_WR1		G|L|S|JmpDest
+	 * CMP_WR0_NOP_WR1		G|L|S|JmpDest
 	 *
 	 * Notes :
 	 *	1.  The G(gosub), L(relative addressing), and S(sign bit) flags
@@ -1508,7 +1930,7 @@ static void sp_cmp_wr_jump(uint16_t **sp_code)
 	sp_print_opcode_words(sp_code, 2);
 	fsl_print("CMP_WR0_%s_WR1 ", (c == 0) ? "EQ" : (c == 1) ? "NE" :
 		  (c == 2) ? "GT" : (c == 3) ? "LT" : (c == 4) ? "GE" :
-		  (c == 5) ? "LE" : "XX");
+		  (c == 5) ? "LE" : "NOP");
 	sp_print_dest_operand(jmp_dest, 0, g, l);
 	if (sp_check_destination_address(jmp_dest))
 		return;
@@ -1547,7 +1969,7 @@ static void sp_cmp_wr_jump(uint16_t **sp_code)
 		fsl_print("\t\t Condition %s is %s\n",
 			  (c == 0) ? "EQ" : (c == 1) ? "NE" : (c == 2) ? "GT" :
 			  (c == 3) ? "LT" : (c == 4) ? "GE" : (c == 5) ? "LE" :
-			  "XX", (cond) ? "verified" : "not verified");
+			  "NOP", (cond) ? "verified" : "not verified");
 		if (cond) {
 			fsl_print("\t\t Branch performed\n");
 			set_jmp_gosub_destination(sp_code,
@@ -1563,7 +1985,7 @@ static void sp_cmp_wr_jump(uint16_t **sp_code)
 }
 
 /******************************************************************************/
-static void sp_load_bytes_ra_to_wr(uint16_t **sp_code)
+static __COLD_CODE void sp_load_bytes_ra_to_wr(uint16_t **sp_code)
 {
 	uint8_t		j, k, w, s;
 	uint16_t	opcode;
@@ -1582,13 +2004,13 @@ static void sp_load_bytes_ra_to_wr(uint16_t **sp_code)
 	 * as if the k+1 bytes have been shifted into or concatenated with the
 	 * existing value.)
 	 *
-	 * LD_RA_TO_WR0		#from_position, #bytes
-	 * LDS_RA_TO_WR0	#from_position, #bytes
-	 * LD_RA_TO_WR1		#from_position, #bytes
-	 * LDS_RA_TO_WR1	#from_position, #bytes
+	 * LD_RA_TO_WR0		#pos, #n
+	 * LDS_RA_TO_WR0	#pos, #n
+	 * LD_RA_TO_WR1		#pos, #n
+	 * LDS_RA_TO_WR1	#pos, #n
 	*/
 	opcode = **sp_code;
-	j = (uint8_t)((opcode >> 4) & 0x3f);
+	j = (uint8_t)((opcode >> 4) & 0x7f);
 	k = (uint8_t)((opcode >> 1) & 0x7);
 	if (j < k) {
 		fsl_print("\t\t ERROR : Invalid parameter j(%d) < k(%d) !\n",
@@ -1600,10 +2022,10 @@ static void sp_load_bytes_ra_to_wr(uint16_t **sp_code)
 	w = (uint8_t)(opcode & 0x1);
 	sp_print_opcode_words(sp_code, 1);
 	if (s)
-		fsl_print("LDS_RA_TO_WR%d from_byte: %d, bytes:%d;\n",
+		fsl_print("LDS_RA_TO_WR%d pos:%d, n:%d;\n",
 			  w, j - k, k + 1);
 	else
-		fsl_print("LD_RA_TO_WR%d from_byte:%d, bytes:%d;\n",
+		fsl_print("LD_RA_TO_WR%d pos:%d, n:%d;\n",
 			  w, j - k, k + 1);
 	if (sp_sim.sim_enabled) {
 		uint8_t		extracted_bytes[8] = {0, 0, 0, 0, 0, 0, 0, 0};
@@ -1616,12 +2038,15 @@ static void sp_load_bytes_ra_to_wr(uint16_t **sp_code)
 		val64 = *(uint64_t *)&extracted_bytes[0];
 		mask = (uint64_t)(~0ll) >> 64 - 8 * (k + 1);
 		if (s) {
-			uint64_t	tmp;
-
-			tmp = (LLLDW_SWAP(0, sp_sim.wr[w])) << 8 * (k + 1);
-			sp_sim.wr[w] = (LLLDW_SWAP(0, &tmp)) & mask;
-			if (8 * (k + 1) >= 64)
+			if (8 * (k + 1) >= 64) {
 				sp_sim.wr[w] = 0;
+			} else {
+				uint64_t	smask;
+
+				smask = mask << 8 * (k + 1);
+				mask |= smask;
+				sp_sim.wr[w] = sp_sim.wr[w] << 8 * (k + 1);
+			}
 			sp_sim.wr[w] |= val64 & mask;
 		} else {
 			sp_sim.wr[w] = val64 & mask;
@@ -1638,7 +2063,7 @@ static void sp_load_bytes_ra_to_wr(uint16_t **sp_code)
 }
 
 /******************************************************************************/
-static void sp_advance_hb_by_wo(uint16_t **sp_code)
+static __COLD_CODE void sp_advance_hb_by_wo(uint16_t **sp_code)
 {
 	/* 1:Advance_HB_by_WO
 	 *	0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15
@@ -1664,7 +2089,7 @@ static void sp_advance_hb_by_wo(uint16_t **sp_code)
 }
 
 /******************************************************************************/
-static void sp_modify_wo_by_wr(uint16_t **sp_code)
+static __COLD_CODE void sp_modify_wo_by_wr(uint16_t **sp_code)
 {
 	uint8_t		a, w;
 	uint16_t	opcode;
@@ -1703,7 +2128,7 @@ static void sp_modify_wo_by_wr(uint16_t **sp_code)
 }
 
 /******************************************************************************/
-static void sp_add_sub_wr_iv_to_wr(uint16_t **sp_code)
+static __COLD_CODE void sp_add_sub_wr_iv_to_wr(uint16_t **sp_code)
 {
 	uint8_t		s, v, o, w;
 	uint16_t	opcode;
@@ -1720,22 +2145,14 @@ static void sp_add_sub_wr_iv_to_wr(uint16_t **sp_code)
 	 * significant 32b of WR0 and WR1 are not affected by this instruction
 	 * (they hold their value).
 	 *
-	 * ADD32_WR0_IMM16_TO_WR0	#iv3
-	 * ADD32_WR0_IMM32_TO_WR0	#iv3, #iv2
-	 * ADD32_WR0_IMM16_TO_WR1	#iv3
-	 * ADD32_WR0_IMM32_TO_WR1	#iv3, #iv2
-	 * ADD32_WR1_IMM16_TO_WR1	#iv3
-	 * ADD32_WR1_IMM32_TO_WR1	#iv3, #iv2
-	 * ADD32_WR1_IMM16_TO_WR0	#iv3
-	 * ADD32_WR1_IMM32_TO_WR0	#iv3, #iv2
-	 * SUB32_WR0_IMM16_TO_WR0	#iv3
-	 * SUB32_WR0_IMM32_TO_WR0	#iv3, #iv2
-	 * SUB32_WR0_IMM16_TO_WR1	#iv3
-	 * SUB32_WR0_IMM32_TO_WR1	#iv3, #iv2
-	 * SUB32_WR1_IMM16_TO_WR1	#iv3
-	 * SUB32_WR1_IMM32_TO_WR1	#iv3, #iv2
-	 * SUB32_WR1_IMM16_TO_WR0	#iv3
-	 * SUB32_WR1_IMM32_TO_WR0	#iv3, #iv2
+	 * ADD32_WR0_IMM_TO_WR0	#iv
+	 * ADD32_WR0_IMM_TO_WR1	#iv
+	 * ADD32_WR1_IMM_TO_WR1	#iv
+	 * ADD32_WR1_IMM_TO_WR0	#iv
+	 * SUB32_WR0_IMM_TO_WR0	#iv
+	 * SUB32_WR0_IMM_TO_WR1	#iv
+	 * SUB32_WR1_IMM_TO_WR1	#iv
+	 * SUB32_WR1_IMM_TO_WR0	#iv
 	*/
 	opcode = **sp_code;
 	w = (uint8_t)(opcode & 0x1);
@@ -1743,10 +2160,7 @@ static void sp_add_sub_wr_iv_to_wr(uint16_t **sp_code)
 	v = (uint8_t)((opcode >> 2) & 0x1);
 	s = (uint8_t)((opcode >> 3) & 0x1);
 	sp_print_opcode_words(sp_code, s + 2);
-	if (o)
-		fsl_print("SUB32_WR%d_IMM%d_TO_WR%d ", w, 16 * (s + 1), v);
-	else
-		fsl_print("ADD32_WR%d_IMM%d_TO_WR%d ", w, 16 * (s + 1), v);
+	fsl_print("%s32_WR%d_IMM_TO_WR%d ", (o) ? "SUB" : "ADD", w, v);
 	sp_print_iv_operands(sp_code, s + 1);
 	if (sp_sim.sim_enabled) {
 		uint32_t	wsrc32, wdst32, imm32;
@@ -1776,7 +2190,7 @@ static void sp_add_sub_wr_iv_to_wr(uint16_t **sp_code)
 }
 
 /******************************************************************************/
-static void sp_store_wr_to_ra(uint16_t **sp_code)
+static __COLD_CODE void sp_store_wr_to_ra(uint16_t **sp_code)
 {
 	uint8_t		s, t, w;
 	uint16_t	opcode;
@@ -1788,12 +2202,12 @@ static void sp_store_wr_to_ra(uint16_t **sp_code)
 	 * Stores the s+1 leftmost bytes (least significant) of WR0 or WR1 (as
 	 * specified by W) into the Parse Array at byte positions t-s to t.
 	 *
-	 * ST_WR0_TO_RA	#to_position, #bytes
-	 * ST_WR1_TO_RA	#to_position, #bytes
+	 * ST_WR0_TO_RA	#pos, #n
+	 * ST_WR1_TO_RA	#pos, #n
 	 *
 	*/
 	opcode = **sp_code;
-	t = (uint8_t)((opcode >> 1) & 0x3f);
+	t = (uint8_t)((opcode >> 1) & 0x7f);
 	s = (uint8_t)((opcode >> 8) & 0x7);
 	if (t < s) {
 		fsl_print("\t\t ERROR : Invalid parameter t(%d) < s(%d) !\n",
@@ -1803,7 +2217,7 @@ static void sp_store_wr_to_ra(uint16_t **sp_code)
 	}
 	w = (uint8_t)(opcode & 0x1);
 	sp_print_opcode_words(sp_code, 1);
-	fsl_print("ST_WR%d_TO_RA to_byte:%d, bytes:%d;\n", w, t - s, s + 1);
+	fsl_print("ST_WR%d_TO_RA pos:%d, n:%d;\n", w, t - s, s + 1);
 	if (sp_sim.sim_enabled) {
 		uint8_t		*pb, i;
 
@@ -1822,7 +2236,7 @@ static void sp_store_wr_to_ra(uint16_t **sp_code)
 }
 
 /******************************************************************************/
-static void sp_add_sub_wr_to_wr(uint16_t **sp_code)
+static __COLD_CODE void sp_add_sub_wr_to_wr(uint16_t **sp_code)
 {
 	uint8_t		v, o, l;
 	uint16_t	opcode;
@@ -1877,7 +2291,7 @@ static void sp_add_sub_wr_to_wr(uint16_t **sp_code)
 }
 
 /******************************************************************************/
-static void sp_jump_protocol(uint16_t **sp_code)
+static __COLD_CODE void sp_jump_protocol(uint16_t **sp_code)
 {
 	uint8_t		p;
 	uint16_t	opcode;
@@ -1893,7 +2307,7 @@ static void sp_jump_protocol(uint16_t **sp_code)
 	 *
 	 * If the P code is zero, NxtHdr is evaluated against the following
 	 * EtherTypes:
-	 *		-0x05DC of less: jump to LLC-SNAP
+	 *		-0x05DC or less: jump to LLC-SNAP
 	 *		-0x0800: jump to IPv4
 	 *		-0x0806: jump to ARP
 	 *		-0x86dd: jump to IPv6
@@ -1910,7 +2324,7 @@ static void sp_jump_protocol(uint16_t **sp_code)
 	 *		-33: jump to DCCP
 	 *		-41: jump to IPv6
 	 *		-47: jump to GRE
-	 *	l	-50,51: jump to IPSec
+	 *		-50,51: jump to IPSec
 	 *		-55: jump to MinEncap
 	 *		-132: jump to SCTP
 	 *		-unknown: jump to Other L4 Shell
@@ -1926,9 +2340,9 @@ static void sp_jump_protocol(uint16_t **sp_code)
 	 *
 	 * P code of three is invalid. Defaults to 0.
 	 *
-	 * JUMP_TO_L2_NEXT_HEADER
-	 * JUMP_TO_L3_NEXT_HEADER
-	 * JUMP_TO_L4_NEXT_HEADER
+	 * JMP_TO_L2_PROTOCOL
+	 * JMP_TO_L3_PROTOCOL
+	 * JMP_TO_L4_PROTOCOL
 	 *
 	*/
 
@@ -1937,7 +2351,7 @@ static void sp_jump_protocol(uint16_t **sp_code)
 	if (p == 3)
 		p = 0;
 	sp_print_opcode_words(sp_code, 1);
-	fsl_print("JUMP_TO_L%d_NEXT_HEADER;\n", p + 2);
+	fsl_print("JMP_TO_L%d_PROTOCOL;\n", p + 2);
 	if (sp_sim.sim_enabled) {
 		uint16_t	nxt_hdr;
 		int		i;
@@ -2012,7 +2426,7 @@ static void sp_jump_protocol(uint16_t **sp_code)
 }
 
 /******************************************************************************/
-static void sp_bitwise_wr_iv_to_wr(uint16_t **sp_code)
+static __COLD_CODE void sp_bitwise_wr_iv_to_wr(uint16_t **sp_code)
 {
 	uint8_t		v, i, f, w;
 	uint16_t	opcode;
@@ -2032,27 +2446,12 @@ static void sp_bitwise_wr_iv_to_wr(uint16_t **sp_code)
 	 * 48,64 bits). The bitwise function is specified by f[0:1]
 	 * (values 0,1,2 => OR,AND,XOR).
 	 *
-	 * OR_WR0_IMM16_TO_WR0		#iv3
-	 * OR_WR0_IMM16_TO_WR1		#iv3
-	 * OR_WR1_IMM16_TO_WR1		#iv3
-	 * OR_WR1_IMM16_TO_WR0		#iv3
+	 * OR_WR0_IMM_TO_WR0		#iv
+	 * OR_WR0_IMM_TO_WR1		#iv
+	 * OR_WR1_IMM_TO_WR1		#iv
+	 * OR_WR1_IMM_TO_WR0		#iv
 	 *
-	 * OR_WR0_IMM32_TO_WR0		#iv3, #iv2
-	 * OR_WR0_IMM32_TO_WR1		#iv3, #iv2
-	 * OR_WR1_IMM32_TO_WR1		#iv3, #iv2
-	 * OR_WR1_IMM32_TO_WR0		#iv3, #iv2
-	 *
-	 * OR_WR0_IMM48_TO_WR0		#iv3, #iv2, #iv1
-	 * OR_WR0_IMM48_TO_WR1		#iv3, #iv2, #iv1
-	 * OR_WR1_IMM48_TO_WR1		#iv3, #iv2, #iv1
-	 * OR_WR1_IMM48_TO_WR0		#iv3, #iv2, #iv1
-	 *
-	 * OR_WR0_IMM64_TO_WR0		#iv3, #iv2, #iv1, #iv0
-	 * OR_WR0_IMM64_TO_WR1		#iv3, #iv2, #iv1, #iv0
-	 * OR_WR1_IMM64_TO_WR1		#iv3, #iv2, #iv1, #iv0
-	 * OR_WR1_IMM64_TO_WR0		#iv3, #iv2, #iv1, #iv0
-	 *
-	 * Same sets for AND, XOR and XX (Not defined) operators.
+	 * Same sets for AND, XOR and CLR (Not defined) operators.
 	 *
 	*/
 
@@ -2063,7 +2462,7 @@ static void sp_bitwise_wr_iv_to_wr(uint16_t **sp_code)
 	v = (uint8_t)((opcode >> 5) & 0x1);
 	sp_print_opcode_words(sp_code, i + 2);
 	fsl_print("%s_WR%d_IMM%d_TO_WR%d ",
-		  (f == 0) ? "OR" : (f == 1) ? "AND" : (f == 2) ? "XOR" : "XX",
+		  (f == 0) ? "OR" : (f == 1) ? "AND" : (f == 2) ? "XOR" : "CLR",
 		  w, 16 * (i + 1), v);
 	sp_print_iv_operands(sp_code, i + 1);
 	if (sp_sim.sim_enabled) {
@@ -2072,23 +2471,6 @@ static void sp_bitwise_wr_iv_to_wr(uint16_t **sp_code)
 		val64 = 0;
 		load_iv((uint8_t *)&val64, i, sp_code);
 
-		switch (i) {
-		default:
-		case 0:
-			fsl_print("\t\t IMM16 = 0x%04x\n", (uint16_t)val64);
-			break;
-		case 1:
-			fsl_print("\t\t IMM32 = 0x%08x\n", (uint32_t)val64);
-			break;
-		case 2:
-			fsl_print("\t\t IMM48 = 0x%04x-%08x\n",
-				  (uint16_t)(val64 >> 32), (uint32_t)val64);
-			break;
-		case 3:
-			fsl_print("\t\t IMM64 = 0x%08x-%08x\n",
-				  (uint32_t)(val64 >> 32), (uint32_t)val64);
-			break;
-		}
 		if (f == 0)
 			sp_sim.wr[v] = sp_sim.wr[w] | val64;
 		else if (f == 1)
@@ -2119,7 +2501,7 @@ static void sp_bitwise_wr_iv_to_wr(uint16_t **sp_code)
 }
 
 /******************************************************************************/
-static void sp_bitwise_wr_wr_to_wr(uint16_t **sp_code)
+static __COLD_CODE void sp_bitwise_wr_wr_to_wr(uint16_t **sp_code)
 {
 	uint8_t		f, w;
 	uint16_t	opcode;
@@ -2142,8 +2524,8 @@ static void sp_bitwise_wr_wr_to_wr(uint16_t **sp_code)
 	 * AND_WR0_WR1_TO_WR1
 	 * XOR_WR0_WR1_TO_WR0
 	 * XOR_WR0_WR1_TO_WR1
-	 * XX_WR0_WR1_TO_WR0
-	 * XX_WR0_WR1_TO_WR1
+	 * CLR_WR0_WR1_TO_WR0
+	 * CLR_WR0_WR1_TO_WR1
 	*/
 
 	opcode = **sp_code;
@@ -2152,7 +2534,7 @@ static void sp_bitwise_wr_wr_to_wr(uint16_t **sp_code)
 	sp_print_opcode_words(sp_code, 1);
 	fsl_print("%s_WR0_WR1_TO_WR%d;\n",
 		  (f == 0) ? "OR" : (f == 1) ? "AND" :
-		  (f == 2) ? "XOR" : "XX", w);
+		  (f == 2) ? "XOR" : "CLR", w);
 	if (sp_sim.sim_enabled) {
 		if (f == 0)
 			sp_sim.wr[w] = sp_sim.wr[0] | sp_sim.wr[1];
@@ -2172,7 +2554,7 @@ static void sp_bitwise_wr_wr_to_wr(uint16_t **sp_code)
 }
 
 /******************************************************************************/
-static void sp_store_iv_to_ra(uint16_t **sp_code)
+static __COLD_CODE void sp_store_iv_to_ra(uint16_t **sp_code)
 {
 	uint8_t		s, t;
 	uint16_t	opcode;
@@ -2188,7 +2570,7 @@ static void sp_store_iv_to_ra(uint16_t **sp_code)
 	 * Stores s+1 bytes from an immediate value into the Parse Array at
 	 * byte positions t-s to t.
 	 *
-	 * ST_IMM_BYTES_TO_RA	#to_position, #bytes, #iv3[,#iv2][,#iv1][,#iv0]
+	 * ST_IMM_BYTES_TO_RA	#pos, #n, #iv
 	 *
 	*/
 
@@ -2202,7 +2584,7 @@ static void sp_store_iv_to_ra(uint16_t **sp_code)
 		return;
 	}
 	sp_print_opcode_words(sp_code, s / 2 + 2);
-	fsl_print("ST_IMM_BYTES_TO_RA to_byte:%d, bytes:%d ", t - s, s + 1);
+	fsl_print("ST_IMM_BYTES_TO_RA pos:%d, n:%d ", t - s, s + 1);
 	sp_print_iv_operands(sp_code, s / 2 + 1);
 	if (sp_sim.sim_enabled) {
 		uint64_t	val64;
@@ -2237,7 +2619,7 @@ static void sp_store_iv_to_ra(uint16_t **sp_code)
 }
 
 /******************************************************************************/
-static void sp_load_bits_iv_to_wr(uint16_t **sp_code)
+static __COLD_CODE void sp_load_bits_iv_to_wr(uint16_t **sp_code)
 {
 	uint8_t		s, n, w;
 	uint16_t	opcode;
@@ -2260,25 +2642,10 @@ static void sp_load_bits_iv_to_wr(uint16_t **sp_code)
 	 * newly loaded bits. (Logically it appears as if the n+1 bits have
 	 * been shifted into or concatenated with the existing value.)
 	 *
-	 * LD_IMM16_BITS_TO_WR0		#bits, #iv3
-	 * LDS_IMM16_BITS_TO_WR0	#bits, #iv3
-	 * LD_IMM16_BITS_TO_WR1		#bits, #iv3
-	 * LDS_IMM16_BITS_TO_WR1	#bits, #iv3
-	 *
-	 * LD_IMM32_BITS_TO_WR0		#bits, #iv3, #iv2
-	 * LDS_IMM32_BITS_TO_WR0	#bits, #iv3, #iv2
-	 * LD_IMM32_BITS_TO_WR1		#bits, #iv3, #iv2
-	 * LDS_IMM32_BITS_TO_WR1	#bits, #iv3, #iv2
-	 *
-	 * LD_IMM48_BITS_TO_WR0		#bits, #iv3, #iv2, #iv1
-	 * LDS_IMM48_BITS_TO_WR0	#bits, #iv3, #iv2, #iv1
-	 * LD_IMM48_BITS_TO_WR1		#bits, #iv3, #iv2, #iv1
-	 * LDS_IMM48_BITS_TO_WR1	#bits, #iv3, #iv2, #iv1
-	 *
-	 * LD_IMM64_BITS_TO_WR0		#bits, #iv3, #iv2, #iv1, #iv0
-	 * LDS_IMM64_BITS_TO_WR0	#bits, #iv3, #iv2, #iv1, #iv0
-	 * LD_IMM64_BITS_TO_WR1		#bits, #iv3, #iv2, #iv1, #iv0
-	 * LDS_IMM64_BITS_TO_WR1	#bits, #iv3, #iv2, #iv1, #iv0
+	 * LD_IMM_BITS_TO_WR0		#n, #iv
+	 * LDS_IMM_BITS_TO_WR0		#n, #iv
+	 * LD_IMM_BITS_TO_WR1		#n, #iv
+	 * LDS_IMM_BITS_TO_WR1		#n, #iv
 	 *
 	*/
 
@@ -2299,37 +2666,23 @@ static void sp_load_bits_iv_to_wr(uint16_t **sp_code)
 		load_iv((uint8_t *)&val64, n / 16, sp_code);
 		mask = (uint64_t)(~0ll) >> 64 - (n + 1);
 		if (s) {
-			uint64_t	tmp;
-
-			tmp = (LLLDW_SWAP(0, sp_sim.wr[w])) << n + 1;
-			sp_sim.wr[w] = LLLDW_SWAP(0, &tmp);
-			if (n + 1 >= 64)
+			if (n + 1 >= 64) {
 				sp_sim.wr[w] = 0;
+			} else {
+				uint64_t	smask;
+
+				smask = mask << (n + 1);
+				mask |= smask;
+				sp_sim.wr[w] = sp_sim.wr[w] << (n + 1);
+			}
 			sp_sim.wr[w] |= val64 & mask;
 		} else {
 			sp_sim.wr[w] = val64 & mask;
 		}
-		fsl_print("\t\t WR%d = 0x%08x-%08x from IV = ",
+		fsl_print("\t\t WR%d = 0x%08x-%08x\n",
 			  w,
 			  (uint32_t)(sp_sim.wr[w] >> 32),
 			  (uint32_t)sp_sim.wr[w]);
-		switch (n / 16) {
-		default:
-		case 0:
-			fsl_print("0x%04x\n", (uint16_t)val64);
-			break;
-		case 1:
-			fsl_print("0x%08x\n", (uint32_t)val64);
-			break;
-		case 2:
-			fsl_print("0x%04x-%08x\n",
-				  (uint16_t)(val64 >> 32), (uint32_t)val64);
-			break;
-		case 3:
-			fsl_print("0x%08x-%08x\n",
-				  (uint32_t)(val64 >> 32), (uint32_t)val64);
-			break;
-		}
 	}
 	(*sp_code) += 2;
 	sp_sim.pc += 2;
@@ -2349,7 +2702,7 @@ static void sp_load_bits_iv_to_wr(uint16_t **sp_code)
 }
 
 /******************************************************************************/
-static void sp_zero_wr(uint16_t **sp_code)
+static __COLD_CODE void sp_zero_wr(uint16_t **sp_code)
 {
 	uint8_t		w;
 	uint16_t	opcode;
@@ -2360,14 +2713,14 @@ static void sp_zero_wr(uint16_t **sp_code)
 	 *
 	 * Zeros (clears) Working Register 0 or 1
 	 *
-	 * ZERO_WR0
-	 * ZERO_WR1
+	 * CLR_WR0
+	 * CLR_WR1
 	*/
 
 	opcode = **sp_code;
 	w = (uint8_t)(opcode & 0x1);
 	sp_print_opcode_words(sp_code, 1);
-	fsl_print("ZERO_WR%d;\n", w);
+	fsl_print("CLR_WR%d;\n", w);
 	if (sp_sim.sim_enabled) {
 		sp_sim.wr[w] = 0;
 		fsl_print("\t\t WR%d = 0x%08x-%08x\n", w,
@@ -2380,7 +2733,7 @@ static void sp_zero_wr(uint16_t **sp_code)
 }
 
 /******************************************************************************/
-static void sp_add_sv_to_wo(uint16_t **sp_code)
+static __COLD_CODE void sp_add_sv_to_wo(uint16_t **sp_code)
 {
 	uint16_t	opcode;
 	uint8_t		v;
@@ -2409,7 +2762,7 @@ static void sp_add_sv_to_wo(uint16_t **sp_code)
 }
 
 /******************************************************************************/
-static void sp_load_sv_to_wo(uint16_t **sp_code)
+static __COLD_CODE void sp_load_sv_to_wo(uint16_t **sp_code)
 {
 	uint8_t		v;
 	uint16_t	opcode;
@@ -2437,7 +2790,7 @@ static void sp_load_sv_to_wo(uint16_t **sp_code)
 }
 
 /******************************************************************************/
-static void sp_ones_comp_wr1_to_wr0(uint16_t **sp_code)
+static __COLD_CODE void sp_ones_comp_wr1_to_wr0(uint16_t **sp_code)
 {
 	/* 3:Ones_Comp_WR1_to_WR0
 	 *	0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15
@@ -2458,11 +2811,11 @@ static void sp_ones_comp_wr1_to_wr0(uint16_t **sp_code)
 	 * valid. (This comparison can be accomplished with a Compare_WR_to_IV
 	 * instruction).
 	 *
-	 * ONES_CMP_WR1_TO_WR0
+	 * CHECKSUM16_WR1_TO_WR0
 	*/
 
 	sp_print_opcode_words(sp_code, 1);
-	fsl_print("ONES_CMP_WR1_TO_WR0;\n");
+	fsl_print("CHECKSUM16_WR1_TO_WR0;\n");
 
 	if (sp_sim.sim_enabled) {
 		uint32_t	sum;
@@ -2490,7 +2843,7 @@ static void sp_ones_comp_wr1_to_wr0(uint16_t **sp_code)
 }
 
 /******************************************************************************/
-static void sp_shift_left_wr_by_sv(uint16_t **sp_code)
+static __COLD_CODE void sp_shift_left_wr_by_sv(uint16_t **sp_code)
 {
 	uint16_t	opcode;
 	uint8_t		n, w;
@@ -2524,7 +2877,7 @@ static void sp_shift_left_wr_by_sv(uint16_t **sp_code)
 }
 
 /******************************************************************************/
-static void sp_shift_right_wr_by_sv(uint16_t **sp_code)
+static __COLD_CODE void sp_shift_right_wr_by_sv(uint16_t **sp_code)
 {
 	uint16_t	opcode;
 	uint8_t		n, w;
@@ -2558,7 +2911,7 @@ static void sp_shift_right_wr_by_sv(uint16_t **sp_code)
 }
 
 /******************************************************************************/
-static void sp_case1_dj_wr_to_wr(uint16_t **sp_code)
+static __COLD_CODE void sp_case1_dj_wr_to_wr(uint16_t **sp_code)
 {
 	uint16_t	opcode, jmp_dest3, jmp_dest2;
 	uint8_t		a2, a3, g3, l3, g2, l2;
@@ -2645,7 +2998,7 @@ static void sp_case1_dj_wr_to_wr(uint16_t **sp_code)
 }
 
 /******************************************************************************/
-static void sp_case2_dc_wr_to_wr(uint16_t **sp_code)
+static __COLD_CODE void sp_case2_dc_wr_to_wr(uint16_t **sp_code)
 {
 	uint16_t	opcode, jmp_dest3, jmp_dest2;
 	uint8_t		a2, a3, g3, l3, g2, l2;
@@ -2702,7 +3055,7 @@ static void sp_case2_dc_wr_to_wr(uint16_t **sp_code)
 	fsl_print("CASE2_DC_WR_to_WR\n");
 	sp_print_case_dest("WR0[w0] == WR1[w0] :", jmp_dest3, a3, g3, l3);
 	sp_print_case_dest("WR0[w0] == WR1[w1] :", jmp_dest2, a2, g2, l2);
-	sp_print_case_dest_continue();
+	sp_print_case_dest_continue(3);
 	if (sp_check_destination_address(jmp_dest3) ||
 	    sp_check_destination_address(jmp_dest2))
 		return;
@@ -2743,7 +3096,7 @@ static void sp_case2_dc_wr_to_wr(uint16_t **sp_code)
 }
 
 /******************************************************************************/
-static void sp_case2_dj_wr_to_wr(uint16_t **sp_code)
+static __COLD_CODE void sp_case2_dj_wr_to_wr(uint16_t **sp_code)
 {
 	uint16_t	opcode, jmp_dest3, jmp_dest2, jmp_dest1;
 	uint8_t		a3, a2, a1, g3, g2, g1, l3, l2, l1;
@@ -2849,7 +3202,7 @@ static void sp_case2_dj_wr_to_wr(uint16_t **sp_code)
 }
 
 /******************************************************************************/
-static void sp_case3_dc_wr_to_wr(uint16_t **sp_code)
+static __COLD_CODE void sp_case3_dc_wr_to_wr(uint16_t **sp_code)
 {
 	uint16_t	opcode, jmp_dest3, jmp_dest2, jmp_dest1;
 	uint8_t		a3, a2, a1, g3, g2, g1, l3, l2, l1;
@@ -2917,7 +3270,7 @@ static void sp_case3_dc_wr_to_wr(uint16_t **sp_code)
 	sp_print_case_dest("WR0[w0] == WR1[w0] :", jmp_dest3, a3, g3, l3);
 	sp_print_case_dest("WR0[w0] == WR1[w1] :", jmp_dest2, a2, g2, l2);
 	sp_print_case_dest("WR0[w0] == WR1[w2] :", jmp_dest1, a1, g1, l1);
-	sp_print_case_dest_continue();
+	sp_print_case_dest_continue(4);
 	if (sp_check_destination_address(jmp_dest3) ||
 	    sp_check_destination_address(jmp_dest2) ||
 	    sp_check_destination_address(jmp_dest1))
@@ -2970,7 +3323,7 @@ static void sp_case3_dc_wr_to_wr(uint16_t **sp_code)
 }
 
 /******************************************************************************/
-static void sp_case3_dj_wr_to_wr(uint16_t **sp_code)
+static __COLD_CODE void sp_case3_dj_wr_to_wr(uint16_t **sp_code)
 {
 	uint16_t	opcode, jmp_dest3, jmp_dest2, jmp_dest1, jmp_dest0;
 	uint8_t		a3, a2, a1, a0, g3, g2, g1, g0, l3, l2, l1, l0;
@@ -3097,7 +3450,7 @@ static void sp_case3_dj_wr_to_wr(uint16_t **sp_code)
 }
 
 /******************************************************************************/
-static void sp_case4_dc_wr_to_wr(uint16_t **sp_code)
+static __COLD_CODE void sp_case4_dc_wr_to_wr(uint16_t **sp_code)
 {
 	uint16_t	opcode, jmp_dest3, jmp_dest2, jmp_dest1, jmp_dest0;
 	uint8_t		a3, a2, a1, a0, g3, g2, g1, g0, l3, l2, l1, l0;
@@ -3174,7 +3527,7 @@ static void sp_case4_dc_wr_to_wr(uint16_t **sp_code)
 	sp_print_case_dest("WR0[w0] == WR1[w1] :", jmp_dest2, a2, g2, l2);
 	sp_print_case_dest("WR0[w0] == WR1[w2] :", jmp_dest1, a1, g1, l1);
 	sp_print_case_dest("WR0[w0] == WR1[w3] :", jmp_dest0, a0, g0, l0);
-	sp_print_case_dest_continue();
+	sp_print_case_dest_continue(5);
 	if (sp_check_destination_address(jmp_dest3) ||
 	    sp_check_destination_address(jmp_dest2) ||
 	    sp_check_destination_address(jmp_dest1) ||
@@ -3239,7 +3592,7 @@ static void sp_case4_dc_wr_to_wr(uint16_t **sp_code)
 }
 
 /******************************************************************************/
-static void sp_dump_input(void)
+static __COLD_CODE void sp_dump_input(void)
 {
 	int		i;
 	uint8_t		*pb;
@@ -3266,7 +3619,7 @@ static void sp_dump_input(void)
 }
 
 /******************************************************************************/
-static int sp_disassm_sim(uint8_t *byte_code, int sp_size)
+static __COLD_CODE int sp_disassm_sim(uint8_t *byte_code, int sp_size)
 {
 	int		i;
 	uint16_t	*sp_code, opcode;
@@ -3311,114 +3664,114 @@ static int sp_disassm_sim(uint8_t *byte_code, int sp_size)
 		opcode = sp_find_opcode(*sp_code);
 		switch (opcode) {
 #if (SP_DPAA_VERSION == 1)
-		case CONFIRM_LAYER_MASK:
+		case SYN_CONFIRM_LAYER_MASK:
 			sp_dpaa1_confirm_layer_mask(&sp_code);
 			break;
-		case OR_IV_LCV:
+		case SYN_OR_IV_LCV:
 			sp_dpaa1_or_iv_lcv(&sp_code);
 			break;
-		case LOAD_LCV_TO_WR:
+		case SYN_SYN_LOAD_LCV_TO_WR:
 			sp_dpaa1_load_lcv_to_wr(&sp_code);
 			break;
-		case STORE_WR_TO_LCV:
+		case SYN_STORE_WR_TO_LCV:
 			sp_dpaa1_store_wr_to_lcv(&sp_code);
 			break;
-		case COMPARE_WR0_TO_IV:
+		case SYN_COMPARE_WR0_TO_IV:
 			sp_dpaa1_compare_wr0_to_iv(&sp_code);
 			break;
 #else
-		case RETURN_SUB:
+		case SYN_RETURN_SUB:
 			sp_return_sub(&sp_code);
 			break;
-		case SET_CLR_FAF:
+		case SYN_SET_CLR_FAF:
 			sp_set_clear_faf(&sp_code);
 			break;
-		case JUMP_FAF:
+		case SYN_JUMP_FAF:
 			sp_jump_faf(&sp_code);
 			break;
 #endif
-		case JUMP_GOSUB:
+		case SYN_JUMP_GOSUB:
 			sp_jump_gosub(&sp_code);
 			break;
-		case NOP:
+		case SYN_NOP:
 			sp_nop(&sp_code);
 			break;
-		case ADVANCE_HB_BY_WO:
+		case SYN_ADVANCE_HB_BY_WO:
 			sp_advance_hb_by_wo(&sp_code);
 			break;
-		case ZERO_WR:
+		case SYN_ZERO_WR:
 			sp_zero_wr(&sp_code);
 			break;
-		case ONES_CMP_WR1_TO_WR0:
+		case SYN_ONES_CMP_WR1_TO_WR0:
 			sp_ones_comp_wr1_to_wr0(&sp_code);
 			break;
-		case CASE1_DJ_WR_TO_WR:
+		case SYN_CASE1_DJ_WR_TO_WR:
 			sp_case1_dj_wr_to_wr(&sp_code);
 			break;
-		case CASE2_DC_WR_TO_WR:
+		case SYN_CASE2_DC_WR_TO_WR:
 			sp_case2_dc_wr_to_wr(&sp_code);
 			break;
-		case CASE2_DJ_WR_TO_WR:
+		case SYN_CASE2_DJ_WR_TO_WR:
 			sp_case2_dj_wr_to_wr(&sp_code);
 			break;
-		case CASE3_DC_WR_TO_WR:
+		case SYN_CASE3_DC_WR_TO_WR:
 			sp_case3_dc_wr_to_wr(&sp_code);
 			break;
-		case CASE3_DJ_WR_TO_WR:
+		case SYN_CASE3_DJ_WR_TO_WR:
 			sp_case3_dj_wr_to_wr(&sp_code);
 			break;
-		case CASE4_DC_WR_TO_WR:
+		case SYN_CASE4_DC_WR_TO_WR:
 			sp_case4_dc_wr_to_wr(&sp_code);
 			break;
-		case JUMP_PROTOCOL:
+		case SYN_JUMP_PROTOCOL:
 			sp_jump_protocol(&sp_code);
 			break;
-		case ADD_SUB_WR_WR_TO_WR:
+		case SYN_ADD_SUB_WR_WR_TO_WR:
 			sp_add_sub_wr_to_wr(&sp_code);
 			break;
-		case ADD_SUB_WR_IV_TO_WR:
+		case SYN_ADD_SUB_WR_IV_TO_WR:
 			sp_add_sub_wr_iv_to_wr(&sp_code);
 			break;
-		case BITWISE_WR_WR_TO_WR:
+		case SYN_BITWISE_WR_WR_TO_WR:
 			sp_bitwise_wr_wr_to_wr(&sp_code);
 			break;
-		case COMPARE_WR0_WR1:
+		case SYN_COMPARE_WR0_WR1:
 			sp_cmp_wr_jump(&sp_code);
 			break;
-		case MODIFY_WO_BY_WR:
+		case SYN_MODIFY_WO_BY_WR:
 			sp_modify_wo_by_wr(&sp_code);
 			break;
-		case BITWISE_WR_IV_TO_WR:
+		case SYN_BITWISE_WR_IV_TO_WR:
 			sp_bitwise_wr_iv_to_wr(&sp_code);
 			break;
-		case SHIFT_LEFT_WR_BY_SV:
+		case SYN_SHIFT_LEFT_WR_BY_SV:
 			sp_shift_left_wr_by_sv(&sp_code);
 			break;
-		case SHIFT_RIGHT_WR_BY_SV:
+		case SYN_SHIFT_RIGHT_WR_BY_SV:
 			sp_shift_right_wr_by_sv(&sp_code);
 			break;
-		case LOAD_BITS_IV_TO_WR:
+		case SYN_LOAD_BITS_IV_TO_WR:
 			sp_load_bits_iv_to_wr(&sp_code);
 			break;
-		case LOAD_SV_TO_WO:
+		case SYN_LOAD_SV_TO_WO:
 			sp_load_sv_to_wo(&sp_code);
 			break;
-		case ADD_SV_TO_WO:
+		case SYN_ADD_SV_TO_WO:
 			sp_add_sv_to_wo(&sp_code);
 			break;
-		case STORE_IV_TO_RA:
+		case SYN_STORE_IV_TO_RA:
 			sp_store_iv_to_ra(&sp_code);
 			break;
-		case LOAD_BYTES_PA_TO_WR:
+		case SYN_LOAD_BYTES_PA_TO_WR:
 			sp_load_bytes_pa_to_wr(&sp_code);
 			break;
-		case STORE_WR_TO_RA:
+		case SYN_STORE_WR_TO_RA:
 			sp_store_wr_to_ra(&sp_code);
 			break;
-		case LOAD_BYTES_RA_TO_WR:
+		case SYN_LOAD_BYTES_RA_TO_WR:
 			sp_load_bytes_ra_to_wr(&sp_code);
 			break;
-		case LOAD_BITS_FW_TO_WR:
+		case SYN_LOAD_BITS_FW_TO_WR:
 			sp_load_bits_fw_to_wr(&sp_code);
 			break;
 		default:
@@ -3479,7 +3832,7 @@ static int sp_disassm_sim(uint8_t *byte_code, int sp_size)
 }
 
 /******************************************************************************/
-int sparser_disa(uint16_t pc, uint8_t *byte_code, int sp_size)
+__COLD_CODE int sparser_disa(uint16_t pc, uint8_t *byte_code, int sp_size)
 {
 	int	ret;
 
@@ -3505,7 +3858,170 @@ int sparser_disa(uint16_t pc, uint8_t *byte_code, int sp_size)
 }
 
 /******************************************************************************/
-void sparser_sim_init(void)
+__COLD_CODE void sparser_disa_instr(uint16_t pc, uint8_t *bytes, uint16_t len)
+{
+	uint16_t	*sp_code, opcode;
+
+	/* Disable SIM */
+	sp_sim.sim_enabled = 0;
+	if (pc < SP_MIN_PC || pc >= SP_MAX_PC) {
+		pr_err("0x%x : Invalid starting PC (< 0x%x or >= 0x%x)\n",
+		       pc, SP_MIN_PC, SP_MAX_PC);
+		ASSERT_COND(0);
+		return;
+	}
+	/* Set starting PC */
+	sp_sim.pc_start = pc;
+	/* Set pc_end to size of the byte_code */
+	sp_sim.pc_end = sp_sim.pc_start + len;
+	if (sp_sim.pc_end >= SP_MAX_PC) {
+		pr_err("Invalid ending PC (>= 0x%x)\n", SP_MAX_PC);
+		ASSERT_COND(0);
+		return;
+	}
+	sp_sim.pc = sp_sim.pc_start;
+	/* Disassemble */
+	sp_code = (uint16_t *)bytes;
+	opcode = sp_find_opcode(*sp_code);
+	switch (opcode) {
+#if (SP_DPAA_VERSION == 1)
+	case SYN_CONFIRM_LAYER_MASK:
+		sp_dpaa1_confirm_layer_mask(&sp_code);
+		break;
+	case SYN_OR_IV_LCV:
+		sp_dpaa1_or_iv_lcv(&sp_code);
+		break;
+	case SYN_LOAD_LCV_TO_WR:
+		sp_dpaa1_load_lcv_to_wr(&sp_code);
+		break;
+	case SYN_STORE_WR_TO_LCV:
+		sp_dpaa1_store_wr_to_lcv(&sp_code);
+		break;
+	case SYN_COMPARE_WR0_TO_IV:
+		sp_dpaa1_compare_wr0_to_iv(&sp_code);
+		break;
+#else
+	case SYN_RETURN_SUB:
+		sp_return_sub(&sp_code);
+		break;
+	case SYN_SET_CLR_FAF:
+		sp_set_clear_faf(&sp_code);
+		break;
+	case SYN_JUMP_FAF:
+		sp_jump_faf(&sp_code);
+		break;
+#endif
+	case SYN_JUMP_GOSUB:
+		sp_jump_gosub(&sp_code);
+		break;
+	case SYN_NOP:
+		sp_nop(&sp_code);
+		break;
+	case SYN_ADVANCE_HB_BY_WO:
+		sp_advance_hb_by_wo(&sp_code);
+		break;
+	case SYN_ZERO_WR:
+		sp_zero_wr(&sp_code);
+		break;
+	case SYN_ONES_CMP_WR1_TO_WR0:
+		sp_ones_comp_wr1_to_wr0(&sp_code);
+		break;
+	case SYN_CASE1_DJ_WR_TO_WR:
+		sp_case1_dj_wr_to_wr(&sp_code);
+		break;
+	case SYN_CASE2_DC_WR_TO_WR:
+		sp_case2_dc_wr_to_wr(&sp_code);
+		break;
+	case SYN_CASE2_DJ_WR_TO_WR:
+		sp_case2_dj_wr_to_wr(&sp_code);
+		break;
+	case SYN_CASE3_DC_WR_TO_WR:
+		sp_case3_dc_wr_to_wr(&sp_code);
+		break;
+	case SYN_CASE3_DJ_WR_TO_WR:
+		sp_case3_dj_wr_to_wr(&sp_code);
+		break;
+	case SYN_CASE4_DC_WR_TO_WR:
+		sp_case4_dc_wr_to_wr(&sp_code);
+		break;
+	case SYN_JUMP_PROTOCOL:
+		sp_jump_protocol(&sp_code);
+		break;
+	case SYN_ADD_SUB_WR_WR_TO_WR:
+		sp_add_sub_wr_to_wr(&sp_code);
+		break;
+	case SYN_ADD_SUB_WR_IV_TO_WR:
+		sp_add_sub_wr_iv_to_wr(&sp_code);
+		break;
+	case SYN_BITWISE_WR_WR_TO_WR:
+		sp_bitwise_wr_wr_to_wr(&sp_code);
+		break;
+	case SYN_COMPARE_WR0_WR1:
+		sp_cmp_wr_jump(&sp_code);
+		break;
+	case SYN_MODIFY_WO_BY_WR:
+		sp_modify_wo_by_wr(&sp_code);
+		break;
+	case SYN_BITWISE_WR_IV_TO_WR:
+		sp_bitwise_wr_iv_to_wr(&sp_code);
+		break;
+	case SYN_SHIFT_LEFT_WR_BY_SV:
+		sp_shift_left_wr_by_sv(&sp_code);
+		break;
+	case SYN_SHIFT_RIGHT_WR_BY_SV:
+		sp_shift_right_wr_by_sv(&sp_code);
+		break;
+	case SYN_LOAD_BITS_IV_TO_WR:
+		sp_load_bits_iv_to_wr(&sp_code);
+		break;
+	case SYN_LOAD_SV_TO_WO:
+		sp_load_sv_to_wo(&sp_code);
+		break;
+	case SYN_ADD_SV_TO_WO:
+		sp_add_sv_to_wo(&sp_code);
+		break;
+	case SYN_STORE_IV_TO_RA:
+		sp_store_iv_to_ra(&sp_code);
+		break;
+	case SYN_LOAD_BYTES_PA_TO_WR:
+		sp_load_bytes_pa_to_wr(&sp_code);
+		break;
+	case SYN_STORE_WR_TO_RA:
+		sp_store_wr_to_ra(&sp_code);
+		break;
+	case SYN_LOAD_BYTES_RA_TO_WR:
+		sp_load_bytes_ra_to_wr(&sp_code);
+		break;
+	case SYN_LOAD_BITS_FW_TO_WR:
+		sp_load_bits_fw_to_wr(&sp_code);
+		break;
+	default:
+		sp_not_implemented(&sp_code);
+		break;
+	}
+	switch (sp_sim.sp_status) {
+	default:
+	case 0:
+		break;
+	case SP_ERR_INVAL_OPCODE:
+		pr_err("Invalid OpCode detected\n");
+		ASSERT_COND(0);
+		return;
+	case SP_ERR_INVAL_DST:
+		ASSERT_COND(0);
+		return;
+	case SP_ERR_INVAL_PARAM:
+		ASSERT_COND(0);
+		return;
+	case RET_TO_HARD_HXS:
+	case END_PARSING:
+	case SP_HARD_HXS_CALLED:
+		return;
+	}
+}
+
+/******************************************************************************/
+__COLD_CODE void sparser_sim_init(void)
 {
 	int	i;
 
@@ -3555,7 +4071,7 @@ void sparser_sim_init(void)
 }
 
 /******************************************************************************/
-int sparser_sim_init_parse_array(struct sp_parse_array *ra)
+__COLD_CODE int sparser_sim_init_parse_array(struct sp_parse_array *ra)
 {
 	if (!(sp_sim.init_status & SIM_INITIALIZED)) {
 		pr_err("Simulator is not initialized\n");
@@ -3602,7 +4118,7 @@ int sparser_sim_init_parse_array(struct sp_parse_array *ra)
 }
 
 /******************************************************************************/
-int sparser_sim_set_parse_array(struct sp_parse_array *ra)
+__COLD_CODE int sparser_sim_set_parse_array(struct sp_parse_array *ra)
 {
 	if (!(sp_sim.init_status & SIM_INITIALIZED)) {
 		pr_err("Simulator is not initialized\n");
@@ -3614,7 +4130,8 @@ int sparser_sim_set_parse_array(struct sp_parse_array *ra)
 }
 
 /******************************************************************************/
-int sparser_sim_set_parameter_array(uint8_t *pa, uint8_t offset, uint8_t size)
+__COLD_CODE int sparser_sim_set_parameter_array(uint8_t *pa, uint8_t offset,
+						uint8_t size)
 {
 	if (!(sp_sim.init_status & SIM_INITIALIZED)) {
 		pr_err("Simulator is not initialized\n");
@@ -3631,7 +4148,7 @@ int sparser_sim_set_parameter_array(uint8_t *pa, uint8_t offset, uint8_t size)
 }
 
 /******************************************************************************/
-int sparser_sim_set_parsed_pkt(uint8_t *prs_pkt, uint16_t pkt_size)
+__COLD_CODE int sparser_sim_set_parsed_pkt(uint8_t *prs_pkt, uint16_t pkt_size)
 {
 	if (!(sp_sim.init_status & SIM_INITIALIZED)) {
 		pr_err("Simulator is not initialized\n");
@@ -3648,7 +4165,7 @@ int sparser_sim_set_parsed_pkt(uint8_t *prs_pkt, uint16_t pkt_size)
 }
 
 /******************************************************************************/
-int sparser_sim_set_header_base(uint16_t hb)
+__COLD_CODE int sparser_sim_set_header_base(uint16_t hb)
 {
 	if (!(sp_sim.init_status & SIM_INITIALIZED)) {
 		pr_err("Simulator is not initialized\n");
@@ -3660,7 +4177,7 @@ int sparser_sim_set_header_base(uint16_t hb)
 }
 
 /******************************************************************************/
-int sparser_sim_set_pc_limit(uint16_t pc_limit)
+__COLD_CODE int sparser_sim_set_pc_limit(uint16_t pc_limit)
 {
 	if (!(sp_sim.init_status & SIM_INITIALIZED)) {
 		pr_err("Simulator is not initialized\n");
@@ -3676,7 +4193,7 @@ int sparser_sim_set_pc_limit(uint16_t pc_limit)
 }
 
 /******************************************************************************/
-int sparser_sim(uint16_t pc, uint8_t *byte_code, int sp_size)
+__COLD_CODE int sparser_sim(uint16_t pc, uint8_t *byte_code, int sp_size)
 {
 	int	ret;
 
@@ -3715,19 +4232,19 @@ int sparser_sim(uint16_t pc, uint8_t *byte_code, int sp_size)
 }
 
 /******************************************************************************/
-void sparser_sim_parse_error_print(void)
+__COLD_CODE void sparser_sim_parse_error_print(void)
 {
 	sparser_parse_error_print(&sp_sim.ra.pr);
 }
 
 /******************************************************************************/
-void sparser_sim_frame_attributes_dump(void)
+__COLD_CODE void sparser_sim_frame_attributes_dump(void)
 {
 	sparser_frame_attributes_dump(&sp_sim.ra.pr);
 }
 
 /******************************************************************************/
-void sparser_sim_parse_result_dump(void)
+__COLD_CODE void sparser_sim_parse_result_dump(void)
 {
 	sparser_parse_result_dump(&sp_sim.ra.pr);
 }

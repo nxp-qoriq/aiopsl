@@ -1738,7 +1738,6 @@ inline int parse_result_generate_default(uint8_t flags);
 		Parser Result.
 
 @Param[in]	starting_hxs - Starting HXS for the parser.
-		Please refer to \ref parser_starting_hxs_code.
 @Param[in]	starting_offset - Offset from the presented segment where
 		parsing is to start. (Segment is presented in:
 		Presentation Context [SEGMENT ADDRESS])
@@ -1766,8 +1765,8 @@ inline int parse_result_generate_default(uint8_t flags);
  	 	not correct, the user must clear it before calling parser.
  	 	This function may result in a fatal error.
 *//***************************************************************************/
-inline int parse_result_generate(enum parser_starting_hxs_code starting_hxs,
-	uint8_t starting_offset, uint8_t flags);
+inline int parse_result_generate(uint16_t starting_hxs, uint8_t starting_offset,
+				 uint8_t flags);
 
 /**************************************************************************//**
 @Function	parse_result_generate_basic

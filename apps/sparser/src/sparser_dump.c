@@ -35,37 +35,7 @@
 #include "fsl_stdio.h"
 #include "fsl_sparser_disa.h"
 #include "fsl_sparser_dump.h"
-
 #include "fsl_dbg.h"
-/* If "fsl_dbg.h" is not included ASSERT_COND and pr_err must be redefined */
-#ifndef ASSERT_COND
-	#define ASSERT_COND(_cond)
-#endif
-#ifndef pr_err
-	#define pr_err(...)
-#endif
-
-/******************************************************************************/
-#ifdef HAVE_AIOP_CDMA_MUTEX
-	/* In order to include "fsl_cdma.h", following paths must be added to
-	 * the project :
-	 *
-	 * ${ProjDirPath}/../../../../aiopsl/src/include/drivers/ldpaa
-	 * ${ProjDirPath}/../../../../aiopsl/src/include/drivers/ldpaa/workspace
-	 * ${ProjDirPath}/../../../../aiopsl/src/include/drivers/accel/cdma
-	 * ${ProjDirPath}/../../../../aiopsl/src/drivers/
-	 * ${ProjDirPath}/../../../../aiopsl/src/drivers/accel/cdma
-	 */
-	#include "fsl_cdma.h"
-
-	uint64_t sp_print_lock;
-
-	#define LOCK(_a)	cdma_mutex_lock_take(_a, CDMA_MUTEX_WRITE_LOCK)
-	#define UNLOCK(_a)	cdma_mutex_lock_release(_a)
-#else
-	#define LOCK(_a)
-	#define UNLOCK(_a)
-#endif		/* HAVE_AIOP_CDMA_MUTEX */
 
 struct frame_attr {
 	char		*fld_name;
@@ -81,7 +51,14 @@ struct frame_attr_ext {
 
 struct frame_attr frame_attr_arr[] = {
 	/* Frame Attribute Flags 1 */
-	/* 000 */ {"User Defined                            ", 0, 0xff000000},
+	/* 000 */ {"Routing header present in IPv6 header 2 ", 0, 0x80000000},
+	/* 001 */ {"GTP Primed was detected                 ", 0, 0x40000000},
+	/* 002 */ {"VLAN with VID = 0 was detected          ", 0, 0x20000000},
+	/* 003 */ {"A PTP frame was detected                ", 0, 0x10000000},
+	/* 004 */ {"VXLAN was parsed                        ", 0, 0x08000000},
+	/* 005 */ {"A VXLAN HXS parsing error was detected  ", 0, 0x04000000},
+	/* 006 */ {"Ethernet control protocol was detected  ", 0, 0x02000000},
+	/* 007 */ {"IKE was detected at UDP port 4500       ", 0, 0x01000000},
 	/* 008 */ {"Shim Shell Soft Parsing Error           ", 0, 0x00800000},
 	/* 009 */ {"Parsing Error                           ", 0, 0x00400000},
 	/* 010 */ {"Ethernet MAC Present                    ", 0, 0x00200000},
@@ -97,7 +74,8 @@ struct frame_attr frame_attr_arr[] = {
 	/* 020 */ {"LLC+SNAP Error                          ", 0, 0x00000800},
 	/* 021 */ {"VLAN 1 Present                          ", 0, 0x00000400},
 	/* 022 */ {"VLAN n Present                          ", 0, 0x00000200},
-	/* 023 */ {"CFI bit in a \"8100\" VLAN tag is set     ", 0, 0x00000100},
+	/* 023 */ {"CFI bit in a \"8100\" VLAN tag is set     ",
+							       0, 0x00000100},
 	/* 024 */ {"VLAN Parsing Error                      ", 0, 0x00000080},
 	/* 025 */ {"PPPoE+PPP Present                       ", 0, 0x00000040},
 	/* 026 */ {"PPPoE+PPP Parsing Error                 ", 0, 0x00000020},
@@ -177,8 +155,15 @@ struct frame_attr frame_attr_arr[] = {
 
 struct frame_attr_ext frame_attr_ext_arr[] = {
 	/* Frame Attribute Flags Extension */
-	/* 096 */ {"IPv6 Route hdr2 present                 ", 0, 0x8000},
-	/* 097 */ {"Reserved                                ", 0, 0x7fff},
+	/* 096 */ {"User defined soft parser bit #0         ", 0, 0x8000},
+	/* 096 */ {"User defined soft parser bit #1         ", 0, 0x4000},
+	/* 096 */ {"User defined soft parser bit #2         ", 0, 0x2000},
+	/* 096 */ {"User defined soft parser bit #3         ", 0, 0x1000},
+	/* 096 */ {"User defined soft parser bit #4         ", 0, 0x0800},
+	/* 096 */ {"User defined soft parser bit #5         ", 0, 0x0400},
+	/* 096 */ {"User defined soft parser bit #6         ", 0, 0x0200},
+	/* 096 */ {"User defined soft parser bit #7         ", 0, 0x0100},
+	/* 097 */ {"Reserved                                ", 0, 0x00ff},
 	/* 112 */ {NULL,				       0, 0x0000}
 };
 
@@ -262,12 +247,11 @@ struct parse_err parse_errors[] = {
 	(!((_mask) & ((_mask) - 1)) || (_mask == 1))
 
 /******************************************************************************/
-void sparser_parse_error_print(struct sp_parse_result *pr)
+__COLD_CODE void sparser_parse_error_print(struct sp_parse_result *pr)
 {
 	struct parse_err	*err;
 
 	ASSERT_COND(pr);
-	LOCK(sp_print_lock);
 	err = &parse_errors[0];
 	while (err->err_name && err->code != pr->parse_error_code)
 		err++;
@@ -277,11 +261,10 @@ void sparser_parse_error_print(struct sp_parse_result *pr)
 	else
 		fsl_print("Parse Error Code %d : %s\n\n",
 			  err->code, err->err_name);
-	UNLOCK(sp_print_lock);
 }
 
 /******************************************************************************/
-void sparser_frame_attributes_dump(struct sp_parse_result *pr)
+__COLD_CODE void sparser_frame_attributes_dump(struct sp_parse_result *pr)
 {
 	uint32_t		*pdw;
 	uint16_t		*pw;
@@ -297,19 +280,6 @@ void sparser_frame_attributes_dump(struct sp_parse_result *pr)
 			fsl_print("\t %s : Yes\n", frm_attr->fld_name);	  \
 	} while (0)
 
-	#define fa_print_mb_0x8()					  \
-	do {								  \
-		if (*pdw & frm_attr->fld_mask)				  \
-			fsl_print("\t %s : 0x%08x\n", frm_attr->fld_name, \
-				  *pdw & frm_attr->fld_mask);		  \
-	} while (0)
-
-	#define fa_print_mb_0x4()					  \
-	do {								  \
-		if (*pdw & frm_attr->fld_mask)				  \
-			fsl_print("\t %s : 0x%04x\n", frm_attr->fld_name, \
-				  *pdw & frm_attr->fld_mask);		  \
-	} while (0)
 #else
 	#define fa_print_sb()						  \
 	do {								  \
@@ -319,37 +289,23 @@ void sparser_frame_attributes_dump(struct sp_parse_result *pr)
 		else							  \
 			fsl_print("No\n");				  \
 	} while (0)
-
-	#define fa_print_mb_0x8()					  \
-		fsl_print("\t %s : 0x%08x\n", frm_attr->fld_name,	  \
-			  *pdw & frm_attr->fld_mask)
-
-	#define fa_print_mb_0x4()					  \
-		fsl_print("\t %s : 0x%04x\n", frm_attr->fld_name,	  \
-			  *pdw & frm_attr->fld_mask)
 #endif
 	ASSERT_COND(pr);
-	LOCK(sp_print_lock);
 	/* Frame Attribute Flags 1, 2, 3 */
 	fsl_print("Dump of Frame Attribute Flags\n");
 	frm_attr = &frame_attr_arr[0];
 	while (frm_attr->fld_name) {
 		pdw = (uint32_t *)&pr->frame_attribute_flags_1;
 		pdw += frm_attr->faf_offset;
-		if (IS_ONE_BIT_FIELD(frm_attr->fld_mask))
-			fa_print_sb();
-		else
-			fa_print_mb_0x8();
+		fa_print_sb();
 		frm_attr++;
 	}
 	fsl_print("\n");
 
 	/* Frame Attribute Flags Extension */
 #if (PRINT_ONLY_IF_PRESENT == 1)
-	if (!pr->frame_attribute_flags_extension) {
-		UNLOCK(sp_print_lock);
+	if (!pr->frame_attribute_flags_extension)
 		return;	/* Noting to show */
-	}
 #endif
 	fsl_print("Dump of Frame Attribute Flags Extension\n");
 	frm_attr_ext = &frame_attr_ext_arr[0];
@@ -358,23 +314,21 @@ void sparser_frame_attributes_dump(struct sp_parse_result *pr)
 		pw += frm_attr_ext->faf_ext_offset;
 		if (IS_ONE_BIT_FIELD(frm_attr_ext->fld_mask)) {
 			fsl_print("\t %s : ", frm_attr_ext->fld_name);
-			if (*pdw & frm_attr_ext->fld_mask)
+			if (*pw & frm_attr_ext->fld_mask)
 				fsl_print("Yes\n");
 			else
 				fsl_print("No\n");
 		} else {
-			fsl_print("\t %s : 0x%04x\n", frm_attr_ext->fld_name,
-				  *pdw & frm_attr_ext->fld_mask);
+			fsl_print("\t %s : 0x%02x\n", frm_attr_ext->fld_name,
+				  *pw & frm_attr_ext->fld_mask);
 		}
 		frm_attr_ext++;
 	}
 	fsl_print("\n");
-
-	UNLOCK(sp_print_lock);
 }
 
 /******************************************************************************/
-void sparser_parse_result_dump(struct sp_parse_result *pr)
+__COLD_CODE void sparser_parse_result_dump(struct sp_parse_result *pr)
 {
 	uint8_t		*pb;
 	int		i;
@@ -392,7 +346,6 @@ void sparser_parse_result_dump(struct sp_parse_result *pr)
 			fsl_print(_a, _b, _b)
 #endif
 	ASSERT_COND(pr);
-	LOCK(sp_print_lock);
 	fsl_print("Dump of Parse Result\n");
 	/* Next header */
 	fsl_print("nxt_hdr                         = 0x%04x\n",
@@ -519,5 +472,4 @@ void sparser_parse_result_dump(struct sp_parse_result *pr)
 	fsl_print("\n");
 #endif
 	fsl_print("\n");
-	UNLOCK(sp_print_lock);
 }

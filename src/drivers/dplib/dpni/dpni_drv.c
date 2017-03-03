@@ -2966,7 +2966,6 @@ int dpni_drv_activate_soft_parser(uint8_t prpid,
 				  const struct dpni_drv_sparser_param *param)
 {
 	int				err;
-	uint16_t			*pval;
 	uint8_t				*pb;
 	struct parse_profile_input	pp __attribute__((aligned(16)));
 
@@ -2980,92 +2979,109 @@ int dpni_drv_activate_soft_parser(uint8_t prpid,
 		       param->param_offset, param->param_size);
 		return -EINVAL;
 	}
+#ifdef LS2085A_REV1
+	if (param->first_header) {
+		pr_err("First header as custom header not supported\n");
+		return -EINVAL;
+	}
+#endif
 	if (param->parser == PARSER_WRIOP) {
 		/* Send information to MC */
 		err = send_soft_parser_param(param);
 		return err;
 	}
+	/* The first header is not linked to a hard HXS. If it has no parameters
+	 * there is no need to update the parse profile. */
+	if (param->first_header && !param->param_size)
+		return 0;
 	memset(&pp, 0, sizeof(struct parse_profile_input));
 	parser_profile_query(prpid, &pp);
-	switch (param->link_hxs) {
-	case PARSER_ETH_STARTING_HXS:
-		 pval = &pp.parse_profile.eth_hxs_config;
-		 break;
-	case PARSER_LLC_SNAP_STARTING_HXS:
-		 pval = &pp.parse_profile.llc_snap_hxs_config;
-		 break;
-	case PARSER_VLAN_STARTING_HXS:
-		 pval = &pp.parse_profile.vlan_hxs_config.en_erm_soft_seq_start;
-		 break;
-	case PARSER_PPPOE_PPP_STARTING_HXS:
-		 pval = &pp.parse_profile.pppoe_ppp_hxs_config;
-		 break;
-	case PARSER_MPLS_STARTING_HXS:
-		 pval = &pp.parse_profile.mpls_hxs_config.en_erm_soft_seq_start;
-		 break;
-	case PARSER_ARP_STARTING_HXS:
-		 pval = &pp.parse_profile.arp_hxs_config;
-		 break;
-	case PARSER_IP_STARTING_HXS:
-		 pval = &pp.parse_profile.ip_hxs_config;
-		 break;
+	if (!param->first_header) {
+		uint16_t	*pval;
+
+		switch (param->link_to_hard_hxs) {
+		case PARSER_ETH_STARTING_HXS:
+			pval = &pp.parse_profile.eth_hxs_config;
+			break;
+		case PARSER_LLC_SNAP_STARTING_HXS:
+			 pval = &pp.parse_profile.llc_snap_hxs_config;
+			 break;
+		case PARSER_VLAN_STARTING_HXS:
+			pval = &pp.parse_profile.vlan_hxs_config.
+					en_erm_soft_seq_start;
+			break;
+		case PARSER_PPPOE_PPP_STARTING_HXS:
+			pval = &pp.parse_profile.pppoe_ppp_hxs_config;
+			break;
+		case PARSER_MPLS_STARTING_HXS:
+			pval = &pp.parse_profile.mpls_hxs_config.
+					en_erm_soft_seq_start;
+			break;
+		case PARSER_ARP_STARTING_HXS:
+			pval = &pp.parse_profile.arp_hxs_config;
+			break;
+		case PARSER_IP_STARTING_HXS:
+			pval = &pp.parse_profile.ip_hxs_config;
+			break;
 #ifndef LS2085A_REV1
-	case PARSER_IPV4_STARTING_HXS:
-		 pval = &pp.parse_profile.ipv4_hxs_config;
-		 break;
-	case PARSER_IPV6_STARTING_HXS:
-		 pval = &pp.parse_profile.ipv6_hxs_config;
-		 break;
+		case PARSER_IPV4_STARTING_HXS:
+			pval = &pp.parse_profile.ipv4_hxs_config;
+			break;
+		case PARSER_IPV6_STARTING_HXS:
+			pval = &pp.parse_profile.ipv6_hxs_config;
+			break;
 #endif
-	case PARSER_GRE_STARTING_HXS:
-		 pval = &pp.parse_profile.gre_hxs_config;
-		 break;
-	case PARSER_MINENCAP_STARTING_HXS:
-		 pval = &pp.parse_profile.minenc_hxs_config;
-		 break;
-	case PARSER_OTHER_L3_SHELL_STARTING_HXS:
-		 pval = &pp.parse_profile.other_l3_shell_hxs_config;
-		 break;
-	case PARSER_TCP_STARTING_HXS:
-		 pval = &pp.parse_profile.tcp_hxs_config;
-		 break;
-	case PARSER_UDP_STARTING_HXS:
-		 pval = &pp.parse_profile.udp_hxs_config;
-		 break;
-	case PARSER_IPSEC_STARTING_HXS:
-		 pval = &pp.parse_profile.ipsec_hxs_config;
-		 break;
-	case PARSER_SCTP_STARTING_HXS:
-		 pval = &pp.parse_profile.sctp_hxs_config;
-		 break;
-	case PARSER_DCCP_STARTING_HXS:
-		 pval = &pp.parse_profile.dccp_hxs_config;
-		 break;
-	case PARSER_OTHER_L4_SHELL_STARTING_HXS:
-		 pval = &pp.parse_profile.other_l4_shell_hxs_config;
-		 break;
-	case PARSER_GTP_STARTING_HXS:
-		 pval = &pp.parse_profile.gtp_hxs_config;
-		 break;
-	case PARSER_ESP_STARTING_HXS:
-		 pval = &pp.parse_profile.esp_hxs_config;
-		 break;
+		case PARSER_GRE_STARTING_HXS:
+			pval = &pp.parse_profile.gre_hxs_config;
+			break;
+		case PARSER_MINENCAP_STARTING_HXS:
+			pval = &pp.parse_profile.minenc_hxs_config;
+			break;
+		case PARSER_OTHER_L3_SHELL_STARTING_HXS:
+			pval = &pp.parse_profile.other_l3_shell_hxs_config;
+			break;
+		case PARSER_TCP_STARTING_HXS:
+			pval = &pp.parse_profile.tcp_hxs_config;
+			break;
+		case PARSER_UDP_STARTING_HXS:
+			pval = &pp.parse_profile.udp_hxs_config;
+			break;
+		case PARSER_IPSEC_STARTING_HXS:
+			pval = &pp.parse_profile.ipsec_hxs_config;
+			break;
+		case PARSER_SCTP_STARTING_HXS:
+			pval = &pp.parse_profile.sctp_hxs_config;
+			break;
+		case PARSER_DCCP_STARTING_HXS:
+			pval = &pp.parse_profile.dccp_hxs_config;
+			break;
+		case PARSER_OTHER_L4_SHELL_STARTING_HXS:
+			pval = &pp.parse_profile.other_l4_shell_hxs_config;
+			break;
+		case PARSER_GTP_STARTING_HXS:
+			pval = &pp.parse_profile.gtp_hxs_config;
+			break;
+		case PARSER_ESP_STARTING_HXS:
+			pval = &pp.parse_profile.esp_hxs_config;
+			break;
 #ifndef LS2085A_REV1
-	case PARSER_VXLAN_STARTING_HXS:
-		 pval = &pp.parse_profile.vxlan_hxs_config;
-		 break;
+		case PARSER_VXLAN_STARTING_HXS:
+			pval = &pp.parse_profile.vxlan_hxs_config;
+			break;
 #endif
-	case PARSER_L5_SHELL_STARTING_HXS:
-		 pval = &pp.parse_profile.l5_shell_hxs_config;
-		 break;
-	default:
-	case PARSER_FINAL_SHELL_STARTING_HXS:
-		 pval = &pp.parse_profile.final_shell_hxs_config;
-		 break;
+		case PARSER_L5_SHELL_STARTING_HXS:
+			pval = &pp.parse_profile.l5_shell_hxs_config;
+			break;
+		default:
+		case PARSER_FINAL_SHELL_STARTING_HXS:
+			pval = &pp.parse_profile.final_shell_hxs_config;
+			break;
+		}
+		/* Enable SP and set the starting PC */
+		*pval &= ~SOFT_PARSER_SSS_MASK;
+		*pval |= SOFT_PARSER_EN | (param->start_pc &
+					   SOFT_PARSER_SSS_MASK);
 	}
-	/* Enable SP and set the starting PC */
-	*pval &= ~SOFT_PARSER_SSS_MASK;
-	*pval |= SOFT_PARSER_EN | (param->start_pc & SOFT_PARSER_SSS_MASK);
 	/* Copy SP parameters (if exist) */
 	if (param->param_array && param->param_size) {
 		pb = (uint8_t *)

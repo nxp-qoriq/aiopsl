@@ -41,6 +41,7 @@
 #include "fsl_sparser_disa.h"
 #include "fsl_sparser_drv.h"
 #include "fsl_sparser_dump.h"
+#include "fsl_sparser_gen.h"
 
 /******************************************************************************/
 /* Soft Parser Example :
@@ -57,425 +58,7 @@
  * If the EType field of the parsed packet is not the expected one (0xEE00) the
  * SP code returns to the calling HXS (Ethernet).
  */
-uint8_t sparser_example[] __attribute__((aligned(4))) = {
-	/**********************************************************************/
-	/*                  Reads the EType from the Packet                   */
-	/**********************************************************************/
-	/*------------------- WR0 = Packet EType field -----------------------*/
-	0xB7, 0x9E,
-	/*
-	* Load_Bits_FW_to_WR(m-n,m)
-	*
-	* 1-0-1101111-001111-0
-	*                    |-> W = 0 (WR0);
-	*            |-> n[0:5] = 0f = 15
-	*     |-> m[0:6] = 6f = 111
-	*  |-> S = 0 (No Shift)
-	* |-> OpCode
-	*
-	* Load 16 bits into the WR0 from the bit positions 96 to 111 of
-	* Frame Window.
-	*
-	* Byte offset = 96 / 8 = 12. Loads bytes 12 and 13, i.e. the EType
-	* field, from the input packet into WR0.
-	*
-	* WR0 = FW[96:111] = Packet[12:13] = 0xEE00;
-	*
-	*/
-
-	/**********************************************************************/
-	/*              Reads the EType expected by this Software Parser      */
-	/**********************************************************************/
-	/*-------------------- WR1 = 0xEE00 (from parameters) ----------------*/
-	0x10, 0x13,
-	/*
-	* Load_Bytes_PA_to_WR
-	* 00010-0-000001-001-1
-	*                    |-> W = 1 (WR1)
-	*                |-> k[0:2] = 1
-	*         |-> j[0:5] = 1
-	*       |-> S = 0 (No Shift)
-	* |-> OpCode
-	*
-	* Load the 2 bytes from byte positions 0 to 1 of the Parameter
-	* Array into WR1. Since load to WRx is always 64-bits, the bytes to the
-	* left of the 2 bytes are zeroed.
-	*
-	* WR1 = Parameter Array[0:1] = 0x0000EE00
-	*
-	*/
-
-	/**********************************************************************/
-	/*              Compare the 2 EType values                            */
-	/**********************************************************************/
-	/*--------- Return to ETH HXS if EType != 0xEE00 ---------------------*/
-	/*--------- Continue if EType == 0xEE00 ------------------------------*/
-	0x00, 0x79, 0x87, 0xFE,
-	/*
-	* Compare Working Regs WR0 <?> WR1
-	* 15:Compare Working Regs WR0 <?> WR1
-	* 0000000001111-001 : G[0]L[1]JumpDest[5:15]
-	*               |-> c[0:2] = 1 (!=)
-	*                     |-> 1000.0111.1111.1111 = 0x87 0xFF
-	* |-> OpCode
-	*
-	* If (WR0 != WR1) then jump to 0x7FE (Return to Hard HXS).
-	*
-	* G[0]L[1]JumpDest[5:15]
-	* 1-0-000-11111111110
-	*         |-> JumpDest[5:15] = 0x7FE
-	*     |-> Unused ?
-	*   |-> L = 0; JumpDest is absolute
-	* |-> G = 1; Jump is treated as a gosub
-	*/
-
-	/**********************************************************************/
-	/*                     Advance to the Custom Header                   */
-	/**********************************************************************/
-	/*----------------- WR1 = NxtHdrOffset -------------------------------*/
-	/*
-	* Load_Bytes_RA_to_WR
-	* 0011-0-0110010-000-1
-	*                    |-> W = 1 (WR1)
-	*                |-> k[0:2] = 000
-	*        |-> j[0:6] = 0x32 = 50
-	*      |-> S = 0 ; Not shifted
-	* |-> OpCode
-	*
-	* Load the 1 (k+1) byte from byte positions 50 (j-k) to (50) j of the
-	* Parse Array into WR1. Since loads to the working registers are always
-	* 64-bits, the bytes to the left of the 1 (k+1) byte are zeroed in WR1.
-	*
-	* WR1 = Parse Array[50] = NxtHdrOffset = 14
-	*
-	*/
-	0x33, 0x21,
-
-	/*----------------------- WO = NxtHdrOffset --------------------------*/
-	/*
-	* Modify WO by WR
-	* 0000.0000.1000.00-0-1
-	*                     |-> W = 1 (WR1)
-	*                   |-> A = 0
-	* |-> OpCode
-	*
-	* Loads (A=0) the least significant 8b of WR0 into the Window Offset
-	* register.
-	*
-	* Window Offset = WR1 = NxtHdrOffset = 14
-	*
-	*/
-	0x00, 0x81,
-
-	/*-------------- HB += NxtHdrOffset; WO = 0 --------------------------*/
-	/*
-	* Advance_HB_by_WO
-	*
-	* Add the value of Window Offset to Header Base & reset the value of WO
-	* to 0. Used within an HXS to advance to HB for the following HXS.
-	* It is appropriate to apply when WO is pointing to the first byte that
-	* the next HXS is to examine.
-	*
-	* HB += 14;
-	* WO = 0;
-	* Note : On Custom header start.
-	*
-	*/
-	0x00, 0x02,
-
-	/**********************************************************************/
-	/*                     Update NxtHdr field                            */
-	/**********************************************************************/
-	/*---------------- WR0 = Custom Header Length = 0x2E -----------------*/
-	/*
-	* Load_Bytes_PA_to_WR
-	* 00010-0-000010-000-0
-	*                    |-> W = 0 (WR0)
-	*                |-> k[0:2] = 0
-	*         |-> j[0:5] = 2
-	*       |-> S = 0 (No Shift)
-	* |-> OpCode
-	*
-	* Load the 1 (k+1) byte from byte positions 2 (j-k) to 2 (j) of the
-	* Soft Examination Parameter Array into WR0. Since loads to the working
-	* registers are always 64-bits, the bytes to the left of the 1 (k+1)
-	* bytes are zeroed in WR0.
-	*
-	* WR0 = 0x2E
-	*/
-	0x10, 0x20,
-
-	/*----------------------------- WR0 -= 16 ----------------------------*/
-	/*
-	* AddSub_WR_IV_to_WR IV3 IV2
-	* 000000000101-0-0-1-0
-	*                    |-> W = 0 (WR0)
-	*                  |-> O = 1 (Subtraction)
-	*                |-> V = 0 (WR0)
-	*              |-> S = 0 (16 bits)
-	* |-> OpCode
-	*
-	* The least significant 32b of WR0 is the first operand and 16b (S=0)
-	* of immediate data is the second operand in a 32b subtraction (O=1)
-	* operation. The 32b result is stored in the least significant 32b of
-	* WR0 (V=0). No carries or underflow bits are captured. The most
-	* significant 32b of WR0 are not affected by this instruction (they hold
-	* their value).
-	*
-	* WR0 -= 16;
-	*
-	*/
-	0x00, 0x52, 0x00, 0x10,
-
-	/*----------------------------- WO = WR0 -----------------------------*/
-	/*
-	* Modify WO by WR
-	* 0000.0000.1000.00-0-0
-	*                     |-> W = 0 (WR0)
-	*                   |-> A = 0 (Load)
-	* |-> OpCode
-	*
-	* Loads (A=0) the least significant 8b of WR0 into the Window Offset
-	* register.
-	*
-	* WO = WR0;
-	*
-	* Window Offset is set on the last 16 bytes of the Custom Header.
-	*
-	*/
-	0x00, 0x80,
-
-	/*------------------ WR1 = Custom Header EType -----------------------*/
-	/*
-	* Load_Bits_FW_to_WR(m-n,m)
-	* 1-0-1111111-001111-1
-	*                    |-> W = 1 (WR1)
-	*             |-> n[0:5] = 0f = 15
-	*     |-> m[0:6] = 7f = 127
-	*   |-> S = 0 (No Shift)
-	* |-> OpCode
-	*
-	* Load 16 (n+1) bits into the WR1 from the bit positions 112 (m-n) to
-	* 127 (m) of Frame Window (was just move to + 30)
-	*
-	* 112 is byte 14 in the current Window. Window Offset is 30 and the
-	* Header Base is on the custom header start.
-	*
-	* The byte 14 in the current window is the byte 30 + 14 = 44 in the
-	* current custom header. It points to the EType field of the custom
-	* header.
-	*
-	* WR1 = CustomHeader[44:45] = EType in Custom Header = 0x0800 (IPv4)
-	*
-	*/
-	0xBF, 0x9F,
-
-	/*----------- NextHdr = RA[16:17] = WR1 = Custom header ETYpe --------*/
-	/*
-	* Store_WR_to_RA
-	* 00101-001-0010001-1
-	*                   |-> W=1 (WR1)
-	*           |-> t[0:6] = 0x11 = 17
-	*       |-> s[0:2] = 1
-	* |-> OpCode
-	*
-	* Stores the 2 (s+1) leftmost bytes (least significant) of WR1 into the
-	* Parse Array at byte positions 26 (t-s) to 27 (t).
-	*
-	* Parse Array[16:17] = NxtHdr = PA[16:17] = WR1 = 0x0800;
-	*
-	*/
-	0x29, 0x23,
-
-	/*----------------- WR1 = NxtHdrOffset (ETH) -------------------------*/
-	/*
-	* Load_Bytes_RA_to_WR
-	* 0011-0-0110010-000-1
-	*                    |-> W = 1 (WR1)
-	*                |-> k[0:2] = 000
-	*        |-> j[0:6] = 0x32 = 50
-	*      |-> S = 0 ; Not shifted
-	* |-> OpCode
-	*
-	* Load the 1 (k+1) byte from byte positions 50 (j-k) to (50) j of the
-	* Parse Array into WR1. Since loads to the working registers are always
-	* 64-bits, the bytes to the left of the 1 (k+1) byte are zeroed in WR1.
-	*
-	* WR1 = Parse Array[50] = NxtHdrOffset = 14
-	*
-	*/
-	0x33, 0x21,
-
-	/**********************************************************************/
-	/*                     Update ShimOffset_1 field                      */
-	/**********************************************************************/
-	/*--------------- ShimOffset_1 = RA[32] = WR1 ------------------------*/
-	/*
-	* Store_WR_to_RA
-	* 00101-000-0100000-1
-	*                   |-> W=1 (WR1)
-	*           |-> t[0:6] = 0x20 = 32
-	*       |-> s[0:2] = 0
-	* |-> OpCode
-	*
-	* Stores the 1 (s+1) leftmost bytes (least significant) of WR1 into the
-	* Parse Array at byte positions 32 (t-s) to 32 (t).
-	*
-	* ShimOffset_1 = Parse Array[32] = WR1;
-	*
-	*/
-	0x28, 0x41,
-
-	/**********************************************************************/
-	/*                     Update NxtHdrOffset field                      */
-	/**********************************************************************/
-	/*---------------- WR0 = Custom Header Length = 0x2E -----------------*/
-	/*
-	* Load_Bytes_PA_to_WR
-	* 00010-0-000010-000-0
-	*                    |-> W = 0 (WR0)
-	*                |-> k[0:2] = 0
-	*         |-> j[0:5] = 2
-	*       |-> S = 0 (No Shift)
-	* |-> OpCode
-	*
-	* Load the 1 (k+1) byte from byte positions 2 (j-k) to 2 (j) of the
-	* Soft Examination Parameter Array into WR0. Since loads to the working
-	* registers are always 64-bits, the bytes to the left of the 1 (k+1)
-	* bytes are zeroed in WR0.
-	*
-	* WR0 = 0x2E
-	*/
-	0x10, 0x20,
-
-	/*--------------- WR1 += WR0 -----------------------------------------*/
-	/*
-	* AddSub_WR_WR_to_WR
-	* 0000.0000.0100.1-100
-	*                    |-> L = 0 (WR0)
-	*                   |-> O = 0 (Addition)
-	*                  |-> V = 1 (WR1)
-	* |-> OpCode
-	*
-	* The least significant 32b of WR0 (L=0) is the first operand and the
-	* least significant 32b of WR1 is the second operand in a 32b addition
-	* (O=0) operation. The 32b result is stored in the least significant
-	* 32b of WR1 (V=1).
-	*
-	*/
-	0x00, 0x4C,
-
-	/*--------------- NxtHdrOffset = RA[50] = WR1 ------------------------*/
-	/*
-	* Store_WR_to_RA
-	* 00101-000-0110010-1
-	*                   |-> W=1 (WR1)
-	*           |-> t[0:6] = 0x32 = 50
-	*       |-> s[0:2] = 0
-	* |-> OpCode
-	*
-	* Stores the 1 (s+1) leftmost bytes (least significant) of WR1 into the
-	* Parse Array at byte positions 50 (t-s) to 50 (t).
-	*
-	* NxtHdrOffset = Parse Array[50] = WR1;
-	*
-	*/
-	0x28, 0x65,
-
-	/*--------------- Set Bit 0 in FAF -----------------------------------*/
-	/*
-	* Set_Clr_FAF
-	* 0000.0011-1-000.0000
-	*             |-> j[0:6] = 0x000 = 0 (User Defined leftmost bit)
-	*           |-> c = 1 (Set)
-	*       |-> s[0:2] = 0
-	* |-> OpCode
-	*
-	* Set (c=1) the Frame Attribute Flags at the indicated index
-	* 96 (j[0:6]).
-	*
-	*/
-	0x03, 0x80,	/* FAF (User Defined leftmost bit) */
-
-	/*----------------------- WO = WR0 = 46 ------------------------------*/
-	/*
-	* Modify WO by WR
-	* 0000.0000.1000.00-0-0
-	*                     |-> W = 0 (WR0)
-	*                   |-> A = 0
-	* |-> OpCode
-	*
-	* Loads (A=0) the least significant 8b of WR0 into the Window Offset
-	* register.
-	*
-	* Window Offset = WR0 = 46
-	*
-	*/
-	0x00, 0x80,
-
-#if 1
-	/**********************************************************************/
-	/*       Jump to the protocol found in the EType field of the         */
-	/*                  Custom Header (IPv4 HXS)                          */
-	/**********************************************************************/
-	/*----------------- Jump to protocol 0x0800 --------------------------*/
-	/*
-	* Jump_Protocol
-	* 0000.0000.0100.01-00
-	*                   |-> P = 0
-	* |-> OpCode
-	*
-	* Execution jumps to the HXS decoded in the NxtHdr field of the Parse
-	* Array. Used to jump to the next HXS based on a protocol code.
-	* The jump is treated as an advancement to a new HXS (the HB is updated
-	* to HB+WO, WO and WRs are reset).
-	* If the P code is 0, NxtHdr is evaluated against the following
-	* EtherTypes:
-	*	-0x05DC of less: jump to LLC-SNAP
-	*	-0x0800: jump to IPv4
-	*	-0x0806: jump to ARP
-	*	-0x86dd: jump to IPv6
-	*	-0x8847, 0x8848: jump to MPLS-0x8100, 0x88A8,ConfigTPID1,
-	*		ConfigTPID2: jump to VLAN
-	*	-0x8864: jump to PPPoE+PPP
-	*	-unknown: jump to Other L3 Shell
-	*/
-	0x00, 0x44,
-#else
-	/*
-	 * In order to see the mandatory fields are correctly updated by this
-	 * Software Parser, just jump to Parse End.
-	 *
-	 * The FAF bit #0 was set at PC = 16.
-	 *
-	 */
-	/*------------------------- Jumps to Parse End -----------------------*/
-	0x0C, 0x80, 0x87, 0xFF,
-	/*
-	* Jump_FAF
-	* 0000.1100. 1 j[0:6]
-	*              |-> j[0:6] = 0000000; FAF (User Defined leftmost bit)
-	*            |-> A = 1
-	* |-> OpCode
-	*
-	* Jump to 0x7FF (End Parsing) ib Bit #0 is set in FAF.
-	*
-	* G[0]L[1]JumpDest[5:15]
-	* 1-0-000-11111111111
-	*         |-> JumpDest[5:15] = 0x7FF
-	*     |-> Unused ?
-	*   |-> L = 0; JumpDest is absolute
-	* |-> G = 1; Jump is treated as a gosub
-	*
-	*/
-#endif
-	/*--------------------------------------------------------------------*/
-	0x00, 0x00,
-	/*
-	* NOP; NOP needed so that the size is a 4 multiple
-	*/
-
-};
+uint8_t sparser_ex[44] __attribute__((aligned(4))) = {0x00, 0x00, 0x00, 0x00};
 
 /******************************************************************************/
 /* Packet to be parsed
@@ -509,14 +92,16 @@ uint8_t parsed_packet[] = {
 /******************************************************************************/
 static void sp_print_frame(void)
 {
-	uint8_t *eth_pointer_byte = 0;
-	int i;
-	uint16_t seg_len = PRC_GET_SEGMENT_LENGTH();
-	uint32_t frame_len = LDPAA_FD_GET_LENGTH(HWC_FD_ADDRESS);
+	uint16_t	seg_len;
+	uint32_t	frame_len;
+	uint8_t		*pb;
+	int		i;
 
+	seg_len = PRC_GET_SEGMENT_LENGTH();
+	frame_len = LDPAA_FD_GET_LENGTH(HWC_FD_ADDRESS);
 	fsl_print("Printing Frame. FD[len] = %d, Seg Len = %d\n",
 		  frame_len, seg_len);
-	eth_pointer_byte = (uint8_t *)PARSER_GET_ETH_POINTER_DEFAULT();
+	pb = (uint8_t *)PRC_GET_SEGMENT_ADDRESS();
 	for (i = 0; i < frame_len && i < seg_len; i++) {
 		if ((i % 16) == 0) {
 			fsl_print("00");
@@ -524,14 +109,14 @@ static void sp_print_frame(void)
 				fsl_print("0");
 			fsl_print("%x  ", i);
 		}
-		if (*eth_pointer_byte < 16)
+		if (*pb < 16)
 			fsl_print("0");
-		fsl_print("%x ", *eth_pointer_byte);
+		fsl_print("%x ", *pb);
 		if ((i % 8) == 7)
 			fsl_print(" ");
 		if ((i % 16) == 15)
 			fsl_print("\n");
-		eth_pointer_byte++;
+		pb++;
 	}
 	if ((i % 16) != 0)
 		fsl_print("\n");
@@ -628,6 +213,179 @@ static int app_dpni_event_added_cb(uint8_t generator_id, uint8_t event_id,
 }
 
 /******************************************************************************/
+#define ASM_LOOK_LIKE	1
+
+/******************************************************************************/
+#if (ASM_LOOK_LIKE == 0)
+static void soft_parser_example_gen(void)
+{
+	memset(&sparser_ex[0], 0, sizeof(sparser_ex));
+	/* Start byte-code write */
+	sparser_begin_bytecode_wrt(0x20, &sparser_ex[0], sizeof(sparser_ex));
+	/* Soft parser is called at the end of the Ethernet HXS execution.
+	 *	HB = 0 (it is not changed by the call of soft parser)
+	 *	WO = 0 is cleared
+	 *	WR0 = 0 is cleared
+	 *	WR1 = 0 is cleared
+	 *	Frame Window (FW) points to the first 16 bytes in the received
+	 *	packet
+	 **********************************************************************
+	 * Compare the EType field in the received packet with the expected
+	 * EType.
+	 **********************************************************************
+	 * WR0 = Packet EType field
+	 *	offset : 12 bytes from FW start
+	 *	size   : 2 bytes) */
+	sparser_gen_ld_fw_to_wr0(96, 16);
+	/* WR1 = Expected Packet type from SP parameters (0xEE00).
+	 *	offset : 0 bytes from Parameters Array start
+	 *	size   : 2 bytes) */
+	sparser_gen_ld_pa_to_wr1(0, 2);
+	/* Compares the 2 values on non equality.
+	 *
+	 * If comparison result is true then the received packet does not
+	 * contain the expected custom header and a return to the calling HXS
+	 * (Ethernet) is performed. Soft parser execution ends here.
+	 *
+	 * If comparison result is false then the received packet contains the
+	 * expected custom header and the soft parser execution continues with
+	 * the next instruction. */
+	sparser_gen_cmp_wr0_ne_wr1(SP_RETURN_TO_HXS_DST);
+	/**********************************************************************
+	 * Advance HB on the custom header start
+	 **********************************************************************
+	 * WR1 = NxtHdrOffset from the Parse Array. NxtHdrOffset was set by the
+	 * Ethernet HXS.
+	 *	offset : 50 bytes from Parse Array start
+	 *	size   : 1 byte)
+	 * WR1 = 14 */
+	sparser_gen_ld_ra_to_wr1(50, 1);
+	/* Prepare the advancement of HB by setting the Window Offset value :
+	 *	WO = WR1 = 14 */
+	sparser_gen_ld_wr1_to_wo();
+	/* Advance HB to the custom header offset :
+	 *	HB = 14
+	 *	WO = 0 is cleared
+	 *	WR0 = 0 is cleared
+	 *	WR1 = 0 is cleared
+	 */
+	sparser_gen_advance_hb_by_wo();
+	/**********************************************************************
+	 * Soft Parsers must set the NxtHdr in the Parse Array. NxtHdr is Parse
+	 * Array[16:17]. To do that the EType field of the custom header must be
+	 * read.
+	 **********************************************************************
+	 * Set the WO to point on the last 16 bytes of the custom header.
+	 * WR0 = Custom header size from SP parameters (46)
+	 *	offset : 2 bytes from Parameters Array start
+	 *	size   : 1 byte)
+	 * WR0 = 46 */
+	sparser_gen_ld_pa_to_wr0(2, 1);
+	/* Subtract 16 from the custom header length :
+	 *	WR0 = 36 */
+	sparser_gen_sub32_wr0_imm_to_wr0(0x10, SP_IMM_16);
+	/* Set WO on the last 16 bytes of the custom header :
+	 *	WO = 36 */
+	sparser_gen_ld_wr0_to_wo();
+	/* WR0 = EType field in the custom header (0x0800)
+	 *	offset : 14 bytes from FW start
+	 *	size   : 2 bytes) */
+	sparser_gen_ld_fw_to_wr1(112, 16);
+	/* Set the "NxtHdr" in the Parse Array :
+	 *	offset : 16 bytes from Parse Array start
+	 *	size   : 2 bytes)
+	 *
+	 * NxtHdr = Parse Array[16:17] = 0x0800
+	 */
+	sparser_gen_st_wr1_to_ra(16, 2);
+	/**********************************************************************
+	 * Custom header offset is stored in ShimOffset_1 field of the Parse
+	 * Array[32]
+	 **********************************************************************
+	 * WR1 =  NxtHdrOffset from the Parse Array.
+	 *	offset : 50 bytes from Parse Array start
+	 *	size   : 1 byte)
+	 * WR1 = 14 */
+	sparser_gen_ld_ra_to_wr1(50, 1);
+	/* ShimOffset_1 = Parse Array[32] = 14 */
+	sparser_gen_st_wr1_to_ra(32, 1);
+	/**********************************************************************
+	 * Soft Parsers must set the NxtHdrOffst in the Parse Array.
+	 * NxtHdrOffst = current NxtHdrOffst + custom header length.
+	 **********************************************************************
+	 * WR0 = custom header length = 46 */
+	sparser_gen_ld_pa_to_wr0(2, 1);
+	/* WR1 = Ethernet NxtHdrOffset = 14
+	 * WR0 = custom header length = 46
+	 *
+	 * WR1 = 46 + 14 = 60 */
+	sparser_gen_add32_wr0_to_wr1();
+	/* NxtHdrOffst = Parse Array[50] = 60 */
+	sparser_gen_st_wr1_to_ra(50, 1);
+	/**********************************************************************
+	 * Custom header presence is marked in bit #0 of the Frame Attribute
+	 * Flags extension.
+	 *********************************************************************/
+	sparser_gen_set_faf_bit(SP_FAF_UD_SOFT_PARSER_0);
+	/**********************************************************************
+	 * Before calling the HXS processing the next header, a soft parser must
+	 * prepare the Header Base advancement.	HB is advanced with the current
+	 * value of WO.
+	 *
+	 * Set the WO to the length of the custom header.
+	 *	WO = 46
+	 *********************************************************************/
+	sparser_gen_ld_wr0_to_wo();
+	/* HB = HB + WO = 14 + 46 = 60
+	 * WO = 0
+	 * WR0 = 0
+	 * WR1 = 0
+	 *
+	 * Jump to IPv4 HXS because now
+	 *	NxtHdr = Parse Array[16:17] = 0x0800 */
+	sparser_gen_jump_to_l2_protocol();
+	/* NOP to make the SP size a multiple of 4 */
+	sparser_gen_nop();
+	/* End byte-code write */
+	sparser_end_bytecode_wrt();
+}
+
+#else	/* ASM_LOOK_LIKE = 1 */
+
+/******************************************************************************/
+static void soft_parser_example_gen(void)
+{
+#define SP_EXAMPLE							  \
+	do {								  \
+		SPARSER_BEGIN(0x20, &sparser_ex[0], sizeof(sparser_ex));  \
+			/* 0x020 */ LD_FW_TO_WR0(96, 16);		  \
+			/* 0x021 */ LD_PA_TO_WR1(0, 2);			  \
+			/* 0x022 */ CMP_WR0_NE_WR1(SP_RETURN_TO_HXS_DST); \
+			/* 0x024 */ LD_RA_TO_WR1(50, 1);		  \
+			/* 0x025 */ LD_WR1_TO_WO;			  \
+			/* 0x026 */ ADVANCE_HB_BY_WO;			  \
+			/* 0x027 */ LD_PA_TO_WR0(2, 1);			  \
+			/* 0x028 */ SUB32_WR0_IMM_TO_WR0(0x10, SP_IMM_16);\
+			/* 0x02a */ LD_WR0_TO_WO;			  \
+			/* 0x02b */ LD_FW_TO_WR1(112, 16);		  \
+			/* 0x02c */ ST_WR1_TO_RA(16, 2);		  \
+			/* 0x02d */ LD_RA_TO_WR1(50, 1);		  \
+			/* 0x02e */ ST_WR1_TO_RA(32, 1);		  \
+			/* 0x02f */ LD_PA_TO_WR0(2, 1);			  \
+			/* 0x030 */ ADD32_WR0_TO_WR1;			  \
+			/* 0x031 */ ST_WR1_TO_RA(50, 1);		  \
+			/* 0x032 */ SET_FAF_BIT(SP_FAF_UD_SOFT_PARSER_0); \
+			/* 0x033 */ LD_WR0_TO_WO;			  \
+			/* 0x034 */ JMP_TO_L2_PROTOCOL;			  \
+			/* 0x035 */ NOP;				  \
+		SPARSER_END;						  \
+	} while (0)
+
+	SP_EXAMPLE;
+}
+#endif	/* ASM_LOOK_LIKE */
+
+/******************************************************************************/
 static int soft_parser_develop_debug(void)
 {
 	int				err;
@@ -637,10 +395,18 @@ static int soft_parser_develop_debug(void)
 	struct sparser_info		sp_info;
 	struct dpni_drv_sparser_param	sp_param;
 
+	/************************/
+	/* Soft Parser generate */
+	/************************/
+	soft_parser_example_gen();
+	/*****************************/
+	/* Soft Parser bytecode dump */
+	/*****************************/
+	sparser_bytecode_dump();
 	/****************************/
 	/* Soft Parser disassembler */
 	/****************************/
-	err = sparser_disa(0x20, &sparser_example[0], sizeof(sparser_example));
+	err = sparser_disa(0x20, &sparser_ex[0], sizeof(sparser_ex));
 	if (err)
 		return err;
 	/**********************************/
@@ -689,7 +455,7 @@ static int soft_parser_develop_debug(void)
 	if (err)
 		return err;
 	/* 8. Call the built-in simulator */
-	err = sparser_sim(0x20, &sparser_example[0], sizeof(sparser_example));
+	err = sparser_sim(0x20, &sparser_ex[0], sizeof(sparser_ex));
 	if (err)
 		return err;
 	/* 9. Dump Parse Results */
@@ -710,8 +476,8 @@ static int soft_parser_develop_debug(void)
 	sparser_drv_set_pclim(PARSER_CYCLE_LIMIT_MAX);
 	/* 3. Load Soft Parser */
 	sp_info.pc = PARSER_MIN_PC;
-	sp_info.byte_code = &sparser_example[0];
-	sp_info.size = sizeof(sparser_example);
+	sp_info.byte_code = &sparser_ex[0];
+	sp_info.size = sizeof(sparser_ex);
 	sp_info.param_off = 0;
 	sp_info.param_size = 3;
 	/* SPs of SPARSER_MC_WRIOP and SPARSER_MC_WRIOP_AIOP types are sent
@@ -743,11 +509,19 @@ static int soft_parser_develop_debug(void)
 	sparser_drv_memory_dump(sp_info.pc, sp_info.pc + sp_info.size / 2);
 	sparser_drv_memory_dump(PARSER_MIN_PC, PARSER_MAX_PC + 3);
 	*/
-	/* 5. Activate the SP */
+	/* 5. Activate the SP and stores its parameters in the parse profile.
+	 * Only the custom headers following a known header are activated.
+	 * For a custom header placed in the first position in the packet :
+	 *	- call this function only if the soft parser has parameters
+	 *	- call the sl_prolog_with_custom_header() function instead of
+	 *	sl_prolog() in the packets processing function. */
 	pa[0] = 0xEE;	/* Expected EType = 0xEE00 */
 	pa[1] = 0x00;
 	pa[2] = 46;	/* Custom Header Length in bytes */
-	sp_param.link_hxs = PARSER_ETH_STARTING_HXS;
+	/* First header may be set only on Rev2 platforms */
+	sp_param.first_header = 0;
+	/* If "first_header" is set "link_to_hard_hxs" does not matter */
+	sp_param.link_to_hard_hxs = PARSER_ETH_STARTING_HXS;
 	sp_param.start_pc = PARSER_MIN_PC;
 	sp_param.param_array = (uint8_t *)&pa[0];
 	sp_param.param_offset = 0;

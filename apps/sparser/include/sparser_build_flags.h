@@ -51,4 +51,18 @@
  */
 #define SP_DPAA_VERSION		2
 
+/******************************************************************************/
+/* In order to identify the errors that may occur while developing a soft
+ * parser, the generated instruction is first written in the byte-code array,
+ * then is disassembled and finally the jump destinations are checked. When an
+ * error is detected an explanatory message is printed and the an assertion is
+ * raised.
+ * To enable this behavior define the SP_GEN_CHECK_ERRORS as 1.
+ *
+ * If the API sequence generating the soft parser byte-code is used in the
+ * target application is recommended to define SP_GEN_CHECK_ERRORS as 0.
+ * No error check is performed. Instructions are not disassembled.
+ */
+#define SP_GEN_CHECK_ERRORS	1
+
 #endif /* __SPARSER_BUILD_FLAGS_H */

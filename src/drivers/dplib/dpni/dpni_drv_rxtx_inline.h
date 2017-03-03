@@ -64,8 +64,9 @@ static inline void sl_prolog_common(void)
 #ifndef DISABLE_ASSERTIONS
 
 	dpni_drv_params_local = dpni_drv->dpni_drv_params_var;
-
+#ifdef LS2085A_REV1
 	ASSERT_COND_LIGHT(dpni_drv_params_local.starting_hxs == 0);
+#endif
 	ASSERT_COND_LIGHT(dpni_drv_params_local.prpid == 0);
 	ASSERT_COND_LIGHT(dpni_drv_params_local.flags & DPNI_DRV_FLG_PARSE);
 	ASSERT_COND_LIGHT(dpni_drv_params_local.flags & DPNI_DRV_FLG_PARSER_DIS);
@@ -90,9 +91,7 @@ inline int sl_prolog(void)
 	default_task_params.parser_starting_hxs = 0;
 	default_task_params.qd_priority = ((*((uint8_t *)(HWC_ADC_ADDRESS + \
 			ADC_WQID_PRI_OFFSET)) & ADC_WQID_MASK) >> 4);
-
 	err = parse_result_generate_basic();
-	
 	sl_prolog_common();
 	return err;
 }
@@ -113,6 +112,39 @@ inline int sl_prolog_with_ref_take(void)
 
 	err = parse_result_generate_basic_with_ref_take();
 	
+	sl_prolog_common();
+	return err;
+}
+
+inline int sl_prolog_with_custom_header(uint16_t start_hxs)
+{
+	int			err;
+	struct parse_result	*pr;
+
+#ifdef LS2085A_REV1
+	/* On Rev1 platforms having a custom header, as the first header in the
+	 * packet, is not supported. The starting HXS must be 0 (Ethernet) and
+	 * the starting offset must be 0.*/
+	start_hxs = 0;
+#endif
+	pr = (struct parse_result *)HWC_PARSE_RES_ADDRESS;
+	/* Need to save running-sum in parse-results LE-> BE */
+	pr->gross_running_sum = LH_SWAP(HWC_FD_ADDRESS + FD_FLC_RUNNING_SUM, 0);
+	default_task_params.parser_profile_id = 0;
+	default_task_params.parser_starting_hxs = start_hxs;
+	default_task_params.qd_priority =
+		((*((uint8_t *)(HWC_ADC_ADDRESS + ADC_WQID_PRI_OFFSET)) &
+		    ADC_WQID_MASK) >> 4);
+#ifdef LS2085A_REV1
+	/* Packet parsing is started by a hard HXS. */
+	err = parse_result_generate((enum parser_starting_hxs_code)start_hxs,
+				    0, 0);
+#else
+	/* Packet parsing is started by the soft parser loaded at the
+	 * "start_hxs" PC address in the instructions memory of the AIOP
+	 * Parser. */
+	err = parse_result_generate(start_hxs, 0, 0);
+#endif
 	sl_prolog_common();
 	return err;
 }
