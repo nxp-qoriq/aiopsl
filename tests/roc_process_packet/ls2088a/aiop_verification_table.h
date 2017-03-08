@@ -671,10 +671,10 @@ struct table_rule_query_by_key_desc_command{
 	/** Command returned status */
 	int32_t  status;
 
-	/* Timestamp of the matched rule*/
+	/** Timestamp of the matched rule*/
 	uint32_t timestamp;
 
-	/* Priority */
+	/** Priority */
 	uint32_t priority;
 
 	/** Index in the rule ID array to be used as an address input for the

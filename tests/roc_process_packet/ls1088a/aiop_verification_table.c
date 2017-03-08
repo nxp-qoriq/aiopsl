@@ -275,7 +275,7 @@ uint16_t aiop_verification_table(uint32_t asa_seg_addr)
 	{
 		struct table_rule_query_get_next_id_desc_command *str =
 		(struct table_rule_query_get_next_id_desc_command *)
-								asa_seg_addr;
+			asa_seg_addr;
 		uint64_t next_rule_id, rule_id =
 					rule_id_array[str->rule_id_index];
 
@@ -437,19 +437,19 @@ uint16_t aiop_verification_table(uint32_t asa_seg_addr)
 	{
 		struct table_rule_query_by_key_desc_command *str =
 		(struct table_rule_query_by_key_desc_command *) asa_seg_addr;
-		//struct table_result result __attribute__((aligned(16)));
-		//cdma_ws_memory_init((void *)&result, sizeof(result), 0);
+		/* struct table_result result __attribute__((aligned(16)));
+		cdma_ws_memory_init((void *)&result, sizeof(result), 0); */
 
 		str->status = table_rule_query_by_key_desc(
-				str->acc_id,
-				str->table_id,
-				(union table_key_desc *)str->key_desc_ptr,
-				str->key_size,
-				&str->result,
-				&str->timestamp,
-				&str->priority,
-				rule_id_array + str->rule_id_index);
-		//str->result = result;
+			str->acc_id,
+			str->table_id,
+			(union table_key_desc *)str->key_desc_ptr,
+			str->key_size,
+			/*&result*/&str->result,
+			&str->timestamp,
+			&str->priority,
+			rule_id_array + str->rule_id_index);
+		/*str->result = result;*/
 		str_size =
 			sizeof(struct table_rule_query_by_key_desc_command);
 		break;

@@ -7,9 +7,10 @@ MEMORY
 {
     /* hw_context:             org = 0x00000000,   len = 0x000000C0 --> Reserved for Hardware Context */
     /* presentation:           org = 0x00000140,   len = 0x000002C0 --> Reserved for Frame presentation area  */
-    /* shared_ram_heap:        org = 0x01010400,   len = 0x0002fc00 --> Reserved for Shared-RAM heap */
-    /* dp_ddr:                 org = 0x40000000,   len = 0x00B10000 --> Reserved for DP-DDR  heap */
-    tls:                    org = 0x000000C0,   len = 0x00000100 /* TLS - Task Local Storage */
+    /* shared_ram_heap:        org = _ssram_heap_start,   len = 0x0002fc00 --> Reserved for Shared-RAM heap */
+    /* dp_ddr:                 org = 0x40000000,   len = 0x40000000 (1GB)--> Reserved for DP-DDR */
+    /* sys_ddr:                org = 0x80000000,   len = 0x80000000 (2GB) --> Reserved for System DDR*/
+    tls:                    org = 0x000000C0,   len = 0x0000012C /* TLS - Task Local Storage */
     stack :                 org = 0x00000480,   len = 0x00007B80 /* Start location for Stack, Big stack for init task */
     i_ram:                  org = 0x00fe0000,   len = 0x00020000 /* I-RAM  */
     memory_data:            org = 0x01000000,   len = 0x400      /* Structure for memory related data exchange, reused after boot  */
@@ -119,6 +120,6 @@ EXCEPTION_HANDLERS   = ADDR(exception_handlers);
 TLS_SECTION_END_ADDR = ADDR(tls)+SIZEOF(tls);
 
 /* Definitions for required space of AIOP image in DDR */
-/* Used for initialization of aiop_app_init_info dp_ddr size */
+/* Used for initialization of aiop_app_init_info ddr size */
 AIOP_DDR_START       = ADDR(exception_handlers);
 AIOP_DDR_END         = _heap_end;

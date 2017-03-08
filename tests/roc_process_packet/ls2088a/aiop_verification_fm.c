@@ -35,6 +35,7 @@
 #include "fsl_cdma.h"
 #include "fsl_gso.h"
 #include "fsl_ipf.h"
+#include "fsl_cwapf.h"
 #include "aiop_verification.h"
 #include "system.h"
 
@@ -143,6 +144,11 @@ __declspec(entry_point) void aiop_verification_fm()
 		case IPF_MODULE:
 		{
 			str_size = aiop_verification_ipf((uint32_t)data_addr);
+			break;
+		}
+		case CWAPF_MODULE:
+		{
+			str_size = aiop_verification_cwapf((uint32_t)data_addr);
 			break;
 		}
 		case GSO_MODULE:
@@ -316,9 +322,9 @@ __declspec(entry_point) void aiop_verification_fm()
 							((uint32_t)data_addr);
 
 	        /*set storage profile ASAR */
-	        storage_profile[spid].mode_bits1 &= 0xF0; 
+	        storage_profile[spid].mode_bits1 &= 0xF0;
 	        storage_profile[spid].mode_bits1 |= str->asar_val;
-			
+
 			str_size = (uint16_t)
 			  sizeof(struct update_default_sp_asar_command);
 			break;
@@ -338,6 +344,11 @@ __declspec(entry_point) void aiop_verification_fm()
 			
 			str_size = (uint16_t)
 			  sizeof(struct update_default_sp_ptar_command);
+			break;
+		}
+		case CWAPR_MODULE:
+		{
+			str_size = aiop_verification_cwapr((uint32_t)data_addr);
 			break;
 		}
 		case INFINATE_LOOP_MODULE:

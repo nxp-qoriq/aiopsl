@@ -290,11 +290,11 @@ void ipr_delete_instance_cb_verif(uint64_t arg)
 	
 	/* setting SPID */
         *((uint8_t *)HWC_SPID_ADDRESS) = str.spid;
-	icid = (uint16_t)(storage_profile[str.spid].ip_secific_sp_info >> 48);
+        icid = (uint16_t)(storage_profile[str.spid].ip_secific_sp_info >> 48);
         icid = ((icid << 8) & 0xff00) | ((icid >> 8) & 0xff);
 	tmp = (uint8_t)(storage_profile[str.spid].ip_secific_sp_info >> 40);
-	if (tmp & 0x08)
-		flags |= FDMA_ICID_CONTEXT_BDI;
+        if (tmp & 0x08)
+               flags |= FDMA_ICID_CONTEXT_BDI;
         if (tmp & 0x04)
                flags |= FDMA_ICID_CONTEXT_PL;
 	if (storage_profile[str.spid].mode_bits2 & sp1_mode_bits2_VA_MASK)

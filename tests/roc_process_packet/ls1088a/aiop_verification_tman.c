@@ -221,6 +221,8 @@ void verif_tman_callback(uint64_t opaque1, uint16_t opaque2)
 
 	tman_timer_completion_confirmation(
 			TMAN_GET_TIMER_HANDLE(HWC_FD_ADDRESS));
+	/* TODO there is an issue that the create frame overwrites the FD where
+	the TMAN parameters are saved */
 
 	create_frame((struct ldpaa_fd *)HWC_FD_ADDRESS,&opaque1,
 			     sizeof(opaque1), tman_spid,

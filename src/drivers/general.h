@@ -255,7 +255,8 @@ extern const uint8_t _ssram_addr[];
 void update_random_64bit(void);
 
 /* TEMP function (TODO Remove!) */
-void exception_handler(char *filename,
+/* Allow exception_handler() to be redefined */
+__declspec(weak) void exception_handler(char *filename,
 		       char *function_name,
 		       uint32_t line,
 		       char *message) __attribute__ ((noreturn));

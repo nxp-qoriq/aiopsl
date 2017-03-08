@@ -39,5 +39,4 @@
 #define ARCH_MFLU_DP_DDR_NUM_ENTRIES (0)
 
 
-
 #endif /* __APPS_ARCH_H */

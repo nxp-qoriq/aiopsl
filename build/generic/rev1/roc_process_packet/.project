@@ -24,7 +24,7 @@ aiop_sl		</project>
 				</dictionary>
 				<dictionary>
 					<key>org.eclipse.cdt.make.core.buildArguments</key>
-					<value>-j8</value>
+					<value>-j16</value>
 				</dictionary>
 				<dictionary>
 					<key>org.eclipse.cdt.make.core.buildCommand</key>
@@ -32,7 +32,7 @@ aiop_sl		</project>
 				</dictionary>
 				<dictionary>
 					<key>org.eclipse.cdt.make.core.buildLocation</key>
-					<value>${ProjDirPath}/LS2085A</value>
+					<value>${ProjDirPath}/LS2088A</value>
 				</dictionary>
 				<dictionary>
 					<key>org.eclipse.cdt.make.core.cleanBuildTarget</key>
@@ -282,6 +282,11 @@ aiop_sl		</project>
 			<locationURI>PARENT-4-PROJECT_LOC/tests/roc_process_packet/ls1088a/aiop_verification_cdma.h</locationURI>
 		</link>
 		<link>
+			<name>src/ls1088a/aiop_verification_cwapr.c</name>
+			<type>1</type>
+			<locationURI>PARENT-4-PROJECT_LOC/tests/roc_process_packet/ls1088a/aiop_verification_cwapr.c</locationURI>
+		</link>
+		<link>
 			<name>src/ls1088a/aiop_verification_fdma.c</name>
 			<type>1</type>
 			<locationURI>PARENT-4-PROJECT_LOC/tests/roc_process_packet/ls1088a/aiop_verification_fdma.c</locationURI>
@@ -445,6 +450,11 @@ aiop_sl		</project>
 			<name>src/ls2088a/aiop_verification_cdma.h</name>
 			<type>1</type>
 			<locationURI>PARENT-4-PROJECT_LOC/tests/roc_process_packet/ls2088a/aiop_verification_cdma.h</locationURI>
+		</link>
+		<link>
+			<name>src/ls2088a/aiop_verification_cwapr.c</name>
+			<type>1</type>
+			<locationURI>PARENT-4-PROJECT_LOC/tests/roc_process_packet/ls2088a/aiop_verification_cwapr.c</locationURI>
 		</link>
 		<link>
 			<name>src/ls2088a/aiop_verification_fdma.c</name>
