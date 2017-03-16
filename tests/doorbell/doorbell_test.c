@@ -38,8 +38,8 @@ int app_early_init(void);
 int app_init(void);
 void app_free(void);
 
-static int32_t doorbell_cb_count[4] = {0};
-static int32_t doorbell_clear_count[4] = {0};
+static int32_t volatile doorbell_cb_count[4] = {0};
+static int32_t volatile doorbell_clear_count[4] = {0};
 
 #define RING_MASK 0x7
 
@@ -59,6 +59,7 @@ __HOT_CODE static void doorbell_ring_test(int pr, enum doorbell_reg g_m)
 	get_default_amq_attributes(&amq);
 	icontext_aiop_get(&ic);
 	ASSERT_COND(ic.icid == amq.icid);
+
 	if (ic.bdi_flags & FDMA_ENF_BDI_BIT) {
 		if (!(amq.flags & FDMA_ICID_CONTEXT_BDI))
 			pr_err("No BDI in WS\n");
@@ -75,16 +76,17 @@ __HOT_CODE static void doorbell_ring_test(int pr, enum doorbell_reg g_m)
 	doorbell_status(pr, g_m, &mask);
 	pr_debug("Read status pr %d g_m %d mask 0x%x\n", pr, g_m, mask);
 	ASSERT_COND(mask != 0);
+	atomic_incr32((int32_t*)&doorbell_cb_count[((int)g_m) * 2 + pr], 1);
+
 	doorbell_clear(pr, g_m, mask);
-	pr_debug("Cleared pr %d g_m %d mask 0x%x\n", pr, g_m, mask);
-	atomic_incr32(&doorbell_clear_count[((int)g_m) * 2 + pr], 1);
 	doorbell_status(pr, g_m, &mask);
 	ASSERT_COND(mask == 0);
+	pr_debug("Cleared pr %d g_m %d mask 0x%x\n", pr, g_m, mask);
+	atomic_incr32((int32_t*)&doorbell_clear_count[((int)g_m) * 2 + pr], 1);
 
-	atomic_incr32(&doorbell_cb_count[((int)g_m) * 2 + pr], 1);
-
-	pr_debug(" doorbell_cb%d total cb_count = %d src 0x%x\n", (((int)g_m)*2 + pr + 1),
+	pr_debug(" doorbell_cb%d total cb_count = %d src 0x%x\n", (((int)g_m)*2 + pr),
 	         doorbell_cb_count[((int)g_m) * 2 + pr], src);
+
 	if ((doorbell_cb_count[0] == 10) && (doorbell_clear_count[0] == 10)) {
 
 		for (i = 0; i < 4; i++)
@@ -141,9 +143,14 @@ int app_init(void)
 			               epid[i*2 + pr],
 			               doorbell_cb[i*2 + pr],
 			               (uint32_t)(pr + 1));
+		}
+	}
+
+	for (i = 0; i < DOORBELL_SRC_LAST; i++) {
+		for (pr = 0; pr < 2; pr++) {
 			doorbell_ring(pr, 
-			              (enum doorbell_reg)i,
-			              RING_MASK);
+				      (enum doorbell_reg)i,
+				      RING_MASK);
 		}
 	}
 
