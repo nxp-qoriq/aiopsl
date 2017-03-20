@@ -40,21 +40,12 @@
 #include "fsl_dbg.h"
 
 /******************************************************************************/
-/* Local "labels" not supported */
-/*#define SP_LOCAL_LABELS*/
-
 #define SP_JMP_DST_MASK			0x07FF	/* Address space mask */
 
 #define SP_JMP_DST_GFLAG		0x8000	/* Gosub flag */
 #define SP_JMP_DST_LFLAG		0x4000	/* Relative address flag */
 #define SP_JMP_DST_AFLAG		0x2000	/* Advance flag */
-
-#ifdef SP_LOCAL_LABELS
-	#define SP_JMP_DST_BFLAG		0x0800	/* Label flag */
-#else
-	#define SP_JMP_DST_BFLAG		0x0000
-#endif
-
+#define SP_JMP_DST_BFLAG		0x0800	/* Label flag */
 #define SP_JMP_DST_SFLAG		0x0400	/* Sign bit */
 
 #define SP_JMP_DST_FLAGS	(SP_JMP_DST_GFLAG | SP_JMP_DST_LFLAG |	\
@@ -71,14 +62,42 @@
 #endif
 
 /******************************************************************************/
-struct sparser_bytecode_data {
-	uint8_t		initialized;
-	uint16_t	start_pc;
-	uint8_t		*sp;
-	uint16_t	sz;
-	uint16_t	*sp_code;
+struct sparser_ref_label_info {
 	uint16_t	pc;
-	int		words;
+	uint8_t		off;
+};
+
+/* The number of references to a "local labels" i.e how many times a local
+ * label may be used as a jump destination from inside a soft parser code. */
+#define SPARSE_LOCAL_LABEL_REF_COUNT	32
+
+struct sparser_ref_label {
+	int				cnt;
+	/* Information in this array is filled when an instruction uses, as
+	 * jump destination, a local label enumerated value */
+	struct sparser_ref_label_info	pc_info[SPARSE_LOCAL_LABEL_REF_COUNT];
+};
+
+struct sparser_labels_info {
+	/* Information in this field is filled when the sparser_set_label() API
+	 * call is used */
+	uint16_t			to_pc;
+	struct sparser_ref_label	from_pc;
+};
+
+/* The number of "local labels" must equal the number of enumerated values in
+ * the "sparser_local_label" enumeration */
+#define SPARSE_LOCAL_LABELS_NUM		16
+
+struct sparser_bytecode_data {
+	uint8_t				initialized;
+	uint16_t			start_pc;
+	uint8_t				*sp;
+	uint16_t			sz;
+	uint16_t			*sp_code;
+	uint16_t			pc;
+	int				words;
+	struct sparser_labels_info	sp_labels[SPARSE_LOCAL_LABELS_NUM];
 };
 
 /******************************************************************************/
@@ -170,7 +189,7 @@ static __COLD_CODE inline void sparser_gen_check_rem_words(int needed_words)
 
 /******************************************************************************/
 static __COLD_CODE void sparser_gen_check_jmp_dest(uint16_t jmp_dst,
-						   uint8_t len)
+						   uint8_t len, uint8_t off)
 {
 	uint8_t		rel_addr, sign;
 	uint16_t	spd_pc, jmp_pc;
@@ -179,6 +198,7 @@ static __COLD_CODE void sparser_gen_check_jmp_dest(uint16_t jmp_dst,
 	/* Check the validity of a local label */
 	if (jmp_dst & SP_JMP_DST_BFLAG) {
 		uint16_t	label;
+		int		idx;
 
 		if (!(jmp_dst & SP_JMP_DST_LFLAG)) {
 			pr_err("Relative addressing not set for label : 0x%x\n",
@@ -186,19 +206,35 @@ static __COLD_CODE void sparser_gen_check_jmp_dest(uint16_t jmp_dst,
 			ASSERT_COND(0);
 			return;
 		}
-		label = jmp_dst & (SP_JMP_DST_BFLAG | SP_JMP_DST_MASK);
-		if (label < SP_LABEL_1 | label > SP_LABEL_16) {
+		label = jmp_dst & (SP_JMP_DST_LFLAG | SP_JMP_DST_BFLAG |
+				   SP_JMP_DST_MASK);
+		if (label < sp_label_1 | label > sp_label_16) {
 			pr_err("Invalid label : 0x%x\n", label);
 			ASSERT_COND(0);
 			return;
 		}
+		/* Add Current PC to the list of labels */
+		idx = (int)(label & 0x0F);
+		if (spd.sp_labels[idx].from_pc.cnt ==
+		    SPARSE_LOCAL_LABEL_REF_COUNT) {
+			pr_err("sp_label_%d referred more than %d times\n",
+			       idx + 1, SPARSE_LOCAL_LABEL_REF_COUNT);
+			ASSERT_COND(0);
+			return;
+		}
+		ASSERT_COND(off < len);
+		spd.sp_labels[idx].from_pc.pc_info
+			[spd.sp_labels[idx].from_pc.cnt].pc = spd_pc;
+		spd.sp_labels[idx].from_pc.pc_info
+			[spd.sp_labels[idx].from_pc.cnt].off = off;
+		spd.sp_labels[idx].from_pc.cnt++;
 		return;	/* Valid label */
 	}
 	/* Check the validity of a jump destination */
 	/* Clear the valid flags */
 	rel_addr = (jmp_dst & SP_JMP_DST_LFLAG) ? 1 : 0;
 	jmp_dst &= ~(SP_JMP_DST_GFLAG | SP_JMP_DST_LFLAG);
-	if (jmp_dst > SP_END_PARSING_HXS_DST) {
+	if (jmp_dst > sp_end_parsing_hxs_dst) {
 		pr_err("Invalid jump destination : 0x%x\n", jmp_dst);
 		ASSERT_COND(0);
 		return;
@@ -227,7 +263,7 @@ static __COLD_CODE void sparser_gen_check_jmp_dest(uint16_t jmp_dst,
 			jmp_pc = spd_pc - jmp_pc;
 		} else {
 			/* Positive jump */
-			if (spd_pc + jmp_pc > SP_END_PARSING_HXS_DST) {
+			if (spd_pc + jmp_pc > sp_end_parsing_hxs_dst) {
 				pr_err("Relative jump after PC = 0x7FF\n");
 				ASSERT_COND(0);
 				return;
@@ -248,18 +284,18 @@ static __COLD_CODE void sparser_gen_check_jmp_dest(uint16_t jmp_dst,
 			return;
 		}
 	}
-	if (jmp_pc < 0x20 && jmp_pc != SP_ETH_HXS_DST &&
-	    jmp_pc != SP_LLC_SNAP_HXS_DST &&  jmp_pc != SP_VLAN_HXS_DST &&
-	    jmp_pc != SP_PPPOE_PPP_HXS_DST && jmp_pc != SP_MPLS_HXS_DST &&
-	    jmp_pc != SP_ARP_HXS_DST && jmp_pc != SP_IP_HXS_DST &&
-	    jmp_pc != SP_IPV4_HXS_DST && jmp_pc != SP_IPV6_HXS_DST &&
-	    jmp_pc != SP_GRE_HXS_DST && jmp_pc != SP_MINENCAP_HXS_DST &&
-	    jmp_pc != SP_OTHER_L3_SHELL_HXS_DST && jmp_pc != SP_TCP_HXS_DST &&
-	    jmp_pc != SP_UDP_HXS_DST && jmp_pc != SP_IPSEC_HXS_DST &&
-	    jmp_pc != SP_SCTP_HXS_DST && jmp_pc != SP_DCCP_HXS_DST &&
-	    jmp_pc != SP_OTHER_L4_SHELL_HXS_DST && jmp_pc != SP_GTP_HXS_DST &&
-	    jmp_pc != SP_ESP_HXS_DST && jmp_pc != SP_VXLAN_HXS_DST &&
-	    jmp_pc != SP_L5_SHELL_HXS_DST && jmp_pc != SP_FINAL_SHELL_HXS_DST) {
+	if (jmp_pc < 0x20 && jmp_pc != sp_eth_hxs_dst &&
+	    jmp_pc != sp_llc_snap_hxs_dst &&  jmp_pc != sp_vlan_hxs_dst &&
+	    jmp_pc != sp_pppoe_ppp_hxs_dst && jmp_pc != sp_mpls_hxs_dst &&
+	    jmp_pc != sp_arp_hxs_dst && jmp_pc != sp_ip_hxs_dst &&
+	    jmp_pc != sp_ipv4_hxs_dst && jmp_pc != sp_ipv6_hxs_dst &&
+	    jmp_pc != sp_gre_hxs_dst && jmp_pc != sp_minencap_hxs_dst &&
+	    jmp_pc != sp_other_l3_shell_hxs_dst && jmp_pc != sp_tcp_hxs_dst &&
+	    jmp_pc != sp_udp_hxs_dst && jmp_pc != sp_ipsec_hxs_dst &&
+	    jmp_pc != sp_sctp_hxs_dst && jmp_pc != sp_dccp_hxs_dst &&
+	    jmp_pc != sp_other_l4_shell_hxs_dst && jmp_pc != sp_gtp_hxs_dst &&
+	    jmp_pc != sp_esp_hxs_dst && jmp_pc != sp_vxlan_hxs_dst &&
+	    jmp_pc != sp_l5_shell_hxs_dst && jmp_pc != sp_final_shell_hxs_dst) {
 		pr_err("Jump to an invalid hard HXS : 0x%x\n", jmp_pc);
 		ASSERT_COND(0);
 		return;
@@ -267,7 +303,7 @@ static __COLD_CODE void sparser_gen_check_jmp_dest(uint16_t jmp_dst,
 }
 #else
 	#define sparser_gen_check_rem_words(_a)
-	#define sparser_gen_check_jmp_dest(_a, _b)
+	#define sparser_gen_check_jmp_dest(_a, _b, _c)
 #endif	/* SP_GEN_CHECK_ERRORS */
 
 /******************************************************************************/
@@ -377,7 +413,7 @@ static __COLD_CODE void sparser_gen_cmp_wr0_op_wr1(uint16_t jmp_dst,
 	spd.words -= 2;
 	spd.pc += 2;
 	SPARSER_DISA_INSTR(2);
-	sparser_gen_check_jmp_dest(jmp_dst, 2);
+	sparser_gen_check_jmp_dest(jmp_dst, 2, 1);
 }
 
 /******************************************************************************/
@@ -669,6 +705,8 @@ static __COLD_CODE void sparser_gen_ldx_fw_to_wrx(uint8_t pos, uint8_t n,
 __COLD_CODE void sparser_begin_bytecode_wrt(uint16_t pc, uint8_t *sp,
 					    uint16_t sz)
 {
+	int	i, j;
+
 #if (SP_GEN_CHECK_ERRORS == 1)
 	if (spd.initialized) {
 		pr_err("SP byte-code already initialized\n");
@@ -693,6 +731,12 @@ __COLD_CODE void sparser_begin_bytecode_wrt(uint16_t pc, uint8_t *sp,
 	}
 #endif
 	memset(sp, 0, sz);
+	/* Initialize "local labels" information */
+	for (i = 0; i < SPARSE_LOCAL_LABELS_NUM; i++) {
+		spd.sp_labels[i].to_pc = (uint16_t)-1;
+		for (j = 0; j < SPARSE_LOCAL_LABEL_REF_COUNT; j++)
+			spd.sp_labels[i].from_pc.pc_info[j].pc = (uint16_t)-1;
+	}
 	spd.start_pc = pc;
 	spd.pc = pc;
 	spd.sp = sp;
@@ -727,16 +771,89 @@ __COLD_CODE void sparser_bytecode_dump(void)
 /******************************************************************************/
 __COLD_CODE void sparser_end_bytecode_wrt(void)
 {
+	int		i, j, count;
+	uint8_t		off;
+	uint16_t	from_pc, to_pc, jmp_dst, *sp_code;
+
 	spd.initialized = 0;
+	fsl_print("\nPatching local labels...\n");
+	count = 0;
+	/* Count the "local labels" */
+	for (i = 0; i < SPARSE_LOCAL_LABELS_NUM; i++) {
+		/* Label not used and not referred */
+		if (spd.sp_labels[i].to_pc == (uint16_t)-1 &&
+		    !spd.sp_labels[i].from_pc.cnt)
+				continue;
+		/* Label used and not referred */
+		if (spd.sp_labels[i].to_pc != (uint16_t)-1 &&
+		    !spd.sp_labels[i].from_pc.cnt) {
+			fsl_print("\t sp_label_%d at PC = 0x%x not referred\n",
+				  i + 1, spd.sp_labels[i].to_pc);
+			continue;
+		}
+#if (SP_GEN_CHECK_ERRORS == 1)
+		/* Label not used but referred !!! */
+		if (spd.sp_labels[i].to_pc == (uint16_t)-1 &&
+		    spd.sp_labels[i].from_pc.cnt) {
+			fsl_print("\t sp_label_%d not used but referred at :\n",
+				  i + 1);
+			for (j = 0; j < spd.sp_labels[i].from_pc.cnt; j++) {
+				from_pc = spd.sp_labels[i].
+						from_pc.pc_info[j].pc;
+				fsl_print("\t\t PC = 0x%x\n", from_pc);
+			}
+			ASSERT_COND(0);
+			return;
+		}
+#endif
+		count += spd.sp_labels[i].from_pc.cnt;
+	}
+	if (!count) {
+		fsl_print("\t No local label found\n");
+		return;
+	}
+	/* Patch the "local labels" */
+	for (i = 0; i < SPARSE_LOCAL_LABELS_NUM; i++) {
+		if (spd.sp_labels[i].to_pc == (uint16_t)-1)
+			continue;
+		to_pc = spd.sp_labels[i].to_pc;
+		for (j = 0; j < spd.sp_labels[i].from_pc.cnt; j++) {
+			off = spd.sp_labels[i].from_pc.pc_info[j].off;
+			from_pc = spd.sp_labels[i].from_pc.pc_info[j].pc;
+			jmp_dst = LF;
+			if (to_pc > from_pc)
+				jmp_dst |= (to_pc - from_pc);
+			else
+				jmp_dst |= SF | (from_pc - to_pc);
+			sp_code = (uint16_t *)spd.sp;
+			sp_code += (from_pc - spd.start_pc) + off;
+			*sp_code = jmp_dst;
+		}
+	}
 }
 
 /* SP_LABEL */
 /******************************************************************************/
-__COLD_CODE void sparser_set_label(uint8_t label)
+__COLD_CODE void sparser_set_label(enum sparser_local_label label)
 {
-	/*fsl_print("\t %s - %d : label = 0x%02x\n",
-		    __func__, __LINE__, label);*/
-	UNUSED(label);
+	int	idx;
+
+	idx = (int)(label & 0x0F);
+#if (SP_GEN_CHECK_ERRORS == 1)
+	if (!spd.initialized) {
+		pr_err("SP byte-code not initialized\n");
+		ASSERT_COND(0);
+		return;
+	}
+	if (spd.sp_labels[idx].to_pc != (uint16_t)-1) {
+		pr_err("Label sp_label_%d already used at PC = 0x%x\n",
+		       idx + 1, spd.sp_labels[idx].to_pc);
+		ASSERT_COND(0);
+		return;
+	}
+	fsl_print("sp_label_%d:\n", idx + 1);
+#endif
+	spd.sp_labels[idx].to_pc = spd.pc;
 }
 
 /* NOP */
@@ -819,8 +936,8 @@ __COLD_CODE void sparser_gen_case1_dj_wr_to_wr(uint16_t jmp_dst_1,
 	spd.words -= 3;
 	spd.pc += 3;
 	SPARSER_DISA_INSTR(3);
-	sparser_gen_check_jmp_dest(jmp_dst_1, 3);
-	sparser_gen_check_jmp_dest(jmp_dst_2, 3);
+	sparser_gen_check_jmp_dest(jmp_dst_1, 3, 1);
+	sparser_gen_check_jmp_dest(jmp_dst_2, 3, 2);
 }
 
 /* CASE2_DC_WR_to_WR */
@@ -846,8 +963,8 @@ __COLD_CODE void sparser_gen_case2_dc_wr_to_wr(uint16_t jmp_dst_1,
 	spd.words -= 3;
 	spd.pc += 3;
 	SPARSER_DISA_INSTR(3);
-	sparser_gen_check_jmp_dest(jmp_dst_1, 3);
-	sparser_gen_check_jmp_dest(jmp_dst_2, 3);
+	sparser_gen_check_jmp_dest(jmp_dst_1, 3, 1);
+	sparser_gen_check_jmp_dest(jmp_dst_2, 3, 2);
 }
 
 /* CASE2_DJ_WR_to_WR */
@@ -879,9 +996,9 @@ __COLD_CODE void sparser_gen_case2_dj_wr_to_wr(uint16_t jmp_dst_1,
 	spd.words -= 4;
 	spd.pc += 4;
 	SPARSER_DISA_INSTR(4);
-	sparser_gen_check_jmp_dest(jmp_dst_1, 4);
-	sparser_gen_check_jmp_dest(jmp_dst_2, 4);
-	sparser_gen_check_jmp_dest(jmp_dst_3, 4);
+	sparser_gen_check_jmp_dest(jmp_dst_1, 4, 1);
+	sparser_gen_check_jmp_dest(jmp_dst_2, 4, 2);
+	sparser_gen_check_jmp_dest(jmp_dst_3, 4, 3);
 }
 
 /* CASE3_DC_WR_to_WR */
@@ -913,9 +1030,9 @@ __COLD_CODE void sparser_gen_case3_dc_wr_to_wr(uint16_t jmp_dst_1,
 	spd.words -= 4;
 	spd.pc += 4;
 	SPARSER_DISA_INSTR(4);
-	sparser_gen_check_jmp_dest(jmp_dst_1, 4);
-	sparser_gen_check_jmp_dest(jmp_dst_2, 4);
-	sparser_gen_check_jmp_dest(jmp_dst_3, 4);
+	sparser_gen_check_jmp_dest(jmp_dst_1, 4, 1);
+	sparser_gen_check_jmp_dest(jmp_dst_2, 4, 2);
+	sparser_gen_check_jmp_dest(jmp_dst_3, 4, 3);
 }
 
 /* CASE3_DJ_WR_to_WR */
@@ -953,10 +1070,10 @@ __COLD_CODE void sparser_gen_case3_dj_wr_to_wr(uint16_t jmp_dst_1,
 	spd.words -= 5;
 	spd.pc += 5;
 	SPARSER_DISA_INSTR(5);
-	sparser_gen_check_jmp_dest(jmp_dst_1, 5);
-	sparser_gen_check_jmp_dest(jmp_dst_2, 5);
-	sparser_gen_check_jmp_dest(jmp_dst_3, 5);
-	sparser_gen_check_jmp_dest(jmp_dst_4, 5);
+	sparser_gen_check_jmp_dest(jmp_dst_1, 5, 1);
+	sparser_gen_check_jmp_dest(jmp_dst_2, 5, 2);
+	sparser_gen_check_jmp_dest(jmp_dst_3, 5, 3);
+	sparser_gen_check_jmp_dest(jmp_dst_4, 5, 4);
 }
 
 /* CASE4_DC_WR_to_WR */
@@ -994,10 +1111,10 @@ __COLD_CODE void sparser_gen_case4_dc_wr_to_wr(uint16_t jmp_dst_1,
 	spd.words -= 5;
 	spd.pc += 5;
 	SPARSER_DISA_INSTR(5);
-	sparser_gen_check_jmp_dest(jmp_dst_1, 5);
-	sparser_gen_check_jmp_dest(jmp_dst_2, 5);
-	sparser_gen_check_jmp_dest(jmp_dst_3, 5);
-	sparser_gen_check_jmp_dest(jmp_dst_4, 5);
+	sparser_gen_check_jmp_dest(jmp_dst_1, 5, 1);
+	sparser_gen_check_jmp_dest(jmp_dst_2, 5, 2);
+	sparser_gen_check_jmp_dest(jmp_dst_3, 5, 3);
+	sparser_gen_check_jmp_dest(jmp_dst_4, 5, 4);
 }
 
 /* JMP_TO_Lx_PROTOCOL */
@@ -1549,7 +1666,7 @@ __COLD_CODE void sparser_gen_jmp_faf(enum sparser_faf_bit faf_bit,
 	spd.words -= 2;
 	spd.pc += 2;
 	SPARSER_DISA_INSTR(2);
-	sparser_gen_check_jmp_dest(jmp_dst, 2);
+	sparser_gen_check_jmp_dest(jmp_dst, 2, 1);
 }
 
 /* LDx_PA_TO_WRx */
@@ -1594,7 +1711,7 @@ __COLD_CODE void sparser_gen_jmp(uint16_t jmp_dst)
 	spd.words -= 2;
 	spd.pc += 2;
 	SPARSER_DISA_INSTR(2);
-	sparser_gen_check_jmp_dest(jmp_dst, 2);
+	sparser_gen_check_jmp_dest(jmp_dst, 2, 1);
 }
 
 /* ST_WRx_TO_RA */

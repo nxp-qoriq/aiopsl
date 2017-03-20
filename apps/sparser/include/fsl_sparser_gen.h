@@ -71,32 +71,33 @@ enum sparser_jmp_flags {
 
  @{
 *//***************************************************************************/
-/* Local Labels Base Address. The relative addressing mode is forced. */
+/* Local Labels Base Address. The relative addressing mode is forced. Do not
+ * change this definition */
 #define SPARSER_LOC_LABEL_BASE	0x4800
 
 /**************************************************************************//**
-@Description	 enum sparser_local_labels - 16 Local Labels
+@Description	 enum sparser_local_label - 16 Local Labels
 
 *//***************************************************************************/
-enum sparser_local_labels {
+enum sparser_local_label {
 	/* Local Label 1 */
-	SP_LABEL_1 = SPARSER_LOC_LABEL_BASE,
-	SP_LABEL_2,
-	SP_LABEL_3,
-	SP_LABEL_4,
-	SP_LABEL_5,
-	SP_LABEL_6,
-	SP_LABEL_7,
-	SP_LABEL_8,
-	SP_LABEL_9,
-	SP_LABEL_10,
-	SP_LABEL_11,
-	SP_LABEL_12,
-	SP_LABEL_13,
-	SP_LABEL_14,
-	SP_LABEL_15,
+	sp_label_1 = SPARSER_LOC_LABEL_BASE,
+	sp_label_2,
+	sp_label_3,
+	sp_label_4,
+	sp_label_5,
+	sp_label_6,
+	sp_label_7,
+	sp_label_8,
+	sp_label_9,
+	sp_label_10,
+	sp_label_11,
+	sp_label_12,
+	sp_label_13,
+	sp_label_14,
+	sp_label_15,
 	/* Local Label 16 */
-	SP_LABEL_16
+	sp_label_16
 };
 
 /** @} end of group SPARSER_LOC_LABELS */
@@ -110,55 +111,55 @@ enum sparser_local_labels {
 *//***************************************************************************/
 enum sparser_hxs_dst {
 	/* Ethernet HXS destination */
-	SP_ETH_HXS_DST = 0x000,
+	sp_eth_hxs_dst = 0x000,
 	/* LLC+SNAP HXS destination */
-	SP_LLC_SNAP_HXS_DST = 0x001,
+	sp_llc_snap_hxs_dst = 0x001,
 	/* VLAN HXS destination */
-	SP_VLAN_HXS_DST = 0x002,
+	sp_vlan_hxs_dst = 0x002,
 	/* PPPoE+PPP HXS destination */
-	SP_PPPOE_PPP_HXS_DST = 0x003,
+	sp_pppoe_ppp_hxs_dst = 0x003,
 	/* MPLS HXS destination */
-	SP_MPLS_HXS_DST = 0x004,
+	sp_mpls_hxs_dst = 0x004,
 	/* ARP HXS destination */
-	SP_ARP_HXS_DST = 0x005,
+	sp_arp_hxs_dst = 0x005,
 	/* IP HXS destination */
-	SP_IP_HXS_DST = 0x006,
+	sp_ip_hxs_dst = 0x006,
 	/* IPv4 HXS destination */
-	SP_IPV4_HXS_DST = 0x007,
+	sp_ipv4_hxs_dst = 0x007,
 	/* IPv6 HXS destination */
-	SP_IPV6_HXS_DST = 0x008,
+	sp_ipv6_hxs_dst = 0x008,
 	/* GRE HXS destination */
-	SP_GRE_HXS_DST = 0x009,
+	sp_gre_hxs_dst = 0x009,
 	/* MinEncap HXS destination */
-	SP_MINENCAP_HXS_DST = 0x00A,
+	sp_minencap_hxs_dst = 0x00a,
 	/* Other L3 Shell HXS destination */
-	SP_OTHER_L3_SHELL_HXS_DST = 0x00B,
+	sp_other_l3_shell_hxs_dst = 0x00b,
 	/* TCP HXS destination */
-	SP_TCP_HXS_DST = 0x00C,
+	sp_tcp_hxs_dst = 0x00c,
 	/* UDP HXS destination */
-	SP_UDP_HXS_DST = 0x00D,
+	sp_udp_hxs_dst = 0x00d,
 	/* IPSec HXS destination */
-	SP_IPSEC_HXS_DST = 0x00E,
+	sp_ipsec_hxs_dst = 0x00e,
 	/* SCTP HXS destination */
-	SP_SCTP_HXS_DST = 0x00F,
+	sp_sctp_hxs_dst = 0x00f,
 	/* DCCP HXS destination */
-	SP_DCCP_HXS_DST = 0x010,
+	sp_dccp_hxs_dst = 0x010,
 	/* Other L4 Shell HXS destination */
-	SP_OTHER_L4_SHELL_HXS_DST = 0x011,
+	sp_other_l4_shell_hxs_dst = 0x011,
 	/* GTP HXS destination */
-	SP_GTP_HXS_DST = 0x012,
+	sp_gtp_hxs_dst = 0x012,
 	/* ESP HXS destination */
-	SP_ESP_HXS_DST = 0x013,
+	sp_esp_hxs_dst = 0x013,
 	/* VXLAN HXS destination */
-	SP_VXLAN_HXS_DST = 0x014,
+	sp_vxlan_hxs_dst = 0x014,
 	/* L5 (and above) Shell HXS destination */
-	SP_L5_SHELL_HXS_DST = 0x01E,
+	sp_l5_shell_hxs_dst = 0x01e,
 	/* Final Shell HXS destination */
-	SP_FINAL_SHELL_HXS_DST = 0x01F,
+	sp_final_shell_hxs_dst = 0x01f,
 	/* Return to hard HXS destination */
-	SP_RETURN_TO_HXS_DST = 0x7FE,
+	sp_return_to_hxs_dst = 0x7fe,
 	/* End Parsing HXS destination */
-	SP_END_PARSING_HXS_DST = 0x7FF,
+	sp_end_parsing_hxs_dst = 0x7ff,
 };
 
 /** @} end of group sparser_hxs_dst */
@@ -172,13 +173,13 @@ enum sparser_hxs_dst {
 *//***************************************************************************/
 enum sparser_imm_val {
 	/* 16 bits immediate value */
-	SP_IMM_16 = 1,
+	sp_imm_16 = 1,
 	/* 32 bits immediate value */
-	SP_IMM_32,
+	sp_imm_32,
 	/* 48 bits immediate value */
-	SP_IMM_48,
+	sp_imm_48,
 	/* 64 bits immediate value */
-	SP_IMM_64
+	sp_imm_64
 };
 
 /** @} end of group sparser_imm_val */
@@ -192,214 +193,214 @@ enum sparser_imm_val {
 *//***************************************************************************/
 enum sparser_faf_bit {
 	/* Routing header present in IPv6 header 2 */
-	SP_FAF_IPV6_ROUTE_HDR2_PRESENT = 0,
+	sp_faf_ipv6_route_hdr2_present = 0,
 	/* GTP Primed was detected */
-	SP_FAF_IPV6_GTP_PRIMED_DETECTED = 1,
+	sp_faf_ipv6_gtp_primed_detected = 1,
 	/* VLAN with VID = 0 was detected */
-	SP_FAF_VLAN_WITH_VID_0_DETECTED = 2,
+	sp_faf_vlan_with_vid_0_detected = 2,
 	/* A PTP frame was detected */
-	SP_FAF_PTP_DETECTED = 3,
+	sp_faf_ptp_detected = 3,
 	/* VXLAN was parsed */
-	SP_FAF_VXLAN_PRESENT = 4,
+	sp_faf_vxlan_present = 4,
 	/* A VXLAN HXS parsing error was detected */
-	SP_FAF_VXLAN_PARSE_ERR = 5,
+	sp_faf_vxlan_parse_err = 5,
 	/* Ethernet control protocol (MAC DA is
 	 * 01:80:C2:00:00:00-01:80:C2:00:00:00:FF) */
-	SP_FAF_ETH_SLOW_PROTO_DETECTED = 6,
+	sp_faf_eth_slow_proto_detected = 6,
 	/* IKE was detected at UDP port 4500 */
-	SP_FAF_IKE_PRESENT = 7,
+	sp_faf_ike_present = 7,
 	/* Shim Shell Soft Parsing Error */
-	SP_FAF_SHIM_SOFT_PARSE_ERR = 8,
+	sp_faf_shim_soft_parse_err = 8,
 	/* Parsing Error */
-	SP_FAF_PARSING_ERR = 9,
+	sp_faf_parsing_err = 9,
 	/* Ethernet MAC Present */
-	SP_FAF_ETH_MAC_PRESENT = 10,
+	sp_faf_eth_mac_present = 10,
 	/* Ethernet Unicast */
-	SP_FAF_ETH_UNICAST = 11,
+	sp_faf_eth_unicast = 11,
 	/* Ethernet Multicast */
-	SP_FAF_ETH_MULTICAST = 12,
+	sp_faf_eth_multicast = 12,
 	/* Ethernet Broadcast */
-	SP_FAF_ETH_BROADCAST = 13,
+	sp_faf_eth_broadcast = 13,
 	/* BPDU frame (MAC DA is 01:80:C2:00:00:00) */
-	SP_FAF_BPDU_FRAME = 14,
+	sp_faf_bpdu_frame = 14,
 	/* FCoE detected (EType is 0x8906 */
-	SP_FAF_FCOE_DETECTED = 15,
+	sp_faf_fcoe_detected = 15,
 	/* FIP detected (EType is 0x8914) */
-	SP_FAF_FIP_DETECTED = 16,
+	sp_faf_fip_detected = 16,
 	/* Ethernet Parsing Error */
-	SP_FAF_ETH_PARSING_ERR = 17,
+	sp_faf_eth_parsing_err = 17,
 	/* LLC+SNAP Present */
-	SP_FAF_LLC_SNAP_PRESENT = 18,
+	sp_faf_llc_snap_present = 18,
 	/* Unknown LLC/OUI */
-	SP_FAF_UNKNOWN_LLC_OUI = 19,
+	sp_faf_unknown_llc_oui = 19,
 	/* LLC+SNAP Error */
-	SP_FAF_LLC_SNAP_ERR = 20,
+	sp_faf_llc_snap_err = 20,
 	/* VLAN 1 Present */
-	SP_FAF_VLAN_1_PRESENT = 21,
+	sp_faf_vlan_1_present = 21,
 	/* VLAN 1 Present */
-	SP_FAF_VLAN_N_PRESENT = 22,
+	sp_faf_vlan_n_present = 22,
 	/* CFI bit in a "8100" VLAN tag is set */
-	SP_FAF_VLAN_8100_CFI_SET = 23,
+	sp_faf_vlan_8100_cfi_set = 23,
 	/* VLAN Parsing Error */
-	SP_FAF_VLAN_PARSING_ERR = 24,
+	sp_faf_vlan_parsing_err = 24,
 	/* PPPoE+PPP Present */
-	SP_FAF_PPOE_PPP_PRESENT = 25,
+	sp_faf_ppoe_ppp_present = 25,
 	/* PPPoE+PPP Parsing Error */
-	SP_FAF_PPOE_PPP_PARSING_ERR = 26,
+	sp_faf_ppoe_ppp_parsing_err = 26,
 	/* MPLS 1 Present */
-	SP_FAF_MPLS_1_PRESENT = 27,
+	sp_faf_mpls_1_present = 27,
 	/* MPLS n Present */
-	SP_FAF_MPLS_N_PRESENT = 28,
+	sp_faf_mpls_n_present = 28,
 	/* MPLS Parsing Error */
-	SP_FAF_MPLS_PARSING_ERR = 29,
+	sp_faf_mpls_parsing_err = 29,
 	/* ARP frame Present (Ethertype 0x0806 */
-	SP_FAF_ARP_PRESENT = 30,
+	sp_faf_arp_present = 30,
 	/* ARP Parsing Error */
-	SP_FAF_ARP_PARSING_ERR = 31,
+	sp_faf_arp_parsing_err = 31,
 	/* L2 Unknown Protocol */
-	SP_FAF_L2_UNKNOWN_PROTO = 32,
+	sp_faf_l2_unknown_proto = 32,
 	/* L2 Soft Parsing Error */
-	SP_FAF_L2_SOFT_PARSE_ERR = 33,
+	sp_faf_l2_soft_parse_err = 33,
 	/* IPv4 1 Present */
-	SP_FAF_IPV4_1_PRESENT = 34,
+	sp_faf_ipv4_1_present = 34,
 	/* IPv4 1 Unicast */
-	SP_FAF_IPV4_1_UNICAST = 35,
+	sp_faf_ipv4_1_unicast = 35,
 	/* IPv4 1 Multicast */
-	SP_FAF_IPV4_1_MULTICAST = 36,
+	sp_faf_ipv4_1_multicast = 36,
 	/* IPv4 1 Broadcast */
-	SP_FAF_IPV4_1_BROADCAST = 37,
+	sp_faf_ipv4_1_broadcast = 37,
 	/* IPv4 n Present */
-	SP_FAF_IPV4_N_PRESENT = 38,
+	sp_faf_ipv4_n_present = 38,
 	/* IPv4 n Unicast */
-	SP_FAF_IPV4_N_UNICAST = 39,
+	sp_faf_ipv4_n_unicast = 39,
 	/* IPv4 n Multicast */
-	SP_FAF_IPV4_N_MULTICAST = 40,
+	sp_faf_ipv4_n_multicast = 40,
 	/* IPv4 n Broadcast */
-	SP_FAF_IPV4_N_BROADCAST = 41,
+	sp_faf_ipv4_n_broadcast = 41,
 	/* IPv6 1 Present */
-	SP_FAF_IPV6_1_PRESENT = 42,
+	sp_faf_ipv6_1_present = 42,
 	/* IPv6 1 Unicast */
-	SP_FAF_IPV6_1_UNICAST = 43,
+	sp_faf_ipv6_1_unicast = 43,
 	/* IPv6 1 Multicast */
-	SP_FAF_IPV6_1_MULTICAST = 44,
+	sp_faf_ipv6_1_multicast = 44,
 	/* IPv6 n Present */
-	SP_FAF_IPV6_N_PRESENT = 45,
+	sp_faf_ipv6_n_present = 45,
 	/* IPv6 n Unicast */
-	SP_FAF_IPV6_N_UNICAST = 46,
+	sp_faf_ipv6_n_unicast = 46,
 	/* IPv6 n Multicast */
-	SP_FAF_IPV6_N_MULTICAST = 47,
+	sp_faf_ipv6_n_multicast = 47,
 	/* IP 1 option present */
-	SP_FAF_IP_OPTION_1_PRESENT = 48,
+	sp_faf_ip_option_1_present = 48,
 	/* IP 1 Unknown Protocol */
-	SP_FAF_IP_1_UNKNOWN_PROTO = 49,
+	sp_faf_ip_1_unknown_proto = 49,
 	/* IP 1 Packet is a fragment */
-	SP_FAF_IP_1_IS_FRAGMENT = 50,
+	sp_faf_ip_1_is_fragment = 50,
 	/* IP 1 Packet is an initial fragment */
-	SP_FAF_IP_1_IS_FIRST_FRAGMENT = 51,
+	sp_faf_ip_1_is_first_fragment = 51,
 	/* IP 1 Parsing Error */
-	SP_FAF_IP_1_PARSING_ERR = 52,
+	sp_faf_ip_1_parsing_err = 52,
 	/* IP n option present */
-	SP_FAF_IP_OPTION_N_PRESENT = 53,
+	sp_faf_ip_option_n_present = 53,
 	/* IP n Unknown Protocol */
-	SP_FAF_IP_N_UNKNOWN_PROTO = 54,
+	sp_faf_ip_n_unknown_proto = 54,
 	/* IP n Packet is a fragment */
-	SP_FAF_IP_N_IS_FRAGMENT = 55,
+	sp_faf_ip_n_is_fragment = 55,
 	/* IP n Packet is an initial fragment */
-	SP_FAF_IP_N_IS_FIRST_FRAGMENT = 56,
+	sp_faf_ip_n_is_first_fragment = 56,
 	/* ICMP detected (IP proto is 1 */
-	SP_FAF_ICMP_DETECTED = 57,
+	sp_faf_icmp_detected = 57,
 	/* IGMP detected (IP proto is 2) */
-	SP_FAF_IGMP_DETECTED = 58,
+	sp_faf_igmp_detected = 58,
 	/* ICMPv6 detected (IP proto is 3a) */
-	SP_FAF_ICMP_V6_DETECTED = 59,
+	sp_faf_icmp_v6_detected = 59,
 	/* UDP Light detected (IP proto is 136) */
-	SP_FAF_UDP_LIGHT_DETECTED = 60,
+	sp_faf_udp_light_detected = 60,
 	/* IP n Parsing Error */
-	SP_FAF_IP_N_PARSING_ERR = 61,
+	sp_faf_ip_n_parsing_err = 61,
 	/* Min. Encap Present */
-	SP_FAF_MIN_ENCAP_PRESENT = 62,
+	sp_faf_min_encap_present = 62,
 	/* Min. Encap S flag set */
-	SP_FAF_MIN_ENCAP_S_FLAG_SET = 63,
+	sp_faf_min_encap_s_flag_set = 63,
 	/* Min. Encap Parsing Error */
-	SP_FAF_MIN_ENCAP_PARSING_ERR = 64,
+	sp_faf_min_encap_parsing_err = 64,
 	/* GRE Present */
-	SP_FAF_GRE_PRESENT = 65,
+	sp_faf_gre_present = 65,
 	/* GRE R bit set */
-	SP_FAF_GRE_R_BIT_SET = 66,
+	sp_faf_gre_r_bit_set = 66,
 	/* GRE Parsing Error */
-	SP_FAF_GRE_PARSING_ERR = 67,
+	sp_faf_gre_parsing_err = 67,
 	/* L3 Unknown Protocol */
-	SP_FAF_L3_UNKNOWN_PROTO = 68,
+	sp_faf_l3_unknown_proto = 68,
 	/* L3 Soft Parsing Error */
-	SP_FAF_L3_SOFT_PARSING_ERR = 69,
+	sp_faf_l3_soft_parsing_err = 69,
 	/* UDP Present */
-	SP_FAF_UDP_PRESENT = 70,
+	sp_faf_udp_present = 70,
 	/* UDP Parsing Error */
-	SP_FAF_UDP_PARSING_ERR = 71,
+	sp_faf_udp_parsing_err = 71,
 	/* TCP Present */
-	SP_FAF_TCP_PRESENT = 72,
+	sp_faf_tcp_present = 72,
 	/* TCP options present */
-	SP_FAF_TCP_OPTIONS_PRESENT = 73,
+	sp_faf_tcp_options_present = 73,
 	/* TCP Control bits 6-11 set */
-	SP_FAF_TCP_CTRL_BITS_6_11_SET = 74,
+	sp_faf_tcp_ctrl_bits_6_11_set = 74,
 	/* TCP Control bits 3-5 set */
-	SP_FAF_TCP_CTRL_BITS_3_5_SET = 75,
+	sp_faf_tcp_ctrl_bits_3_5_set = 75,
 	/* TCP Parsing Error */
-	SP_FAF_TCP_PARSING_ERR = 76,
+	sp_faf_tcp_parsing_err = 76,
 	/* IPSec Present */
-	SP_FAF_IPSEC_PRESENT = 77,
+	sp_faf_ipsec_present = 77,
 	/* IPSec ESP found */
-	SP_FAF_IPSEC_ESP_FOUND = 78,
+	sp_faf_ipsec_esp_found = 78,
 	/* IPSec AH found */
-	SP_FAF_IPSEC_AH_FOUND = 79,
+	sp_faf_ipsec_ah_found = 79,
 	/* IPSec Parsing Error */
-	SP_FAF_IPSEC_PARSING_ERR = 80,
+	sp_faf_ipsec_parsing_err = 80,
 	/* SCTP Present */
-	SP_FAF_SCTP_PRESENT = 81,
+	sp_faf_sctp_present = 81,
 	/* SCTP Parsing Error */
-	SP_FAF_SCTP_PARSING_ERR = 82,
+	sp_faf_sctp_parsing_err = 82,
 	/* DCCP Present */
-	SP_FAF_DCCP_PRESENT = 83,
+	sp_faf_dccp_present = 83,
 	/* DCCP Parsing Error */
-	SP_FAF_DCCP_PARSING_ERR = 84,
+	sp_faf_dccp_parsing_err = 84,
 	/* L4 Unknown Protocol */
-	SP_FAF_L4_UNKNOWN_PROTO = 85,
+	sp_faf_l4_unknown_proto = 85,
 	/* L4 Soft Parsing Error */
-	SP_FAF_L4_SOFT_PARSING_ERR = 86,
+	sp_faf_l4_soft_parsing_err = 86,
 	/* GTP Present */
-	SP_FAF_GTP_PRESENT = 87,
+	sp_faf_gtp_present = 87,
 	/* GTP Parsing Error */
-	SP_FAF_GTP_PARSING_ERR = 88,
+	sp_faf_gtp_parsing_err = 88,
 	/* ESP Present */
-	SP_FAF_ESP_PRESENT = 89,
+	sp_faf_esp_present = 89,
 	/* ESP Parsing Error */
-	SP_FAF_ESP_PARSING_ERR = 90,
+	sp_faf_esp_parsing_err = 90,
 	/* iSCSI detected (Port# 860) */
-	SP_FAF_ISCSI_DETECTED = 91,
+	sp_faf_iscsi_detected = 91,
 	/* Capwap-control detected (Port# 5246) */
-	SP_FAF_CAPWAP_CTRL_DETECTED = 92,
+	sp_faf_capwap_ctrl_detected = 92,
 	/* Capwap-data detected (Port# 5247) */
-	SP_FAF_CAPWAP_DATA_DETECTED = 93,
+	sp_faf_capwap_data_detected = 93,
 	/* L5 Soft Parsing Error */
-	SP_FAF_L5_SOFT_PARSING_ERR = 94,
+	sp_faf_l5_soft_parsing_err = 94,
 	/* IPv6 Route hdr1 present */
-	SP_FAF_IPV6_ROUTE_HDR1_PRESENT = 95,
+	sp_faf_ipv6_route_hdr1_present = 95,
 	/* User defined soft parser bit #0 */
-	SP_FAF_UD_SOFT_PARSER_0 = 96,
+	sp_faf_ud_soft_parser_0 = 96,
 	/* User defined soft parser bit #1 */
-	SP_FAF_UD_SOFT_PARSER_1 = 97,
+	sp_faf_ud_soft_parser_1 = 97,
 	/* User defined soft parser bit #2 */
-	SP_FAF_UD_SOFT_PARSER_2 = 98,
+	sp_faf_ud_soft_parser_2 = 98,
 	/* User defined soft parser bit #3 */
-	SP_FAF_UD_SOFT_PARSER_3 = 99,
+	sp_faf_ud_soft_parser_3 = 99,
 	/* User defined soft parser bit #4 */
-	SP_FAF_UD_SOFT_PARSER_4 = 100,
+	sp_faf_ud_soft_parser_4 = 100,
 	/* User defined soft parser bit #5 */
-	SP_FAF_UD_SOFT_PARSER_5 = 101,
+	sp_faf_ud_soft_parser_5 = 101,
 	/* User defined soft parser bit #6 */
-	SP_FAF_UD_SOFT_PARSER_6 = 102,
+	sp_faf_ud_soft_parser_6 = 102,
 	/* User defined soft parser bit #7 */
-	SP_FAF_UD_SOFT_PARSER_7 = 103,
+	sp_faf_ud_soft_parser_7 = 103,
 };
 
 /** @} end of group sparser_faf_bit */
@@ -443,8 +444,19 @@ void sparser_bytecode_dump(void);
 *//***************************************************************************/
 void sparser_end_bytecode_wrt(void);
 
-/******************************************************************************/
-void sparser_set_label(uint8_t label);
+/**************************************************************************//**
+@Function	sparser_set_label
+
+@Description	Set a label, that may be used as a jump destination, in the
+		soft parser byte-code. A label may be used once.
+
+@Param[in]	label : A label value from the sparser_local_label enumeration.
+
+@Return		No return on failure. Prints error messages, showing what error
+		occurred.
+
+*//***************************************************************************/
+void sparser_set_label(enum sparser_local_label label);
 
 /**************************************************************************//**
 @Function	sparser_gen_nop
@@ -970,7 +982,7 @@ void sparser_gen_sub32_wr1_to_wr0(void);
 
 @Param[in]	imm : 16/32 bits immediate value.
 
-@Param[in]	imm_sz : Immediate value size (SP_IMM_16 or SP_IMM_32).
+@Param[in]	imm_sz : Immediate value size - sp_imm_16 or sp_imm_32.
 
 @Return		No return on failure. Prints error messages, showing what error
 		occurred.
@@ -989,7 +1001,7 @@ void sparser_gen_add32_wr0_imm_to_wr0(uint32_t imm,
 
 @Param[in]	imm : 16/32 bits immediate value.
 
-@Param[in]	imm_sz : Immediate value size (SP_IMM_16 or SP_IMM_32).
+@Param[in]	imm_sz : Immediate value size - sp_imm_16 or sp_imm_32.
 
 @Return		No return on failure. Prints error messages, showing what error
 		occurred.
@@ -1008,7 +1020,7 @@ void sparser_gen_add32_wr0_imm_to_wr1(uint32_t imm,
 
 @Param[in]	imm : 16/32 bits immediate value.
 
-@Param[in]	imm_sz : Immediate value size (SP_IMM_16 or SP_IMM_32).
+@Param[in]	imm_sz : Immediate value size - sp_imm_16 or sp_imm_32.
 
 @Return		No return on failure. Prints error messages, showing what error
 		occurred.
@@ -1027,7 +1039,7 @@ void sparser_gen_add32_wr1_imm_to_wr1(uint32_t imm,
 
 @Param[in]	imm : 16/32 bits immediate value.
 
-@Param[in]	imm_sz : Immediate value size (SP_IMM_16 or SP_IMM_32).
+@Param[in]	imm_sz : Immediate value size - sp_imm_16 or sp_imm_32.
 
 @Return		No return on failure. Prints error messages, showing what error
 		occurred.
@@ -1046,7 +1058,7 @@ void sparser_gen_add32_wr1_imm_to_wr0(uint32_t imm,
 
 @Param[in]	imm : 16/32 bits immediate value.
 
-@Param[in]	imm_sz : Immediate value size (SP_IMM_16 or SP_IMM_32).
+@Param[in]	imm_sz : Immediate value size - sp_imm_16 or sp_imm_32.
 
 @Return		No return on failure. Prints error messages, showing what error
 		occurred.
@@ -1065,7 +1077,7 @@ void sparser_gen_sub32_wr0_imm_to_wr0(uint32_t imm,
 
 @Param[in]	imm : 16/32 bits immediate value.
 
-@Param[in]	imm_sz : Immediate value size (SP_IMM_16 or SP_IMM_32).
+@Param[in]	imm_sz : Immediate value size - sp_imm_16 or sp_imm_32.
 
 @Return		No return on failure. Prints error messages, showing what error
 		occurred.
@@ -1084,7 +1096,7 @@ void sparser_gen_sub32_wr0_imm_to_wr1(uint32_t imm,
 
 @Param[in]	imm : 16/32 bits immediate value.
 
-@Param[in]	imm_sz : Immediate value size (SP_IMM_16 or SP_IMM_32).
+@Param[in]	imm_sz : Immediate value size - sp_imm_16 or sp_imm_32.
 
 @Return		No return on failure. Prints error messages, showing what error
 		occurred.
@@ -1103,7 +1115,7 @@ void sparser_gen_sub32_wr1_imm_to_wr1(uint32_t imm,
 
 @Param[in]	imm : 16/32 bits immediate value.
 
-@Param[in]	imm_sz : Immediate value size (SP_IMM_16 or SP_IMM_32).
+@Param[in]	imm_sz : Immediate value size - sp_imm_16 or sp_imm_32.
 
 @Return		No return on failure. Prints error messages, showing what error
 		occurred.
@@ -1411,8 +1423,8 @@ void sparser_gen_add_wr1_to_wo(void);
 
 @Param[in]	imm : 16/32/48/64 bits immediate value.
 
-@Param[in]	imm_sz : Immediate value size (SP_IMM_16/SP_IMM_32/SP_IMM_48/
-		SP_IMM_64).
+@Param[in]	imm_sz : Immediate value size - sp_imm_16, sp_imm_32, sp_imm_48
+		or sp_imm_64.
 
 @Return		No return on failure. Prints error messages, showing what error
 		occurred.
@@ -1430,8 +1442,8 @@ void sparser_gen_or_wr0_imm_to_wr0(uint64_t imm, enum sparser_imm_val imm_sz);
 
 @Param[in]	imm : 16/32/48/64 bits immediate value.
 
-@Param[in]	imm_sz : Immediate value size (SP_IMM_16/SP_IMM_32/SP_IMM_48/
-		SP_IMM_64).
+@Param[in]	imm_sz : Immediate value size - sp_imm_16, sp_imm_32, sp_imm_48
+		or sp_imm_64.
 
 @Return		No return on failure. Prints error messages, showing what error
 		occurred.
@@ -1449,8 +1461,8 @@ void sparser_gen_or_wr0_imm_to_wr1(uint64_t imm, enum sparser_imm_val imm_sz);
 
 @Param[in]	imm : 16/32/48/64 bits immediate value.
 
-@Param[in]	imm_sz : Immediate value size (SP_IMM_16/SP_IMM_32/SP_IMM_48/
-		SP_IMM_64).
+@Param[in]	imm_sz : Immediate value size - sp_imm_16, sp_imm_32, sp_imm_48
+		or sp_imm_64.
 
 @Return		No return on failure. Prints error messages, showing what error
 		occurred.
@@ -1468,8 +1480,8 @@ void sparser_gen_or_wr1_imm_to_wr1(uint64_t imm, enum sparser_imm_val imm_sz);
 
 @Param[in]	imm : 16/32/48/64 bits immediate value.
 
-@Param[in]	imm_sz : Immediate value size (SP_IMM_16/SP_IMM_32/SP_IMM_48/
-		SP_IMM_64).
+@Param[in]	imm_sz : Immediate value size - sp_imm_16, sp_imm_32, sp_imm_48
+		or sp_imm_64.
 
 @Return		No return on failure. Prints error messages, showing what error
 		occurred.
@@ -1487,8 +1499,8 @@ void sparser_gen_or_wr1_imm_to_wr0(uint64_t imm, enum sparser_imm_val imm_sz);
 
 @Param[in]	imm : 16/32/48/64 bits immediate value.
 
-@Param[in]	imm_sz : Immediate value size (SP_IMM_16/SP_IMM_32/SP_IMM_48/
-		SP_IMM_64).
+@Param[in]	imm_sz : Immediate value size - sp_imm_16, sp_imm_32, sp_imm_48
+		or sp_imm_64.
 
 @Return		No return on failure. Prints error messages, showing what error
 		occurred.
@@ -1506,8 +1518,8 @@ void sparser_gen_and_wr0_imm_to_wr0(uint64_t imm, enum sparser_imm_val imm_sz);
 
 @Param[in]	imm : 16/32/48/64 bits immediate value.
 
-@Param[in]	imm_sz : Immediate value size (SP_IMM_16/SP_IMM_32/SP_IMM_48/
-		SP_IMM_64).
+@Param[in]	imm_sz : Immediate value size - sp_imm_16, sp_imm_32, sp_imm_48
+		or sp_imm_64.
 
 @Return		No return on failure. Prints error messages, showing what error
 		occurred.
@@ -1525,8 +1537,8 @@ void sparser_gen_and_wr0_imm_to_wr1(uint64_t imm, enum sparser_imm_val imm_sz);
 
 @Param[in]	imm : 16/32/48/64 bits immediate value.
 
-@Param[in]	imm_sz : Immediate value size (SP_IMM_16/SP_IMM_32/SP_IMM_48/
-		SP_IMM_64).
+@Param[in]	imm_sz : Immediate value size - sp_imm_16, sp_imm_32, sp_imm_48
+		or sp_imm_64.
 
 @Return		No return on failure. Prints error messages, showing what error
 		occurred.
@@ -1544,8 +1556,8 @@ void sparser_gen_and_wr1_imm_to_wr1(uint64_t imm, enum sparser_imm_val imm_sz);
 
 @Param[in]	imm : 16/32/48/64 bits immediate value.
 
-@Param[in]	imm_sz : Immediate value size (SP_IMM_16/SP_IMM_32/SP_IMM_48/
-		SP_IMM_64).
+@Param[in]	imm_sz : Immediate value size - sp_imm_16, sp_imm_32, sp_imm_48
+		or sp_imm_64.
 
 @Return		No return on failure. Prints error messages, showing what error
 		occurred.
@@ -1563,8 +1575,8 @@ void sparser_gen_and_wr1_imm_to_wr0(uint64_t imm, enum sparser_imm_val imm_sz);
 
 @Param[in]	imm : 16/32/48/64 bits immediate value.
 
-@Param[in]	imm_sz : Immediate value size (SP_IMM_16/SP_IMM_32/SP_IMM_48/
-		SP_IMM_64).
+@Param[in]	imm_sz : Immediate value size - sp_imm_16, sp_imm_32, sp_imm_48
+		or sp_imm_64.
 
 @Return		No return on failure. Prints error messages, showing what error
 		occurred.
@@ -1582,8 +1594,8 @@ void sparser_gen_xor_wr0_imm_to_wr0(uint64_t imm, enum sparser_imm_val imm_sz);
 
 @Param[in]	imm : 16/32/48/64 bits immediate value.
 
-@Param[in]	imm_sz : Immediate value size (SP_IMM_16/SP_IMM_32/SP_IMM_48/
-		SP_IMM_64).
+@Param[in]	imm_sz : Immediate value size - sp_imm_16, sp_imm_32, sp_imm_48
+		or sp_imm_64.
 
 @Return		No return on failure. Prints error messages, showing what error
 		occurred.
@@ -1601,8 +1613,8 @@ void sparser_gen_xor_wr0_imm_to_wr1(uint64_t imm, enum sparser_imm_val imm_sz);
 
 @Param[in]	imm : 16/32/48/64 bits immediate value.
 
-@Param[in]	imm_sz : Immediate value size (SP_IMM_16/SP_IMM_32/SP_IMM_48/
-		SP_IMM_64).
+@Param[in]	imm_sz : Immediate value size - sp_imm_16, sp_imm_32, sp_imm_48
+		or sp_imm_64.
 
 @Return		No return on failure. Prints error messages, showing what error
 		occurred.
@@ -1620,8 +1632,8 @@ void sparser_gen_xor_wr1_imm_to_wr1(uint64_t imm, enum sparser_imm_val imm_sz);
 
 @Param[in]	imm : 16/32/48/64 bits immediate value.
 
-@Param[in]	imm_sz : Immediate value size (SP_IMM_16/SP_IMM_32/SP_IMM_48/
-		SP_IMM_64).
+@Param[in]	imm_sz : Immediate value size - sp_imm_16, sp_imm_32, sp_imm_48
+		or sp_imm_64.
 
 @Return		No return on failure. Prints error messages, showing what error
 		occurred.
@@ -1636,8 +1648,8 @@ void sparser_gen_xor_wr1_imm_to_wr0(uint64_t imm, enum sparser_imm_val imm_sz);
 
 @Param[in]	imm : 16/32/48/64 bits immediate value.
 
-@Param[in]	imm_sz : Immediate value size (SP_IMM_16/SP_IMM_32/SP_IMM_48/
-		SP_IMM_64).
+@Param[in]	imm_sz : Immediate value size - sp_imm_16, sp_imm_32, sp_imm_48
+		or sp_imm_64.
 
 @Return		No return on failure. Prints error messages, showing what error
 		occurred.
@@ -1652,8 +1664,8 @@ void sparser_gen_clr_wr0_imm_to_wr0(uint64_t imm, enum sparser_imm_val imm_sz);
 
 @Param[in]	imm : 16/32/48/64 bits immediate value.
 
-@Param[in]	imm_sz : Immediate value size (SP_IMM_16/SP_IMM_32/SP_IMM_48/
-		SP_IMM_64).
+@Param[in]	imm_sz : Immediate value size - sp_imm_16, sp_imm_32, sp_imm_48
+		or sp_imm_64.
 
 @Return		No return on failure. Prints error messages, showing what error
 		occurred.
@@ -1668,8 +1680,8 @@ void sparser_gen_clr_wr0_imm_to_wr1(uint64_t imm, enum sparser_imm_val imm_sz);
 
 @Param[in]	imm : 16/32/48/64 bits immediate value.
 
-@Param[in]	imm_sz : Immediate value size (SP_IMM_16/SP_IMM_32/SP_IMM_48/
-		SP_IMM_64).
+@Param[in]	imm_sz : Immediate value size - sp_imm_16, sp_imm_32, sp_imm_48
+		or sp_imm_64.
 
 @Return		No return on failure. Prints error messages, showing what error
 		occurred.
@@ -1684,8 +1696,8 @@ void sparser_gen_clr_wr1_imm_to_wr1(uint64_t imm, enum sparser_imm_val imm_sz);
 
 @Param[in]	imm : 16/32/48/64 bits immediate value.
 
-@Param[in]	imm_sz : Immediate value size (SP_IMM_16/SP_IMM_32/SP_IMM_48/
-		SP_IMM_64).
+@Param[in]	imm_sz : Immediate value size - sp_imm_16, sp_imm_32, sp_imm_48
+		or sp_imm_64.
 
 @Return		No return on failure. Prints error messages, showing what error
 		occurred.
@@ -1761,8 +1773,8 @@ void sparser_gen_shr_wr1_by_sv(uint8_t shift);
 
 @Param[in]	imm : 16/32/48/64 bits immediate value.
 
-@Param[in]	imm_sz : Immediate value size (SP_IMM_16/SP_IMM_32/SP_IMM_48/
-		SP_IMM_64).
+@Param[in]	imm_sz : Immediate value size - sp_imm_16, sp_imm_32, sp_imm_48
+		or sp_imm_64.
 
 @Return		No return on failure. Prints error messages, showing what error
 		occurred.
@@ -1784,8 +1796,8 @@ void sparser_gen_ld_imm_bits_to_wr0(uint8_t n, uint64_t imm,
 
 @Param[in]	imm : 16/32/48/64 bits immediate value.
 
-@Param[in]	imm_sz : Immediate value size (SP_IMM_16/SP_IMM_32/SP_IMM_48/
-		SP_IMM_64).
+@Param[in]	imm_sz : Immediate value size - sp_imm_16, sp_imm_32, sp_imm_48
+		or sp_imm_64.
 
 @Return		No return on failure. Prints error messages, showing what error
 		occurred.
@@ -1806,8 +1818,8 @@ void sparser_gen_lds_imm_bits_to_wr0(uint8_t n, uint64_t imm,
 
 @Param[in]	imm : 16/32/48/64 bits immediate value.
 
-@Param[in]	imm_sz : Immediate value size (SP_IMM_16/SP_IMM_32/SP_IMM_48/
-		SP_IMM_64).
+@Param[in]	imm_sz : Immediate value size - sp_imm_16, sp_imm_32, sp_imm_48
+		or sp_imm_64.
 
 @Return		No return on failure. Prints error messages, showing what error
 		occurred.
@@ -1829,8 +1841,8 @@ void sparser_gen_ld_imm_bits_to_wr1(uint8_t n, uint64_t imm,
 
 @Param[in]	imm : 16/32/48/64 bits immediate value.
 
-@Param[in]	imm_sz : Immediate value size (SP_IMM_16/SP_IMM_32/SP_IMM_48/
-		SP_IMM_64).
+@Param[in]	imm_sz : Immediate value size - sp_imm_16, sp_imm_32, sp_imm_48
+		or sp_imm_64.
 
 @Return		No return on failure. Prints error messages, showing what error
 		occurred.
@@ -1905,8 +1917,8 @@ void sparser_gen_add_sv_to_wo(uint8_t sv);
 
 @Param[in]	imm : 16/32/48/64 bits immediate value.
 
-@Param[in]	imm_sz : Immediate value size (SP_IMM_16/SP_IMM_32/SP_IMM_48/
-		SP_IMM_64).
+@Param[in]	imm_sz : Immediate value size - sp_imm_16, sp_imm_32, sp_imm_48
+		or sp_imm_64.
 
 @Return		No return on failure. Prints error messages, showing what error
 		occurred.

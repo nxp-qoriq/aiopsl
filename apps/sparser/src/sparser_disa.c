@@ -60,6 +60,8 @@
 #define DEST_ADDR_G_BIT		0x8000
 /* DPAA2 L (relative addressing) bit position */
 #define DEST_ADDR_L_BIT		0x4000
+/* DPAA2 "local label" bit position */
+#define DEST_ADDR_LABEL_BIT	0x0800
 /* DPAA2 sign bit position */
 #define DEST_ADDR_SIGN_BIT	0x0400
 #if (SP_DPAA_VERSION == 1)
@@ -165,7 +167,7 @@ struct ps_opcodes opcodes[] = {
 #if (SP_DPAA_VERSION == 1)
 	{SYN_CONFIRM_LAYER_MASK,   0xffff},
 	{SYN_OR_IV_LCV,            0xffff},
-	{SYN_SYN_ADD_SV_TO_WOLCV_TO_WR,       0xfffe},
+	{SYN_LOAD_LCV_TO_WR,       0xfffe},
 	{SYN_STORE_WR_TO_LCV,      0xfffe},
 	{SYN_JUMP_GOSUB,           0xf800},
 	{SYN_COMPARE_WR0_TO_IV,    0xc000},
@@ -274,433 +276,118 @@ static __COLD_CODE void sp_print_opcode_words(uint16_t **sp_code,
 }
 
 /******************************************************************************/
-static __COLD_CODE void sp_print_faf(uint8_t pos)
+static __COLD_CODE char *sp_faf_str(uint8_t pos)
 {
-	enum sparser_faf_bit faf_bit;
+	static char faf_bit_name[104][33] = {
+		{"sp_faf_ipv6_route_hdr2_present"},
+		{"sp_faf_ipv6_gtp_primed_detected"},
+		{"sp_faf_vlan_with_vid_0_detected"},
+		{"sp_faf_ptp_detected"},
+		{"sp_faf_vxlan_present"},
+		{"sp_faf_vxlan_parse_err"},
+		{"sp_faf_eth_slow_proto_detected"},
+		{"sp_faf_ike_present"},
+		{"sp_faf_shim_soft_parse_err"},
+		{"sp_faf_parsing_err"},
+		{"sp_faf_eth_mac_present"},
+		{"sp_faf_eth_unicast"},
+		{"sp_faf_eth_multicast"},
+		{"sp_faf_eth_broadcast"},
+		{"sp_faf_bpdu_frame"},
+		{"sp_faf_fcoe_detected"},
+		{"sp_faf_fip_detected"},
+		{"sp_faf_eth_parsing_err"},
+		{"sp_faf_llc_snap_present"},
+		{"sp_faf_unknown_llc_oui"},
+		{"sp_faf_llc_snap_err"},
+		{"sp_faf_vlan_1_present"},
+		{"sp_faf_vlan_n_present"},
+		{"sp_faf_vlan_8100_cfi_set"},
+		{"sp_faf_vlan_parsing_err"},
+		{"sp_faf_vlan_parsing_err"},
+		{"sp_faf_ppoe_ppp_parsing_err"},
+		{"sp_faf_ppoe_ppp_parsing_err"},
+		{"sp_faf_mpls_n_present"},
+		{"sp_faf_mpls_parsing_err"},
+		{"sp_faf_arp_present"},
+		{"sp_faf_arp_parsing_err"},
+		{"sp_faf_l2_unknown_proto"},
+		{"sp_faf_l2_soft_parse_err"},
+		{"sp_faf_ipv4_1_present"},
+		{"sp_faf_ipv4_1_unicast"},
+		{"sp_faf_ipv4_1_multicast"},
+		{"sp_faf_ipv4_1_broadcast"},
+		{"sp_faf_ipv4_n_present"},
+		{"sp_faf_ipv4_n_unicast"},
+		{"sp_faf_ipv4_n_multicast"},
+		{"sp_faf_ipv4_n_broadcast"},
+		{"sp_faf_ipv6_1_present"},
+		{"sp_faf_ipv6_1_unicast"},
+		{"sp_faf_ipv6_1_multicast"},
+		{"sp_faf_ipv6_n_present"},
+		{"sp_faf_ipv6_n_unicast"},
+		{"sp_faf_ipv6_n_multicast"},
+		{"sp_faf_ip_option_1_present"},
+		{"sp_faf_ip_1_unknown_proto"},
+		{"sp_faf_ip_1_is_fragment"},
+		{"sp_faf_ip_1_is_first_fragment"},
+		{"sp_faf_ip_1_parsing_err"},
+		{"sp_faf_ip_option_n_present"},
+		{"sp_faf_ip_n_unknown_proto"},
+		{"sp_faf_ip_n_is_fragment"},
+		{"sp_faf_ip_n_is_first_fragment"},
+		{"sp_faf_icmp_detected"},
+		{"sp_faf_igmp_detected"},
+		{"sp_faf_icmp_v6_detected"},
+		{"sp_faf_udp_light_detected"},
+		{"sp_faf_ip_n_parsing_err"},
+		{"sp_faf_min_encap_present"},
+		{"sp_faf_min_encap_s_flag_set"},
+		{"sp_faf_min_encap_parsing_err"},
+		{"sp_faf_gre_present"},
+		{"sp_faf_gre_r_bit_set"},
+		{"sp_faf_gre_parsing_err"},
+		{"sp_faf_l3_unknown_proto"},
+		{"sp_faf_l3_soft_parsing_err"},
+		{"sp_faf_udp_present"},
+		{"sp_faf_udp_parsing_err"},
+		{"sp_faf_tcp_present"},
+		{"sp_faf_tcp_options_present"},
+		{"sp_faf_tcp_ctrl_bits_6_11_set"},
+		{"sp_faf_tcp_ctrl_bits_3_5_set"},
+		{"sp_faf_tcp_parsing_err"},
+		{"sp_faf_ipsec_present"},
+		{"sp_faf_ipsec_esp_found"},
+		{"sp_faf_ipsec_ah_found"},
+		{"sp_faf_ipsec_parsing_err"},
+		{"sp_faf_sctp_present"},
+		{"sp_faf_sctp_parsing_err"},
+		{"sp_faf_dccp_present"},
+		{"sp_faf_dccp_parsing_err"},
+		{"sp_faf_l4_unknown_proto"},
+		{"sp_faf_l4_soft_parsing_err"},
+		{"sp_faf_gtp_present"},
+		{"sp_faf_gtp_parsing_err"},
+		{"sp_faf_esp_present"},
+		{"sp_faf_esp_parsing_err"},
+		{"sp_faf_iscsi_detected"},
+		{"sp_faf_capwap_ctrl_detected"},
+		{"sp_faf_capwap_data_detected"},
+		{"sp_faf_l5_soft_parsing_err"},
+		{"sp_faf_ipv6_route_hdr1_present"},
+		{"sp_faf_ud_soft_parser_0"},
+		{"sp_faf_ud_soft_parser_1"},
+		{"sp_faf_ud_soft_parser_2"},
+		{"sp_faf_ud_soft_parser_3"},
+		{"sp_faf_ud_soft_parser_4"},
+		{"sp_faf_ud_soft_parser_5"},
+		{"sp_faf_ud_soft_parser_6"},
+		{"sp_faf_ud_soft_parser_7"}
+	};
 
-	faf_bit = (enum sparser_faf_bit)pos;
-	switch (faf_bit) {
-	/* Routing header present in IPv6 header 2 */
-	case SP_FAF_IPV6_ROUTE_HDR2_PRESENT:
-		fsl_print("IPV6_ROUTE_HDR2_PRESENT");
-		break;
-	/* GTP Primed was detected */
-	case SP_FAF_IPV6_GTP_PRIMED_DETECTED:
-		fsl_print("IPV6_GTP_PRIMED_DETECTED");
-		break;
-	/* VLAN with VID = 0 was detected */
-	case SP_FAF_VLAN_WITH_VID_0_DETECTED:
-		fsl_print("VLAN_WITH_VID_0_DETECTED");
-		break;
-	/* A PTP frame was detected */
-	case SP_FAF_PTP_DETECTED:
-		fsl_print("PTP_DETECTED");
-		break;
-	/* VXLAN was parsed */
-	case SP_FAF_VXLAN_PRESENT:
-		fsl_print("VXLAN_PRESENT");
-		break;
-	/* A VXLAN HXS parsing error was detected */
-	case SP_FAF_VXLAN_PARSE_ERR:
-		fsl_print("VXLAN_PARSE_ERR");
-		break;
-	/* Ethernet control protocol (MAC DA is
-	 * 01:80:C2:00:00:00-01:80:C2:00:00:00:FF) */
-	case SP_FAF_ETH_SLOW_PROTO_DETECTED:
-		fsl_print("ETH_SLOW_PROTO_DETECTED");
-		break;
-	/* IKE was detected at UDP port 4500 */
-	case SP_FAF_IKE_PRESENT:
-		fsl_print("IKE_PRESENT");
-		break;
-	/* Shim Shell Soft Parsing Error */
-	case SP_FAF_SHIM_SOFT_PARSE_ERR:
-		fsl_print("SHIM_SOFT_PARSE_ERR");
-		break;
-	/* Parsing Error */
-	case SP_FAF_PARSING_ERR:
-		fsl_print("PARSING_ERR");
-		break;
-	/* Ethernet MAC Present */
-	case SP_FAF_ETH_MAC_PRESENT:
-		fsl_print("ETH_MAC_PRESENT");
-		break;
-	/* Ethernet Unicast */
-	case SP_FAF_ETH_UNICAST:
-		fsl_print("ETH_UNICAST");
-		break;
-	/* Ethernet Multicast */
-	case SP_FAF_ETH_MULTICAST:
-		fsl_print("ETH_MULTICAST");
-		break;
-	/* Ethernet Broadcast */
-	case SP_FAF_ETH_BROADCAST:
-		fsl_print("ETH_BROADCAST");
-		break;
-	/* BPDU frame (MAC DA is 01:80:C2:00:00:00) */
-	case SP_FAF_BPDU_FRAME:
-		fsl_print("BPDU_FRAME");
-		break;
-	/* FCoE detected (EType is 0x8906 */
-	case SP_FAF_FCOE_DETECTED:
-		fsl_print("FCOE_DETECTED");
-		break;
-	/* FIP detected (EType is 0x8914) */
-	case SP_FAF_FIP_DETECTED:
-		fsl_print("FIP_DETECTED");
-		break;
-	/* Ethernet Parsing Error */
-	case SP_FAF_ETH_PARSING_ERR:
-		fsl_print("ETH_PARSING_ERR");
-		break;
-	/* LLC+SNAP Present */
-	case SP_FAF_LLC_SNAP_PRESENT:
-		fsl_print("LLC_SNAP_PRESENT");
-		break;
-	/* Unknown LLC/OUI */
-	case SP_FAF_UNKNOWN_LLC_OUI:
-		fsl_print("UNKNOWN_LLC_OUI");
-		break;
-	/* LLC+SNAP Error */
-	case SP_FAF_LLC_SNAP_ERR:
-		fsl_print("LLC_SNAP_ERR");
-		break;
-	/* VLAN 1 Present */
-	case SP_FAF_VLAN_1_PRESENT:
-		fsl_print("VLAN_1_PRESENT");
-		break;
-	/* VLAN 1 Present */
-	case SP_FAF_VLAN_N_PRESENT:
-		fsl_print("VLAN_N_PRESENT");
-		break;
-	/* CFI bit in a "8100" VLAN tag is set */
-	case SP_FAF_VLAN_8100_CFI_SET:
-		fsl_print("VLAN_8100_CFI_SET");
-		break;
-	/* VLAN Parsing Error */
-	case SP_FAF_VLAN_PARSING_ERR:
-		fsl_print("VLAN_PARSING_ERR");
-		break;
-	/* PPPoE+PPP Present */
-	case SP_FAF_PPOE_PPP_PRESENT:
-		fsl_print("VLAN_PARSING_ERR");
-		break;
-	/* PPPoE+PPP Parsing Error */
-	case SP_FAF_PPOE_PPP_PARSING_ERR:
-		fsl_print("PPOE_PPP_PARSING_ERR");
-		break;
-	/* MPLS 1 Present */
-	case SP_FAF_MPLS_1_PRESENT:
-		fsl_print("PPOE_PPP_PARSING_ERR");
-		break;
-	/* MPLS n Present */
-	case SP_FAF_MPLS_N_PRESENT:
-		fsl_print("MPLS_N_PRESENT");
-		break;
-	/* MPLS Parsing Error */
-	case SP_FAF_MPLS_PARSING_ERR:
-		fsl_print("MPLS_PARSING_ERR");
-		break;
-	/* ARP frame Present (Ethertype 0x0806 */
-	case SP_FAF_ARP_PRESENT:
-		fsl_print("ARP_PRESENT");
-		break;
-	/* ARP Parsing Error */
-	case SP_FAF_ARP_PARSING_ERR:
-		fsl_print("ARP_PARSING_ERR");
-		break;
-	/* L2 Unknown Protocol */
-	case SP_FAF_L2_UNKNOWN_PROTO:
-		fsl_print("L2_UNKNOWN_PROTO");
-		break;
-	/* L2 Soft Parsing Error */
-	case SP_FAF_L2_SOFT_PARSE_ERR:
-		fsl_print("L2_SOFT_PARSE_ERR");
-		break;
-	/* IPv4 1 Present */
-	case SP_FAF_IPV4_1_PRESENT:
-		fsl_print("IPV4_1_PRESENT");
-		break;
-	/* IPv4 1 Unicast */
-	case SP_FAF_IPV4_1_UNICAST:
-		fsl_print("IPV4_1_UNICAST");
-		break;
-	/* IPv4 1 Multicast */
-	case SP_FAF_IPV4_1_MULTICAST:
-		fsl_print("IPV4_1_MULTICAST");
-		break;
-	/* IPv4 1 Broadcast */
-	case SP_FAF_IPV4_1_BROADCAST:
-		fsl_print("IPV4_1_BROADCAST");
-		break;
-	/* IPv4 n Present */
-	case SP_FAF_IPV4_N_PRESENT:
-		fsl_print("IPV4_N_PRESENT");
-		break;
-	/* IPv4 n Unicast */
-	case SP_FAF_IPV4_N_UNICAST:
-		fsl_print("IPV4_N_UNICAST");
-		break;
-	/* IPv4 n Multicast */
-	case SP_FAF_IPV4_N_MULTICAST:
-		fsl_print("IPV4_N_MULTICAST");
-		break;
-	/* IPv4 n Broadcast */
-	case SP_FAF_IPV4_N_BROADCAST:
-		fsl_print("IPV4_N_BROADCAST");
-		break;
-	/* IPv6 1 Present */
-	case SP_FAF_IPV6_1_PRESENT:
-		fsl_print("IPV6_1_PRESENT");
-		break;
-	/* IPv6 1 Unicast */
-	case SP_FAF_IPV6_1_UNICAST:
-		fsl_print("IPV6_1_UNICAST");
-		break;
-	/* IPv6 1 Multicast */
-	case SP_FAF_IPV6_1_MULTICAST:
-		fsl_print("IPV6_1_MULTICAST");
-		break;
-	/* IPv6 n Present */
-	case SP_FAF_IPV6_N_PRESENT:
-		fsl_print("IPV6_N_PRESENT");
-		break;
-	/* IPv6 n Unicast */
-	case SP_FAF_IPV6_N_UNICAST:
-		fsl_print("IPV6_N_UNICAST");
-		break;
-	/* IPv6 n Multicast */
-	case SP_FAF_IPV6_N_MULTICAST:
-		fsl_print("IPV6_N_MULTICAST");
-		break;
-	/* IP 1 option present */
-	case SP_FAF_IP_OPTION_1_PRESENT:
-		fsl_print("IP_OPTION_1_PRESENT");
-		break;
-	/* IP 1 Unknown Protocol */
-	case SP_FAF_IP_1_UNKNOWN_PROTO:
-		fsl_print("IP_1_UNKNOWN_PROTO");
-		break;
-	/* IP 1 Packet is a fragment */
-	case SP_FAF_IP_1_IS_FRAGMENT:
-		fsl_print("IP_1_IS_FRAGMENT");
-		break;
-	/* IP 1 Packet is an initial fragment */
-	case SP_FAF_IP_1_IS_FIRST_FRAGMENT:
-		fsl_print("IP_1_IS_FIRST_FRAGMENT");
-		break;
-	/* IP 1 Parsing Error */
-	case SP_FAF_IP_1_PARSING_ERR:
-		fsl_print("IP_1_PARSING_ERR");
-		break;
-	/* IP n option present */
-	case SP_FAF_IP_OPTION_N_PRESENT:
-		fsl_print("IP_OPTION_N_PRESENT");
-		break;
-	/* IP n Unknown Protocol */
-	case SP_FAF_IP_N_UNKNOWN_PROTO:
-		fsl_print("IP_N_UNKNOWN_PROTO");
-		break;
-	/* IP n Packet is a fragment */
-	case SP_FAF_IP_N_IS_FRAGMENT:
-		fsl_print("IP_N_IS_FRAGMENT");
-		break;
-	/* IP n Packet is an initial fragment */
-	case SP_FAF_IP_N_IS_FIRST_FRAGMENT:
-		fsl_print("IP_N_IS_FIRST_FRAGMENT");
-		break;
-	/* ICMP detected (IP proto is 1 */
-	case SP_FAF_ICMP_DETECTED:
-		fsl_print("ICMP_DETECTED");
-		break;
-	/* IGMP detected (IP proto is 2) */
-	case SP_FAF_IGMP_DETECTED:
-		fsl_print("IGMP_DETECTED");
-		break;
-	/* ICMPv6 detected (IP proto is 3a) */
-	case SP_FAF_ICMP_V6_DETECTED:
-		fsl_print("ICMP_V6_DETECTED");
-		break;
-	/* UDP Light detected (IP proto is 136) */
-	case SP_FAF_UDP_LIGHT_DETECTED:
-		fsl_print("UDP_LIGHT_DETECTED");
-		break;
-	/* IP n Parsing Error */
-	case SP_FAF_IP_N_PARSING_ERR:
-		fsl_print("IP_N_PARSING_ERR");
-		break;
-	/* Min. Encap Present */
-	case SP_FAF_MIN_ENCAP_PRESENT:
-		fsl_print("MIN_ENCAP_PRESENT");
-		break;
-	/* Min. Encap S flag set */
-	case SP_FAF_MIN_ENCAP_S_FLAG_SET:
-		fsl_print("MIN_ENCAP_S_FLAG_SET");
-		break;
-	/* Min. Encap Parsing Error */
-	case SP_FAF_MIN_ENCAP_PARSING_ERR:
-		fsl_print("MIN_ENCAP_PARSING_ERR");
-		break;
-	/* GRE Present */
-	case SP_FAF_GRE_PRESENT:
-		fsl_print("GRE_PRESENT");
-		break;
-	/* GRE R bit set */
-	case SP_FAF_GRE_R_BIT_SET:
-		fsl_print("GRE_R_BIT_SET");
-		break;
-	/* GRE Parsing Error */
-	case SP_FAF_GRE_PARSING_ERR:
-		fsl_print("GRE_PARSING_ERR");
-		break;
-	/* L3 Unknown Protocol */
-	case SP_FAF_L3_UNKNOWN_PROTO:
-		fsl_print("L3_UNKNOWN_PROTO");
-		break;
-	/* L3 Soft Parsing Error */
-	case SP_FAF_L3_SOFT_PARSING_ERR:
-		fsl_print("L3_SOFT_PARSING_ERR");
-		break;
-	/* UDP Present */
-	case SP_FAF_UDP_PRESENT:
-		fsl_print("UDP_PRESENT");
-		break;
-	/* UDP Parsing Error */
-	case SP_FAF_UDP_PARSING_ERR:
-		fsl_print("UDP_PARSING_ERR");
-		break;
-	/* TCP Present */
-	case SP_FAF_TCP_PRESENT:
-		fsl_print("TCP_PRESENT");
-		break;
-	/* TCP options present */
-	case SP_FAF_TCP_OPTIONS_PRESENT:
-		fsl_print("TCP_OPTIONS_PRESENT");
-		break;
-	/* TCP Control bits 6-11 set */
-	case SP_FAF_TCP_CTRL_BITS_6_11_SET:
-		fsl_print("TCP_CTRL_BITS_6_11_SET");
-		break;
-	/* TCP Control bits 3-5 set */
-	case SP_FAF_TCP_CTRL_BITS_3_5_SET:
-		fsl_print("TCP_CTRL_BITS_3_5_SET");
-		break;
-	/* TCP Parsing Error */
-	case SP_FAF_TCP_PARSING_ERR:
-		fsl_print("TCP_PARSING_ERR");
-		break;
-	/* IPSec Present */
-	case SP_FAF_IPSEC_PRESENT:
-		fsl_print("IPSEC_PRESENT");
-		break;
-	/* IPSec ESP found */
-	case SP_FAF_IPSEC_ESP_FOUND:
-		fsl_print("IPSEC_ESP_FOUND");
-		break;
-	/* IPSec AH found */
-	case SP_FAF_IPSEC_AH_FOUND:
-		fsl_print("IPSEC_AH_FOUND");
-		break;
-	/* IPSec Parsing Error */
-	case SP_FAF_IPSEC_PARSING_ERR:
-		fsl_print("IPSEC_PARSING_ERR");
-		break;
-	/* SCTP Present */
-	case SP_FAF_SCTP_PRESENT:
-		fsl_print("SCTP_PRESENT");
-		break;
-	/* SCTP Parsing Error */
-	case SP_FAF_SCTP_PARSING_ERR:
-		fsl_print("SCTP_PARSING_ERR");
-		break;
-	/* DCCP Present */
-	case SP_FAF_DCCP_PRESENT:
-		fsl_print("DCCP_PRESENT");
-		break;
-	/* DCCP Parsing Error */
-	case SP_FAF_DCCP_PARSING_ERR:
-		fsl_print("DCCP_PARSING_ERR");
-		break;
-	/* L4 Unknown Protocol */
-	case SP_FAF_L4_UNKNOWN_PROTO:
-		fsl_print("L4_UNKNOWN_PROTO");
-		break;
-	/* L4 Soft Parsing Error */
-	case SP_FAF_L4_SOFT_PARSING_ERR:
-		fsl_print("L4_SOFT_PARSING_ERR");
-		break;
-	/* GTP Present */
-	case SP_FAF_GTP_PRESENT:
-		fsl_print("GTP_PRESENT");
-		break;
-	/* GTP Parsing Error */
-	case SP_FAF_GTP_PARSING_ERR:
-		fsl_print("GTP_PARSING_ERR");
-		break;
-	/* ESP Present */
-	case SP_FAF_ESP_PRESENT:
-		fsl_print("ESP_PRESENT");
-		break;
-	/* ESP Parsing Error */
-	case SP_FAF_ESP_PARSING_ERR:
-		fsl_print("ESP_PARSING_ERR");
-		break;
-	/* iSCSI detected (Port# 860) */
-	case SP_FAF_ISCSI_DETECTED:
-		fsl_print("ISCSI_DETECTED");
-		break;
-	/* Capwap-control detected (Port# 5246) */
-	case SP_FAF_CAPWAP_CTRL_DETECTED:
-		fsl_print("CAPWAP_CTRL_DETECTED");
-		break;
-	/* Capwap-data detected (Port# 5247) */
-	case SP_FAF_CAPWAP_DATA_DETECTED:
-		fsl_print("CAPWAP_DATA_DETECTED");
-		break;
-	/* L5 Soft Parsing Error */
-	case SP_FAF_L5_SOFT_PARSING_ERR:
-		fsl_print("L5_SOFT_PARSING_ERR");
-		break;
-	/* IPv6 Route hdr1 present */
-	case SP_FAF_IPV6_ROUTE_HDR1_PRESENT:
-		fsl_print("IPV6_ROUTE_HDR1_PRESENT");
-		break;
-	/* User defined soft parser bit #0 */
-	case SP_FAF_UD_SOFT_PARSER_0:
-		fsl_print("UD_SOFT_PARSER_0");
-		break;
-	/* User defined soft parser bit #1 */
-	case SP_FAF_UD_SOFT_PARSER_1:
-		fsl_print("UD_SOFT_PARSER_1");
-		break;
-	/* User defined soft parser bit #2 */
-	case SP_FAF_UD_SOFT_PARSER_2:
-		fsl_print("UD_SOFT_PARSER_2");
-		break;
-	/* User defined soft parser bit #3 */
-	case SP_FAF_UD_SOFT_PARSER_3:
-		fsl_print("UD_SOFT_PARSER_3");
-		break;
-	/* User defined soft parser bit #4 */
-	case SP_FAF_UD_SOFT_PARSER_4:
-		fsl_print("UD_SOFT_PARSER_4");
-		break;
-	/* User defined soft parser bit #5 */
-	case SP_FAF_UD_SOFT_PARSER_5:
-		fsl_print("UD_SOFT_PARSER_5");
-		break;
-	/* User defined soft parser bit #6 */
-	case SP_FAF_UD_SOFT_PARSER_6:
-		fsl_print("UD_SOFT_PARSER_6");
-		break;
-	/* User defined soft parser bit #7 */
-	case SP_FAF_UD_SOFT_PARSER_7:
-		fsl_print("UD_SOFT_PARSER_7");
-		break;
-	default:
-		fsl_print("Unknown bit");
-		break;
-	}
+	if (pos > 103)
+		return "Unknown_FAF";
+	return faf_bit_name[pos];
 }
 
 /******************************************************************************/
@@ -808,71 +495,72 @@ static __COLD_CODE void sp_print_iv_operands(uint16_t **sp_code, uint8_t n)
 static __COLD_CODE void sp_print_hxs_destination(uint16_t jmp_dest)
 {
 	if (jmp_dest == 0x00)
-		fsl_print(" (%s)", "Ethernet");
+		fsl_print("sp_eth_hxs_dst");
 	else if (jmp_dest == 0x01)
-		fsl_print(" (%s)", "LLC+SNAP");
+		fsl_print("sp_llc_snap_hxs_dst");
 	else if (jmp_dest == 0x02)
-		fsl_print(" (%s)", "VLAN");
+		fsl_print("sp_vlan_hxs_dst");
 	else if (jmp_dest == 0x03)
-		fsl_print(" (%s)", "PPPoE+PPP");
+		fsl_print("sp_pppoe_ppp_hxs_dst");
 	else if (jmp_dest == 0x04)
-		fsl_print(" (%s)", "MPLS");
+		fsl_print("sp_mpls_hxs_dst");
 #if (SP_DPAA_VERSION == 1)
 	else if (jmp_dest >= 5 && jmp_dest <= 0x0f)
-		fsl_print(" (%s)",
-			  (jmp_dest == 0x05) ? "IPv4 HXS" :
-			  (jmp_dest == 0x06) ? "IPv6 HXS" :
-			  (jmp_dest == 0x07) ? "GRE HXS" :
-			  (jmp_dest == 0x08) ? "Min Encap HXS" :
-			  (jmp_dest == 0x09) ? "Other L3 Shell" :
-			  (jmp_dest == 0x0a) ? "TCP" :
-			  (jmp_dest == 0x0b) ? "UDP" :
-			  (jmp_dest == 0x0c) ? "IPSec Shell" :
-			  (jmp_dest == 0x0d) ? "SCTP Shell" :
-			  (jmp_dest == 0x0e) ? "DCCP Shell" :
-			  "Other L4 Shell");
+		fsl_print((jmp_dest == 0x05) ? "\"IPv4 HXS\"" :
+			  (jmp_dest == 0x06) ? "\"IPv6 HXS\"" :
+			  (jmp_dest == 0x07) ? "\"GRE HXS\"" :
+			  (jmp_dest == 0x08) ? "\"Min Encap HXS\"" :
+			  (jmp_dest == 0x09) ? "\"Other L3 Shell\"" :
+			  (jmp_dest == 0x0a) ? "\"TCP\"" :
+			  (jmp_dest == 0x0b) ? "\"UDP\"" :
+			  (jmp_dest == 0x0c) ? "\"IPSec Shell HXS\"" :
+			  (jmp_dest == 0x0d) ? "\"SCTP Shell HXS\"" :
+			  (jmp_dest == 0x0e) ? "\"DCCP Shell HXS\"" :
+			  "\"Other L4 Shell HXS\"");
 #else
-	else if (jmp_dest >= 5 && jmp_dest <= 0x13)
-		fsl_print(" (%s)",
-			  (jmp_dest == 0x05) ? "ARP" :
-			  (jmp_dest == 0x06) ? "IP" :
-			  (jmp_dest == 0x07) ? "IPv4 HXS" :
-			  (jmp_dest == 0x08) ? "IPv6 HXS" :
-			  (jmp_dest == 0x09) ? "GRE HXS" :
-			  (jmp_dest == 0x0a) ? "MinEncap HXS" :
-			  (jmp_dest == 0x0b) ? "Other L3 Shell" :
-			  (jmp_dest == 0x0c) ? "TCP" :
-			  (jmp_dest == 0x0d) ? "UDP" :
-			  (jmp_dest == 0x0e) ? "IPSec" :
-			  (jmp_dest == 0x0f) ? "SCTP" :
-			  (jmp_dest == 0x10) ? "DCCP" :
-			  (jmp_dest == 0x11) ? "Other L4 Shell" :
-			  (jmp_dest == 0x12) ? "GTP" : "ESP");
+	else if (jmp_dest >= 5 && jmp_dest <= 0x14)
+		fsl_print((jmp_dest == 0x05) ? "sp_arp_hxs_dst" :
+			  (jmp_dest == 0x06) ? "sp_ip_hxs_dst" :
+			  (jmp_dest == 0x07) ? "sp_ipv4_hxs_dst" :
+			  (jmp_dest == 0x08) ? "sp_ipv6_hxs_dst" :
+			  (jmp_dest == 0x09) ? "sp_gre_hxs_dst" :
+			  (jmp_dest == 0x0a) ? "sp_minencap_hxs_dst" :
+			  (jmp_dest == 0x0b) ? "sp_other_l3_shell_hxs_dst" :
+			  (jmp_dest == 0x0c) ? "sp_tcp_hxs_dst" :
+			  (jmp_dest == 0x0d) ? "sp_udp_hxs_dst" :
+			  (jmp_dest == 0x0e) ? "sp_ipsec_hxs_dst" :
+			  (jmp_dest == 0x0f) ? "sp_sctp_hxs_dst" :
+			  (jmp_dest == 0x10) ? "sp_dccp_hxs_dst" :
+			  (jmp_dest == 0x11) ? "sp_other_l4_shell_hxs_dst" :
+			  (jmp_dest == 0x12) ? "sp_gtp_hxs_dst" :
+			  (jmp_dest == 0x13) ? "sp_esp_hxs_dst" :
+			  "sp_vxlan_hxs_dst");
 	else if (jmp_dest == 0x1e)
-		fsl_print(" (%s)", "Other L5+ Shell");
+		fsl_print("sp_l5_shell_hxs_dst");
 	else if (jmp_dest == 0x1f)
-		fsl_print(" (%s)", "Final Shell");
+		fsl_print("sp_final_shell_hxs_dst");
 #endif
 	else if (jmp_dest == RET_TO_HARD_HXS)
-		fsl_print(" (%s)", "Return to hard HXS");
+		fsl_print("sp_return_to_hxs_dst");
 	else if (jmp_dest == END_PARSING)
-		fsl_print(" (%s)", "End Parsing");
+		fsl_print("sp_end_parsing_hxs_dst");
 	else
-		fsl_print(" (Unknown HXS : %02x)", jmp_dest);
+		fsl_print("\"Unknown HXS\" (%02x)", jmp_dest);
 }
 
 /******************************************************************************/
 static __COLD_CODE void sp_print_dest_operand(uint16_t jmp_dest, uint8_t a,
 					      uint8_t g, uint8_t l)
 {
-	uint8_t		s;
+	uint8_t		s, lbl;
 
 	s = (jmp_dest & DEST_ADDR_SIGN_BIT) ? 1 : 0;
+	lbl = (jmp_dest & DEST_ADDR_LABEL_BIT) ? 1 : 0;
 	jmp_dest &= DEST_ADDR_MASK;
-	fsl_print("dst:");
+	/*fsl_print("dst:");*/
 	if (g)
 		fsl_print("G|");
-	if (l)
+	if (l && !lbl)
 		fsl_print("L|");
 	if (a)
 		fsl_print("A|");
@@ -880,12 +568,15 @@ static __COLD_CODE void sp_print_dest_operand(uint16_t jmp_dest, uint8_t a,
 		fsl_print("S|");
 		jmp_dest &= ~DEST_ADDR_SIGN_BIT;
 	}
-	fsl_print("0x%x", jmp_dest);
-	if (!l && (jmp_dest < SP_MIN_PC || jmp_dest == RET_TO_HARD_HXS ||
-		   jmp_dest == END_PARSING))
+	if (lbl)
+		fsl_print("sp_label_%d", (jmp_dest & 0x0F) + 1);
+	else if (!l && (jmp_dest < SP_MIN_PC || jmp_dest == RET_TO_HARD_HXS ||
+			jmp_dest == END_PARSING))
 		sp_print_hxs_destination(jmp_dest);
-	if (a)
-		fsl_print("; hb += wo");
+	else
+		fsl_print("0x%x", jmp_dest);
+	/*if (a)
+		fsl_print("; hb += wo");*/
 	fsl_print(";\n");
 }
 
@@ -922,7 +613,8 @@ static __COLD_CODE int sp_check_destination_address(uint16_t jmp_dest)
 		return 0;
 #else
 	if (!(jmp_dest & (~(DEST_ADDR_G_BIT | DEST_ADDR_L_BIT |
-			    DEST_ADDR_SIGN_BIT | DEST_ADDR_MASK))))
+			    DEST_ADDR_LABEL_BIT | DEST_ADDR_SIGN_BIT |
+			    DEST_ADDR_MASK))))
 		return 0;
 #endif
 	fsl_print("\t\t ERROR : Invalid destination 0x%04x\n",
@@ -1038,7 +730,7 @@ static __COLD_CODE void set_jmp_gosub_destination(uint16_t **sp_code,
 			  (jmp_pc == 0x11) ? "Other L4 Shell" :
 			  (jmp_pc == 0x12) ? "GTP" : "ESP");
 	else if (jmp_pc == 0x1e)
-		fsl_print(" (%s)", "Other L5+ Shell");
+		fsl_print(" (%s)", "Other L5 Shell");
 	else if (jmp_pc == 0x1f)
 		fsl_print(" (%s)", "Final Shell");
 #endif
@@ -1379,7 +1071,7 @@ static __COLD_CODE void sp_jump_faf(uint16_t **sp_code)
 	l = (uint8_t)((jmp_dest >> 14) & 0x1);
 	g = (uint8_t)((jmp_dest >> 15) & 0x1);
 	sp_print_opcode_words(sp_code, 2);
-	fsl_print("JMP_FAF pos:%d, ", j);
+	fsl_print("JMP_FAF %s, ", sp_faf_str(j));
 	sp_print_dest_operand(jmp_dest, a, g, l);
 	if (j >= 8 * (sizeof(sp_sim.ra.pr.frame_attribute_flags_extension) +
 		      sizeof(sp_sim.ra.pr.frame_attribute_flags_1) +
@@ -1411,9 +1103,8 @@ static __COLD_CODE void sp_jump_faf(uint16_t **sp_code)
 			 * instruction */
 			fsl_print("\t\t RA[%d] = %02x mask = %02x\n", byte_pos,
 				  sp_sim.ra_arr[byte_pos], mask);
-			fsl_print("\t\t FAF bit #%d (", j);
-			sp_print_faf(j);
-			fsl_print(") is not set\n");
+			fsl_print("\t\t FAF bit #%d (%s) is not set\n",
+				  j, sp_faf_str(j));
 			fsl_print("\t\t Continue with next PC = 0x%x\n",
 				  sp_sim.pc + 2);
 			(*sp_code) += 2;
@@ -1423,9 +1114,8 @@ static __COLD_CODE void sp_jump_faf(uint16_t **sp_code)
 		} else {
 			fsl_print("\t\t RA[%d] = %02x mask = %02x\n", byte_pos,
 				  sp_sim.ra_arr[byte_pos], mask);
-			fsl_print("\t\t FAF bit #%d (", j);
-			sp_print_faf(j);
-			fsl_print(") is set\n");
+			fsl_print("\t\t FAF bit #%d (%s) is set\n",
+				  j, sp_faf_str(j));
 		}
 		set_jmp_gosub_destination(sp_code, jmp_dest, a, g, l, 2);
 	} else {
@@ -1497,7 +1187,7 @@ static __COLD_CODE void sp_set_clear_faf(uint16_t **sp_code)
 	j = (uint8_t)(opcode & 0x7f);
 	c = (uint8_t)((opcode >> 7) & 0x1);
 	sp_print_opcode_words(sp_code, 1);
-	fsl_print("%s_FAF_BIT bit:%d;\n", ((c) ? "SET" : "CLR"), j);
+	fsl_print("%s_FAF_BIT %s;\n", ((c) ? "SET" : "CLR"), sp_faf_str(j));
 	if (j >= 8 * (sizeof(sp_sim.ra.pr.frame_attribute_flags_extension) +
 		      sizeof(sp_sim.ra.pr.frame_attribute_flags_1) +
 		      sizeof(sp_sim.ra.pr.frame_attribute_flags_2) +
@@ -1527,12 +1217,11 @@ static __COLD_CODE void sp_set_clear_faf(uint16_t **sp_code)
 		sp_sim.ra_arr[byte_pos] = byte;
 		fsl_print("\t\t RA[%d] = %02x mask = %02x\n", byte_pos,
 			  sp_sim.ra_arr[byte_pos], mask);
-		fsl_print("\t\t FAF bit #%d (", j);
-		sp_print_faf(j);
+		fsl_print("\t\t FAF bit #%d (%s)", j, sp_faf_str(j));
 		if (c)
-			fsl_print(") is set\n");
+			fsl_print(" is set\n");
 		else
-			fsl_print(") is cleared\n");
+			fsl_print(" is cleared\n");
 	}
 	(*sp_code)++;
 	sp_sim.pc++;
@@ -3670,7 +3359,7 @@ static __COLD_CODE int sp_disassm_sim(uint8_t *byte_code, int sp_size)
 		case SYN_OR_IV_LCV:
 			sp_dpaa1_or_iv_lcv(&sp_code);
 			break;
-		case SYN_SYN_LOAD_LCV_TO_WR:
+		case SYN_LOAD_LCV_TO_WR:
 			sp_dpaa1_load_lcv_to_wr(&sp_code);
 			break;
 		case SYN_STORE_WR_TO_LCV:

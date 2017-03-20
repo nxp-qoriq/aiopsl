@@ -250,7 +250,7 @@ static void soft_parser_example_gen(void)
 	 * If comparison result is false then the received packet contains the
 	 * expected custom header and the soft parser execution continues with
 	 * the next instruction. */
-	sparser_gen_cmp_wr0_ne_wr1(SP_RETURN_TO_HXS_DST);
+	sparser_gen_cmp_wr0_ne_wr1(sp_return_to_hxs_dst);
 	/**********************************************************************
 	 * Advance HB on the custom header start
 	 **********************************************************************
@@ -283,7 +283,7 @@ static void soft_parser_example_gen(void)
 	sparser_gen_ld_pa_to_wr0(2, 1);
 	/* Subtract 16 from the custom header length :
 	 *	WR0 = 36 */
-	sparser_gen_sub32_wr0_imm_to_wr0(0x10, SP_IMM_16);
+	sparser_gen_sub32_wr0_imm_to_wr0(0x10, sp_imm_16);
 	/* Set WO on the last 16 bytes of the custom header :
 	 *	WO = 36 */
 	sparser_gen_ld_wr0_to_wo();
@@ -326,7 +326,7 @@ static void soft_parser_example_gen(void)
 	 * Custom header presence is marked in bit #0 of the Frame Attribute
 	 * Flags extension.
 	 *********************************************************************/
-	sparser_gen_set_faf_bit(SP_FAF_UD_SOFT_PARSER_0);
+	sparser_gen_set_faf_bit(sp_faf_ud_soft_parser_0);
 	/**********************************************************************
 	 * Before calling the HXS processing the next header, a soft parser must
 	 * prepare the Header Base advancement.	HB is advanced with the current
@@ -360,12 +360,12 @@ static void soft_parser_example_gen(void)
 		SPARSER_BEGIN(0x20, &sparser_ex[0], sizeof(sparser_ex));  \
 			/* 0x020 */ LD_FW_TO_WR0(96, 16);		  \
 			/* 0x021 */ LD_PA_TO_WR1(0, 2);			  \
-			/* 0x022 */ CMP_WR0_NE_WR1(SP_RETURN_TO_HXS_DST); \
+			/* 0x022 */ CMP_WR0_NE_WR1(sp_return_to_hxs_dst); \
 			/* 0x024 */ LD_RA_TO_WR1(50, 1);		  \
 			/* 0x025 */ LD_WR1_TO_WO;			  \
 			/* 0x026 */ ADVANCE_HB_BY_WO;			  \
 			/* 0x027 */ LD_PA_TO_WR0(2, 1);			  \
-			/* 0x028 */ SUB32_WR0_IMM_TO_WR0(0x10, SP_IMM_16);\
+			/* 0x028 */ SUB32_WR0_IMM_TO_WR0(0x10, sp_imm_16);\
 			/* 0x02a */ LD_WR0_TO_WO;			  \
 			/* 0x02b */ LD_FW_TO_WR1(112, 16);		  \
 			/* 0x02c */ ST_WR1_TO_RA(16, 2);		  \
@@ -374,7 +374,7 @@ static void soft_parser_example_gen(void)
 			/* 0x02f */ LD_PA_TO_WR0(2, 1);			  \
 			/* 0x030 */ ADD32_WR0_TO_WR1;			  \
 			/* 0x031 */ ST_WR1_TO_RA(50, 1);		  \
-			/* 0x032 */ SET_FAF_BIT(SP_FAF_UD_SOFT_PARSER_0); \
+			/* 0x032 */ SET_FAF_BIT(sp_faf_ud_soft_parser_0); \
 			/* 0x033 */ LD_WR0_TO_WO;			  \
 			/* 0x034 */ JMP_TO_L2_PROTOCOL;			  \
 			/* 0x035 */ NOP;				  \
