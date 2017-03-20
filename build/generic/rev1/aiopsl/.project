@@ -1170,11 +1170,6 @@
 			<locationURI>PARENT-4-PROJECT_LOC/src/arch/core/ppc/booke.h</locationURI>
 		</link>
 		<link>
-			<name>aiop_sl/arch/core/ppc/booke_irq.S</name>
-			<type>1</type>
-			<locationURI>PARENT-4-PROJECT_LOC/src/arch/core/ppc/booke_irq.S</locationURI>
-		</link>
-		<link>
 			<name>aiop_sl/arch/core/ppc/booke_irq.c</name>
 			<type>1</type>
 			<locationURI>PARENT-4-PROJECT_LOC/src/arch/core/ppc/booke_irq.c</locationURI>
