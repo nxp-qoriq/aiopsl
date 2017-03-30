@@ -40,6 +40,9 @@
 #include "fsl_sparser_dump.h"
 #include "fsl_sparser_gen.h"
 #include "fsl_dbg.h"
+#include "sparser_drv.h"
+#include "fsl_malloc.h"
+#include "fsl_mem_mng.h"
 /* If "fsl_dbg.h" is not included ASSERT_COND and pr_err must be redefined as
  * it follows */
 #ifndef ASSERT_COND
@@ -228,6 +231,7 @@ struct soft_parser_sim {
 	uint16_t		pc_start;	/* Offset from Parser memory*/
 	uint16_t		pc_end;		/* Maximum allowed PC */
 	uint32_t		init_status;	/* Simulator initialization */
+	uint8_t			*sps;		/* Parser memory (4K) */
 };
 
 /* Simulator initialization flags */
@@ -391,6 +395,113 @@ static __COLD_CODE char *sp_faf_str(uint8_t pos)
 }
 
 /******************************************************************************/
+static __COLD_CODE char *sp_ra_str(uint8_t pos)
+{
+	struct ra_name_info {
+		char		name[36];
+		uint8_t		pos;
+	};
+
+#ifndef LS2085A_REV1
+	static struct ra_name_info ra_field_name[42] = {
+			{"sp_ra_gprv_0", 0},
+			{"sp_ra_gprv_1", 2},
+			{"sp_ra_gprv_2", 4},
+			{"sp_ra_gprv_3", 6},
+			{"sp_ra_gprv_4", 8},
+			{"sp_ra_gprv_5", 10},
+			{"sp_ra_gprv_6", 12},
+			{"sp_ra_gprv_7", 14},
+			{"sp_ra_nxt_hdr", 16},
+			{"sp_ra_pr_shim_offset_1", 32},
+			{"sp_ra_pr_shim_offset_2", 33},
+			{"sp_ra_pr_ip_1_pid_offset", 34},
+			{"sp_ra_pr_eth_offset", 35},
+			{"sp_ra_pr_llc_snap_offset", 36},
+			{"sp_ra_pr_vlan_tci_offset_1", 37},
+			{"sp_ra_pr_vlan_tci_offset_n", 38},
+			{"sp_ra_pr_last_etype_offset", 39},
+			{"sp_ra_pr_last_pppoe_offset", 40},
+			{"sp_ra_pr_mpls_offset_1", 41},
+			{"sp_ra_pr_mpls_offset_n", 42},
+			{"sp_ra_pr_l3_offset", 43},
+			{"sp_ra_pr_ip_or_minencap_offset", 44},
+			{"sp_ra_pr_gre_offset", 45},
+			{"sp_ra_pr_l4_offset", 46},
+			{"sp_ra_pr_l5_offset", 47},
+			{"sp_ra_pr_routing_hdr_offset_1", 48},
+			{"sp_ra_pr_routing_hdr_offset_2", 49},
+			{"sp_ra_pr_nxt_hdr_offset", 50},
+			{"sp_ra_pr_ip_v6_frag_offset", 51},
+			{"sp_ra_pr_gross_running_sum_offset", 52},
+			{"sp_ra_pr_running_sum_offset", 54},
+			{"sp_ra_pr_parse_error_code_offset", 56},
+			{"sp_ra_pr_nxt_hdr_frag_offset", 57},
+			{"sp_ra_pr_ip_n_pid_offset", 58},
+			{"sp_ra_pr_soft_parser_context_offset", 59},
+			{"sp_ra_ipv4_sa_da_or_ipv6_sa", 80},
+			{"sp_ra_ipv6_da", 96},
+			{"sp_ra_sprec_misc_flags", 112},
+			{"sp_ra_ip_length", 114},
+			{"sp_ra_routing_type", 116},
+			{"sp_ra_fd_length", 123},
+			{"sp_ra_status_error", 127}
+	};
+	int	num = 42;
+#else
+	static struct ra_name_info ra_field_name[40] = {
+			{"sp_ra_gprv_0", 0},
+			{"sp_ra_gprv_1", 2},
+			{"sp_ra_gprv_2", 4},
+			{"sp_ra_gprv_3", 6},
+			{"sp_ra_gprv_4", 8},
+			{"sp_ra_gprv_5", 10},
+			{"sp_ra_gprv_6", 12},
+			{"sp_ra_gprv_7", 14},
+			{"sp_ra_nxt_hdr", 16},
+			{"sp_ra_pr_shim_offset_1", 32},
+			{"sp_ra_pr_shim_offset_2", 33},
+			{"sp_ra_pr_ip_pid_offset", 34},
+			{"sp_ra_pr_eth_offset", 35},
+			{"sp_ra_pr_llc_snap_offset", 36},
+			{"sp_ra_pr_vlan_tci_offset_1", 37},
+			{"sp_ra_pr_vlan_tci_offset_n", 38},
+			{"sp_ra_pr_last_etype_offset", 39},
+			{"sp_ra_pr_last_pppoe_offset", 40},
+			{"sp_ra_pr_mpls_offset_1", 41},
+			{"sp_ra_pr_mpls_offset_n", 42},
+			{"sp_ra_pr_ip1_or_arp_offset", 43},
+			{"sp_ra_pr_ip_or_minencap_offset", 44},
+			{"sp_ra_pr_gre_offset", 45},
+			{"sp_ra_pr_l4_offset", 46},
+			{"sp_ra_pr_gtp_esp_ipsec_offset", 47},
+			{"sp_ra_pr_routing_hdr_offset_1", 48},
+			{"sp_ra_pr_routing_hdr_offset_2", 49},
+			{"sp_ra_pr_nxt_hdr_offset", 50},
+			{"sp_ra_pr_ip_v6_frag_offset", 51},
+			{"sp_ra_pr_gross_running_sum_offset", 52},
+			{"sp_ra_pr_running_sum_offset", 54},
+			{"sp_ra_pr_parse_error_code_offset", 56},
+			{"sp_ra_pr_soft_parser_context_offset", 57},
+			{"sp_ra_ipv4_sa_da_or_ipv6_sa", 80},
+			{"sp_ra_ipv6_da", 96},
+			{"sp_ra_sprec_misc_flags", 112},
+			{"sp_ra_ip_length", 114},
+			{"sp_ra_routing_type", 116},
+			{"sp_ra_fd_length", 123},
+			{"sp_ra_status_error", 127}
+	};
+	int	num = 40;
+#endif
+	int	i;
+
+	for (i = 0; i < num; i++)
+		if (pos == ra_field_name[i].pos)
+			return ra_field_name[i].name;
+	return 0;
+}
+
+/******************************************************************************/
 static __COLD_CODE void sp_not_implemented(uint16_t **sp_code)
 {
 	sp_sim.sp_status = SP_ERR_INVAL_OPCODE;
@@ -484,10 +595,14 @@ static __COLD_CODE void sp_print_iv_operands(uint16_t **sp_code, uint8_t n)
 
 	ASSERT_COND(n <= 4);
 	iv = get_iv(n, *sp_code);
-	if (n <= 2)
-		fsl_print("iv:0x%x\n", iv);
+	if (n == 1)
+		fsl_print("0x%04x\n", iv);
+	else if (n == 2)
+		fsl_print("0x%08x\n", iv);
+	else if (n == 3)
+		fsl_print("0x%04x-%08x\n", (uint16_t)(iv >> 32), (uint32_t)iv);
 	else
-		fsl_print("iv:0x%x-%08x\n", (uint32_t)(iv >> 32), (uint32_t)iv);
+		fsl_print("0x%08x-%08x\n", (uint32_t)(iv >> 32), (uint32_t)iv);
 #endif
 }
 
@@ -557,7 +672,6 @@ static __COLD_CODE void sp_print_dest_operand(uint16_t jmp_dest, uint8_t a,
 	s = (jmp_dest & DEST_ADDR_SIGN_BIT) ? 1 : 0;
 	lbl = (jmp_dest & DEST_ADDR_LABEL_BIT) ? 1 : 0;
 	jmp_dest &= DEST_ADDR_MASK;
-	/*fsl_print("dst:");*/
 	if (g)
 		fsl_print("G|");
 	if (l && !lbl)
@@ -568,13 +682,24 @@ static __COLD_CODE void sp_print_dest_operand(uint16_t jmp_dest, uint8_t a,
 		fsl_print("S|");
 		jmp_dest &= ~DEST_ADDR_SIGN_BIT;
 	}
-	if (lbl)
+	if (lbl) {
 		fsl_print("sp_label_%d", (jmp_dest & 0x0F) + 1);
-	else if (!l && (jmp_dest < SP_MIN_PC || jmp_dest == RET_TO_HARD_HXS ||
-			jmp_dest == END_PARSING))
+	} else if (!l && (jmp_dest < SP_MIN_PC || jmp_dest == RET_TO_HARD_HXS ||
+			jmp_dest == END_PARSING)) {
 		sp_print_hxs_destination(jmp_dest);
-	else
-		fsl_print("0x%x", jmp_dest);
+	} else {
+		enum sparser_preloaded glo_label;
+
+		glo_label = (enum sparser_preloaded)jmp_dest;
+		switch (glo_label) {
+		case sp_compute_running_sum:
+			fsl_print("sp_compute_running_sum");
+			break;
+		default:
+			fsl_print("0x%x", jmp_dest);
+			break;
+		}
+	}
 	/*if (a)
 		fsl_print("; hb += wo");*/
 	fsl_print(";\n");
@@ -602,7 +727,7 @@ static __COLD_CODE void sp_print_case_dest_continue(uint8_t len)
 	fsl_print("\t           ");
 	for (i = 0 ; i < MAX_INSTR_LEN + 1; i++)
 		fsl_print("     ");
-	fsl_print("DEFAULT CONT (DC)  : dst:0x%x;\n", sp_sim.pc + len);
+	fsl_print("DEFAULT CONT (DC)  : 0x%x;\n", sp_sim.pc + len);
 }
 
 /******************************************************************************/
@@ -772,7 +897,7 @@ static __COLD_CODE void set_jmp_gosub_destination(uint16_t **sp_code,
 		sp_sim.sp_status = SP_HARD_HXS_CALLED;
 	} else if (g) {
 		if (sp_sim.pc_ret) {
-			fsl_print("\t\t ERROR : Return PC = 0x%x exists !",
+			fsl_print("\t\t ERROR : A return PC = 0x%x exists !",
 				  sp_sim.pc_ret);
 			sp_sim.sp_status = SP_ERR_INVAL_DST;
 			return;
@@ -820,7 +945,7 @@ static __COLD_CODE void sp_dpaa1_compare_wr0_to_iv(uint16_t **sp_code)
 	i = (uint8_t)((opcode >> 10) & 0x3);
 	c = (uint8_t)((opcode >> 12) & 0x3);
 	sp_print_opcode_words(sp_code, i + 2);
-	fsl_print("DPAA1_CMP_WR0_%s_IMM dst:0x%x, ",
+	fsl_print("DPAA1_CMP_WR0_%s_IMM 0x%x, ",
 		  ((c == 0) ? "EQ" : (c == 1) ? "NE" : (c == 2) ? "GT" : "LT"),
 		  jmp_dest);
 	sp_print_iv_operands(sp_code, i + 1);
@@ -1432,10 +1557,10 @@ static __COLD_CODE void sp_load_bits_fw_to_wr(uint16_t **sp_code)
 	w = (uint8_t)(opcode & 0x1);
 	sp_print_opcode_words(sp_code, 1);
 	if (s)
-		fsl_print("LDS_FW_TO_WR%d pos:%d, n:%d;\n",
+		fsl_print("LDS_FW_TO_WR%d %d, %d;\n",
 			  w, m - n, n + 1);
 	else
-		fsl_print("LD_FW_TO_WR%d pos:%d, n:%d;\n",
+		fsl_print("LD_FW_TO_WR%d %d, %d;\n",
 			  w, m - n, n + 1);
 	if (sp_sim.sim_enabled) {
 		uint8_t		*fw_first_byte;
@@ -1474,7 +1599,7 @@ static __COLD_CODE void sp_load_bits_fw_to_wr(uint16_t **sp_code)
 		} else {
 			sp_sim.wr[w] = val64 & mask;
 		}
-		fsl_print("\t\t WR%d = 0x%08x-%08x from PKT[%d:%d]\n",
+		fsl_print("\t\t WR%d = 0x%08x-%08x = PKT[%d:%d]\n",
 			  w,
 			  (uint32_t)(sp_sim.wr[w] >> 32),
 			  (uint32_t)sp_sim.wr[w],
@@ -1525,10 +1650,10 @@ static __COLD_CODE void sp_load_bytes_pa_to_wr(uint16_t **sp_code)
 	w = (uint8_t)(opcode & 0x1);
 	sp_print_opcode_words(sp_code, 1);
 	if (s)
-		fsl_print("LDS_PA_TO_WR%d pos:%d, n:%d;\n",
+		fsl_print("LDS_PA_TO_WR%d %d, %d;\n",
 			  w, j - k, k + 1);
 	else
-		fsl_print("LD_PA_TO_WR%d pos:%d, n:%d;\n",
+		fsl_print("LD_PA_TO_WR%d %d, %d;\n",
 			  w, j - k, k + 1);
 	if (sp_sim.sim_enabled) {
 		uint8_t		extracted_bytes[8] = {0, 0, 0, 0, 0, 0, 0, 0};
@@ -1554,7 +1679,7 @@ static __COLD_CODE void sp_load_bytes_pa_to_wr(uint16_t **sp_code)
 		} else {
 			sp_sim.wr[w] = val64 & mask;
 		}
-		fsl_print("\t\t WR%d = 0x%08x-%08x from PA[%d:%d]\n",
+		fsl_print("\t\t WR%d = 0x%08x-%08x = PA[%d:%d]\n",
 			  w,
 			  (uint32_t)(sp_sim.wr[w] >> 32),
 			  (uint32_t)sp_sim.wr[w],
@@ -1629,22 +1754,22 @@ static __COLD_CODE void sp_cmp_wr_jump(uint16_t **sp_code)
 
 		switch (c) {
 		case 0:
-			cond = (sp_sim.wr[0] == sp_sim.wr[0]) ? 1 : 0;
+			cond = (sp_sim.wr[0] == sp_sim.wr[1]) ? 1 : 0;
 			break;
 		case 1:
-			cond = (sp_sim.wr[0] != sp_sim.wr[0]) ? 1 : 0;
+			cond = (sp_sim.wr[0] != sp_sim.wr[1]) ? 1 : 0;
 			break;
 		case 2:
-			cond = (sp_sim.wr[0] > sp_sim.wr[0]) ? 1 : 0;
+			cond = (sp_sim.wr[0] > sp_sim.wr[1]) ? 1 : 0;
 			break;
 		case 3:
-			cond = (sp_sim.wr[0] < sp_sim.wr[0]) ? 1 : 0;
+			cond = (sp_sim.wr[0] < sp_sim.wr[1]) ? 1 : 0;
 			break;
 		case 4:
-			cond = (sp_sim.wr[0] >= sp_sim.wr[0]) ? 1 : 0;
+			cond = (sp_sim.wr[0] >= sp_sim.wr[1]) ? 1 : 0;
 			break;
 		case 5:
-			cond = (sp_sim.wr[0] <= sp_sim.wr[0]) ? 1 : 0;
+			cond = (sp_sim.wr[0] <= sp_sim.wr[1]) ? 1 : 0;
 			break;
 		default:
 			break;
@@ -1678,6 +1803,7 @@ static __COLD_CODE void sp_load_bytes_ra_to_wr(uint16_t **sp_code)
 {
 	uint8_t		j, k, w, s;
 	uint16_t	opcode;
+	char		*ra_name;
 
 	/* 29:Load_Bytes_RA_to_WR :
 	 *	0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15
@@ -1710,12 +1836,21 @@ static __COLD_CODE void sp_load_bytes_ra_to_wr(uint16_t **sp_code)
 	s = (uint8_t)((opcode >> 11) & 0x1);
 	w = (uint8_t)(opcode & 0x1);
 	sp_print_opcode_words(sp_code, 1);
+	ra_name = sp_ra_str(j - k);
 	if (s)
-		fsl_print("LDS_RA_TO_WR%d pos:%d, n:%d;\n",
-			  w, j - k, k + 1);
+		if (!ra_name)
+			fsl_print("LDS_RA_TO_WR%d %d, %d;\n",
+				  w, j - k, k + 1);
+		else
+			fsl_print("LDS_RA_TO_WR%d %s, %d;\n",
+				  w, ra_name, k + 1);
 	else
-		fsl_print("LD_RA_TO_WR%d pos:%d, n:%d;\n",
-			  w, j - k, k + 1);
+		if (!ra_name)
+			fsl_print("LD_RA_TO_WR%d %d, %d;\n",
+				  w, j - k, k + 1);
+		else
+			fsl_print("LD_RA_TO_WR%d %s, %d;\n",
+				  w, ra_name, k + 1);
 	if (sp_sim.sim_enabled) {
 		uint8_t		extracted_bytes[8] = {0, 0, 0, 0, 0, 0, 0, 0};
 		int		i;
@@ -1740,11 +1875,18 @@ static __COLD_CODE void sp_load_bytes_ra_to_wr(uint16_t **sp_code)
 		} else {
 			sp_sim.wr[w] = val64 & mask;
 		}
-		fsl_print("\t\t WR%d = 0x%08x-%08x from RA[%d:%d]\n",
-			  w,
-			  (uint32_t)(sp_sim.wr[w] >> 32),
-			  (uint32_t)sp_sim.wr[w],
-			  j - k, j);
+		if (!ra_name)
+			fsl_print("\t\t WR%d = 0x%08x-%08x = RA[%d:%d]\n",
+				  w,
+				  (uint32_t)(sp_sim.wr[w] >> 32),
+				  (uint32_t)sp_sim.wr[w],
+				  j - k, j);
+		else
+			fsl_print("\t\t WR%d = 0x%08x-%08x = %s = RA[%d:%d]\n",
+				  w,
+				  (uint32_t)(sp_sim.wr[w] >> 32),
+				  (uint32_t)sp_sim.wr[w],
+				  ra_name, j - k, j);
 	}
 	(*sp_code)++;
 	sp_sim.pc++;
@@ -1883,6 +2025,7 @@ static __COLD_CODE void sp_store_wr_to_ra(uint16_t **sp_code)
 {
 	uint8_t		s, t, w;
 	uint16_t	opcode;
+	char		*ra_name;
 
 	/* 28:Store_WR_to_RA
 	 *	0 1 2 3 4 5 6 7  8 9 10 11 12 13 14 15
@@ -1906,13 +2049,20 @@ static __COLD_CODE void sp_store_wr_to_ra(uint16_t **sp_code)
 	}
 	w = (uint8_t)(opcode & 0x1);
 	sp_print_opcode_words(sp_code, 1);
-	fsl_print("ST_WR%d_TO_RA pos:%d, n:%d;\n", w, t - s, s + 1);
+	ra_name = sp_ra_str(t - s);
+	if (!ra_name)
+		fsl_print("ST_WR%d_TO_RA %d, %d;\n", w, t - s, s + 1);
+	else
+		fsl_print("ST_WR%d_TO_RA %s, %d;\n", w, ra_name, s + 1);
 	if (sp_sim.sim_enabled) {
 		uint8_t		*pb, i;
 
 		pb = (uint8_t *)&sp_sim.wr[w];
 		pb += 7 - s;
-		fsl_print("\t\t RA[%d:%d] = ", t - s, t);
+		if (!ra_name)
+			fsl_print("\t\t RA[%d:%d] = ", t - s, t);
+		else
+			fsl_print("\t\t %s = RA[%d:%d] = ", ra_name, t - s, t);
 		for (i = 0; i < s + 1; i++) {
 			sp_sim.ra_arr[t - s + i] = *pb++;
 			fsl_print("%02x ", sp_sim.ra_arr[t - s + i]);
@@ -1942,14 +2092,14 @@ static __COLD_CODE void sp_add_sub_wr_to_wr(uint16_t **sp_code)
 	 * significant 32b of WR0 and WR1 are not affected by this instruction
 	 * (they hold their value).
 	 *
-	 * ADD32_WR0_TO_WR0
-	 * ADD32_WR0_TO_WR1
-	 * ADD32_WR1_TO_WR1
-	 * ADD32_WR1_TO_WR0
-	 * SUB32_WR0_FROM_WR0
-	 * SUB32_WR0_FROM_WR1
-	 * SUB32_WR1_FROM_WR1
-	 * SUB32_WR1_FROM_WR0
+	 * ADD32_WR1_WR0_TO_WR0
+	 * ADD32_WR0_WR1_TO_WR1
+	 * ADD32_WR1_WR0_TO_WR1
+	 * ADD32_WR0_WR1_TO_WR0
+	 * SUB32_WR1_FROM_WR0_TO_WR0
+	 * SUB32_WR1_FROM_WR0_TO_WR1
+	 * SUB32_WR0_FROM_WR1_TO_WR0
+	 * SUB32_WR0_FROM_WR1_TO_WR1
 	*/
 	opcode = **sp_code;
 	l = (uint8_t)(opcode & 0x1);
@@ -1957,19 +2107,21 @@ static __COLD_CODE void sp_add_sub_wr_to_wr(uint16_t **sp_code)
 	v = (uint8_t)((opcode >> 2) & 0x1);
 	sp_print_opcode_words(sp_code, 1);
 	if (o)
-		fsl_print("SUB32_WR%d_FROM_WR%d;\n", l, v);
+		fsl_print("SUB32_WR%d_FROM_WR%d_TO_WR%d;\n",
+			  l == 1 ? 0 : 1, l, v);
 	else
-		fsl_print("ADD32_WR%d_TO_WR%d;\n", l, v);
+		fsl_print("ADD32_WR%d_WR%d_TO_WR%d;\n",
+			  l == 1 ? 0 : 1, l, v);
 	if (sp_sim.sim_enabled) {
-		uint32_t	wsrc32, wdst32;
+		uint32_t	op1, op2, res;
 
-		wsrc32 = (uint32_t)sp_sim.wr[l];
-		wdst32 = (uint32_t)sp_sim.wr[v];
+		op1 = (uint32_t)sp_sim.wr[l];
+		op2 = (uint32_t)sp_sim.wr[l == 1 ? 0 : 1];
 		if (o)
-			wdst32 -= wsrc32;
+			res = op1 - op2;
 		else
-			wdst32 += wsrc32;
-		sp_sim.wr[v] = (sp_sim.wr[v] & 0xffffffff00000000UL) | wdst32;
+			res = op1 + op2;
+		sp_sim.wr[v] = (sp_sim.wr[v] & 0xffffffff00000000UL) | res;
 		fsl_print("\t\t WR%d   = 0x%08x-%08x\n", v,
 			  (uint32_t)(sp_sim.wr[v] >> 32),
 			  (uint32_t)sp_sim.wr[v]);
@@ -2247,6 +2399,7 @@ static __COLD_CODE void sp_store_iv_to_ra(uint16_t **sp_code)
 {
 	uint8_t		s, t;
 	uint16_t	opcode;
+	char		*ra_name;
 
 	/* 24:Store_IV_to_RA
 	 *	0 1 2 3 4 5 6 7 8  9 10 11 12 13 14 15
@@ -2273,7 +2426,11 @@ static __COLD_CODE void sp_store_iv_to_ra(uint16_t **sp_code)
 		return;
 	}
 	sp_print_opcode_words(sp_code, s / 2 + 2);
-	fsl_print("ST_IMM_BYTES_TO_RA pos:%d, n:%d ", t - s, s + 1);
+	ra_name = sp_ra_str(t - s);
+	if (!ra_name)
+		fsl_print("ST_IMM_BYTES_TO_RA %d, %d, ", t - s, s + 1);
+	else
+		fsl_print("ST_IMM_BYTES_TO_RA %s, %d, ", ra_name, s + 1);
 	sp_print_iv_operands(sp_code, s / 2 + 1);
 	if (sp_sim.sim_enabled) {
 		uint64_t	val64;
@@ -2283,7 +2440,10 @@ static __COLD_CODE void sp_store_iv_to_ra(uint16_t **sp_code)
 		load_iv((uint8_t *)&val64, s / 2, sp_code);
 		pb = (uint8_t *)&val64;
 		pb += 8 - (s + 1);
-		fsl_print("\t\t RA[%d:%d] = ", t - s, t);
+		if (!ra_name)
+			fsl_print("\t\t RA[%d:%d] = ", t - s, t);
+		else
+			fsl_print("\t\t %s = RA[%d:%d] = ", ra_name, t - s, t);
 		for (i = 0; i < s + 1; i++, pb++) {
 			fsl_print("%02x ", *pb);
 			sp_sim.ra_arr[t - s + i] = *pb;
@@ -2344,9 +2504,9 @@ static __COLD_CODE void sp_load_bits_iv_to_wr(uint16_t **sp_code)
 	s = (uint8_t)((opcode >> 7) & 0x1);
 	sp_print_opcode_words(sp_code, n / 16 + 2);
 	if (s)
-		fsl_print("LDS_IMM_BITS_TO_WR%d bits:%d ", w, n + 1);
+		fsl_print("LDS_IMM_BITS_TO_WR%d %d, ", w, n + 1);
 	else
-		fsl_print("LD_IMM_BITS_TO_WR%d bits:%d ", w, n + 1);
+		fsl_print("LD_IMM_BITS_TO_WR%d %d, ", w, n + 1);
 	sp_print_iv_operands(sp_code, n / 16 + 1);
 	if (sp_sim.sim_enabled) {
 		uint64_t	val64, mask;
@@ -2440,7 +2600,7 @@ static __COLD_CODE void sp_add_sv_to_wo(uint16_t **sp_code)
 	opcode = **sp_code;
 	v = (uint8_t)(opcode & 0xff);
 	sp_print_opcode_words(sp_code, 1);
-	fsl_print("ADD_SV_TO_WO sv:%d;\n", v);
+	fsl_print("ADD_SV_TO_WO %d;\n", v);
 	if (sp_sim.sim_enabled) {
 		sp_sim.wo += v;
 		fsl_print("\t\t WO = %d\n", sp_sim.wo);
@@ -2468,7 +2628,7 @@ static __COLD_CODE void sp_load_sv_to_wo(uint16_t **sp_code)
 	opcode = **sp_code;
 	v = (uint8_t)(opcode & 0xff);
 	sp_print_opcode_words(sp_code, 1);
-	fsl_print("LD_SV_TO_WO sv:%d;\n", v);
+	fsl_print("LD_SV_TO_WO %d;\n", v);
 	if (sp_sim.sim_enabled) {
 		sp_sim.wo = v;
 		fsl_print("\t\t WO = %d\n", sp_sim.wo);
@@ -2553,7 +2713,7 @@ static __COLD_CODE void sp_shift_left_wr_by_sv(uint16_t **sp_code)
 	w = (uint8_t)(opcode & 0x1);
 	n = (uint8_t)((opcode >> 1) & 0x3f);
 	sp_print_opcode_words(sp_code, 1);
-	fsl_print("SHL_WR%d_BY_SV sv:%d;\n", w, n + 1);
+	fsl_print("SHL_WR%d_BY_SV %d;\n", w, n + 1);
 	if (sp_sim.sim_enabled) {
 		sp_sim.wr[w] = sp_sim.wr[w] << (n + 1);
 		fsl_print("\t\t WR%d = 0x%08x-%08x\n", w,
@@ -2587,7 +2747,7 @@ static __COLD_CODE void sp_shift_right_wr_by_sv(uint16_t **sp_code)
 	w = (uint8_t)(opcode & 0x1);
 	n = (uint8_t)((opcode >> 1) & 0x3f);
 	sp_print_opcode_words(sp_code, 1);
-	fsl_print("SHR_WR%d_BY_SV sv:%d;\n", w, n + 1);
+	fsl_print("SHR_WR%d_BY_SV %d;\n", w, n + 1);
 	if (sp_sim.sim_enabled) {
 		sp_sim.wr[w] = sp_sim.wr[w] >> (n + 1);
 		fsl_print("\t\t WR%d = 0x%08x-%08x\n", w,
@@ -3527,8 +3687,8 @@ __COLD_CODE int sparser_disa(uint16_t pc, uint8_t *byte_code, int sp_size)
 
 	/* Disable SIM */
 	sp_sim.sim_enabled = 0;
-	if (pc < SP_MIN_PC || pc >= SP_MAX_PC) {
-		pr_err("0x%x : Invalid starting PC (< 0x%x or >= 0x%x)\n",
+	if (pc < SP_MIN_PC || pc > SP_MAX_PC) {
+		pr_err("0x%x : Invalid starting PC (< 0x%x or > 0x%x)\n",
 		       pc, SP_MIN_PC, SP_MAX_PC);
 		return -1;
 	}
@@ -3536,8 +3696,8 @@ __COLD_CODE int sparser_disa(uint16_t pc, uint8_t *byte_code, int sp_size)
 	sp_sim.pc_start = pc;
 	/* Set pc_end to size of the byte_code */
 	sp_sim.pc_end = (uint16_t)DIV_CEIL(sp_size, 2) + sp_sim.pc_start;
-	if (sp_sim.pc_end >= SP_MAX_PC) {
-		pr_err("Invalid ending PC (>= 0x%x)\n", SP_MAX_PC);
+	if (sp_sim.pc_end > SP_MAX_PC + 1) {
+		pr_err("Invalid ending PC (> 0x%x)\n", SP_MAX_PC);
 		return -1;
 	}
 	sp_sim.pc = sp_sim.pc_start;
@@ -3553,8 +3713,8 @@ __COLD_CODE void sparser_disa_instr(uint16_t pc, uint8_t *bytes, uint16_t len)
 
 	/* Disable SIM */
 	sp_sim.sim_enabled = 0;
-	if (pc < SP_MIN_PC || pc >= SP_MAX_PC) {
-		pr_err("0x%x : Invalid starting PC (< 0x%x or >= 0x%x)\n",
+	if (pc < SP_MIN_PC || pc > SP_MAX_PC) {
+		pr_err("0x%x : Invalid starting PC (< 0x%x or > 0x%x)\n",
 		       pc, SP_MIN_PC, SP_MAX_PC);
 		ASSERT_COND(0);
 		return;
@@ -3563,8 +3723,8 @@ __COLD_CODE void sparser_disa_instr(uint16_t pc, uint8_t *bytes, uint16_t len)
 	sp_sim.pc_start = pc;
 	/* Set pc_end to size of the byte_code */
 	sp_sim.pc_end = sp_sim.pc_start + len;
-	if (sp_sim.pc_end >= SP_MAX_PC) {
-		pr_err("Invalid ending PC (>= 0x%x)\n", SP_MAX_PC);
+	if (sp_sim.pc_end > SP_MAX_PC + 1) {
+		pr_err("Invalid ending PC (> 0x%x)\n", SP_MAX_PC);
 		ASSERT_COND(0);
 		return;
 	}
@@ -3710,10 +3870,14 @@ __COLD_CODE void sparser_disa_instr(uint16_t pc, uint8_t *bytes, uint16_t len)
 }
 
 /******************************************************************************/
-__COLD_CODE void sparser_sim_init(void)
+__COLD_CODE int sparser_sim_init(void)
 {
-	int	i;
+	int				i, ret;
+	enum memory_partition_id	mem_pid;
+	uint64_t			paddr;
+	uint8_t				*sps;
 
+	/* Initialize SIM structure */
 	memset(&sp_sim, 0, sizeof(struct soft_parser_sim));
 	/* Initialize Parse Array */
 	memset(&sp_sim.ra_arr, 0, sizeof(sp_sim.ra_arr));
@@ -3756,7 +3920,31 @@ __COLD_CODE void sparser_sim_init(void)
 	/* Initialize SP parameters */
 	for (i = 0; i < SP_PA_SIZE; i++)
 		sp_sim.pa[i] = 0;
-	sp_sim.init_status = SIM_INITIALIZED;
+	/* Get DDR memory for AIOP SIM Parser */
+	if (fsl_mem_exists(MEM_PART_DP_DDR))
+		mem_pid = MEM_PART_DP_DDR;
+	else
+		mem_pid = MEM_PART_SYSTEM_DDR;
+	fsl_print("%s - %d\n", __func__, __LINE__);
+	ret = fsl_get_mem(4096, mem_pid, 64, &paddr);
+	if (ret) {
+		pr_err("Can't allocate 4096 bytes in the DDR memory\n");
+		return -1;
+	}
+	fsl_print("%s - %d\n", __func__, __LINE__);
+	sps = (uint8_t *)sys_phys_to_virt(paddr);
+	if (!sps) {
+		pr_err("Can't translate DDR memory address\n");
+		return -1;
+	}
+	/* Initialize SIM AIOP Parser memory */
+	memset(sps, 0, 4096);
+	/* Copy AIOP Parser memory into the AIOP SIM Parser memory */
+	sp_sim.sps = sps;
+	ret = sparser_drv_get_pmem(sp_sim.sps);
+	if (!ret)
+		sp_sim.init_status = SIM_INITIALIZED;
+	return ret;
 }
 
 /******************************************************************************/
@@ -3884,7 +4072,7 @@ __COLD_CODE int sparser_sim_set_pc_limit(uint16_t pc_limit)
 /******************************************************************************/
 __COLD_CODE int sparser_sim(uint16_t pc, uint8_t *byte_code, int sp_size)
 {
-	int	ret;
+	int		ret;
 
 	if (!(sp_sim.init_status & SIM_INITIALIZED)) {
 		pr_err("Simulator is not initialized\n");
@@ -3894,8 +4082,8 @@ __COLD_CODE int sparser_sim(uint16_t pc, uint8_t *byte_code, int sp_size)
 		pr_err("Parsed packet not set\n");
 		return -1;
 	}
-	if (pc < SP_MIN_PC || pc >= SP_MAX_PC) {
-		pr_err("0x%x : Invalid starting PC (< 0x%x or >= 0x%x)\n",
+	if (pc < SP_MIN_PC || pc > SP_MAX_PC) {
+		pr_err("0x%x : Invalid starting PC (< 0x%x or > 0x%x)\n",
 		       pc, SP_MIN_PC, SP_MAX_PC);
 		return -1;
 	}
@@ -3904,11 +4092,17 @@ __COLD_CODE int sparser_sim(uint16_t pc, uint8_t *byte_code, int sp_size)
 	sp_sim.pc = sp_sim.pc_start;
 	/* Set pc_end to size of the byte_code */
 	sp_sim.pc_end = (uint16_t)DIV_CEIL(sp_size, 2) + sp_sim.pc_start;
-	if (sp_sim.pc_end >= SP_MAX_PC) {
-		pr_err("Invalid ending PC (>= 0x%x)\n", SP_MAX_PC);
+	if (sp_sim.pc_end > SP_MAX_PC + 1) {
+		pr_err("Invalid ending PC (> 0x%x)\n", SP_MAX_PC);
 		return -1;
 	}
-	sp_sim.sim_enabled = 1;	/* Enable SIM */
+	/* Copy under development SP into the AIOP SIM Parser memory */
+	sp_sim.pc_end = SP_MAX_PC;
+	memcpy(sp_sim.sps + 2 * sp_sim.pc, byte_code, (size_t)sp_size);
+	byte_code = sp_sim.sps + 2 * sp_sim.pc;
+	sp_size = SP_MAX_PC + 3;
+	/* Enable SIM */
+	sp_sim.sim_enabled = 1;
 	sp_sim.wo = 0;		/* Window Offset */
 	sp_sim.wr[0] = 0;	/* Clear WR0 */
 	sp_sim.wr[1] = 0;	/* Clear WR1 */
@@ -3936,4 +4130,57 @@ __COLD_CODE void sparser_sim_frame_attributes_dump(void)
 __COLD_CODE void sparser_sim_parse_result_dump(void)
 {
 	sparser_parse_result_dump(&sp_sim.ra.pr);
+}
+
+/******************************************************************************/
+__COLD_CODE void sparser_sim_memory_dump(uint16_t from_pc, uint16_t to_pc)
+{
+	int		i;
+	uint32_t	*pmem, val32;
+	uint16_t	tmp_from_pc;
+
+	if (from_pc < PARSER_MIN_PC) {
+		pr_info("0x%x from PC adjusted to 0x%x\n", from_pc,
+			PARSER_MIN_PC);
+		from_pc = PARSER_MIN_PC;
+	}
+	if (to_pc > PARSER_MAX_PC + 3) {
+		pr_info("0x%x to PC adjusted to 0x%x\n", to_pc,
+			PARSER_MAX_PC + 3);
+		to_pc = PARSER_MAX_PC + 3;
+	}
+	if (from_pc >= to_pc) {
+		pr_info("From PC : 0x%x to PC >= To PC : to 0x%x\n", from_pc,
+			to_pc);
+		return;
+	}
+	tmp_from_pc = from_pc - (from_pc % 8);
+	pmem = (uint32_t *)(sp_sim.sps + 2 * tmp_from_pc);
+	fsl_print("Dump of SIM Parser memory (at 0x%08x) PC[0x%x:0x%x]\n",
+		  (uint32_t)pmem, from_pc, to_pc - 1);
+	fsl_print("\t 0x%x : ", from_pc - (from_pc % 8));
+	for (i = tmp_from_pc; i < to_pc; ) {
+		val32 = ioread32be(pmem++);
+		if (i < from_pc)
+			fsl_print("     ");
+		else
+			fsl_print("%04x ", (uint16_t)(val32 >> 16));
+		i++;
+		if (i == to_pc) {
+			fsl_print("\n");
+			break;
+		}
+		if (i < from_pc)
+			fsl_print("     ");
+		else
+			fsl_print("%04x ", (uint16_t)val32);
+		i++;
+		if (i == to_pc) {
+			fsl_print("\n");
+			break;
+		}
+		if ((i % 8) == 0)
+			fsl_print("\n\t 0x%x : ", i);
+	}
+	fsl_print("\n");
 }

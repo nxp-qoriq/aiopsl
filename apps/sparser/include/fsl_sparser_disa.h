@@ -247,10 +247,11 @@ void sparser_disa_instr(uint16_t pc, uint8_t *bytes, uint16_t len);
 
 @Description	Initialize the built-in simulator (mandatory call).
 
-@Return		None
+@Return		0 on success, -1 on failure. Prints error messages, showing
+		what error occurred.
 
 *//***************************************************************************/
-void sparser_sim_init(void);
+int sparser_sim_init(void);
 
 /**************************************************************************//**
 @Function	sparser_sim_set_parse_array
@@ -401,6 +402,23 @@ void sparser_sim_frame_attributes_dump(void);
 
 *//***************************************************************************/
 void sparser_sim_parse_result_dump(void);
+
+/**************************************************************************//**
+@Function	sparser_sim_memory_dump
+
+@Description	Dumps AIOP SIM Parser internal instructions memory.
+		The "from PC" address must be less than the "to PC" address.
+
+@Param[in]	from_pc : Start PC address. Should be greater than or equal to
+		PARSER_MIN_PC.
+
+@Param[in]	to_pc : End PC address. Should be less than or equal to
+		PARSER_MAX_PC + 3.
+
+@Return		None
+
+*//***************************************************************************/
+void sparser_sim_memory_dump(uint16_t from_pc, uint16_t to_pc);
 
 /** @} */ /* end of sparser_sim_g SPARSER SIM group */
 #endif		/* __FSL_SPARSER_DISA_H */

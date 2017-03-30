@@ -102,8 +102,99 @@ struct sparser_drv {
 };
 
 /******************************************************************************/
+/* The soft parser library routines are loaded by AIOP_SL in the early
+ * initialization phase of the soft parser driver.
+ * The SPs in this library must occupy contiguous space into the internal memory
+ * of the AIOP Parser. Only one SP driver entry is reserved to keep information
+ * about all SPs in the library.
+ *
+ * The SPs in this library may be :
+ *	- routine SPs. Sequences of instructions performing certain operation
+ *	(by example compute the Running Sum). The routines may be called by
+ *	user defined SPs and ends by executing a RETURN instruction.
+ *	- soft HXSs. May be SPs performing a certain operation on the packet
+ *	(by example :skip a custom header, skip a standard header).
+ *
+ * Library routines are loaded at the end of the Parser instructions memory.
+ *	Loading address = (0x7FC - sizeof(sp_aiop_lib_parsers)) / 2;
+ * Size of this array must be a multiple of 4.
+ *
+ * The sp_aiop_lib_parsers array keeps the following soft parsers routines :
+ * 1. routine computing the "Running Sum".
+ * Attributes :
+ *	- Routine
+ *	- Loading address (PC) : 0x73c
+ *	- Size : 388 bytes
+ *	- Parameters : None
+ * Note : All "library" DPs entry points should be declared in the enumeration
+ * enum sparser_preloaded.
+ */
+uint8_t sp_aiop_lib_parsers[] __attribute__((aligned(4))) = {
+	/* This is a routine computes the "Running Sum" on a header of a given
+	 * length. The length of the header must be set by the calling soft
+	 * parser into the GPRV0 register of the Parse Array.
+	 * The routine reserves, for internal computations, the GPRV1 and GPRV2
+	 * registers. The working registers are not preserved.
+	 * The "Running Sum" value in the Parse Array is updated with the
+	 * computed value. The "Window Offset" register is set to point at the
+	 * beginning of the next header. Calling soft parser may advance to the
+	 * next header just after the routine returns.
+	 *
+	 * Byte-code size	: 388 bytes (0x0184).
+	 * Loading Address (PC)	: (0xffc - 0x184) / 2 = 0x73c;
+	 */
+	0x06, 0x00, 0x30, 0x12, 0x01, 0x86, 0x29, 0x06, 0x01, 0x06,
+	0x30, 0x13, 0x00, 0x4b, 0x29, 0x0a, 0x30, 0x32, 0x00, 0x05,
+	0x00, 0x78, 0x40, 0x18, 0x00, 0x52, 0x00, 0x01, 0x29, 0x06,
+	0x33, 0x72, 0x00, 0xdc, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+	0xff, 0xff, 0x9f, 0xff, 0x00, 0x06, 0xbf, 0xff, 0x00, 0x06,
+	0x00, 0xdc, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+	0x29, 0x6e, 0x07, 0x10, 0x18, 0x00, 0x44, 0x18, 0x30, 0x52,
+	0x02, 0x1f, 0x00, 0x08, 0x00, 0x7b, 0x40, 0x13, 0x00, 0x4a,
+	0x29, 0x0a, 0x33, 0x72, 0x00, 0xdc, 0xff, 0xff, 0xff, 0xff,
+	0xff, 0xff, 0xff, 0xff, 0x9f, 0xff, 0x00, 0x06, 0x00, 0xdc,
+	0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x29, 0x6e,
+	0x07, 0x08, 0x30, 0x52, 0x02, 0x7f, 0x00, 0x00, 0x00, 0x01,
+	0x00, 0x02, 0x00, 0x03, 0x00, 0x30, 0x40, 0x0f, 0x40, 0x10,
+	0x40, 0x21, 0x40, 0x31, 0x02, 0x7f, 0x00, 0x04, 0x00, 0x05,
+	0x00, 0x06, 0x00, 0x07, 0x00, 0x30, 0x40, 0x38, 0x40, 0x48,
+	0x40, 0x59, 0x40, 0x69, 0x00, 0x07, 0x33, 0x72, 0x00, 0xdc,
+	0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x83, 0x8f,
+	0x01, 0x0f, 0x00, 0x06, 0x00, 0xdc, 0xff, 0xff, 0xff, 0xff,
+	0xff, 0xff, 0xff, 0xff, 0x29, 0x6e, 0x07, 0x01, 0x00, 0x07,
+	0x33, 0x72, 0x00, 0xdc, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+	0xff, 0xff, 0x87, 0x9f, 0x00, 0x06, 0x00, 0xdc, 0xff, 0xff,
+	0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x29, 0x6e, 0x07, 0x02,
+	0x00, 0x07, 0x33, 0x72, 0x00, 0xdc, 0xff, 0xff, 0xff, 0xff,
+	0xff, 0xff, 0xff, 0xff, 0x8b, 0xaf, 0x01, 0x0f, 0x00, 0x06,
+	0x00, 0xdc, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+	0x29, 0x6e, 0x07, 0x03, 0x00, 0x07, 0x33, 0x72, 0x00, 0xdc,
+	0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x8f, 0xbf,
+	0x00, 0x06, 0x00, 0xdc, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+	0xff, 0xff, 0x29, 0x6e, 0x07, 0x04, 0x00, 0x07, 0x33, 0x72,
+	0x00, 0xdc, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+	0x93, 0xcf, 0x01, 0x0f, 0x00, 0x06, 0x00, 0xdc, 0xff, 0xff,
+	0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x29, 0x6e, 0x07, 0x05,
+	0x00, 0x07, 0x33, 0x72, 0x00, 0xdc, 0xff, 0xff, 0xff, 0xff,
+	0xff, 0xff, 0xff, 0xff, 0x97, 0xdf, 0x00, 0x06, 0x00, 0xdc,
+	0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x29, 0x6e,
+	0x07, 0x06, 0x00, 0x07, 0x33, 0x72, 0x00, 0xdc, 0xff, 0xff,
+	0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x9b, 0xef, 0x01, 0x0f,
+	0x00, 0x06, 0x00, 0xdc, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+	0xff, 0xff, 0x29, 0x6e, 0x07, 0x07, 0x00, 0x07
+};
+
+/******************************************************************************/
 /* SP "library" data */
-static struct sparser_info	sp_aiop_lib_info;
+static struct sparser_info	sp_aiop_lib_info = {
+	(0xffc - sizeof(sp_aiop_lib_parsers)) / 2,	/* Starting PC */
+	sizeof(sp_aiop_lib_parsers),			/* Byte-code size */
+	&sp_aiop_lib_parsers[0],			/* Byte-code address */
+	0,						/* Parameters offset */
+	0,						/* Parameters size */
+	0,						/* Parse profile ID */
+	SPARSER_AIOP_AIOP				/* Type */
+};
 
 /* SP driver data */
 static struct sparser_drv	parser_drv;
@@ -178,8 +269,8 @@ static __COLD_CODE int sp_drv_check_sp_info(struct sparser_info *sp,
 		return -1;
 	}
 	sz = (uint32_t)(DIV_CEIL(sp->size, 2) + sp->pc);
-	if (sz >= PARSER_MAX_PC) {
-		pr_err("SP code exceeds maximum PC (>= 0x%x)\n", PARSER_MAX_PC);
+	if (sz > PARSER_MAX_PC + 1) {
+		pr_err("SP code exceeds maximum PC (> 0x%x)\n", PARSER_MAX_PC);
 		return -1;
 	}
 	/* WRIOP parsers. They are managed/loaded by MC. Let the SP of the
@@ -352,43 +443,7 @@ __COLD_CODE int sparser_drv_early_init(void)
 {
 	int		i, ret;
 	uint32_t	*sp_mem, *sp_code, sz;
-	uint8_t		sp_aiop_lib_parsers[4] __attribute__((aligned(4))) = {
-				0x00, 0x00, 0x00, 0x00
-			};
-	/* sp_aiop_lib_parsers[] array contains the byte-code of the AIOP_SL
-	 * SPs "library".
-	 *
-	 * The SPs in this library must occupy contiguous space into the
-	 * internal memory of the AIOP Parser. Only one SP driver entry is
-	 * reserved to keep information about all SPs in the library.
-	 *
-	 * The SPs in this library are :
-	 *	- routine SPs. Sequences of instructions performing a certain
-	 *	operation (by example compute the Running Sum). The routines
-	 *	may be called by user defined SPs and ends by executing a
-	 *	RETURN instruction.
-	 *	- standard SPs. May be SPs performing a certain operation on the
-	 *	packet (by example :skip a custom header, skip a standard
-	 *	header).
-	 *
-	 * Notes :
-	 *	1. Loading address (PC), SPs code size, SPs parameters (if any)
-	 *	must be documented when this support is added.
-	 *	2. It's not mandatory to populate the SPs library with SPs.
-	 */
 
-	/* Fill the sp_aiop_lib_info fields with the needed information */
-	sp_aiop_lib_info.pc = 0x000; /* Must set the right value */
-	sp_aiop_lib_info.size = 0; /* Must set the right value. The following
-				    commented line sets the correct size.
-				    Un-comment it when sp_aiop_lib_parsers
-				    contains a valid SP. */
-	/*sp_aiop_lib_info.size = sizeof(sp_aiop_lib_parsers);*/
-	sp_aiop_lib_info.byte_code = &sp_aiop_lib_parsers[0];
-	sp_aiop_lib_info.param_off = 0;	/* Must set the right value */
-	sp_aiop_lib_info.param_size = 0;
-	sp_aiop_lib_info.prpid = 0; /* Must set the right value */
-	sp_aiop_lib_info.type = SPARSER_AIOP_AIOP;
 	/* Load SPs "library" */
 	if (!sp_aiop_lib_info.pc) {
 		pr_info("Soft Parser early initialization succeeded\n");
@@ -412,8 +467,8 @@ __COLD_CODE int sparser_drv_early_init(void)
 	}
 	sz = (uint32_t)(DIV_CEIL(sp_aiop_lib_info.size, 2) +
 				 sp_aiop_lib_info.pc);
-	if (sz >= PARSER_MAX_PC) {
-		pr_err("SP code exceeds maximum PC (>= 0x%x)\n", PARSER_MAX_PC);
+	if (sz > PARSER_MAX_PC + 1) {
+		pr_err("SP code exceeds maximum PC (> 0x%x)\n", PARSER_MAX_PC);
 		return -1;
 	}
 	/* Disable parser */
@@ -423,10 +478,10 @@ __COLD_CODE int sparser_drv_early_init(void)
 	/* Load SP library code */
 	sp_code = (uint32_t *)sp_aiop_lib_info.byte_code;
 	sp_mem = (uint32_t *)(PARSER_REGS_ADDR + 2 * sp_aiop_lib_info.pc);
-	for (i = 0; i < DIV_CEIL(sp_aiop_lib_info.size, 4); i++) {
-		fsl_print("\t 0x%08x : 0x%08x\n", (uint32_t)sp_mem, *sp_code);
+	pr_info("Pre-load AIOP soft parser library : PC = 0x%x size = %d\n",
+			sp_aiop_lib_info.pc, sp_aiop_lib_info.size);
+	for (i = 0; i < DIV_CEIL(sp_aiop_lib_info.size, 4); i++)
 		iowrite32be(*sp_code++, sp_mem++);
-	}
 	memcpy(&parser_drv.sp_info[PARSER_LIB_SP_IDX], &sp_aiop_lib_info,
 	       sizeof(struct sparser_info));
 	/* Re-enable parser */
@@ -545,6 +600,25 @@ __COLD_CODE void sparser_drv_set_pclim(uint32_t limit)
 	if (!limit)
 		pr_warn("Parser cycles limit check is disabled\n");
 	iowrite32be(limit, &pregs->par_pclim);
+}
+
+/******************************************************************************/
+__COLD_CODE int sparser_drv_get_pmem(uint8_t *pmem)
+{
+	int		i, ret;
+	uint32_t	*src_mem, *dst_mem;
+	uint16_t	from_pc;
+
+	ret = sp_drv_stop_parser();
+	if (ret)
+		return ret;
+	from_pc = PARSER_MIN_PC - (PARSER_MIN_PC % 8);
+	src_mem = (uint32_t *)(PARSER_REGS_ADDR + 2 * from_pc);
+	dst_mem = (uint32_t *)(pmem + 2 * from_pc);
+	for (i = from_pc; i < PARSER_MAX_PC + 3; i += 2)
+		*dst_mem++ = ioread32be(src_mem++);
+	sp_drv_start_parser();
+	return 0;
 }
 
 #ifdef SL_DEBUG

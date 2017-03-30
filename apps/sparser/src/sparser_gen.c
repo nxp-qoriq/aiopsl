@@ -65,6 +65,7 @@
 struct sparser_ref_label_info {
 	uint16_t	pc;
 	uint8_t		off;
+	uint8_t		gosub_flag;
 };
 
 /* The number of references to a "local labels" i.e how many times a local
@@ -227,6 +228,9 @@ static __COLD_CODE void sparser_gen_check_jmp_dest(uint16_t jmp_dst,
 			[spd.sp_labels[idx].from_pc.cnt].pc = spd_pc;
 		spd.sp_labels[idx].from_pc.pc_info
 			[spd.sp_labels[idx].from_pc.cnt].off = off;
+		spd.sp_labels[idx].from_pc.pc_info
+			[spd.sp_labels[idx].from_pc.cnt].gosub_flag =
+					(jmp_dst & SP_JMP_DST_GFLAG) ? 1 : 0;
 		spd.sp_labels[idx].from_pc.cnt++;
 		return;	/* Valid label */
 	}
@@ -825,6 +829,20 @@ __COLD_CODE void sparser_end_bytecode_wrt(void)
 				jmp_dst |= (to_pc - from_pc);
 			else
 				jmp_dst |= SF | (from_pc - to_pc);
+#if (SP_GEN_CHECK_ERRORS == 1)
+			/* Label not used but referred !!! */
+			if (jmp_dst > 0x3FF) {
+				fsl_print("\t Invalid jump to sp_label_%d\n",
+					  i + 1);
+				fsl_print("\t From PC = 0x%x to PC 0x%x ",
+					  from_pc, to_pc);
+				fsl_print("relative jump exceeds 1024 limit\n");
+				ASSERT_COND(0);
+				return;
+			}
+#endif
+			if (spd.sp_labels[i].from_pc.pc_info[j].gosub_flag)
+				jmp_dst |= GF;
 			sp_code = (uint16_t *)spd.sp;
 			sp_code += (from_pc - spd.start_pc) + off;
 			*sp_code = jmp_dst;
@@ -1136,52 +1154,52 @@ __COLD_CODE void sparser_gen_jump_to_l4_protocol(void)
 	sparser_gen_jump_to_lx_protocol(SP_L4);
 }
 
-/* ADD32_WRx_TO_WRx
- * SUB32_WRx_TO_WRx */
+/* 12:ADD32_WRx_WRx_TO_WRx
+ * SUB32_WRx_FROM_WRx_TO_WRx */
 /******************************************************************************/
-__COLD_CODE void sparser_gen_add32_wr0_to_wr0(void)
+__COLD_CODE void sparser_gen_add32_wr1_wr0_to_wr0(void)
 {
 	sparser_gen_op32_wrx_to_wrx(SP_ARITH_ADD, SP_WR0, SP_WR0);
 }
 
 /******************************************************************************/
-__COLD_CODE void sparser_gen_add32_wr0_to_wr1(void)
+__COLD_CODE void sparser_gen_add32_wr1_wr0_to_wr1(void)
 {
 	sparser_gen_op32_wrx_to_wrx(SP_ARITH_ADD, SP_WR0, SP_WR1);
 }
 
 /******************************************************************************/
-__COLD_CODE void sparser_gen_add32_wr1_to_wr1(void)
+__COLD_CODE void sparser_gen_add32_wr0_wr1_to_wr1(void)
 {
 	sparser_gen_op32_wrx_to_wrx(SP_ARITH_ADD, SP_WR1, SP_WR1);
 }
 
 /******************************************************************************/
-__COLD_CODE void sparser_gen_add32_wr1_to_wr0(void)
+__COLD_CODE void sparser_gen_add32_wr0_wr1_to_wr0(void)
 {
 	sparser_gen_op32_wrx_to_wrx(SP_ARITH_ADD, SP_WR1, SP_WR0);
 }
 
 /******************************************************************************/
-__COLD_CODE void sparser_gen_sub32_wr0_to_wr0(void)
+__COLD_CODE void sparser_gen_sub32_wr1_from_wr0_to_wr0(void)
 {
 	sparser_gen_op32_wrx_to_wrx(SP_ARITH_SUB, SP_WR0, SP_WR0);
 }
 
 /******************************************************************************/
-__COLD_CODE void sparser_gen_sub32_wr0_to_wr1(void)
+__COLD_CODE void sparser_gen_sub32_wr1_from_wr0_to_wr1(void)
 {
 	sparser_gen_op32_wrx_to_wrx(SP_ARITH_SUB, SP_WR0, SP_WR1);
 }
 
 /******************************************************************************/
-__COLD_CODE void sparser_gen_sub32_wr1_to_wr1(void)
+__COLD_CODE void sparser_gen_sub32_wr0_from_wr1_to_wr1(void)
 {
 	sparser_gen_op32_wrx_to_wrx(SP_ARITH_SUB, SP_WR1, SP_WR1);
 }
 
 /******************************************************************************/
-__COLD_CODE void sparser_gen_sub32_wr1_to_wr0(void)
+__COLD_CODE void sparser_gen_sub32_wr0_from_wr1_to_wr0(void)
 {
 	sparser_gen_op32_wrx_to_wrx(SP_ARITH_SUB, SP_WR1, SP_WR0);
 }

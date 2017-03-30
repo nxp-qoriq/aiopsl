@@ -406,6 +406,77 @@ enum sparser_faf_bit {
 /** @} end of group sparser_faf_bit */
 
 /**************************************************************************//**
+@Description	 enum sparser_ra_offset - Parse Array fields offset
+
+*//***************************************************************************/
+enum sparser_ra_offset {
+	sp_ra_gprv_0 = 0,				/* 2 */
+	sp_ra_gprv_1 = 2,				/* 2 */
+	sp_ra_gprv_2 = 4,				/* 2 */
+	sp_ra_gprv_3 = 6,				/* 2 */
+	sp_ra_gprv_4 = 8,				/* 2 */
+	sp_ra_gprv_5 = 10,				/* 2 */
+	sp_ra_gprv_6 = 12,				/* 2 */
+	sp_ra_gprv_7 = 14,				/* 2 */
+	sp_ra_nxt_hdr = 16,				/* 2 */
+	/* FAF Extension [18:19] */			/* 2 */
+	/* FAF [20:31] */				/* 12 */
+	sp_ra_pr_shim_offset_1 = 32,
+	sp_ra_pr_shim_offset_2 = 33,
+#ifndef LS2085A_REV1
+	sp_ra_pr_ip_1_pid_offset = 34,
+#else
+	sp_ra_pr_ip_pid_offset = 34,
+#endif
+	sp_ra_pr_eth_offset = 35,
+	sp_ra_pr_llc_snap_offset = 36,
+	sp_ra_pr_vlan_tci_offset_1 = 37,
+	sp_ra_pr_vlan_tci_offset_n = 38,
+	sp_ra_pr_last_etype_offset = 39,
+	sp_ra_pr_last_pppoe_offset = 40,
+	sp_ra_pr_mpls_offset_1 = 41,
+	sp_ra_pr_mpls_offset_n = 42,
+#ifndef LS2085A_REV1
+	sp_ra_pr_l3_offset = 43,
+#else
+	sp_ra_pr_ip1_or_arp_offset = 43,
+#endif
+	sp_ra_pr_ip_or_minencap_offset = 44,
+	sp_ra_pr_gre_offset = 45,
+	sp_ra_pr_l4_offset = 46,
+#ifndef LS2085A_REV1
+	sp_ra_pr_l5_offset = 47,
+#else
+	sp_ra_pr_gtp_esp_ipsec_offset = 47,
+#endif
+	sp_ra_pr_routing_hdr_offset_1 = 48,
+	sp_ra_pr_routing_hdr_offset_2 = 49,
+	sp_ra_pr_nxt_hdr_offset = 50,
+	sp_ra_pr_ip_v6_frag_offset = 51,
+	sp_ra_pr_gross_running_sum_offset = 52,		/* 2 */
+	sp_ra_pr_running_sum_offset = 54,		/* 2 */
+	sp_ra_pr_parse_error_code_offset = 56,
+#ifndef LS2085A_REV1
+	sp_ra_pr_nxt_hdr_frag_offset = 57,
+	sp_ra_pr_ip_n_pid_offset = 58,
+	sp_ra_pr_soft_parser_context_offset = 59,	/* 21 */
+#else
+	sp_ra_pr_soft_parser_context_offset = 57,	/* 23 */
+#endif
+	sp_ra_ipv4_sa_da_or_ipv6_sa = 80,		/* 16 */
+	sp_ra_ipv6_da = 96,				/* 16 */
+	sp_ra_sprec_misc_flags = 112,			/* 2 */
+	sp_ra_ip_length = 114,				/* 2 */
+	sp_ra_routing_type = 116,
+	/* Reserved [117:122] */			/* 6 */
+	sp_ra_fd_length = 123,				/* 3 */
+	/* Reserved [126] */
+	sp_ra_status_error = 127
+};
+
+/** @} end of group sparser_ra_offset */
+
+/**************************************************************************//**
 @Function	sparser_begin_bytecode_wrt
 
 @Description	Initializes a Soft Parser byte-code writing. Mandatory call.
@@ -861,9 +932,9 @@ void sparser_gen_jump_to_l3_protocol(void);
 void sparser_gen_jump_to_l4_protocol(void);
 
 /**************************************************************************//**
-@Function	sparser_gen_add32_wr0_to_wr0
+@Function	sparser_gen_add32_wr1_wr0_to_wr0
 
-@Description	Adds the least significant 32 bits of WR0 to the least
+@Description	Adds the least significant 32 bits of WR1 to the least
 		significant 32 bits of WR0 and stores the result into WR0.
 		No carry bit is captured. The most significant 32 bits of WR0
 		are not affected by this instruction.
@@ -872,13 +943,13 @@ void sparser_gen_jump_to_l4_protocol(void);
 		occurred.
 
 *//***************************************************************************/
-void sparser_gen_add32_wr0_to_wr0(void);
+void sparser_gen_add32_wr1_wr0_to_wr0(void);
 
 /**************************************************************************//**
-@Function	sparser_gen_add32_wr0_to_wr1
+@Function	sparser_gen_add32_wr1_wr0_to_wr1
 
-@Description	Adds the least significant 32 bits of WR0 to the least
-		significant 32 bits of WR1 and stores the result into WR1.
+@Description	Adds the least significant 32 bits of WR1 to the least
+		significant 32 bits of WR0 and stores the result into WR1.
 		No carry bit is captured. The most significant 32 bits of WR0
 		and WR1 are not affected by this instruction.
 
@@ -886,12 +957,12 @@ void sparser_gen_add32_wr0_to_wr0(void);
 		occurred.
 
 *//***************************************************************************/
-void sparser_gen_add32_wr0_to_wr1(void);
+void sparser_gen_add32_wr1_wr0_to_wr1(void);
 
 /**************************************************************************//**
-@Function	sparser_gen_add32_wr1_to_wr1
+@Function	sparser_gen_add32_wr0_wr1_to_wr1
 
-@Description	Adds the least significant 32 bits of WR1 to the least
+@Description	Adds the least significant 32 bits of WR0 to the least
 		significant 32 bits of WR1 and stores the result into WR1.
 		No carry bit is captured. The most significant 32 bits of WR1
 		are not affected by this instruction.
@@ -900,13 +971,13 @@ void sparser_gen_add32_wr0_to_wr1(void);
 		occurred.
 
 *//***************************************************************************/
-void sparser_gen_add32_wr1_to_wr1(void);
+void sparser_gen_add32_wr0_wr1_to_wr1(void);
 
 /**************************************************************************//**
-@Function	sparser_gen_add32_wr1_to_wr0
+@Function	sparser_gen_add32_wr0_wr1_to_wr0
 
-@Description	Adds the least significant 32 bits of WR1 to the least
-		significant 32 bits of WR0 and stores the result into WR0.
+@Description	Adds the least significant 32 bits of WR0 to the least
+		significant 32 bits of WR1 and stores the result into WR0.
 		No carry bit is captured. The most significant 32 bits of WR0
 		and WR1 are not affected by this instruction.
 
@@ -914,12 +985,12 @@ void sparser_gen_add32_wr1_to_wr1(void);
 		occurred.
 
 *//***************************************************************************/
-void sparser_gen_add32_wr1_to_wr0(void);
+void sparser_gen_add32_wr0_wr1_to_wr0(void);
 
 /**************************************************************************//**
-@Function	sparser_gen_sub32_wr0_to_wr0
+@Function	sparser_gen_sub32_wr1_from_wr0_to_wr0
 
-@Description	Subtracts the least significant 32 bits of WR0 from the least
+@Description	Subtracts the least significant 32 bits of WR1 from the least
 		significant 32 bits of WR0 and stores the result into WR0.
 		No underflow bit is captured. The most significant 32 bits of
 		WR0 are not affected by this instruction.
@@ -928,13 +999,13 @@ void sparser_gen_add32_wr1_to_wr0(void);
 		occurred.
 
 *//***************************************************************************/
-void sparser_gen_sub32_wr0_to_wr0(void);
+void sparser_gen_sub32_wr1_from_wr0_to_wr0(void);
 
 /**************************************************************************//**
-@Function	sparser_gen_sub32_wr0_to_wr1
+@Function	sparser_gen_sub32_wr1_from_wr0_to_wr1
 
-@Description	Subtracts the least significant 32 bits of WR0 from the least
-		significant 32 bits of WR1 and stores the result into WR1.
+@Description	Subtracts the least significant 32 bits of WR1 from the least
+		significant 32 bits of WR0 and stores the result into WR1.
 		No underflow bit is captured. The most significant 32 bits of
 		WR0 and WR1 are not affected by this instruction.
 
@@ -942,12 +1013,12 @@ void sparser_gen_sub32_wr0_to_wr0(void);
 		occurred.
 
 *//***************************************************************************/
-void sparser_gen_sub32_wr0_to_wr1(void);
+void sparser_gen_sub32_wr1_from_wr0_to_wr1(void);
 
 /**************************************************************************//**
-@Function	sparser_gen_sub32_wr1_to_wr1
+@Function	sparser_gen_sub32_wr0_from_wr1_to_wr1
 
-@Description	Subtracts the least significant 32 bits of WR1 from the least
+@Description	Subtracts the least significant 32 bits of WR0 from the least
 		significant 32 bits of WR1 and stores the result into WR1.
 		No underflow bit is captured. The most significant 32 bits of
 		WR1 are not affected by this instruction.
@@ -956,13 +1027,13 @@ void sparser_gen_sub32_wr0_to_wr1(void);
 		occurred.
 
 *//***************************************************************************/
-void sparser_gen_sub32_wr1_to_wr1(void);
+void sparser_gen_sub32_wr0_from_wr1_to_wr1(void);
 
 /**************************************************************************//**
-@Function	sparser_gen_sub32_wr1_to_wr0
+@Function	sparser_gen_sub32_wr0_from_wr1_to_wr0
 
-@Description	Subtracts the least significant 32 bits of WR1 from the least
-		significant 32 bits of WR0 and stores the result into WR0.
+@Description	Subtracts the least significant 32 bits of WR0 from the least
+		significant 32 bits of WR1 and stores the result into WR0.
 		No underflow bit is captured. The most significant 32 bits of
 		WR0 and WR1 are not affected by this instruction.
 
@@ -970,7 +1041,7 @@ void sparser_gen_sub32_wr1_to_wr1(void);
 		occurred.
 
 *//***************************************************************************/
-void sparser_gen_sub32_wr1_to_wr0(void);
+void sparser_gen_sub32_wr0_from_wr1_to_wr0(void);
 
 /**************************************************************************//**
 @Function	sparser_gen_add32_wr0_imm_to_wr0
@@ -2282,23 +2353,23 @@ void sparser_gen_lds_fw_to_wr1(uint8_t pos, uint8_t n);
 #define JMP_TO_L4_PROTOCOL sparser_gen_jump_to_l4_protocol()
 
 /******************************************************************************/
-/* 12:ADD32_WRx_TO_WRx
- * SUB32_WRx_TO_WRx */
-#define ADD32_WR0_TO_WR0 sparser_gen_add32_wr0_to_wr0()
+/* 12:ADD32_WRx_WRx_TO_WRx
+ * SUB32_WRx_FROM_WRx_TO_WRx */
+#define ADD32_WR1_WR0_TO_WR0 sparser_gen_add32_wr1_wr0_to_wr0()
 
-#define ADD32_WR0_TO_WR1 sparser_gen_add32_wr0_to_wr1()
+#define ADD32_WR1_WR0_TO_WR1 sparser_gen_add32_wr1_wr0_to_wr1()
 
-#define ADD32_WR1_TO_WR1 sparser_gen_add32_wr1_to_wr1()
+#define ADD32_WR0_WR1_TO_WR1 sparser_gen_add32_wr0_wr1_to_wr1()
 
-#define ADD32_WR1_TO_WR0 sparser_gen_add32_wr1_to_wr0()
+#define ADD32_WR0_WR1_TO_WR0 sparser_gen_add32_wr0_wr1_to_wr0()
 
-#define SUB32_WR0_TO_WR0 sparser_gen_sub32_wr0_to_wr0()
+#define SUB32_WR1_FROM_WR0_TO_WR0 sparser_gen_sub32_wr1_from_wr0_to_wr0()
 
-#define SUB32_WR0_TO_WR1 sparser_gen_sub32_wr0_to_wr1()
+#define SUB32_WR1_FROM_WR0_TO_WR1 sparser_gen_sub32_wr1_from_wr0_to_wr1()
 
-#define SUB32_WR1_TO_WR1 sparser_gen_sub32_wr1_to_wr1()
+#define SUB32_WR0_FROM_WR1_TO_WR1 sparser_gen_sub32_wr0_from_wr1_to_wr1()
 
-#define SUB32_WR1_TO_WR0 sparser_gen_sub32_wr1_to_wr0()
+#define SUB32_WR0_FROM_WR1_TO_WR0 sparser_gen_sub32_wr0_from_wr1_to_wr0()
 
 /******************************************************************************/
 /* 13:ADD32_WRx_IMMxx_TO_WRx

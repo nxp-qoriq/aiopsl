@@ -113,6 +113,70 @@ struct sparser_info {
 };
 
 /**************************************************************************//**
+@Description	enum sparser_preloaded - Pre-loaded Soft Parsers
+
+		This enumeration contains the soft parsers defined by AIOP SL
+		and loaded into the AIOP Parser instructions memory in the
+		early initialization phase of the soft parser driver.
+		Applications may call a soft parser if it is a routine or jump
+		to a soft parser if it is a soft HXS.
+
+		The pre-loaded soft parsers are loaded to the bottom of the
+		instructions memory. Application defined soft parsers may be
+		loaded into the memory staring with the 0x020 PC address.
+		The size of all application defined soft parsers can't exceed :
+			2 * (0x73c - 0x20) = 3640 bytes
+
+*//***************************************************************************/
+enum sparser_preloaded {
+	/* Routine computing the "Running Sum" on a header of a given length.
+	 * The length of the header must be set by the calling soft parser into
+	 * the GPRV0 register (RA[0:1]) of the Parse Array.
+	 * The routine reserves, for internal computations, the GPRV1 (RA[2:3])
+	 * and the GPRV2 (RA[4:5]) registers. The working registers are not
+	 * preserved.
+	 * The "Running Sum" value in the Parse Array is updated with the
+	 * computed value. The "Window Offset" register is set to point to the
+	 * beginning of the next header. Calling soft parser may advance to the
+	 * next header just after the routine returns.
+	 *
+	 * Attributes:
+	 *	Type			: Routine
+	 *	Loading Address (PC)	: 0x73c
+	 *	Byte-code size		: 388 bytes
+	 *	Parameters		: None
+	 *
+	 * ===================================================================
+	 *						Computation example
+	 * -------------------------------------------------------------------
+	 * Operation				Cycles	L=46	L=18	L=14
+	 * ===================================================================
+	 * Store custom header length (L)	1	1	1	1
+	 * -------------------------------------------------------------------
+	 * Routine call				1	1	1	1
+	 * ===================================================================
+	 * # of 16 bytes windows (N) and
+	 * # of the remaining bytes		8	8	8	8
+	 * -------------------------------------------------------------------
+	 * For each 16 bytes window		15 * N	30	15
+	 * -------------------------------------------------------------------
+	 * Remained more than 8 bytes ?		3	3	3	3
+	 * -------------------------------------------------------------------
+	 * Remained >= 8 bytes			9	8		8
+	 * -------------------------------------------------------------------
+	 * Remained 0 bytes			4
+	 * Remained 1 or 3 bytes		12
+	 * Remained 2 bytes			11		11
+	 * Remained 4 or 6 bytes		13	13		13
+	 * Remained 5 or 7 bytes		14
+	 * -------------------------------------------------------------------
+	 * Total					64	39	34
+	 * -------------------------------------------------------------------
+	 */
+	sp_compute_running_sum = 0x73c
+};
+
+/**************************************************************************//**
 @Function	sparser_drv_load_parser
 
 @Description	Load a Soft Parser into the internal instructions memory of the
