@@ -47,6 +47,8 @@
 #include "fsl_sl_evmng.h"
 #include "fsl_ep_mng.h"
 
+#include "fsl_mem_mng.h"
+
 #define __ERR_MODULE__  MODULE_DPNI
 #define ETH_BROADCAST_ADDR		((uint8_t []){0xff,0xff,0xff,0xff,0xff,0xff})
 int dpni_drv_init(void);
@@ -1598,14 +1600,6 @@ static int dpni_drv_set_ordering_mode_etype(uint16_t ni_id, int ep_mode,
 }
 
 /******************************************************************************/
-static __COLD_CODE
-int send_soft_parser_param(const struct dpni_drv_sparser_param *param)
-{
-	UNUSED(param);
-	/* TODO - Implement MC command */
-	return 0;
-}
-
 int dpni_drv_set_concurrent(uint16_t ni_id){
 	return dpni_drv_set_ordering_mode(ni_id, DPNI_DRV_CONCURRENT_MODE);
 }
@@ -2965,7 +2959,6 @@ __COLD_CODE
 int dpni_drv_activate_soft_parser(uint8_t prpid,
 				  const struct dpni_drv_sparser_param *param)
 {
-	int				err;
 	uint8_t				*pb;
 	struct parse_profile_input	pp __attribute__((aligned(16)));
 
@@ -2985,11 +2978,6 @@ int dpni_drv_activate_soft_parser(uint8_t prpid,
 		return -EINVAL;
 	}
 #endif
-	if (param->parser == PARSER_WRIOP) {
-		/* Send information to MC */
-		err = send_soft_parser_param(param);
-		return err;
-	}
 	/* The first header is not linked to a hard HXS. If it has no parameters
 	 * there is no need to update the parse profile. */
 	if (param->first_header && !param->param_size)
@@ -3092,4 +3080,149 @@ int dpni_drv_activate_soft_parser(uint8_t prpid,
 	parser_profile_replace(&pp, prpid);
 	pr_info("Parse Profile %d updated\n", prpid);
 	return 0;
+}
+
+/******************************************************************************/
+static int load_wriop_soft_parser(struct dpni_load_ss_cfg *cfg)
+{
+	struct mc_dprc			*dprc;
+	int				err;
+	uint16_t			dpni, ni_id;
+
+	/* Use AIOP NI 0 to send the information */
+	ni_id = 0;
+	dprc = sys_get_unique_handle(FSL_MOD_AIOP_RC);
+	if (!dprc) {
+		pr_err("No AIOP container found\n");
+		return -ENODEV;
+	}
+	/* Lock dpni table */
+	cdma_mutex_lock_take((uint64_t)nis, CDMA_MUTEX_READ_LOCK);
+	err = dpni_open(&dprc->io, 0, (int)nis[ni_id].dpni_id, &dpni);
+	/* Unlock dpni table */
+	cdma_mutex_lock_release((uint64_t)nis);
+	if (err) {
+		sl_pr_err("Open DPNI failed\n");
+		return err;
+	}
+	err = dpni_load_sw_sequence(&dprc->io, 0, dpni, cfg);
+	if (err) {
+		sl_pr_err("dpni_load_sw_sequence failed\n");
+		dpni_close(&dprc->io, 0, dpni);
+		return err;
+	}
+	err = dpni_close(&dprc->io, 0, dpni);
+	if (err) {
+		sl_pr_err("Close DPNI failed\n");
+		return err;
+	}
+	return 0;
+}
+
+/******************************************************************************/
+static int enable_wriop_soft_parser(uint16_t ni_id,
+				    struct dpni_enable_ss_cfg *cfg)
+{
+	struct mc_dprc			*dprc;
+	int				err;
+	uint16_t			dpni;
+
+	dprc = sys_get_unique_handle(FSL_MOD_AIOP_RC);
+	if (!dprc) {
+		pr_err("No AIOP container found\n");
+		return -ENODEV;
+	}
+	/* Lock dpni table */
+	cdma_mutex_lock_take((uint64_t)nis, CDMA_MUTEX_READ_LOCK);
+	err = dpni_open(&dprc->io, 0, (int)nis[ni_id].dpni_id, &dpni);
+	/* Unlock dpni table */
+	cdma_mutex_lock_release((uint64_t)nis);
+	if (err) {
+		sl_pr_err("Open DPNI failed\n");
+		return err;
+	}
+	err = dpni_enable_sw_sequence(&dprc->io, 0, dpni, cfg);
+	if (err) {
+		sl_pr_err("dpni_enable_sw_sequence failed\n");
+		dpni_close(&dprc->io, 0, dpni);
+		return err;
+	}
+	err = dpni_close(&dprc->io, 0, dpni);
+	if (err) {
+		sl_pr_err("Close DPNI failed\n");
+		return err;
+	}
+	return 0;
+}
+
+/******************************************************************************/
+int dpni_drv_load_wriop_ingress_soft_parser
+			(const struct dpni_drv_sparser_param *param)
+{
+	struct dpni_load_ss_cfg		cfg;
+
+	cfg.dest = DPNI_SS_INGRESS;
+	cfg.ss_offset = param->start_pc;
+	cfg.ss_size = param->size;
+	cfg.ss_iova = param->byte_code;
+
+	return load_wriop_soft_parser(&cfg);
+}
+
+/******************************************************************************/
+int dpni_drv_load_wriop_egress_soft_parser
+			(const struct dpni_drv_sparser_param *param)
+{
+	struct dpni_load_ss_cfg		cfg;
+
+	cfg.dest = DPNI_SS_EGRESS;
+	cfg.ss_offset = param->start_pc;
+	cfg.ss_size = param->size;
+	cfg.ss_iova = param->byte_code;
+
+	return load_wriop_soft_parser(&cfg);
+}
+
+/******************************************************************************/
+int dpni_drv_enable_wriop_ingress_soft_parser
+		(uint16_t ni_id, const struct dpni_drv_sparser_param *param)
+{
+	struct dpni_enable_ss_cfg	cfg;
+
+	cfg.dest = DPNI_SS_INGRESS;
+	cfg.ss_offset = param->start_pc;
+	cfg.set_start = param->first_header;
+	cfg.hxs = (uint16_t)param->link_to_hard_hxs;
+	cfg.param_offset = param->param_offset;
+	cfg.param_size = param->param_size;
+	if (cfg.param_size) {
+		memset(order_scope_buf, 0, PARAMS_IOVA_BUFF_SIZE);
+		memcpy(&order_scope_buf, param->param_array, cfg.param_size);
+		cfg.param_iova = &order_scope_buf[0];
+	} else {
+		cfg.param_iova = 0;
+	}
+	return enable_wriop_soft_parser(ni_id, &cfg);
+}
+
+/******************************************************************************/
+int dpni_drv_enable_wriop_egress_soft_parser
+		(uint16_t ni_id, const struct dpni_drv_sparser_param *param)
+{
+	struct dpni_enable_ss_cfg	cfg;
+
+	cfg.dest = DPNI_SS_EGRESS;
+	cfg.ss_offset = param->start_pc;
+	cfg.set_start = param->first_header;
+	cfg.hxs = (uint16_t)param->link_to_hard_hxs;
+	cfg.param_offset = param->param_offset;
+	cfg.param_size = param->param_size;
+	if (cfg.param_size) {
+		memset(order_scope_buf, 0, PARAMS_IOVA_BUFF_SIZE);
+		memcpy(&order_scope_buf, param->param_array, cfg.param_size);
+		cfg.param_iova = &order_scope_buf[0];
+	} else {
+		cfg.param_iova = 0;
+	}
+	return enable_wriop_soft_parser(ni_id, &cfg);
 }

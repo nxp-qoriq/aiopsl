@@ -535,18 +535,6 @@ struct dpni_drv_free_bufs {
 };
 
 /**************************************************************************//**
-@Description	enum dpni_drv_hw_parser - Hardware parser managing the
-		Soft Examination Sequence.
-
-*//***************************************************************************/
-enum dpni_drv_hw_parser {
-	/* WRIOP Parser */
-	PARSER_WRIOP = 0,
-	/* AIOP Parser */
-	PARSER_AIOP
-};
-
-/**************************************************************************//**
 @Description	struct dpni_drv_sparser_param - Structure representing the
 		information needed to activate(enable) a Soft Parser.
 
@@ -561,14 +549,16 @@ struct dpni_drv_sparser_param {
 	enum parser_starting_hxs_code	link_to_hard_hxs;
 	/* Soft Sequence Start PC */
 	uint16_t			start_pc;
+	/* Soft Sequence byte-code */
+	uint8_t				*byte_code;
+	/* Soft Sequence size */
+	uint16_t			size;
 	/* Pointer to the Parameters Array of the SP */
 	uint8_t				*param_array;
 	/* Parameters offset */
 	uint8_t				param_offset;
 	/* Parameters size */
 	uint8_t				param_size;
-	/* Target parser */
-	enum dpni_drv_hw_parser		parser;
 };
 
 /**************************************************************************//**
@@ -1837,6 +1827,66 @@ void dpni_drv_get_parse_profile_id(uint16_t ni_id, uint8_t *prpid);
 *//***************************************************************************/
 int dpni_drv_activate_soft_parser(uint8_t prpid,
 				  const struct dpni_drv_sparser_param *param);
+
+/**************************************************************************//**
+@Function	dpni_drv_load_wriop_ingress_soft_parser
+
+@Description	Load a Soft Parser in the ingress WRIOP Parser instructions
+		memory.
+
+@Param[in]	param : Soft Parser loading parameters.
+
+@Return	0 on success;
+	error code, otherwise. For error posix refer to \ref error_g
+*//***************************************************************************/
+int dpni_drv_load_wriop_ingress_soft_parser
+			(const struct dpni_drv_sparser_param *param);
+
+/**************************************************************************//**
+@Function	dpni_drv_load_wriop_egress_soft_parser
+
+@Description	Load a Soft Parser in the egress WRIOP Parser instructions
+		memory.
+
+@Param[in]	param : Soft Parser loading parameters.
+
+@Return	0 on success;
+	error code, otherwise. For error posix refer to \ref error_g
+*//***************************************************************************/
+int dpni_drv_load_wriop_egress_soft_parser
+			(const struct dpni_drv_sparser_param *param);
+
+/**************************************************************************//**
+@Function	dpni_drv_enable_wriop_ingress_soft_parser
+
+@Description	Enable a Soft Parser onto the ingress path of the WRIOP parser
+		for all AIOP belonging DPNIs.
+
+@Param[in]	ni_id  - The Network Interface ID
+
+@Param[in]	param : Soft Parser enable parameters.
+
+@Return	0 on success;
+	error code, otherwise. For error posix refer to \ref error_g
+*//***************************************************************************/
+int dpni_drv_enable_wriop_ingress_soft_parser
+		(uint16_t ni_id, const struct dpni_drv_sparser_param *param);
+
+/**************************************************************************//**
+@Function	dpni_drv_enable_wriop_egress_soft_parser
+
+@Description	Enable a Soft Parser onto the egress path of the WRIOP parser
+		for all AIOP belonging DPNIs.
+
+@Param[in]	ni_id  - The Network Interface ID
+
+@Param[in]	param : Soft Parser enable parameters.
+
+@Return	0 on success;
+	error code, otherwise. For error posix refer to \ref error_g
+*//***************************************************************************/
+int dpni_drv_enable_wriop_egress_soft_parser
+		(uint16_t ni_id, const struct dpni_drv_sparser_param *param);
 
 /** @} */ /* end of dpni_drv_g DPNI DRV group */
 #endif /* __FSL_DPNI_DRV_H */

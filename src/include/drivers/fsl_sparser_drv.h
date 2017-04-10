@@ -70,25 +70,6 @@
 /** @} end of group SPARSER_PCLIM_LIMITS */
 
 /**************************************************************************//**
-@Description	 enum sparser_type - Type of a Soft Parser
-
-*//***************************************************************************/
-enum sparser_type {
-	/* MC managed/loaded SP, in the WRIOP Parser, intended to parse the
-	 * packets going to GPP */
-	SPARSER_MC_WRIOP = 0,
-	/* MC managed/loaded SP, in the WRIOP Parser, intended to parse the
-	 * packets going to AIOP */
-	SPARSER_MC_WRIOP_AIOP,
-	/* MC loaded SP (managed by AIOP), in the AIOP Parser, intended to
-	 * parse the packets from inside the AIOP. */
-	SPARSER_MC_AIOP,
-	/* AIOP managed/loaded SP, in the AIOP Parser, intended to parse the
-	 * packets from inside the AIOP. */
-	SPARSER_AIOP_AIOP
-};
-
-/**************************************************************************//**
 @Description	Structure representing the information needed load a Soft
 		Parser or to get information about a loaded Soft Parser.
 
@@ -108,8 +89,6 @@ struct sparser_info {
 	uint8_t			param_size;
 	/* Parse Profile ID */
 	uint8_t			prpid;
-	/* Type of Soft Parser */
-	enum sparser_type	type;
 };
 
 /**************************************************************************//**

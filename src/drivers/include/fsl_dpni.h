@@ -2305,4 +2305,34 @@ int dpni_get_taildrop(struct fsl_mc_io *mc_io,
 		      uint8_t q_index,
 		      struct dpni_taildrop *taildrop);
 
+/******************************************************************************/
+enum dpni_soft_sequence_dest {
+	DPNI_SS_INGRESS = 0,
+	DPNI_SS_EGRESS = 1,
+};
+
+struct dpni_load_ss_cfg {
+	enum dpni_soft_sequence_dest	dest;
+	uint16_t			ss_size;
+	uint16_t			ss_offset;
+	void				*ss_iova;
+};
+
+int dpni_load_sw_sequence(struct fsl_mc_io *mc_io, uint32_t cmd_flags,
+			  uint16_t token, struct dpni_load_ss_cfg *cfg);
+
+/******************************************************************************/
+struct dpni_enable_ss_cfg {
+	enum dpni_soft_sequence_dest	dest;
+	uint16_t			hxs;
+	uint8_t				set_start;
+	uint16_t			ss_offset;
+	uint8_t				param_size;
+	uint8_t				param_offset;
+	void				*param_iova;
+};
+
+int dpni_enable_sw_sequence(struct fsl_mc_io *mc_io, uint32_t cmd_flags,
+			    uint16_t token, struct dpni_enable_ss_cfg *cfg);
+
 #endif /* __FSL_DPNI_H */

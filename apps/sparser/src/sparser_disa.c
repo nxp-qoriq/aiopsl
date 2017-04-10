@@ -1226,8 +1226,8 @@ static __COLD_CODE void sp_jump_faf(uint16_t **sp_code)
 		if (!(byte & mask)) {
 			/* FAF bit is not set : continue with the next
 			 * instruction */
-			fsl_print("\t\t RA[%d] = %02x mask = %02x\n", byte_pos,
-				  sp_sim.ra_arr[byte_pos], mask);
+			fsl_print("\t\t RA[%d] = 0x%02x mask = 0x%02x\n",
+				  byte_pos, sp_sim.ra_arr[byte_pos], mask);
 			fsl_print("\t\t FAF bit #%d (%s) is not set\n",
 				  j, sp_faf_str(j));
 			fsl_print("\t\t Continue with next PC = 0x%x\n",
@@ -1237,8 +1237,8 @@ static __COLD_CODE void sp_jump_faf(uint16_t **sp_code)
 			ASSERT_COND(sp_sim.pc <= sp_sim.pc_end);
 			return;
 		} else {
-			fsl_print("\t\t RA[%d] = %02x mask = %02x\n", byte_pos,
-				  sp_sim.ra_arr[byte_pos], mask);
+			fsl_print("\t\t RA[%d] = 0x%02x mask = 0x%02x\n",
+				  byte_pos, sp_sim.ra_arr[byte_pos], mask);
 			fsl_print("\t\t FAF bit #%d (%s) is set\n",
 				  j, sp_faf_str(j));
 		}
@@ -1340,7 +1340,7 @@ static __COLD_CODE void sp_set_clear_faf(uint16_t **sp_code)
 		else
 			byte &= ~mask;
 		sp_sim.ra_arr[byte_pos] = byte;
-		fsl_print("\t\t RA[%d] = %02x mask = %02x\n", byte_pos,
+		fsl_print("\t\t RA[%d] = 0x%02x mask = 0x%02x\n", byte_pos,
 			  sp_sim.ra_arr[byte_pos], mask);
 		fsl_print("\t\t FAF bit #%d (%s)", j, sp_faf_str(j));
 		if (c)
@@ -2065,7 +2065,7 @@ static __COLD_CODE void sp_store_wr_to_ra(uint16_t **sp_code)
 			fsl_print("\t\t %s = RA[%d:%d] = ", ra_name, t - s, t);
 		for (i = 0; i < s + 1; i++) {
 			sp_sim.ra_arr[t - s + i] = *pb++;
-			fsl_print("%02x ", sp_sim.ra_arr[t - s + i]);
+			fsl_print("0x%02x ", sp_sim.ra_arr[t - s + i]);
 		}
 		fsl_print("\n");
 	}
@@ -2445,7 +2445,7 @@ static __COLD_CODE void sp_store_iv_to_ra(uint16_t **sp_code)
 		else
 			fsl_print("\t\t %s = RA[%d:%d] = ", ra_name, t - s, t);
 		for (i = 0; i < s + 1; i++, pb++) {
-			fsl_print("%02x ", *pb);
+			fsl_print("0x%02x ", *pb);
 			sp_sim.ra_arr[t - s + i] = *pb;
 		}
 		fsl_print("\n");
@@ -3925,13 +3925,11 @@ __COLD_CODE int sparser_sim_init(void)
 		mem_pid = MEM_PART_DP_DDR;
 	else
 		mem_pid = MEM_PART_SYSTEM_DDR;
-	fsl_print("%s - %d\n", __func__, __LINE__);
 	ret = fsl_get_mem(4096, mem_pid, 64, &paddr);
 	if (ret) {
 		pr_err("Can't allocate 4096 bytes in the DDR memory\n");
 		return -1;
 	}
-	fsl_print("%s - %d\n", __func__, __LINE__);
 	sps = (uint8_t *)sys_phys_to_virt(paddr);
 	if (!sps) {
 		pr_err("Can't translate DDR memory address\n");

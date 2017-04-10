@@ -71,7 +71,22 @@ extern __TASK struct aiop_default_task_params default_task_params;
 *//***************************************************************************/
 	/** Routing header present in 2nd IPv6 header */
 #define PARSER_ATT_IPV6_ROUTING_HDR_2               0x8000
-
+/** User defined soft parser bit #0 */
+#define PARSER_ATT_UD_SOFT_PARSER_BIT_0             0x8000
+/** User defined soft parser bit #1 */
+#define PARSER_ATT_UD_SOFT_PARSER_BIT_1             0x4000
+/** User defined soft parser bit #2 */
+#define PARSER_ATT_UD_SOFT_PARSER_BIT_2             0x2000
+/** User defined soft parser bit #3 */
+#define PARSER_ATT_UD_SOFT_PARSER_BIT_3             0x1000
+/** User defined soft parser bit #4 */
+#define PARSER_ATT_UD_SOFT_PARSER_BIT_4             0x0800
+/** User defined soft parser bit #5 */
+#define PARSER_ATT_UD_SOFT_PARSER_BIT_5             0x0400
+/** User defined soft parser bit #6 */
+#define PARSER_ATT_UD_SOFT_PARSER_BIT_6             0x0200
+/** User defined soft parser bit #7 */
+#define PARSER_ATT_UD_SOFT_PARSER_BIT_7             0x0100
 /** @} *//* end of FSL_PARSER_FRAME_ATTRIBUTES_EXTENSION_MASKS */
 
 /**************************************************************************//**
@@ -857,6 +872,46 @@ extern __TASK struct aiop_default_task_params default_task_params;
 #define PARSER_IS_VXLAN_DEFAULT() (PARSER_IS_UDP_DEFAULT() && \
 	((*((uint16_t *)((uint32_t)PARSER_GET_L4_POINTER_DEFAULT() + 2)) == 4789)) \
 	? (1) : (0))
+/** Returns a non-zero value in case the user defined bit #0 is set in a user
+ * defined soft parser */
+#define PARSER_IS_UD_SOFT_PARSER_BIT_0_SET() \
+	(((struct parse_result *)HWC_PARSE_RES_ADDRESS)-> \
+	 frame_attribute_flags_extension & PARSER_ATT_UD_SOFT_PARSER_BIT_0)
+/** Returns a non-zero value in case the user defined bit #1 is set in a user
+ * defined soft parser */
+#define PARSER_IS_UD_SOFT_PARSER_BIT_1_SET() \
+	(((struct parse_result *)HWC_PARSE_RES_ADDRESS)-> \
+	 frame_attribute_flags_extension & PARSER_ATT_UD_SOFT_PARSER_BIT_1)
+/** Returns a non-zero value in case the user defined bit #2 is set in a user
+ * defined soft parser */
+#define PARSER_IS_UD_SOFT_PARSER_BIT_2_SET() \
+	(((struct parse_result *)HWC_PARSE_RES_ADDRESS)-> \
+	 frame_attribute_flags_extension & PARSER_ATT_UD_SOFT_PARSER_BIT_2)
+/** Returns a non-zero value in case the user defined bit #3 is set in a user
+ * defined soft parser */
+#define PARSER_IS_UD_SOFT_PARSER_BIT_3_SET() \
+	(((struct parse_result *)HWC_PARSE_RES_ADDRESS)-> \
+	 frame_attribute_flags_extension & PARSER_ATT_UD_SOFT_PARSER_BIT_3)
+/** Returns a non-zero value in case the user defined bit #4 is set in a user
+ * defined soft parser */
+#define PARSER_IS_UD_SOFT_PARSER_BIT_4_SET() \
+	(((struct parse_result *)HWC_PARSE_RES_ADDRESS)-> \
+	 frame_attribute_flags_extension & PARSER_ATT_UD_SOFT_PARSER_BIT_4)
+/** Returns a non-zero value in case the user defined bit #5 is set in a user
+ * defined soft parser */
+#define PARSER_IS_UD_SOFT_PARSER_BIT_5_SET() \
+	(((struct parse_result *)HWC_PARSE_RES_ADDRESS)-> \
+	 frame_attribute_flags_extension & PARSER_ATT_UD_SOFT_PARSER_BIT_5)
+/** Returns a non-zero value in case the user defined bit #6 is set in a user
+ * defined soft parser */
+#define PARSER_IS_UD_SOFT_PARSER_BIT_6_SET() \
+	(((struct parse_result *)HWC_PARSE_RES_ADDRESS)-> \
+	 frame_attribute_flags_extension & PARSER_ATT_UD_SOFT_PARSER_BIT_6)
+/** Returns a non-zero value in case the user defined bit #7 is set in a user
+ * defined soft parser */
+#define PARSER_IS_UD_SOFT_PARSER_BIT_7_SET() \
+	(((struct parse_result *)HWC_PARSE_RES_ADDRESS)-> \
+	 frame_attribute_flags_extension & PARSER_ATT_UD_SOFT_PARSER_BIT_7)
 #endif
 /** @} */ /* end of FSL_PARSER_PR_QUERIES */
 

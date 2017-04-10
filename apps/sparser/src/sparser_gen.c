@@ -830,8 +830,9 @@ __COLD_CODE void sparser_end_bytecode_wrt(void)
 			else
 				jmp_dst |= SF | (from_pc - to_pc);
 #if (SP_GEN_CHECK_ERRORS == 1)
-			/* Label not used but referred !!! */
-			if (jmp_dst > 0x3FF) {
+			/* Check if relative jumps do not exceed the maximum
+			 * offset */
+			if ((jmp_dst & ~(SF | LF)) > 0x3FF) {
 				fsl_print("\t Invalid jump to sp_label_%d\n",
 					  i + 1);
 				fsl_print("\t From PC = 0x%x to PC 0x%x ",

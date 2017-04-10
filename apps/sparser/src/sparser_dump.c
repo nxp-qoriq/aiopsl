@@ -33,6 +33,7 @@
 
 #include "fsl_types.h"
 #include "fsl_stdio.h"
+#include "fsl_general.h"
 #include "fsl_sparser_disa.h"
 #include "fsl_sparser_dump.h"
 #include "fsl_dbg.h"
@@ -251,16 +252,23 @@ __COLD_CODE void sparser_parse_error_print(struct sp_parse_result *pr)
 {
 	struct parse_err	*err;
 
+	#define PRINT_ONLY_IF_ERROR	1
+
 	ASSERT_COND(pr);
+#if (PRINT_ONLY_IF_ERROR == 1)
+	if (!pr->parse_error_code)
+		return;
+#endif
 	err = &parse_errors[0];
 	while (err->err_name && err->code != pr->parse_error_code)
 		err++;
 	if (!err->err_name)
-		fsl_print("%d : Unknown Parse Error Code\n\n",
+		fsl_print("%d : Unknown Parse Error Code\n",
 			  pr->parse_error_code);
 	else
-		fsl_print("Parse Error Code %d : %s\n\n",
+		fsl_print("Parse Error Code %d : %s\n",
 			  err->code, err->err_name);
+	fsl_print("\n");
 }
 
 /******************************************************************************/
@@ -271,15 +279,29 @@ __COLD_CODE void sparser_frame_attributes_dump(struct sp_parse_result *pr)
 	struct frame_attr	*frm_attr;
 	struct frame_attr_ext	*frm_attr_ext;
 
-	#define PRINT_ONLY_IF_PRESENT	0
+	#define PRINT_ONLY_IF_BIT_PRESENT	1
 
-#if (PRINT_ONLY_IF_PRESENT == 1)
+#if (PRINT_ONLY_IF_BIT_PRESENT == 1)
 	#define fa_print_sb()						  \
 	do {								  \
 		if (*pdw & frm_attr->fld_mask)				  \
 			fsl_print("\t %s : Yes\n", frm_attr->fld_name);	  \
 	} while (0)
 
+	#define fa_print_sb_ext()					  \
+	do {								  \
+		if (*pw & frm_attr_ext->fld_mask)			  \
+			fsl_print("\t %s : Yes\n",			  \
+				  frm_attr_ext->fld_name);		  \
+	} while (0)
+
+	#define fa_print_mb_ext()					  \
+	do {								  \
+		if (*pw & frm_attr_ext->fld_mask)			  \
+			fsl_print("\t %s : 0x%02x\n",			  \
+				  frm_attr_ext->fld_name,		  \
+				  *pw & frm_attr_ext->fld_mask);	  \
+	} while (0)
 #else
 	#define fa_print_sb()						  \
 	do {								  \
@@ -288,6 +310,21 @@ __COLD_CODE void sparser_frame_attributes_dump(struct sp_parse_result *pr)
 			fsl_print("Yes\n");				  \
 		else							  \
 			fsl_print("No\n");				  \
+	} while (0)
+
+	#define fa_print_sb_ext()					  \
+	do {								  \
+		fsl_print("\t %s : ", frm_attr_ext->fld_name);		  \
+		if (*pw & frm_attr_ext->fld_mask)			  \
+			fsl_print("Yes\n");				  \
+		else							  \
+			fsl_print("No\n");				  \
+	} while (0)
+
+	#define fa_print_mb_ext()					  \
+	do {								  \
+		fsl_print("\t %s : 0x%02x\n", frm_attr_ext->fld_name,	  \
+			  *pw & frm_attr_ext->fld_mask);		  \
 	} while (0)
 #endif
 	ASSERT_COND(pr);
@@ -301,27 +338,19 @@ __COLD_CODE void sparser_frame_attributes_dump(struct sp_parse_result *pr)
 		frm_attr++;
 	}
 	fsl_print("\n");
-
 	/* Frame Attribute Flags Extension */
-#if (PRINT_ONLY_IF_PRESENT == 1)
+#if (PRINT_ONLY_IF_BIT_PRESENT == 1)
 	if (!pr->frame_attribute_flags_extension)
 		return;	/* Noting to show */
 #endif
-	fsl_print("Dump of Frame Attribute Flags Extension\n");
 	frm_attr_ext = &frame_attr_ext_arr[0];
 	while (frm_attr_ext->fld_name) {
 		pw = (uint16_t *)&pr->frame_attribute_flags_extension;
 		pw += frm_attr_ext->faf_ext_offset;
-		if (IS_ONE_BIT_FIELD(frm_attr_ext->fld_mask)) {
-			fsl_print("\t %s : ", frm_attr_ext->fld_name);
-			if (*pw & frm_attr_ext->fld_mask)
-				fsl_print("Yes\n");
-			else
-				fsl_print("No\n");
-		} else {
-			fsl_print("\t %s : 0x%02x\n", frm_attr_ext->fld_name,
-				  *pw & frm_attr_ext->fld_mask);
-		}
+		if (IS_ONE_BIT_FIELD(frm_attr_ext->fld_mask))
+			fa_print_sb_ext();
+		else
+			fa_print_mb_ext();
 		frm_attr_ext++;
 	}
 	fsl_print("\n");
@@ -333,9 +362,9 @@ __COLD_CODE void sparser_parse_result_dump(struct sp_parse_result *pr)
 	uint8_t		*pb;
 	int		i;
 
-	#define PRINT_ONLY_IF_PRESENT	0
+	#define PRINT_OFFSET_ONLY_IF_NOT_0XFF	1
 
-#if (PRINT_ONLY_IF_PRESENT == 1)
+#if (PRINT_OFFSET_ONLY_IF_NOT_0XFF == 1)
 	#define pr_print_fld(_a, _b)					  \
 	do {								  \
 		if (_b != 0xFF)						  \
@@ -348,127 +377,133 @@ __COLD_CODE void sparser_parse_result_dump(struct sp_parse_result *pr)
 	ASSERT_COND(pr);
 	fsl_print("Dump of Parse Result\n");
 	/* Next header */
-	fsl_print("nxt_hdr                         = 0x%04x\n",
+	fsl_print("\t nxt_hdr                         = 0x%04x\n",
 		  pr->nxt_hdr);
 	/* Frame Attribute Flags Extension */
-	fsl_print("frame_attribute_flags_extension = 0x%04x\n",
+	fsl_print("\t frame_attribute_flags_extension = 0x%04x\n",
 		  pr->frame_attribute_flags_extension);
 	/* Frame Attribute Flags (part 1) */
-	fsl_print("frame_attribute_flags_1         = 0x%08x\n",
+	fsl_print("\t frame_attribute_flags_1         = 0x%08x\n",
 		  pr->frame_attribute_flags_1);
 	/* Frame Attribute Flags (part 2) */
-	fsl_print("frame_attribute_flags_2         = 0x%08x\n",
+	fsl_print("\t frame_attribute_flags_2         = 0x%08x\n",
 		  pr->frame_attribute_flags_2);
 	/* Frame Attribute Flags (part 3) */
-	fsl_print("frame_attribute_flags_3         = 0x%08x\n",
+	fsl_print("\t frame_attribute_flags_3         = 0x%08x\n",
 		  pr->frame_attribute_flags_3);
 	/* Shim Offset 1 */
-	pr_print_fld("shim_offset_1                   = %d (0x%02x)\n",
+	pr_print_fld("\t shim_offset_1                   = %d (0x%02x)\n",
 		     pr->shim_offset_1);
 	/* Shim Offset 2 */
-	pr_print_fld("shim_offset_2                   = %d (0x%02x)\n",
+	pr_print_fld("\t shim_offset_2                   = %d (0x%02x)\n",
 		     pr->shim_offset_2);
 #ifndef LS2085A_REV1
 	/* IP protocol field offset */
-	pr_print_fld("ip_1_pid_offset                 = %d (0x%02x)\n",
+	pr_print_fld("\t ip_1_pid_offset                 = %d (0x%02x)\n",
 		     pr->ip_1_pid_offset);
 #else
-	pr_print_fld("ip_pid_offset                   = %d (0x%02x)\n",
+	pr_print_fld("\t ip_pid_offset                   = %d (0x%02x)\n",
 		     pr->ip_pid_offset);
 #endif
 	/* Ethernet offset */
-	pr_print_fld("eth_offset                      = %d (0x%02x)\n",
+	pr_print_fld("\t eth_offset                      = %d (0x%02x)\n",
 		     pr->eth_offset);
 	/* LLC+SNAP offset */
-	pr_print_fld("llc_snap_offset                 = %d (0x%02x)\n",
+	pr_print_fld("\t llc_snap_offset                 = %d (0x%02x)\n",
 		     pr->llc_snap_offset);
 	/* First VLAN's TCI field offset*/
-	pr_print_fld("vlan_tci1_offset                = %d (0x%02x)\n",
+	pr_print_fld("\t vlan_tci1_offset                = %d (0x%02x)\n",
 		     pr->vlan_tci1_offset);
 	/* Last VLAN's TCI field offset*/
-	pr_print_fld("vlan_tcin_offset                = %d (0x%02x)\n",
+	pr_print_fld("\t vlan_tcin_offset                = %d (0x%02x)\n",
 		     pr->vlan_tcin_offset);
 	/* Last Ethertype offset*/
-	pr_print_fld("last_etype_offset               = %d (0x%02x)\n",
+	pr_print_fld("\t last_etype_offset               = %d (0x%02x)\n",
 		     pr->last_etype_offset);
 	/* PPPoE offset */
-	pr_print_fld("pppoe_offset                    = %d (0x%02x)\n",
+	pr_print_fld("\t pppoe_offset                    = %d (0x%02x)\n",
 		     pr->pppoe_offset);
 	/* First MPLS offset */
-	pr_print_fld("mpls_offset_1                   = %d (0x%02x)\n",
+	pr_print_fld("\t mpls_offset_1                   = %d (0x%02x)\n",
 		     pr->mpls_offset_1);
 	/* Last MPLS offset */
-	pr_print_fld("mpls_offset_n                   = %d (0x%02x)\n",
+	pr_print_fld("\t mpls_offset_n                   = %d (0x%02x)\n",
 		     pr->mpls_offset_n);
 #ifndef LS2085A_REV1
 	/* Outer IP or ARP offset */
-	pr_print_fld("l3_offset (IP/ARP)              = %d (0x%02x)\n",
+	pr_print_fld("\t l3_offset (IP/ARP)              = %d (0x%02x)\n",
 		     pr->l3_offset);
 #else
 	/* Outer IP or ARP offset */
-	pr_print_fld("ip1_or_arp_offset (IP/ARP)      = %d (0x%02x)\n",
+	pr_print_fld("\t ip1_or_arp_offset (IP/ARP)      = %d (0x%02x)\n",
 		     pr->ip1_or_arp_offset);
 #endif
 	/* Inner IP or MinEncap offset*/
-	pr_print_fld("ipn_or_minencap_offset          = %d (0x%02x)\n",
+	pr_print_fld("\t ipn_or_minencap_offset          = %d (0x%02x)\n",
 		     pr->ipn_or_minencap_offset);
 	/* GRE offset */
-	pr_print_fld("gre_offset                      = %d (0x%02x)\n",
+	pr_print_fld("\t gre_offset                      = %d (0x%02x)\n",
 		     pr->gre_offset);
 	/* Layer 4 offset*/
-	pr_print_fld("l4_offset                       = %d (0x%02x)\n",
+	pr_print_fld("\t l4_offset                       = %d (0x%02x)\n",
 		     pr->l4_offset);
 #ifndef LS2085A_REV1
 	/* GTP/ESP/IPsec offset */
-	pr_print_fld("l5_offset (GTP/ESP/IPsec)       = %d (0x%02x)\n",
+	pr_print_fld("\t l5_offset (GTP/ESP/IPsec)       = %d (0x%02x)\n",
 		     pr->l5_offset);
 #else
 	/* GTP/ESP/IPsec offset */
-	pr_print_fld("gtp_esp_ipsec_offset            = %d (0x%02x)\n",
+	pr_print_fld("\t gtp_esp_ipsec_offset            = %d (0x%02x)\n",
 		     pr->gtp_esp_ipsec_offset);
 #endif
 	/* Routing header offset of 1st IPv6 header */
-	pr_print_fld("routing_hdr_offset1             = %d (0x%02x)\n",
+	pr_print_fld("\t routing_hdr_offset1             = %d (0x%02x)\n",
 		     pr->routing_hdr_offset1);
 	/* Routing header offset of 2nd IPv6 header */
-	pr_print_fld("routing_hdr_offset2             = %d (0x%02x)\n",
+	pr_print_fld("\t routing_hdr_offset2             = %d (0x%02x)\n",
 		     pr->routing_hdr_offset2);
 	/* Next header offset */
-	pr_print_fld("nxt_hdr_offset                  = %d (0x%02x)\n",
+	pr_print_fld("\t nxt_hdr_offset                  = %d (0x%02x)\n",
 		     pr->nxt_hdr_offset);
 	/* IPv6 fragmentable part offset */
-	pr_print_fld("ipv6_frag_offset                = %d (0x%02x)\n",
+	pr_print_fld("\t ipv6_frag_offset                = %d (0x%02x)\n",
 		     pr->ipv6_frag_offset);
 	/* Frame's untouched running sum, input to parser */
-	fsl_print("gross_running_sum               = 0x%04x\n",
+	fsl_print("\t gross_running_sum               = 0x%04x\n",
 		  pr->gross_running_sum);
 	/* Running Sum */
-	fsl_print("running_sum                     = 0x%04x\n",
+	fsl_print("\t running_sum                     = 0x%04x\n",
 		  pr->running_sum);
 	/* Parse Error code.
 	 * Please refer to \ref FSL_PARSER_ERROR_CODES*/
-	fsl_print("parse_error_code                = 0x%02x\n",
+	fsl_print("\t parse_error_code                = 0x%02x\n",
 		  pr->parse_error_code);
 #ifndef LS2085A_REV1
 	/* Offset to the next header field before IPv6 fragment
 	 * extension */
-	pr_print_fld("nxt_hdr_before_ipv6_frag_ext    = %d (0x%02x)\n",
+	pr_print_fld("\t nxt_hdr_before_ipv6_frag_ext    = %d (0x%02x)\n",
 		     pr->nxt_hdr_before_ipv6_frag_ext);
 	/** Inner IP Protocol field offset */
-	pr_print_fld("ip_n_pid_offset (Inner)         = %d (0x%02x)\n",
+	pr_print_fld("\t ip_n_pid_offset (Inner)         = %d (0x%02x)\n",
 		     pr->ip_n_pid_offset);
 	/* Reserved for Soft parsing context*/
-	fsl_print("soft_parsing_context            =\n");
+	fsl_print("\t soft_parsing_context            =\n\t ");
 	pb = (uint8_t *)&pr->soft_parsing_context[0];
-	for (i = 0; i < 21; i++)
+	for (i = 0; i < 21; i++) {
 		fsl_print("%02x ", *pb++);
+		if (!((i + 1) % 16))
+			fsl_print("\n\t ");
+	}
 	fsl_print("\n");
 #else
 	/* Reserved for Soft parsing context*/
-	fsl_print("soft_parsing_context            =\n");
+	fsl_print("\t soft_parsing_context            =\n\t ");
 	pb = (uint8_t *)&pr->soft_parsing_context[0];
-	for (i = 0; i < 23; i++)
+	for (i = 0; i < 23; i++) {
 		fsl_print("%02x ", *pb++);
+		if (!((i + 1) % 16))
+			fsl_print("\n\t ");
+	}
 	fsl_print("\n");
 #endif
 	fsl_print("\n");

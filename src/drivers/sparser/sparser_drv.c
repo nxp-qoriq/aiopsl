@@ -192,8 +192,7 @@ static struct sparser_info	sp_aiop_lib_info = {
 	&sp_aiop_lib_parsers[0],			/* Byte-code address */
 	0,						/* Parameters offset */
 	0,						/* Parameters size */
-	0,						/* Parse profile ID */
-	SPARSER_AIOP_AIOP				/* Type */
+	0						/* Parse profile ID */
 };
 
 /* SP driver data */
@@ -273,11 +272,6 @@ static __COLD_CODE int sp_drv_check_sp_info(struct sparser_info *sp,
 		pr_err("SP code exceeds maximum PC (> 0x%x)\n", PARSER_MAX_PC);
 		return -1;
 	}
-	/* WRIOP parsers. They are managed/loaded by MC. Let the SP of the
-	 * SPARSER_MC_AIOP type to be checked against code and parameters
-	 * overlapping */
-	if (sp->type != SPARSER_AIOP_AIOP && sp->type != SPARSER_MC_AIOP)
-		return 0;
 	sz -= sp->pc;
 	/* Check for code overlapping with the already loaded or with the
 	 * pre-loaded SPs */
@@ -408,33 +402,17 @@ static __COLD_CODE int sp_drv_init(struct sparser_info *sp_ext_info,
  * SP Driver internal API functions
  ******************************************************************************/
 static __COLD_CODE
-int sparser_drv_get_preloaded_sp_info(struct sparser_info *sp_info)
+int sparser_drv_get_aiop_preloaded_sp_info(struct sparser_info *sp_info)
 {
-	if (sp_info->type == SPARSER_MC_AIOP) {
-		/* TODO - Implement MC command getting the following hard
-		 * coded information */
-		sp_info->pc = 0x1E0;
-		/* Code loaded by MC is not a 4 multiple in size. Add 1 to the
-		 * size to make it a 4 multiple */
-		sp_info->size = (0x3FB - 0x1E0 + 1) * sizeof(uint16_t);
-		sp_info->byte_code = NULL;
-		sp_info->param_off = 0;
-		sp_info->param_size = 0;
-		sp_info->prpid = 0;
-	} else if (sp_info->type == SPARSER_AIOP_AIOP) {
-		memcpy(sp_info, &sp_aiop_lib_info, sizeof(struct sparser_info));
-	} else {
-		pr_err("Unsupported SP type : 0x%x\n", (uint32_t)sp_info->type);
-		return -1;
-	}
+	memcpy(sp_info, &sp_aiop_lib_info, sizeof(struct sparser_info));
 	return 0;
 }
 
 /******************************************************************************/
-static __COLD_CODE int sparser_drv_send_sp(struct sparser_info *sp_info)
+static __COLD_CODE
+int sparser_drv_get_mc_preloaded_sp_info(struct sparser_info *sp_info)
 {
 	UNUSED(sp_info);
-	/* TODO - Implement MC command */
 	return 0;
 }
 
@@ -501,15 +479,13 @@ __COLD_CODE int sparser_drv_init(void)
 	/* Get information about the SP pre-loaded by MC in the internal
 	 * memory of the AIOP Parser */
 	memset(&sp_ext_info, 0, sizeof(struct sparser_info));
-	sp_ext_info.type = SPARSER_MC_AIOP;
-	ret = sparser_drv_get_preloaded_sp_info(&sp_ext_info);
+	ret = sparser_drv_get_mc_preloaded_sp_info(&sp_ext_info);
 	if (ret)
 		return ret;
 	/* Get information about the SP pre-loaded by AIOP in the internal
 	 * memory of the AIOP Parser */
 	memset(&sp_lib_info, 0, sizeof(struct sparser_info));
-	sp_lib_info.type = SPARSER_AIOP_AIOP;
-	ret = sparser_drv_get_preloaded_sp_info(&sp_lib_info);
+	ret = sparser_drv_get_aiop_preloaded_sp_info(&sp_lib_info);
 	if (ret)
 		return ret;
 	ret = sp_drv_init(sp_ext_info.size ? &sp_ext_info : NULL,
@@ -531,8 +507,7 @@ __COLD_CODE int sparser_drv_load_parser(struct sparser_info *sp)
 
 	ASSERT_COND(sp);
 	pr_info("Loading application defined SP at 0x%x\n", sp->pc);
-	if (sp->type == SPARSER_AIOP_AIOP &&
-	    parser_drv.sp_idx == PARSER_MAX_SP) {
+	if (parser_drv.sp_idx == PARSER_MAX_SP) {
 		pr_err("%d : Too many AIOP soft parsers.\n", PARSER_MAX_SP);
 		return -1;
 	}
@@ -544,16 +519,6 @@ __COLD_CODE int sparser_drv_load_parser(struct sparser_info *sp)
 		pr_err("0x%x : Code must be aligned on a 4 bytes boundary\n",
 		       (uint32_t)sp->byte_code);
 		return -1;
-	}
-	if (sp->type == SPARSER_MC_AIOP) {
-		pr_err("SPARSER_MC_AIOP : Invalid SP type.\n");
-		return -1;
-	}
-	/* SP is loaded/managed by MC. Send it to MC. */
-	if (sp->type != SPARSER_AIOP_AIOP) {
-		pr_info("Sending SP to MC\n");
-		ret = sparser_drv_send_sp(sp);
-		return ret;
 	}
 	/* Disable parser */
 	ret = sp_drv_stop_parser();

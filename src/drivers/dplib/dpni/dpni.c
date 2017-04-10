@@ -33,6 +33,7 @@
 #include <fsl_mc_cmd.h>
 #include <fsl_dpni.h>
 #include <fsl_dpni_cmd.h>
+#include <fsl_dbg.h>
 
 int dpni_prepare_key_cfg(const struct dpkg_profile_cfg *cfg,
 			 uint8_t *key_cfg_buf)
@@ -1504,5 +1505,41 @@ int dpni_get_taildrop(struct fsl_mc_io *mc_io,
 	/* retrieve response parameters */
 	DPNI_RSP_GET_TAILDROP(cmd, taildrop);
 
+	return 0;
+}
+
+/******************************************************************************/
+int dpni_load_sw_sequence(struct fsl_mc_io *mc_io, uint32_t cmd_flags,
+			  uint16_t token, struct dpni_load_ss_cfg *cfg)
+{
+	struct mc_command	cmd = { 0 };
+	int			err;
+
+	/* Prepare command */
+	cmd.header = mc_encode_cmd_header(DPNI_CMDID_LOAD_SW_SEQUENCE,
+					  cmd_flags, token);
+	DPNI_CMD_LOAD_SW_SEQUENCE(cmd, cfg);
+	/* Send command to MC */
+	err = mc_send_command(mc_io, &cmd);
+	if (err)
+		return err;
+	return 0;
+}
+
+/******************************************************************************/
+int dpni_enable_sw_sequence(struct fsl_mc_io *mc_io, uint32_t cmd_flags,
+			    uint16_t token, struct dpni_enable_ss_cfg *cfg)
+{
+	struct mc_command	cmd = { 0 };
+	int			err;
+
+	/* Prepare command */
+	cmd.header = mc_encode_cmd_header(DPNI_CMDID_ENABLE_SW_SEQUENCE,
+					  cmd_flags, token);
+	DPNI_CMD_ENABLE_SW_SEQUENCE(cmd, cfg);
+	/* Send command to MC */
+	err = mc_send_command(mc_io, &cmd);
+	if (err)
+		return err;
 	return 0;
 }

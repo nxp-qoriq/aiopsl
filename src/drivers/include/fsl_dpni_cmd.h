@@ -121,6 +121,9 @@
 #define DPNI_CMDID_SET_TX_CONFIRMATION_MODE            ((0x266 << 4) | (0x1))
 #define DPNI_CMDID_GET_TX_CONFIRMATION_MODE            ((0x26D << 4) | (0x1))
 
+#define DPNI_CMDID_LOAD_SW_SEQUENCE                    ((0x270 << 4) | (0x1))
+#define DPNI_CMDID_ENABLE_SW_SEQUENCE                  ((0x271 << 4) | (0x1))
+
 /*                cmd, param, offset, width, type, arg_name */
 #define DPNI_CMD_OPEN(cmd, dpni_id) \
 	MC_CMD_OP(cmd,	 0,	0,	32,	int,	dpni_id)
@@ -747,6 +750,27 @@ do { \
 	MC_RSP_OP(cmd, 3,  0, 64, uint64_t, (cfg)->message_ctx); \
 	MC_RSP_OP(cmd, 4,  0, 32, uint32_t, (cfg)->threshold_entry); \
 	MC_RSP_OP(cmd, 4, 32, 32, uint32_t, (cfg)->threshold_exit); \
+} while (0)
+
+/*                cmd, param, offset, width, type, arg_name */
+#define DPNI_CMD_LOAD_SW_SEQUENCE(cmd, cfg) \
+do { \
+	MC_CMD_OP(cmd, 0, 0,  8,  enum dpni_soft_sequence_dest, (cfg)->dest); \
+	MC_CMD_OP(cmd, 1, 0,  16, uint16_t, (cfg)->ss_offset); \
+	MC_CMD_OP(cmd, 1, 32, 16, uint16_t, (cfg)->ss_size); \
+	MC_CMD_OP(cmd, 2, 0,  64, uint64_t, (uint64_t)(cfg)->ss_iova); \
+} while (0)
+
+/*                cmd, param, offset, width, type, arg_name */
+#define DPNI_CMD_ENABLE_SW_SEQUENCE(cmd, cfg) \
+do { \
+	MC_CMD_OP(cmd, 0, 0,  8,  enum dpni_soft_sequence_dest, (cfg)->dest); \
+	MC_CMD_OP(cmd, 1, 0, 16, uint16_t, (cfg)->ss_offset); \
+	MC_CMD_OP(cmd, 1, 16, 16, uint16_t, (cfg)->hxs); \
+	MC_CMD_OP(cmd, 1, 32, 1,  uint8_t, (cfg)->set_start); \
+	MC_CMD_OP(cmd, 2, 0,  8,  uint8_t, (cfg)->param_offset); \
+	MC_CMD_OP(cmd, 2, 32, 8,  uint8_t, (cfg)->param_size); \
+	MC_CMD_OP(cmd, 3, 0,  64, uint64_t, (uint64_t)(cfg)->param_iova); \
 } while (0)
 
 #endif /* _FSL_DPNI_CMD_H */
