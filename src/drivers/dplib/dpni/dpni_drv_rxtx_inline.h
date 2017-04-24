@@ -44,6 +44,7 @@ extern __TASK struct aiop_default_task_params default_task_params;
 extern struct dpni_drv *nis;
 extern __PROFILE_SRAM
 	struct storage_profile storage_profile[SP_NUM_OF_STORAGE_PROFILES];
+extern uint8_t egress_parse_profile_id;
 
 static inline void sl_prolog_common(void)
 {
@@ -241,6 +242,12 @@ inline void task_set_tx_tc(uint8_t tc)
 inline uint8_t task_get_tx_tc(void)
 {
 	return default_task_params.qd_priority;
+}
+
+inline void task_switch_to_egress_parse_profile(uint16_t start_hxs)
+{
+	default_task_params.parser_profile_id = egress_parse_profile_id;
+	default_task_params.parser_starting_hxs = start_hxs;
 }
 
 #endif /* __DPNI_DRV_RXTX_INLINE_H */

@@ -48,8 +48,10 @@
 struct dpni_drv_params {
 	/** starting HXS */
 	uint16_t            starting_hxs;
-	/** Parse Profile ID */
+	/** Ingress Parse Profile ID */
 	uint8_t             prpid;
+	/** Egress Parse Profile ID */
+	uint8_t             prpid_egress;
 	/** \ref DPNI_DRV_DEFINES */
 	uint8_t             flags;
 	/** Storage profile ID */

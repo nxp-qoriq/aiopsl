@@ -540,10 +540,11 @@ struct dpni_drv_free_bufs {
 
 *//***************************************************************************/
 struct dpni_drv_sparser_param {
-	/* The "first_header" must be set if the custom header to parse is the
-	 * first header in the packet, otherwise "first_header" must be cleared.
-	 * Only Rev2 platforms support the setting of "first_header" field. */
-	uint8_t				first_header;
+	/* The "custom_header_first" must be set if the custom header to parse
+	 * is the first header in the packet, otherwise "custom_header_first"
+	 * must be cleared. Only Rev2 platforms support the setting of
+	 * "custom_header_first" field. */
+	uint8_t				custom_header_first;
 	/* Hard HXS on which a soft parser is activated. This must be configured
 	 * if the header to parse is not the first header in the packet. */
 	enum parser_starting_hxs_code	link_to_hard_hxs;
@@ -1747,6 +1748,17 @@ inline void task_set_tx_tc(uint8_t tc);
 inline uint8_t task_get_tx_tc(void);
 
 /**************************************************************************//**
+@Function	task_switch_to_egress_parse_profile
+
+@Description	Switch to the "egress" parse profile.
+
+@Param[in]	start_hxs Starting soft/hard parsing HXS.
+
+@Return		None.
+*//***************************************************************************/
+inline void task_switch_to_egress_parse_profile(uint16_t start_hxs);
+
+/**************************************************************************//**
 @Function	dpni_drv_prepare_key_cfg
 
 @Description	Function to prepare extract parameters.
@@ -1796,37 +1808,42 @@ int dpni_drv_set_errors_behavior(uint16_t ni_id,
 				 const struct dpni_drv_error_cfg *cfg);
 
 /**************************************************************************//**
-@Function	dpni_drv_get_parse_profile_id
+@Function	dpni_drv_enable_ingress_soft_parser
 
-@Description	Get the ID of the Parse Profile configured on a DPNI. All AIOP
-		belonging DPNIs share the same Parse Profile.
-
-@Param[in]	ni_id : The AIOP Network Interface ID.
-
-@Param[out]	prpid :  On return contains the ID of the Parse Profile.
-
-@Return		None
-*//***************************************************************************/
-void dpni_drv_get_parse_profile_id(uint16_t ni_id, uint8_t *prpid);
-
-/**************************************************************************//**
-@Function	dpni_drv_activate_soft_parser
-
-@Description	Activate a Soft Parser. Soft Parser is enabled and linked in
-		the parse tree of the AIOP/WRIOP Parser. The SP parameters (if
+@Description	Enable an AIOP "ingress" Soft Parser. The SP parameters (if
 		exist) are stored in the Soft Examination Parameter Array of
-		the provided Parse Profile ID. All AIOP belonging DPNIs share
-		the same Parse Profile.
-
-@Param[in]	prpid : Parse Profile ID.
+		the AIOP "ingress" Parse Profile. All AIOP belonging DPNIs share
+		the same "ingress" Parse Profile.
+		The driver checks if the soft parse to be enabled is loaded and
+		if its parameters (size and offset) coincides with the loading
+		time declared parameters.
 
 @Param[in]	param : Soft Parser activation parameters.
 
 @Return	0 on success;
 	error code, otherwise. For error posix refer to \ref error_g
 *//***************************************************************************/
-int dpni_drv_activate_soft_parser(uint8_t prpid,
-				  const struct dpni_drv_sparser_param *param);
+int dpni_drv_enable_ingress_soft_parser
+			(const struct dpni_drv_sparser_param *param);
+
+/**************************************************************************//**
+@Function	dpni_drv_enable_egress_soft_parser
+
+@Description	Enable an AIOP "egress" Soft Parser. The SP parameters (if
+		exist) are stored in the Soft Examination Parameter Array of
+		the AIOP "egress" Parse Profile. All AIOP belonging DPNIs share
+		the same "egress" Parse Profile.
+		The driver checks if the soft parse to be enabled is loaded and
+		if its parameters (size and offset) coincides with the loading
+		time declared parameters.
+
+@Param[in]	param : Soft Parser activation parameters.
+
+@Return	0 on success;
+	error code, otherwise. For error posix refer to \ref error_g
+*//***************************************************************************/
+int dpni_drv_enable_egress_soft_parser
+			(const struct dpni_drv_sparser_param *param);
 
 /**************************************************************************//**
 @Function	dpni_drv_load_wriop_ingress_soft_parser

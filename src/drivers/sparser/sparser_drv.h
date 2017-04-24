@@ -31,5 +31,6 @@
 int sparser_drv_early_init(void);
 int sparser_drv_init(void);
 int sparser_drv_get_pmem(uint8_t *pmem);
-
+int sparser_drv_check_params(uint16_t pc, uint8_t param_size, uint8_t param_off,
+			     uint8_t prpid, uint8_t ingress);
 #endif		/* __SPARSER_DRV_H */

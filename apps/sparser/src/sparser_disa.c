@@ -4094,11 +4094,19 @@ __COLD_CODE int sparser_sim(uint16_t pc, uint8_t *byte_code, int sp_size)
 		pr_err("Invalid ending PC (> 0x%x)\n", SP_MAX_PC);
 		return -1;
 	}
-	/* Copy under development SP into the AIOP SIM Parser memory */
+#ifndef SP_DRV_RUN_ON_SIMULATOR
+	/* Copy under development SP into the AIOP SIM Parser memory.*/
+	/* Note :
+	 * There is a bug in the LSx simulator. The copy operation is not
+	 * performed. The built-in simulator can't call pre-loaded soft
+	 * parsers when the code is run on a LSx simulator. Built-in simulator
+	 * stop the execution when the soft parser jumps to a PC address
+	 * outside its code.*/
 	sp_sim.pc_end = SP_MAX_PC;
 	memcpy(sp_sim.sps + 2 * sp_sim.pc, byte_code, (size_t)sp_size);
 	byte_code = sp_sim.sps + 2 * sp_sim.pc;
 	sp_size = SP_MAX_PC + 3;
+#endif
 	/* Enable SIM */
 	sp_sim.sim_enabled = 1;
 	sp_sim.wo = 0;		/* Window Offset */

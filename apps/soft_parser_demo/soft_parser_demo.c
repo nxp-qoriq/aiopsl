@@ -43,9 +43,14 @@
 #include "fsl_sparser_dump.h"
 #include "fsl_sparser_gen.h"
 
-#define FIRST_HEADER_TEST	0
+#ifndef LS2085A_REV1
+/* The test with the custom header being the first header in the packet works
+ * only on Rev2 platforms. To run this test, on Rev2 platforms, define the
+ * following macro as 1. */
+	#define CUSTOM_HEADER_FIRST	0
+#endif
 
-#if (FIRST_HEADER_TEST == 0)
+#if (CUSTOM_HEADER_FIRST == 0)
 /*******************************************************************************
  * Soft Parser Example :
  * This SP parses a custom header placed after a Ethernet header. It is
@@ -277,7 +282,7 @@ static __HOT_CODE ENTRY_POINT void app_process_packet(void)
 	int			err;
 	struct parse_result	*pr;
 
-#if (FIRST_HEADER_TEST == 0)
+#if (CUSTOM_HEADER_FIRST == 0)
 	sl_prolog();
 #else
 	sl_prolog_with_custom_header(0x20);
@@ -299,7 +304,7 @@ static __HOT_CODE ENTRY_POINT void app_process_packet(void)
 	err = parse_result_generate_default(PARSER_VALIDATE_L4_CHECKSUM);
 	if (err)
 		pr_err("[%d] : Validate L4 checksum\n", err);
-#if (FIRST_HEADER_TEST == 0)
+#if (CUSTOM_HEADER_FIRST == 0)
 	if (PARSER_IS_UD_SOFT_PARSER_BIT_0_SET()) {
 		uint8_t		*custom_hdr, custom_off, custom_len;
 
@@ -320,12 +325,8 @@ static __HOT_CODE ENTRY_POINT void app_process_packet(void)
 			fdma_terminate_task();
 		}
 		/* After header manipulation, the custom part is removed.
-		 *
-		 * AIOP_SL configures one parse profile used for both ingress
-		 * and egress flows parsing. In order to avoid egress packet
-		 * parsing with the ingress used software parser, a separate
-		 * profile should be defined and activated for the egress flow
-		 * processing. */
+		 * Switch to the "egress" parsing profile. */
+		task_switch_to_egress_parse_profile(PARSER_ETH_STARTING_HXS);
 		pr->gross_running_sum = 0;
 		/* Validate L4 checksum on the transmitted packet. When packet
 		 * is updated, in order to validate the checksum one must :
@@ -351,13 +352,8 @@ static __HOT_CODE ENTRY_POINT void app_process_packet(void)
 			fdma_terminate_task();
 		}
 		/* After header manipulation, the custom part is removed.
-		 *
-		 * AIOP_SL configures one parse profile used for both ingress
-		 * and egress flows parsing. In order to avoid egress packet
-		 * parsing with the ingress used software parser, change the
-		 * starting HXS value of the current task. */
-		default_task_params.parser_starting_hxs =
-					PARSER_ETH_STARTING_HXS;
+		 * Switch to the "egress" parsing profile. */
+		task_switch_to_egress_parse_profile(PARSER_ETH_STARTING_HXS);
 		pr->gross_running_sum = 0;
 		/* Validate L4 checksum on the transmitted packet. When packet
 		 * is updated, in order to validate the checksum one must :
@@ -396,31 +392,28 @@ static int wriop_soft_parser_load(void)
 		pr_err("WRIOP Soft Parser loading failed\n");
 		return err;
 	}
-	fsl_print("WRIOP Soft Parser loading succeeded\n");
 	return 0;
 }
 
 /******************************************************************************/
-static int wriop_soft_parser_activate(uint16_t ni_id)
+static int wriop_soft_parser_enable(uint16_t ni_id)
 {
 	int				err;
 	uint8_t				pa[3];
 	struct dpni_drv_sparser_param	sp_param;
 
-#if (FIRST_HEADER_TEST == 0)
+#if (CUSTOM_HEADER_FIRST == 0)
 	pa[0] = 0xEE;	/* Expected EType = 0xEE00 */
 	pa[1] = 0x00;
 	pa[2] = 46;	/* Custom Header Length in bytes */
-	/* First header may be set only on Rev2 platforms */
-	sp_param.first_header = 0;
+	sp_param.custom_header_first = 0;
 	sp_param.param_offset = 0;
 	sp_param.param_size = 3;
-	/* If "first_header" is set "link_to_hard_hxs" does not matter */
 	sp_param.link_to_hard_hxs = PARSER_ETH_STARTING_HXS;
 #else
 	pa[0] = 18;	/* Custom Header Length in bytes */
 	/* First header may be set only on Rev2 platforms */
-	sp_param.first_header = 1;
+	sp_param.custom_header_first = 1;
 	sp_param.param_offset = 0;
 	sp_param.param_size = 1;
 #endif
@@ -431,7 +424,6 @@ static int wriop_soft_parser_activate(uint16_t ni_id)
 		pr_err("WRIOP Soft Parser activation failed\n");
 		return err;
 	}
-	fsl_print("WRIOP Soft Parser activation succeeded on NI %d\n", ni_id);
 	return 0;
 }
 
@@ -482,13 +474,13 @@ static int app_dpni_event_added_cb(uint8_t generator_id, uint8_t event_id,
 		return err;
 	}
 	if (!ni) {
-		/* Call WRIOP SP load function once */
+		/* Load SP onto WRIOP Ingress Parser */
 		err = wriop_soft_parser_load();
 		if (err)
 			return err;
 	}
-	/* Call WRIOP SP activation function for every interface */
-	err = wriop_soft_parser_activate(ni);
+	/* Enable WRIOP SP on the ingress flow of every interface */
+	err = wriop_soft_parser_enable(ni);
 	if (err)
 		return err;
 	err = dpni_drv_enable(ni);
@@ -908,7 +900,7 @@ static void soft_parser_example_gen(void)
 /******************************************************************************/
 static void soft_parser_example_gen(void)
 {
-#if (FIRST_HEADER_TEST == 0)
+#if (CUSTOM_HEADER_FIRST == 0)
 #define SP_EXAMPLE							  \
 	do {								  \
 		SPARSER_BEGIN(0x20, &sparser_ex[0], sizeof(sparser_ex));  \
@@ -1083,7 +1075,7 @@ static int soft_parser_run_on_simulator(uint16_t pc, uint8_t *byte_code,
 	err = sparser_sim_init_parse_array(&ra);
 	if (err)
 		return err;
-#if (FIRST_HEADER_TEST == 0)
+#if (CUSTOM_HEADER_FIRST == 0)
 	/* 5. Set needed fields in the Parse Array. This step is needed to
 	 * change the default values. */
 	/* Set relevant fields in the Parse Array as after ETH HXS execution */
@@ -1154,89 +1146,71 @@ static int soft_parser_run_on_simulator(uint16_t pc, uint8_t *byte_code,
 static int aiop_soft_parser_develop_debug(void)
 {
 	int				err;
-	uint8_t				prpid = 0;
 	uint8_t				pa[3];
 	struct sparser_info		sp_info;
 	struct dpni_drv_sparser_param	sp_param;
 
-	/***************************************/
 	/* AIOP Soft Parser byte-code generate */
-	/***************************************/
 	soft_parser_example_gen();
-	/* Soft Parser byte-code dump. Dumped bytes may be imported in the
-	 * final AIOP application. Following line may be commented. */
+	/* Soft Parser byte-code dump */
 	sparser_bytecode_dump();
-	/* Soft Parser disassembler. Following lines may be commented. */
+	/* Soft Parser disassembler */
 	err = sparser_disa(0x20, &sparser_ex[0], sizeof(sparser_ex));
 	if (err)
 		return err;
-	/* Soft Parser built-in simulator. Following line may be commented. */
+	/* Soft Parser built-in simulator */
 	err = soft_parser_run_on_simulator(0x20, &sparser_ex[0],
 					   sizeof(sparser_ex));
 	if (err)
 		return err;
-	/**********************************/
 	/* AIOP Soft Parser load/activate */
-	/**********************************/
-	/* 1. Dump parser registers and instructions memory */
+	/* Dump parser registers and instructions memory */
 	/*
 	sparser_drv_regs_dump();
 	sparser_drv_memory_dump(PARSER_MIN_PC, PARSER_MAX_PC + 3);
 	*/
-	/* 2. Adjust the Parser Cycle Limit value */
+	/* Adjust the Parser Cycle Limit value */
 	sparser_drv_set_pclim(PARSER_CYCLE_LIMIT_MAX);
-	/* 3. Load Soft Parser */
+	/* Load Soft Parser */
 	sp_info.pc = PARSER_MIN_PC;
 	sp_info.byte_code = &sparser_ex[0];
 	sp_info.size = sizeof(sparser_ex);
 	sp_info.param_off = 0;
 	sp_info.param_size = 3;
-	/* All AIOP DPNIs share the same Parse Profile in AIOP. Get the ID of
-	 * the Parse Profile configured on the first DPNI */
-	dpni_drv_get_parse_profile_id(0, &prpid);
-	sp_info.prpid = prpid;
-	err = sparser_drv_load_parser(&sp_info);
+	err = sparser_drv_load_ingress_parser(&sp_info);
 	if (err) {
 		fsl_print("Soft Parser loading failed\n");
 		return err;
 	}
-	fsl_print("Soft Parser loading succeeded\n");
-	/* 4. Dump parser registers and instructions memory */
+	/* Dump parser registers and instructions memory */
 	/*
 	sparser_drv_regs_dump();
 	sparser_drv_memory_dump(sp_info.pc, sp_info.pc + sp_info.size / 2);
 	sparser_drv_memory_dump(PARSER_MIN_PC, PARSER_MAX_PC + 3);
 	*/
-	/* 5. Activate the SP and stores its parameters in the parse profile.*
-	 * Only the custom headers following a known header are activated.
-	 * For a custom header placed in the first position in the packet :
-	 *	- call this function only if the soft parser has parameters
-	 *	- call the sl_prolog_with_custom_header() function instead of
-	 *	sl_prolog() in the packets processing function. */
-#if (FIRST_HEADER_TEST == 0)
+	/* Enable soft parser */
+#if (CUSTOM_HEADER_FIRST == 0)
 	pa[0] = 0xEE;	/* Expected EType = 0xEE00 */
 	pa[1] = 0x00;
 	pa[2] = 46;	/* Custom Header Length in bytes */
 	sp_param.param_offset = 0;
 	sp_param.param_size = 3;
-	/* First header may be set only on Rev2 platforms */
-	sp_param.first_header = 0;
-	/* If "first_header" is set "link_to_hard_hxs" does not matter */
+	sp_param.custom_header_first = 0;
 	sp_param.link_to_hard_hxs = PARSER_ETH_STARTING_HXS;
 #else
 	pa[0] = 18;	/* Custom Header Length in bytes */
 	sp_param.param_offset = 0;
+	/* First header may be set only on Rev2 platforms */
 	sp_param.param_size = 1;
-	sp_param.first_header = 1;
+	sp_param.custom_header_first = 1;
 #endif
 	sp_param.start_pc = 0x20;
 	sp_param.param_array = (uint8_t *)&pa[0];
-	err = dpni_drv_activate_soft_parser(prpid, &sp_param);
+	err = dpni_drv_enable_ingress_soft_parser(&sp_param);
 	if (err) {
 		fsl_print("Soft Parser activation failed\n");
 		return err;
 	}
-	fsl_print("Soft Parser activation succeeded\n");
 	return 0;
 }
 

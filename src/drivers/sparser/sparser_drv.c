@@ -28,6 +28,7 @@
 #include <__mem.h>
 #include "fsl_stdio.h"
 #include "fsl_io.h"
+#include "fsl_sl_dpni_drv.h"	/* Internal DPNI API */
 #include "sparser_drv.h"	/* Internal SP API */
 #include "fsl_sparser_drv.h"	/* External SP API */
 
@@ -99,7 +100,11 @@ struct sparser_drv {
 	 * pre-loaded soft parsers. The parameters area of a soft parser must
 	 * not overlap others soft parsers parameters area. */
 	struct sparser_info	sp_info[PARSER_MAX_SP + 2];
+	uint8_t			prpid_ingress[PARSER_MAX_SP + 2];
+	uint8_t			prpid_egress[PARSER_MAX_SP + 2];
 };
+
+#define NO_PARSE_PROFILE	0xFF
 
 /******************************************************************************/
 /* The soft parser library routines are loaded by AIOP_SL in the early
@@ -190,9 +195,8 @@ static struct sparser_info	sp_aiop_lib_info = {
 	(0xffc - sizeof(sp_aiop_lib_parsers)) / 2,	/* Starting PC */
 	sizeof(sp_aiop_lib_parsers),			/* Byte-code size */
 	&sp_aiop_lib_parsers[0],			/* Byte-code address */
-	0,						/* Parameters offset */
 	0,						/* Parameters size */
-	0						/* Parse profile ID */
+	0						/* Parameters offset */
 };
 
 /* SP driver data */
@@ -243,11 +247,53 @@ static __COLD_CODE void sp_drv_start_parser(void)
 }
 
 /******************************************************************************/
+static __COLD_CODE int sp_drv_check_sp_params(struct sparser_info *sp,
+					      uint16_t sp_idx,
+					      uint8_t prpid, uint8_t ingress)
+{
+	int		i;
+	uint8_t		prpid_cmp;
+
+	if (prpid == NO_PARSE_PROFILE)
+		return 0;
+	/* Check for parameters overlapping with the already loaded or with the
+	 * pre-loaded SPs. Parameters are stored in a Parse Profile. Parameters
+	 * in the same profile must not overlap. */
+	for (i = 0; sp->param_size && i < PARSER_MAX_SP + 2; i++) {
+		prpid_cmp = (ingress) ? parser_drv.prpid_ingress[i] :
+				parser_drv.prpid_egress[i];
+		/* Check for :
+		 *	- not used entry,
+		 *	- entry with no parameters
+		 *	- entry from other parse profile */
+		if (!parser_drv.sp_info[i].pc ||
+		    !parser_drv.sp_info[i].param_size ||
+		    prpid_cmp == NO_PARSE_PROFILE || prpid != prpid_cmp)
+			continue;
+		if ((sp->param_off >= parser_drv.sp_info[i].param_off &&
+		     sp->param_off <= parser_drv.sp_info[i].param_off +
+		     parser_drv.sp_info[i].param_size - 1) ||
+		    (sp->param_off + sp->param_size - 1 >=
+		     parser_drv.sp_info[i].param_off &&
+		     sp->param_off + sp->param_size <=
+		     parser_drv.sp_info[i].param_off +
+		     parser_drv.sp_info[i].param_size)) {
+			pr_err("SP_#%d over SP_#%d: Parameters overlap\n",
+			       sp_idx, i);
+			return -1;
+		}
+	}
+	return 0;
+}
+
+/******************************************************************************/
 static __COLD_CODE int sp_drv_check_sp_info(struct sparser_info *sp,
-					    uint16_t sp_idx)
+					    uint16_t sp_idx,
+					    uint8_t prpid_ingress,
+					    uint8_t prpid_egress)
 {
 	uint32_t	sz, tmp_sz;
-	int		i;
+	int		i, ret;
 
 	if (sp->pc < PARSER_MIN_PC || sp->pc >= PARSER_MAX_PC) {
 		pr_err("Invalid starting PC 0x%x (< 0x%x or >= 0x%x)\n",
@@ -288,32 +334,12 @@ static __COLD_CODE int sp_drv_check_sp_info(struct sparser_info *sp,
 			return -1;
 		}
 	}
-	/* Check for parameters overlapping with the already loaded or with the
-	 * pre-loaded SPs. Parameters are stored in a Parse Profile. Parameters
-	 * in the same profile must not overlap. */
-	for (i = 0; sp->param_size && i < PARSER_MAX_SP + 2; i++) {
-		/* Check for :
-		 *	- not used entry,
-		 *	- entry with no parameters
-		 *	- entry from other parse profile */
-		if (!parser_drv.sp_info[i].pc ||
-		    !parser_drv.sp_info[i].param_size ||
-		    sp->prpid != parser_drv.sp_info[i].prpid)
-			continue;
-		if ((sp->param_off >= parser_drv.sp_info[i].param_off &&
-		     sp->param_off <= parser_drv.sp_info[i].param_off +
-		     parser_drv.sp_info[i].param_size - 1) ||
-		    (sp->param_off + sp->param_size - 1 >=
-		     parser_drv.sp_info[i].param_off &&
-		     sp->param_off + sp->param_size <=
-		     parser_drv.sp_info[i].param_off +
-		     parser_drv.sp_info[i].param_size)) {
-			pr_err("SP_#%d over SP_#%d: Parameters overlap\n",
-			       sp_idx, i);
-			return -1;
-		}
-	}
-	return 0;
+	/* Check for parameters overlapping on the ingress parse profile */
+	ret = sp_drv_check_sp_params(sp, sp_idx, prpid_ingress, 1);
+	if (ret)
+		return ret;
+	/* Check for parameters overlapping on the egress parse profile */
+	return sp_drv_check_sp_params(sp, sp_idx, prpid_egress, 0);
 }
 
 /******************************************************************************/
@@ -332,7 +358,9 @@ static __COLD_CODE int sp_drv_init(struct sparser_info *sp_ext_info,
 		pr_info("Loading SPs pre-loaded by MC at 0x%x\n",
 			sp_ext_info->pc);
 		ret = sp_drv_check_sp_info(sp_ext_info,
-					   (uint16_t)PARSER_EXT_SP_IDX);
+					   (uint16_t)PARSER_EXT_SP_IDX,
+					   NO_PARSE_PROFILE,
+					   NO_PARSE_PROFILE);
 		if (ret) {
 			sp_drv_start_parser();
 			return ret;
@@ -346,14 +374,16 @@ static __COLD_CODE int sp_drv_init(struct sparser_info *sp_ext_info,
 				sp_ext_info->param_off;
 		parser_drv.sp_info[PARSER_EXT_SP_IDX].param_size =
 				sp_ext_info->param_size;
-		parser_drv.sp_info[PARSER_EXT_SP_IDX].prpid =
-				sp_ext_info->prpid;
+		parser_drv.prpid_ingress[PARSER_EXT_SP_IDX] = 0xFF;
+		parser_drv.prpid_egress[PARSER_EXT_SP_IDX] = 0xFF;
 	}
 	if (sp_lib_info) {
 		pr_info("Loading SPs \"library\" pre-loaded by AIOP at 0x%x\n",
 			sp_lib_info->pc);
 		ret = sp_drv_check_sp_info(sp_lib_info,
-					   (uint16_t)PARSER_LIB_SP_IDX);
+					   (uint16_t)PARSER_LIB_SP_IDX,
+					   NO_PARSE_PROFILE,
+					   NO_PARSE_PROFILE);
 		if (ret) {
 			sp_drv_start_parser();
 			return ret;
@@ -367,8 +397,8 @@ static __COLD_CODE int sp_drv_init(struct sparser_info *sp_ext_info,
 				sp_lib_info->param_off;
 		parser_drv.sp_info[PARSER_LIB_SP_IDX].param_size =
 				sp_lib_info->param_size;
-		parser_drv.sp_info[PARSER_LIB_SP_IDX].prpid =
-				sp_lib_info->prpid;
+		parser_drv.prpid_ingress[PARSER_LIB_SP_IDX] = NO_PARSE_PROFILE;
+		parser_drv.prpid_egress[PARSER_LIB_SP_IDX] = NO_PARSE_PROFILE;
 	}
 	/* Clear Soft Parser instructions area. Skip pre-loaded SPs. Last 4
 	 * bytes of the instructions area must be always cleared */
@@ -398,9 +428,7 @@ static __COLD_CODE int sp_drv_init(struct sparser_info *sp_ext_info,
 	return 0;
 }
 
-/*******************************************************************************
- * SP Driver internal API functions
- ******************************************************************************/
+/******************************************************************************/
 static __COLD_CODE
 int sparser_drv_get_aiop_preloaded_sp_info(struct sparser_info *sp_info)
 {
@@ -417,6 +445,53 @@ int sparser_drv_get_mc_preloaded_sp_info(struct sparser_info *sp_info)
 }
 
 /******************************************************************************/
+static __COLD_CODE int sparser_drv_load_parser(struct sparser_info *sp,
+					       uint8_t prpid_ingress,
+					       uint8_t prpid_egress)
+{
+	int		i, ret;
+	uint32_t	*sp_mem, *sp_code;
+
+	if (parser_drv.sp_idx == PARSER_MAX_SP) {
+		pr_err("%d : Too many AIOP soft parsers.\n", PARSER_MAX_SP);
+		return -1;
+	}
+	ret = sp_drv_check_sp_info(sp, parser_drv.sp_idx,
+				   prpid_ingress, prpid_egress);
+	if (ret)
+		return ret;
+	ASSERT_COND(sp->byte_code);
+	if (((uint32_t)sp->byte_code) & 0x03) {
+		pr_err("0x%x : Code must be aligned on a 4 bytes boundary\n",
+		       (uint32_t)sp->byte_code);
+		return -1;
+	}
+	/* Disable parser */
+	ret = sp_drv_stop_parser();
+	if (ret)
+		return ret;
+	/* Load SP code */
+	sp_code = (uint32_t *)sp->byte_code;
+	sp_mem = (uint32_t *)((uint32_t)parser_drv.regs + 2 * sp->pc);
+	for (i = 0; i < DIV_CEIL(sp->size, 4); i++)
+		iowrite32be(*sp_code++, sp_mem++);
+	parser_drv.sp_info[parser_drv.sp_idx].pc = sp->pc;
+	parser_drv.sp_info[parser_drv.sp_idx].size = sp->size;
+	parser_drv.sp_info[parser_drv.sp_idx].byte_code =
+			(uint8_t *)((uint32_t)parser_drv.regs + 2 * sp->pc);
+	parser_drv.sp_info[parser_drv.sp_idx].param_off = sp->param_off;
+	parser_drv.sp_info[parser_drv.sp_idx].param_size = sp->param_size;
+	parser_drv.prpid_ingress[parser_drv.sp_idx] = prpid_ingress;
+	parser_drv.prpid_egress[parser_drv.sp_idx] = prpid_egress;
+	parser_drv.sp_idx++;
+	/* Re-enable parser */
+	sp_drv_start_parser();
+	return 0;
+}
+
+/*******************************************************************************
+ * SP Driver internal API functions
+ ******************************************************************************/
 __COLD_CODE int sparser_drv_early_init(void)
 {
 	int		i, ret;
@@ -471,10 +546,14 @@ __COLD_CODE int sparser_drv_early_init(void)
 /******************************************************************************/
 __COLD_CODE int sparser_drv_init(void)
 {
-	int			ret;
+	int			i, ret;
 	struct sparser_info	sp_ext_info, sp_lib_info;
 
 	memset(&parser_drv, 0, sizeof(struct sparser_drv));
+	for (i = 0; i < PARSER_MAX_SP + 2; i++) {
+		parser_drv.prpid_ingress[i] = NO_PARSE_PROFILE;
+		parser_drv.prpid_egress[i] = NO_PARSE_PROFILE;
+	}
 	parser_drv.regs = (struct parser_regs *)PARSER_REGS_ADDR;
 	/* Get information about the SP pre-loaded by MC in the internal
 	 * memory of the AIOP Parser */
@@ -497,49 +576,66 @@ __COLD_CODE int sparser_drv_init(void)
 	return ret;
 }
 
+/******************************************************************************/
+__COLD_CODE int sparser_drv_check_params(uint16_t pc, uint8_t param_size,
+					 uint8_t param_off, uint8_t prpid,
+					 uint8_t ingress)
+{
+	int		i;
+	uint8_t		prpid_cmp;
+
+	if (prpid == NO_PARSE_PROFILE) {
+		pr_err("Invalid %s parse profile\n",
+		       (ingress) ? "ingress" : "egress");
+		return -1;
+	}
+	for (i = 0; i < PARSER_MAX_SP; i++) {
+		if (pc != parser_drv.sp_info[i].pc)
+			continue;
+		/* Soft parser was loaded. Check if parameters are the same" */
+		prpid_cmp = (ingress) ? parser_drv.prpid_ingress[i] :
+				parser_drv.prpid_egress[i];
+		if (prpid != prpid_cmp) {
+			pr_err("No match on parse profile ID\n");
+			return -1;
+		}
+		if (param_size != parser_drv.sp_info[i].param_size) {
+			pr_err("No match on size of parameters\n");
+			return -1;
+		}
+		if (param_size &&
+		    param_off != parser_drv.sp_info[i].param_off) {
+			pr_err("No match on offset of parameters\n");
+			return -1;
+		}
+		return 0;
+	}
+	pr_err("Soft parser at PC = 0x%x is not loaded\n", pc);
+	return -1;
+}
+
 /*******************************************************************************
  * SP Driver external API functions
  ******************************************************************************/
-__COLD_CODE int sparser_drv_load_parser(struct sparser_info *sp)
+__COLD_CODE int sparser_drv_load_ingress_parser(struct sparser_info *sp)
 {
-	int		i, ret;
-	uint32_t	*sp_mem, *sp_code;
+	uint8_t		prpid;
 
 	ASSERT_COND(sp);
-	pr_info("Loading application defined SP at 0x%x\n", sp->pc);
-	if (parser_drv.sp_idx == PARSER_MAX_SP) {
-		pr_err("%d : Too many AIOP soft parsers.\n", PARSER_MAX_SP);
-		return -1;
-	}
-	ret = sp_drv_check_sp_info(sp, parser_drv.sp_idx);
-	if (ret)
-		return ret;
-	ASSERT_COND(sp->byte_code);
-	if (((uint32_t)sp->byte_code) & 0x03) {
-		pr_err("0x%x : Code must be aligned on a 4 bytes boundary\n",
-		       (uint32_t)sp->byte_code);
-		return -1;
-	}
-	/* Disable parser */
-	ret = sp_drv_stop_parser();
-	if (ret)
-		return ret;
-	/* Load SP code */
-	sp_code = (uint32_t *)sp->byte_code;
-	sp_mem = (uint32_t *)((uint32_t)parser_drv.regs + 2 * sp->pc);
-	for (i = 0; i < DIV_CEIL(sp->size, 4); i++)
-		iowrite32be(*sp_code++, sp_mem++);
-	parser_drv.sp_info[parser_drv.sp_idx].pc = sp->pc;
-	parser_drv.sp_info[parser_drv.sp_idx].size = sp->size;
-	parser_drv.sp_info[parser_drv.sp_idx].byte_code =
-			(uint8_t *)((uint32_t)parser_drv.regs + 2 * sp->pc);
-	parser_drv.sp_info[parser_drv.sp_idx].param_off = sp->param_off;
-	parser_drv.sp_info[parser_drv.sp_idx].param_size = sp->param_size;
-	parser_drv.sp_info[parser_drv.sp_idx].prpid = sp->prpid;
-	parser_drv.sp_idx++;
-	/* Re-enable parser */
-	sp_drv_start_parser();
-	return 0;
+	pr_info("Load soft parser at PC = 0x%x\n", sp->pc);
+	dpni_drv_get_ingress_parse_profile_id(0, &prpid);
+	return sparser_drv_load_parser(sp, prpid, NO_PARSE_PROFILE);
+}
+
+/******************************************************************************/
+__COLD_CODE int sparser_drv_load_egress_parser(struct sparser_info *sp)
+{
+	uint8_t		prpid;
+
+	ASSERT_COND(sp);
+	pr_info("Load soft parser at PC = 0x%x\n", sp->pc);
+	dpni_drv_get_egress_parse_profile_id(0, &prpid);
+	return sparser_drv_load_parser(sp, NO_PARSE_PROFILE, prpid);
 }
 
 /******************************************************************************/

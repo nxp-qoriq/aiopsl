@@ -24,7 +24,7 @@ aiop_sl		</project>
 				</dictionary>
 				<dictionary>
 					<key>org.eclipse.cdt.make.core.buildArguments</key>
-					<value></value>
+					<value>-j16</value>
 				</dictionary>
 				<dictionary>
 					<key>org.eclipse.cdt.make.core.buildCommand</key>
@@ -32,7 +32,7 @@ aiop_sl		</project>
 				</dictionary>
 				<dictionary>
 					<key>org.eclipse.cdt.make.core.buildLocation</key>
-					<value>${ProjDirPath}/LS1088A</value>
+					<value>${ProjDirPath}/LS2088A</value>
 				</dictionary>
 				<dictionary>
 					<key>org.eclipse.cdt.make.core.cleanBuildTarget</key>
@@ -117,9 +117,9 @@ aiop_sl		</project>
 			<locationURI>virtual:/virtual</locationURI>
 		</link>
 		<link>
-			<name>src/README.txt</name>
+			<name>src/SP_Users_Manual.pdf</name>
 			<type>1</type>
-			<locationURI>PARENT-4-PROJECT_LOC/apps/soft_parser_demo/README.txt</locationURI>
+			<locationURI>PARENT-4-PROJECT_LOC/apps/soft_parser_demo/SP_Users_Manual.pdf</locationURI>
 		</link>
 		<link>
 			<name>src/apps.c</name>

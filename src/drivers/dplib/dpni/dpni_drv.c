@@ -46,8 +46,8 @@
 #include "fsl_sl_slab.h"
 #include "fsl_sl_evmng.h"
 #include "fsl_ep_mng.h"
-
 #include "fsl_mem_mng.h"
+#include "sparser_drv.h"
 
 #define __ERR_MODULE__  MODULE_DPNI
 #define ETH_BROADCAST_ADDR		((uint8_t []){0xff,0xff,0xff,0xff,0xff,0xff})
@@ -72,6 +72,8 @@ struct dpni_drv_stats {
 	uint8_t page;
 	uint8_t offset;
 };
+
+uint8_t egress_parse_profile_id;
 
 /* WARNING - Update this structure, size and content if the enumeration
  * dpni_drv_counter changes */
@@ -1164,7 +1166,8 @@ static int check_if_drv_and_flib_structs_identical(void)
 	return 0;
 }
 
-__COLD_CODE static inline void dpni_drv_init_ni_table(uint8_t prpid)
+static __COLD_CODE inline void dpni_drv_init_ni_table(uint8_t prpid,
+						      uint8_t prpid_egr)
 {
 	int i;
 
@@ -1174,8 +1177,9 @@ __COLD_CODE static inline void dpni_drv_init_ni_table(uint8_t prpid)
 		dpni_drv->dpni_drv_params_var.spid         = 0;
 		dpni_drv->dpni_drv_params_var.spid_ddr     = 0;
 		dpni_drv->dpni_drv_params_var.epid_idx     = 0;
-		/*parser profile id from parser_profile_init()*/
+		/* Parser profile IDs from parser_profile_init()*/
 		dpni_drv->dpni_drv_params_var.prpid        = prpid;
+		dpni_drv->dpni_drv_params_var.prpid_egress = prpid_egr;
 		/*ETH HXS */
 		dpni_drv->dpni_drv_params_var.starting_hxs = 0;
 		dpni_drv->dpni_drv_tx_params_var.qdid      = 0;
@@ -1188,8 +1192,8 @@ __COLD_CODE static inline void dpni_drv_init_ni_table(uint8_t prpid)
 
 __COLD_CODE int dpni_drv_init(void)
 {
-	uint8_t prpid = 0;
-	int err = 0;
+	uint8_t		prpid = 0, prpid_egr = 0;
+	int		err;
 
 	memset(&pools_params, 0, sizeof(struct dpni_pools_cfg));
 	num_of_nis = 0;
@@ -1198,15 +1202,23 @@ __COLD_CODE int dpni_drv_init(void)
 	if (!nis) {
 		return -ENOMEM;
 	}
-
+	/* Create and initialize the "ingress" parse profile */
 	err = parser_profile_init(&prpid);
-	if(err){
-		pr_err("parser profile initialization failed %d\n", err);
+	if (err) {
+		pr_err("[%d] : Ingress parser profile initialization\n", err);
 		return err;
 	}
+	pr_info("AIOP Ingress parse profile ID : %d\n", prpid);
+	/* Create and initialize the "egress" parse profile */
+	err = parser_profile_init(&prpid_egr);
+	if (err) {
+		pr_err("[%d] : Egress parser profile initialization\n", err);
+		return err;
+	}
+	egress_parse_profile_id = prpid_egr;
+	pr_info("AIOP Egress parse profile ID : %d\n", egress_parse_profile_id);
 	/* Initialize internal AIOP NI table */
-	dpni_drv_init_ni_table(prpid);
-
+	dpni_drv_init_ni_table(prpid, prpid_egr);
 	/* TODO - add initialization of global default DP-IO
 	 * (i.e. call 'dpio_open', 'dpio_init');
 	 * This should be mapped to ALL cores of AIOP and to ALL the tasks */
@@ -2946,7 +2958,8 @@ int dpni_drv_set_errors_behavior(uint16_t ni_id,
 }
 
 /******************************************************************************/
-__COLD_CODE void dpni_drv_get_parse_profile_id(uint16_t ni_id, uint8_t *prpid)
+__COLD_CODE void dpni_drv_get_ingress_parse_profile_id(uint16_t ni_id,
+						       uint8_t *prpid)
 {
 	struct dpni_drv		*dpni_drv;
 
@@ -2955,9 +2968,19 @@ __COLD_CODE void dpni_drv_get_parse_profile_id(uint16_t ni_id, uint8_t *prpid)
 }
 
 /******************************************************************************/
-__COLD_CODE
-int dpni_drv_activate_soft_parser(uint8_t prpid,
-				  const struct dpni_drv_sparser_param *param)
+__COLD_CODE void dpni_drv_get_egress_parse_profile_id(uint16_t ni_id,
+						      uint8_t *prpid)
+{
+	struct dpni_drv		*dpni_drv;
+
+	dpni_drv = nis + ni_id;
+	*prpid = dpni_drv->dpni_drv_params_var.prpid_egress;
+}
+
+/******************************************************************************/
+static __COLD_CODE
+int dpni_drv_enable_soft_parser(uint8_t prpid,
+				const struct dpni_drv_sparser_param *param)
 {
 	uint8_t				*pb;
 	struct parse_profile_input	pp __attribute__((aligned(16)));
@@ -2973,18 +2996,18 @@ int dpni_drv_activate_soft_parser(uint8_t prpid,
 		return -EINVAL;
 	}
 #ifdef LS2085A_REV1
-	if (param->first_header) {
+	if (param->custom_header_first) {
 		pr_err("First header as custom header not supported\n");
 		return -EINVAL;
 	}
 #endif
 	/* The first header is not linked to a hard HXS. If it has no parameters
 	 * there is no need to update the parse profile. */
-	if (param->first_header && !param->param_size)
+	if (param->custom_header_first && !param->param_size)
 		return 0;
 	memset(&pp, 0, sizeof(struct parse_profile_input));
 	parser_profile_query(prpid, &pp);
-	if (!param->first_header) {
+	if (!param->custom_header_first) {
 		uint16_t	*pval;
 
 		switch (param->link_to_hard_hxs) {
@@ -3083,6 +3106,38 @@ int dpni_drv_activate_soft_parser(uint8_t prpid,
 }
 
 /******************************************************************************/
+__COLD_CODE int dpni_drv_enable_ingress_soft_parser
+			(const struct dpni_drv_sparser_param *param)
+{
+	uint8_t		prpid;
+	int		ret;
+
+	pr_info("Enable soft parser at PC = 0x%x\n", param->start_pc);
+	dpni_drv_get_ingress_parse_profile_id(0, &prpid);
+	ret = sparser_drv_check_params(param->start_pc, param->param_size,
+				       param->param_offset, prpid, 1);
+	if (ret)
+		return ret;
+	return dpni_drv_enable_soft_parser(prpid, param);
+}
+
+/******************************************************************************/
+__COLD_CODE int dpni_drv_enable_egress_soft_parser
+			(const struct dpni_drv_sparser_param *param)
+{
+	uint8_t		prpid;
+	int		ret;
+
+	pr_info("Enable soft parser at PC = 0x%x\n", param->start_pc);
+	dpni_drv_get_egress_parse_profile_id(0, &prpid);
+	ret = sparser_drv_check_params(param->start_pc, param->param_size,
+				       param->param_offset, prpid, 0);
+	if (ret)
+		return ret;
+	return dpni_drv_enable_soft_parser(prpid, param);
+}
+
+/******************************************************************************/
 static int load_wriop_soft_parser(struct dpni_load_ss_cfg *cfg)
 {
 	struct mc_dprc			*dprc;
@@ -3161,6 +3216,7 @@ int dpni_drv_load_wriop_ingress_soft_parser
 {
 	struct dpni_load_ss_cfg		cfg;
 
+	pr_info("Load soft parser at PC = 0x%x\n", param->start_pc);
 	cfg.dest = DPNI_SS_INGRESS;
 	cfg.ss_offset = param->start_pc;
 	cfg.ss_size = param->size;
@@ -3175,6 +3231,7 @@ int dpni_drv_load_wriop_egress_soft_parser
 {
 	struct dpni_load_ss_cfg		cfg;
 
+	pr_info("Load soft parser at PC = 0x%x\n", param->start_pc);
 	cfg.dest = DPNI_SS_EGRESS;
 	cfg.ss_offset = param->start_pc;
 	cfg.ss_size = param->size;
@@ -3189,9 +3246,11 @@ int dpni_drv_enable_wriop_ingress_soft_parser
 {
 	struct dpni_enable_ss_cfg	cfg;
 
+	pr_info("Enable soft parser at PC = 0x%x on DPNI_%d\n", param->start_pc,
+		ni_id);
 	cfg.dest = DPNI_SS_INGRESS;
 	cfg.ss_offset = param->start_pc;
-	cfg.set_start = param->first_header;
+	cfg.set_start = param->custom_header_first;
 	cfg.hxs = (uint16_t)param->link_to_hard_hxs;
 	cfg.param_offset = param->param_offset;
 	cfg.param_size = param->param_size;
@@ -3211,9 +3270,11 @@ int dpni_drv_enable_wriop_egress_soft_parser
 {
 	struct dpni_enable_ss_cfg	cfg;
 
+	pr_info("Enable soft parser at PC = 0x%x on DPNI_%d\n", param->start_pc,
+		ni_id);
 	cfg.dest = DPNI_SS_EGRESS;
 	cfg.ss_offset = param->start_pc;
-	cfg.set_start = param->first_header;
+	cfg.set_start = param->custom_header_first;
 	cfg.hxs = (uint16_t)param->link_to_hard_hxs;
 	cfg.param_offset = param->param_offset;
 	cfg.param_size = param->param_size;

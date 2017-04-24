@@ -82,13 +82,11 @@ struct sparser_info {
 	/* Pointer to the array containing the SP byte-code (must be aligned on
 	 *  a 4 bytes boundary) */
 	uint8_t			*byte_code;
+	/* Size of parameters in bytes. Must be 0 if SP has no parameter. */
+	uint8_t			param_size;
 	/* Offset of the SP parameters (if any) in the Parameters Array
 	 * (a 64 bytes array) */
 	uint8_t			param_off;
-	/* Size of parameters (if any) in bytes */
-	uint8_t			param_size;
-	/* Parse Profile ID */
-	uint8_t			prpid;
 };
 
 /**************************************************************************//**
@@ -156,19 +154,38 @@ enum sparser_preloaded {
 };
 
 /**************************************************************************//**
-@Function	sparser_drv_load_parser
+@Function	sparser_drv_load_ingress_parser
 
-@Description	Load a Soft Parser into the internal instructions memory of the
-		AIOP/WRIOP Parser. Driver checks the overlapping conditions on
-		the SP code and on SP parameters(if any).
+@Description	Load a soft parser into the internal instructions memory of the
+		AIOP Parser. The driver checks the overlapping conditions of the
+		soft parser code. The driver checks the overlapping conditions
+		of the soft parser parameters, if any, in the Parameter Array of
+		the "ingress" parse profile.
 
-@Param[in]	sp : Soft Parser information.
+@Param[in]	sp : Soft parser information.
 
 @Return		0 on success, -1 on failure. Prints error messages, showing
 		what error occurred.
 
 *//***************************************************************************/
-int sparser_drv_load_parser(struct sparser_info *sp);
+int sparser_drv_load_ingress_parser(struct sparser_info *sp);
+
+/**************************************************************************//**
+@Function	sparser_drv_load_egress_parser
+
+@Description	Load a soft parser into the internal instructions memory of the
+		AIOP Parser. The driver checks the overlapping conditions of the
+		soft parser code. The driver checks the overlapping conditions
+		of the soft parser parameters, if any, in the Parameter Array of
+		the "egress" parse profile.
+
+@Param[in]	sp : Soft parser information.
+
+@Return		0 on success, -1 on failure. Prints error messages, showing
+		what error occurred.
+
+*//***************************************************************************/
+int sparser_drv_load_egress_parser(struct sparser_info *sp);
 
 /**************************************************************************//**
 @Function	sparser_drv_get_pclim

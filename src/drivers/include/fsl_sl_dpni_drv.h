@@ -177,5 +177,36 @@ void dpni_drv_handle_removed_objects(void);
 
 *//***************************************************************************/
 int dpni_drv_set_irq_enable(uint16_t ni_id, uint8_t en);
+
+/**************************************************************************//**
+@Function	dpni_drv_get_ingress_parse_profile_id
+
+@Description	Get the ID of the "ingress" Parse Profile configured on a DPNI.
+		All AIOP belonging DPNIs share the same "ingress" Parse Profile.
+
+@Param[in]	ni_id : The AIOP Network Interface ID.
+
+@Param[out]	prpid : On return contains the ID of the "ingress" Parse
+		Profile.
+
+@Return		None
+*//***************************************************************************/
+void dpni_drv_get_ingress_parse_profile_id(uint16_t ni_id, uint8_t *prpid);
+
+/**************************************************************************//**
+@Function	dpni_drv_get_egress_parse_profile_id
+
+@Description	Get the ID of the "egress" Parse Profile configured on a DPNI.
+		All AIOP belonging DPNIs share the same "egress" Parse Profile.
+
+@Param[in]	ni_id : The AIOP Network Interface ID.
+
+@Param[out]	prpid : On return contains the ID of the "egress" Parse
+		Profile.
+
+@Return		None
+*//***************************************************************************/
+void dpni_drv_get_egress_parse_profile_id(uint16_t ni_id, uint8_t *prpid);
+
 /** @} */ /* end of DPNI_DRV_STATUS group */
 #endif /* __FSL_SL_DPNI_DRV_H */
