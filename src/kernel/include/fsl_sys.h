@@ -49,8 +49,8 @@
 *//***************************************************************************/
 
 /* Same version for all the devices */
-#define SYS_REV_MAJOR	7
-#define SYS_REV_MINOR	3
+#define SYS_REV_MAJOR	8
+#define SYS_REV_MINOR	0
 #define SYS_REVISION	0
 
 /*!
