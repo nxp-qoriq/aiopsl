@@ -930,14 +930,12 @@ IPR_CODE_PLACEMENT int ipr_reassemble(ipr_instance_handle_t instance_handle)
 		} else {
 		/* TLU lookup SR error */
 		pr_err("IPR Lookup failed\n");
-#ifdef USE_IPR_SW_TABLE
 		move_to_correct_ordering_scope2(osm_status);
 		ipr_stats_update(&instance_params,
 				 offsetof(struct extended_stats_cntrs,
 					  open_reass_frms_exceed_ipv4_cntr),
 				 frame_is_ipv4);
 		return -ENOSPC;
-#endif	/* USE_IPR_SW_TABLE */
 	}
 
 	if (rfdc.num_of_frags == MAX_NUM_OF_FRAGS) {
@@ -2996,6 +2994,7 @@ void ipr_exception_handler(enum ipr_function_identifier func_id,
 			     break;
 			case ENOSPC_TIMER:
 				err_msg = "No free timer\n";
+				break;
 			default:
 				err_msg = "Unknown or Invalid status Error.\n";
 		}
