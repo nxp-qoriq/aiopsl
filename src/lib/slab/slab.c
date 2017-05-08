@@ -43,6 +43,7 @@
 #include "fsl_bman.h"
 #include "fsl_sys.h"
 #include "fsl_platform.h"
+#include "sp_drv.h"
 
 struct slab_bman_pool_desc g_slab_bman_pools[SLAB_MAX_BMAN_POOLS_NUM];
 struct slab_virtual_pools_main_desc g_slab_virtual_pools;
@@ -967,7 +968,7 @@ __COLD_CODE static int dpbp_discovery(struct slab_bpid_info *bpids_arr,
 	int num_bpids = 0;
 	int err = 0;
 	int i = 0;
-	int num_buf_sec = 0;
+	int skip_bp_count;
 	struct mc_dprc *dprc = sys_get_unique_handle(FSL_MOD_AIOP_RC);
 	uint8_t bkp_pool_disable = g_app_params.app_config_flags &
 				DPNI_BACKUP_POOL_DISABLE ? 1 : 0;
@@ -995,7 +996,7 @@ __COLD_CODE static int dpbp_discovery(struct slab_bpid_info *bpids_arr,
 		if (strcmp(dev_desc.type, "dpbp") == 0) {
 			/* TODO: print conditionally based on log level */
 			pr_info("Found DPBP ID: %d, Skipping, will be used for frame buffers\n", dev_desc.id);
-			num_bpids ++;
+			num_bpids++;
 			if(num_bpids == SLAB_NUM_BPIDS_USED_FOR_DPNI || bkp_pool_disable)
 				break;
 		}
@@ -1011,17 +1012,37 @@ __COLD_CODE static int dpbp_discovery(struct slab_bpid_info *bpids_arr,
 
 	/* Reserve a buffer pool for SEC (IPsec *or* CWAP/DTLS) */
 	if (sec_buffer_allocate_enable) {
+		skip_bp_count = 0;
 		for (++i; i < dev_count; i++) {
 			dprc_get_obj(&dprc->io, 0, dprc->token, i, &dev_desc);
 			if (strcmp(dev_desc.type, "dpbp") == 0) {
-				num_buf_sec += 1;
+				skip_bp_count += 1;
 				pr_info("dpbp@%d :Skipped, used for SEC\n",
 					dev_desc.id);
 				num_bpids++;
 				break;
 			}
 		}
-		if (!num_buf_sec) {
+		if (!skip_bp_count) {
+			pr_err("Not enough DPBPs found in the container.\n");
+			return -ENODEV;
+		}
+	}
+	/* Skip BPs reserved for application specific Storage Profile */
+	skip_bp_count = sp_drv_get_bp_count();
+	if (skip_bp_count) {
+		num_bpids = 0;
+		for (++i; i < dev_count; i++) {
+			dprc_get_obj(&dprc->io, 0, dprc->token, i, &dev_desc);
+			if (strcmp(dev_desc.type, "dpbp") == 0) {
+				pr_info("dpbp@%d :Skipped, used for SP\n",
+					dev_desc.id);
+				num_bpids++;
+				if (num_bpids == skip_bp_count)
+					break;
+			}
+		}
+		if (num_bpids != skip_bp_count) {
 			pr_err("Not enough DPBPs found in the container.\n");
 			return -ENODEV;
 		}

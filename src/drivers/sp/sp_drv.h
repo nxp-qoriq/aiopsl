@@ -40,5 +40,6 @@ extern __PROFILE_SRAM struct storage_profile
 int sp_drv_early_init(void);
 int sp_drv_init(void);
 void sp_drv_free(void);
+uint8_t sp_drv_get_bp_count(void);
 
 #endif		/* __SP_DRV_H */
