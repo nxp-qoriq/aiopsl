@@ -618,7 +618,7 @@ __COLD_CODE int sp_drv_get_bpid(uint8_t sp_idx, uint8_t bp_idx, uint16_t *bpid)
 		       spe->bp_count);
 		return -EINVAL;
 	}
-	if (spe->bpe[bp_idx].bpid) {
+	if (spe->bpe[bp_idx].bpid == INVALID_BP) {
 		pr_warn("BP %d in SP %d was not yet initialized\n", bp_idx,
 			sp_idx);
 		return -EIO;
