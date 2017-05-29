@@ -432,7 +432,6 @@ void osm_scope_enter(
 *//***************************************************************************/
 inline void osm_scope_exit(void);
 
-
 /*************************************************************************//**
 @Function	osm_get_scope
 
@@ -451,6 +450,25 @@ inline void osm_scope_exit(void);
 @Cautions	None.
 *//***************************************************************************/
 inline void osm_get_scope(struct scope_status_params *scope_status);
+
+#ifdef SL_DEBUG
+/*************************************************************************//**
+@Function	dump_osm_regs
+
+@Description	Dumps OSM registers.
+		The calling task ID is written in the OSM read task address
+		register (ORTAR). Writing this register will populate the read
+		task data registers with state information for the specified
+		task number and will guarantee a consistent reading across all
+		scopes.
+
+@Return		None.
+
+@Cautions	Use of this feature is not recommended during operation since it
+		may have adverse effects on functional performance.
+*//***************************************************************************/
+void dump_osm_regs(void);
+#endif	/* SL_DEBUG */
 
 /** @} end of group OSM_Functions */
 /** @} */ /* end of FSL_AIOP_OSM */

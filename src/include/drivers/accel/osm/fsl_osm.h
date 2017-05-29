@@ -28,6 +28,19 @@
 
 #if defined(ACCEL_OSM_REV1) || defined(ACCEL_OSM_REV2)
 #include "01_01/fsl_osm.h"
+
+#ifdef SL_DEBUG
+	#define OSM_SCOPE_ID_DEBUG	0xdddddddd
+
+#define DEBUG_SCOPE_ID(_a)						\
+	do {								\
+		_a = (_a & ~OSM_SCOPE_ID_LEVEL_INCREMENT_MASK);		\
+		_a |= (OSM_SCOPE_ID_DEBUG &				\
+		       OSM_SCOPE_ID_LEVEL_INCREMENT_MASK);		\
+	} while (0)
+
+#endif	/* SL_DEBUG */
+
 #else
 #error Please specify accelerator API mode
 #endif

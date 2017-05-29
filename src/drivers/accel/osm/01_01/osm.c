@@ -33,6 +33,12 @@
 #include "fsl_osm.h"
 #include "general.h"
 
+#ifdef SL_DEBUG
+#include "fsl_sys.h"
+#include "fsl_aiop_common.h"
+#include "fsl_io.h"
+#endif
+
 extern __TASK struct aiop_default_task_params default_task_params;
 
 void osm_scope_transition_to_exclusive_with_new_scope_id(
@@ -41,28 +47,25 @@ void osm_scope_transition_to_exclusive_with_new_scope_id(
 	/* update the SCOPE_ID_LEVEL_INCREMENT field in the new scope_id */
 	switch (default_task_params.current_scope_level) {
 	case (LEVEL1):
-		{
 		scope_id = (scope_id & ~OSM_SCOPE_ID_LEVEL_INCREMENT_MASK);
 		break;
-		}
 	case (LEVEL2):
-		{
 		scope_id = (scope_id & ~OSM_SCOPE_ID_LEVEL_INCREMENT_MASK) |
 		(OSM_SCOPE_ID_LEVEL_2 & OSM_SCOPE_ID_LEVEL_INCREMENT_MASK);
 		break;
-		}
 	case (LEVEL3):
-		{
 		scope_id = (scope_id & ~OSM_SCOPE_ID_LEVEL_INCREMENT_MASK) |
 		(OSM_SCOPE_ID_LEVEL_3 & OSM_SCOPE_ID_LEVEL_INCREMENT_MASK);
 		break;
-		}
 	case (LEVEL4):
-		{
 		scope_id = (scope_id & ~OSM_SCOPE_ID_LEVEL_INCREMENT_MASK) |
 		(OSM_SCOPE_ID_LEVEL_4 & OSM_SCOPE_ID_LEVEL_INCREMENT_MASK);
 		break;
-		}
+#ifdef SL_DEBUG
+	default:
+		DEBUG_SCOPE_ID(scope_id);
+		break;
+#endif	/* SL_DEBUG */
 	}
 
 	/* Due to HW ticket TKT260685 in REV1 */
@@ -78,7 +81,7 @@ void osm_scope_transition_to_exclusive_with_new_scope_id(
 	} else {
 		/** 1 = Exclusive mode. */
 		REGISTER_OSM_EXCLUSIVE;
-		}
+	}
 }
 
 void osm_scope_transition_to_concurrent_with_increment_scope_id(void)
@@ -94,7 +97,7 @@ void osm_scope_transition_to_concurrent_with_increment_scope_id(void)
 	} else {
 		/** 0 = Concurrent mode. */
 		REGISTER_OSM_CONCURRENT;
-		}
+	}
 }
 
 void osm_scope_transition_to_concurrent_with_new_scope_id(
@@ -103,28 +106,25 @@ void osm_scope_transition_to_concurrent_with_new_scope_id(
 	/* update the SCOPE_ID_LEVEL_INCREMENT field in the new scope_id */
 	switch (default_task_params.current_scope_level) {
 	case (LEVEL1):
-		{
 		scope_id = (scope_id & ~OSM_SCOPE_ID_LEVEL_INCREMENT_MASK);
 		break;
-		}
 	case (LEVEL2):
-		{
 		scope_id = (scope_id & ~OSM_SCOPE_ID_LEVEL_INCREMENT_MASK) |
 		(OSM_SCOPE_ID_LEVEL_2 & OSM_SCOPE_ID_LEVEL_INCREMENT_MASK);
 		break;
-		}
 	case (LEVEL3):
-		{
 		scope_id = (scope_id & ~OSM_SCOPE_ID_LEVEL_INCREMENT_MASK) |
 		(OSM_SCOPE_ID_LEVEL_3 & OSM_SCOPE_ID_LEVEL_INCREMENT_MASK);
 		break;
-		}
 	case (LEVEL4):
-		{
 		scope_id = (scope_id & ~OSM_SCOPE_ID_LEVEL_INCREMENT_MASK) |
 		(OSM_SCOPE_ID_LEVEL_4 & OSM_SCOPE_ID_LEVEL_INCREMENT_MASK);
 		break;
-		}
+#ifdef SL_DEBUG
+	default:
+		DEBUG_SCOPE_ID(scope_id);
+		break;
+#endif	/* SL_DEBUG */
 	}
 
 	/* Due to HW ticket TKT260685 in REV1 */
@@ -140,15 +140,15 @@ void osm_scope_transition_to_concurrent_with_new_scope_id(
 	} else {
 		/** 0 = Concurrent mode. */
 		REGISTER_OSM_CONCURRENT;
-		}
+	}
 }
 
 void osm_scope_enter_to_exclusive_with_increment_scope_id(void)
 {
-
+#ifndef SL_DEBUG
 	if (default_task_params.current_scope_level == LEVEL4)
 		return;
-	
+#endif
 	/* call OSM */
 	if (__e_osmcmd_(OSM_SCOPE_ENTER_EXCL_SCOPE_INC_REL_PARENT_OP
 			, OSM_SCOPE_ID_LEVEL_INCREMENT_MASK)) {
@@ -168,48 +168,45 @@ void osm_scope_enter_to_exclusive_with_increment_scope_id(void)
 	}
 }
 
-void osm_scope_enter(
-		uint32_t scope_enter_flags,
-		uint32_t child_scope_id) {
-
+/******************************************************************************/
+void osm_scope_enter(uint32_t scope_enter_flags, uint32_t child_scope_id)
+{
+#ifndef SL_DEBUG
 	if (default_task_params.current_scope_level == LEVEL4)
 		return;
-	
+#endif
 	switch (scope_enter_flags) {
 	case (OSM_SCOPE_ENTER_CHILD_TO_CONCURENT):
-	{
-	/* update the SCOPE_ID_LEVEL_INCREMENT field in the new scope_id */
+		/* Update the SCOPE_ID_LEVEL_INCREMENT field in the
+		 * new scope_id */
 		switch (default_task_params.current_scope_level) {
 		case (LEVEL0):
-			{
 			child_scope_id = (child_scope_id &
 			~OSM_SCOPE_ID_LEVEL_INCREMENT_MASK);
 			break;
-			}
 		case (LEVEL1):
-			{
 			child_scope_id = (child_scope_id &
 			~OSM_SCOPE_ID_LEVEL_INCREMENT_MASK) |
 			(OSM_SCOPE_ID_LEVEL_2 &
 			OSM_SCOPE_ID_LEVEL_INCREMENT_MASK);
 			break;
-			}
 		case (LEVEL2):
-			{
 			child_scope_id = (child_scope_id &
 			~OSM_SCOPE_ID_LEVEL_INCREMENT_MASK) |
 			(OSM_SCOPE_ID_LEVEL_3 &
 			OSM_SCOPE_ID_LEVEL_INCREMENT_MASK);
 			break;
-			}
 		case (LEVEL3):
-			{
 			child_scope_id = (child_scope_id &
 			~OSM_SCOPE_ID_LEVEL_INCREMENT_MASK) |
 			(OSM_SCOPE_ID_LEVEL_4 &
 			OSM_SCOPE_ID_LEVEL_INCREMENT_MASK);
 			break;
-			}
+#ifdef SL_DEBUG
+		default:
+			DEBUG_SCOPE_ID(child_scope_id);
+			break;
+#endif
 		}
 
 	/* Due to HW ticket TKT260685 in REV1 */
@@ -226,10 +223,8 @@ void osm_scope_enter(
 			return;
 		}
 		break;
-	}
 	case (OSM_SCOPE_ENTER_CHILD_TO_CONCURENT |
 			OSM_SCOPE_ENTER_CHILD_SCOPE_INCREMENT):
-	{
 		/* call OSM */
 		if (__e_osmcmd_(OSM_SCOPE_ENTER_CONC_SCOPE_INC_OP,
 				OSM_SCOPE_ID_LEVEL_INCREMENT_MASK)) {
@@ -241,42 +236,37 @@ void osm_scope_enter(
 			return;
 		}
 		break;
-	}
 	case (OSM_SCOPE_ENTER_CHILD_TO_CONCURENT |
 			OSM_SCOPE_ENTER_RELINQUISH_PARENT_EXCLUSIVITY):
-	{
 	/* update the SCOPE_ID_LEVEL_INCREMENT field in the new scope_id */
 		switch (default_task_params.current_scope_level) {
 		case (LEVEL0):
-			{
 			child_scope_id = (child_scope_id &
 			~OSM_SCOPE_ID_LEVEL_INCREMENT_MASK);
 			break;
-			}
 		case (LEVEL1):
-			{
 			child_scope_id = (child_scope_id &
 			~OSM_SCOPE_ID_LEVEL_INCREMENT_MASK) |
 			(OSM_SCOPE_ID_LEVEL_2 &
 			OSM_SCOPE_ID_LEVEL_INCREMENT_MASK);
 			break;
-			}
 		case (LEVEL2):
-			{
 			child_scope_id = (child_scope_id &
 			~OSM_SCOPE_ID_LEVEL_INCREMENT_MASK) |
 			(OSM_SCOPE_ID_LEVEL_3 &
 			OSM_SCOPE_ID_LEVEL_INCREMENT_MASK);
 			break;
-			}
 		case (LEVEL3):
-			{
 			child_scope_id = (child_scope_id &
 			~OSM_SCOPE_ID_LEVEL_INCREMENT_MASK) |
 			(OSM_SCOPE_ID_LEVEL_4 &
 			OSM_SCOPE_ID_LEVEL_INCREMENT_MASK);
 			break;
-			}
+#ifdef SL_DEBUG
+		default:
+			DEBUG_SCOPE_ID(child_scope_id);
+			break;
+#endif	/* SL_DEBUG */
 		}
 
 	/* Due to HW ticket TKT260685 in REV1 */
@@ -298,7 +288,6 @@ void osm_scope_enter(
 			return;
 		}
 		break;
-	}
 	case (OSM_SCOPE_ENTER_CHILD_TO_CONCURENT |
 			OSM_SCOPE_ENTER_CHILD_SCOPE_INCREMENT |
 			OSM_SCOPE_ENTER_RELINQUISH_PARENT_EXCLUSIVITY):
@@ -321,39 +310,35 @@ void osm_scope_enter(
 		break;
 	}
 	case (OSM_SCOPE_ENTER_CHILD_TO_EXCLUSIVE):
-	{
 	/* update the SCOPE_ID_LEVEL_INCREMENT field in the new scope_id */
 		switch (default_task_params.current_scope_level) {
 		case (LEVEL0):
-			{
 			child_scope_id = (child_scope_id &
 			~OSM_SCOPE_ID_LEVEL_INCREMENT_MASK);
 			break;
-			}
 		case (LEVEL1):
-			{
 			child_scope_id = (child_scope_id &
 			~OSM_SCOPE_ID_LEVEL_INCREMENT_MASK) |
 			(OSM_SCOPE_ID_LEVEL_2 &
 			OSM_SCOPE_ID_LEVEL_INCREMENT_MASK);
 			break;
-			}
 		case (LEVEL2):
-			{
 			child_scope_id = (child_scope_id &
 			~OSM_SCOPE_ID_LEVEL_INCREMENT_MASK) |
 			(OSM_SCOPE_ID_LEVEL_3 &
 			OSM_SCOPE_ID_LEVEL_INCREMENT_MASK);
 			break;
-			}
 		case (LEVEL3):
-			{
 			child_scope_id = (child_scope_id &
 			~OSM_SCOPE_ID_LEVEL_INCREMENT_MASK) |
 			(OSM_SCOPE_ID_LEVEL_4 &
 			OSM_SCOPE_ID_LEVEL_INCREMENT_MASK);
 			break;
-			}
+#ifdef SL_DEBUG
+		default:
+			DEBUG_SCOPE_ID(child_scope_id);
+			break;
+#endif	/* SL_DEBUG */
 		}
 
 	/* Due to HW ticket TKT260685 in REV1 */
@@ -370,10 +355,8 @@ void osm_scope_enter(
 			return;
 		}
 		break;
-	}
 	case (OSM_SCOPE_ENTER_CHILD_TO_EXCLUSIVE |
 			OSM_SCOPE_ENTER_CHILD_SCOPE_INCREMENT):
-	{
 		/* call OSM */
 		if (__e_osmcmd_(OSM_SCOPE_ENTER_EXCL_SCOPE_INC_OP,
 				OSM_SCOPE_ID_LEVEL_INCREMENT_MASK)) {
@@ -385,42 +368,37 @@ void osm_scope_enter(
 			return;
 		}
 		break;
-	}
 	case (OSM_SCOPE_ENTER_CHILD_TO_EXCLUSIVE |
 			OSM_SCOPE_ENTER_RELINQUISH_PARENT_EXCLUSIVITY):
-	{
 	/* update the SCOPE_ID_LEVEL_INCREMENT field in the new scope_id */
 		switch (default_task_params.current_scope_level) {
 		case (LEVEL0):
-			{
 			child_scope_id = (child_scope_id &
 			~OSM_SCOPE_ID_LEVEL_INCREMENT_MASK);
 			break;
-			}
 		case (LEVEL1):
-			{
 			child_scope_id = (child_scope_id &
 			~OSM_SCOPE_ID_LEVEL_INCREMENT_MASK) |
 			(OSM_SCOPE_ID_LEVEL_2 &
 			OSM_SCOPE_ID_LEVEL_INCREMENT_MASK);
 			break;
-			}
 		case (LEVEL2):
-			{
 			child_scope_id = (child_scope_id &
 			~OSM_SCOPE_ID_LEVEL_INCREMENT_MASK) |
 			(OSM_SCOPE_ID_LEVEL_3 &
 			OSM_SCOPE_ID_LEVEL_INCREMENT_MASK);
 			break;
-			}
 		case (LEVEL3):
-			{
 			child_scope_id = (child_scope_id &
 			~OSM_SCOPE_ID_LEVEL_INCREMENT_MASK) |
 			(OSM_SCOPE_ID_LEVEL_4 &
 			OSM_SCOPE_ID_LEVEL_INCREMENT_MASK);
 			break;
-			}
+#ifdef SL_DEBUG
+		default:
+			DEBUG_SCOPE_ID(child_scope_id);
+			break;
+#endif	/* SL_DEBUG */
 		}
 
 	/* Due to HW ticket TKT260685 in REV1 */
@@ -442,11 +420,9 @@ void osm_scope_enter(
 			return;
 		}
 		break;
-	}
 	case (OSM_SCOPE_ENTER_CHILD_TO_EXCLUSIVE |
 			OSM_SCOPE_ENTER_CHILD_SCOPE_INCREMENT |
 			OSM_SCOPE_ENTER_RELINQUISH_PARENT_EXCLUSIVITY):
-	{
 		/* call OSM */
 		if (__e_osmcmd_(
 			OSM_SCOPE_ENTER_EXCL_SCOPE_INC_REL_PARENT_OP
@@ -464,7 +440,6 @@ void osm_scope_enter(
 			return;
 		}
 		break;
-	}
 	default:
 		return;
 		break;
@@ -523,8 +498,75 @@ void osm_exception_handler(enum osm_function_identifier func_id,
 	}
 
 	err_msg = "OSM error.\n";
-
+#ifndef SL_DEBUG
 	exception_handler(__FILE__, func_name, line, err_msg);
+#else
+	UNUSED(line);
+#endif
 }
 
 #pragma pop
+
+#ifdef SL_DEBUG
+void dump_osm_regs(void)
+{
+	struct aiop_tile_regs	*aiop_regs;
+	struct aiop_osm_regs	*osm_regs;
+	int			i;
+
+	register uint32_t	task, tmp;
+
+	aiop_regs = (struct aiop_tile_regs *)
+			sys_get_handle(FSL_MOD_AIOP_TILE, 1);
+	osm_regs = (struct aiop_osm_regs *)&aiop_regs->osm_regs;
+	/*
+	 * AIOP-z490 CPU
+	 * 11.6.5 Task Control and Status Register 0, 1 (TASKCSR0, TASKCSR1)
+	 */
+	asm
+	{
+		mfdcr		tmp, dcr476	/* TASKCSR0 */
+		e_clrlwi	task, tmp, 24	/* Clear top 24 bits */
+	}
+	/*
+	 * Initialize TASK_ID in ORTAR to enable OSM registers.
+	 *
+	 * The order scope manager read task address register (ORTAR). Writing
+	 * this register will populate the read task data registers with state
+	 * information for the specified task number and will guarantee a
+	 * consistent reading across all scopes.
+	 * Use of this feature is not recommended during operation since it may
+	 * have adverse effects on functional performance.*/
+	iowrite32be(task, &osm_regs->ortar);
+
+	fsl_print("Dump of OSM register\n");
+	fsl_print("\t [at %08x] OMR    = 0x%08x\n", (uint32_t)&osm_regs->omr,
+		  ioread32be(&osm_regs->omr));
+	fsl_print("\t [at %08x] OSR    = 0x%08x\n", (uint32_t)&osm_regs->osr,
+		  ioread32be(&osm_regs->osr));
+	fsl_print("\t [at %08x] ORTAR  = 0x%08x\n", (uint32_t)&osm_regs->ortar,
+		  ioread32be(&osm_regs->ortar));
+	for (i = 0; i < 8; i++)
+		fsl_print("\t [at %08x] ORTDR%d = 0x%08x\n",
+			  (uint32_t)&osm_regs->ortdr[i], i,
+			  ioread32be(&osm_regs->ortdr[i]));
+	fsl_print("\t [at %08x] OEMVR  = 0x%08x\n", (uint32_t)&osm_regs->oemvr,
+		  ioread32be(&osm_regs->oemvr));
+	fsl_print("\t [at %08x] OEMMR  = 0x%08x\n",
+		  (uint32_t)&osm_regs->oemmr, ioread32be(&osm_regs->oemmr));
+	fsl_print("\t [at %08x] OCR    = 0x%08x\n",
+		  (uint32_t)&osm_regs->ocr, ioread32be(&osm_regs->ocr));
+	fsl_print("\t [at %08x] OERR   = 0x%08x\n",
+		  (uint32_t)&osm_regs->oerr, ioread32be(&osm_regs->oerr));
+	fsl_print("\t [at %08x] OEDR   = 0x%08x\n",
+		  (uint32_t)&osm_regs->oedr, ioread32be(&osm_regs->oedr));
+	fsl_print("\t [at %08x] OEDDR  = 0x%08x\n",
+		  (uint32_t)&osm_regs->oeddr, ioread32be(&osm_regs->oeddr));
+	for (i = 0; i < 8; i++)
+		fsl_print("\t [at %08x] OECR%d  = 0x%08x\n",
+			  (uint32_t)&osm_regs->oecr[i], i,
+			  ioread32be(&osm_regs->oecr[i]));
+	fsl_print("\t [at %08x] OEUOMR = 0x%08x\n",
+		  (uint32_t)&osm_regs->oeuomr, ioread32be(&osm_regs->oeuomr));
+}
+#endif	/* SL_DEBUG */

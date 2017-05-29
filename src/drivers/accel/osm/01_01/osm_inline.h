@@ -50,42 +50,39 @@ inline void osm_scope_relinquish_exclusivity(void)
 
 inline void osm_scope_enter_to_exclusive_with_new_scope_id(
 		uint32_t child_scope_id) {
-
+#ifndef SL_DEBUG
 	if (default_task_params.current_scope_level == LEVEL4)
 		return;
-	
+#endif
 	/* update the SCOPE_ID_LEVEL_INCREMENT field in the new scope_id */
 	switch (default_task_params.current_scope_level) {
 	case (LEVEL0):
-		{
 		child_scope_id = (child_scope_id &
-		~OSM_SCOPE_ID_LEVEL_INCREMENT_MASK);
+				  ~OSM_SCOPE_ID_LEVEL_INCREMENT_MASK);
 		break;
-		}
 	case (LEVEL1):
-		{
 		child_scope_id = (child_scope_id &
 		~OSM_SCOPE_ID_LEVEL_INCREMENT_MASK) |
 		(OSM_SCOPE_ID_LEVEL_2 &
 		OSM_SCOPE_ID_LEVEL_INCREMENT_MASK);
 		break;
-		}
 	case (LEVEL2):
-		{
 		child_scope_id = (child_scope_id &
 		~OSM_SCOPE_ID_LEVEL_INCREMENT_MASK) |
 		(OSM_SCOPE_ID_LEVEL_3 &
 		OSM_SCOPE_ID_LEVEL_INCREMENT_MASK);
 		break;
-		}
 	case (LEVEL3):
-		{
 		child_scope_id = (child_scope_id &
 		~OSM_SCOPE_ID_LEVEL_INCREMENT_MASK) |
 		(OSM_SCOPE_ID_LEVEL_4 &
 		OSM_SCOPE_ID_LEVEL_INCREMENT_MASK);
 		break;
-		}
+#ifdef SL_DEBUG
+	default:
+		DEBUG_SCOPE_ID(child_scope_id);
+		break;
+#endif	/* SL_DEBUG */
 	}
 
 	/* Due to HW ticket TKT260685 in REV1 */
