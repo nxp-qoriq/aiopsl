@@ -517,6 +517,50 @@ struct aiop_default_task_params {
 	__stdw(arg3, arg4, displ+8, base);
 */
 
+/**************************************************************************//**
+@enum aiop_bus_transaction_type
+
+@Description	AIOP bus transaction type
+
+@{
+*//***************************************************************************/
+
+enum aiop_bus_transaction {
+	/** Non-coherent, non-cacheable register space access. Don't lookup in
+	 * downstream cache. */
+	NON_COHERENT_NO_CACHE = 0x10,
+	/** Non-coherent, cacheable memory space access. Don't' lookup in
+	 * downstream cache. */
+	NON_COHERENT_NO_CACHE_LKUP = 0x13,
+	/** Non-coherent, cacheable memory space access. Lookup in downstream
+	 * cache. */
+	NON_COHERENT_CACHE_LKUP = 0x12,
+	/** Coherent, cacheable memory space access. Lookup in downstream
+	 * cache. */
+	COHERENT_CACHE_LKUP = 0x02
+};
+
+/* @} end of enum aiop_bus_transaction */
+
+/**************************************************************************//**
+@enum aiop_cache_allocate_policy
+
+@Description	AIOP cache allocate policy
+
+@{
+*//***************************************************************************/
+
+enum aiop_cache_allocate_policy {
+	/** Do not allocate in downstream cache. This option is valid only for
+	 * transactions with no downstream lookup. */
+	ALLOC_NONE = 0x00,
+	/** Allocate on lookup miss in cacheable transactions. */
+	ALLOC_ON_MISS = 0x08,
+	/** Do not allocate on lookup miss in cacheable transactions. */
+	ALLOC_NONE_ON_MISS = 0x04
+};
+
+/* @} end of enum aiop_cache_allocate_policy */
 
 /** @} */ /* end of AIOP_General_Definitions */
 

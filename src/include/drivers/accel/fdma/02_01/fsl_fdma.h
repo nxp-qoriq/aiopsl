@@ -2935,6 +2935,86 @@ inline void fdma_dma_data(
 		uint64_t sys_addr,
 		uint32_t flags);
 
+/**************************************************************************//**
+@Function	fdma_set_data_write_attributes
+
+@Description	Set FDMA data writing transactions attributes.
+
+@Param[in]	transaction - Type of data write transaction.
+@Param[in]	policy - Cache allocation policy. Significant for cached
+		transactions only.
+
+@Return		0 on success, -EINVAL if no allocation policy is configured for
+		cached transaction.
+
+*//***************************************************************************/
+int fdma_set_data_write_attributes(enum aiop_bus_transaction transaction,
+				   enum aiop_cache_allocate_policy policy);
+
+/**************************************************************************//**
+@Function	fdma_set_data_read_attributes
+
+@Description	Set FDMA data reading transactions attributes.
+
+@Param[in]	transaction - Type of data read transaction.
+@Param[in]	policy - Cache allocation policy. Significant for cached
+		transactions only.
+
+@Return		0 on success, -EINVAL if no allocation policy is configured for
+		cached transaction.
+
+*//***************************************************************************/
+int fdma_set_data_read_attributes(enum aiop_bus_transaction transaction,
+				  enum aiop_cache_allocate_policy policy);
+
+/**************************************************************************//**
+@Function	fdma_set_sru_write_attributes
+
+@Description	Set FDMA segment resource units (SRU) writing transactions
+		attributes.
+
+@Param[in]	transaction - Type of SRU write transaction.
+@Param[in]	policy - Cache allocation policy. Significant for cached
+		transactions only.
+
+@Return		0 on success, -EINVAL if no allocation policy is configured for
+		cached transaction.
+
+*//***************************************************************************/
+int fdma_set_sru_write_attributes(enum aiop_bus_transaction transaction,
+				  enum aiop_cache_allocate_policy policy);
+
+/**************************************************************************//**
+@Function	fdma_set_sru_read_attributes
+
+@Description	Set FDMA segment resource units (SRU) reading transactions
+		attributes.
+
+@Param[in]	transaction - Type of SRU read transaction.
+@Param[in]	policy - Cache allocation policy. Significant for cached
+		transactions only.
+
+@Return		0 on success, -EINVAL if no allocation policy is configured for
+		cached transaction.
+
+*//***************************************************************************/
+int fdma_set_sru_read_attributes(enum aiop_bus_transaction transaction,
+				 enum aiop_cache_allocate_policy policy);
+
+#ifdef SL_DEBUG
+/**************************************************************************//**
+@Function	fdma_get_cache_attributes
+
+@Description	Gets the FDMA transactions cache attributes.
+		API function is available if AIOP_SL and the application are
+		compiled with the SL_DEBUG macro defined.
+
+@Return		Attributes.
+
+*//***************************************************************************/
+__COLD_CODE uint32_t fdma_get_cache_attributes(void);
+
+#endif	/* SL_DEBUG */
 
 /** @} */ /* end of FDMA_Functions */
 /** @} */ /* end of FSL_AIOP_FDMA */

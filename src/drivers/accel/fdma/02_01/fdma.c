@@ -34,6 +34,11 @@
 
 #include "fsl_fdma.h"
 
+#include "fsl_general.h"
+#include "fsl_aiop_common.h"
+#include "fsl_io.h"
+#include "fsl_sys.h"
+#include "fsl_dbg.h"
 
 int fdma_present_frame(
 		struct fdma_present_frame_params *params)
@@ -1368,3 +1373,125 @@ void fdma_exception_handler(enum fdma_function_identifier func_id,
 }
 
 #pragma pop
+
+/******************************************************************************/
+static __COLD_CODE uint32_t *get_fdma_smcacr_reg_ptr(void)
+{
+	struct aiop_tile_regs	*aregs;
+	struct aiop_fdma_regs	*fregs;
+
+	aregs = (struct aiop_tile_regs *)sys_get_handle(FSL_MOD_AIOP_TILE, 1);
+	fregs = (struct aiop_fdma_regs *)&aregs->fdma_regs;
+	return &fregs->smcacr;
+}
+
+/******************************************************************************/
+static __COLD_CODE
+int set_cache_write_attributes(enum aiop_bus_transaction transaction,
+			       enum aiop_cache_allocate_policy policy,
+			       uint8_t is_data)
+{
+	uint32_t	*smcacr, smcacr_val, fdwc;
+
+	if ((transaction == NON_COHERENT_CACHE_LKUP ||
+	     transaction == COHERENT_CACHE_LKUP) && policy == ALLOC_NONE) {
+		pr_err("Cache lookup without allocation policy\n");
+		return -EINVAL;
+	}
+	fdwc = (uint32_t)transaction;
+	if (transaction == NON_COHERENT_CACHE_LKUP ||
+	    transaction == COHERENT_CACHE_LKUP) {
+		fdwc |= (uint32_t)policy;
+		 /* Set bufferable bit. Only write-back transactions are
+		  * supported. */
+		fdwc |= 0x01;
+	}
+	smcacr = get_fdma_smcacr_reg_ptr();
+	if (is_data) {
+		smcacr_val = ioread32be(smcacr) & 0x00FFFFFF;
+		smcacr_val |= fdwc << 24;
+	} else {
+		smcacr_val = ioread32be(smcacr) & 0xFF00FFFF;
+		smcacr_val |= fdwc << 16;
+	}
+	iowrite32be(smcacr_val, smcacr);
+	return 0;
+}
+
+/******************************************************************************/
+static __COLD_CODE
+int set_cache_read_attributes(enum aiop_bus_transaction transaction,
+			      enum aiop_cache_allocate_policy policy,
+			      uint8_t is_data)
+{
+	uint32_t	*smcacr, smcacr_val, fdrc;
+
+	if ((transaction == NON_COHERENT_CACHE_LKUP ||
+	     transaction == COHERENT_CACHE_LKUP) && policy == ALLOC_NONE) {
+		pr_err("Cache lookup without allocation policy\n");
+		return -EINVAL;
+	}
+	if (transaction == NON_COHERENT_CACHE_LKUP ||
+	    transaction == COHERENT_CACHE_LKUP) {
+		fdrc = (uint32_t)transaction;
+		if (policy == ALLOC_ON_MISS)
+			fdrc |= ALLOC_NONE_ON_MISS;
+		else
+			fdrc |= ALLOC_ON_MISS;
+	} else {
+		if (transaction == NON_COHERENT_NO_CACHE_LKUP)
+			transaction = NON_COHERENT_CACHE_LKUP;
+		fdrc = (uint32_t)transaction;
+	}
+	smcacr = get_fdma_smcacr_reg_ptr();
+	if (is_data) {
+		smcacr_val = ioread32be(smcacr) & 0xFFFF00FF;
+		smcacr_val |= fdrc << 8;
+	} else {
+		smcacr_val = ioread32be(smcacr) & 0xFFFFFF00;
+		smcacr_val |= fdrc;
+	}
+	iowrite32be(smcacr_val, smcacr);
+	return 0;
+}
+
+/******************************************************************************/
+__COLD_CODE
+int fdma_set_data_write_attributes(enum aiop_bus_transaction transaction,
+				   enum aiop_cache_allocate_policy policy)
+{
+	return set_cache_write_attributes(transaction, policy, 1);
+}
+
+/******************************************************************************/
+__COLD_CODE
+int fdma_set_sru_write_attributes(enum aiop_bus_transaction transaction,
+				  enum aiop_cache_allocate_policy policy)
+{
+	return set_cache_write_attributes(transaction, policy, 0);
+}
+
+/******************************************************************************/
+__COLD_CODE
+int fdma_set_data_read_attributes(enum aiop_bus_transaction transaction,
+				  enum aiop_cache_allocate_policy policy)
+{
+	return set_cache_read_attributes(transaction, policy, 1);
+}
+
+/******************************************************************************/
+__COLD_CODE
+int fdma_set_sru_read_attributes(enum aiop_bus_transaction transaction,
+				 enum aiop_cache_allocate_policy policy)
+{
+	return set_cache_read_attributes(transaction, policy, 0);
+}
+
+#ifdef SL_DEBUG
+/******************************************************************************/
+__COLD_CODE uint32_t fdma_get_cache_attributes(void)
+{
+	return ioread32be(get_fdma_smcacr_reg_ptr());
+}
+
+#endif	/* SL_DEBUG */
