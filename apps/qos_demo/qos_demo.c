@@ -38,28 +38,215 @@
 #include "fsl_stdlib.h"
 #include "qos_demo.h"
 
-#define AIOP_APP_NAME		"QoS_demo"
+/* Enable PFC pause frame transmission */
+/*#define ENABLE_PFC_PAUSE*/
+/* Print link configuration */
+/*#define PRINT_LINK_CFG */
+/* Print QoS statistics on a 60 seconds timer expiration */
+/*#define PRINT_QOS_STATISTICS*/
+/* Print information about every received packet */
+/*#define PRINT_RX_PKT_INFO*/
+
+#ifdef PRINT_QOS_STATISTICS
+	#include "fsl_malloc.h"
+	#include "fsl_slab.h"
+	#include "fsl_tman.h"
+
+	static enum memory_partition_id		mem_partition_id;
+	static uint16_t				num_timers;
+
+	/* Committed buffers */
+	#define COMMITTED_BUFFERS		1
+	/* Maximum buffers */
+	#define MAXIMUM_BUFFERS			1
+	/* Buffers alignment */
+	#define BUFFERS_ALIGNMENT		64
+	/* Timer duration in seconds */
+	#define TIMER_DURATION			60
+#endif	/* PRINT_QOS_STATISTICS */
+
+#define AIOP_APP_NAME			"QoS_demo"
 
 /* L4 fields */
-#define NH_FLD_L4_PORT_SRC	(1)
-#define NH_FLD_L4_PORT_DST	(NH_FLD_L4_PORT_SRC << 1)
+#define NH_FLD_L4_PORT_SRC		(1)
+#define NH_FLD_L4_PORT_DST		(NH_FLD_L4_PORT_SRC << 1)
 
-#define PRESENTATION_LENGTH 64
+#define PRESENTATION_LENGTH		64
 
 static void app_fill_kg_profile(struct dpkg_profile_cfg *kg_cfg);
 
+#ifdef PRINT_LINK_CFG
+static __COLD_CODE void print_link_cfg(uint16_t ni)
+{
+	struct dpni_drv_link_state	state;
+	int				err;
+
+	err = dpni_drv_get_link_state(ni, &state);
+	if (err) {
+		pr_err("dpni_drv_get_link_state failed\n");
+		return;
+	}
+	fsl_print("\t Rate             : %d MHz\n", state.rate);
+	fsl_print("\t Auto-negotiation : %s\n",
+		  state.options & DPNI_DRV_LINK_OPT_AUTONEG ?
+		  "Enabled" : "Disabled");
+	fsl_print("\t Half-duplex mode : %s\n",
+		  state.options & DPNI_DRV_LINK_OPT_HALF_DUPLEX ?
+		  "Enabled" : "Disabled");
+	fsl_print("\t Pause frame      : %s\n",
+		  state.options & DPNI_DRV_LINK_OPT_PAUSE ?
+		  "Enabled" : "Disabled");
+	fsl_print("\t Asymmetric pause : %s\n",
+		  state.options & DPNI_DRV_LINK_OPT_ASYM_PAUSE ?
+		  "Enabled" : "Disabled");
+	fsl_print("\t PFC pause        : %s\n",
+		  state.options & DPNI_LINK_OPT_PFC_PAUSE ?
+		  "Enabled" : "Disabled");
+}
+#else
+	#define print_link_cfg(_a)
+#endif	/* PRINT_LINK_CFG */
+
+#ifdef PRINT_QOS_STATISTICS
+/******************************************************************************/
+static __COLD_CODE int allocate_statistics_timer(void)
+{
+	int	err;
+
+	if (fsl_mem_exists(MEM_PART_DP_DDR))
+		mem_partition_id = MEM_PART_DP_DDR;
+	else
+		mem_partition_id = MEM_PART_SYSTEM_DDR;
+	/* The number of created timers should be 3 timers larger than actually
+	 * needed and larger than 4. The memory region used to hold the timers
+	 * must be of at least 64 * (num_of_timers + 1) bytes, and 64 bytes
+	 * aligned. */
+	/* Place for 5 (minimum possible) timers is reserved. */
+	num_timers = 5;
+	err = slab_register_context_buffer_requirements(COMMITTED_BUFFERS,
+							MAXIMUM_BUFFERS,
+							64 * (num_timers + 1),
+							BUFFERS_ALIGNMENT,
+							mem_partition_id, 0, 0);
+	if (err)
+		return err;
+	return 0;
+}
+
+/******************************************************************************/
+static __COLD_CODE void statistics_timer_cb(tman_arg_8B_t arg1,
+					    tman_arg_2B_t arg2)
+{
+	uint8_t		tc;
+	uint16_t	ni;
+	uint32_t	tman_task_handle;
+	int		err;
+	uint64_t	val64;
+
+	/* Confirm that timer callback finished execution */
+	tman_task_handle = LW_SWAP(16, (uint32_t *)HWC_FD_ADDRESS);
+	tman_timer_completion_confirmation(tman_task_handle);
+	/* Get ni and tc from the parameters */
+	ni = (uint16_t)arg1;
+	tc = (uint8_t)arg2;
+	fsl_print("Statistics on DPNI_%d, TC_%d\n", ni, tc);
+	/********************/
+	/* CEETM statistics */
+	/********************/
+	/* Dequeued bytes */
+	err = dpni_drv_get_qos_counter(ni, tc,
+				       DPNI_DRV_QOS_CNT_EGR_TC_DEQUEUE_BYTE,
+				       &val64);
+	if (err)
+		pr_err("Get dequeued bytes\n");
+	fsl_print("\t Dequeued bytes          = %ll\n", val64);
+	/* Dequeued frames */
+	err = dpni_drv_get_qos_counter(ni, tc,
+				       DPNI_DRV_QOS_CNT_EGR_TC_DEQUEUE_FRAME,
+				       &val64);
+	if (err)
+		pr_err("Get dequeued frames\n");
+	fsl_print("\t Dequeued frames         = %ll\n", val64);
+	/* Enqueue rejected bytes */
+	err = dpni_drv_get_qos_counter(ni, tc,
+				       DPNI_DRV_QOS_CNT_EGR_TC_REJECT_BYTE,
+				       &val64);
+	if (err)
+		pr_err("Get enqueue rejected bytes\n");
+	fsl_print("\t Enqueue rejected bytes  = %ll\n", val64);
+	/* Enqueue rejected frames */
+	err = dpni_drv_get_qos_counter(ni, tc,
+				       DPNI_DRV_QOS_CNT_EGR_TC_REJECT_FRAME,
+				       &val64);
+	if (err)
+		pr_err("Get enqueue rejected frames\n");
+	fsl_print("\t Enqueue rejected frames = %ll\n", val64);
+	fsl_print("\n");
+}
+
+/******************************************************************************/
+static __COLD_CODE int create_statistics_timer(uint16_t ni, uint8_t tc)
+{
+	struct slab	*slab_handle;
+	uint64_t	tmi_timer_addr;
+	uint8_t		tmi_id;
+	uint32_t	timer_handle;
+	int		err;
+
+	slab_handle = NULL;
+	/* Allocate buffers for the keys, timers, etc */
+	err = slab_create(COMMITTED_BUFFERS, MAXIMUM_BUFFERS,
+			  64 * (num_timers + 1),
+			  BUFFERS_ALIGNMENT, mem_partition_id, 0, NULL,
+			  &slab_handle);
+	if (err) {
+		pr_err("slab_create failed\n");
+		return err;
+	}
+	/* Create a TMI instance */
+	/* Acquire the a 64 bytes aligned buffer */
+	tmi_timer_addr = 0;
+	err = slab_acquire(slab_handle, &tmi_timer_addr);
+	if (err) {
+		pr_err("slab_acquire failed\n");
+		return err;
+	}
+	tmi_id = 0;
+	err = tman_create_tmi(tmi_timer_addr, num_timers, &tmi_id);
+	if (err) {
+		pr_err("tman_create_tmi failed\n");
+		return err;
+	}
+	/* Create statistics print periodic timer */
+	timer_handle = 0;
+	err = tman_create_timer(tmi_id,
+				TMAN_CREATE_TIMER_MODE_TPRI |
+				TMAN_CREATE_TIMER_MODE_SEC_GRANULARITY |
+				TMAN_CREATE_TIMER_MODE_LOW_PRIORITY_TASK,
+				TIMER_DURATION, ni, tc,
+				statistics_timer_cb, &timer_handle);
+	if (err) {
+		pr_err("tman_create_timer failed\n");
+		return err;
+	}
+	return 0;
+}
+#else
+	#define allocate_statistics_timer()		0
+	#define create_statistics_timer(_a, _b)		0
+#endif	/* PRINT_QOS_STATISTICS */
 
 /* Performs frames processing */
+/******************************************************************************/
 __HOT_CODE ENTRY_POINT static void app_frame_cb(void)
 {
-	int	err = 0;
+	int		err;
 
 	sl_prolog();
-	uint8_t tc = task_get_tx_tc();
-
+#ifdef PRINT_RX_PKT_INFO
 	fsl_print("\n%s: RX on NI %d | CORE:%d | TC = %d | %s | %s\n",
 		AIOP_APP_NAME,
-		(uint16_t)PRC_GET_PARAMETER(), core_get_id(), tc,
+		(uint16_t)PRC_GET_PARAMETER(), core_get_id(), task_get_tx_tc(),
 		PARSER_IS_OUTER_IPV4_DEFAULT() ? "IPv4" :
 		(PARSER_IS_OUTER_IPV6_DEFAULT() ? "IPv6" :
 		(PARSER_IS_ARP_DEFAULT() ? "ARP" : "unknown")),
@@ -69,28 +256,50 @@ __HOT_CODE ENTRY_POINT static void app_frame_cb(void)
 		PARSER_IS_TCP_CONTROLS_3_5_SET_DEFAULT() ? "TCP" :
 		(PARSER_IS_UDP_DEFAULT() ? "UDP" :
 		(PARSER_IS_ICMP_DEFAULT() ? "ICMP" : "unknown")));
-
+#endif
 	err = dpni_drv_send(task_get_receive_niid(), DPNI_DRV_SEND_FLAGS);
-
 	if (err == -ENOMEM)
 		fdma_discard_default_frame(FDMA_DIS_NO_FLAGS);
 	else /* (err == -EBUSY) */
 		ARCH_FDMA_DISCARD_FD();
-
 	pr_err("Failed to send frame\n");
 	fdma_terminate_task();
 }
 
+/******************************************************************************/
 static int app_dpni_link_up_cb(uint8_t generator_id, uint8_t event_id,
-				uint64_t app_ctx, void *event_data)
+			       uint64_t app_ctx, void *event_data)
 {
-	uint16_t	ni = (uint16_t)((uint32_t)event_data);
+	uint16_t			ni;
 
 	UNUSED(generator_id);
 	UNUSED(event_id);
 	UNUSED(app_ctx);
 
-	fsl_print("%s : NI %d link is UP\n", AIOP_APP_NAME, ni);
+	ni = (uint16_t)((uint32_t)event_data);
+	fsl_print("NI_%d link is UP\n", ni);
+	/* Enable PFC pause */
+#ifdef ENABLE_PFC_PAUSE
+	{
+		struct dpni_drv_link_state	state;
+		struct dpni_drv_link_cfg	cfg;
+		int				err;
+
+		err = dpni_drv_get_link_state(ni, &state);
+		if (err) {
+			pr_err("dpni_drv_get_link_state failed\n");
+			return err;
+		}
+		cfg.rate = state.rate;
+		cfg.options = state.options | DPNI_LINK_OPT_PFC_PAUSE;
+		err = dpni_drv_set_link_cfg(ni, &cfg);
+		if (err) {
+			pr_err("dpni_drv_set_link_cfg failed\n");
+			return err;
+		}
+		print_link_cfg(ni);
+	}
+#endif	/* ENABLE_PFC_PAUSE */
 	return 0;
 }
 
@@ -103,7 +312,7 @@ static int app_dpni_link_down_cb(uint8_t generator_id, uint8_t event_id,
 	UNUSED(event_id);
 	UNUSED(app_ctx);
 
-	fsl_print("%s : NI %d link is DOWN\n", AIOP_APP_NAME, ni);
+	fsl_print("NI_%d link is DOWN\n", ni);
 	return 0;
 }
 
@@ -186,7 +395,6 @@ static int app_dpni_add_cb(uint8_t generator_id, uint8_t event_id,
 				ni, init_presentation.sps);
 		return err;
 	}
-
 	if (ni == 1) {
 		/* QoS settings */
 		memset(tmp_buf, 0, 256);
@@ -224,7 +432,31 @@ static int app_dpni_add_cb(uint8_t generator_id, uint8_t event_id,
 			return err;
 		}
 	}
+	/* Egress QoS configuration */
+	if (ni == 1) {
+		uint8_t				tc;
+		struct dpni_drv_tx_shaping	cr;
+		struct dpni_drv_tx_shaping	er;
 
+		/* QoS statistics */
+		tc = task_get_tx_tc();
+		/* Network interface and traffic class are passed to the created
+		 * timer as arguments */
+		err = create_statistics_timer(ni, tc);
+		if (err)
+			return err;
+		/* Committed rate shaper */
+		cr.rate_limit = 100;
+		cr.max_burst_size = 0x1000;
+		/* Excess rate shaper */
+		er.rate_limit = 0;
+		er.max_burst_size = 0;
+		err = dpni_drv_set_tx_shaping(ni, &cr, &er, 0);
+		if (err) {
+			pr_err("Cannot set shapers on NI %d\n", ni);
+			return err;
+		}
+	}
 	err = dpni_drv_set_max_frame_length(ni, mfl);
 	if (err) {
 		pr_err("Cannot configure maximum frame length on NI %d\n", ni);
@@ -258,7 +490,7 @@ static int app_dpni_add_cb(uint8_t generator_id, uint8_t event_id,
 /* Early initialization */
 int app_early_init(void)
 {
-	return 0;
+	return allocate_statistics_timer();
 }
 
 /* Initializes the application */

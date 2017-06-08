@@ -131,15 +131,15 @@ const uint32_t g_aiop_lcf_ddr_size = 0xb10000;
 __declspec(section ".aiop_init_data")   struct aiop_init_info  g_init_data;
 #pragma pop
 
-
 struct platform_app_params g_app_params =
 {
- APP_DPNI_NUM_BUFS_IN_POOL,
- APP_DPNI_BUF_SIZE_IN_POOL,
- APP_DPNI_BUF_ALIGN_IN_POOL,
- APP_INIT_APP_MAX_NUM,
- DPNI_BACKUP_POOL_DISABLE	/* disable backup pool for DPNI for better
-				performance */
+	APP_DPNI_NUM_BUFS_IN_POOL,
+	APP_DPNI_BUF_SIZE_IN_POOL,
+	APP_DPNI_BUF_ALIGN_IN_POOL,
+	APP_INIT_APP_MAX_NUM,
+	/* For better performance, disable DPNI backup pool */
+	DPNI_BACKUP_POOL_DISABLE,
+	(APP_DPNI_BACKUP_POOL_PRI_MASK << 8) | APP_DPNI_POOL_PRI_MASK
 };
 
 /* TODO set good default values */

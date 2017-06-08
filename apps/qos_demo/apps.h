@@ -105,11 +105,18 @@
 		accommodate at least two SPIDs per AIOP DPNI.
 @{
 *//***************************************************************************/
-
-#define APP_DPNI_NUM_BUFS_IN_POOL	ARCH_DPNI_BUFS_IN_POOL_NUM	/**< Number of buffers */
-#define APP_DPNI_BUF_SIZE_IN_POOL	ARCH_DPPNI_BUF_SIZE	/**< Size of buffer */
-#define APP_DPNI_BUF_ALIGN_IN_POOL	64	/**< Alignment of buffer */
-#define APP_DPNI_SPID_COUNT		8	/**< Max number of SPIDs */
+/**< Number of buffers */
+#define APP_DPNI_NUM_BUFS_IN_POOL	ARCH_DPNI_BUFS_IN_POOL_NUM
+/**< Size of buffer */
+#define APP_DPNI_BUF_SIZE_IN_POOL	ARCH_DPPNI_BUF_SIZE
+/**< Alignment of buffer */
+#define APP_DPNI_BUF_ALIGN_IN_POOL	64
+/**< Max number of SPIDs */
+#define APP_DPNI_SPID_COUNT		8
+/**< DPNI pool traffic classes priority mask */
+#define APP_DPNI_POOL_PRI_MASK		0xFF
+/**< DPNI backup pool traffic classes priority mask */
+#define APP_DPNI_BACKUP_POOL_PRI_MASK	0xFF
 
 /** @} */ /* end of app_dpni */
 
