@@ -79,6 +79,12 @@
 #define DPNI_DRV_LINK_OPT_AUTONEG		0x0000000000000001ULL
 /** Enable half-duplex mode */
 #define DPNI_DRV_LINK_OPT_HALF_DUPLEX		0x0000000000000002ULL
+/** Enable pause frames */
+#define DPNI_DRV_LINK_OPT_PAUSE			0x0000000000000004ULL
+/** Enable a-symmetric pause frames */
+#define DPNI_DRV_LINK_OPT_ASYM_PAUSE		0x0000000000000008ULL
+/** Enable pause frames transmission */
+#define DPNI_LINK_OPT_PFC_PAUSE			0x0000000000000010ULL
 /** @} end of group DPNI_DRV_LINK_OPT */
 
 /**************************************************************************//**
@@ -123,13 +129,23 @@ enum dpni_enqueue_attributes {
 *//***************************************************************************/
 struct dpni_drv_link_state {
 	/** Rate */
-	uint64_t rate;
+	uint32_t rate;
 	/** Mask of available options; use \ref DPNI_DRV_LINK_OPT values*/
 	uint64_t options;
 	/** Link state; '0' for down, '1' for up */
 	int up;
 };
 
+/**************************************************************************//**
+@Description	Structure representing DPNI driver link configuration.
+
+*//***************************************************************************/
+struct dpni_drv_link_cfg {
+	/** Rate */
+	uint32_t rate;
+	/** Mask of available options; use \ref DPNI_DRV_LINK_OPT values */
+	uint64_t options;
+};
 
 /**************************************************************************//**
 @enum dpni_drv_counter
@@ -177,6 +193,28 @@ enum dpni_drv_counter {
 };
 /* @} end of enum dpni_drv_counter */
 
+/**************************************************************************//**
+@enum dpni_drv_qos_counter
+
+@Description	AIOP DPNI driver QoS counter types
+
+@{
+*//***************************************************************************/
+
+enum dpni_drv_qos_counter {
+	/** Counts egress bytes dequeued on a traffic class */
+	DPNI_DRV_QOS_CNT_EGR_TC_DEQUEUE_BYTE,
+	/** Counts egress frames dequeued on a traffic class */
+	DPNI_DRV_QOS_CNT_EGR_TC_DEQUEUE_FRAME,
+	/** Counts egress bytes in all frames whose enqueue was rejected, on a
+	 * traffic class, due to either WRED or tail drop */
+	DPNI_DRV_QOS_CNT_EGR_TC_REJECT_BYTE,
+	/** Counts egress frame enqueues rejected, on a traffic class, due to
+	 * either WRED or tail drop */
+	DPNI_DRV_QOS_CNT_EGR_TC_REJECT_FRAME
+};
+
+/* @} end of enum dpni_drv_qos_counter */
 
 /**************************************************************************//**
  @Group		DPNI_DRV_BUF_LAYOUT_OPT Buffer Layout modification options
@@ -560,6 +598,40 @@ struct dpni_drv_sparser_param {
 	uint8_t				param_offset;
 	/* Parameters size */
 	uint8_t				param_size;
+};
+
+/**************************************************************************//**
+@Description	struct dpni_drv_taildrop - Structure representing tail-drop
+		configuration.
+
+*//***************************************************************************/
+struct dpni_drv_taildrop {
+	/** Enable/Disable taildrop */
+	uint8_t	enable;
+	/** Congestion units type */
+	enum dpni_drv_congestion_unit units;
+	/** Taildrop threshold */
+	uint32_t threshold;
+	/** Overhead accounting length (range -2048 to +2047) */
+	int16_t oal;
+};
+
+/**************************************************************************//**
+@Description	struct dpni_drv_early_drop - Structure representing early drop
+		configuration.
+
+*//***************************************************************************/
+struct dpni_drv_early_drop {
+	/** Enable/Disable early drop */
+	uint8_t	enable;
+	/** Congestion units type */
+	enum dpni_drv_congestion_unit units;
+	/** WRED - 'green' configuration */
+	struct dpni_drv_wred green;
+	/** WRED - 'yellow' configuration */
+	struct dpni_drv_wred yellow;
+	/** WRED - 'red' configuration */
+	struct dpni_drv_wred red;
 };
 
 /**************************************************************************//**
@@ -1274,7 +1346,28 @@ int dpni_drv_register_rx_buffer_layout_requirements(uint16_t head_room,
 @Return	0 on success;
 	error code, otherwise. For error posix refer to \ref error_g
 *//***************************************************************************/
-int dpni_drv_get_counter(uint16_t ni_id, enum dpni_drv_counter counter, uint64_t *value);
+int dpni_drv_get_counter(uint16_t ni_id, enum dpni_drv_counter counter,
+			 uint64_t *value);
+
+/**************************************************************************//**
+@Function	dpni_drv_get_counter
+
+@Description	Function to receive DPNI counter.
+
+@Param[in]	ni_id   The AIOP Network Interface ID
+
+@Param[in]	tc      Traffic class.
+
+@Param[in]	counter Type of DPNI QoS counter.
+
+@Param[out]	value   Counter value for the requested type.
+
+@Return	0 on success;
+	error code, otherwise. For error posix refer to \ref error_g
+*//***************************************************************************/
+int dpni_drv_get_qos_counter(uint16_t ni_id, uint8_t tc,
+			     enum dpni_drv_qos_counter counter,
+			     uint64_t *value);
 
 /**************************************************************************//**
 @Function	dpni_drv_reset_statistics
@@ -1329,6 +1422,20 @@ int dpni_drv_get_ni_id(uint16_t dpni_id, uint16_t *ni_id);
 	error code, otherwise. For error posix refer to \ref error_g
 *//***************************************************************************/
 int dpni_drv_get_link_state(uint16_t ni_id, struct dpni_drv_link_state *state);
+
+/**************************************************************************//**
+@Function	dpni_drv_set_link_cfg
+
+@Description	Configures DPNI link for given NI.
+
+@Param[in]	ni_id The AIOP Network Interface ID.
+
+@Param[in]	Link configuration.
+
+@Return	0 on success;
+	error code, otherwise. For error posix refer to \ref error_g
+*//***************************************************************************/
+int dpni_drv_set_link_cfg(uint16_t ni_id, struct dpni_drv_link_cfg *cfg);
 
 /**************************************************************************//**
 @Function	dpni_drv_clear_mac_filters
@@ -1585,7 +1692,12 @@ int dpni_drv_get_rx_tc_policing(uint16_t ni_id, uint8_t tc_id,
 /**************************************************************************//**
 @Function	dpni_drv_set_tx_selection
 
-@Description	Function to set transmission selection configuration for given NI.
+@Description	Sets the transmission priorities and the weighted scheduling
+		mode for each traffic class of a given NI. All TCs are in the
+		same priority group. Bandwidth (TX opportunities) that is made
+		available to a priority group is fair shared among the TCs of
+		that group in proportion to a configured "weight" value.
+		The bandwidth weight of a TC it's a value between 100 and 24800.
 
 @Param[in]	ni_id The AIOP Network Interface ID.
 
@@ -1602,17 +1714,30 @@ int dpni_drv_set_tx_selection(uint16_t ni_id,
 /**************************************************************************//**
 @Function	dpni_drv_set_tx_shaping
 
-@Description	Function to set the transmit shaping configuration for given NI.
+@Description	Set the transmit committed rate and excess rate shapers for
+		a given NI. The shapers are token bucket based. Each shaper has
+		an individually configured rate limit and maximum burst size.
+		The rate is expressed in Mbps. The burst size is the maximum
+		amount of data (in bytes) sent as a consecutive burst of back
+		to back frames on the network. Burst size may be up to
+		63487 bytes.
 
-@Param[in]	ni_id The AIOP Network Interface ID.
+@Param[in]	ni_id : The AIOP Network Interface ID.
 
-@Param[in]	cfg TX shaping configuration.
+@Param[in]	cr_cfg : TX committed rate shaper configuration.
+
+@Param[in]	er_cfg : TX excess rate shaper configuration.
+
+@Param[in]	coupled : Credits to the CR shaper in excess of its token bucket
+		limit is credited to the ER bucket.
 
 @Return	0 on success;
 	error code, otherwise. For error posix refer to \ref error_g
 *//***************************************************************************/
 int dpni_drv_set_tx_shaping(uint16_t ni_id,
-                          const struct dpni_drv_tx_shaping *cfg);
+			    struct dpni_drv_tx_shaping *cr_cfg,
+			    struct dpni_drv_tx_shaping *er_cfg,
+			    uint8_t coupled);
 
 /**************************************************************************//**
 @Function	dpni_drv_set_qos_table
@@ -1879,7 +2004,7 @@ int dpni_drv_load_wriop_egress_soft_parser
 @Description	Enable a Soft Parser onto the ingress path of the WRIOP parser
 		for all AIOP belonging DPNIs.
 
-@Param[in]	ni_id  - The Network Interface ID
+@Param[in]	ni_id : The Network Interface ID
 
 @Param[in]	param : Soft Parser enable parameters.
 
@@ -1895,7 +2020,7 @@ int dpni_drv_enable_wriop_ingress_soft_parser
 @Description	Enable a Soft Parser onto the egress path of the WRIOP parser
 		for all AIOP belonging DPNIs.
 
-@Param[in]	ni_id  - The Network Interface ID
+@Param[in]	ni_id : The Network Interface ID
 
 @Param[in]	param : Soft Parser enable parameters.
 
@@ -1904,6 +2029,113 @@ int dpni_drv_enable_wriop_ingress_soft_parser
 *//***************************************************************************/
 int dpni_drv_enable_wriop_egress_soft_parser
 		(uint16_t ni_id, const struct dpni_drv_sparser_param *param);
+
+/**************************************************************************//**
+@Function	dpni_drv_set_tx_taildrop
+
+@Description	Set Tx traffic class taildrop configuration for a given DPNI.
+
+@Param[in]	ni_id : The Network Interface ID
+
+@Param[in]	tc : Traffic class
+
+@Param[in]	cfg : Structure representing taildrop configuration.
+
+@Return	0 on success;
+	error code, otherwise. For error posix refer to \ref error_g
+*//***************************************************************************/
+int dpni_drv_set_tx_taildrop(uint16_t ni_id, uint8_t tc,
+			     struct dpni_drv_taildrop *cfg);
+
+/**************************************************************************//**
+@Function	dpni_drv_get_tx_taildrop
+
+@Description	Retrieve Tx traffic class taildrop configuration of a given
+		DPNI.
+
+@Param[in]	ni_id : The Network Interface ID
+
+@Param[in]	tc : Traffic class
+
+@Param[in]	cfg : Structure receiving the taildrop configuration.
+
+@Return	0 on success;
+	error code, otherwise. For error posix refer to \ref error_g
+*//***************************************************************************/
+int dpni_drv_get_tx_taildrop(uint16_t ni_id, uint8_t tc,
+			     struct dpni_drv_taildrop *cfg);
+
+/**************************************************************************//**
+@Function	dpni_drv_set_tx_early_drop
+
+@Description	Set Tx traffic class early drop configuration for a given DPNI.
+
+@Param[in]	ni_id : The Network Interface ID
+
+@Param[in]	tc : Traffic class
+
+@Param[in]	cfg : Structure representing early drop configuration.
+
+@Return	0 on success;
+	error code, otherwise. For error posix refer to \ref error_g
+*//***************************************************************************/
+int dpni_drv_set_tx_early_drop(uint16_t ni_id, uint8_t tc_id,
+			       struct dpni_drv_early_drop *cfg);
+
+/**************************************************************************//**
+@Function	dpni_drv_get_tx_early_drop
+
+@Description	Retrieve Tx traffic class early drop configuration of a given
+		DPNI.
+
+@Param[in]	ni_id : The Network Interface ID
+
+@Param[in]	tc : Traffic class
+
+@Param[in]	cfg : Structure receiving the early drop configuration.
+
+@Return	0 on success;
+	error code, otherwise. For error posix refer to \ref error_g
+*//***************************************************************************/
+int dpni_drv_get_tx_early_drop(uint16_t ni_id, uint8_t tc_id,
+			       struct dpni_drv_early_drop *cfg);
+
+#ifdef SL_DEBUG
+/**************************************************************************//**
+@Function	dpni_drv_dump_taildrop
+
+@Description	Dumps taildrop configuration on specified DPNI and traffic
+		class.
+		Note : If application calls this function, application and
+		AIOP_SL must be build with the SL_DEBUG macro defined.
+
+@Param[in]	ni_id : The Network Interface ID
+
+@Param[in]	tc : Traffic class
+
+@Return		None
+
+*//***************************************************************************/
+void dpni_drv_dump_tx_taildrop(uint16_t ni_id, uint8_t tc_id);
+
+/**************************************************************************//**
+@Function	dpni_drv_dump_early_drop
+
+@Description	Dumps early drop configuration on specified DPNI and traffic
+		class.
+		Note : If application calls this function, application and
+		AIOP_SL must be build with the SL_DEBUG macro defined.
+
+@Param[in]	ni_id : The Network Interface ID
+
+@Param[in]	tc : Traffic class
+
+@Return		None
+
+*//***************************************************************************/
+void dpni_drv_dump_tx_early_drop(uint16_t ni_id, uint8_t tc_id);
+
+#endif	/* SL_DEBUG */
 
 /** @} */ /* end of dpni_drv_g DPNI DRV group */
 #endif /* __FSL_DPNI_DRV_H */

@@ -270,13 +270,16 @@ struct dpni_pools_cfg {
 	uint8_t		num_dpbp;
 	/**
 	 * struct pools - Buffer pools parameters
-	 * @dpbp_id: DPBP object ID
+	 * @dpbp_id:       DPBP object ID
+	 * @priority_mask: Priority mask indicating TC's used with this buffer.
+	 *                 If set to 0x00, the 0xFF value is assumed.
 	 * @buffer_size: Buffer size
 	 * @backup_pool: Backup pool
 	 */
 	struct {
 		int		dpbp_id;
 		uint16_t	buffer_size;
+		uint8_t		priority_mask;
 		int		backup_pool;
 	} pools[DPNI_MAX_DPBP];
 };
@@ -923,6 +926,26 @@ union dpni_statistics {
 		uint64_t egress_confirmed_frames;
 	} page_2;
 	/**
+	 * struct page_3 - Page_3 statistics structure
+	 * @ceetm_dequeue_bytes: cumulative count of the number of bytes
+	 * dequeued from each class queue
+	 * @ceetm_dequeue_frames: cumulative count of the number of frames
+	 * dequeued from each class queue
+	 * @ceetm_reject_bytes: cumulative count of the number of bytes
+	 * in all frames whose enqueue was rejected in all CQs belonging to
+	 * a particular congestion group, due to either WRED or tail drop.
+	 * Note that enqueues rejected due to error are not counted.
+	 * @ceetm_reject_frames: cumulative count of all frame enqueues
+	 * rejected in all CQs belonging to a particular congestion group,
+	 * due to either WRED or tail drop. Note that enqueues rejected due to
+	 * error are not counted.
+	 */
+	struct {
+		uint64_t ceetm_dequeue_bytes;
+		uint64_t ceetm_dequeue_frames;
+		uint64_t ceetm_reject_bytes;
+		uint64_t ceetm_reject_frames;
+	} page_3;	/**
 	 * struct raw - raw statistics structure, used to index counters
 	 */
 	struct {
@@ -946,6 +969,10 @@ union dpni_statistics {
  * Enable a-symmetric pause frames
  */
 #define DPNI_LINK_OPT_ASYM_PAUSE	0x0000000000000008ULL
+/**
+ * Enable pause frames transmission
+ */
+#define DPNI_LINK_OPT_PFC_PAUSE		0x0000000000000010ULL
 
 /**
  * struct - Structure representing DPNI link configuration
@@ -1009,18 +1036,21 @@ struct dpni_tx_shaping_cfg {
 
 /**
  * dpni_set_tx_shaping() - Set the transmit shaping
- * @mc_io:	Pointer to MC portal's I/O object
- * @cmd_flags:	Command flags; one or more of 'MC_CMD_FLAG_'
- * @token:	Token of DPNI object
- * @tx_shaper:  tx shaping configuration
+ * @mc_io:        Pointer to MC portal's I/O object
+ * @cmd_flags:    Command flags; one or more of 'MC_CMD_FLAG_'
+ * @token:        Token of DPNI object
+ * @tx_cr_shaper: tx committed rate shaping configuration
+ * @tx_er_shaper: tx excess rate shaping configuration
+ * @coupled:      Coupled CR/ER shapers
  *
  * Return:	'0' on Success; Error code otherwise.
  */
-int dpni_set_tx_shaping(struct fsl_mc_io			*mc_io,
-			uint32_t				cmd_flags,
-			uint16_t				token,
-			const struct dpni_tx_shaping_cfg	*tx_shaper);
-
+int dpni_set_tx_shaping(struct fsl_mc_io *mc_io,
+			uint32_t cmd_flags,
+			uint16_t token,
+			const struct dpni_tx_shaping_cfg *tx_cr_shaper,
+			const struct dpni_tx_shaping_cfg *tx_er_shaper,
+			int coupled);
 /**
  * dpni_set_max_frame_length() - Set the maximum received frame length.
  * @mc_io:	Pointer to MC portal's I/O object
@@ -1570,14 +1600,16 @@ struct dpni_wred_cfg {
  * @tail_drop_threshold: tail drop threshold
  */
 struct dpni_early_drop_cfg {
-	enum dpni_early_drop_mode	mode;
-	enum dpni_congestion_unit	units;
+	enum dpni_congestion_unit units;
 
-	struct dpni_wred_cfg		green;
-	struct dpni_wred_cfg		yellow;
-	struct dpni_wred_cfg		red;
+	uint8_t dpni_wred_enable;
+	struct dpni_wred_cfg green;
+	struct dpni_wred_cfg yellow;
+	struct dpni_wred_cfg red;
 
-	uint32_t			tail_drop_threshold;
+	uint8_t dpni_tail_drop_enable;
+	uint32_t tail_drop_threshold;
+	uint16_t oal;
 };
 
 /**
@@ -1676,7 +1708,7 @@ enum dpni_dest {
  */
 struct dpni_dest_cfg {
 	enum dpni_dest	dest_type;
-	int		dest_id;
+	uint32_t	dest_id;
 	uint8_t		priority;
 };
 
@@ -1863,7 +1895,7 @@ struct dpni_queue {
 	 *		not affined to a single DPIO.
 	 */
 	struct {
-		uint16_t id;
+		uint32_t id;
 		enum dpni_dest type;
 		char hold_active;
 		uint8_t priority;
@@ -2202,7 +2234,8 @@ int dpni_get_queue(struct fsl_mc_io *mc_io,
  * @token:		Token of DPNI object
  * @page:		Selects the statistics page to retrieve, see
  *				DPNI_GET_STATISTICS output.
- *				Pages are numbered 0 to 2.
+ *				Pages are numbered 0 to 3.
+ * @tx_tc:		Tx traffic class
  * @stat:		Structure containing the statistics
  *
  * Return:  '0' on Success; Error code otherwise.
@@ -2211,6 +2244,7 @@ int dpni_get_statistics(struct fsl_mc_io *mc_io,
 			uint32_t cmd_flags,
 			uint16_t token,
 			uint8_t page,
+			uint8_t tx_tc,
 			union dpni_statistics *stat);
 
 /**
@@ -2255,6 +2289,7 @@ struct dpni_taildrop {
 	char enable;
 	enum dpni_congestion_unit units;
 	uint32_t threshold;
+	uint16_t oal;
 };
 
 /**

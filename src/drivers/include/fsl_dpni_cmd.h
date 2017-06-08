@@ -58,7 +58,7 @@
 #define DPNI_CMDID_GET_IRQ_STATUS                      ((0x016 << 4) | (0x1))
 #define DPNI_CMDID_CLEAR_IRQ_STATUS                    ((0x017 << 4) | (0x1))
 
-#define DPNI_CMDID_SET_POOLS                           ((0x200 << 4) | (0x1))
+#define DPNI_CMDID_SET_POOLS                           ((0x200 << 4) | (0x2))
 #define DPNI_CMDID_SET_ERRORS_BEHAVIOR                 ((0x20B << 4) | (0x1))
 
 #define DPNI_CMDID_GET_QDID                            ((0x210 << 4) | (0x1))
@@ -68,7 +68,7 @@
 #define DPNI_CMDID_SET_MAX_FRAME_LENGTH                ((0x216 << 4) | (0x1))
 #define DPNI_CMDID_GET_MAX_FRAME_LENGTH                ((0x217 << 4) | (0x1))
 #define DPNI_CMDID_SET_LINK_CFG                        ((0x21A << 4) | (0x1))
-#define DPNI_CMDID_SET_TX_SHAPING                      ((0x21B << 4) | (0x1))
+#define DPNI_CMDID_SET_TX_SHAPING                      ((0x21B << 4) | (0x2))
 
 #define DPNI_CMDID_SET_MCAST_PROMISC                   ((0x220 << 4) | (0x1))
 #define DPNI_CMDID_GET_MCAST_PROMISC                   ((0x221 << 4) | (0x1))
@@ -104,8 +104,8 @@
 #define DPNI_CMDID_RESET_STATISTICS                    ((0x25E << 4) | (0x1))
 #define DPNI_CMDID_GET_QUEUE                           ((0x25F << 4) | (0x1))
 #define DPNI_CMDID_SET_QUEUE                           ((0x260 << 4) | (0x1))
-#define DPNI_CMDID_GET_TAILDROP                        ((0x261 << 4) | (0x1))
-#define DPNI_CMDID_SET_TAILDROP                        ((0x262 << 4) | (0x1))
+#define DPNI_CMDID_GET_TAILDROP                        ((0x261 << 4) | (0x2))
+#define DPNI_CMDID_SET_TAILDROP                        ((0x262 << 4) | (0x2))
 
 #define DPNI_CMDID_GET_PORT_MAC_ADDR                   ((0x263 << 4) | (0x1))
 
@@ -152,21 +152,29 @@ do { \
 	MC_CMD_OP(cmd, 0, 13, 1,  int,      cfg->pools[5].backup_pool); \
 	MC_CMD_OP(cmd, 0, 14, 1,  int,      cfg->pools[6].backup_pool); \
 	MC_CMD_OP(cmd, 0, 15, 1,  int,      cfg->pools[7].backup_pool); \
-	MC_CMD_OP(cmd, 0, 32, 32, int,      cfg->pools[0].dpbp_id); \
+	MC_CMD_OP(cmd, 0, 32, 16, int,      cfg->pools[0].dpbp_id); \
+	MC_CMD_OP(cmd, 0, 48, 8,  uint8_t,  cfg->pools[0].priority_mask); \
 	MC_CMD_OP(cmd, 4, 32, 16, uint16_t, cfg->pools[0].buffer_size);\
-	MC_CMD_OP(cmd, 1, 0,  32, int,      cfg->pools[1].dpbp_id); \
+	MC_CMD_OP(cmd, 1, 0,  16, int,      cfg->pools[1].dpbp_id); \
+	MC_CMD_OP(cmd, 1, 16,  8, uint8_t,  cfg->pools[1].priority_mask); \
 	MC_CMD_OP(cmd, 4, 48, 16, uint16_t, cfg->pools[1].buffer_size);\
-	MC_CMD_OP(cmd, 1, 32, 32, int,      cfg->pools[2].dpbp_id); \
+	MC_CMD_OP(cmd, 1, 32, 16, int,      cfg->pools[2].dpbp_id); \
+	MC_CMD_OP(cmd, 1, 48, 8,  uint8_t,  cfg->pools[2].priority_mask); \
 	MC_CMD_OP(cmd, 5, 0,  16, uint16_t, cfg->pools[2].buffer_size);\
-	MC_CMD_OP(cmd, 2, 0,  32, int,      cfg->pools[3].dpbp_id); \
+	MC_CMD_OP(cmd, 2, 0,  16, int,      cfg->pools[3].dpbp_id); \
+	MC_CMD_OP(cmd, 2, 16,  8, uint8_t,  cfg->pools[3].priority_mask); \
 	MC_CMD_OP(cmd, 5, 16, 16, uint16_t, cfg->pools[3].buffer_size);\
-	MC_CMD_OP(cmd, 2, 32, 32, int,      cfg->pools[4].dpbp_id); \
+	MC_CMD_OP(cmd, 2, 32, 16, int,      cfg->pools[4].dpbp_id); \
+	MC_CMD_OP(cmd, 2, 48, 8,  uint8_t,  cfg->pools[4].priority_mask); \
 	MC_CMD_OP(cmd, 5, 32, 16, uint16_t, cfg->pools[4].buffer_size);\
-	MC_CMD_OP(cmd, 3, 0,  32, int,      cfg->pools[5].dpbp_id); \
+	MC_CMD_OP(cmd, 3, 0,  16, int,      cfg->pools[5].dpbp_id); \
+	MC_CMD_OP(cmd, 3, 16, 8,  uint8_t,  cfg->pools[5].priority_mask); \
 	MC_CMD_OP(cmd, 5, 48, 16, uint16_t, cfg->pools[5].buffer_size);\
-	MC_CMD_OP(cmd, 3, 32, 32, int,      cfg->pools[6].dpbp_id); \
+	MC_CMD_OP(cmd, 3, 32, 16, int,      cfg->pools[6].dpbp_id); \
+	MC_CMD_OP(cmd, 3, 48, 8,  uint8_t,  cfg->pools[6].priority_mask); \
 	MC_CMD_OP(cmd, 6, 0,  16, uint16_t, cfg->pools[6].buffer_size);\
-	MC_CMD_OP(cmd, 4, 0,  32, int,      cfg->pools[7].dpbp_id); \
+	MC_CMD_OP(cmd, 4, 0,  16, int,      cfg->pools[7].dpbp_id); \
+	MC_CMD_OP(cmd, 4, 16, 8,  uint8_t,  cfg->pools[7].priority_mask); \
 	MC_CMD_OP(cmd, 6, 16, 16, uint16_t, cfg->pools[7].buffer_size);\
 } while (0)
 
@@ -325,8 +333,11 @@ do { \
 #define DPNI_RSP_GET_TX_DATA_OFFSET(cmd, data_offset) \
 	MC_RSP_OP(cmd, 0, 0,  16, uint16_t, data_offset)
 
-#define DPNI_CMD_GET_STATISTICS(cmd, page) \
-	MC_CMD_OP(cmd, 0, 0, 8, uint8_t, page)
+#define DPNI_CMD_GET_STATISTICS(cmd, page, param) \
+do { \
+	MC_CMD_OP(cmd, 0, 0, 8, uint8_t, page); \
+	MC_CMD_OP(cmd, 0, 8, 8, uint8_t, param); \
+} while (0)
 
 #define DPNI_RSP_GET_STATISTICS(cmd, stat) \
 do { \
@@ -355,10 +366,13 @@ do { \
 } while (0)
 
 /*                cmd, param, offset, width, type, arg_name */
-#define DPNI_CMD_SET_TX_SHAPING(cmd, tx_shaper) \
+#define DPNI_CMD_SET_TX_SHAPING(cmd, tx_cr_shaper, tx_er_shaper, coupled) \
 do { \
-	MC_CMD_OP(cmd, 0, 0,  16, uint16_t, tx_shaper->max_burst_size);\
-	MC_CMD_OP(cmd, 1, 0,  32, uint32_t, tx_shaper->rate_limit);\
+	MC_CMD_OP(cmd, 0, 0,  16, uint16_t, tx_cr_shaper->max_burst_size);\
+	MC_CMD_OP(cmd, 1, 0,  32, uint32_t, tx_cr_shaper->rate_limit);\
+	MC_CMD_OP(cmd, 0, 16, 16, uint16_t, tx_er_shaper->max_burst_size);\
+	MC_CMD_OP(cmd, 1, 32, 32, uint32_t, tx_er_shaper->rate_limit);\
+	MC_CMD_OP(cmd, 2, 0,  1,  int, coupled);\
 } while (0)
 
 /*                cmd, param, offset, width, type, arg_name */
@@ -629,7 +643,7 @@ do { \
 /*                cmd, param, offset, width, type, arg_name */
 #define DPNI_PREP_EARLY_DROP(ext, cfg) \
 do { \
-	MC_PREP_OP(ext, 0, 0,  2, enum dpni_early_drop_mode, (cfg)->mode); \
+	MC_PREP_OP(ext, 0, 0,  1, uint8_t, (cfg)->dpni_wred_enable); \
 	MC_PREP_OP(ext, 0, 2,  2, \
 		  enum dpni_congestion_unit, (cfg)->units); \
 	MC_PREP_OP(ext, 0, 32, 32, uint32_t, (cfg)->tail_drop_threshold); \
@@ -647,7 +661,7 @@ do { \
 /*                cmd, param, offset, width, type, arg_name */
 #define DPNI_EXT_EARLY_DROP(ext, cfg) \
 do { \
-	MC_EXT_OP(ext, 0, 0,  2, enum dpni_early_drop_mode, (cfg)->mode); \
+	MC_EXT_OP(ext, 0, 0,  1, uint8_t, (cfg)->dpni_wred_enable); \
 	MC_EXT_OP(ext, 0, 2,  2, \
 		  enum dpni_congestion_unit, (cfg)->units); \
 	MC_EXT_OP(ext, 0, 32, 32, uint32_t, (cfg)->tail_drop_threshold); \
@@ -695,6 +709,7 @@ do { \
 #define DPNI_RSP_GET_TAILDROP(cmd, taildrop) \
 do { \
 	MC_RSP_OP(cmd, 1,  0,  1, char, (taildrop)->enable); \
+	MC_RSP_OP(cmd, 1,  1, 12, uint16_t, (taildrop)->oal); \
 	MC_RSP_OP(cmd, 1, 16,  8, enum dpni_congestion_unit, \
 				(taildrop)->units); \
 	MC_RSP_OP(cmd, 1, 32, 32, uint32_t, (taildrop)->threshold); \
@@ -707,6 +722,7 @@ do { \
 	MC_CMD_OP(cmd, 0, 16,  8, uint8_t, tc); \
 	MC_CMD_OP(cmd, 0, 24,  8, uint8_t, q_index); \
 	MC_CMD_OP(cmd, 1,  0,  1, char, (taildrop)->enable); \
+	MC_CMD_OP(cmd, 1,  1, 12, uint16_t, (taildrop)->oal); \
 	MC_CMD_OP(cmd, 1, 16,  8, enum dpni_congestion_unit, \
 				(taildrop)->units); \
 	MC_CMD_OP(cmd, 1, 32, 32, uint32_t, (taildrop)->threshold); \

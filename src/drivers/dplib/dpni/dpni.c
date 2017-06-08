@@ -707,7 +707,9 @@ int dpni_get_link_state(struct fsl_mc_io *mc_io,
 int dpni_set_tx_shaping(struct fsl_mc_io *mc_io,
 			uint32_t cmd_flags,
 			uint16_t token,
-			const struct dpni_tx_shaping_cfg *tx_shaper)
+			const struct dpni_tx_shaping_cfg *tx_cr_shaper,
+			const struct dpni_tx_shaping_cfg *tx_er_shaper,
+			int coupled)
 {
 	struct mc_command cmd = { 0 };
 
@@ -715,7 +717,7 @@ int dpni_set_tx_shaping(struct fsl_mc_io *mc_io,
 	cmd.header = mc_encode_cmd_header(DPNI_CMDID_SET_TX_SHAPING,
 					  cmd_flags,
 					  token);
-	DPNI_CMD_SET_TX_SHAPING(cmd, tx_shaper);
+	DPNI_CMD_SET_TX_SHAPING(cmd, tx_cr_shaper, tx_er_shaper, coupled);
 
 	/* send command to mc*/
 	return mc_send_command(mc_io, &cmd);
@@ -1275,7 +1277,6 @@ int dpni_set_early_drop(struct fsl_mc_io	*mc_io,
 					  cmd_flags,
 					  token);
 	DPNI_CMD_SET_EARLY_DROP(cmd, qtype, tc_id, early_drop_iova);
-
 	/* send command to mc*/
 	return mc_send_command(mc_io, &cmd);
 }
@@ -1421,25 +1422,22 @@ int dpni_get_statistics(struct fsl_mc_io *mc_io,
 			uint32_t cmd_flags,
 			uint16_t token,
 			uint8_t page,
+			uint8_t tx_tc,
 			union dpni_statistics *stat)
 {
-	struct mc_command cmd = { 0 };
-	int err;
+	struct mc_command	cmd = { 0 };
+	int			err;
 
-	/* prepare command */
+	/* Prepare command */
 	cmd.header = mc_encode_cmd_header(DPNI_CMDID_GET_STATISTICS,
-					  cmd_flags,
-					  token);
-	DPNI_CMD_GET_STATISTICS(cmd, page);
-
-	/* send command to mc*/
+					  cmd_flags, token);
+	DPNI_CMD_GET_STATISTICS(cmd, page, tx_tc);
+	/* Send command to mc*/
 	err = mc_send_command(mc_io, &cmd);
 	if (err)
 		return err;
-
-	/* retrieve response parameters */
+	/* Retrieve response parameters */
 	DPNI_RSP_GET_STATISTICS(cmd, stat);
-
 	return 0;
 }
 

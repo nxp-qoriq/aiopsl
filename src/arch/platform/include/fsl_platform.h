@@ -61,16 +61,23 @@
 
 #define MAX_CHIP_NAME_LEN               10   /**< Maximum chip name length (including null character) */
 
-
 /**************************************************************************//**
- @Description   Values for app_config_flags from platform_app_params structure
-*//***************************************************************************/
-#define DPNI_BACKUP_POOL_DISABLE	0x0001	/**< If set, disables backup buffer pool usage */
-#define IPSEC_BUFFER_ALLOCATE_ENABLE	0x0002	/**< If set, dedicated IPSec buffer pool is created;
-						     must not be used together with CWAP_DTLS_BUFFER_ALLOCATE_ENABLE */
-#define IPSEC_OPTIMIZE_FEW_FLOWS	0x0004	/**< If set, IPSec will be optimized for small number of flows */
-#define CWAP_DTLS_BUFFER_ALLOCATE_ENABLE 0x0008	/**< If set, dedicated CWAP/DTLS buffer pool is created;
-						     must not be used together with IPSEC_BUFFER_ALLOCATE_ENABLE */
+ @Group		APP_CFG_OPT Application configuration options
+
+ @Description	Configuration options for AIOP applications.
+
+ @{
+/**< Disables DPNI backup buffer pool */
+#define DPNI_BACKUP_POOL_DISABLE	0x0001
+/**< Dedicated IPSec buffer pool is created; must not be used together with
+ * CWAP_DTLS_BUFFER_ALLOCATE_ENABLE */
+#define IPSEC_BUFFER_ALLOCATE_ENABLE	0x0002
+/**< Optimize IPSec for small number of flows */
+#define IPSEC_OPTIMIZE_FEW_FLOWS	0x0004
+/**< Dedicated CWAP/DTLS buffer pool is created; must not be used together with
+ * IPSEC_BUFFER_ALLOCATE_ENABLE */
+#define CWAP_DTLS_BUFFER_ALLOCATE_ENABLE 0x0008
+/** @} end of group APP_CFG_OPT */
 
 /**************************************************************************//**
  @Description   Cache Operation Mode
@@ -163,21 +170,27 @@ struct platform_param {
     uint8_t                         console_id;
 };
 
-
 /**************************************************************************//**
  @Description   Platform application parameters structure
 *//***************************************************************************/
 struct platform_app_params {
-	uint16_t dpni_num_buffs;	/**< number of buffers for dpni pool */
-	uint16_t dpni_buff_size;	/**< size of buffers for dpni pool */
-	uint16_t dpni_drv_alignment;	/**< dpni pool buffers alignment */
-	uint16_t app_arr_size;		/**< Maximal size of app init array */
-	uint16_t app_config_flags;	/**< Application config flags.Values are taken from above defines */
+	/**< Number of buffers of a DPNI pool */
+	uint16_t dpni_num_buffs;
+	/**< Size of buffers of a DPNI pool */
+	uint16_t dpni_buff_size;
+	/**< DPNI pool buffers alignment */
+	uint16_t dpni_drv_alignment;
+	/**< Maximal size of applications initialization array */
+	uint16_t app_arr_size;
+	/**< Application configuration flags; use \ref APP_CFG_OPT values */
+	uint16_t app_config_flags;
+	/**< Priority mask indicating the traffic classes using buffers from
+	 * a DPNI pool. The leftmost 8 bits configures the priority mask for
+	 * the backup pool. Zero or 0xFF means all TCs use the pool. */
+	uint16_t dpni_pool_pri_mask;
 };
 
 /** @} */ /* end of ls2085a_g group */
-
-
 
 /**************************************************************************//**
  @Function      platform_early_init

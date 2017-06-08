@@ -48,6 +48,7 @@
 #include "fsl_ep_mng.h"
 #include "fsl_mem_mng.h"
 #include "sparser_drv.h"
+#include "fsl_dpni_cmd.h"
 
 #define __ERR_MODULE__  MODULE_DPNI
 #define ETH_BROADCAST_ADDR		((uint8_t []){0xff,0xff,0xff,0xff,0xff,0xff})
@@ -81,6 +82,13 @@ struct dpni_drv_stats dpni_statistics[DPNI_DRV_CNT_EGR_CONF_FRAME + 1] = {
 	{ 0, 0 }, { 0, 1 }, { 2, 0 }, { 2, 1 }, { 0, 2 }, { 0, 3 }, { 0, 4 },
 	{ 0, 5 }, { 1, 0 }, { 1, 1 }, { 2, 3 }, { 1, 2 }, { 1, 3 }, { 1, 4 },
 	{ 1, 5 }, { 2, 2 }, { 2, 4 }
+};
+
+/* WARNING - Update this structure, size and content if the enumeration
+ * dpni_drv_counter changes */
+struct dpni_drv_stats
+dpni_qos_statistics[DPNI_DRV_QOS_CNT_EGR_TC_REJECT_FRAME + 1] = {
+	{3, 0}, {3, 1}, {3, 2}, {3, 3}
 };
 
 struct dpni_early_init_request g_dpni_early_init_data = {0};
@@ -1139,8 +1147,14 @@ static int configure_bpids_for_dpni(void)
 		/*!< DPBPs object id */
 		pools_params.pools[i].dpbp_id = (uint16_t)dpbp_id[i];
 		pools_params.pools[i].buffer_size = buffer_size;
-		if(mem_pid[i] == MEM_PART_SYSTEM_DDR || mem_pid[i] == MEM_PART_DP_DDR){
+		if (mem_pid[i] == MEM_PART_SYSTEM_DDR ||
+		    mem_pid[i] == MEM_PART_DP_DDR) {
 			pools_params.pools[i].backup_pool = 1;
+			pools_params.pools[i].priority_mask =
+				(uint8_t)(g_app_params.dpni_pool_pri_mask >> 8);
+		} else {
+			pools_params.pools[i].priority_mask =
+				(uint8_t)g_app_params.dpni_pool_pri_mask;
 		}
 	}
 	return 0;
@@ -2020,8 +2034,8 @@ int dpni_drv_get_counter(uint16_t ni_id, enum dpni_drv_counter counter,
 		sl_pr_err("Open DPNI failed\n");
 		return err;
 	}
-	err = dpni_get_statistics(&dprc->io, 0,
-				  dpni, dpni_statistics[counter].page, &stats);
+	err = dpni_get_statistics(&dprc->io, 0, dpni,
+				  dpni_statistics[counter].page, 0, &stats);
 	if (err) {
 		sl_pr_err("dpni_get_counter failed\n");
 		if (dpni_close(&dprc->io, 0, dpni))
@@ -2029,6 +2043,48 @@ int dpni_drv_get_counter(uint16_t ni_id, enum dpni_drv_counter counter,
 		return err;
 	}
 	*value = stats.raw.counter[dpni_statistics[counter].offset];
+	err = dpni_close(&dprc->io, 0, dpni);
+	if (err) {
+		sl_pr_err("Close DPNI failed\n");
+		return err;
+	}
+	return 0;
+}
+
+/******************************************************************************/
+int dpni_drv_get_qos_counter(uint16_t ni_id, uint8_t tc,
+			     enum dpni_drv_qos_counter counter,
+			     uint64_t *value)
+{
+	struct mc_dprc		*dprc;
+	int			err;
+	uint16_t		dpni;
+	union dpni_statistics	stats;
+
+	dprc = sys_get_unique_handle(FSL_MOD_AIOP_RC);
+	if (!dprc) {
+		sl_pr_err("No AIOP container found\n");
+		return -ENODEV;
+	}
+	 /* Lock dpni table */
+	cdma_mutex_lock_take((uint64_t)nis, CDMA_MUTEX_READ_LOCK);
+	err = dpni_open(&dprc->io, 0, (int)nis[ni_id].dpni_id, &dpni);
+	/* Unlock dpni table */
+	cdma_mutex_lock_release((uint64_t)nis);
+	if (err) {
+		sl_pr_err("Open DPNI failed\n");
+		return err;
+	}
+	err = dpni_get_statistics(&dprc->io, 0, dpni,
+				  dpni_qos_statistics[counter].page,
+				  tc, &stats);
+	if (err) {
+		sl_pr_err("dpni_get_counter failed\n");
+		if (dpni_close(&dprc->io, 0, dpni))
+			sl_pr_err("Close DPNI failed\n");
+		return err;
+	}
+	*value = stats.raw.counter[dpni_qos_statistics[counter].offset];
 	err = dpni_close(&dprc->io, 0, dpni);
 	if (err) {
 		sl_pr_err("Close DPNI failed\n");
@@ -2127,6 +2183,44 @@ int dpni_drv_get_link_state(uint16_t ni_id, struct dpni_drv_link_state *state)
 	state->up = link_state.up;
 	err = dpni_close(&dprc->io,0,  dpni);
 	if(err){
+		sl_pr_err("Close DPNI failed\n");
+		return err;
+	}
+	return 0;
+}
+
+/******************************************************************************/
+int dpni_drv_set_link_cfg(uint16_t ni_id, struct dpni_drv_link_cfg *cfg)
+{
+	struct mc_dprc		*dprc;
+	struct dpni_link_cfg	link_cfg;
+	int			err;
+	uint16_t		dpni;
+
+	dprc = sys_get_unique_handle(FSL_MOD_AIOP_RC);
+	if (!dprc) {
+		pr_err("No AIOP container found\n");
+		return -ENODEV;
+	}
+	 /* Lock dpni table */
+	cdma_mutex_lock_take((uint64_t)nis, CDMA_MUTEX_READ_LOCK);
+	err = dpni_open(&dprc->io, 0, (int)nis[ni_id].dpni_id, &dpni);
+	 /* Unlock dpni table */
+	cdma_mutex_lock_release((uint64_t)nis);
+	if (err) {
+		sl_pr_err("Open DPNI failed\n");
+		return err;
+	}
+	link_cfg.options = cfg->options;
+	link_cfg.rate = cfg->rate;
+	err = dpni_set_link_cfg(&dprc->io, 0, dpni, &link_cfg);
+	if (err) {
+		sl_pr_err("dpni_set_link_cfg failed\n");
+		dpni_close(&dprc->io, 0, dpni);
+		return err;
+	}
+	err = dpni_close(&dprc->io, 0, dpni);
+	if (err) {
 		sl_pr_err("Close DPNI failed\n");
 		return err;
 	}
@@ -2609,35 +2703,41 @@ int dpni_drv_set_tx_selection(uint16_t ni_id,
 	return 0;
 }
 
-int dpni_drv_set_tx_shaping(uint16_t ni_id,
-                          const struct dpni_drv_tx_shaping *cfg)
+/******************************************************************************/
+__COLD_CODE int dpni_drv_set_tx_shaping(uint16_t ni_id,
+					struct dpni_drv_tx_shaping *cr_cfg,
+					struct dpni_drv_tx_shaping *er_cfg,
+					uint8_t coupled)
 {
-	struct mc_dprc *dprc = sys_get_unique_handle(FSL_MOD_AIOP_RC);
-	int err;
-	uint16_t dpni;
-	struct dpni_tx_shaping_cfg tx_shaper = {0};
+	struct mc_dprc	*dprc;
+	int		err;
+	uint16_t	dpni;
 
-	tx_shaper.rate_limit = cfg->rate_limit;
-	tx_shaper.max_burst_size = cfg->max_burst_size;
-
-	/*Lock dpni table*/
+	dprc = sys_get_unique_handle(FSL_MOD_AIOP_RC);
+	if (!dprc) {
+		pr_err("No AIOP container found\n");
+		return -ENODEV;
+	}
+	/* Lock dpni table */
 	cdma_mutex_lock_take((uint64_t)nis, CDMA_MUTEX_READ_LOCK);
 	err = dpni_open(&dprc->io, 0, (int)nis[ni_id].dpni_id, &dpni);
-	cdma_mutex_lock_release((uint64_t)nis); /*Unlock dpni table*/
-	if(err){
+	/* Unlock dpni table */
+	cdma_mutex_lock_release((uint64_t)nis);
+	if (err) {
 		sl_pr_err("Open DPNI failed\n");
 		return err;
 	}
-
-	err = dpni_set_tx_shaping(&dprc->io, 0, dpni, &tx_shaper);
-	if(err){
+	err = dpni_set_tx_shaping(&dprc->io, 0, dpni,
+				  (const struct dpni_tx_shaping_cfg *)cr_cfg,
+				  (const struct dpni_tx_shaping_cfg *)er_cfg,
+				  (int)coupled);
+	if (err) {
 		sl_pr_err("dpni_set_tx_shaping failed\n");
 		dpni_close(&dprc->io, 0, dpni);
 		return err;
 	}
-
 	err = dpni_close(&dprc->io, 0, dpni);
-	if(err){
+	if (err) {
 		sl_pr_err("Close DPNI failed\n");
 		return err;
 	}
@@ -2791,7 +2891,8 @@ void dpni_drv_prepare_rx_tc_early_drop(
 	struct dpni_early_drop_cfg early_drop_cfg;
 	memset(&early_drop_cfg, 0, sizeof(struct dpni_early_drop_cfg));
 
-	early_drop_cfg.mode = (enum dpni_early_drop_mode) cfg->mode;
+	early_drop_cfg.dpni_wred_enable =
+		(cfg->mode == DPNI_DRV_EARLY_DROP_MODE_NONE) ? 0 : 1;
 	early_drop_cfg.units = (enum dpni_congestion_unit) cfg->units;
 	early_drop_cfg.green.max_threshold = cfg->green.max_threshold;
 	early_drop_cfg.green.min_threshold = cfg->green.min_threshold;
@@ -2802,7 +2903,6 @@ void dpni_drv_prepare_rx_tc_early_drop(
 	early_drop_cfg.red.max_threshold = cfg->red.max_threshold;
 	early_drop_cfg.red.min_threshold = cfg->red.min_threshold;
 	early_drop_cfg.red.drop_probability = cfg->red.drop_probability;
-	early_drop_cfg.tail_drop_threshold = cfg->tail_drop_threshold;
 
 	dpni_prepare_early_drop(&early_drop_cfg, early_drop_buf);
 }
@@ -3138,7 +3238,7 @@ __COLD_CODE int dpni_drv_enable_egress_soft_parser
 }
 
 /******************************************************************************/
-static int load_wriop_soft_parser(struct dpni_load_ss_cfg *cfg)
+static __COLD_CODE int load_wriop_soft_parser(struct dpni_load_ss_cfg *cfg)
 {
 	struct mc_dprc			*dprc;
 	int				err;
@@ -3175,8 +3275,8 @@ static int load_wriop_soft_parser(struct dpni_load_ss_cfg *cfg)
 }
 
 /******************************************************************************/
-static int enable_wriop_soft_parser(uint16_t ni_id,
-				    struct dpni_enable_ss_cfg *cfg)
+static __COLD_CODE int enable_wriop_soft_parser(uint16_t ni_id,
+						struct dpni_enable_ss_cfg *cfg)
 {
 	struct mc_dprc			*dprc;
 	int				err;
@@ -3211,7 +3311,7 @@ static int enable_wriop_soft_parser(uint16_t ni_id,
 }
 
 /******************************************************************************/
-int dpni_drv_load_wriop_ingress_soft_parser
+__COLD_CODE int dpni_drv_load_wriop_ingress_soft_parser
 			(const struct dpni_drv_sparser_param *param)
 {
 	struct dpni_load_ss_cfg		cfg;
@@ -3226,7 +3326,7 @@ int dpni_drv_load_wriop_ingress_soft_parser
 }
 
 /******************************************************************************/
-int dpni_drv_load_wriop_egress_soft_parser
+__COLD_CODE int dpni_drv_load_wriop_egress_soft_parser
 			(const struct dpni_drv_sparser_param *param)
 {
 	struct dpni_load_ss_cfg		cfg;
@@ -3241,7 +3341,7 @@ int dpni_drv_load_wriop_egress_soft_parser
 }
 
 /******************************************************************************/
-int dpni_drv_enable_wriop_ingress_soft_parser
+__COLD_CODE int dpni_drv_enable_wriop_ingress_soft_parser
 		(uint16_t ni_id, const struct dpni_drv_sparser_param *param)
 {
 	struct dpni_enable_ss_cfg	cfg;
@@ -3265,7 +3365,7 @@ int dpni_drv_enable_wriop_ingress_soft_parser
 }
 
 /******************************************************************************/
-int dpni_drv_enable_wriop_egress_soft_parser
+__COLD_CODE int dpni_drv_enable_wriop_egress_soft_parser
 		(uint16_t ni_id, const struct dpni_drv_sparser_param *param)
 {
 	struct dpni_enable_ss_cfg	cfg;
@@ -3287,3 +3387,293 @@ int dpni_drv_enable_wriop_egress_soft_parser
 	}
 	return enable_wriop_soft_parser(ni_id, &cfg);
 }
+
+/******************************************************************************/
+__COLD_CODE int dpni_drv_set_tx_taildrop(uint16_t ni_id, uint8_t tc,
+					 struct dpni_drv_taildrop *taildrop)
+{
+	struct mc_dprc			*dprc;
+	int				err;
+	uint16_t			dpni;
+	struct dpni_taildrop		mc_td;
+
+	dprc = sys_get_unique_handle(FSL_MOD_AIOP_RC);
+	if (!dprc) {
+		pr_err("No AIOP container found\n");
+		return -ENODEV;
+	}
+	/* Lock dpni table */
+	cdma_mutex_lock_take((uint64_t)nis, CDMA_MUTEX_READ_LOCK);
+	err = dpni_open(&dprc->io, 0, (int)nis[ni_id].dpni_id, &dpni);
+	/* Unlock dpni table */
+	cdma_mutex_lock_release((uint64_t)nis);
+	if (err) {
+		sl_pr_err("Open DPNI failed\n");
+		return err;
+	}
+	/* Only DPNI_CP_GROUP is supported for Tx queues. Queues index value
+	 * is ignored */
+	mc_td.enable = (char)taildrop->enable;
+	mc_td.units = (enum dpni_congestion_unit)taildrop->units;
+	mc_td.threshold = taildrop->threshold;
+	/* Bring the OAL values into the allowed range */
+	if (taildrop->oal < -2048)
+		taildrop->oal = -2048;
+	else if (taildrop->oal > 2047)
+		taildrop->oal = 2047;
+	mc_td.oal = (uint16_t)taildrop->oal;
+	err = dpni_set_taildrop(&dprc->io, 0, dpni, DPNI_CP_GROUP,
+				DPNI_QUEUE_TX, tc, 0, &mc_td);
+	if (err) {
+		sl_pr_err("dpni_set_taildrop failed\n");
+		dpni_close(&dprc->io, 0, dpni);
+		return err;
+	}
+	err = dpni_close(&dprc->io, 0, dpni);
+	if (err) {
+		sl_pr_err("Close DPNI failed\n");
+		return err;
+	}
+	return 0;
+}
+
+/******************************************************************************/
+__COLD_CODE int dpni_drv_get_tx_taildrop(uint16_t ni_id, uint8_t tc,
+					 struct dpni_drv_taildrop *taildrop)
+{
+	struct mc_dprc			*dprc;
+	int				err;
+	uint16_t			dpni;
+	struct dpni_taildrop		mc_td;
+
+	dprc = sys_get_unique_handle(FSL_MOD_AIOP_RC);
+	if (!dprc) {
+		pr_err("No AIOP container found\n");
+		return -ENODEV;
+	}
+	/* Lock dpni table */
+	cdma_mutex_lock_take((uint64_t)nis, CDMA_MUTEX_READ_LOCK);
+	err = dpni_open(&dprc->io, 0, (int)nis[ni_id].dpni_id, &dpni);
+	/* Unlock dpni table */
+	cdma_mutex_lock_release((uint64_t)nis);
+	if (err) {
+		sl_pr_err("Open DPNI failed\n");
+		return err;
+	}
+	/* Only DPNI_CP_GROUP is supported for Tx queues. Queues index value
+	 * is ignored */
+	err = dpni_get_taildrop(&dprc->io, 0, dpni, DPNI_CP_GROUP,
+				DPNI_QUEUE_TX, tc, 0, &mc_td);
+	if (err) {
+		sl_pr_err("dpni_get_taildrop failed\n");
+		dpni_close(&dprc->io, 0, dpni);
+		return err;
+	}
+	err = dpni_close(&dprc->io, 0, dpni);
+	if (err) {
+		sl_pr_err("Close DPNI failed\n");
+		return err;
+	}
+	taildrop->enable = (uint8_t)mc_td.enable;
+	taildrop->units = (enum dpni_drv_congestion_unit)mc_td.units;
+	taildrop->threshold = mc_td.threshold;
+	/* OAL should be converted into a integer value from 12-bit unsigned
+	 * value. */
+	#define SIGN_BIT_12_BIT_VAL	0x800
+	if (mc_td.oal & SIGN_BIT_12_BIT_VAL)
+		taildrop->oal = (int16_t)(mc_td.oal | 0xF800);
+	else
+		taildrop->oal = (int16_t)mc_td.oal;
+	return 0;
+}
+
+/******************************************************************************/
+__COLD_CODE int dpni_drv_set_tx_early_drop(uint16_t ni_id, uint8_t tc_id,
+					   struct dpni_drv_early_drop *cfg)
+{
+	struct mc_dprc			*dprc;
+	int				err;
+	uint16_t			dpni;
+	uint64_t			*ext_params;
+	struct dpni_early_drop_cfg	mc_cfg;
+
+	dprc = sys_get_unique_handle(FSL_MOD_AIOP_RC);
+	if (!dprc) {
+		pr_err("No AIOP container found\n");
+		return -ENODEV;
+	}
+	/* Lock dpni table */
+	cdma_mutex_lock_take((uint64_t)nis, CDMA_MUTEX_READ_LOCK);
+	err = dpni_open(&dprc->io, 0, (int)nis[ni_id].dpni_id, &dpni);
+	/* Unlock dpni table */
+	cdma_mutex_lock_release((uint64_t)nis);
+	if (err) {
+		sl_pr_err("Open DPNI failed\n");
+		return err;
+	}
+	/* Prepare Extension structure in IOVA */
+	memset(order_scope_buf, 0, PARAMS_IOVA_BUFF_SIZE);
+	ext_params = (uint64_t *)&order_scope_buf[0];
+	/* WARNING - MC structure getting parameters of early drop configuration
+	 * should be changed to be in sync with the MC documentation */
+	mc_cfg.dpni_wred_enable = cfg->enable;
+	mc_cfg.units = (enum dpni_congestion_unit)cfg->units;
+	mc_cfg.green.max_threshold = cfg->green.max_threshold;
+	mc_cfg.green.min_threshold = cfg->green.min_threshold;
+	mc_cfg.green.drop_probability = cfg->green.drop_probability;
+	mc_cfg.yellow.max_threshold = cfg->yellow.max_threshold;
+	mc_cfg.yellow.min_threshold = cfg->yellow.min_threshold;
+	mc_cfg.yellow.drop_probability = cfg->yellow.drop_probability;
+	mc_cfg.red.max_threshold = cfg->red.max_threshold;
+	mc_cfg.red.min_threshold = cfg->red.min_threshold;
+	mc_cfg.red.drop_probability = cfg->red.drop_probability;
+	/* MC does not use these fields */
+	mc_cfg.tail_drop_threshold = 0;
+	mc_cfg.oal = 0;
+	mc_cfg.dpni_tail_drop_enable = 0;
+	DPNI_PREP_EARLY_DROP(ext_params, &mc_cfg);
+	err = dpni_set_early_drop(&dprc->io, 0, dpni, DPNI_QUEUE_TX, tc_id,
+				  (uint64_t)&order_scope_buf[0]);
+	if (err) {
+		sl_pr_err("dpni_set_rx_tc_early_drop failed\n");
+		dpni_close(&dprc->io, 0, dpni);
+		return err;
+	}
+	err = dpni_close(&dprc->io, 0, dpni);
+	if (err) {
+		sl_pr_err("Close DPNI failed\n");
+		return err;
+	}
+	return 0;
+}
+
+/******************************************************************************/
+__COLD_CODE int dpni_drv_get_tx_early_drop(uint16_t ni_id, uint8_t tc_id,
+					   struct dpni_drv_early_drop *cfg)
+{
+	struct mc_dprc			*dprc;
+	int				err;
+	uint16_t			dpni;
+	uint64_t			*ext_params;
+	struct dpni_early_drop_cfg	mc_cfg;
+
+	dprc = sys_get_unique_handle(FSL_MOD_AIOP_RC);
+	if (!dprc) {
+		pr_err("No AIOP container found\n");
+		return -ENODEV;
+	}
+	/* Lock dpni table */
+	cdma_mutex_lock_take((uint64_t)nis, CDMA_MUTEX_READ_LOCK);
+	err = dpni_open(&dprc->io, 0, (int)nis[ni_id].dpni_id, &dpni);
+	/* Unlock dpni table */
+	cdma_mutex_lock_release((uint64_t)nis);
+	if (err) {
+		sl_pr_err("Open DPNI failed\n");
+		return err;
+	}
+	err = dpni_get_early_drop(&dprc->io, 0, dpni, DPNI_QUEUE_TX, tc_id,
+				  (uint64_t)&order_scope_buf);
+	if (err) {
+		sl_pr_err("dpni_set_rx_tc_early_drop failed\n");
+		dpni_close(&dprc->io, 0, dpni);
+		return err;
+	}
+	err = dpni_close(&dprc->io, 0, dpni);
+	if (err) {
+		sl_pr_err("Close DPNI failed\n");
+		return err;
+	}
+	/* Get Extension structure from IOVA */
+	ext_params = (uint64_t *)&order_scope_buf[0];
+	DPNI_EXT_EARLY_DROP(ext_params, &mc_cfg);
+	/* WARNING - MC structure getting parameters of early drop configuration
+	 * should be changed to be in sync with the MC documentation */
+	cfg->enable = mc_cfg.dpni_wred_enable;
+	cfg->units = (enum dpni_drv_congestion_unit)mc_cfg.units;
+	cfg->green.max_threshold = mc_cfg.green.max_threshold;
+	cfg->green.min_threshold = mc_cfg.green.min_threshold;
+	cfg->green.drop_probability = mc_cfg.green.drop_probability;
+	cfg->yellow.max_threshold = mc_cfg.yellow.max_threshold;
+	cfg->yellow.min_threshold = mc_cfg.yellow.min_threshold;
+	cfg->yellow.drop_probability = mc_cfg.yellow.drop_probability;
+	cfg->red.max_threshold = mc_cfg.red.max_threshold;
+	cfg->red.min_threshold = mc_cfg.red.min_threshold;
+	cfg->red.drop_probability = mc_cfg.red.drop_probability;
+	return 0;
+}
+
+#ifdef SL_DEBUG
+/******************************************************************************/
+__COLD_CODE void dpni_drv_dump_tx_taildrop(uint16_t ni_id, uint8_t tc_id)
+{
+	struct dpni_drv_taildrop		cfg;
+	int					err;
+
+	fsl_print("\n Tx Taildrop Configuration on DPNI %d, TC = %d\n",
+		  ni_id, tc_id);
+	err = dpni_drv_get_tx_taildrop(ni_id, tc_id, &cfg);
+	if (err) {
+		pr_err("\t [%d] : Cannot get taildrop configuration\n", err);
+		return;
+	}
+	if (!cfg.enable) {
+		fsl_print("\t Taildrop is disabled\n");
+	} else {
+		fsl_print("\t Congestion unit            : %s\n",
+			  cfg.units == DPNI_DRV_CONGESTION_UNIT_BYTES ?
+			  "Bytes" : "Frames");
+		fsl_print("\t Taildrop threshold         : 0x%08x\n",
+			  cfg.threshold);
+		fsl_print("\t Overhead Accounting Length : %d\n",
+			  cfg.oal);
+	}
+}
+
+/******************************************************************************/
+__COLD_CODE void dpni_drv_dump_tx_early_drop(uint16_t ni_id, uint8_t tc_id)
+{
+	struct dpni_drv_early_drop		cfg;
+	int					err;
+
+	fsl_print("\n Tx Early Drop Configuration on DPNI %d, TC = %d\n",
+		  ni_id, tc_id);
+	err = dpni_drv_get_tx_early_drop(ni_id, tc_id, &cfg);
+	if (err) {
+		pr_err("\t [%d] : Cannot get early drop configuration\n", err);
+		return;
+	}
+	if (!cfg.enable) {
+		fsl_print("\t Early drop is disabled\n");
+	} else {
+		fsl_print("\t Early drop mode            : WRED\n");
+		fsl_print("\t Congestion unit            : %s\n",
+			  cfg.units == DPNI_DRV_CONGESTION_UNIT_BYTES ?
+			  "Bytes" : "Frames");
+		fsl_print("\t Green maximum threshold    : 0x%x-%08x\n",
+			  (uint32_t)(cfg.green.max_threshold >> 32),
+			  (uint32_t)(cfg.green.max_threshold));
+		fsl_print("\t Green minimum threshold    : 0x%x-%08x\n",
+			  (uint32_t)(cfg.green.min_threshold >> 32),
+			  (uint32_t)(cfg.green.min_threshold));
+		fsl_print("\t Green drop probability     : %d\n",
+			  cfg.green.drop_probability);
+		fsl_print("\t Yellow maximum threshold   : 0x%x-%08x\n",
+			  (uint32_t)(cfg.yellow.max_threshold >> 32),
+			  (uint32_t)(cfg.yellow.max_threshold));
+		fsl_print("\t Yellow minimum threshold   : 0x%x-%08x\n",
+			  (uint32_t)(cfg.yellow.min_threshold >> 32),
+			  (uint32_t)(cfg.yellow.min_threshold));
+		fsl_print("\t Yellow drop probability    : %d\n",
+			  cfg.yellow.drop_probability);
+		fsl_print("\t Red maximum threshold      : 0x%x-%08x\n",
+			  (uint32_t)(cfg.red.max_threshold >> 32),
+			  (uint32_t)(cfg.red.max_threshold));
+		fsl_print("\t Red minimum threshold      : 0x%x-%08x\n",
+			  (uint32_t)(cfg.red.min_threshold >> 32),
+			  (uint32_t)(cfg.red.min_threshold));
+		fsl_print("\t Red drop probability       : %d\n",
+			  cfg.red.drop_probability);
+	}
+}
+
+#endif	/* SL_DEBUG */
