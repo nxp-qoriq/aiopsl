@@ -2451,43 +2451,36 @@ IPR_CODE_PLACEMENT void move_to_correct_ordering_scope2(uint32_t osm_status)
 	
 }
 
+/******************************************************************************/
 IPR_CODE_PLACEMENT void check_remove_padding()
 {
-	uint8_t			delta;
-	uint16_t		ipv4hdr_offset;
-	uint16_t		start_padding;
-	uint16_t		seg_length;
-	struct ipv4hdr		*ipv4hdr_ptr;
-	struct	parse_result	*pr =
-				  (struct parse_result *)HWC_PARSE_RES_ADDRESS;
-	struct presentation_context *prc =
-		(struct presentation_context *) HWC_PRC_ADDRESS;
+	uint16_t			ipv4hdr_offset;
+	uint16_t			start_padding;
+	struct ipv4hdr			*ipv4hdr_ptr;
+	struct	parse_result		*pr;
+	struct presentation_context	*prc;
 
-
-
+	pr = (struct parse_result *)HWC_PARSE_RES_ADDRESS;
+	prc = (struct presentation_context *)HWC_PRC_ADDRESS;
 	ipv4hdr_offset = (uint16_t)PARSER_GET_OUTER_IP_OFFSET_DEFAULT();
 	ipv4hdr_ptr = (struct ipv4hdr *)
 		  (ipv4hdr_offset + PRC_GET_SEGMENT_ADDRESS());
-
-	start_padding = ipv4hdr_ptr->total_length+ipv4hdr_offset;
-	delta = (uint8_t) (LDPAA_FD_GET_LENGTH(HWC_FD_ADDRESS) - start_padding);
-
-	if (delta != 0) {
-		/* Save seg_length before delete
-		 * because seg_length can't be overwritten with wrong value by FDMA */ 
-		seg_length = prc->seg_length;
-		fdma_delete_default_segment_data(start_padding,
-		                                 delta,
-		                                 FDMA_REPLACE_NO_FLAGS);
-		/* update prc length because represent wasn't done */
-		prc->seg_length = seg_length - (uint16_t)delta;
-		/* For recalculating running sum */
-		/* Updated FD[length] */
+	start_padding = ipv4hdr_ptr->total_length + ipv4hdr_offset;
+	if (LDPAA_FD_GET_LENGTH(HWC_FD_ADDRESS) > start_padding) {
+		/* Just update the length of the packet in the FD[length] field.
+		 * There is no need to really remove the padding bytes from
+		 * the packet. */
 		LDPAA_FD_SET_LENGTH(HWC_FD_ADDRESS, start_padding);
+		/* Update the presented segment length only if after padding
+		 * "removal", the presented default segment length is
+		 * decreased */
+		if (start_padding < PRC_GET_SEGMENT_LENGTH())
+			prc->seg_length = start_padding;
+		fdma_present_default_frame();
+		/* Force recalculating of running sum */
 		pr->gross_running_sum = 0;
 	}
 }
-
 
 IPR_CODE_PLACEMENT uint32_t out_of_order(struct ipr_rfdc *rfdc_ptr, uint64_t rfdc_ext_addr,
 		  uint32_t last_fragment, uint16_t current_frag_size,
