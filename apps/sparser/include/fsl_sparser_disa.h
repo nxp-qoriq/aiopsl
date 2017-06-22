@@ -24,13 +24,6 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/*******************************************************************************
- *                              - CAUTION -
- *
- * This code must not be distributed till we haven't a clear understanding
- * about what internals of the Parser may be exposed to customers.
- ******************************************************************************/
-
 /**************************************************************************//**
 @File		fsl_sparser_disa.h
 

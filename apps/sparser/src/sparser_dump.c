@@ -24,13 +24,6 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/*******************************************************************************
- *                              - CAUTION -
- *
- * This code must not be distributed till we haven't a clear understanding
- * about what internals of the Parser may be exposed to customers.
- ******************************************************************************/
-
 #include "fsl_types.h"
 #include "fsl_stdio.h"
 #include "fsl_general.h"
