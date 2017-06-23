@@ -286,7 +286,7 @@ CWAPR_CODE_PLACEMENT int cwapr_reassemble(
 	struct cwapr_rfdc rfdc __attribute__((aligned(16)));
 	struct cwapr_instance cwapr_instance;
 	struct scope_status_params scope_status;
-	uint64_t rfdc_ext_addr;
+	uint64_t rfdc_ext_addr = 0;
 	uint32_t status_insert_to_LL;
 	uint32_t osm_status;
 	uint32_t status;
@@ -350,7 +350,7 @@ CWAPR_CODE_PLACEMENT int cwapr_reassemble(
 			/* create nested per reassembled frame
 			 * Also serve as mutex for Timeout */
 			if ((osm_status == NO_BYPASS_OSM) ||
-				(osm_status == START_CONCURRENT)) {
+				(osm_status & START_CONCURRENT)) {
 				/* release parent to concurrent */
 				osm_scope_enter_to_exclusive_with_new_scope_id(
 						  (uint32_t)rfdc_ext_addr);
@@ -362,32 +362,16 @@ CWAPR_CODE_PLACEMENT int cwapr_reassemble(
 					     (uint32_t)rfdc_ext_addr);
 			}
 
-			/* Add increment reference cnt since CTLU doesn't
-			 * do it anymore */
-			cdma_refcount_increment(rfdc_ext_addr);
-			
 			/* read RFDC */
 			cdma_read_wrp(&rfdc, rfdc_ext_addr, CWAPR_RFDC_SIZE);
 
 			if (!(rfdc.status & RFDC_VALID)) {
-				return_to_correct_ordering_scope(osm_status);
 				/* CDMA write, dec ref_cnt and release
 				 * if ref_cnt=0.
 				 * Error is not checked since no error
 				 * can't be returned*/
-				cdma_access_context_memory_wrp(
-					rfdc_ext_addr,
-					CDMA_ACCESS_CONTEXT_MEM_DEC_REFCOUNT_AND_REL,
-					NULL,
-					&rfdc,
-					CDMA_ACCESS_CONTEXT_MEM_DMA_WRITE
-					| CWAPR_RFDC_SIZE,
-					(uint32_t *)CWAPR_REF_COUNT_ADDR);
-
-				fdma_discard_fd_wrp(
-					     (struct ldpaa_fd *)HWC_FD_ADDRESS,
-					     0,
-					     FDMA_DIS_AS_BIT);
+				return_to_correct_ordering_scope(osm_status);
+				fdma_discard_default_frame(FDMA_DIS_NO_FLAGS);
 				/* Early Time out */
 				return -ETIMEDOUT;
 			}
@@ -408,16 +392,9 @@ CWAPR_CODE_PLACEMENT int cwapr_reassemble(
 
 	if (rfdc.num_of_frags == MAX_NUM_OF_FRAGS) {
 		/* Release RFDC, dec ref_cnt, release if 0 */
-		cdma_access_context_memory_wrp(
-				  rfdc_ext_addr,
-				  CDMA_ACCESS_CONTEXT_MEM_DEC_REFCOUNT_AND_REL,
-				  NULL,
-				  &rfdc,
-				  CDMA_ACCESS_CONTEXT_NO_MEM_DMA |
-				  CWAPR_RFDC_SIZE,
-				  (uint32_t *)CWAPR_REF_COUNT_ADDR);
+
 		/* Handle ordering scope */
-		move_to_correct_cwapr_ordering_scope(osm_status);
+		return_to_correct_ordering_scope(osm_status);
 
 		update_stats_cwapr(&cwapr_instance,
 				 offsetof(struct cwapr_stats_cntrs, more_than_64_frags_cntr));
@@ -455,13 +432,7 @@ CWAPR_CODE_PLACEMENT int cwapr_reassemble(
 			}
 		}
 		/* Write updated 64 first bytes of RFDC */
-		cdma_access_context_memory_wrp(
-				       rfdc_ext_addr,
-				       CDMA_ACCESS_CONTEXT_MEM_DEC_REFCOUNT_AND_REL,
-				       NULL,
-				       &rfdc,
-				       CDMA_ACCESS_CONTEXT_MEM_DMA_WRITE | CWAPR_RFDC_SIZE,
-				       (uint32_t *)CWAPR_REF_COUNT_ADDR);
+		cdma_write_wrp(rfdc_ext_addr, &rfdc, CWAPR_RFDC_SIZE);
 
 		return_to_correct_ordering_scope(osm_status);
 
@@ -482,14 +453,8 @@ CWAPR_CODE_PLACEMENT int cwapr_reassemble(
 		/* duplicate, overlap, or non-conform fragment */
 		/* Write updated 64 first bytes of RFDC */
 		/* RFDC is written in case the opening frag is malformed */
-		if (rfdc.num_of_frags == 0)
-			cdma_access_context_memory_wrp(
-				       rfdc_ext_addr,
-				       CDMA_ACCESS_CONTEXT_MEM_DEC_REFCOUNT_AND_REL,
-				       NULL,
-				       &rfdc,
-				       CDMA_ACCESS_CONTEXT_MEM_DMA_WRITE | CWAPR_RFDC_SIZE,
-				       (uint32_t *)CWAPR_REF_COUNT_ADDR);
+		cdma_write_wrp(rfdc_ext_addr, &rfdc, CWAPR_RFDC_SIZE);
+		return_to_correct_ordering_scope(osm_status);
 
 		/* Increment no of malformed frames in extended
 		 * statistics data structure*/
@@ -504,15 +469,6 @@ CWAPR_CODE_PLACEMENT int cwapr_reassemble(
 	   from here */
 	/* Currently no default frame */
 
-	/* Reset Valid bit of RFDC */
-	rfdc.status = rfdc.status & ~RFDC_VALID;
-
-	/* Increment no of valid fragments in extended statistics
-	 * data structure*/
-	update_stats_cwapr(&cwapr_instance,
-			 offsetof(struct cwapr_stats_cntrs,
-				  valid_frags_cntr));
-
 	/* Delete timer */
 	sr_status = tman_delete_timer_wrp(rfdc.timer_handle,
 					TMAN_TIMER_DELETE_MODE_WO_EXPIRATION);
@@ -520,18 +476,14 @@ CWAPR_CODE_PLACEMENT int cwapr_reassemble(
 	if (sr_status != SUCCESS) {
 		/* Write and release updated 64 first bytes of RFDC,
 		 * dec ref_cnt, release if 0 */
-		cdma_access_context_memory_wrp(
-				  rfdc_ext_addr,
-				  CDMA_ACCESS_CONTEXT_MEM_DEC_REFCOUNT_AND_REL,
-				  NULL,
-				  &rfdc,
-				  CDMA_ACCESS_CONTEXT_MEM_DMA_WRITE |
-				  CWAPR_RFDC_SIZE,
-				  (uint32_t *)CWAPR_REF_COUNT_ADDR);
+		cdma_write_wrp(rfdc_ext_addr, &rfdc, CWAPR_RFDC_SIZE);
 
 		return_to_correct_ordering_scope(osm_status);
 		return -ETIMEDOUT;
 	}
+
+	/* Reset Valid bit of RFDC */
+	rfdc.status = rfdc.status & ~RFDC_VALID;
 
 	table_rule_delete_wrp(TABLE_ACCEL_ID_CTLU,
 			  cwapr_instance.table_id,
@@ -558,6 +510,7 @@ CWAPR_CODE_PLACEMENT int cwapr_reassemble(
 	/* Write and release updated 64 first bytes of RFDC */
 	/* CDMA write, dec ref_cnt and release if
 	 * ref_cnt=0 */
+	/* Decrement ref count of acquire */
 	cdma_access_context_memory_wrp(
 				  rfdc_ext_addr,
 				  CDMA_ACCESS_CONTEXT_MEM_DEC_REFCOUNT_AND_REL,
@@ -566,9 +519,6 @@ CWAPR_CODE_PLACEMENT int cwapr_reassemble(
 				  CDMA_ACCESS_CONTEXT_MEM_DMA_WRITE |
 				  CWAPR_RFDC_SIZE,
 				  (uint32_t *)CWAPR_REF_COUNT_ADDR);
-
-	/* Decrement ref count of acquire */
-	cdma_refcount_decrement_and_release(rfdc_ext_addr);
 
 	return_to_correct_ordering_scope(osm_status);
 
@@ -584,6 +534,11 @@ CWAPR_CODE_PLACEMENT int cwapr_reassemble(
 				offsetof(struct cwapr_instance, reass_frm_cntr),
 				1,
 				STE_MODE_32_BIT_CNTR_SIZE);
+		/* Increment no of valid fragments in extended statistics
+		 * data structure*/
+		update_stats_cwapr(&cwapr_instance,
+				 offsetof(struct cwapr_stats_cntrs,
+					  valid_frags_cntr));
 		return CWAPR_REASSEMBLY_SUCCESS;
 	}
 
@@ -656,13 +611,6 @@ CWAPR_CODE_PLACEMENT int miss_cwapr_flow(struct cwapr_instance *cwapr_instance,
 		cwapr_exception_handler(CWAPR_REASSEMBLE, __LINE__, status);
 
 	/* increment reference count */
-	cdma_access_context_memory_wrp(
-		*rfdc_ext_addr,
-		CDMA_ACCESS_CONTEXT_MEM_INC_REFCOUNT,
-		0,
-		(void *)0,
-		0,
-		(uint32_t *)CWAPR_REF_COUNT_ADDR);
 
 	/* Reset RFDC + Link List */
 	/*cdma_ws_memory_init((void *)&rfdc,
@@ -737,15 +685,15 @@ CWAPR_CODE_PLACEMENT int miss_cwapr_flow(struct cwapr_instance *cwapr_instance,
 
 	/* create nested per reassembled frame
 	 * Also serve as mutex for Timeout */
-	if ((osm_status == NO_BYPASS_OSM) || (osm_status == START_CONCURRENT)) {
+	if ((osm_status == NO_BYPASS_OSM) || (osm_status & START_CONCURRENT)) {
 		/* release parent to concurrent */
 		osm_scope_enter_to_exclusive_with_new_scope_id(
-						 (uint32_t)*rfdc_ext_addr);
+						 (uint32_t)(*rfdc_ext_addr));
 	} else {
 		/* Next step is needed only for mutex with Timeout */
 		/* doesn't release parent to concurrent */
 		osm_scope_enter(OSM_SCOPE_ENTER_CHILD_TO_EXCLUSIVE,
-				(uint32_t)*rfdc_ext_addr);
+				(uint32_t)(*rfdc_ext_addr));
 	}
 
 	return SUCCESS;
@@ -1288,6 +1236,8 @@ void timeout_cwapr_reassemble(uint64_t rfdc_ext_addr, uint16_t opaque)
 	cdma_read(&rfdc, rfdc_ext_addr, CWAPR_RFDC_SIZE);
 
 	rfdc_status = rfdc.status;
+	if (!(rfdc_status & RFDC_VALID))
+		fdma_terminate_task();
 
 	table_rule_delete_by_key_desc(TABLE_ACCEL_ID_CTLU,
 			  cwapr_instance.table_id,

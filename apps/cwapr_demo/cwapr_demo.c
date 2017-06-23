@@ -111,6 +111,9 @@ __HOT_CODE ENTRY_POINT static void app_process_packet(void)
 			else /* (err == -EBUSY) */
 				ARCH_FDMA_DISCARD_FD();
 		}
+	} else if ((reassemble_status != CWAPR_REASSEMBLY_NOT_COMPLETED) &&
+		(reassemble_status != -ETIMEDOUT)) {
+		fdma_discard_default_frame(FDMA_DIS_NO_FLAGS);
 	}
 
 	/*MUST call fdma_terminate task in the end of cb function*/
@@ -247,7 +250,7 @@ void cwapr_timout_cb(cwapr_timeout_arg_t arg, uint32_t flags)
 	UNUSED(arg);
 	UNUSED(flags);
 
-	fsl_print("CWAPR_DEMO:: Fragment timeout -----------------------");
+	fsl_print("CWAPR_DEMO:: Fragment timeout -----------------------\n");
 
 	/* Need to discard default frame */
 	fdma_discard_default_frame(FDMA_DIS_NO_FLAGS);
