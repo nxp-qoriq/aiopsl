@@ -87,6 +87,8 @@ __declspec(entry_point) void aiop_verification_fm()
 		slab_keygen_error = *((uint8_t *)data_addr + 9);
 		/* fix CR:ENGR00364084 */
 		*((uint16_t *)(HWC_PRC_ADDRESS + 0x8)) = segment_offset;
+		fsl_print("Commands in PTA : ext_address = 0x%x-%08x\n",
+			  (uint32_t)(ext_address >> 32), (uint32_t)ext_address);
 	} else {
 		present_params.flags = FDMA_PRES_SR_BIT;
 		present_params.frame_handle = PRC_GET_FRAME_HANDLE();
@@ -98,17 +100,24 @@ __declspec(entry_point) void aiop_verification_fm()
 		slab_keygen_error = data_addr[0];
 		slab_parser_error = data_addr[1];
 		ext_address = *((uint64_t *)(&(data_addr[2])));
+		fsl_print("Commands in ASA : ext_address = 0x%x-%08x\n",
+			  (uint32_t)(ext_address >> 32), (uint32_t)ext_address);
 	}
 	initial_ext_address = ext_address;
 	slab_general_error = 0;
 
 	init_verif();
 	sl_prolog();
-	
+#ifndef LS2085A_REV1
+	/* Set CDMA AxCache attributes as they are expected by the ROC MC test
+	 * application. */
+	cdma_set_data_write_attributes(NON_COHERENT_NO_CACHE_LKUP, ALLOC_NONE);
+	cdma_set_data_read_attributes(NON_COHERENT_NO_CACHE_LKUP, ALLOC_NONE);
+#endif
 	spid = *((uint8_t *)HWC_SPID_ADDRESS);
 
 	if (LDPAA_FD_GET_ASAL(HWC_FD_ADDRESS) > 
-							(storage_profile[spid].mode_bits1 & 0x0F))
+	    (storage_profile[spid].mode_bits1 & 0x0F))
 	{
 		/*set storage profile ASAR */
 		storage_profile[spid].mode_bits1 &= 0xF0;
@@ -128,11 +137,31 @@ __declspec(entry_point) void aiop_verification_fm()
 		/* Read a new buffer from DDR with DATA_SIZE */
 		cdma_read((void *)data_addr, ext_address, (uint16_t)DATA_SIZE);
 
-		
 		opcode  = *((uint32_t *) data_addr);
 		fsl_print("opcode received: 0x%x\n", opcode);
+		/*
+		 * Is this the 0x55AA55AA pseudo-command (see AIOPSL-1177) ?
+		 *
+		 * To avoid AIOP to ROC MC cache coherence issue, the ROC MC
+		 * should append the 0x55AA55AA pseudo-command and wait on the
+		 * pseudo-command offset till the value becomes 0xAA55AA55.
+		 *
+		 * Here the pseudo-command is detected and replaced with the
+		 * expected "response" 0xAA55AA55.
+		 *
+		 */
+		if (opcode == 0x55AA55AA) {
+			uint32_t	*mark_test_end;
+
+			/* End of commands list detected */
+			/*fsl_print(" End of test detected !\n");*/
+			mark_test_end = (uint32_t *)data_addr;
+			*mark_test_end = 0xAA55AA55;
+			str_size = sizeof(uint32_t);
+			cdma_write(ext_address, (void *)data_addr, str_size);
+			fdma_terminate_task();
+		}
 		opcode = (opcode & ACCEL_ID_CMD_MASK) >> 16;
-		
 
 		switch (opcode) {
 
