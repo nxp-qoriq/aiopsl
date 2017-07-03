@@ -32,9 +32,13 @@
 
 #include "general.h"
 #include "fsl_types.h"
-
 #include "fsl_cdma.h"
 
+#include "fsl_general.h"
+#include "fsl_aiop_common.h"
+#include "fsl_io.h"
+#include "fsl_sys.h"
+#include "fsl_dbg.h"
 
 /*void cdma_write(
 		uint64_t ext_address,
@@ -427,3 +431,81 @@ void cdma_exception_handler(enum cdma_function_identifier func_id,
 }
 
 #pragma pop
+
+/******************************************************************************/
+static __COLD_CODE uint32_t *get_cdma_smcacr_reg_ptr(void)
+{
+	struct aiop_tile_regs	*aregs;
+	struct aiop_cdma_regs	*cregs;
+
+	aregs = (struct aiop_tile_regs *)sys_get_handle(FSL_MOD_AIOP_TILE, 1);
+	cregs = (struct aiop_cdma_regs *)&aregs->cdma_regs;
+	return &cregs->smcacr;
+}
+
+/******************************************************************************/
+__COLD_CODE
+int cdma_set_data_write_attributes(enum aiop_bus_transaction transaction,
+				   enum aiop_cache_allocate_policy policy)
+{
+	uint32_t	*smcacr, smcacr_val, cmwc;
+
+	if ((transaction == NON_COHERENT_CACHE_LKUP ||
+	     transaction == COHERENT_CACHE_LKUP) && policy == ALLOC_NONE) {
+		pr_err("Cache lookup without allocation policy\n");
+		return -EINVAL;
+	}
+	cmwc = (uint32_t)transaction;
+	if (transaction == NON_COHERENT_CACHE_LKUP ||
+	    transaction == COHERENT_CACHE_LKUP) {
+		cmwc |= (uint32_t)policy;
+		 /* Set bufferable bit. Only write-back transactions are
+		  * supported. */
+		cmwc |= 0x01;
+	}
+	smcacr = get_cdma_smcacr_reg_ptr();
+	smcacr_val = ioread32be(smcacr) & 0xFFE0FFFF;
+	smcacr_val |= cmwc << 16;
+	iowrite32be(smcacr_val, smcacr);
+	return 0;
+}
+
+/******************************************************************************/
+__COLD_CODE
+int cdma_set_data_read_attributes(enum aiop_bus_transaction transaction,
+				  enum aiop_cache_allocate_policy policy)
+{
+	uint32_t	*smcacr, smcacr_val, cmrc;
+
+	if ((transaction == NON_COHERENT_CACHE_LKUP ||
+	     transaction == COHERENT_CACHE_LKUP) && policy == ALLOC_NONE) {
+		pr_err("Cache lookup without allocation policy\n");
+		return -EINVAL;
+	}
+	if (transaction == NON_COHERENT_CACHE_LKUP ||
+	    transaction == COHERENT_CACHE_LKUP) {
+		cmrc = (uint32_t)transaction;
+		if (policy == ALLOC_ON_MISS)
+			cmrc |= ALLOC_NONE_ON_MISS;
+		else
+			cmrc |= ALLOC_ON_MISS;
+	} else {
+		if (transaction == NON_COHERENT_NO_CACHE_LKUP)
+			transaction = NON_COHERENT_CACHE_LKUP;
+		cmrc = (uint32_t)transaction;
+	}
+	smcacr = get_cdma_smcacr_reg_ptr();
+	smcacr_val = ioread32be(smcacr) & 0xFFFFFFE0;
+	smcacr_val |= cmrc;
+	iowrite32be(smcacr_val, smcacr);
+	return 0;
+}
+
+#ifdef SL_DEBUG
+/******************************************************************************/
+__COLD_CODE uint32_t cdma_get_cache_attributes(void)
+{
+	return ioread32be(get_cdma_smcacr_reg_ptr());
+}
+
+#endif	/* SL_DEBUG */

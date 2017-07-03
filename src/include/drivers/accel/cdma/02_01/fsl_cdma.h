@@ -466,6 +466,53 @@ void cdma_refcount_get(
 		uint64_t context_address,
 		uint32_t *refcount_value);
 
+/**************************************************************************//**
+@Function	cdma_set_data_write_attributes
+
+@Description	Set FDMA data writing transactions attributes.
+
+@Param[in]	transaction - Type of data write transaction.
+@Param[in]	policy - Cache allocation policy. Significant for cached
+		transactions only.
+
+@Return		0 on success, -EINVAL if no allocation policy is configured for
+		cached transaction.
+
+*//***************************************************************************/
+int cdma_set_data_write_attributes(enum aiop_bus_transaction transaction,
+				   enum aiop_cache_allocate_policy policy);
+
+/**************************************************************************//**
+@Function	cdma_set_data_read_attributes
+
+@Description	Set FDMA data reading transactions attributes.
+
+@Param[in]	transaction - Type of data read transaction.
+@Param[in]	policy - Cache allocation policy. Significant for cached
+		transactions only.
+
+@Return		0 on success, -EINVAL if no allocation policy is configured for
+		cached transaction.
+
+*//***************************************************************************/
+int cdma_set_data_read_attributes(enum aiop_bus_transaction transaction,
+				  enum aiop_cache_allocate_policy policy);
+
+#ifdef SL_DEBUG
+/**************************************************************************//**
+@Function	cdma_get_cache_attributes
+
+@Description	Gets the FDMA transactions cache attributes.
+		API function is available if AIOP_SL and the application are
+		compiled with the SL_DEBUG macro defined.
+
+@Return		Attributes.
+
+*//***************************************************************************/
+uint32_t cdma_get_cache_attributes(void);
+
+#endif	/* SL_DEBUG */
+
 /** @} end of group CDMA_Functions */
 /** @} */ /* end of FSL_CDMA */
 /** @} */ /* end of ACCEL */
