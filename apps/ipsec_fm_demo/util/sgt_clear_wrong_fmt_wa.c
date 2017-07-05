@@ -1,0 +1,131 @@
+/******************************************************************************/
+/* Helper function to clear the Unused(reserved) value of 
+/* SGE[FMT] (Target Format) of the default FD (frame descriptor).
+/*
+/* If the Scatter/gather table and buffers are in the core virtual space use
+/* #define CORE_VIRTUAL_ACCESS
+/******************************************************************************/
+static __HOT_CODE void sgt_clear_wrong_ff_wa(void)
+{
+	uint64_t	addr, dword1, dword2;
+	uint16_t	off;
+	uint8_t		fmt, final;
+
+	#define SGE_GET_U64(_addr, _off)				    \
+		(uint64_t)({register uint64_t __rR = 0;			    \
+		uint64_t val64;						    \
+		val64 = (LLLDW_SWAP(0, (uint64_t)(((char *)_addr) + _off)));\
+		__rR = (uint64_t)val64; })
+
+	#define SGE_SET_U64(_addr, _val)				    \
+		({ LLSTDW_SWAP(_val, 0, ((char *)_addr)); })
+
+	/* Scatter/Gather FD */
+	#define FD_FMT_SG			2
+	/* SGE defines */
+	#define SGE_ADDR_SIZE			49
+	#define SGE_FMT_SGTE			2
+	/* Unused (reserved) SGE format */
+	#define FD_FMT_UNUSED_SGTE		3ULL
+	#define SGE_SF_FLD_SHIFT		20
+	#define SGE_IVP_FLD_SHIFT		(SGE_SF_FLD_SHIFT + 26)
+	#define SGE_OFF_FLD_SHIFT		(SGE_IVP_FLD_SHIFT + 2)
+	#define SGE_FMT_FLD_SHIFT		(SGE_OFF_FLD_SHIFT + 12)
+	#define SGE_SL_FLD_SHIFT		(SGE_FMT_FLD_SHIFT + 2)
+	#define SGE_F_FLD_SHIFT			(SGE_SL_FLD_SHIFT + 1)
+
+#ifndef CORE_VIRTUAL_ACCESS
+	uint8_t		sge[2 * sizeof(uint64_t)];
+
+	/* Check for FD Scatter/Gather format */
+	if (LDPAA_FD_GET_FMT(HWC_FD_ADDRESS) != FD_FMT_SG)
+		return;
+	addr = LDPAA_FD_GET_ADDR(HWC_FD_ADDRESS);
+	off = LDPAA_FD_GET_OFFSET(HWC_FD_ADDRESS);
+	do {
+		cdma_read_with_no_cache(&sge, addr + off, 2 * sizeof(uint64_t));
+		dword2 = SGE_GET_U64(sge, sizeof(uint64_t));
+		/* Set IVP field if buffer address in SGE is 0. Do that to
+		 * avoid an invalid buffer release in a BP */
+		dword1 = SGE_GET_U64(sge, 0);
+		if (!(dword1 & ((1 << SGE_ADDR_SIZE) - 1))) {
+			dword2 |= 1ULL << SGE_IVP_FLD_SHIFT;
+			SGE_SET_U64((sge + sizeof(uint64_t)), dword2);
+			cdma_write(addr + off, &sge, 2 * sizeof(uint64_t));
+		}
+		/* Unused format
+		 * All entries of this type must be ignored while processing
+		 * input frames. This space may be used to add new entries for
+		 * output. SL bit must be reset to indicate an unused entry,
+		 * the combination FMT = 2'b11 and SL = 1 is reserved for
+		 * future format extensions.*/
+		final = (uint8_t)(dword2 >> SGE_F_FLD_SHIFT) & 0x01;
+		fmt = (uint8_t)(dword2 >> SGE_FMT_FLD_SHIFT) & 0x03;
+		if (fmt == FD_FMT_UNUSED_SGTE) {
+			fmt = 0;
+			/* Clear SL field */
+			dword2 &= ~(1ULL << SGE_SL_FLD_SHIFT);
+			/* Clear FMT field */
+			dword2 &= ~(FD_FMT_UNUSED_SGTE << SGE_FMT_FLD_SHIFT);
+			SGE_SET_U64((sge + sizeof(uint64_t)), dword2);
+			cdma_write(addr + off, &sge, 2 * sizeof(uint64_t));
+		}
+		if (fmt == SGE_FMT_SGTE) {
+			/* SGT Extension */
+			addr = dword1 & ((1 << SGE_ADDR_SIZE) - 1);
+			ASSERT_COND(addr);
+			off = (uint16_t)(dword2 >> SGE_OFF_FLD_SHIFT) & 0x0fff;
+		} else {
+			off += 2 * sizeof(uint64_t);
+		}
+	} while (!final);
+#else
+	uint32_t	ext_addr;
+
+	/* Check for FD Scatter/Gather format */
+	if (LDPAA_FD_GET_FMT(HWC_FD_ADDRESS) != FD_FMT_SG)
+		return;
+	addr = LDPAA_FD_GET_ADDR(HWC_FD_ADDRESS);
+	off = LDPAA_FD_GET_OFFSET(HWC_FD_ADDRESS);
+	/* Virtual address of the first SGE in SGT */
+	ext_addr = (uint32_t)sys_phys_to_virt(addr);
+	do {
+		dword2 = SGE_GET_U64((ext_addr + off), sizeof(uint64_t));
+		/* Set IVP field if buffer address in SGE is 0. Do that to
+		 * avoid an invalid buffer release in a BP */
+		dword1 = SGE_GET_U64((ext_addr + off), 0);
+		if (!(dword1 & ((1 << SGE_ADDR_SIZE) - 1))) {
+			dword2 |= 1ULL << SGE_IVP_FLD_SHIFT;
+			SGE_SET_U64((ext_addr + off + sizeof(uint64_t)),
+				    dword2);
+		}
+		/* Unused format
+		 * All entries of this type must be ignored while processing
+		 * input frames. This space may be used to add new entries for
+		 * output. SL bit must be reset to indicate an unused entry,
+		 * the combination FMT = 2'b11 and SL = 1 is reserved for
+		 * future format extensions.*/
+		final = (uint8_t)(dword2 >> SGE_F_FLD_SHIFT) & 0x01;
+		fmt = (uint8_t)(dword2 >> SGE_FMT_FLD_SHIFT) & 0x03;
+		if (fmt == FD_FMT_UNUSED_SGTE) {
+			fmt = 0;
+			/* Clear SL field */
+			dword2 &= ~(1ULL << SGE_SL_FLD_SHIFT);
+			/* Clear FMT field */
+			dword2 &= ~(FD_FMT_UNUSED_SGTE << SGE_FMT_FLD_SHIFT);
+			SGE_SET_U64((ext_addr + off + sizeof(uint64_t)),
+				    dword2);
+		}
+		if (fmt == SGE_FMT_SGTE) {
+			/* SGT Extension */
+			addr = dword1 & ((1 << SGE_ADDR_SIZE) - 1);
+			ASSERT_COND(addr);
+			off = (uint16_t)(dword2 >> SGE_OFF_FLD_SHIFT) & 0x0fff;
+			ext_addr = (uint32_t)sys_phys_to_virt(addr);
+		} else {
+			off += 2 * sizeof(uint64_t);
+		}
+	} while (!final);
+#endif
+}
+
