@@ -187,7 +187,7 @@ static inline void sw_osm_scope_enter_to_exclusive(uint32_t osm_status,
 {
 	/* create nested per reassembled frame
 	   Also serve as mutex for Timeout */
-	if ((osm_status == NO_BYPASS_OSM) || (osm_status == START_CONCURRENT))
+	if ((osm_status == NO_BYPASS_OSM) || (osm_status & START_CONCURRENT))
 		/* release parent to concurrent */
 		osm_scope_enter_to_exclusive_with_new_scope_id(scope_id);
 	else
@@ -773,7 +773,7 @@ IPR_CODE_PLACEMENT int ipr_reassemble(ipr_instance_handle_t instance_handle)
 	struct ipr_rfdc rfdc __attribute__((aligned(16)));
 	struct ipr_instance instance_params;
 	struct scope_status_params scope_status;
-	uint64_t rfdc_ext_addr;
+	uint64_t rfdc_ext_addr = 0;
 	uint32_t fragment_status;
 	uint32_t osm_status;
 	uint32_t frame_is_ipv4;
@@ -874,7 +874,7 @@ IPR_CODE_PLACEMENT int ipr_reassemble(ipr_instance_handle_t instance_handle)
 			/* create nested per reassembled frame 
 			 * Also serve as mutex for Timeout */
 			if ((osm_status == NO_BYPASS_OSM) ||
-					(osm_status == START_CONCURRENT)) {
+					(osm_status & START_CONCURRENT)) {
 				/* release parent to concurrent */
 				osm_scope_enter_to_exclusive_with_new_scope_id(
 						  (uint32_t)rfdc_ext_addr);
@@ -887,9 +887,7 @@ IPR_CODE_PLACEMENT int ipr_reassemble(ipr_instance_handle_t instance_handle)
 					     (uint32_t)rfdc_ext_addr);
 			}
 #endif	/* USE_IPR_SW_TABLE */
-			/* Add increment reference cnt since CTLU doesn't
-			 * do it anymore */
-			cdma_refcount_increment(rfdc_ext_addr);
+
 			/* read RFDC */
 			cdma_read_wrp(&rfdc,
 				      rfdc_ext_addr,
@@ -897,23 +895,7 @@ IPR_CODE_PLACEMENT int ipr_reassemble(ipr_instance_handle_t instance_handle)
 
 			if (!(rfdc.status & RFDC_VALID)) {
 				move_to_correct_ordering_scope2(osm_status);
-				/* CDMA write, dec ref_cnt and release
-				 * if ref_cnt=0.
-				 * Error is not checked since no error
-				 * can't be returned*/
-				cdma_access_context_memory_wrp(
-				rfdc_ext_addr,
-				CDMA_ACCESS_CONTEXT_MEM_DEC_REFCOUNT_AND_REL,
-				NULL,
-				&rfdc,
-				CDMA_ACCESS_CONTEXT_MEM_DMA_WRITE
-				| RFDC_SIZE,
-				(uint32_t *)REF_COUNT_ADDR_DUMMY);
-
-				fdma_discard_fd_wrp(
-					     (struct ldpaa_fd *)HWC_FD_ADDRESS,
-					     0,
-					     FDMA_DIS_AS_BIT);
+				fdma_discard_default_frame(FDMA_DIS_NO_FLAGS);
 				/* Early Time out */
 				return -ETIMEDOUT;
 			}
@@ -933,7 +915,11 @@ IPR_CODE_PLACEMENT int ipr_reassemble(ipr_instance_handle_t instance_handle)
 		} else {
 		/* TLU lookup SR error */
 		pr_err("IPR Lookup failed\n");
+#ifdef USE_IPR_SW_TABLE
 		move_to_correct_ordering_scope2(osm_status);
+#else
+		move_to_correct_ordering_scope1(osm_status);
+#endif
 		ipr_stats_update(&instance_params,
 				 offsetof(struct extended_stats_cntrs,
 					  open_reass_frms_exceed_ipv4_cntr),
@@ -942,15 +928,6 @@ IPR_CODE_PLACEMENT int ipr_reassemble(ipr_instance_handle_t instance_handle)
 	}
 
 	if (rfdc.num_of_frags == MAX_NUM_OF_FRAGS) {
-		/* Release RFDC, dec ref_cnt, release if 0 */
-		cdma_access_context_memory_wrp(
-				  rfdc_ext_addr,
-				  CDMA_ACCESS_CONTEXT_MEM_DEC_REFCOUNT_AND_REL,
-				  NULL,
-				  &rfdc,
-				  CDMA_ACCESS_CONTEXT_NO_MEM_DMA |
-				  RFDC_SIZE,
-				  (uint32_t *)REF_COUNT_ADDR_DUMMY);
 		/* Handle ordering scope */
 		move_to_correct_ordering_scope2(osm_status);
 
@@ -1016,13 +993,7 @@ IPR_CODE_PLACEMENT int ipr_reassemble(ipr_instance_handle_t instance_handle)
 			}
 		}
 		/* Write updated 64 first bytes of RFDC */
-		cdma_access_context_memory_wrp(
-				       rfdc_ext_addr,
-				       CDMA_ACCESS_CONTEXT_MEM_DEC_REFCOUNT_AND_REL,
-				       NULL,
-				       &rfdc,
-				       CDMA_ACCESS_CONTEXT_MEM_DMA_WRITE | RFDC_SIZE,
-				       (uint32_t *)REF_COUNT_ADDR_DUMMY);
+		cdma_write_wrp(rfdc_ext_addr, &rfdc, RFDC_SIZE);
 
 		move_to_correct_ordering_scope2(osm_status);
 
@@ -1058,14 +1029,8 @@ IPR_CODE_PLACEMENT int ipr_reassemble(ipr_instance_handle_t instance_handle)
 		/* duplicate, overlap, or non-conform fragment */
 		/* Write updated 64 first bytes of RFDC */
 		/* RFDC is written in case the opening frag is malformed */
-		if(rfdc.num_of_frags == 0)
-			cdma_access_context_memory_wrp(
-				       rfdc_ext_addr,
-				       CDMA_ACCESS_CONTEXT_MEM_DEC_REFCOUNT_AND_REL,
-				       NULL,
-				       &rfdc,
-				       CDMA_ACCESS_CONTEXT_MEM_DMA_WRITE | RFDC_SIZE,
-				       (uint32_t *)REF_COUNT_ADDR_DUMMY);
+		cdma_write_wrp(rfdc_ext_addr, &rfdc, RFDC_SIZE);
+		move_to_correct_ordering_scope2(osm_status);
 
 		/* Increment no of malformed frames in extended
 		 * statistics data structure*/
@@ -1082,35 +1047,19 @@ IPR_CODE_PLACEMENT int ipr_reassemble(ipr_instance_handle_t instance_handle)
 	   from here */
 	/* Currently no default frame */
 
-	/* Reset Valid bit of RFDC */
-	rfdc.status = rfdc.status & ~RFDC_VALID;
-	
-	/* Increment no of valid fragments in extended statistics
-	 * data structure*/
-	ipr_stats_update(&instance_params,
-			 offsetof(struct extended_stats_cntrs,
-				  valid_frags_cntr_ipv4),
-			 frame_is_ipv4);
-
 	/* Delete timer */
 	sr_status = tman_delete_timer_wrp(rfdc.timer_handle,
 			  	  	 TMAN_TIMER_DELETE_MODE_WO_EXPIRATION);
 	/* DEBUG : check ENAVAIL */
 	if(sr_status != SUCCESS) {
-		/* Write and release updated 64 first bytes of RFDC,
-		 * dec ref_cnt, release if 0 */
-		cdma_access_context_memory_wrp(
-				  rfdc_ext_addr,
-				  CDMA_ACCESS_CONTEXT_MEM_DEC_REFCOUNT_AND_REL,
-				  NULL,
-				  &rfdc,
-				  CDMA_ACCESS_CONTEXT_MEM_DMA_WRITE |
-				  RFDC_SIZE,
-				  (uint32_t *)REF_COUNT_ADDR_DUMMY);
-
+		/* Write updated 64 first bytes of RFDC */
+		cdma_write_wrp(rfdc_ext_addr, &rfdc, RFDC_SIZE);
 		move_to_correct_ordering_scope2(osm_status);
 		return -ETIMEDOUT;
 	}
+
+	/* Reset Valid bit of RFDC */
+	rfdc.status = rfdc.status & ~RFDC_VALID;
 
 #ifndef USE_IPR_SW_TABLE
 	if (frame_is_ipv4) {
@@ -1146,6 +1095,7 @@ IPR_CODE_PLACEMENT int ipr_reassemble(ipr_instance_handle_t instance_handle)
 	/* Write and release updated 64 first bytes of RFDC */
 	/* CDMA write, dec ref_cnt and release if
 	 * ref_cnt=0 */
+	/* Decrement ref count of acquire */
 	cdma_access_context_memory_wrp(
 				  rfdc_ext_addr,
 				  CDMA_ACCESS_CONTEXT_MEM_DEC_REFCOUNT_AND_REL,
@@ -1154,9 +1104,6 @@ IPR_CODE_PLACEMENT int ipr_reassemble(ipr_instance_handle_t instance_handle)
 				  CDMA_ACCESS_CONTEXT_MEM_DMA_WRITE |
 				  RFDC_SIZE,
 				  (uint32_t *)REF_COUNT_ADDR_DUMMY);
-	
-	/* Decrement ref count of acquire */
-	cdma_refcount_decrement_and_release(rfdc_ext_addr);
 
 #ifdef USE_IPR_SW_TABLE
 	/* delete this late the key from IPR_SW_TABLE because
@@ -1190,6 +1137,12 @@ IPR_CODE_PLACEMENT int ipr_reassemble(ipr_instance_handle_t instance_handle)
 					ipv4_reass_frm_cntr),
 					1,
 					STE_MODE_32_BIT_CNTR_SIZE);
+			/* Increment no of valid fragments in
+			 * extended statistics data structure*/
+			ipr_stats_update(&instance_params,
+					 offsetof(struct extended_stats_cntrs,
+						  valid_frags_cntr_ipv4),
+					 frame_is_ipv4);
 			return IPR_REASSEMBLY_SUCCESS;
 		}
 	} else { /* IPv6 */
@@ -1207,7 +1160,12 @@ IPR_CODE_PLACEMENT int ipr_reassemble(ipr_instance_handle_t instance_handle)
 					ipv6_reass_frm_cntr),
 					1,
 					STE_MODE_32_BIT_CNTR_SIZE);
-
+			/* Increment no of valid fragments in
+			 * extended statistics data structure*/
+			ipr_stats_update(&instance_params,
+					 offsetof(struct extended_stats_cntrs,
+						  valid_frags_cntr_ipv4),
+					 frame_is_ipv4);
 			return IPR_REASSEMBLY_SUCCESS;
 		}
 	}
@@ -1300,14 +1258,6 @@ IPR_CODE_PLACEMENT int ipr_miss_handling(struct ipr_instance *instance_params_pt
 	if(sr_status)
 		ipr_exception_handler(IPR_REASSEMBLE,__LINE__,
 				      sr_status);
-	/* increment reference count*/
-	cdma_access_context_memory_wrp(
-		*rfdc_ext_addr_ptr,
-		CDMA_ACCESS_CONTEXT_MEM_INC_REFCOUNT,
-		0,
-		(void *)0,
-		0,
-		(uint32_t *)REF_COUNT_ADDR_DUMMY);
 
 #ifndef USE_IPR_SW_TABLE
 	/* Reset RFDC + Link List */
@@ -1463,16 +1413,16 @@ IPR_CODE_PLACEMENT int ipr_miss_handling(struct ipr_instance *instance_params_pt
 #ifndef USE_IPR_SW_TABLE
 	/* create nested per reassembled frame 
 	 * Also serve as mutex for Timeout */
-	if ((osm_status == NO_BYPASS_OSM) || (osm_status == START_CONCURRENT)) {
+	if ((osm_status == NO_BYPASS_OSM) || (osm_status & START_CONCURRENT)) {
 		/* release parent to concurrent */
 		osm_scope_enter_to_exclusive_with_new_scope_id(
-						 (uint32_t)*rfdc_ext_addr_ptr);
+						 (uint32_t)(*rfdc_ext_addr_ptr));
 	}
 	else {
 		/* Next step is needed only for mutex with Timeout */
 		/* doesn't release parent to concurrent */
 		osm_scope_enter(OSM_SCOPE_ENTER_CHILD_TO_EXCLUSIVE,
-				(uint32_t)*rfdc_ext_addr_ptr);
+				(uint32_t)(*rfdc_ext_addr_ptr));
 	}
 #endif	/* USE_IPR_SW_TABLE */
 
@@ -1589,7 +1539,7 @@ IPR_CODE_PLACEMENT uint32_t ipr_insert_to_link_list(struct ipr_rfdc *rfdc_ptr,
 			rfdc_ptr->first_frag_hdr_length = ip_header_size;
 		else
 			rfdc_ptr->first_frag_hdr_length = ip_header_size - 8;
-			
+
 		if (pr->gross_running_sum == 0) {
 			/* current_running_sum is used as a temporary location
 			 * for stack optimization*/
@@ -2357,6 +2307,8 @@ void ipr_time_out(uint64_t rfdc_ext_addr, uint16_t opaque_not_used)
 		  RFDC_SIZE);
 
 	rfdc_status = rfdc.status;
+	if (!(rfdc_status & RFDC_VALID))
+		fdma_terminate_task();
 
 #ifndef USE_IPR_SW_TABLE
 	if (rfdc_status & IPV6_FRAME) {
@@ -2495,7 +2447,7 @@ IPR_CODE_PLACEMENT void move_to_correct_ordering_scope2(uint32_t osm_status)
 IPR_CODE_PLACEMENT void check_remove_padding()
 {
 	uint16_t			ipv4hdr_offset;
-	uint16_t			start_padding;
+	uint32_t			start_padding;
 	struct ipv4hdr			*ipv4hdr_ptr;
 	struct	parse_result		*pr;
 	struct presentation_context	*prc;
@@ -2505,7 +2457,7 @@ IPR_CODE_PLACEMENT void check_remove_padding()
 	ipv4hdr_offset = (uint16_t)PARSER_GET_OUTER_IP_OFFSET_DEFAULT();
 	ipv4hdr_ptr = (struct ipv4hdr *)
 		  (ipv4hdr_offset + PRC_GET_SEGMENT_ADDRESS());
-	start_padding = ipv4hdr_ptr->total_length + ipv4hdr_offset;
+	start_padding = (uint32_t)ipv4hdr_ptr->total_length + ipv4hdr_offset;
 	if (LDPAA_FD_GET_LENGTH(HWC_FD_ADDRESS) > start_padding) {
 		/* Just update the length of the packet in the FD[length] field.
 		 * There is no need to really remove the padding bytes from
@@ -2515,7 +2467,7 @@ IPR_CODE_PLACEMENT void check_remove_padding()
 		 * "removal", the presented default segment length is
 		 * decreased */
 		if (start_padding < PRC_GET_SEGMENT_LENGTH())
-			prc->seg_length = start_padding;
+			prc->seg_length = (uint16_t)start_padding;
 		fdma_present_default_frame();
 		/* Force recalculating of running sum */
 		pr->gross_running_sum = 0;
@@ -2890,7 +2842,6 @@ IPR_CODE_PLACEMENT uint32_t is_atomic_fragment()
 	}
 	return 0;
 }
-
 
 void ipr_modify_max_reass_frm_size(ipr_instance_handle_t ipr_instance,
 					  uint16_t max_reass_frm_size)

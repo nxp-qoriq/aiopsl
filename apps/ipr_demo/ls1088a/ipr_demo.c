@@ -202,6 +202,9 @@ __HOT_CODE ENTRY_POINT static void app_process_packet(void)
 			fsl_print("Finished SUCCESSFULLY\n");
 		else
 			fsl_print("Finished with ERRORS\n");
+	} else if ((reassemble_status != IPR_REASSEMBLY_NOT_COMPLETED) &&
+		   (reassemble_status != -ETIMEDOUT)) {
+		fdma_discard_default_frame(FDMA_DIS_NO_FLAGS);
 	}
 	/*MUST call fdma_terminate task in the end of cb function*/
 	fdma_terminate_task();
