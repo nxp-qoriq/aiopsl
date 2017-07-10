@@ -43,9 +43,8 @@
 
 #define NEXT_ADDR_OFFSET (PTR_TO_UINT(&((t_slob_block *)0)->next_addr))
 
-static uint64_t slob_get_normal_alignment(t_MM *p_MM,
-                                   const uint64_t size,
-                                   const uint32_t i);
+static uint64_t slob_get_alignment(t_MM *p_MM, const uint64_t size,
+				   const uint32_t i);
 
 
 /* Put all function (execution code) into  dtext_vle section , aka __COLD_CODE */
@@ -639,111 +638,7 @@ static void add_busy(t_MM *p_MM, t_slob_block* busy_b,uint64_t new_busy_addr)
  *
  ****************************************************************/
 
-/****************************************************************
- *  Routine:     slob_get_greater_alignment
- *
- *  Description:
- *      Allocates a block of memory according to the given size
- *      and the alignment. That routine is called from the MM_Get
- *      routine if the required alignment is greater then MM_MAX_ALIGNMENT.
- *      In that case, it goes over free blocks of 64 byte align list
- *      and checks if it has the required size of bytes of the required
- *      alignment. If no blocks found returns 0.
- *      After the block is found and data is allocated, it calls
- *      the internal CutFree routine to update all free lists
- *      do not include a just allocated block. Of course, each
- *      free list contains a free blocks with the same alignment.
- *      It is also creates a busy block that holds
- *      information about an allocated block.
- *
- *  Arguments:
- *      MM              - handle to the MM object
- *      size            - size of the MM
- *      alignment       - index as a power of two defines
- *                        a required alignment that is greater then 64.
- *      name            - the name that specifies an allocated block.
- *
- *  Return value:
- *      base address of an allocated block.
- *      0 if can't allocate a block
- *
- ****************************************************************/
-/* This pragma is a directive for the compiler not to in-line cdma_read/cdma_write.
- * Without the pragma the function uses a big stack size.
- * These  functions require 4 consecutive registers to be available  forcing compiler
- * to store more variables on the stack. All the in-lined functions inside the
- * pragma become regular functions.
- */
-#ifdef OPTIMIZE_STACK_SIZE
-#pragma dont_inline on
-#endif
-static uint64_t slob_get_greater_alignment(t_MM *p_MM,
-                                           const uint64_t size,
-                                           const uint32_t alignment)
-{
-    t_slob_block block = {0};
-    uint64_t new_busy_addr = 0;
-    uint64_t  free_addr = 0;
-    static uint64_t    hold_base = 0, hold_end = 0, align_base = 0;
 
-    /* goes over free blocks of the 64 byte alignment list
-       and look for a block of the suitable size and
-       base address according to the alignment. */
-    cdma_read(&free_addr,p_MM->head_free_blocks_addr + MM_MAX_ALIGNMENT*sizeof(uint64_t),
-              sizeof(free_addr));
-    if(0 != free_addr )
-    {
-	fdma_dma_data(sizeof(block),s_ic.icid,&block,free_addr,
-	              FDMA_DMA_DA_SYS_TO_SRAM_BIT);
-    }
-    while(free_addr)
-    {
-	  align_base = ALIGN_UP_64(block.base, alignment);
-
-        /* the block is found if the aligned base inside the block
-         * and has the enough size. */
-	  if ( align_base >= block.base &&
-	       align_base < block.end &&
-	       size <= (block.end - align_base) )
-	      break;
-	  else
-	  {
-	      free_addr = block.next_addr;
-	      fdma_dma_data(sizeof(block),s_ic.icid,&block,free_addr,
-	                    FDMA_DMA_DA_SYS_TO_SRAM_BIT);
-	  }
-    }
-
-    /* If such block isn't found */
-    if ( 0 == free_addr  )
-    {
-        return 0LL;
-    }
-
-    hold_base = align_base;
-    hold_end = align_base + size;
-
-    /* init a new busy block */
-    if (create_new_block(&hold_base, &size,&new_busy_addr) != 0)
-    {
-        return 0LL;
-    }
-
-    /* calls Update routine to update a lists of free blocks */
-    if ( cut_free ( p_MM, &hold_base, &hold_end ) != 0 ) {
-            buff_pool_put( s_slob_bf_pool,new_busy_addr);
-	    return 0LL;
-    }
-
-    /* insert the new busy block into the list of busy blocks */
-    fdma_dma_data(sizeof(block),s_ic.icid,&block,new_busy_addr,
-                  FDMA_DMA_DA_SYS_TO_SRAM_BIT);
-    add_busy ( p_MM,&block,new_busy_addr);
-    return (hold_base);
-}
-#ifdef OPTIMIZE_STACK_SIZE
-#pragma dont_inline reset
-#endif
 
 /**********************************************************************
  *                     MM API routines set                            *
@@ -811,22 +706,26 @@ int slob_init(uint64_t*slob, const uint64_t base, const uint64_t size,
     }
 
     /* Initializes a new free block for each free list*/
-    for (i=0; i <= MM_MAX_ALIGNMENT; i++)
-    {
-        new_base = ALIGN_UP_64( base, (0x1 << i) );
-        new_size = size - (new_base - base);
+	for (i = 0; i <= MM_MAX_ALIGNMENT; i++) {
+		new_base = ALIGN_UP_64(base, (0x1 << i));
 
-        if (create_new_block(&new_base,
-                             &new_size,
-                             &free_blocks_addr) != 0) {
-            cdma_write(paddr,&MM,sizeof(MM));
-            slob_free(&paddr);
-            sl_pr_err("Slob: memory allocation failed");
-            return -ENOMEM;
-        }
-        cdma_write(MM.head_free_blocks_addr + i*sizeof(uint64_t),&free_blocks_addr,
-                   sizeof(uint64_t));
-    }
+		if (new_base - base > size) {
+			new_base = 0;
+			new_size = 0;
+		} else {
+			new_size = size - (new_base - base);
+		}
+
+		if (create_new_block(&new_base, &new_size, &free_blocks_addr)
+				!= 0) {
+			cdma_write(paddr, &MM, sizeof(MM));
+			slob_free(&paddr);
+			sl_pr_err("Slob: memory allocation failed");
+			return -ENOMEM;
+		}
+		cdma_write(MM.head_free_blocks_addr + i * sizeof(uint64_t),
+			   &free_blocks_addr, sizeof(uint64_t));
+	}
     cdma_write(paddr,&MM,sizeof(MM));
     return (0);
 }
@@ -848,6 +747,7 @@ void slob_free(uint64_t* slob)
 
     /* release memory allocated for busy blocks */
     busy_block_addr = MM.head_busy_blocks_addr;
+
     if( 0 != busy_block_addr)
     {
         cdma_read(&busy_block,busy_block_addr,sizeof(busy_block_addr));
@@ -885,103 +785,123 @@ void slob_free(uint64_t* slob)
         }
     }
 }
-/*****************************************************************************/
-static uint64_t slob_get_normal_alignment(t_MM *p_MM,
-                                   const uint64_t size,
-                                   const uint32_t alignment)
+
+/****************************************************************
+ *  Routine:     slob_get_alignment
+ *
+ *  Description:
+ *      Allocates a block of memory according to the given size
+ *      and the alignment. This routine is called from the slob_get
+ *      routine. It goes through all free blocks of the corresponding align list
+ *      and looks for one which has the required size.
+ *      If no blocks found returns 0.
+ *      After the block is found and data is allocated, it calls the internal
+ *      CutFree routine to update all free lists to not include
+ *      the just allocated block. It also creates a busy block that holds
+ *      information about the allocated block.
+ *
+ *  Arguments:
+ *      MM              - handle to the MM object
+ *      size            - size of the MM
+ *      alignment       - index as a power of two
+ *                        invoked with alignment = MM_MAX_ALIGNMENT if the
+ *                        requested alignment is greater than MM_MAX_ALIGNMENT
+ *      name            - the name that specifies an allocated block.
+ *
+ *  Return value:
+ *      base address of an allocated block.
+ *      0 if can't allocate a block
+ *
+ ****************************************************************/
+static uint64_t slob_get_alignment(t_MM *p_MM,
+				   const uint64_t size,
+				   const uint32_t alignment)
 {
-     uint64_t addr = 0;
-     t_slob_block block = {0};
-     static uint64_t    hold_base,hold_end;
-     uint32_t i;
-     LOG2(alignment,i);
-    /* look for a block of the size greater or equal to the required size. */
-    cdma_read(&addr,p_MM->head_free_blocks_addr + i*sizeof(uint64_t),
-              sizeof(addr));
-    if(0 != addr)
-    {
-	fdma_dma_data(sizeof(block),s_ic.icid,&block,addr,
-	              FDMA_DMA_DA_SYS_TO_SRAM_BIT);
-    }
-    while ( addr && (block.end - block.base) < size )
-    {
-        addr = block.next_addr;
-        if(0 != addr)
-        {
-            fdma_dma_data(sizeof(block),s_ic.icid,&block,addr,
-                          FDMA_DMA_DA_SYS_TO_SRAM_BIT);
-        }
-    }
+	uint64_t addr = 0;
+	t_slob_block block = {0};
+	static uint64_t hold_base, hold_end;
+	uint32_t i;
 
-    /* If such block is not found */
-    if ( addr == 0)
-    {
-        return 0LL;
-    }
+	LOG2(alignment, i);
 
-    hold_base =  block.base;
-    hold_end = hold_base + size;
+	/* look for a block of the size greater or equal to the required size.*/
+	cdma_read(&addr, p_MM->head_free_blocks_addr + i * sizeof(uint64_t),
+		  sizeof(addr));
 
-    /* init a new busy block */
-    if (create_new_block(&hold_base,
-                         &size,
-		         &addr) != 0)
-    {
-        return 0LL;
-    }
-    /* calls Update routine to update a lists of free blocks */
-    if ( cut_free (p_MM, &hold_base, &hold_end ) != 0 )
-    {
-        buff_pool_put(s_slob_bf_pool,addr);
-        return 0LL;
-    }
+	if (0 != addr) {
+		fdma_dma_data(sizeof(block), s_ic.icid, &block, addr,
+			      FDMA_DMA_DA_SYS_TO_SRAM_BIT);
+	}
 
-    /* Decreasing the allocated memory size from free memory size */
-    p_MM->free_mem_size -= size;
-    /* insert the new busy block into the list of busy blocks */
-    fdma_dma_data(sizeof(block),s_ic.icid,&block,addr,
-                  FDMA_DMA_DA_SYS_TO_SRAM_BIT);
-    add_busy (p_MM,&block,addr);
-    return (hold_base);
+	/* check if block was not invalidated for being outside memory range */
+	if (0 == block.end)
+		return 0LL;
+
+	while (addr && (block.end - block.base) < size) {
+		addr = block.next_addr;
+		if (0 != addr) {
+			fdma_dma_data(sizeof(block), s_ic.icid, &block, addr,
+				      FDMA_DMA_DA_SYS_TO_SRAM_BIT);
+		}
+	}
+
+	/* If such block is not found */
+	if (addr == 0)
+		return 0LL;
+
+	hold_base =  block.base;
+	hold_end = hold_base + size;
+
+	/* init a new busy block */
+	if (create_new_block(&hold_base, &size, &addr) != 0)
+		return 0LL;
+	/* calls Update routine to update a lists of free blocks */
+	if (cut_free(p_MM, &hold_base, &hold_end) != 0) {
+		buff_pool_put(s_slob_bf_pool, addr);
+		return 0LL;
+	}
+
+	/* Decreasing the allocated memory size from free memory size */
+	p_MM->free_mem_size -= size;
+	/* insert the new busy block into the list of busy blocks */
+	fdma_dma_data(sizeof(block), s_ic.icid, &block, addr,
+		      FDMA_DMA_DA_SYS_TO_SRAM_BIT);
+	add_busy(p_MM, &block, addr);
+	return hold_base;
 }
+
 /*****************************************************************************/
 uint64_t slob_get(uint64_t* slob, const uint64_t size, uint32_t alignment)
 {
-    t_MM        MM = {0};
-    uint64_t    hold_base;
-    uint32_t i = 0;
+	t_MM        MM = {0};
+	uint64_t    hold_base;
+	uint32_t i = 0;
 
-    ASSERT_COND(slob);
+	ASSERT_COND(slob);
 
+	if (!is_power_of_2(alignment)) {
+		sl_pr_err("Slob invalid value: alignment (should be power of 2)\n");
+		return 0LL;
+	}
+	if (size == 0)
+		sl_pr_err("Slob invalid value: allocation size must be positive\n");
 
-    if(!is_power_of_2(alignment))
-    {
-	sl_pr_err("Slob invalid value: alignment (should be power of 2)\n");
-        return 0LL;
-    }
-    if (size == 0)
-    {
-        sl_pr_err("Slob invalid value: allocation size must be positive\n");
-    }
-    if (alignment == 0)
-    {
-        alignment = 1;
-    }
-    LOG2(alignment,i);
-    if (i > MM_MAX_ALIGNMENT)
-    {
-        cdma_read(&MM,*slob,sizeof(MM));
-        hold_base = slob_get_greater_alignment(&MM, size, alignment);
-        cdma_write(*slob,&MM,sizeof(MM));
+	if (alignment == 0)
+		alignment = 1;
 
-    }
-    else
-    {
-	cdma_read(&MM,*slob,sizeof(MM));
-	hold_base = slob_get_normal_alignment(&MM, size,alignment);
-	cdma_write(*slob,&MM,sizeof(MM));
-    }
-    return hold_base;
+	LOG2(alignment, i);
+	if (i > MM_MAX_ALIGNMENT) {
+		cdma_read(&MM, *slob, sizeof(MM));
+		hold_base = slob_get_alignment(&MM, size,
+					       (1 << MM_MAX_ALIGNMENT));
+		cdma_write(*slob, &MM, sizeof(MM));
+	} else {
+		cdma_read(&MM, *slob, sizeof(MM));
+		hold_base = slob_get_alignment(&MM, size, alignment);
+		cdma_write(*slob, &MM, sizeof(MM));
+	}
+
+	return hold_base;
 }
 
 /*****************************************************************************/
