@@ -1024,43 +1024,93 @@ uint64_t slob_get_free_mem_size(uint64_t* slob)
     return MM.free_mem_size;
 }
 
+#endif
+
+#ifdef SL_DEBUG
 /*****************************************************************************/
 void slob_dump(uint64_t* slob)
 {
-    t_MM        MM = {0};
-    t_slob_block block = {0};
-    uint64_t busy_b_addr = 0,free_b_addr = 0;
-    int          i;
+	t_MM        MM = {0};
+	t_slob_block block = {0};
+	uint64_t busy_b_addr = 0, free_b_addr = 0;
+	int          i;
+	uint64_t size = 0;
+	uint32_t hr_size = 0;
+	char units[4][3] = {"GB", "MB", "KB", "B"};
+	char *unit;
 
-    ASSERT_COND(*slob);
+	ASSERT_COND(*slob);
 
-    cdma_read(&MM,*slob,sizeof(MM));
+	cdma_read(&MM, *slob, sizeof(MM));
 
-    busy_b_addr = MM.head_busy_blocks_addr;
+	busy_b_addr = MM.head_busy_blocks_addr;
 
-    pr_debug("list of busy blocks:\n");
-    while (busy_b_addr)
-    {
-	cdma_read(&block,busy_b_addr,sizeof(block));
-        pr_debug("\t0x%llx: ( b=0x%llx, e=0x%llx)\n", busy_b_addr, block.base, block.end );
-        busy_b_addr = block.next_addr;
-    }
+	pr_debug("list of busy blocks:\n");
+	while (busy_b_addr) {
+		cdma_read(&block, busy_b_addr, sizeof(block));
+		size = block.end - block.base;
+		if (size > 1ULL * GIGABYTE) {
+			hr_size = (uint32_t)(size >> 30);
+			unit = units[0];
+		} else if (size > 1ULL * MEGABYTE) {
+			hr_size = (uint32_t)(size >> 20);
+			unit = units[1];
+		} else if (size > 1ULL * KILOBYTE) {
+			hr_size = (uint32_t)(size >> 10);
+			unit = units[2];
+		} else {
+			hr_size = (uint32_t)size;
+			unit = units[3];
+		}
 
-    pr_debug("\n_lists of free blocks according to alignment:\n");
-    for (i=0; i <= MM_MAX_ALIGNMENT; i++)
-    {
-        pr_debug("%d alignment:\n", (0x1 << i));
-        cdma_read(&free_b_addr,MM.head_free_blocks_addr + i*sizeof(uint64_t),
-                  sizeof(free_b_addr));
-        while (free_b_addr)
-        {
-            cdma_read(&block,free_b_addr,sizeof(block));
-            pr_debug("\t0x%llx: (b=0x%llx, e=0x%llx)\n", free_b_addr, block.base, block.end);
-            free_b_addr = block.next_addr;
-        }
-        pr_debug("\n");
-    }
+		/* addr: (b=base, e=end, s=size) */
+		pr_debug("\t0x%x-%08x: b=0x%x-%08x, e=0x%x-%08x, s=0x%x-%08x (%d %s)\n",
+			 (uint32_t)(busy_b_addr >> 32), (uint32_t)busy_b_addr,
+			 (uint32_t)(block.base >> 32), (uint32_t)block.base,
+			 (uint32_t)(block.end >> 32), (uint32_t)block.end,
+			 (uint32_t)(size >> 32), (uint32_t)size,
+			 hr_size, unit);
+		busy_b_addr = block.next_addr;
+	}
+
+	pr_debug("\n");
+	pr_debug("lists of free blocks according to alignment:\n");
+	for (i = 0; i <= MM_MAX_ALIGNMENT; i++) {
+		pr_debug("%d alignment:\n", (0x1 << i));
+		cdma_read(&free_b_addr,
+			  MM.head_free_blocks_addr + i * sizeof(uint64_t),
+			  sizeof(free_b_addr));
+		while (free_b_addr) {
+			cdma_read(&block, free_b_addr, sizeof(block));
+			size = block.end - block.base;
+			if (size > 1ULL * GIGABYTE) {
+				hr_size = (uint32_t)(size >> 30);
+				unit = units[0];
+			}
+			if (size > 1ULL * MEGABYTE) {
+				hr_size = (uint32_t)(size >> 20);
+				unit = units[1];
+			} else if (size > 1ULL * KILOBYTE) {
+				hr_size = (uint32_t)(size >> 10);
+				unit = units[2];
+			} else {
+				hr_size = (uint32_t)size;
+				unit = units[3];
+			}
+
+			pr_debug("\t0x%x-%08x: b=0x%x-%08x, e=0x%x-%08x, s=0x%x-%08x (%d %s)\n",
+				 (uint32_t)(free_b_addr >> 32),
+				 (uint32_t)free_b_addr,
+				 (uint32_t)(block.base >> 32),
+				 (uint32_t)block.base,
+				 (uint32_t)(block.end >> 32),
+				 (uint32_t)block.end,
+				 (uint32_t)(size >> 32), (uint32_t)size,
+				 hr_size, unit);
+			free_b_addr = block.next_addr;
+		}
+		pr_debug("\n");
+	}
 }
-#endif
-
+#endif /* SL_DEBUG */
 __END_COLD_CODE

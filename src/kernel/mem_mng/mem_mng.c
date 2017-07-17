@@ -46,7 +46,7 @@
 #include "buffer_pool.h"
 #include "fsl_cdma.h"
 
-
+#include "fsl_system.h"
 
 #ifdef UNDER_CONSTRUCTION
 //@@@@ todo:
@@ -912,4 +912,91 @@ int mem_mng_mem_partitions_init_completed(void*  h_mem_mng)
 	p_mem_mng->mem_partitions_initialized = 1;
 	return 0;
 }
+
+#ifdef SL_DEBUG
+/*****************************************************************************/
+void phys_mem_partition_dump(int part_id)
+{
+	t_mem_mng_phys_addr_alloc_partition *p_part = NULL;
+
+	char units[4][3] = {"GB", "MB", "KB", "B"};
+	char *unit;
+	uint32_t hr_size = 0;
+
+	p_part = &sys.mem_mng.phys_allocation_mem_partitions_array[part_id];
+
+	if (!p_part->was_initialized) {
+		pr_err("Partition was not  initialized!\n");
+		return;
+	}
+
+	if (p_part->info.size > 1ULL * GIGABYTE) {
+		hr_size = (uint32_t)(p_part->info.size >> 30);
+		unit = units[0];
+	} else if (p_part->info.size > 1ULL * MEGABYTE) {
+		hr_size = (uint32_t)(p_part->info.size >> 20);
+		unit = units[1];
+	} else if (p_part->info.size > 1ULL * KILOBYTE) {
+		hr_size = (uint32_t)(p_part->info.size >> 10);
+		unit = units[2];
+	} else {
+		hr_size = (uint32_t)p_part->info.size;
+		unit = units[3];
+	}
+
+	pr_debug("%s partition info:\n", p_part->info.name);
+	pr_debug("\tid = %d, base_addr = 0x%x-%08x, size = 0x%x-%08x (%d %s)\n",
+		 p_part->id,
+		 (uint32_t)(p_part->info.base_paddress >> 32),
+		 (uint32_t)p_part->info.base_paddress,
+		 (uint32_t)(p_part->info.size >> 32),
+		 (uint32_t)p_part->info.size,
+		 hr_size, unit);
+
+	slob_dump(&p_part->h_mem_manager);
+}
+
+/*****************************************************************************/
+void virt_mem_partition_dump(int part_id)
+{
+	t_mem_mng_partition *p_part = NULL;
+
+	char units[4][3] = {"GB", "MB", "KB", "B"};
+	char *unit;
+	uint32_t hr_size = 0;
+
+	p_part = &sys.mem_mng.mem_partitions_array[part_id];
+
+	if (!p_part->was_initialized) {
+		pr_err("Partition was not  initialized!\n");
+		return;
+	}
+
+	if (p_part->info.size > 1ULL * GIGABYTE) {
+		hr_size = (uint32_t)(p_part->info.size >> 30);
+		unit = units[0];
+	} else if (p_part->info.size > 1ULL * MEGABYTE) {
+		hr_size = (uint32_t)(p_part->info.size >> 20);
+		unit = units[1];
+	} else if (p_part->info.size > 1ULL * KILOBYTE) {
+		hr_size = (uint32_t)(p_part->info.size >> 10);
+		unit = units[2];
+	} else {
+		hr_size = (uint32_t)p_part->info.size;
+		unit = units[3];
+	}
+
+	pr_debug("%s partition info:\n", p_part->info.name);
+	pr_debug("\tid = %d, base_addr = 0x%x%08x, size = 0x%x-%08x (%d %s)\n",
+		 p_part->id,
+		 (uint32_t)(p_part->info.base_address >> 32),
+		 (uint32_t)p_part->info.base_address,
+		 (uint32_t)(p_part->info.size >> 32),
+		 (uint32_t)p_part->info.size,
+		 hr_size, unit);
+
+	slob_dump(&p_part->h_mem_manager);
+}
+#endif /* SL_DEBUG */
+
 __END_COLD_CODE

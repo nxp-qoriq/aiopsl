@@ -81,5 +81,25 @@ typedef struct t_MM
 } t_MM;
 
 
+#ifdef SL_DEBUG
+/**************************************************************************//**
+@Function	slob_dump
+
+@Description	Dumps a memory slob, printing the list of busy blocks and the
+		alignment lists of free blocks.
+		Note : If application calls this function, application and
+		AIOP_SL must be build with the SL_DEBUG macro defined.
+
+@Param[in]	slob : handle of the memory manager associated with the slob
+			(usually it would be the memory manager handle of a
+			memory partition)
+
+@Return		None
+
+*//***************************************************************************/
+void slob_dump(uint64_t *slob);
+
+#endif /* SL_DEBUG */
+
 #endif /* __SLOB_H */
 

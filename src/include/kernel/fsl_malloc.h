@@ -130,4 +130,38 @@ int fsl_mem_exists(int mem_partition_id);
 /** @} */ /* end of sytem_mem_management_id  group */
 
 
+#ifdef SL_DEBUG
+/**************************************************************************//**
+@Function	phys_alloc_partition_dump
+
+@Description	Dumps a physically allocated partition, printing its id, base
+		address, size and all of its blocks, by calling slob_dump()
+		Note : If application calls this function, application and
+		AIOP_SL must be build with the SL_DEBUG macro defined.
+
+@Param[in]	p_partition : pointer to the partition's control structure
+			       (usually taken from the partitions array)
+
+@Return		None
+
+*//***************************************************************************/
+void phys_mem_partition_dump(int partition_id);
+
+/**************************************************************************//**
+@Function	mem_partition_dump
+
+@Description	Dumps a memory partition (usually the SHRAM), printing its id,
+		base address, size and all of its blocks, by calling slob_dump()
+		Note : If application calls this function, application and
+		AIOP_SL must be build with the SL_DEBUG macro defined.
+
+@Param[in]	p_partition : pointer to the partition's control structure
+			       (usually taken from the partitions array)
+
+@Return		None
+
+*//***************************************************************************/
+void virt_mem_partition_dump(int partition_id);
+#endif /* SL_DEBUG */
+
 #endif /* __FSL_MALLOC_H */
