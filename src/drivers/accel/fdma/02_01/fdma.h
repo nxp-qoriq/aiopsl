@@ -243,6 +243,9 @@
 #define FDMA_PRESENT_CMD_ARG1(_frame_handle, _flags)			\
 	(uint32_t)((_frame_handle << 16) | _flags | FDMA_PRESENT_CMD)
 
+#define FDMA_PRESENT_CMD_ARG1_WITH_NO_FLAGS(_frame_handle)		\
+	(uint32_t)((_frame_handle << 16) | FDMA_PRESENT_CMD)
+
 	/** FDMA explicit Present command arg1 */
 #define FDMA_PRESENT_EXP_CMD_ARG1(_frame_handle, _flags)		\
 	(uint32_t)((_frame_handle << 16) | _flags | FDMA_PRESENT_CMD)

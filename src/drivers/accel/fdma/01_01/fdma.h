@@ -313,6 +313,9 @@ inline uint32_t get_taskno(void)
 	(uint32_t)((FDMA_GET_PRC_FRAME_HANDLE(_handles)) |		\
 	_flags | FDMA_PRESENT_CMD)
 
+#define FDMA_PRESENT_CMD_ARG1_WITH_NO_FLAGS(_handles)			\
+	(uint32_t)((FDMA_GET_PRC_FRAME_HANDLE(_handles)) | FDMA_PRESENT_CMD)
+
 	/** FDMA explicit Present command arg1 */
 #define FDMA_PRESENT_EXP_CMD_ARG1(_frame_handle, _flags)		\
 	(uint32_t)((_frame_handle << 16) | _flags | FDMA_PRESENT_CMD)

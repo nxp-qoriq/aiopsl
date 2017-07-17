@@ -378,8 +378,7 @@ inline int fdma_present_default_frame_segment(
 	int8_t  res1;
 
 	/* prepare command parameters */
-	arg1 = FDMA_PRESENT_CMD_ARG1(PRC_GET_HANDLES(),
-			(flags | FDMA_ST_DATA_SEGMENT_BIT));
+	arg1 = FDMA_PRESENT_CMD_ARG1(PRC_GET_HANDLES(), flags);
 	arg2 = FDMA_PRESENT_CMD_ARG2((uint32_t)ws_dst, offset);
 	arg3 = FDMA_PRESENT_CMD_ARG3(present_size);
 	/* store command parameters */
@@ -1027,8 +1026,7 @@ inline int fdma_present_frame_segment(
 	int8_t  res1;
 
 	/* prepare command parameters */
-	arg1 = FDMA_PRESENT_EXP_CMD_ARG1(params->frame_handle,
-			(params->flags | FDMA_ST_DATA_SEGMENT_BIT));
+	arg1 = FDMA_PRESENT_EXP_CMD_ARG1(params->frame_handle, params->flags);
 	arg2 = FDMA_PRESENT_CMD_ARG2((uint32_t)params->ws_dst, params->offset);
 	arg3 = FDMA_PRESENT_CMD_ARG3(params->present_size);
 	/* store command parameters */
@@ -1121,8 +1119,7 @@ inline int fdma_present_default_frame_default_segment()
 	int8_t  res1;
 
 	/* prepare command parameters */
-	arg1 = FDMA_PRESENT_CMD_ARG1(PRC_GET_HANDLES(),
-			(FDMA_ST_DATA_SEGMENT_BIT));
+	arg1 = FDMA_PRESENT_CMD_ARG1_WITH_NO_FLAGS(PRC_GET_HANDLES());
 	arg2 = FDMA_PRESENT_CMD_ARG2((uint32_t)PRC_GET_SEGMENT_ADDRESS(),
 			PRC_GET_SEGMENT_OFFSET());
 	arg3 = FDMA_PRESENT_CMD_ARG3(PRC_GET_SEGMENT_LENGTH());

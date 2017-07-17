@@ -152,8 +152,7 @@ int fdma_present_frame_segment(
 	int8_t  res1;
 
 	/* prepare command parameters */
-	arg1 = FDMA_PRESENT_EXP_CMD_ARG1(params->frame_handle,
-			(params->flags | FDMA_ST_DATA_SEGMENT_BIT));
+	arg1 = FDMA_PRESENT_EXP_CMD_ARG1(params->frame_handle, params->flags);
 	arg2 = FDMA_PRESENT_CMD_ARG2((uint32_t)params->ws_dst, params->offset);
 	arg3 = FDMA_PRESENT_CMD_ARG3(params->present_size);
 	/* store command parameters */
@@ -279,10 +278,10 @@ int fdma_extend_default_segment_presentation(
 	res1 = *((int8_t *) (FDMA_STATUS_ADDR));
 	/* Update Task Defaults */
 	if (((int32_t)res1) >= FDMA_SUCCESS) {
-		if (!(flags & FDMA_ST_DATA_SEGMENT_BIT))
+		/* If extend size is 0, operation is a NOP */
+		if (extend_size)
 			PRC_SET_SEGMENT_LENGTH(*((uint16_t *)
-					(HWC_ACC_OUT_ADDRESS2)));
-
+					       (HWC_ACC_OUT_ADDRESS2)));
 		if (res1 == FDMA_SUCCESS)
 			return SUCCESS;
 		else if (res1 == FDMA_UNABLE_TO_PRESENT_FULL_SEGMENT_ERR)

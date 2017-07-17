@@ -223,8 +223,8 @@ uint16_t aiop_verification_fdma(uint32_t asa_seg_addr)
 	{
 		struct fdma_extend_command *str =
 			(struct fdma_extend_command *) asa_seg_addr;
-		flags |= (str->ST == 1) ?
-			FDMA_ST_ASA_SEGMENT_BIT : FDMA_ST_DATA_SEGMENT_BIT;
+		if (str->ST == 1)
+			flags |= FDMA_ST_ASA_SEGMENT_BIT;
 		str->status = (int8_t)fdma_extend_default_segment_presentation(
 				str->extend_size, (void *)str->ws_dst, flags);
 		str->seg_length = prc->seg_length;
