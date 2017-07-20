@@ -2094,7 +2094,10 @@ int fdma_replicate_frame_qd(
 @Cautions	In case the concatenated frame is not closed 
 		(\ref FDMA_CONCAT_PCA_BIT is not set) the FD[length] of the 
 		concatenated frame is not valid after this command (from 
-		performance considerations).
+		performance considerations). However, if the input frame1 was
+		a FD (FS1 = 1), the handle of the concatenated frame1 is stored
+		in the presentation context and in the frame1 field of the
+		command parameters structure.
 @Cautions	This function may result in a fatal error.
 @Cautions	In this Service Routine the task yields.
 *//***************************************************************************/

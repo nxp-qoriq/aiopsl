@@ -693,9 +693,21 @@ int fdma_concatenate_frames(
 			(uint16_t)(bdi_icid & FDMA_ICID_CONTEXT_BDI));
 	}
 
-	if (res1 == FDMA_SUCCESS)
+	if (res1 == FDMA_SUCCESS) {
+		if (!(params->flags & FDMA_CONCAT_PCA_BIT) &&
+		    (params->flags & FDMA_CONCAT_FS1_BIT)) {
+			struct presentation_context *prc;
+			#define FDMA_CONC_CMD_OUT_FH1_OFFSET	3
+
+			prc = (struct presentation_context *)HWC_PRC_ADDRESS;
+			prc->frame_handle =
+				*((uint8_t *)(HWC_ACC_OUT_ADDRESS2 +
+					      FDMA_CONC_CMD_OUT_FH1_OFFSET));
+			params->frame1 = prc->frame_handle;
+		}
 		return SUCCESS;
-	else if (res1 == FDMA_BUFFER_POOL_DEPLETION_ERR)
+	}
+	if (res1 == FDMA_BUFFER_POOL_DEPLETION_ERR)
 		return -ENOMEM;
 	else if (res1 == FDMA_FD_ERR)
 		return -EIO;
