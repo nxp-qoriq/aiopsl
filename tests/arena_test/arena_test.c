@@ -71,6 +71,8 @@ extern int dprc_drv_test_init(void);
 extern int dpni_drv_test_create(void);
 extern int dpni_drv_test_destroy(uint16_t ni);
 
+extern int slob_check_free_lists_after_free(e_memory_partition_id part_id);
+
 extern int num_of_cores;
 extern int num_of_tasks;
 extern uint32_t rnd_seed[MAX_NUM_OF_CORES][MAX_NUM_OF_TASKS];
@@ -730,7 +732,7 @@ static int app_dpni_event_added_cb(
 		fsl_print("dpni_drv_get_multicast_promisc for ni %d succeeded\n",ni);
 	}
 
-
+/*
 	err  = dpni_drv_reset_counter(ni, DPNI_DRV_CNT_ING_FRAME);
 	err |= dpni_drv_reset_counter(ni, DPNI_DRV_CNT_ING_BYTE);
 	err |= dpni_drv_reset_counter(ni, DPNI_DRV_CNT_ING_FRAME_DROP);
@@ -742,6 +744,7 @@ static int app_dpni_event_added_cb(
 	err |= dpni_drv_reset_counter(ni, DPNI_DRV_CNT_EGR_FRAME);
 	err |= dpni_drv_reset_counter(ni, DPNI_DRV_CNT_EGR_BYTE);
 	err |= dpni_drv_reset_counter(ni, DPNI_DRV_CNT_EGR_FRAME_DISCARD);
+*/
 	if(err != 0) {
 		fsl_print("dpni_drv_reset_counter error for ni %d\n",ni);
 		test_error |= err;
@@ -870,6 +873,12 @@ static int app_dpni_link_change_cb(
 int app_init(void)
 {
 	int        err  = 0;
+
+	err = slob_check_free_lists_after_free(MEM_PART_SYSTEM_DDR);
+	if (err) {
+		fsl_print("Error: slob free lists update after free failed %d\n", err);
+		test_error |= err;
+	}
 
 	err = dprc_drv_test_init();
 	if(err){

@@ -330,7 +330,7 @@ static int add_free(t_MM *p_MM, uint64_t base, uint64_t end)
                 {
                     eliminate_redundant_free_blocks(&curr_b,&curr_b_addr,&end);
                 }//  if ( end > curr_b.end )
-                else if ( (end < curr_b.base) && ((size) >= alignment) )
+                else if (end < curr_b.base)
                 {
                     if (create_new_block(&align_base,
                                          &size,

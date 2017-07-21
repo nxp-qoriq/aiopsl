@@ -37,6 +37,7 @@
 
 
 int malloc_test();
+int slob_check_free_lists_after_free(e_memory_partition_id mem_part);
 
 static int allocate_check_mem(int memory_partition,
 		                      uint32_t num_iterations, uint32_t size,
@@ -257,6 +258,7 @@ int malloc_test()
 	else
 		fsl_print("mem_depletion_test from  SHARED RAM succeeded\n");
 
+	virt_mem_partition_dump(MEM_PART_SH_RAM);
 
 	return err;
 }
@@ -498,4 +500,35 @@ static  int check_returned_address(uint64_t paddr,
 	    break;
     }
     return 0;
+}
+
+int slob_check_free_lists_after_free(e_memory_partition_id mem_part)
+{
+	int rc;
+	uint64_t p0; /* algn=64, size=63 */
+	uint64_t p1; /* algn=64, size=31 */
+	uint64_t old_p1;
+	uint64_t p2; /* algn=32, size= 4 */
+
+	/* Tested scenario:
+	.....p0.........p1=p0+64...p2=p1+32.........
+	___________________________________________
+	.....AAAAAAAAAA.BBBBBBBBBB.CCCC.............
+			fsl_put(p1)
+	.....AAAAAAAAAA.!!!!!!!!!!.CCCC.............
+			fsl_get(algn=64, size=31)
+	.....AAAAAAAAAA.!!!!!!!!!!.CCCC....BBBBBB...
+			end of scenario           */
+
+	rc = fsl_get_mem(0x3f, mem_part, 0x40, &p0);
+	rc = fsl_get_mem(0x1f, mem_part, 0x40, &p1);
+	old_p1 = p1;
+	rc = fsl_get_mem(0x4, mem_part, 0x20, &p2);
+	fsl_put_mem(p1);
+	rc = fsl_get_mem(0x10, mem_part, 0x40, &p1);
+
+	if (p1 != old_p1) /* if the just allocated block is not available */
+		return -1;
+
+	return 0;
 }
