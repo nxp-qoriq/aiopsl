@@ -29,10 +29,6 @@
 #include "fsl_dbg.h"
 #include "apps.h"
 
-extern int app_early_init(void);
-extern int app_init(void); extern void app_free(void);
-
-
 #define APPS                            	\
 {                                       	\
 	{app_early_init, app_init, app_free},	\

@@ -37,13 +37,9 @@
 #include "aiop_verification.h"
 #include "fsl_slab.h"
 
-int app_early_init(void);
+#include "apps.h"
 
-int app_init(void);
-void app_free(void);
-
-
-static void app_process_packet_flow0 (void)
+static void app_process_packet_flow0(void)
 {
 	int      err = 0;
 	int local_test_error = 0;
@@ -52,37 +48,36 @@ static void app_process_packet_flow0 (void)
 	uint16_t ni_id;
 	uint8_t *p_ipv4hdr = 0;
 	uint8_t *p_eth_hdr;
-	uint32_t dst_addr = 0;// ipv4 dst_addr - will store original destination address
+	/* ipv4 dst_addr - will store original destination address */
+	uint32_t dst_addr = 0;
 	uint8_t local_hw_addr[NET_HDR_FLD_ETH_ADDR_SIZE];
 	struct ipv4hdr *ipv4header;
 
-	if (PARSER_IS_OUTER_IPV4_DEFAULT())
-	{
-		fsl_print
-		("app_process_packet: Received packet with ipv4 header:\n");
+	if (PARSER_IS_OUTER_IPV4_DEFAULT()) {
+		fsl_print("app_process_packet: Rx packet with ipv4 header:\n");
 		ipv4hdr_offset = (uint16_t)PARSER_GET_OUTER_IP_OFFSET_DEFAULT();
-		p_ipv4hdr = (uint8_t *) PRC_GET_SEGMENT_ADDRESS() + ipv4hdr_offset ;
-
+		p_ipv4hdr = (uint8_t *)PRC_GET_SEGMENT_ADDRESS() +
+				ipv4hdr_offset;
 		ipv4header = (struct ipv4hdr *)p_ipv4hdr;
-		ipv4hdr_length = (uint16_t)((ipv4header->vsn_and_ihl & 0x0F) << 2);
-		for( int i = 0; i < ipv4hdr_length; i++)
-		{
-			fsl_print(" %x",p_ipv4hdr[i]);
-		}
+		ipv4hdr_length =
+			(uint16_t)((ipv4header->vsn_and_ihl & 0x0F) << 2);
+		for (int i = 0; i < ipv4hdr_length; i++)
+			fsl_print(" %x", p_ipv4hdr[i]);
 		fsl_print("\n");
 
 		dst_addr = ipv4header->dst_addr;
-		/*for reflection when switching between src and dst IP the checksum remains the same*/
+		/* For reflection when switching between src and dst IP the
+		 * checksum remains the same */
 		err = ip_set_nw_dst(ipv4header->src_addr);
 		if (err) {
 			fsl_print("ERROR = %d: ip_set_nw_dst(src_addr)\n", err);
 			local_test_error |= err;
-	}
+		}
 		err = ip_set_nw_src(dst_addr);
-	if (err) {
+		if (err) {
 			fsl_print("ERROR = %d: ip_set_nw_src(dst_addr)\n", err);
-		local_test_error |= err;
-	}
+			local_test_error |= err;
+		}
 	}
 
 	ni_id = (uint16_t)task_get_receive_niid();
@@ -93,24 +88,21 @@ static void app_process_packet_flow0 (void)
 	dpni_drv_get_primary_mac_addr(ni_id, local_hw_addr);
 	l2_set_dl_src(local_hw_addr);
 
-	if (!local_test_error && PARSER_IS_OUTER_IPV4_DEFAULT())
-	{
+	if (!local_test_error && PARSER_IS_OUTER_IPV4_DEFAULT()) {
 		fsl_print
-		("app_process_packet: Will send a modified packet with ipv4 header:\n");
-		for( int i = 0; i < ipv4hdr_length; i++)
-		{
-			fsl_print(" %x",p_ipv4hdr[i]);
-		}
+		("app_process_packet: Tx modified packet with ipv4 header:\n");
+		for (int i = 0; i < ipv4hdr_length; i++)
+			fsl_print(" %x", p_ipv4hdr[i]);
 		fsl_print("\n");
 	}
 
 	err = dpni_drv_send(ni_id, DPNI_DRV_SEND_MODE_NONE);
-	if (err){
-		fsl_print("ERROR = %d: dpni_drv_send(ni_id)\n",err);
+	if (err) {
+		fsl_print("ERROR = %d: dpni_drv_send(ni_id)\n", err);
 		local_test_error |= err;
 	}
 
-	if(!local_test_error) /*No error found during injection of packets*/
+	if (!local_test_error) /*No error found during injection of packets*/
 		fsl_print("Finished SUCCESSFULLY\n");
 	else
 		fsl_print("Finished with ERRORS\n");
@@ -118,17 +110,16 @@ static void app_process_packet_flow0 (void)
 	fdma_terminate_task();
 }
 
-
-int app_early_init(void){
-
+int app_early_init(void)
+{
 	int err;
 
 	/* exists in aiop_sl_early_init */
 	err = ipr_early_init(3, 750);
-	
+
 	if (err)
 		return err;
-	
+
 	/* IPsec resources reservation */
 	err = ipsec_early_init(
 		10, /* uint32_t total_instance_num */
@@ -141,51 +132,40 @@ int app_early_init(void){
 		return err;
 
 	/* Reserve some general buffers for keys etc. */
-	err = slab_register_context_buffer_requirements(
-			10, /* uint32_t committed_buffs*/
-			10, /* uint32_t max_buffs */
-			512, /* uint16_t buff_size */
-			8, /* uint16_t alignment */
-			MEM_PART_SYSTEM_DDR, /* enum memory_partition_id  mem_pid */
-	        0, /* uint32_t flags */
-	        0 /* uint32_t num_ddr_pools */
-	        );
+	err = slab_register_context_buffer_requirements
+		(10, 10, 512, 8, MEM_PART_SYSTEM_DDR, 0, 0);
 
 	if (err)
 		return err;
 
 	/* Set DHR to 256 in the default storage profile, for IPsec */
 	err = dpni_drv_register_rx_buffer_layout_requirements(256, 0, 0, 0);
-	
+
 	return err;
 }
 
-static int app_dpni_event_added_cb(
-			uint8_t generator_id,
-			uint8_t event_id,
-			uint64_t app_ctx,
-			void *event_data)
+static int app_dpni_event_added_cb(uint8_t generator_id, uint8_t event_id,
+				   uint64_t app_ctx, void *event_data)
 {
 	uint16_t ni = (uint16_t)((uint32_t)event_data);
 	int err;
 
 	UNUSED(generator_id);
 	UNUSED(event_id);
-	pr_info("Event received for AIOP NI ID %d\n",ni);
-	err = dpni_drv_register_rx_cb(ni/*ni_id*/,
-	                              (rx_cb_t *)app_ctx);
-	if (err){
-		pr_err("dpni_drv_register_rx_cb for ni %d failed: %d\n", ni, err);
+	pr_info("Event received for AIOP NI ID %d\n", ni);
+	err = dpni_drv_register_rx_cb(ni, (rx_cb_t *)app_ctx);
+	if (err) {
+		pr_err("dpni_drv_register_rx_cb for ni %d failed: %d\n",
+		       ni, err);
 		return err;
 	}
 	err = dpni_drv_enable(ni);
-	if(err){
+	if (err) {
 		pr_err("dpni_drv_enable for ni %d failed: %d\n", ni, err);
 		return err;
 	}
 	return 0;
 }
-
 
 int app_init(void)
 {
@@ -193,12 +173,14 @@ int app_init(void)
 
 	fsl_print("Running app_init()\n");
 
-	err = evmng_register(EVMNG_GENERATOR_AIOPSL, DPNI_EVENT_ADDED, 1,(uint64_t) aiop_verification_fm, app_dpni_event_added_cb);
-	if (err){
-		pr_err("EVM registration for DPNI_EVENT_ADDED failed: %d\n", err);
+	err = evmng_register(EVMNG_GENERATOR_AIOPSL, DPNI_EVENT_ADDED, 1,
+			     (uint64_t)aiop_verification_fm,
+			     app_dpni_event_added_cb);
+	if (err) {
+		pr_err("EVM registration for DPNI_EVENT_ADDED failed: %d\n",
+		       err);
 		return err;
 	}
-
 
 	fsl_print("To start test inject packets: \"eth_ipv4_udp.pcap\"\n");
 

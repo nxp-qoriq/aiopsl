@@ -59,6 +59,11 @@ of all the macros.
 #define APP_DPNI_BUF_ALIGN_IN_POOL	64
 #define APP_DPNI_SPID_COUNT		8
 
+/******************************************************************************/
+int app_early_init(void);
+int app_init(void);
+void app_free(void);
+
 #endif /* __APPS_H */
 
 
