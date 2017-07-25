@@ -9,7 +9,14 @@ MEMORY
     /* presentation:           org = 0x00000140,   len = 0x000002C0 --> Reserved for Frame presentation area  */
     /* shared_ram_heap:        org = _ssram_heap_start,  len = 256*KB - sizeof(shared_ram)--> Reserved for Shared-RAM heap */
     /* sys_ddr:                org = 0x40000000,   len = 0xC0000000 (3GB) --> Reserved for System DDR*/
-    tls:                    org = 0x000000C0,   len = 0x0000012C /* TLS - Task Local Storage */
+	 /* TLS - Task Local Storage
+		TLS size must be set so that :
+			- all roc_process_packet TLS placed variables fit into TLS
+			- TLS_SECTION_END_ADDR is an address aligned on a 64 bytes boundary
+		The data segment is presented in the TLS_SECTION_END_ADDR to _stack_end
+		workspace addresses range.
+	*/
+    tls:                    org = 0x000000C0,   len = 0x00000140
     stack :                 org = 0x00000400,   len = 0x00007C00 /* Start location for Stack, Big stack for init task */
     i_ram:                  org = 0x00fe0000,   len = 0x00020000 /* I-RAM  */
     shared_ram:             org = 0x01000000,   len = 0x00010400 /* Shared-RAM */
