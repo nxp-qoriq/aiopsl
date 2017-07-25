@@ -64,6 +64,9 @@ int app_early_init(void);
 int app_init(void);
 void app_free(void);
 
+/******************************************************************************/
+extern char _stack_end[];  /* Address of the stack end */
+
 #endif /* __APPS_H */
 
 

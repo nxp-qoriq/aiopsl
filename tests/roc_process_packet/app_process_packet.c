@@ -144,6 +144,48 @@ int app_early_init(void)
 	return err;
 }
 
+/******************************************************************************/
+static int set_segment_presentation(uint16_t ni)
+{
+	int				err;
+	struct ep_init_presentation	init_presentation;
+
+	/* Segment presentation size */
+	#define SPA_SIZE	128	/* Bytes */
+
+	/* Get the initial segment presentation size */
+	err = dpni_drv_get_initial_presentation(ni, &init_presentation);
+	if (err) {
+		pr_err("Cannot get initial presentation for NI %d\n", ni);
+		return err;
+	}
+	if ((uint32_t)TLS_SECTION_END_ADDR & 0x3F) {
+		pr_err("LCF : TLS_SECTION_END_ADDR not aligned on 64B\n");
+		return -EINVAL;
+	}
+	if ((uint32_t)TLS_SECTION_END_ADDR + SPA_SIZE > (uint32_t)_stack_end) {
+		pr_err("Presentation overlaps the Stack\n");
+		return -EINVAL;
+	}
+	/* See create_frame() */
+	if ((uint32_t)TLS_SECTION_END_ADDR + DEFAULT_SEGMENT_HEADROOM_SIZE >
+	    (uint32_t)_stack_end) {
+		pr_err("Presentation may overlap the Stack\n");
+		return -EINVAL;
+	}
+	init_presentation.options = EP_INIT_PRESENTATION_OPT_SPA |
+		EP_INIT_PRESENTATION_OPT_SPS | EP_INIT_PRESENTATION_OPT_SPO;
+	init_presentation.sps = SPA_SIZE;
+	init_presentation.spa = (uint16_t)((uint32_t)TLS_SECTION_END_ADDR);
+	init_presentation.spo = 0;
+	err = dpni_drv_set_initial_presentation(ni, &init_presentation);
+	if (err) {
+		pr_err("Cannot set initial presentation on NI %d\n", ni);
+		return err;
+	}
+	return 0;
+}
+
 static int app_dpni_event_added_cb(uint8_t generator_id, uint8_t event_id,
 				   uint64_t app_ctx, void *event_data)
 {
@@ -159,6 +201,11 @@ static int app_dpni_event_added_cb(uint8_t generator_id, uint8_t event_id,
 		       ni, err);
 		return err;
 	}
+
+	err = set_segment_presentation(ni);
+	if (err)
+		return err;
+
 	err = dpni_drv_enable(ni);
 	if (err) {
 		pr_err("dpni_drv_enable for ni %d failed: %d\n", ni, err);
