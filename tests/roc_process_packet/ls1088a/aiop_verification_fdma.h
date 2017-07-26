@@ -1093,7 +1093,7 @@ struct fdma_replicate_frames_command {
 		/** Command returned status. */
 	int8_t	status;
 		/** 64-bit alignment. */
-	uint8_t	pad[1];
+	uint8_t	pad[7];
 };
 
 /**************************************************************************//**
