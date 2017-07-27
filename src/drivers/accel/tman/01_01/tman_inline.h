@@ -37,6 +37,7 @@
 #include "tman.h"
 #include "fsl_tman.h"
 #include "fsl_inline_asm.h"
+#include "fsl_dbg.h"
 
 /* The below pragma is to remove compilation warning:"return value expected" */
 #pragma warn_missingreturn off
