@@ -329,182 +329,70 @@ RAND_CODE_PLACEMENT uint32_t fsl_rand(void)
 	return seed_32bit;
 }
 
+/* A-010571: Shared/Main SRAM exclusive write lost in back-to-back writes
+ * to consecutive sub-dword addresses within the same dword.
+ * Impact: AIOP Software sees incorrect operation since a semaphore write
+ * would report success when it is actually failed.
+ * Workaround: Software should declare semaphore variable as type double
+ * to prevent exclusive write at sub-dword granule.
+ */
 /*****************************************************************************/
 /*                        Spinlock Service Routines                          */
 /*****************************************************************************/
-__HOT_CODE void lock_spinlock(register uint8_t *spinlock)
+__HOT_CODE void lock_spinlock(register uint64_t *spinlock)
 {
-	register uint8_t temp1;
-	register uint8_t temp2;
-	asm{
-		/* Address is in r3, new value (non zero) in r4 and old in r5 */
-		li	temp1, 1		/* prepare non-zero value */
-		spinlock_loop :
-		lbarx	temp2, 0, spinlock	/* load and reserve */
-		cmpwi	temp2, 0		/* check loaded value */
-		bne -	spinlock_loop	/* not equal to 0 - already set */
-		stbcx.	temp1, 0, spinlock	/* try to store non-zero */
-		bne -	spinlock_loop		/* lost reservation */
-	}
-}
-
-/* void lock_spinlock(uint8_t *spinlock) {
-	uint8_t temp1;
-	uint8_t temp2 = 1;
+	uint64_t temp;
 
 spinlock_loop:
 	do {
-		__lbarx(temp1 , 0, spinlock)
-	} while(temp1 == 1);
+		__llldwar(&temp, 0, spinlock);
+	} while (temp != 0);
 
-	__stbcx(temp2, 0, spinlock)
-	 asm
-	{
-		bne-	spinlock_loop
+	__llstdwc_((uint64_t)1, 0, spinlock);
+	asm {
+		bne - spinlock_loop
 	}
-} */
+}
 
 __HOT_CODE void unlock_spinlock(
-	uint8_t *spinlock) {
+	uint64_t *spinlock) {
 	*spinlock = 0;
 }
 
 /***************************************************************************
- *            Atomic Increment and Decrement macros
- *            Using the relevant Core instructions:
- *            lbarx, lharx, lwarx,
- *            stbcx., sthcx., stwcx.
+ * atomic_incr64
  ***************************************************************************/
-/***************************************************************************
- * atomic_incr8
- ***************************************************************************/
-__HOT_CODE void atomic_incr8(register int8_t *var, register int8_t value)
+__HOT_CODE void atomic_incr64(register int64_t *var, register int64_t value)
 {
+	uint64_t orig_value;
 
-	register int8_t orig_value;
-	register int8_t new_value;
-	asm{
-		atomic_loop:
-		/* load and reserve. "var" is the address of the byte */
-		lbarx orig_value, 0, var
-		/* increment word. "value" is the value to add */
-		add new_value, value, orig_value
-		stbcx. new_value, 0, var /* store new value if still reserved */
-		bne - atomic_loop /* loop if lost reservation */
+atomic_loop:
+	__llldwar(&orig_value, 0, var);
+	orig_value = (uint64_t)((int64_t)orig_value + value);
+	__llstdwc_(orig_value, 0, var);
+	asm {
+		bne - atomic_loop
 	}
 }
 
 /***************************************************************************
- * atomic_incr16
+ * atomic_decr64
  ***************************************************************************/
-__HOT_CODE void atomic_incr16(register int16_t *var, register int16_t value)
+__HOT_CODE void atomic_decr64(register int64_t *var, register int64_t value)
 {
+	uint64_t orig_value;
 
-	register int16_t orig_value;
-	register int16_t new_value;
-	asm{
-		atomic_loop:
-		/* load and reserve. "var" is the address of the half-word */
-		lharx orig_value, 0, var
-		/* increment word. "value" is the value to add */
-		add new_value, value, orig_value
-		sthcx. new_value, 0, var /* store new value if still reserved */
-		bne - atomic_loop /* loop if lost reservation */
+atomic_loop:
+	__llldwar(&orig_value, 0, var);
+	orig_value = (uint64_t)((int64_t)orig_value - value);
+	__llstdwc_(orig_value, 0, var);
+	asm {
+		bne - atomic_loop
 	}
 }
 
-/***************************************************************************
- * atomic_incr32
- ***************************************************************************/
-__HOT_CODE void atomic_incr32(register int32_t *var, register int32_t value)
-{
 
-	/* Fetch and Add
-	 * The "Fetch and Add" primitive atomically increments a word in storage.
-	 * In this example it is assumed that the address of the word
-	 * to be incremented is in GPR 3, the increment is in GPR 4,
-	 * and the old value is returned in GPR 5.
-	 *
-	 * Original Example from doc:
-	 * loop:
-	 * lwarx r5,0,r3 #load and reserve
-	 * add r0,r4,r5#increment word
-	 * stwcx. r0,0,r3 #store new value if still reserved
-	 * bne- loop #loop if lost reservation
-	 */
 
-	register int32_t orig_value;
-	register int32_t new_value;
-	asm{
-		atomic_loop:
-		/* load and reserve. "var" is the address of the word */
-		lwarx orig_value, 0, var
-		/* increment word. "value" is the value to add */
-		add new_value, value, orig_value
-		stwcx. new_value, 0, var /* store new value if still reserved */
-		bne - atomic_loop /* loop if lost reservation */
-	}
-}
-
-/***************************************************************************
- * atomic_decr8
- ***************************************************************************/
-__HOT_CODE void atomic_decr8(register int8_t *var, register int8_t value)
-{
-
-	register int8_t orig_value;
-	register int8_t new_value;
-
-	asm{
-		atomic_loop:
-		/* load and reserve. "var" is the address of the byte */
-		lbarx orig_value, 0, var
-		/* subtract word. "value" is the value to decrement */
-		sub new_value, orig_value, value
-		stbcx. new_value, 0, var /* store new value if still reserved */
-		bne - atomic_loop /* loop if lost reservation */
-	}
-}
-
-/***************************************************************************
- * atomic_decr16
- ***************************************************************************/
-__HOT_CODE void atomic_decr16(register int16_t *var, register int16_t value)
-{
-
-	register int16_t orig_value;
-	register int16_t new_value;
-
-	asm{
-		atomic_loop:
-		/* load and reserve. "var" is the address of the half-word */
-		lharx orig_value, 0, var
-		/* subtract word. "value" is the value to decrement */
-		sub new_value, orig_value, value
-		sthcx. new_value, 0, var /* store new value if still reserved */
-		bne - atomic_loop /* loop if lost reservation */
-	}
-}
-
-/***************************************************************************
- * atomic_decr32
- ***************************************************************************/
-__HOT_CODE void atomic_decr32(register int32_t *var, register int32_t value)
-{
-
-	register int32_t orig_value;
-	register int32_t new_value;
-
-	asm{
-		atomic_loop:
-		/* load and reserve. "var" is the address of the word */
-		lwarx orig_value, 0, var
-		/* subtract word. "value" is the value to decrement */
-		sub new_value, orig_value, value
-		stwcx. new_value, 0, var /* store new value if still reserved */
-		bne - atomic_loop /* loop if lost reservation */
-	}
-}
 /*****************************************************************************/
 MEM_MNG_CODE_PLACEMENT void * fsl_malloc(size_t size,uint32_t alignment)
 {

@@ -46,8 +46,16 @@
  #include "fsl_mem_mng.h"
 
 
+#pragma pack(push, 1)
 typedef struct t_system {
+	/* The lock must be aligned to a double word boundary.
+	 * It's easy to control the alignment when it's the first member.
+	 */
+	uint64_t              barrier_lock;
+
 	/* Memory management variables */
+	/* It must be aligned to a double word boundary since
+	 * the first member it's a lock */
 	struct initial_mem_mng	    boot_mem_mng;
 	struct t_mem_mng            mem_mng;
 
@@ -66,7 +74,6 @@ typedef struct t_system {
 	int                  is_cluster_master[INTG_MAX_NUM_OF_CORES];
 	uint64_t             active_cores_mask;
 	uint32_t             num_of_active_cores;
-	uint8_t              barrier_lock;
 	volatile uint64_t    barrier_mask;
 
 	/* boot synchronization variables */
@@ -76,6 +83,11 @@ typedef struct t_system {
 	/* Platform operations */
 	t_platform_ops              platform_ops;
 } t_system;
+#pragma pack(pop)
+
+#pragma warning_errors on
+ASSERT_MULTIPLE_OF(offsetof(t_system, boot_mem_mng), 8);
+#pragma warning_errors off
 
 extern t_system sys;
 

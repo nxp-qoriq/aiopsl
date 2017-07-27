@@ -45,7 +45,9 @@
 #define SYS_BOOT_SYNC_FLAG_DONE (1)
 
 /* Global System Object */
-t_system sys = {0};
+/* It must be aligned to a double word boundary since the first member
+ * it's a lock */
+t_system sys __attribute__((aligned(8))) = {0};
 
 extern struct aiop_init_info g_init_data;
 

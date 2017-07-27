@@ -73,8 +73,13 @@
 
 /* Array of spinlocks should reside in shared ram memory.
  * They are initialized to 0 (unlocked) */
-static uint8_t g_mem_part_spinlock[PLATFORM_MAX_MEM_INFO_ENTRIES] = {0};
-static uint8_t g_phys_mem_part_spinlock[PLATFORM_MAX_MEM_INFO_ENTRIES] = {0};
+/* Each lock must be aligned to a double word boundary. */
+static uint64_t g_mem_part_spinlock[PLATFORM_MAX_MEM_INFO_ENTRIES]
+                                    __attribute__((aligned(8))) = {0};
+
+static uint64_t g_phys_mem_part_spinlock[PLATFORM_MAX_MEM_INFO_ENTRIES]
+                                         __attribute__((aligned(8))) = {0};
+
 extern struct aiop_init_info g_init_data;
 /* Mutex lock to lock calls of slob_put functions. */
 //static uint8_t s_free_lock = 0;

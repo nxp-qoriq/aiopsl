@@ -163,43 +163,83 @@ struct slab_module_info {
 };
 
 /* Virtual Pool structure */
+#pragma pack(push, 1)
 struct slab_v_pool {
+	/* The lock must be aligned to a double word boundary.
+	 * It's easy to control the alignment when it's the first member.
+	 * There is an array of this type, so the structure size must be
+	 * multiple of double word size (8 bytes)
+	 */
+	uint64_t spinlock;
+	/**< spinlock for locking the pool */
+	/* The atomic couter must be aligned to a double word boundary. */
+	int64_t allocated_bufs;
+	/**< Number of allocated buffers per pool */
+	/* The atomic couter must be aligned to a double word boundary. */
+	int64_t failed_allocs;
+	/**< Number of failed allocs */
 	int32_t max_bufs;
 	/**< Number of MAX requested buffers per pool */
 	int32_t committed_bufs;
 	/**< Number of requested committed buffers per pool */
-	int32_t allocated_bufs;
-	/**< Number of allocated buffers per pool */
-	uint8_t spinlock;
-	/**< spinlock for locking the pool */
 	uint8_t flags;
 	/**< Flags to use when using the pool - unused  */
 	uint16_t bman_array_index;
 	/**< Index of bman pool that the buffers were taken from*/
 	slab_release_cb_t *callback_func;
 	/**< Callback function to release virtual pool  */
-	int32_t failed_allocs;
-	/**< Number of failed allocs */
+	uint8_t tmp;
 };
+#pragma pack(pop)
+
+#pragma warning_errors on
+ASSERT_MULTIPLE_OF(sizeof(struct slab_v_pool), 8);
+ASSERT_MULTIPLE_OF(offsetof(struct slab_v_pool, allocated_bufs), 8);
+ASSERT_MULTIPLE_OF(offsetof(struct slab_v_pool, failed_allocs), 8);
+#pragma warning_errors off
 
 /* BMAN Pool structure */
+#pragma pack(push, 1)
 struct slab_bman_pool_desc {
-	int32_t remaining;
-	/**< Number of remaining buffers in the bman pool */
-	int32_t allocated;
-	/**< Number of allocated buffers in the bman pool */
-	int32_t failed_allocs;
-	/**< Number of failures to allocate buffers in the bman pool */
-	uint8_t spinlock;
+	/* The lock must be aligned to a double word boundary.
+	 * It's easy to control the alignment when it's the first member.
+	 * There is an array of this type, so the structure size must be
+	 * multiple of double word size (8 bytes)
+	 */
+	uint64_t spinlock;
 	/**< Spinlock for locking bman pool */
+	/* The atomic couter must be aligned to a double word boundary. */
+	int64_t remaining;
+	/**< Number of remaining buffers in the bman pool */
+	/* The atomic couter must be aligned to a double word boundary. */
+	int64_t allocated;
+	/**< Number of allocated buffers in the bman pool */
+	/* The atomic couter must be aligned to a double word boundary. */
+	int64_t failed_allocs;
+	/**< Number of failures to allocate buffers in the bman pool */
 	uint8_t flags;
 	/**< Flags to use when using the pool - unused  */
 	uint16_t bman_pool_id;
 	/**< Bman pool id - bpid  */
+	uint8_t tmp[5];
 };
+#pragma pack(pop)
+
+#pragma warning_errors on
+ASSERT_MULTIPLE_OF(sizeof(struct slab_bman_pool_desc), 8);
+ASSERT_MULTIPLE_OF(offsetof(struct slab_bman_pool_desc, remaining), 8);
+ASSERT_MULTIPLE_OF(offsetof(struct slab_bman_pool_desc, allocated), 8);
+ASSERT_MULTIPLE_OF(offsetof(struct slab_bman_pool_desc, failed_allocs), 8);
+#pragma warning_errors off
 
 /* virtual root pool struct - holds all virtual pools data */
+#pragma pack(push, 1)
 struct slab_virtual_pools_main_desc {
+	/* The lock must be aligned to a double word boundary.
+	 * It's easy to control the alignment when it's the first member.
+	 */
+	uint64_t global_spinlock;
+	/**< Spinlock for locking the global virtual root pool */
 	struct slab_v_pool *virtual_pool_struct; /*cluster 0*/
 	/**< Pointer to virtual pools array*/
 	uint64_t *slab_context_address; /*0 is not used*/
@@ -210,9 +250,8 @@ struct slab_virtual_pools_main_desc {
 	/**< number of cluster for pools in DDR*/
 	uint8_t flags;
 	/**< Flags to use when using the pools - unused  */
-	uint8_t global_spinlock;
-	/**< Spinlock for locking the global virtual root pool */
 };
+#pragma pack(pop)
 
 /* defined array of available buffer sizes that can be requested*/
 #define SLAB_BUFF_SIZES_ARR	\

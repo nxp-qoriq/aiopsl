@@ -35,7 +35,9 @@
 uint64_t time_epoch_to_midnight_ms __attribute__((aligned(8))) = 0; /*microseconds since epoch till midnight
 * This global variable should be double word aligned to support load as atomic command.
 */
-uint8_t time_to_midnight_lock = 0;
+
+/* The lock must be aligned to a double word boundary. */
+uint64_t time_to_midnight_lock __attribute__((aligned(8))) = 0;
 
 int time_init(void);
 void time_free(void);

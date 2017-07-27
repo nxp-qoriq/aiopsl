@@ -53,8 +53,11 @@
 	} while(0)
 
 struct dpci_mng_tbl {
+	/* The atomic couter must be aligned to a double word boundary.
+	 * It's easy to control the alignment when it's the first member.
+	 */
+	int64_t  count;
 	uint32_t mc_dpci_id;	/**< AIOP side DPCI id that is connected to MC */
-	int32_t  count;
 	int      max;
 	uint32_t ic[DPCI_DYNAMIC_MAX];				/**< 0xFFFFFFFF is not valid, must be atomic*/
 	uint32_t dpci_id[DPCI_DYNAMIC_MAX];			/**< dpci ids not tokens */

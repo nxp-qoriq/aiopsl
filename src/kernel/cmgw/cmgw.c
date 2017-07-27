@@ -43,7 +43,8 @@
 
 static struct aiop_cmgw_regs * cmgw_regs;
 
-uint8_t abcr_lock = 0;
+/* The lock must be aligned to a double word boundary. */
+uint64_t abcr_lock __attribute__((aligned(8))) = 0;
 
 /******************************************************************************/
 void cmgw_init(void * cmgw_regs_base)

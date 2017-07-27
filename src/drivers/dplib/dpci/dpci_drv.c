@@ -132,7 +132,9 @@ extern struct aiop_init_info g_init_data;
 extern __PROFILE_SRAM struct storage_profile 
 			storage_profile[SP_NUM_OF_STORAGE_PROFILES];
 
-struct dpci_mng_tbl g_dpci_tbl = {0};
+/* It must be aligned to a double word boundary since the first member
+ * it's an atomic counter */
+struct dpci_mng_tbl g_dpci_tbl __attribute__((aligned(8))) = {0};
 
 __COLD_CODE static void dpci_tbl_dump()
 {
@@ -209,7 +211,7 @@ static int dpci_entry_get()
 			ASSERT_COND(g_dpci_tbl.ic[i] == DPCI_FQID_NOT_VALID);
 			/* Must be last and atomic because the search 
 			 * is not protected */
-			atomic_incr32(&g_dpci_tbl.count, 1);
+			atomic_incr64(&g_dpci_tbl.count, 1);
 			return i;
 		}
 
@@ -228,7 +230,7 @@ __COLD_CODE static void dpci_entry_delete(int ind)
 	for (i = 0 ; i < DPCI_PRIO_NUM; i++)
 		g_dpci_tbl.tx_queue[ind][i] = DPCI_FQID_NOT_VALID;
 	/* Must be last and atomic because the search is not protected */
-	atomic_decr32(&g_dpci_tbl.count, 1);
+	atomic_decr64(&g_dpci_tbl.count, 1);
 }
 
 static inline void amq_bits_update(uint32_t id)

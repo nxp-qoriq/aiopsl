@@ -39,7 +39,9 @@ int g_evmng_events_last_used_index;
 uint32_t *g_evmng_b_pool_pointer;
 uint32_t *g_evmng_first_b_pool_pointer;
 uint32_t *g_evmng_last_b_pool_pointer;
-uint8_t g_evmng_b_pool_spinlock;
+
+/* The lock must be aligned to a double word boundary. */
+uint64_t g_evmng_b_pool_spinlock __attribute__((aligned(8)));
 
 extern int cmdif_srv_mc_evm_session_open();
 

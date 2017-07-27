@@ -105,14 +105,17 @@ __START_COLD_CODE
 /**************************************************************************//**
  @Description   Initial Memory management, used for allocations during boot.
  *//***************************************************************************/
+#pragma pack(push, 1)
 struct initial_mem_mng
 {
-    uint64_t base_paddress;
-    uint32_t base_vaddress;
-    uint64_t size;
-    uint64_t curr_ptr;
-    uint8_t    lock;
+	/* The lock must be aligned to a double word boundary. */
+	uint64_t    lock;
+	uint64_t base_paddress;
+	uint32_t base_vaddress;
+	uint64_t size;
+	uint64_t curr_ptr;
 };
+#pragma pack(pop)
 
 /**************************************************************************//**
  @Description   Memory partition information for physical address allocation
@@ -151,7 +154,7 @@ typedef struct t_mem_mng_phys_addr_alloc_partition
     int                              id;             /**< Partition ID */
     uint64_t                         h_mem_manager;   /**< Memory manager handle */
     t_mem_mng_phys_addr_alloc_info   info;           /**< Partition information */
-    uint8_t *                        lock;
+    uint64_t *                        lock;
     int                              was_initialized;
 } t_mem_mng_phys_addr_alloc_partition;
 
@@ -167,7 +170,7 @@ typedef struct t_mem_mng_partition
     list_t                  mem_debug_list;   /**< List of allocation entries (for debug) */
     list_t                  node;
     t_mem_mng_partition_info   info;           /**< Partition information */
-    uint8_t *               lock;
+    uint64_t *               lock;
 } t_mem_mng_partition;
 
 /**************************************************************************//**
