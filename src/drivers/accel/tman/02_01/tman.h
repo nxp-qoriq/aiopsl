@@ -117,6 +117,29 @@ enum tman_tmi_state_ststus {
 
 /** @} end of enum tman_tmi_state_error */
 
+/**************************************************************************//**
+ @enum tman_tmi_statistic
+
+@Description AIOP TMAN TMI Engine statistics.
+
+@{
+*//***************************************************************************/
+enum tman_tmi_statistic {
+	/** Number of timers created */
+	TMAN_TMI_NUMBER_OF_TIMERS_CREATED,
+	/** Number of timers deleted with Timer delete command */
+	TMAN_TMI_NUMBER_OF_TIMERS_DELETED,
+	/** Number of active timers */
+	TMAN_TMI_NUMBER_OF_ACTIVE_TIMERS,
+	/** Number of callbacks confirmations pending */
+	TMAN_TMI_NUMBER_OF_CB_CONFIRMS_PENDING,
+	/** Number of timers expirations */
+	TMAN_TMI_NUMBER_OF_TIMER_EXPIRATIONS,
+	/** Number of tasks initiated */
+	TMAN_TMI_NUMBER_OF_TASKS_INITIATED
+};
+
+/** @} end of enum tman_tmi_statistic */
 
 /**************************************************************************//**
  @enum tman_timer_delete_status
@@ -260,6 +283,8 @@ enum tman_function_identifier {
 
 #define TMAN_QUERY_MAX_NT_MASK	0x00FFFFFF
 
+/** Maximum number of Timer Instances (TMI)*/
+#define TMAN_TMI_MAX_COUNT	0xFC
 
 #define TMAN_STATUS_MASK	0xF8000000
 /** CDMA Peripheral base address */

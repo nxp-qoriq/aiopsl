@@ -453,6 +453,22 @@ inline void tman_timer_completion_confirmation(uint32_t timer_handle);
 *//***************************************************************************/
 inline void tman_get_timestamp(uint64_t *timestamp);
 
+/**************************************************************************//**
+@Function	tman_get_tmi_statistic
+
+@Description	This function returns the requested statistic for the specified
+		Timer Instance (TMI).
+
+@Param[in]	tmi_id - Timer Instance ID (TMI ID)
+@Param[in]	req_stat - requested statistic \ref e_tman_tmi_statistic
+
+@Return		The counter value of the requested statistic on the
+		specified TMI.
+
+*//***************************************************************************/
+inline uint32_t tman_get_tmi_statistic(uint8_t tmi_id,
+				       enum tman_tmi_statistic stat);
+
 /** @} end of group TMAN_Functions */
 /** @} end of group TMAN */
 /** @} */ /* end of ACCEL */

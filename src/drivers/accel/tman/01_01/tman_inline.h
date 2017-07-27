@@ -148,4 +148,35 @@ inline void tman_timer_completion_confirmation(uint32_t timer_handle)
 	*((uint32_t *)TMAN_TMCBCC_ADDRESS) = timer_handle;
 }
 
+inline uint32_t tman_get_tmi_statistic(uint8_t tmi_id,
+				       enum tman_tmi_statistic stat)
+{
+	#define TMI_STATS_SIZE	0x20
+
+	ASSERT_COND(tmi_id <= TMAN_TMI_MAX_COUNT && tmi_id != 0);
+
+	switch (stat) {
+	case TMAN_TMI_NUMBER_OF_TIMERS_CREATED:
+		return *((uint32_t *)(TMAN_TMSTATNTC_ADDRESS +
+				      tmi_id * TMI_STATS_SIZE));
+	case TMAN_TMI_NUMBER_OF_TIMERS_DELETED:
+		return *((uint32_t *)(TMAN_TMSTATNTD_ADDRESS +
+				      tmi_id * TMI_STATS_SIZE));
+	case TMAN_TMI_NUMBER_OF_ACTIVE_TIMERS:
+		return *((uint32_t *)(TMAN_TMSTATNAT_ADDRESS +
+				      tmi_id * TMI_STATS_SIZE));
+	case TMAN_TMI_NUMBER_OF_CB_CONFIRMS_PENDING:
+		return *((uint32_t *)(TMAN_TMSTATNCCP_ADDRESS +
+				      tmi_id * TMI_STATS_SIZE));
+	case TMAN_TMI_NUMBER_OF_TIMER_EXPIRATIONS:
+		return *((uint32_t *)(TMAN_TMSTATNTF_ADDRESS +
+				      tmi_id * TMI_STATS_SIZE));
+	case TMAN_TMI_NUMBER_OF_TASKS_INITIATED:
+		return *((uint32_t *)(TMAN_TMSTATNTI_ADDRESS +
+				      tmi_id * TMI_STATS_SIZE));
+	}
+
+	return 0;
+}
+
 #endif /* __FSL_TMAN_INLINE_H */

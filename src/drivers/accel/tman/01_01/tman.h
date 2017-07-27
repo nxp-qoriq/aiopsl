@@ -116,6 +116,29 @@ enum tman_tmi_state_ststus {
 
 /** @} end of enum tman_tmi_state_error */
 
+/**************************************************************************//**
+ @enum tman_tmi_statistic
+
+@Description AIOP TMAN TMI Engine statistics.
+
+@{
+*//***************************************************************************/
+enum tman_tmi_statistic {
+	/** Number of timers created */
+	TMAN_TMI_NUMBER_OF_TIMERS_CREATED,
+	/** Number of timers deleted with Timer delete command */
+	TMAN_TMI_NUMBER_OF_TIMERS_DELETED,
+	/** Number of active timers */
+	TMAN_TMI_NUMBER_OF_ACTIVE_TIMERS,
+	/** Number of callbacks confirmations pending */
+	TMAN_TMI_NUMBER_OF_CB_CONFIRMS_PENDING,
+	/** Number of timers expirations */
+	TMAN_TMI_NUMBER_OF_TIMER_EXPIRATIONS,
+	/** Number of tasks initiated */
+	TMAN_TMI_NUMBER_OF_TASKS_INITIATED
+};
+
+/** @} end of enum tman_tmi_statistic */
 
 /**************************************************************************//**
  @enum tman_timer_delete_status
@@ -225,6 +248,10 @@ enum tman_function_identifier {
 
 
 #define TMAN_QUERY_MAX_NT_MASK	0x00FFFFFF
+
+/** Maximum number of Timer Instances (TMI)*/
+#define TMAN_TMI_MAX_COUNT	0xFC
+
 #define TMAN_STATUS_MASK	0xF8000000
 /** CDMA Peripheral base address */
 #define CDMA_BASE_ADDRESS	0x0208d000
@@ -240,11 +267,19 @@ enum tman_function_identifier {
 #define TMAN_TMTSTMP_ADDRESS	(TMAN_BASE_ADDRESS+0x020)
 /** TMEV- TMan Error Event register base address */
 #define TMAN_TMEV_ADDRESS	0x020a0038 /* CCSR Address */
+/** TMSTATNTC- TMan Stats Number of timers created */
+#define TMAN_TMSTATNTC_ADDRESS	(TMAN_BASE_ADDRESS + 0x2000)
+/** TMSTATNTD- TMan Stats Num of timers deleted with Timer delete command */
+#define TMAN_TMSTATNTD_ADDRESS	(TMAN_BASE_ADDRESS + 0x2004)
 /** TMSTATNAT- TMan TMAN Stats Num of Active Timers register base address */
 #define TMAN_TMSTATNAT_ADDRESS	(TMAN_BASE_ADDRESS+0x2008)
 /** TMSTATNCCP- TMan TMAN Stats Number of Callback Confirmation Pending
  * register base address */
 #define TMAN_TMSTATNCCP_ADDRESS	(TMAN_BASE_ADDRESS+0x200C)
+/** TMSTATNTF- TMan Stats Number of Timers expirations */
+#define TMAN_TMSTATNTF_ADDRESS	(TMAN_BASE_ADDRESS + 0x2010)
+/** TMSTATNTI- TMan Stats Number of tasks initiated */
+#define TMAN_TMSTATNTI_ADDRESS	(TMAN_BASE_ADDRESS + 0x2014)
 /** TMSTATE- TMan TMAN State register base address */
 #define TMAN_TMSTATE_ADDRESS	(TMAN_BASE_ADDRESS+0x2018)
 /** TMSTATE- TMan TMAN State register address Workaround for TKT254640 */
