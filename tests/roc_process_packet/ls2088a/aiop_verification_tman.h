@@ -215,7 +215,7 @@ struct tman_timer_query_command {
 		/**< Command structure identifier. */
 	uint32_t	timer_handle;
 	enum e_tman_query_timer state;
-	uint8_t		pad[3];
+	uint8_t		pad[4];
 };
 
 /**************************************************************************//**
