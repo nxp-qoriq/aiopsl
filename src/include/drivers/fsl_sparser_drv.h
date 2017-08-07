@@ -211,6 +211,15 @@ uint32_t sparser_drv_get_pclim(void);
 *//***************************************************************************/
 void sparser_drv_set_pclim(uint32_t limit);
 
+/*************************************************************************//**
+@Function	parser_enable_ipv6_atomic_frag_detection
+
+@Description	Enables ipv6 atomic fragment detection.
+
+@Return		None.
+*//***************************************************************************/
+void parser_enable_ipv6_atomic_frag_detection(void);
+
 #ifdef SL_DEBUG
 /**************************************************************************//**
 @Function	sparser_drv_regs_dump

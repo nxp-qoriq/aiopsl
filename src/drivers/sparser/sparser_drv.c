@@ -64,6 +64,8 @@
 #define PARSER_ENABLE			0x01
 /* Parser idle flag */
 #define PARSER_IDLE			0x01
+/* Parser IPv6 atomic fragment detection flag */
+#define PARSER_ATOMIC_FRAG_DETECTION_ENABLE	0x02
 /* Parser stop retry counter */
 #define	PARSER_STOP_RETRY		100
 
@@ -680,6 +682,17 @@ __COLD_CODE int sparser_drv_get_pmem(uint8_t *pmem)
 		*dst_mem++ = ioread32be(src_mem++);
 	sp_drv_start_parser();
 	return 0;
+}
+
+void parser_enable_ipv6_atomic_frag_detection(void)
+{
+	struct parser_regs	*pregs;
+	uint32_t		par_cfg;
+
+	pregs = (struct parser_regs *)PARSER_REGS_ADDR;
+	par_cfg = ioread32be(&pregs->par_cfg);
+	par_cfg |= PARSER_ATOMIC_FRAG_DETECTION_ENABLE;
+	iowrite32be(par_cfg, &pregs->par_cfg);
 }
 
 #ifdef SL_DEBUG

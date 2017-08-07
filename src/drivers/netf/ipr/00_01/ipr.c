@@ -2791,20 +2791,17 @@ void ipr_stats_update(struct ipr_instance *instance_params_ptr,
 IPR_CODE_PLACEMENT uint32_t is_atomic_fragment()
 {
 	struct ipv6fraghdr * ipv6fraghdr_ptr;
-	uint16_t	     ipv6frag_offset;
-	
-	if (PARSER_IS_OUTER_IP_INIT_FRAGMENT_DEFAULT())
-	{
-		/* Get More Flag bit to check if last fragment */
-		ipv6frag_offset = PARSER_GET_IPV6_FRAG_HEADER_OFFSET_DEFAULT();
-		ipv6fraghdr_ptr = (struct ipv6fraghdr *)
-				(PRC_GET_SEGMENT_ADDRESS() + ipv6frag_offset);
-		if (ipv6fraghdr_ptr->offset_and_flags & IPV6_HDR_M_FLAG_MASK)
-			return 0;
-		else 
-			return 1;
-	}
-	return 0;
+	uint16_t	     ipv6fraghdr_offset;
+
+	ipv6fraghdr_offset = PARSER_GET_IPV6_FRAG_HEADER_OFFSET_DEFAULT();
+	ipv6fraghdr_ptr = (struct ipv6fraghdr *)
+			(PRC_GET_SEGMENT_ADDRESS() + ipv6fraghdr_offset);
+
+	if ((ipv6fraghdr_ptr->offset_and_flags & IPV6_HDR_OFFSET_MASK) ||
+	    (ipv6fraghdr_ptr->offset_and_flags & IPV6_HDR_M_FLAG_MASK))
+		return 0;
+
+	return 1;
 }
 
 void ipr_modify_max_reass_frm_size(ipr_instance_handle_t ipr_instance,

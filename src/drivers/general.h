@@ -185,6 +185,7 @@ extern const uint8_t _ssram_addr[];
 @{
 *//***************************************************************************/
 #define IPV6_HDR_M_FLAG_MASK 0x0001 /** Mask for IPv6 Fragment Header M flag */
+#define IPV6_HDR_OFFSET_MASK 0xfff8 /** IPv6 Fragment Header frag offset mask */
 
 /** @} */ /* end of AIOP_General_Protocols_IPV6_FRAG_HDR_Offsets */
 
