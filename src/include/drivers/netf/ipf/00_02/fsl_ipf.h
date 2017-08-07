@@ -165,6 +165,8 @@ typedef uint8_t ipf_ctx_t[IPF_CONTEXT_SIZE];
 		No support in IPv6 jumbograms.\n
 		It is assumed that the address of the presented segment is
 		aligned to 16 bytes.\n
+		it is assumed that the segment presentation offset
+		is set to 0.\n
 		Since during fragmentation process of an IPv6 frame, fragment
 		extension (8 bytes) is added to the header, 8 bytes will be
 		removed from the tail of the presented segment.
