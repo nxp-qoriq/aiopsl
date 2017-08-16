@@ -34,6 +34,41 @@
 
 #define MC_CMD_NUM_OF_PARAMS	7
 
+#define phys_addr_t	uint64_t
+
+#define u64	uint64_t
+#define u32	uint32_t
+#define u16	uint16_t
+#define u8	uint8_t
+
+#undef cpu_to_le64
+#define cpu_to_le64	CPU_TO_LE64
+#undef cpu_to_le32
+#define cpu_to_le32	CPU_TO_LE32
+#define cpu_to_le16	CPU_TO_LE16
+
+#define le64_to_cpu	LE64_TO_CPU
+#define le32_to_cpu	LE32_TO_CPU
+#define le16_to_cpu	LE16_TO_CPU
+
+#define BITS_PER_LONG			64
+#define GENMASK(h, l) \
+		(((~0ULL) << (l)) & (~0ULL >> (BITS_PER_LONG - 1 - (h))))
+
+struct mc_cmd_header {
+	union {
+		struct {
+			uint8_t src_id;
+			uint8_t flags_hw;
+			uint8_t status;
+			uint8_t flags_sw;
+			uint16_t token;
+			uint16_t cmd_id;
+		};
+		uint32_t word[2];
+	};
+};
+
 #define MAKE_UMASK64(_width) \
 	((uint64_t)((_width) < 64 ? ((uint64_t)1 << (_width)) - 1 : \
 				    (uint64_t)-1))
@@ -51,6 +86,10 @@ static inline uint64_t mc_dec(uint64_t val, int lsoffset, int width)
 struct mc_command {
 	uint64_t header;
 	uint64_t params[MC_CMD_NUM_OF_PARAMS];
+};
+
+struct mc_rsp_create {
+	uint32_t object_id;
 };
 
 /**
@@ -172,6 +211,22 @@ static inline uint64_t mc_encode_cmd_header(uint16_t cmd_id,
 		       MC_CMD_STATUS_READY);
 
 	return hdr;
+}
+
+static inline uint16_t mc_cmd_hdr_read_token(struct mc_command *cmd)
+{
+	struct mc_cmd_header *hdr = (struct mc_cmd_header *)&cmd->header;
+	uint16_t token = le16_to_cpu(hdr->token);
+
+	return token;
+}
+
+static inline uint32_t mc_cmd_read_object_id(struct mc_command *cmd)
+{
+	struct mc_rsp_create *rsp_params;
+
+	rsp_params = (struct mc_rsp_create *)cmd->params;
+	return le32_to_cpu(rsp_params->object_id);
 }
 
 /**

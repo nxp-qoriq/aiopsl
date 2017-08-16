@@ -360,9 +360,11 @@ struct dpni_drv_rx_tc_policing_cfg{
 *//***************************************************************************/
 enum dpni_drv_tx_schedule_mode {
 	/* strict priority */
-	DPNI_DRV_TX_SCHED_STRICT_PRIORITY,
-	/*  weighted based scheduling */
-	DPNI_DRV_TX_SCHED_WEIGHTED,
+	DPNI_DRV_TX_SCHED_STRICT_PRIORITY = 0,
+	/*  weighted based scheduling in group A */
+	DPNI_DRV_TX_SCHED_WEIGHTED_A,
+	/*  weighted based scheduling in group B */
+	DPNI_DRV_TX_SCHED_WEIGHTED_B,
 };
 
 /**************************************************************************//**
@@ -386,6 +388,12 @@ struct dpni_drv_tx_schedule {
 struct dpni_drv_tx_selection {
 	/* An array of traffic-classes */
 	struct dpni_drv_tx_schedule tc_sched[DPNI_DRV_MAX_TC];
+	/* Priority of group A */
+	uint32_t prio_group_A;
+	/* Priority of group B */
+	uint32_t prio_group_B;
+	/* Treat A and B groups as separate */
+	uint8_t separate_groups;
 };
 
 /**************************************************************************//**
@@ -633,6 +641,54 @@ struct dpni_drv_early_drop {
 	/** WRED - 'red' configuration */
 	struct dpni_drv_wred red;
 };
+
+#include "fsl_dpni.h"
+
+/**************************************************************************//**
+@Description	dpni_drv_pools_cfg - Structure representing
+		buffer pools configuration.
+
+*//***************************************************************************/
+typedef struct dpni_pools_cfg dpni_drv_pools_cfg;
+
+/**************************************************************************//**
+@Description	dpni_drv_statistics - Structure containing the statistics.
+
+*//***************************************************************************/
+typedef union dpni_statistics dpni_drv_statistics;
+
+/**************************************************************************//**
+@Description	dpni_drv_queue_type - Identifies a type of queue.
+
+*//***************************************************************************/
+typedef enum dpni_queue_type dpni_drv_queue_type;
+
+/**************************************************************************//**
+@Description	struct dpni_drv_congestion_notification_cfg - Structure
+		representing congestion notification configuration.
+
+*//***************************************************************************/
+struct dpni_drv_congestion_notification_cfg {
+	/** Congestion units type */
+	enum dpni_drv_congestion_unit units;
+	/** Above this threshold we enter a congestion state */
+	uint32_t threshold_entry;
+	/** Below this threshold we exit the congestion state */
+	uint32_t threshold_exit;
+	/** Mask of available options;
+	 * Use the following values:
+	 * 'DPNI_CONG_OPT_NOTIFY_DEST_ON_ENTER',
+	 * 'DPNI_CONG_OPT_NOTIFY_DEST_ON_EXIT',
+	 * 'DPNI_CONG_OPT_FLOW_CONTROL' (This will have effect only if
+	 * flow control is enabled with dpni_set_link_cfg()) */
+	uint16_t notification_mode;
+};
+
+/**************************************************************************//**
+@Description	dpni_drv_statistics - Structure representing DPNI attributes.
+
+*//***************************************************************************/
+typedef struct dpni_attr dpni_drv_attr;
 
 /**************************************************************************//**
 @Description	Application Receive callback
@@ -1370,6 +1426,26 @@ int dpni_drv_get_qos_counter(uint16_t ni_id, uint8_t tc,
 			     uint64_t *value);
 
 /**************************************************************************//**
+@Function	dpni_drv_get_statistics
+
+@Description	Function to get DPNI statistics.
+
+@Param[in]	ni_id   The AIOP Network Interface ID
+
+@Param[in]	page    Selects the statistics page to retrieve (0-3)
+
+@Param[in]	param   Custom parameter for some pages used to select
+                        a certain statistic source, for example the TC
+
+@Param[in]	stat    Structure containing the statistics
+
+@Return	0 on success;
+	error code, otherwise. For error posix refer to \ref error_g
+*//***************************************************************************/
+int dpni_drv_get_statistics(uint16_t ni_id, uint8_t page, uint8_t param,
+				dpni_drv_statistics *stat);
+
+/**************************************************************************//**
 @Function	dpni_drv_reset_statistics
 
 @Description	Function to clear DPNI statistics.
@@ -2057,7 +2133,7 @@ int dpni_drv_set_tx_taildrop(uint16_t ni_id, uint8_t tc,
 
 @Param[in]	tc : Traffic class
 
-@Param[in]	cfg : Structure receiving the taildrop configuration.
+@Param[out]	cfg : Structure receiving the taildrop configuration.
 
 @Return	0 on success;
 	error code, otherwise. For error posix refer to \ref error_g
@@ -2079,7 +2155,7 @@ int dpni_drv_get_tx_taildrop(uint16_t ni_id, uint8_t tc,
 @Return	0 on success;
 	error code, otherwise. For error posix refer to \ref error_g
 *//***************************************************************************/
-int dpni_drv_set_tx_early_drop(uint16_t ni_id, uint8_t tc_id,
+int dpni_drv_set_tx_early_drop(uint16_t ni_id, uint8_t tc,
 			       struct dpni_drv_early_drop *cfg);
 
 /**************************************************************************//**
@@ -2092,13 +2168,168 @@ int dpni_drv_set_tx_early_drop(uint16_t ni_id, uint8_t tc_id,
 
 @Param[in]	tc : Traffic class
 
-@Param[in]	cfg : Structure receiving the early drop configuration.
+@Param[out]	cfg : Structure receiving the early drop configuration.
 
 @Return	0 on success;
 	error code, otherwise. For error posix refer to \ref error_g
 *//***************************************************************************/
-int dpni_drv_get_tx_early_drop(uint16_t ni_id, uint8_t tc_id,
+int dpni_drv_get_tx_early_drop(uint16_t ni_id, uint8_t tc,
 			       struct dpni_drv_early_drop *cfg);
+
+/**************************************************************************//**
+@Function	dpni_drv_set_rx_taildrop
+
+@Description	Set Rx traffic class taildrop configuration for a given DPNI.
+
+@Param[in]	ni_id : The Network Interface ID
+
+@Param[in]	tc : Traffic class
+
+@Param[in]	cfg : Structure representing taildrop configuration.
+
+@Return	0 on success;
+	error code, otherwise. For error posix refer to \ref error_g
+*//***************************************************************************/
+int dpni_drv_set_rx_taildrop(uint16_t ni_id, uint8_t tc,
+			     struct dpni_drv_taildrop *cfg);
+
+/**************************************************************************//**
+@Function	dpni_drv_get_rx_taildrop
+
+@Description	Retrieve Rx traffic class taildrop configuration of a given
+		DPNI.
+
+@Param[in]	ni_id : The Network Interface ID
+
+@Param[in]	tc : Traffic class
+
+@Param[out]	cfg : Structure receiving the taildrop configuration.
+
+@Return	0 on success;
+	error code, otherwise. For error posix refer to \ref error_g
+*//***************************************************************************/
+int dpni_drv_get_rx_taildrop(uint16_t ni_id, uint8_t tc,
+			     struct dpni_drv_taildrop *cfg);
+
+/**************************************************************************//**
+@Function	dpni_drv_set_rx_early_drop
+
+@Description	Set Rx traffic class early drop configuration for a given DPNI.
+
+@Param[in]	ni_id : The Network Interface ID
+
+@Param[in]	tc : Traffic class
+
+@Param[in]	cfg : Structure representing early drop configuration.
+
+@Return	0 on success;
+	error code, otherwise. For error posix refer to \ref error_g
+*//***************************************************************************/
+int dpni_drv_set_rx_early_drop(uint16_t ni_id, uint8_t tc,
+			       struct dpni_drv_early_drop *cfg);
+
+/**************************************************************************//**
+@Function	dpni_drv_get_rx_early_drop
+
+@Description	Retrieve Rx traffic class early drop configuration of a given
+		DPNI.
+
+@Param[in]	ni_id : The Network Interface ID
+
+@Param[in]	tc : Traffic class
+
+@Param[out]	cfg : Structure receiving the early drop configuration.
+
+@Return	0 on success;
+	error code, otherwise. For error posix refer to \ref error_g
+*//***************************************************************************/
+int dpni_drv_get_rx_early_drop(uint16_t ni_id, uint8_t tc,
+			       struct dpni_drv_early_drop *cfg);
+
+/**************************************************************************//**
+@Function	dpni_drv_set_pools
+
+@Description	Set buffer pools configuration of a given DPNI.
+
+@Param[in]	ni_id : The Network Interface ID
+
+@Param[in]	cfg : Buffer pools configuration.
+
+@Return	0 on success;
+	error code, otherwise. For error posix refer to \ref error_g
+*//***************************************************************************/
+int dpni_drv_set_pools(uint16_t ni_id, dpni_drv_pools_cfg *cfg);
+
+/**************************************************************************//**
+@Function	dpni_drv_set_congestion_notification
+
+@Description	Set traffic class congestion notification configuration.
+
+@Param[in]	ni_id : The Network Interface ID
+
+@Param[in]	tc : Traffic class
+
+@Param[in]	qtype : Type of queue - Rx, Tx are supported
+
+@Param[in]	cfg : Congestion notification configuration
+
+@Return	0 on success;
+	error code, otherwise. For error posix refer to \ref error_g
+*//***************************************************************************/
+int dpni_drv_set_congestion_notification(uint16_t ni_id, uint8_t tc,
+			dpni_drv_queue_type qtype,
+			struct dpni_drv_congestion_notification_cfg *cfg);
+
+/**************************************************************************//**
+@Function	dpni_drv_get_congestion_notification
+
+@Description	Get traffic class congestion notification configuration.
+
+@Param[in]	ni_id : The Network Interface ID
+
+@Param[in]	tc : Traffic class
+
+@Param[in]	qtype : Type of queue - Rx, Tx are supported
+
+@Param[out]	cfg : Congestion notification configuration
+
+@Return	0 on success;
+	error code, otherwise. For error posix refer to \ref error_g
+*//***************************************************************************/
+int dpni_drv_get_congestion_notification(uint16_t ni_id, uint8_t tc,
+			dpni_drv_queue_type qtype,
+			struct dpni_drv_congestion_notification_cfg *cfg);
+
+
+/**************************************************************************//**
+@Function	dpni_drv_set_rx_priorities
+
+@Description	Sets the Rx priorities for each traffic class of a given NI.
+		Lower index Rx TCs always take precedence over higher index TCs.
+		4 strict priority levels: 0, 1, [2-5], [6-7].
+		A DPCON must be associated with AIOP for the
+		purpose of scheduling.
+
+@Param[in]	ni_id The AIOP Network Interface ID.
+
+@Return	0 on success;
+	error code, otherwise. For error posix refer to \ref error_g
+*//***************************************************************************/
+int dpni_drv_set_rx_priorities(uint16_t ni_id);
+
+/**************************************************************************//**
+@Function	dpni_drv_get_attributes
+
+@Description	Retrieve the attributes of a given NI.
+
+@Param[in]	ni_id The AIOP Network Interface ID.
+
+@Param[out]	attr Object's attributes.
+
+@Return	0 on success;
+	error code, otherwise. For error posix refer to \ref error_g
+*//***************************************************************************/
+int dpni_drv_get_attributes(uint16_t ni_id, dpni_drv_attr *attr);
 
 #ifdef SL_DEBUG
 /**************************************************************************//**

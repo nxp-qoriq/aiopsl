@@ -175,6 +175,9 @@
 #define ASSERT_MULTIPLE_OF(_size, _multiple) \
 	ASSERT_STRUCT_SIZE_(((_size) % (_multiple)) == 0)
 
+#define ASSERT_EQUAL(_a, _b) \
+	ASSERT_STRUCT_SIZE_((_a) == (_b))
+
 #define DECLARE_UINT_CODEC(w) \
 static inline uint##w##_t u##w##_enc(int lsoffset, int width, uint##w##_t val) \
 { \

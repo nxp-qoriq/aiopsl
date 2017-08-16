@@ -41,8 +41,12 @@
 #include "fsl_aiop_common.h"
 #include "fsl_dpci_mng.h"
 #include "fsl_dpci_event.h"
+#include "fsl_dpcon.h"
 
 extern struct aiop_init_info g_init_data;
+
+extern int g_dpcon_id;
+extern uint8_t g_dpcon_priorities;
 
 int dprc_drv_init(void);
 void dprc_drv_free(void);
@@ -115,6 +119,31 @@ void dprc_drv_free(void)
 	/*TODO what else should be freed*/
 }
 
+__COLD_CODE static uint8_t get_dpcon_priorities(struct mc_dprc *dprc, int id)
+{
+	int err;
+	uint16_t dpcon;
+	struct dpcon_attr attr;
+
+	err = dpcon_open(&dprc->io, 0, id, &dpcon);
+	if (err) {
+		sl_pr_err("Open DPCON failed\n");
+		return 0;
+	}
+	err = dpcon_get_attributes(&dprc->io, 0, dpcon, &attr);
+	if (err) {
+		sl_pr_err("dpcon_get_attributes failed\n");
+		dpni_close(&dprc->io, 0, dpcon);
+		return 0;
+	}
+	err = dpcon_close(&dprc->io, 0, dpcon);
+	if (err) {
+		sl_pr_err("Close DPCON failed\n");
+		return 0;
+	}
+	return attr.num_priorities;
+}
+
 int dprc_drv_scan(void)
 {
 	int i, err, dev_count = 0;
@@ -128,7 +157,19 @@ int dprc_drv_scan(void)
 		return err;
 	}
 	sl_pr_debug("Num of objects found: %d\n",dev_count);
-	for(i = 0; i < dev_count; i++){
+
+	/* Search first the dpcon object if any since we need to know
+	  the dpcon id and the number of priorities before configuring dpni queues*/
+	for (i = 0; i < dev_count; i++) {
+		dprc_get_obj(&dprc->io, 0, dprc->token, i, &dev_desc);
+		if (strcmp(dev_desc.type, "dpcon") == 0) {
+			g_dpcon_id = dev_desc.id;
+			g_dpcon_priorities =
+				get_dpcon_priorities(dprc, g_dpcon_id);
+			break;
+		}
+	}
+	for (i = 0; i < dev_count; i++) {
 		dprc_get_obj(&dprc->io, 0, dprc->token, i, &dev_desc);
 		if (strcmp(dev_desc.type, "dpni") == 0) {
 			sl_pr_debug("DPNI %d found in the container\n",dev_desc.id);
@@ -141,7 +182,7 @@ int dprc_drv_scan(void)
 				return err;
 			}
 
-		} else if(strcmp(dev_desc.type, "dpci") == 0) {
+		} else if (strcmp(dev_desc.type, "dpci") == 0) {
 			err = dpci_event_update_obj((uint32_t)dev_desc.id);
 			if (err) {
 				sl_pr_err("Failed to update DPCI %d.\n",
