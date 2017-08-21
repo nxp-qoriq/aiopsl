@@ -129,10 +129,16 @@ Layout is built from 3 different sections: containers, objects, connections.
 				obj@15{
 					obj_name = "dpci@0";
 				};
+				obj@16 {
+					obj_name = "dpcon@1";
+				};
 			};
 		};
 	};
 	objects {
+		dpcon@1 {
+			num_priorities = <8>;
+		};
 		dpaiop@0 {
 			compatible = "fsl,dpaiop";
 			aiop_container_id = <2>;
@@ -187,16 +193,16 @@ Layout is built from 3 different sections: containers, objects, connections.
 			/*mac_addr = < 0x2 0x0 0xc0 0x0a8 0xb 0xfe >;*/	/*ipfwd_b_2_64B_4Gb_t4*/
 			max_senders = <0>;
 			options = "DPNI_OPT_MULTICAST_FILTER" , "DPNI_OPT_UNICAST_FILTER" , "DPNI_OPT_TX_CONF_DISABLED" , "DPNI_OPT_DIST_HASH", "DPNI_OPT_DIST_FS";
-			max_tcs = <7>;
+			max_tcs = <8>;
 			max_policers = <1>;
 			max_dist_per_tc = < 0 0 0 0 0 0 0 0 >;
 			max_fs_entries_per_tc = < 7 7 7 7 7 7 7 7 >;
 			max_unicast_filters = <0>;
 			max_multicast_filters = <0>;
 			max_vlan_filters = <0>;
-			max_qos_entries = <7>;
-			max_qos_key_size = <0>;
-			max_dist_key_size = <0>;
+			max_qos_entries = <16>;
+			max_qos_key_size = <8>;
+			max_dist_key_size = <8>;
 		};
 		dpni@2{
 			compatible = "fsl,dpni";
@@ -204,16 +210,16 @@ Layout is built from 3 different sections: containers, objects, connections.
 			/*mac_addr = < 0x2 0x0 0xc0 0x0a8 0xb 0xfe >;*/ /*ipfwd_b_2_64B_4Gb_t4*/
 			max_senders = <0>;
 			options = "DPNI_OPT_MULTICAST_FILTER" , "DPNI_OPT_UNICAST_FILTER" , "DPNI_OPT_TX_CONF_DISABLED" , "DPNI_OPT_DIST_HASH", "DPNI_OPT_DIST_FS";
-			max_tcs = <7>;
+			max_tcs = <8>;
 			max_policers = <1>;
 			max_dist_per_tc = < 0 0 0 0 0 0 0 0 >;
 			max_fs_entries_per_tc = < 7 7 7 7 7 7 7 7 >;
 			max_unicast_filters = <0>;
 			max_multicast_filters = <0>;
 			max_vlan_filters = <0>;
-			max_qos_entries = <7>;
-			max_qos_key_size = <0>;
-			max_dist_key_size = <0>;
+			max_qos_entries = <16>;
+			max_qos_key_size = <8>;
+			max_dist_key_size = <8>;
 		};
 		dpci@0{
 			compatible = "fsl,dpci";
