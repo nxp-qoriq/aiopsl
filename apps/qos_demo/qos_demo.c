@@ -39,13 +39,16 @@
 #include "qos_demo.h"
 
 /* Enable PFC pause frame transmission */
-/*#define ENABLE_PFC_PAUSE*/
+/* #define ENABLE_PFC_PAUSE */
+
 /* Print link configuration */
-/*#define PRINT_LINK_CFG */
+/* #define PRINT_LINK_CFG */
+
 /* Print QoS statistics on a 60 seconds timer expiration */
-/*#define PRINT_QOS_STATISTICS*/
+/* #define PRINT_QOS_STATISTICS */
+
 /* Print information about every received packet */
-/*#define PRINT_RX_PKT_INFO*/
+#define PRINT_RX_PKT_INFO
 
 #ifdef PRINT_QOS_STATISTICS
 	#include "fsl_malloc.h"
@@ -73,7 +76,8 @@
 
 #define PRESENTATION_LENGTH		64
 
-static void app_fill_kg_profile(struct dpkg_profile_cfg *kg_cfg);
+static void app_fill_fs_kg_profile(struct dpkg_profile_cfg *kg_cfg);
+static void app_fill_qos_kg_profile(struct dpkg_profile_cfg *kg_cfg);
 
 #ifdef PRINT_LINK_CFG
 static __COLD_CODE void print_link_cfg(uint16_t ni)
@@ -255,7 +259,8 @@ __HOT_CODE ENTRY_POINT static void app_frame_cb(void)
 		PARSER_IS_TCP_CONTROLS_6_11_SET_DEFAULT() ||
 		PARSER_IS_TCP_CONTROLS_3_5_SET_DEFAULT() ? "TCP" :
 		(PARSER_IS_UDP_DEFAULT() ? "UDP" :
-		(PARSER_IS_ICMP_DEFAULT() ? "ICMP" : "unknown")));
+		(PARSER_IS_ICMP_DEFAULT() ? "ICMP" :
+		(PARSER_IS_SCTP_DEFAULT() ? "SCTP" :"unknown"))));
 #endif
 	err = dpni_drv_send(task_get_receive_niid(), DPNI_DRV_SEND_FLAGS);
 	if (err == -ENOMEM)
@@ -277,7 +282,7 @@ static int app_dpni_link_up_cb(uint8_t generator_id, uint8_t event_id,
 	UNUSED(app_ctx);
 
 	ni = (uint16_t)((uint32_t)event_data);
-	fsl_print("NI_%d link is UP\n", ni);
+	fsl_print("%s : NI_%d link is UP\n", AIOP_APP_NAME, ni);
 	/* Enable PFC pause */
 #ifdef ENABLE_PFC_PAUSE
 	{
@@ -312,11 +317,16 @@ static int app_dpni_link_down_cb(uint8_t generator_id, uint8_t event_id,
 	UNUSED(event_id);
 	UNUSED(app_ctx);
 
-	fsl_print("NI_%d link is DOWN\n", ni);
+	fsl_print("%s : NI_%d link is DOWN\n", AIOP_APP_NAME, ni);
 	return 0;
 }
 
-extern uint8_t order_scope_buf[256];
+/* Make all following data go into DDR */
+#pragma push
+#pragma section data_type ".exception_data"
+static uint8_t tmp_buf[256] = {0};
+#pragma pop
+
 static int app_dpni_add_cb(uint8_t generator_id, uint8_t event_id,
 			   uint64_t app_ctx, void *event_data)
 {
@@ -326,10 +336,10 @@ static int app_dpni_add_cb(uint8_t generator_id, uint8_t event_id,
 	char			dpni_ep_type[16];
 	int			dpni_ep_id, err, link_state;
 	struct ep_init_presentation init_presentation;
-	uint8_t			*tmp_buf = order_scope_buf;
 	struct			dpni_drv_qos_tbl qos_cfg = {0};
 	struct			dpni_drv_qos_rule qos_rule = {0};
 	uint16_t		mfl = 0x2000; /* Maximum Frame Length */
+	dpni_drv_attr		attr;
 
 	UNUSED(generator_id);
 	UNUSED(event_id);
@@ -341,8 +351,6 @@ static int app_dpni_add_cb(uint8_t generator_id, uint8_t event_id,
 		pr_err("Cannot get connected object for NI %d\n", ni);
 		return err;
 	}
-	if (strcmp(dpni_ep_type, "dpni") == 0)
-		return 0;
 
 	/* Configure frame processing callback */
 	err = dpni_drv_register_rx_cb(ni, (rx_cb_t *)app_ctx);
@@ -366,7 +374,7 @@ static int app_dpni_add_cb(uint8_t generator_id, uint8_t event_id,
 	}
 
 	/* Configure key generation for initial ordering scope */
-	app_fill_kg_profile(&kg_cfg);
+	app_fill_fs_kg_profile(&kg_cfg);
 	err = dpni_drv_set_order_scope(ni, &kg_cfg);
 	if (err) {
 		pr_err("Cannot set order scope on NI %d\n", ni);
@@ -395,8 +403,33 @@ static int app_dpni_add_cb(uint8_t generator_id, uint8_t event_id,
 				ni, init_presentation.sps);
 		return err;
 	}
+
 	if (ni == 1) {
+		uint16_t qos_tbl_idx = 0;
+		struct dpni_drv_rx_tc_policing_cfg cfg;
+
 		/* QoS settings */
+		err = dpni_drv_get_attributes(ni, &attr);
+		if (err) {
+			pr_err("Cannot get attributes for ni:%d\n", ni);
+			return err;
+		}
+		if (attr.num_rx_tcs < 4) {
+			pr_err("We need at least 4 TCs for ni:%d\n", ni);
+			return err;
+		}
+
+		/* Sets the Rx priorities for TCs.
+		 * Lower index TCs take precedence over higher index TCs*/
+		err = dpni_drv_set_rx_priorities(ni);
+		if (err) {
+			pr_err("Fail to configure RX FQs priorities for NI %d\n", ni);
+			return err;
+		}
+
+		/* Initialize key format for the QoS table */
+		app_fill_qos_kg_profile(&kg_cfg);
+
 		memset(tmp_buf, 0, 256);
 		err = dpni_drv_prepare_key_cfg(&kg_cfg, tmp_buf);
 		if (err) {
@@ -406,32 +439,60 @@ static int app_dpni_add_cb(uint8_t generator_id, uint8_t event_id,
 
 		qos_cfg.key_cfg_iova = (uint64_t)tmp_buf;
 		qos_cfg.discard_on_miss = 0;
-		qos_cfg.default_tc = 2;
+		/* lowest priority */
+		qos_cfg.default_tc = attr.num_rx_tcs - 1;
 		err = dpni_drv_set_qos_table(ni, &qos_cfg);
 		if (err) {
 			pr_err("Cannot set qos table on NI %d\n", ni);
 			return err;
 		}
 
-		/* TCP QoS enty */
+		/* Classification rules */
+		/* TCP is TC0 (high priority 0) */
 		qos_rule.key_iova = (uint64_t)tmp_buf;
 		qos_rule.mask_iova = NULL;
 		qos_rule.key_size = 1;
 		tmp_buf[0] = 0x6;
-		err = dpni_drv_add_qos_entry(ni, &qos_rule, 0, 0);
+		err = dpni_drv_add_qos_entry(ni, &qos_rule, 0, qos_tbl_idx++);
 		if (err) {
 			pr_err("Cannot add 1st qos entry on NI %d\n", ni);
 			return err;
 		}
 
-		/* UDP QoS enty */
+		/* UDP is TC1 (high priority 1) */
 		tmp_buf[0] = 0x11;
-		err = dpni_drv_add_qos_entry(ni, &qos_rule, 1, 1);
+		err = dpni_drv_add_qos_entry(ni, &qos_rule, 1, qos_tbl_idx++);
 		if (err) {
 			pr_err("Cannot add 2nd qos entry on NI %d\n", ni);
 			return err;
 		}
+
+		/* SCTP is TC2 (medium priority) */
+		tmp_buf[0] = 0x84;
+		err = dpni_drv_add_qos_entry(ni, &qos_rule, 2, qos_tbl_idx++);
+		if (err) {
+			pr_err("Cannot add 3rd qos entry on NI %d\n", ni);
+			return err;
+		}
+
+		/* Policing configuration */
+		/* Discard SCTP */
+		cfg.options = DPNI_DRV_POLICER_OPT_COLOR_AWARE |
+				DPNI_DRV_POLICER_OPT_DISCARD_RED;
+		cfg.mode = DPNI_DRV_POLICER_MODE_PASS_THROUGH;
+		cfg.unit = DPNI_DRV_POLICER_UNIT_PACKETS;
+		cfg.default_color = DPNI_DRV_POLICER_COLOR_RED;
+		cfg.cir = 0x1000;
+		cfg.cbs = 0x800;
+		cfg.eir = 0x1000;
+		cfg.ebs = 0x800;
+		err = dpni_drv_set_rx_tc_policing(ni, 2, &cfg);
+		if (err) {
+			pr_err("Cannot configure policer on NI %d\n", ni);
+			return err;
+		}
 	}
+
 	/* Egress QoS configuration */
 	if (ni == 1) {
 		uint8_t				tc;
@@ -439,7 +500,7 @@ static int app_dpni_add_cb(uint8_t generator_id, uint8_t event_id,
 		struct dpni_drv_tx_shaping	er;
 
 		/* QoS statistics */
-		tc = task_get_tx_tc();
+		tc = 0;
 		/* Network interface and traffic class are passed to the created
 		 * timer as arguments */
 		err = create_statistics_timer(ni, tc);
@@ -527,7 +588,7 @@ int app_init(void)
 void app_free(void)
 {}
 
-static void app_fill_kg_profile(struct dpkg_profile_cfg *kg_cfg)
+static void app_fill_fs_kg_profile(struct dpkg_profile_cfg *kg_cfg)
 {
 	/* Configure Initial Order Scope */
 	memset(kg_cfg, 0x0, sizeof(struct dpkg_profile_cfg));
@@ -558,4 +619,17 @@ static void app_fill_kg_profile(struct dpkg_profile_cfg *kg_cfg)
 	kg_cfg->extracts[4].extract.from_hdr.prot = NET_PROT_TCP;
 	kg_cfg->extracts[4].extract.from_hdr.type = DPKG_FULL_FIELD;
 	kg_cfg->extracts[4].extract.from_hdr.field = NH_FLD_L4_PORT_DST;
+}
+
+static void app_fill_qos_kg_profile(struct dpkg_profile_cfg *kg_cfg)
+{
+	/* Configure Initial Order Scope */
+	memset(kg_cfg, 0x0, sizeof(struct dpkg_profile_cfg));
+
+	kg_cfg->num_extracts = 1;
+	/* PROTO */
+	kg_cfg->extracts[0].type = DPKG_EXTRACT_FROM_HDR;
+	kg_cfg->extracts[0].extract.from_hdr.prot = NET_PROT_IP;
+	kg_cfg->extracts[0].extract.from_hdr.type = DPKG_FULL_FIELD;
+	kg_cfg->extracts[0].extract.from_hdr.field = NET_HDR_FLD_IP_PROTO;
 }
