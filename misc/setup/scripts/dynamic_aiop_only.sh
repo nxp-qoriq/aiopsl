@@ -184,12 +184,12 @@ create_aiop_container()
 
 	ACTUAL_MAC="00:00:00:00:00:06"
 	NUM_QUEUES=1
-	DPNI_OPTIONS=""
-	NUM_TCS=1
+	DPNI_OPTIONS="DPNI_OPT_HAS_POLICING"
+	NUM_TCS=8
 	MAC_FILTER_ENTRIES=16
 	VLAN_FILTER_ENTRIES=0
 	FS_ENTRIES=1
-	QOS_ENTRIES=1
+	QOS_ENTRIES=16
 
 	log_debug "Creating DPNI"
 	restool_cmd "dpni create --num-queues=$NUM_QUEUES \
@@ -205,12 +205,12 @@ create_aiop_container()
 
 	ACTUAL_MAC="00:00:00:00:00:07"
 	NUM_QUEUES=1
-	DPNI_OPTIONS=""
-	NUM_TCS=1
+	DPNI_OPTIONS="DPNI_OPT_HAS_POLICING"
+	NUM_TCS=8
 	MAC_FILTER_ENTRIES=16
 	VLAN_FILTER_ENTRIES=0
 	FS_ENTRIES=1
-	QOS_ENTRIES=1
+	QOS_ENTRIES=16
 
 	log_debug "Creating DPNI"
 	restool_cmd "dpni create --num-queues=$NUM_QUEUES \
@@ -223,6 +223,9 @@ create_aiop_container()
 
 	log_info "Connecting $atc_DPNI2<------->$DPMAC2"
 	restool_cmd "dprc connect dprc.1 --endpoint1=$atc_DPNI2 --endpoint2=$DPMAC2" None None
+
+	log_debug "Creating DPCON"
+	restool_cmd "dpcon create --num-priorities=8" None ac_DPRC
 
 	echo "AIOP Container $ac_DPRC created"
 } # AIOP Container
