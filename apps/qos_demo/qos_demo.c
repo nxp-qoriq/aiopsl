@@ -48,7 +48,7 @@
 /* #define PRINT_QOS_STATISTICS */
 
 /* Print information about every received packet */
-#define PRINT_RX_PKT_INFO
+/* #define PRINT_RX_PKT_INFO */
 
 #ifdef PRINT_QOS_STATISTICS
 	#include "fsl_malloc.h"
