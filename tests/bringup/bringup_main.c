@@ -94,7 +94,7 @@ __COLD_CODE int __sys_init(void)
 
 
 /*****************************************************************************/
-static uint8_t global_lock;
+static uint64_t global_lock __attribute__((aligned(8)));
 
 int main(int argc, char *argv[])
 {

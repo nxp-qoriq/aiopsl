@@ -33,8 +33,8 @@ void rcu_test();
 int app_early_init(void);
 int rcu_test_check();
 
-extern int32_t rcu_sync_count;
-extern int32_t rcu_cb_count;
+extern int64_t rcu_sync_count;
+extern int64_t rcu_cb_count;
 
 #define TEST_ITER	10
 
@@ -43,7 +43,7 @@ void rcu_test()
 	int err;
 	int i;
 
-	atomic_incr32(&rcu_cb_count, 1);
+	atomic_incr64(&rcu_cb_count, 1);
 
 	for (i = 0; i < TEST_ITER; i++) {
 		pr_debug("####### rcu_synchronize = num %d #######\n",
@@ -61,7 +61,7 @@ void rcu_test()
 
 		/* The lock is released inside rcu_synchronize */
 		err = rcu_synchronize();
-		atomic_incr32(&rcu_sync_count, 1);
+		atomic_incr64(&rcu_sync_count, 1);
 		ASSERT_COND(!err);
 	}
 }

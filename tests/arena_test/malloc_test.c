@@ -258,7 +258,9 @@ int malloc_test()
 	else
 		fsl_print("mem_depletion_test from  SHARED RAM succeeded\n");
 
+#ifdef SL_DEBUG
 	virt_mem_partition_dump(MEM_PART_SH_RAM);
+#endif
 
 	return err;
 }

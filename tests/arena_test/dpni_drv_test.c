@@ -35,7 +35,7 @@
 int dpni_drv_test(void);
 int dpni_drv_test_create(void);
 int dpni_drv_test_destroy(uint16_t ni);
-extern uint8_t dpni_lock; /*lock to change dpni_ctr and dpni_broadcast_flag safely */
+extern uint64_t dpni_lock; /*lock to change dpni_ctr and dpni_broadcast_flag safely */
 extern uint8_t dpni_ctr; /*counts number of packets received before removing broadcast address*/
 extern uint8_t dpni_broadcast_flag; /*flag if packet with broadcast mac destination received during the test*/
 

@@ -41,7 +41,7 @@ struct spinlock_test_unit {
 static struct spinlock_test_unit stest[SPIN_TEST_ITERATIONS];
 static uint32_t s_index;
 static uint32_t core_count;
-static uint8_t test_lock;
+static uint64_t test_lock __attribute__((aligned(8)));
 
 static uint32_t num_taken[TEST__TOTAL_CORE_NO] = {0};
 

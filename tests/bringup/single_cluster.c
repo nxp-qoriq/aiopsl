@@ -41,7 +41,7 @@
 #define CORE_ID_GET		(get_cpu_id() >> 4)
 
 static uint32_t core_arr[INTG_MAX_NUM_OF_CORES] = {0};
-static int8_t  counter = 0;
+static int64_t  counter __attribute__((aligned(8))) = 0;
 static int     err[INTG_MAX_NUM_OF_CORES] = {0};
 
 static void cleanup()
@@ -81,7 +81,7 @@ static int multi_core_test(int8_t num_cores)
 	uint32_t core_id =  CORE_ID_GET;
 	int      i;
 	int      t = 0;
-	volatile int8_t* counter_ptr;
+	volatile int64_t* counter_ptr;
 
 	if (core_id < num_cores) {
 		core_arr[core_id] = 0xff;
@@ -96,7 +96,7 @@ static int multi_core_test(int8_t num_cores)
 		err[core_id] |= single_core_test(core_id);
 
 		/* Check fsl_spinlock.h API */
-		atomic_incr8(&counter, 1);
+		atomic_incr64(&counter, 1);
 
 		counter_ptr = &counter;
 

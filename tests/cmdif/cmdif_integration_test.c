@@ -79,16 +79,16 @@ struct dpci_attr attr_c = {0};
 uint64_t tman_addr;
 uint64_t lbp;
 uint64_t gpp_lbp;
-int32_t async_count = 0;
-int32_t dpci_add_count = 0;
-int32_t dpci_rm_count = 0;
-int32_t rcu_sync_count = 0;
-int32_t rcu_cb_count = 0;
+int64_t async_count __attribute__((aligned(8))) = 0;
+int64_t dpci_add_count __attribute__((aligned(8))) = 0;
+int64_t dpci_rm_count __attribute__((aligned(8))) = 0;
+int64_t rcu_sync_count __attribute__((aligned(8))) = 0;
+int64_t rcu_cb_count __attribute__((aligned(8))) = 0;
 
-extern int32_t dpci_add_ev_count;
-extern int32_t dpci_rm_ev_count;
-extern int32_t dpci_up_ev_count;
-extern int32_t dpci_down_ev_count;
+extern int64_t dpci_add_ev_count;
+extern int64_t dpci_rm_ev_count;
+extern int64_t dpci_up_ev_count;
+extern int64_t dpci_down_ev_count;
 extern __PROFILE_SRAM struct storage_profile 
 			storage_profile[SP_NUM_OF_STORAGE_PROFILES];
 
@@ -98,7 +98,7 @@ static int dpci_dynamic_rm_test()
 	uint16_t token;
 	int err;
 
-	atomic_incr32(&dpci_rm_count, 1);
+	atomic_incr64(&dpci_rm_count, 1);
 
 	/* Take 2 last DPCIs from dpci_dynamic_add_test */
 	err = dpci_open(&dprc->io, 0, attr.id, &token);
@@ -167,7 +167,7 @@ static int dpci_dynamic_add_test()
 
 	pr_debug("Enter\n");
 
-	atomic_incr32(&dpci_add_count, 1);
+	atomic_incr64(&dpci_add_count, 1);
 
 	memset(&attr, 0, sizeof(attr));
 	memset(&attr_c, 0, sizeof(attr_c));
@@ -301,7 +301,7 @@ static int aiop_async_cb(void *async_ctx, int err, uint16_t cmd_id,
 	} else {
 		pr_debug("No data inside aiop_async_cb\n");
 	}
-	atomic_incr32(&async_count, 1);
+	atomic_incr64(&async_count, 1);
 	pr_debug("PASSED AIOP ASYNC CB[%d] cmd_id = 0x%x\n",
 	         async_count, cmd_id);
 

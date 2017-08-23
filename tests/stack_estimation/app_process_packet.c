@@ -99,17 +99,17 @@ void stack_estimation(void)
 	struct ep_init_presentation ep_init = {0};
 	struct dpni_drv_tx_checksum tx_checksum = {0};
 	struct dpni_drv_rx_tc_policing_cfg tc_pol = {0};
-	struct dpni_drv_tx_selection tx_sel = {0};
+	struct dpni_drv_tx_selection tx_sel = {(enum dpni_drv_tx_schedule_mode)0};
 	struct dpni_drv_tx_shaping tx_shaping = {0};
 	struct dpni_drv_qos_tbl qos_tbl = {0};
 	struct dpni_drv_qos_rule qos_rule = {0};
-	struct dpni_drv_early_drop_cfg early_drop = {0};
+	struct dpni_drv_early_drop_cfg early_drop = {(enum dpni_drv_early_drop_mode)0};
  	uint16_t ni = 0, dpni_id, spid, mfl = 0;
 	uint8_t mac_addr[NET_HDR_FLD_ETH_ADDR_SIZE] = {0};
 	int state = 0;
 	rx_cb_t *cb = 0;
 	uint64_t shbp = 0;
-	uint8_t *key_cfg_buf;
+	uint8_t *key_cfg_buf = 0;
 	uint8_t tc_id = 0;
 	/*sl_prolog must be called first when packet arrives*/
 	sl_prolog();
@@ -167,7 +167,7 @@ void stack_estimation(void)
 		dpni_drv_get_rx_buffer_layout(ni, &layout);
 		dpni_drv_set_rx_buffer_layout(ni, &layout);
 		dpni_drv_get_counter(ni, DPNI_DRV_CNT_ING_FRAME ,&ctr_value);
-		dpni_drv_reset_counter(ni, DPNI_DRV_CNT_ING_FRAME);
+		/* dpni_drv_reset_counter(ni, DPNI_DRV_CNT_ING_FRAME); */
 		dpni_drv_get_dpni_id(ni, &dpni_id);
 		dpni_drv_get_ni_id(dpni_id, &ni);
 		dpni_drv_get_link_state(ni, &link_state);
@@ -185,9 +185,9 @@ void stack_estimation(void)
 		dpni_drv_set_rx_tc_policing(ni, tc_id, &tc_pol);
 		dpni_drv_get_rx_tc_policing(ni, tc_id, &tc_pol);
 		dpni_drv_set_tx_selection(ni, &tx_sel);
-		dpni_drv_set_tx_shaping(ni, &tx_shaping);
+		dpni_drv_set_tx_shaping(ni, &tx_shaping, &tx_shaping, 0);
 		dpni_drv_set_qos_table(ni, &qos_tbl);
-		dpni_drv_add_qos_entry(ni, &qos_rule, tc_id);
+		dpni_drv_add_qos_entry(ni, &qos_rule, tc_id, 0);
 		dpni_drv_remove_qos_entry(ni, &qos_rule);
 		dpni_drv_clear_qos_table(ni);
 		dpni_drv_prepare_rx_tc_early_drop(&early_drop, key_cfg_buf);

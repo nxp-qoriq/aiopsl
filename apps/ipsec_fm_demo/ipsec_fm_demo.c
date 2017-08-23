@@ -291,7 +291,7 @@ ipsec_handle_t	ipsec_sas_desc_inbound[TEST_NUM_OF_SA];
 	static void app_stats_timer_cb(tman_arg_8B_t arg1, tman_arg_2B_t arg2);
 
 	static uint32_t	stats_timer_handle;
-	static int32_t	processed_pkts;
+	static int64_t	processed_pkts __attribute__((aligned(8)));
 #endif
 
 #if (BIDIRECTIONAL == 0)
@@ -310,7 +310,7 @@ static __HOT_CODE ENTRY_POINT void app_perf_process_packet(void)
 #endif
 
 #if (IPSEC_STATS_PRINT == 1)
-	atomic_incr32(&processed_pkts, 1);
+	atomic_incr64(&processed_pkts, 1);
 #endif
 	sl_prolog();
 	eth_pointer_byte = (uint8_t *)PARSER_GET_ETH_POINTER_DEFAULT();
@@ -372,7 +372,7 @@ static __HOT_CODE ENTRY_POINT void app_perf_packet_encr(void)
 	ipsec_handle_t	ws_desc_handle_outbound;
 
 #if (IPSEC_STATS_PRINT == 1)
-	atomic_incr32(&processed_pkts, 1);
+	atomic_incr64(&processed_pkts, 1);
 #endif
 	sl_prolog();
 	eth_pointer_byte = (uint8_t *)PARSER_GET_ETH_POINTER_DEFAULT();
@@ -414,7 +414,7 @@ static __HOT_CODE ENTRY_POINT void app_perf_packet_decr(void)
 	ipsec_handle_t	ws_desc_handle_inbound;
 
 #if (IPSEC_STATS_PRINT == 1)
-	atomic_incr32(&processed_pkts, 1);
+	atomic_incr64(&processed_pkts, 1);
 #endif
 	sl_prolog();
 	eth_pointer_byte = (uint8_t *)PARSER_GET_ETH_POINTER_DEFAULT();
@@ -1534,7 +1534,7 @@ static void app_stats_timer_cb(tman_arg_8B_t arg1, tman_arg_2B_t arg2)
 		decr_dropped_pkts += dropped_pkts;
 #endif
 	}
-	fsl_print("\n\t Processed packets           = %d\n", processed_pkts);
+	fsl_print("\n\t Processed packets           = %d\n", (int32_t)processed_pkts);
 #if (DECRYPT_ONLY == 0)
 	fsl_print("\t Total encrypted packets     = %ll\n", encr_packets);
 	fsl_print("\t Total dropped on encryption = %ll\n", encr_dropped_pkts);

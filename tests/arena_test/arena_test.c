@@ -79,16 +79,16 @@ extern uint32_t rnd_seed[MAX_NUM_OF_CORES][MAX_NUM_OF_TASKS];
 extern __TASK uint32_t	seed_32bit;
 extern struct slab_bman_pool_desc g_slab_bman_pools[SLAB_MAX_BMAN_POOLS_NUM];
 extern struct dpni_drv *nis;
-uint8_t dpni_lock; /*lock to change dpni_ctr and dpni_broadcast_flag safely */
+uint64_t dpni_lock __attribute__((aligned(8))); /*lock to change dpni_ctr and dpni_broadcast_flag safely */
 uint8_t dpni_ctr; /*counts number of packets received before removing broadcast address*/
 uint8_t dpni_broadcast_flag; /*flag if packet with broadcast mac destination received during the test*/
 uint8_t packet_number;
-uint8_t packet_lock;
-uint8_t time_lock;
+uint64_t packet_lock __attribute__((aligned(8)));
+uint64_t time_lock __attribute__((aligned(8)));
 uint8_t num_of_nis_arena = 0;
 uint64_t global_time;
 
-uint8_t order_scope_lock = 0;
+uint64_t order_scope_lock __attribute__((aligned(8))) = 0;
 uint8_t order_scope_max[] = {0 , 1};
 uint8_t order_scope_conc = 0;
 uint8_t order_scope_ordering_err = 0;
@@ -108,7 +108,7 @@ uint8_t order_scope_ordering_err = 0;
 }
 
 int test_error;
-uint8_t test_error_lock;
+uint64_t test_error_lock __attribute__((aligned(8)));
 
 __HOT_CODE ENTRY_POINT static void app_process_packet(void)
 {

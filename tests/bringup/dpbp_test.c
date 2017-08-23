@@ -204,7 +204,7 @@ int __dpni_drv_init()
 	}
 
 	/* Initialize internal AIOP NI table */
-	dpni_drv_init_ni_table__(1);
+	dpni_drv_init_ni_table__(1, 1);
 
 	err = configure_bpids_for_dpni__();
 	if (err) {

@@ -350,7 +350,6 @@
 			</storageModule>
 			<storageModule moduleId="org.eclipse.cdt.core.externalSettings">
 				<externalSettings containerId="aiop_sl;com.freescale.ppc.debug.toolchain.configuration.508235731.651312077" factoryId="org.eclipse.cdt.core.cfg.export.settings.sipplier"/>
-				<externalSettings containerId="mc_app;" factoryId="org.eclipse.cdt.core.cfg.export.settings.sipplier"/>
 			</storageModule>
 		</cconfiguration>
 		<cconfiguration id="com.freescale.ppc.debug.toolchain.configuration.508235731.1980852932.1265146263">

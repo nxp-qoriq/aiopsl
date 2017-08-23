@@ -122,14 +122,14 @@ aiop_sl		</project>
 			<locationURI>PARENT-4-PROJECT_LOC/apps/ipf_demo/apps.h</locationURI>
 		</link>
 		<link>
+			<name>src/ipf_demo.c</name>
+			<type>1</type>
+			<locationURI>PARENT-4-PROJECT_LOC/apps/ipf_demo/ipf_demo.c</locationURI>
+		</link>
+		<link>
 			<name>src/generic</name>
 			<type>2</type>
 			<locationURI>virtual:/virtual</locationURI>
-		</link>
-		<link>
-			<name>src/ipf_demo.c</name>
-			<type>1</type>
-			<location>C:/projects/aiopsl/apps/ipf_demo/ipf_demo.c</location>
 		</link>
 		<link>
 			<name>src/ls1088a</name>

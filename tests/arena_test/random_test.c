@@ -41,7 +41,7 @@ int random_init(void);
 #define MAX_NUM_OF_CORES	16
 #define MAX_NUM_OF_TASKS	16
 uint32_t rnd_seed[MAX_NUM_OF_CORES][MAX_NUM_OF_TASKS];
-uint8_t rnd_lock;
+uint64_t rnd_lock __attribute__((aligned(8)));
 int num_of_cores;
 int num_of_tasks;
 
