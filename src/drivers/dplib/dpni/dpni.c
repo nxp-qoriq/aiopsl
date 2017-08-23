@@ -212,7 +212,7 @@ int dpni_open(struct fsl_mc_io *mc_io,
 					  cmd_flags,
 					  0);
 	cmd_params = (struct dpni_cmd_open *)cmd.params;
-	cmd_params->dpni_id = cpu_to_le32(dpni_id);
+	cmd_params->dpni_id = cpu_to_le32((uint32_t)dpni_id);
 
 	/* send command to mc*/
 	err = mc_send_command(mc_io, &cmd);
@@ -371,7 +371,7 @@ int dpni_set_pools(struct fsl_mc_io *mc_io,
 	cmd_params->num_dpbp = cfg->num_dpbp;
 	for (i = 0; i < DPNI_MAX_DPBP; i++) {
 		cmd_params->pool[i].dpbp_id =
-			cpu_to_le16(cfg->pools[i].dpbp_id);
+			cpu_to_le16((uint16_t)cfg->pools[i].dpbp_id);
 		cmd_params->pool[i].priority_mask =
 			cfg->pools[i].priority_mask;
 		cmd_params->buffer_size[i] =
@@ -460,7 +460,7 @@ int dpni_is_enabled(struct fsl_mc_io *mc_io,
 
 	/* retrieve response parameters */
 	rsp_params = (struct dpni_rsp_is_enabled *)cmd.params;
-	*en = dpni_get_field(rsp_params->enabled, ENABLE);
+	*en = (int)dpni_get_field(rsp_params->enabled, ENABLE);
 
 	return 0;
 }
@@ -835,9 +835,9 @@ int dpni_get_buffer_layout(struct fsl_mc_io *mc_io,
 
 	/* retrieve response parameters */
 	rsp_params = (struct dpni_rsp_get_buffer_layout *)cmd.params;
-	layout->pass_timestamp = dpni_get_field(rsp_params->flags, PASS_TS);
-	layout->pass_parser_result = dpni_get_field(rsp_params->flags, PASS_PR);
-	layout->pass_frame_status = dpni_get_field(rsp_params->flags, PASS_FS);
+	layout->pass_timestamp = (int)dpni_get_field(rsp_params->flags, PASS_TS);
+	layout->pass_parser_result = (int)dpni_get_field(rsp_params->flags, PASS_PR);
+	layout->pass_frame_status = (int)dpni_get_field(rsp_params->flags, PASS_FS);
 	layout->private_data_size = le16_to_cpu(rsp_params->private_data_size);
 	layout->data_align = le16_to_cpu(rsp_params->data_align);
 	layout->data_head_room = le16_to_cpu(rsp_params->head_room);
@@ -873,7 +873,7 @@ int dpni_set_buffer_layout(struct fsl_mc_io *mc_io,
 					  token);
 	cmd_params = (struct dpni_cmd_set_buffer_layout *)cmd.params;
 	cmd_params->qtype = qtype;
-	cmd_params->options = cpu_to_le16(layout->options);
+	cmd_params->options = cpu_to_le16((uint16_t)layout->options);
 	dpni_set_field(cmd_params->flags, PASS_TS, layout->pass_timestamp);
 	dpni_set_field(cmd_params->flags, PASS_PR, layout->pass_parser_result);
 	dpni_set_field(cmd_params->flags, PASS_FS, layout->pass_frame_status);
@@ -1138,7 +1138,7 @@ int dpni_get_link_state(struct fsl_mc_io *mc_io,
 
 	/* retrieve response parameters */
 	rsp_params = (struct dpni_rsp_get_link_state *)cmd.params;
-	state->up = dpni_get_field(rsp_params->flags, LINK_STATE);
+	state->up = (int)dpni_get_field(rsp_params->flags, LINK_STATE);
 	state->rate = le32_to_cpu(rsp_params->rate);
 	state->options = le64_to_cpu(rsp_params->options);
 
@@ -1304,7 +1304,7 @@ int dpni_get_multicast_promisc(struct fsl_mc_io *mc_io,
 
 	/* retrieve response parameters */
 	rsp_params = (struct dpni_rsp_get_multicast_promisc *)cmd.params;
-	*en = dpni_get_field(rsp_params->enabled, ENABLE);
+	*en = (int)dpni_get_field(rsp_params->enabled, ENABLE);
 
 	return 0;
 }
@@ -1367,7 +1367,7 @@ int dpni_get_unicast_promisc(struct fsl_mc_io *mc_io,
 
 	/* retrieve response parameters */
 	rsp_params = (struct dpni_rsp_get_unicast_promisc *)cmd.params;
-	*en = dpni_get_field(rsp_params->enabled, ENABLE);
+	*en = (int)dpni_get_field(rsp_params->enabled, ENABLE);
 
 	return 0;
 }
@@ -1705,10 +1705,8 @@ int dpni_set_tx_priorities(struct fsl_mc_io *mc_io,
 	dpni_set_field(cmd_params->flags,
 				SEPARATE_GRP,
 				cfg->separate_groups);
-	cmd_params->prio_group_A =
-				cfg->prio_group_A;
-	cmd_params->prio_group_B =
-				cfg->prio_group_B;
+	cmd_params->prio_group_A = (uint8_t)cfg->prio_group_A;
+	cmd_params->prio_group_B = (uint8_t)cfg->prio_group_B;
 	
 	for (i = 0; i + 1 < DPNI_MAX_TC; i = i + 2) {
 		dpni_set_field(cmd_params->modes[i / 2],
@@ -1838,7 +1836,7 @@ int dpni_get_tx_confirmation_mode(struct fsl_mc_io *mc_io,
 		return err;
 
 	rsp_params = (struct dpni_tx_confirmation_mode *)cmd.params;
-	*mode =  rsp_params->confirmation_mode;
+	*mode =  (enum dpni_confirmation_mode)rsp_params->confirmation_mode;
 
 	return 0;
 }
@@ -2160,9 +2158,9 @@ int dpni_get_rx_tc_policing(struct fsl_mc_io *mc_io,
 	cfg->cbs = le32_to_cpu(rsp_params->cbs);
 	cfg->eir = le32_to_cpu(rsp_params->eir);
 	cfg->ebs = le32_to_cpu(rsp_params->ebs);
-	cfg->units = dpni_get_field(rsp_params->units, UNITS);
-	cfg->mode = dpni_get_field(rsp_params->mode_color, MODE);
-	cfg->default_color = dpni_get_field(rsp_params->mode_color, COLOR);
+	cfg->units = (enum dpni_policer_unit)dpni_get_field(rsp_params->units, UNITS);
+	cfg->mode = (enum dpni_policer_mode)dpni_get_field(rsp_params->mode_color, MODE);
+	cfg->default_color = (enum dpni_policer_color)dpni_get_field(rsp_params->mode_color, COLOR);
 
 	return 0;
 }
@@ -2213,7 +2211,7 @@ void dpni_extract_early_drop(struct dpni_early_drop_cfg *cfg,
 	ext_params = (struct dpni_early_drop *)early_drop_buf;
 
 	cfg->enable = dpni_get_field(ext_params->flags, DROP_ENABLE);
-	cfg->units = dpni_get_field(ext_params->flags, DROP_UNITS);
+	cfg->units = (enum dpni_congestion_unit)dpni_get_field(ext_params->flags, DROP_UNITS);
 	cfg->green.drop_probability = ext_params->green_drop_probability;
 	cfg->green.max_threshold = le64_to_cpu(ext_params->green_max_threshold);
 	cfg->green.min_threshold = le64_to_cpu(ext_params->green_min_threshold);
@@ -2329,7 +2327,7 @@ int dpni_set_congestion_notification(struct fsl_mc_io *mc_io,
 	cmd_params = (struct dpni_cmd_set_congestion_notification *)cmd.params;
 	cmd_params->qtype = qtype;
 	cmd_params->tc = tc_id;
-	cmd_params->dest_id = cpu_to_le32(cfg->dest_cfg.dest_id);
+	cmd_params->dest_id = cpu_to_le32((uint32_t)cfg->dest_cfg.dest_id);
 	cmd_params->notification_mode = cpu_to_le16(cfg->notification_mode);
 	cmd_params->dest_priority = cfg->dest_cfg.priority;
 	cmd_params->message_iova = cpu_to_le64(cfg->message_iova);
@@ -2385,15 +2383,15 @@ int dpni_get_congestion_notification(struct fsl_mc_io *mc_io,
 		return err;
 
 	rsp_params = (struct dpni_rsp_get_congestion_notification *)cmd.params;
-	cfg->units = dpni_get_field(rsp_params->type_units, CONG_UNITS);
+	cfg->units = (enum dpni_congestion_unit)dpni_get_field(rsp_params->type_units, CONG_UNITS);
 	cfg->threshold_entry = le32_to_cpu(rsp_params->threshold_entry);
 	cfg->threshold_exit = le32_to_cpu(rsp_params->threshold_exit);
 	cfg->message_ctx = le64_to_cpu(rsp_params->message_ctx);
 	cfg->message_iova = le64_to_cpu(rsp_params->message_iova);
 	cfg->notification_mode = le16_to_cpu(rsp_params->notification_mode);
-	cfg->dest_cfg.dest_id = le32_to_cpu(rsp_params->dest_id);
+	cfg->dest_cfg.dest_id = (int)le32_to_cpu(rsp_params->dest_id);
 	cfg->dest_cfg.priority = rsp_params->dest_priority;
-	cfg->dest_cfg.dest_type = dpni_get_field(rsp_params->type_units,
+	cfg->dest_cfg.dest_type = (enum dpni_dest)dpni_get_field(rsp_params->type_units,
 						 DEST_TYPE);
 
 	return 0;
@@ -2526,13 +2524,13 @@ int dpni_get_queue(struct fsl_mc_io *mc_io,
 
 	/* retrieve response parameters */
 	rsp_params = (struct dpni_rsp_get_queue *)cmd.params;
-	queue->destination.id = le32_to_cpu(rsp_params->dest_id);
+	queue->destination.id = (uint16_t)le32_to_cpu(rsp_params->dest_id);
 	queue->destination.priority = rsp_params->dest_prio;
-	queue->destination.type = dpni_get_field(rsp_params->flags,
+	queue->destination.type = (enum dpni_dest)dpni_get_field(rsp_params->flags,
 						     DEST_TYPE);
-	queue->flc.stash_control = dpni_get_field(rsp_params->flags,
+	queue->flc.stash_control = (char)dpni_get_field(rsp_params->flags,
 						  STASH_CTRL);
-	queue->destination.hold_active = dpni_get_field(rsp_params->flags,
+	queue->destination.hold_active = (char)dpni_get_field(rsp_params->flags,
 							HOLD_ACTIVE);
 	queue->flc.value = le64_to_cpu(rsp_params->flc);
 	queue->user_context = le64_to_cpu(rsp_params->user_context);
@@ -2712,12 +2710,12 @@ int dpni_get_taildrop(struct fsl_mc_io *mc_io,
 
 	/* retrieve response parameters */
 	rsp_params = (struct dpni_rsp_get_taildrop *)cmd.params;
-	taildrop->enable = dpni_get_field(rsp_params->enable_oal_lo, ENABLE);
-	taildrop->units = rsp_params->units;
+	taildrop->enable = (char)dpni_get_field(rsp_params->enable_oal_lo, ENABLE);
+	taildrop->units = (enum dpni_congestion_unit)rsp_params->units;
 	taildrop->threshold = le32_to_cpu(rsp_params->threshold);
 	oal_lo = dpni_get_field(rsp_params->enable_oal_lo, OAL_LO);
 	oal_hi = dpni_get_field(rsp_params->oal_hi, OAL_HI);
-	taildrop->oal = oal_hi << DPNI_OAL_LO_SIZE | oal_lo;
+	taildrop->oal = (int16_t)(oal_hi << DPNI_OAL_LO_SIZE | oal_lo);
 
 	/* Fill the first 4 bits, 'oal' is a 2's complement value of 12 bits */
 	if (taildrop->oal >= 0x0800)
@@ -2818,14 +2816,14 @@ int dpni_get_opr(struct fsl_mc_io *mc_io,
 	cfg->olws = rsp_params->olws;
 	cfg->oa = rsp_params->oa;
 	cfg->oprrws = rsp_params->oprrws;
-	qry->rip = dpni_get_field(rsp_params->flags, RIP);
-	qry->enable = dpni_get_field(rsp_params->flags, OPR_ENABLE);
+	qry->rip = (char)dpni_get_field(rsp_params->flags, RIP);
+	qry->enable = (char)dpni_get_field(rsp_params->flags, OPR_ENABLE);
 	qry->nesn = le16_to_cpu(rsp_params->nesn);
 	qry->ndsn = le16_to_cpu(rsp_params->ndsn);
 	qry->ea_tseq = le16_to_cpu(rsp_params->ea_tseq);
-	qry->tseq_nlis = dpni_get_field(rsp_params->tseq_nlis, TSEQ_NLIS);
+	qry->tseq_nlis = (char)dpni_get_field(rsp_params->tseq_nlis, TSEQ_NLIS);
 	qry->ea_hseq = le16_to_cpu(rsp_params->ea_hseq);
-	qry->hseq_nlis = dpni_get_field(rsp_params->hseq_nlis, HSEQ_NLIS);
+	qry->hseq_nlis = (char)dpni_get_field(rsp_params->hseq_nlis, HSEQ_NLIS);
 	qry->ea_hptr = le16_to_cpu(rsp_params->ea_hptr);
 	qry->ea_tptr = le16_to_cpu(rsp_params->ea_tptr);
 	qry->opr_vid = le16_to_cpu(rsp_params->opr_vid);
@@ -2938,7 +2936,7 @@ void dpni_extract_sw_sequence_layout(struct dpni_sw_sequence_layout *layout,
 		ss_size = le16_to_cpu(ext_params[i].ss_size);
 		
 		if (ss_offset == 0 && ss_size == 0) {
-			layout->num_ss = i;
+			layout->num_ss = (uint8_t)i;
 			return;
 		}
 		
@@ -2982,7 +2980,7 @@ int dpcon_open(struct fsl_mc_io *mc_io,
 					  cmd_flags,
 					  0);
 	dpcon_cmd = (struct dpcon_cmd_open *)cmd.params;
-	dpcon_cmd->dpcon_id = cpu_to_le32(dpcon_id);
+	dpcon_cmd->dpcon_id = cpu_to_le32((uint32_t)dpcon_id);
 
 	/* send command to mc*/
 	err = mc_send_command(mc_io, &cmd);
@@ -3051,7 +3049,7 @@ int dpcon_get_attributes(struct fsl_mc_io *mc_io,
 
 	/* retrieve response parameters */
 	dpcon_rsp = (struct dpcon_rsp_get_attr *)cmd.params;
-	attr->id = le32_to_cpu(dpcon_rsp->id);
+	attr->id = (int)le32_to_cpu(dpcon_rsp->id);
 	attr->qbman_ch_id = le16_to_cpu(dpcon_rsp->qbman_ch_id);
 	attr->num_priorities = dpcon_rsp->num_priorities;
 
