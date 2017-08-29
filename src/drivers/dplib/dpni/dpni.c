@@ -2947,8 +2947,8 @@ void dpni_extract_sw_sequence_layout(struct dpni_sw_sequence_layout *layout,
 	}
 }
 
-#include <fsl_dpcon.h>
-#include <fsl_dpcon_cmd.h>
+#include "fsl_dpcon.h"
+#include "fsl_dpcon_cmd.h"
 /**
  * dpcon_open() - Open a control session for the specified object
  * @mc_io:	Pointer to MC portal's I/O object

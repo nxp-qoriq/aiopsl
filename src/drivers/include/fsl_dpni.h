@@ -32,8 +32,8 @@
 #ifndef __FSL_DPNI_H
 #define __FSL_DPNI_H
 
-#include <fsl_dpkg.h>
-#include <fsl_dpopr.h>
+#include "fsl_dpkg.h"
+#include "fsl_dpopr.h"
 
 struct fsl_mc_io;
 

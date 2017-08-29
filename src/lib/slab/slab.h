@@ -193,7 +193,10 @@ struct slab_v_pool {
 #pragma pack(pop)
 
 #pragma warning_errors on
+/* size of this struct is different on the coverity machine, for some reason */
+#if !(__COVERITY__)
 ASSERT_MULTIPLE_OF(sizeof(struct slab_v_pool), 8);
+#endif
 ASSERT_MULTIPLE_OF(offsetof(struct slab_v_pool, allocated_bufs), 8);
 ASSERT_MULTIPLE_OF(offsetof(struct slab_v_pool, failed_allocs), 8);
 #pragma warning_errors off
