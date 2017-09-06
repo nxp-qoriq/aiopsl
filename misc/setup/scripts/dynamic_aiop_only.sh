@@ -225,7 +225,8 @@ create_aiop_container()
 	restool_cmd "dprc connect dprc.1 --endpoint1=$atc_DPNI2 --endpoint2=$DPMAC2" None None
 
 	log_debug "Creating DPCON"
-	restool_cmd "dpcon create --num-priorities=8" None ac_DPRC
+	restool_cmd "dpcon create --num-priorities=8 --container=$ac_DPRC" ac_DPCON None
+	restool_cmd "dprc assign $ac_DPRC --object=$ac_DPCON --plugged=1" None None
 
 	echo "AIOP Container $ac_DPRC created"
 } # AIOP Container
