@@ -2019,14 +2019,14 @@ int dpni_drv_get_num_free_bufs(uint32_t flags,
 /**************************************************************************//**
 @Function	dpni_drv_set_errors_behavior
 
-@Description	Get the ID of the Parse Profile configured on a DPNI. All AIOP
-		belonging DPNIs share the same Parse Profile.
+@Description	Set errors behavior.
 
 @Param[in]	ni_id : The AIOP Network Interface ID.
 
-@Param[out]	cfg :  Errors configuration.
+@Param[in]	cfg :  Errors configuration.
 
-@Return		None
+@Return		0 on success;
+		error code, otherwise. For error posix refer to \ref error_g
 *//***************************************************************************/
 int dpni_drv_set_errors_behavior(uint16_t ni_id,
 				 const struct dpni_drv_error_cfg *cfg);
