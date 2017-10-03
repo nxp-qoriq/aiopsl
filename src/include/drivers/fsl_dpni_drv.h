@@ -642,6 +642,29 @@ struct dpni_drv_early_drop {
 	struct dpni_drv_wred red;
 };
 
+/**************************************************************************//**
+@enum	dpni_drv_confirmation_mode
+@Description	enum dpni_drv_confirmation_mode - Identifies one of the
+		supported TX confirmation modes.
+
+*//***************************************************************************/
+enum dpni_drv_confirmation_mode {
+	/** Each TX queue has its own matching confirmation queue.
+	 * Confirmation is received for every frame. */
+	DPNI_DRV_CONF_AFFINE,
+	/** The TX queues share a single confirmation queue per DPNI.
+	 * Confirmation is received for every frame. */
+	DPNI_DRV_CONF_SINGLE,
+	/** TX confirmation is disabled. */
+	DPNI_DRV_CONF_DISABLE,
+	/** Each TX queue has its own matching confirmation queue.
+	 * Confirmation is received only for frames encountering errors. */
+	DPNI_DRV_CONF_AFFINE_ERR_ONLY,
+	/** The TX queues share a single confirmation queue per DPNI.
+	 * Confirmation is received only for frames encountering errors. */
+	DPNI_DRV_CONF_SINGLE_ERR_ONLY,
+};
+
 #include "fsl_dpni.h"
 
 /**************************************************************************//**
@@ -2330,6 +2353,23 @@ int dpni_drv_set_rx_priorities(uint16_t ni_id);
 	error code, otherwise. For error posix refer to \ref error_g
 *//***************************************************************************/
 int dpni_drv_get_attributes(uint16_t ni_id, dpni_drv_attr *attr);
+
+/**************************************************************************//**
+@Function	dpni_drv_set_tx_confirmation_mode
+
+@Description	Set the tx confirmation mode: disabled, single(one confirmation
+		queue per dpni), affine(one confirmation queue for each tx
+		queue), for all frames or error frames only.
+
+@Param[in]	ni_id : The AIOP Network Interface ID.
+@Param[in]	mode : The mode to be set. For the available modes,
+		refer to \ref dpni_drv_confirmation_mode
+
+@Return	0 on success;
+	error code, otherwise. For error posix refer to \ref error_g
+*//***************************************************************************/
+int dpni_drv_set_tx_confirmation_mode(uint16_t ni_id,
+				      enum dpni_drv_confirmation_mode mode);
 
 #ifdef SL_DEBUG
 /**************************************************************************//**

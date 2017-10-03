@@ -3938,6 +3938,48 @@ int dpni_drv_get_attributes(uint16_t ni_id, dpni_drv_attr *attr) {
 	return err;
 }
 
+/******************************************************************************/
+int dpni_drv_set_tx_confirmation_mode(uint16_t ni_id,
+				      enum dpni_drv_confirmation_mode mode)
+{
+	struct mc_dprc *dprc;
+	int err;
+	uint16_t dpni;
+
+	dprc = sys_get_unique_handle(FSL_MOD_AIOP_RC);
+	if (!dprc) {
+		pr_err("No AIOP container found\n");
+		return -ENODEV;
+	}
+
+	/* Lock dpni table */
+	cdma_mutex_lock_take((uint64_t)nis, CDMA_MUTEX_READ_LOCK);
+	err = dpni_open(&dprc->io, 0, (int)nis[ni_id].dpni_id, &dpni);
+	 /* Unlock dpni table */
+	cdma_mutex_lock_release((uint64_t)nis);
+
+	if (err) {
+		sl_pr_err("Open DPNI failed\n");
+		return err;
+	}
+
+	err = dpni_set_tx_confirmation_mode(&dprc->io, 0, dpni,
+					    (enum dpni_confirmation_mode)mode);
+	if (err) {
+		sl_pr_err("set_tx_confirmation_mode failed\n");
+		if (dpni_close(&dprc->io, 0, dpni))
+			sl_pr_err("Close DPNI failed\n");
+		return err;
+	}
+
+	err = dpni_close(&dprc->io, 0, dpni);
+	if (err) {
+		sl_pr_err("Close DPNI failed\n");
+		return err;
+	}
+	return 0;
+}
+
 #ifdef SL_DEBUG
 /******************************************************************************/
 __COLD_CODE void dpni_drv_dump_tx_taildrop(uint16_t ni_id, uint8_t tc_id)
