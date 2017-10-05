@@ -40,6 +40,7 @@
 #include "fsl_tman.h"
 #include "fsl_fdma.h"
 
+#include "sparser_drv.h"
 
 /**************************************************************************//**
 @addtogroup	FSL_IPR FSL_AIOP_IPR
@@ -463,7 +464,24 @@ void ipr_exception_handler(enum ipr_function_identifier func_id,
 		     	   uint32_t line,
 		     	   int32_t status);
 
-uint32_t is_atomic_fragment();
+inline uint8_t is_atomic_fragment(void)
+{
+	struct ipv6fraghdr	*ipv6fraghdr_ptr;
+	uint16_t		ipv6fraghdr_offset;
+
+	if (!parser_is_atomic_frag_detection_enabled())
+		return 0;
+
+	ipv6fraghdr_offset = PARSER_GET_IPV6_FRAG_HEADER_OFFSET_DEFAULT();
+	ipv6fraghdr_ptr = (struct ipv6fraghdr *)
+			(PRC_GET_SEGMENT_ADDRESS() + ipv6fraghdr_offset);
+
+	if ((ipv6fraghdr_ptr->offset_and_flags & IPV6_HDR_OFFSET_MASK) ||
+	    (ipv6fraghdr_ptr->offset_and_flags & IPV6_HDR_M_FLAG_MASK))
+		return 0;
+
+	return 1;
+}
 
 /**************************************************************************//**
 @Description	IPR Global parameters

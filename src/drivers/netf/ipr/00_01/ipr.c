@@ -792,57 +792,43 @@ IPR_CODE_PLACEMENT int ipr_reassemble(ipr_instance_handle_t instance_handle)
 	/* Get OSM status (ordering scope mode and levels) */
 	osm_get_scope(&scope_status);
 
-	if (scope_status.scope_mode == EXCLUSIVE) {
-		if (PARSER_IS_OUTER_IP_FRAGMENT_DEFAULT()) {
-			/* Fragment */
-		    	if (PARSER_IS_OUTER_IPV4_DEFAULT())
-		    		frame_is_ipv4 = 1;
-		    	else {
-		    		/* todo check if setting following function 
-		    		 * to be inline increases the stack */ 
-		    		if(is_atomic_fragment())
-		    			return IPR_ATOMIC_FRAG;
-		    		frame_is_ipv4 = 0;
-		    	}
+	if (PARSER_IS_OUTER_IP_FRAGMENT_DEFAULT()) {
+		/* Fragment */
+		if (PARSER_IS_OUTER_IPV4_DEFAULT()) {
+			frame_is_ipv4 = 1;
+		} else {
+			if (is_atomic_fragment())
+				return IPR_ATOMIC_FRAG;
+			frame_is_ipv4 = 0;
+		}
+
+		if (scope_status.scope_mode == EXCLUSIVE) {
 			osm_status = BYPASS_OSM;
 		} else {
-			/* regular frame */
-			return IPR_REASSEMBLY_REGULAR;
+			/* move to exclusive */
+			osm_scope_transition_to_exclusive_with_increment_scope_id_wrp();
+
+			/* scope level should be bigger than 1 and not than 2
+			 * because of TKT260685 that requires an additional
+			 * scope level */
+			if (scope_status.scope_level <= 1) {
+				osm_status = NO_BYPASS_OSM;
+				/* create nested exclusive for the fragments of
+				 * the same flow */
+				osm_scope_enter_to_exclusive_with_increment_scope_id();
+			} else {
+				/* can't create 2 nested */
+				osm_status = BYPASS_OSM | START_CONCURRENT;
+			}
 		}
 	} else {
-	    if (PARSER_IS_OUTER_IP_FRAGMENT_DEFAULT()) {
-		/* Fragment */
-	    	if (PARSER_IS_OUTER_IPV4_DEFAULT())
-	    		frame_is_ipv4 = 1;
-	    	else {
-	    		/* todo check if setting following function to be inline
-	    		 *  increases the stack */ 
-	    		if(is_atomic_fragment())
-	    			return IPR_ATOMIC_FRAG;
-	    		frame_is_ipv4 = 0;
-	    	}
-		/* move to exclusive */
-		osm_scope_transition_to_exclusive_with_increment_scope_id_wrp();
-
-		    /* scope level should be bigger than 1 and not than 2
-		     * because of TKT260685 that requires an additional
-		     * scope level */
-		if (scope_status.scope_level <= 1) {
-			    osm_status = NO_BYPASS_OSM;
-			/* create nested exclusive for the fragments of
-			 * the same flow*/
-			 osm_scope_enter_to_exclusive_with_increment_scope_id();
-		} else {
-			/* can't create 2 nested */
-			osm_status = BYPASS_OSM | START_CONCURRENT;
-			}
-		} else {
-			/* regular frame */
-			/* transition in order to have the same scope id
+		/* regular frame */
+		if (scope_status.scope_mode == CONCURRENT) {
+			/*transition in order to have the same scope id
 			 * as closing fragment */
-		   osm_scope_transition_to_concurrent_with_increment_scope_id();
-			return IPR_REASSEMBLY_REGULAR;
+			osm_scope_transition_to_concurrent_with_increment_scope_id();
 		}
+		return IPR_REASSEMBLY_REGULAR;
 	}
 
 	/* read instance parameters */
@@ -2786,22 +2772,6 @@ void ipr_stats_update(struct ipr_instance *instance_params_ptr,
 
 	return;
 	}
-}
-
-IPR_CODE_PLACEMENT uint32_t is_atomic_fragment()
-{
-	struct ipv6fraghdr * ipv6fraghdr_ptr;
-	uint16_t	     ipv6fraghdr_offset;
-
-	ipv6fraghdr_offset = PARSER_GET_IPV6_FRAG_HEADER_OFFSET_DEFAULT();
-	ipv6fraghdr_ptr = (struct ipv6fraghdr *)
-			(PRC_GET_SEGMENT_ADDRESS() + ipv6fraghdr_offset);
-
-	if ((ipv6fraghdr_ptr->offset_and_flags & IPV6_HDR_OFFSET_MASK) ||
-	    (ipv6fraghdr_ptr->offset_and_flags & IPV6_HDR_M_FLAG_MASK))
-		return 0;
-
-	return 1;
 }
 
 void ipr_modify_max_reass_frm_size(ipr_instance_handle_t ipr_instance,

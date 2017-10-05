@@ -60,8 +60,6 @@ extern void tman_timer_callback(void);
 #include "ipr.h"
 #include "cwapr.h"
 
-#include "fsl_sparser_drv.h"
-
 extern void tman_timer_callback(void);
 extern int ipr_init(void);
 extern int cwapr_init(void);
@@ -269,9 +267,6 @@ int aiop_sl_init(void)
 #endif
 
 	sys_prpid_pool_create();
-
-	/* enable parser IPv6 atomic fragment detection */
-	parser_enable_ipv6_atomic_frag_detection();
 
 #ifdef AIOP_VERIF
 	sys_keyid_pool_create();
