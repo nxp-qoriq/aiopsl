@@ -2334,15 +2334,18 @@ int dpni_drv_get_attributes(uint16_t ni_id, dpni_drv_attr *attr);
 /**************************************************************************//**
 @Function	dpni_drv_set_enable_tx_confirmation
 
-@Description	Enable/disable tx confirmation for regular frames.
+@Description	Enable/disable tx confirmation. This is disabled by default.
 
 @Param[in]	ni_id : The AIOP Network Interface ID.
 @Param[in]	enable : 1 for enable, 0 for disable
 
 @remark		This works only if the DPNI was created without the
 		DPNI_OPT_TX_CONF_DISABLED option(i.e. in the DPL).
-@remark		Error frames are always confirmed, regardless of this setting.
-@remark		By default, tx confirmation for non-error frames is disabled.
+@remark		Erroneous frames are always confirmed, regardless of this
+		setting.
+
+@Cautions	The application must explicitly release the confirmation buffer
+		when confirmation is enabled or an erroneous frame is confirmed.
 @Return	0 on success;
 	error code, otherwise. For error posix refer to \ref error_g
 *//***************************************************************************/
