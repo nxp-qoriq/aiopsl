@@ -3939,8 +3939,7 @@ int dpni_drv_get_attributes(uint16_t ni_id, dpni_drv_attr *attr) {
 }
 
 /******************************************************************************/
-int dpni_drv_set_tx_confirmation_mode(uint16_t ni_id,
-				      enum dpni_drv_confirmation_mode mode)
+int dpni_drv_set_enable_tx_confirmation(uint16_t ni_id, int enable)
 {
 	struct mc_dprc *dprc;
 	int err;
@@ -3963,8 +3962,12 @@ int dpni_drv_set_tx_confirmation_mode(uint16_t ni_id,
 		return err;
 	}
 
-	err = dpni_set_tx_confirmation_mode(&dprc->io, 0, dpni,
-					    (enum dpni_confirmation_mode)mode);
+	if (enable)
+		err = dpni_set_tx_confirmation_mode(&dprc->io, 0, dpni,
+						    DPNI_CONF_SINGLE);
+	else
+		err = dpni_set_tx_confirmation_mode(&dprc->io, 0, dpni,
+						    DPNI_CONF_DISABLE);
 	if (err) {
 		sl_pr_err("set_tx_confirmation_mode failed\n");
 		if (dpni_close(&dprc->io, 0, dpni))

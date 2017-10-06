@@ -1319,17 +1319,11 @@ struct dpni_queue_id {
  * @DPNI_CONF_DISABLE: Tx frames are not confirmed.  This must be associated
  * with proper FD set-up to have buffers release to a Buffer Pool, otherwise
  * buffers will be leaked
- * @DPNI_CONF_AFFINE_ERR_ONLY: same as DPNI_CONF_AFFINE, but only error frames
- * are confirmed
- * @DPNI_CONF_SINGLE_ERR_ONLY: same as DPNI_CONF_SINGLE, but only error frames
- * are confirmed
  */
 enum dpni_confirmation_mode {
 	DPNI_CONF_AFFINE,
 	DPNI_CONF_SINGLE,
 	DPNI_CONF_DISABLE,
-	DPNI_CONF_AFFINE_ERR_ONLY,
-	DPNI_CONF_SINGLE_ERR_ONLY,
 };
 
 int dpni_set_tx_confirmation_mode(struct fsl_mc_io *mc_io,
