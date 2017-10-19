@@ -948,19 +948,22 @@ int fdma_replace_default_pta_segment_data(
 	res1 = *((int8_t *)(FDMA_STATUS_ADDR));
 
 	if (((int32_t)res1 >= FDMA_SUCCESS)) {
-		/* Update FD PTA fields only in case PTA was modified */
-		if (size_type & PTA_SIZE_PTV1) {
-			LDPAA_FD_SET_PTV1(HWC_FD_ADDRESS, 1);
-			LDPAA_FD_SET_PTV2(HWC_FD_ADDRESS, 0);
-		}
-		if (size_type & PTA_SIZE_PTV2) {
-			LDPAA_FD_SET_PTV2(HWC_FD_ADDRESS, 1);
+		if (size_type == PTA_SIZE_NO_PTA) {
+			LDPAA_FD_SET_PTA(HWC_FD_ADDRESS, 0);
 			LDPAA_FD_SET_PTV1(HWC_FD_ADDRESS, 0);
-		}
-		if (size_type & PTA_SIZE_PTV1_2) {
+			LDPAA_FD_SET_PTV2(HWC_FD_ADDRESS, 0);
+		} else {
 			LDPAA_FD_SET_PTA(HWC_FD_ADDRESS, 1);
-			LDPAA_FD_SET_PTV1(HWC_FD_ADDRESS, 1);
-			LDPAA_FD_SET_PTV2(HWC_FD_ADDRESS, 1);
+			if (size_type == PTA_SIZE_PTV1) {
+				LDPAA_FD_SET_PTV1(HWC_FD_ADDRESS, 1);
+				LDPAA_FD_SET_PTV2(HWC_FD_ADDRESS, 0);
+			} else if (size_type == PTA_SIZE_PTV2) {
+				LDPAA_FD_SET_PTV1(HWC_FD_ADDRESS, 0);
+				LDPAA_FD_SET_PTV2(HWC_FD_ADDRESS, 1);
+			} else {
+				LDPAA_FD_SET_PTV1(HWC_FD_ADDRESS, 1);
+				LDPAA_FD_SET_PTV2(HWC_FD_ADDRESS, 1);
+			}
 		}
 
 		if (res1 == FDMA_SUCCESS)
@@ -1169,6 +1172,9 @@ void fdma_exception_handler(enum fdma_function_identifier func_id,
 	case FDMA_STORE_AND_ENQUEUE_DEFAULT_FRAME_QD:
 		func_name = "fdma_store_and_enqueue_default_frame_qd";
 		break;
+	case FDMA_STORE_AND_ORDERED_ENQUEUE_DEFAULT_FRAME_QD:
+		func_name = "fmda_store_and_ordered_enqueue_default_frame_qd";
+		break;
 	case FDMA_STORE_AND_ENQUEUE_FRAME_QD:
 		func_name = "fdma_store_and_enqueue_frame_qd";
 		break;
@@ -1183,6 +1189,9 @@ void fdma_exception_handler(enum fdma_function_identifier func_id,
 		break;
 	case FDMA_ENQUEUE_FD_QD:
 		func_name = "fdma_enqueue_fd_qd";
+		break;
+	case FDMA_PRESTORE_AND_ORDERED_ENQUEUE_DEFAULT_FD_QD:
+		func_name = "fdma_prestore_and_ordered_enqueue_default_fd_qd";
 		break;
 	case FDMA_DISCARD_DEFAULT_FRAME:
 		func_name = "fdma_discard_default_frame";
