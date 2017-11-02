@@ -42,6 +42,7 @@
 #include "fsl_dpci_mng.h"
 #include "fsl_dpci_event.h"
 #include "fsl_dpcon.h"
+#include "fsl_dpbp.h"
 
 extern struct aiop_init_info g_init_data;
 
@@ -52,6 +53,7 @@ int dprc_drv_init(void);
 void dprc_drv_free(void);
 static int aiop_container_init(void);
 static void aiop_container_free(void);
+static int aiop_container_empty_dpbp(void);
 
 static int dprc_drv_evmng_cb(uint8_t generator_id, uint8_t event_id, uint64_t app_ctx, void *event_data)
 {
@@ -103,11 +105,16 @@ static int dprc_drv_evmng_cb(uint8_t generator_id, uint8_t event_id, uint64_t ap
 int dprc_drv_init(void)
 {
 	int err;
+
 	err = aiop_container_init();
-	if(err){
+	if (err) {
 		pr_err("Failed to initialize AIOP container, %d.\n", err);
 		return err;
 	}
+
+	err = aiop_container_empty_dpbp();
+	if (err)
+		return err;
 
 	return 0;
 }
@@ -287,6 +294,93 @@ __COLD_CODE static void aiop_container_free(void)
 
 	if (dprc != NULL)
 		fsl_free(dprc);
+}
+
+static __COLD_CODE int aiop_container_empty_dpbp(void)
+{
+	struct mc_dprc		*dprc;
+	int			i, dev_count, err;
+	uint16_t		dpbp;
+	struct dprc_obj_desc	dev_desc;
+	struct dpbp_attr	attr;
+	uint64_t		dst;
+#ifdef SL_DEBUG
+	uint32_t		num_free_bufs, buffer_cnt;
+#endif
+
+	dprc = sys_get_unique_handle(FSL_MOD_AIOP_RC);
+	if (!dprc)
+		return -ENODEV;
+	err = dprc_get_obj_count(&dprc->io, 0, dprc->token, &dev_count);
+	if (err) {
+		pr_err("Failed to get device count for AIOP RC auth_id = %d.\n",
+		       dprc->token);
+		return err;
+	}
+	dpbp = 0;
+	for (i = 0; i < dev_count; i++) {
+		dprc_get_obj(&dprc->io, 0, dprc->token, i, &dev_desc);
+		if (strcmp(dev_desc.type, "dpbp"))
+			continue;
+		pr_info("Found dpbp@%d\n", dev_desc.id);
+		err = dpbp_open(&dprc->io, 0, dev_desc.id, &dpbp);
+		if (err) {
+			pr_err("Failed to open dpbp@%d\n", dev_desc.id);
+			return err;
+		}
+		err = dpbp_get_attributes(&dprc->io, 0, dpbp, &attr);
+		if (err) {
+			pr_err("Failed to get attributes of dpbp@%d\n",
+			       dev_desc.id);
+			/* Close DPBP control session */
+			if (dpbp_close(&dprc->io, 0, dpbp))
+				pr_err("Close dpbp@%d\n", dev_desc.id);
+			return err;
+		}
+#ifdef SL_DEBUG
+		buffer_cnt = 0;
+		/* Get number of buffers in pool */
+		err = dpbp_get_num_free_bufs(&dprc->io, 0, dpbp,
+					     &num_free_bufs);
+		if (err) {
+			pr_err("Get number of free buffers for DPBP@%d.\n",
+			       dev_desc.id);
+			/* Close DPBP control session */
+			if (dpbp_close(&dprc->io, 0, dpbp))
+				pr_err("Close dpbp@%d\n", dev_desc.id);
+			return err;
+		}
+
+		pr_info("\t BPID #%d has %d buffers\n", attr.bpid,
+			num_free_bufs);
+#endif
+		do {
+			err = fdma_acquire_buffer
+			(icontext_aiop.icid,
+			 icontext_aiop.bdi_flags & FDMA_ENF_BDI_BIT,
+			 attr.bpid, &dst);
+#ifdef SL_DEBUG
+			if (!err) {
+				/* Uncomment the line bellow to print the
+				   acquired buffers */
+				/*pr_info("\t\t addr = 0x%x-0x%08x\n",
+					(uint32_t)(dst >> 32), (uint32_t)dst);*/
+				buffer_cnt++;
+			}
+#endif
+		} while (!err);
+		/* Close DPBP control session */
+		err = dpbp_close(&dprc->io, 0, dpbp);
+		if (err) {
+			pr_err("Close DPBP@%d.\n", dev_desc.id);
+			return err;
+		}
+#ifdef SL_DEBUG
+		pr_info("\t BPID #%d Acquired %d buffers\n", attr.bpid,
+			buffer_cnt);
+#endif
+	}
+	return 0;
 }
 
 
