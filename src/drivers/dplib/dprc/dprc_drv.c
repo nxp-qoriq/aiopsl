@@ -111,11 +111,9 @@ int dprc_drv_init(void)
 		pr_err("Failed to initialize AIOP container, %d.\n", err);
 		return err;
 	}
-
 	err = aiop_container_empty_dpbp();
 	if (err)
 		return err;
-
 	return 0;
 }
 
@@ -350,7 +348,6 @@ static __COLD_CODE int aiop_container_empty_dpbp(void)
 				pr_err("Close dpbp@%d\n", dev_desc.id);
 			return err;
 		}
-
 		pr_info("\t BPID #%d has %d buffers\n", attr.bpid,
 			num_free_bufs);
 #endif
