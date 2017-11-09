@@ -404,6 +404,7 @@ static int app_dpni_event_removed_cb(
 	arena_test_finished();
 	return 0;
 }
+
 static int app_dpni_event_added_cb(
 	uint8_t generator_id,
 	uint8_t event_id,
@@ -427,6 +428,7 @@ static int app_dpni_event_added_cb(
 	struct dpni_drv_rx_tc_policing_cfg tc_pol = {0};
 	char type[16];
 	int id;
+	uint32_t hw_anno = 0;
 
 	dist_key_cfg.num_extracts = 1;
 	dist_key_cfg.extracts[0].type = DPKG_EXTRACT_FROM_HDR;
@@ -534,6 +536,10 @@ static int app_dpni_event_added_cb(
 		test_error |= 0x01;
 	}
 
+#ifdef SL_DEBUG
+	fsl_print("printing buffer layout after setting it");
+	dpni_drv_dump_rx_buffer_layout(ni);
+#endif
 	/* Get original initialize presentation */
 	memset(&init_orig_pres, 0, sizeof(struct ep_init_presentation));
 	err = dpni_drv_get_initial_presentation((uint16_t)ni,
@@ -679,7 +685,42 @@ static int app_dpni_event_added_cb(
 		test_error |= 0x01;
 	}
 
+	/* testing that tx hw annotation can be set on DPNIs that are connected
+	 * to other DPNIs
+	 */
+	if (!strcmp(type, "dpni")) {
+		hw_anno |= DPNI_DRV_TX_HW_ANNOTATION_PASS_TS;
+		err = dpni_drv_set_tx_hw_annotation(ni, hw_anno);
+		if (err) {
+			fsl_print("ERROR = %d: dpni_drv_set_tx_hw_annotation failed\n", err);
+			test_error |= 0x01;
+		}
 
+		hw_anno = 0;
+		err = dpni_drv_get_tx_hw_annotation(ni, &hw_anno);
+		if (err) {
+			fsl_print("ERROR = %d: dpni_drv_get_tx_hw_annotation failed\n", err);
+			test_error |= 0x01;
+		}
+		if (!(hw_anno & DPNI_DRV_TX_HW_ANNOTATION_PASS_TS)) {
+			fsl_print("Error: dpni_drv_get/set_tx_hw_annotation finished with incorrect values\n");
+			test_error |= 0x01;
+		}
+#ifdef SL_DEBUG
+		fsl_print("hw annotation tx config after setting it:");
+		dpni_drv_dump_tx_hw_annotation(ni);
+#endif
+		/* reverting to the original annotation policy */
+		err = dpni_drv_set_tx_hw_annotation(ni, 0);
+		if (err) {
+			fsl_print("ERROR = %d: dpni_drv_set_tx_hw_annotation failed to reset to initial state", err);
+			test_error |= 0x01;
+		}
+#ifdef SL_DEBUG
+		fsl_print("hw annotation tx config after reverting:");
+		dpni_drv_dump_tx_hw_annotation(ni);
+#endif
+	}
 
 	sp_addr = (struct aiop_psram_entry *)
 		(AIOP_PERIPHERALS_OFF + AIOP_STORAGE_PROFILE_OFF);
