@@ -223,7 +223,10 @@ enum dpni_drv_qos_counter {
 
  @{
 *//***************************************************************************/
-/** Select to modify the time-stamp setting */
+/** Select to modify the time-stamp setting
+ * When this option is used to get the time stamp from a DPNI performing the
+ * recycle path egress processing, the status word is the result of the ingress
+ * processing while the time stamp is "received" from the egress side. */
 #define DPNI_DRV_BUF_LAYOUT_OPT_TIMESTAMP               0x00000001
 /** Select to modify the parser-result setting; not applicable for Tx */
 #define DPNI_DRV_BUF_LAYOUT_OPT_PARSER_RESULT           0x00000002
@@ -235,20 +238,23 @@ enum dpni_drv_qos_counter {
 #define DPNI_DRV_BUF_LAYOUT_OPT_DATA_ALIGN              0x00000010
 /** Select to modify the data-head-room setting */
 #define DPNI_DRV_BUF_LAYOUT_OPT_DATA_HEAD_ROOM          0x00000020
-/**!< Select to modify the data-tail-room setting */
+/** Select to modify the data-tail-room setting */
 #define DPNI_DRV_BUF_LAYOUT_OPT_DATA_TAIL_ROOM          0x00000040
 
 /**************************************************************************//**
-@Description	 enum dpni_drv_request_frame_annotation - Frame annotation.
+@Description	 enum dpni_drv_frame_annotation - Frame HW annotation.
 
 *//***************************************************************************/
 enum dpni_drv_frame_annotation {
-	/* Status word and Time stamp */
+	/** Status word and Time stamp.
+	 * When this option is used to get the timestamp from a DPNI performing
+	 * the recycle path egress processing, the status word is the result of
+	 * the ingress processing, while the timestamp is "received" from the
+	 * egress side. */
 	DPNI_DRV_FA_STATUS_AND_TS = 0x01,
-	/* Parser result */
+	/** Parser result. */
 	DPNI_DRV_FA_PARSER_RESULT = 0x02
 };
-
 /** @} end of group DPNI_DRV_BUF_LAYOUT_OPT */
 
 /**************************************************************************//**
@@ -274,6 +280,20 @@ struct dpni_drv_buf_layout {
 	/** Data tail room */
 	uint16_t data_tail_room;
 };
+
+/**************************************************************************//**
+@Group		DPNI_DRV_TX_HW_ANNOTATION - TX HW annotation on recycle path
+
+@Description	Settings for the HW annotation fields that are to be passed
+		from the NI performing the recycle path egress processing to
+		the NI performing the recycle path ingress processing.
+
+@{
+*//***************************************************************************/
+/** Set to pass the HW annotation on recycle path */
+#define DPNI_DRV_TX_HW_ANNOTATION_PASS_TS	0x00000001
+
+/** @} end of group DPNI_DRV_TX_HW_ANNOTATION */
 
 /**************************************************************************//**
 @Description	Structure representing DPNI ls_checksum.
@@ -1373,7 +1393,7 @@ int dpni_drv_get_rx_buffer_layout(uint16_t ni_id, struct dpni_drv_buf_layout *la
 @Param[in]	tail_room           Requested tail room.
 @Param[in]	private_data_size   Requested private data size.
 @Param[in]	frame_anno          Requested frame annotation.
-		OR-ed combination of dpni_drv_request_frame_annotation
+		OR'd combination of \ref dpni_drv_frame_annotation
 		enumeration values. Hardware annotations are returned in the ASA
 		presentation area as it follows :
 			- Status Word at 0x00, 8 bytes,
@@ -2351,6 +2371,56 @@ int dpni_drv_get_attributes(uint16_t ni_id, dpni_drv_attr *attr);
 *//***************************************************************************/
 int dpni_drv_set_enable_tx_confirmation(uint16_t ni_id, int enable);
 
+/**************************************************************************//**
+@Function	dpni_drv_set_tx_hw_annotation
+
+@Description	Configures passing of the HW annotations from a NI performing
+		the recycle path egress processing to the NI performing the
+		recycle path ingress processing.
+		Passing the timestamp: To pass the TS from the egress side to
+		the ingress side the following conditions must be met:
+		- the timestamp value(8 bytes) must be written in the ASA
+		segment at the 0x08 offset
+		- the FASV bit in FD[FRC] must be set
+		- the DPNI performing the ingress processing must be configured
+		to read the timestamp using either of the two API functions:
+		\ref dpni_drv_set_rx_buffer_layout or
+		\ref dpni_drv_register_rx_buffer_layout_requirements
+
+@Param[in]	ni_id : The AIOP Network Interface ID of the DPNI performing
+		the recycle path egress processing.
+@Param[in]	hw_anno : OR'd combination of \ref DPNI_DRV_TX_HW_ANNOTATION
+		bits.
+
+@warning	Allowed only when the given DPNI is disabled.
+
+@Return	0 on success;
+	error code, otherwise. For error posix refer to \ref error_g
+*//***************************************************************************/
+int dpni_drv_set_tx_hw_annotation(uint16_t ni_id, uint32_t hw_anno);
+
+/**************************************************************************//**
+@Function	dpni_drv_get_tx_hw_annotation
+
+@Description	Gets the settings for passing of the HW annotations from a NI
+		performing the recycle path egress processing to the NI
+		performing the recycle path ingress processing.
+@Param[in]	ni_id : The AIOP Network Interface ID of the DPNI performing
+		the recycle path egress processing.
+@Param[out]	hw_anno : OR'd combination of \ref DPNI_DRV_TX_HW_ANNOTATION
+		bits.
+
+@remark		One should check the configured buffer layout on the DPNI
+		performing the ingress processing as well to get the whole
+		picture(these settings have no effect if the ingress DPNI is
+		not configured separately).
+
+@warning	Allowed only when the given DPNI is disabled.
+
+@Return	0 on success;
+	error code, otherwise. For error posix refer to \ref error_g
+*//***************************************************************************/
+int dpni_drv_get_tx_hw_annotation(uint16_t ni_id, uint32_t *hw_anno);
 
 #ifdef SL_DEBUG
 /**************************************************************************//**
@@ -2386,6 +2456,37 @@ void dpni_drv_dump_tx_taildrop(uint16_t ni_id, uint8_t tc_id);
 
 *//***************************************************************************/
 void dpni_drv_dump_tx_early_drop(uint16_t ni_id, uint8_t tc_id);
+
+/**************************************************************************//**
+@Function	dpni_drv_dump_rx_buffer_layout
+
+@Description	Dumps the layout of the frame buffer for the given NI.
+		Note : If application calls this function, application and
+		AIOP_SL must be built with the SL_DEBUG macro defined.
+
+@Param[in]	ni_id : The Network Interface ID
+
+@Return		None
+*//***************************************************************************/
+void dpni_drv_dump_rx_buffer_layout(uint16_t ni_id);
+
+/**************************************************************************//**
+@Function	dpni_drv_dump_tx_hw_annotation
+
+@Description	Dumps the settings for passing of the HW annotations from a NI
+		performing the recycle path egress processing to the NI
+		performing the recycle path ingress processing.
+		Note : If application calls this function, application and
+		AIOP_SL must be built with the SL_DEBUG macro defined.
+
+@Param[in]	ni_id : The AIOP Network Interface ID of the DPNI performing
+		the recycle path egress processing.
+
+@warning	Allowed only when the given DPNI is disabled.
+
+@Return		None
+*//***************************************************************************/
+void dpni_drv_dump_tx_hw_annotation(uint16_t ni_id);
 
 #endif	/* SL_DEBUG */
 

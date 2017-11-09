@@ -1985,7 +1985,7 @@ int dpni_drv_get_rx_buffer_layout(uint16_t ni_id, struct dpni_drv_buf_layout *la
 		return err;
 	}
 	err = dpni_get_buffer_layout(&dprc->io, 0, dpni, DPNI_QUEUE_RX,
-			&dpni_layout);
+				     &dpni_layout);
 	if(err){
 		sl_pr_err("dpni_get_rx_buffer_layout failed\n");
 		dpni_close(&dprc->io, 0, dpni);
@@ -3983,6 +3983,117 @@ int dpni_drv_set_enable_tx_confirmation(uint16_t ni_id, int enable)
 	return 0;
 }
 
+int dpni_drv_set_tx_hw_annotation(uint16_t ni_id, uint32_t hw_anno)
+{
+	struct mc_dprc *dprc = sys_get_unique_handle(FSL_MOD_AIOP_RC);
+	struct dpni_buffer_layout layout = {0};
+	char dpni_ep_type[16];
+	int dpni_ep_id, err, link_state;
+	uint16_t dpni;
+
+	/* Lock dpni table */
+	cdma_mutex_lock_take((uint64_t)nis, CDMA_MUTEX_READ_LOCK);
+	err = dpni_open(&dprc->io, 0, (int)nis[ni_id].dpni_id, &dpni);
+	/* Unlock dpni table */
+	cdma_mutex_lock_release((uint64_t)nis);
+	if (err) {
+		sl_pr_err("dpni_open failed\n");
+		return err;
+	}
+	/* Check if the given DPNI is on a recycle path */
+	err = dpni_drv_get_connected_obj(ni_id, &dpni_ep_id,
+					 dpni_ep_type, &link_state);
+	if (err) {
+		sl_pr_err("get_connected_obj failed\n");
+		if (dpni_close(&dprc->io, 0, dpni))
+			sl_pr_err("dpni_close failed\n");
+		return err;
+	}
+	if (strcmp(dpni_ep_type, "dpni")) {
+		sl_pr_err("Given NI is not connected to another DPNI\n");
+		if (dpni_close(&dprc->io, 0, dpni))
+			sl_pr_err("dpni_close failed\n");
+		return -EINVAL;
+	}
+	/* Due to the way MC handles these settings, the layout.pass_timestamp
+	 * field is unnecessary for this case, as both the status and timestamp
+	 * passing are validated by the layout.pass_frame_status field. */
+	if (hw_anno & DPNI_DRV_TX_HW_ANNOTATION_PASS_TS) {
+		layout.pass_frame_status = 1;
+		layout.pass_timestamp = 1;
+	}
+	layout.options |= DPNI_DRV_BUF_LAYOUT_OPT_FRAME_STATUS |
+			  DPNI_DRV_BUF_LAYOUT_OPT_TIMESTAMP;
+	err = dpni_set_buffer_layout(&dprc->io, 0, dpni,
+				     DPNI_QUEUE_TX, &layout);
+	if (err) {
+		sl_pr_err("dpni_set_buffer_layout failed\n");
+		if (dpni_close(&dprc->io, 0, dpni))
+			sl_pr_err("dpni_close failed\n");
+		return err;
+	}
+
+	err = dpni_close(&dprc->io, 0, dpni);
+	if (err) {
+		sl_pr_err("dpni_close failed\n");
+		return err;
+	}
+	return 0;
+}
+
+int dpni_drv_get_tx_hw_annotation(uint16_t ni_id, uint32_t *hw_anno)
+{
+	struct mc_dprc *dprc = sys_get_unique_handle(FSL_MOD_AIOP_RC);
+	struct dpni_buffer_layout layout = {0};
+	char dpni_ep_type[16];
+	int dpni_ep_id, err, link_state;
+	uint16_t dpni;
+
+	/* Lock dpni table */
+	cdma_mutex_lock_take((uint64_t)nis, CDMA_MUTEX_READ_LOCK);
+	err = dpni_open(&dprc->io, 0, (int)nis[ni_id].dpni_id, &dpni);
+	/* Unlock dpni table */
+	cdma_mutex_lock_release((uint64_t)nis);
+	if (err) {
+		sl_pr_err("dpni_open failed\n");
+		return err;
+	}
+	/* Check if the given DPNI is on a recycle path */
+	err = dpni_drv_get_connected_obj(ni_id, &dpni_ep_id,
+					 dpni_ep_type, &link_state);
+	if (err) {
+		sl_pr_err("get_connected_obj failed\n");
+		if (dpni_close(&dprc->io, 0, dpni))
+			sl_pr_err("dpni_close failed\n");
+		return err;
+	}
+	if (strcmp(dpni_ep_type, "dpni")) {
+		sl_pr_err("given NI is not connected to another DPNI\n");
+		if (dpni_close(&dprc->io, 0, dpni))
+			sl_pr_err("dpni_close failed\n");
+		return -EINVAL;
+	}
+	/* Read the settings */
+	err = dpni_get_buffer_layout(&dprc->io, 0, dpni,
+				     DPNI_QUEUE_TX, &layout);
+	if (err) {
+		sl_pr_err("dpni_get_buffer_layout failed\n");
+		if (dpni_close(&dprc->io, 0, dpni))
+			sl_pr_err("dpni_close failed\n");
+		return err;
+	}
+	*hw_anno = 0;
+	if (layout.pass_frame_status || layout.pass_timestamp)
+		*hw_anno |= DPNI_DRV_TX_HW_ANNOTATION_PASS_TS;
+
+	err = dpni_close(&dprc->io, 0, dpni);
+	if (err) {
+		sl_pr_err("dpni_close failed\n");
+		return err;
+	}
+	return 0;
+}
+
 #ifdef SL_DEBUG
 /******************************************************************************/
 __COLD_CODE void dpni_drv_dump_tx_taildrop(uint16_t ni_id, uint8_t tc_id)
@@ -4055,6 +4166,44 @@ __COLD_CODE void dpni_drv_dump_tx_early_drop(uint16_t ni_id, uint8_t tc_id)
 		fsl_print("\t Red drop probability       : %d\n",
 			  cfg.red.drop_probability);
 	}
+}
+
+void dpni_drv_dump_rx_buffer_layout(uint16_t ni_id)
+{
+	struct dpni_drv_buf_layout	*layout = NULL;
+	int err;
+
+	fsl_print("\nBuffer layout configuration on DPNI %d:\n", ni_id);
+
+	err = dpni_drv_get_rx_buffer_layout(ni_id, layout);
+	if (err) {
+		pr_err("cannot get buffer layout\n");
+		return;
+	}
+
+	fsl_print("\tPASS_TIMESTAMP     = %d\n", layout->pass_timestamp);
+	fsl_print("\tPASS_PARSER_RESULT = %d\n", layout->pass_parser_result);
+	fsl_print("\tPASS_FRAME_STATUS  = %d\n", layout->pass_frame_status);
+	fsl_print("\tPRIVATE_DATA_SIZE  = %d\n", layout->private_data_size);
+	fsl_print("\tDATA_ALIGN         = %d\n", layout->data_align);
+	fsl_print("\tDATA_HEAD_ROOM     = %d\n", layout->data_head_room);
+	fsl_print("\tDATA_TAIL_ROOM     = %d\n", layout->data_tail_room);
+}
+
+void dpni_drv_dump_tx_hw_annotation(uint16_t ni_id)
+{
+	uint32_t hw_anno;
+	int err;
+
+	err = dpni_drv_get_tx_hw_annotation(ni_id, &hw_anno);
+	if (err) {
+		pr_err("get_tx_hw_annotation failed\n");
+		return;
+	}
+
+	fsl_print("\nHW annotation tx pass-through fields for NI %d:\n", ni_id);
+	fsl_print("\tSTATUS_AND_TS\t= %d\n",
+		  !!(hw_anno & DPNI_DRV_TX_HW_ANNOTATION_PASS_TS));
 }
 
 #endif	/* SL_DEBUG */
