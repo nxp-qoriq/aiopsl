@@ -545,6 +545,11 @@ static int configure_dpni_params(struct mc_dprc *dprc, uint16_t aiop_niid,
 			layout.pass_parser_result = 1;
 			layout.options |= DPNI_BUF_LAYOUT_OPT_PARSER_RESULT;
 		}
+		if (g_dpni_early_init_data.frame_anno &
+		    DPNI_DRV_FA_SW_OPAQUE) {
+			layout.pass_sw_opaque = 1;
+			layout.options |= DPNI_BUF_LAYOUT_OPT_SW_OPAQUE;
+		}
 	} else {
 		layout.data_head_room = DPNI_DRV_DHR_DEF;
 		layout.data_tail_room = DPNI_DRV_DTR_DEF;
@@ -1944,6 +1949,7 @@ int dpni_drv_set_rx_buffer_layout(uint16_t ni_id, const struct dpni_drv_buf_layo
 	dpni_layout.pass_timestamp = layout->pass_timestamp;
 	dpni_layout.pass_parser_result = layout->pass_parser_result;
 	dpni_layout.pass_frame_status = layout->pass_frame_status;
+	dpni_layout.pass_sw_opaque = layout->pass_sw_opaque;
 	dpni_layout.private_data_size = layout->private_data_size;
 	dpni_layout.data_align = layout->data_align;
 	dpni_layout.data_head_room = layout->data_head_room;
@@ -1995,6 +2001,7 @@ int dpni_drv_get_rx_buffer_layout(uint16_t ni_id, struct dpni_drv_buf_layout *la
 	layout->pass_timestamp = dpni_layout.pass_timestamp;
 	layout->pass_parser_result = dpni_layout.pass_parser_result;
 	layout->pass_frame_status = dpni_layout.pass_frame_status;
+	layout->pass_sw_opaque = dpni_layout.pass_sw_opaque;
 	layout->private_data_size = dpni_layout.private_data_size;
 	layout->data_align = dpni_layout.data_align;
 	layout->data_head_room = dpni_layout.data_head_room;
@@ -4022,8 +4029,11 @@ int dpni_drv_set_tx_hw_annotation(uint16_t ni_id, uint32_t hw_anno)
 		layout.pass_frame_status = 1;
 		layout.pass_timestamp = 1;
 	}
+	if (hw_anno & DPNI_DRV_TX_HW_ANNOTATION_PASS_SW_OPAQUE)
+		layout.pass_sw_opaque = 1;
 	layout.options |= DPNI_DRV_BUF_LAYOUT_OPT_FRAME_STATUS |
-			  DPNI_DRV_BUF_LAYOUT_OPT_TIMESTAMP;
+			  DPNI_DRV_BUF_LAYOUT_OPT_TIMESTAMP |
+			  DPNI_DRV_BUF_LAYOUT_OPT_SW_OPAQUE;
 	err = dpni_set_buffer_layout(&dprc->io, 0, dpni,
 				     DPNI_QUEUE_TX, &layout);
 	if (err) {
@@ -4085,6 +4095,8 @@ int dpni_drv_get_tx_hw_annotation(uint16_t ni_id, uint32_t *hw_anno)
 	*hw_anno = 0;
 	if (layout.pass_frame_status || layout.pass_timestamp)
 		*hw_anno |= DPNI_DRV_TX_HW_ANNOTATION_PASS_TS;
+	if (layout.pass_sw_opaque)
+		*hw_anno |= DPNI_DRV_TX_HW_ANNOTATION_PASS_SW_OPAQUE;
 
 	err = dpni_close(&dprc->io, 0, dpni);
 	if (err) {
@@ -4184,6 +4196,7 @@ void dpni_drv_dump_rx_buffer_layout(uint16_t ni_id)
 	fsl_print("\tPASS_TIMESTAMP     = %d\n", layout->pass_timestamp);
 	fsl_print("\tPASS_PARSER_RESULT = %d\n", layout->pass_parser_result);
 	fsl_print("\tPASS_FRAME_STATUS  = %d\n", layout->pass_frame_status);
+	fsl_print("\tPASS_SW_OPAQUE     = %d\n", layout->pass_sw_opaque);
 	fsl_print("\tPRIVATE_DATA_SIZE  = %d\n", layout->private_data_size);
 	fsl_print("\tDATA_ALIGN         = %d\n", layout->data_align);
 	fsl_print("\tDATA_HEAD_ROOM     = %d\n", layout->data_head_room);
@@ -4204,6 +4217,8 @@ void dpni_drv_dump_tx_hw_annotation(uint16_t ni_id)
 	fsl_print("\nHW annotation tx pass-through fields for NI %d:\n", ni_id);
 	fsl_print("\tSTATUS_AND_TS\t= %d\n",
 		  !!(hw_anno & DPNI_DRV_TX_HW_ANNOTATION_PASS_TS));
+	fsl_print("\tSW_OPAQUE\t= %d\n",
+		  !!(hw_anno & DPNI_DRV_TX_HW_ANNOTATION_PASS_SW_OPAQUE));
 }
 
 #endif	/* SL_DEBUG */

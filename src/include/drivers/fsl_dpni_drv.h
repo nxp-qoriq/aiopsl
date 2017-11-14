@@ -240,6 +240,8 @@ enum dpni_drv_qos_counter {
 #define DPNI_DRV_BUF_LAYOUT_OPT_DATA_HEAD_ROOM          0x00000020
 /** Select to modify the data-tail-room setting */
 #define DPNI_DRV_BUF_LAYOUT_OPT_DATA_TAIL_ROOM          0x00000040
+/** Select to modify the sw-opaque setting */
+#define DPNI_DRV_BUF_LAYOUT_OPT_SW_OPAQUE		0x00000080
 
 /**************************************************************************//**
 @Description	 enum dpni_drv_frame_annotation - Frame HW annotation.
@@ -253,11 +255,15 @@ enum dpni_drv_frame_annotation {
 	 * egress side. */
 	DPNI_DRV_FA_STATUS_AND_TS = 0x01,
 	/** Parser result. */
-	DPNI_DRV_FA_PARSER_RESULT = 0x02
+	DPNI_DRV_FA_PARSER_RESULT = 0x02,
+	/** SW Opaque value */
+	DPNI_DRV_FA_SW_OPAQUE     = 0x04
 };
 /** @} end of group DPNI_DRV_BUF_LAYOUT_OPT */
 
 /**************************************************************************//**
+@struct		dpni_drv_buf_layout
+
 @Description	Structure representing DPNI buffer layout.
 
 *//***************************************************************************/
@@ -265,13 +271,25 @@ struct dpni_drv_buf_layout {
 	/** Flags representing the suggested modifications to the buffer
 	 * layout; Use any combination of \ref DPNI_DRV_BUF_LAYOUT_OPT */
 	uint32_t options;
-	/** Pass timestamp value */
+	/** Pass timestamp value.
+	 * Timestamp is found at offset 0x08 of the ASA. Size of ASA will be
+	 * of at least 64 bytes. */
 	int pass_timestamp;
-	/** Pass parser results */
+	/** Pass parser results.
+	 * Parser result is found at offset 0x10 of the ASA. Size of ASA will
+	 * be of at least 64 bytes. */
 	int pass_parser_result;
-	/** Pass frame status */
+	/** Pass frame annotation status.
+	 * Frame annotation status is found at offset 0x00 of the ASA. Size of
+	 * ASA will be of at least 64 bytes. */
 	int pass_frame_status;
-	/** Size kept for private data (in bytes) */
+	/** Pass sw_opaque value.
+	 * SW opaque value is found at offset 0x50 of the ASA. Size of ASA will
+	 * be of at least 128 bytes. */
+	int pass_sw_opaque;
+	/** Size kept for private data (in bytes).
+	 * If setting a non-zero value for this field, size of PTA will be
+	 * of 64 bytes */
 	uint16_t private_data_size;
 	/** Data alignment */
 	uint16_t data_align;
@@ -290,8 +308,10 @@ struct dpni_drv_buf_layout {
 
 @{
 *//***************************************************************************/
-/** Set to pass the HW annotation on recycle path */
-#define DPNI_DRV_TX_HW_ANNOTATION_PASS_TS	0x00000001
+/** Set to pass the timestamp on recycle path */
+#define DPNI_DRV_TX_HW_ANNOTATION_PASS_TS		0x00000001
+/** Set to pass the sw_opaque value on recycle path */
+#define DPNI_DRV_TX_HW_ANNOTATION_PASS_SW_OPAQUE	0x00000002
 
 /** @} end of group DPNI_DRV_TX_HW_ANNOTATION */
 
@@ -1357,11 +1377,12 @@ int dpni_drv_get_connected_obj(const uint16_t aiop_niid, int *id, char type[16],
 /**************************************************************************//**
 @Function	dpni_drv_set_rx_buffer_layout
 
-@Description	Function to change SPs attributes (specify how many headroom)
+@Description	Function to configure the RX buffer layout for a given NI.
 
 @Param[in]	ni_id   The AIOP Network Interface ID
 
-@Param[in]	layout  Structure representing DPNI buffer layout
+@Param[in]	layout  Structure representing DPNI buffer layout.
+		see \ref dpni_drv_buf_layout
 
 @warning	Allowed only when DPNI is disabled
 
@@ -1373,11 +1394,12 @@ int dpni_drv_set_rx_buffer_layout(uint16_t ni_id, const struct dpni_drv_buf_layo
 /**************************************************************************//**
 @Function	dpni_drv_get_rx_buffer_layout
 
-@Description	Function to receive SPs attributes for RX buffer.
+@Description	Function to receive the layout of the RX buffer for a given NI.
 
 @Param[in]	ni_id   The AIOP Network Interface ID
 
-@Param[out]	layout  Structure representing DPNI buffer layout
+@Param[out]	layout  Structure representing DPNI buffer layout.
+		see \ref dpni_drv_buf_layout
 
 @Return	0 on success;
 	error code, otherwise. For error posix refer to \ref error_g
@@ -2382,9 +2404,22 @@ int dpni_drv_set_enable_tx_confirmation(uint16_t ni_id, int enable);
 		- the timestamp value(8 bytes) must be written in the ASA
 		segment at the 0x08 offset
 		- the FASV bit in FD[FRC] must be set
+		(see \ref LDPAA_FD_FRC_VALID_BITS)
 		- the DPNI performing the ingress processing must be configured
 		to read the timestamp using either of the two API functions:
 		\ref dpni_drv_set_rx_buffer_layout or
+		\ref dpni_drv_register_rx_buffer_layout_requirements
+
+		Passing the SW opaque value: To pass the SW opaque value from
+		the egress side to the ingress side the following conditions
+		must be met:
+		- the SW opaque value(8 bytes) must be written in the ASA
+		segment at the 0x50 offset
+		- the FASWOV bit in FD[FRC] must be set
+		(see \ref LDPAA_FD_FRC_VALID_BITS)
+		- the DPNI performing the ingress processing must be configured
+		to read the SW opaque value using either of the two API
+		functions: \ref dpni_drv_set_rx_buffer_layout or
 		\ref dpni_drv_register_rx_buffer_layout_requirements
 
 @Param[in]	ni_id : The AIOP Network Interface ID of the DPNI performing

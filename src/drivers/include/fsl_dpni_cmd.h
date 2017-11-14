@@ -34,7 +34,7 @@
 
 /* DPNI Version */
 #define DPNI_VER_MAJOR				7
-#define DPNI_VER_MINOR				3
+#define DPNI_VER_MINOR				4
 
 #define DPNI_CMD_BASE_VERSION			1
 #define DPNI_CMD_VERSION_2			2
@@ -116,8 +116,8 @@
 
 #define DPNI_CMDID_GET_PORT_MAC_ADDR		DPNI_CMD(0x263)
 
-#define DPNI_CMDID_GET_BUFFER_LAYOUT		DPNI_CMD(0x264)
-#define DPNI_CMDID_SET_BUFFER_LAYOUT		DPNI_CMD(0x265)
+#define DPNI_CMDID_GET_BUFFER_LAYOUT		DPNI_CMD_V2(0x264)
+#define DPNI_CMDID_SET_BUFFER_LAYOUT		DPNI_CMD_V2(0x265)
 
 #define DPNI_CMDID_SET_CONGESTION_NOTIFICATION	DPNI_CMD(0x267)
 #define DPNI_CMDID_GET_CONGESTION_NOTIFICATION	DPNI_CMD(0x268)
@@ -297,6 +297,8 @@ struct dpni_cmd_set_errors_behavior {
 #define DPNI_PASS_PR_SIZE		1
 #define DPNI_PASS_FS_SHIFT		2
 #define DPNI_PASS_FS_SIZE		1
+#define DPNI_PASS_SWO_SHIFT		3
+#define DPNI_PASS_SWO_SIZE		1
 
 struct dpni_cmd_get_buffer_layout {
 	uint8_t qtype;

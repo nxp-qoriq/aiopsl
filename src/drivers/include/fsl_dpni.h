@@ -496,6 +496,10 @@ int dpni_set_errors_behavior(struct fsl_mc_io *mc_io,
  * Select to modify the data-tail-room setting
  */
 #define DPNI_BUF_LAYOUT_OPT_DATA_TAIL_ROOM	0x00000040
+/**
+ * Select to modify the sw-opaque value setting
+ */
+#define DPNI_BUF_LAYOUT_OPT_SW_OPAQUE		0x00000080
 
 /**
  * struct dpni_buffer_layout - Structure representing DPNI buffer layout
@@ -515,6 +519,7 @@ struct dpni_buffer_layout {
 	int pass_timestamp;
 	int pass_parser_result;
 	int pass_frame_status;
+	int pass_sw_opaque;
 	uint16_t private_data_size;
 	uint16_t data_align;
 	uint16_t data_head_room;

@@ -527,6 +527,20 @@
 		length -= (_to_size - _from_size);			\
 	STW_SWAP(length, 0, (uint32_t)(((char *)_fd) + FD_MEM_LENGTH_OFFSET));})
 
+/**************************************************************************//**
+@Group    LDPAA_FD_FRC_VALID_BITS
+
+@Description	LDPAA FD[FRC] frame annotation valid bits
+
+@{
+*//***************************************************************************/
+/** Frame annotation status(FAS) and frame annotation timestamp valid */
+#define LDPAA_FD_FRC_FASV_BIT		0x00008000
+/** Frame annotation SW Opaque value valid */
+#define LDPAA_FD_FRC_FASWOV_BIT		0x00000800
+
+/** @} end of group LDPAA_FD_FRC_VALID_BITS */
+
 /** @} */ /* end of LDPAA_FD_GETTERS_SETTERS */
 
 /** @} *//* end of ldpaa_g group */

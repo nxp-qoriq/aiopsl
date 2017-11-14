@@ -838,6 +838,7 @@ int dpni_get_buffer_layout(struct fsl_mc_io *mc_io,
 	layout->pass_timestamp = (int)dpni_get_field(rsp_params->flags, PASS_TS);
 	layout->pass_parser_result = (int)dpni_get_field(rsp_params->flags, PASS_PR);
 	layout->pass_frame_status = (int)dpni_get_field(rsp_params->flags, PASS_FS);
+	layout->pass_sw_opaque = (int)dpni_get_field(rsp_params->flags, PASS_SWO);
 	layout->private_data_size = le16_to_cpu(rsp_params->private_data_size);
 	layout->data_align = le16_to_cpu(rsp_params->data_align);
 	layout->data_head_room = le16_to_cpu(rsp_params->head_room);
@@ -877,6 +878,7 @@ int dpni_set_buffer_layout(struct fsl_mc_io *mc_io,
 	dpni_set_field(cmd_params->flags, PASS_TS, layout->pass_timestamp);
 	dpni_set_field(cmd_params->flags, PASS_PR, layout->pass_parser_result);
 	dpni_set_field(cmd_params->flags, PASS_FS, layout->pass_frame_status);
+	dpni_set_field(cmd_params->flags, PASS_SWO, layout->pass_sw_opaque);
 	cmd_params->private_data_size = cpu_to_le16(layout->private_data_size);
 	cmd_params->data_align = cpu_to_le16(layout->data_align);
 	cmd_params->head_room = cpu_to_le16(layout->data_head_room);
