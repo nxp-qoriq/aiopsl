@@ -34,6 +34,7 @@
 #include "fsl_platform.h"
 #include "sp_drv.h"
 #include "sparser_drv.h"
+#include "fsl_dprc.h"
 
 /* Address of end of memory_data section */
 extern const uint8_t AIOP_INIT_DATA[];
@@ -191,8 +192,12 @@ __COLD_CODE int global_init(void)
 __COLD_CODE void global_free(void)
 {
 	struct sys_init_module_desc modules[] = GLOBAL_MODULES;
-	int i;
+	int i, err;
 
+	/* Freeing DPBP buffers as part of the AIOP reset procedure */
+	err = aiop_container_empty_dpbp();
+	if (err)
+		pr_err("Failed to empty DPBPs\n");
 	for (i = (ARRAY_SIZE(modules) - 1); i >= 0; i--)
 		if (modules[i].free)
 			modules[i].free();

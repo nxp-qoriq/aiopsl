@@ -53,7 +53,6 @@ int dprc_drv_init(void);
 void dprc_drv_free(void);
 static int aiop_container_init(void);
 static void aiop_container_free(void);
-static int aiop_container_empty_dpbp(void);
 
 static int dprc_drv_evmng_cb(uint8_t generator_id, uint8_t event_id, uint64_t app_ctx, void *event_data)
 {
@@ -294,7 +293,7 @@ __COLD_CODE static void aiop_container_free(void)
 		fsl_free(dprc);
 }
 
-static __COLD_CODE int aiop_container_empty_dpbp(void)
+__COLD_CODE int aiop_container_empty_dpbp(void)
 {
 	struct mc_dprc		*dprc;
 	int			i, dev_count, err;

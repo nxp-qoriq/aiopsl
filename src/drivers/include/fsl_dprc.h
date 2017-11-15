@@ -1031,5 +1031,11 @@ int dprc_get_api_version(struct fsl_mc_io *mc_io,
 			 uint32_t cmd_flags,
 			 uint16_t *major_ver,
 			 uint16_t *minor_ver);
+/**
+ * aiop_container_empty_dpbp() - empty buffers from all DPBP objects in the AIOP
+ * container
+ * Return:  '0' on Success; Error code otherwise.
+ */
+int aiop_container_empty_dpbp(void);
 
 #endif /* _FSL_DPRC_H */
