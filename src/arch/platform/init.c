@@ -103,8 +103,8 @@ int global_post_init(void);
 int tile_init(void);
 int cluster_init(void);
 int apps_init(void);
+int apps_free(void);
 void core_ready_for_tasks(void);
-void global_free(void);
 
 #include "general.h"
 /** Global task params */
@@ -189,15 +189,32 @@ __COLD_CODE int global_init(void)
 	return 0;
 }
 
+/*
+ * MC signals AIOPSL that a reset is incoming via a synchronous dpci cmd_if
+ * command on the "AIOPSL" cmd_if server.
+ * sl_cmd_ctrl_cb() processes the AIOPSL_RESET command received from MC,
+ * initiates the global_free() procedure and notifies MC when this is all done.
+ * global_free() in turn must inform user applications that AIOP reset is
+ * imminent and will pass control to the user application in order to allow for
+ * any necessary application-level cleanup, non DP object specific(will be
+ * handled by MC) to be done.
+ * NOTE:
+ * During the reset procedure, MC cannot respond to any other commands
+ * issued by AIOP, thus application level cleanup must be limited to
+ * operations that do not require MC API calls. */
 __COLD_CODE void global_free(void)
 {
 	struct sys_init_module_desc modules[] = GLOBAL_MODULES;
 	int i, err;
 
-	/* Freeing DPBP buffers as part of the AIOP reset procedure */
-	err = aiop_container_empty_dpbp();
+	/* Notify application of incoming AIOP reset */
+	err = apps_free();
 	if (err)
-		pr_err("Failed to empty DPBPs\n");
+		pr_err("Failed to free apps\n");
+	/* Calling the "free" function for each module is not mandatory as part
+	 * of the new reset procedure, however it is safe to use the functions
+	 * here because no MC API is being used
+	 */
 	for (i = (ARRAY_SIZE(modules) - 1); i >= 0; i--)
 		if (modules[i].free)
 			modules[i].free();
@@ -352,6 +369,28 @@ __COLD_CODE int apps_init(void)
 	for (i=0; i<app_arr_size; i++) {
 		if (apps[i].init)
 			apps[i].init();
+	}
+
+	fsl_free(apps);
+	return 0;
+}
+
+__COLD_CODE int apps_free(void)
+{
+	int i;
+	uint16_t app_arr_size = g_app_params.app_arr_size;
+	struct sys_module_desc *apps = fsl_malloc(
+			app_arr_size * sizeof(struct sys_module_desc), 1);
+
+	if (!apps)
+		return -ENOMEM;
+
+	memset(apps, 0, (app_arr_size * sizeof(struct sys_module_desc)));
+	build_apps_array(apps);
+
+	for (i = 0; i < app_arr_size; i++) {
+		if (apps[i].free)
+			apps[i].free();
 	}
 
 	fsl_free(apps);

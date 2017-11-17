@@ -35,10 +35,13 @@
 #ifndef __FSL_SL_CMD_H
 #define __FSL_SL_CMD_H
 
-#define SL_CMD_MODULE		"ARENA"
+#define SL_CMD_MODULE		"AIOPSL"
 
-#define SL_CMD_NEW_BUFF		(0x1 | CMDIF_NORESP_CMD)
 /*!<  Command for new buffer */
+#define SL_CMD_NEW_BUFF		(0x1 | CMDIF_NORESP_CMD)
+/*!<  Command for AIOP reset procedure */
+#define SL_CMD_RESET_AIOP	0x3
 
+void global_free(void);
 
 #endif /* __FSL_SL_CMDIF_H */

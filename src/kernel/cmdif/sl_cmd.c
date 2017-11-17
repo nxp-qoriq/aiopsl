@@ -27,6 +27,7 @@
 #include "fsl_sl_cmd.h"
 #include "fsl_errors.h"
 #include "fsl_dbg.h"
+#include "fsl_fdma.h"
 
 int sl_cmd_ctrl_cb(void *dev, uint16_t cmd, uint32_t size, void *data);
 int sl_cmd_open_cb(uint8_t instance_id, void **dev);
@@ -35,12 +36,17 @@ int sl_cmd_close_cb_t(void *dev);
 int sl_cmd_ctrl_cb(void *dev, uint16_t cmd, uint32_t size, void *data)
 {
 	UNUSED(dev);
-	
+
 	switch (cmd) {
-	
 	case SL_CMD_NEW_BUFF:
 		ASSERT_COND(size > 0);
 		ASSERT_COND(data);
+		break;
+	case SL_CMD_RESET_AIOP:
+		uint64_t response = 0xF4ULL;
+		*(uint64_t *)data = response;
+		fdma_modify_default_segment_data(0, sizeof(uint64_t));
+		global_free();
 		break;
 	default:
 		break;
