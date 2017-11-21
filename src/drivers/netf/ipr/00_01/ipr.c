@@ -1241,9 +1241,10 @@ IPR_CODE_PLACEMENT int ipr_miss_handling(struct ipr_instance *instance_params_pt
 	sr_status = cdma_acquire_context_memory(
 					instance_params_ptr->bpid,
 					rfdc_ext_addr_ptr);
-	if(sr_status)
-		ipr_exception_handler(IPR_REASSEMBLE,__LINE__,
-				      sr_status);
+	if(sr_status) {
+		move_to_correct_ordering_scope1(osm_status);
+		return -ENOSPC;
+	}
 
 #ifndef USE_IPR_SW_TABLE
 	/* Reset RFDC + Link List */
