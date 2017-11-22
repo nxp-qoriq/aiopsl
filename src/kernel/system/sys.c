@@ -227,8 +227,7 @@ __COLD_CODE static int global_sys_init(void)
 	if (err != 0) return err;
 
 	/* Initialize Multi-Processing services as needed */
-	err = sys_init_multi_processing();
-	if (err != 0) return err;
+	sys_init_multi_processing();
 
 	/* Platform init */
 	err = platform_init(&(platform_param), &(sys.platform_ops));

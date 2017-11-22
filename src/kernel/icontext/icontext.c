@@ -100,7 +100,7 @@ int icontext_get(uint16_t dpci_id, struct icontext *ic)
 	uint16_t amq_bdi;
 
 	ASSERT_COND(ic);
-	
+
 	DPCI_DT_LOCK_R_TAKE;
 
 	/* search by GPP peer id - most likely case
@@ -190,7 +190,7 @@ int icontext_release(struct icontext *ic, uint16_t bpid,
 	return err;
 }
 
-__COLD_CODE int icontext_init()
+__COLD_CODE void icontext_init(void)
 {
 	uint32_t cdma_cfg;
 	struct aiop_tile_regs *ccsr = (struct aiop_tile_regs *)\
@@ -218,7 +218,5 @@ __COLD_CODE int icontext_init()
 
 	ASSERT_COND_LIGHT(icontext_aiop.bdi_flags); /* BDI bit is set */
 	ASSERT_COND_LIGHT(icontext_aiop.dma_flags); /* PL bit is set */
-
-	return 0;
 }
 

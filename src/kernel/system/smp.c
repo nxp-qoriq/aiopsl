@@ -31,17 +31,15 @@
 #include "fsl_smp.h"
 #include "fsl_system.h"
 
-int sys_init_multi_processing(void);
+void sys_init_multi_processing(void);
 void sys_free_multi_processing(void);
 
 /*****************************************************************************/
-int sys_init_multi_processing(void)
+void sys_init_multi_processing(void)
 {
     /* Initialize the central program barrier */
     sys.barrier_lock = 0;
     sys.barrier_mask = sys.active_cores_mask;
- 
-    return 0;
 }
 
 /*****************************************************************************/
