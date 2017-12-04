@@ -112,9 +112,6 @@ extern __TASK struct aiop_default_task_params default_task_params;
 
 __COLD_CODE void fill_platform_parameters(struct platform_param *platform_param)
 {
-
-	int err = 0;
-
 	memset(platform_param, 0, sizeof(struct platform_param));
 
 	platform_param->l1_cache_mode = E_CACHE_MODE_INST_ONLY;
@@ -137,8 +134,6 @@ __COLD_CODE void fill_platform_parameters(struct platform_param *platform_param)
 	memcpy(platform_param->mem_info, mem_info,
 	       sizeof(struct platform_memory_info) * ARRAY_SIZE(mem_info));
 	platform_param->num_of_mem_parts = ARRAY_SIZE(mem_info);
-	ASSERT_COND(err == 0);
-
 }
 
 __COLD_CODE int tile_init(void)
