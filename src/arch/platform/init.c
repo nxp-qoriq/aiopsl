@@ -160,11 +160,6 @@ __COLD_CODE int tile_init(void)
 	return 0;
 }
 
-__COLD_CODE int cluster_init(void)
-{
-	return 0;
-}
-
 __COLD_CODE int global_init(void)
 {
 	struct sys_init_module_desc modules[] = GLOBAL_MODULES;

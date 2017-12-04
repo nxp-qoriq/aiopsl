@@ -114,16 +114,6 @@ int main(int argc, char *argv[])
 		}
 	}
 
-	/* Only execute if core is a cluster master */
-	if(sys_is_cluster_master())
-	{
-		err = cluster_init();
-		if(err) {
-			cmgw_report_boot_failure();
-			return err;
-		}
-	}
-
 	if(is_master_core)
 	{
 		err = tile_init();
