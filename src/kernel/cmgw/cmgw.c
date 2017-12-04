@@ -47,11 +47,12 @@ static struct aiop_cmgw_regs * cmgw_regs;
 uint64_t abcr_lock __attribute__((aligned(8))) = 0;
 
 /******************************************************************************/
-void cmgw_init(void * cmgw_regs_base)
+void cmgw_init(void)
 {
-    ASSERT_COND(cmgw_regs_base);
+	cmgw_regs = (struct aiop_cmgw_regs *)(AIOP_PERIPHERALS_OFF +
+				SOC_PERIPH_OFF_AIOP_TILE +
+				offsetof(struct aiop_tile_regs, cmgw_regs));
 
-    cmgw_regs = cmgw_regs_base;
     abcr_lock = 0;
 }
 

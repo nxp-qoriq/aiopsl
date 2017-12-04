@@ -243,7 +243,7 @@ __COLD_CODE static int global_sys_init(void)
 	if (err != 0) return err;
 
 	tile_regs = (struct aiop_tile_regs *)aiop_base_addr;
-	cmgw_init((void *)&tile_regs->cmgw_regs);
+	cmgw_init();
 
 	err = sys_add_handle( (void *)&tile_regs->cmgw_regs,
 	                                      FSL_MOD_CMGW, 1, 0);
