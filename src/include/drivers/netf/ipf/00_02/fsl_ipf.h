@@ -152,20 +152,25 @@ typedef uint8_t ipf_ctx_t[IPF_CONTEXT_SIZE];
 @Return		Status. (\ref IPF_GENERATE_FRAG_STATUS or negative value on
 		error.)
 
-@Retval		ENOMEM - Received packet cannot be stored due to buffer pool
-		depletion. Recommendation is to discard the frame.
+@Retval		-ENOSPC - Received packet cannot be stored due to buffer pool
+		depletion. The default working frame is open and there is no
+		frame remainder(since the fragmentation has not started).
+		Recommendation is to discard the default working frame.
 		The packet was not fragmented.
-@Retval		EIO - Received packet FD contain errors (FD.err != 0).
-		Recommendation is to either force discard of the default frame
-		(by calling \ref fdma_force_discard_fd) or enqueue the default
-		frame.
-		The packet was not fragmented.
+@Retval		-EIO - Received packet FD contain errors (FD.err != 0).
+		The packet was not fragmented (unchanged).
+@Retval		-ENOMEM - Buffer pool depletion was encountered during
+		fragmentation process. Recommendation is to discard both the
+		default working frame(current fragment) and the frame remainder
+		inside the fragmentation context(what's left of the original
+		frame).
+		The packet was partially fragmented.
 
 @Cautions	In the output fragment, ASA & PTA are not presented.\n
 		No support in IPv6 jumbograms.\n
 		It is assumed that the address of the presented segment is
 		aligned to 16 bytes.\n
-		it is assumed that the segment presentation offset
+		It is assumed that the segment presentation offset
 		is set to 0.\n
 		Since during fragmentation process of an IPv6 frame, fragment
 		extension (8 bytes) is added to the header, 8 bytes will be

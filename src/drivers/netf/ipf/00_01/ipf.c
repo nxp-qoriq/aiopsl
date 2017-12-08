@@ -46,34 +46,21 @@ extern __TASK struct aiop_default_task_params default_task_params;
 IPF_CODE_PLACEMENT int ipf_move_remaining_frame(struct ipf_context *ipf_ctx)
 {
 	int32_t	status;
-	struct fdma_amq amq;
 
 	status = fdma_store_default_frame_data();
 	if (status < 0)
-		return status; /* Received packet cannot be stored due to
+		return -ENOSPC; /* Received packet cannot be stored due to
 				buffer pool depletion (status = (-ENOMEM)).*/
 
 	/* Copy default FD to remaining_FD in IPF ctx */
 	ipf_ctx->rem_fd = *((struct ldpaa_fd *)HWC_FD_ADDRESS);
 
-	/* Present the remaining FD */
-	status = fdma_present_frame_without_segments(&(ipf_ctx->rem_fd),
-						FDMA_PRES_NO_FLAGS, 0,
-						&(ipf_ctx->rem_frame_handle));
-
-	/* Try to store the frame*/
-	if (status == (-EIO)){
-		if (fdma_store_frame_data(ipf_ctx->rem_frame_handle,
-				*((uint8_t *) HWC_SPID_ADDRESS),
-				&amq) < 0)
-			return -ENOMEM;
-		 else
-			return status; /* Received packet FD contain errors
-				(FD.err != 0). (status = (-EIO)).*/
-	} else {
-		return status;
-	}
-
+	/* Present the remaining FD.
+	 * -EIO can't be returned, since this check is in place for the first
+	 * fragment and FD[ERR] stays the same during fragmentation. */
+	fdma_present_frame_without_segments(&(ipf_ctx->rem_fd),
+					    FDMA_PRES_NO_FLAGS, 0,
+					    &(ipf_ctx->rem_frame_handle));
 	return SUCCESS;
 }
 
@@ -165,6 +152,9 @@ IPF_CODE_PLACEMENT void ipf_after_split_ipv4_fragment(struct ipf_context *ipf_ct
 	header_length = ipv4_offset + ipf_ctx->prc_seg_offset +
 		(uint16_t)((ipv4_hdr->vsn_and_ihl & IPV4_HDR_IHL_MASK) << 2);
 
+	/* this code assumes that the segment presentation offset is 0(so that
+	 * the ethernet header is actually presented); otherwise, the resulting
+	 * frame would have a bogus ethernet header(e.g. the IP header) */
 	insert_segment_data_params.flags = FDMA_REPLACE_SA_CLOSE_BIT;
 	insert_segment_data_params.frame_handle = ipf_ctx->rem_frame_handle;
 	insert_segment_data_params.to_offset = 0;
@@ -327,6 +317,9 @@ IPF_CODE_PLACEMENT void ipf_after_split_ipv6_fragment(struct ipf_context *ipf_ct
 	header_length = (uint16_t)(ipf_ctx->ipv6_frag_hdr_offset) +
 			ipf_ctx->prc_seg_offset + IPV6_FRAGMENT_HEADER_LENGTH;
 
+	/* this code assumes that the segment presentation offset is 0(so that
+	 * the ethernet header is actually presented); otherwise, the resulting
+	 * frame would have a bogus ethernet header(e.g. the IP header) */
 	insert_segment_data_params.flags = FDMA_REPLACE_SA_CLOSE_BIT;
 	insert_segment_data_params.frame_handle =
 			ipf_ctx->rem_frame_handle;
@@ -424,11 +417,14 @@ IPF_CODE_PLACEMENT int ipf_split_ipv4_fragment(struct ipf_context *ipf_ctx)
 				split_frame_params.source_frame_handle,
 				split_frame_params.spid,
 				&isolation_attributes);
+		if (status)
+			return status;
 		status = fdma_present_frame_without_segments(
 				&(ipf_ctx->rem_fd),
 				FDMA_INIT_NO_FLAGS, 0,
 				&(ipf_ctx->rem_frame_handle));
-				
+		if (status)
+			return status;
 		split_frame_params.source_frame_handle =
 					ipf_ctx->rem_frame_handle;
 
@@ -436,13 +432,19 @@ IPF_CODE_PLACEMENT int ipf_split_ipv4_fragment(struct ipf_context *ipf_ctx)
 					FDMA_SPLIT_SM_BIT|
 					FDMA_SPLIT_PSA_NO_PRESENT_BIT;
 		split_status = fdma_split_frame(&split_frame_params); /* TODO FDMA ERROR */
-		if (split_status == (-EINVAL)) {
+		if (split_status == -ENOMEM) {
+			return split_status;
+		} else if (split_status == -EINVAL) {
 			/* last fragment, no split happened */
 			status = ipf_ipv4_last_frag(ipf_ctx);
 			return status;
 		} else {
 			status = fdma_store_default_frame_data();
+			if (status)
+				return status;
 			status = fdma_present_default_frame();
+			if (status < 0)
+				return status;
 
 			ipf_after_split_ipv4_fragment(ipf_ctx);
 
@@ -466,20 +468,28 @@ IPF_CODE_PLACEMENT int ipf_split_ipv4_fragment(struct ipf_context *ipf_ctx)
 					split_frame_params.source_frame_handle,
 					split_frame_params.spid,
 					&isolation_attributes);
+			if (status)
+				return status;
 			status = fdma_present_frame_without_segments(
 					&(ipf_ctx->rem_fd),
 					FDMA_INIT_NO_FLAGS, 0,
 					&(ipf_ctx->rem_frame_handle));
-					
+			if (status)
+				return status;
 			split_frame_params.source_frame_handle =
 					ipf_ctx->rem_frame_handle;
 
 			split_frame_params.flags = FDMA_CFA_COPY_BIT |
 						FDMA_SPLIT_PSA_NO_PRESENT_BIT;
-			split_status = fdma_split_frame(&split_frame_params); /* TODO FDMA ERROR */
+			split_status = fdma_split_frame(&split_frame_params);
+			if (split_status == -ENOMEM)
+				return split_status;
 			status = fdma_store_default_frame_data();
+			if (status)
+				return status;
 			status = fdma_present_default_frame();
-
+			if (status < 0)
+				return status;
 			ipf_after_split_ipv4_fragment(ipf_ctx);
 
 			return IPF_GEN_FRAG_STATUS_IN_PROCESS;
@@ -582,14 +592,19 @@ IPF_CODE_PLACEMENT int ipf_split_ipv6_fragment(struct ipf_context *ipf_ctx,
 					FDMA_SPLIT_SM_BIT|
 					FDMA_SPLIT_PSA_NO_PRESENT_BIT;
 		split_status = fdma_split_frame(&split_frame_params); /* TODO FDMA ERROR */
-		if (split_status == (-EINVAL)) {
+		if (split_status == -ENOMEM) {
+			return split_status;
+		} else if (split_status == (-EINVAL)) {
 			/* last fragment, no split happened */
 			status = ipf_ipv6_last_frag(ipf_ctx);
 			return status;
 		} else {
 			status = fdma_store_default_frame_data();
+			if (status)
+				return status;
 			status = fdma_present_default_frame();
-
+			if (status < 0)
+				return status;
 			ipf_after_split_ipv6_fragment(ipf_ctx,
 							last_ext_hdr_size);
 
@@ -614,20 +629,28 @@ IPF_CODE_PLACEMENT int ipf_split_ipv6_fragment(struct ipf_context *ipf_ctx,
 					split_frame_params.source_frame_handle,
 					split_frame_params.spid,
 					&isolation_attributes);
+			if (status)
+				return status;
 			status = fdma_present_frame_without_segments(
 					&(ipf_ctx->rem_fd),
 					FDMA_INIT_NO_FLAGS, 0,
 					&(ipf_ctx->rem_frame_handle));
-					
+			if (status)
+				return status;
 			split_frame_params.source_frame_handle =
 					ipf_ctx->rem_frame_handle;
 
 			split_frame_params.flags = FDMA_CFA_COPY_BIT |
 						FDMA_SPLIT_PSA_NO_PRESENT_BIT;
-			split_status = fdma_split_frame(&split_frame_params); /* TODO FDMA ERROR */
+			split_status = fdma_split_frame(&split_frame_params);
+			if (split_status == -ENOMEM)
+				return split_status;
 			status = fdma_store_default_frame_data();
+			if (status)
+				return status;
 			status = fdma_present_default_frame();
-
+			if (status < 0)
+				return status;
 			ipf_after_split_ipv6_fragment(ipf_ctx,
 							last_ext_hdr_size);
 
@@ -656,6 +679,11 @@ IPF_CODE_PLACEMENT int ipf_generate_frag(ipf_ctx_t ipf_context_addr)
 
 	if (ipf_ctx->first_frag) {
 		/* First Fragment */
+		if (LDPAA_FD_GET_ERR(HWC_FD_ADDRESS)) {
+			/* if FD[ERR] != 0, the fragmentation process can't be
+			 * started; signal this to the application. */
+			return -EIO;
+		}
 		/* Keep parser's parameters from task defaults */
 		ipf_ctx->parser_profile_id =
 				default_task_params.parser_profile_id;
@@ -747,7 +775,7 @@ IPF_CODE_PLACEMENT int ipf_generate_frag(ipf_ctx_t ipf_context_addr)
 				pr->gross_running_sum = 0;
 
 				status = ipf_split_ipv4_fragment(ipf_ctx);
-					return status;
+				return status;
 			} else {
 			/* Split according to MTU */
 				ipv4_hdr =
@@ -805,7 +833,6 @@ IPF_CODE_PLACEMENT int ipf_generate_frag(ipf_ctx_t ipf_context_addr)
 			status = ipf_split_ipv4_fragment(ipf_ctx);
 		else
 			status = ipf_split_ipv6_fragment(ipf_ctx, NULL);
-
 		return status;
 	}
 }
