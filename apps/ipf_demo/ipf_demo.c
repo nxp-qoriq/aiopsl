@@ -59,71 +59,6 @@ void app_free(void);
 __TASK ipf_ctx_t ipf_context_addr
 	__attribute__((aligned(sizeof(struct ldpaa_fd))));
 
-/*
- * If segment offset is set to a known header offset, use the corresponding
- * PARSER Starting HXS code described in parser_starting_hxs_code. This is an
- * example for segment offset set to IP header offset */
-static __HOT_CODE ENTRY_POINT void app_proc_pkt_seg_offset_ipheader(void)
-{
-	int      err = 0;
-	const uint16_t ipv4hdr_length = sizeof(struct ipv4hdr);
-	uint16_t ipv4hdr_offset = 0;
-	uint8_t *p_ipv4hdr = 0;
-
-	uint16_t mtu;
-	int ipf_status;
-	int local_test_error = 0;
-
-#ifdef LS2085A_REV1
-	/* If the segment offset is not set to 0, re-present the frame using
-	 * segment offset 0 */
-	if (PRC_GET_SEGMENT_OFFSET() > 0) {
-		fdma_store_default_frame_data();
-		PRC_SET_SEGMENT_OFFSET(0);
-		fdma_present_default_frame();
-	}
-	sl_prolog();
-#else
-	sl_prolog_with_custom_header(PARSER_IPV4_STARTING_HXS);
-#endif
-	mtu = 1500;
-
-	if (PARSER_IS_OUTER_IPV4_DEFAULT()) {
-		fsl_print
-		("ipf_demo:Core %d received packet with ipv4 header:\n",
-		 core_get_id());
-		ipv4hdr_offset = (uint16_t)PARSER_GET_OUTER_IP_OFFSET_DEFAULT();
-		p_ipv4hdr = UINT_TO_PTR((ipv4hdr_offset +
-					PRC_GET_SEGMENT_ADDRESS()));
-		for (int i = 0; i < ipv4hdr_length; i++)
-			fsl_print(" %x", p_ipv4hdr[i]);
-		fsl_print("\n");
-	}
-
-	ipf_context_init(0, mtu, ipf_context_addr);
-	fsl_print("ipf_demo: ipf_context_init done, MTU = %d\n", mtu);
-
-	do {
-		ipf_status = ipf_generate_frag(ipf_context_addr);
-		err = dpni_drv_send(task_get_receive_niid(),
-				    DPNI_DRV_SEND_MODE_NONE);
-		if (err) {
-			fsl_print("ERROR = %d: dpni_drv_send()\n", err);
-			local_test_error |= err;
-			if (err == -ENOMEM)
-				fdma_discard_default_frame(FDMA_DIS_NO_FLAGS);
-			else /* (err == -EBUSY) */
-				ARCH_FDMA_DISCARD_FD();
-			if (ipf_status == IPF_GEN_FRAG_STATUS_IN_PROCESS)
-				ipf_discard_frame_remainder(ipf_context_addr);
-			break;
-		}
-	} while (ipf_status != IPF_GEN_FRAG_STATUS_DONE);
-
-	/*MUST call fdma_terminate task in the end of cb function*/
-	fdma_terminate_task();
-}
-
 __HOT_CODE ENTRY_POINT static void app_process_packet(void)
 {
 	int      err = 0;
@@ -153,19 +88,28 @@ __HOT_CODE ENTRY_POINT static void app_process_packet(void)
 /*	ipf_ctx_t ipf_context_addr __attribute__((aligned(sizeof(struct ldpaa_fd))));*/
 	sl_prolog();
 	mtu = 1500;
+	fd_length = LDPAA_FD_GET_LENGTH(HWC_FD_ADDRESS);
 
-	if (PARSER_IS_OUTER_IPV4_DEFAULT())
-	{
+	if (PARSER_IS_OUTER_IPV4_DEFAULT()) {
+		if (fd_length <= mtu) {
+			fsl_print("ipf_demo: packet length = %d, smaller than MTU\n",
+				  fd_length);
+			fdma_discard_default_frame(FDMA_DIS_NO_FLAGS);
+			fdma_terminate_task();
+		}
 		fsl_print
 		("ipf_demo:Core %d received packet with ipv4 header:\n",
-	    core_get_id());
+		 core_get_id());
 		ipv4hdr_offset = (uint16_t)PARSER_GET_OUTER_IP_OFFSET_DEFAULT();
-		p_ipv4hdr = UINT_TO_PTR((ipv4hdr_offset + PRC_GET_SEGMENT_ADDRESS()));
-		for( int i = 0; i < ipv4hdr_length ;i ++)
-		{
-			fsl_print(" %x",p_ipv4hdr[i]);
-		}
+		p_ipv4hdr = UINT_TO_PTR((ipv4hdr_offset +
+					PRC_GET_SEGMENT_ADDRESS()));
+		for (int i = 0; i < ipv4hdr_length; i++)
+			fsl_print(" %x", p_ipv4hdr[i]);
 		fsl_print("\n");
+	} else {
+		fsl_print("ipf_demo: not an IPV4 packet\n");
+		fdma_discard_default_frame(FDMA_DIS_NO_FLAGS);
+		fdma_terminate_task();
 	}
 
 	if (ipf_demo_flags == IPF_DEMO_WITH_HM)
@@ -226,19 +170,26 @@ __HOT_CODE ENTRY_POINT static void app_process_packet(void)
 				fsl_print("fragment offset error!\n");
 				local_test_error |= 1;
 			}
+		} else if (ipf_status == -ENOSPC || ipf_status == -EIO) {
+			fsl_print("ERROR = %d: ipf_generate_frag()\n",
+				  ipf_status);
+			LDPAA_FD_SET_ERR(HWC_FD_ADDRESS, 0);
+			fdma_discard_default_frame(FDMA_DIS_NO_FLAGS);
+		} else if (ipf_status < 0) { /* -ENOMEM */
+			fsl_print("ERROR = %d: ipf_generate_frag()\n",
+				  ipf_status);
+			fdma_discard_default_frame(FDMA_DIS_NO_FLAGS);
+			ipf_discard_frame_remainder(ipf_context_addr);
+			fdma_terminate_task();
 		}
 		err = dpni_drv_send(task_get_receive_niid(), DPNI_DRV_SEND_MODE_NONE);
-		if (err){
-			fsl_print("ERROR = %d: dpni_drv_send()\n",err);
+		if (err) {
+			fsl_print("ERROR = %d: dpni_drv_send()\n", err);
 			local_test_error |= err;
-			if(err == -ENOMEM)
-			{
+			if (err == -ENOMEM)
 				fdma_discard_default_frame(FDMA_DIS_NO_FLAGS);
-			}
 			else /* (err == -EBUSY) */
 				ARCH_FDMA_DISCARD_FD();
-
-
 			if (ipf_status == IPF_GEN_FRAG_STATUS_IN_PROCESS)
 				ipf_discard_frame_remainder(ipf_context_addr);
 			break;
@@ -349,23 +300,13 @@ static int app_dpni_event_added_cb(
 	uint16_t ni = (uint16_t)((uint32_t)event_data);
 	uint16_t    mfl = 0x2000; /* Maximum Frame Length */
 	int err;
-	struct ep_init_presentation init_presentation;
 	uint16_t ipv4hdr_offset = 0;
 
 	UNUSED(generator_id);
 	UNUSED(event_id);
 	pr_info("Event received for AIOP NI ID %d\n",ni);
 
-	/*If ni is even, use the packet processing callback with the PARSER
-	 *Starting HXS code used for the segment offset set to the IPv4 header
-	 *offset*/
-	if (ni % 2 == 0)
-		err = dpni_drv_register_rx_cb(ni/*ni_id*/,
-					      (rx_cb_t *)
-					      app_proc_pkt_seg_offset_ipheader);
-	else
-		err = dpni_drv_register_rx_cb(ni/*ni_id*/,
-					      (rx_cb_t *)app_ctx);
+	err = dpni_drv_register_rx_cb(ni/*ni_id*/, (rx_cb_t *)app_ctx);
 	if (err){
 		pr_err("dpni_drv_register_rx_cb for ni %d failed: %d\n",
 		       ni, err);
@@ -377,26 +318,6 @@ static int app_dpni_event_added_cb(
 		pr_err("dpni_drv_set_max_frame_length for ni %d failed: %d\n",
 		       ni, err);
 		return err;
-	}
-
-	/*If ni is even, set the segment offset set to the IPv4 header offset*/
-	if (ni % 2 == 0) {
-		/* Set the initial segment presentation size */
-		err = dpni_drv_get_initial_presentation(ni, &init_presentation);
-		if (err) {
-			pr_err("Cannot get initial presentation for NI %d\n",
-			       ni);
-			return err;
-		}
-		/*set init presentation seg_offset to IPV4 header offset*/
-		init_presentation.options = EP_INIT_PRESENTATION_OPT_SPO;
-		init_presentation.spo = 14;
-		err = dpni_drv_set_initial_presentation(ni, &init_presentation);
-		if (err) {
-			pr_err("Cannot set init presentation for NI %d to %d\n",
-			       ni, init_presentation.sps);
-			return err;
-		}
 	}
 	err = dpni_drv_enable(ni);
 	if(err){
