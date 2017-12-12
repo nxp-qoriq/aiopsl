@@ -69,6 +69,7 @@ t_sys_forced_object_desc  sys_handle[FSL_NUM_MODULES];
 
 void fill_master_core_parameters();
 void fill_system_parameters();
+void sys_early_init(void);
 int sys_init(void);
 void sys_free(void);
 
@@ -216,8 +217,6 @@ __COLD_CODE static int global_sys_init(void)
 
 	sys.runtime_flag = 0;
 
-	fill_system_parameters();
-
 	fill_platform_parameters(&platform_param);
 
 	platform_early_init(&platform_param);
@@ -225,9 +224,6 @@ __COLD_CODE static int global_sys_init(void)
 	/* Initialize memory management */
 	err = sys_init_memory_management();
 	if (err != 0) return err;
-
-	/* Initialize Multi-Processing services as needed */
-	sys_init_multi_processing();
 
 	/* Platform init */
 	err = platform_init(&(platform_param), &(sys.platform_ops));
@@ -243,8 +239,6 @@ __COLD_CODE static int global_sys_init(void)
 	if (err != 0) return err;
 
 	tile_regs = (struct aiop_tile_regs *)aiop_base_addr;
-	cmgw_init();
-
 	err = sys_add_handle( (void *)&tile_regs->cmgw_regs,
 	                                      FSL_MOD_CMGW, 1, 0);
 	if (err != 0) return err;
@@ -263,12 +257,30 @@ __COLD_CODE void fill_master_core_parameters()
 						& (1ULL << core_id)) ? 1 : 0;
 }
 
+__COLD_CODE void sys_early_init(void)
+{
+	int is_master_core;
+
+	fill_master_core_parameters();
+	is_master_core = sys_is_master_core();
+
+	if (is_master_core) {
+		fill_system_parameters();
+		sys_init_multi_processing();
+		cmgw_init();
+
+		sys.boot_sync_flag = SYS_BOOT_SYNC_FLAG_DONE;
+	} else {
+		while (!sys.boot_sync_flag)
+			;
+	}
+}
+
 __COLD_CODE int sys_init(void)
 {
 	int err = 0, is_master_core;
 	char pre_console_buf[PRE_CONSOLE_BUF_SIZE];
 
-	fill_master_core_parameters();
 	is_master_core = sys_is_master_core();
 
 	if(is_master_core) {
@@ -291,12 +303,9 @@ __COLD_CODE int sys_init(void)
 			return err;
 		}
 
-		/* signal all other cores that global initiation is done */
-		sys.boot_sync_flag = SYS_BOOT_SYNC_FLAG_DONE;
-	} else {
-		while(!sys.boot_sync_flag) {}
 	}
 
+	sys_barrier();
 	err = sys_init_platform();
 	sys_barrier();
 	sys.p_pre_console_buf = NULL;

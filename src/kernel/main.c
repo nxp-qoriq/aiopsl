@@ -31,6 +31,7 @@
 #include "fsl_cmgw.h"
 #include "fsl_rcu.h"
 
+extern void sys_early_init(void);
 extern int sys_init(void);
 extern void sys_free(void);
 extern int global_early_init(void);
@@ -89,6 +90,8 @@ int main(int argc, char *argv[])
 		mtdcr dcr469,r2 // INITR2
 		mtdcr dcr470,r13// INITR13
 	}
+
+	sys_early_init();
 
 #if (STACK_OVERFLOW_DETECTION == 1)
 	err = configure_stack_overflow_detection();
