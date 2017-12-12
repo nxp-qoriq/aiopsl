@@ -37,6 +37,8 @@
 #include "fsl_system.h"
 #include "fsl_dbg.h"
 #include "fsl_aiop_common.h"
+#include "fsl_errors.h"
+#include "sys.h"
 
 #define __ERR_MODULE__  MODULE_UNKNOWN
 
@@ -67,11 +69,24 @@ typedef struct t_sys_forced_object {
 
 t_sys_forced_object_desc  sys_handle[FSL_NUM_MODULES];
 
+static uint64_t sys_error_lock __attribute__((aligned(8)));
+int sys_global_error;
+
 void fill_master_core_parameters();
 void fill_system_parameters();
 void sys_early_init(void);
 int sys_init(void);
 void sys_free(void);
+
+__COLD_CODE void sys_set_global_error(int err)
+{
+	lock_spinlock(&sys_error_lock);
+	if (!sys_global_error && err) {
+		sys_global_error = err;
+		cmgw_report_boot_failure(err);
+	}
+	unlock_spinlock(&sys_error_lock);
+}
 
 /*****************************************************************************/
 void * sys_get_handle(enum fsl_module module, int num_of_ids, ...)
@@ -114,32 +129,53 @@ __COLD_CODE static int sys_init_platform(void)
 {
 	int i, err = 0;
 	int is_master_core = sys_is_master_core();
+	struct pltform_module_desc *modules = sys.platform_ops.modules;
+	void *handle = sys.platform_ops.h_platform;
 
-	for (i = 0 ; i < PLTFORM_NUM_OF_INIT_MODULES ; i++)
-	{
-		if (sys.platform_ops.modules[i].init)
-		{
-			if(sys.platform_ops.modules[i].is_single_core)
-			{
-				if(is_master_core)
-				{
-					err = sys.platform_ops.modules[i].init(
-							sys.platform_ops.h_platform);
-					if(err) return err;
+	for (i = 0 ; i < PLTFORM_NUM_OF_INIT_MODULES ; i++) {
+		if (modules[i].init) {
+			if (modules[i].is_single_core) {
+				if (is_master_core) {
+					err = modules[i].init(handle);
+					if (err)
+						sys_set_global_error(err);
 				}
 
 				sys_barrier();
-			}
-			else
-			{
-				err = sys.platform_ops.modules[i].init(
-						sys.platform_ops.h_platform);
-				if(err) return err;
+				if (sys_get_global_error())
+					goto init_err;
+			} else {
+				err = modules[i].init(handle);
+				if (err) {
+					sys_set_global_error(err);
+					sys_barrier();
+					goto init_err;
+				}
+
+				sys_barrier();
+				if (sys_get_global_error())
+					goto init_err;
 			}
 		}
 	}
 
 	return 0;
+
+init_err:
+	for (; i >= 0; i--) {
+		if (modules[i].free) {
+			if (modules[i].is_single_core) {
+				if (is_master_core)
+					modules[i].free(handle);
+
+				sys_barrier();
+			} else {
+				modules[i].free(handle);
+			}
+		}
+	}
+
+	return err;
 }
 
 
@@ -282,37 +318,47 @@ __COLD_CODE int sys_init(void)
 	char pre_console_buf[PRE_CONSOLE_BUF_SIZE];
 
 	is_master_core = sys_is_master_core();
-
 	if(is_master_core) {
 		/* MUST BE before log_init() because it uses icontext API */
 		icontext_init();
-		memset( &pre_console_buf[0], 0, PRE_CONSOLE_BUF_SIZE);
+
+		/* zero pre_console_buf and link it */
+		memset(&pre_console_buf[0], 0, PRE_CONSOLE_BUF_SIZE);
 		sys.p_pre_console_buf = &pre_console_buf[0];
 
-		if(g_init_data.sl_info.log_buf_size){
+		if (g_init_data.sl_info.log_buf_size) {
 			err = log_init();
-			if(err){
-				return err;
+			if (err) {
+				sys_set_global_error(err);
+				sys_barrier();
+				goto init_err;
 			}
+
 			sys.print_to_buffer = TRUE;
 		}
+
 		err = global_sys_init();
-
-		if (err != 0) {
-			sys.p_pre_console_buf = NULL;
-			return err;
+		if (err) {
+			sys_set_global_error(err);
+			sys_barrier();
+			goto init_err;
 		}
-
+	} else {
+		sys_barrier();
+		if (sys_get_global_error())
+			goto init_err;
 	}
 
-	sys_barrier();
 	err = sys_init_platform();
-	sys_barrier();
-	sys.p_pre_console_buf = NULL;
-	sys_barrier();
-	if (err != 0) return err;
+	if (err)
+		sys_set_global_error(err);
 
-	return 0;
+	sys_barrier();
+
+init_err:
+	sys.p_pre_console_buf = NULL;
+
+	return err;
 }
 
 /*****************************************************************************/

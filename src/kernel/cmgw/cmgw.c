@@ -88,11 +88,11 @@ uint64_t cmgw_get_time_base()
 }
 
 /******************************************************************************/
-void cmgw_report_boot_failure()
+void cmgw_report_boot_failure(int err)
 {
     ASSERT_COND(cmgw_regs);
 
-	iowrite32_ccsr(0x1, &(cmgw_regs->acgpr[CMGW_ACGPR_BOOT_FAIL]));
+	iowrite32_ccsr((uint32_t)err, &cmgw_regs->acgpr[CMGW_ACGPR_BOOT_FAIL]);
 }
 
 /******************************************************************************/

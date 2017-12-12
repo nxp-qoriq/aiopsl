@@ -30,19 +30,22 @@
 #include "fsl_dbg.h"
 #include "fsl_cmgw.h"
 #include "fsl_rcu.h"
+#include "fsl_system.h"
+#include "fsl_errors.h"
+#include "sys.h"
 
 extern void sys_early_init(void);
 extern int sys_init(void);
 extern void sys_free(void);
 extern int global_early_init(void);
 extern int global_init(void);
+extern void global_free(void);
 extern int tile_init(void);
 extern int cluster_init(void);
 extern int global_post_init(void);
 extern int apps_early_init(void);
 extern int apps_init(void);
 extern void core_ready_for_tasks(void);
-
 
 #if (STACK_OVERFLOW_DETECTION == 1)
 extern char _stack_addr[]; /* Starting address for stack */
@@ -95,21 +98,23 @@ int main(int argc, char *argv[])
 
 #if (STACK_OVERFLOW_DETECTION == 1)
 	err = configure_stack_overflow_detection();
-	if(err) {
-		cmgw_report_boot_failure();
-		return err;
+	if (err) {
+		sys_set_global_error(err);
+		sys_barrier();
+		goto sys_init_err;
 	}
+
+	sys_barrier();
+	if (sys_get_global_error())
+		goto sys_init_err;
 #endif
 
-	/* Initialize system */
-	err = sys_init();
-	if (err) {
-		cmgw_report_boot_failure();
-		return err;
-	}
-	sys_barrier();
-
 	is_master_core = sys_is_master_core();
+
+	/* sys init */
+	err = sys_init();
+	if (sys_get_global_error())
+		goto sys_init_err;
 
 	if(is_master_core) {
 		if(cmgw_get_ntasks() > 2 /*4-tasks*/) {
@@ -117,48 +122,94 @@ int main(int argc, char *argv[])
 		}
 	}
 
-	if(is_master_core)
-	{
+	/* tile init */
+	if (is_master_core) {
 		err = tile_init();
 		if(err) {
-			cmgw_report_boot_failure();
-			return err;
-		}
-
-		err = global_early_init();
-		if(err) {
-			cmgw_report_boot_failure();
-			return err;
-		}
-
-		err = apps_early_init();
-		if(err) {
-			cmgw_report_boot_failure();
-			return err;
-		}
-
-		err = global_init();
-		if(err) {
-			cmgw_report_boot_failure();
-			return err;
+			sys_set_global_error(err);
+			sys_barrier();
+			goto tile_init_err;
 		}
 	}
 
-	if(is_master_core)
-	{
+	sys_barrier();
+	if (sys_get_global_error())
+		goto tile_init_err;
+
+	/* global early init */
+	if (is_master_core) {
+		err = global_early_init();
+		if(err) {
+			sys_set_global_error(err);
+			sys_barrier();
+			goto tile_init_err;
+		}
+	}
+
+	sys_barrier();
+	if (sys_get_global_error())
+		goto tile_init_err;
+
+	/* apps early init */
+	if (is_master_core) {
+		err = apps_early_init();
+		if(err) {
+			sys_set_global_error(err);
+			sys_barrier();
+			goto tile_init_err;
+		}
+	}
+
+	sys_barrier();
+	if (sys_get_global_error())
+		goto tile_init_err;
+
+	/* global init */
+	if (is_master_core) {
+		err = global_init();
+		if(err) {
+			sys_set_global_error(err);
+			sys_barrier();
+			goto tile_init_err;
+		}
+	}
+
+	sys_barrier();
+	if (sys_get_global_error())
+		goto tile_init_err;
+
+	if (is_master_core)
 		pr_info("Running applications\n");
 
+	/* apps init */
+	if (is_master_core) {
 		err = apps_init();
 		if (err) {
-			cmgw_report_boot_failure();
-			return err;
+			sys_set_global_error(err);
+			sys_barrier();
+			goto apps_init_err;
 		}
+	}
 
+	sys_barrier();
+	if (sys_get_global_error())
+		goto apps_init_err;
+
+	/* global post init */
+	if (is_master_core) {
 		err = global_post_init();
 		if(err) {
-			cmgw_report_boot_failure();
-			return err;
+			sys_set_global_error(err);
+			sys_barrier();
+			goto apps_init_err;
 		}
+	}
+
+	sys_barrier();
+	if (sys_get_global_error())
+		goto apps_init_err;
+
+	if (is_master_core) {
 		/* Avoid applications hang on rcu_synchronize() or
 		 * cdma_ephemeral_reference_sync() call if an unnecessary lock
 		 * was taken by applications in the call-back functions called
@@ -169,17 +220,21 @@ int main(int argc, char *argv[])
 	core_ready_for_tasks();
 
 	if (is_master_core)
-	{
 		pr_info("complete. freeing resources and going out ...\n");
-	}
+
 	sys_barrier();
 
-	/* TODO - complete - free everything here!!! */
+apps_init_err:
+	global_free();
 
-	/* Free system */
+tile_init_err:
 	sys_free();
 
-	//TODO should never get here !!
-	cmgw_report_boot_failure();
+sys_init_err:
+	cmgw_update_core_boot_completion();
+
+	/* Keep the PC inside main so that AIOP doesn't execute random code */
+	while (1) {}
+
 	return err;
 }
