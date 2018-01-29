@@ -123,6 +123,8 @@ int main(int argc, char *argv[])
 	}
 
 	/* tile init */
+	sys_enter_section(SECTION_TILE_INIT);
+
 	if (is_master_core) {
 		err = tile_init();
 		if(err) {
@@ -137,6 +139,8 @@ int main(int argc, char *argv[])
 		goto tile_init_err;
 
 	/* global early init */
+	sys_enter_section(SECTION_GLOBAL_EARLY_INIT);
+
 	if (is_master_core) {
 		err = global_early_init();
 		if(err) {
@@ -151,6 +155,8 @@ int main(int argc, char *argv[])
 		goto tile_init_err;
 
 	/* apps early init */
+	sys_enter_section(SECTION_APPS_EARLY_INIT);
+
 	if (is_master_core) {
 		err = apps_early_init();
 		if(err) {
@@ -165,6 +171,8 @@ int main(int argc, char *argv[])
 		goto tile_init_err;
 
 	/* global init */
+	sys_enter_section(SECTION_GLOBAL_INIT);
+
 	if (is_master_core) {
 		err = global_init();
 		if(err) {
@@ -182,6 +190,8 @@ int main(int argc, char *argv[])
 		pr_info("Running applications\n");
 
 	/* apps init */
+	sys_enter_section(SECTION_APPS_INIT);
+
 	if (is_master_core) {
 		err = apps_init();
 		if (err) {
@@ -196,6 +206,8 @@ int main(int argc, char *argv[])
 		goto apps_init_err;
 
 	/* global post init */
+	sys_enter_section(SECTION_GLOBAL_POST_INIT);
+
 	if (is_master_core) {
 		err = global_post_init();
 		if(err) {

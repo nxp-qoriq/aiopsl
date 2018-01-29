@@ -28,13 +28,18 @@
 #ifndef SYS_H
 #define SYS_H
 
-extern int sys_global_error;
+enum sys_sections {
+	SECTION_SYS_INIT,
+	SECTION_TILE_INIT,
+	SECTION_GLOBAL_EARLY_INIT,
+	SECTION_APPS_EARLY_INIT,
+	SECTION_GLOBAL_INIT,
+	SECTION_APPS_INIT,
+	SECTION_GLOBAL_POST_INIT,
+};
 
-inline int sys_get_global_error(void)
-{
-	return sys_global_error;
-}
-
+int sys_get_global_error(void);
 void sys_set_global_error(int err);
+void sys_enter_section(int section);
 
 #endif

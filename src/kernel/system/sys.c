@@ -38,6 +38,7 @@
 #include "fsl_dbg.h"
 #include "fsl_aiop_common.h"
 #include "fsl_errors.h"
+#include "compat.h"
 #include "sys.h"
 
 #define __ERR_MODULE__  MODULE_UNKNOWN
@@ -45,6 +46,36 @@
 #define SYS_TILE_MASTERS_MASK (0x00000001)
 #define SYS_CLUSTER_MASTER_MASK (0x00001111)
 #define SYS_BOOT_SYNC_FLAG_DONE (1)
+
+/*
+ * The AIOP boot process is made up of several sections (mentioned in the
+ * variable section_name[]). Entering a section is recorded in the most
+ * significant two bytes of the sys_status variable.
+ * Additionally when an error occurs (in one of the sections) the boot process
+ * ends immediatlly and the error is recorded in the least significant two
+ * bytes of the sys_status variable.
+ * The sys_status variable can be inspected to check the status of the boot
+ * process and can be accessed in a several ways:
+ * - inspecting the memory location of the variable from the host Linux OS
+ *   (its physical address is printed on the AIOP console)
+ * - greping the AIOP console for messages of the type:
+ *   "Entering section: <section_name>"
+ * - inspecting the ACGPR register (it contains the value of the sys_status at
+ *   the end of the boot process).
+ */
+#define STATUS_SECTION_SHIFT	16
+#define STATUS_SECTION_MASK	0xFFFF0000
+#define STATUS_ERROR_MASK	0x0000FFFF
+
+char *section_name[] = {
+		"System Initialization",
+		"Tile Initialization",
+		"Global Early Initialization",
+		"Apps Early Initialization",
+		"Global Initialization",
+		"Apps Initialization",
+		"Global Post Initialization"
+};
 
 /* Global System Object */
 /* It must be aligned to a double word boundary since the first member
@@ -69,8 +100,8 @@ typedef struct t_sys_forced_object {
 
 t_sys_forced_object_desc  sys_handle[FSL_NUM_MODULES];
 
-static uint64_t sys_error_lock __attribute__((aligned(8)));
-int sys_global_error;
+static uint64_t sys_status_lock __attribute__((aligned(8)));
+volatile static int sys_status;
 
 void fill_master_core_parameters();
 void fill_system_parameters();
@@ -78,14 +109,43 @@ void sys_early_init(void);
 int sys_init(void);
 void sys_free(void);
 
+__COLD_CODE int sys_get_global_error(void)
+{
+	return (sys_status & STATUS_ERROR_MASK);
+}
+
 __COLD_CODE void sys_set_global_error(int err)
 {
-	lock_spinlock(&sys_error_lock);
-	if (!sys_global_error && err) {
-		sys_global_error = err;
-		cmgw_report_boot_failure(err);
+	int section = (sys_status & STATUS_SECTION_MASK)
+		       >> STATUS_SECTION_SHIFT;
+
+	lock_spinlock(&sys_status_lock);
+	if (!(sys_status & STATUS_ERROR_MASK) && err) {
+		sys_status = (sys_status & STATUS_SECTION_MASK) |
+			     (err & STATUS_ERROR_MASK);
+
+		cmgw_report_boot_failure(sys_status);
+
+		pr_err("Boot failed in section %d(%s) with error: 0x%08x\n",
+		       section, section_name[section],
+		       sys_status & STATUS_ERROR_MASK);
 	}
-	unlock_spinlock(&sys_error_lock);
+	unlock_spinlock(&sys_status_lock);
+}
+
+__COLD_CODE void sys_enter_section(int section)
+{
+	int current_section = (sys_status & STATUS_SECTION_MASK)
+			       >> STATUS_SECTION_SHIFT;
+
+	lock_spinlock(&sys_status_lock);
+	if (section > current_section) {
+		sys_status = (sys_status & STATUS_ERROR_MASK) |
+			     (section << STATUS_SECTION_SHIFT);
+
+		pr_info("Entering section: %s\n", section_name[section]);
+	}
+	unlock_spinlock(&sys_status_lock);
 }
 
 /*****************************************************************************/
@@ -316,6 +376,7 @@ __COLD_CODE int sys_init(void)
 {
 	int err = 0, is_master_core;
 	char pre_console_buf[PRE_CONSOLE_BUF_SIZE];
+	uint64_t stat_addr = 0x004B00000000 + (uint64_t)&sys_status;
 
 	is_master_core = sys_is_master_core();
 	if(is_master_core) {
@@ -336,6 +397,9 @@ __COLD_CODE int sys_init(void)
 
 			sys.print_to_buffer = TRUE;
 		}
+
+		pr_info("System status at 0x%08x%08x\n",
+			upper_32_bits(stat_addr), lower_32_bits(stat_addr));
 
 		err = global_sys_init();
 		if (err) {
