@@ -28,6 +28,7 @@
 #include <__mem.h>
 #include "fsl_evmng.h"
 #include "fsl_dpni_drv.h"
+#include "fsl_mem_mng.h"
 #include "apps.h"
 
 #include "fsl_sparser_gen.h"
@@ -36,17 +37,17 @@
 #include "fsl_sparser_dump.h"
 #include "fsl_sparser_gen.h"
 
-#ifndef LS2085A_REV1
-/* The test with the custom header being the first header in the packet works
- * only on Rev2 platforms. To run this test, on Rev2 platforms, define the
- * following macro as 1. */
-	#define CUSTOM_HEADER_FIRST	0
-#endif
+/* Configure WRIOP to forward packets with error to AIOP instead of dropping
+ * them */
+#define ALLOW_ERR_PKT
 
-#if (CUSTOM_HEADER_FIRST == 0)
-/*******************************************************************************
- * Soft Parser Example :
- * This SP parses a custom header placed after a Ethernet header. It is
+/* Define only one of the following macros :
+ *	CUSTOM_HEADER_AFTER_ETHERNET
+ *	CUSTOM_ETHERNET_HEADER
+ *	CUSTOM_HEADER_BEFORE_ETHERNET (Not on LS2085A)
+ */
+
+/* This SP parses a custom header placed after a Ethernet header. It is
  * identified by the "custom" EType 0xEE00. The custom header has 46 bytes in
  * length. The last 2 bytes in this header identifies the type of the header
  * that follows, in this example 0x0800, i.e. IPv4.
@@ -57,6 +58,25 @@
  *
  * If the EType field of the parsed packet is not the expected one (0xEE00) the
  * SP code returns to the calling HXS (Ethernet). */
+/*#define CUSTOM_HEADER_AFTER_ETHERNET*/
+
+/* This SP parses a custom Ethernet header placed as the first header in the
+ * packet. The custom header has 18 bytes in length : 4 custom bytes are placed
+ * before the EType field. */
+/*#define CUSTOM_ETHERNET_HEADER*/
+
+#ifndef LS2085A_REV1
+	/* This SP parses a custom header of 32 bytes placed before an Ethernet
+	 * header. It works only on Rev 2 platforms. */
+	#define CUSTOM_HEADER_BEFORE_ETHERNET
+	/* If this macro is defined the custom header length parameter is stored
+	 * at the offset 32 in the Parameter Array (PA:32:32]. If no defined the
+	 * offset will be 0 (PA[0:0]). */
+	#define PA_PARAMETER_OFFSET_32
+#endif	/* LS2085A_REV1 */
+
+#ifdef CUSTOM_HEADER_AFTER_ETHERNET
+
 uint8_t sparser_ex[48] __attribute__((aligned(4)));
 
 /*******************************************************************************
@@ -91,7 +111,7 @@ uint8_t parsed_packet[] = {
 	0x45, 0x00, 0x00, 0x3d, 0x00, 0x00, 0x00, 0x00,
 	0xff, 0x11, 0x3a, 0x57, 0xc0, 0x55, 0x01, 0x02,
 	0xc0, 0x00, 0x00, 0x01,
-	/*UDP Header */
+	/* UDP Header */
 	0x04, 0x00, 0x04, 0x00, 0x00, 0x29, 0x65, 0x42,
 	/* Payload (without FCS) */
 	0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07,
@@ -100,12 +120,10 @@ uint8_t parsed_packet[] = {
 	0x18, 0x19, 0x1a, 0x1b, 0x1c, 0x1d, 0x1e, 0x1f,
 	0x20
 };
-#else
-/*******************************************************************************
- * Soft Parser Example :
- * This SP parses a custom Ethernet header placed as the first header in the
- * packet. The custom header has 18 bytes in length : 4 custom bytes are placed
- * before the EType field. */
+#endif	/* CUSTOM_HEADER_AFTER_ETHERNET */
+
+#ifdef CUSTOM_ETHERNET_HEADER
+
 uint8_t sparser_ex[136] __attribute__((aligned(4)));
 
 /*******************************************************************************
@@ -141,7 +159,7 @@ uint8_t parsed_packet[] = {
 	0x45, 0x00, 0x00, 0x3d, 0x00, 0x07, 0x00, 0x00,
 	0xff, 0x11, 0x3a, 0x50, 0xc0, 0x55, 0x01, 0x02,
 	0xc0, 0x00, 0x00, 0x01,
-	/*UDP Header */
+	/* UDP Header */
 	0x04, 0x00, 0x04, 0x00, 0x00, 0x29, 0x65, 0x42,
 	/* Payload (without FCS) */
 	0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07,
@@ -150,7 +168,59 @@ uint8_t parsed_packet[] = {
 	0x18, 0x19, 0x1a, 0x1b, 0x1c, 0x1d, 0x1e, 0x1f,
 	0x20
 };
+#endif	/* CUSTOM_ETHERNET_HEADER */
+
+#ifdef CUSTOM_HEADER_BEFORE_ETHERNET
+
+#ifdef LS2085A_REV1
+	#error "CUSTOM_HEADER_BEFORE_ETHERNET is not working on LS2085"
 #endif
+
+uint8_t sparser_ex[20] __attribute__((aligned(4)));
+
+/*******************************************************************************
+ *
+ * This is the soft parser to be loaded onto the WRIOP Parser and activated
+ * for each DPNI belonging to the AIOP container.
+ * The byte-code is identical with that generated for the AIOP parser. */
+#ifdef PA_PARAMETER_OFFSET_32
+uint8_t wriop_sparser_ex[20] __attribute__((aligned(4))) = {
+	0x00, 0x04, 0x29, 0x42, 0x03, 0xe0, 0x12, 0x00, 0x29, 0x02,
+	0x18, 0x00, 0x87, 0x3c, 0x00, 0x02, 0x18, 0x00, 0x00, 0x00
+};
+#else
+uint8_t wriop_sparser_ex[20] __attribute__((aligned(4))) = {
+	0x00, 0x04, 0x29, 0x42, 0x03, 0xe0, 0x10, 0x00, 0x29, 0x02,
+	0x18, 0x00, 0x87, 0x3c, 0x00, 0x02, 0x18, 0x00, 0x00, 0x00
+};
+#endif
+
+/*******************************************************************************
+ * Packet to be parsed : custom header of 32 bytes is placed before an
+ * Ethernet header. */
+uint8_t parsed_packet[] = {
+	/* Custom 32 bytes header */
+	0x80, 0x02, 0x00, 0x01, 0x10, 0x1c, 0x00, 0x10,
+	0xc0, 0x4c, 0x40, 0x00, 0xf4, 0xe9, 0x70, 0x00,
+	0x00, 0x00, 0xe0, 0x00, 0xc0, 0x00, 0x00, 0x00,
+	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+	/* Ethernet Header */
+	0x00, 0x00, 0x00, 0x00, 0x00, 0x07, 0x00, 0x10,
+	0x94, 0x00, 0x00, 0x02, 0x08, 0x00,
+	/* IP Header */
+	0x45, 0x00, 0x00, 0x3d, 0x00, 0x07, 0x00, 0x00,
+	0xff, 0x11, 0x3a, 0x50, 0xc0, 0x55, 0x01, 0x02,
+	0xc0, 0x00, 0x00, 0x01,
+	/* UDP Header */
+	0x04, 0x00, 0x04, 0x00, 0x00, 0x29, 0x65, 0x42,
+	/* Payload (without FCS) */
+	0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07,
+	0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f,
+	0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17,
+	0x18, 0x19, 0x1a, 0x1b, 0x1c, 0x1d, 0x1e, 0x1f,
+	0x20
+};
+#endif	/* CUSTOM_HEADER_BEFORE_ETHERNET */
 
 /******************************************************************************/
 /* Data segment presentation parameters */
@@ -183,7 +253,7 @@ static void sp_print_frame(void)
 		if (!((i + 1) % 16))
 			fsl_print("\n%03x: ", i + 1);
 	}
-	if (i % 16)
+	if (!i || i % 16)
 		fsl_print("\n");
 }
 
@@ -225,12 +295,13 @@ static uint16_t compute_running_sum(uint8_t *header, uint16_t len)
 static void print_wriop_parse_result(void)
 {
 	int		err;
-	uint8_t		fd_asal;
+	uint8_t		fd_err, fd_asal;
 	uint16_t	asa_length = 0;
 	uint64_t	val64, *pval64;
 	uint8_t		asa_bytes[64], *asa_pres;
 
 	fd_asal = LDPAA_FD_GET_ASAL(HWC_FD_ADDRESS);
+	fd_err = LDPAA_FD_GET_ERR(HWC_FD_ADDRESS);
 	if (!fd_asal) {
 		pr_warn("Packet doesn't contain ASA information\n");
 		return;
@@ -270,20 +341,244 @@ static void print_wriop_parse_result(void)
 }
 
 /******************************************************************************/
+/* fmt = 0 - AIOP input frame (as it is received from DPNI, TMAN, ...
+ * fmt = 1 - to GPP format
+ * fmt = 2 - to SEC format
+ */
+static void dump_fd(uint8_t fmt)
+{
+	uint64_t	val64;
+	uint8_t		val8, sl;
+
+	/* The FD format is little-endian */
+	#define FD_EPID_OFFSET		0x18
+	#define LDPAA_FD_GET_EPID(_fd)					\
+		(LH_SWAP_MASK(0, (uint32_t)(((char *)_fd) +		\
+				FD_EPID_OFFSET), 0x03ff))
+
+	#define FD_RCSUM_OFFSET		0x1a
+	#define LDPAA_FD_GET_RCSUM(_fd)					\
+		(LH_SWAP(0, (uint32_t)(((char *)_fd) +			\
+				FD_RCSUM_OFFSET)))
+
+	#ifndef FD_HASH_OFFSET
+		#define FD_HASH_OFFSET	0x1c
+	#endif
+	#define LDPAA_FD_GET_HASH(_fd)					\
+		(uint32_t)({register uint32_t *__rR = 0;		\
+		uint32_t hash = (LW_SWAP(0, (uint32_t)(((char *)_fd) +	\
+				FD_HASH_OFFSET)));			\
+		__rR = (uint32_t *)hash; })
+
+	fsl_print("Dump of Frame Descriptor\n");
+	sl = LDPAA_FD_GET_SL(HWC_FD_ADDRESS);
+	/* The FD format is little-endian */
+	val64 = LDPAA_FD_GET_ADDR(HWC_FD_ADDRESS);
+	/* Buffer address */
+	fsl_print("\t Buffer address      = 0x%x-%08x\n",
+		  (uint32_t)(val64 >> 32), (uint32_t)(val64));
+	/* Frame data length */
+	if (!sl) {
+		fsl_print("\t Frame data length   = %d (Long)\n",
+			  LDPAA_FD_GET_LENGTH(HWC_FD_ADDRESS));
+	} else {
+		fsl_print("\t Frame data length   = %d (Short)\n",
+			  LDPAA_FD_GET_LENGTH(HWC_FD_ADDRESS));
+		fsl_print("\t 12-bit MEM          = %03x\n",
+			  LDPAA_FD_GET_MEM(HWC_FD_ADDRESS));
+	}
+	/* BPID */
+	fsl_print("\t BPID                = %d\n",
+		  LDPAA_FD_GET_BPID(HWC_FD_ADDRESS));
+	/* IVP */
+	fsl_print("\t IVP (Invalid Pool)  = %d\n",
+		  LDPAA_FD_GET_IVP(HWC_FD_ADDRESS));
+	/* BMT */
+	fsl_print("\t BMT                 = %d\n",
+		  LDPAA_FD_GET_BMT(HWC_FD_ADDRESS));
+	/* Frame data offset */
+	fsl_print("\t Frame data offset   = %d\n",
+		  LDPAA_FD_GET_OFFSET(HWC_FD_ADDRESS));
+	/* FMT */
+	val8 = LDPAA_FD_GET_FMT(HWC_FD_ADDRESS);
+	fsl_print("\t FMT(2b)             = 0x%x (%s)\n", val8,
+		  val8 == 0 ? "Single Buffer" :
+		  val8 == 1 ? "Frame List" :
+		  val8 == 2 ? "Scatter/Gather" :
+		  val8 == 3 ? "Proprietary" : "Unknown");
+	/* SL */
+	fsl_print("\t SL                  = %d\n", sl);
+	/* Frame Context */
+	fsl_print("\t Frame Context (FRC) = 0x%08x\n",
+		  LDPAA_FD_GET_FRC(HWC_FD_ADDRESS));
+	/* Fame control fields */
+	fsl_print("\t ERR(8b)             = 0x%02x\n",
+		  LDPAA_FD_GET_ERR(HWC_FD_ADDRESS));
+	/* VA */
+	fsl_print("\t VA                  = %d\n",
+		  LDPAA_FD_GET_VA(HWC_FD_ADDRESS));
+	/* CBMT */
+	fsl_print("\t CBMT                = %d\n",
+		  LDPAA_FD_GET_CBMT(HWC_FD_ADDRESS));
+	/* ASAL */
+	fsl_print("\t ASAL(4b)            = 0x%x\n",
+		  LDPAA_FD_GET_ASAL(HWC_FD_ADDRESS));
+	/* PTV2 */
+	fsl_print("\t PTV2                = %d\n",
+		  LDPAA_FD_GET_PTV2(HWC_FD_ADDRESS));
+	/* PTV1 */
+	fsl_print("\t PTV1                = %d\n",
+		  LDPAA_FD_GET_PTV1(HWC_FD_ADDRESS));
+	/* PTA */
+	fsl_print("\t PTA                 = %d\n",
+		  LDPAA_FD_GET_PTA(HWC_FD_ADDRESS));
+	/* DROPP */
+	fsl_print("\t DROPP(3b)           = 0x%x\n",
+		  LDPAA_FD_GET_DROPP(HWC_FD_ADDRESS));
+	/* SC */
+	fsl_print("\t SC (Stash Control)  = %d\n",
+		  LDPAA_FD_GET_SC(HWC_FD_ADDRESS));
+	/* DD */
+	fsl_print("\t DD(4b)              = 0x%x\n",
+		  LDPAA_FD_GET_DD(HWC_FD_ADDRESS));
+	if (fmt == 0) {
+		/* FLC fields for WRIOP to AIOP */
+		/* Hash */
+		fsl_print("\t Hash             = 0x%08x\n",
+			  LDPAA_FD_GET_HASH(HWC_FD_ADDRESS));
+		/* Running Checksum */
+		fsl_print("\t Running Checksum = 0x%04x\n",
+			  LDPAA_FD_GET_RCSUM(HWC_FD_ADDRESS));
+		/* EPID */
+		fsl_print("\t EPID             = 0x%04x\n",
+			  LDPAA_FD_GET_EPID(HWC_FD_ADDRESS));
+	} else if (fmt == 1) {
+		/* FLC fields for WRIOP to GPP */
+		/* CS */
+		fsl_print("\t CS(2b)              = 0x%x\n",
+			  LDPAA_FD_GET_CS(HWC_FD_ADDRESS));
+		/* AS */
+		fsl_print("\t AS(2b)              = 0x%x\n",
+			  LDPAA_FD_GET_AS(HWC_FD_ADDRESS));
+		/* DS */
+		fsl_print("\t DS(2b)              = 0x%x\n",
+			  LDPAA_FD_GET_DS(HWC_FD_ADDRESS));
+		/* Flow Context */
+		val64 = LDPAA_FD_GET_FLC(HWC_FD_ADDRESS);
+		fsl_print("\t Flow Context (FLC)  = 0x%08x-%08x\n",
+			  (uint32_t)(val64 >> 32), (uint32_t)(val64));
+	} else {
+		/* Flow Context */
+		val64 = LDPAA_FD_GET_FLC(HWC_FD_ADDRESS);
+		fsl_print("\t Flow Context (FLC)  = 0x%08x-%08x\n",
+			  (uint32_t)(val64 >> 32), (uint32_t)(val64));
+	}
+	fsl_print("\n");
+}
+
+/******************************************************************************/
+static void dump_prc(void)
+{
+	struct presentation_context *prc =
+		(struct presentation_context *)HWC_PRC_ADDRESS;
+
+	fsl_print("\n Dump of Presentation Context\n");
+	fsl_print("\t PARAM                                      = 0x%08x\n",
+		  prc->param);
+	fsl_print("\t SEGMENT_ADDRESS                            = 0x%04x\n",
+		  prc->seg_address);
+	fsl_print("\t SEGMENT_LENGTH                             = 0x%04x\n",
+		  prc->seg_length);
+	fsl_print("\t SEGMENT_OFFSET                             = 0x%04x\n",
+		  prc->seg_offset);
+	fsl_print("\t SR(Segment Reference)                      = %d\n",
+		  prc->sr_nds & 0x02 ? 1 : 0);
+	fsl_print("\t NDS(No Data Segment)                       = %d\n",
+		  prc->sr_nds & 0x01 ? 1 : 0);
+	fsl_print("\t SEGMENT_HANDLE                             = 0x%02x\n",
+		  prc->seg_handle);
+	fsl_print("\t OSM Entry Point Source(1b)                 = %d\n",
+		  prc->osrc_oep_osel_osrm & 0x80 ? 1 : 0);
+	fsl_print("\t OSM Entry Point Execution Phase(1b)        = %d\n",
+		  prc->osrc_oep_osel_osrm & 0x40 ? 1 : 0);
+	fsl_print("\t OSM Entry Point Select(2b)                 = 0x%02x\n",
+		  (prc->osrc_oep_osel_osrm >> 4) & 0x03);
+	fsl_print("\t Reserved(1b)                               = %d\n",
+		  prc->osrc_oep_osel_osrm & 0x08 ? 1 : 0);
+	fsl_print("\t OSM Entry Point Order Scope Range Mask(3b) = 0x%02x\n",
+		  prc->osrc_oep_osel_osrm & 0x07);
+	fsl_print("\t FRAME_HANDLE                               = 0x%02x\n",
+		  prc->frame_handle);
+	fsl_print("\t Initial Scope Value                        = 0x%04x\n",
+		  prc->isv);
+}
+
+/******************************************************************************/
+static void cpu_dump_data_buffer(const char *what)
+{
+	uint32_t	i, cnt;
+	uint8_t		*pb;
+	uint64_t	paddr;
+	uint32_t	sz;
+
+	paddr = LDPAA_FD_GET_ADDR(HWC_FD_ADDRESS) +
+				LDPAA_FD_GET_OFFSET(HWC_FD_ADDRESS);
+	sz = LDPAA_FD_GET_LENGTH(HWC_FD_ADDRESS);
+	fsl_print("CPU dump of %s data (paddr = 0x%x-0x%08x) len = %d\n", what,
+		  (uint32_t)(paddr >> 32), (uint32_t)(paddr), sz);
+	fsl_print("\t%03d : ", 0);
+	pb = (uint8_t *)sys_phys_to_virt(paddr);
+	if (!pb) {
+		pr_err("Not AIOP mapped physical address\n");
+		return;
+	}
+	cnt = 0;
+	for (i = 0; i < sz; i++, cnt++) {
+		fsl_print("%02x ", *pb++);
+		if (!((i + 1) % 16))
+			fsl_print("\n\t%03d : ", cnt + 1);
+	}
+	fsl_print("\n");
+}
+
+/******************************************************************************/
 static __HOT_CODE ENTRY_POINT void app_process_packet(void)
 {
 	int			err;
 	struct parse_result	*pr;
+	uint8_t			fd_err;
 
-#if (CUSTOM_HEADER_FIRST == 0)
+	fd_err = LDPAA_FD_GET_ERR(HWC_FD_ADDRESS);
+	if (fd_err) {
+		dump_fd(0);
+		dump_prc();
+		/* Clear FD[ERR] and present the default segment */
+		LDPAA_FD_SET_ERR(HWC_FD_ADDRESS, 0);
+		/* Frame with errors are not presented and the presentation
+		 * length is reset to 0. Set the presentation length in PRC */
+		PRC_SET_SEGMENT_LENGTH(PRESENTATION_LENGTH);
+		err = fdma_present_default_frame();
+		if (err)
+			fsl_print("fdma_present_default_frame : Error = 0x%x\n",
+				  (uint32_t)err);
+		else
+			fsl_print("fdma_present_default_frame : OK\n");
+		dump_prc();
+	}
+#ifdef CUSTOM_HEADER_AFTER_ETHERNET
 	sl_prolog();
-#else
+#endif
+#ifdef CUSTOM_ETHERNET_HEADER
+	sl_prolog_with_custom_header(0x20);
+#endif
+#ifdef CUSTOM_HEADER_BEFORE_ETHERNET
 	sl_prolog_with_custom_header(0x20);
 #endif
 	fsl_print("\n\nSP Demo: Core %d Received Frame\n", core_get_id());
-	sp_print_frame();
+	/*sp_print_frame();*/
+	cpu_dump_data_buffer("Rx Frame");
 	/* Show AIOP Parse result */
-	fsl_print("<<< AIOP Parse Result >>>\n");
+	fsl_print("<<< AIOP Ingress Parse Result >>>\n");
 	sparser_parse_result_dump((struct sp_parse_result *)
 				  HWC_PARSE_RES_ADDRESS);
 	sparser_frame_attributes_dump((struct sp_parse_result *)
@@ -297,7 +592,7 @@ static __HOT_CODE ENTRY_POINT void app_process_packet(void)
 	err = parse_result_generate_default(PARSER_VALIDATE_L4_CHECKSUM);
 	if (err)
 		pr_err("[%d] : Validate L4 checksum\n", err);
-#if (CUSTOM_HEADER_FIRST == 0)
+#ifdef CUSTOM_HEADER_AFTER_ETHERNET
 	if (PARSER_IS_UD_SOFT_PARSER_BIT_0_SET()) {
 		uint8_t		*custom_hdr, custom_off, custom_len;
 
@@ -330,7 +625,8 @@ static __HOT_CODE ENTRY_POINT void app_process_packet(void)
 		if (err)
 			pr_err("[%d] : Validate L4 checksum\n", err);
 	}
-#else
+#endif
+#ifdef CUSTOM_ETHERNET_HEADER
 	if (PARSER_IS_UD_SOFT_PARSER_BIT_0_SET()) {
 		uint8_t		custom_off;
 
@@ -356,6 +652,38 @@ static __HOT_CODE ENTRY_POINT void app_process_packet(void)
 					(PARSER_VALIDATE_L4_CHECKSUM);
 		if (err)
 			pr_err("[%d] : Validate L4 checksum\n", err);
+	}
+#endif
+#ifdef CUSTOM_HEADER_BEFORE_ETHERNET
+	if (PARSER_IS_UD_SOFT_PARSER_BIT_0_SET()) {
+		/* Remove custom header and represent the packet */
+		err = fdma_delete_default_segment_data
+			(0, 32,
+			 FDMA_REPLACE_SA_REPRESENT_BIT);
+		if (err && err != FDMA_STATUS_UNABLE_PRES_DATA_SEG) {
+			pr_err("[%d] : Remove custom header\n", err);
+			fdma_discard_default_frame(FDMA_DIS_NO_FLAGS);
+			fdma_terminate_task();
+		}
+		/* After header manipulation, the custom part is removed.
+		 * Switch to the "egress" parsing profile. */
+		task_switch_to_egress_parse_profile(PARSER_ETH_STARTING_HXS);
+		pr->gross_running_sum = 0;
+		/* Validate L4 checksum on the transmitted packet. When packet
+		 * is updated, in order to validate the checksum one must :
+		 *	- represent the updated packet in the workspace,
+		 *	- invalidate the gross running sum */
+		err = parse_result_generate_default
+					(PARSER_VALIDATE_L4_CHECKSUM);
+		if (err)
+			pr_err("[%d] : Validate L4 checksum\n", err);
+		fsl_print("<<< AIOP Egress Parse Result >>>\n");
+		sparser_parse_result_dump((struct sp_parse_result *)
+					  HWC_PARSE_RES_ADDRESS);
+		sparser_frame_attributes_dump((struct sp_parse_result *)
+					      HWC_PARSE_RES_ADDRESS);
+		sparser_parse_error_print((struct sp_parse_result *)
+					  HWC_PARSE_RES_ADDRESS);
 	}
 #endif
 	fsl_print("\n\nSP Demo: Core %d Transmitted Frame\n", core_get_id());
@@ -395,7 +723,7 @@ static int wriop_soft_parser_enable(uint16_t ni_id)
 	uint8_t				pa[3];
 	struct dpni_drv_sparser_param	sp_param;
 
-#if (CUSTOM_HEADER_FIRST == 0)
+#ifdef CUSTOM_HEADER_AFTER_ETHERNET
 	pa[0] = 0xEE;	/* Expected EType = 0xEE00 */
 	pa[1] = 0x00;
 	pa[2] = 46;	/* Custom Header Length in bytes */
@@ -403,13 +731,25 @@ static int wriop_soft_parser_enable(uint16_t ni_id)
 	sp_param.param_offset = 0;
 	sp_param.param_size = 3;
 	sp_param.link_to_hard_hxs = PARSER_ETH_STARTING_HXS;
-#else
+#endif
+#ifdef CUSTOM_ETHERNET_HEADER
 	pa[0] = 18;	/* Custom Header Length in bytes */
 	/* First header may be set only on Rev2 platforms */
 	sp_param.custom_header_first = 1;
 	sp_param.param_offset = 0;
 	sp_param.param_size = 1;
 #endif
+#ifdef CUSTOM_HEADER_BEFORE_ETHERNET
+	pa[0] = 32;	/* Custom Header Length in bytes */
+	/* First header may be set only on Rev2 platforms */
+	sp_param.custom_header_first = 1;
+	#ifdef PA_PARAMETER_OFFSET_32
+		sp_param.param_offset = 32;
+	#else
+		sp_param.param_offset = 0;
+	#endif
+		sp_param.param_size = 1;
+	#endif
 	sp_param.start_pc = 0x20;
 	sp_param.param_array = (uint8_t *)&pa[0];
 	err = dpni_drv_enable_wriop_ingress_soft_parser(ni_id, &sp_param);
@@ -427,6 +767,9 @@ static int app_dpni_event_added_cb(uint8_t generator_id, uint8_t event_id,
 	uint16_t			ni, mfl;
 	int				err;
 	struct ep_init_presentation	init_presentation;
+#ifdef ALLOW_ERR_PKT
+	struct dpni_drv_error_cfg	cfg;
+#endif
 
 	UNUSED(generator_id);
 	UNUSED(event_id);
@@ -476,6 +819,34 @@ static int app_dpni_event_added_cb(uint8_t generator_id, uint8_t event_id,
 	err = wriop_soft_parser_enable(ni);
 	if (err)
 		return err;
+#ifdef ALLOW_ERR_PKT
+	cfg.error_action = DPNI_DRV_ERR_ACTION_CONTINUE;
+	cfg.errors = DPNI_DRV_ALL_ERR;
+	err = dpni_drv_set_errors_behavior(ni, &cfg);
+	if (err) {
+		pr_err("dpni_drv_set_errors_behavior error on NI %d\n", ni);
+		return err;
+	}
+	fsl_print("\t >>> Errors behavior configured on NI %d\n", ni);
+#endif
+	#define SET_UNICAST_PROMISC
+#ifdef SET_UNICAST_PROMISC
+	err = dpni_drv_set_unicast_promisc(ni, 1);
+	if (err) {
+		pr_err("dpni_drv_set_unicast_promisc error on NI %d\n", ni);
+		return err;
+	}
+	fsl_print("\t >>> Unicast promiscuous configured on NI %d\n", ni);
+#endif
+	/*#define SET_MULTICAST_PROMISC*/
+#ifdef SET_MULTICAST_PROMISC
+	err = dpni_drv_set_multicast_promisc(ni, 1);
+	if (err) {
+		pr_err("dpni_drv_set_multicast_promisc error on NI %d\n", ni);
+		return err;
+	}
+	fsl_print("\t >>> Multicast promiscuous configured on NI %d\n", ni);
+#endif
 	err = dpni_drv_enable(ni);
 	if (err) {
 		pr_err("dpni_drv_enable for ni %d failed: %d\n", ni, err);
@@ -893,7 +1264,7 @@ static void soft_parser_example_gen(void)
 /******************************************************************************/
 static void soft_parser_example_gen(void)
 {
-#if (CUSTOM_HEADER_FIRST == 0)
+#ifdef CUSTOM_HEADER_AFTER_ETHERNET
 #define SP_EXAMPLE							  \
 	do {								  \
 		SPARSER_BEGIN(0x20, &sparser_ex[0], sizeof(sparser_ex));  \
@@ -939,7 +1310,9 @@ static void soft_parser_example_gen(void)
 	} while (0)
 
 	SP_EXAMPLE;
-#else
+#endif	/* CUSTOM_HEADER_AFTER_ETHERNET */
+
+#ifdef CUSTOM_ETHERNET_HEADER
 #define SP_EXAMPLE							  \
 	do {								  \
 		SPARSER_BEGIN(0x20, &sparser_ex[0], sizeof(sparser_ex));  \
@@ -1038,7 +1411,44 @@ static void soft_parser_example_gen(void)
 	} while (0)
 
 	SP_EXAMPLE;
-#endif
+#endif	/* CUSTOM_ETHERNET_HEADER */
+
+#ifdef CUSTOM_HEADER_BEFORE_ETHERNET
+#ifdef PA_PARAMETER_OFFSET_32
+#define SP_EXAMPLE							    \
+	do {								    \
+		SPARSER_BEGIN(0x20, &sparser_ex[0], sizeof(sparser_ex));    \
+			/* 0x020 */ CLR_WR0;				    \
+			/* 0x021 */ ST_WR0_TO_RA(sp_ra_pr_shim_offset_1, 2);\
+			/* 0x022 */ SET_FAF_BIT(sp_faf_ud_soft_parser_0);   \
+			/* 0x023 */ LD_PA_TO_WR0(32, 1);		    \
+			/* 0x024 */ ST_WR0_TO_RA(sp_ra_gprv_0, 2);	    \
+			/* 0x025 */ JMP(GF | sp_compute_running_sum);	    \
+			/* 0x027 */ ADVANCE_HB_BY_WO;			    \
+			/* 0x028 */ JMP(sp_eth_hxs_dst);		    \
+		SPARSER_END;						    \
+	} while (0)
+
+	SP_EXAMPLE;
+#else
+#define SP_EXAMPLE							    \
+	do {								    \
+		SPARSER_BEGIN(0x20, &sparser_ex[0], sizeof(sparser_ex));    \
+			/* 0x020 */ CLR_WR0;				    \
+			/* 0x021 */ ST_WR0_TO_RA(sp_ra_pr_shim_offset_1, 2);\
+			/* 0x022 */ SET_FAF_BIT(sp_faf_ud_soft_parser_0);   \
+			/* 0x023 */ LD_PA_TO_WR0(0, 1);			    \
+			/* 0x024 */ ST_WR0_TO_RA(sp_ra_gprv_0, 2);	    \
+			/* 0x025 */ JMP(GF | sp_compute_running_sum);	    \
+			/* 0x027 */ ADVANCE_HB_BY_WO;			    \
+			/* 0x028 */ JMP(sp_eth_hxs_dst);		    \
+		SPARSER_END;						    \
+	} while (0)
+
+	SP_EXAMPLE;
+#endif	/* PA_PARAMETER_OFFSET_32 */
+
+#endif	/* CUSTOM_HEADER_BEFORE_ETHERNET */
 }
 
 #endif	/* ASM_LOOK_LIKE */
@@ -1068,7 +1478,7 @@ static int soft_parser_run_on_simulator(uint16_t pc, uint8_t *byte_code,
 	err = sparser_sim_init_parse_array(&ra);
 	if (err)
 		return err;
-#if (CUSTOM_HEADER_FIRST == 0)
+#ifdef CUSTOM_HEADER_AFTER_ETHERNET
 	/* 5. Set needed fields in the Parse Array. This step is needed to
 	 * change the default values. */
 	/* Set relevant fields in the Parse Array as after ETH HXS execution */
@@ -1093,7 +1503,9 @@ static int soft_parser_run_on_simulator(uint16_t pc, uint8_t *byte_code,
 	err = sparser_sim_set_parameter_array(&pa[0], 0, 3);
 	if (err)
 		return err;
-#else
+#endif
+
+#ifdef CUSTOM_ETHERNET_HEADER
 	/* 5. Set needed fields in the Parse Array. This step is needed to
 	 * change the default values. */
 	/* Gross Running Sum on the packet */
@@ -1108,6 +1520,28 @@ static int soft_parser_run_on_simulator(uint16_t pc, uint8_t *byte_code,
 	 * parameters, this step is not needed. */
 	pa[0] = 18;	/* Custom Header Length in bytes */
 	err = sparser_sim_set_parameter_array(&pa[0], 0, 1);
+	if (err)
+		return err;
+#endif
+#ifdef CUSTOM_HEADER_BEFORE_ETHERNET
+	/* 5. Set needed fields in the Parse Array. This step is needed to
+	 * change the default values. */
+	/* Gross Running Sum on the packet */
+	UNUSED(rs);
+	ra.pr.gross_running_sum = compute_running_sum(&parsed_packet[0],
+						      sizeof(parsed_packet));
+	err = sparser_sim_set_parse_array(&ra);
+	if (err)
+		return err;
+	/* 6. Sets the Parameter Array. Parameter Array must contain the values
+	 * expected by the soft parser. If the soft parser expects no
+	 * parameters, this step is not needed. */
+	pa[0] = 32;	/* Custom Header Length in bytes */
+	#ifdef PA_PARAMETER_OFFSET_32
+		err = sparser_sim_set_parameter_array(&pa[0], 32, 1);
+	#else
+		err = sparser_sim_set_parameter_array(&pa[0], 0, 1);
+	#endif
 	if (err)
 		return err;
 #endif
@@ -1168,8 +1602,22 @@ static int aiop_soft_parser_develop_debug(void)
 	sp_info.pc = PARSER_MIN_PC;
 	sp_info.byte_code = &sparser_ex[0];
 	sp_info.size = sizeof(sparser_ex);
+#ifdef CUSTOM_HEADER_AFTER_ETHERNET
 	sp_info.param_off = 0;
 	sp_info.param_size = 3;
+#endif
+#ifdef CUSTOM_ETHERNET_HEADER
+	sp_info.param_off = 0;
+	sp_info.param_size = 1;
+#endif
+#ifdef CUSTOM_HEADER_BEFORE_ETHERNET
+	#ifdef PA_PARAMETER_OFFSET_32
+		sp_info.param_off = 32;
+	#else
+		sp_info.param_off = 0;
+	#endif
+	sp_info.param_size = 1;
+#endif
 	err = sparser_drv_load_ingress_parser(&sp_info);
 	if (err) {
 		fsl_print("Soft Parser loading failed\n");
@@ -1182,7 +1630,7 @@ static int aiop_soft_parser_develop_debug(void)
 	sparser_drv_memory_dump(PARSER_MIN_PC, PARSER_MAX_PC + 3);
 	*/
 	/* Enable soft parser */
-#if (CUSTOM_HEADER_FIRST == 0)
+#ifdef CUSTOM_HEADER_AFTER_ETHERNET
 	pa[0] = 0xEE;	/* Expected EType = 0xEE00 */
 	pa[1] = 0x00;
 	pa[2] = 46;	/* Custom Header Length in bytes */
@@ -1190,9 +1638,23 @@ static int aiop_soft_parser_develop_debug(void)
 	sp_param.param_size = 3;
 	sp_param.custom_header_first = 0;
 	sp_param.link_to_hard_hxs = PARSER_ETH_STARTING_HXS;
-#else
+#endif
+#ifdef CUSTOM_ETHERNET_HEADER
 	pa[0] = 18;	/* Custom Header Length in bytes */
 	sp_param.param_offset = 0;
+	/* First header may be set only on Rev2 platforms */
+	sp_param.param_size = 1;
+	sp_param.custom_header_first = 1;
+#endif
+#ifdef CUSTOM_HEADER_BEFORE_ETHERNET
+	pa[0] = 32;	/* Custom Header Length in bytes */
+	/* Offset from which the defined soft parser reads the custom header
+	 * length parameter */
+	#ifdef PA_PARAMETER_OFFSET_32
+		sp_param.param_offset = 32;
+	#else
+		sp_param.param_offset = 0;
+	#endif
 	/* First header may be set only on Rev2 platforms */
 	sp_param.param_size = 1;
 	sp_param.custom_header_first = 1;
