@@ -4,7 +4,7 @@
  *
  * Copyright 2008-2013 Freescale Semiconductor, Inc.
  *
- * SPDX-License-Identifier: BSD-3-Clause or GPL-2.0+
+ * SPDX-License-Identifier: BSD-3-Clause
  */
 
 #ifndef __RTA_DESC_H__
