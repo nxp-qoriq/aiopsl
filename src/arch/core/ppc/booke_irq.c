@@ -103,6 +103,43 @@ static inline void booke_exception_machine_check_isr()
 	}
 }
 
+#ifdef AIOPSL_KERNEL_EXCEPTION_HOOK
+__declspec(weak) void booke_debug_hook(uint32_t intr_type);
+__COLD_CODE void booke_debug_hook(uint32_t intr_type)
+{
+	/* Use tmp variable in debugger to get out of the loop */
+	volatile int tmp = 1;
+	while (tmp == 1)
+		asm("nop");
+}
+#endif
+
+__COLD_CODE static void booke_non_critical_isr(void)
+{
+	/* Obtain ID of task which generated this exception */
+	register uint32_t task,tmp;
+
+	asm
+	{
+		mfdcr	tmp,dcr476	/* TASKCSR0 */
+		e_clrlwi task,tmp,24	/* clear top 24 bits */
+	}
+
+	/* Some registers dump which could be useful to understand root cause
+	 * For details & explanations see document
+	 * AIOP_Z490_CPU_Spec_v1.3 sections 5.7.x
+	 */
+	pr_info("Core ID: 0x%x\n", core_get_id());
+	pr_info("TASK ID: 0x%x\n", task);
+	pr_info("SRR0: 0x%08x, SRR1: 0x%08x\n",
+		booke_get_spr_SRR0(),
+		booke_get_spr_SRR1());
+	pr_info("ESR: 0x%08x, DEAR: 0x%08x, MCSR: 0x%08x\n",
+		booke_get_spr_ESR(),
+		booke_get_spr_DEAR(),
+		booke_get_spr_MCSR());
+}
+
 /*****************************************************************/
 /* routine:       booke_generic_exception_isr                    */
 /*                                                               */
@@ -119,29 +156,33 @@ void booke_generic_exception_isr(uint32_t intr_entry)
 {
 	switch(intr_entry)
 	{
+	/*
+	 * According to table 5-1 AIOP_Z490_CPU_Spec_v1.3
+	 * these interrupts are considered non-critical
+	 * All interrupts provide info in same registers
+	 */
+	case(DATA_STORAGE_INTR):
+	case(INSTRUCTION_STORAGE_INTR):
+	case(EXTERNAL_INTR):
+	case(ALIGNMENT_INTR):
+	case(PROGRAM_INTR):
+	case(PERF_MONITOR_INTR):
+		/* Table 5-2. Exceptions and Conditions - to
+		 * determine ID <-> name mapping */
+		pr_info("Non-critical interrupt: 0x%02x\n", intr_entry);
+		booke_non_critical_isr();
+		break;
 	case(CRITICAL_INTR):
-		pr_info("int: CRITICAL\n");
+		/* CSRR0: effective address of the instruction that the processor
+		 * would have attempted to execute next if no exception conditions
+		 * were present.
+		 * CSRR1: contents of the MSR at the time of the interrupt
+		 */
+		pr_info("int: CRITICAL: CSSRR0=0x%08x, CSRR1=0x%08x\n",
+				booke_get_spr_CSRR0(), booke_get_spr_CSRR1());
 		break;
 	case(MACHINE_CHECK_INTR): /* MACHINE_CHECK */
 		booke_exception_machine_check_isr();
-		break;
-	case(DATA_STORAGE_INTR):
-		pr_info("int: DATA_STORAGE\n");
-		break;
-	case(INSTRUCTION_STORAGE_INTR):
-		pr_info("int: INSTRUCTION_STORAGE\n");
-		break;
-	case(EXTERNAL_INTR):
-		pr_info("int: EXTERNAL\n");
-		break;
-	case(ALIGNMENT_INTR):
-		pr_info("int: ALIGNMENT\n");
-		break;
-	case(PROGRAM_INTR):
-		pr_info("int: PROGRAM\n");
-		break;
-	case(PERF_MONITOR_INTR):
-		pr_info("int: performance monitor\n");
 		break;
 	case(SYSTEM_CALL_INTR):
 		pr_info("int: SYSTEM CALL\n");
@@ -166,92 +207,178 @@ void booke_generic_exception_isr(uint32_t intr_entry)
 		break;
 	}
 
-	while(1){}
+#ifdef AIOPSL_KERNEL_EXCEPTION_HOOK
+	booke_debug_hook(intr_entry);
+#endif
 }
 
 asm static void branch_table(void) {
-    nofralloc
+	nofralloc
 
-    /* Critical Input Interrupt (Offset 0x00) */
-    li  r3, CRITICAL_INTR
-    b  generic_irq
+	/* Critical Input Interrupt (Offset 0x00) */
+	stwu     rsp,-80(rsp)
+	stw      r3,40(rsp)
+	li  r3, CRITICAL_INTR
+	b  critical_irq
 
-    /* Machine Check Interrupt (Offset 0x10) */
-    .align 0x10
-    li  r3, MACHINE_CHECK_INTR
-    b  machine_irq
+	/* Machine Check Interrupt (Offset 0x10) */
+	.align 0x10
+	stwu     rsp,-80(rsp)
+	stw      r3,40(rsp)
+	li  r3, MACHINE_CHECK_INTR
+	b  machine_irq
 
-    /* Data Storage Interrupt (Offset 0x20) */
-    .align 0x10
-    li  r3, DATA_STORAGE_INTR
-    b  generic_irq
+	/* Data Storage Interrupt (Offset 0x20) */
+	.align 0x10
+	stwu     rsp,-80(rsp)
+	stw      r3,40(rsp)
+	li  r3, DATA_STORAGE_INTR
+	b generic_rfi
 
-    /* Instruction Storage Interrupt (Offset 0x30) */
-    .align 0x10
-    li  r3, INSTRUCTION_STORAGE_INTR
-    b  generic_irq
+	/* Instruction Storage Interrupt (Offset 0x30) */
+	.align 0x10
+	stwu     rsp,-80(rsp)
+	stw      r3,40(rsp)
+	li  r3, INSTRUCTION_STORAGE_INTR
+	b generic_rfi
 
-    /* External Input Interrupt (Offset 0x40) */
-    .align 0x10
-    li  r3, EXTERNAL_INTR
-    b  generic_irq
+	/* External Input Interrupt (Offset 0x40) */
+	.align 0x10
+	stwu     rsp,-80(rsp)
+	stw      r3,40(rsp)
+	li  r3, EXTERNAL_INTR
+	b generic_rfi
 
-    /* Alignment Interrupt (Offset 0x50) */
-    .align 0x10
-    li  r3, ALIGNMENT_INTR
-    b  generic_irq
+	/* Alignment Interrupt (Offset 0x50) */
+	.align 0x10
+	stwu     rsp,-80(rsp)
+	stw      r3,40(rsp)
+	li  r3, ALIGNMENT_INTR
+	b generic_rfi
 
-    /* Program Interrupt (Offset 0x60) */
-    .align 0x10
-    li  r3, PROGRAM_INTR
-    b  generic_irq
+	/* Program Interrupt (Offset 0x60) */
+	.align 0x10
+	stwu     rsp,-80(rsp)
+	stw      r3,40(rsp)
+	li  r3, PROGRAM_INTR
+	b generic_rfi
 
-    /* Performance Monitor Interrupt (Offset 0x70) */
-    .align 0x10
-    li  r3, PERF_MONITOR_INTR
-    b  generic_irq
+	/* Performance Monitor Interrupt (Offset 0x70) */
+	.align 0x10
+	stwu     rsp,-80(rsp)
+	stw      r3,40(rsp)
+	li  r3, PERF_MONITOR_INTR
+	b generic_rfi
 
-    /* System Call Interrupt (Offset 0x80) */
-    .align 0x10
-    li  r3, SYSTEM_CALL_INTR
-    b  generic_irq
+	/* System Call Interrupt (Offset 0x80) */
+	.align 0x10
+	stwu     rsp,-80(rsp)
+	stw      r3,40(rsp)
+	li  r3, SYSTEM_CALL_INTR
+	b generic_rfi
 
-    /* Debug Interrupt (Offset 0x90) */
-    .align 0x10
-    li  r3, DEBUG_INTR
-    b  generic_irq
+	/* Debug Interrupt (Offset 0x90) */
+	.align 0x10
+	stwu     rsp,-80(rsp)
+	stw      r3,40(rsp)
+	li  r3, DEBUG_INTR
+	b  dbg_irq
 
-    /* Embedded Floating-point Data Interrupt (Offset 0xA0) */
-    .align 0x10
-    li  r3, EFPU_DATA_INTR
-    b generic_irq
+	/* Embedded Floating-point Data Interrupt (Offset 0xA0) */
+	.align 0x10
+	stwu     rsp,-80(rsp)
+	stw      r3,40(rsp)
+	li  r3, EFPU_DATA_INTR
+	b generic_rfi
 
-    /* Embedded Floating-point Round Interrupt (Offset 0xB0) */
-    .align 0x10
-    li  r3, EFPU_ROUND_INTR
-    b generic_irq
+	/* Embedded Floating-point Round Interrupt (Offset 0xB0) */
+	.align 0x10
+	stwu     rsp,-80(rsp)
+	stw      r3,40(rsp)
+	li  r3, EFPU_ROUND_INTR
+	b generic_rfi
 
-    /* place holder (Offset 0xC0) */
-    .align 0x10
-    nop
+	/* place holder (Offset 0xC0) */
+	.align 0x10
+	nop
 
-    /* place holder (Offset 0xD0) */
-    .align 0x10
-    nop
+	/* place holder (Offset 0xD0) */
+	.align 0x10
+	nop
 
-    /* place holder (Offset 0xE0) */
-    .align 0x10
-    nop
+	/* place holder (Offset 0xE0) */
+	.align 0x10
+	nop
 
-    /* CTS Task Watchdog Timer Interrupt (Offset 0xF0) */
-    .align 0x10
-    li  r3, CTS_WD_INTR
-    b generic_irq
+	/* CTS Task Watchdog Timer Interrupt (Offset 0xF0) */
+	.align 0x10
+	li  r3, CTS_WD_INTR
+	b generic_irq
 
-    /***************************************************/
-    /*** machine check *********************************/
-    /***************************************************/
+	/***************************************************/
+	/*** Critical interrupt *********************************/
+	/***************************************************/
     .align 0x100
+critical_irq:
+	stw      r0,8(rsp)
+	mfctr    r0
+	stw      r0,12(rsp)
+	mfxer    r0
+	stw      r0,16(rsp)
+	mfcr     r0
+	stw      r0,20(rsp)
+	mflr     r0
+	stw      r0,24(rsp)
+	stw      r3,40(rsp)
+	stw      r4,44(rsp)
+	stw      r5,48(rsp)
+	stw      r6,52(rsp)
+	stw      r7,56(rsp)
+	stw      r8,60(rsp)
+	stw      r9,64(rsp)
+	stw      r10,68(rsp)
+	stw      r11,72(rsp)
+	stw      r12,76(rsp)
+	mfspr    r0,CSRR0 /* Critical save/restore register 0 */
+	stw      r0,28(rsp)
+	mfspr    r0,CSRR1 /* Critical save/restore register 1 */
+	stw      r0,32(rsp)
+
+	lis r4,booke_generic_exception_isr@h
+	ori r4,r4,booke_generic_exception_isr@l
+	mtlr    r4
+	blrl
+
+	lwz      r0,32(rsp)
+	mtspr    CSRR1,r0
+	lwz      r0,28(rsp)
+	mtspr    CSRR0,r0
+	lwz      r3,40(rsp)
+	lwz      r4,44(rsp)
+	lwz      r5,48(rsp)
+	lwz      r6,52(rsp)
+	lwz      r7,56(rsp)
+	lwz      r8,60(rsp)
+	lwz      r9,64(rsp)
+	lwz      r10,68(rsp)
+	lwz      r11,72(rsp)
+	lwz      r12,76(rsp)
+	lwz      r0,24(rsp)
+	mtlr     r0
+	lwz      r0,20(rsp)
+	mtcrf    0xff,r0
+	lwz      r0,16(rsp)
+	mtxer    r0
+	lwz      r0,12(rsp)
+	mtctr    r0
+	lwz      r0,8(rsp)
+	addi     rsp,rsp,80
+	rfci
+
+	/***************************************************/
+	/*** machine check *********************************/
+	/***************************************************/
+	.align 0x100
 machine_irq:
 	mfspr    r4, MCSR
 	se_btsti r4,21 /* test bit 0x00000400 - STACK_ERR */
@@ -287,10 +414,70 @@ machine_irq:
 	se_illegal
 	se_dnh
 
-    /***************************************************/
-    /*** generic exception handler *********************/
-    /***************************************************/
-    .align 0x100
+	/***************************************************/
+	/*** Debug interrupt *********************************/
+	/***************************************************/
+	.align 0x100
+dbg_irq:
+	stw      r0,8(rsp)
+	mfctr    r0
+	stw      r0,12(rsp)
+	mfxer    r0
+	stw      r0,16(rsp)
+	mfcr     r0
+	stw      r0,20(rsp)
+	mflr     r0
+	stw      r0,24(rsp)
+	stw      r3,40(rsp)
+	stw      r4,44(rsp)
+	stw      r5,48(rsp)
+	stw      r6,52(rsp)
+	stw      r7,56(rsp)
+	stw      r8,60(rsp)
+	stw      r9,64(rsp)
+	stw      r10,68(rsp)
+	stw      r11,72(rsp)
+	stw      r12,76(rsp)
+	mfspr    r0,DSRR0
+	stw      r0,28(rsp)
+	mfspr    r0,DSRR1
+	stw      r0,32(rsp)
+
+	lis r4,booke_generic_exception_isr@h
+	ori r4,r4,booke_generic_exception_isr@l
+	mtlr    r4
+	blrl
+
+	lwz      r0,32(rsp)
+	mtspr    DSRR1,r0
+	lwz      r0,28(rsp)
+	mtspr    DSRR0,r0
+	lwz      r3,40(rsp)
+	lwz      r4,44(rsp)
+	lwz      r5,48(rsp)
+	lwz      r6,52(rsp)
+	lwz      r7,56(rsp)
+	lwz      r8,60(rsp)
+	lwz      r9,64(rsp)
+	lwz      r10,68(rsp)
+	lwz      r11,72(rsp)
+	lwz      r12,76(rsp)
+	lwz      r0,24(rsp)
+	mtlr     r0
+	lwz      r0,20(rsp)
+	mtcrf    0xff,r0
+	lwz      r0,16(rsp)
+	mtxer    r0
+	lwz      r0,12(rsp)
+	mtctr    r0
+	lwz      r0,8(rsp)
+	addi     rsp,rsp,80
+	rfdi
+
+	/***************************************************/
+	/*** generic exception handler *********************/
+	/***************************************************/
+	.align 0x100
 generic_irq:
 	/* branch to isr */
 	lis      r4,booke_generic_exception_isr@h
@@ -298,13 +485,68 @@ generic_irq:
 	mtlr     r4
 	blr
 
+	.align 0x100
+generic_rfi:
+	stw      r0,8(rsp)
+	mfctr    r0
+	stw      r0,12(rsp)
+	mfxer    r0
+	stw      r0,16(rsp)
+	mfcr     r0
+	stw      r0,20(rsp)
+	mflr     r0
+	stw      r0,24(rsp)
+	stw      r4,44(rsp)
+	stw      r5,48(rsp)
+	stw      r6,52(rsp)
+	stw      r7,56(rsp)
+	stw      r8,60(rsp)
+	stw      r9,64(rsp)
+	stw      r10,68(rsp)
+	stw      r11,72(rsp)
+	stw      r12,76(rsp)
+	mfsrr0   r0
+	stw      r0,28(rsp)
+	mfsrr1   r0
+	stw      r0,32(rsp)
+
+	lis r4,booke_generic_exception_isr@h
+	ori r4,r4,booke_generic_exception_isr@l
+	mtlr    r4
+	blrl
+
+	lwz      r0,32(rsp)
+	mtsrr1   r0
+	lwz      r0,28(rsp)
+	mtsrr0   r0
+	lwz      r3,40(rsp)
+	lwz      r4,44(rsp)
+	lwz      r5,48(rsp)
+	lwz      r6,52(rsp)
+	lwz      r7,56(rsp)
+	lwz      r8,60(rsp)
+	lwz      r9,64(rsp)
+	lwz      r10,68(rsp)
+	lwz      r11,72(rsp)
+	lwz      r12,76(rsp)
+	lwz      r0,24(rsp)
+	mtlr     r0
+	lwz      r0,20(rsp)
+	mtcrf    0xff,r0
+	lwz      r0,16(rsp)
+	mtxer    r0
+	lwz      r0,12(rsp)
+	mtctr    r0
+	lwz      r0,8(rsp)
+	addi     rsp,rsp,80
+	rfi
 }
 
 __COLD_CODE asm void booke_init_interrupt_vector(void)
 {
-    lis     r3,branch_table@h
-    ori     r3,r3,branch_table@l
-    mtspr   IVPR,r3
+	lis     r3,branch_table@h
+	ori     r3,r3,branch_table@l
+	mtspr   IVPR,r3
 }
 
 #pragma pop
