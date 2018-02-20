@@ -106,13 +106,15 @@ static inline void booke_exception_machine_check_isr()
 #ifdef AIOPSL_KERNEL_EXCEPTION_HOOK
 __declspec(weak) void booke_debug_hook(uint32_t intr_type);
 __COLD_CODE void booke_debug_hook(uint32_t intr_type)
+#else
+__COLD_CODE static void booke_debug_hook(uint32_t intr_type)
+#endif
 {
 	/* Use tmp variable in debugger to get out of the loop */
 	volatile int tmp = 1;
 	while (tmp == 1)
 		asm("nop");
 }
-#endif
 
 __COLD_CODE static void booke_non_critical_isr(void)
 {
@@ -207,9 +209,7 @@ void booke_generic_exception_isr(uint32_t intr_entry)
 		break;
 	}
 
-#ifdef AIOPSL_KERNEL_EXCEPTION_HOOK
 	booke_debug_hook(intr_entry);
-#endif
 }
 
 asm static void branch_table(void) {
