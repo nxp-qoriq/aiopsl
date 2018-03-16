@@ -1,4 +1,5 @@
 /* Copyright 2013-2016 Freescale Semiconductor Inc.
+ * Copyright 2017-2018 NXP
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -10,12 +11,6 @@
  * * Neither the name of the above-listed copyright holders nor the
  * names of any contributors may be used to endorse or promote products
  * derived from this software without specific prior written permission.
- *
- *
- * ALTERNATIVELY, this software may be distributed under the terms of the
- * GNU General Public License ("GPL") as published by the Free Software
- * Foundation, either version 2 of that License or (at your option) any
- * later version.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
