@@ -132,6 +132,7 @@ static int app_dpni_add_cb(uint8_t generator_id, uint8_t event_id,
 	char			dpni_ep_type[16];
 	int			dpni_ep_id, err, link_state;
 	struct ep_init_presentation init_presentation;
+	char *dpni_label;
 
 	UNUSED(generator_id);
 	UNUSED(event_id);
@@ -157,6 +158,13 @@ static int app_dpni_add_cb(uint8_t generator_id, uint8_t event_id,
 	err = dpni_drv_get_dpni_id(ni, &dpni_id);
 	if (err) {
 		pr_err("Cannot get DPNI ID for NI %d\n", ni);
+		return err;
+	}
+
+	/* Get DPNI label */
+	err = dpni_drv_get_dpni_label(ni, &dpni_label);
+	if (err) {
+		pr_err("Cannot get DPNI label for NI %d\n", ni);
 		return err;
 	}
 
@@ -205,8 +213,8 @@ static int app_dpni_add_cb(uint8_t generator_id, uint8_t event_id,
 		return err;
 	}
 
-	fsl_print("%s : Successfully configured ni%d (dpni.%d)\n",
-		  AIOP_APP_NAME, ni, dpni_id);
+	fsl_print("%s : Successfully configured ni%d (dpni.%d) \"%s\"\n",
+		  AIOP_APP_NAME, ni, dpni_id, dpni_label);
 	fsl_print("%s : dpni.%d <---connected---> %s.%d ",
 		  AIOP_APP_NAME, dpni_id, dpni_ep_type, dpni_ep_id);
 	fsl_print("(MAC addr: %02x:%02x:%02x:%02x:%02x:%02x)\n",

@@ -1,6 +1,6 @@
 /*
  * Copyright 2014-2015 Freescale Semiconductor, Inc.
- * Copyright 2017 NXP
+ * Copyright 2017-2018 NXP
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -1514,6 +1514,20 @@ int dpni_drv_reset_statistics(uint16_t ni_id);
 	error code, otherwise. For error posix refer to \ref error_g
 *//***************************************************************************/
 int dpni_drv_get_dpni_id(uint16_t ni_id, uint16_t *dpni_id);
+
+/**************************************************************************//**
+@Function      dpni_drv_get_dpni_label
+
+@Description   Function to receive DPNI label.
+
+@Param[in]     ni_id   The AIOP Network Interface ID.
+
+@Param[out]    dpni_label DPNI label.
+
+@Return        0 on success;
+       error code, otherwise. For error posix refer to \ref error_g
+*//***************************************************************************/
+int dpni_drv_get_dpni_label(uint16_t ni_id, char **dpni_label);
 
 /**************************************************************************//**
 @Function	dpni_drv_get_ni_id

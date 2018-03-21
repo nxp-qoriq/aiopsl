@@ -173,8 +173,8 @@ int dprc_drv_scan(void)
 		if (strcmp(dev_desc.type, "dpni") == 0) {
 			sl_pr_debug("DPNI %d found in the container\n",dev_desc.id);
 
-			err = dpni_drv_update_obj(dprc,
-			                          (uint16_t)dev_desc.id);
+			err = dpni_drv_update_obj(dprc, (uint16_t)dev_desc.id,
+						  dev_desc.label);
 			if (err) {
 				sl_pr_err("Failed to update DPNI %d.\n",
 				          dev_desc.id);

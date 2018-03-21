@@ -112,13 +112,14 @@ void dpni_drv_unprobe(uint16_t aiop_niid);
 
 @Param[in]	mc_niid - MC DP Network Interface ID
 
+@Param[in]	label - label of the DPNI object
+
 @Return	aiop_niid (aiop_niid >= 0)on success; error code, otherwise.
 		For error posix refer to
 		\ref error_g
 *//***************************************************************************/
-int dpni_drv_probe(struct mc_dprc *dprc,
-                   uint16_t mc_niid,
-                   uint16_t *niid);
+int dpni_drv_probe(struct mc_dprc *dprc, uint16_t mc_niid, uint16_t *niid,
+		   char *label);
 /**************************************************************************//**
 @Function	discard_rx_cb
 
@@ -150,11 +151,13 @@ int dpni_drv_is_dpni_exist(uint16_t mc_niid);
 
 @Param[in]	mc_niid - DPNI id of an object in the container.
 
+@Param[in]	label - label of the DPNI object.
+
 @Return		0 on success; error code, otherwise.
 		For error posix refer to
 		\ref error_g
 *//***************************************************************************/
-int dpni_drv_update_obj(struct mc_dprc *dprc, uint16_t mc_niid);
+int dpni_drv_update_obj(struct mc_dprc *dprc, uint16_t mc_niid, char *label);
 
 /**************************************************************************//**
 @Function	dpni_drv_handle_removed_objects

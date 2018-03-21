@@ -1,6 +1,6 @@
 /*
  * Copyright 2014-2015 Freescale Semiconductor, Inc.
- * Copyright 2017 NXP
+ * Copyright 2017-2018 NXP
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -362,7 +362,7 @@ int dpni_drv_is_dpni_exist(uint16_t mc_niid)
 		return i;
 }
 
-int dpni_drv_update_obj(struct mc_dprc *dprc, uint16_t mc_niid)
+int dpni_drv_update_obj(struct mc_dprc *dprc, uint16_t mc_niid, char *label)
 {
 	int err;
 	uint16_t aiop_niid;
@@ -397,7 +397,7 @@ int dpni_drv_update_obj(struct mc_dprc *dprc, uint16_t mc_niid)
 			return err;
 		}
 
-		err = dpni_drv_probe(dprc, mc_niid, &aiop_niid);
+		err = dpni_drv_probe(dprc, mc_niid, &aiop_niid, label);
 		if(err){
 			cdma_mutex_lock_release((uint64_t)nis);
 			sl_pr_err("DP-NI %d was not probed, err: %d.\n",
@@ -717,9 +717,8 @@ static int initialize_dpni(struct mc_dprc *dprc, uint16_t mc_niid, uint16_t aiop
 	return 0;
 }
 
-int dpni_drv_probe(struct mc_dprc *dprc,
-                   uint16_t mc_niid,
-                   uint16_t *niid)
+int dpni_drv_probe(struct mc_dprc *dprc, uint16_t mc_niid, uint16_t *niid,
+		   char *label)
 {
 	int i;
 	uint32_t j;
@@ -801,6 +800,10 @@ int dpni_drv_probe(struct mc_dprc *dprc,
 			num_of_nis ++;
 
 			nis[aiop_niid].dpni_id = mc_niid;
+			/* Save DPNI label*/
+			k = sizeof(nis[aiop_niid].dpni_label);
+			strncpy(nis[aiop_niid].dpni_label, label, k);
+			nis[aiop_niid].dpni_label[k - 1] = 0;
 			/* Unlock nis table*/
 			*niid = aiop_niid;
 			return 0;
@@ -2189,6 +2192,22 @@ int dpni_drv_get_dpni_id(uint16_t ni_id, uint16_t *dpni_id)
 	}
 
 	*dpni_id = nis[ni_id].dpni_id;
+	cdma_mutex_lock_release((uint64_t)nis); /*Unlock dpni table*/
+	return 0;
+}
+
+int dpni_drv_get_dpni_label(uint16_t ni_id, char **dpni_label)
+{
+	/*Lock dpni table*/
+	cdma_mutex_lock_take((uint64_t)nis, CDMA_MUTEX_READ_LOCK);
+	if (ni_id >= (uint16_t)num_of_nis ||
+	    nis[ni_id].dpni_id == DPNI_NOT_IN_USE) {
+		cdma_mutex_lock_release((uint64_t)nis); /*Unlock dpni table*/
+		sl_pr_err("AIOP NI ID %d not exist\n", ni_id);
+		return -ENAVAIL;
+	}
+
+	*dpni_label = &nis[ni_id].dpni_label[0];
 	cdma_mutex_lock_release((uint64_t)nis); /*Unlock dpni table*/
 	return 0;
 }

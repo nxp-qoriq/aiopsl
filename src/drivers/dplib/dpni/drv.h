@@ -94,6 +94,7 @@ struct dpni_drv {
 	/** network interface ID assigned by MC -
 	*  known outside AIOP */
 	uint16_t            dpni_id;
+	char                dpni_label[16];
 	/** MAC address of this NI */
 	uint8_t 	    mac_addr[NET_HDR_FLD_ETH_ADDR_SIZE];
 	/* lock for multi-core support */
