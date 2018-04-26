@@ -65,6 +65,7 @@ enum evm_event_types {
 	DPCI_EVENT_LINK_DOWN,
 	NUM_OF_SL_DEFINED_EVENTS,
 };
+
 /** @} end of group EVMNG_EVENT_TYPES */
 
 /**************************************************************************//**
@@ -77,7 +78,6 @@ enum evm_event_types {
 /** AIOP service layer generator ID (0 means the entry is empty)*/
 #define EVMNG_GENERATOR_AIOPSL                              1
 /** @} end of group EVMNG_AIOPSL_GENERATOR_ID */
-
 
 /**************************************************************************//**
 @Description	Prototype of event manager callback function. An application
@@ -95,7 +95,6 @@ enum evm_event_types {
 		function when raising event.
 
 @param[in]	event_data  A pointer to data specific for event
-
 
 @Return		The return code is not interpreted by event manager.
 		However callback function should return 0.
@@ -190,9 +189,9 @@ int evmng_unregister(
 		event
 
 @Param[in]	event_id  Identifier of the event specific to the application
-		generating event. The value can range from NUM_OF_SL_DEFINED_EVENTS
-		to MAX_EVENT_ID -1.
-		\ref EVMNG_EVENT_TYPES
+		generating event.
+		The value can range from NUM_OF_SL_DEFINED_EVENTS to
+		MAX_EVENT_ID -1. See \ref EVMNG_EVENT_TYPES
 
 @Param[in]	event_data  A pointer to data specific for event
 

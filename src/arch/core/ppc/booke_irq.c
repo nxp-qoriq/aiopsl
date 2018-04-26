@@ -112,6 +112,7 @@ __COLD_CODE void booke_debug_hook(uint32_t intr_type)
 __COLD_CODE static void booke_debug_hook(uint32_t intr_type)
 #endif
 {
+	UNUSED(intr_type);
 	/* Use tmp variable in debugger to get out of the loop */
 	volatile int tmp = 1;
 	while (tmp == 1)
