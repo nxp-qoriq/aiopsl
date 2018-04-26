@@ -53,7 +53,7 @@
 /* Same version for all the devices */
 #define SYS_REV_MAJOR	8
 #define SYS_REV_MINOR	2
-#define SYS_REVISION	0
+#define SYS_REVISION	1
 
 /*!
  * @ingroup aiopapp_init
