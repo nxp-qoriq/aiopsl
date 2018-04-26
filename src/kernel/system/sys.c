@@ -409,6 +409,7 @@ __COLD_CODE int sys_init(void)
 			sys_barrier();
 			goto init_err;
 		}
+		sys_barrier();
 	} else {
 		sys_barrier();
 		if (sys_get_global_error())
