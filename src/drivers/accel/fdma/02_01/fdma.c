@@ -1279,6 +1279,12 @@ void fdma_exception_handler(enum fdma_function_identifier func_id,
 	case FDMA_RELEASE_BUFFER:
 		func_name = "fdma_release_buffer";
 		break;
+	case FDMA_FLOW_CONTROL_XON:
+		func_name = "fdma_xon";
+		break;
+	case FDMA_FLOW_CONTROL_XOFF:
+		func_name = "fdma_xoff";
+		break;
 	default:
 		/* create own exception */
 		func_name = "Unknown Function";

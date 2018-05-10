@@ -1054,7 +1054,7 @@ inline int fdma_present_default_frame_default_segment()
 
 	/* call FDMA Accelerator */
 	__e_hwacceli_(FPDMA_ACCEL_ID);
-	
+
 	/* load command results */
 	res1 = *((int8_t *) (FDMA_STATUS_ADDR));
 	if ((res1 == FDMA_SUCCESS) ||
@@ -1071,6 +1071,92 @@ inline int fdma_present_default_frame_default_segment()
 
 	fdma_exception_handler(FDMA_PRESENT_DEFAULT_FRAME_DEFAULT_SEGMENT, 
 			__LINE__, (int32_t)res1);
+
+	return (int32_t)(res1);
+}
+
+inline int fdma_xon(enum fdma_flow_control_type type, uint32_t id, uint8_t tc)
+{
+	/* command parameters and results */
+	uint32_t arg1, arg2, arg3;
+	uint16_t adc_pl_icid, bdi, icid;
+	int8_t res1;
+
+	struct additional_dequeue_context *adc =
+		(struct additional_dequeue_context *)HWC_ADC_ADDRESS;
+	adc_pl_icid = LH_SWAP(0, &(adc->pl_icid));
+
+	icid = adc_pl_icid & ADC_ICID_MASK;
+	bdi = adc_pl_icid & ADC_BDI_MASK;
+
+	if (type == FLOW_CONTROL_TC) {
+		/* prepare command parameters */
+		arg1 = FDMA_FLOW_CTRL_ARG1(tc, 0, type);
+		arg2 = FDMA_FLOW_CTRL_ARG2(id);
+		arg3 = 0;
+	} else if (type == FLOW_CONTROL_FQID) {
+		/* prepare command parameters */
+		arg1 = FDMA_FLOW_CTRL_ARG1(0, 0, type);
+		arg2 = FDMA_FLOW_CTRL_ARG2(id);
+		arg3 = FDMA_FLOW_CTRL_ARG3(bdi, icid);
+	} else {
+		return -EINVAL;
+	}
+
+	/* store command parameters */
+	__stqw(arg1, arg2, arg3, 0, HWC_ACC_IN_ADDRESS, 0);
+
+	/* call FDMA Accelerator */
+	if ((__e_hwacceli_(FODMA_ACCEL_ID)) == FDMA_SUCCESS)
+		return SUCCESS;
+	/* load command results */
+	res1 = *((int8_t *)(FDMA_STATUS_ADDR));
+
+	fdma_exception_handler(FDMA_FLOW_CONTROL_XON,
+			       __LINE__, (int32_t)res1);
+
+	return (int32_t)(res1);
+}
+
+inline int fdma_xoff(enum fdma_flow_control_type type, uint32_t id, uint8_t tc)
+{
+	/* command parameters and results */
+	uint32_t arg1, arg2, arg3;
+	uint16_t adc_pl_icid, bdi, icid;
+	int8_t res1;
+
+	struct additional_dequeue_context *adc =
+		(struct additional_dequeue_context *)HWC_ADC_ADDRESS;
+	adc_pl_icid = LH_SWAP(0, &(adc->pl_icid));
+
+	icid = adc_pl_icid & ADC_ICID_MASK;
+	bdi = adc_pl_icid & ADC_BDI_MASK;
+
+	if (type == FLOW_CONTROL_TC) {
+		/* prepare command parameters */
+		arg1 = FDMA_FLOW_CTRL_ARG1(tc, 1, type);
+		arg2 = FDMA_FLOW_CTRL_ARG2(id);
+		arg3 = 0;
+	} else if (type == FLOW_CONTROL_FQID) {
+		/* prepare command parameters */
+		arg1 = FDMA_FLOW_CTRL_ARG1(0, 1, type);
+		arg2 = FDMA_FLOW_CTRL_ARG2(id);
+		arg3 = FDMA_FLOW_CTRL_ARG3(bdi, icid);
+	} else {
+		return -EINVAL;
+	}
+
+	/* store command parameters */
+	__stqw(arg1, arg2, arg3, 0, HWC_ACC_IN_ADDRESS, 0);
+
+	/* call FDMA Accelerator */
+	if ((__e_hwacceli_(FODMA_ACCEL_ID)) == FDMA_SUCCESS)
+		return SUCCESS;
+	/* load command results */
+	res1 = *((int8_t *)(FDMA_STATUS_ADDR));
+
+	fdma_exception_handler(FDMA_FLOW_CONTROL_XOFF,
+			       __LINE__, (int32_t)res1);
 
 	return (int32_t)(res1);
 }

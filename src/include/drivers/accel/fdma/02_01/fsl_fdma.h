@@ -234,6 +234,21 @@ enum fdma_pta_size_type {
 
 /* @} end of enum fdma_pta_size_type */
 
+/**************************************************************************//**
+ @enum fdma_flow_control_type
+
+ @Description	Flow control type.
+
+ @{
+*//***************************************************************************/
+enum fdma_flow_control_type {
+		/** Traffic Class flow control performed. */
+	FLOW_CONTROL_TC,
+		/** Frame Queue flow control performed. */
+	FLOW_CONTROL_FQID
+};
+
+/* @} end of enum fdma_flow_control_type */
 /** @} end of group FDMA_Enumerations */
 
 
@@ -2800,6 +2815,54 @@ void get_concatenate_amq_attributes(
 *//***************************************************************************/
 int fdma_present_default_frame_default_segment();
 
+/**************************************************************************//**
+@Function	fdma_xoff
+
+@Description	Used to initiate a flow control XOFF command for a traffic class
+		or frame queue, typically in response to a received congestion group
+		or buffer pool state change notification message.
+
+@Param[in]	type - Type of flow control to be performed:
+		FLOW_CONTROL_TC; traffic class flow control performed.
+		FLOW_CONTROL_FQID; Frame Queue flow control performed.
+		Note, BDI and ICID for this command are taken from HW Context.
+@Param[in]	id - Channel ID/FQID to perform flow control on.
+@Param[in]	tc - traffic class bitfield to be used in flow control command
+		relevant only if type = FLOW_CONTROL_TC, ignored otherwise.
+		Any set bits in the TC field(0-7) will cause the corresponding
+		traffic class to become XOFF e.g. TC[4]=1 will cause
+		traffic class 3 to become XOFF.
+
+@Return		0 on Success, or negative value on error.
+
+@Cautions	This function may result in a fatal error.
+@Cautions	In this Service Routine the task yields.
+*//***************************************************************************/
+int fdma_xoff(enum fdma_flow_control_type type, uint32_t id, uint8_t tc);
+
+/**************************************************************************//**
+@Function	fdma_xon
+
+@Description	Used to initiate a flow control XON command for a traffic class
+		or frame queue, typically in response to a received congestion group
+		or buffer pool state change notification message.
+
+@Param[in]	type - Type of flow control to be performed:
+		FLOW_CONTROL_TC; traffic class flow control performed.
+		FLOW_CONTROL_FQID; Frame Queue flow control performed.
+		Note, BDI and ICID for this command are taken from HW Context.
+@Param[in]	id - Channel ID/FQID to perform flow control on.
+@Param[in]	tc - traffic class bitfield to be used in flow control command
+		relevant only if type = FLOW_CONTROL_TC, ignored otherwise.
+		Any set bits in the TC field(0-7) will cause the corresponding
+		traffic class to become XON e.g. TC[4]=1 will cause
+		traffic class 3 to become XON.
+@Return		0 on Success, or negative value on error.
+
+@Cautions	This function may result in a fatal error.
+@Cautions	In this Service Routine the task yields.
+*//***************************************************************************/
+int fdma_xon(enum fdma_flow_control_type type, uint32_t id, uint8_t tc);
 
 #include "fdma_inline.h"
 

@@ -151,7 +151,6 @@
 
 /** @} end of group FDMA_Replace_Int_Flags */
 
-
 /**************************************************************************//**
 @Group		FDMA_Commands_IDs
 
@@ -198,6 +197,8 @@
 #define FDMA_ACQUIRE_BUFFER_CMD		0x00000072
 	/** FDMA Release buffer command code */
 #define FDMA_RELEASE_BUFFER_CMD		0x00000073
+	/** FDMA Flow control command code */
+#define FDMA_FLOW_CONTROL_CMD		0x000000F0
 
 /** @} end of group FDMA_Commands_IDs */
 
@@ -301,6 +302,19 @@
 	/** FDMA Enqueue working frame command arg3 */
 #define FDMA_ENQUEUE_WF_QD_ARG3(_hash_value)				\
 	(uint32_t)(_hash_value)
+
+	/** FDMA Flow control command arg1 */
+#define FDMA_FLOW_CTRL_ARG1(_tc, _x, _type)		\
+	(uint32_t)((_tc << 24) |					\
+	(_x << 9) | (_type << 8) | FDMA_FLOW_CONTROL_CMD)
+
+	/** FDMA Flow control command arg2 */
+#define FDMA_FLOW_CTRL_ARG2(_fqidtc)				\
+	(uint32_t)(_fqidtc)
+
+	/** FDMA Flow control command arg3 */
+#define FDMA_FLOW_CTRL_ARG3(_bdi, _icid)				\
+	(uint32_t)((_bdi << 15) | (_icid << 14))
 
 	/** FDMA Enqueue frame command arg1 */
 #define FDMA_ENQUEUE_FRAME_ARG1(_flags)					\
@@ -801,7 +815,9 @@ enum fdma_function_identifier {
 	FDMA_COPY_DATA,
 	FDMA_DMA_DATA,
 	FDMA_ACQUIRE_BUFFER,
-	FDMA_RELEASE_BUFFER
+	FDMA_RELEASE_BUFFER,
+	FDMA_FLOW_CONTROL_XON,
+	FDMA_FLOW_CONTROL_XOFF
 };
 
 /** @}*/ /* end of group FDMA_Enumerations */
