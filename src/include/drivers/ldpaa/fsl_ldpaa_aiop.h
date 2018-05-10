@@ -346,7 +346,25 @@
 	addr =								\
 	   (LLLDW_SWAP(0, (uint64_t)(((char *)_fd)+ FD_FLC_DS_AS_CS_OFFSET)));\
 	__rR = (uint64_t ) addr; })
-
+	/** Macro to get FD CSCN/BPSCN state.
+	 * _fd - the FD address in workspace. */
+#define LDPAA_FD_GET_SCN_STATE(_fd)					\
+	(uint16_t)(LH_SWAP_MASK(2, (((char *)_fd) + FD_SCN_OFFSET),	\
+				FD_SCN_STATE_MASK))
+	/** Macro to get FD BPSCN BPID field.
+	 * _fd - the FD address in workspace. */
+#define LDPAA_FD_GET_SCN_BPID(_fd)					\
+	(uint16_t)(LH_SWAP_MASK(0, (((char *)_fd) + FD_SCN_OFFSET),	\
+				FD_BPID_MASK))
+	/** Macro to get FD CSCN CGID field.
+	 * _fd - the FD address in workspace. */
+#define LDPAA_FD_GET_SCN_CGID(_fd)					\
+	(uint16_t)(LH_SWAP(0, (((char *)_fd) + FD_SCN_OFFSET)))
+	/** Macro to get FD EPID field.
+	 * _fd - the FD address in workspace. */
+#define LDPAA_FD_GET_EPID(_fd)						\
+	(uint16_t)(LH_SWAP_MASK(0, (((char *)_fd) + FD_EPID_OFFSET),	\
+				FD_EPID_MASK))
 
 /* FD Setters macros. */
 
@@ -545,7 +563,69 @@
 
 /** @} */ /* end of LDPAA_FD_GETTERS_SETTERS */
 
-/** @} *//* end of ldpaa_g group */
+/**************************************************************************//**
+ @Group    LDPAA_BPSCN_MACROS
 
+ @Description	Buffer Pool State Change Notification macros
+
+ @{
+*//***************************************************************************/
+
+/** Depleted state in BPSCN message */
+#define SCN_STATE_DEPLETED		0x02
+
+ /** The following macros gets information from an application provided
+  * data buffer of 64 bytes. The provided buffer address must be accessible
+  * from an AIOP core. If it isn't the case, use the cdma_read_with_no_cache()
+  * API to bring the information into a workspace variable and use that
+  * variable. Only the first 16 bytes in the BPSCN messages are relevant. */
+
+/** Get the buffer pool depletion state from a BPSCN message */
+#define BPSCN_GET_DEPLETION_STATE(_message_iova)			\
+	(uint8_t)(*((uint8_t *)_message_iova + 2) & SCN_STATE_DEPLETED)
+
+/** Get the Buffer Pool ID from a BPSCN message */
+#define BPSCN_GET_BPID(_message_iova)	((uint16_t)			\
+	(LH_SWAP_MASK(0, (((char *)((uint8_t *)_message_iova + 4))),	\
+		      FD_BPID_MASK)))
+
+/** Get the message context from a BPSCN message */
+#define BPSCN_GET_MESSAGE_CTX(_message_iova)				\
+	LLLDW_SWAP(0, (((char *)((uint8_t *)_message_iova + 8))))
+
+/** @} */ /* end of LDPAA_BPSCN_MACROS */
+
+/**************************************************************************//**
+ @Group    LDPAA_CSCN_MACROS
+
+ @Description	Congestion State Change Notification macros
+
+ @{
+*//***************************************************************************/
+
+/** Congested state in CSCN message */
+#define SCN_STATE_CONGESTED		0x01
+
+ /** The following macros gets information from an application provided
+  * data buffer of 64 bytes. The provided buffer address must be accessible
+  * from an AIOP core. If it isn't the case, use the cdma_read_with_no_cache()
+  * API to bring the information into a workspace variable and use that
+  * variable. Only the first 16 bytes in the CSCN messages are relevant. */
+
+/** Get the Congestion Group congestion state from a CSCN message */
+#define CSCN_GET_CONGESTION_STATE(_message_iova)			\
+	(uint8_t)(*((uint8_t *)_message_iova + 2) & SCN_STATE_CONGESTED)
+
+/** Get the Congestion Group ID from a CSCN message */
+#define CSCN_GET_CGID(_message_iova)					\
+	(uint16_t)(LH_SWAP(0, (((char *)((uint8_t *)_message_iova + 4)))))
+
+/** Get the message context from a CSCN message */
+#define CSCN_GET_MESSAGE_CTX(_message_iova)				\
+	LLLDW_SWAP(0, (((char *)((uint8_t *)_message_iova + 8))))
+
+/** @} */ /* end of LDPAA_CSCN_MACROS */
+
+/** @} *//* end of ldpaa_g group */
 
 #endif /* __FSL_LDPAA_H */

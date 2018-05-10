@@ -200,5 +200,83 @@ int evmng_unregister(
 *//***************************************************************************/
 int evmng_raise_event(uint8_t generator_id, uint8_t event_id, void *event_data);
 
+/**************************************************************************//**
+@Function	bpscn_callback
+
+@Description	Function is called when an AIOP task is created upon reception
+		of a BPSCN (Buffer Pool State Change Notification) message.
+		Once a task has been created to handle a depletion state
+		transition, another task will not be created, for the same BPID,
+		(Buffer Pool ID) until the current one has terminated.
+		Depletion state changes that occur while the task is operating
+		are tracked and will influence the next task creation action.
+
+		The AIOP SL implementation prints an warning message before the
+		BPSCN task is terminated.
+
+		To perform the application depending BPSCN processing, this
+		function must be overridden by the application.
+		To get the BPSCN notification one must configure the buffer
+		pool depletion parameters by calling the API function
+			dpni_drv_set_pool_depletion()
+		in the application initialization phase, on the depletion
+		tracked buffer pools.  BPSNC task are created only if the
+		DPNI_DRV_DEPL_NOTIF_OPT_AIOP option is set.
+
+		When a BPSCN task is created, the following parameters are set
+		in its hardware environment :
+			PRC : NDS = 1
+			ADQ : BDI = AIOP BDI
+			ADQ : ICID = AIOP ICID
+			FD : SL = 1
+			FD : FMT = 3 (BPSCN task)
+			FD : FLC
+				Bit 48 : Depletion state
+				Bits 45-32 : BPID
+				Bits 9-0 : EPID = 0x3FE
+		BPSCN tasks are executed in the exclusive mode. The ordering
+		scope ID is BPID << 16.
+*//***************************************************************************/
+__declspec(weak) __HOT_CODE void bpscn_callback(void);
+
+/**************************************************************************//**
+@Function	cscn_callback
+
+@Description	Function is called when an AIOP task is created upon reception
+		of a CSCN (Congestion State Change Notification) message.
+		Once a task has been created to handle a congestion state
+		transition, another task will not be created, for the same CGID,
+		(Congestion Group ID) until the current one has terminated.
+		Congestion state changes that occur while the task is operating
+		are tracked and will influence the next task creation action.
+
+		The AIOP SL implementation prints an warning message before the
+		CSCN task is terminated.
+
+		To perform the application depending CSCN processing, this
+		function must be overridden by the application.
+		To get the CSCN notification one must configure the congestion
+		parameters by calling the API function
+			dpni_drv_set_congestion_notification()
+		in the application initialization phase, on the RX queues of the
+		congestion tracked DPNIs. CSNC task are created only if the
+		DPNI_CONG_OPT_NOTIFY_AIOP option is set.
+
+		When a CSCN task is created, the following parameters are set in
+		its hardware environment :
+			PRC : NDS = 1
+			ADQ : BDI = AIOP BDI
+			ADQ : ICID = AIOP ICID
+			FD : SL = 1
+			FD : FMT = 2 (CSCN task)
+			FD : FLC
+				Bit 48 : Congestion state
+				Bits 47-32 : CGID
+				Bits 9-0 : EPID = 0x3FF
+		CSCN tasks are executed in the exclusive mode. The ordering
+		scope ID is CGID << 16.
+*//***************************************************************************/
+__declspec(weak) __HOT_CODE void cscn_callback(void);
+
 /** @} */ /* end of evmng_g Event Manager group */
 #endif /* __FSL_EVMNG_H */

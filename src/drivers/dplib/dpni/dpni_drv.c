@@ -186,8 +186,8 @@ static inline void remove_fs_entry(uint16_t ni_id, uint16_t etype)
 
 void discard_rx_cb(void)
 {
-
-	pr_debug("Packet discarded by discard_rx_cb.\n");
+	pr_debug("EPID = 0x%x : Packet discarded by discard_rx_cb.\n",
+		 LDPAA_FD_GET_EPID(HWC_FD_ADDRESS));
 	/*Discard frame and terminate task*/
 	fdma_discard_default_frame(FDMA_DIS_NO_FLAGS);
 	fdma_terminate_task();
@@ -751,10 +751,11 @@ int dpni_drv_probe(struct mc_dprc *dprc, uint16_t mc_niid, uint16_t *niid,
 		return -ENOSPC;
 	}
 
-	/*Mutex lock to avoid race condition while writing to EPID table*/
+	/* Mutex lock to avoid race condition while writing to EPID table */
 	EP_MNG_MUTEX_W_TAKE;
-	/* Search for NIID (mc_niid) in EPID table and prepare the NI for usage. */
-	for (i = AIOP_EPID_DPNI_START; i < AIOP_EPID_TABLE_SIZE; i++) {
+	/* Search for NIID (mc_niid) in EPID table and prepare the NI for
+	 * usage. */
+	for (i = AIOP_EPID_DPNI_START; i < AIOP_EPID_BPSCN_EVENT_IDX; i++) {
 		/* Prepare to read from entry i in EPID table - EPAS reg */
 		iowrite32_ccsr((uint32_t)i, &wrks_addr->epas);
 
@@ -766,7 +767,8 @@ int dpni_drv_probe(struct mc_dprc *dprc, uint16_t mc_niid, uint16_t *niid,
 		/*MC dpni id found in EPID table*/
 		if (j == (mc_niid | AIOP_EPID_SET_BY_DPNI)) {
 			/* Replace MC NI ID with AIOP NI ID */
-			sl_pr_debug("Found EPID[%d].EP_PM = %d\n", i, (j & ~(AIOP_EPID_SET_BY_DPNI)));
+			sl_pr_debug("Found EPID[%d].EP_PM = %d\n", i,
+				    (j & ~(AIOP_EPID_SET_BY_DPNI)));
 			iowrite32_ccsr(aiop_niid, &wrks_addr->ep_pm);
 
 			ep_osc = ioread32_ccsr(&wrks_addr->ep_osc);
@@ -809,18 +811,14 @@ int dpni_drv_probe(struct mc_dprc *dprc, uint16_t mc_niid, uint16_t *niid,
 			return 0;
 		}
 	}
-
-
-	if(i == AIOP_EPID_TABLE_SIZE){ /*MC dpni id not found in EPID table*/
-		/*Unlock EPID table*/
+	if (i == AIOP_EPID_BPSCN_EVENT_IDX) {
+		/* MC dpni id not found in EPID table. Unlock EPID table */
 		EP_MNG_MUTEX_RELEASE;
 		sl_pr_err("DP-NI %d not found in EPID table.\n", mc_niid);
 		err = -ENODEV;
 	}
-
 	return err;
 }
-
 
 int dpni_drv_get_spid(uint16_t ni_id, uint16_t *spid)
 {
@@ -3035,6 +3033,7 @@ int dpni_drv_get_num_free_bufs(uint32_t flags,
 	int			i, err, dp_bpid;
 	uint16_t		dpbp;
 	uint32_t		num_free_bufs;
+	struct dpbp_attr	attr;
 
 	/* Only backup counter requested but backup pool is disabled */
 	if ((flags & DPNI_DRV_BACKUP_FREE_BUFS) == DPNI_DRV_BACKUP_FREE_BUFS &&
@@ -3075,16 +3074,28 @@ int dpni_drv_get_num_free_bufs(uint32_t flags,
 				pr_err("Close DPBP@%d.\n", dp_bpid);
 			return err;
 		}
+		err = dpbp_get_attributes(&dprc->io, 0, dpbp, &attr);
+		if (err) {
+			pr_err("Failed to get attributes from DPBP-%d.\n",
+			       dp_bpid);
+			/* Close DPBP control session */
+			if (dpbp_close(&dprc->io, 0, dpbp))
+				pr_err("Close DPBP@%d.\n", dp_bpid);
+			return err;
+		}
 		/* Close DPBP control session */
 		err = dpbp_close(&dprc->io, 0, dpbp);
 		if (err) {
 			pr_err("Close DPBP@%d.\n", dp_bpid);
 			return err;
 		}
-		if (pools_params.pools[i].backup_pool)
+		if (pools_params.pools[i].backup_pool) {
 			free_bufs->backup_bp_free_bufs += num_free_bufs;
-		else
+			free_bufs->backup_bpid = attr.bpid;
+		} else {
 			free_bufs->peb_bp_free_bufs += num_free_bufs;
+			free_bufs->peb_bpid = attr.bpid;
+		}
 	}
 	return 0;
 }
@@ -3778,13 +3789,13 @@ int dpni_drv_set_pools(uint16_t ni_id, dpni_drv_pools_cfg *cfg)
 
 /******************************************************************************/
 int dpni_drv_set_congestion_notification(uint16_t ni_id, uint8_t tc,
-			dpni_drv_queue_type qtype,
+					 enum dpni_drv_queue_type qtype,
 			struct dpni_drv_congestion_notification_cfg *cfg)
 {
-	struct mc_dprc		*dprc;
-	int			err;
-	uint16_t		dpni;
-	struct dpni_congestion_notification_cfg cfg_mc;
+	struct mc_dprc					*dprc;
+	int						err;
+	uint16_t					dpni;
+	struct dpni_congestion_notification_cfg		cfg_mc;
 
 	dprc = sys_get_unique_handle(FSL_MOD_AIOP_RC);
 	if (!dprc) {
@@ -3808,14 +3819,15 @@ int dpni_drv_set_congestion_notification(uint16_t ni_id, uint8_t tc,
 	cfg_mc.units = (enum dpni_congestion_unit)cfg->units;
 	cfg_mc.threshold_entry = cfg->threshold_entry;
 	cfg_mc.threshold_exit = cfg->threshold_exit;
-	cfg_mc.message_ctx = 0;
-	cfg_mc.message_iova = 0;
+	cfg_mc.message_ctx = cfg->message_ctx;
+	cfg_mc.message_iova = cfg->message_iova;
 	cfg_mc.dest_cfg.dest_type = DPNI_DEST_DPCON;
 	cfg_mc.dest_cfg.dest_id = g_dpcon_id;
 	cfg_mc.dest_cfg.priority = MIN(tc, g_dpcon_priorities - 1);
 	cfg_mc.notification_mode = cfg->notification_mode;
-	err = dpni_set_congestion_notification(&dprc->io, 0, dpni, qtype, tc,
-						&cfg_mc);
+	err = dpni_set_congestion_notification(&dprc->io, 0, dpni,
+					       (enum dpni_queue_type)qtype, tc,
+					       &cfg_mc);
 	if (err) {
 		sl_pr_err("dpni_set_congestion_notification failed\n");
 		dpni_close(&dprc->io, 0, dpni);
@@ -3831,7 +3843,7 @@ int dpni_drv_set_congestion_notification(uint16_t ni_id, uint8_t tc,
 
 /******************************************************************************/
 int dpni_drv_get_congestion_notification(uint16_t ni_id, uint8_t tc,
-			dpni_drv_queue_type qtype,
+					 enum dpni_drv_queue_type qtype,
 			struct dpni_drv_congestion_notification_cfg *cfg)
 {
 	struct mc_dprc		*dprc;
@@ -3853,7 +3865,8 @@ int dpni_drv_get_congestion_notification(uint16_t ni_id, uint8_t tc,
 		sl_pr_err("Open DPNI failed\n");
 		return err;
 	}
-	err = dpni_get_congestion_notification(&dprc->io, 0, dpni, qtype, tc,
+	err = dpni_get_congestion_notification(&dprc->io, 0, dpni,
+					       (enum dpni_queue_type)qtype, tc,
 						&cfg_mc);
 	if (err) {
 		sl_pr_err("dpni_get_congestion_notification failed\n");
@@ -3864,6 +3877,8 @@ int dpni_drv_get_congestion_notification(uint16_t ni_id, uint8_t tc,
 	cfg->threshold_entry = cfg_mc.threshold_entry;
 	cfg->threshold_exit = cfg_mc.threshold_exit;
 	cfg->notification_mode = cfg_mc.notification_mode;
+	cfg->message_iova = cfg_mc.message_iova;
+	cfg->message_ctx = cfg_mc.message_ctx;
 	err = dpni_close(&dprc->io, 0, dpni);
 	if (err) {
 		sl_pr_err("Close DPNI failed\n");
@@ -4122,6 +4137,200 @@ int dpni_drv_get_tx_hw_annotation(uint16_t ni_id, uint32_t *hw_anno)
 	err = dpni_close(&dprc->io, 0, dpni);
 	if (err) {
 		sl_pr_err("dpni_close failed\n");
+		return err;
+	}
+	return 0;
+}
+
+/******************************************************************************/
+int dpni_drv_set_pool_depletion(uint32_t flags, struct dpni_drv_bpscn_cfg *cfg)
+{
+	struct mc_dprc			*dprc;
+	int				i, err, dp_bpid;
+	uint16_t			dpbp;
+	struct dpbp_notification_cfg	mc_cfg;
+
+	/* Backup pool notification requested, but backup pool is disabled */
+	if ((flags & DPNI_DRV_BACKUP_POOL_NOTIF) ==
+	    DPNI_DRV_BACKUP_POOL_NOTIF &&
+	    (g_app_params.app_config_flags & DPNI_BACKUP_POOL_DISABLE)) {
+			pr_warn("Backup pool not enabled\n");
+			return -EINVAL;
+	}
+	dprc = sys_get_unique_handle(FSL_MOD_AIOP_RC);
+	if (!dprc) {
+		pr_err("No AIOP container found\n");
+		return -ENODEV;
+	}
+	if (!cfg->depletion_entry ||
+	    cfg->depletion_exit <= cfg->depletion_entry ||
+	    !cfg->message_iova) {
+		pr_err("Invalid parameters\n");
+		return -EINVAL;
+	}
+	mc_cfg.depletion_entry = cfg->depletion_entry;
+	mc_cfg.depletion_exit = cfg->depletion_exit;
+	mc_cfg.surplus_entry = 0;
+	mc_cfg.surplus_exit = 0;
+	mc_cfg.message_iova = cfg->message_iova;
+	mc_cfg.message_ctx = cfg->message_ctx;
+	mc_cfg.options = cfg->options;
+	for (i = 0; i < pools_params.num_dpbp; i++) {
+		/* Not requested notification on a pool */
+		if ((pools_params.pools[i].backup_pool &&
+		     !(flags & DPNI_DRV_BACKUP_POOL_NOTIF)) ||
+		    (!pools_params.pools[i].backup_pool &&
+		     !(flags & DPNI_DRV_DEFAULT_POOL_NOTIF)))
+			continue;
+		dp_bpid = pools_params.pools[i].dpbp_id;
+		/* Open DPBP control session */
+		err = dpbp_open(&dprc->io, 0, dp_bpid, &dpbp);
+		if (err) {
+			pr_err("Open DPBP@%d\n", dp_bpid);
+			return err;
+		}
+		/* Configure the notification of this pool */
+		err = dpbp_set_notifications(&dprc->io, 0, dpbp, &mc_cfg);
+		if (err) {
+			pr_err("Notification set for DPBP@%d.\n", dp_bpid);
+			/* Close DPBP control session */
+			if (dpbp_close(&dprc->io, 0, dpbp))
+				pr_err("Close DPBP@%d.\n", dp_bpid);
+			return err;
+		}
+		/* Close DPBP control session */
+		err = dpbp_close(&dprc->io, 0, dpbp);
+		if (err) {
+			pr_err("Close DPBP@%d.\n", dp_bpid);
+			return err;
+		}
+	}
+	return 0;
+}
+
+/******************************************************************************/
+int dpni_drv_get_pool_depletion(uint32_t flags, struct dpni_drv_bpscn_cfg *cfg)
+{
+	struct mc_dprc			*dprc;
+	int				i, err, dp_bpid;
+	uint16_t			dpbp;
+	struct dpbp_notification_cfg	mc_cfg;
+
+	/* Backup pool notification requested, but backup pool is disabled */
+	if ((flags & DPNI_DRV_BACKUP_POOL_NOTIF) ==
+	    DPNI_DRV_BACKUP_POOL_NOTIF &&
+	    (g_app_params.app_config_flags & DPNI_BACKUP_POOL_DISABLE)) {
+			pr_warn("Backup pool not enabled\n");
+			return -EINVAL;
+	}
+	/* Only one flag may be set */
+	if ((flags & DPNI_DRV_DEFAULT_POOL_NOTIF) !=
+	    DPNI_DRV_DEFAULT_POOL_NOTIF &&
+	    (flags & DPNI_DRV_BACKUP_POOL_NOTIF) !=
+	    DPNI_DRV_BACKUP_POOL_NOTIF) {
+		pr_warn("Only one flag must be set\n");
+		return -EINVAL;
+	}
+	dprc = sys_get_unique_handle(FSL_MOD_AIOP_RC);
+	if (!dprc) {
+		pr_err("No AIOP container found\n");
+		return -ENODEV;
+	}
+	for (i = 0; i < pools_params.num_dpbp; i++) {
+		/* Not requested notification on a pool */
+		if ((pools_params.pools[i].backup_pool &&
+		     !(flags & DPNI_DRV_BACKUP_POOL_NOTIF)) ||
+		    (!pools_params.pools[i].backup_pool &&
+		     !(flags & DPNI_DRV_DEFAULT_POOL_NOTIF)))
+			continue;
+		dp_bpid = pools_params.pools[i].dpbp_id;
+		/* Open DPBP control session */
+		err = dpbp_open(&dprc->io, 0, dp_bpid, &dpbp);
+		if (err) {
+			pr_err("Open DPBP@%d\n", dp_bpid);
+			return err;
+		}
+		/* Configure the notification of this pool */
+		err = dpbp_get_notifications(&dprc->io, 0, dpbp, &mc_cfg);
+		if (err) {
+			pr_err("Notification get for DPBP@%d.\n", dp_bpid);
+			/* Close DPBP control session */
+			if (dpbp_close(&dprc->io, 0, dpbp))
+				pr_err("Close DPBP@%d.\n", dp_bpid);
+			return err;
+		}
+		/* Close DPBP control session */
+		err = dpbp_close(&dprc->io, 0, dpbp);
+		if (err) {
+			pr_err("Close DPBP@%d.\n", dp_bpid);
+			return err;
+		}
+		cfg->depletion_entry = mc_cfg.depletion_entry;
+		cfg->depletion_exit = mc_cfg.depletion_exit;
+		cfg->message_iova = mc_cfg.message_iova;
+		cfg->message_ctx = mc_cfg.message_ctx;
+		cfg->options = mc_cfg.options;
+	}
+	return 0;
+}
+
+/******************************************************************************/
+__COLD_CODE int dpni_drv_get_fqid(uint16_t ni_id,
+				  enum dpni_drv_queue_type qtype, uint8_t tc,
+				  uint32_t *fqid)
+{
+	struct mc_dprc		*dprc;
+	int			err, err_close;
+	struct dpni_queue	queue = {0};
+	struct dpni_queue_id	queue_id;
+	uint16_t		dpni_token;
+	struct dpni_attr	attr = {0};
+
+	dprc = sys_get_unique_handle(FSL_MOD_AIOP_RC);
+	if (!dprc) {
+		pr_err("No AIOP container found\n");
+		return -ENODEV;
+	}
+	cdma_mutex_lock_take((uint64_t)nis, CDMA_MUTEX_READ_LOCK);
+	err = dpni_open(&dprc->io, 0, (int)nis[ni_id].dpni_id, &dpni_token);
+	cdma_mutex_lock_release((uint64_t)nis);
+	if (err) {
+		pr_err("dpni_open() failed\n");
+		return err;
+	}
+	err = dpni_get_attributes(&dprc->io, 0, dpni_token, &attr);
+	if (err) {
+		pr_err("dpni_get_attributes() failed\n");
+		err_close = dpni_close(&dprc->io, 0, dpni_token);
+		if (err_close)
+			pr_err("dpni_close() failed");
+		return err;
+	}
+	if (tc >= attr.num_rx_tcs) {
+		pr_err("Invalid TC (%d >= %d)\n", tc, attr.num_rx_tcs);
+		err = dpni_close(&dprc->io, 0, dpni_token);
+		if (err)
+			pr_err("dpni_close() failed");
+		return -ENOENT;
+	}
+	/* Now queue index is forced to 0. The following assert checks the
+	 * distribution size is 1. If this changes, the index parameter must be
+	 * added in API */
+	ASSERT_COND(DPNI_DEFAULT_DIST_SIZE == 1);
+	err = dpni_get_queue(&dprc->io, 0, dpni_token,
+			     (enum dpni_queue_type)qtype, tc, 0, &queue,
+			     &queue_id);
+	if (err) {
+		pr_err("dpni_get_queue() failed");
+		err_close = dpni_close(&dprc->io, 0, dpni_token);
+		if (err_close)
+			pr_err("dpni_close() failed");
+		return err;
+	}
+	*fqid = queue_id.fqid;
+	err = dpni_close(&dprc->io, 0, dpni_token);
+	if (err) {
+		pr_err("dpni_close() failed");
 		return err;
 	}
 	return 0;

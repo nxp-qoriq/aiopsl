@@ -102,4 +102,60 @@ int ep_mng_set_initial_presentation(
 	uint16_t epid,
 	const struct ep_init_presentation* const init_presentation);
 
+/**************************************************************************//**
+@Function	ep_mng_set_bpscn_bdi_icid
+
+@Description	Function to set BPSCN tasks BDI and ICID attributes.
+		By default the attributes are set by AIOP_SL
+			BDI = 1
+			ICID = AIOP ICID
+		One may use this function to change them.
+
+@Param[in]	bdi	:  Bypass Datapath Isolation (1 bit)
+@Param[in]	icid	:  Isolation Context ID (15 bits)
+
+@Return		None
+*//***************************************************************************/
+void ep_mng_set_bpscn_bdi_icid(uint8_t bdi, uint16_t icid);
+
+/**************************************************************************//**
+@Function	ep_mng_get_bpscn_bdi_icid
+
+@Description	Function to get BPSCN tasks BDI and ICID attributes.
+
+@Param[out]	bdi	:  Received BDI value
+@Param[out]	icid	:  Receives the ICID value
+
+@Return		None
+*//***************************************************************************/
+void ep_mng_get_bpscn_bdi_icid(uint8_t *bdi, uint16_t *icid);
+
+/**************************************************************************//**
+@Function	ep_mng_set_cscn_bdi_icid
+
+@Description	Function to set CSCN tasks BDI and ICID attributes.
+		By default the attributes are set by AIOP_SL
+			BDI = 1
+			ICID = AIOP ICID
+		One may use this function to change them.
+
+@Param[in]	bdi	:  Bypass Datapath Isolation (1 bit)
+@Param[in]	icid	:  Isolation Context ID (15 bits)
+
+@Return		None
+*//***************************************************************************/
+void ep_mng_set_cscn_bdi_icid(uint8_t bdi, uint16_t icid);
+
+/**************************************************************************//**
+@Function	ep_mng_get_cscn_bdi_icid
+
+@Description	Function to get CSCN tasks BDI and ICID attributes.
+
+@Param[out]	bdi	:  Received BDI value
+@Param[out]	icid	:  Receives the ICID value
+
+@Return		None
+*//***************************************************************************/
+void ep_mng_get_cscn_bdi_icid(uint8_t *bdi, uint16_t *icid);
+
 #endif

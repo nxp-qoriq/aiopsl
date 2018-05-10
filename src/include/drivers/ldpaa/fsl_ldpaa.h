@@ -106,6 +106,10 @@
 #define FD_FLC_STASH_MASK	0xFFFFFFFFFFFFFFC0
 	/** FD Flow Context mask (without stashing) */
 #define FD_FLC_NO_STASH_MASK	0xFFFFFFFFFFFFFFFF
+	/** FD CSCN/BPSCN state mask */
+#define FD_SCN_STATE_MASK	0x0001
+	/** FD EPID mask */
+#define FD_EPID_MASK		0x03FF
 
 /* Frame Descriptor (FD) Fields Offsets */
 	/** FD address offset */
@@ -132,6 +136,10 @@
 #define FD_DD_SC_DROPP_OFFSET	0x17
 	/** FD dd_sc_dropp offset */
 #define FD_FLC_DS_AS_CS_OFFSET	0x18
+	/** FD CSCN/BPSCN offset */
+#define FD_SCN_OFFSET		0x1C
+	/** FD EPID offset */
+#define FD_EPID_OFFSET		0x18
 
 /* Frame Descriptor (FD) Fields Shifts */
 	/** FD MEM shift */

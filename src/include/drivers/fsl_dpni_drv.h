@@ -558,9 +558,9 @@ enum dpni_drv_early_drop_mode {
 
 *//***************************************************************************/
 enum dpni_drv_congestion_unit {
-	/* bytes units */
+	/** Bytes units */
 	DPNI_DRV_CONGESTION_UNIT_BYTES = 0,
-	/* frames units */
+	/** Frames units */
 	DPNI_DRV_CONGESTION_UNIT_FRAMES
 };
 
@@ -605,7 +605,6 @@ struct dpni_drv_early_drop_cfg {
 
 /** Get PEB free buffers */
 #define DPNI_DRV_PEB_FREE_BUFS		0x01
-
 /** Get backup (DDR) free buffers */
 #define DPNI_DRV_BACKUP_FREE_BUFS	0x02
 
@@ -616,10 +615,14 @@ struct dpni_drv_early_drop_cfg {
 
 *//***************************************************************************/
 struct dpni_drv_free_bufs {
-	/* Number of free buffers in PEB pools */
+	/** Number of free buffers in PEB pool */
 	uint32_t peb_bp_free_bufs;
-	/* Number of free buffers in DDR backup pools */
+	/** Number of free buffers in DDR backup pool */
 	uint32_t backup_bp_free_bufs;
+	/** PEB pool ID */
+	uint16_t peb_bpid;
+	/** Backup pool ID */
+	uint16_t backup_bpid;
 };
 
 /**************************************************************************//**
@@ -684,6 +687,21 @@ struct dpni_drv_early_drop {
 	struct dpni_drv_wred red;
 };
 
+/**************************************************************************//**
+@Description	 enum dpni_drv_queue_type - Type of DPNI queue.
+
+*//***************************************************************************/
+enum dpni_drv_queue_type {
+	/* RX queue */
+	DPNI_DRV_QUEUE_RX,
+	/* TX queue */
+	DPNI_DRV_QUEUE_TX,
+	/* TX confirmation queue */
+	DPNI_DRV_QUEUE_TX_CONFIRM,
+	/* RX error queue */
+	DPNI_DRV_QUEUE_RX_ERR
+};
+
 #include "fsl_dpni.h"
 
 /**************************************************************************//**
@@ -700,12 +718,6 @@ typedef struct dpni_pools_cfg dpni_drv_pools_cfg;
 typedef union dpni_statistics dpni_drv_statistics;
 
 /**************************************************************************//**
-@Description	dpni_drv_queue_type - Identifies a type of queue.
-
-*//***************************************************************************/
-typedef enum dpni_queue_type dpni_drv_queue_type;
-
-/**************************************************************************//**
 @Description	struct dpni_drv_congestion_notification_cfg - Structure
 		representing congestion notification configuration.
 
@@ -719,11 +731,100 @@ struct dpni_drv_congestion_notification_cfg {
 	uint32_t threshold_exit;
 	/** Mask of available options;
 	 * Use the following values:
+	 * 'DPNI_CONG_OPT_WRITE_MEM_ON_ENTER',
+	 * 'DPNI_CONG_OPT_WRITE_MEM_ON_EXIT',
 	 * 'DPNI_CONG_OPT_NOTIFY_DEST_ON_ENTER',
 	 * 'DPNI_CONG_OPT_NOTIFY_DEST_ON_EXIT',
 	 * 'DPNI_CONG_OPT_FLOW_CONTROL' (This will have effect only if
-	 * flow control is enabled with dpni_set_link_cfg()) */
+	 * flow control is enabled with dpni_set_link_cfg())
+	 * 'DPNI_CONG_OPT_NOTIFY_AIOP',
+	 * 'DPNI_CONG_OPT_NOTIFY_WRIOP'
+	 *
+	 * If the DPNI_CONG_OPT_NOTIFY_AIOP option is configured, an AIOP task
+	 * is created whenever the congestion state changes.
+	 *
+	 * If the DPNI_DRV_CONG_NOTIF_OPT_WRIOP option is configured, the
+	 * DPNI's belonging to AIOP container are notified about the congestion
+	 * state change. If the PFC/Pause functionality was configured on a
+	 * DPNI, PFC/Pause frames are sent by that DPNI when the congested state
+	 * is detected.
+	 *
+	 * Any AIOP task may detect state changes by reading the status message
+	 * written in message_iova. To get the needed information, use the
+	 * \ref LDPAA_CSCN_MACROS macros.
+	 *
+	 * The 2 above options fields may be :
+	 *	- not set : No notification is sent to AIOP and/or DPNI.
+	 *	- OR'ed combined : Notifications are sent to AIOP only,
+	 *	to AIOP DPNI's only or to the both.
+	 */
 	uint16_t notification_mode;
+	/** I/O virtual address. Must be :
+	 *	- in DMA-able memory. One of PEB, SYS-DDR or DP-DDR (only on
+	 *	LS2088) memory partitions.
+	 *	- 16 bytes aligned
+	 * It is valid only if DPNI_CONG_OPT_WRITE_MEM_ON_X is contained in the
+	 * notification mode */
+	uint64_t message_iova;
+	/** Opaque value provided by the application and returned to it, in
+	 * message_iova, when the congestion state changes. */
+	uint64_t message_ctx;
+};
+
+/** Configure depletion notifications of the DPNI default pool (with buffers
+ * from PEB) */
+#define DPNI_DRV_DEFAULT_POOL_NOTIF	0x01
+
+/** Configure depletion notifications of the DPNI backup pool (with buffers
+ * from DDR or DP-DDR) */
+#define DPNI_DRV_BACKUP_POOL_NOTIF	0x02
+
+/* Notify WRIOP when BP depletion state changes */
+#define DPNI_DRV_DEPL_NOTIF_OPT_WRIOP	0x00010000
+
+/* Notify AIOP when BP depletion state changes */
+#define DPNI_DRV_DEPL_NOTIF_OPT_AIOP	0x00020000
+
+/**************************************************************************//**
+@Description	struct dpni_drv_bpscn_cfg - Structure representing a DPNI buffer
+		pool state change notification configuration.
+
+*//***************************************************************************/
+struct dpni_drv_bpscn_cfg {
+	/** Below this threshold the pool is depleted. Must be grater than 0. */
+	uint32_t	depletion_entry;
+	/** Greater than or equal to this threshold the pool exits the depleted
+	 * state. Must be grater than depletion entry value. */
+	uint32_t	depletion_exit;
+	/** I/O virtual address. Must be :
+	 *	- in DMA-able memory. One of PEB, SYS-DDR or DP-DDR (only on
+	 *	LS2088) memory partitions.
+	 *	- 16 bytes aligned
+	 * It is valid only if DPNI_DEPL_OPT_WRITE_MEM_ON_X is contained in the
+	 * options */
+	uint64_t	message_iova;
+	/** Opaque value provided by the application and returned to it, in
+	 * message_iova, when the buffer pool state changes. */
+	uint64_t	message_ctx;
+	/** If the DPNI_DRV_DEPL_NOTIF_OPT_AIOP option is configured, an AIOP
+	 * task is created whenever the buffer pool depletion state changes.
+	 *
+	 * If the DPNI_DRV_DEPL_NOTIF_OPT_WRIOP option is configured, the
+	 * DPNI's belonging to AIOP container are notified about the depletion
+	 * state change. If the PFC/Pause functionality was configured on a
+	 * DPNI, PFC/Pause frames are sent by that DPNI when the depleted state
+	 * is detected.
+	 *
+	 * Any AIOP task may detect state reading by reading the status message
+	 * written in message_iova. To get the needed information, use the
+	 * \ref LDPAA_BPSCN_MACROS macros.
+	 *
+	 * The 2 above options fields may be :
+	 *	- not set : No notification is sent to AIOP and/or DPNI.
+	 *	- OR'ed combined : Notifications are sent to AIOP only, to AIOP
+	 *	DPNI's only or to the both.
+	 */
+	uint32_t	options;
 };
 
 /**************************************************************************//**
@@ -2335,7 +2436,7 @@ int dpni_drv_set_pools(uint16_t ni_id, dpni_drv_pools_cfg *cfg);
 	error code, otherwise. For error posix refer to \ref error_g
 *//***************************************************************************/
 int dpni_drv_set_congestion_notification(uint16_t ni_id, uint8_t tc,
-			dpni_drv_queue_type qtype,
+					 enum dpni_drv_queue_type qtype,
 			struct dpni_drv_congestion_notification_cfg *cfg);
 
 /**************************************************************************//**
@@ -2355,7 +2456,7 @@ int dpni_drv_set_congestion_notification(uint16_t ni_id, uint8_t tc,
 	error code, otherwise. For error posix refer to \ref error_g
 *//***************************************************************************/
 int dpni_drv_get_congestion_notification(uint16_t ni_id, uint8_t tc,
-			dpni_drv_queue_type qtype,
+					 enum dpni_drv_queue_type qtype,
 			struct dpni_drv_congestion_notification_cfg *cfg);
 
 
@@ -2472,6 +2573,59 @@ int dpni_drv_set_tx_hw_annotation(uint16_t ni_id, uint32_t hw_anno);
 	error code, otherwise. For error posix refer to \ref error_g
 *//***************************************************************************/
 int dpni_drv_get_tx_hw_annotation(uint16_t ni_id, uint32_t *hw_anno);
+
+/**************************************************************************//**
+@Function	dpni_drv_set_pool_depletion
+
+@Description	Configures the notifications on a buffer pool state change.
+
+@Param[in]	flags : OR-ed flags selecting the pool :
+			DPNI_DRV_DEFAULT_POOL_NOTIF,
+			DPNI_DRV_BACKUP_POOL_NOTIF.
+
+@Param[in]	cfg : Structure containing the pool depletion configuration.
+		See \ref dpni_drv_bpscn_cfg.
+@Return	0 on success;
+	error code, otherwise. For error posix refer to \ref error_g
+*//***************************************************************************/
+int dpni_drv_set_pool_depletion(uint32_t flags, struct dpni_drv_bpscn_cfg *cfg);
+
+/**************************************************************************//**
+@Function	dpni_drv_get_pool_depletion
+
+@Description	Get the notifications configuration of a buffer pool.
+
+@Param[in]	flags : One of the selecting the pool flags :
+			DPNI_DRV_DEFAULT_POOL_NOTIF,
+			DPNI_DRV_BACKUP_POOL_NOTIF.
+
+@Param[out]	cfg : Structure receiving the pool depletion configuration.
+		See \ref dpni_drv_bpscn_cfg.
+
+@Return	0 on success;
+	error code, otherwise. For error posix refer to \ref error_g
+*//***************************************************************************/
+int dpni_drv_get_pool_depletion(uint32_t flags, struct dpni_drv_bpscn_cfg *cfg);
+
+/**************************************************************************//**
+@Function	dpni_drv_get_fqid
+
+@Description	Get the FQID of a specified queue type.
+
+@Param[in]	ni_id : The AIOP Network Interface ID
+
+@Param[in]	qtype : Queue type. See \ref dpni_drv_queue_type
+
+@Param[in]	tc : Traffic class, in range 0 to number of configured traffic
+		classes minus 1.
+
+@Param[out]	fqid : ID of the queue.
+
+@Return	0 on success;
+	error code, otherwise. For error posix refer to \ref error_g
+*//***************************************************************************/
+int dpni_drv_get_fqid(uint16_t ni_id, enum dpni_drv_queue_type qtype,
+		      uint8_t tc, uint32_t *fqid);
 
 #ifdef SL_DEBUG
 /**************************************************************************//**

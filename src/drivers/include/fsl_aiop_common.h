@@ -50,11 +50,15 @@
  @Description   EPID table
 *//***************************************************************************/
 enum aiop_epid_table {
-       AIOP_EPID_CMDIF_SERVER    = 0,     /**< EPID for command interface server*/
-       AIOP_EPID_TIMER_EVENT_IDX = 1,     /**< EPID for T-MAN block */
-       AIOP_EPID_CMDIF_CLIENT    = 2,     /**< EPID for command interface client */
-       AIOP_EPID_DPNI_START      = 3,     /**< DPNI's first EPID */
-       AIOP_EPID_TABLE_SIZE      = 1024   /**< MAX number of EPID's */
+	AIOP_EPID_CMDIF_SERVER    = 0,     /**< EPID for command interface
+						server*/
+	AIOP_EPID_TIMER_EVENT_IDX = 1,     /**< EPID for T-MAN block */
+	AIOP_EPID_CMDIF_CLIENT    = 2,     /**< EPID for command interface
+						client */
+	AIOP_EPID_DPNI_START      = 3,     /**< DPNI's first EPID */
+	AIOP_EPID_BPSCN_EVENT_IDX = 1022,  /**< EPID for BPSCN notifications */
+	AIOP_EPID_CSCN_EVENT_IDX  = 1023,  /**< EPID for CSCN notifications */
+	AIOP_EPID_TABLE_SIZE      = 1024   /**< MAX number of EPID's */
 };
 
 /**************************************************************************//**
@@ -328,15 +332,31 @@ struct aiop_ws_regs {
 	uint32_t ep_spa; /* Entry point segment presentation address */
 	uint32_t ep_spo; /* Entry point segment presentation offset */
 	uint32_t ep_osc; /* Entry point order scope construction */
-	uint8_t reserved6[0xD8];
+	/* 0x120 : Entry Point Initial Scope Value */
+	uint32_t ep_isv;
+	/* 0x124 - Reserved */
+	uint8_t reserved6[0xd4];
 
 	/* Channel Configuration */
 	uint32_t cas; /* Channel access select */
 	uint8_t reserved7[0x4];
 	uint32_t ch_cfga; /* Channel configuration A */
 	uint32_t ch_cfgb; /* Channel configuration B */
-	uint8_t reserved8[0xF4];
-	uint32_t fc_cfg; /* Flow control configuration */
+	uint8_t reserved8[0xd8];
+	/* 0x2E0 : Flow Control Congestion Group ICID */
+	uint32_t fc_cg_icid;
+	/* 0x2E4 : Flow Control Buffer Pool ICID */
+	uint32_t fc_bp_icid;
+	/* 0x2E8 - Reserved */
+	uint8_t reserved8_1[0x8];
+	/* 0x2F0 : Flow Control Task Size */
+	uint32_t fc_tsk_sz;
+	/* 0x2F4 : Flow Control Congestion Group Debug */
+	uint32_t fc_cg_dbg;
+	/* 0x2F8 : Flow Control Buffer Pool Debug */
+	uint32_t fc_bp_dbg;
+	/* 0x2FC : Flow Control Configuration */
+	uint32_t fc_cfg;
 	struct aiop_ws_flow_ctrl_class class_regs[8];
 	/* Class flow control registers */
 	uint8_t reserved9[0x60];

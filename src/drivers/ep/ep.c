@@ -26,6 +26,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
+#include "system.h"
 #include "fsl_sys.h"
 #include "fsl_cdma.h"
 #include "fsl_ep.h"
@@ -33,6 +34,9 @@
 #include "fsl_aiop_common.h"
 #include "fsl_io_ccsr.h"
 #include "fsl_dbg.h"
+#include "osm_inline.h"
+#include "fsl_fdma.h"
+#include "fsl_evmng.h"
 
 /* Supported options for initializing presentation fields*/
 #define EP_SUPPORTED_INIT_PRESENTATION_OPTIONS    \
@@ -63,6 +67,8 @@
 #define NDS_MASK                  0x02000000
 #define NDS_SHIFT                 25
 #define SPO_MASK                  0x0000FFFF
+#define SCN_ICID_MASK		  0x00007FFF
+#define SCN_BDI_SHIFT		  15
 
 extern void discard_rx_cb();
 extern void tman_timer_callback(void);
@@ -71,7 +77,6 @@ extern void cmdif_srv_isr(void);
 
 int ep_mng_init(void);
 void ep_mng_free(void);
-
 
 int ep_mng_get_initial_presentation(
 	uint16_t epid,
@@ -354,6 +359,25 @@ static int cmdif_epid_setup(struct aiop_ws_regs *wrks_addr,
 	return err;
 }
 
+/******************************************************************************/
+__declspec(weak) __HOT_CODE void bpscn_callback(void)
+{
+	osm_task_init();
+
+	pr_warn("BPSCN notification received. Task terminated !\n");
+	fdma_terminate_task();
+}
+
+/******************************************************************************/
+__declspec(weak) __HOT_CODE void cscn_callback(void)
+{
+	osm_task_init();
+
+	pr_warn("CSCN notification received. Task terminated !\n");
+	fdma_terminate_task();
+}
+
+/******************************************************************************/
 int ep_mng_init(void)
 {
 	int i = 0;
@@ -362,6 +386,7 @@ int ep_mng_init(void)
 	struct aiop_tile_regs *tile_regs = (struct aiop_tile_regs *)
 			sys_get_handle(FSL_MOD_AIOP_TILE, 1);
 	struct aiop_ws_regs *wrks_addr = &tile_regs->ws_regs;
+	uint32_t	val32;
 
 	/* CMDIF server epid initialization here*/
 	err |= cmdif_epid_setup(wrks_addr, AIOP_EPID_CMDIF_SERVER, cmdif_srv_isr);
@@ -401,16 +426,165 @@ int ep_mng_init(void)
 	err |= cmdif_epid_setup(wrks_addr, AIOP_EPID_CMDIF_CLIENT, cmdif_cl_isr);
 
 	/* Initialize EPID-table with discard_rx_cb for all NI's entries (EP_PC field) */
-	for (i = AIOP_EPID_DPNI_START; i < AIOP_EPID_TABLE_SIZE; i++) {
+	for (i = AIOP_EPID_DPNI_START; i < AIOP_EPID_BPSCN_EVENT_IDX; i++) {
 		/* Prepare to write to entry i in EPID table - EPAS reg */
 		iowrite32_ccsr((uint32_t)i, &wrks_addr->epas);
 
 		iowrite32_ccsr(PTR_TO_UINT(discard_rx_cb), &wrks_addr->ep_pc);
 	}
-
+	/*****************************/
+	/* BPSCN EPID initialization */
+	/*****************************/
+	iowrite32_ccsr(AIOP_EPID_BPSCN_EVENT_IDX, &wrks_addr->epas);
+	iowrite32_ccsr(PTR_TO_UINT(bpscn_callback), &wrks_addr->ep_pc);
+	 /* Set the NDS (No Data Segment) bit */
+	iowrite32_ccsr(0x02000000, &wrks_addr->ep_spo);
+	 /* Configure
+	  *	- Source (SRC = 1) : Scope ID taken from the specified slice of
+	  *	the received frame's FD[FLC] field. Slice is specified in the
+	  *	SEL field. Bit mask = 0x10000000
+	  *	- Entry Phase (EP = 1) : Executing Exclusively
+	  *	Bit mask = 0x01000000
+	  *	- Select (SEL = 1) : Order Scope ID is taken from FLC[47:16].
+	  *	Scope ID is BPID << 16. Bit mask = 0x00030000
+	  *	- Order Scope Range Mask (OSRM = 0) : Mask is 0xFFFF_FFFF
+	  *	Bit mask = 0x00000007
+	  */
+	iowrite32_ccsr(0x11010000, &wrks_addr->ep_osc);
+	data = ioread32_ccsr(&wrks_addr->ep_osc);
+	if (data != 0x11010000)
+		err |= -EINVAL;
+	pr_info("BPSCN is setting EPID = %d\n", AIOP_EPID_BPSCN_EVENT_IDX);
+	pr_info("ep_pc = 0x%x\n", ioread32_ccsr(&wrks_addr->ep_pc));
+	pr_info("ep_fdpa = 0x%x\n", ioread32_ccsr(&wrks_addr->ep_fdpa));
+	pr_info("ep_ptapa = 0x%x\n", ioread32_ccsr(&wrks_addr->ep_ptapa));
+	pr_info("ep_asapa = 0x%x\n", ioread32_ccsr(&wrks_addr->ep_asapa));
+	pr_info("ep_spa = 0x%x\n", ioread32_ccsr(&wrks_addr->ep_spa));
+	pr_info("ep_spo = 0x%x\n", ioread32_ccsr(&wrks_addr->ep_spo));
+	pr_info("ep_osc = 0x%x\n", ioread32_ccsr(&wrks_addr->ep_osc));
+	/* Configure BPSCN EPID in FC_CFG */
+	val32 = ioread32_ccsr(&wrks_addr->fc_cfg);
+	val32 |= AIOP_EPID_BPSCN_EVENT_IDX;
+	iowrite32_ccsr(val32, &wrks_addr->fc_cfg);
+	val32 = ioread32_ccsr(&wrks_addr->fc_cfg);
+	pr_info("[0x%x] fc_cfg = 0x%x\n", (uint32_t)&wrks_addr->fc_cfg, val32);
+	/* Configure BPSCN tasks BDI and ICID attributes */
+	ep_mng_set_bpscn_bdi_icid(icontext_aiop.bdi_flags &
+				  FDMA_ENF_BDI_BIT ? 1 : 0, icontext_aiop.icid);
+	val32 = ioread32_ccsr(&wrks_addr->fc_bp_icid);
+	pr_info("[0x%x] fc_bp_icid = 0x%x\n", (uint32_t)&wrks_addr->fc_bp_icid,
+		val32);
+	/****************************/
+	/* CSCN EPID initialization */
+	/****************************/
+	iowrite32_ccsr(AIOP_EPID_CSCN_EVENT_IDX, &wrks_addr->epas);
+	iowrite32_ccsr(PTR_TO_UINT(cscn_callback), &wrks_addr->ep_pc);
+	 /* Set the NDS (No Data Segment) bit */
+	iowrite32_ccsr(0x02000000, &wrks_addr->ep_spo);
+	 /* Configure
+	  *	- Source (SRC = 1) : Scope ID taken from the specified slice of
+	  *	the received frame's FD[FLC] field. Slice is specified in the
+	  *	SEL field. Bit mask = 0x10000000
+	  *	- Entry Phase (EP = 1) : Executing Exclusively
+	  *	Bit mask = 0x01000000
+	  *	- Select (SEL = 1) : Order Scope ID is taken from FLC[47:16].
+	  *	Scope ID is CGID << 16. Bit mask = 0x00030000
+	  *	- Order Scope Range Mask (OSRM = 0) : Mask is 0xFFFF_FFFF
+	  *	Bit mask = 0x00000007
+	  */
+	iowrite32_ccsr(0x11010000, &wrks_addr->ep_osc);
+	data = ioread32_ccsr(&wrks_addr->ep_osc);
+	if (data != 0x11010000)
+		err |= -EINVAL;
+	pr_info("CSCN is setting EPID = %d\n", AIOP_EPID_CSCN_EVENT_IDX);
+	pr_info("ep_pc = 0x%x\n", ioread32_ccsr(&wrks_addr->ep_pc));
+	pr_info("ep_fdpa = 0x%x\n", ioread32_ccsr(&wrks_addr->ep_fdpa));
+	pr_info("ep_ptapa = 0x%x\n", ioread32_ccsr(&wrks_addr->ep_ptapa));
+	pr_info("ep_asapa = 0x%x\n", ioread32_ccsr(&wrks_addr->ep_asapa));
+	pr_info("ep_spa = 0x%x\n", ioread32_ccsr(&wrks_addr->ep_spa));
+	pr_info("ep_spo = 0x%x\n", ioread32_ccsr(&wrks_addr->ep_spo));
+	pr_info("ep_osc = 0x%x\n", ioread32_ccsr(&wrks_addr->ep_osc));
+	/* Configure CSCN EPID in FC_CFG */
+	val32 = ioread32_ccsr(&wrks_addr->fc_cfg);
+	val32 |= AIOP_EPID_CSCN_EVENT_IDX << 16;
+	iowrite32_ccsr(val32, &wrks_addr->fc_cfg);
+	val32 = ioread32_ccsr(&wrks_addr->fc_cfg);
+	pr_info("[0x%x] fc_cfg = 0x%x\n", (uint32_t)&wrks_addr->fc_cfg, val32);
+	/* Configure BPSCN tasks BDI and ICID attributes */
+	ep_mng_set_cscn_bdi_icid(icontext_aiop.bdi_flags &
+				 FDMA_ENF_BDI_BIT ? 1 : 0, icontext_aiop.icid);
+	val32 = ioread32_ccsr(&wrks_addr->fc_cg_icid);
+	pr_info("[0x%x] fc_cg_icid = 0x%x\n", (uint32_t)&wrks_addr->fc_cg_icid,
+		val32);
 	return err;
 }
 
 void ep_mng_free(void)
 {
+}
+
+/******************************************************************************/
+__COLD_CODE void ep_mng_set_bpscn_bdi_icid(uint8_t bdi, uint16_t icid)
+{
+	struct aiop_tile_regs		*tregs;
+	struct aiop_ws_regs		*wregs;
+	uint32_t			val32;
+
+	tregs = (struct aiop_tile_regs *)sys_get_handle(FSL_MOD_AIOP_TILE, 1);
+	ASSERT_COND(tregs);
+	wregs = &tregs->ws_regs;
+	val32 = ioread32_ccsr(&wregs->fc_bp_icid);
+	val32 = (bdi) ? 1 << SCN_BDI_SHIFT : 0;
+	val32 |= icid & SCN_ICID_MASK;
+	iowrite32_ccsr(val32, &wregs->fc_bp_icid);
+}
+
+/******************************************************************************/
+__COLD_CODE void ep_mng_get_bpscn_bdi_icid(uint8_t *bdi, uint16_t *icid)
+{
+	struct aiop_tile_regs		*tregs;
+	struct aiop_ws_regs		*wregs;
+	uint32_t			val32;
+
+	tregs = (struct aiop_tile_regs *)sys_get_handle(FSL_MOD_AIOP_TILE, 1);
+	ASSERT_COND(tregs);
+	ASSERT_COND(bdi);
+	ASSERT_COND(icid);
+	wregs = &tregs->ws_regs;
+	val32 = ioread32_ccsr(&wregs->fc_bp_icid);
+	*bdi = (uint8_t)(val32 >> SCN_BDI_SHIFT);
+	*icid = (uint16_t)(val32 & SCN_ICID_MASK);
+}
+
+/******************************************************************************/
+__COLD_CODE void ep_mng_set_cscn_bdi_icid(uint8_t bdi, uint16_t icid)
+{
+	struct aiop_tile_regs		*tregs;
+	struct aiop_ws_regs		*wregs;
+	uint32_t			val32;
+
+	tregs = (struct aiop_tile_regs *)sys_get_handle(FSL_MOD_AIOP_TILE, 1);
+	ASSERT_COND(tregs);
+	wregs = &tregs->ws_regs;
+	val32 = ioread32_ccsr(&wregs->fc_cg_icid);
+	val32 = (bdi) ? 1 << SCN_BDI_SHIFT : 0;
+	val32 |= icid & SCN_ICID_MASK;
+	iowrite32_ccsr(val32, &wregs->fc_cg_icid);
+}
+
+/******************************************************************************/
+__COLD_CODE void ep_mng_get_cscn_bdi_icid(uint8_t *bdi, uint16_t *icid)
+{
+	struct aiop_tile_regs		*tregs;
+	struct aiop_ws_regs		*wregs;
+	uint32_t			val32;
+
+	tregs = (struct aiop_tile_regs *)sys_get_handle(FSL_MOD_AIOP_TILE, 1);
+	ASSERT_COND(tregs);
+	ASSERT_COND(bdi);
+	ASSERT_COND(icid);
+	wregs = &tregs->ws_regs;
+	val32 = ioread32_ccsr(&wregs->fc_cg_icid);
+	*bdi = (uint8_t)(val32 >> SCN_BDI_SHIFT);
+	*icid = (uint16_t)(val32 & SCN_ICID_MASK);
 }

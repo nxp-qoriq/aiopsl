@@ -395,7 +395,7 @@ struct dpbp_notification_cfg {
 	uint32_t	surplus_exit;
 	uint64_t	message_iova;
 	uint64_t	message_ctx;
-	uint16_t	options;
+	uint32_t	options;
 };
 
 /**

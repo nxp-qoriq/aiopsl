@@ -1184,6 +1184,14 @@ struct dpni_dest_cfg {
  * only if flow control is enabled with dpni_set_link_cfg()
  */
 #define DPNI_CONG_OPT_FLOW_CONTROL	0x00000040
+/**
+ * Congestion state change notification is sent to AIOP
+ */
+#define DPNI_CONG_OPT_NOTIFY_AIOP	0x00000080
+/**
+ * Congestion state change notification is sent to WRIOP
+ */
+#define DPNI_CONG_OPT_NOTIFY_WRIOP	0x00000100
 
 /**
  * struct dpni_congestion_notification_cfg - congestion notification
