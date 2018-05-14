@@ -30,6 +30,7 @@
 #include "common/fsl_string.h"
 #include "fsl_sys.h"
 #include "apps.h"
+#include "fsl_platform.h"
 
 /* Functions prototype */
 int app_init(void);
@@ -37,6 +38,8 @@ int app_early_init(void);
 void app_free(void);
 
 void build_apps_array(struct sys_module_desc *apps);
+
+extern struct platform_app_params g_app_params;
 
 #endif /* __REFLECTOR_H */
 
