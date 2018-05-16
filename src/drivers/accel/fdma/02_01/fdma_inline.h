@@ -1078,16 +1078,14 @@ inline int fdma_present_default_frame_default_segment()
 inline int fdma_xon(enum fdma_flow_control_type type, uint32_t id, uint8_t tc)
 {
 	/* command parameters and results */
-	uint32_t arg1, arg2, arg3;
-	uint16_t adc_pl_icid, bdi, icid;
-	int8_t res1;
+	uint32_t	arg1, arg2, arg3;
+	uint32_t	bdi, icid;
+	int8_t		res1;
+	struct additional_dequeue_context *adc;
 
-	struct additional_dequeue_context *adc =
-		(struct additional_dequeue_context *)HWC_ADC_ADDRESS;
-	adc_pl_icid = LH_SWAP(0, &(adc->pl_icid));
-
-	icid = adc_pl_icid & ADC_ICID_MASK;
-	bdi = adc_pl_icid & ADC_BDI_MASK;
+	adc = (struct additional_dequeue_context *)HWC_ADC_ADDRESS;
+	icid = (uint32_t)(LH_SWAP(0, &adc->pl_icid) & ADC_ICID_MASK);
+	bdi = (uint32_t)(adc->fdsrc_va_fca_bdi & ADC_BDI_MASK);
 
 	if (type == FLOW_CONTROL_TC) {
 		/* prepare command parameters */
@@ -1121,16 +1119,14 @@ inline int fdma_xon(enum fdma_flow_control_type type, uint32_t id, uint8_t tc)
 inline int fdma_xoff(enum fdma_flow_control_type type, uint32_t id, uint8_t tc)
 {
 	/* command parameters and results */
-	uint32_t arg1, arg2, arg3;
-	uint16_t adc_pl_icid, bdi, icid;
-	int8_t res1;
+	uint32_t	arg1, arg2, arg3;
+	uint32_t	bdi, icid;
+	int8_t		res1;
+	struct additional_dequeue_context *adc;
 
-	struct additional_dequeue_context *adc =
-		(struct additional_dequeue_context *)HWC_ADC_ADDRESS;
-	adc_pl_icid = LH_SWAP(0, &(adc->pl_icid));
-
-	icid = adc_pl_icid & ADC_ICID_MASK;
-	bdi = adc_pl_icid & ADC_BDI_MASK;
+	adc = (struct additional_dequeue_context *)HWC_ADC_ADDRESS;
+	icid = (uint32_t)(LH_SWAP(0, &adc->pl_icid) & ADC_ICID_MASK);
+	bdi = (uint32_t)(adc->fdsrc_va_fca_bdi & ADC_BDI_MASK);
 
 	if (type == FLOW_CONTROL_TC) {
 		/* prepare command parameters */
