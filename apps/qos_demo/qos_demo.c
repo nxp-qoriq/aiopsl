@@ -79,24 +79,33 @@
 
 #define PRESENTATION_LENGTH		64
 
-uint64_t		print_lock __attribute__ ((aligned(8)));
-#define LOCK_PRINT()	lock_spinlock(&print_lock)
-#define UNLOCK_PRINT()	unlock_spinlock(&print_lock)
+/* Define CSCN_CONGESTION_TEST to perform the CSCN congestion test */
+/*#define CSCN_CONGESTION_TEST*/
+/* Define BPSCN_DEPLETION_TEST to perform the BPSCN congestion test */
+/*#define BPSCN_DEPLETION_TEST*/
+#if (defined(CSCN_CONGESTION_TEST) && defined(BPSCN_DEPLETION_TEST))
+	#error "None or only one macro should be defined"
+#endif
 
-uint32_t	first_task_id;
-int64_t		num_tasks  __attribute__ ((aligned(8)));
-int64_t		term_tasks  __attribute__ ((aligned(8)));
-uint64_t	is_congested;
-uint64_t	is_depleted;
-/* Size of State Change Notification information (Do not change it) */
-#define SCN_SIZE			64
-/* SCN information alignment (Do not change it) */
-#define SCN_ALIGN			16
-/* State offset in IOVA */
-#define SCN_STATE_OFFSET		0x02
+#if (defined(CSCN_CONGESTION_TEST) || defined(BPSCN_DEPLETION_TEST))
+	uint64_t		print_lock __attribute__ ((aligned(8)));
+	#define LOCK_PRINT()	lock_spinlock(&print_lock)
+	#define UNLOCK_PRINT()	unlock_spinlock(&print_lock)
 
-/* CSCN congestion test */
-#define CSCN_CONGESTION_TEST
+	uint32_t	first_task_id;
+	int64_t		num_tasks  __attribute__ ((aligned(8)));
+	int64_t		term_tasks  __attribute__ ((aligned(8)));
+	uint64_t	is_congested;
+	uint64_t	is_depleted;
+	/* Size of State Change Notification information (Do not change it) */
+	#define SCN_SIZE			64
+	/* SCN information alignment (Do not change it) */
+	#define SCN_ALIGN			16
+	/* State offset in IOVA */
+	#define SCN_STATE_OFFSET		0x02
+
+#endif	/* (defined(CSCN_CONGESTION_TEST) || defined(BPSCN_DEPLETION_TEST)) */
+
 #ifdef CSCN_CONGESTION_TEST
 	/* To get CSCN notifications in AIOP define CSCN_NOTIFY as
 	 *	DPNI_CONG_OPT_NOTIFY_AIOP.
@@ -136,7 +145,6 @@ uint64_t	is_depleted;
 
 #endif	/* CSCN_CONGESTION_TEST */
 
-/*#define BPSCN_DEPLETION_TEST*/
 #ifdef BPSCN_DEPLETION_TEST
 	/* To get BPSCN notifications in AIOP define BPSCN_NOTIFY as
 	 *	DPNI_DRV_DEPL_NOTIF_OPT_AIOP.
@@ -221,6 +229,7 @@ static void app_fill_qos_kg_profile(struct dpkg_profile_cfg *kg_cfg)
 	kg_cfg->extracts[0].extract.from_hdr.field = NET_HDR_FLD_IP_PROTO;
 }
 
+#if (defined(CSCN_CONGESTION_TEST) || defined(BPSCN_DEPLETION_TEST))
 /******************************************************************************/
 /* fmt = 0 - AIOP input frame (as it is received from DPNI, TMAN, ...
  * fmt = 1 - to GPP format
@@ -644,6 +653,109 @@ static void dump_osm_registers(const char *what)
 		  (uint32_t)&osm_regs->oeuomr, ioread32be(&osm_regs->oeuomr));
 }
 
+/******************************************************************************/
+static uint32_t get_stack_pointer(void)
+{
+	register uint32_t	sp;
+
+	asm { stw rsp, sp; }
+	return sp;
+}
+
+/******************************************************************************/
+static uint32_t get_task(void)
+{
+	register uint32_t	task;
+
+	asm { mfdcr  task, dcr476;	/* TASKCSR0 */ }
+	/* C:\E_Content\LinuxSDK\AIOP-SL\AIOP - e200
+	 * AIOP z490 CPU Specification rev1.8.pdf
+	 *
+	 * Bits 24:31 - TASKID : This field is provided for software use to
+	 * determine the active Task ID. This value is a global value for the
+	 * AIOP Tile, thus the most significant four bits are determined by
+	 * core cluster ID (bits 24:25) and core within cluster ID (bits 26:27).
+	 * The local task number is indicated in bits 28:31.
+	 * This field is read-only. */
+	return task;
+}
+
+/******************************************************************************/
+static void print_rt_task_info(void)
+{
+	uint32_t	task, sp;
+
+	sp = get_stack_pointer();
+	task = get_task();
+	fsl_print("\t cluster = %d core = %d id = %d\n",
+		  (task >> 6) & 0x3, (task >> 4) & 0x3, task & 0xf);
+	fsl_print("\t [SP = 0x%08x] Stack size %s\n", sp,
+		  sp > 1 * 1024 && sp <= 2 * 1024 ? "2 kB" :
+		  sp > 2 * 1024 && sp <= 4 * 1024 ? "4 kB" :
+		  sp > 4 * 1024 && sp <= 8 * 1024 ? "8 kB" :
+		  sp > 8 * 1024 && sp <= 16 * 1024 ? "16 kB" :
+		  "32 kB");
+}
+
+/******************************************************************************/
+static __COLD_CODE int scn_iova_slab_allocate(uint32_t num_buffers)
+{
+	int	err;
+
+	err = slab_register_context_buffer_requirements(num_buffers,
+							num_buffers,
+							SCN_SIZE, SCN_ALIGN,
+							MEM_PART_SYSTEM_DDR,
+							0, 0);
+	if (err)
+		return err;
+	fsl_print("\t >>> SCN IOVAs pool : %d Allocated\n", num_buffers);
+	return 0;
+}
+
+/******************************************************************************/
+static __COLD_CODE int scn_iova_slab_create(uint32_t num, struct slab **handle)
+{
+	int		err;
+
+	/* Allocate buffers for DPNI pools BPSCN iova */
+	err = slab_create(num, num, SCN_SIZE, SCN_ALIGN, MEM_PART_SYSTEM_DDR,
+			  0, NULL, handle);
+	if (err) {
+		pr_err("SCN slab_create failed\n");
+		return err;
+	}
+	fsl_print("\t >>> SCN IOVAs pool : Created %d\n", num);
+	return 0;
+}
+
+/******************************************************************************/
+static __COLD_CODE int scn_iova_get(struct slab	*handle, uint64_t *scn_iova)
+{
+	int		err;
+
+	*scn_iova = 0;
+	err = slab_acquire(handle, scn_iova);
+	if (err) {
+		pr_err("SCN_IOVA slab_acquire failed\n");
+		return err;
+	}
+	return 0;
+}
+
+/******************************************************************************/
+static void scn_iova_init(uint64_t iova)
+{
+	uint8_t		ws_iova[SCN_SIZE];
+	int		i;
+
+	for (i = 0; i < SCN_SIZE; i++)
+		ws_iova[i] = 0;
+	cdma_write(iova, &ws_iova[0], SCN_SIZE);
+}
+
+#endif /* (defined(CSCN_CONGESTION_TEST) || defined(BPSCN_DEPLETION_TEST)) */
+
 #ifdef PRINT_LINK_CFG
 /******************************************************************************/
 static __COLD_CODE void print_link_cfg(uint16_t ni)
@@ -836,107 +948,6 @@ __HOT_CODE ENTRY_POINT static void app_frame_cb(void)
 		ARCH_FDMA_DISCARD_FD();
 	pr_err("Failed to send frame\n");
 	fdma_terminate_task();
-}
-
-/******************************************************************************/
-static uint32_t get_stack_pointer(void)
-{
-	register uint32_t	sp;
-
-	asm { stw rsp, sp; }
-	return sp;
-}
-
-/******************************************************************************/
-static uint32_t get_task(void)
-{
-	register uint32_t	task;
-
-	asm { mfdcr  task, dcr476;	/* TASKCSR0 */ }
-	/* C:\E_Content\LinuxSDK\AIOP-SL\AIOP - e200
-	 * AIOP z490 CPU Specification rev1.8.pdf
-	 *
-	 * Bits 24:31 - TASKID : This field is provided for software use to
-	 * determine the active Task ID. This value is a global value for the
-	 * AIOP Tile, thus the most significant four bits are determined by
-	 * core cluster ID (bits 24:25) and core within cluster ID (bits 26:27).
-	 * The local task number is indicated in bits 28:31.
-	 * This field is read-only. */
-	return task;
-}
-
-/******************************************************************************/
-static void print_rt_task_info(void)
-{
-	uint32_t	task, sp;
-
-	sp = get_stack_pointer();
-	task = get_task();
-	fsl_print("\t cluster = %d core = %d id = %d\n",
-		  (task >> 6) & 0x3, (task >> 4) & 0x3, task & 0xf);
-	fsl_print("\t [SP = 0x%08x] Stack size %s\n", sp,
-		  sp > 1 * 1024 && sp <= 2 * 1024 ? "2 kB" :
-		  sp > 2 * 1024 && sp <= 4 * 1024 ? "4 kB" :
-		  sp > 4 * 1024 && sp <= 8 * 1024 ? "8 kB" :
-		  sp > 8 * 1024 && sp <= 16 * 1024 ? "16 kB" :
-		  "32 kB");
-}
-
-/******************************************************************************/
-static __COLD_CODE int scn_iova_slab_allocate(uint32_t num_buffers)
-{
-	int	err;
-
-	err = slab_register_context_buffer_requirements(num_buffers,
-							num_buffers,
-							SCN_SIZE, SCN_ALIGN,
-							MEM_PART_SYSTEM_DDR,
-							0, 0);
-	if (err)
-		return err;
-	fsl_print("\t >>> SCN IOVAs pool : %d Allocated\n", num_buffers);
-	return 0;
-}
-
-/******************************************************************************/
-static __COLD_CODE int scn_iova_slab_create(uint32_t num, struct slab **handle)
-{
-	int		err;
-
-	/* Allocate buffers for DPNI pools BPSCN iova */
-	err = slab_create(num, num, SCN_SIZE, SCN_ALIGN, MEM_PART_SYSTEM_DDR,
-			  0, NULL, handle);
-	if (err) {
-		pr_err("SCN slab_create failed\n");
-		return err;
-	}
-	fsl_print("\t >>> SCN IOVAs pool : Created %d\n", num);
-	return 0;
-}
-
-/******************************************************************************/
-static __COLD_CODE int scn_iova_get(struct slab	*handle, uint64_t *scn_iova)
-{
-	int		err;
-
-	*scn_iova = 0;
-	err = slab_acquire(handle, scn_iova);
-	if (err) {
-		pr_err("SCN_IOVA slab_acquire failed\n");
-		return err;
-	}
-	return 0;
-}
-
-/******************************************************************************/
-static void scn_iova_init(uint64_t iova)
-{
-	uint8_t		ws_iova[SCN_SIZE];
-	int		i;
-
-	for (i = 0; i < SCN_SIZE; i++)
-		ws_iova[i] = 0;
-	cdma_write(iova, &ws_iova[0], SCN_SIZE);
 }
 
 #ifdef BPSCN_DEPLETION_TEST
@@ -1355,7 +1366,7 @@ __HOT_CODE void cscn_callback(void)
 		is_congested = 1;
 		term_tasks = 0;
 		/* Let accumulated packets to be consumed */
-		fdma_xon(1, dpni_fqid, 1, 0x0018, 0);
+		fdma_xon(FLOW_CONTROL_FQID, dpni_fqid, 0);
 	}
 	while (congested && is_congested) {
 		/* Let other tasks to be scheduled on this core */
@@ -1384,7 +1395,7 @@ static __HOT_CODE ENTRY_POINT void app_cscn_congestion_process_cb(void)
 		first_task_id = id;
 		/*dump_adq("RX task");*/
 		if (task_get_receive_niid() == 1)
-			fdma_xoff(1, dpni_fqid, 1, 0x0018, 0);
+			fdma_xoff(FLOW_CONTROL_FQID, dpni_fqid, 0);
 	}
 	atomic_incr64(&num_tasks, 1);
 	/* Send the packet and do not terminate the task. Buffer depletion
@@ -1416,7 +1427,7 @@ static __HOT_CODE ENTRY_POINT void app_cscn_congestion_process_cb(void)
 			is_congested = cs;
 			term_tasks = 0;
 			if (task_get_receive_niid() == 1)
-				fdma_xon(1, dpni_fqid, 1, 0x0018, 0);
+				fdma_xon(FLOW_CONTROL_FQID, dpni_fqid, 0);
 		}
 	}
 	if (id != first_task_id) {
