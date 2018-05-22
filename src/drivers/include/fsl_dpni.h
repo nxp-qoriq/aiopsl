@@ -1705,4 +1705,81 @@ int dpni_get_sw_sequence_layout(struct fsl_mc_io *mc_io,
 void dpni_extract_sw_sequence_layout(struct dpni_sw_sequence_layout *layout,
 			     const uint8_t *sw_sequence_layout_buf);
 
+/**************************************************************************//**
+@Description	 enum dpni_mac_flags - DPNI MAC flags.
+
+*//***************************************************************************/
+enum dpni_mac_flags {
+	/** Enable Priority Flow Control (PFC) mode. MAC will transmit and
+	 * accept PFC frames. */
+	DPNI_MAC_PFC_EN =		0x00001,
+	/** Disable Priority Flow Control (PFC) mode. MAC uses standard Link
+	 * Pause frames. */
+	DPNI_MAC_PFC_DIS =		0x00002,
+	/** Payload length check enable. MAC compares the frame payload length
+	 * with the frame Length/Type field. */
+	DPNI_MAC_LEN_CHK_EN =		0x00004,
+	/** Payload length check disable. Payload length check is disabled. */
+	DPNI_MAC_LEN_CHK_DIS =		0x00008,
+	/** Control frame reception enable. All control frames are accepted. */
+	DPNI_MAC_CTRL_FRM_EN =		0x00010,
+	/** Control frame reception disable. Only Pause frames are accepted
+	 * (all other control frames are rejected). */
+	DPNI_MAC_CTRL_FRM_DIS =		0x00020,
+	/** Loopback enable (debug purpose). Internal loopback mode enabled. */
+	DPNI_MAC_CTRL_LOOP_EN =		0x00040,
+	/** Loopback disable. Internal loopback mode disabled. */
+	DPNI_MAC_CTRL_LOOP_DIS =	0x00080,
+	/** Enable Ignore Pause frames. MAC ignores received Pause frames. */
+	DPNI_MAC_PAUSE_IGN_EN =		0x00100,
+	/** Disable Ignore Pause frames. MAC stops transmit process for the
+	 * duration specified in the Pause frame quanta of a received Pause
+	 * frame. */
+	DPNI_MAC_PAUSE_IGN_DIS =	0x00200,
+	/** Forward received Pause frames. MAC forwards Pause frames to the user
+	 * application. */
+	DPNI_MAC_PAUSE_FWD_EN =		0x00400,
+	/** Terminate received Pause frames. MAC terminates and discards
+	 * received Pause frames. */
+	DPNI_MAC_PAUSE_FWD_DIS =	0x00800,
+	/** Forward CRC of received frames. (This is only applicable if
+	 * padding removal is disabled). MAC forwards CRC of received frames to
+	 * the user application. */
+	DPNI_MAC_CRC_FWD_EN =		0x01000,
+	/** Terminate CRC of received frames. (This is only applicable if
+	 * padding removal is disabled). MAC strips CRC from received frames. */
+	DPNI_MAC_CRC_FWD_DIS =		0x02000,
+	/** Enable frame padding removal in receive path. MAC removes padding
+	 * prior to forwarding frames to the user application. */
+	DPNI_MAC_PAD_EN =		0x04000,
+	/** Disable frame padding removal in receive path. MAC does not remove
+	 * padding prior to forwarding frames to the user application. */
+	DPNI_MAC_PAD_DIS =		0x08000
+};
+
+/**
+ * dpni_set_mac_flags() - Set/Clears MAC flags
+ * @mc_io:	Pointer to MC portal's I/O object
+ * @cmd_flags:	Command flags; one or more of 'MC_CMD_FLAG_'
+ * @token:	Token of DPNI object
+ * @flags:	MAC flags to be set/cleared
+ *
+ * Return:	'0' on Success; Error code otherwise.
+ */
+
+int dpni_set_mac_flags(struct fsl_mc_io *mc_io, uint32_t cmd_flags,
+		       uint16_t token, uint32_t flags);
+
+/**
+ * dpni_get_mac_flags() - Get MAC flags
+ * @mc_io:	Pointer to MC portal's I/O object
+ * @cmd_flags:	Command flags; one or more of 'MC_CMD_FLAG_'
+ * @token:	Token of DPNI object
+ * @flags:	MAC flags
+ *
+ * Return:	'0' on Success; Error code otherwise.
+ */
+int dpni_get_mac_flags(struct fsl_mc_io *mc_io, uint32_t cmd_flags,
+		       uint16_t token, uint32_t *flags);
+
 #endif /* __FSL_DPNI_H */

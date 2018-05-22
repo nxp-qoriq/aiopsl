@@ -2945,6 +2945,54 @@ void dpni_extract_sw_sequence_layout(struct dpni_sw_sequence_layout *layout,
 	}
 }
 
+/**
+ * dpni_set_mac_flags() - Set/Clear MAC flags
+ * @mc_io:	Pointer to MC portal's I/O object
+ * @cmd_flags:	Command flags; one or more of 'MC_CMD_FLAG_'
+ * @token:	Token of DPNI object
+ * @flags:	MAC flags to be set/cleared
+ *
+ * Return:	'0' on Success; Error code otherwise.
+ */
+int dpni_set_mac_flags(struct fsl_mc_io *mc_io, uint32_t cmd_flags,
+		       uint16_t token, uint32_t flags)
+{
+	struct mc_command	cmd = { 0 };
+
+	/* Prepare command */
+	cmd.header = mc_encode_cmd_header(DPNI_CMDID_SET_MAC_FLAGS, cmd_flags,
+					  token);
+	cmd.params[0] = cpu_to_le64((uint64_t)flags);
+	/* Send command to mc*/
+	return mc_send_command(mc_io, &cmd);
+}
+
+/**
+ * dpni_get_mac_flags() - Get MAC flags
+ * @mc_io:	Pointer to MC portal's I/O object
+ * @cmd_flags:	Command flags; one or more of 'MC_CMD_FLAG_'
+ * @token:	Token of DPNI object
+ * @flags:	MAC flags
+ *
+ * Return:	'0' on Success; Error code otherwise.
+ */
+int dpni_get_mac_flags(struct fsl_mc_io *mc_io, uint32_t cmd_flags,
+		       uint16_t token, uint32_t *flags)
+{
+	struct mc_command	cmd = { 0 };
+	int			err;
+
+	/* Prepare command */
+	cmd.header = mc_encode_cmd_header(DPNI_CMDID_GET_MAC_FLAGS, cmd_flags,
+					  token);
+	/* Send command to mc*/
+	err = mc_send_command(mc_io, &cmd);
+	if (err)
+		return err;
+	*flags = le32_to_cpu(*(uint32_t *)cmd.params);
+	return 0;
+}
+
 #include "fsl_dpcon.h"
 #include "fsl_dpcon_cmd.h"
 /**

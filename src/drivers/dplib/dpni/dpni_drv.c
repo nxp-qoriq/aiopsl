@@ -4336,6 +4336,136 @@ __COLD_CODE int dpni_drv_get_fqid(uint16_t ni_id,
 	return 0;
 }
 
+/******************************************************************************/
+static __COLD_CODE int dpni_check_mac_flags(uint32_t flags)
+{
+	int	err;
+
+	err = 0;
+	/* PFC mode */
+	if ((flags & DPNI_DRV_MAC_PFC_EN) && (flags & DPNI_DRV_MAC_PFC_DIS)) {
+		pr_err("PFC mode enable and disable requested\n");
+		err = -1;
+	}
+	/* Length Check */
+	if ((flags & DPNI_DRV_MAC_LEN_CHK_EN) &&
+	    (flags & DPNI_DRV_MAC_LEN_CHK_DIS)) {
+		pr_err("Payload Length Check enable and disable requested\n");
+		err = -1;
+	}
+	/* Control Frames */
+	if ((flags & DPNI_DRV_MAC_CTRL_FRM_EN) &&
+	    (flags & DPNI_DRV_MAC_CTRL_FRM_DIS)) {
+		pr_err("Control Frames enable and disable requested\n");
+		err = -1;
+	}
+	/* Pause Forward */
+	if ((flags & DPNI_DRV_MAC_PAUSE_FWD_EN) &&
+	    (flags & DPNI_DRV_MAC_PAUSE_FWD_DIS)) {
+		pr_err("Pause Forward enable and disable requested\n");
+		err = -1;
+	}
+	/* CRC Forward */
+	if ((flags & DPNI_DRV_MAC_CRC_FWD_EN) &&
+	    (flags & DPNI_DRV_MAC_CRC_FWD_DIS)) {
+		pr_err("CRC Forward enable and disable requested\n");
+		err = -1;
+	}
+	/* Padding Removal */
+	if ((flags & DPNI_DRV_MAC_PAD_EN) && (flags & DPNI_DRV_MAC_PAD_DIS)) {
+		pr_err("Padding Removal enable and disable requested\n");
+		err = -1;
+	}
+	/* Loopback mode */
+	if ((flags & DPNI_DRV_MAC_CTRL_LOOP_EN) &&
+	    (flags & DPNI_DRV_MAC_CTRL_LOOP_DIS)) {
+		pr_err("Loopback mode enable and disable requested\n");
+		err = -1;
+	}
+	/* Pause Ignore */
+	if ((flags & DPNI_DRV_MAC_PAUSE_IGN_EN) &&
+	    (flags & DPNI_DRV_MAC_PAUSE_IGN_DIS)) {
+		pr_err("Pause Ignore enable and disable requested\n");
+		err = -1;
+	}
+	return err;
+}
+
+/******************************************************************************/
+__COLD_CODE int dpni_drv_set_mac_flags(uint16_t ni_id, uint32_t flags)
+{
+	struct mc_dprc		*dprc;
+	int			err, err_close;
+	uint16_t		dpni_token;
+
+	err = dpni_check_mac_flags(flags);
+	if (err)
+		return -EINVAL;
+	dprc = sys_get_unique_handle(FSL_MOD_AIOP_RC);
+	if (!dprc) {
+		pr_err("No AIOP container found\n");
+		return -ENODEV;
+	}
+	cdma_mutex_lock_take((uint64_t)nis, CDMA_MUTEX_READ_LOCK);
+	err = dpni_open(&dprc->io, 0, (int)nis[ni_id].dpni_id, &dpni_token);
+	cdma_mutex_lock_release((uint64_t)nis);
+	if (err) {
+		pr_err("dpni_open() failed\n");
+		return err;
+	}
+	err = dpni_set_mac_flags(&dprc->io, 0, dpni_token, flags);
+	if (err) {
+		pr_err("dpni_config_mac_flags() failed");
+		err_close = dpni_close(&dprc->io, 0, dpni_token);
+		if (err_close)
+			pr_err("dpni_close() failed");
+		return err;
+	}
+
+	err = dpni_close(&dprc->io, 0, dpni_token);
+	if (err) {
+		pr_err("dpni_close() failed");
+		return err;
+	}
+	return 0;
+}
+
+/******************************************************************************/
+__COLD_CODE int dpni_drv_get_mac_flags(uint16_t ni_id, uint32_t *flags)
+{
+	struct mc_dprc		*dprc;
+	int			err, err_close;
+	uint16_t		dpni_token;
+
+	dprc = sys_get_unique_handle(FSL_MOD_AIOP_RC);
+	if (!dprc) {
+		pr_err("No AIOP container found\n");
+		return -ENODEV;
+	}
+	cdma_mutex_lock_take((uint64_t)nis, CDMA_MUTEX_READ_LOCK);
+	err = dpni_open(&dprc->io, 0, (int)nis[ni_id].dpni_id, &dpni_token);
+	cdma_mutex_lock_release((uint64_t)nis);
+	if (err) {
+		pr_err("dpni_open() failed\n");
+		return err;
+	}
+	err = dpni_get_mac_flags(&dprc->io, 0, dpni_token, flags);
+	if (err) {
+		pr_err("dpni_config_mac_flags() failed");
+		err_close = dpni_close(&dprc->io, 0, dpni_token);
+		if (err_close)
+			pr_err("dpni_close() failed");
+		return err;
+	}
+
+	err = dpni_close(&dprc->io, 0, dpni_token);
+	if (err) {
+		pr_err("dpni_close() failed");
+		return err;
+	}
+	return 0;
+}
+
 #ifdef SL_DEBUG
 /******************************************************************************/
 __COLD_CODE void dpni_drv_dump_tx_taildrop(uint16_t ni_id, uint8_t tc_id)

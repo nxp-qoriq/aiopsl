@@ -702,6 +702,58 @@ enum dpni_drv_queue_type {
 	DPNI_DRV_QUEUE_RX_ERR
 };
 
+/**************************************************************************//**
+@Description	 enum dpni_drv_mac_flags - DPNI MAC flags.
+
+*//***************************************************************************/
+enum dpni_drv_mac_flags {
+	/** Enable Priority Flow Control (PFC) mode. MAC will transmit and
+	 * accept PFC frames. */
+	DPNI_DRV_MAC_PFC_EN =		0x00001,
+	/** Disable Priority Flow Control (PFC) mode. MAC uses standard Link
+	 * Pause frames. */
+	DPNI_DRV_MAC_PFC_DIS =		0x00002,
+	/** Payload length check enable. MAC compares the frame payload length
+	 * with the frame Length/Type field. */
+	DPNI_DRV_MAC_LEN_CHK_EN =	0x00004,
+	/** Payload length check disable. Payload length check is disabled. */
+	DPNI_DRV_MAC_LEN_CHK_DIS =	0x00008,
+	/** Control frame reception enable. All control frames are accepted. */
+	DPNI_DRV_MAC_CTRL_FRM_EN =	0x00010,
+	/** Control frame reception disable. Only Pause frames are accepted
+	 * (all other control frames are rejected). */
+	DPNI_DRV_MAC_CTRL_FRM_DIS =	0x00020,
+	/** Loopback enable (debug purpose). Internal loopback mode enabled. */
+	DPNI_DRV_MAC_CTRL_LOOP_EN =	0x00040,
+	/** Loopback disable. Internal loopback mode disabled. */
+	DPNI_DRV_MAC_CTRL_LOOP_DIS =	0x00080,
+	/** Enable Ignore Pause frames. MAC ignores received Pause frames. */
+	DPNI_DRV_MAC_PAUSE_IGN_EN =	0x00100,
+	/** Disable Ignore Pause frames. MAC stops transmit process for the
+	 * duration specified in the Pause frame quanta of a received Pause
+	 * frame. */
+	DPNI_DRV_MAC_PAUSE_IGN_DIS =	0x00200,
+	/** Forward received Pause frames. MAC forwards Pause frames to the user
+	 * application. */
+	DPNI_DRV_MAC_PAUSE_FWD_EN =	0x00400,
+	/** Terminate received Pause frames. MAC terminates and discards
+	 * received Pause frames. */
+	DPNI_DRV_MAC_PAUSE_FWD_DIS =	0x00800,
+	/** Forward CRC of received frames. (This is only applicable if
+	 * padding removal is disabled). MAC forwards CRC of received frames to
+	 * the user application. */
+	DPNI_DRV_MAC_CRC_FWD_EN =	0x01000,
+	/** Terminate CRC of received frames. (This is only applicable if
+	 * padding removal is disabled). MAC strips CRC from received frames. */
+	DPNI_DRV_MAC_CRC_FWD_DIS =	0x02000,
+	/** Enable frame padding removal in receive path. MAC removes padding
+	 * prior to forwarding frames to the user application. */
+	DPNI_DRV_MAC_PAD_EN =		0x04000,
+	/** Disable frame padding removal in receive path. MAC does not remove
+	 * padding prior to forwarding frames to the user application. */
+	DPNI_DRV_MAC_PAD_DIS =		0x08000
+};
+
 #include "fsl_dpni.h"
 
 /**************************************************************************//**
@@ -2626,6 +2678,37 @@ int dpni_drv_get_pool_depletion(uint32_t flags, struct dpni_drv_bpscn_cfg *cfg);
 *//***************************************************************************/
 int dpni_drv_get_fqid(uint16_t ni_id, enum dpni_drv_queue_type qtype,
 		      uint8_t tc, uint32_t *fqid);
+
+/**************************************************************************//**
+@Function	dpni_drv_set_mac_flags
+
+@Description	Set/Clear MAC interface flags.
+
+@Param[in]	ni_id : The AIOP Network Interface ID
+
+@Param[in]	flags : OR'ed combination values of dpni_drv_mac_flags
+		enumeration. See \ref enum dpni_drv_mac_flags
+		If one flag is configured it's mandatory to chose one of the
+		two possible values (enable or disable) not the both.
+
+@Return	0 on success;
+	error code, otherwise. For error posix refer to \ref error_g
+*//***************************************************************************/
+int dpni_drv_set_mac_flags(uint16_t ni_id, uint32_t flags);
+
+/**************************************************************************//**
+@Function	dpni_drv_get_mac_flags
+
+@Description	Get MAC interface flags.
+
+@Param[in]	ni_id : The AIOP Network Interface ID
+
+@Param[out]	flags : Configured flags. See \ref enum dpni_drv_mac_flags
+
+@Return	0 on success;
+	error code, otherwise. For error posix refer to \ref error_g
+*//***************************************************************************/
+int dpni_drv_get_mac_flags(uint16_t ni_id, uint32_t *flags);
 
 #ifdef SL_DEBUG
 /**************************************************************************//**
