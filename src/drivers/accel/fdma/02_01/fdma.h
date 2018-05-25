@@ -303,18 +303,12 @@
 #define FDMA_ENQUEUE_WF_QD_ARG3(_hash_value)				\
 	(uint32_t)(_hash_value)
 
-	/** FDMA Flow control command arg1 */
-#define FDMA_FLOW_CTRL_ARG1(_tc, _x, _type)		\
-	(uint32_t)((_tc << 24) |					\
-	(_x << 9) | (_type << 8) | FDMA_FLOW_CONTROL_CMD)
-
-	/** FDMA Flow control command arg2 */
-#define FDMA_FLOW_CTRL_ARG2(_fqidtc)				\
-	(uint32_t)(_fqidtc)
-
-	/** FDMA Flow control command arg3 */
-#define FDMA_FLOW_CTRL_ARG3(_bdi, _icid)				\
-	(uint32_t)((_bdi << 15) | (_icid << 14))
+	/** FDMA FQ flow control type */
+#define FDMA_FLOW_CTRL_TYPE_FQ		0x00000100
+	/** FDMA flow control XOFF */
+#define FDMA_FLOW_CTRL_XOFF		0x00000200
+	/** FDMA BDI bit shift */
+#define FDMA_FLOW_CTRL_BDI_SHIFT	15
 
 	/** FDMA Enqueue frame command arg1 */
 #define FDMA_ENQUEUE_FRAME_ARG1(_flags)					\
@@ -711,8 +705,13 @@ enum fdma_hw_errors {
 	FDMA_INVALID_DMA_COMMAND_ERR = 0x87,
 		/** Internal memory ECC uncorrected ECC error. */
 	FDMA_INTERNAL_MEMORY_ECC_ERR = 0xA0,
-		/** Workspace memory read Error. */
-	FDMA_WORKSPACE_MEMORY_READ_ERR = 0xA1,
+		/** Workspace memory read Error.
+		 * 0xA1: Workspace memory read Error (not applicable in
+		 * AIOP 1.1, now reported with 0xAE). The 0xAE error code is
+		 * similar to the 0xA1 but more specific to the read of the
+		 * acceleration command */
+	FDMA_WORKSPACE_MEMORY_READ_ERR_A1 = 0xA1,
+	FDMA_WORKSPACE_MEMORY_READ_ERR = 0xAE,
 		/** Workspace memory write Error. */
 	FDMA_WORKSPACE_MEMORY_WRITE_ERR = 0xA2,
 		/** System memory read error (permission or ECC). */
@@ -737,7 +736,6 @@ enum fdma_hw_errors {
 	FDMA_CONCATENATE_ICID_NOT_MATCH_ERR = 0xAB,
 		/** Shared SRAM memory write Error. */
 	FDMA_SHARED_SRAM_MEMORY_WRITE_ERROR = 0xAC
-
 };
 
 /* @} end of enum fdma_hw_errors */

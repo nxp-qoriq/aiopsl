@@ -1353,6 +1353,7 @@ void fdma_exception_handler(enum fdma_function_identifier func_id,
 		err_msg = "Internal memory ECC uncorrected ECC error.\n";
 		break;
 	case FDMA_WORKSPACE_MEMORY_READ_ERR:
+	case FDMA_WORKSPACE_MEMORY_READ_ERR_A1:
 		err_msg = "Workspace memory read Error.\n";
 		break;
 	case FDMA_WORKSPACE_MEMORY_WRITE_ERR:

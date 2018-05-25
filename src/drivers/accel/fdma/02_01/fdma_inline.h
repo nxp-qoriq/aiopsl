@@ -1075,86 +1075,55 @@ inline int fdma_present_default_frame_default_segment()
 	return (int32_t)(res1);
 }
 
-inline int fdma_xon(enum fdma_flow_control_type type, uint32_t id, uint8_t tc)
+/******************************************************************************/
+inline void fdma_fq_xon(uint32_t fqid)
 {
-	/* command parameters and results */
-	uint32_t	arg1, arg2, arg3;
-	uint32_t	bdi, icid;
-	int8_t		res1;
+	uint32_t	bdi_icid;
+	int8_t		res;
 	struct additional_dequeue_context *adc;
 
+	/* Prepare command parameters */
 	adc = (struct additional_dequeue_context *)HWC_ADC_ADDRESS;
-	icid = (uint32_t)(LH_SWAP(0, &adc->pl_icid) & ADC_ICID_MASK);
-	bdi = (uint32_t)(adc->fdsrc_va_fca_bdi & ADC_BDI_MASK);
-
-	if (type == FLOW_CONTROL_TC) {
-		/* prepare command parameters */
-		arg1 = FDMA_FLOW_CTRL_ARG1(tc, 0, type);
-		arg2 = FDMA_FLOW_CTRL_ARG2(id);
-		arg3 = 0;
-	} else if (type == FLOW_CONTROL_FQID) {
-		/* prepare command parameters */
-		arg1 = FDMA_FLOW_CTRL_ARG1(0, 0, type);
-		arg2 = FDMA_FLOW_CTRL_ARG2(id);
-		arg3 = FDMA_FLOW_CTRL_ARG3(bdi, icid);
-	} else {
-		return -EINVAL;
+	/* ICID and BDI as 3'rd argument */
+	bdi_icid = (uint32_t)(LH_SWAP(0, &adc->pl_icid) & ADC_ICID_MASK);
+	bdi_icid |= (uint32_t)(adc->fdsrc_va_fca_bdi & ADC_BDI_MASK) <<
+			       FDMA_FLOW_CTRL_BDI_SHIFT;
+	/* Store command parameters */
+	__stqw((FDMA_FLOW_CTRL_TYPE_FQ | FDMA_FLOW_CONTROL_CMD),
+	       fqid, bdi_icid, 0, HWC_ACC_IN_ADDRESS, 0);
+	/* Call FDMA Accelerator */
+	res = __e_hwacceli_(FODMA_ACCEL_ID);
+	if (res != FDMA_SUCCESS) {
+		/* Load result */
+		res = *((int8_t *)(FDMA_STATUS_ADDR));
+		fdma_exception_handler(FDMA_FLOW_CONTROL_XON, __LINE__, res);
 	}
-
-	/* store command parameters */
-	__stqw(arg1, arg2, arg3, 0, HWC_ACC_IN_ADDRESS, 0);
-
-	/* call FDMA Accelerator */
-	if ((__e_hwacceli_(FODMA_ACCEL_ID)) == FDMA_SUCCESS)
-		return SUCCESS;
-	/* load command results */
-	res1 = *((int8_t *)(FDMA_STATUS_ADDR));
-
-	fdma_exception_handler(FDMA_FLOW_CONTROL_XON,
-			       __LINE__, (int32_t)res1);
-
-	return (int32_t)(res1);
 }
 
-inline int fdma_xoff(enum fdma_flow_control_type type, uint32_t id, uint8_t tc)
+/******************************************************************************/
+inline void fdma_fq_xoff(uint32_t fqid)
 {
-	/* command parameters and results */
-	uint32_t	arg1, arg2, arg3;
-	uint32_t	bdi, icid;
-	int8_t		res1;
+	uint32_t	bdi_icid;
+	int8_t		res;
 	struct additional_dequeue_context *adc;
 
+	/* Prepare command parameters */
 	adc = (struct additional_dequeue_context *)HWC_ADC_ADDRESS;
-	icid = (uint32_t)(LH_SWAP(0, &adc->pl_icid) & ADC_ICID_MASK);
-	bdi = (uint32_t)(adc->fdsrc_va_fca_bdi & ADC_BDI_MASK);
-
-	if (type == FLOW_CONTROL_TC) {
-		/* prepare command parameters */
-		arg1 = FDMA_FLOW_CTRL_ARG1(tc, 1, type);
-		arg2 = FDMA_FLOW_CTRL_ARG2(id);
-		arg3 = 0;
-	} else if (type == FLOW_CONTROL_FQID) {
-		/* prepare command parameters */
-		arg1 = FDMA_FLOW_CTRL_ARG1(0, 1, type);
-		arg2 = FDMA_FLOW_CTRL_ARG2(id);
-		arg3 = FDMA_FLOW_CTRL_ARG3(bdi, icid);
-	} else {
-		return -EINVAL;
+	/* ICID and BDI as 3'rd argument */
+	bdi_icid = (uint32_t)(LH_SWAP(0, &adc->pl_icid) & ADC_ICID_MASK);
+	bdi_icid |= (uint32_t)(adc->fdsrc_va_fca_bdi & ADC_BDI_MASK) <<
+			       FDMA_FLOW_CTRL_BDI_SHIFT;
+	/* Store command parameters */
+	__stqw((FDMA_FLOW_CTRL_XOFF | FDMA_FLOW_CTRL_TYPE_FQ |
+		FDMA_FLOW_CONTROL_CMD),
+	       fqid, bdi_icid, 0, HWC_ACC_IN_ADDRESS, 0);
+	/* Call FDMA Accelerator */
+	res = __e_hwacceli_(FODMA_ACCEL_ID);
+	if (res != FDMA_SUCCESS) {
+		/* Load result */
+		res = *((int8_t *)(FDMA_STATUS_ADDR));
+		fdma_exception_handler(FDMA_FLOW_CONTROL_XOFF, __LINE__, res);
 	}
-
-	/* store command parameters */
-	__stqw(arg1, arg2, arg3, 0, HWC_ACC_IN_ADDRESS, 0);
-
-	/* call FDMA Accelerator */
-	if ((__e_hwacceli_(FODMA_ACCEL_ID)) == FDMA_SUCCESS)
-		return SUCCESS;
-	/* load command results */
-	res1 = *((int8_t *)(FDMA_STATUS_ADDR));
-
-	fdma_exception_handler(FDMA_FLOW_CONTROL_XOFF,
-			       __LINE__, (int32_t)res1);
-
-	return (int32_t)(res1);
 }
 
 #endif /* __FSL_FDMA_INLINE_H */
