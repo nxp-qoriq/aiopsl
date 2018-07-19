@@ -41,5 +41,10 @@ void build_apps_array(struct sys_module_desc *apps);
 
 extern struct platform_app_params g_app_params;
 
+enum flow_control_packet {
+	PAUSE_FRAME,
+	PFC_FRAME
+};
+
 #endif /* __PFC_DEMO_H */
 

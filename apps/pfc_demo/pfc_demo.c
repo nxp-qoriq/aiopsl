@@ -46,9 +46,6 @@
 
 static enum memory_partition_id		mem_partition_id;
 
-/* Enable PFC pause frame transmission */
-/*#define ENABLE_PFC_PAUSE*/
-
 /* Print link configuration */
 #define PRINT_LINK_CFG
 
@@ -80,6 +77,7 @@ static enum memory_partition_id		mem_partition_id;
 	uint64_t	is_depleted;
 	/* Congestion/Depletion is traced on this DPNI */
 	uint32_t	dpni_fqid;
+	uint16_t	dpni_niid;
 
 	/* Size of State Change Notification information (Do not change it) */
 	#define SCN_SIZE			64
@@ -91,6 +89,9 @@ static enum memory_partition_id		mem_partition_id;
 #endif	/* (defined(CSCN_CONGESTION_TEST) || defined(BPSCN_DEPLETION_TEST)) */
 
 #ifdef CSCN_CONGESTION_TEST
+/* Enable PFC pause frame transmission */
+/*#define ENABLE_WRIOP_PFC_PAUSE*/
+
 	/* To get CSCN notifications in AIOP define CSCN_NOTIFY as
 	 *	DPNI_CONG_OPT_NOTIFY_AIOP.
 	 * To send CSCN notifications to DPNIs CSCN_NOTIFY as
@@ -100,7 +101,12 @@ static enum memory_partition_id		mem_partition_id;
 	 *	DPNI_CONG_OPT_NOTIFY_AIOP | DPNI_CONG_OPT_NOTIFY_WRIOP.
 	 * For testing purposes set it to 0. In this case CSCN notifications
 	 * should not occur. */
+#ifdef	ENABLE_WRIOP_PFC_PAUSE
+	#define CSCN_NOTIFY	(DPNI_CONG_OPT_NOTIFY_AIOP \
+						| DPNI_CONG_OPT_NOTIFY_WRIOP)
+#else
 	#define CSCN_NOTIFY	DPNI_CONG_OPT_NOTIFY_AIOP
+#endif
 	/* Congestion is traced on this DPNI */
 	uint64_t	dpni_cscn_iova;
 	/* SYS DDR allocated pool of buffers */
@@ -166,9 +172,20 @@ static enum memory_partition_id		mem_partition_id;
 #define AIOP_ETH_MAC_CTRL_LEN	64
 
 /******************************************************************************/
-static void send_flow_ctrl_pkt(void)
+static void send_flow_ctrl_pkt(enum flow_control_packet pkt_type)
 {
 	int err = 0;
+
+	uint8_t	eth_pause_pkt[AIOP_ETH_MAC_CTRL_LEN] = {
+			0x01, 0x80, 0xc2, 0x00, 0x00, 0x01, 0x00, 0x00,
+			0x00, 0x00, 0x00, 0x07, 0x88, 0x08, 0x00, 0x01,
+			0x70, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+			0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+			0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+			0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+			0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+			0x00, 0x00, 0x00, 0x00
+	};
 
 	uint8_t	eth_pfc_pause_pkt[AIOP_ETH_MAC_CTRL_LEN] = {
 			0x01, 0x80, 0xc2, 0x00, 0x00, 0x01, 0x00, 0x00,
@@ -186,17 +203,30 @@ static void send_flow_ctrl_pkt(void)
 
 	fsl_print("Sending PFC PKT\n");
 
-	dpni_drv_get_spid(task_get_receive_niid(), &spid);
+	dpni_drv_get_spid(dpni_niid, &spid);
 
 	*((uint8_t *)HWC_SPID_ADDRESS) = (uint8_t)spid;
 
-	err = create_frame((struct ldpaa_fd *)HWC_FD_ADDRESS,
-			   eth_pfc_pause_pkt, AIOP_ETH_MAC_CTRL_LEN + 4,
-			   (uint8_t)spid, &frame_handle);
+	switch (pkt_type) {
+	case PAUSE_FRAME:
+		err = create_frame((struct ldpaa_fd *)HWC_FD_ADDRESS,
+				   eth_pause_pkt, AIOP_ETH_MAC_CTRL_LEN + 4,
+				   (uint8_t)spid, &frame_handle);
+		break;
+	case PFC_FRAME:
+		err = create_frame((struct ldpaa_fd *)HWC_FD_ADDRESS,
+				   eth_pfc_pause_pkt, AIOP_ETH_MAC_CTRL_LEN + 4,
+				   (uint8_t)spid, &frame_handle);
+		break;
+	default:
+		err = -EINVAL;
+		break;
+	}
+
 	if (err)
 		fsl_print("ERROR = %d: create_frame()\n", err);
 
-	err = dpni_drv_send(task_get_receive_niid(), DPNI_DRV_SEND_FLAGS);
+	err = dpni_drv_send(dpni_niid, DPNI_DRV_SEND_FLAGS);
 
 	if (err == -ENOMEM)
 		fdma_discard_default_frame(FDMA_DIS_NO_FLAGS);
@@ -453,6 +483,7 @@ __HOT_CODE void bpscn_callback(void)
 	if (depleted) {
 		is_depleted = 1;
 		term_tasks = 0;
+		send_flow_ctrl_pkt(PFC_FRAME);
 	}
 	while (depleted && is_depleted) {
 		/* Let other tasks to be scheduled on this core */
@@ -587,6 +618,7 @@ static int app_bpscn_depletion_dpni_add_cb(uint8_t generator_id,
 
 	/* This interface is tracked for depletion state */
 	if (ni == 1) {
+		dpni_niid = ni;
 		fsl_print("\t >>> Trace depletion on NI %d\n", ni);
 		err = dpni_drv_get_fqid(ni, DPNI_DRV_QUEUE_RX, 0, &dpni_fqid);
 		if (err) {
@@ -759,6 +791,9 @@ __HOT_CODE void cscn_callback(void)
 		term_tasks = 0;
 		/* Let accumulated packets to be consumed */
 		fdma_fq_xon(dpni_fqid);
+#ifndef ENABLE_WRIOP_PFC_PAUSE
+		send_flow_ctrl_pkt(PAUSE_FRAME);
+#endif
 	}
 	while (congested && is_congested) {
 		/* Let other tasks to be scheduled on this core */
@@ -816,7 +851,7 @@ static __HOT_CODE ENTRY_POINT void app_cscn_congestion_process_cb(void)
 			is_congested = cs;
 			term_tasks = 0;
 			if (task_get_receive_niid() == 1)
-				fdma_xon(FLOW_CONTROL_FQID, dpni_fqid, 0);
+				fdma_fq_xon(dpni_fqid);
 		}
 	}
 	if (id != first_task_id) {
@@ -946,6 +981,9 @@ static int app_cscn_congestion_dpni_add_cb(uint8_t generator_id,
 				   DPNI_CONG_OPT_WRITE_MEM_ON_ENTER |
 				   DPNI_CONG_OPT_WRITE_MEM_ON_EXIT |
 				   CSCN_NOTIFY;
+#ifdef ENABLE_WRIOP_PFC_PAUSE
+	cscn_cfg.notification_mode |= DPNI_CONG_OPT_FLOW_CONTROL;
+#endif
 	cscn_cfg.units = DPNI_DRV_CONGESTION_UNIT_FRAMES;
 	/* Above this threshold : enter the congestion state */
 	cscn_cfg.threshold_entry = CSCN_ENTRY_THRES;
@@ -962,6 +1000,7 @@ static int app_cscn_congestion_dpni_add_cb(uint8_t generator_id,
 	cscn_cfg.message_ctx = 0x0123456789ABCDEF;
 	/* This interface is tracked for congestion state */
 	if (ni == 1) {
+		dpni_niid = ni;
 		fsl_print("\t >>> Trace congestion on NI %d\n", ni);
 		dpni_cscn_iova = loc_iova;
 		err = dpni_drv_get_fqid(ni, DPNI_DRV_QUEUE_RX, 0, &dpni_fqid);
@@ -1033,7 +1072,7 @@ static int app_dpni_link_up_cb(uint8_t generator_id, uint8_t event_id,
 	ni = (uint16_t)((uint32_t)event_data);
 	fsl_print("%s : NI_%d link is UP\n", AIOP_APP_NAME, ni);
 	/* Enable PFC pause */
-#ifdef ENABLE_PFC_PAUSE
+#ifdef ENABLE_WRIOP_PFC_PAUSE
 	{
 		struct dpni_drv_link_state	state;
 		struct dpni_drv_link_cfg	cfg;
@@ -1046,7 +1085,11 @@ static int app_dpni_link_up_cb(uint8_t generator_id, uint8_t event_id,
 		}
 		cfg.rate = state.rate;
 		/*cfg.options = state.options | DPNI_LINK_OPT_PFC_PAUSE;*/
-		cfg.options = state.options | DPNI_DRV_LINK_OPT_PAUSE;
+		cfg.options = state.options | DPNI_LINK_OPT_PFC_PAUSE
+				| DPNI_DRV_LINK_OPT_PAUSE
+				| DPNI_CONG_OPT_FLOW_CONTROL;
+		cfg.options &= ~DPNI_LINK_OPT_ASYM_PAUSE;
+
 		err = dpni_drv_set_link_cfg(ni, &cfg);
 		if (err) {
 			pr_err("dpni_drv_set_link_cfg failed\n");
@@ -1054,7 +1097,7 @@ static int app_dpni_link_up_cb(uint8_t generator_id, uint8_t event_id,
 		}
 		print_link_cfg(ni);
 	}
-#endif	/* ENABLE_PFC_PAUSE */
+#endif	/* ENABLE_WRIOP_PFC_PAUSE */
 	return 0;
 }
 
