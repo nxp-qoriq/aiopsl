@@ -1770,7 +1770,7 @@ __COLD_CODE int dpni_drv_enable_etype_fs(uint16_t ni_id, uint16_t etype)
 	struct dpni_fs_action_cfg act;
 	uint16_t epid;
 	struct dpkg_profile_cfg key_cfg;
-	struct dpni_rx_tc_dist_cfg dist_cfg = {0};
+	struct dpni_rx_dist_cfg dist_cfg = {0};
 	uint8_t pos;
 
 	/* Lock dpni table */
@@ -1817,16 +1817,14 @@ __COLD_CODE int dpni_drv_enable_etype_fs(uint16_t ni_id, uint16_t etype)
 	dpni_prepare_key_cfg(&key_cfg, order_scope_buf);
 
 	dist_cfg.dist_size = DPNI_DEFAULT_DIST_SIZE;
-	dist_cfg.dist_mode = DPNI_DIST_MODE_FS;
-	dist_cfg.fs_cfg.keep_hash_key = 1;
-	dist_cfg.fs_cfg.miss_action = DPNI_FS_MISS_HASH;
+	dist_cfg.enable = 1;
 	dist_cfg.key_cfg_iova = (uint64_t)order_scope_buf;
 
 	for (i = 0; i < attr.num_rx_tcs; i++) {
 		/* set the key only once */
 		if (pos != 0)
 			break;
-		err = dpni_set_rx_tc_dist(&dprc->io, 0, dpni, i, &dist_cfg);
+		err = dpni_set_rx_fs_dist(&dprc->io, 0, dpni, i, &dist_cfg);
 		if (err) {
 			sl_pr_err("dpni_set_rx_tc_dist failed\n");
 			dpni_close(&dprc->io, 0, dpni);

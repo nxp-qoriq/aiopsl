@@ -512,6 +512,16 @@ struct dpni_cmd_set_rx_tc_dist {
 	uint64_t key_cfg_iova;
 };
 
+struct dpni_cmd_set_rx_dist {
+	uint16_t dist_size;
+	uint8_t enable;
+	uint8_t tc_id;
+	uint16_t flow_id;
+	uint16_t pad0;
+	uint64_t key_cfg_iova;
+};
+
+
 struct dpni_cmd_get_queue {
 	uint8_t qtype;
 	uint8_t tc;

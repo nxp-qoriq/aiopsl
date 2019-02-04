@@ -955,6 +955,35 @@ int dpni_set_rx_tc_dist(struct fsl_mc_io *mc_io,
 			const struct dpni_rx_tc_dist_cfg *cfg);
 
 /**
+ * struct dpni_rx_tc_dist_cfg - Rx traffic class distribution configuration
+ * @dist_size: Set the distribution size;
+ *	supported values: 1,2,3,4,6,7,8,12,14,16,24,28,32,48,56,64,96,
+ *	112,128,192,224,256,384,448,512,768,896,1024
+ * @dist_mode: Distribution mode
+ * @key_cfg_iova: I/O virtual address of 256 bytes DMA-able memory filled with
+ *		the extractions to be used for the distribution key by calling
+ *		dpkg_prepare_key_cfg() relevant only when
+ *		'dist_mode != DPNI_DIST_MODE_NONE', otherwise it can be '0'
+ * @fs_cfg: Flow Steering table configuration; only relevant if
+ *		'dist_mode = DPNI_DIST_MODE_FS'
+ */
+
+struct dpni_rx_dist_cfg {
+        uint16_t dist_size;
+        uint8_t enable;
+        uint16_t flow_id;
+
+        uint64_t key_cfg_iova;
+};
+
+int dpni_set_rx_fs_dist(struct fsl_mc_io *mc_io,
+			uint32_t cmd_flags,
+			uint16_t token,
+			uint8_t tc_id,
+			const struct dpni_rx_dist_cfg *cfg);
+
+
+/**
  * Set to select color aware mode (otherwise - color blind)
  */
 #define DPNI_POLICER_OPT_COLOR_AWARE	0x00000001

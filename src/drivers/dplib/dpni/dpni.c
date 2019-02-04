@@ -164,13 +164,16 @@ static int _mc_send_command(struct fsl_mc_io *mc_io, struct mc_command *cmd)
 	int i, ret;
 
 	for (i = 0; i < MC_CMD_NUM_OF_PARAMS; i++)
+	{
 		cmd->params[i] = cpu_to_le64(cmd->params[i]);
-
+	}
 	ret = mc_send_command(mc_io, cmd);
 
 	cmd->header = cpu_to_le64(cmd->header);
 	for (i = 0; i < MC_CMD_NUM_OF_PARAMS; i++)
+	{
 		cmd->params[i] = cpu_to_le64(cmd->params[i]);
+	}
 
 	return ret;
 }
@@ -1768,6 +1771,44 @@ int dpni_set_rx_tc_dist(struct fsl_mc_io *mc_io,
 	/* send command to mc*/
 	return mc_send_command(mc_io, &cmd);
 }
+
+/**
+ * dpni_set_rx_fs_dist() - Set Rx traffic class distribution configuration
+ * @mc_io:	Pointer to MC portal's I/O object
+ * @cmd_flags:	Command flags; one or more of 'MC_CMD_FLAG_'
+ * @token:	Token of DPNI object
+ * @tc_id:	Traffic class selection (0-7)
+ * @cfg:	Traffic class distribution configuration
+ *
+ * warning: if 'dist_mode != DPNI_DIST_MODE_NONE', call dpkg_prepare_key_cfg()
+ *			first to prepare the key_cfg_iova parameter
+ *
+ * Return:	'0' on Success; error code otherwise.
+ */
+int dpni_set_rx_fs_dist(struct fsl_mc_io *mc_io,
+			uint32_t cmd_flags,
+			uint16_t token,
+			uint8_t tc_id,
+			const struct dpni_rx_dist_cfg *cfg)
+{
+	struct mc_command cmd = { 0 };
+	struct dpni_cmd_set_rx_dist *cmd_params;
+
+	/* prepare command */
+	cmd.header = mc_encode_cmd_header(DPNI_CMDID_SET_RX_FS_DIST,
+					  cmd_flags,
+					  token);
+	cmd_params = (struct dpni_cmd_set_rx_dist *)cmd.params;
+	cmd_params->dist_size = cpu_to_le16(cfg->dist_size);
+	cmd_params->enable = cfg->enable;
+	cmd_params->tc_id = tc_id;
+	cmd_params->flow_id = cpu_to_le16(cfg->flow_id);
+	cmd_params->key_cfg_iova = cpu_to_le64(cfg->key_cfg_iova);
+
+	/* send command to mc*/
+	return mc_send_command(mc_io, &cmd);
+}
+
 
 /**
  * dpni_set_tx_confirmation_mode() - Tx confirmation mode
