@@ -2759,7 +2759,7 @@ int dpni_drv_set_tx_selection(uint16_t ni_id,
 	}
 
 	err = dpni_set_tx_priorities(&dprc->io, 0, dpni,
-	                            (struct dpni_tx_priorities_cfg *) &cfg);
+	                            (struct dpni_tx_priorities_cfg *) cfg);
 	if(err){
 		sl_pr_err("dpni_set_tx_selection failed\n");
 		dpni_close(&dprc->io, 0, dpni);
